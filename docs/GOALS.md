@@ -257,7 +257,20 @@ Maximal 20 Turns.
 
 ---
 
-## Phase 8 – Testing
+## Phase 8 – Testing ✅ (abgeschlossen 2026-06-10)
+
+> ✅ **Erledigt am 2026-06-10.** Vitest ^4.1.8 via Catalog im Core
+> (vitest.config.ts, tests/ am Layer-Root, explizite vitest-Imports statt
+> globals — hält die Playground-tsconfig sauber). 20 Tests in 2 Dateien,
+> alle grün via `pnpm --filter @maui/core test`: formatDate (Date-only-
+> Strings, Monatswechsel timezone-sicher, Date-Objekte, Timestamps,
+> Locales), formatCurrency (1.234,56 €, 0-Beträge, negative Beträge,
+> Rundung, Fremdwährung — Intl-NBSP via normalize() behandelt),
+> usePagination (Defaults, totalPages-Aufrundung, leere Page, next/prev-
+> Klemmung, setPage-Clamp, offset, reaktives total). Dafür nutzt
+> usePagination jetzt explizite Vue-Imports statt Nuxt-Auto-Imports —
+> ohne Nuxt-Context testbar. `nuxi typecheck` grün in Core + App.
+> Keine Component-Tests, kein E2E (Constraint).
 
 ```
 /goal Phase 8 laut docs/CONCEPT.md ist abgeschlossen.

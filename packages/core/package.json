@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "nuxi dev .playground --port 3000",
     "prepare:playground": "nuxi prepare .playground",
+    "test": "vitest run",
     "typecheck": "nuxi typecheck .playground"
   },
   "dependencies": {
@@ -22,6 +23,7 @@
   "devDependencies": {
     "@types/node": "catalog:",
     "nuxt": "catalog:",
+    "vitest": "catalog:",
     "typescript": "catalog:",
     "vue": "catalog:",
     "vue-tsc": "catalog:"

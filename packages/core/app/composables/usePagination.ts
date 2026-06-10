@@ -1,3 +1,6 @@
+// Explizite Vue-Imports statt Nuxt-Auto-Imports — das Composable ist
+// dadurch ohne Nuxt-Context unit-testbar (Phase 8)
+import { ref, computed, isRef } from 'vue'
 import type { Ref } from 'vue'
 
 export interface PaginationOptions {

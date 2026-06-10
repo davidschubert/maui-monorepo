@@ -19,5 +19,6 @@ catalog:
   pinia: ^3.0.4
   vue: ^3.5.35
   typescript: ^5.9.3
+  vitest: ^4.1.8
   vue-tsc: ^3.3.4
   zod: ^4.4.3
