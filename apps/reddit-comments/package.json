@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "nuxi dev --port 3001",
     "build": "nuxi build",
+    "lint": "eslint .",
     "preview": "nuxi preview",
     "typecheck": "nuxi typecheck"
   },
@@ -23,7 +24,9 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@nuxt/eslint-config": "catalog:",
     "@types/node": "catalog:",
+    "eslint": "catalog:",
     "typescript": "catalog:",
     "vue-tsc": "catalog:"
   }

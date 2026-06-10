@@ -8,6 +8,12 @@
   "scripts": {
     "dev:core": "pnpm --filter @maui/core dev",
     "dev:app": "pnpm --filter reddit-comments dev",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "@nuxt/eslint-config": "catalog:",
+    "eslint": "catalog:"
   }
 }

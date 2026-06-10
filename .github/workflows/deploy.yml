@@ -1,0 +1,33 @@
+# Deploy-Skeleton (Phase 9) — NUR Dokumentation, bewusst ohne Secrets.
+#
+# Deployment läuft über ploi.io (siehe docs/CONCEPT.md A9):
+#   Root Path:      apps/<app>
+#   Build Command:  pnpm --filter <app> build
+#   Start Command:  node apps/<app>/.output/server/index.mjs
+#   Deploy-Script:  npm i -g pnpm && pnpm install --frozen-lockfile && pnpm --filter <app> build
+#
+# Aktivierung später:
+#   1. In ploi.io pro App einen Deploy-Webhook erzeugen
+#   2. Webhook-URL als Repo-Secret PLOI_DEPLOY_WEBHOOK_REDDIT_COMMENTS hinterlegen
+#   3. Den auskommentierten Job unten einkommentieren
+#
+# Env Vars (NUXT_APPWRITE_KEY etc.) leben als Server Environment Variables
+# in ploi.io — NIE im Repo.
+
+name: Deploy
+
+on:
+  # Bewusst nur manuell auslösbar, solange der Webhook nicht konfiguriert ist
+  workflow_dispatch:
+
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Deploy-Skeleton — ploi.io-Webhook wird manuell konfiguriert (siehe Kommentare in dieser Datei)."
+
+  # deploy-reddit-comments:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Trigger ploi.io deploy webhook
+  #       run: curl -fsS -X POST "${{ secrets.PLOI_DEPLOY_WEBHOOK_REDDIT_COMMENTS }}"

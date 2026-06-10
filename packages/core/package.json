@@ -6,6 +6,7 @@
   "main": "./nuxt.config.ts",
   "scripts": {
     "dev": "nuxi dev .playground --port 3000",
+    "lint": "eslint .",
     "prepare:playground": "nuxi prepare .playground",
     "test": "vitest run",
     "typecheck": "nuxi typecheck .playground"
@@ -21,7 +22,9 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@nuxt/eslint-config": "catalog:",
     "@types/node": "catalog:",
+    "eslint": "catalog:",
     "nuxt": "catalog:",
     "vitest": "catalog:",
     "typescript": "catalog:",

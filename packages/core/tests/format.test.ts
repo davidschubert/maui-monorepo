@@ -5,7 +5,7 @@ import { useFormatCurrency } from '../app/composables/useFormatCurrency'
 
 /** Intl setzt vor dem Währungssymbol ein geschütztes Leerzeichen (U+00A0) */
 function normalize(value: string): string {
-  return value.replace(/ /g, ' ')
+  return value.replace(/\u00A0/g, ' ')
 }
 
 describe('formatDate', () => {
