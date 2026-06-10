@@ -1,6 +1,8 @@
 # 🏗️ Maui Core Layer – Nuxt Monorepo
 
-> **Stand:** Juni 2026 · Konzept v2 — SSR-Architektur, TablesDB, Feature-Layer-Ebene
+> **Stand:** Juni 2026 · Konzept v2.1 — SSR-Architektur, TablesDB, Feature-Layer-Ebene.
+> v2.1 gleicht das Dokument mit der Realität nach Phasen 1–10 ab (Realtime-Korrektur,
+> Strukturfixes, Key-Trennung, erweiterte Stolperfallen — Nachweise in docs/GOALS.md).
 
 ## Projektbeschreibung
 
@@ -65,7 +67,10 @@ Vier Prüffragen pro Feature:
 | TypeScript | strict | Typsicherheit |
 | pnpm Workspaces | latest | Monorepo-Verwaltung |
 
-> *Die Appwrite Docs pflegen eine Tabelle, welche SDK-Versionen zu welchem Self-Hosted-Release passen — SDKs entsprechend pinnen statt blind `latest`.
+> *SDK-Pinning, präzisiert (Erfahrung Phase 10): Die SDKs werden für **Cloud**-Releases
+> gebaut (Warnung "built for 1.9.5" bei Server 1.9.0). REST ist abwärtskompatibel —
+> dort ist latest okay. **Protokollnahe Features (Realtime, künftig Presences) gegen
+> die eigene Server-Version empirisch testen** — Versions-Tabellen helfen da nicht (A4).
 
 > **Warum pnpm?** npm hoisted alles in Root `node_modules` → Phantom Dependencies → Bugs in CI/Deploy. pnpm erzwingt saubere Dependency-Deklaration pro Package, ist schneller und Standard im Nuxt/Vite Ecosystem.
 
@@ -91,13 +96,14 @@ apps/       ← Vollständige, deploybare Nuxt-Applikationen
 |---|---|---|
 | `packages/core` | ✅ Aktiv | Nuxt Layer: SSR-Auth, Appwrite-Fundament, Design-Basis, Utils |
 | `packages/themes` | 🔜 Geplant | 26-Theme-System + `useTheme` (siehe [[design-system]]) |
-| `packages/comments` | 🔜 Geplant | Reddit-Kommentarsystem als wiederverwendbarer Layer |
-| `packages/admin` | 🔜 Geplant | Admin Dashboard, User-Verwaltung, `dashboard.vue` Layout |
+| `packages/comments` | ✅ Aktiv | Kommentarsystem: targetId/targetType, Votes, Realtime — Spec: [[reddit-comment-system-setup]] |
+| `packages/admin` | 🔜 Geplant | Admin Dashboard, User-Verwaltung, Moderation (status-Hook in comments wartet), `dashboard.vue` Layout |
 | `packages/billing` | 🔜 Zukunft | Stripe: Checkout, Webhooks, Subscriptions |
-| `packages/types` | 🔜 Zukunft | Geteilte TS Types (wenn core zu groß) |
-| `packages/utils` | 🔜 Zukunft | Reine JS-Utilities ohne Nuxt |
-| `packages/config` | 🔜 Zukunft | Geteilte ESLint-, TS-, Tailwind-Configs |
 | `packages/appwrite-functions` | 🔜 Zukunft | Appwrite Functions (Webhooks, CRON, Events) |
+
+> v2.1: `packages/types`, `packages/utils` und `packages/config` gestrichen — zehn
+> Phasen haben sie nicht gebraucht (`shared/types` im Core + Root-ESLint-Config decken
+> das ab). Kein vorzeitiges Aufteilen — bei echtem Bedarf wieder aufnehmen.
 
 **Feature-Layer-Begründungen:**
 - **`themes`** — Das Multi-Theme-System (26 Themes × 11 Farbvariationen, Cookie-Persistenz) ist zu viel fürs Fundament. Core liefert Token-Struktur + ein Default Theme; wer Theme-Switching braucht, extended `themes`. Ein Kundenprojekt hat genau ein Branding.
@@ -183,8 +189,12 @@ maui-monorepo/
 │   │   │   │   │   ├── UserAvatar.vue
 │   │   │   │   │   ├── UserMenu.vue
 │   │   │   │   │   └── UserProfileForm.vue
-│   │   │   │   └── consent/
-│   │   │   │       └── CookieBanner.vue   # rendert nur wenn config-gated aktiv
+│   │   │   │   ├── consent/
+│   │   │   │   │   └── CookieBanner.vue   # rendert nur wenn config-gated aktiv
+│   │   │   │   └── core/
+│   │   │   │       └── ErrorPage.vue      # Fehlerseiten-Markup — error.vue wird
+│   │   │   │                              # NICHT aus Layern aufgelöst, jede App
+│   │   │   │                              # hat eine 3-Zeilen-error.vue als Wrapper
 │   │   │   ├── composables/
 │   │   │   │   ├── useCurrentUser.ts      # User-State (SSR-hydratisiert)
 │   │   │   │   ├── useRealtimeRows.ts     # Realtime Wrapper (Web SDK, client-only)
@@ -194,11 +204,11 @@ maui-monorepo/
 │   │   │   │   ├── useAnalytics.ts        # config-gated
 │   │   │   │   ├── useCookieConsent.ts    # config-gated
 │   │   │   │   ├── usePagination.ts
-│   │   │   │   ├── useToast.ts
-│   │   │   │   ├── useFormatDate.ts       # DE: dd.MM.yyyy
-│   │   │   │   └── useFormatCurrency.ts   # 1.234,56 €
-│   │   │   ├── stores/
-│   │   │   │   └── useAuthStore.ts        # Pinia: user, isLoggedIn
+│   │   │   │   ├── useFormatDate.ts       # DE: dd.MM.yyyy (pure Utils in utils/format.ts)
+│   │   │   │   └── useFormatCurrency.ts   # 1.234,56 € — useToast kommt aus Nuxt UI
+│   │   │   │                              # (eigener Re-Export würde Auto-Import schatten)
+│   │   │   ├── stores/                    # Layer-stores werden NICHT auto-gescannt —
+│   │   │   │   └── useAuthStore.ts        # via imports.dirs (absoluter Pfad) registrieren
 │   │   │   ├── middleware/
 │   │   │   │   ├── auth.ts                # Route Middleware → /login
 │   │   │   │   └── guest.ts               # → / wenn eingeloggt
@@ -206,18 +216,24 @@ maui-monorepo/
 │   │   │   │   ├── default.vue            # Nav + Footer
 │   │   │   │   └── auth.vue               # zentriert, kein Nav
 │   │   │   ├── pages/
-│   │   │   │   ├── login.vue              # ✨ neu: Apps funktionieren out-of-the-box
-│   │   │   │   ├── register.vue           # ✨ neu (beides überschreibbar)
-│   │   │   │   └── error.vue
+│   │   │   │   ├── login.vue              # Apps funktionieren out-of-the-box
+│   │   │   │   └── register.vue           # (beides überschreibbar)
 │   │   │   ├── plugins/
 │   │   │   │   ├── auth.server.ts         # hydratisiert User aus h3 context
-│   │   │   │   └── analytics.client.ts    # lädt NUR wenn app.config es aktiviert
-│   │   │   └── utils/
-│   │   │       └── appwrite.client.ts     # Web SDK Client (nur Realtime)
+│   │   │   │   └── analytics.ts           # universal (SSR-Script-Tag!), doppeltes
+│   │   │   │                              # Gate: enabled UND Consent
+│   │   │   ├── utils/
+│   │   │   │   └── appwrite.client.ts     # Web SDK Client (nur Realtime)
+│   │   │   └── app.config.ts              # Maui Theme + maui.* Defaults — MUSS in
+│   │   │                                  # app/ liegen (Package-Root wird ignoriert!)
 │   │   │
 │   │   ├── server/
 │   │   │   ├── lib/
 │   │   │   │   └── appwrite.ts            # createAdminClient + createSessionClient
+│   │   │   ├── utils/
+│   │   │   │   └── appwrite.ts            # Re-Export der lib — Nitro auto-importiert
+│   │   │   │                              # server/utils ALLER Layer: Feature-Layer-
+│   │   │   │                              # Routes nutzen die Clients ohne Importpfad
 │   │   │   ├── middleware/
 │   │   │   │   └── auth.ts                # event.context.user pro Request
 │   │   │   └── api/auth/
@@ -236,13 +252,14 @@ maui-monorepo/
 │   │   ├── schemas/
 │   │   │   └── auth.ts                    # Zod: loginSchema, registerSchema
 │   │   ├── i18n/
-│   │   │   ├── de.json                    # Shared Strings
-│   │   │   └── en.json
+│   │   │   └── locales/                   # Modul-Konvention: i18n/locales/
+│   │   │       ├── de.json                # Shared Strings — '@' als {'@'} escapen!
+│   │   │       └── en.json
 │   │   ├── scripts/migrations/
 │   │   │   └── README.md                  # nur Konvention — Core hat KEIN Schema!
 │   │   ├── .playground/                   # isolierte Dev-Umgebung (Port 3000)
-│   │   ├── app.config.ts                  # Maui Default Theme + maui.* Defaults
-│   │   ├── nuxt.config.ts                 # Module, runtimeConfig Skeleton
+│   │   ├── vitest.config.ts               # Unit Tests (tests/, explizite Imports)
+│   │   ├── nuxt.config.ts                 # Module, runtimeConfig Skeleton, imports.dirs
 │   │   └── package.json
 │   │
 │   ├── themes/                            # 🔜 Feature Layer
@@ -294,9 +311,28 @@ Der Core ist SSR-first (`ssr: true`). CRUD läuft **nie** direkt vom Browser geg
 
 Pattern: typisierter Appwrite-Call → typisierter `defineEventHandler` → typisierter `useFetch` auf der Page. SDK-Generics nutzen: `tablesDB.listRows<Comment>(...)` statt Casting.
 
+**Key-Trennung (v2.1):** Ein Key sammelt sonst schleichend Scopes (Phase 3–11: von 4
+auf ~17). Empfohlen sind **zwei Keys pro App-Instanz**:
+- **Runtime-Key** (`nuxt-ssr-<env>`): `sessions.write`, `users.read/write`,
+  `rows.read/write` (server-autoritative Zähler), `health.read` — liegt in der `.env`
+- **Migrations-Key** (`migrations-<env>`): `databases.*`, `tables.*`, `columns.*`,
+  `indexes.*` — nur für Migrationsläufe, kann nach Gebrauch rotiert/widerrufen werden
+
+**Cross-Layer-Zugriff:** Feature Layer importieren die Client-Factories NICHT über
+Cross-Package-Pfade — der Core re-exportiert sie in `server/utils/appwrite.ts`, und
+Nitro auto-importiert `server/utils` aller Layer in alle Server Routes.
+
+**⚠️ Offen vor dem ersten Deploy:** Die Login-Route nutzt den AdminClient und umgeht
+damit Appwrites Rate Limits — Brute-Force-Schutz muss Nitro-seitig ergänzt werden
+(z.B. Rate-Limit-Middleware auf `/api/auth/login`).
+
 ### A3 — Session-Cookie: `a_session_<PROJECT_ID>` ✨ neu
 
-Cookie-Name **`a_session_<PROJECT_ID>`** statt Custom Name. Grund: Das Web SDK im Browser erkennt dieses Cookie automatisch → **Realtime läuft authentifiziert** statt anonym. Genau der Use Case des Kommentarsystems.
+Cookie-Name **`a_session_<PROJECT_ID>`** statt Custom Name. Präzisiert (v2.1): JS kann
+das httpOnly-Cookie nicht „lesen" — der **Browser sendet es automatisch** bei Requests
+und WebSocket-Handshakes an die Appwrite-Domain (gemeinsame Root-Domain!), und der
+**Appwrite-Server akzeptiert es unter diesem Namen** als Session → **Realtime läuft
+authentifiziert** statt anonym. Genau der Use Case des Kommentarsystems.
 
 Voraussetzungen:
 - Appwrite-Endpoint auf einer **Subdomain derselben Root-Domain** wie die App (z.B. App `comments.example.com`, Appwrite `api.example.com`) — Custom Domain pro Projekt auf die self-hosted Instanz legen
@@ -306,12 +342,24 @@ Voraussetzungen:
 
 Fallback dokumentiert: Custom Name (`app-session`) wenn kein authentifiziertes Browser-Realtime nötig (einfacher, keine Custom Domain).
 
-### A4 — Realtime & Presences ✨ neu
+### A4 — Realtime & Presences ✨ korrigiert in v2.1 (empirisch, Phase 10)
 
-- **Realtime self-hosted: vollständig verfügbar.** 1.9.0: Subscriptions mit Query-Filtern (nur passende Events statt aller Table-Änderungen — z.B. nur Kommentare eines Posts) + Metriken.
-- `useRealtimeRows()`: `import.meta.server` Guard (SSR → no-op), Cleanup via `onScopeDispose` (funktioniert auch in Stores/Composables), Channel via `Channel.tablesdb(db).table(t).row()`.
+- **Realtime self-hosted: NUR über das Legacy-URL-Protokoll** (`channels[]` in der
+  Connect-URL). Das neue SDK-Protokoll (Connect ohne Channels + dynamische
+  Subscribe-Messages, alle SDKs ≥25.x) braucht Server ≥1.9.5 — **Cloud-only**;
+  1.9.0 (aktuellstes Docker-Release) antwortet `"Missing channels"`.
+- **Query-gefilterte Subscriptions: faktisch ebenfalls Cloud-only.** Der 1.9.0-Server
+  ignoriert `queries[]` über die Legacy-URL kommentarlos (Events kommen ungefiltert).
+- `useRealtimeRows()` läuft deshalb auf einem **nativen WebSocket-Client** im Core:
+  Legacy-URL-Protokoll, Reconnect mit Backoff, client-seitiger `where`-Filter
+  (z.B. `payload => payload.targetId === id`), `import.meta.server` Guard (SSR →
+  no-op), Cleanup via `onScopeDispose`. Authentifiziert über das Same-Origin-Cookie
+  (A3) — funktioniert identisch in Browser und Node (Probe-Script).
+- **Rückbau aufs Web SDK** (`realtime.subscribe` + `Channel`-Helper + echte
+  Query-Filter), sobald ein Self-Hosted-Release das neue Protokoll spricht —
+  wöchentlicher Release-Watch läuft (Scheduled Task `appwrite-release-watch`).
 - ⚠️ **Channel-Prefix ≠ Event-Prefix:** Subscription-Channels nutzen `tablesdb.…`, die Event-Strings im Payload weiterhin `databases.…` — beim Filtern auf Suffix matchen (`.create`, `.update`, `.delete`).
-- **Presences API: Stand Juni 2026 nur Appwrite Cloud**, noch nicht in self-hosted 1.9.0. Appwrite rollt Cloud-first aus → landet erwartbar im nächsten Self-Hosted-Release. `usePresence()` daher als optionales Composable bauen — Apps funktionieren ohne.
+- **Presences API: Stand Juni 2026 nur Appwrite Cloud** — gleiches Cloud-first-Muster. `usePresence()` daher als optionales Composable bauen — Apps funktionieren ohne.
 
 ### A5 — Analytics & DSGVO-Consent: im Core, config-gated ✨ neu
 
@@ -363,7 +411,15 @@ Deploy-Script: `npm i -g pnpm && pnpm install --frozen-lockfile && pnpm --filter
 
 ### A10 — Migrations
 
-Appwrite hat kein eingebautes Migrations-System → manuelle Scripts (`npx tsx scripts/migrations/001-….ts`), nie automatisch im Deploy. **Core hat kein Schema** — nur die Konvention + README. Feature Layers und Apps bringen eigene Migrations mit (z.B. `packages/comments/scripts/migrations/001-comments-tables.ts`). Beim Server-Upgrade (z.B. 1.8→1.9) immer die Appwrite-Migration sauber durchlaufen lassen.
+Appwrite hat kein eingebautes Migrations-System → manuelle Scripts, nie automatisch im Deploy. **Core hat kein Schema** — nur die Konvention + README. Feature Layers und Apps bringen eigene Migrations mit (z.B. `packages/comments/scripts/migrations/001-comments-tables.ts`). Beim Server-Upgrade (z.B. 1.8→1.9) immer die Appwrite-Migration sauber durchlaufen lassen.
+
+**Konventionen (v2.1, etabliert in Phase 10):**
+- Aufruf ohne Zusatz-Dependencies: `node --experimental-strip-types
+  --env-file=apps/<app>/.env packages/<layer>/scripts/migrations/00X-….ts`
+- **Idempotent**: 409 (existiert bereits) → loggen und überspringen; Scripts sind
+  beliebig oft wiederholbar, kein Migrations-State nötig
+- Nach Column-Anlage auf `status === 'available'` pollen, BEVOR Indizes erstellt werden
+- Ein Script pro Schema-Änderung, fortlaufend nummeriert; läuft mit dem Migrations-Key (A2)
 
 ### A11 — Environment Variables
 
@@ -376,7 +432,7 @@ NUXT_PUBLIC_APPWRITE_DATABASE_ID=
 NUXT_PUBLIC_APP_URL=https://<app-domain>
 ```
 
-`runtimeConfig` im Core mit Leer-Defaults definieren (Typ-Inferenz), echte Werte aus `.env`/Host. **Der API Key gehört nie in `runtimeConfig.public`.** Nie `.env` committen, nur `.env.example`.
+`runtimeConfig` im Core mit Leer-Defaults definieren (Typ-Inferenz), echte Werte aus `.env`/Host. **Der API Key gehört nie in `runtimeConfig.public`.** Nie `.env` committen, nur `.env.example`. ⚠️ Jede `NUXT_*`-Variable braucht ihren Gegenpart im runtimeConfig-Skeleton — sonst mappt sie ins Leere (Beispiel: `NUXT_PUBLIC_APP_URL` ↔ `public.appUrl`). Künftig zusätzlich `NUXT_APPWRITE_MIGRATIONS_KEY` für den separaten Migrations-Key (A2).
 
 ### A12 — Node.js, Ports, Git
 
@@ -442,6 +498,11 @@ Immer explizites `Query.limit(...)` setzen (Default 25 → stille Trunkierung).
 ---
 
 ## Implementierungs-Roadmap
+
+> **Status v2.1:** Phasen 1–10 sind abgeschlossen (✅ 2026-06-09/10) — Nachweise und
+> Erkenntnisse pro Phase in **docs/GOALS.md**. Offen aus den Checklisten unten sind
+> nur Produktions-TODOs: Custom Domain für den Appwrite-Endpoint (A3, Phase 3) und
+> das ploi.io-Setup (A9, Phase 9 — deploy.yml liegt als dokumentiertes Skeleton bereit).
 
 ### Phase 1 – Monorepo Setup
 - [ ] Root `package.json`, `pnpm-workspace.yaml`, `.npmrc`, `.nvmrc` (22), Root `tsconfig.json`
@@ -531,67 +592,22 @@ Immer explizites `Query.limit(...)` setzen (Default 25 → stille Trunkierung).
 | ploi deployed falsches Verzeichnis | Root Path nicht gesetzt | `apps/<app-name>` als Root Path |
 | Auth bricht nach Appwrite-Upgrade | Migration nicht durchgelaufen | Beim Server-Upgrade immer `migrate` ausführen |
 | Port-Konflikt | Alle Apps auf 3000 | Eigener Port pro App in `package.json` |
+| app.config.ts wird ignoriert | Datei liegt im Package-Root | Nuxt 4: MUSS in `app/` liegen (srcDir) |
+| Fehlerseite greift nicht | error.vue in einem Layer | Wird nicht aus Layern aufgelöst → Markup als Core-Komponente (`CoreErrorPage`), dünne `app/error.vue` pro App; neue error.vue braucht Dev-Server-Neustart |
+| Layer-Store nicht gefunden | `app/stores/` wird in Layern nicht gescannt | In Layer-nuxt.config: `imports.dirs` mit absolutem Pfad |
+| Kompletter Locale-Load bricht | `@` in einer Message = vue-i18n Linked-Syntax | Literal escapen: `du{'@'}example.com` ("Invalid linked format" killt die GANZE Datei) |
+| Realtime disconnected im Loop | SDK ≥25.x spricht neues Protokoll, Server 1.9.0 kann es nicht | Nativer WebSocket-Client mit Legacy-URL-Protokoll (A4) |
+| ESLint findet Config-Pakete nicht | Flat-Config-Imports lösen vom Config-Ort auf | `@nuxt/eslint-config` auch im Root-package.json deklarieren |
+| multi-word-Rule schlägt auf Layer-Dateien an | Nuxt-Ausnahmen matchen `packages/*/app/…` nicht | Regel für `**/app/pages/**`, `**/app/layouts/**`, `**/app/error.vue` deaktivieren |
+| Index-Erstellung schlägt fehl | Columns noch im Status `processing` | In Migrations auf `available` pollen, dann Indizes anlegen |
 
 ---
 
-## Claude Code – CLAUDE.md Inhalt
+## Claude Code – CLAUDE.md
 
-> 📁 **Gepflegte Dateien liegen in [[setup|claude-code/]]**: `CLAUDE.md` (→ Repo-Root), `goals.md` (/goal-Texte aller 11 Phasen), `setup.md` (Kickoff-Anleitung). Der Block unten ist die Referenz-Kopie — bei Änderungen beide Stellen pflegen.
-
-```markdown
-# Maui Monorepo – Claude Code Context
-
-## Projekt
-Nuxt 4 Monorepo (maui-monorepo) mit zentralem Core Layer + Feature Layers.
-
-## Stack
-- Nuxt 4 (Composition API, SSR), Nuxt UI 4, Pinia, Tailwind CSS 4
-- node-appwrite (Server SDK) + appwrite (Web SDK, NUR Realtime)
-- Zod, @nuxtjs/i18n (de+en), TypeScript strict, pnpm Workspaces
-
-## Architektur (3 Ebenen)
-- packages/core → Fundament-Layer. Besitzt KEINE Appwrite Tables.
-- packages/* → Feature Layers (themes, comments, admin, billing) — eigenes
-  Datenmodell und/oder eigene UI-Welt
-- apps/* → dünne Apps, komponieren via extends: [features..., core]
-  (früher gelistet = höhere Priorität; App überschreibt alles)
-
-## Appwrite (SSR-first, TablesDB)
-- Terminologie: TablesDB / Tables / Rows (NICHT Databases/Collections/Documents)
-- Zwei Server-Clients: createAdminClient (API Key) + createSessionClient
-  (pro Request, NIE teilen!) in server/lib/appwrite.ts
-- CRUD NUR über server/api/* (Session enforced, Validierung zentral),
-  NIE Web SDK CRUD aus <script setup>
-- Web SDK im Browser: nur Realtime (useRealtimeRows, import.meta.server Guard)
-- Session-Cookie: a_session_<PROJECT_ID>, httpOnly+secure+sameSite,
-  Appwrite-Endpoint als Subdomain derselben Root-Domain
-- Jede App: EIGENE Appwrite-Instanz, Config aus .env
-  (NUXT_APPWRITE_KEY server-only, NUXT_PUBLIC_* für Endpoint/Project)
-- Immer explizites Query.limit() (Default 25)
-- SDK-Generics nutzen: tablesDB.listRows<T>()
-- Presences API: Stand 06/2026 nur Cloud, usePresence optional halten
-
-## Config-Gates (app.config.ts, Namespace maui.*)
-- maui.analytics / maui.consent: Core-Default false, App aktiviert explizit
-- app.config.ts wird tief gemergt — App überschreibt nur was nötig
-
-## Coding Rules
-- <script setup lang="ts">, Nuxt UI Komponenten bevorzugen (UAuthForm für Auth!)
-- Pinia defineStore Composition Style
-- Relative Pfade im Layer (kein ~/ oder @/)
-- Domain-Types in shared/types/ (nie app/types/ — Server sieht sie sonst nicht)
-- Zod für alle Formulare, i18n keys für User-facing Strings
-- pnpm, TypeScript strict (kein any), vollständige Dateien, keine Spekulation
-- Dependencies via pnpm Catalog: Versionen zentral in pnpm-workspace.yaml,
-  package.json referenziert "catalog:" — geteilte Deps auch in App-package.json
-
-## Ports
-core/.playground: 3000 · reddit-comments: 3001 · weitere: 3002+
-
-## Git
-Conventional Commits · BREAKING CHANGE(core): Prefix · Core-Änderungen
-in eigenem Commit · vor Core-Update alle Apps lokal starten
-```
+> **Single Source of Truth ist `CLAUDE.md` im Repo-Root** — die frühere Referenz-Kopie
+> an dieser Stelle wurde in v2.1 entfernt (Doppelpflege funktioniert nicht; die Kopie
+> war bereits gedriftet). Die /goal-Texte aller Phasen leben in `docs/GOALS.md`.
 
 ---
 
@@ -604,6 +620,14 @@ in eigenem Commit · vor Core-Update alle Apps lokal starten
 
 ## Notizen & Entscheidungen
 
+- **2026-06-10:** Konzept v2.1 — Realitäts-Abgleich nach Phasen 1–10: A4 korrigiert
+  (SDK-Realtime-Protokoll + Query-Subscriptions sind Cloud-only → nativer
+  WebSocket-Client im Core), Strukturfixes (app/app.config.ts, CoreErrorPage-Pattern,
+  i18n/locales, useToast aus Nuxt UI, server/utils-Re-Export), Key-Trennung
+  Runtime/Migrations empfohlen, Rate-Limit-TODO für Login dokumentiert,
+  9 neue Stolperfallen, CLAUDE.md-Referenzkopie entfernt (Single Source: Repo-Root),
+  spekulative Packages (types/utils/config) gestrichen. comments-Layer auf
+  targetId/targetType-Spec ausgerichtet (siehe [[reddit-comment-system-setup]]).
 - **2026-06-09:** Konzept v2 — Projekt umbenannt (fleava → maui). SSR-Architektur mit zwei Clients beschlossen, TablesDB-Terminologie, Cookie `a_session_<PROJECT_ID>` + Custom Domain, Analytics/Consent config-gated im Core, Feature-Layer-Ebene (themes/comments/admin/billing) eingezogen, Core-Regel verschärft: null Tables. Presences API noch nicht self-hosted (nur Cloud) — usePresence optional.
 
 ---

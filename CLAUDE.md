@@ -18,17 +18,24 @@ Vollständiges Konzept: docs/CONCEPT.md
 
 ## Appwrite (SSR-first, TablesDB)
 - Terminologie: TablesDB / Tables / Rows (NICHT Databases/Collections/Documents)
-- Zwei Server-Clients: createAdminClient (API Key, Resource-based mit minimalen
-  Scopes) + createSessionClient (pro Request, NIE teilen!) in server/lib/appwrite.ts
+- Zwei Server-Clients: createAdminClient (API Key) + createSessionClient
+  (pro Request, NIE teilen!) in server/lib/appwrite.ts; Feature Layer nutzen
+  sie via Auto-Import (Core re-exportiert in server/utils/appwrite.ts)
+- Zwei Keys pro Instanz: Runtime-Key (sessions/users/rows/health, in .env) +
+  Migrations-Key (databases/tables/columns/indexes, nur für Scripts)
 - CRUD NUR über server/api/* (Session enforced, Validierung zentral),
   NIE Web SDK CRUD aus <script setup>
-- Web SDK im Browser: nur Realtime (useRealtimeRows, import.meta.server Guard)
+- Realtime: useRealtimeRows läuft auf nativem WebSocket (Legacy-URL-Protokoll,
+  where-Filter client-seitig) — SDK-Protokoll + Query-Subscriptions brauchen
+  ≥1.9.5 (Cloud-only, self-hosted ist 1.9.0). Rückbau aufs SDK wenn verfügbar.
 - Session-Cookie: a_session_<PROJECT_ID>, httpOnly+secure+sameSite,
   Appwrite-Endpoint als Subdomain derselben Root-Domain
 - Jede App: EIGENE Appwrite-Instanz, Config aus .env
   (NUXT_APPWRITE_KEY server-only, NUXT_PUBLIC_* für Endpoint/Project)
 - Immer explizites Query.limit() (Default 25)
 - SDK-Generics nutzen: tablesDB.listRows<T>()
+- Migrations: idempotent (409 → skip), node --env-file=apps/<app>/.env,
+  nach Column-Anlage auf 'available' pollen bevor Indizes
 - Presences API: Stand 06/2026 nur Cloud, usePresence optional halten
 
 ## Config-Gates (app.config.ts, Namespace maui.*)
@@ -37,10 +44,18 @@ Vollständiges Konzept: docs/CONCEPT.md
 
 ## Coding Rules
 - <script setup lang="ts">, Nuxt UI Komponenten bevorzugen (UAuthForm für Auth!)
-- Pinia defineStore Composition Style
+- Pinia defineStore Composition Style; Layer-stores via imports.dirs registrieren
+  (werden nicht auto-gescannt)
 - Relative Pfade im Layer (kein ~/ oder @/)
+- app.config.ts liegt in app/ — im Package-Root wird sie stillschweigend ignoriert
+- error.vue wird nicht aus Layern aufgelöst: Markup in CoreErrorPage,
+  jede App hat eine dünne app/error.vue als Wrapper
 - Domain-Types in shared/types/ (nie app/types/ — Server sieht sie sonst nicht)
-- Zod für alle Formulare, i18n keys für User-facing Strings
+- Zod für alle Formulare (Schemas als create*Schema(t)-Factories),
+  i18n keys für User-facing Strings; '@' in Locale-Messages als {'@'} escapen
+- createError mit status/statusText (nicht statusCode/statusMessage),
+  keine Appwrite-Fehlerdetails an Clients leaken
+- useToast kommt aus Nuxt UI — nicht im Core re-exportieren (schattet Auto-Import)
 - pnpm, TypeScript strict (kein any), vollständige Dateien, keine Spekulation
 - Dependencies via pnpm Catalog: Versionen zentral in pnpm-workspace.yaml,
   package.json referenziert "catalog:" — geteilte Deps auch in App-package.json
