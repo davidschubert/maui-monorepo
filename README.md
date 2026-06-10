@@ -87,7 +87,7 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 | 6 | Utilities, SEO & Analytics-Gate (config-gated) | ✅ 2026-06-10 |
 | 7 | i18n (de Default + en, Layer-Merge) | ✅ 2026-06-10 |
 | 8 | Testing (Vitest Unit Tests im Core) | ✅ 2026-06-10 |
-| 9 | CI / Deployment | 🔜 |
+| 9 | CI (typecheck/lint/test auf GitHub Actions) | ✅ 2026-06-10 |
 | 10–11 | `packages/comments` Feature Layer + Reddit Comment App | 🔜 |
 
 Details und Nachweis-Kriterien pro Phase: [docs/GOALS.md](docs/GOALS.md)

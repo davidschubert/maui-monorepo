@@ -287,7 +287,22 @@ kein E2E (kommt später pro App). Maximal 15 Turns.
 
 ---
 
-## Phase 9 – CI / Deployment
+## Phase 9 – CI / Deployment ✅ (abgeschlossen 2026-06-10)
+
+> ✅ **Erledigt am 2026-06-10.** typecheck.yml, lint.yml, test.yml — jeweils
+> actions/checkout + pnpm/action-setup (liest packageManager) +
+> actions/setup-node mit node-version-file: .nvmrc und pnpm-Cache,
+> `pnpm install --frozen-lockfile`, dann `pnpm -r <script>` (Workspace-
+> rekursiv, Packages ohne Script werden übersprungen). Lint-Setup neu:
+> @nuxt/eslint-config (flat) als EINE Root-Config — auch im Root-
+> package.json als devDep nötig (Config-Imports lösen vom Config-Ort auf);
+> vue/multi-word-component-names für Nuxt-Konventionsdateien in
+> Layer-Pfaden (app/pages, app/layouts, error.vue) deaktiviert, da die
+> Default-Ausnahmen der Nuxt-Config dort nicht greifen. deploy.yml nur
+> als dokumentiertes Skeleton (workflow_dispatch + auskommentierter
+> ploi.io-Webhook-Job, kein Secret im Repo). Nachweis: pnpm -r typecheck/
+> lint/test lokal grün (20 Tests); nach Push zeigt gh run list alle drei
+> Workflows completed/success (Test 26s, Lint 29s, Typecheck 1m2s).
 
 ```
 /goal Phase 9 laut docs/CONCEPT.md ist abgeschlossen.
