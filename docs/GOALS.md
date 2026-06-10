@@ -375,10 +375,41 @@ Maximal 40 Turns.
 
 ## Phase 11 – Reddit Comment System App
 
-> Goal-Text entsteht aus der [[reddit-comment-system-setup]] Roadmap,
-> sobald Phase 10 steht — UI/UX, Threading-Tiefe, Sortierung (hot/new/top),
-> Optimistic Updates und Presence (sobald self-hosted verfügbar) werden
-> dort als eigene Goals geschnitten.
+> Entwurf vom 2026-06-10 (aus CONCEPT.md Phase 11 + Stand nach Phase 10 —
+> die [[reddit-comment-system-setup]] Notiz war nicht auffindbar; bei
+> Bedarf vor dem Setzen anpassen). Presence bleibt außen vor, bis
+> self-hosted es kann (Release-Watch läuft wöchentlich).
+
+```
+/goal Phase 11 laut docs/CONCEPT.md ist abgeschlossen.
+Endzustand: apps/reddit-comments ist ein nutzbares Kommentarsystem:
+Page /p/[postId] rendert den CommentThread; Threading mit Antworten
+auf Kommentare (verschachtelt bis Tiefe 3, Antworten-Button pro
+Kommentar); Sortierung new (Default) und top als sort-Query-Param der
+GET-Route — top sortiert nach Vote-Score; die GET-Route liefert pro
+Kommentar ein score-Feld (Aggregation über comment_votes in EINEM
+zusätzlichen Query, kein N+1) und myVote für den eingeloggten User;
+VoteButtons zeigen Score + eigenen Vote-Zustand, Optimistic Update mit
+Rollback bei Fehler; neuer Kommentar erscheint optimistisch sofort;
+Realtime fügt fremde Kommentare gezielt ein (kein Full-Refresh);
+comments-Layer-Strings als i18n keys (de+en); UserAvatar + formatDate
+in der Kommentar-Darstellung; Empty-/Loading-States.
+Nachweis: pnpm -r typecheck, lint und test grün; curl-Sequenz gegen
+die lokale Instanz: zwei Kommentare mit unterschiedlich vielen Votes
+anlegen, dann zeigt GET /api/comments?postId=…&sort=top die
+Score-Reihenfolge und sort=new die Datums-Reihenfolge im Terminal;
+GET-Response enthält score und myVote; POST mit parentId → curl
+http://localhost:3001/p/demo-post zeigt den verschachtelten Kommentar
+im SSR-HTML (Einrückungs-Markup sichtbar); curl /en/p/demo-post zeigt
+englische Layer-Strings; für Optimistic Updates zeigt Claude den
+Code-Pfad (Anlegen → sofortiges Einfügen → Rollback im catch).
+Abschluss-Schritt: der Abschnitt "Phase 11" in docs/GOALS.md ist mit ✅
+und Datum markiert, README-Status aktualisiert — Teil des Nachweises.
+Constraints: kein Presence (Cloud-only), keine Moderations-UI (gehört
+zu packages/admin), Schema-Änderungen NUR via neuem Migration-Script
+im comments-Layer, Realtime bleibt auf dem nativen WebSocket-Client.
+Maximal 40 Turns.
+```
 
 ---
 
