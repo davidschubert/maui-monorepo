@@ -34,7 +34,18 @@ Maximal 30 Turns.
 
 ---
 
-## Phase 2 – Design-Fundament
+## Phase 2 – Design-Fundament ✅ (abgeschlossen 2026-06-09)
+
+> ✅ **Erledigt am 2026-06-09.** Maui Default Theme in
+> `packages/core/app/app.config.ts` (`ui.colors`: primary teal, neutral slate +
+> alle semantischen Tokens; Radius via `--ui-radius` in main.css — Nuxt UI 4
+> steuert ihn als CSS-Variable, nicht über app.config). main.css mit Tailwind 4
+> `@import` + `@source` für den Layer-Pfad. Nachweis: typecheck grün,
+> `/theme-check` rendert UButton mit "THEME-CHECK", useAppConfig-Dump zeigt
+> Merge App > Core (primary orange aus App, info sky/warning amber aus Core),
+> Tailwind-Klassen aus CoreSmoke.vue im gerenderten App-HTML sichtbar.
+> Hinweis: app.config.ts muss in Nuxt 4 im `app/`-Verzeichnis liegen
+> (srcDir) — im Package-Root wird sie nicht geladen.
 
 ```
 /goal Phase 2 laut docs/CONCEPT.md ist abgeschlossen.

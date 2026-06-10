@@ -4,9 +4,6 @@
 
 <template>
   <UApp>
-    <main>
-      <h1>Reddit Comments</h1>
-      <CoreSmoke />
-    </main>
+    <NuxtPage />
   </UApp>
 </template>
