@@ -1,0 +1,25 @@
+{
+  "name": "reddit-comments",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxi dev --port 3001",
+    "build": "nuxi build",
+    "preview": "nuxi preview",
+    "typecheck": "nuxi typecheck"
+  },
+  "dependencies": {
+    "@maui/core": "workspace:*",
+    "@nuxt/ui": "catalog:",
+    "@pinia/nuxt": "catalog:",
+    "nuxt": "catalog:",
+    "pinia": "catalog:",
+    "vue": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vue-tsc": "catalog:"
+  }
+}

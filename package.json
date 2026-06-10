@@ -1,0 +1,13 @@
+{
+  "name": "maui-monorepo",
+  "private": true,
+  "packageManager": "pnpm@10.29.3",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev:core": "pnpm --filter @maui/core dev",
+    "dev:app": "pnpm --filter reddit-comments dev",
+    "typecheck": "pnpm -r typecheck"
+  }
+}
