@@ -12,6 +12,24 @@ export function sessionCookieName(event: H3Event): string {
 }
 
 /**
+ * Session-Cookie setzen/löschen — httpOnly + sameSite immer, secure in
+ * Produktion (localhost hat kein HTTPS, daher konditional via import.meta.dev).
+ */
+export function setSessionCookie(event: H3Event, secret: string, expire: string) {
+  setCookie(event, sessionCookieName(event), secret, {
+    expires: new Date(expire),
+    path: '/',
+    httpOnly: true,
+    secure: !import.meta.dev,
+    sameSite: 'strict',
+  })
+}
+
+export function clearSessionCookie(event: H3Event) {
+  deleteCookie(event, sessionCookieName(event), { path: '/' })
+}
+
+/**
  * AdminClient — authentifiziert per API Key (server-only, Resource-based
  * mit minimalen Scopes). Nur für privilegierte Operationen: Signup,
  * Admin-Aktionen, Rate-Limit-Bypass.

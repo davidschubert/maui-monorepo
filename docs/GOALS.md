@@ -108,7 +108,20 @@ stoppen und melden statt mocken. Maximal 30 Turns.
 
 ---
 
-## Phase 4 – Auth
+## Phase 4 – Auth ✅ (abgeschlossen 2026-06-10)
+
+> ✅ **Erledigt am 2026-06-10.** Server Routes signup/login/logout/me +
+> OAuth-Skeleton (github/google via createOAuth2Token); Session-Cookie
+> `a_session_reddit-comments` mit httpOnly+sameSite=strict, secure konditional
+> (!import.meta.dev); plugins/auth.server.ts hydratisiert useAuthStore
+> (Pinia Composition Style, stores/ via imports.dirs registriert — Layer-stores
+> werden nicht auto-gescannt); useCurrentUser(); Zod-Schemas (z.email, v4);
+> LoginForm/RegisterForm auf UAuthForm, LogoutButton; Route-Middleware
+> auth/guest; pages/login.vue + register.vue. Nachweis als curl-Sequenz gegen
+> OrbStack: (1) Signup 200 + Set-Cookie HttpOnly sichtbar, (2) GET /api/auth/me
+> mit Cookie → User-JSON mit Test-E-Mail, (3) Logout löscht Cookie (Max-Age=0),
+> erneuter GET → 401, (4) /login enthält UAuthForm-Markup (form, email,
+> password), (5) typecheck grün in Core + App. Keine profiles Table.
 
 ```
 /goal Phase 4 laut docs/CONCEPT.md ist abgeschlossen.

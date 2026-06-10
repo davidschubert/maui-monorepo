@@ -9,6 +9,11 @@ export default defineNuxtConfig({
   // Absoluter Pfad statt ~/ — Aliases würden relativ zur App aufgelöst
   css: [join(currentDir, './app/assets/css/main.css')],
 
+  // stores/ wird im Layer nicht automatisch gescannt (nur composables/ + utils/)
+  imports: {
+    dirs: [join(currentDir, './app/stores')],
+  },
+
   // Skeleton mit Leer-Defaults (Typ-Inferenz) — echte Werte aus .env der App.
   // Der API Key ist server-only und gehört NIE in public.*
   runtimeConfig: {
