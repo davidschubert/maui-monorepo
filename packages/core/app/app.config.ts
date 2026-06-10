@@ -1,4 +1,20 @@
 export default defineAppConfig({
+  // maui.* Config-Gates: Core-Default ist IMMER aus — Apps aktivieren explizit.
+  // Interne Tools bleiben komplett clean, öffentliche Seiten brauchen 3 Zeilen.
+  maui: {
+    analytics: {
+      enabled: false,
+      provider: 'plausible' as 'plausible' | 'umami',
+      /** plausible: data-domain · umami: data-website-id */
+      domain: '',
+      websiteId: '',
+      /** Eigene Script-URL (z.B. self-hosted) — leer = Provider-Default */
+      src: '',
+    },
+    consent: {
+      enabled: false,
+    },
+  },
   ui: {
     colors: {
       primary: 'sky',

@@ -179,7 +179,27 @@ Maximal 20 Turns.
 
 ---
 
-## Phase 6 – Utilities, SEO & Analytics-Gate
+## Phase 6 – Utilities, SEO & Analytics-Gate ✅ (abgeschlossen 2026-06-10)
+
+> ✅ **Erledigt am 2026-06-10.** useSeo (useSeoMeta + OG/Twitter-Spiegelung),
+> usePagination (page/offset/totalPages, Default 25 = Appwrite-Limit),
+> useFormatDate/useFormatCurrency (reine Utils in app/utils/format.ts —
+> Date-only-Strings werden als LOKALES Datum geparst, sonst Timezone-Kipper),
+> useStorage (Upload/View/Delete via Server Routes + SessionClient,
+> Buckets gehören der App); useToast kommt aus Nuxt UI selbst (eigener
+> Re-Export würde die Auto-Import-Auflösung schatten). maui.*-Defaults in
+> Core app.config.ts (analytics+consent enabled:false, provider
+> plausible|umami); plugins/analytics.ts UNIVERSAL statt .client, damit der
+> Script-Tag bei vorhandenem Consent im SSR-HTML steht (curl-nachweisbar);
+> doppeltes Gate: enabled UND (kein Consent-Gate ODER Zustimmung) — sonst
+> client-seitiger watch auf hasConsent. CookieBanner (data-marker
+> MAUI-CONSENT) + useCookieConsent (Cookie maui-consent) + useAnalytics
+> (track, typisierte window-Globals). Nachweis: typecheck grün; curl-Matrix:
+> Default → 0× Script/0× Banner; Gates an ohne Cookie → Banner ja, Script
+> NEIN (Constraint!); Gates an mit maui-consent=accepted → plausible-Script-
+> Tag mit data-domain im SSR-HTML, kein Banner; node-Snippet:
+> formatDate('2026-01-01') → 01.01.2026, formatCurrency(1234.56) → 1.234,56 €.
+> Demo-Override in der App danach zurückgesetzt (Gates wieder aus).
 
 ```
 /goal Phase 6 laut docs/CONCEPT.md ist abgeschlossen.

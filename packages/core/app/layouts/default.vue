@@ -23,5 +23,7 @@ const { isLoggedIn } = useCurrentUser()
         Maui · Nuxt 4 + Appwrite
       </div>
     </footer>
+
+    <ConsentCookieBanner />
   </div>
 </template>

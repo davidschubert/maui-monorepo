@@ -1,5 +1,6 @@
 export default defineAppConfig({
   // App-spezifische Overrides (tiefer Merge, App > Core).
-  // Aktuell keine — die App nutzt das Maui Default Theme aus dem Core.
+  // Analytics/Consent bleiben aus (Core-Default) — Aktivierung wenn gebraucht:
+  // maui: { analytics: { enabled: true, provider: 'plausible', domain: '…' }, consent: { enabled: true } }
   ui: {},
 })
