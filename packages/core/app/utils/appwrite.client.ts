@@ -1,10 +1,13 @@
 import { Client, Realtime } from 'appwrite'
 
 /**
- * Web SDK im Browser: NUR Realtime. CRUD läuft ausschließlich über
- * server/api/* (SessionClient) — nie aus <script setup> gegen Appwrite.
- * Dank Cookie a_session_<PROJECT_ID> auf derselben Root-Domain läuft
- * Realtime authentifiziert (Konzept A3).
+ * Web SDK im Browser: NUR Realtime — CRUD läuft ausschließlich über
+ * server/api/* (SessionClient), nie aus <script setup> gegen Appwrite.
+ *
+ * Hinweis (06/2026): useRealtimeRows nutzt aktuell einen nativen
+ * WebSocket-Client statt dieses SDKs, weil das neue SDK-Realtime-Protokoll
+ * Appwrite ≥1.9.5 voraussetzt (Cloud-only). Sobald self-hosted nachzieht,
+ * wandert das Composable auf realtime.subscribe() zurück.
  */
 let cached: { client: Client, realtime: Realtime } | null = null
 
