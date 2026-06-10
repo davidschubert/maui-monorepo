@@ -35,6 +35,8 @@ export default defineNuxtConfig({
       appwriteEndpoint: '',
       appwriteProjectId: '',
       appwriteDatabaseId: '',
+      // Gegenpart zu NUXT_PUBLIC_APP_URL — ohne Skeleton-Key mappt die Env-Var ins Leere
+      appUrl: '',
     },
   },
 })
