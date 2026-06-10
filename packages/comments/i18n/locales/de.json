@@ -1,0 +1,41 @@
+{
+  "comments": {
+    "title": "Kommentare",
+    "empty": "Noch keine Kommentare — schreib den ersten!",
+    "loginLink": "Anmelden",
+    "loginSuffix": ", um zu kommentieren.",
+    "sort": {
+      "label": "Sortieren",
+      "top": "Top",
+      "new": "Neu",
+      "controversial": "Kontrovers"
+    },
+    "form": {
+      "placeholder": "Dein Kommentar…",
+      "replyPlaceholder": "Deine Antwort…",
+      "submit": "Kommentieren",
+      "replySubmit": "Antworten",
+      "error": "Kommentar konnte nicht gespeichert werden."
+    },
+    "item": {
+      "reply": "Antworten",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "report": "Melden",
+      "reported": "Gemeldet",
+      "reportedToast": "Kommentar gemeldet — die Moderation schaut drauf.",
+      "deleted": "[gelöscht]",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "upvote": "Upvote",
+      "downvote": "Downvote",
+      "voteError": "Vote fehlgeschlagen — bitte erneut versuchen.",
+      "error": "Aktion fehlgeschlagen — bitte erneut versuchen."
+    },
+    "validation": {
+      "targetRequired": "Target fehlt",
+      "contentRequired": "Der Kommentar darf nicht leer sein",
+      "contentMax": "Maximal 10.000 Zeichen"
+    }
+  }
+}

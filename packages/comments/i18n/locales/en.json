@@ -1,0 +1,41 @@
+{
+  "comments": {
+    "title": "Comments",
+    "empty": "No comments yet — write the first one!",
+    "loginLink": "Sign in",
+    "loginSuffix": " to join the discussion.",
+    "sort": {
+      "label": "Sort",
+      "top": "Top",
+      "new": "New",
+      "controversial": "Controversial"
+    },
+    "form": {
+      "placeholder": "Your comment…",
+      "replyPlaceholder": "Your reply…",
+      "submit": "Comment",
+      "replySubmit": "Reply",
+      "error": "The comment could not be saved."
+    },
+    "item": {
+      "reply": "Reply",
+      "edit": "Edit",
+      "delete": "Delete",
+      "report": "Report",
+      "reported": "Reported",
+      "reportedToast": "Comment reported — moderation will take a look.",
+      "deleted": "[deleted]",
+      "save": "Save",
+      "cancel": "Cancel",
+      "upvote": "Upvote",
+      "downvote": "Downvote",
+      "voteError": "Vote failed — please try again.",
+      "error": "Action failed — please try again."
+    },
+    "validation": {
+      "targetRequired": "Target is missing",
+      "contentRequired": "The comment must not be empty",
+      "contentMax": "At most 10,000 characters"
+    }
+  }
+}

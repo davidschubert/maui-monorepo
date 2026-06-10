@@ -2,43 +2,35 @@
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { z } from 'zod'
 import { createCommentSchema } from '../../schemas/comment'
-import type { Comment } from '../../shared/types/comment'
 
 const props = defineProps<{
-  postId: string
+  /** Gesetzt = Antwort-Formular, sonst Top-Level-Kommentar */
   parentId?: string
 }>()
 
-const emit = defineEmits<{ created: [comment: Comment] }>()
+const emit = defineEmits<{ created: [] }>()
 
-const { isLoggedIn } = useCurrentUser()
+const { t } = useI18n()
+const store = useCommentStore()
+const toast = useToast()
 const loading = ref(false)
-const errorMessage = ref<string | null>(null)
 
-// Formular validiert nur den Text — postId/parentId kommen aus den Props
-const schema = createCommentSchema().pick({ text: true })
-type FormInput = z.infer<typeof schema>
+// Formular validiert nur den Text — Target/parentId kommen aus Store/Props
+const schema = computed(() => createCommentSchema(t).pick({ content: true }))
+type FormInput = z.infer<typeof schema.value>
 
-const state = reactive<FormInput>({ text: '' })
+const state = reactive<FormInput>({ content: '' })
 
 async function onSubmit(event: FormSubmitEvent<FormInput>) {
   loading.value = true
-  errorMessage.value = null
-
   try {
-    const comment = await $fetch<Comment>('/api/comments', {
-      method: 'POST',
-      body: {
-        postId: props.postId,
-        text: event.data.text,
-        parentId: props.parentId,
-      },
-    })
-    state.text = ''
-    emit('created', comment)
+    // Optimistic im Store — erscheint sofort, Rollback bei Fehler
+    await store.addComment(event.data.content, props.parentId)
+    state.content = ''
+    emit('created')
   }
   catch {
-    errorMessage.value = 'Kommentar konnte nicht gespeichert werden.'
+    toast.add({ title: t('comments.form.error'), color: 'error' })
   }
   finally {
     loading.value = false
@@ -47,14 +39,17 @@ async function onSubmit(event: FormSubmitEvent<FormInput>) {
 </script>
 
 <template>
-  <UForm v-if="isLoggedIn" :schema="schema" :state="state" class="space-y-2" @submit="onSubmit">
-    <UFormField name="text">
-      <UTextarea v-model="state.text" :rows="3" placeholder="Dein Kommentar…" class="w-full" />
+  <UForm :schema="schema" :state="state" class="space-y-2" @submit="onSubmit">
+    <UFormField name="content">
+      <UTextarea
+        v-model="state.content"
+        :rows="parentId ? 2 : 3"
+        :placeholder="parentId ? t('comments.form.replyPlaceholder') : t('comments.form.placeholder')"
+        class="w-full"
+      />
     </UFormField>
-    <UAlert v-if="errorMessage" color="error" variant="subtle" :title="errorMessage" />
-    <UButton type="submit" size="sm" :loading="loading">Kommentieren</UButton>
+    <UButton type="submit" size="sm" :loading="loading">
+      {{ parentId ? t('comments.form.replySubmit') : t('comments.form.submit') }}
+    </UButton>
   </UForm>
-  <p v-else class="text-sm text-muted">
-    <ULink to="/login" class="font-medium text-primary">Anmelden</ULink>, um zu kommentieren.
-  </p>
 </template>

@@ -17,12 +17,16 @@ export default defineEventHandler(async (event) => {
     tableId: COMMENTS_TABLE,
     rowId: ID.unique(),
     data: {
-      postId: body.postId,
-      text: body.text,
+      targetId: body.targetId,
+      targetType: body.targetType,
+      content: body.content,
       parentId: body.parentId ?? null,
       authorId: user.$id,
       authorName: user.name,
-      status: 'visible',
+      upvotes: 0,
+      downvotes: 0,
+      score: 0,
+      status: 'active',
     },
     // Lesen erlaubt die Table (any) — ändern/löschen nur der Autor
     permissions: [

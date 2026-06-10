@@ -373,7 +373,32 @@ Maximal 40 Turns.
 
 ---
 
-## Phase 11 – Reddit Comment System App
+## Phase 11 – Reddit Comment System App ✅ (abgeschlossen 2026-06-10)
+
+> ✅ **Erledigt am 2026-06-10.** Migration 002 (drop+create): comments mit
+> targetId/targetType, content (10k), upvotes/downvotes/score (denormalisiert),
+> status active/reported/hidden/deleted; Indizes target/parent/score/status.
+> Routes: GET mit sort=top|new|controversial (controversial je Seite berechnet)
+> + myVotes aus EINEM votes-Query; POST/PATCH/DELETE (Soft-Delete);
+> Vote-Toggle mit atomaren Zähler-Increments via AdminClient
+> (incrementRowColumn/decrementRowColumn, score konsistent nachgezogen);
+> Report via AdminClient (nur active → reported). useCommentStore (rows,
+> userVotes, sortMode, threaded-Baum-Getter, applyRealtime) — Optimistic
+> Updates: addComment fügt temp-Row ein und ersetzt/entfernt sie im
+> then/catch, vote snapshottet Row+Vote, rechnet Zähler lokal und
+> reconciled/rollbackt mit der Server-Antwort. Komponenten CommentSection
+> (Sortierauswahl, Realtime-where auf Target), CommentThread (rekursiv,
+> unbegrenzte Tiefe), CommentItem (Avatar via gelockertem AvatarUser-Typ,
+> Antworten/Bearbeiten/Löschen/Melden, [gelöscht]-Platzhalter), CommentForm,
+> VoteButtons. i18n de+en als dritter Locale-Merge-Layer (comments zwischen
+> App und Core). Nachweis (2 User, User B via Signup): sort=top zeigt
+> score 2 vor 0 mit allen Zähler-Feldern + myVotes-Map; sort=new
+> Datums-Reihenfolge; sort=controversial polarisierten Kommentar (2.0)
+> zuerst; Toggle: erneutes +1 → myVote null, up 2→1; Antwort mit parentId
+> erscheint im SSR-HTML INNERHALB data-thread-children; DELETE → status
+> deleted, bleibt gelistet, UI zeigt [gelöscht]/[deleted]; Realtime-Probe
+> loggt create-Event mit targetId-Payload; /en liefert englische Strings;
+> typecheck/lint/test (20) grün über alle Packages.
 
 > v2 vom 2026-06-10, abgeglichen mit der [[reddit-comment-system-setup]]
 > Notiz (Brain-Vault). Übernommen: targetId+targetType statt postId,

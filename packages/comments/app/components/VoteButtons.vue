@@ -1,46 +1,47 @@
 <script setup lang="ts">
-import type { CommentVote } from '../../shared/types/comment'
+import type { Comment } from '../../shared/types/comment'
 
-const props = defineProps<{ commentId: string }>()
+const props = defineProps<{ comment: Comment }>()
 
+const { t } = useI18n()
+const store = useCommentStore()
+const toast = useToast()
 const { isLoggedIn } = useCurrentUser()
-const pending = ref(false)
-const current = ref<1 | -1 | null>(null)
+
+const myVote = computed(() => store.myVote(props.comment.$id))
+const disabled = computed(() => !isLoggedIn.value || props.comment.status === 'deleted')
 
 async function vote(value: 1 | -1) {
-  if (!isLoggedIn.value || pending.value) return
-  pending.value = true
+  if (disabled.value) return
   try {
-    const row = await $fetch<CommentVote>(`/api/comments/${props.commentId}/vote`, {
-      method: 'POST',
-      body: { value },
-    })
-    current.value = row.value === 1 ? 1 : -1
+    // Optimistic im Store — Zähler springen sofort, Rollback bei Fehler
+    await store.vote(props.comment.$id, value)
   }
-  finally {
-    pending.value = false
+  catch {
+    toast.add({ title: t('comments.item.voteError'), color: 'error' })
   }
 }
 </script>
 
 <template>
-  <div class="flex items-center gap-1">
+  <div class="flex items-center" data-vote-buttons>
     <UButton
       icon="i-ph-arrow-up"
       size="xs"
-      :color="current === 1 ? 'primary' : 'neutral'"
-      variant="ghost"
-      :disabled="!isLoggedIn || pending"
-      aria-label="Upvote"
+      :color="myVote === 1 ? 'primary' : 'neutral'"
+      :variant="myVote === 1 ? 'soft' : 'ghost'"
+      :disabled="disabled"
+      :aria-label="t('comments.item.upvote')"
       @click="vote(1)"
     />
+    <span class="min-w-6 text-center text-xs font-semibold tabular-nums" data-score>{{ comment.score }}</span>
     <UButton
       icon="i-ph-arrow-down"
       size="xs"
-      :color="current === -1 ? 'primary' : 'neutral'"
-      variant="ghost"
-      :disabled="!isLoggedIn || pending"
-      aria-label="Downvote"
+      :color="myVote === -1 ? 'primary' : 'neutral'"
+      :variant="myVote === -1 ? 'soft' : 'ghost'"
+      :disabled="disabled"
+      :aria-label="t('comments.item.downvote')"
       @click="vote(-1)"
     />
   </div>

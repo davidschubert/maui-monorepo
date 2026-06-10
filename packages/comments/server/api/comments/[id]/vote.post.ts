@@ -1,12 +1,24 @@
 import { ID, Permission, Query, Role } from 'node-appwrite'
 import { voteSchema } from '../../../../schemas/comment'
-import { VOTES_TABLE, type CommentVote } from '../../../../shared/types/comment'
+import {
+  COMMENTS_TABLE,
+  VOTES_TABLE,
+  type Comment,
+  type CommentVote,
+  type VoteResponse,
+  type VoteValue,
+} from '../../../../shared/types/comment'
 
 /**
- * Vote-Upsert: ein Vote pro User und Kommentar (Unique-Index sichert das
- * zusätzlich auf DB-Ebene ab). UI-Feinschliff kommt in Phase 11.
+ * Vote mit Toggle-Semantik (Spec):
+ *   kein Vote      → anlegen
+ *   gleicher Value → Vote ENTFERNEN (Toggle)
+ *   anderer Value  → umdrehen
+ * Vote-Rows schreibt der User selbst (SessionClient, Unique-Index sichert ab);
+ * die denormalisierten Zähler auf dem Kommentar pflegt der AdminClient
+ * server-autoritativ via atomarer Increments (Voter darf fremde Rows nicht schreiben).
  */
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<VoteResponse> => {
   const user = event.context.user
   if (!user) {
     throw createError({ status: 401, statusText: 'Unauthorized' })
@@ -19,8 +31,9 @@ export default defineEventHandler(async (event) => {
 
   const { value } = await readValidatedBody(event, voteSchema.parse)
   const config = useRuntimeConfig(event)
-  const { tablesDB } = createSessionClient(event)
   const databaseId = config.public.appwriteDatabaseId
+  const { tablesDB } = createSessionClient(event)
+  const admin = createAdminClient(event)
 
   const existing = await tablesDB.listRows<CommentVote>({
     databaseId,
@@ -33,29 +46,46 @@ export default defineEventHandler(async (event) => {
   })
 
   const current = existing.rows[0]
+  const column = (v: VoteValue) => v === 1 ? 'upvotes' : 'downvotes'
+  let myVote: VoteValue | null
 
-  if (current) {
-    // Sparse Update (1.9): nur das geänderte Attribut geht über die Leitung
-    return await tablesDB.updateRow<CommentVote>({
+  if (current && current.value === value) {
+    // Toggle: Vote entfernen
+    await tablesDB.deleteRow({ databaseId, tableId: VOTES_TABLE, rowId: current.$id })
+    await admin.tablesDB.decrementRowColumn({ databaseId, tableId: COMMENTS_TABLE, rowId: commentId, column: column(value), value: 1 })
+    myVote = null
+  }
+  else if (current) {
+    // Umdrehen: alten Zähler runter, neuen hoch
+    await tablesDB.updateRow<CommentVote>({ databaseId, tableId: VOTES_TABLE, rowId: current.$id, data: { value } })
+    await admin.tablesDB.decrementRowColumn({ databaseId, tableId: COMMENTS_TABLE, rowId: commentId, column: column(value === 1 ? -1 : 1), value: 1 })
+    await admin.tablesDB.incrementRowColumn({ databaseId, tableId: COMMENTS_TABLE, rowId: commentId, column: column(value), value: 1 })
+    myVote = value
+  }
+  else {
+    await tablesDB.createRow<CommentVote>({
       databaseId,
       tableId: VOTES_TABLE,
-      rowId: current.$id,
-      data: { value },
+      rowId: ID.unique(),
+      data: { commentId, userId: user.$id, value },
+      permissions: [
+        Permission.read(Role.user(user.$id)),
+        Permission.update(Role.user(user.$id)),
+        Permission.delete(Role.user(user.$id)),
+      ],
     })
+    await admin.tablesDB.incrementRowColumn({ databaseId, tableId: COMMENTS_TABLE, rowId: commentId, column: column(value), value: 1 })
+    myVote = value
   }
 
-  const row = await tablesDB.createRow<CommentVote>({
+  // score = upvotes - downvotes, einmal konsistent nachziehen
+  const fresh = await admin.tablesDB.getRow<Comment>({ databaseId, tableId: COMMENTS_TABLE, rowId: commentId })
+  const comment = await admin.tablesDB.updateRow<Comment>({
     databaseId,
-    tableId: VOTES_TABLE,
-    rowId: ID.unique(),
-    data: { commentId, userId: user.$id, value },
-    permissions: [
-      Permission.read(Role.user(user.$id)),
-      Permission.update(Role.user(user.$id)),
-      Permission.delete(Role.user(user.$id)),
-    ],
+    tableId: COMMENTS_TABLE,
+    rowId: commentId,
+    data: { score: fresh.upvotes - fresh.downvotes },
   })
 
-  setResponseStatus(event, 201)
-  return row
+  return { comment, myVote }
 })

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 const { t } = useI18n()
 
-// Demo-Post bis Phase 11 echte Posts bringt
-const DEMO_POST_ID = 'demo-post'
+// Demo-Target — echte Posts/Spaces liefert später die Community-Plattform
+const DEMO_TARGET = { id: 'demo-post', type: 'post' } as const
 </script>
 
 <template>
@@ -11,6 +11,6 @@ const DEMO_POST_ID = 'demo-post'
       <h1 class="text-2xl font-bold">Reddit Comments</h1>
       <p class="text-muted">{{ t('app.tagline') }}</p>
     </div>
-    <CommentThread :post-id="DEMO_POST_ID" />
+    <CommentSection :target-id="DEMO_TARGET.id" :target-type="DEMO_TARGET.type" />
   </main>
 </template>

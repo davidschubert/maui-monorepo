@@ -132,6 +132,9 @@ importers:
       node-appwrite:
         specifier: 'catalog:'
         version: 26.2.0
+      pinia:
+        specifier: 'catalog:'
+        version: 3.0.4(typescript@5.9.3)(vue@3.5.35(typescript@5.9.3))
       zod:
         specifier: 'catalog:'
         version: 4.4.3

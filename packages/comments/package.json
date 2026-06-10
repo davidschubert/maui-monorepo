@@ -12,6 +12,7 @@
     "@nuxt/ui": "catalog:",
     "appwrite": "catalog:",
     "node-appwrite": "catalog:",
+    "pinia": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
