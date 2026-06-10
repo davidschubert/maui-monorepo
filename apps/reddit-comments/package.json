@@ -13,6 +13,7 @@
     "@iconify-json/ph": "catalog:",
     "@maui/core": "workspace:*",
     "@nuxt/ui": "catalog:",
+    "@nuxtjs/i18n": "catalog:",
     "@pinia/nuxt": "catalog:",
     "appwrite": "catalog:",
     "node-appwrite": "catalog:",

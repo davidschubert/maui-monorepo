@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { t } = useI18n()
 const auth = useAuthStore()
 const loading = ref(false)
 
@@ -17,6 +18,6 @@ async function logout() {
 
 <template>
   <UButton color="neutral" variant="ghost" :loading="loading" @click="logout">
-    Abmelden
+    {{ t('auth.logout') }}
   </UButton>
 </template>

@@ -85,7 +85,8 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 | 4 | Auth (SSR, Session-Cookie, UAuthForm) | ✅ 2026-06-10 |
 | 5 | Layouts & User Components (prefs-basiert) | ✅ 2026-06-10 |
 | 6 | Utilities, SEO & Analytics-Gate (config-gated) | ✅ 2026-06-10 |
-| 7–9 | i18n · Testing · CI/Deploy | 🔜 |
+| 7 | i18n (de Default + en, Layer-Merge) | ✅ 2026-06-10 |
+| 8–9 | Testing · CI/Deploy | 🔜 |
 | 10–11 | `packages/comments` Feature Layer + Reddit Comment App | 🔜 |
 
 Details und Nachweis-Kriterien pro Phase: [docs/GOALS.md](docs/GOALS.md)

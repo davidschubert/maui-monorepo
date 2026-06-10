@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
 
+const { t } = useI18n()
 const auth = useAuthStore()
 
 async function logout() {
@@ -17,7 +18,7 @@ const items = computed<DropdownMenuItem[]>(() => [
   },
   { type: 'separator' },
   {
-    label: 'Abmelden',
+    label: t('auth.logout'),
     icon: 'i-ph-sign-out',
     onSelect: () => { void logout() },
   },

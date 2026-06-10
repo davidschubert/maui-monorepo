@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { t } = useI18n()
 const { isLoggedIn } = useCurrentUser()
 </script>
 
@@ -9,7 +10,7 @@ const { isLoggedIn } = useCurrentUser()
         <NuxtLink to="/" class="font-bold tracking-tight">Maui</NuxtLink>
         <div class="flex items-center gap-2">
           <UserMenu v-if="isLoggedIn" />
-          <UButton v-else to="/login" color="neutral" variant="ghost">Anmelden</UButton>
+          <UButton v-else to="/login" color="neutral" variant="ghost">{{ t('auth.login.title') }}</UButton>
         </div>
       </nav>
     </header>

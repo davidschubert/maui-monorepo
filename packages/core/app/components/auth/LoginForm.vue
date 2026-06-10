@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import type { AuthFormField, FormSubmitEvent } from '@nuxt/ui'
-import { loginSchema, type LoginInput } from '../../../schemas/auth'
+import { createLoginSchema, type LoginInput } from '../../../schemas/auth'
 
+const { t } = useI18n()
 const auth = useAuthStore()
 const loading = ref(false)
 const errorMessage = ref<string | null>(null)
 
-const fields: AuthFormField[] = [
-  { name: 'email', type: 'email', label: 'E-Mail', placeholder: 'du@example.com', required: true },
-  { name: 'password', type: 'password', label: 'Passwort', placeholder: 'Dein Passwort', required: true },
-]
+const schema = computed(() => createLoginSchema(t))
+
+const fields = computed<AuthFormField[]>(() => [
+  { name: 'email', type: 'email', label: t('auth.fields.email'), placeholder: t('auth.fields.emailPlaceholder'), required: true },
+  { name: 'password', type: 'password', label: t('auth.fields.password'), placeholder: t('auth.fields.passwordPlaceholder'), required: true },
+])
 
 async function onSubmit(event: FormSubmitEvent<LoginInput>) {
   loading.value = true
@@ -21,7 +24,7 @@ async function onSubmit(event: FormSubmitEvent<LoginInput>) {
     await navigateTo('/')
   }
   catch {
-    errorMessage.value = 'Anmeldung fehlgeschlagen — bitte E-Mail und Passwort prüfen.'
+    errorMessage.value = t('auth.login.failed')
   }
   finally {
     loading.value = false
@@ -31,11 +34,11 @@ async function onSubmit(event: FormSubmitEvent<LoginInput>) {
 
 <template>
   <UAuthForm
-    title="Anmelden"
-    description="Melde dich mit deinem Account an."
-    :schema="loginSchema"
+    :title="t('auth.login.title')"
+    :description="t('auth.login.description')"
+    :schema="schema"
     :fields="fields"
-    :submit="{ label: 'Anmelden' }"
+    :submit="{ label: t('auth.login.submit') }"
     :loading="loading"
     @submit="onSubmit"
   >
@@ -43,8 +46,8 @@ async function onSubmit(event: FormSubmitEvent<LoginInput>) {
       <UAlert v-if="errorMessage" color="error" variant="subtle" :title="errorMessage" />
     </template>
     <template #footer>
-      Noch keinen Account?
-      <ULink to="/register" class="font-medium text-primary">Registrieren</ULink>
+      {{ t('auth.login.noAccount') }}
+      <ULink to="/register" class="font-medium text-primary">{{ t('auth.login.registerLink') }}</ULink>
     </template>
   </UAuthForm>
 </template>

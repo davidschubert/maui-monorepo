@@ -1,15 +1,26 @@
 import { z } from 'zod'
 
-// Deutsche Fehlermeldungen inline — Umstellung auf i18n keys folgt in Phase 7
+export type TranslateFn = (key: string) => string
 
-export const loginSchema = z.object({
-  email: z.email('Bitte eine gültige E-Mail-Adresse eingeben'),
-  password: z.string().min(8, 'Das Passwort muss mindestens 8 Zeichen lang sein'),
-})
+// Ohne t() bleiben die Meldungen i18n-Keys — die UI übersetzt via
+// create*Schema(t), Server-Routes validieren mit der Key-Variante.
+const identity: TranslateFn = key => key
 
-export const registerSchema = loginSchema.extend({
-  name: z.string().min(2, 'Der Name muss mindestens 2 Zeichen lang sein'),
-})
+export function createLoginSchema(t: TranslateFn = identity) {
+  return z.object({
+    email: z.email(t('validation.emailInvalid')),
+    password: z.string().min(8, t('validation.passwordMin')),
+  })
+}
+
+export function createRegisterSchema(t: TranslateFn = identity) {
+  return createLoginSchema(t).extend({
+    name: z.string().min(2, t('validation.nameMin')),
+  })
+}
+
+export const loginSchema = createLoginSchema()
+export const registerSchema = createRegisterSchema()
 
 export type LoginInput = z.infer<typeof loginSchema>
 export type RegisterInput = z.infer<typeof registerSchema>

@@ -9,6 +9,7 @@ onlyBuiltDependencies:
 
 catalog:
   '@iconify-json/ph': ^1.2.2
+  '@nuxtjs/i18n': ^10.4.0
   appwrite: ^26.0.0
   node-appwrite: ^26.2.0
   '@types/node': ^22.18.0

@@ -1,0 +1,45 @@
+{
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "description": "Sign in with your account.",
+      "submit": "Sign in",
+      "failed": "Sign-in failed — please check your email and password.",
+      "noAccount": "No account yet?",
+      "registerLink": "Register"
+    },
+    "register": {
+      "title": "Register",
+      "description": "Create your account.",
+      "submit": "Create account",
+      "failed": "Registration failed — does the account already exist?",
+      "hasAccount": "Already have an account?",
+      "loginLink": "Sign in"
+    },
+    "logout": "Sign out",
+    "fields": {
+      "name": "Name",
+      "namePlaceholder": "Your name",
+      "email": "Email",
+      "emailPlaceholder": "you{'@'}example.com",
+      "password": "Password",
+      "passwordPlaceholder": "Your password",
+      "passwordHint": "At least 8 characters"
+    }
+  },
+  "validation": {
+    "emailInvalid": "Please enter a valid email address",
+    "passwordMin": "The password must be at least 8 characters long",
+    "nameMin": "The name must be at least 2 characters long",
+    "bioMax": "The bio must be at most 500 characters long",
+    "urlInvalid": "Please enter a valid URL"
+  },
+  "ui": {
+    "save": "Save",
+    "consent": {
+      "message": "We use cookies for anonymous usage statistics. Analytics only loads after your consent.",
+      "accept": "Accept",
+      "decline": "Decline"
+    }
+  }
+}

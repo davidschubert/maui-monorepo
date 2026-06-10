@@ -222,7 +222,22 @@ prüfen, nicht nur im Banner). Maximal 25 Turns.
 
 ---
 
-## Phase 7 – i18n
+## Phase 7 – i18n ✅ (abgeschlossen 2026-06-10)
+
+> ✅ **Erledigt am 2026-06-10.** @nuxtjs/i18n ^10.4 im Core (de Default,
+> strategy prefix_except_default → /en/*, detectBrowserLanguage aus für
+> deterministische SSR-Antworten); Core-Locales in i18n/locales/{de,en}.json
+> (auth.*, validation.*, ui.* inkl. Consent); Zod-Schemas als Factories
+> create*Schema(t) — Komponenten übersetzen via computed(() =>
+> createLoginSchema(t)), Server validiert mit der Key-Variante;
+> Auth-Formulare, LogoutButton, UserMenu, CookieBanner, Nav auf t() umgestellt.
+> App ergänzt eigene Keys (app.tagline) via i18n/locales + gleiche
+> locale-codes in nuxt.config — Merge mit Core-Locales funktioniert.
+> Stolperfalle: '@' in Messages ist vue-i18n-Linked-Syntax → E-Mail-
+> Placeholder brauchen {'@'}-Escape, sonst bricht der GANZE Locale-Load
+> ("Invalid linked format"). Nachweis: typecheck grün; curl /login →
+> deutsche Core-Strings, /en/login → englische; / und /en → App-Key
+> (Tagline) neben Core-Key (Nav-Button), beide lokalisiert.
 
 ```
 /goal Phase 7 laut docs/CONCEPT.md ist abgeschlossen.

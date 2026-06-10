@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from '@nuxt/ui'
-import { profileSchema, type ProfileInput } from '../../../schemas/profile'
+import { createProfileSchema, type ProfileInput } from '../../../schemas/profile'
 
+const { t } = useI18n()
 const auth = useAuthStore()
 const toast = useToast()
 const loading = ref(false)
+
+const schema = computed(() => createProfileSchema(t))
 
 const state = reactive<ProfileInput>({
   name: auth.user?.name ?? '',
@@ -29,8 +32,8 @@ async function onSubmit(event: FormSubmitEvent<ProfileInput>) {
 </script>
 
 <template>
-  <UForm :schema="profileSchema" :state="state" class="space-y-4" @submit="onSubmit">
-    <UFormField label="Name" name="name" required>
+  <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
+    <UFormField :label="t('auth.fields.name')" name="name" required>
       <UInput v-model="state.name" class="w-full" />
     </UFormField>
 
@@ -42,6 +45,6 @@ async function onSubmit(event: FormSubmitEvent<ProfileInput>) {
       <UInput v-model="state.avatarUrl" placeholder="https://…" class="w-full" />
     </UFormField>
 
-    <UButton type="submit" :loading="loading">Speichern</UButton>
+    <UButton type="submit" :loading="loading">{{ t('ui.save') }}</UButton>
   </UForm>
 </template>

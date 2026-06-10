@@ -12,6 +12,7 @@
   "dependencies": {
     "@iconify-json/ph": "catalog:",
     "@nuxt/ui": "catalog:",
+    "@nuxtjs/i18n": "catalog:",
     "@pinia/nuxt": "catalog:",
     "appwrite": "catalog:",
     "node-appwrite": "catalog:",

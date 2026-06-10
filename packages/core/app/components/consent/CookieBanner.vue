@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { t } = useI18n()
 const appConfig = useAppConfig()
 const { needsDecision, accept, decline } = useCookieConsent()
 
@@ -13,11 +14,11 @@ const visible = computed(() => appConfig.maui?.consent?.enabled === true && need
     class="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-xl rounded-lg border border-default bg-default p-4 shadow-lg"
   >
     <p class="text-sm text-muted">
-      Wir verwenden Cookies für anonyme Nutzungsstatistiken. Analytics lädt erst nach deiner Zustimmung.
+      {{ t('ui.consent.message') }}
     </p>
     <div class="mt-3 flex justify-end gap-2">
-      <UButton color="neutral" variant="ghost" size="sm" @click="decline">Ablehnen</UButton>
-      <UButton size="sm" @click="accept">Akzeptieren</UButton>
+      <UButton color="neutral" variant="ghost" size="sm" @click="decline">{{ t('ui.consent.decline') }}</UButton>
+      <UButton size="sm" @click="accept">{{ t('ui.consent.accept') }}</UButton>
     </div>
   </div>
 </template>

@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import type { AuthFormField, FormSubmitEvent } from '@nuxt/ui'
-import { registerSchema, type RegisterInput } from '../../../schemas/auth'
+import { createRegisterSchema, type RegisterInput } from '../../../schemas/auth'
 
+const { t } = useI18n()
 const auth = useAuthStore()
 const loading = ref(false)
 const errorMessage = ref<string | null>(null)
 
-const fields: AuthFormField[] = [
-  { name: 'name', type: 'text', label: 'Name', placeholder: 'Dein Name', required: true },
-  { name: 'email', type: 'email', label: 'E-Mail', placeholder: 'du@example.com', required: true },
-  { name: 'password', type: 'password', label: 'Passwort', placeholder: 'Mindestens 8 Zeichen', required: true },
-]
+const schema = computed(() => createRegisterSchema(t))
+
+const fields = computed<AuthFormField[]>(() => [
+  { name: 'name', type: 'text', label: t('auth.fields.name'), placeholder: t('auth.fields.namePlaceholder'), required: true },
+  { name: 'email', type: 'email', label: t('auth.fields.email'), placeholder: t('auth.fields.emailPlaceholder'), required: true },
+  { name: 'password', type: 'password', label: t('auth.fields.password'), placeholder: t('auth.fields.passwordHint'), required: true },
+])
 
 async function onSubmit(event: FormSubmitEvent<RegisterInput>) {
   loading.value = true
@@ -22,7 +25,7 @@ async function onSubmit(event: FormSubmitEvent<RegisterInput>) {
     await navigateTo('/')
   }
   catch {
-    errorMessage.value = 'Registrierung fehlgeschlagen — existiert der Account bereits?'
+    errorMessage.value = t('auth.register.failed')
   }
   finally {
     loading.value = false
@@ -32,11 +35,11 @@ async function onSubmit(event: FormSubmitEvent<RegisterInput>) {
 
 <template>
   <UAuthForm
-    title="Registrieren"
-    description="Erstelle deinen Account."
-    :schema="registerSchema"
+    :title="t('auth.register.title')"
+    :description="t('auth.register.description')"
+    :schema="schema"
     :fields="fields"
-    :submit="{ label: 'Account erstellen' }"
+    :submit="{ label: t('auth.register.submit') }"
     :loading="loading"
     @submit="onSubmit"
   >
@@ -44,8 +47,8 @@ async function onSubmit(event: FormSubmitEvent<RegisterInput>) {
       <UAlert v-if="errorMessage" color="error" variant="subtle" :title="errorMessage" />
     </template>
     <template #footer>
-      Schon einen Account?
-      <ULink to="/login" class="font-medium text-primary">Anmelden</ULink>
+      {{ t('auth.register.hasAccount') }}
+      <ULink to="/login" class="font-medium text-primary">{{ t('auth.register.loginLink') }}</ULink>
     </template>
   </UAuthForm>
 </template>

@@ -1,9 +1,16 @@
 import { z } from 'zod'
+import type { TranslateFn } from './auth'
 
-export const profileSchema = z.object({
-  name: z.string().min(2, 'Der Name muss mindestens 2 Zeichen lang sein'),
-  bio: z.string().max(500, 'Die Bio darf höchstens 500 Zeichen lang sein').optional(),
-  avatarUrl: z.union([z.url('Bitte eine gültige URL eingeben'), z.literal('')]).optional(),
-})
+const identity: TranslateFn = key => key
+
+export function createProfileSchema(t: TranslateFn = identity) {
+  return z.object({
+    name: z.string().min(2, t('validation.nameMin')),
+    bio: z.string().max(500, t('validation.bioMax')).optional(),
+    avatarUrl: z.union([z.url(t('validation.urlInvalid')), z.literal('')]).optional(),
+  })
+}
+
+export const profileSchema = createProfileSchema()
 
 export type ProfileInput = z.infer<typeof profileSchema>
