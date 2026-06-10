@@ -14,6 +14,8 @@
     "@maui/core": "workspace:*",
     "@nuxt/ui": "catalog:",
     "@pinia/nuxt": "catalog:",
+    "appwrite": "catalog:",
+    "node-appwrite": "catalog:",
     "nuxt": "catalog:",
     "pinia": "catalog:",
     "vue": "catalog:"

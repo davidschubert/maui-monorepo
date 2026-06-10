@@ -81,7 +81,7 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 |---|---|---|
 | 1 | Monorepo Setup (Workspace, Core Layer, App-Komposition) | ✅ 2026-06-09 |
 | 2 | Design-Fundament (Nuxt UI Theme, Tailwind 4) | ✅ 2026-06-09 |
-| 3 | Appwrite SSR-Fundament (Admin/Session Client) | 🔜 |
+| 3 | Appwrite SSR-Fundament (Admin/Session Client) | ✅ 2026-06-10 |
 | 4 | Auth (SSR, Session-Cookie, UAuthForm) | 🔜 |
 | 5–9 | Layouts · Utilities · i18n · Testing · CI/Deploy | 🔜 |
 | 10–11 | `packages/comments` Feature Layer + Reddit Comment App | 🔜 |

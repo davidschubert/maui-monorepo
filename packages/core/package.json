@@ -13,6 +13,8 @@
     "@iconify-json/ph": "catalog:",
     "@nuxt/ui": "catalog:",
     "@pinia/nuxt": "catalog:",
+    "appwrite": "catalog:",
+    "node-appwrite": "catalog:",
     "pinia": "catalog:"
   },
   "devDependencies": {

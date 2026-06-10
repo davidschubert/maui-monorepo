@@ -67,7 +67,21 @@ packages/themes, später). Maximal 25 Turns.
 
 ---
 
-## Phase 3 – Appwrite SSR-Fundament
+## Phase 3 – Appwrite SSR-Fundament ✅ (abgeschlossen 2026-06-10)
+
+> ✅ **Erledigt am 2026-06-10.** node-appwrite ^26.2 + appwrite ^26.0 via Catalog;
+> `server/lib/appwrite.ts` mit createAdminClient()/createSessionClient(event)
+> (lazy get-Accessors, Client pro Request, Cookie-Name `a_session_<PROJECT_ID>`
+> via sessionCookieName()); runtimeConfig-Skeleton (appwriteKey privat,
+> public.appwriteEndpoint/ProjectId/DatabaseId leer); server/middleware/auth.ts
+> setzt event.context.user (wirft nie, skipt ohne Cookie); shared/types/h3.d.ts
+> + appwrite.ts; app/utils/appwrite.client.ts (Web SDK, nur Realtime, Server-Guard);
+> useRealtimeRows() mit import.meta.server-Guard + onScopeDispose (subscribe()
+> liefert in SDK v26 ein Promise — Cleanup wartet die Auflösung ab);
+> .env.example in der App. Nachweis: typecheck grün in Core + App,
+> `curl http://localhost:3001/api/health` → `{"ok":true,"user":null}` gegen
+> die lokale OrbStack-Instanz (Appwrite 1.9.0, Projekt reddit-comments,
+> Datenbank main, Key-Scopes health.read/databases.*/users.*/sessions.write).
 
 ```
 /goal Phase 3 laut docs/CONCEPT.md ist abgeschlossen.
