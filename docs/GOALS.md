@@ -375,40 +375,69 @@ Maximal 40 Turns.
 
 ## Phase 11 – Reddit Comment System App
 
-> Entwurf vom 2026-06-10 (aus CONCEPT.md Phase 11 + Stand nach Phase 10 —
-> die [[reddit-comment-system-setup]] Notiz war nicht auffindbar; bei
-> Bedarf vor dem Setzen anpassen). Presence bleibt außen vor, bis
-> self-hosted es kann (Release-Watch läuft wöchentlich).
+> v2 vom 2026-06-10, abgeglichen mit der [[reddit-comment-system-setup]]
+> Notiz (Brain-Vault). Übernommen: targetId+targetType statt postId,
+> denormalisierte Zähler (upvotes/downvotes/score), Sortierung
+> Top/New/Controversial, unbegrenzte Threading-Tiefe (rekursiv),
+> Soft-Delete via status (active/reported/hidden/deleted), content bis
+> 10.000 Zeichen, Komponenten-Schnitt CommentSection/Thread/Item/Form,
+> useCommentStore. NICHT übernommen: "Appwrite SDK direkt" (März-Notiz,
+> überschrieben durch Konzept v2: CRUD via Server Routes), Sperren/Hide-
+> Moderation (→ packages/admin), E-Mail-Notifications (→ Community-
+> Plattform). Presence bleibt außen vor (Cloud-only, Release-Watch läuft).
+> VOR dem Start: Key nuxt-ssr-local braucht zusätzlich rows.read +
+> rows.write (AdminClient aktualisiert die denormalisierten Zähler
+> server-autoritativ — Voter darf fremde Kommentar-Rows nicht schreiben).
 
 ```
-/goal Phase 11 laut docs/CONCEPT.md ist abgeschlossen.
-Endzustand: apps/reddit-comments ist ein nutzbares Kommentarsystem:
-Page /p/[postId] rendert den CommentThread; Threading mit Antworten
-auf Kommentare (verschachtelt bis Tiefe 3, Antworten-Button pro
-Kommentar); Sortierung new (Default) und top als sort-Query-Param der
-GET-Route — top sortiert nach Vote-Score; die GET-Route liefert pro
-Kommentar ein score-Feld (Aggregation über comment_votes in EINEM
-zusätzlichen Query, kein N+1) und myVote für den eingeloggten User;
-VoteButtons zeigen Score + eigenen Vote-Zustand, Optimistic Update mit
-Rollback bei Fehler; neuer Kommentar erscheint optimistisch sofort;
-Realtime fügt fremde Kommentare gezielt ein (kein Full-Refresh);
-comments-Layer-Strings als i18n keys (de+en); UserAvatar + formatDate
-in der Kommentar-Darstellung; Empty-/Loading-States.
-Nachweis: pnpm -r typecheck, lint und test grün; curl-Sequenz gegen
-die lokale Instanz: zwei Kommentare mit unterschiedlich vielen Votes
-anlegen, dann zeigt GET /api/comments?postId=…&sort=top die
-Score-Reihenfolge und sort=new die Datums-Reihenfolge im Terminal;
-GET-Response enthält score und myVote; POST mit parentId → curl
-http://localhost:3001/p/demo-post zeigt den verschachtelten Kommentar
-im SSR-HTML (Einrückungs-Markup sichtbar); curl /en/p/demo-post zeigt
-englische Layer-Strings; für Optimistic Updates zeigt Claude den
-Code-Pfad (Anlegen → sofortiges Einfügen → Rollback im catch).
+/goal Phase 11 laut docs/CONCEPT.md und der reddit-comment-system-setup
+Spec ist abgeschlossen.
+Endzustand: Migration 002 im comments-Layer baut das Schema nach Spec
+um (Dev-Daten verwerfbar, drop + create erlaubt): comments mit content
+(max 10.000), authorId, authorName, targetId, targetType, parentId
+(nullable), upvotes/downvotes/score (integer, default 0, denormalisiert),
+status (active/reported/hidden/deleted); Indizes targetId+targetType,
+parentId, score, status; comment_votes unverändert mit Unique-Index.
+Routes: GET /api/comments?targetId&targetType&sort=top|new|controversial
+(Query.limit + Pagination; top via Query.orderDesc(score), new via
+$createdAt, controversial = (up+down)/max(|score|,1) server-seitig je
+Seite berechnet; Response enthält myVote des eingeloggten Users via
+EINEM votes-Query, kein N+1); POST (auth, Zod, content max 10.000);
+PATCH /:id (nur Autor, content); DELETE /:id → Soft-Delete (status
+deleted, Row bleibt); POST /:id/vote als Upsert mit Toggle (gleicher
+value erneut = Vote entfernen) — aktualisiert die Zähler upvotes/
+downvotes/score server-autoritativ via AdminClient; POST /:id/report
+→ status reported. Pinia useCommentStore im Layer (comments, userVotes,
+sortMode, getThreadedComments als rekursiver Baum; Layer-stores via
+imports.dirs). Komponenten: CommentSection (Props targetId+targetType,
+Sortierauswahl, Top-Level-Form), CommentThread (rekursiv, unbegrenzte
+Tiefe), CommentItem (UserAvatar, formatDate, Vote-Buttons mit eigenem
+Vote-Status, Antworten inline, Melden, Bearbeiten/Löschen nur Autor,
+deleted → "[gelöscht]"-Platzhalter), CommentForm (optional parentId).
+Optimistic Updates für Kommentar + Vote mit Rollback; Realtime fügt
+fremde Kommentare gezielt ein (where auf targetId+targetType, kein
+Full-Refresh); alle Layer-Strings als i18n keys (de+en);
+apps/reddit-comments bindet <CommentSection target-id="demo-post"
+target-type="post" /> auf der Index-Page ein.
+Nachweis: pnpm -r typecheck, lint und test grün; Migration 002 loggt
+das neue Schema; curl-Sequenz gegen die lokale Instanz mit ZWEI Usern
+(zweiter via Signup): Kommentare anlegen, unterschiedlich voten, dann
+zeigt GET sort=top die Score-Reihenfolge mit upvotes/downvotes/score-
+Feldern, sort=new die Datums-Reihenfolge, sort=controversial den
+polarisierten Kommentar zuerst; Vote-Toggle: identisches Vote erneut
+→ Zähler sinkt im erneuten GET; myVote im Response sichtbar; Antwort
+mit parentId → curl / zeigt die verschachtelte Struktur im SSR-HTML;
+DELETE → GET zeigt status deleted; Realtime-Probe loggt das
+create-Event; curl /en zeigt englische Layer-Strings; für Optimistic
+Updates zeigt Claude den Code-Pfad (Einfügen → Rollback im catch).
 Abschluss-Schritt: der Abschnitt "Phase 11" in docs/GOALS.md ist mit ✅
 und Datum markiert, README-Status aktualisiert — Teil des Nachweises.
-Constraints: kein Presence (Cloud-only), keine Moderations-UI (gehört
-zu packages/admin), Schema-Änderungen NUR via neuem Migration-Script
-im comments-Layer, Realtime bleibt auf dem nativen WebSocket-Client.
-Maximal 40 Turns.
+Constraints: kein Presence (Cloud-only); Moderation nur Melden +
+Soft-Delete (Sperren/Hide-UI gehört zu packages/admin); keine E-Mail-
+Notifications (Community-Plattform); Schema-Änderungen NUR via
+Migration 002; Realtime bleibt auf dem nativen WebSocket-Client;
+CRUD ausschließlich über Server Routes (Konzept v2 überschreibt die
+"SDK direkt"-Regel der März-Notiz). Maximal 45 Turns.
 ```
 
 ---
