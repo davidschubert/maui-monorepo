@@ -467,6 +467,188 @@ CRUD ausschließlich über Server Routes (Konzept v2 überschreibt die
 
 ---
 
+# 🎯 Roadmap v2 – Phasen 12+ (geplant 2026-06-10)
+
+> Reihenfolge-Logik: erst Security-Schulden (12), dann Admin (13 — die
+> reported-Kommentare aus Phase 11 liefern echtes Material), Themes (14),
+> Deployment (15 — braucht Hetzner + Domain), Realtime-Rückbau (16 — wartet
+> auf den Release-Watch). Backlog ganz unten. Reihenfolge 13–15 ist tauschbar,
+> wenn Live-Gehen Priorität bekommt.
+
+---
+
+## Phase 12 – Security & Key-Hygiene
+
+```
+/goal Phase 12 (Security & Key-Hygiene) ist abgeschlossen.
+Endzustand: Zwei API Keys pro Instanz (Konzept A2): die Migrations-
+Scripts lesen NUXT_APPWRITE_MIGRATIONS_KEY (Fallback auf
+NUXT_APPWRITE_KEY mit deutlicher Warnung), .env.example ergänzt;
+David legt den Migrations-Key in der Console an und reduziert den
+Runtime-Key auf sessions.write, users.read/write, rows.read/write,
+health.read. Login-Rate-Limit als Nitro-Middleware im Core
+(5 Versuche/Minute/IP auf POST /api/auth/login, in-memory Map,
+429 mit Retry-After; dokumentierter Hinweis, dass Multi-Instanz-Prod
+einen geteilten Store braucht). CONCEPT.md: Rate-Limit-TODO in A2 als
+erledigt markiert.
+Nachweis: curl-Sequenz: 5× falsches Passwort → 401, der 6. Versuch →
+429 mit Retry-After-Header im Terminal; korrektes Passwort nach
+Ablauf → 200. Migrations-Probelauf (001, idempotent) läuft mit dem
+Migrations-Key durch; /api/health mit Runtime-Key → {"ok":true};
+ein tables.create-Versuch mit dem Runtime-Key → 401 (beweist die
+Scope-Reduktion). pnpm -r typecheck, lint und test grün.
+Abschluss-Schritt: GOALS.md Phase 12 ✅ + Datum, README-Status.
+Constraints: kein neues npm-Package für das Rate Limiting (h3-
+Bordmittel + Map); keine Schema-Änderungen; Console-Schritte macht
+David (Claude fragt gezielt nach). Maximal 25 Turns.
+```
+
+---
+
+## Phase 13 – packages/admin (Moderation MVP)
+
+```
+/goal Phase 13 (packages/admin) ist abgeschlossen.
+Endzustand: packages/admin als Feature Layer (App komponiert
+extends: [admin, comments, core]): layouts/dashboard.vue (Sidebar,
+zieht laut Konzept hierher), pages/admin/index.vue (Counts nach
+status) und pages/admin/comments.vue (Moderations-Liste: reported +
+hidden, Aktionen Ausblenden/Wiederherstellen); Route-Middleware
+admin + serverseitiger Check in JEDER /api/admin-Route: User-Label
+'admin' (Appwrite User Labels — David setzt das Label beim Test-User
+in der Console); Server Routes GET /api/admin/comments?status=… und
+PATCH /api/admin/comments/:id/status (hidden/active) via AdminClient;
+UserMenu im Core zeigt einen Admin-Link config-frei nur für Admins
+(label-basiert). i18n keys de+en für Admin-Strings.
+Nachweis: curl als normaler User → 403 auf /api/admin/comments;
+als Admin-User → Liste enthält den reported-Kommentar aus Phase 11;
+PATCH auf hidden → der Kommentar verschwindet aus dem öffentlichen
+GET /api/comments (curl-Vergleich vorher/nachher), PATCH auf active
+holt ihn zurück; curl /admin mit Admin-Session zeigt dashboard-
+Layout-Markup im SSR-HTML, ohne Session → Redirect/403.
+pnpm -r typecheck, lint und test grün.
+Abschluss-Schritt: GOALS.md Phase 13 ✅ + Datum, README-Status.
+Constraints: KEINE eigenen Tables (admin moderiert comments-Daten);
+kein User-Management-CRUD (Labels via Console); kein Hard-Delete.
+Maximal 35 Turns.
+```
+
+---
+
+## Phase 14 – packages/themes (Infrastruktur + Beispiel-Themes)
+
+> Die [[design-system]] Notiz ist bewusst dünn (Eckdaten: 26 Themes ×
+> 11 Farbvariationen, useTheme + Cookie, CSS pro Theme, dynamischer
+> Import) — dieses Goal baut die MECHANIK plus 3 Beispiel-Themes;
+> der Vollausbau auf 26 Themes ist Backlog (reine Fleißarbeit, sobald
+> die Infrastruktur steht).
+
+```
+/goal Phase 14 (packages/themes Infrastruktur) ist abgeschlossen.
+Endzustand: packages/themes als Feature Layer: Theme-Registry
+(typisierte Liste: id, name, CSS-Datei), 3 vollständige Themes als
+eigene CSS-Dateien (CSS Custom Properties im Nuxt-UI-Token-Schema)
+mit je funktionierender Farbvariations-Mechanik (primary-Variation
+via ui.colors-Override oder CSS-Variablen — Entscheidung im Goal
+dokumentieren); useTheme Composable: aktuelles Theme, setTheme,
+Cookie-Persistenz (maui-theme), SSR-sicher — das gewählte Theme
+steht als data-theme-Attribut im SSR-HTML (kein Flash); dynamischer
+CSS-Import nur des aktiven Themes; ThemeSwitcher-Komponente
+(USelect/UDropdownMenu); App komponiert extends: [themes, comments,
+core] und der Switcher hängt im default-Layout-Slot oder UserMenu.
+Nachweis: curl / mit Cookie maui-theme=<id> → SSR-HTML trägt
+data-theme="<id>" und lädt die Theme-CSS (Link/Style im Head
+sichtbar); ohne Cookie → Default-Theme; ungültige Cookie-Werte
+fallen sauber auf den Default zurück (curl-Beweis); typecheck/lint/
+test grün; Core-Apps OHNE themes-Layer rendern unverändert
+(Playground-curl als Gegenprobe).
+Abschluss-Schritt: GOALS.md Phase 14 ✅ + Datum, README-Status.
+Constraints: Core bleibt bei EINEM Default-Theme (Konzept);
+maximal 3 Themes in dieser Phase; keine Runtime-CSS-Generierung.
+Maximal 30 Turns.
+```
+
+---
+
+## Phase 15 – Production Deployment
+
+> Voraussetzung: Hetzner-Server (Prod-Appwrite) und Domain sind
+> bereitgestellt — wenn nicht erreichbar: stoppen und melden statt
+> mocken. Secrets nur in ploi.io/GitHub Secrets, nie im Repo.
+
+```
+/goal Phase 15 (Production Deployment) ist abgeschlossen.
+Endzustand: Prod-Appwrite auf Hetzner unter https://api.<domain>/v1
+(Custom Domain, A3) mit Projekt, Runtime- + Migrations-Key,
+registrierter Web-Plattform und durchgelaufenen Migrationen 001+002;
+ploi.io-Site für apps/reddit-comments (Root Path, Build Command,
+Start Command, Env Vars als Server Environment Variables);
+deploy.yml-Webhook-Job aktiv (Secret PLOI_DEPLOY_WEBHOOK_…);
+App live unter https://<domain> — Session-Cookie auf der Root-Domain
+mit Secure-Flag, Browser-Realtime verbindet sich gegen api.<domain>.
+Nachweis: curl https://<domain>/api/health → {"ok":true};
+Signup→me→logout-Sequenz gegen Prod (Set-Cookie zeigt Secure +
+HttpOnly); Kommentar-POST + GET gegen Prod; gh workflow run deploy
+→ gh run watch completed/success und die Site antwortet nach dem
+Deploy (Versions-/Marker-Check per curl).
+Abschluss-Schritt: GOALS.md Phase 15 ✅ + Datum, README-Status.
+Constraints: NUXT_APPWRITE_KEY & Co. niemals ins Repo; Appwrite-
+Console-Schritte (Projekt, Keys, Domain-DNS) macht David auf Zuruf;
+kein Auto-Deploy auf push solange kein Staging existiert
+(workflow_dispatch bleibt). Maximal 40 Turns.
+```
+
+---
+
+## Phase 16 – Realtime-Rückbau aufs SDK (wartet auf Release)
+
+> Trigger: Der wöchentliche `appwrite-release-watch` meldet ein
+> Self-Hosted-Release > 1.9.0. Vorher nicht setzbar.
+
+```
+/goal Phase 16 (Realtime-SDK-Rückbau) ist abgeschlossen.
+Endzustand: OrbStack-Appwrite per Compose-Bump + `migrate` auf das
+neue Release aktualisiert (Backup der compose vorher); useRealtimeRows
+im Core spricht wieder das Web SDK (realtime.subscribe + Channel +
+SERVER-seitige Query-Filter); die where-Option bleibt als zusätzlicher
+client-seitiger Filter erhalten (API additiv, kein BREAKING CHANGE);
+packages/comments nutzt Query-Filter auf targetId+targetType statt
+where; realtime-probe.ts auf SDK umgestellt; A4 im CONCEPT.md auf den
+neuen Stand gebracht; usePresence als optionales Composable ergänzt,
+falls das Release Presences self-hosted mitbringt (sonst explizit
+vertagen).
+Nachweis: /v1/health/version zeigt die neue Server-Version; Probe
+loggt das create-Event ÜBER das SDK; Query-Filter-Beweis wie in
+Phase 10: Kommentar für fremdes Target erzeugt KEIN Event, eigenes
+Target schon (beide curls + Probe-Log im Terminal); Browser-Realtime
+in der App funktioniert (Realtime-Insert sichtbar via zweitem
+curl-POST während die Seite offen ist — oder SSR-unabhängiger
+Probe-Beweis genügt); pnpm -r typecheck, lint und test grün.
+Abschluss-Schritt: GOALS.md Phase 16 ✅ + Datum, README-Status;
+Scheduled Task appwrite-release-watch löschen oder auf das nächste
+Release umwidmen.
+Constraints: Composable-Signatur bleibt stabil; Server-Upgrade nur
+lokal (Prod separat, falls Phase 15 schon live ist → dann beide).
+Maximal 25 Turns.
+```
+
+---
+
+## Backlog (ohne Phase — bei Bedarf zu Goals schneiden)
+
+- **Themes-Vollausbau**: 26 Themes × 11 Farbvariationen, sobald die
+  Phase-14-Infrastruktur steht (Fleißarbeit, gut automatisierbar)
+- **packages/billing**: Stripe Checkout/Webhooks/Subscriptions — wartet
+  auf konkreten Bedarf (obsidian-community-concept)
+- **E2E-Tests (Playwright)** pro App — Konzept A13 sagt "wenn Core
+  stabil"; der Core ist jetzt stabil, sinnvoll nach Phase 13
+- **CHANGELOG.md + Git-Tags** für den Core (Konzept A6 "mittelfristig")
+- **usePresence** — falls nicht schon in Phase 16 abgedeckt
+- **obsidian-community-concept**: Integration des comments-Layers in
+  die Community-Plattform (targetType space/note ist vorbereitet)
+
+---
+
 ## Tipps
 
 - **Ein Goal pro Phase, nicht alles auf einmal** — kleinere, verifizierbare Einheiten = weniger Evaluator-Fehlschlüsse, weniger Token-Verschwendung.
