@@ -146,7 +146,21 @@ Table — User-Daten via Account prefs. Maximal 35 Turns.
 
 ---
 
-## Phase 5 – Layouts & User Components
+## Phase 5 – Layouts & User Components ✅ (abgeschlossen 2026-06-10)
+
+> ✅ **Erledigt am 2026-06-10.** layouts/default.vue (Nav data-testid="main-nav"
+> + Footer, UserMenu/Login-Button je nach Auth-State) und auth.vue (zentriert,
+> kein Nav) im Core; login/register nutzen layout 'auth'; UserAvatar
+> (Initialen-Fallback via UAvatar alt, avatarUrl aus prefs), UserMenu
+> (UDropdownMenu + Logout), UserProfileForm (name via updateName, bio/avatarUrl
+> via updatePrefs — Route PUT /api/auth/profile, SessionClient); typisierte
+> MauiUserPrefs in shared/types/appwrite.ts. Fehlerseite: Nuxt löst error.vue
+> NICHT aus Layern auf → Markup lebt in CoreErrorPage (Core-Komponente),
+> App + Playground haben eine dünne app/error.vue als Wrapper. Nachweis:
+> typecheck grün; curl / → Nav-Markup vorhanden, curl /login → kein Nav;
+> nicht existente Route mit Accept: text/html → 404 + "MAUI-ERROR"
+> (curl-Default Accept */* bekommt Nitros JSON-Error — Browser sind ok).
+> Kein dashboard.vue (→ packages/admin).
 
 ```
 /goal Phase 5 laut docs/CONCEPT.md ist abgeschlossen.

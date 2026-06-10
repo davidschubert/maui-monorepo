@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
-import type { Models } from 'node-appwrite'
+import type { CurrentUser } from '../../shared/types/appwrite'
 
-export type CurrentUser = Models.User<Models.Preferences>
+export type { CurrentUser }
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<CurrentUser | null>(null)

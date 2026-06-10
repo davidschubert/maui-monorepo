@@ -83,7 +83,8 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 | 2 | Design-Fundament (Nuxt UI Theme, Tailwind 4) | ✅ 2026-06-09 |
 | 3 | Appwrite SSR-Fundament (Admin/Session Client) | ✅ 2026-06-10 |
 | 4 | Auth (SSR, Session-Cookie, UAuthForm) | ✅ 2026-06-10 |
-| 5–9 | Layouts · Utilities · i18n · Testing · CI/Deploy | 🔜 |
+| 5 | Layouts & User Components (prefs-basiert) | ✅ 2026-06-10 |
+| 6–9 | Utilities · i18n · Testing · CI/Deploy | 🔜 |
 | 10–11 | `packages/comments` Feature Layer + Reddit Comment App | 🔜 |
 
 Details und Nachweis-Kriterien pro Phase: [docs/GOALS.md](docs/GOALS.md)

@@ -12,3 +12,14 @@ export interface RowList<T extends AppwriteRow> {
   total: number
   rows: T[]
 }
+
+/**
+ * User-Profildaten leben in den Account-prefs — keine profiles Table (A1).
+ * Apps können den Typ per Declaration Merging um eigene prefs erweitern.
+ */
+export interface MauiUserPrefs extends Models.Preferences {
+  bio?: string
+  avatarUrl?: string
+}
+
+export type CurrentUser = Models.User<MauiUserPrefs>
