@@ -10,6 +10,7 @@
     "typecheck": "nuxi typecheck .playground"
   },
   "dependencies": {
+    "@iconify-json/ph": "catalog:",
     "@nuxt/ui": "catalog:",
     "@pinia/nuxt": "catalog:",
     "pinia": "catalog:"

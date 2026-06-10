@@ -8,6 +8,7 @@ onlyBuiltDependencies:
   - vue-demi
 
 catalog:
+  '@iconify-json/ph': ^1.2.2
   '@types/node': ^22.18.0
   nuxt: ^4.4.8
   '@nuxt/ui': ^4.8.2

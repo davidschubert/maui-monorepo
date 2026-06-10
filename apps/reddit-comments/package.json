@@ -10,6 +10,7 @@
     "typecheck": "nuxi typecheck"
   },
   "dependencies": {
+    "@iconify-json/ph": "catalog:",
     "@maui/core": "workspace:*",
     "@nuxt/ui": "catalog:",
     "@pinia/nuxt": "catalog:",

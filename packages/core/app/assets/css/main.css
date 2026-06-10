@@ -5,20 +5,15 @@
    nur relativ zu sich selbst auf (Stolperfalle aus docs/CONCEPT.md) */
 @source "../../../app";
 
-/* Maui Default Theme — Design Tokens */
 @theme {
-  --font-sans: system-ui, sans-serif;
+  --font-sans: 'Geist', sans-serif;
 }
 
 :root {
-  /* Basis-Radius für alle rounded-* Utilities und Nuxt-UI-Komponenten */
-  --ui-radius: 0.375rem;
+  --ui-radius: 0.5rem;
+  --ui-primary: black;
 }
 
-/* Tailwind 4 Preflight setzt cursor: default — für Buttons Pointer wiederherstellen */
-@layer base {
-  button:not(:disabled),
-  [role="button"]:not(:disabled) {
-    cursor: pointer;
-  }
+.dark {
+  --ui-primary: white;
 }
