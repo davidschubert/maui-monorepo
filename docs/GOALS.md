@@ -322,7 +322,31 @@ Maximal 20 Turns.
 
 ---
 
-## Phase 10 – packages/comments Feature Layer
+## Phase 10 – packages/comments Feature Layer ✅ (abgeschlossen 2026-06-10)
+
+> ✅ **Erledigt am 2026-06-10.** packages/comments als eigenständiger Layer:
+> shared/types/comment.ts (Comment + CommentVote extends Models.Row, status-
+> Feld als Moderations-Hook für packages/admin), Zod-Schemas als Factories,
+> Server Routes GET/POST /api/comments (Query.limit 25 + Offset-Pagination,
+> nur status=visible, Row-Permissions Autor-only für update/delete) und
+> POST /api/comments/:id/vote (Upsert, Unique-Index commentId+userId),
+> Components CommentThread/CommentForm/VoteButtons, Migration
+> 001-comments-tables.ts (idempotent, via node --env-file gegen die
+> App-Instanz — Key brauchte zusätzlich tables/columns/indexes read+write).
+> App komponiert extends: [comments, core]. createSessionClient & Co. kommen
+> via Core server/utils-Re-Export (Nitro Auto-Import über Layer hinweg).
+> WICHTIGE ERKENNTNIS: Das Realtime-Protokoll der SDKs ≥25.x (Connect ohne
+> Channels + dynamische Subscribes) braucht Appwrite ≥1.9.5 — das es
+> self-hosted NICHT gibt (1.9.0 = aktuellstes Release, Cloud-first wie
+> Presences; Server antwortet "Missing channels", Query-Subscriptions via
+> URL ignoriert der Server ebenfalls). useRealtimeRows läuft deshalb auf
+> nativem WebSocket mit Legacy-URL-Protokoll + client-seitigem where-Filter
+> (postId) — Same-Origin-Cookie hält die A3-Auth-Story intakt; Rückbau aufs
+> SDK sobald self-hosted nachzieht. Nachweis: Migration loggt alle Tables/
+> Columns/Indexes; curl: POST → 201 + Row-JSON, GET ?postId → Liste mit
+> Kommentar, Vote-Upsert (gleiche Row, value 1→-1); Realtime-Probe (Node)
+> loggt das create-Event mit vollem Payload nach zweitem POST;
+> pnpm -r typecheck + lint grün über alle Packages.
 
 ```
 /goal Phase 10 laut docs/CONCEPT.md ist abgeschlossen.
