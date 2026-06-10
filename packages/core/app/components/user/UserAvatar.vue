@@ -1,9 +1,14 @@
 <script setup lang="ts">
-import type { CurrentUser } from '../../stores/useAuthStore'
+/** Minimale User-Shape — CurrentUser ist zuweisbar, aber auch z.B. { name } aus Kommentar-Rows */
+export interface AvatarUser {
+  name?: string | null
+  email?: string | null
+  prefs?: { avatarUrl?: string } | null
+}
 
 const props = defineProps<{
   /** Default: eingeloggter User aus dem Store */
-  user?: CurrentUser | null
+  user?: AvatarUser | null
   size?: '3xs' | '2xs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl'
 }>()
 
