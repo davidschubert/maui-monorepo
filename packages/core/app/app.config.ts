@@ -8,6 +8,9 @@ export default defineAppConfig({
       providers: [] as string[],
       /** AGB-URL — gesetzt = Pflicht-Checkbox im Register-Formular */
       termsUrl: '',
+      /** Passwortloser Login per E-Mail-Code (Appwrite Email-OTP) —
+       *  Ergänzung zum Passwort-Login, kein Ersatz */
+      otp: false,
     },
     analytics: {
       enabled: false,

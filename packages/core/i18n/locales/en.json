@@ -48,7 +48,22 @@
       "failed": "Reset failed — the link may have expired.",
       "requestNew": "Request a new link"
     },
-    "networkError": "Server unreachable — please try again later."
+    "networkError": "Server unreachable — please try again later.",
+    "otp": {
+      "title": "Sign in with code",
+      "description": "We will send you a 6-digit code — no password needed.",
+      "codeDescription": "Enter the code we sent to {email}.",
+      "requestCode": "Request code",
+      "requestFailed": "Could not request a code — please try again.",
+      "verify": "Sign in",
+      "invalidCode": "The code is wrong or expired — please try again.",
+      "phraseHint": "Your security phrase (also shown in the email):",
+      "resend": "Resend code",
+      "resendIn": "Resend in {seconds}s",
+      "switchToOtp": "Sign in without password (code via email)",
+      "switchToPassword": "Sign in with password"
+    },
+    "logoutSuccess": "Signed out — see you soon!"
   },
   "validation": {
     "emailInvalid": "Please enter a valid email address",

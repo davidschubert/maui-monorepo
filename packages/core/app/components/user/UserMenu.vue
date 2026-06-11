@@ -3,10 +3,12 @@ import type { DropdownMenuItem } from '@nuxt/ui'
 
 const { t } = useI18n()
 const auth = useAuthStore()
+const toast = useToast()
 
 async function logout() {
   await $fetch('/api/auth/logout', { method: 'POST' })
   auth.setUser(null)
+  toast.add({ title: t('auth.logoutSuccess'), color: 'success', icon: 'i-ph-sign-out' })
   await navigateTo('/login')
 }
 

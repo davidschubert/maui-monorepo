@@ -63,6 +63,11 @@ export function createResetSchema(t: TranslateFn = identity) {
 export const loginSchema = createLoginSchema()
 export const registerSchema = createRegisterSchema()
 export const recoverySchema = createRecoverySchema()
+/** OTP-Verify: 6-stelliger Code aus der Mail (server-only, keine i18n nötig) */
+export const otpVerifySchema = z.object({
+  userId: z.string().min(1),
+  code: z.string().regex(/^\d{6}$/),
+})
 export const resetServerSchema = z.object({
   userId: z.string().min(1),
   secret: z.string().min(1),

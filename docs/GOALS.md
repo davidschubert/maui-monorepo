@@ -831,7 +831,29 @@ Maximal 25 Turns.
 
 ---
 
-## Phase 19 – Email-OTP-Login (passwortlos, OrbStack-Stil)
+## Phase 19 – Email-OTP-Login (passwortlos, OrbStack-Stil) ✅ (abgeschlossen 2026-06-11)
+
+> ✅ **Erledigt am 2026-06-11.** Config-Gate maui.auth.otp (Core false,
+> reddit-comments true); login.vue schaltet zwischen AuthLoginForm und
+> neuem AuthOtpLoginForm um (data-otp-toggle); OTP-Form zweistufig:
+> E-Mail → POST /api/auth/otp (Guest, createEmailToken mit phrase:true,
+> Auto-Signup unbekannter E-Mails) → UPinInput (6, otp, autofocus,
+> @complete verifiziert automatisch) mit Security-Phrase-Anzeige und
+> Resend-Countdown (30s); POST /api/auth/otp/verify (AdminClient
+> createSession → setSessionCookie); beide Routen im Rate-Limit (eigene
+> Budgets). ZUSATZ auf Zuruf: Logout-Toast in LogoutButton + UserMenu.
+> Nachweise: curl-Flow mit neuem User E — OTP ok mit Phrase, Code aus
+> Mailpit, verify → 200 + HttpOnly-Cookie, /api/auth/me → Auto-
+> Registrierung (email gesetzt, name leer); falscher Code → 401 ohne
+> Set-Cookie (und invalidiert den Token — Appwrite-Brute-Force-Schutz,
+> beim Testen gelernt); OTP-Rate-Limit 5×200 → Nr. 6 429; Browser-Flow
+> komplett (Toggle → E-Mail → Phrase-Abgleich UI↔Mail „Passionate jar"
+> → Pin-Eingabe → Auto-Verify → Erfolgs-Toast → eingeloggt);
+> Gate-Gegenprobe: Playground (Core-Default) 0 Toggle, App 1.
+> STOLPERFALLEN beim Testen: (1) \d{6}-Regex fängt CSS-Hex-Farben aus
+> dem Mail-Template (#414146!) — auf "Use OTP (\d{6})" matchen;
+> (2) SMTP-Idle-421 schluckte erneut die jeweils erste Mail — Frische
+> via Security-Phrase-Abgleich verifizieren. typecheck/lint/test (24) grün.
 
 > Davids Wunsch vom 2026-06-11 (Referenz: OrbStack-Signup): Login/Signup
 > ohne Passwort — E-Mail eingeben, 6-stelligen Code aus der Mail eintippen,

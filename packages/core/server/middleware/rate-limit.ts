@@ -19,8 +19,13 @@ function prune(now: number) {
   }
 }
 
-// Recovery ebenfalls drosseln: POST verschickt Mails, PUT probiert Secrets
-const LIMITED = new Set(['/api/auth/login', '/api/auth/recovery'])
+// Recovery/OTP ebenfalls drosseln: POSTs verschicken Mails bzw. probieren Codes
+const LIMITED = new Set([
+  '/api/auth/login',
+  '/api/auth/recovery',
+  '/api/auth/otp',
+  '/api/auth/otp/verify',
+])
 
 export default defineEventHandler((event) => {
   if (event.method !== 'POST' && event.method !== 'PUT') return

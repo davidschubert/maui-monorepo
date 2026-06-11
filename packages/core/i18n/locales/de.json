@@ -48,7 +48,22 @@
       "failed": "Zurücksetzen fehlgeschlagen — der Link ist möglicherweise abgelaufen.",
       "requestNew": "Neuen Link anfordern"
     },
-    "networkError": "Server nicht erreichbar — bitte später erneut versuchen."
+    "networkError": "Server nicht erreichbar — bitte später erneut versuchen.",
+    "otp": {
+      "title": "Mit Code anmelden",
+      "description": "Wir schicken dir einen 6-stelligen Code — kein Passwort nötig.",
+      "codeDescription": "Gib den Code ein, den wir an {email} geschickt haben.",
+      "requestCode": "Code anfordern",
+      "requestFailed": "Code konnte nicht angefordert werden — bitte erneut versuchen.",
+      "verify": "Anmelden",
+      "invalidCode": "Der Code ist falsch oder abgelaufen — bitte erneut versuchen.",
+      "phraseHint": "Deine Sicherheitsphrase (steht auch in der Mail):",
+      "resend": "Code erneut senden",
+      "resendIn": "Erneut senden in {seconds}s",
+      "switchToOtp": "Ohne Passwort anmelden (Code per E-Mail)",
+      "switchToPassword": "Mit Passwort anmelden"
+    },
+    "logoutSuccess": "Abgemeldet — bis bald!"
   },
   "validation": {
     "emailInvalid": "Bitte eine gültige E-Mail-Adresse eingeben",

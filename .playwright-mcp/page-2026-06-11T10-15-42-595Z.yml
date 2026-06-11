@@ -1,0 +1,49 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - main [ref=e249]:
+      - generic [ref=e250]:
+        - generic [ref=e307]:
+          - generic [ref=e308]:
+            - heading "Mit Code anmelden" [level=1] [ref=e310]
+            - paragraph [ref=e311]: Gib den Code ein, den wir an phase19-userE@example.com geschickt haben.
+          - generic [ref=e323]:
+            - generic [ref=e324]: "Deine Sicherheitsphrase (steht auch in der Mail):"
+            - generic [ref=e325]: «Passionate jar»
+          - generic [ref=e327]:
+            - textbox "pin input 1 of 6" [active] [ref=e328]:
+              - /placeholder: ""
+            - textbox "pin input 2 of 6" [ref=e329]:
+              - /placeholder: ""
+            - textbox "pin input 3 of 6" [ref=e330]:
+              - /placeholder: ""
+            - textbox "pin input 4 of 6" [ref=e331]:
+              - /placeholder: ""
+            - textbox "pin input 5 of 6" [ref=e332]:
+              - /placeholder: ""
+            - textbox "pin input 6 of 6" [ref=e333]:
+              - /placeholder: ""
+            - textbox [ref=e334]
+          - button "Anmelden" [disabled] [ref=e335]
+          - paragraph [ref=e336]:
+            - button "Erneut senden in 30s" [disabled] [ref=e337]
+        - paragraph [ref=e282]:
+          - button "Mit Passwort anmelden" [ref=e321]: Mit Passwort anmelden
+    - generic [ref=e211]:
+      - combobox "Theme" [ref=e212]:
+        - generic: Sunset
+      - combobox "Farbvariante" [ref=e215]:
+        - generic: Standard
+      - button "Erscheinungsbild" [ref=e285]:
+        - generic: Dark
+  - generic:
+    - img
+  - generic [ref=e223]:
+    - button "Toggle Nuxt DevTools" [ref=e291] [cursor=pointer]:
+      - img [ref=e225]
+    - generic "Page load time" [ref=e292]:
+      - generic [ref=e229]: "194"
+      - generic [ref=e230]: ms
+    - button "Toggle Component Inspector" [ref=e293] [cursor=pointer]:
+      - img [ref=e233]
+  - region "Notifications (F8)":
+    - list
