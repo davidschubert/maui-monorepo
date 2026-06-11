@@ -298,6 +298,9 @@ User-Profile: über Appwrite Account `prefs` lösen — keine `profiles` Table i
 - Kundenprojekte: Daten von Kunde A nie in derselben Instanz wie Kunde B (DSGVO)
 - Eigene Projekte: saubere Trennung, unabhängige Deployments/Backups
 - Lokal: OrbStack · Eigene Projekte: Hetzner · Kundenprojekte: Appwrite Cloud auf Kundenaccount
+- Lokale Mails: Mailpit als SMTP-Sink (`_APP_SMTP_HOST=mailpit.local`, Port 1025,
+  in der `.env` der Appwrite-INSTALLATION — nicht in der Console; die verwaltet nur
+  Templates). UI: http://mailpit.local — Verifizierungs-/Recovery-Mails landen dort.
 
 ### A2 — SSR-Architektur mit zwei Clients ✨ neu
 
