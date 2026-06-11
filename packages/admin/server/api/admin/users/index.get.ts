@@ -11,6 +11,7 @@ function toRow(user: Models.User<Models.Preferences>): AdminUserRow {
     name: user.name,
     email: user.email,
     $createdAt: user.$createdAt,
+    accessedAt: user.accessedAt,
     emailVerification: user.emailVerification,
     status: user.status,
     labels: user.labels ?? [],

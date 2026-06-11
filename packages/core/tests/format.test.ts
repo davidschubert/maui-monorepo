@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatDate, formatCurrency } from '../app/utils/format'
+import { formatDate, formatCurrency, formatRelativeTime } from '../app/utils/format'
 import { useFormatDate } from '../app/composables/useFormatDate'
 import { useFormatCurrency } from '../app/composables/useFormatCurrency'
 
@@ -50,6 +50,26 @@ describe('formatCurrency', () => {
 
   it('unterstützt andere Währungen', () => {
     expect(normalize(formatCurrency(1234.56, { currency: 'USD' }))).toContain('$')
+  })
+})
+
+describe('formatRelativeTime', () => {
+  const now = new Date('2026-06-11T12:00:00Z')
+
+  it('formatiert Minuten relativ', () => {
+    expect(formatRelativeTime(new Date('2026-06-11T11:55:00Z'), { now })).toBe('vor 5 Minuten')
+  })
+
+  it('nutzt sprachliche Formen wie "gestern"', () => {
+    expect(formatRelativeTime(new Date('2026-06-10T12:00:00Z'), { now })).toBe('gestern')
+  })
+
+  it('unterstützt andere Locales', () => {
+    expect(formatRelativeTime(new Date('2026-06-11T11:00:00Z'), { now, locale: 'en-US' })).toBe('1 hour ago')
+  })
+
+  it('fällt auf Sekunden zurück', () => {
+    expect(formatRelativeTime(new Date('2026-06-11T11:59:30Z'), { now })).toBe('vor 30 Sekunden')
   })
 })
 

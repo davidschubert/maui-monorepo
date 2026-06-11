@@ -7,7 +7,8 @@
       "failed": "Anmeldung fehlgeschlagen — bitte E-Mail und Passwort prüfen.",
       "noAccount": "Noch keinen Account?",
       "registerLink": "Registrieren",
-      "forgot": "Passwort vergessen?"
+      "forgot": "Passwort vergessen?",
+      "success": "Erfolgreich angemeldet — willkommen zurück!"
     },
     "register": {
       "title": "Registrieren",

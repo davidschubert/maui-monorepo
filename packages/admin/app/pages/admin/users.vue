@@ -24,7 +24,8 @@ function runSearch() {
 const columns: TableColumn<AdminUserRow>[] = [
   { accessorKey: 'name', header: () => t('admin.users.name') },
   { accessorKey: 'email', header: () => t('admin.users.email') },
-  { accessorKey: '$createdAt', header: () => t('admin.users.registered'), id: 'createdAt' },
+  { accessorKey: '$createdAt', header: () => t('admin.users.joined'), id: 'createdAt' },
+  { accessorKey: 'accessedAt', header: () => t('admin.users.lastActivity'), id: 'lastActivity' },
   { accessorKey: 'emailVerification', header: () => t('admin.users.verified'), id: 'verified' },
   { accessorKey: 'status', header: () => t('admin.users.status'), id: 'status' },
   { accessorKey: 'labels', header: () => t('admin.users.labels'), id: 'labels' },
@@ -81,7 +82,13 @@ async function executePending() {
 
     <UTable :data="data?.users ?? []" :columns="columns" data-users-table>
       <template #createdAt-cell="{ row }">
-        {{ formatDate(row.original.$createdAt) }}
+        <span :title="formatDate(row.original.$createdAt)">{{ formatRelativeTime(row.original.$createdAt) }}</span>
+      </template>
+      <template #lastActivity-cell="{ row }">
+        <span v-if="row.original.accessedAt" :title="formatDate(row.original.accessedAt)">
+          {{ formatRelativeTime(row.original.accessedAt) }}
+        </span>
+        <span v-else class="text-muted">—</span>
       </template>
       <template #verified-cell="{ row }">
         <UIcon :name="row.original.emailVerification ? 'i-ph-check-circle' : 'i-ph-minus'" :class="row.original.emailVerification ? 'text-success' : 'text-muted'" />

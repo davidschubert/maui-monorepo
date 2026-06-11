@@ -831,6 +831,48 @@ Maximal 25 Turns.
 
 ---
 
+## Phase 19 – Email-OTP-Login (passwortlos, OrbStack-Stil)
+
+> Davids Wunsch vom 2026-06-11 (Referenz: OrbStack-Signup): Login/Signup
+> ohne Passwort — E-Mail eingeben, 6-stelligen Code aus der Mail eintippen,
+> drin. Appwrite-Mechanik: account.createEmailToken (legt unbekannte User
+> automatisch an, verschickt den Code via System-SMTP → lokal Mailpit) +
+> account.createSession({userId, secret: code}) → Session-Cookie wie gehabt.
+> Lokal jederzeit ausführbar; Reihenfolge mit 17/18 frei tauschbar.
+
+```
+/goal Phase 19 (Email-OTP-Login) ist abgeschlossen.
+Endzustand: Config-Gate maui.auth.otp (Core-Default false). Wenn aktiv:
+/login zeigt zusätzlich den Tab/Switch "Mit Code anmelden" (bzw. die
+OTP-Variante als eigene Page /login-code) mit Schritt 1 E-Mail-Eingabe
+und Schritt 2 sechsstelligem Code-Feld (UAuthForm otp-Fieldtype oder
+UPinInput) inkl. "Code erneut senden" mit Countdown; Server Routes
+POST /api/auth/otp (E-Mail → createEmailToken als Guest, Antwort
+enthält userId + securityPhrase, IMMER ok gegen Enumeration) und
+POST /api/auth/otp/verify (userId+Code → createSession → Session-
+Cookie via setSessionCookie); Rate-Limit-Middleware deckt beide
+Routen mit eigenem Budget ab; falscher/abgelaufener Code → saubere
+Fehlermeldung, kein Cookie; unbekannte E-Mail wird beim ersten OTP
+automatisch registriert (Name leer — UserProfileForm kann ihn später
+setzen); i18n keys de+en; Security-Phrase aus der Mail wird in der UI
+angezeigt (Phishing-Schutz, Appwrite liefert sie mit).
+Nachweis gegen die lokale Instanz mit Mailpit: curl POST /api/auth/otp
+mit NEUER E-Mail → ok; Mailpit-API liefert die Mail, Code extrahieren →
+POST /api/auth/otp/verify → 200 + Set-Cookie (HttpOnly sichtbar);
+GET /api/auth/me mit Cookie → User-JSON der neuen E-Mail (beweist
+Auto-Registrierung); falscher Code → 401 ohne Set-Cookie; 6. OTP-
+Request → 429; Browser-Durchlauf: kompletter Flow inkl. Code-Eingabe
+und Erfolgs-Toast; Gate-Gegenprobe: ohne maui.auth.otp keine
+OTP-UI im SSR-HTML. pnpm -r typecheck, lint und test grün.
+Abschluss-Schritt: GOALS.md Phase 19 ✅ + Datum, README-Status.
+Constraints: Passwort-Login bleibt parallel bestehen (OTP ist
+Ergänzung, kein Ersatz); Email-OTP muss als Auth-Methode in der
+Console aktiv sein (David prüft auf Zuruf); kein Magic-URL-Login
+(separates Feature, ggf. Backlog). Maximal 35 Turns.
+```
+
+---
+
 ## Backlog (ohne Phase — bei Bedarf zu Goals schneiden)
 
 - **Themes-Vollausbau**: 26 Themes × 11 Farbvariationen, sobald die

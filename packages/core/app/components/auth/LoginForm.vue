@@ -5,6 +5,7 @@ import { createLoginSchema, type LoginInput } from '../../../schemas/auth'
 const { t } = useI18n()
 const appConfig = useAppConfig()
 const auth = useAuthStore()
+const toast = useToast()
 const loading = ref(false)
 const errorMessage = ref<string | null>(null)
 
@@ -62,6 +63,8 @@ async function onSubmit(event: FormSubmitEvent<LoginInput>) {
   try {
     await $fetch('/api/auth/login', { method: 'POST', body: event.data })
     await auth.refresh()
+    // Toast (unten rechts, auto-dismiss) — überlebt die Navigation
+    toast.add({ title: t('auth.login.success'), color: 'success', icon: 'i-ph-check-circle' })
     await navigateTo('/')
   }
   catch (error) {
@@ -77,6 +80,7 @@ async function onSubmit(event: FormSubmitEvent<LoginInput>) {
   <UAuthForm
     ref="authForm"
     icon="i-ph-user-circle"
+    :ui="{ leadingIcon: 'text-primary' }"
     :title="t('auth.login.title')"
     :description="t('auth.login.description')"
     :schema="schema"

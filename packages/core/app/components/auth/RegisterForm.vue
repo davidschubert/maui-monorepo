@@ -62,6 +62,7 @@ async function onSubmit(event: FormSubmitEvent<RegisterFormInput>) {
   <UAuthForm
     ref="authForm"
     icon="i-ph-user-circle-plus"
+    :ui="{ leadingIcon: 'text-primary' }"
     :title="t('auth.register.title')"
     :description="t('auth.register.description')"
     :schema="schema"

@@ -4,6 +4,8 @@ export interface AdminUserRow {
   name: string
   email: string
   $createdAt: string
+  /** Letzter Zugriff — leer, wenn nie aktiv */
+  accessedAt: string
   emailVerification: boolean
   /** true = aktiv, false = blockiert (Appwrite-Semantik) */
   status: boolean

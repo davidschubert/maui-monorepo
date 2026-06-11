@@ -29,6 +29,33 @@ export function formatDate(value: Date | string | number, locale = 'de-DE'): str
   }).format(date)
 }
 
+const RELATIVE_UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
+  ['year', 31_536_000],
+  ['month', 2_592_000],
+  ['week', 604_800],
+  ['day', 86_400],
+  ['hour', 3_600],
+  ['minute', 60],
+]
+
+/** "vor 5 Minuten" / "gestern" — now ist injizierbar (Testbarkeit) */
+export function formatRelativeTime(
+  value: Date | string | number,
+  options: { locale?: string, now?: Date } = {},
+): string {
+  const date = value instanceof Date ? value : new Date(value)
+  const now = options.now ?? new Date()
+  const diffSeconds = Math.round((date.getTime() - now.getTime()) / 1000)
+  const formatter = new Intl.RelativeTimeFormat(options.locale ?? 'de-DE', { numeric: 'auto' })
+
+  for (const [unit, seconds] of RELATIVE_UNITS) {
+    if (Math.abs(diffSeconds) >= seconds) {
+      return formatter.format(Math.trunc(diffSeconds / seconds), unit)
+    }
+  }
+  return formatter.format(diffSeconds, 'second')
+}
+
 /** 1.234,56 € — Intl nutzt ein geschütztes Leerzeichen vor dem Symbol */
 export function formatCurrency(
   value: number,

@@ -13,7 +13,6 @@
     "users": {
       "name": "Name",
       "email": "E-Mail",
-      "registered": "Registriert am",
       "verified": "Verifiziert",
       "status": "Status",
       "labels": "Labels",
@@ -35,7 +34,9 @@
       "blocked": "Benutzer blockiert.",
       "unblocked": "Benutzer entsperrt.",
       "sessionsCleared": "Alle Sessions beendet.",
-      "actionFailed": "Aktion fehlgeschlagen — bitte erneut versuchen."
+      "actionFailed": "Aktion fehlgeschlagen — bitte erneut versuchen.",
+      "joined": "Beigetreten",
+      "lastActivity": "Letzte Aktivität"
     },
     "moderation": {
       "filter": {
