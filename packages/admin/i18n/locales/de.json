@@ -10,7 +10,6 @@
       "comments": "Kommentare gesamt",
       "reported": "Gemeldete Kommentare"
     },
-    "comingSoon": "Moderation folgt in Phase 14.",
     "users": {
       "name": "Name",
       "email": "E-Mail",
@@ -37,6 +36,27 @@
       "unblocked": "Benutzer entsperrt.",
       "sessionsCleared": "Alle Sessions beendet.",
       "actionFailed": "Aktion fehlgeschlagen — bitte erneut versuchen."
+    },
+    "moderation": {
+      "filter": {
+        "reported": "Gemeldet",
+        "hidden": "Ausgeblendet",
+        "all": "Alle"
+      },
+      "status": {
+        "active": "Aktiv",
+        "reported": "Gemeldet",
+        "hidden": "Ausgeblendet",
+        "deleted": "Gelöscht"
+      },
+      "empty": "Keine Kommentare in dieser Ansicht.",
+      "hide": "Ausblenden",
+      "restore": "Wiederherstellen",
+      "hidden": "Kommentar ausgeblendet.",
+      "restored": "Kommentar wiederhergestellt.",
+      "notModeratable": "Vom Autor gelöscht — nicht moderierbar.",
+      "confirmHide": "Kommentar von {name} ausblenden? Er ist dann öffentlich nicht mehr sichtbar.",
+      "confirmRestore": "Kommentar von {name} wiederherstellen?"
     }
   }
 }

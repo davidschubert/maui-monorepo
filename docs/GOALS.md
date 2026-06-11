@@ -590,7 +590,25 @@ Maximal 35 Turns.
 
 ---
 
-## Phase 14 – packages/admin: Moderation
+## Phase 14 – packages/admin: Moderation ✅ (abgeschlossen 2026-06-10)
+
+> ✅ **Erledigt am 2026-06-10.** pages/admin/comments.vue ersetzt den
+> Platzhalter: Filter reported/hidden/alle (Initial-Filter aus der Query —
+> die Reported-Stat-Card verlinkt auf ?status=reported), Liste mit Inhalt/
+> Autor/Target/Datum/Status-Badge, Ausblenden+Wiederherstellen mit
+> Bestätigungs-Modal, Pagination. Server: GET /api/admin/comments
+> (Query.limit + Offset, Status-Filter) und PATCH /:id/status mit
+> zod-enum NUR hidden|active — deleted als Ziel → 400, und Soft-Delete-
+> Kommentare sind nicht moderierbar (Row-Check → 400). Admin definiert
+> eine eigene minimale ModeratedComment-Shape statt Cross-Package-Import
+> aus comments (Layer entkoppelt). Hinweis: Der Phase-11-Report ging mit
+> Migration 002 (drop+create) unter — für den Nachweis wurde frisch per
+> User-Report-Route gemeldet. Nachweis: User B → 403; Admin-Liste
+> status=reported enthält den gemeldeten Kommentar; PATCH hidden →
+> öffentlich unsichtbar (GET-Vergleich 1→0), PATCH active → wieder da
+> (0→1); status=deleted → 400; hide auf deleted-Kommentar → 400;
+> SSR /admin/comments zeigt Liste+Filter-Markup, /en englisch;
+> typecheck/lint/test (20) grün.
 
 > Baut auf Phase 13 auf — dashboard.vue, Zugriffsschutz und
 > requireAdmin existieren dann bereits; hier kommt nur die

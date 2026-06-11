@@ -20,3 +20,27 @@ export interface AdminStats {
   commentsTotal: number
   commentsReported: number
 }
+
+/** Status-Filter der Moderations-Liste */
+export type ModerationFilter = 'reported' | 'hidden' | 'all'
+
+/**
+ * Minimale Comment-Shape für die Moderation — bewusst lokal definiert
+ * statt Cross-Package-Import aus packages/comments (Layer bleiben entkoppelt;
+ * admin kennt nur die Felder, die es moderiert).
+ */
+export interface ModeratedComment {
+  $id: string
+  $createdAt: string
+  content: string
+  authorId: string
+  authorName: string
+  targetId: string
+  targetType: string
+  status: string
+}
+
+export interface AdminCommentListResponse {
+  total: number
+  comments: ModeratedComment[]
+}

@@ -10,7 +10,6 @@
       "comments": "Total comments",
       "reported": "Reported comments"
     },
-    "comingSoon": "Moderation arrives in phase 14.",
     "users": {
       "name": "Name",
       "email": "Email",
@@ -37,6 +36,27 @@
       "unblocked": "User unblocked.",
       "sessionsCleared": "All sessions ended.",
       "actionFailed": "Action failed — please try again."
+    },
+    "moderation": {
+      "filter": {
+        "reported": "Reported",
+        "hidden": "Hidden",
+        "all": "All"
+      },
+      "status": {
+        "active": "Active",
+        "reported": "Reported",
+        "hidden": "Hidden",
+        "deleted": "Deleted"
+      },
+      "empty": "No comments in this view.",
+      "hide": "Hide",
+      "restore": "Restore",
+      "hidden": "Comment hidden.",
+      "restored": "Comment restored.",
+      "notModeratable": "Deleted by the author — not moderatable.",
+      "confirmHide": "Hide the comment by {name}? It will no longer be publicly visible.",
+      "confirmRestore": "Restore the comment by {name}?"
     }
   }
 }
