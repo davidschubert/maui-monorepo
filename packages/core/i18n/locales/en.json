@@ -46,7 +46,8 @@
       "invalidLink": "This link is invalid — request a new one.",
       "failed": "Reset failed — the link may have expired.",
       "requestNew": "Request a new link"
-    }
+    },
+    "networkError": "Server unreachable — please try again later."
   },
   "validation": {
     "emailInvalid": "Please enter a valid email address",

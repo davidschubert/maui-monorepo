@@ -46,7 +46,8 @@
       "invalidLink": "Dieser Link ist ungültig — fordere einen neuen an.",
       "failed": "Zurücksetzen fehlgeschlagen — der Link ist möglicherweise abgelaufen.",
       "requestNew": "Neuen Link anfordern"
-    }
+    },
+    "networkError": "Server nicht erreichbar — bitte später erneut versuchen."
   },
   "validation": {
     "emailInvalid": "Bitte eine gültige E-Mail-Adresse eingeben",

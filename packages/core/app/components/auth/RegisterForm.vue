@@ -48,8 +48,9 @@ async function onSubmit(event: FormSubmitEvent<RegisterFormInput>) {
     await auth.refresh()
     await navigateTo('/')
   }
-  catch {
-    errorMessage.value = t('auth.register.failed')
+  catch (error) {
+    // Server weg ≠ Account existiert — ehrliche Meldung je nach Ursache
+    errorMessage.value = isNetworkError(error) ? t('auth.networkError') : t('auth.register.failed')
   }
   finally {
     loading.value = false

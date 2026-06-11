@@ -64,8 +64,8 @@ async function onSubmit(event: FormSubmitEvent<LoginInput>) {
     await auth.refresh()
     await navigateTo('/')
   }
-  catch {
-    errorMessage.value = t('auth.login.failed')
+  catch (error) {
+    errorMessage.value = isNetworkError(error) ? t('auth.networkError') : t('auth.login.failed')
   }
   finally {
     loading.value = false
