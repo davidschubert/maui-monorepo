@@ -322,9 +322,11 @@ auf ~17). Empfohlen sind **zwei Keys pro App-Instanz**:
 Cross-Package-Pfade — der Core re-exportiert sie in `server/utils/appwrite.ts`, und
 Nitro auto-importiert `server/utils` aller Layer in alle Server Routes.
 
-**⚠️ Offen vor dem ersten Deploy:** Die Login-Route nutzt den AdminClient und umgeht
-damit Appwrites Rate Limits — Brute-Force-Schutz muss Nitro-seitig ergänzt werden
-(z.B. Rate-Limit-Middleware auf `/api/auth/login`).
+**✅ Rate Limiting (Phase 12):** Die Login-Route nutzt den AdminClient und umgeht
+damit Appwrites Rate Limits — `server/middleware/rate-limit.ts` im Core drosselt
+deshalb POST `/api/auth/login` auf 5 Versuche/Minute/IP (429 + Retry-After,
+in-memory). ⚠️ Multi-Instanz-Produktion braucht einen geteilten Store (z.B. Redis
+via Nitro Storage).
 
 ### A3 — Session-Cookie: `a_session_<PROJECT_ID>` ✨ neu
 

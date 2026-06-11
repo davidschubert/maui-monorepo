@@ -478,7 +478,26 @@ CRUD ausschließlich über Server Routes (Konzept v2 überschreibt die
 
 ---
 
-## Phase 12 – Security & Key-Hygiene
+## Phase 12 – Security & Key-Hygiene ✅ (abgeschlossen 2026-06-10)
+
+> ✅ **Erledigt am 2026-06-10.** Login-Rate-Limit als Core-Middleware
+> (server/middleware/rate-limit.ts): 5 Versuche/Minute/IP auf POST
+> /api/auth/login, in-memory Map mit Pruning, 429 + Retry-After;
+> Multi-Instanz-Hinweis dokumentiert, Konzept-A2-TODO abgehakt.
+> Key-Trennung: Migrations-Scripts lesen NUXT_APPWRITE_MIGRATIONS_KEY
+> (Fallback auf Runtime-Key mit Warnung), .env.example dokumentiert beide
+> Keys; David hat migrations-local angelegt und nuxt-ssr-local auf
+> sessions.write/users.rw/rows.rw/health.read reduziert.
+> ABWEICHUNG vom Goal-Text (begründet): Der "Probelauf mit 001" wäre
+> destruktiv gewesen — 001 hätte die alten postId-Spalten auf die neue
+> 002-Table geschrieben; 001 ist jetzt ein Tombstone (verweigert den Lauf),
+> als Probelauf dient das neue read-only verify-schema.ts (prüft Columns/
+> Indizes/Verfügbarkeit gegen den 002-Stand). Nachweis: verify-schema mit
+> Migrations-Key ✔ beide Tables vollständig; tables.create mit Runtime-Key
+> → 401 general_unauthorized_scope (Scope-Reduktion bewiesen); /api/health
+> mit Runtime-Key → ok:true; Rate-Limit-Sequenz: 5× falsches Passwort →
+> 401, Nr. 6/7 → 429 mit retry-after: 60, nach 62s Wartezeit korrektes
+> Passwort → 200; typecheck/lint/test (20) grün.
 
 ```
 /goal Phase 12 (Security & Key-Hygiene) ist abgeschlossen.

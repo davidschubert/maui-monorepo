@@ -16,8 +16,13 @@ import { Client, TablesDB, Permission, Role } from 'node-appwrite'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
-const apiKey = process.env.NUXT_APPWRITE_KEY
 const databaseId = process.env.NUXT_PUBLIC_APPWRITE_DATABASE_ID
+
+// Migrations laufen mit dem separaten Migrations-Key (Konzept A2)
+const apiKey = process.env.NUXT_APPWRITE_MIGRATIONS_KEY ?? process.env.NUXT_APPWRITE_KEY
+if (!process.env.NUXT_APPWRITE_MIGRATIONS_KEY) {
+  console.warn('⚠️  NUXT_APPWRITE_MIGRATIONS_KEY nicht gesetzt — Fallback auf NUXT_APPWRITE_KEY. Empfohlen: separater Migrations-Key (Konzept A2).')
+}
 
 if (!endpoint || !projectId || !apiKey || !databaseId) {
   console.error('Fehlende Env-Vars — Script mit --env-file=apps/<app>/.env aufrufen.')
