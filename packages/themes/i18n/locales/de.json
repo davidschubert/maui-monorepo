@@ -2,6 +2,7 @@
   "themes": {
     "label": "Theme",
     "variantLabel": "Farbvariante",
-    "variantDefault": "Standard"
+    "variantDefault": "Standard",
+    "modeLabel": "Erscheinungsbild"
   }
 }

@@ -30,5 +30,8 @@ const selectedVariant = computed({
       size="sm"
       :aria-label="t('themes.variantLabel')"
     />
+    <!-- Light/Dark/System — Nuxt UI Color Mode; Themes sind dark-aware
+         (.dark[data-theme] hebt den Primary-Anker von 600 auf 400) -->
+    <UColorModeSelect size="sm" :aria-label="t('themes.modeLabel')" />
   </div>
 </template>

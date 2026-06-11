@@ -2,6 +2,7 @@
   "themes": {
     "label": "Theme",
     "variantLabel": "Color variant",
-    "variantDefault": "Default"
+    "variantDefault": "Default",
+    "modeLabel": "Appearance"
   }
 }
