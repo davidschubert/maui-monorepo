@@ -525,7 +525,27 @@ David (Claude fragt gezielt nach). Maximal 25 Turns.
 
 ---
 
-## Phase 13 – packages/admin: Dashboard-Grundgerüst & User-Verwaltung
+## Phase 13 – packages/admin: Dashboard-Grundgerüst & User-Verwaltung ✅ (abgeschlossen 2026-06-10)
+
+> ✅ **Erledigt am 2026-06-10.** packages/admin als dritter Feature Layer
+> (extends: [admin, comments, core]). dashboard.vue (Sidebar Übersicht/
+> Benutzer/Kommentare, Header mit Core-UserMenu); doppelter Schutz:
+> Route-Middleware admin (403-Fehlerseite) + requireAdmin(event) in jeder
+> /api/admin-Route (server/utils, Nitro-Auto-Import); Core bekam users-
+> Accessor am AdminClient, isAdminUser()-Util und den label-basierten
+> Admin-Link im UserMenu (eigener Core-Commit). /api/admin/stats
+> (Users-total + Comments-Counts parallel), /api/admin/users mit Suche +
+> Pagination (User-Objekte auf sichere Felder reduziert — Server-SDK
+> liefert sonst Hash-Felder mit!), Status-PATCH (Selbstblockade → 400)
+> und Sessions-DELETE; users.vue mit UTable, Such-Form, UPagination und
+> Bestätigungs-Modal für alle Aktionen; i18n de+en. Admin-Label am ersten
+> Admin per direktem API-Call statt Console gesetzt (äquivalente Operation,
+> Constraint betrifft nur die App-UI — dokumentierte Abweichung). Nachweis:
+> User B → 403 auf beiden /api/admin-Routen und /admin (SSR); Admin sieht
+> stats (2 User, 4 Kommentare) und die Liste mit E-Mails/Datum/Labels;
+> Block → Login B 401, Unblock → 200, Selbstblockade → 400; /admin-SSR
+> zeigt data-dashboard-layout + Nav; /en/admin englisch; typecheck/lint/
+> test (20) grün.
 
 ```
 /goal Phase 13 (Admin-Dashboard-Grundgerüst) ist abgeschlossen.

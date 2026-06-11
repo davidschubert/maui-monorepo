@@ -1,6 +1,6 @@
 export default defineNuxtConfig({
   // früher gelistet = höhere Priorität — Feature Layer vor dem Core
-  extends: ['../../packages/comments', '../../packages/core'],
+  extends: ['../../packages/admin', '../../packages/comments', '../../packages/core'],
 
   devServer: {
     port: 3001,

@@ -1,0 +1,42 @@
+{
+  "admin": {
+    "nav": {
+      "overview": "Übersicht",
+      "users": "Benutzer",
+      "comments": "Kommentare"
+    },
+    "stats": {
+      "users": "Registrierte Benutzer",
+      "comments": "Kommentare gesamt",
+      "reported": "Gemeldete Kommentare"
+    },
+    "comingSoon": "Moderation folgt in Phase 14.",
+    "users": {
+      "name": "Name",
+      "email": "E-Mail",
+      "registered": "Registriert am",
+      "verified": "Verifiziert",
+      "status": "Status",
+      "labels": "Labels",
+      "actions": "Aktionen",
+      "active": "Aktiv",
+      "blockedBadge": "Blockiert",
+      "search": "Suchen",
+      "searchPlaceholder": "Name oder E-Mail…",
+      "block": "Blockieren",
+      "unblock": "Entsperren",
+      "clearSessions": "Sessions beenden",
+      "confirmTitle": "Aktion bestätigen",
+      "confirmAction": "Bestätigen",
+      "confirm": {
+        "block": "{name} wirklich blockieren? Der Benutzer kann sich nicht mehr anmelden.",
+        "unblock": "{name} wieder entsperren?",
+        "sessions": "Alle aktiven Sessions von {name} beenden?"
+      },
+      "blocked": "Benutzer blockiert.",
+      "unblocked": "Benutzer entsperrt.",
+      "sessionsCleared": "Alle Sessions beendet.",
+      "actionFailed": "Aktion fehlgeschlagen — bitte erneut versuchen."
+    }
+  }
+}
