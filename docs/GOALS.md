@@ -469,11 +469,12 @@ CRUD ausschließlich über Server Routes (Konzept v2 überschreibt die
 
 # 🎯 Roadmap v2 – Phasen 12+ (geplant 2026-06-10)
 
-> Reihenfolge-Logik: erst Security-Schulden (12), dann Admin (13 — die
-> reported-Kommentare aus Phase 11 liefern echtes Material), Themes (14),
-> Deployment (15 — braucht Hetzner + Domain), Realtime-Rückbau (16 — wartet
-> auf den Release-Watch). Backlog ganz unten. Reihenfolge 13–15 ist tauschbar,
-> wenn Live-Gehen Priorität bekommt.
+> Reihenfolge-Logik: erst Security-Schulden (12), dann das Admin-Grundgerüst
+> mit User-Verwaltung (13), darauf die Moderation (14 — die reported-Kommentare
+> aus Phase 11 liefern echtes Material), Themes (15), Deployment (16 — braucht
+> Hetzner + Domain), Realtime-Rückbau (17 — wartet auf den Release-Watch).
+> Backlog ganz unten. Reihenfolge 14–16 ist tauschbar, wenn Live-Gehen
+> Priorität bekommt.
 
 ---
 
@@ -505,37 +506,84 @@ David (Claude fragt gezielt nach). Maximal 25 Turns.
 
 ---
 
-## Phase 13 – packages/admin (Moderation MVP)
+## Phase 13 – packages/admin: Dashboard-Grundgerüst & User-Verwaltung
 
 ```
-/goal Phase 13 (packages/admin) ist abgeschlossen.
+/goal Phase 13 (Admin-Dashboard-Grundgerüst) ist abgeschlossen.
 Endzustand: packages/admin als Feature Layer (App komponiert
-extends: [admin, comments, core]): layouts/dashboard.vue (Sidebar,
-zieht laut Konzept hierher), pages/admin/index.vue (Counts nach
-status) und pages/admin/comments.vue (Moderations-Liste: reported +
-hidden, Aktionen Ausblenden/Wiederherstellen); Route-Middleware
-admin + serverseitiger Check in JEDER /api/admin-Route: User-Label
-'admin' (Appwrite User Labels — David setzt das Label beim Test-User
-in der Console); Server Routes GET /api/admin/comments?status=… und
-PATCH /api/admin/comments/:id/status (hidden/active) via AdminClient;
-UserMenu im Core zeigt einen Admin-Link config-frei nur für Admins
-(label-basiert). i18n keys de+en für Admin-Strings.
-Nachweis: curl als normaler User → 403 auf /api/admin/comments;
-als Admin-User → Liste enthält den reported-Kommentar aus Phase 11;
-PATCH auf hidden → der Kommentar verschwindet aus dem öffentlichen
-GET /api/comments (curl-Vergleich vorher/nachher), PATCH auf active
-holt ihn zurück; curl /admin mit Admin-Session zeigt dashboard-
-Layout-Markup im SSR-HTML, ohne Session → Redirect/403.
+extends: [admin, comments, core]). Grundgerüst: layouts/dashboard.vue
+(Sidebar-Navigation: Übersicht/Users/Kommentare-Platzhalter, Header
+mit UserMenu — zieht laut Konzept hierher); Zugriffsschutz doppelt:
+Route-Middleware admin (User-Label 'admin', sonst 403-Fehlerseite)
+UND serverseitiger requireAdmin(event)-Helper in JEDER /api/admin-
+Route (Appwrite User Labels — David setzt das Label beim ersten
+Admin-User in der Console, Claude fragt gezielt nach); der Core-
+AdminClient bekommt einen users-Accessor (Users-Service,
+eigener Core-Commit). Übersicht pages/admin/index.vue mit Stat-Cards
+via GET /api/admin/stats: User gesamt, Kommentare gesamt, davon
+reported (Users-API total + tablesDB-Counts). User-Verwaltung
+pages/admin/users.vue: UTable aller registrierten User (Name, E-Mail,
+registriert am via formatDate, Verifiziert, Status, Labels) mit Suche
+(users.list search) und Pagination (usePagination, Query.limit);
+GET /api/admin/users?search&page. Basis-Aktionen mit Bestätigungs-
+Dialog: Blockieren/Entsperren (PATCH /api/admin/users/:id/status via
+users.updateStatus) und Sessions invalidieren (DELETE
+/api/admin/users/:id/sessions) — der eigene Account ist nicht
+blockierbar (Server-Check). UserMenu im Core zeigt einen Admin-Link
+nur für Admins (label-basiert). i18n keys de+en für alle
+Admin-Strings.
+Nachweis: curl ohne Admin-Label → 403 auf /api/admin/users und
+/api/admin/stats; mit Admin-Session: users-Liste enthält die
+Test-User aus Phase 4/11 mit E-Mails und Registrierungsdatum, stats
+zeigt plausible Counts; Blockier-Beweis: PATCH status=blocked auf
+User B → dessen Login schlägt mit 401 fehl, nach Entsperren → 200
+(curl-Sequenz im Terminal); Selbstblockade → 400; curl /admin mit
+Admin-Session zeigt dashboard-Layout-Markup im SSR-HTML, ohne
+Admin → 403; /en/admin zeigt englische Strings.
 pnpm -r typecheck, lint und test grün.
 Abschluss-Schritt: GOALS.md Phase 13 ✅ + Datum, README-Status.
-Constraints: KEINE eigenen Tables (admin moderiert comments-Daten);
-kein User-Management-CRUD (Labels via Console); kein Hard-Delete.
+Constraints: KEINE eigenen Tables; kein User-Delete (nur
+blockieren/entsperren); keine Label-Vergabe über die UI (erster
+Admin via Console — Self-Service-Privilegien-Eskalation vermeiden);
+Moderations-Seite ist nur Platzhalter (→ Phase 14).
 Maximal 35 Turns.
 ```
 
 ---
 
-## Phase 14 – packages/themes (Infrastruktur + Beispiel-Themes)
+## Phase 14 – packages/admin: Moderation
+
+> Baut auf Phase 13 auf — dashboard.vue, Zugriffsschutz und
+> requireAdmin existieren dann bereits; hier kommt nur die
+> Moderations-Funktionalität dazu.
+
+```
+/goal Phase 14 (Admin-Moderation) ist abgeschlossen.
+Endzustand: pages/admin/comments.vue ersetzt den Platzhalter:
+Moderations-Liste der Kommentare gefiltert nach status (Tabs/Filter:
+reported, hidden, alle), mit Inhalt, Autor, Target und Datum;
+Aktionen Ausblenden (status hidden) und Wiederherstellen (status
+active) mit Bestätigung; Server Routes GET /api/admin/comments?
+status=…&page= (Query.limit + Pagination) und PATCH
+/api/admin/comments/:id/status (nur hidden/active als Ziel) via
+AdminClient + requireAdmin; die Übersichts-Stat-Cards aus Phase 13
+verlinken auf die gefilterte Liste. i18n keys de+en.
+Nachweis: curl als normaler User → 403; als Admin: Liste mit
+status=reported enthält den reported-Kommentar aus Phase 11;
+PATCH auf hidden → der Kommentar verschwindet aus dem öffentlichen
+GET /api/comments (curl-Vergleich vorher/nachher), PATCH auf active
+holt ihn zurück; ungültiger Ziel-Status (z.B. deleted) → 400;
+curl /admin/comments mit Admin-Session zeigt die Liste im SSR-HTML.
+pnpm -r typecheck, lint und test grün.
+Abschluss-Schritt: GOALS.md Phase 14 ✅ + Datum, README-Status.
+Constraints: KEINE eigenen Tables (admin moderiert comments-Daten);
+kein Hard-Delete; Soft-Delete-Kommentare (status deleted) sind
+sichtbar, aber nicht moderierbar. Maximal 25 Turns.
+```
+
+---
+
+## Phase 15 – packages/themes (Infrastruktur + Beispiel-Themes)
 
 > Die [[design-system]] Notiz ist bewusst dünn (Eckdaten: 26 Themes ×
 > 11 Farbvariationen, useTheme + Cookie, CSS pro Theme, dynamischer
@@ -544,7 +592,7 @@ Maximal 35 Turns.
 > die Infrastruktur steht).
 
 ```
-/goal Phase 14 (packages/themes Infrastruktur) ist abgeschlossen.
+/goal Phase 15 (packages/themes Infrastruktur) ist abgeschlossen.
 Endzustand: packages/themes als Feature Layer: Theme-Registry
 (typisierte Liste: id, name, CSS-Datei), 3 vollständige Themes als
 eigene CSS-Dateien (CSS Custom Properties im Nuxt-UI-Token-Schema)
@@ -562,7 +610,7 @@ sichtbar); ohne Cookie → Default-Theme; ungültige Cookie-Werte
 fallen sauber auf den Default zurück (curl-Beweis); typecheck/lint/
 test grün; Core-Apps OHNE themes-Layer rendern unverändert
 (Playground-curl als Gegenprobe).
-Abschluss-Schritt: GOALS.md Phase 14 ✅ + Datum, README-Status.
+Abschluss-Schritt: GOALS.md Phase 16 ✅ + Datum, README-Status.
 Constraints: Core bleibt bei EINEM Default-Theme (Konzept);
 maximal 3 Themes in dieser Phase; keine Runtime-CSS-Generierung.
 Maximal 30 Turns.
@@ -570,14 +618,14 @@ Maximal 30 Turns.
 
 ---
 
-## Phase 15 – Production Deployment
+## Phase 16 – Production Deployment
 
 > Voraussetzung: Hetzner-Server (Prod-Appwrite) und Domain sind
 > bereitgestellt — wenn nicht erreichbar: stoppen und melden statt
 > mocken. Secrets nur in ploi.io/GitHub Secrets, nie im Repo.
 
 ```
-/goal Phase 15 (Production Deployment) ist abgeschlossen.
+/goal Phase 16 (Production Deployment) ist abgeschlossen.
 Endzustand: Prod-Appwrite auf Hetzner unter https://api.<domain>/v1
 (Custom Domain, A3) mit Projekt, Runtime- + Migrations-Key,
 registrierter Web-Plattform und durchgelaufenen Migrationen 001+002;
@@ -600,13 +648,13 @@ kein Auto-Deploy auf push solange kein Staging existiert
 
 ---
 
-## Phase 16 – Realtime-Rückbau aufs SDK (wartet auf Release)
+## Phase 17 – Realtime-Rückbau aufs SDK (wartet auf Release)
 
 > Trigger: Der wöchentliche `appwrite-release-watch` meldet ein
 > Self-Hosted-Release > 1.9.0. Vorher nicht setzbar.
 
 ```
-/goal Phase 16 (Realtime-SDK-Rückbau) ist abgeschlossen.
+/goal Phase 17 (Realtime-SDK-Rückbau) ist abgeschlossen.
 Endzustand: OrbStack-Appwrite per Compose-Bump + `migrate` auf das
 neue Release aktualisiert (Backup der compose vorher); useRealtimeRows
 im Core spricht wieder das Web SDK (realtime.subscribe + Channel +
@@ -624,11 +672,11 @@ Target schon (beide curls + Probe-Log im Terminal); Browser-Realtime
 in der App funktioniert (Realtime-Insert sichtbar via zweitem
 curl-POST während die Seite offen ist — oder SSR-unabhängiger
 Probe-Beweis genügt); pnpm -r typecheck, lint und test grün.
-Abschluss-Schritt: GOALS.md Phase 16 ✅ + Datum, README-Status;
+Abschluss-Schritt: GOALS.md Phase 17 ✅ + Datum, README-Status;
 Scheduled Task appwrite-release-watch löschen oder auf das nächste
 Release umwidmen.
 Constraints: Composable-Signatur bleibt stabil; Server-Upgrade nur
-lokal (Prod separat, falls Phase 15 schon live ist → dann beide).
+lokal (Prod separat, falls Phase 16 schon live ist → dann beide).
 Maximal 25 Turns.
 ```
 
@@ -637,13 +685,13 @@ Maximal 25 Turns.
 ## Backlog (ohne Phase — bei Bedarf zu Goals schneiden)
 
 - **Themes-Vollausbau**: 26 Themes × 11 Farbvariationen, sobald die
-  Phase-14-Infrastruktur steht (Fleißarbeit, gut automatisierbar)
+  Phase-15-Infrastruktur steht (Fleißarbeit, gut automatisierbar)
 - **packages/billing**: Stripe Checkout/Webhooks/Subscriptions — wartet
   auf konkreten Bedarf (obsidian-community-concept)
 - **E2E-Tests (Playwright)** pro App — Konzept A13 sagt "wenn Core
-  stabil"; der Core ist jetzt stabil, sinnvoll nach Phase 13
+  stabil"; der Core ist jetzt stabil, sinnvoll nach Phase 14
 - **CHANGELOG.md + Git-Tags** für den Core (Konzept A6 "mittelfristig")
-- **usePresence** — falls nicht schon in Phase 16 abgedeckt
+- **usePresence** — falls nicht schon in Phase 17 abgedeckt
 - **obsidian-community-concept**: Integration des comments-Layers in
   die Community-Plattform (targetType space/note ist vorbereitet)
 
