@@ -688,7 +688,7 @@ sichtbar); ohne Cookie → Default-Theme; ungültige Cookie-Werte
 fallen sauber auf den Default zurück (curl-Beweis); typecheck/lint/
 test grün; Core-Apps OHNE themes-Layer rendern unverändert
 (Playground-curl als Gegenprobe).
-Abschluss-Schritt: GOALS.md Phase 16 ✅ + Datum, README-Status.
+Abschluss-Schritt: GOALS.md Phase 15 ✅ + Datum, README-Status.
 Constraints: Core bleibt bei EINEM Default-Theme (Konzept);
 maximal 3 Themes in dieser Phase; keine Runtime-CSS-Generierung.
 Maximal 30 Turns.
@@ -696,14 +696,61 @@ Maximal 30 Turns.
 
 ---
 
-## Phase 16 – Production Deployment
+## Phase 16 – Auth-UX-Feinschliff (Login-Anatomy-Abgleich)
+
+> Aus dem Abgleich mit dem Login-Screen-Anatomy-Guide (2026-06-11).
+> Bereits konform: Labels über Feldern, ergänzende Placeholder, Passwort-
+> Toggle, prominenter CTA, Login↔Register-Querverlinkung. Bewusst
+> ausgelassen: "Remember me" — die Session-Dauer steuert Appwrite, eine
+> funktionslose Checkbox wäre eine UI-Lüge.
+
+```
+/goal Phase 16 (Auth-UX-Feinschliff) ist abgeschlossen.
+Endzustand: (1) Passwort-Recovery komplett: dezenter "Passwort
+vergessen?"-Link am Passwort-Feld des LoginForm; pages/
+forgot-password.vue (E-Mail → POST /api/auth/recovery →
+account.createRecovery, Redirect-URL auf /reset-password) und
+pages/reset-password.vue (liest userId+secret aus der Query, neues
+Passwort + Bestätigung → PUT /api/auth/recovery →
+account.updateRecovery, Erfolg → /login mit Toast); die Rate-Limit-
+Middleware deckt /api/auth/recovery mit ab (AdminClient umgeht
+Appwrites Limits). (2) Register nach Guide: Confirm-Password-Feld
+(Zod-refine auf Übereinstimmung) und AGB-Checkbox — config-gated über
+maui.auth.termsUrl (Checkbox+Link nur wenn gesetzt, dann required).
+(3) Social-Login-Buttons config-gated über maui.auth.providers
+(z.B. ['github','google']): UAuthForm providers-Prop + OR-Separator,
+Buttons linken auf /api/auth/oauth?provider=… — Default LEER, keine
+Deko-Buttons. (4) Icon über dem Titel (UAuthForm icon-Prop) und
+size lg für 44px-Touch-Targets auf Feldern + Submit. (5) Die E-Mail
+überlebt den Wechsel Login↔Register (geteilter useState).
+(6) i18n keys de+en für alles Neue.
+Nachweis: Recovery END-TO-END mit Mailpit: curl POST
+/api/auth/recovery → 200; die Mailpit-API (localhost:8025/api/v1)
+zeigt die Mail und liefert den Body, daraus userId+secret extrahieren
+→ PUT /api/auth/recovery mit neuem Passwort → 200; Login mit dem
+NEUEN Passwort → 200, mit dem alten → 401 (curl-Sequenz im Terminal).
+curl /login enthält den Forgot-Link; mit konfigurierten Providern
+in der App enthält /login die Provider-Buttons, ohne Config nicht
+(Gate-Gegenprobe); /register zeigt Confirm-Feld immer und die
+AGB-Checkbox nur mit gesetztem termsUrl; Rate-Limit: 6. Recovery-
+Request → 429; pnpm -r typecheck, lint und test grün.
+Abschluss-Schritt: GOALS.md Phase 16 ✅ + Datum, README-Status.
+Constraints: kein Remember-me; die OAuth-Provider-KONFIGURATION in
+der Appwrite Console ist nicht Teil der Phase (Buttons bleiben
+config-gated aus, bis eine App sie aktiviert); Passwort-Ändern im
+eingeloggten Profil bleibt Backlog. Maximal 35 Turns.
+```
+
+---
+
+## Phase 17 – Production Deployment
 
 > Voraussetzung: Hetzner-Server (Prod-Appwrite) und Domain sind
 > bereitgestellt — wenn nicht erreichbar: stoppen und melden statt
 > mocken. Secrets nur in ploi.io/GitHub Secrets, nie im Repo.
 
 ```
-/goal Phase 16 (Production Deployment) ist abgeschlossen.
+/goal Phase 17 (Production Deployment) ist abgeschlossen.
 Endzustand: Prod-Appwrite auf Hetzner unter https://api.<domain>/v1
 (Custom Domain, A3) mit Projekt, Runtime- + Migrations-Key,
 registrierter Web-Plattform und durchgelaufenen Migrationen 001+002;
@@ -717,7 +764,7 @@ Signup→me→logout-Sequenz gegen Prod (Set-Cookie zeigt Secure +
 HttpOnly); Kommentar-POST + GET gegen Prod; gh workflow run deploy
 → gh run watch completed/success und die Site antwortet nach dem
 Deploy (Versions-/Marker-Check per curl).
-Abschluss-Schritt: GOALS.md Phase 15 ✅ + Datum, README-Status.
+Abschluss-Schritt: GOALS.md Phase 17 ✅ + Datum, README-Status.
 Constraints: NUXT_APPWRITE_KEY & Co. niemals ins Repo; Appwrite-
 Console-Schritte (Projekt, Keys, Domain-DNS) macht David auf Zuruf;
 kein Auto-Deploy auf push solange kein Staging existiert
@@ -726,13 +773,13 @@ kein Auto-Deploy auf push solange kein Staging existiert
 
 ---
 
-## Phase 17 – Realtime-Rückbau aufs SDK (wartet auf Release)
+## Phase 18 – Realtime-Rückbau aufs SDK (wartet auf Release)
 
 > Trigger: Der wöchentliche `appwrite-release-watch` meldet ein
 > Self-Hosted-Release > 1.9.0. Vorher nicht setzbar.
 
 ```
-/goal Phase 17 (Realtime-SDK-Rückbau) ist abgeschlossen.
+/goal Phase 18 (Realtime-SDK-Rückbau) ist abgeschlossen.
 Endzustand: OrbStack-Appwrite per Compose-Bump + `migrate` auf das
 neue Release aktualisiert (Backup der compose vorher); useRealtimeRows
 im Core spricht wieder das Web SDK (realtime.subscribe + Channel +
@@ -750,11 +797,11 @@ Target schon (beide curls + Probe-Log im Terminal); Browser-Realtime
 in der App funktioniert (Realtime-Insert sichtbar via zweitem
 curl-POST während die Seite offen ist — oder SSR-unabhängiger
 Probe-Beweis genügt); pnpm -r typecheck, lint und test grün.
-Abschluss-Schritt: GOALS.md Phase 17 ✅ + Datum, README-Status;
+Abschluss-Schritt: GOALS.md Phase 18 ✅ + Datum, README-Status;
 Scheduled Task appwrite-release-watch löschen oder auf das nächste
 Release umwidmen.
 Constraints: Composable-Signatur bleibt stabil; Server-Upgrade nur
-lokal (Prod separat, falls Phase 16 schon live ist → dann beide).
+lokal (Prod separat, falls Phase 17 schon live ist → dann beide).
 Maximal 25 Turns.
 ```
 
@@ -769,7 +816,7 @@ Maximal 25 Turns.
 - **E2E-Tests (Playwright)** pro App — Konzept A13 sagt "wenn Core
   stabil"; der Core ist jetzt stabil, sinnvoll nach Phase 14
 - **CHANGELOG.md + Git-Tags** für den Core (Konzept A6 "mittelfristig")
-- **usePresence** — falls nicht schon in Phase 17 abgedeckt
+- **usePresence** — falls nicht schon in Phase 18 abgedeckt
 - **obsidian-community-concept**: Integration des comments-Layers in
   die Community-Plattform (targetType space/note ist vorbereitet)
 
