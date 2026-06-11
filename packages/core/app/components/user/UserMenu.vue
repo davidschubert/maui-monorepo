@@ -17,6 +17,11 @@ const items = computed<DropdownMenuItem[]>(() => [
     type: 'label',
   },
   { type: 'separator' },
+  // Nur für Admins — die Route liefert der admin-Layer; Apps ohne ihn
+  // haben üblicherweise keine admin-gelabelten User
+  ...(isAdminUser(auth.user)
+    ? [{ label: t('ui.adminArea'), icon: 'i-ph-gauge', to: '/admin' } satisfies DropdownMenuItem]
+    : []),
   {
     label: t('auth.logout'),
     icon: 'i-ph-sign-out',
