@@ -6,7 +6,8 @@
       "submit": "Sign in",
       "failed": "Sign-in failed — please check your email and password.",
       "noAccount": "No account yet?",
-      "registerLink": "Register"
+      "registerLink": "Register",
+      "forgot": "Forgot password?"
     },
     "register": {
       "title": "Register",
@@ -14,7 +15,9 @@
       "submit": "Create account",
       "failed": "Registration failed — does the account already exist?",
       "hasAccount": "Already have an account?",
-      "loginLink": "Sign in"
+      "loginLink": "Sign in",
+      "termsLabel": "I accept the Terms and Conditions",
+      "termsLink": "Read Terms and Conditions"
     },
     "logout": "Sign out",
     "fields": {
@@ -24,7 +27,25 @@
       "emailPlaceholder": "you{'@'}example.com",
       "password": "Password",
       "passwordPlaceholder": "Your password",
-      "passwordHint": "At least 8 characters"
+      "passwordHint": "At least 8 characters",
+      "passwordConfirm": "Confirm password",
+      "passwordConfirmPlaceholder": "Repeat password"
+    },
+    "forgot": {
+      "title": "Forgot password",
+      "description": "We will send you a link to reset it.",
+      "submit": "Request link",
+      "success": "If an account with this email exists, the email is on its way — check your inbox.",
+      "back": "Back to sign-in"
+    },
+    "reset": {
+      "title": "New password",
+      "description": "Choose a new password for your account.",
+      "submit": "Save password",
+      "success": "Password updated — sign in now.",
+      "invalidLink": "This link is invalid — request a new one.",
+      "failed": "Reset failed — the link may have expired.",
+      "requestNew": "Request a new link"
     }
   },
   "validation": {
@@ -32,7 +53,10 @@
     "passwordMin": "The password must be at least 8 characters long",
     "nameMin": "The name must be at least 2 characters long",
     "bioMax": "The bio must be at most 500 characters long",
-    "urlInvalid": "Please enter a valid URL"
+    "urlInvalid": "Please enter a valid URL",
+    "passwordMismatch": "The passwords do not match",
+    "passwordConfirmRequired": "Please confirm the password",
+    "termsRequired": "Please accept the Terms and Conditions"
   },
   "ui": {
     "save": "Save",

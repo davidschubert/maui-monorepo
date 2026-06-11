@@ -19,8 +19,58 @@ export function createRegisterSchema(t: TranslateFn = identity) {
   })
 }
 
+export interface RegisterFormOptions {
+  /** true = AGB-Checkbox ist Pflicht (maui.auth.termsUrl gesetzt) */
+  requireTerms?: boolean
+}
+
+/**
+ * Formular-Variante des Register-Schemas: Confirm-Password (+ optional AGB).
+ * Der Server validiert weiterhin nur name/email/password (registerSchema) —
+ * passwordConfirm/terms sind reine UI-Belange.
+ */
+export function createRegisterFormSchema(t: TranslateFn = identity, options: RegisterFormOptions = {}) {
+  return createRegisterSchema(t)
+    .extend({
+      passwordConfirm: z.string().min(1, t('validation.passwordConfirmRequired')),
+      terms: options.requireTerms
+        ? z.literal(true, t('validation.termsRequired'))
+        : z.boolean().optional(),
+    })
+    .refine(data => data.password === data.passwordConfirm, {
+      message: t('validation.passwordMismatch'),
+      path: ['passwordConfirm'],
+    })
+}
+
+export function createRecoverySchema(t: TranslateFn = identity) {
+  return z.object({
+    email: z.email(t('validation.emailInvalid')),
+  })
+}
+
+/** Formular der Reset-Page (userId/secret kommen aus der Mail-URL, nicht aus dem Formular) */
+export function createResetSchema(t: TranslateFn = identity) {
+  return z.object({
+    password: z.string().min(8, t('validation.passwordMin')),
+    passwordConfirm: z.string().min(1, t('validation.passwordConfirmRequired')),
+  }).refine(data => data.password === data.passwordConfirm, {
+    message: t('validation.passwordMismatch'),
+    path: ['passwordConfirm'],
+  })
+}
+
 export const loginSchema = createLoginSchema()
 export const registerSchema = createRegisterSchema()
+export const recoverySchema = createRecoverySchema()
+export const resetServerSchema = z.object({
+  userId: z.string().min(1),
+  secret: z.string().min(1),
+  password: z.string().min(8),
+})
 
 export type LoginInput = z.infer<typeof loginSchema>
 export type RegisterInput = z.infer<typeof registerSchema>
+export type RegisterFormInput = z.infer<ReturnType<typeof createRegisterFormSchema>>
+export type RecoveryInput = z.infer<typeof recoverySchema>
+export type ResetFormInput = z.infer<ReturnType<typeof createResetSchema>>

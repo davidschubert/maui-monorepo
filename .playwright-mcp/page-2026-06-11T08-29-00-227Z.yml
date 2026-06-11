@@ -1,0 +1,158 @@
+- generic:
+  - generic:
+    - generic:
+      - banner:
+        - navigation:
+          - link:
+            - /url: /
+            - text: Maui
+          - generic:
+            - button [expanded]:
+              - generic:
+                - generic: PF
+      - main:
+        - main:
+          - generic:
+            - heading [level=1]: Reddit Comments
+            - paragraph: Diskutiere wie auf Reddit — in Echtzeit.
+          - generic:
+            - generic:
+              - heading [level=2]: Kommentare (6)
+              - combobox:
+                - generic: Neu
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - textbox:
+                      - /placeholder: Dein Kommentar…
+              - button: Kommentieren
+            - list:
+              - listitem:
+                - article:
+                  - generic:
+                    - generic:
+                      - generic: UB
+                    - generic: User Bravo
+                    - generic: ·
+                    - generic: 10.06.2026
+                  - paragraph: "Realtime-Live-Test: dieser Kommentar kam OHNE Reload in deinen Browser 🎉"
+                  - generic:
+                    - generic:
+                      - button
+                      - generic: "0"
+                      - button
+                    - button: Antworten
+                    - button: Melden
+              - listitem:
+                - article:
+                  - generic:
+                    - generic:
+                      - generic: PF
+                    - generic: Phase Four
+                    - generic: ·
+                    - generic: 10.06.2026
+                  - paragraph: "Lokaler UI-Test: Optimistic Update im echten Browser!"
+                  - generic:
+                    - generic:
+                      - button
+                      - generic: "0"
+                      - button
+                    - button: Antworten
+                    - button: Bearbeiten
+                    - button: Löschen
+              - listitem:
+                - article:
+                  - generic:
+                    - generic:
+                      - generic: PF
+                    - generic: Phase Four
+                    - generic: ·
+                    - generic: 10.06.2026
+                  - paragraph: Realtime-Nachweis Phase 11
+                  - generic:
+                    - generic:
+                      - button
+                      - generic: "0"
+                      - button
+                    - button: Antworten
+                    - button: Bearbeiten
+                    - button: Löschen
+              - listitem:
+                - article:
+                  - generic:
+                    - generic:
+                      - generic: UB
+                    - generic: User Bravo
+                    - generic: ·
+                    - generic: 10.06.2026
+                  - paragraph: "[gelöscht]"
+                  - generic:
+                    - generic:
+                      - button [disabled]
+                      - generic: "0"
+                      - button [disabled]
+              - listitem:
+                - article:
+                  - generic:
+                    - generic:
+                      - generic: PF
+                    - generic: Phase Four
+                    - generic: ·
+                    - generic: 10.06.2026
+                  - paragraph: Erster Kommentar — wird hochgevotet
+                  - generic:
+                    - generic:
+                      - button
+                      - generic: "2"
+                      - button
+                    - button: Antworten
+                    - button: Bearbeiten
+                    - button: Löschen
+                - generic:
+                  - list:
+                    - listitem:
+                      - article:
+                        - generic:
+                          - generic:
+                            - generic: UB
+                          - generic: User Bravo
+                          - generic: ·
+                          - generic: 10.06.2026
+                        - paragraph: Verschachtelte Antwort auf den ersten!
+                        - generic:
+                          - generic:
+                            - button
+                            - generic: "0"
+                            - button
+                          - button: Antworten
+                          - button: Melden
+      - contentinfo:
+        - generic: Maui · Nuxt 4 + Appwrite
+    - generic:
+      - combobox:
+        - generic: Sunset
+      - combobox:
+        - generic: Standard
+      - button:
+        - generic: Dark
+  - generic:
+    - img
+  - generic [ref=e167]:
+    - button [ref=e168] [cursor=pointer]:
+      - img [ref=e169]
+    - generic [ref=e172]:
+      - generic [ref=e173]: "258"
+      - generic [ref=e174]: ms
+    - button [ref=e176] [cursor=pointer]:
+      - img [ref=e177]
+  - menu "Benutzermenü" [active] [ref=e181]:
+    - group "PF Phase Four" [ref=e182]:
+      - generic [ref=e183]:
+        - generic [ref=e185]: PF
+        - generic [ref=e187]: Phase Four
+      - separator [ref=e188]
+      - menuitem "Admin-Bereich" [ref=e189] [cursor=pointer]:
+        - generic [ref=e192]: Admin-Bereich
+      - menuitem "Abmelden" [ref=e193]:
+        - generic [ref=e196]: Abmelden

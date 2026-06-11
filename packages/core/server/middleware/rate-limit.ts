@@ -19,15 +19,21 @@ function prune(now: number) {
   }
 }
 
+// Recovery ebenfalls drosseln: POST verschickt Mails, PUT probiert Secrets
+const LIMITED = new Set(['/api/auth/login', '/api/auth/recovery'])
+
 export default defineEventHandler((event) => {
-  if (event.method !== 'POST') return
-  if (getRequestURL(event).pathname !== '/api/auth/login') return
+  if (event.method !== 'POST' && event.method !== 'PUT') return
+  const pathname = getRequestURL(event).pathname
+  if (!LIMITED.has(pathname)) return
 
   const ip = getRequestIP(event, { xForwardedFor: true }) ?? 'unknown'
+  // Eigenes Budget pro Route — Login-Versuche verbrauchen kein Recovery-Kontingent
+  const key = `${ip}:${pathname}`
   const now = Date.now()
   prune(now)
 
-  const recent = (attempts.get(ip) ?? []).filter(ts => now - ts < WINDOW_MS)
+  const recent = (attempts.get(key) ?? []).filter(ts => now - ts < WINDOW_MS)
 
   if (recent.length >= MAX_ATTEMPTS) {
     const oldest = recent[0] ?? now
@@ -36,5 +42,5 @@ export default defineEventHandler((event) => {
   }
 
   recent.push(now)
-  attempts.set(ip, recent)
+  attempts.set(key, recent)
 })

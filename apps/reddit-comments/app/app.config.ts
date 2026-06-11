@@ -1,6 +1,7 @@
 export default defineAppConfig({
   // App-spezifische Overrides (tiefer Merge, App > Core).
-  // Analytics/Consent bleiben aus (Core-Default) — Aktivierung wenn gebraucht:
-  // maui: { analytics: { enabled: true, provider: 'plausible', domain: '…' }, consent: { enabled: true } }
+  // Auth-Gates bleiben aus, bis OAuth-Provider in der Console konfiguriert
+  // sind bzw. eine AGB-Seite existiert:
+  // maui: { auth: { providers: ['github'], termsUrl: '/agb' } }
   ui: {},
 })

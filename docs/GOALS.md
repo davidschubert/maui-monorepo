@@ -696,7 +696,31 @@ Maximal 30 Turns.
 
 ---
 
-## Phase 16 – Auth-UX-Feinschliff (Login-Anatomy-Abgleich)
+## Phase 16 – Auth-UX-Feinschliff (Login-Anatomy-Abgleich) ✅ (abgeschlossen 2026-06-11)
+
+> ✅ **Erledigt am 2026-06-11.** Recovery-Flow komplett: Forgot-Link im
+> LoginForm (#validation-Slot, rechtsbündig dezent), pages/forgot-password
+> + reset-password, Routes POST/PUT /api/auth/recovery als GUEST-Client
+> (createRecovery ist Account-Endpoint — bewusst kein Key-Scope; Antwort
+> immer ok gegen Account-Enumeration); Rate-Limit-Middleware deckt recovery
+> mit ab, jetzt mit EIGENEM Budget pro Route (Key ip:pathname). Register:
+> Confirm-Password (refine) + AGB-Checkbox config-gated (maui.auth.termsUrl);
+> Provider-Buttons config-gated (maui.auth.providers, Phosphor-Icons,
+> external auf /api/auth/oauth) — Default leer; Icon + size lg (44px);
+> E-Mail überlebt den Flow-Wechsel (useState + UAuthForm-Template-Ref).
+> Nachweise: Gate-Matrix per curl (aus: 0 Buttons/0 Checkbox; an: github+
+> google-Buttons, OR-Separator, Checkbox+AGB-Link; danach zurückgesetzt).
+> E2E mit ZWEI neuen Usern: User C komplett im BROWSER (Register mit
+> Confirm → Logout → Forgot-Form → Mail aus Mailpit → Reset-Page →
+> Login mit neuem Passwort; altes → 401; sieht als Nicht-Admin keinen
+> Admin-Menüpunkt), User D komplett per curl (Signup 200 → Login 200 →
+> Recovery über unsere Route → userId+secret aus der Mailpit-API →
+> PUT 200 → alt 401/neu 200). Recovery-Rate-Limit: 5×200, Nr. 6 → 429 mit
+> retry-after: 60. typecheck/lint/test (20) grün. BEFUND nebenbei:
+> Appwrites Mail-Worker hält die SMTP-Verbindung offen — nach Idle-Timeout
+> schließt Mailpit sie und der ERSTE Send schlägt mit 421 fehl (Mail
+> verloren, kein Retry); der nächste verbindet neu. Lokal kosmetisch,
+> für Prod-SMTP (Phase 17) relevant: Provider/Timeout beachten.
 
 > Aus dem Abgleich mit dem Login-Screen-Anatomy-Guide (2026-06-11).
 > Bereits konform: Labels über Feldern, ergänzende Placeholder, Passwort-

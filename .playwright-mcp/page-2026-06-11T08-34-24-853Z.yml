@@ -1,0 +1,50 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - main [ref=e3]:
+      - generic [ref=e53]:
+        - generic [ref=e54]:
+          - generic [ref=e57]: Anmelden
+          - generic [ref=e58]: Melde dich mit deinem Account an.
+        - generic [ref=e60]:
+          - generic [ref=e61]:
+            - generic [ref=e64]: E-Mail*
+            - textbox "E-Mail*" [ref=e67]:
+              - /placeholder: du@example.com
+          - generic [ref=e68]:
+            - generic [ref=e71]: Passwort*
+            - generic [ref=e73]:
+              - textbox "Passwort*" [ref=e74]:
+                - /placeholder: Dein Passwort
+              - button "Show password" [ref=e76]
+          - link "Passwort vergessen?" [ref=e79] [cursor=pointer]:
+            - /url: /forgot-password
+          - button "Anmelden" [ref=e80]:
+            - generic [ref=e81]: Anmelden
+        - generic [ref=e82]:
+          - text: Noch keinen Account?
+          - link "Registrieren" [ref=e83] [cursor=pointer]:
+            - /url: /register
+    - generic [ref=e27]:
+      - combobox "Theme" [ref=e28]:
+        - generic: Sunset
+      - combobox "Farbvariante" [ref=e31]:
+        - generic: Standard
+      - button "Erscheinungsbild" [ref=e34]:
+        - generic: Dark
+    - alert [ref=e84]: Notification Passwort aktualisiert — melde dich jetzt an.
+  - generic:
+    - img
+  - generic [ref=e39]:
+    - button "Toggle Nuxt DevTools" [ref=e40] [cursor=pointer]:
+      - img [ref=e41]
+    - generic "Page load time" [ref=e44]:
+      - generic [ref=e45]: "70"
+      - generic [ref=e46]: ms
+    - button "Toggle Component Inspector" [ref=e48] [cursor=pointer]:
+      - img [ref=e49]
+  - region "Notifications (F8)":
+    - list [ref=e86]:
+      - listitem [ref=e87]:
+        - generic [ref=e89]: Passwort aktualisiert — melde dich jetzt an.
+        - button "Close" [ref=e91]
+        - progressbar "85%" [ref=e94]

@@ -6,7 +6,8 @@
       "submit": "Anmelden",
       "failed": "Anmeldung fehlgeschlagen — bitte E-Mail und Passwort prüfen.",
       "noAccount": "Noch keinen Account?",
-      "registerLink": "Registrieren"
+      "registerLink": "Registrieren",
+      "forgot": "Passwort vergessen?"
     },
     "register": {
       "title": "Registrieren",
@@ -14,7 +15,9 @@
       "submit": "Account erstellen",
       "failed": "Registrierung fehlgeschlagen — existiert der Account bereits?",
       "hasAccount": "Schon einen Account?",
-      "loginLink": "Anmelden"
+      "loginLink": "Anmelden",
+      "termsLabel": "Ich akzeptiere die AGB",
+      "termsLink": "AGB lesen"
     },
     "logout": "Abmelden",
     "fields": {
@@ -24,7 +27,25 @@
       "emailPlaceholder": "du{'@'}example.com",
       "password": "Passwort",
       "passwordPlaceholder": "Dein Passwort",
-      "passwordHint": "Mindestens 8 Zeichen"
+      "passwordHint": "Mindestens 8 Zeichen",
+      "passwordConfirm": "Passwort bestätigen",
+      "passwordConfirmPlaceholder": "Passwort wiederholen"
+    },
+    "forgot": {
+      "title": "Passwort vergessen",
+      "description": "Wir schicken dir einen Link zum Zurücksetzen.",
+      "submit": "Link anfordern",
+      "success": "Wenn ein Account mit dieser E-Mail existiert, ist die Mail unterwegs — prüfe dein Postfach.",
+      "back": "Zurück zur Anmeldung"
+    },
+    "reset": {
+      "title": "Neues Passwort",
+      "description": "Wähle ein neues Passwort für deinen Account.",
+      "submit": "Passwort speichern",
+      "success": "Passwort aktualisiert — melde dich jetzt an.",
+      "invalidLink": "Dieser Link ist ungültig — fordere einen neuen an.",
+      "failed": "Zurücksetzen fehlgeschlagen — der Link ist möglicherweise abgelaufen.",
+      "requestNew": "Neuen Link anfordern"
     }
   },
   "validation": {
@@ -32,7 +53,10 @@
     "passwordMin": "Das Passwort muss mindestens 8 Zeichen lang sein",
     "nameMin": "Der Name muss mindestens 2 Zeichen lang sein",
     "bioMax": "Die Bio darf höchstens 500 Zeichen lang sein",
-    "urlInvalid": "Bitte eine gültige URL eingeben"
+    "urlInvalid": "Bitte eine gültige URL eingeben",
+    "passwordMismatch": "Die Passwörter stimmen nicht überein",
+    "passwordConfirmRequired": "Bitte das Passwort bestätigen",
+    "termsRequired": "Bitte akzeptiere die AGB"
   },
   "ui": {
     "save": "Speichern",

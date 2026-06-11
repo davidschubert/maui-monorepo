@@ -1,0 +1,36 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - main [ref=e238]:
+      - generic [ref=e273]:
+        - generic [ref=e274]:
+          - heading "Passwort vergessen" [level=1] [ref=e276]
+          - paragraph [ref=e277]: Wir schicken dir einen Link zum Zurücksetzen.
+        - generic [ref=e278]:
+          - generic [ref=e279]:
+            - generic [ref=e282]: E-Mail*
+            - textbox "E-Mail*" [ref=e285]:
+              - /placeholder: du@example.com
+              - text: phase16-userC@example.com
+          - button "Link anfordern" [ref=e286]
+        - paragraph [ref=e287]:
+          - link "Zurück zur Anmeldung" [ref=e288] [cursor=pointer]:
+            - /url: /login
+    - generic [ref=e51]:
+      - combobox "Theme" [ref=e52]:
+        - generic: Sunset
+      - combobox "Farbvariante" [ref=e55]:
+        - generic: Standard
+      - button "Erscheinungsbild" [ref=e58]:
+        - generic: Dark
+  - generic:
+    - img
+  - generic [ref=e63]:
+    - button "Toggle Nuxt DevTools" [ref=e270] [cursor=pointer]:
+      - img [ref=e65]
+    - generic "Page load time" [ref=e271]:
+      - generic [ref=e69]: "294"
+      - generic [ref=e70]: ms
+    - button "Toggle Component Inspector" [ref=e272] [cursor=pointer]:
+      - img [ref=e73]
+  - region "Notifications (F8)":
+    - list

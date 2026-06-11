@@ -2,6 +2,13 @@ export default defineAppConfig({
   // maui.* Config-Gates: Core-Default ist IMMER aus — Apps aktivieren explizit.
   // Interne Tools bleiben komplett clean, öffentliche Seiten brauchen 3 Zeilen.
   maui: {
+    auth: {
+      /** Social-Login-Buttons (z.B. ['github', 'google']) — leer = keine Buttons.
+       *  Provider müssen in der Appwrite Console konfiguriert sein! */
+      providers: [] as string[],
+      /** AGB-URL — gesetzt = Pflicht-Checkbox im Register-Formular */
+      termsUrl: '',
+    },
     analytics: {
       enabled: false,
       provider: 'plausible' as 'plausible' | 'umami',
