@@ -97,7 +97,7 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 | 12 | Security & Key-Hygiene (Rate-Limit, Key-Trennung) | ✅ 2026-06-10 |
 | 13 | `packages/admin`: Dashboard-Grundgerüst & User-Verwaltung | ✅ 2026-06-10 |
 | 14 | `packages/admin`: Moderation | ✅ 2026-06-10 |
-| 15 | `packages/themes` (Infrastruktur + 3 Themes) | 🔜 |
+| 15 | `packages/themes` (Infrastruktur + 3 Themes) | ✅ 2026-06-10 |
 | 16 | Production Deployment (Hetzner, ploi.io, Custom Domain) | 🔜 |
 | 17 | Realtime-Rückbau aufs SDK | ⏳ wartet auf Appwrite-Release |
 | 10–11 | `packages/comments` Feature Layer + Reddit Comment App | 🔜 |

@@ -15,6 +15,7 @@
     "@maui/admin": "workspace:*",
     "@maui/comments": "workspace:*",
     "@maui/core": "workspace:*",
+    "@maui/themes": "workspace:*",
     "@nuxt/ui": "catalog:",
     "@nuxtjs/i18n": "catalog:",
     "@pinia/nuxt": "catalog:",

@@ -640,7 +640,28 @@ sichtbar, aber nicht moderierbar. Maximal 25 Turns.
 
 ---
 
-## Phase 15 – packages/themes (Infrastruktur + Beispiel-Themes)
+## Phase 15 – packages/themes (Infrastruktur + Beispiel-Themes) ✅ (abgeschlossen 2026-06-10)
+
+> ✅ **Erledigt am 2026-06-10.** packages/themes als vierter Layer
+> (extends: [themes, admin, comments, core]). Typisierte THEME_REGISTRY
+> (default ohne Datei + ocean/forest/sunset als statische CSS in
+> public/themes/ — generiert via Script, committet, KEINE Runtime-
+> Generierung); Entscheidung Farbvariation: CSS-VARIABLEN —
+> [data-theme][data-variant]-Blöcke überschreiben die Primary-Ramp
+> (je 2 Varianten pro Theme), useTheme verwaltet beide Cookies
+> (maui-theme, maui-theme-variant) mit Validierung gegen die Registry;
+> universelles Plugin setzt data-theme/data-variant + den EINEN
+> Stylesheet-Link reaktiv via useHead → alles im SSR-Head, kein Flash;
+> ThemeSwitcher (USelect + Varianten-Select) hängt via app.vue global
+> (statt Layout-Override — Core bleibt themes-frei). Nachweis: Cookie
+> ocean → html data-theme="ocean" + link /themes/ocean.css im SSR-HTML;
+> ohne Cookie und mit ungültigem Wert → 0 Theme-Attribute (Default-
+> Fallback); ocean+teal → data-variant="teal"; /themes/ocean.css als
+> statisches Asset (200, Layer-public-Merge funktioniert); GEGENPROBE
+> Playground (ohne themes): rendert unverändert, ignoriert den Cookie.
+> Nebenbefund gefixt: Playground lieferte seit Phase 4 still 404 auf /
+> (Core-Pages aktivieren das Routing, app.vue hatte kein NuxtPage) —
+> jetzt NuxtLayout/NuxtPage + eigene Index-Page. typecheck/lint/test grün.
 
 > Die [[design-system]] Notiz ist bewusst dünn (Eckdaten: 26 Themes ×
 > 11 Farbvariationen, useTheme + Cookie, CSS pro Theme, dynamischer

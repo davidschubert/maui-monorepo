@@ -1,0 +1,53 @@
+/* Maui Theme: ocean — statisch generiert (Phase 15), KEINE Runtime-Generierung */
+
+[data-theme='ocean'] {
+  --ui-color-primary-50: #f1f6fe;
+  --ui-color-primary-100: #deebfc;
+  --ui-color-primary-200: #bdd6fa;
+  --ui-color-primary-300: #8eb9f6;
+  --ui-color-primary-400: #5f9cf2;
+  --ui-color-primary-500: #2f7fee;
+  --ui-color-primary-600: #1269e2;
+  --ui-color-primary-700: #0f58bd;
+  --ui-color-primary-800: #0d489c;
+  --ui-color-primary-900: #0a3b7f;
+  --ui-color-primary-950: #072550;
+  --ui-primary: var(--ui-color-primary-600);
+  --ui-radius: 0.375rem;
+}
+
+.dark[data-theme='ocean'] {
+  --ui-primary: var(--ui-color-primary-400);
+}
+
+/* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
+
+[data-theme='ocean'][data-variant='teal'] {
+  --ui-color-primary-50: #f2fdfc;
+  --ui-color-primary-100: #e0fbf8;
+  --ui-color-primary-200: #c1f6f2;
+  --ui-color-primary-300: #94f0e8;
+  --ui-color-primary-400: #67e9de;
+  --ui-color-primary-500: #3be3d5;
+  --ui-color-primary-600: #1fd6c7;
+  --ui-color-primary-700: #19b3a6;
+  --ui-color-primary-800: #159389;
+  --ui-color-primary-900: #117870;
+  --ui-color-primary-950: #0b4c46;
+}
+
+/* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
+
+[data-theme='ocean'][data-variant='indigo'] {
+  --ui-color-primary-50: #f4f1fd;
+  --ui-color-primary-100: #e6dffb;
+  --ui-color-primary-200: #cdbff8;
+  --ui-color-primary-300: #a991f3;
+  --ui-color-primary-400: #8663ee;
+  --ui-color-primary-500: #6235e9;
+  --ui-color-primary-600: #4918dc;
+  --ui-color-primary-700: #3d14b8;
+  --ui-color-primary-800: #321197;
+  --ui-color-primary-900: #290e7c;
+  --ui-color-primary-950: #1a094e;
+}
