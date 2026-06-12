@@ -1,0 +1,39 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - main [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e81]:
+          - generic [ref=e82]:
+            - heading "Mit Code registrieren" [level=1] [ref=e84]
+            - paragraph [ref=e85]: E-Mail eingeben, Code eintippen — dein Account wird automatisch erstellt.
+          - generic [ref=e86]:
+            - generic [ref=e87]:
+              - generic [ref=e90]: Name (optional)
+              - textbox "Name (optional)" [ref=e93]:
+                - /placeholder: Dein Name
+            - generic [ref=e94]:
+              - generic [ref=e97]: E-Mail*
+              - textbox "E-Mail*" [ref=e100]:
+                - /placeholder: du@example.com
+            - button "Code anfordern" [ref=e101]
+        - paragraph [ref=e52]:
+          - button "Mit Passwort registrieren" [active] [ref=e102]: Mit Passwort registrieren
+    - generic [ref=e55]:
+      - combobox "Theme" [ref=e56]:
+        - generic: Sunset
+      - combobox "Farbvariante" [ref=e59]:
+        - generic: Standard
+      - button "Erscheinungsbild" [ref=e62]:
+        - generic: Dark
+  - generic:
+    - img
+  - generic [ref=e67]:
+    - button "Toggle Nuxt DevTools" [ref=e68] [cursor=pointer]:
+      - img [ref=e69]
+    - generic "Page load time" [ref=e72]:
+      - generic [ref=e73]: "62"
+      - generic [ref=e74]: ms
+    - button "Toggle Component Inspector" [ref=e76] [cursor=pointer]:
+      - img [ref=e77]
+  - region "Notifications (F8)":
+    - list

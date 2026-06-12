@@ -61,7 +61,12 @@
       "resend": "Code erneut senden",
       "resendIn": "Erneut senden in {seconds}s",
       "switchToOtp": "Ohne Passwort anmelden (Code per E-Mail)",
-      "switchToPassword": "Mit Passwort anmelden"
+      "switchToPassword": "Mit Passwort anmelden",
+      "registerTitle": "Mit Code registrieren",
+      "registerDescription": "E-Mail eingeben, Code eintippen — dein Account wird automatisch erstellt.",
+      "nameOptional": "Name (optional)",
+      "switchToOtpRegister": "Ohne Passwort registrieren (Code per E-Mail)",
+      "switchToPasswordRegister": "Mit Passwort registrieren"
     },
     "logoutSuccess": "Abgemeldet — bis bald!"
   },

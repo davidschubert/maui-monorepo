@@ -102,6 +102,7 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 | 17 | Production Deployment (Hetzner, ploi.io, Custom Domain) | 🔜 |
 | 18 | Realtime-Rückbau aufs SDK | ⏳ wartet auf Appwrite-Release |
 | 19 | Email-OTP-Login (passwortlos) | ✅ 2026-06-11 |
+| 20 | OTP-Registrierung (Name, AGB, E-Mail-Normalisierung) | ✅ 2026-06-12 |
 | 10–11 | `packages/comments` Feature Layer + Reddit Comment App | 🔜 |
 
 Details und Nachweis-Kriterien pro Phase: [docs/GOALS.md](docs/GOALS.md)

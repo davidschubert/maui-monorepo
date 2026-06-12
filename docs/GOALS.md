@@ -895,6 +895,50 @@ Console aktiv sein (David prüft auf Zuruf); kein Magic-URL-Login
 
 ---
 
+## Phase 20 – OTP-Registrierung komplettieren (Mini-Phase) ✅ (abgeschlossen 2026-06-12)
+
+> ✅ **Erledigt am 2026-06-12.** /register hat den OTP-Umschalter; das
+> OTP-Formular kennt einen register-Modus (eigener Titel/Beschreibung),
+> ein optionales Name-Feld und im register-Modus die AGB-Pflicht-Checkbox
+> bei gesetztem termsUrl; nach dem Verify wird der Name über die
+> bestehende Profil-Route gesetzt — NUR wenn der Account-Name leer ist.
+> Nachweise: Browser-Flow User F über /register (Toggle → Name+E-Mail+
+> Checkbox, ohne Haken → Zod-Fehler "Bitte akzeptiere die AGB", mit Haken
+> → Code aus Mailpit per Phrase-Abgleich → Auto-Verify → Users-API zeigt
+> 'User Foxtrot' MIT Namen); Gegenprobe ohne termsUrl: keine Checkbox;
+> User D behält 'User Delta'. WICHTIGER NEBENFUND mit Fix: Appwrites
+> createEmailToken matcht E-Mails CASE-SENSITIV — 'userD@' legte ein
+> Duplikat mit leerem Namen an, obwohl signup E-Mails lowercased!
+> Fix: normalizedEmail() (trim+lowercase) als Zod-Transform in ALLEN
+> E-Mail-Schemas (login/register/recovery/otp); bewiesen: Capital-D-Input
+> matcht jetzt den lowercase-Account, Name bleibt erhalten, kein Duplikat;
+> Alt-Duplikat gelöscht. typecheck/lint/test (24) grün.
+
+```
+/goal Phase 20 (OTP-Registrierung komplettieren) ist abgeschlossen.
+Endzustand: /register zeigt mit aktivem maui.auth.otp denselben
+OTP-Umschalter wie /login ("Ohne Passwort registrieren — Code per
+E-Mail"); das OTP-Formular kennt einen register-Modus (eigener Titel/
+Beschreibung) und bekommt im E-Mail-Schritt ein optionales Name-Feld
+sowie — im register-Modus bei gesetztem maui.auth.termsUrl — die
+Pflicht-AGB-Checkbox (Parität zum Passwort-Register); nach
+erfolgreichem Verify wird ein angegebener Name über die BESTEHENDE
+Route PUT /api/auth/profile gesetzt, aber NUR wenn der Account-Name
+leer ist (bestehende User behalten ihren Namen); i18n de+en.
+Nachweis: Browser-Flow User F über /register: Toggle → Name+E-Mail+
+AGB-Checkbox sichtbar, Absenden ohne Haken → Zod-Fehler, mit Haken →
+Code aus Mailpit (Phrase-Abgleich) → Auto-Verify → Users-API zeigt
+User F MIT Namen (Auto-Signup + Name gesetzt); curl-Gegenprobe User D
+(hat Namen): OTP-Verify → Name bleibt "User Delta"; ohne termsUrl
+keine Checkbox (Revert + Gegenprobe); typecheck/lint/test grün.
+Abschluss-Schritt: GOALS.md Phase 20 ✅ + Datum, README-Status.
+Constraints: kein neuer Endpoint (Profil-Route wiederverwenden);
+Auto-Signup-Verhalten unverändert; AGB-Pflicht nur im register-Modus
+(Login bestehender User bleibt friktionsfrei). Maximal 20 Turns.
+```
+
+---
+
 ## Backlog (ohne Phase — bei Bedarf zu Goals schneiden)
 
 - **Themes-Vollausbau**: 26 Themes × 11 Farbvariationen, sobald die

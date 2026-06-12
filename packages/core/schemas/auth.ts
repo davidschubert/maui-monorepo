@@ -6,9 +6,18 @@ export type TranslateFn = (key: string) => string
 // create*Schema(t), Server-Routes validieren mit der Key-Variante.
 const identity: TranslateFn = key => key
 
+/**
+ * E-Mails IMMER normalisieren: Appwrites createEmailToken matcht
+ * case-SENSITIV und legt sonst Duplikat-Accounts an (signup lowercased,
+ * OTP nicht — empirisch in Phase 20 gefunden).
+ */
+function normalizedEmail(t: TranslateFn) {
+  return z.email(t('validation.emailInvalid')).transform(value => value.trim().toLowerCase())
+}
+
 export function createLoginSchema(t: TranslateFn = identity) {
   return z.object({
-    email: z.email(t('validation.emailInvalid')),
+    email: normalizedEmail(t),
     password: z.string().min(8, t('validation.passwordMin')),
   })
 }
@@ -45,7 +54,7 @@ export function createRegisterFormSchema(t: TranslateFn = identity, options: Reg
 
 export function createRecoverySchema(t: TranslateFn = identity) {
   return z.object({
-    email: z.email(t('validation.emailInvalid')),
+    email: normalizedEmail(t),
   })
 }
 
@@ -68,6 +77,27 @@ export const otpVerifySchema = z.object({
   userId: z.string().min(1),
   code: z.string().regex(/^\d{6}$/),
 })
+
+export interface OtpRequestOptions {
+  /** true = AGB-Checkbox ist Pflicht (register-Modus + maui.auth.termsUrl) */
+  requireTerms?: boolean
+}
+
+/**
+ * E-Mail-Schritt des OTP-Formulars: optionaler Name (wird nach dem Verify
+ * nur bei leerem Account-Namen gesetzt) + optionale AGB-Pflicht.
+ */
+export function createOtpRequestSchema(t: TranslateFn = identity, options: OtpRequestOptions = {}) {
+  return z.object({
+    email: normalizedEmail(t),
+    name: z.union([z.string().min(2, t('validation.nameMin')), z.literal('')]).optional(),
+    terms: options.requireTerms
+      ? z.literal(true, t('validation.termsRequired'))
+      : z.boolean().optional(),
+  })
+}
+
+export type OtpRequestInput = z.infer<ReturnType<typeof createOtpRequestSchema>>
 export const resetServerSchema = z.object({
   userId: z.string().min(1),
   secret: z.string().min(1),

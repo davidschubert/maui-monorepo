@@ -1,8 +1,14 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from '@nuxt/ui'
-import { createRecoverySchema, type RecoveryInput } from '../../../schemas/auth'
+import { createOtpRequestSchema, type OtpRequestInput } from '../../../schemas/auth'
+
+const props = defineProps<{
+  /** true = Registrierungs-Kontext: eigene Texte, AGB-Pflicht bei termsUrl */
+  register?: boolean
+}>()
 
 const { t } = useI18n()
+const appConfig = useAppConfig()
 const auth = useAuthStore()
 const toast = useToast()
 
@@ -10,10 +16,15 @@ const step = ref<'email' | 'code'>('email')
 const loading = ref(false)
 const errorMessage = ref<string | null>(null)
 
+// AGB nur im register-Modus erzwingen — Login bestehender User bleibt friktionsfrei
+const termsUrl = computed(() => appConfig.maui?.auth?.termsUrl ?? '')
+const requireTerms = computed(() => props.register === true && termsUrl.value.length > 0)
+
+const schema = computed(() => createOtpRequestSchema(t, { requireTerms: requireTerms.value }))
+
 // E-Mail teilt sich den State mit Login/Register (Flow-Wechsel)
 const sharedEmail = useState('maui-auth-email', () => '')
-const emailSchema = computed(() => createRecoverySchema(t))
-const emailState = reactive<RecoveryInput>({ email: sharedEmail.value })
+const state = reactive<OtpRequestInput>({ email: sharedEmail.value, name: '', terms: false })
 
 const userId = ref('')
 const phrase = ref('')
@@ -36,20 +47,24 @@ onScopeDispose(() => {
   if (countdown) clearInterval(countdown)
 })
 
-async function requestCode(event: FormSubmitEvent<RecoveryInput>) {
+async function requestToken() {
+  const response = await $fetch<{ ok: boolean, userId: string, phrase: string }>('/api/auth/otp', {
+    method: 'POST',
+    body: { email: state.email },
+  })
+  userId.value = response.userId
+  phrase.value = response.phrase
+  startCountdown()
+}
+
+async function requestCode(event: FormSubmitEvent<OtpRequestInput>) {
   loading.value = true
   errorMessage.value = null
   try {
-    const response = await $fetch<{ ok: boolean, userId: string, phrase: string }>('/api/auth/otp', {
-      method: 'POST',
-      body: { email: event.data.email },
-    })
     sharedEmail.value = event.data.email
-    userId.value = response.userId
-    phrase.value = response.phrase
+    await requestToken()
     code.value = []
     step.value = 'code'
-    startCountdown()
   }
   catch (error) {
     errorMessage.value = isNetworkError(error) ? t('auth.networkError') : t('auth.otp.requestFailed')
@@ -63,13 +78,7 @@ async function resend() {
   if (resendIn.value > 0) return
   loading.value = true
   try {
-    const response = await $fetch<{ ok: boolean, userId: string, phrase: string }>('/api/auth/otp', {
-      method: 'POST',
-      body: { email: emailState.email },
-    })
-    userId.value = response.userId
-    phrase.value = response.phrase
-    startCountdown()
+    await requestToken()
   }
   catch {
     errorMessage.value = t('auth.otp.requestFailed')
@@ -87,6 +96,20 @@ async function verify() {
   try {
     await $fetch('/api/auth/otp/verify', { method: 'POST', body: { userId: userId.value, code: secret } })
     await auth.refresh()
+
+    // Optionaler Name — NUR setzen, wenn der Account noch keinen hat
+    // (Auto-Signup legt User mit leerem Namen an; Bestandsnamen bleiben unangetastet)
+    const pendingName = state.name?.trim() ?? ''
+    if (pendingName.length >= 2 && auth.user && auth.user.name === '') {
+      try {
+        await $fetch('/api/auth/profile', { method: 'PUT', body: { name: pendingName } })
+        await auth.refresh()
+      }
+      catch {
+        // Name setzen fehlgeschlagen — Login bleibt trotzdem erfolgreich
+      }
+    }
+
     toast.add({ title: t('auth.login.success'), color: 'success', icon: 'i-ph-check-circle' })
     await navigateTo('/')
   }
@@ -104,19 +127,34 @@ async function verify() {
   <div class="space-y-4" data-otp-login>
     <div class="text-center">
       <UIcon name="i-ph-envelope-simple" class="mx-auto size-8 text-primary" />
-      <h1 class="mt-2 text-xl font-semibold">{{ t('auth.otp.title') }}</h1>
+      <h1 class="mt-2 text-xl font-semibold">
+        {{ register ? t('auth.otp.registerTitle') : t('auth.otp.title') }}
+      </h1>
       <p class="text-sm text-muted">
-        {{ step === 'email' ? t('auth.otp.description') : t('auth.otp.codeDescription', { email: emailState.email }) }}
+        {{ step === 'email'
+          ? (register ? t('auth.otp.registerDescription') : t('auth.otp.description'))
+          : t('auth.otp.codeDescription', { email: state.email }) }}
       </p>
     </div>
 
     <UAlert v-if="errorMessage" color="error" variant="subtle" :title="errorMessage" />
 
-    <UForm v-if="step === 'email'" :schema="emailSchema" :state="emailState" class="space-y-4" @submit="requestCode">
+    <UForm v-if="step === 'email'" :schema="schema" :state="state" class="space-y-4" @submit="requestCode">
+      <UFormField :label="t('auth.otp.nameOptional')" name="name">
+        <UInput v-model="state.name" size="lg" :placeholder="t('auth.fields.namePlaceholder')" class="w-full" />
+      </UFormField>
       <UFormField :label="t('auth.fields.email')" name="email" required>
-        <UInput v-model="emailState.email" type="email" size="lg" :placeholder="t('auth.fields.emailPlaceholder')" class="w-full" />
+        <UInput v-model="state.email" type="email" size="lg" :placeholder="t('auth.fields.emailPlaceholder')" class="w-full" />
+      </UFormField>
+      <UFormField v-if="requireTerms" name="terms">
+        <UCheckbox v-model="state.terms" :label="t('auth.register.termsLabel')" />
       </UFormField>
       <UButton type="submit" block size="lg" :loading="loading">{{ t('auth.otp.requestCode') }}</UButton>
+      <p v-if="requireTerms" class="text-center">
+        <ULink :to="termsUrl" target="_blank" class="text-sm text-muted hover:text-primary">
+          {{ t('auth.register.termsLink') }}
+        </ULink>
+      </p>
     </UForm>
 
     <template v-else>
