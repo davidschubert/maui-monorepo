@@ -14,3 +14,6 @@ dist/
 # Logs & OS
 *.log
 .DS_Store
+
+# Browser-Test-Artefakte (Playwright MCP)
+.playwright-mcp/
