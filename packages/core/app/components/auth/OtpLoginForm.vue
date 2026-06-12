@@ -140,7 +140,8 @@ async function verify() {
     <UAlert v-if="errorMessage" color="error" variant="subtle" :title="errorMessage" />
 
     <UForm v-if="step === 'email'" :schema="schema" :state="state" class="space-y-4" @submit="requestCode">
-      <UFormField :label="t('auth.otp.nameOptional')" name="name">
+      <!-- Name nur im Register-Kontext — auf /login hat der User längst einen -->
+      <UFormField v-if="register" :label="t('auth.otp.nameOptional')" name="name">
         <UInput v-model="state.name" size="lg" :placeholder="t('auth.fields.namePlaceholder')" class="w-full" />
       </UFormField>
       <UFormField :label="t('auth.fields.email')" name="email" required>
