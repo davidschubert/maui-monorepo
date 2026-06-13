@@ -83,11 +83,27 @@
   },
   "ui": {
     "save": "Speichern",
+    "account": "Account",
+    "userMenu": "Benutzermenü",
+    "language": "Sprache",
     "consent": {
       "message": "Wir verwenden Cookies für anonyme Nutzungsstatistiken. Analytics lädt erst nach deiner Zustimmung.",
       "accept": "Akzeptieren",
       "decline": "Ablehnen"
     },
     "adminArea": "Admin-Bereich"
+  },
+  "profile": {
+    "saved": "Profil gespeichert",
+    "saveFailed": "Speichern fehlgeschlagen",
+    "bioLabel": "Bio",
+    "bioDescription": "Wird in deinen Account-prefs gespeichert.",
+    "avatarLabel": "Avatar-URL",
+    "avatarPlaceholder": "https://…"
+  },
+  "error": {
+    "notFound": "Diese Seite existiert nicht.",
+    "generic": "Da ist etwas schiefgelaufen.",
+    "backHome": "Zur Startseite"
   }
 }

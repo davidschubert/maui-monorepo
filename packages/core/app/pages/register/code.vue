@@ -4,11 +4,12 @@
 definePageMeta({ layout: 'auth', middleware: 'guest' })
 
 const { t } = useI18n()
+const localePath = useLocalePath()
 const appConfig = useAppConfig()
 
 // OTP deaktiviert → zurück zur Passwort-Registrierung (kein toter Pfad bei Direktaufruf)
 if (appConfig.maui?.auth?.otp !== true) {
-  await navigateTo('/register')
+  await navigateTo(localePath('/register'))
 }
 </script>
 
@@ -18,7 +19,7 @@ if (appConfig.maui?.auth?.otp !== true) {
 
     <p class="text-center">
       <UButton
-        to="/register"
+        :to="localePath('/register')"
         variant="link"
         color="neutral"
         size="sm"

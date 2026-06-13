@@ -83,11 +83,27 @@
   },
   "ui": {
     "save": "Save",
+    "account": "Account",
+    "userMenu": "User menu",
+    "language": "Language",
     "consent": {
       "message": "We use cookies for anonymous usage statistics. Analytics only loads after your consent.",
       "accept": "Accept",
       "decline": "Decline"
     },
     "adminArea": "Admin area"
+  },
+  "profile": {
+    "saved": "Profile saved",
+    "saveFailed": "Saving failed",
+    "bioLabel": "Bio",
+    "bioDescription": "Stored in your account prefs.",
+    "avatarLabel": "Avatar URL",
+    "avatarPlaceholder": "https://…"
+  },
+  "error": {
+    "notFound": "This page does not exist.",
+    "generic": "Something went wrong.",
+    "backHome": "Back to home"
   }
 }

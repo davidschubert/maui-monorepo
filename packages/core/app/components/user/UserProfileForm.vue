@@ -20,10 +20,10 @@ async function onSubmit(event: FormSubmitEvent<ProfileInput>) {
   try {
     await $fetch('/api/auth/profile', { method: 'PUT', body: event.data })
     await auth.refresh()
-    toast.add({ title: 'Profil gespeichert', color: 'success' })
+    toast.add({ title: t('profile.saved'), color: 'success' })
   }
   catch {
-    toast.add({ title: 'Speichern fehlgeschlagen', color: 'error' })
+    toast.add({ title: t('profile.saveFailed'), color: 'error' })
   }
   finally {
     loading.value = false
@@ -37,12 +37,12 @@ async function onSubmit(event: FormSubmitEvent<ProfileInput>) {
       <UInput v-model="state.name" class="w-full" />
     </UFormField>
 
-    <UFormField label="Bio" name="bio" description="Wird in deinen Account-prefs gespeichert.">
+    <UFormField :label="t('profile.bioLabel')" name="bio" :description="t('profile.bioDescription')">
       <UTextarea v-model="state.bio" :rows="3" class="w-full" />
     </UFormField>
 
-    <UFormField label="Avatar-URL" name="avatarUrl">
-      <UInput v-model="state.avatarUrl" placeholder="https://…" class="w-full" />
+    <UFormField :label="t('profile.avatarLabel')" name="avatarUrl">
+      <UInput v-model="state.avatarUrl" :placeholder="t('profile.avatarPlaceholder')" class="w-full" />
     </UFormField>
 
     <UButton type="submit" :loading="loading">{{ t('ui.save') }}</UButton>

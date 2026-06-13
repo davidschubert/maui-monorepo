@@ -5,6 +5,7 @@ import { createResetSchema, type ResetFormInput } from '../../schemas/auth'
 definePageMeta({ layout: 'auth', middleware: 'guest' })
 
 const { t } = useI18n()
+const localePath = useLocalePath()
 const route = useRoute()
 const toast = useToast()
 const loading = ref(false)
@@ -27,7 +28,7 @@ async function onSubmit(event: FormSubmitEvent<ResetFormInput>) {
       body: { userId: userId.value, secret: secret.value, password: event.data.password },
     })
     toast.add({ title: t('auth.reset.success'), color: 'success' })
-    await navigateTo('/login')
+    await navigateTo(localePath('/login'))
   }
   catch {
     failed.value = true
@@ -63,7 +64,7 @@ async function onSubmit(event: FormSubmitEvent<ResetFormInput>) {
     </template>
 
     <p class="text-center text-sm text-muted">
-      <ULink to="/forgot-password" class="font-medium text-primary">{{ t('auth.reset.requestNew') }}</ULink>
+      <ULink :to="localePath('/forgot-password')" class="font-medium text-primary">{{ t('auth.reset.requestNew') }}</ULink>
     </p>
   </div>
 </template>

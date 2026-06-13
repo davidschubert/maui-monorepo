@@ -5,6 +5,7 @@ import { createRecoverySchema, type RecoveryInput } from '../../schemas/auth'
 definePageMeta({ layout: 'auth', middleware: 'guest' })
 
 const { t } = useI18n()
+const localePath = useLocalePath()
 const loading = ref(false)
 const sent = ref(false)
 
@@ -46,7 +47,7 @@ async function onSubmit(event: FormSubmitEvent<RecoveryInput>) {
     </UForm>
 
     <p class="text-center text-sm text-muted">
-      <ULink to="/login" class="font-medium text-primary">{{ t('auth.forgot.back') }}</ULink>
+      <ULink :to="localePath('/login')" class="font-medium text-primary">{{ t('auth.forgot.back') }}</ULink>
     </p>
   </div>
 </template>

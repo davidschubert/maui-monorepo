@@ -52,7 +52,11 @@ Vollständiges Konzept: docs/CONCEPT.md
   jede App hat eine dünne app/error.vue als Wrapper
 - Domain-Types in shared/types/ (nie app/types/ — Server sieht sie sonst nicht)
 - Zod für alle Formulare (Schemas als create*Schema(t)-Factories),
-  i18n keys für User-facing Strings; '@' in Locale-Messages als {'@'} escapen
+  i18n keys für User-facing Strings (keine hartcodierten Strings im Markup/Toasts);
+  '@' in Locale-Messages als {'@'} escapen
+- i18n-Strategie 'prefix' (alle Routen /en|/de, Default+Fallback en, Cookie-Detection
+  auf /): interne Links/Redirects IMMER über localePath() — auch in Middleware
+  (useLocalePath()('/...')), sonst geht der Locale-Prefix verloren
 - createError mit status/statusText (nicht statusCode/statusMessage),
   keine Appwrite-Fehlerdetails an Clients leaken
 - useToast kommt aus Nuxt UI — nicht im Core re-exportieren (schattet Auto-Import)

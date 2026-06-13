@@ -5,6 +5,7 @@
 definePageMeta({ layout: 'auth', middleware: 'guest' })
 
 const { t } = useI18n()
+const localePath = useLocalePath()
 const appConfig = useAppConfig()
 
 const otpEnabled = computed(() => appConfig.maui?.auth?.otp === true)
@@ -16,7 +17,7 @@ const otpEnabled = computed(() => appConfig.maui?.auth?.otp === true)
 
     <p v-if="otpEnabled" class="text-center">
       <UButton
-        to="/register/code"
+        :to="localePath('/register/code')"
         variant="link"
         color="neutral"
         size="sm"

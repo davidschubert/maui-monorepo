@@ -4,7 +4,7 @@ export default defineEventHandler(async (event) => {
   const { userId, secret } = getQuery(event)
 
   if (!userId || !secret) {
-    return sendRedirect(event, '/login?error=oauth')
+    return sendRedirect(event, '/en/login?error=oauth')
   }
 
   try {
@@ -18,6 +18,6 @@ export default defineEventHandler(async (event) => {
     return sendRedirect(event, '/')
   }
   catch {
-    return sendRedirect(event, '/login?error=oauth')
+    return sendRedirect(event, '/en/login?error=oauth')
   }
 })

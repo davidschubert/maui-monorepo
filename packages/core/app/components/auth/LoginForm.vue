@@ -3,6 +3,7 @@ import type { AuthFormField, ButtonProps, FormSubmitEvent } from '@nuxt/ui'
 import { createLoginSchema, type LoginInput } from '../../../schemas/auth'
 
 const { t } = useI18n()
+const localePath = useLocalePath()
 const appConfig = useAppConfig()
 const auth = useAuthStore()
 const toast = useToast()
@@ -65,7 +66,7 @@ async function onSubmit(event: FormSubmitEvent<LoginInput>) {
     await auth.refresh()
     // Toast (unten rechts, auto-dismiss) — überlebt die Navigation
     toast.add({ title: t('auth.login.success'), color: 'success', icon: 'i-ph-check-circle' })
-    await navigateTo('/')
+    await navigateTo(localePath('/'))
   }
   catch (error) {
     errorMessage.value = isNetworkError(error) ? t('auth.networkError') : t('auth.login.failed')
@@ -93,7 +94,7 @@ async function onSubmit(event: FormSubmitEvent<LoginInput>) {
   >
     <template #validation>
       <div class="flex justify-end">
-        <ULink to="/forgot-password" class="text-sm text-muted hover:text-primary">
+        <ULink :to="localePath('/forgot-password')" class="text-sm text-muted hover:text-primary">
           {{ t('auth.login.forgot') }}
         </ULink>
       </div>
@@ -101,7 +102,7 @@ async function onSubmit(event: FormSubmitEvent<LoginInput>) {
     </template>
     <template #footer>
       {{ t('auth.login.noAccount') }}
-      <ULink to="/register" class="font-medium text-primary">{{ t('auth.login.registerLink') }}</ULink>
+      <ULink :to="localePath('/register')" class="font-medium text-primary">{{ t('auth.login.registerLink') }}</ULink>
     </template>
   </UAuthForm>
 </template>

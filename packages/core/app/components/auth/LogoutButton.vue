@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { t } = useI18n()
+const localePath = useLocalePath()
 const auth = useAuthStore()
 const toast = useToast()
 const loading = ref(false)
@@ -10,7 +11,7 @@ async function logout() {
     await $fetch('/api/auth/logout', { method: 'POST' })
     auth.setUser(null)
     toast.add({ title: t('auth.logoutSuccess'), color: 'success', icon: 'i-ph-sign-out' })
-    await navigateTo('/login')
+    await navigateTo(localePath('/login'))
   }
   finally {
     loading.value = false

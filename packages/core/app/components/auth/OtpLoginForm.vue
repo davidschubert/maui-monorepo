@@ -8,6 +8,7 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
+const localePath = useLocalePath()
 const appConfig = useAppConfig()
 const auth = useAuthStore()
 const toast = useToast()
@@ -111,7 +112,7 @@ async function verify() {
     }
 
     toast.add({ title: t('auth.login.success'), color: 'success', icon: 'i-ph-check-circle' })
-    await navigateTo('/')
+    await navigateTo(localePath('/'))
   }
   catch {
     errorMessage.value = t('auth.otp.invalidCode')

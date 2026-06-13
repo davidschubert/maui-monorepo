@@ -3,6 +3,7 @@ import type { AuthFormField, FormSubmitEvent } from '@nuxt/ui'
 import { createRegisterFormSchema, type RegisterFormInput } from '../../../schemas/auth'
 
 const { t } = useI18n()
+const localePath = useLocalePath()
 const appConfig = useAppConfig()
 const auth = useAuthStore()
 const loading = ref(false)
@@ -46,7 +47,7 @@ async function onSubmit(event: FormSubmitEvent<RegisterFormInput>) {
       body: { name: event.data.name, email: event.data.email, password: event.data.password },
     })
     await auth.refresh()
-    await navigateTo('/')
+    await navigateTo(localePath('/'))
   }
   catch (error) {
     // Server weg ≠ Account existiert — ehrliche Meldung je nach Ursache
@@ -78,7 +79,7 @@ async function onSubmit(event: FormSubmitEvent<RegisterFormInput>) {
     <template #footer>
       <p>
         {{ t('auth.register.hasAccount') }}
-        <ULink to="/login" class="font-medium text-primary">{{ t('auth.register.loginLink') }}</ULink>
+        <ULink :to="localePath('/login')" class="font-medium text-primary">{{ t('auth.register.loginLink') }}</ULink>
       </p>
       <p v-if="termsUrl" class="mt-1">
         <ULink :to="termsUrl" target="_blank" class="text-sm text-muted hover:text-primary">

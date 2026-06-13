@@ -8,6 +8,9 @@ import type { NuxtError } from '#app'
  *   <template><CoreErrorPage :error="error" /></template>
  */
 defineProps<{ error: NuxtError }>()
+
+const { t } = useI18n()
+const localePath = useLocalePath()
 </script>
 
 <template>
@@ -16,9 +19,9 @@ defineProps<{ error: NuxtError }>()
       <p class="font-mono text-sm text-muted">MAUI-ERROR</p>
       <h1 class="text-5xl font-bold">{{ error.statusCode }}</h1>
       <p class="text-muted">
-        {{ error.statusCode === 404 ? 'Diese Seite existiert nicht.' : 'Da ist etwas schiefgelaufen.' }}
+        {{ error.statusCode === 404 ? t('error.notFound') : t('error.generic') }}
       </p>
-      <UButton @click="clearError({ redirect: '/' })">Zur Startseite</UButton>
+      <UButton @click="clearError({ redirect: localePath('/') })">{{ t('error.backHome') }}</UButton>
     </main>
   </UApp>
 </template>
