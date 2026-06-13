@@ -38,7 +38,7 @@ async function onSubmit(event: FormSubmitEvent<RecoveryInput>) {
 
     <UAlert v-if="sent" color="success" variant="subtle" :title="t('auth.forgot.success')" />
 
-    <UForm v-else :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
+    <UForm v-else :schema="schema" :validate-on="[]" :state="state" class="space-y-4" @submit="onSubmit">
       <UFormField :label="t('auth.fields.email')" name="email" required>
         <UInput v-model="state.email" type="email" size="lg" :placeholder="t('auth.fields.emailPlaceholder')" class="w-full" />
       </UFormField>

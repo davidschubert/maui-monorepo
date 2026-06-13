@@ -32,7 +32,7 @@ async function onSubmit(event: FormSubmitEvent<ProfileInput>) {
 </script>
 
 <template>
-  <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
+  <UForm :schema="schema" :validate-on="[]" :state="state" class="space-y-4" @submit="onSubmit">
     <UFormField :label="t('auth.fields.name')" name="name" required>
       <UInput v-model="state.name" class="w-full" />
     </UFormField>

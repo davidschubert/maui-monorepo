@@ -66,6 +66,7 @@ async function onSubmit(event: FormSubmitEvent<RegisterFormInput>) {
     :title="t('auth.register.title')"
     :description="t('auth.register.description')"
     :schema="schema"
+    :validate-on="[]"
     :fields="fields"
     :submit="{ label: t('auth.register.submit'), size: 'lg' }"
     :loading="loading"

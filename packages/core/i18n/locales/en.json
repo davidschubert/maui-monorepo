@@ -71,6 +71,7 @@
     "logoutSuccess": "Signed out — see you soon!"
   },
   "validation": {
+    "required": "This field is required",
     "emailInvalid": "Please enter a valid email address",
     "passwordMin": "The password must be at least 8 characters long",
     "nameMin": "The name must be at least 2 characters long",

@@ -84,6 +84,7 @@ async function onSubmit(event: FormSubmitEvent<LoginInput>) {
     :title="t('auth.login.title')"
     :description="t('auth.login.description')"
     :schema="schema"
+    :validate-on="[]"
     :fields="fields"
     :providers="providers"
     :submit="{ label: t('auth.login.submit'), size: 'lg' }"

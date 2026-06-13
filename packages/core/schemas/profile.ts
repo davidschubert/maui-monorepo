@@ -5,7 +5,7 @@ const identity: TranslateFn = key => key
 
 export function createProfileSchema(t: TranslateFn = identity) {
   return z.object({
-    name: z.string().min(2, t('validation.nameMin')),
+    name: z.string(t('validation.required')).min(2, t('validation.nameMin')),
     bio: z.string().max(500, t('validation.bioMax')).optional(),
     avatarUrl: z.union([z.url(t('validation.urlInvalid')), z.literal('')]).optional(),
   })

@@ -51,7 +51,7 @@ async function onSubmit(event: FormSubmitEvent<ResetFormInput>) {
     <template v-else>
       <UAlert v-if="failed" color="error" variant="subtle" :title="t('auth.reset.failed')" />
 
-      <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
+      <UForm :schema="schema" :validate-on="[]" :state="state" class="space-y-4" @submit="onSubmit">
         <UFormField :label="t('auth.fields.password')" name="password" required>
           <UInput v-model="state.password" type="password" size="lg" :placeholder="t('auth.fields.passwordHint')" class="w-full" />
         </UFormField>

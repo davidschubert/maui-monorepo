@@ -18,13 +18,13 @@ function normalizedEmail(t: TranslateFn) {
 export function createLoginSchema(t: TranslateFn = identity) {
   return z.object({
     email: normalizedEmail(t),
-    password: z.string().min(8, t('validation.passwordMin')),
+    password: z.string(t('validation.required')).min(8, t('validation.passwordMin')),
   })
 }
 
 export function createRegisterSchema(t: TranslateFn = identity) {
   return createLoginSchema(t).extend({
-    name: z.string().min(2, t('validation.nameMin')),
+    name: z.string(t('validation.required')).min(2, t('validation.nameMin')),
   })
 }
 
@@ -41,7 +41,7 @@ export interface RegisterFormOptions {
 export function createRegisterFormSchema(t: TranslateFn = identity, options: RegisterFormOptions = {}) {
   return createRegisterSchema(t)
     .extend({
-      passwordConfirm: z.string().min(1, t('validation.passwordConfirmRequired')),
+      passwordConfirm: z.string(t('validation.required')).min(1, t('validation.passwordConfirmRequired')),
       terms: options.requireTerms
         ? z.literal(true, t('validation.termsRequired'))
         : z.boolean().optional(),
@@ -61,8 +61,8 @@ export function createRecoverySchema(t: TranslateFn = identity) {
 /** Formular der Reset-Page (userId/secret kommen aus der Mail-URL, nicht aus dem Formular) */
 export function createResetSchema(t: TranslateFn = identity) {
   return z.object({
-    password: z.string().min(8, t('validation.passwordMin')),
-    passwordConfirm: z.string().min(1, t('validation.passwordConfirmRequired')),
+    password: z.string(t('validation.required')).min(8, t('validation.passwordMin')),
+    passwordConfirm: z.string(t('validation.required')).min(1, t('validation.passwordConfirmRequired')),
   }).refine(data => data.password === data.passwordConfirm, {
     message: t('validation.passwordMismatch'),
     path: ['passwordConfirm'],
@@ -90,7 +90,7 @@ export interface OtpRequestOptions {
 export function createOtpRequestSchema(t: TranslateFn = identity, options: OtpRequestOptions = {}) {
   return z.object({
     email: normalizedEmail(t),
-    name: z.union([z.string().min(2, t('validation.nameMin')), z.literal('')]).optional(),
+    name: z.union([z.string().min(2, t('validation.nameMin')), z.literal('')], t('validation.nameMin')).optional(),
     terms: options.requireTerms
       ? z.literal(true, t('validation.termsRequired'))
       : z.boolean().optional(),
