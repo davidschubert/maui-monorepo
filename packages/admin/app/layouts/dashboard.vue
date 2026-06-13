@@ -2,18 +2,19 @@
 // Dashboard-Layout (zieht laut Konzept aus dem Core hierher) —
 // Sidebar-Navigation + Header mit UserMenu aus dem Core
 const { t } = useI18n()
+const localePath = useLocalePath()
 
 const nav = computed(() => [
-  { label: t('admin.nav.overview'), icon: 'i-ph-gauge', to: '/admin' },
-  { label: t('admin.nav.users'), icon: 'i-ph-users', to: '/admin/users' },
-  { label: t('admin.nav.comments'), icon: 'i-ph-chat-circle', to: '/admin/comments' },
+  { label: t('admin.nav.overview'), icon: 'i-ph-gauge', to: localePath('/admin') },
+  { label: t('admin.nav.users'), icon: 'i-ph-users', to: localePath('/admin/users') },
+  { label: t('admin.nav.comments'), icon: 'i-ph-chat-circle', to: localePath('/admin/comments') },
 ])
 </script>
 
 <template>
   <div class="flex min-h-screen" data-dashboard-layout>
     <aside class="flex w-56 shrink-0 flex-col border-r border-default p-4">
-      <NuxtLink to="/" class="mb-6 font-bold tracking-tight">Maui Admin</NuxtLink>
+      <NuxtLink :to="localePath('/')" class="mb-6 font-bold tracking-tight">Maui Admin</NuxtLink>
       <nav data-testid="dashboard-nav" class="flex flex-col gap-1">
         <UButton
           v-for="item in nav"

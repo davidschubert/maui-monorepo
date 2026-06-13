@@ -6,7 +6,7 @@ export default defineNuxtRouteMiddleware(() => {
   const auth = useAuthStore()
 
   if (!auth.isLoggedIn) {
-    return navigateTo('/login')
+    return navigateTo(useLocalePath()('/login'))
   }
 
   if (!isAdminUser(auth.user)) {
