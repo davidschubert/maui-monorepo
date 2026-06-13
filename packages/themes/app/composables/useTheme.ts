@@ -23,7 +23,7 @@ export function useTheme() {
   )
 
   const variant = computed<string | null>(() =>
-    variantCookie.value && theme.value.variants.includes(variantCookie.value)
+    variantCookie.value && theme.value.variants.some(v => v.id === variantCookie.value)
       ? variantCookie.value
       : null,
   )
@@ -34,7 +34,7 @@ export function useTheme() {
   }
 
   function setVariant(value: string | null) {
-    variantCookie.value = value && theme.value.variants.includes(value) ? value : null
+    variantCookie.value = value && theme.value.variants.some(v => v.id === value) ? value : null
   }
 
   return { themes: THEME_REGISTRY, theme, variant, setTheme, setVariant }
