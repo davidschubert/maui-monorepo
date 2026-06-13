@@ -6,13 +6,14 @@ const currentDir = dirname(fileURLToPath(import.meta.url))
 export default defineNuxtConfig({
   modules: ['@nuxt/ui', '@pinia/nuxt', '@nuxtjs/i18n'],
 
-  // i18n: jede Route ist geprefixt (/en/*, /de/*). Beim Aufruf von '/' entscheidet
-  // der Cookie (zuletzt gewählte Sprache) > Browser-Sprache (falls de/en) > en.
-  // en ist die universelle Default-/Fallback-Sprache. Layer bleibt lokal im
+  // i18n: en ist Default/Fallback und liegt OHNE Prefix unter '/...'; alle anderen
+  // Sprachen sind geprefixt (/de/*). Beim Aufruf von '/' entscheidet
+  // detectBrowserLanguage mit Cookie: Cookie (zuletzt gewählte Sprache) >
+  // Browser-Sprache (falls de) > en (bleibt auf '/'). Layer bleibt lokal im
   // Monorepo (Remote-Layer-i18n-Bug); das Modul lädt bewusst in jeder App.
   i18n: {
     defaultLocale: 'en',
-    strategy: 'prefix',
+    strategy: 'prefix_except_default',
     detectBrowserLanguage: {
       useCookie: true,
       cookieKey: 'i18n_redirected',

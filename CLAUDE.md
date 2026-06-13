@@ -54,9 +54,10 @@ Vollständiges Konzept: docs/CONCEPT.md
 - Zod für alle Formulare (Schemas als create*Schema(t)-Factories),
   i18n keys für User-facing Strings (keine hartcodierten Strings im Markup/Toasts);
   '@' in Locale-Messages als {'@'} escapen
-- i18n-Strategie 'prefix' (alle Routen /en|/de, Default+Fallback en, Cookie-Detection
-  auf /): interne Links/Redirects IMMER über localePath() — auch in Middleware
-  (useLocalePath()('/...')), sonst geht der Locale-Prefix verloren
+- i18n-Strategie 'prefix_except_default' (en Default/Fallback ohne Prefix unter /...,
+  de unter /de/*, Cookie-Detection auf /): interne Links/Redirects IMMER über
+  localePath() — auch in Middleware (useLocalePath()('/...')), sonst geht der
+  Locale-Prefix verloren
 - createError mit status/statusText (nicht statusCode/statusMessage),
   keine Appwrite-Fehlerdetails an Clients leaken
 - useToast kommt aus Nuxt UI — nicht im Core re-exportieren (schattet Auto-Import)

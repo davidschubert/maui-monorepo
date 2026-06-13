@@ -498,7 +498,7 @@ Immer explizites `Query.limit(...)` setzen (Default 25 → stille Trunkierung).
 
 ### i18n
 
-`@nuxtjs/i18n` im Core (Modul lädt in jeder App). Strategie `prefix`: jede Route ist geprefixt (`/en/*`, `/de/*`). `defaultLocale: 'en'` (universeller Fallback); beim Aufruf von `/` entscheidet `detectBrowserLanguage` mit Cookie-Persistenz: Cookie (zuletzt gewählte Sprache) > Browser-Sprache (falls de/en) > en. Interne Links und Redirects IMMER über `localePath()` (sonst geht der Locale-Prefix verloren). Sprachwahl per `ULocaleSelect` im `ThemeSwitcher`. Shared Strings in `i18n/de.json`/`en.json` (Validierung, Auth, generische UI), Apps ergänzen eigene. Layer lokal im Monorepo halten (Remote-Layer-Bug).
+`@nuxtjs/i18n` im Core (Modul lädt in jeder App). Strategie `prefix_except_default`: `defaultLocale: 'en'` liegt OHNE Prefix unter `/...`, alle anderen Sprachen sind geprefixt (`/de/*`). Beim Aufruf von `/` entscheidet `detectBrowserLanguage` mit Cookie-Persistenz: Cookie (zuletzt gewählte Sprache) > Browser-Sprache (falls de) > en (bleibt auf `/`). Interne Links und Redirects IMMER über `localePath()` (gibt für en `/...`, für de `/de/...`). Sprachwahl per `ULocaleSelect` im `ThemeSwitcher`. Shared Strings in `i18n/de.json`/`en.json` (Validierung, Auth, generische UI), Apps ergänzen eigene. Layer lokal im Monorepo halten (Remote-Layer-Bug).
 
 ---
 
