@@ -7,6 +7,7 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
+const localePath = useLocalePath()
 const store = useCommentStore()
 const config = useRuntimeConfig()
 const { isLoggedIn } = useCurrentUser()
@@ -46,7 +47,7 @@ useRealtimeRows<Comment>(
 
     <CommentForm v-if="isLoggedIn" />
     <p v-else class="text-sm text-muted">
-      <ULink to="/login" class="font-medium text-primary">{{ t('comments.loginLink') }}</ULink>{{ t('comments.loginSuffix') }}
+      <ULink :to="localePath('/login')" class="font-medium text-primary">{{ t('comments.loginLink') }}</ULink>{{ t('comments.loginSuffix') }}
     </p>
 
     <p v-if="store.threaded.length === 0 && !store.loading" class="text-sm text-muted">
