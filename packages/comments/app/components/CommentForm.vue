@@ -39,7 +39,7 @@ async function onSubmit(event: FormSubmitEvent<FormInput>) {
 </script>
 
 <template>
-  <UForm :schema="schema" :state="state" class="space-y-2" @submit="onSubmit">
+  <UForm :schema="schema" :validate-on="[]" :state="state" class="space-y-2" @submit="onSubmit">
     <UFormField name="content">
       <UTextarea
         v-model="state.content"
