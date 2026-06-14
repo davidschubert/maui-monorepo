@@ -4,6 +4,8 @@
       "title": "Anmelden",
       "description": "Melde dich mit deinem Account an.",
       "submit": "Anmelden",
+      "continue": "Weiter",
+      "back": "Zurück",
       "failed": "Anmeldung fehlgeschlagen — bitte E-Mail und Passwort prüfen.",
       "noAccount": "Noch keinen Account?",
       "registerLink": "Registrieren",
@@ -21,6 +23,7 @@
       "termsLink": "AGB lesen"
     },
     "logout": "Abmelden",
+    "or": "oder",
     "fields": {
       "name": "Name",
       "namePlaceholder": "Dein Name",
@@ -30,7 +33,8 @@
       "passwordPlaceholder": "Dein Passwort",
       "passwordHint": "Mindestens 8 Zeichen",
       "passwordConfirm": "Passwort bestätigen",
-      "passwordConfirmPlaceholder": "Passwort wiederholen"
+      "passwordConfirmPlaceholder": "Passwort wiederholen",
+      "togglePassword": "Passwort anzeigen/verbergen"
     },
     "forgot": {
       "title": "Passwort vergessen",

@@ -4,6 +4,8 @@
       "title": "Sign in",
       "description": "Sign in with your account.",
       "submit": "Sign in",
+      "continue": "Continue",
+      "back": "Back",
       "failed": "Sign-in failed — please check your email and password.",
       "noAccount": "No account yet?",
       "registerLink": "Register",
@@ -21,6 +23,7 @@
       "termsLink": "Read Terms and Conditions"
     },
     "logout": "Sign out",
+    "or": "or",
     "fields": {
       "name": "Name",
       "namePlaceholder": "Your name",
@@ -30,7 +33,8 @@
       "passwordPlaceholder": "Your password",
       "passwordHint": "At least 8 characters",
       "passwordConfirm": "Confirm password",
-      "passwordConfirmPlaceholder": "Repeat password"
+      "passwordConfirmPlaceholder": "Repeat password",
+      "togglePassword": "Toggle password visibility"
     },
     "forgot": {
       "title": "Forgot password",
