@@ -26,6 +26,14 @@ export default defineAppConfig({
     },
   },
   ui: {
+    // Nuxt UI v4 gibt Buttons per Default KEINEN Pointer-Cursor — global nachrüsten,
+    // damit anklickbare Buttons (inkl. variant="link" wie "Code erneut senden") sich
+    // auch wie klickbar anfühlen. Im disabled-Zustand greift weiterhin not-allowed.
+    button: {
+      slots: {
+        base: 'cursor-pointer'
+      }
+    },
     colors: {
       primary: 'sky',
       neutral: 'neutral'
