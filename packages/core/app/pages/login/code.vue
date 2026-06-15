@@ -29,5 +29,11 @@ if (appConfig.maui?.auth?.otp !== true) {
     >
       {{ t('auth.otp.switchToPassword') }}
     </UButton>
+
+    <USeparator />
+    <p class="text-center text-sm text-muted">
+      {{ t('auth.login.noAccount') }}
+      <ULink :to="localePath('/register/code')" class="font-medium text-primary">{{ t('auth.login.registerLink') }}</ULink>
+    </p>
   </div>
 </template>
