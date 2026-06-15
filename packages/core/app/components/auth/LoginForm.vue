@@ -116,7 +116,7 @@ async function onSubmit(event: FormSubmitEvent<LoginInput>) {
         <!-- E-Mail gesperrt (disabled + Schloss) — Änderung nur über «Zurück».
              Submit nutzt den reaktiven state, der Wert geht also nicht verloren. -->
         <UFormField :label="t('auth.fields.email')" name="email">
-          <UInput v-model="state.email" type="email" size="lg" disabled icon="i-ph-lock-simple" class="w-full" />
+          <UInput v-model="state.email" type="email" size="lg" disabled trailing-icon="i-ph-lock-simple" class="w-full" />
         </UFormField>
 
         <UFormField :label="t('auth.fields.password')" name="password" required>
