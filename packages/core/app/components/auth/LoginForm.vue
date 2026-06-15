@@ -131,6 +131,7 @@ async function onSubmit(event: FormSubmitEvent<LoginInput>) {
       </UButton>
     </template>
 
+    <USeparator />
     <p class="text-center text-sm text-muted">
       {{ t('auth.login.noAccount') }}
       <ULink :to="localePath('/register')" class="font-medium text-primary">{{ t('auth.login.registerLink') }}</ULink>
