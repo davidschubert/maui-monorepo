@@ -159,14 +159,16 @@ async function onSubmit(event: FormSubmitEvent<LoginInput>) {
           </UInput>
         </UFormField>
 
-        <UButton type="submit" block size="lg" :loading="loading">{{ t('auth.login.submit') }}</UButton>
+        <!-- Zurück (sekundär) und Anmelden (primär) je zur Hälfte nebeneinander -->
+        <div class="grid grid-cols-2 gap-3">
+          <UButton color="neutral" variant="subtle" size="lg" block @click="back">
+            {{ t('auth.login.back') }}
+          </UButton>
+          <UButton type="submit" size="lg" block :loading="loading">
+            {{ t('auth.login.submit') }}
+          </UButton>
+        </div>
       </UForm>
-
-      <p class="text-center">
-        <UButton variant="link" color="neutral" size="sm" icon="i-ph-caret-left" @click="back">
-          {{ t('auth.login.back') }}
-        </UButton>
-      </p>
     </template>
   </div>
 </template>
