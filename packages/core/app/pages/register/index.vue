@@ -15,17 +15,19 @@ const otpEnabled = computed(() => appConfig.maui?.auth?.otp === true)
   <div class="w-full max-w-sm space-y-4">
     <AuthRegisterForm />
 
-    <p v-if="otpEnabled" class="text-center">
+    <template v-if="otpEnabled">
+      <USeparator :label="t('auth.or')" />
       <UButton
         :to="localePath('/register/code')"
-        variant="link"
-        color="neutral"
-        size="sm"
         icon="i-ph-envelope-simple"
+        color="neutral"
+        variant="subtle"
+        size="lg"
+        block
         data-otp-link
       >
         {{ t('auth.otp.switchToOtpRegister') }}
       </UButton>
-    </p>
+    </template>
   </div>
 </template>

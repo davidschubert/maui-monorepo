@@ -17,17 +17,17 @@ if (appConfig.maui?.auth?.otp !== true) {
   <div class="w-full max-w-sm space-y-4">
     <AuthOtpLoginForm register />
 
-    <p class="text-center">
-      <UButton
-        :to="localePath('/register')"
-        variant="link"
-        color="neutral"
-        size="sm"
-        icon="i-ph-password"
-        data-otp-link
-      >
-        {{ t('auth.otp.switchToPasswordRegister') }}
-      </UButton>
-    </p>
+    <USeparator :label="t('auth.or')" />
+    <UButton
+      :to="localePath('/register')"
+      icon="i-ph-password"
+      color="neutral"
+      variant="subtle"
+      size="lg"
+      block
+      data-otp-link
+    >
+      {{ t('auth.otp.switchToPasswordRegister') }}
+    </UButton>
   </div>
 </template>
