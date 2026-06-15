@@ -95,16 +95,20 @@ export const otpVerifySchema = z.object({
 export interface OtpRequestOptions {
   /** true = AGB-Checkbox ist Pflicht (register-Modus + maui.auth.termsUrl) */
   requireTerms?: boolean
+  /** true = Name ist Pflicht (register-Modus, analog zur Passwort-Registrierung) */
+  requireName?: boolean
 }
 
 /**
- * E-Mail-Schritt des OTP-Formulars: optionaler Name (wird nach dem Verify
- * nur bei leerem Account-Namen gesetzt) + optionale AGB-Pflicht.
+ * E-Mail-Schritt des OTP-Formulars: Name (im Register-Modus Pflicht, sonst optional)
+ * + optionale AGB-Pflicht. Der Name wird nach dem Verify gesetzt.
  */
 export function createOtpRequestSchema(t: TranslateFn = identity, options: OtpRequestOptions = {}) {
   return z.object({
     email: normalizedEmail(t),
-    name: z.union([z.string().min(2, t('validation.nameMin')), z.literal('')], t('validation.nameMin')).optional(),
+    name: options.requireName
+      ? z.string(t('validation.required')).min(2, t('validation.nameMin'))
+      : z.union([z.string().min(2, t('validation.nameMin')), z.literal('')], t('validation.nameMin')).optional(),
     terms: options.requireTerms
       ? z.literal(true, t('validation.termsRequired'))
       : z.boolean().optional(),

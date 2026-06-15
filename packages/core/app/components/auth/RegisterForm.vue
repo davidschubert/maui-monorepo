@@ -16,16 +16,18 @@ const termsUrl = computed(() => appConfig.maui?.auth?.termsUrl ?? '')
 const requireTerms = computed(() => !!termsUrl.value)
 const schema = computed(() => createRegisterFormSchema(t, { requireTerms: requireTerms.value }))
 
-// Eingegebene E-Mail überlebt den Wechsel Login ↔ Register ↔ Code
+// Eingegebene E-Mail + Name überleben den Wechsel Login ↔ Register ↔ Code
 const sharedEmail = useState('maui-auth-email', () => '')
+const sharedName = useState('maui-auth-name', () => '')
 const state = reactive<RegisterFormInput>({
-  name: '',
+  name: sharedName.value,
   email: sharedEmail.value,
   password: '',
   passwordConfirm: '',
   terms: false,
 })
 watch(() => state.email, (value) => { sharedEmail.value = value })
+watch(() => state.name, (value) => { sharedName.value = value })
 
 // Passwort-Stärke — dieselben 6 Kriterien, die das Schema erzwingt (live-Feedback)
 const passwordChecks = computed(() => {

@@ -74,7 +74,6 @@
       "switchToPassword": "Sign in with password",
       "registerTitle": "Register with code",
       "registerDescription": "Enter your email, type the code — your account is created automatically.",
-      "nameOptional": "Name (optional)",
       "switchToOtpRegister": "Register without password (code via email)",
       "switchToPasswordRegister": "Register with password"
     },

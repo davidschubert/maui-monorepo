@@ -21,11 +21,21 @@ const errorMessage = ref<string | null>(null)
 const termsUrl = computed(() => appConfig.maui?.auth?.termsUrl ?? '')
 const requireTerms = computed(() => props.register === true && termsUrl.value.length > 0)
 
-const schema = computed(() => createOtpRequestSchema(t, { requireTerms: requireTerms.value }))
+const schema = computed(() => createOtpRequestSchema(t, {
+  requireTerms: requireTerms.value,
+  requireName: props.register === true,
+}))
 
-// E-Mail teilt sich den State mit Login/Register (Flow-Wechsel)
+// E-Mail + Name teilen sich den State mit Login/Register (Flow-Wechsel)
 const sharedEmail = useState('maui-auth-email', () => '')
-const state = reactive<OtpRequestInput>({ email: sharedEmail.value, name: '', terms: false })
+const sharedName = useState('maui-auth-name', () => '')
+const state = reactive<OtpRequestInput>({
+  email: sharedEmail.value,
+  name: props.register ? sharedName.value : '',
+  terms: false,
+})
+// Namen nur im Register-Kontext mit dem Passwort-Register-Formular teilen
+watch(() => state.name, (value) => { if (props.register) sharedName.value = value ?? '' })
 
 const userId = ref('')
 const phrase = ref('')
@@ -142,7 +152,7 @@ async function verify() {
 
     <UForm v-if="step === 'email'" :schema="schema" :validate-on="[]" :state="state" class="space-y-4" @submit="requestCode">
       <!-- Name nur im Register-Kontext — auf /login hat der User längst einen -->
-      <UFormField v-if="register" :label="t('auth.otp.nameOptional')" name="name">
+      <UFormField v-if="register" :label="t('auth.fields.name')" name="name" required>
         <UInput v-model="state.name" size="lg" :placeholder="t('auth.fields.namePlaceholder')" class="w-full" />
       </UFormField>
       <UFormField :label="t('auth.fields.email')" name="email" required>
