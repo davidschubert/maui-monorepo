@@ -112,19 +112,6 @@ async function onSubmit(event: FormSubmitEvent<LoginInput>) {
 
     <!-- Schritt 2: Passwort (E-Mail read-only) + optional Code-Login -->
     <template v-else>
-      <UButton
-        v-if="otpEnabled"
-        :to="localePath('/login/code')"
-        icon="i-ph-envelope-simple"
-        color="neutral"
-        variant="subtle"
-        size="lg"
-        block
-        data-otp-link
-      >
-        {{ t('auth.otp.switchToOtp') }}
-      </UButton>
-
       <UForm :schema="schema" :validate-on="[]" :state="state" class="space-y-4" @submit="onSubmit">
         <!-- E-Mail nicht editierbar — Änderung nur über «Zurück» -->
         <UFormField :label="t('auth.fields.email')" name="email">
@@ -169,6 +156,22 @@ async function onSubmit(event: FormSubmitEvent<LoginInput>) {
           </UButton>
         </div>
       </UForm>
+
+      <!-- Code-Login als Alternative — unter den Aktionen, durch «oder» getrennt -->
+      <template v-if="otpEnabled">
+        <USeparator :label="t('auth.or')" />
+        <UButton
+          :to="localePath('/login/code')"
+          icon="i-ph-envelope-simple"
+          color="neutral"
+          variant="subtle"
+          size="lg"
+          block
+          data-otp-link
+        >
+          {{ t('auth.otp.switchToOtp') }}
+        </UButton>
+      </template>
     </template>
   </div>
 </template>
