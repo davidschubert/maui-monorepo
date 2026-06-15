@@ -4,8 +4,6 @@
       "title": "Anmelden",
       "description": "Melde dich mit deinem Account an.",
       "submit": "Anmelden",
-      "continue": "Weiter",
-      "back": "Zurück",
       "failed": "Anmeldung fehlgeschlagen — bitte E-Mail und Passwort prüfen.",
       "noAccount": "Noch keinen Account?",
       "registerLink": "Registrieren",

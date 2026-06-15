@@ -8,8 +8,6 @@ const appConfig = useAppConfig()
 const auth = useAuthStore()
 const toast = useToast()
 
-// Zweistufiger Login: erst E-Mail (Weiter), dann Passwort (Anmelden)
-const step = ref<'email' | 'password'>('email')
 const loading = ref(false)
 const errorMessage = ref<string | null>(null)
 const showPassword = ref(false)
@@ -34,20 +32,7 @@ const sharedEmail = useState('maui-auth-email', () => '')
 const state = reactive<LoginInput>({ email: sharedEmail.value, password: '' })
 watch(() => state.email, (value) => { sharedEmail.value = value })
 
-// Schritt 1 validiert nur die E-Mail, Schritt 2 E-Mail + Passwort
-const emailSchema = computed(() => createLoginSchema(t).pick({ email: true }))
 const schema = computed(() => createLoginSchema(t))
-
-function toPassword(event: FormSubmitEvent<{ email: string }>) {
-  sharedEmail.value = event.data.email
-  errorMessage.value = null
-  step.value = 'password'
-}
-
-function back() {
-  errorMessage.value = null
-  step.value = 'email'
-}
 
 async function onSubmit(event: FormSubmitEvent<LoginInput>) {
   loading.value = true
@@ -78,101 +63,77 @@ async function onSubmit(event: FormSubmitEvent<LoginInput>) {
 
     <UAlert v-if="errorMessage" color="error" variant="subtle" :title="errorMessage" />
 
-    <!-- Schritt 1: nur E-Mail -->
-    <template v-if="step === 'email'">
-      <div v-if="providers.length" class="space-y-2">
-        <UButton
-          v-for="provider in providers"
-          :key="provider.id"
-          :label="provider.label"
-          :icon="provider.icon"
-          color="neutral"
-          variant="subtle"
+    <div v-if="providers.length" class="space-y-2">
+      <UButton
+        v-for="provider in providers"
+        :key="provider.id"
+        :label="provider.label"
+        :icon="provider.icon"
+        color="neutral"
+        variant="subtle"
+        size="lg"
+        block
+        :to="`/api/auth/oauth?provider=${provider.id}`"
+        external
+        :data-provider="provider.id"
+      />
+      <USeparator :label="t('auth.or')" />
+    </div>
+
+    <UForm :schema="schema" :validate-on="[]" :state="state" class="space-y-4" @submit="onSubmit">
+      <UFormField :label="t('auth.fields.email')" name="email" required>
+        <UInput v-model="state.email" type="email" size="lg" autofocus :placeholder="t('auth.fields.emailPlaceholder')" class="w-full" />
+      </UFormField>
+
+      <UFormField :label="t('auth.fields.password')" name="password" required>
+        <template #hint>
+          <ULink :to="localePath('/forgot-password')" class="text-sm text-muted hover:text-primary">
+            {{ t('auth.login.forgot') }}
+          </ULink>
+        </template>
+        <UInput
+          v-model="state.password"
+          :type="showPassword ? 'text' : 'password'"
           size="lg"
-          block
-          :to="`/api/auth/oauth?provider=${provider.id}`"
-          external
-          :data-provider="provider.id"
-        />
-        <USeparator :label="t('auth.or')" />
-      </div>
-
-      <UForm :schema="emailSchema" :validate-on="[]" :state="state" class="space-y-4" @submit="toPassword">
-        <UFormField :label="t('auth.fields.email')" name="email" required>
-          <UInput v-model="state.email" type="email" size="lg" autofocus :placeholder="t('auth.fields.emailPlaceholder')" class="w-full" />
-        </UFormField>
-        <UButton type="submit" block size="lg">{{ t('auth.login.continue') }}</UButton>
-      </UForm>
-
-      <p class="text-center text-sm text-muted">
-        {{ t('auth.login.noAccount') }}
-        <ULink :to="localePath('/register')" class="font-medium text-primary">{{ t('auth.login.registerLink') }}</ULink>
-      </p>
-    </template>
-
-    <!-- Schritt 2: Passwort (E-Mail read-only) + optional Code-Login -->
-    <template v-else>
-      <UForm :schema="schema" :validate-on="[]" :state="state" class="space-y-4" @submit="onSubmit">
-        <!-- E-Mail gesperrt (disabled + Schloss) — Änderung nur über «Zurück».
-             Submit nutzt den reaktiven state, der Wert geht also nicht verloren. -->
-        <UFormField :label="t('auth.fields.email')" name="email">
-          <UInput v-model="state.email" type="email" size="lg" disabled trailing-icon="i-ph-lock-simple" class="w-full" />
-        </UFormField>
-
-        <UFormField :label="t('auth.fields.password')" name="password" required>
-          <template #hint>
-            <ULink :to="localePath('/forgot-password')" class="text-sm text-muted hover:text-primary">
-              {{ t('auth.login.forgot') }}
-            </ULink>
-          </template>
-          <UInput
-            v-model="state.password"
-            :type="showPassword ? 'text' : 'password'"
-            size="lg"
-            autofocus
-            :placeholder="t('auth.fields.passwordPlaceholder')"
-            class="w-full"
-          >
-            <template #trailing>
-              <UButton
-                color="neutral"
-                variant="link"
-                size="sm"
-                :icon="showPassword ? 'i-ph-eye-slash' : 'i-ph-eye'"
-                :aria-label="t('auth.fields.togglePassword')"
-                tabindex="-1"
-                @click="showPassword = !showPassword"
-              />
-            </template>
-          </UInput>
-        </UFormField>
-
-        <!-- Zurück (sekundär) und Anmelden (primär) je zur Hälfte nebeneinander -->
-        <div class="grid grid-cols-2 gap-3">
-          <UButton color="neutral" variant="subtle" size="lg" block @click="back">
-            {{ t('auth.login.back') }}
-          </UButton>
-          <UButton type="submit" size="lg" block :loading="loading">
-            {{ t('auth.login.submit') }}
-          </UButton>
-        </div>
-      </UForm>
-
-      <!-- Code-Login als Alternative — unter den Aktionen, durch «oder» getrennt -->
-      <template v-if="otpEnabled">
-        <USeparator :label="t('auth.or')" />
-        <UButton
-          :to="localePath('/login/code')"
-          icon="i-ph-envelope-simple"
-          color="neutral"
-          variant="subtle"
-          size="lg"
-          block
-          data-otp-link
+          :placeholder="t('auth.fields.passwordPlaceholder')"
+          class="w-full"
         >
-          {{ t('auth.otp.switchToOtp') }}
-        </UButton>
-      </template>
+          <template #trailing>
+            <UButton
+              color="neutral"
+              variant="link"
+              size="sm"
+              :icon="showPassword ? 'i-ph-eye-slash' : 'i-ph-eye'"
+              :aria-label="t('auth.fields.togglePassword')"
+              tabindex="-1"
+              @click="showPassword = !showPassword"
+            />
+          </template>
+        </UInput>
+      </UFormField>
+
+      <UButton type="submit" block size="lg" :loading="loading">{{ t('auth.login.submit') }}</UButton>
+    </UForm>
+
+    <!-- Code-Login als gleichrangige Alternative — eigene Seite /login/code -->
+    <template v-if="otpEnabled">
+      <USeparator :label="t('auth.or')" />
+      <UButton
+        :to="localePath('/login/code')"
+        icon="i-ph-envelope-simple"
+        color="neutral"
+        variant="subtle"
+        size="lg"
+        block
+        data-otp-link
+      >
+        {{ t('auth.otp.switchToOtp') }}
+      </UButton>
     </template>
+
+    <p class="text-center text-sm text-muted">
+      {{ t('auth.login.noAccount') }}
+      <ULink :to="localePath('/register')" class="font-medium text-primary">{{ t('auth.login.registerLink') }}</ULink>
+    </p>
   </div>
 </template>

@@ -4,8 +4,6 @@
       "title": "Sign in",
       "description": "Sign in with your account.",
       "submit": "Sign in",
-      "continue": "Continue",
-      "back": "Back",
       "failed": "Sign-in failed — please check your email and password.",
       "noAccount": "No account yet?",
       "registerLink": "Register",
