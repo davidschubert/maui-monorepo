@@ -22,6 +22,14 @@
     },
     "logout": "Sign out",
     "or": "or",
+    "password": {
+      "min": "8 or more characters",
+      "upper": "At least one uppercase letter (A-Z)",
+      "lower": "At least one lowercase letter (a-z)",
+      "number": "At least one number (0-9)",
+      "special": "At least one special character",
+      "match": "Passwords must match"
+    },
     "fields": {
       "name": "Name",
       "namePlaceholder": "Your name",
@@ -76,6 +84,7 @@
     "required": "This field is required",
     "emailInvalid": "Please enter a valid email address",
     "passwordMin": "The password must be at least 8 characters long",
+    "passwordComplexity": "At least 1 uppercase, 1 lowercase, 1 number and 1 special character",
     "nameMin": "The name must be at least 2 characters long",
     "bioMax": "The bio must be at most 500 characters long",
     "urlInvalid": "Please enter a valid URL",

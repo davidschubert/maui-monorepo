@@ -22,9 +22,23 @@ export function createLoginSchema(t: TranslateFn = identity) {
   })
 }
 
+/**
+ * Starkes Passwort (nur Registrierung): min. 8 Zeichen + je 1 Groß-/Kleinbuchstabe,
+ * Zahl und Sonderzeichen. Der Login bleibt bewusst bei min. 8 (Bestandskonten).
+ */
+function strongPassword(t: TranslateFn) {
+  return z.string(t('validation.required'))
+    .min(8, t('validation.passwordMin'))
+    .refine(
+      value => /[A-Z]/.test(value) && /[a-z]/.test(value) && /[0-9]/.test(value) && /[^A-Za-z0-9]/.test(value),
+      t('validation.passwordComplexity'),
+    )
+}
+
 export function createRegisterSchema(t: TranslateFn = identity) {
   return createLoginSchema(t).extend({
     name: z.string(t('validation.required')).min(2, t('validation.nameMin')),
+    password: strongPassword(t),
   })
 }
 
