@@ -76,12 +76,8 @@ async function onSubmit(event: FormSubmitEvent<RegisterFormInput>) {
     <template #validation>
       <UAlert v-if="errorMessage" color="error" variant="subtle" :title="errorMessage" />
     </template>
-    <template #footer>
+    <template v-if="termsUrl" #footer>
       <p>
-        {{ t('auth.register.hasAccount') }}
-        <ULink :to="localePath('/login')" class="font-medium text-primary">{{ t('auth.register.loginLink') }}</ULink>
-      </p>
-      <p v-if="termsUrl" class="mt-1">
         <ULink :to="termsUrl" target="_blank" class="text-sm text-muted hover:text-primary">
           {{ t('auth.register.termsLink') }}
         </ULink>

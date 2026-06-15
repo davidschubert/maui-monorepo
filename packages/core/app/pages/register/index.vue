@@ -29,5 +29,10 @@ const otpEnabled = computed(() => appConfig.maui?.auth?.otp === true)
         {{ t('auth.otp.switchToOtpRegister') }}
       </UButton>
     </template>
+
+    <p class="text-center text-sm text-muted">
+      {{ t('auth.register.hasAccount') }}
+      <ULink :to="localePath('/login')" class="font-medium text-primary">{{ t('auth.register.loginLink') }}</ULink>
+    </p>
   </div>
 </template>
