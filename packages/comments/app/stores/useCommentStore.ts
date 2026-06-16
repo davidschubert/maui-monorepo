@@ -116,7 +116,13 @@ export const useCommentStore = defineStore('comments', () => {
         method: 'POST',
         body: { targetId: targetId.value, targetType: targetType.value, content, parentId },
       })
-      rows.value = rows.value.map(row => (row.$id === temp.$id ? created : row))
+      // Realtime kann denselben Kommentar parallel schon eingefügt haben (Race
+      // zwischen POST-Response und Create-Event). Idempotent abgleichen statt
+      // blind temp→created zu mappen, sonst entsteht ein Duplikat.
+      const alreadyPresent = rows.value.some(row => row.$id === created.$id)
+      rows.value = rows.value.filter(row => row.$id !== temp.$id)
+      if (alreadyPresent) total.value -= 1 // Realtime hat bereits gezählt
+      upsertRow(created)
       return created
     }
     catch (error) {
