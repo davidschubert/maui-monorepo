@@ -5,6 +5,7 @@ import type { AdminUserListResponse, AdminUserRow } from '../../../shared/types/
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
 
 const { t } = useI18n()
+const { formatRelativeTime } = useFormatRelativeTime()
 const toast = useToast()
 const { user: me } = useCurrentUser()
 
