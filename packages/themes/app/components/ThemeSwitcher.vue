@@ -16,9 +16,10 @@ const selectedTheme = computed({
 const themeColor = computed(() => theme.value.color)
 
 // Variant-Select: "Standard" = Theme-Basisfarbe, sonst die echte Variant-Farbe
+const capitalize = (value: string) => value.charAt(0).toUpperCase() + value.slice(1)
 const variantItems = computed(() => [
   { label: t('themes.variantDefault'), value: 'none', color: theme.value.color },
-  ...theme.value.variants.map(v => ({ label: v.id, value: v.id, color: v.color })),
+  ...theme.value.variants.map(v => ({ label: capitalize(v.id), value: v.id, color: v.color })),
 ])
 const selectedVariant = computed({
   get: () => variant.value ?? 'none',

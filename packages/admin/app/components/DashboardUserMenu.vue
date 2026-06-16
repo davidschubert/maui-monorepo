@@ -28,6 +28,8 @@ async function logout() {
   await navigateTo(localePath('/login'))
 }
 
+const capitalize = (value: string) => value.charAt(0).toUpperCase() + value.slice(1)
+
 // Theme + optionale Variante in einem Schritt setzen (setTheme resettet die Variante)
 function selectTheme(id: string, variantId: string | null) {
   setTheme(id)
@@ -64,7 +66,7 @@ const items = computed<SwatchItem[][]>(() => {
           onSelect: (event: Event) => { event.preventDefault(); selectTheme(entry.id, null) },
         },
         ...entry.variants.map(v => ({
-          label: v.id,
+          label: capitalize(v.id),
           slot: 'swatch',
           swatchIcon: 'i-ph-swatches',
           swatchColor: v.color,
