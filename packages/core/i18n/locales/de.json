@@ -111,6 +111,33 @@
     "avatarLabel": "Avatar-URL",
     "avatarPlaceholder": "https://…"
   },
+  "account": {
+    "profile": {
+      "title": "Profil",
+      "description": "Aktualisiere deinen Namen und dein Profil."
+    },
+    "password": {
+      "title": "Passwort ändern",
+      "description": "Bestätige dein aktuelles Passwort, bevor du ein neues setzt.",
+      "current": "Aktuelles Passwort",
+      "new": "Neues Passwort",
+      "confirm": "Neues Passwort bestätigen",
+      "submit": "Passwort aktualisieren",
+      "success": "Passwort aktualisiert.",
+      "failed": "Passwort-Änderung fehlgeschlagen — stimmt das aktuelle Passwort?"
+    },
+    "delete": {
+      "title": "Account löschen",
+      "description": "Du möchtest deinen Account nicht mehr nutzen? Du kannst ihn hier löschen. Diese Aktion ist nicht umkehrbar — alle zugehörigen Daten werden dauerhaft entfernt.",
+      "button": "Account löschen",
+      "confirmTitle": "Account wirklich löschen?",
+      "confirmText": "Dein Account und alle zugehörigen Daten werden dauerhaft gelöscht. Das kann nicht rückgängig gemacht werden.",
+      "confirm": "Endgültig löschen",
+      "cancel": "Abbrechen",
+      "success": "Account gelöscht.",
+      "failed": "Löschen fehlgeschlagen — bitte erneut versuchen."
+    }
+  },
   "error": {
     "notFound": "Diese Seite existiert nicht.",
     "generic": "Da ist etwas schiefgelaufen.",

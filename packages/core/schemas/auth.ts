@@ -26,7 +26,7 @@ export function createLoginSchema(t: TranslateFn = identity) {
  * Starkes Passwort (nur Registrierung): min. 8 Zeichen + je 1 Groß-/Kleinbuchstabe,
  * Zahl und Sonderzeichen. Der Login bleibt bewusst bei min. 8 (Bestandskonten).
  */
-function strongPassword(t: TranslateFn) {
+function strongPassword(t: TranslateFn = identity) {
   return z.string(t('validation.required'))
     .min(8, t('validation.passwordMin'))
     .refine(
@@ -121,6 +121,26 @@ export const resetServerSchema = z.object({
   secret: z.string().min(1),
   password: z.string().min(8),
 })
+
+/** Passwort-Änderung im eingeloggten Zustand: aktuelles + neues (stark) + Bestätigung */
+export function createPasswordChangeSchema(t: TranslateFn = identity) {
+  return z.object({
+    currentPassword: z.string(t('validation.required')).min(1, t('validation.required')),
+    password: strongPassword(t),
+    passwordConfirm: z.string(t('validation.required')).min(1, t('validation.passwordConfirmRequired')),
+  }).refine(data => data.password === data.passwordConfirm, {
+    message: t('validation.passwordMismatch'),
+    path: ['passwordConfirm'],
+  })
+}
+
+/** Server-Variante: passwordConfirm ist reine UI-Validierung */
+export const passwordChangeServerSchema = z.object({
+  currentPassword: z.string().min(1),
+  password: strongPassword(),
+})
+
+export type PasswordChangeInput = z.infer<ReturnType<typeof createPasswordChangeSchema>>
 
 export type LoginInput = z.infer<typeof loginSchema>
 export type RegisterInput = z.infer<typeof registerSchema>

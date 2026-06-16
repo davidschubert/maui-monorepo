@@ -111,6 +111,33 @@
     "avatarLabel": "Avatar URL",
     "avatarPlaceholder": "https://…"
   },
+  "account": {
+    "profile": {
+      "title": "Profile",
+      "description": "Update your name and profile."
+    },
+    "password": {
+      "title": "Change password",
+      "description": "Confirm your current password before setting a new one.",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "submit": "Update password",
+      "success": "Password updated.",
+      "failed": "Password change failed — is the current password correct?"
+    },
+    "delete": {
+      "title": "Delete account",
+      "description": "No longer want to use your account? You can delete it here. This action is not reversible — all related data will be permanently removed.",
+      "button": "Delete account",
+      "confirmTitle": "Really delete your account?",
+      "confirmText": "Your account and all related data will be permanently deleted. This cannot be undone.",
+      "confirm": "Delete permanently",
+      "cancel": "Cancel",
+      "success": "Account deleted.",
+      "failed": "Deletion failed — please try again."
+    }
+  },
   "error": {
     "notFound": "This page does not exist.",
     "generic": "Something went wrong.",
