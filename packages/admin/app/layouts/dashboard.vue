@@ -15,7 +15,7 @@ const sidebarVariant = useCookie<'sidebar' | 'floating' | 'inset'>('maui-sidebar
 
 const sidebarClass = computed(() => {
   switch (sidebarVariant.value) {
-    case 'floating': return 'm-2 rounded-xl border border-default bg-elevated shadow-lg'
+    case 'floating': return 'm-2 h-[calc(100svh-1rem)] min-h-[calc(100svh-1rem)] rounded-xl border border-default bg-elevated shadow-lg'
     case 'inset': return 'border-0 bg-transparent'
     default: return 'bg-elevated/25'
   }
