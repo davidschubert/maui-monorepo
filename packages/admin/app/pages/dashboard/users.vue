@@ -6,7 +6,9 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
 
 const { t } = useI18n()
 const { formatRelativeTime } = useFormatRelativeTime()
+const localePath = useLocalePath()
 const toast = useToast()
+const auth = useAuthStore()
 const { user: me } = useCurrentUser()
 
 const search = ref('')
@@ -49,8 +51,15 @@ async function executePending() {
 
   try {
     if (type === 'sessions') {
-      await $fetch(`/api/admin/users/${user.$id}/sessions`, { method: 'DELETE' })
+      const result = await $fetch<{ ok: boolean, self: boolean }>(`/api/admin/users/${user.$id}/sessions`, { method: 'DELETE' })
       toast.add({ title: t('admin.users.sessionsCleared'), color: 'success' })
+      if (result.self) {
+        // Eigene Sessions beendet → ausloggen und zur Startseite
+        pending.value = null
+        auth.setUser(null)
+        await navigateTo(localePath('/'))
+        return
+      }
     }
     else {
       await $fetch(`/api/admin/users/${user.$id}/status`, {
