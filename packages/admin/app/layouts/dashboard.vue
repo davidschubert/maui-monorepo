@@ -5,9 +5,9 @@ const { t } = useI18n()
 const localePath = useLocalePath()
 
 const nav = computed(() => [
-  { label: t('admin.nav.overview'), icon: 'i-ph-gauge', to: localePath('/admin') },
-  { label: t('admin.nav.users'), icon: 'i-ph-users', to: localePath('/admin/users') },
-  { label: t('admin.nav.comments'), icon: 'i-ph-chat-circle', to: localePath('/admin/comments') },
+  { label: t('admin.nav.overview'), icon: 'i-ph-gauge', to: localePath('/dashboard') },
+  { label: t('admin.nav.users'), icon: 'i-ph-users', to: localePath('/dashboard/users') },
+  { label: t('admin.nav.comments'), icon: 'i-ph-chat-circle', to: localePath('/dashboard/comments') },
 ])
 </script>
 
