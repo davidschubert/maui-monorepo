@@ -9,6 +9,18 @@ const localePath = useLocalePath()
 
 const open = ref(false)
 
+// Sidebar-Optik umschaltbar: sidebar | floating | inset. Nuxt UI hat diese
+// Varianten nicht nativ — floating/inset bilden wir per CSS nach. Default floating.
+const sidebarVariant = useCookie<'sidebar' | 'floating' | 'inset'>('maui-sidebar-variant', { default: () => 'floating' })
+
+const sidebarClass = computed(() => {
+  switch (sidebarVariant.value) {
+    case 'floating': return 'm-2 rounded-xl border border-default bg-elevated shadow-lg'
+    case 'inset': return 'border-0 bg-transparent'
+    default: return 'bg-elevated/25'
+  }
+})
+
 const links = computed<NavigationMenuItem[]>(() => [
   { label: t('admin.nav.overview'), icon: 'i-ph-gauge', to: localePath('/dashboard'), exact: true, onSelect: () => { open.value = false } },
   { label: t('admin.nav.users'), icon: 'i-ph-users', to: localePath('/dashboard/users'), onSelect: () => { open.value = false } },
@@ -24,14 +36,14 @@ const searchGroups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => [
 </script>
 
 <template>
-  <UDashboardGroup unit="rem">
+  <UDashboardGroup unit="rem" :class="sidebarVariant === 'inset' ? 'bg-elevated/50' : undefined">
     <UDashboardSidebar
       id="dashboard"
       v-model:open="open"
       collapsible
-      resizable
-      class="bg-elevated/25"
-      :ui="{ footer: 'lg:border-t lg:border-default' }"
+      :resizable="sidebarVariant === 'sidebar'"
+      :class="sidebarClass"
+      :ui="{ footer: sidebarVariant === 'sidebar' ? 'lg:border-t lg:border-default' : '' }"
     >
       <template #header="{ collapsed }">
         <DashboardBrand :collapsed="collapsed" />
@@ -49,6 +61,13 @@ const searchGroups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => [
 
     <UDashboardSearch :groups="searchGroups" :placeholder="t('dashboard.search.placeholder')" />
 
-    <slot />
+    <!-- inset: Hauptinhalt sitzt als abgesetzte Karte im gedämpften Hintergrund -->
+    <div
+      v-if="sidebarVariant === 'inset'"
+      class="m-2 flex min-w-0 flex-1 overflow-hidden rounded-xl bg-default shadow-sm ring ring-default"
+    >
+      <slot />
+    </div>
+    <slot v-else />
   </UDashboardGroup>
 </template>

@@ -15,6 +15,9 @@ const auth = useAuthStore()
 const toast = useToast()
 const { themes, theme, variant, setTheme, setVariant } = useTheme()
 
+// Sidebar-Optik (sidebar | floating | inset) — geteilt mit dem Dashboard-Layout via Cookie
+const sidebarVariant = useCookie<'sidebar' | 'floating' | 'inset'>('maui-sidebar-variant', { default: () => 'floating' })
+
 const displayName = computed(() => auth.user?.name || t('ui.account'))
 const avatar = computed(() => {
   const src = typeof auth.user?.prefs?.avatarUrl === 'string' ? auth.user.prefs.avatarUrl : undefined
@@ -90,6 +93,13 @@ const items = computed<SwatchItem[][]>(() => {
     onSelect: (event: Event) => { event.preventDefault(); colorMode.preference = mode },
   }))
 
+  const sidebarChildren: DropdownMenuItem[] = (['sidebar', 'floating', 'inset'] as const).map(value => ({
+    label: capitalize(value),
+    type: 'checkbox',
+    checked: sidebarVariant.value === value,
+    onSelect: (event: Event) => { event.preventDefault(); sidebarVariant.value = value },
+  }))
+
   const languageChildren: DropdownMenuItem[] = [
     { label: 'Deutsch (Deutschland)', icon: 'i-circle-flags-de', type: 'checkbox', checked: locale.value === 'de', onSelect: (event: Event) => { event.preventDefault(); setLocale('de') } },
     { label: 'English (United States)', icon: 'i-circle-flags-us', type: 'checkbox', checked: locale.value === 'en', onSelect: (event: Event) => { event.preventDefault(); setLocale('en') } },
@@ -101,6 +111,7 @@ const items = computed<SwatchItem[][]>(() => {
     [
       { label: t('themes.label'), icon: 'i-ph-palette', children: themeChildren },
       { label: t('themes.modeLabel'), icon: 'i-ph-sun-horizon', children: appearanceChildren },
+      { label: t('dashboard.sidebar.label'), icon: 'i-ph-sidebar-simple', children: sidebarChildren },
       { label: t('ui.language'), icon: 'i-ph-globe', children: languageChildren },
     ],
     [{ label: t('auth.logout'), icon: 'i-ph-sign-out', onSelect: () => { void logout() } }],
