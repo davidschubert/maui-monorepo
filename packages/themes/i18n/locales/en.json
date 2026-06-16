@@ -3,6 +3,7 @@
     "label": "Theme",
     "variantLabel": "Color variant",
     "variantDefault": "Default",
-    "modeLabel": "Appearance"
+    "modeLabel": "Appearance",
+    "appearance": { "light": "Light", "dark": "Dark", "system": "System" }
   }
 }

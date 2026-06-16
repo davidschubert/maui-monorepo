@@ -1,9 +1,10 @@
 <script setup lang="ts">
 // Dünne App: nur Komposition + Branding, Logik lebt in den Layern
 const route = useRoute()
-// Im Dashboard sitzt der Theme-/Appearance-Switcher im Sidebar-UserMenu —
-// dort kein zusätzliches Floating-Widget (würde die Sidebar überlagern).
-const showThemeSwitcher = computed(() => !/(^|\/)dashboard(\/|$)/.test(route.path))
+// Theme-Steuerung: Default-Layout über DisplaySettingsMenu im Header, Dashboard
+// über das Sidebar-Menü. Das Floating-Widget bleibt nur auf den Auth-Seiten,
+// die kein Header-Layout haben.
+const showThemeSwitcher = computed(() => route.meta.layout === 'auth')
 </script>
 
 <template>

@@ -3,6 +3,7 @@
     "label": "Theme",
     "variantLabel": "Farbvariante",
     "variantDefault": "Standard",
-    "modeLabel": "Erscheinungsbild"
+    "modeLabel": "Erscheinungsbild",
+    "appearance": { "light": "Hell", "dark": "Dunkel", "system": "System" }
   }
 }
