@@ -11,6 +11,7 @@
     "typecheck": "nuxi typecheck"
   },
   "dependencies": {
+    "@iconify-json/circle-flags": "catalog:",
     "@iconify-json/ph": "catalog:",
     "@maui/admin": "workspace:*",
     "@maui/comments": "workspace:*",
