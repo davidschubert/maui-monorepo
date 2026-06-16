@@ -10,17 +10,20 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 401, statusText: 'Unauthorized' })
   }
 
-  const { name, bio, avatarUrl } = await readValidatedBody(event, profileSchema.parse)
+  const { name, bio, phone, avatarUrl } = await readValidatedBody(event, profileSchema.parse)
   const { account } = createSessionClient(event)
 
   if (name !== event.context.user.name) {
     await account.updateName({ name })
   }
 
+  // phone in prefs (nicht account.updatePhone — das verlangt Passwort + SMS-Verifikation,
+  // unpassend für unsere passwortlosen OTP-User). Foto-URL ebenfalls in prefs.
   await account.updatePrefs({
     prefs: {
       ...event.context.user.prefs,
       bio: bio ?? '',
+      phone: phone ?? '',
       avatarUrl: avatarUrl ?? '',
     },
   })

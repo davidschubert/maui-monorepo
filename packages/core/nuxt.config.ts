@@ -42,6 +42,9 @@ export default defineNuxtConfig({
       appwriteEndpoint: '',
       appwriteProjectId: '',
       appwriteDatabaseId: '',
+      // Storage-Bucket für Profilfotos (gehört der App). Leer = Foto-Upload-UI
+      // ausgeblendet, bis der Bucket existiert (NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET).
+      appwriteAvatarsBucket: '',
       // Gegenpart zu NUXT_PUBLIC_APP_URL — ohne Skeleton-Key mappt die Env-Var ins Leere
       appUrl: '',
     },

@@ -19,6 +19,7 @@ export interface RowList<T extends AppwriteRow> {
  */
 export interface MauiUserPrefs extends Models.Preferences {
   bio?: string
+  phone?: string
   avatarUrl?: string
 }
 
