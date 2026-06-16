@@ -62,6 +62,7 @@
   },
   "dashboard": {
     "search": { "label": "Go to", "placeholder": "Search…" },
-    "appearance": { "light": "Light", "dark": "Dark", "system": "System" }
+    "appearance": { "light": "Light", "dark": "Dark", "system": "System" },
+    "settings": { "title": "Settings", "general": "General", "security": "Security" }
   }
 }

@@ -71,6 +71,7 @@ const items = computed<DropdownMenuItem[][]>(() => {
 
   return [
     [{ type: 'label', label: displayName.value, avatar: avatar.value }],
+    [{ label: t('dashboard.settings.title'), icon: 'i-ph-gear', to: localePath('/dashboard/settings') }],
     [
       { label: t('themes.label'), icon: 'i-ph-palette', children: themeChildren },
       ...(theme.value.variants.length ? [{ label: t('themes.variantLabel'), icon: 'i-ph-swatches', children: variantChildren }] : []),
