@@ -59,5 +59,9 @@
       "confirmHide": "Hide the comment by {name}? It will no longer be publicly visible.",
       "confirmRestore": "Restore the comment by {name}?"
     }
+  },
+  "dashboard": {
+    "search": { "label": "Go to", "placeholder": "Search…" },
+    "appearance": { "light": "Light", "dark": "Dark", "system": "System" }
   }
 }

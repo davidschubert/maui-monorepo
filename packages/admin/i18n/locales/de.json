@@ -59,5 +59,9 @@
       "confirmHide": "Kommentar von {name} ausblenden? Er ist dann öffentlich nicht mehr sichtbar.",
       "confirmRestore": "Kommentar von {name} wiederherstellen?"
     }
+  },
+  "dashboard": {
+    "search": { "label": "Gehe zu", "placeholder": "Suchen…" },
+    "appearance": { "light": "Hell", "dark": "Dunkel", "system": "System" }
   }
 }

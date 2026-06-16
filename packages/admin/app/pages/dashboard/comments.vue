@@ -59,24 +59,31 @@ async function executePending() {
 </script>
 
 <template>
-  <div class="space-y-4">
-    <div class="flex items-center justify-between gap-4">
-      <h1 class="text-2xl font-bold">{{ t('admin.nav.comments') }} ({{ data?.total ?? 0 }})</h1>
-      <div class="flex gap-1" data-moderation-filter>
-        <UButton
-          v-for="item in filterItems"
-          :key="item.value"
-          size="sm"
-          :color="filter === item.value ? 'primary' : 'neutral'"
-          :variant="filter === item.value ? 'soft' : 'ghost'"
-          @click="setFilter(item.value)"
-        >
-          {{ item.label }}
-        </UButton>
-      </div>
-    </div>
+  <UDashboardPanel id="moderation">
+    <template #header>
+      <UDashboardNavbar :title="`${t('admin.nav.comments')} (${data?.total ?? 0})`">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+        <template #right>
+          <div class="flex gap-1" data-moderation-filter>
+            <UButton
+              v-for="item in filterItems"
+              :key="item.value"
+              size="sm"
+              :color="filter === item.value ? 'primary' : 'neutral'"
+              :variant="filter === item.value ? 'soft' : 'ghost'"
+              @click="setFilter(item.value)"
+            >
+              {{ item.label }}
+            </UButton>
+          </div>
+        </template>
+      </UDashboardNavbar>
+    </template>
 
-    <p v-if="(data?.comments?.length ?? 0) === 0" class="text-sm text-muted">
+    <template #body>
+      <p v-if="(data?.comments?.length ?? 0) === 0" class="text-sm text-muted">
       {{ t('admin.moderation.empty') }}
     </p>
 
@@ -149,5 +156,6 @@ async function executePending() {
         </div>
       </template>
     </UModal>
-  </div>
+    </template>
+  </UDashboardPanel>
 </template>

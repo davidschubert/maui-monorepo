@@ -15,19 +15,27 @@ const cards = computed(() => [
 </script>
 
 <template>
-  <div class="space-y-6">
-    <h1 class="text-2xl font-bold">{{ t('admin.nav.overview') }}</h1>
+  <UDashboardPanel id="overview">
+    <template #header>
+      <UDashboardNavbar :title="t('admin.nav.overview')">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+      </UDashboardNavbar>
+    </template>
 
-    <div class="grid gap-4 sm:grid-cols-3" data-stat-cards>
-      <UCard v-for="card in cards" :key="card.label">
-        <NuxtLink :to="card.to" class="flex items-center gap-3">
-          <UIcon :name="card.icon" class="size-8 text-primary" />
-          <div>
-            <p class="text-2xl font-bold tabular-nums">{{ card.value }}</p>
-            <p class="text-sm text-muted">{{ card.label }}</p>
-          </div>
-        </NuxtLink>
-      </UCard>
-    </div>
-  </div>
+    <template #body>
+      <div class="grid gap-4 sm:grid-cols-3" data-stat-cards>
+        <UCard v-for="card in cards" :key="card.label">
+          <NuxtLink :to="card.to" class="flex items-center gap-3">
+            <UIcon :name="card.icon" class="size-8 text-primary" />
+            <div>
+              <p class="text-2xl font-bold tabular-nums">{{ card.value }}</p>
+              <p class="text-sm text-muted">{{ card.label }}</p>
+            </div>
+          </NuxtLink>
+        </UCard>
+      </div>
+    </template>
+  </UDashboardPanel>
 </template>

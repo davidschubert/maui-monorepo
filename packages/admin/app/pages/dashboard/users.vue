@@ -71,16 +71,23 @@ async function executePending() {
 </script>
 
 <template>
-  <div class="space-y-4">
-    <div class="flex items-center justify-between gap-4">
-      <h1 class="text-2xl font-bold">{{ t('admin.nav.users') }} ({{ data?.total ?? 0 }})</h1>
-      <form class="flex gap-2" @submit.prevent="runSearch">
-        <UInput v-model="search" icon="i-ph-magnifying-glass" :placeholder="t('admin.users.searchPlaceholder')" />
-        <UButton type="submit" color="neutral" variant="subtle">{{ t('admin.users.search') }}</UButton>
-      </form>
-    </div>
+  <UDashboardPanel id="users">
+    <template #header>
+      <UDashboardNavbar :title="`${t('admin.nav.users')} (${data?.total ?? 0})`">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+        <template #right>
+          <form class="flex gap-2" @submit.prevent="runSearch">
+            <UInput v-model="search" icon="i-ph-magnifying-glass" :placeholder="t('admin.users.searchPlaceholder')" />
+            <UButton type="submit" color="neutral" variant="subtle">{{ t('admin.users.search') }}</UButton>
+          </form>
+        </template>
+      </UDashboardNavbar>
+    </template>
 
-    <UTable :data="data?.users ?? []" :columns="columns" data-users-table>
+    <template #body>
+      <UTable :data="data?.users ?? []" :columns="columns" data-users-table>
       <template #createdAt-cell="{ row }">
         <span :title="formatDate(row.original.$createdAt)">{{ formatRelativeTime(row.original.$createdAt) }}</span>
       </template>
@@ -151,5 +158,6 @@ async function executePending() {
         </div>
       </template>
     </UModal>
-  </div>
+    </template>
+  </UDashboardPanel>
 </template>

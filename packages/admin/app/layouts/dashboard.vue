@@ -1,42 +1,53 @@
 <script setup lang="ts">
-// Dashboard-Layout (zieht laut Konzept aus dem Core hierher) —
-// Sidebar-Navigation + Header mit UserMenu aus dem Core
+// Dashboard-Shell nach Vorbild des offiziellen Nuxt-UI-Dashboard-Templates:
+// UDashboardGroup + collapsible/resizable Sidebar (Brand oben, UserMenu unten),
+// Command-Palette-Suche (⌘K). Die Seiten rendern in <slot/> als UDashboardPanel.
+import type { CommandPaletteGroup, CommandPaletteItem, NavigationMenuItem } from '@nuxt/ui'
+
 const { t } = useI18n()
 const localePath = useLocalePath()
 
-const nav = computed(() => [
-  { label: t('admin.nav.overview'), icon: 'i-ph-gauge', to: localePath('/dashboard') },
-  { label: t('admin.nav.users'), icon: 'i-ph-users', to: localePath('/dashboard/users') },
-  { label: t('admin.nav.comments'), icon: 'i-ph-chat-circle', to: localePath('/dashboard/comments') },
+const open = ref(false)
+
+const links = computed<NavigationMenuItem[]>(() => [
+  { label: t('admin.nav.overview'), icon: 'i-ph-gauge', to: localePath('/dashboard'), exact: true, onSelect: () => { open.value = false } },
+  { label: t('admin.nav.users'), icon: 'i-ph-users', to: localePath('/dashboard/users'), onSelect: () => { open.value = false } },
+  { label: t('admin.nav.comments'), icon: 'i-ph-chat-circle', to: localePath('/dashboard/comments'), onSelect: () => { open.value = false } },
 ])
+
+const searchGroups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => [{
+  id: 'links',
+  label: t('dashboard.search.label'),
+  items: links.value.map(link => ({ label: link.label, icon: link.icon, to: link.to })),
+}])
 </script>
 
 <template>
-  <div class="flex min-h-screen" data-dashboard-layout>
-    <aside class="flex w-56 shrink-0 flex-col border-r border-default p-4">
-      <NuxtLink :to="localePath('/')" class="mb-6 font-bold tracking-tight">Maui Admin</NuxtLink>
-      <nav data-testid="dashboard-nav" class="flex flex-col gap-1">
-        <UButton
-          v-for="item in nav"
-          :key="item.to"
-          :to="item.to"
-          :icon="item.icon"
-          color="neutral"
-          variant="ghost"
-          class="justify-start"
-        >
-          {{ item.label }}
-        </UButton>
-      </nav>
-    </aside>
+  <UDashboardGroup unit="rem">
+    <UDashboardSidebar
+      id="dashboard"
+      v-model:open="open"
+      collapsible
+      resizable
+      class="bg-elevated/25"
+      :ui="{ footer: 'lg:border-t lg:border-default' }"
+    >
+      <template #header="{ collapsed }">
+        <DashboardBrand :collapsed="collapsed" />
+      </template>
 
-    <div class="flex min-w-0 flex-1 flex-col">
-      <header class="flex items-center justify-end border-b border-default p-3">
-        <UserMenu />
-      </header>
-      <main class="flex-1 p-6">
-        <slot />
-      </main>
-    </div>
-  </div>
+      <template #default="{ collapsed }">
+        <UDashboardSearchButton :collapsed="collapsed" class="bg-transparent ring-default" />
+        <UNavigationMenu :collapsed="collapsed" :items="links" orientation="vertical" tooltip popover />
+      </template>
+
+      <template #footer="{ collapsed }">
+        <DashboardUserMenu :collapsed="collapsed" />
+      </template>
+    </UDashboardSidebar>
+
+    <UDashboardSearch :groups="searchGroups" :placeholder="t('dashboard.search.placeholder')" />
+
+    <slot />
+  </UDashboardGroup>
 </template>
