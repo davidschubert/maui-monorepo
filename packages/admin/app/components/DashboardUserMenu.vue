@@ -5,6 +5,9 @@ import type { DropdownMenuItem } from '@nuxt/ui'
 
 defineProps<{ collapsed?: boolean }>()
 
+// Eigene Felder für den getönten Swatch-Icon-Slot (Theme-/Variant-Farbe)
+type SwatchItem = DropdownMenuItem & { swatchIcon?: string, swatchColor?: string }
+
 const { t, locale, setLocale } = useI18n()
 const localePath = useLocalePath()
 const colorMode = useColorMode()
@@ -25,27 +28,53 @@ async function logout() {
   await navigateTo(localePath('/login'))
 }
 
-const items = computed<DropdownMenuItem[][]>(() => {
-  const themeChildren: DropdownMenuItem[] = themes.map(entry => ({
-    label: entry.name,
-    slot: 'chip',
-    chip: entry.color,
-    type: 'checkbox',
-    checked: theme.value.id === entry.id,
-    onSelect: (event: Event) => { event.preventDefault(); setTheme(entry.id) },
-  }))
+// Theme + optionale Variante in einem Schritt setzen (setTheme resettet die Variante)
+function selectTheme(id: string, variantId: string | null) {
+  setTheme(id)
+  if (variantId) setVariant(variantId)
+}
 
-  const variantChildren: DropdownMenuItem[] = [
-    { label: t('themes.variantDefault'), slot: 'chip', chip: theme.value.color, type: 'checkbox', checked: variant.value === null, onSelect: (event: Event) => { event.preventDefault(); setVariant(null) } },
-    ...theme.value.variants.map(entry => ({
-      label: entry.id,
-      slot: 'chip' as const,
-      chip: entry.color,
-      type: 'checkbox' as const,
-      checked: variant.value === entry.id,
-      onSelect: (event: Event) => { event.preventDefault(); setVariant(entry.id) },
-    })),
-  ]
+const items = computed<SwatchItem[][]>(() => {
+  // Jedes Theme; mit Varianten → eigenes Aufklapp-Menü (Standard + Varianten)
+  const themeChildren: SwatchItem[] = themes.map((entry) => {
+    if (!entry.variants.length) {
+      return {
+        label: entry.name,
+        slot: 'swatch',
+        swatchIcon: 'i-ph-palette',
+        swatchColor: entry.color,
+        type: 'checkbox',
+        checked: theme.value.id === entry.id,
+        onSelect: (event: Event) => { event.preventDefault(); selectTheme(entry.id, null) },
+      }
+    }
+    return {
+      label: entry.name,
+      slot: 'swatch',
+      swatchIcon: 'i-ph-palette',
+      swatchColor: entry.color,
+      children: [
+        {
+          label: t('themes.variantDefault'),
+          slot: 'swatch',
+          swatchIcon: 'i-ph-swatches',
+          swatchColor: entry.color,
+          type: 'checkbox',
+          checked: theme.value.id === entry.id && variant.value === null,
+          onSelect: (event: Event) => { event.preventDefault(); selectTheme(entry.id, null) },
+        },
+        ...entry.variants.map(v => ({
+          label: v.id,
+          slot: 'swatch',
+          swatchIcon: 'i-ph-swatches',
+          swatchColor: v.color,
+          type: 'checkbox' as const,
+          checked: theme.value.id === entry.id && variant.value === v.id,
+          onSelect: (event: Event) => { event.preventDefault(); selectTheme(entry.id, v.id) },
+        })),
+      ],
+    }
+  })
 
   const appearanceChildren: DropdownMenuItem[] = ([
     ['light', 'i-ph-sun'],
@@ -59,24 +88,18 @@ const items = computed<DropdownMenuItem[][]>(() => {
     onSelect: (event: Event) => { event.preventDefault(); colorMode.preference = mode },
   }))
 
-  const languageChildren: DropdownMenuItem[] = ([
-    ['de', 'Deutsch'],
-    ['en', 'English'],
-  ] as const).map(([code, label]) => ({
-    label,
-    type: 'checkbox',
-    checked: locale.value === code,
-    onSelect: (event: Event) => { event.preventDefault(); setLocale(code) },
-  }))
+  const languageChildren: DropdownMenuItem[] = [
+    { label: 'Deutsch (Deutschland)', icon: 'i-circle-flags-de', type: 'checkbox', checked: locale.value === 'de', onSelect: (event: Event) => { event.preventDefault(); setLocale('de') } },
+    { label: 'English (United States)', icon: 'i-circle-flags-us', type: 'checkbox', checked: locale.value === 'en', onSelect: (event: Event) => { event.preventDefault(); setLocale('en') } },
+  ]
 
   return [
     [{ type: 'label', label: displayName.value, avatar: avatar.value }],
     [{ label: t('dashboard.settings.title'), icon: 'i-ph-gear', to: localePath('/dashboard/settings') }],
     [
       { label: t('themes.label'), icon: 'i-ph-palette', children: themeChildren },
-      ...(theme.value.variants.length ? [{ label: t('themes.variantLabel'), icon: 'i-ph-swatches', children: variantChildren }] : []),
       { label: t('themes.modeLabel'), icon: 'i-ph-sun-horizon', children: appearanceChildren },
-      { label: t('ui.language'), icon: 'i-ph-translate', children: languageChildren },
+      { label: t('ui.language'), icon: 'i-ph-globe', children: languageChildren },
     ],
     [{ label: t('auth.logout'), icon: 'i-ph-sign-out', onSelect: () => { void logout() } }],
   ]
@@ -101,8 +124,12 @@ const items = computed<DropdownMenuItem[][]>(() => {
       :ui="{ trailingIcon: 'text-dimmed' }"
     />
 
-    <template #chip-leading="{ item }">
-      <span class="inline-block size-2 rounded-full" :style="{ backgroundColor: (item as { chip?: string }).chip }" />
+    <template #swatch-leading="{ item }">
+      <UIcon
+        :name="(item as SwatchItem).swatchIcon ?? ''"
+        class="size-5 shrink-0"
+        :style="{ color: (item as SwatchItem).swatchColor }"
+      />
     </template>
   </UDropdownMenu>
 </template>
