@@ -17,7 +17,8 @@ const schema = computed(() => createProfileSchema(t))
 const state = reactive<ProfileInput>({
   name: auth.user?.name ?? '',
   bio: typeof auth.user?.prefs?.bio === 'string' ? auth.user.prefs.bio : '',
-  phone: typeof auth.user?.prefs?.phone === 'string' ? auth.user.prefs.phone : '',
+  // phone kommt aus dem nativen Appwrite-Feld, nicht aus prefs
+  phone: auth.user?.phone ?? '',
   avatarUrl: typeof auth.user?.prefs?.avatarUrl === 'string' ? auth.user.prefs.avatarUrl : '',
 })
 
@@ -59,8 +60,13 @@ async function onSubmit(event: FormSubmitEvent<ProfileInput>) {
     await auth.refresh()
     toast.add({ title: t('profile.saved'), color: 'success' })
   }
-  catch {
-    toast.add({ title: t('profile.saveFailed'), color: 'error' })
+  catch (error) {
+    // Telefonnummer schon vergeben (Appwrite erzwingt Eindeutigkeit) → eigene Meldung
+    const code = (error as { data?: { data?: { code?: string } } })?.data?.data?.code
+    toast.add({
+      title: code === 'phone_taken' ? t('profile.phoneTaken') : t('profile.saveFailed'),
+      color: 'error',
+    })
   }
   finally {
     loading.value = false
