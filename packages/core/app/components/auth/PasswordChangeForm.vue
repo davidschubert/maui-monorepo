@@ -61,6 +61,9 @@ async function onSubmit(event: FormSubmitEvent<PasswordChangeInput>) {
         </UInput>
       </UFormField>
 
+      <!-- Passwort-Stärke-Indikator wie auf der Register-Seite -->
+      <AuthPasswordStrengthMeter :password="state.password" :password-confirm="state.passwordConfirm" />
+
       <UButton type="submit" :label="t('account.password.submit')" size="lg" class="w-fit" :loading="loading" />
     </UForm>
   </UPageCard>
