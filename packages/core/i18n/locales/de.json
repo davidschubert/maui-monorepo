@@ -132,7 +132,6 @@
       "client": "Client",
       "location": "Standort",
       "ip": "IP",
-      "clientOn": "{client} auf {os}",
       "current": "Aktuelle Sitzung",
       "unknown": "Unbekannt",
       "signOut": "Abmelden",

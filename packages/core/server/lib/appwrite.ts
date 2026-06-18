@@ -30,6 +30,16 @@ export function clearSessionCookie(event: H3Event) {
 }
 
 /**
+ * Reicht den Browser-User-Agent an Appwrite weiter, damit serverseitig erzeugte
+ * Sessions das echte Gerät (Browser + Version + OS) statt des Node-SDK aufzeichnen.
+ */
+function forwardClientContext(client: Client, event?: H3Event) {
+  if (!event) return
+  const userAgent = getHeader(event, 'user-agent')
+  if (userAgent) client.setForwardedUserAgent(userAgent)
+}
+
+/**
  * AdminClient — authentifiziert per API Key (server-only, Resource-based
  * mit minimalen Scopes). Nur für privilegierte Operationen: Signup,
  * Admin-Aktionen, Rate-Limit-Bypass.
@@ -40,6 +50,8 @@ export function createAdminClient(event?: H3Event) {
     .setEndpoint(config.public.appwriteEndpoint)
     .setProject(config.public.appwriteProjectId)
     .setKey(config.appwriteKey)
+
+  forwardClientContext(client, event)
 
   // Lazy get-Accessors: nur genutzte Services werden instanziiert
   return {
@@ -64,6 +76,8 @@ export function createSessionClient(event: H3Event) {
 
   const session = getCookie(event, sessionCookieName(event))
   if (session) client.setSession(session)
+
+  forwardClientContext(client, event)
 
   return {
     get account() { return new Account(client) },
