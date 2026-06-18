@@ -3,7 +3,8 @@
     "nav": {
       "overview": "Overview",
       "users": "Users",
-      "comments": "Comments"
+      "comments": "Comments",
+      "system": "System"
     },
     "stats": {
       "users": "Registered users",
@@ -64,6 +65,50 @@
     "search": { "label": "Go to", "placeholder": "Search…" },
     "appearance": { "light": "Light", "dark": "Dark", "system": "System" },
     "settings": { "title": "Settings", "general": "General", "sessions": "Sessions", "security": "Security" },
-    "sidebar": { "label": "Sidebar" }
+    "sidebar": { "label": "Sidebar" },
+    "system": {
+      "title": "System",
+      "refresh": "Refresh",
+      "generatedAt": "Snapshot taken {time}",
+      "app": {
+        "title": "Application",
+        "description": "The running SaaS application.",
+        "name": "Name",
+        "version": "Version",
+        "environment": "Environment",
+        "url": "App URL",
+        "avatarsBucket": "Avatars bucket"
+      },
+      "appwrite": {
+        "title": "Appwrite",
+        "description": "Backend instance and live health.",
+        "version": "Server version",
+        "endpoint": "Endpoint",
+        "project": "Project ID",
+        "database": "Database ID",
+        "timeDiff": "Clock skew"
+      },
+      "runtime": {
+        "title": "Runtime",
+        "description": "Node.js process on the server.",
+        "node": "Node.js",
+        "platform": "Platform / Arch",
+        "uptime": "Uptime",
+        "memory": "Memory (heap / RSS)"
+      },
+      "server": {
+        "title": "Server",
+        "description": "Host the application runs on.",
+        "hostname": "Hostname",
+        "ip": "IP addresses"
+      },
+      "stack": {
+        "title": "Stack",
+        "description": "Layers, modules and dependencies in use.",
+        "layers": "Feature layers",
+        "modules": "Nuxt modules",
+        "dependencies": "Dependencies"
+      }
+    }
   }
 }

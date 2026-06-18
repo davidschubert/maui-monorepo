@@ -26,6 +26,7 @@ const links = computed<NavigationMenuItem[]>(() => [
   { label: t('admin.nav.users'), icon: 'i-ph-users', to: localePath('/dashboard/users'), onSelect: () => { open.value = false } },
   { label: t('admin.nav.comments'), icon: 'i-ph-chat-circle', to: localePath('/dashboard/comments'), onSelect: () => { open.value = false } },
   { label: t('dashboard.settings.title'), icon: 'i-ph-gear', to: localePath('/dashboard/settings'), onSelect: () => { open.value = false } },
+  { label: t('admin.nav.system'), icon: 'i-ph-pulse', to: localePath('/dashboard/system'), onSelect: () => { open.value = false } },
 ])
 
 const searchGroups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => [{

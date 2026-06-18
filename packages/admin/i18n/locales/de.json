@@ -3,7 +3,8 @@
     "nav": {
       "overview": "Übersicht",
       "users": "Benutzer",
-      "comments": "Kommentare"
+      "comments": "Kommentare",
+      "system": "System"
     },
     "stats": {
       "users": "Registrierte Benutzer",
@@ -64,6 +65,50 @@
     "search": { "label": "Gehe zu", "placeholder": "Suchen…" },
     "appearance": { "light": "Hell", "dark": "Dunkel", "system": "System" },
     "settings": { "title": "Einstellungen", "general": "Allgemein", "sessions": "Sitzungen", "security": "Sicherheit" },
-    "sidebar": { "label": "Seitenleiste" }
+    "sidebar": { "label": "Seitenleiste" },
+    "system": {
+      "title": "System",
+      "refresh": "Aktualisieren",
+      "generatedAt": "Momentaufnahme von {time}",
+      "app": {
+        "title": "Anwendung",
+        "description": "Die laufende SaaS-Anwendung.",
+        "name": "Name",
+        "version": "Version",
+        "environment": "Umgebung",
+        "url": "App-URL",
+        "avatarsBucket": "Avatars-Bucket"
+      },
+      "appwrite": {
+        "title": "Appwrite",
+        "description": "Backend-Instanz und Live-Health.",
+        "version": "Serverversion",
+        "endpoint": "Endpoint",
+        "project": "Projekt-ID",
+        "database": "Datenbank-ID",
+        "timeDiff": "Zeitabweichung"
+      },
+      "runtime": {
+        "title": "Laufzeit",
+        "description": "Node.js-Prozess auf dem Server.",
+        "node": "Node.js",
+        "platform": "Plattform / Arch",
+        "uptime": "Laufzeit",
+        "memory": "Speicher (Heap / RSS)"
+      },
+      "server": {
+        "title": "Server",
+        "description": "Host, auf dem die Anwendung läuft.",
+        "hostname": "Hostname",
+        "ip": "IP-Adressen"
+      },
+      "stack": {
+        "title": "Stack",
+        "description": "Eingesetzte Layer, Module und Abhängigkeiten.",
+        "layers": "Feature-Layer",
+        "modules": "Nuxt-Module",
+        "dependencies": "Abhängigkeiten"
+      }
+    }
   }
 }
