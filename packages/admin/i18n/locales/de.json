@@ -63,7 +63,7 @@
   "dashboard": {
     "search": { "label": "Gehe zu", "placeholder": "Suchen…" },
     "appearance": { "light": "Hell", "dark": "Dunkel", "system": "System" },
-    "settings": { "title": "Einstellungen", "general": "Allgemein", "security": "Sicherheit" },
+    "settings": { "title": "Einstellungen", "general": "Allgemein", "sessions": "Sitzungen", "security": "Sicherheit" },
     "sidebar": { "label": "Seitenleiste" }
   }
 }
