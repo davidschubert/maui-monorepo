@@ -22,10 +22,29 @@ const state = reactive<ProfileInput>({
   avatarUrl: typeof auth.user?.prefs?.avatarUrl === 'string' ? auth.user.prefs.avatarUrl : '',
 })
 
+// Pending-Datei aus UserAvatarUpload — wird erst hier beim Speichern hochgeladen,
+// damit nie verwaiste Storage-Dateien aus nicht gespeicherten Auswahlen entstehen.
+const avatarFile = ref<File | null>(null)
+
 async function onSubmit(event: FormSubmitEvent<ProfileInput>) {
   loading.value = true
   try {
-    await $fetch('/api/auth/profile', { method: 'PUT', body: event.data })
+    let avatarUrl = event.data.avatarUrl ?? ''
+    if (avatarFile.value && avatarsBucket) {
+      try {
+        const { upload, fileUrl } = useStorage(avatarsBucket)
+        const uploaded = await upload(avatarFile.value)
+        avatarUrl = fileUrl(uploaded.$id, { width: 256, height: 256, quality: 85 })
+      }
+      catch {
+        toast.add({ title: t('profile.photoUploadFailed'), color: 'error' })
+        return
+      }
+    }
+
+    await $fetch('/api/auth/profile', { method: 'PUT', body: { ...event.data, avatarUrl } })
+    avatarFile.value = null
+    state.avatarUrl = avatarUrl
     await auth.refresh()
     toast.add({ title: t('profile.saved'), color: 'success' })
   }
@@ -46,7 +65,7 @@ async function onSubmit(event: FormSubmitEvent<ProfileInput>) {
 <template>
   <UForm :schema="schema" :validate-on="[]" :state="state" class="space-y-4" @submit="onSubmit">
     <UFormField v-if="hasBucket" name="avatarUrl">
-      <UserAvatarUpload v-model="state.avatarUrl" :name="state.name" :bucket-id="avatarsBucket" />
+      <UserAvatarUpload v-model="state.avatarUrl" v-model:file="avatarFile" :name="state.name" />
     </UFormField>
 
     <UFormField :label="t('auth.fields.name')" name="name" required>

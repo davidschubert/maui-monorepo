@@ -1,54 +1,42 @@
 <script setup lang="ts">
 /**
- * Avatar-Upload: Nuxt UI UFileUpload als Dropzone (Klick + Drag-&-Drop). Der
- * Avatar wird über den #leading-Slot eingesetzt — NICHT über den Default-Slot,
- * der sonst das klickbare base-Element samt open()/dropzoneRef ersetzen würde.
- * UFileUpload liefert nur die Datei (v-model); der Upload läuft über useStorage()
- * in den Appwrite-Bucket, gespeichert wird die optimierte Preview-URL (WebP 256²).
+ * Avatar-Auswahl (Nuxt UI UFileUpload, Klick + Drag-&-Drop). Lädt bewusst NICHT
+ * sofort hoch, sondern reicht die gewählte Datei via v-model:file ans Formular —
+ * hochgeladen wird erst beim Speichern. So entstehen keine verwaisten Storage-
+ * Dateien aus „ausgewählt, aber nie gespeichert". Vorschau läuft lokal über eine
+ * Object-URL; gespeichert wird weiterhin nur die optimierte Preview-URL (WebP).
  */
-const props = defineProps<{
-  /** aktuelle Avatar-URL (leer/undefined = Initialen-Fallback) */
-  modelValue?: string
-  /** für Initialen + alt-Text */
-  name?: string
-  /** Appwrite Storage Bucket */
-  bucketId: string
-}>()
+const avatarUrl = defineModel<string>({ default: '' })
+const file = defineModel<File | null>('file', { default: null })
 
-const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
+defineProps<{ name?: string }>()
 
 const { t } = useI18n()
 const toast = useToast()
 
 const MAX_BYTES = 5 * 1024 * 1024
-const file = ref<File | null>(null)
-const uploading = ref(false)
+const objectUrl = ref<string>()
 
-watch(file, async (selected) => {
-  if (!selected) return
-  if (selected.size > MAX_BYTES) {
+watch(file, (selected) => {
+  if (selected && selected.size > MAX_BYTES) {
     toast.add({ title: t('profile.photoTooLarge'), color: 'error' })
     file.value = null
     return
   }
-
-  uploading.value = true
-  try {
-    const { upload, fileUrl } = useStorage(props.bucketId)
-    const uploaded = await upload(selected)
-    emit('update:modelValue', fileUrl(uploaded.$id, { width: 256, height: 256, quality: 85 }))
-  }
-  catch {
-    toast.add({ title: t('profile.photoUploadFailed'), color: 'error' })
-  }
-  finally {
-    uploading.value = false
-    file.value = null
-  }
+  if (objectUrl.value) URL.revokeObjectURL(objectUrl.value)
+  objectUrl.value = selected ? URL.createObjectURL(selected) : undefined
 })
 
+onBeforeUnmount(() => {
+  if (objectUrl.value) URL.revokeObjectURL(objectUrl.value)
+})
+
+const previewSrc = computed(() => objectUrl.value || avatarUrl.value || undefined)
+const hasPhoto = computed(() => Boolean(objectUrl.value || avatarUrl.value))
+
 function removePhoto() {
-  emit('update:modelValue', '')
+  file.value = null
+  avatarUrl.value = ''
 }
 </script>
 
@@ -59,22 +47,16 @@ function removePhoto() {
       accept="image/png,image/jpeg,image/webp,image/gif"
       :label="t('profile.photoLabel')"
       :description="t('profile.photoHint')"
-      :interactive="!uploading"
       :preview="false"
       :ui="{ base: 'p-6', label: 'text-sm font-medium', description: 'text-xs' }"
     >
       <template #leading>
-        <div class="relative">
-          <UAvatar :src="modelValue || undefined" :alt="name" size="2xl" icon="i-ph-user" />
-          <div v-if="uploading" class="absolute inset-0 flex items-center justify-center rounded-full bg-black/45">
-            <UIcon name="i-ph-spinner" class="size-5 animate-spin text-white" />
-          </div>
-        </div>
+        <UAvatar :src="previewSrc" :alt="name" size="2xl" icon="i-ph-user" />
       </template>
     </UFileUpload>
 
     <UButton
-      v-if="modelValue"
+      v-if="hasPhoto"
       color="neutral"
       variant="link"
       size="xs"
