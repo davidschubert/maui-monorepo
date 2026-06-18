@@ -29,9 +29,11 @@ try {
   await storage.createBucket({
     bucketId: BUCKET_ID,
     name: 'Avatars',
-    // Öffentlich lesbar (Avatare werden überall angezeigt), Upload durch eingeloggte User
-    permissions: [Permission.read(Role.any()), Permission.create(Role.users())],
-    fileSecurity: false,
+    // Upload durch eingeloggte User. fileSecurity=true → die pro Datei gesetzten
+    // Rechte gelten (Upload-Route: read(any) + update/delete(owner)) → öffentlich
+    // sichtbar, aber nur der Besitzer kann ersetzen/löschen.
+    permissions: [Permission.create(Role.users())],
+    fileSecurity: true,
     enabled: true,
     maximumFileSize: 5 * 1024 * 1024,
     allowedFileExtensions: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
