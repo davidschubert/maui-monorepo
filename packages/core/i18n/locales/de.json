@@ -126,6 +126,24 @@
       "title": "Profil",
       "description": "Aktualisiere deinen Namen und dein Profil."
     },
+    "sessions": {
+      "title": "Sitzungen",
+      "description": "Geräte und Browser, die aktuell in deinem Account angemeldet sind.",
+      "client": "Client",
+      "location": "Standort",
+      "ip": "IP",
+      "clientOn": "{client} auf {os}",
+      "current": "Aktuelle Sitzung",
+      "unknown": "Unbekannt",
+      "signOut": "Abmelden",
+      "signOutAll": "Alle Sitzungen abmelden",
+      "signedOut": "Sitzung beendet.",
+      "signOutFailed": "Abmelden fehlgeschlagen — bitte erneut versuchen.",
+      "confirmAllTitle": "Alle Sitzungen abmelden?",
+      "confirmAllText": "Das beendet alle Sitzungen, auch diese — du wirst abgemeldet.",
+      "confirmAll": "Alle abmelden",
+      "cancel": "Abbrechen"
+    },
     "password": {
       "title": "Passwort ändern",
       "description": "Bestätige dein aktuelles Passwort, bevor du ein neues setzt.",

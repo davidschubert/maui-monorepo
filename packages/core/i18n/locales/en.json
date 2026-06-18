@@ -126,6 +126,24 @@
       "title": "Profile",
       "description": "Update your name and profile."
     },
+    "sessions": {
+      "title": "Sessions",
+      "description": "Devices and browsers currently signed in to your account.",
+      "client": "Client",
+      "location": "Location",
+      "ip": "IP",
+      "clientOn": "{client} on {os}",
+      "current": "current session",
+      "unknown": "Unknown",
+      "signOut": "Sign out",
+      "signOutAll": "Sign out all sessions",
+      "signedOut": "Session ended.",
+      "signOutFailed": "Could not sign out — please try again.",
+      "confirmAllTitle": "Sign out all sessions?",
+      "confirmAllText": "This ends every session, including this one — you will be signed out.",
+      "confirmAll": "Sign out all",
+      "cancel": "Cancel"
+    },
     "password": {
       "title": "Change password",
       "description": "Confirm your current password before setting a new one.",
