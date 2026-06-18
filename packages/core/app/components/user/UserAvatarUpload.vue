@@ -1,9 +1,10 @@
 <script setup lang="ts">
 /**
- * Avatar-Upload: runder Avatar als Drag-&-Drop-/Klick-Ziel (Nuxt UI UFileUpload).
- * UFileUpload liefert nur die ausgewählte Datei (v-model) — der eigentliche Upload
- * läuft über useStorage() in den Appwrite-Bucket; gespeichert wird die optimierte
- * Preview-URL (WebP, 256²) in modelValue.
+ * Avatar-Upload: Nuxt UI UFileUpload als Dropzone (Klick + Drag-&-Drop). Der
+ * Avatar wird über den #leading-Slot eingesetzt — NICHT über den Default-Slot,
+ * der sonst das klickbare base-Element samt open()/dropzoneRef ersetzen würde.
+ * UFileUpload liefert nur die Datei (v-model); der Upload läuft über useStorage()
+ * in den Appwrite-Bucket, gespeichert wird die optimierte Preview-URL (WebP 256²).
  */
 const props = defineProps<{
   /** aktuelle Avatar-URL (leer/undefined = Initialen-Fallback) */
@@ -35,7 +36,6 @@ watch(file, async (selected) => {
   try {
     const { upload, fileUrl } = useStorage(props.bucketId)
     const uploaded = await upload(selected)
-    // Optimierte, quadratische Preview-URL speichern (Display-Komponenten nutzen sie direkt)
     emit('update:modelValue', fileUrl(uploaded.$id, { width: 256, height: 256, quality: 85 }))
   }
   catch {
@@ -53,38 +53,36 @@ function removePhoto() {
 </script>
 
 <template>
-  <div class="flex items-center gap-4">
+  <div class="space-y-2">
     <UFileUpload
       v-model="file"
       accept="image/png,image/jpeg,image/webp,image/gif"
+      :label="t('profile.photoLabel')"
+      :description="t('profile.photoHint')"
       :interactive="!uploading"
       :preview="false"
-      :ui="{ root: 'rounded-full', base: 'rounded-full size-20 p-0 border-dashed' }"
+      :ui="{ base: 'p-6', label: 'text-sm font-medium', description: 'text-xs' }"
     >
-      <template #default>
-        <div class="group relative size-20 cursor-pointer">
-          <UAvatar :src="modelValue || undefined" :alt="name" icon="i-ph-user" class="size-20 text-2xl" />
-          <div class="absolute inset-0 flex items-center justify-center rounded-full bg-black/45 opacity-0 transition-opacity group-hover:opacity-100">
-            <UIcon :name="uploading ? 'i-ph-spinner' : 'i-ph-camera'" class="size-6 text-white" :class="{ 'animate-spin': uploading }" />
+      <template #leading>
+        <div class="relative">
+          <UAvatar :src="modelValue || undefined" :alt="name" size="2xl" icon="i-ph-user" />
+          <div v-if="uploading" class="absolute inset-0 flex items-center justify-center rounded-full bg-black/45">
+            <UIcon name="i-ph-spinner" class="size-5 animate-spin text-white" />
           </div>
         </div>
       </template>
     </UFileUpload>
 
-    <div class="flex flex-col gap-1">
-      <p class="text-sm font-medium">{{ t('profile.photoLabel') }}</p>
-      <p class="text-xs text-muted">{{ t('profile.photoHint') }}</p>
-      <UButton
-        v-if="modelValue"
-        color="neutral"
-        variant="link"
-        size="xs"
-        icon="i-ph-trash"
-        class="w-fit px-0"
-        @click="removePhoto"
-      >
-        {{ t('profile.photoRemove') }}
-      </UButton>
-    </div>
+    <UButton
+      v-if="modelValue"
+      color="neutral"
+      variant="link"
+      size="xs"
+      icon="i-ph-trash"
+      class="px-0"
+      @click="removePhoto"
+    >
+      {{ t('profile.photoRemove') }}
+    </UButton>
   </div>
 </template>
