@@ -2,6 +2,13 @@ import { AppwriteException } from 'node-appwrite'
 import { createSessionClient, createAdminClient } from '../../lib/appwrite'
 import { profileSchema } from '../../../schemas/profile'
 
+/** fileId aus einer Storage-Avatar-URL (/api/storage/<bucket>/<id>?…), sonst null */
+function avatarFileId(url: unknown, bucketId: string): string | null {
+  if (typeof url !== 'string' || !bucketId) return null
+  const match = url.match(/^\/api\/storage\/([^/]+)\/([^/?]+)/)
+  return match && match[1] === bucketId ? match[2]! : null
+}
+
 /**
  * Profil-Update: Name + prefs (bio/avatarUrl) als der User selbst (SessionClient).
  * Die Telefonnummer landet im NATIVEN Appwrite-Phone-Feld via Admin-API
@@ -36,13 +43,28 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  const nextAvatarUrl = avatarUrl ?? ''
   await account.updatePrefs({
     prefs: {
       ...event.context.user.prefs,
       bio: bio ?? '',
-      avatarUrl: avatarUrl ?? '',
+      avatarUrl: nextAvatarUrl,
     },
   })
+
+  // Vorheriges Avatar-File aufräumen, sobald die URL wechselt (kein Storage-Müll).
+  // Best-effort: läuft als der User (eigene update/delete-Rechte), Fehler ignorieren.
+  const bucketId = useRuntimeConfig(event).public.appwriteAvatarsBucket
+  const previousId = avatarFileId(event.context.user.prefs?.avatarUrl, bucketId)
+  if (previousId && previousId !== avatarFileId(nextAvatarUrl, bucketId)) {
+    const { storage } = createSessionClient(event)
+    try {
+      await storage.deleteFile({ bucketId, fileId: previousId })
+    }
+    catch {
+      // Datei evtl. schon weg / fremd — egal
+    }
+  }
 
   return { ok: true }
 })

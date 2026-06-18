@@ -22,37 +22,6 @@ const state = reactive<ProfileInput>({
   avatarUrl: typeof auth.user?.prefs?.avatarUrl === 'string' ? auth.user.prefs.avatarUrl : '',
 })
 
-const fileInput = ref<HTMLInputElement | null>(null)
-const uploading = ref(false)
-
-function pickPhoto() {
-  fileInput.value?.click()
-}
-
-async function onPhotoSelected(event: Event) {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  if (!file || !avatarsBucket) return
-
-  uploading.value = true
-  try {
-    const { upload, fileUrl } = useStorage(avatarsBucket)
-    const uploaded = await upload(file)
-    state.avatarUrl = fileUrl(uploaded.$id)
-  }
-  catch {
-    toast.add({ title: t('profile.photoUploadFailed'), color: 'error' })
-  }
-  finally {
-    uploading.value = false
-    input.value = '' // gleiche Datei erneut wählbar machen
-  }
-}
-
-function removePhoto() {
-  state.avatarUrl = ''
-}
-
 async function onSubmit(event: FormSubmitEvent<ProfileInput>) {
   loading.value = true
   try {
@@ -76,25 +45,8 @@ async function onSubmit(event: FormSubmitEvent<ProfileInput>) {
 
 <template>
   <UForm :schema="schema" :validate-on="[]" :state="state" class="space-y-4" @submit="onSubmit">
-    <UFormField v-if="hasBucket" :label="t('profile.photoLabel')" name="avatarUrl" :description="t('profile.photoHint')">
-      <div class="flex items-center gap-4">
-        <UAvatar :src="state.avatarUrl || undefined" :alt="state.name" size="2xl" icon="i-ph-user" />
-        <div class="flex flex-wrap gap-2">
-          <UButton color="neutral" variant="subtle" icon="i-ph-upload-simple" :loading="uploading" @click="pickPhoto">
-            {{ state.avatarUrl ? t('profile.photoChange') : t('profile.photoUpload') }}
-          </UButton>
-          <UButton v-if="state.avatarUrl" color="neutral" variant="ghost" icon="i-ph-trash" @click="removePhoto">
-            {{ t('profile.photoRemove') }}
-          </UButton>
-        </div>
-        <input
-          ref="fileInput"
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          class="hidden"
-          @change="onPhotoSelected"
-        >
-      </div>
+    <UFormField v-if="hasBucket" name="avatarUrl">
+      <UserAvatarUpload v-model="state.avatarUrl" :name="state.name" :bucket-id="avatarsBucket" />
     </UFormField>
 
     <UFormField :label="t('auth.fields.name')" name="name" required>

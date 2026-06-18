@@ -114,10 +114,9 @@
     "phoneDescription": "Optional. International format (e.g. +14155552671). Saved to your account.",
     "phoneTaken": "This phone number is already in use by another account.",
     "photoLabel": "Profile photo",
-    "photoUpload": "Upload photo",
-    "photoChange": "Change photo",
-    "photoRemove": "Remove",
-    "photoHint": "JPG, PNG, WebP or GIF, up to 5 MB.",
+    "photoRemove": "Remove photo",
+    "photoHint": "Drag & drop or click. JPG, PNG, WebP or GIF, up to 5 MB.",
+    "photoTooLarge": "Image is too large — max 5 MB.",
     "photoUploadFailed": "Photo upload failed — please try again.",
     "avatarLabel": "Avatar URL",
     "avatarPlaceholder": "https://…"

@@ -114,10 +114,9 @@
     "phoneDescription": "Optional. Internationales Format (z.B. +491701234567). Wird in deinem Account gespeichert.",
     "phoneTaken": "Diese Telefonnummer wird bereits von einem anderen Account verwendet.",
     "photoLabel": "Profilfoto",
-    "photoUpload": "Foto hochladen",
-    "photoChange": "Foto ändern",
-    "photoRemove": "Entfernen",
-    "photoHint": "JPG, PNG, WebP oder GIF, bis zu 5 MB.",
+    "photoRemove": "Foto entfernen",
+    "photoHint": "Ziehen & ablegen oder klicken. JPG, PNG, WebP oder GIF, bis zu 5 MB.",
+    "photoTooLarge": "Bild ist zu groß — max. 5 MB.",
     "photoUploadFailed": "Foto-Upload fehlgeschlagen — bitte erneut versuchen.",
     "avatarLabel": "Avatar-URL",
     "avatarPlaceholder": "https://…"
