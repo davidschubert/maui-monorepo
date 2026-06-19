@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { AdminUserDetailResponse, AdminUserSession } from '../../../../shared/types/admin'
+import type { AdminUserDetailResponse } from '../../../../shared/types/admin'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
 
 const route = useRoute()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const localePath = useLocalePath()
 const toast = useToast()
 const auth = useAuthStore()
@@ -22,6 +22,21 @@ const isAdmin = computed(() => user.value?.labels.includes('admin') ?? false)
 const pending = ref<{ type: 'block' | 'unblock' | 'sessions' | 'grant' | 'revoke' | 'delete' } | null>(null)
 const busy = ref(false)
 const exporting = ref(false)
+
+function exactDateTime(iso: string): string {
+  return new Date(iso).toLocaleString(locale.value, { dateStyle: 'medium', timeStyle: 'short' })
+}
+
+async function copyId() {
+  if (!user.value) return
+  try {
+    await navigator.clipboard.writeText(user.value.$id)
+    toast.add({ title: t('admin.users.detail.copied'), color: 'success' })
+  }
+  catch {
+    // Clipboard nicht verfügbar — still ignorieren
+  }
+}
 
 async function exportData() {
   if (!user.value) return
@@ -48,12 +63,6 @@ const confirmText = computed(() => {
   if (!pending.value || !user.value) return ''
   return t(`admin.users.confirm.${pending.value.type}`, { name: user.value.name })
 })
-
-function clientLabel(s: AdminUserSession): string {
-  const browser = [s.clientName, s.clientVersion].filter(Boolean).join(' ').trim()
-  const os = [s.osName, s.osVersion].filter(Boolean).join(' ').trim()
-  return [browser, os].filter(Boolean).join(' · ') || '—'
-}
 
 async function executePending() {
   if (!pending.value || !user.value) return
@@ -106,12 +115,7 @@ async function executePending() {
           <UDashboardSidebarCollapse />
         </template>
         <template #right>
-          <UButton
-            icon="i-ph-arrow-left"
-            color="neutral"
-            variant="ghost"
-            :to="localePath('/dashboard/users')"
-          >
+          <UButton icon="i-ph-arrow-left" color="neutral" variant="ghost" :to="localePath('/dashboard/users')">
             {{ t('admin.users.detail.back') }}
           </UButton>
         </template>
@@ -120,118 +124,132 @@ async function executePending() {
 
     <template #body>
       <div v-if="user" class="mx-auto flex w-full flex-col gap-4 sm:gap-6 lg:max-w-3xl lg:gap-8">
-        <!-- Profile -->
+        <!-- Identity -->
         <UPageCard variant="subtle">
-          <div class="flex flex-wrap items-center gap-4">
-            <UserAvatar :user="{ name: user.name, email: user.email, prefs: { avatarUrl: user.avatarUrl } }" size="2xl" />
+          <div class="flex flex-wrap items-center gap-5">
+            <UserAvatar :user="{ name: user.name, email: user.email, prefs: { avatarUrl: user.avatarUrl } }" size="3xl" />
             <div class="min-w-0 flex-1">
               <div class="flex flex-wrap items-center gap-2">
-                <h2 class="text-lg font-semibold">{{ user.name }}</h2>
+                <h2 class="text-xl font-semibold">{{ user.name }}</h2>
                 <UBadge :color="user.status ? 'success' : 'error'" variant="subtle" size="sm">
                   {{ user.status ? t('admin.users.active') : t('admin.users.blockedBadge') }}
                 </UBadge>
-                <UBadge v-for="label in user.labels" :key="label" color="neutral" variant="subtle" size="sm">{{ label }}</UBadge>
+                <UBadge v-for="label in user.labels" :key="label" color="primary" variant="subtle" size="sm">{{ label }}</UBadge>
               </div>
               <p class="truncate text-sm text-muted">{{ user.email }}</p>
             </div>
-            <div class="flex flex-wrap gap-2">
-              <UButton
-                v-if="user.status"
-                color="error" variant="subtle" size="sm" icon="i-ph-prohibit"
-                :disabled="isSelf"
-                @click="pending = { type: 'block' }"
-              >
-                {{ t('admin.users.block') }}
-              </UButton>
-              <UButton v-else color="success" variant="subtle" size="sm" icon="i-ph-lock-open" @click="pending = { type: 'unblock' }">
-                {{ t('admin.users.unblock') }}
-              </UButton>
-              <UButton color="neutral" variant="subtle" size="sm" icon="i-ph-sign-out" @click="pending = { type: 'sessions' }">
-                {{ t('admin.users.clearSessions') }}
-              </UButton>
-              <UButton
-                v-if="!isAdmin"
-                color="primary" variant="subtle" size="sm" icon="i-ph-shield-star"
-                @click="pending = { type: 'grant' }"
-              >
-                {{ t('admin.users.makeAdmin') }}
-              </UButton>
-              <UButton
-                v-else
-                color="warning" variant="subtle" size="sm" icon="i-ph-shield-slash"
-                :disabled="isSelf"
-                @click="pending = { type: 'revoke' }"
-              >
-                {{ t('admin.users.revokeAdmin') }}
-              </UButton>
-              <UButton color="neutral" variant="subtle" size="sm" icon="i-ph-download-simple" :loading="exporting" @click="exportData">
-                {{ t('admin.users.export') }}
-              </UButton>
-              <UButton
-                color="error" variant="subtle" size="sm" icon="i-ph-trash"
-                :disabled="isSelf"
-                @click="pending = { type: 'delete' }"
-              >
-                {{ t('admin.users.deleteUser') }}
-              </UButton>
-            </div>
           </div>
+        </UPageCard>
 
-          <USeparator class="my-4" />
-
-          <dl class="grid grid-cols-1 gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
-            <div class="flex items-center justify-between gap-4 border-b border-default/60 py-2">
+        <!-- Account Details -->
+        <UPageCard :title="t('admin.users.detail.accountDetails')" variant="subtle">
+          <dl class="text-sm">
+            <div class="flex items-center justify-between gap-4 border-b border-default/60 py-2.5">
+              <dt class="text-muted">{{ t('admin.users.status') }}</dt>
+              <dd>
+                <UBadge :color="user.status ? 'success' : 'error'" variant="subtle" size="sm">
+                  {{ user.status ? t('admin.users.active') : t('admin.users.blockedBadge') }}
+                </UBadge>
+              </dd>
+            </div>
+            <div class="flex items-center justify-between gap-4 border-b border-default/60 py-2.5">
+              <dt class="text-muted">{{ t('admin.users.detail.role') }}</dt>
+              <dd>
+                <UBadge v-if="isAdmin" color="primary" variant="subtle" size="sm">admin</UBadge>
+                <span v-else class="text-muted">{{ t('admin.users.detail.roleUser') }}</span>
+              </dd>
+            </div>
+            <div class="flex items-center justify-between gap-4 border-b border-default/60 py-2.5">
               <dt class="text-muted">{{ t('admin.users.email') }}</dt>
               <dd class="flex items-center gap-1.5">
                 <UIcon :name="user.emailVerification ? 'i-ph-seal-check' : 'i-ph-warning-circle'" :class="user.emailVerification ? 'text-success' : 'text-muted'" class="size-4" />
                 <span class="truncate">{{ user.email }}</span>
               </dd>
             </div>
-            <div class="flex items-center justify-between gap-4 border-b border-default/60 py-2">
+            <div class="flex items-center justify-between gap-4 border-b border-default/60 py-2.5">
               <dt class="text-muted">{{ t('admin.users.detail.phone') }}</dt>
               <dd class="flex items-center gap-1.5 font-mono">
                 <UIcon v-if="user.phone" :name="user.phoneVerification ? 'i-ph-seal-check' : 'i-ph-warning-circle'" :class="user.phoneVerification ? 'text-success' : 'text-muted'" class="size-4" />
                 {{ user.phone || '—' }}
               </dd>
             </div>
-            <div class="flex items-center justify-between gap-4 border-b border-default/60 py-2">
+            <div class="flex items-center justify-between gap-4 border-b border-default/60 py-2.5">
               <dt class="text-muted">{{ t('admin.users.joined') }}</dt>
-              <dd :title="formatDate(user.registration)">{{ formatRelativeTime(user.registration) }}</dd>
+              <dd>{{ formatRelativeTime(user.registration) }} <span class="text-muted">({{ exactDateTime(user.registration) }})</span></dd>
             </div>
-            <div class="flex items-center justify-between gap-4 border-b border-default/60 py-2">
+            <div class="flex items-center justify-between gap-4 border-b border-default/60 py-2.5">
               <dt class="text-muted">{{ t('admin.users.lastActivity') }}</dt>
-              <dd v-if="user.accessedAt" :title="formatDate(user.accessedAt)">{{ formatRelativeTime(user.accessedAt) }}</dd>
+              <dd v-if="user.accessedAt">{{ formatRelativeTime(user.accessedAt) }} <span class="text-muted">({{ exactDateTime(user.accessedAt) }})</span></dd>
               <dd v-else class="text-muted">—</dd>
             </div>
-            <div class="flex items-center justify-between gap-4 py-2 sm:col-span-2">
+            <div class="flex items-center justify-between gap-4 border-b border-default/60 py-2.5">
               <dt class="text-muted">{{ t('admin.users.detail.userId') }}</dt>
-              <dd class="font-mono text-muted">{{ user.$id }}</dd>
+              <dd class="flex items-center gap-1.5">
+                <span class="font-mono text-muted">{{ user.$id }}</span>
+                <UButton icon="i-ph-copy" color="neutral" variant="ghost" size="xs" :aria-label="t('admin.users.detail.copy')" @click="copyId" />
+              </dd>
+            </div>
+            <div class="flex items-start justify-between gap-4 py-2.5">
+              <dt class="shrink-0 text-muted">{{ t('admin.users.detail.bio') }}</dt>
+              <dd class="text-right">{{ user.bio || '—' }}</dd>
             </div>
           </dl>
+        </UPageCard>
 
-          <div v-if="user.bio" class="mt-2">
-            <p class="text-sm text-muted">{{ t('admin.users.detail.bio') }}</p>
-            <p class="text-sm">{{ user.bio }}</p>
+        <!-- Account actions -->
+        <UPageCard :title="t('admin.users.detail.actions.title')" variant="subtle">
+          <div class="text-sm">
+            <div class="flex items-center justify-between gap-4 border-b border-default/60 py-3">
+              <p>{{ user.status ? t('admin.users.detail.actions.block') : t('admin.users.detail.actions.unblock') }}</p>
+              <UButton
+                v-if="user.status"
+                color="error" variant="subtle" icon="i-ph-prohibit" :disabled="isSelf"
+                @click="pending = { type: 'block' }"
+              >
+                {{ t('admin.users.block') }}
+              </UButton>
+              <UButton v-else color="success" variant="subtle" icon="i-ph-lock-open" @click="pending = { type: 'unblock' }">
+                {{ t('admin.users.unblock') }}
+              </UButton>
+            </div>
+            <div class="flex items-center justify-between gap-4 border-b border-default/60 py-3">
+              <p>{{ t('admin.users.detail.actions.sessions') }}</p>
+              <UButton color="neutral" variant="subtle" icon="i-ph-sign-out" @click="pending = { type: 'sessions' }">
+                {{ t('admin.users.clearSessions') }}
+              </UButton>
+            </div>
+            <div class="flex items-center justify-between gap-4 border-b border-default/60 py-3">
+              <p>{{ isAdmin ? t('admin.users.detail.actions.revoke') : t('admin.users.detail.actions.grant') }}</p>
+              <UButton
+                v-if="!isAdmin"
+                color="primary" variant="subtle" icon="i-ph-shield-star"
+                @click="pending = { type: 'grant' }"
+              >
+                {{ t('admin.users.makeAdmin') }}
+              </UButton>
+              <UButton v-else color="warning" variant="subtle" icon="i-ph-shield-slash" :disabled="isSelf" @click="pending = { type: 'revoke' }">
+                {{ t('admin.users.revokeAdmin') }}
+              </UButton>
+            </div>
+            <div class="flex items-center justify-between gap-4 border-b border-default/60 py-3">
+              <p>{{ t('admin.users.detail.actions.export') }}</p>
+              <UButton color="neutral" variant="subtle" icon="i-ph-download-simple" :loading="exporting" @click="exportData">
+                {{ t('admin.users.export') }}
+              </UButton>
+            </div>
+            <div class="flex items-center justify-between gap-4 py-3">
+              <p>{{ t('admin.users.detail.actions.delete') }}</p>
+              <UButton color="error" variant="subtle" icon="i-ph-trash" :disabled="isSelf" @click="pending = { type: 'delete' }">
+                {{ t('admin.users.deleteUser') }}
+              </UButton>
+            </div>
           </div>
         </UPageCard>
 
         <!-- Sessions -->
         <UPageCard :title="t('admin.users.detail.sessions')" variant="subtle">
-          <div v-if="(data?.sessions.length ?? 0) === 0" class="text-sm text-muted">{{ t('admin.users.detail.noSessions') }}</div>
-          <dl v-else class="text-sm">
-            <div
-              v-for="session in data?.sessions"
-              :key="session.$id"
-              class="flex flex-wrap items-center justify-between gap-2 border-b border-default/60 py-2 last:border-0"
-            >
-              <div class="flex items-center gap-2">
-                <UIcon name="i-ph-desktop" class="size-4 shrink-0 text-muted" />
-                <span>{{ clientLabel(session) }}</span>
-                <UBadge v-if="session.current" color="success" variant="subtle" size="sm">{{ t('admin.users.detail.current') }}</UBadge>
-              </div>
-              <span class="font-mono text-muted">{{ session.ip || '—' }}<template v-if="session.countryName"> · {{ session.countryName }}</template></span>
-            </div>
-          </dl>
+          <p v-if="(data?.sessions.length ?? 0) === 0" class="text-sm text-muted">{{ t('admin.users.detail.noSessions') }}</p>
+          <SessionsTable v-else :sessions="data?.sessions ?? []" />
         </UPageCard>
 
         <!-- Comments -->
@@ -240,14 +258,14 @@ async function executePending() {
             <h3 class="font-semibold">{{ t('admin.users.detail.comments') }}</h3>
             <UBadge color="neutral" variant="subtle">{{ t('admin.users.detail.commentsTotal', { count: data?.commentsTotal ?? 0 }) }}</UBadge>
           </div>
-          <div v-if="(data?.comments.length ?? 0) === 0" class="text-sm text-muted">{{ t('admin.users.detail.noComments') }}</div>
+          <p v-if="(data?.comments.length ?? 0) === 0" class="text-sm text-muted">{{ t('admin.users.detail.noComments') }}</p>
           <ul v-else class="space-y-3">
             <li v-for="comment in data?.comments" :key="comment.$id" class="border-b border-default/60 pb-3 text-sm last:border-0 last:pb-0">
               <div class="mb-1 flex items-center gap-2">
                 <UBadge :color="comment.status === 'active' ? 'success' : comment.status === 'reported' ? 'warning' : 'neutral'" variant="subtle" size="sm">
                   {{ t(`admin.moderation.status.${comment.status}`) }}
                 </UBadge>
-                <span class="text-xs text-muted" :title="formatDate(comment.$createdAt)">{{ formatRelativeTime(comment.$createdAt) }}</span>
+                <span class="text-xs text-muted">{{ formatRelativeTime(comment.$createdAt) }}</span>
               </div>
               <p class="line-clamp-3 whitespace-pre-wrap">{{ comment.content }}</p>
             </li>

@@ -54,6 +54,7 @@ export default defineEventHandler(async (event): Promise<AdminUserDetailResponse
     sessions: sessions.sessions.map(s => ({
       $id: s.$id,
       $createdAt: s.$createdAt,
+      $updatedAt: s.$updatedAt,
       provider: s.provider,
       ip: s.ip,
       clientName: s.clientName,

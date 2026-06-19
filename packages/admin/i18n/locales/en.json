@@ -114,21 +114,29 @@
       "lastActivity": "Last activity",
       "detail": {
         "back": "Users",
-        "profile": "Profile",
+        "accountDetails": "Account details",
         "phone": "Phone",
         "bio": "Bio",
-        "registered": "Registered",
-        "emailVerified": "Email verified",
-        "phoneVerified": "Phone verified",
+        "role": "Role",
+        "roleUser": "Standard",
         "userId": "User ID",
+        "copy": "Copy ID",
+        "copied": "User ID copied.",
         "sessions": "Active sessions",
         "noSessions": "No active sessions.",
         "comments": "Recent comments",
         "commentsTotal": "{count} total",
         "noComments": "No comments yet.",
-        "current": "current",
-        "yes": "Yes",
-        "no": "No"
+        "actions": {
+          "title": "Account",
+          "block": "Block this user from signing in.",
+          "unblock": "Allow this user to sign in again.",
+          "sessions": "End all active sessions of this user.",
+          "grant": "Give this user admin access to the dashboard.",
+          "revoke": "Remove this user's admin access.",
+          "export": "Download all of this user's data as JSON.",
+          "delete": "Permanently delete this account."
+        }
       }
     },
     "moderation": {

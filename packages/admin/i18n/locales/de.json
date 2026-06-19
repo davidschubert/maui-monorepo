@@ -114,21 +114,29 @@
       "lastActivity": "Letzte Aktivität",
       "detail": {
         "back": "Benutzer",
-        "profile": "Profil",
+        "accountDetails": "Account-Details",
         "phone": "Telefon",
         "bio": "Bio",
-        "registered": "Registriert",
-        "emailVerified": "E-Mail verifiziert",
-        "phoneVerified": "Telefon verifiziert",
+        "role": "Rolle",
+        "roleUser": "Standard",
         "userId": "Benutzer-ID",
+        "copy": "ID kopieren",
+        "copied": "Benutzer-ID kopiert.",
         "sessions": "Aktive Sitzungen",
         "noSessions": "Keine aktiven Sitzungen.",
         "comments": "Letzte Kommentare",
         "commentsTotal": "{count} gesamt",
         "noComments": "Noch keine Kommentare.",
-        "current": "aktuell",
-        "yes": "Ja",
-        "no": "Nein"
+        "actions": {
+          "title": "Account",
+          "block": "Diesen Benutzer von der Anmeldung sperren.",
+          "unblock": "Diesem Benutzer die Anmeldung wieder erlauben.",
+          "sessions": "Alle aktiven Sitzungen dieses Benutzers beenden.",
+          "grant": "Diesem Benutzer Admin-Zugriff aufs Dashboard geben.",
+          "revoke": "Diesem Benutzer den Admin-Zugriff entziehen.",
+          "export": "Alle Daten dieses Benutzers als JSON herunterladen.",
+          "delete": "Diesen Account endgültig löschen."
+        }
       }
     },
     "moderation": {

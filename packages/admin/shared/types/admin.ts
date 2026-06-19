@@ -21,6 +21,7 @@ export interface AdminUserListResponse {
 export interface AdminUserSession {
   $id: string
   $createdAt: string
+  $updatedAt: string
   provider: string
   ip: string
   clientName: string
