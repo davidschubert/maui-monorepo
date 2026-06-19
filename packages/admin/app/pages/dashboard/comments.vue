@@ -6,6 +6,8 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
 const { t } = useI18n()
 const toast = useToast()
 const route = useRoute()
+const localePath = useLocalePath()
+const { user: me } = useCurrentUser()
 
 const FILTERS: ModerationFilter[] = ['reported', 'hidden', 'all']
 
@@ -31,21 +33,41 @@ function setFilter(value: ModerationFilter) {
   setPage(1)
 }
 
-const pending = ref<{ status: 'hidden' | 'active', comment: ModeratedComment } | null>(null)
+type PendingAction =
+  | { action: 'hidden' | 'active', comment: ModeratedComment }
+  | { action: 'block', comment: ModeratedComment }
+
+const pending = ref<PendingAction | null>(null)
 const busy = ref(false)
+
+const confirmText = computed(() => {
+  if (!pending.value) return ''
+  const name = pending.value.comment.authorName
+  if (pending.value.action === 'block') return t('admin.users.confirm.block', { name })
+  return t(pending.value.action === 'hidden' ? 'admin.moderation.confirmHide' : 'admin.moderation.confirmRestore', { name })
+})
 
 async function executePending() {
   if (!pending.value) return
   busy.value = true
   try {
-    await $fetch(`/api/admin/comments/${pending.value.comment.$id}/status`, {
-      method: 'PATCH',
-      body: { status: pending.value.status },
-    })
-    toast.add({
-      title: t(pending.value.status === 'hidden' ? 'admin.moderation.hidden' : 'admin.moderation.restored'),
-      color: 'success',
-    })
+    if (pending.value.action === 'block') {
+      await $fetch(`/api/admin/users/${pending.value.comment.authorId}/status`, {
+        method: 'PATCH',
+        body: { blocked: true },
+      })
+      toast.add({ title: t('admin.users.blocked'), color: 'success' })
+    }
+    else {
+      await $fetch(`/api/admin/comments/${pending.value.comment.$id}/status`, {
+        method: 'PATCH',
+        body: { status: pending.value.action },
+      })
+      toast.add({
+        title: t(pending.value.action === 'hidden' ? 'admin.moderation.hidden' : 'admin.moderation.restored'),
+        color: 'success',
+      })
+    }
     pending.value = null
     await refresh()
   }
@@ -94,8 +116,10 @@ async function executePending() {
         class="rounded-lg border border-default p-4"
         :data-moderation-id="comment.$id"
       >
-        <div class="flex items-center gap-2 text-xs text-muted">
-          <span class="font-medium text-default">{{ comment.authorName }}</span>
+        <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
+          <ULink :to="localePath(`/dashboard/users/${comment.authorId}`)" class="font-medium text-default hover:text-primary hover:underline">
+            {{ comment.authorName }}
+          </ULink>
           <span>·</span>
           <span>{{ comment.targetType }}/{{ comment.targetId }}</span>
           <span>·</span>
@@ -111,20 +135,27 @@ async function executePending() {
 
         <p class="mt-2 whitespace-pre-line text-sm">{{ comment.content }}</p>
 
-        <div class="mt-3 flex gap-2">
+        <div class="mt-3 flex flex-wrap gap-2">
           <UButton
             v-if="comment.status !== 'hidden' && comment.status !== 'deleted'"
             size="xs" color="error" variant="ghost" icon="i-ph-eye-slash"
-            @click="pending = { status: 'hidden', comment }"
+            @click="pending = { action: 'hidden', comment }"
           >
             {{ t('admin.moderation.hide') }}
           </UButton>
           <UButton
             v-if="comment.status !== 'active' && comment.status !== 'deleted'"
             size="xs" color="success" variant="ghost" icon="i-ph-eye"
-            @click="pending = { status: 'active', comment }"
+            @click="pending = { action: 'active', comment }"
           >
             {{ t('admin.moderation.restore') }}
+          </UButton>
+          <UButton
+            size="xs" color="error" variant="ghost" icon="i-ph-prohibit"
+            :disabled="comment.authorId === me?.$id"
+            @click="pending = { action: 'block', comment }"
+          >
+            {{ t('admin.moderation.blockAuthor') }}
           </UButton>
           <span v-if="comment.status === 'deleted'" class="text-xs italic text-muted">
             {{ t('admin.moderation.notModeratable') }}
@@ -143,14 +174,12 @@ async function executePending() {
 
     <UModal :open="pending !== null" :title="t('admin.users.confirmTitle')" @update:open="(value: boolean) => { if (!value) pending = null }">
       <template #body>
-        <p class="text-sm">
-          {{ t(pending?.status === 'hidden' ? 'admin.moderation.confirmHide' : 'admin.moderation.confirmRestore', { name: pending?.comment.authorName ?? '' }) }}
-        </p>
+        <p class="text-sm">{{ confirmText }}</p>
       </template>
       <template #footer>
         <div class="flex w-full justify-end gap-2">
           <UButton color="neutral" variant="ghost" @click="pending = null">{{ t('comments.item.cancel') }}</UButton>
-          <UButton :color="pending?.status === 'hidden' ? 'error' : 'primary'" :loading="busy" @click="executePending">
+          <UButton :color="pending?.action === 'active' ? 'primary' : 'error'" :loading="busy" @click="executePending">
             {{ t('admin.users.confirmAction') }}
           </UButton>
         </div>

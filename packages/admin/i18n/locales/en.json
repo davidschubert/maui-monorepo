@@ -72,6 +72,7 @@
       "empty": "No comments in this view.",
       "hide": "Hide",
       "restore": "Restore",
+      "blockAuthor": "Block author",
       "hidden": "Comment hidden.",
       "restored": "Comment restored.",
       "notModeratable": "Deleted by the author — not moderatable.",
