@@ -153,6 +153,12 @@
       "success": "Passwort aktualisiert.",
       "failed": "Passwort-Änderung fehlgeschlagen — stimmt das aktuelle Passwort?"
     },
+    "export": {
+      "title": "Deine Daten exportieren",
+      "description": "Lade eine JSON-Kopie deines Accounts, deiner Sitzungen und Kommentare herunter.",
+      "button": "Daten exportieren",
+      "failed": "Export fehlgeschlagen — bitte erneut versuchen."
+    },
     "delete": {
       "title": "Account löschen",
       "description": "Du möchtest deinen Account nicht mehr nutzen? Du kannst ihn hier löschen. Diese Aktion ist nicht umkehrbar — alle zugehörigen Daten werden dauerhaft entfernt.",

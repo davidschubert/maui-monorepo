@@ -153,6 +153,12 @@
       "success": "Password updated.",
       "failed": "Password change failed — is the current password correct?"
     },
+    "export": {
+      "title": "Export your data",
+      "description": "Download a JSON copy of your account, sessions and comments.",
+      "button": "Export data",
+      "failed": "Export failed — please try again."
+    },
     "delete": {
       "title": "Delete account",
       "description": "No longer want to use your account? You can delete it here. This action is not reversible — all related data will be permanently removed.",
