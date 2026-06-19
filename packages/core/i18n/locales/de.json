@@ -165,6 +165,11 @@
       "failed": "Löschen fehlgeschlagen — bitte erneut versuchen."
     }
   },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "empty": "Alles gelesen.",
+    "replied": "hat auf deinen Kommentar geantwortet"
+  },
   "error": {
     "notFound": "Diese Seite existiert nicht.",
     "generic": "Da ist etwas schiefgelaufen.",
