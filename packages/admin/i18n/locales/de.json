@@ -4,7 +4,23 @@
       "overview": "Übersicht",
       "users": "Benutzer",
       "comments": "Kommentare",
-      "system": "System"
+      "system": "System",
+      "audit": "Audit-Log"
+    },
+    "audit": {
+      "title": "Audit-Log",
+      "empty": "Noch keine Admin-Aktivität aufgezeichnet.",
+      "action": {
+        "user": {
+          "block": "hat einen Benutzer gesperrt",
+          "unblock": "hat einen Benutzer entsperrt",
+          "sessions_cleared": "hat die Sitzungen eines Benutzers beendet"
+        },
+        "comment": {
+          "hidden": "hat einen Kommentar ausgeblendet",
+          "restored": "hat einen Kommentar wiederhergestellt"
+        }
+      }
     },
     "stats": {
       "users": "Registrierte Benutzer",

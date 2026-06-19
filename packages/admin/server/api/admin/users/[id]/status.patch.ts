@@ -21,5 +21,12 @@ export default defineEventHandler(async (event) => {
   // Appwrite-Semantik: status true = aktiv, false = blockiert
   const updated = await admin.users.updateStatus({ userId, status: !blocked })
 
+  await recordAudit(event, {
+    action: blocked ? 'user.block' : 'user.unblock',
+    targetType: 'user',
+    targetId: updated.$id,
+    targetName: updated.name,
+  })
+
   return { $id: updated.$id, status: updated.status }
 })

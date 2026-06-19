@@ -53,6 +53,24 @@ export interface AdminStats {
   commentsReported: number
 }
 
+/** Ein protokollierter Admin-Vorgang */
+export interface AuditLogEntry {
+  $id: string
+  $createdAt: string
+  actorId: string
+  actorName: string
+  action: string
+  targetType: string
+  targetId: string
+  targetName: string
+  metadata: string
+}
+
+export interface AuditLogListResponse {
+  total: number
+  entries: AuditLogEntry[]
+}
+
 /** Status-Filter der Moderations-Liste */
 export type ModerationFilter = 'reported' | 'hidden' | 'all'
 

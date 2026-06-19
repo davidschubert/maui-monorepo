@@ -4,7 +4,23 @@
       "overview": "Overview",
       "users": "Users",
       "comments": "Comments",
-      "system": "System"
+      "system": "System",
+      "audit": "Audit log"
+    },
+    "audit": {
+      "title": "Audit log",
+      "empty": "No admin activity recorded yet.",
+      "action": {
+        "user": {
+          "block": "blocked a user",
+          "unblock": "unblocked a user",
+          "sessions_cleared": "ended a user's sessions"
+        },
+        "comment": {
+          "hidden": "hid a comment",
+          "restored": "restored a comment"
+        }
+      }
     },
     "stats": {
       "users": "Registered users",

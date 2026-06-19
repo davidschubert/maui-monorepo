@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
   const admin = createAdminClient(event)
   const databaseId = config.public.appwriteDatabaseId
 
-  const row = await admin.tablesDB.getRow<Models.Row & { status: string }>({
+  const row = await admin.tablesDB.getRow<Models.Row & { status: string, authorName: string }>({
     databaseId,
     tableId: 'comments',
     rowId: commentId,
@@ -36,6 +36,13 @@ export default defineEventHandler(async (event) => {
     tableId: 'comments',
     rowId: commentId,
     data: { status },
+  })
+
+  await recordAudit(event, {
+    action: status === 'hidden' ? 'comment.hidden' : 'comment.restored',
+    targetType: 'comment',
+    targetId: updated.$id,
+    targetName: row.authorName,
   })
 
   return { $id: updated.$id, status: updated.status }
