@@ -13,6 +13,7 @@ const { isLoggedIn } = useCurrentUser()
         <NuxtLink :to="localePath('/')" class="font-bold tracking-tight">Maui</NuxtLink>
         <div class="flex items-center gap-2">
           <DisplaySettingsMenu />
+          <NotificationBell v-if="isLoggedIn" />
           <UserMenu v-if="isLoggedIn" />
           <UButton v-else :to="localePath('/login')" color="neutral" variant="ghost">{{ t('auth.login.title') }}</UButton>
         </div>

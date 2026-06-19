@@ -40,6 +40,41 @@ export default defineEventHandler(async (event) => {
     ],
   })
 
+  // Antwort auf einen Kommentar → den Autor des Eltern-Kommentars benachrichtigen
+  if (body.parentId) {
+    try {
+      const parent = await tablesDB.getRow<Comment>({
+        databaseId: config.public.appwriteDatabaseId,
+        tableId: COMMENTS_TABLE,
+        rowId: body.parentId,
+      })
+      if (parent.authorId && parent.authorId !== user.$id) {
+        const admin = createAdminClient(event)
+        const snippet = body.content.length > 140 ? `${body.content.slice(0, 140)}…` : body.content
+        await admin.tablesDB.createRow({
+          databaseId: config.public.appwriteDatabaseId,
+          tableId: 'notifications',
+          rowId: ID.unique(),
+          data: {
+            recipientId: parent.authorId,
+            type: 'reply',
+            title: user.name,
+            body: snippet,
+            link: '/',
+            read: false,
+          },
+          permissions: [
+            Permission.read(Role.user(parent.authorId)),
+            Permission.update(Role.user(parent.authorId)),
+          ],
+        })
+      }
+    }
+    catch {
+      // Benachrichtigung ist best effort — Kommentar wurde bereits erstellt
+    }
+  }
+
   setResponseStatus(event, 201)
   return row
 })
