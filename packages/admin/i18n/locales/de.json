@@ -7,6 +7,12 @@
       "system": "System",
       "audit": "Audit-Log"
     },
+    "analytics": {
+      "title": "Aktivität",
+      "subtitle": "Letzte {days} Tage",
+      "users": "Registrierungen",
+      "comments": "Kommentare"
+    },
     "audit": {
       "title": "Audit-Log",
       "empty": "Noch keine Admin-Aktivität aufgezeichnet.",

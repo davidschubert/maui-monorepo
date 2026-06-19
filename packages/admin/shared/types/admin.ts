@@ -53,6 +53,20 @@ export interface AdminStats {
   commentsReported: number
 }
 
+/** Ein Tag in der Analytics-Zeitreihe */
+export interface AnalyticsPoint {
+  date: string
+  users: number
+  comments: number
+}
+
+export interface AdminAnalytics {
+  rangeDays: number
+  points: AnalyticsPoint[]
+  usersInRange: number
+  commentsInRange: number
+}
+
 /** Ein protokollierter Admin-Vorgang */
 export interface AuditLogEntry {
   $id: string
