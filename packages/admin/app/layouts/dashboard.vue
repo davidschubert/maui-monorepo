@@ -21,15 +21,21 @@ const sidebarClass = computed(() => {
   }
 })
 
+const close = () => { open.value = false }
+
+// Hauptnavigation oben
 const links = computed<NavigationMenuItem[]>(() => [
-  { label: t('admin.nav.overview'), icon: 'i-ph-gauge', to: localePath('/dashboard'), exact: true, onSelect: () => { open.value = false } },
-  { label: t('admin.nav.users'), icon: 'i-ph-users', to: localePath('/dashboard/users'), onSelect: () => { open.value = false } },
-  { label: t('admin.nav.comments'), icon: 'i-ph-chat-circle', to: localePath('/dashboard/comments'), onSelect: () => { open.value = false } },
-  { label: t('admin.nav.config'), icon: 'i-ph-toggle-left', to: localePath('/dashboard/config'), onSelect: () => { open.value = false } },
-  { label: t('dashboard.settings.title'), icon: 'i-ph-gear', to: localePath('/dashboard/settings'), onSelect: () => { open.value = false } },
-  { label: t('admin.nav.storage'), icon: 'i-ph-folder', to: localePath('/dashboard/storage'), onSelect: () => { open.value = false } },
-  { label: t('admin.nav.system'), icon: 'i-ph-pulse', to: localePath('/dashboard/system'), onSelect: () => { open.value = false } },
-  { label: t('admin.nav.audit'), icon: 'i-ph-scroll', to: localePath('/dashboard/audit'), onSelect: () => { open.value = false } },
+  { label: t('admin.nav.overview'), icon: 'i-ph-gauge', to: localePath('/dashboard'), exact: true, onSelect: close },
+  { label: t('admin.nav.users'), icon: 'i-ph-users', to: localePath('/dashboard/users'), onSelect: close },
+  { label: t('admin.nav.comments'), icon: 'i-ph-chat-circle', to: localePath('/dashboard/comments'), onSelect: close },
+  { label: t('admin.nav.storage'), icon: 'i-ph-folder', to: localePath('/dashboard/storage'), onSelect: close },
+  { label: t('dashboard.settings.title'), icon: 'i-ph-gear', to: localePath('/dashboard/settings'), onSelect: close },
+])
+
+// Admin/System unten — knapp über dem User-Menü
+const bottomLinks = computed<NavigationMenuItem[]>(() => [
+  { label: t('admin.nav.admin'), icon: 'i-ph-shield-check', to: localePath('/dashboard/admin'), onSelect: close },
+  { label: t('admin.nav.system'), icon: 'i-ph-pulse', to: localePath('/dashboard/system'), onSelect: close },
 ])
 
 // Globale Suche: Tippen fragt serverseitig User + Kommentare ab (debounced).
@@ -93,7 +99,7 @@ const searchGroups = computed(() => {
   const navGroup: PaletteGroup = {
     id: 'links',
     label: t('dashboard.search.label'),
-    items: links.value.map(link => ({ label: String(link.label), icon: link.icon, to: String(link.to) })),
+    items: [...links.value, ...bottomLinks.value].map(link => ({ label: String(link.label), icon: link.icon, to: String(link.to) })),
   }
   return [navGroup, ...searchResults.value] as unknown as CommandPaletteGroup<CommandPaletteItem>[]
 })
@@ -116,6 +122,8 @@ const searchGroups = computed(() => {
       <template #default="{ collapsed }">
         <UDashboardSearchButton :collapsed="collapsed" class="bg-transparent ring-default" />
         <UNavigationMenu :collapsed="collapsed" :items="links" orientation="vertical" tooltip popover />
+        <div class="flex-1" />
+        <UNavigationMenu :collapsed="collapsed" :items="bottomLinks" orientation="vertical" tooltip popover />
       </template>
 
       <template #footer="{ collapsed }">

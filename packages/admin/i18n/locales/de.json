@@ -7,6 +7,7 @@
       "config": "Konfiguration",
       "storage": "Speicher",
       "system": "System",
+      "admin": "Admin",
       "audit": "Aktivitätsprotokoll"
     },
     "config": {
@@ -46,7 +47,7 @@
     "audit": {
       "title": "Aktivitätsprotokoll",
       "empty": "Noch keine Admin-Aktivität aufgezeichnet.",
-      "col": { "user": "Benutzer", "event": "Ereignis", "ip": "IP", "date": "Datum" },
+      "col": { "user": "Admin", "event": "Ereignis", "ip": "IP", "date": "Datum" },
       "action": {
         "user": {
           "block": "hat {name} gesperrt",

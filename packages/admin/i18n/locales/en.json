@@ -7,6 +7,7 @@
       "config": "Configuration",
       "storage": "Storage",
       "system": "System",
+      "admin": "Admin",
       "audit": "Activity log"
     },
     "config": {
@@ -46,7 +47,7 @@
     "audit": {
       "title": "Activity log",
       "empty": "No admin activity recorded yet.",
-      "col": { "user": "User", "event": "Event", "ip": "IP", "date": "Date" },
+      "col": { "user": "Admin", "event": "Event", "ip": "IP", "date": "Date" },
       "action": {
         "user": {
           "block": "blocked {name}",
