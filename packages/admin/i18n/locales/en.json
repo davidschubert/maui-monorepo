@@ -4,9 +4,22 @@
       "overview": "Overview",
       "users": "Users",
       "comments": "Comments",
+      "config": "Configuration",
       "storage": "Storage",
       "system": "System",
       "audit": "Audit log"
+    },
+    "config": {
+      "title": "Configuration",
+      "description": "Runtime feature flags — take effect immediately, no deploy.",
+      "registrationEnabled": "Registration open",
+      "registrationEnabledDesc": "Allow new accounts to be created.",
+      "commentsEnabled": "Comments enabled",
+      "commentsEnabledDesc": "Allow users to post new comments.",
+      "maintenanceMode": "Maintenance mode",
+      "maintenanceModeDesc": "Freeze writes — blocks new signups and comments.",
+      "save": "Save",
+      "saved": "Configuration saved."
     },
     "storage": {
       "title": "Storage",
@@ -47,6 +60,9 @@
         },
         "storage": {
           "file_deleted": "deleted a storage file"
+        },
+        "config": {
+          "updated": "updated the configuration"
         }
       }
     },

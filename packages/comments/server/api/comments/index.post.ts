@@ -8,6 +8,11 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 401, statusText: 'Unauthorized' })
   }
 
+  const appConfig = await getAppConfig(event)
+  if (!appConfig.commentsEnabled || appConfig.maintenanceMode) {
+    throw createError({ status: 403, statusText: 'Commenting is currently disabled' })
+  }
+
   const body = await readValidatedBody(event, commentSchema.parse)
   const config = useRuntimeConfig(event)
   const { tablesDB } = createSessionClient(event)

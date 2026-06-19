@@ -4,9 +4,22 @@
       "overview": "Übersicht",
       "users": "Benutzer",
       "comments": "Kommentare",
+      "config": "Konfiguration",
       "storage": "Speicher",
       "system": "System",
       "audit": "Audit-Log"
+    },
+    "config": {
+      "title": "Konfiguration",
+      "description": "Laufzeit-Feature-Flags — wirken sofort, ohne Deploy.",
+      "registrationEnabled": "Registrierung offen",
+      "registrationEnabledDesc": "Erlaubt das Anlegen neuer Accounts.",
+      "commentsEnabled": "Kommentare aktiv",
+      "commentsEnabledDesc": "Erlaubt Usern, neue Kommentare zu posten.",
+      "maintenanceMode": "Wartungsmodus",
+      "maintenanceModeDesc": "Friert Schreibvorgänge ein — blockiert Registrierung und Kommentare.",
+      "save": "Speichern",
+      "saved": "Konfiguration gespeichert."
     },
     "storage": {
       "title": "Speicher",
@@ -47,6 +60,9 @@
         },
         "storage": {
           "file_deleted": "hat eine Speicherdatei gelöscht"
+        },
+        "config": {
+          "updated": "hat die Konfiguration geändert"
         }
       }
     },
