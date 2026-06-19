@@ -144,7 +144,9 @@
           "export": "Alle Daten dieses Benutzers als JSON herunterladen.",
           "delete": "Diesen Account endgültig löschen."
         }
-      }
+      },
+      "verifiedEmail": "E-Mail",
+      "verifiedPhone": "Telefon"
     },
     "moderation": {
       "filter": {

@@ -6,13 +6,16 @@ const PAGE_SIZE = 25
 
 /** Auf sichere Felder reduzieren — Server-User-Objekte enthalten Hash-Felder */
 function toRow(user: Models.User<Models.Preferences>): AdminUserRow {
+  const prefs = user.prefs as { avatarUrl?: string }
   return {
     $id: user.$id,
     name: user.name,
     email: user.email,
+    avatarUrl: typeof prefs?.avatarUrl === 'string' ? prefs.avatarUrl : '',
     $createdAt: user.$createdAt,
     accessedAt: user.accessedAt,
     emailVerification: user.emailVerification,
+    phoneVerification: user.phoneVerification,
     status: user.status,
     labels: user.labels ?? [],
   }
