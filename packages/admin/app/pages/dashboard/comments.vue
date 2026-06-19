@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { NavigationMenuItem } from '@nuxt/ui'
 import type { AdminCommentListResponse, ModeratedComment, ModerationFilter } from '../../../shared/types/admin'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
@@ -23,15 +24,16 @@ const { data, refresh } = await useFetch<AdminCommentListResponse>('/api/admin/c
   query: computed(() => ({ status: filter.value, page: page.value })),
 })
 
-const filterItems = computed(() => FILTERS.map(value => ({
-  label: t(`admin.moderation.filter.${value}`),
-  value,
-})))
-
 function setFilter(value: ModerationFilter) {
   filter.value = value
   setPage(1)
 }
+
+const filterLinks = computed<NavigationMenuItem[]>(() => FILTERS.map(value => ({
+  label: t(`admin.moderation.filter.${value}`),
+  active: filter.value === value,
+  onSelect: () => setFilter(value),
+})))
 
 type PendingAction =
   | { action: 'hidden' | 'active', comment: ModeratedComment }
@@ -87,21 +89,11 @@ async function executePending() {
         <template #leading>
           <UDashboardSidebarCollapse />
         </template>
-        <template #right>
-          <div class="flex gap-1" data-moderation-filter>
-            <UButton
-              v-for="item in filterItems"
-              :key="item.value"
-              size="sm"
-              :color="filter === item.value ? 'primary' : 'neutral'"
-              :variant="filter === item.value ? 'soft' : 'ghost'"
-              @click="setFilter(item.value)"
-            >
-              {{ item.label }}
-            </UButton>
-          </div>
-        </template>
       </UDashboardNavbar>
+
+      <UDashboardToolbar>
+        <UNavigationMenu :items="filterLinks" highlight class="-mx-1 flex-1" data-moderation-filter />
+      </UDashboardToolbar>
     </template>
 
     <template #body>
