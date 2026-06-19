@@ -7,6 +7,11 @@ import { registerSchema } from '../../../schemas/auth'
  * Validierung zentral via Zod — ungültiger Body wirft 400.
  */
 export default defineEventHandler(async (event) => {
+  const appConfig = await getAppConfig(event)
+  if (!appConfig.registrationEnabled || appConfig.maintenanceMode) {
+    throw createError({ status: 403, statusText: 'Registration is currently disabled' })
+  }
+
   const { email, password, name } = await readValidatedBody(event, registerSchema.parse)
   const { account } = createAdminClient(event)
 
