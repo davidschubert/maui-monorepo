@@ -32,13 +32,18 @@ const usersLine = computed(() => polyline('users'))
 const commentsLine = computed(() => polyline('comments'))
 const usersArea = computed(() => areaPath('users'))
 
-const firstDate = computed(() => props.points[0]?.date ?? '')
-const lastDate = computed(() => props.points.at(-1)?.date ?? '')
+const { locale } = useI18n()
+function labelDate(date: string): string {
+  if (!date) return ''
+  return new Date(`${date}T00:00:00`).toLocaleDateString(locale.value, { weekday: 'short', day: '2-digit', month: '2-digit' })
+}
+const firstDate = computed(() => labelDate(props.points[0]?.date ?? ''))
+const lastDate = computed(() => labelDate(props.points.at(-1)?.date ?? ''))
 </script>
 
 <template>
   <div class="w-full">
-    <svg :viewBox="`0 0 ${W} ${H}`" class="h-auto w-full" preserveAspectRatio="none" role="img">
+    <svg :viewBox="`0 0 ${W} ${H}`" class="h-auto w-full" role="img">
       <!-- Baseline + Mittellinie -->
       <line :x1="PAD" :y1="H - PAD" :x2="W - PAD" :y2="H - PAD" class="text-default" stroke="currentColor" stroke-width="1" opacity="0.4" />
       <line :x1="PAD" :y1="(H - PAD) / 1.0 - (H - 2 * PAD) / 2" :x2="W - PAD" :y2="(H - PAD) - (H - 2 * PAD) / 2" class="text-default" stroke="currentColor" stroke-width="1" stroke-dasharray="3 4" opacity="0.25" />
@@ -50,8 +55,9 @@ const lastDate = computed(() => props.points.at(-1)?.date ?? '')
       <!-- Comments: Linie (info) -->
       <polyline :points="commentsLine" class="text-info" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
 
-      <!-- Max-Wert oben links -->
-      <text :x="PAD" :y="PAD - 10" class="fill-dimmed text-[11px]">{{ max }}</text>
+      <!-- Y-Achse: Max oben, 0 unten (theme-fähige Farbe via currentColor) -->
+      <text :x="PAD" :y="PAD - 8" fill="currentColor" class="text-dimmed text-[11px]">{{ max }}</text>
+      <text :x="PAD" :y="H - PAD + 16" fill="currentColor" class="text-dimmed text-[11px]">0</text>
     </svg>
 
     <div class="mt-2 flex items-center justify-between text-xs text-muted">
