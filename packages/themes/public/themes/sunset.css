@@ -1,6 +1,6 @@
 /* Maui Theme: sunset — statisch generiert (Phase 15), KEINE Runtime-Generierung */
 
-[data-theme='sunset'] {
+:root[data-theme='sunset'] {
   --ui-color-primary-50: #fef6f0;
   --ui-color-primary-100: #fdeadd;
   --ui-color-primary-200: #fbd6bb;
@@ -22,7 +22,7 @@
 
 /* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
 
-[data-theme='sunset'][data-variant='rose'] {
+:root[data-theme='sunset'][data-variant='rose'] {
   --ui-color-primary-50: #fdf1f4;
   --ui-color-primary-100: #fbdfe6;
   --ui-color-primary-200: #f8bfcd;
@@ -38,7 +38,7 @@
 
 /* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
 
-[data-theme='sunset'][data-variant='violet'] {
+:root[data-theme='sunset'][data-variant='violet'] {
   --ui-color-primary-50: #faf2fd;
   --ui-color-primary-100: #f3e1fa;
   --ui-color-primary-200: #e8c2f4;

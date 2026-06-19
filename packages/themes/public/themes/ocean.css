@@ -1,6 +1,6 @@
 /* Maui Theme: ocean — statisch generiert (Phase 15), KEINE Runtime-Generierung */
 
-[data-theme='ocean'] {
+:root[data-theme='ocean'] {
   --ui-color-primary-50: #f1f6fe;
   --ui-color-primary-100: #deebfc;
   --ui-color-primary-200: #bdd6fa;
@@ -22,7 +22,7 @@
 
 /* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
 
-[data-theme='ocean'][data-variant='teal'] {
+:root[data-theme='ocean'][data-variant='teal'] {
   --ui-color-primary-50: #f2fdfc;
   --ui-color-primary-100: #e0fbf8;
   --ui-color-primary-200: #c1f6f2;
@@ -38,7 +38,7 @@
 
 /* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
 
-[data-theme='ocean'][data-variant='indigo'] {
+:root[data-theme='ocean'][data-variant='indigo'] {
   --ui-color-primary-50: #f4f1fd;
   --ui-color-primary-100: #e6dffb;
   --ui-color-primary-200: #cdbff8;

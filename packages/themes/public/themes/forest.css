@@ -1,6 +1,6 @@
 /* Maui Theme: forest — statisch generiert (Phase 15), KEINE Runtime-Generierung */
 
-[data-theme='forest'] {
+:root[data-theme='forest'] {
   --ui-color-primary-50: #f3fcf7;
   --ui-color-primary-100: #e3f7ec;
   --ui-color-primary-200: #c8efd8;
@@ -22,7 +22,7 @@
 
 /* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
 
-[data-theme='forest'][data-variant='lime'] {
+:root[data-theme='forest'][data-variant='lime'] {
   --ui-color-primary-50: #f7fcf3;
   --ui-color-primary-100: #ebf8e2;
   --ui-color-primary-200: #d8f1c6;
@@ -38,7 +38,7 @@
 
 /* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
 
-[data-theme='forest'][data-variant='moss'] {
+:root[data-theme='forest'][data-variant='moss'] {
   --ui-color-primary-50: #f9fbf4;
   --ui-color-primary-100: #f1f5e5;
   --ui-color-primary-200: #e3ebcb;
