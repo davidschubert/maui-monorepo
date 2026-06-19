@@ -88,8 +88,9 @@ async function executePending() {
     pending.value = null
     await refresh()
   }
-  catch {
-    toast.add({ title: t('admin.users.actionFailed'), color: 'error' })
+  catch (error) {
+    const code = (error as { data?: { data?: { code?: string } } })?.data?.data?.code
+    toast.add({ title: code === 'last_admin' ? t('admin.users.lastAdmin') : t('admin.users.actionFailed'), color: 'error' })
   }
   finally {
     busy.value = false

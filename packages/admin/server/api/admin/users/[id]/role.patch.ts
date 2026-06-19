@@ -17,6 +17,10 @@ export default defineEventHandler(async (event) => {
   if (!makeAdmin && userId === adminUser.$id) {
     throw createError({ status: 400, statusText: 'You cannot revoke your own admin role' })
   }
+  // Es muss immer mindestens ein Admin übrig bleiben
+  if (!makeAdmin) {
+    await assertNotLastAdmin(event, userId)
+  }
 
   const admin = createAdminClient(event)
   const target = await admin.users.get({ userId })

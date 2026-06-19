@@ -16,6 +16,10 @@ export default defineEventHandler(async (event) => {
   if (blocked && userId === adminUser.$id) {
     throw createError({ status: 400, statusText: 'You cannot block your own account' })
   }
+  // Den letzten Admin nicht aussperren
+  if (blocked) {
+    await assertNotLastAdmin(event, userId)
+  }
 
   const admin = createAdminClient(event)
   // Appwrite-Semantik: status true = aktiv, false = blockiert

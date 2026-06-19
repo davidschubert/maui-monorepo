@@ -92,6 +92,7 @@
       "export": "Daten exportieren",
       "deleteUser": "Account löschen",
       "deleted": "Benutzer gelöscht.",
+      "lastAdmin": "Es muss immer mindestens ein Admin übrig bleiben.",
       "confirmTitle": "Aktion bestätigen",
       "confirmAction": "Bestätigen",
       "confirm": {

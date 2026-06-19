@@ -9,6 +9,8 @@ export default defineEventHandler(async (event) => {
   if (userId === adminUser.$id) {
     throw createError({ status: 400, statusText: 'You cannot delete your own account here' })
   }
+  // Den letzten Admin nicht löschen
+  await assertNotLastAdmin(event, userId)
 
   const admin = createAdminClient(event)
 
