@@ -98,6 +98,7 @@ export interface AuditLogEntry {
   targetId: string
   targetName: string
   metadata: string
+  ip: string
 }
 
 export interface AuditLogListResponse {

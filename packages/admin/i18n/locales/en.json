@@ -7,7 +7,7 @@
       "config": "Configuration",
       "storage": "Storage",
       "system": "System",
-      "audit": "Audit log"
+      "audit": "Activity log"
     },
     "config": {
       "title": "Configuration",
@@ -44,21 +44,22 @@
       "comments": "Comments"
     },
     "audit": {
-      "title": "Audit log",
+      "title": "Activity log",
       "empty": "No admin activity recorded yet.",
+      "col": { "user": "User", "event": "Event", "ip": "IP", "date": "Date" },
       "action": {
         "user": {
-          "block": "blocked a user",
-          "unblock": "unblocked a user",
-          "sessions_cleared": "ended a user's sessions",
-          "role_granted": "granted admin to a user",
-          "role_revoked": "revoked admin from a user",
-          "exported": "exported a user's data",
-          "deleted": "deleted a user"
+          "block": "blocked {name}",
+          "unblock": "unblocked {name}",
+          "sessions_cleared": "ended {name}'s sessions",
+          "role_granted": "granted {name} admin rights",
+          "role_revoked": "revoked {name}'s admin rights",
+          "exported": "exported {name}'s data",
+          "deleted": "deleted {name}"
         },
         "comment": {
-          "hidden": "hid a comment",
-          "restored": "restored a comment"
+          "hidden": "hid a comment by {name}",
+          "restored": "restored a comment by {name}"
         },
         "storage": {
           "file_deleted": "deleted a storage file"

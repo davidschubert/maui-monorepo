@@ -21,6 +21,7 @@ export async function recordAudit(event: H3Event, input: AuditInput): Promise<vo
   try {
     const config = useRuntimeConfig(event)
     const admin = createAdminClient(event)
+    const ip = getRequestIP(event, { xForwardedFor: true }) ?? ''
     await admin.tablesDB.createRow({
       databaseId: config.public.appwriteDatabaseId,
       tableId: 'audit_logs',
@@ -33,6 +34,7 @@ export async function recordAudit(event: H3Event, input: AuditInput): Promise<vo
         targetId: input.targetId ?? '',
         targetName: input.targetName ?? '',
         metadata: input.metadata ? JSON.stringify(input.metadata) : '',
+        ip,
       },
     })
   }

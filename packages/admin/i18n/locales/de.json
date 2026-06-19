@@ -7,7 +7,7 @@
       "config": "Konfiguration",
       "storage": "Speicher",
       "system": "System",
-      "audit": "Audit-Log"
+      "audit": "Aktivitätsprotokoll"
     },
     "config": {
       "title": "Konfiguration",
@@ -44,21 +44,22 @@
       "comments": "Kommentare"
     },
     "audit": {
-      "title": "Audit-Log",
+      "title": "Aktivitätsprotokoll",
       "empty": "Noch keine Admin-Aktivität aufgezeichnet.",
+      "col": { "user": "Benutzer", "event": "Ereignis", "ip": "IP", "date": "Datum" },
       "action": {
         "user": {
-          "block": "hat einen Benutzer gesperrt",
-          "unblock": "hat einen Benutzer entsperrt",
-          "sessions_cleared": "hat die Sitzungen eines Benutzers beendet",
-          "role_granted": "hat einem Benutzer Admin gegeben",
-          "role_revoked": "hat einem Benutzer Admin entzogen",
-          "exported": "hat die Daten eines Benutzers exportiert",
-          "deleted": "hat einen Benutzer gelöscht"
+          "block": "hat {name} gesperrt",
+          "unblock": "hat {name} entsperrt",
+          "sessions_cleared": "hat die Sitzungen von {name} beendet",
+          "role_granted": "hat {name} Admin-Rechte gegeben",
+          "role_revoked": "hat {name} die Admin-Rechte entzogen",
+          "exported": "hat die Daten von {name} exportiert",
+          "deleted": "hat {name} gelöscht"
         },
         "comment": {
-          "hidden": "hat einen Kommentar ausgeblendet",
-          "restored": "hat einen Kommentar wiederhergestellt"
+          "hidden": "hat einen Kommentar von {name} ausgeblendet",
+          "restored": "hat einen Kommentar von {name} wiederhergestellt"
         },
         "storage": {
           "file_deleted": "hat eine Speicherdatei gelöscht"

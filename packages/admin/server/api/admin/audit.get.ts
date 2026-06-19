@@ -36,6 +36,7 @@ export default defineEventHandler(async (event): Promise<AuditLogListResponse> =
       targetId: row.targetId,
       targetName: row.targetName,
       metadata: row.metadata,
+      ip: row.ip ?? '',
     })),
   }
 })
