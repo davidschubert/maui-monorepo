@@ -37,7 +37,25 @@
       "sessionsCleared": "All sessions ended.",
       "actionFailed": "Action failed — please try again.",
       "joined": "Joined",
-      "lastActivity": "Last activity"
+      "lastActivity": "Last activity",
+      "detail": {
+        "back": "Users",
+        "profile": "Profile",
+        "phone": "Phone",
+        "bio": "Bio",
+        "registered": "Registered",
+        "emailVerified": "Email verified",
+        "phoneVerified": "Phone verified",
+        "userId": "User ID",
+        "sessions": "Active sessions",
+        "noSessions": "No active sessions.",
+        "comments": "Recent comments",
+        "commentsTotal": "{count} total",
+        "noComments": "No comments yet.",
+        "current": "current",
+        "yes": "Yes",
+        "no": "No"
+      }
     },
     "moderation": {
       "filter": {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import type { AdminUserListResponse, AdminUserRow } from '../../../shared/types/admin'
+import type { AdminUserListResponse, AdminUserRow } from '../../../../shared/types/admin'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
 
@@ -98,6 +98,11 @@ async function executePending() {
 
     <template #body>
       <UTable :data="data?.users ?? []" :columns="columns" data-users-table>
+      <template #name-cell="{ row }">
+        <ULink :to="localePath(`/dashboard/users/${row.original.$id}`)" class="font-medium text-primary hover:underline">
+          {{ row.original.name }}
+        </ULink>
+      </template>
       <template #createdAt-cell="{ row }">
         <span :title="formatDate(row.original.$createdAt)">{{ formatRelativeTime(row.original.$createdAt) }}</span>
       </template>

@@ -17,6 +17,36 @@ export interface AdminUserListResponse {
   users: AdminUserRow[]
 }
 
+/** Eine Session eines Users (Admin-Sicht), ohne Secrets/Tokens */
+export interface AdminUserSession {
+  $id: string
+  $createdAt: string
+  provider: string
+  ip: string
+  clientName: string
+  clientVersion: string
+  osName: string
+  osVersion: string
+  countryName: string
+  current: boolean
+}
+
+/** Vollständigere User-Sicht für die Detailseite */
+export interface AdminUserDetail extends AdminUserRow {
+  phone: string
+  phoneVerification: boolean
+  registration: string
+  bio: string
+  avatarUrl: string
+}
+
+export interface AdminUserDetailResponse {
+  user: AdminUserDetail
+  sessions: AdminUserSession[]
+  comments: ModeratedComment[]
+  commentsTotal: number
+}
+
 export interface AdminStats {
   usersTotal: number
   commentsTotal: number

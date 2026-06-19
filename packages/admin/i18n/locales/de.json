@@ -37,7 +37,25 @@
       "sessionsCleared": "Alle Sessions beendet.",
       "actionFailed": "Aktion fehlgeschlagen — bitte erneut versuchen.",
       "joined": "Beigetreten",
-      "lastActivity": "Letzte Aktivität"
+      "lastActivity": "Letzte Aktivität",
+      "detail": {
+        "back": "Benutzer",
+        "profile": "Profil",
+        "phone": "Telefon",
+        "bio": "Bio",
+        "registered": "Registriert",
+        "emailVerified": "E-Mail verifiziert",
+        "phoneVerified": "Telefon verifiziert",
+        "userId": "Benutzer-ID",
+        "sessions": "Aktive Sitzungen",
+        "noSessions": "Keine aktiven Sitzungen.",
+        "comments": "Letzte Kommentare",
+        "commentsTotal": "{count} gesamt",
+        "noComments": "Noch keine Kommentare.",
+        "current": "aktuell",
+        "yes": "Ja",
+        "no": "Nein"
+      }
     },
     "moderation": {
       "filter": {
