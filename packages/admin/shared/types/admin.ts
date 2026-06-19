@@ -67,6 +67,26 @@ export interface AdminAnalytics {
   commentsInRange: number
 }
 
+/** Eine Datei im Storage-Browser */
+export interface StorageFileEntry {
+  $id: string
+  name: string
+  sizeBytes: number
+  mimeType: string
+  $createdAt: string
+  /** true = von keinem User-Profil referenziert */
+  orphan: boolean
+}
+
+export interface StorageOverview {
+  /** false, wenn Bucket fehlt oder dem Key der files-Scope fehlt */
+  available: boolean
+  bucketId: string
+  files: StorageFileEntry[]
+  totalBytes: number
+  orphanCount: number
+}
+
 /** Ein protokollierter Admin-Vorgang */
 export interface AuditLogEntry {
   $id: string

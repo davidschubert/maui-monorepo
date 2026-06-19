@@ -4,8 +4,25 @@
       "overview": "Übersicht",
       "users": "Benutzer",
       "comments": "Kommentare",
+      "storage": "Speicher",
       "system": "System",
       "audit": "Audit-Log"
+    },
+    "storage": {
+      "title": "Speicher",
+      "bucket": "Bucket",
+      "files": "Dateien",
+      "size": "Gesamtgröße",
+      "orphans": "Verwaist",
+      "orphan": "Verwaist",
+      "empty": "Keine Dateien in diesem Bucket.",
+      "deleted": "Datei(en) gelöscht.",
+      "deleteOrphans": "Verwaiste löschen ({count})",
+      "confirmTitle": "Datei löschen",
+      "confirmOne": "Diese Datei endgültig löschen?",
+      "confirmOrphans": "Alle {count} verwaisten Dateien endgültig löschen?",
+      "unavailableTitle": "Speicher-Browser nicht verfügbar",
+      "unavailableText": "NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET setzen und dem Runtime-Key die Scopes files.read + files.write geben, dann neu laden."
     },
     "analytics": {
       "title": "Aktivität",
@@ -27,6 +44,9 @@
         "comment": {
           "hidden": "hat einen Kommentar ausgeblendet",
           "restored": "hat einen Kommentar wiederhergestellt"
+        },
+        "storage": {
+          "file_deleted": "hat eine Speicherdatei gelöscht"
         }
       }
     },

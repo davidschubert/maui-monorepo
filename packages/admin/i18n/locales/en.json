@@ -4,8 +4,25 @@
       "overview": "Overview",
       "users": "Users",
       "comments": "Comments",
+      "storage": "Storage",
       "system": "System",
       "audit": "Audit log"
+    },
+    "storage": {
+      "title": "Storage",
+      "bucket": "Bucket",
+      "files": "Files",
+      "size": "Total size",
+      "orphans": "Orphans",
+      "orphan": "Orphan",
+      "empty": "No files in this bucket.",
+      "deleted": "File(s) deleted.",
+      "deleteOrphans": "Delete orphans ({count})",
+      "confirmTitle": "Delete file",
+      "confirmOne": "Delete this file permanently?",
+      "confirmOrphans": "Delete all {count} orphaned files permanently?",
+      "unavailableTitle": "Storage browser not available",
+      "unavailableText": "Set NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET and grant the runtime key the files.read + files.write scopes, then reload."
     },
     "analytics": {
       "title": "Activity",
@@ -27,6 +44,9 @@
         "comment": {
           "hidden": "hid a comment",
           "restored": "restored a comment"
+        },
+        "storage": {
+          "file_deleted": "deleted a storage file"
         }
       }
     },
