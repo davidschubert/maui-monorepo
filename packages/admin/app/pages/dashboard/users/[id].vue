@@ -17,8 +17,9 @@ const { data, refresh } = await useFetch<AdminUserDetailResponse>(() => `/api/ad
 
 const user = computed(() => data.value?.user ?? null)
 const isSelf = computed(() => user.value?.$id === me.value?.$id)
+const isAdmin = computed(() => user.value?.labels.includes('admin') ?? false)
 
-const pending = ref<{ type: 'block' | 'unblock' | 'sessions' } | null>(null)
+const pending = ref<{ type: 'block' | 'unblock' | 'sessions' | 'grant' | 'revoke' } | null>(null)
 const busy = ref(false)
 
 const confirmText = computed(() => {
@@ -46,6 +47,10 @@ async function executePending() {
         await navigateTo(localePath('/'))
         return
       }
+    }
+    else if (type === 'grant' || type === 'revoke') {
+      await $fetch(`/api/admin/users/${user.value.$id}/role`, { method: 'PATCH', body: { admin: type === 'grant' } })
+      toast.add({ title: t(type === 'grant' ? 'admin.users.roleGranted' : 'admin.users.roleRevoked'), color: 'success' })
     }
     else {
       await $fetch(`/api/admin/users/${user.value.$id}/status`, { method: 'PATCH', body: { blocked: type === 'block' } })
@@ -113,6 +118,21 @@ async function executePending() {
               </UButton>
               <UButton color="neutral" variant="subtle" size="sm" icon="i-ph-sign-out" @click="pending = { type: 'sessions' }">
                 {{ t('admin.users.clearSessions') }}
+              </UButton>
+              <UButton
+                v-if="!isAdmin"
+                color="primary" variant="subtle" size="sm" icon="i-ph-shield-star"
+                @click="pending = { type: 'grant' }"
+              >
+                {{ t('admin.users.makeAdmin') }}
+              </UButton>
+              <UButton
+                v-else
+                color="warning" variant="subtle" size="sm" icon="i-ph-shield-slash"
+                :disabled="isSelf"
+                @click="pending = { type: 'revoke' }"
+              >
+                {{ t('admin.users.revokeAdmin') }}
               </UButton>
             </div>
           </div>

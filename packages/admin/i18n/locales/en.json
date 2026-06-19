@@ -14,7 +14,9 @@
         "user": {
           "block": "blocked a user",
           "unblock": "unblocked a user",
-          "sessions_cleared": "ended a user's sessions"
+          "sessions_cleared": "ended a user's sessions",
+          "role_granted": "granted admin to a user",
+          "role_revoked": "revoked admin from a user"
         },
         "comment": {
           "hidden": "hid a comment",
@@ -41,15 +43,21 @@
       "block": "Block",
       "unblock": "Unblock",
       "clearSessions": "End sessions",
+      "makeAdmin": "Make admin",
+      "revokeAdmin": "Revoke admin",
       "confirmTitle": "Confirm action",
       "confirmAction": "Confirm",
       "confirm": {
         "block": "Really block {name}? The user will no longer be able to sign in.",
         "unblock": "Unblock {name} again?",
-        "sessions": "End all active sessions of {name}?"
+        "sessions": "End all active sessions of {name}?",
+        "grant": "Grant {name} admin access to the dashboard?",
+        "revoke": "Revoke {name}'s admin access?"
       },
       "blocked": "User blocked.",
       "unblocked": "User unblocked.",
+      "roleGranted": "Admin role granted.",
+      "roleRevoked": "Admin role revoked.",
       "sessionsCleared": "All sessions ended.",
       "actionFailed": "Action failed — please try again.",
       "joined": "Joined",

@@ -14,7 +14,9 @@
         "user": {
           "block": "hat einen Benutzer gesperrt",
           "unblock": "hat einen Benutzer entsperrt",
-          "sessions_cleared": "hat die Sitzungen eines Benutzers beendet"
+          "sessions_cleared": "hat die Sitzungen eines Benutzers beendet",
+          "role_granted": "hat einem Benutzer Admin gegeben",
+          "role_revoked": "hat einem Benutzer Admin entzogen"
         },
         "comment": {
           "hidden": "hat einen Kommentar ausgeblendet",
@@ -41,15 +43,21 @@
       "block": "Blockieren",
       "unblock": "Entsperren",
       "clearSessions": "Sessions beenden",
+      "makeAdmin": "Zum Admin machen",
+      "revokeAdmin": "Admin entziehen",
       "confirmTitle": "Aktion bestätigen",
       "confirmAction": "Bestätigen",
       "confirm": {
         "block": "{name} wirklich blockieren? Der Benutzer kann sich nicht mehr anmelden.",
         "unblock": "{name} wieder entsperren?",
-        "sessions": "Alle aktiven Sessions von {name} beenden?"
+        "sessions": "Alle aktiven Sessions von {name} beenden?",
+        "grant": "{name} Admin-Zugriff aufs Dashboard geben?",
+        "revoke": "{name} den Admin-Zugriff entziehen?"
       },
       "blocked": "Benutzer blockiert.",
       "unblocked": "Benutzer entsperrt.",
+      "roleGranted": "Admin-Rolle vergeben.",
+      "roleRevoked": "Admin-Rolle entzogen.",
       "sessionsCleared": "Alle Sessions beendet.",
       "actionFailed": "Aktion fehlgeschlagen — bitte erneut versuchen.",
       "joined": "Beigetreten",
