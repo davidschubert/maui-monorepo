@@ -42,12 +42,18 @@
       "title": "Activity",
       "subtitle": "Last {days} days",
       "users": "Signups",
-      "comments": "Comments"
+      "comments": "Comments",
+      "today": "Today"
     },
     "audit": {
       "title": "Activity log",
       "empty": "No admin activity recorded yet.",
-      "col": { "user": "Admin", "event": "Event", "ip": "IP", "date": "Date" },
+      "col": {
+        "user": "Admin",
+        "event": "Event",
+        "ip": "IP",
+        "date": "Date"
+      },
       "action": {
         "user": {
           "block": "blocked {name}",
@@ -164,10 +170,26 @@
     }
   },
   "dashboard": {
-    "search": { "label": "Go to", "placeholder": "Search users, comments…", "users": "Users", "comments": "Comments" },
-    "appearance": { "light": "Light", "dark": "Dark", "system": "System" },
-    "settings": { "title": "Settings", "general": "General", "sessions": "Sessions", "security": "Security" },
-    "sidebar": { "label": "Sidebar" },
+    "search": {
+      "label": "Go to",
+      "placeholder": "Search users, comments…",
+      "users": "Users",
+      "comments": "Comments"
+    },
+    "appearance": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "settings": {
+      "title": "Settings",
+      "general": "General",
+      "sessions": "Sessions",
+      "security": "Security"
+    },
+    "sidebar": {
+      "label": "Sidebar"
+    },
     "system": {
       "title": "System",
       "refresh": "Refresh",

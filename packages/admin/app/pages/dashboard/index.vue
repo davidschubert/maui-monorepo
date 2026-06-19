@@ -6,7 +6,16 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
 const { t } = useI18n()
 const localePath = useLocalePath()
 const { data: stats } = await useFetch<AdminStats>('/api/admin/stats')
-const { data: analytics } = await useFetch<AdminAnalytics>('/api/admin/analytics')
+
+const days = ref(30)
+const { data: analytics } = await useFetch<AdminAnalytics>('/api/admin/analytics', {
+  query: computed(() => ({ days: days.value })),
+})
+
+const rangeItems = computed(() => [7, 30, 90].map(d => ({
+  label: t('admin.analytics.subtitle', { days: d }),
+  value: d,
+})))
 
 const cards = computed(() => [
   { label: t('admin.stats.users'), value: stats.value?.usersTotal ?? 0, icon: 'i-ph-users', to: localePath('/dashboard/users') },
@@ -26,7 +35,7 @@ const cards = computed(() => [
     </template>
 
     <template #body>
-      <div class="flex flex-col gap-4 sm:gap-6">
+      <div class="mx-auto flex w-full flex-col gap-4 sm:gap-6 lg:max-w-3xl">
         <div class="grid gap-4 sm:grid-cols-3" data-stat-cards>
           <UCard v-for="card in cards" :key="card.label">
             <NuxtLink :to="card.to" class="flex items-center gap-3">
@@ -42,14 +51,8 @@ const cards = computed(() => [
         <UCard v-if="analytics">
           <template #header>
             <div class="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <h2 class="font-semibold">{{ t('admin.analytics.title') }}</h2>
-                <p class="text-sm text-muted">{{ t('admin.analytics.subtitle', { days: analytics.rangeDays }) }}</p>
-              </div>
-              <div class="flex gap-4 text-sm">
-                <span><span class="font-bold tabular-nums text-primary">{{ analytics.usersInRange }}</span> <span class="text-muted">{{ t('admin.analytics.users') }}</span></span>
-                <span><span class="font-bold tabular-nums text-info">{{ analytics.commentsInRange }}</span> <span class="text-muted">{{ t('admin.analytics.comments') }}</span></span>
-              </div>
+              <h2 class="font-semibold">{{ t('admin.analytics.title') }}</h2>
+              <USelect v-model="days" :items="rangeItems" size="sm" class="w-40" />
             </div>
           </template>
 
@@ -57,6 +60,9 @@ const cards = computed(() => [
             :points="analytics.points"
             :users-label="t('admin.analytics.users')"
             :comments-label="t('admin.analytics.comments')"
+            :users-total="analytics.usersInRange"
+            :comments-total="analytics.commentsInRange"
+            :today-label="t('admin.analytics.today')"
           />
         </UCard>
       </div>

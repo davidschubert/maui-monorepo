@@ -2,8 +2,8 @@ import { Query } from 'node-appwrite'
 import type { Models } from 'node-appwrite'
 import type { AdminAnalytics } from '../../../shared/types/admin'
 
-const DAYS = 30
-const SAMPLE = 100 // jüngste Ereignisse, die wir bucketen (Dev-Maßstab)
+const ALLOWED_DAYS = [7, 30, 90]
+const SAMPLE = 200 // jüngste Ereignisse, die wir bucketen (Dev-Maßstab)
 
 function dayKey(date: Date): string {
   return date.toISOString().slice(0, 10)
@@ -19,6 +19,9 @@ export default defineEventHandler(async (event): Promise<AdminAnalytics> => {
 
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
+
+  const requested = Number(getQuery(event).days ?? 30)
+  const DAYS = ALLOWED_DAYS.includes(requested) ? requested : 30
 
   const today = new Date()
   today.setUTCHours(0, 0, 0, 0)
