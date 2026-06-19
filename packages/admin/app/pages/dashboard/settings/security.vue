@@ -5,5 +5,6 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
 
 <template>
   <AuthPasswordChangeForm />
+  <AuthAccountDataExport />
   <AuthAccountDeleteCard />
 </template>

@@ -52,7 +52,9 @@
           "unblock": "unblocked a user",
           "sessions_cleared": "ended a user's sessions",
           "role_granted": "granted admin to a user",
-          "role_revoked": "revoked admin from a user"
+          "role_revoked": "revoked admin from a user",
+          "exported": "exported a user's data",
+          "deleted": "deleted a user"
         },
         "comment": {
           "hidden": "hid a comment",
@@ -87,6 +89,9 @@
       "clearSessions": "End sessions",
       "makeAdmin": "Make admin",
       "revokeAdmin": "Revoke admin",
+      "export": "Export data",
+      "deleteUser": "Delete account",
+      "deleted": "User deleted.",
       "confirmTitle": "Confirm action",
       "confirmAction": "Confirm",
       "confirm": {
@@ -94,7 +99,8 @@
         "unblock": "Unblock {name} again?",
         "sessions": "End all active sessions of {name}?",
         "grant": "Grant {name} admin access to the dashboard?",
-        "revoke": "Revoke {name}'s admin access?"
+        "revoke": "Revoke {name}'s admin access?",
+        "delete": "Permanently delete {name}? This removes the account and cannot be undone."
       },
       "blocked": "User blocked.",
       "unblocked": "User unblocked.",

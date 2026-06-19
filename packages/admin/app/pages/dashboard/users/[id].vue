@@ -19,8 +19,30 @@ const user = computed(() => data.value?.user ?? null)
 const isSelf = computed(() => user.value?.$id === me.value?.$id)
 const isAdmin = computed(() => user.value?.labels.includes('admin') ?? false)
 
-const pending = ref<{ type: 'block' | 'unblock' | 'sessions' | 'grant' | 'revoke' } | null>(null)
+const pending = ref<{ type: 'block' | 'unblock' | 'sessions' | 'grant' | 'revoke' | 'delete' } | null>(null)
 const busy = ref(false)
+const exporting = ref(false)
+
+async function exportData() {
+  if (!user.value) return
+  exporting.value = true
+  try {
+    const payload = await $fetch(`/api/admin/users/${user.value.$id}/export`)
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `user-${user.value.$id}.json`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+  catch {
+    toast.add({ title: t('admin.users.actionFailed'), color: 'error' })
+  }
+  finally {
+    exporting.value = false
+  }
+}
 
 const confirmText = computed(() => {
   if (!pending.value || !user.value) return ''
@@ -51,6 +73,13 @@ async function executePending() {
     else if (type === 'grant' || type === 'revoke') {
       await $fetch(`/api/admin/users/${user.value.$id}/role`, { method: 'PATCH', body: { admin: type === 'grant' } })
       toast.add({ title: t(type === 'grant' ? 'admin.users.roleGranted' : 'admin.users.roleRevoked'), color: 'success' })
+    }
+    else if (type === 'delete') {
+      await $fetch(`/api/admin/users/${user.value.$id}`, { method: 'DELETE' })
+      toast.add({ title: t('admin.users.deleted'), color: 'success' })
+      pending.value = null
+      await navigateTo(localePath('/dashboard/users'))
+      return
     }
     else {
       await $fetch(`/api/admin/users/${user.value.$id}/status`, { method: 'PATCH', body: { blocked: type === 'block' } })
@@ -133,6 +162,16 @@ async function executePending() {
                 @click="pending = { type: 'revoke' }"
               >
                 {{ t('admin.users.revokeAdmin') }}
+              </UButton>
+              <UButton color="neutral" variant="subtle" size="sm" icon="i-ph-download-simple" :loading="exporting" @click="exportData">
+                {{ t('admin.users.export') }}
+              </UButton>
+              <UButton
+                color="error" variant="subtle" size="sm" icon="i-ph-trash"
+                :disabled="isSelf"
+                @click="pending = { type: 'delete' }"
+              >
+                {{ t('admin.users.deleteUser') }}
               </UButton>
             </div>
           </div>
@@ -226,7 +265,7 @@ async function executePending() {
         <template #footer>
           <div class="flex w-full justify-end gap-2">
             <UButton color="neutral" variant="ghost" @click="pending = null">{{ t('comments.item.cancel') }}</UButton>
-            <UButton :color="pending?.type === 'block' ? 'error' : 'primary'" :loading="busy" @click="executePending">
+            <UButton :color="pending?.type === 'block' || pending?.type === 'delete' ? 'error' : 'primary'" :loading="busy" @click="executePending">
               {{ t('admin.users.confirmAction') }}
             </UButton>
           </div>

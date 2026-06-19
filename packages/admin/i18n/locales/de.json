@@ -52,7 +52,9 @@
           "unblock": "hat einen Benutzer entsperrt",
           "sessions_cleared": "hat die Sitzungen eines Benutzers beendet",
           "role_granted": "hat einem Benutzer Admin gegeben",
-          "role_revoked": "hat einem Benutzer Admin entzogen"
+          "role_revoked": "hat einem Benutzer Admin entzogen",
+          "exported": "hat die Daten eines Benutzers exportiert",
+          "deleted": "hat einen Benutzer gelöscht"
         },
         "comment": {
           "hidden": "hat einen Kommentar ausgeblendet",
@@ -87,6 +89,9 @@
       "clearSessions": "Sessions beenden",
       "makeAdmin": "Zum Admin machen",
       "revokeAdmin": "Admin entziehen",
+      "export": "Daten exportieren",
+      "deleteUser": "Account löschen",
+      "deleted": "Benutzer gelöscht.",
       "confirmTitle": "Aktion bestätigen",
       "confirmAction": "Bestätigen",
       "confirm": {
@@ -94,7 +99,8 @@
         "unblock": "{name} wieder entsperren?",
         "sessions": "Alle aktiven Sessions von {name} beenden?",
         "grant": "{name} Admin-Zugriff aufs Dashboard geben?",
-        "revoke": "{name} den Admin-Zugriff entziehen?"
+        "revoke": "{name} den Admin-Zugriff entziehen?",
+        "delete": "{name} endgültig löschen? Der Account wird entfernt und kann nicht wiederhergestellt werden."
       },
       "blocked": "Benutzer blockiert.",
       "unblocked": "Benutzer entsperrt.",
