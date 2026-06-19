@@ -5,6 +5,7 @@
 export interface UserSession {
   $id: string
   $createdAt: string
+  $updatedAt: string
   provider: string
   ip: string
   osName: string
@@ -18,4 +19,18 @@ export interface UserSession {
 
 export interface UserSessionListResponse {
   sessions: UserSession[]
+}
+
+/** Gemeinsame Felder für die Sessions-Tabelle (UserSession & AdminUserSession erfüllen sie). */
+export interface SessionRow {
+  $id: string
+  $createdAt: string
+  $updatedAt: string
+  clientName: string
+  clientVersion: string
+  osName: string
+  osVersion: string
+  ip: string
+  countryName: string
+  current: boolean
 }

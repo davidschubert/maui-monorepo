@@ -132,6 +132,8 @@
       "client": "Client",
       "location": "Location",
       "ip": "IP",
+      "created": "Created",
+      "updated": "Last active",
       "current": "current session",
       "unknown": "Unknown",
       "signOut": "Sign out",

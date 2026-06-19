@@ -14,6 +14,7 @@ export default defineEventHandler(async (event): Promise<UserSessionListResponse
     sessions: list.sessions.map(s => ({
       $id: s.$id,
       $createdAt: s.$createdAt,
+      $updatedAt: s.$updatedAt,
       provider: s.provider,
       ip: s.ip,
       osName: s.osName,
