@@ -15,6 +15,14 @@ const { data, status, refresh } = useFetch<StorageOverview>('/api/admin/storage'
 const pending = ref<{ kind: 'one', file: StorageFileEntry } | { kind: 'orphans' } | null>(null)
 const busy = ref(false)
 
+// Bucket-Auswahl — aktuell nur der konfigurierte Bucket; vorbereitet für mehrere
+// (Auflisten aller Buckets bräuchte den buckets.read-Scope am Key).
+const selectedBucket = ref('')
+const bucketItems = computed(() => data.value?.bucketId ? [data.value.bucketId] : [])
+watchEffect(() => {
+  if (data.value?.bucketId && !selectedBucket.value) selectedBucket.value = data.value.bucketId
+})
+
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
@@ -92,8 +100,11 @@ async function executePending() {
         />
 
         <div v-else class="space-y-4">
-          <div class="flex flex-wrap gap-4 text-sm text-muted">
-            <span>{{ t('admin.storage.bucket') }}: <span class="font-mono text-default">{{ data.bucketId }}</span></span>
+          <div class="flex flex-wrap items-center gap-4 text-sm text-muted">
+            <div class="flex items-center gap-2">
+              <span>{{ t('admin.storage.bucket') }}:</span>
+              <USelectMenu v-model="selectedBucket" :items="bucketItems" :search-input="false" size="sm" class="min-w-40 font-mono" />
+            </div>
             <span>{{ t('admin.storage.files') }}: <span class="font-bold text-default">{{ data.files.length }}</span></span>
             <span>{{ t('admin.storage.size') }}: <span class="font-bold text-default">{{ formatBytes(data.totalBytes) }}</span></span>
             <span>{{ t('admin.storage.orphans') }}: <span class="font-bold text-default">{{ data.orphanCount }}</span></span>

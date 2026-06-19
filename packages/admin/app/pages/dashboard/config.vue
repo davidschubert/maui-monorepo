@@ -65,7 +65,7 @@ async function save() {
             </div>
           </div>
 
-          <div class="mt-6">
+          <div class="mt-6 flex justify-end">
             <UButton :loading="loading" @click="save">{{ t('admin.config.save') }}</UButton>
           </div>
         </UPageCard>
