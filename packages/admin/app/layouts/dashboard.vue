@@ -32,11 +32,71 @@ const links = computed<NavigationMenuItem[]>(() => [
   { label: t('admin.nav.audit'), icon: 'i-ph-scroll', to: localePath('/dashboard/audit'), onSelect: () => { open.value = false } },
 ])
 
-const searchGroups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => [{
-  id: 'links',
-  label: t('dashboard.search.label'),
-  items: links.value.map(link => ({ label: link.label, icon: link.icon, to: link.to })),
-}])
+// Globale Suche: Tippen fragt serverseitig User + Kommentare ab (debounced).
+// Leichte lokale Typen — der volle CommandPaletteGroup<CommandPaletteItem>-Generic
+// löst bei Array-Operationen TS2589 aus (zu tiefe Instanziierung), daher bauen wir
+// damit und casten einmal an der Prop.
+interface PaletteItem { label: string, icon?: string, suffix?: string, to?: string, onSelect?: () => void }
+interface PaletteGroup { id: string, label: string, items: PaletteItem[], ignoreFilter?: boolean }
+
+const searchTerm = ref('')
+const searchLoading = ref(false)
+const searchResults = ref<PaletteGroup[]>([])
+let searchTimer: ReturnType<typeof setTimeout> | undefined
+
+interface SearchResponse {
+  users: { $id: string, name: string, email: string }[]
+  comments: { $id: string, content: string, authorId: string, authorName: string }[]
+}
+
+async function runSearch(term: string) {
+  if (term.trim().length < 2) {
+    searchResults.value = []
+    return
+  }
+  searchLoading.value = true
+  try {
+    const res = await $fetch<SearchResponse>('/api/admin/search', { query: { q: term.trim() } })
+    const groups: PaletteGroup[] = []
+    if (res.users.length) {
+      groups.push({
+        id: 'users',
+        label: t('dashboard.search.users'),
+        ignoreFilter: true,
+        items: res.users.map(u => ({ label: u.name, suffix: u.email, icon: 'i-ph-user', to: localePath(`/dashboard/users/${u.$id}`), onSelect: () => { open.value = false } })),
+      })
+    }
+    if (res.comments.length) {
+      groups.push({
+        id: 'comments',
+        label: t('dashboard.search.comments'),
+        ignoreFilter: true,
+        items: res.comments.map(c => ({ label: c.content, suffix: c.authorName, icon: 'i-ph-chat-circle', to: localePath(`/dashboard/users/${c.authorId}`), onSelect: () => { open.value = false } })),
+      })
+    }
+    searchResults.value = groups
+  }
+  catch {
+    searchResults.value = []
+  }
+  finally {
+    searchLoading.value = false
+  }
+}
+
+watch(searchTerm, (term) => {
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => runSearch(term), 250)
+})
+
+const searchGroups = computed(() => {
+  const navGroup: PaletteGroup = {
+    id: 'links',
+    label: t('dashboard.search.label'),
+    items: links.value.map(link => ({ label: String(link.label), icon: link.icon, to: String(link.to) })),
+  }
+  return [navGroup, ...searchResults.value] as unknown as CommandPaletteGroup<CommandPaletteItem>[]
+})
 </script>
 
 <template>
@@ -63,7 +123,12 @@ const searchGroups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => [
       </template>
     </UDashboardSidebar>
 
-    <UDashboardSearch :groups="searchGroups" :placeholder="t('dashboard.search.placeholder')" />
+    <UDashboardSearch
+      v-model:search-term="searchTerm"
+      :groups="searchGroups"
+      :loading="searchLoading"
+      :placeholder="t('dashboard.search.placeholder')"
+    />
 
     <!-- inset: Hauptinhalt sitzt als abgesetzte Karte im gedämpften Hintergrund -->
     <div

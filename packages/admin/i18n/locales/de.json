@@ -147,7 +147,7 @@
     }
   },
   "dashboard": {
-    "search": { "label": "Gehe zu", "placeholder": "Suchen…" },
+    "search": { "label": "Gehe zu", "placeholder": "Benutzer, Kommentare suchen…", "users": "Benutzer", "comments": "Kommentare" },
     "appearance": { "light": "Hell", "dark": "Dunkel", "system": "System" },
     "settings": { "title": "Einstellungen", "general": "Allgemein", "sessions": "Sitzungen", "security": "Sicherheit" },
     "sidebar": { "label": "Seitenleiste" },
