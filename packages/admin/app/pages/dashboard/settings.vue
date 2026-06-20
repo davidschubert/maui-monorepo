@@ -7,12 +7,18 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
 
 const { t } = useI18n()
 const localePath = useLocalePath()
+const route = useRoute()
 
 const links = computed<NavigationMenuItem[]>(() => [
   { label: t('dashboard.settings.general'), icon: 'i-ph-user', to: localePath('/dashboard/settings'), exact: true },
   { label: t('dashboard.settings.sessions'), icon: 'i-ph-devices', to: localePath('/dashboard/settings/sessions') },
   { label: t('dashboard.settings.security'), icon: 'i-ph-shield', to: localePath('/dashboard/settings/security') },
 ])
+
+// Die Sessions-Tabelle braucht mehr Breite (5 Spalten) — Formularseiten bleiben
+// schmal. Daher den Container nur auf der Sessions-Route weiter aufziehen.
+const containerWidth = computed(() =>
+  route.path.endsWith('/settings/sessions') ? 'lg:max-w-4xl' : 'lg:max-w-2xl')
 </script>
 
 <template>
@@ -30,7 +36,7 @@ const links = computed<NavigationMenuItem[]>(() => [
     </template>
 
     <template #body>
-      <div class="mx-auto flex w-full flex-col gap-4 sm:gap-6 lg:max-w-2xl lg:gap-12">
+      <div class="mx-auto flex w-full flex-col gap-4 sm:gap-6 lg:gap-12" :class="containerWidth">
         <NuxtPage />
       </div>
     </template>

@@ -10,7 +10,7 @@ const route = useRoute()
 const localePath = useLocalePath()
 const { user: me } = useCurrentUser()
 
-const FILTERS: ModerationFilter[] = ['reported', 'hidden', 'all']
+const FILTERS: ModerationFilter[] = ['all', 'reported', 'hidden']
 
 // Initial-Filter aus der Query (Stat-Cards verlinken auf ?status=reported)
 const filter = ref<ModerationFilter>(
