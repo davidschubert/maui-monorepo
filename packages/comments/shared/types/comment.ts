@@ -19,6 +19,12 @@ export interface Comment extends Models.Row {
   content: string
   authorId: string
   authorName: string
+  /**
+   * Avatar-URL des Autors — KEINE DB-Spalte, sondern beim Lesen aus den
+   * Account-prefs angereichert (immer aktuell). Bei Realtime-Events fremder
+   * User fehlt sie → UserAvatar fällt auf Initialen zurück, bis neu geladen wird.
+   */
+  authorAvatarUrl?: string
   parentId: string | null
   /** Denormalisierte Zähler — server-autoritativ via AdminClient gepflegt */
   upvotes: number

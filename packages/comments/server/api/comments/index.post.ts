@@ -73,5 +73,8 @@ export default defineEventHandler(async (event) => {
   }
 
   setResponseStatus(event, 201)
-  return row
+  // Avatar des Autors mitgeben (analog zur Listen-Anreicherung), damit der
+  // optimistisch eingefügte Kommentar nach dem Reconcile das Bild behält
+  const avatarUrl = (user.prefs as { avatarUrl?: string })?.avatarUrl
+  return { ...row, authorAvatarUrl: typeof avatarUrl === 'string' ? avatarUrl : undefined }
 })

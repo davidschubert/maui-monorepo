@@ -68,7 +68,7 @@ async function reportComment() {
 <template>
   <article class="rounded-lg border border-default p-3" data-comment :data-comment-id="comment.$id">
     <div class="flex items-center gap-2 text-xs text-muted">
-      <UserAvatar :user="{ name: comment.authorName }" size="2xs" />
+      <UserAvatar :user="{ name: comment.authorName, prefs: { avatarUrl: comment.authorAvatarUrl } }" size="2xs" />
       <span class="font-medium text-default">{{ comment.authorName }}</span>
       <span>·</span>
       <span>{{ formatDate(comment.$createdAt) }}</span>

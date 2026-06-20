@@ -102,6 +102,7 @@ export const useCommentStore = defineStore('comments', () => {
       content,
       authorId: auth.user.$id,
       authorName: auth.user.name,
+      authorAvatarUrl: (auth.user.prefs as { avatarUrl?: string })?.avatarUrl,
       parentId: parentId ?? null,
       upvotes: 0,
       downvotes: 0,
@@ -189,8 +190,17 @@ export const useCommentStore = defineStore('comments', () => {
 
   function upsertRow(comment: Comment) {
     const index = rows.value.findIndex(row => row.$id === comment.$id)
-    if (index === -1) rows.value = [comment, ...rows.value]
-    else rows.value.splice(index, 1, comment)
+    if (index === -1) {
+      rows.value = [comment, ...rows.value]
+      return
+    }
+    // authorAvatarUrl ist nur angereichert (keine DB-Spalte) — Updates ohne sie
+    // (Vote-/Edit-Responses, Realtime) würden sie sonst löschen
+    const prev = rows.value[index]!
+    const merged = comment.authorAvatarUrl === undefined && prev.authorAvatarUrl !== undefined
+      ? { ...comment, authorAvatarUrl: prev.authorAvatarUrl }
+      : comment
+    rows.value.splice(index, 1, merged)
   }
 
   /** Realtime: gezieltes Einfügen/Aktualisieren — kein Full-Refresh */

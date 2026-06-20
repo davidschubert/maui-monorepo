@@ -56,9 +56,13 @@ export default defineEventHandler(async (event): Promise<CommentListResponse> =>
 
   // Controversial lässt sich nicht als Appwrite-Query ausdrücken —
   // wird je Seite server-seitig berechnet (bewusste Limitierung)
-  const rows = sort === 'controversial'
+  const sorted = sort === 'controversial'
     ? [...result.rows].sort((a, b) => controversy(b) - controversy(a))
     : result.rows
+
+  // Avatar-URLs der Autoren aus den Account-prefs anreichern (ein Query, immer aktuell)
+  const avatars = await resolveAuthorAvatars(event, sorted.map(row => row.authorId))
+  const rows = sorted.map(row => ({ ...row, authorAvatarUrl: avatars.get(row.authorId) }))
 
   const myVotes: Record<string, VoteValue> = {}
   const user = event.context.user
