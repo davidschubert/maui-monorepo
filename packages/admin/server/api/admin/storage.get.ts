@@ -19,14 +19,14 @@ export default defineEventHandler(async (event): Promise<StorageOverview> => {
   const admin = createAdminClient(event)
 
   try {
-    // Referenzierte fileIds aus den User-Profilen (prefs.avatarUrl)
-    const referenced = new Set<string>()
+    // Referenzierte fileIds → Account-Name aus den User-Profilen (prefs.avatarUrl)
+    const referenced = new Map<string, string>()
     const pattern = new RegExp(`/storage/${bucketId}/([^/?]+)`)
     const usersRes = await admin.users.list({ queries: [Query.limit(100)] })
     for (const user of usersRes.users) {
       const url = (user.prefs as { avatarUrl?: string })?.avatarUrl
       const match = typeof url === 'string' ? url.match(pattern) : null
-      if (match) referenced.add(match[1]!)
+      if (match) referenced.set(match[1]!, user.name || user.email)
     }
 
     const filesRes = await admin.storage.listFiles({
@@ -41,6 +41,7 @@ export default defineEventHandler(async (event): Promise<StorageOverview> => {
       mimeType: file.mimeType,
       $createdAt: file.$createdAt,
       orphan: !referenced.has(file.$id),
+      linkedUserName: referenced.get(file.$id) ?? '',
     }))
 
     return {

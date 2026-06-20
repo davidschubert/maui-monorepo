@@ -35,6 +35,8 @@
       "confirmTitle": "Datei löschen",
       "confirmOne": "Diese Datei endgültig löschen?",
       "confirmOrphans": "Alle {count} nicht verknüpften Dateien endgültig löschen? Sie werden von keinem Profil verwendet.",
+      "linkedWarningTitle": "Kritisch: Datei ist verknüpft",
+      "linkedWarningText": "Diese Datei wird aktuell als Avatar von {name} verwendet. Wird sie gelöscht, hat dieser Account kein Profilbild mehr.",
       "unavailableTitle": "Speicher-Browser nicht verfügbar",
       "unavailableText": "NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET setzen und dem Runtime-Key die Scopes files.read + files.write geben, dann neu laden."
     },

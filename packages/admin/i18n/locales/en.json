@@ -35,6 +35,8 @@
       "confirmTitle": "Delete file",
       "confirmOne": "Delete this file permanently?",
       "confirmOrphans": "Delete all {count} unlinked files permanently? They are not used by any profile.",
+      "linkedWarningTitle": "Critical: file is linked",
+      "linkedWarningText": "This file is currently used as the avatar of {name}. Deleting it leaves that account without a profile picture.",
       "unavailableTitle": "Storage browser not available",
       "unavailableText": "Set NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET and grant the runtime key the files.read + files.write scopes, then reload."
     },

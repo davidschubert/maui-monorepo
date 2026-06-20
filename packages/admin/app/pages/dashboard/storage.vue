@@ -128,9 +128,19 @@ async function executePending() {
 
       <UModal :open="pending !== null" :title="t('admin.storage.confirmTitle')" @update:open="(v: boolean) => { if (!v) pending = null }">
         <template #body>
-          <p class="text-sm">
-            {{ pending?.kind === 'orphans' ? t('admin.storage.confirmOrphans', { count: data?.orphanCount ?? 0 }) : t('admin.storage.confirmOne') }}
-          </p>
+          <div class="space-y-3">
+            <p class="text-sm">
+              {{ pending?.kind === 'orphans' ? t('admin.storage.confirmOrphans', { count: data?.orphanCount ?? 0 }) : t('admin.storage.confirmOne') }}
+            </p>
+            <UAlert
+              v-if="pending?.kind === 'one' && !pending.file.orphan"
+              color="error"
+              variant="subtle"
+              icon="i-ph-warning-octagon"
+              :title="t('admin.storage.linkedWarningTitle')"
+              :description="t('admin.storage.linkedWarningText', { name: pending.file.linkedUserName })"
+            />
+          </div>
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">

@@ -79,6 +79,8 @@ export interface StorageFileEntry {
   $createdAt: string
   /** true = von keinem User-Profil referenziert */
   orphan: boolean
+  /** Name des Accounts, der diese Datei als Avatar nutzt — leer wenn orphan */
+  linkedUserName: string
 }
 
 export interface StorageOverview {
