@@ -122,6 +122,7 @@
       "joined": "Joined",
       "lastActivity": "Last activity",
       "detail": {
+        "profile": "Profile",
         "back": "Users",
         "accountDetails": "Account details",
         "phone": "Phone",

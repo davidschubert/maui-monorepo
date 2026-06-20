@@ -112,7 +112,7 @@ async function executePending() {
 <template>
   <UDashboardPanel id="user-detail" :ui="{ body: 'lg:py-12' }">
     <template #header>
-      <UDashboardNavbar :title="user?.name || t('admin.nav.users')">
+      <UDashboardNavbar :title="t('admin.users.detail.profile')">
         <template #leading>
           <UDashboardSidebarCollapse />
         </template>
