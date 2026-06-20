@@ -21,11 +21,11 @@ const closedText = computed(() => flags.value.maintenanceMode
   <div class="w-full max-w-sm space-y-4">
     <template v-if="registrationClosed">
       <div class="space-y-3 text-center">
-        <UIcon name="i-ph-lock-simple" class="mx-auto size-8 text-muted" />
+        <UIcon name="i-ph-lock-simple" class="mx-auto size-8 text-primary" />
         <h1 class="text-xl font-semibold">{{ t('auth.register.closedTitle') }}</h1>
         <p class="text-sm text-muted">{{ closedText }}</p>
       </div>
-      <UButton :to="localePath('/login')" icon="i-ph-sign-in" color="neutral" variant="subtle" size="lg" block>
+      <UButton :to="localePath('/login')" color="primary" size="lg" block>
         {{ t('auth.register.toLogin') }}
       </UButton>
     </template>
