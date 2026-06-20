@@ -7,6 +7,7 @@ const { t } = useI18n()
 const store = useCommentStore()
 const toast = useToast()
 const { user, isLoggedIn } = useCurrentUser()
+const { canWrite, canDelete } = useCommentPolicy()
 
 const isAuthor = computed(() => user.value?.$id === props.comment.authorId)
 const isDeleted = computed(() => props.comment.status === 'deleted')
@@ -93,22 +94,22 @@ async function reportComment() {
 
       <template v-if="!isDeleted">
         <UButton
-          v-if="isLoggedIn"
+          v-if="isLoggedIn && canWrite"
           size="xs" color="neutral" variant="ghost" icon="i-ph-chat-circle"
           @click="replying = !replying"
         >
           {{ t('comments.item.reply') }}
         </UButton>
         <template v-if="isAuthor">
-          <UButton size="xs" color="neutral" variant="ghost" icon="i-ph-pencil-simple" @click="startEdit">
+          <UButton v-if="canWrite" size="xs" color="neutral" variant="ghost" icon="i-ph-pencil-simple" @click="startEdit">
             {{ t('comments.item.edit') }}
           </UButton>
-          <UButton size="xs" color="neutral" variant="ghost" icon="i-ph-trash" :loading="busy" @click="remove">
+          <UButton v-if="canDelete" size="xs" color="neutral" variant="ghost" icon="i-ph-trash" :loading="busy" @click="remove">
             {{ t('comments.item.delete') }}
           </UButton>
         </template>
         <UButton
-          v-else-if="isLoggedIn && comment.status === 'active'"
+          v-else-if="isLoggedIn && comment.status === 'active' && canWrite"
           size="xs" color="neutral" variant="ghost" icon="i-ph-flag"
           @click="reportComment"
         >

@@ -4,6 +4,14 @@
     "empty": "No comments yet — write the first one!",
     "loginLink": "Sign in",
     "loginSuffix": " to join the discussion.",
+    "disabled": {
+      "title": "Comments disabled",
+      "text": "New comments are currently disabled. Existing comments stay visible.",
+      "toast": "Comments are currently disabled.",
+      "maintenanceTitle": "Maintenance mode",
+      "maintenanceText": "New comments are paused during maintenance. Existing comments stay visible.",
+      "maintenanceToast": "Maintenance mode — commenting is temporarily locked."
+    },
     "sort": {
       "label": "Sort",
       "top": "Top",

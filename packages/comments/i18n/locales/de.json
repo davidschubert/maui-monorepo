@@ -4,6 +4,14 @@
     "empty": "Noch keine Kommentare — schreib den ersten!",
     "loginLink": "Anmelden",
     "loginSuffix": ", um zu kommentieren.",
+    "disabled": {
+      "title": "Kommentare deaktiviert",
+      "text": "Neue Kommentare sind derzeit deaktiviert. Bestehende Kommentare bleiben sichtbar.",
+      "toast": "Kommentare sind derzeit deaktiviert.",
+      "maintenanceTitle": "Wartungsmodus",
+      "maintenanceText": "Während der Wartung sind keine neuen Kommentare möglich. Bestehende Kommentare bleiben sichtbar.",
+      "maintenanceToast": "Wartungsmodus aktiv — Kommentare sind vorübergehend gesperrt."
+    },
     "sort": {
       "label": "Sortieren",
       "top": "Top",

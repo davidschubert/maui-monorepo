@@ -13,6 +13,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 400, statusText: 'Missing comment id' })
   }
 
+  await assertCommentsWritable(event)
+
   const { content } = await readValidatedBody(event, commentUpdateSchema.parse)
   const config = useRuntimeConfig(event)
   const { tablesDB } = createSessionClient(event)

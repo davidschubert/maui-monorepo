@@ -7,9 +7,10 @@ const { t } = useI18n()
 const store = useCommentStore()
 const toast = useToast()
 const { isLoggedIn } = useCurrentUser()
+const policy = useCommentPolicy()
 
 const myVote = computed(() => store.myVote(props.comment.$id))
-const disabled = computed(() => !isLoggedIn.value || props.comment.status === 'deleted')
+const disabled = computed(() => !isLoggedIn.value || props.comment.status === 'deleted' || !policy.canWrite.value)
 
 async function vote(value: 1 | -1) {
   if (disabled.value) return

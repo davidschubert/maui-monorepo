@@ -15,6 +15,9 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 400, statusText: 'Missing comment id' })
   }
 
+  // Löschen bleibt bei deaktivierten Kommentaren erlaubt — nur Wartung friert es ein
+  await assertNotMaintenance(event)
+
   const config = useRuntimeConfig(event)
   const { tablesDB } = createSessionClient(event)
 

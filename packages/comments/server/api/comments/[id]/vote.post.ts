@@ -29,6 +29,8 @@ export default defineEventHandler(async (event): Promise<VoteResponse> => {
     throw createError({ status: 400, statusText: 'Missing comment id' })
   }
 
+  await assertCommentsWritable(event)
+
   const { value } = await readValidatedBody(event, voteSchema.parse)
   const config = useRuntimeConfig(event)
   const databaseId = config.public.appwriteDatabaseId

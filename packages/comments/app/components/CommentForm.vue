@@ -29,8 +29,12 @@ async function onSubmit(event: FormSubmitEvent<FormInput>) {
     state.content = ''
     emit('created')
   }
-  catch {
-    toast.add({ title: t('comments.form.error'), color: 'error' })
+  catch (error) {
+    const code = (error as { data?: { data?: { code?: string } } })?.data?.data?.code
+    const key = code === 'maintenance'
+      ? 'comments.disabled.maintenanceToast'
+      : code === 'comments_disabled' ? 'comments.disabled.toast' : 'comments.form.error'
+    toast.add({ title: t(key), color: 'error' })
   }
   finally {
     loading.value = false
