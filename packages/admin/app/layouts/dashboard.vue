@@ -29,7 +29,7 @@ const links = computed<NavigationMenuItem[]>(() => [
   { label: t('admin.nav.users'), icon: 'i-ph-users', to: localePath('/dashboard/users'), onSelect: close },
   { label: t('admin.nav.comments'), icon: 'i-ph-chat-circle', to: localePath('/dashboard/comments'), onSelect: close },
   { label: t('admin.nav.storage'), icon: 'i-ph-folder', to: localePath('/dashboard/storage'), onSelect: close },
-  { label: t('dashboard.settings.title'), icon: 'i-ph-gear', to: localePath('/dashboard/settings'), onSelect: close },
+  // Settings bewusst nicht hier — sitzt schon im User-Menü unten (DashboardUserMenu)
 ])
 
 // Admin/System unten — knapp über dem User-Menü
