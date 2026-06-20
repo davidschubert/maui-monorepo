@@ -1,5 +1,5 @@
 import { ID } from 'node-appwrite'
-import { createSessionClient } from '../../lib/appwrite'
+import { createAdminClient, createSessionClient } from '../../lib/appwrite'
 import { recoverySchema } from '../../../schemas/auth'
 
 /**
@@ -10,6 +10,21 @@ import { recoverySchema } from '../../../schemas/auth'
  */
 export default defineEventHandler(async (event) => {
   const { email } = await readValidatedBody(event, recoverySchema.parse)
+
+  // Auto-Signup würde die Registrierungssperre umgehen: Ist die Registrierung
+  // zu (oder Wartungsmodus), dürfen sich nur BESTEHENDE User per Code einloggen
+  // — für unbekannte E-Mails keine Neuanlage.
+  const appConfig = await getAppConfig(event)
+  if (!appConfig.registrationEnabled || appConfig.maintenanceMode) {
+    // Case-insensitiv prüfen: Appwrite-Mails können gemischte Groß-/Kleinschreibung
+    // haben, Query.equal wäre case-sensitiv → search + exakter Abgleich.
+    const admin = createAdminClient(event)
+    const found = await admin.users.list({ search: email })
+    const exists = found.users.some(u => u.email.toLowerCase() === email)
+    if (!exists) {
+      throw createError({ status: 403, statusText: 'Registration is currently disabled' })
+    }
+  }
 
   const { account } = createSessionClient(event)
 

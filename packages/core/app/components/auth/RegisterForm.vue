@@ -42,8 +42,11 @@ async function onSubmit(event: FormSubmitEvent<RegisterFormInput>) {
     await navigateTo(localePath('/'))
   }
   catch (error) {
-    // Server weg ≠ Account existiert — ehrliche Meldung je nach Ursache
-    errorMessage.value = isNetworkError(error) ? t('auth.networkError') : t('auth.register.failed')
+    // Server weg ≠ Account existiert ≠ Registrierung zu — ehrliche Meldung je nach Ursache
+    const status = (error as { statusCode?: number }).statusCode
+    if (isNetworkError(error)) errorMessage.value = t('auth.networkError')
+    else if (status === 403) errorMessage.value = t('auth.register.disabled')
+    else errorMessage.value = t('auth.register.failed')
   }
   finally {
     loading.value = false

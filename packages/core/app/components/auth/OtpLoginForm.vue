@@ -78,7 +78,10 @@ async function requestCode(event: FormSubmitEvent<OtpRequestInput>) {
     step.value = 'code'
   }
   catch (error) {
-    errorMessage.value = isNetworkError(error) ? t('auth.networkError') : t('auth.otp.requestFailed')
+    const status = (error as { statusCode?: number }).statusCode
+    if (isNetworkError(error)) errorMessage.value = t('auth.networkError')
+    else if (props.register && status === 403) errorMessage.value = t('auth.register.disabled')
+    else errorMessage.value = t('auth.otp.requestFailed')
   }
   finally {
     loading.value = false

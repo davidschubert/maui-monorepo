@@ -6,9 +6,11 @@ definePageMeta({ layout: 'auth', middleware: 'guest' })
 const { t } = useI18n()
 const localePath = useLocalePath()
 const appConfig = useAppConfig()
+const { data: flags } = await useRuntimeFlags()
 
-// OTP deaktiviert → zurück zur Passwort-Registrierung (kein toter Pfad bei Direktaufruf)
-if (appConfig.maui?.auth?.otp !== true) {
+// OTP deaktiviert ODER Registrierung geschlossen → zurück zu /register
+// (dort liegt der "Registrierung geschlossen"-Hinweis zentral)
+if (appConfig.maui?.auth?.otp !== true || !flags.value.registrationEnabled || flags.value.maintenanceMode) {
   await navigateTo(localePath('/register'))
 }
 </script>
