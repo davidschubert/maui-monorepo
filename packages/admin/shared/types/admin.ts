@@ -98,6 +98,8 @@ export interface AuditLogEntry {
   $createdAt: string
   actorId: string
   actorName: string
+  /** Avatar-URL des Actors aus den Account-prefs — beim Lesen angereichert */
+  actorAvatarUrl: string
   action: string
   targetType: string
   targetId: string

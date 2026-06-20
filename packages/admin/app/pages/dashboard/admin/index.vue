@@ -72,7 +72,10 @@ const columns: TableColumn<AuditLogEntry>[] = [
     <template v-else>
       <UTable :data="data?.entries ?? []" :columns="columns">
         <template #actorName-cell="{ row }">
-          <span class="font-medium">{{ row.original.actorName }}</span>
+          <ULink :to="localePath(`/dashboard/users/${row.original.actorId}`)" class="flex items-center gap-2 font-medium text-default hover:text-primary">
+            <UserAvatar :user="{ name: row.original.actorName, prefs: { avatarUrl: row.original.actorAvatarUrl } }" size="2xs" />
+            <span class="hover:underline">{{ row.original.actorName }}</span>
+          </ULink>
         </template>
         <template #event-cell="{ row }">
           <div class="flex items-center gap-2">

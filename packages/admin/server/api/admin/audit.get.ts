@@ -24,6 +24,9 @@ export default defineEventHandler(async (event): Promise<AuditLogListResponse> =
     ],
   })
 
+  // Avatar-URLs der Actors aus den Account-prefs anreichern (ein Query)
+  const avatars = await resolveUserAvatars(event, result.rows.map(row => row.actorId))
+
   return {
     total: result.total,
     entries: result.rows.map(row => ({
@@ -31,6 +34,7 @@ export default defineEventHandler(async (event): Promise<AuditLogListResponse> =
       $createdAt: row.$createdAt,
       actorId: row.actorId,
       actorName: row.actorName,
+      actorAvatarUrl: avatars.get(row.actorId) ?? '',
       action: row.action,
       targetType: row.targetType,
       targetId: row.targetId,
