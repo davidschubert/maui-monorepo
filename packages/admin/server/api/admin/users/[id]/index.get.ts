@@ -24,6 +24,15 @@ export default defineEventHandler(async (event): Promise<AdminUserDetailResponse
     throw createError({ status: 404, statusText: 'User not found' })
   }
 
+  // 'current' kommt aus der Admin-API immer als false zurück (der API-Key agiert
+  // nicht als der User). Schaut ein Admin auf das EIGENE Profil, ermitteln wir
+  // die aktive Session über den Session-Client und markieren sie selbst.
+  const viewingSelf = event.context.user?.$id === userId
+  const currentSessionId = viewingSelf
+    ? await createSessionClient(event).account.getSession({ sessionId: 'current' })
+        .then(s => s.$id).catch(() => '')
+    : ''
+
   const [sessions, comments] = await Promise.all([
     admin.users.listSessions({ userId }).catch(() => ({ sessions: [] as Models.Session[] })),
     admin.tablesDB.listRows<CommentRow>({
@@ -32,6 +41,11 @@ export default defineEventHandler(async (event): Promise<AdminUserDetailResponse
       queries: [Query.equal('authorId', userId), Query.orderDesc('$createdAt'), Query.limit(10)],
     }).catch(() => ({ total: 0, rows: [] as CommentRow[] })),
   ])
+
+  // Appwrite liefert für nicht auflösbare (lokale/private) IPs 'Unknown' oder '--'
+  // als Land — auf leer normalisieren, damit die UI lokalisiert "Unbekannt" zeigt.
+  const normalizeCountry = (name: string): string =>
+    (!name || name === 'Unknown' || name === '--') ? '' : name
 
   const prefs = user.prefs as { bio?: string, avatarUrl?: string }
 
@@ -61,8 +75,8 @@ export default defineEventHandler(async (event): Promise<AdminUserDetailResponse
       clientVersion: s.clientVersion,
       osName: s.osName,
       osVersion: s.osVersion,
-      countryName: s.countryName,
-      current: s.current,
+      countryName: normalizeCountry(s.countryName),
+      current: viewingSelf ? s.$id === currentSessionId : s.current,
     })),
     comments: comments.rows.map(row => ({
       $id: row.$id,

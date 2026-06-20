@@ -24,7 +24,9 @@ const busy = ref(false)
 const exporting = ref(false)
 
 function exactDateTime(iso: string): string {
-  return new Date(iso).toLocaleString(locale.value, { dateStyle: 'medium', timeStyle: 'short' })
+  return new Date(iso).toLocaleString(locale.value, {
+    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false,
+  })
 }
 
 async function copyId() {
@@ -129,13 +131,7 @@ async function executePending() {
           <div class="flex flex-wrap items-center gap-5">
             <UserAvatar :user="{ name: user.name, email: user.email, prefs: { avatarUrl: user.avatarUrl } }" size="3xl" />
             <div class="min-w-0 flex-1">
-              <div class="flex flex-wrap items-center gap-2">
-                <h2 class="text-xl font-semibold">{{ user.name }}</h2>
-                <UBadge :color="user.status ? 'success' : 'error'" variant="subtle" size="sm">
-                  {{ user.status ? t('admin.users.active') : t('admin.users.blockedBadge') }}
-                </UBadge>
-                <UBadge v-for="label in user.labels" :key="label" color="primary" variant="subtle" size="sm">{{ label }}</UBadge>
-              </div>
+              <h2 class="text-xl font-semibold">{{ user.name }}</h2>
               <p class="truncate text-sm text-muted">{{ user.email }}</p>
             </div>
           </div>
@@ -247,7 +243,11 @@ async function executePending() {
         </UPageCard>
 
         <!-- Sessions -->
-        <UPageCard :title="t('admin.users.detail.sessions')" variant="subtle">
+        <UPageCard variant="subtle">
+          <div class="mb-3 flex items-center justify-between">
+            <h3 class="font-semibold">{{ t('admin.users.detail.sessions') }}</h3>
+            <UBadge color="neutral" variant="subtle">{{ data?.sessions.length ?? 0 }}</UBadge>
+          </div>
           <p v-if="(data?.sessions.length ?? 0) === 0" class="text-sm text-muted">{{ t('admin.users.detail.noSessions') }}</p>
           <SessionsTable v-else :sessions="data?.sessions ?? []" />
         </UPageCard>
