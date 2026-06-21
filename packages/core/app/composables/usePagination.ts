@@ -20,7 +20,11 @@ export function usePagination(options: PaginationOptions = {}) {
   const hasNext = computed(() => page.value < totalPages.value)
 
   function setPage(value: number) {
-    page.value = Math.min(Math.max(1, value), totalPages.value)
+    const lower = Math.max(1, value)
+    // Obergrenze nur klemmen, wenn dem Composable die Gesamtzahl bekannt ist.
+    // Ohne übergebenes total bliebe totalPages auf 1 und jede Seite > 1 würde
+    // verschluckt — die UPagination kennt die echte Gesamtzahl und begrenzt selbst.
+    page.value = total.value > 0 ? Math.min(lower, totalPages.value) : lower
   }
 
   function next() {
