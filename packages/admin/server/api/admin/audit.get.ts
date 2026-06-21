@@ -10,7 +10,12 @@ type AuditRow = Models.Row & Omit<AuditLogEntry, '$id' | '$createdAt'>
 export default defineEventHandler(async (event): Promise<AuditLogListResponse> => {
   requireAdmin(event)
 
-  const page = Math.max(1, Number(getQuery(event).page ?? 1) || 1)
+  const query = getQuery(event)
+  const page = Math.max(1, Number(query.page ?? 1) || 1)
+  const SORTABLE = new Set(['$createdAt', 'actorName'])
+  const sort = SORTABLE.has(String(query.sort)) ? String(query.sort) : '$createdAt'
+  const dir = query.dir === 'asc' ? 'asc' : 'desc'
+
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
 
@@ -18,7 +23,7 @@ export default defineEventHandler(async (event): Promise<AuditLogListResponse> =
     databaseId: config.public.appwriteDatabaseId,
     tableId: 'audit_logs',
     queries: [
-      Query.orderDesc('$createdAt'),
+      dir === 'asc' ? Query.orderAsc(sort) : Query.orderDesc(sort),
       Query.limit(PAGE_SIZE),
       Query.offset((page - 1) * PAGE_SIZE),
     ],

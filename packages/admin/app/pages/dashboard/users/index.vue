@@ -14,10 +14,14 @@ const { user: me } = useCurrentUser()
 const search = ref('')
 const activeSearch = ref('')
 const { page, setPage } = usePagination()
+const { sortField, sortDir, toggle } = useTableSort('$createdAt', 'desc')
 
 const { data, refresh } = await useFetch<AdminUserListResponse>('/api/admin/users', {
-  query: computed(() => ({ search: activeSearch.value, page: page.value })),
+  query: computed(() => ({ search: activeSearch.value, page: page.value, sort: sortField.value, dir: sortDir.value })),
 })
+
+// Sortierwechsel → zurück auf Seite 1
+watch([sortField, sortDir], () => setPage(1))
 
 function runSearch() {
   activeSearch.value = search.value.trim()
@@ -145,6 +149,18 @@ async function executePending() {
           <div class="flex justify-center py-16"><UIcon name="i-ph-spinner" class="size-6 animate-spin text-muted" /></div>
         </template>
       <UTable :data="data?.users ?? []" :columns="columns" data-users-table>
+        <template #name-header>
+          <SortableHeader :label="t('admin.users.name')" field="name" :active="sortField" :dir="sortDir" @toggle="toggle" />
+        </template>
+        <template #email-header>
+          <SortableHeader :label="t('admin.users.email')" field="email" :active="sortField" :dir="sortDir" @toggle="toggle" />
+        </template>
+        <template #createdAt-header>
+          <SortableHeader :label="t('admin.users.joined')" field="$createdAt" :active="sortField" :dir="sortDir" @toggle="toggle" />
+        </template>
+        <template #status-header>
+          <SortableHeader :label="t('admin.users.status')" field="status" :active="sortField" :dir="sortDir" @toggle="toggle" />
+        </template>
         <template #name-cell="{ row }">
           <ULink :to="localePath(`/dashboard/users/${row.original.$id}`)" class="flex items-center gap-2 font-medium text-default hover:text-primary">
             <UserAvatar :user="{ name: row.original.name, email: row.original.email, prefs: { avatarUrl: row.original.avatarUrl } }" size="xs" />

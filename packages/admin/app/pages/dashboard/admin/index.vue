@@ -10,12 +10,16 @@ const localePath = useLocalePath()
 const config = useRuntimeConfig()
 const { formatRelativeTime } = useFormatRelativeTime()
 const { page, setPage } = usePagination()
+const { sortField, sortDir, toggle } = useTableSort('$createdAt', 'desc')
 
 const { data, status, refresh } = useFetch<AuditLogListResponse>('/api/admin/audit', {
-  query: computed(() => ({ page: page.value })),
+  query: computed(() => ({ page: page.value, sort: sortField.value, dir: sortDir.value })),
   lazy: true,
   server: false,
 })
+
+// Sortierwechsel → zurück auf Seite 1
+watch([sortField, sortDir], () => setPage(1))
 
 // Live: neue Audit-Einträge (von anderen Admins) erscheinen ohne Reload.
 // Voraussetzung: audit_logs read:label:admin (Migration admin-006).
@@ -84,6 +88,12 @@ const columns: TableColumn<AuditLogEntry>[] = [
 
     <template v-else>
       <UTable :data="data?.entries ?? []" :columns="columns">
+        <template #actorName-header>
+          <SortableHeader :label="t('admin.audit.col.user')" field="actorName" :active="sortField" :dir="sortDir" @toggle="toggle" />
+        </template>
+        <template #date-header>
+          <SortableHeader :label="t('admin.audit.col.date')" field="$createdAt" :active="sortField" :dir="sortDir" @toggle="toggle" />
+        </template>
         <template #actorName-cell="{ row }">
           <ULink :to="localePath(`/dashboard/users/${row.original.actorId}`)" class="flex items-center gap-2 font-medium text-default hover:text-primary">
             <UserAvatar :user="{ name: row.original.actorName, prefs: { avatarUrl: row.original.actorAvatarUrl } }" size="2xs" />
