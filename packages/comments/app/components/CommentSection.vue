@@ -15,19 +15,17 @@ const { isLoggedIn } = useCurrentUser()
 // Kommentar-Policy aus den Laufzeit-Flags bereitstellen (synchron, vor await).
 // Refs auf Top-Level holen — verschachtelte Refs (policy.canWrite) unwrappen im
 // Template NICHT automatisch.
-const { policy, flags: flagsAsync } = provideCommentPolicy()
-const { canWrite, reason } = policy
+const { canWrite, reason } = provideCommentPolicy()
 
 const notice = computed(() => reason.value === 'maintenance'
   ? { title: t('comments.disabled.maintenanceTitle'), text: t('comments.disabled.maintenanceText') }
   : { title: t('comments.disabled.title'), text: t('comments.disabled.text') })
 
-// SSR-Load — Pinia-State hydratisiert in den Client; Flags parallel auflösen
+// SSR-Load — Pinia-State hydratisiert in den Client
 await useAsyncData(`comments:${props.targetType}:${props.targetId}`, async () => {
   await store.fetchComments(props.targetId, props.targetType)
   return true
 })
-await flagsAsync
 
 const sortOptions = computed(() => [
   { label: t('comments.sort.top'), value: 'top' },

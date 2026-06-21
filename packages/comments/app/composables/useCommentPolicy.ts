@@ -16,21 +16,20 @@ export const commentPolicyKey: InjectionKey<CommentPolicy> = Symbol('comment-pol
  * In CommentSection (synchron, vor dem ersten await) aufrufen; das
  * zurückgegebene AsyncData danach für SSR awaiten.
  */
-export function provideCommentPolicy() {
+export function provideCommentPolicy(): CommentPolicy {
   const flags = useRuntimeFlags()
-  const data = flags.data
   // Eigenes Objekt zurückgeben: inject() im selben Setup würde sonst den
-  // Fallback treffen, nicht das eigene provide(). CommentSection nutzt `policy`
-  // direkt, Kind-Komponenten lesen es via useCommentPolicy()/inject.
+  // Fallback treffen, nicht das eigene provide(). CommentSection nutzt das
+  // Ergebnis direkt, Kind-Komponenten lesen es via useCommentPolicy()/inject.
   const policy: CommentPolicy = {
-    canWrite: computed(() => data.value.commentsEnabled && !data.value.maintenanceMode),
-    canDelete: computed(() => !data.value.maintenanceMode),
-    reason: computed(() => data.value.maintenanceMode
+    canWrite: computed(() => flags.value.commentsEnabled && !flags.value.maintenanceMode),
+    canDelete: computed(() => !flags.value.maintenanceMode),
+    reason: computed(() => flags.value.maintenanceMode
       ? 'maintenance'
-      : (!data.value.commentsEnabled ? 'disabled' : null)),
+      : (!flags.value.commentsEnabled ? 'disabled' : null)),
   }
   provide(commentPolicyKey, policy)
-  return { policy, flags }
+  return policy
 }
 
 /** Policy aus dem Provider; Fallback = alles erlaubt (Standalone-Nutzung). */

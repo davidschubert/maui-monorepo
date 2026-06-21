@@ -6,7 +6,7 @@ definePageMeta({ layout: 'auth', middleware: 'guest' })
 const { t } = useI18n()
 const localePath = useLocalePath()
 const appConfig = useAppConfig()
-const { data: flags } = await useRuntimeFlags()
+const flags = useRuntimeFlags()
 
 // OTP deaktiviert ODER Registrierung geschlossen → zurück zu /register
 // (dort liegt der "Registrierung geschlossen"-Hinweis zentral)

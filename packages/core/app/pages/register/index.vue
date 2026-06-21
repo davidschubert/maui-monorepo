@@ -7,7 +7,7 @@ definePageMeta({ layout: 'auth', middleware: 'guest' })
 const { t } = useI18n()
 const localePath = useLocalePath()
 const appConfig = useAppConfig()
-const { data: flags } = await useRuntimeFlags()
+const flags = useRuntimeFlags()
 
 const otpEnabled = computed(() => appConfig.maui?.auth?.otp === true)
 // Registrierung zu, wenn der Flag aus ist ODER Wartungsmodus läuft (friert Writes ein)
