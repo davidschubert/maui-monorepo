@@ -1,7 +1,10 @@
 import { Query } from 'node-appwrite'
+import type { Models } from 'node-appwrite'
 
 const FRESH_MS = 45_000 // als online gilt, wer innerhalb 45s gepingt hat
 const STALE_MS = 120_000 // ältere Rows werden best-effort aufgeräumt
+
+type PresenceRow = Models.Row & { userId: string, userName: string, typing: boolean }
 
 /**
  * Anzahl aktuell anwesender User für einen scope ('global' = eingeloggt/live,
@@ -15,7 +18,7 @@ export default defineEventHandler(async (event) => {
   const scope = String(getQuery(event).scope ?? 'global')
 
   try {
-    const fresh = await admin.tablesDB.listRows({
+    const fresh = await admin.tablesDB.listRows<PresenceRow>({
       databaseId, tableId: 'presence',
       queries: [
         Query.equal('scope', scope),
@@ -36,9 +39,13 @@ export default defineEventHandler(async (event) => {
       stale.rows.map(row => admin.tablesDB.deleteRow({ databaseId, tableId: 'presence', rowId: row.$id }).catch(() => {})),
     )).catch(() => {})
 
-    return { scope, count: fresh.total }
+    return {
+      scope,
+      count: fresh.total,
+      users: fresh.rows.map(row => ({ userId: row.userId, userName: row.userName, typing: row.typing === true })),
+    }
   }
   catch {
-    return { scope, count: 0 }
+    return { scope, count: 0, users: [] }
   }
 })
