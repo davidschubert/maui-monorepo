@@ -1,8 +1,12 @@
 /**
  * Hält die globale Presence des eingeloggten Users am Leben: Heartbeat alle
- * ~20s (als online gilt serverseitig, wer < 45s gepingt hat). Beim Schließen
- * des Tabs ein sendBeacon-„leave", damit der Online-Zähler sofort fällt.
- * Startet/stoppt automatisch mit dem Login-Status.
+ * ~20s (als online gilt serverseitig, wer < 45s gepingt hat). Startet/stoppt
+ * automatisch mit dem Login-Status.
+ *
+ * Bewusst KEIN leave bei beforeunload: Das feuert auch beim Reload und würde
+ * die Row löschen, bevor die neu geladene Seite serverseitig den Zähler holt
+ * (→ flackernde 0/1). Abwesenheit wird stattdessen über das 45s-Frischefenster
+ * abgeräumt (echtes Tab-Schließen fällt mit ≤45s Verzögerung raus).
  */
 const HEARTBEAT_MS = 20_000
 
@@ -21,8 +25,4 @@ export default defineNuxtPlugin(() => {
       timer = setInterval(beat, HEARTBEAT_MS)
     }
   }, { immediate: true })
-
-  window.addEventListener('beforeunload', () => {
-    if (auth.user) navigator.sendBeacon('/api/presence/leave')
-  })
 })
