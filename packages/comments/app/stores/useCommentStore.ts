@@ -26,6 +26,8 @@ export const useCommentStore = defineStore('comments', () => {
   /** Per Realtime eingetroffene fremde Top-Level-Kommentare, gepuffert für die "N neue"-Pill */
   const pending = ref<Comment[]>([])
   const pendingCount = computed(() => pending.value.length)
+  /** IDs, die wir per Moderation (hidden) entfernt haben — für Live-Restore */
+  const removedByHide = new Set<string>()
 
   /** Baum aus der flachen Liste: Top-Level behält die Server-Sortierung, Antworten chronologisch */
   const threaded = computed<CommentNode[]>(() => {
@@ -75,6 +77,7 @@ export const useCommentStore = defineStore('comments', () => {
       total.value = response.total
       userVotes.value = response.myVotes
       pending.value = []
+      removedByHide.clear()
     }
     finally {
       loading.value = false
@@ -234,9 +237,17 @@ export const useCommentStore = defineStore('comments', () => {
 
     if (type === 'update') {
       // Moderation: ausgeblendete Kommentare live entfernen (GET filtert hidden ohnehin)
-      if (payload.status === 'hidden') { removeRow(payload.$id, true); return }
-      // nur aktualisieren, wenn schon sichtbar (sonst gehört es nicht hierher)
-      if (rows.value.some(row => row.$id === payload.$id)) upsertRow(payload)
+      if (payload.status === 'hidden') { removeRow(payload.$id, true); removedByHide.add(payload.$id); return }
+      // bereits sichtbar → aktualisieren (Edit, Vote-Score, Report-Badge, Soft-Delete)
+      if (rows.value.some(row => row.$id === payload.$id)) { upsertRow(payload); return }
+      // nicht (mehr) sichtbar: nur wieder aufnehmen, wenn WIR es per hide entfernt
+      // haben und es jetzt wieder sichtbar ist (Restore) — sonst ignorieren, damit
+      // Votes/Edits an nicht geladenen (paginierten) Kommentaren nichts einblenden
+      if (removedByHide.has(payload.$id) && (payload.status === 'active' || payload.status === 'reported')) {
+        removedByHide.delete(payload.$id)
+        total.value += 1
+        upsertRow(payload)
+      }
       return
     }
 
