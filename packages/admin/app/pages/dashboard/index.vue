@@ -1,16 +1,27 @@
 <script setup lang="ts">
+import type { Models } from 'node-appwrite'
 import type { AdminAnalytics, AdminStats } from '../../../shared/types/admin'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
 
 const { t } = useI18n()
 const localePath = useLocalePath()
-const { data: stats } = await useFetch<AdminStats>('/api/admin/stats')
+const config = useRuntimeConfig()
+const { data: stats, refresh: refreshStats } = await useFetch<AdminStats>('/api/admin/stats')
 
 const days = ref(30)
-const { data: analytics } = await useFetch<AdminAnalytics>('/api/admin/analytics', {
+const { data: analytics, refresh: refreshAnalytics } = await useFetch<AdminAnalytics>('/api/admin/analytics', {
   query: computed(() => ({ days: days.value })),
 })
+
+// Live: Kennzahlen (Kommentare/Gemeldet) + Chart bei Kommentar-Events nachziehen.
+// Userzahl ändert sich nur bei Signups (keine Table) → bleibt bis Reload.
+let liveTimer: ReturnType<typeof setTimeout> | undefined
+useRealtimeRows<Models.Row>(config.public.appwriteDatabaseId, 'comments', () => {
+  clearTimeout(liveTimer)
+  liveTimer = setTimeout(() => { void refreshStats(); void refreshAnalytics() }, 500)
+})
+onScopeDispose(() => clearTimeout(liveTimer))
 
 const rangeItems = computed(() => [7, 30, 90].map(d => ({
   label: t('admin.analytics.subtitle', { days: d }),

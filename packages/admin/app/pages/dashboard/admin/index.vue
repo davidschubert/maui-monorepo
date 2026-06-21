@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Models } from 'node-appwrite'
 import type { TableColumn } from '@nuxt/ui'
 import type { AuditLogEntry, AuditLogListResponse } from '../../../../shared/types/admin'
 
@@ -6,14 +7,24 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
 
 const { t, te, locale } = useI18n()
 const localePath = useLocalePath()
+const config = useRuntimeConfig()
 const { formatRelativeTime } = useFormatRelativeTime()
 const { page, setPage } = usePagination()
 
-const { data, status } = useFetch<AuditLogListResponse>('/api/admin/audit', {
+const { data, status, refresh } = useFetch<AuditLogListResponse>('/api/admin/audit', {
   query: computed(() => ({ page: page.value })),
   lazy: true,
   server: false,
 })
+
+// Live: neue Audit-Einträge (von anderen Admins) erscheinen ohne Reload.
+// Voraussetzung: audit_logs read:label:admin (Migration admin-006).
+let liveTimer: ReturnType<typeof setTimeout> | undefined
+useRealtimeRows<Models.Row>(config.public.appwriteDatabaseId, 'audit_logs', () => {
+  clearTimeout(liveTimer)
+  liveTimer = setTimeout(() => { void refresh() }, 400)
+})
+onScopeDispose(() => clearTimeout(liveTimer))
 
 const ACTION_STYLE: Record<string, { icon: string, color: string }> = {
   'user.block': { icon: 'i-ph-prohibit', color: 'text-error' },

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Models } from 'node-appwrite'
 import type { NavigationMenuItem } from '@nuxt/ui'
 import type { AdminCommentListResponse, ModeratedComment, ModerationFilter } from '../../../shared/types/admin'
 
@@ -23,6 +24,16 @@ const { page, setPage } = usePagination()
 const { data, refresh } = await useFetch<AdminCommentListResponse>('/api/admin/comments', {
   query: computed(() => ({ status: filter.value, page: page.value })),
 })
+
+// Live: bei Kommentar-Events (neu, gemeldet, moderiert) die aktuelle Ansicht
+// entprellt nachladen — neue/gemeldete Kommentare poppen ohne Reload auf.
+const config = useRuntimeConfig()
+let liveTimer: ReturnType<typeof setTimeout> | undefined
+useRealtimeRows<Models.Row>(config.public.appwriteDatabaseId, 'comments', () => {
+  clearTimeout(liveTimer)
+  liveTimer = setTimeout(() => { void refresh() }, 400)
+})
+onScopeDispose(() => clearTimeout(liveTimer))
 
 function setFilter(value: ModerationFilter) {
   filter.value = value
