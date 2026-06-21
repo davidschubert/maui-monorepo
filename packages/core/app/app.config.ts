@@ -36,7 +36,8 @@ export default defineAppConfig({
     },
     colors: {
       primary: 'sky',
-      neutral: 'neutral'
+      // getöntes Neutral (Nuxt UI v4): kühles Grau mit leichtem Blau statt rein achromatisch
+      neutral: 'mist'
     },
     icons: {
       arrowDown: 'i-ph-arrow-down',
