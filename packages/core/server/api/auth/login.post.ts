@@ -8,6 +8,7 @@ export default defineEventHandler(async (event) => {
   try {
     const session = await account.createEmailPasswordSession({ email, password })
     setSessionCookie(event, session.secret, session.expire)
+    await logAuthEvent(event, 'user.login', { userId: session.userId, method: 'password' })
     return { ok: true }
   }
   catch {

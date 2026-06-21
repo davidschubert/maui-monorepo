@@ -19,6 +19,7 @@ export default defineEventHandler(async (event) => {
   const session = await account.createEmailPasswordSession({ email, password })
 
   setSessionCookie(event, session.secret, session.expire)
+  await logAuthEvent(event, 'user.login', { userId: session.userId, name, method: 'signup' })
 
   return { ok: true }
 })
