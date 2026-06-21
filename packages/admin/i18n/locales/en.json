@@ -58,6 +58,8 @@
       },
       "action": {
         "user": {
+          "login": "signed in",
+          "logout": "signed out",
           "block": "blocked {name}",
           "unblock": "unblocked {name}",
           "sessions_cleared": "ended {name}'s sessions",

@@ -27,6 +27,8 @@ useRealtimeRows<Models.Row>(config.public.appwriteDatabaseId, 'audit_logs', () =
 onScopeDispose(() => clearTimeout(liveTimer))
 
 const ACTION_STYLE: Record<string, { icon: string, color: string }> = {
+  'user.login': { icon: 'i-ph-sign-in', color: 'text-success' },
+  'user.logout': { icon: 'i-ph-sign-out', color: 'text-muted' },
   'user.block': { icon: 'i-ph-prohibit', color: 'text-error' },
   'user.unblock': { icon: 'i-ph-lock-open', color: 'text-success' },
   'user.sessions_cleared': { icon: 'i-ph-sign-out', color: 'text-warning' },

@@ -58,6 +58,8 @@
       },
       "action": {
         "user": {
+          "login": "hat sich angemeldet",
+          "logout": "hat sich abgemeldet",
           "block": "hat {name} gesperrt",
           "unblock": "hat {name} entsperrt",
           "sessions_cleared": "hat die Sitzungen von {name} beendet",
