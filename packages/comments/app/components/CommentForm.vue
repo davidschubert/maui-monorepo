@@ -15,6 +15,9 @@ const store = useCommentStore()
 const toast = useToast()
 const loading = ref(false)
 
+// Thread-Presence: Tippen melden (von CommentSection bereitgestellt; Fallback no-op)
+const setTyping = inject(commentTypingKey, () => {})
+
 // Formular validiert nur den Text — Target/parentId kommen aus Store/Props
 const schema = computed(() => createCommentSchema(t).pick({ content: true }))
 type FormInput = z.infer<typeof schema.value>
@@ -27,6 +30,7 @@ async function onSubmit(event: FormSubmitEvent<FormInput>) {
     // Optimistic im Store — erscheint sofort, Rollback bei Fehler
     await store.addComment(event.data.content, props.parentId)
     state.content = ''
+    setTyping(false)
     emit('created')
   }
   catch (error) {
@@ -50,6 +54,7 @@ async function onSubmit(event: FormSubmitEvent<FormInput>) {
         :rows="parentId ? 2 : 3"
         :placeholder="parentId ? t('comments.form.replyPlaceholder') : t('comments.form.placeholder')"
         class="w-full"
+        @input="setTyping(state.content.length > 0)"
       />
     </UFormField>
     <UButton type="submit" size="sm" :loading="loading">

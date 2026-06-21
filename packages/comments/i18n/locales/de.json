@@ -3,6 +3,12 @@
     "title": "Kommentare",
     "empty": "Noch keine Kommentare — schreib den ersten!",
     "newCount": "Neue Kommentare anzeigen ({count})",
+    "presence": {
+      "here": "{count} hier",
+      "typingOne": "{name} tippt …",
+      "typingTwo": "{a} und {b} tippen …",
+      "typingMany": "{name} und {count} weitere tippen …"
+    },
     "loginLink": "Anmelden",
     "loginSuffix": ", um zu kommentieren.",
     "disabled": {

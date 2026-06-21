@@ -3,6 +3,12 @@
     "title": "Comments",
     "empty": "No comments yet — write the first one!",
     "newCount": "Show new comments ({count})",
+    "presence": {
+      "here": "{count} here",
+      "typingOne": "{name} is typing …",
+      "typingTwo": "{a} and {b} are typing …",
+      "typingMany": "{name} and {count} others are typing …"
+    },
     "loginLink": "Sign in",
     "loginSuffix": " to join the discussion.",
     "disabled": {
