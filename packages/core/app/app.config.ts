@@ -36,7 +36,8 @@ export default defineAppConfig({
     },
     colors: {
       primary: 'sky',
-      // getöntes Neutral (Nuxt UI v4): kühles Grau mit leichtem Blau statt rein achromatisch
+      // Basis-Neutral (Fallback); zur Laufzeit überschreibt der Neutral-Picker
+      // via [data-neutral] die --ui-color-neutral-Ramp (siehe themes/neutral.css)
       neutral: 'mist'
     },
     icons: {
