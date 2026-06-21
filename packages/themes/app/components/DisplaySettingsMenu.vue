@@ -8,7 +8,7 @@ type SwatchItem = DropdownMenuItem & { swatchIcon?: string, swatchColor?: string
 
 const { t, locale, setLocale } = useI18n()
 const colorMode = useColorMode()
-const { themes, theme, variant, setTheme, setVariant } = useTheme()
+const { themes, theme, variant, setTheme, setVariant, neutrals, neutral, setNeutral } = useTheme()
 
 const capitalize = (value: string) => value.charAt(0).toUpperCase() + value.slice(1)
 
@@ -58,6 +58,16 @@ const items = computed<SwatchItem[][]>(() => {
     }
   })
 
+  const neutralChildren: SwatchItem[] = neutrals.map(n => ({
+    label: capitalize(n.id),
+    slot: 'swatch',
+    swatchIcon: 'i-ph-circle-fill',
+    swatchColor: n.color,
+    type: 'checkbox',
+    checked: neutral.value === n.id,
+    onSelect: (event: Event) => { event.preventDefault(); setNeutral(n.id) },
+  }))
+
   const appearanceChildren: DropdownMenuItem[] = ([
     ['light', 'i-ph-sun'],
     ['dark', 'i-ph-moon'],
@@ -77,6 +87,7 @@ const items = computed<SwatchItem[][]>(() => {
 
   return [[
     { label: t('themes.label'), icon: 'i-ph-palette', children: themeChildren },
+    { label: t('themes.neutralLabel'), icon: 'i-ph-circle-half', children: neutralChildren },
     { label: t('themes.modeLabel'), icon: 'i-ph-sun-horizon', children: appearanceChildren },
     { label: t('ui.language'), icon: 'i-ph-globe', children: languageChildren },
   ]]

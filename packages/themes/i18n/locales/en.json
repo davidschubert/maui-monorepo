@@ -1,6 +1,7 @@
 {
   "themes": {
     "label": "Theme",
+    "neutralLabel": "Neutral",
     "variantDefault": "Default",
     "modeLabel": "Appearance",
     "appearance": { "light": "Light", "dark": "Dark", "system": "System" }

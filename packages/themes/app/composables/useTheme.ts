@@ -1,4 +1,4 @@
-import { THEME_REGISTRY, DEFAULT_THEME_ID, type MauiTheme } from '../utils/themeRegistry'
+import { THEME_REGISTRY, DEFAULT_THEME_ID, NEUTRAL_REGISTRY, DEFAULT_NEUTRAL_ID, type MauiTheme } from '../utils/themeRegistry'
 
 /**
  * Theme-State mit Cookie-Persistenz (SSR-liest den Cookie → data-theme
@@ -12,6 +12,11 @@ export function useTheme() {
     sameSite: 'lax',
   })
   const variantCookie = useCookie<string | null>('maui-theme-variant', {
+    default: () => null,
+    maxAge: 60 * 60 * 24 * 365,
+    sameSite: 'lax',
+  })
+  const neutralCookie = useCookie<string | null>('maui-neutral', {
     default: () => null,
     maxAge: 60 * 60 * 24 * 365,
     sameSite: 'lax',
@@ -37,5 +42,25 @@ export function useTheme() {
     variantCookie.value = value && theme.value.variants.some(v => v.id === value) ? value : null
   }
 
-  return { themes: THEME_REGISTRY, theme, variant, setTheme, setVariant }
+  // Neutral-Palette (unabhängig vom Theme): data-neutral überschreibt die Ramp.
+  const neutral = computed<string>(() =>
+    NEUTRAL_REGISTRY.some(n => n.id === neutralCookie.value)
+      ? neutralCookie.value!
+      : DEFAULT_NEUTRAL_ID,
+  )
+
+  function setNeutral(id: string) {
+    neutralCookie.value = NEUTRAL_REGISTRY.some(n => n.id === id) ? id : null
+  }
+
+  return {
+    themes: THEME_REGISTRY,
+    theme,
+    variant,
+    setTheme,
+    setVariant,
+    neutrals: NEUTRAL_REGISTRY,
+    neutral,
+    setNeutral,
+  }
 }

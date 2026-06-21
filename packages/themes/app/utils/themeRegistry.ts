@@ -18,6 +18,30 @@ export interface MauiTheme {
 
 export const DEFAULT_THEME_ID = 'default'
 
+/** Eine wählbare Neutral-Palette (überschreibt die --ui-color-neutral-Ramp via data-neutral) */
+export interface MauiNeutral {
+  /** data-neutral Wert + Nuxt-UI-Palettenname */
+  id: string
+  /** neutral-500 der Palette — für den Swatch-Punkt */
+  color: string
+}
+
+export const DEFAULT_NEUTRAL_ID = 'mist'
+
+// Reihenfolge: erst die achromatischen/Tailwind-Grautöne, dann die getönten
+// Nuxt-UI-v4-Paletten. color = neutral-500 (siehe public/themes/neutral.css).
+export const NEUTRAL_REGISTRY: MauiNeutral[] = [
+  { id: 'neutral', color: 'oklch(55.6% 0 0)' },
+  { id: 'slate', color: 'oklch(55.4% 0.046 257.417)' },
+  { id: 'gray', color: 'oklch(55.1% 0.027 264.364)' },
+  { id: 'zinc', color: 'oklch(55.2% 0.016 285.938)' },
+  { id: 'stone', color: 'oklch(55.3% 0.013 58.071)' },
+  { id: 'mist', color: 'oklch(56% 0.021 213.5)' },
+  { id: 'taupe', color: 'oklch(54.7% 0.021 43.1)' },
+  { id: 'mauve', color: 'oklch(54.2% 0.034 322.5)' },
+  { id: 'olive', color: 'oklch(58% 0.031 107.3)' },
+]
+
 // Farben = primary-500 aus den jeweiligen public/themes/*.css (Default = neutral,
 // da das Maui-Theme monochrom ist: --ui-primary black/white).
 export const THEME_REGISTRY: MauiTheme[] = [

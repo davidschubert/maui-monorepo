@@ -1,6 +1,7 @@
 {
   "themes": {
     "label": "Theme",
+    "neutralLabel": "Neutral",
     "variantDefault": "Standard",
     "modeLabel": "Erscheinungsbild",
     "appearance": { "light": "Hell", "dark": "Dunkel", "system": "System" }
