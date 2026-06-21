@@ -13,6 +13,15 @@ const { data, refresh } = useFetch<UserSessionListResponse>('/api/auth/sessions'
   server: false,
 })
 
+// Live: Liste aktualisieren, wenn sich Sessions ändern (Abmeldung auf anderem
+// Gerät, Widerruf durch Admin) — entprellt.
+let liveTimer: ReturnType<typeof setTimeout> | undefined
+useRealtimeAccount(() => {
+  clearTimeout(liveTimer)
+  liveTimer = setTimeout(() => { void refresh() }, 400)
+})
+onScopeDispose(() => clearTimeout(liveTimer))
+
 const confirmAll = ref(false)
 const busyId = ref<string | null>(null)
 const busyAll = ref(false)

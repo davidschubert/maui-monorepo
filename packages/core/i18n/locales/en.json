@@ -82,7 +82,8 @@
       "switchToOtpRegister": "Register without password (code via email)",
       "switchToPasswordRegister": "Register with password"
     },
-    "logoutSuccess": "Signed out — see you soon!"
+    "logoutSuccess": "Signed out — see you soon!",
+    "sessionRevoked": "Your session was ended — please sign in again."
   },
   "validation": {
     "required": "This field is required",

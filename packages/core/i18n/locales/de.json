@@ -82,7 +82,8 @@
       "switchToOtpRegister": "Ohne Passwort registrieren (Code per E-Mail)",
       "switchToPasswordRegister": "Mit Passwort registrieren"
     },
-    "logoutSuccess": "Abgemeldet — bis bald!"
+    "logoutSuccess": "Abgemeldet — bis bald!",
+    "sessionRevoked": "Deine Sitzung wurde beendet — bitte melde dich erneut an."
   },
   "validation": {
     "required": "Dieses Feld ist erforderlich",
