@@ -21,7 +21,27 @@ useRealtimeRows<Models.Row>(config.public.appwriteDatabaseId, 'comments', () => 
   clearTimeout(liveTimer)
   liveTimer = setTimeout(() => { void refreshStats(); void refreshAnalytics() }, 500)
 })
-onScopeDispose(() => clearTimeout(liveTimer))
+
+// Online-Presence (#11): live Anzahl gerade anwesender User. Realtime triggert
+// Refetch; ein 30s-Intervall lässt den Zähler auch fallen, wenn jemand ohne
+// Event geht (Heartbeat altert aus).
+const { data: presence, refresh: refreshPresence } = await useFetch<{ count: number }>('/api/presence/count', {
+  query: { scope: 'global' },
+})
+const onlineCount = computed(() => presence.value?.count ?? 0)
+let presenceTimer: ReturnType<typeof setTimeout> | undefined
+let presencePoll: ReturnType<typeof setInterval> | undefined
+useRealtimeRows<Models.Row>(config.public.appwriteDatabaseId, 'presence', () => {
+  clearTimeout(presenceTimer)
+  presenceTimer = setTimeout(() => { void refreshPresence() }, 500)
+})
+onMounted(() => { presencePoll = setInterval(() => { void refreshPresence() }, 30_000) })
+
+onScopeDispose(() => {
+  clearTimeout(liveTimer)
+  clearTimeout(presenceTimer)
+  clearInterval(presencePoll)
+})
 
 const rangeItems = computed(() => [7, 30, 90].map(d => ({
   label: t('admin.analytics.subtitle', { days: d }),
@@ -41,6 +61,15 @@ const cards = computed(() => [
       <UDashboardNavbar :title="t('admin.nav.overview')">
         <template #leading>
           <UDashboardSidebarCollapse />
+        </template>
+        <template #right>
+          <div class="flex items-center gap-2 text-sm text-muted" data-online-indicator :title="t('admin.stats.onlineHint')">
+            <span class="relative flex size-2">
+              <span class="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-75" />
+              <span class="relative inline-flex size-2 rounded-full bg-success" />
+            </span>
+            <span class="tabular-nums"><span class="font-semibold text-default">{{ onlineCount }}</span> {{ t('admin.stats.online') }}</span>
+          </div>
         </template>
       </UDashboardNavbar>
     </template>

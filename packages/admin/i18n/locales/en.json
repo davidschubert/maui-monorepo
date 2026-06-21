@@ -81,7 +81,9 @@
     "stats": {
       "users": "Registered users",
       "comments": "Total comments",
-      "reported": "Reported comments"
+      "reported": "Reported comments",
+      "online": "online",
+      "onlineHint": "Users active in the last minute"
     },
     "users": {
       "name": "Name",

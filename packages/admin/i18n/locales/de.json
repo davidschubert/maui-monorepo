@@ -81,7 +81,9 @@
     "stats": {
       "users": "Registrierte Benutzer",
       "comments": "Kommentare gesamt",
-      "reported": "Gemeldete Kommentare"
+      "reported": "Gemeldete Kommentare",
+      "online": "online",
+      "onlineHint": "User mit Aktivität in der letzten Minute"
     },
     "users": {
       "name": "Name",
