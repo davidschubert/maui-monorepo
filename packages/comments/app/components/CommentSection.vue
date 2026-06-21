@@ -69,6 +69,12 @@ useRealtimeRows<Comment>(
       <ULink :to="localePath('/login')" class="font-medium text-primary">{{ t('comments.loginLink') }}</ULink>{{ t('comments.loginSuffix') }}
     </p>
 
+    <div v-if="store.pendingCount" class="flex justify-center">
+      <UButton color="primary" variant="soft" size="sm" icon="i-ph-arrow-up" @click="store.flushPending()">
+        {{ t('comments.newCount', { count: store.pendingCount }) }}
+      </UButton>
+    </div>
+
     <p v-if="store.threaded.length === 0 && !store.loading" class="text-sm text-muted">
       {{ t('comments.empty') }}
     </p>

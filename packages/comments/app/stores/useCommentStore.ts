@@ -23,6 +23,9 @@ export const useCommentStore = defineStore('comments', () => {
   const userVotes = ref<Record<string, VoteValue>>({})
   const sortMode = ref<SortMode>('new')
   const loading = ref(false)
+  /** Per Realtime eingetroffene fremde Top-Level-Kommentare, gepuffert für die "N neue"-Pill */
+  const pending = ref<Comment[]>([])
+  const pendingCount = computed(() => pending.value.length)
 
   /** Baum aus der flachen Liste: Top-Level behält die Server-Sortierung, Antworten chronologisch */
   const threaded = computed<CommentNode[]>(() => {
@@ -71,6 +74,7 @@ export const useCommentStore = defineStore('comments', () => {
       rows.value = response.rows
       total.value = response.total
       userVotes.value = response.myVotes
+      pending.value = []
     }
     finally {
       loading.value = false
@@ -203,17 +207,52 @@ export const useCommentStore = defineStore('comments', () => {
     rows.value.splice(index, 1, merged)
   }
 
+  /** Entfernt eine Row (aus Liste + Puffer); zählt total optional runter */
+  function removeRow(id: string, decrement = false) {
+    const wasVisible = rows.value.some(row => row.$id === id)
+    if (wasVisible) rows.value = rows.value.filter(row => row.$id !== id)
+    pending.value = pending.value.filter(row => row.$id !== id)
+    if (decrement && wasVisible) total.value = Math.max(0, total.value - 1)
+  }
+
+  /** Gepufferte (fremde) Kommentare auf einen Klick in die Liste übernehmen */
+  function flushPending() {
+    if (!pending.value.length) return
+    rows.value = [...pending.value, ...rows.value]
+    total.value += pending.value.length
+    pending.value = []
+  }
+
   /** Realtime: gezieltes Einfügen/Aktualisieren — kein Full-Refresh */
   function applyRealtime(event: RealtimeCommentEvent) {
-    if (event.type === 'delete') {
-      rows.value = rows.value.filter(row => row.$id !== event.payload.$id)
+    const { type, payload } = event
+
+    if (type === 'delete') {
+      removeRow(payload.$id, true)
       return
     }
-    if (event.type === 'create' && rows.value.some(row => row.$id === event.payload.$id)) {
-      return // eigener Kommentar — optimistisch bereits ersetzt
+
+    if (type === 'update') {
+      // Moderation: ausgeblendete Kommentare live entfernen (GET filtert hidden ohnehin)
+      if (payload.status === 'hidden') { removeRow(payload.$id, true); return }
+      // nur aktualisieren, wenn schon sichtbar (sonst gehört es nicht hierher)
+      if (rows.value.some(row => row.$id === payload.$id)) upsertRow(payload)
+      return
     }
-    if (event.type === 'create') total.value += 1
-    upsertRow(event.payload)
+
+    // create — Duplikate (eigener optimistischer Kommentar, Echo) ignorieren
+    if (rows.value.some(row => row.$id === payload.$id) || pending.value.some(row => row.$id === payload.$id)) return
+
+    const auth = useAuthStore()
+    const isOwn = payload.authorId === auth.user?.$id
+    // Antworten erscheinen direkt im Thread; fremde Top-Level werden gepuffert (Pill)
+    if (payload.parentId || isOwn) {
+      total.value += 1
+      upsertRow(payload)
+    }
+    else {
+      pending.value = [payload, ...pending.value]
+    }
   }
 
   return {
@@ -224,6 +263,8 @@ export const useCommentStore = defineStore('comments', () => {
     userVotes,
     sortMode,
     loading,
+    pending,
+    pendingCount,
     threaded,
     myVote,
     fetchComments,
@@ -234,5 +275,6 @@ export const useCommentStore = defineStore('comments', () => {
     deleteComment,
     report,
     applyRealtime,
+    flushPending,
   }
 })

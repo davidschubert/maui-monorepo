@@ -2,6 +2,7 @@
   "comments": {
     "title": "Kommentare",
     "empty": "Noch keine Kommentare — schreib den ersten!",
+    "newCount": "Neue Kommentare anzeigen ({count})",
     "loginLink": "Anmelden",
     "loginSuffix": ", um zu kommentieren.",
     "disabled": {

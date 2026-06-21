@@ -2,6 +2,7 @@
   "comments": {
     "title": "Comments",
     "empty": "No comments yet — write the first one!",
+    "newCount": "Show new comments ({count})",
     "loginLink": "Sign in",
     "loginSuffix": " to join the discussion.",
     "disabled": {
