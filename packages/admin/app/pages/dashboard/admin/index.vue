@@ -44,6 +44,9 @@ const ACTION_STYLE: Record<string, { icon: string, color: string }> = {
   'comment.restored': { icon: 'i-ph-eye', color: 'text-success' },
   'storage.file_deleted': { icon: 'i-ph-trash', color: 'text-error' },
   'config.updated': { icon: 'i-ph-toggle-left', color: 'text-primary' },
+  'changelog.created': { icon: 'i-ph-megaphone', color: 'text-primary' },
+  'changelog.updated': { icon: 'i-ph-pencil-simple', color: 'text-muted' },
+  'changelog.deleted': { icon: 'i-ph-trash', color: 'text-error' },
 }
 function style(action: string) {
   return ACTION_STYLE[action] ?? { icon: 'i-ph-dot-outline', color: 'text-muted' }

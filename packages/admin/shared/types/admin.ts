@@ -117,6 +117,23 @@ export interface AuditLogListResponse {
   entries: AuditLogEntry[]
 }
 
+/** Ein Produkt-Changelog-Eintrag ("Was ist neu") */
+export interface ChangelogEntry {
+  $id: string
+  $createdAt: string
+  title: string
+  body: string
+  /** 'feature' | 'improvement' | 'fix' — für ein farbiges Badge */
+  category: string
+  version: string
+  published: boolean
+}
+
+export interface ChangelogListResponse {
+  total: number
+  entries: ChangelogEntry[]
+}
+
 /** Status-Filter der Moderations-Liste */
 export type ModerationFilter = 'reported' | 'hidden' | 'all'
 

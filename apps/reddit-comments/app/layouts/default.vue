@@ -12,6 +12,7 @@ const { isLoggedIn } = useCurrentUser()
       <nav data-testid="main-nav" class="mx-auto flex w-full max-w-5xl items-center justify-between p-4">
         <NuxtLink :to="localePath('/')" class="font-bold tracking-tight">Maui</NuxtLink>
         <div class="flex items-center gap-2">
+          <WhatsNewButton />
           <DisplaySettingsMenu />
           <NotificationBell v-if="isLoggedIn" />
           <UserMenu v-if="isLoggedIn" />

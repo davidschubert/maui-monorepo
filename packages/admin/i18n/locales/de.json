@@ -77,7 +77,36 @@
         },
         "config": {
           "updated": "hat die Konfiguration geändert"
+        },
+        "changelog": {
+          "created": "hat einen Changelog-Eintrag veröffentlicht: {name}",
+          "updated": "hat einen Changelog-Eintrag bearbeitet",
+          "deleted": "hat einen Changelog-Eintrag gelöscht"
         }
+      }
+    },
+    "changelog": {
+      "title": "Changelog",
+      "description": "Release-Notes veröffentlichen, die Usern unter „Was ist neu“ angezeigt werden.",
+      "new": "Neuer Eintrag",
+      "editTitle": "Eintrag bearbeiten",
+      "save": "Speichern",
+      "saved": "Changelog-Eintrag gespeichert.",
+      "deleted": "Eintrag gelöscht.",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "draft": "Entwurf",
+      "empty": "Noch keine Changelog-Einträge.",
+      "confirmDelete": "„{title}“ endgültig löschen?",
+      "category": { "feature": "Feature", "improvement": "Verbesserung", "fix": "Fix" },
+      "form": {
+        "title": "Titel",
+        "body": "Beschreibung",
+        "category": "Kategorie",
+        "version": "Version",
+        "published": "Veröffentlicht",
+        "titleRequired": "Titel ist erforderlich",
+        "bodyRequired": "Beschreibung ist erforderlich"
       }
     },
     "stats": {
@@ -189,6 +218,10 @@
       "confirmHide": "Kommentar von {name} ausblenden? Er ist dann öffentlich nicht mehr sichtbar.",
       "confirmRestore": "Kommentar von {name} wiederherstellen?"
     }
+  },
+  "whatsNew": {
+    "title": "Was ist neu",
+    "empty": "Noch nichts Neues."
   },
   "dashboard": {
     "search": {

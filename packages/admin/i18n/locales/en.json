@@ -77,7 +77,36 @@
         },
         "config": {
           "updated": "updated the configuration"
+        },
+        "changelog": {
+          "created": "published a changelog entry: {name}",
+          "updated": "edited a changelog entry",
+          "deleted": "deleted a changelog entry"
         }
+      }
+    },
+    "changelog": {
+      "title": "Changelog",
+      "description": "Publish release notes shown to users under \"What's new\".",
+      "new": "New entry",
+      "editTitle": "Edit entry",
+      "save": "Save",
+      "saved": "Changelog entry saved.",
+      "deleted": "Entry deleted.",
+      "edit": "Edit",
+      "delete": "Delete",
+      "draft": "Draft",
+      "empty": "No changelog entries yet.",
+      "confirmDelete": "Delete \"{title}\" permanently?",
+      "category": { "feature": "Feature", "improvement": "Improvement", "fix": "Fix" },
+      "form": {
+        "title": "Title",
+        "body": "Description",
+        "category": "Category",
+        "version": "Version",
+        "published": "Published",
+        "titleRequired": "Title is required",
+        "bodyRequired": "Description is required"
       }
     },
     "stats": {
@@ -189,6 +218,10 @@
       "confirmHide": "Hide the comment by {name}? It will no longer be publicly visible.",
       "confirmRestore": "Restore the comment by {name}?"
     }
+  },
+  "whatsNew": {
+    "title": "What's new",
+    "empty": "Nothing new yet."
   },
   "dashboard": {
     "search": {

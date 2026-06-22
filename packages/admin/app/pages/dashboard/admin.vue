@@ -9,6 +9,7 @@ const localePath = useLocalePath()
 
 const links = computed<NavigationMenuItem[]>(() => [
   { label: t('admin.audit.title'), icon: 'i-ph-scroll', to: localePath('/dashboard/admin'), exact: true },
+  { label: t('admin.changelog.title'), icon: 'i-ph-megaphone', to: localePath('/dashboard/admin/changelog') },
   { label: t('admin.config.title'), icon: 'i-ph-toggle-left', to: localePath('/dashboard/admin/config') },
 ])
 </script>
