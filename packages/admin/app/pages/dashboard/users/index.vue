@@ -158,8 +158,14 @@ async function executePending() {
         <template #createdAt-header>
           <SortableHeader :label="t('admin.users.joined')" field="$createdAt" :active="sortField" :dir="sortDir" @toggle="toggle" />
         </template>
+        <template #verified-header>
+          <SortableHeader :label="t('admin.users.verified')" field="emailVerification" :active="sortField" :dir="sortDir" @toggle="toggle" />
+        </template>
         <template #status-header>
           <SortableHeader :label="t('admin.users.status')" field="status" :active="sortField" :dir="sortDir" @toggle="toggle" />
+        </template>
+        <template #labels-header>
+          <SortableHeader :label="t('admin.users.labels')" field="labels" :active="sortField" :dir="sortDir" @toggle="toggle" />
         </template>
         <template #name-cell="{ row }">
           <ULink :to="localePath(`/dashboard/users/${row.original.$id}`)" class="flex items-center gap-2 font-medium text-default hover:text-primary">

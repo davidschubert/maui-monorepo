@@ -28,8 +28,9 @@ export default defineEventHandler(async (event): Promise<AdminUserListResponse> 
   const search = String(query.search ?? '').trim()
   const page = Math.max(1, Number(query.page ?? 1) || 1)
 
-  // Whitelist sortierbarer Felder (Appwrite users.list kann diese ordnen)
-  const SORTABLE = new Set(['name', 'email', '$createdAt', 'status'])
+  // Whitelist sortierbarer Felder (Appwrite users.list kann diese ordnen).
+  // accessedAt (Letzte Aktivität) ist NICHT orderbar → bleibt unsortierbar.
+  const SORTABLE = new Set(['name', 'email', '$createdAt', 'status', 'emailVerification', 'labels'])
   const sort = SORTABLE.has(String(query.sort)) ? String(query.sort) : '$createdAt'
   const dir = query.dir === 'asc' ? 'asc' : 'desc'
 
