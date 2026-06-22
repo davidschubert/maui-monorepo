@@ -87,6 +87,15 @@
       "online": "online",
       "onlineHint": "User mit Aktivität in der letzten Minute"
     },
+    "overview": {
+      "greeting": "Willkommen zurück, {name}",
+      "delta": "+{count} in {days} Tagen",
+      "moderate": "Zu moderieren",
+      "recentActivity": "Letzte Aktivität",
+      "storage": "Speicher",
+      "allClear": "Nichts zu moderieren 🎉",
+      "viewAll": "Alle ansehen"
+    },
     "users": {
       "name": "Name",
       "email": "E-Mail",
