@@ -33,6 +33,7 @@ const columns: TableColumn<AdminUserRow>[] = [
   { accessorKey: 'email', header: () => t('admin.users.email') },
   { accessorKey: '$createdAt', header: () => t('admin.users.joined'), id: 'createdAt' },
   { accessorKey: 'accessedAt', header: () => t('admin.users.lastActivity'), id: 'lastActivity' },
+  { id: 'active', header: () => t('admin.users.activeNow') },
   { accessorKey: 'emailVerification', header: () => t('admin.users.verified'), id: 'verified' },
   { accessorKey: 'status', header: () => t('admin.users.status'), id: 'status' },
   { accessorKey: 'labels', header: () => t('admin.users.labels'), id: 'labels' },
@@ -158,6 +159,9 @@ async function executePending() {
         <template #createdAt-header>
           <SortableHeader :label="t('admin.users.joined')" field="$createdAt" :active="sortField" :dir="sortDir" @toggle="toggle" />
         </template>
+        <template #active-header>
+          <SortableHeader :label="t('admin.users.activeNow')" field="active" :active="sortField" :dir="sortDir" @toggle="toggle" />
+        </template>
         <template #verified-header>
           <SortableHeader :label="t('admin.users.verified')" field="emailVerification" :active="sortField" :dir="sortDir" @toggle="toggle" />
         </template>
@@ -169,9 +173,21 @@ async function executePending() {
         </template>
         <template #name-cell="{ row }">
           <ULink :to="localePath(`/dashboard/users/${row.original.$id}`)" class="flex items-center gap-2 font-medium text-default hover:text-primary">
-            <UserAvatar :user="{ name: row.original.name, email: row.original.email, prefs: { avatarUrl: row.original.avatarUrl } }" size="xs" />
+            <UChip :show="row.original.online" color="success" position="bottom-right" :ui="{ base: 'ring-2 ring-default' }">
+              <UserAvatar :user="{ name: row.original.name, email: row.original.email, prefs: { avatarUrl: row.original.avatarUrl } }" size="xs" />
+            </UChip>
             <span class="hover:underline">{{ row.original.name }}</span>
           </ULink>
+        </template>
+        <template #active-cell="{ row }">
+          <span v-if="row.original.online" class="inline-flex items-center gap-1.5 text-sm">
+            <span class="size-2 rounded-full bg-success" />
+            {{ t('admin.users.online') }}
+          </span>
+          <span v-else-if="row.original.lastSeen" :title="formatDate(row.original.lastSeen)" class="text-sm text-muted">
+            {{ formatRelativeTime(row.original.lastSeen) }}
+          </span>
+          <span v-else class="text-muted">—</span>
         </template>
         <template #createdAt-cell="{ row }">
           <span :title="formatDate(row.original.$createdAt)">{{ formatRelativeTime(row.original.$createdAt) }}</span>

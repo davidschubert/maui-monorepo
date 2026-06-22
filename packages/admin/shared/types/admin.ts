@@ -12,6 +12,10 @@ export interface AdminUserRow {
   /** true = aktiv, false = blockiert (Appwrite-Semantik) */
   status: boolean
   labels: string[]
+  /** Presence: gerade online (Heartbeat < 45s) */
+  online: boolean
+  /** Presence: letzter Heartbeat (ISO) — leer, wenn nicht (kürzlich) anwesend */
+  lastSeen: string
 }
 
 export interface AdminUserListResponse {

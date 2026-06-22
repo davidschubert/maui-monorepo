@@ -49,6 +49,14 @@ export default defineEventHandler(async (event): Promise<AdminUserDetailResponse
 
   const prefs = user.prefs as { bio?: string, avatarUrl?: string }
 
+  // Presence (global): rowId = userId; best effort, Row kann aufgeräumt sein
+  const lastSeen = await admin.tablesDB.getRow<Models.Row & { lastSeen: string }>({
+    databaseId: config.public.appwriteDatabaseId,
+    tableId: 'presence',
+    rowId: userId,
+  }).then(r => r.lastSeen).catch(() => '')
+  const online = lastSeen ? (Date.now() - Date.parse(lastSeen) < 45_000) : false
+
   return {
     user: {
       $id: user.$id,
@@ -64,6 +72,8 @@ export default defineEventHandler(async (event): Promise<AdminUserDetailResponse
       registration: user.registration,
       bio: typeof prefs?.bio === 'string' ? prefs.bio : '',
       avatarUrl: typeof prefs?.avatarUrl === 'string' ? prefs.avatarUrl : '',
+      online,
+      lastSeen,
     },
     sessions: sessions.sessions.map(s => ({
       $id: s.$id,

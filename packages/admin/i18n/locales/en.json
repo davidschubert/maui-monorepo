@@ -125,6 +125,8 @@
       "actionFailed": "Action failed — please try again.",
       "joined": "Joined",
       "lastActivity": "Last activity",
+      "activeNow": "Active now",
+      "online": "Online",
       "detail": {
         "profile": "Profile",
         "back": "Users",
