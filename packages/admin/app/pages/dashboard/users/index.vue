@@ -185,14 +185,13 @@ async function executePending() {
           </ULink>
         </template>
         <template #active-cell="{ row }">
-          <span v-if="row.original.online" class="inline-flex items-center gap-1.5 text-sm">
-            <span class="size-2 rounded-full bg-success" />
-            {{ t('admin.users.online') }}
+          <span
+            class="inline-flex items-center gap-1.5 text-sm"
+            :title="!row.original.online && row.original.lastSeen ? formatDate(row.original.lastSeen) : undefined"
+          >
+            <span class="size-2 rounded-full" :class="row.original.online ? 'bg-success' : 'bg-error'" />
+            {{ row.original.online ? t('admin.users.online') : t('admin.users.offline') }}
           </span>
-          <span v-else-if="row.original.lastSeen" :title="formatDate(row.original.lastSeen)" class="text-sm text-muted">
-            {{ formatRelativeTime(row.original.lastSeen) }}
-          </span>
-          <span v-else class="text-muted">—</span>
         </template>
         <template #createdAt-cell="{ row }">
           <span :title="formatDate(row.original.$createdAt)">{{ formatRelativeTime(row.original.$createdAt) }}</span>

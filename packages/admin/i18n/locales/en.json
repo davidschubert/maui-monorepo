@@ -127,6 +127,7 @@
       "lastActivity": "Last activity",
       "activeNow": "Active now",
       "online": "Online",
+      "offline": "Offline",
       "detail": {
         "profile": "Profile",
         "back": "Users",
