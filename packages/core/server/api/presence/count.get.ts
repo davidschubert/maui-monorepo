@@ -39,10 +39,31 @@ export default defineEventHandler(async (event) => {
       stale.rows.map(row => admin.tablesDB.deleteRow({ databaseId, tableId: 'presence', rowId: row.$id }).catch(() => {})),
     )).catch(() => {})
 
+    // Avatar-URLs der anwesenden User aus den Account-prefs (für die Avatar-Gruppe)
+    const ids = fresh.rows.map(row => row.userId)
+    const avatars = new Map<string, string>()
+    if (ids.length) {
+      try {
+        const users = await admin.users.list({ queries: [Query.equal('$id', ids), Query.limit(ids.length)] })
+        for (const u of users.users) {
+          const url = (u.prefs as { avatarUrl?: string })?.avatarUrl
+          if (typeof url === 'string' && url) avatars.set(u.$id, url)
+        }
+      }
+      catch {
+        // ohne Avatare weiter (Initialen-Fallback)
+      }
+    }
+
     return {
       scope,
       count: fresh.total,
-      users: fresh.rows.map(row => ({ userId: row.userId, userName: row.userName, typing: row.typing === true })),
+      users: fresh.rows.map(row => ({
+        userId: row.userId,
+        userName: row.userName,
+        typing: row.typing === true,
+        avatarUrl: avatars.get(row.userId) ?? '',
+      })),
     }
   }
   catch {
