@@ -12,12 +12,17 @@ const localePath = useLocalePath()
 const { user: me } = useCurrentUser()
 
 const FILTERS: ModerationFilter[] = ['all', 'reported', 'hidden']
+const FILTER_ICON: Record<ModerationFilter, string> = {
+  all: 'i-ph-list-bullets',
+  reported: 'i-ph-flag',
+  hidden: 'i-ph-eye-slash',
+}
 
-// Initial-Filter aus der Query (Stat-Cards verlinken auf ?status=reported)
+// Default 'all'; per Query (z.B. Stat-Card-Link ?status=reported) überschreibbar
 const filter = ref<ModerationFilter>(
   FILTERS.includes(route.query.status as ModerationFilter)
     ? route.query.status as ModerationFilter
-    : 'reported',
+    : 'all',
 )
 const { page, setPage } = usePagination()
 
@@ -42,6 +47,7 @@ function setFilter(value: ModerationFilter) {
 
 const filterLinks = computed<NavigationMenuItem[]>(() => FILTERS.map(value => ({
   label: t(`admin.moderation.filter.${value}`),
+  icon: FILTER_ICON[value],
   active: filter.value === value,
   onSelect: () => setFilter(value),
 })))
