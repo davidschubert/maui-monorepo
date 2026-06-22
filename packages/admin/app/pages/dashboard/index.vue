@@ -25,10 +25,12 @@ useRealtimeRows<Models.Row>(config.public.appwriteDatabaseId, 'comments', () => 
 // Online-Presence (#11): live Anzahl gerade anwesender User. Realtime triggert
 // Refetch; ein 30s-Intervall lässt den Zähler auch fallen, wenn jemand ohne
 // Event geht (Heartbeat altert aus).
-const { data: presence, refresh: refreshPresence } = await useFetch<{ count: number }>('/api/presence/count', {
+interface OnlineUser { userId: string, userName: string, avatarUrl: string }
+const { data: presence, refresh: refreshPresence } = await useFetch<{ count: number, users: OnlineUser[] }>('/api/presence/count', {
   query: { scope: 'global' },
 })
 const onlineCount = computed(() => presence.value?.count ?? 0)
+const onlineUsers = computed(() => presence.value?.users ?? [])
 let presenceTimer: ReturnType<typeof setTimeout> | undefined
 let presencePoll: ReturnType<typeof setInterval> | undefined
 useRealtimeRows<Models.Row>(config.public.appwriteDatabaseId, 'presence', () => {
@@ -62,20 +64,28 @@ const cards = computed(() => [
         <template #leading>
           <UDashboardSidebarCollapse />
         </template>
-        <template #right>
-          <div class="flex items-center gap-2 text-sm text-muted" data-online-indicator :title="t('admin.stats.onlineHint')">
-            <span class="relative flex size-2">
-              <span class="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-75" />
-              <span class="relative inline-flex size-2 rounded-full bg-success" />
-            </span>
-            <span class="tabular-nums"><span class="font-semibold text-default">{{ onlineCount }}</span> {{ t('admin.stats.online') }}</span>
-          </div>
-        </template>
       </UDashboardNavbar>
     </template>
 
     <template #body>
       <div class="mx-auto flex w-full flex-col gap-4 sm:gap-6 lg:max-w-3xl">
+        <UCard data-online-card>
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+              <span class="relative flex size-2.5">
+                <span class="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-75" />
+                <span class="relative inline-flex size-2.5 rounded-full bg-success" />
+              </span>
+              <span class="text-sm"><span class="text-lg font-bold tabular-nums">{{ onlineCount }}</span> {{ t('admin.stats.online') }}</span>
+            </div>
+            <UAvatarGroup v-if="onlineUsers.length" :max="8" size="sm">
+              <UTooltip v-for="u in onlineUsers" :key="u.userId" :text="u.userName">
+                <UserAvatar :user="{ name: u.userName, prefs: { avatarUrl: u.avatarUrl } }" size="sm" />
+              </UTooltip>
+            </UAvatarGroup>
+          </div>
+        </UCard>
+
         <div class="grid gap-4 sm:grid-cols-3" data-stat-cards>
           <UCard v-for="card in cards" :key="card.label">
             <NuxtLink :to="card.to" class="flex items-center gap-3">
