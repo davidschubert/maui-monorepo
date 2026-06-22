@@ -173,9 +173,14 @@ async function executePending() {
         </template>
         <template #name-cell="{ row }">
           <ULink :to="localePath(`/dashboard/users/${row.original.$id}`)" class="flex items-center gap-2 font-medium text-default hover:text-primary">
-            <UChip :show="row.original.online" color="success" position="bottom-right" :ui="{ base: 'ring-2 ring-default' }">
+            <span class="relative inline-flex shrink-0">
               <UserAvatar :user="{ name: row.original.name, email: row.original.email, prefs: { avatarUrl: row.original.avatarUrl } }" size="xs" />
-            </UChip>
+              <span
+                v-if="row.original.online"
+                class="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-success ring-2 ring-default"
+                :title="t('admin.users.online')"
+              />
+            </span>
             <span class="hover:underline">{{ row.original.name }}</span>
           </ULink>
         </template>
