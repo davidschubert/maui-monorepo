@@ -1,0 +1,27 @@
+name: Release Please
+
+# Track 1 — Entwickler-CHANGELOG.md aus Conventional Commits.
+# Bei jedem Push auf main pflegt release-please einen Release-PR: er sammelt die
+# feat/fix/perf-Commits, schreibt CHANGELOG.md fort und schlägt die nächste
+# Version vor. Merge des PRs erzeugt Tag + GitHub-Release. Kein DB-Zugriff,
+# keine Secrets — nutzt den eingebauten GITHUB_TOKEN.
+#
+# Das Produkt-„Was ist neu" (Appwrite-Tabelle) ist davon getrennt und wird
+# kuratiert befüllt (siehe packages/admin/scripts/changelog-draft.mjs).
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
