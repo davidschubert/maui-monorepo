@@ -160,7 +160,16 @@ async function confirmUpdate() {
             <dl class="w-full text-sm">
               <div class="flex items-center justify-between gap-4 border-b border-default/60 py-2">
                 <dt class="text-muted">{{ t('dashboard.system.appwrite.version') }}</dt>
-                <dd class="font-mono">{{ data.appwrite.version || '—' }}</dd>
+                <dd class="flex items-center gap-1.5 font-mono">
+                  <span :class="data.appwrite.outdated ? 'text-warning' : ''">{{ data.appwrite.version || '—' }}</span>
+                  <template v-if="data.appwrite.outdated">
+                    <UIcon name="i-ph-arrow-right" class="size-3 text-dimmed" />
+                    <span class="font-medium text-warning">{{ data.appwrite.latestVersion }}</span>
+                  </template>
+                  <UTooltip v-else-if="data.appwrite.outdated === false" :text="t('dashboard.system.stack.current')">
+                    <UIcon name="i-ph-check-circle" class="size-4 text-success" />
+                  </UTooltip>
+                </dd>
               </div>
               <div class="flex items-center justify-between gap-4 border-b border-default/60 py-2">
                 <dt class="text-muted">{{ t('dashboard.system.appwrite.endpoint') }}</dt>

@@ -29,6 +29,10 @@ export interface SystemInfo {
   }
   appwrite: {
     version: string | null
+    /** Neueste Appwrite-Release-Version (GitHub); null wenn nicht ermittelbar */
+    latestVersion: string | null
+    /** true = laufende Serverversion < latest; false = aktuell; null = unbekannt */
+    outdated: boolean | null
     endpoint: string
     projectId: string
     databaseId: string

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import os from 'node:os'
 import type { DependencyEntry, HealthEntry, SystemInfo } from '../../../shared/types/system'
-import { DEP_GROUPS, isOutdated, latestVersion, pkgVersion } from '../../utils/dependencies'
+import { DEP_GROUPS, isOutdated, latestAppwriteVersion, latestVersion, pkgVersion } from '../../utils/dependencies'
 
 const LAYER_PKGS = ['@maui/core', '@maui/comments', '@maui/admin', '@maui/themes']
 const MODULES = ['@nuxt/ui', '@pinia/nuxt', '@nuxtjs/i18n']
@@ -46,16 +46,15 @@ export default defineEventHandler(async (event): Promise<SystemInfo> => {
   const { health } = createAdminClient(event)
 
   // Appwrite-Serverversion (öffentlicher health/version-Endpoint, kein Key nötig)
-  let version: string | null = null
-  try {
-    const res = await $fetch<{ version: string }>(`${endpoint}/health/version`, {
+  // + neueste Release-Version von GitHub (Cache) parallel.
+  const [versionRes, latestAppwrite] = await Promise.all([
+    $fetch<{ version: string }>(`${endpoint}/health/version`, {
       headers: { 'X-Appwrite-Project': projectId },
-    })
-    version = res.version
-  }
-  catch {
-    version = null
-  }
+    }).catch(() => null),
+    latestAppwriteVersion(),
+  ])
+  const version: string | null = versionRes?.version ?? null
+  const appwriteOutdated = isOutdated(version ?? '', latestAppwrite)
 
   const [api, db, cache, storage] = await Promise.all([
     healthCheck('API', () => health.get()),
@@ -112,6 +111,8 @@ export default defineEventHandler(async (event): Promise<SystemInfo> => {
     },
     appwrite: {
       version,
+      latestVersion: latestAppwrite,
+      outdated: appwriteOutdated,
       endpoint,
       projectId,
       databaseId: config.public.appwriteDatabaseId,

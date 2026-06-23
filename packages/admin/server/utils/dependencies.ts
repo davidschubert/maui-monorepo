@@ -91,6 +91,27 @@ export async function latestVersion(name: string): Promise<string | null> {
   }
 }
 
+// Neueste stabile Appwrite-Serverversion vom GitHub-Release (eigener Cache).
+const appwriteCache = new Map<string, { value: string, at: number }>()
+
+export async function latestAppwriteVersion(): Promise<string | null> {
+  const cached = appwriteCache.get('appwrite')
+  if (cached && Date.now() - cached.at < LATEST_TTL_MS) return cached.value
+  try {
+    // GitHub verlangt einen User-Agent; releases/latest = neuestes Nicht-Prerelease.
+    const res = await $fetch<{ tag_name?: string }>('https://api.github.com/repos/appwrite/appwrite/releases/latest', {
+      timeout: 4000,
+      headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'maui-monorepo' },
+    })
+    const value = res.tag_name?.replace(/^v/, '') ?? null
+    if (value) appwriteCache.set('appwrite', { value, at: Date.now() })
+    return value
+  }
+  catch {
+    return null
+  }
+}
+
 export function parseSemver(v: string): [number, number, number] | null {
   const m = v.match(/(\d+)\.(\d+)\.(\d+)/)
   return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null
