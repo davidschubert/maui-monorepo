@@ -10,6 +10,10 @@ export interface DependencyEntry {
   name: string
   version: string
   category: string
+  /** Neueste Version laut npm-Registry; null wenn nicht ermittelbar (offline, intern, …) */
+  latest?: string | null
+  /** true = installierte Version < latest; false = aktuell; null = unbekannt */
+  outdated?: boolean | null
 }
 
 export interface SystemInfo {

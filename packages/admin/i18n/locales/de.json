@@ -286,7 +286,10 @@
         "description": "Eingesetzte Layer, Module und Abhängigkeiten.",
         "layers": "Feature-Layer",
         "modules": "Nuxt-Module",
-        "dependencies": "Abhängigkeiten"
+        "dependencies": "Abhängigkeiten",
+        "outdated": "{count} veraltet",
+        "allCurrent": "Alle aktuell",
+        "current": "Aktuell"
       }
     }
   }

@@ -54,6 +54,9 @@ const groupedDependencies = computed(() => {
   }
   return [...groups.entries()].map(([category, items]) => ({ category, items }))
 })
+
+const outdatedCount = computed(() => (data.value?.dependencies ?? []).filter(d => d.outdated === true).length)
+const checkedCount = computed(() => (data.value?.dependencies ?? []).filter(d => d.outdated !== null && d.outdated !== undefined).length)
 </script>
 
 <template>
@@ -222,7 +225,17 @@ const groupedDependencies = computed(() => {
               </div>
 
               <div>
-                <p class="mb-2 text-sm font-medium">{{ t('dashboard.system.stack.dependencies') }}</p>
+                <div class="mb-2 flex items-center gap-2">
+                  <p class="text-sm font-medium">{{ t('dashboard.system.stack.dependencies') }}</p>
+                  <UBadge v-if="outdatedCount > 0" color="warning" variant="subtle" size="sm">
+                    <UIcon name="i-ph-arrow-circle-up" class="size-3.5" />
+                    {{ t('dashboard.system.stack.outdated', { count: outdatedCount }) }}
+                  </UBadge>
+                  <UBadge v-else-if="checkedCount > 0" color="success" variant="subtle" size="sm">
+                    <UIcon name="i-ph-check-circle" class="size-3.5" />
+                    {{ t('dashboard.system.stack.allCurrent') }}
+                  </UBadge>
+                </div>
                 <div class="space-y-3">
                   <div v-for="group in groupedDependencies" :key="group.category">
                     <p class="text-xs uppercase tracking-wide text-dimmed">{{ group.category }}</p>
@@ -233,7 +246,16 @@ const groupedDependencies = computed(() => {
                         class="flex items-center justify-between gap-4 border-b border-default/60 py-1.5 last:border-0"
                       >
                         <dt class="font-mono">{{ dep.name }}</dt>
-                        <dd class="font-mono text-muted">{{ dep.version }}</dd>
+                        <dd class="flex items-center gap-1.5 font-mono">
+                          <span :class="dep.outdated ? 'text-warning' : 'text-muted'">{{ dep.version }}</span>
+                          <template v-if="dep.outdated">
+                            <UIcon name="i-ph-arrow-right" class="size-3 text-dimmed" />
+                            <span class="font-medium text-warning">{{ dep.latest }}</span>
+                          </template>
+                          <UTooltip v-else-if="dep.outdated === false" :text="t('dashboard.system.stack.current')">
+                            <UIcon name="i-ph-check-circle" class="size-4 text-success" />
+                          </UTooltip>
+                        </dd>
                       </div>
                     </dl>
                   </div>

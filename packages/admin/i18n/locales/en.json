@@ -286,7 +286,10 @@
         "description": "Layers, modules and dependencies in use.",
         "layers": "Feature layers",
         "modules": "Nuxt modules",
-        "dependencies": "Dependencies"
+        "dependencies": "Dependencies",
+        "outdated": "{count} outdated",
+        "allCurrent": "All up to date",
+        "current": "Up to date"
       }
     }
   }

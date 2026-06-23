@@ -54,6 +54,50 @@ function pkgVersion(name: string): string {
   return 'unknown'
 }
 
+// --- npm-Registry: neueste Version + Aktualitäts-Vergleich -------------------
+
+// Erfolgreiche Lookups 1 h cachen (Fehler werden NICHT gecacht → nächster
+// Refresh versucht es erneut). Lebt im Modul-Scope über Requests hinweg.
+const latestCache = new Map<string, { value: string, at: number }>()
+const LATEST_TTL_MS = 60 * 60 * 1000
+
+/** Neueste Stable-Version eines Pakets von der npm-Registry — best effort. */
+async function latestVersion(name: string): Promise<string | null> {
+  const cached = latestCache.get(name)
+  if (cached && Date.now() - cached.at < LATEST_TTL_MS) return cached.value
+  try {
+    // Kein abbreviated-Accept-Header: der liefert beim /latest-Endpoint für
+    // scoped Pakete (@scope/name) einen leeren Body. Plain JSON funktioniert für beide.
+    const res = await $fetch<{ version?: string }>(`https://registry.npmjs.org/${name}/latest`, {
+      timeout: 4000,
+    })
+    const value = res.version ?? null
+    if (value) latestCache.set(name, { value, at: Date.now() })
+    return value
+  }
+  catch {
+    return null
+  }
+}
+
+function parseSemver(v: string): [number, number, number] | null {
+  const m = v.match(/(\d+)\.(\d+)\.(\d+)/)
+  return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null
+}
+
+/** true = installiert < latest (veraltet), false = aktuell/voraus, null = unbestimmbar */
+function isOutdated(installed: string, latest: string | null): boolean | null {
+  if (!latest) return null
+  const a = parseSemver(installed)
+  const b = parseSemver(latest)
+  if (!a || !b) return null
+  for (let i = 0; i < 3; i++) {
+    if (a[i] < b[i]) return true
+    if (a[i] > b[i]) return false
+  }
+  return false
+}
+
 // Kategorisierte Laufzeit-Abhängigkeiten (Anzeige im System-Überblick)
 const DEP_GROUPS: Record<string, string[]> = {
   Framework: ['nuxt', 'vue', '@nuxt/ui'],
@@ -131,10 +175,18 @@ export default defineEventHandler(async (event): Promise<SystemInfo> => {
     timeDiffMs = null
   }
 
-  const dependencies: DependencyEntry[] = []
+  const depDefs: { name: string, category: string }[] = []
   for (const [category, names] of Object.entries(DEP_GROUPS)) {
-    for (const name of names) dependencies.push({ name, version: pkgVersion(name), category })
+    for (const name of names) depDefs.push({ name, category })
   }
+  // Versionen lokal auflösen + latest parallel von npm holen (Cache + Timeout)
+  const dependencies: DependencyEntry[] = await Promise.all(
+    depDefs.map(async ({ name, category }) => {
+      const version = pkgVersion(name)
+      const latest = await latestVersion(name)
+      return { name, version, category, latest, outdated: isOutdated(version, latest) }
+    }),
+  )
   const layers: DependencyEntry[] = LAYER_PKGS.map(name => ({ name, version: pkgVersion(name), category: 'Layer' }))
 
   let appName = 'app'
