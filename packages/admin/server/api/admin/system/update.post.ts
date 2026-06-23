@@ -1,11 +1,8 @@
-import { execFile } from 'node:child_process'
-import { promisify } from 'node:util'
+import { spawn } from 'node:child_process'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { z } from 'zod'
 import { ALL_DEP_NAMES, latestVersion, pkgVersion } from '../../../utils/dependencies'
-
-const execFileAsync = promisify(execFile)
 
 const schema = z.object({
   name: z.string().min(1),
@@ -74,18 +71,21 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 422, statusText: `No catalog entry for ${name} in pnpm-workspace.yaml` })
   }
 
-  // pnpm install ohne Shell (fixe Argumente, Paketname fließt NICHT in den Befehl ein).
+  // pnpm install DETACHED starten: läuft als eigenständiger Prozess weiter, auch
+  // wenn der Dev-Server beim Lockfile-/node_modules-Schreiben neu lädt (sonst würde
+  // der Install als Kind-Prozess mittendrin gekillt → inkonsistenter Zustand).
+  // Ohne Shell, fixe Argumente — der Paketname fließt nie in den Befehl ein.
   try {
-    const { stdout, stderr } = await execFileAsync('pnpm', ['install'], {
-      cwd: root,
-      timeout: 180_000,
-      maxBuffer: 16 * 1024 * 1024,
-    })
-    const log = `${stdout}\n${stderr}`.trim().split('\n').slice(-12).join('\n')
-    return { name, from, to: target, ok: true, log }
+    const child = spawn('pnpm', ['install'], { cwd: root, detached: true, stdio: 'ignore' })
+    child.on('error', () => {}) // z.B. ENOENT (pnpm nicht im PATH) nicht als unhandled werfen
+    child.unref()
   }
   catch (error) {
     const msg = error instanceof Error ? error.message : String(error)
-    throw createError({ status: 500, statusText: `pnpm install failed: ${msg.split('\n').slice(0, 4).join(' ')}` })
+    throw createError({ status: 500, statusText: `Could not start pnpm install: ${msg}` })
   }
+
+  // Sofort zurück: der Install läuft im Hintergrund. Der Client wartet NICHT auf
+  // Fertigstellung (die Antwort ginge beim Dev-Server-Reload eh verloren).
+  return { name, from, to: target, started: true }
 })

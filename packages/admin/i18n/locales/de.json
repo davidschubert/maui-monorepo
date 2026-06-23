@@ -292,14 +292,14 @@
         "current": "Aktuell",
         "update": "Update",
         "updateTitle": "Dependency aktualisieren",
-        "updateConfirm": "{name} von {from} auf {to} aktualisieren? Das hebt die Version im pnpm-Catalog an und führt „pnpm install“ aus.",
-        "updateNote": "Nur in der Entwicklung. Danach den Dev-Server neu starten, damit die neue Version geladen wird.",
+        "updateConfirm": "{name} von {from} auf {to} aktualisieren? Das hebt die Version im pnpm-Catalog an und startet „pnpm install“.",
+        "updateNote": "Nur in der Entwicklung. Der Install läuft im Hintergrund (~10–30 s); danach den Dev-Server neu starten, damit die neue Version geladen wird.",
         "updateConfirmBtn": "Jetzt aktualisieren",
-        "updateDone": "{name} auf {version} aktualisiert.",
+        "updateStarted": "Update von {name} auf {version} gestartet — läuft im Hintergrund. Danach Dev-Server neu starten.",
         "updateFailed": "Update fehlgeschlagen.",
         "restartNeeded": "Neustart nötig",
-        "restartTitle": "Updates angewendet",
-        "restartHint": "Starte den Dev-Server neu, damit die aktualisierten Versionen geladen werden."
+        "restartTitle": "Update läuft — Neustart nötig",
+        "restartHint": "Der Install läuft im Hintergrund. Warte kurz und starte dann den Dev-Server neu, damit die aktualisierten Versionen geladen werden."
       }
     }
   }

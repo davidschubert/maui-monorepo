@@ -292,14 +292,14 @@
         "current": "Up to date",
         "update": "Update",
         "updateTitle": "Update dependency",
-        "updateConfirm": "Update {name} from {from} to {to}? This bumps the version in the pnpm catalog and runs \"pnpm install\".",
-        "updateNote": "Development only. Restart the dev server afterwards for the new version to load.",
+        "updateConfirm": "Update {name} from {from} to {to}? This bumps the version in the pnpm catalog and starts \"pnpm install\".",
+        "updateNote": "Development only. The install runs in the background (~10–30s); restart the dev server afterwards for the new version to load.",
         "updateConfirmBtn": "Update now",
-        "updateDone": "Updated {name} to {version}.",
+        "updateStarted": "Update of {name} to {version} started — running in the background. Restart the dev server afterwards.",
         "updateFailed": "Update failed.",
         "restartNeeded": "Restart needed",
-        "restartTitle": "Updates applied",
-        "restartHint": "Restart the dev server to load the updated versions."
+        "restartTitle": "Update running — restart needed",
+        "restartHint": "The install runs in the background. Wait a moment, then restart the dev server to load the updated versions."
       }
     }
   }

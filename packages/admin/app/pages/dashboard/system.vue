@@ -73,7 +73,7 @@ async function confirmUpdate() {
   try {
     const res = await $fetch<{ to: string }>('/api/admin/system/update', { method: 'POST', body: { name: dep.name } })
     justUpdated.value = new Set(justUpdated.value).add(dep.name)
-    toast.add({ title: t('dashboard.system.stack.updateDone', { name: dep.name, version: res.to }), color: 'success' })
+    toast.add({ title: t('dashboard.system.stack.updateStarted', { name: dep.name, version: res.to }), color: 'success', duration: 8000 })
     pendingUpdate.value = null
   }
   catch (error) {
