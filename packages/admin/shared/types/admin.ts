@@ -123,8 +123,12 @@ export interface ChangelogEntry {
   $createdAt: string
   /** Release-Datum (ISO) — unabhängig von $createdAt; steuert Anzeige + Sortierung */
   date: string
+  /** Deutsche Variante (Primär-Spalten) */
   title: string
   body: string
+  /** Englische Variante — leer = Fallback auf die deutsche */
+  titleEn: string
+  bodyEn: string
   /** 'feature' | 'improvement' | 'fix' — für ein farbiges Badge */
   category: string
   version: string

@@ -4,6 +4,8 @@ import { z } from 'zod'
 const schema = z.object({
   title: z.string().min(1).max(200),
   body: z.string().min(1).max(5000),
+  titleEn: z.string().max(200).default(''),
+  bodyEn: z.string().max(5000).default(''),
   category: z.enum(['feature', 'improvement', 'fix']).default('feature'),
   version: z.string().max(30).default(''),
   published: z.boolean().default(true),

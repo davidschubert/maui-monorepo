@@ -18,6 +18,7 @@ export default defineEventHandler(async (event): Promise<ChangelogListResponse> 
       total: res.total,
       entries: res.rows.map(r => ({
         $id: r.$id, $createdAt: r.$createdAt, date: r.date ?? r.$createdAt, title: r.title, body: r.body,
+        titleEn: r.titleEn ?? '', bodyEn: r.bodyEn ?? '',
         category: r.category ?? '', version: r.version ?? '', published: r.published,
       })),
     }

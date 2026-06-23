@@ -21,6 +21,8 @@ function categoryColor(c: string) {
 const schema = z.object({
   title: z.string().min(1, t('admin.changelog.form.titleRequired')).max(200),
   body: z.string().min(1, t('admin.changelog.form.bodyRequired')).max(5000),
+  titleEn: z.string().max(200),
+  bodyEn: z.string().max(5000),
   category: z.enum(CATEGORIES),
   version: z.string().max(30),
   published: z.boolean(),
@@ -29,13 +31,22 @@ const schema = z.object({
 type FormInput = z.infer<typeof schema>
 const categoryItems = computed(() => CATEGORIES.map(c => ({ label: t(`admin.changelog.category.${c}`), value: c })))
 
+// Anzeige je UI-Sprache mit Fallback auf die jeweils andere
+function localized(entry: ChangelogEntry, field: 'title' | 'body') {
+  const en = field === 'title' ? entry.titleEn : entry.bodyEn
+  const de = field === 'title' ? entry.title : entry.body
+  return locale.value === 'en' ? (en || de) : (de || en)
+}
+
+const DEFAULTS = (): FormInput => ({ title: '', body: '', titleEn: '', bodyEn: '', category: 'feature', version: '', published: true, date: today() })
+
 const open = ref(false)
 const editingId = ref<string | null>(null)
 const busy = ref(false)
-const state = reactive<FormInput>({ title: '', body: '', category: 'feature', version: '', published: true, date: today() })
+const state = reactive<FormInput>(DEFAULTS())
 
 function reset(values: Partial<FormInput> = {}) {
-  Object.assign(state, { title: '', body: '', category: 'feature', version: '', published: true, date: today() }, values)
+  Object.assign(state, DEFAULTS(), values)
 }
 function openCreate() {
   editingId.value = null
@@ -44,7 +55,7 @@ function openCreate() {
 }
 function openEdit(entry: ChangelogEntry) {
   editingId.value = entry.$id
-  reset({ title: entry.title, body: entry.body, category: (entry.category || 'feature') as FormInput['category'], version: entry.version, published: entry.published, date: (entry.date || entry.$createdAt).slice(0, 10) })
+  reset({ title: entry.title, body: entry.body, titleEn: entry.titleEn, bodyEn: entry.bodyEn, category: (entry.category || 'feature') as FormInput['category'], version: entry.version, published: entry.published, date: (entry.date || entry.$createdAt).slice(0, 10) })
   open.value = true
 }
 
@@ -103,26 +114,40 @@ async function confirmDelete() {
       <li v-for="entry in entries" :key="entry.$id" class="rounded-lg border border-default p-4">
         <div class="flex flex-wrap items-center gap-2">
           <UBadge :color="categoryColor(entry.category)" variant="subtle" size="sm">{{ t(`admin.changelog.category.${entry.category || 'feature'}`) }}</UBadge>
-          <span class="font-semibold">{{ entry.title }}</span>
+          <span class="font-semibold">{{ localized(entry, 'title') }}</span>
           <UBadge v-if="entry.version" color="neutral" variant="subtle" size="sm">{{ entry.version }}</UBadge>
           <UBadge v-if="!entry.published" color="warning" variant="subtle" size="sm">{{ t('admin.changelog.draft') }}</UBadge>
+          <UBadge v-if="!entry.titleEn || !entry.bodyEn" color="warning" variant="subtle" size="sm">{{ t('admin.changelog.missingEn') }}</UBadge>
           <span class="text-xs text-muted">{{ fmtDate(entry.date || entry.$createdAt) }}</span>
           <div class="ms-auto flex gap-1">
             <UButton size="xs" color="neutral" variant="ghost" icon="i-ph-pencil-simple" @click="openEdit(entry)">{{ t('admin.changelog.edit') }}</UButton>
             <UButton size="xs" color="error" variant="ghost" icon="i-ph-trash" @click="pendingDelete = entry">{{ t('admin.changelog.delete') }}</UButton>
           </div>
         </div>
-        <p class="mt-2 whitespace-pre-line text-sm text-muted">{{ entry.body }}</p>
+        <p class="mt-2 whitespace-pre-line text-sm text-muted">{{ localized(entry, 'body') }}</p>
       </li>
     </ul>
 
     <UModal v-model:open="open" :title="editingId ? t('admin.changelog.editTitle') : t('admin.changelog.new')">
       <template #body>
         <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
+          <p class="text-xs font-semibold uppercase tracking-wide text-dimmed">{{ t('admin.changelog.form.langDe') }}</p>
           <UFormField :label="t('admin.changelog.form.title')" name="title" required>
             <UInput v-model="state.title" class="w-full" />
           </UFormField>
-          <div class="flex flex-wrap gap-3">
+          <UFormField :label="t('admin.changelog.form.body')" name="body" required>
+            <UTextarea v-model="state.body" :rows="4" class="w-full" />
+          </UFormField>
+
+          <p class="border-t border-default pt-3 text-xs font-semibold uppercase tracking-wide text-dimmed">{{ t('admin.changelog.form.langEn') }}</p>
+          <UFormField :label="t('admin.changelog.form.title')" name="titleEn">
+            <UInput v-model="state.titleEn" class="w-full" />
+          </UFormField>
+          <UFormField :label="t('admin.changelog.form.body')" name="bodyEn" :help="t('admin.changelog.form.enHint')">
+            <UTextarea v-model="state.bodyEn" :rows="4" class="w-full" />
+          </UFormField>
+
+          <div class="flex flex-wrap gap-3 border-t border-default pt-3">
             <UFormField :label="t('admin.changelog.form.category')" name="category" class="flex-1">
               <USelect v-model="state.category" :items="categoryItems" class="w-full" />
             </UFormField>
@@ -133,9 +158,6 @@ async function confirmDelete() {
               <UInput v-model="state.date" type="date" class="w-full" />
             </UFormField>
           </div>
-          <UFormField :label="t('admin.changelog.form.body')" name="body" required>
-            <UTextarea v-model="state.body" :rows="5" class="w-full" />
-          </UFormField>
           <UFormField name="published">
             <USwitch v-model="state.published" :label="t('admin.changelog.form.published')" />
           </UFormField>

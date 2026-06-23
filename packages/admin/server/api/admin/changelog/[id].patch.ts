@@ -3,6 +3,8 @@ import { z } from 'zod'
 const schema = z.object({
   title: z.string().min(1).max(200).optional(),
   body: z.string().min(1).max(5000).optional(),
+  titleEn: z.string().max(200).optional(),
+  bodyEn: z.string().max(5000).optional(),
   category: z.enum(['feature', 'improvement', 'fix']).optional(),
   version: z.string().max(30).optional(),
   published: z.boolean().optional(),

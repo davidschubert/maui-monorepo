@@ -6,6 +6,13 @@ const { t, locale } = useI18n()
 const config = useRuntimeConfig()
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(locale.value, { day: '2-digit', month: 'short', year: 'numeric' })
 
+// Anzeige je UI-Sprache mit Fallback auf die jeweils andere
+function localized(entry: ChangelogEntry, field: 'title' | 'body') {
+  const en = field === 'title' ? entry.titleEn : entry.bodyEn
+  const de = field === 'title' ? entry.title : entry.body
+  return locale.value === 'en' ? (en || de) : (de || en)
+}
+
 const entries = ref<ChangelogEntry[]>([])
 const open = ref(false)
 // "Zuletzt gesehen" pro Gerät — Einträge neuer als dieser Zeitstempel sind ungelesen
@@ -78,10 +85,10 @@ function onToggle(value: boolean) {
           <li v-for="e in entries" :key="e.$id" class="px-3 py-3">
             <div class="flex flex-wrap items-center gap-1.5">
               <UBadge :color="categoryColor(e.category)" variant="subtle" size="sm">{{ t(`admin.changelog.category.${e.category || 'feature'}`) }}</UBadge>
-              <span class="text-sm font-medium">{{ e.title }}</span>
+              <span class="text-sm font-medium">{{ localized(e, 'title') }}</span>
               <UBadge v-if="e.version" color="neutral" variant="subtle" size="sm">{{ e.version }}</UBadge>
             </div>
-            <p class="mt-1 whitespace-pre-line text-sm text-muted">{{ e.body }}</p>
+            <p class="mt-1 whitespace-pre-line text-sm text-muted">{{ localized(e, 'body') }}</p>
             <p class="mt-1 text-xs text-dimmed">{{ fmtDate(e.date) }}</p>
           </li>
         </ul>
