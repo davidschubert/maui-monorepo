@@ -289,7 +289,17 @@
         "dependencies": "Abhängigkeiten",
         "outdated": "{count} veraltet",
         "allCurrent": "Alle aktuell",
-        "current": "Aktuell"
+        "current": "Aktuell",
+        "update": "Update",
+        "updateTitle": "Dependency aktualisieren",
+        "updateConfirm": "{name} von {from} auf {to} aktualisieren? Das hebt die Version im pnpm-Catalog an und führt „pnpm install“ aus.",
+        "updateNote": "Nur in der Entwicklung. Danach den Dev-Server neu starten, damit die neue Version geladen wird.",
+        "updateConfirmBtn": "Jetzt aktualisieren",
+        "updateDone": "{name} auf {version} aktualisiert.",
+        "updateFailed": "Update fehlgeschlagen.",
+        "restartNeeded": "Neustart nötig",
+        "restartTitle": "Updates angewendet",
+        "restartHint": "Starte den Dev-Server neu, damit die aktualisierten Versionen geladen werden."
       }
     }
   }

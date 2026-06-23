@@ -4,6 +4,8 @@ import type { SystemInfo } from '../../../shared/types/system'
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
 
 const { t, locale } = useI18n()
+const toast = useToast()
+const isDev = import.meta.dev
 
 // Live-/per-Request-Daten ohne SEO-Relevanz → client-seitig (kein SSR-Render,
 // sonst Hydration-Mismatch über uptime/memory/generatedAt).
@@ -57,6 +59,35 @@ const groupedDependencies = computed(() => {
 
 const outdatedCount = computed(() => (data.value?.dependencies ?? []).filter(d => d.outdated === true).length)
 const checkedCount = computed(() => (data.value?.dependencies ?? []).filter(d => d.outdated !== null && d.outdated !== undefined).length)
+
+// --- Dev-only: Dependency-Update (Catalog-Bump + pnpm install) ----------------
+type Dep = SystemInfo['dependencies'][number]
+const pendingUpdate = ref<Dep | null>(null)
+const updating = ref(false)
+const justUpdated = ref(new Set<string>())
+
+async function confirmUpdate() {
+  const dep = pendingUpdate.value
+  if (!dep) return
+  updating.value = true
+  try {
+    const res = await $fetch<{ to: string }>('/api/admin/system/update', { method: 'POST', body: { name: dep.name } })
+    justUpdated.value = new Set(justUpdated.value).add(dep.name)
+    toast.add({ title: t('dashboard.system.stack.updateDone', { name: dep.name, version: res.to }), color: 'success' })
+    pendingUpdate.value = null
+  }
+  catch (error) {
+    const detail = (error as { statusMessage?: string, data?: { statusMessage?: string } })
+    toast.add({
+      title: t('dashboard.system.stack.updateFailed'),
+      description: detail.data?.statusMessage ?? detail.statusMessage,
+      color: 'error',
+    })
+  }
+  finally {
+    updating.value = false
+  }
+}
 </script>
 
 <template>
@@ -236,6 +267,15 @@ const checkedCount = computed(() => (data.value?.dependencies ?? []).filter(d =>
                     {{ t('dashboard.system.stack.allCurrent') }}
                   </UBadge>
                 </div>
+                <UAlert
+                  v-if="justUpdated.size"
+                  color="info"
+                  variant="subtle"
+                  icon="i-ph-arrows-clockwise"
+                  :title="t('dashboard.system.stack.restartTitle')"
+                  :description="t('dashboard.system.stack.restartHint')"
+                  class="mb-3"
+                />
                 <div class="space-y-3">
                   <div v-for="group in groupedDependencies" :key="group.category">
                     <p class="text-xs uppercase tracking-wide text-dimmed">{{ group.category }}</p>
@@ -247,14 +287,31 @@ const checkedCount = computed(() => (data.value?.dependencies ?? []).filter(d =>
                       >
                         <dt class="font-mono">{{ dep.name }}</dt>
                         <dd class="flex items-center gap-1.5 font-mono">
-                          <span :class="dep.outdated ? 'text-warning' : 'text-muted'">{{ dep.version }}</span>
-                          <template v-if="dep.outdated">
-                            <UIcon name="i-ph-arrow-right" class="size-3 text-dimmed" />
-                            <span class="font-medium text-warning">{{ dep.latest }}</span>
+                          <UBadge v-if="justUpdated.has(dep.name)" color="info" variant="subtle" size="sm" class="font-sans">
+                            <UIcon name="i-ph-arrows-clockwise" class="size-3.5" />
+                            {{ t('dashboard.system.stack.restartNeeded') }}
+                          </UBadge>
+                          <template v-else>
+                            <span :class="dep.outdated ? 'text-warning' : 'text-muted'">{{ dep.version }}</span>
+                            <template v-if="dep.outdated">
+                              <UIcon name="i-ph-arrow-right" class="size-3 text-dimmed" />
+                              <span class="font-medium text-warning">{{ dep.latest }}</span>
+                              <UButton
+                                v-if="isDev"
+                                size="xs"
+                                color="warning"
+                                variant="soft"
+                                icon="i-ph-arrow-circle-up"
+                                class="ms-1 font-sans"
+                                @click="pendingUpdate = dep"
+                              >
+                                {{ t('dashboard.system.stack.update') }}
+                              </UButton>
+                            </template>
+                            <UTooltip v-else-if="dep.outdated === false" :text="t('dashboard.system.stack.current')">
+                              <UIcon name="i-ph-check-circle" class="size-4 text-success" />
+                            </UTooltip>
                           </template>
-                          <UTooltip v-else-if="dep.outdated === false" :text="t('dashboard.system.stack.current')">
-                            <UIcon name="i-ph-check-circle" class="size-4 text-success" />
-                          </UTooltip>
                         </dd>
                       </div>
                     </dl>
@@ -270,6 +327,25 @@ const checkedCount = computed(() => (data.value?.dependencies ?? []).filter(d =>
           </template>
         </ClientOnly>
       </div>
+
+      <UModal
+        :open="pendingUpdate !== null"
+        :title="t('dashboard.system.stack.updateTitle')"
+        @update:open="(v: boolean) => { if (!v) pendingUpdate = null }"
+      >
+        <template #body>
+          <p class="text-sm">
+            {{ t('dashboard.system.stack.updateConfirm', { name: pendingUpdate?.name, from: pendingUpdate?.version, to: pendingUpdate?.latest }) }}
+          </p>
+          <p class="mt-2 text-xs text-muted">{{ t('dashboard.system.stack.updateNote') }}</p>
+        </template>
+        <template #footer>
+          <div class="flex w-full justify-end gap-2">
+            <UButton color="neutral" variant="ghost" :disabled="updating" @click="pendingUpdate = null">{{ t('comments.item.cancel') }}</UButton>
+            <UButton color="warning" icon="i-ph-arrow-circle-up" :loading="updating" @click="confirmUpdate">{{ t('dashboard.system.stack.updateConfirmBtn') }}</UButton>
+          </div>
+        </template>
+      </UModal>
     </template>
   </UDashboardPanel>
 </template>

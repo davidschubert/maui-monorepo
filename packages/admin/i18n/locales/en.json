@@ -289,7 +289,17 @@
         "dependencies": "Dependencies",
         "outdated": "{count} outdated",
         "allCurrent": "All up to date",
-        "current": "Up to date"
+        "current": "Up to date",
+        "update": "Update",
+        "updateTitle": "Update dependency",
+        "updateConfirm": "Update {name} from {from} to {to}? This bumps the version in the pnpm catalog and runs \"pnpm install\".",
+        "updateNote": "Development only. Restart the dev server afterwards for the new version to load.",
+        "updateConfirmBtn": "Update now",
+        "updateDone": "Updated {name} to {version}.",
+        "updateFailed": "Update failed.",
+        "restartNeeded": "Restart needed",
+        "restartTitle": "Updates applied",
+        "restartHint": "Restart the dev server to load the updated versions."
       }
     }
   }
