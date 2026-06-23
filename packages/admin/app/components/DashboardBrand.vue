@@ -8,6 +8,6 @@ const localePath = useLocalePath()
 <template>
   <ULink :to="localePath('/dashboard')" class="flex items-center gap-2 px-1.5 py-1 font-bold tracking-tight text-default">
     <UIcon name="i-ph-island" class="size-6 shrink-0 text-primary" />
-    <span v-if="!collapsed">Maui</span>
+    <span v-if="!collapsed">Hawaii Studio</span>
   </ULink>
 </template>

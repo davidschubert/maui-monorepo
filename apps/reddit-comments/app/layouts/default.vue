@@ -10,7 +10,7 @@ const { isLoggedIn } = useCurrentUser()
   <div class="flex min-h-screen flex-col">
     <header class="border-b border-default">
       <nav data-testid="main-nav" class="mx-auto flex w-full max-w-5xl items-center justify-between p-4">
-        <NuxtLink :to="localePath('/')" class="font-bold tracking-tight">Maui</NuxtLink>
+        <NuxtLink :to="localePath('/')" class="font-bold tracking-tight">Hawaii Studio</NuxtLink>
         <div class="flex items-center gap-2">
           <WhatsNewButton />
           <DisplaySettingsMenu />
@@ -27,7 +27,7 @@ const { isLoggedIn } = useCurrentUser()
 
     <footer class="border-t border-default">
       <div class="mx-auto w-full max-w-5xl p-4 text-sm text-muted">
-        Maui · Nuxt 4 + Appwrite
+        Hawaii Studio · Nuxt 4 + Appwrite
       </div>
     </footer>
 
