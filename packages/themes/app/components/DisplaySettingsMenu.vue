@@ -9,6 +9,7 @@ type SwatchItem = DropdownMenuItem & { swatchIcon?: string, swatchColor?: string
 const { t, locale, setLocale } = useI18n()
 const colorMode = useColorMode()
 const { themes, theme, variant, setTheme, setVariant, neutrals, neutral, setNeutral } = useTheme()
+const localeOptions = useLocaleOptions()
 
 const capitalize = (value: string) => value.charAt(0).toUpperCase() + value.slice(1)
 
@@ -80,10 +81,13 @@ const items = computed<SwatchItem[][]>(() => {
     onSelect: (event: Event) => { event.preventDefault(); colorMode.preference = mode },
   }))
 
-  const languageChildren: DropdownMenuItem[] = [
-    { label: 'Deutsch (Deutschland)', icon: 'i-circle-flags-de', type: 'checkbox', checked: locale.value === 'de', onSelect: (event: Event) => { event.preventDefault(); setLocale('de') } },
-    { label: 'English (United States)', icon: 'i-circle-flags-us', type: 'checkbox', checked: locale.value === 'en', onSelect: (event: Event) => { event.preventDefault(); setLocale('en') } },
-  ]
+  const languageChildren: DropdownMenuItem[] = localeOptions.value.map(option => ({
+    label: option.label,
+    icon: option.flag,
+    type: 'checkbox',
+    checked: locale.value === option.code,
+    onSelect: (event: Event) => { event.preventDefault(); setLocale(option.code as typeof locale.value) },
+  }))
 
   return [[
     { label: t('themes.label'), icon: 'i-ph-palette', children: themeChildren },

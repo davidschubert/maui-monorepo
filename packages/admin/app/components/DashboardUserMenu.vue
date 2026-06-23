@@ -14,6 +14,7 @@ const colorMode = useColorMode()
 const auth = useAuthStore()
 const toast = useToast()
 const { themes, theme, variant, setTheme, setVariant, neutrals, neutral, setNeutral } = useTheme()
+const localeOptions = useLocaleOptions()
 
 // Sidebar-Optik (sidebar | floating | inset) — geteilt mit dem Dashboard-Layout via Cookie
 const sidebarVariant = useCookie<'sidebar' | 'floating' | 'inset'>('maui-sidebar-variant', { default: () => 'floating' })
@@ -110,10 +111,13 @@ const items = computed<SwatchItem[][]>(() => {
     onSelect: (event: Event) => { event.preventDefault(); sidebarVariant.value = value },
   }))
 
-  const languageChildren: DropdownMenuItem[] = [
-    { label: 'Deutsch (Deutschland)', icon: 'i-circle-flags-de', type: 'checkbox', checked: locale.value === 'de', onSelect: (event: Event) => { event.preventDefault(); setLocale('de') } },
-    { label: 'English (United States)', icon: 'i-circle-flags-us', type: 'checkbox', checked: locale.value === 'en', onSelect: (event: Event) => { event.preventDefault(); setLocale('en') } },
-  ]
+  const languageChildren: DropdownMenuItem[] = localeOptions.value.map(option => ({
+    label: option.label,
+    icon: option.flag,
+    type: 'checkbox',
+    checked: locale.value === option.code,
+    onSelect: (event: Event) => { event.preventDefault(); setLocale(option.code as typeof locale.value) },
+  }))
 
   return [
     [{ type: 'label', label: displayName.value, avatar: avatar.value }],
