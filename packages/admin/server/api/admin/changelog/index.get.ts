@@ -16,13 +16,13 @@ export default defineEventHandler(async (event): Promise<ChangelogListResponse> 
   const res = await admin.tablesDB.listRows<Row>({
     databaseId: config.public.appwriteDatabaseId,
     tableId: 'changelog',
-    queries: [Query.orderDesc('$createdAt'), Query.limit(PAGE_SIZE), Query.offset((page - 1) * PAGE_SIZE)],
+    queries: [Query.orderDesc('date'), Query.limit(PAGE_SIZE), Query.offset((page - 1) * PAGE_SIZE)],
   })
 
   return {
     total: res.total,
     entries: res.rows.map(r => ({
-      $id: r.$id, $createdAt: r.$createdAt, title: r.title, body: r.body,
+      $id: r.$id, $createdAt: r.$createdAt, date: r.date ?? r.$createdAt, title: r.title, body: r.body,
       category: r.category ?? '', version: r.version ?? '', published: r.published,
     })),
   }

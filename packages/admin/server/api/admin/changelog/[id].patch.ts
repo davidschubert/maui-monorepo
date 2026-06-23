@@ -6,6 +6,7 @@ const schema = z.object({
   category: z.enum(['feature', 'improvement', 'fix']).optional(),
   version: z.string().max(30).optional(),
   published: z.boolean().optional(),
+  date: z.string().optional(),
 })
 
 /** Admin: Changelog-Eintrag bearbeiten. */

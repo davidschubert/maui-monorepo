@@ -104,6 +104,7 @@
         "body": "Beschreibung",
         "category": "Kategorie",
         "version": "Version",
+        "date": "Datum",
         "published": "Veröffentlicht",
         "titleRequired": "Titel ist erforderlich",
         "bodyRequired": "Beschreibung ist erforderlich"

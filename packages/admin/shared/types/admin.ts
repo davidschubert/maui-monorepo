@@ -121,6 +121,8 @@ export interface AuditLogListResponse {
 export interface ChangelogEntry {
   $id: string
   $createdAt: string
+  /** Release-Datum (ISO) — unabhängig von $createdAt; steuert Anzeige + Sortierung */
+  date: string
   title: string
   body: string
   /** 'feature' | 'improvement' | 'fix' — für ein farbiges Badge */

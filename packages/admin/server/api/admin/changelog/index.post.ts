@@ -7,13 +7,15 @@ const schema = z.object({
   category: z.enum(['feature', 'improvement', 'fix']).default('feature'),
   version: z.string().max(30).default(''),
   published: z.boolean().default(true),
+  date: z.string().optional(),
 })
 
 /** Admin: neuen Changelog-Eintrag anlegen. */
 export default defineEventHandler(async (event) => {
   requireAdmin(event)
 
-  const data = await readValidatedBody(event, schema.parse)
+  const input = await readValidatedBody(event, schema.parse)
+  const data = { ...input, date: input.date || new Date().toISOString() }
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
 

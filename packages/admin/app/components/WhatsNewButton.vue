@@ -2,9 +2,9 @@
 import type { Models } from 'node-appwrite'
 import type { ChangelogEntry, ChangelogListResponse } from '../../shared/types/admin'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const config = useRuntimeConfig()
-const { formatRelativeTime } = useFormatRelativeTime()
+const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(locale.value, { day: '2-digit', month: 'short', year: 'numeric' })
 
 const entries = ref<ChangelogEntry[]>([])
 const open = ref(false)
@@ -16,7 +16,7 @@ const seen = useCookie<string>('maui-changelog-seen', {
 })
 
 const unread = computed(() =>
-  entries.value.filter(e => !seen.value || e.$createdAt > seen.value).length,
+  entries.value.filter(e => !seen.value || e.date > seen.value).length,
 )
 
 function categoryColor(c: string) {
@@ -28,7 +28,7 @@ async function load() {
     const res = await $fetch<ChangelogListResponse>('/api/changelog')
     entries.value = res.entries
     // Erstbesuch: Basislinie auf den neuesten Eintrag → keine "ganze Historie"-Badge
-    if (!seen.value && res.entries.length) seen.value = res.entries[0]!.$createdAt
+    if (!seen.value && res.entries.length) seen.value = res.entries[0]!.date
   }
   catch {
     // still — Panel bleibt leer
@@ -56,7 +56,7 @@ onBeforeUnmount(() => stop?.())
 function onToggle(value: boolean) {
   open.value = value
   // Beim Öffnen als gelesen markieren (neuester Eintrag = Basislinie)
-  if (value && entries.value.length) seen.value = entries.value[0]!.$createdAt
+  if (value && entries.value.length) seen.value = entries.value[0]!.date
 }
 </script>
 
@@ -82,7 +82,7 @@ function onToggle(value: boolean) {
               <UBadge v-if="e.version" color="neutral" variant="subtle" size="sm">{{ e.version }}</UBadge>
             </div>
             <p class="mt-1 whitespace-pre-line text-sm text-muted">{{ e.body }}</p>
-            <p class="mt-1 text-xs text-dimmed">{{ formatRelativeTime(e.$createdAt) }}</p>
+            <p class="mt-1 text-xs text-dimmed">{{ fmtDate(e.date) }}</p>
           </li>
         </ul>
       </div>

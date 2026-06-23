@@ -5,9 +5,10 @@ import type { ChangelogEntry, ChangelogListResponse } from '../../../../shared/t
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const toast = useToast()
-const { formatRelativeTime } = useFormatRelativeTime()
+const today = () => new Date().toISOString().slice(0, 10)
+const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(locale.value, { day: '2-digit', month: 'short', year: 'numeric' })
 
 const { data, refresh } = useFetch<ChangelogListResponse>('/api/admin/changelog', { lazy: true, server: false })
 const entries = computed(() => data.value?.entries ?? [])
@@ -23,6 +24,7 @@ const schema = z.object({
   category: z.enum(CATEGORIES),
   version: z.string().max(30),
   published: z.boolean(),
+  date: z.string().min(1),
 })
 type FormInput = z.infer<typeof schema>
 const categoryItems = computed(() => CATEGORIES.map(c => ({ label: t(`admin.changelog.category.${c}`), value: c })))
@@ -30,10 +32,10 @@ const categoryItems = computed(() => CATEGORIES.map(c => ({ label: t(`admin.chan
 const open = ref(false)
 const editingId = ref<string | null>(null)
 const busy = ref(false)
-const state = reactive<FormInput>({ title: '', body: '', category: 'feature', version: '', published: true })
+const state = reactive<FormInput>({ title: '', body: '', category: 'feature', version: '', published: true, date: today() })
 
 function reset(values: Partial<FormInput> = {}) {
-  Object.assign(state, { title: '', body: '', category: 'feature', version: '', published: true }, values)
+  Object.assign(state, { title: '', body: '', category: 'feature', version: '', published: true, date: today() }, values)
 }
 function openCreate() {
   editingId.value = null
@@ -42,18 +44,20 @@ function openCreate() {
 }
 function openEdit(entry: ChangelogEntry) {
   editingId.value = entry.$id
-  reset({ title: entry.title, body: entry.body, category: (entry.category || 'feature') as FormInput['category'], version: entry.version, published: entry.published })
+  reset({ title: entry.title, body: entry.body, category: (entry.category || 'feature') as FormInput['category'], version: entry.version, published: entry.published, date: (entry.date || entry.$createdAt).slice(0, 10) })
   open.value = true
 }
 
 async function onSubmit(event: FormSubmitEvent<FormInput>) {
   busy.value = true
+  // Datum (YYYY-MM-DD) → ISO-Zeitstempel für das Appwrite-datetime-Feld
+  const body = { ...event.data, date: new Date(`${event.data.date}T12:00:00`).toISOString() }
   try {
     if (editingId.value) {
-      await $fetch(`/api/admin/changelog/${editingId.value}`, { method: 'PATCH', body: event.data })
+      await $fetch(`/api/admin/changelog/${editingId.value}`, { method: 'PATCH', body })
     }
     else {
-      await $fetch('/api/admin/changelog', { method: 'POST', body: event.data })
+      await $fetch('/api/admin/changelog', { method: 'POST', body })
     }
     toast.add({ title: t('admin.changelog.saved'), color: 'success' })
     open.value = false
@@ -102,7 +106,7 @@ async function confirmDelete() {
           <span class="font-semibold">{{ entry.title }}</span>
           <UBadge v-if="entry.version" color="neutral" variant="subtle" size="sm">{{ entry.version }}</UBadge>
           <UBadge v-if="!entry.published" color="warning" variant="subtle" size="sm">{{ t('admin.changelog.draft') }}</UBadge>
-          <span class="text-xs text-muted">{{ formatRelativeTime(entry.$createdAt) }}</span>
+          <span class="text-xs text-muted">{{ fmtDate(entry.date || entry.$createdAt) }}</span>
           <div class="ms-auto flex gap-1">
             <UButton size="xs" color="neutral" variant="ghost" icon="i-ph-pencil-simple" @click="openEdit(entry)">{{ t('admin.changelog.edit') }}</UButton>
             <UButton size="xs" color="error" variant="ghost" icon="i-ph-trash" @click="pendingDelete = entry">{{ t('admin.changelog.delete') }}</UButton>
@@ -118,12 +122,15 @@ async function confirmDelete() {
           <UFormField :label="t('admin.changelog.form.title')" name="title" required>
             <UInput v-model="state.title" class="w-full" />
           </UFormField>
-          <div class="flex gap-3">
+          <div class="flex flex-wrap gap-3">
             <UFormField :label="t('admin.changelog.form.category')" name="category" class="flex-1">
               <USelect v-model="state.category" :items="categoryItems" class="w-full" />
             </UFormField>
             <UFormField :label="t('admin.changelog.form.version')" name="version" class="flex-1">
               <UInput v-model="state.version" placeholder="v1.4" class="w-full" />
+            </UFormField>
+            <UFormField :label="t('admin.changelog.form.date')" name="date" class="flex-1">
+              <UInput v-model="state.date" type="date" class="w-full" />
             </UFormField>
           </div>
           <UFormField :label="t('admin.changelog.form.body')" name="body" required>
