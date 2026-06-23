@@ -250,10 +250,23 @@ async function confirmUpdate() {
             <div class="space-y-5">
               <div>
                 <p class="mb-2 text-sm font-medium">{{ t('dashboard.system.stack.layers') }}</p>
-                <div class="flex flex-wrap gap-2">
-                  <UBadge v-for="layer in data.layers" :key="layer.name" color="primary" variant="subtle">
-                    {{ layer.name }} <span class="font-mono opacity-70">{{ layer.version }}</span>
-                  </UBadge>
+                <div class="space-y-2">
+                  <div v-for="layer in data.layers" :key="layer.name" class="rounded-lg border border-default/60 p-3">
+                    <div class="flex items-center justify-between gap-2">
+                      <div class="flex items-center gap-2">
+                        <UIcon name="i-ph-stack" class="size-4 text-primary" />
+                        <span class="font-mono text-sm font-medium">{{ layer.name }}</span>
+                        <UBadge color="neutral" variant="subtle" size="sm" class="font-mono">{{ layer.version }}</UBadge>
+                      </div>
+                      <span class="shrink-0 text-xs text-dimmed">{{ layer.total }} {{ t('dashboard.system.stack.files') }}</span>
+                    </div>
+                    <p v-if="layer.description" class="mt-1 text-xs text-muted">{{ layer.description }}</p>
+                    <div v-if="layer.categories.length" class="mt-2 flex flex-wrap gap-1.5">
+                      <UBadge v-for="c in layer.categories" :key="c.key" color="neutral" variant="outline" size="sm">
+                        <span class="font-mono font-semibold">{{ c.count }}</span>&nbsp;{{ t(`dashboard.system.stack.layerCat.${c.key}`) }}
+                      </UBadge>
+                    </div>
+                  </div>
                 </div>
               </div>
 

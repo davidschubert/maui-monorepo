@@ -16,6 +16,21 @@ export interface DependencyEntry {
   outdated?: boolean | null
 }
 
+/** Inhalts-Kategorie eines Feature-Layers (key wird im UI via i18n übersetzt). */
+export interface LayerCategory {
+  key: string
+  count: number
+}
+
+/** Aufgeschlüsselter Inhalt eines Feature-Layers. */
+export interface LayerInfo {
+  name: string
+  version: string
+  description: string | null
+  total: number
+  categories: LayerCategory[]
+}
+
 export interface SystemInfo {
   generatedAt: string
   runtime: {
@@ -49,7 +64,7 @@ export interface SystemInfo {
     url: string
     avatarsBucket: string | null
   }
-  layers: DependencyEntry[]
+  layers: LayerInfo[]
   dependencies: DependencyEntry[]
   modules: string[]
 }

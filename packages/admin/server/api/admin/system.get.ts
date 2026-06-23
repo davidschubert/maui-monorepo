@@ -1,8 +1,9 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import os from 'node:os'
-import type { DependencyEntry, HealthEntry, SystemInfo } from '../../../shared/types/system'
+import type { DependencyEntry, HealthEntry, LayerInfo, SystemInfo } from '../../../shared/types/system'
 import { DEP_GROUPS, isOutdated, latestAppwriteVersion, latestVersion, pkgVersion } from '../../utils/dependencies'
+import { layerBreakdown } from '../../utils/layers'
 
 const LAYER_PKGS = ['@maui/core', '@maui/comments', '@maui/admin', '@maui/themes']
 const MODULES = ['@nuxt/ui', '@pinia/nuxt', '@nuxtjs/i18n']
@@ -83,7 +84,7 @@ export default defineEventHandler(async (event): Promise<SystemInfo> => {
       return { name, version, category, latest, outdated: isOutdated(version, latest) }
     }),
   )
-  const layers: DependencyEntry[] = LAYER_PKGS.map(name => ({ name, version: pkgVersion(name), category: 'Layer' }))
+  const layers: LayerInfo[] = LAYER_PKGS.map(name => layerBreakdown(name, pkgVersion(name)))
 
   let appName = 'app'
   let appVersion = 'unknown'
