@@ -57,6 +57,15 @@ const groupedDependencies = computed(() => {
   return [...groups.entries()].map(([category, items]) => ({ category, items }))
 })
 
+// Aufgeklappte Layer (Namen statt nur Counts)
+const expandedLayers = ref(new Set<string>())
+function toggleLayer(name: string) {
+  const next = new Set(expandedLayers.value)
+  if (next.has(name)) next.delete(name)
+  else next.add(name)
+  expandedLayers.value = next
+}
+
 const outdatedCount = computed(() => (data.value?.dependencies ?? []).filter(d => d.outdated === true).length)
 const checkedCount = computed(() => (data.value?.dependencies ?? []).filter(d => d.outdated !== null && d.outdated !== undefined).length)
 
@@ -252,19 +261,46 @@ async function confirmUpdate() {
                 <p class="mb-2 text-sm font-medium">{{ t('dashboard.system.stack.layers') }}</p>
                 <div class="space-y-2">
                   <div v-for="layer in data.layers" :key="layer.name" class="rounded-lg border border-default/60 p-3">
-                    <div class="flex items-center justify-between gap-2">
-                      <div class="flex items-center gap-2">
-                        <UIcon name="i-ph-stack" class="size-4 text-primary" />
-                        <span class="font-mono text-sm font-medium">{{ layer.name }}</span>
+                    <button
+                      type="button"
+                      class="flex w-full items-center justify-between gap-2 text-left"
+                      :aria-expanded="expandedLayers.has(layer.name)"
+                      @click="toggleLayer(layer.name)"
+                    >
+                      <div class="flex min-w-0 items-center gap-2">
+                        <UIcon name="i-ph-stack" class="size-4 shrink-0 text-primary" />
+                        <span class="truncate font-mono text-sm font-medium">{{ layer.name }}</span>
                         <UBadge color="neutral" variant="subtle" size="sm" class="font-mono">{{ layer.version }}</UBadge>
                       </div>
-                      <span class="shrink-0 text-xs text-dimmed">{{ layer.total }} {{ t('dashboard.system.stack.files') }}</span>
-                    </div>
+                      <div class="flex shrink-0 items-center gap-1.5 text-xs text-dimmed">
+                        <span>{{ layer.total }} {{ t('dashboard.system.stack.files') }}</span>
+                        <UIcon :name="expandedLayers.has(layer.name) ? 'i-ph-caret-up' : 'i-ph-caret-down'" class="size-3.5" />
+                      </div>
+                    </button>
                     <p v-if="layer.description" class="mt-1 text-xs text-muted">{{ layer.description }}</p>
-                    <div v-if="layer.categories.length" class="mt-2 flex flex-wrap gap-1.5">
+
+                    <!-- Eingeklappt: Anzahl-Chips je Kategorie -->
+                    <div v-if="!expandedLayers.has(layer.name) && layer.categories.length" class="mt-2 flex flex-wrap gap-1.5">
                       <UBadge v-for="c in layer.categories" :key="c.key" color="neutral" variant="outline" size="sm">
                         <span class="font-mono font-semibold">{{ c.count }}</span>&nbsp;{{ t(`dashboard.system.stack.layerCat.${c.key}`) }}
                       </UBadge>
+                    </div>
+
+                    <!-- Aufgeklappt: konkrete Namen je Kategorie -->
+                    <div v-else-if="expandedLayers.has(layer.name)" class="mt-3 space-y-3">
+                      <div v-for="c in layer.categories" :key="c.key">
+                        <p class="mb-1.5 flex items-center gap-1.5 text-xs font-medium">
+                          {{ t(`dashboard.system.stack.layerCat.${c.key}`) }}
+                          <span class="rounded bg-elevated px-1.5 font-mono text-dimmed">{{ c.count }}</span>
+                        </p>
+                        <div class="flex flex-wrap gap-1">
+                          <span
+                            v-for="name in c.items"
+                            :key="name"
+                            class="rounded bg-elevated px-1.5 py-0.5 font-mono text-xs text-muted"
+                          >{{ name }}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -14,21 +14,31 @@ function workspaceRoot(): string | null {
   return null
 }
 
-/** Dateien in einem Verzeichnis zählen (optional rekursiv, optional Namensfilter). */
-function countFiles(dir: string, exts: string[], recursive: boolean, namePattern?: RegExp): number {
-  if (!existsSync(dir)) return 0
-  let count = 0
+/**
+ * Datei-Namen in einem Verzeichnis sammeln (optional rekursiv, optional
+ * Namensfilter). Die passende Endung wird entfernt; bei rekursivem Scan bleibt
+ * der Unterpfad erhalten (z.B. „admin/users/index.get“, „auth/AuthLoginForm“).
+ */
+function listFiles(baseDir: string, exts: string[], recursive: boolean, namePattern?: RegExp, sub = ''): string[] {
+  const dir = sub ? join(baseDir, sub) : baseDir
+  if (!existsSync(dir)) return []
+  const out: string[] = []
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     if (entry.name.startsWith('.')) continue
+    const rel = sub ? `${sub}/${entry.name}` : entry.name
     if (entry.isDirectory()) {
-      if (recursive) count += countFiles(join(dir, entry.name), exts, true, namePattern)
+      if (recursive) out.push(...listFiles(baseDir, exts, true, namePattern, rel))
       continue
     }
     if (!exts.some(e => entry.name.endsWith(e))) continue
     if (namePattern && !namePattern.test(entry.name)) continue
-    count++
+    let name = rel
+    for (const e of exts) {
+      if (name.endsWith(e)) { name = name.slice(0, -e.length); break }
+    }
+    out.push(name)
   }
-  return count
+  return out
 }
 
 // Inhalts-Kategorien eines Nuxt-Layers (key wird im UI via i18n übersetzt).
@@ -71,10 +81,10 @@ export function layerBreakdown(name: string, version: string): LayerInfo {
       // keine/unlesbare package.json — ohne Beschreibung
     }
     for (const c of CATEGORIES) {
-      const count = countFiles(join(dir, c.path), c.exts, c.recursive, c.namePattern)
-      if (count > 0) {
-        categories.push({ key: c.key, count })
-        total += count
+      const items = listFiles(join(dir, c.path), c.exts, c.recursive, c.namePattern).sort()
+      if (items.length > 0) {
+        categories.push({ key: c.key, count: items.length, items })
+        total += items.length
       }
     }
   }

@@ -20,6 +20,8 @@ export interface DependencyEntry {
 export interface LayerCategory {
   key: string
   count: number
+  /** Datei-/Entity-Namen (ohne Endung), z.B. „UserAvatar“, „admin/users/index.get“ */
+  items: string[]
 }
 
 /** Aufgeschlüsselter Inhalt eines Feature-Layers. */
