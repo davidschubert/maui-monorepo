@@ -1,5 +1,26 @@
 {
   "app": {
     "tagline": "Discuss like on Reddit — in real time."
+  },
+  "home": {
+    "onlineBadge": "{count} online now",
+    "title": "Discuss like on Reddit — in real time",
+    "subtitle": "Nested threads, votes and new posts appear instantly — no reload. Self-hosted on Nuxt 4 + Appwrite.",
+    "tryDemo": "Try the demo",
+    "toDashboard": "Go to dashboard",
+    "signIn": "Sign in",
+    "demoTitle": "Live demo",
+    "demoHint": "try it right here",
+    "stats": {
+      "comments": "Comments",
+      "members": "Members",
+      "online": "Online"
+    },
+    "features": {
+      "realtime": { "title": "Real-time", "desc": "Comments, votes & presence live — no reload at all." },
+      "themes": { "title": "Themes", "desc": "Color worlds, light/dark mode and 9 neutral tones." },
+      "i18n": { "title": "Multilingual", "desc": "German & English, cleanly server-rendered." },
+      "admin": { "title": "Admin & auth", "desc": "Dashboard, passwordless login and GDPR self-service." }
+    }
   }
 }
