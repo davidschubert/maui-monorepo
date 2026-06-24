@@ -17,12 +17,25 @@ export default defineEventHandler(async (event) => {
 
   const { content } = await readValidatedBody(event, commentUpdateSchema.parse)
   const config = useRuntimeConfig(event)
+  const databaseId = config.public.appwriteDatabaseId
   const { tablesDB } = createSessionClient(event)
+
+  // Status prüfen: nur aktive/gemeldete Kommentare sind editierbar. Ohne diese
+  // Sperre könnte der Autor per direktem Call den Inhalt eines ausgeblendeten
+  // (hidden) oder soft-gelöschten (deleted) Kommentars überschreiben — die UI
+  // versteckt „Bearbeiten" dort nur clientseitig.
+  const existing = await tablesDB.getRow<Comment>({ databaseId, tableId: COMMENTS_TABLE, rowId: commentId }).catch(() => null)
+  if (!existing) {
+    throw createError({ status: 404, statusText: 'Comment not found' })
+  }
+  if (existing.status !== 'active' && existing.status !== 'reported') {
+    throw createError({ status: 409, statusText: 'Comment not editable' })
+  }
 
   try {
     // Sparse Update — Row-Security wirft 401, wenn nicht der Autor schreibt
     return await tablesDB.updateRow<Comment>({
-      databaseId: config.public.appwriteDatabaseId,
+      databaseId,
       tableId: COMMENTS_TABLE,
       rowId: commentId,
       data: { content },

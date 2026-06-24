@@ -15,7 +15,8 @@ export default defineEventHandler(async (event) => {
   const res = await tablesDB.listRows<Models.Row & { read: boolean }>({
     databaseId,
     tableId: 'notifications',
-    queries: [Query.limit(100)],
+    // recipientId-Filter als Defense-in-Depth zusätzlich zur Row-Security
+    queries: [Query.equal('recipientId', event.context.user.$id), Query.limit(100)],
   }).catch(() => ({ rows: [] as (Models.Row & { read: boolean })[] }))
 
   const unread = res.rows.filter(r => !r.read)

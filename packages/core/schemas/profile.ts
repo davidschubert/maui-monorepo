@@ -12,9 +12,17 @@ export function createProfileSchema(t: TranslateFn = identity) {
     phone: z.string()
       .optional()
       .refine(value => !value || /^\+[1-9]\d{1,14}$/.test(value), t('validation.phoneFormat')),
-    // Akzeptiert sowohl externe URLs als auch die relative Storage-URL
-    // (/api/storage/<bucket>/<id>) — daher kein z.url(), nur Längenlimit.
-    avatarUrl: z.string().max(2048, t('validation.urlInvalid')).optional(),
+    // Erlaubt die relative Storage-URL (/api/storage/<bucket>/<id>, Upload-Pfad)
+    // ODER eine externe https-URL (BYO-Avatar im No-Bucket-Fallback). Andere
+    // Schemata (javascript:, data:, http:) und Freitext werden abgewiesen — das
+    // Feld landet als <img src> auch bei anderen Betrachtern.
+    avatarUrl: z.string()
+      .max(2048, t('validation.urlInvalid'))
+      .refine(
+        value => !value || value.startsWith('/api/storage/') || /^https:\/\//i.test(value),
+        t('validation.urlInvalid'),
+      )
+      .optional(),
   })
 }
 

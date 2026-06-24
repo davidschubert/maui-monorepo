@@ -17,7 +17,9 @@ export default defineEventHandler(async (event): Promise<NotificationListRespons
   const res = await tablesDB.listRows<NotifRow>({
     databaseId: config.public.appwriteDatabaseId,
     tableId: 'notifications',
-    queries: [Query.orderDesc('$createdAt'), Query.limit(50)],
+    // recipientId-Filter als Defense-in-Depth zusätzlich zur Row-Security:
+    // schützt auch, falls die Tabelle je ohne Per-User-Read-Permissions migriert wird.
+    queries: [Query.equal('recipientId', event.context.user.$id), Query.orderDesc('$createdAt'), Query.limit(50)],
   }).catch(() => ({ rows: [] as NotifRow[] }))
 
   const notifications = res.rows.map(r => ({

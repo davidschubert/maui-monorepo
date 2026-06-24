@@ -41,6 +41,17 @@ export default defineEventHandler(async (event): Promise<VoteResponse> => {
   const { tablesDB } = createSessionClient(event)
   const admin = createAdminClient(event)
 
+  // Status prüfen: auf gelöschte/ausgeblendete Kommentare darf nicht gevotet
+  // werden (UI blockt nur clientseitig). Sonst ließen sich Vote-Rows + Score
+  // eines [gelöscht]-Platzhalters per direktem Request manipulieren.
+  const target = await admin.tablesDB.getRow<Comment>({ databaseId, tableId: COMMENTS_TABLE, rowId: commentId }).catch(() => null)
+  if (!target) {
+    throw createError({ status: 404, statusText: 'Comment not found' })
+  }
+  if (target.status !== 'active' && target.status !== 'reported') {
+    throw createError({ status: 409, statusText: 'Comment not votable' })
+  }
+
   const existing = await tablesDB.listRows<CommentVote>({
     databaseId,
     tableId: VOTES_TABLE,

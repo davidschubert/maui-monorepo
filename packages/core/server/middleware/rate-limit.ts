@@ -19,28 +19,34 @@ function prune(now: number) {
   }
 }
 
-// Mail-versendende Routen: JEDER Request zählt (Mail-Bombing-Schutz)
+// Routen werden je METHODE+Pfad gematcht, damit z.B. der Reset-Confirm
+// (PUT /recovery) nicht das Mail-Budget des Anforderns (POST /recovery) teilt.
+// Mail-versendende Routen: JEDER Request zählt (Mail-Bombing-Schutz).
 const ALWAYS_LIMITED = new Set([
-  '/api/auth/recovery',
-  '/api/auth/otp',
+  'POST /api/auth/recovery',
+  'POST /api/auth/otp',
 ])
-// Credential-/Code-Prüfung: nur FEHLgeschlagene Versuche zählen — ein
-// erfolgreicher Login (200) soll das Budget nicht aufbrauchen.
+// Credential-/Code-/Token-Prüfung: nur FEHLgeschlagene Versuche zählen — ein
+// erfolgreicher Login/Reset (200) soll das Budget nicht aufbrauchen. Der
+// Reset-Confirm (PUT /recovery) versendet keine Mail → hier, nicht ALWAYS.
 const FAILURE_LIMITED = new Set([
-  '/api/auth/login',
-  '/api/auth/otp/verify',
+  'POST /api/auth/login',
+  'POST /api/auth/otp/verify',
+  'PUT /api/auth/recovery',
 ])
 
 export default defineEventHandler((event) => {
   if (event.method !== 'POST' && event.method !== 'PUT') return
   const pathname = getRequestURL(event).pathname
-  const always = ALWAYS_LIMITED.has(pathname)
-  const onFailure = FAILURE_LIMITED.has(pathname)
+  const route = `${event.method} ${pathname}`
+  const always = ALWAYS_LIMITED.has(route)
+  const onFailure = FAILURE_LIMITED.has(route)
   if (!always && !onFailure) return
 
   const ip = getRequestIP(event, { xForwardedFor: true }) ?? 'unknown'
-  // Eigenes Budget pro Route — Login-Versuche verbrauchen kein Recovery-Kontingent
-  const key = `${ip}:${pathname}`
+  // Eigenes Budget pro Methode+Route — Login-/Reset-Versuche verbrauchen kein
+  // Recovery-Mail-Kontingent
+  const key = `${ip}:${route}`
   const now = Date.now()
   prune(now)
 
