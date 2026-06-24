@@ -218,6 +218,30 @@ export const useCommentStore = defineStore('comments', () => {
     if (decrement && wasVisible) total.value = Math.max(0, total.value - 1)
   }
 
+  /**
+   * Entfernt einen Kommentar UND alle (transitiven) Nachfahren — für echtes
+   * Hard-Delete, damit keine Antworten verwaisen (sie wären sonst wegen ihres
+   * parentId aus dem Top-Level gefiltert → unsichtbar, aber noch in total).
+   * total wird um die Anzahl tatsächlich entfernter sichtbarer Rows reduziert.
+   */
+  function removeWithDescendants(id: string) {
+    const toRemove = new Set<string>([id])
+    let grew = true
+    while (grew) {
+      grew = false
+      for (const row of rows.value) {
+        if (row.parentId && toRemove.has(row.parentId) && !toRemove.has(row.$id)) {
+          toRemove.add(row.$id)
+          grew = true
+        }
+      }
+    }
+    const removedVisible = rows.value.filter(row => toRemove.has(row.$id)).length
+    rows.value = rows.value.filter(row => !toRemove.has(row.$id))
+    pending.value = pending.value.filter(row => !toRemove.has(row.$id))
+    total.value = Math.max(0, total.value - removedVisible)
+  }
+
   /** Gepufferte (fremde) Kommentare auf einen Klick in die Liste übernehmen */
   function flushPending() {
     if (!pending.value.length) return
@@ -231,7 +255,8 @@ export const useCommentStore = defineStore('comments', () => {
     const { type, payload } = event
 
     if (type === 'delete') {
-      removeRow(payload.$id, true)
+      // Hard-Delete: Kommentar + alle Nachfahren entfernen (sonst verwaisen Replies)
+      removeWithDescendants(payload.$id)
       return
     }
 
@@ -256,8 +281,20 @@ export const useCommentStore = defineStore('comments', () => {
 
     const auth = useAuthStore()
     const isOwn = payload.authorId === auth.user?.$id
-    // Antworten erscheinen direkt im Thread; fremde Top-Level werden gepuffert (Pill)
-    if (payload.parentId || isOwn) {
+
+    // Antwort: nur einblenden, wenn der Eltern-Kommentar geladen ist — sonst wäre
+    // sie gezählt aber unsichtbar (threaded rendert nur Replies geladener Parents).
+    // Nicht geladener Parent (paginiert) → ignorieren, kommt beim nächsten Fetch.
+    if (payload.parentId) {
+      if (rows.value.some(row => row.$id === payload.parentId)) {
+        total.value += 1
+        upsertRow(payload)
+      }
+      return
+    }
+
+    // Top-Level: eigenes direkt einblenden, fremdes puffern (Pill)
+    if (isOwn) {
       total.value += 1
       upsertRow(payload)
     }
