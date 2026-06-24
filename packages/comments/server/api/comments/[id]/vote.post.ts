@@ -1,4 +1,4 @@
-import { ID, Permission, Query, Role } from 'node-appwrite'
+import { AppwriteException, ID, Permission, Query, Role } from 'node-appwrite'
 import { voteSchema } from '../../../../schemas/comment'
 import {
   COMMENTS_TABLE,
@@ -65,19 +65,42 @@ export default defineEventHandler(async (event): Promise<VoteResponse> => {
     myVote = value
   }
   else {
-    await tablesDB.createRow<CommentVote>({
-      databaseId,
-      tableId: VOTES_TABLE,
-      rowId: ID.unique(),
-      data: { commentId, userId: user.$id, value },
-      permissions: [
-        Permission.read(Role.user(user.$id)),
-        Permission.update(Role.user(user.$id)),
-        Permission.delete(Role.user(user.$id)),
-      ],
-    })
-    await admin.tablesDB.incrementRowColumn({ databaseId, tableId: COMMENTS_TABLE, rowId: commentId, column: column(value), value: 1 })
-    myVote = value
+    // Neuer Vote. Bei Doppelklick können zwei Requests parallel hier landen — der
+    // Unique-Index (commentId,userId) lässt nur einen durch, der zweite bekommt
+    // 409. Den fangen wir ab und zählen NICHT erneut hoch (sonst Zähler-Desync).
+    let created = true
+    try {
+      await tablesDB.createRow<CommentVote>({
+        databaseId,
+        tableId: VOTES_TABLE,
+        rowId: ID.unique(),
+        data: { commentId, userId: user.$id, value },
+        permissions: [
+          Permission.read(Role.user(user.$id)),
+          Permission.update(Role.user(user.$id)),
+          Permission.delete(Role.user(user.$id)),
+        ],
+      })
+    }
+    catch (error) {
+      if (!(error instanceof AppwriteException && error.code === 409)) {
+        throw createError({ status: 500, statusText: 'Could not vote' })
+      }
+      created = false
+    }
+
+    if (created) {
+      await admin.tablesDB.incrementRowColumn({ databaseId, tableId: COMMENTS_TABLE, rowId: commentId, column: column(value), value: 1 })
+      myVote = value
+    }
+    else {
+      // Paralleler Request hat den Vote schon angelegt + gezählt — aktuellen Wert lesen.
+      const again = await tablesDB.listRows<CommentVote>({
+        databaseId, tableId: VOTES_TABLE,
+        queries: [Query.equal('commentId', commentId), Query.equal('userId', user.$id), Query.limit(1)],
+      })
+      myVote = again.rows[0]?.value === -1 ? -1 : again.rows[0] ? 1 : null
+    }
   }
 
   // score = upvotes - downvotes, einmal konsistent nachziehen
