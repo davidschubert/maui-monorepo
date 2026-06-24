@@ -6,6 +6,7 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
 
 const { t } = useI18n()
 const { formatRelativeTime } = useFormatRelativeTime()
+const { formatDate } = useFormatDate()
 const localePath = useLocalePath()
 const toast = useToast()
 const auth = useAuthStore()

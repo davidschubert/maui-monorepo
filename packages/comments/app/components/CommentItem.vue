@@ -4,6 +4,7 @@ import type { Comment } from '../../shared/types/comment'
 const props = defineProps<{ comment: Comment }>()
 
 const { t } = useI18n()
+const { formatDate } = useFormatDate()
 const store = useCommentStore()
 const toast = useToast()
 const { user, isLoggedIn } = useCurrentUser()

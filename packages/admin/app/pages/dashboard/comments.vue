@@ -6,6 +6,7 @@ import type { AdminCommentListResponse, ModeratedComment, ModerationFilter } fro
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
 
 const { t } = useI18n()
+const { formatDate } = useFormatDate()
 const toast = useToast()
 const route = useRoute()
 const localePath = useLocalePath()

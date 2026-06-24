@@ -1,3 +1,4 @@
+import { AppwriteException } from 'node-appwrite'
 import { COMMENTS_TABLE, type Comment } from '../../../../shared/types/comment'
 
 /**
@@ -22,19 +23,33 @@ export default defineEventHandler(async (event) => {
   const { tablesDB } = createAdminClient(event)
   const databaseId = config.public.appwriteDatabaseId
 
-  const comment = await tablesDB.getRow<Comment>({ databaseId, tableId: COMMENTS_TABLE, rowId: commentId })
+  let comment: Comment
+  try {
+    comment = await tablesDB.getRow<Comment>({ databaseId, tableId: COMMENTS_TABLE, rowId: commentId })
+  }
+  catch (error) {
+    if (error instanceof AppwriteException && error.code === 404) {
+      throw createError({ status: 404, statusText: 'Comment not found' })
+    }
+    throw createError({ status: 500, statusText: 'Could not report comment' })
+  }
 
   // Nur aktive Kommentare sind meldbar — deleted/hidden/reported bleiben unverändert
   if (comment.status !== 'active') {
     return { ok: true, status: comment.status }
   }
 
-  await tablesDB.updateRow<Comment>({
-    databaseId,
-    tableId: COMMENTS_TABLE,
-    rowId: commentId,
-    data: { status: 'reported' },
-  })
+  try {
+    await tablesDB.updateRow<Comment>({
+      databaseId,
+      tableId: COMMENTS_TABLE,
+      rowId: commentId,
+      data: { status: 'reported' },
+    })
+  }
+  catch {
+    throw createError({ status: 500, statusText: 'Could not report comment' })
+  }
 
   return { ok: true, status: 'reported' }
 })
