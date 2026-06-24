@@ -86,16 +86,29 @@ export function useRealtimeRows<T extends AppwriteRow>(
     callback({ type, payload, events })
   }
 
+  function scheduleReconnect() {
+    if (disposed) return
+    const delay = Math.min(1000 * 2 ** attempts, 15_000)
+    attempts += 1
+    setTimeout(connect, delay)
+  }
+
   function connect() {
     if (disposed) return
-    socket = new WebSocket(url)
+    // new WebSocket() kann synchron werfen (CSP/mixed-content/ungültige URL).
+    // Ungefangen würde das den Reconnect-Loop killen → Backoff statt Crash.
+    try {
+      socket = new WebSocket(url)
+    }
+    catch {
+      scheduleReconnect()
+      return
+    }
     socket.onopen = () => { attempts = 0 }
     socket.onmessage = event => handleMessage(String(event.data))
     socket.onclose = () => {
       if (disposed) return
-      const delay = Math.min(1000 * 2 ** attempts, 15_000)
-      attempts += 1
-      setTimeout(connect, delay)
+      scheduleReconnect()
     }
   }
 

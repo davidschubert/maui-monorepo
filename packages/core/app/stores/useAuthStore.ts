@@ -16,8 +16,13 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       user.value = await $fetch<CurrentUser>('/api/auth/me')
     }
-    catch {
-      user.value = null
+    catch (error) {
+      // Nur bei echtem Auth-Fehler ausloggen — ein Netz-Blip oder 5xx darf die
+      // lokale Session nicht fälschlich verwerfen (würde sonst Force-Logout +
+      // „Sitzung widerrufen" auslösen, siehe realtime-account.client.ts).
+      const status = (error as { status?: number, statusCode?: number }).status
+        ?? (error as { statusCode?: number }).statusCode
+      if (status === 401 || status === 403) user.value = null
     }
   }
 

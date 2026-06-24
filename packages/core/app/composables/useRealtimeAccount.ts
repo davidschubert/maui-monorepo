@@ -31,6 +31,9 @@ export function useRealtimeAccount(
   let socket: WebSocket | null = null
   let disposed = false
   let attempts = 0
+  // Stand schon mal eine Verbindung? onClose feuert nur dann als Auth-Signal —
+  // ein fehlgeschlagener Connect-Versuch (Netz/CSP) darf keinen Logout-Check auslösen.
+  let opened = false
 
   function handleMessage(raw: string) {
     let message: RealtimeMessage
@@ -44,20 +47,37 @@ export function useRealtimeAccount(
     callback({ events: message.data.events ?? [], payload: message.data.payload })
   }
 
+  function scheduleReconnect() {
+    if (disposed) return
+    const delay = Math.min(1000 * 2 ** attempts, 15_000)
+    attempts += 1
+    setTimeout(connect, delay)
+  }
+
   function connect() {
     if (disposed) return
-    socket = new WebSocket(url)
-    socket.onopen = () => { attempts = 0 }
+    // new WebSocket() kann synchron werfen (CSP/mixed-content) → Backoff statt Crash.
+    try {
+      socket = new WebSocket(url)
+    }
+    catch {
+      scheduleReconnect()
+      return
+    }
+    socket.onopen = () => { attempts = 0; opened = true }
     socket.onmessage = event => handleMessage(String(event.data))
     socket.onclose = () => {
       if (disposed) return
       // Wird die eigene Session widerrufen, schließt der Server die Verbindung,
       // bevor zuverlässig ein Event ankommt → onClose als zusätzliches Signal
-      // (der Consumer prüft dann den Auth-Status).
-      options.onClose?.()
-      const delay = Math.min(1000 * 2 ** attempts, 15_000)
-      attempts += 1
-      setTimeout(connect, delay)
+      // (der Consumer prüft dann den Auth-Status). Nur feuern, wenn vorher eine
+      // Verbindung stand — sonst löst ein bloß fehlgeschlagener Connect-Versuch
+      // fälschlich einen Logout-Check aus.
+      if (opened) {
+        opened = false
+        options.onClose?.()
+      }
+      scheduleReconnect()
     }
   }
 
