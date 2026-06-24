@@ -7,9 +7,12 @@ export default defineNuxtConfig({
   modules: ['@nuxt/ui', '@pinia/nuxt', '@nuxtjs/i18n'],
 
   // i18n: en ist Default/Fallback und liegt OHNE Prefix unter '/...'; alle anderen
-  // Sprachen sind geprefixt (/de/*). Beim Aufruf von '/' entscheidet
-  // detectBrowserLanguage mit Cookie: Cookie (zuletzt gewählte Sprache) >
-  // Browser-Sprache (falls de) > en (bleibt auf '/'). Layer bleibt lokal im
+  // Sprachen sind geprefixt (/de/*). Die gewählte Sprache steckt damit in der URL;
+  // der Cookie (i18n_redirected) hält die zuletzt gewählte Sprache geräteweit.
+  // redirectOn: 'all' → JEDE Seite folgt beim Aufruf/Refresh dem Cookie (nicht nur
+  // '/'), sonst behalten Nicht-Wurzel-Seiten wie /dashboard ihre URL-Sprache und
+  // laufen aus dem Tritt. Tradeoff: ein Deep-Link in einer anderen als der
+  // gespeicherten Sprache wird auf die Präferenz umgeleitet. Layer bleibt lokal im
   // Monorepo (Remote-Layer-i18n-Bug); das Modul lädt bewusst in jeder App.
   i18n: {
     defaultLocale: 'en',
@@ -17,7 +20,7 @@ export default defineNuxtConfig({
     detectBrowserLanguage: {
       useCookie: true,
       cookieKey: 'i18n_redirected',
-      redirectOn: 'root',
+      redirectOn: 'all',
       fallbackLocale: 'en',
     },
     locales: [

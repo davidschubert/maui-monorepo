@@ -55,7 +55,8 @@ Vollständiges Konzept: docs/CONCEPT.md
   i18n keys für User-facing Strings (keine hartcodierten Strings im Markup/Toasts);
   '@' in Locale-Messages als {'@'} escapen
 - i18n-Strategie 'prefix_except_default' (en Default/Fallback ohne Prefix unter /...,
-  de unter /de/*, Cookie-Detection auf /): interne Links/Redirects IMMER über
+  de unter /de/*, detectBrowserLanguage redirectOn: 'all' → jede Seite folgt dem
+  i18n_redirected-Cookie, nicht nur '/'): interne Links/Redirects IMMER über
   localePath() — auch in Middleware (useLocalePath()('/...')), sonst geht der
   Locale-Prefix verloren
 - createError mit status/statusText (nicht statusCode/statusMessage),
