@@ -213,10 +213,11 @@ export const useCommentStore = defineStore('comments', () => {
     upsertRow(updated)
   }
 
-  async function report(commentId: string) {
-    await $fetch(`/api/comments/${commentId}/report`, { method: 'POST' })
+  /** Meldung umschalten (melden ⇄ zurückziehen) — Server liefert den neuen Status */
+  async function toggleReport(commentId: string) {
+    const res = await $fetch<{ status: Comment['status'] }>(`/api/comments/${commentId}/report`, { method: 'POST' })
     const row = rows.value.find(r => r.$id === commentId)
-    if (row) upsertRow({ ...row, status: 'reported' })
+    if (row) upsertRow({ ...row, status: res.status })
   }
 
   function upsertRow(comment: Comment) {
@@ -346,7 +347,7 @@ export const useCommentStore = defineStore('comments', () => {
     vote,
     updateComment,
     deleteComment,
-    report,
+    toggleReport,
     applyRealtime,
     flushPending,
   }

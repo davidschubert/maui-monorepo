@@ -2,9 +2,9 @@ import { AppwriteException } from 'node-appwrite'
 import { COMMENTS_TABLE, type Comment } from '../../../../shared/types/comment'
 
 /**
- * Kommentar melden: status → reported (bleibt sichtbar, Moderations-Hook
- * für packages/admin). Läuft über den AdminClient — der Melder darf die
- * fremde Row nicht selbst schreiben.
+ * Meldung umschalten: active → reported (melden) bzw. reported → active
+ * (Meldung zurückziehen). hidden/deleted bleiben unverändert. Läuft über den
+ * AdminClient — der Melder darf die fremde Row nicht selbst schreiben.
  */
 export default defineEventHandler(async (event) => {
   const user = event.context.user
@@ -34,22 +34,23 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 500, statusText: 'Could not report comment' })
   }
 
-  // Nur aktive Kommentare sind meldbar — deleted/hidden/reported bleiben unverändert
-  if (comment.status !== 'active') {
+  // Toggle nur zwischen active ↔ reported; hidden/deleted bleiben unverändert
+  if (comment.status !== 'active' && comment.status !== 'reported') {
     return { ok: true, status: comment.status }
   }
+  const nextStatus = comment.status === 'reported' ? 'active' : 'reported'
 
   try {
     await tablesDB.updateRow<Comment>({
       databaseId,
       tableId: COMMENTS_TABLE,
       rowId: commentId,
-      data: { status: 'reported' },
+      data: { status: nextStatus },
     })
   }
   catch {
-    throw createError({ status: 500, statusText: 'Could not report comment' })
+    throw createError({ status: 500, statusText: 'Could not update report status' })
   }
 
-  return { ok: true, status: 'reported' }
+  return { ok: true, status: nextStatus }
 })

@@ -59,11 +59,12 @@ async function remove() {
   }
 }
 
-async function reportComment() {
+async function toggleReport() {
+  const wasReported = props.comment.status === 'reported'
   busy.value = true
   try {
-    await store.report(props.comment.$id)
-    toast.add({ title: t('comments.item.reportedToast'), color: 'success' })
+    await store.toggleReport(props.comment.$id)
+    toast.add({ title: wasReported ? t('comments.item.unreportedToast') : t('comments.item.reportedToast'), color: 'success' })
   }
   catch {
     toast.add({ title: t('comments.item.error'), color: 'error' })
@@ -81,8 +82,13 @@ const menuItems = computed<DropdownMenuItem[][]>(() => {
     if (canWrite.value) items.push({ label: t('comments.item.edit'), icon: 'i-ph-pencil-simple', onSelect: startEdit })
     if (canDelete.value) items.push({ label: t('comments.item.delete'), icon: 'i-ph-trash', color: 'error', onSelect: () => { void remove() } })
   }
-  else if (isLoggedIn.value && props.comment.status === 'active' && canWrite.value) {
-    items.push({ label: t('comments.item.report'), icon: 'i-ph-flag', onSelect: () => { void reportComment() } })
+  else if (isLoggedIn.value && canWrite.value && (props.comment.status === 'active' || props.comment.status === 'reported')) {
+    const reported = props.comment.status === 'reported'
+    items.push({
+      label: reported ? t('comments.item.unreport') : t('comments.item.report'),
+      icon: reported ? 'i-ph-flag-banner-fold' : 'i-ph-flag',
+      onSelect: () => { void toggleReport() },
+    })
   }
   return items.length ? [items] : []
 })
