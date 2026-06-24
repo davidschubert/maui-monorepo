@@ -14,9 +14,13 @@ import {
  *   kein Vote      → anlegen
  *   gleicher Value → Vote ENTFERNEN (Toggle)
  *   anderer Value  → umdrehen
- * Vote-Rows schreibt der User selbst (SessionClient, Unique-Index sichert ab);
- * die denormalisierten Zähler auf dem Kommentar pflegt der AdminClient
- * server-autoritativ via atomarer Increments (Voter darf fremde Rows nicht schreiben).
+ *
+ * Vote-Rows schreibt der User selbst (SessionClient, Unique-Index sichert ab).
+ * Danach werden upvotes/downvotes/score aus den ECHTEN Vote-Counts (AdminClient,
+ * sieht alle Rows) neu berechnet und in EINEM updateRow auf den Kommentar
+ * geschrieben:
+ *  - genau EIN Realtime-Event statt zwei → kein Zähler-Flackern im UI,
+ *  - Zähler immer autoritativ → kein Increment-Drift bei parallelen/Doppel-Votes.
  */
 export default defineEventHandler(async (event): Promise<VoteResponse> => {
   const user = event.context.user
@@ -48,26 +52,22 @@ export default defineEventHandler(async (event): Promise<VoteResponse> => {
   })
 
   const current = existing.rows[0]
-  const column = (v: VoteValue) => v === 1 ? 'upvotes' : 'downvotes'
   let myVote: VoteValue | null
 
   if (current && current.value === value) {
     // Toggle: Vote entfernen
     await tablesDB.deleteRow({ databaseId, tableId: VOTES_TABLE, rowId: current.$id })
-    await admin.tablesDB.decrementRowColumn({ databaseId, tableId: COMMENTS_TABLE, rowId: commentId, column: column(value), value: 1 })
     myVote = null
   }
   else if (current) {
-    // Umdrehen: alten Zähler runter, neuen hoch
+    // Umdrehen
     await tablesDB.updateRow<CommentVote>({ databaseId, tableId: VOTES_TABLE, rowId: current.$id, data: { value } })
-    await admin.tablesDB.decrementRowColumn({ databaseId, tableId: COMMENTS_TABLE, rowId: commentId, column: column(value === 1 ? -1 : 1), value: 1 })
-    await admin.tablesDB.incrementRowColumn({ databaseId, tableId: COMMENTS_TABLE, rowId: commentId, column: column(value), value: 1 })
     myVote = value
   }
   else {
     // Neuer Vote. Bei Doppelklick können zwei Requests parallel hier landen — der
-    // Unique-Index (commentId,userId) lässt nur einen durch, der zweite bekommt
-    // 409. Den fangen wir ab und zählen NICHT erneut hoch (sonst Zähler-Desync).
+    // Unique-Index (commentId,userId) lässt nur einen durch; der 409 des zweiten
+    // ist kein Fehler (die Counts unten ergeben so oder so den korrekten Stand).
     let created = true
     try {
       await tablesDB.createRow<CommentVote>({
@@ -88,13 +88,11 @@ export default defineEventHandler(async (event): Promise<VoteResponse> => {
       }
       created = false
     }
-
     if (created) {
-      await admin.tablesDB.incrementRowColumn({ databaseId, tableId: COMMENTS_TABLE, rowId: commentId, column: column(value), value: 1 })
       myVote = value
     }
     else {
-      // Paralleler Request hat den Vote schon angelegt + gezählt — aktuellen Wert lesen.
+      // Paralleler Request hat den Vote schon angelegt — tatsächlichen Wert lesen.
       const again = await tablesDB.listRows<CommentVote>({
         databaseId, tableId: VOTES_TABLE,
         queries: [Query.equal('commentId', commentId), Query.equal('userId', user.$id), Query.limit(1)],
@@ -103,13 +101,18 @@ export default defineEventHandler(async (event): Promise<VoteResponse> => {
     }
   }
 
-  // score = upvotes - downvotes, einmal konsistent nachziehen
-  const fresh = await admin.tablesDB.getRow<Comment>({ databaseId, tableId: COMMENTS_TABLE, rowId: commentId })
+  // Zähler autoritativ aus den echten Votes ableiten (AdminClient sieht alle Rows)
+  // und upvotes/downvotes/score in EINEM Write setzen → genau ein Realtime-Event.
+  const [upvotes, downvotes] = await Promise.all([
+    admin.tablesDB.listRows({ databaseId, tableId: VOTES_TABLE, queries: [Query.equal('commentId', commentId), Query.equal('value', 1), Query.limit(1)] }).then(r => r.total),
+    admin.tablesDB.listRows({ databaseId, tableId: VOTES_TABLE, queries: [Query.equal('commentId', commentId), Query.equal('value', -1), Query.limit(1)] }).then(r => r.total),
+  ])
+
   const comment = await admin.tablesDB.updateRow<Comment>({
     databaseId,
     tableId: COMMENTS_TABLE,
     rowId: commentId,
-    data: { score: fresh.upvotes - fresh.downvotes },
+    data: { upvotes, downvotes, score: upvotes - downvotes },
   })
 
   return { comment, myVote }
