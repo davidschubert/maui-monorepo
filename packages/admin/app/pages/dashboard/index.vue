@@ -19,9 +19,15 @@ const auth = useAuthStore()
 const { formatRelativeTime } = useFormatRelativeTime()
 
 const firstName = computed(() => auth.user?.name?.split(' ')[0] || t('ui.account'))
-const today = computed(() => new Date().toLocaleDateString(locale.value, {
-  weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-}))
+// Datum erst clientseitig füllen: SSR rendert in der Server-TZ, der Client in
+// der lokalen — um Mitternacht/über TZ-Grenzen liefe das auseinander und löste
+// einen Hydration-Mismatch aus.
+const today = ref('')
+onMounted(() => {
+  today.value = new Date().toLocaleDateString(locale.value, {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  })
+})
 
 // --- Kennzahlen + Chart (SSR) -------------------------------------------------
 const { data: stats, refresh: refreshStats } = await useFetch<AdminStats>('/api/admin/stats')
