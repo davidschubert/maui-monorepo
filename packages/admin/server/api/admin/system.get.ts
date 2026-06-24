@@ -26,7 +26,9 @@ async function healthCheck(name: string, fn: () => Promise<HealthShape>): Promis
   try {
     const result = await fn()
     const entry = Array.isArray(result.statuses) ? result.statuses[0] : result
-    const status = entry?.status === 'pass' || entry?.status === 'fail' ? entry.status : 'pass'
+    // Leere statuses-Liste / unerwarteter Shape → 'unknown', nicht 'pass'
+    // (sonst meldet ein Endpoint ohne verwertbares Ergebnis fälschlich „gesund").
+    const status = entry?.status === 'pass' || entry?.status === 'fail' ? entry.status : 'unknown'
     return { name, status, ping: typeof entry?.ping === 'number' ? entry.ping : null }
   }
   catch {

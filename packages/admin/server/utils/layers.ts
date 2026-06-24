@@ -58,12 +58,13 @@ const CATEGORIES: { key: string, path: string, exts: string[], recursive: boolea
   { key: 'locales', path: 'i18n/locales', exts: ['.json'], recursive: false },
 ]
 
-/**
- * Inhaltsaufschlüsselung eines Feature-Layers (@maui/<short> → packages/<short>):
- * Datei-Anzahl je Kategorie. Best effort aus dem Dateisystem — fehlt das
- * Quellverzeichnis (z.B. exotisches Prod-Layout), bleibt categories leer.
- */
-export function layerBreakdown(name: string, version: string): LayerInfo {
+// Kurzer Prozess-Cache: der Layer-Scan macht dutzende rekursive readdirSync
+// über den Monorepo (blockiert den Event-Loop). Bei jedem /admin/system-Request
+// neu zu scannen ist Verschwendung — der Quellbaum ändert sich zur Laufzeit nicht.
+const CACHE_TTL_MS = 60_000
+const cache = new Map<string, { at: number, info: LayerInfo }>()
+
+function computeLayerBreakdown(name: string, version: string): LayerInfo {
   const root = workspaceRoot()
   const short = name.replace('@maui/', '')
   const dir = root ? join(root, 'packages', short) : null
@@ -90,4 +91,22 @@ export function layerBreakdown(name: string, version: string): LayerInfo {
   }
 
   return { name, version, description, total, categories }
+}
+
+/**
+ * Inhaltsaufschlüsselung eines Feature-Layers (@maui/<short> → packages/<short>):
+ * Datei-Anzahl je Kategorie. Best effort aus dem Dateisystem — fehlt das
+ * Quellverzeichnis (z.B. exotisches Prod-Layout), bleibt categories leer.
+ * Ergebnis ~60 s im Modul-Scope gecacht (Cache-Key inkl. version, damit ein
+ * Versions-Bump den Eintrag invalidiert).
+ */
+export function layerBreakdown(name: string, version: string): LayerInfo {
+  const key = `${name}@${version}`
+  const hit = cache.get(key)
+  const now = Date.now()
+  if (hit && now - hit.at < CACHE_TTL_MS) return hit.info
+
+  const info = computeLayerBreakdown(name, version)
+  cache.set(key, { at: now, info })
+  return info
 }
