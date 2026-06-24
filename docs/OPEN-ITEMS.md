@@ -39,6 +39,20 @@ _Alle erledigt (2026-06-24) — siehe „Bereits erledigt"._
 
 ## ✅ Bereits erledigt (Referenz)
 
+- **3. Review-Pass (2026-06-24)** — neue Funde abgearbeitet:
+  Storage-Orphan-Erkennung paginiert jetzt ALLE User+Files (vorher nur 100 →
+  Falsch-Orphans, die der Bulk-Delete gelöscht hätte); Passwortänderung beendet
+  Fremd-Sessions; Analytics-Chart-Buckets und KPI-Totals aus derselben
+  In-Range-Menge (kein Balken-vs-Legende-Widerspruch mehr); Status-Guards auf
+  Comment-PATCH + Vote (kein Editieren/Voten auf hidden/deleted per Direktrequest);
+  Rate-Limit-Budget je Methode+Route (Reset-Confirm teilt nicht mehr das
+  Mail-Budget); avatarUrl auf relative Storage-URL/https eingeschränkt;
+  Notifications mit zusätzlichem recipientId-Filter; loadAll iteriert über
+  Seitenzahl (controversial überspringt keine Zeilen); changelog-date als
+  ISO-datetime validiert; OAuth-Redirects locale-aware; xForwardedFor-Trust
+  dokumentiert; Dead-Migration 001 entfernt; README-Baum korrigiert.
+  Bewusst NICHT angefasst: report-Toggle-TOCTOU (`active↔reported` ist bereits
+  geguardet; sauberer Fix = das zurückgestellte `comment_reports`-Modell).
 - **🟠+🟡-Batch (2026-06-24)** — alle 14 Punkte abgearbeitet:
   Layer-Scan TTL-Cache (~60 s); Realtime-WebSocket `new WebSocket()` in
   try/catch + Backoff (rows + account); kein Falsch-Logout mehr
