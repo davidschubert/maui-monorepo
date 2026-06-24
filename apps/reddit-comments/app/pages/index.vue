@@ -11,13 +11,13 @@ useSeoMeta({
 // Demo-Target — echte Posts/Spaces liefert später die Community-Plattform
 const DEMO_TARGET = { id: 'demo-post', type: 'post' } as const
 
-// Live-Zahlen client-seitig (vermeidet Hydration-Mismatch über Online-Zähler)
+// SSR-geladen: Online-Pill + Statistik stehen schon im ersten HTML → kein
+// Layout-Shift. useFetch überträgt den Server-Wert via Payload, daher kein
+// Hydration-Mismatch trotz dynamischer Zahlen.
 const { data: presence } = useFetch<{ count: number }>('/api/presence/count', {
-  query: { scope: 'global' }, lazy: true, server: false,
+  query: { scope: 'global' },
 })
-const { data: stats } = useFetch<{ comments: number, members: number }>('/api/stats', {
-  lazy: true, server: false,
-})
+const { data: stats } = useFetch<{ comments: number, members: number }>('/api/stats')
 const online = computed(() => presence.value?.count ?? 0)
 
 const features = computed(() => [
