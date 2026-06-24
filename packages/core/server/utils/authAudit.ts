@@ -10,7 +10,7 @@ import type { H3Event } from 'h3'
  */
 export async function logAuthEvent(
   event: H3Event,
-  action: 'user.login' | 'user.logout',
+  action: 'user.login' | 'user.logout' | 'user.self_deleted',
   opts: { userId: string, name?: string, method?: string },
 ): Promise<void> {
   try {

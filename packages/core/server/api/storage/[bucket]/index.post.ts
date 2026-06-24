@@ -20,13 +20,19 @@ export default defineEventHandler(async (event) => {
   if (!bucketId) {
     throw createError({ status: 400, statusText: 'Missing bucket id' })
   }
+  // Allowlist: nur der App-Avatars-Bucket — kein Schreiben in beliebige Buckets
+  const config = useRuntimeConfig(event)
+  if (!config.public.appwriteAvatarsBucket || bucketId !== config.public.appwriteAvatarsBucket) {
+    throw createError({ status: 403, statusText: 'Unknown bucket' })
+  }
 
   const form = await readMultipartFormData(event)
   const filePart = form?.find(part => part.name === 'file' && part.filename)
   if (!filePart?.filename) {
     throw createError({ status: 400, statusText: 'Missing file field' })
   }
-  if (filePart.type && !ALLOWED_MIME.has(filePart.type)) {
+  // Typ MUSS vorhanden + erlaubt sein (fehlender Typ darf den Check nicht umgehen)
+  if (!filePart.type || !ALLOWED_MIME.has(filePart.type)) {
     throw createError({ status: 415, statusText: 'Unsupported file type' })
   }
   if (filePart.data.length > MAX_BYTES) {

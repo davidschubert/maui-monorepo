@@ -11,6 +11,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const { users } = createAdminClient(event)
+  // VOR dem Löschen protokollieren (danach ist der Name weg) — GDPR-Löschung
+  // soll auditierbar sein. Best effort, blockiert die Löschung nie.
+  await logAuthEvent(event, 'user.self_deleted', { userId: event.context.user.$id, name: event.context.user.name })
   await users.delete({ userId: event.context.user.$id })
   clearSessionCookie(event)
 

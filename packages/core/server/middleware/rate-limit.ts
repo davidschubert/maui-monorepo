@@ -19,18 +19,24 @@ function prune(now: number) {
   }
 }
 
-// Recovery/OTP ebenfalls drosseln: POSTs verschicken Mails bzw. probieren Codes
-const LIMITED = new Set([
-  '/api/auth/login',
+// Mail-versendende Routen: JEDER Request zählt (Mail-Bombing-Schutz)
+const ALWAYS_LIMITED = new Set([
   '/api/auth/recovery',
   '/api/auth/otp',
+])
+// Credential-/Code-Prüfung: nur FEHLgeschlagene Versuche zählen — ein
+// erfolgreicher Login (200) soll das Budget nicht aufbrauchen.
+const FAILURE_LIMITED = new Set([
+  '/api/auth/login',
   '/api/auth/otp/verify',
 ])
 
 export default defineEventHandler((event) => {
   if (event.method !== 'POST' && event.method !== 'PUT') return
   const pathname = getRequestURL(event).pathname
-  if (!LIMITED.has(pathname)) return
+  const always = ALWAYS_LIMITED.has(pathname)
+  const onFailure = FAILURE_LIMITED.has(pathname)
+  if (!always && !onFailure) return
 
   const ip = getRequestIP(event, { xForwardedFor: true }) ?? 'unknown'
   // Eigenes Budget pro Route — Login-Versuche verbrauchen kein Recovery-Kontingent
@@ -46,6 +52,19 @@ export default defineEventHandler((event) => {
     throw createError({ status: 429, statusText: 'Too Many Requests' })
   }
 
-  recent.push(now)
-  attempts.set(key, recent)
+  const record = () => {
+    const r = (attempts.get(key) ?? []).filter(ts => Date.now() - ts < WINDOW_MS)
+    r.push(Date.now())
+    attempts.set(key, r)
+  }
+
+  if (always) {
+    record()
+  }
+  else {
+    // Erst nach der Antwort entscheiden: nur 4xx/5xx (Fehlversuch) zählt.
+    event.node.res.once('finish', () => {
+      if (event.node.res.statusCode >= 400) record()
+    })
+  }
 })
