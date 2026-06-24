@@ -3,6 +3,7 @@
     "title": "Kommentare",
     "empty": "Noch keine Kommentare — schreib den ersten!",
     "newCount": "Neue Kommentare anzeigen ({count})",
+    "loadAll": "Alle {count} Kommentare laden",
     "presence": {
       "here": "{count} hier",
       "typingOne": "{name} tippt …",
@@ -37,6 +38,9 @@
       "edit": "Bearbeiten",
       "delete": "Löschen",
       "report": "Melden",
+      "more": "Mehr",
+      "collapseReplies": "Antworten einklappen",
+      "expandReplies": "Antworten ausklappen",
       "reported": "Gemeldet",
       "reportedToast": "Kommentar gemeldet — die Moderation schaut drauf.",
       "deleted": "[gelöscht]",

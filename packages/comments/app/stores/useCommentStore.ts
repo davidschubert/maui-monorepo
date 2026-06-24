@@ -84,6 +84,30 @@ export const useCommentStore = defineStore('comments', () => {
     }
   }
 
+  /** Alle restlichen Seiten nachladen (für den „Alle Kommentare laden"-Button) */
+  async function loadAll() {
+    if (loading.value || rows.value.length >= total.value) return
+    loading.value = true
+    try {
+      let page = 2
+      while (rows.value.length < total.value && page <= 200) {
+        const response = await $fetch<CommentListResponse>('/api/comments', {
+          query: { targetId: targetId.value, targetType: targetType.value, sort: sortMode.value, page },
+        })
+        if (!response.rows.length) break
+        const seen = new Set(rows.value.map(row => row.$id))
+        const fresh = response.rows.filter(row => !seen.has(row.$id))
+        if (!fresh.length) break
+        rows.value = [...rows.value, ...fresh]
+        userVotes.value = { ...userVotes.value, ...response.myVotes }
+        page++
+      }
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
   async function setSortMode(mode: SortMode) {
     if (mode === sortMode.value) return
     sortMode.value = mode
@@ -316,6 +340,7 @@ export const useCommentStore = defineStore('comments', () => {
     threaded,
     myVote,
     fetchComments,
+    loadAll,
     setSortMode,
     addComment,
     vote,

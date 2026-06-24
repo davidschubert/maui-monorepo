@@ -106,5 +106,19 @@ const typingText = computed(() => {
     </p>
 
     <CommentThread v-else :nodes="store.threaded" />
+
+    <div v-if="store.total > store.rows.length" class="flex justify-center pt-2">
+      <UButton
+        color="neutral"
+        variant="subtle"
+        size="sm"
+        block
+        icon="i-ph-caret-down"
+        :loading="store.loading"
+        @click="store.loadAll()"
+      >
+        {{ t('comments.loadAll', { count: store.total }) }}
+      </UButton>
+    </div>
   </section>
 </template>

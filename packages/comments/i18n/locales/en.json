@@ -3,6 +3,7 @@
     "title": "Comments",
     "empty": "No comments yet — write the first one!",
     "newCount": "Show new comments ({count})",
+    "loadAll": "Load all {count} comments",
     "presence": {
       "here": "{count} here",
       "typingOne": "{name} is typing …",
@@ -37,6 +38,9 @@
       "edit": "Edit",
       "delete": "Delete",
       "report": "Report",
+      "more": "More",
+      "collapseReplies": "Collapse replies",
+      "expandReplies": "Expand replies",
       "reported": "Reported",
       "reportedToast": "Comment reported — moderation will take a look.",
       "deleted": "[deleted]",
