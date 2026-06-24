@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { SortDir } from '../composables/useTableSort'
 
-defineProps<{
+const props = defineProps<{
   label: string
   /** Server-Feldname für die Sortierung */
   field: string
@@ -11,12 +11,23 @@ defineProps<{
 }>()
 
 defineEmits<{ toggle: [field: string] }>()
+
+const { t } = useI18n()
+
+// Screenreader: Richtung wird sonst nur durch das Icon vermittelt
+const ariaLabel = computed(() => {
+  if (props.active !== props.field) return t('ui.sortBy', { label: props.label })
+  return props.dir === 'asc'
+    ? t('ui.sortedAsc', { label: props.label })
+    : t('ui.sortedDesc', { label: props.label })
+})
 </script>
 
 <template>
   <button
     type="button"
     class="-mx-1 inline-flex cursor-pointer items-center gap-1 rounded px-1 hover:text-default"
+    :aria-label="ariaLabel"
     @click="$emit('toggle', field)"
   >
     <span>{{ label }}</span>

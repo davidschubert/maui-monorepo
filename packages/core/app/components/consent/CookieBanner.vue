@@ -10,6 +10,8 @@ const visible = computed(() => appConfig.maui?.consent?.enabled === true && need
 <template>
   <div
     v-if="visible"
+    role="region"
+    :aria-label="t('ui.consent.title')"
     data-marker="MAUI-CONSENT"
     class="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-xl rounded-lg border border-default bg-default p-4 shadow-lg"
   >

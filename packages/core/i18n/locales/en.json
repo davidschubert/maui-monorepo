@@ -103,7 +103,11 @@
     "account": "Account",
     "userMenu": "User menu",
     "language": "Language",
+    "sortBy": "Sort by {label}",
+    "sortedAsc": "{label}, sorted ascending",
+    "sortedDesc": "{label}, sorted descending",
     "consent": {
+      "title": "Cookie consent",
       "message": "We use cookies for anonymous usage statistics. Analytics only loads after your consent.",
       "accept": "Accept",
       "decline": "Decline"
@@ -182,7 +186,7 @@
   "notifications": {
     "title": "Notifications",
     "empty": "You're all caught up.",
-    "replied": "replied to your comment"
+    "replied": "{name} replied to your comment"
   },
   "error": {
     "notFound": "This page does not exist.",
