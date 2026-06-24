@@ -14,7 +14,7 @@
  *
  * Benötigt die Runtime-Key-Env (rows.*) via --env-file (siehe package.json).
  */
-import { execSync } from 'node:child_process'
+import { execFileSync } from 'node:child_process'
 import { Client, TablesDB, ID } from 'node-appwrite'
 
 // --- Argumente -------------------------------------------------------------
@@ -25,12 +25,14 @@ let since = flag('since')
 const version = flag('version') ?? ''
 
 // --- Commit-Range bestimmen ------------------------------------------------
-function git(cmd) {
-  return execSync(`git ${cmd}`, { encoding: 'utf8' }).trim()
+// Ohne Shell (Arg-Array) — der user-gelieferte --since-Wert kann so nicht
+// als Shell-Befehl interpretiert werden.
+function git(args) {
+  return execFileSync('git', args, { encoding: 'utf8' }).trim()
 }
 if (!since) {
   try {
-    since = git('describe --tags --abbrev=0')
+    since = git(['describe', '--tags', '--abbrev=0'])
     console.log(`ℹ Letzter Tag: ${since}`)
   }
   catch {
@@ -41,7 +43,7 @@ const range = since ? `${since}..HEAD` : 'HEAD'
 
 // --- Commits lesen + parsen ------------------------------------------------
 // Trennzeichen \x1f (unit separator) zwischen Subject und Datum.
-const raw = git(`log ${range} --no-merges --pretty=format:%s%x1f%cI`)
+const raw = git(['log', range, '--no-merges', '--pretty=format:%s%x1f%cI'])
 const lines = raw ? raw.split('\n') : []
 
 // Conventional-Commit-Typ → Changelog-Kategorie + Abschnittsüberschrift.

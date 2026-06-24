@@ -10,6 +10,6 @@ export default defineNuxtRouteMiddleware(() => {
   }
 
   if (!isAdminUser(auth.user)) {
-    throw createError({ statusCode: 403, statusMessage: 'Forbidden' })
+    throw createError({ status: 403, statusText: 'Forbidden' })
   }
 })
