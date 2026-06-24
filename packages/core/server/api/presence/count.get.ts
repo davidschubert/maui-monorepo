@@ -39,8 +39,12 @@ export default defineEventHandler(async (event) => {
       stale.rows.map(row => admin.tablesDB.deleteRow({ databaseId, tableId: 'presence', rowId: row.$id }).catch(() => {})),
     )).catch(() => {})
 
+    // Identität der Anwesenden (Name/Avatar) nur an eingeloggte Aufrufer geben —
+    // anonyme Besucher bekommen nur die Anzahl, keine PII.
+    const authed = !!event.context.user
+
     // Avatar-URLs der anwesenden User aus den Account-prefs (für die Avatar-Gruppe)
-    const ids = fresh.rows.map(row => row.userId)
+    const ids = authed ? fresh.rows.map(row => row.userId) : []
     const avatars = new Map<string, string>()
     if (ids.length) {
       try {
@@ -58,12 +62,14 @@ export default defineEventHandler(async (event) => {
     return {
       scope,
       count: fresh.total,
-      users: fresh.rows.map(row => ({
-        userId: row.userId,
-        userName: row.userName,
-        typing: row.typing === true,
-        avatarUrl: avatars.get(row.userId) ?? '',
-      })),
+      users: authed
+        ? fresh.rows.map(row => ({
+            userId: row.userId,
+            userName: row.userName,
+            typing: row.typing === true,
+            avatarUrl: avatars.get(row.userId) ?? '',
+          }))
+        : [],
     }
   }
   catch {

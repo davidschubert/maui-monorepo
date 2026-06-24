@@ -39,7 +39,8 @@ export default defineEventHandler(async (event) => {
       if (error instanceof AppwriteException && error.code === 409) {
         throw createError({ status: 409, statusText: 'Phone already in use', data: { code: 'phone_taken' } })
       }
-      throw error
+      // Keine rohe AppwriteException an den Client leaken
+      throw createError({ status: 400, statusText: 'Could not update phone number' })
     }
   }
 

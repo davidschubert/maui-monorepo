@@ -1,4 +1,4 @@
-import { ID } from 'node-appwrite'
+import { ID, Query } from 'node-appwrite'
 import { createAdminClient, createSessionClient } from '../../lib/appwrite'
 import { recoverySchema } from '../../../schemas/auth'
 
@@ -16,12 +16,13 @@ export default defineEventHandler(async (event) => {
   // — für unbekannte E-Mails keine Neuanlage.
   const appConfig = await getAppConfig(event)
   if (!appConfig.registrationEnabled || appConfig.maintenanceMode) {
-    // Case-insensitiv prüfen: Appwrite-Mails können gemischte Groß-/Kleinschreibung
-    // haben, Query.equal wäre case-sensitiv → search + exakter Abgleich.
+    // Exakter Treffer mit explizitem Limit (search ohne Limit könnte den
+    // exakten Match jenseits der 25er-Default-Seite verfehlen und einen legitimen
+    // bestehenden User fälschlich aussperren). E-Mail ist im Schema bereits
+    // normalisiert (lowercase), Appwrite speichert Account-Mails ebenfalls klein.
     const admin = createAdminClient(event)
-    const found = await admin.users.list({ search: email })
-    const exists = found.users.some(u => u.email.toLowerCase() === email)
-    if (!exists) {
+    const found = await admin.users.list({ queries: [Query.equal('email', email), Query.limit(1)] })
+    if (found.total === 0) {
       throw createError({ status: 403, statusText: 'Registration is currently disabled' })
     }
   }

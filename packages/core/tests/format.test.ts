@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import { formatDate, formatCurrency, formatRelativeTime } from '../app/utils/format'
-import { useFormatDate } from '../app/composables/useFormatDate'
 import { useFormatCurrency } from '../app/composables/useFormatCurrency'
 
 /** Intl setzt vor dem Währungssymbol ein geschütztes Leerzeichen (U+00A0) */
@@ -73,9 +72,10 @@ describe('formatRelativeTime', () => {
   })
 })
 
-describe('useFormatDate / useFormatCurrency', () => {
-  it('liefern die Formatierungs-Funktionen', () => {
-    expect(useFormatDate().formatDate('2026-01-01')).toBe('01.01.2026')
+describe('useFormatCurrency', () => {
+  // useFormatDate ist jetzt an die i18n-Sprache gebunden (braucht Nuxt-Context);
+  // die reine Formatier-Logik deckt der formatDate-Util-Test oben ab.
+  it('liefert die Formatierungs-Funktion', () => {
     expect(normalize(useFormatCurrency().formatCurrency(1234.56))).toBe('1.234,56 €')
   })
 })
