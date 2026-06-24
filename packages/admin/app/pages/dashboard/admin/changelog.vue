@@ -171,7 +171,7 @@ async function confirmDelete() {
 
     <UModal :open="pendingDelete !== null" :title="t('admin.changelog.delete')" @update:open="(v: boolean) => { if (!v) pendingDelete = null }">
       <template #body>
-        <p class="text-sm">{{ t('admin.changelog.confirmDelete', { title: pendingDelete?.title }) }}</p>
+        <p class="text-sm">{{ t('admin.changelog.confirmDelete', { title: pendingDelete ? localized(pendingDelete, 'title') : '' }) }}</p>
       </template>
       <template #footer>
         <div class="flex w-full justify-end gap-2">

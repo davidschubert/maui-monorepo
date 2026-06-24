@@ -13,7 +13,9 @@ export default defineEventHandler(async (event) => {
   const { account, tablesDB } = createSessionClient(event)
 
   const [acct, sessions, comments] = await Promise.all([
-    account.get(),
+    // Auch account.get() abfangen: ein einzelner Blip darf nicht den ganzen
+    // Export 500en — fällt auf den bereits authentifizierten Context-User zurück.
+    account.get().catch(() => null),
     account.listSessions().catch(() => ({ sessions: [] as Models.Session[] })),
     tablesDB.listRows<Models.Row & { content: string, targetType: string, targetId: string, status: string }>({
       databaseId: config.public.appwriteDatabaseId,
@@ -22,17 +24,18 @@ export default defineEventHandler(async (event) => {
     }).catch(() => ({ rows: [] })),
   ])
 
+  const profile = acct ?? user
   return {
     exportedAt: new Date().toISOString(),
     account: {
-      id: acct.$id,
-      name: acct.name,
-      email: acct.email,
-      phone: acct.phone,
-      registration: acct.registration,
-      emailVerification: acct.emailVerification,
-      labels: acct.labels,
-      prefs: acct.prefs,
+      id: profile.$id,
+      name: profile.name,
+      email: profile.email,
+      phone: profile.phone,
+      registration: profile.registration,
+      emailVerification: profile.emailVerification,
+      labels: profile.labels,
+      prefs: profile.prefs,
     },
     sessions: sessions.sessions.map(s => ({
       id: s.$id,

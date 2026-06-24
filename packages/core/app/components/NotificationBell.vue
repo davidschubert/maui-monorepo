@@ -23,12 +23,11 @@ async function load() {
   }
 }
 
+// Realtime: neue Benachrichtigung für mich → sofort einblenden. Einmal abonniert;
+// der where-Filter liest die User-ID dynamisch, damit auch ein Login NACH Mount
+// greift (uid beim Subscribe zu fixieren würde sonst leer bleiben).
 let stop: (() => void) | undefined
 onMounted(() => {
-  load()
-  const uid = auth.user?.$id
-  if (!uid) return
-  // Realtime: neue Benachrichtigung für mich → sofort einblenden
   stop = useRealtimeRows<Models.Row & UserNotification>(
     config.public.appwriteDatabaseId,
     'notifications',
@@ -37,10 +36,22 @@ onMounted(() => {
       notifications.value = [ev.payload, ...notifications.value]
       unread.value++
     },
-    { where: payload => payload.recipientId === uid },
+    { where: payload => payload.recipientId === auth.user?.$id },
   )
 })
 onBeforeUnmount(() => stop?.())
+
+// Bei (Re-)Login Notifications laden, bei Logout leeren — deckt auch den Fall ab,
+// dass der Login erst nach dem Mount der Bell passiert.
+watch(() => auth.user?.$id, (uid) => {
+  if (uid) {
+    load()
+  }
+  else {
+    notifications.value = []
+    unread.value = 0
+  }
+}, { immediate: true })
 
 async function markAllRead() {
   if (unread.value === 0) return
