@@ -27,15 +27,27 @@ export default defineEventHandler(async (event): Promise<AdminAnalytics> => {
   today.setUTCHours(0, 0, 0, 0)
   const cutoff = new Date(today)
   cutoff.setUTCDate(cutoff.getUTCDate() - (DAYS - 1))
+  const cutoffIso = cutoff.toISOString()
 
-  const [users, comments] = await Promise.all([
+  const dbId = config.public.appwriteDatabaseId
+  const [users, comments, usersInRange, commentsInRange] = await Promise.all([
+    // Sample für die Tages-Buckets (Chart-Form)
     admin.users.list({ queries: [Query.orderDesc('$createdAt'), Query.limit(SAMPLE)] })
       .catch(() => ({ users: [] as Models.User<Models.Preferences>[] })),
     admin.tablesDB.listRows({
-      databaseId: config.public.appwriteDatabaseId,
+      databaseId: dbId,
       tableId: 'comments',
       queries: [Query.orderDesc('$createdAt'), Query.limit(SAMPLE)],
     }).catch(() => ({ rows: [] as Models.Row[] })),
+    // KPI-Totals autoritativ per Count (Query.limit(1) → r.total), nicht aus dem
+    // Sample summiert — sonst untercounted bei breiten Zeiträumen/aktiven Tagen.
+    admin.users.list({ queries: [Query.greaterThanEqual('$createdAt', cutoffIso), Query.limit(1)] })
+      .then(r => r.total).catch(() => 0),
+    admin.tablesDB.listRows({
+      databaseId: dbId,
+      tableId: 'comments',
+      queries: [Query.greaterThanEqual('$createdAt', cutoffIso), Query.limit(1)],
+    }).then(r => r.total).catch(() => 0),
   ])
 
   const buckets = new Map<string, { users: number, comments: number }>()
@@ -59,7 +71,7 @@ export default defineEventHandler(async (event): Promise<AdminAnalytics> => {
   return {
     rangeDays: DAYS,
     points,
-    usersInRange: points.reduce((sum, p) => sum + p.users, 0),
-    commentsInRange: points.reduce((sum, p) => sum + p.comments, 0),
+    usersInRange,
+    commentsInRange,
   }
 })

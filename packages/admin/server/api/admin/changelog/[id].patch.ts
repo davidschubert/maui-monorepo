@@ -1,3 +1,4 @@
+import type { Models } from 'node-appwrite'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -25,13 +26,15 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
 
-  const row = await admin.tablesDB.updateRow({
+  const row = await admin.tablesDB.updateRow<Models.Row & { title?: string }>({
     databaseId: config.public.appwriteDatabaseId,
     tableId: 'changelog',
     rowId: id,
     data,
   })
 
-  await recordAudit(event, { action: 'changelog.updated', targetType: 'changelog', targetId: id, targetName: String(data.title ?? '') })
+  // targetName aus der aktualisierten Row, nicht aus data.title — bei Teil-Edits
+  // (z.B. nur published/date) fehlt title im Body und der Audit-Log bliebe leer.
+  await recordAudit(event, { action: 'changelog.updated', targetType: 'changelog', targetId: id, targetName: row.title ?? '' })
   return row
 })

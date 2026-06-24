@@ -59,11 +59,13 @@ export default defineEventHandler(async (event): Promise<AdminUserListResponse> 
   if (rawSort === 'active') {
     const all: Models.User<Models.Preferences>[] = []
     let offset = 0
+    let total = 0
     while (all.length < FETCH_CAP) {
       const res = await admin.users.list({
         queries: [Query.limit(100), Query.offset(offset)],
         ...(search ? { search } : {}),
       })
+      total = res.total
       all.push(...res.users)
       if (res.users.length < 100 || all.length >= res.total) break
       offset += 100
@@ -74,7 +76,9 @@ export default defineEventHandler(async (event): Promise<AdminUserListResponse> 
       const tb = b.lastSeen ? Date.parse(b.lastSeen) : 0
       return dir === 'asc' ? ta - tb : tb - ta
     })
-    return { total: rows.length, users: rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) }
+    // total = echte Gesamtzahl (nicht rows.length, das auf FETCH_CAP geklemmt
+    // wäre) → Anzeige/Pagination stimmen auch jenseits von 500 Nutzern.
+    return { total, users: rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) }
   }
 
   // Appwrite-orderbare Felder (accessedAt ist NICHT orderbar → keine Spalte)
