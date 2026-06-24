@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@nuxt/ui": "catalog:",
+    "@nuxtjs/i18n": "catalog:",
     "appwrite": "catalog:",
     "node-appwrite": "catalog:",
     "pinia": "catalog:",

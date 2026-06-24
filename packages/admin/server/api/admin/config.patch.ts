@@ -1,3 +1,4 @@
+import { AppwriteException } from 'node-appwrite'
 import { z } from 'zod'
 
 const configSchema = z.object({
@@ -18,9 +19,15 @@ export default defineEventHandler(async (event) => {
   try {
     await admin.tablesDB.updateRow({ databaseId, tableId: 'app_config', rowId: 'global', data })
   }
-  catch {
-    // Zeile fehlt noch → anlegen
-    await admin.tablesDB.createRow({ databaseId, tableId: 'app_config', rowId: 'global', data })
+  catch (error) {
+    // NUR wenn die Zeile fehlt anlegen — andere Fehler nicht verschlucken
+    // (sonst 409 vom Create, der den echten Fehler maskiert).
+    if (error instanceof AppwriteException && error.code === 404) {
+      await admin.tablesDB.createRow({ databaseId, tableId: 'app_config', rowId: 'global', data })
+    }
+    else {
+      throw createError({ status: 500, statusText: 'Could not save configuration' })
+    }
   }
 
   await recordAudit(event, { action: 'config.updated', targetType: 'config', targetId: 'global', metadata: data })

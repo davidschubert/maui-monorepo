@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@nuxt/ui": "catalog:",
+    "@nuxtjs/i18n": "catalog:",
     "node-appwrite": "catalog:",
     "zod": "catalog:"
   },

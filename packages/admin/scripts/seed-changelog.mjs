@@ -1,4 +1,4 @@
-import { Client, TablesDB, ID } from 'node-appwrite'
+import { Client, TablesDB, ID, Query } from 'node-appwrite'
 const c = new Client().setEndpoint(process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT).setProject(process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID).setKey(process.env.NUXT_APPWRITE_KEY)
 const db = new TablesDB(c); const DB = process.env.NUXT_PUBLIC_APPWRITE_DATABASE_ID
 
@@ -52,7 +52,7 @@ const EN = {
 }
 
 // Reseed: vorhandene Einträge entfernen, dann frisch anlegen
-const existing = await db.listRows({ databaseId: DB, tableId: 'changelog', queries: [] }).catch(() => ({ rows: [] }))
+const existing = await db.listRows({ databaseId: DB, tableId: 'changelog', queries: [Query.limit(100)] }).catch(() => ({ rows: [] }))
 for (const r of existing.rows) await db.deleteRow({ databaseId: DB, tableId: 'changelog', rowId: r.$id }).catch(() => {})
 
 for (const e of ENTRIES) {
