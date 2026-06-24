@@ -17,6 +17,9 @@ export async function logAuthEvent(
     const config = useRuntimeConfig(event)
     const admin = createAdminClient(event)
     const name = opts.name ?? await admin.users.get({ userId: opts.userId }).then(u => u.name).catch(() => '')
+    // xForwardedFor vertraut dem ersten X-Forwarded-For-Segment → nur gültig
+    // hinter einem Trust-Proxy (ploi/nginx terminiert). Ohne Proxy ist die IM
+    // Audit-Log gespeicherte IP client-spoofbar.
     const ip = getRequestIP(event, { xForwardedFor: true }) ?? ''
     await admin.tablesDB.createRow({
       databaseId: config.public.appwriteDatabaseId,

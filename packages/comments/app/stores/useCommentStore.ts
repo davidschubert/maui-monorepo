@@ -8,6 +8,9 @@ import type {
   VoteValue,
 } from '../../shared/types/comment'
 
+// Muss der PAGE_SIZE in server/api/comments/index.get.ts entsprechen.
+const PAGE_SIZE = 25
+
 /** Strukturkompatibel zu RealtimeRowEvent<Comment> aus dem Core */
 interface RealtimeCommentEvent {
   type: 'create' | 'update' | 'delete'
@@ -89,18 +92,24 @@ export const useCommentStore = defineStore('comments', () => {
     if (loading.value || rows.value.length >= total.value) return
     loading.value = true
     try {
-      let page = 2
-      while (rows.value.length < total.value && page <= 200) {
+      // Über die Seitenzahl iterieren, nicht über `rows.length < total`: im
+      // controversial-Modus sortiert der Server ein Fenster bei JEDEM Request neu
+      // und sliced — verschiebt sich die Ordnung durch Live-Votes zwischen zwei
+      // Seiten, würde eine an `rows.length` gekoppelte Schleife einzelne Zeilen
+      // überspringen (und nie `total` erreichen). Jede Seite wird so genau einmal
+      // geholt; `seen` dedupliziert Grenzfall-Überschneidungen.
+      const lastPage = Math.ceil(total.value / PAGE_SIZE)
+      for (let page = 2; page <= lastPage; page++) {
         const response = await $fetch<CommentListResponse>('/api/comments', {
           query: { targetId: targetId.value, targetType: targetType.value, sort: sortMode.value, page },
         })
         if (!response.rows.length) break
         const seen = new Set(rows.value.map(row => row.$id))
         const fresh = response.rows.filter(row => !seen.has(row.$id))
-        if (!fresh.length) break
-        rows.value = [...rows.value, ...fresh]
-        userVotes.value = { ...userVotes.value, ...response.myVotes }
-        page++
+        if (fresh.length) {
+          rows.value = [...rows.value, ...fresh]
+          userVotes.value = { ...userVotes.value, ...response.myVotes }
+        }
       }
     }
     finally {

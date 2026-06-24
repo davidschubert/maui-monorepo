@@ -64,12 +64,14 @@ maui-monorepo/
 │   ├── core/                  # Nuxt Layer: Fundament
 │   │   ├── app/               # Components, Composables, Stores, …
 │   │   └── .playground/       # isolierte Dev-Umgebung (Port 3000)
-│   └── comments/              # Feature Layer: Kommentarsystem (eigene Tables)
-│       ├── app/components/    # CommentThread, CommentForm, VoteButtons
-│       ├── server/api/        # GET/POST /api/comments, Vote-Upsert
-│       └── scripts/           # Migrations + Realtime-Probe
+│   ├── comments/              # Feature Layer: Kommentarsystem (eigene Tables)
+│   │   ├── app/components/    # CommentThread, CommentForm, VoteButtons
+│   │   ├── server/api/        # GET/POST /api/comments, Vote-Upsert
+│   │   └── scripts/migrations/ # idempotente Schema-Migrationen
+│   ├── admin/                 # Feature Layer: Dashboard, Moderation, Audit, …
+│   └── themes/                # Feature Layer: Theming
 ├── apps/
-│   └── reddit-comments/       # dünne App: extends [core] (Port 3001)
+│   └── reddit-comments/       # dünne App: extends [themes, admin, comments, core] (Port 3001)
 ├── docs/
 │   ├── CONCEPT.md             # Architektur-Konzept (v2)
 │   └── GOALS.md               # Phasen-Roadmap mit /goal-Texten

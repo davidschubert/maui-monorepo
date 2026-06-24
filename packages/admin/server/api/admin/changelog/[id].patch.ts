@@ -9,7 +9,8 @@ const schema = z.object({
   category: z.enum(['feature', 'improvement', 'fix']).optional(),
   version: z.string().max(30).optional(),
   published: z.boolean().optional(),
-  date: z.string().optional(),
+  // ISO-Datetime erzwingen → ungültige date-Form als 400 statt unmaskiertem 500
+  date: z.string().datetime().optional(),
 })
 
 /** Admin: Changelog-Eintrag bearbeiten. */

@@ -9,7 +9,9 @@ const schema = z.object({
   category: z.enum(['feature', 'improvement', 'fix']).default('feature'),
   version: z.string().max(30).default(''),
   published: z.boolean().default(true),
-  date: z.string().optional(),
+  // ISO-Datetime erzwingen → eine ungültige date-Form wird sauber als 400
+  // abgewiesen statt als unmaskierter 500 aus der Appwrite-datetime-Spalte.
+  date: z.string().datetime().optional(),
 })
 
 /** Admin: neuen Changelog-Eintrag anlegen. */

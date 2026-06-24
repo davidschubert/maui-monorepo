@@ -20,11 +20,14 @@ export default defineEventHandler(async (event) => {
 
   const { account } = createAdminClient(event)
   const origin = getRequestURL(event).origin
+  // Locale für die Failure-Seite erhalten (en = Default ohne Prefix)
+  const locale = getCookie(event, 'i18n_redirected')
+  const prefix = locale && locale !== 'en' ? `/${encodeURIComponent(locale)}` : ''
 
   const url = await account.createOAuth2Token({
     provider: oauthProvider,
     success: `${origin}/api/auth/oauth/callback`,
-    failure: `${origin}/login?error=oauth`,
+    failure: `${origin}${prefix}/login?error=oauth`,
   })
 
   return sendRedirect(event, url)
