@@ -50,7 +50,11 @@ onMounted(() => {
     'changelog',
     (ev) => {
       if (ev.type === 'create') {
-        if (ev.payload.published) entries.value = [ev.payload, ...entries.value]
+        // Nach Datum einsortieren statt blind voranstellen (ein älterer Backfill-
+        // Eintrag würde sonst über neuere springen)
+        if (ev.payload.published) {
+          entries.value = [ev.payload, ...entries.value].sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+        }
       }
       else {
         void load() // update/delete → neu laden

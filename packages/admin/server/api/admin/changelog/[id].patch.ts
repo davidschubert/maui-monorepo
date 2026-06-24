@@ -19,6 +19,9 @@ export default defineEventHandler(async (event) => {
   if (!id) throw createError({ status: 400, statusText: 'Missing id' })
 
   const data = await readValidatedBody(event, schema.parse)
+  if (Object.keys(data).length === 0) {
+    throw createError({ status: 400, statusText: 'No fields to update' })
+  }
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
 
