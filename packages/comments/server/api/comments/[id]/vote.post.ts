@@ -52,23 +52,19 @@ export default defineEventHandler(async (event): Promise<VoteResponse> => {
   })
 
   const current = existing.rows[0]
-  let myVote: VoteValue | null
 
   if (current && current.value === value) {
     // Toggle: Vote entfernen
     await tablesDB.deleteRow({ databaseId, tableId: VOTES_TABLE, rowId: current.$id })
-    myVote = null
   }
   else if (current) {
     // Umdrehen
     await tablesDB.updateRow<CommentVote>({ databaseId, tableId: VOTES_TABLE, rowId: current.$id, data: { value } })
-    myVote = value
   }
   else {
     // Neuer Vote. Bei Doppelklick können zwei Requests parallel hier landen — der
     // Unique-Index (commentId,userId) lässt nur einen durch; der 409 des zweiten
-    // ist kein Fehler (die Counts unten ergeben so oder so den korrekten Stand).
-    let created = true
+    // ist kein Fehler (Counts + myVote werden unten autoritativ neu gelesen).
     try {
       await tablesDB.createRow<CommentVote>({
         databaseId,
@@ -86,27 +82,19 @@ export default defineEventHandler(async (event): Promise<VoteResponse> => {
       if (!(error instanceof AppwriteException && error.code === 409)) {
         throw createError({ status: 500, statusText: 'Could not vote' })
       }
-      created = false
-    }
-    if (created) {
-      myVote = value
-    }
-    else {
-      // Paralleler Request hat den Vote schon angelegt — tatsächlichen Wert lesen.
-      const again = await tablesDB.listRows<CommentVote>({
-        databaseId, tableId: VOTES_TABLE,
-        queries: [Query.equal('commentId', commentId), Query.equal('userId', user.$id), Query.limit(1)],
-      })
-      myVote = again.rows[0]?.value === -1 ? -1 : again.rows[0] ? 1 : null
     }
   }
 
-  // Zähler autoritativ aus den echten Votes ableiten (AdminClient sieht alle Rows)
-  // und upvotes/downvotes/score in EINEM Write setzen → genau ein Realtime-Event.
-  const [upvotes, downvotes] = await Promise.all([
+  // Zähler UND eigenen Vote autoritativ aus den echten Votes ableiten (AdminClient
+  // sieht alle Rows) und upvotes/downvotes/score in EINEM Write setzen → genau ein
+  // Realtime-Event. myVote aus der DB statt aus dem Write-Pfad: bei Doppelklick
+  // (Toggle/Flip parallel) gewinnt sonst eine Race und myVote weicht vom Count ab.
+  const [upvotes, downvotes, mine] = await Promise.all([
     admin.tablesDB.listRows({ databaseId, tableId: VOTES_TABLE, queries: [Query.equal('commentId', commentId), Query.equal('value', 1), Query.limit(1)] }).then(r => r.total),
     admin.tablesDB.listRows({ databaseId, tableId: VOTES_TABLE, queries: [Query.equal('commentId', commentId), Query.equal('value', -1), Query.limit(1)] }).then(r => r.total),
+    admin.tablesDB.listRows<CommentVote>({ databaseId, tableId: VOTES_TABLE, queries: [Query.equal('commentId', commentId), Query.equal('userId', user.$id), Query.limit(1)] }),
   ])
+  const myVote: VoteValue | null = mine.rows[0]?.value === -1 ? -1 : mine.rows[0] ? 1 : null
 
   const comment = await admin.tablesDB.updateRow<Comment>({
     databaseId,
