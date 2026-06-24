@@ -20,5 +20,20 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 400, statusText: 'Password update failed' })
   }
 
+  // Andere aktive Sessions invalidieren (z.B. ein vermutet kompromittiertes
+  // Gerät) — die eigene Session bleibt erhalten. Best effort: ein Fehler hier
+  // darf die bereits erfolgte Passwortänderung nicht zurückrollen.
+  try {
+    const { sessions } = await account.listSessions()
+    await Promise.all(
+      sessions
+        .filter(session => !session.current)
+        .map(session => account.deleteSession({ sessionId: session.$id }).catch(() => {})),
+    )
+  }
+  catch {
+    // Session-Liste nicht abrufbar — Passwort ist dennoch geändert
+  }
+
   return { ok: true }
 })
