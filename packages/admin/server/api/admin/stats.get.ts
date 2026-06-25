@@ -3,7 +3,7 @@ import type { AdminStats } from '../../../shared/types/admin'
 
 /** Übersichts-Zahlen: Users-API total + TablesDB-Counts (limit 1, total zählt) */
 export default defineEventHandler(async (event): Promise<AdminStats> => {
-  requireAdmin(event)
+  requirePermission(event, 'dashboard.access')
 
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)

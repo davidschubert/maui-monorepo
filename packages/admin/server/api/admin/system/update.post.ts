@@ -40,7 +40,7 @@ function bumpCatalogVersion(yamlPath: string, name: string, version: string): bo
  * aus dem gebauten Output, dort gibt es kein Repo/pnpm zum Mutieren. Admin-only.
  */
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  requirePermission(event, 'system.manage')
 
   // Harte Sperre: niemals in Produktion erreichbar.
   if (!import.meta.dev) {

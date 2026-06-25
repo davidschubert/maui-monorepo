@@ -1,6 +1,6 @@
 /** Eine Storage-Datei löschen (Admin-Key, umgeht File-Permissions). */
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  requirePermission(event, 'storage.manage')
 
   const fileId = getRouterParam(event, 'fileId')
   if (!fileId) {

@@ -4,7 +4,7 @@ const statusSchema = z.object({ blocked: z.boolean() })
 
 /** Blockieren/Entsperren — der eigene Account ist nicht blockierbar. */
 export default defineEventHandler(async (event) => {
-  const adminUser = requireAdmin(event)
+  const adminUser = requirePermission(event, 'users.manage')
 
   const userId = getRouterParam(event, 'id')
   if (!userId) {

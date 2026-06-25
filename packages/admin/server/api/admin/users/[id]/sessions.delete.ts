@@ -1,6 +1,6 @@
 /** Alle Sessions eines Users invalidieren (Security-Aktion, z.B. nach Kompromittierung) */
 export default defineEventHandler(async (event) => {
-  const adminUser = requireAdmin(event)
+  const adminUser = requirePermission(event, 'users.manage')
 
   const userId = getRouterParam(event, 'id')
   if (!userId) {

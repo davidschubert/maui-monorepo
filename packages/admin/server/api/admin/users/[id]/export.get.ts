@@ -3,7 +3,7 @@ import type { Models } from 'node-appwrite'
 
 /** DSGVO: Daten eines Users als JSON exportieren (Admin) + Audit. */
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  requirePermission(event, 'users.manage')
 
   const userId = getRouterParam(event, 'id')
   if (!userId) {

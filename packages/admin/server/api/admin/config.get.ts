@@ -1,5 +1,5 @@
 /** Aktuelle Feature-Flags (Admin-Ansicht). */
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  requirePermission(event, 'system.manage')
   return getAppConfig(event)
 })

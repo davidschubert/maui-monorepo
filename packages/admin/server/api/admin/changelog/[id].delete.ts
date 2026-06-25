@@ -1,6 +1,6 @@
 /** Admin: Changelog-Eintrag löschen. */
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  requirePermission(event, 'changelog.manage')
 
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ status: 400, statusText: 'Missing id' })

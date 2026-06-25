@@ -8,7 +8,7 @@ type AuditRow = Models.Row & Omit<AuditLogEntry, '$id' | '$createdAt'>
 
 /** Audit-Log: protokollierte Admin-Aktionen, neueste zuerst. */
 export default defineEventHandler(async (event): Promise<AuditLogListResponse> => {
-  requireAdmin(event)
+  requirePermission(event, 'audit.read')
 
   const query = getQuery(event)
   const page = Math.max(1, Number(query.page ?? 1) || 1)

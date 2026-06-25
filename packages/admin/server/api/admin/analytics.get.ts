@@ -42,7 +42,7 @@ async function collectCreatedAt(
  * die Buckets vs. autoritative Count-Query für die Totals). Admin-only.
  */
 export default defineEventHandler(async (event): Promise<AdminAnalytics> => {
-  requireAdmin(event)
+  requirePermission(event, 'dashboard.access')
 
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)

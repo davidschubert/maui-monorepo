@@ -16,7 +16,7 @@ const schema = z.object({
 
 /** Admin: neuen Changelog-Eintrag anlegen. */
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  requirePermission(event, 'changelog.manage')
 
   const input = await readValidatedBody(event, schema.parse)
   const data = { ...input, date: input.date || new Date().toISOString() }

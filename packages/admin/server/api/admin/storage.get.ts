@@ -7,7 +7,7 @@ import type { StorageOverview } from '../../../shared/types/admin'
  * er (oder der Bucket), wird available:false zurückgegeben (UI zeigt Hinweis).
  */
 export default defineEventHandler(async (event): Promise<StorageOverview> => {
-  requireAdmin(event)
+  requirePermission(event, 'storage.manage')
 
   const config = useRuntimeConfig(event)
   const bucketId = config.public.appwriteAvatarsBucket

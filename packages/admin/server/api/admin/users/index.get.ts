@@ -28,7 +28,7 @@ function toRow(user: Models.User<Models.Preferences>, lastSeen: string, now: num
 }
 
 export default defineEventHandler(async (event): Promise<AdminUserListResponse> => {
-  requireAdmin(event)
+  requirePermission(event, 'users.manage')
 
   const query = getQuery(event)
   const search = String(query.search ?? '').trim()

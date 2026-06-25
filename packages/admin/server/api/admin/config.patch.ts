@@ -9,7 +9,7 @@ const configSchema = z.object({
 
 /** Feature-Flags setzen (Upsert der app_config/global-Zeile) + Audit. */
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  requirePermission(event, 'system.manage')
 
   const data = await readValidatedBody(event, configSchema.parse)
   const config = useRuntimeConfig(event)

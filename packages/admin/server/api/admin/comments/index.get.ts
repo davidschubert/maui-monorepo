@@ -8,7 +8,7 @@ const FILTERS: ModerationFilter[] = ['reported', 'hidden', 'all']
 type CommentRow = Models.Row & Omit<ModeratedComment, '$id' | '$createdAt'>
 
 export default defineEventHandler(async (event): Promise<AdminCommentListResponse> => {
-  requireAdmin(event)
+  requirePermission(event, 'comments.moderate')
 
   const query = getQuery(event)
   const status = FILTERS.includes(query.status as ModerationFilter)

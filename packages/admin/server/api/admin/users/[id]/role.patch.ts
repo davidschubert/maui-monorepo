@@ -4,7 +4,7 @@ const roleSchema = z.object({ admin: z.boolean() })
 
 /** Admin-Rolle (Label) vergeben/entziehen — den eigenen Admin nie entziehen. */
 export default defineEventHandler(async (event) => {
-  const adminUser = requireAdmin(event)
+  const adminUser = requirePermission(event, 'users.manage')
 
   const userId = getRouterParam(event, 'id')
   if (!userId) {

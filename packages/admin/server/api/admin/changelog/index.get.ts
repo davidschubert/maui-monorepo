@@ -7,7 +7,7 @@ type Row = Models.Row & Omit<ChangelogEntry, '$id' | '$createdAt'>
 
 /** Admin: alle Changelog-Einträge (inkl. unveröffentlichter) zur Verwaltung. */
 export default defineEventHandler(async (event): Promise<ChangelogListResponse> => {
-  requireAdmin(event)
+  requirePermission(event, 'changelog.manage')
 
   const page = Math.max(1, Number(getQuery(event).page ?? 1) || 1)
   const config = useRuntimeConfig(event)

@@ -6,7 +6,7 @@ type CommentRow = Models.Row & Omit<ModeratedComment, '$id' | '$createdAt'>
 
 /** Vollständige User-Sicht: Profil, aktive Sessions und letzte Kommentare. */
 export default defineEventHandler(async (event): Promise<AdminUserDetailResponse> => {
-  requireAdmin(event)
+  requirePermission(event, 'users.manage')
 
   const userId = getRouterParam(event, 'id')
   if (!userId) {

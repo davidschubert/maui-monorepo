@@ -10,7 +10,7 @@ type CommentRow = Models.Row & { content: string, authorId: string, authorName: 
 
 /** Globale Admin-Suche (User + Kommentare) für die Command-Palette. */
 export default defineEventHandler(async (event): Promise<SearchResult> => {
-  requireAdmin(event)
+  requirePermission(event, 'dashboard.access')
 
   const q = String(getQuery(event).q ?? '').trim()
   if (q.length < 2) return { users: [], comments: [] }

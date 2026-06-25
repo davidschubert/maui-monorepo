@@ -8,7 +8,7 @@ const moderationSchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  requirePermission(event, 'comments.moderate')
 
   const commentId = getRouterParam(event, 'id')
   if (!commentId) {

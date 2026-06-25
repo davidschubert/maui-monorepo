@@ -41,7 +41,7 @@ async function healthCheck(name: string, fn: () => Promise<HealthShape>): Promis
  * App-Info und aufgelöste Dependency-Versionen. Admin-only.
  */
 export default defineEventHandler(async (event): Promise<SystemInfo> => {
-  requireAdmin(event)
+  requirePermission(event, 'system.manage')
 
   const config = useRuntimeConfig(event)
   const endpoint = config.public.appwriteEndpoint

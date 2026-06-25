@@ -1,6 +1,6 @@
 /** DSGVO: einen User endgültig löschen (Admin) — nicht den eigenen Account. */
 export default defineEventHandler(async (event) => {
-  const adminUser = requireAdmin(event)
+  const adminUser = requirePermission(event, 'users.manage')
 
   const userId = getRouterParam(event, 'id')
   if (!userId) {
