@@ -41,7 +41,7 @@ const columns: TableColumn<AdminUserRow>[] = [
   { id: 'actions', header: () => '' },
 ]
 
-const pending = ref<{ type: 'block' | 'unblock' | 'sessions' | 'grant' | 'revoke' | 'delete', user: AdminUserRow } | null>(null)
+const pending = ref<{ type: 'block' | 'unblock' | 'sessions' | 'delete', user: AdminUserRow } | null>(null)
 const busy = ref(false)
 const exportingId = ref<string | null>(null)
 
@@ -72,16 +72,15 @@ async function exportUser(user: AdminUserRow) {
 
 function rowActions(user: AdminUserRow): DropdownMenuItem[][] {
   const isSelf = user.$id === me.value?.$id
-  const isAdmin = user.labels.includes('admin')
+  // Rollen-Verwaltung liegt auf der Detailseite (Mehrfachrollen-Editor) —
+  // hier nur die schnellen Account-Aktionen.
   return [
     [
       user.status
         ? { label: t('admin.users.block'), icon: 'i-ph-prohibit', color: 'error', disabled: isSelf, onSelect: () => { pending.value = { type: 'block', user } } }
         : { label: t('admin.users.unblock'), icon: 'i-ph-lock-open', color: 'success', onSelect: () => { pending.value = { type: 'unblock', user } } },
       { label: t('admin.users.clearSessions'), icon: 'i-ph-sign-out', onSelect: () => { pending.value = { type: 'sessions', user } } },
-      isAdmin
-        ? { label: t('admin.users.revokeAdmin'), icon: 'i-ph-shield-slash', disabled: isSelf, onSelect: () => { pending.value = { type: 'revoke', user } } }
-        : { label: t('admin.users.makeAdmin'), icon: 'i-ph-shield-star', onSelect: () => { pending.value = { type: 'grant', user } } },
+      { label: t('admin.users.detail.manageRoles'), icon: 'i-ph-shield-star', onSelect: () => navigateTo(localePath(`/dashboard/users/${user.$id}`)) },
       { label: t('admin.users.export'), icon: 'i-ph-download-simple', onSelect: () => exportUser(user) },
     ],
     [
@@ -104,10 +103,6 @@ async function executePending() {
         await navigateTo(localePath('/'))
         return
       }
-    }
-    else if (type === 'grant' || type === 'revoke') {
-      await $fetch(`/api/admin/users/${user.$id}/role`, { method: 'PATCH', body: { admin: type === 'grant' } })
-      toast.add({ title: t(type === 'grant' ? 'admin.users.roleGranted' : 'admin.users.roleRevoked'), color: 'success' })
     }
     else if (type === 'delete') {
       await $fetch(`/api/admin/users/${user.$id}`, { method: 'DELETE' })

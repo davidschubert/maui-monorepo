@@ -17,11 +17,49 @@ const { data, refresh } = await useFetch<AdminUserDetailResponse>(() => `/api/ad
 
 const user = computed(() => data.value?.user ?? null)
 const isSelf = computed(() => user.value?.$id === me.value?.$id)
-const isAdmin = computed(() => user.value?.labels.includes('admin') ?? false)
 
-const pending = ref<{ type: 'block' | 'unblock' | 'sessions' | 'grant' | 'revoke' | 'delete' } | null>(null)
+const pending = ref<{ type: 'block' | 'unblock' | 'sessions' | 'delete' } | null>(null)
 const busy = ref(false)
 const exporting = ref(false)
+
+// --- Rollen (Mehrfachauswahl) -------------------------------------------------
+const assignableRoles = ASSIGNABLE_ROLES
+const roleSet = new Set<string>(ASSIGNABLE_ROLES)
+const currentRoles = computed(() => (user.value?.labels ?? []).filter(label => roleSet.has(label)))
+const selectedRoles = ref<string[]>([])
+watch(currentRoles, roles => { selectedRoles.value = [...roles] }, { immediate: true })
+
+const rolesChanged = computed(() =>
+  currentRoles.value.length !== selectedRoles.value.length
+  || currentRoles.value.some(role => !selectedRoles.value.includes(role)),
+)
+const savingRoles = ref(false)
+
+function toggleRole(role: string, on: boolean) {
+  if (on) {
+    if (!selectedRoles.value.includes(role)) selectedRoles.value = [...selectedRoles.value, role]
+  }
+  else {
+    selectedRoles.value = selectedRoles.value.filter(r => r !== role)
+  }
+}
+
+async function saveRoles() {
+  if (!user.value || !rolesChanged.value) return
+  savingRoles.value = true
+  try {
+    await $fetch(`/api/admin/users/${user.value.$id}/role`, { method: 'PATCH', body: { roles: selectedRoles.value } })
+    toast.add({ title: t('admin.users.rolesSaved'), color: 'success' })
+    await refresh()
+  }
+  catch (error) {
+    const code = (error as { data?: { data?: { code?: string } } })?.data?.data?.code
+    toast.add({ title: code === 'last_admin' ? t('admin.users.lastAdmin') : t('admin.users.actionFailed'), color: 'error' })
+  }
+  finally {
+    savingRoles.value = false
+  }
+}
 
 function exactDateTime(iso: string): string {
   return new Date(iso).toLocaleString(locale.value, {
@@ -80,10 +118,6 @@ async function executePending() {
         await navigateTo(localePath('/'))
         return
       }
-    }
-    else if (type === 'grant' || type === 'revoke') {
-      await $fetch(`/api/admin/users/${user.value.$id}/role`, { method: 'PATCH', body: { admin: type === 'grant' } })
-      toast.add({ title: t(type === 'grant' ? 'admin.users.roleGranted' : 'admin.users.roleRevoked'), color: 'success' })
     }
     else if (type === 'delete') {
       await $fetch(`/api/admin/users/${user.value.$id}`, { method: 'DELETE' })
@@ -150,9 +184,11 @@ async function executePending() {
             </div>
             <div class="flex items-center justify-between gap-4 border-b border-default/60 py-2.5">
               <dt class="text-muted">{{ t('admin.users.detail.role') }}</dt>
-              <dd>
-                <UBadge v-if="isAdmin" color="primary" variant="subtle" size="sm">admin</UBadge>
-                <span v-else class="text-muted">{{ t('admin.users.detail.roleUser') }}</span>
+              <dd class="flex flex-wrap justify-end gap-1">
+                <UBadge v-for="role in currentRoles" :key="role" :color="role === 'admin' ? 'primary' : 'neutral'" variant="subtle" size="sm">
+                  {{ t(`admin.roles.${role}`) }}
+                </UBadge>
+                <span v-if="!currentRoles.length" class="text-muted">{{ t('admin.users.detail.roleUser') }}</span>
               </dd>
             </div>
             <div class="flex items-center justify-between gap-4 border-b border-default/60 py-2.5">
@@ -214,18 +250,24 @@ async function executePending() {
                 {{ t('admin.users.clearSessions') }}
               </UButton>
             </div>
-            <div class="flex items-center justify-between gap-4 border-b border-default/60 py-3">
-              <p>{{ isAdmin ? t('admin.users.detail.actions.revoke') : t('admin.users.detail.actions.grant') }}</p>
-              <UButton
-                v-if="!isAdmin"
-                color="primary" variant="subtle" icon="i-ph-shield-star"
-                @click="pending = { type: 'grant' }"
-              >
-                {{ t('admin.users.makeAdmin') }}
-              </UButton>
-              <UButton v-else color="warning" variant="subtle" icon="i-ph-shield-slash" :disabled="isSelf" @click="pending = { type: 'revoke' }">
-                {{ t('admin.users.revokeAdmin') }}
-              </UButton>
+            <div class="flex items-start justify-between gap-4 border-b border-default/60 py-3">
+              <div>
+                <p>{{ t('admin.users.detail.actions.roles') }}</p>
+                <p class="mt-0.5 text-xs text-muted">{{ t('admin.users.detail.actions.rolesHint') }}</p>
+              </div>
+              <div class="flex flex-col items-end gap-2">
+                <UCheckbox
+                  v-for="role in assignableRoles"
+                  :key="role"
+                  :model-value="selectedRoles.includes(role)"
+                  :label="t(`admin.roles.${role}`)"
+                  :disabled="role === 'admin' && isSelf"
+                  @update:model-value="(value: boolean | 'indeterminate') => toggleRole(role, value === true)"
+                />
+                <UButton size="xs" :disabled="!rolesChanged" :loading="savingRoles" @click="saveRoles">
+                  {{ t('ui.save') }}
+                </UButton>
+              </div>
             </div>
             <div class="flex items-center justify-between gap-4 border-b border-default/60 py-3">
               <p>{{ t('admin.users.detail.actions.export') }}</p>

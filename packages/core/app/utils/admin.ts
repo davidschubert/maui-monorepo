@@ -1,5 +1,8 @@
 import type { Capability } from '../../shared/types/authz'
-import { hasCapability } from '../../shared/authz'
+import { ROLES, hasCapability } from '../../shared/authz'
+
+/** Im Dashboard zuweisbare Rollen (UI-Quelle, Matrix bleibt in shared/authz). */
+export const ASSIGNABLE_ROLES = ROLES
 
 /**
  * Admin-Erkennung über Appwrite User Labels. Das Label 'admin' wird NIE

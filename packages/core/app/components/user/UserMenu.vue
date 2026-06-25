@@ -20,9 +20,9 @@ const items = computed<DropdownMenuItem[]>(() => [
     type: 'label',
   },
   { type: 'separator' },
-  // Nur für Admins — die Route liefert der admin-Layer; Apps ohne ihn
-  // haben üblicherweise keine admin-gelabelten User
-  ...(isAdminUser(auth.user)
+  // Dashboard-Link für jeden mit dashboard.access-Capability (admin + moderator);
+  // die Route liefert der admin-Layer — Apps ohne ihn haben keine solchen User.
+  ...(userHasCapability(auth.user, 'dashboard.access')
     ? [{ label: t('ui.adminArea'), icon: 'i-ph-gauge', to: localePath('/dashboard') } satisfies DropdownMenuItem]
     : []),
   {

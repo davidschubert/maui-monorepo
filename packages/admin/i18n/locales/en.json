@@ -1,5 +1,9 @@
 {
   "admin": {
+    "roles": {
+      "admin": "Admin",
+      "moderator": "Moderator"
+    },
     "nav": {
       "overview": "Overview",
       "users": "Users",
@@ -65,6 +69,7 @@
           "sessions_cleared": "ended {name}'s sessions",
           "role_granted": "granted {name} admin rights",
           "role_revoked": "revoked {name}'s admin rights",
+          "roles_updated": "changed {name}'s roles",
           "exported": "exported {name}'s data",
           "deleted": "deleted {name}",
           "self_deleted": "deleted their own account"
@@ -165,6 +170,7 @@
       "unblocked": "User unblocked.",
       "roleGranted": "Admin role granted.",
       "roleRevoked": "Admin role revoked.",
+      "rolesSaved": "Roles updated.",
       "sessionsCleared": "All sessions ended.",
       "actionFailed": "Action failed — please try again.",
       "joined": "Joined",
@@ -180,6 +186,7 @@
         "bio": "Bio",
         "role": "Role",
         "roleUser": "Standard",
+        "manageRoles": "Manage roles",
         "userId": "User ID",
         "copy": "Copy ID",
         "copied": "User ID copied.",
@@ -190,6 +197,8 @@
         "noComments": "No comments yet.",
         "actions": {
           "title": "Account",
+          "roles": "Roles",
+          "rolesHint": "Controls this user's dashboard access.",
           "block": "Block this user from signing in.",
           "unblock": "Allow this user to sign in again.",
           "sessions": "End all active sessions of this user.",
