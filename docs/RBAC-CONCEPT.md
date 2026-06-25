@@ -129,11 +129,16 @@ Reiner Code-Change. Kein Migrations-Script nötig.
    (`comments.moderate`); `role.patch` → Mehrfachrollen (`{ roles: Role[] }`) mit
    Eskalations-/Last-Admin-/Selbst-Schutz; Dashboard-Rollen-Editor (Detailseite);
    UserMenu + Middleware auf `dashboard.access`; Audit `roles_updated`; i18n DE+EN.
-3. **Offen/optional:** **capability-abhängiges Ausblenden in der Sidebar + per-Page-
-   Gating** (heute sieht ein Moderator noch Admin-only-Nav-Einträge wie Users/System
-   und läuft dort in 403 der API — der Server ist sicher, nur die UX ist rau);
-   Rolle `editor` (`changelog.manage`); read-only Matrix-Ansicht im Dashboard;
-   Verallgemeinerung von „letzter Träger" auf weitere kritische Capabilities.
+3. ✅ **Sidebar-Gating (erledigt):** Sidebar-Links (oben + unten) und die Admin-
+   Bereich-Tabs sind capability-gefiltert; Dashboard-Pages tragen
+   `requiredCapability` und werden zusätzlich zur `dashboard.access`-Hürde von der
+   `admin`-Middleware geprüft (Direkt-URL → 403). Ein Moderator sieht nur
+   Overview + Kommentare und kommt nirgends sonst hin.
+4. **Offen/optional:** Rolle `editor` (`changelog.manage`) — braucht noch eine
+   capability-bewusste Landeseite für den „Admin"-Bereich (der Nav-Link zeigt
+   aktuell auf den audit-gegateten Index, ein reiner Editor käme so nicht zum
+   Changelog); read-only Matrix-Ansicht im Dashboard; Verallgemeinerung von
+   „letzter Träger" auf weitere kritische Capabilities.
 
 ## Bewusst ausgeklammert
 

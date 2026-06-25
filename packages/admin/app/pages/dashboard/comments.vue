@@ -3,7 +3,7 @@ import type { Models } from 'node-appwrite'
 import type { NavigationMenuItem } from '@nuxt/ui'
 import type { AdminCommentListResponse, ModeratedComment, ModerationFilter } from '../../../shared/types/admin'
 
-definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
+definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'comments.moderate' })
 
 const { t } = useI18n()
 const { formatDate } = useFormatDate()

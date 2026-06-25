@@ -6,6 +6,7 @@ import type { CommandPaletteGroup, CommandPaletteItem, NavigationMenuItem } from
 
 const { t } = useI18n()
 const localePath = useLocalePath()
+const auth = useAuthStore()
 
 const open = ref(false)
 
@@ -23,20 +24,28 @@ const sidebarClass = computed(() => {
 
 const close = () => { open.value = false }
 
-// Hauptnavigation oben
-const links = computed<NavigationMenuItem[]>(() => [
-  { label: t('admin.nav.overview'), icon: 'i-ph-gauge', to: localePath('/dashboard'), exact: true, onSelect: close },
-  { label: t('admin.nav.users'), icon: 'i-ph-users', to: localePath('/dashboard/users'), onSelect: close },
-  { label: t('admin.nav.comments'), icon: 'i-ph-chat-circle', to: localePath('/dashboard/comments'), onSelect: close },
-  { label: t('admin.nav.storage'), icon: 'i-ph-folder', to: localePath('/dashboard/storage'), onSelect: close },
+// Hauptnavigation oben — je Eintrag nach Capability gefiltert (RBAC). Overview
+// sieht jeder mit dashboard.access; der Rest nur mit der jeweiligen Capability.
+const links = computed<NavigationMenuItem[]>(() => {
+  const u = auth.user
+  const items: NavigationMenuItem[] = [
+    { label: t('admin.nav.overview'), icon: 'i-ph-gauge', to: localePath('/dashboard'), exact: true, onSelect: close },
+  ]
+  if (userHasCapability(u, 'users.manage')) items.push({ label: t('admin.nav.users'), icon: 'i-ph-users', to: localePath('/dashboard/users'), onSelect: close })
+  if (userHasCapability(u, 'comments.moderate')) items.push({ label: t('admin.nav.comments'), icon: 'i-ph-chat-circle', to: localePath('/dashboard/comments'), onSelect: close })
+  if (userHasCapability(u, 'storage.manage')) items.push({ label: t('admin.nav.storage'), icon: 'i-ph-folder', to: localePath('/dashboard/storage'), onSelect: close })
   // Settings bewusst nicht hier — sitzt schon im User-Menü unten (DashboardUserMenu)
-])
+  return items
+})
 
-// Admin/System unten — knapp über dem User-Menü
-const bottomLinks = computed<NavigationMenuItem[]>(() => [
-  { label: t('admin.nav.admin'), icon: 'i-ph-shield-check', to: localePath('/dashboard/admin'), onSelect: close },
-  { label: t('admin.nav.system'), icon: 'i-ph-pulse', to: localePath('/dashboard/system'), onSelect: close },
-])
+// Admin/System unten — knapp über dem User-Menü, ebenfalls capability-gefiltert
+const bottomLinks = computed<NavigationMenuItem[]>(() => {
+  const u = auth.user
+  const items: NavigationMenuItem[] = []
+  if (userHasCapability(u, 'audit.read')) items.push({ label: t('admin.nav.admin'), icon: 'i-ph-shield-check', to: localePath('/dashboard/admin'), onSelect: close })
+  if (userHasCapability(u, 'system.manage')) items.push({ label: t('admin.nav.system'), icon: 'i-ph-pulse', to: localePath('/dashboard/system'), onSelect: close })
+  return items
+})
 
 // Globale Suche: Tippen fragt serverseitig User + Kommentare ab (debounced).
 // Leichte lokale Typen — der volle CommandPaletteGroup<CommandPaletteItem>-Generic

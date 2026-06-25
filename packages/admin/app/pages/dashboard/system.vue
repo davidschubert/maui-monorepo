@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { SystemInfo } from '../../../shared/types/system'
 
-definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
+definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'system.manage' })
 
 const { t, locale } = useI18n()
 const toast = useToast()

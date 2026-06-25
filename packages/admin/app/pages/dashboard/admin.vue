@@ -6,12 +6,17 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
 
 const { t } = useI18n()
 const localePath = useLocalePath()
+const auth = useAuthStore()
 
-const links = computed<NavigationMenuItem[]>(() => [
-  { label: t('admin.audit.title'), icon: 'i-ph-scroll', to: localePath('/dashboard/admin'), exact: true },
-  { label: t('admin.changelog.title'), icon: 'i-ph-megaphone', to: localePath('/dashboard/admin/changelog') },
-  { label: t('admin.config.title'), icon: 'i-ph-toggle-left', to: localePath('/dashboard/admin/config') },
-])
+// Tabs nach Capability filtern (audit.read / changelog.manage / system.manage)
+const links = computed<NavigationMenuItem[]>(() => {
+  const u = auth.user
+  const items: NavigationMenuItem[] = []
+  if (userHasCapability(u, 'audit.read')) items.push({ label: t('admin.audit.title'), icon: 'i-ph-scroll', to: localePath('/dashboard/admin'), exact: true })
+  if (userHasCapability(u, 'changelog.manage')) items.push({ label: t('admin.changelog.title'), icon: 'i-ph-megaphone', to: localePath('/dashboard/admin/changelog') })
+  if (userHasCapability(u, 'system.manage')) items.push({ label: t('admin.config.title'), icon: 'i-ph-toggle-left', to: localePath('/dashboard/admin/config') })
+  return items
+})
 </script>
 
 <template>

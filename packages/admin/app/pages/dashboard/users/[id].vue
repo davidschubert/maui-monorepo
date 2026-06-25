@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { AdminUserDetailResponse } from '../../../../shared/types/admin'
 
-definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
+definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'users.manage' })
 
 const route = useRoute()
 const { t, locale } = useI18n()

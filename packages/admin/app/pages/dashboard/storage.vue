@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { StorageFileEntry, StorageOverview } from '../../../shared/types/admin'
 
-definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
+definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'storage.manage' })
 
 const { t } = useI18n()
 const toast = useToast()

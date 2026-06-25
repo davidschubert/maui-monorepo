@@ -3,7 +3,7 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import { z } from 'zod'
 import type { ChangelogEntry, ChangelogListResponse } from '../../../../shared/types/admin'
 
-definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
+definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'changelog.manage' })
 
 const { t, locale } = useI18n()
 const toast = useToast()
