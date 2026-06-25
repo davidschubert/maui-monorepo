@@ -19,10 +19,11 @@ function categoryColor(c: string) {
 }
 
 const schema = z.object({
-  title: z.string().min(1, t('admin.changelog.form.titleRequired')).max(200),
-  body: z.string().min(1, t('admin.changelog.form.bodyRequired')).max(5000),
-  titleEn: z.string().max(200),
-  bodyEn: z.string().max(5000),
+  // Englisch = Hauptsprache (Pflicht); Deutsch = optionale Alternative.
+  titleEn: z.string().min(1, t('admin.changelog.form.titleRequired')).max(200),
+  bodyEn: z.string().min(1, t('admin.changelog.form.bodyRequired')).max(5000),
+  title: z.string().max(200),
+  body: z.string().max(5000),
   category: z.enum(CATEGORIES),
   version: z.string().max(30),
   published: z.boolean(),
@@ -131,20 +132,20 @@ async function confirmDelete() {
     <UModal v-model:open="open" :title="editingId ? t('admin.changelog.editTitle') : t('admin.changelog.new')">
       <template #body>
         <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
-          <p class="text-xs font-semibold uppercase tracking-wide text-dimmed">{{ t('admin.changelog.form.langDe') }}</p>
-          <UFormField :label="t('admin.changelog.form.title')" name="title" required>
-            <UInput v-model="state.title" class="w-full" />
-          </UFormField>
-          <UFormField :label="t('admin.changelog.form.body')" name="body" required>
-            <UTextarea v-model="state.body" :rows="4" class="w-full" />
-          </UFormField>
-
-          <p class="border-t border-default pt-3 text-xs font-semibold uppercase tracking-wide text-dimmed">{{ t('admin.changelog.form.langEn') }}</p>
-          <UFormField :label="t('admin.changelog.form.title')" name="titleEn">
+          <p class="text-xs font-semibold uppercase tracking-wide text-dimmed">{{ t('admin.changelog.form.langEn') }}</p>
+          <UFormField :label="t('admin.changelog.form.title')" name="titleEn" required>
             <UInput v-model="state.titleEn" class="w-full" />
           </UFormField>
-          <UFormField :label="t('admin.changelog.form.body')" name="bodyEn" :help="t('admin.changelog.form.enHint')">
+          <UFormField :label="t('admin.changelog.form.body')" name="bodyEn" required>
             <UTextarea v-model="state.bodyEn" :rows="4" class="w-full" />
+          </UFormField>
+
+          <p class="border-t border-default pt-3 text-xs font-semibold uppercase tracking-wide text-dimmed">{{ t('admin.changelog.form.langDe') }}</p>
+          <UFormField :label="t('admin.changelog.form.title')" name="title">
+            <UInput v-model="state.title" class="w-full" />
+          </UFormField>
+          <UFormField :label="t('admin.changelog.form.body')" name="body" :help="t('admin.changelog.form.altHint')">
+            <UTextarea v-model="state.body" :rows="4" class="w-full" />
           </UFormField>
 
           <div class="flex flex-wrap gap-3 border-t border-default pt-3">

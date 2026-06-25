@@ -109,9 +109,9 @@
       "form": {
         "title": "Title",
         "body": "Description",
-        "langDe": "German",
-        "langEn": "English (optional)",
-        "enHint": "Leave empty → English users see the German variant.",
+        "langDe": "German (optional)",
+        "langEn": "English",
+        "altHint": "Leave empty → German users see the English variant.",
         "category": "Category",
         "version": "Version",
         "date": "Date",

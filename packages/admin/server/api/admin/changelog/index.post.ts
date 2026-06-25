@@ -2,10 +2,11 @@ import { ID } from 'node-appwrite'
 import { z } from 'zod'
 
 const schema = z.object({
-  title: z.string().min(1).max(200),
-  body: z.string().min(1).max(5000),
-  titleEn: z.string().max(200).default(''),
-  bodyEn: z.string().max(5000).default(''),
+  // Englisch = Hauptsprache (Pflicht); Deutsch = optionale Alternative.
+  titleEn: z.string().min(1).max(200),
+  bodyEn: z.string().min(1).max(5000),
+  title: z.string().max(200).default(''),
+  body: z.string().max(5000).default(''),
   category: z.enum(['feature', 'improvement', 'fix']).default('feature'),
   version: z.string().max(30).default(''),
   published: z.boolean().default(true),
@@ -19,7 +20,11 @@ export default defineEventHandler(async (event) => {
   requirePermission(event, 'changelog.manage')
 
   const input = await readValidatedBody(event, schema.parse)
-  const data = { ...input, date: input.date || new Date().toISOString() }
+  // title/body sind in Appwrite Pflicht (DE-Spalten). Deutsch bleibt aber
+  // optionale Alternative → leer gelassene DE-Felder aus dem Englischen füllen.
+  const title = input.title || input.titleEn
+  const body = input.body || input.bodyEn
+  const data = { ...input, title, body, date: input.date || new Date().toISOString() }
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
 
@@ -30,6 +35,6 @@ export default defineEventHandler(async (event) => {
     data,
   })
 
-  await recordAudit(event, { action: 'changelog.created', targetType: 'changelog', targetId: row.$id, targetName: data.title })
+  await recordAudit(event, { action: 'changelog.created', targetType: 'changelog', targetId: row.$id, targetName: input.titleEn })
   return row
 })
