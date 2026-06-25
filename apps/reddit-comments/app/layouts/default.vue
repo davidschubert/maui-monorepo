@@ -26,8 +26,9 @@ const { isLoggedIn } = useCurrentUser()
     </main>
 
     <footer class="border-t border-default">
-      <div class="mx-auto w-full max-w-5xl p-4 text-sm text-muted">
-        Hawaii Studio · Nuxt 4 + Appwrite
+      <div class="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-2 p-4 text-sm text-muted">
+        <span>Hawaii Studio · Nuxt 4 + Appwrite</span>
+        <NuxtLink :to="localePath('/changelog')" class="hover:text-default hover:underline">{{ t('changelog.title') }}</NuxtLink>
       </div>
     </footer>
 

@@ -242,7 +242,14 @@
   },
   "whatsNew": {
     "title": "Was ist neu",
-    "empty": "Noch nichts Neues."
+    "empty": "Noch nichts Neues.",
+    "viewAll": "Alle ansehen"
+  },
+  "changelog": {
+    "title": "Changelog",
+    "description": "Neuigkeiten, Verbesserungen und Fixes.",
+    "empty": "Noch keine Einträge.",
+    "loadMore": "Mehr laden"
   },
   "dashboard": {
     "search": {
