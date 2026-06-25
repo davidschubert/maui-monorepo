@@ -187,6 +187,12 @@
         "role": "Rolle",
         "roleUser": "Standard",
         "manageRoles": "Rollen verwalten",
+        "dangerZone": "Gefahrenzone",
+        "stats": {
+          "comments": "Kommentare",
+          "sessions": "Sessions",
+          "memberSince": "Mitglied seit"
+        },
         "userId": "Benutzer-ID",
         "copy": "ID kopieren",
         "copied": "Benutzer-ID kopiert.",
