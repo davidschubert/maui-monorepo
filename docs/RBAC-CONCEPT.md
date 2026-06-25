@@ -122,14 +122,18 @@ Reiner Code-Change. Kein Migrations-Script nötig.
 
 ## Phasen
 
-1. **Refactor (risikoarm, kein Verhaltenswechsel):** core-`requirePermission` + Matrix;
-   `requireAdmin` → Alias; alle 23 admin-Gates auf spezifische Capabilities umstellen;
-   Client-Middleware auf `dashboard.access`. → Verhalten identisch (nur `admin` existiert noch).
-2. **Moderator:** Rolle in der Matrix; Moderations-Gates (`comments.moderate`) freischalten;
-   `role.patch` → Mehrfachrollen; Dashboard-Rollen-Selector; Audit `roles_updated`; i18n.
-3. **Optional/später:** Rolle `editor` (`changelog.manage`); capability-abhängiges Ausblenden
-   in Sidebar/Overview-Widgets; read-only Matrix-Ansicht im Dashboard; Verallgemeinerung
-   von „letzter Träger" auf weitere kritische Capabilities (falls nötig).
+1. ✅ **Refactor (erledigt):** core-`requirePermission` + Matrix; `requireAdmin`
+   @deprecated; alle 23 admin-Gates auf spezifische Capabilities; Client-Middleware
+   auf `dashboard.access`. Verhalten identisch (nur `admin` existierte).
+2. ✅ **Moderator (erledigt):** Rolle in der Matrix; Moderations-Gates
+   (`comments.moderate`); `role.patch` → Mehrfachrollen (`{ roles: Role[] }`) mit
+   Eskalations-/Last-Admin-/Selbst-Schutz; Dashboard-Rollen-Editor (Detailseite);
+   UserMenu + Middleware auf `dashboard.access`; Audit `roles_updated`; i18n DE+EN.
+3. **Offen/optional:** **capability-abhängiges Ausblenden in der Sidebar + per-Page-
+   Gating** (heute sieht ein Moderator noch Admin-only-Nav-Einträge wie Users/System
+   und läuft dort in 403 der API — der Server ist sicher, nur die UX ist rau);
+   Rolle `editor` (`changelog.manage`); read-only Matrix-Ansicht im Dashboard;
+   Verallgemeinerung von „letzter Träger" auf weitere kritische Capabilities.
 
 ## Bewusst ausgeklammert
 
