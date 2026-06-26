@@ -1,10 +1,14 @@
 import { Query } from 'node-appwrite'
 import type { Models } from 'node-appwrite'
 import type { ChangelogEntry, ChangelogListResponse } from '../../shared/types/admin'
+import { compareChangelogByVersion } from '../../shared/changelog'
 
 type Row = Models.Row & Omit<ChangelogEntry, '$id' | '$createdAt'>
 
 const CATEGORIES = new Set(['feature', 'improvement', 'fix'])
+// Sortierung erfolgt nach Versionsnummer (in Code), daher das volle Set holen
+// und im Speicher paginieren — für ein Changelog unkritisch.
+const FETCH_CAP = 500
 
 /**
  * Öffentlich: veröffentlichte Changelog-Einträge — für den „Was ist neu"-Popover
@@ -22,8 +26,7 @@ export default defineEventHandler(async (event): Promise<ChangelogListResponse> 
   const queries = [
     Query.equal('published', true),
     Query.orderDesc('date'),
-    Query.limit(limit),
-    Query.offset((page - 1) * limit),
+    Query.limit(FETCH_CAP),
   ]
   if (CATEGORIES.has(category)) queries.push(Query.equal('category', category))
   try {
@@ -32,14 +35,13 @@ export default defineEventHandler(async (event): Promise<ChangelogListResponse> 
       tableId: 'changelog',
       queries,
     })
-    return {
-      total: res.total,
-      entries: res.rows.map(r => ({
-        $id: r.$id, $createdAt: r.$createdAt, date: r.date ?? r.$createdAt, title: r.title, body: r.body,
-        titleEn: r.titleEn ?? '', bodyEn: r.bodyEn ?? '',
-        category: r.category ?? '', version: r.version ?? '', published: r.published,
-      })),
-    }
+    const all = res.rows.map(r => ({
+      $id: r.$id, $createdAt: r.$createdAt, date: r.date ?? r.$createdAt, title: r.title, body: r.body,
+      titleEn: r.titleEn ?? '', bodyEn: r.bodyEn ?? '',
+      category: r.category ?? '', version: r.version ?? '', published: r.published,
+    })).sort(compareChangelogByVersion)
+    const start = (page - 1) * limit
+    return { total: res.total, entries: all.slice(start, start + limit) }
   }
   catch {
     return { total: 0, entries: [] }

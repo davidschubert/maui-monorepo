@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Models } from 'node-appwrite'
 import type { ChangelogEntry, ChangelogListResponse } from '../../shared/types/admin'
+import { compareChangelogByVersion } from '../../shared/changelog'
 
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
@@ -27,6 +28,12 @@ const unread = computed(() =>
   entries.value.filter(e => !seen.value || e.date > seen.value).length,
 )
 
+// „Ungelesen" ist zeitlich (neuste Einträge seit letztem Besuch) — unabhängig von
+// der Anzeige-Sortierung nach Version. Basislinie daher aus dem jüngsten Datum.
+function newestDate(): string {
+  return entries.value.reduce((max, e) => (e.date > max ? e.date : max), '')
+}
+
 function categoryColor(c: string) {
   return c === 'fix' ? 'error' : c === 'improvement' ? 'success' : 'primary'
 }
@@ -47,8 +54,8 @@ async function load() {
   try {
     const res = await $fetch<ChangelogListResponse>('/api/changelog')
     entries.value = res.entries
-    // Erstbesuch: Basislinie auf den neuesten Eintrag → keine "ganze Historie"-Badge
-    if (!seen.value && res.entries.length) seen.value = res.entries[0]!.date
+    // Erstbesuch: Basislinie auf das jüngste Datum → keine "ganze Historie"-Badge
+    if (!seen.value && entries.value.length) seen.value = newestDate()
   }
   catch {
     // still — Panel bleibt leer
@@ -63,10 +70,9 @@ onMounted(() => {
     'changelog',
     (ev) => {
       if (ev.type === 'create') {
-        // Nach Datum einsortieren statt blind voranstellen (ein älterer Backfill-
-        // Eintrag würde sonst über neuere springen)
+        // Nach Versionsnummer einsortieren (gleiche Sortierung wie der Server)
         if (ev.payload.published) {
-          entries.value = [ev.payload, ...entries.value].sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+          entries.value = [ev.payload, ...entries.value].sort(compareChangelogByVersion)
         }
       }
       else {
@@ -79,8 +85,8 @@ onBeforeUnmount(() => stop?.())
 
 function onToggle(value: boolean) {
   open.value = value
-  // Beim Öffnen als gelesen markieren (neuester Eintrag = Basislinie)
-  if (value && entries.value.length) seen.value = entries.value[0]!.date
+  // Beim Öffnen als gelesen markieren (jüngstes Datum = Basislinie)
+  if (value && entries.value.length) seen.value = newestDate()
 }
 </script>
 
