@@ -79,7 +79,7 @@ useSeoMeta({
             </div>
           </template>
           <template #body>
-            <p class="whitespace-pre-line text-muted">{{ localized(entry, 'body') }}</p>
+            <MDC :value="localized(entry, 'body')" class="changelog-body text-muted" />
           </template>
         </UChangelogVersion>
       </UChangelogVersions>
@@ -92,3 +92,18 @@ useSeoMeta({
     </template>
   </div>
 </template>
+
+<style scoped>
+/* Schlanke Prose-Styles für die gerenderten Markdown-Bodies (ohne Typography-Plugin) */
+.changelog-body :deep(p) { margin-block: 0.35rem; }
+.changelog-body :deep(ul) { list-style: disc; padding-inline-start: 1.25rem; margin-block: 0.35rem; }
+.changelog-body :deep(ol) { list-style: decimal; padding-inline-start: 1.25rem; margin-block: 0.35rem; }
+.changelog-body :deep(li) { margin-block: 0.15rem; }
+.changelog-body :deep(h2),
+.changelog-body :deep(h3) { font-weight: 600; margin-block: 0.6rem 0.25rem; color: var(--ui-text); }
+.changelog-body :deep(a) { text-decoration: underline; }
+.changelog-body :deep(blockquote) { border-inline-start: 2px solid currentColor; padding-inline-start: 0.75rem; opacity: 0.85; }
+.changelog-body :deep(code) { font-family: var(--font-mono, monospace); font-size: 0.9em; }
+.changelog-body :deep(pre) { overflow-x: auto; padding: 0.5rem 0.75rem; border-radius: 0.375rem; background: color-mix(in oklch, currentColor 8%, transparent); }
+.changelog-body :deep(pre) code { font-size: 0.85em; }
+</style>

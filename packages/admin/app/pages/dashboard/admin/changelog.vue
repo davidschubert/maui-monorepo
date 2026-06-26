@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FormSubmitEvent } from '@nuxt/ui'
+import type { EditorToolbarItem, FormSubmitEvent } from '@nuxt/ui'
 import { z } from 'zod'
 import type { ChangelogEntry, ChangelogListResponse } from '../../../../shared/types/admin'
 
@@ -17,6 +17,19 @@ const CATEGORIES = ['feature', 'improvement', 'fix'] as const
 function categoryColor(c: string) {
   return c === 'fix' ? 'error' : c === 'improvement' ? 'success' : 'primary'
 }
+
+// Markdown-Toolbar für die Body-Editoren (UEditor, content-type="markdown")
+const toolbarItems: EditorToolbarItem[] = [
+  { kind: 'mark', mark: 'bold', icon: 'i-ph-text-b' },
+  { kind: 'mark', mark: 'italic', icon: 'i-ph-text-italic' },
+  { kind: 'heading', level: 2, icon: 'i-ph-text-h-two' },
+  { kind: 'heading', level: 3, icon: 'i-ph-text-h-three' },
+  { kind: 'bulletList', icon: 'i-ph-list-bullets' },
+  { kind: 'orderedList', icon: 'i-ph-list-numbers' },
+  { kind: 'link', icon: 'i-ph-link' },
+  { kind: 'blockquote', icon: 'i-ph-quotes' },
+  { kind: 'codeBlock', icon: 'i-ph-code' },
+]
 
 const schema = z.object({
   // Englisch = Hauptsprache (Pflicht); Deutsch = optionale Alternative.
@@ -137,7 +150,15 @@ async function confirmDelete() {
             <UInput v-model="state.titleEn" class="w-full" />
           </UFormField>
           <UFormField :label="t('admin.changelog.form.body')" name="bodyEn" required>
-            <UTextarea v-model="state.bodyEn" :rows="4" class="w-full" />
+            <UEditor
+              v-slot="{ editor }"
+              v-model="state.bodyEn"
+              content-type="markdown"
+              class="w-full rounded-md border border-default"
+              :ui="{ content: 'min-h-32 px-3 py-2' }"
+            >
+              <UEditorToolbar :editor="editor" :items="toolbarItems" class="border-b border-default px-1.5 py-1" />
+            </UEditor>
           </UFormField>
 
           <p class="border-t border-default pt-3 text-xs font-semibold uppercase tracking-wide text-dimmed">{{ t('admin.changelog.form.langDe') }}</p>
@@ -145,7 +166,15 @@ async function confirmDelete() {
             <UInput v-model="state.title" class="w-full" />
           </UFormField>
           <UFormField :label="t('admin.changelog.form.body')" name="body" :help="t('admin.changelog.form.altHint')">
-            <UTextarea v-model="state.body" :rows="4" class="w-full" />
+            <UEditor
+              v-slot="{ editor }"
+              v-model="state.body"
+              content-type="markdown"
+              class="w-full rounded-md border border-default"
+              :ui="{ content: 'min-h-32 px-3 py-2' }"
+            >
+              <UEditorToolbar :editor="editor" :items="toolbarItems" class="border-b border-default px-1.5 py-1" />
+            </UEditor>
           </UFormField>
 
           <div class="flex flex-wrap gap-3 border-t border-default pt-3">

@@ -31,6 +31,18 @@ function categoryColor(c: string) {
   return c === 'fix' ? 'error' : c === 'improvement' ? 'success' : 'primary'
 }
 
+// Markdown-Body → kurzer Plaintext-Teaser für den engen Popover (kein MDC hier).
+function plainText(md: string): string {
+  return md
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/^\s{0,3}[>#-]+\s?/gm, '')
+    .replace(/[*_~]/g, '')
+    .replace(/\s*\n+\s*/g, ' ')
+    .trim()
+}
+
 async function load() {
   try {
     const res = await $fetch<ChangelogListResponse>('/api/changelog')
@@ -94,7 +106,7 @@ function onToggle(value: boolean) {
                 <span class="text-sm font-medium">{{ localized(e, 'title') }}</span>
                 <UBadge v-if="e.version" color="neutral" variant="subtle" size="sm">{{ e.version }}</UBadge>
               </div>
-              <p class="mt-1 whitespace-pre-line text-sm text-muted">{{ localized(e, 'body') }}</p>
+              <p class="mt-1 line-clamp-2 text-sm text-muted">{{ plainText(localized(e, 'body')) }}</p>
               <p class="mt-1 text-xs text-dimmed">{{ fmtDate(e.date) }}</p>
             </li>
           </ul>
