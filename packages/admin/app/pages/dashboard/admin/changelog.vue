@@ -155,7 +155,7 @@ async function confirmDelete() {
               v-model="state.bodyEn"
               content-type="markdown"
               class="w-full rounded-md border border-default"
-              :ui="{ content: 'min-h-32 px-3 py-2' }"
+              :ui="{ base: 'px-3 sm:px-3 py-2', content: 'min-h-32' }"
             >
               <UEditorToolbar :editor="editor" :items="toolbarItems" class="border-b border-default px-1.5 py-1" />
             </UEditor>
@@ -171,7 +171,7 @@ async function confirmDelete() {
               v-model="state.body"
               content-type="markdown"
               class="w-full rounded-md border border-default"
-              :ui="{ content: 'min-h-32 px-3 py-2' }"
+              :ui="{ base: 'px-3 sm:px-3 py-2', content: 'min-h-32' }"
             >
               <UEditorToolbar :editor="editor" :items="toolbarItems" class="border-b border-default px-1.5 py-1" />
             </UEditor>
