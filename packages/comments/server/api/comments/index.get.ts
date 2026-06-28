@@ -75,6 +75,7 @@ export default defineEventHandler(async (event): Promise<CommentListResponse> =>
   const rows = sorted.map(row => ({ ...row, authorAvatarUrl: avatars.get(row.authorId) }))
 
   const myVotes: Record<string, VoteValue> = {}
+  let myReports: string[] = []
   const user = event.context.user
 
   if (user && rows.length > 0) {
@@ -90,7 +91,12 @@ export default defineEventHandler(async (event): Promise<CommentListResponse> =>
     for (const vote of votes.rows) {
       myVotes[vote.commentId] = vote.value === 1 ? 1 : -1
     }
+
+    // Eigene offene Meldungen — über den expliziten Moderation-Vertrag, nicht
+    // über direkten Zugriff auf dessen `reports`-Tabelle (Layer-Grenze A14).
+    const reported = await myOpenReportTargetIds(event, 'comment', rows.map(row => row.$id), user.$id)
+    myReports = [...reported]
   }
 
-  return { total, rows, myVotes }
+  return { total, rows, myVotes, myReports }
 })

@@ -48,7 +48,7 @@ export default defineEventHandler(async (event): Promise<VoteResponse> => {
   if (!target) {
     throw createError({ status: 404, statusText: 'Comment not found' })
   }
-  if (target.status !== 'active' && target.status !== 'reported') {
+  if (target.status !== 'active') {
     throw createError({ status: 409, statusText: 'Comment not votable' })
   }
 

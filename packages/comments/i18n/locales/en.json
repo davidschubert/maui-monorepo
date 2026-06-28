@@ -37,14 +37,9 @@
       "reply": "Reply",
       "edit": "Edit",
       "delete": "Delete",
-      "report": "Report",
-      "unreport": "Withdraw report",
       "more": "More",
       "collapseReplies": "Collapse replies",
       "expandReplies": "Expand replies",
-      "reported": "Reported",
-      "reportedToast": "Comment reported — moderation will take a look.",
-      "unreportedToast": "Report withdrawn.",
       "deleted": "[deleted]",
       "save": "Save",
       "cancel": "Cancel",
@@ -52,6 +47,14 @@
       "downvote": "Downvote",
       "voteError": "Vote failed — please try again.",
       "error": "Action failed — please try again."
+    },
+    "report": {
+      "reasons": {
+        "spam": "Spam",
+        "harassment": "Harassment",
+        "offtopic": "Off-topic",
+        "other": "Other"
+      }
     },
     "validation": {
       "targetRequired": "Target is missing",

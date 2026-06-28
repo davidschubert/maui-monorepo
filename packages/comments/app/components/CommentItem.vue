@@ -59,39 +59,29 @@ async function remove() {
   }
 }
 
-async function toggleReport() {
-  const wasReported = props.comment.status === 'reported'
-  busy.value = true
-  try {
-    await store.toggleReport(props.comment.$id)
-    toast.add({ title: wasReported ? t('comments.item.unreportedToast') : t('comments.item.reportedToast'), color: 'success' })
-  }
-  catch {
-    toast.add({ title: t('comments.item.error'), color: 'error' })
-  }
-  finally {
-    busy.value = false
-  }
-}
-
-// Edit / Delete (Autor) bzw. Report (andere) hinter dem ⋯-Menü
+// Edit / Delete des Autors hinter dem ⋯-Menü. Melden (andere) ist ein eigener
+// ReportButton (Moderation-Layer) — siehe Aktionszeile.
 const menuItems = computed<DropdownMenuItem[][]>(() => {
-  if (isDeleted.value) return []
+  if (isDeleted.value || !isAuthor.value) return []
   const items: DropdownMenuItem[] = []
-  if (isAuthor.value) {
-    if (canWrite.value) items.push({ label: t('comments.item.edit'), icon: 'i-ph-pencil-simple', onSelect: startEdit })
-    if (canDelete.value) items.push({ label: t('comments.item.delete'), icon: 'i-ph-trash', color: 'error', onSelect: () => { void remove() } })
-  }
-  else if (isLoggedIn.value && canWrite.value && (props.comment.status === 'active' || props.comment.status === 'reported')) {
-    const reported = props.comment.status === 'reported'
-    items.push({
-      label: reported ? t('comments.item.unreport') : t('comments.item.report'),
-      icon: reported ? 'i-ph-flag-banner-fold' : 'i-ph-flag',
-      onSelect: () => { void toggleReport() },
-    })
-  }
+  if (canWrite.value) items.push({ label: t('comments.item.edit'), icon: 'i-ph-pencil-simple', onSelect: startEdit })
+  if (canDelete.value) items.push({ label: t('comments.item.delete'), icon: 'i-ph-trash', color: 'error', onSelect: () => { void remove() } })
   return items.length ? [items] : []
 })
+
+// Melden: nur eingeloggte Nicht-Autoren, solange schreibbar und sichtbar
+const canReport = computed(() =>
+  !isDeleted.value && isLoggedIn.value && !isAuthor.value && canWrite.value
+  && props.comment.status === 'active',
+)
+
+// Reason-Katalog liefert der Konsument (comments) lokalisiert — Moderation bleibt agnostisch
+const reportReasons = computed(() => [
+  { value: 'spam', label: t('comments.report.reasons.spam') },
+  { value: 'harassment', label: t('comments.report.reasons.harassment') },
+  { value: 'offtopic', label: t('comments.report.reasons.offtopic') },
+  { value: 'other', label: t('comments.report.reasons.other') },
+])
 </script>
 
 <template>
@@ -102,9 +92,6 @@ const menuItems = computed<DropdownMenuItem[][]>(() => {
       <span class="font-medium text-default">{{ comment.authorName }}</span>
       <span aria-hidden="true">·</span>
       <span :title="formatDate(comment.$createdAt)">{{ formatRelativeTime(comment.$createdAt) }}</span>
-      <UBadge v-if="comment.status === 'reported'" color="warning" variant="subtle" size="sm">
-        {{ t('comments.item.reported') }}
-      </UBadge>
     </div>
 
     <p v-if="isDeleted" class="mt-1 italic text-muted">{{ t('comments.item.deleted') }}</p>
@@ -141,6 +128,15 @@ const menuItems = computed<DropdownMenuItem[][]>(() => {
         >
           {{ t('comments.item.reply') }}
         </UButton>
+
+        <ReportButton
+          v-if="canReport"
+          target-type="comment"
+          :target-id="comment.$id"
+          :reasons="reportReasons"
+          :reported="store.isReportedByMe(comment.$id)"
+          @update:reported="(v: boolean) => store.setReported(comment.$id, v)"
+        />
 
         <UDropdownMenu v-if="menuItems.length" :items="menuItems" :content="{ align: 'start' }">
           <UButton size="xs" color="neutral" variant="ghost" icon="i-ph-dots-three" :aria-label="t('comments.item.more')" />

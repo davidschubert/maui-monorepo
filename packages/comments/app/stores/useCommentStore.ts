@@ -24,6 +24,8 @@ export const useCommentStore = defineStore('comments', () => {
   const rows = ref<Comment[]>([])
   const total = ref(0)
   const userVotes = ref<Record<string, VoteValue>>({})
+  /** IDs, die der eingeloggte User offen gemeldet hat (Moderation-Layer) */
+  const userReports = ref<Set<string>>(new Set())
   const sortMode = ref<SortMode>('new')
   const loading = ref(false)
   /** Per Realtime eingetroffene fremde Top-Level-Kommentare, gepuffert für die "N neue"-Pill */
@@ -57,6 +59,18 @@ export const useCommentStore = defineStore('comments', () => {
     return userVotes.value[commentId] ?? null
   }
 
+  function isReportedByMe(commentId: string): boolean {
+    return userReports.value.has(commentId)
+  }
+
+  /** Eigenen Melde-Status setzen (vom ReportButton via update:reported) */
+  function setReported(commentId: string, reported: boolean) {
+    const next = new Set(userReports.value)
+    if (reported) next.add(commentId)
+    else next.delete(commentId)
+    userReports.value = next
+  }
+
   function setVote(commentId: string, value: VoteValue | null) {
     if (value === null) {
       userVotes.value = Object.fromEntries(
@@ -79,6 +93,7 @@ export const useCommentStore = defineStore('comments', () => {
       rows.value = response.rows
       total.value = response.total
       userVotes.value = response.myVotes
+      userReports.value = new Set(response.myReports)
       pending.value = []
       removedByHide.clear()
     }
@@ -109,6 +124,7 @@ export const useCommentStore = defineStore('comments', () => {
         if (fresh.length) {
           rows.value = [...rows.value, ...fresh]
           userVotes.value = { ...userVotes.value, ...response.myVotes }
+          userReports.value = new Set([...userReports.value, ...response.myReports])
         }
       }
     }
@@ -222,13 +238,6 @@ export const useCommentStore = defineStore('comments', () => {
     upsertRow(updated)
   }
 
-  /** Meldung umschalten (melden ⇄ zurückziehen) — Server liefert den neuen Status */
-  async function toggleReport(commentId: string) {
-    const res = await $fetch<{ status: Comment['status'] }>(`/api/comments/${commentId}/report`, { method: 'POST' })
-    const row = rows.value.find(r => r.$id === commentId)
-    if (row) upsertRow({ ...row, status: res.status })
-  }
-
   function upsertRow(comment: Comment) {
     const index = rows.value.findIndex(row => row.$id === comment.$id)
     if (index === -1) {
@@ -302,7 +311,7 @@ export const useCommentStore = defineStore('comments', () => {
       // nicht (mehr) sichtbar: nur wieder aufnehmen, wenn WIR es per hide entfernt
       // haben und es jetzt wieder sichtbar ist (Restore) — sonst ignorieren, damit
       // Votes/Edits an nicht geladenen (paginierten) Kommentaren nichts einblenden
-      if (removedByHide.has(payload.$id) && (payload.status === 'active' || payload.status === 'reported')) {
+      if (removedByHide.has(payload.$id) && payload.status === 'active') {
         removedByHide.delete(payload.$id)
         total.value += 1
         upsertRow(payload)
@@ -349,6 +358,8 @@ export const useCommentStore = defineStore('comments', () => {
     pendingCount,
     threaded,
     myVote,
+    isReportedByMe,
+    setReported,
     fetchComments,
     loadAll,
     setSortMode,
@@ -356,7 +367,6 @@ export const useCommentStore = defineStore('comments', () => {
     vote,
     updateComment,
     deleteComment,
-    toggleReport,
     applyRealtime,
     flushPending,
   }

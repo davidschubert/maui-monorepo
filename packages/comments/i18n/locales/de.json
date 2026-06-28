@@ -37,14 +37,9 @@
       "reply": "Antworten",
       "edit": "Bearbeiten",
       "delete": "Löschen",
-      "report": "Melden",
-      "unreport": "Meldung zurückziehen",
       "more": "Mehr",
       "collapseReplies": "Antworten einklappen",
       "expandReplies": "Antworten ausklappen",
-      "reported": "Gemeldet",
-      "reportedToast": "Kommentar gemeldet — die Moderation schaut drauf.",
-      "unreportedToast": "Meldung zurückgezogen.",
       "deleted": "[gelöscht]",
       "save": "Speichern",
       "cancel": "Abbrechen",
@@ -52,6 +47,14 @@
       "downvote": "Downvote",
       "voteError": "Vote fehlgeschlagen — bitte erneut versuchen.",
       "error": "Aktion fehlgeschlagen — bitte erneut versuchen."
+    },
+    "report": {
+      "reasons": {
+        "spam": "Spam",
+        "harassment": "Belästigung",
+        "offtopic": "Off-Topic",
+        "other": "Sonstiges"
+      }
     },
     "validation": {
       "targetRequired": "Target fehlt",

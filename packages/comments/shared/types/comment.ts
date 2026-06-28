@@ -4,11 +4,12 @@ export const COMMENTS_TABLE = 'comments'
 export const VOTES_TABLE = 'comment_votes'
 
 /**
- * Soft-Delete + Moderations-Workflow (Spec reddit-comment-system-setup):
- * active → normal · reported → gemeldet (bleibt sichtbar, Admin-Hook) ·
- * hidden → von Moderation ausgeblendet · deleted → Soft-Delete ([gelöscht]-Platzhalter)
+ * Sichtbarkeits-Status (Soft-Delete + Moderation):
+ * active → normal · hidden → von Moderation ausgeblendet ·
+ * deleted → Soft-Delete ([gelöscht]-Platzhalter).
+ * Melden läuft über den Moderation-Layer (reports-Tabelle), NICHT über den Status.
  */
-export type CommentStatus = 'active' | 'reported' | 'hidden' | 'deleted'
+export type CommentStatus = 'active' | 'hidden' | 'deleted'
 
 export type SortMode = 'top' | 'new' | 'controversial'
 
@@ -47,6 +48,8 @@ export interface CommentListResponse {
   total: number
   rows: Comment[]
   myVotes: Record<string, VoteValue>
+  /** IDs der Kommentare, die der eingeloggte User offen gemeldet hat (Moderation-Layer) */
+  myReports: string[]
 }
 
 /** POST /:id/vote Response: frischer Zähler-Stand + eigener Vote (null = entfernt) */

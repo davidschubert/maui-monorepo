@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
   if (!existing) {
     throw createError({ status: 404, statusText: 'Comment not found' })
   }
-  if (existing.status !== 'active' && existing.status !== 'reported') {
+  if (existing.status !== 'active') {
     throw createError({ status: 409, statusText: 'Comment not editable' })
   }
 
