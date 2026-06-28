@@ -41,6 +41,10 @@ export default defineEventHandler(async (event) => {
       permissions: [
         Permission.read(Role.user(user.$id)),
         Permission.delete(Role.user(user.$id)),
+        // Moderatoren dürfen Reports lesen → erhalten Realtime-Events für die Queue.
+        // Server-Reads laufen ohnehin über den AdminClient; das hier ist nur für Realtime.
+        Permission.read(Role.label('admin')),
+        Permission.read(Role.label('moderator')),
       ],
     })
     return { ok: true, report }
