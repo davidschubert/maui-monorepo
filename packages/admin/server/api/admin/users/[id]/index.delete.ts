@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
 
   const admin = createAdminClient(event)
 
-  let name = ''
+  let name: string
   try {
     name = (await admin.users.get({ userId })).name
   }

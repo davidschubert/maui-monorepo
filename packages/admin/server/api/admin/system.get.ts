@@ -66,7 +66,7 @@ export default defineEventHandler(async (event): Promise<SystemInfo> => {
     healthCheck('Storage', () => health.getStorage()),
   ])
 
-  let timeDiffMs: number | null = null
+  let timeDiffMs: number | null
   try {
     timeDiffMs = (await health.getTime()).diff
   }
