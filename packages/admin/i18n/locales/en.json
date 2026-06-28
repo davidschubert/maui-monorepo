@@ -225,7 +225,6 @@
       },
       "status": {
         "active": "Active",
-        "reported": "Reported",
         "hidden": "Hidden",
         "deleted": "Deleted"
       },
@@ -237,7 +236,11 @@
       "restored": "Comment restored.",
       "notModeratable": "Deleted by the author — not moderatable.",
       "confirmHide": "Hide the comment by {name}? It will no longer be publicly visible.",
-      "confirmRestore": "Restore the comment by {name}?"
+      "confirmRestore": "Restore the comment by {name}?",
+      "reportsLabel": "{count} open reports",
+      "dismiss": "Resolve reports",
+      "dismissed": "Reports resolved.",
+      "confirmDismiss": "Mark the reports for {name}'s comment as resolved? The comment stays visible."
     }
   },
   "whatsNew": {

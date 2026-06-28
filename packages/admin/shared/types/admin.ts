@@ -157,6 +157,8 @@ export interface ModeratedComment {
   targetId: string
   targetType: string
   status: string
+  /** Anzahl offener Meldungen (nur im 'reported'-Filter gesetzt; Moderation-Layer) */
+  reportCount?: number
 }
 
 export interface AdminCommentListResponse {

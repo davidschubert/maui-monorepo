@@ -225,7 +225,6 @@
       },
       "status": {
         "active": "Aktiv",
-        "reported": "Gemeldet",
         "hidden": "Ausgeblendet",
         "deleted": "Gelöscht"
       },
@@ -237,7 +236,11 @@
       "restored": "Kommentar wiederhergestellt.",
       "notModeratable": "Vom Autor gelöscht — nicht moderierbar.",
       "confirmHide": "Kommentar von {name} ausblenden? Er ist dann öffentlich nicht mehr sichtbar.",
-      "confirmRestore": "Kommentar von {name} wiederherstellen?"
+      "confirmRestore": "Kommentar von {name} wiederherstellen?",
+      "reportsLabel": "{count} offene Meldungen",
+      "dismiss": "Meldungen erledigen",
+      "dismissed": "Meldungen erledigt.",
+      "confirmDismiss": "Meldungen für den Kommentar von {name} als erledigt markieren? Der Kommentar bleibt sichtbar."
     }
   },
   "whatsNew": {

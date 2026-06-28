@@ -56,6 +56,7 @@ const filterLinks = computed<NavigationMenuItem[]>(() => FILTERS.map(value => ({
 type PendingAction =
   | { action: 'hidden' | 'active', comment: ModeratedComment }
   | { action: 'block', comment: ModeratedComment }
+  | { action: 'dismiss', comment: ModeratedComment }
 
 const pending = ref<PendingAction | null>(null)
 const busy = ref(false)
@@ -64,29 +65,31 @@ const confirmText = computed(() => {
   if (!pending.value) return ''
   const name = pending.value.comment.authorName
   if (pending.value.action === 'block') return t('admin.users.confirm.block', { name })
+  if (pending.value.action === 'dismiss') return t('admin.moderation.confirmDismiss', { name })
   return t(pending.value.action === 'hidden' ? 'admin.moderation.confirmHide' : 'admin.moderation.confirmRestore', { name })
 })
 
 async function executePending() {
   if (!pending.value) return
+  const { action, comment } = pending.value
   busy.value = true
   try {
-    if (pending.value.action === 'block') {
-      await $fetch(`/api/admin/users/${pending.value.comment.authorId}/status`, {
-        method: 'PATCH',
-        body: { blocked: true },
-      })
+    if (action === 'block') {
+      await $fetch(`/api/admin/users/${comment.authorId}/status`, { method: 'PATCH', body: { blocked: true } })
       toast.add({ title: t('admin.users.blocked'), color: 'success' })
     }
+    else if (action === 'dismiss') {
+      // Meldungen verwerfen, Kommentar bleibt sichtbar
+      await $fetch('/api/reports/resolve', { method: 'POST', body: { targetType: 'comment', targetId: comment.$id, resolution: 'no_action' } })
+      toast.add({ title: t('admin.moderation.dismissed'), color: 'success' })
+    }
     else {
-      await $fetch(`/api/admin/comments/${pending.value.comment.$id}/status`, {
-        method: 'PATCH',
-        body: { status: pending.value.action },
-      })
-      toast.add({
-        title: t(pending.value.action === 'hidden' ? 'admin.moderation.hidden' : 'admin.moderation.restored'),
-        color: 'success',
-      })
+      await $fetch(`/api/admin/comments/${comment.$id}/status`, { method: 'PATCH', body: { status: action } })
+      // Ausblenden schließt zugleich die offenen Meldungen (Lifecycle)
+      if (action === 'hidden') {
+        await $fetch('/api/reports/resolve', { method: 'POST', body: { targetType: 'comment', targetId: comment.$id, resolution: 'hidden' } })
+      }
+      toast.add({ title: t(action === 'hidden' ? 'admin.moderation.hidden' : 'admin.moderation.restored'), color: 'success' })
     }
     pending.value = null
     await refresh()
@@ -135,11 +138,21 @@ async function executePending() {
           <span>·</span>
           <span>{{ formatDate(comment.$createdAt) }}</span>
           <UBadge
-            :color="comment.status === 'reported' ? 'warning' : comment.status === 'hidden' ? 'error' : 'neutral'"
+            :color="comment.status === 'hidden' ? 'error' : 'neutral'"
             variant="subtle"
             size="sm"
           >
             {{ t(`admin.moderation.status.${comment.status}`) }}
+          </UBadge>
+          <UBadge
+            v-if="comment.reportCount"
+            color="warning"
+            variant="subtle"
+            size="sm"
+            icon="i-ph-flag"
+            :aria-label="t('admin.moderation.reportsLabel', { count: comment.reportCount })"
+          >
+            {{ comment.reportCount }}
           </UBadge>
         </div>
 
@@ -159,6 +172,13 @@ async function executePending() {
             @click="pending = { action: 'active', comment }"
           >
             {{ t('admin.moderation.restore') }}
+          </UButton>
+          <UButton
+            v-if="comment.reportCount"
+            size="xs" color="primary" variant="ghost" icon="i-ph-check"
+            @click="pending = { action: 'dismiss', comment }"
+          >
+            {{ t('admin.moderation.dismiss') }}
           </UButton>
           <UButton
             size="xs" color="error" variant="ghost" icon="i-ph-prohibit"
@@ -189,7 +209,7 @@ async function executePending() {
       <template #footer>
         <div class="flex w-full justify-end gap-2">
           <UButton color="neutral" variant="ghost" @click="pending = null">{{ t('comments.item.cancel') }}</UButton>
-          <UButton :color="pending?.action === 'active' ? 'primary' : 'error'" :loading="busy" @click="executePending">
+          <UButton :color="pending?.action === 'active' || pending?.action === 'dismiss' ? 'primary' : 'error'" :loading="busy" @click="executePending">
             {{ t('admin.users.confirmAction') }}
           </UButton>
         </div>

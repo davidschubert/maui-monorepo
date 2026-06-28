@@ -262,7 +262,7 @@ async function executePending() {
               <ul v-else class="space-y-3">
                 <li v-for="comment in data?.comments" :key="comment.$id" class="border-b border-default/60 pb-3 text-sm last:border-0 last:pb-0">
                   <div class="mb-1 flex items-center gap-2">
-                    <UBadge :color="comment.status === 'active' ? 'success' : comment.status === 'reported' ? 'warning' : 'neutral'" variant="subtle" size="sm">
+                    <UBadge :color="comment.status === 'active' ? 'success' : 'neutral'" variant="subtle" size="sm">
                       {{ t(`admin.moderation.status.${comment.status}`) }}
                     </UBadge>
                     <span class="text-xs text-muted">{{ formatRelativeTime(comment.$createdAt) }}</span>

@@ -12,10 +12,12 @@ export default defineEventHandler(async (event): Promise<AdminStats> => {
   const [users, comments, reported] = await Promise.all([
     admin.users.list({ queries: [Query.limit(1)] }),
     admin.tablesDB.listRows({ databaseId, tableId: 'comments', queries: [Query.limit(1)] }),
+    // Offene Meldungen kommen jetzt aus der reports-Tabelle (Moderation-Layer),
+    // nicht mehr aus comment.status='reported'. Zählt offene Comment-Meldungen.
     admin.tablesDB.listRows({
       databaseId,
-      tableId: 'comments',
-      queries: [Query.equal('status', 'reported'), Query.limit(1)],
+      tableId: REPORTS_TABLE,
+      queries: [Query.equal('targetType', 'comment'), Query.equal('status', 'open'), Query.limit(1)],
     }),
   ])
 
