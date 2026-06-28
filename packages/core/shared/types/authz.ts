@@ -8,6 +8,7 @@
 export type Capability =
   | 'dashboard.access'
   | 'comments.moderate'
+  | 'reports.moderate'
   | 'users.manage'
   | 'changelog.manage'
   | 'system.manage'

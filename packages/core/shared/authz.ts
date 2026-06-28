@@ -11,6 +11,7 @@ import type { Capability, Role } from './types/authz'
 export const ALL_CAPABILITIES: readonly Capability[] = [
   'dashboard.access',
   'comments.moderate',
+  'reports.moderate',
   'users.manage',
   'changelog.manage',
   'system.manage',
@@ -24,7 +25,7 @@ export const ROLES: readonly Role[] = ['admin', 'moderator']
 /** Rolle → ihre Capabilities. admin = alle; moderator = Teilmenge. */
 export const ROLE_CAPABILITIES: Record<Role, readonly Capability[]> = {
   admin: ALL_CAPABILITIES,
-  moderator: ['dashboard.access', 'comments.moderate'],
+  moderator: ['dashboard.access', 'comments.moderate', 'reports.moderate'],
 }
 
 /** Type-Guard: ist das Label eine bekannte Rolle? */
