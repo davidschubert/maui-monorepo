@@ -21,7 +21,11 @@ export default defineEventHandler(async (event) => {
 
   const config = useRuntimeConfig(event)
   const databaseId = config.public.appwriteDatabaseId
-  const { tablesDB } = createSessionClient(event)
+  // Anlage über den Admin-Client: ein Session-Client dürfte die Role.label-
+  // Permissions (für die Moderator-Realtime) nur setzen, wenn der Melder die
+  // Labels selbst hat — normale User können sonst nicht melden. reporterId
+  // kommt aus der Session; Role.user(self) lässt den Melder lesen/zurückziehen.
+  const { tablesDB } = createAdminClient(event)
 
   try {
     const report = await tablesDB.createRow<Report>({
