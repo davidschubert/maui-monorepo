@@ -35,10 +35,14 @@ const { data, refresh } = await useFetch<AdminCommentListResponse>('/api/admin/c
 // entprellt nachladen — neue/gemeldete Kommentare poppen ohne Reload auf.
 const config = useRuntimeConfig()
 let liveTimer: ReturnType<typeof setTimeout> | undefined
-useRealtimeRows<Models.Row>(config.public.appwriteDatabaseId, 'comments', () => {
+function liveRefresh() {
   clearTimeout(liveTimer)
   liveTimer = setTimeout(() => { void refresh() }, 400)
-})
+}
+// Live: Kommentar-Events (neu, moderiert) UND Report-Events (neue Meldung,
+// Rückzug, erledigt) halten die Queue ohne Reload aktuell.
+useRealtimeRows<Models.Row>(config.public.appwriteDatabaseId, 'comments', liveRefresh)
+useRealtimeRows<Models.Row>(config.public.appwriteDatabaseId, REPORTS_TABLE, liveRefresh)
 onScopeDispose(() => clearTimeout(liveTimer))
 
 function setFilter(value: ModerationFilter) {
