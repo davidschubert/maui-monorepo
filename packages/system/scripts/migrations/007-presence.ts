@@ -1,5 +1,5 @@
 /**
- * Migration admin-007: presence Table (Online-/Heartbeat-Status).
+ * Migration system-007: presence Table (Online-/Heartbeat-Status).
  *
  * Appwrites Presence-API ist self-hosted nicht verfügbar → eigener Mechanismus:
  * Der Client schreibt per Heartbeat (~20s) seinen lastSeen-Zeitstempel; als
@@ -10,11 +10,11 @@
  * seine eigene Row (Server-Session-Client, Row-Permissions update/delete).
  *
  *   node --experimental-strip-types --env-file=apps/<app>/.env \
- *     packages/admin/scripts/migrations/007-presence.ts
+ *     packages/system/scripts/migrations/007-presence.ts
  *
  * Benötigte Key-Scopes: tables.*, columns.*, rows.* (Migrations-Key).
  */
-import { Client, TablesDB, Permission, Role } from 'node-appwrite'
+import { Client, TablesDB, Permission, Role, TablesDBIndexType } from 'node-appwrite'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -56,7 +56,7 @@ async function waitForColumns(tableId: string) {
   throw new Error(`Columns von "${tableId}" wurden nicht verfügbar`)
 }
 
-console.log(`Migration admin-007 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration system-007 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 await step('Table presence', () => tablesDB.createTable({
   databaseId,
@@ -85,7 +85,7 @@ await step('Column presence.typing', () => tablesDB.createBooleanColumn({
 await waitForColumns('presence')
 
 await step('Index presence.scope_lastSeen', () => tablesDB.createIndex({
-  databaseId, tableId: 'presence', key: 'scope_lastSeen', type: 'key', columns: ['scope', 'lastSeen'],
+  databaseId, tableId: 'presence', key: 'scope_lastSeen', type: TablesDBIndexType.Key, columns: ['scope', 'lastSeen'],
 }))
 
-console.log('✔ Migration admin-007 fertig')
+console.log('✔ Migration system-007 fertig')

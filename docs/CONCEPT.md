@@ -460,8 +460,8 @@ in ihrer Datei eine Regel steht, sondern weil sie im Themes-Layer liegt.
 | Layer | darf besitzen | darf nie | hängt ab von |
 |---|---|---|---|
 | `core` | Auth, Client-Factories, RBAC-Matrix, SSR-Session, Base-UI, Shared-Utils | Feature-Domäne, eigene Tables | — |
-| `system` *(geplant)* | `audit_logs`, `app_config`, `notifications`, `presence` | Feature-Domäne, UI-Welt | core |
-| `moderation` *(geplant)* | `reports`-Table, Melde-Erfassung + Queue + Lifecycle, generische Melde-UI | Domänen-Wissen, Konsequenz-Logik | core |
+| `system` | `audit_logs`, `app_config`, `notifications`, `presence` | Feature-Domäne, UI-Welt | core |
+| `moderation` | `reports`-Table, Melde-Erfassung + Queue + Lifecycle, generische Melde-UI | Domänen-Wissen, Konsequenz-Logik | core |
 | `themes` | Tokens, CSS, Theme-Switcher, Color-Mode | Appwrite, Auth, Business-Logik | — |
 | `comments` | `comments`/`comment_votes`, Comment-API/UI/Store | Admin-Logik, fremde Feature-Tables | core, (moderation) |
 | `admin` | `changelog`, Dashboard/Moderation-Queue | Feature-interne Imports, Feature-Domänen-Logik | core, (moderation, system) |
@@ -477,9 +477,10 @@ in ihrer Datei eine Regel steht, sondern weil sie im Themes-Layer liegt.
    Fundament-Layer (core/moderation) verbieten jeden Feature-Import. Fängt *künftige* explizite
    Kopplung; die implizite löst Stufe 1.
 
-> **`system`/`moderation` sind geplant, nicht gebaut.** A14 fixiert die Grenzen; die beiden
-> neuen Layer sind eigene Schritte. Heutige Abweichung (core nutzt admin-eigene Tables) ist
-> bekannt und über den `system`-Layer adressiert.
+> **`system` und `moderation` existieren** (2026-06-27). Der `system`-Layer besitzt die
+> Infra-Tabellen, die core nutzt (Auth-Audit, Config, Notifications, Presence) — die frühere
+> core→admin-Inversion ist damit aufgelöst (Schema-Ownership liegt nicht mehr im admin-Feature).
+> `moderation` besitzt das generische Melde-/Report-Modell.
 
 ---
 

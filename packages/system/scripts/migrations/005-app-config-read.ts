@@ -1,5 +1,5 @@
 /**
- * Migration admin-005: app_config öffentlich lesbar machen (read: any).
+ * Migration system-005: app_config öffentlich lesbar machen (read: any).
  *
  * Für die Live-Propagierung der Feature-Flags abonniert der Client die
  * app_config/global-Row per Realtime — das setzt Lese-Recht voraus. Die Flags
@@ -7,7 +7,7 @@
  * server-only (kein write-Recht), durchgesetzt über /api/admin/config.
  *
  *   node --experimental-strip-types --env-file=apps/<app>/.env \
- *     packages/admin/scripts/migrations/005-app-config-read.ts
+ *     packages/system/scripts/migrations/005-app-config-read.ts
  *
  * Benötigte Key-Scopes: tables.* (Migrations-Key).
  */
@@ -28,7 +28,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
 
-console.log(`Migration admin-005 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration system-005 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 await tablesDB.updateTable({
   databaseId,
@@ -39,4 +39,4 @@ await tablesDB.updateTable({
   rowSecurity: false,
 })
 
-console.log('✔ Migration admin-005 fertig (app_config read: any)')
+console.log('✔ Migration system-005 fertig (app_config read: any)')

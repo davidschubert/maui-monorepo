@@ -296,6 +296,28 @@ importers:
         specifier: 'catalog:'
         version: 3.5.39(typescript@5.9.3)
 
+  packages/system:
+    dependencies:
+      node-appwrite:
+        specifier: 'catalog:'
+        version: 26.2.0
+    devDependencies:
+      '@nuxt/eslint-config':
+        specifier: 'catalog:'
+        version: 1.16.0(@typescript-eslint/utils@8.62.0(eslint@10.5.0(jiti@2.7.0))(typescript@5.9.3))(@vue/compiler-sfc@3.5.39)(eslint@10.5.0(jiti@2.7.0))(typescript@5.9.3)
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.20.0
+      eslint:
+        specifier: 'catalog:'
+        version: 10.5.0(jiti@2.7.0)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vue:
+        specifier: 'catalog:'
+        version: 3.5.39(typescript@5.9.3)
+
   packages/themes:
     dependencies:
       '@nuxt/ui':

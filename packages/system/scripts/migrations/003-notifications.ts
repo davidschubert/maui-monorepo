@@ -1,15 +1,15 @@
 /**
- * Migration admin-003: notifications Table (In-App-Benachrichtigungen).
+ * Migration system-003: notifications Table (In-App-Benachrichtigungen).
  *
  * rowSecurity = true: erstellt werden Zeilen serverseitig mit read/update-Recht
  * für den Empfänger; jeder sieht/ändert nur seine eigenen. Idempotent (409 → skip).
  *
  *   node --experimental-strip-types --env-file=apps/<app>/.env \
- *     packages/admin/scripts/migrations/003-notifications.ts
+ *     packages/system/scripts/migrations/003-notifications.ts
  *
  * Benötigte Key-Scopes: tables.*, columns.*, indexes.* (Migrations-Key).
  */
-import { Client, TablesDB } from 'node-appwrite'
+import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -51,7 +51,7 @@ async function waitForColumns(tableId: string) {
   throw new Error(`Columns von "${tableId}" wurden nicht verfügbar`)
 }
 
-console.log(`Migration admin-003 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration system-003 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 await step('Table notifications', () => tablesDB.createTable({
   databaseId, tableId: 'notifications', name: 'Notifications', permissions: [], rowSecurity: true,
@@ -79,7 +79,7 @@ await step('Column notifications.read', () => tablesDB.createBooleanColumn({
 await waitForColumns('notifications')
 
 await step('Index notifications.recipient', () => tablesDB.createIndex({
-  databaseId, tableId: 'notifications', key: 'recipient', type: 'key', columns: ['recipientId'],
+  databaseId, tableId: 'notifications', key: 'recipient', type: TablesDBIndexType.Key, columns: ['recipientId'],
 }))
 
-console.log('✔ Migration admin-003 fertig')
+console.log('✔ Migration system-003 fertig')

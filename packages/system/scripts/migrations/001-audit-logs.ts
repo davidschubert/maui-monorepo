@@ -1,16 +1,16 @@
 /**
- * Migration admin-001: audit_logs Table.
+ * Migration system-001: audit_logs Table.
  *
  * Protokolliert privilegierte Admin-Aktionen (Sperren, Moderation, Rollen …).
  * Nur serverseitig beschrieben/gelesen (API-Key) — keine Row-Permissions.
  * Idempotent (409 → skip).
  *
  *   node --experimental-strip-types --env-file=apps/<app>/.env \
- *     packages/admin/scripts/migrations/001-audit-logs.ts
+ *     packages/system/scripts/migrations/001-audit-logs.ts
  *
  * Benötigte Key-Scopes: tables.*, columns.*, indexes.* (Migrations-Key).
  */
-import { Client, TablesDB } from 'node-appwrite'
+import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -55,7 +55,7 @@ async function waitForColumns(tableId: string) {
   throw new Error(`Columns von "${tableId}" wurden nicht verfügbar`)
 }
 
-console.log(`Migration admin-001 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration system-001 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 // Keine Row-Permissions → ausschließlich über den Server-API-Key zugreifbar
 await step('Table audit_logs', () => tablesDB.createTable({
@@ -91,10 +91,10 @@ await step('Column audit_logs.metadata', () => tablesDB.createVarcharColumn({
 await waitForColumns('audit_logs')
 
 await step('Index audit_logs.action', () => tablesDB.createIndex({
-  databaseId, tableId: 'audit_logs', key: 'action', type: 'key', columns: ['action'],
+  databaseId, tableId: 'audit_logs', key: 'action', type: TablesDBIndexType.Key, columns: ['action'],
 }))
 await step('Index audit_logs.actor', () => tablesDB.createIndex({
-  databaseId, tableId: 'audit_logs', key: 'actor', type: 'key', columns: ['actorId'],
+  databaseId, tableId: 'audit_logs', key: 'actor', type: TablesDBIndexType.Key, columns: ['actorId'],
 }))
 
-console.log('✔ Migration admin-001 fertig')
+console.log('✔ Migration system-001 fertig')

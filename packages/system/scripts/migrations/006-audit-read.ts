@@ -1,5 +1,5 @@
 /**
- * Migration admin-006: audit_logs für Admins lesbar machen (read: label:admin).
+ * Migration system-006: audit_logs für Admins lesbar machen (read: label:admin).
  *
  * Das Aktivitätsprotokoll soll live aktualisieren — dafür abonniert der
  * Admin-Client die audit_logs-Rows per Realtime, was Lese-Recht voraussetzt.
@@ -7,7 +7,7 @@
  * Schreiben bleibt server-only (kein write-Recht), über recordAudit().
  *
  *   node --experimental-strip-types --env-file=apps/<app>/.env \
- *     packages/admin/scripts/migrations/006-audit-read.ts
+ *     packages/system/scripts/migrations/006-audit-read.ts
  *
  * Benötigte Key-Scopes: tables.* (Migrations-Key).
  */
@@ -28,7 +28,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
 
-console.log(`Migration admin-006 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration system-006 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 await tablesDB.updateTable({
   databaseId,
@@ -39,4 +39,4 @@ await tablesDB.updateTable({
   rowSecurity: false,
 })
 
-console.log('✔ Migration admin-006 fertig (audit_logs read: label:admin)')
+console.log('✔ Migration system-006 fertig (audit_logs read: label:admin)')

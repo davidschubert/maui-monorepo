@@ -55,7 +55,7 @@ export default createConfigForNuxt({
   },
 }).append({
   // Fundament-Layer dürfen NIE von Features abhängen (azyklisch).
-  files: ['packages/core/**'],
+  files: ['packages/core/**', 'packages/system/**'],
   rules: {
     'no-restricted-imports': ['error', {
       patterns: [

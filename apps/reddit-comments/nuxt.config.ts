@@ -1,6 +1,6 @@
 export default defineNuxtConfig({
   // früher gelistet = höhere Priorität — Feature Layer vor dem Core
-  extends: ['../../packages/themes', '../../packages/admin', '../../packages/comments', '../../packages/moderation', '../../packages/core'],
+  extends: ['../../packages/themes', '../../packages/admin', '../../packages/comments', '../../packages/moderation', '../../packages/core', '../../packages/system'],
 
   // MDC rendert die Markdown-Changelog-Bodies (öffentliche /changelog-Seite).
   modules: ['@nuxtjs/mdc'],

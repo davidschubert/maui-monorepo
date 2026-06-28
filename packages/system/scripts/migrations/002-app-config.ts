@@ -1,16 +1,22 @@
 /**
- * Migration admin-002: app_config Table (Feature-Flags / Laufzeit-Konfiguration).
+ * Migration system-002: app_config Table (Feature-Flags / Laufzeit-Konfiguration).
  *
  * Eine einzelne Zeile 'global' mit Schaltern, die im Dashboard bearbeitet und
  * serverseitig durchgesetzt werden. Nur über den Server-Key zugreifbar.
  * Idempotent (409 → skip).
  *
  *   node --experimental-strip-types --env-file=apps/<app>/.env \
- *     packages/admin/scripts/migrations/002-app-config.ts
+ *     packages/system/scripts/migrations/002-app-config.ts
  *
  * Benötigte Key-Scopes: tables.*, columns.*, rows.* (Migrations-Key).
  */
-import { Client, TablesDB } from 'node-appwrite'
+import { Client, TablesDB, type Models } from 'node-appwrite'
+
+interface AppConfigRow extends Models.Row {
+  registrationEnabled: boolean
+  commentsEnabled: boolean
+  maintenanceMode: boolean
+}
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -52,7 +58,7 @@ async function waitForColumns(tableId: string) {
   throw new Error(`Columns von "${tableId}" wurden nicht verfügbar`)
 }
 
-console.log(`Migration admin-002 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration system-002 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 await step('Table app_config', () => tablesDB.createTable({
   databaseId, tableId: 'app_config', name: 'App Config', permissions: [], rowSecurity: false,
@@ -70,9 +76,9 @@ await step('Column app_config.maintenanceMode', () => tablesDB.createBooleanColu
 
 await waitForColumns('app_config')
 
-await step('Row app_config/global', () => tablesDB.createRow({
+await step('Row app_config/global', () => tablesDB.createRow<AppConfigRow>({
   databaseId, tableId: 'app_config', rowId: 'global',
   data: { registrationEnabled: true, commentsEnabled: true, maintenanceMode: false },
 }))
 
-console.log('✔ Migration admin-002 fertig')
+console.log('✔ Migration system-002 fertig')

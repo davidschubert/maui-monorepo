@@ -1,10 +1,10 @@
 /**
- * Migration admin-004: Spalte audit_logs.ip.
+ * Migration system-004: Spalte audit_logs.ip.
  *
  * Hält die IP des Akteurs im Aktivitätsprotokoll fest. Idempotent (409 → skip).
  *
  *   node --experimental-strip-types --env-file=apps/<app>/.env \
- *     packages/admin/scripts/migrations/004-audit-ip.ts
+ *     packages/system/scripts/migrations/004-audit-ip.ts
  */
 import { Client, TablesDB } from 'node-appwrite'
 
