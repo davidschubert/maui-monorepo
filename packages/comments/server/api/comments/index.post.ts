@@ -1,6 +1,6 @@
 import { ID, Permission, Role } from 'node-appwrite'
 import { commentSchema } from '../../../schemas/comment'
-import { COMMENTS_TABLE, type Comment } from '../../../shared/types/comment'
+import { COMMENTS_TABLE, MAX_COMMENT_DEPTH, type Comment } from '../../../shared/types/comment'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
@@ -12,10 +12,29 @@ export default defineEventHandler(async (event) => {
 
   const body = await readValidatedBody(event, commentSchema.parse)
   const config = useRuntimeConfig(event)
+  const databaseId = config.public.appwriteDatabaseId
   const { tablesDB } = createSessionClient(event)
 
+  // Bei einer Antwort: Eltern-Kommentar vorab holen → rootId/depth ableiten,
+  // maxDepth prüfen und den Parent für die Notification wiederverwenden.
+  let parent: Comment | null = null
+  let rootId: string | null = null
+  let depth = 0
+  if (body.parentId) {
+    parent = await tablesDB.getRow<Comment>({ databaseId, tableId: COMMENTS_TABLE, rowId: body.parentId })
+      .catch(() => null)
+    if (!parent) {
+      throw createError({ status: 404, statusText: 'Parent comment not found' })
+    }
+    rootId = parent.rootId ?? parent.$id
+    depth = parent.depth + 1
+    if (depth > MAX_COMMENT_DEPTH) {
+      throw createError({ status: 422, statusText: 'Maximum reply depth reached' })
+    }
+  }
+
   const row = await tablesDB.createRow<Comment>({
-    databaseId: config.public.appwriteDatabaseId,
+    databaseId,
     tableId: COMMENTS_TABLE,
     rowId: ID.unique(),
     data: {
@@ -23,6 +42,9 @@ export default defineEventHandler(async (event) => {
       targetType: body.targetType,
       content: body.content,
       parentId: body.parentId ?? null,
+      rootId,
+      depth,
+      editedAt: null,
       authorId: user.$id,
       authorName: user.name,
       upvotes: 0,
@@ -41,34 +63,27 @@ export default defineEventHandler(async (event) => {
   })
 
   // Antwort auf einen Kommentar → den Autor des Eltern-Kommentars benachrichtigen
-  if (body.parentId) {
+  if (parent && parent.authorId && parent.authorId !== user.$id) {
     try {
-      const parent = await tablesDB.getRow<Comment>({
-        databaseId: config.public.appwriteDatabaseId,
-        tableId: COMMENTS_TABLE,
-        rowId: body.parentId,
+      const admin = createAdminClient(event)
+      const snippet = body.content.length > 140 ? `${body.content.slice(0, 140)}…` : body.content
+      await admin.tablesDB.createRow({
+        databaseId,
+        tableId: 'notifications',
+        rowId: ID.unique(),
+        data: {
+          recipientId: parent.authorId,
+          type: 'reply',
+          title: user.name,
+          body: snippet,
+          link: '/',
+          read: false,
+        },
+        permissions: [
+          Permission.read(Role.user(parent.authorId)),
+          Permission.update(Role.user(parent.authorId)),
+        ],
       })
-      if (parent.authorId && parent.authorId !== user.$id) {
-        const admin = createAdminClient(event)
-        const snippet = body.content.length > 140 ? `${body.content.slice(0, 140)}…` : body.content
-        await admin.tablesDB.createRow({
-          databaseId: config.public.appwriteDatabaseId,
-          tableId: 'notifications',
-          rowId: ID.unique(),
-          data: {
-            recipientId: parent.authorId,
-            type: 'reply',
-            title: user.name,
-            body: snippet,
-            link: '/',
-            read: false,
-          },
-          permissions: [
-            Permission.read(Role.user(parent.authorId)),
-            Permission.update(Role.user(parent.authorId)),
-          ],
-        })
-      }
     }
     catch {
       // Benachrichtigung ist best effort — Kommentar wurde bereits erstellt

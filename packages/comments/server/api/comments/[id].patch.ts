@@ -33,12 +33,13 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // Sparse Update — Row-Security wirft 401, wenn nicht der Autor schreibt
+    // Sparse Update — Row-Security wirft 401, wenn nicht der Autor schreibt.
+    // editedAt markiert die echte Bearbeitung (≠ $updatedAt, das auch Votes bumpen).
     return await tablesDB.updateRow<Comment>({
       databaseId,
       tableId: COMMENTS_TABLE,
       rowId: commentId,
-      data: { content },
+      data: { content, editedAt: new Date().toISOString() },
     })
   }
   catch {

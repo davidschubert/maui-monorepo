@@ -3,6 +3,9 @@ import type { Models } from 'node-appwrite'
 export const COMMENTS_TABLE = 'comments'
 export const VOTES_TABLE = 'comment_votes'
 
+/** Maximale Antwort-Tiefe (0 = Top-Level). Tiefere Antworten werden abgelehnt. */
+export const MAX_COMMENT_DEPTH = 8
+
 /**
  * Sichtbarkeits-Status (Soft-Delete + Moderation):
  * active → normal · hidden → von Moderation ausgeblendet ·
@@ -27,6 +30,12 @@ export interface Comment extends Models.Row {
    */
   authorAvatarUrl?: string
   parentId: string | null
+  /** $id des Top-Level-Vorfahren (null = Top-Level) — ermöglicht Subtree-Queries */
+  rootId: string | null
+  /** Verschachtelungstiefe (0 = Top-Level) — Basis für das maxDepth-Limit */
+  depth: number
+  /** Gesetzt beim Bearbeiten → echter „bearbeitet"-Indikator (≠ $updatedAt, das Votes/Moderation bumpen) */
+  editedAt: string | null
   /** Denormalisierte Zähler — server-autoritativ via AdminClient gepflegt */
   upvotes: number
   downvotes: number

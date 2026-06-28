@@ -145,6 +145,7 @@ export const useCommentStore = defineStore('comments', () => {
     if (!auth.user) throw new Error('not-logged-in')
 
     const now = new Date().toISOString()
+    const parent = parentId ? rows.value.find(r => r.$id === parentId) : undefined
     const temp: Comment = {
       $id: `temp-${Math.random().toString(36).slice(2)}`,
       $sequence: '',
@@ -160,6 +161,9 @@ export const useCommentStore = defineStore('comments', () => {
       authorName: auth.user.name,
       authorAvatarUrl: (auth.user.prefs as { avatarUrl?: string })?.avatarUrl,
       parentId: parentId ?? null,
+      rootId: parent ? (parent.rootId ?? parent.$id) : null,
+      depth: parent ? parent.depth + 1 : 0,
+      editedAt: null,
       upvotes: 0,
       downvotes: 0,
       score: 0,

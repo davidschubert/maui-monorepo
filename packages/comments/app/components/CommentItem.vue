@@ -92,6 +92,7 @@ const reportReasons = computed(() => [
       <span class="font-medium text-default">{{ comment.authorName }}</span>
       <span aria-hidden="true">·</span>
       <span :title="formatDate(comment.$createdAt)">{{ formatRelativeTime(comment.$createdAt) }}</span>
+      <span v-if="comment.editedAt" :title="formatDate(comment.editedAt)">· {{ t('comments.item.edited') }}</span>
     </div>
 
     <p v-if="isDeleted" class="mt-1 italic text-muted">{{ t('comments.item.deleted') }}</p>
