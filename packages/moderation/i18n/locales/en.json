@@ -1,0 +1,16 @@
+{
+  "moderation": {
+    "report": {
+      "action": "Report",
+      "retract": "Retract report",
+      "title": "Report content",
+      "reasonLabel": "Reason",
+      "notePlaceholder": "Optional note (visible to moderators)",
+      "submit": "Report",
+      "cancel": "Cancel",
+      "success": "Thanks, your report was submitted.",
+      "retracted": "Report retracted.",
+      "error": "Report failed."
+    }
+  }
+}

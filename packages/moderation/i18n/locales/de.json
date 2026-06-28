@@ -1,0 +1,16 @@
+{
+  "moderation": {
+    "report": {
+      "action": "Melden",
+      "retract": "Meldung zurückziehen",
+      "title": "Inhalt melden",
+      "reasonLabel": "Grund",
+      "notePlaceholder": "Optionale Anmerkung (sichtbar für Moderatoren)",
+      "submit": "Melden",
+      "cancel": "Abbrechen",
+      "success": "Danke, deine Meldung ist eingegangen.",
+      "retracted": "Meldung zurückgezogen.",
+      "error": "Meldung fehlgeschlagen."
+    }
+  }
+}
