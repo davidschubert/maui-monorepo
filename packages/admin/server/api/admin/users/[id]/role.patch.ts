@@ -32,7 +32,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const admin = createAdminClient(event)
-  const target = await admin.users.get({ userId })
+  const target = await admin.users.get({ userId }).catch((error) => {
+    throw toH3Error(error, 'User not found')
+  })
   const currentRoles = (target.labels ?? []).filter(isRole)
 
   const removingAdmin = currentRoles.includes('admin') && !nextRoles.includes('admin')

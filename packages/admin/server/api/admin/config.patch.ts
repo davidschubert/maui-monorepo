@@ -24,9 +24,10 @@ export default defineEventHandler(async (event) => {
     // (sonst 409 vom Create, der den echten Fehler maskiert).
     if (error instanceof AppwriteException && error.code === 404) {
       await admin.tablesDB.createRow({ databaseId, tableId: 'app_config', rowId: 'global', data })
+        .catch(e => { throw toH3Error(e, 'Could not save configuration') })
     }
     else {
-      throw createError({ status: 500, statusText: 'Could not save configuration' })
+      throw toH3Error(error, 'Could not save configuration')
     }
   }
 

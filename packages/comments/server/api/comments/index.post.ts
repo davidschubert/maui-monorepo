@@ -35,6 +35,9 @@ export default defineEventHandler(async (event) => {
       Permission.update(Role.user(user.$id)),
       Permission.delete(Role.user(user.$id)),
     ],
+  }).catch((error) => {
+    // Appwrite-4xx (z. B. abgelaufene Session) als 4xx durchreichen, nicht als 500
+    throw toH3Error(error, 'Could not create comment')
   })
 
   // Antwort auf einen Kommentar → den Autor des Eltern-Kommentars benachrichtigen
