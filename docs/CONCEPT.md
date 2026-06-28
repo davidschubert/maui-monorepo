@@ -450,6 +450,37 @@ NUXT_PUBLIC_APP_URL=https://<app-domain>
 
 Vitest Unit Tests für Core Composables ohne Browser-Abhängigkeit (`useFormatDate`, `useFormatCurrency`, `usePagination`). Component Tests vorerst nicht (Nuxt Component Testing mit Layers fehleranfällig). E2E mit Playwright pro App — erst wenn Core stabil.
 
+### A14 — Layer-Grenzen-Matrix & Durchsetzung ✨ neu
+
+Jeder Layer ist ein **Vertrag**: was er besitzen darf und was nie. Eine Datei erbt den
+Vertrag ihres Layers — Regeln stehen auf **Layer-Ebene**, nicht pro Component (sonst
+veralten sie beim Verschieben). Eine Component in `themes/` ist „kein Appwrite" nicht weil
+in ihrer Datei eine Regel steht, sondern weil sie im Themes-Layer liegt.
+
+| Layer | darf besitzen | darf nie | hängt ab von |
+|---|---|---|---|
+| `core` | Auth, Client-Factories, RBAC-Matrix, SSR-Session, Base-UI, Shared-Utils | Feature-Domäne, eigene Tables | — |
+| `system` *(geplant)* | `audit_logs`, `app_config`, `notifications`, `presence` | Feature-Domäne, UI-Welt | core |
+| `moderation` *(geplant)* | `reports`-Table, Melde-Erfassung + Queue + Lifecycle, generische Melde-UI | Domänen-Wissen, Konsequenz-Logik | core |
+| `themes` | Tokens, CSS, Theme-Switcher, Color-Mode | Appwrite, Auth, Business-Logik | — |
+| `comments` | `comments`/`comment_votes`, Comment-API/UI/Store | Admin-Logik, fremde Feature-Tables | core, (moderation) |
+| `admin` | `changelog`, Dashboard/Moderation-Queue | Feature-interne Imports, Feature-Domänen-Logik | core, (moderation, system) |
+
+**Durchsetzung — zweistufig** (ausführlich: [MODERATION-AND-LAYER-BOUNDARIES.md](MODERATION-AND-LAYER-BOUNDARIES.md)):
+
+1. **Architektonisch (primär):** Cross-Layer-Kopplung läuft heute implizit über Auto-Import
+   bzw. String (`tableId: 'comments'`). Neue Abhängigkeiten werden als **explizite, typisierte
+   Verträge** gebaut (Konsument importiert sichtbar aus dem Eigentümer-Layer) — sichtbar,
+   typsicher, lint-bar.
+2. **ESLint `no-restricted-imports` (Backstop):** pro `files`-Scope in `eslint.config.mjs` —
+   themes verbietet `*appwrite*`/`@maui/*`, Feature-Layer verbieten andere `@maui/`-Feature-Layer,
+   Fundament-Layer (core/moderation) verbieten jeden Feature-Import. Fängt *künftige* explizite
+   Kopplung; die implizite löst Stufe 1.
+
+> **`system`/`moderation` sind geplant, nicht gebaut.** A14 fixiert die Grenzen; die beiden
+> neuen Layer sind eigene Schritte. Heutige Abweichung (core nutzt admin-eigene Tables) ist
+> bekannt und über den `system`-Layer adressiert.
+
 ---
 
 ## Core Layer – Detailspezifikation

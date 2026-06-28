@@ -15,6 +15,10 @@ Vollständiges Konzept: docs/CONCEPT.md
   Datenmodell und/oder eigene UI-Welt
 - apps/* → dünne Apps, komponieren via extends: [features..., core]
   (früher gelistet = höhere Priorität; App überschreibt alles)
+- Layer-Grenzen-Matrix (wer darf was besitzen) + Durchsetzung: CONCEPT.md A14.
+  Neue Cross-Layer-Abhängigkeiten als EXPLIZITE Verträge (kein impliziter
+  Auto-Import/String-Coupling); ESLint no-restricted-imports als Backstop.
+  Fundament-Layer (core, geplant: moderation/system) hängen NIE von Features ab.
 
 ## Appwrite (SSR-first, TablesDB)
 - Terminologie: TablesDB / Tables / Rows (NICHT Databases/Collections/Documents)
