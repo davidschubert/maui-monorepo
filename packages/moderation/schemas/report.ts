@@ -13,3 +13,16 @@ export const createReportSchema = z.object({
 })
 
 export type CreateReportInput = z.infer<typeof createReportSchema>
+
+/**
+ * Server-Validierung fürs Abschließen aller offenen Meldungen zu einem Target.
+ * `resolution` bleibt ein offener, aber längenbegrenzter String (z. B. 'hidden',
+ * 'no_action') — der Konsument bestimmt die Semantik.
+ */
+export const resolveReportSchema = z.object({
+  targetType: z.string().min(1).max(64),
+  targetId: z.string().min(1).max(255),
+  resolution: z.string().min(1).max(64).default('no_action'),
+})
+
+export type ResolveReportInput = z.infer<typeof resolveReportSchema>

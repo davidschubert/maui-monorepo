@@ -15,11 +15,16 @@ export function createCommentSchema(t: TranslateFn = identity) {
       .max(10_000, t('comments.validation.contentMax')),
     parentId: z.string().min(1).optional(),
     // Seiten-URL für die Reply-Notification. Sicherheits-Guard: nur INTERNE
-    // absolute Pfade (kein //, kein http(s):, kein javascript:) → kein Open-Redirect.
+    // absolute Pfade. Genau EIN führender "/", danach KEIN /, \ oder % — sonst
+    // werden "//evil", "/\evil" (Browser normalisiert \→/) und "/%2F%2Fevil"
+    // zu protokoll-relativen Off-Site-Links → Open-Redirect. Body verbietet
+    // zusätzlich jedes Whitespace und jeden Backslash (auch "/ /evil", "/\t//evil").
     targetUrl: z
       .string()
       .max(2000)
-      .refine(v => v.startsWith('/') && !v.startsWith('//'), { message: 'targetUrl must be an internal absolute path' })
+      .refine(v => /^\/(?![/\\%])[^\s\\]*$/.test(v), {
+        message: 'targetUrl must be an internal absolute path',
+      })
       .optional(),
   })
 }

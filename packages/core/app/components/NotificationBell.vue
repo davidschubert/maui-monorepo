@@ -69,6 +69,13 @@ function onToggle(value: boolean) {
   open.value = value
   if (value) markAllRead()
 }
+
+// Defense-in-depth gegen Open-Redirect: nur interne absolute Pfade durchlassen
+// (gleicher Guard wie das targetUrl-Schema), sonst auf '/' zurückfallen. Schützt
+// auch vor evtl. alt gespeicherten/vergifteten Notification-Links.
+function safeLink(link?: string): string {
+  return link && /^\/(?![/\\%])[^\s\\]*$/.test(link) ? link : '/'
+}
 </script>
 
 <template>
@@ -88,7 +95,7 @@ function onToggle(value: boolean) {
         <NuxtLink
           v-for="n in notifications"
           :key="n.$id"
-          :to="localePath(n.link || '/')"
+          :to="localePath(safeLink(n.link))"
           class="block rounded-md px-2 py-2 transition-colors hover:bg-elevated"
           @click="open = false"
         >

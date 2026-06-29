@@ -1,4 +1,5 @@
 import { Query } from 'node-appwrite'
+import { resolveReportSchema } from '../../../schemas/report'
 import { REPORTS_TABLE, type Report } from '../../../shared/types/report'
 
 /**
@@ -10,13 +11,11 @@ import { REPORTS_TABLE, type Report } from '../../../shared/types/report'
 export default defineEventHandler(async (event) => {
   const user = requirePermission(event, 'reports.moderate')
 
-  const body = await readBody(event)
-  const targetType = typeof body?.targetType === 'string' ? body.targetType : ''
-  const targetId = typeof body?.targetId === 'string' ? body.targetId : ''
-  const resolution = typeof body?.resolution === 'string' ? body.resolution : 'no_action'
-  if (!targetType || !targetId) {
-    throw createError({ status: 400, statusText: 'Missing target' })
+  const parsed = resolveReportSchema.safeParse(await readBody(event))
+  if (!parsed.success) {
+    throw createError({ status: 400, statusText: 'Invalid resolution' })
   }
+  const { targetType, targetId, resolution } = parsed.data
 
   const config = useRuntimeConfig(event)
   const databaseId = config.public.appwriteDatabaseId
