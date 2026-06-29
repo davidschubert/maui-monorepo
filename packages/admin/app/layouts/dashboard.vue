@@ -7,6 +7,7 @@ import type { CommandPaletteGroup, CommandPaletteItem, NavigationMenuItem } from
 const { t } = useI18n()
 const localePath = useLocalePath()
 const auth = useAuthStore()
+const appConfig = useAppConfig()
 
 const open = ref(false)
 
@@ -32,7 +33,13 @@ const links = computed<NavigationMenuItem[]>(() => {
     { label: t('admin.nav.overview'), icon: 'i-ph-gauge', to: localePath('/dashboard'), exact: true, onSelect: close },
   ]
   if (userHasCapability(u, 'users.manage')) items.push({ label: t('admin.nav.users'), icon: 'i-ph-users', to: localePath('/dashboard/users'), onSelect: close })
-  if (userHasCapability(u, 'comments.moderate')) items.push({ label: t('admin.nav.comments'), icon: 'i-ph-chat-circle', to: localePath('/dashboard/comments'), onSelect: close })
+  // Von Feature-Layern registrierte Dashboard-Module (z.B. comments-Moderation),
+  // capability-gefiltert — admin kennt sie nicht hart (Modul-Registry, A14).
+  for (const m of (appConfig.maui?.admin?.modules ?? []) as MauiAdminModule[]) {
+    if (userHasCapability(u, m.requiredCapability)) {
+      items.push({ label: t(m.labelKey), icon: m.icon, to: localePath(m.to), onSelect: close })
+    }
+  }
   if (userHasCapability(u, 'storage.manage')) items.push({ label: t('admin.nav.storage'), icon: 'i-ph-folder', to: localePath('/dashboard/storage'), onSelect: close })
   // Settings bewusst nicht hier — sitzt schon im User-Menü unten (DashboardUserMenu)
   return items

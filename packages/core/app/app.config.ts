@@ -1,7 +1,15 @@
+import type { MauiAdminModule } from '../shared/types/admin-module'
+
 export default defineAppConfig({
   // maui.* Config-Gates: Core-Default ist IMMER aus — Apps aktivieren explizit.
   // Interne Tools bleiben komplett clean, öffentliche Seiten brauchen 3 Zeilen.
   maui: {
+    admin: {
+      /** Modul-Registry: Feature-Layer tragen hier ihre Dashboard-Sektionen ein
+       *  (deep-merged/konkateniert über alle Layer). Das Dashboard-Layout rendert
+       *  die Nav daraus, capability-gefiltert. */
+      modules: [] as MauiAdminModule[],
+    },
     auth: {
       /** Social-Login-Buttons (z.B. ['github', 'google']) — leer = keine Buttons.
        *  Provider müssen in der Appwrite Console konfiguriert sein! */
