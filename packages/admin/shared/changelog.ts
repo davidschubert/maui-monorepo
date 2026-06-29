@@ -1,3 +1,25 @@
+import type { Models } from 'node-appwrite'
+import type { ChangelogEntry } from './types/admin'
+
+/** Roh-Row der `changelog`-Tabelle (vor der DTO-Abbildung). */
+export type ChangelogRow = Models.Row & Omit<ChangelogEntry, '$id' | '$createdAt'>
+
+/** changelog-Row → DTO (leere Strings für fehlende optionale Felder). */
+export function rowToChangelogEntry(r: ChangelogRow): ChangelogEntry {
+  return {
+    $id: r.$id,
+    $createdAt: r.$createdAt,
+    date: r.date ?? r.$createdAt,
+    title: r.title,
+    body: r.body,
+    titleEn: r.titleEn ?? '',
+    bodyEn: r.bodyEn ?? '',
+    category: r.category ?? '',
+    version: r.version ?? '',
+    published: r.published,
+  }
+}
+
 /**
  * Semver-artige Sortierung (absteigend) für Changelog-Einträge.
  *
