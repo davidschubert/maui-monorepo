@@ -8,7 +8,8 @@ Nuxt 4 Monorepo mit zentralem **Core Layer** und komponierbaren **Feature Layers
 
 ```
 packages/core            ← Ebene 1: Fundament (besitzt KEINE Appwrite Tables!)
-packages/*               ← Ebene 2: Feature Layers (themes, comments, admin, billing)
+packages/system          ← Fundament: Infra-Tabellen (audit_logs, app_config, notifications, presence)
+packages/*               ← Ebene 2: Feature Layers (themes, comments, moderation, admin; billing geplant)
 apps/*                   ← Ebene 3: dünne Apps, komponieren Core + Features
 ```
 
@@ -64,14 +65,16 @@ maui-monorepo/
 │   ├── core/                  # Nuxt Layer: Fundament
 │   │   ├── app/               # Components, Composables, Stores, …
 │   │   └── .playground/       # isolierte Dev-Umgebung (Port 3000)
-│   ├── comments/              # Feature Layer: Kommentarsystem (eigene Tables)
-│   │   ├── app/components/    # CommentThread, CommentForm, VoteButtons
-│   │   ├── server/api/        # GET/POST /api/comments, Vote-Upsert
+│   ├── system/                # Fundament-Layer: Infra-Tabellen (Migrationen, kein UI)
+│   ├── comments/              # Feature Layer: Kommentarsystem (Threads, Votes, Reports-UI)
+│   │   ├── app/components/    # CommentThread, CommentForm, VoteButtons, ReportButton
+│   │   ├── server/api/        # GET/POST /api/comments (Thread-Pagination), Vote-Upsert
 │   │   └── scripts/migrations/ # idempotente Schema-Migrationen
-│   ├── admin/                 # Feature Layer: Dashboard, Moderation, Audit, …
+│   ├── moderation/            # Fundament-Layer: generisches Melde-/Report-System (reports-Table)
+│   ├── admin/                 # Feature Layer: Dashboard, Moderation-Queue, Changelog, Audit, …
 │   └── themes/                # Feature Layer: Theming
 ├── apps/
-│   └── reddit-comments/       # dünne App: extends [themes, admin, comments, core] (Port 3001)
+│   └── reddit-comments/       # dünne App: extends [themes, admin, comments, moderation, core, system] (Port 3001)
 ├── docs/
 │   ├── CONCEPT.md             # Architektur-Konzept (v2)
 │   └── GOALS.md               # Phasen-Roadmap mit /goal-Texten
@@ -105,7 +108,12 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 | 18 | Realtime-Rückbau aufs SDK | ⏳ wartet auf Appwrite-Release |
 | 19 | Email-OTP-Login (passwortlos) | ✅ 2026-06-11 |
 | 20 | OTP-Registrierung (Name, AGB, E-Mail-Normalisierung) | ✅ 2026-06-12 |
-| 10–11 | `packages/comments` Feature Layer + Reddit Comment App | 🔜 |
+| 21 | RBAC: Capabilities, Rollen (admin/moderator), Guards, Audit | ✅ 2026-06-25 |
+| 22 | Layer-Grenzen-Matrix (A14) + ESLint-Import-Backstop | ✅ 2026-06-27 |
+| 23 | `packages/moderation`: generisches Melde-/Report-System + Queue | ✅ 2026-06-27 |
+| 24 | comments: Thread-Pagination (rootId/depth), „bearbeitet", Reply-Notification-Link | ✅ 2026-06-28 |
+| 25 | `packages/system`: Infra-Tabellen ausgelagert (core↔admin-Inversion gelöst) | ✅ 2026-06-27 |
+| 26 | Tests (RBAC/Sort/Thread/Vote, 67) + Dedup + Deploy-Runbook | ✅ 2026-06-29 |
 
 Details und Nachweis-Kriterien pro Phase: [docs/GOALS.md](docs/GOALS.md)
 
