@@ -58,4 +58,10 @@ export const THEME_REGISTRY: MauiTheme[] = [
     { id: 'rose', color: '#e93562' },
     { id: 'violet', color: '#b640dd' },
   ] },
+  // Tailwind-v4-Paletten (oklch-Ramps generiert aus tailwindcss/theme.css)
+  { id: 'midnight', name: 'Midnight', file: '/themes/midnight.css', color: 'oklch(58.5% 0.233 277.117)', variants: [] },
+  { id: 'berry', name: 'Berry', file: '/themes/berry.css', color: 'oklch(66.7% 0.295 322.15)', variants: [] },
+  { id: 'crimson', name: 'Crimson', file: '/themes/crimson.css', color: 'oklch(64.5% 0.246 16.439)', variants: [] },
+  { id: 'citrus', name: 'Citrus', file: '/themes/citrus.css', color: 'oklch(76.9% 0.188 70.08)', variants: [] },
+  { id: 'graphite', name: 'Graphite', file: '/themes/graphite.css', color: 'oklch(55.2% 0.016 285.938)', variants: [] },
 ]

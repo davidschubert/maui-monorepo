@@ -1,0 +1,21 @@
+/* Maui Theme: Citrus — Primary-Ramp aus Tailwind v4 (amber), generiert */
+
+:root[data-theme='citrus'] {
+  --ui-color-primary-50: oklch(98.7% 0.022 95.277);
+  --ui-color-primary-100: oklch(96.2% 0.059 95.617);
+  --ui-color-primary-200: oklch(92.4% 0.12 95.746);
+  --ui-color-primary-300: oklch(87.9% 0.169 91.605);
+  --ui-color-primary-400: oklch(82.8% 0.189 84.429);
+  --ui-color-primary-500: oklch(76.9% 0.188 70.08);
+  --ui-color-primary-600: oklch(66.6% 0.179 58.318);
+  --ui-color-primary-700: oklch(55.5% 0.163 48.998);
+  --ui-color-primary-800: oklch(47.3% 0.137 46.201);
+  --ui-color-primary-900: oklch(41.4% 0.112 45.904);
+  --ui-color-primary-950: oklch(27.9% 0.077 45.635);
+  --ui-primary: var(--ui-color-primary-600);
+  --ui-radius: 0.375rem;
+}
+
+.dark[data-theme='citrus'] {
+  --ui-primary: var(--ui-color-primary-400);
+}
