@@ -34,32 +34,8 @@ export default defineEventHandler(async (event) => {
 
   return {
     exportedAt: new Date().toISOString(),
-    account: {
-      id: user.$id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      registration: user.registration,
-      emailVerification: user.emailVerification,
-      status: user.status,
-      labels: user.labels,
-      prefs: user.prefs,
-    },
-    sessions: sessions.sessions.map(s => ({
-      id: s.$id,
-      createdAt: s.$createdAt,
-      ip: s.ip,
-      client: [s.clientName, s.clientVersion].filter(Boolean).join(' '),
-      os: [s.osName, s.osVersion].filter(Boolean).join(' '),
-      country: s.countryName,
-    })),
-    comments: comments.rows.map(r => ({
-      id: r.$id,
-      createdAt: r.$createdAt,
-      content: r.content,
-      targetType: r.targetType,
-      targetId: r.targetId,
-      status: r.status,
-    })),
+    account: mapExportAccount(user),
+    sessions: mapExportSessions(sessions.sessions),
+    comments: mapExportComments(comments.rows),
   }
 })
