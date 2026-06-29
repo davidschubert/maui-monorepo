@@ -30,7 +30,7 @@ export default defineEventHandler(async (event): Promise<AuditLogListResponse> =
   })
 
   // Avatar-URLs der Actors aus den Account-prefs anreichern (ein Query)
-  const avatars = await resolveUserAvatars(event, result.rows.map(row => row.actorId))
+  const avatars = await resolveAvatars(event, result.rows.map(row => row.actorId))
 
   return {
     total: result.total,

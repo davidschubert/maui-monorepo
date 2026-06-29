@@ -105,7 +105,7 @@ export default defineEventHandler(async (event): Promise<CommentListResponse> =>
   const combined = [...topLevel, ...replies]
 
   // Avatar-URLs der Autoren aus den Account-prefs anreichern (gebündelt, immer aktuell)
-  const avatars = await resolveAuthorAvatars(event, combined.map(row => row.authorId))
+  const avatars = await resolveAvatars(event, combined.map(row => row.authorId))
   const rows = combined.map(row => ({ ...row, authorAvatarUrl: avatars.get(row.authorId) }))
 
   const myVotes: Record<string, VoteValue> = {}

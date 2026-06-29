@@ -43,21 +43,10 @@ export default defineEventHandler(async (event) => {
     // anonyme Besucher bekommen nur die Anzahl, keine PII.
     const authed = !!event.context.user
 
-    // Avatar-URLs der anwesenden User aus den Account-prefs (für die Avatar-Gruppe)
-    const ids = authed ? fresh.rows.map(row => row.userId) : []
-    const avatars = new Map<string, string>()
-    if (ids.length) {
-      try {
-        const users = await admin.users.list({ queries: [Query.equal('$id', ids), Query.limit(ids.length)] })
-        for (const u of users.users) {
-          const url = (u.prefs as { avatarUrl?: string })?.avatarUrl
-          if (typeof url === 'string' && url) avatars.set(u.$id, url)
-        }
-      }
-      catch {
-        // ohne Avatare weiter (Initialen-Fallback)
-      }
-    }
+    // Avatar-URLs der anwesenden User (Account-prefs) — geteilter Core-Util
+    const avatars = authed
+      ? await resolveAvatars(event, fresh.rows.map(row => row.userId))
+      : new Map<string, string>()
 
     return {
       scope,
