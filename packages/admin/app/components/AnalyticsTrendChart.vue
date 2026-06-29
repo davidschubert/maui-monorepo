@@ -90,7 +90,12 @@ const xTicks = computed(() => {
 
 <template>
   <div class="w-full">
-    <svg :viewBox="`0 0 ${W} ${H}`" class="h-auto w-full" role="img">
+    <svg
+      :viewBox="`0 0 ${W} ${H}`"
+      class="h-auto w-full"
+      role="img"
+      :aria-label="`${usersLabel}: ${usersTotal} · ${commentsLabel}: ${commentsTotal}`"
+    >
       <!-- Gridlines -->
       <line
         v-for="(y, i) in gridLines" :key="i"

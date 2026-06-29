@@ -105,7 +105,7 @@ const items = computed<SwatchItem[][]>(() => {
   }))
 
   const sidebarChildren: DropdownMenuItem[] = (['sidebar', 'floating', 'inset'] as const).map(value => ({
-    label: capitalize(value),
+    label: t(`dashboard.sidebar.${value}`),
     type: 'checkbox',
     checked: sidebarVariant.value === value,
     onSelect: (event: Event) => { event.preventDefault(); sidebarVariant.value = value },

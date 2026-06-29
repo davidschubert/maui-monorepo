@@ -91,6 +91,7 @@ async function requestCode(event: FormSubmitEvent<OtpRequestInput>) {
 async function resend() {
   if (resendIn.value > 0) return
   loading.value = true
+  errorMessage.value = null
   try {
     await requestToken()
   }

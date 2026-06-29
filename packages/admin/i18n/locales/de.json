@@ -273,7 +273,10 @@
       "security": "Sicherheit"
     },
     "sidebar": {
-      "label": "Seitenleiste"
+      "label": "Seitenleiste",
+      "sidebar": "Standard",
+      "floating": "Schwebend",
+      "inset": "Eingerückt"
     },
     "system": {
       "title": "System",

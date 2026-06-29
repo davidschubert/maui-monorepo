@@ -273,7 +273,10 @@
       "security": "Security"
     },
     "sidebar": {
-      "label": "Sidebar"
+      "label": "Sidebar",
+      "sidebar": "Standard",
+      "floating": "Floating",
+      "inset": "Inset"
     },
     "system": {
       "title": "System",
