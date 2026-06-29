@@ -16,6 +16,7 @@ const mk = (id: string, parentId: string | null, createdAt: string): Comment => 
   content: `c-${id}`,
   authorId: 'a',
   authorName: 'A',
+  targetUrl: null,
   rootId: parentId ? 'r' : null,
   depth: parentId ? 1 : 0,
   editedAt: null,

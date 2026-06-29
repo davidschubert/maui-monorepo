@@ -4,10 +4,13 @@ import { COMMENTS_TABLE, type Comment, type SortMode } from '../../shared/types/
 const props = defineProps<{
   targetId: string
   targetType: string
+  /** Pfad der Seite für die Reply-Notification — Default: aktueller Route-Pfad */
+  targetUrl?: string
 }>()
 
 const { t } = useI18n()
 const localePath = useLocalePath()
+const route = useRoute()
 const store = useCommentStore()
 const config = useRuntimeConfig()
 const { isLoggedIn } = useCurrentUser()
@@ -23,7 +26,7 @@ const notice = computed(() => reason.value === 'maintenance'
 
 // SSR-Load — Pinia-State hydratisiert in den Client
 await useAsyncData(`comments:${props.targetType}:${props.targetId}`, async () => {
-  await store.fetchComments(props.targetId, props.targetType)
+  await store.fetchComments(props.targetId, props.targetType, props.targetUrl ?? route.path)
   return true
 })
 

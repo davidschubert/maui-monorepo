@@ -42,6 +42,7 @@ export default defineEventHandler(async (event) => {
       targetType: body.targetType,
       content: body.content,
       parentId: body.parentId ?? null,
+      targetUrl: body.targetUrl ?? null,
       rootId,
       depth,
       editedAt: null,
@@ -67,6 +68,9 @@ export default defineEventHandler(async (event) => {
     try {
       const admin = createAdminClient(event)
       const snippet = body.content.length > 140 ? `${body.content.slice(0, 140)}…` : body.content
+      // Link zur echten Seite des Kommentars: targetUrl des Replies (= Seite),
+      // sonst die des Parents, sonst '/' (Bestandskommentare ohne targetUrl).
+      const link = (body.targetUrl ?? parent.targetUrl) ?? '/'
       await admin.tablesDB.createRow({
         databaseId,
         tableId: 'notifications',
@@ -76,7 +80,7 @@ export default defineEventHandler(async (event) => {
           type: 'reply',
           title: user.name,
           body: snippet,
-          link: '/',
+          link,
           read: false,
         },
         permissions: [

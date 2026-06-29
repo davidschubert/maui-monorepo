@@ -20,6 +20,8 @@ interface RealtimeCommentEvent {
 export const useCommentStore = defineStore('comments', () => {
   const targetId = ref('')
   const targetType = ref('')
+  /** Interner Pfad der Seite (für die Reply-Notification) — vom CommentSection gesetzt */
+  const targetUrl = ref('')
   const rows = ref<Comment[]>([])
   /** Alle nicht-hidden Kommentare (Überschrift) */
   const total = ref(0)
@@ -66,9 +68,10 @@ export const useCommentStore = defineStore('comments', () => {
     }
   }
 
-  async function fetchComments(id: string, type: string) {
+  async function fetchComments(id: string, type: string, url?: string) {
     targetId.value = id
     targetType.value = type
+    if (url !== undefined) targetUrl.value = url
     loading.value = true
     try {
       const response = await $fetch<CommentListResponse>('/api/comments', {
@@ -145,6 +148,7 @@ export const useCommentStore = defineStore('comments', () => {
       authorName: auth.user.name,
       authorAvatarUrl: (auth.user.prefs as { avatarUrl?: string })?.avatarUrl,
       parentId: parentId ?? null,
+      targetUrl: targetUrl.value || null,
       rootId: parent ? (parent.rootId ?? parent.$id) : null,
       depth: parent ? parent.depth + 1 : 0,
       editedAt: null,
@@ -159,7 +163,7 @@ export const useCommentStore = defineStore('comments', () => {
     try {
       const created = await $fetch<Comment>('/api/comments', {
         method: 'POST',
-        body: { targetId: targetId.value, targetType: targetType.value, content, parentId },
+        body: { targetId: targetId.value, targetType: targetType.value, content, parentId, targetUrl: targetUrl.value || undefined },
       })
       // Realtime kann denselben Kommentar parallel schon eingefügt haben (Race
       // zwischen POST-Response und Create-Event). Idempotent abgleichen statt

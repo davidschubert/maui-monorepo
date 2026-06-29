@@ -30,6 +30,8 @@ export interface Comment extends Models.Row {
    */
   authorAvatarUrl?: string
   parentId: string | null
+  /** Interner Pfad der Seite, auf der der Kommentar lebt — für die Reply-Notification (null = unbekannt → '/') */
+  targetUrl: string | null
   /** $id des Top-Level-Vorfahren (null = Top-Level) — ermöglicht Subtree-Queries */
   rootId: string | null
   /** Verschachtelungstiefe (0 = Top-Level) — Basis für das maxDepth-Limit */

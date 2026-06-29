@@ -14,6 +14,13 @@ export function createCommentSchema(t: TranslateFn = identity) {
       .min(1, t('comments.validation.contentRequired'))
       .max(10_000, t('comments.validation.contentMax')),
     parentId: z.string().min(1).optional(),
+    // Seiten-URL für die Reply-Notification. Sicherheits-Guard: nur INTERNE
+    // absolute Pfade (kein //, kein http(s):, kein javascript:) → kein Open-Redirect.
+    targetUrl: z
+      .string()
+      .max(2000)
+      .refine(v => v.startsWith('/') && !v.startsWith('//'), { message: 'targetUrl must be an internal absolute path' })
+      .optional(),
   })
 }
 
