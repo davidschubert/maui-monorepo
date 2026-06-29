@@ -37,6 +37,11 @@ export default defineNuxtConfig({
     dirs: [join(currentDir, './app/stores')],
   },
 
+  // Stabiles Fehler-Envelope für /api (server/error.ts) — externe API-Konsumenten
+  nitro: {
+    errorHandler: join(currentDir, './server/error.ts'),
+  },
+
   // Skeleton mit Leer-Defaults (Typ-Inferenz) — echte Werte aus .env der App.
   // Der API Key ist server-only und gehört NIE in public.*
   runtimeConfig: {
