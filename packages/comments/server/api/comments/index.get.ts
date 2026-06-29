@@ -1,5 +1,6 @@
 import { Query } from 'node-appwrite'
 import { SORT_MODES } from '../../../schemas/comment'
+import { controversy } from '../../../shared/sort'
 import {
   COMMENTS_TABLE,
   VOTES_TABLE,
@@ -17,11 +18,6 @@ const CONTRO_CAP = 200
 // Antworten je geladener Thread-Seite (komplette Subtrees). Threads mit mehr
 // Antworten sind die absolute Ausnahme.
 const REPLY_CAP = 500
-
-/** Controversial: viel Aktivität, ausgeglichener Score (Spec-Formel) */
-function controversy(comment: Comment): number {
-  return (comment.upvotes + comment.downvotes) / Math.max(Math.abs(comment.score), 1)
-}
 
 /**
  * Kommentare eines Targets — paginiert über TOP-LEVEL-Threads, jeder mit seinem
