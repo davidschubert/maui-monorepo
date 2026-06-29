@@ -7,6 +7,8 @@ import type {
   VoteResponse,
   VoteValue,
 } from '../../shared/types/comment'
+import { buildCommentTree } from '../../shared/thread'
+import { applyVoteDelta, nextVoteValue } from '../../shared/vote'
 
 /** Strukturkompatibel zu RealtimeRowEvent<Comment> aus dem Core */
 interface RealtimeCommentEvent {
@@ -34,26 +36,8 @@ export const useCommentStore = defineStore('comments', () => {
   /** IDs, die wir per Moderation (hidden) entfernt haben — für Live-Restore */
   const removedByHide = new Set<string>()
 
-  /** Baum aus der flachen Liste: Top-Level behält die Server-Sortierung, Antworten chronologisch */
-  const threaded = computed<CommentNode[]>(() => {
-    const children = new Map<string, Comment[]>()
-    for (const row of rows.value) {
-      if (!row.parentId) continue
-      const list = children.get(row.parentId) ?? []
-      list.push(row)
-      children.set(row.parentId, list)
-    }
-
-    const toNode = (comment: Comment): CommentNode => ({
-      comment,
-      children: (children.get(comment.$id) ?? [])
-        .slice()
-        .sort((a, b) => a.$createdAt.localeCompare(b.$createdAt))
-        .map(toNode),
-    })
-
-    return rows.value.filter(row => !row.parentId).map(toNode)
-  })
+  /** Baum aus der flachen Liste (Top-Level in Server-Reihenfolge, Antworten chronologisch) */
+  const threaded = computed<CommentNode[]>(() => buildCommentTree(rows.value))
 
   function myVote(commentId: string): VoteValue | null {
     return userVotes.value[commentId] ?? null
@@ -201,14 +185,8 @@ export const useCommentStore = defineStore('comments', () => {
 
     const snapshotRow = { ...rows.value[index]! }
     const snapshotVote = userVotes.value[commentId] ?? null
-    const next: VoteValue | null = snapshotVote === value ? null : value
-
-    const optimistic = { ...snapshotRow }
-    if (snapshotVote === 1) optimistic.upvotes -= 1
-    if (snapshotVote === -1) optimistic.downvotes -= 1
-    if (next === 1) optimistic.upvotes += 1
-    if (next === -1) optimistic.downvotes += 1
-    optimistic.score = optimistic.upvotes - optimistic.downvotes
+    const next = nextVoteValue(snapshotVote, value)
+    const optimistic = { ...snapshotRow, ...applyVoteDelta(snapshotRow, snapshotVote, next) }
 
     rows.value.splice(index, 1, optimistic)
     setVote(commentId, next)

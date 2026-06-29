@@ -1,0 +1,28 @@
+import type { Comment, CommentNode } from './types/comment'
+
+/**
+ * Baut den Kommentar-Baum aus der flachen Liste: Top-Level behält die
+ * (Server-)Reihenfolge der Eingabe, Antworten werden chronologisch sortiert.
+ * Verwaiste Antworten (parentId nicht in der Liste) erscheinen NICHT als
+ * Top-Level — sie hängen an einem nicht geladenen Parent und werden weggelassen.
+ * Reine Funktion → unit-testbar; genutzt vom Comment-Store.
+ */
+export function buildCommentTree(rows: Comment[]): CommentNode[] {
+  const children = new Map<string, Comment[]>()
+  for (const row of rows) {
+    if (!row.parentId) continue
+    const list = children.get(row.parentId) ?? []
+    list.push(row)
+    children.set(row.parentId, list)
+  }
+
+  const toNode = (comment: Comment): CommentNode => ({
+    comment,
+    children: (children.get(comment.$id) ?? [])
+      .slice()
+      .sort((a, b) => a.$createdAt.localeCompare(b.$createdAt))
+      .map(toNode),
+  })
+
+  return rows.filter(row => !row.parentId).map(toNode)
+}
