@@ -21,19 +21,27 @@ export async function myOpenReportTargetIds(
 ): Promise<Set<string>> {
   if (targetIds.length === 0) return new Set()
   const config = useRuntimeConfig(event)
+  const databaseId = config.public.appwriteDatabaseId
   const { tablesDB } = createAdminClient(event)
-  const res = await tablesDB.listRows<Report>({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: REPORTS_TABLE,
-    queries: [
-      Query.equal('reporterId', reporterId),
-      Query.equal('targetType', targetType),
-      Query.equal('targetId', targetIds),
-      Query.equal('status', 'open'),
-      Query.limit(targetIds.length),
-    ],
-  })
-  return new Set(res.rows.map(row => row.targetId))
+
+  const result = new Set<string>()
+  // Query.equal ist auf 100 Werte begrenzt → in Batches (Thread-Subtrees können groß sein)
+  for (let i = 0; i < targetIds.length; i += 100) {
+    const batch = targetIds.slice(i, i + 100)
+    const res = await tablesDB.listRows<Report>({
+      databaseId,
+      tableId: REPORTS_TABLE,
+      queries: [
+        Query.equal('reporterId', reporterId),
+        Query.equal('targetType', targetType),
+        Query.equal('targetId', batch),
+        Query.equal('status', 'open'),
+        Query.limit(batch.length),
+      ],
+    })
+    for (const row of res.rows) result.add(row.targetId)
+  }
+  return result
 }
 
 /**
