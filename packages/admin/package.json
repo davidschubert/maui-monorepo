@@ -6,7 +6,8 @@
   "main": "./nuxt.config.ts",
   "scripts": {
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "migrate": "node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/001-changelog.ts && node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/002-changelog-date.ts && node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/003-changelog-i18n.ts"
   },
   "dependencies": {
     "@nuxt/ui": "catalog:",
