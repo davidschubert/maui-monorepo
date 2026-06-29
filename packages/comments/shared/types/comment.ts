@@ -54,7 +54,10 @@ export type VoteValue = 1 | -1
 
 /** GET /api/comments Response: Rows + eigene Votes als separate Map */
 export interface CommentListResponse {
+  /** Alle nicht-hidden Kommentare des Targets (für die Überschrift) */
   total: number
+  /** Anzahl Top-Level-Threads — Basis der Pagination (eine Seite = N Threads + Subtrees) */
+  topLevelTotal: number
   rows: Comment[]
   myVotes: Record<string, VoteValue>
   /** IDs der Kommentare, die der eingeloggte User offen gemeldet hat (Moderation-Layer) */

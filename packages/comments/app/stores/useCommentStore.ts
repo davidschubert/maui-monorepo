@@ -8,9 +8,6 @@ import type {
   VoteValue,
 } from '../../shared/types/comment'
 
-// Muss der PAGE_SIZE in server/api/comments/index.get.ts entsprechen.
-const PAGE_SIZE = 25
-
 /** Strukturkompatibel zu RealtimeRowEvent<Comment> aus dem Core */
 interface RealtimeCommentEvent {
   type: 'create' | 'update' | 'delete'
@@ -22,7 +19,10 @@ export const useCommentStore = defineStore('comments', () => {
   const targetId = ref('')
   const targetType = ref('')
   const rows = ref<Comment[]>([])
+  /** Alle nicht-hidden Kommentare (Überschrift) */
   const total = ref(0)
+  /** Top-Level-Threads — Basis der Pagination (eine Seite = N Threads + Subtrees) */
+  const topLevelTotal = ref(0)
   const userVotes = ref<Record<string, VoteValue>>({})
   /** IDs, die der eingeloggte User offen gemeldet hat (Moderation-Layer) */
   const userReports = ref<Set<string>>(new Set())
@@ -92,6 +92,7 @@ export const useCommentStore = defineStore('comments', () => {
       })
       rows.value = response.rows
       total.value = response.total
+      topLevelTotal.value = response.topLevelTotal
       userVotes.value = response.myVotes
       userReports.value = new Set(response.myReports)
       pending.value = []
@@ -107,14 +108,11 @@ export const useCommentStore = defineStore('comments', () => {
     if (loading.value || rows.value.length >= total.value) return
     loading.value = true
     try {
-      // Über die Seitenzahl iterieren, nicht über `rows.length < total`: im
-      // controversial-Modus sortiert der Server ein Fenster bei JEDEM Request neu
-      // und sliced — verschiebt sich die Ordnung durch Live-Votes zwischen zwei
-      // Seiten, würde eine an `rows.length` gekoppelte Schleife einzelne Zeilen
-      // überspringen (und nie `total` erreichen). Jede Seite wird so genau einmal
-      // geholt; `seen` dedupliziert Grenzfall-Überschneidungen.
-      const lastPage = Math.ceil(total.value / PAGE_SIZE)
-      for (let page = 2; page <= lastPage; page++) {
+      // Bis zur Erschöpfung paginieren: Stop, sobald eine Seite KEINE neuen
+      // Top-Level-Threads mehr bringt. Robust ohne akkurate Thread-Gesamtzahl
+      // (Realtime kann sie zwischen Fetches verschieben). Jede Seite liefert
+      // ihre kompletten Subtrees; `seen` dedupliziert Grenzfall-Überschneidungen.
+      for (let page = 2; page <= 1000; page++) {
         const response = await $fetch<CommentListResponse>('/api/comments', {
           query: { targetId: targetId.value, targetType: targetType.value, sort: sortMode.value, page },
         })
@@ -126,6 +124,8 @@ export const useCommentStore = defineStore('comments', () => {
           userVotes.value = { ...userVotes.value, ...response.myVotes }
           userReports.value = new Set([...userReports.value, ...response.myReports])
         }
+        // Keine neuen Top-Level-Threads auf dieser Seite → fertig
+        if (!fresh.some(row => !row.parentId)) break
       }
     }
     finally {
@@ -355,6 +355,7 @@ export const useCommentStore = defineStore('comments', () => {
     targetType,
     rows,
     total,
+    topLevelTotal,
     userVotes,
     sortMode,
     loading,

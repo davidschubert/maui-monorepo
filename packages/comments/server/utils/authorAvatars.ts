@@ -10,13 +10,17 @@ export async function resolveAuthorAvatars(event: H3Event, authorIds: string[]):
   const ids = [...new Set(authorIds.filter(Boolean))]
   if (ids.length === 0) return new Map()
 
+  const map = new Map<string, string>()
   try {
     const admin = createAdminClient(event)
-    const res = await admin.users.list({ queries: [Query.equal('$id', ids), Query.limit(ids.length)] })
-    const map = new Map<string, string>()
-    for (const user of res.users) {
-      const url = (user.prefs as { avatarUrl?: string })?.avatarUrl
-      if (typeof url === 'string' && url.length > 0) map.set(user.$id, url)
+    // Query.equal ist auf 100 Werte begrenzt → in Batches (Thread-Subtrees können groß sein)
+    for (let i = 0; i < ids.length; i += 100) {
+      const batch = ids.slice(i, i + 100)
+      const res = await admin.users.list({ queries: [Query.equal('$id', batch), Query.limit(batch.length)] })
+      for (const user of res.users) {
+        const url = (user.prefs as { avatarUrl?: string })?.avatarUrl
+        if (typeof url === 'string' && url.length > 0) map.set(user.$id, url)
+      }
     }
     return map
   }
