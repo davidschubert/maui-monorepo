@@ -114,7 +114,7 @@ const reportReasons = computed(() => [
       <UButton
         v-if="childCount > 0"
         size="xs" color="neutral" variant="ghost"
-        :icon="collapsed ? 'i-ph-caret-down' : 'i-ph-caret-up'"
+        :icon="collapsed ? 'i-ph-caret-double-down' : 'i-ph-caret-double-up'"
         :aria-label="collapsed ? t('comments.item.expandReplies') : t('comments.item.collapseReplies')"
         @click="emit('toggleCollapse')"
       >
