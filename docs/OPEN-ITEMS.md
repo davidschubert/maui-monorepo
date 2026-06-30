@@ -13,7 +13,7 @@ _Alle erledigt (2026-06-24) — siehe „Bereits erledigt"._
 
 ## 🔧 Cleanup / Improvements / NITs
 
-- **Status-Codes**: `comments/index.post`, `config.patch`-Create, admin `getRow`/`users.get` werfen 500 statt 4xx (KEIN Leak — Nitro maskiert in Prod —, nur falscher Status).
+- ✅ **Status-Codes** (2026-06-29): `status.patch`-`getRow` → 404 (statt 500) und `status.patch`-`updateRow` + `users/[id].delete`-`users.delete` via `toH3Error` gemappt. `comments/index.post` und `config.patch` waren bereits via `toH3Error` sauber, `users.get`/`appConfig` schon abgefangen.
 - **i18n/A11y**: Sidebar-Labels (sidebar/floating/inset) in [DashboardUserMenu.vue](../packages/admin/app/components/DashboardUserMenu.vue) hartkodiert; [AnalyticsTrendChart.vue](../packages/admin/app/components/AnalyticsTrendChart.vue)-SVG ohne `aria-label`; [OtpLoginForm.vue](../packages/core/app/components/auth/OtpLoginForm.vue)-`resend` löscht alten Fehler nicht.
 - **Dead Code**: `useSeo.ts`, `useAnalytics.ts` (Composable — Analytics läuft im Plugin), `RowList<T>`-Typ.
 - **Duplizierung → in Core/Utils zusammenführen**: Avatar-Auflösung (`authorAvatars.ts` + `userAvatars.ts` + inline in `presence/count.get.ts`), GDPR-Export-Mapper (core + admin), Changelog-Row→DTO (public + admin).

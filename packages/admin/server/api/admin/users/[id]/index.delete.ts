@@ -23,6 +23,7 @@ export default defineEventHandler(async (event) => {
   }
 
   await admin.users.delete({ userId })
+    .catch((error) => { throw toH3Error(error, 'Could not delete user') })
 
   await recordAudit(event, { action: 'user.deleted', targetType: 'user', targetId: userId, targetName: name })
 
