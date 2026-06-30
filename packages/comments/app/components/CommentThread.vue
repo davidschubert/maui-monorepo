@@ -17,7 +17,7 @@ function toggle(id: string) {
 </script>
 
 <template>
-  <ul :class="nested ? 'space-y-4' : 'space-y-6'">
+  <ul :class="nested ? 'space-y-2' : 'space-y-3'">
     <li v-for="node in nodes" :key="node.comment.$id">
       <CommentItem
         :comment="node.comment"
@@ -27,7 +27,7 @@ function toggle(id: string) {
       />
       <div
         v-if="node.children.length && !collapsed.has(node.comment.$id)"
-        class="mt-3 ml-3 border-l border-default pl-5 transition-colors hover:border-accented"
+        class="mt-2 ml-3 border-l border-default pl-4 transition-colors hover:border-accented"
         data-thread-children
       >
         <CommentThread :nodes="node.children" nested />
