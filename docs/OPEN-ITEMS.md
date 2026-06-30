@@ -22,10 +22,10 @@ _Alle erledigt (2026-06-24) — siehe „Bereits erledigt"._
 
 ## ⏸️ Zurückgestellt — brauchen Design
 
-- **Reply-Notification-Link `/`** + Cross-Layer-Write — [comments/index.post.ts](../packages/comments/server/api/comments/index.post.ts) verlinkt hart auf `/` und schreibt in die `notifications`-Tabelle des Admin-Layers. Sauberer Fix braucht eine Target→URL-Konvention + Event-/Resolver-Hook zur Entkopplung.
+- **Cross-Layer-Write (Notifications)** — der `/`-Link-Teil ist gelöst (nutzt jetzt `targetUrl` mit Open-Redirect-Guard); offen bleibt: [comments/index.post.ts](../packages/comments/server/api/comments/index.post.ts) schreibt direkt in die `notifications`-Tabelle (gehört core/admin) via String-Coupling `tableId: 'notifications'`. Sauberer Fix: Event-/Resolver-Hook (Core stellt einen `notify()`-Vertrag bereit, comments ruft ihn auf) statt direktem Cross-Layer-Tabellenzugriff.
 - **`total`-Semantik im Comment-Store** — mischt „geladen" vs. „global"; beim *Hide* eines Eltern-Kommentars verwaisen geladene Replies. → `total` server-autoritativ halten. (Das Pagination-/Orphaning-Problem ist durch den „Alle laden"-Button entschärft, aber nicht grundsätzlich gelöst.)
 - **Pro-Melder-Report-Modell** — aktuell ein Status-Flag (jeder eingeloggte Nicht-Autor kann melden/zurückziehen). „Richtig": pro User eine Meldung, nur die eigene zurückziehbar, Admin sieht Melder-Anzahl → eigene `comment_reports`-Tabelle.
-- **„Bearbeitet"-Indikator** — braucht eine eigene `edited`/`editedAt`-Spalte, da `$updatedAt` auch von Votes/Moderation gebumpt wird.
+- ✅ **„Bearbeitet"-Indikator** (2026-06-29, bereits umgesetzt — Note war stale): `editedAt`-Spalte (Migration 005) wird beim Edit gesetzt ([id].patch.ts) und in CommentItem angezeigt — unabhängig von `$updatedAt`.
 
 ## 🗺️ Roadmap — bewusst ausgeklammert
 
