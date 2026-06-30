@@ -85,7 +85,7 @@ const reportReasons = computed(() => [
 </script>
 
 <template>
-  <article class="rounded-lg p-3 text-sm ring ring-default bg-elevated/40" data-comment :data-comment-id="comment.$id">
+  <article class="rounded-lg p-3 text-sm ring ring-default bg-elevated/40 transition-colors hover:bg-elevated/70" data-comment :data-comment-id="comment.$id">
     <!-- Kopfzeile: Avatar · Name · relative Zeit · bearbeitet · gemeldet -->
     <div class="flex items-center gap-2 text-xs text-muted">
       <UserAvatar :user="{ name: comment.authorName, prefs: { avatarUrl: comment.authorAvatarUrl } }" size="xs" />
