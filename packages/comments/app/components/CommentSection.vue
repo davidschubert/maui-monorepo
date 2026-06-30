@@ -63,7 +63,7 @@ const typingText = computed(() => {
 </script>
 
 <template>
-  <section class="space-y-4" data-comment-section>
+  <section class="space-y-5" data-comment-section>
     <header class="flex items-center justify-between gap-4">
       <h2 class="text-lg font-semibold">{{ t('comments.title') }} ({{ store.total }})</h2>
       <USelect v-model="sort" :items="sortOptions" size="sm" :aria-label="t('comments.sort.label')" />

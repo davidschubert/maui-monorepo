@@ -87,15 +87,15 @@ const reportReasons = computed(() => [
 <template>
   <article class="text-sm" data-comment :data-comment-id="comment.$id">
     <!-- Kopfzeile: Avatar · Name · relative Zeit · bearbeitet · gemeldet -->
-    <div class="flex items-center gap-1.5 text-xs text-muted">
-      <UserAvatar :user="{ name: comment.authorName, prefs: { avatarUrl: comment.authorAvatarUrl } }" size="2xs" />
+    <div class="flex items-center gap-2 text-xs text-muted">
+      <UserAvatar :user="{ name: comment.authorName, prefs: { avatarUrl: comment.authorAvatarUrl } }" size="xs" />
       <span class="font-medium text-default">{{ comment.authorName }}</span>
       <span aria-hidden="true">·</span>
       <span :title="formatDate(comment.$createdAt)">{{ formatRelativeTime(comment.$createdAt) }}</span>
       <span v-if="comment.editedAt" :title="formatDate(comment.editedAt)">· {{ t('comments.item.edited') }}</span>
     </div>
 
-    <p v-if="isDeleted" class="mt-1 italic text-muted">{{ t('comments.item.deleted') }}</p>
+    <p v-if="isDeleted" class="mt-2 italic text-muted">{{ t('comments.item.deleted') }}</p>
 
     <template v-else-if="editing">
       <UTextarea v-model="editContent" :rows="3" class="mt-2 w-full" />
@@ -105,10 +105,10 @@ const reportReasons = computed(() => [
       </div>
     </template>
 
-    <p v-else class="mt-1 whitespace-pre-line">{{ comment.content }}</p>
+    <p v-else class="mt-2 whitespace-pre-line leading-relaxed text-default">{{ comment.content }}</p>
 
     <!-- Aktionszeile: Votes · Antworten ein-/ausklappen · Antworten · ⋯ -->
-    <div v-if="!editing" class="mt-1 flex items-center gap-0.5 text-muted">
+    <div v-if="!editing" class="mt-1.5 -ml-1.5 flex items-center gap-1 text-muted">
       <VoteButtons :comment="comment" />
 
       <UButton
