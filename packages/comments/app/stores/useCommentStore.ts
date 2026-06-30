@@ -7,7 +7,7 @@ import type {
   VoteResponse,
   VoteValue,
 } from '../../shared/types/comment'
-import { buildCommentTree } from '../../shared/thread'
+import { buildCommentTree, descendantIds } from '../../shared/thread'
 import { applyVoteDelta, nextVoteValue } from '../../shared/vote'
 
 /** Strukturkompatibel zu RealtimeRowEvent<Comment> aus dem Core */
@@ -239,32 +239,14 @@ export const useCommentStore = defineStore('comments', () => {
     rows.value.splice(index, 1, merged)
   }
 
-  /** Entfernt eine Row (aus Liste + Puffer); zählt total optional runter */
-  function removeRow(id: string, decrement = false) {
-    const wasVisible = rows.value.some(row => row.$id === id)
-    if (wasVisible) rows.value = rows.value.filter(row => row.$id !== id)
-    pending.value = pending.value.filter(row => row.$id !== id)
-    if (decrement && wasVisible) total.value = Math.max(0, total.value - 1)
-  }
-
   /**
-   * Entfernt einen Kommentar UND alle (transitiven) Nachfahren — für echtes
-   * Hard-Delete, damit keine Antworten verwaisen (sie wären sonst wegen ihres
-   * parentId aus dem Top-Level gefiltert → unsichtbar, aber noch in total).
-   * total wird um die Anzahl tatsächlich entfernter sichtbarer Rows reduziert.
+   * Entfernt einen Kommentar UND alle (transitiven) geladenen Nachfahren — für
+   * Hard-Delete UND Moderation-Hide, damit keine Antworten verwaisen (sie wären
+   * sonst wegen ihres parentId aus dem Top-Level gefiltert → unsichtbar, aber
+   * noch in total). total sinkt um die Anzahl tatsächlich entfernter Rows.
    */
   function removeWithDescendants(id: string) {
-    const toRemove = new Set<string>([id])
-    let grew = true
-    while (grew) {
-      grew = false
-      for (const row of rows.value) {
-        if (row.parentId && toRemove.has(row.parentId) && !toRemove.has(row.$id)) {
-          toRemove.add(row.$id)
-          grew = true
-        }
-      }
-    }
+    const toRemove = descendantIds(rows.value, id)
     const removedVisible = rows.value.filter(row => toRemove.has(row.$id)).length
     rows.value = rows.value.filter(row => !toRemove.has(row.$id))
     pending.value = pending.value.filter(row => !toRemove.has(row.$id))
@@ -290,8 +272,10 @@ export const useCommentStore = defineStore('comments', () => {
     }
 
     if (type === 'update') {
-      // Moderation: ausgeblendete Kommentare live entfernen (GET filtert hidden ohnehin)
-      if (payload.status === 'hidden') { removeRow(payload.$id, true); removedByHide.add(payload.$id); return }
+      // Moderation-Hide: Kommentar UND geladene Antworten entfernen (sonst
+      // verwaisen sie unsichtbar in rows und blähen total auf). Nur der Parent
+      // kehrt per Restore zurück; seine Antworten lädt der nächste Fetch nach.
+      if (payload.status === 'hidden') { removeWithDescendants(payload.$id); removedByHide.add(payload.$id); return }
       // bereits sichtbar → aktualisieren (Edit, Vote-Score, Report-Badge, Soft-Delete)
       if (rows.value.some(row => row.$id === payload.$id)) { upsertRow(payload); return }
       // nicht (mehr) sichtbar: nur wieder aufnehmen, wenn WIR es per hide entfernt

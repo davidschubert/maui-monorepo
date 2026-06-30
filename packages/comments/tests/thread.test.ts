@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildCommentTree } from '../shared/thread'
+import { buildCommentTree, descendantIds } from '../shared/thread'
 import type { Comment } from '../shared/types/comment'
 
 const mk = (id: string, parentId: string | null, createdAt: string): Comment => ({
@@ -60,5 +60,41 @@ describe('buildCommentTree', () => {
 
   it('leere Liste → leerer Baum', () => {
     expect(buildCommentTree([])).toEqual([])
+  })
+})
+
+describe('descendantIds (Subtree-Entfernung: Hide + Hard-Delete)', () => {
+  // p → r → rr (tiefe Kette) + s (Geschwister von r unter p) + x (eigener Thread)
+  const rows = [
+    mk('p', null, '1'),
+    mk('r', 'p', '2'),
+    mk('rr', 'r', '3'),
+    mk('s', 'p', '4'),
+    mk('x', null, '5'),
+  ]
+
+  it('Parent → enthält sich selbst + ALLE transitiven Nachfahren', () => {
+    expect([...descendantIds(rows, 'p')].sort()).toEqual(['p', 'r', 'rr', 's'])
+  })
+
+  it('mittlerer Knoten → nur sein eigener Subtree (Geschwister bleiben)', () => {
+    expect([...descendantIds(rows, 'r')].sort()).toEqual(['r', 'rr'])
+  })
+
+  it('Blatt → nur es selbst', () => {
+    expect([...descendantIds(rows, 'rr')]).toEqual(['rr'])
+  })
+
+  it('fremder Thread bleibt unberührt', () => {
+    expect(descendantIds(rows, 'p').has('x')).toBe(false)
+  })
+
+  it('Hide eines Parents verwaist keine Antwort: nach Entfernen des Subtrees keine Waisen im Baum', () => {
+    const toRemove = descendantIds(rows, 'p')
+    const remaining = rows.filter(row => !toRemove.has(row.$id))
+    const tree = buildCommentTree(remaining)
+    // Nur der fremde Thread 'x' bleibt; KEINE verwaisten Antworten von p
+    expect(tree.map(n => n.comment.$id)).toEqual(['x'])
+    expect(remaining.some(row => row.parentId && !remaining.find(r => r.$id === row.parentId))).toBe(false)
   })
 })

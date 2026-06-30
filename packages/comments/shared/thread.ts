@@ -26,3 +26,24 @@ export function buildCommentTree(rows: Comment[]): CommentNode[] {
 
   return rows.filter(row => !row.parentId).map(toNode)
 }
+
+/**
+ * IDs eines Kommentars UND aller (transitiven) geladenen Nachfahren — inklusive
+ * der Wurzel-ID selbst. Reine Funktion (Fixpunkt-BFS über die flache Liste) für
+ * Subtree-Entfernung im Store (Hard-Delete + Moderation-Hide): so verwaisen
+ * geladene Antworten nicht, wenn ihr Parent verschwindet.
+ */
+export function descendantIds(rows: Comment[], rootId: string): Set<string> {
+  const ids = new Set<string>([rootId])
+  let grew = true
+  while (grew) {
+    grew = false
+    for (const row of rows) {
+      if (row.parentId && ids.has(row.parentId) && !ids.has(row.$id)) {
+        ids.add(row.$id)
+        grew = true
+      }
+    }
+  }
+  return ids
+}
