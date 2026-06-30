@@ -22,7 +22,7 @@ _Alle erledigt (2026-06-24) — siehe „Bereits erledigt"._
 
 ## ⏸️ Zurückgestellt — brauchen Design
 
-- **Cross-Layer-Write (Notifications)** — der `/`-Link-Teil ist gelöst (nutzt jetzt `targetUrl` mit Open-Redirect-Guard); offen bleibt: [comments/index.post.ts](../packages/comments/server/api/comments/index.post.ts) schreibt direkt in die `notifications`-Tabelle (gehört core/admin) via String-Coupling `tableId: 'notifications'`. Sauberer Fix: Event-/Resolver-Hook (Core stellt einen `notify()`-Vertrag bereit, comments ruft ihn auf) statt direktem Cross-Layer-Tabellenzugriff.
+- ✅ **Cross-Layer-Write (Notifications)** (2026-06-29): Core stellt jetzt `notify(event, {...})` ([core/server/utils/notify.ts](../packages/core/server/utils/notify.ts)) als Vertrag bereit (best-effort, Row-Security); comments ruft ihn statt direktem `tableId: 'notifications'`-Zugriff. Kein String-Coupling mehr (CONCEPT A14). Der `/`-Link-Teil war schon gelöst (`targetUrl` + Open-Redirect-Guard).
 - **`total`-Semantik im Comment-Store** — mischt „geladen" vs. „global"; beim *Hide* eines Eltern-Kommentars verwaisen geladene Replies. → `total` server-autoritativ halten. (Das Pagination-/Orphaning-Problem ist durch den „Alle laden"-Button entschärft, aber nicht grundsätzlich gelöst.)
 - **Pro-Melder-Report-Modell** — aktuell ein Status-Flag (jeder eingeloggte Nicht-Autor kann melden/zurückziehen). „Richtig": pro User eine Meldung, nur die eigene zurückziehbar, Admin sieht Melder-Anzahl → eigene `comment_reports`-Tabelle.
 - ✅ **„Bearbeitet"-Indikator** (2026-06-29, bereits umgesetzt — Note war stale): `editedAt`-Spalte (Migration 005) wird beim Edit gesetzt ([id].patch.ts) und in CommentItem angezeigt — unabhängig von `$updatedAt`.

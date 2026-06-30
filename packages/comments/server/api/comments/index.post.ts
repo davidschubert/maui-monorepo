@@ -63,35 +63,15 @@ export default defineEventHandler(async (event) => {
     throw toH3Error(error, 'Could not create comment')
   })
 
-  // Antwort auf einen Kommentar → den Autor des Eltern-Kommentars benachrichtigen
+  // Antwort auf einen Kommentar → den Autor des Eltern-Kommentars benachrichtigen.
+  // Core stellt den notify()-Vertrag bereit (best-effort, wirft nicht) — kein
+  // direkter Cross-Layer-Zugriff auf die notifications-Tabelle (CONCEPT A14).
   if (parent && parent.authorId && parent.authorId !== user.$id) {
-    try {
-      const admin = createAdminClient(event)
-      const snippet = body.content.length > 140 ? `${body.content.slice(0, 140)}…` : body.content
-      // Link zur echten Seite des Kommentars: targetUrl des Replies (= Seite),
-      // sonst die des Parents, sonst '/' (Bestandskommentare ohne targetUrl).
-      const link = (body.targetUrl ?? parent.targetUrl) ?? '/'
-      await admin.tablesDB.createRow({
-        databaseId,
-        tableId: 'notifications',
-        rowId: ID.unique(),
-        data: {
-          recipientId: parent.authorId,
-          type: 'reply',
-          title: user.name,
-          body: snippet,
-          link,
-          read: false,
-        },
-        permissions: [
-          Permission.read(Role.user(parent.authorId)),
-          Permission.update(Role.user(parent.authorId)),
-        ],
-      })
-    }
-    catch {
-      // Benachrichtigung ist best effort — Kommentar wurde bereits erstellt
-    }
+    const snippet = body.content.length > 140 ? `${body.content.slice(0, 140)}…` : body.content
+    // Link zur echten Seite des Kommentars: targetUrl des Replies (= Seite),
+    // sonst die des Parents, sonst '/' (Bestandskommentare ohne targetUrl).
+    const link = (body.targetUrl ?? parent.targetUrl) ?? '/'
+    await notify(event, { recipientId: parent.authorId, type: 'reply', title: user.name, body: snippet, link })
   }
 
   setResponseStatus(event, 201)

@@ -1,4 +1,5 @@
-/** In-App-Benachrichtigung. Table 'notifications' gehört dem admin-Layer. */
+/** In-App-Benachrichtigung. Table 'notifications' gehört dem core-Layer;
+ *  Feature-Layer erzeugen Einträge über den notify()-Server-Util. */
 export interface UserNotification {
   $id: string
   $createdAt: string
