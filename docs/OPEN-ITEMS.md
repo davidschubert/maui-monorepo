@@ -14,8 +14,8 @@ _Alle erledigt (2026-06-24) — siehe „Bereits erledigt"._
 ## 🔧 Cleanup / Improvements / NITs
 
 - ✅ **Status-Codes** (2026-06-29): `status.patch`-`getRow` → 404 (statt 500) und `status.patch`-`updateRow` + `users/[id].delete`-`users.delete` via `toH3Error` gemappt. `comments/index.post` und `config.patch` waren bereits via `toH3Error` sauber, `users.get`/`appConfig` schon abgefangen.
-- **i18n/A11y**: Sidebar-Labels (sidebar/floating/inset) in [DashboardUserMenu.vue](../packages/admin/app/components/DashboardUserMenu.vue) hartkodiert; [AnalyticsTrendChart.vue](../packages/admin/app/components/AnalyticsTrendChart.vue)-SVG ohne `aria-label`; [OtpLoginForm.vue](../packages/core/app/components/auth/OtpLoginForm.vue)-`resend` löscht alten Fehler nicht.
-- **Dead Code**: `useSeo.ts`, `useAnalytics.ts` (Composable — Analytics läuft im Plugin), `RowList<T>`-Typ.
+- ✅ **i18n/A11y** (2026-06-29, bereits erledigt — Note war stale): Sidebar-Labels nutzen `t('dashboard.sidebar.*')` (Keys de+en vorhanden); [AnalyticsTrendChart.vue](../packages/admin/app/components/AnalyticsTrendChart.vue) hat `role="img"` + `aria-label` + per-Bar `<title>`; [OtpLoginForm.vue](../packages/core/app/components/auth/OtpLoginForm.vue)-`resend()` setzt `errorMessage = null` vor dem Request.
+- ✅ **Dead Code** (2026-06-29): `useSeo.ts` entfernt (nur `useSeoMeta` wird genutzt). `useAnalytics.ts` und `RowList<T>` existierten schon nicht mehr.
 - **Duplizierung → in Core/Utils zusammenführen**: Avatar-Auflösung (`authorAvatars.ts` + `userAvatars.ts` + inline in `presence/count.get.ts`), GDPR-Export-Mapper (core + admin), Changelog-Row→DTO (public + admin).
 - **Coverage-Lücke**: Feature-Layer (themes/comments/admin) haben kein `typecheck`/`test`-Script → `pnpm -r` überspringt sie.
 - **NITs**: `stats.get.ts` legacy `users.list([...])`-Form; `.env.example` totes `NUXT_PUBLIC_APPWRITE_PROJECT_NAME`; `isOutdated` ignoriert Prerelease-Ordering; CI-Actions an floating `@vN`-Tags statt SHA-pinned (Dependabot hält sie aktuell).
