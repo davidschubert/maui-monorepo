@@ -3,54 +3,53 @@ import type { InjectionKey } from 'vue'
 export interface ThreadCollapse {
   /** Sind die Antworten dieses Kommentars eingeklappt? */
   isCollapsed: (id: string) => boolean
-  /** Auf-/Zuklappen umschalten (persistiert pro Target in localStorage) */
+  /** Auf-/Zuklappen umschalten (persistiert pro Target im Cookie) */
   toggle: (id: string) => void
 }
 
 export const threadCollapseKey: InjectionKey<ThreadCollapse> = Symbol('thread-collapse')
 
-const STORAGE_PREFIX = 'maui:comments:collapsed:'
+const COOKIE_NAME = 'maui-comments-collapsed'
+// Wie viele Threads wir merken — begrenzt die Cookie-Größe (älteste fliegen raus).
+const MAX_TARGETS = 10
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 180 // 180 Tage
+
+type CollapseMap = Record<string, string[]>
 
 /**
  * Hält den Auf-/Zuklapp-Zustand des Kommentar-Trees und persistiert ihn pro
- * Target (targetType:targetId) in localStorage — überlebt Reload und nächsten
- * Besuch. In CommentSection synchron im Setup aufrufen; Kind-Komponenten lesen
- * via useThreadCollapse()/inject.
+ * Target (targetType:targetId) in EINEM Cookie — überlebt Reload und nächsten
+ * Besuch. Cookie statt localStorage, damit der Server den Zustand schon beim
+ * SSR kennt und den Tree direkt korrekt (ein-/aufgeklappt) rendert: kein Flash,
+ * kein Hydration-Mismatch. In CommentSection synchron im Setup aufrufen;
+ * Kind-Komponenten lesen via useThreadCollapse()/inject.
  *
- * Gespeichert werden nur die EINGEKLAPPTEN IDs (Default = aufgeklappt). SSR
- * rendert aufgeklappt; der gespeicherte Zustand wird erst nach Mount angewandt
- * (kein Hydration-Mismatch).
+ * Gespeichert werden nur die EINGEKLAPPTEN IDs je Target (Default = aufgeklappt);
+ * die Map ist auf MAX_TARGETS (jüngste) begrenzt.
  */
 export function provideThreadCollapse(targetType: string, targetId: string): ThreadCollapse {
-  const key = `${STORAGE_PREFIX}${targetType}:${targetId}`
-  const collapsed = ref<Set<string>>(new Set())
-
-  onMounted(() => {
-    try {
-      const raw = localStorage.getItem(key)
-      if (raw) collapsed.value = new Set(JSON.parse(raw) as string[])
-    }
-    catch {
-      // korrupter Eintrag oder blockierter Storage → aufgeklappt starten
-    }
+  const targetKey = `${targetType}:${targetId}`
+  const store = useCookie<CollapseMap>(COOKIE_NAME, {
+    default: () => ({}),
+    maxAge: COOKIE_MAX_AGE,
+    sameSite: 'lax',
+    path: '/',
   })
 
-  function persist() {
-    try {
-      if (collapsed.value.size) localStorage.setItem(key, JSON.stringify([...collapsed.value]))
-      else localStorage.removeItem(key)
-    }
-    catch {
-      // Storage nicht verfügbar (Private Mode etc.) → still ignorieren
-    }
-  }
+  const collapsed = computed(() => new Set(store.value?.[targetKey] ?? []))
 
   function toggle(id: string) {
-    const next = new Set(collapsed.value)
-    if (next.has(id)) next.delete(id)
-    else next.add(id)
-    collapsed.value = next
-    persist()
+    const set = new Set(collapsed.value)
+    if (set.has(id)) set.delete(id)
+    else set.add(id)
+
+    // Bestehende Einträge ohne das aktuelle Target (Reihenfolge bleibt erhalten),
+    // dann das Target ans Ende setzen (Recency) — leere Sets fallen ganz raus.
+    const entries = Object.entries(store.value ?? {}).filter(([k]) => k !== targetKey)
+    if (set.size) entries.push([targetKey, [...set]])
+
+    // Auf die jüngsten MAX_TARGETS begrenzen (älteste vorne abschneiden).
+    store.value = Object.fromEntries(entries.slice(Math.max(0, entries.length - MAX_TARGETS)))
   }
 
   const api: ThreadCollapse = {
