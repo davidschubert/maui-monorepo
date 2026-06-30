@@ -23,8 +23,16 @@ export default defineEventHandler(async (event) => {
     session = await account.createEmailPasswordSession({ email, password })
   }
   catch (error) {
-    if (error instanceof AppwriteException && error.code === 409) {
-      throw createError({ status: 409, statusText: 'Email already registered' })
+    if (error instanceof AppwriteException) {
+      if (error.code === 409) {
+        throw createError({ status: 409, statusText: 'Email already registered' })
+      }
+      // Das E-Mail-Format ist bereits Zod-validiert → ein 4xx von Appwrite hier
+      // ist faktisch eine Email-Policy-Ablehnung (Wegwerf-/Free-Provider, seit
+      // Appwrite 1.9.5 in Auth → Security konfigurierbar). 422 → eigene Meldung.
+      if (error.code >= 400 && error.code < 500) {
+        throw createError({ status: 422, statusText: 'Email not allowed' })
+      }
     }
     throw createError({ status: 400, statusText: 'Registration failed' })
   }

@@ -46,6 +46,8 @@ async function onSubmit(event: FormSubmitEvent<RegisterFormInput>) {
     const status = (error as { statusCode?: number }).statusCode
     if (isNetworkError(error)) errorMessage.value = t('auth.networkError')
     else if (status === 403) errorMessage.value = t('auth.register.disabled')
+    else if (status === 409) errorMessage.value = t('auth.register.emailExists')
+    else if (status === 422) errorMessage.value = t('auth.register.emailNotAllowed')
     else errorMessage.value = t('auth.register.failed')
   }
   finally {
