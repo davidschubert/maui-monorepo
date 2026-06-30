@@ -20,6 +20,9 @@ const { isLoggedIn } = useCurrentUser()
 // Template NICHT automatisch.
 const { canWrite, reason } = provideCommentPolicy()
 
+// Auf-/Zuklapp-Zustand des Trees bereitstellen + pro Target persistieren
+provideThreadCollapse(props.targetType, props.targetId)
+
 const notice = computed(() => reason.value === 'maintenance'
   ? { title: t('comments.disabled.maintenanceTitle'), text: t('comments.disabled.maintenanceText') }
   : { title: t('comments.disabled.title'), text: t('comments.disabled.text') })

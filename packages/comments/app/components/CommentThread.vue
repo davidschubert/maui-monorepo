@@ -6,14 +6,8 @@ import type { CommentNode } from '../../shared/types/comment'
 // `nested` = verschachtelte Antworten → engerer Abstand als die Top-Level-Liste
 defineProps<{ nodes: CommentNode[], nested?: boolean }>()
 
-// Eingeklappte Sub-Threads (Antworten ausgeblendet) — pro Ebene gehalten
-const collapsed = ref(new Set<string>())
-function toggle(id: string) {
-  const next = new Set(collapsed.value)
-  if (next.has(id)) next.delete(id)
-  else next.add(id)
-  collapsed.value = next
-}
+// Auf-/Zuklapp-Zustand kommt geteilt + persistiert aus CommentSection
+const { isCollapsed, toggle } = useThreadCollapse()
 </script>
 
 <template>
@@ -22,11 +16,11 @@ function toggle(id: string) {
       <CommentItem
         :comment="node.comment"
         :child-count="node.children.length"
-        :collapsed="collapsed.has(node.comment.$id)"
+        :collapsed="isCollapsed(node.comment.$id)"
         @toggle-collapse="toggle(node.comment.$id)"
       />
       <div
-        v-if="node.children.length && !collapsed.has(node.comment.$id)"
+        v-if="node.children.length && !isCollapsed(node.comment.$id)"
         class="mt-2 ml-3 border-l border-default pl-4 transition-colors hover:border-accented"
         data-thread-children
       >
