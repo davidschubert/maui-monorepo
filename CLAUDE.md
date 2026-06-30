@@ -6,7 +6,7 @@ Vollständiges Konzept: docs/CONCEPT.md
 
 ## Stack
 - Nuxt 4.4.x (Composition API, SSR), Nuxt UI 4.8.x, Pinia, Tailwind CSS 4
-- node-appwrite (Server SDK) + appwrite (Web SDK, NUR Realtime) — Appwrite self-hosted 1.9.0
+- node-appwrite (Server SDK) + appwrite (Web SDK, NUR Realtime) — Appwrite self-hosted 1.9.5
 - Zod, @nuxtjs/i18n (de+en), TypeScript strict, pnpm Workspaces, Node 22
 
 ## Architektur (3 Ebenen)
@@ -29,9 +29,11 @@ Vollständiges Konzept: docs/CONCEPT.md
   Migrations-Key (databases/tables/columns/indexes, nur für Scripts)
 - CRUD NUR über server/api/* (Session enforced, Validierung zentral),
   NIE Web SDK CRUD aus <script setup>
-- Realtime: useRealtimeRows läuft auf nativem WebSocket (Legacy-URL-Protokoll,
-  where-Filter client-seitig) — SDK-Protokoll + Query-Subscriptions brauchen
-  ≥1.9.5 (Cloud-only, self-hosted ist 1.9.0). Rückbau aufs SDK wenn verfügbar.
+- Realtime: useRealtimeRows läuft (noch) auf nativem WebSocket (Legacy-URL-
+  Protokoll, where-Filter client-seitig). Legacy-Protokoll funktioniert auf
+  1.9.5 weiter (verifiziert). SDK-Protokoll + server-seitige Query-Subscriptions
+  (Realtime + Channel.tablesdb().table().row() + queries) sind seit 1.9.5
+  self-hosted verfügbar → Rückbau aufs SDK möglich (Phase 18 / P1), aber optional.
 - Session-Cookie: a_session_<PROJECT_ID>, httpOnly+secure+sameSite,
   Appwrite-Endpoint als Subdomain derselben Root-Domain
 - Jede App: EIGENE Appwrite-Instanz, Config aus .env
@@ -40,7 +42,8 @@ Vollständiges Konzept: docs/CONCEPT.md
 - SDK-Generics nutzen: tablesDB.listRows<T>()
 - Migrations: idempotent (409 → skip), node --env-file=apps/<app>/.env,
   nach Column-Anlage auf 'available' pollen bevor Indizes
-- Presences API: Stand 06/2026 nur Cloud, usePresence optional halten
+- Presences API: seit 1.9.5 self-hostbar (upsertPresence + Channel.presences()
+  + Heartbeat); usePresence kann darauf umgestellt werden (Phase 18 / P2)
 
 ## Config-Gates (app.config.ts, Namespace maui.*)
 - maui.analytics / maui.consent: Core-Default false, App aktiviert explizit
