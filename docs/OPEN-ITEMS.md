@@ -1,6 +1,6 @@
 # Offene Punkte
 
-Stand: 2026-06-24. Vollständige, eigenständige Liste offener Themen (für eine
+Stand: 2026-06-29. Vollständige, eigenständige Liste offener Themen (für eine
 frische Session als Startpunkt nutzbar). Reihenfolge = grobe Priorität.
 
 ## 🟠 Mittel — lohnt sich
@@ -39,6 +39,37 @@ _Alle erledigt (2026-06-24) — siehe „Bereits erledigt"._
 
 ## ✅ Bereits erledigt (Referenz)
 
+- **Pre-Production Security Review (2026-06-29)** — Review über `d1a2e13..HEAD`
+  (2 Review-Agents: Authz + Input/Leak/Redirect, plus eigener Pass):
+  - **MEDIUM behoben — Stored Open-Redirect via `targetUrl`**: der alte Guard
+    (`startsWith('/') && !startsWith('//')`) ließ protokoll-relative Bypässe
+    durch (`/\evil` — Browser normalisiert `\`→`/` —, `/%2F%2Fevil`,
+    Whitespace-Tricks `/ /evil`, `/\t//evil`). Diese flossen unverändert in den
+    Reply-Notification-Link → Off-Site-Navigation (Phishing). Fix: strenge
+    Regex `^\/(?![/\\%])[^\s\\]*$` im
+    [comment-Schema](../packages/comments/schemas/comment.ts) **+**
+    `safeLink()`-Render-Guard in
+    [NotificationBell.vue](../packages/core/app/components/NotificationBell.vue)
+    (defense-in-depth gegen alt gespeicherte Rows) **+** Regressionstest
+    [schema.test.ts](../packages/comments/tests/schema.test.ts).
+  - **LOW behoben — `reports/resolve`-Input-Hygiene**: lose `typeof`-Checks +
+    unbegrenztes `resolution` → `resolveReportSchema` (Zod, längenbegrenzt).
+  - **LOW behoben — Rate-Limiting auf Schreib-Endpoints**: `rate-limit`-Middleware
+    deckt jetzt auch `POST /comments`, `PATCH /comments/[id]`, Vote und
+    `POST /reports` ab (eigenes, weiteres Budget `WRITE_MAX=60/min`; Vote-Spam
+    über viele IDs teilt EINEN Bucket). `reports/resolve` bewusst ausgenommen
+    (Moderator-gated).
+  - **Akzeptiertes Restrisiko (LOW) — `reports.targetType` ungeprüft**: ein
+    eingeloggter User könnte Meldungen mit beliebigem `targetType`/nicht
+    existierendem `targetId` absetzen. Entschärft: die Moderations-Queue filtert
+    Junk bereits über Comment-Existenz; nur die „Gemeldet"-KPI ließe sich minimal
+    aufblähen. Moderation bleibt bewusst domänen-generisch → kein Existenz-Check
+    (würde den Layer an Comments koppeln). Sauberer Fix kommt mit dem
+    zurückgestellten `comment_reports`-Modell.
+  - **Sauber bestätigt (kein Defekt)**: Error-Envelope leakt keine Appwrite-/
+    Zod-/Stack-Details; alle Authz-Guards (reports/comments/admin) korrekt,
+    `reporterId` server-autoritativ; Moderations-Inputs parameterisiert (keine
+    Injection, keine `Role`-Spoofing-Fläche).
 - **3. Review-Pass (2026-06-24)** — neue Funde abgearbeitet:
   Storage-Orphan-Erkennung paginiert jetzt ALLE User+Files (vorher nur 100 →
   Falsch-Orphans, die der Bulk-Delete gelöscht hätte); Passwortänderung beendet
