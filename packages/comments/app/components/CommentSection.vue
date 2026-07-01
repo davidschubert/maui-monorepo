@@ -52,9 +52,42 @@ useRealtimeRows<Comment>(
   { where: payload => payload.targetId === props.targetId && payload.targetType === props.targetType },
 )
 
-// Thread-Presence (#10): wer schaut zu / tippt; setTyping für den Composer bereitstellen
-const { present, others, typingOthers, viewerCount, setTyping } = useThreadPresence(props.targetType, props.targetId)
+// Thread-Presence: wer schaut zu / tippt / antwortet / liest wo.
+const { present, others, typingOthers, viewerCount, setTyping, setReplyingTo, setNear, replyingOthers, nearOthers }
+  = useThreadPresence(props.targetType, props.targetId)
 provide(commentTypingKey, setTyping)
+provide(commentReplyingKey, setReplyingTo)
+provide(threadPresenceKey, { replyingOthers, nearOthers, setNear })
+
+// Lese-Präsenz: sichtbarsten Kommentar per IntersectionObserver ermitteln und als
+// `near` melden — so zeigt jeder Kommentar, wer ihn gerade liest.
+const sectionEl = ref<HTMLElement | null>(null)
+let io: IntersectionObserver | undefined
+const ratios = new Map<string, number>()
+function pickNear() {
+  let bestId: string | undefined
+  let best = 0
+  for (const [id, r] of ratios) if (r > best) { best = r; bestId = id }
+  setNear(best > 0.2 ? bestId : undefined)
+}
+function observeComments() {
+  if (!io || !sectionEl.value) return
+  io.disconnect()
+  ratios.clear()
+  for (const el of sectionEl.value.querySelectorAll('[data-comment-id]')) io.observe(el)
+}
+onMounted(() => {
+  io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      const id = (e.target as HTMLElement).dataset.commentId
+      if (id) ratios.set(id, e.isIntersecting ? e.intersectionRatio : 0)
+    }
+    pickNear()
+  }, { threshold: [0, 0.25, 0.5, 0.75, 1] })
+  observeComments()
+})
+watch(() => store.rows.length, () => nextTick(observeComments))
+onScopeDispose(() => io?.disconnect())
 
 const typingText = computed(() => {
   const names = typingOthers.value.map(u => u.userName)
@@ -63,10 +96,22 @@ const typingText = computed(() => {
   if (names.length === 2) return t('comments.presence.typingTwo', { a: names[0], b: names[1] })
   return t('comments.presence.typingMany', { name: names[0], count: names.length - 1 })
 })
+
+// Zustands-Icon je Avatar in der Gruppe: tippt → Stift, antwortet → Pfeil.
+function presenceBadge(u: PresenceUser): { icon?: string, iconColor?: 'success' | 'info' } {
+  if (u.typing) return { icon: 'i-ph-pencil-simple-line', iconColor: 'success' }
+  if (u.replyingTo) return { icon: 'i-ph-arrow-bend-up-left', iconColor: 'info' }
+  return {}
+}
+function presenceLabel(u: PresenceUser): string {
+  if (u.typing) return t('comments.presence.avatarTyping', { name: u.userName })
+  if (u.replyingTo) return t('comments.presence.avatarReplying', { name: u.userName })
+  return u.userName
+}
 </script>
 
 <template>
-  <section class="space-y-5" data-comment-section>
+  <section ref="sectionEl" class="space-y-5" data-comment-section>
     <header class="flex items-center justify-between gap-4">
       <h2 class="text-lg font-semibold">{{ t('comments.title') }} ({{ store.total }})</h2>
       <USelect v-model="sort" :items="sortOptions" size="sm" :aria-label="t('comments.sort.label')" />
@@ -76,15 +121,10 @@ const typingText = computed(() => {
       <template v-if="others.length">
         <!-- Alle Anwesenden (inkl. dir) als Gruppe. color=primary färbt die
              Initialen-Avatare; hat der User ein Profilbild, gewinnt das Bild.
-             Tippt jemand, bekommt sein Avatar einen grünen Chip (chip-Prop des
-             Avatars selbst — externes UChip würde von der Gruppe entpackt). -->
+             PresenceAvatar setzt ein Zustands-Icon in die Ecke (tippt/antwortet). -->
         <UAvatarGroup size="3xl" :max="8" color="primary">
-          <UTooltip v-for="u in present" :key="u.userId" :text="u.userName">
-            <UAvatar
-              :src="u.avatarUrl || undefined"
-              :alt="u.userName"
-              :chip="u.typing ? { color: 'success' } : false"
-            />
+          <UTooltip v-for="u in present" :key="u.userId" :text="presenceLabel(u)">
+            <PresenceAvatar :name="u.userName" :avatar-url="u.avatarUrl" v-bind="presenceBadge(u)" />
           </UTooltip>
         </UAvatarGroup>
         <span>{{ t('comments.presence.here', { count: viewerCount }) }}</span>

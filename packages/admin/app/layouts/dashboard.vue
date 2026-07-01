@@ -154,6 +154,13 @@ const searchGroups = computed(() => {
       :placeholder="t('dashboard.search.placeholder')"
     />
 
+    <!-- Global: wer sonst noch auf DIESER Seite ist (Betrachtungs-Presence) -->
+    <ClientOnly>
+      <div class="pointer-events-none fixed end-3 top-3 z-50 flex justify-end">
+        <DashboardViewers class="pointer-events-auto" />
+      </div>
+    </ClientOnly>
+
     <!-- inset: Hauptinhalt sitzt als abgesetzte Karte im gedämpften Hintergrund -->
     <div
       v-if="sidebarVariant === 'inset'"

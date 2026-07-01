@@ -245,7 +245,8 @@
     },
     "presence": {
       "alsoEditing": "{names} is also editing this form",
-      "alsoEditingHint": "Saving may overwrite the other person's changes."
+      "alsoEditingHint": "Saving may overwrite the other person's changes.",
+      "viewingPage": "{count} others are viewing this page"
     }
   },
   "whatsNew": {

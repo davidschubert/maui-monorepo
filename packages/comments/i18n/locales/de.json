@@ -8,7 +8,12 @@
       "here": "{count} hier",
       "typingOne": "{name} tippt …",
       "typingTwo": "{a} und {b} tippen …",
-      "typingMany": "{name} und {count} weitere tippen …"
+      "typingMany": "{name} und {count} weitere tippen …",
+      "avatarTyping": "{name} tippt gerade",
+      "avatarReplying": "{name} antwortet gerade",
+      "replyingOne": "{name} antwortet gerade …",
+      "replyingMany": "{count} antworten gerade …",
+      "readingHere": "{count} lesen hier"
     },
     "loginLink": "Anmelden",
     "loginSuffix": ", um zu kommentieren.",

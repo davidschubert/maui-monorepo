@@ -18,6 +18,9 @@ export default defineEventHandler(async (event) => {
     scope?: unknown
     action?: unknown
     typing?: unknown
+    page?: unknown
+    replyingTo?: unknown
+    near?: unknown
   }
 
   const prefs = user.prefs as { avatarUrl?: string } | undefined
@@ -26,6 +29,9 @@ export default defineEventHandler(async (event) => {
   if (typeof body.scope === 'string') metadata.scope = body.scope
   if (typeof body.action === 'string') metadata.action = body.action
   if (body.typing === true) metadata.typing = true
+  if (typeof body.page === 'string') metadata.page = body.page
+  if (typeof body.replyingTo === 'string') metadata.replyingTo = body.replyingTo
+  if (typeof body.near === 'string') metadata.near = body.near
 
   try {
     const { presences } = createAdminClient(event)

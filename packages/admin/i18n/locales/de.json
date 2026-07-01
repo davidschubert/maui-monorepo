@@ -245,7 +245,8 @@
     },
     "presence": {
       "alsoEditing": "{names} bearbeitet dieses Formular ebenfalls",
-      "alsoEditingHint": "Speichern kann die Änderungen der anderen Person überschreiben."
+      "alsoEditingHint": "Speichern kann die Änderungen der anderen Person überschreiben.",
+      "viewingPage": "{count} andere sehen diese Seite gerade"
     }
   },
   "whatsNew": {

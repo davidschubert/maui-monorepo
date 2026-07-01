@@ -11,6 +11,12 @@ export interface PresenceUser {
   /** Was der User gerade tut, z.B. 'reviewing:report:42' oder 'editing:changelog:7' */
   action?: string
   typing: boolean
+  /** Welche (Dashboard-)Seite der User gerade betrachtet, z.B. '/dashboard/users/42' */
+  page?: string
+  /** ID des Kommentars, auf den der User gerade antwortet */
+  replyingTo?: string
+  /** ID des Kommentars, bei dem der User gerade liest (Scroll-Position) */
+  near?: string
 }
 
 interface RawPresence { userId: string, status?: string, $updatedAt?: string, metadata?: Record<string, unknown> }
@@ -42,13 +48,16 @@ const toUser = (p: RawPresence): PresenceUser => ({
   scope: typeof p.metadata?.scope === 'string' ? p.metadata.scope : undefined,
   action: typeof p.metadata?.action === 'string' ? p.metadata.action : undefined,
   typing: p.metadata?.typing === true,
+  page: typeof p.metadata?.page === 'string' ? p.metadata.page : undefined,
+  replyingTo: typeof p.metadata?.replyingTo === 'string' ? p.metadata.replyingTo : undefined,
+  near: typeof p.metadata?.near === 'string' ? p.metadata.near : undefined,
 })
 
 // ════════════ MEINE Presence — EINE Upsert-Autorität pro Tab ════════════
 // Eine Presence pro User (presenceId = userId); metadata trägt scope/action/
 // typing. Verschiedene Features (Thread, Moderation, Edit) SETZEN Teile davon,
 // statt jeweils eigene (kollidierende) Presences zu upserten.
-interface Meta { scope?: string, action?: string, typing?: boolean }
+interface Meta { scope?: string, action?: string, typing?: boolean, page?: string, replyingTo?: string, near?: string }
 let stateStarted = false
 const myMeta: Ref<Meta> = ref({})
 
@@ -59,7 +68,10 @@ const myMeta: Ref<Meta> = ref({})
  * SSR: no-op. Idempotenter Start (Modul-Flag) → genau ein Heartbeat/Watcher.
  */
 export function usePresenceState() {
-  const noop = { setScope: (_?: string) => {}, setAction: (_?: string) => {}, setTyping: (_: boolean) => {} }
+  const noop = {
+    setScope: (_?: string) => {}, setAction: (_?: string) => {}, setTyping: (_: boolean) => {},
+    setPage: (_?: string) => {}, setReplyingTo: (_?: string) => {}, setNear: (_?: string) => {},
+  }
   if (import.meta.server) return noop
 
   const auth = useAuthStore()
@@ -89,6 +101,9 @@ export function usePresenceState() {
     setScope: (scope?: string) => { if (myMeta.value.scope !== scope) myMeta.value = { ...myMeta.value, scope } },
     setAction: (action?: string) => { if (myMeta.value.action !== action) myMeta.value = { ...myMeta.value, action } },
     setTyping: (typing: boolean) => { if (myMeta.value.typing !== typing) myMeta.value = { ...myMeta.value, typing } },
+    setPage: (page?: string) => { if (myMeta.value.page !== page) myMeta.value = { ...myMeta.value, page } },
+    setReplyingTo: (replyingTo?: string) => { if (myMeta.value.replyingTo !== replyingTo) myMeta.value = { ...myMeta.value, replyingTo } },
+    setNear: (near?: string) => { if (myMeta.value.near !== near) myMeta.value = { ...myMeta.value, near } },
   }
 }
 

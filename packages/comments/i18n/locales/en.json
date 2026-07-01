@@ -8,7 +8,12 @@
       "here": "{count} here",
       "typingOne": "{name} is typing …",
       "typingTwo": "{a} and {b} are typing …",
-      "typingMany": "{name} and {count} others are typing …"
+      "typingMany": "{name} and {count} others are typing …",
+      "avatarTyping": "{name} is typing",
+      "avatarReplying": "{name} is replying",
+      "replyingOne": "{name} is replying …",
+      "replyingMany": "{count} are replying …",
+      "readingHere": "{count} reading here"
     },
     "loginLink": "Sign in",
     "loginSuffix": " to join the discussion.",

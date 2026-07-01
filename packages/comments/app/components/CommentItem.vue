@@ -21,6 +21,17 @@ const { canWrite, canDelete } = useCommentPolicy()
 const isAuthor = computed(() => user.value?.$id === props.comment.authorId)
 const isDeleted = computed(() => props.comment.status === 'deleted')
 
+// Pro-Kommentar-Presence (von CommentSection): wer antwortet / liest hier gerade
+const threadPresence = inject(threadPresenceKey, null)
+const replyingHere = computed(() => threadPresence?.replyingOthers.value.get(props.comment.$id) ?? [])
+const nearHere = computed(() => threadPresence?.nearOthers.value.get(props.comment.$id) ?? [])
+const replyingText = computed(() => {
+  const list = replyingHere.value
+  if (list.length === 0) return ''
+  if (list.length === 1) return t('comments.presence.replyingOne', { name: list[0]!.userName })
+  return t('comments.presence.replyingMany', { count: list.length })
+})
+
 const replying = ref(false)
 const editing = ref(false)
 const editContent = ref('')
@@ -93,6 +104,19 @@ const reportReasons = computed(() => [
       <span aria-hidden="true">·</span>
       <span :title="formatDate(comment.$createdAt)">{{ formatRelativeTime(comment.$createdAt) }}</span>
       <span v-if="comment.editedAt" :title="formatDate(comment.editedAt)">· {{ t('comments.item.edited') }}</span>
+
+      <!-- Lese-Präsenz: wer liest gerade diesen Kommentar -->
+      <div
+        v-if="nearHere.length"
+        class="ms-auto flex items-center"
+        :title="t('comments.presence.readingHere', { count: nearHere.length })"
+      >
+        <UAvatarGroup size="3xs" :max="3">
+          <UTooltip v-for="u in nearHere" :key="u.userId" :text="u.userName">
+            <UAvatar :src="u.avatarUrl || undefined" :alt="u.userName" />
+          </UTooltip>
+        </UAvatarGroup>
+      </div>
     </div>
 
     <p v-if="isDeleted" class="mt-2 italic text-muted">{{ t('comments.item.deleted') }}</p>
@@ -106,6 +130,12 @@ const reportReasons = computed(() => [
     </template>
 
     <p v-else class="mt-2 whitespace-pre-line leading-relaxed text-default">{{ comment.content }}</p>
+
+    <!-- Antwort-Presence: jemand tippt gerade eine Antwort auf DIESEN Kommentar -->
+    <p v-if="replyingText" class="mt-1.5 flex items-center gap-1 text-xs text-info">
+      <UIcon name="i-ph-arrow-bend-up-left" class="size-3.5 shrink-0" />
+      {{ replyingText }}
+    </p>
 
     <!-- Aktionszeile: Votes · Antworten ein-/ausklappen · Antworten · ⋯ -->
     <div v-if="!editing" class="mt-1.5 -ml-1.5 flex items-center gap-1 text-muted">

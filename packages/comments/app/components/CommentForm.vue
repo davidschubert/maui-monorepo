@@ -17,6 +17,13 @@ const loading = ref(false)
 
 // Thread-Presence: Tippen melden (von CommentSection bereitgestellt; Fallback no-op)
 const setTyping = inject(commentTypingKey, () => {})
+// Antwort-Presence: solange dieses Antwort-Formular offen ist, „ich antworte auf
+// <parentId>" melden — andere sehen den Hinweis am Kommentar. Nur für Antworten.
+const setReplyingTo = inject(commentReplyingKey, () => {})
+if (props.parentId) {
+  onMounted(() => setReplyingTo(props.parentId))
+  onScopeDispose(() => setReplyingTo(undefined))
+}
 
 // Formular validiert nur den Text — Target/parentId kommen aus Store/Props
 const schema = computed(() => createCommentSchema(t).pick({ content: true }))
