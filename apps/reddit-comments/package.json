@@ -8,7 +8,8 @@
     "build": "nuxi build",
     "lint": "eslint .",
     "preview": "nuxi preview",
-    "typecheck": "nuxi typecheck"
+    "typecheck": "nuxi typecheck",
+    "seed": "node --experimental-strip-types --env-file=.env scripts/seed-demo.ts"
   },
   "dependencies": {
     "@iconify-json/circle-flags": "catalog:",
