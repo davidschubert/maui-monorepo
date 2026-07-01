@@ -42,8 +42,11 @@ Vollständiges Konzept: docs/CONCEPT.md
 - SDK-Generics nutzen: tablesDB.listRows<T>()
 - Migrations: idempotent (409 → skip), node --env-file=apps/<app>/.env,
   nach Column-Anlage auf 'available' pollen bevor Indizes
-- Presences API: seit 1.9.5 self-hostbar (upsertPresence + Channel.presences()
-  + Heartbeat); usePresence kann darauf umgestellt werden (Phase 18 / P2)
+- Presences API: seit 1.9.5 self-hostbar. Thread-Presence läuft auf usePresence
+  (core: upsertPresence + Channel.presences() + presences.list() + Heartbeat,
+  read("users")-Permission) — Phase 18 / P2 erledigt. GLOBALE Online-Presence
+  hängt noch an der presence-Table (Migration system-007) + presence/*-Endpoints
+  → Follow-up: auch dorthin migrieren, alten Weg entfernen
 
 ## Config-Gates (app.config.ts, Namespace maui.*)
 - maui.analytics / maui.consent: Core-Default false, App aktiviert explizit

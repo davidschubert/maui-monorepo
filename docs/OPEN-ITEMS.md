@@ -1,6 +1,6 @@
 # Offene Punkte
 
-Stand: 2026-06-29. Vollständige, eigenständige Liste offener Themen (für eine
+Stand: 2026-07-01. Vollständige, eigenständige Liste offener Themen (für eine
 frische Session als Startpunkt nutzbar). Reihenfolge = grobe Priorität.
 
 ## 🟠 Mittel — lohnt sich
@@ -19,6 +19,9 @@ _Alle erledigt (2026-06-24) — siehe „Bereits erledigt"._
 - ✅ **Duplizierung** (2026-06-29, bereits konsolidiert — Note war stale): Avatar-Auflösung → `core/server/utils/avatars.ts` (`resolveAvatars`, von comments/presence/audit genutzt); GDPR-Export-Mapper → `core/server/utils/dataExport.ts` (`mapExport*`, beide Export-Endpoints); Changelog-Row→DTO → `admin/shared/changelog.ts` (`rowToChangelogEntry`, public + admin).
 - ✅ **Coverage-Lücke** (2026-06-29, geprüft — keine echte Lücke): Der App-`nuxi typecheck` (reddit-comments extends ALLE Layer) prüft transitiv auch deren Server-Code — per absichtlichem Typfehler in `moderation/.../reportQueries.ts` verifiziert (wird gefangen). Kein `test`-Script-Gap: themes/moderation/system haben 0 Tests, comments/admin/core haben Tests + Script. Standalone-Typecheck pro Layer bräuchte je ein `.playground` (wie core) — bewusst nicht.
 - ✅ **NITs** (2026-06-29, geprüft): `stats.get.ts` nutzt schon die moderne `users.list({ queries })`-Form; `.env.example` enthält `NUXT_PUBLIC_APPWRITE_PROJECT_NAME` nicht (mehr) und nirgends Code-Nutzung — beide stale. Bewusst akzeptiert: `isOutdated`-Prerelease-Ordering (installed/latest kommen aus stable-only package.json/Registry → Pfad triggert real nie, ein Fix wäre toter Code) und CI-`@vN`-Tags (Dependabot-managed, first-party/reputable Actions).
+- ✅ **Hydration-Mismatch (relative Zeit)** (2026-07-01): „vor X Sekunden" renderte server/client mit unterschiedlichem `now` → ~16 Mismatches + Vue-Warnungen pro Load. Fix: `now`-Basis in [useFormatRelativeTime](../packages/core/app/composables/useFormatRelativeTime.ts) via `useState` (SSR→Client identisch), Update erst nach Mount + 30s-Ticker. Verifiziert: 0 Mismatches/0 Warnungen.
+- **Destruktive Migration `comments-002`** (Finding 2026-07-01): droppt + recreatet `comments`/`comment_votes` beim Re-Run (Datenverlust). Entschärft durch den Bootstrap-Guard (Abbruch, wenn `comments` schon Zeilen hat). Sauberer Fix: die Migration soll den bereits-am-Ziel-Schema-Fall erkennen und den destruktiven Rebuild überspringen (oder klar als one-time markieren).
+- **Zwei Presence-Systeme koexistieren** (Finding 2026-07-01): Thread-Presence läuft seit P2 auf der Presences-API (`usePresence`); die **globale** Online-Presence + die alten Thread-Endpoints (`presence/count|heartbeat|leave`) + `presence`-Table (Migration system-007) + der Heartbeat-Plugin bleiben (teils toter Thread-Presence-Servercode). → Follow-up: globale Presence ebenfalls auf die Presences-API migrieren und den alten Presence-Table-Weg entfernen.
 
 ## ⏸️ Zurückgestellt — brauchen Design
 
@@ -30,8 +33,10 @@ _Alle erledigt (2026-06-24) — siehe „Bereits erledigt"._
 ## 🗺️ Roadmap — bewusst ausgeklammert
 
 - **Phase 17 – Production Deployment**: Prod-Appwrite (Hetzner), Domain, ploi.io-Site, Deploy-Webhook ([deploy.yml](../.github/workflows/deploy.yml) ist Skeleton).
-- **Phase 18 – Realtime-Rückbau aufs SDK**: wartet auf Appwrite-Release > 1.9.0 (System-Seite zeigt veraltete Server-Version an → Trigger). Dann `useRealtimeRows` zurück aufs Web-SDK + `usePresence` ergänzen.
-  - **Update (2026-06-30): Appwrite 1.9.5 self-hosted ist erschienen.** Bringt die **Presences API auf self-hosted** (war Cloud-only) → `usePresence`/Thread-Presence kann unabhängig vom Realtime-Umbau angegangen werden (Muster: `presences.upsert()` + `Channel.presences()` + Heartbeat/expiry, vgl. Snapchat-Clone-Tutorial). Außerdem self-hosted: parallele Chunk-Uploads (~7x Storage, automatischer Gewinn beim Upgrade), X-OAuth, BigInt, Email-Policies (Auth-Härtung gegen Wegwerf-/Free-Adressen). **Caveat:** Der 1.9.5-Post bestätigt NICHT explizit das SDK-Realtime-Protokoll + Query-Subscriptions (der eigentliche Trigger für den `useRealtimeRows`-Rückbau) — vor dem Umbau gegen 1.9.5-Changelog/Docs verifizieren. **Irrelevant:** Self-Serve BAA (HIPAA, Cloud-only, Pro-Plan, nur PHI/Healthcare).
+- **Phase 18 – Realtime/Presence auf SDK** (🟡 teilweise erledigt, 2026-07-01 auf 1.9.5+MariaDB):
+  - ✅ **P2 Presence** — Thread-Presence auf die **Presences API** umgestellt (`usePresence`: `upsertPresence` + `Channel.presences()` + `presences.list()` + Heartbeat, `read("users")`-Permission). Multi-User end-to-end verifiziert. (Globale Presence-Migration + Cleanup: s. Cleanup-Findings.)
+  - ⏳ **P1 Rows-Rückbau** (optional) — `useRealtimeRows` auf das SDK-Realtime-Protokoll + server-seitige Query-Subscriptions umstellen. **Bestätigt:** SDK `appwrite@26.1.0` kann es (`Channel.tablesdb().table().row()` + `queries`), 1.9.5-Release-Notes listen „query subscription fixes"; Legacy-`channels[]`-Protokoll läuft auf 1.9.5 weiter (verifiziert) → P1 ist **optional** (kein Blocker), Rückbau bringt nur server-seitiges Filtern. Details: [APPWRITE-1.9.5-UPGRADE.md](APPWRITE-1.9.5-UPGRADE.md).
+  - ✅ **P3 Email-Policies** — Signup-UX für Wegwerf-/Free-Adressen (422→i18n); Console-Toggle ist der Betreiber-Schritt.
 - **Backlog**: Themes-Vollausbau (26×11), `packages/billing` (Stripe), E2E-Tests (Playwright) pro App, obsidian-community-concept.
 - **Changelog Track 2B**: Appwrite Function für vollautomatische Produkt-Changelog-Drafts (wenn Prod mit öffentlicher Domain steht).
 - **Sonstiges**: öffentliche `/changelog`-Vollhistorie-Seite, die 10 gesammelten SaaS-Feature-Ideen (u. a. Embed-Widget).
@@ -40,6 +45,21 @@ _Alle erledigt (2026-06-24) — siehe „Bereits erledigt"._
 
 ## ✅ Bereits erledigt (Referenz)
 
+- **Appwrite 1.9.5 + MariaDB-Umstieg + Phase-18-P2 + Tooling (2026-07-01)**:
+  - **Server-Upgrade** Appwrite 1.9.0 → 1.9.5 (Backup, manueller Tag-Bump da
+    Web-Installer interaktiv, `migrate`) — dann **DB-Adapter-Umstieg MongoDB →
+    MariaDB** (frische Instanz, empfohlener Default). Stolpersteine gelöst:
+    Traefik-Segfault (Neustart), SMTP → Mailpit, Console-Whitelist, fehlende
+    1.9.5-Schema-Attribute (`migrate`), inkonsistente `main`-DB-Metadaten
+    (neu angelegt), API-Key-Scopes.
+  - **P2 Presence** auf die Presences-API (s. Phase 18).
+  - **P3 Email-Policies**-UX (422 → freundliche i18n-Meldung im Signup).
+  - **Bootstrap-Tooling**: `pnpm bootstrap` (DB + Bucket + Platform + alle
+    Migrationen, Guard gegen destruktiven Re-Run) + `pnpm seed` (Demo-User mit
+    Rollen + Kommentare). Beide reproduzierbar/idempotent.
+  - **Security-Test**: XSS/HTML/JS/SQL-Payloads als Kommentar-Inhalt → alle
+    escaped (Vue-Autoescaping, kein `v-html`), 0 injizierte Elemente, DB intakt.
+  - **Hydration-Fix** (relative Zeit) + README-/Doku-Update.
 - **Pre-Production Security Review (2026-06-29)** — Review über `d1a2e13..HEAD`
   (2 Review-Agents: Authz + Input/Leak/Redirect, plus eigener Pass):
   - **MEDIUM behoben — Stored Open-Redirect via `targetUrl`**: der alte Guard
