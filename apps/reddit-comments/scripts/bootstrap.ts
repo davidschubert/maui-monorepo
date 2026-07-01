@@ -1,0 +1,113 @@
+/**
+ * Bootstrap: bringt eine frische Appwrite-Instanz von 0 auf lauffähig — die
+ * Schritte, die sonst manuell/per Odyssee laufen, in einem Befehl.
+ *
+ *   node --experimental-strip-types --env-file=apps/reddit-comments/.env \
+ *     apps/reddit-comments/scripts/bootstrap.ts [--seed]
+ *
+ * VORAUSSETZUNG (manuell, weil interaktiv):
+ *   1. Appwrite-Instanz läuft (Docker/OrbStack), Console erreichbar.
+ *   2. In der Console: Account + Projekt + API-Key (alle Scopes) angelegt.
+ *   3. apps/<app>/.env gesetzt: NUXT_PUBLIC_APPWRITE_{ENDPOINT,PROJECT_ID,
+ *      DATABASE_ID,AVATARS_BUCKET} + NUXT_APPWRITE_KEY.
+ *
+ * DANN macht dieses Script automatisch:
+ *   - Datenbank (DATABASE_ID) anlegen (idempotent)
+ *   - Avatars-Bucket anlegen (idempotent, passende Permissions/Limits)
+ *   - Web-Platform (localhost) anlegen (best-effort — braucht evtl. Console)
+ *   - alle Layer-Migrationen in Reihenfolge (system→comments→moderation→admin)
+ *   - optional (--seed): Demo-User + Kommentare
+ */
+import { execSync } from 'node:child_process'
+import { Client, TablesDB, Query } from 'node-appwrite'
+
+const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
+const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
+const databaseId = process.env.NUXT_PUBLIC_APPWRITE_DATABASE_ID ?? 'main'
+const bucketId = process.env.NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET ?? 'avatars'
+const apiKey = process.env.NUXT_APPWRITE_KEY ?? process.env.NUXT_APPWRITE_MIGRATIONS_KEY
+if (!endpoint || !projectId || !apiKey) {
+  console.error('✗ Fehlende Env-Vars — mit --env-file=apps/reddit-comments/.env aufrufen.')
+  process.exit(1)
+}
+const withSeed = process.argv.includes('--seed')
+const force = process.argv.includes('--force')
+
+async function api(path: string, method = 'GET', body?: unknown): Promise<{ status: number, json: Record<string, unknown> }> {
+  const res = await fetch(`${endpoint}${path}`, {
+    method,
+    headers: { 'X-Appwrite-Project': projectId!, 'X-Appwrite-Key': apiKey!, 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
+  })
+  const json = await res.json().catch(() => ({})) as Record<string, unknown>
+  return { status: res.status, json }
+}
+
+function ok(status: number) { return status >= 200 && status < 300 }
+
+console.log(`Bootstrap gegen ${endpoint} / Projekt ${projectId}\n`)
+
+// 1) Datenbank
+{
+  const { status, json } = await api('/databases', 'POST', { databaseId, name: databaseId })
+  if (ok(status)) console.log(`✔ Datenbank '${databaseId}' angelegt`)
+  else if (status === 409) console.log(`↷ Datenbank '${databaseId}' existiert bereits`)
+  else { console.error(`✗ Datenbank fehlgeschlagen (${status}): ${json.message}`); process.exit(1) }
+}
+
+// 2) Avatars-Bucket
+{
+  const { status, json } = await api('/storage/buckets', 'POST', {
+    bucketId, name: 'avatars',
+    permissions: ['create("users")', 'read("any")'],
+    fileSecurity: true, enabled: true,
+    maximumFileSize: 5 * 1024 * 1024,
+    allowedFileExtensions: ['png', 'jpg', 'jpeg', 'webp', 'gif'],
+    compression: 'none', encryption: false, antivirus: false,
+  })
+  if (ok(status)) console.log(`✔ Bucket '${bucketId}' angelegt`)
+  else if (status === 409) console.log(`↷ Bucket '${bucketId}' existiert bereits`)
+  else console.warn(`⚠ Bucket fehlgeschlagen (${status}): ${json.message}`)
+}
+
+// 3) Web-Platform (best-effort — Projekt-Management-Scope; ggf. in der Console anlegen)
+{
+  const { status, json } = await api(`/projects/${projectId}/platforms`, 'POST', {
+    type: 'web', name: 'localhost', hostname: 'localhost',
+  })
+  if (ok(status)) console.log('✔ Web-Platform localhost angelegt')
+  else if (status === 409) console.log('↷ Web-Platform existiert bereits')
+  else console.warn(`⚠ Web-Platform nicht per API anlegbar (${status}) — optional, ggf. in der Console: Overview → Add platform → Web → hostname localhost`)
+}
+
+// 4) Sicherheits-Guard: Migrationen sind für FRISCHE Instanzen. Einige (z. B.
+// comments-002) bauen das Schema DESTRUKTIV um (drop + recreate) → auf einer
+// befüllten Instanz droht Datenverlust. Deshalb Abbruch, wenn schon Daten da.
+if (!force && (endpoint || projectId)) {
+  const sdk = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+  try {
+    const res = await sdk.listRows({ databaseId, tableId: 'comments', queries: [Query.limit(1)] })
+    if (res.total > 0) {
+      console.error(`\n✗ Instanz ist NICHT frisch: comments hat ${res.total} Zeilen. Migrationen wären destruktiv (Datenverlust). Abbruch. Mit --force erzwingen (Daten gehen verloren).`)
+      process.exit(1)
+    }
+  }
+  catch {
+    // Tabelle existiert noch nicht → frische Instanz, alles gut
+  }
+}
+
+// 5) Migrationen (Reihenfolge: Fundament zuerst)
+console.log('\n— Migrationen —')
+for (const layer of ['system', 'comments', 'moderation', 'admin']) {
+  console.log(`▸ ${layer}`)
+  execSync(`pnpm --filter @maui/${layer} migrate`, { stdio: 'inherit' })
+}
+
+// 6) Optional: Seed
+if (withSeed) {
+  console.log('\n— Demo-Seed —')
+  execSync('pnpm --filter reddit-comments seed', { stdio: 'inherit' })
+}
+
+console.log('\n✔ Bootstrap fertig. App starten mit: pnpm --filter reddit-comments dev')
