@@ -13,6 +13,11 @@
 const WINDOW_MS = 60_000
 const MAX_ATTEMPTS = 5
 const WRITE_MAX = 60
+// Presence-Heartbeats laufen legitim hochfrequent (20s-Intervall + jede
+// metadata-Änderung, pro Tab) — großzügiges eigenes Budget, das nur echtes
+// Hämmern (Scripting) stoppt, nie normale Multi-Tab-Nutzung.
+const PRESENCE_MAX = 120
+const TOKEN_MAX = 10
 const PRUNE_THRESHOLD = 1_000
 
 const attempts = new Map<string, number[]>()
@@ -43,27 +48,34 @@ const FAILURE_LIMITED = new Set([
 // Bucket-Name, damit z.B. Vote-Spam über viele Kommentar-IDs EIN Budget teilt
 // (statt je ID ein frisches). Jeder Request zählt. `reports/resolve` fehlt
 // bewusst: schon Moderator-gated, kein offener Abuse-Vektor.
-const WRITE_LIMITED: { re: RegExp, bucket: string }[] = [
+const WRITE_LIMITED: { re: RegExp, bucket: string, max?: number }[] = [
   { re: /^POST \/api\/comments$/, bucket: 'comments:create' },
   { re: /^PATCH \/api\/comments\/[^/]+$/, bucket: 'comments:edit' },
   { re: /^POST \/api\/comments\/[^/]+\/vote$/, bucket: 'comments:vote' },
   { re: /^POST \/api\/reports$/, bucket: 'reports:create' },
+  // Presence-Schreibwege (Admin-Client-Amplifikation) + JWT-Mint: session-
+  // gated, aber ein Skript/XSS soll den Server nicht ungedrosselt Appwrite-
+  // Writes/JWTs erzeugen lassen. heartbeat+leave teilen EIN Budget.
+  { re: /^POST \/api\/presence\/(heartbeat|leave)$/, bucket: 'presence:write', max: PRESENCE_MAX },
+  { re: /^GET \/api\/auth\/realtime-token$/, bucket: 'auth:jwt', max: TOKEN_MAX },
 ]
 
 export default defineEventHandler((event) => {
-  if (event.method !== 'POST' && event.method !== 'PUT' && event.method !== 'PATCH') return
+  const isWriteMethod = event.method === 'POST' || event.method === 'PUT' || event.method === 'PATCH'
   const pathname = getRequestURL(event).pathname
   const route = `${event.method} ${pathname}`
+  // GET ist grundsätzlich frei — Ausnahme: explizit gelistete teure GETs (JWT-Mint).
+  const write = WRITE_LIMITED.find(w => w.re.test(route))
+  if (!isWriteMethod && !write) return
   const always = ALWAYS_LIMITED.has(route)
   const onFailure = FAILURE_LIMITED.has(route)
-  const write = WRITE_LIMITED.find(w => w.re.test(route))
   if (!always && !onFailure && !write) return
 
   const ip = getRequestIP(event, { xForwardedFor: true }) ?? 'unknown'
   // Eigenes Budget pro Bucket bzw. Methode+Route — Login-/Reset-Versuche und
   // verschiedene Schreib-Aktionen verbrauchen nicht gegenseitig ihr Kontingent.
   const key = `${ip}:${write ? write.bucket : route}`
-  const max = write ? WRITE_MAX : MAX_ATTEMPTS
+  const max = write ? (write.max ?? WRITE_MAX) : MAX_ATTEMPTS
   const now = Date.now()
   prune(now)
 

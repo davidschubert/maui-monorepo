@@ -43,9 +43,10 @@ export function sharedRealtime(): Realtime {
 // ── Realtime-Auth via JWT ──────────────────────────────────────────────────
 // Appwrite-korrekter Weg, den Realtime-WS bei httpOnly-Sessions zu authentifizieren:
 // ein kurzlebiger JWT (setJWT) auf dem Realtime-Client. Nötig für den Empfang von
-// read("users")-Events UND den WS-Presence-Upsert. JWTs laufen nach ≤1h ab → vor
-// Ablauf erneuern. Fehlschlag → Gast-WS + Poll-/Refetch-Fallback der Konsumenten.
-const JWT_REFRESH_MS = 50 * 60_000
+// read("users")-Events UND den WS-Presence-Upsert. Server mintet 15-min-JWTs
+// (Härtung: kleines XSS-Fenster) → Refresh deutlich vor Ablauf. Fehlschlag →
+// Gast-WS + Poll-/Refetch-Fallback der Konsumenten.
+const JWT_REFRESH_MS = 12 * 60_000
 let jwtPromise: Promise<void> | null = null
 let jwtReady = false
 
@@ -84,4 +85,28 @@ export function ensureRealtimeJwt(): Promise<void> {
     setInterval(fetchJwt, JWT_REFRESH_MS)
   }
   return jwtPromise
+}
+
+/**
+ * Realtime-Auth an den Auth-State koppeln (Plugin realtime-auth.client ruft das
+ * bei jedem user-Wechsel). Ohne diesen Hook bliebe der memoizierte jwtPromise
+ * nach Gast→Login dauerhaft „kein JWT" (keine Presence-Upserts, keine
+ * read("users")-Events bis zum nächsten 12-min-Refresh) bzw. nach Logout die
+ * WS bis zu 15 min als der alte User authentifiziert.
+ *
+ * Nach dem JWT-Wechsel wird die offene WS einmal neu verbunden: die SDK-Realtime
+ * re-subscribed beim `connected` ALLE aktiven Subscriptions selbst
+ * (handleResponseConnected, am 26.1.0-Quellcode verifiziert) — Konsumenten
+ * verlieren nichts, die neue Verbindung trägt aber den neuen (oder keinen) JWT.
+ */
+export async function syncRealtimeAuth(loggedIn: boolean): Promise<void> {
+  const { rtClient, realtime } = ensureClients()
+  jwtPromise = null
+  jwtReady = false
+  rtClient.setJWT('')
+  if (loggedIn) await ensureRealtimeJwt()
+  // closeSocket ist im d.ts privat, existiert aber stabil — Reconnect übernimmt
+  // die SDK (Backoff + Re-Subscribe). Kein Socket offen → no-op.
+  const internal = realtime as unknown as { closeSocket?: () => Promise<void>, socket?: unknown }
+  if (internal.socket && internal.closeSocket) await internal.closeSocket().catch(() => {})
 }

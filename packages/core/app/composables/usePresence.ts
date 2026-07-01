@@ -212,15 +212,26 @@ export function usePresence(predicate: (u: PresenceUser) => boolean = () => true
     refreshTimer = setTimeout(() => { void refresh() }, 250)
   }
 
+  // disposed-Flag: onMounted ist async — wird die Komponente während eines
+  // awaits unmounted (schnelle Navigation), liefe onScopeDispose mit noch
+  // undefiniertem sub/pollTimer und der Rest des Setups würde DANACH einen
+  // ewigen 20s-Poll + eine tote Subscription starten (Leak).
+  let disposed = false
   onMounted(async () => {
     await ensureRealtimeJwt() // WS authentifizieren, BEVOR er sich verbindet (sonst Gast)
+    if (disposed) return
     await refresh()
+    if (disposed) return
     loaded.value = true
-    try { sub = await realtime.subscribe(Channel.presences(), scheduleRefresh) }
+    try {
+      sub = await realtime.subscribe(Channel.presences(), scheduleRefresh)
+      if (disposed) { void (sub.unsubscribe ?? sub.close)?.(); sub = undefined; return }
+    }
     catch { /* Poll trägt die Anwesenheit */ }
     pollTimer = setInterval(refresh, POLL_MS)
   })
   onScopeDispose(() => {
+    disposed = true
     clearInterval(pollTimer)
     clearTimeout(refreshTimer)
     try { (sub?.unsubscribe ?? sub?.close)?.() }

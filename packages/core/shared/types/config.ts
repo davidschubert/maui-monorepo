@@ -1,6 +1,6 @@
 /**
  * Laufzeit-Feature-Flags (app_config Table, Zeile 'global'). Die Table gehört
- * dem admin-Layer; der Core liest sie nur und fällt auf Defaults zurück.
+ * dem system-Layer; der Core liest sie nur und fällt auf Defaults zurück.
  */
 export interface AppConfig {
   /** Neuregistrierungen erlaubt */

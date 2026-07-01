@@ -33,6 +33,9 @@ onMounted(() => {
     'notifications',
     (ev) => {
       if (ev.type !== 'create') return
+      // Dedupe gegen das parallel laufende load(): enthielt dessen Antwort den
+      // Eintrag schon, würde er sonst doppelt gelistet UND doppelt gezählt.
+      if (notifications.value.some(n => n.$id === ev.payload.$id)) return
       notifications.value = [ev.payload, ...notifications.value]
       unread.value++
     },

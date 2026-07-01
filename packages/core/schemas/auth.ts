@@ -72,10 +72,14 @@ export function createRecoverySchema(t: TranslateFn = identity) {
   })
 }
 
-/** Formular der Reset-Page (userId/secret kommen aus der Mail-URL, nicht aus dem Formular) */
+/**
+ * Formular der Reset-Page (userId/secret kommen aus der Mail-URL, nicht aus dem
+ * Formular). Neues Passwort MUSS die Komplexitäts-Policy erfüllen — sonst
+ * unterläuft der „Passwort vergessen"-Flow die Registrierungs-Anforderungen.
+ */
 export function createResetSchema(t: TranslateFn = identity) {
   return z.object({
-    password: z.string(t('validation.required')).min(8, t('validation.passwordMin')),
+    password: strongPassword(t),
     passwordConfirm: z.string(t('validation.required')).min(1, t('validation.passwordConfirmRequired')),
   }).refine(data => data.password === data.passwordConfirm, {
     message: t('validation.passwordMismatch'),
@@ -119,7 +123,7 @@ export type OtpRequestInput = z.infer<ReturnType<typeof createOtpRequestSchema>>
 export const resetServerSchema = z.object({
   userId: z.string().min(1),
   secret: z.string().min(1),
-  password: z.string().min(8),
+  password: strongPassword(),
 })
 
 /** Passwort-Änderung im eingeloggten Zustand: aktuelles + neues (stark) + Bestätigung */

@@ -82,6 +82,9 @@ export function useRealtimeRows<T extends AppwriteRow>(
     if (disposed) return
     try {
       sub = await realtime.subscribe(channel, handle as (payload: unknown) => void, options.queries)
+      // Scope könnte WÄHREND des subscribe-Awaits disposed worden sein →
+      // sofort wieder abbestellen, sonst feuert der Callback ewig weiter.
+      if (disposed) { void (sub.unsubscribe ?? sub.close)?.(); sub = undefined }
     }
     catch { /* WS nicht verfügbar → Konsumenten haben Poll-/Refetch-Fallbacks */ }
   })()

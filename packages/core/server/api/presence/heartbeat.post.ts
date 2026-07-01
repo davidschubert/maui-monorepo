@@ -1,3 +1,5 @@
+import { presenceHeartbeatSchema } from '../../../schemas/presence'
+
 /**
  * Presence-Heartbeat (SSR-Cookie-Architektur): Der Browser kann seine eigene
  * Presence NICHT selbst schreiben — der Web-SDK-Client hat keine Session
@@ -17,25 +19,19 @@ export default defineEventHandler(async (event) => {
   const user = event.context.user
   if (!user) throw createError({ status: 401, statusText: 'Unauthorized' })
 
-  const body = await readBody(event).catch(() => ({})) as {
-    scope?: unknown
-    action?: unknown
-    typing?: unknown
-    page?: unknown
-    replyingTo?: unknown
-    near?: unknown
-    away?: unknown
-  }
+  // Zod statt loser typeof-Checks: metadata ist für alle eingeloggten User
+  // lesbar — Längen-Caps verhindern Bloat/Appwrite-Limit-Fehler (422 bei Junk).
+  const body = await readValidatedBody(event, presenceHeartbeatSchema.parse)
 
   const prefs = user.prefs as { avatarUrl?: string } | undefined
   const metadata: Record<string, unknown> = { userName: user.name }
   if (typeof prefs?.avatarUrl === 'string' && prefs.avatarUrl) metadata.avatarUrl = prefs.avatarUrl
-  if (typeof body.scope === 'string') metadata.scope = body.scope
-  if (typeof body.action === 'string') metadata.action = body.action
+  if (body.scope) metadata.scope = body.scope
+  if (body.action) metadata.action = body.action
   if (body.typing === true) metadata.typing = true
-  if (typeof body.page === 'string') metadata.page = body.page
-  if (typeof body.replyingTo === 'string') metadata.replyingTo = body.replyingTo
-  if (typeof body.near === 'string') metadata.near = body.near
+  if (body.page) metadata.page = body.page
+  if (body.replyingTo) metadata.replyingTo = body.replyingTo
+  if (body.near) metadata.near = body.near
   if (body.away === true) metadata.away = true
 
   try {
