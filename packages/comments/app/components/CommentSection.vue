@@ -128,12 +128,7 @@ function presenceLabel(u: PresenceUser): string {
              PresenceAvatar setzt ein Zustands-Icon in die Ecke (tippt/antwortet). -->
         <UAvatarGroup size="3xl" :max="8" color="primary">
           <UTooltip v-for="u in present" :key="u.userId" :text="presenceLabel(u)">
-            <PresenceAvatar
-              :name="u.userName"
-              :avatar-url="u.avatarUrl"
-              :class="u.away ? 'opacity-60 transition-opacity' : 'transition-opacity'"
-              v-bind="presenceBadge(u)"
-            />
+            <PresenceAvatar :name="u.userName" :avatar-url="u.avatarUrl" v-bind="presenceBadge(u)" />
           </UTooltip>
         </UAvatarGroup>
         <span>{{ t('comments.presence.here', { count: viewerCount }) }}</span>
