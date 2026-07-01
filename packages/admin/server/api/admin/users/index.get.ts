@@ -40,8 +40,8 @@ export default defineEventHandler(async (event): Promise<AdminUserListResponse> 
   const presence = new Map<string, string>()
   for (const p of await listOnlinePresences(event)) presence.set(p.userId, p.updatedAt)
 
-  // Sortierung nach Presence ("jetzt aktiv") → in-memory, da Appwrite nicht über
-  // unsere presence-Table ordnen kann. Sonst: server-seitige Appwrite-Ordnung.
+  // Sortierung nach Presence ("jetzt aktiv") → in-memory, da die Presences-API
+  // nicht gemeinsam mit users.list ordnen kann. Sonst: server-seitige Ordnung.
   if (rawSort === 'active') {
     const all: Models.User<Models.Preferences>[] = []
     let offset = 0

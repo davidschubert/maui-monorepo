@@ -91,7 +91,7 @@ const xTicks = computed(() => {
 <template>
   <div class="w-full">
     <svg
-      :viewBox="`0 0 ${W} ${H}`"
+      :viewBox.attr="`0 0 ${W} ${H}`"
       class="h-auto w-full"
       role="img"
       :aria-label="`${usersLabel}: ${usersTotal} · ${commentsLabel}: ${commentsTotal}`"
@@ -99,7 +99,7 @@ const xTicks = computed(() => {
       <!-- Gridlines -->
       <line
         v-for="(y, i) in gridLines" :key="i"
-        :x1="PAD" :y1="y" :x2="W - PAD" :y2="y"
+        :x1.attr="PAD" :y1.attr="y" :x2.attr="W - PAD" :y2.attr="y"
         class="text-default" stroke="currentColor" stroke-width="1"
         :opacity="i === gridLines.length - 1 ? 0.4 : 0.12"
       />
@@ -112,8 +112,8 @@ const xTicks = computed(() => {
       </g>
 
       <!-- Y-Skala: Max oben, 0 unten -->
-      <text :x="PAD" :y="PAD - 8" fill="currentColor" class="text-dimmed text-[11px]">{{ max }}</text>
-      <text :x="PAD" :y="H - PAD + 16" fill="currentColor" class="text-dimmed text-[11px]">0</text>
+      <text :x.attr="PAD" :y.attr="PAD - 8" fill="currentColor" class="text-dimmed text-[11px]">{{ max }}</text>
+      <text :x.attr="PAD" :y.attr="H - PAD + 16" fill="currentColor" class="text-dimmed text-[11px]">0</text>
     </svg>
 
     <!-- X-Achse: Tage -->
