@@ -1,5 +1,5 @@
 import type { Ref } from 'vue'
-import { Client, Realtime, Channel, Presences } from 'appwrite'
+import { Client, Realtime, Channel, Presences, Query } from 'appwrite'
 
 export interface PresenceUser {
   userId: string
@@ -22,7 +22,12 @@ export interface PresenceUser {
 interface RawPresence { userId: string, status?: string, $updatedAt?: string, metadata?: Record<string, unknown> }
 
 const HEARTBEAT_MS = 20_000
-const POLL_MS = 20_000 // hält die Aktualitäts-Filterung frisch
+// Poll ist der ZUVERLÄSSIGE Update-Pfad: Realtime-Presence-Events propagieren im
+// aktuellen self-hosted 1.9.5 nicht (gemessen: Änderungen erscheinen erst per
+// Poll, nicht per WS-Event) — der JWT-WS ist als korrekter Mechanismus bereit,
+// falls Appwrite das liefert. Bis dahin trägt der Poll die Liveness → 8s statt
+// 20s (Beitreten/Verlassen/Online spürbar live; Tippen bleibt Best-Effort).
+const POLL_MS = 8_000
 // „online jetzt" bestimmen wir über die Aktualität (updatedAt). Das Fenster MUSS
 // größer sein als die Heartbeat-Lücke eines Hintergrund-Tabs: Browser drosseln
 // setInterval in versteckten Tabs auf ~1×/Minute. Bei 60s Fenster fiele ein
@@ -33,14 +38,47 @@ function isFresh(p: RawPresence): boolean {
   return !!p.$updatedAt && (Date.now() - Date.parse(p.$updatedAt) < FRESH_MS)
 }
 
-// Ein geteilter SDK-Client/Realtime pro Tab (eine WS-Verbindung, multiplexed).
+// ZWEI Clients pro Tab:
+// - sharedClient: OHNE JWT → HTTP presences.list() authentifiziert per Cookie
+//   (gleiche Domain). Ein JWT hier würde 403 auslösen: Appwrite verbietet „JWT
+//   und Cookie in derselben Anfrage".
+// - rtClient: MIT JWT → nur für die Realtime-WS, die sich sonst als Gast
+//   verbindet und keine read("users")-Events empfängt.
 let sharedClient: Client | null = null
+let rtClient: Client | null = null
 let sharedRealtime: Realtime | null = null
 function shared() {
   const config = useRuntimeConfig()
   if (!sharedClient) sharedClient = new Client().setEndpoint(config.public.appwriteEndpoint).setProject(config.public.appwriteProjectId)
-  if (!sharedRealtime) sharedRealtime = new Realtime(sharedClient)
+  if (!rtClient) rtClient = new Client().setEndpoint(config.public.appwriteEndpoint).setProject(config.public.appwriteProjectId)
+  if (!sharedRealtime) sharedRealtime = new Realtime(rtClient)
   return { client: sharedClient, realtime: sharedRealtime }
+}
+
+// ── Realtime-Auth via JWT ──────────────────────────────────────────────────
+// Appwrite-korrekter Weg, den Realtime-WS bei httpOnly-Sessions zu authentifizieren:
+// ein kurzlebiger JWT (setJWT) auf einem SEPARATEN Client (der Cookie-Client darf
+// keinen JWT tragen — Appwrite verbietet „JWT und Cookie in derselben Anfrage").
+// Idempotenter Start + Refresh (< 1h Gültigkeit) für gültige Reconnects; Fehler →
+// Poll-Fallback. HINWEIS: Im aktuellen self-hosted 1.9.5 propagieren Presence-
+// Realtime-Events (noch) nicht (gemessen) — der WS ist bereit, die Liveness trägt
+// bis dahin der Poll (s. POLL_MS).
+const JWT_REFRESH_MS = 50 * 60_000
+let jwtPromise: Promise<void> | null = null
+async function fetchJwt() {
+  try {
+    const { jwt } = await $fetch<{ jwt: string }>('/api/auth/realtime-token')
+    rtClient?.setJWT(jwt) // NUR der Realtime-Client — nie der Cookie-HTTP-Client
+  }
+  catch { /* Gast-WS + Poll-Fallback */ }
+}
+function ensureJwt() {
+  shared()
+  if (!jwtPromise) {
+    jwtPromise = fetchJwt()
+    setInterval(fetchJwt, JWT_REFRESH_MS)
+  }
+  return jwtPromise
 }
 
 const toUser = (p: RawPresence): PresenceUser => ({
@@ -97,6 +135,11 @@ export function usePresenceState() {
     // – Heartbeat feuert). Bei Rückkehr ist die Presence ohnehin sofort wieder frisch.
     document.addEventListener('visibilitychange', upsert)
     window.addEventListener('focus', upsert)
+    // Tab schließt / Seite verlässt (kein SPA-Wechsel) → Presence sofort entfernen,
+    // statt bis zur Expiry (~120s) „online" zu bleiben. sendBeacon überlebt Unload.
+    window.addEventListener('pagehide', () => {
+      if (auth.user) navigator.sendBeacon('/api/presence/leave')
+    })
   }
 
   // Setter no-oppen bei gleichem Wert → keine redundanten Upserts (z.B. pro Tastenschlag).
@@ -143,7 +186,8 @@ export function usePresence(predicate: (u: PresenceUser) => boolean = () => true
 
   async function refresh() {
     try {
-      const res = await presences.list()
+      // Explizites Limit statt Default 25 → auch bei vielen Online-Usern vollständig.
+      const res = await presences.list({ queries: [Query.limit(200)] })
       const next = new Map<string, PresenceUser>()
       for (const p of (res.presences ?? []) as unknown as RawPresence[]) {
         const u = toUser(p)
@@ -166,6 +210,7 @@ export function usePresence(predicate: (u: PresenceUser) => boolean = () => true
   }
 
   onMounted(async () => {
+    await ensureJwt() // WS authentifizieren, BEVOR er sich verbindet (sonst Gast)
     await refresh()
     loaded.value = true
     try { sub = await realtime.subscribe(Channel.presences(), scheduleRefresh) }

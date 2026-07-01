@@ -1,43 +1,19 @@
+import { Query } from 'node-appwrite'
 import type { H3Event } from 'h3'
+import { toOnlinePresences, type OnlinePresence, type RawServerPresence } from './presenceFilter'
 
-// „online jetzt" = zuletzt < 90s aktualisiert. 90s (statt 60s) toleriert die
-// setInterval-Drosselung versteckter Tabs (~1 Heartbeat/Minute) — ein offener,
-// aber nicht fokussierter Tab bleibt so korrekt „online" (muss > Drossel-Lücke).
-const FRESH_MS = 90_000
-
-export interface OnlinePresence {
-  userId: string
-  userName: string
-  /** Was der User gerade ansieht, z.B. 'post:demo-post' */
-  scope?: string
-  /** Was der User gerade tut, z.B. 'reviewing:report:42' */
-  action?: string
-  typing: boolean
-  /** Zeitpunkt der letzten Presence-Aktualisierung (ISO) — „zuletzt aktiv" */
-  updatedAt: string
-}
+export type { OnlinePresence }
 
 /**
  * Alle aktuell anwesenden User über die Appwrite **Presences API** (self-hostbar
- * seit 1.9.5) — abgelaufene Einträge sind server-seitig ausgefiltert. Ersetzt die
- * frühere presence-Table + manuelles Frische-/Stale-Handling. Degradiert auf [].
+ * seit 1.9.5). Recency-Filter + metadata-Mapping steckt in der reinen (getesteten)
+ * `toOnlinePresences`. Degradiert auf []. Explizites Limit statt Default 25.
  */
 export async function listOnlinePresences(event: H3Event): Promise<OnlinePresence[]> {
   try {
     const { presences } = createAdminClient(event)
-    const res = await presences.list()
-    const now = Date.now()
-    return (res.presences ?? []).filter(p => now - Date.parse(p.$updatedAt) < FRESH_MS).map((p) => {
-      const meta = (p.metadata ?? {}) as Record<string, unknown>
-      return {
-        userId: p.userId,
-        userName: typeof meta.userName === 'string' ? meta.userName : '',
-        scope: typeof meta.scope === 'string' ? meta.scope : undefined,
-        action: typeof meta.action === 'string' ? meta.action : undefined,
-        typing: meta.typing === true,
-        updatedAt: p.$updatedAt,
-      }
-    })
+    const res = await presences.list({ queries: [Query.limit(200)] })
+    return toOnlinePresences((res.presences ?? []) as unknown as RawServerPresence[], Date.now())
   }
   catch {
     return []

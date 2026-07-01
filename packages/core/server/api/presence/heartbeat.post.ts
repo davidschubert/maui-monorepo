@@ -42,7 +42,16 @@ export default defineEventHandler(async (event) => {
       presenceId: user.$id,
       userId: user.$id,
       status: 'online',
-      permissions: [`read("users")`],
+      // read("users"): andere eingeloggte User sehen die Presence.
+      // update/delete für den Owner: Appwrites Realtime-Presence-Handler
+      // (Presences/State.php) UPDATEt die Presence beim WS-Verarbeiten — ohne
+      // diese Rechte wirft er „No permissions for action 'update'" und der
+      // Realtime-Pfad bricht ab (nur read würde die Owner-Defaults verdrängen).
+      permissions: [
+        `read("users")`,
+        `update("user:${user.$id}")`,
+        `delete("user:${user.$id}")`,
+      ],
       expiresAt: new Date(Date.now() + PRESENCE_TTL_MS).toISOString(),
       metadata,
     })

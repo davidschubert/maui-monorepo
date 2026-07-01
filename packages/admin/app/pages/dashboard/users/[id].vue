@@ -17,6 +17,10 @@ const { data, refresh } = await useFetch<AdminUserDetailResponse>(() => `/api/ad
 
 const user = computed(() => data.value?.user ?? null)
 const isSelf = computed(() => user.value?.$id === me.value?.$id)
+// Live-Online: überlagert den Lade-Snapshot (user.online) mit der aktuellen
+// Presence, damit der Status ohne Reload stimmt (wie in der Users-Liste).
+const { present } = usePresence()
+const isOnline = computed(() => present.value.some(u => u.userId === userId.value) || !!user.value?.online)
 const memberSince = computed(() =>
   user.value ? new Date(user.value.registration).toLocaleDateString(locale.value, { month: 'short', year: 'numeric' }) : '',
 )
@@ -166,7 +170,7 @@ async function executePending() {
         <!-- Hero: Identität + Status/Rollen + benigne Schnellaktionen -->
         <UPageCard variant="subtle">
           <div class="flex flex-wrap items-center gap-4 sm:gap-5">
-            <UChip :show="user.online" color="success" position="bottom-right" inset size="3xl">
+            <UChip :show="isOnline" color="success" position="bottom-right" inset size="3xl">
               <UserAvatar :user="{ name: user.name, email: user.email, prefs: { avatarUrl: user.avatarUrl } }" size="3xl" />
             </UChip>
             <div class="min-w-0 flex-1">
