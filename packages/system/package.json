@@ -6,7 +6,7 @@
   "main": "./nuxt.config.ts",
   "scripts": {
     "lint": "eslint .",
-    "migrate": "node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/001-audit-logs.ts && node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/002-app-config.ts && node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/003-notifications.ts && node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/004-audit-ip.ts && node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/005-app-config-read.ts && node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/006-audit-read.ts && node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/007-presence.ts"
+    "migrate": "node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/001-audit-logs.ts && node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/002-app-config.ts && node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/003-notifications.ts && node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/004-audit-ip.ts && node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/005-app-config-read.ts && node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/006-audit-read.ts"
   },
   "dependencies": {
     "node-appwrite": "catalog:"

@@ -49,13 +49,11 @@ export default defineEventHandler(async (event): Promise<AdminUserDetailResponse
 
   const prefs = user.prefs as { bio?: string, avatarUrl?: string }
 
-  // Presence (global): rowId = userId; best effort, Row kann aufgeräumt sein
-  const lastSeen = await admin.tablesDB.getRow<Models.Row & { lastSeen: string }>({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: 'presence',
-    rowId: userId,
-  }).then(r => r.lastSeen).catch(() => '')
-  const online = lastSeen ? (Date.now() - Date.parse(lastSeen) < 45_000) : false
+  // Online-Status über die Appwrite Presences API (frisch gefiltert): ist der
+  // User in der Liste, ist er online — updatedAt ist sein „zuletzt aktiv".
+  const presence = (await listOnlinePresences(event)).find(p => p.userId === userId)
+  const online = !!presence
+  const lastSeen = presence?.updatedAt ?? ''
 
   return {
     user: {

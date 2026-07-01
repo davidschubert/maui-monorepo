@@ -1,4 +1,4 @@
-import { Client, Account, TablesDB, Health, Storage, Users } from 'node-appwrite'
+import { Client, Account, TablesDB, Health, Storage, Users, Presences } from 'node-appwrite'
 import type { H3Event } from 'h3'
 
 /**
@@ -60,6 +60,7 @@ export function createAdminClient(event?: H3Event) {
     get health() { return new Health(client) },
     get storage() { return new Storage(client) },
     get users() { return new Users(client) },
+    get presences() { return new Presences(client) },
   }
 }
 

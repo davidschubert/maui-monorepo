@@ -1,91 +1,134 @@
+import type { Ref } from 'vue'
 import { Client, Realtime, Channel, Presences } from 'appwrite'
 
-export interface PresenceUser { userId: string, userName: string, typing: boolean }
+export interface PresenceUser {
+  userId: string
+  userName: string
+  /** Was der User gerade ansieht, z.B. 'post:demo-post' (Thread) */
+  scope?: string
+  /** Was der User gerade tut, z.B. 'reviewing:report:42' oder 'editing:changelog:7' */
+  action?: string
+  typing: boolean
+}
 
-/** Struktur eines Presence-Payloads (Realtime-Event UND REST-Liste). */
-interface PresencePayload { userId: string, status?: string, metadata?: Record<string, unknown> }
+interface RawPresence { userId: string, status?: string, $updatedAt?: string, metadata?: Record<string, unknown> }
 
 const HEARTBEAT_MS = 20_000
-const POLL_MS = 25_000 // Sicherheitsnetz für abgelaufene Presences (Server-Expiry)
-const TYPING_RESET_MS = 3_000
-const TYPING_THROTTLE_MS = 1_500
+const POLL_MS = 20_000 // hält die Aktualitäts-Filterung frisch
+// Die Presence-`expiresAt` ist server-seitig lang (~30 Tage) → „online jetzt"
+// bestimmen wir über die Aktualität (updatedAt), die der Heartbeat frisch hält.
+const FRESH_MS = 60_000
+
+function isFresh(p: RawPresence): boolean {
+  return !!p.$updatedAt && (Date.now() - Date.parse(p.$updatedAt) < FRESH_MS)
+}
 
 // Ein geteilter SDK-Client/Realtime pro Tab (eine WS-Verbindung, multiplexed).
 let sharedClient: Client | null = null
 let sharedRealtime: Realtime | null = null
-function getRealtime(endpoint: string, projectId: string): { client: Client, realtime: Realtime } {
-  if (!sharedClient) sharedClient = new Client().setEndpoint(endpoint).setProject(projectId)
+function shared() {
+  const config = useRuntimeConfig()
+  if (!sharedClient) sharedClient = new Client().setEndpoint(config.public.appwriteEndpoint).setProject(config.public.appwriteProjectId)
   if (!sharedRealtime) sharedRealtime = new Realtime(sharedClient)
   return { client: sharedClient, realtime: sharedRealtime }
 }
 
+const toUser = (p: RawPresence): PresenceUser => ({
+  userId: p.userId,
+  userName: String(p.metadata?.userName ?? 'User'),
+  scope: typeof p.metadata?.scope === 'string' ? p.metadata.scope : undefined,
+  action: typeof p.metadata?.action === 'string' ? p.metadata.action : undefined,
+  typing: p.metadata?.typing === true,
+})
+
+// ════════════ MEINE Presence — EINE Upsert-Autorität pro Tab ════════════
+// Eine Presence pro User (presenceId = userId); metadata trägt scope/action/
+// typing. Verschiedene Features (Thread, Moderation, Edit) SETZEN Teile davon,
+// statt jeweils eigene (kollidierende) Presences zu upserten.
+interface Meta { scope?: string, action?: string, typing?: boolean }
+let stateStarted = false
+const myMeta: Ref<Meta> = ref({})
+
 /**
- * Anwesenheit für einen `scope` über Appwrites **Presences API** (self-hostbar
- * seit 1.9.5): upsertPresence (Heartbeat, Server-Expiry) + Channel.presences()-
- * Subscription statt eigener presence-Table + manuellem Stale-Cleanup.
- *
- * - Eine Presence pro User (presenceId = userId), scope/Name/typing als metadata.
- * - Subscription filtert nach metadata.scope: Wechselt ein User den Thread,
- *   ändert sich sein scope → hier wird er entfernt. Abgelaufene Presences fängt
- *   der Poll (presences.list, expired auto-gefiltert) ab.
- * - SSR: no-op. Gäste sehen Anwesenheit, senden aber keinen Heartbeat.
+ * Verwaltet die EIGENE Presence des eingeloggten Users (Appwrite Presences API,
+ * self-hostbar seit 1.9.5): upsert bei Login/metadata-Änderung + Heartbeat,
+ * Server-Expiry räumt ab. `read("users")` macht sie für eingeloggte User lesbar.
+ * SSR: no-op. Idempotenter Start (Modul-Flag) → genau ein Heartbeat/Watcher.
  */
-export function usePresence(scope: string) {
-  const map = ref(new Map<string, PresenceUser>())
-  const present = computed(() => [...map.value.values()])
+export function usePresenceState() {
+  const noop = { setScope: (_?: string) => {}, setAction: (_?: string) => {}, setTyping: (_: boolean) => {} }
+  if (import.meta.server) return noop
 
-  if (import.meta.server) {
-    const empty = computed(() => [] as PresenceUser[])
-    return { present: empty, others: empty, typingOthers: empty, viewerCount: computed(() => 0), setTyping: () => {} }
-  }
-
-  const config = useRuntimeConfig()
   const auth = useAuthStore()
-  const { client, realtime } = getRealtime(config.public.appwriteEndpoint, config.public.appwriteProjectId)
-  const presences = new Presences(client)
-
-  const others = computed(() => present.value.filter(u => u.userId !== auth.user?.$id))
-  const typingOthers = computed(() => others.value.filter(u => u.typing))
-  const viewerCount = computed(() => present.value.length)
-
-  let typing = false
-  let lastTypingSent = 0
-  let heartbeatTimer: ReturnType<typeof setInterval> | undefined
-  let pollTimer: ReturnType<typeof setInterval> | undefined
-  let typingReset: ReturnType<typeof setTimeout> | undefined
-  let sub: { close?: () => void, unsubscribe?: () => void } | undefined
-
-  const toUser = (p: PresencePayload): PresenceUser => ({
-    userId: p.userId,
-    userName: String(p.metadata?.userName ?? 'User'),
-    typing: p.metadata?.typing === true,
-  })
-
-  function applyPresence(p: PresencePayload) {
-    const next = new Map(map.value)
-    if (p.metadata?.scope === scope && p.status) next.set(p.userId, toUser(p))
-    else next.delete(p.userId)
-    map.value = next
-  }
+  const { realtime } = shared()
 
   function upsert() {
     if (!auth.user) return
     realtime.upsertPresence({
       presenceId: auth.user.$id,
       status: 'online',
-      // Ohne read-Permission wäre die Presence nur für den Besitzer sichtbar →
-      // andere Thread-Teilnehmer (eingeloggt) müssen sie lesen können.
       permissions: [`read("users")`],
-      metadata: { scope, userName: auth.user.name, typing },
+      metadata: { userName: auth.user.name, ...myMeta.value },
     }).catch(() => {})
+  }
+
+  if (!stateStarted) {
+    stateStarted = true
+    watch(() => auth.user?.$id, id => { if (id) upsert() }, { immediate: true })
+    watch(myMeta, upsert, { deep: true })
+    setInterval(upsert, HEARTBEAT_MS)
+  }
+
+  // Setter no-oppen bei gleichem Wert → keine redundanten Upserts (z.B. pro Tastenschlag).
+  return {
+    setScope: (scope?: string) => { if (myMeta.value.scope !== scope) myMeta.value = { ...myMeta.value, scope } },
+    setAction: (action?: string) => { if (myMeta.value.action !== action) myMeta.value = { ...myMeta.value, action } },
+    setTyping: (typing: boolean) => { if (myMeta.value.typing !== typing) myMeta.value = { ...myMeta.value, typing } },
+  }
+}
+
+// ════════════ Reader — ANDERE Presences, nach predicate gefiltert ════════════
+/**
+ * Liest die Presences anderer (via Channel.presences() + presences.list()),
+ * gefiltert per `predicate` (z.B. `u => u.scope === scope` für einen Thread,
+ * `u => u.action === 'reviewing:report:42'` für Moderations-Locks, oder Default
+ * = alle für „wer ist online"). SSR: leer.
+ */
+export function usePresence(predicate: (u: PresenceUser) => boolean = () => true) {
+  const map = ref(new Map<string, PresenceUser>())
+  const present = computed(() => [...map.value.values()])
+
+  if (import.meta.server) {
+    const empty = computed(() => [] as PresenceUser[])
+    return { present: empty, others: empty, typingOthers: empty, viewerCount: computed(() => 0) }
+  }
+
+  const auth = useAuthStore()
+  const { client, realtime } = shared()
+  const presences = new Presences(client)
+
+  const others = computed(() => present.value.filter(u => u.userId !== auth.user?.$id))
+  const typingOthers = computed(() => others.value.filter(u => u.typing))
+  const viewerCount = computed(() => present.value.length)
+
+  let sub: { close?: () => void, unsubscribe?: () => void } | undefined
+  let pollTimer: ReturnType<typeof setInterval> | undefined
+
+  function apply(p: RawPresence) {
+    const u = toUser(p)
+    const next = new Map(map.value)
+    if (p.status && isFresh(p) && predicate(u)) next.set(u.userId, u)
+    else next.delete(u.userId)
+    map.value = next
   }
 
   async function refresh() {
     try {
       const res = await presences.list()
       const next = new Map<string, PresenceUser>()
-      for (const p of (res.presences ?? []) as unknown as PresencePayload[]) {
-        if (p.metadata?.scope === scope && p.status) next.set(p.userId, toUser(p))
+      for (const p of (res.presences ?? []) as unknown as RawPresence[]) {
+        const u = toUser(p)
+        if (p.status && isFresh(p) && predicate(u)) next.set(u.userId, u)
       }
       map.value = next
     }
@@ -94,43 +137,17 @@ export function usePresence(scope: string) {
     }
   }
 
-  function setTyping(active: boolean) {
-    if (!auth.user) return
-    if (active) {
-      typing = true
-      clearTimeout(typingReset)
-      typingReset = setTimeout(() => { typing = false; upsert() }, TYPING_RESET_MS)
-      if (Date.now() - lastTypingSent > TYPING_THROTTLE_MS) { lastTypingSent = Date.now(); upsert() }
-    }
-    else {
-      typing = false
-      clearTimeout(typingReset)
-      upsert()
-    }
-  }
-
   onMounted(async () => {
     await refresh()
-    try {
-      sub = await realtime.subscribe(Channel.presences(), (res: { payload: PresencePayload }) => applyPresence(res.payload))
-    }
-    catch {
-      // Subscription-Fehler → Poll trägt die Anwesenheit (degradiert)
-    }
-    if (auth.user) {
-      upsert()
-      heartbeatTimer = setInterval(upsert, HEARTBEAT_MS)
-    }
+    try { sub = await realtime.subscribe(Channel.presences(), (res: { payload: RawPresence }) => apply(res.payload)) }
+    catch { /* Poll trägt die Anwesenheit */ }
     pollTimer = setInterval(refresh, POLL_MS)
   })
-
   onScopeDispose(() => {
-    clearInterval(heartbeatTimer)
     clearInterval(pollTimer)
-    clearTimeout(typingReset)
     try { (sub?.unsubscribe ?? sub?.close)?.() }
     catch { /* ignore */ }
   })
 
-  return { present, others, typingOthers, viewerCount, setTyping }
+  return { present, others, typingOthers, viewerCount }
 }

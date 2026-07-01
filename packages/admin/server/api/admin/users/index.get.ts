@@ -3,13 +3,10 @@ import type { Models } from 'node-appwrite'
 import type { AdminUserListResponse, AdminUserRow } from '../../../../shared/types/admin'
 
 const PAGE_SIZE = 25
-const ONLINE_MS = 45_000 // online = Heartbeat jünger als 45s
 const FETCH_CAP = 500 // Obergrenze für den In-Memory-Sort nach Presence
 
-type PresenceRow = Models.Row & { userId: string, lastSeen: string }
-
 /** Auf sichere Felder reduzieren — Server-User-Objekte enthalten Hash-Felder */
-function toRow(user: Models.User<Models.Preferences>, lastSeen: string, now: number): AdminUserRow {
+function toRow(user: Models.User<Models.Preferences>, online: Map<string, string>): AdminUserRow {
   const prefs = user.prefs as { avatarUrl?: string }
   return {
     $id: user.$id,
@@ -22,8 +19,8 @@ function toRow(user: Models.User<Models.Preferences>, lastSeen: string, now: num
     phoneVerification: user.phoneVerification,
     status: user.status,
     labels: user.labels ?? [],
-    online: lastSeen ? (now - Date.parse(lastSeen) < ONLINE_MS) : false,
-    lastSeen,
+    online: online.has(user.$id),
+    lastSeen: online.get(user.$id) ?? '',
   }
 }
 
@@ -36,23 +33,12 @@ export default defineEventHandler(async (event): Promise<AdminUserListResponse> 
   const rawSort = String(query.sort ?? '')
   const dir = query.dir === 'asc' ? 'asc' : 'desc'
 
-  const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
-  const now = Date.now()
 
-  // Presence-Map (nur online/kürzlich aktive User haben Rows — Cleanup nach ~2min)
+  // Online-User über die Appwrite Presences API (frisch gefiltert). Map
+  // userId → updatedAt („zuletzt aktiv"); Anwesenheit = online.
   const presence = new Map<string, string>()
-  try {
-    const rows = await admin.tablesDB.listRows<PresenceRow>({
-      databaseId: config.public.appwriteDatabaseId,
-      tableId: 'presence',
-      queries: [Query.equal('scope', 'global'), Query.limit(200)],
-    })
-    for (const row of rows.rows) presence.set(row.userId, row.lastSeen)
-  }
-  catch {
-    // presence-Table fehlt → ohne Online-Infos weiter
-  }
+  for (const p of await listOnlinePresences(event)) presence.set(p.userId, p.updatedAt)
 
   // Sortierung nach Presence ("jetzt aktiv") → in-memory, da Appwrite nicht über
   // unsere presence-Table ordnen kann. Sonst: server-seitige Appwrite-Ordnung.
@@ -70,7 +56,7 @@ export default defineEventHandler(async (event): Promise<AdminUserListResponse> 
       if (res.users.length < 100 || all.length >= res.total) break
       offset += 100
     }
-    const rows = all.map(u => toRow(u, presence.get(u.$id) ?? '', now))
+    const rows = all.map(u => toRow(u, presence))
     rows.sort((a, b) => {
       const ta = a.lastSeen ? Date.parse(a.lastSeen) : 0
       const tb = b.lastSeen ? Date.parse(b.lastSeen) : 0
@@ -94,5 +80,5 @@ export default defineEventHandler(async (event): Promise<AdminUserListResponse> 
     ...(search ? { search } : {}),
   })
 
-  return { total: result.total, users: result.users.map(u => toRow(u, presence.get(u.$id) ?? '', now)) }
+  return { total: result.total, users: result.users.map(u => toRow(u, presence)) }
 })
