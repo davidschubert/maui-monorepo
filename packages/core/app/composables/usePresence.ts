@@ -22,11 +22,10 @@ export interface PresenceUser {
 interface RawPresence { userId: string, status?: string, $updatedAt?: string, metadata?: Record<string, unknown> }
 
 const HEARTBEAT_MS = 20_000
-// Poll ist der ZUVERLÄSSIGE Update-Pfad: Realtime-Presence-Events propagieren im
-// aktuellen self-hosted 1.9.5 nicht (gemessen: Änderungen erscheinen erst per
-// Poll, nicht per WS-Event) — der JWT-WS ist als korrekter Mechanismus bereit,
-// falls Appwrite das liefert. Bis dahin trägt der Poll die Liveness → 8s statt
-// 20s (Beitreten/Verlassen/Online spürbar live; Tippen bleibt Best-Effort).
+// Poll ist der ZUVERLÄSSIGE Update-Pfad. Der WS-Upsert emittiert nachweislich das
+// Presence-Event (Worker: success:true), aber die ZUSTELLUNG ans Reader-Abo ließ
+// sich in diesem self-hosted 1.9.5 nicht verlässlich nachweisen (Reader refresht
+// nicht auf empfangene Events). Solange das so ist, trägt der Poll die Liveness → 8s.
 const POLL_MS = 8_000
 // „online jetzt" bestimmen wir über die Aktualität (updatedAt). Das Fenster MUSS
 // größer sein als die Heartbeat-Lücke eines Hintergrund-Tabs: Browser drosseln
@@ -59,10 +58,10 @@ function shared() {
 // Appwrite-korrekter Weg, den Realtime-WS bei httpOnly-Sessions zu authentifizieren:
 // ein kurzlebiger JWT (setJWT) auf einem SEPARATEN Client (der Cookie-Client darf
 // keinen JWT tragen — Appwrite verbietet „JWT und Cookie in derselben Anfrage").
-// Idempotenter Start + Refresh (< 1h Gültigkeit) für gültige Reconnects; Fehler →
-// Poll-Fallback. HINWEIS: Im aktuellen self-hosted 1.9.5 propagieren Presence-
-// Realtime-Events (noch) nicht (gemessen) — der WS ist bereit, die Liveness trägt
-// bis dahin der Poll (s. POLL_MS).
+// Nötig für den WS-Presence-Upsert (usePresenceState), der als EINZIGER Weg das
+// Realtime-Event auslöst (der HTTP-API-Upsert tut das nicht — am 1.9.5-Quellcode
+// verifiziert). Emission funktioniert; die Zustellung ans Abo aber (noch) nicht,
+// daher trägt der Poll. Idempotenter Start + Refresh (< 1h); Fehler → Poll-Fallback.
 const JWT_REFRESH_MS = 50 * 60_000
 let jwtPromise: Promise<void> | null = null
 async function fetchJwt() {
@@ -116,12 +115,38 @@ export function usePresenceState() {
 
   const auth = useAuthStore()
 
-  // Write server-seitig: der Browser darf seine Presence im SSR-Cookie-Setup
-  // nicht selbst schreiben (Web-SDK-Client ohne Session → WS-Upsert als Guest
-  // verworfen, PUT /presences → 401). Die Route upsertet mit dem Admin-Client.
-  function upsert() {
+  // Zwei Schreibwege — bewusst kombiniert:
+  // 1) HTTP-Heartbeat (Admin-Client, server-seitig): ZUVERLÄSSIG (Cookie-Auth,
+  //    funktioniert immer), aber löst KEIN Realtime-Event aus.
+  // 2) WS-Upsert (realtime.upsertPresence, JWT-authentifiziert): löst das
+  //    Realtime-Event `presences.[id].upsert` aus → andere sehen es SOFORT.
+  //    Nur der WS-Handler publiziert Events (verifiziert am 1.9.5-Quellcode).
+  //    Owner-Rechte (update/delete) nötig, sonst wirft der Handler beim Update.
+  function upsertHttp() {
     if (!auth.user) return
     $fetch('/api/presence/heartbeat', { method: 'POST', body: { ...myMeta.value } }).catch(() => {})
+  }
+  function upsertWs() {
+    const user = auth.user
+    if (!user) return
+    const { realtime } = shared()
+    ensureJwt()
+      .then(() => {
+        const prefs = user.prefs as { avatarUrl?: string } | undefined
+        const metadata: Record<string, unknown> = { userName: user.name, ...myMeta.value }
+        if (prefs?.avatarUrl) metadata.avatarUrl = prefs.avatarUrl
+        return realtime.upsertPresence({
+          presenceId: user.$id,
+          status: 'online',
+          permissions: [`read("users")`, `update("user:${user.$id}")`, `delete("user:${user.$id}")`],
+          metadata,
+        })
+      })
+      .catch(() => {}) // WS nicht verfügbar → HTTP-Heartbeat trägt die Presence
+  }
+  function upsert() {
+    upsertHttp()
+    upsertWs()
   }
 
   if (!stateStarted) {
