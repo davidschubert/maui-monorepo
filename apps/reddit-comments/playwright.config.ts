@@ -1,4 +1,21 @@
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { dirname, resolve } from 'node:path'
 import { defineConfig, devices } from '@playwright/test'
+
+// .env (Appwrite-Runtime-Key etc.) für die Tests bereitstellen — nur Keys setzen,
+// die noch nicht in der Umgebung stehen. Fehlt die Datei (z. B. CI), überspringt
+// der Realtime-Test sich selbst (env-gated). Keine externe dotenv-Abhängigkeit.
+try {
+  const envPath = resolve(dirname(fileURLToPath(import.meta.url)), '.env')
+  for (const line of readFileSync(envPath, 'utf8').split('\n')) {
+    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/)
+    if (!m) continue
+    const key = m[1]!
+    if (process.env[key] === undefined) process.env[key] = m[2]!.replace(/^["']|["']$/g, '')
+  }
+}
+catch { /* keine .env → env-gated Tests skippen */ }
 
 /**
  * E2E-Smoke-Tests für reddit-comments (Port 3001).
