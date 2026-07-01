@@ -29,11 +29,16 @@ Vollständiges Konzept: docs/CONCEPT.md
   Migrations-Key (databases/tables/columns/indexes, nur für Scripts)
 - CRUD NUR über server/api/* (Session enforced, Validierung zentral),
   NIE Web SDK CRUD aus <script setup>
-- Realtime: useRealtimeRows läuft (noch) auf nativem WebSocket (Legacy-URL-
-  Protokoll, where-Filter client-seitig). Legacy-Protokoll funktioniert auf
-  1.9.5 weiter (verifiziert). SDK-Protokoll + server-seitige Query-Subscriptions
-  (Realtime + Channel.tablesdb().table().row() + queries) sind seit 1.9.5
-  self-hosted verfügbar → Rückbau aufs SDK möglich (Phase 18 / P1), aber optional.
+- Realtime (seit P1, 2026-07-01): EINE geteilte, JWT-authentifizierte SDK-
+  Realtime in core/app/composables/useRealtimeClient.ts (sharedRealtime,
+  realtimeCookieClient, ensureRealtimeJwt) — useRealtimeRows, Presence und
+  Config-Flags multiplexen über denselben Socket (Channel.tablesdb().table()
+  .row(), optional server-seitige queries; where-Filter bleibt Sicherheitsnetz).
+  JWT via GET /api/auth/realtime-token (15 min, Client refresht; Cookie-Client
+  NIE mit JWT mischen → Appwrite-403). AUSNAHME: useRealtimeAccount bleibt
+  bewusst cookie-nativer WS (Instant-Session-Revoke hängt am Cookie-Close) —
+  NICHT konsolidieren. Realtime braucht einen gesunden appwrite-realtime-
+  Container (Swoole-Crash → `docker compose up -d --no-deps appwrite-realtime`).
 - Session-Cookie: a_session_<PROJECT_ID>, httpOnly+secure+sameSite,
   Appwrite-Endpoint als Subdomain derselben Root-Domain
 - Jede App: EIGENE Appwrite-Instanz, Config aus .env
@@ -63,6 +68,9 @@ Vollständiges Konzept: docs/CONCEPT.md
 
 ## Config-Gates (app.config.ts, Namespace maui.*)
 - maui.analytics / maui.consent: Core-Default false, App aktiviert explizit
+- maui.auth.*: providers (OAuth-Buttons), termsUrl (AGB-Pflicht), otp
+- maui.admin.modules: Modul-Registry der Dashboard-Nav — Feature-Layer
+  registrieren ihre Admin-Seiten hier (expliziter Vertrag statt Kopplung)
 - app.config.ts wird tief gemergt — App überschreibt nur was nötig
 
 ## Coding Rules
