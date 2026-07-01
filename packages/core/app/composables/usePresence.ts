@@ -113,14 +113,7 @@ export function usePresence(predicate: (u: PresenceUser) => boolean = () => true
 
   let sub: { close?: () => void, unsubscribe?: () => void } | undefined
   let pollTimer: ReturnType<typeof setInterval> | undefined
-
-  function apply(p: RawPresence) {
-    const u = toUser(p)
-    const next = new Map(map.value)
-    if (p.status && isFresh(p) && predicate(u)) next.set(u.userId, u)
-    else next.delete(u.userId)
-    map.value = next
-  }
+  let refreshTimer: ReturnType<typeof setTimeout> | undefined
 
   async function refresh() {
     try {
@@ -137,14 +130,24 @@ export function usePresence(predicate: (u: PresenceUser) => boolean = () => true
     }
   }
 
+  // Realtime-Events sind nur der „etwas hat sich geändert"-Trigger — den
+  // autoritativen Zustand holt refresh() via list() (kennt $updatedAt für die
+  // Aktualitäts-Filterung, unabhängig vom Payload-Shape). Kurz entprellt, um
+  // Event-Bursts (mehrere Tipp-Toggles) zu einem list()-Call zu bündeln.
+  function scheduleRefresh() {
+    clearTimeout(refreshTimer)
+    refreshTimer = setTimeout(() => { void refresh() }, 250)
+  }
+
   onMounted(async () => {
     await refresh()
-    try { sub = await realtime.subscribe(Channel.presences(), (res: { payload: RawPresence }) => apply(res.payload)) }
+    try { sub = await realtime.subscribe(Channel.presences(), scheduleRefresh) }
     catch { /* Poll trägt die Anwesenheit */ }
     pollTimer = setInterval(refresh, POLL_MS)
   })
   onScopeDispose(() => {
     clearInterval(pollTimer)
+    clearTimeout(refreshTimer)
     try { (sub?.unsubscribe ?? sub?.close)?.() }
     catch { /* ignore */ }
   })
