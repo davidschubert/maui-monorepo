@@ -44,9 +44,15 @@ Vollständiges Konzept: docs/CONCEPT.md
   nach Column-Anlage auf 'available' pollen bevor Indizes
 - Presences API (self-hostbar seit 1.9.5): GESAMTE Presence vereinheitlicht auf
   EINE Presence pro User (presenceId=userId; metadata trägt scope/action/typing).
-  usePresenceState() = einzige Upsert-Autorität pro Tab (upsertPresence + Heartbeat,
-  read("users")-Permission); usePresence(predicate) = Reader (Channel.presences()
-  + presences.list(), „online jetzt" via updatedAt-Recency 60s). Server:
+  WICHTIG (SSR-Cookie-Architektur): der Browser kann seine Presence NICHT selbst
+  schreiben — der Web-SDK-Client hat keine Session, daher wird realtime.
+  upsertPresence() über einen Guest-WS verworfen und PUT /presences → 401. Der
+  WRITE läuft daher server-seitig: POST /api/presence/heartbeat upsertet mit dem
+  Admin-Client (read("users"), expiresAt 90s). usePresenceState() = einzige
+  Heartbeat-Autorität pro Tab (ruft die Route bei Login/metadata-Änderung + alle
+  20s + bei visibilitychange/focus). usePresence(predicate) = Reader — liest
+  direkt über die Presences-API (presences.list() per Cookie-GET funktioniert +
+  Channel.presences()-Trigger), „online jetzt" via updatedAt-Recency 60s. Server:
   listOnlinePresences() in core/server/utils/presence.ts. KEINE presence-Table mehr.
   Use-Cases: useThreadPresence (scope), useModerationPresence (action reviewing:*),
   useEditAwareness (action editing:*)
