@@ -22,11 +22,12 @@ export interface PresenceUser {
 interface RawPresence { userId: string, status?: string, $updatedAt?: string, metadata?: Record<string, unknown> }
 
 const HEARTBEAT_MS = 20_000
-// Poll ist der ZUVERLÄSSIGE Update-Pfad. Der WS-Upsert emittiert nachweislich das
-// Presence-Event (Worker: success:true), aber die ZUSTELLUNG ans Reader-Abo ließ
-// sich in diesem self-hosted 1.9.5 nicht verlässlich nachweisen (Reader refresht
-// nicht auf empfangene Events). Solange das so ist, trägt der Poll die Liveness → 8s.
-const POLL_MS = 8_000
+// Realtime ist der schnelle Pfad: WS-Upsert → Event → Reader-Refresh in ~280ms
+// (gemessen, konsistent). Der Poll ist nur Backstop, falls ein Event verloren geht
+// oder der WS kurz weg ist → 20s. WICHTIG: setzt einen GESUNDEN realtime-Worker
+// voraus (ein degradierter/gecrashter Worker stellt Events nicht zu — dann Container
+// neu erstellen: `docker compose up -d --no-deps appwrite-realtime`).
+const POLL_MS = 20_000
 // „online jetzt" bestimmen wir über die Aktualität (updatedAt). Das Fenster MUSS
 // größer sein als die Heartbeat-Lücke eines Hintergrund-Tabs: Browser drosseln
 // setInterval in versteckten Tabs auf ~1×/Minute. Bei 60s Fenster fiele ein
@@ -58,10 +59,10 @@ function shared() {
 // Appwrite-korrekter Weg, den Realtime-WS bei httpOnly-Sessions zu authentifizieren:
 // ein kurzlebiger JWT (setJWT) auf einem SEPARATEN Client (der Cookie-Client darf
 // keinen JWT tragen — Appwrite verbietet „JWT und Cookie in derselben Anfrage").
-// Nötig für den WS-Presence-Upsert (usePresenceState), der als EINZIGER Weg das
-// Realtime-Event auslöst (der HTTP-API-Upsert tut das nicht — am 1.9.5-Quellcode
-// verifiziert). Emission funktioniert; die Zustellung ans Abo aber (noch) nicht,
-// daher trägt der Poll. Idempotenter Start + Refresh (< 1h); Fehler → Poll-Fallback.
+// Nötig für BEIDES: den WS-Presence-Upsert (usePresenceState) — der schnell
+// zugestellte Realtime-Events auslöst — UND den Empfang von read("users")-Events
+// im Reader (nur authentifizierte WS-Verbindungen bekommen sie). Verifiziert:
+// Event-Round-Trip ~280ms. Idempotenter Start + Refresh (< 1h); Fehler → Poll.
 const JWT_REFRESH_MS = 50 * 60_000
 let jwtPromise: Promise<void> | null = null
 async function fetchJwt() {
