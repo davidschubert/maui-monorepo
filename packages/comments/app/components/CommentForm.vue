@@ -17,12 +17,21 @@ const loading = ref(false)
 
 // Thread-Presence: Tippen melden (von CommentSection bereitgestellt; Fallback no-op)
 const setTyping = inject(commentTypingKey, () => {})
-// Antwort-Presence: solange dieses Antwort-Formular offen ist, „ich antworte auf
-// <parentId>" melden — andere sehen den Hinweis am Kommentar. Nur für Antworten.
+// Antwort-Presence: „ich antworte auf <parentId>" folgt dem AKTIVEN Feld (Fokus/
+// Eingabe), NICHT dem Öffnen — sonst bliebe der Hinweis bei mehreren offenen
+// Antwort-Formularen am zuerst geöffneten hängen. Nur für Antworten (parentId).
 const setReplyingTo = inject(commentReplyingKey, () => {})
+function activateReply() {
+  if (props.parentId) setReplyingTo(props.parentId)
+}
 if (props.parentId) {
-  onMounted(() => setReplyingTo(props.parentId))
   onScopeDispose(() => setReplyingTo(undefined))
+}
+
+// Tippen + Antwort-Ziel gemeinsam melden (dieses Feld ist gerade aktiv)
+function onInput() {
+  setTyping(state.content.length > 0)
+  activateReply()
 }
 
 // Formular validiert nur den Text — Target/parentId kommen aus Store/Props
@@ -38,6 +47,7 @@ async function onSubmit(event: FormSubmitEvent<FormInput>) {
     await store.addComment(event.data.content, props.parentId)
     state.content = ''
     setTyping(false)
+    setReplyingTo(undefined)
     emit('created')
   }
   catch (error) {
@@ -61,7 +71,8 @@ async function onSubmit(event: FormSubmitEvent<FormInput>) {
         :rows="parentId ? 2 : 3"
         :placeholder="parentId ? t('comments.form.replyPlaceholder') : t('comments.form.placeholder')"
         class="w-full"
-        @input="setTyping(state.content.length > 0)"
+        @focusin="activateReply"
+        @input="onInput"
       />
     </UFormField>
     <UButton type="submit" size="sm" :loading="loading">
