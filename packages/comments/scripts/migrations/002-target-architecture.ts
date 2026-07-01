@@ -5,7 +5,10 @@
  * denormalisierte Zähler (upvotes/downvotes/score), status-Workflow
  * active/reported/hidden/deleted. comment_votes unverändert neu aufgebaut.
  *
- * ⚠️ DROP + CREATE — Dev-Daten gehen verloren (mit Phase-10-Demo-Daten abgestimmt).
+ * ⚠️ DROP + CREATE beim ERST-Umbau (altes postId-Schema → Ziel) — Dev-Daten gehen
+ * verloren (mit Phase-10-Demo-Daten abgestimmt). IDEMPOTENT: Sind beide Tables
+ * bereits am Zielschema, wird NICHT gedroppt (kein Datenverlust bei Re-Run) —
+ * Tables/Spalten/Indizes werden nur idempotent (409 → skip) sichergestellt.
  *
  *   node --experimental-strip-types --env-file=apps/<app>/.env \
  *     packages/comments/scripts/migrations/002-target-architecture.ts
@@ -64,6 +67,22 @@ async function dropTable(tableId: string) {
   }
 }
 
+/**
+ * Ist die Table bereits am Zielschema? (alle Pflicht-Spalten vorhanden) →
+ * Re-Run darf NICHT droppen. Nicht existent (404) oder altes Schema → false.
+ */
+async function isAtTargetSchema(tableId: string, requiredColumns: string[]): Promise<boolean> {
+  try {
+    const { columns } = await tablesDB.listColumns({ databaseId: databaseId!, tableId })
+    const keys = new Set(columns.map(column => column.key))
+    return requiredColumns.every(key => keys.has(key))
+  }
+  catch (error) {
+    if (hasCode(error, 404)) return false
+    throw error
+  }
+}
+
 async function waitForColumns(tableId: string) {
   for (let i = 0; i < 30; i++) {
     const { columns } = await tablesDB.listColumns({ databaseId: databaseId!, tableId })
@@ -75,9 +94,20 @@ async function waitForColumns(tableId: string) {
 
 console.log(`Migration 002 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
-// --- comments: drop + neu nach Spec ----------------------------------------
-await dropTable('comments')
-await dropTable('comment_votes')
+// --- comments: drop NUR beim Erst-Umbau (altes Schema), sonst idempotent ----
+// Sind beide Tables schon am Zielschema, überspringen wir den DROP → ein Re-Run
+// löscht keine Produktivdaten. createTable/Spalten/Indizes unten sind ohnehin
+// 409-idempotent, laufen also gefahrlos auch gegen ein bereits migriertes Schema.
+const commentsReady = await isAtTargetSchema('comments', ['targetId', 'targetType', 'content', 'authorId', 'authorName', 'status'])
+const votesReady = await isAtTargetSchema('comment_votes', ['commentId', 'userId', 'value'])
+
+if (commentsReady && votesReady) {
+  console.log('↷ comments & comment_votes bereits am Zielschema — DROP übersprungen (kein Datenverlust). Stelle Tables/Spalten/Indizes nur idempotent sicher.')
+}
+else {
+  await dropTable('comments')
+  await dropTable('comment_votes')
+}
 
 await step('Table comments', () => tablesDB.createTable({
   databaseId,
