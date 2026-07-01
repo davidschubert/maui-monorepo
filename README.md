@@ -8,7 +8,7 @@ Nuxt 4 Monorepo mit zentralem **Core Layer** und komponierbaren **Feature Layers
 
 ```
 packages/core            ← Ebene 1: Fundament (besitzt KEINE Appwrite Tables!)
-packages/system          ← Fundament: Infra-Tabellen (audit_logs, app_config, notifications, presence)
+packages/system          ← Fundament: Infra-Tabellen (audit_logs, app_config, notifications)
 packages/*               ← Ebene 2: Feature Layers (themes, comments, moderation, admin; billing geplant)
 apps/*                   ← Ebene 3: dünne Apps, komponieren Core + Features
 ```
@@ -139,7 +139,7 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 | 15 | `packages/themes` (Infrastruktur + 3 Themes) | ✅ 2026-06-10 |
 | 16 | Auth-UX-Feinschliff (Recovery-Flow, Provider-Buttons, Confirm/AGB) | ✅ 2026-06-11 |
 | 17 | Production Deployment (Hetzner, ploi.io, Custom Domain) | 🔜 |
-| 18 | Realtime/Presence auf SDK — P2 Presence (Presences-API) ✅ · P1 Rows-Rückbau ⏳ optional | 🟡 teilweise |
+| 18 | Realtime/Presence auf SDK — Presence komplett auf Presences-API ✅ · P1 Rows-Rückbau ⏳ optional | 🟡 teilweise |
 | 19 | Email-OTP-Login (passwortlos) | ✅ 2026-06-11 |
 | 20 | OTP-Registrierung (Name, AGB, E-Mail-Normalisierung) | ✅ 2026-06-12 |
 | 21 | RBAC: Capabilities, Rollen (admin/moderator), Guards, Audit | ✅ 2026-06-25 |
@@ -151,6 +151,7 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 | 27 | Pre-Production Security-Review + Cleanup + total-Semantik (Cascade-Hide) + notify()-Vertrag | ✅ 2026-06-30 |
 | 28 | Appwrite 1.9.0 → **1.9.5** Upgrade + Umstieg **MongoDB → MariaDB** (Bootstrap-Odyssee) | ✅ 2026-07-01 |
 | 29 | Presence auf **Presences-API** (P2), Bootstrap-/Seed-Tooling, Demo-Daten + XSS-Security-Test | ✅ 2026-07-01 |
+| 30 | Presence vereinheitlicht (globale + Thread + Moderation auf 1 Presence), Alt-Code entfernt; Use-Cases: Moderations-Claim-Lock, Edit-Awareness, Live-Online | ✅ 2026-07-01 |
 
 Details und Nachweis-Kriterien pro Phase: [docs/GOALS.md](docs/GOALS.md) · Upgrade-Plan: [docs/APPWRITE-1.9.5-UPGRADE.md](docs/APPWRITE-1.9.5-UPGRADE.md) · Offene Punkte: [docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md)
 
