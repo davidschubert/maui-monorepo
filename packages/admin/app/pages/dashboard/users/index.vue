@@ -24,6 +24,13 @@ const { data, refresh } = await useFetch<AdminUserListResponse>('/api/admin/user
 // Sortierwechsel → zurück auf Seite 1
 watch([sortField, sortDir], () => setPage(1))
 
+// Live-Online: überlagert den einmaligen Server-Snapshot (row.online) mit der
+// aktuellen Presence (Channel.presences(), inkl. eigener). So sieht man sich
+// selbst + gerade Aktive sofort online, ohne die Liste neu zu laden.
+const { present } = usePresence()
+const onlineIds = computed(() => new Set(present.value.map(u => u.userId)))
+const isOnline = (row: AdminUserRow) => onlineIds.value.has(row.$id) || row.online
+
 function runSearch() {
   activeSearch.value = search.value.trim()
   setPage(1)
@@ -172,7 +179,7 @@ async function executePending() {
             <span class="relative inline-flex shrink-0">
               <UserAvatar :user="{ name: row.original.name, email: row.original.email, prefs: { avatarUrl: row.original.avatarUrl } }" size="xs" />
               <span
-                v-if="row.original.online"
+                v-if="isOnline(row.original)"
                 class="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-success ring-2 ring-default"
                 :title="t('admin.users.online')"
               />
@@ -183,10 +190,10 @@ async function executePending() {
         <template #active-cell="{ row }">
           <span
             class="inline-flex items-center gap-1.5 text-sm"
-            :title="!row.original.online && row.original.lastSeen ? formatDate(row.original.lastSeen) : undefined"
+            :title="!isOnline(row.original) && row.original.lastSeen ? formatDate(row.original.lastSeen) : undefined"
           >
-            <span class="size-2 rounded-full" :class="row.original.online ? 'bg-success' : 'bg-error'" />
-            {{ row.original.online ? t('admin.users.online') : t('admin.users.offline') }}
+            <span class="size-2 rounded-full" :class="isOnline(row.original) ? 'bg-success' : 'bg-error'" />
+            {{ isOnline(row.original) ? t('admin.users.online') : t('admin.users.offline') }}
           </span>
         </template>
         <template #createdAt-cell="{ row }">

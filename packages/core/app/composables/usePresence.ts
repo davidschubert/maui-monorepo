@@ -77,6 +77,11 @@ export function usePresenceState() {
     watch(() => auth.user?.$id, id => { if (id) upsert() }, { immediate: true })
     watch(myMeta, upsert, { deep: true })
     setInterval(upsert, HEARTBEAT_MS)
+    // Hintergrund-Tabs drosseln setInterval → Presence fällt aus dem Frische-
+    // Fenster. Bei Rückkehr (Tab-Fokus/Sichtbarkeit) sofort auffrischen, damit
+    // „online jetzt" sofort wieder stimmt, statt bis zum nächsten Heartbeat.
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') upsert() })
+    window.addEventListener('focus', upsert)
   }
 
   // Setter no-oppen bei gleichem Wert → keine redundanten Upserts (z.B. pro Tastenschlag).
