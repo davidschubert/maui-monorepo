@@ -18,6 +18,11 @@ interface RealtimeCommentEvent {
 }
 
 export const useCommentStore = defineStore('comments', () => {
+  // Beim SSR-Fetch (useAsyncData in CommentSection) MÜSSEN die Browser-Cookies
+  // mitgehen, sonst antwortet /api/comments mit der Gast-Sicht und myVotes/
+  // myReports hydratisieren leer (eigene Votes nach hartem Reload „weg").
+  // useRequestFetch forwarded die Request-Header; im Client = normales $fetch.
+  const requestFetch = useRequestFetch()
   const targetId = ref('')
   const targetType = ref('')
   /** Interner Pfad der Seite (für die Reply-Notification) — vom CommentSection gesetzt */
@@ -68,15 +73,22 @@ export const useCommentStore = defineStore('comments', () => {
     }
   }
 
+  // Sequenz-Token gegen Out-of-Order-Antworten: zwei schnelle Sortierwechsel
+  // starten zwei Fetches — ohne Token gewinnt die zuletzt ANKOMMENDE Antwort
+  // (Header zeigt „new", Liste ist „top"-sortiert). Nur die neueste zählt.
+  let fetchSeq = 0
+
   async function fetchComments(id: string, type: string, url?: string) {
     targetId.value = id
     targetType.value = type
     if (url !== undefined) targetUrl.value = url
     loading.value = true
+    const seq = ++fetchSeq
     try {
-      const response = await $fetch<CommentListResponse>('/api/comments', {
+      const response = await requestFetch<CommentListResponse>('/api/comments', {
         query: { targetId: id, targetType: type, sort: sortMode.value },
       })
+      if (seq !== fetchSeq) return // eine neuere Anfrage läuft/lief — verwerfen
       rows.value = response.rows
       total.value = response.total
       topLevelTotal.value = response.topLevelTotal
@@ -86,7 +98,7 @@ export const useCommentStore = defineStore('comments', () => {
       removedByHide.clear()
     }
     finally {
-      loading.value = false
+      if (seq === fetchSeq) loading.value = false
     }
   }
 
@@ -100,7 +112,7 @@ export const useCommentStore = defineStore('comments', () => {
       // (Realtime kann sie zwischen Fetches verschieben). Jede Seite liefert
       // ihre kompletten Subtrees; `seen` dedupliziert Grenzfall-Überschneidungen.
       for (let page = 2; page <= 1000; page++) {
-        const response = await $fetch<CommentListResponse>('/api/comments', {
+        const response = await requestFetch<CommentListResponse>('/api/comments', {
           query: { targetId: targetId.value, targetType: targetType.value, sort: sortMode.value, page },
         })
         if (!response.rows.length) break
@@ -319,6 +331,12 @@ export const useCommentStore = defineStore('comments', () => {
   return {
     targetId,
     targetType,
+    // targetUrl/userReports MÜSSEN mit returned werden: Pinia serialisiert bei
+    // Setup-Stores nur returnte Refs in den SSR-Payload — sonst hydratisiert
+    // der Client mit leerem targetUrl (Reply-Notification ohne Link) und
+    // leerem userReports („Melden" trotz eigener offener Meldung).
+    targetUrl,
+    userReports,
     rows,
     total,
     topLevelTotal,

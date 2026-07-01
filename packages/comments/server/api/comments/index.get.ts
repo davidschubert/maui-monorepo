@@ -98,10 +98,15 @@ export default defineEventHandler(async (event): Promise<CommentListResponse> =>
   })
   const total = totalRes.total
 
-  const combined = [...topLevel, ...replies]
+  // Soft-gelöschte bleiben als Thread-Platzhalter in der Antwort, aber Inhalt/
+  // Autor werden SERVER-seitig geblankt — der „[gelöscht]"-Text der UI wäre
+  // sonst reine Kosmetik (Original-Content per direktem API-Call weiter lesbar).
+  const combined = [...topLevel, ...replies].map(row => row.status === 'deleted'
+    ? { ...row, content: '', authorName: '', authorId: '' }
+    : row)
 
   // Avatar-URLs der Autoren aus den Account-prefs anreichern (gebündelt, immer aktuell)
-  const avatars = await resolveAvatars(event, combined.map(row => row.authorId))
+  const avatars = await resolveAvatars(event, combined.filter(row => row.authorId).map(row => row.authorId))
   const rows = combined.map(row => ({ ...row, authorAvatarUrl: avatars.get(row.authorId) }))
 
   const myVotes: Record<string, VoteValue> = {}

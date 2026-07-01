@@ -1,7 +1,7 @@
 /**
  * Feature Layer: Admin-Dashboard (Grundgerüst + User-Verwaltung).
- * Keine eigenen Tables — administriert Appwrite-User und die Daten
- * anderer Layer (Moderation: Phase 14). Extended den Core nicht selbst —
+ * Eigene Table: `changelog` (A14). Administriert außerdem Appwrite-User und
+ * die Daten anderer Layer (Moderation). Extended den Core nicht selbst —
  * die App komponiert: extends: [admin, comments, core].
  */
 export default defineNuxtConfig({

@@ -1,3 +1,4 @@
+import { AppwriteException } from 'node-appwrite'
 import { commentUpdateSchema } from '../../../schemas/comment'
 import { COMMENTS_TABLE, type Comment } from '../../../shared/types/comment'
 
@@ -42,7 +43,11 @@ export default defineEventHandler(async (event) => {
       data: { content, editedAt: new Date().toISOString() },
     })
   }
-  catch {
-    throw createError({ status: 403, statusText: 'Forbidden' })
+  catch (error) {
+    // Row-Security-401 (nicht der Autor) → 403; echte 5xx nicht als 403 tarnen.
+    if (error instanceof AppwriteException && error.code === 401) {
+      throw createError({ status: 403, statusText: 'Forbidden' })
+    }
+    throw toH3Error(error, 'Comment could not be updated')
   }
 })

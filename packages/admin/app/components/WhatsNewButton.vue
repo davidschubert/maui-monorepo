@@ -70,8 +70,9 @@ onMounted(() => {
     'changelog',
     (ev) => {
       if (ev.type === 'create') {
-        // Nach Versionsnummer einsortieren (gleiche Sortierung wie der Server)
-        if (ev.payload.published) {
+        // Nach Versionsnummer einsortieren (gleiche Sortierung wie der Server).
+        // Dedupe gegen das parallel laufende load() (Doppel-Eintrag-Race).
+        if (ev.payload.published && !entries.value.some(e => e.$id === ev.payload.$id)) {
           entries.value = [ev.payload, ...entries.value].sort(compareChangelogByVersion)
         }
       }
