@@ -13,6 +13,9 @@ const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(locale.value, 
 const { data, refresh } = useFetch<ChangelogListResponse>('/api/admin/changelog', { lazy: true, server: false })
 const entries = computed(() => data.value?.entries ?? [])
 
+// Edit-Awareness: zeigt, wenn ein anderer Admin die Changelog-Verwaltung offen hat.
+const { editors } = useEditAwareness('changelog')
+
 const CATEGORIES = ['feature', 'improvement', 'fix'] as const
 function categoryColor(c: string) {
   return c === 'fix' ? 'error' : c === 'improvement' ? 'success' : 'primary'
@@ -121,6 +124,15 @@ async function confirmDelete() {
       <p class="text-sm text-muted">{{ t('admin.changelog.description') }}</p>
       <UButton icon="i-ph-plus" size="sm" @click="openCreate">{{ t('admin.changelog.new') }}</UButton>
     </div>
+
+    <UAlert
+      v-if="editors.length"
+      color="warning"
+      variant="subtle"
+      icon="i-ph-users-three"
+      :title="t('admin.presence.alsoEditing', { names: editors.join(', ') })"
+      :description="t('admin.presence.alsoEditingHint')"
+    />
 
     <p v-if="!entries.length" class="text-sm text-muted">{{ t('admin.changelog.empty') }}</p>
 

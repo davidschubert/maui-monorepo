@@ -50,6 +50,9 @@ const { data: presence, refresh: refreshPresence } = await useFetch<{ count: num
 })
 const onlineCount = computed(() => presence.value?.count ?? 0)
 const onlineUsers = computed(() => presence.value?.users ?? [])
+// Live-Anwesenheit über die Presences API (Channel.presences()) — treibt den
+// entprellten Reload der serverseitigen Zählung (inkl. Avatare, s.u.).
+const { present } = usePresence()
 
 // --- Widgets (client-seitig, blockiert SSR nicht) -----------------------------
 const { data: reported, refresh: refreshReported } = useFetch<AdminCommentListResponse>('/api/admin/comments', {
@@ -105,7 +108,7 @@ useRealtimeRows<Models.Row>(config.public.appwriteDatabaseId, 'comments', () => 
   clearTimeout(commentsTimer)
   commentsTimer = setTimeout(() => { void refreshStats(); void refreshAnalytics(); void refreshReported() }, 500)
 })
-useRealtimeRows<Models.Row>(config.public.appwriteDatabaseId, 'presence', () => {
+watch(present, () => {
   clearTimeout(presenceTimer)
   presenceTimer = setTimeout(() => { void refreshPresence() }, 500)
 })

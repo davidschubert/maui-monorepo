@@ -240,7 +240,12 @@
       "reportsLabel": "{count} offene Meldungen",
       "dismiss": "Meldungen erledigen",
       "dismissed": "Meldungen erledigt.",
-      "confirmDismiss": "Meldungen für den Kommentar von {name} als erledigt markieren? Der Kommentar bleibt sichtbar."
+      "confirmDismiss": "Meldungen für den Kommentar von {name} als erledigt markieren? Der Kommentar bleibt sichtbar.",
+      "reviewing": "{name} bearbeitet gerade"
+    },
+    "presence": {
+      "alsoEditing": "{names} bearbeitet dieses Formular ebenfalls",
+      "alsoEditingHint": "Speichern kann die Änderungen der anderen Person überschreiben."
     }
   },
   "whatsNew": {

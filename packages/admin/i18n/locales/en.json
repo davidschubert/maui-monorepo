@@ -240,7 +240,12 @@
       "reportsLabel": "{count} open reports",
       "dismiss": "Resolve reports",
       "dismissed": "Reports resolved.",
-      "confirmDismiss": "Mark the reports for {name}'s comment as resolved? The comment stays visible."
+      "confirmDismiss": "Mark the reports for {name}'s comment as resolved? The comment stays visible.",
+      "reviewing": "{name} is reviewing"
+    },
+    "presence": {
+      "alsoEditing": "{names} is also editing this form",
+      "alsoEditingHint": "Saving may overwrite the other person's changes."
     }
   },
   "whatsNew": {

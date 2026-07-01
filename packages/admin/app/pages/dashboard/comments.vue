@@ -65,6 +65,16 @@ type PendingAction =
 const pending = ref<PendingAction | null>(null)
 const busy = ref(false)
 
+// Claim-Lock: solange ein Moderator das Bestätigen-Modal für einen Kommentar
+// offen hat, beansprucht er ihn (presence action). Andere Moderatoren sehen den
+// Badge "X bearbeitet gerade" und vermeiden Doppelarbeit.
+const { reviewers, claim, release } = useModerationPresence()
+const reviewerFor = (id: string) => reviewers.value.get(`comment:${id}`)
+watch(pending, (value) => {
+  if (value) claim(`comment:${value.comment.$id}`)
+  else release()
+})
+
 const confirmText = computed(() => {
   if (!pending.value) return ''
   const name = pending.value.comment.authorName
@@ -157,6 +167,15 @@ async function executePending() {
             :aria-label="t('admin.moderation.reportsLabel', { count: comment.reportCount })"
           >
             {{ comment.reportCount }}
+          </UBadge>
+          <UBadge
+            v-if="reviewerFor(comment.$id)"
+            color="info"
+            variant="subtle"
+            size="sm"
+            icon="i-ph-lock-simple"
+          >
+            {{ t('admin.moderation.reviewing', { name: reviewerFor(comment.$id) }) }}
           </UBadge>
         </div>
 

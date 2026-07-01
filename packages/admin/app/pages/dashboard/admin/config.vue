@@ -12,6 +12,9 @@ const toast = useToast()
 
 const { data } = await useFetch<AppConfig>('/api/admin/config')
 
+// Edit-Awareness: warnt, wenn ein anderer Admin dieses Formular ebenfalls offen hat.
+const { editors } = useEditAwareness('config')
+
 const state = reactive<AppConfig>({ registrationEnabled: true, commentsEnabled: true, maintenanceMode: false })
 watchEffect(() => {
   if (data.value) Object.assign(state, data.value)
@@ -42,6 +45,15 @@ async function save() {
 <template>
   <div class="mx-auto w-full lg:max-w-2xl">
     <UPageCard :title="t('admin.config.title')" :description="t('admin.config.description')" variant="subtle">
+      <UAlert
+        v-if="editors.length"
+        color="warning"
+        variant="subtle"
+        icon="i-ph-users-three"
+        class="mb-4"
+        :title="t('admin.presence.alsoEditing', { names: editors.join(', ') })"
+        :description="t('admin.presence.alsoEditingHint')"
+      />
       <div class="divide-y divide-default">
         <div v-for="flag in flags" :key="flag.key" class="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0">
           <div class="flex items-start gap-3">
