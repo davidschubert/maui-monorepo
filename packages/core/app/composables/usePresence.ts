@@ -1,5 +1,5 @@
 import type { Ref } from 'vue'
-import { Client, Realtime, Channel, Presences, Query } from 'appwrite'
+import { Channel, Presences, Query } from 'appwrite'
 
 export interface PresenceUser {
   userId: string
@@ -43,48 +43,9 @@ function isFresh(p: RawPresence): boolean {
   return !!p.$updatedAt && (Date.now() - Date.parse(p.$updatedAt) < FRESH_MS)
 }
 
-// ZWEI Clients pro Tab:
-// - sharedClient: OHNE JWT → HTTP presences.list() authentifiziert per Cookie
-//   (gleiche Domain). Ein JWT hier würde 403 auslösen: Appwrite verbietet „JWT
-//   und Cookie in derselben Anfrage".
-// - rtClient: MIT JWT → nur für die Realtime-WS, die sich sonst als Gast
-//   verbindet und keine read("users")-Events empfängt.
-let sharedClient: Client | null = null
-let rtClient: Client | null = null
-let sharedRealtime: Realtime | null = null
-function shared() {
-  const config = useRuntimeConfig()
-  if (!sharedClient) sharedClient = new Client().setEndpoint(config.public.appwriteEndpoint).setProject(config.public.appwriteProjectId)
-  if (!rtClient) rtClient = new Client().setEndpoint(config.public.appwriteEndpoint).setProject(config.public.appwriteProjectId)
-  if (!sharedRealtime) sharedRealtime = new Realtime(rtClient)
-  return { client: sharedClient, realtime: sharedRealtime }
-}
-
-// ── Realtime-Auth via JWT ──────────────────────────────────────────────────
-// Appwrite-korrekter Weg, den Realtime-WS bei httpOnly-Sessions zu authentifizieren:
-// ein kurzlebiger JWT (setJWT) auf einem SEPARATEN Client (der Cookie-Client darf
-// keinen JWT tragen — Appwrite verbietet „JWT und Cookie in derselben Anfrage").
-// Nötig für BEIDES: den WS-Presence-Upsert (usePresenceState) — der schnell
-// zugestellte Realtime-Events auslöst — UND den Empfang von read("users")-Events
-// im Reader (nur authentifizierte WS-Verbindungen bekommen sie). Verifiziert:
-// Event-Round-Trip ~280ms. Idempotenter Start + Refresh (< 1h); Fehler → Poll.
-const JWT_REFRESH_MS = 50 * 60_000
-let jwtPromise: Promise<void> | null = null
-async function fetchJwt() {
-  try {
-    const { jwt } = await $fetch<{ jwt: string }>('/api/auth/realtime-token')
-    rtClient?.setJWT(jwt) // NUR der Realtime-Client — nie der Cookie-HTTP-Client
-  }
-  catch { /* Gast-WS + Poll-Fallback */ }
-}
-function ensureJwt() {
-  shared()
-  if (!jwtPromise) {
-    jwtPromise = fetchJwt()
-    setInterval(fetchJwt, JWT_REFRESH_MS)
-  }
-  return jwtPromise
-}
+// Die geteilte, JWT-authentifizierte Realtime-Verbindung + der Cookie-Client für
+// presences.list() leben in useRealtimeClient (auto-import): EINE WS für die ganze
+// App (Presence + Row-Streams). Verifiziert: Event-Round-Trip ~280ms.
 
 const toUser = (p: RawPresence): PresenceUser => ({
   userId: p.userId,
@@ -136,9 +97,13 @@ export function usePresenceState() {
   function upsertWs() {
     const user = auth.user
     if (!user) return
-    const { realtime } = shared()
-    ensureJwt()
+    const realtime = sharedRealtime()
+    ensureRealtimeJwt()
       .then(() => {
+        // Ohne gültigen JWT ist die WS ein Gast → upsertPresence würde server-
+        // seitig „User must be authorized" werfen. Dann nur der HTTP-Heartbeat
+        // (upsertHttp) trägt die Presence — kein Realtime-Event, aber sauber.
+        if (!hasRealtimeJwt()) return
         const prefs = user.prefs as { avatarUrl?: string } | undefined
         const metadata: Record<string, unknown> = { userName: user.name, ...myMeta.value }
         if (prefs?.avatarUrl) metadata.avatarUrl = prefs.avatarUrl
@@ -210,7 +175,8 @@ export function usePresence(predicate: (u: PresenceUser) => boolean = () => true
   }
 
   const auth = useAuthStore()
-  const { client, realtime } = shared()
+  const client = realtimeCookieClient()
+  const realtime = sharedRealtime()
   const presences = new Presences(client)
 
   const others = computed(() => present.value.filter(u => u.userId !== auth.user?.$id))
@@ -247,7 +213,7 @@ export function usePresence(predicate: (u: PresenceUser) => boolean = () => true
   }
 
   onMounted(async () => {
-    await ensureJwt() // WS authentifizieren, BEVOR er sich verbindet (sonst Gast)
+    await ensureRealtimeJwt() // WS authentifizieren, BEVOR er sich verbindet (sonst Gast)
     await refresh()
     loaded.value = true
     try { sub = await realtime.subscribe(Channel.presences(), scheduleRefresh) }

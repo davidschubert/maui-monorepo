@@ -11,8 +11,14 @@ interface RealtimeMessage {
 /**
  * Realtime auf dem `account`-Channel des eingeloggten Users — Session- und
  * Account-Änderungen (z.B. ein Admin beendet die Sessions, Login/Logout auf
- * einem anderen Gerät). Nativer WebSocket wie useRealtimeRows (Legacy-Protokoll,
- * self-hosted 1.9.0); authentifiziert über das Same-Origin-Session-Cookie.
+ * einem anderen Gerät).
+ *
+ * BEWUSST ein eigener, COOKIE-authentifizierter nativer WebSocket — NICHT die
+ * geteilte JWT-Realtime (useRealtimeClient), anders als useRealtimeRows. Grund:
+ * das Instant-Session-Revoke-Signal hängt an der Cookie-Auth. Wird die Session
+ * server-seitig widerrufen, schließt Appwrite genau diese cookie-gebundene WS
+ * (→ onClose feuert sofort). Ein JWT bleibt bis zum Ablauf gültig; auf der
+ * JWT-WS käme dieses Signal NICHT an. Daher hier nicht konsolidieren.
  *
  * - SSR: no-op (import.meta.server Guard)
  * - Reconnect mit Backoff, solange der Scope lebt
