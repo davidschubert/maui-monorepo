@@ -67,7 +67,7 @@ NUXT_APPWRITE_MIGRATIONS_KEY="<dein-api-key>" # für Migrationen (kann derselbe 
 pnpm --filter reddit-comments bootstrap          # frische Instanz aufsetzen
 pnpm --filter reddit-comments bootstrap --seed   # + Demo-User & -Kommentare
 ```
-> ⚠️ Nur für **frische** Instanzen: ein Sicherheits-Guard bricht ab, wenn die `comments`-Tabelle schon Daten hat, weil einzelne Migrationen (comments-002) das Schema destruktiv neu aufbauen. `--force` überschreibt (Datenverlust).
+> ⚠️ Primär für **frische** Instanzen: ein Sicherheits-Guard bricht ab, wenn die `comments`-Tabelle schon Daten hat. `comments-002` ist inzwischen idempotent (droppt nicht mehr, wenn das Zielschema schon steht) — der Erst-Umbau vom alten `postId`-Schema baut das Schema aber weiterhin destruktiv neu auf. `--force` überschreibt den Guard.
 
 **4. Starten**:
 ```bash
@@ -139,7 +139,7 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 | 15 | `packages/themes` (Infrastruktur + 3 Themes) | ✅ 2026-06-10 |
 | 16 | Auth-UX-Feinschliff (Recovery-Flow, Provider-Buttons, Confirm/AGB) | ✅ 2026-06-11 |
 | 17 | Production Deployment (Hetzner, ploi.io, Custom Domain) | 🔜 |
-| 18 | Realtime/Presence auf SDK — Presence komplett auf Presences-API ✅ · P1 Rows-Rückbau ⏳ optional | 🟡 teilweise |
+| 18 | Realtime/Presence auf SDK — Presence komplett auf Presences-API ✅ · P1 Rows-Rückbau ✅ (eine geteilte JWT-SDK-Realtime) | ✅ 2026-07-01 |
 | 19 | Email-OTP-Login (passwortlos) | ✅ 2026-06-11 |
 | 20 | OTP-Registrierung (Name, AGB, E-Mail-Normalisierung) | ✅ 2026-06-12 |
 | 21 | RBAC: Capabilities, Rollen (admin/moderator), Guards, Audit | ✅ 2026-06-25 |
@@ -152,6 +152,8 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 | 28 | Appwrite 1.9.0 → **1.9.5** Upgrade + Umstieg **MongoDB → MariaDB** (Bootstrap-Odyssee) | ✅ 2026-07-01 |
 | 29 | Presence auf **Presences-API** (P2), Bootstrap-/Seed-Tooling, Demo-Daten + XSS-Security-Test | ✅ 2026-07-01 |
 | 30 | Presence vereinheitlicht (globale + Thread + Moderation auf 1 Presence), Alt-Code entfernt; Use-Cases: Moderations-Claim-Lock, Edit-Awareness, Live-Online | ✅ 2026-07-01 |
+| 31 | Echtes Realtime-Presence (JWT-WS, ~280ms) + Presence-Use-Cases (Betrachtung/Antwort/Lese-Präsenz, Avatar-Status-Icons) | ✅ 2026-07-01 |
+| 32 | Realtime-Konsolidierung (P1): `useRealtimeRows` auf 1 geteilte JWT-SDK-Realtime · `comments-002` idempotent · Changelog Track 2B (Function-Scaffold) · Playwright-E2E-Smoke | ✅ 2026-07-01 |
 
 Details und Nachweis-Kriterien pro Phase: [docs/GOALS.md](docs/GOALS.md) · Upgrade-Plan: [docs/APPWRITE-1.9.5-UPGRADE.md](docs/APPWRITE-1.9.5-UPGRADE.md) · Offene Punkte: [docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md)
 
