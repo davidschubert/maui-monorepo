@@ -5,7 +5,7 @@
     {
       "$id": "changelog-draft",
       "name": "Changelog Draft",
-      "runtime": "node-22.0",
+      "runtime": "node-22",
       "execute": ["any"],
       "events": [],
       "schedule": "",
@@ -14,7 +14,7 @@
       "logging": true,
       "entrypoint": "src/main.js",
       "commands": "npm install",
-      "scopes": ["tablesDB.rows.read", "tablesDB.rows.write"],
+      "scopes": ["rows.read", "rows.write"],
       "path": "functions/changelog-draft"
     }
   ]

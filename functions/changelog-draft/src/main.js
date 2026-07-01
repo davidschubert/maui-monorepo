@@ -64,6 +64,18 @@ export default async ({ req, res, log, error }) => {
     }
     else {
       // ── Manueller Pfad ─────────────────────────────────────────────────
+      // Die Function ist execute:any (der GitHub-Webhook kommt als Gast über
+      // die Function-Domain) — der manuelle Pfad braucht deshalb ein eigenes
+      // Gate, sonst kann jeder Gast Draft-Spam anlegen + GitHub-Rate-Limit
+      // verbrennen. Shared Secret im Header (timing-safe verglichen).
+      const secret = process.env.GITHUB_WEBHOOK_SECRET
+      const provided = req.headers['x-manual-secret']
+      const authorized = Boolean(secret && provided)
+        && Buffer.from(String(provided)).length === Buffer.from(secret).length
+        && crypto.timingSafeEqual(Buffer.from(String(provided)), Buffer.from(secret))
+      if (!authorized) {
+        return res.json({ ok: false, message: 'Nicht autorisiert (x-manual-secret).' }, 401)
+      }
       const body = safeJson(req.bodyRaw) ?? {}
       since = body.since ?? ''
       until = body.until ?? 'HEAD'

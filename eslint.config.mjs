@@ -55,12 +55,14 @@ export default createConfigForNuxt({
   },
 }).append({
   // Fundament-Layer dürfen NIE von Features abhängen (azyklisch).
-  files: ['packages/core/**', 'packages/system/**'],
+  // moderation zählt dazu (CLAUDE.md/A14) — ohne diesen Scope wäre es der
+  // einzige Layer ganz ohne Import-Backstop.
+  files: ['packages/core/**', 'packages/system/**', 'packages/moderation/**'],
   rules: {
     'no-restricted-imports': ['error', {
       patterns: [
-        { group: allMauiFeatures,
-          message: 'core ist Fundament — darf nicht von Feature-Layern abhängen (CONCEPT.md A14).' },
+        { group: featureLayers,
+          message: 'Fundament-Layer (core/system/moderation) dürfen nicht von Feature-Layern abhängen (CONCEPT.md A14).' },
       ],
     }],
   },
