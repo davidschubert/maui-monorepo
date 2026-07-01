@@ -15,6 +15,11 @@ test.describe('Startseite', () => {
     await expect(page.getByRole('heading', { name: /Comments/i })).toBeVisible()
   })
 
+  test('zeigt die Sortier-Auswahl des Kommentarbereichs', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.getByRole('combobox', { name: /sort/i })).toBeVisible()
+  })
+
   test('rendert ohne schwerwiegende Konsolen-Fehler', async ({ page }) => {
     const errors: string[] = []
     page.on('console', (msg) => {
