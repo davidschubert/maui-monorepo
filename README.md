@@ -32,8 +32,8 @@ export default defineNuxtConfig({
 | Technologie | Rolle |
 |---|---|
 | Nuxt 4 (SSR) + Nuxt UI 4 | Framework + UI-Komponenten |
-| Appwrite (self-hosted, TablesDB) | Backend: Auth, Datenbank, Storage, Realtime |
-| node-appwrite / appwrite | Server SDK (CRUD via Server Routes) / Web SDK (nur Realtime) |
+| Appwrite (self-hosted ≥ 1.9.5, MariaDB, TablesDB) | Backend: Auth, Datenbank, Storage, Realtime, Presences |
+| node-appwrite / appwrite | Server SDK (CRUD via Server Routes) / Web SDK (Realtime + Presences API) |
 | Pinia · Zod · @nuxtjs/i18n (de+en) | State · Validierung · Internationalisierung |
 | Tailwind CSS 4 · TypeScript strict | Styling · Typsicherheit |
 | pnpm Workspaces + Catalog | Monorepo, zentrale Versionsverwaltung |
@@ -42,20 +42,51 @@ Geteilte Dependency-Versionen sind ausschließlich im Catalog ([pnpm-workspace.y
 
 ## Setup
 
-Voraussetzungen: **Node 22** (`.nvmrc`) und **pnpm 10**.
+Voraussetzungen: **Node 22** (`.nvmrc`), **pnpm 10** und eine laufende **Appwrite-Instanz ≥ 1.9.5** (self-hosted, z. B. via Docker/OrbStack). Empfohlener DB-Adapter: **MariaDB** (Appwrites dokumentierter Default; MongoDB ist als Multi-Adapter neuer/weniger erprobt).
 
 ```bash
 pnpm install
-
-# Core Playground (Port 3000)
-pnpm dev:core
-
-# reddit-comments App (Port 3001)
-pnpm dev:app
-
-# Typecheck über alle Packages
-pnpm typecheck
 ```
+
+**1. Appwrite-Instanz vorbereiten** (einmalig, interaktiv in der Appwrite-Console):
+- Account anlegen, **Projekt** erstellen, **Datenbank mit ID `main`** anlegen.
+- **API-Key** mit allen Scopes erzeugen.
+
+**2. `.env` setzen** — pro App unter `apps/<app>/.env`:
+```dotenv
+NUXT_PUBLIC_APPWRITE_ENDPOINT="http://localhost/v1"
+NUXT_PUBLIC_APPWRITE_PROJECT_ID="reddit-comments"
+NUXT_PUBLIC_APPWRITE_DATABASE_ID="main"
+NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET="avatars"
+NUXT_APPWRITE_KEY="<dein-api-key>"            # server-only, alle Scopes
+NUXT_APPWRITE_MIGRATIONS_KEY="<dein-api-key>" # für Migrationen (kann derselbe sein)
+```
+
+**3. Bootstrap** — legt Datenbank + Avatars-Bucket + Web-Platform an und fährt **alle Migrationen** in Reihenfolge (system→comments→moderation→admin):
+```bash
+pnpm --filter reddit-comments bootstrap          # frische Instanz aufsetzen
+pnpm --filter reddit-comments bootstrap --seed   # + Demo-User & -Kommentare
+```
+> ⚠️ Nur für **frische** Instanzen: ein Sicherheits-Guard bricht ab, wenn die `comments`-Tabelle schon Daten hat, weil einzelne Migrationen (comments-002) das Schema destruktiv neu aufbauen. `--force` überschreibt (Datenverlust).
+
+**4. Starten**:
+```bash
+pnpm dev:app     # reddit-comments App (Port 3001)
+pnpm dev:core    # Core Playground (Port 3000)
+pnpm typecheck   # Typecheck über die Apps (deckt alle Layer transitiv)
+```
+
+Demo-Login (nach `--seed`): `uma@demo.local` / `Demo-Passw0rd!` (regulär), `mod@demo.local` (Moderator), `admin@demo.local` (Admin) — Passwort jeweils `Demo-Passw0rd!`.
+
+### Skripte
+
+| Befehl | Wirkung |
+|---|---|
+| `pnpm --filter reddit-comments bootstrap [--seed]` | Frische Instanz: DB + Bucket + Platform + alle Migrationen (optional Seed) |
+| `pnpm --filter reddit-comments seed [--force]` | Demo-User (Rollen) + Kommentare (idempotent; `--force` re-seedet) |
+| `pnpm --filter @maui/<layer> migrate` | Migrationen eines Layers idempotent ausführen |
+| `pnpm dev:app` · `pnpm dev:core` | Dev-Server (App 3001 · Core-Playground 3000) |
+| `pnpm typecheck` · `pnpm -r lint` · `pnpm -r test` | Qualitäts-Checks über den Workspace |
 
 ## Struktur
 
@@ -75,9 +106,12 @@ maui-monorepo/
 │   └── themes/                # Feature Layer: Theming
 ├── apps/
 │   └── reddit-comments/       # dünne App: extends [themes, admin, comments, moderation, core, system] (Port 3001)
+│       └── scripts/           # bootstrap.ts (Fresh-Instance-Setup), seed-demo.ts (Demo-Daten)
 ├── docs/
 │   ├── CONCEPT.md             # Architektur-Konzept (v2)
-│   └── GOALS.md               # Phasen-Roadmap mit /goal-Texten
+│   ├── GOALS.md               # Phasen-Roadmap mit /goal-Texten
+│   ├── APPWRITE-1.9.5-UPGRADE.md # Upgrade-/Feature-Plan (Realtime/Presence/Email-Policies)
+│   └── OPEN-ITEMS.md          # offene Punkte / erledigte Referenz
 ├── pnpm-workspace.yaml        # Workspaces + Catalog
 └── CLAUDE.md                  # Claude Code Kontext
 ```
@@ -105,7 +139,7 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 | 15 | `packages/themes` (Infrastruktur + 3 Themes) | ✅ 2026-06-10 |
 | 16 | Auth-UX-Feinschliff (Recovery-Flow, Provider-Buttons, Confirm/AGB) | ✅ 2026-06-11 |
 | 17 | Production Deployment (Hetzner, ploi.io, Custom Domain) | 🔜 |
-| 18 | Realtime-Rückbau aufs SDK | ⏳ wartet auf Appwrite-Release |
+| 18 | Realtime/Presence auf SDK — P2 Presence (Presences-API) ✅ · P1 Rows-Rückbau ⏳ optional | 🟡 teilweise |
 | 19 | Email-OTP-Login (passwortlos) | ✅ 2026-06-11 |
 | 20 | OTP-Registrierung (Name, AGB, E-Mail-Normalisierung) | ✅ 2026-06-12 |
 | 21 | RBAC: Capabilities, Rollen (admin/moderator), Guards, Audit | ✅ 2026-06-25 |
@@ -113,9 +147,12 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 | 23 | `packages/moderation`: generisches Melde-/Report-System + Queue | ✅ 2026-06-27 |
 | 24 | comments: Thread-Pagination (rootId/depth), „bearbeitet", Reply-Notification-Link | ✅ 2026-06-28 |
 | 25 | `packages/system`: Infra-Tabellen ausgelagert (core↔admin-Inversion gelöst) | ✅ 2026-06-27 |
-| 26 | Tests (RBAC/Sort/Thread/Vote, 67) + Dedup + Deploy-Runbook | ✅ 2026-06-29 |
+| 26 | Tests (RBAC/Sort/Thread/Vote) + Dedup + Deploy-Runbook | ✅ 2026-06-29 |
+| 27 | Pre-Production Security-Review + Cleanup + total-Semantik (Cascade-Hide) + notify()-Vertrag | ✅ 2026-06-30 |
+| 28 | Appwrite 1.9.0 → **1.9.5** Upgrade + Umstieg **MongoDB → MariaDB** (Bootstrap-Odyssee) | ✅ 2026-07-01 |
+| 29 | Presence auf **Presences-API** (P2), Bootstrap-/Seed-Tooling, Demo-Daten + XSS-Security-Test | ✅ 2026-07-01 |
 
-Details und Nachweis-Kriterien pro Phase: [docs/GOALS.md](docs/GOALS.md)
+Details und Nachweis-Kriterien pro Phase: [docs/GOALS.md](docs/GOALS.md) · Upgrade-Plan: [docs/APPWRITE-1.9.5-UPGRADE.md](docs/APPWRITE-1.9.5-UPGRADE.md) · Offene Punkte: [docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md)
 
 ## Konventionen
 
