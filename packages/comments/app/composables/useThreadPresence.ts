@@ -14,7 +14,7 @@ const TYPING_RESET_MS = 3_000
 export function useThreadPresence(targetType: string, targetId: string) {
   const scope = `${targetType}:${targetId}`
   const state = usePresenceState()
-  const { others, typingOthers, viewerCount } = usePresence(u => u.scope === scope)
+  const { present, others, typingOthers, viewerCount } = usePresence(u => u.scope === scope)
 
   let typingReset: ReturnType<typeof setTimeout> | undefined
   function setTyping(active: boolean) {
@@ -31,5 +31,5 @@ export function useThreadPresence(targetType: string, targetId: string) {
     state.setTyping(false)
   })
 
-  return { others, typingOthers, viewerCount, setTyping }
+  return { present, others, typingOthers, viewerCount, setTyping }
 }

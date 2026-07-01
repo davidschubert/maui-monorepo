@@ -20,7 +20,9 @@ export default defineEventHandler(async (event) => {
     typing?: unknown
   }
 
+  const prefs = user.prefs as { avatarUrl?: string } | undefined
   const metadata: Record<string, unknown> = { userName: user.name }
+  if (typeof prefs?.avatarUrl === 'string' && prefs.avatarUrl) metadata.avatarUrl = prefs.avatarUrl
   if (typeof body.scope === 'string') metadata.scope = body.scope
   if (typeof body.action === 'string') metadata.action = body.action
   if (body.typing === true) metadata.typing = true

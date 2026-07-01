@@ -53,7 +53,7 @@ useRealtimeRows<Comment>(
 )
 
 // Thread-Presence (#10): wer schaut zu / tippt; setTyping für den Composer bereitstellen
-const { others, typingOthers, viewerCount, setTyping } = useThreadPresence(props.targetType, props.targetId)
+const { present, others, typingOthers, viewerCount, setTyping } = useThreadPresence(props.targetType, props.targetId)
 provide(commentTypingKey, setTyping)
 
 const typingText = computed(() => {
@@ -72,17 +72,21 @@ const typingText = computed(() => {
       <USelect v-model="sort" :items="sortOptions" size="sm" :aria-label="t('comments.sort.label')" />
     </header>
 
-    <div v-if="others.length || typingText" class="flex min-h-5 flex-wrap items-center gap-2 text-xs text-muted" data-thread-presence>
+    <div v-if="others.length || typingText" class="flex min-h-6 flex-wrap items-center gap-3 text-xs text-muted" data-thread-presence>
       <template v-if="others.length">
-        <div class="flex -space-x-1.5">
-          <UserAvatar
-            v-for="u in others.slice(0, 5)"
-            :key="u.userId"
-            :user="{ name: u.userName }"
-            size="3xs"
-            class="ring-1 ring-default"
-          />
-        </div>
+        <!-- Alle Anwesenden (inkl. dir) als Gruppe. color=primary färbt die
+             Initialen-Avatare; hat der User ein Profilbild, gewinnt das Bild.
+             Tippt jemand, bekommt sein Avatar einen grünen Chip (chip-Prop des
+             Avatars selbst — externes UChip würde von der Gruppe entpackt). -->
+        <UAvatarGroup size="3xl" :max="8" color="primary">
+          <UTooltip v-for="u in present" :key="u.userId" :text="u.userName">
+            <UAvatar
+              :src="u.avatarUrl || undefined"
+              :alt="u.userName"
+              :chip="u.typing ? { color: 'success' } : false"
+            />
+          </UTooltip>
+        </UAvatarGroup>
         <span>{{ t('comments.presence.here', { count: viewerCount }) }}</span>
       </template>
       <span v-if="typingText" class="text-primary">{{ typingText }}</span>

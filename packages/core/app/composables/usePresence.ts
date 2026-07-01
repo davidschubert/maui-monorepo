@@ -4,6 +4,8 @@ import { Client, Realtime, Channel, Presences } from 'appwrite'
 export interface PresenceUser {
   userId: string
   userName: string
+  /** Profilbild-URL (aus den Account-prefs) — sonst Initialen-Fallback */
+  avatarUrl?: string
   /** Was der User gerade ansieht, z.B. 'post:demo-post' (Thread) */
   scope?: string
   /** Was der User gerade tut, z.B. 'reviewing:report:42' oder 'editing:changelog:7' */
@@ -36,6 +38,7 @@ function shared() {
 const toUser = (p: RawPresence): PresenceUser => ({
   userId: p.userId,
   userName: String(p.metadata?.userName ?? 'User'),
+  avatarUrl: typeof p.metadata?.avatarUrl === 'string' ? p.metadata.avatarUrl : undefined,
   scope: typeof p.metadata?.scope === 'string' ? p.metadata.scope : undefined,
   action: typeof p.metadata?.action === 'string' ? p.metadata.action : undefined,
   typing: p.metadata?.typing === true,
