@@ -1,0 +1,21 @@
+{
+  "projectId": "reddit-comments",
+  "projectName": "reddit-comments",
+  "functions": [
+    {
+      "$id": "changelog-draft",
+      "name": "Changelog Draft",
+      "runtime": "node-22.0",
+      "execute": ["any"],
+      "events": [],
+      "schedule": "",
+      "timeout": 30,
+      "enabled": true,
+      "logging": true,
+      "entrypoint": "src/main.js",
+      "commands": "npm install",
+      "scopes": ["tablesDB.rows.read", "tablesDB.rows.write"],
+      "path": "functions/changelog-draft"
+    }
+  ]
+}

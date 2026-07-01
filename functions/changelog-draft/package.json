@@ -1,0 +1,11 @@
+{
+  "name": "changelog-draft-function",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Appwrite Function (Track 2B): GitHub-Release-Webhook → Changelog-Entwurf",
+  "main": "src/main.js",
+  "dependencies": {
+    "node-appwrite": "^26.2.0"
+  }
+}

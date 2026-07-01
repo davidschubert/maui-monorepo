@@ -16,6 +16,8 @@
  */
 import { execFileSync } from 'node:child_process'
 import { Client, TablesDB, ID } from 'node-appwrite'
+// Geteilte Parsing-Logik (auch von der Appwrite Function / Track 2B genutzt).
+import { parseCommitsToDraft } from '../../../functions/changelog-draft/src/parse.js'
 
 // --- Argumente -------------------------------------------------------------
 const args = process.argv.slice(2)
@@ -42,56 +44,19 @@ if (!since) {
 const range = since ? `${since}..HEAD` : 'HEAD'
 
 // --- Commits lesen + parsen ------------------------------------------------
-// Trennzeichen \x1f (unit separator) zwischen Subject und Datum.
-const raw = git(['log', range, '--no-merges', '--pretty=format:%s%x1f%cI'])
-const lines = raw ? raw.split('\n') : []
+// Nur die Betreffzeilen — die geteilte Parsing-Logik macht den Rest.
+const raw = git(['log', range, '--no-merges', '--pretty=format:%s'])
+const subjects = raw ? raw.split('\n') : []
 
-// Conventional-Commit-Typ → Changelog-Kategorie + Abschnittsüberschrift.
-const MAP = {
-  feat: { category: 'feature', section: 'Neue Funktionen' },
-  fix: { category: 'fix', section: 'Fehlerbehebungen' },
-  perf: { category: 'improvement', section: 'Verbesserungen' },
-  refactor: { category: 'improvement', section: 'Verbesserungen' },
-}
-const CC = /^(\w+)(?:\([^)]*\))?(!)?:\s*(.+)$/
-
-const buckets = new Map() // section → [desc, ...]
-let counted = 0
-for (const line of lines) {
-  const [subject = ''] = line.split('\x1f')
-  const m = subject.match(CC)
-  if (!m) continue
-  const [, type, , descRaw] = m
-  const mapped = MAP[type]
-  if (!mapped) continue // chore/docs/test/ci/build/style → raus
-  const desc = descRaw.charAt(0).toUpperCase() + descRaw.slice(1)
-  if (!buckets.has(mapped.section)) buckets.set(mapped.section, [])
-  buckets.get(mapped.section).push(desc)
-  counted++
-}
+const { counted, body, category, title: titleHint, sectionCount } = parseCommitsToDraft(subjects, { version, range })
 
 if (counted === 0) {
   console.log(`\nKeine relevanten Commits in ${range}. Nichts zu tun.`)
   process.exit(0)
 }
 
-// --- Entwurf zusammenbauen -------------------------------------------------
-// Reihenfolge der Abschnitte stabil halten.
-const ORDER = ['Neue Funktionen', 'Verbesserungen', 'Fehlerbehebungen']
-const body = ORDER
-  .filter(s => buckets.has(s))
-  .map(s => `${s}:\n${buckets.get(s).map(d => `• ${d}`).join('\n')}`)
-  .join('\n\n')
-
-// Dominante Kategorie (meiste Einträge) als Vorauswahl.
-const sectionToCat = { 'Neue Funktionen': 'feature', Verbesserungen: 'improvement', Fehlerbehebungen: 'fix' }
-const dominant = [...buckets.entries()].sort((a, b) => b[1].length - a[1].length)[0][0]
-const category = sectionToCat[dominant]
-
-const titleHint = version ? `Entwurf ${version}` : `Entwurf ${range}`
-
 console.log(`\n${'─'.repeat(60)}\n${titleHint}  [${category}]\n${'─'.repeat(60)}\n${body}\n${'─'.repeat(60)}`)
-console.log(`\n${counted} Commit(s) in ${buckets.size} Kategorie(n).`)
+console.log(`\n${counted} Commit(s) in ${sectionCount} Kategorie(n).`)
 
 if (dry) {
   console.log('\n--dry: kein Eintrag geschrieben.')
