@@ -72,7 +72,7 @@ console.log(`Bootstrap gegen ${endpoint} / Projekt ${projectId}\n`)
 
 // 3) Web-Platform (best-effort — Projekt-Management-Scope; ggf. in der Console anlegen)
 {
-  const { status, json } = await api(`/projects/${projectId}/platforms`, 'POST', {
+  const { status } = await api(`/projects/${projectId}/platforms`, 'POST', {
     type: 'web', name: 'localhost', hostname: 'localhost',
   })
   if (ok(status)) console.log('✔ Web-Platform localhost angelegt')
