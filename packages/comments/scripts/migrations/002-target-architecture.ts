@@ -68,19 +68,39 @@ async function dropTable(tableId: string) {
 }
 
 /**
+ * Vorhandene Column-Keys einer Table (leer bei 404/nicht existent).
+ * Basis für Idempotenz: existierende Spalten werden GAR NICHT ERST angelegt —
+ * das 409-Fangnetz reicht nicht, weil Appwrite bei großen varchar-Spalten den
+ * Row-Size-Check VOR dem Duplikat-Check macht und dann 400 `column_limit_
+ * exceeded` statt 409 wirft (auf MariaDB verifiziert, `content` varchar 10000).
+ */
+async function existingColumnKeys(tableId: string): Promise<Set<string>> {
+  try {
+    const { columns } = await tablesDB.listColumns({ databaseId: databaseId!, tableId })
+    return new Set(columns.map(column => column.key))
+  }
+  catch (error) {
+    if (hasCode(error, 404)) return new Set()
+    throw error
+  }
+}
+
+/** Spalte nur anlegen, wenn sie fehlt (s. existingColumnKeys). */
+async function columnStep(label: string, key: string, existing: Set<string>, run: () => Promise<unknown>) {
+  if (existing.has(key)) {
+    console.log(`↷ ${label} (existiert bereits)`)
+    return
+  }
+  await step(label, run)
+}
+
+/**
  * Ist die Table bereits am Zielschema? (alle Pflicht-Spalten vorhanden) →
  * Re-Run darf NICHT droppen. Nicht existent (404) oder altes Schema → false.
  */
 async function isAtTargetSchema(tableId: string, requiredColumns: string[]): Promise<boolean> {
-  try {
-    const { columns } = await tablesDB.listColumns({ databaseId: databaseId!, tableId })
-    const keys = new Set(columns.map(column => column.key))
-    return requiredColumns.every(key => keys.has(key))
-  }
-  catch (error) {
-    if (hasCode(error, 404)) return false
-    throw error
-  }
+  const keys = await existingColumnKeys(tableId)
+  return keys.size > 0 && requiredColumns.every(key => keys.has(key))
 }
 
 async function waitForColumns(tableId: string) {
@@ -96,8 +116,9 @@ console.log(`Migration 002 gegen ${endpoint} / Projekt ${projectId} / DB ${datab
 
 // --- comments: drop NUR beim Erst-Umbau (altes Schema), sonst idempotent ----
 // Sind beide Tables schon am Zielschema, überspringen wir den DROP → ein Re-Run
-// löscht keine Produktivdaten. createTable/Spalten/Indizes unten sind ohnehin
-// 409-idempotent, laufen also gefahrlos auch gegen ein bereits migriertes Schema.
+// löscht keine Produktivdaten. Danach werden Tables/Indizes 409-idempotent und
+// Spalten via Vorab-Check (columnStep) sichergestellt — createColumn darf bei
+// existierender Spalte NICHT aufgerufen werden (400 column_limit_exceeded, s.o.).
 const commentsReady = await isAtTargetSchema('comments', ['targetId', 'targetType', 'content', 'authorId', 'authorName', 'status'])
 const votesReady = await isAtTargetSchema('comment_votes', ['commentId', 'userId', 'value'])
 
@@ -117,34 +138,35 @@ await step('Table comments', () => tablesDB.createTable({
   rowSecurity: true,
 }))
 
-await step('Column comments.targetId', () => tablesDB.createVarcharColumn({
+const commentCols = await existingColumnKeys('comments')
+await columnStep('Column comments.targetId', 'targetId', commentCols, () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'comments', key: 'targetId', size: 255, required: true,
 }))
-await step('Column comments.targetType', () => tablesDB.createVarcharColumn({
+await columnStep('Column comments.targetType', 'targetType', commentCols, () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'comments', key: 'targetType', size: 64, required: true,
 }))
-await step('Column comments.content', () => tablesDB.createVarcharColumn({
+await columnStep('Column comments.content', 'content', commentCols, () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'comments', key: 'content', size: 10000, required: true,
 }))
-await step('Column comments.authorId', () => tablesDB.createVarcharColumn({
+await columnStep('Column comments.authorId', 'authorId', commentCols, () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'comments', key: 'authorId', size: 255, required: true,
 }))
-await step('Column comments.authorName', () => tablesDB.createVarcharColumn({
+await columnStep('Column comments.authorName', 'authorName', commentCols, () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'comments', key: 'authorName', size: 255, required: true,
 }))
-await step('Column comments.parentId', () => tablesDB.createVarcharColumn({
+await columnStep('Column comments.parentId', 'parentId', commentCols, () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'comments', key: 'parentId', size: 255, required: false,
 }))
-await step('Column comments.upvotes', () => tablesDB.createIntegerColumn({
+await columnStep('Column comments.upvotes', 'upvotes', commentCols, () => tablesDB.createIntegerColumn({
   databaseId, tableId: 'comments', key: 'upvotes', required: false, min: 0, xdefault: 0,
 }))
-await step('Column comments.downvotes', () => tablesDB.createIntegerColumn({
+await columnStep('Column comments.downvotes', 'downvotes', commentCols, () => tablesDB.createIntegerColumn({
   databaseId, tableId: 'comments', key: 'downvotes', required: false, min: 0, xdefault: 0,
 }))
-await step('Column comments.score', () => tablesDB.createIntegerColumn({
+await columnStep('Column comments.score', 'score', commentCols, () => tablesDB.createIntegerColumn({
   databaseId, tableId: 'comments', key: 'score', required: false, xdefault: 0,
 }))
-await step('Column comments.status', () => tablesDB.createVarcharColumn({
+await columnStep('Column comments.status', 'status', commentCols, () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'comments', key: 'status', size: 16, required: false, xdefault: 'active',
 }))
 
@@ -172,13 +194,14 @@ await step('Table comment_votes', () => tablesDB.createTable({
   rowSecurity: true,
 }))
 
-await step('Column comment_votes.commentId', () => tablesDB.createVarcharColumn({
+const voteCols = await existingColumnKeys('comment_votes')
+await columnStep('Column comment_votes.commentId', 'commentId', voteCols, () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'comment_votes', key: 'commentId', size: 255, required: true,
 }))
-await step('Column comment_votes.userId', () => tablesDB.createVarcharColumn({
+await columnStep('Column comment_votes.userId', 'userId', voteCols, () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'comment_votes', key: 'userId', size: 255, required: true,
 }))
-await step('Column comment_votes.value', () => tablesDB.createIntegerColumn({
+await columnStep('Column comment_votes.value', 'value', voteCols, () => tablesDB.createIntegerColumn({
   databaseId, tableId: 'comment_votes', key: 'value', required: true, min: -1, max: 1,
 }))
 
