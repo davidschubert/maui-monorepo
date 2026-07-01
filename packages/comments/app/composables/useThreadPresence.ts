@@ -40,7 +40,26 @@ function groupByKey(users: PresenceUser[], key: (u: PresenceUser) => string | un
 export function useThreadPresence(targetType: string, targetId: string) {
   const scope = `${targetType}:${targetId}`
   const state = usePresenceState()
-  const { present, others, typingOthers, viewerCount } = usePresence(u => u.scope === scope)
+  const { user } = useCurrentUser()
+  const live = usePresence(u => u.scope === scope)
+
+  // SSR-Erststand: rendert die Presence-Leiste sofort mit dem serverseitig
+  // ermittelten Betrachterstand (via /api/presence/count), sodass sie nach einem
+  // harten Reload nicht erst nach einem Client-Roundtrip nachlädt. Sobald der
+  // Live-Reader (client-only) seinen ersten list()-Aufruf hat, übernimmt er.
+  const { data: initial } = useFetch<{ count: number, users: { userId: string, userName: string, typing: boolean, avatarUrl: string }[] }>(
+    '/api/presence/count',
+    { query: { scope }, default: () => ({ count: 0, users: [] }) },
+  )
+  const initialUsers = computed<PresenceUser[]>(() => (initial.value?.users ?? []).map(u => ({
+    userId: u.userId, userName: u.userName, avatarUrl: u.avatarUrl || undefined, typing: u.typing, scope,
+  })))
+
+  // Bis der Live-Reader geladen hat: SSR-Erststand. Danach: Live (auch wenn leer).
+  const present = computed(() => live.loaded.value ? live.present.value : initialUsers.value)
+  const others = computed(() => present.value.filter(u => u.userId !== user.value?.$id))
+  const typingOthers = computed(() => others.value.filter(u => u.typing))
+  const viewerCount = computed(() => present.value.length)
 
   let typingReset: ReturnType<typeof setTimeout> | undefined
   function setTyping(active: boolean) {

@@ -120,10 +120,13 @@ export function usePresenceState() {
 export function usePresence(predicate: (u: PresenceUser) => boolean = () => true) {
   const map = ref(new Map<string, PresenceUser>())
   const present = computed(() => [...map.value.values()])
+  // false, bis der erste list()-Aufruf durch ist → Konsumenten können bis dahin
+  // einen SSR-Erststand zeigen (kein Nachladen nach hartem Reload).
+  const loaded = ref(false)
 
   if (import.meta.server) {
     const empty = computed(() => [] as PresenceUser[])
-    return { present: empty, others: empty, typingOthers: empty, viewerCount: computed(() => 0) }
+    return { present: empty, others: empty, typingOthers: empty, viewerCount: computed(() => 0), loaded }
   }
 
   const auth = useAuthStore()
@@ -164,6 +167,7 @@ export function usePresence(predicate: (u: PresenceUser) => boolean = () => true
 
   onMounted(async () => {
     await refresh()
+    loaded.value = true
     try { sub = await realtime.subscribe(Channel.presences(), scheduleRefresh) }
     catch { /* Poll trägt die Anwesenheit */ }
     pollTimer = setInterval(refresh, POLL_MS)
@@ -175,5 +179,5 @@ export function usePresence(predicate: (u: PresenceUser) => boolean = () => true
     catch { /* ignore */ }
   })
 
-  return { present, others, typingOthers, viewerCount }
+  return { present, others, typingOthers, viewerCount, loaded }
 }
