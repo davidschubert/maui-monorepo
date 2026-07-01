@@ -11,6 +11,7 @@
       "typingMany": "{name} and {count} others are typing …",
       "avatarTyping": "{name} is typing",
       "avatarReplying": "{name} is replying",
+      "avatarAway": "{name} is in another tab",
       "replyingOne": "{name} is replying …",
       "replyingMany": "{count} are replying …",
       "readingHere": "{count} reading here"

@@ -19,9 +19,10 @@ export interface RawServerPresence {
   metadata?: Record<string, unknown> | null
 }
 
-// „online jetzt" = zuletzt < 90s aktualisiert. 90s (statt 60s) toleriert die
-// setInterval-Drosselung versteckter Tabs (~1 Heartbeat/Minute).
-export const PRESENCE_FRESH_MS = 90_000
+// „online jetzt" = zuletzt < 180s aktualisiert. Großzügig, damit gedrosselte
+// Hintergrund-Tabs (~1 Heartbeat/Minute, ggf. seltener) nicht flackern/rausfallen.
+// Sauberes Verlassen entfernt die Presence sofort (leave-Beacon), daher unkritisch.
+export const PRESENCE_FRESH_MS = 180_000
 
 export function toOnlinePresences(
   raw: RawServerPresence[],

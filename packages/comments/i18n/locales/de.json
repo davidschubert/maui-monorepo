@@ -11,6 +11,7 @@
       "typingMany": "{name} und {count} weitere tippen …",
       "avatarTyping": "{name} tippt gerade",
       "avatarReplying": "{name} antwortet gerade",
+      "avatarAway": "{name} ist gerade in einem anderen Tab",
       "replyingOne": "{name} antwortet gerade …",
       "replyingMany": "{count} antworten gerade …",
       "readingHere": "{count} lesen hier"

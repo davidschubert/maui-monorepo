@@ -97,13 +97,17 @@ const typingText = computed(() => {
   return t('comments.presence.typingMany', { name: names[0], count: names.length - 1 })
 })
 
-// Zustands-Icon je Avatar in der Gruppe: tippt → Stift, antwortet → Pfeil.
-function presenceBadge(u: PresenceUser): { icon?: string, iconColor?: 'success' | 'info' } {
+// Zustands-Icon je Avatar in der Gruppe (der Avatar selbst BLEIBT immer): im
+// anderen Tab → Mond, tippt → Stift, antwortet → Pfeil. „away" hat Vorrang, weil
+// der User dann nicht aktiv in DIESEM Thread ist.
+function presenceBadge(u: PresenceUser): { icon?: string, iconColor?: 'success' | 'info' | 'neutral' } {
+  if (u.away) return { icon: 'i-ph-moon', iconColor: 'neutral' }
   if (u.typing) return { icon: 'i-ph-pencil-simple-line', iconColor: 'success' }
   if (u.replyingTo) return { icon: 'i-ph-arrow-bend-up-left', iconColor: 'info' }
   return {}
 }
 function presenceLabel(u: PresenceUser): string {
+  if (u.away) return t('comments.presence.avatarAway', { name: u.userName })
   if (u.typing) return t('comments.presence.avatarTyping', { name: u.userName })
   if (u.replyingTo) return t('comments.presence.avatarReplying', { name: u.userName })
   return u.userName
@@ -124,7 +128,12 @@ function presenceLabel(u: PresenceUser): string {
              PresenceAvatar setzt ein Zustands-Icon in die Ecke (tippt/antwortet). -->
         <UAvatarGroup size="3xl" :max="8" color="primary">
           <UTooltip v-for="u in present" :key="u.userId" :text="presenceLabel(u)">
-            <PresenceAvatar :name="u.userName" :avatar-url="u.avatarUrl" v-bind="presenceBadge(u)" />
+            <PresenceAvatar
+              :name="u.userName"
+              :avatar-url="u.avatarUrl"
+              :class="u.away ? 'opacity-60 transition-opacity' : 'transition-opacity'"
+              v-bind="presenceBadge(u)"
+            />
           </UTooltip>
         </UAvatarGroup>
         <span>{{ t('comments.presence.here', { count: viewerCount }) }}</span>

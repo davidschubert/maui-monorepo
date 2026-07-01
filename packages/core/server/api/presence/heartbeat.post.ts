@@ -8,10 +8,10 @@
  * Eine Presence pro User (presenceId = userId); metadata trägt scope/action/
  * typing. Kurze Expiry (90s) → verlässt der User die Seite, räumt der Server ab.
  */
-// Server-Expiry > Frische-Fenster (90s): eine „frische" Presence darf nie schon
-// abgelaufen sein. 120s toleriert zudem eine ausgefallene Heartbeat-Runde eines
-// gedrosselten Hintergrund-Tabs, bevor Appwrite den Eintrag automatisch entfernt.
-const PRESENCE_TTL_MS = 120_000
+// Server-Expiry > Frische-Fenster (180s): eine „frische" Presence darf nie schon
+// abgelaufen sein, sonst würde sie zwischen zwei gedrosselten Heartbeats server-
+// seitig verschwinden (Flackern). 240s hält Puffer über die Drossel-Lücke.
+const PRESENCE_TTL_MS = 240_000
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
@@ -24,6 +24,7 @@ export default defineEventHandler(async (event) => {
     page?: unknown
     replyingTo?: unknown
     near?: unknown
+    away?: unknown
   }
 
   const prefs = user.prefs as { avatarUrl?: string } | undefined
@@ -35,6 +36,7 @@ export default defineEventHandler(async (event) => {
   if (typeof body.page === 'string') metadata.page = body.page
   if (typeof body.replyingTo === 'string') metadata.replyingTo = body.replyingTo
   if (typeof body.near === 'string') metadata.near = body.near
+  if (body.away === true) metadata.away = true
 
   try {
     const { presences } = createAdminClient(event)
