@@ -8,7 +8,10 @@
  * Eine Presence pro User (presenceId = userId); metadata trägt scope/action/
  * typing. Kurze Expiry (90s) → verlässt der User die Seite, räumt der Server ab.
  */
-const PRESENCE_TTL_MS = 90_000
+// Server-Expiry > Frische-Fenster (90s): eine „frische" Presence darf nie schon
+// abgelaufen sein. 120s toleriert zudem eine ausgefallene Heartbeat-Runde eines
+// gedrosselten Hintergrund-Tabs, bevor Appwrite den Eintrag automatisch entfernt.
+const PRESENCE_TTL_MS = 120_000
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user

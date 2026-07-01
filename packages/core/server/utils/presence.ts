@@ -1,8 +1,9 @@
 import type { H3Event } from 'h3'
 
-// „online jetzt" = zuletzt < 60s aktualisiert (Heartbeat hält es frisch); die
-// Presence-`expiresAt` selbst ist server-seitig lang (~30 Tage).
-const FRESH_MS = 60_000
+// „online jetzt" = zuletzt < 90s aktualisiert. 90s (statt 60s) toleriert die
+// setInterval-Drosselung versteckter Tabs (~1 Heartbeat/Minute) — ein offener,
+// aber nicht fokussierter Tab bleibt so korrekt „online" (muss > Drossel-Lücke).
+const FRESH_MS = 90_000
 
 export interface OnlinePresence {
   userId: string

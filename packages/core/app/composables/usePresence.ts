@@ -23,9 +23,11 @@ interface RawPresence { userId: string, status?: string, $updatedAt?: string, me
 
 const HEARTBEAT_MS = 20_000
 const POLL_MS = 20_000 // hält die Aktualitäts-Filterung frisch
-// Die Presence-`expiresAt` ist server-seitig lang (~30 Tage) → „online jetzt"
-// bestimmen wir über die Aktualität (updatedAt), die der Heartbeat frisch hält.
-const FRESH_MS = 60_000
+// „online jetzt" bestimmen wir über die Aktualität (updatedAt). Das Fenster MUSS
+// größer sein als die Heartbeat-Lücke eines Hintergrund-Tabs: Browser drosseln
+// setInterval in versteckten Tabs auf ~1×/Minute. Bei 60s Fenster fiele ein
+// offener-aber-versteckter Tab fälschlich raus → 90s toleriert die Drosselung.
+const FRESH_MS = 90_000
 
 function isFresh(p: RawPresence): boolean {
   return !!p.$updatedAt && (Date.now() - Date.parse(p.$updatedAt) < FRESH_MS)
@@ -89,10 +91,11 @@ export function usePresenceState() {
     watch(() => auth.user?.$id, id => { if (id) upsert() }, { immediate: true })
     watch(myMeta, upsert, { deep: true })
     setInterval(upsert, HEARTBEAT_MS)
-    // Hintergrund-Tabs drosseln setInterval → Presence fällt aus dem Frische-
-    // Fenster. Bei Rückkehr (Tab-Fokus/Sichtbarkeit) sofort auffrischen, damit
-    // „online jetzt" sofort wieder stimmt, statt bis zum nächsten Heartbeat.
-    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') upsert() })
+    // Hintergrund-Tabs drosseln setInterval. Bei JEDEM Sichtbarkeitswechsel sofort
+    // auffrischen — auch beim VERSTECKEN: so startet das Frische-Fenster genau dann
+    // neu, wenn die Drosselung beginnt (maximaler Puffer, bis der nächste – seltene
+    // – Heartbeat feuert). Bei Rückkehr ist die Presence ohnehin sofort wieder frisch.
+    document.addEventListener('visibilitychange', upsert)
     window.addEventListener('focus', upsert)
   }
 
