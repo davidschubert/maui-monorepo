@@ -60,16 +60,13 @@ export function usePresenceState() {
   if (import.meta.server) return noop
 
   const auth = useAuthStore()
-  const { realtime } = shared()
 
+  // Write server-seitig: der Browser darf seine Presence im SSR-Cookie-Setup
+  // nicht selbst schreiben (Web-SDK-Client ohne Session → WS-Upsert als Guest
+  // verworfen, PUT /presences → 401). Die Route upsertet mit dem Admin-Client.
   function upsert() {
     if (!auth.user) return
-    realtime.upsertPresence({
-      presenceId: auth.user.$id,
-      status: 'online',
-      permissions: [`read("users")`],
-      metadata: { userName: auth.user.name, ...myMeta.value },
-    }).catch(() => {})
+    $fetch('/api/presence/heartbeat', { method: 'POST', body: { ...myMeta.value } }).catch(() => {})
   }
 
   if (!stateStarted) {
