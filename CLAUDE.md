@@ -54,8 +54,12 @@ Vollständiges Konzept: docs/CONCEPT.md
   direkt über die Presences-API (presences.list() per Cookie-GET funktioniert +
   Channel.presences()-Trigger), „online jetzt" via updatedAt-Recency 60s. Server:
   listOnlinePresences() in core/server/utils/presence.ts. KEINE presence-Table mehr.
-  Use-Cases: useThreadPresence (scope), useModerationPresence (action reviewing:*),
-  useEditAwareness (action editing:*)
+  metadata-Felder (je eigener Zweck, kollidieren nicht): scope (Thread), action
+  (reviewing:/editing:), typing, page (Dashboard-Seite), replyingTo (commentId),
+  near (commentId, Lese-Position). Use-Cases: useThreadPresence (scope + typing +
+  replyingTo + near), useModerationPresence (action reviewing:*), useEditAwareness
+  (action editing:*), useViewingPresence (page → DashboardViewers „N sehen diese
+  Seite"). PresenceAvatar (core): Avatar + Icon-Badge in der Ecke (tippt/antwortet)
 
 ## Config-Gates (app.config.ts, Namespace maui.*)
 - maui.analytics / maui.consent: Core-Default false, App aktiviert explizit
