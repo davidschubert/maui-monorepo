@@ -10,7 +10,9 @@
     "preview": "nuxi preview",
     "typecheck": "nuxi typecheck",
     "seed": "node --experimental-strip-types --env-file=.env scripts/seed-demo.ts",
-    "bootstrap": "node --experimental-strip-types --env-file=.env scripts/bootstrap.ts"
+    "bootstrap": "node --experimental-strip-types --env-file=.env scripts/bootstrap.ts",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@iconify-json/circle-flags": "catalog:",
@@ -32,6 +34,7 @@
   },
   "devDependencies": {
     "@nuxt/eslint-config": "catalog:",
+    "@playwright/test": "catalog:",
     "@types/node": "catalog:",
     "eslint": "catalog:",
     "typescript": "catalog:",

@@ -15,5 +15,9 @@ dist/
 *.log
 .DS_Store
 
-# Browser-Test-Artefakte (Playwright MCP)
+# Browser-Test-Artefakte (Playwright MCP + E2E)
 .playwright-mcp/
+test-results/
+playwright-report/
+blob-report/
+.last-run.json
