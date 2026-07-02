@@ -13,23 +13,28 @@ function dayKey(date: Date): string {
   return date.toISOString().slice(0, 10)
 }
 
-/** Alle `$createdAt`-Werte ab `cutoffIso` paginiert einsammeln. */
+/**
+ * Alle `$createdAt`-Werte ab `cutoffIso` paginiert einsammeln — per CURSOR
+ * statt Offset: landet während der Pagination eine neue Zeile (Realtime-App!),
+ * verschieben sich Offset-Seiten und Zeilen doppeln/fehlen; der Cursor bleibt
+ * stabil.
+ */
 async function collectCreatedAt(
   total: { count: number, capped: boolean },
-  loadPage: (offset: number) => Promise<{ createdAt: string[], total: number }>,
+  loadPage: (cursor: string | undefined) => Promise<{ items: { id: string, createdAt: string }[], total: number }>,
 ): Promise<string[]> {
   const out: string[] = []
-  let offset = 0
+  let cursor: string | undefined
   for (let p = 0; p < MAX_PAGES; p++) {
-    const res = await loadPage(offset).catch(() => null)
+    const res = await loadPage(cursor).catch(() => null)
     if (!res) break
-    out.push(...res.createdAt)
+    out.push(...res.items.map(item => item.createdAt))
     total.count = res.total
-    if (res.createdAt.length < PAGE || offset + res.createdAt.length >= res.total) {
+    if (res.items.length < PAGE) {
       total.capped = false
       return out
     }
-    offset += PAGE
+    cursor = res.items.at(-1)!.id
   }
   total.capped = true
   return out
@@ -61,19 +66,19 @@ export default defineEventHandler(async (event): Promise<AdminAnalytics> => {
   const commentTotal = { count: 0, capped: false }
 
   const [userDates, commentDates] = await Promise.all([
-    collectCreatedAt(userTotal, async (offset) => {
+    collectCreatedAt(userTotal, async (cursor) => {
       const r = await admin.users.list({
-        queries: [Query.greaterThanEqual('$createdAt', cutoffIso), Query.orderDesc('$createdAt'), Query.limit(PAGE), Query.offset(offset)],
+        queries: [Query.greaterThanEqual('$createdAt', cutoffIso), Query.orderDesc('$createdAt'), Query.limit(PAGE), ...(cursor ? [Query.cursorAfter(cursor)] : [])],
       })
-      return { createdAt: r.users.map(u => u.$createdAt), total: r.total }
+      return { items: r.users.map(u => ({ id: u.$id, createdAt: u.$createdAt })), total: r.total }
     }),
-    collectCreatedAt(commentTotal, async (offset) => {
+    collectCreatedAt(commentTotal, async (cursor) => {
       const r = await admin.tablesDB.listRows<Models.Row>({
         databaseId: dbId,
         tableId: 'comments',
-        queries: [Query.greaterThanEqual('$createdAt', cutoffIso), Query.orderDesc('$createdAt'), Query.limit(PAGE), Query.offset(offset)],
+        queries: [Query.greaterThanEqual('$createdAt', cutoffIso), Query.orderDesc('$createdAt'), Query.limit(PAGE), ...(cursor ? [Query.cursorAfter(cursor)] : [])],
       })
-      return { createdAt: r.rows.map(row => row.$createdAt), total: r.total }
+      return { items: r.rows.map(row => ({ id: row.$id, createdAt: row.$createdAt })), total: r.total }
     }),
   ])
 

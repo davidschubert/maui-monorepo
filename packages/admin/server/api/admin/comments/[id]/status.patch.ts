@@ -7,9 +7,10 @@ const moderationSchema = z.object({
   status: z.enum(['hidden', 'active']),
 })
 
-// Obergrenze für die Subtree-Kaskade (= REPLY_CAP im comments-GET). Threads mit
-// mehr Antworten sind die absolute Ausnahme.
-const THREAD_CAP = 500
+// Thread wird per Cursor VOLLSTÄNDIG geladen (Batch-Größe THREAD_PAGE); die
+// harte Grenze ist nur ein Notanker gegen entgleisende Pagination (mit Log).
+const THREAD_PAGE = 500
+const THREAD_HARD_CAP = 10_000
 
 type CommentRow = Models.Row & { status: string, authorName: string, parentId: string | null, rootId: string | null }
 
@@ -53,18 +54,37 @@ export default defineEventHandler(async (event) => {
   if (status === 'hidden') {
     const threadRoot = row.rootId ?? commentId
     // Ganzen Thread laden (alle Status → korrekte Baumstruktur), dann Nachfahren
-    // von commentId per Fixpunkt-BFS ermitteln.
-    const thread = await admin.tablesDB.listRows<CommentRow>({
-      databaseId,
-      tableId: 'comments',
-      queries: [Query.equal('rootId', threadRoot), Query.limit(THREAD_CAP)],
-    }).catch(() => ({ rows: [] as CommentRow[] }))
+    // von commentId per Fixpunkt-BFS ermitteln. Cursor-Pagination bis zur
+    // Erschöpfung — ein hartes 500er-Fenster ließe Nachfahren jenseits davon
+    // sichtbar-aber-verwaist zurück.
+    const threadRows: CommentRow[] = []
+    try {
+      let cursor: string | undefined
+      while (threadRows.length < THREAD_HARD_CAP) {
+        const pageRes = await admin.tablesDB.listRows<CommentRow>({
+          databaseId,
+          tableId: 'comments',
+          queries: [
+            Query.equal('rootId', threadRoot),
+            Query.limit(THREAD_PAGE),
+            ...(cursor ? [Query.cursorAfter(cursor)] : []),
+          ],
+        })
+        threadRows.push(...pageRes.rows)
+        if (pageRes.rows.length < THREAD_PAGE) break
+        cursor = pageRes.rows.at(-1)!.$id
+      }
+      if (threadRows.length >= THREAD_HARD_CAP) {
+        console.warn(`[moderation] Cascade-Hide an THREAD_HARD_CAP (${THREAD_HARD_CAP}) gekappt — root ${threadRoot}`)
+      }
+    }
+    catch { /* best effort — Parent ist bereits ausgeblendet */ }
 
     const subtree = new Set<string>([commentId])
     let grew = true
     while (grew) {
       grew = false
-      for (const r of thread.rows) {
+      for (const r of threadRows) {
         if (r.parentId && subtree.has(r.parentId) && !subtree.has(r.$id)) {
           subtree.add(r.$id)
           grew = true
@@ -72,7 +92,7 @@ export default defineEventHandler(async (event) => {
       }
     }
     // Nur aktive Nachfahren ausblenden — deleted-Tombstones + bereits hidden bleiben.
-    const toHide = thread.rows.filter(r => r.$id !== commentId && subtree.has(r.$id) && r.status === 'active')
+    const toHide = threadRows.filter(r => r.$id !== commentId && subtree.has(r.$id) && r.status === 'active')
     await Promise.all(toHide.map(r =>
       admin.tablesDB.updateRow({ databaseId, tableId: 'comments', rowId: r.$id, data: { status: 'hidden' } }).catch(() => {}),
     ))

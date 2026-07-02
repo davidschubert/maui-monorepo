@@ -15,9 +15,12 @@ const PAGE_SIZE = 25
 // Controversial lässt sich nicht als Appwrite-Query ausdrücken → server-seitige
 // Sortierung über ein begrenztes Top-Level-Fenster.
 const CONTRO_CAP = 200
-// Antworten je geladener Thread-Seite (komplette Subtrees). Threads mit mehr
-// Antworten sind die absolute Ausnahme.
-const REPLY_CAP = 500
+// Antworten je geladener Thread-Seite (komplette Subtrees) werden per Cursor
+// VOLLSTÄNDIG eingesammelt; die Seitengröße ist nur die Batch-Größe. Die harte
+// Obergrenze ist ein Notanker gegen entgleisende Pagination — wird sie erreicht,
+// loggen wir den Verlust, statt still zu kappen.
+const REPLY_PAGE = 500
+const REPLY_HARD_CAP = 10_000
 
 /**
  * Kommentare eines Targets — paginiert über TOP-LEVEL-Threads, jeder mit seinem
@@ -75,19 +78,30 @@ export default defineEventHandler(async (event): Promise<CommentListResponse> =>
     : topRes.rows
   const topLevelTotal = isContro ? Math.min(topRes.total, CONTRO_CAP) : topRes.total
 
-  // 2) Komplette Subtrees der geladenen Threads (rootId-Index) — keine Waisen
-  let replies: Comment[] = []
+  // 2) Komplette Subtrees der geladenen Threads (rootId-Index) — keine Waisen.
+  // Cursor-Pagination bis zur Erschöpfung statt eines einzelnen 500er-Fensters.
+  const replies: Comment[] = []
   if (topLevel.length > 0) {
-    const repRes = await tablesDB.listRows<Comment>({
-      databaseId,
-      tableId: COMMENTS_TABLE,
-      queries: [
-        ...baseFilters,
-        Query.equal('rootId', topLevel.map(t => t.$id)),
-        Query.limit(REPLY_CAP),
-      ],
-    })
-    replies = repRes.rows
+    const rootIds = topLevel.map(t => t.$id)
+    let cursor: string | undefined
+    while (replies.length < REPLY_HARD_CAP) {
+      const repRes = await tablesDB.listRows<Comment>({
+        databaseId,
+        tableId: COMMENTS_TABLE,
+        queries: [
+          ...baseFilters,
+          Query.equal('rootId', rootIds),
+          Query.limit(REPLY_PAGE),
+          ...(cursor ? [Query.cursorAfter(cursor)] : []),
+        ],
+      })
+      replies.push(...repRes.rows)
+      if (repRes.rows.length < REPLY_PAGE) break
+      cursor = repRes.rows.at(-1)!.$id
+    }
+    if (replies.length >= REPLY_HARD_CAP) {
+      console.warn(`[comments] Antworten an REPLY_HARD_CAP (${REPLY_HARD_CAP}) gekappt — target ${targetType}:${targetId}`)
+    }
   }
 
   // 3) Gesamtzahl aller nicht-hidden Kommentare für die Überschrift

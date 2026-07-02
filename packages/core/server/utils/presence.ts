@@ -12,9 +12,18 @@ export type { OnlinePresence }
 export async function listOnlinePresences(event: H3Event): Promise<OnlinePresence[]> {
   try {
     const { presences } = createAdminClient(event)
-    // total wird nicht genutzt → nicht berechnen lassen (Mikro-Optimierung)
-    const res = await presences.list({ queries: [Query.limit(200)], total: false })
-    return toOnlinePresences((res.presences ?? []) as unknown as RawServerPresence[], Date.now())
+    // Seitenweise bis zur Erschöpfung (Cap 1000 als Notanker) — ein einzelnes
+    // 200er-Fenster würde bei vielen gleichzeitigen Usern Anwesende verschlucken.
+    // total wird nicht genutzt → nicht berechnen lassen (Mikro-Optimierung).
+    const PAGE = 200
+    const all: RawServerPresence[] = []
+    for (let offset = 0; offset < 1000; offset += PAGE) {
+      const res = await presences.list({ queries: [Query.limit(PAGE), Query.offset(offset)], total: false })
+      const batch = (res.presences ?? []) as unknown as RawServerPresence[]
+      all.push(...batch)
+      if (batch.length < PAGE) break
+    }
+    return toOnlinePresences(all, Date.now())
   }
   catch {
     return []

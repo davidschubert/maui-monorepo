@@ -71,7 +71,13 @@ export default defineEventHandler((event) => {
   const onFailure = FAILURE_LIMITED.has(route)
   if (!always && !onFailure && !write) return
 
-  const ip = getRequestIP(event, { xForwardedFor: true }) ?? 'unknown'
+  // Fehlt die IP (exotische Proxy-Setups), NICHT alle Clients in einen
+  // gemeinsamen 'unknown'-Topf werfen (sie würden sich gegenseitig aussperren) —
+  // stattdessen auf die Session-Identität ausweichen; 'unknown' nur als letzter
+  // Fallback für anonyme Requests ohne IP.
+  const ip = getRequestIP(event, { xForwardedFor: true })
+    ?? (event.context.user ? `user:${event.context.user.$id}` : undefined)
+    ?? 'unknown'
   // Eigenes Budget pro Bucket bzw. Methode+Route — Login-/Reset-Versuche und
   // verschiedene Schreib-Aktionen verbrauchen nicht gegenseitig ihr Kontingent.
   const key = `${ip}:${write ? write.bucket : route}`

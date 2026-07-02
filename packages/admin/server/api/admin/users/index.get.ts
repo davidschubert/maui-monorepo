@@ -3,7 +3,10 @@ import type { Models } from 'node-appwrite'
 import type { AdminUserListResponse, AdminUserRow } from '../../../../shared/types/admin'
 
 const PAGE_SIZE = 25
-const FETCH_CAP = 500 // Obergrenze für den In-Memory-Sort nach Presence
+// In-Memory-Sort nach Presence: Users werden per Cursor VOLLSTÄNDIG geladen;
+// die harte Grenze ist ein Notanker (mit Log statt stillem Kappen).
+const FETCH_PAGE = 100
+const FETCH_HARD_CAP = 5_000
 
 /** Auf sichere Felder reduzieren — Server-User-Objekte enthalten Hash-Felder */
 function toRow(user: Models.User<Models.Preferences>, online: Map<string, string>): AdminUserRow {
@@ -44,17 +47,22 @@ export default defineEventHandler(async (event): Promise<AdminUserListResponse> 
   // nicht gemeinsam mit users.list ordnen kann. Sonst: server-seitige Ordnung.
   if (rawSort === 'active') {
     const all: Models.User<Models.Preferences>[] = []
-    let offset = 0
+    let cursor: string | undefined
     let total = 0
-    while (all.length < FETCH_CAP) {
+    // Cursor statt Offset: verschiebt sich die Menge während der Pagination
+    // (Signup), dopplen/fehlen bei Offsets Zeilen — der Cursor ist stabil.
+    while (all.length < FETCH_HARD_CAP) {
       const res = await admin.users.list({
-        queries: [Query.limit(100), Query.offset(offset)],
+        queries: [Query.limit(FETCH_PAGE), ...(cursor ? [Query.cursorAfter(cursor)] : [])],
         ...(search ? { search } : {}),
       })
       total = res.total
       all.push(...res.users)
-      if (res.users.length < 100 || all.length >= res.total) break
-      offset += 100
+      if (res.users.length < FETCH_PAGE || all.length >= res.total) break
+      cursor = res.users.at(-1)!.$id
+    }
+    if (all.length >= FETCH_HARD_CAP) {
+      console.warn(`[admin/users] active-Sort an FETCH_HARD_CAP (${FETCH_HARD_CAP}) gekappt — Sortierung unvollständig.`)
     }
     const rows = all.map(u => toRow(u, presence))
     rows.sort((a, b) => {
