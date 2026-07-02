@@ -204,7 +204,7 @@ async function confirmDelete() {
             <USwitch v-model="state.published" :label="t('admin.changelog.form.published')" />
           </UFormField>
           <div class="flex justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="open = false">{{ t('comments.item.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="open = false">{{ t('ui.cancel') }}</UButton>
             <UButton type="submit" :loading="busy">{{ t('admin.changelog.save') }}</UButton>
           </div>
         </UForm>
@@ -217,7 +217,7 @@ async function confirmDelete() {
       </template>
       <template #footer>
         <div class="flex w-full justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="pendingDelete = null">{{ t('comments.item.cancel') }}</UButton>
+          <UButton color="neutral" variant="ghost" @click="pendingDelete = null">{{ t('ui.cancel') }}</UButton>
           <UButton color="error" :loading="busy" @click="confirmDelete">{{ t('admin.changelog.delete') }}</UButton>
         </div>
       </template>

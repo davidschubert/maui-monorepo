@@ -102,6 +102,7 @@
   },
   "ui": {
     "save": "Save",
+    "cancel": "Cancel",
     "account": "Account",
     "userMenu": "User menu",
     "language": "Language",

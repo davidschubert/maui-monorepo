@@ -144,7 +144,7 @@ async function executePending() {
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="pending = null">{{ t('comments.item.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="pending = null">{{ t('ui.cancel') }}</UButton>
             <UButton color="error" :loading="busy" @click="executePending">{{ t('admin.users.confirmAction') }}</UButton>
           </div>
         </template>

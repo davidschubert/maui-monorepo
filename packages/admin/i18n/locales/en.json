@@ -105,7 +105,11 @@
       "missingEn": "EN missing",
       "empty": "No changelog entries yet.",
       "confirmDelete": "Delete \"{title}\" permanently?",
-      "category": { "feature": "Feature", "improvement": "Improvement", "fix": "Fix" },
+      "category": {
+        "feature": "Feature",
+        "improvement": "Improvement",
+        "fix": "Fix"
+      },
       "form": {
         "title": "Title",
         "body": "Description",
@@ -124,8 +128,7 @@
       "users": "Registered users",
       "comments": "Total comments",
       "reported": "Reported comments",
-      "online": "online",
-      "onlineHint": "Users active in the last minute"
+      "online": "online"
     },
     "overview": {
       "greeting": "Welcome back, {name}",
@@ -142,7 +145,6 @@
       "verified": "Verified",
       "status": "Status",
       "labels": "Labels",
-      "actions": "Actions",
       "active": "Active",
       "blockedBadge": "Blocked",
       "search": "Search",
@@ -150,8 +152,6 @@
       "block": "Block",
       "unblock": "Unblock",
       "clearSessions": "End sessions",
-      "makeAdmin": "Make admin",
-      "revokeAdmin": "Revoke admin",
       "export": "Export data",
       "deleteUser": "Delete account",
       "deleted": "User deleted.",
@@ -162,14 +162,10 @@
         "block": "Really block {name}? The user will no longer be able to sign in.",
         "unblock": "Unblock {name} again?",
         "sessions": "End all active sessions of {name}?",
-        "grant": "Grant {name} admin access to the dashboard?",
-        "revoke": "Revoke {name}'s admin access?",
         "delete": "Permanently delete {name}? This removes the account and cannot be undone."
       },
       "blocked": "User blocked.",
       "unblocked": "User unblocked.",
-      "roleGranted": "Admin role granted.",
-      "roleRevoked": "Admin role revoked.",
       "rolesSaved": "Roles updated.",
       "sessionsCleared": "All sessions ended.",
       "actionFailed": "Action failed — please try again.",
@@ -202,16 +198,8 @@
         "commentsTotal": "{count} total",
         "noComments": "No comments yet.",
         "actions": {
-          "title": "Account",
           "roles": "Roles",
-          "rolesHint": "Controls this user's dashboard access.",
-          "block": "Block this user from signing in.",
-          "unblock": "Allow this user to sign in again.",
-          "sessions": "End all active sessions of this user.",
-          "grant": "Give this user admin access to the dashboard.",
-          "revoke": "Remove this user's admin access.",
-          "export": "Download all of this user's data as JSON.",
-          "delete": "Permanently delete this account."
+          "rolesHint": "Controls this user's dashboard access."
         }
       },
       "verifiedEmail": "Email",

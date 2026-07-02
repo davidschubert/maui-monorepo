@@ -105,7 +105,11 @@
       "missingEn": "EN fehlt",
       "empty": "Noch keine Changelog-Einträge.",
       "confirmDelete": "„{title}“ endgültig löschen?",
-      "category": { "feature": "Feature", "improvement": "Verbesserung", "fix": "Fix" },
+      "category": {
+        "feature": "Feature",
+        "improvement": "Verbesserung",
+        "fix": "Fix"
+      },
       "form": {
         "title": "Titel",
         "body": "Beschreibung",
@@ -124,8 +128,7 @@
       "users": "Registrierte Benutzer",
       "comments": "Kommentare gesamt",
       "reported": "Gemeldete Kommentare",
-      "online": "online",
-      "onlineHint": "User mit Aktivität in der letzten Minute"
+      "online": "online"
     },
     "overview": {
       "greeting": "Willkommen zurück, {name}",
@@ -142,7 +145,6 @@
       "verified": "Verifiziert",
       "status": "Status",
       "labels": "Labels",
-      "actions": "Aktionen",
       "active": "Aktiv",
       "blockedBadge": "Blockiert",
       "search": "Suchen",
@@ -150,8 +152,6 @@
       "block": "Blockieren",
       "unblock": "Entsperren",
       "clearSessions": "Sessions beenden",
-      "makeAdmin": "Zum Admin machen",
-      "revokeAdmin": "Admin entziehen",
       "export": "Daten exportieren",
       "deleteUser": "Account löschen",
       "deleted": "Benutzer gelöscht.",
@@ -162,14 +162,10 @@
         "block": "{name} wirklich blockieren? Der Benutzer kann sich nicht mehr anmelden.",
         "unblock": "{name} wieder entsperren?",
         "sessions": "Alle aktiven Sessions von {name} beenden?",
-        "grant": "{name} Admin-Zugriff aufs Dashboard geben?",
-        "revoke": "{name} den Admin-Zugriff entziehen?",
         "delete": "{name} endgültig löschen? Der Account wird entfernt und kann nicht wiederhergestellt werden."
       },
       "blocked": "Benutzer blockiert.",
       "unblocked": "Benutzer entsperrt.",
-      "roleGranted": "Admin-Rolle vergeben.",
-      "roleRevoked": "Admin-Rolle entzogen.",
       "rolesSaved": "Rollen aktualisiert.",
       "sessionsCleared": "Alle Sessions beendet.",
       "actionFailed": "Aktion fehlgeschlagen — bitte erneut versuchen.",
@@ -202,16 +198,8 @@
         "commentsTotal": "{count} gesamt",
         "noComments": "Noch keine Kommentare.",
         "actions": {
-          "title": "Account",
           "roles": "Rollen",
-          "rolesHint": "Bestimmt den Dashboard-Zugriff dieses Benutzers.",
-          "block": "Diesen Benutzer von der Anmeldung sperren.",
-          "unblock": "Diesem Benutzer die Anmeldung wieder erlauben.",
-          "sessions": "Alle aktiven Sitzungen dieses Benutzers beenden.",
-          "grant": "Diesem Benutzer Admin-Zugriff aufs Dashboard geben.",
-          "revoke": "Diesem Benutzer den Admin-Zugriff entziehen.",
-          "export": "Alle Daten dieses Benutzers als JSON herunterladen.",
-          "delete": "Diesen Account endgültig löschen."
+          "rolesHint": "Bestimmt den Dashboard-Zugriff dieses Benutzers."
         }
       },
       "verifiedEmail": "E-Mail",
