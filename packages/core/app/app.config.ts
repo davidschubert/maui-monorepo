@@ -32,6 +32,14 @@ export default defineAppConfig({
     consent: {
       enabled: false,
     },
+    observability: {
+      /** Strukturierte JSON-Error-Logs für unbehandelte Server-Fehler (5xx)
+       *  am zentralen Nitro-Error-Hook. Sentry-Andockpunkt: server/utils/logEvent.ts */
+      enabled: false,
+      /** Browser-Fehler (vue:error, window.onerror, unhandledrejection)
+       *  zusätzlich an POST /api/telemetry/error melden (dedupliziert, max 10/Session) */
+      clientErrors: false,
+    },
   },
   ui: {
     // Nuxt UI v4 gibt Buttons per Default KEINEN Pointer-Cursor — global nachrüsten,
