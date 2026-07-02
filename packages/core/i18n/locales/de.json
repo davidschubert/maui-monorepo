@@ -157,7 +157,10 @@
       "confirmAllTitle": "Alle Sitzungen abmelden?",
       "confirmAllText": "Das beendet alle Sitzungen, auch diese — du wirst abgemeldet.",
       "confirmAll": "Alle abmelden",
-      "cancel": "Abbrechen"
+      "cancel": "Abbrechen",
+      "auth": "Anmeldung",
+      "factors": "MFA-Faktoren dieser Session",
+      "expires": "läuft ab"
     },
     "password": {
       "title": "Passwort ändern",

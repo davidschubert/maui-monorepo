@@ -10,20 +10,6 @@ export default defineEventHandler(async (event): Promise<UserSessionListResponse
   const { account } = createSessionClient(event)
   const list = await account.listSessions()
 
-  return {
-    sessions: list.sessions.map(s => ({
-      $id: s.$id,
-      $createdAt: s.$createdAt,
-      $updatedAt: s.$updatedAt,
-      provider: s.provider,
-      ip: s.ip,
-      osName: s.osName,
-      osVersion: s.osVersion,
-      clientName: s.clientName,
-      clientVersion: s.clientVersion,
-      deviceName: s.deviceName,
-      countryName: s.countryName,
-      current: s.current,
-    })),
-  }
+  // mapSafeSession (server/utils): vollständige, aber Secret-freie Sicht
+  return { sessions: list.sessions.map(s => mapSafeSession(s, s.current)) }
 })

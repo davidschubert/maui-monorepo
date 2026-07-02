@@ -157,7 +157,10 @@
       "confirmAllTitle": "Sign out all sessions?",
       "confirmAllText": "This ends every session, including this one — you will be signed out.",
       "confirmAll": "Sign out all",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "auth": "Sign-in",
+      "factors": "MFA factors of this session",
+      "expires": "expires"
     },
     "password": {
       "title": "Change password",
