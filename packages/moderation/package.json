@@ -6,7 +6,7 @@
   "main": "./nuxt.config.ts",
   "scripts": {
     "lint": "eslint .",
-    "migrate": "node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/001-reports.ts"
+    "migrate": "node ../../scripts/migrate.mjs --layer moderation"
   },
   "dependencies": {
     "@nuxt/ui": "catalog:",

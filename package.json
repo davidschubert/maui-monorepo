@@ -11,7 +11,8 @@
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
-    "changelog:draft": "node --env-file=apps/reddit-comments/.env packages/admin/scripts/changelog-draft.mjs"
+    "changelog:draft": "node --env-file=apps/reddit-comments/.env packages/admin/scripts/changelog-draft.mjs",
+    "migrate": "node scripts/migrate.mjs"
   },
   "devDependencies": {
     "@nuxt/eslint-config": "catalog:",
