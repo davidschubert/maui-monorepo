@@ -100,19 +100,24 @@ export default defineEventHandler(async (event): Promise<VoteResponse> => {
   // sieht alle Rows) und upvotes/downvotes/score in EINEM Write setzen → genau ein
   // Realtime-Event. myVote aus der DB statt aus dem Write-Pfad: bei Doppelklick
   // (Toggle/Flip parallel) gewinnt sonst eine Race und myVote weicht vom Count ab.
-  const [upvotes, downvotes, mine] = await Promise.all([
-    admin.tablesDB.listRows({ databaseId, tableId: VOTES_TABLE, queries: [Query.equal('commentId', commentId), Query.equal('value', 1), Query.limit(1)] }).then(r => r.total),
-    admin.tablesDB.listRows({ databaseId, tableId: VOTES_TABLE, queries: [Query.equal('commentId', commentId), Query.equal('value', -1), Query.limit(1)] }).then(r => r.total),
-    admin.tablesDB.listRows<CommentVote>({ databaseId, tableId: VOTES_TABLE, queries: [Query.equal('commentId', commentId), Query.equal('userId', user.$id), Query.limit(1)] }),
-  ])
-  const myVote: VoteValue | null = mine.rows[0]?.value === -1 ? -1 : mine.rows[0] ? 1 : null
+  // Recount+Write pro Kommentar serialisiert (voteLock): parallele Votes
+  // verschiedener User können sonst einen Write auf VERALTETEM Recount
+  // hinterlassen (Lost Update — Zähler driften bis zum nächsten Vote).
+  return await serializePerComment(commentId, async (): Promise<VoteResponse> => {
+    const [upvotes, downvotes, mine] = await Promise.all([
+      admin.tablesDB.listRows({ databaseId, tableId: VOTES_TABLE, queries: [Query.equal('commentId', commentId), Query.equal('value', 1), Query.limit(1)] }).then(r => r.total),
+      admin.tablesDB.listRows({ databaseId, tableId: VOTES_TABLE, queries: [Query.equal('commentId', commentId), Query.equal('value', -1), Query.limit(1)] }).then(r => r.total),
+      admin.tablesDB.listRows<CommentVote>({ databaseId, tableId: VOTES_TABLE, queries: [Query.equal('commentId', commentId), Query.equal('userId', user.$id), Query.limit(1)] }),
+    ])
+    const myVote: VoteValue | null = mine.rows[0]?.value === -1 ? -1 : mine.rows[0] ? 1 : null
 
-  const comment = await admin.tablesDB.updateRow<Comment>({
-    databaseId,
-    tableId: COMMENTS_TABLE,
-    rowId: commentId,
-    data: { upvotes, downvotes, score: upvotes - downvotes },
+    const comment = await admin.tablesDB.updateRow<Comment>({
+      databaseId,
+      tableId: COMMENTS_TABLE,
+      rowId: commentId,
+      data: { upvotes, downvotes, score: upvotes - downvotes },
+    })
+
+    return { comment, myVote }
   })
-
-  return { comment, myVote }
 })
