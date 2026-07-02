@@ -29,9 +29,54 @@ if (props.parentId) {
 }
 
 // Tippen + Antwort-Ziel gemeinsam melden (dieses Feld ist gerade aktiv)
-function onInput() {
+function onInput(event?: Event) {
   setTyping(state.content.length > 0)
   activateReply()
+  if (event?.target instanceof HTMLTextAreaElement) updateMention(event.target)
+}
+
+// ── @-Mention-Autocomplete ───────────────────────────────────────────────
+// Vorschlagsbasis = Teilnehmer des Threads (distinct Autoren der geladenen
+// Kommentare) — dieselbe Menge, gegen die der Server Mentions auflöst
+// (server/utils/mentions.ts). Kein User-Suche-Endpoint nötig (Privacy).
+const auth = useAuthStore()
+const mentionQuery = ref<string | null>(null) // null = Popup zu
+const mentionStart = ref(0)
+
+const participants = computed(() => {
+  const seen = new Map<string, string>()
+  for (const row of store.rows) {
+    if (row.authorId && row.authorName && row.authorId !== auth.user?.$id && row.status !== 'deleted') {
+      seen.set(row.authorId, row.authorName)
+    }
+  }
+  return [...seen.values()]
+})
+
+const mentionSuggestions = computed(() => {
+  if (mentionQuery.value === null || mentionQuery.value.length > 30) return []
+  const q = mentionQuery.value.toLowerCase()
+  return participants.value.filter(name => name.toLowerCase().startsWith(q)).slice(0, 5)
+})
+
+function updateMention(el: HTMLTextAreaElement) {
+  const caret = el.selectionStart ?? state.content.length
+  const before = state.content.slice(0, caret)
+  const at = before.lastIndexOf('@')
+  // '@' nur am Wortanfang; Query ohne Zeilenumbruch (sonst „@" mitten im Text)
+  if (at >= 0 && (at === 0 || /\s/.test(before[at - 1]!)) && !before.slice(at + 1).includes('\n')) {
+    mentionQuery.value = before.slice(at + 1)
+    mentionStart.value = at
+  }
+  else {
+    mentionQuery.value = null
+  }
+}
+
+function pickMention(name: string) {
+  const caretEnd = mentionStart.value + 1 + (mentionQuery.value?.length ?? 0)
+  state.content = `${state.content.slice(0, mentionStart.value)}@${name} ${state.content.slice(caretEnd)}`
+  mentionQuery.value = null
 }
 
 // Formular validiert nur den Text — Target/parentId kommen aus Store/Props
@@ -73,7 +118,27 @@ async function onSubmit(event: FormSubmitEvent<FormInput>) {
         class="w-full"
         @focusin="activateReply"
         @input="onInput"
+        @keydown.escape="mentionQuery = null"
       />
+      <div
+        v-if="mentionSuggestions.length"
+        class="mt-1 w-fit min-w-48 rounded-md border border-default bg-default p-1 shadow-sm"
+        role="listbox"
+        :aria-label="t('comments.form.mentionSuggestions')"
+      >
+        <UButton
+          v-for="name in mentionSuggestions"
+          :key="name"
+          color="neutral"
+          variant="ghost"
+          size="xs"
+          block
+          class="justify-start"
+          @click="pickMention(name)"
+        >
+          @{{ name }}
+        </UButton>
+      </div>
     </UFormField>
     <UButton type="submit" size="sm" :loading="loading">
       {{ parentId ? t('comments.form.replySubmit') : t('comments.form.submit') }}

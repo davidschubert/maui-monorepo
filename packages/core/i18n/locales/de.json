@@ -190,7 +190,8 @@
   "notifications": {
     "title": "Benachrichtigungen",
     "empty": "Alles gelesen.",
-    "replied": "{name} hat auf deinen Kommentar geantwortet"
+    "replied": "{name} hat auf deinen Kommentar geantwortet",
+    "mentioned": "{name} hat dich in einem Kommentar erwähnt"
   },
   "error": {
     "notFound": "Diese Seite existiert nicht.",

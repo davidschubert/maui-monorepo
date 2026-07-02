@@ -190,7 +190,8 @@
   "notifications": {
     "title": "Notifications",
     "empty": "You're all caught up.",
-    "replied": "{name} replied to your comment"
+    "replied": "{name} replied to your comment",
+    "mentioned": "{name} mentioned you in a comment"
   },
   "error": {
     "notFound": "This page does not exist.",

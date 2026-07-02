@@ -79,6 +79,12 @@ function onToggle(value: boolean) {
 function safeLink(link?: string): string {
   return link && /^\/(?![/\\%])[^\s\\]*$/.test(link) ? link : '/'
 }
+
+// Nachrichtentext je Notification-Typ; unbekannte Typen fallen auf 'replied'
+// zurück (alt gespeicherte Rows / künftige Typen brechen die Bell nicht).
+function messageKey(type: string): string {
+  return type === 'mention' ? 'notifications.mentioned' : 'notifications.replied'
+}
 </script>
 
 <template>
@@ -104,7 +110,7 @@ function safeLink(link?: string): string {
         >
           <div class="flex items-center gap-1.5">
             <span class="size-1.5 shrink-0 rounded-full" :class="n.read ? 'bg-transparent' : 'bg-primary'" />
-            <i18n-t keypath="notifications.replied" tag="p" scope="global" class="truncate text-sm text-muted">
+            <i18n-t :keypath="messageKey(n.type)" tag="p" scope="global" class="truncate text-sm text-muted">
               <template #name><span class="font-medium text-default">{{ n.title }}</span></template>
             </i18n-t>
           </div>

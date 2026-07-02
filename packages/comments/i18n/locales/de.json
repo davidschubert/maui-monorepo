@@ -37,7 +37,8 @@
       "replyPlaceholder": "Deine Antwort…",
       "submit": "Kommentieren",
       "replySubmit": "Antworten",
-      "error": "Kommentar konnte nicht gespeichert werden."
+      "error": "Kommentar konnte nicht gespeichert werden.",
+      "mentionSuggestions": "Erwähnungs-Vorschläge"
     },
     "item": {
       "reply": "Antworten",

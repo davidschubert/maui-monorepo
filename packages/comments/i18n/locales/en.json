@@ -37,7 +37,8 @@
       "replyPlaceholder": "Your reply…",
       "submit": "Comment",
       "replySubmit": "Reply",
-      "error": "The comment could not be saved."
+      "error": "The comment could not be saved.",
+      "mentionSuggestions": "Mention suggestions"
     },
     "item": {
       "reply": "Reply",

@@ -67,15 +67,28 @@ export default defineEventHandler(async (event) => {
     throw toH3Error(error, 'Could not create comment')
   })
 
+  const snippet = body.content.length > 140 ? `${body.content.slice(0, 140)}…` : body.content
+  // Link zur echten Seite des Kommentars: targetUrl des Replies (= Seite),
+  // sonst die des Parents, sonst '/' (Bestandskommentare ohne targetUrl).
+  const link = (body.targetUrl ?? parent?.targetUrl) ?? '/'
+
   // Antwort auf einen Kommentar → den Autor des Eltern-Kommentars benachrichtigen.
   // Core stellt den notify()-Vertrag bereit (best-effort, wirft nicht) — kein
   // direkter Cross-Layer-Zugriff auf die notifications-Tabelle (CONCEPT A14).
   if (parent && parent.authorId && parent.authorId !== user.$id) {
-    const snippet = body.content.length > 140 ? `${body.content.slice(0, 140)}…` : body.content
-    // Link zur echten Seite des Kommentars: targetUrl des Replies (= Seite),
-    // sonst die des Parents, sonst '/' (Bestandskommentare ohne targetUrl).
-    const link = (body.targetUrl ?? parent.targetUrl) ?? '/'
     await notify(event, { recipientId: parent.authorId, type: 'reply', title: user.name, body: snippet, link })
+  }
+
+  // @Name-Erwähnungen (aufgelöst gegen die Thread-Teilnehmer) benachrichtigen —
+  // sich selbst nie, den Parent-Autor nicht doppelt (hat schon die reply-Notif).
+  const mentions = await resolveMentions(event, {
+    targetId: body.targetId,
+    targetType: body.targetType,
+    content: body.content,
+    excludeUserIds: [user.$id, ...(parent?.authorId ? [parent.authorId] : [])],
+  })
+  for (const mention of mentions) {
+    await notify(event, { recipientId: mention.userId, type: 'mention', title: user.name, body: snippet, link })
   }
 
   setResponseStatus(event, 201)
