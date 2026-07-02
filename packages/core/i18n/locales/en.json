@@ -160,7 +160,8 @@
       "cancel": "Cancel",
       "auth": "Sign-in",
       "factors": "MFA factors of this session",
-      "expires": "expires"
+      "expires": "expires",
+      "times": "Timestamps"
     },
     "password": {
       "title": "Change password",

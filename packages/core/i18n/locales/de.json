@@ -160,7 +160,8 @@
       "cancel": "Abbrechen",
       "auth": "Anmeldung",
       "factors": "MFA-Faktoren dieser Session",
-      "expires": "läuft ab"
+      "expires": "läuft ab",
+      "times": "Zeitpunkte"
     },
     "password": {
       "title": "Passwort ändern",

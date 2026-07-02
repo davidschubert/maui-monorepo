@@ -64,7 +64,7 @@ async function signOutAll() {
 </script>
 
 <template>
-  <UPageCard :title="t('account.sessions.title')" :description="t('account.sessions.description')" variant="subtle">
+  <UPageCard :title="t('account.sessions.title')" :description="t('account.sessions.description')" variant="subtle" :ui="{ container: 'min-w-0' }">
     <template #footer>
       <UButton
         color="error"

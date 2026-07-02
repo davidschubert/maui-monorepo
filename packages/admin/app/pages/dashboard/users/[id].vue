@@ -215,7 +215,7 @@ async function executePending() {
 
         <!-- Zweispaltig: Inhalt links, Steuerung rechts -->
         <div class="grid gap-4 sm:gap-6 lg:grid-cols-3 lg:items-start">
-          <div class="flex flex-col gap-4 sm:gap-6 lg:col-span-2">
+          <div class="flex min-w-0 flex-col gap-4 sm:gap-6 lg:col-span-2">
             <!-- Account-Details -->
             <UPageCard :title="t('admin.users.detail.accountDetails')" variant="subtle">
               <dl class="text-sm">
@@ -291,7 +291,10 @@ async function executePending() {
             </UPageCard>
 
             <!-- Sessions -->
-            <UPageCard variant="subtle">
+            <!-- min-w-0: der Card-Container ist ein Flex-Item und würde sonst auf
+                 Inhaltsbreite der Tabelle wachsen (Layout bricht aus) — so scrollt
+                 die Tabelle intern (overflow-auto im UTable-Wrapper) -->
+            <UPageCard variant="subtle" :ui="{ container: 'min-w-0' }">
               <div class="mb-3 flex items-center justify-between">
                 <h3 class="font-semibold">{{ t('admin.users.detail.sessions') }}</h3>
                 <UBadge color="neutral" variant="subtle">{{ data?.sessions.length ?? 0 }}</UBadge>
@@ -334,7 +337,7 @@ async function executePending() {
           </div>
 
           <!-- Steuerung (sticky) -->
-          <div class="flex flex-col gap-4 sm:gap-6 lg:sticky lg:top-6 lg:self-start">
+          <div class="flex min-w-0 flex-col gap-4 sm:gap-6 lg:sticky lg:top-6 lg:self-start">
             <!-- Benachrichtigungskanäle (Appwrite users.listTargets) -->
             <UPageCard :title="t('admin.users.detail.targets.title')" variant="subtle">
               <p v-if="(data?.targets.length ?? 0) === 0" class="text-sm text-muted">{{ t('admin.users.detail.targets.empty') }}</p>
