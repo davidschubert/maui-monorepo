@@ -73,6 +73,11 @@ Vollständiges Konzept: docs/CONCEPT.md
 - maui.auth.*: providers (OAuth-Buttons), termsUrl (AGB-Pflicht), otp
 - maui.admin.modules: Modul-Registry der Dashboard-Nav — Feature-Layer
   registrieren ihre Admin-Seiten hier (expliziter Vertrag statt Kopplung)
+- GDPR: registerUserDataContributor (core/server/utils/userData.ts) — Feature-
+  Layer registrieren Export/Löschung ihrer User-Daten per Nitro-Plugin
+  (server/plugins/user-data.ts); core orchestriert (deleteUserCompletely:
+  Snapshot → Sperren → Contributors → users.delete nur bei Voll-Erfolg).
+  Neue Layer mit User-Daten MÜSSEN einen Contributor registrieren.
 - app.config.ts wird tief gemergt — App überschreibt nur was nötig
 
 ## Coding Rules

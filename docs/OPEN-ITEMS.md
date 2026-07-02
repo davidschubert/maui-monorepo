@@ -11,11 +11,6 @@ nutzbar). Reihenfolge = grobe Priorität.
 
 ## 🟠 Offen — als Nächstes angehen
 
-- **GDPR-Löschung/Export UMSETZEN** — der Plan ist fertig:
-  [docs/plans/GDPR-DELETE-AND-EXPORT.md](plans/GDPR-DELETE-AND-EXPORT.md)
-  (UserDataContributor-Vertrag löst auch die A14-Verletzung core→comments;
-  Pre-Delete-Snapshot in `gdpr-exports`-Bucket für Admins; 15 Schritte,
-  ~2–3 Tage; 8 Maintainer-Entscheidungen im Doc markiert).
 - **Phase 17 – Production Deployment** — Plan + Schritt-für-Schritt-Checkliste
   für den Betreiber: [docs/plans/PHASE-17-PRODUCTION.md](plans/PHASE-17-PRODUCTION.md)
   (Empfehlung: 2 Hetzner-VMs, ploi-Daemon, deploy.yml via workflow_run,
@@ -108,6 +103,34 @@ _Alle erledigt (2026-06-24) — siehe „Bereits erledigt"._
 ---
 
 ## ✅ Bereits erledigt (Referenz)
+
+- **GDPR-Löschung/-Export komplett (2026-07-02)** — Umsetzung des Plans
+  [plans/GDPR-DELETE-AND-EXPORT.md](plans/GDPR-DELETE-AND-EXPORT.md) mit den
+  Plan-Defaults (E1–E8; u. a. Tombstone mit geleertem Content, Snapshot auch
+  bei Selbst-Löschung, 30-Tage-Lazy-Cleanup):
+  - **UserDataContributor-Vertrag** (`core/server/utils/userData.ts`) +
+    Contributors in comments/moderation/system (je `server/plugins/user-data.ts`)
+    — die A14-Verletzung core→comments im Export ist WEG (`dataExport.ts`
+    kennt kein Feature-Schema mehr); system hat damit erstmals Server-Code.
+  - **`deleteUserCompletely`**: Snapshot → Sperren → Audit (ohne Klarname) →
+    Contributors sequenziell/isoliert → Avatar+Presence → `users.delete` NUR
+    bei Voll-Erfolg (Teilfehler = gesperrter User + Report, idempotenter Re-Run).
+    Kommentare → Tombstone in der ROW (Roh-REST ohne PII), Votes/Reports/
+    Notifications (Empfänger + Verursacher via neuem `senderId`) hart gelöscht,
+    Audit-Logs pseudonymisiert (actorName/ip/metadata.name/targetName leer).
+  - **Exports vollständig**: `exportUserCompletely` (Self + Admin, Cursor-
+    Pagination via `listAllRows`, alle Datenarten inkl. Votes/Reports).
+  - **Snapshots**: Bucket `gdpr-exports` (bootstrap, encryption, keine
+    Bucket-Permissions), Admin-Routen List/Download/Delete + Audit, UI-Tab
+    unter /dashboard/admin, Lazy-Cleanup > 30 Tage.
+  - **Migrationen**: comments-009 (votes-userId-Index), system-008
+    (notifications.senderId + Index, audit_logs-target-Index) — auf Dev
+    ausgeführt. `notify()` trägt jetzt `senderId` (Reply + Mention).
+  - **Verifiziert**: 41/41 Live-E2E-Checks (Self-Delete-Vollprüfung mit allen
+    PII-Arten, fremde Antwort überlebt, Roh-REST-Check, Admin-Delete +
+    Download, RBAC least-privileged 403, Bucket-Allowlist), Unit-Tests
+    (Registry, listAllRows), 12/12 Playwright, typecheck/lint grün.
+    Akzeptiert: E8-Lücke (Alt-Notifications ohne senderId).
 
 - **Gesamtcheck-Abarbeitung (2026-07-02)** — alle offenen 🟠/🟡-Findings + Ideen 1–3 in 10 Batches:
   - **admin ohne comments**: `stats.get` degradiert mit catch + 0-Fallback (search/analytics waren schon sauber).

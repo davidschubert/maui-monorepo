@@ -471,7 +471,11 @@ in ihrer Datei eine Regel steht, sondern weil sie im Themes-Layer liegt.
 1. **Architektonisch (primär):** Cross-Layer-Kopplung läuft heute implizit über Auto-Import
    bzw. String (`tableId: 'comments'`). Neue Abhängigkeiten werden als **explizite, typisierte
    Verträge** gebaut (Konsument importiert sichtbar aus dem Eigentümer-Layer) — sichtbar,
-   typsicher, lint-bar.
+   typsicher, lint-bar. Bestehende Verträge: `notify()` (Feature → core-Notification),
+   `maui.admin.modules` (Feature → admin-Dashboard-Nav), `myOpenReportTargetIds()`
+   (comments → moderation) und `registerUserDataContributor` (Feature-Layer registrieren
+   GDPR-Export/-Löschung ihrer Daten bei core — core orchestriert `exportUserCompletely`/
+   `deleteUserCompletely` ohne Feature-Schema-Wissen; seit 2026-07-02).
 2. **ESLint `no-restricted-imports` (Backstop):** pro `files`-Scope in `eslint.config.mjs` —
    themes verbietet `*appwrite*`/`@maui/*`, Feature-Layer verbieten andere `@maui/`-Feature-Layer,
    Fundament-Layer (core/moderation) verbieten jeden Feature-Import. Fängt *künftige* explizite
