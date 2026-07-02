@@ -29,6 +29,12 @@ export interface ThemeConfig {
   radius?: number
 }
 
+/** Farbvariante eines Custom Themes (data-variant überschreibt die Primary-Ramp) */
+export interface CustomVariant {
+  id: string
+  color: string
+}
+
 export interface CustomThemeDto {
   /** Appwrite-Row-ID (data-theme wird `c-<id>`) */
   id: string
@@ -37,6 +43,15 @@ export interface CustomThemeDto {
   primary: string
   order: number
   config?: ThemeConfig
+  variants?: CustomVariant[]
+}
+
+/** Instanz-weite Theme-Einstellungen (app_config.themeSettings) */
+export interface ThemeSettings {
+  /** Theme für Besucher ohne Cookie (Built-in-Id oder 'c-<rowId>') */
+  defaultThemeId?: string
+  /** Overrides je Built-in: umbenennen / ausblenden / umsortieren */
+  builtins?: Record<string, { name?: string, hidden?: boolean, order?: number }>
 }
 
 export const SHADES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const
@@ -148,7 +163,18 @@ export function customThemeCss(theme: CustomThemeDto, attrOverride?: string): st
   const radius = typeof config.radius === 'number' && Number.isFinite(config.radius)
     ? `\n  --ui-radius: ${config.radius}rem;`
     : ''
-  return `:root[data-theme='${attr}'] {\n${vars}\n  --ui-primary: var(--ui-color-primary-600);${radius}\n}\n.dark[data-theme='${attr}'] {\n  --ui-primary: var(--ui-color-primary-400);\n}`
+  const blocks = [
+    `:root[data-theme='${attr}'] {\n${vars}\n  --ui-primary: var(--ui-color-primary-600);${radius}\n}`,
+    `.dark[data-theme='${attr}'] {\n  --ui-primary: var(--ui-color-primary-400);\n}`,
+  ]
+  // Varianten: eigene Ramp aus der Varianten-Farbe (gleiche Generator-Config)
+  for (const variant of theme.variants ?? []) {
+    const variantRamp = generateRamp(variant.color, config)
+    if (!variantRamp) continue
+    const variantVars = SHADES.map(shade => `  --ui-color-primary-${shade}: ${variantRamp[shade]};`).join('\n')
+    blocks.push(`:root[data-theme='${attr}'][data-variant='${variant.id}'] {\n${variantVars}\n}`)
+  }
+  return blocks.join('\n')
 }
 
 // ── Kontrast (WCAG 2.x) ──────────────────────────────────────────────────

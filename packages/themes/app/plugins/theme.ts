@@ -11,9 +11,12 @@ import { customThemeCss } from '../../shared/ramp'
  */
 export default defineNuxtPlugin(async () => {
   const customThemes = useCustomThemesState()
+  const themeSettings = useThemeSettingsState()
   await callOnce('maui-custom-themes', async () => {
     try {
-      customThemes.value = await useRequestFetch()('/api/themes')
+      const data = await useRequestFetch()('/api/themes') as { themes: typeof customThemes.value, settings: typeof themeSettings.value }
+      customThemes.value = data.themes ?? []
+      themeSettings.value = data.settings ?? {}
     }
     catch {
       customThemes.value = []

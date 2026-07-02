@@ -11,11 +11,17 @@ const themeConfigSchema = z.object({
   radius: z.union([z.literal(0), z.literal(0.125), z.literal(0.25), z.literal(0.375), z.literal(0.5)]).optional(),
 }).strict()
 
+const variantSchema = z.object({
+  id: z.string().regex(/^[a-z0-9-]{1,24}$/, 'Invalid variant id'),
+  color: z.string().regex(/^#[0-9a-f]{6}$/i, 'Invalid hex color'),
+}).strict()
+
 const updateThemeSchema = z.object({
   name: z.string().trim().min(1).max(64).optional(),
   primary: z.string().regex(/^#[0-9a-f]{6}$/i, 'Invalid hex color').optional(),
   order: z.number().int().min(0).max(1000).optional(),
   config: themeConfigSchema.optional(),
+  variants: z.array(variantSchema).max(6).optional(),
 })
 
 /** Theme-Studio: eigenes Theme bearbeiten (Name/Farbe/Reihenfolge). */
@@ -29,10 +35,11 @@ export default defineEventHandler(async (event) => {
   if (Object.keys(body).length === 0) {
     throw createError({ status: 400, statusText: 'No fields to update' })
   }
-  const { config: themeConfig, ...rest } = body
+  const { config: themeConfig, variants, ...rest } = body
   const data: Record<string, unknown> = { ...rest }
   if (typeof data.primary === 'string') data.primary = data.primary.toLowerCase()
   if (themeConfig !== undefined) data.config = JSON.stringify(themeConfig)
+  if (variants !== undefined) data.variants = variants.length ? JSON.stringify(variants) : null
 
   const runtimeConfig = useRuntimeConfig(event)
   const admin = createAdminClient(event)

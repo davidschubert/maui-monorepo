@@ -11,10 +11,16 @@ const themeConfigSchema = z.object({
   radius: z.union([z.literal(0), z.literal(0.125), z.literal(0.25), z.literal(0.375), z.literal(0.5)]).optional(),
 }).strict()
 
+const variantSchema = z.object({
+  id: z.string().regex(/^[a-z0-9-]{1,24}$/, 'Invalid variant id'),
+  color: z.string().regex(/^#[0-9a-f]{6}$/i, 'Invalid hex color'),
+}).strict()
+
 const createThemeSchema = z.object({
   name: z.string().trim().min(1).max(64),
   primary: z.string().regex(/^#[0-9a-f]{6}$/i, 'Invalid hex color'),
   config: themeConfigSchema.optional(),
+  variants: z.array(variantSchema).max(6).optional(),
 })
 
 const MAX_CUSTOM_THEMES = 20
@@ -46,10 +52,11 @@ export default defineEventHandler(async (event) => {
       primary: body.primary.toLowerCase(),
       order: nextOrder,
       config: body.config ? JSON.stringify(body.config) : null,
+      variants: body.variants?.length ? JSON.stringify(body.variants) : null,
     },
   })
 
   await recordAudit(event, { action: 'theme.created', targetType: 'theme', targetId: row.$id, targetName: body.name })
   setResponseStatus(event, 201)
-  return { id: row.$id, name: body.name, primary: body.primary.toLowerCase(), order: nextOrder, config: body.config }
+  return { id: row.$id, name: body.name, primary: body.primary.toLowerCase(), order: nextOrder, config: body.config, variants: body.variants }
 })

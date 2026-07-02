@@ -58,7 +58,15 @@
       "radius": "Radius (rem)",
       "radiusDefault": "Theme default",
       "draftHint": "Live preview: while editing, the draft is applied to the whole page instantly.",
-      "contrastWhite400": "White on 400 (dark)"
+      "contrastWhite400": "White on 400 (dark)",
+      "defaultBadge": "Default",
+      "setDefault": "Set as default for visitors",
+      "rename": "Rename",
+      "hide": "Hide",
+      "show": "Show",
+      "presets": "Presets:",
+      "variants": "Color variants",
+      "addVariant": "Add variant"
     }
   }
 }

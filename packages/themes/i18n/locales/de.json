@@ -58,7 +58,15 @@
       "radius": "Radius (rem)",
       "radiusDefault": "Theme-Default",
       "draftHint": "Live-Vorschau: Der Entwurf wird beim Bearbeiten sofort auf die ganze Seite angewendet.",
-      "contrastWhite400": "Weiß auf 400 (Dark)"
+      "contrastWhite400": "Weiß auf 400 (Dark)",
+      "defaultBadge": "Standard",
+      "setDefault": "Als Standard für Besucher setzen",
+      "rename": "Umbenennen",
+      "hide": "Ausblenden",
+      "show": "Einblenden",
+      "presets": "Vorlagen:",
+      "variants": "Farbvarianten",
+      "addVariant": "Variante hinzufügen"
     }
   }
 }

@@ -96,7 +96,8 @@
         "theme": {
           "created": "Theme erstellt",
           "updated": "Theme bearbeitet",
-          "deleted": "Theme gelöscht"
+          "deleted": "Theme gelöscht",
+          "settings_updated": "Theme-Einstellungen geändert"
         }
       }
     },

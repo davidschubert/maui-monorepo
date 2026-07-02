@@ -29,23 +29,35 @@ export function useTheme() {
   })
 
   const customThemes = useCustomThemesState()
+  const settings = useThemeSettingsState()
 
-  const themes = computed<MauiTheme[]>(() => [
-    ...THEME_REGISTRY,
-    ...[...customThemes.value]
+  const themes = computed<MauiTheme[]>(() => {
+    // Built-ins mit Instanz-Overrides (umbenennen/ausblenden/umsortieren)
+    const overrides = settings.value.builtins ?? {}
+    const builtins = THEME_REGISTRY
+      .map((entry, index) => ({ entry, override: overrides[entry.id], index }))
+      .filter(({ override }) => !override?.hidden)
+      .sort((a, b) => (a.override?.order ?? a.index) - (b.override?.order ?? b.index))
+      .map(({ entry, override }) => (override?.name ? { ...entry, name: override.name } : entry))
+    const customs = [...customThemes.value]
       .sort((a, b) => a.order - b.order)
       .map(custom => ({
         id: customThemeAttr(custom.id),
         name: custom.name,
         file: null,
         color: custom.primary,
-        variants: [],
-      })),
-  ])
+        variants: (custom.variants ?? []).map(v => ({ id: v.id, color: v.color })),
+      }))
+    return [...builtins, ...customs]
+  })
 
+  // Instanz-Default (Besucher ohne/mit ungültigem Cookie) → Fallback-Kette:
+  // Cookie → settings.defaultThemeId → Core-Default → erster Eintrag.
   const theme = computed<MauiTheme>(() =>
     themes.value.find(entry => entry.id === themeCookie.value)
-    ?? themes.value.find(entry => entry.id === DEFAULT_THEME_ID)!,
+    ?? themes.value.find(entry => entry.id === settings.value.defaultThemeId)
+    ?? themes.value.find(entry => entry.id === DEFAULT_THEME_ID)
+    ?? themes.value[0]!,
   )
 
   const variant = computed<string | null>(() =>
