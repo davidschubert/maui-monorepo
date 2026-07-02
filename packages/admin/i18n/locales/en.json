@@ -282,6 +282,7 @@
   "dashboard": {
     "search": {
       "label": "Go to",
+      "button": "Search…",
       "placeholder": "Search users, comments…",
       "users": "Users",
       "comments": "Comments"
