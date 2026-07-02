@@ -53,11 +53,10 @@ nutzbar). Reihenfolge = grobe Priorität.
 
 ### 💡 Ideen fürs nächste Level (verbleibend, priorisiert)
 1. **E-Mail-Notifications + Digest** (M–L) — notifications-Table + SMTP + Function-Scaffold vorhanden.
-2. **Observability-Gate `maui.observability`** (S–M) — Sentry/strukturierte Logs am zentralen error.ts andocken; vor Phase 17 fast Pflicht.
-3. **Admin-Bulk-Aktionen + CSV-Export** (S–M) — Moderations-Queue/Users mit Multi-Select, Claim-Locks laufen schon.
-4. **Caching/ISR** (S) — routeRules SWR für /changelog + Microcache für GET /api/comments Seite 1.
-5. **CI mit echter Appwrite-Instanz** (M) — Service-Container + `bootstrap --seed` (idempotent vorhanden) → Realtime-E2E in CI.
-6. **Report-Kategorien + Auto-Hide-Threshold** (S–M) — `openReportsByTarget` zählt schon.
+2. **Admin-Bulk-Aktionen + CSV-Export** (S–M) — Moderations-Queue/Users mit Multi-Select, Claim-Locks laufen schon.
+3. **Caching/ISR** (S) — routeRules SWR für /changelog + Microcache für GET /api/comments Seite 1.
+4. **CI mit echter Appwrite-Instanz** (M) — Service-Container + `bootstrap --seed` (idempotent vorhanden) → Realtime-E2E in CI.
+5. **Report-Kategorien + Auto-Hide-Threshold** (S–M) — `openReportsByTarget` zählt schon.
 
 ## 🟠 Mittel — lohnt sich
 
@@ -103,6 +102,16 @@ _Alle erledigt (2026-06-24) — siehe „Bereits erledigt"._
 ---
 
 ## ✅ Bereits erledigt (Referenz)
+
+- **Observability-Gate `maui.observability` (2026-07-02)**: strukturierte
+  JSON-5xx-Logs am ZENTRALEN `core/server/error.ts` (4xx bleiben still, keine
+  Bodies/Header — PII), Client-Error-Inbox (`observability-errors.client.ts`:
+  vue:error + window.onerror + unhandledrejection, dedupliziert, max
+  10/Session → `POST /api/telemetry/error`, Zod + Rate-Limit 30/min),
+  Sentry-Andockpunkt dokumentiert in `logEvent.ts` (bewusst ohne SDK-Dep).
+  Core-Default aus; reddit-comments aktiviert. Live verifiziert: 500 → JSON-
+  Zeile mit Pfad/Stack, 4xx still, Browser-Fehler beide Pfade geloggt,
+  Rate-Limit greift (429). Unit-Tests für shapeErrorLog/logEvent.
 
 - **GDPR-Löschung/-Export komplett (2026-07-02)** — Umsetzung des Plans
   [plans/GDPR-DELETE-AND-EXPORT.md](plans/GDPR-DELETE-AND-EXPORT.md) mit den

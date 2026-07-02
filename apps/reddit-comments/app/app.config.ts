@@ -7,6 +7,11 @@ export default defineAppConfig({
       // Passwortloser Code-Login (Phase 19) — Email-OTP ist instanzseitig aktiv
       otp: true,
     },
+    observability: {
+      // Strukturierte 5xx-Server-Logs + Client-Error-Inbox (Core-Default: aus)
+      enabled: true,
+      clientErrors: true,
+    },
   },
   ui: {},
 })

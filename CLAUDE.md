@@ -70,6 +70,9 @@ Vollständiges Konzept: docs/CONCEPT.md
 
 ## Config-Gates (app.config.ts, Namespace maui.*)
 - maui.analytics / maui.consent: Core-Default false, App aktiviert explizit
+- maui.observability: strukturierte JSON-5xx-Logs am zentralen server/error.ts
+  + Client-Error-Inbox (POST /api/telemetry/error, rate-limited); Core-Default
+  aus, Sentry-Andockpunkt in core/server/utils/logEvent.ts
 - maui.auth.*: providers (OAuth-Buttons), termsUrl (AGB-Pflicht), otp
 - maui.admin.modules: Modul-Registry der Dashboard-Nav — Feature-Layer
   registrieren ihre Admin-Seiten hier (expliziter Vertrag statt Kopplung)
