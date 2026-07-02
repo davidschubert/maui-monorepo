@@ -4,6 +4,48 @@
     "neutralLabel": "Neutral",
     "variantDefault": "Standard",
     "modeLabel": "Erscheinungsbild",
-    "appearance": { "light": "Hell", "dark": "Dunkel", "system": "System" }
+    "appearance": {
+      "light": "Hell",
+      "dark": "Dunkel",
+      "system": "System"
+    },
+    "studio": {
+      "navLabel": "Themes",
+      "title": "Theme-Studio",
+      "styleguideLink": "Styleguide",
+      "gallery": "Galerie",
+      "galleryHint": "Klick auf eine Karte wechselt das Theme live — Varianten über die Farbpunkte. Die Auswahl gilt für DEINEN Browser (Cookie), wie im Anzeige-Menü.",
+      "customBadge": "Eigenes",
+      "active": "Aktiv",
+      "create": "Neues Theme",
+      "edit": "Theme bearbeiten",
+      "name": "Name",
+      "color": "Basisfarbe (wird primary-500)",
+      "rampPreview": "Generierte Farbrampe (50–950)",
+      "contrastWhite500": "Weiß auf 500",
+      "contrastWhite600": "Weiß auf 600 (Buttons)",
+      "contrastBlack200": "Schwarz auf 200",
+      "contrastHint": "WCAG-Kontrast: AA ≥ 4.5, AAA ≥ 7, AA18 ≥ 3 (nur große Schrift)",
+      "contrastFail": "zu gering",
+      "delete": "Löschen",
+      "deleteConfirmTitle": "Theme löschen?",
+      "deleteConfirmText": "„{name}\" endgültig löschen? Nutzer mit diesem Theme fallen auf den Standard zurück.",
+      "moveUp": "Nach oben",
+      "moveDown": "Nach unten",
+      "export": "CSS kopieren",
+      "exportCopied": "Theme-CSS in die Zwischenablage kopiert.",
+      "saved": "Theme gespeichert.",
+      "deleted": "Theme gelöscht.",
+      "error": "Aktion fehlgeschlagen.",
+      "limit": "Maximal 20 eigene Themes.",
+      "showcase": "Live-Vorschau (Nuxt UI)",
+      "demo": {
+        "placeholder": "Suchen…",
+        "checkbox": "Checkbox",
+        "switch": "Schalter",
+        "alertTitle": "Hinweis",
+        "alertText": "So sehen Alerts im aktiven Theme aus."
+      }
+    }
   }
 }

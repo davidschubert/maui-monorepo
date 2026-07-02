@@ -19,7 +19,7 @@ function selectTheme(id: string, variantId: string | null) {
 }
 
 const items = computed<SwatchItem[][]>(() => {
-  const themeChildren: SwatchItem[] = themes.map((entry) => {
+  const themeChildren: SwatchItem[] = themes.value.map((entry) => {
     if (!entry.variants.length) {
       return {
         label: entry.name,

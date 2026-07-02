@@ -23,7 +23,14 @@ nutzbar). Reihenfolge = grobe Priorität.
 
 - **Themes-Vollausbau 26×11**: [docs/plans/THEMES-VOLLAUSBAU.md](plans/THEMES-VOLLAUSBAU.md)
   — Generator-Script muss neu gebaut werden (nicht im Repo!), 9 Schritte,
-  ~7–10 PT, 7 Entscheidungen (E1–E7).
+  ~7–10 PT, 7 Entscheidungen (E1–E7). **Vorgezogen erledigt (2026-07-02):
+  Theme-Studio** unter /dashboard/themes (themes-Layer via maui.admin.modules):
+  Galerie aller Themes mit Live-Wechsel + Nuxt-UI-Showcase, EIGENE Themes
+  anlegen/bearbeiten/sortieren/löschen (Runtime-Ramp-Generator
+  themes/shared/ramp.ts mit WCAG-Kontrast-Check + CSS-Export; Table
+  custom_themes via system-009, CRUD /api/admin/themes, öffentliche Liste
+  /api/themes, SSR-flash-frei injiziert). Der 26-Themes-KATALOG aus dem Plan
+  bleibt offen — der Studio-Generator ist dafür der Grundstein (Plan-Schritt 3).
 - **packages/billing (Stripe)**: [docs/plans/BILLING-STRIPE.md](plans/BILLING-STRIPE.md)
   — Webhooks als Nuxt-Route (begründete CONCEPT-Revision), 29 Todos in 9
   Phasen; vor Start: Pricing-Modell + Stripe-Tax-Frage klären.

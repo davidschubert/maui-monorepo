@@ -5,7 +5,8 @@
   "type": "module",
   "main": "./nuxt.config.ts",
   "scripts": {
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "vitest run"
   },
   "dependencies": {
     "@nuxt/ui": "catalog:"
@@ -14,6 +15,7 @@
     "@nuxt/eslint-config": "catalog:",
     "eslint": "catalog:",
     "typescript": "catalog:",
-    "vue": "catalog:"
+    "vue": "catalog:",
+    "vitest": "catalog:"
   }
 }

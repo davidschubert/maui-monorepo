@@ -92,6 +92,11 @@
         "gdpr_export": {
           "downloaded": "GDPR export downloaded",
           "deleted": "GDPR export deleted"
+        },
+        "theme": {
+          "created": "Theme created",
+          "updated": "Theme updated",
+          "deleted": "Theme deleted"
         }
       }
     },

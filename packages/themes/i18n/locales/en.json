@@ -4,6 +4,48 @@
     "neutralLabel": "Neutral",
     "variantDefault": "Default",
     "modeLabel": "Appearance",
-    "appearance": { "light": "Light", "dark": "Dark", "system": "System" }
+    "appearance": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "studio": {
+      "navLabel": "Themes",
+      "title": "Theme studio",
+      "styleguideLink": "Style guide",
+      "gallery": "Gallery",
+      "galleryHint": "Clicking a card switches the theme live — variants via the color dots. The choice applies to YOUR browser (cookie), like the display menu.",
+      "customBadge": "Custom",
+      "active": "Active",
+      "create": "New theme",
+      "edit": "Edit theme",
+      "name": "Name",
+      "color": "Base color (becomes primary-500)",
+      "rampPreview": "Generated color ramp (50–950)",
+      "contrastWhite500": "White on 500",
+      "contrastWhite600": "White on 600 (buttons)",
+      "contrastBlack200": "Black on 200",
+      "contrastHint": "WCAG contrast: AA ≥ 4.5, AAA ≥ 7, AA18 ≥ 3 (large text only)",
+      "contrastFail": "too low",
+      "delete": "Delete",
+      "deleteConfirmTitle": "Delete theme?",
+      "deleteConfirmText": "Permanently delete “{name}”? Users on this theme fall back to the default.",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "export": "Copy CSS",
+      "exportCopied": "Theme CSS copied to clipboard.",
+      "saved": "Theme saved.",
+      "deleted": "Theme deleted.",
+      "error": "Action failed.",
+      "limit": "Maximum of 20 custom themes.",
+      "showcase": "Live preview (Nuxt UI)",
+      "demo": {
+        "placeholder": "Search…",
+        "checkbox": "Checkbox",
+        "switch": "Switch",
+        "alertTitle": "Note",
+        "alertText": "This is how alerts look in the active theme."
+      }
+    }
   }
 }

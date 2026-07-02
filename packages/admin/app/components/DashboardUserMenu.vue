@@ -36,7 +36,7 @@ function selectTheme(id: string, variantId: string | null) {
 
 const items = computed<SwatchItem[][]>(() => {
   // Jedes Theme; mit Varianten → eigenes Aufklapp-Menü (Standard + Varianten)
-  const themeChildren: SwatchItem[] = themes.map((entry) => {
+  const themeChildren: SwatchItem[] = themes.value.map((entry) => {
     if (!entry.variants.length) {
       return {
         label: entry.name,

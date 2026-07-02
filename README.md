@@ -161,6 +161,7 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 | 34 | Gesamtcheck-Abarbeitung: ALLE offenen Findings (Vote-Privacy, hidden-REST-Leak via Row-Permissions, toH3Error-Serie, 9 Client-Bugs, Vote-Lost-Update, Cursor-Pagination-Kanten, i18n) + Migrations-Runner & `apps/_template` + @-Mentions + Markdown-Kommentare + 6 Pläne unter docs/plans/ | ✅ 2026-07-02 |
 | 35 | GDPR komplett: UserDataContributor-Vertrag (A14), vollständige Löschung (Tombstone/Hard-Delete/Pseudonymisierung) + vollständige Exporte, Pre-Delete-Snapshots (`gdpr-exports`, 30-Tage-Cleanup, Admin-UI) — 41/41 Live-Checks | ✅ 2026-07-02 |
 | 36 | Observability-Gate `maui.observability`: strukturierte JSON-5xx-Logs am zentralen error.ts + Client-Error-Inbox (rate-limited), Sentry-Andockpunkt — live verifiziert | ✅ 2026-07-02 |
+| 37 | Theme-Studio (/dashboard/themes): Galerie mit Live-Wechsel + Nuxt-UI-Showcase, eigene Themes (Ramp-Generator, WCAG-Kontrast-Check, CSS-Export, Reihenfolge) — Table `custom_themes`, SSR-flash-frei | ✅ 2026-07-02 |
 
 Details und Nachweis-Kriterien pro Phase: [docs/GOALS.md](docs/GOALS.md) · Upgrade-Plan: [docs/APPWRITE-1.9.5-UPGRADE.md](docs/APPWRITE-1.9.5-UPGRADE.md) · Offene Punkte: [docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md)
 
