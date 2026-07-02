@@ -140,8 +140,11 @@ async function onSubmit(event: FormSubmitEvent<FormInput>) {
         </UButton>
       </div>
     </UFormField>
-    <UButton type="submit" size="sm" :loading="loading">
-      {{ parentId ? t('comments.form.replySubmit') : t('comments.form.submit') }}
-    </UButton>
+    <div class="flex items-center justify-between gap-2">
+      <UButton type="submit" size="sm" :loading="loading">
+        {{ parentId ? t('comments.form.replySubmit') : t('comments.form.submit') }}
+      </UButton>
+      <span class="text-xs text-dimmed">{{ t('comments.form.markdownHint') }}</span>
+    </div>
   </UForm>
 </template>

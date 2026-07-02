@@ -129,7 +129,9 @@ const reportReasons = computed(() => [
       </div>
     </template>
 
-    <p v-else class="mt-2 whitespace-pre-line leading-relaxed text-default">{{ comment.content }}</p>
+    <!-- Markdown-Subset (fett/kursiv/code/Links/Listen/Zitate) — sicheres
+         vnode-Rendering ohne v-html, Raw-HTML bleibt escapter Text -->
+    <CommentMarkdown v-else :source="comment.content" class="mt-2 text-default" />
 
     <!-- Antwort-Presence: jemand tippt gerade eine Antwort auf DIESEN Kommentar -->
     <p v-if="replyingText" class="mt-1.5 flex items-center gap-1 text-xs text-info">

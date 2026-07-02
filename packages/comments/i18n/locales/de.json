@@ -38,7 +38,8 @@
       "submit": "Kommentieren",
       "replySubmit": "Antworten",
       "error": "Kommentar konnte nicht gespeichert werden.",
-      "mentionSuggestions": "Erwähnungs-Vorschläge"
+      "mentionSuggestions": "Erwähnungs-Vorschläge",
+      "markdownHint": "Markdown: **fett** *kursiv* `code` [Link](https://…)"
     },
     "item": {
       "reply": "Antworten",
