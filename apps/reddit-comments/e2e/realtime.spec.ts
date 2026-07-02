@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { Client, TablesDB, ID } from 'node-appwrite'
+import { Client, TablesDB, ID, Permission, Role } from 'node-appwrite'
 
 /**
  * Realtime-Regressions-Guard für die SDK-Socket-Konsolidierung (P1).
@@ -45,6 +45,9 @@ test.describe('Realtime (geteilter SDK-Socket)', () => {
           authorId: 'e2e-rt-bot', authorName: 'E2E RT Bot',
           parentId: null, upvotes: 0, downvotes: 0, score: 0, status: 'active',
         },
+        // Row-Level read(any) wie index.post.ts — die Table hat seit
+        // Migration 008 kein Table-read(any) mehr (hidden-REST-Leak-Fix)
+        permissions: [Permission.read(Role.any())],
       })
       rowId = row.$id
 
