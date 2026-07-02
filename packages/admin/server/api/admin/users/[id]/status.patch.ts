@@ -24,6 +24,7 @@ export default defineEventHandler(async (event) => {
   const admin = createAdminClient(event)
   // Appwrite-Semantik: status true = aktiv, false = blockiert
   const updated = await admin.users.updateStatus({ userId, status: !blocked })
+    .catch((error) => { throw toH3Error(error, 'User not found') })
 
   await recordAudit(event, {
     action: blocked ? 'user.block' : 'user.unblock',

@@ -15,6 +15,7 @@ export default defineEventHandler(async (event) => {
 
   const admin = createAdminClient(event)
   await admin.storage.deleteFile({ bucketId, fileId })
+    .catch((error) => { throw toH3Error(error, 'File not found') })
 
   await recordAudit(event, { action: 'storage.file_deleted', targetType: 'file', targetId: fileId })
 

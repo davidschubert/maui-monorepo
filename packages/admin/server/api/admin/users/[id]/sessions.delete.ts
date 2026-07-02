@@ -9,6 +9,7 @@ export default defineEventHandler(async (event) => {
 
   const admin = createAdminClient(event)
   await admin.users.deleteSessions({ userId })
+    .catch((error) => { throw toH3Error(error, 'User not found') })
 
   await recordAudit(event, { action: 'user.sessions_cleared', targetType: 'user', targetId: userId })
 

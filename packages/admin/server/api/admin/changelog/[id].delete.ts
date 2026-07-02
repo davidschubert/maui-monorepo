@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
     databaseId: config.public.appwriteDatabaseId,
     tableId: 'changelog',
     rowId: id,
-  })
+  }).catch((error) => { throw toH3Error(error, 'Changelog entry not found') })
 
   await recordAudit(event, { action: 'changelog.deleted', targetType: 'changelog', targetId: id })
   return { ok: true }

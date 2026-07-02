@@ -32,13 +32,18 @@ export default defineEventHandler(async (event) => {
     ],
   })
 
-  for (const row of open.rows) {
-    await tablesDB.updateRow<Report>({
-      databaseId,
-      tableId: REPORTS_TABLE,
-      rowId: row.$id,
-      data: { status: 'resolved', resolvedBy: user.$id, resolution },
-    })
+  // Parallel in Chunks statt strikt sequentiell — bei vielen Meldungen pro
+  // Target sonst unnötig langsam; Chunk-Größe begrenzt die Last auf Appwrite.
+  const CHUNK = 10
+  for (let i = 0; i < open.rows.length; i += CHUNK) {
+    await Promise.all(open.rows.slice(i, i + CHUNK).map(row =>
+      tablesDB.updateRow<Report>({
+        databaseId,
+        tableId: REPORTS_TABLE,
+        rowId: row.$id,
+        data: { status: 'resolved', resolvedBy: user.$id, resolution },
+      }),
+    ))
   }
 
   return { ok: true, resolved: open.rows.length }

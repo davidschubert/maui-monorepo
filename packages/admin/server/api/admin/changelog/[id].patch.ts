@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
     tableId: 'changelog',
     rowId: id,
     data,
-  })
+  }).catch((error) => { throw toH3Error(error, 'Changelog entry not found') })
 
   // targetName aus der aktualisierten Row, nicht aus data.title — bei Teil-Edits
   // (z.B. nur published/date) fehlt title im Body und der Audit-Log bliebe leer.

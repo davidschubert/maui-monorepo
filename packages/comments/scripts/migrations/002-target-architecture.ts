@@ -190,7 +190,9 @@ await step('Table comment_votes', () => tablesDB.createTable({
   databaseId,
   tableId: 'comment_votes',
   name: 'Comment Votes',
-  permissions: [Permission.read(Role.users()), Permission.create(Role.users())],
+  // KEIN Table-read(users): Votes sind nicht öffentlich — Rows tragen
+  // read(user:self), der Server liest mit dem Admin-Client (Migration 007).
+  permissions: [Permission.create(Role.users())],
   rowSecurity: true,
 }))
 

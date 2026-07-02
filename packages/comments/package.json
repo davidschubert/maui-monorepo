@@ -6,7 +6,7 @@
   "main": "./nuxt.config.ts",
   "scripts": {
     "lint": "eslint .",
-    "migrate": "node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/002-target-architecture.ts && node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/003-author-index.ts && node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/004-content-fulltext.ts && node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/005-thread-fields.ts && node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/006-target-url.ts",
+    "migrate": "node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/002-target-architecture.ts && node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/003-author-index.ts && node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/004-content-fulltext.ts && node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/005-thread-fields.ts && node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/006-target-url.ts && node --experimental-strip-types --env-file=../../apps/reddit-comments/.env scripts/migrations/007-votes-table-read.ts",
     "test": "vitest run"
   },
   "dependencies": {

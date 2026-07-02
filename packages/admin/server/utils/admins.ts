@@ -7,23 +7,17 @@ import type { H3Event } from 'h3'
  */
 export async function assertNotLastAdmin(event: H3Event, targetUserId: string): Promise<void> {
   const admin = createAdminClient(event)
-  const PAGE = 100
-  const adminIds = new Set<string>()
 
-  // ALLE User paginieren — bei >100 Usern wäre ein einzelner Page-Aufruf blind für
-  // einen Admin jenseits Zeile 100 (falscher Lockout-Block oder umgangene Garantie).
-  for (let offset = 0; offset < 50_000; offset += PAGE) {
-    const res = await admin.users.list({ queries: [Query.limit(PAGE), Query.offset(offset)] })
-    for (const u of res.users) {
-      if (u.labels?.includes('admin')) adminIds.add(u.$id)
-    }
-    if (res.users.length < PAGE || offset + PAGE >= res.total) break
-  }
+  // Server-seitig nach dem Label filtern statt alle User zu paginieren:
+  // total > 1 heißt, es bliebe in jedem Fall ein Admin übrig. Nur beim
+  // einzigen Admin muss geprüft werden, ob er das Ziel der Aktion ist.
+  const res = await admin.users.list({
+    queries: [Query.contains('labels', 'admin'), Query.limit(2)],
+  })
+  if (res.total > 1) return
 
-  const targetIsAdmin = adminIds.has(targetUserId)
-  const otherAdmins = [...adminIds].filter(id => id !== targetUserId)
-
-  if (targetIsAdmin && otherAdmins.length === 0) {
+  const only = res.users[0]
+  if (only && only.$id === targetUserId) {
     throw createError({ status: 400, statusText: 'At least one admin must remain', data: { code: 'last_admin' } })
   }
 }

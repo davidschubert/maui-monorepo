@@ -11,10 +11,13 @@ export default defineEventHandler(async (event): Promise<AdminStats> => {
 
   const [users, comments, reportedTargets] = await Promise.all([
     admin.users.list({ queries: [Query.limit(1)] }),
-    admin.tablesDB.listRows({ databaseId, tableId: 'comments', queries: [Query.limit(1)] }),
+    // Eine App mit admin-, aber ohne comments-Layer hat die Table nicht →
+    // degradieren statt 500 im Dashboard.
+    admin.tablesDB.listRows({ databaseId, tableId: 'comments', queries: [Query.limit(1)] })
+      .catch(() => ({ total: 0 })),
     // Distinkte gemeldete Kommentare (offene Meldungen) — konsistent mit dem
     // Header der Moderations-Queue, der dieselbe Menge zählt (Moderation-Layer).
-    openReportsByTarget(event, 'comment'),
+    openReportsByTarget(event, 'comment').catch(() => ({ order: [] as string[] })),
   ])
 
   return {
