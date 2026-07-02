@@ -45,8 +45,10 @@ Vollständiges Konzept: docs/CONCEPT.md
   (NUXT_APPWRITE_KEY server-only, NUXT_PUBLIC_* für Endpoint/Project)
 - Immer explizites Query.limit() (Default 25)
 - SDK-Generics nutzen: tablesDB.listRows<T>()
-- Migrations: idempotent (409 → skip), node --env-file=apps/<app>/.env,
-  nach Column-Anlage auf 'available' pollen bevor Indizes
+- Migrations: idempotent (409 → skip), IMMER über den zentralen Runner
+  `pnpm migrate --app <app>` (scripts/migrate.mjs; bei mehreren Apps ist
+  --app Pflicht — nie die falsche Instanz), nach Column-Anlage auf
+  'available' pollen bevor Indizes
 - Presences API (self-hostbar seit 1.9.5): GESAMTE Presence vereinheitlicht auf
   EINE Presence pro User (presenceId=userId; metadata trägt scope/action/typing).
   WICHTIG (SSR-Cookie-Architektur): der Browser kann seine Presence NICHT selbst

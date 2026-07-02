@@ -105,12 +105,15 @@ maui-monorepo/
 │   ├── admin/                 # Feature Layer: Dashboard, Moderation-Queue, Changelog, Audit, …
 │   └── themes/                # Feature Layer: Theming
 ├── apps/
+│   ├── _template/             # Kopiervorlage für neue Apps (Port 3002, README mit Schritten)
 │   └── reddit-comments/       # dünne App: extends [themes, admin, comments, moderation, core, system] (Port 3001)
 │       └── scripts/           # bootstrap.ts (Fresh-Instance-Setup), seed-demo.ts (Demo-Daten)
 ├── docs/
 │   ├── CONCEPT.md             # Architektur-Konzept (v2)
 │   ├── GOALS.md               # Phasen-Roadmap mit /goal-Texten
 │   ├── APPWRITE-1.9.5-UPGRADE.md # Upgrade-/Feature-Plan (Realtime/Presence/Email-Policies)
+│   ├── AUTH-FORMS.md          # UAuthForm-als-Vorlage-Entscheidung + Abweichungen
+│   ├── plans/                 # umsetzungsreife Pläne (GDPR, Phase 17, Billing, Themes, Embed, Changelog 2B)
 │   └── OPEN-ITEMS.md          # offene Punkte / erledigte Referenz
 ├── pnpm-workspace.yaml        # Workspaces + Catalog
 └── CLAUDE.md                  # Claude Code Kontext
@@ -155,6 +158,7 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 | 31 | Echtes Realtime-Presence (JWT-WS, ~280ms) + Presence-Use-Cases (Betrachtung/Antwort/Lese-Präsenz, Avatar-Status-Icons) | ✅ 2026-07-01 |
 | 32 | Realtime-Konsolidierung (P1): `useRealtimeRows` auf 1 geteilte JWT-SDK-Realtime · `comments-002` idempotent · Changelog Track 2B (Function-Scaffold) · Playwright-E2E-Smoke | ✅ 2026-07-01 |
 | 33 | Gesamtcheck (5 Review-Agenten + Docs-Abgleich Appwrite/Nuxt/Nuxt UI): 20+ Fixes — Moderations-Bypass, Deleted-Content-Leak, Realtime-Auth-Kopplung, Presence-Leaks, SSR-Hydration (Votes/Reports), Rate-Limits, JWT-Härtung, mist-@theme, ESLint-Backstop moderation | ✅ 2026-07-02 |
+| 34 | Gesamtcheck-Abarbeitung: ALLE offenen Findings (Vote-Privacy, hidden-REST-Leak via Row-Permissions, toH3Error-Serie, 9 Client-Bugs, Vote-Lost-Update, Cursor-Pagination-Kanten, i18n) + Migrations-Runner & `apps/_template` + @-Mentions + Markdown-Kommentare + 6 Pläne unter docs/plans/ | ✅ 2026-07-02 |
 
 Details und Nachweis-Kriterien pro Phase: [docs/GOALS.md](docs/GOALS.md) · Upgrade-Plan: [docs/APPWRITE-1.9.5-UPGRADE.md](docs/APPWRITE-1.9.5-UPGRADE.md) · Offene Punkte: [docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md)
 

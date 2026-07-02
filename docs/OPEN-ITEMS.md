@@ -1,44 +1,68 @@
 # Offene Punkte
 
-Stand: 2026-07-02 (nach dem Gesamtcheck). Vollständige, eigenständige Liste
-offener Themen (für eine frische Session als Startpunkt nutzbar).
-Reihenfolge = grobe Priorität.
+Stand: 2026-07-02 (nach der Gesamtcheck-Abarbeitung). Vollständige,
+eigenständige Liste offener Themen (für eine frische Session als Startpunkt
+nutzbar). Reihenfolge = grobe Priorität.
 
-## 📋 Gesamtcheck 2026-07-02 — offene Findings (5 Review-Agenten + Verifikation)
+> **2026-07-02 — Großes Abarbeitungs-Paket:** ALLE offenen Findings des
+> Gesamtchecks (🟠 + 🟡) wurden umgesetzt (siehe „Bereits erledigt"), dazu die
+> Ideen 1–3 (App-Template, @-Mentions, Markdown). Für die größeren Blöcke
+> liegen jetzt umsetzungsreife Pläne unter **docs/plans/**.
 
-Der Check lief über Security, Client-Bugs, Server-Korrektheit, Architektur und
-Docs-Abgleich (Appwrite/Nuxt/Nuxt UI). 20+ bestätigte Funde wurden SOFORT
-gefixt (siehe „Bereits erledigt"). Offen bleiben:
+## 🟠 Offen — als Nächstes angehen
 
-### 🟠 Mittel — als Nächstes angehen
-- **GDPR: Account-Löschung hinterlässt PII** (`core/auth/account.delete.ts`, `admin/users/[id]/index.delete.ts`): `users.delete()` entfernt nur den Auth-User — comments (authorName öffentlich!), votes, reports, notifications, Avatar-Datei bleiben. Fix: Anonymisierungs-/Cleanup-Schritt (best effort, Admin-Client). Dazu **Export unvollständig**: `Query.limit(1000)` ohne Pagination + votes/reports fehlen im Export.
-- **Layer-Kopplung core→comments (A14-Verletzung)**: der GDPR-Export liest `tableId:'comments'` samt Schema im Fundament-Layer (`core/server/utils/dataExport.ts`). Sauber: Export-Contributor-Vertrag (Feature-Layer registrieren `exportUserData(userId)`-Provider). Gleiches Muster für die GDPR-Löschung nutzen → löst beide Punkte zusammen.
-- **admin ohne comments = 500**: `admin/stats.get.ts` (u.a.) queryt `comments` ohne catch — eine zweite App mit admin, aber ohne comments-Layer, crasht im Dashboard. Kurzfix: `.catch` + 0-Fallbacks; sauber: Stats-Contributor-Registry analog `maui.admin.modules`.
-- **Migrations auf reddit-comments gepinnt**: alle `migrate`-Scripts hardcoden `--env-file=../../apps/reddit-comments/.env` — App 2 würde damit die FALSCHE Instanz migrieren. Fix: Runner mit env-Parameter; MDC/prosemirror-Config von der App in den admin-Layer ziehen; `apps/_template` als Kopiervorlage.
-- **`comment_votes` für alle eingeloggten User lesbar** (Table-Permission `read(users)` aus Migration 002): Voting ist nicht anonym — jeder User kann per Web-SDK alle Votes listen. Row-Security reicht (Rows haben `read(user:self)`) → Table-Read per Migration entfernen (vorher prüfen: kein Realtime-Consumer braucht fremde Vote-Rows — aktuell keiner).
-- **`hidden`-Kommentare via Appwrite-REST lesbar**: die comments-Table ist `read(any)` (Realtime für Gäste braucht das) — der Status-Filter existiert nur in der Nuxt-Route. Bewusster Trade-off; Optionen: dokumentiert lassen, oder Realtime auf `read(users)`+JWT umstellen (Gast-Livecomments entfielen).
-- **UAuthForm-Regel vs. Realität**: CLAUDE.md fordert „UAuthForm für Auth!", Login/Register/OTP sind aber handgebaut (UForm/UFormField). Entscheiden: auf UAuthForm refactoren ODER die Regel streichen.
-- **Fehler-Mapping-Serie (500→404)**: ~7 Routen fangen Appwrite-Fehler nicht (`admin/changelog/[id].patch/.delete`, `users/[id]/status.patch`, `sessions.delete`, `storage/[fileId].delete`, `core/storage/[bucket]/[fileId].get/.delete`, `auth/otp.post`) → `toH3Error` nachziehen (mechanisch).
+- **GDPR-Löschung/Export UMSETZEN** — der Plan ist fertig:
+  [docs/plans/GDPR-DELETE-AND-EXPORT.md](plans/GDPR-DELETE-AND-EXPORT.md)
+  (UserDataContributor-Vertrag löst auch die A14-Verletzung core→comments;
+  Pre-Delete-Snapshot in `gdpr-exports`-Bucket für Admins; 15 Schritte,
+  ~2–3 Tage; 8 Maintainer-Entscheidungen im Doc markiert).
+- **Phase 17 – Production Deployment** — Plan + Schritt-für-Schritt-Checkliste
+  für den Betreiber: [docs/plans/PHASE-17-PRODUCTION.md](plans/PHASE-17-PRODUCTION.md)
+  (Empfehlung: 2 Hetzner-VMs, ploi-Daemon, deploy.yml via workflow_run,
+  Realtime-Watchdog; ~60 abhakbare Schritte, ~25–28 €/Monat).
+- **Changelog Track 2B aktivieren** (braucht Prod + Domain):
+  [docs/plans/CHANGELOG-2B-AKTIVIERUNG.md](plans/CHANGELOG-2B-AKTIVIERUNG.md)
+  (17 Schritte; Env-Vars, GitHub-Webhook, HMAC-Tests, Rollback).
 
-### 🟡 Klein / gelistet
-- **Vote-Lost-Update bei parallelen Usern**: Recount+Write ohne Konfliktbehandlung — selbstheilend beim nächsten Vote; Option: pro commentId in-process serialisieren oder Appwrite-Transactions (seit 1.9).
-- **Client-Kleinbugs**: Dashboard-Suche ohne Stale-Response-Guard; Vote-Doppelklick ohne In-Flight-Serialisierung; `useRealtimeAccount`-Backoff greift bei open→sofort-close nicht (+ läuft auch für Gäste); Reply auf gepufferten pending-Kommentar wird verworfen; WhatsNew-Unread nutzt kuratiertes `date` statt `$createdAt`; Logout räumt Presence nicht ab (`/api/presence/leave` mitrufen) + ohne try/catch; IntersectionObserver reobserved nicht bei temp-ID-Austausch; `dashboard/comments.vue` watcht `route.query.status` nicht; `users/[id].vue` hartkodiertes „— 404".
-- **i18n**: admin nutzt 7× `t('comments.item.cancel')` → eigener `ui.cancel`-Key in core; tote Keys (`admin.users.makeAdmin/revokeAdmin/...`, `admin.stats.onlineHint`, …) entfernen.
-- **Effizienz**: `assertNotLastAdmin` scannt alle User (→ `Query.contains('labels','admin')` + limit 2); `resolve.post` sequentiell (→ Chunks); `presences.list({ total: false })`-Mikro-Optimierung; `login.post` könnte den Namen an `recordAuthEvent` durchreichen (spart 1 users.get/Login).
-- **Kanten (dokumentiert, bewusst)**: REPLY_CAP 500 über alle Threads; Cascade-Hide THREAD_CAP 500; users-active-Sort FETCH_CAP 500 vs. echte total; changelog FETCH_CAP 500; presence limit 200 ohne Pagination; Analytics-Offset-Shift; Rate-Limit `unknown`-IP-Bucket; Storage-MIME ohne Magic-Bytes-Check (GET liefert mit deklariertem Content-Type aus → entschärft).
-- **Kleinkram**: `appwrite.json` → `appwrite.config.json` (neuer CLI-Name); `useFormatCurrency` ungenutzt (bewusste Baukasten-Vorhaltung?); PresenceAvatar könnte auf `UChip` (#content-Slot) umziehen; `redirectOn:'all'`-SEO-Caveat dokumentieren; V3/V4-Layer-Findings (comments registriert admin-Key/-Route; UserMenu verlinkt /dashboard hart); A14-Matrix um die reale core→system-Schema-Nutzung ergänzen + Flag-Registry statt `commentsEnabled` hart in core.
+## 📋 Pläne für größere Ausbauten (bereit, brauchen Go + Entscheidungen)
 
-### 💡 Ideen fürs nächste Level (aus dem Check, priorisiert)
-1. **App-Template + entkoppelte Migrations** (M) — der Beweis, dass der Baukasten ein Baukasten ist; Blocker für 3002+.
-2. **@-Mentions mit Notification** (M) — `notify()`-Vertrag + targetUrl-Guard existieren schon.
-3. **Markdown/Rich-Text für Kommentare** (M) — MDC + TipTap-Deps sind bereits im Stack (Changelog nutzt beides).
-4. **E-Mail-Notifications + Digest** (M–L) — notifications-Table + SMTP + Function-Scaffold vorhanden.
-5. **Observability-Gate `maui.observability`** (S–M) — Sentry/strukturierte Logs am zentralen error.ts andocken; vor Phase 17 fast Pflicht.
-6. **Admin-Bulk-Aktionen + CSV-Export** (S–M) — Moderations-Queue/Users mit Multi-Select, Claim-Locks laufen schon.
-7. **Caching/ISR** (S) — routeRules SWR für /changelog + Microcache für GET /api/comments Seite 1.
-8. **CI mit echter Appwrite-Instanz** (M) — Service-Container + `bootstrap --seed` (idempotent vorhanden) → Realtime-E2E in CI.
-9. **Embed-Widget** (L) — targetId/targetType-Architektur ist dafür gebaut (Disqus-Nische, self-hosted).
-10. **Report-Kategorien + Auto-Hide-Threshold** (S–M) — `openReportsByTarget` zählt schon.
+- **Themes-Vollausbau 26×11**: [docs/plans/THEMES-VOLLAUSBAU.md](plans/THEMES-VOLLAUSBAU.md)
+  — Generator-Script muss neu gebaut werden (nicht im Repo!), 9 Schritte,
+  ~7–10 PT, 7 Entscheidungen (E1–E7).
+- **packages/billing (Stripe)**: [docs/plans/BILLING-STRIPE.md](plans/BILLING-STRIPE.md)
+  — Webhooks als Nuxt-Route (begründete CONCEPT-Revision), 29 Todos in 9
+  Phasen; vor Start: Pricing-Modell + Stripe-Tax-Frage klären.
+- **Embed-Widget**: [docs/plans/EMBED-WIDGET.md](plans/EMBED-WIDGET.md)
+  — iframe-Modell + CHIPS-Cookie; Vorbedingung E0-1 (hidden-REST-Leak) ist
+  bereits erledigt; 20 Todos in 5 Phasen.
+
+## 🟡 Klein / Reste
+
+- **Kleinkram (unverändert offen)**: `appwrite.json` → `appwrite.config.json`
+  (neuer CLI-Name); `useFormatCurrency` ungenutzt (bewusste Baukasten-
+  Vorhaltung?); PresenceAvatar könnte auf `UChip` (#content-Slot) umziehen;
+  `redirectOn:'all'`-SEO-Caveat dokumentieren; V3/V4-Layer-Findings (comments
+  registriert admin-Key/-Route; UserMenu verlinkt /dashboard hart); A14-Matrix
+  um die reale core→system-Schema-Nutzung ergänzen + Flag-Registry statt
+  `commentsEnabled` hart in core.
+- **Geprüft, bewusst NICHT umgesetzt**: `login.post` kann den Namen nicht
+  billig an `logAuthEvent` durchreichen — das Session-Objekt enthält keinen
+  Namen, jede Alternative kostet denselben users.get (2026-07-02 geprüft).
+  Client-seitiges `usePresence.refresh()` bleibt bei limit 200 (jedes Event
+  triggert ein list(); Pagination dort würde Requests vervielfachen — der
+  SERVER paginiert seit 2026-07-02 bis 1000).
+- **Stats-Contributor-Registry** (sauberer Ausbau des erledigten Kurzfixes
+  „admin ohne comments"): Stats analog `maui.admin.modules` von Feature-Layern
+  registrieren lassen — passt gut zusammen mit dem UserDataContributor-Muster
+  aus dem GDPR-Plan.
+
+### 💡 Ideen fürs nächste Level (verbleibend, priorisiert)
+1. **E-Mail-Notifications + Digest** (M–L) — notifications-Table + SMTP + Function-Scaffold vorhanden.
+2. **Observability-Gate `maui.observability`** (S–M) — Sentry/strukturierte Logs am zentralen error.ts andocken; vor Phase 17 fast Pflicht.
+3. **Admin-Bulk-Aktionen + CSV-Export** (S–M) — Moderations-Queue/Users mit Multi-Select, Claim-Locks laufen schon.
+4. **Caching/ISR** (S) — routeRules SWR für /changelog + Microcache für GET /api/comments Seite 1.
+5. **CI mit echter Appwrite-Instanz** (M) — Service-Container + `bootstrap --seed` (idempotent vorhanden) → Realtime-E2E in CI.
+6. **Report-Kategorien + Auto-Hide-Threshold** (S–M) — `openReportsByTarget` zählt schon.
 
 ## 🟠 Mittel — lohnt sich
 
@@ -84,6 +108,22 @@ _Alle erledigt (2026-06-24) — siehe „Bereits erledigt"._
 ---
 
 ## ✅ Bereits erledigt (Referenz)
+
+- **Gesamtcheck-Abarbeitung (2026-07-02)** — alle offenen 🟠/🟡-Findings + Ideen 1–3 in 10 Batches:
+  - **admin ohne comments**: `stats.get` degradiert mit catch + 0-Fallback (search/analytics waren schon sauber).
+  - **toH3Error-Serie**: changelog patch/delete, users status.patch/sessions.delete, admin-storage delete, core-storage get/delete, otp.post — 4xx statt unmaskiertem 500.
+  - **Effizienz**: `assertNotLastAdmin` via `Query.contains('labels','admin')`+limit 2 (live auf 1.9.5/MariaDB verifiziert); `reports/resolve` parallel in 10er-Chunks; `presences.list total:false`.
+  - **Vote-Privacy**: `comment_votes` Table-`read(users)` entfernt (Migration 007, auf Dev ausgeführt); 002 legt frisch ohne Table-Read an.
+  - **Migrations entkoppelt + apps/_template**: zentraler Runner `scripts/migrate.mjs` (`pnpm migrate --app <app>`, Auto-Detect nur bei genau einer App, `--env-file` für CI/Prod); Layer-Scripts rufen den Runner; bootstrap.ts app-agnostisch; MDC/ProseMirror-Config in den admin-Layer gezogen; Template-App (Port 3002) mit README läuft in lint/typecheck der CI mit.
+  - **i18n**: core `ui.cancel` (statt 7× Cross-Layer-Key), tote admin-Keys entfernt (gegen dynamische Kompositionen geprüft), `admin.users.notFound` statt hartkodiertem „— 404".
+  - **9 Client-Bugs**: useLogout() mit Presence-Beacon + try/catch (3 Stellen dedupliziert); Dashboard-Suche Stale-Guard; Vote-In-Flight-Serialisierung (Client) ; useRealtimeAccount Stabilitätsfenster-Backoff + nur für eingeloggte User; pending-Reply-Puffer; WhatsNew-Unread auf `$createdAt`; IntersectionObserver re-observed bei temp-ID-Tausch; `?status=`-Watch; s.o.
+  - **Vote-Lost-Update (Server)**: `serializePerComment` — Recount+Write pro Kommentar serialisiert (Multi-Instanz-Grenze im Util dokumentiert → Appwrite-Transactions).
+  - **Kanten**: Antworten-Subtrees + Cascade-Hide-Thread + Changelog + users-active-Sort + Analytics auf Cursor-Pagination (Notanker mit Log statt stillem Cap); listOnlinePresences bis 1000; Rate-Limit-Fallback auf Session-Identität statt `unknown`-Sammeltopf; Avatar-Upload mit Magic-Bytes-Check.
+  - **hidden-REST-Leak GESCHLOSSEN**: Lese-Sichtbarkeit auf Row-Ebene (Migration 008 + Backfill, auf Dev ausgeführt); Hide = zweiphasig (Status-Event → Permission-Entzug), Restore in einem Write; live verifiziert (Gast-REST 404 auf hidden, Gast-WS bekommt weiterhin Events).
+  - **UAuthForm**: Regel präzisiert — UAuthForm ist Vorlage, die optimierten UForm-Implementierungen bleiben; Abweichungen dokumentiert in [docs/AUTH-FORMS.md](AUTH-FORMS.md); CLAUDE.md/CONCEPT.md angepasst.
+  - **@-Mentions**: `resolveMentions()` gegen Thread-Teilnehmer (kein globaler Namensraum, max 5), notify(type:'mention'), Bell-Text je Typ, Autocomplete im CommentForm; live verifiziert.
+  - **Markdown-Kommentare**: eigener sicherer Subset-Parser (`shared/markdown.ts`, 20 Tests inkl. XSS) + vnode-Renderer `CommentMarkdown.vue` (kein v-html; MDC bewusst NICHT für Fremd-Content); SSR-verifiziert.
+  - **6 Plan-Dokumente** unter docs/plans/ (GDPR, Phase 17, Changelog 2B, Themes, Billing, Embed).
 
 - **Appwrite 1.9.5 + MariaDB-Umstieg + Phase-18-P2 + Tooling (2026-07-01)**:
   - **Server-Upgrade** Appwrite 1.9.0 → 1.9.5 (Backup, manueller Tag-Bump da
