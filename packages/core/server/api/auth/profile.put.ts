@@ -2,12 +2,8 @@ import { AppwriteException } from 'node-appwrite'
 import { createSessionClient, createAdminClient } from '../../lib/appwrite'
 import { profileSchema } from '../../../schemas/profile'
 
-/** fileId aus einer Storage-Avatar-URL (/api/storage/<bucket>/<id>?…), sonst null */
-function avatarFileId(url: unknown, bucketId: string): string | null {
-  if (typeof url !== 'string' || !bucketId) return null
-  const match = url.match(/^\/api\/storage\/([^/]+)\/([^/?]+)/)
-  return match && match[1] === bucketId ? match[2]! : null
-}
+// avatarFileId (URL→fileId) kommt aus server/utils/avatarFile.ts (Auto-Import)
+// — geteilt mit der GDPR-Löschung.
 
 /**
  * Profil-Update: Name + prefs (bio/avatarUrl) als der User selbst (SessionClient).

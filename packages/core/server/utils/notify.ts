@@ -10,6 +10,12 @@ export interface NotifyInput {
   body: string
   /** Interner Ziel-Link (wird beim Rendern gegen Open-Redirect geguardet) */
   link: string
+  /**
+   * Verursacher (User-$id) — Klarname/Snippet stecken in title/body; ohne
+   * diesen Schlüssel könnte die GDPR-Löschung verursachte Notifications
+   * nicht finden (system-Contributor löscht per senderId, Migration 008).
+   */
+  senderId?: string
 }
 
 /**
@@ -34,6 +40,9 @@ export async function notify(event: H3Event, input: NotifyInput): Promise<void> 
         body: input.body,
         link: input.link,
         read: false,
+        // nur mitschreiben, wenn gesetzt — Aufrufe ohne senderId bleiben so
+        // auch auf Instanzen VOR Migration system-008 funktionsfähig
+        ...(input.senderId ? { senderId: input.senderId } : {}),
       },
       // Row-Security: nur der Empfänger darf lesen + als gelesen markieren
       permissions: [

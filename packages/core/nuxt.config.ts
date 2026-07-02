@@ -53,6 +53,9 @@ export default defineNuxtConfig({
       // Storage-Bucket für Profilfotos (gehört der App). Leer = Foto-Upload-UI
       // ausgeblendet, bis der Bucket existiert (NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET).
       appwriteAvatarsBucket: '',
+      // Storage-Bucket für GDPR-Pre-Delete-Snapshots (gehört der App). Leer =
+      // Löschung läuft OHNE Snapshot (NUXT_PUBLIC_APPWRITE_GDPR_BUCKET).
+      appwriteGdprBucket: '',
       // Gegenpart zu NUXT_PUBLIC_APP_URL — ohne Skeleton-Key mappt die Env-Var ins Leere
       appUrl: '',
     },

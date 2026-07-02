@@ -6,8 +6,6 @@ import type { Models } from 'node-appwrite'
  * liefern. Auto-importiert in alle Server-Routen.
  */
 
-type ExportCommentRow = Models.Row & { content: string, targetType: string, targetId: string, status: string }
-
 export function mapExportAccount(user: Models.User<Models.Preferences>) {
   return {
     id: user.$id,
@@ -33,13 +31,5 @@ export function mapExportSessions(sessions: Models.Session[]) {
   }))
 }
 
-export function mapExportComments(rows: ExportCommentRow[]) {
-  return rows.map(r => ({
-    id: r.$id,
-    createdAt: r.$createdAt,
-    content: r.content,
-    targetType: r.targetType,
-    targetId: r.targetId,
-    status: r.status,
-  }))
-}
+// mapExportComments ist in den comments-UserDataContributor umgezogen —
+// core kennt kein Feature-Schema mehr (CONCEPT A14).
