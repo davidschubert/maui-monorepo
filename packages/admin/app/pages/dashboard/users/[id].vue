@@ -336,7 +336,7 @@ async function executePending() {
       </div>
 
       <div v-else class="py-16 text-center text-muted">
-        {{ t('admin.nav.users') }} — 404
+        {{ t('admin.users.notFound') }}
       </div>
 
       <UModal :open="pending !== null" :title="t('admin.users.confirmTitle')" @update:open="(value: boolean) => { if (!value) pending = null }">

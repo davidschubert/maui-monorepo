@@ -40,6 +40,8 @@ export const useCommentStore = defineStore('comments', () => {
   /** Per Realtime eingetroffene fremde Top-Level-Kommentare, gepuffert für die "N neue"-Pill */
   const pending = ref<Comment[]>([])
   const pendingCount = computed(() => pending.value.length)
+  /** Antworten auf noch gepufferte Kommentare — werden mit dem Parent geflusht */
+  const pendingReplies = ref<Comment[]>([])
   /** IDs, die wir per Moderation (hidden) entfernt haben — für Live-Restore */
   const removedByHide = new Set<string>()
 
@@ -95,6 +97,7 @@ export const useCommentStore = defineStore('comments', () => {
       userVotes.value = response.myVotes
       userReports.value = new Set(response.myReports)
       pending.value = []
+      pendingReplies.value = []
       removedByHide.clear()
     }
     finally {
@@ -194,8 +197,26 @@ export const useCommentStore = defineStore('comments', () => {
     }
   }
 
+  // In-Flight-Serialisierung pro Kommentar: zwei schnelle Klicks (Doppelklick,
+  // Up→Down-Wechsel) starten sonst zwei parallele POSTs — der zweite Snapshot
+  // enthielte den optimistischen Stand des ersten, und ein Rollback/Reconcile
+  // würde falsche Zähler hinterlassen. Der zweite Klick wartet auf den ersten.
+  const voteQueues = new Map<string, Promise<void>>()
+
   /** Optimistic: Zähler + eigener Vote sofort, Server-Stand reconciled, Rollback bei Fehler */
   async function vote(commentId: string, value: VoteValue) {
+    const prev = voteQueues.get(commentId) ?? Promise.resolve()
+    const queued = prev.catch(() => {}).then(() => performVote(commentId, value))
+    voteQueues.set(commentId, queued)
+    try {
+      await queued
+    }
+    finally {
+      if (voteQueues.get(commentId) === queued) voteQueues.delete(commentId)
+    }
+  }
+
+  async function performVote(commentId: string, value: VoteValue) {
     const index = rows.value.findIndex(row => row.$id === commentId)
     if (index === -1) return
 
@@ -262,15 +283,20 @@ export const useCommentStore = defineStore('comments', () => {
     const removedVisible = rows.value.filter(row => toRemove.has(row.$id)).length
     rows.value = rows.value.filter(row => !toRemove.has(row.$id))
     pending.value = pending.value.filter(row => !toRemove.has(row.$id))
+    // Gepufferte Antworten mit entferntem Ziel/Parent ebenfalls verwerfen
+    pendingReplies.value = pendingReplies.value.filter(row => !toRemove.has(row.$id) && !toRemove.has(row.parentId ?? ''))
     total.value = Math.max(0, total.value - removedVisible)
   }
 
   /** Gepufferte (fremde) Kommentare auf einen Klick in die Liste übernehmen */
   function flushPending() {
     if (!pending.value.length) return
-    rows.value = [...pending.value, ...rows.value]
-    total.value += pending.value.length
+    // Antworten auf gepufferte Parents kommen mit — buildCommentTree hängt sie
+    // unabhängig von der Reihenfolge der flachen Liste richtig ein.
+    rows.value = [...pending.value, ...pendingReplies.value, ...rows.value]
+    total.value += pending.value.length + pendingReplies.value.length
     pending.value = []
+    pendingReplies.value = []
   }
 
   /** Realtime: gezieltes Einfügen/Aktualisieren — kein Full-Refresh */
@@ -302,7 +328,11 @@ export const useCommentStore = defineStore('comments', () => {
     }
 
     // create — Duplikate (eigener optimistischer Kommentar, Echo) ignorieren
-    if (rows.value.some(row => row.$id === payload.$id) || pending.value.some(row => row.$id === payload.$id)) return
+    if (
+      rows.value.some(row => row.$id === payload.$id)
+      || pending.value.some(row => row.$id === payload.$id)
+      || pendingReplies.value.some(row => row.$id === payload.$id)
+    ) return
 
     const auth = useAuthStore()
     const isOwn = payload.authorId === auth.user?.$id
@@ -314,6 +344,14 @@ export const useCommentStore = defineStore('comments', () => {
       if (rows.value.some(row => row.$id === payload.parentId)) {
         total.value += 1
         upsertRow(payload)
+      }
+      // Antwort auf einen noch GEPUFFERTEN Kommentar: mitpuffern statt verwerfen
+      // — sonst fehlte sie nach dem Flush der Pill bis zum nächsten Fetch.
+      else if (
+        pending.value.some(row => row.$id === payload.parentId)
+        || pendingReplies.value.some(row => row.$id === payload.parentId)
+      ) {
+        pendingReplies.value = [...pendingReplies.value, payload]
       }
       return
     }

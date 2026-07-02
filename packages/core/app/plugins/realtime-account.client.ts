@@ -33,6 +33,18 @@ export default defineNuxtPlugin((nuxtApp) => {
   }
 
   scope.run(() => {
-    useRealtimeAccount(() => verify(), { onClose: () => verify() })
+    // Nur für eingeloggte User verbinden — für Gäste hätte der account-Channel
+    // nichts zu melden und der Reconnect-Loop liefe ins Leere. Bei Logout
+    // schließen, bei Login (auch späterem) öffnen.
+    let stop: (() => void) | undefined
+    watch(() => auth.user?.$id, (id) => {
+      if (id && !stop) {
+        stop = useRealtimeAccount(() => verify(), { onClose: () => verify() })
+      }
+      else if (!id && stop) {
+        stop()
+        stop = undefined
+      }
+    }, { immediate: true })
   })
 })

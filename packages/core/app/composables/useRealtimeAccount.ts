@@ -40,6 +40,11 @@ export function useRealtimeAccount(
   // Stand schon mal eine Verbindung? onClose feuert nur dann als Auth-Signal —
   // ein fehlgeschlagener Connect-Versuch (Netz/CSP) darf keinen Logout-Check auslösen.
   let opened = false
+  let openedAt = 0
+  // Erst eine Verbindung, die so lange stand, gilt als stabil und resettet den
+  // Backoff. Ein open→sofort-close-Muster (z.B. degradierter Realtime-Worker)
+  // bliebe sonst in einem ewigen 1s-Reconnect-Loop hängen.
+  const STABLE_MS = 5_000
 
   function handleMessage(raw: string) {
     let message: RealtimeMessage
@@ -70,7 +75,7 @@ export function useRealtimeAccount(
       scheduleReconnect()
       return
     }
-    socket.onopen = () => { attempts = 0; opened = true }
+    socket.onopen = () => { opened = true; openedAt = Date.now() }
     socket.onmessage = event => handleMessage(String(event.data))
     socket.onclose = () => {
       if (disposed) return
@@ -81,6 +86,7 @@ export function useRealtimeAccount(
       // fälschlich einen Logout-Check aus.
       if (opened) {
         opened = false
+        if (Date.now() - openedAt >= STABLE_MS) attempts = 0
         options.onClose?.()
       }
       scheduleReconnect()
@@ -95,7 +101,9 @@ export function useRealtimeAccount(
     socket = null
   }
 
-  onScopeDispose(close)
+  // Aufrufer außerhalb eines EffectScopes (z.B. Plugin mit manuellem
+  // Lifecycle über den Rückgabewert) lösen sonst eine Vue-Warnung aus.
+  if (getCurrentScope()) onScopeDispose(close)
 
   return close
 }

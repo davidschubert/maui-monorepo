@@ -85,6 +85,7 @@
       "switchToPasswordRegister": "Register with password"
     },
     "logoutSuccess": "Signed out — see you soon!",
+    "logoutError": "Sign-out failed — please try again.",
     "sessionRevoked": "Your session was ended — please sign in again."
   },
   "validation": {

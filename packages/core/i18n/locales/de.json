@@ -85,6 +85,7 @@
       "switchToPasswordRegister": "Mit Passwort registrieren"
     },
     "logoutSuccess": "Abgemeldet — bis bald!",
+    "logoutError": "Abmelden fehlgeschlagen — bitte erneut versuchen.",
     "sessionRevoked": "Deine Sitzung wurde beendet — bitte melde dich erneut an."
   },
   "validation": {

@@ -20,12 +20,24 @@ const FILTER_ICON: Record<ModerationFilter, string> = {
 }
 
 // Default 'all'; per Query (z.B. Stat-Card-Link ?status=reported) überschreibbar
-const filter = ref<ModerationFilter>(
-  FILTERS.includes(route.query.status as ModerationFilter)
+function filterFromQuery(): ModerationFilter {
+  return FILTERS.includes(route.query.status as ModerationFilter)
     ? route.query.status as ModerationFilter
-    : 'all',
-)
+    : 'all'
+}
+const filter = ref<ModerationFilter>(filterFromQuery())
 const { page, setPage } = usePagination()
+
+// Query-Änderungen auf derselben Route (z.B. erneuter Klick auf eine Stat-Card
+// mit ?status=reported, während die Seite schon offen ist) übernehmen — die
+// ref wird sonst nur beim Setup initialisiert.
+watch(() => route.query.status, () => {
+  const next = filterFromQuery()
+  if (filter.value !== next) {
+    filter.value = next
+    setPage(1)
+  }
+})
 
 const { data, refresh } = await useFetch<AdminCommentListResponse>('/api/admin/comments', {
   query: computed(() => ({ status: filter.value, page: page.value })),

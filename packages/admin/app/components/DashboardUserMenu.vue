@@ -12,7 +12,6 @@ const { t, locale, setLocale } = useI18n()
 const localePath = useLocalePath()
 const colorMode = useColorMode()
 const auth = useAuthStore()
-const toast = useToast()
 const { themes, theme, variant, setTheme, setVariant, neutrals, neutral, setNeutral } = useTheme()
 const localeOptions = useLocaleOptions()
 
@@ -25,12 +24,7 @@ const avatar = computed(() => {
   return { src, alt: displayName.value }
 })
 
-async function logout() {
-  await $fetch('/api/auth/logout', { method: 'POST' })
-  auth.setUser(null)
-  toast.add({ title: t('auth.logoutSuccess'), color: 'success', icon: 'i-ph-sign-out' })
-  await navigateTo(localePath('/login'))
-}
+const { logout } = useLogout()
 
 const capitalize = (value: string) => value.charAt(0).toUpperCase() + value.slice(1)
 

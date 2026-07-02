@@ -86,7 +86,10 @@ onMounted(() => {
   }, { threshold: [0, 0.25, 0.5, 0.75, 1] })
   observeComments()
 })
-watch(() => store.rows.length, () => nextTick(observeComments))
+// Auf die ID-Menge watchen, nicht nur die Länge: beim optimistischen Posten wird
+// temp-<id> gegen die Server-ID getauscht (Länge gleich!) — der neue DOM-Knoten
+// (key = $id) muss trotzdem re-observed werden, sonst fehlt er der Lese-Präsenz.
+watch(() => store.rows.map(row => row.$id).join(','), () => nextTick(observeComments))
 onScopeDispose(() => io?.disconnect())
 
 const typingText = computed(() => {

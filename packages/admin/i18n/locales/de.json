@@ -203,7 +203,8 @@
         }
       },
       "verifiedEmail": "E-Mail",
-      "verifiedPhone": "Telefon"
+      "verifiedPhone": "Telefon",
+      "notFound": "User nicht gefunden."
     },
     "moderation": {
       "filter": {

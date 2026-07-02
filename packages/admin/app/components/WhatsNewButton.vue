@@ -24,14 +24,17 @@ const seen = useCookie<string>('maui-changelog-seen', {
   sameSite: 'lax',
 })
 
+// „Ungelesen" hängt am ERSCHEINEN des Eintrags ($createdAt), nicht am kuratierten
+// Release-Datum (date): ein nachträglich veröffentlichter Eintrag mit zurück-
+// datiertem date würde sonst nie als ungelesen zählen.
 const unread = computed(() =>
-  entries.value.filter(e => !seen.value || e.date > seen.value).length,
+  entries.value.filter(e => !seen.value || e.$createdAt > seen.value).length,
 )
 
 // „Ungelesen" ist zeitlich (neuste Einträge seit letztem Besuch) — unabhängig von
-// der Anzeige-Sortierung nach Version. Basislinie daher aus dem jüngsten Datum.
+// der Anzeige-Sortierung nach Version. Basislinie daher aus dem jüngsten $createdAt.
 function newestDate(): string {
-  return entries.value.reduce((max, e) => (e.date > max ? e.date : max), '')
+  return entries.value.reduce((max, e) => (e.$createdAt > max ? e.$createdAt : max), '')
 }
 
 function categoryColor(c: string) {

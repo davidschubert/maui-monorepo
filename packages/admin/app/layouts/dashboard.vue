@@ -71,7 +71,13 @@ interface SearchResponse {
   comments: { $id: string, content: string, authorId: string, authorName: string }[]
 }
 
+// Stale-Response-Guard: nur die JÜNGSTE Suche darf die Ergebnisse setzen —
+// sonst überschreibt eine langsam zurückkommende ältere Antwort die neuere
+// (klassisches Race bei schnellem Tippen).
+let searchSeq = 0
+
 async function runSearch(term: string) {
+  const seq = ++searchSeq
   if (term.trim().length < 2) {
     searchResults.value = []
     return
@@ -79,6 +85,7 @@ async function runSearch(term: string) {
   searchLoading.value = true
   try {
     const res = await $fetch<SearchResponse>('/api/admin/search', { query: { q: term.trim() } })
+    if (seq !== searchSeq) return // veraltete Antwort verwerfen
     const groups: PaletteGroup[] = []
     if (res.users.length) {
       groups.push({
@@ -99,10 +106,11 @@ async function runSearch(term: string) {
     searchResults.value = groups
   }
   catch {
-    searchResults.value = []
+    if (seq === searchSeq) searchResults.value = []
   }
   finally {
-    searchLoading.value = false
+    // Spinner nur beenden, wenn keine neuere Suche läuft
+    if (seq === searchSeq) searchLoading.value = false
   }
 }
 
