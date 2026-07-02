@@ -82,7 +82,8 @@ async function add(author: Models.User<Models.Preferences>, content: string, par
       targetUrl: '/', editedAt: null,
       upvotes: 0, downvotes: 0, score: 0, status: 'active',
     },
-    permissions: [Permission.update(Role.user(author.$id)), Permission.delete(Role.user(author.$id))],
+    // read(any) auf der ROW (nicht der Table) — wie index.post.ts (Migration 008)
+    permissions: [Permission.read(Role.any()), Permission.update(Role.user(author.$id)), Permission.delete(Role.user(author.$id))],
   })
   return row
 }
@@ -92,7 +93,8 @@ async function vote(comment: CommentRow, voters: Models.User<Models.Preferences>
     await tablesDB.createRow({
       databaseId, tableId: 'comment_votes', rowId: ID.unique(),
       data: { commentId: comment.$id, userId: v.$id, value },
-      permissions: [Permission.update(Role.user(v.$id)), Permission.delete(Role.user(v.$id))],
+      // read(user:self) wie vote.post.ts — sonst sähe der User seine Seed-Votes nicht
+      permissions: [Permission.read(Role.user(v.$id)), Permission.update(Role.user(v.$id)), Permission.delete(Role.user(v.$id))],
     }).catch(() => {})
   }
   const up = value === 1 ? voters.length : 0

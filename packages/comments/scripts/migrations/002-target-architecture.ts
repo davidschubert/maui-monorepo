@@ -134,7 +134,10 @@ await step('Table comments', () => tablesDB.createTable({
   databaseId,
   tableId: 'comments',
   name: 'Comments',
-  permissions: [Permission.read(Role.any()), Permission.create(Role.users())],
+  // KEIN Table-read(any): Lesen steuern die Rows (read(any) nur auf nicht-
+  // hidden Rows — Migration 008), sonst wären hidden-Kommentare per Roh-REST
+  // lesbar. Realtime für Gäste funktioniert über die Row-Permission.
+  permissions: [Permission.create(Role.users())],
   rowSecurity: true,
 }))
 

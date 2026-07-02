@@ -53,8 +53,12 @@ export default defineEventHandler(async (event) => {
       score: 0,
       status: 'active',
     },
-    // Lesen erlaubt die Table (any) — ändern/löschen nur der Autor
+    // Lesen erlaubt die ROW (any) — nicht mehr die Table: hidden-Kommentare
+    // verlieren beim Ausblenden ihre read(any)-Row-Permission und sind damit
+    // auch per Roh-REST/Web-SDK unlesbar (Migration 008). Gast-Realtime läuft
+    // über die Row-Permission weiter. Ändern/löschen nur der Autor.
     permissions: [
+      Permission.read(Role.any()),
       Permission.update(Role.user(user.$id)),
       Permission.delete(Role.user(user.$id)),
     ],

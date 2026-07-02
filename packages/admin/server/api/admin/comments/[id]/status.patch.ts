@@ -1,5 +1,27 @@
-import { Query, type Models } from 'node-appwrite'
+import { Permission, Query, Role, type Models } from 'node-appwrite'
 import { z } from 'zod'
+
+// Row-Level-Sichtbarkeit (Migration comments-008): nicht-hidden Rows tragen
+// read("any"); Ausblenden ENTZIEHT die Permission (Roh-REST-Leak zu),
+// Wiederherstellen gibt sie zurück.
+const READ_ANY = Permission.read(Role.any())
+
+/** Hide: Status-Update (Event erreicht Leser noch) → dann Permission entziehen. */
+async function hideRow(admin: ReturnType<typeof createAdminClient>, databaseId: string, row: Models.Row) {
+  const updated = await admin.tablesDB.updateRow<Models.Row & { status: string }>({
+    databaseId, tableId: 'comments', rowId: row.$id, data: { status: 'hidden' },
+  })
+  // Zweite Phase getrennt: würde die Permission im selben Write fallen, käme
+  // das hidden-Event bei Gästen/Lesern nie an (Auslieferung folgt den Row-
+  // Permissions) und der Kommentar bliebe bis zum Reload stehen.
+  if (updated.$permissions.includes(READ_ANY)) {
+    await admin.tablesDB.updateRow({
+      databaseId, tableId: 'comments', rowId: row.$id,
+      permissions: updated.$permissions.filter(p => p !== READ_ANY),
+    }).catch(() => {}) // best effort — Status ist bereits hidden (Filter greift)
+  }
+  return updated
+}
 
 // Moderation darf nur ausblenden/wiederherstellen — deleted/reported
 // sind keine gültigen Ziele (Soft-Delete gehört dem Autor)
@@ -39,12 +61,19 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 400, statusText: 'Deleted comments cannot be moderated' })
   }
 
-  const updated = await admin.tablesDB.updateRow<Models.Row & { status: string }>({
-    databaseId,
-    tableId: 'comments',
-    rowId: commentId,
-    data: { status },
-  }).catch((error) => { throw toH3Error(error, 'Could not update comment') })
+  // Hide zweiphasig (Status-Event, dann Permission-Entzug); Restore in EINEM
+  // Write: Status zurück + read(any) wieder anhängen (Event folgt den neuen
+  // Permissions → erreicht Leser wieder).
+  const updated = await (status === 'hidden'
+    ? hideRow(admin, databaseId, row)
+    : admin.tablesDB.updateRow<Models.Row & { status: string }>({
+        databaseId,
+        tableId: 'comments',
+        rowId: commentId,
+        data: { status },
+        permissions: row.$permissions.includes(READ_ANY) ? undefined : [...row.$permissions, READ_ANY],
+      })
+  ).catch((error) => { throw toH3Error(error, 'Could not update comment') })
 
   // Cascade-Hide: Wird ein Kommentar ausgeblendet, blenden wir seine (geladenen)
   // Nachfahren mit aus — sonst zählt der globale `total` non-hidden, aber
@@ -93,9 +122,7 @@ export default defineEventHandler(async (event) => {
     }
     // Nur aktive Nachfahren ausblenden — deleted-Tombstones + bereits hidden bleiben.
     const toHide = threadRows.filter(r => r.$id !== commentId && subtree.has(r.$id) && r.status === 'active')
-    await Promise.all(toHide.map(r =>
-      admin.tablesDB.updateRow({ databaseId, tableId: 'comments', rowId: r.$id, data: { status: 'hidden' } }).catch(() => {}),
-    ))
+    await Promise.all(toHide.map(r => hideRow(admin, databaseId, r).catch(() => {})))
   }
 
   await recordAudit(event, {
