@@ -182,8 +182,8 @@ maui-monorepo/
 │   │   │   ├── assets/css/main.css        # Tailwind 4 Basis + @source
 │   │   │   ├── components/
 │   │   │   │   ├── auth/
-│   │   │   │   │   ├── LoginForm.vue      # baut auf UAuthForm (Nuxt UI 4) auf
-│   │   │   │   │   ├── RegisterForm.vue   # baut auf UAuthForm auf
+│   │   │   │   │   ├── LoginForm.vue      # UForm, UAuthForm als Vorlage (docs/AUTH-FORMS.md)
+│   │   │   │   │   ├── RegisterForm.vue   # UForm, UAuthForm als Vorlage (docs/AUTH-FORMS.md)
 │   │   │   │   │   └── LogoutButton.vue
 │   │   │   │   ├── user/
 │   │   │   │   │   ├── UserAvatar.vue
@@ -497,7 +497,7 @@ in ihrer Datei eine Regel steht, sondern weil sie im Themes-Layer liegt.
 **App:**
 - `plugins/auth.server.ts` — hydratisiert User aus h3 context in den Store (kein Client-Fetch beim Start)
 - `useCurrentUser()` + Pinia `useAuthStore` (user, isLoggedIn)
-- `LoginForm.vue` / `RegisterForm.vue` — auf **`UAuthForm`** (Nuxt UI 4) aufbauen statt UForm von Hand
+- `LoginForm.vue` / `RegisterForm.vue` — **`UAuthForm`** (Nuxt UI 4) als Vorlage; real bewusst eigene `UForm`-Implementierungen (2-Schritt-OTP, Security-Phrase, geteilter E-Mail-State, AGB-Gate) — Entscheidung + Details in docs/AUTH-FORMS.md
 - Route Middleware `auth.ts` / `guest.ts`
 - `pages/login.vue` + `register.vue` — out-of-the-box, überschreibbar
 

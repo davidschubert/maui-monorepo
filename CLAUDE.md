@@ -74,7 +74,10 @@ Vollständiges Konzept: docs/CONCEPT.md
 - app.config.ts wird tief gemergt — App überschreibt nur was nötig
 
 ## Coding Rules
-- <script setup lang="ts">, Nuxt UI Komponenten bevorzugen (UAuthForm für Auth!)
+- <script setup lang="ts">, Nuxt UI Komponenten bevorzugen. Auth-Formulare:
+  UAuthForm ist die VORLAGE (Optik/Struktur) — Login/Register/OTP sind bewusst
+  eigene UForm-Implementierungen (2-Schritt-OTP, Security-Phrase, geteilter
+  E-Mail-State, AGB-Gate); Details in docs/AUTH-FORMS.md
 - Pinia defineStore Composition Style; Layer-stores via imports.dirs registrieren
   (werden nicht auto-gescannt)
 - Relative Pfade im Layer (kein ~/ oder @/)
