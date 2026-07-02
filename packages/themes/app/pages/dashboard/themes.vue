@@ -5,7 +5,7 @@
  * (Ramp aus Basisfarbe generiert, Kontrast-Check, CSS-Export).
  * Registriert via maui.admin.modules (Layer-Vertrag, A14).
  */
-import type { CustomThemeDto } from '../../../shared/ramp'
+import type { CustomThemeDto, ThemeConfig } from '../../../shared/ramp'
 import { contrastRatio, customThemeAttr, customThemeCss, generateRamp, HEX_COLOR_RE, SHADES, wcagLevel } from '../../../shared/ramp'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'system.manage' })
@@ -28,24 +28,76 @@ function isActive(id: string): boolean {
 function rampFor(themeId: string): string[] {
   const custom = customById.value.get(themeId)
   if (!custom) return []
-  const ramp = generateRamp(custom.primary)
+  const ramp = generateRamp(custom.primary, custom.config ?? {})
   return ramp ? SHADES.map(s => ramp[s]) : []
 }
 
 // ── Editor (anlegen + bearbeiten) ──────────────────────────────────────────
-const editor = ref<{ id: string | null, name: string, primary: string } | null>(null)
+interface EditorState { id: string | null, name: string, primary: string, config: Required<Omit<ThemeConfig, 'radius'>> & { radius: number | null } }
+const editor = ref<EditorState | null>(null)
 const busy = ref(false)
 
+const DEFAULT_CONFIG: EditorState['config'] = {
+  mode: 'perceived', anchor: 'auto', hueShift: 0, saturation: 1, lightnessMax: 97, lightnessMin: 16, radius: null,
+}
+
 function openCreate() {
-  editor.value = { id: null, name: '', primary: '#2f7fee' }
+  editor.value = { id: null, name: '', primary: '#2f7fee', config: { ...DEFAULT_CONFIG } }
 }
 function openEdit(custom: CustomThemeDto) {
-  editor.value = { id: custom.id, name: custom.name, primary: custom.primary }
+  editor.value = {
+    id: custom.id,
+    name: custom.name,
+    primary: custom.primary,
+    config: { ...DEFAULT_CONFIG, ...(custom.config ?? {}), radius: custom.config?.radius ?? null },
+  }
+}
+
+/** Editor-Config → ThemeConfig (nur Nicht-Defaults, radius nur wenn gesetzt) */
+function editorConfig(): ThemeConfig {
+  const c = editor.value!.config
+  return { mode: c.mode, anchor: c.anchor, hueShift: c.hueShift, saturation: c.saturation, lightnessMax: c.lightnessMax, lightnessMin: c.lightnessMin, ...(c.radius !== null ? { radius: c.radius as ThemeConfig['radius'] } : {}) }
 }
 
 const editorRamp = computed(() => {
   if (!editor.value || !HEX_COLOR_RE.test(editor.value.primary)) return null
-  return generateRamp(editor.value.primary)
+  return generateRamp(editor.value.primary, editorConfig())
+})
+
+// Draft-Live-Vorschau: solange der Editor offen (und gültig) ist, wird der
+// Entwurf auf die GANZE Seite angewendet — beurteilen an echten Components
+// statt am Farbstreifen. Schließen/Speichern stellt das aktive Theme wieder her.
+let previousDataTheme: string | undefined
+watch([editor, editorRamp], () => {
+  if (import.meta.server) return
+  const html = document.documentElement
+  let styleEl = document.getElementById('maui-draft-theme') as HTMLStyleElement | null
+  if (editor.value && editorRamp.value) {
+    if (previousDataTheme === undefined) previousDataTheme = html.dataset.theme ?? ''
+    if (!styleEl) {
+      styleEl = document.createElement('style')
+      styleEl.id = 'maui-draft-theme'
+      document.head.appendChild(styleEl)
+    }
+    styleEl.textContent = customThemeCss({ id: 'draft', name: 'Draft', primary: editor.value.primary, order: 0, config: editorConfig() }, 'c-draft')
+    html.dataset.theme = 'c-draft'
+  }
+  else {
+    styleEl?.remove()
+    if (previousDataTheme !== undefined) {
+      if (previousDataTheme) html.dataset.theme = previousDataTheme
+      else delete html.dataset.theme
+      previousDataTheme = undefined
+    }
+  }
+}, { deep: true })
+onScopeDispose(() => {
+  if (import.meta.server) return
+  document.getElementById('maui-draft-theme')?.remove()
+  if (previousDataTheme !== undefined) {
+    if (previousDataTheme) document.documentElement.dataset.theme = previousDataTheme
+    else delete document.documentElement.dataset.theme
+  }
 })
 
 // Kontrast-Checks der kritischen Kombinationen (Button-Text auf primary)
@@ -55,6 +107,7 @@ const contrastChecks = computed(() => {
   return [
     { label: t('themes.studio.contrastWhite500'), bg: ramp[500], fg: '#ffffff' },
     { label: t('themes.studio.contrastWhite600'), bg: ramp[600], fg: '#ffffff' },
+    { label: t('themes.studio.contrastWhite400'), bg: ramp[400], fg: '#ffffff' },
     { label: t('themes.studio.contrastBlack200'), bg: ramp[200], fg: '#000000' },
   ].map((check) => {
     const ratio = contrastRatio(check.bg, check.fg) ?? 0
@@ -70,7 +123,7 @@ async function saveEditor() {
   if (!editor.value || !editorValid.value) return
   busy.value = true
   try {
-    const body = { name: editor.value.name.trim(), primary: editor.value.primary.toLowerCase() }
+    const body = { name: editor.value.name.trim(), primary: editor.value.primary.toLowerCase(), config: editorConfig() }
     if (editor.value.id) {
       await $fetch(`/api/admin/themes/${editor.value.id}`, { method: 'PATCH', body })
     }
@@ -316,6 +369,7 @@ const demoRange = ref(60)
       >
         <template #body>
           <div v-if="editor" class="space-y-4">
+            <UAlert icon="i-ph-eye" color="primary" variant="subtle" :description="t('themes.studio.draftHint')" />
             <UFormField :label="t('themes.studio.name')" required>
               <UInput v-model="editor.name" :maxlength="64" class="w-full" />
             </UFormField>
@@ -330,6 +384,59 @@ const demoRange = ref(60)
                 <UInput v-model="editor.primary" placeholder="#2f7fee" class="w-32 font-mono" :maxlength="7" />
               </div>
             </UFormField>
+
+            <!-- Generator-Regler (Perceived/OKLCH) -->
+            <div class="grid grid-cols-2 gap-3">
+              <UFormField :label="t('themes.studio.mode')">
+                <USwitch
+                  :model-value="editor.config.mode === 'perceived'"
+                  :label="editor.config.mode === 'perceived' ? t('themes.studio.modePerceived') : t('themes.studio.modeLinear')"
+                  @update:model-value="(on: boolean) => { editor!.config.mode = on ? 'perceived' : 'linear' }"
+                />
+              </UFormField>
+              <UFormField :label="t('themes.studio.anchor')">
+                <USelect
+                  v-model="editor.config.anchor"
+                  :disabled="editor.config.mode === 'linear'"
+                  :items="[{ label: t('themes.studio.anchorAuto'), value: 'auto' }, ...SHADES.map(s => ({ label: String(s), value: s }))]"
+                  class="w-full"
+                />
+              </UFormField>
+              <UFormField :label="`${t('themes.studio.hueShift')} (${editor.config.hueShift}°)`" class="col-span-2">
+                <USlider v-model="editor.config.hueShift" :min="-180" :max="180" :step="5" :disabled="editor.config.mode === 'linear'" />
+              </UFormField>
+              <UFormField :label="`${t('themes.studio.saturation')} (${editor.config.saturation.toFixed(2)})`" class="col-span-2">
+                <USlider v-model="editor.config.saturation" :min="0" :max="2" :step="0.05" :disabled="editor.config.mode === 'linear'" />
+              </UFormField>
+              <UFormField :label="`${t('themes.studio.lightnessMax')} (${editor.config.lightnessMax}%)`">
+                <USlider v-model="editor.config.lightnessMax" :min="80" :max="100" :step="1" :disabled="editor.config.mode === 'linear'" />
+              </UFormField>
+              <UFormField :label="`${t('themes.studio.lightnessMin')} (${editor.config.lightnessMin}%)`">
+                <USlider v-model="editor.config.lightnessMin" :min="0" :max="40" :step="1" :disabled="editor.config.mode === 'linear'" />
+              </UFormField>
+              <UFormField :label="t('themes.studio.radius')" class="col-span-2">
+                <div class="flex items-center gap-1.5">
+                  <UButton
+                    size="xs"
+                    :color="editor.config.radius === null ? 'primary' : 'neutral'"
+                    :variant="editor.config.radius === null ? 'subtle' : 'ghost'"
+                    @click="editor.config.radius = null"
+                  >
+                    {{ t('themes.studio.radiusDefault') }}
+                  </UButton>
+                  <UButton
+                    v-for="r in [0, 0.125, 0.25, 0.375, 0.5]"
+                    :key="r"
+                    size="xs"
+                    :color="editor.config.radius === r ? 'primary' : 'neutral'"
+                    :variant="editor.config.radius === r ? 'subtle' : 'ghost'"
+                    @click="editor.config.radius = r"
+                  >
+                    {{ r }}
+                  </UButton>
+                </div>
+              </UFormField>
+            </div>
 
             <div v-if="editorRamp" class="space-y-2">
               <p class="text-sm text-muted">{{ t('themes.studio.rampPreview') }}</p>

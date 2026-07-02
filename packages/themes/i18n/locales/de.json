@@ -45,7 +45,20 @@
         "switch": "Schalter",
         "alertTitle": "Hinweis",
         "alertText": "So sehen Alerts im aktiven Theme aus."
-      }
+      },
+      "mode": "Modus",
+      "modePerceived": "Perceived (OKLCH)",
+      "modeLinear": "Linear (sRGB)",
+      "anchor": "Anker-Stufe",
+      "anchorAuto": "Auto",
+      "hueShift": "Farbton-Drift",
+      "saturation": "Sättigung",
+      "lightnessMax": "Helligkeit max (50er)",
+      "lightnessMin": "Helligkeit min (950er)",
+      "radius": "Radius (rem)",
+      "radiusDefault": "Theme-Default",
+      "draftHint": "Live-Vorschau: Der Entwurf wird beim Bearbeiten sofort auf die ganze Seite angewendet.",
+      "contrastWhite400": "Weiß auf 400 (Dark)"
     }
   }
 }

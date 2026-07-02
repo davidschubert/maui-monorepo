@@ -1,7 +1,19 @@
 import { Query } from 'node-appwrite'
 import type { Models } from 'node-appwrite'
 
-type CustomThemeRow = Models.Row & { name: string, primary: string, order: number }
+type CustomThemeRow = Models.Row & { name: string, primary: string, order: number, config?: string | null }
+
+/** config-JSON defensiv parsen — kaputte/fehlende Werte = Generator-Defaults */
+function parseConfig(raw: string | null | undefined): Record<string, unknown> | undefined {
+  if (!raw) return undefined
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>
+    return typeof parsed === 'object' && parsed !== null ? parsed : undefined
+  }
+  catch {
+    return undefined
+  }
+}
 
 /**
  * Öffentliche Liste der Custom Themes (Theme-Studio) — wird beim App-Start
@@ -24,6 +36,7 @@ export default defineEventHandler(async (event) => {
       name: row.name,
       primary: row.primary,
       order: row.order ?? 0,
+      config: parseConfig(row.config),
     }))
   }
   catch {

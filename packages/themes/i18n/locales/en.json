@@ -45,7 +45,20 @@
         "switch": "Switch",
         "alertTitle": "Note",
         "alertText": "This is how alerts look in the active theme."
-      }
+      },
+      "mode": "Mode",
+      "modePerceived": "Perceived (OKLCH)",
+      "modeLinear": "Linear (sRGB)",
+      "anchor": "Anchor shade",
+      "anchorAuto": "Auto",
+      "hueShift": "Hue drift",
+      "saturation": "Saturation",
+      "lightnessMax": "Lightness max (50)",
+      "lightnessMin": "Lightness min (950)",
+      "radius": "Radius (rem)",
+      "radiusDefault": "Theme default",
+      "draftHint": "Live preview: while editing, the draft is applied to the whole page instantly.",
+      "contrastWhite400": "White on 400 (dark)"
     }
   }
 }

@@ -38,7 +38,7 @@ export default defineNuxtPlugin(async () => {
         : []),
     ],
     style: () => (customThemes.value.length
-      ? [{ id: 'maui-custom-themes-css', textContent: customThemes.value.map(customThemeCss).join('\n') }]
+      ? [{ id: 'maui-custom-themes-css', textContent: customThemes.value.map(entry => customThemeCss(entry)).join('\n') }]
       : []),
   })
 })

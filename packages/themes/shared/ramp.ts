@@ -1,3 +1,5 @@
+import { oklchToHex, rgbToOklch } from './oklch'
+
 /**
  * Runtime-Ramp-Generator für CUSTOM Themes (Theme-Studio).
  *
@@ -9,13 +11,32 @@
  * gerendert (kein Flash).
  */
 
+/** Generator-Parameter eines Custom Themes (Editor-Regler, alle optional) */
+export interface ThemeConfig {
+  /** 'perceived' = OKLCH-Stufen (Default) · 'linear' = sRGB-Mischung (v1) */
+  mode?: 'perceived' | 'linear'
+  /** Stufe, auf der die Basisfarbe EXAKT liegt; 'auto' = nächstliegende Helligkeit */
+  anchor?: 'auto' | Shade
+  /** Hue-Drift in Grad über die Ramp (am Anker 0, zu den Enden hin voll) */
+  hueShift?: number
+  /** Chroma-Multiplikator (1 = neutral, 0..2) */
+  saturation?: number
+  /** Wahrgenommene Helligkeit der 50er-Stufe in % (Default 97) */
+  lightnessMax?: number
+  /** Wahrgenommene Helligkeit der 950er-Stufe in % (Default 16) */
+  lightnessMin?: number
+  /** --ui-radius in rem (überschreibt den Default des aktiven Basis-Themes) */
+  radius?: number
+}
+
 export interface CustomThemeDto {
   /** Appwrite-Row-ID (data-theme wird `c-<id>`) */
   id: string
   name: string
-  /** Basisfarbe (hex, wird zur primary-500) */
+  /** Basisfarbe (hex, liegt auf der Anker-Stufe) */
   primary: string
   order: number
+  config?: ThemeConfig
 }
 
 export const SHADES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const
@@ -38,19 +59,73 @@ function mix(base: [number, number, number], target: [number, number, number], a
   return `#${toHex(base[0] + (target[0] - base[0]) * amount)}${toHex(base[1] + (target[1] - base[1]) * amount)}${toHex(base[2] + (target[2] - base[2]) * amount)}`
 }
 
-// Mischanteile je Stufe — an den statischen Theme-CSS-Kurven (ocean/forest)
-// kalibriert: helle Stufen Richtung Weiß, dunkle Richtung Schwarz.
+// Mischanteile je Stufe (Modus 'linear', v1) — an den statischen Theme-CSS-
+// Kurven kalibriert: helle Stufen Richtung Weiß, dunkle Richtung Schwarz.
 const LIGHT_STOPS: [Shade, number][] = [[50, 0.95], [100, 0.88], [200, 0.75], [300, 0.55], [400, 0.3]]
 const DARK_STOPS: [Shade, number][] = [[600, 0.12], [700, 0.28], [800, 0.42], [900, 0.53], [950, 0.7]]
 
-/** Basisfarbe (hex) → komplette Primary-Ramp 50–950; null bei ungültigem Hex. */
-export function generateRamp(primary: string): Record<Shade, string> | null {
+function generateLinearRamp(primary: string): Record<Shade, string> | null {
   const rgb = hexToRgb(primary)
   if (!rgb) return null
   const ramp = { 500: primary.toLowerCase() } as Record<Shade, string>
   for (const [shade, amount] of LIGHT_STOPS) ramp[shade] = mix(rgb, [255, 255, 255], amount)
   for (const [shade, amount] of DARK_STOPS) ramp[shade] = mix(rgb, [0, 0, 0], amount)
   return ramp
+}
+
+// 'Perceived': OKLCH-Lightness-Ziele je Stufe (an Tailwind-v4-Ramps kalibriert,
+// normiert 0..1 zwischen lightnessMax und lightnessMin) und Chroma-Kurve
+// (Sättigung läuft an den hellen/dunklen Enden zurück, Maximum um 400–600).
+const L_CURVE = [1, 0.93, 0.845, 0.72, 0.58, 0.475, 0.375, 0.28, 0.195, 0.115, 0]
+const C_CURVE = [0.22, 0.42, 0.62, 0.82, 0.97, 1, 0.97, 0.88, 0.76, 0.62, 0.45]
+
+function generatePerceivedRamp(primary: string, config: ThemeConfig): Record<Shade, string> | null {
+  const rgb = hexToRgb(primary)
+  if (!rgb) return null
+  const base = rgbToOklch(rgb)
+
+  const lMax = (config.lightnessMax ?? 97) / 100
+  const lMin = (config.lightnessMin ?? 16) / 100
+  const targetL = L_CURVE.map(t => lMin + (lMax - lMin) * t)
+
+  // Anker: Stufe, auf der die Basisfarbe EXAKT bleibt — 'auto' = nächstes L
+  const anchorIndex = config.anchor && config.anchor !== 'auto'
+    ? SHADES.indexOf(config.anchor)
+    : targetL.reduce((best, l, i) => (Math.abs(l - base.l) < Math.abs(targetL[best]! - base.l) ? i : best), 0)
+
+  const saturation = config.saturation ?? 1
+  const hueShift = config.hueShift ?? 0
+  const anchorC = C_CURVE[anchorIndex]!
+  const maxDistance = Math.max(anchorIndex, SHADES.length - 1 - anchorIndex) || 1
+
+  // Die Basisfarbe liegt selten EXAKT auf der Stufen-Helligkeit — die Kurve
+  // wird um die Abweichung verschoben, zu den Enden hin auslaufend (Taper):
+  // Anker bleibt exakt, die Ramp bleibt glatt und monoton.
+  const anchorDelta = base.l - targetL[anchorIndex]!
+
+  const ramp = {} as Record<Shade, string>
+  SHADES.forEach((shade, i) => {
+    if (i === anchorIndex) {
+      ramp[shade] = primary.toLowerCase()
+      return
+    }
+    // Chroma relativ zur Anker-Kurve skalieren (Anker behält sein Chroma exakt);
+    // Hue driftet linear mit der Distanz zum Anker (am Anker 0).
+    const distance = (i - anchorIndex) / maxDistance
+    ramp[shade] = oklchToHex({
+      l: targetL[i]! + anchorDelta * (1 - Math.abs(distance)),
+      c: base.c * (C_CURVE[i]! / anchorC) * saturation,
+      h: (base.h + hueShift * distance + 360) % 360,
+    })
+  })
+  return ramp
+}
+
+/** Basisfarbe (hex) + Konfiguration → komplette Primary-Ramp 50–950; null bei ungültigem Hex. */
+export function generateRamp(primary: string, config: ThemeConfig = {}): Record<Shade, string> | null {
+  return (config.mode ?? 'perceived') === 'linear'
+    ? generateLinearRamp(primary)
+    : generatePerceivedRamp(primary, config)
 }
 
 /** data-theme-Attributwert eines Custom Themes (kollidiert nie mit Built-ins) */
@@ -63,12 +138,17 @@ export function customThemeAttr(id: string): string {
  * (Ramp + --ui-primary 600 hell / 400 dunkel). Die Werte sind validierte
  * Hex-Farben aus generateRamp, die IDs Appwrite-Row-IDs — keine Injection-Fläche.
  */
-export function customThemeCss(theme: CustomThemeDto): string {
-  const ramp = generateRamp(theme.primary)
+export function customThemeCss(theme: CustomThemeDto, attrOverride?: string): string {
+  const config = theme.config ?? {}
+  const ramp = generateRamp(theme.primary, config)
   if (!ramp) return ''
-  const attr = customThemeAttr(theme.id)
+  const attr = attrOverride ?? customThemeAttr(theme.id)
   const vars = SHADES.map(shade => `  --ui-color-primary-${shade}: ${ramp[shade]};`).join('\n')
-  return `:root[data-theme='${attr}'] {\n${vars}\n  --ui-primary: var(--ui-color-primary-600);\n}\n.dark[data-theme='${attr}'] {\n  --ui-primary: var(--ui-color-primary-400);\n}`
+  // radius nur mit validiertem Zahlwert übernehmen (Zod begrenzt zusätzlich)
+  const radius = typeof config.radius === 'number' && Number.isFinite(config.radius)
+    ? `\n  --ui-radius: ${config.radius}rem;`
+    : ''
+  return `:root[data-theme='${attr}'] {\n${vars}\n  --ui-primary: var(--ui-color-primary-600);${radius}\n}\n.dark[data-theme='${attr}'] {\n  --ui-primary: var(--ui-color-primary-400);\n}`
 }
 
 // ── Kontrast (WCAG 2.x) ──────────────────────────────────────────────────
