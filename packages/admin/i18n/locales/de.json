@@ -88,6 +88,10 @@
           "created": "hat einen Changelog-Eintrag veröffentlicht: {name}",
           "updated": "hat einen Changelog-Eintrag bearbeitet",
           "deleted": "hat einen Changelog-Eintrag gelöscht"
+        },
+        "gdpr_export": {
+          "downloaded": "GDPR-Export heruntergeladen",
+          "deleted": "GDPR-Export gelöscht"
         }
       }
     },
@@ -162,7 +166,7 @@
         "block": "{name} wirklich blockieren? Der Benutzer kann sich nicht mehr anmelden.",
         "unblock": "{name} wieder entsperren?",
         "sessions": "Alle aktiven Sessions von {name} beenden?",
-        "delete": "{name} endgültig löschen? Der Account wird entfernt und kann nicht wiederhergestellt werden."
+        "delete": "{name} endgültig löschen? ALLE Daten werden entfernt bzw. anonymisiert (Kommentare, Votes, Meldungen, Benachrichtigungen, Avatar). Vorher wird ein Daten-Snapshot für Admins erstellt (30 Tage abrufbar). Nicht wiederherstellbar."
       },
       "blocked": "Benutzer blockiert.",
       "unblocked": "Benutzer entsperrt.",
@@ -236,6 +240,18 @@
       "alsoEditing": "{names} bearbeitet dieses Formular ebenfalls",
       "alsoEditingHint": "Speichern kann die Änderungen der anderen Person überschreiben.",
       "viewingPage": "{count} andere sehen diese Seite gerade"
+    },
+    "gdprExports": {
+      "title": "GDPR-Exporte",
+      "hint": "Pre-Delete-Snapshots gelöschter Accounts — bei jeder Account-Löschung automatisch erstellt, nach 30 Tagen automatisch entfernt.",
+      "empty": "Keine Snapshots vorhanden.",
+      "download": "Download",
+      "delete": "Löschen",
+      "deleted": "Snapshot gelöscht.",
+      "deleteError": "Löschen fehlgeschlagen.",
+      "downloadError": "Download fehlgeschlagen.",
+      "confirmTitle": "Snapshot löschen?",
+      "confirmText": "{name} endgültig löschen? Der Snapshot kann danach nicht mehr abgerufen werden."
     }
   },
   "whatsNew": {

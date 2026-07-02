@@ -1,4 +1,10 @@
-/** DSGVO: einen User endgültig löschen (Admin) — nicht den eigenen Account. */
+/**
+ * DSGVO: einen User VOLLSTÄNDIG löschen (Admin) — nicht den eigenen Account.
+ * Orchestriert über deleteUserCompletely (Snapshot → Sperren → Contributors →
+ * Avatar/Presence → users.delete nur bei Voll-Erfolg). Bei Teilfehler bleibt
+ * der User gesperrt und die Response nennt die fehlgeschlagenen Layer —
+ * die Löschung ist idempotent wiederholbar.
+ */
 export default defineEventHandler(async (event) => {
   const adminUser = requirePermission(event, 'users.manage')
 
@@ -13,19 +19,32 @@ export default defineEventHandler(async (event) => {
   await assertNotLastAdmin(event, userId)
 
   const admin = createAdminClient(event)
-
-  let name: string
-  try {
-    name = (await admin.users.get({ userId })).name
-  }
-  catch {
+  // Existenz-Check VOR dem Orchestrator: die Route soll 404 liefern; der
+  // Orchestrator selbst behandelt 404 als Orphan-Cleanup (Re-Run-Pfad).
+  const exists = await admin.users.get({ userId }).catch(() => null)
+  if (!exists) {
     throw createError({ status: 404, statusText: 'User not found' })
   }
 
-  await admin.users.delete({ userId })
+  const result = await deleteUserCompletely(event, userId, { actor: 'admin' })
     .catch((error) => { throw toH3Error(error, 'Could not delete user') })
 
-  await recordAudit(event, { action: 'user.deleted', targetType: 'user', targetId: userId, targetName: name })
+  // Audit OHNE Klarnamen — der steht im Snapshot, nicht im dauerhaften Log
+  await recordAudit(event, {
+    action: 'user.deleted',
+    targetType: 'user',
+    targetId: userId,
+    targetName: '',
+    metadata: result.exportFileId ? { exportFileId: result.exportFileId } : undefined,
+  })
 
-  return { ok: true }
+  if (!result.ok) {
+    throw createError({
+      status: 500,
+      statusText: 'User deletion incomplete — user is blocked, retry to finish cleanup',
+      data: { results: result.results, exportFileId: result.exportFileId },
+    })
+  }
+
+  return { ok: true, exportFileId: result.exportFileId }
 })

@@ -88,6 +88,10 @@
           "created": "published a changelog entry: {name}",
           "updated": "edited a changelog entry",
           "deleted": "deleted a changelog entry"
+        },
+        "gdpr_export": {
+          "downloaded": "GDPR export downloaded",
+          "deleted": "GDPR export deleted"
         }
       }
     },
@@ -162,7 +166,7 @@
         "block": "Really block {name}? The user will no longer be able to sign in.",
         "unblock": "Unblock {name} again?",
         "sessions": "End all active sessions of {name}?",
-        "delete": "Permanently delete {name}? This removes the account and cannot be undone."
+        "delete": "Permanently delete {name}? ALL data will be removed or anonymized (comments, votes, reports, notifications, avatar). A data snapshot for admins is created first (available for 30 days). This cannot be undone."
       },
       "blocked": "User blocked.",
       "unblocked": "User unblocked.",
@@ -236,6 +240,18 @@
       "alsoEditing": "{names} is also editing this form",
       "alsoEditingHint": "Saving may overwrite the other person's changes.",
       "viewingPage": "{count} others are viewing this page"
+    },
+    "gdprExports": {
+      "title": "GDPR exports",
+      "hint": "Pre-delete snapshots of deleted accounts — created automatically with every account deletion, removed automatically after 30 days.",
+      "empty": "No snapshots available.",
+      "download": "Download",
+      "delete": "Delete",
+      "deleted": "Snapshot deleted.",
+      "deleteError": "Delete failed.",
+      "downloadError": "Download failed.",
+      "confirmTitle": "Delete snapshot?",
+      "confirmText": "Permanently delete {name}? The snapshot can no longer be retrieved afterwards."
     }
   },
   "whatsNew": {

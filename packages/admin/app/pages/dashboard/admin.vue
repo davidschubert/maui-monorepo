@@ -15,6 +15,7 @@ const links = computed<NavigationMenuItem[]>(() => {
   if (userHasCapability(u, 'audit.read')) items.push({ label: t('admin.audit.title'), icon: 'i-ph-scroll', to: localePath('/dashboard/admin'), exact: true })
   if (userHasCapability(u, 'changelog.manage')) items.push({ label: t('admin.changelog.title'), icon: 'i-ph-megaphone', to: localePath('/dashboard/admin/changelog') })
   if (userHasCapability(u, 'system.manage')) items.push({ label: t('admin.config.title'), icon: 'i-ph-toggle-left', to: localePath('/dashboard/admin/config') })
+  if (userHasCapability(u, 'users.manage')) items.push({ label: t('admin.gdprExports.title'), icon: 'i-ph-file-lock', to: localePath('/dashboard/admin/gdpr-exports') })
   return items
 })
 </script>

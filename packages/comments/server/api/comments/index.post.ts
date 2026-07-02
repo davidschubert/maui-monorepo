@@ -76,7 +76,7 @@ export default defineEventHandler(async (event) => {
   // Core stellt den notify()-Vertrag bereit (best-effort, wirft nicht) — kein
   // direkter Cross-Layer-Zugriff auf die notifications-Tabelle (CONCEPT A14).
   if (parent && parent.authorId && parent.authorId !== user.$id) {
-    await notify(event, { recipientId: parent.authorId, type: 'reply', title: user.name, body: snippet, link })
+    await notify(event, { recipientId: parent.authorId, type: 'reply', title: user.name, body: snippet, link, senderId: user.$id })
   }
 
   // @Name-Erwähnungen (aufgelöst gegen die Thread-Teilnehmer) benachrichtigen —
@@ -88,7 +88,7 @@ export default defineEventHandler(async (event) => {
     excludeUserIds: [user.$id, ...(parent?.authorId ? [parent.authorId] : [])],
   })
   for (const mention of mentions) {
-    await notify(event, { recipientId: mention.userId, type: 'mention', title: user.name, body: snippet, link })
+    await notify(event, { recipientId: mention.userId, type: 'mention', title: user.name, body: snippet, link, senderId: user.$id })
   }
 
   setResponseStatus(event, 201)

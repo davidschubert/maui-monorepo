@@ -77,6 +77,23 @@ console.log(`Bootstrap gegen ${endpoint} / Projekt ${projectId}\n`)
   else console.warn(`⚠ Bucket fehlgeschlagen (${status}): ${json.message}`)
 }
 
+// 2b) GDPR-Exports-Bucket (Pre-Delete-Snapshots; nur Server-Key schreibt,
+// Downloads laufen über Admin-Routen mit requirePermission)
+{
+  const gdprBucket = process.env.NUXT_PUBLIC_APPWRITE_GDPR_BUCKET ?? 'gdpr-exports'
+  const { status, json } = await api('/storage/buckets', 'POST', {
+    bucketId: gdprBucket, name: 'gdpr-exports',
+    permissions: [], // keine Bucket-weiten Rechte — File-Permissions read(label:admin)
+    fileSecurity: true, enabled: true,
+    maximumFileSize: 25 * 1024 * 1024, // unter dem 30-MB-Default-Limit der Instanz
+    allowedFileExtensions: ['json'],
+    compression: 'none', encryption: true, antivirus: false,
+  })
+  if (ok(status)) console.log(`✔ Bucket '${gdprBucket}' angelegt`)
+  else if (status === 409) console.log(`↷ Bucket '${gdprBucket}' existiert bereits`)
+  else console.warn(`⚠ GDPR-Bucket fehlgeschlagen (${status}): ${json.message}`)
+}
+
 // 3) Web-Platform (best-effort — Projekt-Management-Scope; ggf. in der Console anlegen)
 {
   const { status } = await api(`/projects/${projectId}/platforms`, 'POST', {
