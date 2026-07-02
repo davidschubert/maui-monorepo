@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
     userId: ID.unique(),
     email,
     phrase: true,
-  })
+  }).catch((error) => { throw toH3Error(error, 'Could not send login code') })
 
   return { ok: true, userId: token.userId, phrase: token.phrase }
 })

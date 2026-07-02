@@ -17,6 +17,7 @@ export default defineEventHandler(async (event) => {
 
   const { storage } = createSessionClient(event)
   await storage.deleteFile({ bucketId, fileId })
+    .catch((error) => { throw toH3Error(error, 'File not found') })
 
   return { ok: true }
 })

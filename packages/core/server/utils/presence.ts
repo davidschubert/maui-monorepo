@@ -12,7 +12,8 @@ export type { OnlinePresence }
 export async function listOnlinePresences(event: H3Event): Promise<OnlinePresence[]> {
   try {
     const { presences } = createAdminClient(event)
-    const res = await presences.list({ queries: [Query.limit(200)] })
+    // total wird nicht genutzt → nicht berechnen lassen (Mikro-Optimierung)
+    const res = await presences.list({ queries: [Query.limit(200)], total: false })
     return toOnlinePresences((res.presences ?? []) as unknown as RawServerPresence[], Date.now())
   }
   catch {

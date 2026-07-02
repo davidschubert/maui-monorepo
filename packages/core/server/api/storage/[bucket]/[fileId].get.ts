@@ -51,7 +51,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const meta = await storage.getFile({ bucketId, fileId })
+    .catch((error) => { throw toH3Error(error, 'File not found') })
   const data = await storage.getFileView({ bucketId, fileId })
+    .catch((error) => { throw toH3Error(error, 'File not found') })
   setHeader(event, 'Content-Type', meta.mimeType)
   setHeader(event, 'Cache-Control', 'public, max-age=3600')
   return Buffer.from(data)
