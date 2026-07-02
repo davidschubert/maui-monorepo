@@ -475,7 +475,12 @@ in ihrer Datei eine Regel steht, sondern weil sie im Themes-Layer liegt.
    `maui.admin.modules` (Feature → admin-Dashboard-Nav), `myOpenReportTargetIds()`
    (comments → moderation) und `registerUserDataContributor` (Feature-Layer registrieren
    GDPR-Export/-Löschung ihrer Daten bei core — core orchestriert `exportUserCompletely`/
-   `deleteUserCompletely` ohne Feature-Schema-Wissen; seit 2026-07-02).
+   `deleteUserCompletely` ohne Feature-Schema-Wissen; seit 2026-07-02) sowie
+   `registerDashboardStatsContributor` (Feature-Layer liefern ihre Dashboard-
+   Kennzahlen — admin/stats kennt keine Feature-Tabellen mehr; seit 2026-07-02).
+   Dokumentierte Matrix-Ausnahme: core SCHREIBT die system-Tabellen `audit_logs`
+   (authAudit) und `notifications` (notify) sowie liest `app_config` — bewusste
+   Fundament→Fundament-Nutzung, system bleibt reiner Schema-Owner + GDPR/Stats-Anbieter.
 2. **ESLint `no-restricted-imports` (Backstop):** pro `files`-Scope in `eslint.config.mjs` —
    themes verbietet `*appwrite*`/`@maui/*`, Feature-Layer verbieten andere `@maui/`-Feature-Layer,
    Fundament-Layer (core/moderation) verbieten jeden Feature-Import. Fängt *künftige* explizite

@@ -25,7 +25,7 @@ Den Entwurf polierst du im Dashboard unter **Changelog** und veröffentlichst ih
 Voraussetzung: Appwrite CLI (`appwrite login`, Projekt gesetzt).
 
 ```bash
-# aus dem Repo-Root — nutzt appwrite.json
+# aus dem Repo-Root — nutzt appwrite.config.json
 appwrite push function        # legt/aktualisiert die Function "changelog-draft"
 ```
 
@@ -39,7 +39,7 @@ appwrite push function        # legt/aktualisiert die Function "changelog-draft"
 | `GITHUB_TOKEN`          | _(optional)_                    | privates Repo / höheres Rate-Limit       |
 
 Der API-Key kommt als **dynamischer Key** (Header `x-appwrite-key`); die in
-`appwrite.json` gesetzten Scopes (`tablesDB.rows.read/​write`) müssen aktiv sein.
+`appwrite.config.json` gesetzten Scopes (`tablesDB.rows.read/​write`) müssen aktiv sein.
 Beim Deploy die genauen Scope-Namen der laufenden 1.9.5-Instanz gegenprüfen.
 
 ### GitHub-Webhook einrichten

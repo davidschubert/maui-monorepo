@@ -50,7 +50,7 @@ Begründung:
    String-/Copy-Coupling, das A14 verbietet.
 2. **Layer-Komposition bleibt eine Zeile.** Der Baukasten-Anspruch ist: App extended
    `billing` → fertig. Eine Function bräuchte pro App einen separaten
-   `appwrite.json`-Eintrag + Deploy-Schritt + Key-Verdrahtung — der Layer wäre nicht
+   `appwrite.config.json`-Eintrag + Deploy-Schritt + Key-Verdrahtung — der Layer wäre nicht
    mehr self-contained.
 3. **Raw Body ist in h3 trivial.** Signatur-Verifikation braucht den unveränderten
    Request-Body: `readRawBody(event)` + `stripe.webhooks.constructEvent(raw, sig, secret)`.

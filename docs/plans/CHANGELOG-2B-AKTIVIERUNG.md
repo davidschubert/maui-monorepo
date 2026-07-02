@@ -22,13 +22,13 @@ im Dashboard unter **Changelog** poliert und veröffentlicht — wie bisher.
 | V1 | **Prod-Appwrite** (self-hosted ≥ 1.9.5) läuft, per **HTTPS** öffentlich erreichbar (z. B. `api.<domain>/v1`) | GitHub muss den Webhook zustellen können; `localhost` scheidet aus (der Grund, warum 2A existiert) |
 | V2 | **Functions-Domain** der Instanz konfiguriert: `_APP_DOMAIN_FUNCTIONS=functions.<domain>` in der Appwrite-`.env` + **Wildcard-DNS** `*.functions.<domain>` + **TLS** (Traefik/Caddy stellt Zertifikate aus) | Jede Function bekommt eine generierte Subdomain — das wird die Payload-URL des Webhooks |
 | V3 | `changelog`-Table existiert in der Prod-DB (admin-Layer-Migration gelaufen, DEPLOYMENT.md Schritt 2) | Die Function schreibt per `createRow` in `tableId: 'changelog'` |
-| V4 | **Appwrite CLI** lokal installiert + eingeloggt gegen die **Prod**-Instanz (`appwrite login`, Projekt `reddit-comments` bzw. Prod-Project-ID) | Deploy läuft über `appwrite push` aus dem Repo-Root (nutzt `appwrite.json`) |
+| V4 | **Appwrite CLI** lokal installiert + eingeloggt gegen die **Prod**-Instanz (`appwrite login`, Projekt `reddit-comments` bzw. Prod-Project-ID) | Deploy läuft über `appwrite push` aus dem Repo-Root (nutzt `appwrite.config.json`) |
 | V5 | Release-Prozess aktiv: release-please-PR-Merge erzeugt Tag + **GitHub-Release** (`action=published`) | Nur `release/published`-Events lösen den Draft aus; Draft-/Pre-Release-Anlegen ohne „publish" tut nichts |
 
-> **Hinweis Project-ID:** `appwrite.json` trägt aktuell `projectId: reddit-comments`.
+> **Hinweis Project-ID:** `appwrite.config.json` trägt aktuell `projectId: reddit-comments`.
 > Weicht die Prod-Project-ID ab, vor dem Push anpassen (oder per
 > `appwrite push --project-id <prod>` überschreiben). Perspektivisch steht die
-> Umbenennung `appwrite.json` → `appwrite.config.json` an (neuer CLI-Name,
+> Umbenennung `appwrite.config.json` → `appwrite.config.json` an (neuer CLI-Name,
 > OPEN-ITEMS „Kleinkram") — bei der Gelegenheit miterledigen.
 
 ## 2. Env-Vars / Secrets der Function (laut Code, `src/main.js`)
@@ -46,7 +46,7 @@ Variables, oder per CLI):
 **Automatisch von Appwrite bereitgestellt** (nichts zu tun):
 `APPWRITE_FUNCTION_API_ENDPOINT`, `APPWRITE_FUNCTION_PROJECT_ID` und der
 **dynamische API-Key** im Header `x-appwrite-key` — dessen Rechte kommen aus den
-Function-**Scopes** in `appwrite.json` (`rows.read`, `rows.write`). Beim Deploy
+Function-**Scopes** in `appwrite.config.json` (`rows.read`, `rows.write`). Beim Deploy
 gegenprüfen, dass die 1.9.5-Instanz genau diese Scope-Namen kennt (README-Hinweis;
 ggf. heißen sie in der Console `tablesDB.rows.*`). Ein statischer
 `APPWRITE_API_KEY` ist nur Fallback im Code — **nicht setzen**, dynamischer Key
@@ -90,7 +90,7 @@ in den GitHub-Repo-Settings · **[CLI]** = per Terminal/Appwrite CLI · **[Serve
 ### Phase B — Function deployen
 
 4. **[CLI]** Login gegen Prod: `appwrite login` (Endpoint `https://api.<domain>/v1`,
-   Prod-Projekt wählen). Bei abweichender Prod-Project-ID: `appwrite.json` anpassen.
+   Prod-Projekt wählen). Bei abweichender Prod-Project-ID: `appwrite.config.json` anpassen.
 5. **[CLI]** Aus dem **Repo-Root**: `appwrite push functions` (ältere CLI:
    `appwrite push function`) → legt die Function `changelog-draft` an
    (node-22, Entrypoint `src/main.js`, Build `npm install`, Timeout 30 s,
@@ -98,7 +98,7 @@ in den GitHub-Repo-Settings · **[CLI]** = per Terminal/Appwrite CLI · **[Serve
    Deployment hoch. Warten bis der Build „ready" ist.
 6. **[Console]** Functions → changelog-draft → Settings → **Scopes** verifizieren:
    die Rows-Read/Write-Scopes müssen aktiv sein (exakte Namen der 1.9.5-Instanz
-   können von `appwrite.json` abweichen — dann in der Console nachziehen).
+   können von `appwrite.config.json` abweichen — dann in der Console nachziehen).
 7. **[Console]** Settings → **Variables** setzen: `APPWRITE_DATABASE_ID`,
    `GITHUB_REPO`, `GITHUB_WEBHOOK_SECRET` (aus Schritt 2), optional `GITHUB_TOKEN`.
    *(Alternativ [CLI]: `appwrite functions create-variable --function-id
@@ -177,7 +177,7 @@ Drei Stufen, je nach Bedarf — alle ohne Code-Change:
    GitHub liefert nichts mehr zu; Function bleibt deployt. Re-Aktivierung = Häkchen
    setzen (+ ggf. verpasste Releases via Redeliver oder manuellem Pfad nachholen).
 2. **Function deaktivieren:** **[Console]** Functions → changelog-draft →
-   Settings → **Enabled** aus (oder `enabled: false` in `appwrite.json` +
+   Settings → **Enabled** aus (oder `enabled: false` in `appwrite.config.json` +
    `appwrite push functions`). Eingehende Webhooks laufen ins Leere → GitHub
    zeigt fehlgeschlagene Deliveries (harmlos, aber Stufe 1 zusätzlich machen).
 3. **Vollständig entfernen:** **[GitHub]** Webhook löschen + **[Console]**
@@ -194,7 +194,7 @@ es gibt keine Migrations- oder Datenabhängigkeit zwischen den Tracks.
 
 - **Appwrite-Seite:** Console → Functions → changelog-draft → **Executions**
   (Status, Dauer, `log()`/`error()`-Ausgaben je Ausführung; `logging: true` ist
-  in `appwrite.json` gesetzt).
+  in `appwrite.config.json` gesetzt).
 - **GitHub-Seite:** Repo → Settings → Webhooks → **Recent Deliveries** (Request +
   Response jeder Zustellung, mit **Redeliver**-Button für Wiederholungen).
 

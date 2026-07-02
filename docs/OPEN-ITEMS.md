@@ -40,13 +40,23 @@ nutzbar). Reihenfolge = grobe Priorität.
 
 ## 🟡 Klein / Reste
 
-- **Kleinkram (unverändert offen)**: `appwrite.json` → `appwrite.config.json`
-  (neuer CLI-Name); `useFormatCurrency` ungenutzt (bewusste Baukasten-
-  Vorhaltung?); PresenceAvatar könnte auf `UChip` (#content-Slot) umziehen;
-  `redirectOn:'all'`-SEO-Caveat dokumentieren; V3/V4-Layer-Findings (comments
-  registriert admin-Key/-Route; UserMenu verlinkt /dashboard hart); A14-Matrix
-  um die reale core→system-Schema-Nutzung ergänzen + Flag-Registry statt
-  `commentsEnabled` hart in core.
+- ✅ **Kleinkram-Batch (2026-07-02)**: `appwrite.config.json` umbenannt (inkl.
+  Doku-Referenzen); **Stats-Contributor-Registry** umgesetzt
+  (`registerDashboardStatsContributor` in core, Plugins in comments/moderation,
+  admin/stats kennt keine Feature-Tabellen mehr); A14-Vertragsliste + die
+  bewusste core→system-Matrix-Ausnahme in CONCEPT dokumentiert; SEO-Caveat
+  dokumentiert (s. u.).
+- **Bewusst akzeptiert/zurückgestellt (2026-07-02 entschieden)**:
+  `redirectOn:'all'`-**SEO-Caveat**: der i18n-Redirect folgt dem Cookie auf
+  JEDER Seite — Crawler ohne Cookie sehen immer die Default-Locale; für echte
+  SEO-Zweisprachigkeit bräuchte es hreflang-Alternates statt Redirects (mit
+  Phase 17/Prod-SEO angehen). **UserMenu → /dashboard**: bleibt als
+  capability-gegateter localePath-Link (Apps ohne admin-Layer haben keine User
+  mit dashboard.access — der Link erscheint dort nie). **PresenceAvatar auf
+  UChip**: rein kosmetisch, verschoben. **Flag-Registry statt commentsEnabled
+  in core**: mittlerer Refactor der AppConfig-Typen, lohnt erst mit dem
+  nächsten neuen Flag. `useFormatCurrency`: bleibt als Baukasten-Vorhaltung
+  (billing-Plan nutzt sie).
 - **Geprüft, bewusst NICHT umgesetzt**: `login.post` kann den Namen nicht
   billig an `logAuthEvent` durchreichen — das Session-Objekt enthält keinen
   Namen, jede Alternative kostet denselben users.get (2026-07-02 geprüft).
@@ -103,7 +113,7 @@ _Alle erledigt (2026-06-24) — siehe „Bereits erledigt"._
   - ✅ **P3 Email-Policies** — Signup-UX für Wegwerf-/Free-Adressen (422→i18n); Console-Toggle ist der Betreiber-Schritt.
 - **Backlog**: Themes-Vollausbau (26×11), `packages/billing` (Stripe), obsidian-community-concept.
   - ✅ **E2E-Tests (Playwright)** (2026-07-01): reddit-comments hat eine erste E2E-Ebene ([e2e/smoke.spec.ts](../apps/reddit-comments/e2e/smoke.spec.ts)) — auth-freie Smoke-Tests (Routing, SSR-Render, i18n, öffentliche Seiten, 404) gegen System-Chrome, `pnpm --filter reddit-comments e2e`. Eingeloggte/Realtime-Flows bleiben manuell verifiziert (passwortbasierter Login). Weitere Apps: sobald vorhanden.
-- ✅ **Changelog Track 2B** (2026-07-01, deploy-bereit): Appwrite Function [functions/changelog-draft](../functions/changelog-draft) + [appwrite.json](../appwrite.json) — GitHub-Release-Webhook (HMAC) → Commits via Compare-API → Entwurf. Teilt die Parsing-Logik mit Track 2A (`src/parse.js`, unit-getestet). **Aktiv erst mit Prod + öffentlicher Domain** (GitHub muss den Webhook per HTTPS erreichen); bis dahin bleibt `pnpm changelog:draft` (2A) der Weg.
+- ✅ **Changelog Track 2B** (2026-07-01, deploy-bereit): Appwrite Function [functions/changelog-draft](../functions/changelog-draft) + [appwrite.json](../appwrite.config.json) — GitHub-Release-Webhook (HMAC) → Commits via Compare-API → Entwurf. Teilt die Parsing-Logik mit Track 2A (`src/parse.js`, unit-getestet). **Aktiv erst mit Prod + öffentlicher Domain** (GitHub muss den Webhook per HTTPS erreichen); bis dahin bleibt `pnpm changelog:draft` (2A) der Weg.
 - **Sonstiges**: ✅ öffentliche `/changelog`-Vollhistorie-Seite existiert bereits ([changelog.vue](../packages/admin/app/pages/changelog.vue), auth-frei, alle Einträge). Offen (brauchen Input/Spec): die 10 gesammelten SaaS-Feature-Ideen (u. a. Embed-Widget) — nicht im Repo, in privaten Notizen.
 
 ---
