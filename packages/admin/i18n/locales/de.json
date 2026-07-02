@@ -204,6 +204,20 @@
         "actions": {
           "roles": "Rollen",
           "rolesHint": "Bestimmt den Dashboard-Zugriff dieses Benutzers."
+        },
+        "mfa": "Mehrfaktor (MFA)",
+        "mfaOn": "aktiviert",
+        "mfaOff": "nicht aktiviert",
+        "passwordUpdate": "Letzte Passwortänderung",
+        "passwordless": "passwortlos (OTP/OAuth)",
+        "activity": {
+          "title": "Aktivitätsprotokoll (Appwrite)",
+          "empty": "Keine Aktivitäts-Einträge."
+        },
+        "targets": {
+          "title": "Benachrichtigungskanäle",
+          "empty": "Keine Kanäle registriert.",
+          "expired": "abgelaufen"
         }
       },
       "verifiedEmail": "E-Mail",

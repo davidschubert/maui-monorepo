@@ -33,8 +33,13 @@ export default defineEventHandler(async (event): Promise<AdminUserDetailResponse
         .then(s => s.$id).catch(() => '')
     : ''
 
-  const [sessions, comments] = await Promise.all([
+  const [sessions, logs, targets, comments] = await Promise.all([
     admin.users.listSessions({ userId }).catch(() => ({ sessions: [] as Models.Session[] })),
+    // Aktivitätsprotokoll (historisch, auch beendete Sessions): Logins,
+    // Session-/Account-Ereignisse mit Geo/Client/OS/Gerät je Event.
+    admin.users.listLogs({ userId, queries: [Query.limit(25)] }).catch(() => ({ logs: [] as Models.Log[] })),
+    // Benachrichtigungskanäle (email/sms/push-Targets)
+    admin.users.listTargets({ userId }).catch(() => ({ targets: [] as Models.Target[] })),
     admin.tablesDB.listRows<CommentRow>({
       databaseId: config.public.appwriteDatabaseId,
       tableId: 'comments',
@@ -70,21 +75,34 @@ export default defineEventHandler(async (event): Promise<AdminUserDetailResponse
       registration: user.registration,
       bio: typeof prefs?.bio === 'string' ? prefs.bio : '',
       avatarUrl: typeof prefs?.avatarUrl === 'string' ? prefs.avatarUrl : '',
+      mfa: user.mfa,
+      passwordUpdate: user.passwordUpdate ?? '',
       online,
       lastSeen,
     },
-    sessions: sessions.sessions.map(s => ({
-      $id: s.$id,
-      $createdAt: s.$createdAt,
-      $updatedAt: s.$updatedAt,
-      provider: s.provider,
-      ip: s.ip,
-      clientName: s.clientName,
-      clientVersion: s.clientVersion,
-      osName: s.osName,
-      osVersion: s.osVersion,
-      countryName: normalizeCountry(s.countryName),
-      current: viewingSelf ? s.$id === currentSessionId : s.current,
+    // mapSafeSession (core, Auto-Import): vollständige, Secret-freie Session-Sicht
+    sessions: sessions.sessions.map(s =>
+      mapSafeSession(s, viewingSelf ? s.$id === currentSessionId : s.current),
+    ),
+    activity: logs.logs.map(log => ({
+      event: log.event,
+      time: log.time,
+      ip: log.ip,
+      countryCode: normalizeCountry(log.countryName) ? log.countryCode : '',
+      countryName: normalizeCountry(log.countryName),
+      clientName: log.clientName,
+      clientVersion: log.clientVersion,
+      osName: log.osName,
+      osVersion: log.osVersion,
+      deviceName: log.deviceName,
+    })),
+    targets: targets.targets.map(target => ({
+      $id: target.$id,
+      $createdAt: target.$createdAt,
+      name: target.name,
+      providerType: target.providerType,
+      identifier: target.identifier,
+      expired: target.expired,
     })),
     comments: comments.rows.map(row => ({
       $id: row.$id,

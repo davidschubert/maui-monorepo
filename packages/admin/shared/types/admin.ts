@@ -23,19 +23,55 @@ export interface AdminUserListResponse {
   users: AdminUserRow[]
 }
 
-/** Eine Session eines Users (Admin-Sicht), ohne Secrets/Tokens */
+/** Eine Session eines Users (Admin-Sicht), ohne Secrets/Tokens — strukturell
+ *  identisch mit core UserSession/SessionRow (geteilte SessionsTable). */
 export interface AdminUserSession {
   $id: string
   $createdAt: string
   $updatedAt: string
   provider: string
   ip: string
+  osCode: string
+  osName: string
+  osVersion: string
+  clientType: string
+  clientName: string
+  clientVersion: string
+  clientEngine: string
+  clientEngineVersion: string
+  deviceName: string
+  deviceBrand: string
+  deviceModel: string
+  countryCode: string
+  countryName: string
+  factors: string[]
+  expire: string
+  current: boolean
+}
+
+/** Ein Eintrag aus dem Appwrite-Aktivitätsprotokoll des Users (users.listLogs) */
+export interface AdminUserActivity {
+  event: string
+  time: string
+  ip: string
+  countryCode: string
+  countryName: string
   clientName: string
   clientVersion: string
   osName: string
   osVersion: string
-  countryName: string
-  current: boolean
+  deviceName: string
+}
+
+/** Ein Benachrichtigungskanal des Users (users.listTargets) */
+export interface AdminUserTarget {
+  $id: string
+  $createdAt: string
+  name: string
+  /** 'email' | 'sms' | 'push' */
+  providerType: string
+  identifier: string
+  expired: boolean
 }
 
 /** Vollständigere User-Sicht für die Detailseite */
@@ -45,11 +81,17 @@ export interface AdminUserDetail extends AdminUserRow {
   registration: string
   bio: string
   avatarUrl: string
+  /** MFA am Account aktiviert */
+  mfa: boolean
+  /** Letzte Passwortänderung (leer bei passwortlosen Accounts) */
+  passwordUpdate: string
 }
 
 export interface AdminUserDetailResponse {
   user: AdminUserDetail
   sessions: AdminUserSession[]
+  activity: AdminUserActivity[]
+  targets: AdminUserTarget[]
   comments: ModeratedComment[]
   commentsTotal: number
 }

@@ -204,6 +204,20 @@
         "actions": {
           "roles": "Roles",
           "rolesHint": "Controls this user's dashboard access."
+        },
+        "mfa": "Multi-factor (MFA)",
+        "mfaOn": "enabled",
+        "mfaOff": "not enabled",
+        "passwordUpdate": "Last password change",
+        "passwordless": "passwordless (OTP/OAuth)",
+        "activity": {
+          "title": "Activity log (Appwrite)",
+          "empty": "No activity entries."
+        },
+        "targets": {
+          "title": "Notification channels",
+          "empty": "No channels registered.",
+          "expired": "expired"
         }
       },
       "verifiedEmail": "Email",

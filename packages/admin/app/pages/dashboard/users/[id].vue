@@ -249,6 +249,20 @@ async function executePending() {
                     <UButton icon="i-ph-copy" color="neutral" variant="ghost" size="xs" :aria-label="t('admin.users.detail.copy')" @click="copyId" />
                   </dd>
                 </div>
+                <div class="flex items-center justify-between gap-4 border-b border-default/60 py-2.5">
+                  <dt class="text-muted">{{ t('admin.users.detail.mfa') }}</dt>
+                  <dd>
+                    <UBadge :color="user.mfa ? 'success' : 'neutral'" variant="subtle" size="sm">
+                      <UIcon :name="user.mfa ? 'i-ph-shield-check' : 'i-ph-shield'" class="size-3.5" />
+                      {{ user.mfa ? t('admin.users.detail.mfaOn') : t('admin.users.detail.mfaOff') }}
+                    </UBadge>
+                  </dd>
+                </div>
+                <div class="flex items-center justify-between gap-4 border-b border-default/60 py-2.5">
+                  <dt class="text-muted">{{ t('admin.users.detail.passwordUpdate') }}</dt>
+                  <dd v-if="user.passwordUpdate">{{ formatRelativeTime(user.passwordUpdate) }} <span class="text-muted">({{ exactDateTime(user.passwordUpdate) }})</span></dd>
+                  <dd v-else class="text-muted">{{ t('admin.users.detail.passwordless') }}</dd>
+                </div>
                 <div class="flex items-start justify-between gap-4 py-2.5">
                   <dt class="shrink-0 text-muted">{{ t('admin.users.detail.bio') }}</dt>
                   <dd class="text-right">{{ user.bio || '—' }}</dd>
@@ -285,10 +299,57 @@ async function executePending() {
               <p v-if="(data?.sessions.length ?? 0) === 0" class="text-sm text-muted">{{ t('admin.users.detail.noSessions') }}</p>
               <SessionsTable v-else :sessions="data?.sessions ?? []" />
             </UPageCard>
+
+            <!-- Aktivitätsprotokoll (Appwrite users.listLogs — auch beendete Sessions) -->
+            <UPageCard variant="subtle">
+              <div class="mb-3 flex items-center justify-between">
+                <h3 class="font-semibold">{{ t('admin.users.detail.activity.title') }}</h3>
+                <UBadge color="neutral" variant="subtle">{{ data?.activity.length ?? 0 }}</UBadge>
+              </div>
+              <p v-if="(data?.activity.length ?? 0) === 0" class="text-sm text-muted">{{ t('admin.users.detail.activity.empty') }}</p>
+              <ul v-else class="space-y-2.5">
+                <li v-for="(log, index) in data?.activity" :key="index" class="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-default/60 pb-2.5 text-sm last:border-0 last:pb-0">
+                  <UBadge color="neutral" variant="subtle" size="sm" class="font-mono">{{ log.event }}</UBadge>
+                  <span class="text-xs text-muted" :title="exactDateTime(log.time)">{{ formatRelativeTime(log.time) }}</span>
+                  <span class="flex items-center gap-1 text-xs text-muted">
+                    <UIcon :name="flagIcon(log.countryCode)" class="size-3.5 shrink-0" />
+                    {{ log.countryName || t('account.sessions.unknown') }}
+                  </span>
+                  <span class="font-mono text-xs text-dimmed">{{ log.ip }}</span>
+                  <span v-if="log.clientName" class="flex items-center gap-1 text-xs text-muted">
+                    <UIcon :name="browserIcon(log.clientName)" class="size-3.5 shrink-0" />
+                    {{ [log.clientName, log.clientVersion].filter(Boolean).join(' ') }}
+                  </span>
+                  <span v-if="log.osName" class="flex items-center gap-1 text-xs text-muted">
+                    <UIcon :name="osIcon(log.osName)" class="size-3.5 shrink-0" />
+                    {{ [log.osName, log.osVersion].filter(Boolean).join(' ') }}
+                  </span>
+                  <span v-if="log.deviceName" class="flex items-center gap-1 text-xs text-muted">
+                    <UIcon :name="deviceIcon(log.deviceName)" class="size-3.5 shrink-0" />
+                    {{ log.deviceName }}
+                  </span>
+                </li>
+              </ul>
+            </UPageCard>
           </div>
 
           <!-- Steuerung (sticky) -->
           <div class="flex flex-col gap-4 sm:gap-6 lg:sticky lg:top-6 lg:self-start">
+            <!-- Benachrichtigungskanäle (Appwrite users.listTargets) -->
+            <UPageCard :title="t('admin.users.detail.targets.title')" variant="subtle">
+              <p v-if="(data?.targets.length ?? 0) === 0" class="text-sm text-muted">{{ t('admin.users.detail.targets.empty') }}</p>
+              <ul v-else class="space-y-2">
+                <li v-for="target in data?.targets" :key="target.$id" class="flex items-center gap-2 text-sm">
+                  <UIcon :name="targetIcon(target.providerType)" class="size-4 shrink-0 text-muted" />
+                  <span class="min-w-0 truncate font-mono text-xs">{{ target.identifier }}</span>
+                  <UBadge color="neutral" variant="subtle" size="sm" class="ms-auto shrink-0">{{ target.providerType }}</UBadge>
+                  <UBadge v-if="target.expired" color="warning" variant="subtle" size="sm" class="shrink-0">
+                    {{ t('admin.users.detail.targets.expired') }}
+                  </UBadge>
+                </li>
+              </ul>
+            </UPageCard>
+
             <!-- Rollen -->
             <UPageCard
               :title="t('admin.users.detail.actions.roles')"
