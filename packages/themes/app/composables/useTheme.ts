@@ -1,4 +1,4 @@
-import { THEME_REGISTRY, DEFAULT_THEME_ID, NEUTRAL_REGISTRY, DEFAULT_NEUTRAL_ID, type MauiTheme } from '../utils/themeRegistry'
+import { THEME_REGISTRY, DEFAULT_THEME_ID, NEUTRAL_REGISTRY, DEFAULT_NEUTRAL_ID, FONT_PAIR_REGISTRY, type MauiNeutral, type MauiTheme } from '../utils/themeRegistry'
 import { customThemeAttr } from '../../shared/ramp'
 
 /**
@@ -75,24 +75,48 @@ export function useTheme() {
     variantCookie.value = value && theme.value.variants.some(v => v.id === value) ? value : null
   }
 
-  // Neutral-Palette (unabhängig vom Theme): data-neutral überschreibt die Ramp.
+  // Tinted Neutral: bietet das aktive Custom Theme eine brand-getönte
+  // Neutral-Ramp an (config.neutral 'tinted'), erscheint sie als zusätzlicher
+  // Eintrag (id = Theme-Attribut) und wird zum Neutral-DEFAULT dieses Themes —
+  // der Cookie darf weiterhin eine Registry-Palette übersteuern.
+  const activeTinted = computed<MauiNeutral | null>(() => {
+    const custom = customThemes.value.find(c => customThemeAttr(c.id) === theme.value.id)
+    if (custom?.config?.neutral !== 'tinted') return null
+    return { id: theme.value.id, color: custom.primary, tinted: true }
+  })
+
+  const neutrals = computed<MauiNeutral[]>(() =>
+    activeTinted.value ? [activeTinted.value, ...NEUTRAL_REGISTRY] : NEUTRAL_REGISTRY,
+  )
+
+  // Neutral-Palette: data-neutral überschreibt die Ramp. Fallback-Kette:
+  // Cookie (gültig) → Tinted des aktiven Themes → Registry-Default.
   const neutral = computed<string>(() =>
-    NEUTRAL_REGISTRY.some(n => n.id === neutralCookie.value)
+    neutrals.value.some(n => n.id === neutralCookie.value)
       ? neutralCookie.value!
-      : DEFAULT_NEUTRAL_ID,
+      : (activeTinted.value?.id ?? DEFAULT_NEUTRAL_ID),
   )
 
   function setNeutral(id: string) {
-    neutralCookie.value = NEUTRAL_REGISTRY.some(n => n.id === id) ? id : null
+    neutralCookie.value = neutrals.value.some(n => n.id === id) ? id : null
   }
 
+  // Schriftpaar des aktiven Themes (config.font, nur Registry-Ids) —
+  // Theme-Eigenschaft, kein User-Setting: data-font kommt vom Theme.
+  const font = computed<string | undefined>(() => {
+    const custom = customThemes.value.find(c => customThemeAttr(c.id) === theme.value.id)
+    const id = custom?.config?.font
+    return id && FONT_PAIR_REGISTRY.some(pair => pair.id === id) ? id : undefined
+  })
+
   return {
+    font,
     themes,
     theme,
     variant,
     setTheme,
     setVariant,
-    neutrals: NEUTRAL_REGISTRY,
+    neutrals,
     neutral,
     setNeutral,
   }

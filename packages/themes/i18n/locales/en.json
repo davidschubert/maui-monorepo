@@ -2,6 +2,7 @@
   "themes": {
     "label": "Theme",
     "neutralLabel": "Neutral",
+    "neutralTinted": "Tinted (theme color)",
     "variantDefault": "Default",
     "modeLabel": "Appearance",
     "appearance": {
@@ -75,6 +76,11 @@
       "random": "Random color",
       "advanced": "Advanced",
       "curves": "Curve profile: lightness (L), chroma (C), hue (H) — dot = anchor shade",
+      "tintedNeutral": "Tint surfaces with theme color",
+      "font": "Typeface",
+      "fontDefault": "Default (app font)",
+      "darkAlias": "Dark mode: primary shade",
+      "defaultOption": "Default",
       "scenes": {
         "components": "Components",
         "dashboard": "Dashboard",

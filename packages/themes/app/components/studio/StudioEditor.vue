@@ -6,6 +6,7 @@
  */
 import type { RouteLocationNormalized } from 'vue-router'
 import { customThemeAttr, SHADES } from '../../../shared/ramp'
+import { FONT_PAIR_REGISTRY } from '../../utils/themeRegistry'
 
 const props = defineProps<{ themeId?: string }>()
 
@@ -14,7 +15,7 @@ const toast = useToast()
 const localePath = useLocalePath()
 const { setTheme } = useTheme()
 const customThemes = useCustomThemesState()
-const { draft, busy, isDirty, openCreate, openEdit, applyPreset, randomizePrimary, addVariant, removeVariant, ramp, valid, contrastChecks, save } = useThemeDraft()
+const { draft, busy, isDirty, openCreate, openEdit, applyPreset, randomizePrimary, addVariant, removeVariant, ramp, neutralRamp, valid, contrastChecks, save } = useThemeDraft()
 
 const galleryPath = computed(() => localePath('/dashboard/themes'))
 const isEdit = computed(() => !!props.themeId)
@@ -36,6 +37,11 @@ if (props.themeId) {
 else {
   openCreate()
 }
+
+const fontItems = computed(() => [
+  { label: t('themes.studio.fontDefault'), value: null },
+  ...FONT_PAIR_REGISTRY.map(pair => ({ label: pair.label, value: pair.id })),
+])
 
 const contrastLabel: Record<string, string> = {
   white500: 'themes.studio.contrastWhite500',
@@ -117,6 +123,23 @@ function confirmLeave() {
                 </div>
               </UFormField>
 
+              <!-- Tinted Neutral: EIN Schalter, fixer Tönungswert (kein Regler) -->
+              <div class="space-y-1.5">
+                <USwitch
+                  :model-value="draft.config.neutral === 'tinted'"
+                  :label="t('themes.studio.tintedNeutral')"
+                  @update:model-value="(on: boolean) => { draft!.config.neutral = on ? 'tinted' : null }"
+                />
+                <div v-if="neutralRamp" class="flex h-4 w-full overflow-hidden rounded ring-1 ring-default">
+                  <span v-for="shade in SHADES" :key="shade" class="flex-1" :style="{ backgroundColor: neutralRamp[shade] }" />
+                </div>
+              </div>
+
+              <!-- Schriftpaar (kuratiert, Default = App-Font) -->
+              <UFormField :label="t('themes.studio.font')">
+                <USelect v-model="draft.config.font" :items="fontItems" class="w-full" />
+              </UFormField>
+
               <div v-if="!draft.id" class="flex flex-wrap items-center gap-1.5">
                 <span class="text-sm text-muted">{{ t('themes.studio.presets') }}</span>
                 <UButton
@@ -170,6 +193,20 @@ function confirmLeave() {
                       </UFormField>
                       <UFormField :label="`${t('themes.studio.lightnessMin')} (${draft.config.lightnessMin}%)`">
                         <USlider v-model="draft.config.lightnessMin" :min="0" :max="40" :step="1" :disabled="draft.config.mode === 'linear'" />
+                      </UFormField>
+                      <UFormField :label="t('themes.studio.darkAlias')" class="col-span-2">
+                        <div class="flex items-center gap-1.5">
+                          <UButton
+                            v-for="stufe in ([300, 400, 500] as const)"
+                            :key="stufe"
+                            size="xs"
+                            :color="draft.config.darkAlias === stufe ? 'primary' : 'neutral'"
+                            :variant="draft.config.darkAlias === stufe ? 'subtle' : 'ghost'"
+                            @click="draft.config.darkAlias = stufe"
+                          >
+                            {{ stufe }}{{ stufe === 400 ? ` · ${t('themes.studio.defaultOption')}` : '' }}
+                          </UButton>
+                        </div>
                       </UFormField>
                       <UFormField :label="t('themes.studio.radius')" class="col-span-2">
                         <div class="flex items-center gap-1.5">

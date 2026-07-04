@@ -1,5 +1,5 @@
 import type { CustomThemeDto, CustomVariant, ThemeConfig } from '../../shared/ramp'
-import { contrastRatio, customThemeCss, generateRamp, HEX_COLOR_RE, wcagLevel } from '../../shared/ramp'
+import { contrastRatio, customThemeCss, generateNeutralRamp, generateRamp, HEX_COLOR_RE, wcagLevel } from '../../shared/ramp'
 import { oklchToHex } from '../../shared/oklch'
 
 /**
@@ -10,7 +10,12 @@ export interface ThemeDraftState {
   id: string | null
   name: string
   primary: string
-  config: Required<Omit<ThemeConfig, 'radius'>> & { radius: number | null }
+  config: Required<Omit<ThemeConfig, 'radius' | 'neutral' | 'font' | 'darkAlias'>> & {
+    radius: number | null
+    neutral: 'tinted' | null
+    font: string | null
+    darkAlias: 300 | 400 | 500
+  }
   variants: CustomVariant[]
 }
 
@@ -25,7 +30,7 @@ export const THEME_PRESETS: { name: string, primary: string }[] = [
 ]
 
 const DEFAULT_CONFIG: ThemeDraftState['config'] = {
-  mode: 'perceived', anchor: 'auto', hueShift: 0, saturation: 1, lightnessMax: 97, lightnessMin: 16, radius: null,
+  mode: 'perceived', anchor: 'auto', hueShift: 0, saturation: 1, lightnessMax: 97, lightnessMin: 16, radius: null, neutral: null, font: null, darkAlias: 400,
 }
 
 export interface ContrastCheck {
@@ -59,7 +64,14 @@ export function useThemeDraft() {
       id: custom.id,
       name: custom.name,
       primary: custom.primary,
-      config: { ...DEFAULT_CONFIG, ...(custom.config ?? {}), radius: custom.config?.radius ?? null },
+      config: {
+        ...DEFAULT_CONFIG,
+        ...(custom.config ?? {}),
+        radius: custom.config?.radius ?? null,
+        neutral: custom.config?.neutral ?? null,
+        font: custom.config?.font ?? null,
+        darkAlias: custom.config?.darkAlias ?? 400,
+      },
       variants: [...(custom.variants ?? [])],
     }
     savedSnapshot.value = snapshot()
@@ -83,7 +95,10 @@ export function useThemeDraft() {
   function applyPreset(preset: { name: string, primary: string }) {
     if (!draft.value) return
     draft.value.primary = preset.primary
-    if (!draft.value.name.trim()) draft.value.name = preset.name
+    // Name mitwechseln, solange er leer oder noch ein Preset-Name ist —
+    // ein selbst getippter Name bleibt unangetastet
+    const current = draft.value.name.trim()
+    if (!current || THEME_PRESETS.some(p => p.name === current)) draft.value.name = preset.name
   }
 
   function addVariant() {
@@ -98,11 +113,28 @@ export function useThemeDraft() {
     draft.value?.variants.splice(index, 1)
   }
 
-  /** Draft-Config → ThemeConfig (radius nur wenn gesetzt) */
+  /** Draft-Config → ThemeConfig (radius/neutral nur wenn gesetzt) */
   function draftConfig(): ThemeConfig {
     const c = draft.value!.config
-    return { mode: c.mode, anchor: c.anchor, hueShift: c.hueShift, saturation: c.saturation, lightnessMax: c.lightnessMax, lightnessMin: c.lightnessMin, ...(c.radius !== null ? { radius: c.radius as ThemeConfig['radius'] } : {}) }
+    return {
+      mode: c.mode,
+      anchor: c.anchor,
+      hueShift: c.hueShift,
+      saturation: c.saturation,
+      lightnessMax: c.lightnessMax,
+      lightnessMin: c.lightnessMin,
+      ...(c.radius !== null ? { radius: c.radius as ThemeConfig['radius'] } : {}),
+      ...(c.neutral ? { neutral: c.neutral } : {}),
+      ...(c.font ? { font: c.font } : {}),
+      ...(c.darkAlias !== 400 ? { darkAlias: c.darkAlias } : {}),
+    }
   }
+
+  /** Brand-getönte Neutral-Ramp des Entwurfs (für Mini-Streifen im Dock) */
+  const neutralRamp = computed(() => {
+    if (!draft.value || draft.value.config.neutral !== 'tinted' || !HEX_COLOR_RE.test(draft.value.primary)) return null
+    return generateNeutralRamp(draft.value.primary)
+  })
 
   const ramp = computed(() => {
     if (!draft.value || !HEX_COLOR_RE.test(draft.value.primary)) return null
@@ -132,6 +164,8 @@ export function useThemeDraft() {
   // die GANZE Seite angewendet — beurteilen an echten Components statt am
   // Farbstreifen. Schließen/Verlassen stellt das aktive Theme wieder her.
   let previousDataTheme: string | undefined
+  let previousDataNeutral: string | undefined
+  let previousDataFont: string | undefined
   watch([draft, ramp], () => {
     if (import.meta.server) return
     const html = document.documentElement
@@ -145,6 +179,26 @@ export function useThemeDraft() {
       }
       styleEl.textContent = customThemeCss({ id: 'draft', name: 'Draft', primary: draft.value.primary, order: 0, config: draftConfig() }, 'c-draft')
       html.dataset.theme = 'c-draft'
+      // Tinted Neutral live mitschalten (Original-Neutral beim Verlassen zurück)
+      if (draft.value.config.neutral === 'tinted') {
+        if (previousDataNeutral === undefined) previousDataNeutral = html.dataset.neutral ?? ''
+        html.dataset.neutral = 'c-draft'
+      }
+      else if (previousDataNeutral !== undefined) {
+        if (previousDataNeutral) html.dataset.neutral = previousDataNeutral
+        else delete html.dataset.neutral
+        previousDataNeutral = undefined
+      }
+      // Schriftpaar live mitschalten (fonts.css ist statisch geladen)
+      if (draft.value.config.font) {
+        if (previousDataFont === undefined) previousDataFont = html.dataset.font ?? ''
+        html.dataset.font = draft.value.config.font
+      }
+      else if (previousDataFont !== undefined) {
+        if (previousDataFont) html.dataset.font = previousDataFont
+        else delete html.dataset.font
+        previousDataFont = undefined
+      }
     }
     else {
       styleEl?.remove()
@@ -152,6 +206,16 @@ export function useThemeDraft() {
         if (previousDataTheme) html.dataset.theme = previousDataTheme
         else delete html.dataset.theme
         previousDataTheme = undefined
+      }
+      if (previousDataNeutral !== undefined) {
+        if (previousDataNeutral) html.dataset.neutral = previousDataNeutral
+        else delete html.dataset.neutral
+        previousDataNeutral = undefined
+      }
+      if (previousDataFont !== undefined) {
+        if (previousDataFont) html.dataset.font = previousDataFont
+        else delete html.dataset.font
+        previousDataFont = undefined
       }
     }
   }, { deep: true })
@@ -161,6 +225,14 @@ export function useThemeDraft() {
     if (previousDataTheme !== undefined) {
       if (previousDataTheme) document.documentElement.dataset.theme = previousDataTheme
       else delete document.documentElement.dataset.theme
+    }
+    if (previousDataNeutral !== undefined) {
+      if (previousDataNeutral) document.documentElement.dataset.neutral = previousDataNeutral
+      else delete document.documentElement.dataset.neutral
+    }
+    if (previousDataFont !== undefined) {
+      if (previousDataFont) document.documentElement.dataset.font = previousDataFont
+      else delete document.documentElement.dataset.font
     }
   })
 
@@ -198,5 +270,5 @@ export function useThemeDraft() {
     draft.value = null
   }
 
-  return { draft, busy, isDirty, openCreate, openEdit, applyPreset, randomizePrimary, addVariant, removeVariant, ramp, valid, contrastChecks, save, close }
+  return { draft, busy, isDirty, openCreate, openEdit, applyPreset, randomizePrimary, addVariant, removeVariant, ramp, neutralRamp, valid, contrastChecks, save, close }
 }

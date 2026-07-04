@@ -27,6 +27,12 @@ export interface ThemeConfig {
   lightnessMin?: number
   /** --ui-radius in rem (überschreibt den Default des aktiven Basis-Themes) */
   radius?: number
+  /** 'tinted' = Neutral-Ramp aus dem Primary-Hue ableiten (brand-getönte Flächen) */
+  neutral?: 'tinted'
+  /** Primary-Stufe für --ui-primary im Dark-Mode (Default 400) */
+  darkAlias?: 300 | 400 | 500
+  /** Schriftpaar-Id (FONT_PAIR_REGISTRY, data-font) — ohne = App-Font */
+  font?: string
 }
 
 /** Farbvariante eines Custom Themes (data-variant überschreibt die Primary-Ramp) */
@@ -143,6 +149,24 @@ export function generateRamp(primary: string, config: ThemeConfig = {}): Record<
     : generatePerceivedRamp(primary, config)
 }
 
+// Tinted Neutral: L/C-Kurven der mist-Ramp (kalibriert, siehe neutral.css) —
+// nur der Hue kommt aus der Primary. Fixe, flache Chroma-Werte: der Tint
+// bleibt subtil, egal wie gesättigt die Markenfarbe ist.
+const NEUTRAL_L = [0.987, 0.963, 0.925, 0.872, 0.723, 0.56, 0.45, 0.378, 0.275, 0.218, 0.148]
+const NEUTRAL_C = [0.002, 0.002, 0.005, 0.007, 0.014, 0.021, 0.017, 0.015, 0.011, 0.008, 0.004]
+
+/** Brand-getönte Neutral-Ramp aus dem Hue der Basisfarbe; null bei ungültigem Hex. */
+export function generateNeutralRamp(primary: string): Record<Shade, string> | null {
+  const rgb = hexToRgb(primary)
+  if (!rgb) return null
+  const hue = rgbToOklch(rgb).h
+  const ramp = {} as Record<Shade, string>
+  SHADES.forEach((shade, i) => {
+    ramp[shade] = oklchToHex({ l: NEUTRAL_L[i]!, c: NEUTRAL_C[i]!, h: hue })
+  })
+  return ramp
+}
+
 /** data-theme-Attributwert eines Custom Themes (kollidiert nie mit Built-ins) */
 export function customThemeAttr(id: string): string {
   return `c-${id}`
@@ -163,9 +187,12 @@ export function customThemeCss(theme: CustomThemeDto, attrOverride?: string): st
   const radius = typeof config.radius === 'number' && Number.isFinite(config.radius)
     ? `\n  --ui-radius: ${config.radius}rem;`
     : ''
+  // Dark-Stufe: welcher Ramp-Wert im Dark-Mode --ui-primary stellt (Feintuning
+  // gegen zu grelle/zu matte Primaries; nur validierte Literale)
+  const darkAlias = config.darkAlias === 300 || config.darkAlias === 500 ? config.darkAlias : 400
   const blocks = [
     `:root[data-theme='${attr}'] {\n${vars}\n  --ui-primary: var(--ui-color-primary-600);${radius}\n}`,
-    `.dark[data-theme='${attr}'] {\n  --ui-primary: var(--ui-color-primary-400);\n}`,
+    `.dark[data-theme='${attr}'] {\n  --ui-primary: var(--ui-color-primary-${darkAlias});\n}`,
   ]
   // Varianten: eigene Ramp aus der Varianten-Farbe (gleiche Generator-Config)
   for (const variant of theme.variants ?? []) {
@@ -173,6 +200,15 @@ export function customThemeCss(theme: CustomThemeDto, attrOverride?: string): st
     if (!variantRamp) continue
     const variantVars = SHADES.map(shade => `  --ui-color-primary-${shade}: ${variantRamp[shade]};`).join('\n')
     blocks.push(`:root[data-theme='${attr}'][data-variant='${variant.id}'] {\n${variantVars}\n}`)
+  }
+  // Tinted Neutral: eigener data-neutral-Block (gleiche Selektor-Form wie
+  // neutral.css) — angewendet nur, wenn data-neutral auf dem Theme steht
+  if (config.neutral === 'tinted') {
+    const neutralRamp = generateNeutralRamp(theme.primary)
+    if (neutralRamp) {
+      const neutralVars = SHADES.map(shade => `  --ui-color-neutral-${shade}: ${neutralRamp[shade]};`).join('\n')
+      blocks.push(`:root[data-neutral='${attr}'] {\n${neutralVars}\n}`)
+    }
   }
   return blocks.join('\n')
 }

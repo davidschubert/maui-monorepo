@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { contrastRatio, customThemeAttr, customThemeCss, generateRamp, HEX_COLOR_RE, hexToRgb, SHADES, wcagLevel } from '../shared/ramp'
+import { contrastRatio, customThemeAttr, customThemeCss, generateNeutralRamp, generateRamp, HEX_COLOR_RE, hexToRgb, SHADES, wcagLevel } from '../shared/ramp'
 import { oklchToHex, rgbToOklch } from '../shared/oklch'
 
 describe('hexToRgb', () => {
@@ -116,5 +116,70 @@ describe('contrastRatio + wcagLevel', () => {
     expect(wcagLevel(5)).toBe('AA')
     expect(wcagLevel(3.2)).toBe('AA18')
     expect(wcagLevel(2)).toBe('fail')
+  })
+})
+
+describe('generateNeutralRamp (Tinted Neutral)', () => {
+  it('liefert 11 gültige Hex-Farben', () => {
+    const ramp = generateNeutralRamp('#2f7fee')!
+    expect(Object.keys(ramp)).toHaveLength(SHADES.length)
+    for (const shade of SHADES) expect(ramp[shade]).toMatch(HEX_COLOR_RE)
+  })
+  it('Helligkeit fällt streng monoton von 50 nach 950', () => {
+    const ramp = generateNeutralRamp('#0d9488')!
+    const ls = SHADES.map(s => rgbToOklch(hexToRgb(ramp[s])!).l)
+    for (let i = 1; i < ls.length; i++) expect(ls[i]!).toBeLessThan(ls[i - 1]!)
+  })
+  it('bleibt entsättigt (Tint subtil), auch bei greller Basisfarbe', () => {
+    const ramp = generateNeutralRamp('#ff0000')!
+    for (const shade of SHADES) {
+      expect(rgbToOklch(hexToRgb(ramp[shade])!).c).toBeLessThanOrEqual(0.03)
+    }
+  })
+  it('übernimmt den Hue der Basisfarbe (mittlere Stufen)', () => {
+    const baseHue = rgbToOklch(hexToRgb('#2f7fee')!).h
+    const ramp = generateNeutralRamp('#2f7fee')!
+    const hue500 = rgbToOklch(hexToRgb(ramp[500])!).h
+    // Toleranz: sehr niedriges Chroma macht den Hue numerisch instabil
+    const diff = Math.abs(((hue500 - baseHue + 540) % 360) - 180)
+    expect(diff).toBeLessThan(15)
+  })
+  it('ungültige Farbe → null', () => {
+    expect(generateNeutralRamp('kaputt')).toBeNull()
+  })
+})
+
+describe('customThemeCss mit Tinted Neutral', () => {
+  it("config.neutral 'tinted' → zusätzlicher data-neutral-Block", () => {
+    const css = customThemeCss({ id: 'abc123', name: 'T', primary: '#2f7fee', order: 0, config: { neutral: 'tinted' } })
+    expect(css).toContain(`:root[data-neutral='c-abc123']`)
+    expect(css).toContain('--ui-color-neutral-500:')
+    expect(css).toContain('--ui-color-neutral-950:')
+  })
+  it('ohne config.neutral → kein data-neutral-Block', () => {
+    const css = customThemeCss({ id: 'abc123', name: 'T', primary: '#2f7fee', order: 0 })
+    expect(css).not.toContain('data-neutral')
+  })
+})
+
+describe('customThemeCss mit darkAlias', () => {
+  it('default (400) bzw. ohne Angabe → primary-400 im .dark-Block', () => {
+    const css = customThemeCss({ id: 'x', name: 'X', primary: '#2f7fee', order: 0 })
+    expect(css).toContain('--ui-primary: var(--ui-color-primary-400);')
+  })
+  it('darkAlias 300/500 → entsprechende Stufe im .dark-Block', () => {
+    for (const alias of [300, 500] as const) {
+      const css = customThemeCss({ id: 'x', name: 'X', primary: '#2f7fee', order: 0, config: { darkAlias: alias } })
+      expect(css).toContain(`.dark[data-theme='c-x'] {\n  --ui-primary: var(--ui-color-primary-${alias});`)
+    }
+  })
+  it('ungültiger darkAlias-Wert fällt auf 400 zurück', () => {
+    const css = customThemeCss({ id: 'x', name: 'X', primary: '#2f7fee', order: 0, config: { darkAlias: 999 as unknown as 400 } })
+    expect(css).toContain('--ui-color-primary-400);')
+  })
+  it('font in der Config ändert das CSS nicht (reines data-font-Attribut)', () => {
+    const withFont = customThemeCss({ id: 'x', name: 'X', primary: '#2f7fee', order: 0, config: { font: 'editorial' } })
+    const without = customThemeCss({ id: 'x', name: 'X', primary: '#2f7fee', order: 0, config: {} })
+    expect(withFont).toBe(without)
   })
 })

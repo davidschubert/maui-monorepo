@@ -164,6 +164,7 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 | 37 | Theme-Studio (/dashboard/themes): Galerie mit Live-Wechsel + Nuxt-UI-Showcase, eigene Themes (Ramp-Generator, WCAG-Kontrast-Check, CSS-Export, Reihenfolge) — Table `custom_themes`, SSR-flash-frei | ✅ 2026-07-02 |
 | 38 | Theme-Studio-Ausbau: OKLCH-Generator (Anker/Hue/Sättigung/Radius, Live-Draft), Built-in-Verwaltung + Instanz-Default, Presets + Varianten, visuelle Regressionstests je Theme; Stats-Contributor-Registry + Kleinkram | ✅ 2026-07-02 |
 | 39 | Themes v2 Phase A ([Konzept](docs/THEMES-CONCEPT-V2.md)): Studio-Editor als Vollseite (Dock: 3 Entscheidungen + EIN „Erweitert"), Zufallsfarbe (OKLCH), 3 Preview-Szenen (Komponenten/Dashboard/Content, geteilt mit Galerie), L/C/H-Kurven-Graphen, Unsaved-Guard | ✅ 2026-07-03 |
+| 40 | Themes v2 Phase B: Tinted Neutral (brand-getönte Flächen, EIN Schalter, `data-neutral='c-<id>'`), 5 kuratierte Schriftpaare (`data-font`, @nuxt/fonts self-hosted), Dark-Stufe (`darkAlias` 300/400/500) — config additiv erweitert, kein Schema-Bruch | ✅ 2026-07-04 |
 
 Details und Nachweis-Kriterien pro Phase: [docs/GOALS.md](docs/GOALS.md) · Upgrade-Plan: [docs/APPWRITE-1.9.5-UPGRADE.md](docs/APPWRITE-1.9.5-UPGRADE.md) · Offene Punkte: [docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md)
 

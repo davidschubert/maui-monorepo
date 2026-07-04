@@ -20,13 +20,35 @@ export const DEFAULT_THEME_ID = 'default'
 
 /** Eine wählbare Neutral-Palette (überschreibt die --ui-color-neutral-Ramp via data-neutral) */
 export interface MauiNeutral {
-  /** data-neutral Wert + Nuxt-UI-Palettenname */
+  /** data-neutral Wert + Nuxt-UI-Palettenname (Tinted: 'c-<rowId>' des Themes) */
   id: string
   /** neutral-500 der Palette — für den Swatch-Punkt */
   color: string
+  /** true = brand-getönte Ramp des aktiven Custom Themes (Label via i18n) */
+  tinted?: boolean
 }
 
 export const DEFAULT_NEUTRAL_ID = 'mist'
+
+/** Kuratiertes Schriftpaar (data-font) — Familien sind in fonts.css deklariert,
+ *  @nuxt/fonts self-hostet sie automatisch (build-bekannt, kein Runtime-CDN). */
+export interface MauiFontPair {
+  /** data-font Wert */
+  id: string
+  /** Anzeigename (Font-Namen, kein i18n nötig) */
+  label: string
+}
+
+// Bewusst kuratiert statt freier Font-Wahl: maximal Text + Überschrift pro
+// Paar (+ fixe Mono) — mehr als 3 Schriften pro Seite sind ausgeschlossen.
+// Kein Eintrag 'default': ohne data-font gilt der App-Font (Core: Geist).
+export const FONT_PAIR_REGISTRY: MauiFontPair[] = [
+  { id: 'inter', label: 'Inter' },
+  { id: 'humanist', label: 'Source Sans' },
+  { id: 'editorial', label: 'Source Sans + Source Serif' },
+  { id: 'geometric', label: 'Nunito Sans + Sora' },
+  { id: 'classic', label: 'PT Sans + PT Serif' },
+]
 
 // Reihenfolge: erst die achromatischen/Tailwind-Grautöne, dann die getönten
 // Nuxt-UI-v4-Paletten. color = neutral-500 (siehe public/themes/neutral.css).

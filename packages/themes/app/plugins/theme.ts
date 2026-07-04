@@ -23,7 +23,7 @@ export default defineNuxtPlugin(async () => {
     }
   })
 
-  const { theme, variant, neutral } = useTheme()
+  const { theme, variant, neutral, font } = useTheme()
 
   useHead({
     htmlAttrs: {
@@ -33,6 +33,8 @@ export default defineNuxtPlugin(async () => {
       'data-variant': () => variant.value ?? undefined,
       // neutral.css enthält alle Paletten und ist immer geladen → Attribut immer setzen
       'data-neutral': () => neutral.value,
+      // Schriftpaar des aktiven Themes (fonts.css, build-prozessiert)
+      'data-font': () => font.value,
     },
     link: () => [
       { rel: 'stylesheet', href: '/themes/neutral.css', id: 'maui-neutral-css' },

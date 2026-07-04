@@ -295,25 +295,23 @@ mitverwendet (eine Quelle für visuelle Regression, kein Duplikat).
 
 ## 5. Datenmodell & API (minimal-invasiv)
 
-- **Keine neue Table.** `custom_themes.config` (JSON) trägt v2:
+- **Keine neue Table, kein Versions-Feld** (in der Umsetzung vereinfacht):
+  Das bestehende flache `config`-JSON wird nur ADDITIV erweitert — neue,
+  optionale Felder (`neutral: 'tinted'`, `font`, `darkAlias`) neben den
+  vorhandenen Reglern. Bestehende Rows bleiben unverändert gültig, ein
+  v1/v2-Parser ist unnötig:
 
   ```json
   {
-    "version": 2,
-    "ramp": { "anchor": "auto", "hueShift": 0, "saturation": 1,
-              "lightnessMax": 97, "lightnessMin": 16, "darkAlias": 400 },
-    "neutral": { "kind": "tinted" },
-    "font": "editorial",
-    "radius": 0.375
+    "anchor": "auto", "hueShift": 0, "saturation": 1,
+    "lightnessMax": 97, "lightnessMin": 16, "radius": 0.375,
+    "neutral": "tinted", "font": "editorial", "darkAlias": 400
   }
   ```
 
-  Ohne `version`-Feld ⇒ v1 (flache RampConfig, nur Primary) — der Parser in
-  `themes.get.ts`/`ramp.ts` behandelt beide, bestehende Rows bleiben gültig.
-  Migration nur als neue Migrationsdatei, falls Spaltengrößen (config-Länge)
-  angepasst werden müssen; idempotent über den zentralen Runner
-  (`pnpm migrate --app <app>`).
-- **API**: Zod-Schemas der Admin-Routen um `version`/`neutral`/`darkAlias`
+  Ein `version`-Feld wird erst eingeführt, wenn eine wirklich brechende
+  Umstrukturierung ansteht — nicht auf Vorrat.
+- **API**: Zod-Schemas der Admin-Routen um `neutral`/`font`/`darkAlias`
   erweitern; Routen selbst unverändert. `GET /api/themes` liefert config
   weiterhin durch.
 - **CSS-Budget**: unkritisch — pro Theme kommt höchstens eine zweite Ramp

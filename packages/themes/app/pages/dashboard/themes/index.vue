@@ -218,8 +218,8 @@ async function copyCss(custom: CustomThemeDto) {
                   class="size-5 rounded-full ring-offset-2 ring-offset-default transition"
                   :class="neutral === n.id ? 'ring-2 ring-primary' : 'ring-1 ring-default hover:ring-2'"
                   :style="{ backgroundColor: n.color }"
-                  :title="capitalize(n.id)"
-                  :aria-label="capitalize(n.id)"
+                  :title="n.tinted ? t('themes.neutralTinted') : capitalize(n.id)"
+                  :aria-label="n.tinted ? t('themes.neutralTinted') : capitalize(n.id)"
                   @click="setNeutral(n.id)"
                 />
               </div>

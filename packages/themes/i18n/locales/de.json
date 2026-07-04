@@ -2,6 +2,7 @@
   "themes": {
     "label": "Theme",
     "neutralLabel": "Neutral",
+    "neutralTinted": "Getönt (Theme-Farbe)",
     "variantDefault": "Standard",
     "modeLabel": "Erscheinungsbild",
     "appearance": {
@@ -75,6 +76,11 @@
       "random": "Zufallsfarbe",
       "advanced": "Erweitert",
       "curves": "Kurvenverlauf: Helligkeit (L), Sättigung (C), Farbton (H) — Punkt = Anker-Stufe",
+      "tintedNeutral": "Flächen leicht einfärben",
+      "font": "Schrift",
+      "fontDefault": "Standard (App-Schrift)",
+      "darkAlias": "Dark-Mode: Primary-Stufe",
+      "defaultOption": "Standard",
       "scenes": {
         "components": "Komponenten",
         "dashboard": "Dashboard",

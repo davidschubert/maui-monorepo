@@ -9,6 +9,9 @@ const themeConfigSchema = z.object({
   lightnessMax: z.number().min(80).max(100).optional(),
   lightnessMin: z.number().min(0).max(40).optional(),
   radius: z.union([z.literal(0), z.literal(0.125), z.literal(0.25), z.literal(0.375), z.literal(0.5)]).optional(),
+  neutral: z.literal('tinted').optional(),
+  darkAlias: z.union([z.literal(300), z.literal(400), z.literal(500)]).optional(),
+  font: z.enum(['inter', 'humanist', 'editorial', 'geometric', 'classic']).optional(),
 }).strict()
 
 const variantSchema = z.object({

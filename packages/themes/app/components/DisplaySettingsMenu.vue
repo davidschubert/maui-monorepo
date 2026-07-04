@@ -59,8 +59,8 @@ const items = computed<SwatchItem[][]>(() => {
     }
   })
 
-  const neutralChildren: SwatchItem[] = neutrals.map(n => ({
-    label: capitalize(n.id),
+  const neutralChildren: SwatchItem[] = neutrals.value.map(n => ({
+    label: n.tinted ? t('themes.neutralTinted') : capitalize(n.id),
     slot: 'swatch',
     swatchIcon: 'i-ph-circle-fill',
     swatchColor: n.color,
