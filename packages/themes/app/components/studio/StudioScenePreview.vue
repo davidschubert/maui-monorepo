@@ -6,7 +6,7 @@
  */
 const { t } = useI18n()
 
-const SCENES = ['branding', 'components', 'dashboard', 'content'] as const
+const SCENES = ['branding', 'components', 'dashboard', 'content', 'charts'] as const
 const scene = ref<typeof SCENES[number]>('branding')
 </script>
 
@@ -29,7 +29,8 @@ const scene = ref<typeof SCENES[number]>('branding')
       <StudioSceneBranding v-if="scene === 'branding'" />
       <StudioSceneComponents v-else-if="scene === 'components'" />
       <StudioSceneDashboard v-else-if="scene === 'dashboard'" />
-      <StudioSceneContent v-else />
+      <StudioSceneContent v-else-if="scene === 'content'" />
+      <StudioSceneCharts v-else />
     </div>
   </div>
 </template>

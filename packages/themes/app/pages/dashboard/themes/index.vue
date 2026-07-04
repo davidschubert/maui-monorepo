@@ -162,6 +162,7 @@ function cardMenu(entry: GalleryEntry): DropdownMenuItem[][] {
       [
         setDefaultItem,
         { label: t('themes.studio.export'), icon: 'i-ph-code', onSelect: () => { void copyCss(custom) } },
+        { label: t('themes.studio.exportJson'), icon: 'i-ph-download-simple', onSelect: () => downloadJson(custom) },
       ],
       [
         { label: t('themes.studio.delete'), icon: 'i-ph-trash', color: 'error', onSelect: () => { pendingDelete.value = custom } },
@@ -244,6 +245,68 @@ async function copyCss(custom: CustomThemeDto) {
   catch { /* Clipboard nicht verfügbar */ }
 }
 
+// ── JSON-Export/-Import (Theme auf andere Instanz mitnehmen) ───────────────
+function downloadJson(custom: CustomThemeDto) {
+  const payload = {
+    format: 'maui-theme',
+    version: 1,
+    theme: { name: custom.name, primary: custom.primary, config: custom.config, variants: custom.variants },
+  }
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = `theme-${custom.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'export'}.json`
+  link.click()
+  URL.revokeObjectURL(link.href)
+}
+
+const importInput = ref<HTMLInputElement | null>(null)
+
+/** Nur bekannte Config-Felder übernehmen — die Server-Route validiert strict */
+function sanitizeConfig(raw: unknown): Record<string, unknown> | undefined {
+  if (typeof raw !== 'object' || raw === null) return undefined
+  const source = raw as Record<string, unknown>
+  const picked: Record<string, unknown> = {}
+  for (const key of ['mode', 'anchor', 'hueShift', 'saturation', 'lightnessMax', 'lightnessMin', 'radius', 'neutral', 'darkAlias', 'font']) {
+    if (source[key] !== undefined) picked[key] = source[key]
+  }
+  return Object.keys(picked).length ? picked : undefined
+}
+
+async function importTheme(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
+  busy.value = true
+  try {
+    const parsed = JSON.parse(await file.text()) as { format?: string, theme?: Record<string, unknown> }
+    // Export-Hülle ODER nacktes Theme-Objekt akzeptieren
+    const theme = (parsed.format === 'maui-theme' ? parsed.theme : parsed) as Record<string, unknown> | undefined
+    if (!theme || typeof theme.name !== 'string' || typeof theme.primary !== 'string') {
+      throw new Error('invalid')
+    }
+    await $fetch('/api/admin/themes', {
+      method: 'POST',
+      body: {
+        name: theme.name,
+        primary: theme.primary,
+        config: sanitizeConfig(theme.config),
+        variants: Array.isArray(theme.variants) ? theme.variants : undefined,
+      },
+    })
+    await refreshCustomThemes()
+    toast.add({ title: t('themes.studio.saved'), color: 'success' })
+  }
+  catch (error) {
+    const status = (error as { statusCode?: number })?.statusCode
+    toast.add({ title: status === 422 ? t('themes.studio.limit') : t('themes.studio.importError'), color: 'error' })
+  }
+  finally {
+    busy.value = false
+  }
+}
+
 </script>
 
 <template>
@@ -254,6 +317,10 @@ async function copyCss(custom: CustomThemeDto) {
           <UDashboardSidebarCollapse />
         </template>
         <template #right>
+          <UButton icon="i-ph-tray-arrow-down" color="neutral" variant="ghost" :disabled="busy" @click="importInput?.click()">
+            {{ t('themes.studio.importJson') }}
+          </UButton>
+          <input ref="importInput" type="file" accept=".json,application/json" class="sr-only" @change="importTheme">
           <UButton icon="i-ph-plus" color="primary" :to="localePath('/dashboard/themes/new')">
             {{ t('themes.studio.create') }}
           </UButton>

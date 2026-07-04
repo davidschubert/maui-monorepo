@@ -340,9 +340,13 @@ mitverwendet (eine Quelle für visuelle Regression, kein Duplikat).
 6. Schriftpaar-Registry + `fonts.css` + Dropdown (3.5)
 7. `darkAlias` (3.4)
 
-**Phase C — Kür (nur bei Bedarf)**
-8. JSON-Import/Export (4.5)
-9. Charts-Szene; ggf. weitere Farb-Slots, falls real vermisst (3.1)
+**Phase C — Kür** ✅ umgesetzt 2026-07-04
+8. JSON-Import/Export (4.5): Export im Karten-Menü (Datei mit
+   `format: 'maui-theme'`-Hülle), Import-Button in der Galerie-Navbar
+   (client-seitig auf bekannte Config-Felder reduziert, Server validiert)
+9. Charts-Szene als fünfter Tab (Balken/Linie/Verteilung, Farben rein aus
+   CSS-Variablen — live mit Theme/Draft). Weitere Farb-Slots weiterhin nur
+   bei realem Bedarf (3.1)
 
 Jede Phase endet grün (lint/typecheck/vitest) und mit README-Update.
 Ramp-Tests werden in Phase B um Tinted-Neutral-Fälle erweitert.
