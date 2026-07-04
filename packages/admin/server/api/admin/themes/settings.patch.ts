@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 const settingsSchema = z.object({
   defaultThemeId: z.string().max(64).optional(),
+  defaultVariantId: z.string().regex(/^[a-z0-9-]{1,24}$/).optional(),
   builtins: z.record(
     z.string().max(32),
     z.object({

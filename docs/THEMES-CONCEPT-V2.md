@@ -278,6 +278,12 @@ alle aus Nuxt-UI-Komponenten, i18n-Keys, keine Screenshots:
 Eine vierte Charts-Szene (Ramp als Datenpalette) ist nette Kür für später —
 drei Tabs reichen, um jede Editor-Entscheidung sichtbar zu machen.
 
+Nachtrag (2026-07-04, nach Review): zusätzlich eine **Branding**-Szene als
+erster Tab (Primary-/Neutral-Ramp live aus den CSS-Variablen, semantische
+Farben, Radius, Typografie H1–H5 in der aktiven Schrift). Sie ersetzt die
+frühere öffentliche `/styleguide`-Seite vollständig — die Seite wurde
+entfernt; der visuelle Regressionstest zielt seither auf die Startseite.
+
 Die Szenen sind eigene Komponenten unter
 `packages/themes/app/components/studio/scenes/` und werden vom Styleguide
 mitverwendet (eine Quelle für visuelle Regression, kein Duplikat).

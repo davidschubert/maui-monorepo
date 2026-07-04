@@ -60,11 +60,22 @@ export function useTheme() {
     ?? themes.value[0]!,
   )
 
-  const variant = computed<string | null>(() =>
-    variantCookie.value && theme.value.variants.some(v => v.id === variantCookie.value)
-      ? variantCookie.value
-      : null,
-  )
+  const variant = computed<string | null>(() => {
+    if (variantCookie.value && theme.value.variants.some(v => v.id === variantCookie.value)) {
+      return variantCookie.value
+    }
+    // Instanz-Default-Variante NUR für Besucher ohne eigene Theme-Wahl —
+    // wer selbst wählt (auch die Basisfarbe), behält seine Wahl.
+    if (
+      !themeCookie.value
+      && theme.value.id === settings.value.defaultThemeId
+      && settings.value.defaultVariantId
+      && theme.value.variants.some(v => v.id === settings.value.defaultVariantId)
+    ) {
+      return settings.value.defaultVariantId
+    }
+    return null
+  })
 
   function setTheme(id: string) {
     themeCookie.value = themes.value.some(entry => entry.id === id) ? id : null

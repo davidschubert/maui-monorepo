@@ -5,9 +5,10 @@
  * Studio-Editor-Seite (/dashboard/themes/new bzw. /:id).
  * Registriert via maui.admin.modules (Layer-Vertrag, A14).
  */
+import type { DropdownMenuItem } from '@nuxt/ui'
 import type { CustomThemeDto, ThemeSettings } from '../../../../shared/ramp'
 import { THEME_REGISTRY } from '../../../utils/themeRegistry'
-import { customThemeAttr, customThemeCss, generateRamp, SHADES } from '../../../../shared/ramp'
+import { customThemeAttr, customThemeCss } from '../../../../shared/ramp'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'system.manage' })
 
@@ -20,6 +21,15 @@ const customThemes = useCustomThemesState()
 const settings = useThemeSettingsState()
 
 const capitalize = (value: string) => value.charAt(0).toUpperCase() + value.slice(1)
+
+// Alle Built-in-Theme-CSS vorladen: der Live-Wechsel in der Galerie tauscht
+// den Stylesheet-Link — ohne Preload wartet jeder Wechsel auf den Request
+// (spürbare Verzögerung beim schnellen Durchklicken).
+useHead({
+  link: THEME_REGISTRY
+    .filter(entry => entry.file)
+    .map(entry => ({ rel: 'preload' as const, as: 'style' as const, href: entry.file! })),
+})
 
 // ── Galerie ────────────────────────────────────────────────────────────────
 const customById = computed(() => new Map(customThemes.value.map(c => [customThemeAttr(c.id), c])))
@@ -69,8 +79,11 @@ async function saveSettings(next: ThemeSettings) {
   }
 }
 
-function setDefaultTheme(id: string) {
-  void saveSettings({ ...settings.value, defaultThemeId: id })
+function setDefaultTheme(id: string, variantId?: string) {
+  const next: ThemeSettings = { ...settings.value, defaultThemeId: id }
+  if (variantId) next.defaultVariantId = variantId
+  else delete next.defaultVariantId
+  void saveSettings(next)
 }
 
 function toggleBuiltinHidden(id: string) {
@@ -105,11 +118,72 @@ function saveBuiltinRename() {
 function isActive(id: string): boolean {
   return theme.value.id === id
 }
-function rampFor(themeId: string): string[] {
-  const custom = customById.value.get(themeId)
-  if (!custom) return []
-  const ramp = generateRamp(custom.primary, custom.config ?? {})
-  return ramp ? SHADES.map(s => ramp[s]) : []
+
+// 3-Punkte-Menü pro Karte: alle Aktionen gebündelt (Karte selbst = Wechseln)
+function cardMenu(entry: GalleryEntry): DropdownMenuItem[][] {
+  const isDefault = (variantId?: string) =>
+    effectiveDefaultId.value === entry.id && (settings.value.defaultVariantId ?? undefined) === variantId
+  // Mit Varianten: Untermenü — auch eine Variante kann Instanz-Default sein
+  const setDefaultItem: DropdownMenuItem = entry.variants.length
+    ? {
+        label: t('themes.studio.setDefault'),
+        icon: effectiveDefaultId.value === entry.id ? 'i-ph-star-fill' : 'i-ph-star',
+        children: [
+          {
+            label: t('themes.variantDefault'),
+            type: 'checkbox' as const,
+            checked: isDefault(undefined),
+            disabled: busy.value || isDefault(undefined),
+            onSelect: () => setDefaultTheme(entry.id),
+          },
+          ...entry.variants.map(v => ({
+            label: capitalize(v.id),
+            type: 'checkbox' as const,
+            checked: isDefault(v.id),
+            disabled: busy.value || isDefault(v.id),
+            onSelect: () => setDefaultTheme(entry.id, v.id),
+          })),
+        ],
+      }
+    : {
+        label: t('themes.studio.setDefault'),
+        icon: effectiveDefaultId.value === entry.id ? 'i-ph-star-fill' : 'i-ph-star',
+        disabled: busy.value || isDefault(undefined),
+        onSelect: () => setDefaultTheme(entry.id),
+      }
+  if (entry.isCustom) {
+    const custom = customById.value.get(entry.id)!
+    return [
+      [
+        { label: t('themes.studio.edit'), icon: 'i-ph-pencil-simple', onSelect: () => { void navigateTo(localePath(`/dashboard/themes/${custom.id}`)) } },
+        { label: t('themes.studio.moveUp'), icon: 'i-ph-arrow-up', disabled: busy.value, onSelect: () => { void move(custom, -1) } },
+        { label: t('themes.studio.moveDown'), icon: 'i-ph-arrow-down', disabled: busy.value, onSelect: () => { void move(custom, 1) } },
+      ],
+      [
+        setDefaultItem,
+        { label: t('themes.studio.export'), icon: 'i-ph-code', onSelect: () => { void copyCss(custom) } },
+      ],
+      [
+        { label: t('themes.studio.delete'), icon: 'i-ph-trash', color: 'error', onSelect: () => { pendingDelete.value = custom } },
+      ],
+    ]
+  }
+  return [
+    [
+      { label: t('themes.studio.rename'), icon: 'i-ph-pencil-simple', onSelect: () => { builtinRename.value = { id: entry.id, name: entry.name } } },
+      { label: t('themes.studio.moveUp'), icon: 'i-ph-arrow-up', disabled: busy.value, onSelect: () => moveBuiltin(entry.id, -1) },
+      { label: t('themes.studio.moveDown'), icon: 'i-ph-arrow-down', disabled: busy.value, onSelect: () => moveBuiltin(entry.id, 1) },
+    ],
+    [
+      setDefaultItem,
+      {
+        label: entry.hidden ? t('themes.studio.show') : t('themes.studio.hide'),
+        icon: entry.hidden ? 'i-ph-eye' : 'i-ph-eye-slash',
+        disabled: busy.value,
+        onSelect: () => toggleBuiltinHidden(entry.id),
+      },
+    ],
+  ]
 }
 
 const busy = ref(false)
@@ -180,9 +254,6 @@ async function copyCss(custom: CustomThemeDto) {
           <UDashboardSidebarCollapse />
         </template>
         <template #right>
-          <UButton icon="i-ph-list-magnifying-glass" color="neutral" variant="ghost" :to="localePath('/styleguide')" target="_blank">
-            {{ t('themes.studio.styleguideLink') }}
-          </UButton>
           <UButton icon="i-ph-plus" color="primary" :to="localePath('/dashboard/themes/new')">
             {{ t('themes.studio.create') }}
           </UButton>
@@ -191,7 +262,9 @@ async function copyCss(custom: CustomThemeDto) {
     </template>
 
     <template #body>
-      <div class="mx-auto flex w-full max-w-6xl min-w-0 flex-col gap-4 sm:gap-6">
+      <!-- Zweispalten-Layout wie im Studio-Editor: Galerie links, Szenen rechts -->
+      <div class="mx-auto grid w-full max-w-6xl min-w-0 gap-4 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)] lg:items-start">
+        <div class="flex min-w-0 flex-col gap-4">
         <!-- Schnell-Umschalter: Erscheinungsbild + Neutral -->
         <UPageCard variant="subtle" :ui="{ container: 'min-w-0' }">
           <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
@@ -230,7 +303,7 @@ async function copyCss(custom: CustomThemeDto) {
         <!-- Galerie -->
         <section>
           <h2 class="mb-3 font-semibold">{{ t('themes.studio.gallery') }}</h2>
-          <div class="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div class="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-1">
             <UPageCard
               v-for="entry in galleryThemes"
               :key="entry.id"
@@ -240,82 +313,61 @@ async function copyCss(custom: CustomThemeDto) {
               :ui="{ container: 'min-w-0 p-4 sm:p-4' }"
               @click="setTheme(entry.id)"
             >
-              <div class="flex items-center justify-between gap-2">
-                <div class="flex min-w-0 items-center gap-2">
-                  <span class="size-4 shrink-0 rounded-full ring-1 ring-default" :style="{ backgroundColor: entry.color }" />
-                  <span class="truncate font-medium">{{ entry.name }}</span>
-                  <UBadge v-if="entry.isCustom" color="neutral" variant="subtle" size="sm">{{ t('themes.studio.customBadge') }}</UBadge>
-                  <UBadge v-if="effectiveDefaultId === entry.id" color="info" variant="subtle" size="sm">{{ t('themes.studio.defaultBadge') }}</UBadge>
-                  <UIcon v-if="entry.hidden" name="i-ph-eye-slash" class="size-4 shrink-0 text-muted" />
+              <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0 space-y-2.5">
+                  <!-- Zeile 1: Name (+ dezente Status-Badges) -->
+                  <div class="flex min-w-0 items-center gap-2">
+                    <span class="truncate font-medium">{{ entry.name }}</span>
+                    <UBadge v-if="entry.isCustom" color="neutral" variant="subtle" size="sm">{{ t('themes.studio.customBadge') }}</UBadge>
+                    <UBadge v-if="effectiveDefaultId === entry.id" color="info" variant="subtle" size="sm">
+                      {{ settings.defaultVariantId ? `${t('themes.studio.defaultBadge')} · ${capitalize(settings.defaultVariantId)}` : t('themes.studio.defaultBadge') }}
+                    </UBadge>
+                    <UIcon v-if="entry.hidden" name="i-ph-eye-slash" class="size-4 shrink-0 text-muted" />
+                  </div>
+                  <!-- Zeile 2: Farben als Kreise (Basis + Varianten) -->
+                  <div class="flex flex-wrap items-center gap-1.5" @click.stop>
+                    <button
+                      type="button"
+                      class="size-6 rounded-full transition"
+                      :class="isActive(entry.id) && variant === null ? 'ring-2 ring-primary ring-offset-2 ring-offset-default' : 'ring-1 ring-default hover:ring-2'"
+                      :style="{ backgroundColor: entry.color }"
+                      :title="t('themes.variantDefault')"
+                      :aria-label="t('themes.variantDefault')"
+                      @click="setTheme(entry.id)"
+                    />
+                    <button
+                      v-for="v in entry.variants"
+                      :key="v.id"
+                      type="button"
+                      class="size-6 rounded-full transition"
+                      :class="isActive(entry.id) && variant === v.id ? 'ring-2 ring-primary ring-offset-2 ring-offset-default' : 'ring-1 ring-default hover:ring-2'"
+                      :style="{ backgroundColor: v.color }"
+                      :title="capitalize(v.id)"
+                      :aria-label="capitalize(v.id)"
+                      @click="() => { setTheme(entry.id); setVariant(v.id) }"
+                    />
+                  </div>
                 </div>
-                <UBadge v-if="isActive(entry.id)" color="primary" variant="subtle" size="sm">{{ t('themes.studio.active') }}</UBadge>
-              </div>
-
-              <!-- Custom: komplette generierte Ramp · Built-in: Varianten-Punkte -->
-              <div v-if="rampFor(entry.id).length" class="mt-3 flex h-6 w-full overflow-hidden rounded-md ring-1 ring-default">
-                <span v-for="(color, i) in rampFor(entry.id)" :key="i" class="flex-1" :style="{ backgroundColor: color }" />
-              </div>
-              <div v-if="entry.variants.length" class="mt-3 flex items-center gap-1.5" @click.stop>
-                <button
-                  type="button"
-                  class="size-5 rounded-full transition"
-                  :class="isActive(entry.id) && variant === null ? 'ring-2 ring-primary ring-offset-2 ring-offset-default' : 'ring-1 ring-default hover:ring-2'"
-                  :style="{ backgroundColor: entry.color }"
-                  :title="t('themes.variantDefault')"
-                  :aria-label="t('themes.variantDefault')"
-                  @click="setTheme(entry.id)"
-                />
-                <button
-                  v-for="v in entry.variants"
-                  :key="v.id"
-                  type="button"
-                  class="size-5 rounded-full transition"
-                  :class="isActive(entry.id) && variant === v.id ? 'ring-2 ring-primary ring-offset-2 ring-offset-default' : 'ring-1 ring-default hover:ring-2'"
-                  :style="{ backgroundColor: v.color }"
-                  :title="capitalize(v.id)"
-                  :aria-label="capitalize(v.id)"
-                  @click="() => { setTheme(entry.id); setVariant(v.id) }"
-                />
-              </div>
-
-              <!-- Aktionen: Customs (bearbeiten/sortieren/export/löschen) · Built-ins (umbenennen/sortieren/ausblenden) · beide: als Default setzen -->
-              <div class="mt-3 flex items-center gap-1" @click.stop>
-                <template v-if="entry.isCustom">
-                  <UButton icon="i-ph-pencil-simple" size="xs" color="neutral" variant="ghost" :aria-label="t('themes.studio.edit')" :to="localePath(`/dashboard/themes/${customById.get(entry.id)!.id}`)" />
-                  <UButton icon="i-ph-arrow-up" size="xs" color="neutral" variant="ghost" :disabled="busy" :aria-label="t('themes.studio.moveUp')" @click="move(customById.get(entry.id)!, -1)" />
-                  <UButton icon="i-ph-arrow-down" size="xs" color="neutral" variant="ghost" :disabled="busy" :aria-label="t('themes.studio.moveDown')" @click="move(customById.get(entry.id)!, 1)" />
-                  <UButton icon="i-ph-code" size="xs" color="neutral" variant="ghost" :aria-label="t('themes.studio.export')" @click="copyCss(customById.get(entry.id)!)" />
-                </template>
-                <template v-else>
-                  <UButton icon="i-ph-pencil-simple" size="xs" color="neutral" variant="ghost" :aria-label="t('themes.studio.rename')" @click="builtinRename = { id: entry.id, name: entry.name }" />
-                  <UButton icon="i-ph-arrow-up" size="xs" color="neutral" variant="ghost" :disabled="busy" :aria-label="t('themes.studio.moveUp')" @click="moveBuiltin(entry.id, -1)" />
-                  <UButton icon="i-ph-arrow-down" size="xs" color="neutral" variant="ghost" :disabled="busy" :aria-label="t('themes.studio.moveDown')" @click="moveBuiltin(entry.id, 1)" />
+                <!-- Alle Aktionen im 3-Punkte-Menü -->
+                <UDropdownMenu :items="cardMenu(entry)" :content="{ align: 'end' }">
                   <UButton
-                    :icon="entry.hidden ? 'i-ph-eye' : 'i-ph-eye-slash'"
-                    size="xs" color="neutral" variant="ghost" :disabled="busy"
-                    :aria-label="entry.hidden ? t('themes.studio.show') : t('themes.studio.hide')"
-                    @click="toggleBuiltinHidden(entry.id)"
+                    icon="i-ph-dots-three-vertical" size="xs" color="neutral" variant="ghost"
+                    :aria-label="t('themes.studio.cardActions')"
+                    @click.stop
                   />
-                </template>
-                <UButton
-                  :icon="effectiveDefaultId === entry.id ? 'i-ph-star-fill' : 'i-ph-star'"
-                  size="xs"
-                  :color="effectiveDefaultId === entry.id ? 'info' : 'neutral'"
-                  variant="ghost" :disabled="busy || effectiveDefaultId === entry.id"
-                  :aria-label="t('themes.studio.setDefault')" :title="t('themes.studio.setDefault')"
-                  @click="setDefaultTheme(entry.id)"
-                />
-                <UButton v-if="entry.isCustom" icon="i-ph-trash" size="xs" color="error" variant="ghost" class="ms-auto" :aria-label="t('themes.studio.delete')" @click="pendingDelete = customById.get(entry.id)!" />
+                </UDropdownMenu>
               </div>
             </UPageCard>
           </div>
           <p class="mt-2 text-xs text-muted">{{ t('themes.studio.galleryHint') }}</p>
         </section>
+        </div>
 
-        <!-- Live-Showcase (Nuxt UI) — geteilte Szene, auch im Studio-Editor -->
-        <section>
+        <!-- Live-Vorschau: dieselben Szenen wie im Studio-Editor, bleibt beim
+             Scrollen durch die Galerie sichtbar -->
+        <section class="min-w-0 lg:sticky lg:top-4">
           <h2 class="mb-3 font-semibold">{{ t('themes.studio.showcase') }}</h2>
-          <StudioSceneComponents />
+          <StudioScenePreview />
         </section>
       </div>
 

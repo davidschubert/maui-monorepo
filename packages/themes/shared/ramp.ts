@@ -56,6 +56,8 @@ export interface CustomThemeDto {
 export interface ThemeSettings {
   /** Theme für Besucher ohne Cookie (Built-in-Id oder 'c-<rowId>') */
   defaultThemeId?: string
+  /** Variante des Default-Themes für Besucher ohne Cookie (optional) */
+  defaultVariantId?: string
   /** Overrides je Built-in: umbenennen / ausblenden / umsortieren */
   builtins?: Record<string, { name?: string, hidden?: boolean, order?: number }>
 }

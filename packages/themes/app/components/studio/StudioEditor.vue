@@ -21,12 +21,6 @@ const galleryPath = computed(() => localePath('/dashboard/themes'))
 const isEdit = computed(() => !!props.themeId)
 const advancedOpen = ref(false)
 
-// Preview-Szenen: kuratierte Kontexte statt eines einzigen Showcase-Grids.
-// Hell/Dunkel folgt dem App-Modus (Erscheinungsbild-Umschalter), die ganze
-// Seite trägt beim Bearbeiten ohnehin den Draft.
-const SCENES = ['components', 'dashboard', 'content'] as const
-const scene = ref<typeof SCENES[number]>('components')
-
 // Draft aus der Route initialisieren: ohne id = neu, mit id = bestehendes
 // Custom Theme (unbekannte id → zurück zur Galerie, kein 404-Rauschen)
 if (props.themeId) {
@@ -263,26 +257,9 @@ function confirmLeave() {
             </div>
           </UPageCard>
 
-          <!-- Vorschau: Szenen-Tabs + lokaler Dark-Toggle, darunter Ramp + Kontrast -->
+          <!-- Vorschau: geteilte Szenen-Tabs, darunter Ramp + Kontrast -->
           <div class="min-w-0 space-y-4">
-            <div class="flex items-center gap-1">
-              <UButton
-                v-for="s in SCENES"
-                :key="s"
-                size="xs"
-                :color="scene === s ? 'primary' : 'neutral'"
-                :variant="scene === s ? 'subtle' : 'ghost'"
-                @click="scene = s"
-              >
-                {{ t(`themes.studio.scenes.${s}`) }}
-              </UButton>
-            </div>
-
-            <div class="min-w-0 rounded-lg bg-default p-4 ring-1 ring-default">
-              <StudioSceneComponents v-if="scene === 'components'" />
-              <StudioSceneDashboard v-else-if="scene === 'dashboard'" />
-              <StudioSceneContent v-else />
-            </div>
+            <StudioScenePreview />
 
             <UAlert icon="i-ph-eye" color="primary" variant="subtle" :description="t('themes.studio.draftHint')" />
 
