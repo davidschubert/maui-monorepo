@@ -24,6 +24,7 @@ const sidebarClass = computed(() => {
 })
 
 const close = () => { open.value = false }
+const route = useRoute()
 
 // Hauptnavigation oben — je Eintrag nach Capability gefiltert (RBAC). Overview
 // sieht jeder mit dashboard.access; der Rest nur mit der jeweiligen Capability.
@@ -35,8 +36,17 @@ const links = computed<NavigationMenuItem[]>(() => {
   if (userHasCapability(u, 'users.manage')) items.push({ label: t('admin.nav.users'), icon: 'i-ph-users', to: localePath('/dashboard/users'), onSelect: close })
   // Von Feature-Layern registrierte Dashboard-Module (z.B. comments-Moderation),
   // capability-gefiltert — admin kennt sie nicht hart (Modul-Registry, A14).
+  // Mit children wird der Eintrag zum aufklappbaren Abschnitt (Unterpunkte
+  // erben die Capability des Moduls, sofern keine eigene gesetzt ist).
   for (const m of (appConfig.maui?.admin?.modules ?? []) as MauiAdminModule[]) {
-    if (userHasCapability(u, m.requiredCapability)) {
+    if (!userHasCapability(u, m.requiredCapability)) continue
+    const children = (m.children ?? [])
+      .filter(child => userHasCapability(u, child.requiredCapability ?? m.requiredCapability))
+      .map(child => ({ label: t(child.labelKey), icon: child.icon, to: localePath(child.to), exact: child.exact, onSelect: close }))
+    if (children.length) {
+      items.push({ label: t(m.labelKey), icon: m.icon, defaultOpen: route.path.startsWith(localePath(m.to)), children })
+    }
+    else {
       items.push({ label: t(m.labelKey), icon: m.icon, to: localePath(m.to), onSelect: close })
     }
   }

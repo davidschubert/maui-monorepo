@@ -9,6 +9,21 @@ import type { Capability } from './authz'
  * Liegt in core (Fundament), damit Feature-Layer (comments, …) UND admin den
  * Vertrag nutzen, ohne sich gegenseitig zu importieren (Layer-Grenze A14).
  */
+export interface MauiAdminModuleChild {
+  /** Stabile ID (key/Dedup) */
+  id: string
+  /** i18n-Key des Nav-Labels */
+  labelKey: string
+  /** Icon (i-ph-…), optional bei Unterpunkten */
+  icon?: string
+  /** Ziel-Pfad OHNE Locale-Prefix — das Layout wendet localePath() an */
+  to: string
+  /** Erforderliche Capability — ohne Angabe gilt die des Eltern-Moduls */
+  requiredCapability?: Capability
+  /** true = nur bei exakter Pfad-Übereinstimmung aktiv (für Index-Unterpunkte) */
+  exact?: boolean
+}
+
 export interface MauiAdminModule {
   /** Stabile ID (key/Dedup) */
   id: string
@@ -20,4 +35,9 @@ export interface MauiAdminModule {
   to: string
   /** Erforderliche Capability (RBAC-gefiltert) */
   requiredCapability: Capability
+  /**
+   * Unterpunkte: macht den Eintrag zum aufklappbaren Abschnitt (die
+   * Modul-Seite selbst dann als ersten Unterpunkt mit aufnehmen).
+   */
+  children?: MauiAdminModuleChild[]
 }

@@ -1,4 +1,5 @@
 import { customThemeCss } from '../../shared/ramp'
+import { customFontCss } from '../../shared/fonts'
 
 /**
  * Universal (nicht .client): data-theme/data-variant und der Stylesheet-Link
@@ -12,16 +13,21 @@ import { customThemeCss } from '../../shared/ramp'
 export default defineNuxtPlugin(async () => {
   const customThemes = useCustomThemesState()
   const themeSettings = useThemeSettingsState()
+  const customFonts = useCustomFontsState()
   await callOnce('maui-custom-themes', async () => {
-    try {
-      const data = await useRequestFetch()('/api/themes') as { themes: typeof customThemes.value, settings: typeof themeSettings.value }
-      customThemes.value = data.themes ?? []
-      themeSettings.value = data.settings ?? {}
-    }
-    catch {
-      customThemes.value = []
-    }
+    const [themeData, fontData] = await Promise.all([
+      (useRequestFetch()('/api/themes') as Promise<{ themes: typeof customThemes.value, settings: typeof themeSettings.value }>).catch(() => null),
+      (useRequestFetch()('/api/fonts') as Promise<{ fonts: typeof customFonts.value }>).catch(() => null),
+    ])
+    customThemes.value = themeData?.themes ?? []
+    themeSettings.value = themeData?.settings ?? {}
+    customFonts.value = fontData?.fonts ?? []
   })
+
+  // Datei-URLs einmal am Plugin binden — der Head-Getter läuft auch außerhalb
+  // des Setup-Kontexts
+  const runtimeConfig = useRuntimeConfig()
+  const fileUrl = (fileId: string) => `${runtimeConfig.public.appwriteEndpoint}/storage/buckets/fonts/files/${fileId}/view?project=${runtimeConfig.public.appwriteProjectId}`
 
   const { theme, variant, neutral, font } = useTheme()
 
@@ -42,8 +48,14 @@ export default defineNuxtPlugin(async () => {
         ? [{ rel: 'stylesheet', href: theme.value.file, id: 'maui-theme-css' }]
         : []),
     ],
-    style: () => (customThemes.value.length
-      ? [{ id: 'maui-custom-themes-css', textContent: customThemes.value.map(entry => customThemeCss(entry)).join('\n') }]
-      : []),
+    style: () => [
+      ...(customThemes.value.length
+        ? [{ id: 'maui-custom-themes-css', textContent: customThemes.value.map(entry => customThemeCss(entry)).join('\n') }]
+        : []),
+      // @font-face der individuellen Schriften — Runtime-Pendant zu fonts.css
+      ...(customFonts.value.length
+        ? [{ id: 'maui-custom-fonts-css', textContent: customFonts.value.map(entry => customFontCss(entry, fileUrl)).join('\n') }]
+        : []),
+    ],
   })
 })

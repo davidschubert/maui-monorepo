@@ -1,5 +1,6 @@
 import { THEME_REGISTRY, DEFAULT_THEME_ID, NEUTRAL_REGISTRY, DEFAULT_NEUTRAL_ID, FONT_PAIR_REGISTRY, type MauiNeutral, type MauiTheme } from '../utils/themeRegistry'
 import { customThemeAttr } from '../../shared/ramp'
+import { customFontAttr } from '../../shared/fonts'
 
 /**
  * Theme-State mit Cookie-Persistenz (SSR-liest den Cookie → data-theme
@@ -112,12 +113,18 @@ export function useTheme() {
     neutralCookie.value = neutrals.value.some(n => n.id === id) ? id : null
   }
 
-  // Schriftpaar des aktiven Themes (config.font, nur Registry-Ids) —
-  // Theme-Eigenschaft, kein User-Setting: data-font kommt vom Theme.
+  // Schrift des aktiven Themes (config.font) — Theme-Eigenschaft, kein
+  // User-Setting: data-font kommt vom Theme. Gültig sind Registry-Paare
+  // und individuelle Schriften ('cf-<id>'); gelöschte Fonts fallen still
+  // auf die App-Schrift zurück.
+  const customFonts = useCustomFontsState()
   const font = computed<string | undefined>(() => {
     const custom = customThemes.value.find(c => customThemeAttr(c.id) === theme.value.id)
     const id = custom?.config?.font
-    return id && FONT_PAIR_REGISTRY.some(pair => pair.id === id) ? id : undefined
+    if (!id) return undefined
+    if (FONT_PAIR_REGISTRY.some(pair => pair.id === id)) return id
+    if (customFonts.value.some(f => customFontAttr(f.id) === id)) return id
+    return undefined
   })
 
   return {

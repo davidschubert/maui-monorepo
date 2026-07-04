@@ -4,8 +4,10 @@
  * Zufall — alles Tiefere in EINEM „Erweitert"-Accordion), Vorschau rechts.
  * Live-Draft-Vorschau färbt zusätzlich die ganze Seite (c-draft).
  */
+import type { SelectItem } from '@nuxt/ui'
 import type { RouteLocationNormalized } from 'vue-router'
 import { customThemeAttr, SHADES } from '../../../shared/ramp'
+import { customFontAttr } from '../../../shared/fonts'
 import { FONT_PAIR_REGISTRY } from '../../utils/themeRegistry'
 
 const props = defineProps<{ themeId?: string }>()
@@ -32,10 +34,19 @@ else {
   openCreate()
 }
 
-const fontItems = computed(() => [
-  { label: t('themes.studio.fontDefault'), value: null },
-  ...FONT_PAIR_REGISTRY.map(pair => ({ label: pair.label, value: pair.id })),
-])
+// Kuratierte Paare + individuelle Schriften (cf-<id>) in EINEM Dropdown
+const customFonts = useCustomFontsState()
+const fontItems = computed<SelectItem[]>(() => {
+  const items: SelectItem[] = [
+    { label: t('themes.studio.fontDefault'), value: null },
+    ...FONT_PAIR_REGISTRY.map(pair => ({ label: pair.label, value: pair.id })),
+  ]
+  if (customFonts.value.length) {
+    items.push({ type: 'separator' }, { type: 'label', label: t('themes.fonts.customGroup') })
+    items.push(...customFonts.value.map(f => ({ label: f.name, value: customFontAttr(f.id) })))
+  }
+  return items
+})
 
 const contrastLabel: Record<string, string> = {
   white500: 'themes.studio.contrastWhite500',

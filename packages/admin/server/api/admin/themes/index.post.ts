@@ -11,7 +11,11 @@ const themeConfigSchema = z.object({
   radius: z.union([z.literal(0), z.literal(0.125), z.literal(0.25), z.literal(0.375), z.literal(0.5)]).optional(),
   neutral: z.literal('tinted').optional(),
   darkAlias: z.union([z.literal(300), z.literal(400), z.literal(500)]).optional(),
-  font: z.enum(['inter', 'humanist', 'editorial', 'geometric', 'classic']).optional(),
+  font: z.union([
+    z.enum(['inter', 'humanist', 'editorial', 'geometric', 'classic']),
+    // individuelle Schrift: 'cf-<rowId>' (Verwaltung unter /dashboard/themes/fonts)
+    z.string().regex(/^cf-[a-z0-9]{1,36}$/i),
+  ]).optional(),
 }).strict()
 
 const variantSchema = z.object({

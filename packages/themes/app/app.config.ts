@@ -13,6 +13,10 @@ export default defineAppConfig({
           icon: 'i-ph-palette',
           to: '/dashboard/themes',
           requiredCapability: 'system.manage',
+          children: [
+            { id: 'themes-gallery', labelKey: 'themes.studio.gallery', to: '/dashboard/themes', exact: true },
+            { id: 'themes-fonts', labelKey: 'themes.fonts.navLabel', to: '/dashboard/themes/fonts' },
+          ],
         },
       ],
     },
