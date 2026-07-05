@@ -95,7 +95,7 @@ apps/       ← Vollständige, deploybare Nuxt-Applikationen
 | Package | Status | Inhalt |
 |---|---|---|
 | `packages/core` | ✅ Aktiv | Nuxt Layer: SSR-Auth, Appwrite-Fundament, Design-Basis, Utils |
-| `packages/themes` | 🔜 Geplant | 26-Theme-System + `useTheme` (siehe [[design-system]]) |
+| `packages/themes` | ✅ Aktiv | Theme-Studio (Galerie + Editor), 9 Built-ins + Custom Themes (OKLCH-Ramp-Generator), 2 Schrift-Rollen inkl. WOFF2-Uploads, Live-Propagation — Konzept: docs/THEMES-CONCEPT-V2.md |
 | `packages/comments` | ✅ Aktiv | Kommentarsystem: targetId/targetType, Votes, Realtime — Spec: [[reddit-comment-system-setup]] |
 | `packages/admin` | 🔜 Geplant | Admin Dashboard, User-Verwaltung, Moderation (status-Hook in comments wartet), `dashboard.vue` Layout |
 | `packages/billing` | 🔜 Zukunft | Stripe: Checkout, Webhooks, Subscriptions |
@@ -531,7 +531,7 @@ Immer explizites `Query.limit(...)` setzen (Default 25 → stille Trunkierung).
 - `app.config.ts` — Maui Default Theme (Nuxt UI: primary, neutral, radius, fonts)
 - `main.css` — Tailwind 4 `@import` + `@source` + CSS Custom Properties
 - Color Tokens: primary / secondary / neutral / success / warning / error / info
-- Das 26-Theme-System lebt in `packages/themes` (siehe [[design-system]])
+- Das Multi-Theme-System lebt in `packages/themes` (9 Built-ins + Custom Themes aus einer Basisfarbe, Schrift-Rollen, `useTheme`) — Konzept: docs/THEMES-CONCEPT-V2.md
 
 ### Utilities
 

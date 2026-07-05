@@ -68,6 +68,33 @@ Vollständiges Konzept: docs/CONCEPT.md
   (action editing:*), useViewingPresence (page → DashboardViewers „N sehen diese
   Seite"). PresenceAvatar (core): Avatar + Icon-Badge in der Ecke (tippt/antwortet)
 
+## Themes (Layer themes; Tables besitzt system, Admin-Routen admin — A14)
+- Theme-Studio: /dashboard/themes (Galerie, Zweispalten), Editor als Vollseite
+  (/new, /:id — Dock: Boxen „Farben"+„Schriften", je EIN „Erweitert"),
+  Schriften-Verwaltung /dashboard/themes/fonts. Konzept + bewusste
+  Ablehnungen: docs/THEMES-CONCEPT-V2.md — Einfachheit ist Leitprinzip
+  (Standardansicht = wenige Entscheidungen, kein Slot-/Regler-Zoo)
+- Custom Themes: Table custom_themes (system-Migrationen 009–013), Ramp zur
+  Laufzeit aus EINER Basisfarbe (themes/shared/ramp.ts, OKLCH + Tests).
+  config-JSON NUR ADDITIV erweitern (kein version-Feld): neutral 'tinted',
+  font/fontHeading, darkAlias, headingWeight/Tracking/Uppercase, radius
+- <html>-Attribute (SSR-Head via theme-Plugin, flash-frei; Draft-Vorschau
+  im Editor setzt sie direkt und stellt beim Verlassen den LIVE-Zustand aus
+  useTheme() wieder her): data-theme ('c-<rowId>'), data-variant,
+  data-neutral, data-font, data-font-heading
+- Schriften, 2 Rollen (Text + Überschriften, + fixe Mono — nie mehr als 3):
+  Registry-Einzelfamilien in app/assets/css/fonts.css (build-prozessiert →
+  @nuxt/fonts self-hostet; NIE nach public/) + WOFF2-Uploads (Bucket 'fonts',
+  Magic-Bytes-Check, 'cf-<rowId>', @font-face zur Laufzeit im Head).
+  Legacy-Paar-Ids (editorial …) mappt resolveThemeFonts()
+- Live-Propagation: custom_themes/custom_fonts/app_config sind Table-read(any)
+  → realtime-themes-Plugin refetcht debounct, Head reagiert — offene Fenster
+  (auch Gäste) morphen ohne Reload
+- Injizierte Theme-Styles sind unlayered und schlagen Tailwind-@layer-
+  Utilities BEWUSST (z. B. headingWeight vs. font-bold)
+- Admin-Nav-Registry (maui.admin.modules) kann children (Unterpunkte,
+  RBAC-gefiltert, exact für Index-Einträge)
+
 ## Config-Gates (app.config.ts, Namespace maui.*)
 - maui.analytics / maui.consent: Core-Default false, App aktiviert explizit
 - maui.observability: strukturierte JSON-5xx-Logs am zentralen server/error.ts
