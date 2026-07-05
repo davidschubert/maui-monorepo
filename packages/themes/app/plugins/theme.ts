@@ -29,7 +29,7 @@ export default defineNuxtPlugin(async () => {
   const runtimeConfig = useRuntimeConfig()
   const fileUrl = (fileId: string) => `${runtimeConfig.public.appwriteEndpoint}/storage/buckets/fonts/files/${fileId}/view?project=${runtimeConfig.public.appwriteProjectId}`
 
-  const { theme, variant, neutral, font } = useTheme()
+  const { theme, variant, neutral, font, fontHeading } = useTheme()
 
   useHead({
     htmlAttrs: {
@@ -39,8 +39,10 @@ export default defineNuxtPlugin(async () => {
       'data-variant': () => variant.value ?? undefined,
       // neutral.css enthält alle Paletten und ist immer geladen → Attribut immer setzen
       'data-neutral': () => neutral.value,
-      // Schriftpaar des aktiven Themes (fonts.css, build-prozessiert)
+      // Schrift-Rollen des aktiven Themes (fonts.css, build-prozessiert):
+      // Text + Überschriften (nur bei echter Abweichung gesetzt)
       'data-font': () => font.value,
+      'data-font-heading': () => fontHeading.value,
     },
     link: () => [
       { rel: 'stylesheet', href: '/themes/neutral.css', id: 'maui-neutral-css' },

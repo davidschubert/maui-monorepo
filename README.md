@@ -167,6 +167,9 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 | 40 | Themes v2 Phase B: Tinted Neutral (brand-getönte Flächen, EIN Schalter, `data-neutral='c-<id>'`), 5 kuratierte Schriftpaare (`data-font`, @nuxt/fonts self-hosted), Dark-Stufe (`darkAlias` 300/400/500) — config additiv erweitert, kein Schema-Bruch | ✅ 2026-07-04 |
 | 41 | Individuelle Schriftarten (WOFF2-only): Table `custom_fonts` + Bucket `fonts` (Migration 012), Admin-CRUD mit Magic-Bytes-Check, Verwaltungsseite (/dashboard/themes/fonts, Vorschau in echter Schrift, Variable Fonts), Runtime-@font-face im SSR-Head, Editor-Dropdown „Eigene" (`cf-<id>`); Admin-Nav-Unterpunkte via Registry-`children` | ✅ 2026-07-04 |
 | 42 | Themes v2 Phase C (Kür): Theme-JSON-Export/-Import (Instanz-Transfer), Charts-Szene (Ramp als Datenpalette, Farben rein aus CSS-Variablen); Visual-Baselines der Startseite neu erzeugt (9/9 grün) | ✅ 2026-07-04 |
+| 43 | Typografie-Rollen: Text-/Überschriften-Schrift getrennt wählbar (Einzelfamilien-Registry statt Paare, Legacy-Mapping, `data-font-heading`), Überschriften-Feintuning (Gewicht/Laufweite/Großbuchstaben, unlayered schlägt Utilities), Dock in Farben-/Schriften-Boxen; Draft-Vorschau: Entwurf = volle Wahrheit, Verlassen wendet Live-Theme-Zustand an | ✅ 2026-07-04 |
+| 44 | fix(comments): verwaiste Antworten (Selbst-Roots aus 005-Backfill) repariert — Migration 006 befördert zu Top-Level, 005 gehärtet, Store-Guard gegen total>rows („Alle laden"-Button klickte ins Leere) | ✅ 2026-07-04 |
+| 45 | Live-Theme-Propagation: custom_themes/custom_fonts Table-read(any) (Migration 013) + realtime-themes-Plugin — offene Fenster (auch Gäste) morphen Farben/Schriften ohne Reload (E2E verifiziert) | ✅ 2026-07-04 |
 
 Details und Nachweis-Kriterien pro Phase: [docs/GOALS.md](docs/GOALS.md) · Upgrade-Plan: [docs/APPWRITE-1.9.5-UPGRADE.md](docs/APPWRITE-1.9.5-UPGRADE.md) · Offene Punkte: [docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md)
 
