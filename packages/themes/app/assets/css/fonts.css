@@ -1,55 +1,108 @@
-/* Kuratierte Schriftpaare (FONT_PAIR_REGISTRY) — data-font auf <html> schaltet
-   das Paar um. WICHTIG: Diese Datei läuft durch den Build (assets/, nicht
-   public/), damit @nuxt/fonts die font-family-Deklarationen sieht und die
-   Familien automatisch self-hostet. --font-sans wird mitgesetzt, damit auch
-   Tailwind-font-sans-Utilities dem Paar folgen. Überschriften erhalten nur
-   dort eine eigene Familie, wo das Paar eine definiert. */
+/* Kuratierte Schriftfamilien (FONT_FAMILY_REGISTRY) — zwei Rollen:
+   data-font auf <html> setzt die TEXT-Schrift (--font-sans + font-family,
+   damit auch Tailwind-font-sans-Utilities folgen), data-font-heading die
+   ÜBERSCHRIFTEN-Schrift (h1–h6). WICHTIG: Diese Datei läuft durch den Build
+   (assets/, nicht public/), damit @nuxt/fonts die font-family-Deklarationen
+   sieht und die Familien automatisch self-hostet. */
+
+/* ── Text-Rolle (data-font) ─────────────────────────────────────────────── */
 
 :root[data-font='inter'] {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 
-:root[data-font='humanist'] {
+:root[data-font='source-sans'] {
   --font-sans: 'Source Sans 3', ui-sans-serif, system-ui, sans-serif;
   font-family: 'Source Sans 3', ui-sans-serif, system-ui, sans-serif;
 }
 
-:root[data-font='editorial'] {
-  --font-sans: 'Source Sans 3', ui-sans-serif, system-ui, sans-serif;
-  font-family: 'Source Sans 3', ui-sans-serif, system-ui, sans-serif;
-}
-:root[data-font='editorial'] h1,
-:root[data-font='editorial'] h2,
-:root[data-font='editorial'] h3,
-:root[data-font='editorial'] h4,
-:root[data-font='editorial'] h5,
-:root[data-font='editorial'] h6 {
+:root[data-font='source-serif'] {
+  --font-sans: 'Source Serif 4', Georgia, serif;
   font-family: 'Source Serif 4', Georgia, serif;
 }
 
-:root[data-font='geometric'] {
+:root[data-font='nunito-sans'] {
   --font-sans: 'Nunito Sans', ui-sans-serif, system-ui, sans-serif;
   font-family: 'Nunito Sans', ui-sans-serif, system-ui, sans-serif;
 }
-:root[data-font='geometric'] h1,
-:root[data-font='geometric'] h2,
-:root[data-font='geometric'] h3,
-:root[data-font='geometric'] h4,
-:root[data-font='geometric'] h5,
-:root[data-font='geometric'] h6 {
+
+:root[data-font='sora'] {
+  --font-sans: 'Sora', ui-sans-serif, system-ui, sans-serif;
   font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
 }
 
-:root[data-font='classic'] {
+:root[data-font='pt-sans'] {
   --font-sans: 'PT Sans', ui-sans-serif, system-ui, sans-serif;
   font-family: 'PT Sans', ui-sans-serif, system-ui, sans-serif;
 }
-:root[data-font='classic'] h1,
-:root[data-font='classic'] h2,
-:root[data-font='classic'] h3,
-:root[data-font='classic'] h4,
-:root[data-font='classic'] h5,
-:root[data-font='classic'] h6 {
+
+:root[data-font='pt-serif'] {
+  --font-sans: 'PT Serif', Georgia, serif;
+  font-family: 'PT Serif', Georgia, serif;
+}
+
+/* ── Überschriften-Rolle (data-font-heading, h1–h6) ─────────────────────── */
+
+:root[data-font-heading='inter'] h1,
+:root[data-font-heading='inter'] h2,
+:root[data-font-heading='inter'] h3,
+:root[data-font-heading='inter'] h4,
+:root[data-font-heading='inter'] h5,
+:root[data-font-heading='inter'] h6 {
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+:root[data-font-heading='source-sans'] h1,
+:root[data-font-heading='source-sans'] h2,
+:root[data-font-heading='source-sans'] h3,
+:root[data-font-heading='source-sans'] h4,
+:root[data-font-heading='source-sans'] h5,
+:root[data-font-heading='source-sans'] h6 {
+  font-family: 'Source Sans 3', ui-sans-serif, system-ui, sans-serif;
+}
+
+:root[data-font-heading='source-serif'] h1,
+:root[data-font-heading='source-serif'] h2,
+:root[data-font-heading='source-serif'] h3,
+:root[data-font-heading='source-serif'] h4,
+:root[data-font-heading='source-serif'] h5,
+:root[data-font-heading='source-serif'] h6 {
+  font-family: 'Source Serif 4', Georgia, serif;
+}
+
+:root[data-font-heading='nunito-sans'] h1,
+:root[data-font-heading='nunito-sans'] h2,
+:root[data-font-heading='nunito-sans'] h3,
+:root[data-font-heading='nunito-sans'] h4,
+:root[data-font-heading='nunito-sans'] h5,
+:root[data-font-heading='nunito-sans'] h6 {
+  font-family: 'Nunito Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+:root[data-font-heading='sora'] h1,
+:root[data-font-heading='sora'] h2,
+:root[data-font-heading='sora'] h3,
+:root[data-font-heading='sora'] h4,
+:root[data-font-heading='sora'] h5,
+:root[data-font-heading='sora'] h6 {
+  font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
+}
+
+:root[data-font-heading='pt-sans'] h1,
+:root[data-font-heading='pt-sans'] h2,
+:root[data-font-heading='pt-sans'] h3,
+:root[data-font-heading='pt-sans'] h4,
+:root[data-font-heading='pt-sans'] h5,
+:root[data-font-heading='pt-sans'] h6 {
+  font-family: 'PT Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+:root[data-font-heading='pt-serif'] h1,
+:root[data-font-heading='pt-serif'] h2,
+:root[data-font-heading='pt-serif'] h3,
+:root[data-font-heading='pt-serif'] h4,
+:root[data-font-heading='pt-serif'] h5,
+:root[data-font-heading='pt-serif'] h6 {
   font-family: 'PT Serif', Georgia, serif;
 }

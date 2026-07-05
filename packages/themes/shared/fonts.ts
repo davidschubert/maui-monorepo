@@ -31,10 +31,10 @@ export function customFontAttr(id: string): string {
 }
 
 /**
- * CSS einer eigenen Schrift: @font-face je Datei + data-font-Block (setzt
- * --font-sans UND font-family am :root, wie fonts.css für die Registry-Paare;
- * eigene Schriften gelten für Text und Überschriften gleichermaßen).
- * Name/IDs sind Zod-validiert (keine Quotes/Sonderzeichen) — keine
+ * CSS einer eigenen Schrift: @font-face je Datei + beide Rollen-Blöcke —
+ * data-font (Text: --font-sans + font-family am :root) und data-font-heading
+ * (Überschriften: h1–h6), gleiche Struktur wie fonts.css für die Registry-
+ * Familien. Name/IDs sind Zod-validiert (keine Quotes/Sonderzeichen) — keine
  * Injection-Fläche; fileUrl baut der Aufrufer aus Endpoint/Projekt.
  */
 export function customFontCss(font: CustomFontDto, fileUrl: (fileId: string) => string): string {
@@ -46,7 +46,10 @@ export function customFontCss(font: CustomFontDto, fileUrl: (fileId: string) => 
   font-style: normal;
   font-display: swap;
 }`)
+  const attr = customFontAttr(font.id)
   const stack = `'${font.name}', ui-sans-serif, system-ui, sans-serif`
-  const block = `:root[data-font='${customFontAttr(font.id)}'] {\n  --font-sans: ${stack};\n  font-family: ${stack};\n}`
-  return [...faces, block].join('\n')
+  const textBlock = `:root[data-font='${attr}'] {\n  --font-sans: ${stack};\n  font-family: ${stack};\n}`
+  const headingSelectors = [1, 2, 3, 4, 5, 6].map(level => `:root[data-font-heading='${attr}'] h${level}`).join(',\n')
+  const headingBlock = `${headingSelectors} {\n  font-family: ${stack};\n}`
+  return [...faces, textBlock, headingBlock].join('\n')
 }

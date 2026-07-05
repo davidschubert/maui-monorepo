@@ -30,25 +30,47 @@ export interface MauiNeutral {
 
 export const DEFAULT_NEUTRAL_ID = 'mist'
 
-/** Kuratiertes Schriftpaar (data-font) — Familien sind in fonts.css deklariert,
- *  @nuxt/fonts self-hostet sie automatisch (build-bekannt, kein Runtime-CDN). */
-export interface MauiFontPair {
-  /** data-font Wert */
+/** Kuratierte Schriftfamilie (data-font / data-font-heading) — Familien sind
+ *  in fonts.css deklariert, @nuxt/fonts self-hostet sie automatisch
+ *  (build-bekannt, kein Runtime-CDN). */
+export interface MauiFontFamily {
+  /** data-font-/data-font-heading-Wert */
   id: string
-  /** Anzeigename (Font-Namen, kein i18n nötig) */
+  /** Anzeigename (Font-Name, kein i18n nötig) */
   label: string
 }
 
-// Bewusst kuratiert statt freier Font-Wahl: maximal Text + Überschrift pro
-// Paar (+ fixe Mono) — mehr als 3 Schriften pro Seite sind ausgeschlossen.
+// Zwei Rollen (Text + Überschriften) aus kuratierten Einzelfamilien statt
+// fester Paare — maximal 2 wählbare Schriften pro Theme (+ fixe Mono), mehr
+// als 3 Schriften pro Seite sind strukturell ausgeschlossen.
 // Kein Eintrag 'default': ohne data-font gilt der App-Font (Core: Geist).
-export const FONT_PAIR_REGISTRY: MauiFontPair[] = [
+export const FONT_FAMILY_REGISTRY: MauiFontFamily[] = [
   { id: 'inter', label: 'Inter' },
-  { id: 'humanist', label: 'Source Sans' },
-  { id: 'editorial', label: 'Source Sans + Source Serif' },
-  { id: 'geometric', label: 'Nunito Sans + Sora' },
-  { id: 'classic', label: 'PT Sans + PT Serif' },
+  { id: 'source-sans', label: 'Source Sans' },
+  { id: 'source-serif', label: 'Source Serif' },
+  { id: 'nunito-sans', label: 'Nunito Sans' },
+  { id: 'sora', label: 'Sora' },
+  { id: 'pt-sans', label: 'PT Sans' },
+  { id: 'pt-serif', label: 'PT Serif' },
 ]
+
+// v1-Schriftpaare (config.font 'editorial' …) → Familien-Rollen. Bestehende
+// Configs und Import-Dateien bleiben gültig; gespeichert wird nur noch die
+// neue Form.
+export const LEGACY_FONT_PAIRS: Record<string, { font: string, fontHeading?: string }> = {
+  inter: { font: 'inter' },
+  humanist: { font: 'source-sans' },
+  editorial: { font: 'source-sans', fontHeading: 'source-serif' },
+  geometric: { font: 'nunito-sans', fontHeading: 'sora' },
+  classic: { font: 'pt-sans', fontHeading: 'pt-serif' },
+}
+
+/** Font-Rollen einer Theme-Config auflösen (inkl. Legacy-Paar-Mapping) */
+export function resolveThemeFonts(config?: { font?: string, fontHeading?: string }): { font?: string, fontHeading?: string } {
+  const legacy = config?.font ? LEGACY_FONT_PAIRS[config.font] : undefined
+  if (legacy) return { font: legacy.font, fontHeading: config?.fontHeading ?? legacy.fontHeading }
+  return { font: config?.font, fontHeading: config?.fontHeading }
+}
 
 // Reihenfolge: erst die achromatischen/Tailwind-Grautöne, dann die getönten
 // Nuxt-UI-v4-Paletten. color = neutral-500 (siehe public/themes/neutral.css).

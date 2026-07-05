@@ -31,8 +31,17 @@ export interface ThemeConfig {
   neutral?: 'tinted'
   /** Primary-Stufe für --ui-primary im Dark-Mode (Default 400) */
   darkAlias?: 300 | 400 | 500
-  /** Schriftpaar-Id (FONT_PAIR_REGISTRY, data-font) — ohne = App-Font */
+  /** Text-Schrift (FONT_FAMILY_REGISTRY-Id oder 'cf-<id>') — ohne = App-Font.
+   *  v1-Paar-Ids (editorial …) werden beim Laden gemappt (LEGACY_FONT_PAIRS). */
   font?: string
+  /** Überschriften-Schrift (h1–h6) — ohne = wie Text */
+  fontHeading?: string
+  /** Überschriften-Gewicht (überschreibt Komponenten-Utilities; ohne = Default) */
+  headingWeight?: 400 | 500 | 600 | 700 | 800
+  /** Überschriften-Laufweite in px (-3..6; 0/ohne = Default) */
+  headingTracking?: number
+  /** true = Überschriften in Großbuchstaben */
+  headingUppercase?: boolean
 }
 
 /** Farbvariante eines Custom Themes (data-variant überschreibt die Primary-Ramp) */
@@ -202,6 +211,24 @@ export function customThemeCss(theme: CustomThemeDto, attrOverride?: string): st
     if (!variantRamp) continue
     const variantVars = SHADES.map(shade => `  --ui-color-primary-${shade}: ${variantRamp[shade]};`).join('\n')
     blocks.push(`:root[data-theme='${attr}'][data-variant='${variant.id}'] {\n${variantVars}\n}`)
+  }
+  // Überschriften-Feintuning: EIN h1–h6-Block je Theme. Der Style ist
+  // unlayered und gewinnt damit gegen Tailwind-Utilities (@layer utilities) —
+  // Werte nur nach Validierung (Literale/Range), keine Injection-Fläche.
+  const headingRules: string[] = []
+  if ([400, 500, 600, 700, 800].includes(config.headingWeight as number)) {
+    headingRules.push(`  font-weight: ${config.headingWeight};`)
+  }
+  if (typeof config.headingTracking === 'number' && Number.isFinite(config.headingTracking)
+    && config.headingTracking !== 0 && config.headingTracking >= -3 && config.headingTracking <= 6) {
+    headingRules.push(`  letter-spacing: ${config.headingTracking}px;`)
+  }
+  if (config.headingUppercase === true) {
+    headingRules.push('  text-transform: uppercase;')
+  }
+  if (headingRules.length) {
+    const selectors = [1, 2, 3, 4, 5, 6].map(level => `:root[data-theme='${attr}'] h${level}`).join(',\n')
+    blocks.push(`${selectors} {\n${headingRules.join('\n')}\n}`)
   }
   // Tinted Neutral: eigener data-neutral-Block (gleiche Selektor-Form wie
   // neutral.css) — angewendet nur, wenn data-neutral auf dem Theme steht

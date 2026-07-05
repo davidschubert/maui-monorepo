@@ -183,3 +183,26 @@ describe('customThemeCss mit darkAlias', () => {
     expect(withFont).toBe(without)
   })
 })
+
+describe('customThemeCss Überschriften-Feintuning', () => {
+  it('rendert h1–h6-Block mit Gewicht/Laufweite/Uppercase', () => {
+    const css = customThemeCss({ id: 'x', name: 'X', primary: '#2f7fee', order: 0, config: { headingWeight: 700, headingTracking: 1.5, headingUppercase: true } })
+    expect(css).toContain(`:root[data-theme='c-x'] h1`)
+    expect(css).toContain(`:root[data-theme='c-x'] h6`)
+    expect(css).toContain('font-weight: 700;')
+    expect(css).toContain('letter-spacing: 1.5px;')
+    expect(css).toContain('text-transform: uppercase;')
+  })
+  it('ohne Feintuning → kein h-Block', () => {
+    const css = customThemeCss({ id: 'x', name: 'X', primary: '#2f7fee', order: 0, config: {} })
+    expect(css).not.toContain('font-weight: ')
+    expect(css).not.toContain('letter-spacing')
+    expect(css).not.toContain('text-transform')
+  })
+  it('ungültige Werte werden verworfen (Tracking 0/out-of-range, krummes Gewicht)', () => {
+    const css = customThemeCss({ id: 'x', name: 'X', primary: '#2f7fee', order: 0, config: { headingWeight: 450 as unknown as 400, headingTracking: 99, headingUppercase: false } })
+    expect(css).not.toContain('font-weight: ')
+    expect(css).not.toContain('letter-spacing')
+    expect(css).not.toContain('text-transform')
+  })
+})

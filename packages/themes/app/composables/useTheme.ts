@@ -1,4 +1,4 @@
-import { THEME_REGISTRY, DEFAULT_THEME_ID, NEUTRAL_REGISTRY, DEFAULT_NEUTRAL_ID, FONT_PAIR_REGISTRY, type MauiNeutral, type MauiTheme } from '../utils/themeRegistry'
+import { THEME_REGISTRY, DEFAULT_THEME_ID, NEUTRAL_REGISTRY, DEFAULT_NEUTRAL_ID, FONT_FAMILY_REGISTRY, resolveThemeFonts, type MauiNeutral, type MauiTheme } from '../utils/themeRegistry'
 import { customThemeAttr } from '../../shared/ramp'
 import { customFontAttr } from '../../shared/fonts'
 
@@ -113,22 +113,32 @@ export function useTheme() {
     neutralCookie.value = neutrals.value.some(n => n.id === id) ? id : null
   }
 
-  // Schrift des aktiven Themes (config.font) — Theme-Eigenschaft, kein
-  // User-Setting: data-font kommt vom Theme. Gültig sind Registry-Paare
-  // und individuelle Schriften ('cf-<id>'); gelöschte Fonts fallen still
-  // auf die App-Schrift zurück.
+  // Schrift-Rollen des aktiven Themes (config.font/fontHeading, inkl.
+  // Legacy-Paar-Mapping) — Theme-Eigenschaft, kein User-Setting: data-font/
+  // data-font-heading kommen vom Theme. Gültig sind Registry-Familien und
+  // individuelle Schriften ('cf-<id>'); gelöschte Fonts fallen still auf die
+  // App-Schrift zurück.
   const customFonts = useCustomFontsState()
-  const font = computed<string | undefined>(() => {
-    const custom = customThemes.value.find(c => customThemeAttr(c.id) === theme.value.id)
-    const id = custom?.config?.font
+  const validFontId = (id: string | undefined): string | undefined => {
     if (!id) return undefined
-    if (FONT_PAIR_REGISTRY.some(pair => pair.id === id)) return id
+    if (FONT_FAMILY_REGISTRY.some(family => family.id === id)) return id
     if (customFonts.value.some(f => customFontAttr(f.id) === id)) return id
     return undefined
+  }
+  const themeFonts = computed(() => {
+    const custom = customThemes.value.find(c => customThemeAttr(c.id) === theme.value.id)
+    return resolveThemeFonts(custom?.config)
+  })
+  const font = computed<string | undefined>(() => validFontId(themeFonts.value.font))
+  const fontHeading = computed<string | undefined>(() => {
+    const id = validFontId(themeFonts.value.fontHeading)
+    // 'Wie Text' braucht kein Attribut — nur echte Abweichungen rendern
+    return id && id !== font.value ? id : undefined
   })
 
   return {
     font,
+    fontHeading,
     themes,
     theme,
     variant,

@@ -8,7 +8,7 @@ import type { SelectItem } from '@nuxt/ui'
 import type { RouteLocationNormalized } from 'vue-router'
 import { customThemeAttr, SHADES } from '../../../shared/ramp'
 import { customFontAttr } from '../../../shared/fonts'
-import { FONT_PAIR_REGISTRY } from '../../utils/themeRegistry'
+import { FONT_FAMILY_REGISTRY } from '../../utils/themeRegistry'
 
 const props = defineProps<{ themeId?: string }>()
 
@@ -22,6 +22,7 @@ const { draft, busy, isDirty, openCreate, openEdit, applyPreset, randomizePrimar
 const galleryPath = computed(() => localePath('/dashboard/themes'))
 const isEdit = computed(() => !!props.themeId)
 const advancedOpen = ref(false)
+const fontsAdvancedOpen = ref(false)
 
 // Draft aus der Route initialisieren: ohne id = neu, mit id = bestehendes
 // Custom Theme (unbekannte id → zurück zur Galerie, kein 404-Rauschen)
@@ -34,19 +35,22 @@ else {
   openCreate()
 }
 
-// Kuratierte Paare + individuelle Schriften (cf-<id>) in EINEM Dropdown
+// Zwei Rollen (Text + Überschriften) aus Registry-Familien + individuellen
+// Schriften (cf-<id>) — nur der Default-Eintrag unterscheidet sich
 const customFonts = useCustomFontsState()
-const fontItems = computed<SelectItem[]>(() => {
+function buildFontItems(defaultLabel: string): SelectItem[] {
   const items: SelectItem[] = [
-    { label: t('themes.studio.fontDefault'), value: null },
-    ...FONT_PAIR_REGISTRY.map(pair => ({ label: pair.label, value: pair.id })),
+    { label: defaultLabel, value: null },
+    ...FONT_FAMILY_REGISTRY.map(family => ({ label: family.label, value: family.id })),
   ]
   if (customFonts.value.length) {
     items.push({ type: 'separator' }, { type: 'label', label: t('themes.fonts.customGroup') })
     items.push(...customFonts.value.map(f => ({ label: f.name, value: customFontAttr(f.id) })))
   }
   return items
-})
+}
+const fontItems = computed<SelectItem[]>(() => buildFontItems(t('themes.studio.fontDefault')))
+const fontHeadingItems = computed<SelectItem[]>(() => buildFontItems(t('themes.studio.fontHeadingDefault')))
 
 const contrastLabel: Record<string, string> = {
   white500: 'themes.studio.contrastWhite500',
@@ -104,9 +108,11 @@ function confirmLeave() {
     <template #body>
       <div v-if="draft" class="mx-auto w-full max-w-6xl min-w-0">
         <div class="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)] lg:items-start">
-          <!-- Dock -->
+          <!-- Dock: zwei Boxen — Farben und Schriften getrennt -->
+          <div class="flex min-w-0 flex-col gap-4">
           <UPageCard variant="subtle" :ui="{ container: 'min-w-0' }">
             <div class="space-y-4">
+              <h3 class="text-sm font-semibold">{{ t('themes.studio.sectionColors') }}</h3>
               <UFormField :label="t('themes.studio.name')" required>
                 <UInput v-model="draft.name" :maxlength="64" class="w-full" />
               </UFormField>
@@ -139,11 +145,6 @@ function confirmLeave() {
                   <span v-for="shade in SHADES" :key="shade" class="flex-1" :style="{ backgroundColor: neutralRamp[shade] }" />
                 </div>
               </div>
-
-              <!-- Schriftpaar (kuratiert, Default = App-Font) -->
-              <UFormField :label="t('themes.studio.font')">
-                <USelect v-model="draft.config.font" :items="fontItems" class="w-full" />
-              </UFormField>
 
               <div v-if="!draft.id" class="flex flex-wrap items-center gap-1.5">
                 <span class="text-sm text-muted">{{ t('themes.studio.presets') }}</span>
@@ -267,6 +268,67 @@ function confirmLeave() {
               </UCollapsible>
             </div>
           </UPageCard>
+
+          <!-- Schriften: Rollen (Text/Überschriften) + Feintuning -->
+          <UPageCard variant="subtle" :ui="{ container: 'min-w-0' }">
+            <div class="space-y-4">
+              <h3 class="text-sm font-semibold">{{ t('themes.studio.sectionFonts') }}</h3>
+              <div class="grid grid-cols-2 gap-3">
+                <UFormField :label="t('themes.studio.fontText')">
+                  <USelect v-model="draft.config.font" :items="fontItems" class="w-full" />
+                </UFormField>
+                <UFormField :label="t('themes.studio.fontHeading')">
+                  <USelect v-model="draft.config.fontHeading" :items="fontHeadingItems" class="w-full" />
+                </UFormField>
+              </div>
+
+              <USeparator />
+
+              <UCollapsible v-model:open="fontsAdvancedOpen">
+                <UButton
+                  color="neutral" variant="ghost" block
+                  :trailing-icon="fontsAdvancedOpen ? 'i-ph-caret-up' : 'i-ph-caret-down'"
+                  :ui="{ base: 'justify-between px-0' }"
+                >
+                  {{ t('themes.studio.advanced') }}
+                </UButton>
+                <template #content>
+                  <div class="space-y-4 pt-3">
+                    <!-- Überschriften-Feintuning (Gewicht/Laufweite/Großbuchstaben) -->
+                    <UFormField :label="t('themes.studio.headingWeight')">
+                      <div class="flex flex-wrap items-center gap-1.5">
+                        <UButton
+                          size="xs"
+                          :color="draft.config.headingWeight === null ? 'primary' : 'neutral'"
+                          :variant="draft.config.headingWeight === null ? 'subtle' : 'ghost'"
+                          @click="draft.config.headingWeight = null"
+                        >
+                          {{ t('themes.studio.defaultOption') }}
+                        </UButton>
+                        <UButton
+                          v-for="w in ([400, 500, 600, 700, 800] as const)"
+                          :key="w"
+                          size="xs"
+                          :color="draft.config.headingWeight === w ? 'primary' : 'neutral'"
+                          :variant="draft.config.headingWeight === w ? 'subtle' : 'ghost'"
+                          @click="draft.config.headingWeight = w"
+                        >
+                          {{ w }}
+                        </UButton>
+                      </div>
+                    </UFormField>
+                    <UFormField :label="`${t('themes.studio.headingTracking')} (${draft.config.headingTracking}px)`">
+                      <USlider v-model="draft.config.headingTracking" :min="-3" :max="6" :step="0.5" />
+                    </UFormField>
+                    <UFormField>
+                      <USwitch v-model="draft.config.headingUppercase" :label="t('themes.studio.headingUppercase')" />
+                    </UFormField>
+                  </div>
+                </template>
+              </UCollapsible>
+            </div>
+          </UPageCard>
+          </div>
 
           <!-- Vorschau: geteilte Szenen-Tabs, darunter Ramp + Kontrast -->
           <div class="min-w-0 space-y-4">

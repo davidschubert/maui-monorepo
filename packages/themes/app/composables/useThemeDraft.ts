@@ -1,6 +1,7 @@
 import type { CustomThemeDto, CustomVariant, ThemeConfig } from '../../shared/ramp'
 import { contrastRatio, customThemeCss, generateNeutralRamp, generateRamp, HEX_COLOR_RE, wcagLevel } from '../../shared/ramp'
 import { oklchToHex } from '../../shared/oklch'
+import { resolveThemeFonts } from '../utils/themeRegistry'
 
 /**
  * Draft-Zustand des Studio-Editors: config immer vollständig (die Regler
@@ -10,11 +11,15 @@ export interface ThemeDraftState {
   id: string | null
   name: string
   primary: string
-  config: Required<Omit<ThemeConfig, 'radius' | 'neutral' | 'font' | 'darkAlias'>> & {
+  config: Required<Omit<ThemeConfig, 'radius' | 'neutral' | 'font' | 'fontHeading' | 'darkAlias' | 'headingWeight' | 'headingTracking' | 'headingUppercase'>> & {
     radius: number | null
     neutral: 'tinted' | null
     font: string | null
+    fontHeading: string | null
     darkAlias: 300 | 400 | 500
+    headingWeight: 400 | 500 | 600 | 700 | 800 | null
+    headingTracking: number
+    headingUppercase: boolean
   }
   variants: CustomVariant[]
 }
@@ -30,7 +35,7 @@ export const THEME_PRESETS: { name: string, primary: string }[] = [
 ]
 
 const DEFAULT_CONFIG: ThemeDraftState['config'] = {
-  mode: 'perceived', anchor: 'auto', hueShift: 0, saturation: 1, lightnessMax: 97, lightnessMin: 16, radius: null, neutral: null, font: null, darkAlias: 400,
+  mode: 'perceived', anchor: 'auto', hueShift: 0, saturation: 1, lightnessMax: 97, lightnessMin: 16, radius: null, neutral: null, font: null, fontHeading: null, darkAlias: 400, headingWeight: null, headingTracking: 0, headingUppercase: false,
 }
 
 export interface ContrastCheck {
@@ -69,8 +74,14 @@ export function useThemeDraft() {
         ...(custom.config ?? {}),
         radius: custom.config?.radius ?? null,
         neutral: custom.config?.neutral ?? null,
-        font: custom.config?.font ?? null,
+        // Legacy-Paare (editorial …) beim Öffnen auf die Rollen mappen —
+        // gespeichert wird nur noch die neue Form
+        font: resolveThemeFonts(custom.config).font ?? null,
+        fontHeading: resolveThemeFonts(custom.config).fontHeading ?? null,
         darkAlias: custom.config?.darkAlias ?? 400,
+        headingWeight: custom.config?.headingWeight ?? null,
+        headingTracking: custom.config?.headingTracking ?? 0,
+        headingUppercase: custom.config?.headingUppercase ?? false,
       },
       variants: [...(custom.variants ?? [])],
     }
@@ -126,7 +137,11 @@ export function useThemeDraft() {
       ...(c.radius !== null ? { radius: c.radius as ThemeConfig['radius'] } : {}),
       ...(c.neutral ? { neutral: c.neutral } : {}),
       ...(c.font ? { font: c.font } : {}),
+      ...(c.fontHeading && c.fontHeading !== c.font ? { fontHeading: c.fontHeading } : {}),
       ...(c.darkAlias !== 400 ? { darkAlias: c.darkAlias } : {}),
+      ...(c.headingWeight !== null ? { headingWeight: c.headingWeight } : {}),
+      ...(c.headingTracking !== 0 ? { headingTracking: c.headingTracking } : {}),
+      ...(c.headingUppercase ? { headingUppercase: true } : {}),
     }
   }
 
@@ -160,18 +175,32 @@ export function useThemeDraft() {
     })
   })
 
-  // Draft-Live-Vorschau: solange ein (gültiger) Entwurf offen ist, wird er auf
-  // die GANZE Seite angewendet — beurteilen an echten Components statt am
-  // Farbstreifen. Schließen/Verlassen stellt das aktive Theme wieder her.
-  let previousDataTheme: string | undefined
-  let previousDataNeutral: string | undefined
-  let previousDataFont: string | undefined
+  // Draft-Live-Vorschau: solange ein (gültiger) Entwurf offen ist, ist ER die
+  // volle Wahrheit für alle Theme-Attribute (null = Attribut entfernen, kein
+  // Fallback aufs aktive Theme). Beim Schließen/Verlassen wird der AKTUELLE
+  // Theme-Zustand aus useTheme() angewendet — NICHT der beim Öffnen gemerkte
+  // DOM-Zustand: nach dem Speichern wäre der veraltet (Attribute des alten
+  // Config-Stands würden wieder auf die Seite gestempelt).
+  const { theme: activeTheme, neutral: activeNeutral, font: activeFont, fontHeading: activeFontHeading } = useTheme()
+
+  function applyActiveThemeAttrs() {
+    const html = document.documentElement
+    if (activeTheme.value.id !== 'default') html.dataset.theme = activeTheme.value.id
+    else delete html.dataset.theme
+    html.dataset.neutral = activeNeutral.value
+    if (activeFont.value) html.dataset.font = activeFont.value
+    else delete html.dataset.font
+    if (activeFontHeading.value) html.dataset.fontHeading = activeFontHeading.value
+    else delete html.dataset.fontHeading
+  }
+
+  let previewActive = false
   watch([draft, ramp], () => {
     if (import.meta.server) return
     const html = document.documentElement
     let styleEl = document.getElementById('maui-draft-theme') as HTMLStyleElement | null
     if (draft.value && ramp.value) {
-      if (previousDataTheme === undefined) previousDataTheme = html.dataset.theme ?? ''
+      previewActive = true
       if (!styleEl) {
         styleEl = document.createElement('style')
         styleEl.id = 'maui-draft-theme'
@@ -179,61 +208,25 @@ export function useThemeDraft() {
       }
       styleEl.textContent = customThemeCss({ id: 'draft', name: 'Draft', primary: draft.value.primary, order: 0, config: draftConfig() }, 'c-draft')
       html.dataset.theme = 'c-draft'
-      // Tinted Neutral live mitschalten (Original-Neutral beim Verlassen zurück)
-      if (draft.value.config.neutral === 'tinted') {
-        if (previousDataNeutral === undefined) previousDataNeutral = html.dataset.neutral ?? ''
-        html.dataset.neutral = 'c-draft'
-      }
-      else if (previousDataNeutral !== undefined) {
-        if (previousDataNeutral) html.dataset.neutral = previousDataNeutral
-        else delete html.dataset.neutral
-        previousDataNeutral = undefined
-      }
-      // Schriftpaar live mitschalten (fonts.css ist statisch geladen)
-      if (draft.value.config.font) {
-        if (previousDataFont === undefined) previousDataFont = html.dataset.font ?? ''
-        html.dataset.font = draft.value.config.font
-      }
-      else if (previousDataFont !== undefined) {
-        if (previousDataFont) html.dataset.font = previousDataFont
-        else delete html.dataset.font
-        previousDataFont = undefined
-      }
+      html.dataset.neutral = draft.value.config.neutral === 'tinted' ? 'c-draft' : activeNeutral.value
+      if (draft.value.config.font) html.dataset.font = draft.value.config.font
+      else delete html.dataset.font
+      const draftHeading = draft.value.config.fontHeading && draft.value.config.fontHeading !== draft.value.config.font
+        ? draft.value.config.fontHeading
+        : null
+      if (draftHeading) html.dataset.fontHeading = draftHeading
+      else delete html.dataset.fontHeading
     }
-    else {
+    else if (previewActive) {
+      previewActive = false
       styleEl?.remove()
-      if (previousDataTheme !== undefined) {
-        if (previousDataTheme) html.dataset.theme = previousDataTheme
-        else delete html.dataset.theme
-        previousDataTheme = undefined
-      }
-      if (previousDataNeutral !== undefined) {
-        if (previousDataNeutral) html.dataset.neutral = previousDataNeutral
-        else delete html.dataset.neutral
-        previousDataNeutral = undefined
-      }
-      if (previousDataFont !== undefined) {
-        if (previousDataFont) html.dataset.font = previousDataFont
-        else delete html.dataset.font
-        previousDataFont = undefined
-      }
+      applyActiveThemeAttrs()
     }
   }, { deep: true })
   onScopeDispose(() => {
     if (import.meta.server) return
     document.getElementById('maui-draft-theme')?.remove()
-    if (previousDataTheme !== undefined) {
-      if (previousDataTheme) document.documentElement.dataset.theme = previousDataTheme
-      else delete document.documentElement.dataset.theme
-    }
-    if (previousDataNeutral !== undefined) {
-      if (previousDataNeutral) document.documentElement.dataset.neutral = previousDataNeutral
-      else delete document.documentElement.dataset.neutral
-    }
-    if (previousDataFont !== undefined) {
-      if (previousDataFont) document.documentElement.dataset.font = previousDataFont
-      else delete document.documentElement.dataset.font
-    }
+    if (previewActive) applyActiveThemeAttrs()
   })
 
   /**

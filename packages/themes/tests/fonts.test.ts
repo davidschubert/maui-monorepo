@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { customFontAttr, customFontCss } from '../shared/fonts'
+import { resolveThemeFonts } from '../app/utils/themeRegistry'
 
 const url = (fileId: string) => `https://appwrite.example/v1/storage/buckets/fonts/files/${fileId}/view?project=p`
 
@@ -41,5 +42,30 @@ describe('customFontCss', () => {
 
   it('ohne Dateien → leerer String', () => {
     expect(customFontCss({ id: 'x', name: 'Leer', order: 0, files: [] }, url)).toBe('')
+  })
+})
+
+describe('customFontCss Rollen-Blöcke', () => {
+  it('rendert Text- UND Überschriften-Block', () => {
+    const css = customFontCss({ id: 'x', name: 'Hausschrift', order: 0, files: [{ weight: 400, fileId: 'f' }] }, url)
+    expect(css).toContain(`:root[data-font='cf-x']`)
+    expect(css).toContain(`:root[data-font-heading='cf-x'] h1`)
+    expect(css).toContain(`:root[data-font-heading='cf-x'] h6`)
+  })
+})
+
+describe('resolveThemeFonts (Legacy-Paar-Mapping)', () => {
+  it('mappt v1-Paare auf Text-/Überschriften-Rollen', () => {
+    expect(resolveThemeFonts({ font: 'editorial' })).toEqual({ font: 'source-sans', fontHeading: 'source-serif' })
+    expect(resolveThemeFonts({ font: 'classic' })).toEqual({ font: 'pt-sans', fontHeading: 'pt-serif' })
+    expect(resolveThemeFonts({ font: 'humanist' })).toEqual({ font: 'source-sans', fontHeading: undefined })
+  })
+  it('reicht neue Familien-Ids und cf-Ids unverändert durch', () => {
+    expect(resolveThemeFonts({ font: 'sora', fontHeading: 'pt-serif' })).toEqual({ font: 'sora', fontHeading: 'pt-serif' })
+    expect(resolveThemeFonts({ font: 'cf-abc' })).toEqual({ font: 'cf-abc', fontHeading: undefined })
+    expect(resolveThemeFonts(undefined)).toEqual({ font: undefined, fontHeading: undefined })
+  })
+  it('inter bleibt inter (Paar-Id = Familien-Id)', () => {
+    expect(resolveThemeFonts({ font: 'inter' })).toEqual({ font: 'inter', fontHeading: undefined })
   })
 })

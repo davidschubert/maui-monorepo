@@ -12,10 +12,18 @@ const themeConfigSchema = z.object({
   neutral: z.literal('tinted').optional(),
   darkAlias: z.union([z.literal(300), z.literal(400), z.literal(500)]).optional(),
   font: z.union([
-    z.enum(['inter', 'humanist', 'editorial', 'geometric', 'classic']),
+    // Familien-Ids (neu) + v1-Paar-Ids (Import-Kompatibilität, Runtime mappt)
+    z.enum(['inter', 'source-sans', 'source-serif', 'nunito-sans', 'sora', 'pt-sans', 'pt-serif', 'humanist', 'editorial', 'geometric', 'classic']),
     // individuelle Schrift: 'cf-<rowId>' (Verwaltung unter /dashboard/themes/fonts)
     z.string().regex(/^cf-[a-z0-9]{1,36}$/i),
   ]).optional(),
+  fontHeading: z.union([
+    z.enum(['inter', 'source-sans', 'source-serif', 'nunito-sans', 'sora', 'pt-sans', 'pt-serif']),
+    z.string().regex(/^cf-[a-z0-9]{1,36}$/i),
+  ]).optional(),
+  headingWeight: z.union([z.literal(400), z.literal(500), z.literal(600), z.literal(700), z.literal(800)]).optional(),
+  headingTracking: z.number().min(-3).max(6).optional(),
+  headingUppercase: z.boolean().optional(),
 }).strict()
 
 const variantSchema = z.object({
