@@ -89,9 +89,13 @@ for (let offset = 0; ; offset += 100) {
 }
 const byId = new Map(all.map(c => [c.$id, c]))
 
-/** Top-Level-Vorfahr ($id) + Tiefe aus der parentId-Kette (zyklen-sicher). */
-function resolve(c: CommentRow): { rootId: string | null, depth: number } {
-  if (!c.parentId) return { rootId: null, depth: 0 }
+/** Top-Level-Vorfahr ($id) + Tiefe aus der parentId-Kette (zyklen-sicher).
+ *  Waisen (parentId zeigt auf eine hart gelöschte Row) werden ECHTES
+ *  Top-Level (parentId → null) — sonst entstünden Selbst-Roots, die die
+ *  Listen-Route nie ausliefert, total aber mitzählt. */
+function resolve(c: CommentRow): { rootId: string | null, depth: number, orphan: boolean } {
+  if (!c.parentId) return { rootId: null, depth: 0, orphan: false }
+  if (!byId.has(c.parentId)) return { rootId: null, depth: 0, orphan: true }
   let cur = c
   let depth = 0
   const seen = new Set<string>()
@@ -100,15 +104,15 @@ function resolve(c: CommentRow): { rootId: string | null, depth: number } {
     cur = byId.get(cur.parentId)!
     depth++
   }
-  return { rootId: cur.$id, depth }
+  return { rootId: cur.$id, depth, orphan: false }
 }
 
 let updated = 0
 for (const c of all) {
-  const { rootId, depth } = resolve(c)
+  const { rootId, depth, orphan } = resolve(c)
   // Nur schreiben, wenn sich etwas ändert (idempotenter Re-Run)
-  if (c.rootId === rootId && c.depth === depth) continue
-  await rt.updateRow({ databaseId, tableId: 'comments', rowId: c.$id, data: { rootId, depth } })
+  if (c.rootId === rootId && c.depth === depth && !orphan) continue
+  await rt.updateRow({ databaseId, tableId: 'comments', rowId: c.$id, data: { rootId, depth, ...(orphan ? { parentId: null } : {}) } })
   updated++
 }
 console.log(`✔ Backfill: ${all.length} Kommentare geprüft, ${updated} aktualisiert`)

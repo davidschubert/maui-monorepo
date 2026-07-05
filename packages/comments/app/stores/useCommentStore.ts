@@ -129,6 +129,10 @@ export const useCommentStore = defineStore('comments', () => {
         // Keine neuen Top-Level-Threads auf dieser Seite → fertig
         if (!fresh.some(row => !row.parentId)) break
       }
+      // Schutz vor Daten-Inkonsistenz: liefert die API trotz erschöpfter
+      // Pagination weniger Rows als total (z. B. unerreichbare Waisen), würde
+      // der Button sonst ewig bleiben und ins Leere klicken.
+      if (rows.value.length < total.value) total.value = rows.value.length
     }
     finally {
       loading.value = false
