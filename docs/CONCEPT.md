@@ -57,7 +57,7 @@ Vier Prüffragen pro Feature:
 |---|---|---|
 | Nuxt | 4.4.x (aktuell 4.4.8) | Framework (Composition API, SSR) |
 | Nuxt UI | 4.8.x (aktuell 4.8.2) | UI-Komponentenbibliothek (inkl. `UAuthForm`) |
-| Appwrite (self-hosted) | 1.9.0 | Backend: Auth, TablesDB, Storage, Realtime |
+| Appwrite (self-hosted) | 1.9.5 (MariaDB, seit Phase 28) | Backend: Auth, TablesDB, Storage, Realtime, Presences |
 | Pinia | latest | State Management |
 | node-appwrite | latest, 1.9-kompatibel pinnen* | **Server SDK** — Auth + TablesDB via Server Routes |
 | appwrite (Web SDK) | latest, 1.9-kompatibel pinnen* | **Nur Realtime** im Browser |
@@ -74,7 +74,7 @@ Vier Prüffragen pro Feature:
 
 > **Warum pnpm?** npm hoisted alles in Root `node_modules` → Phantom Dependencies → Bugs in CI/Deploy. pnpm erzwingt saubere Dependency-Deklaration pro Package, ist schneller und Standard im Nuxt/Vite Ecosystem.
 
-> **Terminologie (Appwrite 2025+):** `Databases` → `TablesDB`, `Collections/Documents` → `Tables/Rows`. Immer die neue API nutzen (`tablesDB.createRow()` etc.) — nur sie unterstützt Transactions, Bulk Ops, Atomic Ops. Self-hosted Stand: **1.9.0** (TablesDB, Query-gefilterte Realtime-Subscriptions + explizite TablesDB-Channels, Realtime-Metriken, Resource-based API Keys, Multiple Application Domains pro Projekt, Sparse Updates — `updateRow` sendet nur geänderte Attribute).
+> **Terminologie (Appwrite 2025+):** `Databases` → `TablesDB`, `Collections/Documents` → `Tables/Rows`. Immer die neue API nutzen (`tablesDB.createRow()` etc.) — nur sie unterstützt Transactions, Bulk Ops, Atomic Ops. Self-hosted Stand: **1.9.5** (seit Phase 28; TablesDB, neues SDK-Realtime-Protokoll + Query-gefilterte Subscriptions, Presences API, Realtime-Metriken, Resource-based API Keys, Multiple Application Domains pro Projekt, Sparse Updates — `updateRow` sendet nur geänderte Attribute).
 
 ---
 
@@ -94,12 +94,14 @@ apps/       ← Vollständige, deploybare Nuxt-Applikationen
 
 | Package | Status | Inhalt |
 |---|---|---|
-| `packages/core` | ✅ Aktiv | Nuxt Layer: SSR-Auth, Appwrite-Fundament, Design-Basis, Utils |
+| `packages/core` | ✅ Aktiv | Nuxt Layer: SSR-Auth, Appwrite-Fundament, RBAC, Design-Basis, Utils, GDPR-/Stats-Verträge |
+| `packages/system` | ✅ Aktiv | Fundament: Schema-Owner der Infra-Tabellen (audit_logs, app_config, notifications, custom_themes, custom_fonts) + GDPR-Contributor, öffentliche Read-Routen /api/themes + /api/fonts |
+| `packages/moderation` | ✅ Aktiv | Fundament: generisches Melde-/Report-System (reports-Table, Queue-Verträge, ReportButton) |
 | `packages/themes` | ✅ Aktiv | Theme-Studio (Galerie + Editor), 9 Built-ins + Custom Themes (OKLCH-Ramp-Generator), 2 Schrift-Rollen inkl. WOFF2-Uploads, Live-Propagation — Konzept: docs/THEMES-CONCEPT-V2.md |
 | `packages/comments` | ✅ Aktiv | Kommentarsystem: targetId/targetType, Votes, Realtime — Spec: [[reddit-comment-system-setup]] |
-| `packages/admin` | 🔜 Geplant | Admin Dashboard, User-Verwaltung, Moderation (status-Hook in comments wartet), `dashboard.vue` Layout |
-| `packages/billing` | 🔜 Zukunft | Stripe: Checkout, Webhooks, Subscriptions |
-| `packages/appwrite-functions` | 🔜 Zukunft | Appwrite Functions (Webhooks, CRON, Events) |
+| `packages/admin` | ✅ Aktiv | Dashboard (RBAC-Capabilities), User-Verwaltung, Moderations-Queue, Changelog, Audit, GDPR-Exporte, Theme-/Font-Admin-Routen |
+| `packages/billing` | 🔜 Zukunft | Stripe: Checkout, Webhooks, Subscriptions — Plan: docs/plans/BILLING-STRIPE.md |
+| `packages/appwrite-functions` | 🔜 Zukunft | Appwrite Functions (Webhooks, CRON, Events) — `functions/changelog-draft` existiert bereits standalone |
 
 > v2.1: `packages/types`, `packages/utils` und `packages/config` gestrichen — zehn
 > Phasen haben sie nicht gebraucht (`shared/types` im Core + Root-ESLint-Config decken
@@ -347,24 +349,30 @@ Voraussetzungen:
 
 Fallback dokumentiert: Custom Name (`app-session`) wenn kein authentifiziertes Browser-Realtime nötig (einfacher, keine Custom Domain).
 
-### A4 — Realtime & Presences ✨ korrigiert in v2.1 (empirisch, Phase 10)
+### A4 — Realtime & Presences ✨ aktualisiert 2026-07-05 (P1/P2 umgesetzt seit 2026-07-01)
 
-- **Realtime self-hosted: NUR über das Legacy-URL-Protokoll** (`channels[]` in der
-  Connect-URL). Das neue SDK-Protokoll (Connect ohne Channels + dynamische
-  Subscribe-Messages, alle SDKs ≥25.x) braucht Server ≥1.9.5 — **Cloud-only**;
-  1.9.0 (aktuellstes Docker-Release) antwortet `"Missing channels"`.
-- **Query-gefilterte Subscriptions: faktisch ebenfalls Cloud-only.** Der 1.9.0-Server
-  ignoriert `queries[]` über die Legacy-URL kommentarlos (Events kommen ungefiltert).
-- `useRealtimeRows()` läuft deshalb auf einem **nativen WebSocket-Client** im Core:
-  Legacy-URL-Protokoll, Reconnect mit Backoff, client-seitiger `where`-Filter
-  (z.B. `payload => payload.targetId === id`), `import.meta.server` Guard (SSR →
-  no-op), Cleanup via `onScopeDispose`. Authentifiziert über das Same-Origin-Cookie
-  (A3) — funktioniert identisch in Browser und Node (Probe-Script).
-- **Rückbau aufs Web SDK** (`realtime.subscribe` + `Channel`-Helper + echte
-  Query-Filter), sobald ein Self-Hosted-Release das neue Protokoll spricht —
-  wöchentlicher Release-Watch läuft (Scheduled Task `appwrite-release-watch`).
+- **Eine geteilte, JWT-authentifizierte SDK-Realtime** im Core
+  (`core/app/composables/useRealtimeClient.ts`): `useRealtimeRows`, Presence
+  und Config-Flags multiplexen über DENSELBEN Socket
+  (`Channel.tablesdb().table().row()`, optional server-seitige `queries`;
+  der client-seitige `where`-Filter bleibt als Sicherheitsnetz).
+  JWT via `GET /api/auth/realtime-token` (15 min, Client refresht);
+  **Cookie-Client NIE mit JWT mischen** → Appwrite-403.
+- **AUSNAHME:** `useRealtimeAccount` bleibt bewusst cookie-nativer WS —
+  Instant-Session-Revoke hängt am Cookie-Close-Signal. NICHT konsolidieren.
+- **Presences API: self-hosted seit 1.9.5, vollständig umgesetzt** — EINE
+  Presence pro User (`presenceId=userId`, metadata trägt scope/action/typing);
+  der WRITE läuft server-seitig (`POST /api/presence/heartbeat`, Admin-Client),
+  weil der Browser in der SSR-Cookie-Architektur keine SDK-Session hat.
+  Details: CLAUDE.md + OPEN-ITEMS (Phase 18).
 - ⚠️ **Channel-Prefix ≠ Event-Prefix:** Subscription-Channels nutzen `tablesdb.…`, die Event-Strings im Payload weiterhin `databases.…` — beim Filtern auf Suffix matchen (`.create`, `.update`, `.delete`).
-- **Presences API: Stand Juni 2026 nur Appwrite Cloud** — gleiches Cloud-first-Muster. `usePresence()` daher als optionales Composable bauen — Apps funktionieren ohne.
+- Realtime braucht einen gesunden `appwrite-realtime`-Container (Swoole-Crash
+  → `docker compose up -d --no-deps appwrite-realtime`).
+- **Historie (v2.1, Phasen 10–31):** Bis Server 1.9.0 war das neue SDK-Protokoll
+  Cloud-only („Missing channels", `queries[]` ignoriert) — `useRealtimeRows`
+  lief auf einem nativen WebSocket-Client mit Legacy-URL-Protokoll und
+  client-seitigem `where`-Filter. Mit dem 1.9.5-Upgrade (Phase 28) und dem
+  P1-Rückbau (Phase 32) abgelöst.
 
 ### A5 — Analytics & DSGVO-Consent: im Core, config-gated ✨ neu
 
@@ -460,7 +468,7 @@ in ihrer Datei eine Regel steht, sondern weil sie im Themes-Layer liegt.
 | Layer | darf besitzen | darf nie | hängt ab von |
 |---|---|---|---|
 | `core` | Auth, Client-Factories, RBAC-Matrix, SSR-Session, Base-UI, Shared-Utils | Feature-Domäne, eigene Tables | — |
-| `system` | `audit_logs`, `app_config`, `notifications`, `presence` | Feature-Domäne, UI-Welt | core |
+| `system` | `audit_logs`, `app_config`, `notifications`, `custom_themes`, `custom_fonts` (+ Bucket `fonts`) | Feature-Domäne, UI-Welt | core |
 | `moderation` | `reports`-Table, Melde-Erfassung + Queue + Lifecycle, generische Melde-UI | Domänen-Wissen, Konsequenz-Logik | core |
 | `themes` | Tokens, CSS, Theme-Switcher, Color-Mode | Appwrite, Auth, Business-Logik | — |
 | `comments` | `comments`/`comment_votes`, Comment-API/UI/Store | Admin-Logik, fremde Feature-Tables | core, (moderation) |
@@ -487,9 +495,14 @@ in ihrer Datei eine Regel steht, sondern weil sie im Themes-Layer liegt.
    Kopplung; die implizite löst Stufe 1.
 
 > **`system` und `moderation` existieren** (2026-06-27). Der `system`-Layer besitzt die
-> Infra-Tabellen, die core nutzt (Auth-Audit, Config, Notifications, Presence) — die frühere
+> Infra-Tabellen, die core nutzt (Auth-Audit, Config, Notifications) — die frühere
 > core→admin-Inversion ist damit aufgelöst (Schema-Ownership liegt nicht mehr im admin-Feature).
 > `moderation` besitzt das generische Melde-/Report-Modell.
+> Seit 2026-07: eine `presence`-TABELLE gibt es nicht mehr (Presence läuft komplett über
+> die Appwrite Presences API, A4); dafür besitzt system die Theme-Tabellen `custom_themes`/
+> `custom_fonts` (Migrationen 009–013) und serviert sie über die öffentlichen Read-Routen
+> `GET /api/themes` + `/api/fonts` — die Studio-UI liegt im themes-Layer, die Admin-CRUD-Routen
+> im admin-Layer (Schema-Owner ≠ UI-Welt bleibt gewahrt).
 
 ---
 

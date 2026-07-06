@@ -40,6 +40,14 @@ nutzbar). Reihenfolge = grobe Priorität.
 
 ## 🟡 Klein / Reste
 
+- **Offene Audit-Fragen (2026-07-05, aus AUDIT.md §6 — brauchen Produktentscheidung):**
+  (a) Presence-Metadata (`userName`/`avatarUrl`) ist mit `read("users")` für JEDEN
+  eingeloggten User lesbar — gewollt (app-weite Presence-Avatare) oder auf
+  Co-Presence einschränken? (b) `deleted`-Tombstones zählen in `total`/
+  `topLevelTotal` der Kommentarliste (Spec-konform „[gelöscht]"-Platzhalter) —
+  bestätigen. (c) X-Forwarded-For-Vertrauen (authAudit/Rate-Limit) gehört als
+  expliziter Punkt auf die Phase-17-Checkliste (nur hinter Trusted Proxy).
+  Akzeptiert ohne Fix: L15 (controversial-Cap 200, dokumentierte Grenze).
 - ✅ **Kleinkram-Batch (2026-07-02)**: `appwrite.config.json` umbenannt (inkl.
   Doku-Referenzen); **Stats-Contributor-Registry** umgesetzt
   (`registerDashboardStatsContributor` in core, Plugins in comments/moderation,
@@ -71,7 +79,7 @@ nutzbar). Reihenfolge = grobe Priorität.
 ### 💡 Ideen fürs nächste Level (verbleibend, priorisiert)
 1. **E-Mail-Notifications + Digest** (M–L) — notifications-Table + SMTP + Function-Scaffold vorhanden.
 2. **Admin-Bulk-Aktionen + CSV-Export** (S–M) — Moderations-Queue/Users mit Multi-Select, Claim-Locks laufen schon.
-3. **Caching/ISR** (S) — routeRules SWR für /changelog + Microcache für GET /api/comments Seite 1.
+3. **Caching/ISR** (S) — routeRules SWR für /changelog + Microcache für GET /api/comments Seite 1; dazu Microcache/Rate-Limit für den öffentlichen `GET /api/stats` (reddit-comments; Audit-Finding L11, bewusst hierher gebündelt).
 4. **CI mit echter Appwrite-Instanz** (M) — Service-Container + `bootstrap --seed` (idempotent vorhanden) → Realtime-E2E in CI.
 5. **Report-Kategorien + Auto-Hide-Threshold** (S–M) — `openReportsByTarget` zählt schon.
 
@@ -120,6 +128,26 @@ _Alle erledigt (2026-06-24) — siehe „Bereits erledigt"._
 
 ## ✅ Bereits erledigt (Referenz)
 
+- **Gesamtaudit + Abarbeitung (2026-07-05)** — Read-only-Audit über 9 Slices
+  (Orchestrator + audit-scout/audit-worker je Slice) gegen alle dokumentierten
+  Invarianten: **0 Critical, 0 High**, Ergebnis in [AUDIT.md](../AUDIT.md)
+  (inkl. Requested-Changes-Reconciliation: kein einziges „Regressed").
+  Abarbeitung in 4 Paketen:
+  - **Garantie-Fixes**: GDPR-Recipient-Query strikt statt geschlucktem catch
+    (M1, system-Contributor), Sperr-Schritt in `deleteUserCompletely` strikt
+    (L1), Hide-Phase-2 mit Retry + lautem Log statt Schlucken (L2).
+  - **CSS-Sink-Härtung** (L3): `customFontCss`/`customThemeCss` prüfen die
+    admin-Zod-Allowlists gespiegelt am Render-Sink (fail closed), Pointer-
+    Kommentare in beide Richtungen, 7 Injection-Tests.
+  - **Kleinkram** (L4–L10, L12–L14): Storage-Orphan-Scan auf Cursor,
+    unread-Count über Gesamtmenge, `REPORTS_WINDOW`-Konstante + Überlauf-Log,
+    `commentsReported`-Stat zum Konsumenten (comments) verschoben,
+    Function ohne statischen Key-Fallback, bootstrap app-agnostisch
+    (+ Package- statt Verzeichnisname in pnpm-Filtern), Migration 006→010,
+    statusText-Leak, Return-Typ.
+  - **Doku**: CONCEPT.md D1–D4 nachgezogen (A4 → geteilte JWT-Realtime,
+    A14-Matrix ohne presence + mit custom_themes/fonts, Package-/Stack-Tabelle
+    aktuell), migrate.mjs-Kommentar. Offene Produktfragen s. 🟡.
 - **Observability-Gate `maui.observability` (2026-07-02)**: strukturierte
   JSON-5xx-Logs am ZENTRALEN `core/server/error.ts` (4xx bleiben still, keine
   Bodies/Header — PII), Client-Error-Inbox (`observability-errors.client.ts`:

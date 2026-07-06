@@ -13,8 +13,9 @@
  * nie versehentlich die falsche Instanz migriert wird.
  *
  * Layer-Reihenfolge: Fundament zuerst (system → comments → moderation → admin);
- * innerhalb eines Layers laufen die Scripts numerisch sortiert. Die Scripts
- * selbst bleiben idempotent (409 → skip) — der Runner ist nur der Dispatcher.
+ * innerhalb eines Layers laufen die Scripts lexikografisch nach Dateiname
+ * (deterministisch; Nummern-Präfixe eindeutig halten). Die Scripts selbst
+ * bleiben idempotent (409 → skip) — der Runner ist nur der Dispatcher.
  */
 import { spawnSync } from 'node:child_process'
 import { existsSync, readdirSync } from 'node:fs'
