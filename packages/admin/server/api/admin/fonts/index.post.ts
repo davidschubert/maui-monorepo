@@ -1,7 +1,9 @@
 import { ID, Query } from 'node-appwrite'
 import { z } from 'zod'
 
-// Name landet als font-family im CSS — restriktives Muster statt Escaping
+// Name landet als font-family im CSS — restriktives Muster statt Escaping.
+// SPIEGEL: themes/shared/fonts.ts (SAFE_FONT_NAME/SAFE_ID) prüft dieselben
+// Muster am Render-Sink (Defense-in-Depth) — synchron halten.
 const fontFileSchema = z.object({
   weight: z.number().int().min(100).max(900).multipleOf(100),
   fileId: z.string().regex(/^[a-z0-9][a-z0-9._-]{0,35}$/i, 'Invalid file id'),

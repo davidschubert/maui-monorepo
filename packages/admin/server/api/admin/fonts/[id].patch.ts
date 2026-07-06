@@ -1,6 +1,8 @@
 import { z } from 'zod'
 import type { Models } from 'node-appwrite'
 
+// Name/fileId landen im injizierten CSS. SPIEGEL: themes/shared/fonts.ts
+// (SAFE_FONT_NAME/SAFE_ID) prüft dieselben Muster am Render-Sink — synchron halten.
 const fontFileSchema = z.object({
   weight: z.number().int().min(100).max(900).multipleOf(100),
   fileId: z.string().regex(/^[a-z0-9][a-z0-9._-]{0,35}$/i, 'Invalid file id'),

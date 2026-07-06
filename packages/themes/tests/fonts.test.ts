@@ -45,6 +45,40 @@ describe('customFontCss', () => {
   })
 })
 
+describe('customFontCss Injection-Härtung (Spiegel der admin-Zod-Allowlist)', () => {
+  const files = [{ weight: 400, fileId: 'f400' }]
+
+  it('Name mit Quote/</style>/Klammern → fail closed (kein CSS)', () => {
+    expect(customFontCss({ id: 'x', name: `Evil'; } </style><script>`, order: 0, files }, url)).toBe('')
+    expect(customFontCss({ id: 'x', name: 'a} :root{--pwn:1', order: 0, files }, url)).toBe('')
+    expect(customFontCss({ id: 'x', name: `a\\`, order: 0, files }, url)).toBe('')
+  })
+
+  it('ungültige Row-ID → fail closed', () => {
+    expect(customFontCss({ id: `x'] body`, name: 'Ok', order: 0, files }, url)).toBe('')
+  })
+
+  it('ungültige fileId/weight → nur diese Datei fällt raus', () => {
+    const css = customFontCss({
+      id: 'x',
+      name: 'Ok',
+      order: 0,
+      files: [
+        { weight: 400, fileId: 'f400' },
+        { weight: 700, fileId: `f') url('//evil` },
+        { weight: Number.NaN, fileId: 'f900' },
+      ],
+    }, url)
+    expect(css.match(/@font-face/g)).toHaveLength(1)
+    expect(css).toContain('f400')
+    expect(css).not.toContain('evil')
+  })
+
+  it('regulärer Name (Leerzeichen, Bindestrich, gemischt) bleibt erlaubt', () => {
+    expect(customFontCss({ id: 'x', name: 'PT Sans-Narrow_2', order: 0, files }, url)).toContain(`font-family: 'PT Sans-Narrow_2';`)
+  })
+})
+
 describe('customFontCss Rollen-Blöcke', () => {
   it('rendert Text- UND Überschriften-Block', () => {
     const css = customFontCss({ id: 'x', name: 'Hausschrift', order: 0, files: [{ weight: 400, fileId: 'f' }] }, url)

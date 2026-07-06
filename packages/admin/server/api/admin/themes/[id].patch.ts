@@ -27,6 +27,8 @@ const themeConfigSchema = z.object({
 }).strict()
 
 const variantSchema = z.object({
+  // id landet als data-variant-Selektor im injizierten CSS. SPIEGEL:
+  // themes/shared/ramp.ts (SAFE_VARIANT_ID) — synchron halten.
   id: z.string().regex(/^[a-z0-9-]{1,24}$/, 'Invalid variant id'),
   color: z.string().regex(/^#[0-9a-f]{6}$/i, 'Invalid hex color'),
 }).strict()

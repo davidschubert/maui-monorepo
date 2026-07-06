@@ -184,15 +184,28 @@ export function customThemeAttr(id: string): string {
 }
 
 /**
+ * Defense-in-Depth am Render-Sink (Head ALLER Besucher): Spiegel der
+ * Write-Boundary-Allowlists (admin: themes/index.post.ts + themes/[id].patch.ts;
+ * admin darf nicht aus themes importieren, ESLint-Backstop). String-Werte,
+ * die die Allowlist verletzen, werden NICHT gerendert (fail closed) — schützt
+ * gegen Writer, die an den Admin-Routen vorbeischreiben (Seed, Console).
+ * Änderungen hier + im admin-Schema synchron halten.
+ */
+const SAFE_ATTR = /^[a-z0-9][a-z0-9._-]{0,39}$/i // 'c-<rowId>' bzw. 'c-draft'
+const SAFE_VARIANT_ID = /^[a-z0-9-]{1,24}$/
+
+/**
  * CSS-Block eines Custom Themes — gleiche Struktur wie die statischen Themes
- * (Ramp + --ui-primary 600 hell / 400 dunkel). Die Werte sind validierte
- * Hex-Farben aus generateRamp, die IDs Appwrite-Row-IDs — keine Injection-Fläche.
+ * (Ramp + --ui-primary 600 hell / 400 dunkel). Farbwerte sind validierte
+ * Hex-Farben aus generateRamp; String-IDs laufen zusätzlich durch die
+ * SAFE_*-Spiegel-Allowlists (s. o.).
  */
 export function customThemeCss(theme: CustomThemeDto, attrOverride?: string): string {
   const config = theme.config ?? {}
   const ramp = generateRamp(theme.primary, config)
   if (!ramp) return ''
   const attr = attrOverride ?? customThemeAttr(theme.id)
+  if (!SAFE_ATTR.test(attr)) return ''
   const vars = SHADES.map(shade => `  --ui-color-primary-${shade}: ${ramp[shade]};`).join('\n')
   // radius nur mit validiertem Zahlwert übernehmen (Zod begrenzt zusätzlich)
   const radius = typeof config.radius === 'number' && Number.isFinite(config.radius)
@@ -207,6 +220,7 @@ export function customThemeCss(theme: CustomThemeDto, attrOverride?: string): st
   ]
   // Varianten: eigene Ramp aus der Varianten-Farbe (gleiche Generator-Config)
   for (const variant of theme.variants ?? []) {
+    if (!SAFE_VARIANT_ID.test(variant.id)) continue // fail closed (Spiegel-Allowlist)
     const variantRamp = generateRamp(variant.color, config)
     if (!variantRamp) continue
     const variantVars = SHADES.map(shade => `  --ui-color-primary-${shade}: ${variantRamp[shade]};`).join('\n')

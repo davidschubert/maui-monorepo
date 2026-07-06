@@ -105,6 +105,33 @@ describe('customThemeCss', () => {
   })
 })
 
+describe('customThemeCss Injection-Härtung (Spiegel der admin-Zod-Allowlist)', () => {
+  const base = { name: 'X', primary: '#2f7fee', order: 0 }
+
+  it('bösartige Row-ID/attrOverride → fail closed (kein CSS)', () => {
+    expect(customThemeCss({ ...base, id: `x'] body { display:none } [x='` })).toBe('')
+    expect(customThemeCss({ ...base, id: 'x' }, `c-draft'] </style>`)).toBe('')
+  })
+
+  it('bösartige Varianten-ID → nur der Varianten-Block fällt raus', () => {
+    const css = customThemeCss({
+      ...base,
+      id: 'x',
+      variants: [
+        { id: 'teal', color: '#0d9488' },
+        { id: `evil'] html`, color: '#0d9488' },
+      ],
+    })
+    expect(css).toContain(`[data-variant='teal']`)
+    expect(css).not.toContain('evil')
+  })
+
+  it('reguläre IDs bleiben erlaubt', () => {
+    expect(customThemeCss({ ...base, id: 'abc123' })).toContain(`[data-theme='c-abc123']`)
+    expect(customThemeCss({ ...base, id: 'x' }, 'c-draft')).toContain(`[data-theme='c-draft']`)
+  })
+})
+
 describe('contrastRatio + wcagLevel', () => {
   it('Schwarz/Weiß = 21, identisch = 1, symmetrisch', () => {
     expect(contrastRatio('#000000', '#ffffff')).toBeCloseTo(21, 0)

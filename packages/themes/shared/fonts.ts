@@ -31,15 +31,30 @@ export function customFontAttr(id: string): string {
 }
 
 /**
+ * Defense-in-Depth am Render-Sink: dieses CSS landet im Head ALLER Besucher
+ * (auch Gäste). Die Write-Boundary (admin: fonts/index.post.ts +
+ * fonts/[id].patch.ts) erzwingt dieselben Allowlists per Zod — hier
+ * gespiegelt (admin darf nicht aus themes importieren, ESLint-Backstop),
+ * damit ein Writer, der an den Admin-Routen vorbeischreibt (Seed, Console,
+ * künftige Routen), keine CSS-/</style>-Injection bekommt. Verletzer werden
+ * NICHT gerendert (fail closed). Änderungen hier + im admin-Schema synchron halten.
+ */
+const SAFE_FONT_NAME = /^[a-z0-9][a-z0-9 _-]{0,63}$/i
+const SAFE_ID = /^[a-z0-9][a-z0-9._-]{0,35}$/i // Appwrite-Row-/File-ID-Form
+
+/**
  * CSS einer eigenen Schrift: @font-face je Datei + beide Rollen-Blöcke —
  * data-font (Text: --font-sans + font-family am :root) und data-font-heading
  * (Überschriften: h1–h6), gleiche Struktur wie fonts.css für die Registry-
- * Familien. Name/IDs sind Zod-validiert (keine Quotes/Sonderzeichen) — keine
- * Injection-Fläche; fileUrl baut der Aufrufer aus Endpoint/Projekt.
+ * Familien. Name/IDs laufen zusätzlich durch die SAFE_*-Spiegel-Allowlists
+ * (s. o.); fileUrl baut der Aufrufer aus Endpoint/Projekt.
  */
 export function customFontCss(font: CustomFontDto, fileUrl: (fileId: string) => string): string {
-  if (!font.files.length) return ''
-  const faces = font.files.map(file => `@font-face {
+  if (!SAFE_FONT_NAME.test(font.name) || !SAFE_ID.test(font.id)) return ''
+  const files = font.files.filter(file => SAFE_ID.test(file.fileId)
+    && Number.isInteger(file.weight) && file.weight >= 100 && file.weight <= 900)
+  if (!files.length) return ''
+  const faces = files.map(file => `@font-face {
   font-family: '${font.name}';
   src: url('${fileUrl(file.fileId)}') format('woff2');
   font-weight: ${file.variable ? '100 900' : file.weight};
