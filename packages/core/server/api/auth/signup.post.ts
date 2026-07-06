@@ -40,5 +40,17 @@ export default defineEventHandler(async (event) => {
   setSessionCookie(event, session.secret, session.expire)
   await logAuthEvent(event, 'user.login', { userId: session.userId, name, method: 'signup' })
 
+  // Activity-Feed: „ist der Community beigetreten" (best-effort). Bewusst NUR
+  // hier — der OTP-Flow legt User schon beim Token-Versand an (unverifiziert),
+  // dort wäre der Eintrag verfrüht.
+  await recordActivity(event, {
+    actorId: session.userId,
+    actorName: name,
+    type: 'user.joined',
+    objectType: 'user',
+    objectId: session.userId,
+    link: '/',
+  })
+
   return { ok: true }
 })
