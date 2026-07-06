@@ -33,6 +33,7 @@ Drei Ebenen, klar getrennt:
 | `system.manage` | System-Info, Self-Update, App-Config-Gates |
 | `storage.manage` | Storage-Browser, Orphans löschen |
 | `audit.read` | Audit-Log lesen |
+| `feed.manage` | Activity-Feed moderieren (Einträge löschen) |
 
 ### Rollen → Capabilities
 
@@ -61,6 +62,7 @@ pro Route durch die spezifische Capability ersetzt:
 | `system.manage` | `system.get`, `system/update.post`, `config.{get,patch}` |
 | `storage.manage` | `storage.get`, `storage/[fileId].delete` |
 | `audit.read` | `audit.get` |
+| `feed.manage` | `packages/feed`: `feed/[id].delete` |
 
 > `search.get` liefert auch User-Namen — bleibt `dashboard.access` (keine E-Mails/PII
 > in der Antwort prüfen; sonst auf `users.manage` heben).

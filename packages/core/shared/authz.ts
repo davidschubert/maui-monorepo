@@ -17,6 +17,7 @@ export const ALL_CAPABILITIES: readonly Capability[] = [
   'system.manage',
   'storage.manage',
   'audit.read',
+  'feed.manage',
 ]
 
 /** Alle zuweisbaren Rollen. */
