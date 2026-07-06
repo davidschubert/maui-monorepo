@@ -139,7 +139,12 @@ export async function deleteUserCompletely(
 
     // (2) SPERREN — der User kann während des Cleanups nichts Neues erzeugen;
     // ein Teilfehler hinterlässt einen gesperrten (handlungsunfähigen) Account.
-    await admin.users.updateStatus({ userId, status: false }).catch(() => {})
+    // STRIKT: ohne erfolgreichen Block keine destruktiven Schritte — sonst
+    // könnte ein Teilfehler einen UNgesperrten, halb bereinigten Account
+    // hinterlassen. Re-Run nach Fehler ist gefahrlos (alles idempotent).
+    await admin.users.updateStatus({ userId, status: false })
+    // Session-Kill bleibt best effort: der Block macht bestehende Sessions
+    // ohnehin handlungsunfähig.
     await admin.users.deleteSessions({ userId }).catch(() => {})
 
     // (3) AUDIT — OHNE Klarnamen (der steht im Snapshot, nicht im Log)
