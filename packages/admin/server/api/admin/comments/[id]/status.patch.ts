@@ -15,10 +15,19 @@ async function hideRow(admin: ReturnType<typeof createAdminClient>, databaseId: 
   // das hidden-Event bei Gästen/Lesern nie an (Auslieferung folgt den Row-
   // Permissions) und der Kommentar bliebe bis zum Reload stehen.
   if (updated.$permissions.includes(READ_ANY)) {
-    await admin.tablesDB.updateRow({
+    const withdraw = () => admin.tablesDB.updateRow({
       databaseId, tableId: 'comments', rowId: row.$id,
       permissions: updated.$permissions.filter(p => p !== READ_ANY),
-    }).catch(() => {}) // best effort — Status ist bereits hidden (Filter greift)
+    })
+    // Phase 2 muss halten — sonst bleibt der hidden-Kommentar per Roh-REST
+    // gast-lesbar. Ein Retry deckt transiente Fehler; ein persistenter wird
+    // laut geloggt statt geschluckt (Re-Hide über die UI ist idempotent und
+    // zieht die Phase nach).
+    await withdraw()
+      .catch(() => withdraw())
+      .catch((error) => {
+        console.error(`[moderation] Permission-Entzug fehlgeschlagen — hidden-Kommentar ${row.$id} bleibt Roh-REST-lesbar bis zum Re-Hide:`, error)
+      })
   }
   return updated
 }
@@ -122,7 +131,10 @@ export default defineEventHandler(async (event) => {
     }
     // Nur aktive Nachfahren ausblenden — deleted-Tombstones + bereits hidden bleiben.
     const toHide = threadRows.filter(r => r.$id !== commentId && subtree.has(r.$id) && r.status === 'active')
-    await Promise.all(toHide.map(r => hideRow(admin, databaseId, r).catch(() => {})))
+    await Promise.all(toHide.map(r => hideRow(admin, databaseId, r).catch((error) => {
+      // best effort (kein 500 nach erfolgter Parent-Mutation), aber sichtbar
+      console.error(`[moderation] Cascade-Hide für Nachfahre ${r.$id} fehlgeschlagen:`, error)
+    })))
   }
 
   await recordAudit(event, {

@@ -67,15 +67,21 @@ export async function systemDeleteUserData(event: H3Event, userId: string): Prom
   let deleted = 0
   let anonymized = 0
 
-  // Notifications als Empfänger + als Verursacher → Hard-Delete
-  for (const filter of [Query.equal('recipientId', userId), Query.equal('senderId', userId)]) {
-    const rows = await listAllRows<NotificationRow>(tablesDB, databaseId, NOTIFICATIONS, [filter])
-      // senderId-Query schlägt vor Migration 008 fehl → wie leere Menge behandeln
-      .catch(() => [] as NotificationRow[])
-    for (const row of rows) {
-      await tablesDB.deleteRow({ databaseId, tableId: NOTIFICATIONS, rowId: row.$id })
-      deleted++
-    }
+  // Notifications als Empfänger → Hard-Delete. STRIKT: ein Fehler hier muss
+  // die Löschung stoppen (deleteUserCompletely gated users.delete auf
+  // Voll-Erfolg — ein geschluckter Fehler würde Erfolg melden, obwohl
+  // Empfänger-Rows überleben).
+  const received = await listAllRows<NotificationRow>(tablesDB, databaseId, NOTIFICATIONS, [Query.equal('recipientId', userId)])
+  // Notifications als Verursacher → Hard-Delete. NUR dieser Query darf
+  // degradieren: vor Migration 008 fehlt die senderId-Spalte (akzeptierte
+  // E8-Lücke) → wie leere Menge behandeln.
+  const sent = await listAllRows<NotificationRow>(tablesDB, databaseId, NOTIFICATIONS, [Query.equal('senderId', userId)])
+    .catch(() => [] as NotificationRow[])
+  const notificationRows = new Map<string, NotificationRow>()
+  for (const row of [...received, ...sent]) notificationRows.set(row.$id, row)
+  for (const row of notificationRows.values()) {
+    await tablesDB.deleteRow({ databaseId, tableId: NOTIFICATIONS, rowId: row.$id })
+    deleted++
   }
 
   // Audit-Logs: Actor-Pseudonymisierung (Name, IP, metadata.name)
