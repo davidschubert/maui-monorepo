@@ -14,12 +14,15 @@ export default defineEventHandler(async (event): Promise<NotificationListRespons
   const config = useRuntimeConfig(event)
   const { tablesDB } = createSessionClient(event)
 
+  const databaseId = config.public.appwriteDatabaseId
+  const recipientFilter = Query.equal('recipientId', event.context.user.$id)
+
   const res = await tablesDB.listRows<NotifRow>({
-    databaseId: config.public.appwriteDatabaseId,
+    databaseId,
     tableId: 'notifications',
     // recipientId-Filter als Defense-in-Depth zusätzlich zur Row-Security:
     // schützt auch, falls die Tabelle je ohne Per-User-Read-Permissions migriert wird.
-    queries: [Query.equal('recipientId', event.context.user.$id), Query.orderDesc('$createdAt'), Query.limit(50)],
+    queries: [recipientFilter, Query.orderDesc('$createdAt'), Query.limit(50)],
   }).catch(() => ({ rows: [] as NotifRow[] }))
 
   const notifications = res.rows.map(r => ({
@@ -33,5 +36,13 @@ export default defineEventHandler(async (event): Promise<NotificationListRespons
     read: r.read,
   }))
 
-  return { notifications, unread: notifications.filter(n => !n.read).length }
+  // unread über die GESAMTE Menge zählen (Index recipientId+read, system-007) —
+  // ungelesene jenseits der neuesten 50 würden im Badge sonst fehlen.
+  const unread = await tablesDB.listRows<NotifRow>({
+    databaseId,
+    tableId: 'notifications',
+    queries: [recipientFilter, Query.equal('read', false), Query.limit(1)],
+  }).then(r => r.total).catch(() => notifications.filter(n => !n.read).length)
+
+  return { notifications, unread }
 })
