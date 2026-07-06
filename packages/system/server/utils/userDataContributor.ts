@@ -15,16 +15,24 @@ import type { H3Event } from 'h3'
  * Integrität): actorName/ip/metadata.name leeren, actorId + Struktur
  * bleiben (nach users.delete keinem Menschen mehr zuordenbar); targetName
  * für Logs, die auf den User zeigen, ebenfalls leeren. Plan §4.6.
+ *
+ * activities (Migration 014): Export + Hard-Delete als Verursacher (per
+ * actorId, idx_actor) — Feed-Einträge sind reine Verhaltens-Daten, es gibt
+ * keinen Empfänger. Query degradiert auf leere Menge, solange die Table
+ * auf einer Instanz noch nicht existiert (Migration ausstehend).
  */
 
 type NotificationRow = Models.Row & { recipientId: string, type: string, title: string, body: string, link: string, read: boolean }
 type AuditRow = Models.Row & { actorId: string, actorName: string, action: string, targetId: string, targetName: string, metadata: string, ip: string }
+type ActivityRow = Models.Row & { actorId: string, actorName: string, type: string, objectType: string, objectId: string, link: string, metadata: string, visibility: string }
 
 const NOTIFICATIONS = 'notifications'
 const AUDIT_LOGS = 'audit_logs'
+const ACTIVITIES = 'activities'
 
 interface SystemUserDataExport {
   notifications: Array<{ type: string, title: string, body: string, link: string, read: boolean, createdAt: string }>
+  activities: Array<{ type: string, objectType: string, objectId: string, link: string, createdAt: string }>
 }
 
 export async function systemExportUserData(event: H3Event, userId: string): Promise<SystemUserDataExport> {
@@ -37,6 +45,13 @@ export async function systemExportUserData(event: H3Event, userId: string): Prom
     NOTIFICATIONS,
     [Query.equal('recipientId', userId)],
   )
+  // Degradiert auf leer, solange Migration 014 auf der Instanz aussteht
+  const activities = await listAllRows<ActivityRow>(
+    tablesDB,
+    config.public.appwriteDatabaseId,
+    ACTIVITIES,
+    [Query.equal('actorId', userId)],
+  ).catch(() => [] as ActivityRow[])
   return {
     notifications: received.map(r => ({
       type: r.type,
@@ -44,6 +59,13 @@ export async function systemExportUserData(event: H3Event, userId: string): Prom
       body: r.body,
       link: r.link,
       read: r.read,
+      createdAt: r.$createdAt,
+    })),
+    activities: activities.map(r => ({
+      type: r.type,
+      objectType: r.objectType,
+      objectId: r.objectId,
+      link: r.link,
       createdAt: r.$createdAt,
     })),
   }
@@ -85,6 +107,16 @@ export async function systemDeleteUserData(event: H3Event, userId: string): Prom
   for (const row of [...received, ...sent]) notificationRows.set(row.$id, row)
   for (const row of notificationRows.values()) {
     await tablesDB.deleteRow({ databaseId, tableId: NOTIFICATIONS, rowId: row.$id })
+    deleted++
+  }
+
+  // Activity-Feed-Einträge als Verursacher → Hard-Delete. Nur der LIST-Query
+  // degradiert (Table fehlt vor Migration 014 → leere Menge); die Deletes
+  // selbst bleiben strikt — ein Fehler muss die Löschung stoppen.
+  const activities = await listAllRows<ActivityRow>(tablesDB, databaseId, ACTIVITIES, [Query.equal('actorId', userId)])
+    .catch(() => [] as ActivityRow[])
+  for (const row of activities) {
+    await tablesDB.deleteRow({ databaseId, tableId: ACTIVITIES, rowId: row.$id })
     deleted++
   }
 
