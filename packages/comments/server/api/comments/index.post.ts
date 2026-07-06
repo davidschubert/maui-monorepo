@@ -1,4 +1,4 @@
-import { ID, Permission, Role } from 'node-appwrite'
+import { ID, Permission, Query, Role } from 'node-appwrite'
 import { commentSchema } from '../../../schemas/comment'
 import { COMMENTS_TABLE, MAX_COMMENT_DEPTH, type Comment } from '../../../shared/types/comment'
 
@@ -103,6 +103,12 @@ export default defineEventHandler(async (event) => {
     link,
     metadata: { snippet },
   })
+  // Meilenstein („1.000 Kommentare") — ein billiger Count (limit 1 → total),
+  // best-effort über den Core-Vertrag
+  const commentTotal = await tablesDB.listRows({
+    databaseId, tableId: COMMENTS_TABLE, queries: [Query.limit(1)],
+  }).then(r => r.total).catch(() => 0)
+  await maybeRecordMilestone(event, { type: 'milestone.comments', count: commentTotal, link })
 
   setResponseStatus(event, 201)
   // Avatar des Autors mitgeben (analog zur Listen-Anreicherung), damit der

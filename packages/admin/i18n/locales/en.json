@@ -72,7 +72,10 @@
           "roles_updated": "changed {name}'s roles",
           "exported": "exported {name}'s data",
           "deleted": "deleted {name}",
-          "self_deleted": "deleted their own account"
+          "self_deleted": "deleted their own account",
+          "password_changed": "changed their password",
+          "recovery_requested": "requested a password reset",
+          "profile_updated": "updated their profile"
         },
         "comment": {
           "hidden": "hid a comment by {name}",

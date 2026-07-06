@@ -4,6 +4,7 @@
     "description": "What's happening in the community right now.",
     "empty": "No activity yet.",
     "loadMore": "Load more",
+    "groupMore": "Show {count} more",
     "someone": "Someone",
     "delete": "Delete entry",
     "deleted": "Entry deleted.",
@@ -24,7 +25,16 @@
         "published": "{name} published a changelog entry"
       },
       "theme": {
-        "published": "{name} published a new theme"
+        "published": "{name} published a new theme",
+        "deleted": "{name} removed a theme",
+        "default_changed": "{name} changed the default theme"
+      },
+      "font": {
+        "uploaded": "{name} uploaded a new font"
+      },
+      "milestone": {
+        "members": "🎉 The community now has {count} members!",
+        "comments": "🎉 Comment number {count} was just written!"
       }
     }
   },

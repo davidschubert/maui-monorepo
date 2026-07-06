@@ -49,13 +49,22 @@ const OBJECT_ICONS: Record<string, string> = {
   user: 'i-ph-user-plus',
   changelog: 'i-ph-megaphone',
   theme: 'i-ph-palette',
+  font: 'i-ph-text-aa',
+  milestone: 'i-ph-confetti',
 }
 const objectIcon = computed(() => OBJECT_ICONS[props.activity.objectType] ?? 'i-ph-pulse')
+
+// System-Einträge (Meilensteine): kein User dahinter → Konfetti-Kreis statt
+// Avatar, kein Icon-Badge nötig
+const isSystem = computed(() => props.activity.actorId === 'system')
 </script>
 
 <template>
   <div class="flex items-start gap-3 rounded-md px-2 py-2.5 transition-colors hover:bg-elevated">
-    <div class="relative shrink-0">
+    <div v-if="isSystem" class="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10">
+      <UIcon name="i-ph-confetti" class="size-4 text-primary" />
+    </div>
+    <div v-else class="relative shrink-0">
       <UserAvatar :user="{ name: activity.actorName, prefs: { avatarUrl: activity.actorAvatarUrl } }" size="sm" />
       <UIcon :name="objectIcon" class="absolute -right-1 -bottom-1 size-3.5 rounded-full bg-default p-0.5 text-muted" />
     </div>
@@ -63,6 +72,7 @@ const objectIcon = computed(() => OBJECT_ICONS[props.activity.objectType] ?? 'i-
     <NuxtLink :to="localePath(safeLink)" class="min-w-0 flex-1">
       <i18n-t :keypath="messageKey" tag="p" scope="global" class="text-sm text-muted">
         <template #name><span class="font-medium text-default">{{ activity.actorName || t('feed.someone') }}</span></template>
+        <template #count><span class="font-medium text-default">{{ metadata.count ?? '' }}</span></template>
       </i18n-t>
       <p v-if="snippet" class="truncate text-xs text-muted">{{ snippet }}</p>
       <p class="text-xs text-dimmed">{{ formatRelativeTime(activity.$createdAt) }}</p>

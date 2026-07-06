@@ -72,7 +72,10 @@
           "roles_updated": "hat die Rollen von {name} geändert",
           "exported": "hat die Daten von {name} exportiert",
           "deleted": "hat {name} gelöscht",
-          "self_deleted": "hat den eigenen Account gelöscht"
+          "self_deleted": "hat den eigenen Account gelöscht",
+          "password_changed": "hat das eigene Passwort geändert",
+          "recovery_requested": "hat einen Passwort-Reset angefordert",
+          "profile_updated": "hat das eigene Profil aktualisiert"
         },
         "comment": {
           "hidden": "hat einen Kommentar von {name} ausgeblendet",

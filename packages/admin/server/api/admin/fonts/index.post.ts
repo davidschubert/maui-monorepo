@@ -47,6 +47,20 @@ export default defineEventHandler(async (event) => {
   })
 
   await recordAudit(event, { action: 'font.created', targetType: 'font', targetId: row.$id, targetName: body.name })
+
+  // Activity-Feed (Core-Vertrag, best-effort) — neue Schrift steht instanzweit
+  // im Editor zur Verfügung, das ist ein Community-sichtbares Ereignis.
+  const user = event.context.user!
+  await recordActivity(event, {
+    actorId: user.$id,
+    actorName: user.name,
+    type: 'font.uploaded',
+    objectType: 'font',
+    objectId: row.$id,
+    link: '/',
+    metadata: { snippet: body.name.trim() },
+  })
+
   setResponseStatus(event, 201)
   return { id: row.$id, name: body.name.trim(), order: nextOrder, files: body.files }
 })
