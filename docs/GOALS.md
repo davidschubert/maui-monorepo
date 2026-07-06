@@ -939,12 +939,309 @@ Auto-Signup-Verhalten unverändert; AGB-Pflicht nur im register-Modus
 
 ---
 
+# 🎯 Roadmap v3 – Produkt-Arc „Community-Plattform" (geplant 2026-07-06)
+
+> Reihenfolge-Logik: **Feed (21)** zuerst — er ist der Multiplikator, an den
+> alles Spätere andockt (Events, Billing-Recovery-Hinweise, Kurs-Aktivität),
+> und er nutzt maximal, was schon steht (geteilte SDK-Realtime, Presence,
+> comments als erste Quelle). **Events (22)** als erstes sichtbares
+> Endnutzer-Feature: eigenes Datenmodell nach comments-Muster, dockt an
+> Feed + Kommentare + Presence an. **Billing (23)** genau dann, wenn es
+> etwas zu verkaufen gibt — der fertige Plan liegt in
+> docs/plans/BILLING-STRIPE.md, das Goal exekutiert ihn. **Courses (24)**
+> als monetarisierbarer Endpunkt konsumiert alle drei: Lektions-Diskussionen
+> = comments, Kurs-Aktivität = feed, Paid-Zugang = billing-Entitlements.
+> Jede Stufe ist einzeln shipbar; nach jeder Phase ist das Produkt fertig
+> nutzbar. Integrationsregel überall: Feature↔Feature-Imports bleiben
+> verboten (A14) — Verzahnung läuft ausschließlich über Core-Verträge
+> (recordActivity nach notify()-Vorbild, maui.admin.modules,
+> registerUserDataContributor) oder über Komposition in der App.
+
+---
+
+## Phase 21 – Activity Feed (Core-Vertrag + packages/feed)
+
+> Architektur-Entscheidung (Vorbild notify()/themes, A14-Matrix): der
+> WRITE-Vertrag `recordActivity()` lebt im CORE (best-effort, wirft nie),
+> die Table `activities` gehört SYSTEM (Migration 014), die UI-Welt gehört
+> dem neuen Layer `packages/feed`. So kann comments (und später events,
+> courses) Aktivitäten melden, ohne den Feed zu kennen — und der Feed
+> rendert nur, was gemeldet wurde. Einträge speichern KEINE fertigen
+> Sätze, sondern type + metadata; die UI übersetzt via i18n-Key
+> `feed.types.<type>` (Locale-Wechsel wirkt rückwirkend, anders als bei
+> notify — bewusste Abweichung).
+
+```
+/goal Phase 21 (Activity Feed) ist abgeschlossen.
+Endzustand: (1) CORE, additiver Commit per A6:
+server/utils/recordActivity.ts mit ActivityInput { actorId, actorName,
+type (z. B. 'comment.created'), objectType, objectId, link,
+metadata? (JSON-serialisierbar, klein), visibility: 'members' } —
+best-effort wie notify() (wirft NIE, auslösender Request scheitert nie),
+schreibt via AdminClient in die Table activities mit
+Permission.read(Role.users()); neue Capability feed.manage in
+shared/types/authz.ts + ALL_CAPABILITIES (Admin erbt via Wildcard).
+(2) SYSTEM: Migration 014-activities.ts (idempotent, via
+pnpm migrate --app) — Columns actorId, actorName, type, objectType,
+objectId, link, metadata (string, JSON), visibility; Indizes idx_actor
+(GDPR-Lookup), idx_type; system-User-Data-Contributor um activities
+erweitert (Export + Löschung per actorId, analog senderId in 008).
+(3) packages/feed als Nuxt Layer: GET /api/feed (Session enforced,
+Query.limit 25 + Cursor-Pagination), DELETE /api/feed/:id
+(requirePermission 'feed.manage'); Components ActivityFeed (Liste,
+Realtime-Insert via useRealtimeRows auf activities, „Mehr laden"),
+ActivityItem (UserAvatar, i18n-Text aus feed.types.<type> + metadata,
+relative Zeit, interner Link); pages/feed.vue (auth-Middleware);
+Admin-Modul 'feed' via maui.admin.modules (requiredCapability
+feed.manage, Seite dashboard/feed mit Liste + Löschen einzelner
+Einträge); i18n de+en, alle Strings als Keys.
+(4) ERSTE QUELLE: packages/comments ruft recordActivity() beim
+Kommentar-Create auf (type 'comment.created', link zur Ziel-Seite) —
+comments importiert dafür NICHTS aus feed, nur den Core-Vertrag.
+(5) apps/reddit-comments extended feed und verlinkt /feed in der Nav.
+Nachweis gegen die lokale Instanz: Migration 014 loggt Table/Columns/
+Indizes (2× laufen lassen = Idempotenz-Beweis); curl: Kommentar-POST →
+GET /api/feed enthält den Eintrag mit type 'comment.created' und
+korrektem link; 26+ Einträge → erste Seite 25, Cursor liefert Rest;
+Realtime-Beweis (Playwright oder Probe): offener Feed zeigt einen von
+einem ZWEITEN User erzeugten Kommentar live ohne Reload; labelloser
+User (Memory-Regel): GET /api/feed 200, DELETE /api/feed/:id 403,
+/dashboard/feed 403; Gast ohne Session: GET /api/feed 401;
+GDPR: Export des Test-Users enthält seine activities,
+deleteUserCompletely entfernt sie (Contributor-Log); /en zeigt
+englische Feed-Strings; pnpm -r typecheck, lint und test grün.
+Abschluss-Schritt: GOALS.md Phase 21 ✅ + Datum, README-Status.
+Constraints: Vertrag NUR im Core, Table NUR via system-Migration,
+UI NUR im feed-Layer (A14-Matrix wie bei themes); recordActivity
+best-effort — niemals den auslösenden Request scheitern lassen;
+chronologischer Feed ohne Aggregation/Ranking (v1); keine E-Mail/
+Push-Auskopplung; visibility-Wert 'public' (Gäste) ist im Typ
+vorgesehen, wird aber NICHT verdrahtet (v2); keine Änderung an
+useRealtimeRows-Signaturen. Maximal 40 Turns.
+```
+
+---
+
+## Phase 22 – packages/events (Event Calendar)
+
+> Eigenes Datenmodell nach comments-Vorbild (Feature-Layer besitzt seine
+> Tables in der App-Instanz). Bewusst schlicht: Liste + Detailseite statt
+> Monats-Grid, keine Recurring Events, keine Reminder-Mails — Einfachheit
+> als Leitprinzip wie im Theme-Studio. Verzahnung: recordActivity (Phase
+> 21), CommentSection per targetType 'event' (Komposition in der APP,
+> nicht im Layer — A14), Presence via useViewingPresence auf der
+> Detailseite. Teilnehmerzähler denormalisiert + server-autoritativ via
+> AdminClient-Increments (Muster: comment-Votes aus Phase 11).
+
+```
+/goal Phase 22 (packages/events) ist abgeschlossen.
+Endzustand: packages/events als Nuxt Layer.
+shared/types/event.ts: EventRow extends Models.Row (title, description
+max 10.000, startAt, endAt nullable, location nullable, url nullable,
+capacity nullable, attendeeCount int default 0 denormalisiert,
+status draft/published/cancelled, organizerId, organizerName) und
+EventRsvpRow (eventId, userId, status going/maybe/declined).
+Migration 001-events-tables.ts (idempotent, pnpm migrate --app):
+events + event_rsvps, Unique-Index eventId+userId, Indizes startAt,
+status. Routes: GET /api/events (nur published, Default kommende
+sortiert nach startAt, ?past=true für Archiv, Query.limit +
+Pagination; myRsvp des eingeloggten Users aus EINEM votes-artigen
+Query, kein N+1); GET /api/events/:id; POST/PATCH mit
+requirePermission('events.manage'); DELETE → Soft-Cancel (status
+cancelled, Row bleibt); POST /api/events/:id/rsvp (auth, Zod, Upsert
+mit Toggle; Kapazitäts-Check server-seitig VOR dem Upsert,
+attendeeCount via AdminClient increment/decrement atomar);
+GET /api/events/:id/ics → text/calendar mit VEVENT (kein externer
+Dienst). CORE (additiver Commit per A6): Capability events.manage in
+authz.ts + ALL_CAPABILITIES + RBAC-CONCEPT-Tabelle.
+Components: EventList, EventCard, EventDetail (RSVP-Buttons mit
+eigenem Status, Teilnehmerzahl live via useRealtimeRows,
+ICS-Download, useViewingPresence „N sehen dieses Event"),
+RsvpButtons; pages /events und /events/:id im Layer;
+Admin-Seite dashboard/events (Anlegen/Bearbeiten/Absagen) via
+maui.admin.modules (requiredCapability events.manage).
+Integrationen: recordActivity 'event.published' beim Publish und
+'event.rsvp' bei going-RSVP (Core-Vertrag aus Phase 21);
+apps/reddit-comments extended events und bindet auf der Detailseite
+<CommentSection :target-id="event.$id" target-type="event" /> ein
+(Komposition in der App, KEIN Import comments↔events).
+GDPR: server/plugins/user-data.ts registriert einen Contributor —
+Export: eigene RSVPs + organisierte Events; Löschung: RSVPs löschen
+(attendeeCount dekrementieren), organisierte Events → cancelled +
+organizerName anonymisiert. Zod-Schemas als Factories, i18n de+en.
+Nachweis gegen die lokale Instanz: Migration loggt Schema (2× =
+idempotent); curl-Sequenz mit ZWEI Usern: Admin legt Event an +
+published; labelloser User: POST /api/events → 403, RSVP going →
+200 und GET zeigt attendeeCount 1 + myRsvp; RSVP-Toggle (going
+erneut) → Zähler sinkt auf 0; Event mit capacity 1: zweiter User
+RSVP → 409; ICS-curl enthält BEGIN:VEVENT mit korrektem DTSTART;
+GET /api/feed enthält event.published + event.rsvp; SSR-HTML der
+Detailseite enthält die CommentSection; Realtime-Beweis: offene
+Detailseite zeigt RSVP eines zweiten Users live (Zähler springt);
+GDPR-Export enthält die RSVPs; /en liefert englische Strings;
+pnpm -r typecheck, lint und test grün.
+Abschluss-Schritt: GOALS.md Phase 22 ✅ + Datum, README-Status.
+Constraints: keine Recurring Events, keine Reminder-/Einladungs-
+Mails, kein Monats-Grid (Liste + Detail, v1), kein Live-Streaming;
+CRUD ausschließlich über Server-Routen (SSR-first); Tables gehören
+zur App-Instanz; attendeeCount-Writes NUR server-autoritativ;
+Event-Erstellung ist Admin-Sache (events.manage) — „jeder User
+erstellt Events" ist bewusst v2. Maximal 45 Turns.
+```
+
+---
+
+## Phase 23 – packages/billing (Stripe) — Plan exekutieren
+
+> Der vollständige Plan steht seit 2026-07-02 in
+> docs/plans/BILLING-STRIPE.md (Architektur B1–B9, Datenmodell,
+> Abläufe, Todo-Phasen B-0 bis B-8, Test-Strategie §7). Dieses Goal
+> exekutiert ihn — es wiederholt die Details bewusst nicht. VOR dem
+> Start: die offenen Entscheidungen aus §6 (mind. Pricing-Modell +
+> Tax-Ansatz + past_due-Policy) mit David fixieren und im Plan-Dokument
+> nachtragen — ohne Entscheidung stoppen und melden, nicht annehmen.
+> Einordnung im Arc: Billing liefert die Entitlement-Maschine
+> (getActiveSubscription/requireEntitlement/useBilling), die Phase 24
+> für Paid-Kurse konsumiert. Abo-Ereignisse landen NICHT im Feed
+> (privat) — nur notify() bei Zahlungsfehlschlag, wie im Plan.
+
+```
+/goal Phase 23 (packages/billing laut docs/plans/BILLING-STRIPE.md)
+ist abgeschlossen.
+Endzustand: alle Plan-Phasen B-0 bis B-8 umgesetzt — packages/billing
+als Layer mit Config-Gate maui.billing (Core-Default enabled: false),
+Tables billing_customers + billing_subscriptions (Migration idempotent,
+Row-Security read(user:<userId>), Writes nur Admin-Client), Checkout
+Sessions + Customer Portal (hosted, planId→lookup_key, B5-Tampering-
+Schutz), Webhook als Nitro-Route mit Signatur-Verifikation, Event-
+Allowlist, Upsert-Idempotenz + Stale-Guard (B4) und Rate-Limit-
+Ausnahme, Entitlements (getActiveSubscription memoized,
+requireEntitlement, useBilling() SSR-hydriert + Realtime auf der
+eigenen Row), Capability billing.manage (additiver Core-Commit),
+Admin-Modul + Seiten (pricing, account/billing, dashboard/billing),
+i18n de+en, Vitest für die puren Webhook-Mappings; stripe im pnpm
+Catalog; CONCEPT.md Z. 112 auf die Server-Route-Entscheidung (B1)
+aktualisiert; §6-Entscheidungen im Plan-Dokument nachgetragen.
+Nachweis gegen lokale Instanz + Stripe Test-Mode (Referenz Plan §7):
+stripe listen --forward-to localhost:<port>/api/stripe/webhook läuft;
+Browser/curl-Flow: Checkout mit 4242-Test-Card → Webhook schreibt
+Row, account/billing springt via Realtime auf „aktiv" ohne Reload;
+Portal-Kündigung → cancelAtPeriodEnd true im GET; stripe events
+resend desselben Events → identischer Endzustand (Idempotenz);
+manipulierte planId im Checkout-POST → 400; Gate-Gegenprobe:
+enabled: false → Routen 404, keine Pricing-UI im SSR-HTML;
+labelloser User (Memory-Regel): /dashboard/billing → 403, fremde
+Subscription-Row per Web-SDK nicht lesbar; invoice.payment_failed
+(stripe trigger) → status past_due + notify()-Row für den User;
+Migration 2× = idempotent; pnpm -r typecheck, lint und test grün.
+Abschluss-Schritt: GOALS.md Phase 23 ✅ + Datum, README-Status,
+BILLING-STRIPE.md auf „umgesetzt" datiert, OPEN-ITEMS-/Backlog-
+Eintrag aufgelöst.
+Constraints: ausschließlich Stripe TEST-Mode (kein Live-Key, Go-Live
+ist ein separater Schritt mit Phase 17); Products/Prices legt David
+im Dashboard an (auf Zuruf, lookup_keys wie geplant); §6-Entscheidungen
+nicht eigenmächtig treffen; Feature-Gating anderer Layer NICHT
+einbauen (kommt als App-Komposition in Phase 24); Secrets nur in
+.env, nie ins Repo. Maximal 60 Turns.
+```
+
+---
+
+## Phase 24 – packages/courses (Async Course Builder / LMS v1)
+
+> Der monetarisierbare Endpunkt des Arcs — konsumiert alle drei
+> Vorstufen: Lektions-Diskussion = CommentSection (targetType
+> 'lesson', App-Komposition), Kurs-Aktivität = recordActivity,
+> Paid-Zugang = billing-Entitlements. A14-Knackpunkt: courses darf
+> billing NICHT importieren — der Layer definiert deshalb einen
+> Access-Guard-Registrierungspunkt (Muster registerUserDataContributor):
+> registerCourseAccessGuard() via Nitro-Plugin, die APP registriert
+> den Guard und ruft darin billings requireEntitlement auf. Ohne
+> registrierten Guard sind 'paid'-Kurse fail-closed (403). V1 =
+> asynchrone Kurse: Markdown-Lektionen + optionale externe Video-URL,
+> kein Video-Hosting. Builder nutzt useEditAwareness („David
+> bearbeitet gerade") aus dem Presence-Fundament.
+
+```
+/goal Phase 24 (packages/courses, LMS v1) ist abgeschlossen.
+Endzustand: packages/courses als Nuxt Layer.
+shared/types/course.ts: CourseRow (title, slug unique, description,
+status draft/published/archived, access 'free'|'members'|'paid',
+entitlementFeature nullable — Pflicht bei 'paid', authorId,
+authorName, lessonCount int denormalisiert), LessonRow (courseId,
+title, order int, content Markdown max 50.000, videoUrl nullable,
+status draft/published), EnrollmentRow (courseId+userId Unique,
+completedAt nullable), LessonProgressRow (lessonId+userId Unique,
+courseId, completedAt). Migration 001-courses-tables.ts (idempotent,
+pnpm migrate --app) mit Indizes slug, status, courseId+order,
+userId-Lookups. server/utils/courseAccess.ts:
+registerCourseAccessGuard(guard) + assertCourseAccess(event, course)
+— 'free'/'members' = eingeloggt genügt, 'paid' delegiert an den
+registrierten Guard, OHNE Guard fail-closed 403.
+Routes: GET /api/courses (published, Query.limit + Pagination);
+GET /api/courses/:slug (Detail + Lektions-TITEL-Liste öffentlich
+für Eingeloggte; Lektions-CONTENT nur nach Enrollment + Access);
+POST /api/courses/:id/enroll (auth, assertCourseAccess);
+GET /api/courses/:id/progress; POST /api/lessons/:id/complete
+(Upsert Progress; wenn alle published-Lektionen abgeschlossen →
+enrollment.completedAt server-autoritativ setzen);
+Builder-Routen POST/PATCH/DELETE courses + lessons inkl.
+Reorder-Endpoint, alle mit requirePermission('courses.manage').
+CORE (additiver Commit per A6): Capability courses.manage.
+UI Learner: pages /courses (Galerie), /courses/:slug (Übersicht,
+Enroll-CTA je access-Typ inkl. „Upgrade"-Zustand bei paid),
+/courses/:slug/lessons/:id (LessonView: Markdown XSS-sicher
+gerendert — kein Raw-HTML, Lehre aus dem Themes-CSS-Sink-Audit;
+optionales Video-Embed; „Lektion abschließen"; Fortschrittsbalken;
+Prev/Next). UI Builder: dashboard/courses (Liste) +
+dashboard/courses/:id (Lektionen anlegen/sortieren/publishen,
+useEditAwareness-Anzeige) via maui.admin.modules mit children.
+Integrationen: recordActivity 'course.published' und
+'course.completed'; apps/reddit-comments (Pilot) extended courses,
+bindet in LessonView <CommentSection :target-id="lesson.$id"
+target-type="lesson" /> ein UND registriert den Access-Guard, der
+billings requireEntitlement(event, course.entitlementFeature)
+aufruft (server/plugins — die App darf beide Layer komponieren).
+GDPR-Contributor: Enrollments + Progress exportieren/löschen;
+authorName auf Kursen anonymisieren. Zod-Factories, i18n de+en.
+Nachweis gegen die lokale Instanz: Migration loggt Schema (2× =
+idempotent); Flow per curl mit ZWEI Usern: Admin erstellt Kurs mit
+3 Lektionen (eine draft) + published → GET /api/courses zeigt ihn,
+lessonCount 2; labelloser User: POST /api/courses → 403,
+/dashboard/courses → 403, enroll free-Kurs → 200, Lektions-Content
+ohne Enrollment vorher → 403; complete 2/2 published-Lektionen →
+progress 100 % und completedAt im Enrollment gesetzt (draft-Lektion
+zählt NICHT); paid-Kurs: User ohne Abo → 403, User mit aktivem
+Test-Abo aus Phase 23 → enroll 200 (Guard-Beweis über die echte
+billing-Verdrahtung); Gegenprobe im Playground (kein Guard
+registriert): paid-Kurs → 403 fail-closed; XSS-Probe: <script> und
+<img onerror> im Lektions-Content erscheinen im SSR-HTML escaped,
+nicht ausgeführt; GET /api/feed zeigt course.published +
+course.completed; SSR der LessonView enthält die CommentSection;
+GDPR-Export enthält Enrollments + Progress; /en englische Strings;
+pnpm -r typecheck, lint und test grün.
+Abschluss-Schritt: GOALS.md Phase 24 ✅ + Datum, README-Status;
+Roadmap-v3-Arc im README als abgeschlossen markieren.
+Constraints: kein Video-Hosting/-Streaming (nur externe URLs),
+keine Quizzes/Zertifikate/Drip-Content (v2), kein Einzelkauf von
+Kursen (Zugang NUR über Abo-Entitlements aus Phase 23 — Einzelkauf
+wäre ein neuer Checkout-Mode, bewusst vertagt); courses importiert
+NICHTS aus billing/comments/feed — Verzahnung nur über Core-Verträge
++ App-Komposition; Markdown-Rendering ohne Raw-HTML;
+Schema-Änderungen nur via Migration. Maximal 60 Turns.
+```
+
+---
+
 ## Backlog (ohne Phase — bei Bedarf zu Goals schneiden)
 
 - **Themes-Vollausbau**: 26 Themes × 11 Farbvariationen, sobald die
   Phase-15-Infrastruktur steht (Fleißarbeit, gut automatisierbar)
-- **packages/billing**: Stripe Checkout/Webhooks/Subscriptions — wartet
-  auf konkreten Bedarf (obsidian-community-concept)
+- **packages/billing**: Stripe Checkout/Webhooks/Subscriptions —
+  ✂️ als **Phase 23** geschnitten (2026-07-06, Roadmap v3);
+  Plan: docs/plans/BILLING-STRIPE.md
+- **Activity Feed / Events / Courses**: ✂️ als **Phasen 21/22/24**
+  geschnitten (2026-07-06, Roadmap v3 — Produkt-Arc Community-Plattform)
 - **E2E-Tests (Playwright)** pro App — Konzept A13 sagt "wenn Core
   stabil"; der Core ist jetzt stabil, sinnvoll nach Phase 14
 - **CHANGELOG.md + Git-Tags** für den Core (Konzept A6 "mittelfristig")
