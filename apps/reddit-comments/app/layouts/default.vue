@@ -12,6 +12,9 @@ const { isLoggedIn } = useCurrentUser()
       <nav data-testid="main-nav" class="mx-auto flex w-full max-w-5xl items-center justify-between p-4">
         <NuxtLink :to="localePath('/')" class="font-bold tracking-tight">Hawaii Studio</NuxtLink>
         <div class="flex items-center gap-2">
+          <UButton v-if="isLoggedIn" :to="localePath('/feed')" color="neutral" variant="ghost" icon="i-ph-pulse" data-testid="feed-link">
+            {{ t('feed.title') }}
+          </UButton>
           <WhatsNewButton />
           <DisplaySettingsMenu />
           <NotificationBell v-if="isLoggedIn" />

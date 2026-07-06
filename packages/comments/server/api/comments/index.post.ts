@@ -91,6 +91,19 @@ export default defineEventHandler(async (event) => {
     await notify(event, { recipientId: mention.userId, type: 'mention', title: user.name, body: snippet, link, senderId: user.$id })
   }
 
+  // Activity-Feed (Core-Vertrag recordActivity, best-effort wie notify) —
+  // packages/feed rendert daraus „{name} hat einen Kommentar geschrieben"
+  // (feed.types.comment.created); kein Import aus feed (CONCEPT A14).
+  await recordActivity(event, {
+    actorId: user.$id,
+    actorName: user.name,
+    type: 'comment.created',
+    objectType: 'comment',
+    objectId: row.$id,
+    link,
+    metadata: { snippet },
+  })
+
   setResponseStatus(event, 201)
   // Avatar des Autors mitgeben (analog zur Listen-Anreicherung), damit der
   // optimistisch eingefügte Kommentar nach dem Reconcile das Bild behält

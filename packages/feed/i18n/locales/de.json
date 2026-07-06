@@ -1,0 +1,27 @@
+{
+  "feed": {
+    "title": "Aktivität",
+    "description": "Was gerade in der Community passiert.",
+    "empty": "Noch keine Aktivität.",
+    "loadMore": "Mehr laden",
+    "someone": "Jemand",
+    "delete": "Eintrag löschen",
+    "deleted": "Eintrag gelöscht.",
+    "deleteFailed": "Eintrag konnte nicht gelöscht werden.",
+    "moderation": {
+      "title": "Activity-Feed",
+      "description": "Alle Feed-Einträge — einzelne Einträge lassen sich entfernen."
+    },
+    "types": {
+      "generic": "{name} war aktiv",
+      "comment": {
+        "created": "{name} hat einen Kommentar geschrieben"
+      }
+    }
+  },
+  "admin": {
+    "nav": {
+      "feed": "Feed"
+    }
+  }
+}

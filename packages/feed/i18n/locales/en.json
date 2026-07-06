@@ -1,0 +1,27 @@
+{
+  "feed": {
+    "title": "Activity",
+    "description": "What's happening in the community right now.",
+    "empty": "No activity yet.",
+    "loadMore": "Load more",
+    "someone": "Someone",
+    "delete": "Delete entry",
+    "deleted": "Entry deleted.",
+    "deleteFailed": "Could not delete entry.",
+    "moderation": {
+      "title": "Activity feed",
+      "description": "All feed entries — individual entries can be removed."
+    },
+    "types": {
+      "generic": "{name} was active",
+      "comment": {
+        "created": "{name} wrote a comment"
+      }
+    }
+  },
+  "admin": {
+    "nav": {
+      "feed": "Feed"
+    }
+  }
+}
