@@ -40,13 +40,17 @@ nutzbar). Reihenfolge = grobe Priorität.
 
 ## 🟡 Klein / Reste
 
-- **Offene Audit-Fragen (2026-07-05, aus AUDIT.md §6 — brauchen Produktentscheidung):**
-  (a) Presence-Metadata (`userName`/`avatarUrl`) ist mit `read("users")` für JEDEN
-  eingeloggten User lesbar — gewollt (app-weite Presence-Avatare) oder auf
-  Co-Presence einschränken? (b) `deleted`-Tombstones zählen in `total`/
-  `topLevelTotal` der Kommentarliste (Spec-konform „[gelöscht]"-Platzhalter) —
-  bestätigen. (c) X-Forwarded-For-Vertrauen (authAudit/Rate-Limit) gehört als
-  expliziter Punkt auf die Phase-17-Checkliste (nur hinter Trusted Proxy).
+- **Audit-Produktfragen (2026-07-05 ENTSCHIEDEN):**
+  (a) **Presence-Sichtbarkeit — so lassen**: Presence-Metadata (`userName`/
+  `avatarUrl` + Aktivität) bleibt per `read("users")` für alle eingeloggten
+  User lesbar — Name/Avatar sind ohnehin öffentlich (Kommentare), „wer ist
+  online/tippt/reviewt" IST das Feature; nur eingeloggte sehen es. Bei
+  Kundenprojekten/Multi-Tenant neu bewerten (dann Reads über Server-Route
+  proxien). (b) **deleted-Tombstones zählen mit**: sie sind sichtbare
+  Listeneinträge („[gelöscht]", Reddit-Verhalten) — Zähler = Liste; Nicht-
+  Zählen würde Anzeige und total auseinanderlaufen lassen. (c) **X-Forwarded-
+  For**: kein Code-Gate — als expliziter Checkpunkt im Phase-17-Plan verankert
+  (App NUR hinter ploi-nginx, Port 3000 nie exponiert, Firewall erzwingt es).
   Akzeptiert ohne Fix: L15 (controversial-Cap 200, dokumentierte Grenze).
 - ✅ **Kleinkram-Batch (2026-07-02)**: `appwrite.config.json` umbenannt (inkl.
   Doku-Referenzen); **Stats-Contributor-Registry** umgesetzt

@@ -293,12 +293,24 @@ Hetzner-Backups optional.
 - Browser-Bundle-Check nach erstem Deploy: kein `NUXT_APPWRITE_KEY` im
   Client-Bundle (DEPLOYMENT.md §5).
 - nginx: HSTS aktivieren (ploi-Toggle), HTTP→HTTPS-Redirect (Default).
+- **Trusted Proxy / X-Forwarded-For (Audit 2026-07-05, entschieden):**
+  authAudit und die rate-limit-Middleware vertrauen dem ERSTEN
+  X-Forwarded-For-Eintrag — das ist nur hinter einem vertrauenswürdigen
+  Proxy korrekt. Die App läuft deshalb ausschließlich hinter dem ploi-nginx
+  (setzt XFF selbst); der Nitro-Port 3000 darf NIE direkt exponiert sein —
+  die Hetzner-Firewall (nur 22/80/443, s. o.) erzwingt genau das.
+  Bewusst KEIN zusätzliches Code-Gate — die Setup-Garantie reicht;
+  Checkpunkt: `curl -H 'X-Forwarded-For: 1.2.3.4' http://<server-ip>:3000`
+  muss von außen ins Leere laufen (Firewall), nicht antworten.
 
-**Bekannte, bewusst getragene Restrisiken** (OPEN-ITEMS, vor/kurz nach Go-Live
-entscheiden): `comment_votes` Table-Read für users (Migration nachziehen),
-`hidden`-Kommentare via REST lesbar (`read(any)`-Trade-off für Gast-Realtime),
-GDPR-Löschung unvollständig (PII-Cleanup-Vertrag). Keins davon blockiert den
-Go-Live, alle sind dokumentiert.
+**Bekannte, bewusst getragene Restrisiken** — aktualisiert 2026-07-05 (Audit):
+Die früher hier gelisteten Punkte (`comment_votes`-Table-Read,
+hidden-REST-Leak, unvollständige GDPR-Löschung) sind seit 2026-07-02 GELÖST
+(Migrationen comments-007/008, UserDataContributor-Vertrag). Verbleibend:
+Presence-Metadata ist für alle eingeloggten User lesbar (bewusst entschieden,
+OPEN-ITEMS 2026-07-05) und das Rate-Limit ist in-memory (Multi-Instanz
+bräuchte Redis — es ist eine Instanz geplant). Keins davon blockiert den
+Go-Live.
 
 ### A.9 Realtime-Betrieb (Swoole-Crash-Watchdog)
 
