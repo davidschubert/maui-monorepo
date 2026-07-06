@@ -49,6 +49,22 @@ export default defineEventHandler(async (event) => {
     },
   })
 
+  // Aktivitätsprotokoll (Admin-Sicht): WELCHE Felder sich geändert haben —
+  // bewusst nur Feldnamen, nie Werte (Datenminimierung). Best-effort.
+  const changedFields = [
+    ...(name !== event.context.user.name ? ['name'] : []),
+    ...(nextPhone !== (event.context.user.phone ?? '') ? ['phone'] : []),
+    ...((bio ?? '') !== (event.context.user.prefs?.bio ?? '') ? ['bio'] : []),
+    ...(nextAvatarUrl !== (event.context.user.prefs?.avatarUrl ?? '') ? ['avatar'] : []),
+  ]
+  if (changedFields.length > 0) {
+    await logAuthEvent(event, 'user.profile_updated', {
+      userId: event.context.user.$id,
+      name,
+      fields: changedFields,
+    })
+  }
+
   // Vorheriges Avatar-File aufräumen, sobald die URL wechselt (kein Storage-Müll).
   // Best-effort: läuft als der User (eigene update/delete-Rechte), Fehler ignorieren.
   const bucketId = useRuntimeConfig(event).public.appwriteAvatarsBucket

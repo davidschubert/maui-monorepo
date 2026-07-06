@@ -1,4 +1,5 @@
-import { createSessionClient } from '../../lib/appwrite'
+import { Query } from 'node-appwrite'
+import { createSessionClient, createAdminClient } from '../../lib/appwrite'
 import { recoverySchema } from '../../../schemas/auth'
 
 /**
@@ -15,6 +16,14 @@ export default defineEventHandler(async (event) => {
 
   try {
     await account.createRecovery({ email, url: `${origin}/reset-password` })
+    // Security-Signal ins Aktivitätsprotokoll — nur intern (admin-only Audit),
+    // die Antwort bleibt in JEDEM Pfad identisch (keine Account-Enumeration).
+    const { users } = createAdminClient(event)
+    const match = await users.list({ queries: [Query.equal('email', email), Query.limit(1)] }).catch(() => null)
+    const found = match?.users[0]
+    if (found) {
+      await logAuthEvent(event, 'user.recovery_requested', { userId: found.$id, name: found.name })
+    }
   }
   catch {
     // Unbekannte E-Mail etc. — nicht leaken, Antwort bleibt identisch

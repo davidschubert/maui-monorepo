@@ -1,4 +1,4 @@
-import { AppwriteException, ID } from 'node-appwrite'
+import { AppwriteException, ID, Query } from 'node-appwrite'
 import { createAdminClient, setSessionCookie } from '../../lib/appwrite'
 import { registerSchema } from '../../../schemas/auth'
 
@@ -51,6 +51,10 @@ export default defineEventHandler(async (event) => {
     objectId: session.userId,
     link: '/',
   })
+  // Meilenstein („Die Community hat N Mitglieder") — best-effort wie der Feed
+  const { users } = createAdminClient(event)
+  const totalUsers = await users.list({ queries: [Query.limit(1)] }).then(r => r.total).catch(() => 0)
+  await maybeRecordMilestone(event, { type: 'milestone.members', count: totalUsers })
 
   return { ok: true }
 })

@@ -35,5 +35,12 @@ export default defineEventHandler(async (event) => {
     // Session-Liste nicht abrufbar — Passwort ist dennoch geändert
   }
 
+  // Security-Signal ins Aktivitätsprotokoll (Admin-Sicht) — best-effort
+  await logAuthEvent(event, 'user.password_changed', {
+    userId: event.context.user.$id,
+    name: event.context.user.name,
+    method: 'self',
+  })
+
   return { ok: true }
 })

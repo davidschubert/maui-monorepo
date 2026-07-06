@@ -9,6 +9,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     await account.updateRecovery({ userId, secret, password })
+    await logAuthEvent(event, 'user.password_changed', { userId, method: 'recovery' })
     return { ok: true }
   }
   catch {

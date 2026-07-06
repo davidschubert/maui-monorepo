@@ -77,3 +77,29 @@ export async function recordActivity(event: H3Event, input: ActivityInput): Prom
     // best-effort — der auslösende Vorgang ist bereits passiert
   }
 }
+
+/** Zählerstände, die einen Meilenstein-Eintrag auslösen. */
+export const MILESTONE_STEPS = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000] as const
+
+/**
+ * Meilenstein in den Feed („Die Community hat 100 Mitglieder!") — Actor ist
+ * 'system' (kein User; die GDPR-Löschung per actorId trifft ihn nie, die UI
+ * rendert ein Konfetti-Icon statt Avatar). Best-effort wie recordActivity.
+ * Race-Fenster akzeptiert (v1): zwei zeitgleiche Trigger könnten denselben
+ * Meilenstein doppelt melden — objectId hält ihn für spätere Dedupe fest.
+ */
+export async function maybeRecordMilestone(
+  event: H3Event,
+  input: { type: 'milestone.members' | 'milestone.comments', count: number, link?: string },
+): Promise<void> {
+  if (!(MILESTONE_STEPS as readonly number[]).includes(input.count)) return
+  await recordActivity(event, {
+    actorId: 'system',
+    actorName: '',
+    type: input.type,
+    objectType: 'milestone',
+    objectId: `${input.type}:${input.count}`,
+    link: input.link ?? '/',
+    metadata: { count: input.count },
+  })
+}
