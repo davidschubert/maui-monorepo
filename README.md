@@ -171,6 +171,7 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 | 44 | fix(comments): verwaiste Antworten (Selbst-Roots aus 005-Backfill) repariert — Migration 006 befördert zu Top-Level, 005 gehärtet, Store-Guard gegen total>rows („Alle laden"-Button klickte ins Leere) | ✅ 2026-07-04 |
 | 45 | Live-Theme-Propagation: custom_themes/custom_fonts Table-read(any) (Migration 013) + realtime-themes-Plugin — offene Fenster (auch Gäste) morphen Farben/Schriften ohne Reload (E2E verifiziert) | ✅ 2026-07-04 |
 | 46 | Read-only-Gesamtaudit (9 Slices, Scout→Worker-Subagenten, [AUDIT.md](AUDIT.md)): **0 Critical/High**, Reconciliation ohne „Regressed" — Abarbeitung in 4 Paketen: GDPR-Garantie-Fixes (M1/L1), Hide-Phase-2 beobachtbar (L2), CSS-Sink-Härtung + 7 Injection-Tests (L3), Kleinkram-Batch (L4–L14), CONCEPT.md-Doku-Drift (A4/A14/Tabellen) nachgezogen | ✅ 2026-07-05 |
+| 47 | **Roadmap v3 · GOALS-Phase 21: Activity Feed** — Core-Vertrag `recordActivity()` (+ Capability `feed.manage`), system-Migration 014 + GDPR-Contributor, `packages/feed` (Cursor-Feed, Realtime live über die geteilte JWT-SDK-WS, `/feed` + `/dashboard/feed` via Admin-Registry), comments als erste Quelle (`comment.created`) — Browser-verifiziert inkl. RBAC/GDPR/i18n | ✅ 2026-07-06 |
 
 Details und Nachweis-Kriterien pro Phase: [docs/GOALS.md](docs/GOALS.md) · Upgrade-Plan: [docs/APPWRITE-1.9.5-UPGRADE.md](docs/APPWRITE-1.9.5-UPGRADE.md) · Offene Punkte: [docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md)
 

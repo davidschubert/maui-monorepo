@@ -959,7 +959,26 @@ Auto-Signup-Verhalten unverändert; AGB-Pflicht nur im register-Modus
 
 ---
 
-## Phase 21 – Activity Feed (Core-Vertrag + packages/feed)
+## Phase 21 – Activity Feed (Core-Vertrag + packages/feed) ✅ (abgeschlossen 2026-07-06)
+
+> ✅ **Erledigt am 2026-07-06.** Genau wie geplant umgesetzt: recordActivity()
+> im Core (best-effort, Row-read(users)) + feed.manage; system-Migration 014
+> (2× gelaufen = idempotent) + GDPR-Contributor (Export/Hard-Delete per
+> actorId, List-Query degradiert vor Migration); packages/feed mit
+> GET /api/feed (Cursor, Avatar-Anreicherung via resolveAvatars),
+> DELETE (feed.manage), ActivityFeed/-Item (i18n feed.types.<type>,
+> Open-Redirect-Guard), /feed + /dashboard/feed, ESLint-Scope; comments
+> meldet comment.created (snippet als metadata). Nachweise: Gast 401;
+> Kommentar → Feed-Eintrag mit korrektem link; labelloser User DELETE 403 +
+> /dashboard/feed 403, Admin DELETE 200 (Row weg); Pagination 26 → 25+1
+> ohne Überschneidung, ungültiger Cursor 400; SSR en („wrote a comment"
+> 25×) + de („hat einen Kommentar geschrieben" 25×, /de/feed mit
+> i18n-Cookie); GDPR: Export enthält activities, nach Self-Delete total 0
+> auf der Instanz; Realtime im Browser: Kommentar eines zweiten Users
+> erscheint live ohne Reload (25→26). typecheck/lint/test (165) grün.
+> STOLPERFALLE: Lifecycle-Hooks im async Composable MÜSSEN vor dem ersten
+> await registriert werden (nach useFetch-await keine Component-Instanz →
+> onMounted verpufft still, Realtime lief nie; 0 Vue-Warnings nach Fix).
 
 > Architektur-Entscheidung (Vorbild notify()/themes, A14-Matrix): der
 > WRITE-Vertrag `recordActivity()` lebt im CORE (best-effort, wirft nie),
