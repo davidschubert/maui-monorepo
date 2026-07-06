@@ -60,7 +60,7 @@ const bottomLinks = computed<NavigationMenuItem[]>(() => {
   const u = auth.user
   const items: NavigationMenuItem[] = []
   if (userHasCapability(u, 'audit.read')) items.push({ label: t('admin.nav.admin'), icon: 'i-ph-shield-check', to: localePath('/dashboard/admin'), onSelect: close })
-  if (userHasCapability(u, 'system.manage')) items.push({ label: t('admin.nav.system'), icon: 'i-ph-pulse', to: localePath('/dashboard/system'), onSelect: close })
+  if (userHasCapability(u, 'system.manage')) items.push({ label: t('admin.nav.system'), icon: 'i-ph-cpu', to: localePath('/dashboard/system'), onSelect: close })
   return items
 })
 

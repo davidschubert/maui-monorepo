@@ -4,6 +4,7 @@
     "description": "What's happening in the community right now.",
     "empty": "No activity yet.",
     "loadMore": "Load more",
+    "openPage": "Open feed page",
     "groupMore": "Show {count} more",
     "someone": "Someone",
     "delete": "Delete entry",
