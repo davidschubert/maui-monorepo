@@ -75,6 +75,20 @@ export default defineEventHandler(async (event) => {
   })
 
   await recordAudit(event, { action: 'theme.created', targetType: 'theme', targetId: row.$id, targetName: body.name })
+
+  // Activity-Feed (Core-Vertrag, best-effort) — neue Themes propagieren live
+  // an alle offenen Fenster, der Feed-Eintrag macht das Ereignis nachlesbar.
+  const user = event.context.user!
+  await recordActivity(event, {
+    actorId: user.$id,
+    actorName: user.name,
+    type: 'theme.published',
+    objectType: 'theme',
+    objectId: row.$id,
+    link: '/',
+    metadata: { snippet: body.name },
+  })
+
   setResponseStatus(event, 201)
   return { id: row.$id, name: body.name, primary: body.primary.toLowerCase(), order: nextOrder, config: body.config, variants: body.variants }
 })

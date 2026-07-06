@@ -36,5 +36,21 @@ export default defineEventHandler(async (event) => {
   })
 
   await recordAudit(event, { action: 'changelog.created', targetType: 'changelog', targetId: row.$id, targetName: input.titleEn })
+
+  // Activity-Feed (Core-Vertrag, best-effort) — nur für direkt veröffentlichte
+  // Einträge; ein späteres Publish via PATCH bleibt bewusst still (v1).
+  if (data.published) {
+    const user = event.context.user!
+    await recordActivity(event, {
+      actorId: user.$id,
+      actorName: user.name,
+      type: 'changelog.published',
+      objectType: 'changelog',
+      objectId: row.$id,
+      link: '/changelog',
+      metadata: { snippet: input.titleEn },
+    })
+  }
+
   return row
 })

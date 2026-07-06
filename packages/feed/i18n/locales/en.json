@@ -16,6 +16,15 @@
       "generic": "{name} was active",
       "comment": {
         "created": "{name} wrote a comment"
+      },
+      "user": {
+        "joined": "{name} joined the community"
+      },
+      "changelog": {
+        "published": "{name} published a changelog entry"
+      },
+      "theme": {
+        "published": "{name} published a new theme"
       }
     }
   },

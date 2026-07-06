@@ -41,11 +41,24 @@ const metadata = computed<Record<string, unknown>>(() => {
 })
 
 const snippet = computed(() => typeof metadata.value.snippet === 'string' ? metadata.value.snippet : '')
+
+// Kleines Objekt-Icon neben dem Avatar — macht Eintragsarten auf einen Blick
+// unterscheidbar; unbekannte objectTypes fallen auf den Puls zurück.
+const OBJECT_ICONS: Record<string, string> = {
+  comment: 'i-ph-chat-circle',
+  user: 'i-ph-user-plus',
+  changelog: 'i-ph-megaphone',
+  theme: 'i-ph-palette',
+}
+const objectIcon = computed(() => OBJECT_ICONS[props.activity.objectType] ?? 'i-ph-pulse')
 </script>
 
 <template>
   <div class="flex items-start gap-3 rounded-md px-2 py-2.5 transition-colors hover:bg-elevated">
-    <UserAvatar :user="{ name: activity.actorName, prefs: { avatarUrl: activity.actorAvatarUrl } }" size="sm" />
+    <div class="relative shrink-0">
+      <UserAvatar :user="{ name: activity.actorName, prefs: { avatarUrl: activity.actorAvatarUrl } }" size="sm" />
+      <UIcon :name="objectIcon" class="absolute -right-1 -bottom-1 size-3.5 rounded-full bg-default p-0.5 text-muted" />
+    </div>
 
     <NuxtLink :to="localePath(safeLink)" class="min-w-0 flex-1">
       <i18n-t :keypath="messageKey" tag="p" scope="global" class="text-sm text-muted">
