@@ -23,28 +23,33 @@ export default defineEventHandler(async (event): Promise<StorageOverview> => {
     // ALLE User paginiert einsammeln: bei nur der ersten Seite würden Avatare von
     // Usern jenseits #100 fälschlich als „orphan" markiert — und der Bulk-Delete
     // („Verwaiste löschen") würde in Benutzung befindliche Dateien löschen.
+    // Cursor- statt Offset-Pagination: bei parallelen Signups kann ein Offset
+    // Rows überspringen — ein übersprungener User würde seinen Avatar fälschlich
+    // als Orphan in den Bulk-Delete geben.
     const referenced = new Map<string, string>()
     const pattern = new RegExp(`/storage/${bucketId}/([^/?]+)`)
-    let userOffset = 0
+    let userCursor: string | undefined
     for (;;) {
-      const usersRes = await admin.users.list({ queries: [Query.limit(100), Query.offset(userOffset)] })
+      const usersRes = await admin.users.list({
+        queries: [Query.limit(100), ...(userCursor ? [Query.cursorAfter(userCursor)] : [])],
+      })
       for (const user of usersRes.users) {
         const url = (user.prefs as { avatarUrl?: string })?.avatarUrl
         const match = typeof url === 'string' ? url.match(pattern) : null
         if (match) referenced.set(match[1]!, user.name || user.email)
       }
-      if (usersRes.users.length < 100 || userOffset + usersRes.users.length >= usersRes.total) break
-      userOffset += 100
+      if (usersRes.users.length < 100) break
+      userCursor = usersRes.users.at(-1)!.$id
     }
 
     // Dateien ebenfalls vollständig paginieren — sonst sind Liste, totalBytes und
     // orphanCount nur ein Ausschnitt der ersten 100.
     const files: StorageOverview['files'] = []
-    let fileOffset = 0
+    let fileCursor: string | undefined
     for (;;) {
       const filesRes = await admin.storage.listFiles({
         bucketId,
-        queries: [Query.orderDesc('$createdAt'), Query.limit(100), Query.offset(fileOffset)],
+        queries: [Query.orderDesc('$createdAt'), Query.limit(100), ...(fileCursor ? [Query.cursorAfter(fileCursor)] : [])],
       })
       for (const file of filesRes.files) {
         files.push({
@@ -57,8 +62,8 @@ export default defineEventHandler(async (event): Promise<StorageOverview> => {
           linkedUserName: referenced.get(file.$id) ?? '',
         })
       }
-      if (filesRes.files.length < 100 || fileOffset + filesRes.files.length >= filesRes.total) break
-      fileOffset += 100
+      if (filesRes.files.length < 100) break
+      fileCursor = filesRes.files.at(-1)!.$id
     }
 
     return {

@@ -1,8 +1,11 @@
 import { Query } from 'node-appwrite'
 
 /**
- * Kennzahl des comments-Layers für die Dashboard-Übersicht (Stats-Vertrag,
- * CONCEPT A14) — Gesamtzahl der Kommentare, degradiert still auf {}.
+ * Kennzahlen des comments-Layers für die Dashboard-Übersicht (Stats-Vertrag,
+ * CONCEPT A14) — Gesamtzahl + distinkte gemeldete Kommentare (offene Meldungen,
+ * über den moderation-Vertrag openReportsByTarget; der targetType 'comment'
+ * ist Konsumenten-Wissen und gehört deshalb HIERHER, nicht in den target-
+ * agnostischen moderation-Layer). Degradiert still auf {}.
  */
 export default defineNitroPlugin(() => {
   registerDashboardStatsContributor({
@@ -15,7 +18,13 @@ export default defineNitroPlugin(() => {
         tableId: 'comments',
         queries: [Query.limit(1)],
       })
-      return { commentsTotal: res.total }
+      const stats: Record<string, number> = { commentsTotal: res.total }
+      try {
+        const reported = await openReportsByTarget(event, 'comment')
+        stats.commentsReported = reported.order.length
+      }
+      catch { /* moderation-Layer/reports-Tabelle nicht komponiert → Kennzahl entfällt */ }
+      return stats
     },
   })
 })

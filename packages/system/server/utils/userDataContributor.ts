@@ -23,7 +23,11 @@ type AuditRow = Models.Row & { actorId: string, actorName: string, action: strin
 const NOTIFICATIONS = 'notifications'
 const AUDIT_LOGS = 'audit_logs'
 
-export async function systemExportUserData(event: H3Event, userId: string) {
+interface SystemUserDataExport {
+  notifications: Array<{ type: string, title: string, body: string, link: string, read: boolean, createdAt: string }>
+}
+
+export async function systemExportUserData(event: H3Event, userId: string): Promise<SystemUserDataExport> {
   const config = useRuntimeConfig(event)
   const { tablesDB } = createAdminClient(event)
 

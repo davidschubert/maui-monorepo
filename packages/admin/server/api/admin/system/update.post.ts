@@ -81,8 +81,9 @@ export default defineEventHandler(async (event) => {
     child.unref()
   }
   catch (error) {
-    const msg = error instanceof Error ? error.message : String(error)
-    throw createError({ status: 500, statusText: `Could not start pnpm install: ${msg}` })
+    // Details nur ins Server-Log — statusText erreicht den Client
+    console.error('[admin] pnpm install konnte nicht gestartet werden:', error)
+    throw createError({ status: 500, statusText: 'Could not start pnpm install' })
   }
 
   // Sofort zurück: der Install läuft im Hintergrund. Der Client wartet NICHT auf

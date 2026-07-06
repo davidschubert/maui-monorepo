@@ -1,6 +1,7 @@
 import { Query } from 'node-appwrite'
 import { resolveReportSchema } from '../../../schemas/report'
 import { REPORTS_TABLE, type Report } from '../../../shared/types/report'
+import { REPORTS_WINDOW } from '../../utils/reportQueries'
 
 /**
  * Alle offenen Meldungen zu einem Target abschließen (Moderator). Ziel-basiert,
@@ -28,9 +29,14 @@ export default defineEventHandler(async (event) => {
       Query.equal('targetType', targetType),
       Query.equal('targetId', targetId),
       Query.equal('status', 'open'),
-      Query.limit(500),
+      Query.limit(REPORTS_WINDOW),
     ],
   })
+  if (open.total > open.rows.length) {
+    // Fenster-Überlauf sichtbar machen statt still liegen lassen — der Rest
+    // bleibt open und wird vom nächsten Resolve-Lauf erfasst.
+    console.warn(`[moderation] resolve ${targetType}/${targetId}: ${open.total} offene Meldungen, Fenster ${REPORTS_WINDOW} — Rest bleibt open`)
+  }
 
   // Parallel in Chunks statt strikt sequentiell — bei vielen Meldungen pro
   // Target sonst unnötig langsam; Chunk-Größe begrenzt die Last auf Appwrite.

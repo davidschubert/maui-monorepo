@@ -9,8 +9,9 @@ import { REPORTS_TABLE, type Report } from '../../shared/types/report'
  */
 
 // Reports werden in einem begrenzten Fenster betrachtet (wie controversial bei
-// comments) — riesige Mengen offener Meldungen sind der Ausnahmefall.
-const WINDOW = 500
+// comments) — riesige Mengen offener Meldungen sind der Ausnahmefall. Auch die
+// Resolve-Route (api/reports/resolve.post.ts) arbeitet mit diesem Fenster.
+export const REPORTS_WINDOW = 500
 
 /** Welche der gegebenen Targets hat DIESER User offen gemeldet? */
 export async function myOpenReportTargetIds(
@@ -61,7 +62,7 @@ export async function openReportsByTarget(
       Query.equal('targetType', targetType),
       Query.equal('status', 'open'),
       Query.orderDesc('$createdAt'),
-      Query.limit(WINDOW),
+      Query.limit(REPORTS_WINDOW),
     ],
   })
 

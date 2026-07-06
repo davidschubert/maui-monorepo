@@ -48,9 +48,9 @@ Variables, oder per CLI):
 **dynamische API-Key** im Header `x-appwrite-key` — dessen Rechte kommen aus den
 Function-**Scopes** in `appwrite.config.json` (`rows.read`, `rows.write`). Beim Deploy
 gegenprüfen, dass die 1.9.5-Instanz genau diese Scope-Namen kennt (README-Hinweis;
-ggf. heißen sie in der Console `tablesDB.rows.*`). Ein statischer
-`APPWRITE_API_KEY` ist nur Fallback im Code — **nicht setzen**, dynamischer Key
-reicht und rotiert selbst.
+ggf. heißen sie in der Console `tablesDB.rows.*`). Einen statischen
+`APPWRITE_API_KEY`-Fallback gibt es seit dem Audit 2026-07-05 nicht mehr — die
+Function nutzt ausschließlich den dynamischen Key und lehnt ohne ihn ab.
 
 ## 3. Payload-URL des Webhooks
 

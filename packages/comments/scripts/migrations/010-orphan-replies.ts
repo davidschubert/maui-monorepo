@@ -12,7 +12,7 @@
  * neuen Root umgehängt. Idempotent — ohne Waisen ist der Lauf ein No-op.
  *
  *   node --experimental-strip-types --env-file=apps/<app>/.env \
- *     packages/comments/scripts/migrations/006-orphan-replies.ts
+ *     packages/comments/scripts/migrations/010-orphan-replies.ts
  *
  * Läuft komplett mit dem Runtime-Key (rows.write, keine Schema-Änderung).
  */

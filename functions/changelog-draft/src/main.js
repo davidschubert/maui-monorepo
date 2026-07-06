@@ -91,7 +91,13 @@ export default async ({ req, res, log, error }) => {
     }
 
     // ── Entwurf anlegen (published:false) ────────────────────────────────
-    const apiKey = req.headers['x-appwrite-key'] ?? process.env.APPWRITE_API_KEY
+    // Ausschließlich der dynamische, pro Execution injizierte Key — kein
+    // statischer Env-Fallback (wäre ein langlebiger Breitband-Key).
+    const apiKey = req.headers['x-appwrite-key']
+    if (!apiKey) {
+      error('Kein dynamischer API-Key (x-appwrite-key) — Function-Runtime prüfen.')
+      return res.json({ ok: false, message: 'Interner Fehler.' }, 500)
+    }
     const client = new Client()
       .setEndpoint(process.env.APPWRITE_FUNCTION_API_ENDPOINT)
       .setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID)

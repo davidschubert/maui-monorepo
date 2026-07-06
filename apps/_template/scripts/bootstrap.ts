@@ -2,8 +2,8 @@
  * Bootstrap: bringt eine frische Appwrite-Instanz von 0 auf lauffähig — die
  * Schritte, die sonst manuell/per Odyssee laufen, in einem Befehl.
  *
- *   node --experimental-strip-types --env-file=apps/reddit-comments/.env \
- *     apps/reddit-comments/scripts/bootstrap.ts [--seed]
+ *   node --experimental-strip-types --env-file=apps/<app>/.env \
+ *     apps/<app>/scripts/bootstrap.ts [--seed]
  *
  * VORAUSSETZUNG (manuell, weil interaktiv):
  *   1. Appwrite-Instanz läuft (Docker/OrbStack), Console erreichbar.
@@ -19,14 +19,18 @@
  *   - optional (--seed): Demo-User + Kommentare
  */
 import { execSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 import { basename, dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Client, TablesDB, Query } from 'node-appwrite'
 
 // App-Name aus dem Script-Pfad (apps/<app>/scripts/bootstrap.ts) — das Script
-// ist damit als Kopiervorlage app-agnostisch (apps/_template).
+// ist damit als Kopiervorlage app-agnostisch (apps/_template). Verzeichnisname
+// für den Migrations-Runner (--app), Package-Name für pnpm-Filter (kann
+// abweichen, z. B. _template ↔ app-template).
 const APP_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const APP_NAME = basename(APP_DIR)
+const APP_PKG = JSON.parse(readFileSync(resolve(APP_DIR, 'package.json'), 'utf8')) as { name: string, scripts?: Record<string, string> }
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -34,7 +38,7 @@ const databaseId = process.env.NUXT_PUBLIC_APPWRITE_DATABASE_ID ?? 'main'
 const bucketId = process.env.NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET ?? 'avatars'
 const apiKey = process.env.NUXT_APPWRITE_KEY ?? process.env.NUXT_APPWRITE_MIGRATIONS_KEY
 if (!endpoint || !projectId || !apiKey) {
-  console.error('✗ Fehlende Env-Vars — mit --env-file=apps/reddit-comments/.env aufrufen.')
+  console.error(`✗ Fehlende Env-Vars — mit --env-file=apps/${APP_NAME}/.env aufrufen.`)
   process.exit(1)
 }
 const withSeed = process.argv.includes('--seed')
@@ -126,10 +130,16 @@ if (!force && (endpoint || projectId)) {
 console.log('\n— Migrationen —')
 execSync(`node ${resolve(APP_DIR, '../../scripts/migrate.mjs')} --app ${APP_NAME}`, { stdio: 'inherit' })
 
-// 6) Optional: Seed
+// 6) Optional: Seed — nur wenn die App ein seed-Script mitbringt (die
+// Template-Kopie hat keins; Vorlage: apps/reddit-comments/scripts/seed-demo.ts)
 if (withSeed) {
-  console.log('\n— Demo-Seed —')
-  execSync(`pnpm --filter ${APP_NAME} seed`, { stdio: 'inherit' })
+  if (APP_PKG.scripts?.seed) {
+    console.log('\n— Demo-Seed —')
+    execSync(`pnpm --filter ${APP_PKG.name} seed`, { stdio: 'inherit' })
+  }
+  else {
+    console.warn(`⚠ --seed übersprungen: ${APP_NAME} hat kein seed-Script in der package.json`)
+  }
 }
 
-console.log(`\n✔ Bootstrap fertig. App starten mit: pnpm --filter ${APP_NAME} dev`)
+console.log(`\n✔ Bootstrap fertig. App starten mit: pnpm --filter ${APP_PKG.name} dev`)
