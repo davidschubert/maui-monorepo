@@ -2,11 +2,14 @@
 import { h, type VNodeChild } from 'vue'
 import { parseMarkdown, type BlockNode, type InlineNode } from '../../shared/markdown'
 
+/**
+ * Rendert user-generiertes Markdown (Subset-AST aus shared/markdown.ts)
+ * ausschließlich über vnodes — kein v-html, Raw-HTML im Content bleibt
+ * escapter Text (Vue). Links sind im Parser auf https?://-/-Pfade geprüft.
+ * Core-Component (seit Phase 25) — Konsumenten: comments, posts.
+ */
 const props = defineProps<{ source: string }>()
 
-// Rendering ausschließlich über vnodes — kein v-html, Raw-HTML im Content
-// bleibt escapter Text (Vue). Der Parser lässt nur den Subset-AST durch
-// (shared/markdown.ts), Links sind dort bereits auf https?://-/-Pfade geprüft.
 function renderInline(nodes: InlineNode[]): VNodeChild[] {
   return nodes.map((node) => {
     switch (node.type) {

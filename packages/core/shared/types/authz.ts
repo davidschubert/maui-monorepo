@@ -15,5 +15,6 @@ export type Capability =
   | 'storage.manage'
   | 'audit.read'
   | 'feed.manage'
+  | 'posts.moderate'
 
 export type Role = 'admin' | 'moderator'

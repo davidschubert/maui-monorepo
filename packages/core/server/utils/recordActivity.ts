@@ -90,7 +90,7 @@ export const MILESTONE_STEPS = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 100
  */
 export async function maybeRecordMilestone(
   event: H3Event,
-  input: { type: 'milestone.members' | 'milestone.comments', count: number, link?: string },
+  input: { type: 'milestone.members' | 'milestone.comments' | 'milestone.posts', count: number, link?: string },
 ): Promise<void> {
   if (!(MILESTONE_STEPS as readonly number[]).includes(input.count)) return
   await recordActivity(event, {

@@ -1,10 +1,11 @@
 /**
- * Sicherer Markdown-SUBSET-Parser für Kommentar-Content (user-generiert!).
+ * Sicherer Markdown-SUBSET-Parser für USER-GENERIERTEN Content — Core-Utility
+ * (seit Phase 25 hier statt in comments; Konsumenten: comments, posts).
  *
  * Bewusst NICHT MDC/remark: MDC ist für vertrauenswürdigen Admin-Content
  * (Changelog) gedacht — seine Component-Syntax (::block, Inline-Bindings) darf
  * nie auf Fremd-Input laufen. Dieser Parser erzeugt einen kleinen AST, den
- * CommentMarkdown.vue über h()-vnodes rendert — es gibt KEINEN v-html-Pfad,
+ * MarkdownContent.vue über h()-vnodes rendert — es gibt KEINEN v-html-Pfad,
  * Raw-HTML bleibt Text (Vue escaped), unbekannte Syntax degradiert zu Text.
  *
  * Unterstützt: **fett**, *kursiv*, `code`, [Text](URL) (nur https?:// oder

@@ -34,6 +34,7 @@ Drei Ebenen, klar getrennt:
 | `storage.manage` | Storage-Browser, Orphans löschen |
 | `audit.read` | Audit-Log lesen |
 | `feed.manage` | Activity-Feed moderieren (Einträge löschen) |
+| `posts.moderate` | Community-Posts ausblenden/wiederherstellen |
 
 ### Rollen → Capabilities
 
@@ -63,6 +64,7 @@ pro Route durch die spezifische Capability ersetzt:
 | `storage.manage` | `storage.get`, `storage/[fileId].delete` |
 | `audit.read` | `audit.get` |
 | `feed.manage` | `packages/feed`: `feed/[id].delete` |
+| `posts.moderate` | `packages/posts`: `posts/[id]/hide.post`, `posts/[id]/restore.post` |
 
 > `search.get` liefert auch User-Namen — bleibt `dashboard.access` (keine E-Mails/PII
 > in der Antwort prüfen; sonst auf `users.manage` heben).
