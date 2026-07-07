@@ -26,6 +26,19 @@ const store = inject(commentStoreKey)!
 const toast = useToast()
 const loading = ref(false)
 
+// Quora-Muster: Top-Level-Feld ruht EINZEILIG in der Liste und expandiert
+// beim Fokus zum Editor (Aktionszeile erscheint); nach dem Absenden — oder
+// beim Verlassen ohne Text — kollabiert es zurück. Antworten starten
+// expandiert (der User hat gerade „Antworten" geklickt).
+const expanded = ref(!!props.parentId)
+function onFormFocusOut(event: FocusEvent) {
+  if (props.parentId) return
+  const root = event.currentTarget as HTMLElement
+  const next = event.relatedTarget as Node | null
+  if (next && root.contains(next)) return
+  if (!state.content.trim()) expanded.value = false
+}
+
 // Thread-Presence: Tippen melden (von CommentSection bereitgestellt; Fallback no-op)
 const setTyping = inject(commentTypingKey, () => {})
 // Antwort-Presence: „ich antworte auf <parentId>" folgt dem AKTIVEN Feld (Fokus/
@@ -104,6 +117,12 @@ async function onSubmit(event: FormSubmitEvent<FormInput>) {
     state.content = ''
     setTyping(false)
     setReplyingTo(undefined)
+    // Zurück in den Ruhezustand — der frische Kommentar klappt daneben auf,
+    // die Eingabe „wurde" sichtbar zum Kommentar (Quora-Muster)
+    if (!props.parentId) {
+      expanded.value = false
+      contentField.value?.textareaRef?.blur()
+    }
     emit('created')
   }
   catch (error) {
@@ -120,43 +139,52 @@ async function onSubmit(event: FormSubmitEvent<FormInput>) {
 </script>
 
 <template>
-  <UForm :schema="schema" :validate-on="[]" :state="state" class="space-y-2" @submit="onSubmit">
-    <UFormField name="content">
-      <UTextarea
-        ref="contentField"
-        v-model="state.content"
-        :rows="parentId ? 2 : 3"
-        :placeholder="parentId ? t('comments.form.replyPlaceholder') : t('comments.form.placeholder')"
-        class="w-full"
-        @focusin="activateReply"
-        @input="onInput"
-        @keydown.escape="mentionQuery = null"
-      />
-      <div
-        v-if="mentionSuggestions.length"
-        class="mt-1 w-fit min-w-48 rounded-md border border-default bg-default p-1 shadow-sm"
-        role="listbox"
-        :aria-label="t('comments.form.mentionSuggestions')"
-      >
-        <UButton
-          v-for="name in mentionSuggestions"
-          :key="name"
-          color="neutral"
-          variant="ghost"
-          size="xs"
-          block
-          class="justify-start"
-          @click="pickMention(name)"
+  <div class="flex items-start gap-2" @focusout="onFormFocusOut">
+    <!-- Eigener Avatar vor dem Feld (Quora-Muster): die Eingabe liest sich
+         als „mein werdender Kommentar" -->
+    <UserAvatar v-if="!parentId" size="sm" class="mt-0.5 shrink-0" />
+
+    <UForm :schema="schema" :validate-on="[]" :state="state" class="min-w-0 flex-1 space-y-2" @submit="onSubmit">
+      <UFormField name="content">
+        <UTextarea
+          ref="contentField"
+          v-model="state.content"
+          :rows="expanded ? (parentId ? 2 : 3) : 1"
+          autoresize
+          :placeholder="parentId ? t('comments.form.replyPlaceholder') : t('comments.form.placeholder')"
+          class="w-full"
+          data-comment-input
+          @focusin="expanded = true; activateReply()"
+          @input="onInput"
+          @keydown.escape="mentionQuery = null"
+        />
+        <div
+          v-if="mentionSuggestions.length"
+          class="mt-1 w-fit min-w-48 rounded-md border border-default bg-default p-1 shadow-sm"
+          role="listbox"
+          :aria-label="t('comments.form.mentionSuggestions')"
         >
-          @{{ name }}
+          <UButton
+            v-for="name in mentionSuggestions"
+            :key="name"
+            color="neutral"
+            variant="ghost"
+            size="xs"
+            block
+            class="justify-start"
+            @click="pickMention(name)"
+          >
+            @{{ name }}
+          </UButton>
+        </div>
+      </UFormField>
+      <!-- Aktionszeile nur im Editor-Zustand — kollabiert ist das Feld eine ruhige Zeile -->
+      <div v-if="expanded" class="flex items-center justify-between gap-2" data-comment-actions>
+        <UButton type="submit" size="sm" :loading="loading">
+          {{ parentId ? t('comments.form.replySubmit') : t('comments.form.submit') }}
         </UButton>
+        <span class="text-xs text-dimmed">{{ t('comments.form.markdownHint') }}</span>
       </div>
-    </UFormField>
-    <div class="flex items-center justify-between gap-2">
-      <UButton type="submit" size="sm" :loading="loading">
-        {{ parentId ? t('comments.form.replySubmit') : t('comments.form.submit') }}
-      </UButton>
-      <span class="text-xs text-dimmed">{{ t('comments.form.markdownHint') }}</span>
-    </div>
-  </UForm>
+    </UForm>
+  </div>
 </template>
