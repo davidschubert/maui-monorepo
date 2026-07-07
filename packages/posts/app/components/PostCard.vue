@@ -187,8 +187,23 @@ const showTooltip = computed(() => (props.replyCount ?? 0) > 0)
     </div>
 
     <div v-if="commentsOpen" class="mt-2" data-post-comments>
-      <!-- Die App füllt diesen Slot mit CommentSection (targetType 'post') -->
-      <slot name="comments" :post="post" />
+      <!-- Die App füllt diesen Slot mit CommentSection (targetType 'post').
+           Die Section hat async setup (Kommentare laden) — die Suspense-
+           Grenze zeigt sofort ein Skeleton statt einer stummen Verzögerung. -->
+      <Suspense>
+        <div><slot name="comments" :post="post" /></div>
+        <template #fallback>
+          <div class="space-y-3 py-2" data-comments-skeleton>
+            <div v-for="i in 2" :key="i" class="flex items-start gap-2">
+              <USkeleton class="size-7 shrink-0 rounded-full" />
+              <div class="flex-1 space-y-2 pt-1">
+                <USkeleton class="h-3 w-1/3" />
+                <USkeleton class="h-3 w-4/5" />
+              </div>
+            </div>
+          </div>
+        </template>
+      </Suspense>
     </div>
   </UCard>
 </template>
