@@ -32,19 +32,17 @@ onMounted(() => {
   }
 })
 
-const clampStyle = computed<CSSProperties | undefined>(() => expanded.value
-  ? undefined
-  : {
-      display: '-webkit-box',
-      WebkitBoxOrient: 'vertical',
-      WebkitLineClamp: props.lines,
-      overflow: 'hidden',
-    })
+// Clamp über CSS-Klasse + Custom Property statt Inline-Webkit-Styles:
+// Vues SSR-Serializer verliert den führenden Bindestrich von
+// -webkit-line-clamp (→ ungültiges CSS) — der erste Paint wäre UNGEKLAPPT
+// und würde nach der Hydration sichtbar zuschnappen.
+const clampStyle = computed<CSSProperties | undefined>(() =>
+  expanded.value ? undefined : { '--clamp-lines': props.lines })
 </script>
 
 <template>
   <div>
-    <div ref="el" :style="clampStyle" data-clamp>
+    <div ref="el" :class="{ 'content-clamp': !expanded }" :style="clampStyle" data-clamp>
       <slot />
     </div>
     <button
@@ -59,3 +57,12 @@ const clampStyle = computed<CSSProperties | undefined>(() => expanded.value
     </button>
   </div>
 </template>
+
+<style scoped>
+.content-clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--clamp-lines);
+  overflow: hidden;
+}
+</style>

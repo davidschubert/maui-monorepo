@@ -9,14 +9,27 @@ const { t } = useI18n()
 
 useHead({ title: () => t('posts.feed.title') })
 
-// Kommentar-Anzahl je Post (comments-Layer-API), nachgeladen sobald der
-// Feed seine Ids meldet — best-effort, ohne Counts zeigen die Buttons den CTA
-const replyCounts = ref<Record<string, number>>({})
+// Kommentar-Anzahl je Post (comments-Layer-API). Die ERSTE Seite wird im
+// SSR mitgeladen, damit die Buttons ohne Wort→Zahl-Flash hydratisieren:
+// derselbe useFetch-Key wie in PostFeed → EIN Request, geteilter Payload.
+const { data: firstPage } = await useFetch<{ rows: { $id: string }[] }>('/api/posts')
+const initialIds = firstPage.value?.rows.map(row => row.$id) ?? []
+const { data: initialCounts } = await useFetch<{ counts: Record<string, number> }>('/api/comments/counts', {
+  query: { targetType: 'post', targetIds: initialIds.join(',') },
+  immediate: initialIds.length > 0,
+})
+
+const replyCounts = ref<Record<string, number>>({ ...(initialCounts.value?.counts ?? {}) })
+
+// Weitere Seiten/neue Posts, sobald der Feed seine Ids meldet — nur die noch
+// unbekannten nachladen (die SSR-Ids sind schon da); best-effort, ohne Counts
+// zeigen die Buttons den Verb-CTA
 async function loadCounts(ids: string[]) {
-  if (ids.length === 0) return
+  const missing = ids.filter(id => !(id in replyCounts.value))
+  if (missing.length === 0) return
   try {
     const res = await $fetch<{ counts: Record<string, number> }>('/api/comments/counts', {
-      query: { targetType: 'post', targetIds: ids.join(',') },
+      query: { targetType: 'post', targetIds: missing.join(',') },
     })
     replyCounts.value = { ...replyCounts.value, ...res.counts }
   }
