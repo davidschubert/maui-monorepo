@@ -53,6 +53,11 @@ const WRITE_LIMITED: { re: RegExp, bucket: string, max?: number }[] = [
   { re: /^PATCH \/api\/comments\/[^/]+$/, bucket: 'comments:edit' },
   { re: /^POST \/api\/comments\/[^/]+\/vote$/, bucket: 'comments:vote' },
   { re: /^POST \/api\/reports$/, bucket: 'reports:create' },
+  // Community-Posts (Phase 25): member-led → Spam-Backstop. hide/restore
+  // fehlen bewusst (Moderator-gated, wie reports/resolve).
+  { re: /^POST \/api\/posts$/, bucket: 'posts:create' },
+  { re: /^PATCH \/api\/posts\/[^/]+$/, bucket: 'posts:edit' },
+  { re: /^POST \/api\/posts\/[^/]+\/vote$/, bucket: 'posts:vote' },
   // Presence-Schreibwege (Admin-Client-Amplifikation) + JWT-Mint: session-
   // gated, aber ein Skript/XSS soll den Server nicht ungedrosselt Appwrite-
   // Writes/JWTs erzeugen lassen. heartbeat+leave teilen EIN Budget.
