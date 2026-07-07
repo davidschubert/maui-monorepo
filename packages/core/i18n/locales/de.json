@@ -116,7 +116,9 @@
       "accept": "Akzeptieren",
       "decline": "Ablehnen"
     },
-    "adminArea": "Dashboard"
+    "adminArea": "Dashboard",
+    "showMore": "Mehr erfahren",
+    "showLess": "Weniger anzeigen"
   },
   "profile": {
     "saved": "Profil gespeichert",
