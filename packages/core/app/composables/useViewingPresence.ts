@@ -1,9 +1,10 @@
 /**
- * Betrachtungs-Presence fürs Dashboard: broadcastet die aktuelle Seite als
- * presence `page` und leitet daraus ab, wer dieselbe Seite ansieht. Deckt
- * „anderer Admin schaut denselben User/dieses Dashboard an" (others) UND die
- * Live-Betrachterzahl pro Seite (count) ab. `page` ist ein eigenes metadata-Feld,
- * unabhängig von `action` (editing/reviewing) — kollidiert also nicht.
+ * Betrachtungs-Presence (Core-Vertrag, aus admin gehoben — Phase 22):
+ * broadcastet die aktuelle Seite als presence `page` und leitet daraus ab,
+ * wer dieselbe Seite ansieht. Konsumenten: admin (DashboardViewers) und
+ * events („N sehen dieses Event" auf der Detailseite). `page` ist ein
+ * eigenes metadata-Feld, unabhängig von `action` (editing/reviewing) —
+ * kollidiert also nicht.
  *
  * Der Key ist locale-frei normalisiert ('/de/dashboard/users' → '/dashboard/users'),
  * damit zwei Admins auf verschiedenen Sprachen dieselbe Seite teilen.
