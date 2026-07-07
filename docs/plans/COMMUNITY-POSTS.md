@@ -1,6 +1,6 @@
 # Plan: `packages/posts` — Community-Feed (Posts, Polls, Questions)
 
-> Stand: 2026-07-06 · Status: **Plan (kein Code)** · Referenzen: [CONCEPT.md](../CONCEPT.md)
+> Stand: 2026-07-07 · Status: **umgesetzt (GOALS Phase 25 ✅)** · Referenzen: [CONCEPT.md](../CONCEPT.md)
 > (A14 Layer-Grenzen), `packages/comments` als Referenz-Feature-Layer,
 > `packages/feed` (Activity-Stream), moderation-Layer (generische Reports),
 > GOALS.md Phase 25. Vorbild-Idee: Circle.so „Feed / Polls & Questions" —

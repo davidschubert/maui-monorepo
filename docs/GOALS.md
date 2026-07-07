@@ -1252,7 +1252,31 @@ Schema-Änderungen nur via Migration. Maximal 60 Turns.
 
 ---
 
-## Phase 25 – packages/posts (Community-Feed: Posts, Polls, Questions)
+## Phase 25 – packages/posts (Community-Feed: Posts, Polls, Questions) ✅ (abgeschlossen 2026-07-07)
+
+> ✅ **Erledigt am 2026-07-07.** Wie geplant (P1–P7): Layer mit Migrationen
+> 001+002 (community_posts + poll_votes; 002 zieht die create(users)-Table-
+> Permission nach — SessionClient-Create lief sonst in Appwrite-401;
+> existingColumnKeys-Vorprüfung wegen column_limit_exceeded bei body 10000),
+> alle Routen inkl. publish-on-read, Poll-Votes mit Toggle/Wechsel/Race-
+> Behandlung, zweiphasigem Hide, Scheduled-Queue, Moderations-Sicht mit
+> Report-Zählern; Markdown-Sink dafür in den CORE gehoben (shared/markdown +
+> MarkdownContent, comments migriert — ein Eigentümer); UI mit Composer-Tabs,
+> Poll-Balken (verdeckt bis zur eigenen Stimme), Realtime-Pille,
+> #comments-Slot (App bindet CommentSection); Rate-Limit-Buckets posts:*.
+> Nachweise: alle drei Typen 201, Gast GET 200/POST 401; Poll-Sichtbarkeit
+> (B sieht Prozente, Admin ohne Stimme nicht), Wechsel/Toggle/422/401,
+> Vote nach pollEndsAt 409 + Ergebnisse für alle; PATCH nach Fremdstimme
+> 409; scheduled-Post unsichtbar → per publish-on-read live + post.published
+> im Activity-Feed (5 Einträge); Hide: Feed weg + Roh-REST 404, Restore
+> stellt beides her, labelloser User 403; Report mit Grund → Moderations-
+> Zähler; GDPR: Export (posts+pollVotes), Tombstone (status deleted, body/
+> authorName leer), Votes hard-deleted; XSS escaped im SSR; Browser: Pille
+> „Neue Beiträge (1)" ohne Auto-Prepend, Poll-Klick 0→3 Balken „2 Stimmen",
+> CommentSection im Slot; /en-Strings; typecheck/lint/178 Tests grün.
+> STOLPERFALLEN: Table brauchte explizit Permission.create(Role.users())
+> (comments-002-Muster); zsh-Spezialvariablen GID/EUID sind readonly-
+> numerisch — nie als Shell-Variablennamen in Test-Scripts verwenden.
 
 > Einordnung im Roadmap-v3-Arc: logisch DIREKT nach Phase 21 (und vor
 > Events) — der Member-Content-Feed ist das Herz der Community-Plattform;
