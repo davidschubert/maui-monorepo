@@ -1,0 +1,103 @@
+{
+  "posts": {
+    "feed": {
+      "title": "Community",
+      "description": "Beiträge, Umfragen und Fragen aus der Community.",
+      "empty": "Noch keine Beiträge — schreib den ersten!",
+      "loadMore": "Mehr laden",
+      "newPosts": "Neue Beiträge anzeigen ({count})",
+      "guestTitle": "Sieh dich um!",
+      "guestText": "Melde dich an, um zu posten, abzustimmen und mitzudiskutieren."
+    },
+    "composer": {
+      "typePost": "Beitrag",
+      "typePoll": "Umfrage",
+      "typeQuestion": "Frage",
+      "titlePlaceholder": "Titel (optional)",
+      "placeholder": {
+        "post": "Was möchtest du teilen?",
+        "poll": "Worüber soll abgestimmt werden?",
+        "question": "Was möchtest du die Community fragen?"
+      },
+      "optionPlaceholder": "Option {n}",
+      "addOption": "Option hinzufügen",
+      "removeOption": "Option entfernen",
+      "pollEnd": "Endet (optional):",
+      "schedule": "Planen",
+      "scheduleAt": "Veröffentlichen am:",
+      "submit": "Veröffentlichen",
+      "submitScheduled": "Einplanen",
+      "publishedToast": "Beitrag veröffentlicht.",
+      "scheduledToast": "Beitrag eingeplant.",
+      "failed": "Beitrag konnte nicht erstellt werden."
+    },
+    "poll": {
+      "votes": "{count} Stimmen",
+      "hiddenResults": "Stimm ab, um die Ergebnisse zu sehen.",
+      "ended": "Umfrage beendet",
+      "loginToVote": "Zum Abstimmen anmelden",
+      "voteFailed": "Stimme konnte nicht gespeichert werden."
+    },
+    "card": {
+      "someone": "Jemand",
+      "menu": "Aktionen",
+      "comments": "Kommentare",
+      "answers": "Antworten",
+      "edit": "Bearbeiten",
+      "save": "Speichern",
+      "editFailed": "Änderung konnte nicht gespeichert werden.",
+      "delete": "Löschen",
+      "deleted": "Beitrag gelöscht.",
+      "deleteFailed": "Beitrag konnte nicht gelöscht werden.",
+      "report": "Melden",
+      "reported": "Beitrag gemeldet — danke!",
+      "reportFailed": "Meldung fehlgeschlagen.",
+      "reasons": {
+        "spam": "Spam",
+        "harassment": "Belästigung",
+        "offtopic": "Am Thema vorbei",
+        "other": "Anderer Grund"
+      }
+    },
+    "moderation": {
+      "title": "Community-Posts",
+      "queue": "Geplante Beiträge",
+      "recent": "Neueste Beiträge",
+      "empty": "Keine Beiträge.",
+      "reports": "{count} Meldungen",
+      "hiddenBadge": "Ausgeblendet",
+      "hide": "Ausblenden",
+      "restore": "Wiederherstellen",
+      "hidden": "Beitrag ausgeblendet.",
+      "restored": "Beitrag wiederhergestellt.",
+      "actionFailed": "Aktion fehlgeschlagen."
+    },
+    "validation": {
+      "titleMax": "Titel ist zu lang.",
+      "bodyRequired": "Inhalt darf nicht leer sein.",
+      "bodyMax": "Inhalt ist zu lang.",
+      "optionMax": "Option ist zu lang.",
+      "optionsMin": "Mindestens 2 Optionen.",
+      "optionsMax": "Höchstens 6 Optionen.",
+      "optionRequired": "Option fehlt.",
+      "pollEndFuture": "Das Umfrage-Ende muss in der Zukunft liegen.",
+      "scheduleFuture": "Der Termin muss in der Zukunft liegen.",
+      "scheduleTooFar": "Der Termin liegt zu weit in der Zukunft (max. 90 Tage)."
+    }
+  },
+  "feed": {
+    "types": {
+      "post": {
+        "published": "{name} hat in der Community gepostet"
+      },
+      "milestone": {
+        "posts": "🎉 Der {count}. Community-Beitrag wurde veröffentlicht!"
+      }
+    }
+  },
+  "admin": {
+    "nav": {
+      "posts": "Community"
+    }
+  }
+}

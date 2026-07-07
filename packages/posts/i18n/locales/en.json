@@ -1,0 +1,103 @@
+{
+  "posts": {
+    "feed": {
+      "title": "Community",
+      "description": "Posts, polls and questions from the community.",
+      "empty": "No posts yet — write the first one!",
+      "loadMore": "Load more",
+      "newPosts": "Show new posts ({count})",
+      "guestTitle": "Have a look around!",
+      "guestText": "Sign in to post, vote and join the conversation."
+    },
+    "composer": {
+      "typePost": "Post",
+      "typePoll": "Poll",
+      "typeQuestion": "Question",
+      "titlePlaceholder": "Title (optional)",
+      "placeholder": {
+        "post": "What would you like to share?",
+        "poll": "What should the community vote on?",
+        "question": "What would you like to ask the community?"
+      },
+      "optionPlaceholder": "Option {n}",
+      "addOption": "Add option",
+      "removeOption": "Remove option",
+      "pollEnd": "Ends (optional):",
+      "schedule": "Schedule",
+      "scheduleAt": "Publish at:",
+      "submit": "Publish",
+      "submitScheduled": "Schedule",
+      "publishedToast": "Post published.",
+      "scheduledToast": "Post scheduled.",
+      "failed": "Could not create post."
+    },
+    "poll": {
+      "votes": "{count} votes",
+      "hiddenResults": "Vote to see the results.",
+      "ended": "Poll ended",
+      "loginToVote": "Sign in to vote",
+      "voteFailed": "Could not save your vote."
+    },
+    "card": {
+      "someone": "Someone",
+      "menu": "Actions",
+      "comments": "Comments",
+      "answers": "Answers",
+      "edit": "Edit",
+      "save": "Save",
+      "editFailed": "Could not save changes.",
+      "delete": "Delete",
+      "deleted": "Post deleted.",
+      "deleteFailed": "Could not delete post.",
+      "report": "Report",
+      "reported": "Post reported — thank you!",
+      "reportFailed": "Report failed.",
+      "reasons": {
+        "spam": "Spam",
+        "harassment": "Harassment",
+        "offtopic": "Off-topic",
+        "other": "Other reason"
+      }
+    },
+    "moderation": {
+      "title": "Community posts",
+      "queue": "Scheduled posts",
+      "recent": "Recent posts",
+      "empty": "No posts.",
+      "reports": "{count} reports",
+      "hiddenBadge": "Hidden",
+      "hide": "Hide",
+      "restore": "Restore",
+      "hidden": "Post hidden.",
+      "restored": "Post restored.",
+      "actionFailed": "Action failed."
+    },
+    "validation": {
+      "titleMax": "Title is too long.",
+      "bodyRequired": "Content must not be empty.",
+      "bodyMax": "Content is too long.",
+      "optionMax": "Option is too long.",
+      "optionsMin": "At least 2 options.",
+      "optionsMax": "At most 6 options.",
+      "optionRequired": "Option is missing.",
+      "pollEndFuture": "The poll end must be in the future.",
+      "scheduleFuture": "The date must be in the future.",
+      "scheduleTooFar": "The date is too far in the future (max. 90 days)."
+    }
+  },
+  "feed": {
+    "types": {
+      "post": {
+        "published": "{name} posted in the community"
+      },
+      "milestone": {
+        "posts": "🎉 Community post number {count} was just published!"
+      }
+    }
+  },
+  "admin": {
+    "nav": {
+      "posts": "Community"
+    }
+  }
+}

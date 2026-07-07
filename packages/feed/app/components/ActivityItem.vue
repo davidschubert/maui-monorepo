@@ -51,6 +51,7 @@ const OBJECT_ICONS: Record<string, string> = {
   theme: 'i-ph-palette',
   font: 'i-ph-text-aa',
   milestone: 'i-ph-confetti',
+  post: 'i-ph-users-three',
 }
 const objectIcon = computed(() => OBJECT_ICONS[props.activity.objectType] ?? 'i-ph-pulse')
 

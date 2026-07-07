@@ -8,7 +8,7 @@
  *
  *   pnpm migrate --app <app> --layer posts
  */
-import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { Client, Permission, Role, TablesDB, TablesDBIndexType } from 'node-appwrite'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -76,7 +76,9 @@ async function columnStep(label: string, key: string, existing: Set<string>, run
 console.log(`Migration posts-001 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 await step('Table community_posts', () => tablesDB.createTable({
-  databaseId, tableId: 'community_posts', name: 'Community Posts', permissions: [], rowSecurity: true,
+  databaseId, tableId: 'community_posts', name: 'Community Posts',
+  // Eingeloggte erstellen Rows (member-led); Lesen regeln die ROW-Permissions
+  permissions: [Permission.create(Role.users())], rowSecurity: true,
 }))
 const postCols = await existingColumnKeys('community_posts')
 await columnStep('Column community_posts.type', 'type', postCols, () => tablesDB.createVarcharColumn({

@@ -52,3 +52,8 @@ export function createVoteSchema(t: TranslateFn = identity) {
     optionIndex: z.number(t('posts.validation.optionRequired')).int().min(0).max(MAX_POLL_OPTIONS - 1),
   })
 }
+
+// Server-seitige Instanzen (Fehlertexte = Keys; die UI validiert mit t())
+export const postSchema = createPostSchema()
+export const postEditSchema = createPostEditSchema()
+export const voteSchema = createVoteSchema()
