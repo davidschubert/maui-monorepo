@@ -12,7 +12,8 @@
       "storage": "Speicher",
       "system": "System",
       "admin": "Admin",
-      "audit": "Aktivitätsprotokoll"
+      "audit": "Aktivitätsprotokoll",
+      "homepage": "Zur Startseite"
     },
     "config": {
       "title": "Konfiguration",

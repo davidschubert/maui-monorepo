@@ -12,7 +12,8 @@
       "storage": "Storage",
       "system": "System",
       "admin": "Admin",
-      "audit": "Activity log"
+      "audit": "Activity log",
+      "homepage": "View site"
     },
     "config": {
       "title": "Configuration",
