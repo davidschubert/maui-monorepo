@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import type { InjectionKey } from 'vue'
 import type {
   Comment,
   CommentListResponse,
@@ -17,7 +18,7 @@ interface RealtimeCommentEvent {
   events: string[]
 }
 
-export const useCommentStore = defineStore('comments', () => {
+const commentStoreSetup = () => {
   // Beim SSR-Fetch (useAsyncData in CommentSection) MÜSSEN die Browser-Cookies
   // mitgehen, sonst antwortet /api/comments mit der Gast-Sicht und myVotes/
   // myReports hydratisieren leer (eigene Votes nach hartem Reload „weg").
@@ -401,4 +402,35 @@ export const useCommentStore = defineStore('comments', () => {
     applyRealtime,
     flushPending,
   }
-})
+}
+
+/**
+ * Ein Store PRO Target (comments:<type>:<id>) statt eines App-Singletons:
+ * Seiten mit MEHREREN CommentSections (Community-Feed, Phase 25) brauchen
+ * getrennten Zustand — mit einem Singleton „gewinnt" die zuletzt geladene
+ * Section und Sortierung/Realtime mischen die Targets. Die Definition wird
+ * je Key gecacht (Pinia hält den State ohnehin per Id in der Instanz).
+ */
+function createDefinition(key: string) {
+  return defineStore(key, commentStoreSetup)
+}
+type CommentStoreDefinition = ReturnType<typeof createDefinition>
+const definitions = new Map<string, CommentStoreDefinition>()
+
+export function useCommentStoreFor(targetType: string, targetId: string) {
+  const key = `comments:${targetType}:${targetId}`
+  let definition = definitions.get(key)
+  if (!definition) {
+    definition = createDefinition(key)
+    definitions.set(key, definition)
+  }
+  return definition()
+}
+
+export type CommentStore = ReturnType<typeof useCommentStoreFor>
+
+/**
+ * CommentSection erzeugt den Store und PROVIDED ihn — Kinder (Form/Item/
+ * VoteButtons) injecten, statt selbst einen (dann falschen) zu holen.
+ */
+export const commentStoreKey: InjectionKey<CommentStore> = Symbol('maui-comment-store')

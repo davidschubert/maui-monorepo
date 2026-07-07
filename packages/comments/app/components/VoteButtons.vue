@@ -4,7 +4,8 @@ import type { Comment } from '../../shared/types/comment'
 const props = defineProps<{ comment: Comment }>()
 
 const { t } = useI18n()
-const store = useCommentStore()
+// Store der umgebenden CommentSection (ein Store pro Target, Phase 25)
+const store = inject(commentStoreKey)!
 const toast = useToast()
 const { isLoggedIn } = useCurrentUser()
 const policy = useCommentPolicy()

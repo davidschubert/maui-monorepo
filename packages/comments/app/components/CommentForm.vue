@@ -11,7 +11,8 @@ const props = defineProps<{
 const emit = defineEmits<{ created: [] }>()
 
 const { t } = useI18n()
-const store = useCommentStore()
+// Store der umgebenden CommentSection (ein Store pro Target, Phase 25)
+const store = inject(commentStoreKey)!
 const toast = useToast()
 const loading = ref(false)
 

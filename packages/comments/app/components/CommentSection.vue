@@ -11,7 +11,10 @@ const props = defineProps<{
 const { t } = useI18n()
 const localePath = useLocalePath()
 const route = useRoute()
-const store = useCommentStore()
+// Ein Store PRO Target — Seiten mit mehreren Sections (Community-Feed)
+// bekommen getrennten Zustand; die Kinder injecten genau diesen Store.
+const store = useCommentStoreFor(props.targetType, props.targetId)
+provide(commentStoreKey, store)
 const config = useRuntimeConfig()
 const { isLoggedIn } = useCurrentUser()
 

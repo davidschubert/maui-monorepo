@@ -13,7 +13,8 @@ const emit = defineEmits<{ toggleCollapse: [] }>()
 const { t } = useI18n()
 const { formatRelativeTime } = useFormatRelativeTime()
 const { formatDate } = useFormatDate()
-const store = useCommentStore()
+// Store der umgebenden CommentSection (ein Store pro Target, Phase 25)
+const store = inject(commentStoreKey)!
 const toast = useToast()
 const { user, isLoggedIn } = useCurrentUser()
 const { canWrite, canDelete } = useCommentPolicy()
@@ -156,10 +157,14 @@ const reportReasons = computed(() => [
       <template v-if="!isDeleted">
         <UButton
           v-if="isLoggedIn && canWrite"
-          size="xs" color="neutral" variant="ghost" icon="i-ph-chat-circle"
+          size="xs"
+          :color="replying ? 'primary' : 'neutral'"
+          :variant="replying ? 'soft' : 'ghost'"
+          :icon="replying ? 'i-ph-x' : 'i-ph-chat-circle'"
+          :aria-expanded="replying"
           @click="replying = !replying"
         >
-          {{ t('comments.item.reply') }}
+          {{ replying ? t('comments.item.cancel') : t('comments.item.reply') }}
         </UButton>
 
         <ReportButton

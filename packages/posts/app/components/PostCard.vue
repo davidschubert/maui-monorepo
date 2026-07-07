@@ -24,10 +24,12 @@ const isAuthor = computed(() => !!user.value && user.value.$id === props.post.au
 const commentsOpen = ref(false)
 
 const editing = ref(false)
+const editTitle = ref('')
 const editBody = ref('')
 const busy = ref(false)
 
 function startEdit() {
+  editTitle.value = props.post.title ?? ''
   editBody.value = props.post.body
   editing.value = true
 }
@@ -38,7 +40,7 @@ async function saveEdit() {
   try {
     const updated = await $fetch<FeedPost>(`/api/posts/${props.post.$id}`, {
       method: 'PATCH',
-      body: { title: props.post.title ?? undefined, body: editBody.value.trim() },
+      body: { title: editTitle.value.trim() || undefined, body: editBody.value.trim() },
     })
     emit('updated', { ...props.post, ...updated })
     editing.value = false
@@ -127,9 +129,16 @@ function onPollUpdated(poll: PollState) {
     </div>
 
     <div class="mt-3 space-y-3">
-      <h3 v-if="post.title" class="font-semibold" :class="post.type === 'question' ? 'text-lg' : ''">{{ post.title }}</h3>
+      <h3 v-if="post.title && !editing" class="font-semibold" :class="post.type === 'question' ? 'text-lg' : ''">{{ post.title }}</h3>
 
       <template v-if="editing">
+        <UInput
+          v-if="post.type === 'post'"
+          v-model="editTitle"
+          :placeholder="t('posts.composer.titlePlaceholder')"
+          class="w-full"
+          data-post-edit-title
+        />
         <UTextarea v-model="editBody" :rows="3" autoresize class="w-full" />
         <div class="flex justify-end gap-2">
           <UButton color="neutral" variant="ghost" size="xs" @click="editing = false">{{ t('ui.cancel') }}</UButton>
@@ -148,10 +157,12 @@ function onPollUpdated(poll: PollState) {
 
     <div class="mt-3 border-t border-default pt-2">
       <UButton
-        color="neutral"
-        variant="ghost"
+        :color="commentsOpen ? 'primary' : 'neutral'"
+        :variant="commentsOpen ? 'soft' : 'ghost'"
         size="xs"
         icon="i-ph-chat-circle"
+        :trailing-icon="commentsOpen ? 'i-ph-caret-up' : 'i-ph-caret-down'"
+        :aria-expanded="commentsOpen"
         data-post-comments-toggle
         @click="commentsOpen = !commentsOpen"
       >
