@@ -30,15 +30,17 @@ export default defineEventHandler(async (event): Promise<PostListResponse> => {
   })
 
   const userId = event.context.user?.$id ?? null
-  const [avatars, pollStates] = await Promise.all([
+  const [avatars, pollStates, postVotes] = await Promise.all([
     resolveAvatars(event, res.rows.map(row => row.authorId)),
     pollStatesFor(event, res.rows, userId),
+    postVotesFor(event, res.rows, userId),
   ])
 
   const rows: FeedPost[] = res.rows.map(row => ({
     ...row,
     authorAvatarUrl: avatars.get(row.authorId),
     poll: pollStates.get(row.$id),
+    myPostVote: postVotes.get(row.$id) ?? null,
   }))
 
   return {

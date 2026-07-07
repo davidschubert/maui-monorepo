@@ -1,6 +1,6 @@
 import { Permission, Query, Role } from 'node-appwrite'
 import type { H3Event } from 'h3'
-import { POLL_VOTES_TABLE, POSTS_TABLE, type CommunityPost, type PollState, type PollVote } from '../../shared/types/post'
+import { POLL_VOTES_TABLE, POSTS_TABLE, POST_VOTES_TABLE, type CommunityPost, type PollState, type PollVote, type PostVote, type PostVoteValue } from '../../shared/types/post'
 
 /** read("any") — published-Posts tragen sie; hidden/deleted/scheduled nicht */
 export const POST_READ_ANY = Permission.read(Role.any())
@@ -63,6 +63,26 @@ export async function publishDuePosts(event: H3Event): Promise<void> {
   catch (error) {
     console.error('[posts] publish-on-read fehlgeschlagen (nächster Feed-GET versucht es erneut):', error)
   }
+}
+
+/**
+ * Eigene Up-/Downvotes für eine Seite Posts — EIN Query (kein N+1).
+ * Admin-Client: die Vote-Rows sind nur für den jeweiligen Voter lesbar.
+ */
+export async function postVotesFor(
+  event: H3Event,
+  posts: CommunityPost[],
+  userId: string | null,
+): Promise<Map<string, PostVoteValue>> {
+  if (!userId || posts.length === 0) return new Map()
+  const config = useRuntimeConfig(event)
+  const admin = createAdminClient(event)
+  const res = await admin.tablesDB.listRows<PostVote>({
+    databaseId: config.public.appwriteDatabaseId,
+    tableId: POST_VOTES_TABLE,
+    queries: [Query.equal('userId', userId), Query.equal('postId', posts.map(p => p.$id)), Query.limit(posts.length)],
+  }).catch(() => ({ rows: [] as PostVote[] }))
+  return new Map(res.rows.map(vote => [vote.postId, vote.value]))
 }
 
 /**

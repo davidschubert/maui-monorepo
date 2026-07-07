@@ -1,6 +1,6 @@
 import { Permission, Query, Role } from 'node-appwrite'
 import type { H3Event } from 'h3'
-import { POLL_VOTES_TABLE, POSTS_TABLE, type CommunityPost, type PollVote } from '../../shared/types/post'
+import { POLL_VOTES_TABLE, POSTS_TABLE, POST_VOTES_TABLE, type CommunityPost, type PollVote, type PostVote } from '../../shared/types/post'
 
 /**
  * GDPR-Contributor des posts-Layers (Vertrag: core/server/utils/userData.ts).
@@ -17,6 +17,9 @@ export async function postsExportUserData(event: H3Event, userId: string) {
 
   const posts = await listAllRows<CommunityPost>(tablesDB, databaseId, POSTS_TABLE, [Query.equal('authorId', userId)])
   const votes = await listAllRows<PollVote>(tablesDB, databaseId, POLL_VOTES_TABLE, [Query.equal('userId', userId)])
+  // Degradiert auf leer, solange Migration 003 auf einer Instanz aussteht
+  const postVotes = await listAllRows<PostVote>(tablesDB, databaseId, POST_VOTES_TABLE, [Query.equal('userId', userId)])
+    .catch(() => [] as PostVote[])
 
   return {
     posts: posts.map(p => ({
@@ -25,6 +28,7 @@ export async function postsExportUserData(event: H3Event, userId: string) {
       pollOptions: p.pollOptions, createdAt: p.$createdAt,
     })),
     pollVotes: votes.map(v => ({ postId: v.postId, optionIndex: v.optionIndex, createdAt: v.$createdAt })),
+    postVotes: postVotes.map(v => ({ postId: v.postId, value: v.value, createdAt: v.$createdAt })),
   }
 }
 
@@ -40,6 +44,15 @@ export async function postsDeleteUserData(event: H3Event, userId: string): Promi
   const votes = await listAllRows<PollVote>(tablesDB, databaseId, POLL_VOTES_TABLE, [Query.equal('userId', userId)])
   for (const vote of votes) {
     await tablesDB.deleteRow({ databaseId, tableId: POLL_VOTES_TABLE, rowId: vote.$id })
+    deleted++
+  }
+
+  // Up-/Downvotes ebenso Hard-Delete (Zähler-Drift bis zum nächsten Vote
+  // akzeptiert — Präzedenzfall comments). List degradiert vor Migration 003.
+  const scoreVotes = await listAllRows<PostVote>(tablesDB, databaseId, POST_VOTES_TABLE, [Query.equal('userId', userId)])
+    .catch(() => [] as PostVote[])
+  for (const vote of scoreVotes) {
+    await tablesDB.deleteRow({ databaseId, tableId: POST_VOTES_TABLE, rowId: vote.$id })
     deleted++
   }
 

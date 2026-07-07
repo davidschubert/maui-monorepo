@@ -7,6 +7,20 @@ import { POSTS_TABLE, type CommunityPost, type FeedPost, type PostListResponse }
  * Auto-Prepend (Scroll-Ruhe, Muster comments.newCount). Den #comments-Slot
  * reicht die Karte an die App durch (CommentSection, A14).
  */
+const props = defineProps<{
+  /**
+   * Kommentar-Anzahl je Post-Id — liefert die APP (comments-Counts-API),
+   * dieser Layer bleibt comments-agnostisch. Ohne Prop zeigen die Buttons
+   * den Verb-CTA.
+   */
+  replyCounts?: Record<string, number>
+}>()
+
+const emit = defineEmits<{
+  /** feuert bei jeder Änderung der sichtbaren Post-Ids (Laden/Nachladen/Neu) */
+  rowsChanged: [ids: string[]]
+}>()
+
 const { t } = useI18n()
 const config = useRuntimeConfig()
 const { isLoggedIn, user } = useCurrentUser()
@@ -54,6 +68,10 @@ stops.push(watch(data, (value) => {
   if (!value) return
   rows.value = value.rows
   nextCursor.value = value.nextCursor
+}, { immediate: true }))
+// Ids nach außen melden (App lädt dazu die Kommentar-Counts)
+stops.push(watch(() => rows.value.map(row => row.$id).join(','), () => {
+  emit('rowsChanged', rows.value.map(row => row.$id))
 }, { immediate: true }))
 
 const loadingMore = ref(false)
@@ -118,6 +136,7 @@ function onUpdated(post: FeedPost) {
         v-for="post in rows"
         :key="post.$id"
         :post="post"
+        :reply-count="props.replyCounts?.[post.$id]"
         @deleted="onDeleted"
         @updated="onUpdated"
       >

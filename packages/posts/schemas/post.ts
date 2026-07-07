@@ -53,7 +53,15 @@ export function createVoteSchema(t: TranslateFn = identity) {
   })
 }
 
+/** Up-/Downvote auf den Post (Toggle-Semantik wie comments) */
+export function createScoreVoteSchema(t: TranslateFn = identity) {
+  return z.object({
+    value: z.union([z.literal(1), z.literal(-1)], t('posts.validation.voteInvalid')),
+  })
+}
+
 // Server-seitige Instanzen (Fehlertexte = Keys; die UI validiert mit t())
 export const postSchema = createPostSchema()
 export const postEditSchema = createPostEditSchema()
 export const voteSchema = createVoteSchema()
+export const scoreVoteSchema = createScoreVoteSchema()

@@ -2,6 +2,7 @@ import type { Models } from 'node-appwrite'
 
 export const POSTS_TABLE = 'community_posts'
 export const POLL_VOTES_TABLE = 'poll_votes'
+export const POST_VOTES_TABLE = 'post_votes'
 
 export const POST_TYPES = ['post', 'poll', 'question'] as const
 export type PostType = (typeof POST_TYPES)[number]
@@ -28,6 +29,23 @@ export interface CommunityPost extends Models.Row {
   /** JSON-Array der Optionstexte (max 6) — nur bei type 'poll' */
   pollOptions: string | null
   pollEndsAt: string | null
+  /** denormalisiert, schreibt NUR der Server (Recount, Migration 003) */
+  upvotes: number
+  downvotes: number
+  score: number
+}
+
+export type PostVoteValue = 1 | -1
+
+export interface PostVote extends Models.Row {
+  postId: string
+  userId: string
+  value: PostVoteValue
+}
+
+export interface PostVoteResponse {
+  post: CommunityPost
+  myVote: PostVoteValue | null
 }
 
 export interface PollVote extends Models.Row {
@@ -53,6 +71,8 @@ export interface PollState {
 export interface FeedPost extends CommunityPost {
   authorAvatarUrl?: string
   poll?: PollState
+  /** eigener Up-/Downvote auf den Post (nicht die Poll-Stimme) */
+  myPostVote?: PostVoteValue | null
 }
 
 export interface PostListResponse {

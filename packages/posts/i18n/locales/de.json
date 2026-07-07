@@ -57,7 +57,12 @@
         "harassment": "Belästigung",
         "offtopic": "Am Thema vorbei",
         "other": "Anderer Grund"
-      }
+      },
+      "commentCta": "Kommentieren",
+      "answerCta": "Antworten",
+      "upvote": "Hochvoten",
+      "downvote": "Runtervoten",
+      "voteFailed": "Vote konnte nicht gespeichert werden."
     },
     "moderation": {
       "title": "Community-Posts",
@@ -82,7 +87,8 @@
       "optionRequired": "Option fehlt.",
       "pollEndFuture": "Das Umfrage-Ende muss in der Zukunft liegen.",
       "scheduleFuture": "Der Termin muss in der Zukunft liegen.",
-      "scheduleTooFar": "Der Termin liegt zu weit in der Zukunft (max. 90 Tage)."
+      "scheduleTooFar": "Der Termin liegt zu weit in der Zukunft (max. 90 Tage).",
+      "voteInvalid": "Ungültiger Vote."
     }
   },
   "feed": {

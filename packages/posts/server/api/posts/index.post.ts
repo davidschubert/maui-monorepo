@@ -42,6 +42,9 @@ export default defineEventHandler(async (event) => {
       publishedAt: scheduled ? null : now,
       pollOptions: body.type === 'poll' ? JSON.stringify(body.pollOptions) : null,
       pollEndsAt: body.type === 'poll' ? (body.pollEndsAt ?? null) : null,
+      upvotes: 0,
+      downvotes: 0,
+      score: 0,
     },
     // published: alle lesen (hidden entzieht das wieder); scheduled: nur der
     // Autor liest — Publish-on-read fügt read(any) beim Fälligwerden hinzu.

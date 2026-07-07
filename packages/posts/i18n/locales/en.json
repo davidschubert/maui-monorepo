@@ -57,7 +57,12 @@
         "harassment": "Harassment",
         "offtopic": "Off-topic",
         "other": "Other reason"
-      }
+      },
+      "commentCta": "Comment",
+      "answerCta": "Answer",
+      "upvote": "Upvote",
+      "downvote": "Downvote",
+      "voteFailed": "Could not save your vote."
     },
     "moderation": {
       "title": "Community posts",
@@ -82,7 +87,8 @@
       "optionRequired": "Option is missing.",
       "pollEndFuture": "The poll end must be in the future.",
       "scheduleFuture": "The date must be in the future.",
-      "scheduleTooFar": "The date is too far in the future (max. 90 days)."
+      "scheduleTooFar": "The date is too far in the future (max. 90 days).",
+      "voteInvalid": "Invalid vote."
     }
   },
   "feed": {

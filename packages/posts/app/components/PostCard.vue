@@ -6,7 +6,11 @@ import type { FeedPost, PollState } from '../../shared/types/post'
  * #comments-Slot — die APP bindet dort CommentSection ein (A14: dieser
  * Layer kennt comments nicht). Ohne Slot gibt es keinen Kommentar-Bereich.
  */
-const props = defineProps<{ post: FeedPost }>()
+const props = defineProps<{
+  post: FeedPost
+  /** Kommentar-/Antwort-Anzahl (liefert die App via comments-Counts) */
+  replyCount?: number
+}>()
 
 const emit = defineEmits<{ deleted: [id: string], updated: [post: FeedPost] }>()
 
@@ -110,6 +114,12 @@ const menuItems = computed<MenuItem[]>(() => {
 function onPollUpdated(poll: PollState) {
   emit('updated', { ...props.post, poll })
 }
+
+// Kommentar-Button: Zahl statt Wort, sobald es Kommentare gibt (82 · 13.4K);
+// bei 0/unbekannt der Verb-CTA. Mit Zahl erklärt der Tooltip die Aktion.
+const ctaLabel = computed(() => t(props.post.type === 'question' ? 'posts.card.answerCta' : 'posts.card.commentCta'))
+const countLabel = computed(() => (props.replyCount ?? 0) > 0 ? formatCount(props.replyCount!) : ctaLabel.value)
+const showTooltip = computed(() => (props.replyCount ?? 0) > 0)
 </script>
 
 <template>
@@ -155,24 +165,29 @@ function onPollUpdated(poll: PollState) {
       <PollBlock v-if="post.type === 'poll' && post.poll" :post-id="post.$id" :poll="post.poll" @updated="onPollUpdated" />
     </div>
 
-    <div class="mt-3 border-t border-default pt-2">
-      <UButton
-        :color="commentsOpen ? 'primary' : 'neutral'"
-        :variant="commentsOpen ? 'soft' : 'ghost'"
-        size="xs"
-        icon="i-ph-chat-circle"
-        :trailing-icon="commentsOpen ? 'i-ph-caret-up' : 'i-ph-caret-down'"
-        :aria-expanded="commentsOpen"
-        data-post-comments-toggle
-        @click="commentsOpen = !commentsOpen"
-      >
-        {{ post.type === 'question' ? t('posts.card.answers') : t('posts.card.comments') }}
-      </UButton>
+    <div class="mt-3 flex items-center gap-2 border-t border-default pt-2">
+      <PostVoteButtons :post="post" @updated="p => emit('updated', p)" />
 
-      <div v-if="commentsOpen" class="mt-2" data-post-comments>
-        <!-- Die App füllt diesen Slot mit CommentSection (targetType 'post') -->
-        <slot name="comments" :post="post" />
-      </div>
+      <UTooltip :text="ctaLabel" :disabled="!showTooltip">
+        <UButton
+          :color="commentsOpen ? 'primary' : 'neutral'"
+          :variant="commentsOpen ? 'soft' : 'ghost'"
+          size="xs"
+          icon="i-ph-chat-circle"
+          :trailing-icon="commentsOpen ? 'i-ph-caret-up' : 'i-ph-caret-down'"
+          :aria-label="ctaLabel"
+          :aria-expanded="commentsOpen"
+          data-post-comments-toggle
+          @click="commentsOpen = !commentsOpen"
+        >
+          {{ countLabel }}
+        </UButton>
+      </UTooltip>
+    </div>
+
+    <div v-if="commentsOpen" class="mt-2" data-post-comments>
+      <!-- Die App füllt diesen Slot mit CommentSection (targetType 'post') -->
+      <slot name="comments" :post="post" />
     </div>
   </UCard>
 </template>

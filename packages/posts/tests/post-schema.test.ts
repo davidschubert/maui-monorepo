@@ -86,3 +86,16 @@ describe('parsePollOptions', () => {
     expect(parsePollOptions({ pollOptions: '["a",42,null,"b"]' })).toEqual(['a', 'b'])
   })
 })
+
+describe('formatCount', () => {
+  it('formatiert kompakt: 82 · 722 · 13.4K · 1.2M', async () => {
+    const { formatCount } = await import('../app/utils/formatCount')
+    expect(formatCount(0)).toBe('0')
+    expect(formatCount(82)).toBe('82')
+    expect(formatCount(722)).toBe('722')
+    expect(formatCount(1000)).toBe('1K')
+    expect(formatCount(13_400)).toBe('13.4K')
+    expect(formatCount(134_000)).toBe('134K')
+    expect(formatCount(1_200_000)).toBe('1.2M')
+  })
+})
