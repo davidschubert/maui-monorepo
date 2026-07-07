@@ -185,11 +185,18 @@ const reportReasons = computed(() => [
       </template>
     </div>
 
-    <CommentForm
-      v-if="replying"
-      :parent-id="comment.$id"
-      class="mt-3"
-      @created="replying = false"
-    />
+    <!-- Antwort-Formular EINE EBENE TIEFER (gleiche Einrück-Optik wie die
+         Antworten selbst) in eigener Box, klappt sanft auf, Feld fokussiert -->
+    <Transition :css="false" @enter="expandEnter" @leave="expandLeave">
+      <div v-if="replying" class="mt-2 ml-3 border-l border-default pl-4" data-reply-form>
+        <div class="rounded-lg bg-default p-3 ring ring-default">
+          <CommentForm
+            :parent-id="comment.$id"
+            autofocus
+            @created="replying = false"
+          />
+        </div>
+      </div>
+    </Transition>
   </article>
 </template>

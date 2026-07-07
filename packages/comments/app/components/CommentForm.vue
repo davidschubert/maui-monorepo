@@ -6,9 +6,19 @@ import { createCommentSchema } from '../../schemas/comment'
 const props = defineProps<{
   /** Gesetzt = Antwort-Formular, sonst Top-Level-Kommentar */
   parentId?: string
+  /** Feld beim Einblenden fokussieren (Antwort-Formulare) */
+  autofocus?: boolean
 }>()
 
 const emit = defineEmits<{ created: [] }>()
+
+// Antwort-Formulare fokussieren beim Einblenden — der User hat gerade
+// „Antworten" geklickt, der Cursor gehört ins Feld (native autofocus greift
+// bei dynamisch eingefügten Elementen nicht zuverlässig).
+const contentField = useTemplateRef('contentField')
+onMounted(() => {
+  if (props.autofocus) contentField.value?.textareaRef?.focus()
+})
 
 const { t } = useI18n()
 // Store der umgebenden CommentSection (ein Store pro Target, Phase 25)
@@ -113,6 +123,7 @@ async function onSubmit(event: FormSubmitEvent<FormInput>) {
   <UForm :schema="schema" :validate-on="[]" :state="state" class="space-y-2" @submit="onSubmit">
     <UFormField name="content">
       <UTextarea
+        ref="contentField"
         v-model="state.content"
         :rows="parentId ? 2 : 3"
         :placeholder="parentId ? t('comments.form.replyPlaceholder') : t('comments.form.placeholder')"
