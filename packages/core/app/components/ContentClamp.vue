@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { CSSProperties } from 'vue'
+
 /**
  * Klappt langen Content auf N Zeilen zusammen (YouTube-Muster): erst
  * „Mehr erfahren" zeigt den Rest — Feeds/Threads bleiben kompakt.
@@ -30,13 +32,13 @@ onMounted(() => {
   }
 })
 
-const clampStyle = computed(() => expanded.value
+const clampStyle = computed<CSSProperties | undefined>(() => expanded.value
   ? undefined
   : {
-      'display': '-webkit-box',
-      '-webkit-box-orient': 'vertical',
-      '-webkit-line-clamp': String(props.lines),
-      'overflow': 'hidden',
+      display: '-webkit-box',
+      WebkitBoxOrient: 'vertical',
+      WebkitLineClamp: props.lines,
+      overflow: 'hidden',
     })
 </script>
 
