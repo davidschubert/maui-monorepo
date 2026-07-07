@@ -155,7 +155,7 @@ const showTooltip = computed(() => (props.replyCount ?? 0) > 0)
           <UButton size="xs" :loading="busy" @click="saveEdit">{{ t('posts.card.save') }}</UButton>
         </div>
       </template>
-      <ContentClamp v-else :lines="6">
+      <ContentClamp v-else :lines="6" :text="post.body">
         <MarkdownContent
           :source="post.body"
           class="text-default"

@@ -2,7 +2,9 @@ import type { Comment, CommentNode } from './types/comment'
 
 /**
  * Baut den Kommentar-Baum aus der flachen Liste: Top-Level behält die
- * (Server-)Reihenfolge der Eingabe, Antworten werden chronologisch sortiert.
+ * (Server-)Reihenfolge der Eingabe, Antworten werden NEUESTE ZUERST sortiert
+ * (Quora-Muster — die frische Antwort erscheint direkt unter dem Formular,
+ * nicht am Ende langer Ketten).
  * Verwaiste Antworten (parentId nicht in der Liste) erscheinen NICHT als
  * Top-Level — sie hängen an einem nicht geladenen Parent und werden weggelassen.
  * Reine Funktion → unit-testbar; genutzt vom Comment-Store.
@@ -20,7 +22,7 @@ export function buildCommentTree(rows: Comment[]): CommentNode[] {
     comment,
     children: (children.get(comment.$id) ?? [])
       .slice()
-      .sort((a, b) => a.$createdAt.localeCompare(b.$createdAt))
+      .sort((a, b) => b.$createdAt.localeCompare(a.$createdAt))
       .map(toNode),
   })
 

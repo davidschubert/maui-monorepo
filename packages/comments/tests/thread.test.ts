@@ -33,14 +33,14 @@ describe('buildCommentTree', () => {
     expect(tree.every(n => n.children.length === 0)).toBe(true)
   })
 
-  it('hängt Antworten unter den Parent und sortiert sie chronologisch', () => {
+  it('hängt Antworten unter den Parent, neueste zuerst (Quora-Muster)', () => {
     const tree = buildCommentTree([
       mk('p', null, '2026-01-01'),
-      mk('r2', 'p', '2026-01-03'),
       mk('r1', 'p', '2026-01-02'),
+      mk('r2', 'p', '2026-01-03'),
     ])
     expect(tree).toHaveLength(1)
-    expect(tree[0]!.children.map(n => n.comment.$id)).toEqual(['r1', 'r2']) // chronologisch, nicht Eingabe
+    expect(tree[0]!.children.map(n => n.comment.$id)).toEqual(['r2', 'r1']) // neueste zuerst, nicht Eingabe
   })
 
   it('verschachtelt rekursiv (Antwort auf Antwort)', () => {

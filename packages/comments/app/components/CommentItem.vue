@@ -133,7 +133,7 @@ const reportReasons = computed(() => [
     <!-- Markdown-Subset (fett/kursiv/code/Links/Listen/Zitate) — sicheres
          vnode-Rendering ohne v-html; lange Kommentare klappen auf 5 Zeilen
          zusammen („Mehr erfahren", YouTube-Muster) -->
-    <ContentClamp v-else :lines="5" class="mt-2">
+    <ContentClamp v-else :lines="5" :text="comment.content" class="mt-2">
       <MarkdownContent :source="comment.content" class="text-default" />
     </ContentClamp>
 

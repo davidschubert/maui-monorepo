@@ -8,13 +8,28 @@ import type { CSSProperties } from 'vue'
  * kurzer Content bekommt nie einen Button. Core-Baustein — Konsumenten:
  * comments (CommentItem), posts (PostCard).
  */
-const props = withDefaults(defineProps<{ lines?: number }>(), { lines: 5 })
+const props = withDefaults(defineProps<{
+  lines?: number
+  /**
+   * Roh-Text des Inhalts (optional): erlaubt die SSR-SCHÄTZUNG, ob geklappt
+   * wird — der „Mehr erfahren"-Button steht dann schon im ersten Paint statt
+   * nach der Mount-Messung einzuploppen. measure() korrigiert Fehlschätzungen.
+   */
+  text?: string
+}>(), { lines: 5 })
 
 const { t } = useI18n()
 
+/** Heuristik: Zeilenumbrüche oder Länge (~90 Zeichen/Zeile) über dem Limit */
+function estimateClamped(): boolean {
+  if (!props.text) return false
+  const lineBreaks = (props.text.match(/\n/g) ?? []).length
+  return lineBreaks + 1 > props.lines || props.text.length > props.lines * 90
+}
+
 const el = ref<HTMLElement | null>(null)
 const expanded = ref(false)
-const clamped = ref(false)
+const clamped = ref(estimateClamped())
 
 function measure() {
   const node = el.value
@@ -48,7 +63,7 @@ const clampStyle = computed<CSSProperties | undefined>(() =>
     <button
       v-if="clamped"
       type="button"
-      class="mt-1 text-xs font-medium text-muted transition-colors hover:text-default"
+      class="mt-1 cursor-pointer text-xs font-medium text-muted transition-colors hover:text-default"
       :aria-expanded="expanded"
       data-clamp-toggle
       @click="expanded = !expanded"
