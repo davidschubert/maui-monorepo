@@ -35,9 +35,9 @@
       "customGroup": "Custom"
     },
     "studio": {
-      "navLabel": "Themes",
+      "navLabel": "Branding",
       "title": "Theme studio",
-      "gallery": "Gallery",
+      "gallery": "Theme Gallery",
       "galleryHint": "Clicking a card switches the theme live — variants via the color dots. The choice applies to YOUR browser (cookie), like the display menu.",
       "customBadge": "Custom",
       "active": "Active",

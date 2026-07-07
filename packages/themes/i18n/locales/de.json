@@ -35,9 +35,9 @@
       "customGroup": "Eigene"
     },
     "studio": {
-      "navLabel": "Themes",
+      "navLabel": "Branding",
       "title": "Theme-Studio",
-      "gallery": "Galerie",
+      "gallery": "Theme-Galerie",
       "galleryHint": "Klick auf eine Karte wechselt das Theme live — Varianten über die Farbpunkte. Die Auswahl gilt für DEINEN Browser (Cookie), wie im Anzeige-Menü.",
       "customBadge": "Eigenes",
       "active": "Aktiv",
