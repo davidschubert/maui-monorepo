@@ -131,8 +131,11 @@ const reportReasons = computed(() => [
     </template>
 
     <!-- Markdown-Subset (fett/kursiv/code/Links/Listen/Zitate) — sicheres
-         vnode-Rendering ohne v-html, Raw-HTML bleibt escapter Text -->
-    <MarkdownContent v-else :source="comment.content" class="mt-2 text-default" />
+         vnode-Rendering ohne v-html; lange Kommentare klappen auf 5 Zeilen
+         zusammen („Mehr erfahren", YouTube-Muster) -->
+    <ContentClamp v-else :lines="5" class="mt-2">
+      <MarkdownContent :source="comment.content" class="text-default" />
+    </ContentClamp>
 
     <!-- Antwort-Presence: jemand tippt gerade eine Antwort auf DIESEN Kommentar -->
     <p v-if="replyingText" class="mt-1.5 flex items-center gap-1 text-xs text-info">

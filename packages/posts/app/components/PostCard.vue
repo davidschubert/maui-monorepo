@@ -155,12 +155,13 @@ const showTooltip = computed(() => (props.replyCount ?? 0) > 0)
           <UButton size="xs" :loading="busy" @click="saveEdit">{{ t('posts.card.save') }}</UButton>
         </div>
       </template>
-      <MarkdownContent
-        v-else
-        :source="post.body"
-        class="text-default"
-        :class="post.type === 'question' && !post.title ? 'text-lg font-medium' : 'text-sm'"
-      />
+      <ContentClamp v-else :lines="6">
+        <MarkdownContent
+          :source="post.body"
+          class="text-default"
+          :class="post.type === 'question' && !post.title ? 'text-lg font-medium' : 'text-sm'"
+        />
+      </ContentClamp>
 
       <PollBlock v-if="post.type === 'poll' && post.poll" :post-id="post.$id" :poll="post.poll" @updated="onPollUpdated" />
     </div>

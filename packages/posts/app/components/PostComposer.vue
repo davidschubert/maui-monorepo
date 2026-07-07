@@ -74,7 +74,9 @@ async function submit() {
 </script>
 
 <template>
-  <UCard data-post-composer>
+  <!-- Bewusst vom Feed abgesetzt: Primärton + kräftigerer Ring — der
+       Composer ist die Bühne, die Karten darunter der Strom -->
+  <UCard data-post-composer :ui="{ root: 'bg-primary/5 ring-2 ring-primary/20' }">
     <div class="space-y-3">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <UTabs
