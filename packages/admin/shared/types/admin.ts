@@ -129,13 +129,24 @@ export interface StorageFileEntry {
   linkedUserName: string
 }
 
-export interface StorageOverview {
-  /** false, wenn Bucket fehlt oder dem Key der files-Scope fehlt */
-  available: boolean
-  bucketId: string
+/** Ein Bucket im Storage-Browser */
+export interface StorageBucketOverview {
+  id: string
+  name: string
   files: StorageFileEntry[]
   totalBytes: number
+  /** nur bei orphanAware-Buckets aussagekräftig */
   orphanCount: number
+  /** true = Orphan-Erkennung aktiv (Avatars: Abgleich gegen prefs.avatarUrl) */
+  orphanAware: boolean
+  /** true = Löschen hier gesperrt (gdpr-exports: eigene Retention + Admin-Seite) */
+  readOnly: boolean
+}
+
+export interface StorageOverview {
+  /** false, wenn dem Key der buckets-/files-Scope fehlt */
+  available: boolean
+  buckets: StorageBucketOverview[]
 }
 
 /** Ein protokollierter Admin-Vorgang */

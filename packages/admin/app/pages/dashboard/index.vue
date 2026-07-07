@@ -247,9 +247,9 @@ onScopeDispose(() => {
           <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 text-sm">
             <h2 class="font-semibold">{{ t('admin.overview.storage') }}</h2>
             <div class="flex flex-wrap items-center gap-x-6 gap-y-1 text-muted">
-              <span>{{ t('admin.storage.files') }}: <span class="font-bold text-default tabular-nums">{{ storage.files.length }}</span></span>
-              <span>{{ t('admin.storage.size') }}: <span class="font-bold text-default tabular-nums">{{ formatBytes(storage.totalBytes) }}</span></span>
-              <span>{{ t('admin.storage.orphans') }}: <span class="font-bold text-default tabular-nums">{{ storage.orphanCount }}</span></span>
+              <span>{{ t('admin.storage.files') }}: <span class="font-bold text-default tabular-nums">{{ storage.buckets.reduce((sum, b) => sum + b.files.length, 0) }}</span></span>
+              <span>{{ t('admin.storage.size') }}: <span class="font-bold text-default tabular-nums">{{ formatBytes(storage.buckets.reduce((sum, b) => sum + b.totalBytes, 0)) }}</span></span>
+              <span>{{ t('admin.storage.orphans') }}: <span class="font-bold text-default tabular-nums">{{ storage.buckets.reduce((sum, b) => sum + b.orphanCount, 0) }}</span></span>
               <ULink :to="localePath('/dashboard/storage')" class="text-primary hover:underline">{{ t('admin.overview.viewAll') }}</ULink>
             </div>
           </div>

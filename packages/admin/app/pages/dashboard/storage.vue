@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import type { StorageFileEntry, StorageOverview } from '../../../shared/types/admin'
+import type { StorageBucketOverview, StorageFileEntry, StorageOverview } from '../../../shared/types/admin'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'storage.manage' })
 
 const { t } = useI18n()
 const toast = useToast()
+const localePath = useLocalePath()
+const config = useRuntimeConfig()
 const { formatRelativeTime } = useFormatRelativeTime()
 
 const { data, status, refresh } = useFetch<StorageOverview>('/api/admin/storage', {
@@ -15,13 +17,15 @@ const { data, status, refresh } = useFetch<StorageOverview>('/api/admin/storage'
 const pending = ref<{ kind: 'one', file: StorageFileEntry } | { kind: 'orphans' } | null>(null)
 const busy = ref(false)
 
-// Bucket-Auswahl — aktuell nur der konfigurierte Bucket; vorbereitet für mehrere
-// (Auflisten aller Buckets bräuchte den buckets.read-Scope am Key).
+// Bucket-Wechsler über alle Buckets der Instanz (buckets.read)
 const selectedBucket = ref('')
-const bucketItems = computed(() => data.value?.bucketId ? [data.value.bucketId] : [])
+const bucketItems = computed(() => data.value?.buckets.map(b => b.id) ?? [])
 watchEffect(() => {
-  if (data.value?.bucketId && !selectedBucket.value) selectedBucket.value = data.value.bucketId
+  if (!selectedBucket.value && bucketItems.value.length > 0) selectedBucket.value = bucketItems.value[0]!
 })
+const current = computed<StorageBucketOverview | null>(
+  () => data.value?.buckets.find(b => b.id === selectedBucket.value) ?? null,
+)
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
@@ -29,12 +33,24 @@ function formatBytes(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
-function fileUrl(id: string): string {
-  return `/api/storage/${data.value?.bucketId}/${id}?w=80&h=80&q=80`
+// Bild-Preview gibt es nur für den Avatars-Bucket (Core-Proxy ist bewusst
+// darauf begrenzt) — andere Buckets bekommen ein Datei-Icon nach Typ.
+const avatarsBucket = computed(() => config.public.appwriteAvatarsBucket)
+function previewUrl(file: StorageFileEntry): string | null {
+  if (current.value?.id !== avatarsBucket.value) return null
+  if (!file.mimeType.startsWith('image/')) return null
+  return `/api/storage/${current.value.id}/${file.$id}?w=80&h=80&q=80`
+}
+function fileIcon(file: StorageFileEntry): string {
+  if (file.mimeType.startsWith('image/')) return 'i-ph-image'
+  if (file.mimeType.includes('font') || file.name.endsWith('.woff2')) return 'i-ph-text-aa'
+  if (file.mimeType.includes('json')) return 'i-ph-brackets-curly'
+  if (file.mimeType.includes('zip') || file.mimeType.includes('tar')) return 'i-ph-file-archive'
+  return 'i-ph-file'
 }
 
 async function deleteFile(id: string) {
-  await $fetch(`/api/admin/storage/${id}`, { method: 'DELETE' })
+  await $fetch(`/api/admin/storage/${selectedBucket.value}/${id}`, { method: 'DELETE' })
 }
 
 async function executePending() {
@@ -45,7 +61,7 @@ async function executePending() {
       await deleteFile(pending.value.file.$id)
     }
     else {
-      const orphans = data.value?.files.filter(f => f.orphan) ?? []
+      const orphans = current.value?.files.filter(f => f.orphan) ?? []
       for (const f of orphans) await deleteFile(f.$id)
     }
     toast.add({ title: t('admin.storage.deleted'), color: 'success' })
@@ -70,11 +86,11 @@ async function executePending() {
         </template>
         <template #right>
           <UButton
-            v-if="data?.available && data.orphanCount > 0"
+            v-if="current?.orphanAware && current.orphanCount > 0"
             color="error" variant="subtle" icon="i-ph-broom"
             @click="pending = { kind: 'orphans' }"
           >
-            {{ t('admin.storage.deleteOrphans', { count: data.orphanCount }) }}
+            {{ t('admin.storage.deleteOrphans', { count: current.orphanCount }) }}
           </UButton>
         </template>
       </UDashboardNavbar>
@@ -99,28 +115,46 @@ async function executePending() {
           :description="t('admin.storage.unavailableText')"
         />
 
-        <div v-else class="space-y-4">
+        <div v-else-if="current" class="space-y-4">
           <div class="flex flex-wrap items-center gap-4 text-sm text-muted">
             <div class="flex items-center gap-2">
               <span>{{ t('admin.storage.bucket') }}:</span>
-              <USelectMenu v-model="selectedBucket" :items="bucketItems" :search-input="false" size="sm" class="min-w-40 font-mono" />
+              <USelectMenu v-model="selectedBucket" :items="bucketItems" :search-input="false" size="sm" class="min-w-40 font-mono" data-testid="bucket-select" />
             </div>
-            <span>{{ t('admin.storage.files') }}: <span class="font-bold text-default">{{ data.files.length }}</span></span>
-            <span>{{ t('admin.storage.size') }}: <span class="font-bold text-default">{{ formatBytes(data.totalBytes) }}</span></span>
-            <span>{{ t('admin.storage.orphans') }}: <span class="font-bold text-default">{{ data.orphanCount }}</span></span>
+            <span>{{ t('admin.storage.files') }}: <span class="font-bold text-default">{{ current.files.length }}</span></span>
+            <span>{{ t('admin.storage.size') }}: <span class="font-bold text-default">{{ formatBytes(current.totalBytes) }}</span></span>
+            <span v-if="current.orphanAware">{{ t('admin.storage.orphans') }}: <span class="font-bold text-default">{{ current.orphanCount }}</span></span>
           </div>
 
-          <p v-if="data.files.length === 0" class="text-sm text-muted">{{ t('admin.storage.empty') }}</p>
+          <UAlert
+            v-if="current.readOnly"
+            color="info"
+            variant="subtle"
+            icon="i-ph-lock"
+            :title="t('admin.storage.readOnlyTitle')"
+            :description="t('admin.storage.readOnlyText')"
+          >
+            <template #actions>
+              <UButton color="info" variant="link" size="xs" :to="localePath('/dashboard/admin/gdpr-exports')">
+                {{ t('admin.storage.readOnlyLink') }}
+              </UButton>
+            </template>
+          </UAlert>
+
+          <p v-if="current.files.length === 0" class="text-sm text-muted">{{ t('admin.storage.empty') }}</p>
 
           <ul v-else class="divide-y divide-default">
-            <li v-for="file in data.files" :key="file.$id" class="flex items-center gap-3 py-2">
-              <img :src="fileUrl(file.$id)" :alt="file.name" class="size-10 shrink-0 rounded-md object-cover ring ring-default" loading="lazy">
+            <li v-for="file in current.files" :key="file.$id" class="flex items-center gap-3 py-2">
+              <img v-if="previewUrl(file)" :src="previewUrl(file)!" :alt="file.name" class="size-10 shrink-0 rounded-md object-cover ring ring-default" loading="lazy">
+              <div v-else class="flex size-10 shrink-0 items-center justify-center rounded-md bg-elevated ring ring-default">
+                <UIcon :name="fileIcon(file)" class="size-5 text-muted" />
+              </div>
               <div class="min-w-0 flex-1">
                 <p class="truncate text-sm font-medium">{{ file.name }}</p>
                 <p class="text-xs text-muted">{{ formatBytes(file.sizeBytes) }} · {{ formatRelativeTime(file.$createdAt) }}</p>
               </div>
               <UBadge v-if="file.orphan" color="warning" variant="subtle" size="sm">{{ t('admin.storage.orphan') }}</UBadge>
-              <UButton color="error" variant="ghost" size="xs" icon="i-ph-trash" @click="pending = { kind: 'one', file }" />
+              <UButton v-if="!current.readOnly" color="error" variant="ghost" size="xs" icon="i-ph-trash" @click="pending = { kind: 'one', file }" />
             </li>
           </ul>
         </div>
@@ -130,10 +164,10 @@ async function executePending() {
         <template #body>
           <div class="space-y-3">
             <p class="text-sm">
-              {{ pending?.kind === 'orphans' ? t('admin.storage.confirmOrphans', { count: data?.orphanCount ?? 0 }) : t('admin.storage.confirmOne') }}
+              {{ pending?.kind === 'orphans' ? t('admin.storage.confirmOrphans', { count: current?.orphanCount ?? 0 }) : t('admin.storage.confirmOne') }}
             </p>
             <UAlert
-              v-if="pending?.kind === 'one' && !pending.file.orphan"
+              v-if="pending?.kind === 'one' && current?.orphanAware && !pending.file.orphan"
               color="error"
               variant="subtle"
               icon="i-ph-warning-octagon"

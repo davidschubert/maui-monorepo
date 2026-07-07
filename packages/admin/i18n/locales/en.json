@@ -42,8 +42,11 @@
       "confirmOrphans": "Delete all {count} unlinked files permanently? They are not used by any profile.",
       "linkedWarningTitle": "Critical: file is linked",
       "linkedWarningText": "This file is currently used as the avatar of {name}. Deleting it leaves that account without a profile picture.",
+      "readOnlyTitle": "View only",
+      "readOnlyText": "GDPR snapshots are cleaned up automatically after 30 days — they are managed on the GDPR page, not here.",
+      "readOnlyLink": "Open GDPR page",
       "unavailableTitle": "Storage browser not available",
-      "unavailableText": "Set NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET and grant the runtime key the files.read + files.write scopes, then reload."
+      "unavailableText": "Grant the runtime key the buckets.read, files.read + files.write scopes, then reload."
     },
     "analytics": {
       "title": "Activity",

@@ -42,8 +42,11 @@
       "confirmOrphans": "Alle {count} nicht verknüpften Dateien endgültig löschen? Sie werden von keinem Profil verwendet.",
       "linkedWarningTitle": "Kritisch: Datei ist verknüpft",
       "linkedWarningText": "Diese Datei wird aktuell als Avatar von {name} verwendet. Wird sie gelöscht, hat dieser Account kein Profilbild mehr.",
+      "readOnlyTitle": "Nur Ansicht",
+      "readOnlyText": "GDPR-Snapshots werden automatisch nach 30 Tagen bereinigt — verwaltet werden sie auf der GDPR-Seite, nicht hier.",
+      "readOnlyLink": "Zur GDPR-Seite",
       "unavailableTitle": "Speicher-Browser nicht verfügbar",
-      "unavailableText": "NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET setzen und dem Runtime-Key die Scopes files.read + files.write geben, dann neu laden."
+      "unavailableText": "Dem Runtime-Key die Scopes buckets.read, files.read + files.write geben, dann neu laden."
     },
     "analytics": {
       "title": "Aktivität",
