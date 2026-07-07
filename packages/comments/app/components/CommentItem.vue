@@ -185,18 +185,20 @@ const reportReasons = computed(() => [
       </template>
     </div>
 
-    <!-- Antwort-Formular EINE EBENE TIEFER (gleiche Einrück-Optik wie die
-         Antworten selbst) in eigener Box, klappt sanft auf, Feld fokussiert -->
-    <Transition :css="false" @enter="expandEnter" @leave="expandLeave">
-      <div v-if="replying" class="mt-2 ml-3 border-l border-default pl-4" data-reply-form>
-        <div class="rounded-lg bg-default p-3 ring ring-default">
-          <CommentForm
-            :parent-id="comment.$id"
-            autofocus
-            @created="replying = false"
-          />
-        </div>
-      </div>
-    </Transition>
   </article>
+
+  <!-- Antwort-Formular AUSSERHALB der Eltern-Karte, exakt auf der Ebene, wo
+       die Antwort landet (gleiche Einrückung + Karten-Optik wie die Kind-
+       Kommentare) — klappt sanft auf, Feld fokussiert -->
+  <Transition :css="false" @enter="expandEnter" @leave="expandLeave">
+    <div v-if="replying" class="mt-2 ml-3 border-l border-default pl-4" data-reply-form>
+      <div class="rounded-lg bg-elevated/40 p-3 ring ring-default">
+        <CommentForm
+          :parent-id="comment.$id"
+          autofocus
+          @created="replying = false"
+        />
+      </div>
+    </div>
+  </Transition>
 </template>
