@@ -1,0 +1,100 @@
+{
+  "events": {
+    "list": {
+      "title": "Events",
+      "description": "Kommende Termine der Community — sag zu und sei dabei.",
+      "upcoming": "Kommende",
+      "past": "Archiv",
+      "empty": "Aktuell sind keine Events geplant.",
+      "pastEmpty": "Noch keine vergangenen Events.",
+      "loadMore": "Mehr laden"
+    },
+    "card": {
+      "cancelled": "Abgesagt",
+      "full": "Ausgebucht",
+      "attendees": "{count} Zusagen",
+      "attendeesOfCapacity": "{count} von {capacity} Plätzen"
+    },
+    "detail": {
+      "cancelled": "Dieses Event wurde abgesagt.",
+      "organizer": "Organisiert von {name}",
+      "ics": "Zum Kalender hinzufügen",
+      "link": "Event-Link öffnen",
+      "viewers": "{count} sehen dieses Event"
+    },
+    "rsvp": {
+      "going": "Zusagen",
+      "maybe": "Vielleicht",
+      "declined": "Absagen",
+      "loginCta": "Zum Zusagen anmelden",
+      "full": "Das Event ist ausgebucht.",
+      "failed": "RSVP konnte nicht gespeichert werden.",
+      "status": {
+        "going": "Zugesagt",
+        "maybe": "Vielleicht",
+        "declined": "Abgesagt"
+      }
+    },
+    "admin": {
+      "title": "Events",
+      "create": "Neues Event",
+      "createTitle": "Event anlegen",
+      "editTitle": "Event bearbeiten",
+      "edit": "Bearbeiten",
+      "publish": "Veröffentlichen",
+      "unpublish": "Zurückziehen",
+      "cancel": "Absagen",
+      "empty": "Noch keine Events — leg das erste an.",
+      "saved": "Event gespeichert.",
+      "saveFailed": "Event konnte nicht gespeichert werden.",
+      "published": "Event veröffentlicht.",
+      "unpublished": "Event zurückgezogen.",
+      "cancelled": "Event abgesagt.",
+      "actionFailed": "Aktion fehlgeschlagen.",
+      "status": {
+        "draft": "Entwurf",
+        "published": "Veröffentlicht",
+        "cancelled": "Abgesagt"
+      },
+      "form": {
+        "title": "Titel",
+        "description": "Beschreibung",
+        "startAt": "Beginn",
+        "endAt": "Ende (optional)",
+        "location": "Ort (optional)",
+        "url": "Link (optional)",
+        "capacity": "Kapazität (optional)",
+        "capacityHelp": "Maximale Zusagen — leer lassen für unbegrenzt.",
+        "save": "Speichern",
+        "cancel": "Abbrechen"
+      }
+    },
+    "validation": {
+      "titleRequired": "Titel angeben.",
+      "titleMax": "Titel ist zu lang (max. 200 Zeichen).",
+      "descriptionRequired": "Beschreibung angeben.",
+      "descriptionMax": "Beschreibung ist zu lang (max. 10.000 Zeichen).",
+      "startRequired": "Beginn angeben.",
+      "endBeforeStart": "Das Ende muss nach dem Beginn liegen.",
+      "locationMax": "Ort ist zu lang (max. 255 Zeichen).",
+      "urlInvalid": "Link ist keine gültige URL.",
+      "urlMax": "Link ist zu lang (max. 500 Zeichen).",
+      "capacityMin": "Kapazität muss mindestens 1 sein.",
+      "capacityMax": "Kapazität ist zu groß.",
+      "rsvpInvalid": "Ungültiger RSVP-Status."
+    }
+  },
+  "admin": {
+    "nav": {
+      "events": "Events"
+    }
+  },
+  "feed": {
+    "types": {
+      "event": {
+        "published": "{name} hat ein Event veröffentlicht",
+        "rsvp": "{name} hat einem Event zugesagt"
+      }
+    }
+  }
+}

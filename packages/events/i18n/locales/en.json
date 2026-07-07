@@ -1,0 +1,100 @@
+{
+  "events": {
+    "list": {
+      "title": "Events",
+      "description": "Upcoming community events — RSVP and join in.",
+      "upcoming": "Upcoming",
+      "past": "Archive",
+      "empty": "No events scheduled right now.",
+      "pastEmpty": "No past events yet.",
+      "loadMore": "Load more"
+    },
+    "card": {
+      "cancelled": "Cancelled",
+      "full": "Full",
+      "attendees": "{count} going",
+      "attendeesOfCapacity": "{count} of {capacity} spots"
+    },
+    "detail": {
+      "cancelled": "This event has been cancelled.",
+      "organizer": "Organized by {name}",
+      "ics": "Add to calendar",
+      "link": "Open event link",
+      "viewers": "{count} viewing this event"
+    },
+    "rsvp": {
+      "going": "Going",
+      "maybe": "Maybe",
+      "declined": "Decline",
+      "loginCta": "Sign in to RSVP",
+      "full": "This event is full.",
+      "failed": "Could not save your RSVP.",
+      "status": {
+        "going": "Going",
+        "maybe": "Maybe",
+        "declined": "Declined"
+      }
+    },
+    "admin": {
+      "title": "Events",
+      "create": "New event",
+      "createTitle": "Create event",
+      "editTitle": "Edit event",
+      "edit": "Edit",
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "cancel": "Cancel event",
+      "empty": "No events yet — create the first one.",
+      "saved": "Event saved.",
+      "saveFailed": "Could not save the event.",
+      "published": "Event published.",
+      "unpublished": "Event unpublished.",
+      "cancelled": "Event cancelled.",
+      "actionFailed": "Action failed.",
+      "status": {
+        "draft": "Draft",
+        "published": "Published",
+        "cancelled": "Cancelled"
+      },
+      "form": {
+        "title": "Title",
+        "description": "Description",
+        "startAt": "Starts",
+        "endAt": "Ends (optional)",
+        "location": "Location (optional)",
+        "url": "Link (optional)",
+        "capacity": "Capacity (optional)",
+        "capacityHelp": "Maximum number of attendees — leave empty for unlimited.",
+        "save": "Save",
+        "cancel": "Cancel"
+      }
+    },
+    "validation": {
+      "titleRequired": "Please add a title.",
+      "titleMax": "Title is too long (max. 200 characters).",
+      "descriptionRequired": "Please add a description.",
+      "descriptionMax": "Description is too long (max. 10,000 characters).",
+      "startRequired": "Please set a start time.",
+      "endBeforeStart": "The end must be after the start.",
+      "locationMax": "Location is too long (max. 255 characters).",
+      "urlInvalid": "Link is not a valid URL.",
+      "urlMax": "Link is too long (max. 500 characters).",
+      "capacityMin": "Capacity must be at least 1.",
+      "capacityMax": "Capacity is too large.",
+      "rsvpInvalid": "Invalid RSVP status."
+    }
+  },
+  "admin": {
+    "nav": {
+      "events": "Events"
+    }
+  },
+  "feed": {
+    "types": {
+      "event": {
+        "published": "{name} published an event",
+        "rsvp": "{name} is going to an event"
+      }
+    }
+  }
+}
