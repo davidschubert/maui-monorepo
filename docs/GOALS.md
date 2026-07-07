@@ -1041,7 +1041,33 @@ useRealtimeRows-Signaturen. Maximal 40 Turns.
 
 ---
 
-## Phase 22 – packages/events (Event Calendar)
+## Phase 22 – packages/events (Event Calendar) ✅ (abgeschlossen 2026-07-07)
+
+> ✅ **Erledigt am 2026-07-07.** Wie geplant umgesetzt: Layer mit Migration 001
+> (events + event_rsvps, Unique eventId+userId, Indizes startAt/status/
+> status+startAt, 2× gelaufen = idempotent), alle Routen (GET kommend/Archiv
+> mit myRsvp aus EINEM Query, manage.get für Drafts, POST/PATCH/DELETE mit
+> events.manage, Soft-Cancel, RSVP-Upsert mit Toggle, ICS als pure Funktion
+> mit Vitest), attendeeCount ausschließlich über atomare increment/decrement-
+> Calls (increment mit max=capacity hält auch Races dicht — der Vor-Check
+> liefert das saubere 409); recordActivity event.published + event.rsvp;
+> GDPR-Contributor (Export RSVPs+organisierte Events; Löschung: RSVPs hard,
+> Events cancelled+anonymisiert, Zähler sinkt mit). UI: EventList/-Card/
+> -Detail/RsvpButtons, /events + /events/:id, dashboard/events via Registry;
+> useViewingPresence dafür aus admin in den CORE gehoben (nur Core-
+> Primitives — Lift-Muster Markdown-Sink Phase 25). App komponiert
+> CommentSection target-type='event' im #comments-Slot der Detailseite.
+> Nachweise: Uma (labellos) POST 403 / Gast 401; Draft für Gast 404 →
+> Publish read(any) → Gast liest; RSVP going Zähler 1, Toggle → 0, Wechsel
+> maybe→going korrekt; capacity 1: zweiter User going → 409, maybe → 200;
+> RSVP/PATCH auf cancelled → 409; ICS mit DTSTART/DTEND/Escaping; Feed
+> zeigt event.published + event.rsvp; SSR-Detail enthält comment-section;
+> Realtime im Browser: fremde Zusage springt 1→2 ohne Reload; GDPR-Export
+> enthält rsvps+organizedEvents; /events en / /de/events de; typecheck/
+> lint/test (17 neue) grün, Visual-Baselines wegen Nav-Link neu erzeugt.
+> STOLPERFALLE: /api/events/manage teilt den Prefix mit /api/events/:id —
+> der typed router schneidet die Method-Union auf GET; Nicht-GET-$fetch auf
+> das Template-Literal braucht `as string`.
 
 > Eigenes Datenmodell nach comments-Vorbild (Feature-Layer besitzt seine
 > Tables in der App-Instanz). Bewusst schlicht: Liste + Detailseite statt

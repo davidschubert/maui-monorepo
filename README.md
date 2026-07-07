@@ -9,7 +9,7 @@ Nuxt 4 Monorepo mit zentralem **Core Layer** und komponierbaren **Feature Layers
 ```
 packages/core            ← Ebene 1: Fundament (besitzt KEINE Appwrite Tables!)
 packages/system          ← Fundament: Infra-Tabellen (audit_logs, app_config, notifications)
-packages/*               ← Ebene 2: Feature Layers (themes, comments, moderation, admin; billing geplant)
+packages/*               ← Ebene 2: Feature Layers (themes, comments, posts, events, feed, moderation, admin; billing geplant)
 apps/*                   ← Ebene 3: dünne Apps, komponieren Core + Features
 ```
 
@@ -101,12 +101,15 @@ maui-monorepo/
 │   │   ├── app/components/    # CommentThread, CommentForm, VoteButtons, ReportButton
 │   │   ├── server/api/        # GET/POST /api/comments (Thread-Pagination), Vote-Upsert
 │   │   └── scripts/migrations/ # idempotente Schema-Migrationen
+│   ├── posts/                 # Feature Layer: Community-Feed (Posts, Polls, Fragen)
+│   ├── events/                # Feature Layer: Event-Kalender (RSVP, ICS, Live-Teilnehmerzahl)
+│   ├── feed/                  # Feature Layer: Activity-Feed (UI zum Core-Vertrag recordActivity)
 │   ├── moderation/            # Fundament-Layer: generisches Melde-/Report-System (reports-Table)
 │   ├── admin/                 # Feature Layer: Dashboard, Moderation-Queue, Changelog, Audit, …
 │   └── themes/                # Feature Layer: Theming
 ├── apps/
 │   ├── _template/             # Kopiervorlage für neue Apps (Port 3002, README mit Schritten)
-│   └── reddit-comments/       # dünne App: extends [themes, admin, comments, moderation, core, system] (Port 3001)
+│   └── reddit-comments/       # dünne App: extends [themes, admin, comments, posts, events, feed, moderation, core, system] (Port 3001)
 │       └── scripts/           # bootstrap.ts (Fresh-Instance-Setup), seed-demo.ts (Demo-Daten)
 ├── docs/
 │   ├── CONCEPT.md             # Architektur-Konzept (v2)
@@ -174,6 +177,7 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 | 47 | **Roadmap v3 · GOALS-Phase 21: Activity Feed** — Core-Vertrag `recordActivity()` (+ Capability `feed.manage`), system-Migration 014 + GDPR-Contributor, `packages/feed` (Cursor-Feed, Realtime live über die geteilte JWT-SDK-WS, `/feed` + `/dashboard/feed` via Admin-Registry), comments als erste Quelle (`comment.created`) — Browser-verifiziert inkl. RBAC/GDPR/i18n | ✅ 2026-07-06 |
 | 48 | **Feed-Ausbau**: 9 Ereignis-Typen (`user.joined` inkl. OTP-Erst-Verify, `changelog/theme/font`-Publish-Events, `theme.deleted/default_changed`, Meilensteine mit System-Actor 🎉), Gruppierung konsekutiver Einträge, Infinite Scroll; Trennlinie geschärft: Security-/Profil-Signale (`password_changed`, `recovery_requested`, `profile_updated`) gehen ins **Audit-Log** (pseudonymisiert statt hard-deleted), nie in den Community-Feed | ✅ 2026-07-06 |
 | 49 | **Roadmap v3 · GOALS-Phase 25: `packages/posts`** — Community-Feed (Posts, Multiple-Choice-Polls mit verdeckten Ergebnissen bis zur eigenen Stimme, offene Fragen, Scheduled Questions via publish-on-read ohne Cron), member-led mit Rate-Limit + `posts.moderate` (zweiphasiges Hide) + generischem Report-Vertrag; Kommentare = comments-Layer via `#comments`-Slot (A14-App-Komposition); Markdown-Sink in den Core gehoben (`MarkdownContent`); `/community` + `dashboard/posts` — Browser-verifiziert inkl. Realtime-Pille, GDPR-Tombstone, XSS | ✅ 2026-07-07 |
+| 50 | **Roadmap v3 · GOALS-Phase 22: `packages/events`** — Event-Kalender (Liste kommend/Archiv + Detailseite, bewusst ohne Monats-Grid/Recurring), RSVP going/maybe/declined mit Toggle und server-autoritativem `attendeeCount` (atomare Increments, `max=capacity` gegen Überbuchung im Race), ICS-Export als pure Funktion, Soft-Cancel; Capability `events.manage` + `useViewingPresence` in den Core gehoben; `recordActivity` event.published/event.rsvp; Kommentare via `#comments`-Slot (A14-App-Komposition); GDPR-Contributor — Browser-verifiziert inkl. Realtime-Zählersprung, Kapazitäts-409, i18n | ✅ 2026-07-07 |
 
 Details und Nachweis-Kriterien pro Phase: [docs/GOALS.md](docs/GOALS.md) · Upgrade-Plan: [docs/APPWRITE-1.9.5-UPGRADE.md](docs/APPWRITE-1.9.5-UPGRADE.md) · Offene Punkte: [docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md)
 

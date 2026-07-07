@@ -20,6 +20,7 @@
     "@maui/admin": "workspace:*",
     "@maui/comments": "workspace:*",
     "@maui/core": "workspace:*",
+    "@maui/events": "workspace:*",
     "@maui/moderation": "workspace:*",
     "@maui/system": "workspace:*",
     "@maui/themes": "workspace:*",
