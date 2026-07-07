@@ -11,9 +11,9 @@ const { isCollapsed, toggle } = useThreadCollapse()
 </script>
 
 <template>
-  <!-- Sanftes Einblenden neuer Kommentare (eigener Post, Realtime, Antworten) —
-       der User sieht, WO etwas dazugekommen ist, statt eines harten Sprungs -->
-  <TransitionGroup name="comment" tag="ul" :class="nested ? 'space-y-2' : 'space-y-3'">
+  <!-- Neue Kommentare KLAPPEN AUF (Höhe 0 → Zielhöhe, core expandTransition):
+       die Nachbarn gleiten mit statt zu springen — kein CSS-move nötig -->
+  <TransitionGroup :css="false" tag="ul" :class="nested ? 'space-y-2' : 'space-y-3'" @enter="expandEnter" @leave="expandLeave">
     <li v-for="node in nodes" :key="node.comment.$id">
       <CommentItem
         :comment="node.comment"
@@ -31,22 +31,3 @@ const { isCollapsed, toggle } = useThreadCollapse()
     </li>
   </TransitionGroup>
 </template>
-
-<style scoped>
-.comment-enter-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-.comment-enter-from {
-  opacity: 0;
-  transform: translateY(-6px);
-}
-.comment-leave-active {
-  transition: opacity 0.2s ease;
-}
-.comment-leave-to {
-  opacity: 0;
-}
-.comment-move {
-  transition: transform 0.3s ease;
-}
-</style>

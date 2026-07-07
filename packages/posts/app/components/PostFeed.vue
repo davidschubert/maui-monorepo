@@ -131,8 +131,9 @@ function onUpdated(post: FeedPost) {
       {{ t('posts.feed.empty') }}
     </p>
 
-    <!-- Neue Posts (eigene + Pille) blenden sanft ein statt hart zu erscheinen -->
-    <TransitionGroup v-else name="post" tag="div" class="space-y-4" data-posts-list>
+    <!-- Neue Posts KLAPPEN AUF (Höhe 0 → Zielhöhe, core expandTransition):
+         der Feed gleitet mit statt zu springen -->
+    <TransitionGroup v-else :css="false" tag="div" class="space-y-4" data-posts-list @enter="expandEnter" @leave="expandLeave">
       <PostCard
         v-for="post in rows"
         :key="post.$id"
@@ -156,22 +157,3 @@ function onUpdated(post: FeedPost) {
     </div>
   </div>
 </template>
-
-<style scoped>
-.post-enter-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-.post-enter-from {
-  opacity: 0;
-  transform: translateY(-8px);
-}
-.post-leave-active {
-  transition: opacity 0.2s ease;
-}
-.post-leave-to {
-  opacity: 0;
-}
-.post-move {
-  transition: transform 0.3s ease;
-}
-</style>
