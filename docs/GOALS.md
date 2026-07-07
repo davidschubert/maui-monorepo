@@ -1383,6 +1383,104 @@ Maximal 60 Turns.
 
 ---
 
+## Phase 26 – Events v2 Teil A: Bühne, Kalender, Live & Replays
+
+> Exekutiert [docs/plans/EVENTS-V2.md](plans/EVENTS-V2.md) **E1+E2** — der Plan
+> enthält die Referenz-Analyse (Circle.so), alle Leitplanken-Entscheidungen
+> (§2: was gebaut, was abgelehnt wird — u. a. KEINE Recurrence, KEINE Likes,
+> KEIN DM-Automation-Builder, kein Video-Hosting) und das additive Datenmodell.
+> VOR dem Start: offene Entscheidungen §8 (mind. Embed-Gate + Cover-Pflicht)
+> mit David fixieren und im Plan nachtragen — ohne Entscheidung stoppen.
+
+```
+/goal Phase 26 (Events v2 Teil A laut docs/plans/EVENTS-V2.md, E1+E2)
+ist abgeschlossen.
+Endzustand: Migration events-002 (additiv: coverFileId, locationType,
+replayUrl; Bucket event-covers mit Magic-Bytes-Check, Muster fonts) —
+idempotent über pnpm migrate --app; Landing-Page-Ausbau (Cover mit
+Theme-Fallback, Host-Avatar, Avatar-Stack der Zusager via
+resolveAvatars, Countdown-Pill, Knappheits-Label „Nur noch X Plätze"
+ab Rest<=3, Share via Copy-Link/navigator.share); /events mit
+Monats-Gruppierung + zweiter Kalender-Monatsansicht (Pills pro Tag,
+mehrtägig = Pill je Tag, published only, Monats-Navigation);
+locationType venue/online mit Ableitung für Bestandsrows, „Join
+live"-Button T-15min bis Ende NUR für Zusager, Provider-Icons aus
+der URL (Meet/Zoom/Teams/Jitsi/YouTube/Twitch/Vimeo/OwnCast/generisch),
+Embed NUR hinter app.config-Gate maui.events.embed (Core-Default
+false); replayUrl im Admin-Formular, Archiv zeigt „Replay ansehen",
+recordActivity event.replay_published (+ i18n feed.types).
+Nachweis gegen die lokale Instanz: Migration 2x (Idempotenz);
+Cover-Upload als Admin (Magic-Bytes: umbenannte .txt -> 4xx),
+Cover erscheint auf Card + Detail (SSR); Kalender zeigt ein
+3-Tage-Event an allen 3 Tagen; Knappheit: capacity 5 + 3 going ->
+Label sichtbar; Join-live-Fenster: Event startAt in 10 min ->
+Button fuer Zusager sichtbar, fuer Nicht-Zusager nicht (SSR/DOM);
+Embed-Gegenprobe: Gate aus -> nur Link, kein iframe im HTML;
+Replay: URL setzen -> Archiv-Badge + Feed-Eintrag; Gast liest
+alles Published weiterhin (read any); labelloser User kann kein
+Cover hochladen (403); pnpm -r typecheck, lint und test gruen;
+Visual-Baselines falls Startseite betroffen.
+Abschluss-Schritt: GOALS.md Phase 26 (Ok) + Datum, README-Status,
+EVENTS-V2.md E1+E2 als umgesetzt markieren.
+Constraints: NUR additive Schema-Aenderungen; keine Recurrence,
+keine Likes/Bookmarks, kein RSVP-Dropdown-Umbau, kein DM/Automation,
+kein Video-Hosting; Embed-Default bleibt AUS; Kalender ohne
+Drag&Drop/absolute Balken (Einfachheit als Leitprinzip).
+Maximal 50 Turns.
+```
+
+---
+
+## Phase 27 – Events v2 Teil B: Reminder + Paid-Vorbereitung
+
+> Exekutiert [docs/plans/EVENTS-V2.md](plans/EVENTS-V2.md) **E3+E4**. Reminder
+> ohne Cron (on-read-Sweep, Muster publishDuePosts) über den bestehenden
+> notify()-Vertrag; Paid Events werden vollständig VORBEREITET (Schema, Guard-
+> Vertrag, UI-Zustaende, fail-closed) — der Checkout selbst kommt aus Phase 23
+> (BILLING-STRIPE.md), die dann NUR noch Guard + Webhook verbindet.
+
+```
+/goal Phase 27 (Events v2 Teil B laut docs/plans/EVENTS-V2.md, E3+E4)
+ist abgeschlossen.
+Endzustand: (E3) Migration events-003 (remindersSentAt); Reminder-
+Sweep best-effort in den events-GETs (published, startAt <= now+24h,
+remindersSentAt null -> Flag ZUERST setzen, dann notify() an alle
+going-RSVPs, Typ 'event.reminder', Link zur Detailseite, i18n de+en);
+POST /api/events/reminder-sweep als interner Endpoint (Key-geschuetzt)
+fuer die spaetere scheduled Function (Andockpunkt dokumentiert).
+(E4) Migration: events.access/priceAmount/priceLookupKey + Table
+event_tickets (Unique eventId+userId, read nur eigener User, Writes
+Admin-Client); server/utils/eventTickets.ts mit
+registerEventTicketGuard(guard) + grantEventTicket(...) als
+exportierte, typisierte Schnittstelle; RSVP going auf access 'paid'
+delegiert an den Guard, OHNE registrierten Guard fail-closed 403
+(maybe/declined bleiben frei); UI: Preis-Badge (useFormatCurrency)
+auf Card + Sidebar der Landing Page, CTA „Ticket kaufen" disabled
+mit „Bald verfuegbar" solange kein Guard registriert; Admin-Formular
+mit Access-Toggle + Preisfeldern; GDPR-Contributor um event_tickets
+erweitert (Export + Hard-Delete).
+Nachweis gegen die lokale Instanz: Migrationen 2x (Idempotenz);
+Reminder: Event mit startAt in 2h anlegen + 2 Zusager -> naechster
+GET loest GENAU EINEN Sweep aus (remindersSentAt gesetzt), beide
+User haben die Notification (NotificationBell/REST), zweiter GET
+erzeugt KEINE Duplikate; Event >24h entfernt bekommt keinen
+Reminder; paid-Event: RSVP going als labelloser User -> 403
+(fail-closed, kein Guard), maybe -> 200; Preis erscheint auf Card +
+Detail (SSR, de+en Formatierung); Test-Guard im Playground
+registriert -> going 200 + event_tickets-Row via grantEventTicket;
+GDPR-Export enthaelt tickets; pnpm -r typecheck, lint und test gruen.
+Abschluss-Schritt: GOALS.md Phase 27 (Ok) + Datum, README-Status,
+EVENTS-V2.md komplett als umgesetzt markieren, BILLING-STRIPE.md um
+den Events-Andockpunkt (Guard + grantEventTicket) ergaenzen.
+Constraints: KEIN Stripe-Code in packages/events (nur Vertrag +
+lookup_key-Referenz); keine eigene Preis-/Steuerlogik; keine E-Mail/
+Push-Reminder (nur notify(); Messaging = spaeterer Andockpunkt);
+Sweep darf GETs nie scheitern lassen (best-effort) und muss
+idempotent sein. Maximal 50 Turns.
+```
+
+---
+
 ## Backlog (ohne Phase — bei Bedarf zu Goals schneiden)
 
 - **Themes-Vollausbau**: 26 Themes × 11 Farbvariationen, sobald die
