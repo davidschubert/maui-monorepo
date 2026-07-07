@@ -149,10 +149,14 @@ Join-Link (`url`) ist bewusst provider-agnostisch. Erkennung nur für Icon/Embed
 |---|---|---|
 | Meeting | Google Meet, Zoom, MS Teams, **Jitsi (self-hosted!)**, Whereby, Discord-Voice/Stage | externer Link („Join live" öffnet neuen Tab) |
 | Stream (embedbar) | YouTube Live, Twitch, Vimeo, **OwnCast (self-hosted!)**, Kick | optional Inline-Embed im Live-Fenster (Gate `maui.events.embed`) |
-| Sonstiges | LinkedIn Live, Restream, StreamYard, beliebige URL | externer Link, generisches Icon |
+| Sonstiges | **LinkedIn Live**, Restream, StreamYard, beliebige URL | externer Link, generisches Icon |
 
-Jitsi + OwnCast passen zur Self-Hosting-Linie des Projekts (Appwrite self-hosted) —
-als Empfehlung in die Admin-Hilfe, keine technische Sonderbehandlung.
+**Erstklassige Provider (Entscheidung David, 2026-07-07):** Google Meet, Twitch,
+YouTube + **Jitsi Meet**, **OwnCast**, **LinkedIn Live** — diese sechs bekommen
+eigene Icons + Erwähnung in der Admin-Formular-Hilfe („Link von Meet, Jitsi,
+Twitch, YouTube, OwnCast oder LinkedIn Live einfügen"); alles andere läuft über
+die generische URL. Jitsi + OwnCast passen zur Self-Hosting-Linie des Projekts
+(Appwrite self-hosted) — keine technische Sonderbehandlung, nur Sichtbarkeit.
 
 ## 7. Phasenschnitt (jede Stufe einzeln shipbar)
 
@@ -171,12 +175,16 @@ kann danach oder parallel ab E4-Abschluss andocken).
 
 ## 8. Offene Entscheidungen (David)
 
-1. **Embed-Gate**: Live-Streams inline einbetten (Consent-/CSP-Folgen) oder v1 nur
-   externe Links? (Plan-Default: Gate aus, nur Links)
-2. **Reminder-Vorlauf**: 24 h vor Start (Plan-Default) oder 1 h wie im
-   Circle-Screenshot — oder beides (zwei Sweeps)?
-3. **Preis-Sichtbarkeit vor Phase 23**: Paid-Events schon mit Preis-Badge +
-   „Bald verfügbar" anlegen können, oder Access-Toggle bis Phase 23 im Admin
-   verstecken? (Plan-Default: sichtbar, fail-closed)
-4. **Cover-Pflicht**: Events ohne Cover erlaubt (Plan-Default: ja, Fallback =
-   Theme-Farbfläche mit Datum-Block) oder Pflichtfeld?
+1. **Embed-Gate**: ✅ **Entschieden (2026-07-07): erstmal AUS** — v1 nur externe
+   Links, das Gate `maui.events.embed` bleibt Core-Default false und wird auch
+   in der App nicht aktiviert. Erstklassige Provider s. §6.
+2. **Reminder-Vorlauf**: ✅ **Entschieden (2026-07-07): 24 h vor Start** —
+   ein Sweep, ein Idempotenz-Flag (`remindersSentAt`).
+3. **Preis-Sichtbarkeit vor Phase 23**: ✅ **Entschieden (2026-07-07):
+   sichtbar, fail-closed** — Preis-Badge + „Ticket kaufen (bald verfügbar)",
+   going-RSVP auf paid ohne Guard → 403.
+4. **Cover-Pflicht**: ✅ **Entschieden (2026-07-07): optional mit Fallback** —
+   ohne Upload rendert eine Theme-Farbfläche mit Datum-Block.
+
+Damit sind alle §8-Entscheidungen fixiert — Phase 26/27 können ohne
+Rückfragen starten.
