@@ -1252,6 +1252,87 @@ Schema-Änderungen nur via Migration. Maximal 60 Turns.
 
 ---
 
+## Phase 25 – packages/posts (Community-Feed: Posts, Polls, Questions)
+
+> Einordnung im Roadmap-v3-Arc: logisch DIREKT nach Phase 21 (und vor
+> Events) — der Member-Content-Feed ist das Herz der Community-Plattform;
+> Events (22) und Courses (24) docken später an dieselben Muster an.
+> Plan mit allen Entscheidungen (P1–P7): docs/plans/COMMUNITY-POSTS.md —
+> Kern: EIN Datenmodell mit type post/poll/question; Antworten sind der
+> comments-Layer (targetType 'post', App-Komposition); Poll-Votes
+> server-autoritativ, Ergebnisse erst nach eigener Stimme; Scheduled
+> Questions ohne Cron (publish-on-read); member-led (jeder postet) mit
+> Rate-Limit + generischem moderation-Vertrag + posts.moderate.
+
+```
+/goal Phase 25 (packages/posts laut docs/plans/COMMUNITY-POSTS.md)
+ist abgeschlossen.
+Endzustand: packages/posts als Feature-Layer. Migration 001
+(idempotent, pnpm migrate --app): community_posts (type post/poll/
+question, title nullable, body Markdown max 10.000, authorId/Name,
+status scheduled/published/hidden/deleted, scheduledAt/publishedAt,
+pollOptions JSON max 6, pollEndsAt; Indizes status+publishedAt,
+authorId, status+scheduledAt) + poll_votes (Unique postId+userId,
+Index postId+optionIndex). Routen: GET /api/posts (published,
+Cursor-Pagination, publish-on-read für fällige scheduled-Posts,
+myVote je Poll aus EINEM Query, Poll-Zählung über gebündelte
+Count-Queries); POST /api/posts (auth, Zod-Factories je Typ,
+eigenes Rate-Limit-Budget); PATCH/DELETE /:id (nur Autor; Soft-
+Delete; Poll nach erster Fremdstimme nicht mehr editierbar);
+POST /:id/vote (Toggle/Wechsel, gesperrt nach pollEndsAt, 401 für
+Gäste); POST /:id/hide und /:id/restore (requirePermission
+'posts.moderate', zweiphasig wie comments: Row-read-Permission-
+Entzug); GET /api/posts/scheduled (eigene Warteschlange).
+CORE (additiv, eigener Commit): Capability posts.moderate in
+authz.ts + ALL_CAPABILITIES + RBAC-CONCEPT-Tabellen.
+Rows: Permission.read(Role.any()) (hidden verliert sie),
+update/delete nur Autor; poll_votes ohne breite Read-Permission.
+UI: Seite /community (Composer mit Tabs Beitrag/Umfrage/Frage +
+optionalem Planen-Termin; Feed mit PostCard/PollCard/QuestionCard;
+Poll-Balken mit Prozenten NACH eigener Stimme oder nach pollEndsAt;
+Realtime-Pille „Neue Beiträge anzeigen" statt Auto-Prepend;
+Kommentare je Karte aufklappbar — die APP bindet CommentSection
+target-type='post' ein, kein comments-Import im Layer);
+dashboard/posts via maui.admin.modules (posts.moderate): Moderation
+(Hide/Restore, gemeldete Posts via moderation-Layer targetType
+'post') + globale Scheduled-Queue. Markdown-Rendering ohne
+Raw-HTML (CommentMarkdown-Muster). recordActivity
+'post.published' beim (auch verzögerten) Publish + Meilenstein
+milestone.posts (Core-Erweiterung der Union, additiv).
+GDPR-Contributor: Posts → Tombstone (deleted, Inhalt geblankt),
+poll_votes → Hard-Delete. i18n de+en; Zod-Factories;
+apps/reddit-comments extended posts, /community in der Nav.
+Nachweis gegen die lokale Instanz: Migration 2× (Idempotenz);
+curl-Flows mit ZWEI Usern + Admin: Post/Frage/Poll erstellen (je
+201), Gast GET /api/posts 200 aber POST 401; Poll: User B stimmt →
+GET als B zeigt Prozente + myVote, GET als drittem User OHNE Stimme
+zeigt KEINE Prozente; Stimm-Wechsel ändert Zählung; nach pollEndsAt
+(kurz setzen) → vote 4xx und Prozente für alle; Autor-PATCH nach
+Fremdstimme → 4xx; scheduled-Post mit scheduledAt in 5 s → sofort
+NICHT im GET, nach Ablauf erscheint er per publish-on-read UND
+erzeugt den Feed-Eintrag post.published (GET /api/feed); Hide durch
+Admin → Post verschwindet aus GET + Roh-REST-Read der Row schlägt
+fehl (Row-Permission weg), Restore stellt beides her; labelloser
+User: hide → 403; Report-Flow: User meldet Post → taucht in der
+Moderations-Queue auf; GDPR: Export enthält Posts + Votes, Delete
+tombstonet Posts (Poll mit Fremdstimmen bleibt als [gelöscht])
+und löscht Votes; XSS-Probe: <script>/<img onerror> im Body
+erscheinen escaped; Realtime-Beweis (Browser): zweiter User postet
+→ Pille erscheint ohne Reload, Klick zeigt den Post; /en englische
+Strings; pnpm -r typecheck, lint und test grün.
+Abschluss-Schritt: GOALS.md Phase 25 ✅ + Datum, README-Status,
+COMMUNITY-POSTS.md auf „umgesetzt" datiert.
+Constraints: KEINE eigene Kommentar-/Reaction-Implementierung
+(comments-Layer via App-Komposition); kein Cron/Worker (publish-
+on-read); keine Bild-Uploads, keine Recurrence, kein AI (alles v2,
+Plan §1); Tables gehören zur App-Instanz; Feed-Layer bleibt
+unangetastet (nur recordActivity-Aufrufe); §5-Annahmen des Plans
+gelten als bestätigt, wenn David nichts anderes sagt.
+Maximal 60 Turns.
+```
+
+---
+
 ## Backlog (ohne Phase — bei Bedarf zu Goals schneiden)
 
 - **Themes-Vollausbau**: 26 Themes × 11 Farbvariationen, sobald die
