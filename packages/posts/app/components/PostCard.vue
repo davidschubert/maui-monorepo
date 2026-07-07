@@ -186,7 +186,9 @@ const showTooltip = computed(() => (props.replyCount ?? 0) > 0)
       </UTooltip>
     </div>
 
-    <div v-if="commentsOpen" class="mt-2" data-post-comments>
+    <!-- Ganze Kommentar-Ebene EINE Stufe unter dem Beitrag (Einrück-Optik
+         wie Antworten unter Kommentaren: Linie + Einzug) -->
+    <div v-if="commentsOpen" class="mt-2 ml-3 border-l border-default pl-4" data-post-comments>
       <!-- Die App füllt diesen Slot mit CommentSection (targetType 'post').
            Die Section hat async setup (Kommentare laden) — die Suspense-
            Grenze zeigt sofort ein Skeleton statt einer stummen Verzögerung. -->

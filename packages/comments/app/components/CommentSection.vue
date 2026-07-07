@@ -150,7 +150,12 @@ function presenceLabel(u: PresenceUser): string {
       :title="notice.title"
       :description="notice.text"
     />
-    <CommentForm v-else-if="isLoggedIn" />
+    <!-- Formular in Kommentar-Karten-Optik (gleiche Box wie CommentItem):
+         beim Absenden „verwandelt" sich die Eingabe visuell in den Kommentar,
+         der direkt darunter aufklappt -->
+    <div v-else-if="isLoggedIn" class="rounded-lg bg-elevated/40 p-3 ring ring-default" data-comment-composer>
+      <CommentForm />
+    </div>
     <p v-else class="text-sm text-muted">
       <ULink :to="localePath('/login')" class="font-medium text-primary">{{ t('comments.loginLink') }}</ULink>{{ t('comments.loginSuffix') }}
     </p>
