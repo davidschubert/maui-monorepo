@@ -2,6 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
   "release-type": "simple",
   "include-component-in-tag": false,
+  "bootstrap-sha": "466be65e041876505043972ebc04319c37f1ee5b",
   "packages": {
     ".": {
       "package-name": "maui-monorepo",

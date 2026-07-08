@@ -100,7 +100,12 @@ apps/       ← Vollständige, deploybare Nuxt-Applikationen
 | `packages/themes` | ✅ Aktiv | Theme-Studio (Galerie + Editor), 9 Built-ins + Custom Themes (OKLCH-Ramp-Generator), 2 Schrift-Rollen inkl. WOFF2-Uploads, Live-Propagation — Konzept: docs/THEMES-CONCEPT-V2.md |
 | `packages/comments` | ✅ Aktiv | Kommentarsystem: targetId/targetType, Votes, Realtime — Spec: [[reddit-comment-system-setup]] |
 | `packages/admin` | ✅ Aktiv | Dashboard (RBAC-Capabilities), User-Verwaltung, Moderations-Queue, Changelog, Audit, GDPR-Exporte, Theme-/Font-Admin-Routen |
-| `packages/billing` | 🔜 Zukunft | Stripe: Checkout, Webhooks, Subscriptions — Plan: docs/plans/BILLING-STRIPE.md |
+| `packages/posts` | ✅ Aktiv | Community-Feed: Posts, Multiple-Choice-Polls (verdeckte Ergebnisse), offene Fragen, Scheduled Questions (publish-on-read), zweiphasiges Hide, Kommentare via `#comments`-Slot |
+| `packages/events` | ✅ Aktiv | Event-Kalender: RSVP mit server-autoritativem Zähler, Landing Pages, Monats-Kalender, „Join live", Replays, Reminder ohne Cron, Paid-Tickets via billing-Vertrag — Plan: docs/plans/EVENTS-V2.md |
+| `packages/feed` | ✅ Aktiv | Activity-Feed: UI zum Core-Vertrag `recordActivity()` (Cursor-Pagination, Realtime, Gruppierung, 9 Ereignis-Typen) |
+| `packages/feedback` | ✅ Aktiv | Feedback-Widget: Button unten links, Popup (Gäste + Rate-Limit), Admin-Sichtung (`feedback.manage`) |
+| `packages/billing` | ✅ Aktiv | Stripe: hosted Checkout/Portal, Webhook (Signatur/Allowlist/Stale-Guard), Entitlements + `useBilling` (Realtime), Fulfillment-Vertrag `registerCheckoutFulfillment` — Plan: docs/plans/BILLING-STRIPE.md |
+| `packages/courses` | ✅ Aktiv | LMS v1: Markdown-Lektionen, Enrollment + server-autoritativer Fortschritt, Builder mit Edit-Awareness, Zugang free/members/paid via `registerCourseAccessGuard` (billing-Entitlements) |
 | `packages/appwrite-functions` | 🔜 Zukunft | Appwrite Functions (Webhooks, CRON, Events) — `functions/changelog-draft` existiert bereits standalone |
 
 > v2.1: `packages/types`, `packages/utils` und `packages/config` gestrichen — zehn
@@ -264,10 +269,17 @@ maui-monorepo/
 │   │   ├── nuxt.config.ts                 # Module, runtimeConfig Skeleton, imports.dirs
 │   │   └── package.json
 │   │
-│   ├── themes/                            # 🔜 Feature Layer
-│   ├── comments/                          # 🔜 Feature Layer (eigene Tables!)
-│   ├── admin/                             # 🔜 Feature Layer
-│   └── billing/                           # 🔜 Feature Layer
+│   ├── system/                            # Fundament-Layer (Infra-Tabellen)
+│   ├── moderation/                        # Fundament-Layer (Reports)
+│   ├── themes/                            # Feature Layer
+│   ├── comments/                          # Feature Layer (eigene Tables!)
+│   ├── admin/                             # Feature Layer
+│   ├── posts/                             # Feature Layer
+│   ├── events/                            # Feature Layer
+│   ├── feed/                              # Feature Layer
+│   ├── feedback/                          # Feature Layer
+│   ├── billing/                           # Feature Layer (Stripe)
+│   └── courses/                           # Feature Layer (LMS)
 │
 ├── apps/
 │   ├── reddit-comments/                   # dünn: Komposition + Branding

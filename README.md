@@ -9,7 +9,7 @@ Nuxt 4 Monorepo mit zentralem **Core Layer** und komponierbaren **Feature Layers
 ```
 packages/core            ← Ebene 1: Fundament (besitzt KEINE Appwrite Tables!)
 packages/system          ← Fundament: Infra-Tabellen (audit_logs, app_config, notifications)
-packages/*               ← Ebene 2: Feature Layers (themes, comments, posts, events, feed, moderation, admin; billing geplant)
+packages/*               ← Ebene 2: Feature Layers (themes, comments, posts, events, feed, feedback, billing, courses, moderation, admin)
 apps/*                   ← Ebene 3: dünne Apps, komponieren Core + Features
 ```
 
@@ -104,12 +104,15 @@ maui-monorepo/
 │   ├── posts/                 # Feature Layer: Community-Feed (Posts, Polls, Fragen)
 │   ├── events/                # Feature Layer: Event-Kalender (RSVP, ICS, Live-Teilnehmerzahl)
 │   ├── feed/                  # Feature Layer: Activity-Feed (UI zum Core-Vertrag recordActivity)
+│   ├── feedback/              # Feature Layer: Feedback-Widget (Button unten links, Admin-Sichtung)
+│   ├── billing/               # Feature Layer: Stripe-Abos (Checkout, Webhook, Entitlements, Portal)
+│   ├── courses/               # Feature Layer: Async Course Builder / LMS (Lektionen, Fortschritt, paid via billing)
 │   ├── moderation/            # Fundament-Layer: generisches Melde-/Report-System (reports-Table)
 │   ├── admin/                 # Feature Layer: Dashboard, Moderation-Queue, Changelog, Audit, …
 │   └── themes/                # Feature Layer: Theming
 ├── apps/
 │   ├── _template/             # Kopiervorlage für neue Apps (Port 3002, README mit Schritten)
-│   └── reddit-comments/       # dünne App: extends [themes, admin, comments, posts, events, feed, moderation, core, system] (Port 3001)
+│   └── reddit-comments/       # dünne App: extends [themes, admin, comments, posts, events, feedback, billing, courses, feed, moderation, core, system] (Port 3001)
 │       └── scripts/           # bootstrap.ts (Fresh-Instance-Setup), seed-demo.ts (Demo-Daten)
 ├── docs/
 │   ├── CONCEPT.md             # Architektur-Konzept (v2)
@@ -178,19 +181,12 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 | 48 | **Feed-Ausbau**: 9 Ereignis-Typen (`user.joined` inkl. OTP-Erst-Verify, `changelog/theme/font`-Publish-Events, `theme.deleted/default_changed`, Meilensteine mit System-Actor 🎉), Gruppierung konsekutiver Einträge, Infinite Scroll; Trennlinie geschärft: Security-/Profil-Signale (`password_changed`, `recovery_requested`, `profile_updated`) gehen ins **Audit-Log** (pseudonymisiert statt hard-deleted), nie in den Community-Feed | ✅ 2026-07-06 |
 | 49 | **Roadmap v3 · GOALS-Phase 25: `packages/posts`** — Community-Feed (Posts, Multiple-Choice-Polls mit verdeckten Ergebnissen bis zur eigenen Stimme, offene Fragen, Scheduled Questions via publish-on-read ohne Cron), member-led mit Rate-Limit + `posts.moderate` (zweiphasiges Hide) + generischem Report-Vertrag; Kommentare = comments-Layer via `#comments`-Slot (A14-App-Komposition); Markdown-Sink in den Core gehoben (`MarkdownContent`); `/community` + `dashboard/posts` — Browser-verifiziert inkl. Realtime-Pille, GDPR-Tombstone, XSS | ✅ 2026-07-07 |
 | 50 | **Roadmap v3 · GOALS-Phase 22: `packages/events`** — Event-Kalender (Liste kommend/Archiv + Detailseite, bewusst ohne Monats-Grid/Recurring), RSVP going/maybe/declined mit Toggle und server-autoritativem `attendeeCount` (atomare Increments, `max=capacity` gegen Überbuchung im Race), ICS-Export als pure Funktion, Soft-Cancel; Capability `events.manage` + `useViewingPresence` in den Core gehoben; `recordActivity` event.published/event.rsvp; Kommentare via `#comments`-Slot (A14-App-Komposition); GDPR-Contributor — Browser-verifiziert inkl. Realtime-Zählersprung, Kapazitäts-409, i18n | ✅ 2026-07-07 |
-
 | 51 | **GOALS-Phase 26: Events v2 Teil A** ([Plan](docs/plans/EVENTS-V2.md), Circle.so als Leitplanke): Cover-Upload (Bucket `event-covers`, Magic-Bytes) + Landing Page (Countdown-Pill, Host-Avatar, Avatar-Stack, Knappheits-Label, Share), Monats-Gruppierung + Kalender-Monatsansicht (mehrtägig = Pill je Tag), Ortstyp online/vor Ort mit Provider-Erkennung (Meet/Jitsi/Twitch/YouTube/OwnCast/LinkedIn Live), „Join live" T−15 min nur für Zusager, Replays (`replayUrl` + Feed-Announce) — Embed bewusst AUS (nur externe Links) | ✅ 2026-07-07 |
-
 | 52 | **Events-Feinschliff nach Review** (Meetup.com als Leitplanke, [Plan §7b](docs/plans/EVENTS-V2.md)): vertikale Card im Grid (Datums-**Spanne** + „Mehrtägig"-Badge, Online/Vor-Ort, „Kostenlos"-Badge), Detailseite zweispaltig mit Zurück-Link + sticky Info-Karte, Beschreibung als Markdown (Listen/fett, ContentClamp „Mehr/Weniger"), Adresse → Google-Maps-Link „So findest du uns" + Anfahrtshinweise, Up-/Downvotes (`event_votes`, Migration 003), Teilnehmerliste mit Namen **nur eingeloggt** (Gäste: Anzahl + Blur), Titel-Suche (Fulltext), Melden via moderation-Vertrag (`targetType 'event'`); Kategorien bewusst abgelehnt | ✅ 2026-07-07 |
-
 | 53 | **GOALS-Phase 27: Events v2 Teil B** — Reminder ohne Cron (on-read-Sweep 24 h vor Start → `notify()` an Zusager, Bell-Typ `reminder`, idempotent über `remindersSentAt`; `POST /api/events/reminder-sweep` als scheduled-Function-Andockpunkt, key-geschützt) + **Paid Events vollständig vorbereitet**: `event_tickets` im Endschema, Vertrag `registerEventTicketGuard`/`grantEventTicket` (fail-closed 403, App-Guard = Ticket-Check verdrahtet), Preis-Badge + „Ticket kaufen (bald verfügbar)", Admin-Access-Toggle — Phase 23 verbindet nur noch Checkout + Webhook ([Andockpunkt](docs/plans/BILLING-STRIPE.md)) | ✅ 2026-07-08 |
-
 | 54 | **Events-Filter-Paket** ([Plan §7c](docs/plans/EVENTS-V2.md)): Zeit-Chips Heute/Morgen/Wochenende (lokale Fenster über die Range-Query) neben Kommende/Archiv; persönliche Filter **Zugesagt/Geliked/Teilgenommen** (`?mine=`, nur eingeloggt — „Teilgenommen" = nur MEINE besuchten Events, anders als das Archiv); Share-Button auf der Card | ✅ 2026-07-08 |
-
 | 55 | **Events: Zweispalten-Layout** ([Plan §7d](docs/plans/EVENTS-V2.md)): Ansicht-Switch entfernt — links gefilterte Liste, rechts dauerhaft der sticky Monats-Kalender; **Card-Hover highlightet die Kalender-Pills des Events** (mehrtägig = alle Tage); Filter/Suche steuern bewusst nur die Liste | ✅ 2026-07-08 |
-
 | 56 | **Feedback-Widget + GOALS-Phase 23: `packages/billing` (Stripe)** — Feedback-Button unten links (Popup, Gäste + Rate-Limit, Admin-Sichtung, `feedback.manage`); Billing komplett implementiert (hosted Checkout/Portal, Webhook mit Signatur/Allowlist/Stale-Guard, Entitlements + `useBilling` mit Realtime, Pricing/Account/Admin-UI, GDPR) inkl. **Events-Ticket-Verbindung** (`registerCheckoutFulfillment` → `grantEventTicket`, Kauf-CTA aktiv) — lokal voll bewiesen (Tampering 400, Signatur 400, Row-Security, simulierte Subscription → entitled); Live-Matrix mit echtem Test-Key gefahren: echter Checkout, echtes Abo -> Webhook -> Realtime-Sprung auf Kuendigungs-Anzeige, Idempotenz per events resend | ✅ 2026-07-08 |
-
 | 57 | **GOALS-Phase 24: `packages/courses` (LMS v1)** — Markdown-Lektionen (Core-Sink, XSS-sicher), Enrollment + Fortschritt mit server-autoritativem Abschluss, Kurs-Galerie/Übersicht/LessonView (Prev/Next, Fortschrittsbalken, `#comments`-Slot), Builder mit Lektionen-CRUD/Reorder/Edit-Awareness (`useEditAwareness` → Core); Zugang free/members/**paid** über `registerCourseAccessGuard` — die App verdrahtet **echte Billing-Entitlements** (bewiesen: Free-User 403, Pro-Abo 201); `recordActivity` course.published/completed; GDPR | ✅ 2026-07-08 |
 
 Details und Nachweis-Kriterien pro Phase: [docs/GOALS.md](docs/GOALS.md) · Upgrade-Plan: [docs/APPWRITE-1.9.5-UPGRADE.md](docs/APPWRITE-1.9.5-UPGRADE.md) · Offene Punkte: [docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md)

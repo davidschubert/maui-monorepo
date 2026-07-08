@@ -18,7 +18,12 @@ Aus den Conventional Commits via **release-please**
   (gestartet bei `1.4.0`, passend zum bisherigen Produkt-Changelog → nächstes
   `feat` ⇒ `1.5.0`).
 - `bootstrap-sha` begrenzt den ersten Lauf auf Commits **nach** dem
-  Backfill-Commit, damit die History nicht doppelt in `CHANGELOG.md` landet.
+  Backfill-Commit (`466be65e…`, volle SHA nötig — als Kurz-SHA wirkungslos),
+  damit die History nicht doppelt in `CHANGELOG.md` landet.
+- Voraussetzung (Repo-Setting, 2026-07-08 aktiviert): *Settings → Actions →
+  General → „Allow GitHub Actions to create and approve pull requests"* —
+  ohne das schlägt jeder Lauf mit „GitHub Actions is not permitted to create
+  or approve pull requests" fehl und es entsteht nie ein Release-PR.
 
 ## Track 2 — Produkt-„Was ist neu" (kuratiert, assistiert)
 
