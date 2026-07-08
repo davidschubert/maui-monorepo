@@ -1,0 +1,65 @@
+{
+  "billing": {
+    "pricing": {
+      "title": "Preise",
+      "subtitle": "Fair und transparent — jederzeit kündbar.",
+      "monthly": "Monatlich",
+      "yearly": "Jährlich",
+      "popular": "Beliebt",
+      "choose": "Plan wählen",
+      "manage": "Abo verwalten",
+      "currentPlan": "Dein aktueller Stand",
+      "included": "Im Abo enthalten",
+      "loginCta": "Anmelden und upgraden",
+      "freeFeatures": "Alle Community-Grundfunktionen",
+      "alreadyActive": "Du hast schon ein aktives Abo — verwalte es über das Portal.",
+      "checkoutFailed": "Checkout konnte nicht gestartet werden.",
+      "disabled": "Abos sind hier noch nicht aktiviert."
+    },
+    "account": {
+      "title": "Abo & Zahlung",
+      "subtitle": "Dein Plan, deine Rechnungen, deine Zahlungsmethode.",
+      "manage": "Abo verwalten",
+      "upgrade": "Upgraden",
+      "freeText": "Du nutzt den kostenlosen Stand — alles Wesentliche ist dabei.",
+      "renewsAt": "Verlängert sich am {date}",
+      "endsAt": "Endet am {date}",
+      "pastDueHint": "Deine letzte Zahlung ist fehlgeschlagen — bitte Zahlungsmethode aktualisieren.",
+      "confirmingTitle": "Zahlung wird bestätigt …",
+      "confirmingText": "Das dauert nur einen Moment — die Seite aktualisiert sich von selbst.",
+      "portalFailed": "Portal konnte nicht geöffnet werden."
+    },
+    "admin": {
+      "title": "Abos",
+      "empty": "Noch keine Abonnements.",
+      "disabled": "maui.billing ist nicht aktiviert — Abos erscheinen hier, sobald die App das Gate einschaltet.",
+      "cancelling": "endet",
+      "user": "User"
+    },
+    "status": {
+      "active": "Aktiv",
+      "trialing": "Testphase",
+      "past_due": "Zahlung offen",
+      "canceled": "Gekündigt",
+      "incomplete": "Unvollständig",
+      "incomplete_expired": "Abgelaufen",
+      "unpaid": "Unbezahlt",
+      "paused": "Pausiert"
+    },
+    "plans": {
+      "free": "Free",
+      "pro": "Pro",
+      "proDescription": "Für alle, die mehr wollen.",
+      "freeDescription": "Der kostenlose Einstieg."
+    },
+    "features": {},
+    "validation": {
+      "planUnknown": "Unbekannter Plan."
+    }
+  },
+  "admin": {
+    "nav": {
+      "billing": "Abos"
+    }
+  }
+}

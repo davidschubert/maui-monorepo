@@ -170,7 +170,9 @@
     },
     "ticket": {
       "buy": "Ticket kaufen",
-      "soon": "Bald verfügbar"
+      "soon": "Bald verfügbar",
+      "alreadyOwned": "Du hast schon ein Ticket für dieses Event.",
+      "failed": "Ticket-Kauf konnte nicht gestartet werden."
     }
   },
   "admin": {

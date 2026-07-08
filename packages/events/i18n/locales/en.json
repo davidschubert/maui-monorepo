@@ -170,7 +170,9 @@
     },
     "ticket": {
       "buy": "Purchase ticket",
-      "soon": "Coming soon"
+      "soon": "Coming soon",
+      "alreadyOwned": "You already own a ticket for this event.",
+      "failed": "Could not start the ticket checkout."
     }
   },
   "admin": {

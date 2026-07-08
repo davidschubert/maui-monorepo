@@ -1,6 +1,6 @@
 # Plan: `packages/billing` — Stripe Feature-Layer
 
-> Stand: 2026-07-02 · Status: **Plan (kein Code)** · Referenzen: [CONCEPT.md](../CONCEPT.md)
+> Stand: 2026-07-08 · Status: **umgesetzt (Live-Stripe-Nachweise ausstehend — sk_test-Key fehlt)** · Referenzen: [CONCEPT.md](../CONCEPT.md)
 > (bes. A14 Layer-Grenzen), [RBAC-CONCEPT.md](../RBAC-CONCEPT.md), [OPEN-ITEMS.md](../OPEN-ITEMS.md),
 > `packages/comments` als Referenz-Feature-Layer, `core/server/utils/notify.ts` als
 > Cross-Layer-Vertrag-Muster.

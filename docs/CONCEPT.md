@@ -111,7 +111,7 @@ apps/       ← Vollständige, deploybare Nuxt-Applikationen
 - **`themes`** — Das Multi-Theme-System (26 Themes × 11 Farbvariationen, Cookie-Persistenz) ist zu viel fürs Fundament. Core liefert Token-Struktur + ein Default Theme; wer Theme-Switching braucht, extended `themes`. Ein Kundenprojekt hat genau ein Branding.
 - **`comments`** — Eigenes Datenmodell (comments, votes Tables) → Regel 3. Components, Server Routes, Realtime-Anbindung, Migrations, Types — alles im Layer, in jede App einbindbar.
 - **`admin`** — Braucht den `AdminClient` mit erweiterten Rechten, viel UI, nicht jede App hat einen Admin-Bereich. Das `dashboard.vue` Layout zieht hierher um.
-- **`billing`** — Eigene Tables (subscriptions), schwere Dependency (Stripe SDK). Webhooks laufen als Appwrite Function.
+- **`billing`** — Eigene Tables (subscriptions), schwere Dependency (Stripe SDK). Webhooks laufen als Nitro Server Route im jeweiligen Layer (revidiert 2026-07-08, BILLING-STRIPE B1 — gleiche Codebasis/Verträge, Stripe retryt 3 Tage).
 - Zukünftige SaaS-Bausteine (Forum, News, Polls) → je ein eigener Feature Layer.
 
 > **Für jetzt:** Erst `core` bauen, dann `comments`. `themes`/`admin` entstehen wenn gebraucht — kein vorzeitiges Aufteilen.

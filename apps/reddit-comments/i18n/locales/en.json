@@ -17,10 +17,27 @@
       "online": "Online"
     },
     "features": {
-      "realtime": { "title": "Real-time", "desc": "Comments, votes & presence live — no reload at all." },
-      "themes": { "title": "Themes", "desc": "Color worlds, light/dark mode and 9 neutral tones." },
-      "i18n": { "title": "Multilingual", "desc": "German & English, cleanly server-rendered." },
-      "admin": { "title": "Admin & auth", "desc": "Dashboard, passwordless login and GDPR self-service." }
+      "realtime": {
+        "title": "Real-time",
+        "desc": "Comments, votes & presence live — no reload at all."
+      },
+      "themes": {
+        "title": "Themes",
+        "desc": "Color worlds, light/dark mode and 9 neutral tones."
+      },
+      "i18n": {
+        "title": "Multilingual",
+        "desc": "German & English, cleanly server-rendered."
+      },
+      "admin": {
+        "title": "Admin & auth",
+        "desc": "Dashboard, passwordless login and GDPR self-service."
+      }
+    }
+  },
+  "billing": {
+    "features": {
+      "paidCourses": "Access to all paid courses"
     }
   }
 }

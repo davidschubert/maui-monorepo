@@ -189,6 +189,8 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 
 | 55 | **Events: Zweispalten-Layout** ([Plan §7d](docs/plans/EVENTS-V2.md)): Ansicht-Switch entfernt — links gefilterte Liste, rechts dauerhaft der sticky Monats-Kalender; **Card-Hover highlightet die Kalender-Pills des Events** (mehrtägig = alle Tage); Filter/Suche steuern bewusst nur die Liste | ✅ 2026-07-08 |
 
+| 56 | **Feedback-Widget + GOALS-Phase 23: `packages/billing` (Stripe)** — Feedback-Button unten links (Popup, Gäste + Rate-Limit, Admin-Sichtung, `feedback.manage`); Billing komplett implementiert (hosted Checkout/Portal, Webhook mit Signatur/Allowlist/Stale-Guard, Entitlements + `useBilling` mit Realtime, Pricing/Account/Admin-UI, GDPR) inkl. **Events-Ticket-Verbindung** (`registerCheckoutFulfillment` → `grantEventTicket`, Kauf-CTA aktiv) — lokal voll bewiesen (Tampering 400, Signatur 400, Row-Security, simulierte Subscription → entitled); Live-Stripe-Matrix wartet auf den `sk_test`-Key | ⚙️ 2026-07-08 |
+
 Details und Nachweis-Kriterien pro Phase: [docs/GOALS.md](docs/GOALS.md) · Upgrade-Plan: [docs/APPWRITE-1.9.5-UPGRADE.md](docs/APPWRITE-1.9.5-UPGRADE.md) · Offene Punkte: [docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md)
 
 ## Konventionen

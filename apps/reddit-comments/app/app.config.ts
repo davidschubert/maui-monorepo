@@ -12,6 +12,24 @@ export default defineAppConfig({
       enabled: true,
       clientErrors: true,
     },
+    // Stripe-Billing (Phase 23) — TEST-Mode; Products/Prices legt David im
+    // Dashboard an (lookup_keys wie hier deklariert). Feature-Strings sind
+    // App-Konvention (courses konsumiert 'paidCourses' über den Access-Guard).
+    billing: {
+      enabled: true,
+      currency: 'eur',
+      trialDays: 0,
+      plans: [
+        { id: 'free', labelKey: 'billing.plans.free', features: [], lookupKeys: null },
+        {
+          id: 'pro',
+          labelKey: 'billing.plans.pro',
+          features: ['paidCourses'],
+          highlight: true,
+          lookupKeys: { monthly: 'maui_pro_monthly', yearly: 'maui_pro_yearly' },
+        },
+      ],
+    },
     // Interne Produkt-Roadmap (dashboard/admin/roadmap) — Anzeige-Kopie;
     // die Planungs-Wahrheit bleibt docs/GOALS.md + docs/plans/*.
     roadmap: {

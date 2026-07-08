@@ -12,9 +12,17 @@ import { detectLiveProvider } from '../../shared/liveProvider'
  * Gäste sehen geblurte Platzhalter). Kommentare kommen über den
  * #comments-Slot — die APP füllt ihn mit dem comments-Layer (A14).
  */
-const props = defineProps<{ initial: EventDetailResponse }>()
+const props = defineProps<{
+  initial: EventDetailResponse
+  /**
+   * Kauf-Endpoint für paid-Events (z. B. '/api/events/<id>/checkout') —
+   * gesetzt von der APP, wenn sie billing komponiert. Ohne Pfad bleibt der
+   * CTA disabled („Bald verfügbar", fail-closed wie das RSVP-Gate).
+   */
+  ticketCheckoutPath?: string
+}>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const toast = useToast()
 const localePath = useLocalePath()
 const config = useRuntimeConfig()
@@ -24,11 +32,34 @@ const { coverUrl } = useEventCover()
 const { isLoggedIn } = useCurrentUser()
 const { formatCurrency } = useFormatCurrency()
 
-/** Paid-Event (E4): Preis-Zeile + Kauf-CTA (bis Phase 23 „bald verfügbar") */
+/** Paid-Event (E4): Preis-Zeile + Kauf-CTA (aktiv, sobald die App einen Checkout-Pfad setzt) */
 const isPaid = computed(() => effectiveAccess(event.value) === 'paid')
 const priceLabel = computed(() =>
   event.value.priceAmount !== null ? formatCurrency(event.value.priceAmount / 100) : t('events.card.paid'),
 )
+
+const buying = ref(false)
+async function buyTicket() {
+  if (!props.ticketCheckoutPath) return
+  buying.value = true
+  try {
+    const res = await $fetch<{ url: string }>(props.ticketCheckoutPath, {
+      method: 'POST',
+      query: locale.value === 'de' ? { locale: 'de' } : {},
+    })
+    window.location.href = res.url
+  }
+  catch (error) {
+    const statusCode = (error as { statusCode?: number }).statusCode
+    toast.add({
+      title: statusCode === 409 ? t('events.ticket.alreadyOwned') : t('events.ticket.failed'),
+      color: statusCode === 409 ? 'info' : 'error',
+    })
+  }
+  finally {
+    buying.value = false
+  }
+}
 
 // Lokale Wahrheit: Realtime-Updates und RSVP-/Vote-Antworten ersetzen sie atomar
 const event = ref<EventRow>({ ...props.initial })
@@ -281,11 +312,20 @@ const start = computed(() => new Date(event.value.startAt))
             </div>
 
             <UButton
-              v-if="isPaid && event.status === 'published'"
+              v-if="isPaid && event.status === 'published' && ticketCheckoutPath && isLoggedIn"
+              color="primary" size="lg" icon="i-ph-ticket" block
+              :loading="buying"
+              data-testid="event-buy-ticket"
+              @click="buyTicket"
+            >
+              {{ t('events.ticket.buy') }}
+            </UButton>
+            <UButton
+              v-else-if="isPaid && event.status === 'published'"
               color="primary" size="lg" icon="i-ph-ticket" block disabled
               data-testid="event-buy-ticket"
             >
-              {{ t('events.ticket.buy') }} · {{ t('events.ticket.soon') }}
+              {{ t('events.ticket.buy') }} · {{ ticketCheckoutPath ? t('events.rsvp.loginCta') : t('events.ticket.soon') }}
             </UButton>
 
             <div class="border-t border-default pt-3">

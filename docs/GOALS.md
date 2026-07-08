@@ -1136,7 +1136,27 @@ erstellt Events" ist bewusst v2. Maximal 45 Turns.
 
 ---
 
-## Phase 23 – packages/billing (Stripe) — Plan exekutieren
+## Phase 23 – packages/billing (Stripe) — Plan exekutieren ⚙️ (umgesetzt 2026-07-08, Live-Stripe-Nachweise ausstehend)
+
+> ⚙️ **Implementiert am 2026-07-08** (alle Plan-Phasen B-1–B-8 bis auf die
+> Live-Stripe-Matrix): Layer komplett (Gate, Tables + Migration 2× idempotent,
+> useStripe/Price-Cache, ensureCustomer mit Race-Aufräumen, Checkout/Portal/
+> Subscription/Admin-Routen, Webhook mit Signatur+Allowlist+Stale-Guard als
+> pure testbare Mappings, Entitlements memoized, useBilling mit Realtime,
+> Pricing/Account/Dashboard-UI, GDPR-Contributor, 13 Unit-Tests).
+> One-time-Checkout-Vertrag registerCheckoutFulfillment + createPayment-
+> CheckoutSession — die APP verdrahtet Events-Tickets (Fulfiller ruft
+> grantEventTicket; App-Route /api/events/:id/checkout; Kauf-CTA aktiv).
+> LOKAL BEWIESEN: Gast/Uma free; Tampering-planId 400; Checkout ohne echten
+> Key 502 generisch (kein Leak); Webhook falsche Signatur 400; Admin-Liste
+> Uma 403/Admin 200; simulierte Subscription-Row (Webhook-Form) → Uma
+> entitled (pro, paidCourses), Ben free, Row-Security Uma 200/Ben 404,
+> Zweit-Checkout 409, UI zeigt Pro/Aktiv/Periodenende.
+> AUSSTEHEND (braucht sk_test-Key + `stripe listen` + Dashboard-Products
+> mit lookup_keys maui_pro_monthly/maui_pro_yearly): §7-Matrix — echter
+> 4242-Checkout → Webhook schreibt Row → Realtime „aktiv"; Portal-Kündigung;
+> events resend-Idempotenz; invoice.payment_failed → past_due + notify.
+> Platzhalter-Keys stehen markiert in apps/reddit-comments/.env.
 
 > Der vollständige Plan steht seit 2026-07-02 in
 > docs/plans/BILLING-STRIPE.md (Architektur B1–B9, Datenmodell,

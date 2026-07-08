@@ -18,7 +18,7 @@ useHead({ title: () => initial.value?.title ?? '' })
 
 <template>
   <UContainer class="max-w-2xl py-8">
-    <EventDetail :initial="initial!">
+    <EventDetail :initial="initial!" :ticket-checkout-path="`/api/events/${initial!.$id}/checkout`">
       <template #comments="{ event }">
         <CommentSection :target-id="event.$id" target-type="event" :target-url="`/events/${event.$id}`" />
       </template>

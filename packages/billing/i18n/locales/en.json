@@ -1,0 +1,65 @@
+{
+  "billing": {
+    "pricing": {
+      "title": "Pricing",
+      "subtitle": "Fair and transparent — cancel anytime.",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "popular": "Popular",
+      "choose": "Choose plan",
+      "manage": "Manage subscription",
+      "currentPlan": "Your current plan",
+      "included": "Included in your plan",
+      "loginCta": "Sign in to upgrade",
+      "freeFeatures": "All core community features",
+      "alreadyActive": "You already have an active subscription — manage it via the portal.",
+      "checkoutFailed": "Could not start the checkout.",
+      "disabled": "Subscriptions are not enabled here yet."
+    },
+    "account": {
+      "title": "Subscription & billing",
+      "subtitle": "Your plan, invoices and payment method.",
+      "manage": "Manage subscription",
+      "upgrade": "Upgrade",
+      "freeText": "You are on the free plan — the essentials are included.",
+      "renewsAt": "Renews on {date}",
+      "endsAt": "Ends on {date}",
+      "pastDueHint": "Your last payment failed — please update your payment method.",
+      "confirmingTitle": "Confirming your payment …",
+      "confirmingText": "This only takes a moment — the page updates automatically.",
+      "portalFailed": "Could not open the portal."
+    },
+    "admin": {
+      "title": "Subscriptions",
+      "empty": "No subscriptions yet.",
+      "disabled": "maui.billing is not enabled — subscriptions appear here once the app turns the gate on.",
+      "cancelling": "ending",
+      "user": "User"
+    },
+    "status": {
+      "active": "Active",
+      "trialing": "Trialing",
+      "past_due": "Past due",
+      "canceled": "Canceled",
+      "incomplete": "Incomplete",
+      "incomplete_expired": "Expired",
+      "unpaid": "Unpaid",
+      "paused": "Paused"
+    },
+    "plans": {
+      "free": "Free",
+      "pro": "Pro",
+      "proDescription": "For everyone who wants more.",
+      "freeDescription": "The free starting point."
+    },
+    "features": {},
+    "validation": {
+      "planUnknown": "Unknown plan."
+    }
+  },
+  "admin": {
+    "nav": {
+      "billing": "Subscriptions"
+    }
+  }
+}

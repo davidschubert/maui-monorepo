@@ -17,10 +17,27 @@
       "online": "Online"
     },
     "features": {
-      "realtime": { "title": "Echtzeit", "desc": "Kommentare, Votes & Präsenz live — ganz ohne Neuladen." },
-      "themes": { "title": "Themes", "desc": "Farbwelten, Hell-/Dunkelmodus und 9 Neutral-Töne." },
-      "i18n": { "title": "Mehrsprachig", "desc": "Deutsch & Englisch, serverseitig sauber gerendert." },
-      "admin": { "title": "Admin & Auth", "desc": "Dashboard, passwortloser Login und DSGVO-Selfservice." }
+      "realtime": {
+        "title": "Echtzeit",
+        "desc": "Kommentare, Votes & Präsenz live — ganz ohne Neuladen."
+      },
+      "themes": {
+        "title": "Themes",
+        "desc": "Farbwelten, Hell-/Dunkelmodus und 9 Neutral-Töne."
+      },
+      "i18n": {
+        "title": "Mehrsprachig",
+        "desc": "Deutsch & Englisch, serverseitig sauber gerendert."
+      },
+      "admin": {
+        "title": "Admin & Auth",
+        "desc": "Dashboard, passwortloser Login und DSGVO-Selfservice."
+      }
+    }
+  },
+  "billing": {
+    "features": {
+      "paidCourses": "Zugang zu allen kostenpflichtigen Kursen"
     }
   }
 }
