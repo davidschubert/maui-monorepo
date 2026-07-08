@@ -38,6 +38,7 @@ Drei Ebenen, klar getrennt:
 | `events.manage` | Events anlegen/bearbeiten/absagen |
 | `feedback.manage` | Nutzer-Feedback sichten/erledigen/löschen |
 | `billing.manage` | Abo-Übersicht im Dashboard einsehen |
+| `courses.manage` | Kurse/Lektionen anlegen, bearbeiten, publizieren |
 
 ### Rollen → Capabilities
 
@@ -71,6 +72,7 @@ pro Route durch die spezifische Capability ersetzt:
 | `events.manage` | `packages/events`: `events/index.post`, `events/[id].patch`, `events/[id].delete`, `events/manage.get` |
 | `feedback.manage` | `packages/feedback`: `feedback/index.get`, `feedback/[id].patch`, `feedback/[id].delete` |
 | `billing.manage` | `packages/billing`: `billing/admin/subscriptions.get` |
+| `courses.manage` | `packages/courses`: Builder-Routen (`courses`/`lessons` POST/PATCH/DELETE, Reorder, manage.get) |
 
 > `search.get` liefert auch User-Namen — bleibt `dashboard.access` (keine E-Mails/PII
 > in der Antwort prüfen; sonst auf `users.manage` heben).
