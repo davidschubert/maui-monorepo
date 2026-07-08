@@ -102,6 +102,7 @@
     "termsRequired": "Please accept the Terms and Conditions"
   },
   "ui": {
+    "backToHome": "Back to home",
     "save": "Save",
     "cancel": "Cancel",
     "account": "Account",

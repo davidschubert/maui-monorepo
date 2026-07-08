@@ -102,6 +102,7 @@
     "termsRequired": "Bitte akzeptiere die AGB"
   },
   "ui": {
+    "backToHome": "Zurück zur Startseite",
     "save": "Speichern",
     "cancel": "Abbrechen",
     "account": "Account",
