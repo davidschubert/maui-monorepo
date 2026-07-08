@@ -24,7 +24,7 @@ catalog:
   vue: ^3.5.38
   typescript: ^5.9.3
   vitest: ^4.1.8
-  vue-tsc: ^3.3.4
+  vue-tsc: ^3.3.7
   zod: ^4.4.3
   stripe: ^18.0.0
   '@playwright/test': ^1.50.0
