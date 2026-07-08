@@ -18,8 +18,9 @@ function onBodyClick(event: MouseEvent) {
 
 <template>
   <USlideover v-model:open="open" :title="t('feed.title')" :description="t('feed.description')">
-    <UButton color="neutral" variant="ghost" icon="i-ph-pulse" data-testid="feed-link">
-      {{ t('feed.title') }}
+    <UButton color="neutral" variant="ghost" icon="i-ph-pulse" :aria-label="t('feed.title')" data-testid="feed-link">
+      <!-- Header-Trigger: unter md nur Icon, damit schmale Header nicht überlaufen -->
+      <span class="hidden md:inline">{{ t('feed.title') }}</span>
     </UButton>
 
     <template #body>
