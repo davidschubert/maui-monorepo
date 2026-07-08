@@ -1,0 +1,43 @@
+{
+  "feedback": {
+    "cta": "Feedback",
+    "categories": {
+      "idea": "Idea",
+      "bug": "Issue",
+      "other": "Other"
+    },
+    "form": {
+      "title": "What can we do better?",
+      "placeholder": "Your idea, your issue, your thought …",
+      "send": "Send",
+      "cancel": "Cancel",
+      "close": "Close",
+      "thanksTitle": "Thank you!",
+      "thanksText": "Your feedback landed — we will take a look.",
+      "guestHint": "You are sending as a guest — sign in if we may follow up.",
+      "failed": "Could not send your feedback.",
+      "tooMany": "Too many messages — please wait a moment."
+    },
+    "validation": {
+      "categoryInvalid": "Invalid category.",
+      "messageRequired": "Please write a few words.",
+      "messageMax": "Message is too long (max. 2,000 characters)."
+    },
+    "admin": {
+      "title": "Feedback",
+      "open": "Open",
+      "resolved": "Resolved",
+      "empty": "Nothing here — either all done or no feedback yet.",
+      "guest": "Guest",
+      "markResolved": "Resolve",
+      "reopen": "Reopen",
+      "deleted": "Feedback deleted.",
+      "actionFailed": "Action failed."
+    }
+  },
+  "admin": {
+    "nav": {
+      "feedback": "Feedback"
+    }
+  }
+}

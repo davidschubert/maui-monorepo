@@ -7,7 +7,7 @@ import { createConfigForNuxt } from '@nuxt/eslint-config/flat'
 // (Auto-Import, tableId-Strings) fängt das NICHT — die löst Stufe 1 (Verträge).
 // Jeweils Paketname + Subpfade (`/**`) abdecken.
 const pkg = name => [`@maui/${name}`, `@maui/${name}/**`]
-const featureLayers = [...pkg('comments'), ...pkg('admin'), ...pkg('themes'), ...pkg('feed'), ...pkg('posts'), ...pkg('events')]
+const featureLayers = [...pkg('comments'), ...pkg('admin'), ...pkg('themes'), ...pkg('feed'), ...pkg('posts'), ...pkg('events'), ...pkg('feedback')]
 const allMauiFeatures = [...featureLayers, ...pkg('moderation')]
 
 export default createConfigForNuxt({
@@ -44,7 +44,7 @@ export default createConfigForNuxt({
 }).append({
   // Feature-Layer importieren keine ANDEREN Feature-Layer. Fundament
   // (core, künftig moderation) wird per Auto-Import genutzt, nicht via @maui/*.
-  files: ['packages/comments/**', 'packages/admin/**', 'packages/feed/**', 'packages/posts/**', 'packages/events/**'],
+  files: ['packages/comments/**', 'packages/admin/**', 'packages/feed/**', 'packages/posts/**', 'packages/events/**', 'packages/feedback/**'],
   rules: {
     'no-restricted-imports': ['error', {
       patterns: [

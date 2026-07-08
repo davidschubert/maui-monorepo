@@ -39,6 +39,9 @@ const { isLoggedIn } = useCurrentUser()
       </div>
     </footer>
 
+    <!-- Feedback-Widget (feedback-Layer) — schwebt unten links -->
+    <FeedbackButton />
+
     <ConsentCookieBanner />
   </div>
 </template>

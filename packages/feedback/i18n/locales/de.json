@@ -1,0 +1,43 @@
+{
+  "feedback": {
+    "cta": "Feedback",
+    "categories": {
+      "idea": "Idee",
+      "bug": "Problem",
+      "other": "Sonstiges"
+    },
+    "form": {
+      "title": "Was können wir besser machen?",
+      "placeholder": "Deine Idee, dein Problem, dein Gedanke …",
+      "send": "Senden",
+      "cancel": "Abbrechen",
+      "close": "Schließen",
+      "thanksTitle": "Danke dir!",
+      "thanksText": "Dein Feedback ist angekommen — wir schauen es uns an.",
+      "guestHint": "Du sendest als Gast — melde dich an, wenn wir rückfragen dürfen sollen.",
+      "failed": "Feedback konnte nicht gesendet werden.",
+      "tooMany": "Zu viele Nachrichten — bitte kurz warten."
+    },
+    "validation": {
+      "categoryInvalid": "Ungültige Kategorie.",
+      "messageRequired": "Bitte schreib ein paar Worte.",
+      "messageMax": "Nachricht ist zu lang (max. 2.000 Zeichen)."
+    },
+    "admin": {
+      "title": "Feedback",
+      "open": "Offen",
+      "resolved": "Erledigt",
+      "empty": "Nichts da — entweder alles erledigt oder noch kein Feedback.",
+      "guest": "Gast",
+      "markResolved": "Erledigt",
+      "reopen": "Wieder öffnen",
+      "deleted": "Feedback gelöscht.",
+      "actionFailed": "Aktion fehlgeschlagen."
+    }
+  },
+  "admin": {
+    "nav": {
+      "feedback": "Feedback"
+    }
+  }
+}
