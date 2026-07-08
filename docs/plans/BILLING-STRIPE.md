@@ -441,7 +441,23 @@ Billing muss nur noch verbinden:
   durch den echten Checkout-Redirect ersetzen; Refunds v1 im
   Stripe-Dashboard (Status `refunded` in `event_tickets` manuell/Webhook v2).
 
-## 6. Offene Entscheidungen (vor Phase B-0 zu treffen)
+## 6. Offene Entscheidungen — ✅ ALLE ENTSCHIEDEN (David, 2026-07-08)
+
+| # | Punkt | Entscheidung |
+|---|---|---|
+| 1 | Pricing-Modell | **Flat pro User, monatlich + jährlich** (2 Prices pro Plan, Intervall-Umschalter auf der Pricing-Seite); Seats/metered bleiben v2 |
+| 2 | Free-Plan | **Kein Stripe-Objekt** (kein Abo = free, B7) — Empfehlung bestätigt |
+| 3 | Steuern | **Stripe Tax an, B2C** (`automatic_tax: enabled`, Tax-Registrierung im Dashboard); B2B/`tax_id_collection` erst bei Bedarf |
+| 4 | EU-Rechnungen | **Stripe-Invoicing genügt** (+ Pflicht-Rechnungsadresse, `customer_update: auto`) — Empfehlung bestätigt |
+| 5 | past_due | **Zugriff behalten** während Stripe-Dunning; notify() warnt — `getActiveSubscription` zählt past_due als aktiv |
+| 6 | Trial | **Kein Trial** in v1 (free = faktisches Trial); später additiv per Config |
+| 7 | Zahlungsmethoden | **Dynamisch per Dashboard** — Empfehlung bestätigt; SEPA-„Zahlung wird verarbeitet"-Zustand einplanen |
+| 8 | Admin-Umfang | **Read-only + Deep-Link** zum Stripe-Customer — Empfehlung bestätigt |
+| 9 | notify()-Inhalte | **Nur In-App** (vorhandener Vertrag); E-Mail bleibt am Notifications-Backlog |
+
+<details><summary>Ursprüngliche Fragestellungen (Archiv)</summary>
+
+
 
 1. **Pricing-Modell** — v1-Annahme: flat pro User, monatlich + jährlich (2 Prices pro
    Plan, Checkout mit Intervall-Wahl oder zwei CTAs?). Offen: Seats (`quantity`),
@@ -471,6 +487,8 @@ Billing muss nur noch verbinden:
    zum Stripe-Dashboard-Customer (Aktionen dort, weniger sicherheitskritische Fläche).
 9. **notify()-Inhalte** — Zahlungsfehlschlag-Benachrichtigung: nur In-App (vorhandener
    Vertrag) oder zusätzlich E-Mail (hängt am offenen E-Mail-Notifications-Backlog)?
+
+</details>
 
 ---
 
