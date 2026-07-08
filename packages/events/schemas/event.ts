@@ -24,6 +24,8 @@ const fields = (t: TranslateFn) => ({
   url: z.url(t('events.validation.urlInvalid')).max(MAX_EVENT_URL, t('events.validation.urlMax')).nullish(),
   capacity: z.number().int().min(1, t('events.validation.capacityMin'))
     .max(MAX_EVENT_CAPACITY, t('events.validation.capacityMax')).nullish(),
+  locationType: z.enum(['venue', 'online']).nullish(),
+  replayUrl: z.url(t('events.validation.urlInvalid')).max(MAX_EVENT_URL, t('events.validation.urlMax')).nullish(),
 })
 
 /** endAt (falls gesetzt) muss nach startAt liegen — für Create UND Edit */
@@ -56,6 +58,8 @@ export function createEventEditSchema(t: TranslateFn = identity) {
     location: f.location,
     url: f.url,
     capacity: f.capacity,
+    locationType: f.locationType,
+    replayUrl: f.replayUrl,
     status: z.enum(['draft', 'published']).optional(),
   }).refine(endAfterStart, {
     message: t('events.validation.endBeforeStart'),

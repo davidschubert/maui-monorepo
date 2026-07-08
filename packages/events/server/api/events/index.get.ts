@@ -3,15 +3,29 @@ import { EVENTS_TABLE, type EventListResponse, type EventRow, type EventWithRsvp
 
 const PAGE_SIZE = 25
 
+/** Kalender-Monatsansicht: begrenztes Zeitfenster statt Cursor */
+const RANGE_LIMIT = 100
+const MAX_RANGE_MS = 62 * 24 * 3600_000
+
 /**
- * Event-Liste: nur published, Default = kommende (aufsteigend nach startAt),
- * ?past=true = Archiv (absteigend). Öffentlich lesbar (Gäste sehen die Liste —
- * RSVP erst nach Login). myRsvp des eingeloggten Users aus EINEM Query.
+ * Event-Liste: nur published. Zwei Modi:
+ * - Default = kommende (aufsteigend), ?past=true = Archiv (absteigend),
+ *   Cursor-paginiert.
+ * - ?from&to (ISO) = Zeitfenster für die Kalender-Monatsansicht (max. ~2
+ *   Monate, Limit 100, ohne Cursor).
+ * Öffentlich lesbar (Gäste sehen die Liste — RSVP erst nach Login).
+ * myRsvp des eingeloggten Users aus EINEM Query.
  */
 export default defineEventHandler(async (event): Promise<EventListResponse> => {
   const query = getQuery(event)
   const past = query.past === 'true'
   const cursor = query.cursor
+  const from = typeof query.from === 'string' ? Date.parse(query.from) : Number.NaN
+  const to = typeof query.to === 'string' ? Date.parse(query.to) : Number.NaN
+  const range = Number.isFinite(from) && Number.isFinite(to)
+  if (range && (to <= from || to - from > MAX_RANGE_MS)) {
+    throw createError({ status: 400, statusText: 'Invalid range' })
+  }
   const config = useRuntimeConfig(event)
   const { tablesDB } = createSessionClient(event)
   const now = new Date().toISOString()
@@ -21,11 +35,20 @@ export default defineEventHandler(async (event): Promise<EventListResponse> => {
     tableId: EVENTS_TABLE,
     queries: [
       Query.equal('status', 'published'),
-      ...(past
-        ? [Query.lessThan('startAt', now), Query.orderDesc('startAt')]
-        : [Query.greaterThanEqual('startAt', now), Query.orderAsc('startAt')]),
-      Query.limit(PAGE_SIZE),
-      ...(typeof cursor === 'string' && cursor.length > 0 ? [Query.cursorAfter(cursor)] : []),
+      ...(range
+        ? [
+            Query.greaterThanEqual('startAt', new Date(from).toISOString()),
+            Query.lessThan('startAt', new Date(to).toISOString()),
+            Query.orderAsc('startAt'),
+            Query.limit(RANGE_LIMIT),
+          ]
+        : [
+            ...(past
+              ? [Query.lessThan('startAt', now), Query.orderDesc('startAt')]
+              : [Query.greaterThanEqual('startAt', now), Query.orderAsc('startAt')]),
+            Query.limit(PAGE_SIZE),
+            ...(typeof cursor === 'string' && cursor.length > 0 ? [Query.cursorAfter(cursor)] : []),
+          ]),
     ],
   }).catch((error) => {
     // Ungültiger Cursor / abgelaufene Session als 4xx durchreichen, nicht als 500
@@ -42,6 +65,6 @@ export default defineEventHandler(async (event): Promise<EventListResponse> => {
 
   return {
     rows,
-    nextCursor: res.rows.length === PAGE_SIZE ? res.rows.at(-1)!.$id : null,
+    nextCursor: !range && res.rows.length === PAGE_SIZE ? res.rows.at(-1)!.$id : null,
   }
 })

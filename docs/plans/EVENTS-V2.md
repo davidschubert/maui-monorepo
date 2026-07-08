@@ -1,6 +1,6 @@
 # Plan: Events v2 — Kalender, Landing Pages, Live, Replays, Reminder, Paid-Vorbereitung
 
-> Stand: 2026-07-07 · Status: **geplant** · Baut auf `packages/events` (GOALS Phase 22 ✅) auf.
+> Stand: 2026-07-07 · Status: **E1+E2 umgesetzt (GOALS Phase 26 ✅) · E3+E4 offen (Phase 27)** · Baut auf `packages/events` (GOALS Phase 22 ✅) auf.
 > Referenzen: [CONCEPT.md](../CONCEPT.md) (A14), [BILLING-STRIPE.md](BILLING-STRIPE.md)
 > (Phase 23 — der Paid-Andockpunkt), `packages/posts` (Storage-/Moderations-Muster),
 > Vorbild-Idee: Circle.so Events (5 Referenz-Screenshots, §1) — bewusst auf die

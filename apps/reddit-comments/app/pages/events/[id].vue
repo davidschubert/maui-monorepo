@@ -4,11 +4,11 @@
  * dem comments-Layer (targetType 'event') — genau die A14-Komposition, für
  * die beide Layer gebaut sind (die App darf beide kennen, sie sich nicht).
  */
-import type { EventWithRsvp } from '../../../../../packages/events/shared/types/event'
+import type { EventDetailResponse } from '../../../../../packages/events/shared/types/event'
 
 const route = useRoute()
 
-const { data: initial, error } = await useFetch<EventWithRsvp>(`/api/events/${route.params.id}`)
+const { data: initial, error } = await useFetch<EventDetailResponse>(`/api/events/${route.params.id}`)
 if (error.value || !initial.value) {
   throw createError({ status: 404, statusText: 'Event not found' })
 }

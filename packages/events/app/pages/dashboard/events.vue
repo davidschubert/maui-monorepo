@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { createEventSchema } from '../../../schemas/event'
 import type { EventRow } from '../../../shared/types/event'
+import { effectiveLocationType } from '../../../shared/types/event'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'events.manage' })
 
@@ -25,16 +26,62 @@ interface EventForm {
   location: string
   url: string
   capacity: number | null
+  locationType: 'venue' | 'online'
+  replayUrl: string
 }
 
 const emptyForm = (): EventForm => ({
   title: '', description: '', startAt: '', endAt: '', location: '', url: '', capacity: null,
+  locationType: 'venue', replayUrl: '',
 })
 
 const modalOpen = ref(false)
 const editingId = ref<string | null>(null)
+const editingCoverFileId = ref<string | null>(null)
 const form = reactive<EventForm>(emptyForm())
 const saving = ref(false)
+
+// ---- Cover (nur im Bearbeiten-Modus — der Upload braucht die Event-Id) ----
+
+const { coverUrl } = useEventCover()
+const coverBusy = ref(false)
+
+async function uploadCover(input: HTMLInputElement) {
+  const file = input.files?.[0]
+  if (!file || !editingId.value) return
+  coverBusy.value = true
+  try {
+    const body = new FormData()
+    body.append('file', file)
+    const res = await $fetch<{ fileId: string }>(`/api/events/${editingId.value}/cover`, { method: 'POST', body })
+    editingCoverFileId.value = res.fileId
+    toast.add({ title: t('events.admin.coverSaved'), color: 'success' })
+    await refresh()
+  }
+  catch {
+    toast.add({ title: t('events.admin.coverFailed'), color: 'error' })
+  }
+  finally {
+    coverBusy.value = false
+    input.value = ''
+  }
+}
+
+async function removeCover() {
+  if (!editingId.value) return
+  coverBusy.value = true
+  try {
+    await $fetch(`/api/events/${editingId.value}/cover`, { method: 'DELETE' })
+    editingCoverFileId.value = null
+    await refresh()
+  }
+  catch {
+    toast.add({ title: t('events.admin.coverFailed'), color: 'error' })
+  }
+  finally {
+    coverBusy.value = false
+  }
+}
 
 /** ISO → Wert fürs datetime-local-Input (lokale Zeit, Minuten-Präzision) */
 function toLocalInput(iso: string | null): string {
@@ -50,6 +97,7 @@ function toIso(local: string): string | null {
 
 function openCreate() {
   editingId.value = null
+  editingCoverFileId.value = null
   Object.assign(form, emptyForm())
   modalOpen.value = true
 }
@@ -64,7 +112,10 @@ function openEdit(row: EventRow) {
     location: row.location ?? '',
     url: row.url ?? '',
     capacity: row.capacity,
+    locationType: effectiveLocationType(row),
+    replayUrl: row.replayUrl ?? '',
   })
+  editingCoverFileId.value = row.coverFileId
   modalOpen.value = true
 }
 
@@ -77,6 +128,8 @@ async function save() {
     location: form.location.trim() || null,
     url: form.url.trim() || null,
     capacity: form.capacity,
+    locationType: form.locationType,
+    replayUrl: form.replayUrl.trim() || null,
   }
   const parsed = createEventSchema(t).safeParse(payload)
   if (!parsed.success) {
@@ -242,14 +295,71 @@ const statusColor = (row: EventRow) =>
                 <UInput v-model="form.endAt" type="datetime-local" class="w-full" />
               </UFormField>
             </div>
-            <UFormField :label="t('events.admin.form.location')">
+            <UFormField :label="t('events.admin.form.locationType')">
+              <div class="flex gap-1" data-testid="event-form-location-type">
+                <UButton
+                  :color="form.locationType === 'venue' ? 'primary' : 'neutral'"
+                  :variant="form.locationType === 'venue' ? 'soft' : 'ghost'"
+                  size="sm" icon="i-ph-map-pin"
+                  @click="form.locationType = 'venue'"
+                >
+                  {{ t('events.admin.form.venue') }}
+                </UButton>
+                <UButton
+                  :color="form.locationType === 'online' ? 'primary' : 'neutral'"
+                  :variant="form.locationType === 'online' ? 'soft' : 'ghost'"
+                  size="sm" icon="i-ph-video-camera"
+                  @click="form.locationType = 'online'"
+                >
+                  {{ t('events.admin.form.online') }}
+                </UButton>
+              </div>
+            </UFormField>
+            <UFormField v-if="form.locationType === 'venue'" :label="t('events.admin.form.location')">
               <UInput v-model="form.location" class="w-full" :maxlength="255" />
             </UFormField>
-            <UFormField :label="t('events.admin.form.url')">
+            <UFormField
+              :label="t('events.admin.form.url')"
+              :help="form.locationType === 'online' ? t('events.admin.form.urlHelp') : undefined"
+            >
               <UInput v-model="form.url" type="url" class="w-full" :maxlength="500" placeholder="https://" />
+            </UFormField>
+            <UFormField :label="t('events.admin.form.replayUrl')" :help="t('events.admin.form.replayHelp')">
+              <UInput v-model="form.replayUrl" type="url" class="w-full" :maxlength="500" placeholder="https://" />
             </UFormField>
             <UFormField :label="t('events.admin.form.capacity')" :help="t('events.admin.form.capacityHelp')">
               <UInputNumber v-model="form.capacity" :min="1" class="w-full" data-testid="event-form-capacity" />
+            </UFormField>
+
+            <UFormField v-if="editingId" :label="t('events.admin.form.cover')" :help="t('events.admin.form.coverHelp')">
+              <div class="flex items-center gap-3" data-testid="event-form-cover">
+                <img
+                  v-if="editingCoverFileId"
+                  :src="coverUrl(editingCoverFileId)"
+                  alt=""
+                  class="h-12 w-20 rounded object-cover"
+                >
+                <label class="inline-flex">
+                  <input
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.webp"
+                    class="hidden"
+                    data-testid="event-cover-input"
+                    @change="uploadCover($event.target as HTMLInputElement)"
+                  >
+                  <UButton as="span" color="neutral" variant="outline" size="sm" icon="i-ph-upload-simple" :loading="coverBusy">
+                    {{ editingCoverFileId ? t('events.admin.form.coverReplace') : t('events.admin.form.coverUpload') }}
+                  </UButton>
+                </label>
+                <UButton
+                  v-if="editingCoverFileId"
+                  color="error" variant="ghost" size="sm" icon="i-ph-trash"
+                  :disabled="coverBusy"
+                  @click="removeCover"
+                >
+                  {{ t('events.admin.form.coverRemove') }}
+                </UButton>
+              </div>
             </UFormField>
 
             <div class="flex justify-end gap-2 pt-2">

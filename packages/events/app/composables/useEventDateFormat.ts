@@ -20,8 +20,13 @@ export function useEventDateFormat() {
     hour: '2-digit', minute: '2-digit',
   }).format(new Date(iso))
 
+  /** Kurz-Monat für Datum-Blöcke (AUG/MÄR) — locale-stabil, kein Hydration-Drift */
+  const formatMonthShort = (iso: string) => new Intl.DateTimeFormat(language.value, {
+    month: 'short',
+  }).format(new Date(iso))
+
   /** gleicher Kalendertag? → Ende nur als Uhrzeit anzeigen */
   const sameDay = (a: string, b: string) => new Date(a).toDateString() === new Date(b).toDateString()
 
-  return { formatDateTime, formatTime, sameDay }
+  return { formatDateTime, formatTime, formatMonthShort, sameDay }
 }

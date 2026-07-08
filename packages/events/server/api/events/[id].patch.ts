@@ -45,7 +45,13 @@ export default defineEventHandler(async (event) => {
   if (body.location !== undefined) data.location = body.location
   if (body.url !== undefined) data.url = body.url
   if (body.capacity !== undefined) data.capacity = body.capacity
+  if (body.locationType !== undefined) data.locationType = body.locationType
+  if (body.replayUrl !== undefined) data.replayUrl = body.replayUrl
   if (body.status !== undefined) data.status = body.status
+
+  // Replay-Announce nur beim ERSTEN Setzen auf einem sichtbaren Event
+  const replayPublishing = typeof body.replayUrl === 'string' && body.replayUrl.length > 0
+    && !row.replayUrl && (row.status === 'published' || publishing)
 
   const updated = await admin.tablesDB.updateRow<EventRow>({
     databaseId,
@@ -64,6 +70,18 @@ export default defineEventHandler(async (event) => {
       actorId: user.$id,
       actorName: user.name,
       type: 'event.published',
+      objectType: 'event',
+      objectId: updated.$id,
+      link: `/events/${updated.$id}`,
+      metadata: { title: updated.title },
+    })
+  }
+
+  if (replayPublishing) {
+    await recordActivity(event, {
+      actorId: user.$id,
+      actorName: user.name,
+      type: 'event.replay_published',
       objectType: 'event',
       objectId: updated.$id,
       link: `/events/${updated.$id}`,

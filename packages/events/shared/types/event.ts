@@ -16,13 +16,18 @@ export const MAX_EVENT_LOCATION = 255
 export const MAX_EVENT_URL = 500
 export const MAX_EVENT_CAPACITY = 100_000
 
+/** Ortstyp — null (Bestandsrows) wird zur Laufzeit abgeleitet: url gesetzt → online */
+export type EventLocationType = 'venue' | 'online'
+
+export const MAX_EVENT_COVER_BYTES = 2 * 1024 * 1024
+
 export interface EventRow extends Models.Row {
   title: string
   description: string
   startAt: string
   endAt: string | null
   location: string | null
-  /** externe Event-URL (Meeting-Link o. Ä.) — kein Live-Streaming (v1) */
+  /** Join-Link (Meet/Jitsi/Twitch/… — provider-agnostisch); kein Video-Hosting */
   url: string | null
   /** max. Plätze (nur 'going' zählt) — null = unbegrenzt */
   capacity: number | null
@@ -31,6 +36,16 @@ export interface EventRow extends Models.Row {
   status: EventStatus
   organizerId: string
   organizerName: string
+  /** Cover im Bucket event-covers (Migration 002) — null = Theme-Fallback */
+  coverFileId: string | null
+  locationType: EventLocationType | null
+  /** Aufzeichnung nach dem Event — Archiv zeigt „Replay ansehen" */
+  replayUrl: string | null
+}
+
+/** effektiver Ortstyp inkl. Ableitung für Bestandsrows (locationType null) */
+export function effectiveLocationType(row: Pick<EventRow, 'locationType' | 'url'>): EventLocationType {
+  return row.locationType ?? (row.url ? 'online' : 'venue')
 }
 
 export interface EventRsvpRow extends Models.Row {
@@ -43,6 +58,12 @@ export interface EventRsvpRow extends Models.Row {
 export interface EventWithRsvp extends EventRow {
   /** eigene RSVP des eingeloggten Users (null = keine / Gast) */
   myRsvp: RsvpStatus | null
+}
+
+/** Detail-Anreicherung: Vorschau der Zusager (Avatar-Stack, Top-N) */
+export interface EventDetailResponse extends EventWithRsvp {
+  attendeePreview: Array<{ userId: string, avatarUrl: string | null }>
+  organizerAvatarUrl: string | null
 }
 
 export interface EventListResponse {

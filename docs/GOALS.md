@@ -1383,7 +1383,28 @@ Maximal 60 Turns.
 
 ---
 
-## Phase 26 – Events v2 Teil A: Bühne, Kalender, Live & Replays
+## Phase 26 – Events v2 Teil A: Bühne, Kalender, Live & Replays ✅ (abgeschlossen 2026-07-07)
+
+> ✅ **Erledigt am 2026-07-07.** Wie geplant (E1+E2): Migration 002 (additiv:
+> coverFileId/locationType/replayUrl + Bucket event-covers, 2× = idempotent);
+> Cover-Upload mit Magic-Bytes (Fake-PNG → 415, labellos → 403), Ersetzen
+> räumt die Alt-Datei ab, DELETE-Route; Landing Page mit Cover/Theme-Fallback
+> (Datum-Block), Countdown-Pill (ClientOnly — Relativ-Text tickt),
+> Host-Avatar, Avatar-Stack (Top-5 going via resolveAvatars, EIN
+> users-Query), Knappheits-Label (Rest ≤ 3), Share (navigator.share/
+> Clipboard); /events mit Monats-Gruppierung + Kalender-Monatsansicht
+> (Range-Query ?from&to max ~2 Monate, mehrtägig = Pill je LOKALEM Tag —
+> browser-verifiziert: 3-Tage-Event auf 4 lokalen Tagen, Einzel-Event auf
+> seinem Tag); locationType venue/online (Ableitung für Bestandsrows),
+> Join-live T−15min→Ende NUR für Zusager (eingeloggt sichtbar mit
+> Jitsi-Link, Gast-SSR 0 Treffer), Provider-Erkennung host-genau
+> (Suffix-Spoofing-Test), Embed-Gegenprobe 0 iframes; replayUrl mit
+> Archiv-/Card-Badge + event.replay_published im Feed (verifiziert).
+> typecheck/lint/test (21 im Layer) + E2E grün. KLARSTELLUNG zur
+> i18n-Probe: ohne i18n_redirected-Cookie rendert auch /de/* englisch
+> (redirectOn 'all', CLAUDE.md) — Nachweise MIT Cookie sind deutsch;
+> der „Archiv"-Match aus Phase 22 war ein Substring-Fehlschluss
+> („Archive" enthält „Archiv").
 
 > Exekutiert [docs/plans/EVENTS-V2.md](plans/EVENTS-V2.md) **E1+E2** — der Plan
 > enthält die Referenz-Analyse (Circle.so), alle Leitplanken-Entscheidungen

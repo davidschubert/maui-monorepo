@@ -32,6 +32,9 @@ export default defineEventHandler(async (event) => {
       status,
       organizerId: user.$id,
       organizerName: user.name,
+      locationType: body.locationType ?? null,
+      replayUrl: body.replayUrl ?? null,
+      coverFileId: null,
     },
     // Schreiben bleibt Server-Sache — Rows tragen nur Leserechte
     permissions: status === 'published' ? [EVENT_READ_ANY] : [],

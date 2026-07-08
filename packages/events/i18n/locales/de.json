@@ -7,20 +7,32 @@
       "past": "Archiv",
       "empty": "Aktuell sind keine Events geplant.",
       "pastEmpty": "Noch keine vergangenen Events.",
-      "loadMore": "Mehr laden"
+      "loadMore": "Mehr laden",
+      "viewList": "Listenansicht",
+      "viewCalendar": "Kalenderansicht"
     },
     "card": {
       "cancelled": "Abgesagt",
       "full": "Ausgebucht",
       "attendees": "{count} Zusagen",
-      "attendeesOfCapacity": "{count} von {capacity} Plätzen"
+      "attendeesOfCapacity": "{count} von {capacity} Plätzen",
+      "replay": "Replay"
     },
     "detail": {
       "cancelled": "Dieses Event wurde abgesagt.",
       "organizer": "Organisiert von {name}",
       "ics": "Zum Kalender hinzufügen",
       "link": "Event-Link öffnen",
-      "viewers": "{count} sehen dieses Event"
+      "viewers": "{count} sehen dieses Event",
+      "startsIn": "Beginnt {when}",
+      "online": "Online",
+      "share": "Teilen",
+      "linkCopied": "Link kopiert.",
+      "shareFailed": "Teilen fehlgeschlagen.",
+      "spotsLeft": "Nur noch {count} Plätze!",
+      "joinLive": "Jetzt teilnehmen",
+      "replay": "Replay ansehen",
+      "attendee": "Teilnehmer"
     },
     "rsvp": {
       "going": "Zusagen",
@@ -66,8 +78,21 @@
         "capacity": "Kapazität (optional)",
         "capacityHelp": "Maximale Zusagen — leer lassen für unbegrenzt.",
         "save": "Speichern",
-        "cancel": "Abbrechen"
-      }
+        "cancel": "Abbrechen",
+        "locationType": "Art des Events",
+        "venue": "Vor Ort",
+        "online": "Online",
+        "urlHelp": "Link von Google Meet, Jitsi, Twitch, YouTube, OwnCast oder LinkedIn Live einfügen — jede URL funktioniert.",
+        "replayUrl": "Replay-Link (optional)",
+        "replayHelp": "Nach dem Event setzen — erscheint als „Replay ansehen“ im Archiv.",
+        "cover": "Cover",
+        "coverHelp": "JPEG, PNG oder WebP, max. 2 MB. Ohne Cover rendert eine Theme-Farbfläche.",
+        "coverUpload": "Cover hochladen",
+        "coverReplace": "Cover ersetzen",
+        "coverRemove": "Entfernen"
+      },
+      "coverSaved": "Cover gespeichert.",
+      "coverFailed": "Cover konnte nicht gespeichert werden."
     },
     "validation": {
       "titleRequired": "Titel angeben.",
@@ -82,6 +107,11 @@
       "capacityMin": "Kapazität muss mindestens 1 sein.",
       "capacityMax": "Kapazität ist zu groß.",
       "rsvpInvalid": "Ungültiger RSVP-Status."
+    },
+    "calendar": {
+      "prev": "Voriger Monat",
+      "next": "Nächster Monat",
+      "today": "Heute"
     }
   },
   "admin": {
@@ -93,7 +123,8 @@
     "types": {
       "event": {
         "published": "{name} hat ein Event veröffentlicht",
-        "rsvp": "{name} hat einem Event zugesagt"
+        "rsvp": "{name} hat einem Event zugesagt",
+        "replay_published": "{name} hat ein Replay veröffentlicht"
       }
     }
   }
