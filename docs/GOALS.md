@@ -1212,7 +1212,30 @@ einbauen (kommt als App-Komposition in Phase 24); Secrets nur in
 
 ---
 
-## Phase 24 – packages/courses (Async Course Builder / LMS v1)
+## Phase 24 – packages/courses (Async Course Builder / LMS v1) ✅ (abgeschlossen 2026-07-08)
+
+> ✅ **Erledigt am 2026-07-08.** Wie geplant: Layer mit Migration 001 (courses/
+> lessons/enrollments/lesson_progress, Unique slug + course_user + lesson_user,
+> 2× = idempotent); Learner-Routen (Galerie mit enrolled-Flag aus EINEM Query,
+> Detail per Slug mit Titel-Liste + Fortschritt, Lektions-CONTENT erst nach
+> Enrollment+Access, complete mit server-autoritativem completedAt — drafts
+> zählen nicht), Builder-Routen (courses.manage: CRUD, Publish mit read(users)
+> + recordActivity, Lessons CRUD + Reorder, lessonCount-Recount); Access-
+> Vertrag registerCourseAccessGuard (fail-closed 403) — die APP verdrahtet
+> ihn mit billings getEntitledFeatures (entitlementFeature 'paidCourses');
+> LessonView (Markdown-Core-Sink, Video-Link, Prev/Next, Fortschrittsbalken,
+> #comments-Slot — App füllt CommentSection targetType 'lesson');
+> useEditAwareness dafür aus admin in den CORE gehoben; GDPR-Contributor.
+> Nachweise: Kurs + 3 Lektionen (1 draft) → lessonCount 2; Gast 401,
+> labellos POST/dashboard 403; Content vor Enrollment 403, danach 200;
+> complete 2/2 → courseCompleted + completedAt (draft zählt nicht); XSS
+> escaped im SSR; CommentSection im Lektions-SSR; Feed course.published +
+> course.completed; PAID-BEWEIS über die ECHTE Billing-Verdrahtung: Ben
+> (free) enroll 403, Uma (Pro-Abo) 201; GDPR-Export enrollments;
+> typecheck/lint/test grün. ABWEICHUNGEN: content max 15.000 statt 50.000
+> (MariaDB/utf8mb4-Zeilenbudget, column_limit_exceeded); Guard-loser
+> fail-closed-Zweig per Ben-403 + Code belegt (Playground komponiert
+> courses nicht).
 
 > Der monetarisierbare Endpunkt des Arcs — konsumiert alle drei
 > Vorstufen: Lektions-Diskussion = CommentSection (targetType

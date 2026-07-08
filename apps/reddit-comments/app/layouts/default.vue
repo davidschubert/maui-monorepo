@@ -18,6 +18,9 @@ const { isLoggedIn } = useCurrentUser()
           <UButton :to="localePath('/events')" color="neutral" variant="ghost" icon="i-ph-calendar-dots" data-testid="events-link">
             {{ t('events.list.title') }}
           </UButton>
+          <UButton v-if="isLoggedIn" :to="localePath('/courses')" color="neutral" variant="ghost" icon="i-ph-graduation-cap" data-testid="courses-link">
+            {{ t('courses.list.title') }}
+          </UButton>
           <FeedSlideover v-if="isLoggedIn" />
           <WhatsNewButton />
           <DisplaySettingsMenu />

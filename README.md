@@ -191,6 +191,8 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 
 | 56 | **Feedback-Widget + GOALS-Phase 23: `packages/billing` (Stripe)** — Feedback-Button unten links (Popup, Gäste + Rate-Limit, Admin-Sichtung, `feedback.manage`); Billing komplett implementiert (hosted Checkout/Portal, Webhook mit Signatur/Allowlist/Stale-Guard, Entitlements + `useBilling` mit Realtime, Pricing/Account/Admin-UI, GDPR) inkl. **Events-Ticket-Verbindung** (`registerCheckoutFulfillment` → `grantEventTicket`, Kauf-CTA aktiv) — lokal voll bewiesen (Tampering 400, Signatur 400, Row-Security, simulierte Subscription → entitled); Live-Stripe-Matrix wartet auf den `sk_test`-Key | ⚙️ 2026-07-08 |
 
+| 57 | **GOALS-Phase 24: `packages/courses` (LMS v1)** — Markdown-Lektionen (Core-Sink, XSS-sicher), Enrollment + Fortschritt mit server-autoritativem Abschluss, Kurs-Galerie/Übersicht/LessonView (Prev/Next, Fortschrittsbalken, `#comments`-Slot), Builder mit Lektionen-CRUD/Reorder/Edit-Awareness (`useEditAwareness` → Core); Zugang free/members/**paid** über `registerCourseAccessGuard` — die App verdrahtet **echte Billing-Entitlements** (bewiesen: Free-User 403, Pro-Abo 201); `recordActivity` course.published/completed; GDPR | ✅ 2026-07-08 |
+
 Details und Nachweis-Kriterien pro Phase: [docs/GOALS.md](docs/GOALS.md) · Upgrade-Plan: [docs/APPWRITE-1.9.5-UPGRADE.md](docs/APPWRITE-1.9.5-UPGRADE.md) · Offene Punkte: [docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md)
 
 ## Konventionen

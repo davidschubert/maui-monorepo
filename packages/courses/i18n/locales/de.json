@@ -1,0 +1,104 @@
+{
+  "courses": {
+    "list": {
+      "title": "Kurse",
+      "description": "Lerne in deinem Tempo — Lektion für Lektion.",
+      "empty": "Noch keine Kurse veröffentlicht.",
+      "lessons": "{count} Lektionen",
+      "enrolled": "Eingeschrieben"
+    },
+    "access": {
+      "free": "Kostenlos",
+      "members": "Mitglieder",
+      "paid": "Pro"
+    },
+    "status": {
+      "draft": "Entwurf",
+      "published": "Veröffentlicht",
+      "archived": "Archiviert"
+    },
+    "detail": {
+      "back": "Alle Kurse",
+      "by": "von {name}",
+      "enrollHint": "Schreib dich ein, um alle Lektionen freizuschalten.",
+      "enroll": "Einschreiben",
+      "enrollPaid": "Mit Pro freischalten",
+      "enrolled": "Eingeschrieben — viel Erfolg!",
+      "enrollFailed": "Einschreiben fehlgeschlagen.",
+      "upgradeTitle": "Dieser Kurs gehört zu Pro",
+      "upgradeText": "Mit einem Pro-Abo schaltest du alle kostenpflichtigen Kurse frei.",
+      "upgradeCta": "Pläne ansehen",
+      "progress": "{done} von {total} Lektionen ({percent} %)",
+      "completed": "Abgeschlossen 🎉",
+      "lessonsTitle": "Lektionen ({count})",
+      "noLessons": "Noch keine Lektionen."
+    },
+    "lesson": {
+      "video": "Video ansehen",
+      "complete": "Lektion abschließen",
+      "doneBadge": "Abgeschlossen",
+      "done": "Lektion abgeschlossen!",
+      "courseDone": "Kurs abgeschlossen — stark! 🎉",
+      "failed": "Konnte den Fortschritt nicht speichern."
+    },
+    "admin": {
+      "title": "Kurse",
+      "create": "Neuer Kurs",
+      "createTitle": "Kurs anlegen",
+      "edit": "Bearbeiten",
+      "empty": "Noch keine Kurse — leg den ersten an.",
+      "backToList": "Alle Kurse",
+      "publish": "Veröffentlichen",
+      "unpublish": "Zurückziehen",
+      "archive": "Archivieren",
+      "created": "Kurs angelegt.",
+      "saved": "Gespeichert.",
+      "saveFailed": "Speichern fehlgeschlagen.",
+      "slugTaken": "Dieser Slug ist schon vergeben.",
+      "lessonsTitle": "Lektionen ({count})",
+      "addLesson": "Lektion hinzufügen",
+      "editLesson": "Lektion bearbeiten",
+      "noLessons": "Noch keine Lektionen — fang mit der ersten an.",
+      "editingWarning": "{name} bearbeitet diesen Kurs gerade ebenfalls.",
+      "form": {
+        "title": "Titel",
+        "slug": "Slug",
+        "slugHelp": "URL-Teil: kleinbuchstaben-mit-bindestrichen.",
+        "description": "Beschreibung",
+        "access": "Zugang",
+        "entitlement": "Entitlement-Feature",
+        "entitlementHelp": "Feature-String aus dem Abo-Plan (z. B. paidCourses) — der App-Guard prüft ihn.",
+        "content": "Inhalt (Markdown)",
+        "markdownHelp": "Markdown wird unterstützt — **fett**, Listen, Links.",
+        "videoUrl": "Video-URL (optional)",
+        "videoHelp": "Externer Link (YouTube, Vimeo, …) — kein Video-Hosting.",
+        "save": "Speichern"
+      }
+    },
+    "validation": {
+      "titleRequired": "Titel angeben.",
+      "titleMax": "Titel ist zu lang.",
+      "slugInvalid": "Slug: 3–100 Zeichen, nur a–z, 0–9 und Bindestriche.",
+      "descriptionRequired": "Beschreibung angeben.",
+      "descriptionMax": "Beschreibung ist zu lang.",
+      "contentRequired": "Inhalt angeben.",
+      "contentMax": "Inhalt ist zu lang (max. 15.000 Zeichen).",
+      "urlInvalid": "Keine gültige URL.",
+      "paidNeedsFeature": "Pro-Kurse brauchen ein Entitlement-Feature.",
+      "orderRequired": "Reihenfolge fehlt."
+    }
+  },
+  "admin": {
+    "nav": {
+      "courses": "Kurse"
+    }
+  },
+  "feed": {
+    "types": {
+      "course": {
+        "published": "{name} hat einen Kurs veröffentlicht",
+        "completed": "{name} hat einen Kurs abgeschlossen"
+      }
+    }
+  }
+}

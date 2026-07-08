@@ -19,6 +19,7 @@
     "@iconify-json/ph": "catalog:",
     "@maui/admin": "workspace:*",
     "@maui/comments": "workspace:*",
+    "@maui/courses": "workspace:*",
     "@maui/core": "workspace:*",
     "@maui/events": "workspace:*",
     "@maui/billing": "workspace:*",

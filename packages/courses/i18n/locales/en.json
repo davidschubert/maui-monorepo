@@ -1,0 +1,104 @@
+{
+  "courses": {
+    "list": {
+      "title": "Courses",
+      "description": "Learn at your own pace — lesson by lesson.",
+      "empty": "No courses published yet.",
+      "lessons": "{count} lessons",
+      "enrolled": "Enrolled"
+    },
+    "access": {
+      "free": "Free",
+      "members": "Members",
+      "paid": "Pro"
+    },
+    "status": {
+      "draft": "Draft",
+      "published": "Published",
+      "archived": "Archived"
+    },
+    "detail": {
+      "back": "All courses",
+      "by": "by {name}",
+      "enrollHint": "Enroll to unlock all lessons.",
+      "enroll": "Enroll",
+      "enrollPaid": "Unlock with Pro",
+      "enrolled": "Enrolled — good luck!",
+      "enrollFailed": "Could not enroll.",
+      "upgradeTitle": "This course is part of Pro",
+      "upgradeText": "A Pro subscription unlocks all paid courses.",
+      "upgradeCta": "See plans",
+      "progress": "{done} of {total} lessons ({percent}%)",
+      "completed": "Completed 🎉",
+      "lessonsTitle": "Lessons ({count})",
+      "noLessons": "No lessons yet."
+    },
+    "lesson": {
+      "video": "Watch video",
+      "complete": "Complete lesson",
+      "doneBadge": "Completed",
+      "done": "Lesson completed!",
+      "courseDone": "Course completed — well done! 🎉",
+      "failed": "Could not save your progress."
+    },
+    "admin": {
+      "title": "Courses",
+      "create": "New course",
+      "createTitle": "Create course",
+      "edit": "Edit",
+      "empty": "No courses yet — create the first one.",
+      "backToList": "All courses",
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "archive": "Archive",
+      "created": "Course created.",
+      "saved": "Saved.",
+      "saveFailed": "Could not save.",
+      "slugTaken": "This slug is already taken.",
+      "lessonsTitle": "Lessons ({count})",
+      "addLesson": "Add lesson",
+      "editLesson": "Edit lesson",
+      "noLessons": "No lessons yet — start with the first one.",
+      "editingWarning": "{name} is editing this course right now, too.",
+      "form": {
+        "title": "Title",
+        "slug": "Slug",
+        "slugHelp": "URL part: lowercase-with-dashes.",
+        "description": "Description",
+        "access": "Access",
+        "entitlement": "Entitlement feature",
+        "entitlementHelp": "Feature string from the subscription plan (e.g. paidCourses) — checked by the app guard.",
+        "content": "Content (Markdown)",
+        "markdownHelp": "Markdown is supported — **bold**, lists, links.",
+        "videoUrl": "Video URL (optional)",
+        "videoHelp": "External link (YouTube, Vimeo, …) — no video hosting.",
+        "save": "Save"
+      }
+    },
+    "validation": {
+      "titleRequired": "Please add a title.",
+      "titleMax": "Title is too long.",
+      "slugInvalid": "Slug: 3–100 chars, only a–z, 0–9 and dashes.",
+      "descriptionRequired": "Please add a description.",
+      "descriptionMax": "Description is too long.",
+      "contentRequired": "Please add content.",
+      "contentMax": "Content is too long (max. 15,000 characters).",
+      "urlInvalid": "Not a valid URL.",
+      "paidNeedsFeature": "Paid courses need an entitlement feature.",
+      "orderRequired": "Missing order."
+    }
+  },
+  "admin": {
+    "nav": {
+      "courses": "Courses"
+    }
+  },
+  "feed": {
+    "types": {
+      "course": {
+        "published": "{name} published a course",
+        "completed": "{name} completed a course"
+      }
+    }
+  }
+}
