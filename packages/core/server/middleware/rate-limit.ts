@@ -66,6 +66,8 @@ const WRITE_LIMITED: { re: RegExp, bucket: string, max?: number }[] = [
   // Client-Error-Inbox (Observability-Gate): der Client dedupliziert/kappt
   // selbst (10/Session) — das Limit hier stoppt Scripting/kaputte Clients.
   { re: /^POST \/api\/telemetry\/error$/, bucket: 'telemetry:error', max: 30 },
+  // Feedback-Widget: auch Gäste dürfen senden → enges Budget gegen Spam
+  { re: /^POST \/api\/feedback$/, bucket: 'feedback:create', max: 5 },
 ]
 
 export default defineEventHandler((event) => {

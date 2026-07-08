@@ -20,6 +20,7 @@ export const ALL_CAPABILITIES: readonly Capability[] = [
   'feed.manage',
   'posts.moderate',
   'events.manage',
+  'feedback.manage',
 ]
 
 /** Alle zuweisbaren Rollen. */
