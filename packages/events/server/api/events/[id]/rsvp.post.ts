@@ -56,6 +56,10 @@ export default defineEventHandler(async (event): Promise<RsvpResponse> => {
     myRsvp = null
   }
   else if (target === 'going') {
+    // Paid-Gate (E4): Übergang ZU going braucht auf paid-Events ein Ticket —
+    // ohne registrierten Guard fail-closed 403 (EVENTS-V2 §5)
+    await assertCanRsvpGoing(event, row, user.$id)
+
     // Kapazitäts-Check VOR dem Upsert — der Vor-Check liefert das saubere
     // 409, das atomare increment(max) hält auch parallele Requests dicht.
     if (row.capacity !== null && row.attendeeCount >= row.capacity) {

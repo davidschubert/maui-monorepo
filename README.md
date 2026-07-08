@@ -183,6 +183,8 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 
 | 52 | **Events-Feinschliff nach Review** (Meetup.com als Leitplanke, [Plan §7b](docs/plans/EVENTS-V2.md)): vertikale Card im Grid (Datums-**Spanne** + „Mehrtägig"-Badge, Online/Vor-Ort, „Kostenlos"-Badge), Detailseite zweispaltig mit Zurück-Link + sticky Info-Karte, Beschreibung als Markdown (Listen/fett, ContentClamp „Mehr/Weniger"), Adresse → Google-Maps-Link „So findest du uns" + Anfahrtshinweise, Up-/Downvotes (`event_votes`, Migration 003), Teilnehmerliste mit Namen **nur eingeloggt** (Gäste: Anzahl + Blur), Titel-Suche (Fulltext), Melden via moderation-Vertrag (`targetType 'event'`); Kategorien bewusst abgelehnt | ✅ 2026-07-07 |
 
+| 53 | **GOALS-Phase 27: Events v2 Teil B** — Reminder ohne Cron (on-read-Sweep 24 h vor Start → `notify()` an Zusager, Bell-Typ `reminder`, idempotent über `remindersSentAt`; `POST /api/events/reminder-sweep` als scheduled-Function-Andockpunkt, key-geschützt) + **Paid Events vollständig vorbereitet**: `event_tickets` im Endschema, Vertrag `registerEventTicketGuard`/`grantEventTicket` (fail-closed 403, App-Guard = Ticket-Check verdrahtet), Preis-Badge + „Ticket kaufen (bald verfügbar)", Admin-Access-Toggle — Phase 23 verbindet nur noch Checkout + Webhook ([Andockpunkt](docs/plans/BILLING-STRIPE.md)) | ✅ 2026-07-08 |
+
 Details und Nachweis-Kriterien pro Phase: [docs/GOALS.md](docs/GOALS.md) · Upgrade-Plan: [docs/APPWRITE-1.9.5-UPGRADE.md](docs/APPWRITE-1.9.5-UPGRADE.md) · Offene Punkte: [docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md)
 
 ## Konventionen

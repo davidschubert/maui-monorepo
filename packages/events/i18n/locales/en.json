@@ -23,7 +23,8 @@
       "multiDay": "Multi-day",
       "online": "Online",
       "inPerson": "In person",
-      "by": "by {name}"
+      "by": "by {name}",
+      "paid": "Paid"
     },
     "detail": {
       "cancelled": "This event has been cancelled.",
@@ -59,7 +60,8 @@
         "going": "Going",
         "maybe": "Maybe",
         "declined": "Declined"
-      }
+      },
+      "ticketRequired": "This event requires a ticket."
     },
     "admin": {
       "title": "Events",
@@ -108,7 +110,12 @@
         "address": "Address (optional)",
         "addressHelp": "Full address — linked as a Google Maps link (“How to find us”).",
         "locationNotes": "Directions / extra notes (optional)",
-        "locationNotesHelp": "If the venue is hard to find — shown on the event page."
+        "locationNotesHelp": "If the venue is hard to find — shown on the event page.",
+        "access": "Access",
+        "accessHelp": "Paid events require a ticket — checkout arrives with the Stripe integration (phase 23).",
+        "priceEur": "Price (EUR, display)",
+        "priceLookupKey": "Stripe lookup_key",
+        "priceLookupKeyHelp": "Reference to the Stripe price — the amount there is the source of truth."
       },
       "coverSaved": "Cover saved.",
       "coverFailed": "Could not save the cover."
@@ -127,7 +134,8 @@
       "capacityMax": "Capacity is too large.",
       "rsvpInvalid": "Invalid RSVP status.",
       "notesMax": "Notes are too long (max. 1,000 characters).",
-      "voteInvalid": "Invalid vote."
+      "voteInvalid": "Invalid vote.",
+      "paidNeedsLookupKey": "Paid events need a Stripe lookup_key."
     },
     "calendar": {
       "prev": "Previous month",
@@ -150,6 +158,10 @@
         "offtopic": "Off topic",
         "other": "Other reason"
       }
+    },
+    "ticket": {
+      "buy": "Purchase ticket",
+      "soon": "Coming soon"
     }
   },
   "admin": {

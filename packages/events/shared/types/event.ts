@@ -3,6 +3,7 @@ import type { Models } from 'node-appwrite'
 export const EVENTS_TABLE = 'events'
 export const EVENT_RSVPS_TABLE = 'event_rsvps'
 export const EVENT_VOTES_TABLE = 'event_votes'
+export const EVENT_TICKETS_TABLE = 'event_tickets'
 
 /** draft = nur Verwaltung sichtbar · cancelled = Soft-Cancel (Row bleibt, sichtbar) */
 export type EventStatus = 'draft' | 'published' | 'cancelled'
@@ -50,6 +51,31 @@ export interface EventRow extends Models.Row {
   upvotes: number
   downvotes: number
   score: number
+  /** Idempotenz-Flag des Reminder-Sweeps (E3) — gesetzt = erinnert */
+  remindersSentAt: string | null
+  /** null = 'free' (Bestandsrows); 'paid' braucht priceLookupKey */
+  access: EventAccess | null
+  /** Cent-Betrag, NUR Anzeige — die Preis-Wahrheit lebt in Stripe */
+  priceAmount: number | null
+  /** Stripe-Price-Referenz (lookup_key, Muster BILLING-STRIPE B5) */
+  priceLookupKey: string | null
+}
+
+export type EventAccess = 'free' | 'paid'
+
+/** effektiver Zugang inkl. Ableitung für Bestandsrows (access null) */
+export function effectiveAccess(row: Pick<EventRow, 'access'>): EventAccess {
+  return row.access ?? 'free'
+}
+
+export type EventTicketStatus = 'paid' | 'refunded'
+
+export interface EventTicketRow extends Models.Row {
+  eventId: string
+  userId: string
+  status: EventTicketStatus
+  stripeSessionId: string | null
+  amount: number | null
 }
 
 export type EventVoteValue = 1 | -1

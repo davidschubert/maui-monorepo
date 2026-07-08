@@ -30,11 +30,16 @@ interface EventForm {
   replayUrl: string
   address: string
   locationNotes: string
+  access: 'free' | 'paid'
+  /** Anzeige-Preis in EUR (Formular) — gespeichert werden Cent */
+  priceEur: number | null
+  priceLookupKey: string
 }
 
 const emptyForm = (): EventForm => ({
   title: '', description: '', startAt: '', endAt: '', location: '', url: '', capacity: null,
   locationType: 'venue', replayUrl: '', address: '', locationNotes: '',
+  access: 'free', priceEur: null, priceLookupKey: '',
 })
 
 const modalOpen = ref(false)
@@ -118,6 +123,9 @@ function openEdit(row: EventRow) {
     replayUrl: row.replayUrl ?? '',
     address: row.address ?? '',
     locationNotes: row.locationNotes ?? '',
+    access: row.access ?? 'free',
+    priceEur: row.priceAmount !== null ? row.priceAmount / 100 : null,
+    priceLookupKey: row.priceLookupKey ?? '',
   })
   editingCoverFileId.value = row.coverFileId
   modalOpen.value = true
@@ -136,6 +144,9 @@ async function save() {
     replayUrl: form.replayUrl.trim() || null,
     address: form.address.trim() || null,
     locationNotes: form.locationNotes.trim() || null,
+    access: form.access,
+    priceAmount: form.access === 'paid' && form.priceEur !== null ? Math.round(form.priceEur * 100) : null,
+    priceLookupKey: form.access === 'paid' ? (form.priceLookupKey.trim() || null) : null,
   }
   const parsed = createEventSchema(t).safeParse(payload)
   if (!parsed.success) {
@@ -350,6 +361,35 @@ const statusColor = (row: EventRow) =>
             <UFormField :label="t('events.admin.form.capacity')" :help="t('events.admin.form.capacityHelp')">
               <UInputNumber v-model="form.capacity" :min="1" class="w-full" data-testid="event-form-capacity" />
             </UFormField>
+
+            <UFormField :label="t('events.admin.form.access')" :help="t('events.admin.form.accessHelp')">
+              <div class="flex gap-1" data-testid="event-form-access">
+                <UButton
+                  :color="form.access === 'free' ? 'primary' : 'neutral'"
+                  :variant="form.access === 'free' ? 'soft' : 'ghost'"
+                  size="sm"
+                  @click="form.access = 'free'"
+                >
+                  {{ t('events.card.free') }}
+                </UButton>
+                <UButton
+                  :color="form.access === 'paid' ? 'primary' : 'neutral'"
+                  :variant="form.access === 'paid' ? 'soft' : 'ghost'"
+                  size="sm" icon="i-ph-ticket"
+                  @click="form.access = 'paid'"
+                >
+                  {{ t('events.card.paid') }}
+                </UButton>
+              </div>
+            </UFormField>
+            <div v-if="form.access === 'paid'" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <UFormField :label="t('events.admin.form.priceEur')">
+                <UInputNumber v-model="form.priceEur" :min="0" :step="0.5" class="w-full" data-testid="event-form-price" />
+              </UFormField>
+              <UFormField :label="t('events.admin.form.priceLookupKey')" :help="t('events.admin.form.priceLookupKeyHelp')" required>
+                <UInput v-model="form.priceLookupKey" class="w-full" :maxlength="64" placeholder="event_sommerfest" />
+              </UFormField>
+            </div>
 
             <UFormField v-if="editingId" :label="t('events.admin.form.cover')" :help="t('events.admin.form.coverHelp')">
               <div class="flex items-center gap-3" data-testid="event-form-cover">

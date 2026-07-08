@@ -23,7 +23,8 @@
       "multiDay": "Mehrtägig",
       "online": "Online",
       "inPerson": "Vor Ort",
-      "by": "von {name}"
+      "by": "von {name}",
+      "paid": "Kostenpflichtig"
     },
     "detail": {
       "cancelled": "Dieses Event wurde abgesagt.",
@@ -59,7 +60,8 @@
         "going": "Zugesagt",
         "maybe": "Vielleicht",
         "declined": "Abgesagt"
-      }
+      },
+      "ticketRequired": "Für dieses Event brauchst du ein Ticket."
     },
     "admin": {
       "title": "Events",
@@ -108,7 +110,12 @@
         "address": "Adresse (optional)",
         "addressHelp": "Vollständige Anschrift — wird als Google-Maps-Link „So findest du uns“ verlinkt.",
         "locationNotes": "Anfahrts-/Zusatzhinweise (optional)",
-        "locationNotesHelp": "Falls der Ort schwer zu finden ist — erscheint auf der Detailseite."
+        "locationNotesHelp": "Falls der Ort schwer zu finden ist — erscheint auf der Detailseite.",
+        "access": "Zugang",
+        "accessHelp": "Kostenpflichtige Events brauchen ein Ticket — Kauf kommt mit der Stripe-Integration (Phase 23).",
+        "priceEur": "Preis (EUR, Anzeige)",
+        "priceLookupKey": "Stripe lookup_key",
+        "priceLookupKeyHelp": "Referenz auf den Stripe-Price — der Betrag dort ist die Wahrheit."
       },
       "coverSaved": "Cover gespeichert.",
       "coverFailed": "Cover konnte nicht gespeichert werden."
@@ -127,7 +134,8 @@
       "capacityMax": "Kapazität ist zu groß.",
       "rsvpInvalid": "Ungültiger RSVP-Status.",
       "notesMax": "Hinweise sind zu lang (max. 1.000 Zeichen).",
-      "voteInvalid": "Ungültige Stimme."
+      "voteInvalid": "Ungültige Stimme.",
+      "paidNeedsLookupKey": "Kostenpflichtige Events brauchen einen Stripe lookup_key."
     },
     "calendar": {
       "prev": "Voriger Monat",
@@ -150,6 +158,10 @@
         "offtopic": "Am Thema vorbei",
         "other": "Anderer Grund"
       }
+    },
+    "ticket": {
+      "buy": "Ticket kaufen",
+      "soon": "Bald verfügbar"
     }
   },
   "admin": {

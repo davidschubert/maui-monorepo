@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { EventVoteResponse, EventWithRsvp } from '../../shared/types/event'
-import { effectiveLocationType } from '../../shared/types/event'
+import { effectiveAccess, effectiveLocationType } from '../../shared/types/event'
 import { detectLiveProvider } from '../../shared/liveProvider'
 
 /**
@@ -17,6 +17,15 @@ const localePath = useLocalePath()
 const { formatDateSpan, formatMonthShort, isMultiDay } = useEventDateFormat()
 const { coverUrl } = useEventCover()
 const { isLoggedIn } = useCurrentUser()
+const { formatCurrency } = useFormatCurrency()
+
+/** Preis-Badge: paid mit Betrag, paid ohne Betrag, sonst „Kostenlos" */
+const priceLabel = computed(() => {
+  if (effectiveAccess(props.event) !== 'paid') return t('events.card.free')
+  return props.event.priceAmount !== null
+    ? formatCurrency(props.event.priceAmount / 100)
+    : t('events.card.paid')
+})
 
 const day = computed(() => new Date(props.event.startAt).getDate())
 
@@ -60,9 +69,9 @@ function onVoted(res: EventVoteResponse) {
         </div>
       </div>
 
-      <!-- Preis-Badge (Meetup-Muster) — bis Phase 27 sind alle Events kostenlos -->
+      <!-- Preis-Badge (Meetup-Muster): Kostenlos oder Ticket-Preis (E4) -->
       <UBadge color="neutral" variant="solid" size="sm" class="absolute top-2 left-2 bg-default/90 text-default" data-testid="card-price">
-        {{ t('events.card.free') }}
+        {{ priceLabel }}
       </UBadge>
 
       <div class="absolute top-2 right-2 flex gap-1">

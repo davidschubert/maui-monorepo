@@ -7,6 +7,13 @@
  * in der APP (A14), hier KEIN comments-Import. Extended den Core NICHT selbst.
  */
 export default defineNuxtConfig({
+  runtimeConfig: {
+    // server-only: schaltet POST /api/events/reminder-sweep frei
+    // (scheduled-Function-Andockpunkt) — leer = Endpoint deaktiviert.
+    // Env: NUXT_EVENTS_SWEEP_KEY
+    eventsSweepKey: '',
+  },
+
   // Eigene Layer-Strings — mergen mit Core- und App-Locales (gleiche codes)
   i18n: {
     locales: [

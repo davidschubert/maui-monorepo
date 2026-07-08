@@ -40,6 +40,10 @@ export default defineEventHandler(async (event) => {
       upvotes: 0,
       downvotes: 0,
       score: 0,
+      remindersSentAt: null,
+      access: body.access ?? null,
+      priceAmount: body.priceAmount ?? null,
+      priceLookupKey: body.priceLookupKey ?? null,
     },
     // Schreiben bleibt Server-Sache — Rows tragen nur Leserechte
     permissions: status === 'published' ? [EVENT_READ_ANY] : [],

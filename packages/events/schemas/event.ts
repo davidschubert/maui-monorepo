@@ -28,7 +28,15 @@ const fields = (t: TranslateFn) => ({
   replayUrl: z.url(t('events.validation.urlInvalid')).max(MAX_EVENT_URL, t('events.validation.urlMax')).nullish(),
   address: z.string().trim().max(MAX_EVENT_LOCATION, t('events.validation.locationMax')).nullish(),
   locationNotes: z.string().trim().max(1000, t('events.validation.notesMax')).nullish(),
+  access: z.enum(['free', 'paid']).nullish(),
+  priceAmount: z.number().int().min(0).max(10_000_000).nullish(),
+  priceLookupKey: z.string().trim().max(64).nullish(),
 })
+
+/** access 'paid' verlangt die Stripe-Preis-Referenz (lookup_key) */
+function paidNeedsLookupKey(data: { access?: string | null, priceLookupKey?: string | null }): boolean {
+  return data.access !== 'paid' || !!data.priceLookupKey
+}
 
 /** endAt (falls gesetzt) muss nach startAt liegen — für Create UND Edit */
 function endAfterStart(data: { startAt?: string | null | undefined, endAt?: string | null | undefined }): boolean {
@@ -43,6 +51,9 @@ export function createEventSchema(t: TranslateFn = identity) {
   }).refine(endAfterStart, {
     message: t('events.validation.endBeforeStart'),
     path: ['endAt'],
+  }).refine(paidNeedsLookupKey, {
+    message: t('events.validation.paidNeedsLookupKey'),
+    path: ['priceLookupKey'],
   })
 }
 
@@ -64,10 +75,15 @@ export function createEventEditSchema(t: TranslateFn = identity) {
     replayUrl: f.replayUrl,
     address: f.address,
     locationNotes: f.locationNotes,
+    access: f.access,
+    priceAmount: f.priceAmount,
+    priceLookupKey: f.priceLookupKey,
     status: z.enum(['draft', 'published']).optional(),
   }).refine(endAfterStart, {
     message: t('events.validation.endBeforeStart'),
     path: ['endAt'],
+    // paid-braucht-lookupKey prüft die PATCH-Route gegen den ZUSAMMEN-
+    // GEFÜHRTEN Zustand (Teil-PATCH trägt die Felder oft nicht beide)
   })
 }
 

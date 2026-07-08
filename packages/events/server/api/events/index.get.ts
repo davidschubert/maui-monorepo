@@ -17,6 +17,9 @@ const MAX_RANGE_MS = 62 * 24 * 3600_000
  * myRsvp des eingeloggten Users aus EINEM Query.
  */
 export default defineEventHandler(async (event): Promise<EventListResponse> => {
+  // Reminder-Sweep on-read (E3, best-effort — wirft nie, kein Cron nötig)
+  await sweepEventReminders(event)
+
   const query = getQuery(event)
   const past = query.past === 'true'
   const cursor = query.cursor

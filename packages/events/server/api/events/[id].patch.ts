@@ -34,6 +34,13 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 422, statusText: 'endAt must be after startAt' })
   }
 
+  // paid braucht die Stripe-Preis-Referenz — gegen den MERGED Zustand
+  const mergedAccess = body.access === undefined ? row.access : body.access
+  const mergedLookupKey = body.priceLookupKey === undefined ? row.priceLookupKey : body.priceLookupKey
+  if (mergedAccess === 'paid' && !mergedLookupKey) {
+    throw createError({ status: 422, statusText: 'Paid events need a price lookup key' })
+  }
+
   const publishing = body.status === 'published' && row.status === 'draft'
   const unpublishing = body.status === 'draft' && row.status === 'published'
 

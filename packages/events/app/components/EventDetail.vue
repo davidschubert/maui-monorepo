@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { EventDetailResponse, EventRow, EventVoteResponse, EventVoteValue, RsvpResponse, RsvpStatus } from '../../shared/types/event'
-import { effectiveLocationType, EVENTS_TABLE } from '../../shared/types/event'
+import { effectiveAccess, effectiveLocationType, EVENTS_TABLE } from '../../shared/types/event'
 import { detectLiveProvider } from '../../shared/liveProvider'
 
 /**
@@ -22,6 +22,13 @@ const { formatDateTime, formatTime, formatMonthShort, formatDateSpan, isMultiDay
 const { formatRelativeTime } = useFormatRelativeTime()
 const { coverUrl } = useEventCover()
 const { isLoggedIn } = useCurrentUser()
+const { formatCurrency } = useFormatCurrency()
+
+/** Paid-Event (E4): Preis-Zeile + Kauf-CTA (bis Phase 23 „bald verfügbar") */
+const isPaid = computed(() => effectiveAccess(event.value) === 'paid')
+const priceLabel = computed(() =>
+  event.value.priceAmount !== null ? formatCurrency(event.value.priceAmount / 100) : t('events.card.paid'),
+)
 
 // Lokale Wahrheit: Realtime-Updates und RSVP-/Vote-Antworten ersetzen sie atomar
 const event = ref<EventRow>({ ...props.initial })
@@ -267,6 +274,19 @@ const start = computed(() => new Date(event.value.startAt))
                 <span>{{ t('events.detail.viewers', { count: viewerCount }) }}</span>
               </div>
             </ClientOnly>
+
+            <div v-if="isPaid" class="flex items-center gap-2 border-t border-default pt-3" data-testid="event-price">
+              <UIcon name="i-ph-ticket" class="size-4 shrink-0 text-muted" />
+              <span class="font-medium">{{ priceLabel }}</span>
+            </div>
+
+            <UButton
+              v-if="isPaid && event.status === 'published'"
+              color="primary" size="lg" icon="i-ph-ticket" block disabled
+              data-testid="event-buy-ticket"
+            >
+              {{ t('events.ticket.buy') }} · {{ t('events.ticket.soon') }}
+            </UButton>
 
             <div class="border-t border-default pt-3">
               <RsvpButtons :event="event" :my-rsvp="myRsvp" @updated="onRsvpUpdated" />

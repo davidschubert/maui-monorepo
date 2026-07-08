@@ -1,6 +1,6 @@
 import { Query } from 'node-appwrite'
 import type { H3Event } from 'h3'
-import { EVENT_RSVPS_TABLE, EVENT_VOTES_TABLE, EVENTS_TABLE, type EventRow, type EventRsvpRow, type EventVote } from '../../shared/types/event'
+import { EVENT_RSVPS_TABLE, EVENT_TICKETS_TABLE, EVENT_VOTES_TABLE, EVENTS_TABLE, type EventRow, type EventRsvpRow, type EventTicketRow, type EventVote } from '../../shared/types/event'
 
 /**
  * GDPR-Contributor des events-Layers (Vertrag: core/server/utils/userData.ts).
@@ -20,10 +20,14 @@ export async function eventsExportUserData(event: H3Event, userId: string) {
   // Degradiert auf leer, solange Migration 003 auf einer Instanz aussteht
   const votes = await listAllRows<EventVote>(tablesDB, databaseId, EVENT_VOTES_TABLE, [Query.equal('userId', userId)])
     .catch(() => [] as EventVote[])
+  // Kauf-Metadaten (Rechnungen liegen bei Stripe); degradiert vor Migration 004
+  const tickets = await listAllRows<EventTicketRow>(tablesDB, databaseId, EVENT_TICKETS_TABLE, [Query.equal('userId', userId)])
+    .catch(() => [] as EventTicketRow[])
 
   return {
     rsvps: rsvps.map(r => ({ eventId: r.eventId, status: r.status, createdAt: r.$createdAt })),
     votes: votes.map(v => ({ eventId: v.eventId, value: v.value, createdAt: v.$createdAt })),
+    tickets: tickets.map(tk => ({ eventId: tk.eventId, status: tk.status, amount: tk.amount, createdAt: tk.$createdAt })),
     organizedEvents: organized.map(e => ({
       title: e.title, description: e.description, startAt: e.startAt, endAt: e.endAt,
       location: e.location, status: e.status, createdAt: e.$createdAt,
@@ -59,6 +63,15 @@ export async function eventsDeleteUserData(event: H3Event, userId: string): Prom
     .catch(() => [] as EventVote[])
   for (const vote of votes) {
     await tablesDB.deleteRow({ databaseId, tableId: EVENT_VOTES_TABLE, rowId: vote.$id })
+    deleted++
+  }
+
+  // Tickets: Hard-Delete (Kauf-Metadaten des Users; die steuerliche
+  // Wahrheit liegt bei Stripe). List degradiert vor Migration 004.
+  const tickets = await listAllRows<EventTicketRow>(tablesDB, databaseId, EVENT_TICKETS_TABLE, [Query.equal('userId', userId)])
+    .catch(() => [] as EventTicketRow[])
+  for (const ticket of tickets) {
+    await tablesDB.deleteRow({ databaseId, tableId: EVENT_TICKETS_TABLE, rowId: ticket.$id })
     deleted++
   }
 

@@ -420,6 +420,27 @@ Kein eigener Cancel-Endpoint in v1 — das Portal ist die einzige Mutations-UI
 
 ---
 
+## 5b. Andockpunkt Events-Tickets (seit Phase 27, 2026-07-08)
+
+Paid-Einzelevents (EVENTS-V2 §5) sind events-seitig FERTIG vorbereitet —
+Billing muss nur noch verbinden:
+
+- **Guard steht schon**: `apps/reddit-comments/server/plugins/event-tickets.ts`
+  registriert `hasEventTicket` als `registerEventTicketGuard` — daran ändert
+  Phase 23 NICHTS.
+- **Checkout (neuer Mode `payment` statt `subscription`)**: CTA „Ticket
+  kaufen" auf der Event-Seite → Checkout-Session mit dem `priceLookupKey`
+  des Events (`events.priceLookupKey`, Anzeige-Betrag `events.priceAmount`)
+  + `metadata: { eventId }`.
+- **Webhook**: bei `checkout.session.completed` mit `metadata.eventId` →
+  `grantEventTicket(event, { eventId, userId, stripeSessionId, amount })`
+  (exportierte, typisierte Schnittstelle aus
+  `packages/events/server/utils/eventTickets.ts`; idempotent gegen Retries
+  über den Unique-Index eventId+userId). Kein events-Schema-Wissen nötig.
+- **UI**: den disabled-CTA „Bald verfügbar" (EventDetail, `event-buy-ticket`)
+  durch den echten Checkout-Redirect ersetzen; Refunds v1 im
+  Stripe-Dashboard (Status `refunded` in `event_tickets` manuell/Webhook v2).
+
 ## 6. Offene Entscheidungen (vor Phase B-0 zu treffen)
 
 1. **Pricing-Modell** — v1-Annahme: flat pro User, monatlich + jährlich (2 Prices pro

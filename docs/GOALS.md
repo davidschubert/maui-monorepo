@@ -1452,7 +1452,29 @@ Maximal 50 Turns.
 
 ---
 
-## Phase 27 – Events v2 Teil B: Reminder + Paid-Vorbereitung
+## Phase 27 – Events v2 Teil B: Reminder + Paid-Vorbereitung ✅ (abgeschlossen 2026-07-08)
+
+> ✅ **Erledigt am 2026-07-08.** Wie geplant (E3+E4), Migration 004 (2× =
+> idempotent). E3: Sweep on-read in GET /api/events (best-effort, in-memory
+> serialisiert; Flag remindersSentAt ZUERST) → notify() an alle Zusager mit
+> generischem Bell-Typ 'reminder' (Core-Commit: „Erinnerung: {name} beginnt
+> bald"); Nachweise: Event in 2 h + 2 Zusager → genau JE EINE Notification,
+> 3 weitere GETs erzeugen keine Duplikate, Event >24 h bleibt unerinnert;
+> POST /api/events/reminder-sweep als Function-Andockpunkt (ohne
+> NUXT_EVENTS_SWEEP_KEY deaktiviert → 404, verifiziert). E4: access/price-
+> Spalten + event_tickets im Endschema; Vertrag registerEventTicketGuard/
+> hasEventTicket/grantEventTicket (idempotent gegen Webhook-Retries);
+> RSVP-going-Gate mit fail-closed 403; UI: Preis-Badge (45,00 €) auf Card +
+> Sidebar, „Ticket kaufen · Bald verfügbar" disabled, Admin-Access-Toggle +
+> Preisfelder; paid ohne lookup_key → 400 (Create) bzw. 422 (merged PATCH).
+> Nachweise: OHNE Guard going 403 (fail-closed) + maybe 200; DANN Guard in
+> der App registriert (server/plugins/event-tickets.ts = hasEventTicket —
+> Phase 23 muss NUR noch grantEventTicket im Webhook aufrufen, der Guard
+> bleibt unverändert): ohne Ticket 403, mit Ticket-Row (Form wie
+> grantEventTicket) going 200, Ben ohne Ticket 403; GDPR-Export enthält
+> tickets. ABWEICHUNG zum Goal-Text: der Guard-Beweis lief über die echte
+> App-Verdrahtung statt „Playground" (der Playground komponiert events
+> nicht) — stärkerer Beweis, gleiche Aussage. typecheck/lint/test grün.
 
 > Exekutiert [docs/plans/EVENTS-V2.md](plans/EVENTS-V2.md) **E3+E4**. Reminder
 > ohne Cron (on-read-Sweep, Muster publishDuePosts) über den bestehenden
