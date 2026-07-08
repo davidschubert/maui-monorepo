@@ -24,6 +24,14 @@ const loadingMore = ref(false)
 /** Card unter dem Cursor → Kalender-Pill-Highlight */
 const hoveredId = ref<string | null>(null)
 
+/** Gegenrichtung: Kalender-Pill unter dem Cursor → Card-Highlight + sanft in Sicht scrollen */
+const calendarHoveredId = ref<string | null>(null)
+watch(calendarHoveredId, (id) => {
+  if (!id) return
+  document.querySelector(`[data-event-card="${id}"]`)
+    ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+})
+
 const TIME_FILTERS: EventFilter[] = ['upcoming', 'today', 'tomorrow', 'weekend', 'archive']
 const MINE_FILTERS: EventFilter[] = ['going', 'liked', 'attended']
 
@@ -188,6 +196,7 @@ const groups = computed(() => {
               v-for="event in group.events"
               :key="event.$id"
               :event="event"
+              :highlighted="calendarHoveredId === event.$id"
               @updated="onCardUpdated"
               @mouseenter="hoveredId = event.$id"
               @mouseleave="hoveredId = null"
@@ -206,7 +215,7 @@ const groups = computed(() => {
     <!-- Rechte Spalte: Kalender, dauerhaft sichtbar (mobil unter der Liste) -->
     <aside class="mt-8 lg:sticky lg:top-4 lg:mt-0">
       <ClientOnly>
-        <EventCalendar :highlight-id="hoveredId" />
+        <EventCalendar :highlight-id="hoveredId" @hover="calendarHoveredId = $event" />
         <template #fallback>
           <div class="flex justify-center py-16"><UIcon name="i-ph-spinner" class="size-6 animate-spin text-muted" /></div>
         </template>

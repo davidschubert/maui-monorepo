@@ -6,9 +6,13 @@ import type { EventListResponse, EventWithRsvp } from '../../shared/types/event'
  * Mehrtägige Events = eine Pill an JEDEM Tag im Fenster — bewusst keine
  * absolut positionierten Balken (Einfachheit als Leitprinzip). Daten pro
  * Monat über die Range-Query (?from&to), client-seitig geladen.
- * `highlightId` (Card-Hover in der Liste) hebt die Pills des Events hervor.
+ * `highlightId` (Card-Hover in der Liste) hebt die Pills des Events hervor;
+ * umgekehrt meldet Pill-Hover das Event nach oben (`hover`-Emit) — die
+ * Liste highlightet dann die Card.
  */
 const props = defineProps<{ highlightId?: string | null }>()
+
+const emit = defineEmits<{ hover: [eventId: string | null] }>()
 
 const { t, locale, locales } = useI18n()
 const localePath = useLocalePath()
@@ -166,6 +170,8 @@ watch(month, load, { immediate: true })
             ]"
             :data-calendar-event="ev.$id"
             :data-calendar-highlighted="props.highlightId === ev.$id || undefined"
+            @mouseenter="emit('hover', ev.$id)"
+            @mouseleave="emit('hover', null)"
           >
             {{ ev.title }}
           </NuxtLink>

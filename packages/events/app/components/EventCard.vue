@@ -8,8 +8,9 @@ import { detectLiveProvider } from '../../shared/liveProvider'
  * Datums-Spanne (mehrtägig sichtbar!), Veranstalter, Avatar-Reihe +
  * Teilnehmerzahl. Gäste sehen die ZAHL, aber nicht wer (Privacy-Gate:
  * die API liefert ihnen keine Avatare — hier rendern Platzhalter).
+ * `highlighted` spiegelt den Kalender-Pill-Hover als Card-Hover-Effekt.
  */
-const props = defineProps<{ event: EventWithRsvp }>()
+const props = defineProps<{ event: EventWithRsvp, highlighted?: boolean }>()
 const emit = defineEmits<{ updated: [event: EventWithRsvp] }>()
 
 const { t } = useI18n()
@@ -74,8 +75,10 @@ async function share() {
 <template>
   <NuxtLink
     :to="localePath(`/events/${event.$id}`)"
-    class="flex h-full flex-col overflow-hidden rounded-xl border border-default transition-colors hover:bg-elevated/40"
+    class="flex h-full flex-col overflow-hidden rounded-xl border transition-colors hover:bg-elevated/40"
+    :class="highlighted ? 'border-primary/60 bg-elevated/40 ring-2 ring-primary/30' : 'border-default'"
     :data-event-card="event.$id"
+    :data-card-highlighted="highlighted || undefined"
   >
     <div class="relative">
       <img
