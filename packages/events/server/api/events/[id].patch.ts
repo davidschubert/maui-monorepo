@@ -47,6 +47,8 @@ export default defineEventHandler(async (event) => {
   if (body.capacity !== undefined) data.capacity = body.capacity
   if (body.locationType !== undefined) data.locationType = body.locationType
   if (body.replayUrl !== undefined) data.replayUrl = body.replayUrl
+  if (body.address !== undefined) data.address = body.address
+  if (body.locationNotes !== undefined) data.locationNotes = body.locationNotes
   if (body.status !== undefined) data.status = body.status
 
   // Replay-Announce nur beim ERSTEN Setzen auf einem sichtbaren Event

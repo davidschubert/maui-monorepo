@@ -181,6 +181,8 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 
 | 51 | **GOALS-Phase 26: Events v2 Teil A** ([Plan](docs/plans/EVENTS-V2.md), Circle.so als Leitplanke): Cover-Upload (Bucket `event-covers`, Magic-Bytes) + Landing Page (Countdown-Pill, Host-Avatar, Avatar-Stack, Knappheits-Label, Share), Monats-Gruppierung + Kalender-Monatsansicht (mehrtägig = Pill je Tag), Ortstyp online/vor Ort mit Provider-Erkennung (Meet/Jitsi/Twitch/YouTube/OwnCast/LinkedIn Live), „Join live" T−15 min nur für Zusager, Replays (`replayUrl` + Feed-Announce) — Embed bewusst AUS (nur externe Links) | ✅ 2026-07-07 |
 
+| 52 | **Events-Feinschliff nach Review** (Meetup.com als Leitplanke, [Plan §7b](docs/plans/EVENTS-V2.md)): vertikale Card im Grid (Datums-**Spanne** + „Mehrtägig"-Badge, Online/Vor-Ort, „Kostenlos"-Badge), Detailseite zweispaltig mit Zurück-Link + sticky Info-Karte, Beschreibung als Markdown (Listen/fett, ContentClamp „Mehr/Weniger"), Adresse → Google-Maps-Link „So findest du uns" + Anfahrtshinweise, Up-/Downvotes (`event_votes`, Migration 003), Teilnehmerliste mit Namen **nur eingeloggt** (Gäste: Anzahl + Blur), Titel-Suche (Fulltext), Melden via moderation-Vertrag (`targetType 'event'`); Kategorien bewusst abgelehnt | ✅ 2026-07-07 |
+
 Details und Nachweis-Kriterien pro Phase: [docs/GOALS.md](docs/GOALS.md) · Upgrade-Plan: [docs/APPWRITE-1.9.5-UPGRADE.md](docs/APPWRITE-1.9.5-UPGRADE.md) · Offene Punkte: [docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md)
 
 ## Konventionen

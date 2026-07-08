@@ -28,5 +28,20 @@ export function useEventDateFormat() {
   /** gleicher Kalendertag? → Ende nur als Uhrzeit anzeigen */
   const sameDay = (a: string, b: string) => new Date(a).toDateString() === new Date(b).toDateString()
 
-  return { formatDateTime, formatTime, formatMonthShort, sameDay }
+  /**
+   * Datums-Zeile für Cards: eintägig „Fr., 15.08.2026, 18:00" —
+   * MEHRTÄGIG als Spanne „Do., 20.08. – Sa., 22.08.2026" (die Reihe muss
+   * als Reihe erkennbar sein, nicht nur der erste Tag).
+   */
+  const formatDateSpan = (startAt: string, endAt: string | null) => {
+    if (!endAt || sameDay(startAt, endAt)) return formatDateTime(startAt)
+    const startFmt = new Intl.DateTimeFormat(language.value, { weekday: 'short', day: '2-digit', month: '2-digit' })
+    const endFmt = new Intl.DateTimeFormat(language.value, { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })
+    return `${startFmt.format(new Date(startAt))} – ${endFmt.format(new Date(endAt))}`
+  }
+
+  /** mehrtägig? (Card-/Detail-Badge „Mehrtägig") */
+  const isMultiDay = (startAt: string, endAt: string | null) => !!endAt && !sameDay(startAt, endAt)
+
+  return { formatDateTime, formatTime, formatMonthShort, formatDateSpan, isMultiDay, sameDay }
 }

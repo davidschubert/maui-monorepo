@@ -20,6 +20,8 @@ export default defineEventHandler(async (event): Promise<EventListResponse> => {
   const query = getQuery(event)
   const past = query.past === 'true'
   const cursor = query.cursor
+  // Suche (?q): Fulltext-Index auf title (Migration 003)
+  const q = typeof query.q === 'string' ? query.q.trim().slice(0, 100) : ''
   const from = typeof query.from === 'string' ? Date.parse(query.from) : Number.NaN
   const to = typeof query.to === 'string' ? Date.parse(query.to) : Number.NaN
   const range = Number.isFinite(from) && Number.isFinite(to)
@@ -35,6 +37,7 @@ export default defineEventHandler(async (event): Promise<EventListResponse> => {
     tableId: EVENTS_TABLE,
     queries: [
       Query.equal('status', 'published'),
+      ...(q.length > 0 ? [Query.search('title', q)] : []),
       ...(range
         ? [
             Query.greaterThanEqual('startAt', new Date(from).toISOString()),
@@ -56,11 +59,18 @@ export default defineEventHandler(async (event): Promise<EventListResponse> => {
   })
 
   const userId = event.context.user?.$id ?? null
-  const rsvps = await myRsvpsFor(event, res.rows.map(row => row.$id), userId)
+  const ids = res.rows.map(row => row.$id)
+  const [rsvps, votes, avatars] = await Promise.all([
+    myRsvpsFor(event, ids, userId),
+    myVotesFor(event, ids, userId),
+    attendeeAvatarsFor(event, ids, userId),
+  ])
 
   const rows: EventWithRsvp[] = res.rows.map(row => ({
     ...row,
     myRsvp: rsvps.get(row.$id) ?? null,
+    myVote: votes.get(row.$id) ?? null,
+    attendeeAvatars: avatars.get(row.$id) ?? [],
   }))
 
   return {

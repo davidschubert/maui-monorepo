@@ -28,11 +28,13 @@ interface EventForm {
   capacity: number | null
   locationType: 'venue' | 'online'
   replayUrl: string
+  address: string
+  locationNotes: string
 }
 
 const emptyForm = (): EventForm => ({
   title: '', description: '', startAt: '', endAt: '', location: '', url: '', capacity: null,
-  locationType: 'venue', replayUrl: '',
+  locationType: 'venue', replayUrl: '', address: '', locationNotes: '',
 })
 
 const modalOpen = ref(false)
@@ -114,6 +116,8 @@ function openEdit(row: EventRow) {
     capacity: row.capacity,
     locationType: effectiveLocationType(row),
     replayUrl: row.replayUrl ?? '',
+    address: row.address ?? '',
+    locationNotes: row.locationNotes ?? '',
   })
   editingCoverFileId.value = row.coverFileId
   modalOpen.value = true
@@ -130,6 +134,8 @@ async function save() {
     capacity: form.capacity,
     locationType: form.locationType,
     replayUrl: form.replayUrl.trim() || null,
+    address: form.address.trim() || null,
+    locationNotes: form.locationNotes.trim() || null,
   }
   const parsed = createEventSchema(t).safeParse(payload)
   if (!parsed.success) {
@@ -284,7 +290,7 @@ const statusColor = (row: EventRow) =>
             <UFormField :label="t('events.admin.form.title')" required>
               <UInput v-model="form.title" class="w-full" :maxlength="200" data-testid="event-form-title" />
             </UFormField>
-            <UFormField :label="t('events.admin.form.description')" required>
+            <UFormField :label="t('events.admin.form.description')" :help="t('events.admin.form.descriptionHelp')" required>
               <UTextarea v-model="form.description" class="w-full" :rows="5" data-testid="event-form-description" />
             </UFormField>
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -317,6 +323,20 @@ const statusColor = (row: EventRow) =>
             </UFormField>
             <UFormField v-if="form.locationType === 'venue'" :label="t('events.admin.form.location')">
               <UInput v-model="form.location" class="w-full" :maxlength="255" />
+            </UFormField>
+            <UFormField
+              v-if="form.locationType === 'venue'"
+              :label="t('events.admin.form.address')"
+              :help="t('events.admin.form.addressHelp')"
+            >
+              <UInput v-model="form.address" class="w-full" :maxlength="255" data-testid="event-form-address" />
+            </UFormField>
+            <UFormField
+              v-if="form.locationType === 'venue'"
+              :label="t('events.admin.form.locationNotes')"
+              :help="t('events.admin.form.locationNotesHelp')"
+            >
+              <UTextarea v-model="form.locationNotes" class="w-full" :rows="2" :maxlength="1000" />
             </UFormField>
             <UFormField
               :label="t('events.admin.form.url')"

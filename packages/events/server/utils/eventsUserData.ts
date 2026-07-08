@@ -1,6 +1,6 @@
 import { Query } from 'node-appwrite'
 import type { H3Event } from 'h3'
-import { EVENT_RSVPS_TABLE, EVENTS_TABLE, type EventRow, type EventRsvpRow } from '../../shared/types/event'
+import { EVENT_RSVPS_TABLE, EVENT_VOTES_TABLE, EVENTS_TABLE, type EventRow, type EventRsvpRow, type EventVote } from '../../shared/types/event'
 
 /**
  * GDPR-Contributor des events-Layers (Vertrag: core/server/utils/userData.ts).
@@ -17,9 +17,13 @@ export async function eventsExportUserData(event: H3Event, userId: string) {
 
   const rsvps = await listAllRows<EventRsvpRow>(tablesDB, databaseId, EVENT_RSVPS_TABLE, [Query.equal('userId', userId)])
   const organized = await listAllRows<EventRow>(tablesDB, databaseId, EVENTS_TABLE, [Query.equal('organizerId', userId)])
+  // Degradiert auf leer, solange Migration 003 auf einer Instanz aussteht
+  const votes = await listAllRows<EventVote>(tablesDB, databaseId, EVENT_VOTES_TABLE, [Query.equal('userId', userId)])
+    .catch(() => [] as EventVote[])
 
   return {
     rsvps: rsvps.map(r => ({ eventId: r.eventId, status: r.status, createdAt: r.$createdAt })),
+    votes: votes.map(v => ({ eventId: v.eventId, value: v.value, createdAt: v.$createdAt })),
     organizedEvents: organized.map(e => ({
       title: e.title, description: e.description, startAt: e.startAt, endAt: e.endAt,
       location: e.location, status: e.status, createdAt: e.$createdAt,
@@ -46,6 +50,16 @@ export async function eventsDeleteUserData(event: H3Event, userId: string): Prom
         databaseId, tableId: EVENTS_TABLE, rowId: rsvp.eventId, column: 'attendeeCount', value: 1, min: 0,
       }).catch(() => {})
     }
+  }
+
+  // Up-/Downvotes: Hard-Delete (Zähler-Drift bis zum nächsten Vote
+  // akzeptiert — Präzedenzfall posts/comments). List degradiert vor
+  // Migration 003.
+  const votes = await listAllRows<EventVote>(tablesDB, databaseId, EVENT_VOTES_TABLE, [Query.equal('userId', userId)])
+    .catch(() => [] as EventVote[])
+  for (const vote of votes) {
+    await tablesDB.deleteRow({ databaseId, tableId: EVENT_VOTES_TABLE, rowId: vote.$id })
+    deleted++
   }
 
   // Organisierte Events: Soft-Cancel + Anonymisierung (idempotent)

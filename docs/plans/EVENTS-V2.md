@@ -173,6 +173,23 @@ die generische URL. Jitsi + OwnCast passen zur Self-Hosting-Linie des Projekts
 GOALS.md: Phase 26 = E1+E2, Phase 27 = E3+E4 (Reihenfolge 26 → 27; Phase 23
 kann danach oder parallel ab E4-Abschluss andocken).
 
+## 7b. Feinschliff-Paket (David-Review nach E1+E2, umgesetzt 2026-07-07)
+
+Nach dem Phase-26-Review kamen Meetup.com-Referenzen dazu — umgesetzt:
+Cards vertikal im Grid (Cover + „Kostenlos"-Badge, Datums-**Spanne** mit
+„Mehrtägig"-Badge, Online/Vor-Ort-Zeile, „von {Organizer}", Avatar-Reihe);
+Detailseite zweispaltig (Zurück-Link, sticky Info-Karte, „So findest du
+uns" = address-Spalte als Google-Maps-Link + locationNotes-Freitext);
+Beschreibung als **Markdown** (MarkdownContent, kein Raw-HTML) mit
+ContentClamp („Mehr/Weniger"); Up-/Downvotes (event_votes, Muster
+post_votes, Migration 003) auf Card + Detail; Teilnehmerliste mit Namen —
+**Privacy-Gate: nur eingeloggt** (Gäste sehen Anzahl + geblurte
+Platzhalter, API liefert ihnen keine userIds); Titel-Suche (?q,
+Fulltext-Index); Melden über den generischen moderation-Vertrag
+(targetType 'event'). Kategorien bewusst ABGELEHNT (zu wenige Events,
+Entscheidung David); Serien über nicht-zusammenhängende Tage bleiben
+mehrere Einzel-Events (Recurrence-Ablehnung gilt weiter).
+
 ## 8. Offene Entscheidungen (David)
 
 1. **Embed-Gate**: ✅ **Entschieden (2026-07-07): erstmal AUS** — v1 nur externe

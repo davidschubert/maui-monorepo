@@ -9,14 +9,21 @@
       "pastEmpty": "No past events yet.",
       "loadMore": "Load more",
       "viewList": "List view",
-      "viewCalendar": "Calendar view"
+      "viewCalendar": "Calendar view",
+      "searchPlaceholder": "Search events …",
+      "searchEmpty": "No events match your search."
     },
     "card": {
       "cancelled": "Cancelled",
       "full": "Full",
       "attendees": "{count} going",
       "attendeesOfCapacity": "{count} of {capacity} spots",
-      "replay": "Replay"
+      "replay": "Replay",
+      "free": "Free",
+      "multiDay": "Multi-day",
+      "online": "Online",
+      "inPerson": "In person",
+      "by": "by {name}"
     },
     "detail": {
       "cancelled": "This event has been cancelled.",
@@ -32,7 +39,14 @@
       "spotsLeft": "Only {count} spots left!",
       "joinLive": "Join live",
       "replay": "Watch replay",
-      "attendee": "Attendee"
+      "attendee": "Attendee",
+      "back": "All events",
+      "details": "Details",
+      "multiDay": "From {from} to {to}",
+      "findUs": "How to find us",
+      "attendeesTitle": "Attendees ({count})",
+      "loginToSee": "Sign in to see who is going",
+      "noAttendees": "No RSVPs yet — be the first!"
     },
     "rsvp": {
       "going": "Going",
@@ -89,7 +103,12 @@
         "coverHelp": "JPEG, PNG or WebP, max. 2 MB. Without a cover a theme color block is rendered.",
         "coverUpload": "Upload cover",
         "coverReplace": "Replace cover",
-        "coverRemove": "Remove"
+        "coverRemove": "Remove",
+        "descriptionHelp": "Markdown is supported — **bold**, lists with - or 1., links.",
+        "address": "Address (optional)",
+        "addressHelp": "Full address — linked as a Google Maps link (“How to find us”).",
+        "locationNotes": "Directions / extra notes (optional)",
+        "locationNotesHelp": "If the venue is hard to find — shown on the event page."
       },
       "coverSaved": "Cover saved.",
       "coverFailed": "Could not save the cover."
@@ -106,12 +125,31 @@
       "urlMax": "Link is too long (max. 500 characters).",
       "capacityMin": "Capacity must be at least 1.",
       "capacityMax": "Capacity is too large.",
-      "rsvpInvalid": "Invalid RSVP status."
+      "rsvpInvalid": "Invalid RSVP status.",
+      "notesMax": "Notes are too long (max. 1,000 characters).",
+      "voteInvalid": "Invalid vote."
     },
     "calendar": {
       "prev": "Previous month",
       "next": "Next month",
       "today": "Today"
+    },
+    "vote": {
+      "up": "Upvote",
+      "down": "Downvote",
+      "failed": "Could not save your vote."
+    },
+    "report": {
+      "cta": "Report",
+      "done": "Event reported — thank you!",
+      "already": "You already reported this event.",
+      "failed": "Could not report the event.",
+      "reasons": {
+        "spam": "Spam",
+        "harassment": "Harassment",
+        "offtopic": "Off topic",
+        "other": "Other reason"
+      }
     }
   },
   "admin": {

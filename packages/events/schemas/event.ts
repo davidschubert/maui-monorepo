@@ -26,6 +26,8 @@ const fields = (t: TranslateFn) => ({
     .max(MAX_EVENT_CAPACITY, t('events.validation.capacityMax')).nullish(),
   locationType: z.enum(['venue', 'online']).nullish(),
   replayUrl: z.url(t('events.validation.urlInvalid')).max(MAX_EVENT_URL, t('events.validation.urlMax')).nullish(),
+  address: z.string().trim().max(MAX_EVENT_LOCATION, t('events.validation.locationMax')).nullish(),
+  locationNotes: z.string().trim().max(1000, t('events.validation.notesMax')).nullish(),
 })
 
 /** endAt (falls gesetzt) muss nach startAt liegen — für Create UND Edit */
@@ -60,6 +62,8 @@ export function createEventEditSchema(t: TranslateFn = identity) {
     capacity: f.capacity,
     locationType: f.locationType,
     replayUrl: f.replayUrl,
+    address: f.address,
+    locationNotes: f.locationNotes,
     status: z.enum(['draft', 'published']).optional(),
   }).refine(endAfterStart, {
     message: t('events.validation.endBeforeStart'),
@@ -73,7 +77,15 @@ export function createRsvpSchema(t: TranslateFn = identity) {
   })
 }
 
+/** Up-/Downvote (Toggle-Semantik wie posts/comments) */
+export function createEventVoteSchema(t: TranslateFn = identity) {
+  return z.object({
+    value: z.union([z.literal(1), z.literal(-1)], t('events.validation.voteInvalid')),
+  })
+}
+
 // Server-seitige Instanzen (Fehlertexte = Keys; die UI validiert mit t())
 export const eventSchema = createEventSchema()
 export const eventEditSchema = createEventEditSchema()
 export const rsvpSchema = createRsvpSchema()
+export const eventVoteSchema = createEventVoteSchema()

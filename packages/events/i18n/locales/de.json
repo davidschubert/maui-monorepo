@@ -9,14 +9,21 @@
       "pastEmpty": "Noch keine vergangenen Events.",
       "loadMore": "Mehr laden",
       "viewList": "Listenansicht",
-      "viewCalendar": "Kalenderansicht"
+      "viewCalendar": "Kalenderansicht",
+      "searchPlaceholder": "Events durchsuchen …",
+      "searchEmpty": "Keine Events zu dieser Suche."
     },
     "card": {
       "cancelled": "Abgesagt",
       "full": "Ausgebucht",
       "attendees": "{count} Zusagen",
       "attendeesOfCapacity": "{count} von {capacity} Plätzen",
-      "replay": "Replay"
+      "replay": "Replay",
+      "free": "Kostenlos",
+      "multiDay": "Mehrtägig",
+      "online": "Online",
+      "inPerson": "Vor Ort",
+      "by": "von {name}"
     },
     "detail": {
       "cancelled": "Dieses Event wurde abgesagt.",
@@ -32,7 +39,14 @@
       "spotsLeft": "Nur noch {count} Plätze!",
       "joinLive": "Jetzt teilnehmen",
       "replay": "Replay ansehen",
-      "attendee": "Teilnehmer"
+      "attendee": "Teilnehmer",
+      "back": "Alle Events",
+      "details": "Details",
+      "multiDay": "Von {from} bis {to}",
+      "findUs": "So findest du uns",
+      "attendeesTitle": "Teilnehmer ({count})",
+      "loginToSee": "Anmelden, um zu sehen, wer dabei ist",
+      "noAttendees": "Noch keine Zusagen — sei die erste Person!"
     },
     "rsvp": {
       "going": "Zusagen",
@@ -89,7 +103,12 @@
         "coverHelp": "JPEG, PNG oder WebP, max. 2 MB. Ohne Cover rendert eine Theme-Farbfläche.",
         "coverUpload": "Cover hochladen",
         "coverReplace": "Cover ersetzen",
-        "coverRemove": "Entfernen"
+        "coverRemove": "Entfernen",
+        "descriptionHelp": "Markdown wird unterstützt — **fett**, Listen mit - oder 1., Links.",
+        "address": "Adresse (optional)",
+        "addressHelp": "Vollständige Anschrift — wird als Google-Maps-Link „So findest du uns“ verlinkt.",
+        "locationNotes": "Anfahrts-/Zusatzhinweise (optional)",
+        "locationNotesHelp": "Falls der Ort schwer zu finden ist — erscheint auf der Detailseite."
       },
       "coverSaved": "Cover gespeichert.",
       "coverFailed": "Cover konnte nicht gespeichert werden."
@@ -106,12 +125,31 @@
       "urlMax": "Link ist zu lang (max. 500 Zeichen).",
       "capacityMin": "Kapazität muss mindestens 1 sein.",
       "capacityMax": "Kapazität ist zu groß.",
-      "rsvpInvalid": "Ungültiger RSVP-Status."
+      "rsvpInvalid": "Ungültiger RSVP-Status.",
+      "notesMax": "Hinweise sind zu lang (max. 1.000 Zeichen).",
+      "voteInvalid": "Ungültige Stimme."
     },
     "calendar": {
       "prev": "Voriger Monat",
       "next": "Nächster Monat",
       "today": "Heute"
+    },
+    "vote": {
+      "up": "Hochvoten",
+      "down": "Runtervoten",
+      "failed": "Stimme konnte nicht gespeichert werden."
+    },
+    "report": {
+      "cta": "Melden",
+      "done": "Event gemeldet — danke!",
+      "already": "Du hast dieses Event bereits gemeldet.",
+      "failed": "Meldung fehlgeschlagen.",
+      "reasons": {
+        "spam": "Spam",
+        "harassment": "Belästigung",
+        "offtopic": "Am Thema vorbei",
+        "other": "Anderer Grund"
+      }
     }
   },
   "admin": {

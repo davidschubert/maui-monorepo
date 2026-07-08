@@ -35,6 +35,11 @@ export default defineEventHandler(async (event) => {
       locationType: body.locationType ?? null,
       replayUrl: body.replayUrl ?? null,
       coverFileId: null,
+      address: body.address ?? null,
+      locationNotes: body.locationNotes ?? null,
+      upvotes: 0,
+      downvotes: 0,
+      score: 0,
     },
     // Schreiben bleibt Server-Sache — Rows tragen nur Leserechte
     permissions: status === 'published' ? [EVENT_READ_ANY] : [],

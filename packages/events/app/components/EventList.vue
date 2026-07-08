@@ -14,10 +14,25 @@ const rows = ref<EventWithRsvp[]>([])
 const nextCursor = ref<string | null>(null)
 const loadingMore = ref(false)
 
+// Suche: debounct gegen ?q (Fulltext auf title, Migration 003)
+const search = ref('')
+const debouncedSearch = ref('')
+let searchTimer: ReturnType<typeof setTimeout> | undefined
+watch(search, (value) => {
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => { debouncedSearch.value = value.trim() }, 300)
+})
+onBeforeUnmount(() => clearTimeout(searchTimer))
+
+const listQuery = computed(() => ({
+  ...(past.value ? { past: 'true' } : {}),
+  ...(debouncedSearch.value ? { q: debouncedSearch.value } : {}),
+}))
+
 const { data, status } = await useAsyncData<EventListResponse>(
   'events:list',
-  () => $fetch('/api/events', { query: past.value ? { past: 'true' } : {} }),
-  { watch: [past] },
+  () => $fetch('/api/events', { query: listQuery.value }),
+  { watch: [past, debouncedSearch] },
 )
 
 watch(data, (value) => {
@@ -30,7 +45,7 @@ async function loadMore() {
   loadingMore.value = true
   try {
     const res = await $fetch<EventListResponse>('/api/events', {
-      query: { ...(past.value ? { past: 'true' } : {}), cursor: nextCursor.value },
+      query: { ...listQuery.value, cursor: nextCursor.value },
     })
     rows.value = [...rows.value, ...res.rows]
     nextCursor.value = res.nextCursor
@@ -41,6 +56,11 @@ async function loadMore() {
   finally {
     loadingMore.value = false
   }
+}
+
+/** Vote-Updates aus der Card in die Liste übernehmen */
+function onCardUpdated(updated: EventWithRsvp) {
+  rows.value = rows.value.map(row => (row.$id === updated.$id ? updated : row))
 }
 
 // Monats-Gruppierung (Referenz S1): Überschrift je Monat, locale-korrekt
@@ -105,6 +125,14 @@ const groups = computed(() => {
       </div>
     </div>
 
+    <UInput
+      v-model="search"
+      icon="i-ph-magnifying-glass"
+      :placeholder="t('events.list.searchPlaceholder')"
+      class="mt-3 w-full"
+      data-testid="events-search"
+    />
+
     <ClientOnly v-if="view === 'calendar'">
       <EventCalendar class="mt-4" />
       <template #fallback>
@@ -118,14 +146,14 @@ const groups = computed(() => {
       </div>
 
       <p v-else-if="rows.length === 0" class="py-16 text-center text-sm text-muted" data-testid="events-empty">
-        {{ past ? t('events.list.pastEmpty') : t('events.list.empty') }}
+        {{ debouncedSearch ? t('events.list.searchEmpty') : past ? t('events.list.pastEmpty') : t('events.list.empty') }}
       </p>
 
       <div v-else class="mt-4 space-y-6" data-testid="events-list">
         <section v-for="group in groups" :key="group.label">
           <h2 class="mb-2 text-sm font-semibold text-muted capitalize" data-testid="events-month">{{ group.label }}</h2>
-          <div class="space-y-3">
-            <EventCard v-for="event in group.events" :key="event.$id" :event="event" />
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <EventCard v-for="event in group.events" :key="event.$id" :event="event" @updated="onCardUpdated" />
           </div>
         </section>
       </div>

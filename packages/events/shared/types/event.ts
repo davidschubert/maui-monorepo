@@ -2,6 +2,7 @@ import type { Models } from 'node-appwrite'
 
 export const EVENTS_TABLE = 'events'
 export const EVENT_RSVPS_TABLE = 'event_rsvps'
+export const EVENT_VOTES_TABLE = 'event_votes'
 
 /** draft = nur Verwaltung sichtbar · cancelled = Soft-Cancel (Row bleibt, sichtbar) */
 export type EventStatus = 'draft' | 'published' | 'cancelled'
@@ -41,6 +42,34 @@ export interface EventRow extends Models.Row {
   locationType: EventLocationType | null
   /** Aufzeichnung nach dem Event — Archiv zeigt „Replay ansehen" */
   replayUrl: string | null
+  /** Anschrift für den Google-Maps-Link („So findest du uns") — nur venue */
+  address: string | null
+  /** optionale Anfahrts-/Zusatzhinweise */
+  locationNotes: string | null
+  /** denormalisiert, NUR Server-Recount schreibt (Migration 003) */
+  upvotes: number
+  downvotes: number
+  score: number
+}
+
+export type EventVoteValue = 1 | -1
+
+export interface EventVote extends Models.Row {
+  eventId: string
+  userId: string
+  value: EventVoteValue
+}
+
+export interface EventVoteResponse {
+  event: EventRow
+  myVote: EventVoteValue | null
+}
+
+/** Teilnehmer-Eintrag — Namen/Avatare liefert die API NUR für Eingeloggte */
+export interface EventAttendee {
+  userId: string
+  name: string
+  avatarUrl: string | null
 }
 
 /** effektiver Ortstyp inkl. Ableitung für Bestandsrows (locationType null) */
@@ -58,11 +87,19 @@ export interface EventRsvpRow extends Models.Row {
 export interface EventWithRsvp extends EventRow {
   /** eigene RSVP des eingeloggten Users (null = keine / Gast) */
   myRsvp: RsvpStatus | null
+  /** eigener Up-/Downvote (null = keiner / Gast) */
+  myVote: EventVoteValue | null
+  /**
+   * Avatar-Vorschau der Zusager für die Card — NUR für Eingeloggte gefüllt
+   * (Gäste sehen die Anzahl, aber nicht wer: die UI rendert Platzhalter).
+   */
+  attendeeAvatars: Array<string | null>
 }
 
-/** Detail-Anreicherung: Vorschau der Zusager (Avatar-Stack, Top-N) */
+/** Detail-Anreicherung: Teilnehmerliste (eingeloggt) + Organizer-Avatar */
 export interface EventDetailResponse extends EventWithRsvp {
-  attendeePreview: Array<{ userId: string, avatarUrl: string | null }>
+  /** Zusager mit Name+Avatar — für Gäste LEER (Privacy-Gate) */
+  attendees: EventAttendee[]
   organizerAvatarUrl: string | null
 }
 
