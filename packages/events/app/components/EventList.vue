@@ -2,23 +2,27 @@
 import type { EventListResponse, EventWithRsvp } from '../../shared/types/event'
 
 /**
- * Event-Übersicht: Filter-Chips (Kommende/Heute/Morgen/Wochenende/Archiv +
- * eingeloggt: Zugesagt/Geliked/Teilgenommen — Letzteres ist der Unterschied
- * zum Archiv: nur MEINE besuchten Events) + Listen-/Kalender-Ansicht.
- * Liste ist Default (SSR, erste Seite ohne Flash) mit Monats-Gruppierung und
- * Cursor-Pagination (nur Kommende/Archiv); Kalender ist die zweite Ansicht.
- * Zeitfenster (Heute/Morgen/Wochenende) rechnet der CLIENT in lokaler Zeit
- * und nutzt die Range-Query — Chip-Klicks sind ohnehin client-seitig.
+ * Event-Übersicht als ZWEI Spalten (kein Ansicht-Switch mehr — die Filter
+ * wirkten im Kalender nicht, und Platz ist da): links die Liste mit
+ * Filter-Chips (Kommende/Heute/Morgen/Wochenende/Archiv + eingeloggt:
+ * Zugesagt/Geliked/Teilgenommen — Letzteres ist der Unterschied zum Archiv:
+ * nur MEINE besuchten Events), Monats-Gruppierung und Cursor-Pagination
+ * (nur Kommende/Archiv); rechts DAUERHAFT der Monats-Kalender (sticky,
+ * eigene Monats-Navigation). Hover auf einer Card hebt das Event im
+ * Kalender hervor. Zeitfenster (Heute/Morgen/Wochenende) rechnet der
+ * CLIENT in lokaler Zeit und nutzt die Range-Query.
  */
 const { t, locale, locales } = useI18n()
 const { isLoggedIn } = useCurrentUser()
 
 type EventFilter = 'upcoming' | 'today' | 'tomorrow' | 'weekend' | 'archive' | 'going' | 'liked' | 'attended'
 const filter = ref<EventFilter>('upcoming')
-const view = ref<'list' | 'calendar'>('list')
 const rows = ref<EventWithRsvp[]>([])
 const nextCursor = ref<string | null>(null)
 const loadingMore = ref(false)
+
+/** Card unter dem Cursor → Kalender-Pill-Highlight */
+const hoveredId = ref<string | null>(null)
 
 const TIME_FILTERS: EventFilter[] = ['upcoming', 'today', 'tomorrow', 'weekend', 'archive']
 const MINE_FILTERS: EventFilter[] = ['going', 'liked', 'attended']
@@ -126,8 +130,9 @@ const groups = computed(() => {
 </script>
 
 <template>
-  <div>
-    <div class="flex items-start justify-between gap-2">
+  <div class="gap-8 lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+    <!-- Linke Spalte: Filter + Suche + Liste -->
+    <div class="min-w-0">
       <div class="flex flex-wrap items-center gap-1" role="tablist" data-testid="events-filters">
         <UButton
           v-for="item in TIME_FILTERS"
@@ -156,42 +161,14 @@ const groups = computed(() => {
         </template>
       </div>
 
-      <div class="flex shrink-0 gap-1">
-        <UButton
-          :color="view === 'list' ? 'primary' : 'neutral'"
-          :variant="view === 'list' ? 'soft' : 'ghost'"
-          size="sm" icon="i-ph-list-bullets"
-          :aria-label="t('events.list.viewList')"
-          data-testid="events-view-list"
-          @click="view = 'list'"
-        />
-        <UButton
-          :color="view === 'calendar' ? 'primary' : 'neutral'"
-          :variant="view === 'calendar' ? 'soft' : 'ghost'"
-          size="sm" icon="i-ph-calendar-blank"
-          :aria-label="t('events.list.viewCalendar')"
-          data-testid="events-view-calendar"
-          @click="view = 'calendar'"
-        />
-      </div>
-    </div>
+      <UInput
+        v-model="search"
+        icon="i-ph-magnifying-glass"
+        :placeholder="t('events.list.searchPlaceholder')"
+        class="mt-3 w-full"
+        data-testid="events-search"
+      />
 
-    <UInput
-      v-model="search"
-      icon="i-ph-magnifying-glass"
-      :placeholder="t('events.list.searchPlaceholder')"
-      class="mt-3 w-full"
-      data-testid="events-search"
-    />
-
-    <ClientOnly v-if="view === 'calendar'">
-      <EventCalendar class="mt-4" />
-      <template #fallback>
-        <div class="flex justify-center py-16"><UIcon name="i-ph-spinner" class="size-6 animate-spin text-muted" /></div>
-      </template>
-    </ClientOnly>
-
-    <template v-else>
       <div v-if="status === 'pending' && rows.length === 0" class="flex justify-center py-16">
         <UIcon name="i-ph-spinner" class="size-6 animate-spin text-muted" />
       </div>
@@ -206,8 +183,15 @@ const groups = computed(() => {
       <div v-else class="mt-4 space-y-6" data-testid="events-list">
         <section v-for="group in groups" :key="group.label">
           <h2 class="mb-2 text-sm font-semibold text-muted capitalize" data-testid="events-month">{{ group.label }}</h2>
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <EventCard v-for="event in group.events" :key="event.$id" :event="event" @updated="onCardUpdated" />
+          <div class="space-y-4">
+            <EventCard
+              v-for="event in group.events"
+              :key="event.$id"
+              :event="event"
+              @updated="onCardUpdated"
+              @mouseenter="hoveredId = event.$id"
+              @mouseleave="hoveredId = null"
+            />
           </div>
         </section>
       </div>
@@ -217,6 +201,16 @@ const groups = computed(() => {
           {{ t('events.list.loadMore') }}
         </UButton>
       </div>
-    </template>
+    </div>
+
+    <!-- Rechte Spalte: Kalender, dauerhaft sichtbar (mobil unter der Liste) -->
+    <aside class="mt-8 lg:sticky lg:top-4 lg:mt-0">
+      <ClientOnly>
+        <EventCalendar :highlight-id="hoveredId" />
+        <template #fallback>
+          <div class="flex justify-center py-16"><UIcon name="i-ph-spinner" class="size-6 animate-spin text-muted" /></div>
+        </template>
+      </ClientOnly>
+    </aside>
   </div>
 </template>

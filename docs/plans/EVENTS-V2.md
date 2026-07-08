@@ -201,6 +201,16 @@ mehrere Einzel-Events (Recurrence-Ablehnung gilt weiter).
   Gäste → 401; Kappung auf die jüngsten 100 RSVPs/Likes dokumentiert.
 - **Share auf der Card** (neben den Votes, die seit §7b dort sitzen).
 
+## 7d. Zweispalten-Layout (David-Review, umgesetzt 2026-07-08)
+
+Der Listen/Kalender-**Switch ist raus** (die Filter wirkten in der
+Kalender-Ansicht nicht, und Platz ist da): `/events` zeigt links die
+gefilterte Liste (einspaltig), rechts DAUERHAFT den Monats-Kalender
+(sticky, eigene Monats-Navigation; mobil unter der Liste). **Card-Hover
+hebt die Pills des Events im Kalender hervor** (mehrtägig = alle Tage).
+Filter/Suche steuern bewusst nur die Liste — der Kalender ist die
+Monats-Übersicht.
+
 ## 8. Offene Entscheidungen (David)
 
 1. **Embed-Gate**: ✅ **Entschieden (2026-07-07): erstmal AUS** — v1 nur externe

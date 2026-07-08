@@ -6,7 +6,10 @@ import type { EventListResponse, EventWithRsvp } from '../../shared/types/event'
  * Mehrtägige Events = eine Pill an JEDEM Tag im Fenster — bewusst keine
  * absolut positionierten Balken (Einfachheit als Leitprinzip). Daten pro
  * Monat über die Range-Query (?from&to), client-seitig geladen.
+ * `highlightId` (Card-Hover in der Liste) hebt die Pills des Events hervor.
  */
+const props = defineProps<{ highlightId?: string | null }>()
+
 const { t, locale, locales } = useI18n()
 const localePath = useLocalePath()
 
@@ -154,9 +157,15 @@ watch(month, load, { immediate: true })
             v-for="ev in cell.events.slice(0, 3)"
             :key="`${cell.key}:${ev.$id}`"
             :to="localePath(`/events/${ev.$id}`)"
-            class="block truncate rounded bg-primary/15 px-1 text-xs leading-5 text-primary hover:bg-primary/25"
-            :class="{ 'line-through opacity-60': ev.status === 'cancelled' }"
+            class="block truncate rounded px-1 text-xs leading-5 transition-colors"
+            :class="[
+              props.highlightId === ev.$id
+                ? 'bg-primary font-medium text-inverted ring-2 ring-primary/60'
+                : 'bg-primary/15 text-primary hover:bg-primary/25',
+              { 'line-through opacity-60': ev.status === 'cancelled' },
+            ]"
             :data-calendar-event="ev.$id"
+            :data-calendar-highlighted="props.highlightId === ev.$id || undefined"
           >
             {{ ev.title }}
           </NuxtLink>

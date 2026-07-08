@@ -8,8 +8,6 @@
       "empty": "Aktuell sind keine Events geplant.",
       "pastEmpty": "Noch keine vergangenen Events.",
       "loadMore": "Mehr laden",
-      "viewList": "Listenansicht",
-      "viewCalendar": "Kalenderansicht",
       "searchPlaceholder": "Events durchsuchen …",
       "searchEmpty": "Keine Events zu dieser Suche.",
       "filters": {

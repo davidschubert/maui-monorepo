@@ -8,8 +8,6 @@
       "empty": "No events scheduled right now.",
       "pastEmpty": "No past events yet.",
       "loadMore": "Load more",
-      "viewList": "List view",
-      "viewCalendar": "Calendar view",
       "searchPlaceholder": "Search events …",
       "searchEmpty": "No events match your search.",
       "filters": {
