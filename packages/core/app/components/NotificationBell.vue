@@ -82,8 +82,12 @@ function safeLink(link?: string): string {
 
 // Nachrichtentext je Notification-Typ; unbekannte Typen fallen auf 'replied'
 // zurück (alt gespeicherte Rows / künftige Typen brechen die Bell nicht).
+// 'reminder' ist generisch (Termin-/Fristen-Erinnerung, {name} = Betreff) —
+// erster Konsument: events (Phase 27).
 function messageKey(type: string): string {
-  return type === 'mention' ? 'notifications.mentioned' : 'notifications.replied'
+  if (type === 'mention') return 'notifications.mentioned'
+  if (type === 'reminder') return 'notifications.reminder'
+  return 'notifications.replied'
 }
 </script>
 

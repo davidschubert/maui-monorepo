@@ -197,7 +197,8 @@
     "title": "Notifications",
     "empty": "You're all caught up.",
     "replied": "{name} replied to your comment",
-    "mentioned": "{name} mentioned you in a comment"
+    "mentioned": "{name} mentioned you in a comment",
+    "reminder": "Reminder: {name} starts soon"
   },
   "error": {
     "notFound": "This page does not exist.",

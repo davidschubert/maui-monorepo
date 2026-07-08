@@ -197,7 +197,8 @@
     "title": "Benachrichtigungen",
     "empty": "Alles gelesen.",
     "replied": "{name} hat auf deinen Kommentar geantwortet",
-    "mentioned": "{name} hat dich in einem Kommentar erwähnt"
+    "mentioned": "{name} hat dich in einem Kommentar erwähnt",
+    "reminder": "Erinnerung: {name} beginnt bald"
   },
   "error": {
     "notFound": "Diese Seite existiert nicht.",
