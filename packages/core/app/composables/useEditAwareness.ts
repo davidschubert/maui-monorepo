@@ -1,5 +1,6 @@
 /**
- * Edit-Awareness für geteilte Formulare (z.B. Config, Changelog): solange die
+ * Edit-Awareness für geteilte Formulare (Core-Vertrag, aus admin gehoben —
+ * Phase 24; Konsumenten: admin-Formulare + courses-Builder): solange die
  * Seite offen ist, trägt die eigene Presence (Appwrite Presences API) die action
  * `editing:<key>`. `editors` sind die ANDEREN, die dasselbe Formular offen haben
  * — als Banner "X bearbeitet dieses Formular ebenfalls", damit sich nicht zwei
