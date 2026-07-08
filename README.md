@@ -185,6 +185,8 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 
 | 53 | **GOALS-Phase 27: Events v2 Teil B** — Reminder ohne Cron (on-read-Sweep 24 h vor Start → `notify()` an Zusager, Bell-Typ `reminder`, idempotent über `remindersSentAt`; `POST /api/events/reminder-sweep` als scheduled-Function-Andockpunkt, key-geschützt) + **Paid Events vollständig vorbereitet**: `event_tickets` im Endschema, Vertrag `registerEventTicketGuard`/`grantEventTicket` (fail-closed 403, App-Guard = Ticket-Check verdrahtet), Preis-Badge + „Ticket kaufen (bald verfügbar)", Admin-Access-Toggle — Phase 23 verbindet nur noch Checkout + Webhook ([Andockpunkt](docs/plans/BILLING-STRIPE.md)) | ✅ 2026-07-08 |
 
+| 54 | **Events-Filter-Paket** ([Plan §7c](docs/plans/EVENTS-V2.md)): Zeit-Chips Heute/Morgen/Wochenende (lokale Fenster über die Range-Query) neben Kommende/Archiv; persönliche Filter **Zugesagt/Geliked/Teilgenommen** (`?mine=`, nur eingeloggt — „Teilgenommen" = nur MEINE besuchten Events, anders als das Archiv); Share-Button auf der Card | ✅ 2026-07-08 |
+
 Details und Nachweis-Kriterien pro Phase: [docs/GOALS.md](docs/GOALS.md) · Upgrade-Plan: [docs/APPWRITE-1.9.5-UPGRADE.md](docs/APPWRITE-1.9.5-UPGRADE.md) · Offene Punkte: [docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md)
 
 ## Konventionen

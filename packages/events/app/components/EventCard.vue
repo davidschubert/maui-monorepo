@@ -13,6 +13,7 @@ const props = defineProps<{ event: EventWithRsvp }>()
 const emit = defineEmits<{ updated: [event: EventWithRsvp] }>()
 
 const { t } = useI18n()
+const toast = useToast()
 const localePath = useLocalePath()
 const { formatDateSpan, formatMonthShort, isMultiDay } = useEventDateFormat()
 const { coverUrl } = useEventCover()
@@ -46,6 +47,27 @@ const placeholderCount = computed(() => Math.min(props.event.attendeeCount, 3))
 
 function onVoted(res: EventVoteResponse) {
   emit('updated', { ...props.event, ...res.event, myVote: res.myVote })
+}
+
+/** Teilen direkt von der Card (Muster EventDetail) */
+async function share() {
+  const url = `${window.location.origin}${localePath(`/events/${props.event.$id}`)}`
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: props.event.title, url })
+      return
+    }
+    throw new Error('no-share')
+  }
+  catch {
+    try {
+      await navigator.clipboard.writeText(url)
+      toast.add({ title: t('events.detail.linkCopied'), color: 'success' })
+    }
+    catch {
+      toast.add({ title: t('events.detail.shareFailed'), color: 'error' })
+    }
+  }
 }
 </script>
 
@@ -132,7 +154,18 @@ function onVoted(res: EventVoteResponse) {
           </UBadge>
         </div>
 
-        <EventVoteButtons :event="event" :my-vote="event.myVote" @updated="onVoted" />
+        <div class="flex items-center gap-0.5">
+          <EventVoteButtons :event="event" :my-vote="event.myVote" @updated="onVoted" />
+          <UButton
+            size="xs"
+            color="neutral"
+            variant="ghost"
+            icon="i-ph-share-network"
+            :aria-label="t('events.detail.share')"
+            data-testid="card-share"
+            @click.prevent.stop="share"
+          />
+        </div>
       </div>
     </div>
   </NuxtLink>

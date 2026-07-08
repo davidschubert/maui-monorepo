@@ -11,7 +11,18 @@
       "viewList": "List view",
       "viewCalendar": "Calendar view",
       "searchPlaceholder": "Search events …",
-      "searchEmpty": "No events match your search."
+      "searchEmpty": "No events match your search.",
+      "filters": {
+        "upcoming": "Upcoming",
+        "today": "Today",
+        "tomorrow": "Tomorrow",
+        "weekend": "Weekend",
+        "archive": "Archive",
+        "going": "Going",
+        "liked": "Liked",
+        "attended": "Attended"
+      },
+      "filterEmpty": "Nothing here for this filter right now."
     },
     "card": {
       "cancelled": "Cancelled",

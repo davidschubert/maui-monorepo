@@ -2,17 +2,52 @@
 import type { EventListResponse, EventWithRsvp } from '../../shared/types/event'
 
 /**
- * Event-Übersicht: Umschalter Kommende/Archiv + Listen-/Kalender-Ansicht.
+ * Event-Übersicht: Filter-Chips (Kommende/Heute/Morgen/Wochenende/Archiv +
+ * eingeloggt: Zugesagt/Geliked/Teilgenommen — Letzteres ist der Unterschied
+ * zum Archiv: nur MEINE besuchten Events) + Listen-/Kalender-Ansicht.
  * Liste ist Default (SSR, erste Seite ohne Flash) mit Monats-Gruppierung und
- * Cursor-Pagination; Kalender ist die zweite Ansicht (client-geladen).
+ * Cursor-Pagination (nur Kommende/Archiv); Kalender ist die zweite Ansicht.
+ * Zeitfenster (Heute/Morgen/Wochenende) rechnet der CLIENT in lokaler Zeit
+ * und nutzt die Range-Query — Chip-Klicks sind ohnehin client-seitig.
  */
 const { t, locale, locales } = useI18n()
+const { isLoggedIn } = useCurrentUser()
 
-const past = ref(false)
+type EventFilter = 'upcoming' | 'today' | 'tomorrow' | 'weekend' | 'archive' | 'going' | 'liked' | 'attended'
+const filter = ref<EventFilter>('upcoming')
 const view = ref<'list' | 'calendar'>('list')
 const rows = ref<EventWithRsvp[]>([])
 const nextCursor = ref<string | null>(null)
 const loadingMore = ref(false)
+
+const TIME_FILTERS: EventFilter[] = ['upcoming', 'today', 'tomorrow', 'weekend', 'archive']
+const MINE_FILTERS: EventFilter[] = ['going', 'liked', 'attended']
+
+/** lokaler Kalendertag (+offset) als [from, to)-Fenster */
+function dayRange(offsetDays: number): { from: string, to: string } {
+  const start = new Date()
+  start.setHours(0, 0, 0, 0)
+  start.setDate(start.getDate() + offsetDays)
+  const end = new Date(start)
+  end.setDate(end.getDate() + 1)
+  return { from: start.toISOString(), to: end.toISOString() }
+}
+
+/** kommendes Wochenende (Sa+So) — am Sonntag zählt der Rest-Sonntag */
+function weekendRange(): { from: string, to: string } {
+  const start = new Date()
+  start.setHours(0, 0, 0, 0)
+  const day = start.getDay()
+  if (day === 0) {
+    const end = new Date(start)
+    end.setDate(end.getDate() + 1)
+    return { from: start.toISOString(), to: end.toISOString() }
+  }
+  start.setDate(start.getDate() + (6 - day))
+  const end = new Date(start)
+  end.setDate(end.getDate() + 2)
+  return { from: start.toISOString(), to: end.toISOString() }
+}
 
 // Suche: debounct gegen ?q (Fulltext auf title, Migration 003)
 const search = ref('')
@@ -24,15 +59,24 @@ watch(search, (value) => {
 })
 onBeforeUnmount(() => clearTimeout(searchTimer))
 
-const listQuery = computed(() => ({
-  ...(past.value ? { past: 'true' } : {}),
-  ...(debouncedSearch.value ? { q: debouncedSearch.value } : {}),
-}))
+const listQuery = computed<Record<string, string>>(() => {
+  const base: Record<string, string> = debouncedSearch.value ? { q: debouncedSearch.value } : {}
+  switch (filter.value) {
+    case 'archive': return { ...base, past: 'true' }
+    case 'today': return { ...base, ...dayRange(0) }
+    case 'tomorrow': return { ...base, ...dayRange(1) }
+    case 'weekend': return { ...base, ...weekendRange() }
+    case 'going':
+    case 'liked':
+    case 'attended': return { ...base, mine: filter.value }
+    default: return base
+  }
+})
 
 const { data, status } = await useAsyncData<EventListResponse>(
   'events:list',
   () => $fetch('/api/events', { query: listQuery.value }),
-  { watch: [past, debouncedSearch] },
+  { watch: [filter, debouncedSearch] },
 )
 
 watch(data, (value) => {
@@ -83,29 +127,36 @@ const groups = computed(() => {
 
 <template>
   <div>
-    <div class="flex items-center justify-between gap-2">
-      <div class="flex gap-1" role="tablist">
+    <div class="flex items-start justify-between gap-2">
+      <div class="flex flex-wrap items-center gap-1" role="tablist" data-testid="events-filters">
         <UButton
-          :color="past ? 'neutral' : 'primary'"
-          :variant="past ? 'ghost' : 'soft'"
+          v-for="item in TIME_FILTERS"
+          :key="item"
+          :color="filter === item ? 'primary' : 'neutral'"
+          :variant="filter === item ? 'soft' : 'ghost'"
           size="sm"
-          data-testid="events-upcoming"
-          @click="past = false"
+          :data-filter="item"
+          @click="filter = item"
         >
-          {{ t('events.list.upcoming') }}
+          {{ t(`events.list.filters.${item}`) }}
         </UButton>
-        <UButton
-          :color="past ? 'primary' : 'neutral'"
-          :variant="past ? 'soft' : 'ghost'"
-          size="sm"
-          data-testid="events-past"
-          @click="past = true"
-        >
-          {{ t('events.list.past') }}
-        </UButton>
+        <template v-if="isLoggedIn">
+          <span class="mx-1 h-4 w-px bg-accented" aria-hidden="true" />
+          <UButton
+            v-for="item in MINE_FILTERS"
+            :key="item"
+            :color="filter === item ? 'primary' : 'neutral'"
+            :variant="filter === item ? 'soft' : 'ghost'"
+            size="sm"
+            :data-filter="item"
+            @click="filter = item"
+          >
+            {{ t(`events.list.filters.${item}`) }}
+          </UButton>
+        </template>
       </div>
 
-      <div class="flex gap-1">
+      <div class="flex shrink-0 gap-1">
         <UButton
           :color="view === 'list' ? 'primary' : 'neutral'"
           :variant="view === 'list' ? 'soft' : 'ghost'"
@@ -146,7 +197,10 @@ const groups = computed(() => {
       </div>
 
       <p v-else-if="rows.length === 0" class="py-16 text-center text-sm text-muted" data-testid="events-empty">
-        {{ debouncedSearch ? t('events.list.searchEmpty') : past ? t('events.list.pastEmpty') : t('events.list.empty') }}
+        {{ debouncedSearch
+          ? t('events.list.searchEmpty')
+          : filter === 'archive' ? t('events.list.pastEmpty')
+            : filter === 'upcoming' ? t('events.list.empty') : t('events.list.filterEmpty') }}
       </p>
 
       <div v-else class="mt-4 space-y-6" data-testid="events-list">

@@ -191,6 +191,16 @@ Fulltext-Index); Melden über den generischen moderation-Vertrag
 Entscheidung David); Serien über nicht-zusammenhängende Tage bleiben
 mehrere Einzel-Events (Recurrence-Ablehnung gilt weiter).
 
+## 7c. Filter-Paket (David-Review, umgesetzt 2026-07-08)
+
+- **Zeit-Chips**: Kommende · **Heute · Morgen · Wochenende** (Client rechnet
+  die lokalen Fenster und nutzt die bestehende Range-Query) · Archiv.
+- **Meine-Chips (nur eingeloggt, `?mine=`)**: **Zugesagt** (kommende
+  going-RSVPs), **Geliked** (eigene Upvotes), **Teilgenommen** (going +
+  vorbei — der Unterschied zum Archiv: nur MEINE besuchten Events).
+  Gäste → 401; Kappung auf die jüngsten 100 RSVPs/Likes dokumentiert.
+- **Share auf der Card** (neben den Votes, die seit §7b dort sitzen).
+
 ## 8. Offene Entscheidungen (David)
 
 1. **Embed-Gate**: ✅ **Entschieden (2026-07-07): erstmal AUS** — v1 nur externe

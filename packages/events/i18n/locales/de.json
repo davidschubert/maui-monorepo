@@ -11,7 +11,18 @@
       "viewList": "Listenansicht",
       "viewCalendar": "Kalenderansicht",
       "searchPlaceholder": "Events durchsuchen …",
-      "searchEmpty": "Keine Events zu dieser Suche."
+      "searchEmpty": "Keine Events zu dieser Suche.",
+      "filters": {
+        "upcoming": "Kommende",
+        "today": "Heute",
+        "tomorrow": "Morgen",
+        "weekend": "Wochenende",
+        "archive": "Archiv",
+        "going": "Zugesagt",
+        "liked": "Geliked",
+        "attended": "Teilgenommen"
+      },
+      "filterEmpty": "Für diesen Filter gibt es gerade nichts."
     },
     "card": {
       "cancelled": "Abgesagt",
