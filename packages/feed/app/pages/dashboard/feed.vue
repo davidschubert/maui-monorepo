@@ -7,10 +7,23 @@ useHead({ title: () => t('feed.moderation.title') })
 </script>
 
 <template>
-  <div class="mx-auto max-w-2xl">
-    <h1 class="text-2xl font-bold">{{ t('feed.moderation.title') }}</h1>
-    <p class="mt-1 text-sm text-muted">{{ t('feed.moderation.description') }}</p>
+  <!-- UDashboardPanel liefert den Scroll-Container (#body = overflow-y-auto) —
+       ohne ihn war die Seite als einzige Dashboard-Seite nicht scrollbar -->
+  <UDashboardPanel id="feed-moderation">
+    <template #header>
+      <UDashboardNavbar :title="t('feed.moderation.title')">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+      </UDashboardNavbar>
+    </template>
 
-    <ActivityFeed class="mt-6" moderate />
-  </div>
+    <template #body>
+      <div class="mx-auto w-full max-w-2xl">
+        <p class="text-sm text-muted">{{ t('feed.moderation.description') }}</p>
+
+        <ActivityFeed class="mt-6" moderate />
+      </div>
+    </template>
+  </UDashboardPanel>
 </template>
