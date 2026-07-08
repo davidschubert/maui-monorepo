@@ -18,5 +18,6 @@ export type Capability =
   | 'posts.moderate'
   | 'events.manage'
   | 'feedback.manage'
+  | 'billing.manage'
 
 export type Role = 'admin' | 'moderator'

@@ -37,6 +37,7 @@ Drei Ebenen, klar getrennt:
 | `posts.moderate` | Community-Posts ausblenden/wiederherstellen |
 | `events.manage` | Events anlegen/bearbeiten/absagen |
 | `feedback.manage` | Nutzer-Feedback sichten/erledigen/löschen |
+| `billing.manage` | Abo-Übersicht im Dashboard einsehen |
 
 ### Rollen → Capabilities
 
@@ -69,6 +70,7 @@ pro Route durch die spezifische Capability ersetzt:
 | `posts.moderate` | `packages/posts`: `posts/[id]/hide.post`, `posts/[id]/restore.post` |
 | `events.manage` | `packages/events`: `events/index.post`, `events/[id].patch`, `events/[id].delete`, `events/manage.get` |
 | `feedback.manage` | `packages/feedback`: `feedback/index.get`, `feedback/[id].patch`, `feedback/[id].delete` |
+| `billing.manage` | `packages/billing`: `billing/admin/subscriptions.get` |
 
 > `search.get` liefert auch User-Namen — bleibt `dashboard.access` (keine E-Mails/PII
 > in der Antwort prüfen; sonst auf `users.manage` heben).
