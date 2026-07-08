@@ -13,7 +13,11 @@
       "system": "System",
       "admin": "Admin",
       "audit": "Aktivitätsprotokoll",
-      "homepage": "Zur Startseite"
+      "homepage": "Zur Startseite",
+      "people": "Personen",
+      "peopleAll": "Alle Benutzer",
+      "peopleActive": "Aktiv",
+      "peopleNew": "Neu"
     },
     "config": {
       "title": "Konfiguration",
@@ -235,7 +239,18 @@
       },
       "verifiedEmail": "E-Mail",
       "verifiedPhone": "Telefon",
-      "notFound": "User nicht gefunden."
+      "notFound": "User nicht gefunden.",
+      "add": {
+        "cta": "Benutzer hinzufügen",
+        "title": "Benutzer anlegen",
+        "password": "Start-Passwort",
+        "passwordHelp": "Mindestens 8 Zeichen — der Benutzer kann es per „Passwort vergessen“ ändern.",
+        "roles": "Rollen (optional)",
+        "save": "Anlegen",
+        "done": "Benutzer angelegt.",
+        "duplicate": "Diese E-Mail existiert bereits.",
+        "failed": "Benutzer konnte nicht angelegt werden."
+      }
     },
     "moderation": {
       "filter": {
@@ -279,6 +294,16 @@
       "downloadError": "Download fehlgeschlagen.",
       "confirmTitle": "Snapshot löschen?",
       "confirmText": "{name} endgültig löschen? Der Snapshot kann danach nicht mehr abgerufen werden."
+    },
+    "roadmap": {
+      "title": "Roadmap",
+      "description": "Was in Arbeit ist, was als Nächstes kommt und was später folgt — die Planungs-Wahrheit bleibt docs/GOALS.md.",
+      "updated": "Stand: {date}",
+      "now": "In Arbeit",
+      "next": "Als Nächstes",
+      "later": "Später",
+      "shipped": "Kürzlich geliefert",
+      "empty": "Keine Roadmap konfiguriert — die App liefert die Inhalte über maui.roadmap (app.config)."
     }
   },
   "whatsNew": {

@@ -3,7 +3,7 @@ import { z } from 'zod'
 type TranslateFn = (key: string) => string
 const identity: TranslateFn = key => key
 
-export const SORT_MODES = ['top', 'new', 'controversial'] as const
+export const SORT_MODES = ['top', 'new', 'trending', 'discussed'] as const
 
 export function createCommentSchema(t: TranslateFn = identity) {
   return z.object({

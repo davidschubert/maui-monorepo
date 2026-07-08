@@ -127,7 +127,9 @@ async function executePending() {
       }
     }
     else if (type === 'delete') {
-      await $fetch(`/api/admin/users/${user.value.$id}`, { method: 'DELETE' })
+      // `as string`: das Template-Literal matcht im typed router auch die GET-only
+      // Route /api/admin/users/stats — die Method-Union kollabiert sonst
+      await $fetch(`/api/admin/users/${user.value.$id}` as string, { method: 'DELETE' })
       toast.add({ title: t('admin.users.deleted'), color: 'success' })
       pending.value = null
       await navigateTo(localePath('/dashboard/users'))

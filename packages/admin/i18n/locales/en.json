@@ -13,7 +13,11 @@
       "system": "System",
       "admin": "Admin",
       "audit": "Activity log",
-      "homepage": "View site"
+      "homepage": "View site",
+      "people": "People",
+      "peopleAll": "All users",
+      "peopleActive": "Active",
+      "peopleNew": "New"
     },
     "config": {
       "title": "Configuration",
@@ -235,7 +239,18 @@
       },
       "verifiedEmail": "Email",
       "verifiedPhone": "Phone",
-      "notFound": "User not found."
+      "notFound": "User not found.",
+      "add": {
+        "cta": "Add users",
+        "title": "Create user",
+        "password": "Initial password",
+        "passwordHelp": "At least 8 characters — the user can change it via password reset.",
+        "roles": "Roles (optional)",
+        "save": "Create",
+        "done": "User created.",
+        "duplicate": "This email already exists.",
+        "failed": "Could not create the user."
+      }
     },
     "moderation": {
       "filter": {
@@ -279,6 +294,16 @@
       "downloadError": "Download failed.",
       "confirmTitle": "Delete snapshot?",
       "confirmText": "Permanently delete {name}? The snapshot can no longer be retrieved afterwards."
+    },
+    "roadmap": {
+      "title": "Roadmap",
+      "description": "What is in progress, what comes next and what follows later — planning truth stays in docs/GOALS.md.",
+      "updated": "As of {date}",
+      "now": "In progress",
+      "next": "Up next",
+      "later": "Later",
+      "shipped": "Recently shipped",
+      "empty": "No roadmap configured — the app provides content via maui.roadmap (app.config)."
     }
   },
   "whatsNew": {

@@ -14,7 +14,7 @@ export const MAX_COMMENT_DEPTH = 8
  */
 export type CommentStatus = 'active' | 'hidden' | 'deleted'
 
-export type SortMode = 'top' | 'new' | 'controversial'
+export type SortMode = 'top' | 'new' | 'trending' | 'discussed'
 
 export interface Comment extends Models.Row {
   /** Flexible Anbindung: Kommentare hängen an beliebigen Objekten */

@@ -8,8 +8,8 @@ import { REPORTS_TABLE, type Report } from '../../shared/types/report'
  * Auto-importiert in alle Server-Routen (Nitro), läuft über den AdminClient.
  */
 
-// Reports werden in einem begrenzten Fenster betrachtet (wie controversial bei
-// comments) — riesige Mengen offener Meldungen sind der Ausnahmefall. Auch die
+// Reports werden in einem begrenzten Fenster betrachtet (wie die Fenster-Sorts
+// Trending/Meistdiskutiert bei comments) — riesige Mengen offener Meldungen sind der Ausnahmefall. Auch die
 // Resolve-Route (api/reports/resolve.post.ts) arbeitet mit diesem Fenster.
 export const REPORTS_WINDOW = 500
 

@@ -1,31 +1,34 @@
 import { describe, it, expect } from 'vitest'
-import { controversy } from '../shared/sort'
+import { hotness } from '../shared/sort'
 
-const c = (upvotes: number, downvotes: number, score = upvotes - downvotes) => ({ upvotes, downvotes, score })
+const NOW = Date.parse('2026-07-08T12:00:00.000Z')
+const hoursAgo = (h: number) => new Date(NOW - h * 3600_000).toISOString()
+const c = (score: number, ageHours: number) => ({ score, $createdAt: hoursAgo(ageHours) })
 
-describe('controversy', () => {
-  it('keine Aktivität → 0', () => {
-    expect(controversy(c(0, 0))).toBe(0)
+describe('hotness (Trending)', () => {
+  it('gleicher Score: frischer schlägt älter', () => {
+    expect(hotness(c(5, 1), NOW)).toBeGreaterThan(hotness(c(5, 24), NOW))
   })
 
-  it('ausgeglichen + viel Aktivität → hoch', () => {
-    expect(controversy(c(10, 10))).toBe(20) // (10+10) / max(|0|,1)
+  it('gleiches Alter: höherer Score schlägt niedrigeren', () => {
+    expect(hotness(c(10, 3), NOW)).toBeGreaterThan(hotness(c(2, 3), NOW))
   })
 
-  it('einseitig → niedrig', () => {
-    expect(controversy(c(10, 0))).toBe(1) // 10 / max(10,1)
+  it('Zerfall: alter Top-Thread fällt hinter frischen soliden Thread', () => {
+    expect(hotness(c(5, 1), NOW)).toBeGreaterThan(hotness(c(50, 72), NOW))
   })
 
-  it('|score| im Nenner — negativer Score zählt gleich', () => {
-    expect(controversy(c(2, 8))).toBe(controversy(c(8, 2)))
-    expect(controversy(c(2, 8))).toBeCloseTo(10 / 6)
+  it('brandneu mit Score 0 rankt über altem Score 0 (+1-Zähler)', () => {
+    expect(hotness(c(0, 0), NOW)).toBeGreaterThan(hotness(c(0, 48), NOW))
   })
 
-  it('kontrovers rankt über unkontrovers', () => {
-    expect(controversy(c(50, 50))).toBeGreaterThan(controversy(c(100, 0)))
+  it('negativer Score rankt unter Score 0', () => {
+    expect(hotness(c(-5, 1), NOW)).toBeLessThan(hotness(c(0, 1), NOW))
   })
 
-  it('Nenner-Floor 1 verhindert Division durch 0 (score 0)', () => {
-    expect(Number.isFinite(controversy(c(5, 5)))).toBe(true)
+  it('Zukunfts-Timestamps (Clock-Skew) crashen nicht — Alter wird auf 0 geklemmt', () => {
+    const future = { score: 3, $createdAt: new Date(NOW + 3600_000).toISOString() }
+    expect(Number.isFinite(hotness(future, NOW))).toBe(true)
+    expect(hotness(future, NOW)).toBe(hotness(c(3, 0), NOW))
   })
 })

@@ -35,6 +35,9 @@ export default defineEventHandler(async (event): Promise<AdminUserListResponse> 
   const page = Math.max(1, Number(query.page ?? 1) || 1)
   const rawSort = String(query.sort ?? '')
   const dir = query.dir === 'asc' ? 'asc' : 'desc'
+  // People-Filter (Nav-Unterpunkte): 'new' = registration-Query (server-seitig),
+  // 'active' = accessedAt-Fenster (nicht queryfähig → In-Memory-Pfad unten)
+  const filter = query.filter === 'active' || query.filter === 'new' ? query.filter : null
 
   const admin = createAdminClient(event)
 
@@ -43,9 +46,14 @@ export default defineEventHandler(async (event): Promise<AdminUserListResponse> 
   const presence = new Map<string, string>()
   for (const p of await listOnlinePresences(event)) presence.set(p.userId, p.updatedAt)
 
-  // Sortierung nach Presence ("jetzt aktiv") → in-memory, da die Presences-API
-  // nicht gemeinsam mit users.list ordnen kann. Sonst: server-seitige Ordnung.
-  if (rawSort === 'active') {
+  // 'new'-Filter: server-seitige registration-Query (in beiden Pfaden)
+  const newFilterQueries = filter === 'new'
+    ? [Query.greaterThan('registration', new Date(Date.now() - USERS_NEW_WINDOW_MS).toISOString())]
+    : []
+
+  // Sortierung nach Presence ("jetzt aktiv") ODER 'active'-Filter → in-memory,
+  // da accessedAt weder orderbar noch queryfähig ist. Sonst: server-seitig.
+  if (rawSort === 'active' || filter === 'active') {
     const all: Models.User<Models.Preferences>[] = []
     let cursor: string | undefined
     let total = 0
@@ -53,7 +61,7 @@ export default defineEventHandler(async (event): Promise<AdminUserListResponse> 
     // (Signup), dopplen/fehlen bei Offsets Zeilen — der Cursor ist stabil.
     while (all.length < FETCH_HARD_CAP) {
       const res = await admin.users.list({
-        queries: [Query.limit(FETCH_PAGE), ...(cursor ? [Query.cursorAfter(cursor)] : [])],
+        queries: [...newFilterQueries, Query.limit(FETCH_PAGE), ...(cursor ? [Query.cursorAfter(cursor)] : [])],
         ...(search ? { search } : {}),
       })
       total = res.total
@@ -64,15 +72,24 @@ export default defineEventHandler(async (event): Promise<AdminUserListResponse> 
     if (all.length >= FETCH_HARD_CAP) {
       console.warn(`[admin/users] active-Sort an FETCH_HARD_CAP (${FETCH_HARD_CAP}) gekappt — Sortierung unvollständig.`)
     }
-    const rows = all.map(u => toRow(u, presence))
+    // 'active'-Filter: nur User mit accessedAt im 30-Tage-Fenster
+    const cutoff = Date.now() - USERS_ACTIVE_WINDOW_MS
+    const filtered = filter === 'active'
+      ? all.filter(u => u.accessedAt && Date.parse(u.accessedAt) >= cutoff)
+      : all
+
+    const rows = filtered.map(u => toRow(u, presence))
     rows.sort((a, b) => {
       const ta = a.lastSeen ? Date.parse(a.lastSeen) : 0
       const tb = b.lastSeen ? Date.parse(b.lastSeen) : 0
       return dir === 'asc' ? ta - tb : tb - ta
     })
     // total = echte Gesamtzahl (nicht rows.length, das auf FETCH_CAP geklemmt
-    // wäre) → Anzeige/Pagination stimmen auch jenseits von 500 Nutzern.
-    return { total, users: rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE) }
+    // wäre); beim active-Filter IST die gefilterte Menge die Gesamtzahl.
+    return {
+      total: filter === 'active' ? rows.length : total,
+      users: rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    }
   }
 
   // Appwrite-orderbare Felder (accessedAt ist NICHT orderbar → keine Spalte)
@@ -81,6 +98,7 @@ export default defineEventHandler(async (event): Promise<AdminUserListResponse> 
 
   const result = await admin.users.list({
     queries: [
+      ...newFilterQueries,
       dir === 'asc' ? Query.orderAsc(sort) : Query.orderDesc(sort),
       Query.limit(PAGE_SIZE),
       Query.offset((page - 1) * PAGE_SIZE),

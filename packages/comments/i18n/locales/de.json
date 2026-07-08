@@ -30,7 +30,8 @@
       "label": "Sortieren",
       "top": "Top",
       "new": "Neu",
-      "controversial": "Kontrovers"
+      "trending": "Im Trend",
+      "discussed": "Meistdiskutiert"
     },
     "form": {
       "placeholder": "Dein Kommentar…",

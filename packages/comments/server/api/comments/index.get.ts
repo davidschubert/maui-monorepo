@@ -1,6 +1,6 @@
 import { Query } from 'node-appwrite'
 import { SORT_MODES } from '../../../schemas/comment'
-import { controversy } from '../../../shared/sort'
+import { hotness } from '../../../shared/sort'
 import {
   COMMENTS_TABLE,
   VOTES_TABLE,
@@ -12,9 +12,12 @@ import {
 } from '../../../shared/types/comment'
 
 const PAGE_SIZE = 25
-// Controversial lässt sich nicht als Appwrite-Query ausdrücken → server-seitige
-// Sortierung über ein begrenztes Top-Level-Fenster.
-const CONTRO_CAP = 200
+// Trending/Meistdiskutiert lassen sich nicht als Appwrite-Query ausdrücken →
+// server-seitige Sortierung über ein begrenztes Fenster der NEUESTEN Threads.
+const WINDOW_CAP = 200
+// Antwort-Zählung (Meistdiskutiert): schlanke rootId-Sammlung übers Fenster
+const COUNT_PAGE = 500
+const COUNT_HARD_CAP = 5_000
 // Antworten je geladener Thread-Seite (komplette Subtrees) werden per Cursor
 // VOLLSTÄNDIG eingesammelt; die Seitengröße ist nur die Batch-Größe. Die harte
 // Obergrenze ist ein Notanker gegen entgleisende Pagination — wird sie erreicht,
@@ -44,7 +47,9 @@ export default defineEventHandler(async (event): Promise<CommentListResponse> =>
   const { tablesDB } = createSessionClient(event)
   const databaseId = config.public.appwriteDatabaseId
 
-  const isContro = sort === 'controversial'
+  // Fenster-Sorts: erst die neuesten WINDOW_CAP Threads holen, in-memory
+  // ranken, dann slicen (sonst würde nur EINE $createdAt-Seite umsortiert)
+  const windowed = sort === 'trending' || sort === 'discussed'
   const offset = (page - 1) * PAGE_SIZE
 
   const baseFilters = [
@@ -67,16 +72,53 @@ export default defineEventHandler(async (event): Promise<CommentListResponse> =>
       ...baseFilters,
       Query.isNull('parentId'),
       ...order,
-      // Controversial: Fenster holen, dann sortieren+slicen (sonst würde nur EINE
-      // nach $createdAt paginierte Seite umsortiert).
-      Query.limit(isContro ? CONTRO_CAP : PAGE_SIZE),
-      Query.offset(isContro ? 0 : offset),
+      Query.limit(windowed ? WINDOW_CAP : PAGE_SIZE),
+      Query.offset(windowed ? 0 : offset),
     ],
   })
-  const topLevel = isContro
-    ? [...topRes.rows].sort((a, b) => controversy(b) - controversy(a)).slice(offset, offset + PAGE_SIZE)
-    : topRes.rows
-  const topLevelTotal = isContro ? Math.min(topRes.total, CONTRO_CAP) : topRes.total
+
+  let ranked = topRes.rows
+  if (sort === 'trending') {
+    // Zeit-Zerfall (HN-Gravity): frisch + Zuspruch schlägt alt + Bestand
+    const now = Date.now()
+    ranked = [...topRes.rows].sort((a, b) => hotness(b, now) - hotness(a, now))
+  }
+  else if (sort === 'discussed') {
+    // Meistdiskutiert: Antworten je Thread übers Fenster zählen — schlanke
+    // rootId-Sammlung (Query.select), chunked (Query.equal max 100 Werte)
+    const counts = new Map<string, number>()
+    const rootIds = topRes.rows.map(row => row.$id)
+    for (let i = 0; i < rootIds.length; i += 100) {
+      const chunk = rootIds.slice(i, i + 100)
+      let cursor: string | undefined
+      let collected = 0
+      while (collected < COUNT_HARD_CAP) {
+        const res = await tablesDB.listRows<Comment>({
+          databaseId,
+          tableId: COMMENTS_TABLE,
+          queries: [
+            ...baseFilters,
+            Query.equal('rootId', chunk),
+            Query.select(['$id', 'rootId']),
+            Query.limit(COUNT_PAGE),
+            ...(cursor ? [Query.cursorAfter(cursor)] : []),
+          ],
+        })
+        for (const row of res.rows) {
+          if (row.rootId) counts.set(row.rootId, (counts.get(row.rootId) ?? 0) + 1)
+        }
+        collected += res.rows.length
+        if (res.rows.length < COUNT_PAGE) break
+        cursor = res.rows.at(-1)!.$id
+      }
+    }
+    ranked = [...topRes.rows].sort((a, b) =>
+      (counts.get(b.$id) ?? 0) - (counts.get(a.$id) ?? 0)
+      || Date.parse(b.$createdAt) - Date.parse(a.$createdAt))
+  }
+
+  const topLevel = windowed ? ranked.slice(offset, offset + PAGE_SIZE) : topRes.rows
+  const topLevelTotal = windowed ? Math.min(topRes.total, WINDOW_CAP) : topRes.total
 
   // 2) Komplette Subtrees der geladenen Threads (rootId-Index) — keine Waisen.
   // Cursor-Pagination bis zur Erschöpfung statt eines einzelnen 500er-Fensters.

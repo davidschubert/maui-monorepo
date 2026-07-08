@@ -37,9 +37,10 @@ await useAsyncData(`comments:${props.targetType}:${props.targetId}`, async () =>
 })
 
 const sortOptions = computed(() => [
-  { label: t('comments.sort.top'), value: 'top' },
-  { label: t('comments.sort.new'), value: 'new' },
-  { label: t('comments.sort.controversial'), value: 'controversial' },
+  { label: t('comments.sort.top'), value: 'top', icon: 'i-ph-arrow-fat-up' },
+  { label: t('comments.sort.new'), value: 'new', icon: 'i-ph-clock' },
+  { label: t('comments.sort.trending'), value: 'trending', icon: 'i-ph-fire' },
+  { label: t('comments.sort.discussed'), value: 'discussed', icon: 'i-ph-chats-circle' },
 ])
 
 const sort = computed({

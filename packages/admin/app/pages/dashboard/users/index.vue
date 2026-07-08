@@ -17,8 +17,23 @@ const activeSearch = ref('')
 const { page, setPage } = usePagination()
 const { sortField, sortDir, toggle } = useTableSort('$createdAt', 'desc')
 
+// People-Filter aus der Nav (?filter=active|new) — Route ist die Wahrheit,
+// damit die Sidebar-Unterpunkte per Link steuern können
+const route = useRoute()
+const filter = computed(() => {
+  const value = route.query.filter
+  return value === 'active' || value === 'new' ? value : null
+})
+watch(filter, () => setPage(1))
+
 const { data, refresh } = await useFetch<AdminUserListResponse>('/api/admin/users', {
-  query: computed(() => ({ search: activeSearch.value, page: page.value, sort: sortField.value, dir: sortDir.value })),
+  query: computed(() => ({
+    search: activeSearch.value,
+    page: page.value,
+    sort: sortField.value,
+    dir: sortDir.value,
+    ...(filter.value ? { filter: filter.value } : {}),
+  })),
 })
 
 // Sortierwechsel → zurück auf Seite 1
@@ -112,7 +127,8 @@ async function executePending() {
       }
     }
     else if (type === 'delete') {
-      await $fetch(`/api/admin/users/${user.$id}`, { method: 'DELETE' })
+      // `as string`: Template-Literal matcht auch /api/admin/users/stats (GET-only)
+      await $fetch(`/api/admin/users/${user.$id}` as string, { method: 'DELETE' })
       toast.add({ title: t('admin.users.deleted'), color: 'success' })
     }
     else {
@@ -130,14 +146,57 @@ async function executePending() {
     busy.value = false
   }
 }
+
+// ---- „Add users": User anlegen (Name, E-Mail, Passwort, optionale Rollen) ----
+
+const createOpen = ref(false)
+const createBusy = ref(false)
+const createForm = reactive({ name: '', email: '', password: '', roles: [] as string[] })
+
+// Rollen-Auswahl wie auf der Detailseite (ASSIGNABLE_ROLES, Core-UI-Quelle);
+// den Eskalations-Schutz erzwingt der Server (Muster role.patch)
+const assignableRoles = ASSIGNABLE_ROLES
+
+function openCreate() {
+  Object.assign(createForm, { name: '', email: '', password: '', roles: [] })
+  createOpen.value = true
+}
+
+async function createUser() {
+  createBusy.value = true
+  try {
+    await $fetch('/api/admin/users', {
+      method: 'POST',
+      body: { ...createForm, name: createForm.name.trim(), email: createForm.email.trim() },
+    })
+    toast.add({ title: t('admin.users.add.done'), color: 'success' })
+    createOpen.value = false
+    await refresh()
+  }
+  catch (error) {
+    const statusCode = (error as { statusCode?: number }).statusCode
+    toast.add({
+      title: statusCode === 409 ? t('admin.users.add.duplicate') : t('admin.users.add.failed'),
+      color: 'error',
+    })
+  }
+  finally {
+    createBusy.value = false
+  }
+}
 </script>
 
 <template>
   <UDashboardPanel id="users">
     <template #header>
-      <UDashboardNavbar :title="`${t('admin.nav.users')} (${data?.total ?? 0})`">
+      <UDashboardNavbar :title="`${t(filter === 'active' ? 'admin.nav.peopleActive' : filter === 'new' ? 'admin.nav.peopleNew' : 'admin.nav.peopleAll')} (${data?.total ?? 0})`">
         <template #leading>
           <UDashboardSidebarCollapse />
+        </template>
+        <template #right>
+          <UButton icon="i-ph-plus" size="sm" data-testid="add-users" @click="openCreate">
+            {{ t('admin.users.add.cta') }}
+          </UButton>
         </template>
       </UDashboardNavbar>
     </template>
@@ -252,6 +311,50 @@ async function executePending() {
               {{ t('admin.users.confirmAction') }}
             </UButton>
           </div>
+        </template>
+      </UModal>
+
+      <UModal v-model:open="createOpen" :title="t('admin.users.add.title')">
+        <template #body>
+          <form class="space-y-4" data-testid="add-users-form" @submit.prevent="createUser">
+            <UFormField :label="t('admin.users.name')" required>
+              <UInput v-model="createForm.name" class="w-full" :maxlength="128" data-testid="add-users-name" />
+            </UFormField>
+            <UFormField :label="t('admin.users.email')" required>
+              <UInput v-model="createForm.email" type="email" class="w-full" data-testid="add-users-email" />
+            </UFormField>
+            <UFormField :label="t('admin.users.add.password')" :help="t('admin.users.add.passwordHelp')" required>
+              <UInput v-model="createForm.password" type="text" class="w-full" :minlength="8" data-testid="add-users-password" />
+            </UFormField>
+            <UFormField :label="t('admin.users.add.roles')">
+              <div class="flex flex-wrap gap-1">
+                <UButton
+                  v-for="role in assignableRoles"
+                  :key="role"
+                  size="sm"
+                  :color="createForm.roles.includes(role) ? 'primary' : 'neutral'"
+                  :variant="createForm.roles.includes(role) ? 'soft' : 'ghost'"
+                  @click="createForm.roles = createForm.roles.includes(role)
+                    ? createForm.roles.filter(r => r !== role)
+                    : [...createForm.roles, role]"
+                >
+                  {{ role }}
+                </UButton>
+              </div>
+            </UFormField>
+
+            <div class="flex justify-end gap-2 pt-2">
+              <UButton color="neutral" variant="ghost" @click="createOpen = false">{{ t('ui.cancel') }}</UButton>
+              <UButton
+                type="submit"
+                :loading="createBusy"
+                :disabled="!createForm.name.trim() || !createForm.email.trim() || createForm.password.length < 8"
+                data-testid="add-users-save"
+              >
+                {{ t('admin.users.add.save') }}
+              </UButton>
+            </div>
+          </form>
         </template>
       </UModal>
     </template>
