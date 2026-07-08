@@ -35,10 +35,9 @@ export default defineAppConfig({
     roadmap: {
       updatedAt: '2026-07-08',
       now: [
-        { title: 'Billing (Stripe): Live-Nachweise', description: 'Implementierung komplett inkl. Event-Tickets — es fehlen nur noch sk_test-Key, stripe listen und die Dashboard-Prices für die Live-Testmatrix.', icon: 'i-ph-credit-card', ref: 'Phase 23 ⚙️' },
+        { title: 'Production-Deployment vorbereiten', description: 'Hetzner + ploi.io, Custom Domain — der letzte offene Roadmap-Block.', icon: 'i-ph-rocket-launch', ref: 'Phase 17' },
       ],
       next: [
-        { title: 'Production-Deployment', description: 'Hetzner + ploi.io, Custom Domain, Deploy-Workflow — wartet auf Server & Domain.', icon: 'i-ph-rocket-launch', ref: 'Phase 17' },
         { title: 'Subscription-/Plan-Filter in der Benutzerverwaltung', description: 'People-Liste um Abo-Status und Plan filterbar machen (Spalten + Nav-Zähler) — braucht die Billing-Daten.', icon: 'i-ph-funnel', ref: 'nach Phase 23' },
       ],
       later: [
@@ -54,7 +53,7 @@ export default defineAppConfig({
         { title: 'E2E-Ausbau', description: 'Playwright-Suiten für eingeloggte Flows (Events, Posts, Dashboard).', icon: 'i-ph-test-tube' },
       ],
       shipped: [
-        { title: 'Kurse (LMS v1) mit Abo-Entitlements + Feedback-Widget + Billing-Implementierung', ref: 'Phasen 23/24' },
+        { title: 'Stripe-Billing live verifiziert (Checkout, Webhook, Realtime, Kuendigung) + Kurse (LMS v1) + Feedback-Widget', ref: 'Phasen 23/24 ✅' },
         { title: 'Events komplett: Kalender, Live, Replays, Reminder, Votes, Suche, Paid-Vorbereitung', ref: 'Phasen 22/26/27' },
         { title: 'Community-Posts (Beiträge, Umfragen, Fragen)', ref: 'Phase 25' },
         { title: 'Activity-Feed mit Realtime', ref: 'Phase 21' },

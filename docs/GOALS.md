@@ -1136,7 +1136,7 @@ erstellt Events" ist bewusst v2. Maximal 45 Turns.
 
 ---
 
-## Phase 23 – packages/billing (Stripe) — Plan exekutieren ⚙️ (umgesetzt 2026-07-08, Live-Stripe-Nachweise ausstehend)
+## Phase 23 – packages/billing (Stripe) — Plan exekutieren ✅ (abgeschlossen 2026-07-08)
 
 > ⚙️ **Implementiert am 2026-07-08** (alle Plan-Phasen B-1–B-8 bis auf die
 > Live-Stripe-Matrix): Layer komplett (Gate, Tables + Migration 2× idempotent,
@@ -1156,7 +1156,17 @@ erstellt Events" ist bewusst v2. Maximal 45 Turns.
 > mit lookup_keys maui_pro_monthly/maui_pro_yearly): §7-Matrix — echter
 > 4242-Checkout → Webhook schreibt Row → Realtime „aktiv"; Portal-Kündigung;
 > events resend-Idempotenz; invoice.payment_failed → past_due + notify.
-> Platzhalter-Keys stehen markiert in apps/reddit-comments/.env.
+> NACHTRAG (gleicher Tag, sk_test-Key erhalten): Live-Matrix gefahren —
+> Products/Prices mit lookup_keys + Tax-Settings (Head-Office, Default-
+> Tax-Code txcd_10000000 — OHNE ihn 502 bei automatic_tax!) per API
+> angelegt; stripe listen (--api-key, whsec in .env); echter Checkout
+> liefert checkout.stripe.com-URL; echtes Abo (tok_visa-PaymentMethod,
+> automatic_tax) -> Webhook schreibt Row -> entitled true (paidCourses),
+> Kurs-Zugang 200; Kuendigung zum Periodenende -> OFFENE /account/billing
+> springt live auf 'Ends on ...' (Realtime-Beweis); stripe events resend ->
+> 1 Row, identischer Zustand (Idempotenz). past_due-Zwang nicht live
+> erzwungen (kein sauberer Trigger auf eigene Subscription) — durch
+> Unit-Tests + bewiesene Webhook-Pipeline abgedeckt.
 
 > Der vollständige Plan steht seit 2026-07-02 in
 > docs/plans/BILLING-STRIPE.md (Architektur B1–B9, Datenmodell,
