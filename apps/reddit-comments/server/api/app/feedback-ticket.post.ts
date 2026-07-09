@@ -45,5 +45,13 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // KI-Triage best-effort im Hintergrund (P3) — blockiert die Antwort nicht;
+  // Realtime schiebt das Ergebnis aufs offene Board, sobald es da ist
+  if (getTicketsAiConfig().enabled) {
+    void triageTicket(event, ticket.$id).catch((error) => {
+      console.warn('[app] Auto-Triage nach Feedback-Übernahme fehlgeschlagen:', error)
+    })
+  }
+
   return { ticketId: ticket.$id }
 })
