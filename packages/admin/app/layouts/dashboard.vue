@@ -76,7 +76,8 @@ const links = computed<NavigationMenuItem[]>(() => {
   for (const m of modules.filter(m => !m.group)) items.push(toItem(m))
   const products = modules.filter(m => m.group === 'products')
   if (products.length) {
-    items.push({ label: t('admin.nav.groups.products'), type: 'label' })
+    // mt-4 setzt das Gruppen-Label leicht vom Block darüber ab
+    items.push({ label: t('admin.nav.groups.products'), type: 'label', class: 'mt-4' })
     for (const m of products) items.push(toItem(m))
   }
   if (userHasCapability(u, 'storage.manage')) items.push({ label: t('admin.nav.storage'), icon: 'i-ph-folder', to: localePath('/dashboard/storage'), onSelect: close })
