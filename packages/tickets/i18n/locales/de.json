@@ -23,7 +23,10 @@
       "cardTitlePlaceholder": "Ticket-Titel …"
     },
     "card": {
-      "done": "Erledigt"
+      "done": "Erledigt",
+      "edit": "Ticket bearbeiten",
+      "overdue": "Überfällig",
+      "dueSoon": "Bald fällig"
     },
     "labels": {
       "idea": "Idee",
@@ -44,6 +47,7 @@
     "modal": {
       "subtitle": "Ticket-Details",
       "close": "Schließen",
+      "actions": "Ticket-Aktionen",
       "none": "—",
       "list": "Liste",
       "label": "Label",
@@ -55,28 +59,27 @@
       "membersPlaceholder": "Admins/Mods zuweisen …",
       "join": "Beitreten",
       "description": "Beschreibung",
-      "descriptionPlaceholder": "Beschreibung in Markdown — Aufgabe, Kontext, Akzeptanzkriterien …",
-      "noDescription": "Noch keine Beschreibung.",
-      "edit": "Bearbeiten",
-      "preview": "Vorschau",
       "checklist": "Checkliste",
       "checklistPlaceholder": "Sub-Task hinzufügen …",
       "addItem": "Hinzufügen",
       "removeItem": "Entfernen",
+      "reorderItem": "Eintrag verschieben",
       "toggleDone": "Erledigt umschalten",
+      "markDone": "Ticket als erledigt markieren",
+      "markOpen": "Ticket wieder öffnen",
       "save": "Speichern",
       "saved": "Ticket gespeichert.",
-      "duplicate": "Kopieren",
+      "duplicate": "Ticket duplizieren",
       "duplicated": "Ticket kopiert.",
-      "share": "Link kopieren",
+      "share": "Ticket-Link kopieren",
       "linkCopied": "Ticket-Link kopiert.",
-      "delete": "Löschen",
-      "deleteConfirm": "Wirklich löschen?",
+      "delete": "Ticket löschen",
+      "deleteConfirmText": "Dieses Ticket endgültig löschen?",
       "deleted": "Ticket gelöscht.",
       "createdBy": "Angelegt von {name} · {date}"
     },
     "export": {
-      "copy": "Für Claude Code kopieren",
+      "copy": "Ticket-Kontext für AI kopieren",
       "download": "Als .md herunterladen",
       "copied": "Markdown in der Zwischenablage — bereit für Claude Code.",
       "task": "Aufgabe",

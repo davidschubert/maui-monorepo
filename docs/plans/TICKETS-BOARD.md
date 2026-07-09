@@ -65,12 +65,13 @@ Zeilenbudget (MariaDB/utf8mb4, ≤ ~15k Zeichen): 10000 + 3000 + 800 + Rest ≈ 
 Indizes: `tickets.idx_list (listId, position)`, `tickets.idx_status (status)`,
 `ticket_lists.idx_position (position)`.
 
-**Seed (Migration, nur bei leerer Tabelle):** „Neues Feedback", „Neue Tickets",
-„Als nächstes dran", „Jetzt im Gange", „Wartet auf Freigabe", „Erledigt",
-„Zurückgestellt" — Listen sind DATEN (umbenennbar/verschiebbar/löschbar),
-keine Enum-Semantik im Code. „Archivieren" = Karte in die letzte Liste
-verschieben ist bewusst NICHT hart verdrahtet — der User zieht/verschiebt in
-seine „Zurückgestellt"-Liste.
+**Seed (Migration, nur bei leerer Tabelle):** „Neue Tickets", „Als nächstes
+dran", „Jetzt im Gange", „Wartet auf Freigabe", „Erledigt", „Zurückgestellt" —
+Listen sind DATEN (umbenennbar/verschiebbar/löschbar), keine Enum-Semantik im
+Code. KEINE „Neues Feedback"-Liste (Entscheidung 2026-07-08): Feedback bleibt
+in der Feedback-Verwaltung; die P2-Aktion „Als Ticket übernehmen" legt direkt
+in „Neue Tickets" an. „Archivieren" = Karte in die letzte Liste verschieben
+ist bewusst NICHT hart verdrahtet — der User zieht in „Zurückgestellt".
 
 ## 4. API (alle Routen: `requirePermission(event, 'tickets.manage')`)
 
@@ -149,9 +150,10 @@ würden divergieren); Export wird on demand generiert:
   Types/Zod, alle §4-Routen, Board+Modal+DnD, md-Export, Realtime, GDPR,
   i18n de/en), App-Komposition, Admin-Roadmap-Ablösung, Runner-Registrierung.
 - **P2 — Feedback-Ingestion:** Die APP verdrahtet (A14): „Als Ticket
-  übernehmen"-Aktion in der Feedback-Verwaltung bzw. Sweep, der offene
-  feedback-Rows als Tickets in „Neues Feedback" anlegt (`feedbackId` verweist
-  zurück, Kategorie → Label). Kein Layer-zu-Layer-Import.
+  übernehmen"-Aktion in der Feedback-Verwaltung legt das Ticket direkt in
+  „Neue Tickets" an (`feedbackId` verweist zurück, Kategorie → Label) —
+  Feedback bleibt, wo es ist; KEINE eigene Board-Liste dafür (Entscheidung
+  2026-07-08). Kein Layer-zu-Layer-Import.
 - **P3 — KI-Triage:** Server-Util `triageTicket()` (Anthropic API, Key
   server-only, Gate `maui.tickets.ai`): bewertet Relevanz, schlägt Priorität/
   Aufwand vor, formuliert offene Rückfragen („braucht David") — schreibt in

@@ -155,8 +155,10 @@ await step('Index tickets.idx_status', () => tablesDB.createIndex({
 // Seed: Standard-Listen nur bei komplett leerer Tabelle (Listen sind Daten)
 const existing = await tablesDB.listRows({ databaseId, tableId: 'ticket_lists', queries: [] })
 if (existing.total === 0) {
+  // „Neues Feedback" bewusst NICHT geseedet — Feedback bleibt in der
+  // Feedback-Verwaltung und wird dort per Aktion in ein Ticket umgewandelt (P2)
   const DEFAULT_LISTS = [
-    'Neues Feedback', 'Neue Tickets', 'Als nächstes dran', 'Jetzt im Gange',
+    'Neue Tickets', 'Als nächstes dran', 'Jetzt im Gange',
     'Wartet auf Freigabe', 'Erledigt', 'Zurückgestellt',
   ]
   for (const [index, title] of DEFAULT_LISTS.entries()) {

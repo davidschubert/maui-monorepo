@@ -47,9 +47,19 @@ function onMoveCard(ticketId: string, listId: string, index: number) {
   const ticket = data.value?.tickets.find(item => item.$id === ticketId)
   if (ticket) void moveTicket(ticket, listId, index)
 }
-function onMoveList(listId: string, index: number) {
-  const list = lists.value.find(item => item.$id === listId)
-  if (list) void moveList(list, index)
+
+// Listen-DnD: die Spalten melden den Hover-Slot, die Seite rendert den
+// Platzhalter zwischen den Listen (Trello-Muster) und führt den Drop aus
+const drag = useState<{ type: 'card' | 'list', id: string, height: number } | null>('tickets-drag', () => null)
+const listHoverIndex = ref<number | null>(null)
+watch(drag, (value) => { if (!value) listHoverIndex.value = null })
+
+function onListDrop() {
+  const current = drag.value
+  if (current?.type !== 'list' || listHoverIndex.value === null) return
+  const list = lists.value.find(item => item.$id === current.id)
+  if (list) void moveList(list, listHoverIndex.value)
+  listHoverIndex.value = null
 }
 
 // Liste hinzufügen (rechts außen, Trello-Muster)
@@ -77,27 +87,42 @@ async function addList() {
   <UDashboardPanel id="tickets-board">
     <template #header>
       <UDashboardNavbar :title="t('tickets.board.title')">
-        <template #trailing>
-          <span class="text-sm text-muted">{{ t('tickets.board.subtitle') }}</span>
+        <template #leading>
+          <UDashboardSidebarCollapse />
         </template>
       </UDashboardNavbar>
     </template>
 
     <template #body>
+      <!-- Subline unter der Headline (nicht daneben — Konvention der App) -->
+      <p class="mb-3 text-sm text-muted">{{ t('tickets.board.subtitle') }}</p>
+
       <!-- Kein v-if-Branch-Swap: SSR (idle) und Client (pending) rendern sonst
            unterschiedliche Zweige → Hydration-Mismatch, der spätere Unmounts
            (Modal-Teleport) mit vDOM-Fehlern crashen lässt -->
       <div class="flex h-full items-start gap-4 overflow-x-auto pb-4" data-testid="ticket-board">
-        <TicketBoardList
-          v-for="(list, index) in lists"
-          :key="list.$id"
-          :list="list"
-          :tickets="ticketsByList.get(list.$id) ?? []"
-          :index="index"
-          @open="open"
-          @move-card="(ticketId, cardIndex) => onMoveCard(ticketId, list.$id, cardIndex)"
-          @move-list="onMoveList"
-          @refresh="refresh"
+        <template v-for="(list, index) in lists" :key="list.$id">
+          <!-- Spalten-Platzhalter beim Listen-Drag (Trello-Muster) -->
+          <div
+            v-if="drag?.type === 'list' && listHoverIndex === index && drag.id !== list.$id"
+            class="w-72 shrink-0 rounded-xl bg-accented/40"
+            :style="{ height: `${Math.min(drag.height, 480)}px` }"
+          />
+          <TicketBoardList
+            :list="list"
+            :tickets="ticketsByList.get(list.$id) ?? []"
+            :index="index"
+            @open="open"
+            @move-card="(ticketId, cardIndex) => onMoveCard(ticketId, list.$id, cardIndex)"
+            @list-hover="(slot) => listHoverIndex = slot"
+            @list-drop="onListDrop"
+            @refresh="refresh"
+          />
+        </template>
+        <div
+          v-if="drag?.type === 'list' && listHoverIndex === lists.length"
+          class="w-72 shrink-0 rounded-xl bg-accented/40"
+          :style="{ height: `${Math.min(drag.height, 480)}px` }"
         />
 
         <div class="w-72 shrink-0">

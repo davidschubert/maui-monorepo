@@ -25,6 +25,8 @@ export interface TicketChecklistItem {
 export interface TicketMember {
   id: string
   name: string
+  /** nur in der assignable-Antwort — wird NICHT in membersJson persistiert */
+  avatarUrl?: string
 }
 
 export interface TicketListRow extends Models.Row {

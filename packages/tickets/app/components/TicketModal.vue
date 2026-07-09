@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import type { TicketAssignableResponse, TicketChecklistItem, TicketListRow, TicketMember, TicketRow } from '../../shared/types/ticket'
+import type { EditorToolbarItem } from '@nuxt/ui'
+import type { TicketChecklistItem, TicketListRow, TicketMember, TicketRow } from '../../shared/types/ticket'
 import { TICKET_EFFORTS, TICKET_LABELS, TICKET_PRIORITIES } from '../../shared/types/ticket'
 import { composeTicketMarkdown, parseTicketChecklist, parseTicketMembers } from '../utils/ticketMarkdown'
+import { TICKET_EFFORT_META, TICKET_LABEL_META, TICKET_PRIORITY_META } from '../utils/ticketMeta'
 
 /**
- * Karten-Detail (Trello-Muster): alle Felder editierbar, Beschreibung als
- * Markdown (Vorschau via Core-Sink), Checkliste, Mitglieder (Admins/Mods),
- * Aktionen inkl. „Für Claude Code kopieren" / .md-Download (Plan §5).
+ * Karten-Detail (Trello-Muster): 3-Punkte-Menü + Close oben rechts, darunter
+ * Erledigt-Toggle (mit Tooltip) + Titel; Selects mit Icons, Beschreibung als
+ * UEditor (Markdown, wie Changelog), Checkliste per Drag sortierbar,
+ * Mitglieder (Admins/Mods), Footer nur Meta + Speichern.
  * Bleibt GEMOUNTET — v-model:open steuert UModal (Unmount-während-offen
  * hinterlässt sonst verwaistes Teleport-DOM).
  */
@@ -17,7 +20,7 @@ const props = defineProps<{
 const emit = defineEmits<{ refresh: [] }>()
 const open = defineModel<boolean>('open', { required: true })
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const toast = useToast()
 const { user } = useCurrentUser()
 
@@ -33,7 +36,6 @@ const form = reactive({
 })
 const checklist = ref<TicketChecklistItem[]>([])
 const members = ref<TicketMember[]>([])
-const editingDescription = ref(false)
 const newChecklistItem = ref('')
 const busy = ref(false)
 const confirmDelete = ref(false)
@@ -68,31 +70,42 @@ watch(() => props.ticket?.$id, () => {
   form.description = ticket.description
   checklist.value = parseTicketChecklist(ticket.checklist)
   members.value = parseTicketMembers(ticket.membersJson)
-  editingDescription.value = !ticket.description
   newChecklistItem.value = ''
   confirmDelete.value = false
 }, { immediate: true })
 
-const { data: assignable } = useFetch<TicketAssignableResponse>('/api/tickets/assignable', {
-  key: 'tickets:assignable',
-  lazy: true,
-  server: false,
-  default: () => ({ users: [] }),
-})
+const { users: assignable, avatarById } = useTicketAssignable()
+
+// Markdown-Toolbar wie bei der Changelog-Verwaltung (UEditor, content-type markdown)
+const toolbarItems: EditorToolbarItem[] = [
+  { kind: 'mark', mark: 'bold', icon: 'i-ph-text-b' },
+  { kind: 'mark', mark: 'italic', icon: 'i-ph-text-italic' },
+  { kind: 'heading', level: 2, icon: 'i-ph-text-h-two' },
+  { kind: 'heading', level: 3, icon: 'i-ph-text-h-three' },
+  { kind: 'bulletList', icon: 'i-ph-list-bullets' },
+  { kind: 'orderedList', icon: 'i-ph-list-numbers' },
+  { kind: 'link', icon: 'i-ph-link' },
+  { kind: 'blockquote', icon: 'i-ph-quotes' },
+  { kind: 'codeBlock', icon: 'i-ph-code' },
+]
 
 const listItems = computed(() => props.lists.map(list => ({ label: list.title, value: list.$id })))
 const noneItem = computed(() => ({ label: t('tickets.modal.none'), value: NONE }))
-const labelItems = computed(() => [noneItem.value, ...TICKET_LABELS.map(v => ({ label: t(`tickets.labels.${v}`), value: v }))])
-const priorityItems = computed(() => [noneItem.value, ...TICKET_PRIORITIES.map(v => ({ label: t(`tickets.priorities.${v}`), value: v }))])
-const effortItems = computed(() => [noneItem.value, ...TICKET_EFFORTS.map(v => ({ label: t(`tickets.efforts.${v}`), value: v }))])
-const memberItems = computed(() => (assignable.value?.users ?? []).map(u => ({ label: u.name, value: u.id })))
+const labelItems = computed(() => [noneItem.value, ...TICKET_LABELS.map(v => ({ label: t(`tickets.labels.${v}`), value: v, icon: TICKET_LABEL_META[v]?.icon }))])
+const priorityItems = computed(() => [noneItem.value, ...TICKET_PRIORITIES.map(v => ({ label: t(`tickets.priorities.${v}`), value: v, icon: TICKET_PRIORITY_META[v]?.icon }))])
+const effortItems = computed(() => [noneItem.value, ...TICKET_EFFORTS.map(v => ({ label: t(`tickets.efforts.${v}`), value: v, icon: TICKET_EFFORT_META[v]?.icon }))])
+const memberItems = computed(() => assignable.value.map(u => ({
+  label: u.name,
+  value: u.id,
+  avatar: { src: u.avatarUrl, alt: u.name },
+})))
 const memberIds = computed({
   get: () => members.value.map(m => m.id),
   set: (ids: string[]) => {
-    const pool = new Map((assignable.value?.users ?? []).map(u => [u.id, u]))
+    const pool = new Map(assignable.value.map(u => [u.id, u]))
     members.value = ids.flatMap((id) => {
       const known = pool.get(id) ?? members.value.find(m => m.id === id)
-      return known ? [known] : []
+      return known ? [{ id: known.id, name: known.name }] : []
     })
   },
 })
@@ -102,11 +115,20 @@ function joinCard() {
   members.value = [...members.value, { id: user.value.$id, name: user.value.name ?? '' }]
 }
 
+// Checkliste: hinzufügen + per Drag sortieren
+const checkDrag = ref<number | null>(null)
 function addChecklistItem() {
   const text = newChecklistItem.value.trim()
   if (!text) return
   checklist.value.push({ text, done: false })
   newChecklistItem.value = ''
+}
+function onCheckDrop(targetIndex: number) {
+  const from = checkDrag.value
+  checkDrag.value = null
+  if (from === null || from === targetIndex) return
+  const [item] = checklist.value.splice(from, 1)
+  checklist.value.splice(targetIndex > from ? targetIndex - 1 : targetIndex, 0, item!)
 }
 
 async function patch(body: Record<string, unknown>) {
@@ -203,7 +225,7 @@ function exportMarkdown(): string {
   return composeTicketMarkdown({
     ticket: snapshot,
     listTitle,
-    url: `${window.location.origin}${window.location.pathname}?ticket=${props.ticket.$id}`,
+    url: ticketUrl(),
     labels: {
       label: t('tickets.modal.label'), priority: t('tickets.modal.priority'),
       effort: t('tickets.modal.effort'), list: t('tickets.modal.list'),
@@ -211,6 +233,9 @@ function exportMarkdown(): string {
       checklist: t('tickets.modal.checklist'), context: t('tickets.export.context'),
     },
   })
+}
+function ticketUrl(): string {
+  return `${window.location.origin}${window.location.pathname}?ticket=${props.ticket?.$id ?? ''}`
 }
 async function copyMarkdown() {
   await navigator.clipboard.writeText(exportMarkdown())
@@ -225,12 +250,24 @@ function downloadMarkdown() {
   link.click()
   URL.revokeObjectURL(link.href)
 }
-
 async function shareLink() {
-  if (!props.ticket) return
-  await navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?ticket=${props.ticket.$id}`)
+  await navigator.clipboard.writeText(ticketUrl())
   toast.add({ title: t('tickets.modal.linkCopied'), color: 'success', icon: 'i-ph-link' })
 }
+
+// 3-Punkte-Menü oben rechts (Wunsch David) — Aktionen raus aus dem Footer
+const menuItems = computed(() => [[
+  { label: t('tickets.modal.share'), icon: 'i-ph-link', onSelect: shareLink },
+  { label: t('tickets.modal.duplicate'), icon: 'i-ph-copy', onSelect: duplicate },
+], [
+  { label: t('tickets.export.copy'), icon: 'i-ph-sparkle', onSelect: copyMarkdown },
+  { label: t('tickets.export.download'), icon: 'i-ph-download-simple', onSelect: downloadMarkdown },
+], [
+  { label: t('tickets.modal.delete'), icon: 'i-ph-trash', color: 'error' as const, onSelect: () => { confirmDelete.value = true } },
+]])
+
+const createdAtText = computed(() =>
+  props.ticket ? new Date(props.ticket.$createdAt).toLocaleString(locale.value) : '')
 </script>
 
 <template>
@@ -239,19 +276,27 @@ async function shareLink() {
   <UModal v-model:open="open" :close="false" :ui="{ content: 'max-w-2xl' }">
     <template #body>
       <div v-if="ticket" class="max-h-[80vh] overflow-y-auto" data-testid="ticket-modal">
-        <div class="flex items-start gap-3">
-          <UButton
-            :icon="ticket.status === 'done' ? 'i-ph-check-circle-fill' : 'i-ph-circle'"
-            :color="ticket.status === 'done' ? 'success' : 'neutral'"
-            variant="ghost"
-            size="lg"
-            :aria-label="t('tickets.modal.toggleDone')"
-            :loading="busy"
-            data-testid="ticket-done-toggle"
-            @click="toggleDone"
-          />
-          <UInput v-model="form.title" size="xl" variant="ghost" class="flex-1 font-semibold" />
+        <div class="flex items-center justify-end gap-1">
+          <UDropdownMenu :items="menuItems">
+            <UButton icon="i-ph-dots-three-bold" color="neutral" variant="ghost" :aria-label="t('tickets.modal.actions')" data-testid="ticket-menu" />
+          </UDropdownMenu>
           <UButton icon="i-ph-x" color="neutral" variant="ghost" :aria-label="t('tickets.modal.close')" @click="open = false" />
+        </div>
+
+        <div class="mt-1 flex items-start gap-2">
+          <UTooltip :text="ticket.status === 'done' ? t('tickets.modal.markOpen') : t('tickets.modal.markDone')">
+            <UButton
+              :icon="ticket.status === 'done' ? 'i-ph-check-circle-fill' : 'i-ph-circle'"
+              :color="ticket.status === 'done' ? 'success' : 'neutral'"
+              variant="ghost"
+              size="lg"
+              :aria-label="t('tickets.modal.toggleDone')"
+              :loading="busy"
+              data-testid="ticket-done-toggle"
+              @click="toggleDone"
+            />
+          </UTooltip>
+          <UInput v-model="form.title" size="xl" variant="ghost" class="flex-1 font-semibold" />
         </div>
 
         <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -290,31 +335,28 @@ async function shareLink() {
               {{ t('tickets.modal.join') }}
             </UButton>
           </div>
+          <UAvatarGroup v-if="members.length" size="xs" :max="6" class="mt-2">
+            <UAvatar
+              v-for="member in members"
+              :key="member.id"
+              :src="avatarById.get(member.id)"
+              :alt="member.name"
+              :title="member.name"
+            />
+          </UAvatarGroup>
         </UFormField>
 
         <div class="mt-5">
-          <div class="flex items-center justify-between">
-            <h3 class="text-sm font-semibold">{{ t('tickets.modal.description') }}</h3>
-            <UButton
-              :icon="editingDescription ? 'i-ph-eye' : 'i-ph-pencil-simple'"
-              color="neutral" variant="ghost" size="xs"
-              @click="editingDescription = !editingDescription"
-            >
-              {{ editingDescription ? t('tickets.modal.preview') : t('tickets.modal.edit') }}
-            </UButton>
-          </div>
-          <UTextarea
-            v-if="editingDescription"
+          <h3 class="mb-2 text-sm font-semibold">{{ t('tickets.modal.description') }}</h3>
+          <UEditor
+            v-slot="{ editor }"
             v-model="form.description"
-            :rows="8"
-            autoresize
-            class="mt-2 w-full font-mono text-sm"
-            :placeholder="t('tickets.modal.descriptionPlaceholder')"
-          />
-          <ContentClamp v-else-if="form.description" :lines="12" class="mt-2">
-            <MarkdownContent :source="form.description" />
-          </ContentClamp>
-          <p v-else class="mt-2 text-sm text-muted">{{ t('tickets.modal.noDescription') }}</p>
+            content-type="markdown"
+            class="w-full rounded-md border border-default"
+            :ui="{ base: 'px-3 sm:px-3 py-2', content: 'min-h-32' }"
+          >
+            <UEditorToolbar :editor="editor" :items="toolbarItems" class="border-b border-default px-1.5 py-1" />
+          </UEditor>
         </div>
 
         <div class="mt-5">
@@ -325,11 +367,33 @@ async function shareLink() {
             </span>
           </h3>
           <ul class="mt-2 space-y-1.5">
-            <li v-for="(item, itemIndex) in checklist" :key="itemIndex" class="flex items-center gap-2">
+            <li
+              v-for="(item, itemIndex) in checklist"
+              :key="itemIndex"
+              class="flex items-center gap-2 rounded"
+              :class="checkDrag === itemIndex ? 'opacity-40' : ''"
+              @dragover.prevent
+              @drop.prevent="onCheckDrop(itemIndex)"
+            >
+              <UIcon
+                name="i-ph-dots-six-vertical"
+                class="size-4 shrink-0 cursor-grab text-dimmed active:cursor-grabbing"
+                draggable="true"
+                :aria-label="t('tickets.modal.reorderItem')"
+                @dragstart="checkDrag = itemIndex"
+                @dragend="checkDrag = null"
+              />
               <UCheckbox v-model="item.done" />
               <span class="flex-1 text-sm" :class="item.done ? 'text-muted line-through' : ''">{{ item.text }}</span>
               <UButton icon="i-ph-x" color="neutral" variant="ghost" size="xs" :aria-label="t('tickets.modal.removeItem')" @click="checklist.splice(itemIndex, 1)" />
             </li>
+            <!-- Drop ans Ende -->
+            <li
+              v-if="checkDrag !== null"
+              class="h-6 rounded border border-dashed border-default"
+              @dragover.prevent
+              @drop.prevent="onCheckDrop(checklist.length)"
+            />
           </ul>
           <form class="mt-2 flex gap-2" @submit.prevent="addChecklistItem">
             <UInput v-model="newChecklistItem" size="sm" class="flex-1" :placeholder="t('tickets.modal.checklistPlaceholder')" />
@@ -337,35 +401,22 @@ async function shareLink() {
           </form>
         </div>
 
-        <div class="mt-6 flex flex-wrap items-center gap-2 border-t border-default pt-4">
-          <UButton icon="i-ph-clipboard-text" color="neutral" variant="subtle" size="sm" data-testid="copy-md" @click="copyMarkdown">
-            {{ t('tickets.export.copy') }}
-          </UButton>
-          <UButton icon="i-ph-download-simple" color="neutral" variant="subtle" size="sm" @click="downloadMarkdown">
-            {{ t('tickets.export.download') }}
-          </UButton>
-          <UButton icon="i-ph-link" color="neutral" variant="ghost" size="sm" :aria-label="t('tickets.modal.share')" @click="shareLink" />
-          <UButton icon="i-ph-copy" color="neutral" variant="ghost" size="sm" @click="duplicate">
-            {{ t('tickets.modal.duplicate') }}
-          </UButton>
-          <UButton
-            v-if="!confirmDelete"
-            icon="i-ph-trash" color="error" variant="ghost" size="sm"
-            @click="confirmDelete = true"
-          >
-            {{ t('tickets.modal.delete') }}
-          </UButton>
-          <UButton v-else icon="i-ph-warning" color="error" variant="solid" size="sm" :loading="busy" @click="remove">
-            {{ t('tickets.modal.deleteConfirm') }}
-          </UButton>
-          <UButton class="ms-auto" color="primary" size="sm" :loading="busy" data-testid="ticket-save" @click="save">
+        <div v-if="confirmDelete" class="mt-6 flex items-center justify-between gap-2 rounded-lg border border-error/40 bg-error/5 p-3">
+          <p class="text-sm text-error">{{ t('tickets.modal.deleteConfirmText') }}</p>
+          <div class="flex gap-2">
+            <UButton color="neutral" variant="ghost" size="sm" @click="confirmDelete = false">{{ t('ui.cancel') }}</UButton>
+            <UButton color="error" size="sm" :loading="busy" @click="remove">{{ t('tickets.modal.delete') }}</UButton>
+          </div>
+        </div>
+
+        <div class="mt-6 flex items-center justify-between gap-2 border-t border-default pt-4">
+          <p class="text-xs text-muted">
+            {{ t('tickets.modal.createdBy', { name: ticket.createdByName || '—', date: createdAtText }) }}
+          </p>
+          <UButton color="primary" size="sm" :loading="busy" data-testid="ticket-save" @click="save">
             {{ t('tickets.modal.save') }}
           </UButton>
         </div>
-
-        <p class="mt-3 text-xs text-muted">
-          {{ t('tickets.modal.createdBy', { name: ticket.createdByName || '—', date: new Date(ticket.$createdAt).toLocaleString() }) }}
-        </p>
       </div>
     </template>
   </UModal>

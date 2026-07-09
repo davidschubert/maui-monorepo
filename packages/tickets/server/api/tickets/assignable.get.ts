@@ -16,7 +16,12 @@ export default defineEventHandler(async (event): Promise<TicketAssignableRespons
 
   const byId = new Map<string, TicketMember>()
   for (const user of [...admins.users, ...moderators.users]) {
-    byId.set(user.$id, { id: user.$id, name: user.name || user.email })
+    const avatarUrl = (user.prefs as { avatarUrl?: string })?.avatarUrl
+    byId.set(user.$id, {
+      id: user.$id,
+      name: user.name || user.email,
+      ...(typeof avatarUrl === 'string' && avatarUrl.length > 0 ? { avatarUrl } : {}),
+    })
   }
 
   return { users: [...byId.values()].sort((a, b) => a.name.localeCompare(b.name, 'de')) }

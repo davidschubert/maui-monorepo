@@ -64,6 +64,10 @@ export function useTicketBoard() {
   /** Karte optimistisch verschieben, dann PATCH (Fehler → Refresh als Wahrheit) */
   async function moveTicket(ticket: TicketRow, listId: string, index: number) {
     const bucket = ticketsByList.value.get(listId) ?? []
+    // Hover-Index zählt inkl. der gezogenen Karte — beim Zug nach rechts/unten
+    // innerhalb desselben Buckets verschiebt sich der Ziel-Slot um eins
+    const sourceIndex = bucket.findIndex(item => item.$id === ticket.$id)
+    if (sourceIndex !== -1 && sourceIndex < index) index--
     const position = positionAt(bucket, index, ticket.$id)
     if (ticket.listId === listId && ticket.position === position) return
     ticket.listId = listId
@@ -78,6 +82,8 @@ export function useTicketBoard() {
 
   /** Liste optimistisch verschieben (index in der Ziel-Reihenfolge) */
   async function moveList(list: TicketListRow, index: number) {
+    const sourceIndex = lists.value.findIndex(item => item.$id === list.$id)
+    if (sourceIndex !== -1 && sourceIndex < index) index--
     const position = positionAt(lists.value, index, list.$id)
     if (list.position === position) return
     list.position = position

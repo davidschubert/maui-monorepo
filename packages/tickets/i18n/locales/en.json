@@ -23,7 +23,10 @@
       "cardTitlePlaceholder": "Ticket title …"
     },
     "card": {
-      "done": "Done"
+      "done": "Done",
+      "edit": "Edit ticket",
+      "overdue": "Overdue",
+      "dueSoon": "Due soon"
     },
     "labels": {
       "idea": "Idea",
@@ -44,6 +47,7 @@
     "modal": {
       "subtitle": "Ticket details",
       "close": "Close",
+      "actions": "Ticket actions",
       "none": "—",
       "list": "List",
       "label": "Label",
@@ -55,28 +59,27 @@
       "membersPlaceholder": "Assign admins/mods …",
       "join": "Join",
       "description": "Description",
-      "descriptionPlaceholder": "Description in Markdown — task, context, acceptance criteria …",
-      "noDescription": "No description yet.",
-      "edit": "Edit",
-      "preview": "Preview",
       "checklist": "Checklist",
       "checklistPlaceholder": "Add sub-task …",
       "addItem": "Add",
       "removeItem": "Remove",
+      "reorderItem": "Reorder item",
       "toggleDone": "Toggle done",
+      "markDone": "Mark ticket as done",
+      "markOpen": "Reopen ticket",
       "save": "Save",
       "saved": "Ticket saved.",
-      "duplicate": "Copy",
+      "duplicate": "Duplicate ticket",
       "duplicated": "Ticket copied.",
-      "share": "Copy link",
+      "share": "Copy ticket link",
       "linkCopied": "Ticket link copied.",
-      "delete": "Delete",
-      "deleteConfirm": "Really delete?",
+      "delete": "Delete ticket",
+      "deleteConfirmText": "Permanently delete this ticket?",
       "deleted": "Ticket deleted.",
       "createdBy": "Created by {name} · {date}"
     },
     "export": {
-      "copy": "Copy for Claude Code",
+      "copy": "Copy ticket context for AI",
       "download": "Download as .md",
       "copied": "Markdown copied to clipboard — ready for Claude Code.",
       "task": "Task",
