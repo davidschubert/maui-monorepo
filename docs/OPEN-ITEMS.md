@@ -92,7 +92,10 @@ nutzbar). Reihenfolge = grobe Priorität.
 2. **Admin-Bulk-Aktionen + CSV-Export** (S–M) — Moderations-Queue/Users mit Multi-Select, Claim-Locks laufen schon.
 3. **Caching/ISR** (S) — routeRules SWR für /changelog + Microcache für GET /api/comments Seite 1; dazu Microcache/Rate-Limit für den öffentlichen `GET /api/stats` (reddit-comments; Audit-Finding L11, bewusst hierher gebündelt).
 4. **CI mit echter Appwrite-Instanz** (M) — Service-Container + `bootstrap --seed` (idempotent vorhanden) → Realtime-E2E in CI.
-5. **Report-Kategorien + Auto-Hide-Threshold** (S–M) — `openReportsByTarget` zählt schon.
+5. ✅ **Auto-Hide-Threshold** (2026-07-09) — Eskalations-Vertrag
+   `registerReportEscalationHandler` (moderation) + Auto-Hide in comments
+   (`maui.comments.autoHideReports`, zweiphasig + Cascade, Meldungen bleiben
+   offen); Report-„Kategorien" existierten bereits als offener reason-Katalog.
 
 ## 🟠 Mittel — lohnt sich
 
