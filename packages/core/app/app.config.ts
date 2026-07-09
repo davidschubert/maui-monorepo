@@ -40,6 +40,13 @@ export default defineAppConfig({
     consent: {
       enabled: false,
     },
+    security: {
+      /** CSRF-Origin-Check für unsichere Methoden auf /api/* (server/middleware/
+       *  csrf-origin.ts). PFLICHT, sobald eine App das partitionierte
+       *  Embed-Session-Cookie (SameSite=None, Embed-Plan E2) aktiviert —
+       *  bis dahin schützt sameSite:'strict' und der Check bleibt aus. */
+      csrfOriginCheck: false,
+    },
     observability: {
       /** Strukturierte JSON-Error-Logs für unbehandelte Server-Fehler (5xx)
        *  am zentralen Nitro-Error-Hook. Sentry-Andockpunkt: server/utils/logEvent.ts */

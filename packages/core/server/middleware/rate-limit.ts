@@ -18,6 +18,10 @@ const WRITE_MAX = 60
 // Hämmern (Scripting) stoppt, nie normale Multi-Tab-Nutzung.
 const PRESENCE_MAX = 120
 const TOKEN_MAX = 10
+// Kommentar-Lesen (Embed-Vorarbeit E0): jeder Request kostet bis zu 4 Appwrite-
+// Queries (top-level, replies, total, avatars) — großzügig, aber nicht frei,
+// sonst ist die öffentliche Route ein billiger DoS-Hebel auf Drittseiten.
+const READ_MAX = 120
 const PRUNE_THRESHOLD = 1_000
 
 const attempts = new Map<string, number[]>()
@@ -63,6 +67,9 @@ const WRITE_LIMITED: { re: RegExp, bucket: string, max?: number }[] = [
   // Writes/JWTs erzeugen lassen. heartbeat+leave teilen EIN Budget.
   { re: /^POST \/api\/presence\/(heartbeat|leave)$/, bucket: 'presence:write', max: PRESENCE_MAX },
   { re: /^GET \/api\/auth\/realtime-token$/, bucket: 'auth:jwt', max: TOKEN_MAX },
+  // Öffentliche Kommentar-Lese-Route (Embed macht sie zur beworbenen Fläche
+  // auf fremden Seiten) — eigener Read-Bucket statt „GET ist frei".
+  { re: /^GET \/api\/comments$/, bucket: 'comments:read', max: READ_MAX },
   // Client-Error-Inbox (Observability-Gate): der Client dedupliziert/kappt
   // selbst (10/Session) — das Limit hier stoppt Scripting/kaputte Clients.
   { re: /^POST \/api\/telemetry\/error$/, bucket: 'telemetry:error', max: 30 },
