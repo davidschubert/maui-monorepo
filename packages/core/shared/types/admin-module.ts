@@ -40,4 +40,15 @@ export interface MauiAdminModule {
    * Modul-Seite selbst dann als ersten Unterpunkt mit aufnehmen).
    */
   children?: MauiAdminModuleChild[]
+  /**
+   * Nav-Gruppe: Module mit gleicher Gruppe rendert das Layout unter einem
+   * gemeinsamen Abschnitts-Label (z. B. 'products'). Ohne Gruppe = oben.
+   */
+  group?: 'products'
+  /**
+   * Platzierung: 'nav' (Default) = Sidebar-Hauptnavigation;
+   * 'userMenu' = im Account-Menü unten (über den Einstellungen) —
+   * für Konto-nahe Bereiche wie Abos.
+   */
+  placement?: 'nav' | 'userMenu'
 }
