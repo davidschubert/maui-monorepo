@@ -10,6 +10,14 @@ export default defineAppConfig({
        *  die Nav daraus, capability-gefiltert. */
       modules: [] as MauiAdminModule[],
     },
+    ai: {
+      /** Server-seitige KI-Features (aiComplete: Moderations-Assist, Layer-
+       *  Defaults). Core-Default aus; Key server-only via NUXT_AI_KEY. */
+      enabled: false,
+      /** Model-Id der OpenAI-kompatiblen Chat-Completions-API (Default: OpenRouter) */
+      model: 'anthropic/claude-haiku-4.5',
+      baseUrl: 'https://openrouter.ai/api/v1',
+    },
     auth: {
       /** Social-Login-Buttons (z.B. ['github', 'google']) — leer = keine Buttons.
        *  Provider müssen in der Appwrite Console konfiguriert sein! */

@@ -46,6 +46,9 @@ export default defineNuxtConfig({
   // Der API Key ist server-only und gehört NIE in public.*
   runtimeConfig: {
     appwriteKey: '',
+    // server-only! Env-Mapping: NUXT_AI_KEY — API-Key für aiComplete()
+    // (OpenRouter- oder anderer OpenAI-kompatibler Anbieter, Gate: maui.ai)
+    aiKey: '',
     public: {
       appwriteEndpoint: '',
       appwriteProjectId: '',
