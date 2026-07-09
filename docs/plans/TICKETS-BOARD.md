@@ -158,7 +158,7 @@ würden divergieren); Export wird on demand generiert:
   Zitat + Meta, Kategorie → Label (bug→issue), `feedbackId` = Rückreferenz
   (Index tickets-002; Doppel-Übernahme → 409), Feedback wird als erledigt
   markiert. Kein Layer-zu-Layer-Import.
-- **P3 — KI-Triage ✅ (2026-07-08, Live-Test wartet auf Key):** Server-Util
+- **P3 — KI-Triage ✅ (2026-07-08, LIVE VERIFIZIERT 2026-07-09):** Server-Util
   `triageTicket()` gegen eine OpenAI-KOMPATIBLE Chat-Completions-API —
   Entscheidung: **OpenRouter** statt Vendor-SDK (David hat dort Guthaben;
   Model frei wählbar über `maui.tickets.ai.model`, Default
