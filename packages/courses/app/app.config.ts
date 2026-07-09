@@ -13,6 +13,7 @@ export default defineAppConfig({
           to: '/dashboard/courses',
           requiredCapability: 'courses.manage',
           group: 'products',
+          order: 3,
         },
       ],
     },

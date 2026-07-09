@@ -16,6 +16,7 @@ export default defineAppConfig({
           to: '/dashboard/comments',
           requiredCapability: 'comments.moderate',
           group: 'products',
+          order: 5,
         },
       ],
     },

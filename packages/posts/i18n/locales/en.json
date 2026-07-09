@@ -1,7 +1,7 @@
 {
   "posts": {
     "feed": {
-      "title": "Community",
+      "title": "Feed",
       "description": "Posts, polls and questions from the community.",
       "empty": "No posts yet — write the first one!",
       "loadMore": "Load more",
@@ -65,7 +65,7 @@
       "voteFailed": "Could not save your vote."
     },
     "moderation": {
-      "title": "Community posts",
+      "title": "Feed posts",
       "queue": "Scheduled posts",
       "recent": "Recent posts",
       "empty": "No posts.",
@@ -109,7 +109,7 @@
   },
   "admin": {
     "nav": {
-      "posts": "Community"
+      "posts": "Feed"
     }
   }
 }

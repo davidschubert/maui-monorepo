@@ -16,6 +16,7 @@ export default defineAppConfig({
           to: '/dashboard/feed',
           requiredCapability: 'feed.manage',
           group: 'products',
+          order: 4,
         },
       ],
     },

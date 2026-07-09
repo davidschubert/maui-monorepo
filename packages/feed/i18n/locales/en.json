@@ -41,7 +41,7 @@
   },
   "admin": {
     "nav": {
-      "feed": "Feed"
+      "feed": "Activity"
     }
   }
 }

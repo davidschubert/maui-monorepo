@@ -14,6 +14,7 @@ export default defineAppConfig({
           to: '/dashboard/posts',
           requiredCapability: 'posts.moderate',
           group: 'products',
+          order: 1,
         },
       ],
     },

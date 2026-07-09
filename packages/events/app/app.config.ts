@@ -14,6 +14,7 @@ export default defineAppConfig({
           to: '/dashboard/events',
           requiredCapability: 'events.manage',
           group: 'products',
+          order: 2,
         },
       ],
     },
