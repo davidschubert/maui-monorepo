@@ -211,6 +211,31 @@ hebt die Pills des Events im Kalender hervor** (mehrtägig = alle Tage).
 Filter/Suche steuern bewusst nur die Liste — der Kalender ist die
 Monats-Übersicht.
 
+## 7e. Event-Serien / Recurrence (Go David 2026-07-09)
+
+**Entscheidung: Master + MATERIALISIERTE Instanzen** (nicht virtuelle
+Regel-Expansion): Der Master ist eine normale Event-Row mit `recurrence`
+(weekly | biweekly | monthly) und zugleich Termin #0 (`seriesId` = eigene Id,
+`seriesIndex` 0); Instanzen sind ECHTE Event-Rows (Kopien der Master-Felder,
+`seriesId` → Master, fortlaufender `seriesIndex`). Dadurch funktionieren
+RSVP/Kapazität/Kommentare/Votes/Reminder/ICS/Tickets unverändert PRO Termin.
+
+- **Rolling Window**: Expansion bis 120 Tage voraus, max. 26 Instanzen je
+  Lauf; Top-up on-read in der öffentlichen Liste (Muster publish-on-read),
+  idempotent über `seriesGeneratedUntil` am Master (Marker zuerst).
+- **Nach der Erzeugung ist jede Instanz eigenständig** (Antwort auf die
+  Triage-Rückfrage): einzeln editier-/absagbar; Master-Edits propagieren
+  bewusst NICHT rückwirkend (v1-Einfachheit). Cover propagiert beim Upload
+  auf Instanzen ohne eigenes Cover.
+- **Serie beenden** (eigene Route): setzt `seriesUntil` = jetzt (Regel
+  stoppt) und sagt künftige Instanzen soft ab; Vergangenheit bleibt.
+- **Feed**: nur der Master announced `event.published` — Instanzen spammen
+  den Feed nicht.
+- Monatsregel: gleicher Monatstag, bei kürzeren Monaten geklemmt auf den
+  letzten Tag. `seriesUntil` (optional) begrenzt die Serie hart.
+- Migration events-005 (additiv): recurrence, seriesId, seriesIndex,
+  seriesUntil, seriesGeneratedUntil + Index (seriesId, startAt).
+
 ## 8. Offene Entscheidungen (David)
 
 1. **Embed-Gate**: ✅ **Entschieden (2026-07-07): erstmal AUS** — v1 nur externe

@@ -1,5 +1,6 @@
+import { Query } from 'node-appwrite'
 import { eventEditSchema } from '../../../schemas/event'
-import { EVENTS_TABLE, type EventRow } from '../../../shared/types/event'
+import { EVENTS_TABLE, isSeriesMaster, type EventRow } from '../../../shared/types/event'
 
 /**
  * Event bearbeiten / publishen (events.manage). Status-Übergänge hier:
@@ -73,6 +74,26 @@ export default defineEventHandler(async (event) => {
   }).catch((error) => {
     throw toH3Error(error, 'Could not update event')
   })
+
+  // Serie (§7e): Publish/Unpublish des MASTERS zieht seine Instanzen mit
+  // (Lifecycle-Ausnahme von „Instanzen sind eigenständig" — vor dem Launch
+  // will man die ganze Serie schalten); abgesagte Instanzen bleiben abgesagt.
+  if ((publishing || unpublishing) && isSeriesMaster(updated)) {
+    const instances = await admin.tablesDB.listRows<EventRow>({
+      databaseId, tableId: EVENTS_TABLE,
+      queries: [Query.equal('seriesId', updated.$id), Query.notEqual('$id', updated.$id), Query.limit(200)],
+    }).catch(() => ({ rows: [] as EventRow[] }))
+    for (const instance of instances.rows) {
+      if (instance.status === 'cancelled') continue
+      await admin.tablesDB.updateRow({
+        databaseId, tableId: EVENTS_TABLE, rowId: instance.$id,
+        data: { status: publishing ? 'published' : 'draft' },
+        permissions: publishing
+          ? [...new Set([...instance.$permissions, EVENT_READ_ANY])]
+          : instance.$permissions.filter(p => p !== EVENT_READ_ANY),
+      }).catch(error => console.warn('[events] Serien-Publish-Propagation fehlgeschlagen:', error))
+    }
+  }
 
   if (publishing) {
     await recordActivity(event, {

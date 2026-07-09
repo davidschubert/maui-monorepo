@@ -1,6 +1,6 @@
-import { ID } from 'node-appwrite'
+import { ID, Query } from 'node-appwrite'
 import { InputFile } from 'node-appwrite/file'
-import { EVENTS_TABLE, MAX_EVENT_COVER_BYTES, type EventRow } from '../../../../shared/types/event'
+import { EVENTS_TABLE, MAX_EVENT_COVER_BYTES, isSeriesEvent, isSeriesMaster, type EventRow } from '../../../../shared/types/event'
 
 /**
  * Cover-Upload (events.manage): JPEG/PNG/WebP mit Magic-Bytes-Check —
@@ -58,7 +58,25 @@ export default defineEventHandler(async (event) => {
     throw toH3Error(error, 'Could not save cover')
   })
 
-  if (row.coverFileId) {
+  // Serie (§7e): neues MASTER-Cover auf Instanzen propagieren, die noch das
+  // alte (oder kein) Cover tragen — individuell gesetzte Cover bleiben
+  if (isSeriesMaster(row)) {
+    const instances = await admin.tablesDB.listRows<EventRow>({
+      databaseId, tableId: EVENTS_TABLE,
+      queries: [Query.equal('seriesId', row.$id), Query.notEqual('$id', row.$id), Query.limit(200)],
+    }).catch(() => ({ rows: [] as EventRow[] }))
+    for (const instance of instances.rows) {
+      if (instance.coverFileId !== row.coverFileId) continue
+      await admin.tablesDB.updateRow({
+        databaseId, tableId: EVENTS_TABLE, rowId: instance.$id, data: { coverFileId: file.$id },
+      }).catch(() => {})
+    }
+  }
+
+  // Altes File löschen — bei Serien-INSTANZEN bewusst nicht: das alte Cover
+  // ist dort meist das geteilte Master-Cover (Master + Geschwister nutzen es
+  // weiter). Master ist safe: die Propagation oben hat alle Verweise umgebogen.
+  if (row.coverFileId && !(isSeriesEvent(row) && !isSeriesMaster(row))) {
     await admin.storage.deleteFile({ bucketId: 'event-covers', fileId: row.coverFileId }).catch(() => {})
   }
 

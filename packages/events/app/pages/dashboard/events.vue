@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { createEventSchema } from '../../../schemas/event'
 import type { EventRow } from '../../../shared/types/event'
-import { effectiveLocationType } from '../../../shared/types/event'
+import { effectiveLocationType, isSeriesEvent, isSeriesMaster } from '../../../shared/types/event'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'events.manage' })
 
@@ -52,12 +52,17 @@ interface EventForm {
   /** Anzeige-Preis in EUR (Formular) — gespeichert werden Cent */
   priceEur: number | null
   priceLookupKey: string
+  /** Serie (§7e) — nur beim Anlegen wählbar; '' = Einzeltermin */
+  recurrence: '' | 'weekly' | 'biweekly' | 'monthly'
+  /** optionales Serienende (date-Input) */
+  seriesUntil: string
 }
 
 const emptyForm = (): EventForm => ({
   title: '', description: '', startAt: '', endAt: '', location: '', url: '', capacity: null,
   locationType: 'venue', replayUrl: '', address: '', locationNotes: '',
   access: 'free', priceEur: null, priceLookupKey: '',
+  recurrence: '', seriesUntil: '',
 })
 
 const modalOpen = ref(false)
@@ -165,6 +170,11 @@ async function save() {
     access: form.access,
     priceAmount: form.access === 'paid' && form.priceEur !== null ? Math.round(form.priceEur * 100) : null,
     priceLookupKey: form.access === 'paid' ? (form.priceLookupKey.trim() || null) : null,
+    // Serie nur beim ANLEGEN — danach gibt es „Serie beenden" (PATCH strippt die Felder eh)
+    ...(editingId.value ? {} : {
+      recurrence: form.recurrence,
+      seriesUntil: form.recurrence && form.seriesUntil ? new Date(`${form.seriesUntil}T23:59:59`).toISOString() : null,
+    }),
   }
   const parsed = createEventSchema(t).safeParse(payload)
   if (!parsed.success) {
@@ -191,6 +201,35 @@ async function save() {
   }
   finally {
     saving.value = false
+  }
+}
+
+// ---- Serie (§7e) ----
+
+const recurrenceItems = computed(() => [
+  { label: t('events.admin.form.recurrenceNone'), value: '' },
+  { label: t('events.series.weekly'), value: 'weekly' },
+  { label: t('events.series.biweekly'), value: 'biweekly' },
+  { label: t('events.series.monthly'), value: 'monthly' },
+])
+
+const confirmStopSeries = ref<EventRow | null>(null)
+const stoppingSeries = ref(false)
+async function stopSeries() {
+  const master = confirmStopSeries.value
+  if (!master) return
+  stoppingSeries.value = true
+  try {
+    const res = await $fetch<{ cancelled: number }>(`/api/events/${master.$id}/series` as string, { method: 'DELETE' })
+    toast.add({ title: t('events.admin.seriesStopped', { count: res.cancelled }), color: 'success', icon: 'i-ph-repeat' })
+    confirmStopSeries.value = null
+    await refresh()
+  }
+  catch {
+    toast.add({ title: t('events.admin.actionFailed'), color: 'error' })
+  }
+  finally {
+    stoppingSeries.value = false
   }
 }
 
@@ -277,9 +316,26 @@ const statusColor = (row: EventRow) =>
                 </p>
               </div>
 
+              <!-- Serie: Master trägt die Regel, Instanzen den Serien-Hinweis -->
+              <UBadge v-if="isSeriesMaster(row)" color="info" variant="subtle" size="sm" icon="i-ph-repeat" :data-series-master="row.$id">
+                {{ t(`events.series.${row.recurrence}`) }}
+              </UBadge>
+              <UTooltip v-else-if="isSeriesEvent(row)" :text="t('events.series.instanceHint')">
+                <UIcon name="i-ph-repeat" class="size-4 shrink-0 text-muted" />
+              </UTooltip>
+
               <UBadge :color="statusColor(row)" variant="subtle" size="sm">
                 {{ t(`events.admin.status.${row.status}`) }}
               </UBadge>
+
+              <UButton
+                v-if="isSeriesMaster(row) && (!row.seriesUntil || new Date(row.seriesUntil) > new Date())"
+                color="neutral" variant="ghost" size="xs" icon="i-ph-repeat"
+                :data-series-stop="row.$id"
+                @click="confirmStopSeries = row"
+              >
+                {{ t('events.admin.stopSeries') }}
+              </UButton>
 
               <UButton
                 v-if="row.status === 'draft'"
@@ -332,6 +388,15 @@ const statusColor = (row: EventRow) =>
               </UFormField>
               <UFormField :label="t('events.admin.form.endAt')">
                 <UInput v-model="form.endAt" type="datetime-local" class="w-full" />
+              </UFormField>
+            </div>
+            <!-- Serie (§7e): nur beim Anlegen — danach gibt es „Serie beenden" -->
+            <div v-if="!editingId" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <UFormField :label="t('events.admin.form.recurrence')" :help="t('events.admin.form.recurrenceHelp')">
+                <USelect v-model="form.recurrence" :items="recurrenceItems" class="w-full" data-testid="event-form-recurrence" />
+              </UFormField>
+              <UFormField v-if="form.recurrence" :label="t('events.admin.form.seriesUntil')" :help="t('events.admin.form.seriesUntilHelp')">
+                <UInput v-model="form.seriesUntil" type="date" class="w-full" data-testid="event-form-series-until" />
               </UFormField>
             </div>
             <UFormField :label="t('events.admin.form.locationType')">
@@ -453,6 +518,25 @@ const statusColor = (row: EventRow) =>
               </UButton>
             </div>
           </form>
+        </template>
+      </UModal>
+
+      <!-- Serie beenden — künftige Termine werden abgesagt, Vergangenheit bleibt -->
+      <UModal
+        :open="confirmStopSeries !== null"
+        :title="t('events.admin.stopSeriesTitle', { title: confirmStopSeries?.title ?? '' })"
+        @update:open="(value: boolean) => { if (!value) confirmStopSeries = null }"
+      >
+        <template #body>
+          <p class="text-sm">{{ t('events.admin.stopSeriesText') }}</p>
+        </template>
+        <template #footer>
+          <div class="flex w-full justify-end gap-2">
+            <UButton color="neutral" variant="ghost" @click="confirmStopSeries = null">{{ t('events.admin.form.cancel') }}</UButton>
+            <UButton color="error" :loading="stoppingSeries" data-testid="series-stop-confirm" @click="stopSeries">
+              {{ t('events.admin.stopSeries') }}
+            </UButton>
+          </div>
         </template>
       </UModal>
     </template>

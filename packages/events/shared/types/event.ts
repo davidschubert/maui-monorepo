@@ -59,6 +59,29 @@ export interface EventRow extends Models.Row {
   priceAmount: number | null
   /** Stripe-Price-Referenz (lookup_key, Muster BILLING-STRIPE B5) */
   priceLookupKey: string | null
+  /** Serien-Regel — NUR der Master trägt sie ('' / null = Einzeltermin) */
+  recurrence: EventRecurrence | '' | null
+  /** Serien-Zugehörigkeit: Master-Id (Master zeigt auf sich selbst); '' / null = keine Serie */
+  seriesId: string | null
+  /** Position in der Serie (Master = 0) */
+  seriesIndex: number | null
+  /** hartes Serienende (optional) — Top-up erzeugt nichts dahinter */
+  seriesUntil: string | null
+  /** Idempotenz-Marker des Rolling-Window-Top-ups (nur Master) */
+  seriesGeneratedUntil: string | null
+}
+
+export const EVENT_RECURRENCES = ['weekly', 'biweekly', 'monthly'] as const
+export type EventRecurrence = (typeof EVENT_RECURRENCES)[number]
+
+/** Teil einer Serie? (Master ODER Instanz) */
+export function isSeriesEvent(row: Pick<EventRow, 'seriesId'>): boolean {
+  return typeof row.seriesId === 'string' && row.seriesId.length > 0
+}
+
+/** Serien-Master? (trägt die Regel, seriesId = eigene Id) */
+export function isSeriesMaster(row: Pick<EventRow, '$id' | 'seriesId' | 'recurrence'>): boolean {
+  return !!row.recurrence && row.seriesId === row.$id
 }
 
 export type EventAccess = 'free' | 'paid'

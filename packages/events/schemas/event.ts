@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import {
+  EVENT_RECURRENCES,
   MAX_EVENT_CAPACITY,
   MAX_EVENT_DESCRIPTION,
   MAX_EVENT_LOCATION,
@@ -48,6 +49,10 @@ export function createEventSchema(t: TranslateFn = identity) {
     ...fields(t),
     // direktes Publish beim Anlegen erlaubt; Default draft
     status: z.enum(['draft', 'published']).optional(),
+    // Serie (§7e) — NUR beim Anlegen; '' = Einzeltermin. Regel ändern gibt
+    // es bewusst nicht (Instanzen sind eigenständig), nur „Serie beenden".
+    recurrence: z.enum(EVENT_RECURRENCES).or(z.literal('')).nullish(),
+    seriesUntil: z.iso.datetime({ offset: true }).nullish(),
   }).refine(endAfterStart, {
     message: t('events.validation.endBeforeStart'),
     path: ['endAt'],

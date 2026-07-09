@@ -124,7 +124,12 @@
         "accessHelp": "Kostenpflichtige Events brauchen ein Ticket — Kauf kommt mit der Stripe-Integration (Phase 23).",
         "priceEur": "Preis (EUR, Anzeige)",
         "priceLookupKey": "Stripe lookup_key",
-        "priceLookupKeyHelp": "Referenz auf den Stripe-Price — der Betrag dort ist die Wahrheit."
+        "priceLookupKeyHelp": "Referenz auf den Stripe-Price — der Betrag dort ist die Wahrheit.",
+        "recurrence": "Wiederholung",
+        "recurrenceNone": "Einmalig",
+        "recurrenceHelp": "Erzeugt echte Einzeltermine (rollierend ~4 Monate voraus) — jeder Termin ist danach eigenständig.",
+        "seriesUntil": "Serie endet am",
+        "seriesUntilHelp": "Optional — leer = fortlaufend."
       },
       "coverSaved": "Cover gespeichert.",
       "coverFailed": "Cover konnte nicht gespeichert werden.",
@@ -132,7 +137,11 @@
         "all": "Beliebiger Typ",
         "online": "Online",
         "venue": "Präsenz"
-      }
+      },
+      "stopSeries": "Serie beenden",
+      "stopSeriesTitle": "Serie „{title}\" beenden?",
+      "stopSeriesText": "Alle KÜNFTIGEN Termine der Serie werden abgesagt (Teilnehmer sehen die Absage). Vergangene Termine bleiben unverändert. Es entstehen keine neuen Termine mehr.",
+      "seriesStopped": "Serie beendet — {count} künftige Termine abgesagt."
     },
     "validation": {
       "titleRequired": "Titel angeben.",
@@ -178,6 +187,13 @@
       "soon": "Bald verfügbar",
       "alreadyOwned": "Du hast schon ein Ticket für dieses Event.",
       "failed": "Ticket-Kauf konnte nicht gestartet werden."
+    },
+    "series": {
+      "badge": "Serie",
+      "weekly": "Wöchentlich",
+      "biweekly": "Alle 2 Wochen",
+      "monthly": "Monatlich",
+      "instanceHint": "Teil einer Event-Serie"
     }
   },
   "admin": {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { EventVoteResponse, EventWithRsvp } from '../../shared/types/event'
-import { effectiveAccess, effectiveLocationType } from '../../shared/types/event'
+import { effectiveAccess, effectiveLocationType, isSeriesEvent } from '../../shared/types/event'
 import { detectLiveProvider } from '../../shared/liveProvider'
 
 /**
@@ -95,9 +95,15 @@ async function share() {
       </div>
 
       <!-- Preis-Badge (Meetup-Muster): Kostenlos oder Ticket-Preis (E4) -->
-      <UBadge color="neutral" variant="solid" size="sm" class="absolute top-2 left-2 bg-default/90 text-default" data-testid="card-price">
-        {{ priceLabel }}
-      </UBadge>
+      <div class="absolute top-2 left-2 flex gap-1">
+        <UBadge color="neutral" variant="solid" size="sm" class="bg-default/90 text-default" data-testid="card-price">
+          {{ priceLabel }}
+        </UBadge>
+        <!-- Serie (§7e): Termin ist Teil einer Serie -->
+        <UBadge v-if="isSeriesEvent(event)" color="neutral" variant="solid" size="sm" class="bg-default/90 text-default" icon="i-ph-repeat" data-testid="card-series">
+          {{ t('events.series.badge') }}
+        </UBadge>
+      </div>
 
       <div class="absolute top-2 right-2 flex gap-1">
         <UBadge v-if="event.status === 'cancelled'" color="error" variant="solid" size="sm">

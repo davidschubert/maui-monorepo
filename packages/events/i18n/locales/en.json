@@ -124,7 +124,12 @@
         "accessHelp": "Paid events require a ticket — checkout arrives with the Stripe integration (phase 23).",
         "priceEur": "Price (EUR, display)",
         "priceLookupKey": "Stripe lookup_key",
-        "priceLookupKeyHelp": "Reference to the Stripe price — the amount there is the source of truth."
+        "priceLookupKeyHelp": "Reference to the Stripe price — the amount there is the source of truth.",
+        "recurrence": "Repeat",
+        "recurrenceNone": "One-time",
+        "recurrenceHelp": "Creates real individual dates (rolling ~4 months ahead) — each date is independent afterwards.",
+        "seriesUntil": "Series ends on",
+        "seriesUntilHelp": "Optional — empty = ongoing."
       },
       "coverSaved": "Cover saved.",
       "coverFailed": "Could not save the cover.",
@@ -132,7 +137,11 @@
         "all": "Any type",
         "online": "Online",
         "venue": "In person"
-      }
+      },
+      "stopSeries": "Stop series",
+      "stopSeriesTitle": "Stop series \"{title}\"?",
+      "stopSeriesText": "All FUTURE dates of this series will be cancelled (attendees see the cancellation). Past dates stay unchanged. No new dates will be created.",
+      "seriesStopped": "Series stopped — {count} future dates cancelled."
     },
     "validation": {
       "titleRequired": "Please add a title.",
@@ -178,6 +187,13 @@
       "soon": "Coming soon",
       "alreadyOwned": "You already own a ticket for this event.",
       "failed": "Could not start the ticket checkout."
+    },
+    "series": {
+      "badge": "Series",
+      "weekly": "Weekly",
+      "biweekly": "Every 2 weeks",
+      "monthly": "Monthly",
+      "instanceHint": "Part of an event series"
     }
   },
   "admin": {

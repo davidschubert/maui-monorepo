@@ -27,6 +27,8 @@ type MineFilter = (typeof MINE_FILTERS)[number]
 export default defineEventHandler(async (event): Promise<EventListResponse> => {
   // Reminder-Sweep on-read (E3, best-effort — wirft nie, kein Cron nötig)
   await sweepEventReminders(event)
+  // Serien-Fenster nachziehen (§7e) — best-effort, wirft nie
+  await topUpSeries(event)
 
   const query = getQuery(event)
   const past = query.past === 'true'

@@ -44,12 +44,38 @@ export default defineEventHandler(async (event) => {
       access: body.access ?? null,
       priceAmount: body.priceAmount ?? null,
       priceLookupKey: body.priceLookupKey ?? null,
+      // Serie (§7e) setzt der Nachgang unten — der Master braucht die eigene Id
+      recurrence: '',
+      seriesId: '',
+      seriesIndex: 0,
+      seriesUntil: null,
+      seriesGeneratedUntil: null,
     },
     // Schreiben bleibt Server-Sache — Rows tragen nur Leserechte
     permissions: status === 'published' ? [EVENT_READ_ANY] : [],
   }).catch((error) => {
     throw toH3Error(error, 'Could not create event')
   })
+
+  // Serie (§7e): Master markiert sich selbst (seriesId = eigene Id) und
+  // expandiert das Rolling Window — nur der Master announced in den Feed
+  let created = row
+  if (body.recurrence) {
+    created = await admin.tablesDB.updateRow<EventRow>({
+      databaseId: config.public.appwriteDatabaseId,
+      tableId: EVENTS_TABLE,
+      rowId: row.$id,
+      data: {
+        recurrence: body.recurrence,
+        seriesId: row.$id,
+        seriesIndex: 0,
+        seriesUntil: body.seriesUntil ?? null,
+      },
+    }).catch((error) => {
+      throw toH3Error(error, 'Could not initialize event series')
+    })
+    await expandSeries(event, created)
+  }
 
   if (status === 'published') {
     await recordActivity(event, {
@@ -64,5 +90,5 @@ export default defineEventHandler(async (event) => {
   }
 
   setResponseStatus(event, 201)
-  return row
+  return created
 })
