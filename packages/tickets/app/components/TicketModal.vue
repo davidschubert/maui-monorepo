@@ -125,11 +125,11 @@ function joinCard() {
   members.value = [...members.value, { id: user.value.$id, name: user.value.name ?? '' }]
 }
 
-// Checkliste: hinzufügen + per Handle sortieren. draggable liegt auf dem
-// <li>, wird aber erst per pointerdown auf dem Handle „scharf" geschaltet —
-// draggable auf dem SVG-Icon selbst startet in Browsern keinen Drag.
+// Checkliste: hinzufügen + sortieren. Die GANZE Zeile ist draggable (Trello-
+// Muster) — Chrome entscheidet die Drag-Fähigkeit beim Mousedown, ein per
+// pointerdown gesetztes Vue-Binding käme erst nach dem asynchronen Re-Render
+// und damit zu spät für dieselbe Geste.
 const checkDrag = ref<number | null>(null)
-const checkDragArmed = ref<number | null>(null)
 function addChecklistItem() {
   const text = newChecklistItem.value.trim()
   if (!text) return
@@ -147,7 +147,6 @@ function onCheckDragOver(event: DragEvent) {
 }
 function onCheckDragEnd() {
   checkDrag.value = null
-  checkDragArmed.value = null
 }
 function onCheckDrop(targetIndex: number) {
   const from = checkDrag.value
@@ -458,9 +457,9 @@ const createdAtText = computed(() =>
             <li
               v-for="(item, itemIndex) in checklist"
               :key="itemIndex"
-              class="flex items-center gap-2 rounded"
+              class="flex cursor-grab items-center gap-2 rounded active:cursor-grabbing"
               :class="checkDrag === itemIndex ? 'opacity-40' : ''"
-              :draggable="checkDragArmed === itemIndex"
+              draggable="true"
               @dragstart="onCheckDragStart($event, itemIndex)"
               @dragend="onCheckDragEnd"
               @dragover="onCheckDragOver"
@@ -468,10 +467,8 @@ const createdAtText = computed(() =>
             >
               <UIcon
                 name="i-ph-dots-six-vertical"
-                class="size-4 shrink-0 cursor-grab text-dimmed active:cursor-grabbing"
+                class="size-4 shrink-0 text-dimmed"
                 :aria-label="t('tickets.modal.reorderItem')"
-                @pointerdown="checkDragArmed = itemIndex"
-                @pointerup="checkDragArmed = null"
               />
               <UCheckbox v-model="item.done" />
               <span class="flex-1 text-sm" :class="item.done ? 'text-muted line-through' : ''">{{ item.text }}</span>
