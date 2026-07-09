@@ -101,6 +101,13 @@ const commentStoreSetup = () => {
       pendingReplies.value = []
       removedByHide.clear()
     }
+    catch (error) {
+      // Read-Rate-Limit (429, Embed E0-2): still bleiben und die bestehende
+      // Liste behalten — der nächste Trigger (Sort/Realtime) holt neu;
+      // kein Toast-/Unhandled-Rejection-Spam.
+      const status = error as { status?: number, statusCode?: number } | null
+      if (status?.status !== 429 && status?.statusCode !== 429) throw error
+    }
     finally {
       if (seq === fetchSeq) loading.value = false
     }

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Maui Comments — Embed-Testseite</title>
+  <style>
+    body { font-family: Georgia, serif; max-width: 720px; margin: 0 auto; padding: 2rem 1rem; background: #faf6ef; color: #222; }
+    h1 { font-size: 1.6rem; }
+    .hint { font-size: .85rem; color: #777; border-top: 1px solid #ddd; margin-top: 3rem; padding-top: .5rem; }
+  </style>
+</head>
+<body>
+  <h1>Ein fremder Blog-Artikel</h1>
+  <p>
+    Diese Seite simuliert eine Drittseite (anderer Origin, anderer Stack —
+    hier pures HTML). Unten lädt der Maui-Comments-Loader das Widget als
+    iframe. Aufruf z.&nbsp;B.:
+    <code>python3 -m http.server 4999</code> in diesem Ordner, dann
+    <code>http://localhost:4999/?widget=http://localhost:3001</code>.
+  </p>
+  <p>
+    Der Query-Param <code>?widget=&lt;origin&gt;</code> bestimmt die
+    Widget-Instanz (Default <code>http://localhost:3001</code>);
+    <code>&amp;theme=dark</code> und <code>&amp;primary=rose</code> werden
+    ans Script durchgereicht.
+  </p>
+
+  <h2>Kommentare</h2>
+  <div id="maui-comments"></div>
+
+  <p class="hint">
+    Testseite fürs Embed-Widget (docs/plans/EMBED-WIDGET.md) — nicht Teil
+    des App-Builds.
+  </p>
+
+  <script>
+    // Loader dynamisch einhängen, damit Widget-Origin/Theme per Query steuerbar sind
+    (function () {
+      var q = new URLSearchParams(location.search)
+      var widget = q.get('widget') || 'http://localhost:3001'
+      var s = document.createElement('script')
+      s.async = true
+      s.src = widget + '/embed.js'
+      s.setAttribute('data-target-id', q.get('target') || 'embed-test-artikel')
+      s.setAttribute('data-target-type', 'blog')
+      s.setAttribute('data-theme', q.get('theme') || 'auto')
+      if (q.get('primary')) s.setAttribute('data-primary', q.get('primary'))
+      if (q.get('locale')) s.setAttribute('data-locale', q.get('locale'))
+      document.body.appendChild(s)
+    })()
+  </script>
+</body>
+</html>

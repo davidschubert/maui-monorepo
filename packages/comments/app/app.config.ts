@@ -25,6 +25,15 @@ export default defineAppConfig({
        *  schreiben und lesen — z. B. 'ticket' (Board-Diskussionen).
        *  Andere Layer/Apps tragen sich hier ein (Array wird konkateniert). */
       operatorTargets: [] as string[],
+      /** iframe-Embed (Disqus-Modell, docs/plans/EMBED-WIDGET.md): /embed-Seite
+       *  + public/embed.js. Default aus — die App aktiviert explizit. */
+      embed: {
+        enabled: false,
+        /** Einbetter-Origins für frame-ancestors (zusätzlich zu 'self').
+         *  Leer = nur 'self' (kein Fremd-Framing) · ['*'] = jede Seite darf
+         *  einbetten (bewusste Betreiber-Entscheidung, Embed-Plan E7). */
+        allowedOrigins: [] as string[],
+      },
     },
   },
 })
