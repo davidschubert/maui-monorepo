@@ -13,11 +13,12 @@ const localePath = useLocalePath()
 
 useHead({ title: () => t('feedback.admin.title') })
 
-// Filter-Tabs im Toolbar-Muster der Kommentar-Moderation (Alle/Offen/Erledigt)
-type FeedbackFilter = 'all' | 'open' | 'resolved'
-const FILTERS: FeedbackFilter[] = ['all', 'open', 'resolved']
+// Filter-Tabs im Toolbar-Muster der Kommentar-Moderation (Offen/Erledigt —
+// „Alle" bewusst weggelassen, die Mischung beider Zustände hilft beim
+// Sichten nicht)
+type FeedbackFilter = 'open' | 'resolved'
+const FILTERS: FeedbackFilter[] = ['open', 'resolved']
 const FILTER_ICON: Record<FeedbackFilter, string> = {
-  all: 'i-ph-list-bullets',
   open: 'i-ph-tray',
   resolved: 'i-ph-check-circle',
 }
@@ -32,7 +33,7 @@ const filterLinks = computed(() => FILTERS.map(value => ({
 })))
 
 const { data, status: fetchStatus, refresh } = await useFetch<FeedbackListResponse>('/api/feedback', {
-  query: computed(() => ({ ...(filter.value === 'all' ? {} : { status: filter.value }), page: page.value })),
+  query: computed(() => ({ status: filter.value, page: page.value })),
   lazy: true,
   server: false,
 })

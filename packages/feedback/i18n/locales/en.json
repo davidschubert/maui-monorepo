@@ -38,7 +38,6 @@
       "toTicketOpen": "Open ticket",
       "toTicketExists": "A ticket already exists for this feedback.",
       "filter": {
-        "all": "All",
         "open": "Open",
         "resolved": "Resolved"
       }
