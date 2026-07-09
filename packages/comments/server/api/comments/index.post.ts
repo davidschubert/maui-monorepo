@@ -15,6 +15,13 @@ export default defineEventHandler(async (event) => {
   const databaseId = config.public.appwriteDatabaseId
   const { tablesDB } = createSessionClient(event)
 
+  // Operator-Targets (maui.comments.operatorTargets, z. B. 'ticket'): nur
+  // Operatoren dürfen schreiben, und die Rows sind NICHT read(any), sondern
+  // nur für admin/moderator lesbar — interne Diskussionen bleiben intern.
+  const appConfig = useAppConfig() as { maui?: { comments?: { operatorTargets?: string[] } } }
+  const operatorTarget = (appConfig.maui?.comments?.operatorTargets ?? []).includes(body.targetType)
+  if (operatorTarget) requirePermission(event, 'dashboard.access')
+
   // Bei einer Antwort: Eltern-Kommentar vorab holen → rootId/depth ableiten,
   // maxDepth prüfen und den Parent für die Notification wiederverwenden.
   let parent: Comment | null = null
@@ -33,7 +40,10 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const row = await tablesDB.createRow<Comment>({
+  // Operator-Rows tragen Role.label-Permissions — die kann nur der
+  // Admin-Client setzen (Session-User dürfen fremde Label-Rollen nicht vergeben)
+  const writer = operatorTarget ? createAdminClient(event).tablesDB : tablesDB
+  const row = await writer.createRow<Comment>({
     databaseId,
     tableId: COMMENTS_TABLE,
     rowId: ID.unique(),
@@ -58,7 +68,9 @@ export default defineEventHandler(async (event) => {
     // auch per Roh-REST/Web-SDK unlesbar (Migration 008). Gast-Realtime läuft
     // über die Row-Permission weiter. Ändern/löschen nur der Autor.
     permissions: [
-      Permission.read(Role.any()),
+      ...(operatorTarget
+        ? [Permission.read(Role.label('admin')), Permission.read(Role.label('moderator'))]
+        : [Permission.read(Role.any())]),
       Permission.update(Role.user(user.$id)),
       Permission.delete(Role.user(user.$id)),
     ],

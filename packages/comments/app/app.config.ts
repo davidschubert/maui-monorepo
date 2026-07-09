@@ -20,5 +20,11 @@ export default defineAppConfig({
         },
       ],
     },
+    comments: {
+      /** targetTypes, deren Kommentare NUR Operatoren (admin/moderator)
+       *  schreiben und lesen — z. B. 'ticket' (Board-Diskussionen).
+       *  Andere Layer/Apps tragen sich hier ein (Array wird konkateniert). */
+      operatorTargets: [] as string[],
+    },
   },
 })
