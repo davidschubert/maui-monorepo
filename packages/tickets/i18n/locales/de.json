@@ -95,6 +95,12 @@
     },
     "errors": {
       "action": "Aktion fehlgeschlagen — bitte erneut versuchen."
+    },
+    "triage": {
+      "run": "KI-Triage ausführen",
+      "running": "KI-Triage läuft …",
+      "done": "KI-Triage ergänzt — Einschätzung steht in der Beschreibung.",
+      "failed": "KI-Triage fehlgeschlagen — ist NUXT_TICKETS_AI_KEY gesetzt?"
     }
   }
 }

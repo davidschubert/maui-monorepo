@@ -95,6 +95,12 @@
     },
     "errors": {
       "action": "Action failed — please try again."
+    },
+    "triage": {
+      "run": "Run AI triage",
+      "running": "AI triage running …",
+      "done": "AI triage added — the assessment is in the description.",
+      "failed": "AI triage failed — is NUXT_TICKETS_AI_KEY set?"
     }
   }
 }

@@ -6,6 +6,12 @@
  * selbst — die App komponiert.
  */
 export default defineNuxtConfig({
+  runtimeConfig: {
+    // server-only! Env-Mapping: NUXT_TICKETS_AI_KEY (OpenRouter- oder anderer
+    // OpenAI-kompatibler API-Key für die KI-Triage, Plan P3)
+    ticketsAiKey: '',
+  },
+
   // Eigene Layer-Strings — mergen mit Core- und App-Locales (gleiche codes)
   i18n: {
     locales: [

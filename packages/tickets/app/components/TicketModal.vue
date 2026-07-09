@@ -23,6 +23,11 @@ const open = defineModel<boolean>('open', { required: true })
 const { t, locale } = useI18n()
 const toast = useToast()
 const { user } = useCurrentUser()
+const appConfig = useAppConfig()
+
+// KI-Triage (P3) — nur sichtbar, wenn die App das Gate aktiviert hat
+const aiEnabled = computed(() =>
+  (appConfig.maui as { tickets?: { ai?: { enabled?: boolean } } } | undefined)?.tickets?.ai?.enabled === true)
 
 const form = reactive({
   title: '',
@@ -341,12 +346,36 @@ async function shareLink() {
   toast.add({ title: t('tickets.modal.linkCopied'), color: 'success', icon: 'i-ph-link' })
 }
 
+// KI-Triage on demand — Ergebnis landet als Abschnitt in der Beschreibung
+const triaging = ref(false)
+async function runTriage() {
+  if (!props.ticket) return
+  triaging.value = true
+  toast.add({ id: 'ticket-triage', title: t('tickets.triage.running'), color: 'info', icon: 'i-ph-sparkle' })
+  try {
+    const updated = await $fetch<TicketRow>(`/api/tickets/${props.ticket.$id}/triage`, { method: 'POST' })
+    descriptionSaved.value = updated.description
+    form.description = updated.description
+    emit('refresh')
+    toast.add({ id: 'ticket-triage', title: t('tickets.triage.done'), color: 'success', icon: 'i-ph-sparkle' })
+  }
+  catch {
+    toast.add({ id: 'ticket-triage', title: t('tickets.triage.failed'), color: 'error' })
+  }
+  finally {
+    triaging.value = false
+  }
+}
+
 // 3-Punkte-Menü oben rechts (Wunsch David) — Aktionen raus aus dem Footer
 const menuItems = computed(() => [[
+  ...(aiEnabled.value
+    ? [{ label: t('tickets.triage.run'), icon: 'i-ph-sparkle', disabled: triaging.value, onSelect: () => { void runTriage() } }]
+    : []),
   { label: t('tickets.modal.share'), icon: 'i-ph-link', onSelect: shareLink },
   { label: t('tickets.modal.duplicate'), icon: 'i-ph-copy', onSelect: duplicate },
 ], [
-  { label: t('tickets.export.copy'), icon: 'i-ph-sparkle', onSelect: copyMarkdown },
+  { label: t('tickets.export.copy'), icon: 'i-ph-clipboard-text', onSelect: copyMarkdown },
   { label: t('tickets.export.download'), icon: 'i-ph-download-simple', onSelect: downloadMarkdown },
 ], [
   { label: t('tickets.modal.delete'), icon: 'i-ph-trash', color: 'error' as const, onSelect: () => { confirmDelete.value = true } },

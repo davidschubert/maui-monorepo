@@ -18,5 +18,15 @@ export default defineAppConfig({
         },
       ],
     },
+    tickets: {
+      /** KI-Triage (P3): bewertet Tickets via OpenAI-kompatibler API
+       *  (Default OpenRouter). Key server-only: NUXT_TICKETS_AI_KEY.
+       *  Layer-Default AUS — die App aktiviert explizit. */
+      ai: {
+        enabled: false,
+        model: 'anthropic/claude-haiku-4.5',
+        baseUrl: 'https://openrouter.ai/api/v1',
+      },
+    },
   },
 })

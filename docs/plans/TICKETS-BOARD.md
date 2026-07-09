@@ -158,11 +158,17 @@ würden divergieren); Export wird on demand generiert:
   Zitat + Meta, Kategorie → Label (bug→issue), `feedbackId` = Rückreferenz
   (Index tickets-002; Doppel-Übernahme → 409), Feedback wird als erledigt
   markiert. Kein Layer-zu-Layer-Import.
-- **P3 — KI-Triage:** Server-Util `triageTicket()` (Anthropic API, Key
-  server-only, Gate `maui.tickets.ai`): bewertet Relevanz, schlägt Priorität/
-  Aufwand vor, formuliert offene Rückfragen („braucht David") — schreibt in
-  die Beschreibung (Abschnitt „KI-Triage") statt Felder still zu ändern.
-  Läuft bei Ingestion (P2) und on demand per Button.
+- **P3 — KI-Triage ✅ (2026-07-08, Live-Test wartet auf Key):** Server-Util
+  `triageTicket()` gegen eine OpenAI-KOMPATIBLE Chat-Completions-API —
+  Entscheidung: **OpenRouter** statt Vendor-SDK (David hat dort Guthaben;
+  Model frei wählbar über `maui.tickets.ai.model`, Default
+  `anthropic/claude-haiku-4.5`, `baseUrl` austauschbar). Key server-only
+  `NUXT_TICKETS_AI_KEY`. Bewertet Relevanz (1–5 Sterne), schlägt Priorität/
+  Aufwand vor, formuliert offene Rückfragen — schreibt den Abschnitt
+  „🤖 KI-Triage" in die BESCHREIBUNG (ersetzt alte Triage per Marker) statt
+  Felder still zu ändern. Läuft on demand (3-Punkte-Menü im Modal) und
+  best-effort nach der Feedback-Übernahme (fire-and-forget, Realtime schiebt
+  das Ergebnis nach). Ohne Key/Gate: sauberer 503 + erklärender Toast.
 - **P4 — Komfort:** Beobachten + `notify()` (Zuweisung/Move/Kommentar),
   Kommentare im Modal (comments-Layer, targetType 'ticket', App-Slot),
   Anhänge (Bucket `tickets`, Muster event-covers), Erinnerungen (Sweep-Muster
