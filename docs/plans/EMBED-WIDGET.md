@@ -1,6 +1,7 @@
 # Embed-Widget — Einbettbares Kommentarsystem (Disqus-Alternative)
 
-> **Status:** Plan (kein Code) · Stand 2026-07-01
+> **Status:** E0 ✅ + E1 ✅ (Read-only-MVP live, 2026-07-09 — Integrations-Doku:
+> [docs/EMBED.md](../EMBED.md)) · E2 (Schreiben via Login-Popup + CHIPS) offen · Stand 2026-07-09
 > **Herkunft:** OPEN-ITEMS.md, Idee 9 — „targetId/targetType-Architektur ist dafür
 > gebaut (Disqus-Nische, self-hosted)". Aufwand-Gesamtschätzung: L.
 > **Bezug:** [CONCEPT.md](../CONCEPT.md) (A2/A3/A14), [OPEN-ITEMS.md](../OPEN-ITEMS.md),
@@ -371,37 +372,50 @@ IE/Legacy-Browser.
    tragen `read(any)`; Hide entzieht die Permission zweiphasig, Restore gibt
    sie zurück). Live verifiziert: Gast-REST sieht keine hidden-Rows, Gast-WS
    bekommt weiterhin Create-Events. Der Realtime-Payload-Merge bleibt bestehen.
-2. **(S)** `GET /api/comments` (Read-Bucket, ~120/min/IP) in
-   [rate-limit.ts](../../packages/core/server/middleware/rate-limit.ts)
-   aufnehmen; `Retry-After`-Verhalten im Store abfangen (kein Fehler-Toast-Spam).
-3. **(S)** Security-Header-Middleware (core): `frame-ancestors 'self'` als
-   Default für alle Routen, Opt-out-Mechanismus für `/embed` (Konfigurierbar
-   über `maui.comments.embed.allowedOrigins` bzw. `*`). `X-Frame-Options`
-   bewusst weglassen (CSP reicht, XFO kann `frame-ancestors` nicht abbilden).
-4. **(S)** Origin-Check-Middleware für unsichere Methoden (POST/PATCH/PUT/DELETE):
-   `Origin`/`Sec-Fetch-Site` gegen App-Origin prüfen; aktiv nur wenn der
-   Partitioned-Cookie-Modus (Todo 8) eingeschaltet ist (§ 3b).
+2. ✅ **(2026-07-09)** `GET /api/comments` mit Read-Bucket 120/min/IP in
+   [rate-limit.ts](../../packages/core/server/middleware/rate-limit.ts);
+   429 wird in `fetchComments` still geschluckt (Liste bleibt stehen, kein
+   Toast-/Unhandled-Rejection-Spam). Live verifiziert (Burst → 429 + Retry-After).
+3. ✅ **(2026-07-09)** Umgesetzt als GENERISCHE core-Registry statt
+   core→comments-Kopplung: `registerEmbeddableRoute()`
+   ([frameAncestors.ts](../../packages/core/server/utils/frameAncestors.ts)) +
+   Nitro-Plugin `security-headers.ts` (render:response, alle SSR-Seiten
+   `frame-ancestors 'self'`); comments registriert `/embed` per
+   [embed-frame.ts](../../packages/comments/server/plugins/embed-frame.ts)
+   aus `maui.comments.embed.allowedOrigins`. XFO bewusst weggelassen.
+4. ✅ **(2026-07-09)** [csrf-origin.ts](../../packages/core/server/middleware/csrf-origin.ts)
+   — Gate `maui.security.csrfOriginCheck` (Core-Default aus; PFLICHT sobald
+   E2-Partitioned-Cookies aktiv werden): `Sec-Fetch-Site: cross-site` → 403,
+   sonst Origin-vs-Host; Requests ohne Origin (Webhooks, curl) passieren.
 
 ### Phase E1 — MVP: Read-only-Embed
 
-5. **(S)** Config-Gate `maui.comments.embed` (Default `enabled: false`) im
-   comments-Layer definieren (`app/app.config.ts`, Typ in `shared/`);
-   `/embed`-Route wirft 404 wenn deaktiviert.
-6. **(M)** `packages/comments/app/pages/embed.vue` + `layouts/embed.vue`:
-   Query-Params (Zod: `targetId`, `targetType`, `url`, `theme`, `locale`,
-   `primary`) validieren, `CommentSection` rendern, transparenter Hintergrund,
-   `noindex`-Meta, Presence-/Notification-freies Minimal-Layout, Höhe per
-   `postMessage` an den Parent melden (ResizeObserver auf `<body>`).
-7. **(M)** `packages/comments/public/embed.js` (Vanilla-Loader): Script-Tag-
-   Attribute lesen (`data-target-id`, `data-target-type`, `data-theme`,
-   `data-locale`), iframe erzeugen (lazy, `title`, sandbox-Attribute prüfen:
-   `allow-scripts allow-same-origin allow-popups allow-forms`), Resize- und
-   Theme-postMessage-Protokoll (`targetOrigin` strikt), mehrere Widgets pro
-   Seite unterstützen. Manuell auf einer statischen Testseite (file:// +
-   fremder Port) verifizieren.
-8. **(S)** Test-Hostseite ins Repo (`packages/comments/.embed-test/index.html`
-   o. ä., von einem anderen Port serviert) + E2E-Smoke (Playwright): Widget
-   lädt cross-origin, Kommentare sichtbar, Resize funktioniert, Dark-Mode-Param greift.
+5. ✅ **(2026-07-09)** Gate `maui.comments.embed` (enabled + allowedOrigins,
+   Default aus) in [comments/app.config.ts](../../packages/comments/app/app.config.ts);
+   `/embed` wirft 404 wenn deaktiviert. reddit-comments aktiviert mit
+   `allowedOrigins: ['*']` (bewusste Demo-App-Entscheidung, E7).
+6. ✅ **(2026-07-09)** [embed.vue](../../packages/comments/app/pages/embed.vue) +
+   [layouts/embed.vue](../../packages/comments/app/layouts/embed.vue): Zod-Params
+   (targetId/targetType/url/theme/primary — primary als Farb-Whitelist),
+   noindex, Resize-postMessage (targetOrigin = Host-Origin aus url-Param).
+   Abweichung vom Plan: transparenter Hintergrund NUR bei theme=auto —
+   erzwungenes dark auf heller Hostseite war sonst kontrastlos (verifiziert).
+   locale läuft über den i18n-Pfad-Präfix statt Query-Param.
+7. ✅ **(2026-07-09)** [embed.js](../../packages/comments/public/embed.js):
+   dependency-frei, currentScript-basiert (mehrere Widgets via data-container),
+   sandbox `allow-scripts allow-same-origin allow-forms allow-popups
+   allow-popups-to-escape-sandbox`, Resize mit Origin+Source-Check,
+   maui:set-theme-Protokoll dokumentiert.
+8. ✅ **(2026-07-09)** Test-Hostseite
+   [.embed-test/index.html](../../packages/comments/.embed-test/index.html)
+   (Widget-Origin/Theme per Query steuerbar) + Playwright-Smoke
+   [embed.spec.ts](../../apps/reddit-comments/e2e/embed.spec.ts) (eigener
+   node:http-Host-Server pro Worker): iframe lädt cross-origin, Sektion
+   rendert, Resize setzt Pixel-Höhe, 400-Validierung + Header-Split. Manuell
+   zusätzlich verifiziert: Realtime-Pille im Gast-iframe (neuer Kommentar
+   erscheint live), dark + primary. Hinweis: localhost:PORT↔PORT ist
+   same-SITE — echtes cross-SITE-Gastverhalten (kein Cookie) greift erst auf
+   echten Domains; Gast-SSR wurde cookie-frei per curl verifiziert.
 
 ### Phase E2 — MVP: Auth im Embed (Schreiben)
 

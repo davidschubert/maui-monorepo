@@ -43,8 +43,11 @@ nutzbar). Reihenfolge = grobe Priorität.
   Webhook (Signatur/Allowlist/Stale-Guard), Entitlements + `useBilling`,
   Live-Matrix mit echtem Test-Key gefahren. Details README-Status 56.
 - **Embed-Widget**: [docs/plans/EMBED-WIDGET.md](plans/EMBED-WIDGET.md)
-  — iframe-Modell + CHIPS-Cookie; Vorbedingung E0-1 (hidden-REST-Leak) ist
-  bereits erledigt; 20 Todos in 5 Phasen.
+  — **E0+E1 ✅ (2026-07-09): Read-only-MVP live** (iframe + embed.js,
+  frame-ancestors-Split, Read-Rate-Limit, [docs/EMBED.md](EMBED.md)).
+  Offen: E2 (Schreiben im iframe — Login-Popup + CHIPS-partitionierte Session;
+  seriöse Verifikation braucht echte Cross-Site-Domains → passt gut ZU/nach
+  Phase 17), E3 (Site-Registry, count-API, Redis-Rate-Limit), E4.
 
 ## 🟡 Klein / Reste
 
