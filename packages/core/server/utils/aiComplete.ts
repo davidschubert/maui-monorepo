@@ -50,6 +50,37 @@ export function isAiAvailable(event: H3Event): boolean {
   return getAiConfig().enabled && Boolean(useRuntimeConfig(event).aiKey)
 }
 
+export interface EffectiveAiConfig extends AiConfig {
+  /** Build-Default aus maui.ai.model (ohne Laufzeit-Override) — für UI-Placeholder */
+  defaultModel: string
+}
+
+/**
+ * Effektive Core-KI-Config inkl. Laufzeit-Override: app_config.aiModel
+ * (system-016, Admin-Config-Seite) schlägt den Build-Default — best-effort,
+ * bei Lesefehler gilt der Default. Layer-eigene Overrides (z. B.
+ * app_config.ticketsAiModel) bleiben Sache des jeweiligen Layers und
+ * schlagen dieses globale Override.
+ */
+export async function getEffectiveAiConfig(event: H3Event): Promise<EffectiveAiConfig> {
+  const base = getAiConfig()
+  const config: EffectiveAiConfig = { ...base, defaultModel: base.model }
+  try {
+    const runtime = useRuntimeConfig(event)
+    const { tablesDB } = createAdminClient(event)
+    const row = await tablesDB.getRow<import('node-appwrite').Models.Row & { aiModel?: string }>({
+      databaseId: runtime.public.appwriteDatabaseId,
+      tableId: 'app_config',
+      rowId: 'global',
+    })
+    if (typeof row.aiModel === 'string' && row.aiModel.trim()) {
+      config.model = row.aiModel.trim()
+    }
+  }
+  catch { /* Override nicht lesbar → Build-Default */ }
+  return config
+}
+
 export async function aiComplete(event: H3Event, prompt: string, options: AiCompleteOptions = {}): Promise<string> {
   const defaults = getAiConfig()
   const label = options.label ?? 'core'
