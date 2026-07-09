@@ -12,6 +12,12 @@ export default defineAppConfig({
       enabled: true,
       clientErrors: true,
     },
+    feedback: {
+      // Feedback → Ticket (P2): die App verdrahtet feedback mit dem
+      // tickets-Board über diese Route (A14) — Ticket landet in der
+      // ersten Board-Liste, Feedback wird als erledigt markiert
+      ticketEndpoint: '/api/app/feedback-ticket',
+    },
     // Stripe-Billing (Phase 23) — TEST-Mode; Products/Prices legt David im
     // Dashboard an (lookup_keys wie hier deklariert). Feature-Strings sind
     // App-Konvention (courses konsumiert 'paidCourses' über den Access-Guard).
