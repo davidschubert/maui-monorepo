@@ -294,16 +294,6 @@
       "downloadError": "Download fehlgeschlagen.",
       "confirmTitle": "Snapshot löschen?",
       "confirmText": "{name} endgültig löschen? Der Snapshot kann danach nicht mehr abgerufen werden."
-    },
-    "roadmap": {
-      "title": "Roadmap",
-      "description": "Was in Arbeit ist, was als Nächstes kommt und was später folgt — die Planungs-Wahrheit bleibt docs/GOALS.md.",
-      "updated": "Stand: {date}",
-      "now": "In Arbeit",
-      "next": "Als Nächstes",
-      "later": "Später",
-      "shipped": "Kürzlich geliefert",
-      "empty": "Keine Roadmap konfiguriert — die App liefert die Inhalte über maui.roadmap (app.config)."
     }
   },
   "whatsNew": {

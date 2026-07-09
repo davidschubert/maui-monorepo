@@ -294,16 +294,6 @@
       "downloadError": "Download failed.",
       "confirmTitle": "Delete snapshot?",
       "confirmText": "Permanently delete {name}? The snapshot can no longer be retrieved afterwards."
-    },
-    "roadmap": {
-      "title": "Roadmap",
-      "description": "What is in progress, what comes next and what follows later — planning truth stays in docs/GOALS.md.",
-      "updated": "As of {date}",
-      "now": "In progress",
-      "next": "Up next",
-      "later": "Later",
-      "shipped": "Recently shipped",
-      "empty": "No roadmap configured — the app provides content via maui.roadmap (app.config)."
     }
   },
   "whatsNew": {
