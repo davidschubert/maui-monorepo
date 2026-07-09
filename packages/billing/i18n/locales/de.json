@@ -14,7 +14,13 @@
       "freeFeatures": "Alle Community-Grundfunktionen",
       "alreadyActive": "Du hast schon ein aktives Abo — verwalte es über das Portal.",
       "checkoutFailed": "Checkout konnte nicht gestartet werden.",
-      "disabled": "Abos sind hier noch nicht aktiviert."
+      "disabled": "Abos sind hier noch nicht aktiviert.",
+      "perMonth": "/ Monat",
+      "perYear": "/ Jahr",
+      "compareTitle": "Alle Funktionen im Vergleich"
+    },
+    "compare": {
+      "includedA11y": "Enthalten"
     },
     "account": {
       "title": "Abo & Zahlung",

@@ -47,9 +47,32 @@ export interface MauiBillingPlan {
   labelKey: string
   /** Entitlement-Features, z. B. 'courses.paid' — App-/Layer-Konvention */
   features: string[]
+  /**
+   * Anzeige-Stichpunkte der Pricing-Karte (i18n-Keys unter billing.features.*).
+   * Reines Marketing — getrennt von den Entitlement-features; fehlt das Feld,
+   * zeigt die Karte die features an.
+   */
+  highlights?: string[]
   highlight?: boolean
   /** Stripe-Price-Referenzen (§6: monatlich + jährlich); null = kein Stripe-Objekt (free) */
   lookupKeys: { monthly: string, yearly: string } | null
+}
+
+/**
+ * Zelle der Vergleichstabelle: true → Haken, false → nicht enthalten,
+ * String → i18n-Key für einen Text-Zustand (z. B. „Eingeschränkt").
+ */
+export type BillingCompareValue = boolean | string
+
+export interface MauiBillingCompareRow {
+  labelKey: string
+  /** Wert je Plan-Id (fehlender Eintrag = false) */
+  plans: Record<string, BillingCompareValue>
+}
+
+export interface MauiBillingCompareSection {
+  labelKey: string
+  rows: MauiBillingCompareRow[]
 }
 
 export interface MauiBillingConfig {
@@ -57,6 +80,14 @@ export interface MauiBillingConfig {
   currency: string
   trialDays: number
   plans: MauiBillingPlan[]
+  /** Optionale „Alle Funktionen im Vergleich"-Tabelle der Pricing-Seite */
+  compare?: { sections: MauiBillingCompareSection[] }
+}
+
+/** Antwort von GET /api/billing/prices (öffentlich, für die Pricing-Seite) */
+export interface BillingPricesResponse {
+  /** je Plan-Id die Stripe-Beträge in Cent; null = Stripe (noch) nicht konfiguriert */
+  prices: Record<string, Partial<Record<BillingInterval, { amount: number, currency: string }>>> | null
 }
 
 /** Antwort von GET /api/billing/subscription (SSR-Hydration von useBilling) */

@@ -14,7 +14,13 @@
       "freeFeatures": "All core community features",
       "alreadyActive": "You already have an active subscription — manage it via the portal.",
       "checkoutFailed": "Could not start the checkout.",
-      "disabled": "Subscriptions are not enabled here yet."
+      "disabled": "Subscriptions are not enabled here yet.",
+      "perMonth": "/month",
+      "perYear": "/year",
+      "compareTitle": "Compare features across plans"
+    },
+    "compare": {
+      "includedA11y": "Included"
     },
     "account": {
       "title": "Subscription & billing",

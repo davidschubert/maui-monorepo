@@ -17,6 +17,7 @@ export function useBilling() {
       currency: billing?.currency ?? 'eur',
       trialDays: billing?.trialDays ?? 0,
       plans: billing?.plans ?? [],
+      compare: billing?.compare,
     }
   })
 
