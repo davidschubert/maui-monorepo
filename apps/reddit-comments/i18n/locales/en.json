@@ -1,6 +1,10 @@
 {
   "app": {
-    "tagline": "Discuss like on Reddit — in real time."
+    "tagline": "Discuss like on Reddit — in real time.",
+    "nav": {
+      "home": "Home",
+      "products": "Products"
+    }
   },
   "home": {
     "onlineBadge": "{count} online now",
