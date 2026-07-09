@@ -36,7 +36,12 @@
       "toTicket": "Als Ticket übernehmen",
       "toTicketSuccess": "Ticket angelegt — das Feedback ist als erledigt markiert.",
       "toTicketOpen": "Ticket öffnen",
-      "toTicketExists": "Zu diesem Feedback gibt es schon ein Ticket."
+      "toTicketExists": "Zu diesem Feedback gibt es schon ein Ticket.",
+      "filter": {
+        "all": "Alle",
+        "open": "Offen",
+        "resolved": "Erledigt"
+      }
     }
   },
   "admin": {

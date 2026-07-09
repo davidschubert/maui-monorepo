@@ -16,6 +16,24 @@ const { data, status, refresh } = await useFetch<{ rows: EventRow[] }>('/api/eve
   server: false,
 })
 
+// Ortstyp-Filter im Toolbar-Muster der Kommentar-Moderation
+type LocationFilter = 'all' | 'online' | 'venue'
+const LOCATION_FILTERS: LocationFilter[] = ['all', 'online', 'venue']
+const LOCATION_ICON: Record<LocationFilter, string> = {
+  all: 'i-ph-list-bullets',
+  online: 'i-ph-broadcast',
+  venue: 'i-ph-map-pin',
+}
+const locationFilter = ref<LocationFilter>('all')
+const filterLinks = computed(() => LOCATION_FILTERS.map(value => ({
+  label: t(`events.admin.filter.${value}`),
+  icon: LOCATION_ICON[value],
+  active: locationFilter.value === value,
+  onSelect: () => { locationFilter.value = value },
+})))
+const filteredRows = computed(() => (data.value?.rows ?? []).filter(row =>
+  locationFilter.value === 'all' || effectiveLocationType(row) === locationFilter.value))
+
 // ---- Formular (Anlegen + Bearbeiten teilen sich Modal & State) ----
 
 interface EventForm {
@@ -227,6 +245,10 @@ const statusColor = (row: EventRow) =>
           </UButton>
         </template>
       </UDashboardNavbar>
+
+      <UDashboardToolbar>
+        <UNavigationMenu :items="filterLinks" highlight class="-mx-1 flex-1" data-events-filter />
+      </UDashboardToolbar>
     </template>
 
     <template #body>
@@ -240,12 +262,12 @@ const statusColor = (row: EventRow) =>
         </div>
 
         <div v-else>
-          <p v-if="!data?.rows.length" class="py-16 text-center text-sm text-muted">
+          <p v-if="!filteredRows.length" class="py-16 text-center text-sm text-muted">
             {{ t('events.admin.empty') }}
           </p>
 
           <ul v-else class="divide-y divide-default">
-            <li v-for="row in data.rows" :key="row.$id" class="flex items-center gap-3 py-3 text-sm" :data-admin-event="row.$id">
+            <li v-for="row in filteredRows" :key="row.$id" class="flex items-center gap-3 py-3 text-sm" :data-admin-event="row.$id">
               <div class="min-w-0 flex-1">
                 <p class="truncate font-medium">{{ row.title }}</p>
                 <p class="text-xs text-muted">

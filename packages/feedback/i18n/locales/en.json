@@ -36,7 +36,12 @@
       "toTicket": "Convert to ticket",
       "toTicketSuccess": "Ticket created — the feedback is marked as resolved.",
       "toTicketOpen": "Open ticket",
-      "toTicketExists": "A ticket already exists for this feedback."
+      "toTicketExists": "A ticket already exists for this feedback.",
+      "filter": {
+        "all": "All",
+        "open": "Open",
+        "resolved": "Resolved"
+      }
     }
   },
   "admin": {

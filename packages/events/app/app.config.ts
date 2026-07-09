@@ -13,6 +13,7 @@ export default defineAppConfig({
           icon: 'i-ph-calendar-dots',
           to: '/dashboard/events',
           requiredCapability: 'events.manage',
+          group: 'products',
         },
       ],
     },

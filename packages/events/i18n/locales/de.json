@@ -127,7 +127,12 @@
         "priceLookupKeyHelp": "Referenz auf den Stripe-Price — der Betrag dort ist die Wahrheit."
       },
       "coverSaved": "Cover gespeichert.",
-      "coverFailed": "Cover konnte nicht gespeichert werden."
+      "coverFailed": "Cover konnte nicht gespeichert werden.",
+      "filter": {
+        "all": "Beliebiger Typ",
+        "online": "Online",
+        "venue": "Präsenz"
+      }
     },
     "validation": {
       "titleRequired": "Titel angeben.",

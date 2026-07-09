@@ -75,7 +75,13 @@
       "restore": "Wiederherstellen",
       "hidden": "Beitrag ausgeblendet.",
       "restored": "Beitrag wiederhergestellt.",
-      "actionFailed": "Aktion fehlgeschlagen."
+      "actionFailed": "Aktion fehlgeschlagen.",
+      "filter": {
+        "all": "Alle",
+        "post": "Beiträge",
+        "poll": "Umfrage",
+        "question": "Frage"
+      }
     },
     "validation": {
       "titleMax": "Titel ist zu lang.",

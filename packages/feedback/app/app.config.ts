@@ -13,6 +13,7 @@ export default defineAppConfig({
           icon: 'i-ph-megaphone-simple',
           to: '/dashboard/feedback',
           requiredCapability: 'feedback.manage',
+          group: 'products',
         },
       ],
     },

@@ -14,8 +14,26 @@ const { data, status, refresh } = await useFetch<{ rows: CommunityPost[], report
   server: false,
 })
 
-const scheduled = computed(() => data.value?.rows.filter(row => row.status === 'scheduled') ?? [])
-const visible = computed(() => data.value?.rows.filter(row => row.status !== 'scheduled') ?? [])
+// Typ-Filter im Toolbar-Muster der Kommentar-Moderation (Alle/Beiträge/Umfrage/Frage)
+type TypeFilter = 'all' | 'post' | 'poll' | 'question'
+const TYPE_FILTERS: TypeFilter[] = ['all', 'post', 'poll', 'question']
+const TYPE_ICON: Record<TypeFilter, string> = {
+  all: 'i-ph-list-bullets',
+  post: 'i-ph-article',
+  poll: 'i-ph-chart-bar',
+  question: 'i-ph-question',
+}
+const typeFilter = ref<TypeFilter>('all')
+const filterLinks = computed(() => TYPE_FILTERS.map(value => ({
+  label: t(`posts.moderation.filter.${value}`),
+  icon: TYPE_ICON[value],
+  active: typeFilter.value === value,
+  onSelect: () => { typeFilter.value = value },
+})))
+const matchesType = (row: CommunityPost) => typeFilter.value === 'all' || row.type === typeFilter.value
+
+const scheduled = computed(() => data.value?.rows.filter(row => row.status === 'scheduled' && matchesType(row)) ?? [])
+const visible = computed(() => data.value?.rows.filter(row => row.status !== 'scheduled' && matchesType(row)) ?? [])
 
 const busyId = ref('')
 async function setHidden(post: CommunityPost, hide: boolean) {
@@ -47,6 +65,10 @@ function snippet(post: CommunityPost): string {
           <UDashboardSidebarCollapse />
         </template>
       </UDashboardNavbar>
+
+      <UDashboardToolbar>
+        <UNavigationMenu :items="filterLinks" highlight class="-mx-1 flex-1" data-posts-filter />
+      </UDashboardToolbar>
     </template>
 
     <template #body>

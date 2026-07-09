@@ -13,6 +13,7 @@ export default defineAppConfig({
           icon: 'i-ph-users-three',
           to: '/dashboard/posts',
           requiredCapability: 'posts.moderate',
+          group: 'products',
         },
       ],
     },

@@ -127,7 +127,12 @@
         "priceLookupKeyHelp": "Reference to the Stripe price — the amount there is the source of truth."
       },
       "coverSaved": "Cover saved.",
-      "coverFailed": "Could not save the cover."
+      "coverFailed": "Could not save the cover.",
+      "filter": {
+        "all": "Any type",
+        "online": "Online",
+        "venue": "In person"
+      }
     },
     "validation": {
       "titleRequired": "Please add a title.",

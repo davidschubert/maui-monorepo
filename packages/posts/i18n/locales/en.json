@@ -75,7 +75,13 @@
       "restore": "Restore",
       "hidden": "Post hidden.",
       "restored": "Post restored.",
-      "actionFailed": "Action failed."
+      "actionFailed": "Action failed.",
+      "filter": {
+        "all": "All",
+        "post": "Posts",
+        "poll": "Poll",
+        "question": "Question"
+      }
     },
     "validation": {
       "titleMax": "Title is too long.",

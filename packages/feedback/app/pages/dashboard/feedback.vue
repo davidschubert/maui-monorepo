@@ -13,11 +13,26 @@ const localePath = useLocalePath()
 
 useHead({ title: () => t('feedback.admin.title') })
 
-const status = ref<'open' | 'resolved'>('open')
-watch(status, () => setPage(1))
+// Filter-Tabs im Toolbar-Muster der Kommentar-Moderation (Alle/Offen/Erledigt)
+type FeedbackFilter = 'all' | 'open' | 'resolved'
+const FILTERS: FeedbackFilter[] = ['all', 'open', 'resolved']
+const FILTER_ICON: Record<FeedbackFilter, string> = {
+  all: 'i-ph-list-bullets',
+  open: 'i-ph-tray',
+  resolved: 'i-ph-check-circle',
+}
+const filter = ref<FeedbackFilter>('open')
+watch(filter, () => setPage(1))
+
+const filterLinks = computed(() => FILTERS.map(value => ({
+  label: t(`feedback.admin.filter.${value}`),
+  icon: FILTER_ICON[value],
+  active: filter.value === value,
+  onSelect: () => { filter.value = value },
+})))
 
 const { data, status: fetchStatus, refresh } = await useFetch<FeedbackListResponse>('/api/feedback', {
-  query: computed(() => ({ status: status.value, page: page.value })),
+  query: computed(() => ({ ...(filter.value === 'all' ? {} : { status: filter.value }), page: page.value })),
   lazy: true,
   server: false,
 })
@@ -103,27 +118,11 @@ async function remove(row: FeedbackRow) {
         <template #leading>
           <UDashboardSidebarCollapse />
         </template>
-        <template #right>
-          <div class="flex gap-1">
-            <UButton
-              :color="status === 'open' ? 'primary' : 'neutral'"
-              :variant="status === 'open' ? 'soft' : 'ghost'"
-              size="sm"
-              @click="status = 'open'"
-            >
-              {{ t('feedback.admin.open') }}
-            </UButton>
-            <UButton
-              :color="status === 'resolved' ? 'primary' : 'neutral'"
-              :variant="status === 'resolved' ? 'soft' : 'ghost'"
-              size="sm"
-              @click="status = 'resolved'"
-            >
-              {{ t('feedback.admin.resolved') }}
-            </UButton>
-          </div>
-        </template>
       </UDashboardNavbar>
+
+      <UDashboardToolbar>
+        <UNavigationMenu :items="filterLinks" highlight class="-mx-1 flex-1" data-feedback-filter />
+      </UDashboardToolbar>
     </template>
 
     <template #body>
