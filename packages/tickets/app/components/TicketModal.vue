@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { EditorToolbarItem } from '@nuxt/ui'
-import type { TicketChecklistItem, TicketListRow, TicketMember, TicketRow } from '../../shared/types/ticket'
+import type { TicketChecklistItem, TicketFileRow, TicketListRow, TicketMember, TicketRow } from '../../shared/types/ticket'
 import { TICKET_EFFORTS, TICKET_LABELS, TICKET_PRIORITIES } from '../../shared/types/ticket'
 import { composeTicketMarkdown, parseTicketChecklist, parseTicketMembers } from '../utils/ticketMarkdown'
 import { TICKET_EFFORT_META, TICKET_LABEL_META, TICKET_PRIORITY_META } from '../utils/ticketMeta'
@@ -94,6 +94,86 @@ watch(() => props.ticket?.$id, () => {
 }, { immediate: true })
 
 const { users: assignable, avatarById } = useTicketAssignable()
+
+// Beobachten (P4) — geteilter Zustand mit der Beobachtet-Ansicht des Boards
+const { isWatching, toggleWatch } = useTicketWatching()
+const watchBusy = ref(false)
+async function onToggleWatch() {
+  if (!props.ticket) return
+  watchBusy.value = true
+  try {
+    const watching = await toggleWatch(props.ticket.$id)
+    toast.add({
+      title: watching ? t('tickets.watch.added') : t('tickets.watch.removed'),
+      color: 'success',
+      icon: watching ? 'i-ph-eye' : 'i-ph-eye-slash',
+    })
+  }
+  catch {
+    toast.add({ title: t('tickets.errors.action'), color: 'error' })
+  }
+  finally {
+    watchBusy.value = false
+  }
+}
+
+// Anhänge (P4)
+const files = ref<TicketFileRow[]>([])
+const uploadBusy = ref(false)
+const fileInput = ref<HTMLInputElement | null>(null)
+async function loadFiles() {
+  if (!props.ticket) return
+  try {
+    const res = await $fetch<{ files: TicketFileRow[] }>(`/api/tickets/${props.ticket.$id}/files`)
+    files.value = res.files
+  }
+  catch {
+    files.value = []
+  }
+}
+watch(() => props.ticket?.$id, () => { files.value = []; void loadFiles() })
+async function onFileSelected(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file || !props.ticket) return
+  uploadBusy.value = true
+  try {
+    const form = new FormData()
+    form.append('file', file)
+    await $fetch(`/api/tickets/${props.ticket.$id}/files`, { method: 'POST', body: form })
+    await loadFiles()
+    toast.add({ title: t('tickets.files.uploaded'), color: 'success', icon: 'i-ph-paperclip' })
+  }
+  catch (error) {
+    const statusCode = (error as { statusCode?: number }).statusCode
+    toast.add({
+      title: statusCode === 415 ? t('tickets.files.unsupported') : t('tickets.errors.action'),
+      color: 'error',
+    })
+  }
+  finally {
+    uploadBusy.value = false
+  }
+}
+async function removeFile(file: TicketFileRow) {
+  try {
+    await $fetch(`/api/tickets/files/${file.fileId}`, { method: 'DELETE' })
+    await loadFiles()
+  }
+  catch {
+    toast.add({ title: t('tickets.errors.action'), color: 'error' })
+  }
+}
+function fileIcon(mime: string): string {
+  if (mime.startsWith('image/')) return 'i-ph-image'
+  if (mime === 'application/pdf') return 'i-ph-file-pdf'
+  return 'i-ph-file-text'
+}
+function fileSize(bytes: number): string {
+  if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`
+}
 
 // Markdown-Toolbar wie bei der Changelog-Verwaltung (UEditor, content-type markdown)
 const toolbarItems: EditorToolbarItem[] = [
@@ -392,19 +472,32 @@ const createdAtText = computed(() =>
     v-model:open="open"
     :close="false"
     :dismissible="!descriptionDirty"
-    :ui="{ content: 'max-w-2xl' }"
+    :ui="{ content: 'max-w-5xl' }"
     @close:prevent="confirmClose = true"
   >
     <template #body>
-      <div v-if="ticket" class="max-h-[80vh] overflow-y-auto" data-testid="ticket-modal">
+      <div v-if="ticket" class="max-h-[82vh] overflow-y-auto" data-testid="ticket-modal">
         <div class="flex items-center justify-end gap-1">
+          <UTooltip :text="isWatching(ticket.$id) ? t('tickets.watch.stop') : t('tickets.watch.start')">
+            <UButton
+              :icon="isWatching(ticket.$id) ? 'i-ph-eye-fill' : 'i-ph-eye'"
+              :color="isWatching(ticket.$id) ? 'primary' : 'neutral'"
+              variant="ghost"
+              :loading="watchBusy"
+              :aria-label="t('tickets.watch.toggle')"
+              data-testid="ticket-watch"
+              @click="onToggleWatch"
+            />
+          </UTooltip>
           <UDropdownMenu :items="menuItems">
             <UButton icon="i-ph-dots-three-bold" color="neutral" variant="ghost" :aria-label="t('tickets.modal.actions')" data-testid="ticket-menu" />
           </UDropdownMenu>
           <UButton icon="i-ph-x" color="neutral" variant="ghost" :aria-label="t('tickets.modal.close')" data-testid="ticket-close" @click="requestClose" />
         </div>
 
-        <div class="mt-1 flex items-start gap-2">
+        <div class="mt-1 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(280px,340px)]">
+        <div>
+        <div class="flex items-start gap-2">
           <UTooltip :text="ticket.status === 'done' ? t('tickets.modal.markOpen') : t('tickets.modal.markDone')">
             <UButton
               :icon="ticket.status === 'done' ? 'i-ph-check-circle-fill' : 'i-ph-circle'"
@@ -536,6 +629,40 @@ const createdAtText = computed(() =>
           </form>
         </div>
 
+        <!-- Anhänge (P4): Bilder/PDF/Text, max 10 MB — Serving über eigene Route -->
+        <div class="mt-5">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-semibold">
+              {{ t('tickets.files.title') }}
+              <span v-if="files.length" class="ms-1 text-xs font-normal text-muted">{{ files.length }}</span>
+            </h3>
+            <UButton
+              icon="i-ph-paperclip"
+              color="neutral" variant="ghost" size="xs"
+              :loading="uploadBusy"
+              data-testid="file-upload"
+              @click="fileInput?.click()"
+            >
+              {{ t('tickets.files.upload') }}
+            </UButton>
+            <input ref="fileInput" type="file" class="hidden" accept="image/*,.pdf,.md,.txt,.csv,.json,.log" @change="onFileSelected">
+          </div>
+          <ul v-if="files.length" class="mt-2 space-y-1.5">
+            <li v-for="file in files" :key="file.$id" class="flex items-center gap-2 text-sm">
+              <UIcon :name="fileIcon(file.mimeType)" class="size-4 shrink-0 text-muted" />
+              <a
+                :href="`/api/tickets/files/${file.fileId}`"
+                target="_blank"
+                rel="noopener"
+                class="min-w-0 flex-1 truncate hover:text-primary hover:underline"
+              >{{ file.name }}</a>
+              <span class="text-xs text-dimmed">{{ fileSize(file.size) }}</span>
+              <UButton icon="i-ph-x" color="neutral" variant="ghost" size="xs" :aria-label="t('tickets.files.remove')" @click="removeFile(file)" />
+            </li>
+          </ul>
+          <p v-else class="mt-2 text-xs text-muted">{{ t('tickets.files.empty') }}</p>
+        </div>
+
         <div v-if="confirmDelete" class="mt-6 flex items-center justify-between gap-2 rounded-lg border border-error/40 bg-error/5 p-3">
           <p class="text-sm text-error">{{ t('tickets.modal.deleteConfirmText') }}</p>
           <div class="flex gap-2">
@@ -550,6 +677,18 @@ const createdAtText = computed(() =>
           <p class="text-xs text-muted">
             {{ t('tickets.modal.createdBy', { name: ticket.createdByName || '—', date: createdAtText }) }}
           </p>
+        </div>
+        </div>
+
+        <!-- Rechte Spalte (Trello-Muster): Kommentare & Aktivität — die APP
+             füllt TicketModalComments per Komponenten-Override (A14) -->
+        <aside class="lg:border-s lg:border-default lg:ps-6">
+          <h3 class="mb-3 flex items-center gap-1.5 text-sm font-semibold">
+            <UIcon name="i-ph-chat-circle-text" class="size-4" />
+            {{ t('tickets.comments.title') }}
+          </h3>
+          <TicketModalComments :ticket="ticket" />
+        </aside>
         </div>
       </div>
     </template>

@@ -1,8 +1,8 @@
 import { Query } from 'node-appwrite'
 import type { TablesDB } from 'node-appwrite'
 import type { H3Event } from 'h3'
-import { TICKET_LISTS_TABLE } from '../../shared/types/ticket'
-import type { TICKETS_TABLE, TicketListRow, TicketRow } from '../../shared/types/ticket'
+import { TICKETS_TABLE, TICKET_LISTS_TABLE } from '../../shared/types/ticket'
+import type { TicketListRow, TicketRow } from '../../shared/types/ticket'
 
 /**
  * Gemeinsame Helfer der Ticket-Routen. Alle Writes laufen über den
@@ -24,6 +24,19 @@ export async function nextTicketPosition(
   const res = await tablesDB.listRows<TicketRow | TicketListRow>({ databaseId, tableId, queries })
   const last = res.rows[0]
   return (last?.position ?? 0) + POSITION_GAP
+}
+
+/** Ticket muss existieren — liefert die Row (404 sonst) */
+export async function requireTicketExists(event: H3Event, ticketId: string): Promise<TicketRow> {
+  const config = useRuntimeConfig(event)
+  const { tablesDB } = createAdminClient(event)
+  return await tablesDB.getRow<TicketRow>({
+    databaseId: config.public.appwriteDatabaseId,
+    tableId: TICKETS_TABLE,
+    rowId: ticketId,
+  }).catch((error) => {
+    throw toH3Error(error, 'Ticket not found')
+  })
 }
 
 /** Liste muss existieren (400 statt kryptischem Folgefehler) */

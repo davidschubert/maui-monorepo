@@ -101,6 +101,28 @@
       "running": "AI triage running …",
       "done": "AI triage added — the assessment is in the description.",
       "failed": "AI triage failed — is NUXT_TICKETS_AI_KEY set?"
+    },
+    "watch": {
+      "start": "Watch ticket",
+      "stop": "Stop watching",
+      "toggle": "Toggle watching",
+      "added": "You are now watching this ticket.",
+      "removed": "Stopped watching.",
+      "listTitle": "Watching",
+      "listDescription": "All tickets you follow — unwatch them right here.",
+      "empty": "You are not watching any tickets yet."
+    },
+    "files": {
+      "title": "Attachments",
+      "upload": "Upload",
+      "uploaded": "Attachment uploaded.",
+      "unsupported": "File type not supported — allowed: images, PDF, md/txt/csv/json (max 10 MB).",
+      "remove": "Remove attachment",
+      "empty": "No attachments yet — images, PDF or text files (max 10 MB)."
+    },
+    "comments": {
+      "title": "Comments & activity",
+      "notWired": "Comments are not wired up in this app (override TicketModalComments)."
     }
   }
 }

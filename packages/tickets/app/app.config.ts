@@ -18,6 +18,11 @@ export default defineAppConfig({
         },
       ],
     },
+    comments: {
+      // Board-Diskussionen sind intern: comments-Layer behandelt targetType
+      // 'ticket' als Operator-Target (nur admin/moderator lesen + schreiben)
+      operatorTargets: ['ticket'],
+    },
     tickets: {
       /** KI-Triage (P3): bewertet Tickets via OpenAI-kompatibler API
        *  (Default OpenRouter). Key server-only: NUXT_TICKETS_AI_KEY.

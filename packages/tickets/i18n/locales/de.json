@@ -101,6 +101,28 @@
       "running": "KI-Triage läuft …",
       "done": "KI-Triage ergänzt — Einschätzung steht in der Beschreibung.",
       "failed": "KI-Triage fehlgeschlagen — ist NUXT_TICKETS_AI_KEY gesetzt?"
+    },
+    "watch": {
+      "start": "Ticket beobachten",
+      "stop": "Beobachtung beenden",
+      "toggle": "Beobachten umschalten",
+      "added": "Du beobachtest dieses Ticket jetzt.",
+      "removed": "Beobachtung beendet.",
+      "listTitle": "Beobachtet",
+      "listDescription": "Alle Tickets, denen du folgst — hier auch wieder ausschaltbar.",
+      "empty": "Du beobachtest noch keine Tickets."
+    },
+    "files": {
+      "title": "Anhänge",
+      "upload": "Hochladen",
+      "uploaded": "Anhang hochgeladen.",
+      "unsupported": "Dateityp nicht unterstützt — erlaubt: Bilder, PDF, md/txt/csv/json (max 10 MB).",
+      "remove": "Anhang entfernen",
+      "empty": "Noch keine Anhänge — Bilder, PDF oder Text-Dateien (max 10 MB)."
+    },
+    "comments": {
+      "title": "Kommentare & Aktivität",
+      "notWired": "Kommentare sind in dieser App nicht verdrahtet (TicketModalComments überschreiben)."
     }
   }
 }

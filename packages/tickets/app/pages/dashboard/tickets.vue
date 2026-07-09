@@ -17,6 +17,29 @@ useHead({ title: () => t('tickets.board.title') })
 
 const { data, lists, ticketsByList, refresh, error, moveTicket, moveList } = useTicketBoard()
 
+// Beobachtet-Ansicht (P4): Slideover mit allen Tickets, denen ich folge —
+// inkl. Ausschalten direkt aus der Liste
+const watchingOpen = ref(false)
+const { watchedTickets, watchedIds, toggleWatch, refresh: refreshWatching } = useTicketWatching()
+const unwatchBusy = ref('')
+async function unwatch(ticketId: string) {
+  unwatchBusy.value = ticketId
+  try {
+    await toggleWatch(ticketId)
+  }
+  catch {
+    toast.add({ title: t('tickets.errors.action'), color: 'error' })
+  }
+  finally {
+    unwatchBusy.value = ''
+  }
+}
+function openWatched(ticketId: string) {
+  watchingOpen.value = false
+  const ticket = data.value?.tickets.find(item => item.$id === ticketId)
+  if (ticket) open(ticket)
+}
+
 // Modal bleibt gemountet (v-model:open) — der Query-Param trägt den Deep-Link
 const modalOpen = ref(false)
 const selectedId = ref<string | null>(null)
@@ -106,6 +129,19 @@ async function addList() {
         <template #leading>
           <UDashboardSidebarCollapse />
         </template>
+        <template #right>
+          <UButton
+            icon="i-ph-eye"
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            data-testid="watching-open"
+            @click="watchingOpen = true; void refreshWatching()"
+          >
+            {{ t('tickets.watch.listTitle') }}
+            <UBadge v-if="watchedIds.size" color="neutral" variant="subtle" size="sm">{{ watchedIds.size }}</UBadge>
+          </UButton>
+        </template>
       </UDashboardNavbar>
     </template>
 
@@ -191,6 +227,37 @@ async function addList() {
         :lists="lists"
         @refresh="refresh"
       />
+
+      <!-- Beobachtet-Ansicht (P4): folgen/entfolgen zentral an einem Ort -->
+      <USlideover v-model:open="watchingOpen" :title="t('tickets.watch.listTitle')" :description="t('tickets.watch.listDescription')">
+        <template #body>
+          <p v-if="!watchedTickets.length" class="py-8 text-center text-sm text-muted">
+            {{ t('tickets.watch.empty') }}
+          </p>
+          <ul v-else class="divide-y divide-default" data-testid="watching-list">
+            <li v-for="ticket in watchedTickets" :key="ticket.$id" class="flex items-center gap-2 py-3">
+              <button type="button" class="min-w-0 flex-1 cursor-pointer text-start" @click="openWatched(ticket.$id)">
+                <p class="truncate text-sm font-medium hover:text-primary">{{ ticket.title }}</p>
+                <p class="text-xs text-muted">
+                  {{ ticket.listTitle }}
+                  <template v-if="ticket.status === 'done'"> · ✅</template>
+                </p>
+              </button>
+              <UTooltip :text="t('tickets.watch.stop')">
+                <UButton
+                  icon="i-ph-eye-slash"
+                  color="neutral"
+                  variant="ghost"
+                  size="xs"
+                  :loading="unwatchBusy === ticket.$id"
+                  :data-unwatch="ticket.$id"
+                  @click="unwatch(ticket.$id)"
+                />
+              </UTooltip>
+            </li>
+          </ul>
+        </template>
+      </USlideover>
     </template>
   </UDashboardPanel>
 </template>

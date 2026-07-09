@@ -44,6 +44,7 @@ export default defineEventHandler(async (event): Promise<TicketListRow> => {
         membersJson: card.membersJson,
         status: 'open',
         doneAt: null,
+        dueRemindedAt: null,
         position: card.position,
         feedbackId: '',
         createdBy: user.$id,

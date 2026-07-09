@@ -1,6 +1,6 @@
 import { Query } from 'node-appwrite'
 import type { H3Event } from 'h3'
-import { TICKETS_TABLE, type TicketMember, type TicketRow } from '../../shared/types/ticket'
+import { TICKETS_TABLE, TICKET_FILES_TABLE, TICKET_WATCHERS_TABLE, type TicketFileRow, type TicketMember, type TicketRow, type TicketWatcherRow } from '../../shared/types/ticket'
 
 /**
  * GDPR-Contributor des tickets-Layers (Vertrag: core/server/utils/userData.ts).
@@ -15,6 +15,11 @@ export async function ticketsExportUserData(event: H3Event, userId: string) {
 
   const created = await listAllRows<TicketRow>(tablesDB, databaseId, TICKETS_TABLE, [Query.equal('createdBy', userId)])
   const memberOf = await listAllRows<TicketRow>(tablesDB, databaseId, TICKETS_TABLE, [Query.contains('membersJson', userId)])
+  // P4: Beobachtungen + hochgeladene Anhänge (degradieren vor Migration 003)
+  const watching = await listAllRows<TicketWatcherRow>(tablesDB, databaseId, TICKET_WATCHERS_TABLE, [Query.equal('userId', userId)])
+    .catch(() => [] as TicketWatcherRow[])
+  const uploads = await listAllRows<TicketFileRow>(tablesDB, databaseId, TICKET_FILES_TABLE, [Query.equal('uploadedBy', userId)])
+    .catch(() => [] as TicketFileRow[])
 
   return {
     createdTickets: created.map(ticket => ({
@@ -23,6 +28,8 @@ export async function ticketsExportUserData(event: H3Event, userId: string) {
       createdAt: ticket.$createdAt,
     })),
     memberOfTickets: memberOf.map(ticket => ({ title: ticket.title, createdAt: ticket.$createdAt })),
+    watchingTickets: watching.map(w => ({ ticketId: w.ticketId, createdAt: w.$createdAt })),
+    uploadedFiles: uploads.map(f => ({ name: f.name, size: f.size, createdAt: f.$createdAt })),
   }
 }
 
@@ -51,5 +58,22 @@ export async function ticketsDeleteUserData(event: H3Event, userId: string): Pro
     anonymized++
   }
 
-  return { deleted: 0, anonymized }
+  // P4: Beobachtungen hart löschen (reine Verhaltensdaten); Anhänge bleiben
+  // Board-Arbeitsmaterial — nur der Uploader wird pseudonymisiert.
+  // STRIKT (kein catch-Schlucken): deleteUserCompletely gated auf Voll-Erfolg;
+  // vor Migration 003 existieren die Tables schlicht nicht → 404 wirft, das
+  // ist auf solchen Instanzen korrekt sichtbar statt still übersprungen.
+  let deleted = 0
+  const watching = await listAllRows<TicketWatcherRow>(tablesDB, databaseId, TICKET_WATCHERS_TABLE, [Query.equal('userId', userId)])
+  for (const row of watching) {
+    await tablesDB.deleteRow({ databaseId, tableId: TICKET_WATCHERS_TABLE, rowId: row.$id })
+    deleted++
+  }
+  const uploads = await listAllRows<TicketFileRow>(tablesDB, databaseId, TICKET_FILES_TABLE, [Query.equal('uploadedBy', userId)])
+  for (const row of uploads) {
+    await tablesDB.updateRow({ databaseId, tableId: TICKET_FILES_TABLE, rowId: row.$id, data: { uploadedBy: '' } })
+    anonymized++
+  }
+
+  return { deleted, anonymized }
 }

@@ -32,6 +32,7 @@ export default defineEventHandler(async (event): Promise<TicketRow> => {
       membersJson: source.membersJson,
       status: 'open',
       doneAt: null,
+      dueRemindedAt: null,
       position: source.position + 1,
       feedbackId: '',
       createdBy: user.$id,

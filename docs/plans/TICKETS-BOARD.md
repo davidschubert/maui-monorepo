@@ -169,10 +169,31 @@ würden divergieren); Export wird on demand generiert:
   Felder still zu ändern. Läuft on demand (3-Punkte-Menü im Modal) und
   best-effort nach der Feedback-Übernahme (fire-and-forget, Realtime schiebt
   das Ergebnis nach). Ohne Key/Gate: sauberer 503 + erklärender Toast.
-- **P4 — Komfort:** Beobachten + `notify()` (Zuweisung/Move/Kommentar),
-  Kommentare im Modal (comments-Layer, targetType 'ticket', App-Slot),
-  Anhänge (Bucket `tickets`, Muster event-covers), Erinnerungen (Sweep-Muster
-  events), Aktivitäts-Log im Modal.
+- **P4 — Komfort ✅ (2026-07-09):** Alles live verifiziert.
+  - **Kommentare im Modal** (rechte Spalte, Trello-Muster): comments-Layer
+    mit `targetType 'ticket'` — NEUER additiver Vertrag
+    `maui.comments.operatorTargets`: solche Kommentare schreiben nur
+    Operatoren (Gate dashboard.access) und die Rows tragen
+    `read(label:admin/moderator)` statt `read(any)` (Admin-Client setzt die
+    Label-Permissions) — Member sehen per Row-Security NICHTS (bewiesen:
+    Admin 1 / Member 0 auf derselben targetId). Verdrahtung per
+    Komponenten-Override `TicketModalComments` in der APP (A14).
+  - **Beobachten**: Table `ticket_watchers` (Migration 003; eigene Table
+    statt JSON — Zeilenbudget + userId-Query), Auge-Toggle im Modal,
+    „Beobachtet"-Slideover auf dem Board (einsehen + entfolgen an einem Ort).
+  - **Benachrichtigungen** via `notify()`-Vertrag (In-App-Bell; ein künftiges
+    Messaging-Produkt dockt am selben Vertrag an): Zuweisung („Dir wurde …"),
+    Listen-Move, Erledigt/Wieder geöffnet — Empfänger = Beobachter ∪
+    Mitglieder minus Auslöser, best-effort im Hintergrund.
+  - **Anhänge**: Table `ticket_files` + Bucket `ticket-files` (KEINE
+    öffentlichen Permissions — Serving nur über die permission-geprüfte
+    Download-Route); Magic-Bytes für Bilder/PDF, Text-Heuristik für
+    md/txt/csv/json/log, max 10 MB (415 sonst); Kaskaden-Delete mit dem Ticket.
+  - **Fälligkeits-Erinnerungen**: on-read-Sweep im Board-Load (Muster events)
+    — offen + fällig binnen 24 h/überfällig + noch nicht erinnert →
+    Notification, idempotent über `dueRemindedAt` (neue dueAt resettet).
+  - Aktivitäts-Log: bewusst NICHT als eigenes Feature — Kommentare +
+    Benachrichtigungen decken den Bedarf; echtes Log bei Bedarf später.
 
 ## 8. Abgelehnt / bewusst vertagt
 

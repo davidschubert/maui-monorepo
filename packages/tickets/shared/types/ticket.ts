@@ -2,6 +2,9 @@ import type { Models } from 'node-appwrite'
 
 export const TICKET_LISTS_TABLE = 'ticket_lists'
 export const TICKETS_TABLE = 'tickets'
+export const TICKET_WATCHERS_TABLE = 'ticket_watchers'
+export const TICKET_FILES_TABLE = 'ticket_files'
+export const TICKET_FILES_BUCKET = 'ticket-files'
 
 export const TICKET_LABELS = ['idea', 'issue', 'other'] as const
 export type TicketLabel = (typeof TICKET_LABELS)[number]
@@ -55,6 +58,31 @@ export interface TicketRow extends Models.Row {
   feedbackId: string
   createdBy: string
   createdByName: string
+  /** Fälligkeits-Reminder verschickt (P4-Sweep, idempotent) */
+  dueRemindedAt: string | null
+}
+
+export interface TicketWatcherRow extends Models.Row {
+  ticketId: string
+  userId: string
+  userName: string
+}
+
+export interface TicketFileRow extends Models.Row {
+  ticketId: string
+  fileId: string
+  name: string
+  mimeType: string
+  size: number
+  uploadedBy: string
+}
+
+/** Antwort von GET /api/tickets/watching */
+export interface TicketWatchingResponse {
+  /** alle Ticket-Ids, die der aktuelle User beobachtet */
+  ticketIds: string[]
+  /** beobachtete Tickets inkl. Listen-Titel (für die Beobachtet-Ansicht) */
+  tickets: (TicketRow & { listTitle: string })[]
 }
 
 /** Antwort von GET /api/tickets/board */

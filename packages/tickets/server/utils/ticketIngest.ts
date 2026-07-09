@@ -75,6 +75,7 @@ export async function createTicketFromFeedback(event: H3Event, input: FeedbackTi
       membersJson: '',
       status: 'open',
       doneAt: null,
+      dueRemindedAt: null,
       position,
       feedbackId: input.feedbackId,
       createdBy: user.$id,

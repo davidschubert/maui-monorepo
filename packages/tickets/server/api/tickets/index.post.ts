@@ -29,6 +29,7 @@ export default defineEventHandler(async (event): Promise<TicketRow> => {
       membersJson: body.members.length ? JSON.stringify(body.members) : '',
       status: 'open',
       doneAt: null,
+      dueRemindedAt: null,
       position,
       feedbackId: '',
       createdBy: user.$id,
