@@ -288,7 +288,15 @@
       "dismiss": "Resolve reports",
       "dismissed": "Reports resolved.",
       "confirmDismiss": "Mark the reports for {name}'s comment as resolved? The comment stays visible.",
-      "reviewing": "{name} is reviewing"
+      "reviewing": "{name} is reviewing",
+      "assist": {
+        "button": "AI assessment",
+        "failed": "AI assessment failed.",
+        "action": {
+          "hide": "AI recommendation: hide — severity {severity}/5",
+          "dismiss": "AI recommendation: resolve reports — severity {severity}/5"
+        }
+      }
     },
     "presence": {
       "alsoEditing": "{names} is also editing this form",

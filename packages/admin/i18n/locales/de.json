@@ -288,7 +288,15 @@
       "dismiss": "Meldungen erledigen",
       "dismissed": "Meldungen erledigt.",
       "confirmDismiss": "Meldungen für den Kommentar von {name} als erledigt markieren? Der Kommentar bleibt sichtbar.",
-      "reviewing": "{name} bearbeitet gerade"
+      "reviewing": "{name} bearbeitet gerade",
+      "assist": {
+        "button": "KI-Einschätzung",
+        "failed": "KI-Einschätzung fehlgeschlagen.",
+        "action": {
+          "hide": "KI-Empfehlung: Ausblenden — Schwere {severity}/5",
+          "dismiss": "KI-Empfehlung: Meldungen verwerfen — Schwere {severity}/5"
+        }
+      }
     },
     "presence": {
       "alsoEditing": "{names} bearbeitet dieses Formular ebenfalls",

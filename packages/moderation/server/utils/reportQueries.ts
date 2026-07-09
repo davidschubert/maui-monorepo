@@ -46,6 +46,32 @@ export async function myOpenReportTargetIds(
 }
 
 /**
+ * Alle offenen Meldungen zu EINEM Target (neueste zuerst). Für Detail-Ansichten
+ * und den KI-Moderations-Assist (admin) — die Meldegründe/Notizen gehören zum
+ * Kontext der Einschätzung.
+ */
+export async function openReportsForTarget(
+  event: import('h3').H3Event,
+  targetType: string,
+  targetId: string,
+): Promise<Report[]> {
+  const config = useRuntimeConfig(event)
+  const { tablesDB } = createAdminClient(event)
+  const res = await tablesDB.listRows<Report>({
+    databaseId: config.public.appwriteDatabaseId,
+    tableId: REPORTS_TABLE,
+    queries: [
+      Query.equal('targetType', targetType),
+      Query.equal('targetId', targetId),
+      Query.equal('status', 'open'),
+      Query.orderDesc('$createdAt'),
+      Query.limit(100),
+    ],
+  })
+  return res.rows
+}
+
+/**
  * Offene Meldungen eines Target-Typs: distinkte Target-IDs nach Aktualität +
  * Anzahl je Target. Für die Moderations-Queue (Admin).
  */

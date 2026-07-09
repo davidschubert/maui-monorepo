@@ -33,6 +33,9 @@ export default defineEventHandler(async (event): Promise<AdminCommentListRespons
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
   const databaseId = config.public.appwriteDatabaseId
+  // KI-Assist-Verfügbarkeit einmal pro Liste — das UI blendet den Button
+  // sonst gar nicht erst ein (core-Gate maui.ai + NUXT_AI_KEY)
+  const aiAssist = isAiAvailable(event)
 
   // 'reported' kommt jetzt aus dem Moderation-Layer (reports-Tabelle), nicht mehr
   // aus comment.status — über den expliziten Vertrag, nicht direkt (Layer-Grenze A14).
@@ -40,7 +43,7 @@ export default defineEventHandler(async (event): Promise<AdminCommentListRespons
     const { order, counts } = await openReportsByTarget(event, 'comment')
     const pageIds = order.slice(offset, offset + PAGE_SIZE)
     if (pageIds.length === 0) {
-      return { total: order.length, comments: [] }
+      return { total: order.length, comments: [], aiAssist }
     }
     const result = await admin.tablesDB.listRows<CommentRow>({
       databaseId,
@@ -52,7 +55,7 @@ export default defineEventHandler(async (event): Promise<AdminCommentListRespons
       .map(id => byId.get(id))
       .filter((row): row is CommentRow => row !== undefined)
       .map(row => ({ ...toModerated(row), reportCount: counts.get(row.$id) ?? 0 }))
-    return { total: order.length, comments }
+    return { total: order.length, comments, aiAssist }
   }
 
   const result = await admin.tablesDB.listRows<CommentRow>({
@@ -69,5 +72,6 @@ export default defineEventHandler(async (event): Promise<AdminCommentListRespons
   return {
     total: result.total,
     comments: result.rows.map(toModerated),
+    aiAssist,
   }
 })

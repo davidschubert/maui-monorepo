@@ -217,4 +217,21 @@ export interface ModeratedComment {
 export interface AdminCommentListResponse {
   total: number
   comments: ModeratedComment[]
+  /** true = KI-Assist nutzbar (maui.ai an + NUXT_AI_KEY gesetzt) → UI zeigt den Button */
+  aiAssist: boolean
+}
+
+/**
+ * Advisory-Antwort des KI-Moderations-Assists (POST /api/admin/comments/:id/assist).
+ * Reine Empfehlung — Aktionen löst weiterhin der Moderator aus.
+ */
+export interface ModerationAssist {
+  /** 'hide' = Ausblenden empfohlen · 'dismiss' = Kommentar ok, Meldungen verwerfen */
+  action: 'hide' | 'dismiss'
+  /** Schwere des Verstoßes 1 (harmlos) – 5 (gravierend) */
+  severity: number
+  /** 2-3 Sätze Begründung (Deutsch) */
+  assessment: string
+  /** Verwendetes Model (Transparenz im UI/Debugging) */
+  model: string
 }

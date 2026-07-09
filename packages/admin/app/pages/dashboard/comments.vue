@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Models } from 'node-appwrite'
 import type { NavigationMenuItem } from '@nuxt/ui'
-import type { AdminCommentListResponse, ModeratedComment, ModerationFilter } from '../../../shared/types/admin'
+import type { AdminCommentListResponse, ModeratedComment, ModerationAssist, ModerationFilter } from '../../../shared/types/admin'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'comments.moderate' })
 
@@ -86,6 +86,26 @@ watch(pending, (value) => {
   if (value) claim(`comment:${value.comment.$id}`)
   else release()
 })
+
+// KI-Assist (advisory): Einschätzung pro Kommentar einholen und inline zeigen —
+// die KI empfiehlt nur, die Aktions-Buttons bleiben die einzige Ausführung.
+const assists = ref(new Map<string, ModerationAssist>())
+const assistBusy = ref<string | null>(null)
+const assistFor = (id: string) => assists.value.get(id)
+
+async function requestAssist(comment: ModeratedComment) {
+  assistBusy.value = comment.$id
+  try {
+    const result = await $fetch<ModerationAssist>(`/api/admin/comments/${comment.$id}/assist`, { method: 'POST' })
+    assists.value.set(comment.$id, result)
+  }
+  catch {
+    toast.add({ title: t('admin.moderation.assist.failed'), color: 'error' })
+  }
+  finally {
+    assistBusy.value = null
+  }
+}
 
 const confirmText = computed(() => {
   if (!pending.value) return ''
@@ -193,6 +213,17 @@ async function executePending() {
 
         <p class="mt-2 whitespace-pre-line text-sm">{{ comment.content }}</p>
 
+        <UAlert
+          v-if="assistFor(comment.$id)"
+          class="mt-3"
+          :color="assistFor(comment.$id)!.action === 'hide' ? 'warning' : 'success'"
+          variant="subtle"
+          icon="i-ph-sparkle"
+          :title="t(`admin.moderation.assist.action.${assistFor(comment.$id)!.action}`, { severity: assistFor(comment.$id)!.severity })"
+          :description="assistFor(comment.$id)!.assessment"
+          data-moderation-assist
+        />
+
         <div class="mt-3 flex flex-wrap gap-2">
           <UButton
             v-if="comment.status !== 'hidden' && comment.status !== 'deleted'"
@@ -214,6 +245,14 @@ async function executePending() {
             @click="pending = { action: 'dismiss', comment }"
           >
             {{ t('admin.moderation.dismiss') }}
+          </UButton>
+          <UButton
+            v-if="comment.reportCount && data?.aiAssist"
+            size="xs" color="neutral" variant="ghost" icon="i-ph-sparkle"
+            :loading="assistBusy === comment.$id"
+            @click="requestAssist(comment)"
+          >
+            {{ t('admin.moderation.assist.button') }}
           </UButton>
           <UButton
             size="xs" color="error" variant="ghost" icon="i-ph-prohibit"
