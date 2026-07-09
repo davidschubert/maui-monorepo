@@ -22,7 +22,6 @@ function parseChecklist(raw: string): TicketChecklistItem[] {
  */
 
 const TRIAGE_MARKER = '\n\n---\n\n**🤖 KI-Triage'
-const REQUEST_TIMEOUT_MS = 45_000
 
 interface TicketsAiConfig {
   enabled: boolean
@@ -32,16 +31,22 @@ interface TicketsAiConfig {
   defaultModel: string
 }
 
-/** Build-Konfiguration (maui.tickets.ai) — synchron, ohne Laufzeit-Override */
+/**
+ * Build-Konfiguration (maui.tickets.ai) — synchron, ohne Laufzeit-Override.
+ * Fällt feldweise auf das Core-Gate maui.ai zurück (aiComplete): eine App,
+ * die KI zentral aktiviert, bekommt die Triage mit — maui.tickets.ai bleibt
+ * der spezifischere Override.
+ */
 export function getTicketsAiConfig(): TicketsAiConfig {
   const appConfig = useAppConfig() as { maui?: { tickets?: { ai?: Partial<TicketsAiConfig> } } }
   const ai = appConfig.maui?.tickets?.ai
-  const model = ai?.model ?? 'anthropic/claude-haiku-4.5'
+  const core = getAiConfig()
+  const model = ai?.model ?? core.model
   return {
-    enabled: ai?.enabled ?? false,
+    enabled: ai?.enabled ?? core.enabled,
     model,
     defaultModel: model,
-    baseUrl: (ai?.baseUrl ?? 'https://openrouter.ai/api/v1').replace(/\/$/, ''),
+    baseUrl: (ai?.baseUrl ?? core.baseUrl).replace(/\/$/, ''),
   }
 }
 
@@ -103,48 +108,22 @@ function buildPrompt(ticket: TicketRow): string {
   ].filter(line => line !== '').join('\n')
 }
 
-async function callCompletions(config: TicketsAiConfig, apiKey: string, prompt: string): Promise<TriageResult> {
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
-  try {
-    const res = await fetch(`${config.baseUrl}/chat/completions`, {
-      method: 'POST',
-      signal: controller.signal,
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: config.model,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.2,
-        max_tokens: 700,
-      }),
-    })
-    if (!res.ok) {
-      console.error(`[tickets] Triage-API ${res.status}: ${(await res.text()).slice(0, 300)}`)
-      throw createError({ status: 502, statusText: 'Triage provider unavailable' })
-    }
-    const payload = await res.json() as { choices?: { message?: { content?: string } }[] }
-    const raw = payload.choices?.[0]?.message?.content ?? ''
-    // Defensiv parsen — manche Modelle wrappen trotz Anweisung in ```json
-    const jsonText = raw.replace(/^[\s\S]*?\{/, '{').replace(/\}[\s\S]*$/, '}')
-    const parsed = JSON.parse(jsonText) as Partial<TriageResult>
-    return {
-      relevance: Math.min(5, Math.max(1, Number(parsed.relevance) || 3)),
-      priority: ['low', 'medium', 'high'].includes(parsed.priority ?? '') ? parsed.priority! : 'medium',
-      effort: ['easy', 'medium', 'hard', 'very_hard'].includes(parsed.effort ?? '') ? parsed.effort! : 'medium',
-      assessment: String(parsed.assessment ?? '').slice(0, 1200),
-      questions: (Array.isArray(parsed.questions) ? parsed.questions : []).map(q => String(q).slice(0, 300)).slice(0, 6),
-    }
-  }
-  catch (error) {
-    if (error && typeof error === 'object' && 'statusCode' in error) throw error
-    console.error('[tickets] Triage fehlgeschlagen:', error)
-    throw createError({ status: 502, statusText: 'Triage failed' })
-  }
-  finally {
-    clearTimeout(timeout)
+/** Transport via core aiComplete; die Feld-Klemmung (Domäne) bleibt hier. */
+async function callCompletions(event: H3Event, config: TicketsAiConfig, apiKey: string, prompt: string): Promise<TriageResult> {
+  const parsed = await aiCompleteJson<Partial<TriageResult>>(event, prompt, {
+    model: config.model,
+    baseUrl: config.baseUrl,
+    apiKey,
+    temperature: 0.2,
+    maxTokens: 700,
+    label: 'tickets',
+  })
+  return {
+    relevance: Math.min(5, Math.max(1, Number(parsed.relevance) || 3)),
+    priority: ['low', 'medium', 'high'].includes(parsed.priority ?? '') ? parsed.priority! : 'medium',
+    effort: ['easy', 'medium', 'hard', 'very_hard'].includes(parsed.effort ?? '') ? parsed.effort! : 'medium',
+    assessment: String(parsed.assessment ?? '').slice(0, 1200),
+    questions: (Array.isArray(parsed.questions) ? parsed.questions : []).map(q => String(q).slice(0, 300)).slice(0, 6),
   }
 }
 
@@ -152,7 +131,9 @@ export async function triageTicket(event: H3Event, ticketId: string): Promise<Ti
   requirePermission(event, 'tickets.manage')
 
   const config = await getEffectiveTicketsAiConfig(event)
-  const apiKey = useRuntimeConfig(event).ticketsAiKey
+  // Layer-eigener Key schlägt den Core-Key (NUXT_TICKETS_AI_KEY vor NUXT_AI_KEY)
+  const runtime = useRuntimeConfig(event)
+  const apiKey = runtime.ticketsAiKey || runtime.aiKey
   if (!config.enabled || !apiKey) {
     throw createError({ status: 503, statusText: 'AI triage not configured' })
   }
@@ -167,7 +148,7 @@ export async function triageTicket(event: H3Event, ticketId: string): Promise<Ti
     throw toH3Error(error, 'Ticket not found')
   })
 
-  const result = await callCompletions(config, apiKey, buildPrompt(ticket))
+  const result = await callCompletions(event, config, apiKey, buildPrompt(ticket))
 
   const stars = '★'.repeat(result.relevance) + '☆'.repeat(5 - result.relevance)
   const section = [
