@@ -17,7 +17,11 @@
       "people": "Personen",
       "peopleAll": "Alle Benutzer",
       "peopleActive": "Aktiv",
-      "peopleNew": "Neu"
+      "peopleNew": "Neu",
+      "groups": {
+        "products": "Products"
+      },
+      "peopleOnline": "Benutzer online"
     },
     "config": {
       "title": "Konfiguration",
@@ -250,6 +254,12 @@
         "done": "Benutzer angelegt.",
         "duplicate": "Diese E-Mail existiert bereits.",
         "failed": "Benutzer konnte nicht angelegt werden."
+      },
+      "filter": {
+        "all": "Alle Benutzer",
+        "active": "Aktive Benutzer",
+        "new": "Neue Benutzer",
+        "online": "Benutzer online"
       }
     },
     "moderation": {

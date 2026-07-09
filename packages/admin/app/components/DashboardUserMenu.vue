@@ -12,6 +12,7 @@ const { t, locale, setLocale } = useI18n()
 const localePath = useLocalePath()
 const colorMode = useColorMode()
 const auth = useAuthStore()
+const appConfig = useAppConfig()
 const { themes, theme, variant, setTheme, setVariant, neutrals, neutral, setNeutral } = useTheme()
 const localeOptions = useLocaleOptions()
 
@@ -113,9 +114,18 @@ const items = computed<SwatchItem[][]>(() => {
     onSelect: (event: Event) => { event.preventDefault(); setLocale(option.code as typeof locale.value) },
   }))
 
+  // Registry-Module mit placement 'userMenu' (z.B. Abos aus dem billing-Layer)
+  // sitzen ÜBER den Einstellungen — Konto-nahe Bereiche gehören hierher (A14)
+  const userMenuModules: DropdownMenuItem[] = ((appConfig.maui?.admin?.modules ?? []) as MauiAdminModule[])
+    .filter(m => m.placement === 'userMenu' && userHasCapability(auth.user, m.requiredCapability))
+    .map(m => ({ label: t(m.labelKey), icon: m.icon, to: localePath(m.to) }))
+
   return [
     [{ type: 'label', label: displayName.value, avatar: avatar.value }],
-    [{ label: t('dashboard.settings.title'), icon: 'i-ph-gear', to: localePath('/dashboard/settings') }],
+    [
+      ...userMenuModules,
+      { label: t('dashboard.settings.title'), icon: 'i-ph-gear', to: localePath('/dashboard/settings') },
+    ],
     [
       { label: t('themes.label'), icon: 'i-ph-palette', children: themeChildren },
       { label: t('themes.neutralLabel'), icon: 'i-ph-circle-half', children: neutralChildren },

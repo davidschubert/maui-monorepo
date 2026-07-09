@@ -17,7 +17,11 @@
       "people": "People",
       "peopleAll": "All users",
       "peopleActive": "Active",
-      "peopleNew": "New"
+      "peopleNew": "New",
+      "groups": {
+        "products": "Products"
+      },
+      "peopleOnline": "Users online"
     },
     "config": {
       "title": "Configuration",
@@ -250,6 +254,12 @@
         "done": "User created.",
         "duplicate": "This email already exists.",
         "failed": "Could not create the user."
+      },
+      "filter": {
+        "all": "All users",
+        "active": "Active users",
+        "new": "New users",
+        "online": "Users online"
       }
     },
     "moderation": {

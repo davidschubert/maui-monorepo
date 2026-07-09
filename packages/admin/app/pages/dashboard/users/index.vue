@@ -17,14 +17,35 @@ const activeSearch = ref('')
 const { page, setPage } = usePagination()
 const { sortField, sortDir, toggle } = useTableSort('$createdAt', 'desc')
 
-// People-Filter aus der Nav (?filter=active|new) — Route ist die Wahrheit,
-// damit die Sidebar-Unterpunkte per Link steuern können
+// People-Filter (?filter=active|new|online) — Route ist die Wahrheit, damit
+// Sidebar-Unterpunkte UND Toolbar-Tabs per Link steuern können
 const route = useRoute()
-const filter = computed(() => {
+const router = useRouter()
+type PeopleFilter = 'all' | 'active' | 'new' | 'online'
+const PEOPLE_FILTERS: PeopleFilter[] = ['all', 'active', 'new', 'online']
+const FILTER_ICON: Record<PeopleFilter, string> = {
+  all: 'i-ph-list-bullets',
+  active: 'i-ph-pulse',
+  new: 'i-ph-sparkle',
+  online: 'i-ph-broadcast',
+}
+const filter = computed<Exclude<PeopleFilter, 'all'> | null>(() => {
   const value = route.query.filter
-  return value === 'active' || value === 'new' ? value : null
+  return value === 'active' || value === 'new' || value === 'online' ? value : null
 })
 watch(filter, () => setPage(1))
+
+const filterLinks = computed(() => PEOPLE_FILTERS.map(value => ({
+  label: t(`admin.users.filter.${value}`),
+  icon: FILTER_ICON[value],
+  active: (filter.value ?? 'all') === value,
+  onSelect: () => {
+    const query = { ...route.query }
+    if (value === 'all') delete query.filter
+    else query.filter = value
+    void router.replace({ query })
+  },
+})))
 
 const { data, refresh } = await useFetch<AdminUserListResponse>('/api/admin/users', {
   query: computed(() => ({
@@ -189,7 +210,7 @@ async function createUser() {
 <template>
   <UDashboardPanel id="users">
     <template #header>
-      <UDashboardNavbar :title="`${t(filter === 'active' ? 'admin.nav.peopleActive' : filter === 'new' ? 'admin.nav.peopleNew' : 'admin.nav.peopleAll')} (${data?.total ?? 0})`">
+      <UDashboardNavbar :title="`${t(`admin.users.filter.${filter ?? 'all'}`)} (${data?.total ?? 0})`">
         <template #leading>
           <UDashboardSidebarCollapse />
         </template>
@@ -199,6 +220,10 @@ async function createUser() {
           </UButton>
         </template>
       </UDashboardNavbar>
+
+      <UDashboardToolbar>
+        <UNavigationMenu :items="filterLinks" highlight class="-mx-1 flex-1" data-people-filter />
+      </UDashboardToolbar>
     </template>
 
     <template #body>

@@ -29,7 +29,7 @@ const route = useRoute()
 // People-Zähler für die Nav-Badges (Alle/Aktiv/Neu) — nur mit users.manage
 // abrufbar; ohne Daten bleiben die Badges einfach weg (lazy, best-effort).
 const canManageUsers = computed(() => userHasCapability(auth.user, 'users.manage'))
-const { data: peopleStats } = useFetch<{ total: number, active: number, new: number }>('/api/admin/users/stats', {
+const { data: peopleStats } = useFetch<{ total: number, active: number, new: number, online: number }>('/api/admin/users/stats', {
   lazy: true,
   server: false,
   immediate: canManageUsers.value,
@@ -53,6 +53,7 @@ const links = computed<NavigationMenuItem[]>(() => {
         { label: t('admin.nav.peopleAll'), to: localePath('/dashboard/users'), exact: true, badge: stats ? String(stats.total) : undefined, onSelect: close },
         { label: t('admin.nav.peopleActive'), to: localePath('/dashboard/users?filter=active'), badge: stats ? String(stats.active) : undefined, onSelect: close },
         { label: t('admin.nav.peopleNew'), to: localePath('/dashboard/users?filter=new'), badge: stats ? String(stats.new) : undefined, onSelect: close },
+        { label: t('admin.nav.peopleOnline'), to: localePath('/dashboard/users?filter=online'), badge: stats ? String(stats.online) : undefined, onSelect: close },
       ],
     })
   }
@@ -60,17 +61,23 @@ const links = computed<NavigationMenuItem[]>(() => {
   // capability-gefiltert — admin kennt sie nicht hart (Modul-Registry, A14).
   // Mit children wird der Eintrag zum aufklappbaren Abschnitt (Unterpunkte
   // erben die Capability des Moduls, sofern keine eigene gesetzt ist).
-  for (const m of (appConfig.maui?.admin?.modules ?? []) as MauiAdminModule[]) {
-    if (!userHasCapability(u, m.requiredCapability)) continue
+  // group 'products' rendert unter einem Abschnitts-Label; placement
+  // 'userMenu' gehört ins Account-Menü (DashboardUserMenu), nicht hierher.
+  const toItem = (m: MauiAdminModule): NavigationMenuItem => {
     const children = (m.children ?? [])
       .filter(child => userHasCapability(u, child.requiredCapability ?? m.requiredCapability))
       .map(child => ({ label: t(child.labelKey), icon: child.icon, to: localePath(child.to), exact: child.exact, onSelect: close }))
-    if (children.length) {
-      items.push({ label: t(m.labelKey), icon: m.icon, defaultOpen: route.path.startsWith(localePath(m.to)), children })
-    }
-    else {
-      items.push({ label: t(m.labelKey), icon: m.icon, to: localePath(m.to), onSelect: close })
-    }
+    return children.length
+      ? { label: t(m.labelKey), icon: m.icon, defaultOpen: route.path.startsWith(localePath(m.to)), children }
+      : { label: t(m.labelKey), icon: m.icon, to: localePath(m.to), onSelect: close }
+  }
+  const modules = ((appConfig.maui?.admin?.modules ?? []) as MauiAdminModule[])
+    .filter(m => (m.placement ?? 'nav') === 'nav' && userHasCapability(u, m.requiredCapability))
+  for (const m of modules.filter(m => !m.group)) items.push(toItem(m))
+  const products = modules.filter(m => m.group === 'products')
+  if (products.length) {
+    items.push({ label: t('admin.nav.groups.products'), type: 'label' })
+    for (const m of products) items.push(toItem(m))
   }
   if (userHasCapability(u, 'storage.manage')) items.push({ label: t('admin.nav.storage'), icon: 'i-ph-folder', to: localePath('/dashboard/storage'), onSelect: close })
   // Settings bewusst nicht hier — sitzt schon im User-Menü unten (DashboardUserMenu)

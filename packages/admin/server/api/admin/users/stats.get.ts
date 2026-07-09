@@ -6,7 +6,7 @@ const FETCH_HARD_CAP = 5_000
 
 /** Nav-Badges werden bei jedem Dashboard-Render gebraucht → kurzer Cache */
 const CACHE_TTL_MS = 60_000
-let cache: { at: number, value: { total: number, active: number, new: number } } | null = null
+let cache: { at: number, value: { total: number, active: number, new: number, online: number } } | null = null
 
 /**
  * Zähler für die People-Navigation (Alle/Aktiv/Neu). „Neu" kommt als
@@ -49,7 +49,10 @@ export default defineEventHandler(async (event) => {
     console.warn(`[admin] users/stats-Scan an FETCH_HARD_CAP (${FETCH_HARD_CAP}) gekappt — active-Zähler untertreibt`)
   }
 
-  const value = { total: totalRes.total, active, new: newRes.total }
+  // „Online" = echte Anwesenheit über die Presences API (kein Scan nötig)
+  const online = (await listOnlinePresences(event)).length
+
+  const value = { total: totalRes.total, active, new: newRes.total, online }
   cache = { at: Date.now(), value }
   return value
 })
