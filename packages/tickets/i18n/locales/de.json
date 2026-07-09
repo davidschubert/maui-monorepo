@@ -9,7 +9,9 @@
       "title": "Ticket-Board",
       "subtitle": "Feedback sichten, Tickets planen, Umsetzung verfolgen",
       "addList": "Eine weitere Liste hinzufügen",
-      "listTitlePlaceholder": "Listen-Titel …"
+      "listTitlePlaceholder": "Listen-Titel …",
+      "loadFailed": "Das Board konnte nicht geladen werden — möglicherweise ist deine Sitzung abgelaufen.",
+      "retry": "Erneut versuchen"
     },
     "list": {
       "actions": "Listenaktionen",

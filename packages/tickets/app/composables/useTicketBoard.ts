@@ -10,7 +10,7 @@ export const TICKET_POSITION_GAP = 1000
 export function useTicketBoard() {
   const config = useRuntimeConfig()
 
-  const { data, refresh, status } = useFetch<TicketBoardResponse>('/api/tickets/board', {
+  const { data, refresh, status, error } = useFetch<TicketBoardResponse>('/api/tickets/board', {
     key: 'tickets:board',
     lazy: true,
     server: false,
@@ -99,5 +99,5 @@ export function useTicketBoard() {
     }
   }
 
-  return { data, lists, ticketsByList, refresh, status, moveTicket, moveList, positionAt }
+  return { data, lists, ticketsByList, refresh, status, error, moveTicket, moveList, positionAt }
 }

@@ -15,7 +15,7 @@ const toast = useToast()
 
 useHead({ title: () => t('tickets.board.title') })
 
-const { data, lists, ticketsByList, refresh, moveTicket, moveList } = useTicketBoard()
+const { data, lists, ticketsByList, refresh, error, moveTicket, moveList } = useTicketBoard()
 
 // Modal bleibt gemountet (v-model:open) — der Query-Param trägt den Deep-Link
 const modalOpen = ref(false)
@@ -112,6 +112,18 @@ async function addList() {
     <template #body>
       <!-- Subline unter der Headline (nicht daneben — Konvention der App) -->
       <p class="mb-3 text-sm text-muted">{{ t('tickets.board.subtitle') }}</p>
+
+      <!-- Fetch-Fehler NIE als leeres Board maskieren (401/Session/Netz) -->
+      <UAlert
+        v-if="error"
+        color="error"
+        variant="subtle"
+        icon="i-ph-warning"
+        :title="t('tickets.board.loadFailed')"
+        class="mb-4"
+        data-testid="board-error"
+        :actions="[{ label: t('tickets.board.retry'), color: 'error', variant: 'solid', onClick: () => { void refresh() } }]"
+      />
 
       <!-- Kein v-if-Branch-Swap: SSR (idle) und Client (pending) rendern sonst
            unterschiedliche Zweige → Hydration-Mismatch, der spätere Unmounts

@@ -9,7 +9,9 @@
       "title": "Ticket board",
       "subtitle": "Triage feedback, plan tickets, track delivery",
       "addList": "Add another list",
-      "listTitlePlaceholder": "List title …"
+      "listTitlePlaceholder": "List title …",
+      "loadFailed": "The board could not be loaded — your session may have expired.",
+      "retry": "Retry"
     },
     "list": {
       "actions": "List actions",
