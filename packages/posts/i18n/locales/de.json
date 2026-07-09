@@ -81,6 +81,14 @@
         "post": "Beiträge",
         "poll": "Umfrage",
         "question": "Frage"
+      },
+      "assist": {
+        "button": "KI-Einschätzung",
+        "failed": "KI-Einschätzung fehlgeschlagen.",
+        "action": {
+          "hide": "KI-Empfehlung: Ausblenden — Schwere {severity}/5",
+          "dismiss": "KI-Empfehlung: Meldungen verwerfen — Schwere {severity}/5"
+        }
       }
     },
     "validation": {

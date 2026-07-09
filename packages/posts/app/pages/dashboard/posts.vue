@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CommunityPost } from '../../../shared/types/post'
+import type { CommunityPost, PostModerationAssist, PostModerationResponse } from '../../../shared/types/post'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'posts.moderate' })
 
@@ -9,7 +9,7 @@ const { formatRelativeTime } = useFormatRelativeTime()
 
 useHead({ title: () => t('posts.moderation.title') })
 
-const { data, status, refresh } = await useFetch<{ rows: CommunityPost[], reportCounts: Record<string, number> }>('/api/posts/moderation', {
+const { data, status, refresh } = await useFetch<PostModerationResponse>('/api/posts/moderation', {
   lazy: true,
   server: false,
 })
@@ -48,6 +48,26 @@ async function setHidden(post: CommunityPost, hide: boolean) {
   }
   finally {
     busyId.value = ''
+  }
+}
+
+// KI-Assist (advisory) — Muster der Kommentar-Moderation: Einschätzung pro
+// gemeldetem Post einholen, inline zeigen; Aktionen löst weiter der Mensch aus.
+const assists = ref(new Map<string, PostModerationAssist>())
+const assistBusy = ref('')
+const assistFor = (id: string) => assists.value.get(id)
+
+async function requestAssist(post: CommunityPost) {
+  assistBusy.value = post.$id
+  try {
+    const result = await $fetch<PostModerationAssist>(`/api/posts/${post.$id}/assist`, { method: 'POST' })
+    assists.value.set(post.$id, result)
+  }
+  catch {
+    toast.add({ title: t('posts.moderation.assist.failed'), color: 'error' })
+  }
+  finally {
+    assistBusy.value = ''
   }
 }
 
@@ -98,31 +118,55 @@ function snippet(post: CommunityPost): string {
             <h2 class="mb-2 font-semibold">{{ t('posts.moderation.recent') }}</h2>
             <p v-if="visible.length === 0" class="text-sm text-muted">{{ t('posts.moderation.empty') }}</p>
             <ul v-else class="divide-y divide-default">
-              <li v-for="post in visible" :key="post.$id" class="flex items-center gap-3 py-2 text-sm">
-                <div class="min-w-0 flex-1">
-                  <p class="truncate">{{ snippet(post) }}</p>
-                  <p class="text-xs text-muted">
-                    {{ post.authorName }} · {{ t(`posts.composer.type${post.type === 'poll' ? 'Poll' : post.type === 'question' ? 'Question' : 'Post'}`) }}
-                    · {{ formatRelativeTime(post.$createdAt) }}
-                  </p>
+              <li v-for="post in visible" :key="post.$id" class="py-2 text-sm" :data-mod-post="post.$id">
+                <div class="flex items-center gap-3">
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate">{{ snippet(post) }}</p>
+                    <p class="text-xs text-muted">
+                      {{ post.authorName }} · {{ t(`posts.composer.type${post.type === 'poll' ? 'Poll' : post.type === 'question' ? 'Question' : 'Post'}`) }}
+                      · {{ formatRelativeTime(post.$createdAt) }}
+                    </p>
+                  </div>
+                  <UBadge v-if="data?.reportCounts[post.$id]" color="warning" variant="subtle" size="sm" data-mod-reported>
+                    {{ t('posts.moderation.reports', { count: data.reportCounts[post.$id] }) }}
+                  </UBadge>
+                  <UBadge v-if="post.status === 'hidden'" color="error" variant="subtle" size="sm">
+                    {{ t('posts.moderation.hiddenBadge') }}
+                  </UBadge>
+                  <UButton
+                    v-if="data?.reportCounts[post.$id] && data?.aiAssist"
+                    color="neutral"
+                    variant="ghost"
+                    size="xs"
+                    icon="i-ph-sparkle"
+                    :loading="assistBusy === post.$id"
+                    :data-mod-assist="post.$id"
+                    @click="requestAssist(post)"
+                  >
+                    {{ t('posts.moderation.assist.button') }}
+                  </UButton>
+                  <UButton
+                    :color="post.status === 'hidden' ? 'success' : 'error'"
+                    variant="ghost"
+                    size="xs"
+                    :icon="post.status === 'hidden' ? 'i-ph-eye' : 'i-ph-eye-slash'"
+                    :loading="busyId === post.$id"
+                    :data-mod-toggle="post.$id"
+                    @click="setHidden(post, post.status !== 'hidden')"
+                  >
+                    {{ post.status === 'hidden' ? t('posts.moderation.restore') : t('posts.moderation.hide') }}
+                  </UButton>
                 </div>
-                <UBadge v-if="data?.reportCounts[post.$id]" color="warning" variant="subtle" size="sm" data-mod-reported>
-                  {{ t('posts.moderation.reports', { count: data.reportCounts[post.$id] }) }}
-                </UBadge>
-                <UBadge v-if="post.status === 'hidden'" color="error" variant="subtle" size="sm">
-                  {{ t('posts.moderation.hiddenBadge') }}
-                </UBadge>
-                <UButton
-                  :color="post.status === 'hidden' ? 'success' : 'error'"
-                  variant="ghost"
-                  size="xs"
-                  :icon="post.status === 'hidden' ? 'i-ph-eye' : 'i-ph-eye-slash'"
-                  :loading="busyId === post.$id"
-                  :data-mod-toggle="post.$id"
-                  @click="setHidden(post, post.status !== 'hidden')"
-                >
-                  {{ post.status === 'hidden' ? t('posts.moderation.restore') : t('posts.moderation.hide') }}
-                </UButton>
+                <UAlert
+                  v-if="assistFor(post.$id)"
+                  class="mt-2"
+                  :color="assistFor(post.$id)!.action === 'hide' ? 'warning' : 'success'"
+                  variant="subtle"
+                  icon="i-ph-sparkle"
+                  :title="t(`posts.moderation.assist.action.${assistFor(post.$id)!.action}`, { severity: assistFor(post.$id)!.severity })"
+                  :description="assistFor(post.$id)!.assessment"
+                  data-mod-assist-result
+                />
               </li>
             </ul>
           </section>

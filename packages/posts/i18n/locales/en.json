@@ -81,6 +81,14 @@
         "post": "Posts",
         "poll": "Poll",
         "question": "Question"
+      },
+      "assist": {
+        "button": "AI assessment",
+        "failed": "AI assessment failed.",
+        "action": {
+          "hide": "AI recommendation: hide — severity {severity}/5",
+          "dismiss": "AI recommendation: resolve reports — severity {severity}/5"
+        }
       }
     },
     "validation": {

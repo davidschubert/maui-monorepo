@@ -79,3 +79,26 @@ export interface PostListResponse {
   rows: FeedPost[]
   nextCursor: string | null
 }
+
+/**
+ * Advisory-Antwort des KI-Moderations-Assists (POST /api/posts/:id/assist).
+ * Bewusst lokal definiert (gleiche Shape wie admin ModerationAssist) statt
+ * Cross-Package-Import — Layer bleiben entkoppelt, wie bei ModeratedComment.
+ */
+export interface PostModerationAssist {
+  /** 'hide' = Ausblenden empfohlen · 'dismiss' = Beitrag ok, Meldungen verwerfen */
+  action: 'hide' | 'dismiss'
+  /** Schwere des Verstoßes 1 (harmlos) – 5 (gravierend) */
+  severity: number
+  /** 2-3 Sätze Begründung (Deutsch) */
+  assessment: string
+  /** Verwendetes Model (Transparenz im UI/Debugging) */
+  model: string
+}
+
+export interface PostModerationResponse {
+  rows: CommunityPost[]
+  reportCounts: Record<string, number>
+  /** true = KI-Assist nutzbar (maui.ai an + NUXT_AI_KEY gesetzt) → UI zeigt den Button */
+  aiAssist: boolean
+}

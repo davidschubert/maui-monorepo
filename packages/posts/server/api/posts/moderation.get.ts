@@ -1,12 +1,12 @@
 import { Query } from 'node-appwrite'
-import { POSTS_TABLE, type CommunityPost } from '../../../shared/types/post'
+import { POSTS_TABLE, type CommunityPost, type PostModerationResponse } from '../../../shared/types/post'
 
 /**
  * Moderations-Sicht: jüngste Posts ALLER Status (published/hidden/scheduled —
  * deleted bleibt draußen, Soft-Delete gehört dem Autor) + offene Reports
  * über den generischen moderation-Vertrag (targetType 'post').
  */
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<PostModerationResponse> => {
   requirePermission(event, 'posts.moderate')
 
   const config = useRuntimeConfig(event)
@@ -27,5 +27,7 @@ export default defineEventHandler(async (event) => {
   return {
     rows: res.rows,
     reportCounts: Object.fromEntries(reports.counts),
+    // UI zeigt den KI-Assist-Button nur, wenn der Core-KI-Pfad nutzbar ist
+    aiAssist: isAiAvailable(event),
   }
 })
