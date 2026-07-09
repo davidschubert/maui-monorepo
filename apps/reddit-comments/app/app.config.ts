@@ -17,6 +17,15 @@ export default defineAppConfig({
       enabled: true,
       clientErrors: true,
     },
+    comments: {
+      // iframe-Embed (Plan E1): /embed + embed.js aktiv; '*' = jede Seite darf
+      // einbetten — bewusste Entscheidung für die Demo-App (Embed-Plan E7);
+      // Produktions-Apps tragen hier ihre Einbetter-Origins ein.
+      embed: {
+        enabled: true,
+        allowedOrigins: ['*'],
+      },
+    },
     feedback: {
       // Feedback → Ticket (P2): die App verdrahtet feedback mit dem
       // tickets-Board über diese Route (A14) — Ticket landet in der

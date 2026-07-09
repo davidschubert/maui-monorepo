@@ -28,6 +28,10 @@ catch { /* keine .env → env-gated Tests skippen */ }
  * öffentlichen Seiten ab — ohne Appwrite-Credentials, damit sie portabel/CI-
  * tauglich sind. Realtime/eingeloggte Flows werden manuell verifiziert.
  */
+// Base-URL überschreibbar (PW_BASE_URL) — z. B. um gegen einen bereits
+// laufenden Dev-Server auf einem anderen Port zu testen (parallele Sessions).
+const baseURL = process.env.PW_BASE_URL ?? 'http://localhost:3001'
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
@@ -35,7 +39,7 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? 'github' : 'list',
   use: {
-    baseURL: 'http://localhost:3001',
+    baseURL,
     locale: 'en-US',
     trace: 'on-first-retry',
   },
@@ -44,7 +48,7 @@ export default defineConfig({
   ],
   webServer: {
     command: 'pnpm dev',
-    url: 'http://localhost:3001',
+    url: baseURL,
     reuseExistingServer: true,
     timeout: 120_000,
   },
