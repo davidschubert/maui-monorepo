@@ -5,6 +5,12 @@ const configSchema = z.object({
   registrationEnabled: z.boolean(),
   commentsEnabled: z.boolean(),
   maintenanceMode: z.boolean(),
+  // Globales KI-Model-Override (app_config.aiModel, system-016) — leer =
+  // zurück auf den Build-Default aus maui.ai; OpenRouter-artige Ids (vendor/model).
+  // Optional: alte Clients ohne das Feld patchen nur die Flags.
+  aiModel: z.string().trim().max(100)
+    .regex(/^$|^[\w.-]+\/[\w.:-]+$/, 'Erwartet vendor/model oder leer')
+    .optional(),
 })
 
 /** Feature-Flags setzen (Upsert der app_config/global-Zeile) + Audit. */

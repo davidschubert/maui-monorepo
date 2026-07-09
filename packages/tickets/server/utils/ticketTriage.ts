@@ -51,22 +51,26 @@ export function getTicketsAiConfig(): TicketsAiConfig {
 }
 
 /**
- * Effektive Konfiguration inkl. Laufzeit-Override: app_config.ticketsAiModel
- * (system-015, Board-Einstellungen-Modal) schlägt den Build-Default —
- * best-effort, bei Lesefehler gilt der Default.
+ * Effektive Konfiguration inkl. Laufzeit-Overrides — Regel: Laufzeit schlägt
+ * Build, spezifisch schlägt global. app_config.ticketsAiModel (system-015,
+ * Board-Einstellungen-Modal) > app_config.aiModel (system-016, global) >
+ * maui.tickets.ai.model > maui.ai.model. Best-effort, bei Lesefehler gilt
+ * der Build-Default.
  */
 export async function getEffectiveTicketsAiConfig(event: H3Event): Promise<TicketsAiConfig> {
   const config = getTicketsAiConfig()
   try {
     const runtime = useRuntimeConfig(event)
     const { tablesDB } = createAdminClient(event)
-    const row = await tablesDB.getRow<import('node-appwrite').Models.Row & { ticketsAiModel?: string }>({
+    const row = await tablesDB.getRow<import('node-appwrite').Models.Row & { ticketsAiModel?: string, aiModel?: string }>({
       databaseId: runtime.public.appwriteDatabaseId,
       tableId: 'app_config',
       rowId: 'global',
     })
-    if (typeof row.ticketsAiModel === 'string' && row.ticketsAiModel.trim()) {
-      config.model = row.ticketsAiModel.trim()
+    const override = [row.ticketsAiModel, row.aiModel]
+      .find(value => typeof value === 'string' && value.trim())
+    if (override) {
+      config.model = override.trim()
     }
   }
   catch { /* Override nicht lesbar → Build-Default */ }

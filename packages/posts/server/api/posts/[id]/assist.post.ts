@@ -70,8 +70,10 @@ export default defineEventHandler(async (event): Promise<PostModerationAssist> =
     throw createError({ status: 400, statusText: 'No open reports for this post' })
   }
 
-  const aiModel = getAiConfig().model
+  // Effektive Config: app_config.aiModel (Laufzeit-Override) schlägt den Build-Default
+  const aiConfig = await getEffectiveAiConfig(event)
   const parsed = await aiCompleteJson<Partial<PostModerationAssist>>(event, buildPrompt(post, reports), {
+    model: aiConfig.model,
     maxTokens: 400,
     label: 'posts',
   })
@@ -81,6 +83,6 @@ export default defineEventHandler(async (event): Promise<PostModerationAssist> =
     action: parsed.action === 'hide' ? 'hide' : 'dismiss',
     severity: Math.min(5, Math.max(1, Number(parsed.severity) || 1)),
     assessment: String(parsed.assessment ?? '').slice(0, 1200),
-    model: aiModel,
+    model: aiConfig.model,
   }
 })

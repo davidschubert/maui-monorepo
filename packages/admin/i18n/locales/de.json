@@ -34,6 +34,8 @@
       "commentsEnabledDesc": "Erlaubt Usern, neue Kommentare zu posten.",
       "maintenanceMode": "Wartungsmodus",
       "maintenanceModeDesc": "Friert Schreibvorgänge ein — blockiert Registrierung und Kommentare.",
+      "aiModel": "KI-Modell (Laufzeit-Override)",
+      "aiModelDesc": "Modell für Core-KI-Features (Moderations-Assist). Leer = Build-Default {model}. Format: vendor/model (OpenRouter).",
       "save": "Speichern",
       "saved": "Konfiguration gespeichert."
     },

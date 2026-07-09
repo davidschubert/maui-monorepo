@@ -62,8 +62,10 @@ export default defineEventHandler(async (event): Promise<ModerationAssist> => {
     throw createError({ status: 400, statusText: 'No open reports for this comment' })
   }
 
-  const aiModel = getAiConfig().model
+  // Effektive Config: app_config.aiModel (Laufzeit-Override) schlägt den Build-Default
+  const aiConfig = await getEffectiveAiConfig(event)
   const parsed = await aiCompleteJson<Partial<ModerationAssist>>(event, buildPrompt(comment, reports), {
+    model: aiConfig.model,
     maxTokens: 400,
     label: 'admin',
   })
@@ -73,6 +75,6 @@ export default defineEventHandler(async (event): Promise<ModerationAssist> => {
     action: parsed.action === 'hide' ? 'hide' : 'dismiss',
     severity: Math.min(5, Math.max(1, Number(parsed.severity) || 1)),
     assessment: String(parsed.assessment ?? '').slice(0, 1200),
-    model: aiModel,
+    model: aiConfig.model,
   }
 })

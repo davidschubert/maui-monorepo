@@ -5,6 +5,12 @@ interface AppConfig {
   registrationEnabled: boolean
   commentsEnabled: boolean
   maintenanceMode: boolean
+  /** Core-KI-Gate (maui.ai) aktiv? → Model-Override-Feld einblenden */
+  aiEnabled?: boolean
+  /** Laufzeit-Override fürs KI-Modell (app_config.aiModel) — leer = Build-Default */
+  aiModel?: string
+  /** Build-Default (maui.ai.model) als Placeholder */
+  aiDefaultModel?: string
 }
 
 const { t } = useI18n()
@@ -15,7 +21,7 @@ const { data } = await useFetch<AppConfig>('/api/admin/config')
 // Edit-Awareness: warnt, wenn ein anderer Admin dieses Formular ebenfalls offen hat.
 const { editors } = useEditAwareness('config')
 
-const state = reactive<AppConfig>({ registrationEnabled: true, commentsEnabled: true, maintenanceMode: false })
+const state = reactive<AppConfig>({ registrationEnabled: true, commentsEnabled: true, maintenanceMode: false, aiModel: '' })
 watchEffect(() => {
   if (data.value) Object.assign(state, data.value)
 })
@@ -30,7 +36,16 @@ const loading = ref(false)
 async function save() {
   loading.value = true
   try {
-    await $fetch('/api/admin/config', { method: 'PATCH', body: { ...state } })
+    // Nur die patchbaren Felder senden (aiEnabled/aiDefaultModel sind reine Anzeige)
+    await $fetch('/api/admin/config', {
+      method: 'PATCH',
+      body: {
+        registrationEnabled: state.registrationEnabled,
+        commentsEnabled: state.commentsEnabled,
+        maintenanceMode: state.maintenanceMode,
+        aiModel: state.aiModel ?? '',
+      },
+    })
     toast.add({ title: t('admin.config.saved'), color: 'success' })
   }
   catch {
@@ -64,6 +79,22 @@ async function save() {
             </div>
           </div>
           <USwitch v-model="state[flag.key]" :color="flag.warning ? 'warning' : 'primary'" />
+        </div>
+      </div>
+
+      <div v-if="data?.aiEnabled" class="mt-4 border-t border-default pt-4" data-config-ai>
+        <div class="flex items-start gap-3">
+          <UIcon name="i-ph-sparkle" class="mt-0.5 size-5 shrink-0 text-muted" />
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-medium">{{ t('admin.config.aiModel') }}</p>
+            <p class="text-sm text-muted">{{ t('admin.config.aiModelDesc', { model: data?.aiDefaultModel ?? '' }) }}</p>
+            <UInput
+              v-model="state.aiModel"
+              class="mt-2 w-full"
+              :placeholder="data?.aiDefaultModel"
+              data-config-ai-model
+            />
+          </div>
         </div>
       </div>
 

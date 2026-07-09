@@ -34,6 +34,8 @@
       "commentsEnabledDesc": "Allow users to post new comments.",
       "maintenanceMode": "Maintenance mode",
       "maintenanceModeDesc": "Freeze writes — blocks new signups and comments.",
+      "aiModel": "AI model (runtime override)",
+      "aiModelDesc": "Model for core AI features (moderation assist). Empty = build default {model}. Format: vendor/model (OpenRouter).",
       "save": "Save",
       "saved": "Configuration saved."
     },
