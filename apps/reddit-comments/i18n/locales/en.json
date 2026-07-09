@@ -37,7 +37,90 @@
   },
   "billing": {
     "features": {
-      "paidCourses": "Access to all paid courses"
+      "paidCourses": "Access to all Pro courses",
+      "freeCommunity": "Community: posts, polls, questions & comments",
+      "freeVotes": "Up-/downvotes and live real-time updates",
+      "freeEvents": "Discover events, RSVP — with reminders & replays",
+      "freeCourses": "Free & members courses with learning progress",
+      "freeFeed": "Activity feed and notifications",
+      "freeThemes": "Themes, light/dark mode and two languages",
+      "freePrivacy": "Full data control: export & deletion (GDPR)",
+      "proEverything": "Everything in Free",
+      "proNewCourses": "New Pro courses included automatically",
+      "proSupport": "Priority support",
+      "proEarlyAccess": "Try new features first",
+      "proSupportsProject": "You support operations & development"
+    },
+    "compare": {
+      "payPerEvent": "Pay per event",
+      "roleBased": "Role-based",
+      "community": {
+        "title": "Community",
+        "posts": "Write & share posts",
+        "polls": "Polls — results revealed after you vote",
+        "questions": "Open questions to the community",
+        "comments": "Comments with nested replies",
+        "votes": "Up-/downvotes on posts & comments",
+        "mentions": "{'@'}-mentions with notification",
+        "markdown": "Markdown formatting",
+        "realtime": "New content appears live — no reload"
+      },
+      "events": {
+        "title": "Events",
+        "discover": "Discover events: today, tomorrow, weekend",
+        "rsvp": "RSVP with live attendee count",
+        "personal": "Personal filters: going, liked, attended",
+        "calendar": "Monthly calendar & archive",
+        "ics": "Calendar export (ICS)",
+        "reminders": "Reminder 24 hours before start",
+        "live": "\"Join live\" for online events",
+        "replays": "Recordings (replays)",
+        "tickets": "Tickets for paid events"
+      },
+      "courses": {
+        "title": "Courses",
+        "free": "Free courses",
+        "members": "Members courses (signed-in users)",
+        "pro": "Pro courses — all paid courses included",
+        "progress": "Learning progress & completion tracking",
+        "discussion": "Discussion & questions per lesson"
+      },
+      "personalization": {
+        "title": "Personalization",
+        "themes": "Theme gallery with color worlds",
+        "darkmode": "Light/dark mode & neutral tones",
+        "language": "German & English",
+        "livetheme": "Design updates live — no reload"
+      },
+      "activity": {
+        "title": "Feed & notifications",
+        "feed": "Community activity feed",
+        "notifications": "In-app notifications",
+        "replies": "Reply & mention alerts",
+        "whatsnew": "\"What's new\" — product updates",
+        "presence": "Live presence: who's online, who's typing"
+      },
+      "account": {
+        "title": "Account & privacy",
+        "profile": "Profile with avatar",
+        "otp": "Passwordless code login",
+        "sessions": "Device & session management",
+        "export": "Data export (GDPR)",
+        "deletion": "Complete account deletion"
+      },
+      "platform": {
+        "title": "Platform & administration",
+        "moderation": "Active moderation & reporting system",
+        "dashboard": "Admin dashboard: roles, stats, moderation",
+        "branding": "Theme studio: custom branding & fonts",
+        "gdpr": "GDPR-compliant data handling"
+      },
+      "support": {
+        "title": "Support & extras",
+        "communitySupport": "Community support & feedback widget",
+        "priority": "Priority support",
+        "early": "Early access to new features"
+      }
     }
   }
 }

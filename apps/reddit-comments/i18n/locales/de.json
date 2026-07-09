@@ -37,7 +37,90 @@
   },
   "billing": {
     "features": {
-      "paidCourses": "Zugang zu allen kostenpflichtigen Kursen"
+      "paidCourses": "Zugang zu allen Pro-Kursen",
+      "freeCommunity": "Community: Beiträge, Umfragen, Fragen & Kommentare",
+      "freeVotes": "Up-/Downvotes und Live-Updates in Echtzeit",
+      "freeEvents": "Events entdecken, zusagen — mit Erinnerungen & Replays",
+      "freeCourses": "Freie & Members-Kurse mit Lernfortschritt",
+      "freeFeed": "Activity-Feed und Benachrichtigungen",
+      "freeThemes": "Themes, Hell-/Dunkelmodus und zwei Sprachen",
+      "freePrivacy": "Volle Datenkontrolle: Export & Löschung (DSGVO)",
+      "proEverything": "Alles aus Free",
+      "proNewCourses": "Neue Pro-Kurse automatisch inklusive",
+      "proSupport": "Bevorzugter Support",
+      "proEarlyAccess": "Neue Funktionen zuerst ausprobieren",
+      "proSupportsProject": "Du unterstützt Betrieb & Weiterentwicklung"
+    },
+    "compare": {
+      "payPerEvent": "Einzelkauf",
+      "roleBased": "Rollenbasiert",
+      "community": {
+        "title": "Community",
+        "posts": "Beiträge verfassen & teilen",
+        "polls": "Umfragen — Ergebnisse erst nach eigener Stimme",
+        "questions": "Offene Fragen an die Community",
+        "comments": "Kommentare mit verschachtelten Antworten",
+        "votes": "Up-/Downvotes auf Beiträge & Kommentare",
+        "mentions": "{'@'}-Erwähnungen mit Benachrichtigung",
+        "markdown": "Markdown-Formatierung",
+        "realtime": "Neue Inhalte erscheinen live — ohne Neuladen"
+      },
+      "events": {
+        "title": "Events",
+        "discover": "Events entdecken: Heute, Morgen, Wochenende",
+        "rsvp": "Zusagen (RSVP) mit Live-Teilnehmerzahl",
+        "personal": "Persönliche Filter: Zugesagt, Geliked, Teilgenommen",
+        "calendar": "Monats-Kalender & Archiv",
+        "ics": "Kalender-Export (ICS)",
+        "reminders": "Erinnerung 24 Stunden vor Beginn",
+        "live": "„Join live\" für Online-Events",
+        "replays": "Aufzeichnungen (Replays)",
+        "tickets": "Tickets für bezahlte Events"
+      },
+      "courses": {
+        "title": "Kurse",
+        "free": "Freie Kurse",
+        "members": "Members-Kurse (für Angemeldete)",
+        "pro": "Pro-Kurse — alle kostenpflichtigen Kurse inklusive",
+        "progress": "Lernfortschritt & Abschluss-Tracking",
+        "discussion": "Diskussion & Fragen je Lektion"
+      },
+      "personalization": {
+        "title": "Personalisierung",
+        "themes": "Theme-Galerie mit Farbwelten",
+        "darkmode": "Hell-/Dunkelmodus & Neutral-Töne",
+        "language": "Deutsch & Englisch",
+        "livetheme": "Design-Updates live — ohne Neuladen"
+      },
+      "activity": {
+        "title": "Feed & Benachrichtigungen",
+        "feed": "Activity-Feed der Community",
+        "notifications": "In-App-Benachrichtigungen",
+        "replies": "Antwort- & Erwähnungs-Hinweise",
+        "whatsnew": "„Was ist neu\" — Produkt-Updates",
+        "presence": "Live-Präsenz: wer ist online, wer tippt"
+      },
+      "account": {
+        "title": "Konto & Datenschutz",
+        "profile": "Profil mit Avatar",
+        "otp": "Passwortloser Code-Login",
+        "sessions": "Geräte- & Sitzungsverwaltung",
+        "export": "Datenexport (DSGVO)",
+        "deletion": "Vollständige Konto-Löschung"
+      },
+      "platform": {
+        "title": "Plattform & Verwaltung",
+        "moderation": "Aktive Moderation & Meldesystem",
+        "dashboard": "Admin-Dashboard: Rollen, Statistiken, Moderation",
+        "branding": "Theme-Studio: eigenes Branding & Schriften",
+        "gdpr": "DSGVO-konforme Datenhaltung"
+      },
+      "support": {
+        "title": "Support & Extras",
+        "communitySupport": "Community-Support & Feedback-Widget",
+        "priority": "Bevorzugter Support",
+        "early": "Früher Zugang zu neuen Funktionen"
+      }
     }
   }
 }
