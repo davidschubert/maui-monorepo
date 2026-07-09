@@ -123,6 +123,18 @@
     "comments": {
       "title": "Kommentare & Aktivität",
       "notWired": "Kommentare sind in dieser App nicht verdrahtet (TicketModalComments überschreiben)."
+    },
+    "settings": {
+      "title": "Board-Einstellungen",
+      "description": "KI-Triage konfigurieren",
+      "model": "KI-Modell",
+      "modelHelp": "OpenRouter-Modell-Id (vendor/model) — eigene Id einfach eintippen.",
+      "modelPlaceholder": "Modell wählen oder eintippen …",
+      "defaultHint": "Standard aus der App-Config: {model} — „Zurücksetzen\" stellt ihn wieder her.",
+      "reset": "Auf Standard zurücksetzen",
+      "saved": "KI-Modell gespeichert: {model}",
+      "invalid": "Speichern fehlgeschlagen — Modell-Id im Format vendor/model?",
+      "aiDisabled": "Die KI-Triage ist in dieser App nicht aktiviert (maui.tickets.ai)."
     }
   }
 }

@@ -123,6 +123,18 @@
     "comments": {
       "title": "Comments & activity",
       "notWired": "Comments are not wired up in this app (override TicketModalComments)."
+    },
+    "settings": {
+      "title": "Board settings",
+      "description": "Configure AI triage",
+      "model": "AI model",
+      "modelHelp": "OpenRouter model id (vendor/model) — just type a custom id.",
+      "modelPlaceholder": "Pick or type a model …",
+      "defaultHint": "App-config default: {model} — \"Reset\" restores it.",
+      "reset": "Reset to default",
+      "saved": "AI model saved: {model}",
+      "invalid": "Saving failed — model id in vendor/model format?",
+      "aiDisabled": "AI triage is not enabled in this app (maui.tickets.ai)."
     }
   }
 }

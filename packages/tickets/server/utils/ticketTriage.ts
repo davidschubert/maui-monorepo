@@ -28,16 +28,44 @@ interface TicketsAiConfig {
   enabled: boolean
   model: string
   baseUrl: string
+  /** Build-Default aus maui.tickets.ai (ohne Laufzeit-Override) */
+  defaultModel: string
 }
 
+/** Build-Konfiguration (maui.tickets.ai) — synchron, ohne Laufzeit-Override */
 export function getTicketsAiConfig(): TicketsAiConfig {
   const appConfig = useAppConfig() as { maui?: { tickets?: { ai?: Partial<TicketsAiConfig> } } }
   const ai = appConfig.maui?.tickets?.ai
+  const model = ai?.model ?? 'anthropic/claude-haiku-4.5'
   return {
     enabled: ai?.enabled ?? false,
-    model: ai?.model ?? 'anthropic/claude-haiku-4.5',
+    model,
+    defaultModel: model,
     baseUrl: (ai?.baseUrl ?? 'https://openrouter.ai/api/v1').replace(/\/$/, ''),
   }
+}
+
+/**
+ * Effektive Konfiguration inkl. Laufzeit-Override: app_config.ticketsAiModel
+ * (system-015, Board-Einstellungen-Modal) schlägt den Build-Default —
+ * best-effort, bei Lesefehler gilt der Default.
+ */
+export async function getEffectiveTicketsAiConfig(event: H3Event): Promise<TicketsAiConfig> {
+  const config = getTicketsAiConfig()
+  try {
+    const runtime = useRuntimeConfig(event)
+    const { tablesDB } = createAdminClient(event)
+    const row = await tablesDB.getRow<import('node-appwrite').Models.Row & { ticketsAiModel?: string }>({
+      databaseId: runtime.public.appwriteDatabaseId,
+      tableId: 'app_config',
+      rowId: 'global',
+    })
+    if (typeof row.ticketsAiModel === 'string' && row.ticketsAiModel.trim()) {
+      config.model = row.ticketsAiModel.trim()
+    }
+  }
+  catch { /* Override nicht lesbar → Build-Default */ }
+  return config
 }
 
 interface TriageResult {
@@ -123,7 +151,7 @@ async function callCompletions(config: TicketsAiConfig, apiKey: string, prompt: 
 export async function triageTicket(event: H3Event, ticketId: string): Promise<TicketRow> {
   requirePermission(event, 'tickets.manage')
 
-  const config = getTicketsAiConfig()
+  const config = await getEffectiveTicketsAiConfig(event)
   const apiKey = useRuntimeConfig(event).ticketsAiKey
   if (!config.enabled || !apiKey) {
     throw createError({ status: 503, statusText: 'AI triage not configured' })

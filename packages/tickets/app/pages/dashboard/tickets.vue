@@ -17,6 +17,9 @@ useHead({ title: () => t('tickets.board.title') })
 
 const { data, lists, ticketsByList, refresh, error, moveTicket, moveList } = useTicketBoard()
 
+// Board-Einstellungen (KI-Modell-Wechsel)
+const settingsOpen = ref(false)
+
 // Beobachtet-Ansicht (P4): Slideover mit allen Tickets, denen ich folge —
 // inkl. Ausschalten direkt aus der Liste
 const watchingOpen = ref(false)
@@ -141,6 +144,17 @@ async function addList() {
             {{ t('tickets.watch.listTitle') }}
             <UBadge v-if="watchedIds.size" color="neutral" variant="subtle" size="sm">{{ watchedIds.size }}</UBadge>
           </UButton>
+          <UTooltip :text="t('tickets.settings.title')">
+            <UButton
+              icon="i-ph-gear"
+              color="neutral"
+              variant="ghost"
+              size="sm"
+              :aria-label="t('tickets.settings.title')"
+              data-testid="board-settings-open"
+              @click="settingsOpen = true"
+            />
+          </UTooltip>
         </template>
       </UDashboardNavbar>
     </template>
@@ -227,6 +241,8 @@ async function addList() {
         :lists="lists"
         @refresh="refresh"
       />
+
+      <TicketBoardSettings v-model:open="settingsOpen" />
 
       <!-- Beobachtet-Ansicht (P4): folgen/entfolgen zentral an einem Ort -->
       <USlideover v-model:open="watchingOpen" :title="t('tickets.watch.listTitle')" :description="t('tickets.watch.listDescription')">
