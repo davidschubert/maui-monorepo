@@ -3,6 +3,11 @@ export default defineAppConfig({
   // OAuth-Provider/AGB bleiben aus, bis Console-Config bzw. AGB-Seite existiert:
   // maui: { auth: { providers: ['github'], termsUrl: '/agb' } }
   maui: {
+    ai: {
+      // Core-KI (aiComplete): Moderations-Assist in der Queue; Key server-only
+      // via NUXT_AI_KEY. Die Ticket-Triage läuft weiter über maui.tickets.ai.
+      enabled: true,
+    },
     auth: {
       // Passwortloser Code-Login (Phase 19) — Email-OTP ist instanzseitig aktiv
       otp: true,
