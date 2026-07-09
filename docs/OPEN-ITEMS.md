@@ -1,9 +1,16 @@
 # Offene Punkte
 
-Stand: 2026-07-02 (nach der Gesamtcheck-Abarbeitung). Vollständige,
+Stand: 2026-07-09 (nach dem Produkt-Arc Juli + KI-Paket). Vollständige,
 eigenständige Liste offener Themen (für eine frische Session als Startpunkt
 nutzbar). Reihenfolge = grobe Priorität.
 
+> **2026-07-06 bis 2026-07-09 — Produkt-Arc „Community-Plattform":**
+> GOALS-Phasen 21–27 sind komplett (Feed, Events + v2 inkl. Serien, Billing,
+> Courses, Posts), dazu Tickets-Board P1–P4 und das **KI-Paket** (core
+> `aiComplete()`, Moderations-Assist für Kommentare + Posts, globales
+> Laufzeit-Model-Override `app_config.aiModel`). Details: README-Status
+> 56–60 + GOALS.md.
+>
 > **2026-07-02 — Großes Abarbeitungs-Paket:** ALLE offenen Findings des
 > Gesamtchecks (🟠 + 🟡) wurden umgesetzt (siehe „Bereits erledigt"), dazu die
 > Ideen 1–3 (App-Template, @-Mentions, Markdown). Für die größeren Blöcke
@@ -31,9 +38,10 @@ nutzbar). Reihenfolge = grobe Priorität.
   custom_themes via system-009, CRUD /api/admin/themes, öffentliche Liste
   /api/themes, SSR-flash-frei injiziert). Der 26-Themes-KATALOG aus dem Plan
   bleibt offen — der Studio-Generator ist dafür der Grundstein (Plan-Schritt 3).
-- **packages/billing (Stripe)**: [docs/plans/BILLING-STRIPE.md](plans/BILLING-STRIPE.md)
-  — Webhooks als Nuxt-Route (begründete CONCEPT-Revision), 29 Todos in 9
-  Phasen; vor Start: Pricing-Modell + Stripe-Tax-Frage klären.
+- ✅ **packages/billing (Stripe)** — umgesetzt 2026-07-08 als GOALS-Phase 23
+  ([Plan](plans/BILLING-STRIPE.md) exekutiert): hosted Checkout/Portal,
+  Webhook (Signatur/Allowlist/Stale-Guard), Entitlements + `useBilling`,
+  Live-Matrix mit echtem Test-Key gefahren. Details README-Status 56.
 - **Embed-Widget**: [docs/plans/EMBED-WIDGET.md](plans/EMBED-WIDGET.md)
   — iframe-Modell + CHIPS-Cookie; Vorbedingung E0-1 (hidden-REST-Leak) ist
   bereits erledigt; 20 Todos in 5 Phasen.
@@ -75,10 +83,6 @@ nutzbar). Reihenfolge = grobe Priorität.
   Client-seitiges `usePresence.refresh()` bleibt bei limit 200 (jedes Event
   triggert ein list(); Pagination dort würde Requests vervielfachen — der
   SERVER paginiert seit 2026-07-02 bis 1000).
-- **Stats-Contributor-Registry** (sauberer Ausbau des erledigten Kurzfixes
-  „admin ohne comments"): Stats analog `maui.admin.modules` von Feature-Layern
-  registrieren lassen — passt gut zusammen mit dem UserDataContributor-Muster
-  aus dem GDPR-Plan.
 
 ### 💡 Ideen fürs nächste Level (verbleibend, priorisiert)
 1. **E-Mail-Notifications + Digest** (M–L) — notifications-Table + SMTP + Function-Scaffold vorhanden.
@@ -119,11 +123,14 @@ _Alle erledigt (2026-06-24) — siehe „Bereits erledigt"._
 ## 🗺️ Roadmap — bewusst ausgeklammert
 
 - **Phase 17 – Production Deployment**: Prod-Appwrite (Hetzner), Domain, ploi.io-Site, Deploy-Webhook ([deploy.yml](../.github/workflows/deploy.yml) ist Skeleton).
-- **Phase 18 – Realtime/Presence auf SDK** (🟡 teilweise erledigt, 2026-07-01 auf 1.9.5+MariaDB):
+- ✅ **Phase 18 – Realtime/Presence auf SDK** (KOMPLETT erledigt 2026-07-01
+  auf 1.9.5+MariaDB — GOALS-Header nachgezogen + Trigger-Task
+  `appwrite-release-watch` gelöscht am 2026-07-09):
   - ✅ **P2 Presence** — **komplette** Presence (global + Thread + Moderation) auf die **Presences API** vereinheitlicht: eine Presence pro User (`presenceId=userId`, metadata `scope`/`action`/`typing`), `usePresenceState` als einzige Upsert-Autorität + `usePresence(predicate)` als Reader. Alt-System (Endpoints `presence/heartbeat|leave`, `presence`-Table system-007, `presenceRowId`) entfernt. Multi-User end-to-end verifiziert. Use-Cases live: Claim-Lock, Edit-Awareness, Live-Online (s. erledigtes Finding oben).
   - ✅ **P1 Rows-Rückbau** (2026-07-01) — `useRealtimeRows` läuft jetzt auf der **einen geteilten, JWT-authentifizierten SDK-Realtime** ([useRealtimeClient.ts](../packages/core/app/composables/useRealtimeClient.ts)): `realtime.subscribe(Channel.tablesdb().table().row())` mit optionalem server-seitigem `queries`-Passthrough; `where`-Filter bleibt als sicherer Default. Presence, Row-Streams und Config-Flags multiplexen über **denselben Socket** (vorher: ein nativer WS pro Aufruf). `useRealtimeAccount` bleibt bewusst cookie-nativ (Instant-Session-Revoke hängt am Cookie-Close-Signal). Tote `appwrite.client.ts` entfernt. Verifiziert per Playwright (Gast-Tab): Row-Create + -Delete live über den JWT-Socket, sauberer Reload ohne Console-Fehler.
   - ✅ **P3 Email-Policies** — Signup-UX für Wegwerf-/Free-Adressen (422→i18n); Console-Toggle ist der Betreiber-Schritt.
-- **Backlog**: Themes-Vollausbau (26×11), `packages/billing` (Stripe), obsidian-community-concept.
+- **Backlog**: Themes-Vollausbau (26×11), obsidian-community-concept
+  (`packages/billing` ✅ 2026-07-08 als Phase 23).
   - ✅ **E2E-Tests (Playwright)** (2026-07-01): reddit-comments hat eine erste E2E-Ebene ([e2e/smoke.spec.ts](../apps/reddit-comments/e2e/smoke.spec.ts)) — auth-freie Smoke-Tests (Routing, SSR-Render, i18n, öffentliche Seiten, 404) gegen System-Chrome, `pnpm --filter reddit-comments e2e`. Eingeloggte/Realtime-Flows bleiben manuell verifiziert (passwortbasierter Login). Weitere Apps: sobald vorhanden.
 - ✅ **Changelog Track 2B** (2026-07-01, deploy-bereit): Appwrite Function [functions/changelog-draft](../functions/changelog-draft) + [appwrite.json](../appwrite.config.json) — GitHub-Release-Webhook (HMAC) → Commits via Compare-API → Entwurf. Teilt die Parsing-Logik mit Track 2A (`src/parse.js`, unit-getestet). **Aktiv erst mit Prod + öffentlicher Domain** (GitHub muss den Webhook per HTTPS erreichen); bis dahin bleibt `pnpm changelog:draft` (2A) der Weg.
 - **Sonstiges**: ✅ öffentliche `/changelog`-Vollhistorie-Seite existiert bereits ([changelog.vue](../packages/admin/app/pages/changelog.vue), auth-frei, alle Einträge). Offen (brauchen Input/Spec): die 10 gesammelten SaaS-Feature-Ideen (u. a. Embed-Widget) — nicht im Repo, in privaten Notizen.

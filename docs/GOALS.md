@@ -797,10 +797,17 @@ kein Auto-Deploy auf push solange kein Staging existiert
 
 ---
 
-## Phase 18 – Realtime-Rückbau aufs SDK (wartet auf Release)
+## Phase 18 – Realtime-Rückbau aufs SDK ✅ (abgeschlossen 2026-07-01)
 
-> Trigger: Der wöchentliche `appwrite-release-watch` meldet ein
-> Self-Hosted-Release > 1.9.0. Vorher nicht setzbar.
+> Erfüllt mit dem 1.9.5-Upgrade + MariaDB-Umstieg (2026-07-01), in drei
+> Teilen (Details: OPEN-ITEMS „Roadmap"-Abschnitt + CLAUDE.md Realtime-Absatz):
+> **P1** `useRealtimeRows` auf der EINEN geteilten, JWT-authentifizierten
+> SDK-Realtime (useRealtimeClient.ts; server-seitige queries, `where` bleibt
+> Sicherheitsnetz; `useRealtimeAccount` bewusst cookie-nativ belassen) ·
+> **P2** komplette Presence auf die Presences-API (eine Presence pro User) ·
+> **P3** Email-Policies-UX. Verifiziert per Playwright + Live-Appwrite.
+> Der Trigger-Task `appwrite-release-watch` wurde gelöscht (2026-07-09).
+> Historischer Goal-Text unten unverändert.
 
 ```
 /goal Phase 18 (Realtime-SDK-Rückbau) ist abgeschlossen.
