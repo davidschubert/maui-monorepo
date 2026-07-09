@@ -1,7 +1,7 @@
 # Tickets-Board — Trello-artiges Kanban als eigener Feature-Layer
 
-Stand: 2026-07-08 · Status: P1 in Umsetzung · Leitplanke: Trello (Screenshots
-David), bewusst am realen Projekt umgeformt — Diagnose ≠ Lösung.
+Stand: 2026-07-08 · Status: P1 ✅ + Review-Feinschliff ✅ · P2 ✅ · Leitplanke:
+Trello (Screenshots David), bewusst am realen Projekt umgeformt.
 
 ## 1. Einordnung & Motivation
 
@@ -149,11 +149,15 @@ würden divergieren); Export wird on demand generiert:
 - **P1 (dieses Paket):** Core-Capability, Layer komplett (Migration+Seed,
   Types/Zod, alle §4-Routen, Board+Modal+DnD, md-Export, Realtime, GDPR,
   i18n de/en), App-Komposition, Admin-Roadmap-Ablösung, Runner-Registrierung.
-- **P2 — Feedback-Ingestion:** Die APP verdrahtet (A14): „Als Ticket
-  übernehmen"-Aktion in der Feedback-Verwaltung legt das Ticket direkt in
-  „Neue Tickets" an (`feedbackId` verweist zurück, Kategorie → Label) —
-  Feedback bleibt, wo es ist; KEINE eigene Board-Liste dafür (Entscheidung
-  2026-07-08). Kein Layer-zu-Layer-Import.
+- **P2 — Feedback-Ingestion ✅ (2026-07-08):** Die APP verdrahtet (A14, Muster
+  events/checkout): feedback rendert den „Als Ticket übernehmen"-Button, wenn
+  `maui.feedback.ticketEndpoint` gesetzt ist UND der User `tickets.manage` hat;
+  die App-Route `/api/app/feedback-ticket` liest die Feedback-Row und ruft
+  `createTicketFromFeedback()` (tickets-Server-Util) — Ticket landet in der
+  ERSTEN Board-Liste (Inbox-Semantik), Titel = erste Zeile, Beschreibung =
+  Zitat + Meta, Kategorie → Label (bug→issue), `feedbackId` = Rückreferenz
+  (Index tickets-002; Doppel-Übernahme → 409), Feedback wird als erledigt
+  markiert. Kein Layer-zu-Layer-Import.
 - **P3 — KI-Triage:** Server-Util `triageTicket()` (Anthropic API, Key
   server-only, Gate `maui.tickets.ai`): bewertet Relevanz, schlägt Priorität/
   Aufwand vor, formuliert offene Rückfragen („braucht David") — schreibt in
