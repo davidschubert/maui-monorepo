@@ -51,6 +51,10 @@ export default defineEventHandler(async (event) => {
         Permission.read(Role.label('moderator')),
       ],
     })
+    // Eskalation (Auto-Hide etc.): Target-Owner-Handler mit aktueller Anzahl
+    // offener Meldungen — best-effort, blockiert die Antwort nicht spürbar
+    // und darf die abgegebene Meldung nie scheitern lassen.
+    await runReportEscalation(event, input.targetType, input.targetId)
     return { ok: true, report }
   }
   catch (error) {

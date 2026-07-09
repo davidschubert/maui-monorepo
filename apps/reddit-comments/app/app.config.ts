@@ -18,6 +18,9 @@ export default defineAppConfig({
       clientErrors: true,
     },
     comments: {
+      // Auto-Hide: ab 3 offenen Meldungen verschwindet ein Kommentar aus der
+      // Öffentlichkeit, bis die Moderation entscheidet (Meldungen bleiben offen)
+      autoHideReports: 3,
       // iframe-Embed (Plan E1): /embed + embed.js aktiv; '*' = jede Seite darf
       // einbetten — bewusste Entscheidung für die Demo-App (Embed-Plan E7);
       // Produktions-Apps tragen hier ihre Einbetter-Origins ein.

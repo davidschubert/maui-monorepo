@@ -25,6 +25,10 @@ export default defineAppConfig({
        *  schreiben und lesen — z. B. 'ticket' (Board-Diskussionen).
        *  Andere Layer/Apps tragen sich hier ein (Array wird konkateniert). */
       operatorTargets: [] as string[],
+      /** Auto-Hide-Threshold: ab so vielen OFFENEN Meldungen wird ein Kommentar
+       *  automatisch (zweiphasig + Cascade) ausgeblendet — Meldungen bleiben
+       *  offen, der Moderator entscheidet final. 0 = aus (Default). */
+      autoHideReports: 0,
       /** iframe-Embed (Disqus-Modell, docs/plans/EMBED-WIDGET.md): /embed-Seite
        *  + public/embed.js. Default aus — die App aktiviert explizit. */
       embed: {
