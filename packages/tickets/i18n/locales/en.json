@@ -1,0 +1,90 @@
+{
+  "admin": {
+    "nav": {
+      "tickets": "Board"
+    }
+  },
+  "tickets": {
+    "board": {
+      "title": "Ticket board",
+      "subtitle": "Triage feedback, plan tickets, track delivery",
+      "addList": "Add another list",
+      "listTitlePlaceholder": "List title …"
+    },
+    "list": {
+      "actions": "List actions",
+      "addCard": "Add card",
+      "rename": "Rename",
+      "duplicate": "Copy list",
+      "delete": "Delete list",
+      "sortNewest": "Sort: newest first",
+      "sortOldest": "Sort: oldest first",
+      "sortAlpha": "Sort: alphabetical",
+      "cardTitlePlaceholder": "Ticket title …"
+    },
+    "card": {
+      "done": "Done"
+    },
+    "labels": {
+      "idea": "Idea",
+      "issue": "Issue",
+      "other": "Other"
+    },
+    "priorities": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "efforts": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard",
+      "very_hard": "Very hard"
+    },
+    "modal": {
+      "subtitle": "Ticket details",
+      "close": "Close",
+      "none": "—",
+      "list": "List",
+      "label": "Label",
+      "priority": "Priority",
+      "effort": "Effort",
+      "startAt": "Start",
+      "dueAt": "Due",
+      "members": "Members",
+      "membersPlaceholder": "Assign admins/mods …",
+      "join": "Join",
+      "description": "Description",
+      "descriptionPlaceholder": "Description in Markdown — task, context, acceptance criteria …",
+      "noDescription": "No description yet.",
+      "edit": "Edit",
+      "preview": "Preview",
+      "checklist": "Checklist",
+      "checklistPlaceholder": "Add sub-task …",
+      "addItem": "Add",
+      "removeItem": "Remove",
+      "toggleDone": "Toggle done",
+      "save": "Save",
+      "saved": "Ticket saved.",
+      "duplicate": "Copy",
+      "duplicated": "Ticket copied.",
+      "share": "Copy link",
+      "linkCopied": "Ticket link copied.",
+      "delete": "Delete",
+      "deleteConfirm": "Really delete?",
+      "deleted": "Ticket deleted.",
+      "createdBy": "Created by {name} · {date}"
+    },
+    "export": {
+      "copy": "Copy for Claude Code",
+      "download": "Download as .md",
+      "copied": "Markdown copied to clipboard — ready for Claude Code.",
+      "task": "Task",
+      "context": "Context"
+    },
+    "errors": {
+      "action": "Action failed — please try again.",
+      "listNotEmpty": "The list still contains cards — move them first."
+    }
+  }
+}

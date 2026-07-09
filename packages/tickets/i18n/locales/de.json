@@ -1,0 +1,90 @@
+{
+  "admin": {
+    "nav": {
+      "tickets": "Board"
+    }
+  },
+  "tickets": {
+    "board": {
+      "title": "Ticket-Board",
+      "subtitle": "Feedback sichten, Tickets planen, Umsetzung verfolgen",
+      "addList": "Eine weitere Liste hinzufügen",
+      "listTitlePlaceholder": "Listen-Titel …"
+    },
+    "list": {
+      "actions": "Listenaktionen",
+      "addCard": "Karte hinzufügen",
+      "rename": "Umbenennen",
+      "duplicate": "Liste kopieren",
+      "delete": "Liste löschen",
+      "sortNewest": "Sortieren: Neueste zuerst",
+      "sortOldest": "Sortieren: Älteste zuerst",
+      "sortAlpha": "Sortieren: Alphabetisch",
+      "cardTitlePlaceholder": "Ticket-Titel …"
+    },
+    "card": {
+      "done": "Erledigt"
+    },
+    "labels": {
+      "idea": "Idee",
+      "issue": "Problem",
+      "other": "Sonstiges"
+    },
+    "priorities": {
+      "low": "Niedrig",
+      "medium": "Mittel",
+      "high": "Hoch"
+    },
+    "efforts": {
+      "easy": "Leicht",
+      "medium": "Mittel",
+      "hard": "Schwer",
+      "very_hard": "Sehr schwer"
+    },
+    "modal": {
+      "subtitle": "Ticket-Details",
+      "close": "Schließen",
+      "none": "—",
+      "list": "Liste",
+      "label": "Label",
+      "priority": "Priorität",
+      "effort": "Aufwand",
+      "startAt": "Start",
+      "dueAt": "Fällig",
+      "members": "Mitglieder",
+      "membersPlaceholder": "Admins/Mods zuweisen …",
+      "join": "Beitreten",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Beschreibung in Markdown — Aufgabe, Kontext, Akzeptanzkriterien …",
+      "noDescription": "Noch keine Beschreibung.",
+      "edit": "Bearbeiten",
+      "preview": "Vorschau",
+      "checklist": "Checkliste",
+      "checklistPlaceholder": "Sub-Task hinzufügen …",
+      "addItem": "Hinzufügen",
+      "removeItem": "Entfernen",
+      "toggleDone": "Erledigt umschalten",
+      "save": "Speichern",
+      "saved": "Ticket gespeichert.",
+      "duplicate": "Kopieren",
+      "duplicated": "Ticket kopiert.",
+      "share": "Link kopieren",
+      "linkCopied": "Ticket-Link kopiert.",
+      "delete": "Löschen",
+      "deleteConfirm": "Wirklich löschen?",
+      "deleted": "Ticket gelöscht.",
+      "createdBy": "Angelegt von {name} · {date}"
+    },
+    "export": {
+      "copy": "Für Claude Code kopieren",
+      "download": "Als .md herunterladen",
+      "copied": "Markdown in der Zwischenablage — bereit für Claude Code.",
+      "task": "Aufgabe",
+      "context": "Kontext"
+    },
+    "errors": {
+      "action": "Aktion fehlgeschlagen — bitte erneut versuchen.",
+      "listNotEmpty": "Die Liste enthält noch Karten — bitte erst verschieben."
+    }
+  }
+}
