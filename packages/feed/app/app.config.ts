@@ -15,6 +15,7 @@ export default defineAppConfig({
           icon: 'i-ph-pulse',
           to: '/dashboard/feed',
           requiredCapability: 'feed.manage',
+          group: 'products',
         },
       ],
     },

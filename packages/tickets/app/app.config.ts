@@ -13,6 +13,7 @@ export default defineAppConfig({
           icon: 'i-ph-kanban',
           to: '/dashboard/tickets',
           requiredCapability: 'tickets.manage',
+          group: 'products',
         },
       ],
     },

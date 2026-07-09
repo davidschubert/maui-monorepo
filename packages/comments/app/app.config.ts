@@ -15,6 +15,7 @@ export default defineAppConfig({
           icon: 'i-ph-chat-circle',
           to: '/dashboard/comments',
           requiredCapability: 'comments.moderate',
+          group: 'products',
         },
       ],
     },

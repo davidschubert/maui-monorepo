@@ -19,6 +19,8 @@ export default defineAppConfig({
           icon: 'i-ph-credit-card',
           to: '/dashboard/billing',
           requiredCapability: 'billing.manage',
+          // Konto-naher Bereich: sitzt im Account-Menü über den Einstellungen
+          placement: 'userMenu',
         },
       ],
     },

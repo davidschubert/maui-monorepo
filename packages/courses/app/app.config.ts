@@ -12,6 +12,7 @@ export default defineAppConfig({
           icon: 'i-ph-graduation-cap',
           to: '/dashboard/courses',
           requiredCapability: 'courses.manage',
+          group: 'products',
         },
       ],
     },
