@@ -19,7 +19,9 @@
       "peopleActive": "Active",
       "peopleNew": "New",
       "groups": {
-        "products": "Products"
+        "products": "Products",
+        "management": "Management",
+        "design": "Design"
       },
       "peopleOnline": "Users online"
     },

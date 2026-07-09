@@ -13,13 +13,15 @@
       "system": "System",
       "admin": "Admin",
       "audit": "Aktivitätsprotokoll",
-      "homepage": "Zur Startseite",
+      "homepage": "Zur Website",
       "people": "Personen",
       "peopleAll": "Alle Benutzer",
       "peopleActive": "Aktiv",
       "peopleNew": "Neu",
       "groups": {
-        "products": "Products"
+        "products": "Products",
+        "management": "Management",
+        "design": "Design"
       },
       "peopleOnline": "Benutzer online"
     },

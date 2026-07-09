@@ -74,13 +74,16 @@ const links = computed<NavigationMenuItem[]>(() => {
   const modules = ((appConfig.maui?.admin?.modules ?? []) as MauiAdminModule[])
     .filter(m => (m.placement ?? 'nav') === 'nav' && userHasCapability(u, m.requiredCapability))
   for (const m of modules.filter(m => !m.group)) items.push(toItem(m))
-  const products = modules.filter(m => m.group === 'products')
-  if (products.length) {
-    // mt-4 setzt das Gruppen-Label leicht vom Block darüber ab
-    items.push({ label: t('admin.nav.groups.products'), type: 'label', class: 'mt-4' })
-    for (const m of products) items.push(toItem(m))
+  // Gruppen in fester Reihenfolge; innerhalb sortiert 'order' (sonst Registry-
+  // Reihenfolge). Label-Abstand kommt einheitlich über :ui der UNavigationMenu.
+  for (const group of ['products', 'management', 'design'] as const) {
+    const grouped = modules
+      .filter(m => m.group === group)
+      .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
+    if (!grouped.length) continue
+    items.push({ label: t(`admin.nav.groups.${group}`), type: 'label' })
+    for (const m of grouped) items.push(toItem(m))
   }
-  if (userHasCapability(u, 'storage.manage')) items.push({ label: t('admin.nav.storage'), icon: 'i-ph-folder', to: localePath('/dashboard/storage'), onSelect: close })
   // Settings bewusst nicht hier — sitzt schon im User-Menü unten (DashboardUserMenu)
   return items
 })
@@ -90,6 +93,8 @@ const bottomLinks = computed<NavigationMenuItem[]>(() => {
   const u = auth.user
   const items: NavigationMenuItem[] = []
   if (userHasCapability(u, 'audit.read')) items.push({ label: t('admin.nav.admin'), icon: 'i-ph-shield-check', to: localePath('/dashboard/admin'), onSelect: close })
+  // Storage sitzt bei der Infrastruktur (selten gebraucht), nicht bei den Produkten
+  if (userHasCapability(u, 'storage.manage')) items.push({ label: t('admin.nav.storage'), icon: 'i-ph-folder', to: localePath('/dashboard/storage'), onSelect: close })
   if (userHasCapability(u, 'system.manage')) items.push({ label: t('admin.nav.system'), icon: 'i-ph-cpu', to: localePath('/dashboard/system'), onSelect: close })
   // Raus aus dem Dashboard: zurück zur Startseite (ohne Capability — jeder)
   items.push({ label: t('admin.nav.homepage'), icon: 'i-ph-house', to: localePath('/'), onSelect: close })
@@ -188,7 +193,7 @@ const searchGroups = computed(() => {
       <template #default="{ collapsed }">
         <!-- label explizit — der Nuxt-UI-Default ist englisch ("Search...") -->
         <UDashboardSearchButton :collapsed="collapsed" :label="t('dashboard.search.button')" class="bg-transparent ring-default" />
-        <UNavigationMenu :collapsed="collapsed" :items="links" orientation="vertical" tooltip popover />
+        <UNavigationMenu :collapsed="collapsed" :items="links" orientation="vertical" tooltip popover :ui="{ label: 'mt-4' }" />
         <div class="flex-1" />
         <UNavigationMenu :collapsed="collapsed" :items="bottomLinks" orientation="vertical" tooltip popover />
       </template>
