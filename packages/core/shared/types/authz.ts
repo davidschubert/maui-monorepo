@@ -20,5 +20,6 @@ export type Capability =
   | 'feedback.manage'
   | 'billing.manage'
   | 'courses.manage'
+  | 'tickets.manage'
 
 export type Role = 'admin' | 'moderator'

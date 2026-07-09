@@ -23,6 +23,7 @@ export const ALL_CAPABILITIES: readonly Capability[] = [
   'feedback.manage',
   'billing.manage',
   'courses.manage',
+  'tickets.manage',
 ]
 
 /** Alle zuweisbaren Rollen. */
@@ -31,7 +32,8 @@ export const ROLES: readonly Role[] = ['admin', 'moderator']
 /** Rolle → ihre Capabilities. admin = alle; moderator = Teilmenge. */
 export const ROLE_CAPABILITIES: Record<Role, readonly Capability[]> = {
   admin: ALL_CAPABILITIES,
-  moderator: ['dashboard.access', 'comments.moderate', 'reports.moderate'],
+  // tickets.manage: Karten-Mitglieder sind per Anforderung Admins UND Mods
+  moderator: ['dashboard.access', 'comments.moderate', 'reports.moderate', 'tickets.manage'],
 }
 
 /** Type-Guard: ist das Label eine bekannte Rolle? */
