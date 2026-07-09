@@ -39,13 +39,16 @@ function tiltedDragImage(event: DragEvent) {
 }
 
 function onCardDragStart(event: DragEvent, ticket: TicketRow) {
-  // setData ist für Firefox Pflicht, sonst startet der Drag nicht
+  // setData ist für Firefox Pflicht; effectAllowed 'move' verhindert die
+  // Zurückschnapp-Animation des Browsers nach dem Drop (fühlte sich wie ~1s Lag an)
   event.dataTransfer?.setData('text/plain', ticket.$id)
+  if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
   tiltedDragImage(event)
   drag.value = { type: 'card', id: ticket.$id, height: (event.currentTarget as HTMLElement).offsetHeight }
 }
 function onHeaderDragStart(event: DragEvent) {
   event.dataTransfer?.setData('text/plain', props.list.$id)
+  if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
   const column = (event.currentTarget as HTMLElement).closest('section')
   event.dataTransfer?.setDragImage(column ?? (event.currentTarget as HTMLElement), event.offsetX, event.offsetY)
   drag.value = { type: 'list', id: props.list.$id, height: column?.offsetHeight ?? 120 }
@@ -63,6 +66,7 @@ function onCardDragOver(event: DragEvent, cardIndex: number) {
 }
 function onColumnDragOver(event: DragEvent) {
   event.preventDefault()
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
   if (drag.value?.type === 'card') {
     if (hoverIndex.value === null) hoverIndex.value = props.tickets.length
   }
@@ -125,38 +129,58 @@ async function addCard() {
   }
 }
 
-async function listAction(action: 'duplicate' | 'delete' | TicketSort) {
+// Lösch-Bestätigung (immer fragen — löscht Liste MITSAMT Karten)
+const confirmingDelete = ref(false)
+const deleting = ref(false)
+async function deleteList() {
+  deleting.value = true
+  try {
+    await $fetch(`/api/tickets/lists/${props.list.$id}`, { method: 'DELETE' })
+    confirmingDelete.value = false
+    emit('refresh')
+  }
+  catch {
+    toast.add({ title: t('tickets.errors.action'), color: 'error' })
+  }
+  finally {
+    deleting.value = false
+  }
+}
+
+async function listAction(action: 'duplicate' | TicketSort) {
   try {
     if (action === 'duplicate') {
       await $fetch(`/api/tickets/lists/${props.list.$id}/duplicate`, { method: 'POST' })
-    }
-    else if (action === 'delete') {
-      await $fetch(`/api/tickets/lists/${props.list.$id}`, { method: 'DELETE' })
     }
     else {
       await $fetch(`/api/tickets/lists/${props.list.$id}/sort`, { method: 'POST', body: { by: action } })
     }
     emit('refresh')
   }
-  catch (error) {
-    const statusCode = (error as { statusCode?: number }).statusCode
-    toast.add({
-      title: statusCode === 409 ? t('tickets.errors.listNotEmpty') : t('tickets.errors.action'),
-      color: 'error',
-    })
+  catch {
+    toast.add({ title: t('tickets.errors.action'), color: 'error' })
   }
 }
 
+/**
+ * Menü-Aktionen, die ein Eingabefeld fokussieren, MÜSSEN warten: das
+ * schließende Dropdown gibt den Fokus an den Trigger zurück und blurt sonst
+ * das frisch geöffnete Feld sofort wieder (sprang nach ~1s raus).
+ */
+function afterMenuClose(action: () => void) {
+  setTimeout(action, 150)
+}
+
 const menuItems = computed(() => [[
-  { label: t('tickets.list.addCard'), icon: 'i-ph-plus', onSelect: () => { adding.value = true } },
-  { label: t('tickets.list.rename'), icon: 'i-ph-pencil-simple', onSelect: startRename },
+  { label: t('tickets.list.addCard'), icon: 'i-ph-plus', onSelect: () => afterMenuClose(() => { adding.value = true }) },
+  { label: t('tickets.list.rename'), icon: 'i-ph-pencil-simple', onSelect: () => afterMenuClose(startRename) },
   { label: t('tickets.list.duplicate'), icon: 'i-ph-copy', onSelect: () => listAction('duplicate') },
 ], [
   { label: t('tickets.list.sortNewest'), icon: 'i-ph-sort-descending', onSelect: () => listAction('createdDesc') },
   { label: t('tickets.list.sortOldest'), icon: 'i-ph-sort-ascending', onSelect: () => listAction('createdAsc') },
   { label: t('tickets.list.sortAlpha'), icon: 'i-ph-text-aa', onSelect: () => listAction('alpha') },
 ], [
-  { label: t('tickets.list.delete'), icon: 'i-ph-trash', color: 'error' as const, onSelect: () => listAction('delete') },
+  { label: t('tickets.list.delete'), icon: 'i-ph-trash', color: 'error' as const, onSelect: () => { confirmingDelete.value = true } },
 ]])
 </script>
 
@@ -246,5 +270,28 @@ const menuItems = computed(() => [[
         {{ t('tickets.list.addCard') }}
       </UButton>
     </footer>
+
+    <!-- Löschen IMMER bestätigen — nicht-leere Listen nehmen ihre Karten mit -->
+    <UModal
+      :open="confirmingDelete"
+      :title="t('tickets.list.deleteConfirmTitle', { title: list.title })"
+      @update:open="(value: boolean) => { if (!value) confirmingDelete = false }"
+    >
+      <template #body>
+        <p class="text-sm">
+          {{ tickets.length > 0
+            ? t('tickets.list.deleteConfirmWithCards', { count: tickets.length })
+            : t('tickets.list.deleteConfirmEmpty') }}
+        </p>
+      </template>
+      <template #footer>
+        <div class="flex w-full justify-end gap-2">
+          <UButton color="neutral" variant="ghost" @click="confirmingDelete = false">{{ t('ui.cancel') }}</UButton>
+          <UButton color="error" :loading="deleting" data-testid="confirm-delete-list" @click="deleteList">
+            {{ t('tickets.list.delete') }}
+          </UButton>
+        </div>
+      </template>
+    </UModal>
   </section>
 </template>

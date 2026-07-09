@@ -20,7 +20,10 @@
       "sortNewest": "Sortieren: Neueste zuerst",
       "sortOldest": "Sortieren: Älteste zuerst",
       "sortAlpha": "Sortieren: Alphabetisch",
-      "cardTitlePlaceholder": "Ticket-Titel …"
+      "cardTitlePlaceholder": "Ticket-Titel …",
+      "deleteConfirmTitle": "Liste „{title}\" löschen?",
+      "deleteConfirmWithCards": "Die Liste und ihre {count} Ticket(s) werden endgültig gelöscht. Tickets, die du behalten willst, vorher in eine andere Liste verschieben.",
+      "deleteConfirmEmpty": "Die leere Liste wird endgültig gelöscht."
     },
     "card": {
       "done": "Erledigt",
@@ -59,6 +62,11 @@
       "membersPlaceholder": "Admins/Mods zuweisen …",
       "join": "Beitreten",
       "description": "Beschreibung",
+      "edit": "Bearbeiten",
+      "noDescription": "Noch keine Beschreibung.",
+      "unsavedTitle": "Ungespeicherte Änderungen",
+      "unsavedText": "Du hast die Beschreibung geändert. Möchtest du die Änderungen speichern?",
+      "dontSave": "Nicht speichern",
       "checklist": "Checkliste",
       "checklistPlaceholder": "Sub-Task hinzufügen …",
       "addItem": "Hinzufügen",
@@ -86,8 +94,7 @@
       "context": "Kontext"
     },
     "errors": {
-      "action": "Aktion fehlgeschlagen — bitte erneut versuchen.",
-      "listNotEmpty": "Die Liste enthält noch Karten — bitte erst verschieben."
+      "action": "Aktion fehlgeschlagen — bitte erneut versuchen."
     }
   }
 }

@@ -20,7 +20,10 @@
       "sortNewest": "Sort: newest first",
       "sortOldest": "Sort: oldest first",
       "sortAlpha": "Sort: alphabetical",
-      "cardTitlePlaceholder": "Ticket title …"
+      "cardTitlePlaceholder": "Ticket title …",
+      "deleteConfirmTitle": "Delete list \"{title}\"?",
+      "deleteConfirmWithCards": "The list and its {count} ticket(s) will be permanently deleted. Move tickets you want to keep to another list first.",
+      "deleteConfirmEmpty": "The empty list will be permanently deleted."
     },
     "card": {
       "done": "Done",
@@ -59,6 +62,11 @@
       "membersPlaceholder": "Assign admins/mods …",
       "join": "Join",
       "description": "Description",
+      "edit": "Edit",
+      "noDescription": "No description yet.",
+      "unsavedTitle": "Unsaved changes",
+      "unsavedText": "You changed the description. Do you want to save your changes?",
+      "dontSave": "Don't save",
       "checklist": "Checklist",
       "checklistPlaceholder": "Add sub-task …",
       "addItem": "Add",
@@ -86,8 +94,7 @@
       "context": "Context"
     },
     "errors": {
-      "action": "Action failed — please try again.",
-      "listNotEmpty": "The list still contains cards — move them first."
+      "action": "Action failed — please try again."
     }
   }
 }

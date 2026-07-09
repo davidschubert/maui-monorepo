@@ -40,6 +40,13 @@ const newChecklistItem = ref('')
 const busy = ref(false)
 const confirmDelete = ref(false)
 
+// Beschreibung hat einen EIGENEN Edit-Zyklus: Änderungen greifen erst mit
+// ihrem Speichern-Button; Schließen mit ungespeicherten Änderungen fragt nach
+const editingDescription = ref(false)
+const descriptionSaved = ref('')
+const confirmClose = ref(false)
+const descriptionDirty = computed(() => editingDescription.value && form.description !== descriptionSaved.value)
+
 /** ISO ↔ datetime-local (30-min-Raster über step im Input) */
 function toLocalInput(iso: string | null): string {
   if (!iso) return ''
@@ -68,6 +75,9 @@ watch(() => props.ticket?.$id, () => {
   form.startAt = toLocalInput(ticket.startAt)
   form.dueAt = toLocalInput(ticket.dueAt)
   form.description = ticket.description
+  descriptionSaved.value = ticket.description
+  editingDescription.value = false
+  confirmClose.value = false
   checklist.value = parseTicketChecklist(ticket.checklist)
   members.value = parseTicketMembers(ticket.membersJson)
   newChecklistItem.value = ''
@@ -115,20 +125,67 @@ function joinCard() {
   members.value = [...members.value, { id: user.value.$id, name: user.value.name ?? '' }]
 }
 
-// Checkliste: hinzufügen + per Drag sortieren
+// Checkliste: hinzufügen + per Handle sortieren. draggable liegt auf dem
+// <li>, wird aber erst per pointerdown auf dem Handle „scharf" geschaltet —
+// draggable auf dem SVG-Icon selbst startet in Browsern keinen Drag.
 const checkDrag = ref<number | null>(null)
+const checkDragArmed = ref<number | null>(null)
 function addChecklistItem() {
   const text = newChecklistItem.value.trim()
   if (!text) return
   checklist.value.push({ text, done: false })
   newChecklistItem.value = ''
 }
+function onCheckDragStart(event: DragEvent, index: number) {
+  event.dataTransfer?.setData('text/plain', String(index))
+  if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
+  checkDrag.value = index
+}
+function onCheckDragOver(event: DragEvent) {
+  event.preventDefault()
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
+}
+function onCheckDragEnd() {
+  checkDrag.value = null
+  checkDragArmed.value = null
+}
 function onCheckDrop(targetIndex: number) {
   const from = checkDrag.value
-  checkDrag.value = null
+  onCheckDragEnd()
   if (from === null || from === targetIndex) return
   const [item] = checklist.value.splice(from, 1)
   checklist.value.splice(targetIndex > from ? targetIndex - 1 : targetIndex, 0, item!)
+}
+
+// Beschreibung: eigener Speichern-/Abbrechen-Zyklus
+async function saveDescription() {
+  const ok = await patch({ description: form.description })
+  if (ok) {
+    descriptionSaved.value = form.description
+    editingDescription.value = false
+  }
+  return ok
+}
+function cancelDescription() {
+  form.description = descriptionSaved.value
+  editingDescription.value = false
+}
+
+// Schließen mit ungespeicherter Beschreibung → nachfragen
+function requestClose() {
+  if (descriptionDirty.value) confirmClose.value = true
+  else open.value = false
+}
+async function saveAndClose() {
+  if (await saveDescription()) {
+    confirmClose.value = false
+    open.value = false
+  }
+}
+function discardAndClose() {
+  cancelDescription()
+  confirmClose.value = false
+  open.value = false
 }
 
 async function patch(body: Record<string, unknown>) {
@@ -150,6 +207,7 @@ async function patch(body: Record<string, unknown>) {
 
 async function save() {
   if (!props.ticket) return
+  // Beschreibung bewusst NICHT dabei — sie hat ihren eigenen Speichern-Zyklus
   const ok = await patch({
     title: form.title.trim() || props.ticket.title,
     listId: form.listId,
@@ -158,13 +216,13 @@ async function save() {
     effort: toDb(form.effort),
     startAt: toIso(form.startAt),
     dueAt: toIso(form.dueAt),
-    description: form.description,
     checklist: checklist.value,
     members: members.value,
   })
   if (ok) {
     toast.add({ title: t('tickets.modal.saved'), color: 'success' })
-    open.value = false
+    if (descriptionDirty.value) confirmClose.value = true
+    else open.value = false
   }
 }
 
@@ -273,14 +331,20 @@ const createdAtText = computed(() =>
 <template>
   <!-- #body statt #content — bewährtes Muster (comments.vue); kein title/close-Prop,
        damit UModal keinen doppelten Header rendert (eigene Kopfzeile unten) -->
-  <UModal v-model:open="open" :close="false" :ui="{ content: 'max-w-2xl' }">
+  <UModal
+    v-model:open="open"
+    :close="false"
+    :dismissible="!descriptionDirty"
+    :ui="{ content: 'max-w-2xl' }"
+    @close:prevent="confirmClose = true"
+  >
     <template #body>
       <div v-if="ticket" class="max-h-[80vh] overflow-y-auto" data-testid="ticket-modal">
         <div class="flex items-center justify-end gap-1">
           <UDropdownMenu :items="menuItems">
             <UButton icon="i-ph-dots-three-bold" color="neutral" variant="ghost" :aria-label="t('tickets.modal.actions')" data-testid="ticket-menu" />
           </UDropdownMenu>
-          <UButton icon="i-ph-x" color="neutral" variant="ghost" :aria-label="t('tickets.modal.close')" @click="open = false" />
+          <UButton icon="i-ph-x" color="neutral" variant="ghost" :aria-label="t('tickets.modal.close')" data-testid="ticket-close" @click="requestClose" />
         </div>
 
         <div class="mt-1 flex items-start gap-2">
@@ -347,16 +411,40 @@ const createdAtText = computed(() =>
         </UFormField>
 
         <div class="mt-5">
-          <h3 class="mb-2 text-sm font-semibold">{{ t('tickets.modal.description') }}</h3>
-          <UEditor
-            v-slot="{ editor }"
-            v-model="form.description"
-            content-type="markdown"
-            class="w-full rounded-md border border-default"
-            :ui="{ base: 'px-3 sm:px-3 py-2', content: 'min-h-32' }"
-          >
-            <UEditorToolbar :editor="editor" :items="toolbarItems" class="border-b border-default px-1.5 py-1" />
-          </UEditor>
+          <div class="mb-2 flex items-center justify-between">
+            <h3 class="text-sm font-semibold">{{ t('tickets.modal.description') }}</h3>
+            <UButton
+              v-if="!editingDescription"
+              icon="i-ph-pencil-simple"
+              color="neutral" variant="ghost" size="xs"
+              data-testid="description-edit"
+              @click="editingDescription = true"
+            >
+              {{ t('tickets.modal.edit') }}
+            </UButton>
+          </div>
+
+          <template v-if="editingDescription">
+            <UEditor
+              v-slot="{ editor }"
+              v-model="form.description"
+              content-type="markdown"
+              class="w-full rounded-md border border-default"
+              :ui="{ base: 'px-3 sm:px-3 py-2', content: 'min-h-32' }"
+            >
+              <UEditorToolbar :editor="editor" :items="toolbarItems" class="border-b border-default px-1.5 py-1" />
+            </UEditor>
+            <div class="mt-2 flex justify-end gap-2">
+              <UButton color="neutral" variant="ghost" size="sm" @click="cancelDescription">{{ t('ui.cancel') }}</UButton>
+              <UButton color="primary" size="sm" :loading="busy" data-testid="description-save" @click="() => { void saveDescription() }">
+                {{ t('ui.save') }}
+              </UButton>
+            </div>
+          </template>
+          <template v-else>
+            <MarkdownContent v-if="descriptionSaved" :source="descriptionSaved" class="text-sm" />
+            <p v-else class="text-sm text-muted">{{ t('tickets.modal.noDescription') }}</p>
+          </template>
         </div>
 
         <div class="mt-5">
@@ -372,16 +460,18 @@ const createdAtText = computed(() =>
               :key="itemIndex"
               class="flex items-center gap-2 rounded"
               :class="checkDrag === itemIndex ? 'opacity-40' : ''"
-              @dragover.prevent
+              :draggable="checkDragArmed === itemIndex"
+              @dragstart="onCheckDragStart($event, itemIndex)"
+              @dragend="onCheckDragEnd"
+              @dragover="onCheckDragOver"
               @drop.prevent="onCheckDrop(itemIndex)"
             >
               <UIcon
                 name="i-ph-dots-six-vertical"
                 class="size-4 shrink-0 cursor-grab text-dimmed active:cursor-grabbing"
-                draggable="true"
                 :aria-label="t('tickets.modal.reorderItem')"
-                @dragstart="checkDrag = itemIndex"
-                @dragend="checkDrag = null"
+                @pointerdown="checkDragArmed = itemIndex"
+                @pointerup="checkDragArmed = null"
               />
               <UCheckbox v-model="item.done" />
               <span class="flex-1 text-sm" :class="item.done ? 'text-muted line-through' : ''">{{ item.text }}</span>
@@ -391,7 +481,7 @@ const createdAtText = computed(() =>
             <li
               v-if="checkDrag !== null"
               class="h-6 rounded border border-dashed border-default"
-              @dragover.prevent
+              @dragover="onCheckDragOver"
               @drop.prevent="onCheckDrop(checklist.length)"
             />
           </ul>
@@ -417,6 +507,27 @@ const createdAtText = computed(() =>
             {{ t('tickets.modal.save') }}
           </UButton>
         </div>
+      </div>
+    </template>
+  </UModal>
+
+  <!-- Ungespeicherte Beschreibung beim Schließen — speichern oder verwerfen? -->
+  <UModal
+    :open="confirmClose"
+    :title="t('tickets.modal.unsavedTitle')"
+    @update:open="(value: boolean) => { if (!value) confirmClose = false }"
+  >
+    <template #body>
+      <p class="text-sm">{{ t('tickets.modal.unsavedText') }}</p>
+    </template>
+    <template #footer>
+      <div class="flex w-full justify-end gap-2">
+        <UButton color="neutral" variant="ghost" data-testid="unsaved-discard" @click="discardAndClose">
+          {{ t('tickets.modal.dontSave') }}
+        </UButton>
+        <UButton color="primary" :loading="busy" data-testid="unsaved-save" @click="saveAndClose">
+          {{ t('ui.save') }}
+        </UButton>
       </div>
     </template>
   </UModal>

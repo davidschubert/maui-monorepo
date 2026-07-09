@@ -72,6 +72,9 @@ export function useTicketBoard() {
     if (ticket.listId === listId && ticket.position === position) return
     ticket.listId = listId
     ticket.position = position
+    // useFetch-data ist in Nuxt 4 SHALLOW — ohne Re-Assign rendert die
+    // optimistische Mutation erst mit dem Realtime-Refetch (~1s Verzögerung)
+    data.value = { ...data.value! }
     try {
       await $fetch(`/api/tickets/${ticket.$id}`, { method: 'PATCH', body: { listId, position } })
     }
@@ -87,6 +90,7 @@ export function useTicketBoard() {
     const position = positionAt(lists.value, index, list.$id)
     if (list.position === position) return
     list.position = position
+    data.value = { ...data.value! }
     try {
       await $fetch(`/api/tickets/lists/${list.$id}`, { method: 'PATCH', body: { position } })
     }
