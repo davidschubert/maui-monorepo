@@ -32,7 +32,11 @@
       "markResolved": "Erledigt",
       "reopen": "Wieder öffnen",
       "deleted": "Feedback gelöscht.",
-      "actionFailed": "Aktion fehlgeschlagen."
+      "actionFailed": "Aktion fehlgeschlagen.",
+      "toTicket": "Als Ticket übernehmen",
+      "toTicketSuccess": "Ticket angelegt — das Feedback ist als erledigt markiert.",
+      "toTicketOpen": "Ticket öffnen",
+      "toTicketExists": "Zu diesem Feedback gibt es schon ein Ticket."
     }
   },
   "admin": {

@@ -7,6 +7,9 @@ const { t } = useI18n()
 const toast = useToast()
 const { formatRelativeTime } = useFormatRelativeTime()
 const { page, setPage } = usePagination()
+const appConfig = useAppConfig()
+const auth = useAuthStore()
+const localePath = useLocalePath()
 
 useHead({ title: () => t('feedback.admin.title') })
 
@@ -34,6 +37,43 @@ async function setDone(row: FeedbackRow, done: boolean) {
   }
   catch {
     toast.add({ title: t('feedback.admin.actionFailed'), color: 'error' })
+  }
+  finally {
+    busyId.value = ''
+  }
+}
+
+// Feedback → Ticket (A14: die App setzt maui.feedback.ticketEndpoint und
+// verdrahtet dahinter ihren Board-Layer; ohne Endpoint kein Button)
+const ticketEndpoint = computed(() =>
+  (appConfig.maui as { feedback?: { ticketEndpoint?: string } } | undefined)?.feedback?.ticketEndpoint ?? '')
+const canConvert = computed(() =>
+  ticketEndpoint.value !== '' && userHasCapability(auth.user, 'tickets.manage'))
+
+async function toTicket(row: FeedbackRow) {
+  busyId.value = row.$id
+  try {
+    const res = await $fetch<{ ticketId: string }>(ticketEndpoint.value, {
+      method: 'POST',
+      body: { feedbackId: row.$id },
+    })
+    toast.add({
+      title: t('feedback.admin.toTicketSuccess'),
+      color: 'success',
+      icon: 'i-ph-kanban',
+      actions: [{
+        label: t('feedback.admin.toTicketOpen'),
+        onClick: () => { void navigateTo(`${localePath('/dashboard/tickets')}?ticket=${res.ticketId}`) },
+      }],
+    })
+    await refresh()
+  }
+  catch (error) {
+    const statusCode = (error as { statusCode?: number }).statusCode
+    toast.add({
+      title: statusCode === 409 ? t('feedback.admin.toTicketExists') : t('feedback.admin.actionFailed'),
+      color: statusCode === 409 ? 'warning' : 'error',
+    })
   }
   finally {
     busyId.value = ''
@@ -111,6 +151,18 @@ async function remove(row: FeedbackRow) {
                 · {{ formatRelativeTime(row.$createdAt) }}
               </p>
             </div>
+            <UButton
+              v-if="canConvert"
+              color="neutral"
+              variant="ghost"
+              size="xs"
+              icon="i-ph-kanban"
+              :loading="busyId === row.$id"
+              :data-feedback-ticket="row.$id"
+              @click="toTicket(row)"
+            >
+              {{ t('feedback.admin.toTicket') }}
+            </UButton>
             <UButton
               :color="row.status === 'open' ? 'success' : 'neutral'"
               variant="ghost"

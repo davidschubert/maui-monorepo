@@ -16,5 +16,11 @@ export default defineAppConfig({
         },
       ],
     },
+    feedback: {
+      /** POST-Endpoint „Feedback → Ticket" — die APP setzt ihn, wenn sie
+       *  feedback mit einem Board-Layer verdrahtet (A14-Vertrag, Body:
+       *  { feedbackId }). Leer = kein Übernehmen-Button. */
+      ticketEndpoint: '',
+    },
   },
 })

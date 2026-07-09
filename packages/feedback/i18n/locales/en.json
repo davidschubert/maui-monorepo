@@ -32,7 +32,11 @@
       "markResolved": "Resolve",
       "reopen": "Reopen",
       "deleted": "Feedback deleted.",
-      "actionFailed": "Action failed."
+      "actionFailed": "Action failed.",
+      "toTicket": "Convert to ticket",
+      "toTicketSuccess": "Ticket created — the feedback is marked as resolved.",
+      "toTicketOpen": "Open ticket",
+      "toTicketExists": "A ticket already exists for this feedback."
     }
   },
   "admin": {
