@@ -7,19 +7,19 @@ const { t } = useI18n()
 const localePath = useLocalePath()
 const { isLoggedIn } = useCurrentUser()
 
-// Seiten-Nav mittig: Home · Products (Dropdown) · Pricing
+// Seiten-Nav mittig: Home · Products (Dropdown, vertikal mit Beschreibungen) · Pricing
 const centerNav = computed<NavigationMenuItem[]>(() => [
   { label: t('app.nav.home'), icon: 'i-ph-house', to: localePath('/'), exact: true },
   {
     label: t('app.nav.products'),
     icon: 'i-ph-squares-four',
     children: [
-      { label: t('posts.feed.title'), icon: 'i-ph-users-three', to: localePath('/community') },
-      { label: t('events.list.title'), icon: 'i-ph-calendar-dots', to: localePath('/events') },
+      { label: t('posts.feed.title'), icon: 'i-ph-users-three', description: t('posts.feed.description'), to: localePath('/community') },
+      { label: t('events.list.title'), icon: 'i-ph-calendar-dots', description: t('events.list.description'), to: localePath('/events') },
       ...(isLoggedIn.value
         ? [
-            { label: t('courses.list.title'), icon: 'i-ph-graduation-cap', to: localePath('/courses') },
-            { label: t('feed.title'), icon: 'i-ph-pulse', to: localePath('/feed') },
+            { label: t('courses.list.title'), icon: 'i-ph-graduation-cap', description: t('courses.list.description'), to: localePath('/courses') },
+            { label: t('feed.title'), icon: 'i-ph-pulse', description: t('feed.description'), to: localePath('/feed') },
           ]
         : []),
     ],
@@ -36,7 +36,14 @@ const centerNav = computed<NavigationMenuItem[]>(() => [
       <nav data-testid="main-nav" class="grid w-full grid-cols-[auto_auto] items-center gap-2 px-4 py-4 sm:px-6 md:grid-cols-[1fr_auto_1fr]">
         <NuxtLink :to="localePath('/')" class="justify-self-start font-bold tracking-tight">Hawaii Studio</NuxtLink>
         <div class="order-last col-span-2 flex items-center justify-center md:order-none md:col-span-1">
-          <UNavigationMenu :items="centerNav" data-testid="center-nav" />
+          <!-- contentOrientation vertical: Produkte untereinander, je mit
+               Icon + zweizeiliger Beschreibung (Wunsch David) -->
+          <UNavigationMenu
+            :items="centerNav"
+            content-orientation="vertical"
+            :ui="{ content: 'w-80' }"
+            data-testid="center-nav"
+          />
         </div>
         <div class="flex items-center justify-self-end gap-2">
           <FeedSlideover v-if="isLoggedIn" />
