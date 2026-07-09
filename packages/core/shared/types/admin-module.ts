@@ -42,9 +42,12 @@ export interface MauiAdminModule {
   children?: MauiAdminModuleChild[]
   /**
    * Nav-Gruppe: Module mit gleicher Gruppe rendert das Layout unter einem
-   * gemeinsamen Abschnitts-Label (z. B. 'products'). Ohne Gruppe = oben.
+   * gemeinsamen Abschnitts-Label (i18n-Key admin.nav.groups.<group>);
+   * Gruppen-Reihenfolge definiert das Layout. Ohne Gruppe = oben.
    */
-  group?: 'products'
+  group?: 'products' | 'management' | 'design'
+  /** Sortierung INNERHALB der Gruppe (aufsteigend; ohne = Registry-Reihenfolge) */
+  order?: number
   /**
    * Platzierung: 'nav' (Default) = Sidebar-Hauptnavigation;
    * 'userMenu' = im Account-Menü unten (über den Einstellungen) —
