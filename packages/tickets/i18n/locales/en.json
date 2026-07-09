@@ -77,8 +77,6 @@
       "toggleDone": "Toggle done",
       "markDone": "Mark ticket as done",
       "markOpen": "Reopen ticket",
-      "save": "Save",
-      "saved": "Ticket saved.",
       "duplicate": "Duplicate ticket",
       "duplicated": "Ticket copied.",
       "share": "Copy ticket link",

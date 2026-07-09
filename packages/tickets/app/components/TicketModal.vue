@@ -63,10 +63,13 @@ const NONE = 'none'
 const fromDb = (value: string) => value || NONE
 const toDb = (value: string) => (value === NONE ? '' : value)
 
-// Formular bei jedem neuen Ticket frisch befüllen
+// Formular bei jedem neuen Ticket frisch befüllen (syncing unterdrückt
+// den Autosave-Watcher während der Befüllung)
+const syncing = ref(false)
 watch(() => props.ticket?.$id, () => {
   const ticket = props.ticket
   if (!ticket) return
+  syncing.value = true
   form.title = ticket.title
   form.listId = ticket.listId
   form.label = fromDb(ticket.label)
@@ -82,6 +85,7 @@ watch(() => props.ticket?.$id, () => {
   members.value = parseTicketMembers(ticket.membersJson)
   newChecklistItem.value = ''
   confirmDelete.value = false
+  void nextTick(() => { syncing.value = false })
 }, { immediate: true })
 
 const { users: assignable, avatarById } = useTicketAssignable()
@@ -125,10 +129,10 @@ function joinCard() {
   members.value = [...members.value, { id: user.value.$id, name: user.value.name ?? '' }]
 }
 
-// Checkliste: hinzufügen + sortieren. Die GANZE Zeile ist draggable (Trello-
-// Muster) — Chrome entscheidet die Drag-Fähigkeit beim Mousedown, ein per
-// pointerdown gesetztes Vue-Binding käme erst nach dem asynchronen Re-Render
-// und damit zu spät für dieselbe Geste.
+// Checkliste: hinzufügen + Pointer-basiertes Live-Sortieren. BEWUSST kein
+// natives HTML5-DnD: dessen Drag-Initiierung ist im Dialog-Kontext
+// unzuverlässig (zwei gescheiterte Anläufe) — Pointer-Capture + pointermove
+// funktioniert überall, inkl. Touch.
 const checkDrag = ref<number | null>(null)
 function addChecklistItem() {
   const text = newChecklistItem.value.trim()
@@ -136,24 +140,41 @@ function addChecklistItem() {
   checklist.value.push({ text, done: false })
   newChecklistItem.value = ''
 }
-function onCheckDragStart(event: DragEvent, index: number) {
-  event.dataTransfer?.setData('text/plain', String(index))
-  if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
-  checkDrag.value = index
-}
-function onCheckDragOver(event: DragEvent) {
+function startChecklistDrag(event: PointerEvent, index: number) {
   event.preventDefault()
-  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
-}
-function onCheckDragEnd() {
-  checkDrag.value = null
-}
-function onCheckDrop(targetIndex: number) {
-  const from = checkDrag.value
-  onCheckDragEnd()
-  if (from === null || from === targetIndex) return
-  const [item] = checklist.value.splice(from, 1)
-  checklist.value.splice(targetIndex > from ? targetIndex - 1 : targetIndex, 0, item!)
+  const handle = event.currentTarget as HTMLElement
+  const ul = handle.closest('ul')
+  if (!ul) return
+  handle.setPointerCapture(event.pointerId)
+  checkDrag.value = index
+
+  const onMove = (e: PointerEvent) => {
+    const from = checkDrag.value
+    if (from === null) return
+    const items = [...ul.querySelectorAll<HTMLElement>(':scope > li')]
+    let to = from
+    items.forEach((li, i) => {
+      if (i === from) return
+      const rect = li.getBoundingClientRect()
+      const middle = rect.top + rect.height / 2
+      if (i < from && e.clientY < middle) to = Math.min(to, i)
+      if (i > from && e.clientY > middle) to = Math.max(to, i)
+    })
+    if (to !== from) {
+      const [item] = checklist.value.splice(from, 1)
+      checklist.value.splice(to, 0, item!)
+      checkDrag.value = to
+    }
+  }
+  const onUp = () => {
+    checkDrag.value = null
+    window.removeEventListener('pointermove', onMove)
+    window.removeEventListener('pointerup', onUp)
+    window.removeEventListener('pointercancel', onUp)
+  }
+  window.addEventListener('pointermove', onMove)
+  window.addEventListener('pointerup', onUp)
+  window.addEventListener('pointercancel', onUp)
 }
 
 // Beschreibung: eigener Speichern-/Abbrechen-Zyklus
@@ -204,10 +225,23 @@ async function patch(body: Record<string, unknown>) {
   }
 }
 
-async function save() {
+// Autosave (Trello-Muster, kein Speichern-Button): jede Feldänderung patcht
+// debounct — die Beschreibung hat bewusst ihren EIGENEN Zyklus (unten)
+let autosaveTimer: ReturnType<typeof setTimeout> | undefined
+watch(
+  [() => form.title, () => form.listId, () => form.label, () => form.priority, () => form.effort, () => form.startAt, () => form.dueAt, checklist, members],
+  () => {
+    if (syncing.value || !props.ticket) return
+    clearTimeout(autosaveTimer)
+    autosaveTimer = setTimeout(() => { void autosave() }, 600)
+  },
+  { deep: true },
+)
+onBeforeUnmount(() => clearTimeout(autosaveTimer))
+
+async function autosave() {
   if (!props.ticket) return
-  // Beschreibung bewusst NICHT dabei — sie hat ihren eigenen Speichern-Zyklus
-  const ok = await patch({
+  await patch({
     title: form.title.trim() || props.ticket.title,
     listId: form.listId,
     label: toDb(form.label),
@@ -218,11 +252,6 @@ async function save() {
     checklist: checklist.value,
     members: members.value,
   })
-  if (ok) {
-    toast.add({ title: t('tickets.modal.saved'), color: 'success' })
-    if (descriptionDirty.value) confirmClose.value = true
-    else open.value = false
-  }
 }
 
 async function toggleDone() {
@@ -457,30 +486,20 @@ const createdAtText = computed(() =>
             <li
               v-for="(item, itemIndex) in checklist"
               :key="itemIndex"
-              class="flex cursor-grab items-center gap-2 rounded active:cursor-grabbing"
-              :class="checkDrag === itemIndex ? 'opacity-40' : ''"
-              draggable="true"
-              @dragstart="onCheckDragStart($event, itemIndex)"
-              @dragend="onCheckDragEnd"
-              @dragover="onCheckDragOver"
-              @drop.prevent="onCheckDrop(itemIndex)"
+              class="flex items-center gap-2 rounded px-1 transition-colors"
+              :class="checkDrag === itemIndex ? 'bg-elevated ring-1 ring-primary/40' : ''"
             >
               <UIcon
                 name="i-ph-dots-six-vertical"
-                class="size-4 shrink-0 text-dimmed"
+                class="size-4 shrink-0 cursor-grab touch-none text-dimmed active:cursor-grabbing"
                 :aria-label="t('tickets.modal.reorderItem')"
+                data-testid="check-handle"
+                @pointerdown="startChecklistDrag($event, itemIndex)"
               />
               <UCheckbox v-model="item.done" />
               <span class="flex-1 text-sm" :class="item.done ? 'text-muted line-through' : ''">{{ item.text }}</span>
               <UButton icon="i-ph-x" color="neutral" variant="ghost" size="xs" :aria-label="t('tickets.modal.removeItem')" @click="checklist.splice(itemIndex, 1)" />
             </li>
-            <!-- Drop ans Ende -->
-            <li
-              v-if="checkDrag !== null"
-              class="h-6 rounded border border-dashed border-default"
-              @dragover="onCheckDragOver"
-              @drop.prevent="onCheckDrop(checklist.length)"
-            />
           </ul>
           <form class="mt-2 flex gap-2" @submit.prevent="addChecklistItem">
             <UInput v-model="newChecklistItem" size="sm" class="flex-1" :placeholder="t('tickets.modal.checklistPlaceholder')" />
@@ -496,13 +515,12 @@ const createdAtText = computed(() =>
           </div>
         </div>
 
-        <div class="mt-6 flex items-center justify-between gap-2 border-t border-default pt-4">
+        <!-- Kein Speichern-Button — Änderungen sichern sich selbst (Autosave);
+             nur die Beschreibung hat ihren eigenen Speichern-Zyklus -->
+        <div class="mt-6 border-t border-default pt-4">
           <p class="text-xs text-muted">
             {{ t('tickets.modal.createdBy', { name: ticket.createdByName || '—', date: createdAtText }) }}
           </p>
-          <UButton color="primary" size="sm" :loading="busy" data-testid="ticket-save" @click="save">
-            {{ t('tickets.modal.save') }}
-          </UButton>
         </div>
       </div>
     </template>
