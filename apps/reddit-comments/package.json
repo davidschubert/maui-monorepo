@@ -27,6 +27,7 @@
     "@maui/moderation": "workspace:*",
     "@maui/system": "workspace:*",
     "@maui/themes": "workspace:*",
+    "@maui/tickets": "workspace:*",
     "@nuxt/ui": "catalog:",
     "@nuxtjs/i18n": "catalog:",
     "@nuxtjs/mdc": "catalog:",

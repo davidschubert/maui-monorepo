@@ -9,7 +9,7 @@ Nuxt 4 Monorepo mit zentralem **Core Layer** und komponierbaren **Feature Layers
 ```
 packages/core            ← Ebene 1: Fundament (besitzt KEINE Appwrite Tables!)
 packages/system          ← Fundament: Infra-Tabellen (audit_logs, app_config, notifications)
-packages/*               ← Ebene 2: Feature Layers (themes, comments, posts, events, feed, feedback, billing, courses, moderation, admin)
+packages/*               ← Ebene 2: Feature Layers (themes, comments, posts, events, feed, feedback, billing, courses, tickets, moderation, admin)
 apps/*                   ← Ebene 3: dünne Apps, komponieren Core + Features
 ```
 
@@ -107,12 +107,13 @@ maui-monorepo/
 │   ├── feedback/              # Feature Layer: Feedback-Widget (Button unten links, Admin-Sichtung)
 │   ├── billing/               # Feature Layer: Stripe-Abos (Checkout, Webhook, Entitlements, Portal)
 │   ├── courses/               # Feature Layer: Async Course Builder / LMS (Lektionen, Fortschritt, paid via billing)
+│   ├── tickets/               # Feature Layer: Ticket-Board (Trello-Kanban für Betreiber, md-Export für Claude Code)
 │   ├── moderation/            # Fundament-Layer: generisches Melde-/Report-System (reports-Table)
 │   ├── admin/                 # Feature Layer: Dashboard, Moderation-Queue, Changelog, Audit, …
 │   └── themes/                # Feature Layer: Theming
 ├── apps/
 │   ├── _template/             # Kopiervorlage für neue Apps (Port 3002, README mit Schritten)
-│   └── reddit-comments/       # dünne App: extends [themes, admin, comments, posts, events, feedback, billing, courses, feed, moderation, core, system] (Port 3001)
+│   └── reddit-comments/       # dünne App: extends [themes, admin, comments, posts, events, feedback, billing, courses, tickets, feed, moderation, core, system] (Port 3001)
 │       └── scripts/           # bootstrap.ts (Fresh-Instance-Setup), seed-demo.ts (Demo-Daten)
 ├── docs/
 │   ├── CONCEPT.md             # Architektur-Konzept (v2)
@@ -188,6 +189,7 @@ Ports: Core Playground **3000** · reddit-comments **3001** · weitere Apps 3002
 | 55 | **Events: Zweispalten-Layout** ([Plan §7d](docs/plans/EVENTS-V2.md)): Ansicht-Switch entfernt — links gefilterte Liste, rechts dauerhaft der sticky Monats-Kalender; **Card-Hover highlightet die Kalender-Pills des Events** (mehrtägig = alle Tage); Filter/Suche steuern bewusst nur die Liste | ✅ 2026-07-08 |
 | 56 | **Feedback-Widget + GOALS-Phase 23: `packages/billing` (Stripe)** — Feedback-Button unten links (Popup, Gäste + Rate-Limit, Admin-Sichtung, `feedback.manage`); Billing komplett implementiert (hosted Checkout/Portal, Webhook mit Signatur/Allowlist/Stale-Guard, Entitlements + `useBilling` mit Realtime, Pricing/Account/Admin-UI, GDPR) inkl. **Events-Ticket-Verbindung** (`registerCheckoutFulfillment` → `grantEventTicket`, Kauf-CTA aktiv) — lokal voll bewiesen (Tampering 400, Signatur 400, Row-Security, simulierte Subscription → entitled); Live-Matrix mit echtem Test-Key gefahren: echter Checkout, echtes Abo -> Webhook -> Realtime-Sprung auf Kuendigungs-Anzeige, Idempotenz per events resend | ✅ 2026-07-08 |
 | 57 | **GOALS-Phase 24: `packages/courses` (LMS v1)** — Markdown-Lektionen (Core-Sink, XSS-sicher), Enrollment + Fortschritt mit server-autoritativem Abschluss, Kurs-Galerie/Übersicht/LessonView (Prev/Next, Fortschrittsbalken, `#comments`-Slot), Builder mit Lektionen-CRUD/Reorder/Edit-Awareness (`useEditAwareness` → Core); Zugang free/members/**paid** über `registerCourseAccessGuard` — die App verdrahtet **echte Billing-Entitlements** (bewiesen: Free-User 403, Pro-Abo 201); `recordActivity` course.published/completed; GDPR | ✅ 2026-07-08 |
+| 58 | **`packages/tickets` — Ticket-Board P1** ([Plan](docs/plans/TICKETS-BOARD.md)): Trello-artiges Kanban als eigener Layer (`/dashboard/tickets`, Capability `tickets.manage` für Admins+Mods) — Listen (anlegen/umbenennen/kopieren/sortieren/löschen, Karten-Zähler), Karten mit nativem DnD (Karten + Listen), Detail-Modal (Label/Priorität/Aufwand, Start/Fällig, Markdown-Beschreibung, Checkliste, Mitglieder, Deep-Link-Share), **„Für Claude Code kopieren"** (md-Export + Download), Realtime über die geteilte JWT-WS, GDPR-Contributor; Admin-Roadmap abgelöst (Planungs-Wahrheit bleibt GOALS.md) — P2 Feedback-Ingestion, P3 KI-Triage, P4 Beobachten/Kommentare/Anhänge | ✅ 2026-07-08 |
 
 Details und Nachweis-Kriterien pro Phase: [docs/GOALS.md](docs/GOALS.md) · Upgrade-Plan: [docs/APPWRITE-1.9.5-UPGRADE.md](docs/APPWRITE-1.9.5-UPGRADE.md) · Offene Punkte: [docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md)
 
