@@ -88,7 +88,9 @@ nutzbar). Reihenfolge = grobe Priorität.
   SERVER paginiert seit 2026-07-02 bis 1000).
 
 ### 💡 Ideen fürs nächste Level (verbleibend, priorisiert)
-1. **E-Mail-Notifications + Digest** (M–L) — notifications-Table + SMTP + Function-Scaffold vorhanden.
+1. ✅ **E-Mail-Notifications + Digest** (2026-07-10) — Opt-in-Mails (instant/
+   digest) über den Core-SMTP-Mailer (nodemailer statt Appwrite Messaging —
+   kein Console-Setup/Key-Scope nötig); Details README-Status 63.
 2. **Admin-Bulk-Aktionen + CSV-Export** (S–M) — Moderations-Queue/Users mit Multi-Select, Claim-Locks laufen schon.
 3. **Caching/ISR** (S) — routeRules SWR für /changelog + Microcache für GET /api/comments Seite 1; dazu Microcache/Rate-Limit für den öffentlichen `GET /api/stats` (reddit-comments; Audit-Finding L11, bewusst hierher gebündelt).
 4. **CI mit echter Appwrite-Instanz** (M) — Service-Container + `bootstrap --seed` (idempotent vorhanden) → Realtime-E2E in CI.
