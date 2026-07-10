@@ -108,7 +108,7 @@ let apiKey = ''
     'tokens.write', 'sites.read', 'sites.write', 'log.read', 'log.write',
   ]
   const { status, json } = await api(`/projects/${projectId}/keys`, 'POST', {
-    name: 'ci-key', scopes,
+    keyId: 'ci-key', name: 'ci-key', scopes,
   })
   if (status !== 201) fail('API-Key', status, json)
   apiKey = json.secret
