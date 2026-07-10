@@ -345,6 +345,7 @@
     "settings": {
       "title": "Einstellungen",
       "general": "Allgemein",
+      "notifications": "Benachrichtigungen",
       "sessions": "Sitzungen",
       "security": "Sicherheit"
     },

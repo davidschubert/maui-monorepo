@@ -345,6 +345,7 @@
     "settings": {
       "title": "Settings",
       "general": "General",
+      "notifications": "Notifications",
       "sessions": "Sessions",
       "security": "Security"
     },
