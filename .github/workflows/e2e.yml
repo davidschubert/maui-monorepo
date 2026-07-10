@@ -66,6 +66,11 @@ jobs:
       - name: Bootstrap (DB, Bucket, Migrationen) + Seed
         run: pnpm --filter reddit-comments run bootstrap --seed
 
+      # Changelog-Einträge (v0.1…): der Smoke-Test prüft die öffentliche
+      # Vollhistorie — auf der frischen Instanz sonst leer
+      - name: Changelog seeden
+        run: node --env-file=apps/reddit-comments/.env packages/admin/scripts/seed-changelog.mjs
+
       # channel 'chrome' (playwright.config) — auf ubuntu-latest vorinstalliert
       - name: Playwright-E2E (inkl. Realtime gegen echte Instanz)
         run: pnpm --filter reddit-comments exec playwright test
