@@ -32,7 +32,7 @@ jobs:
       - name: Appwrite-Stack starten
         working-directory: ci/appwrite
         run: |
-          docker compose --project-name appwrite-ci up -d \
+          docker compose --env-file ci.env --project-name appwrite-ci up -d \
             traefik appwrite appwrite-realtime \
             appwrite-worker-databases appwrite-worker-deletes \
             mariadb redis
@@ -57,7 +57,7 @@ jobs:
             sleep 5
           done
           echo '::error::Appwrite nach 450s nicht erreichbar'
-          docker compose --project-name appwrite-ci -f ci/appwrite/docker-compose.yml logs --tail 80 appwrite mariadb
+          docker compose --env-file ci/appwrite/ci.env --project-name appwrite-ci -f ci/appwrite/docker-compose.yml logs --tail 80 appwrite mariadb
           exit 1
 
       - name: Console-Setup (Projekt, Key, Platform, .env)
@@ -80,4 +80,4 @@ jobs:
 
       - name: Stack-Logs bei Fehler
         if: failure()
-        run: docker compose --project-name appwrite-ci -f ci/appwrite/docker-compose.yml logs --tail 120 appwrite appwrite-realtime appwrite-worker-databases mariadb
+        run: docker compose --env-file ci/appwrite/ci.env --project-name appwrite-ci -f ci/appwrite/docker-compose.yml logs --tail 120 appwrite appwrite-realtime appwrite-worker-databases mariadb
