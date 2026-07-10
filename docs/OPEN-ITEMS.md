@@ -91,9 +91,16 @@ nutzbar). Reihenfolge = grobe Priorität.
 1. ✅ **E-Mail-Notifications + Digest** (2026-07-10) — Opt-in-Mails (instant/
    digest) über den Core-SMTP-Mailer (nodemailer statt Appwrite Messaging —
    kein Console-Setup/Key-Scope nötig); Details README-Status 63.
-2. **Admin-Bulk-Aktionen + CSV-Export** (S–M) — Moderations-Queue/Users mit Multi-Select, Claim-Locks laufen schon.
-3. **Caching/ISR** (S) — routeRules SWR für /changelog + Microcache für GET /api/comments Seite 1; dazu Microcache/Rate-Limit für den öffentlichen `GET /api/stats` (reddit-comments; Audit-Finding L11, bewusst hierher gebündelt).
-4. **CI mit echter Appwrite-Instanz** (M) — Service-Container + `bootstrap --seed` (idempotent vorhanden) → Realtime-E2E in CI.
+2. ✅ **Admin-Bulk-Aktionen + CSV-Export** (2026-07-10) — Multi-Select in
+   Queue + User-Liste, Bulk-Routen mit Einzel-Flow-Guards, CSV-Export;
+   Details README-Status 64.
+3. ✅ **Caching/Microcache** (2026-07-10) — core createMicrocache für
+   Gast-Kommentare Seite 1, Changelog-Liste (Write-Invalidierung) und
+   /api/stats (L11). SSR-Seiten-SWR bewusst NICHT (Session-State im HTML);
+   Details README-Status 64.
+4. ✅ **CI mit echter Appwrite-Instanz** (2026-07-10) — e2e.yml startet den
+   1.9.5-Stack im Runner, Console-Setup per Script, bootstrap+seed, volle
+   Playwright-Suite inkl. Realtime — grün; Details README-Status 64.
 5. ✅ **Auto-Hide-Threshold** (2026-07-09) — Eskalations-Vertrag
    `registerReportEscalationHandler` (moderation) + Auto-Hide in comments
    (`maui.comments.autoHideReports`, zweiphasig + Cascade, Meldungen bleiben
