@@ -1,0 +1,83 @@
+# E2E gegen eine ECHTE Appwrite-Instanz (OPEN-ITEMS Idee 4): der Runner
+# startet den geschnittenen Appwrite-Stack (ci/appwrite/ — traefik, appwrite,
+# realtime, databases-/deletes-Worker, mariadb, redis; Rest des offiziellen
+# Compose bleibt aus), scripts/ci/appwrite-setup.mjs erledigt die Console-
+# Schritte (Account/Projekt/Key/Platform + .env), dann bootstrap --seed und
+# die Playwright-Suite — inklusive Realtime-Spec (env-gated, läuft hier,
+# weil die .env existiert). themes-visual skippt in CI (Baselines -darwin).
+name: E2E (Appwrite)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      # Früh starten — mariadb-Erstinitialisierung + Appwrite-Boot laufen
+      # parallel zu pnpm install
+      - name: Appwrite-Stack starten
+        working-directory: ci/appwrite
+        run: |
+          docker compose --project-name appwrite-ci up -d \
+            traefik appwrite appwrite-realtime \
+            appwrite-worker-databases appwrite-worker-deletes \
+            mariadb redis
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Auf Appwrite warten
+        run: |
+          for i in $(seq 1 90); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/v1/health/version || true)
+            if [ "$code" = "200" ]; then
+              echo "Appwrite bereit: $(curl -s http://localhost:8080/v1/health/version)"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo '::error::Appwrite nach 450s nicht erreichbar'
+          docker compose --project-name appwrite-ci -f ci/appwrite/docker-compose.yml logs --tail 80 appwrite mariadb
+          exit 1
+
+      - name: Console-Setup (Projekt, Key, Platform, .env)
+        run: node scripts/ci/appwrite-setup.mjs --endpoint http://localhost:8080/v1 --app apps/reddit-comments
+
+      - name: Bootstrap (DB, Bucket, Migrationen) + Seed
+        run: pnpm --filter reddit-comments run bootstrap --seed
+
+      # channel 'chrome' (playwright.config) — auf ubuntu-latest vorinstalliert
+      - name: Playwright-E2E (inkl. Realtime gegen echte Instanz)
+        run: pnpm --filter reddit-comments exec playwright test
+
+      - name: Playwright-Artefakte sichern
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: apps/reddit-comments/test-results
+          retention-days: 7
+
+      - name: Stack-Logs bei Fehler
+        if: failure()
+        run: docker compose --project-name appwrite-ci -f ci/appwrite/docker-compose.yml logs --tail 120 appwrite appwrite-realtime appwrite-worker-databases mariadb
