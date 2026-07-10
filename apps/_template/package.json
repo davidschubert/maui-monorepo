@@ -26,6 +26,7 @@
     "@pinia/nuxt": "catalog:",
     "appwrite": "catalog:",
     "node-appwrite": "catalog:",
+    "nodemailer": "catalog:",
     "nuxt": "catalog:",
     "pinia": "catalog:",
     "vue": "catalog:",
@@ -34,6 +35,7 @@
   "devDependencies": {
     "@nuxt/eslint-config": "catalog:",
     "@types/node": "catalog:",
+    "@types/nodemailer": "catalog:",
     "eslint": "catalog:",
     "typescript": "catalog:",
     "vue-tsc": "catalog:"

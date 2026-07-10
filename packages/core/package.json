@@ -19,16 +19,18 @@
     "@pinia/nuxt": "catalog:",
     "appwrite": "catalog:",
     "node-appwrite": "catalog:",
+    "nodemailer": "catalog:",
     "pinia": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@nuxt/eslint-config": "catalog:",
     "@types/node": "catalog:",
+    "@types/nodemailer": "catalog:",
     "eslint": "catalog:",
     "nuxt": "catalog:",
-    "vitest": "catalog:",
     "typescript": "catalog:",
+    "vitest": "catalog:",
     "vue": "catalog:",
     "vue-tsc": "catalog:"
   }

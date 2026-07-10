@@ -33,6 +33,9 @@ catalogs:
     '@types/node':
       specifier: ^22.18.0
       version: 22.20.0
+    '@types/nodemailer':
+      specifier: ^7.0.0
+      version: 7.0.12
     appwrite:
       specifier: ^26.0.0
       version: 26.1.0
@@ -42,6 +45,9 @@ catalogs:
     node-appwrite:
       specifier: ^26.2.0
       version: 26.2.0
+    nodemailer:
+      specifier: ^7.0.0
+      version: 7.0.13
     nuxt:
       specifier: ^4.4.8
       version: 4.4.8
@@ -122,6 +128,9 @@ importers:
       node-appwrite:
         specifier: 'catalog:'
         version: 26.2.0
+      nodemailer:
+        specifier: 'catalog:'
+        version: 7.0.13
       nuxt:
         specifier: 'catalog:'
         version: 4.4.8(@babel/plugin-syntax-jsx@7.29.7(@babel/core@7.29.7))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.7))(@parcel/watcher@2.5.6)(@types/node@22.20.0)(@vue/compiler-sfc@3.5.39)(cac@6.7.14)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.5.0(jiti@2.7.0))(ioredis@5.11.1)(lightningcss@1.32.0)(magicast@0.5.3)(optionator@0.9.4)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup-plugin-visualizer@7.0.1(rollup@4.62.2))(rollup@4.62.2)(srvx@0.11.17)(terser@5.48.0)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue-tsc@3.3.5(typescript@5.9.3))(yaml@2.9.0)
@@ -141,6 +150,9 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 22.20.0
+      '@types/nodemailer':
+        specifier: 'catalog:'
+        version: 7.0.12
       eslint:
         specifier: 'catalog:'
         version: 10.5.0(jiti@2.7.0)
@@ -210,6 +222,9 @@ importers:
       node-appwrite:
         specifier: 'catalog:'
         version: 26.2.0
+      nodemailer:
+        specifier: 'catalog:'
+        version: 7.0.13
       nuxt:
         specifier: 'catalog:'
         version: 4.4.8(@babel/plugin-syntax-jsx@7.29.7(@babel/core@7.29.7))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.7))(@parcel/watcher@2.5.6)(@types/node@22.20.0)(@vue/compiler-sfc@3.5.39)(cac@6.7.14)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.5.0(jiti@2.7.0))(ioredis@5.11.1)(lightningcss@1.32.0)(magicast@0.5.3)(optionator@0.9.4)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup-plugin-visualizer@7.0.1(rollup@4.62.2))(rollup@4.62.2)(terser@5.48.0)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue-tsc@3.3.5(typescript@5.9.3))(yaml@2.9.0)
@@ -235,6 +250,9 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 22.20.0
+      '@types/nodemailer':
+        specifier: 'catalog:'
+        version: 7.0.12
       eslint:
         specifier: 'catalog:'
         version: 10.5.0(jiti@2.7.0)
@@ -379,6 +397,9 @@ importers:
       node-appwrite:
         specifier: 'catalog:'
         version: 26.2.0
+      nodemailer:
+        specifier: 'catalog:'
+        version: 7.0.13
       pinia:
         specifier: 'catalog:'
         version: 3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3))
@@ -392,6 +413,9 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 22.20.0
+      '@types/nodemailer':
+        specifier: 'catalog:'
+        version: 7.0.12
       eslint:
         specifier: 'catalog:'
         version: 10.5.0(jiti@2.7.0)
@@ -3203,6 +3227,9 @@ packages:
   '@types/node@22.20.0':
     resolution: {integrity: sha512-QWlFW2wf3nTjC13/DqRnBpR4ZO36VJH/JVBkA/vcnmbTBNQIlnObqyqZE1tUR7+Ni23Lda8R1BxMfbXRpCUx5g==}
 
+  '@types/nodemailer@7.0.12':
+    resolution: {integrity: sha512-80vKwiIsVSyFA1rRovH59jNPLBOuc6dRZIHEu40gXTkBkZnQv8vog1xSGEb9j5q/tdMAs5ivvDR2pLTU0hGHXA==}
+
   '@types/resolve@1.20.2':
     resolution: {integrity: sha512-60BCwRFOZCQhDncwQdxxeOEEkbc5dIMccYLwbxsS4TUNeVECQ/pBJ0j09mrHOl/JJvpRPGwO9SvE4nR2Nb/a4Q==}
 
@@ -5426,6 +5453,10 @@ packages:
   node-releases@2.0.50:
     resolution: {integrity: sha512-J6l92tKHX6w8Jy5nO1Vuc01NoIiRGi/d6qBKVxh+IQ8Cr3b6HbVNfKiF8ZpFKufTwpwxMmce2W3iQZ861ZRyTg==}
     engines: {node: '>=18'}
+
+  nodemailer@7.0.13:
+    resolution: {integrity: sha512-PNDFSJdP+KFgdsG3ZzMXCgquO7I6McjY2vlqILjtJd0hy8wEvtugS9xKRF2NWlPNGxvLCXlTNIae4serI7dinw==}
+    engines: {node: '>=6.0.0'}
 
   nopt@8.1.0:
     resolution: {integrity: sha512-ieGu42u/Qsa4TFktmaKEwM6MQH0pOWnaB3htzh0JRtx84+Mebc0cbZYN5bC+6WTZ4+77xrL9Pn5m7CV6VIkV7A==}
@@ -9571,6 +9602,10 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
+  '@types/nodemailer@7.0.12':
+    dependencies:
+      '@types/node': 22.20.0
+
   '@types/resolve@1.20.2': {}
 
   '@types/unist@2.0.11': {}
@@ -12212,6 +12247,8 @@ snapshots:
   node-mock-http@1.0.4: {}
 
   node-releases@2.0.50: {}
+
+  nodemailer@7.0.13: {}
 
   nopt@8.1.0:
     dependencies:
