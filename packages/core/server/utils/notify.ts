@@ -50,6 +50,9 @@ export async function notify(event: H3Event, input: NotifyInput): Promise<void> 
         Permission.update(Role.user(input.recipientId)),
       ],
     })
+    // E-Mail-Zweig (Opt-in, Modus 'instant') — eigener best-effort-Pfad;
+    // 'digest' sammelt der Sweep (server/plugins/email-digest.ts) ein.
+    await maybeSendInstantEmail(event, input)
   }
   catch {
     // best-effort — der auslösende Vorgang ist bereits passiert

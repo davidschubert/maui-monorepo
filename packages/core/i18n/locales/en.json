@@ -199,7 +199,21 @@
     "empty": "You're all caught up.",
     "replied": "{name} replied to your comment",
     "mentioned": "{name} mentioned you in a comment",
-    "reminder": "Reminder: {name} starts soon"
+    "reminder": "Reminder: {name} starts soon",
+    "email": {
+      "title": "Email notifications",
+      "description": "Also receive bell notifications (replies, mentions, reminders) by email.",
+      "off": "Off",
+      "offDesc": "Notifications only appear in the bell.",
+      "instant": "Instant",
+      "instantDesc": "Each notification as a separate email, as soon as it happens.",
+      "digest": "Daily digest",
+      "digestDesc": "At most one summary email per day with all new unread notifications.",
+      "save": "Save",
+      "saved": "Notification settings saved.",
+      "saveFailed": "Could not save settings.",
+      "noSmtp": "Email delivery is not configured on this server — your choice is saved and takes effect once SMTP is set up."
+    }
   },
   "error": {
     "notFound": "This page does not exist.",

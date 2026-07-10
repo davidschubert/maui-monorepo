@@ -199,7 +199,21 @@
     "empty": "Alles gelesen.",
     "replied": "{name} hat auf deinen Kommentar geantwortet",
     "mentioned": "{name} hat dich in einem Kommentar erwähnt",
-    "reminder": "Erinnerung: {name} beginnt bald"
+    "reminder": "Erinnerung: {name} beginnt bald",
+    "email": {
+      "title": "E-Mail-Benachrichtigungen",
+      "description": "Bell-Benachrichtigungen (Antworten, Erwähnungen, Erinnerungen) zusätzlich per E-Mail erhalten.",
+      "off": "Aus",
+      "offDesc": "Benachrichtigungen erscheinen nur in der Glocke.",
+      "instant": "Sofort",
+      "instantDesc": "Jede Benachrichtigung einzeln per E-Mail, sobald sie entsteht.",
+      "digest": "Täglicher Digest",
+      "digestDesc": "Höchstens eine Sammel-Mail pro Tag mit allen neuen ungelesenen Benachrichtigungen.",
+      "save": "Speichern",
+      "saved": "Benachrichtigungs-Einstellungen gespeichert.",
+      "saveFailed": "Speichern fehlgeschlagen.",
+      "noSmtp": "Auf diesem Server ist kein E-Mail-Versand konfiguriert — die Auswahl wird gespeichert und greift, sobald SMTP eingerichtet ist."
+    }
   },
   "error": {
     "notFound": "Diese Seite existiert nicht.",

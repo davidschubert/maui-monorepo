@@ -49,6 +49,14 @@ export default defineNuxtConfig({
     // server-only! Env-Mapping: NUXT_AI_KEY — API-Key für aiComplete()
     // (OpenRouter- oder anderer OpenAI-kompatibler Anbieter, Gate: maui.ai)
     aiKey: '',
+    // server-only! SMTP für E-Mail-Notifications (server/utils/mailer.ts) —
+    // leerer Host = Mail-Versand aus. Env: NUXT_SMTP_HOST/PORT/USER/PASS/FROM
+    // (lokal: Mailpit localhost:1025 ohne Auth).
+    smtpHost: '',
+    smtpPort: '587',
+    smtpUser: '',
+    smtpPass: '',
+    smtpFrom: '',
     public: {
       appwriteEndpoint: '',
       appwriteProjectId: '',
