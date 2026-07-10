@@ -41,6 +41,9 @@ export default defineEventHandler(async (event) => {
 
   // targetName aus der aktualisierten Row, nicht aus data.title — bei Teil-Edits
   // (z.B. nur published/date) fehlt title im Body und der Audit-Log bliebe leer.
+  // Öffentlichen Changelog-Microcache sofort invalidieren (Idee 3)
+  changelogCache.clear()
+
   await recordAudit(event, { action: 'changelog.updated', targetType: 'changelog', targetId: id, targetName: row.title ?? '' })
   return row
 })

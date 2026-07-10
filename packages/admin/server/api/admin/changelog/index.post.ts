@@ -35,6 +35,9 @@ export default defineEventHandler(async (event) => {
     data,
   })
 
+  // Öffentlichen Changelog-Microcache sofort invalidieren (Idee 3)
+  changelogCache.clear()
+
   await recordAudit(event, { action: 'changelog.created', targetType: 'changelog', targetId: row.$id, targetName: input.titleEn })
 
   // Activity-Feed (Core-Vertrag, best-effort) — nur für direkt veröffentlichte

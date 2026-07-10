@@ -16,6 +16,10 @@ export default defineEventHandler(async (event): Promise<ChangelogListResponse> 
   const page = Math.max(1, Number(query.page) || 1)
   const category = String(query.category ?? '')
 
+  const cacheKey = `${page}:${limit}:${category}`
+  const cached = changelogCache.get(cacheKey)
+  if (cached) return cached
+
   try {
     const { rows, total } = await listAllChangelogRows(event, {
       publishedOnly: true,
@@ -23,7 +27,9 @@ export default defineEventHandler(async (event): Promise<ChangelogListResponse> 
     })
     const all = rows.map(rowToChangelogEntry).sort(compareChangelogByVersion)
     const start = (page - 1) * limit
-    return { total, entries: all.slice(start, start + limit) }
+    const response = { total, entries: all.slice(start, start + limit) }
+    changelogCache.set(cacheKey, response)
+    return response
   }
   catch {
     return { total: 0, entries: [] }

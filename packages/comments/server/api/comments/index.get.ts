@@ -25,6 +25,13 @@ const COUNT_HARD_CAP = 5_000
 const REPLY_PAGE = 500
 const REPLY_HARD_CAP = 10_000
 
+// Gast-Microcache (Idee 3): Seite 1 pro Target+Sort für wenige Sekunden —
+// fängt Lastspitzen ab (Embed/Landingpage: bis zu 4 Appwrite-Queries pro
+// Request). NUR für Gäste (myVotes/myReports leer → keine User-Daten im
+// Cache); Realtime bleibt unberührt (Events mergen client-seitig).
+const GUEST_TTL_MS = 10_000
+const guestCache = createMicrocache<CommentListResponse>(GUEST_TTL_MS)
+
 /**
  * Kommentare eines Targets — paginiert über TOP-LEVEL-Threads, jeder mit seinem
  * kompletten Subtree (rootId-Index). So sind Antworten nie verwaist (ihr
@@ -42,6 +49,13 @@ export default defineEventHandler(async (event): Promise<CommentListResponse> =>
 
   const sort = SORT_MODES.includes(query.sort as SortMode) ? query.sort as SortMode : 'new'
   const page = Math.max(1, Number(query.page ?? 1) || 1)
+
+  const isGuest = !event.context.user
+  const cacheKey = `${targetType}:${targetId}:${sort}`
+  if (isGuest && page === 1) {
+    const cached = guestCache.get(cacheKey)
+    if (cached) return cached
+  }
 
   const config = useRuntimeConfig(event)
   const { tablesDB } = createSessionClient(event)
@@ -190,5 +204,9 @@ export default defineEventHandler(async (event): Promise<CommentListResponse> =>
     myReports = [...reported]
   }
 
-  return { total, topLevelTotal, rows, myVotes, myReports }
+  const response = { total, topLevelTotal, rows, myVotes, myReports }
+  if (isGuest && page === 1) {
+    guestCache.set(cacheKey, response)
+  }
+  return response
 })

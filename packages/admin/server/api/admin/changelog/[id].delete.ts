@@ -14,6 +14,9 @@ export default defineEventHandler(async (event) => {
     rowId: id,
   }).catch((error) => { throw toH3Error(error, 'Changelog entry not found') })
 
+  // Öffentlichen Changelog-Microcache sofort invalidieren (Idee 3)
+  changelogCache.clear()
+
   await recordAudit(event, { action: 'changelog.deleted', targetType: 'changelog', targetId: id })
   return { ok: true }
 })
