@@ -1,6 +1,6 @@
 # Offene Punkte
 
-Stand: 2026-07-09 (nach dem Produkt-Arc Juli + KI-Paket). Vollständige,
+Stand: 2026-07-10 (nach dem Ideen-Batch 1–5: E-Mail-Digest, Bulk/CSV, Microcache, CI-Appwrite, Auto-Hide). Vollständige,
 eigenständige Liste offener Themen (für eine frische Session als Startpunkt
 nutzbar). Reihenfolge = grobe Priorität.
 
