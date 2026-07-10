@@ -118,7 +118,7 @@ let apiKey = ''
 // 6) Web-Platform (localhost) — Realtime/Web-SDK-Origin
 {
   const { status, json } = await api(`/projects/${projectId}/platforms`, 'POST', {
-    type: 'web', name: 'ci-web', hostname: 'localhost',
+    platformId: 'ci-web', type: 'web', name: 'ci-web', hostname: 'localhost',
   })
   if (status === 201) console.log('✔ Web-Platform localhost')
   else if (status === 409) console.log('↷ Web-Platform existiert')
