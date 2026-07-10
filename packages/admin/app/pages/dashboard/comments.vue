@@ -62,6 +62,56 @@ function setFilter(value: ModerationFilter) {
   setPage(1)
 }
 
+// ---- Bulk-Moderation (Multi-Select): hide/restore/dismiss für die Auswahl ----
+const selected = ref(new Set<string>())
+const isSelected = (id: string) => selected.value.has(id)
+function toggleSelected(id: string) {
+  const next = new Set(selected.value)
+  if (next.has(id)) next.delete(id)
+  else next.add(id)
+  selected.value = next
+}
+const pageIds = computed(() => (data.value?.comments ?? []).filter(c => c.status !== 'deleted').map(c => c.$id))
+const allSelected = computed(() => pageIds.value.length > 0 && pageIds.value.every(id => selected.value.has(id)))
+function toggleAll() {
+  selected.value = allSelected.value ? new Set() : new Set(pageIds.value)
+}
+// Filter-/Seitenwechsel oder frische Daten → Auswahl auf sichtbare Zeilen eindampfen
+watch(data, () => {
+  const visible = new Set(pageIds.value)
+  selected.value = new Set([...selected.value].filter(id => visible.has(id)))
+})
+
+type BulkAction = 'hide' | 'restore' | 'dismiss'
+const bulkPending = ref<BulkAction | null>(null)
+const bulkBusy = ref(false)
+
+async function executeBulk() {
+  if (!bulkPending.value || selected.value.size === 0) return
+  bulkBusy.value = true
+  try {
+    const result = await $fetch<{ ok: boolean, done: string[], failed: string[] }>('/api/admin/comments/bulk', {
+      method: 'POST',
+      body: { action: bulkPending.value, ids: [...selected.value] },
+    })
+    toast.add({
+      title: result.failed.length
+        ? t('admin.moderation.bulk.partial', { done: result.done.length, failed: result.failed.length })
+        : t('admin.moderation.bulk.done', { count: result.done.length }),
+      color: result.failed.length ? 'warning' : 'success',
+    })
+    bulkPending.value = null
+    selected.value = new Set()
+    await refresh()
+  }
+  catch {
+    toast.add({ title: t('admin.users.actionFailed'), color: 'error' })
+  }
+  finally {
+    bulkBusy.value = false
+  }
+}
+
 const filterLinks = computed<NavigationMenuItem[]>(() => FILTERS.map(value => ({
   label: t(`admin.moderation.filter.${value}`),
   icon: FILTER_ICON[value],
@@ -168,7 +218,28 @@ async function executePending() {
       {{ t('admin.moderation.empty') }}
     </p>
 
-    <ul v-else class="space-y-3" data-moderation-list>
+    <div v-else class="mb-3 flex flex-wrap items-center gap-2" data-moderation-bulkbar>
+      <UCheckbox
+        :model-value="allSelected"
+        :label="t('admin.moderation.bulk.selectAll')"
+        data-moderation-select-all
+        @update:model-value="toggleAll"
+      />
+      <template v-if="selected.size > 0">
+        <UBadge color="neutral" variant="subtle">{{ t('admin.moderation.bulk.count', { count: selected.size }) }}</UBadge>
+        <UButton size="xs" color="error" variant="soft" icon="i-ph-eye-slash" data-bulk-hide @click="bulkPending = 'hide'">
+          {{ t('admin.moderation.hide') }}
+        </UButton>
+        <UButton size="xs" color="primary" variant="soft" icon="i-ph-check" data-bulk-dismiss @click="bulkPending = 'dismiss'">
+          {{ t('admin.moderation.dismiss') }}
+        </UButton>
+        <UButton size="xs" color="success" variant="soft" icon="i-ph-eye" data-bulk-restore @click="bulkPending = 'restore'">
+          {{ t('admin.moderation.restore') }}
+        </UButton>
+      </template>
+    </div>
+
+    <ul v-if="(data?.comments?.length ?? 0) > 0" class="space-y-3" data-moderation-list>
       <li
         v-for="comment in data?.comments"
         :key="comment.$id"
@@ -176,6 +247,13 @@ async function executePending() {
         :data-moderation-id="comment.$id"
       >
         <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
+          <UCheckbox
+            v-if="comment.status !== 'deleted'"
+            :model-value="isSelected(comment.$id)"
+            :aria-label="t('admin.moderation.bulk.selectOne')"
+            :data-moderation-select="comment.$id"
+            @update:model-value="toggleSelected(comment.$id)"
+          />
           <ULink :to="localePath(`/dashboard/users/${comment.authorId}`)" class="font-medium text-default hover:text-primary hover:underline">
             {{ comment.authorName }}
           </ULink>
@@ -275,6 +353,20 @@ async function executePending() {
       :items-per-page="25"
       @update:page="setPage"
     />
+
+    <UModal :open="bulkPending !== null" :title="t('admin.users.confirmTitle')" @update:open="(value: boolean) => { if (!value) bulkPending = null }">
+      <template #body>
+        <p class="text-sm">{{ bulkPending ? t(`admin.moderation.bulk.confirm.${bulkPending}`, { count: selected.size }) : '' }}</p>
+      </template>
+      <template #footer>
+        <div class="flex w-full justify-end gap-2">
+          <UButton color="neutral" variant="ghost" @click="bulkPending = null">{{ t('ui.cancel') }}</UButton>
+          <UButton :color="bulkPending === 'hide' ? 'error' : 'primary'" :loading="bulkBusy" data-bulk-confirm @click="executeBulk">
+            {{ t('admin.users.confirmAction') }}
+          </UButton>
+        </div>
+      </template>
+    </UModal>
 
     <UModal :open="pending !== null" :title="t('admin.users.confirmTitle')" @update:open="(value: boolean) => { if (!value) pending = null }">
       <template #body>

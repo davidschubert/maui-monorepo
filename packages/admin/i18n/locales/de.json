@@ -91,11 +91,17 @@
           "self_deleted": "hat den eigenen Account gelöscht",
           "password_changed": "hat das eigene Passwort geändert",
           "recovery_requested": "hat einen Passwort-Reset angefordert",
-          "profile_updated": "hat das eigene Profil aktualisiert"
+          "profile_updated": "hat das eigene Profil aktualisiert",
+          "bulk_block": "hat {count} Benutzer blockiert",
+          "bulk_unblock": "hat Benutzer entsperrt",
+          "csv_exported": "hat die Benutzerliste als CSV exportiert"
         },
         "comment": {
           "hidden": "hat einen Kommentar von {name} ausgeblendet",
-          "restored": "hat einen Kommentar von {name} wiederhergestellt"
+          "restored": "hat einen Kommentar von {name} wiederhergestellt",
+          "bulk_hide": "hat mehrere Kommentare ausgeblendet",
+          "bulk_restore": "hat mehrere Kommentare wiederhergestellt",
+          "bulk_dismiss": "hat Meldungen mehrerer Kommentare erledigt"
         },
         "storage": {
           "file_deleted": "hat eine Speicherdatei gelöscht"
@@ -264,7 +270,19 @@
         "active": "Aktive Benutzer",
         "new": "Neue Benutzer",
         "online": "Benutzer online"
-      }
+      },
+      "bulk": {
+        "selectAll": "Alle auswählen",
+        "selectOne": "Benutzer auswählen",
+        "count": "{count} ausgewählt",
+        "done": "{count} Benutzer bearbeitet.",
+        "partial": "{done} bearbeitet, {failed} fehlgeschlagen.",
+        "confirm": {
+          "block": "{count} Benutzer blockieren? Sie können sich nicht mehr anmelden.",
+          "unblock": "{count} Benutzer wieder entsperren?"
+        }
+      },
+      "exportCsv": "CSV-Export"
     },
     "moderation": {
       "filter": {
@@ -297,6 +315,18 @@
         "action": {
           "hide": "KI-Empfehlung: Ausblenden — Schwere {severity}/5",
           "dismiss": "KI-Empfehlung: Meldungen verwerfen — Schwere {severity}/5"
+        }
+      },
+      "bulk": {
+        "selectAll": "Alle auswählen",
+        "selectOne": "Kommentar auswählen",
+        "count": "{count} ausgewählt",
+        "done": "{count} Kommentare bearbeitet.",
+        "partial": "{done} bearbeitet, {failed} fehlgeschlagen.",
+        "confirm": {
+          "hide": "{count} Kommentare ausblenden? Sie sind dann öffentlich nicht mehr sichtbar; offene Meldungen werden erledigt.",
+          "restore": "{count} Kommentare wiederherstellen?",
+          "dismiss": "Meldungen für {count} Kommentare als erledigt markieren? Die Kommentare bleiben sichtbar."
         }
       }
     },

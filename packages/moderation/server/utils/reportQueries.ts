@@ -46,6 +46,54 @@ export async function myOpenReportTargetIds(
 }
 
 /**
+ * Alle offenen Meldungen zu einem Target abschließen. Vertrag für Konsumenten
+ * (Resolve-Route, admin-Bulk-Aktionen) — `resolution` ist ein offener String
+ * (z. B. 'hidden', 'no_action'), die Semantik bestimmt der Aufrufer.
+ * Arbeitet im REPORTS_WINDOW; Überlauf wird geloggt und bleibt open (der
+ * nächste Lauf erfasst ihn).
+ */
+export async function resolveReportsForTarget(
+  event: import('h3').H3Event,
+  targetType: string,
+  targetId: string,
+  resolution: string,
+  resolvedBy: string,
+): Promise<number> {
+  const config = useRuntimeConfig(event)
+  const databaseId = config.public.appwriteDatabaseId
+  const { tablesDB } = createAdminClient(event)
+
+  const open = await tablesDB.listRows<Report>({
+    databaseId,
+    tableId: REPORTS_TABLE,
+    queries: [
+      Query.equal('targetType', targetType),
+      Query.equal('targetId', targetId),
+      Query.equal('status', 'open'),
+      Query.limit(REPORTS_WINDOW),
+    ],
+  })
+  if (open.total > open.rows.length) {
+    console.warn(`[moderation] resolve ${targetType}/${targetId}: ${open.total} offene Meldungen, Fenster ${REPORTS_WINDOW} — Rest bleibt open`)
+  }
+
+  // Parallel in Chunks statt strikt sequentiell — bei vielen Meldungen pro
+  // Target sonst unnötig langsam; Chunk-Größe begrenzt die Last auf Appwrite.
+  const CHUNK = 10
+  for (let i = 0; i < open.rows.length; i += CHUNK) {
+    await Promise.all(open.rows.slice(i, i + CHUNK).map(row =>
+      tablesDB.updateRow<Report>({
+        databaseId,
+        tableId: REPORTS_TABLE,
+        rowId: row.$id,
+        data: { status: 'resolved', resolvedBy, resolution },
+      }),
+    ))
+  }
+  return open.rows.length
+}
+
+/**
  * Alle offenen Meldungen zu EINEM Target (neueste zuerst). Für Detail-Ansichten
  * und den KI-Moderations-Assist (admin) — die Meldegründe/Notizen gehören zum
  * Kontext der Einschätzung.

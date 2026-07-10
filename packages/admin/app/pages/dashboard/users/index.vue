@@ -73,6 +73,7 @@ function runSearch() {
 }
 
 const columns: TableColumn<AdminUserRow>[] = [
+  { id: 'select', header: () => '' },
   { accessorKey: 'name', header: () => t('admin.users.name') },
   { accessorKey: 'email', header: () => t('admin.users.email') },
   { accessorKey: '$createdAt', header: () => t('admin.users.joined'), id: 'createdAt' },
@@ -87,6 +88,60 @@ const columns: TableColumn<AdminUserRow>[] = [
 const pending = ref<{ type: 'block' | 'unblock' | 'sessions' | 'delete', user: AdminUserRow } | null>(null)
 const busy = ref(false)
 const exportingId = ref<string | null>(null)
+
+// ---- Bulk-Aktionen (Multi-Select): block/unblock + CSV-Export ----
+const selected = ref(new Set<string>())
+const isSelected = (id: string) => selected.value.has(id)
+function toggleSelected(id: string) {
+  const next = new Set(selected.value)
+  if (next.has(id)) next.delete(id)
+  else next.add(id)
+  selected.value = next
+}
+// Eigener Account bleibt abwählbar — Block auf sich selbst lehnt der Server ohnehin ab
+const pageIds = computed(() => (data.value?.users ?? []).filter(u => u.$id !== me.value?.$id).map(u => u.$id))
+const allSelected = computed(() => pageIds.value.length > 0 && pageIds.value.every(id => selected.value.has(id)))
+function toggleAll() {
+  selected.value = allSelected.value ? new Set() : new Set(pageIds.value)
+}
+watch(data, () => {
+  const visible = new Set(pageIds.value)
+  selected.value = new Set([...selected.value].filter(id => visible.has(id)))
+})
+
+const bulkPending = ref<'block' | 'unblock' | null>(null)
+const bulkBusy = ref(false)
+
+async function executeBulk() {
+  if (!bulkPending.value || selected.value.size === 0) return
+  bulkBusy.value = true
+  try {
+    const result = await $fetch<{ ok: boolean, done: string[], failed: string[] }>('/api/admin/users/bulk', {
+      method: 'POST',
+      body: { action: bulkPending.value, ids: [...selected.value] },
+    })
+    toast.add({
+      title: result.failed.length
+        ? t('admin.users.bulk.partial', { done: result.done.length, failed: result.failed.length })
+        : t('admin.users.bulk.done', { count: result.done.length }),
+      color: result.failed.length ? 'warning' : 'success',
+    })
+    bulkPending.value = null
+    selected.value = new Set()
+    await refresh()
+  }
+  catch {
+    toast.add({ title: t('admin.users.actionFailed'), color: 'error' })
+  }
+  finally {
+    bulkBusy.value = false
+  }
+}
+
+// CSV-Download per Navigation — Content-Disposition macht daraus einen Download
+function exportCsv() {
+  window.location.href = '/api/admin/users/export-csv'
+}
 
 const confirmText = computed(() => {
   if (!pending.value) return ''
@@ -215,6 +270,9 @@ async function createUser() {
           <UDashboardSidebarCollapse />
         </template>
         <template #right>
+          <UButton icon="i-ph-file-csv" size="sm" color="neutral" variant="subtle" data-testid="export-csv" @click="exportCsv">
+            {{ t('admin.users.exportCsv') }}
+          </UButton>
           <UButton icon="i-ph-plus" size="sm" data-testid="add-users" @click="openCreate">
             {{ t('admin.users.add.cta') }}
           </UButton>
@@ -236,7 +294,34 @@ async function createUser() {
         <template #fallback>
           <div class="flex justify-center py-16"><UIcon name="i-ph-spinner" class="size-6 animate-spin text-muted" /></div>
         </template>
+      <div v-if="selected.size > 0" class="mb-3 flex flex-wrap items-center gap-2" data-users-bulkbar>
+        <UBadge color="neutral" variant="subtle">{{ t('admin.users.bulk.count', { count: selected.size }) }}</UBadge>
+        <UButton size="xs" color="error" variant="soft" icon="i-ph-prohibit" data-bulk-block @click="bulkPending = 'block'">
+          {{ t('admin.users.block') }}
+        </UButton>
+        <UButton size="xs" color="success" variant="soft" icon="i-ph-lock-open" data-bulk-unblock @click="bulkPending = 'unblock'">
+          {{ t('admin.users.unblock') }}
+        </UButton>
+      </div>
+
       <UTable :data="data?.users ?? []" :columns="columns" data-users-table>
+        <template #select-header>
+          <UCheckbox
+            :model-value="allSelected"
+            :aria-label="t('admin.users.bulk.selectAll')"
+            data-users-select-all
+            @update:model-value="toggleAll"
+          />
+        </template>
+        <template #select-cell="{ row }">
+          <UCheckbox
+            v-if="row.original.$id !== me?.$id"
+            :model-value="isSelected(row.original.$id)"
+            :aria-label="t('admin.users.bulk.selectOne')"
+            :data-users-select="row.original.$id"
+            @update:model-value="toggleSelected(row.original.$id)"
+          />
+        </template>
         <template #name-header>
           <SortableHeader :label="t('admin.users.name')" field="name" :active="sortField" :dir="sortDir" @toggle="toggle" />
         </template>
@@ -324,6 +409,20 @@ async function createUser() {
         @update:page="setPage"
       />
       </ClientOnly>
+
+      <UModal :open="bulkPending !== null" :title="t('admin.users.confirmTitle')" @update:open="(value: boolean) => { if (!value) bulkPending = null }">
+        <template #body>
+          <p class="text-sm">{{ bulkPending ? t(`admin.users.bulk.confirm.${bulkPending}`, { count: selected.size }) : '' }}</p>
+        </template>
+        <template #footer>
+          <div class="flex w-full justify-end gap-2">
+            <UButton color="neutral" variant="ghost" @click="bulkPending = null">{{ t('ui.cancel') }}</UButton>
+            <UButton :color="bulkPending === 'block' ? 'error' : 'primary'" :loading="bulkBusy" data-bulk-confirm @click="executeBulk">
+              {{ t('admin.users.confirmAction') }}
+            </UButton>
+          </div>
+        </template>
+      </UModal>
 
       <UModal :open="pending !== null" :title="t('admin.users.confirmTitle')" @update:open="(value: boolean) => { if (!value) pending = null }">
         <template #body>

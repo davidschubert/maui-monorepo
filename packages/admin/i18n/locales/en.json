@@ -91,11 +91,17 @@
           "self_deleted": "deleted their own account",
           "password_changed": "changed their password",
           "recovery_requested": "requested a password reset",
-          "profile_updated": "updated their profile"
+          "profile_updated": "updated their profile",
+          "bulk_block": "blocked {count} users",
+          "bulk_unblock": "unblocked users",
+          "csv_exported": "exported the user list as CSV"
         },
         "comment": {
           "hidden": "hid a comment by {name}",
-          "restored": "restored a comment by {name}"
+          "restored": "restored a comment by {name}",
+          "bulk_hide": "hid multiple comments",
+          "bulk_restore": "restored multiple comments",
+          "bulk_dismiss": "resolved reports of multiple comments"
         },
         "storage": {
           "file_deleted": "deleted a storage file"
@@ -264,7 +270,19 @@
         "active": "Active users",
         "new": "New users",
         "online": "Users online"
-      }
+      },
+      "bulk": {
+        "selectAll": "Select all",
+        "selectOne": "Select user",
+        "count": "{count} selected",
+        "done": "{count} users processed.",
+        "partial": "{done} processed, {failed} failed.",
+        "confirm": {
+          "block": "Block {count} users? They will no longer be able to sign in.",
+          "unblock": "Unblock {count} users?"
+        }
+      },
+      "exportCsv": "Export CSV"
     },
     "moderation": {
       "filter": {
@@ -297,6 +315,18 @@
         "action": {
           "hide": "AI recommendation: hide — severity {severity}/5",
           "dismiss": "AI recommendation: resolve reports — severity {severity}/5"
+        }
+      },
+      "bulk": {
+        "selectAll": "Select all",
+        "selectOne": "Select comment",
+        "count": "{count} selected",
+        "done": "{count} comments processed.",
+        "partial": "{done} processed, {failed} failed.",
+        "confirm": {
+          "hide": "Hide {count} comments? They will no longer be publicly visible; open reports are resolved.",
+          "restore": "Restore {count} comments?",
+          "dismiss": "Mark reports for {count} comments as resolved? The comments stay visible."
         }
       }
     },
