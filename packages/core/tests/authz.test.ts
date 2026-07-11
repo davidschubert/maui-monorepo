@@ -51,9 +51,11 @@ describe('capabilitiesFor', () => {
     for (const cap of ALL_CAPABILITIES) expect(caps.has(cap)).toBe(true)
   })
 
-  it('moderator → genau dashboard.access, comments.moderate, reports.moderate', () => {
+  it('moderator → genau dashboard.access, comments.moderate, reports.moderate, tickets.manage', () => {
+    // tickets.manage bewusst dabei: Karten-Mitglieder sind Admins UND Mods
+    // (shared/authz.ts, Tickets-Board P1)
     expect([...capabilitiesFor(['moderator'])].sort()).toEqual(
-      ['comments.moderate', 'dashboard.access', 'reports.moderate'],
+      ['comments.moderate', 'dashboard.access', 'reports.moderate', 'tickets.manage'],
     )
   })
 
@@ -65,7 +67,7 @@ describe('capabilitiesFor', () => {
     expect(capabilitiesFor(['garbage']).size).toBe(0)
     // moderator + Müll bleibt moderator
     expect([...capabilitiesFor(['moderator', 'garbage'])].sort()).toEqual(
-      ['comments.moderate', 'dashboard.access', 'reports.moderate'],
+      ['comments.moderate', 'dashboard.access', 'reports.moderate', 'tickets.manage'],
     )
   })
 })
