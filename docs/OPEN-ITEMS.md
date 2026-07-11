@@ -69,11 +69,14 @@ nutzbar). Reihenfolge = grobe Priorität.
   admin/stats kennt keine Feature-Tabellen mehr); A14-Vertragsliste + die
   bewusste core→system-Matrix-Ausnahme in CONCEPT dokumentiert; SEO-Caveat
   dokumentiert (s. u.).
+- ✅ `redirectOn:'all'`-**SEO-Caveat GELÖST (2026-07-10)**: hreflang-Alternates
+  + og:locale + canonical via `useLocaleHead` in den App-Shells; `detect-
+  BrowserLanguage.fallbackLocale` entfernt (signal-lose Crawler-Requests
+  bekamen auf /de/* EN-Content — jetzt URL-Locale als Autorität). Absolute
+  URLs via `NUXT_PUBLIC_I18N_BASE_URL` — in Prod (Phase 17) auf die echte
+  Domain setzen. Details README-Status 65.
 - **Bewusst akzeptiert/zurückgestellt (2026-07-02 entschieden)**:
-  `redirectOn:'all'`-**SEO-Caveat**: der i18n-Redirect folgt dem Cookie auf
-  JEDER Seite — Crawler ohne Cookie sehen immer die Default-Locale; für echte
-  SEO-Zweisprachigkeit bräuchte es hreflang-Alternates statt Redirects (mit
-  Phase 17/Prod-SEO angehen). **UserMenu → /dashboard**: bleibt als
+  **UserMenu → /dashboard**: bleibt als
   capability-gegateter localePath-Link (Apps ohne admin-Layer haben keine User
   mit dashboard.access — der Link erscheint dort nie). **PresenceAvatar auf
   UChip**: rein kosmetisch, verschoben. **Flag-Registry statt commentsEnabled
