@@ -38,10 +38,14 @@ const centerNav = computed<NavigationMenuItem[]>(() => [
         <div class="order-last col-span-2 flex items-center justify-center md:order-none md:col-span-1">
           <!-- contentOrientation vertical: Produkte untereinander, je mit
                Icon + zweizeiliger Beschreibung (Wunsch David) -->
+          <!-- viewport MUSS die content-Breite spiegeln + shrink-0: er ist
+               Flex-Kind des Wrapper (w-full der schmalen Nav-Leiste, ~300px
+               sprach-/loginabhängig) — ohne beides drückt flex-shrink den
+               Rahmen unter die 320px des Inhalts und schneidet rechts ab -->
           <UNavigationMenu
             :items="centerNav"
             content-orientation="vertical"
-            :ui="{ content: 'w-80' }"
+            :ui="{ viewport: 'w-80 shrink-0', content: 'w-80' }"
             data-testid="center-nav"
           />
         </div>
