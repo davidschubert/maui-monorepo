@@ -206,7 +206,18 @@ Schätzung: **S** ≤ ½ Tag · **M** ≈ 1 Tag · **L** ≈ 2–3 Tage.
    übernehmen (ocean/forest/sunset-Varianten als erste 2 von 10 behalten),
    17 neue Farbwelten definieren (z.B. über den oklch-Hue-Kreis verteilt +
    kuratierte Ausreißer wie graphite). Als `theme.spec.ts` anlegen.
-3. **[L] Generator-Script bauen** (`packages/themes/scripts/generate-themes.mjs`,
+3. **[L] Generator-Script bauen** — **VORARBEIT ✅ (2026-07-11, ohne Katalog):**
+   Logik pure/testbar in `shared/themeGen.ts` (Ramps via bestehendem
+   `generateRamp`, Kontrast-Gate ≥3:1 aus Schritt 4 integriert, Stufen-Shift
+   statt schlechtem Theme), CLI `scripts/generate-themes.ts` (Runner jiti,
+   `pnpm --filter @maui/themes generate`), Input `theme.catalog.ts` (statt
+   theme.spec.ts — *.spec.ts kollidiert mit Vitest) mit den 9 Bestands-Themes
+   als PLATZHALTER, Output nach `.generated/` (Vorschau; `--write` erst nach
+   visueller Abnahme — die vereinheitlichte Anker-Kurve verschiebt z. B.
+   oceans 500er von #2f7fee auf #0565d5, bewusst abzunehmen). 8 Unit-Tests
+   (Determinismus byte-gleich verifiziert, Format, Gate-Invariante).
+   OFFEN aus dem ursprünglichen Schritt: Abnahme + `--write`-Übernahme.
+   (Ursprünglicher Text: `packages/themes/scripts/generate-themes.mjs`,
    Node 22, keine neuen Runtime-Deps; ggf. `culori` als devDependency für
    oklch-Konvertierung): Spec → Ramps → CSS-Dateien + `themeRegistry.gen.ts`.
    Idempotent/deterministisch (gleicher Input = byte-gleicher Output),

@@ -95,6 +95,41 @@ Vollständiges Konzept: docs/CONCEPT.md
 - Admin-Nav-Registry (maui.admin.modules) kann children (Unterpunkte,
   RBAC-gefiltert, exact für Index-Einträge)
 
+## KI, E-Mail, Embed, Moderation (Core-Bausteine seit 2026-07-09/10)
+- KI: aiComplete()/aiCompleteJson() (core/server/utils/aiComplete.ts) = EIN
+  Transport für OpenAI-kompatible APIs (Default OpenRouter). Gate maui.ai
+  (enabled/model/baseUrl, Core-Default aus) + server-only NUXT_AI_KEY;
+  Transport ist policy-frei — Gates + Antwort-Klemmung beim Konsumenten.
+  Laufzeit-Override-Kette: app_config.ticketsAiModel > app_config.aiModel
+  (system-016, Admin-Config-Seite, getEffectiveAiConfig) > maui.tickets.ai >
+  maui.ai. Konsumenten: Ticket-Triage, Moderations-Assist (Kommentare
+  /api/admin/comments/:id/assist + Posts /api/posts/:id/assist — advisory,
+  Mensch entscheidet; UI-Flag isAiAvailable()).
+- E-Mail: sendMail() (core mailer.ts, nodemailer, NUXT_SMTP_* — leerer Host =
+  aus, lokal Mailpit localhost:1025). notify() hat einen Opt-in-E-Mail-Zweig:
+  prefs.emailNotifications off|instant|digest (Default off, Settings →
+  Benachrichtigungen; Mail-Sprache = prefs.emailLocale). Digest-Sweep:
+  Kandidaten aus UNGELESENEN notifications-Rows (kein User-Scan), max 1
+  Mail/Tag (prefs.emailDigestLastAt, merge!), Intervall-Plugin 30 min +
+  POST /api/notifications/run-digest (system.manage).
+- Embed (Read-only-MVP, docs/EMBED.md): Gate maui.comments.embed
+  (enabled/allowedOrigins, Default aus) → /embed-Seite + public/embed.js.
+  frame-ancestors via core-Registry registerEmbeddableRoute (Default 'self'
+  auf ALLEN SSR-Seiten); csrf-origin.ts-Middleware (maui.security.
+  csrfOriginCheck) wird PFLICHT, sobald E2-Partitioned-Cookies kommen.
+  Transparenter Hintergrund NUR bei theme=auto. localhost:PORT↔PORT ist
+  same-SITE — echtes Cross-Site-Gastverhalten braucht echte Domains.
+- Moderation: Zweiphasen-Hide + Cascade gehören dem comments-Layer
+  (commentModeration.ts) — admin-Routen + Auto-Hide teilen sie. Eskalation:
+  registerReportEscalationHandler (moderation zählt, Owner reagiert);
+  comments blendet ab maui.comments.autoHideReports offenen Meldungen aus
+  (0 = aus; Meldungen bleiben offen). resolveReportsForTarget/
+  openReportsForTarget sind die moderation-Verträge für Resolve/Assist/Bulk.
+- Microcache: createMicrocache() (core) NUR für user-agnostische GETs —
+  Gast-Kommentare Seite 1 (10s), öffentlicher Changelog (Write-invalidiert),
+  App-/api/stats (60s). NIE Antworten mit Session-Daten cachen; kein
+  SSR-Seiten-SWR (Session-State steckt im HTML).
+
 ## Config-Gates (app.config.ts, Namespace maui.*)
 - maui.analytics / maui.consent: Core-Default false, App aktiviert explizit
 - maui.observability: strukturierte JSON-5xx-Logs am zentralen server/error.ts
@@ -125,11 +160,14 @@ Vollständiges Konzept: docs/CONCEPT.md
 - Zod für alle Formulare (Schemas als create*Schema(t)-Factories),
   i18n keys für User-facing Strings (keine hartcodierten Strings im Markup/Toasts);
   '@' in Locale-Messages als {'@'} escapen
-- i18n-Strategie 'prefix_except_default' (en Default/Fallback ohne Prefix unter /...,
+- i18n-Strategie 'prefix_except_default' (en Default ohne Prefix unter /...,
   de unter /de/*, detectBrowserLanguage redirectOn: 'all' → jede Seite folgt dem
-  i18n_redirected-Cookie, nicht nur '/'): interne Links/Redirects IMMER über
-  localePath() — auch in Middleware (useLocalePath()('/...')), sonst geht der
-  Locale-Prefix verloren
+  i18n_redirected-Cookie, nicht nur '/'; BEWUSST ohne fallbackLocale — signal-
+  lose Requests wie Crawler behalten die URL-Locale, sonst EN-Content unter
+  /de/*): interne Links/Redirects IMMER über localePath() — auch in Middleware
+  (useLocalePath()('/...')), sonst geht der Locale-Prefix verloren. SEO:
+  useLocaleHead in den App-app.vue liefert hreflang/canonical/og:locale;
+  absolute URLs via NUXT_PUBLIC_I18N_BASE_URL (i18n.baseUrl-Skeleton in core)
 - createError mit status/statusText (nicht statusCode/statusMessage),
   keine Appwrite-Fehlerdetails an Clients leaken
 - useToast kommt aus Nuxt UI — nicht im Core re-exportieren (schattet Auto-Import)
@@ -139,6 +177,13 @@ Vollständiges Konzept: docs/CONCEPT.md
 
 ## Ports
 core/.playground: 3000 · reddit-comments: 3001 · weitere: 3002+
+
+## Tests
+pnpm -r test (Unit) · Playwright-E2E in apps/reddit-comments (Base-URL per
+PW_BASE_URL überschreibbar — parallele Dev-Sessions) · themes-visual zielt
+auf die deterministische /visual-Seite (NIE Live-Daten screenshotten) ·
+CI e2e.yml fährt eine echte Wegwerf-Appwrite (ci/appwrite +
+scripts/ci/appwrite-setup.mjs → bootstrap --seed → volle Suite inkl. Realtime)
 
 ## Git
 Conventional Commits · BREAKING CHANGE(core): Prefix · Core-Änderungen

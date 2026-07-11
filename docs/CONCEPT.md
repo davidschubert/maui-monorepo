@@ -498,6 +498,18 @@ in ihrer Datei eine Regel steht, sondern weil sie im Themes-Layer liegt.
    `deleteUserCompletely` ohne Feature-Schema-Wissen; seit 2026-07-02) sowie
    `registerDashboardStatsContributor` (Feature-Layer liefern ihre Dashboard-
    Kennzahlen — admin/stats kennt keine Feature-Tabellen mehr; seit 2026-07-02).
+   Seit 2026-07-09/10 dazu: `openReportsForTarget()`/`resolveReportsForTarget()`
+   (moderation-Verträge für Assist/Resolve/Bulk), `registerReportEscalationHandler`
+   (moderation zählt Meldungen, der Target-Owner zieht die Konsequenz — comments
+   nutzt ihn für den Auto-Hide-Threshold `maui.comments.autoHideReports`),
+   `registerEmbeddableRoute` (core setzt `frame-ancestors 'self'` auf alle SSR-
+   Seiten; framebare Routen wie comments `/embed` registrieren sich mit ihrer
+   Origin-Allowlist), `hideCommentRow`/`hideCommentDescendants` (comments-Owner-
+   Vertrag fürs Zweiphasen-Hide + Cascade — admin-Routen und Auto-Hide teilen ihn)
+   sowie die Core-Bausteine `aiComplete()`/`aiCompleteJson()` (KI-Transport, Gate
+   `maui.ai` + `NUXT_AI_KEY`; Policy beim Konsumenten), `sendMail()`/`notify()`-
+   E-Mail-Zweig (SMTP via `NUXT_SMTP_*`, Opt-in-Prefs, Digest-Sweep) und
+   `createMicrocache()` (user-agnostische GET-Antworten, Single-Instanz).
    Dokumentierte Matrix-Ausnahme: core SCHREIBT die system-Tabellen `audit_logs`
    (authAudit) und `notifications` (notify) sowie liest `app_config` — bewusste
    Fundament→Fundament-Nutzung, system bleibt reiner Schema-Owner + GDPR/Stats-Anbieter.
