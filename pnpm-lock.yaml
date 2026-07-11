@@ -42,6 +42,9 @@ catalogs:
     eslint:
       specifier: ^10.4.1
       version: 10.5.0
+    jiti:
+      specifier: ^2.7.0
+      version: 2.7.0
     node-appwrite:
       specifier: ^26.2.0
       version: 26.2.0
@@ -664,6 +667,9 @@ importers:
       eslint:
         specifier: 'catalog:'
         version: 10.5.0(jiti@2.7.0)
+      jiti:
+        specifier: 'catalog:'
+        version: 2.7.0
       typescript:
         specifier: 'catalog:'
         version: 5.9.3

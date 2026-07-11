@@ -6,7 +6,8 @@
   "main": "./nuxt.config.ts",
   "scripts": {
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "generate": "jiti scripts/generate-themes.ts"
   },
   "dependencies": {
     "@nuxt/ui": "catalog:"
@@ -14,8 +15,9 @@
   "devDependencies": {
     "@nuxt/eslint-config": "catalog:",
     "eslint": "catalog:",
+    "jiti": "catalog:",
     "typescript": "catalog:",
-    "vue": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "vue": "catalog:"
   }
 }

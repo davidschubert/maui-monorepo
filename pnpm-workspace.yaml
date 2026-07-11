@@ -26,6 +26,7 @@ catalog:
   vitest: ^4.1.8
   vue-tsc: ^3.3.4
   zod: ^4.4.3
+  jiti: ^2.7.0
   nodemailer: ^7.0.0
   '@types/nodemailer': ^7.0.0
   stripe: ^18.0.0
