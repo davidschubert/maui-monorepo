@@ -19,7 +19,10 @@ nutzbar). Reihenfolge = grobe Priorität.
 ## 🟠 Offen — als Nächstes angehen
 
 - **Phase 17 – Production Deployment** — Plan + Schritt-für-Schritt-Checkliste
-  für den Betreiber: [docs/plans/PHASE-17-PRODUCTION.md](plans/PHASE-17-PRODUCTION.md)
+  für den Betreiber: [docs/plans/PHASE-17-PRODUCTION.md](plans/PHASE-17-PRODUCTION.md).
+  **Vorarbeit ✅ (2026-07-11): Prod-Build lokal generalprobiert** — nuxi build
+  + node .output, 14/14 funktionale E2E (inkl. Realtime) gegen den Build;
+  Prod braucht nur noch NUXT_PUBLIC_I18N_BASE_URL + NUXT_SMTP_* auf echte Werte.
   (Empfehlung: 2 Hetzner-VMs, ploi-Daemon, deploy.yml via workflow_run,
   Realtime-Watchdog; ~60 abhakbare Schritte, ~25–28 €/Monat).
 - **Changelog Track 2B aktivieren** (braucht Prod + Domain):
@@ -79,7 +82,8 @@ nutzbar). Reihenfolge = grobe Priorität.
   **UserMenu → /dashboard**: bleibt als
   capability-gegateter localePath-Link (Apps ohne admin-Layer haben keine User
   mit dashboard.access — der Link erscheint dort nie). **PresenceAvatar auf
-  UChip**: rein kosmetisch, verschoben. **Flag-Registry statt commentsEnabled
+  UChip**: ✅ umgesetzt 2026-07-11 (Badge aus dem Chip-Theme, live verifiziert).
+  **Flag-Registry statt commentsEnabled
   in core**: mittlerer Refactor der AppConfig-Typen, lohnt erst mit dem
   nächsten neuen Flag. `useFormatCurrency`: bleibt als Baukasten-Vorhaltung
   (billing-Plan nutzt sie).
