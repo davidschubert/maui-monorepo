@@ -17,11 +17,20 @@ export default defineNuxtConfig({
   i18n: {
     defaultLocale: 'en',
     strategy: 'prefix_except_default',
+    // hreflang/canonical-Basis für useLocaleHead (SEO-Zweisprachigkeit trotz
+    // Cookie-Redirects): Skeleton leer — die App setzt zur Laufzeit
+    // NUXT_PUBLIC_I18N_BASE_URL (= ihre öffentliche URL). Ohne Wert bleiben
+    // die Alternate-Links relativ (lokal ok, Prod setzt die Env).
+    baseUrl: '',
     detectBrowserLanguage: {
       useCookie: true,
       cookieKey: 'i18n_redirected',
       redirectOn: 'all',
-      fallbackLocale: 'en',
+      // BEWUSST kein fallbackLocale: Requests OHNE Signal (kein Cookie, kein
+      // Accept-Language — v. a. Crawler) wurden sonst auch auf /de/* auf EN
+      // gezwungen (falsches og:locale/canonical, EN-Content unter /de).
+      // Ohne Fallback bleibt die URL-Locale die Autorität; Besucher mit
+      // Cookie/Browser-Sprache verhalten sich unverändert.
     },
     locales: [
       { code: 'en', language: 'en-US', name: 'English', file: 'en.json' },
