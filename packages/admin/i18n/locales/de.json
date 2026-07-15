@@ -356,7 +356,8 @@
       "dataKept": "Deine Daten bleiben erhalten.",
       "enabled": "{name} aktiviert",
       "disabled": "{name} deaktiviert",
-      "toggleFailed": "Feature konnte nicht umgeschaltet werden"
+      "toggleFailed": "Feature konnte nicht umgeschaltet werden",
+      "alwaysOn": "Immer aktiv"
     }
   },
   "whatsNew": {

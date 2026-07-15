@@ -64,9 +64,15 @@ async function toggle(entry: AdminFeatureEntry, enabled: boolean) {
               <p class="mt-0.5 text-xs text-muted">{{ t('admin.features.dataKept') }}</p>
             </div>
           </div>
+          <!-- Grundgerüst: bewusst KEIN Schalter (nicht abschaltbar — u. a.
+               Lockout-Schutz: diese Seite lebt selbst im Admin-Dashboard) -->
+          <UBadge v-if="!entry.toggleable" color="neutral" variant="soft" icon="i-ph-lock-simple" class="shrink-0">
+            {{ t('admin.features.alwaysOn') }}
+          </UBadge>
           <USwitch
+            v-else
             :model-value="entry.state.enabled"
-            :disabled="!entry.toggleable || pending === entry.manifest.key"
+            :disabled="pending === entry.manifest.key"
             :data-feature-toggle="entry.manifest.key"
             @update:model-value="(value: boolean) => toggle(entry, value)"
           />

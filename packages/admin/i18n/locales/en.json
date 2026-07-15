@@ -356,7 +356,8 @@
       "dataKept": "Your data is kept.",
       "enabled": "{name} enabled",
       "disabled": "{name} disabled",
-      "toggleFailed": "Could not toggle feature"
+      "toggleFailed": "Could not toggle feature",
+      "alwaysOn": "Always on"
     }
   },
   "whatsNew": {
