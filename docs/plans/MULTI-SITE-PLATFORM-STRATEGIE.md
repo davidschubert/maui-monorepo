@@ -1,6 +1,12 @@
 # Multi-Site-Platform-Strategie — „Maui Platform"
 
-Stand: 2026-07-14 · Status: **Konzept-Entwurf zur Diskussion** (noch kein Go)
+Stand: 2026-07-14 (4. Runde: kritisches Review eingearbeitet) · Status:
+**Konzept abgestimmt — Umsetzungs-Freigabe für abhängige Teile erst nach
+bestandenen Spikes S1–S3 (Decision Gates, § 4)**
+
+Lesehilfe: „Entschieden" heißt KONZEPTUELL entschieden. Punkte mit ⚠️ sind
+Annahmen, die erst durch einen PoC/Spike technisch bestätigt werden müssen —
+vorher wird keine davon abhängige Architektur festgezurrt.
 
 Dieses Dokument beantwortet: Wie wird aus dem maui-monorepo (heute: Baukasten
 für einzelne Apps) eine Plattform, die (1) Davids eigene Sites, (2) betreute
@@ -109,8 +115,9 @@ Horizont 3 (später):   Self-Service-SaaS   → Platform-App + Stripe-Entitlemen
 entscheidet, welche Site sie rendert und welche Features aktiv sind.
 - Ein Deployment bedient N Sites (Wildcard-Hostname `*.hawaii.studio`).
 - Site-Erzeugung = DB-Eintrag + Appwrite-Projekt, KEIN Build, KEIN Deploy
-  → das ist die einzige Architektur, mit der sich Fremde selbst eine Site
-  erstellen können, während alles im Monorepo bleibt.
+  → der einzige uns bekannte Weg, wie Fremde sich selbst eine Site
+  erstellen können, während alles im Monorepo bleibt. ⚠️ Trägt nur, wenn
+  Spike S3 (pro-Request-Projekt-Auflösung) besteht.
 - Gestaltung über Custom Themes/Fonts (existiert!) statt Code-Overrides.
 - Braucht: Redis-Rate-Limit, hostname→Site-Auflösung, per-Request-Appwrite-
   Projekt-Auswahl.
@@ -125,17 +132,26 @@ Testgelände, der Layer das Produkt.
 **Upgrade-Pfad B→A (Warum):** Das ist der natürliche Upsell-/Wachstumspfad
 des Agentur-Modells — ein Kunde startet günstig self-service (B), wächst und
 bucht später Custom-Design/Sonderfunktionen, die nur eine eigene App kann.
-Der Pfad kostet uns keine Extra-Arbeit; er fällt aus der Architektur
-(Daten im Appwrite-Projekt, Frontend austauschbar) gratis ab.
+Die Architektur (Daten im Appwrite-Projekt, Frontend austauschbar) macht den
+Pfad MÖGLICH — er ist aber ein geplanter, getesteter Cutover-Prozess, kein
+kostenloser Schalter (4. Runde präzisiert).
 
-**Upgrade-Pfad B→A (Wie):** Alle Daten einer Site (User, Inhalte, Theme, Config)
-leben in IHREM Appwrite-Projekt — nie in der Platform-App. Aushärten heißt
-daher nur Frontend-Tausch, null Datenmigration: neue dünne App aus dem
-Template mit demselben Feature-Set scaffolden → `.env` aufs BESTEHENDE
-Appwrite-Projekt zeigen lassen → deployen → Domain-Routing von
-`apps/platform` auf die neue App umstellen (Sessions bleiben gültig —
-Cookie `a_session_<PROJECT_ID>` hängt an Domain + Projekt, beides
-unverändert). Danach volle Klasse-A-Gestaltungsfreiheit.
+**Upgrade-Pfad B→A (Wie):** Alle Daten einer Site (User, Inhalte, Theme,
+Config) leben in IHREM Appwrite-Projekt — nie in der Platform-App. Es ist
+also **keine Inhaltsmigration** erforderlich; der Cutover selbst braucht
+trotzdem einen definierten Prozess:
+1. **Kompatibilitätsprüfung:** die neue Klasse-A-App muss mindestens das
+   Feature-Set der B-Site einkompilieren; Theme-/Config-Daten der
+   Platform-Site müssen von der Studio-App identisch interpretiert werden
+   (gleiche Layer ⇒ strukturell gegeben, per Checkliste verifizieren).
+2. **Staging-Probelauf** gegen eine Projekt-Kopie (Restore-Script aus L1).
+3. **Cutover:** App deployen → Domain-Routing umstellen → Web-Platform-
+   Einträge, OAuth-Callbacks, CORS und Realtime-Endpoint nachziehen.
+4. **Session-Test statt Session-Versprechen:** Cookie-Kontinuität hängt an
+   Host-only-vs.-Domain-Cookies und daran, ob die Domain identisch bleibt
+   (Custom Domain bleibt gleich → gute Chancen; Wechsel Subdomain→Custom
+   Domain → Re-Login einplanen). Wird im Cutover-Prozess explizit getestet.
+5. **Rollback:** Routing zurück auf `apps/platform` (Daten unberührt).
 
 **Reihenfolge:** Klasse A sofort (eigene Sites). Klasse B erst in Horizont 3
 bauen — aber alle Verträge (Manifest, Gates, Entitlements) von Anfang an so
@@ -149,13 +165,25 @@ Präzisierung von A1: Die Isolations-Einheit ist das **Appwrite-Projekt**
 
 - **Ein gemeinsamer self-hosted Appwrite-Server** (Hetzner, das bestehende
   PHASE-17-Setup) hostet die Projekte aller eigenen + Platform-Sites.
-- Pro Site: eigenes Projekt + eigene Database + eigene Keys. DSGVO-Trennung
-  und „Kunde A nie neben Kunde B in derselben DB" bleiben voll erhalten.
+- Pro Site: eigenes Projekt + eigene Database + eigene Keys. Präzision
+  (4. Runde): das ist **logische Mandantentrennung** — Appwrite erzwingt sie
+  über projectId-Scoping aller APIs, per-Projekt-Keys und getrennte
+  Databases/Buckets. **Physisch** liegen alle Projekte in derselben MariaDB
+  und denselben Volumes (vgl. L1). Vertraglich wird logische Trennung
+  zugesichert, nicht physische; ein Appwrite-Bug oder fehlkonfigurierter
+  Key kann prinzipiell projektübergreifend wirken → Mitigation:
+  Least-Scope-Keys, zeitnahe Security-Updates, Audit-Log. Physische
+  Trennung ist die Eskalationsstufe (nächster Punkt).
 - Eskalations-Stufen bleiben möglich: sensibler Kunde → dedizierte Instanz
   (heutiges A1-Modell); Kunde will Datenhoheit → Appwrite Cloud auf
   Kundenaccount. Das Manifest (§ F1) trägt dafür ein `appwrite.endpoint`.
 - Skalierung: ab ~X Sites zweiter Appwrite-Server; das Sites-Register im
-  Control Plane kennt pro Site ihren Endpoint → Sharding ist trivial.
+  Control Plane kennt pro Site ihren Endpoint → späteres Sharding ist
+  strukturell vorbereitet (kein Architektur-Umbau — aber realer
+  Betriebsaufwand: Projekt-Umzüge, Backups und Monitoring pro Server).
+- Eskalationskriterien zur dedizierten Instanz (im Vertrag/Plan benennbar):
+  Compliance-Anforderung des Kunden, Lastprofil (>X % Server-Ressourcen),
+  Datenhoheit (eigener Account), SLA-Stufe.
 
 ⚠️ MariaDB/Ressourcen: viele Projekte auf einer Instanz teilen sich Worker
 und DB — Health-Monitoring pro Projekt (Control Plane) einplanen; der
@@ -192,7 +220,9 @@ Constraint (A3, unverändert): Site-Frontend und Appwrite-Endpoint müssen auf
 derselben **Root-Domain** liegen (Session-Cookie + authentifiziertes Realtime).
 
 - **Default:** jede neue Site startet als `<slug>.hawaii.studio`;
-  Appwrite-API zentral unter `api.hawaii.studio` → same root, Cookies ok.
+  Appwrite-API zentral unter `api.hawaii.studio` → gleiche Root-Domain;
+  ⚠️ das konkrete Cookie-/Session-Verhalten wird durch den S3-Browser-PoC
+  bestätigt, nicht angenommen.
   Ploi/Cloudflare: Wildcard-DNS `*.hawaii.studio` + Wildcard-Cert einmalig.
 - **Custom Domain, Frontend-TLS (Klasse B):** Empfehlung **Caddy (oder
   Traefik) mit On-Demand-TLS** vor `apps/platform`: erster Request auf einen
@@ -215,7 +245,9 @@ derselben **Root-Domain** liegen (Session-Cookie + authentifiziertes Realtime).
     cookie-native Browser-Pfade (useRealtimeAccount-Instant-Revoke,
     Presences-Cookie-GET) degradieren cross-root → brauchen JWT-/Server-Proxy-
     Varianten oder Polling-Fallback. Option 1 später als „White-Label-API"-
-    Premium-Feature anbieten.
+    Premium-Feature anbieten. ⚠️ Option 2 ist eine UNVERIFIZIERTE ANNAHME
+    und im Zweifel eine eigene Auth-/Realtime-Architektur — sie wird erst
+    nach bestandenem S3-Browser-PoC (Checkliste bei den Spikes) festgelegt.
 - OAuth-Callbacks, `NUXT_PUBLIC_I18N_BASE_URL`, Web-Platform-Registrierung
   hängen an der Domain → gehören ins Provisioning-Script, nicht in Doku.
 
@@ -282,6 +314,11 @@ export default defineFeatureManifest({
 - Ein Site-Manifest pro App (`apps/<site>/site.manifest.ts`) listet die
   gewählten Features; ein Codegen-/Check-Script hält `extends` +
   `package.json` synchron (Single Source of Truth, CI-geprüft).
+- **Katalog-Artefakt (4. Runde):** Die Manifeste liegen im Monorepo — das
+  Control Plane rendert den Katalog (F7) aber zur Laufzeit. Deshalb
+  generiert der Build ein validiertes, VERSIONIERTES Katalog-Artefakt
+  (JSON aus allen Manifesten) und stellt es dem Control Plane bereit; das
+  Sites-Register hält pro Site fest, welche Katalog-/Schema-Version sie hat.
 - Grundgerüst laut David = foundation-tier: core, system, auth/profile
   (core), billing, themes, admin, audit (system), changelog. Optional:
   comments, courses, events, feedback, feed, posts, tickets, moderation
@@ -299,6 +336,14 @@ Das AI-Override-Muster (`app_config.aiModel > maui.ai`) wird generalisiert:
   realtime-config-Kanal (Toggle im Dashboard wirkt live, ohne Reload).
 - Enforcement bleibt server-seitig an den Routen (wie heute
   `commentsEnabled`); UI blendet nur aus.
+- **Aktivierung ist eine verteilte Transaktion** (4. Runde): Entitlement,
+  Migration und Runtime-Flag können einzeln fehlschlagen. Pro Site×Feature
+  gilt eine explizite Statusmaschine:
+  `inactive → provisioning → active → disabling → inactive`, plus `error`
+  (mit Retry + markierter manueller Recovery). Das Gate wird erst NACH
+  erfolgreicher Migration aktiv — nie „sichtbar, aber Schema fehlt".
+  Schritte idempotent (Idempotency-Key), auditiert; Abhängigkeitsketten
+  (comments→moderation) werden als Ganzes provisioniert oder gar nicht.
 - Wichtig: Für Studio-Sites ist das Gate ein **Aus-Schalter innerhalb der
   einkompilierten Features** (Feature deaktivieren ohne Deploy). Für
   Platform-Sites ist es der EINZIGE Schalter.
@@ -315,8 +360,15 @@ Das AI-Override-Muster (`app_config.aiModel > maui.ai`) wird generalisiert:
   kein Live-Call pro Request, nicht fälschbar.
 - Davids Workspace: Plan `studio-unlimited` (alles frei) — Monetarisierung
   ist damit von Tag 1 modelliert, ohne dass irgendwer zahlen muss.
-- Kill-Switch: Entitlement läuft ab → Feature fällt auf `disabled`,
-  Daten bleiben (nie destruktiv bei Zahlungsausfall).
+- **Technische Gültigkeit ≠ kaufmännischer Zustand** (4. Runde): getrennte
+  Felder `validUntil` (Signatur-Ablauf) und `graceUntil`. Läuft ein Dokument
+  wegen technischer Störung ab (Control Plane/Netz/Worker down), nutzt die
+  Site das zuletzt gültige Entitlement weiter (last-known-good bis
+  `graceUntil`). GESPERRT wird nur über ein explizites `suspended`-Flag
+  (echte Kündigung/Zahlungsausfall) — plus Push-Revocation für Notfälle.
+  Dazu: Key-Rotation über `kid`, Clock-Skew-Toleranz (±5 min).
+- Kill-Switch bleibt nie destruktiv: Feature fällt auf `disabled`,
+  Daten bleiben.
 
 ### F4 — Onboarding-Flow im Control Plane (revidiert 2026-07-14)
 
@@ -332,7 +384,13 @@ On-Site-Seite:
 3. **Provisioner** (§ P2) erzeugt Appwrite-Projekt, fährt Migrationen
    (foundation + gewählte Features), schreibt `app_config` inkl. Theme,
    legt den Ersteller als **Site-Admin im Site-Projekt** an (gleiche E-Mail,
-   Passwort-Set-Link) und stellt Entitlements aus.
+   Passwort-Set-Link) und stellt Entitlements aus. **Identity-Mapping
+   (4. Runde):** das Control Plane führt eine Mapping-Table
+   (platformUser ↔ siteProject/siteUser) mit Lifecycle-Regeln: existiert die
+   E-Mail im Site-Projekt schon → verknüpfen statt anlegen (mit Verify);
+   E-Mail-Änderungen werden NICHT automatisch synchronisiert (dokumentiert);
+   Owner-Transfer und Zugriffs-Widerruf (Kündigung/Mitarbeiterwechsel) sind
+   definierte Operationen über dieses Mapping.
 4. **Ergebnis:** `<slug>.hawaii.studio` ist live; Site-internes Arbeiten unter
    `<slug>.hawaii.studio/dashboard` (eigene Session der Site); Plan/Features/
    Domains/Billing weiter auf hawaii.studio (D3-Hybrid).
@@ -368,8 +426,12 @@ Die Datenstruktur in Appwrite muss über alle SaaS-Ebenen hinweg identisch,
 clean und selbsterklärend sein — sie ist bei hunderten Projekten das einzige,
 was Ordnung hält. Verbindliche Konventionen (bestehende fortgeschrieben):
 
-- **Projekt-ID = Site-Slug** (z. B. `maui-photos`, `lisas-bakery`) — überall
-  wiedererkennbar (Cookie `a_session_<slug>`, Console, Logs, Register).
+- **Unveränderliche Projekt-ID + veränderlicher Slug** (4. Runde): Projekt-ID
+  = `<slug>-<shortid>` bei Erstellung (lesbar UND dauerhaft kollisionsfrei) —
+  Umbenennen ändert nur Anzeige-Slug/Subdomain, NIE die Projekt-ID (Cookie,
+  Keys, Logs bleiben stabil). Slugs: global eindeutig, Reserved-Liste
+  (`api`, `www`, `studio`, `admin`, `mail`, …), gelöschte Slugs mit
+  Quarantäne-Frist vor Wiedervergabe.
 - **Database-ID immer `main`** (bestehende Konvention) — jede Site strukturell
   identisch; ein Blick in ein beliebiges Projekt genügt, um alle zu verstehen.
 - **Tables:** snake_case, Owner-Layer laut A14-Matrix; JEDE Table gehört genau
@@ -377,7 +439,7 @@ was Ordnung hält. Verbindliche Konventionen (bestehende fortgeschrieben):
   (`NNN-*.ts`) — die Migrationshistorie IST die Schema-Doku.
 - **Buckets:** feste Namen pro Zweck (`avatars`, `fonts`, künftig `media`).
 - **Keys:** pro Projekt exakt zwei (Runtime + Migrations, bestehende Regel);
-  Benennung `<slug>-runtime` / `<slug>-migrations`.
+  Benennung `<projectId>-runtime` / `<projectId>-migrations`.
 - **Feature-Keys** (Manifest F1) = Layer-Name = Entitlement-Key = Changelog-
   Tag = `maui.<key>`-Gate — EIN Begriff pro Feature durch alle Ebenen.
 - **Drift-Check:** ein Script vergleicht Ist-Schema einer Instanz gegen die
@@ -421,10 +483,28 @@ Eigener Node-Daemon (nicht die Nuxt-App; er hält die mächtigen Keys):
 Site-Antrag → Appwrite-Projekt anlegen → Migrationen (foundation + gewählte
 Features) → DNS (Cloudflare-API: `<slug>.hawaii.studio`) → bei Klasse A
 zusätzlich ploi-API (Site + Env + Deploy-Webhook) → Entitlements ausstellen →
-Setup-Link an den Ersteller. Jeder Schritt idempotent + im Sites-Register
-protokolliert (Status-Maschine: `provisioning → ready → error`).
+Setup-Link an den Ersteller. Robustheit (4. Runde): jeder SCHRITT wird
+einzeln persistiert (`project`, `keys`, `migrations`, `dns`, `tls`,
+`admin-invite`, `entitlements` — je `pending/done/failed`), nicht nur ein
+Gesamtstatus. Dazu: idempotente Wiederaufnahme nach Crash, kompensierende
+Aktion oder markierte manuelle Reparatur, Timeout → Dead-Letter-Zustand,
+definierte Löschung teilweise angelegter Sites; Keys/Setup-Tokens
+erscheinen NIE in Logs und liegen verschlüsselt (at rest) im Register.
 
-### Spikes (vor Umsetzungs-Go verifizieren)
+### Spikes = Architecture Decision Gates (4. Runde verschärft)
+
+Ohne bestandenen Spike wird keine davon abhängige Architektur endgültig
+festgelegt — und kein davon abhängiges Milestone begonnen. Zeitlich
+vorgezogen: **S2 + ein Minimal-S3** („2 Projekte × 2 Domains × Auth ×
+Realtime") laufen VOR M6 (also bevor die Verträge/Schnittstellen des
+Control Plane festgezurrt werden), nicht erst in M9.
+
+S3-Browser-PoC-Checkliste (vollständig, nicht nur Happy Path):
+SameSite-/Secure-/Host-only-Verhalten aller Session-Cookies · Login,
+Logout, Instant-Session-Revoke · Realtime-Reconnect + JWT-Erneuerung ·
+zwei Sites gleichzeitig eingeloggt im selben Browser · Wechsel Default- ↔
+Custom-Domain · CSRF-/Origin-/Host-Header-Prüfung · OAuth, Passwort-Reset-
+und E-Mail-Links auf beiden Domains.
 
 - **S1:** Appwrite-Projekt-Erstellung self-hosted automatisieren.
   Empfehlung: **offizielle Appwrite CLI** (`appwrite projects create` etc.,
@@ -501,6 +581,13 @@ an, Sites auf localhost-Ports). PHASE-17 wird Voraussetzung, sobald etwas
 LIVE geht: eigene Sites deployen (Ende M5) und alles ab M6/M7 (Provisioning,
 DNS/TLS, Health gegen echte Infrastruktur).
 
+**Schätz-Disclaimer (4. Runde):** Die PT-Angaben sind **Happy-Path-
+Prototyp**-Schätzungen. „Produktionsreif" (Tests, Observability, Security-
+Hardening, Doku, Betriebsautomatisierung, Failure-Handling) ist vor allem
+für M6–M9 separat zu budgetieren — realistisch Faktor 1,5–2,5 obendrauf.
+**Gate-Regel:** M6 beginnt erst nach bestandenem S1 + S2 + Minimal-S3;
+M9 erst nach vollem S3.
+
 ## 7. Identifizierte Lücken (2. Review) — **alle bestätigt ✅ (3. Runde, 2026-07-14)**
 
 Von David einzeln abgenickt („Machen wir so"), inkl. dreier Ergänzungen
@@ -511,10 +598,18 @@ Der geteilte Appwrite-Server bündelt alle Sites in EINER MariaDB + einem
 Volume-Satz. Instanz-Backup (Dump + Volumes) ist einfach — aber das
 Versprechen „Daten gehen nie verloren" braucht **Restore pro Site**: eine
 einzelne Site auf Stand gestern zurückholen, ohne die anderen anzufassen.
-Appwrite kann das nicht nativ → eigenes Konzept nötig: nächtlicher
-logischer Per-Projekt-Export (Rows/Files via Admin-Key, Struktur kommt aus
-den Migrationen) + Restore-Script in ein frisches Projekt. **Restore-Übung
-gehört in die Betreiber-Checkliste** — ein ungetestetes Backup ist keins.
+Appwrite kann das nicht nativ → zwei sich ergänzende Ebenen (4. Runde):
+**(a) Daten-Takeout per API** (Rows/Files via Admin-Key) — gut für
+Export/L2, aber KEIN vollständiges Betriebs-Backup: Users samt
+Passwort-Hashes, OAuth-Identities, Memberships/Labels, Row-/File-
+Permissions, Table-/Bucket-Konfiguration, Datei-Metadaten, Prefs und
+Platforms/Keys sind per API teils nicht (verlustfrei) exportierbar.
+**(b) Infrastruktur-Ebene für echten Restore:** MariaDB-Dumps/PITR +
+Volume-Snapshots mit konsistentem Zeitpunkt zwischen DB und Storage;
+Per-Site-Restore = selektives Wiederherstellen EINES Projekts daraus
+(eigenes Konzept + Script). **Vor dem ersten Kunden: echter DR-Test** mit
+dokumentiertem Ergebnis, WAS exakt wiederherstellbar ist — ein
+ungetestetes Backup ist keins.
 
 ### L2 — Site-Lifecycle-Ende: Kündigung, Export, Löschung (H2/H3)
 Heute existiert GDPR pro USER (`registerUserDataContributor`). Es fehlt die
@@ -554,6 +649,12 @@ d. h. Migrationen immer abwärtskompatibel schreiben). Plus **Canary-Reihenfolge
 eigene Sites zuerst, Kunden-Sites danach (einfach über die ploi-Webhook-
 Reihenfolge). Gleiches Prinzip für Appwrite-SERVER-Upgrades: Staging-Instanz
 zuerst, dann der geteilte Server (betrifft ALLE Sites gleichzeitig!).
+**Ergänzung (4. Runde) — Release-Wellen statt Auto-Rollout:** „ein Push
+aktualisiert alle Sites" ist auch ein Blast-Radius. Releases laufen in
+Wellen `internal → canary → stable`; Kundensites folgen nicht jedem Commit
+automatisch, sondern der stable-Welle; optionaler temporärer Site-Pin +
+definierter Rollback (Code zurück ist einfach, Schema nur vorwärts —
+deshalb Migrationen abwärtskompatibel, s. o.).
 
 ### L6 — Zentrales Monitoring & Alerting (H2)
 `maui.observability` existiert pro App; es fehlt die Plattform-Sicht: Uptime-
@@ -585,7 +686,37 @@ Domain-Familie) bzw. E-Mail/OTP-Login als Default; volle OAuth-Freiheit
 ist **kostenpflichtiges Premium-Feature** (bestätigt David). Später prüfen:
 zentraler Auth-Broker.
 
-## 8. Bewusste Ablehnungen
+## 8. Invarianten & Vertrauensgrenzen (4. Runde)
+
+- **Control Plane** (`apps/studio`): kennt alle Sites + Entitlements; besitzt
+  KEINE Site-Inhalte und keine Site-Sessions. Kompromittierung ⇒ Lifecycle-
+  Missbrauch möglich, aber kein direkter Inhalts-/Session-Zugriff.
+- **Provisioner-Worker:** einziger Ort mit Console-/Migrations-Rechten;
+  läuft getrennt von jeder Web-App; Secrets verschlüsselt, nie in Logs.
+- **Platform-App** (`apps/platform`): hält pro Site nur den Runtime-Key
+  (entschlüsselt im Prozess); ein App-Bug darf nie Site-übergreifend wirken
+  ⇒ jede Anfrage strikt über `event.context.site` gescoped (S3).
+- **Site-Projekt:** Vertrauensanker der Kundendaten; nur eigene Keys +
+  eigene User; Zugriff Dritter (auch Davids) nur nach D5-Regeln.
+- **Appwrite-Server:** logische Trennung (D2) — physischer SPOF; überwacht
+  (L6), wiederherstellbar (L1).
+- **Extern (ploi, Cloudflare, Stripe, Mail):** Ausfall darf DEGRADIEREN,
+  nie Daten verlieren oder fälschlich sperren; Entitlement-Grace (F3) ist
+  das Muster dafür.
+
+## 9. Risiko-Übersicht (Top-Risiken)
+
+| Risiko | W'keit | Impact | Gegenmaßnahme | Horizont |
+|---|---|---|---|---|
+| S3 scheitert (Multi-Projekt pro Request) | mittel | hoch — Klasse B neu denken | früher Minimal-PoC; Fallback: Klasse B als Projekt-Pool + Batch-Builds | H3 |
+| Custom-Domain-Auth bricht im Browser | mittel | hoch | S3-Checkliste komplett fahren; Fallback Option 1 (API-Domain pro Projekt) | H3 |
+| Per-Site-Restore unvollständig | mittel | sehr hoch (Datenversprechen) | L1 zweigleisig (Takeout + Infra) + DR-Test vor Kunde 1 | H2 |
+| Console-API bricht bei Appwrite-Upgrade | niedrig | mittel | Version gepinnt + CI-Smoke-Test + Projekt-Pool-Fallback | H2/H3 |
+| Verteilte Feature-Aktivierung inkonsistent | mittel | mittel | Statusmaschine (F2), Gate erst nach Migration | H1 |
+| Deploy-Welle bricht Kundensites | mittel | hoch | Release-Wellen + Canary + abwärtskompatible Migrationen (L5) | H2 |
+| Geteilter Server fällt aus (SPOF) | niedrig–mittel | hoch | Monitoring (L6) + dokumentierte Wiederanlauf-Zeit + Backups (L1) | H2 |
+
+## 10. Bewusste Ablehnungen
 
 - **Ein zentrales Dashboard, das Site-Inhalte fremder Instanzen editiert** —
   bricht das Cookie-/Session-Modell (A3), zentralisiert alle Admin-Keys.
