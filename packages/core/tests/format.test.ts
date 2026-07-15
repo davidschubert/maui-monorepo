@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import { formatDate, formatCurrency, formatRelativeTime } from '../app/utils/format'
-import { useFormatCurrency } from '../app/composables/useFormatCurrency'
 
 /** Intl setzt vor dem Währungssymbol ein geschütztes Leerzeichen (U+00A0) */
 function normalize(value: string): string {
@@ -72,10 +71,19 @@ describe('formatRelativeTime', () => {
   })
 })
 
-describe('useFormatCurrency', () => {
-  // useFormatDate ist jetzt an die i18n-Sprache gebunden (braucht Nuxt-Context);
-  // die reine Formatier-Logik deckt der formatDate-Util-Test oben ab.
-  it('liefert die Formatierungs-Funktion', () => {
-    expect(normalize(useFormatCurrency().formatCurrency(1234.56))).toBe('1.234,56 €')
+describe('formatCurrency (Locale-Bindung)', () => {
+  // useFormatCurrency ist wie useFormatDate an die i18n-Sprache gebunden
+  // (braucht Nuxt-Context, kein Composable-Unit-Test); die Locale-Weichen
+  // deckt der Util-Test mit explizitem locale-Argument ab.
+  it('formatiert deutsch (Default)', () => {
+    expect(normalize(formatCurrency(1234.56))).toBe('1.234,56 €')
+  })
+
+  it('folgt der übergebenen Locale (en-US)', () => {
+    expect(normalize(formatCurrency(1234.56, { locale: 'en-US' }))).toBe('€1,234.56')
+  })
+
+  it('unterstützt andere Währungen', () => {
+    expect(normalize(formatCurrency(99, { locale: 'en-US', currency: 'USD' }))).toBe('$99.00')
   })
 })
