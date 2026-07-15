@@ -48,8 +48,16 @@ async function waitForColumns(tableId: string) {
   throw new Error(`Columns von "${tableId}" wurden nicht verfügbar`)
 }
 async function existingColumnKeys(tableId: string): Promise<Set<string>> {
-  const { columns } = await tablesDB.listColumns({ databaseId: databaseId!, tableId })
-  return new Set(columns.map(column => column.key))
+  try {
+    const { columns } = await tablesDB.listColumns({ databaseId: databaseId!, tableId })
+    return new Set(columns.map(column => column.key))
+  }
+  catch (error) {
+    // 404 → leere Menge (Table entsteht erst) — Angleichung an die
+    // Schwester-Migrationen (M3-Audit-Nit)
+    if (hasCode(error, 404)) return new Set()
+    throw error
+  }
 }
 async function columnStep(label: string, key: string, existing: Set<string>, run: () => Promise<unknown>) {
   if (existing.has(key)) {

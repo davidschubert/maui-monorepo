@@ -1,6 +1,9 @@
 /**
  * Migration tickets-002: Index auf tickets.feedbackId (P2 Feedback-Ingestion —
  * die Doppel-Übernahme-Prüfung fragt per Query.equal darauf). Idempotent.
+ * Trotz des Namens KEIN Zugriff auf den feedback-Layer: indiziert wird die
+ * EIGENE Spalte tickets.feedbackId (aus tickets-001) — läuft also auch auf
+ * Instanzen ohne installierten feedback-Layer (M3-Audit geklärt).
  *
  *   pnpm migrate --app <app> --layer tickets
  */

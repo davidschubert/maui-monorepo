@@ -5,10 +5,13 @@
  * denormalisierte Zähler (upvotes/downvotes/score), status-Workflow
  * active/reported/hidden/deleted. comment_votes unverändert neu aufgebaut.
  *
- * ⚠️ DROP + CREATE beim ERST-Umbau (altes postId-Schema → Ziel) — Dev-Daten gehen
- * verloren (mit Phase-10-Demo-Daten abgestimmt). IDEMPOTENT: Sind beide Tables
- * bereits am Zielschema, wird NICHT gedroppt (kein Datenverlust bei Re-Run) —
- * Tables/Spalten/Indizes werden nur idempotent (409 → skip) sichergestellt.
+ * ⚠️ DROP + CREATE nur beim ERST-Umbau (altes postId-Schema → Ziel) — Dev-Daten
+ * gehen verloren (mit Phase-10-Demo-Daten abgestimmt).
+ * destruktiv-ok: DROP feuert ausschließlich bei POSITIV nachgewiesenem
+ * Alt-Schema (Legacy-Spalte postId/text vorhanden); comment_votes nur im
+ * Verbund (Rows referenzieren die gedroppten comments). Ein unvollständiges
+ * ZIEL-Schema (z. B. nach Teil-Fehlschlag) droppt NIE — fehlende Spalten
+ * ergänzt columnStep additiv (M3-Audit, additiv-sicher auf befüllter Instanz).
  *
  *   node --experimental-strip-types --env-file=apps/<app>/.env \
  *     packages/comments/scripts/migrations/002-target-architecture.ts
@@ -94,15 +97,6 @@ async function columnStep(label: string, key: string, existing: Set<string>, run
   await step(label, run)
 }
 
-/**
- * Ist die Table bereits am Zielschema? (alle Pflicht-Spalten vorhanden) →
- * Re-Run darf NICHT droppen. Nicht existent (404) oder altes Schema → false.
- */
-async function isAtTargetSchema(tableId: string, requiredColumns: string[]): Promise<boolean> {
-  const keys = await existingColumnKeys(tableId)
-  return keys.size > 0 && requiredColumns.every(key => keys.has(key))
-}
-
 async function waitForColumns(tableId: string) {
   for (let i = 0; i < 30; i++) {
     const { columns } = await tablesDB.listColumns({ databaseId: databaseId!, tableId })
@@ -114,20 +108,23 @@ async function waitForColumns(tableId: string) {
 
 console.log(`Migration 002 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
-// --- comments: drop NUR beim Erst-Umbau (altes Schema), sonst idempotent ----
-// Sind beide Tables schon am Zielschema, überspringen wir den DROP → ein Re-Run
-// löscht keine Produktivdaten. Danach werden Tables/Indizes 409-idempotent und
-// Spalten via Vorab-Check (columnStep) sichergestellt — createColumn darf bei
-// existierender Spalte NICHT aufgerufen werden (400 column_limit_exceeded, s.o.).
-const commentsReady = await isAtTargetSchema('comments', ['targetId', 'targetType', 'content', 'authorId', 'authorName', 'status'])
-const votesReady = await isAtTargetSchema('comment_votes', ['commentId', 'userId', 'value'])
+// --- comments: drop NUR beim Erst-Umbau (Alt-Schema POSITIV erkannt) --------
+// M3-Audit-Fix: Die frühere „beide am Ziel?"-Prüfung koppelte beide Tables per
+// UND — ein halbes Zielschema (Teil-Fehlschlag) hätte die GESUNDE, befüllte
+// Table mitgerissen. Jetzt gilt: gedroppt wird ausschließlich, wenn eine
+// Legacy-Spalte (postId/text) die Alt-Architektur beweist; comment_votes nur
+// im Verbund (ihre Rows referenzieren die gedroppten comments — Schema selbst
+// war unverändert). Fehlende ZIEL-Spalten ergänzt columnStep unten additiv.
+const commentKeys = await existingColumnKeys('comments')
+const commentsIsLegacy = commentKeys.has('postId') || commentKeys.has('text')
 
-if (commentsReady && votesReady) {
-  console.log('↷ comments & comment_votes bereits am Zielschema — DROP übersprungen (kein Datenverlust). Stelle Tables/Spalten/Indizes nur idempotent sicher.')
-}
-else {
+if (commentsIsLegacy) {
+  console.log('⚠ Alt-Schema (postId/text) erkannt — Erst-Umbau: comments + comment_votes werden neu aufgebaut.')
   await dropTable('comments')
   await dropTable('comment_votes')
+}
+else {
+  console.log('↷ Kein Alt-Schema erkannt — DROP übersprungen; Tables/Spalten/Indizes werden idempotent sichergestellt.')
 }
 
 await step('Table comments', () => tablesDB.createTable({

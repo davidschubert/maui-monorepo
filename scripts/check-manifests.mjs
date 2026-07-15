@@ -97,6 +97,26 @@ for (const [layer, m] of manifests) {
   }
 }
 
+// Destruktiv-Guard (M3): zerstörerische Appwrite-Aufrufe in Migrationen nur
+// mit Marker `// destruktiv-ok: <Begründung>` — additiv-sicher ist Default,
+// jede Ausnahme muss begründet UND geguardet sein (Audit: M3-MIGRATIONS-AUDIT).
+{
+  const destructivePattern = /\.(deleteTable|deleteColumn|deleteIndex|deleteRow|deleteRows|update\w*Column)\s*\(/g
+  for (const layer of layers) {
+    const dir = join(ROOT, 'packages', layer, 'scripts', 'migrations')
+    if (!existsSync(dir)) continue
+    for (const entry of readdirSync(dir)) {
+      if (!entry.endsWith('.ts')) continue
+      const rel = `packages/${layer}/scripts/migrations/${entry}`
+      const src = readFileSync(join(dir, entry), 'utf8')
+      const calls = [...src.matchAll(destructivePattern)].map(m => m[1])
+      if (calls.length > 0 && !src.includes('destruktiv-ok:')) {
+        err(`${rel}: zerstörerische Aufrufe (${[...new Set(calls)].join(', ')}) ohne \`// destruktiv-ok:\`-Marker — Guard + Begründung nötig (M3)`)
+      }
+    }
+  }
+}
+
 // LAYER_ORDER-Drift gegen scripts/migrate.mjs
 {
   const migrateSrc = readFileSync(join(ROOT, 'scripts/migrate.mjs'), 'utf8')
