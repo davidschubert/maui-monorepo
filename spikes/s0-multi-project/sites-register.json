@@ -1,0 +1,12 @@
+{
+  "alpha.localhost": {
+    "siteId": "alpha",
+    "projectId": "s0-site-alpha",
+    "endpoint": "http://localhost:8081/v1"
+  },
+  "beta.localhost": {
+    "siteId": "beta",
+    "projectId": "s0-site-beta",
+    "endpoint": "http://localhost:8081/v1"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "s0-multi-project-spike",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "setup": "node setup-projects.mjs",
+    "start": "node server/index.mjs",
+    "test": "node test.mjs"
+  },
+  "dependencies": {
+    "h3": "^1.13.0",
+    "node-appwrite": "^26.2.0"
+  }
+}

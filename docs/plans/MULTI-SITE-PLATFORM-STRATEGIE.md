@@ -102,7 +102,7 @@ Sites — nichts ist Wegwerf-Arbeit für hypothetische Kunden.
 ### D0 — Drei Horizonte, eine Architektur
 
 ```
-Horizont 1 (jetzt):    Eigene Sites        → Studio-Sites + Wizard + Laufzeit-Gates
+Horizont 1 (jetzt):    Eigene Sites        → Studio-Sites + create-site + Laufzeit-Gates
 Horizont 2 (danach):   Agentur/Kunden      → Control Plane + Provisioner + Workspaces
 Horizont 3 (später):   Self-Service-SaaS   → Platform-App + Stripe-Entitlements + Domain-Automation
 ```
@@ -660,7 +660,7 @@ zur Regel „S2 + Minimal-S3 vor M6").
 
 | Phase | Inhalt | Horizont | Schätzung |
 |---|---|---|---|
-| **S0** | Mini-Spike: Wegwerf-Nitro-App + 2 lokale Projekte + Hostname-Switch — validiert die FORM der Verträge (`useSiteConfig()`, Client-Factories mit `event`, Secret-Resolver). **Muss vor der Implementierung der M1-Verträge abgeschlossen sein; Discovery/Bestandsaufnahme aus M1 darf parallel laufen** (7. Runde präzisiert) | 1 | 1–2 PT |
+| **S0** | ✅ **BESTANDEN (2026-07-14, 12/12 Tests — [spikes/s0-multi-project](../../spikes/s0-multi-project/README.md)):** 2 echte Projekte auf Wegwerf-Instanz, Host-Auflösung ohne Default-Fallback, Kontext ohne Key, Session-/JWT-Projektbindung inkl. Cross-Site-Negativtests. Learnings: keyId global eindeutig (Provisioner!), Login = System-Op `auth-login` (session.secret nur mit Admin-Key), Appwrite-401 zentral mappen. **M1-Verträge können wie entworfen festgeschrieben werden.** | 1 | ✅ |
 | M1 | Feature-Manifest + Site-Manifest + CI-Check (Verträge S0-informiert) | 1 | 2–3 PT |
 | M2 | Laufzeit-Gates generalisieren (F2, inkl. Statusmaschine) + Feature-Seite im Admin | 1 | 3–4 PT |
 | M3 | Migrations-Audit „additiv-sicher" + Feature-Aktivierung nachträglich (F4.6/F4.8) | 1 | 3–5 PT |
