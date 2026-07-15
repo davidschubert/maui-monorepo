@@ -110,7 +110,9 @@ Horizont 3 (später):   Self-Service-SaaS   → Platform-App + Stripe-Entitlemen
 ### D1 — Zwei Site-Klassen (löst den Konflikt Monorepo ⟷ Self-Service)
 
 **Klasse A: Studio-Site** — eine dünne App im Monorepo (`apps/portfolio`,
-`apps/maui-photos`, `apps/community`, Kundenprojekte mit Custom-Design).
+`apps/photos`, `apps/community`, Kundenprojekte mit Custom-Design).
+Benennungs-Entscheidung (David, 2026-07-14): die eigenen Sites heißen
+`apps/portfolio` und `apps/photos`.
 - Feature-Wahl per `extends` (Buildzeit) + Laufzeit-Gates für Feinheiten.
 - Volle gestalterische Freiheit (eigene Pages/Components/Overrides).
 - Deploy: eigene ploi-Site + Deploy-Webhook (bestehendes PHASE-17-Modell).
@@ -130,7 +132,7 @@ entscheidet, welche Site sie rendert und welche Features aktiv sind.
 
 **Pilot-Rolle der Studio-Sites (bestätigt 2026-07-14):** Neue Features
 werden als Feature-LAYER (`packages/*`) gebaut und in einer Studio-Site
-pilotiert (z. B. media-Layer in `apps/maui-photos`). Da `apps/platform`
+pilotiert (z. B. media-Layer in `apps/photos`). Da `apps/platform`
 schlicht alle Layer einkompiliert, ist ein gereifter Layer dort automatisch
 verfügbar — es wird nichts aus der App „herüberkopiert"; die App ist das
 Testgelände, der Layer das Produkt.
@@ -646,7 +648,7 @@ und E-Mail-Links auf beiden Domains.
    `nuxt3-davidschubert.com` als `apps/portfolio` neu aufsetzen statt
    migrieren — **ohne Strapi** (entschieden 2026-07-14): Content kommt
    vollständig aus den eigenen Feature-Layern (pages/posts/media auf
-   Appwrite); `nuxt-maui-photos` Design behalten, als `apps/maui-photos`
+   Appwrite); `nuxt-maui-photos` Design behalten, als `apps/photos`
    einziehen sobald media-Layer existiert; `hawaiistudio` (Prismic) ist
    KEINE Basis fürs Control Plane — frisch als `apps/studio` bauen.
 
@@ -665,7 +667,7 @@ zur Regel „S2 + Minimal-S3 vor M6").
 | M2 | Laufzeit-Gates generalisieren (F2, inkl. Statusmaschine) + Feature-Seite im Admin | 1 | 3–4 PT |
 | M3 | Migrations-Audit „additiv-sicher" + Feature-Aktivierung nachträglich (F4.6/F4.8) | 1 | 3–5 PT |
 | M4 | `pnpm create-site` + **G1 = Spike S1** (Projekt-Anlage per Console-API/CLI bestanden) | 1 | 3–4 PT |
-| M5 | Eigene Sites einziehen: `apps/portfolio`, `apps/maui-photos` (+ media-Layer), Community | 1 | je 3–8 PT |
+| M5 | Eigene Sites einziehen: `apps/portfolio`, `apps/photos` (+ media-Layer), Community | 1 | je 3–8 PT |
 | **G2** | **Gate vor M6:** Spike S2 (Custom-Domain+Cert e2e) + Minimal-S3 („2 Projekte × 2 Domains × Auth × Realtime") bestanden — sonst kein M6 | 2 | 2–4 PT |
 | M6 | Control Plane MVP `apps/studio` (Register, Health, manuelle Entitlements, Site-Erstellungs-Flow = F4) | 2 | 8–12 PT |
 | M7 | Provisioner-Worker + ploi/Cloudflare-APIs (S2 bereits in G2 bestanden) | 2 | 6–10 PT |
