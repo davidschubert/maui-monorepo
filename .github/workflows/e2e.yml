@@ -83,6 +83,16 @@ jobs:
           path: apps/reddit-comments/test-results
           retention-days: 7
 
+      # Gate G1/S1 (M4): create-site end-to-end gegen die echte Wegwerf-
+      # Instanz — Console-REST (Org→Projekt→Keys→Platform), .env, Bootstrap
+      # mit manifest-gefilterten Migrationen, check:manifests als Schlussgate.
+      # Console-Zugang = der CI-Account aus appwrite-setup.mjs.
+      - name: Gate G1 — create-site (S1, Console-Provisionierung)
+        env:
+          APPWRITE_CONSOLE_EMAIL: ci@example.com
+          APPWRITE_CONSOLE_PASSWORD: ci-console-password-2026
+        run: pnpm create-site g1-probe --endpoint http://localhost:8080/v1 --features themes,admin,comments,moderation,activity
+
       - name: Stack-Logs bei Fehler
         if: failure()
         run: docker compose --env-file ci/appwrite/ci.env --project-name appwrite-ci -f ci/appwrite/docker-compose.yml logs --tail 120 appwrite appwrite-realtime appwrite-worker-databases mariadb

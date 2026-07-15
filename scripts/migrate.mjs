@@ -20,7 +20,7 @@
 import { spawnSync } from 'node:child_process'
 import { existsSync, readdirSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 // Fundament zuerst — admin liest z. B. Tables, die system/comments anlegen.
@@ -73,7 +73,26 @@ function resolveEnvFile({ app, envFile }) {
     console.error(`✗ apps/${target}/.env existiert nicht — App-Name prüfen oder .env aus .env.example anlegen.`)
     process.exit(1)
   }
-  return { envFile: abs, label: `apps/${target}/.env` }
+  return { envFile: abs, label: `apps/${target}/.env`, app: target }
+}
+
+/**
+ * Feature-Wahl der App (site.manifest.ts, M4): Ohne explizite --layer-Angabe
+ * migriert der Runner nur die Layer, die die Site laut Manifest nutzt
+ * (+ system als implizites Fundament) — eine Site ohne courses bekommt keine
+ * courses-Tables. Braucht --experimental-strip-types (root-Script setzt es).
+ */
+async function manifestFeaturesOf(app) {
+  const file = join(ROOT, 'apps', app, 'site.manifest.ts')
+  if (!existsSync(file)) return null
+  try {
+    const manifest = (await import(pathToFileURL(file).href)).default
+    return Array.isArray(manifest?.features) ? manifest.features : null
+  }
+  catch (error) {
+    console.warn(`⚠ site.manifest.ts nicht ladbar (${error.message}) — migriere ALLE Layer.`)
+    return null
+  }
 }
 
 function migrationsOf(layer) {
@@ -86,13 +105,23 @@ function migrationsOf(layer) {
 }
 
 const args = parseArgs(process.argv.slice(2))
-const { envFile, label } = resolveEnvFile(args)
+const { envFile, label, app } = resolveEnvFile(args)
 
-const layers = args.layers.length > 0 ? args.layers : LAYER_ORDER
+let layers = args.layers.length > 0 ? args.layers : LAYER_ORDER
 for (const layer of layers) {
   if (!LAYER_ORDER.includes(layer)) {
     console.error(`✗ Unbekannter Layer '${layer}' — bekannt: ${LAYER_ORDER.join(', ')}`)
     process.exit(1)
+  }
+}
+
+// Manifest-Filter (M4): nur bei App-Kontext und ohne explizite --layer-Wahl
+if (args.layers.length === 0 && app) {
+  const features = await manifestFeaturesOf(app)
+  if (features) {
+    const skipped = LAYER_ORDER.filter(l => l !== 'system' && !features.includes(l))
+    layers = LAYER_ORDER.filter(l => l === 'system' || features.includes(l))
+    if (skipped.length > 0) console.log(`↷ Nicht im Site-Manifest — übersprungen: ${skipped.join(', ')}\n`)
   }
 }
 

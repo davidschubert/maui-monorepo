@@ -128,7 +128,7 @@ if (!force && (endpoint || projectId)) {
 // 5) Migrationen — zentraler Runner, explizit gegen DIESE App (nie die falsche
 // Instanz; die Layer-Scripts selbst sind idempotent).
 console.log('\n— Migrationen —')
-execSync(`node ${resolve(APP_DIR, '../../scripts/migrate.mjs')} --app ${APP_NAME}`, { stdio: 'inherit' })
+execSync(`node --experimental-strip-types ${resolve(APP_DIR, '../../scripts/migrate.mjs')} --app ${APP_NAME}`, { stdio: 'inherit' })
 
 // 6) Optional: Seed — nur wenn die App ein seed-Script mitbringt (die
 // Template-Kopie hat keins; Vorlage: apps/reddit-comments/scripts/seed-demo.ts)
