@@ -15,6 +15,12 @@ Vollständiges Konzept: docs/CONCEPT.md
   Datenmodell und/oder eigene UI-Welt
 - apps/* → dünne Apps, komponieren via extends: [features..., core]
   (früher gelistet = höhere Priorität; App überschreibt alles)
+- Feature-Manifeste (Plattform-Strategie F1): JEDER Layer hat
+  feature.manifest.ts (key/tier/requires/Katalog-Texte, nur `import type`!),
+  JEDE App site.manifest.ts = Single Source der Feature-Wahl.
+  `pnpm check:manifests` (CI/lint) erzwingt Konsistenz mit extends +
+  package.json + migrate.mjs-LAYER_ORDER — neue Layer/Apps immer mit
+  Manifest anlegen. Strategie: docs/plans/MULTI-SITE-PLATFORM-STRATEGIE.md
 - Layer-Grenzen-Matrix (wer darf was besitzen) + Durchsetzung: CONCEPT.md A14.
   Neue Cross-Layer-Abhängigkeiten als EXPLIZITE Verträge (kein impliziter
   Auto-Import/String-Coupling); ESLint no-restricted-imports als Backstop.
