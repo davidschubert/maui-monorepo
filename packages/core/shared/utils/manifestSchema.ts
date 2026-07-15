@@ -21,6 +21,7 @@ export const featureManifestSchema = z.object({
   title: manifestTextSchema,
   description: manifestTextSchema,
   icon: z.string().min(1).optional(),
+  apiPrefixes: z.array(z.string().regex(/^\/api\/[a-z0-9/-]+$/)).optional(),
 }).strict()
 
 export const siteManifestSchema = z.object({

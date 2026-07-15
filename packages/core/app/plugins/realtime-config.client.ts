@@ -1,5 +1,5 @@
 import type { AppwriteRow } from '../../shared/types/appwrite'
-import type { AppConfig } from '../../shared/types/config'
+import { parseFeaturesColumn, type AppConfig } from '../../shared/types/config'
 
 /**
  * Propagiert Änderungen der Laufzeit-Flags (app_config/global) live an alle
@@ -16,7 +16,7 @@ export default defineNuxtPlugin(() => {
   const flags = useRuntimeFlags()
   const scope = effectScope(true)
   scope.run(() => {
-    useRealtimeRows<AppwriteRow & Partial<AppConfig>>(
+    useRealtimeRows<AppwriteRow & { features?: string } & Partial<Omit<AppConfig, 'features'>>>(
       config.public.appwriteDatabaseId,
       'app_config',
       (event) => {
@@ -24,6 +24,8 @@ export default defineNuxtPlugin(() => {
           registrationEnabled: event.payload.registrationEnabled ?? flags.value.registrationEnabled,
           commentsEnabled: event.payload.commentsEnabled ?? flags.value.commentsEnabled,
           maintenanceMode: event.payload.maintenanceMode ?? flags.value.maintenanceMode,
+          // features-Spalte reist als JSON-String im Row-Payload mit (system-018)
+          features: 'features' in event.payload ? parseFeaturesColumn(event.payload.features) : flags.value.features,
         }
       },
     )

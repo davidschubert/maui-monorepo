@@ -36,6 +36,13 @@ export interface FeatureManifest {
   description: ManifestText
   /** Icon für den Feature-Katalog, z. B. 'i-ph-chat-circle'. */
   icon?: string
+  /**
+   * API-Pfad-Präfixe des Features (z. B. ['/api/comments']) — Grundlage
+   * fürs zentrale Laufzeit-Enforcement (core feature-gate-Middleware):
+   * Feature aus ⇒ 404 für alle Routen darunter. Nur für optional-Tier
+   * relevant (foundation ist nicht schaltbar).
+   */
+  apiPrefixes?: string[]
 }
 
 export interface SiteManifest {
