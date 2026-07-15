@@ -660,7 +660,7 @@ zur Regel „S2 + Minimal-S3 vor M6").
 
 | Phase | Inhalt | Horizont | Schätzung |
 |---|---|---|---|
-| **S0** | Mini-Spike VOR/WÄHREND M1: Wegwerf-Nitro-App + 2 lokale Projekte + Hostname-Switch — validiert die FORM der Verträge (`useSiteConfig()`, Client-Factories mit `event`), bevor M1/M2 sie festschreiben | 1 | 1–2 PT |
+| **S0** | Mini-Spike: Wegwerf-Nitro-App + 2 lokale Projekte + Hostname-Switch — validiert die FORM der Verträge (`useSiteConfig()`, Client-Factories mit `event`, Secret-Resolver). **Muss vor der Implementierung der M1-Verträge abgeschlossen sein; Discovery/Bestandsaufnahme aus M1 darf parallel laufen** (7. Runde präzisiert) | 1 | 1–2 PT |
 | M1 | Feature-Manifest + Site-Manifest + CI-Check (Verträge S0-informiert) | 1 | 2–3 PT |
 | M2 | Laufzeit-Gates generalisieren (F2, inkl. Statusmaschine) + Feature-Seite im Admin | 1 | 3–4 PT |
 | M3 | Migrations-Audit „additiv-sicher" + Feature-Aktivierung nachträglich (F4.6/F4.8) | 1 | 3–5 PT |
