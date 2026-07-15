@@ -666,7 +666,7 @@ zur Regel „S2 + Minimal-S3 vor M6").
 | M1 | Feature-Manifest + Site-Manifest + CI-Check (Verträge S0-informiert) | 1 | 2–3 PT |
 | M2 | Laufzeit-Gates generalisieren (F2, inkl. Statusmaschine) + Feature-Seite im Admin | 1 | 3–4 PT |
 | M3 | Migrations-Audit „additiv-sicher" + Feature-Aktivierung nachträglich (F4.6/F4.8) | 1 | 3–5 PT |
-| M4 | `pnpm create-site` + **G1 = Spike S1** (Projekt-Anlage per Console-API/CLI bestanden) | 1 | 3–4 PT |
+| M4 | ✅ **BESTANDEN (2026-07-15):** `pnpm create-site` (Scaffold + Console-Provisionierung + manifest-gefilterte Migrationen) — **G1/S1 läuft dauerhaft als CI-Step** (e2e.yml provisioniert bei jedem Push ein Projekt auf der echten Wegwerf-Appwrite; erster Lauf grün). Provisioner-Learnings in [M4-CREATE-SITE.md](M4-CREATE-SITE.md) | 1 | ✅ |
 | M5 | Eigene Sites einziehen: `apps/portfolio`, `apps/photos` (+ media-Layer), Community | 1 | je 3–8 PT |
 | **G2** | **Gate vor M6:** Spike S2 (Custom-Domain+Cert e2e) + Minimal-S3 („2 Projekte × 2 Domains × Auth × Realtime") bestanden — sonst kein M6 | 2 | 2–4 PT |
 | M6 | Control Plane MVP `apps/studio` (Register, Health, manuelle Entitlements, Site-Erstellungs-Flow = F4) | 2 | 8–12 PT |
