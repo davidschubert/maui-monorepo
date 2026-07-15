@@ -20,6 +20,15 @@
       "port": 3002
     },
     {
+      "name": "photos",
+      "runtimeExecutable": "zsh",
+      "runtimeArgs": [
+        "-c",
+        "source ~/.nvm/nvm.sh && nvm use 22 >/dev/null && exec pnpm --filter photos dev"
+      ],
+      "port": 3003
+    },
+    {
       "name": "reddit-comments-auto",
       "runtimeExecutable": "zsh",
       "runtimeArgs": [

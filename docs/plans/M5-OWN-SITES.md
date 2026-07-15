@@ -45,4 +45,31 @@ Seiten der alten nuxt3-davidschubert.com übernommen werden).
 
 ## Ergebnis
 
-_(pro Paket nach Abschluss)_
+**P1 ✅ (2026-07-15):** media-Layer gebaut und im Testgelände reddit-comments
+live bewiesen (Upload/RBAC/Entwürfe/Feature-Gate/Admin-UI) — Details im
+Commit `453dda5`.
+
+**P2 ✅ (2026-07-15):** apps/photos läuft auf Port 3003 — komplett autonom
+provisioniert (Console-Provisioner-Account `provisioner@maui.local`,
+Projekt `photos-qgry` auf der lokalen Haupt-Instanz, create-site
+end-to-end = G1 auch lokal bestanden). Editorial-Design 1:1 portiert
+(Layout `site`, Header/Footer/GalleryGrid, Seiten index/gallery/about/
+contact, Cormorant Garamond, Page-Transitions); Galerie + Hero lesen den
+media-Layer (3 Demo-Uploads, featured steuert Hero + breite Kachel),
+Empty-States vorhanden. Site-Admin `admin@photos.local` angelegt
+(Passwörter ändern!). Browser-verifiziert (Hero + Grid), typecheck/lint 0.
+
+**Architektur-Fund dabei:** admin hatte eine unsichtbare harte Kopplung an
+comments/moderation (Kommentar-Moderations-Routen + Queue-Seite nutzten
+deren Verträge) — unsichtbar, weil photos die ERSTE App ohne comments ist.
+Fix nach A14: die Scheibe (4 Routen + dashboard/comments.vue) zog zum
+Owner comments um; API-Pfade unverändert, Queue live re-verifiziert.
+Folge-Cleanup notiert: Moderations-TYPEN (ModeratedComment & Co.) liegen
+noch in admin/shared (type-only-Import, build-sicher) — Eigentums-
+Entwirrung bei Gelegenheit.
+
+**Offen (P2-Polish, bewusst):** Kontakt-Formular server-seitig (heute
+mailto wie Original) · Font auf selbst-gehostete Registry umziehen ·
+photos.css wirkt global (Login/Dashboard der photos-App im Dark-Look).
+
+**P3 (apps/portfolio):** wartet auf Scope-Gespräch mit David.

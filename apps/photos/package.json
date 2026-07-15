@@ -1,0 +1,42 @@
+{
+  "name": "photos",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxi dev --port 3003",
+    "build": "nuxi build",
+    "lint": "eslint .",
+    "preview": "nuxi preview",
+    "typecheck": "nuxi typecheck",
+    "bootstrap": "node --experimental-strip-types --env-file=.env scripts/bootstrap.ts"
+  },
+  "dependencies": {
+    "@iconify-json/circle-flags": "catalog:",
+    "@iconify-json/ph": "catalog:",
+    "@maui/admin": "workspace:*",
+    "@maui/core": "workspace:*",
+    "@maui/media": "workspace:*",
+    "@maui/system": "workspace:*",
+    "@maui/themes": "workspace:*",
+    "@nuxt/ui": "catalog:",
+    "@nuxtjs/i18n": "catalog:",
+    "@nuxtjs/mdc": "catalog:",
+    "@pinia/nuxt": "catalog:",
+    "appwrite": "catalog:",
+    "node-appwrite": "catalog:",
+    "nodemailer": "catalog:",
+    "nuxt": "catalog:",
+    "pinia": "catalog:",
+    "vue": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@nuxt/eslint-config": "catalog:",
+    "@types/node": "catalog:",
+    "@types/nodemailer": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vue-tsc": "catalog:"
+  }
+}

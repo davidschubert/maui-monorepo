@@ -165,19 +165,33 @@ if (!skipAppwrite && consoleEmail && consolePassword) {
     console.log('✔ Console-Session')
   }
 
-  // Organisation (idempotent)
+  // Organisation: eigene Teams bevorzugen — eine FREMDE maui-sites-Org
+  // (anderer Console-User) macht Projekt-Anlagen 401; dann eindeutige
+  // Ausweich-Org unter eigener Mitgliedschaft anlegen.
+  let teamId = 'maui-sites'
   {
-    const { status, json } = await consoleApi('/teams', 'POST', { teamId: 'maui-sites', name: 'Maui Sites' })
-    if (status === 201) console.log('✔ Organisation maui-sites angelegt')
-    else if (status === 409) console.log('↷ Organisation maui-sites existiert')
-    else fail(`Organisation (${status}): ${json?.message ?? ''}`)
+    const own = await consoleApi('/teams')
+    const existing = (own.json?.teams ?? []).find(t => String(t.$id).startsWith('maui-sites'))
+    if (existing) {
+      teamId = existing.$id
+      console.log(`↷ Organisation ${teamId} (eigene) wird genutzt`)
+    }
+    else {
+      let { status, json } = await consoleApi('/teams', 'POST', { teamId, name: 'Maui Sites' })
+      if (status === 409) {
+        teamId = `maui-sites-${Math.random().toString(36).slice(2, 6)}`
+        ;({ status, json } = await consoleApi('/teams', 'POST', { teamId, name: 'Maui Sites' }))
+      }
+      if (status !== 201) fail(`Organisation (${status}): ${json?.message ?? ''}`)
+      console.log(`✔ Organisation ${teamId} angelegt`)
+    }
   }
 
   // Projekt-ID = <name>-<shortid> (F6: unveränderlich, lesbar, kollisionsfrei)
   {
     const shortid = Math.random().toString(36).slice(2, 6)
     projectId = `${name}-${shortid}`
-    const { status, json } = await consoleApi('/projects', 'POST', { projectId, name, teamId: 'maui-sites', region: 'default' })
+    const { status, json } = await consoleApi('/projects', 'POST', { projectId, name, teamId, region: 'default' })
     if (status === 201) {
       console.log(`✔ Projekt ${projectId} angelegt`)
     }
