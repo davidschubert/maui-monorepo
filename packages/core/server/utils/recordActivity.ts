@@ -1,4 +1,4 @@
-import { ID, Permission, Role } from 'node-appwrite'
+import { ID, Permission, Query, Role } from 'node-appwrite'
 import type { H3Event } from 'h3'
 
 /** Table-Id des Activity-Streams (Schema: system-Migration 014). */
@@ -75,6 +75,48 @@ export async function recordActivity(event: H3Event, input: ActivityInput): Prom
   }
   catch {
     // best-effort — der auslösende Vorgang ist bereits passiert
+  }
+}
+
+/**
+ * Entfernt alle Feed-Einträge zu einem Objekt — das Gegenstück zu
+ * recordActivity() für Moderations-/Lösch-Cascades: wegmoderierte Inhalte
+ * dürfen nicht als metadata-Snippet im Activity-Feed weiterleben. Braucht
+ * den Composite-Index idx_object (system-017). Best-effort wie
+ * recordActivity, aber LAUT — ein liegengebliebener Eintrag ist ein
+ * Inhalts-Leak, kein Kosmetikproblem. Ein späteres Restore erzeugt bewusst
+ * KEINEN neuen Eintrag (der Feed ist ein Ereignis-Log, kein Index).
+ */
+export async function removeActivitiesForObject(
+  event: H3Event,
+  input: { objectType: string, objectId: string },
+): Promise<void> {
+  try {
+    const config = useRuntimeConfig(event)
+    const { tablesDB } = createAdminClient(event)
+    // Pro Objekt existieren höchstens eine Handvoll Einträge (created/…) —
+    // die Schleife ist nur ein Sicherheitsnetz, kein Pagination-Anspruch.
+    for (let page = 0; page < 10; page++) {
+      const res = await tablesDB.listRows({
+        databaseId: config.public.appwriteDatabaseId,
+        tableId: ACTIVITIES_TABLE,
+        queries: [
+          Query.equal('objectType', input.objectType),
+          Query.equal('objectId', input.objectId),
+          Query.limit(25),
+        ],
+      })
+      if (res.rows.length === 0) return
+      await Promise.all(res.rows.map(row => tablesDB.deleteRow({
+        databaseId: config.public.appwriteDatabaseId,
+        tableId: ACTIVITIES_TABLE,
+        rowId: row.$id,
+      })))
+      if (res.rows.length < 25) return
+    }
+  }
+  catch (error) {
+    console.error(`[core] Activity-Cleanup für ${input.objectType} ${input.objectId} fehlgeschlagen — Einträge können im Feed sichtbar bleiben:`, error)
   }
 }
 
