@@ -266,7 +266,9 @@ else {
 // ── 3) Install + Bootstrap ──────────────────────────────────────────────────
 console.log('\n— pnpm install (Workspace-Link) —')
 {
-  const result = spawnSync('pnpm', ['install'], { stdio: 'inherit', cwd: ROOT })
+  // --no-frozen-lockfile: eine NEUE App kann nie im Lockfile stehen —
+  // in CI wäre frozen sonst der Default und bräche den G1-Lauf
+  const result = spawnSync('pnpm', ['install', '--no-frozen-lockfile'], { stdio: 'inherit', cwd: ROOT })
   if (result.status !== 0) fail('pnpm install fehlgeschlagen')
 }
 
