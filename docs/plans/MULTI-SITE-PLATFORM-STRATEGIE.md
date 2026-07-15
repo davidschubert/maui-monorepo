@@ -1,9 +1,9 @@
 # Multi-Site-Platform-Strategie — „Maui Platform"
 
-Stand: 2026-07-14 (6. Runde: Review-Nachträge; als Umsetzungsstrategie
-freigabefähig unter den Decision Gates) · Status:
-**Konzept abgestimmt — Umsetzungs-Freigabe für abhängige Teile erst nach
-bestandenen Spikes S1–S3 (Decision Gates, § 4)**
+Stand: 2026-07-14 (7. Runde: finale Nachbesserungen — vom Review als
+Umsetzungsstrategie freigegeben, Start mit S0) · Status:
+**Konzept abgestimmt — Umsetzungs-Freigabe für abhängige Teile jeweils
+erst nach den zugeordneten Decision Gates gemäß § 4**
 
 Lesehilfe: „Entschieden" heißt KONZEPTUELL entschieden. Punkte mit ⚠️ sind
 Annahmen, die erst durch einen PoC/Spike technisch bestätigt werden müssen —
@@ -339,13 +339,21 @@ export default defineFeatureManifest({
     comments: 3
     moderation: 2
   ```
-  Jedes Feature deklariert im Katalog `requiredSchemaVersion` (bzw. einen
-  kompatiblen Bereich). **Maschinell präzise Aktivierungsregel:** ein
-  Feature ist aktivierbar ⇔ es ist im Katalog vorhanden ∧ die laufende
-  `platformReleaseVersion` enthält es ∧
-  `installedSchema[feature] ≥ requiredSchemaVersion` (sonst zuerst
-  Migration via Statusmaschine). Insbesondere wird KEIN Entitlement für
-  ein Feature ausgestellt, das die laufende Platform-Version nicht enthält.
+  Jedes Platform-Release deklariert pro Feature einen **unterstützten
+  Schema-BEREICH** (7. Runde — auch nach oben begrenzt, weil ein zu neues
+  Schema für älteren Code ebenso inkompatibel sein kann):
+  ```
+  supportedSchema:
+    comments: { min: 3, max: 4 }
+  ```
+  **Maschinell präzise Regel:** ein Feature ist aktivierbar/deploybar ⇔
+  es ist im Katalog vorhanden ∧ die laufende `platformReleaseVersion`
+  enthält es ∧ `min ≤ installedSchema[feature] ≤ max` (liegt es darunter:
+  zuerst Migration via Statusmaschine). Konsequenz für L5-Rollbacks:
+  Schema migriert nur vorwärts — ein CODE-Rollback ist nur erlaubt, wenn
+  die ältere Version das aktuelle Schema laut ihrem `supportedSchema`
+  ausdrücklich einschließt. Insbesondere wird KEIN Entitlement für ein
+  Feature ausgestellt, das die laufende Platform-Version nicht enthält.
 - Grundgerüst laut David = foundation-tier: core, system, auth/profile
   (core), billing, themes, admin, audit (system), changelog. Optional:
   comments, courses, events, feedback, feed, posts, tickets, moderation
@@ -576,8 +584,13 @@ und E-Mail-Links auf beiden Domains.
   PoC für Frontend-Domains (D4).
 - **S3:** `apps/platform`-Machbarkeit: pro-Request-Projekt-Auflösung.
   Lösungsskizze: Nitro-Middleware löst `Host` → Site-Record (LRU/Redis-Cache
-  über dem Sites-Register, Realtime-Invalidierung) → `event.context.site`
-  {projectId, endpoint, verschlüsselt hinterlegter Runtime-Key}.
+  über dem Sites-Register, Realtime-Invalidierung) → `event.context.site =
+  {projectId, endpoint}` — **bewusst OHNE Runtime-Key im Request-Kontext
+  (7. Runde):** liegt der Key in jedem Request, steigt das Risiko
+  versehentlicher Nutzung/Offenlegung. Systeminterne Operationen fordern
+  ihn gezielt über einen separaten server-internen Secret-Resolver an
+  (`getSystemClient(siteId, scope)`), der Aufrufe auditiert — so wird die
+  Autorisierungs-Invariante STRUKTURELL erzwungen, nicht nur dokumentiert.
   **Sicherheits-Invarianten der Mandantenauflösung (5. Runde — dem
   `Host`-Header wird nie blind vertraut):** nur normalisierte, im
   Sites-Register VERIFIZIERTE Hostnamen akzeptieren · `X-Forwarded-Host`
@@ -716,7 +729,9 @@ endgültige Projekt-Löschung mit Frist. Auch für Agentur-Kunden relevant
 (6. Runde erweitert):
 `active → suspended → exporting → deletion_scheduled → deleted`, dazu
 `deletion_failed` (Retry/manuelle Reparatur, nie stilles Halb-Löschen) und
-`legal_hold` (friert Löschung/Export ein, z. B. bei Rechtsstreit).
+`legal_hold` (friert die LÖSCHUNG ein, z. B. bei Rechtsstreit; ob auch
+Export/Auskunft pausiert, ist juristisch als Policy zu klären —
+gesetzliche Auskunfts-/Datenzugangsrechte können daneben fortbestehen).
 
 ### L3 — Quotas & Missbrauch (blockiert: Self-Service, H3)
 Nirgends begrenzt heute, was eine Site verbrauchen darf. Pro Plan nötig:
@@ -822,9 +837,12 @@ zentraler Auth-Broker.
   des Monorepos), sodass Appwrite Row Permissions und das Label-RBAC
   wirksam BLEIBEN. **Kein normaler Request verwendet einen Key, der Row
   Permissions umgeht.** Der Runtime-Key ist auf eine enumerierte Liste
-  systeminterner Operationen beschränkt (z. B. Presence-Heartbeat,
-  Notifications, Digest) mit dokumentierter Scope-Matrix pro Key.
-  Autorisierung wird NICHT in Nuxt nachgebaut.
+  systeminterner Operationen beschränkt (Kandidaten: Presence-Heartbeat,
+  Notifications, Digest — jede einzeln zu prüfen, nicht jede braucht
+  zwingend einen privilegierten Key) mit dokumentierter Scope-Matrix pro
+  Key. Der Key liegt NIE im Request-Kontext, sondern nur hinter dem
+  server-internen Secret-Resolver (s. S3). Autorisierung wird NICHT in
+  Nuxt nachgebaut.
 - **Site-Projekt:** Vertrauensanker der Kundendaten; nur eigene Keys +
   eigene User; Zugriff Dritter (auch Davids) nur nach D5-Regeln.
 - **Appwrite-Server:** logische Trennung (D2) — physischer SPOF; überwacht
@@ -839,7 +857,7 @@ zentraler Auth-Broker.
 |---|---|---|---|---|
 | S3 scheitert (Multi-Projekt pro Request) | mittel | hoch — Klasse B neu denken | früher Minimal-PoC; Fallback: Klasse B als Projekt-Pool + Batch-Builds | H3 |
 | Platform-Prozess kompromittiert (RCE/Dependency/Secret-Store) | niedrig–mittel | sehr hoch — alle erreichbaren Site-Keys | Session-basiertes CRUD (Invariante), minimale Key-Scopes, Secret-Isolation, Rotation, Dependency-Hardening, Egress-Beschränkung, Alarmierung | H3 |
-| Quota-Enforcement technisch nicht durchsetzbar | mittel | hoch — Self-Service unhaltbar | Spike S4 vor G3; Fallback: manuelle Freigabe + weiche Limits mit Abrechnung | H3 |
+| Quota-Enforcement technisch nicht durchsetzbar | mittel | hoch — Self-Service unhaltbar | Spike S4 vor G3; Fallback nur für kontrolliert freigeschaltete Kunden (manuelle Freigabe, weiche Limits + Abrechnung) — kein offener anonymer Self-Service | H3 |
 | Custom-Domain-Auth bricht im Browser | mittel | hoch | S3-Checkliste komplett fahren; Fallback Option 1 (API-Domain pro Projekt) | H3 |
 | Per-Site-Restore unvollständig | mittel | sehr hoch (Datenversprechen) | L1 zweigleisig (Takeout + Infra) + DR-Test vor Kunde 1 | H2 |
 | Console-API bricht bei Appwrite-Upgrade | niedrig | mittel | Version gepinnt + CI-Smoke-Test + Projekt-Pool-Fallback | H2/H3 |
