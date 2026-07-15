@@ -1,6 +1,7 @@
 # Multi-Site-Platform-Strategie — „Maui Platform"
 
-Stand: 2026-07-14 (5. Runde: Review-Nachträge eingearbeitet) · Status:
+Stand: 2026-07-14 (6. Runde: Review-Nachträge; als Umsetzungsstrategie
+freigabefähig unter den Decision Gates) · Status:
 **Konzept abgestimmt — Umsetzungs-Freigabe für abhängige Teile erst nach
 bestandenen Spikes S1–S3 (Decision Gates, § 4)**
 
@@ -20,7 +21,8 @@ Leitplanken aus der Abstimmung mit David (2026-07-14):
   Features per Bezahlung freischalten, kein Handanlegen pro Projekt)
 - Monetarisierung pro Projekt flexibel; David selbst hat einen Comp-/Premium-
   Zugang (zahlt nie)
-- **Alle Sites bleiben im Monorepo** (ein Core-Fix deployed alle Sites)
+- **Alle Sites bleiben im Monorepo** (ein Core-Fix kann über kontrollierte
+  Release-Wellen auf alle Sites ausgerollt werden — L5)
 
 **Update 2. Runde (2026-07-14):**
 - **D2 (Projekt-pro-Site) und D3 (Hybrid-Dashboard): von David bestätigt ✅**
@@ -40,8 +42,12 @@ Leitplanken aus der Abstimmung mit David (2026-07-14):
   de unter `/de/*`). Im Onboarding (F4.2) wählt der Ersteller die aktiven
   Locales seiner Site. Plattform-Regel: JEDER Feature-Layer liefert seine
   Locale-Files immer für ALLE Plattform-Sprachen (heute en+de) — eine neue
-  Sprache später ist damit ein reiner Übersetzungs-Durchlauf durch die
-  Layer-Locales, kein Architektur-Thema.
+  Sprache später ist damit **für die UI-Layer-Locales** ein reiner
+  Übersetzungs-Durchlauf. Für NUTZERGENERIERTE Inhalte gilt das NICHT
+  pauschal (6. Runde): der pages-Layer definiert ein bewusstes
+  Locale-Datenmodell (lokalisierte Inhalte, sprachabhängige Slugs,
+  canonical/hreflang, Fallback-Regeln, SEO-Metadaten, ggf. Suche/Medien/
+  E-Mail-Inhalte).
 
 ---
 
@@ -323,11 +329,23 @@ export default defineFeatureManifest({
   Studio-Projekts, nicht einkompiliert) — so kann `apps/studio` unabhängig
   von der Platform-App deployen. Drei getrennte Versionen:
   `catalogVersion` (Stand des Artefakts) · `platformReleaseVersion`
-  (was die laufende Platform-App tatsächlich enthält) ·
-  `siteSchemaVersion` (Migrationsstand der Site, im Sites-Register).
-  **Aktivierbar ist ein Feature nur, wenn alle drei es unterstützen** —
-  insbesondere wird KEIN Entitlement für ein Feature ausgestellt, das die
-  aktuell laufende Platform-Version noch nicht enthält.
+  (was die laufende Platform-App tatsächlich enthält) · und statt eines
+  einzelnen `siteSchemaVersion` eine **per-Feature-Matrix** im
+  Sites-Register (6. Runde — ein Skalarwert wird bei optionalen Features
+  mehrdeutig):
+  ```
+  installedSchema:
+    core: 7
+    comments: 3
+    moderation: 2
+  ```
+  Jedes Feature deklariert im Katalog `requiredSchemaVersion` (bzw. einen
+  kompatiblen Bereich). **Maschinell präzise Aktivierungsregel:** ein
+  Feature ist aktivierbar ⇔ es ist im Katalog vorhanden ∧ die laufende
+  `platformReleaseVersion` enthält es ∧
+  `installedSchema[feature] ≥ requiredSchemaVersion` (sonst zuerst
+  Migration via Statusmaschine). Insbesondere wird KEIN Entitlement für
+  ein Feature ausgestellt, das die laufende Platform-Version nicht enthält.
 - Grundgerüst laut David = foundation-tier: core, system, auth/profile
   (core), billing, themes, admin, audit (system), changelog. Optional:
   comments, courses, events, feedback, feed, posts, tickets, moderation
@@ -378,7 +396,10 @@ Das AI-Override-Muster (`app_config.aiModel > maui.ai`) wird generalisiert:
   Felder `validUntil` (Signatur-Ablauf) und `graceUntil`. Läuft ein Dokument
   wegen technischer Störung ab (Control Plane/Netz/Worker down), nutzt die
   Site das zuletzt gültige Entitlement weiter (last-known-good bis
-  `graceUntil`). GESPERRT wird nur über ein explizites `suspended`-Flag
+  `graceUntil`). Wichtig (6. Runde): die SIGNATUR wird auch in der
+  Grace-Period immer geprüft — toleriert wird nur der fachliche Ablauf
+  (`validUntil`), nie ein ungültiges oder gefälschtes Dokument.
+  GESPERRT wird nur über ein explizites `suspended`-Flag
   (echte Kündigung/Zahlungsausfall). Dazu: Key-Rotation über `kid`,
   Clock-Skew-Toleranz (±5 min).
 - **Zustellung von Suspension — zwei getrennte Mechanismen (5. Runde):**
@@ -422,12 +443,17 @@ On-Site-Seite:
    Domains/Billing weiter auf hawaii.studio (D3-Hybrid).
 5. **Custom Domain nachträglich** über hawaii.studio → „Domain verbinden":
    DNS-Anleitung (CNAME/A) → Verifikation → Zertifikat automatisch (D4).
-6. **Feature-Aktivierung nachträglich:** Toggle in hawaii.studio (oder
-   Site-Dashboard, das ans Control Plane delegiert) → setzt Entitlement +
-   `app_config.features` (F2); fehlende Migrationen führt der
-   Provisioner-Worker aus — NIE der Nuxt-Web-Prozess (hat bewusst keinen
-   Migrations-Key). Bei Studio-Sites alternativ der Betreiber per
-   `pnpm migrate --app <site> --layer <l>`.
+6. **Feature-Aktivierung nachträglich** (Reihenfolge 6. Runde korrigiert —
+   konsistent zur F2-Statusmaschine): Toggle in hawaii.studio (oder
+   Site-Dashboard, das ans Control Plane delegiert) →
+   `provisioning` setzen → Abhängigkeiten prüfen → **Migrationen ausführen
+   (Provisioner-Worker — NIE der Nuxt-Web-Prozess, der hat bewusst keinen
+   Migrations-Key)** → erst DANACH Entitlement ausstellen/aktualisieren →
+   Runtime-Gate (`app_config.features`) aktivieren → `active`. Bei einem
+   Fehler bleiben Entitlement und Gate unverändert geschlossen
+   (Status `error`, Vorwärts-Recovery per Retry). Bei Studio-Sites führt
+   die Migration alternativ der Betreiber per
+   `pnpm migrate --app <site> --layer <l>` aus — gleiche Reihenfolge.
 7. **On-Site-`/setup` (optionaler Fallback, de-priorisiert):** dünner
    Claim-Schritt mit Setup-Token für Klasse-A-Übergaben ohne Control Plane.
 8. **Voraussetzung bleibt:** Migrationen aller optionalen Layer müssen
@@ -568,6 +594,21 @@ und E-Mail-Links auf beiden Domains.
   Cookie-Namen (`a_session_<PROJECT_ID>`) sind bereits pro Projekt eindeutig.
   PoC: 2 Projekte, 1 Platform-App, Hostname-Switch, Login + Realtime-Isolation
   verifizieren. Bleibt der technisch riskanteste Punkt von Horizont 3.
+  **Abnahmekriterien S0/S3 (6. Runde, verbindlich):** normales Site-CRUD
+  läuft nachweislich über die User-Session (Row Permissions + RBAC bleiben
+  wirksam; kein normaler Request nutzt einen Key, der sie umgeht) ·
+  Scope-Matrix je Key liegt vor · Negativtests bestanden: User A liest NIE
+  Daten von User B, Moderator ist kein Admin, anonyme Requests bleiben
+  anonym — jeweils über Site-Grenzen UND innerhalb einer Site.
+- **S4 (6. Runde, Gate für M9): Quota-Enforcement.** Nachweisen, WO Limits
+  technisch durchgesetzt werden: welche Appwrite-Bordmittel greifen hart
+  pro Projekt (Auth-User-Limit, Bucket-Dateigrößen) vs. was Metering +
+  Enforcement in den Nuxt-Routen braucht; können direkte Appwrite-Zugriffe
+  (Realtime, Presence, Storage-URLs) die Prüfung umgehen? Wer misst
+  Realtime-Verbindungen, Bandbreite, Mail-Volumen? Verhalten bei
+  Überschreitung definieren (warnen → drosseln → read-only → blockieren,
+  nie destruktiv) und Race-Conditions bei parallelen Uploads abfangen
+  (Reservierung/periodischer Sweep statt exakter Echtzeit-Zählung).
 
 ---
 
@@ -616,7 +657,7 @@ zur Regel „S2 + Minimal-S3 vor M6").
 | M6 | Control Plane MVP `apps/studio` (Register, Health, manuelle Entitlements, Site-Erstellungs-Flow = F4) | 2 | 8–12 PT |
 | M7 | Provisioner-Worker + ploi/Cloudflare-APIs (S2 bereits in G2 bestanden) | 2 | 6–10 PT |
 | M8 | Workspace-Billing (Stripe) + signierte Entitlements (F3 voll) | 2/3 | 5–8 PT |
-| **G3** | **Gate vor M9:** volles S3 (komplette Browser-PoC-Checkliste) bestanden — sonst kein M9 | 3 | 3–5 PT |
+| **G3** | **Gate vor M9:** volles S3 (komplette Browser-PoC-Checkliste inkl. Session-CRUD-Abnahmekriterien) + **S4 Quota-Enforcement** bestanden — sonst kein M9/Self-Service | 3 | 4–7 PT |
 | M9 | `apps/platform` (Klasse B) + Redis + Self-Service-Signup | 3 | 15–25 PT |
 
 **PHASE-17-Abhängigkeit (präzisiert 2026-07-14):** M1–M5 laufen komplett
@@ -630,10 +671,15 @@ Prototyp**-Schätzungen. „Produktionsreif" (Tests, Observability, Security-
 Hardening, Doku, Betriebsautomatisierung, Failure-Handling) ist vor allem
 für M6–M9 separat zu budgetieren — realistisch Faktor 1,5–2,5 obendrauf.
 **Gate-Regel:** G1 (S1) in M4 · G2 (S2 + Minimal-S3) zwingend vor M6 ·
-G3 (volles S3) zwingend vor M9 — jetzt als eigene Roadmap-Zeilen (5. Runde).
+G3 (volles S3 + S4) zwingend vor M9 — als eigene Roadmap-Zeilen (5. Runde).
 Dazu S0 vor M1: die frühen Config-/Factory-Verträge, die Klasse B später
 „unverändert" konsumieren soll, werden per Mini-Spike abgesichert, damit
 S3 sie nicht nachträglich kippt.
+**Verbindliche Gate-Kriterien (6. Runde, nicht verhandelbar):**
+(1) Normales Site-CRUD erhält die User-Berechtigungen — es läuft über die
+Session des Site-Users, nie pauschal über privilegierte Runtime-Keys
+(S0/S3-Abnahmekriterien). (2) Quota-Enforcement ist vor jedem
+Self-Service-Launch technisch nachgewiesen (S4).
 
 ## 7. Identifizierte Lücken (2. Review) — **alle bestätigt ✅ (3. Runde, 2026-07-14)**
 
@@ -666,8 +712,11 @@ Heute existiert GDPR pro USER (`registerUserDataContributor`). Es fehlt die
 SITE-Ebene: Kündigung → Grace-Period (Site read-only/offline, Daten bleiben)
 → Daten-Takeout (Export-Format = derselbe Per-Projekt-Export aus L1) →
 endgültige Projekt-Löschung mit Frist. Auch für Agentur-Kunden relevant
-(„ich will mit meinen Daten woanders hin"). Status-Maschine im Sites-Register:
-`active → suspended → exporting → deleted`.
+(„ich will mit meinen Daten woanders hin"). Status-Maschine im Sites-Register
+(6. Runde erweitert):
+`active → suspended → exporting → deletion_scheduled → deleted`, dazu
+`deletion_failed` (Retry/manuelle Reparatur, nie stilles Halb-Löschen) und
+`legal_hold` (friert Löschung/Export ein, z. B. bei Rechtsstreit).
 
 ### L3 — Quotas & Missbrauch (blockiert: Self-Service, H3)
 Nirgends begrenzt heute, was eine Site verbrauchen darf. Pro Plan nötig:
@@ -681,6 +730,9 @@ ggf. manuelle Freigabe am Anfang).
 (pro Plan), sind aber PRO SITE individuell überschreibbar (z. B. User-Limit
 für einen einzelnen Kunden anheben) — Auflösung analog F2:
 Site-Override > Plan-Default > Plattform-Default.
+**Ergänzung 6. Runde:** WO die Limits technisch durchgesetzt werden, ist
+ungeklärt und braucht einen Machbarkeitsnachweis → **Spike S4, Blocker für
+M9/G3** (Details bei den Spikes).
 
 ### L4 — Transaktions-E-Mail pro Site (H2)
 `sendMail()` existiert, aber: VON welcher Adresse mailt lisas-bakery.com?
@@ -720,7 +772,10 @@ ein eigenes, KOSTENPFLICHTIGES Feature (Layer-Kandidat `analytics`, läuft
 cookielos — passt zu maui.consent).
 
 ### L7 — Rechtsrahmen der Plattform (H2 vor erstem Kunden)
-Sobald Kunden-Sites laufen, ist David **Auftragsverarbeiter**: AVV/DPA-Vorlage,
+Sobald Kunden-Sites laufen, ist David im **Standardmodell
+Auftragsverarbeiter** (6. Runde präzisiert: je nach Einfluss auf Zwecke und
+Mittel im Einzelfall zu prüfen — ggf. gemeinsame Verantwortlichkeit;
+rechtliche Beratung einholen): AVV/DPA-Vorlage,
 ToS der Plattform, Subprozessoren-Liste (Hetzner, Stripe, Cloudflare, ggf.
 Mail-Provider), Preis-/Plan-Blatt. Kein Code — aber ohne das kein seriöser
 zahlender Kunde. Impressum/Datenschutz PRO SITE liefert der pages-Layer
@@ -754,13 +809,22 @@ zentraler Auth-Broker.
   Job-Schnittstelle = geschlossene Typ-Liste (s. o.).
 - **Platform-App** (`apps/platform`) — zwei Fehlerklassen (5. Runde):
   *(a) Logischer Zuordnungsfehler* (Request landet im falschen Site-Kontext):
-  wird durch Host-Allowlist, unveränderlichen Site-Kontext und Tests
-  VERHINDERT (Invarianten in S3). *(b) Prozesskompromittierung* (RCE,
-  bösartige Dependency, Secret-Store-Zugriff): betrifft potenziell ALLE vom
-  Prozess erreichbaren Site-Keys — nicht verhinderbar, nur begrenzbar:
-  Least-Privilege-Runtime-Keys (offene Designfrage: wie viel geht rein über
-  die User-Session statt über einen Admin-Key? Je schwächer der Key, desto
-  kleiner der Blast-Radius), Secret-Isolation, Rotation, Alarmierung.
+  soll durch Host-Allowlist, unveränderlichen Site-Kontext und Negativtests
+  verhindert und abgesichert werden (Invarianten in S3).
+  *(b) Prozesskompromittierung* (RCE, bösartige Dependency,
+  Secret-Store-Zugriff): betrifft potenziell ALLE vom Prozess erreichbaren
+  Site-Keys — nicht verhinderbar, nur begrenzbar: Session-basiertes CRUD
+  (Invariante unten), minimale Key-Scopes, Secret-Isolation, Rotation,
+  Dependency-Hardening, Egress-Beschränkung, Alarmierung.
+  **Autorisierungs-Invariante (6. Runde, ENTSCHIEDEN statt offener
+  Designfrage):** Normales Site-CRUD läuft über die SESSION des jeweiligen
+  Site-Users (`createSessionClient` — exakt das heutige Zwei-Client-Muster
+  des Monorepos), sodass Appwrite Row Permissions und das Label-RBAC
+  wirksam BLEIBEN. **Kein normaler Request verwendet einen Key, der Row
+  Permissions umgeht.** Der Runtime-Key ist auf eine enumerierte Liste
+  systeminterner Operationen beschränkt (z. B. Presence-Heartbeat,
+  Notifications, Digest) mit dokumentierter Scope-Matrix pro Key.
+  Autorisierung wird NICHT in Nuxt nachgebaut.
 - **Site-Projekt:** Vertrauensanker der Kundendaten; nur eigene Keys +
   eigene User; Zugriff Dritter (auch Davids) nur nach D5-Regeln.
 - **Appwrite-Server:** logische Trennung (D2) — physischer SPOF; überwacht
@@ -774,6 +838,8 @@ zentraler Auth-Broker.
 | Risiko | W'keit | Impact | Gegenmaßnahme | Horizont |
 |---|---|---|---|---|
 | S3 scheitert (Multi-Projekt pro Request) | mittel | hoch — Klasse B neu denken | früher Minimal-PoC; Fallback: Klasse B als Projekt-Pool + Batch-Builds | H3 |
+| Platform-Prozess kompromittiert (RCE/Dependency/Secret-Store) | niedrig–mittel | sehr hoch — alle erreichbaren Site-Keys | Session-basiertes CRUD (Invariante), minimale Key-Scopes, Secret-Isolation, Rotation, Dependency-Hardening, Egress-Beschränkung, Alarmierung | H3 |
+| Quota-Enforcement technisch nicht durchsetzbar | mittel | hoch — Self-Service unhaltbar | Spike S4 vor G3; Fallback: manuelle Freigabe + weiche Limits mit Abrechnung | H3 |
 | Custom-Domain-Auth bricht im Browser | mittel | hoch | S3-Checkliste komplett fahren; Fallback Option 1 (API-Domain pro Projekt) | H3 |
 | Per-Site-Restore unvollständig | mittel | sehr hoch (Datenversprechen) | L1 zweigleisig (Takeout + Infra) + DR-Test vor Kunde 1 | H2 |
 | Console-API bricht bei Appwrite-Upgrade | niedrig | mittel | Version gepinnt + CI-Smoke-Test + Projekt-Pool-Fallback | H2/H3 |
