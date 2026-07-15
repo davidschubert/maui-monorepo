@@ -1,6 +1,6 @@
 import { Query } from 'node-appwrite'
 import type { Models } from 'node-appwrite'
-import type { AdminCommentListResponse, ModeratedComment, ModerationFilter } from '../../../../shared/types/admin'
+import type { AdminCommentListResponse, ModeratedComment, ModerationFilter } from '../../../../../admin/shared/types/admin'
 
 const PAGE_SIZE = 25
 const FILTERS: ModerationFilter[] = ['reported', 'hidden', 'all']

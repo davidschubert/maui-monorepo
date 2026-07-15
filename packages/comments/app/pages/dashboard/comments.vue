@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Models } from 'node-appwrite'
 import type { NavigationMenuItem } from '@nuxt/ui'
-import type { AdminCommentListResponse, ModeratedComment, ModerationAssist, ModerationFilter } from '../../../shared/types/admin'
+import type { AdminCommentListResponse, ModeratedComment, ModerationAssist, ModerationFilter } from '../../../../admin/shared/types/admin'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'comments.moderate' })
 

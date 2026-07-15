@@ -1,5 +1,5 @@
 import type { Models } from 'node-appwrite'
-import type { ModerationAssist } from '../../../../../shared/types/admin'
+import type { ModerationAssist } from '../../../../../../admin/shared/types/admin'
 
 /**
  * KI-Moderations-Assist (advisory): Zweitmeinung zu einem gemeldeten Kommentar
