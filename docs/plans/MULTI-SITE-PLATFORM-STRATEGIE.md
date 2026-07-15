@@ -1,6 +1,6 @@
 # Multi-Site-Platform-Strategie — „Maui Platform"
 
-Stand: 2026-07-14 (4. Runde: kritisches Review eingearbeitet) · Status:
+Stand: 2026-07-14 (5. Runde: Review-Nachträge eingearbeitet) · Status:
 **Konzept abgestimmt — Umsetzungs-Freigabe für abhängige Teile erst nach
 bestandenen Spikes S1–S3 (Decision Gates, § 4)**
 
@@ -160,13 +160,14 @@ schneiden, dass Klasse B sie unverändert konsumieren kann.
 ### D2 — Appwrite: ein Server, ein PROJEKT pro Site
 
 Präzisierung von A1: Die Isolations-Einheit ist das **Appwrite-Projekt**
-(eigene DB, eigene User, eigener Storage, eigener Cookie
-`a_session_<PROJECT_ID>`), nicht zwingend der Server.
+als eigenes LOGISCHES Projekt (eigene Database, eigene User, eigene
+Buckets, eigener Cookie `a_session_<PROJECT_ID>`), nicht zwingend der
+Server — zur physischen Realität siehe den Präzisions-Absatz unten.
 
 - **Ein gemeinsamer self-hosted Appwrite-Server** (Hetzner, das bestehende
   PHASE-17-Setup) hostet die Projekte aller eigenen + Platform-Sites.
-- Pro Site: eigenes Projekt + eigene Database + eigene Keys. Präzision
-  (4. Runde): das ist **logische Mandantentrennung** — Appwrite erzwingt sie
+- Pro Site: eigenes logisches Projekt mit eigener Database/Buckets +
+  eigenen Keys. Präzision (4. Runde): das ist **logische Mandantentrennung** — Appwrite erzwingt sie
   über projectId-Scoping aller APIs, per-Projekt-Keys und getrennte
   Databases/Buckets. **Physisch** liegen alle Projekte in derselben MariaDB
   und denselben Volumes (vgl. L1). Vertraglich wird logische Trennung
@@ -314,11 +315,19 @@ export default defineFeatureManifest({
 - Ein Site-Manifest pro App (`apps/<site>/site.manifest.ts`) listet die
   gewählten Features; ein Codegen-/Check-Script hält `extends` +
   `package.json` synchron (Single Source of Truth, CI-geprüft).
-- **Katalog-Artefakt (4. Runde):** Die Manifeste liegen im Monorepo — das
+- **Katalog-Artefakt (4./5. Runde):** Die Manifeste liegen im Monorepo — das
   Control Plane rendert den Katalog (F7) aber zur Laufzeit. Deshalb
   generiert der Build ein validiertes, VERSIONIERTES Katalog-Artefakt
-  (JSON aus allen Manifesten) und stellt es dem Control Plane bereit; das
-  Sites-Register hält pro Site fest, welche Katalog-/Schema-Version sie hat.
+  (JSON aus allen Manifesten). Veröffentlichungsrichtung: das Artefakt wird
+  beim **Release ins Control Plane publiziert** (API/Storage des
+  Studio-Projekts, nicht einkompiliert) — so kann `apps/studio` unabhängig
+  von der Platform-App deployen. Drei getrennte Versionen:
+  `catalogVersion` (Stand des Artefakts) · `platformReleaseVersion`
+  (was die laufende Platform-App tatsächlich enthält) ·
+  `siteSchemaVersion` (Migrationsstand der Site, im Sites-Register).
+  **Aktivierbar ist ein Feature nur, wenn alle drei es unterstützen** —
+  insbesondere wird KEIN Entitlement für ein Feature ausgestellt, das die
+  aktuell laufende Platform-Version noch nicht enthält.
 - Grundgerüst laut David = foundation-tier: core, system, auth/profile
   (core), billing, themes, admin, audit (system), changelog. Optional:
   comments, courses, events, feedback, feed, posts, tickets, moderation
@@ -342,8 +351,13 @@ Das AI-Override-Muster (`app_config.aiModel > maui.ai`) wird generalisiert:
   `inactive → provisioning → active → disabling → inactive`, plus `error`
   (mit Retry + markierter manueller Recovery). Das Gate wird erst NACH
   erfolgreicher Migration aktiv — nie „sichtbar, aber Schema fehlt".
-  Schritte idempotent (Idempotency-Key), auditiert; Abhängigkeitsketten
-  (comments→moderation) werden als Ganzes provisioniert oder gar nicht.
+  Schritte idempotent (Idempotency-Key), auditiert. Abhängigkeitsketten
+  (comments→moderation) sind für NUTZER atomar — technisch gibt es über
+  mehrere API-/Schema-Operationen keine echte Transaktion und bewusst
+  keinen Schema-Rollback (5. Runde): schlägt `comments` nach erfolgreichem
+  `moderation` fehl, bleiben vorbereitete, aber INAKTIVE Schemaanteile
+  zurück; Recovery läuft vorwärts per Retry; der Status bleibt
+  `provisioning`/`error` und ALLE Gates der Kette bleiben geschlossen.
 - Wichtig: Für Studio-Sites ist das Gate ein **Aus-Schalter innerhalb der
   einkompilierten Features** (Feature deaktivieren ohne Deploy). Für
   Platform-Sites ist es der EINZIGE Schalter.
@@ -365,8 +379,20 @@ Das AI-Override-Muster (`app_config.aiModel > maui.ai`) wird generalisiert:
   wegen technischer Störung ab (Control Plane/Netz/Worker down), nutzt die
   Site das zuletzt gültige Entitlement weiter (last-known-good bis
   `graceUntil`). GESPERRT wird nur über ein explizites `suspended`-Flag
-  (echte Kündigung/Zahlungsausfall) — plus Push-Revocation für Notfälle.
-  Dazu: Key-Rotation über `kid`, Clock-Skew-Toleranz (±5 min).
+  (echte Kündigung/Zahlungsausfall). Dazu: Key-Rotation über `kid`,
+  Clock-Skew-Toleranz (±5 min).
+- **Zustellung von Suspension — zwei getrennte Mechanismen (5. Runde):**
+  *(a) Normale kaufmännische Änderungen:* `suspended` ist Teil des
+  signierten Dokuments; die Site MUSS mindestens alle 15 min pullen
+  (Push/Realtime nur als Beschleunigung, nie als einziger Kanal) —
+  Wirksamkeit ≤ Poll-Intervall. War der letzte gültige Zustand „aktiv" und
+  die Site erreicht das Control Plane dauerhaft nicht, läuft sie bis
+  `graceUntil` weiter und degradiert dann (bewusst: Control-Plane-Ausfall
+  sperrt keine zahlenden Kunden). *(b) Dringende Abuse-/Security-Sperre:*
+  Push-Revocation allein ist als Kill-Switch zu schwach — zusätzlich wird
+  am Edge/Reverse-Proxy (Host aus dem Routing nehmen) und/oder am
+  Appwrite-Projekt (Platform/Keys deaktivieren) geblockt; Ziel-Wirkzeit
+  Minuten, unabhängig von der Kooperation der Site.
 - Kill-Switch bleibt nie destruktiv: Feature fällt auf `disabled`,
   Daten bleiben.
 
@@ -475,7 +501,9 @@ WordPress-Plugin-Seite, aber ausschließlich First-Party:
 Ein Kommando statt 5–10 manueller Schritte: kopiert `_template`, patcht
 Name/Port/Env, legt per **Appwrite-Console-API/CLI** Projekt + Keys + Platform
 an (Spike S1), führt `bootstrap` aus, generiert Setup-Token, druckt die
-ploi/Cloudflare-Restschritte als Checkliste. Danach: Domain aufrufen → Wizard.
+ploi/Cloudflare-Restschritte als Checkliste. Danach: Domain aufrufen →
+optionaler `/setup`-Claim (F4.7, dünner Fallback für Klasse-A-Übergaben —
+der On-Site-Wizard bleibt verworfen).
 
 ### P2 — Horizont 2/3: Provisioner-Worker im Control Plane
 
@@ -523,7 +551,16 @@ und E-Mail-Links auf beiden Domains.
 - **S3:** `apps/platform`-Machbarkeit: pro-Request-Projekt-Auflösung.
   Lösungsskizze: Nitro-Middleware löst `Host` → Site-Record (LRU/Redis-Cache
   über dem Sites-Register, Realtime-Invalidierung) → `event.context.site`
-  {projectId, endpoint, verschlüsselt hinterlegter Runtime-Key}. Da ALLES
+  {projectId, endpoint, verschlüsselt hinterlegter Runtime-Key}.
+  **Sicherheits-Invarianten der Mandantenauflösung (5. Runde — dem
+  `Host`-Header wird nie blind vertraut):** nur normalisierte, im
+  Sites-Register VERIFIZIERTE Hostnamen akzeptieren · `X-Forwarded-Host`
+  nur von bekannten Reverse Proxies übernehmen · unbekannte/doppelte/
+  mehrdeutige Hosts hart ablehnen (404, KEINE Default-Site als Fallback) ·
+  Site-Kontext nach der Middleware unveränderlich (frozen) · Cache-Key
+  umfasst Hostname + projectId + Endpoint (Domain-Umzug invalidiert).
+  Das ist die wichtigste Schutzschicht gegen Cross-Site-Datenzugriff
+  durch fehlgeleitetes Routing. Da ALLES
   CRUD durch `server/api/*` läuft, ist der Umbau auf `server/lib/appwrite.ts`
   konzentriert (Client-Factories nehmen `event` statt statischer
   runtimeConfig). Client-seitig: `useSiteConfig()` (SSR-injiziert in den
@@ -563,17 +600,24 @@ und E-Mail-Links auf beiden Domains.
 
 ## 6. Roadmap
 
+Gates (G*) sind eigene Meilensteine — die Roadmap ist damit konsistent zur
+Gate-Regel (5. Runde; vorher stand S2 in M7 und S3 in M9, im Widerspruch
+zur Regel „S2 + Minimal-S3 vor M6").
+
 | Phase | Inhalt | Horizont | Schätzung |
 |---|---|---|---|
-| M1 | Feature-Manifest + Site-Manifest + CI-Check | 1 | 2–3 PT |
-| M2 | Laufzeit-Gates generalisieren (F2) + Feature-Seite im Admin | 1 | 3–4 PT |
+| **S0** | Mini-Spike VOR/WÄHREND M1: Wegwerf-Nitro-App + 2 lokale Projekte + Hostname-Switch — validiert die FORM der Verträge (`useSiteConfig()`, Client-Factories mit `event`), bevor M1/M2 sie festschreiben | 1 | 1–2 PT |
+| M1 | Feature-Manifest + Site-Manifest + CI-Check (Verträge S0-informiert) | 1 | 2–3 PT |
+| M2 | Laufzeit-Gates generalisieren (F2, inkl. Statusmaschine) + Feature-Seite im Admin | 1 | 3–4 PT |
 | M3 | Migrations-Audit „additiv-sicher" + Feature-Aktivierung nachträglich (F4.6/F4.8) | 1 | 3–5 PT |
-| M4 | `pnpm create-site` + Spike S1 | 1 | 3–4 PT |
+| M4 | `pnpm create-site` + **G1 = Spike S1** (Projekt-Anlage per Console-API/CLI bestanden) | 1 | 3–4 PT |
 | M5 | Eigene Sites einziehen: `apps/portfolio`, `apps/maui-photos` (+ media-Layer), Community | 1 | je 3–8 PT |
+| **G2** | **Gate vor M6:** Spike S2 (Custom-Domain+Cert e2e) + Minimal-S3 („2 Projekte × 2 Domains × Auth × Realtime") bestanden — sonst kein M6 | 2 | 2–4 PT |
 | M6 | Control Plane MVP `apps/studio` (Register, Health, manuelle Entitlements, Site-Erstellungs-Flow = F4) | 2 | 8–12 PT |
-| M7 | Provisioner-Worker + ploi/Cloudflare-APIs + Spike S2 | 2 | 6–10 PT |
+| M7 | Provisioner-Worker + ploi/Cloudflare-APIs (S2 bereits in G2 bestanden) | 2 | 6–10 PT |
 | M8 | Workspace-Billing (Stripe) + signierte Entitlements (F3 voll) | 2/3 | 5–8 PT |
-| M9 | `apps/platform` (Klasse B) + Redis + Spike S3 + Self-Service-Signup | 3 | 15–25 PT |
+| **G3** | **Gate vor M9:** volles S3 (komplette Browser-PoC-Checkliste) bestanden — sonst kein M9 | 3 | 3–5 PT |
+| M9 | `apps/platform` (Klasse B) + Redis + Self-Service-Signup | 3 | 15–25 PT |
 
 **PHASE-17-Abhängigkeit (präzisiert 2026-07-14):** M1–M5 laufen komplett
 lokal (OrbStack-Appwrite; `create-site` legt Projekte auf der lokalen Instanz
@@ -585,8 +629,11 @@ DNS/TLS, Health gegen echte Infrastruktur).
 Prototyp**-Schätzungen. „Produktionsreif" (Tests, Observability, Security-
 Hardening, Doku, Betriebsautomatisierung, Failure-Handling) ist vor allem
 für M6–M9 separat zu budgetieren — realistisch Faktor 1,5–2,5 obendrauf.
-**Gate-Regel:** M6 beginnt erst nach bestandenem S1 + S2 + Minimal-S3;
-M9 erst nach vollem S3.
+**Gate-Regel:** G1 (S1) in M4 · G2 (S2 + Minimal-S3) zwingend vor M6 ·
+G3 (volles S3) zwingend vor M9 — jetzt als eigene Roadmap-Zeilen (5. Runde).
+Dazu S0 vor M1: die frühen Config-/Factory-Verträge, die Klasse B später
+„unverändert" konsumieren soll, werden per Mini-Spike abgesichert, damit
+S3 sie nicht nachträglich kippt.
 
 ## 7. Identifizierte Lücken (2. Review) — **alle bestätigt ✅ (3. Runde, 2026-07-14)**
 
@@ -596,8 +643,11 @@ Von David einzeln abgenickt („Machen wir so"), inkl. dreier Ergänzungen
 ### L1 — Backup & Restore PRO SITE (blockiert: erste fremden Daten, H2)
 Der geteilte Appwrite-Server bündelt alle Sites in EINER MariaDB + einem
 Volume-Satz. Instanz-Backup (Dump + Volumes) ist einfach — aber das
-Versprechen „Daten gehen nie verloren" braucht **Restore pro Site**: eine
-einzelne Site auf Stand gestern zurückholen, ohne die anderen anzufassen.
+Kundenversprechen wird als **definierte Wiederherstellungs-Garantie**
+formuliert (RPO/RTO, z. B. „Stand höchstens 24 h alt, wiederhergestellt
+innerhalb von X h"), nicht als absolutes „Daten gehen nie verloren"
+(5. Runde). Dafür braucht es **Restore pro Site**: eine einzelne Site auf
+einen definierten Stand zurückholen, ohne die anderen anzufassen.
 Appwrite kann das nicht nativ → zwei sich ergänzende Ebenen (4. Runde):
 **(a) Daten-Takeout per API** (Rows/Files via Admin-Key) — gut für
 Export/L2, aber KEIN vollständiges Betriebs-Backup: Users samt
@@ -689,13 +739,28 @@ zentraler Auth-Broker.
 ## 8. Invarianten & Vertrauensgrenzen (4. Runde)
 
 - **Control Plane** (`apps/studio`): kennt alle Sites + Entitlements; besitzt
-  KEINE Site-Inhalte und keine Site-Sessions. Kompromittierung ⇒ Lifecycle-
-  Missbrauch möglich, aber kein direkter Inhalts-/Session-Zugriff.
+  KEINE Site-Inhalte und keine Site-Sessions. Diese Grenze gilt nur, wenn
+  sie ERZWUNGEN wird (5. Runde) — sonst ist das Control Plane über den
+  Provisioner mittelbar allmächtig: der Provisioner akzeptiert nur eng
+  typisierte, validierte Job-Typen (keine beliebigen Befehle, keine
+  frei parametrisierten Keys/Accounts); Support-Zugang (D5) braucht
+  Owner-Zustimmung oder einen separat auditierten Break-glass-Prozess;
+  besonders riskante Aktionen (Löschen, Owner-Transfer, Break-glass)
+  erfordern Re-Authentifizierung, später Vier-Augen-Freigabe; Audit-Log
+  ist append-only und nicht allein vom Control Plane veränderbar
+  (separater Store/WORM).
 - **Provisioner-Worker:** einziger Ort mit Console-/Migrations-Rechten;
-  läuft getrennt von jeder Web-App; Secrets verschlüsselt, nie in Logs.
-- **Platform-App** (`apps/platform`): hält pro Site nur den Runtime-Key
-  (entschlüsselt im Prozess); ein App-Bug darf nie Site-übergreifend wirken
-  ⇒ jede Anfrage strikt über `event.context.site` gescoped (S3).
+  läuft getrennt von jeder Web-App; Secrets verschlüsselt, nie in Logs;
+  Job-Schnittstelle = geschlossene Typ-Liste (s. o.).
+- **Platform-App** (`apps/platform`) — zwei Fehlerklassen (5. Runde):
+  *(a) Logischer Zuordnungsfehler* (Request landet im falschen Site-Kontext):
+  wird durch Host-Allowlist, unveränderlichen Site-Kontext und Tests
+  VERHINDERT (Invarianten in S3). *(b) Prozesskompromittierung* (RCE,
+  bösartige Dependency, Secret-Store-Zugriff): betrifft potenziell ALLE vom
+  Prozess erreichbaren Site-Keys — nicht verhinderbar, nur begrenzbar:
+  Least-Privilege-Runtime-Keys (offene Designfrage: wie viel geht rein über
+  die User-Session statt über einen Admin-Key? Je schwächer der Key, desto
+  kleiner der Blast-Radius), Secret-Isolation, Rotation, Alarmierung.
 - **Site-Projekt:** Vertrauensanker der Kundendaten; nur eigene Keys +
   eigene User; Zugriff Dritter (auch Davids) nur nach D5-Regeln.
 - **Appwrite-Server:** logische Trennung (D2) — physischer SPOF; überwacht
