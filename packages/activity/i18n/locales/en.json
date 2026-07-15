@@ -1,10 +1,15 @@
 {
-  "feed": {
+  "admin": {
+    "nav": {
+      "activity": "Activity"
+    }
+  },
+  "activity": {
     "title": "Activity",
     "description": "What's happening in the community right now.",
     "empty": "No activity yet.",
     "loadMore": "Load more",
-    "openPage": "Open feed page",
+    "openPage": "Open activity page",
     "groupMore": "Show {count} more",
     "someone": "Someone",
     "delete": "Delete entry",
@@ -12,7 +17,7 @@
     "deleteFailed": "Could not delete entry.",
     "moderation": {
       "title": "Activity feed",
-      "description": "All feed entries — individual entries can be removed."
+      "description": "All activity entries — individual entries can be removed."
     },
     "types": {
       "generic": "{name} was active",
@@ -37,11 +42,6 @@
         "members": "🎉 The community now has {count} members!",
         "comments": "🎉 Comment number {count} was just written!"
       }
-    }
-  },
-  "admin": {
-    "nav": {
-      "feed": "Activity"
     }
   }
 }

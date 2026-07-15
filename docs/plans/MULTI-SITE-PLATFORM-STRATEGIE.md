@@ -358,7 +358,7 @@ export default defineFeatureManifest({
   Feature ausgestellt, das die laufende Platform-Version nicht enthält.
 - Grundgerüst laut David = foundation-tier: core, system, auth/profile
   (core), billing, themes, admin, audit (system), changelog. Optional:
-  comments, courses, events, feedback, feed, posts, tickets, moderation
+  comments, courses, events, feedback, activity, posts, tickets, moderation
   (auto-required von comments/posts).
 
 ### F2 — Laufzeit-Gates verallgemeinern (`getEffectiveConfig`)

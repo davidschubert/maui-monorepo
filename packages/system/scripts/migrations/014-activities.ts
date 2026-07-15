@@ -3,7 +3,7 @@
  *
  * rowSecurity = true: Zeilen entstehen NUR server-seitig über den Core-Vertrag
  * recordActivity() (read für Role.users()); gelöscht wird via Admin-Client
- * (feed.manage-Route, GDPR-Contributor). Kein User-Schreibrecht auf der Table.
+ * (activity.manage-Route, GDPR-Contributor). Kein User-Schreibrecht auf der Table.
  * Idempotent (409 → skip). Aufruf über den zentralen Runner:
  *
  *   pnpm migrate --app <app> --layer system

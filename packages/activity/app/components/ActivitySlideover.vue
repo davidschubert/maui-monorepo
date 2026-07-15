@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * Header-Trigger + Slideover mit dem Activity-Feed — für die Startseite/
- * Layouts, ohne die Seite zu verlassen. Die /feed-Seite bleibt für
+ * Layouts, ohne die Seite zu verlassen. Die /activity-Seite bleibt für
  * Deep-Links bestehen (Footer-Link). Der Feed lädt erst beim Öffnen
  * (unmountOnHide-Default) — kein Fetch auf jedem Seitenaufruf.
  */
@@ -17,8 +17,8 @@ function onBodyClick(event: MouseEvent) {
 </script>
 
 <template>
-  <USlideover v-model:open="open" :title="t('feed.title')" :description="t('feed.description')">
-    <UButton color="neutral" variant="ghost" icon="i-ph-pulse" :aria-label="t('feed.title')" data-testid="feed-link" />
+  <USlideover v-model:open="open" :title="t('activity.title')" :description="t('activity.description')">
+    <UButton color="neutral" variant="ghost" icon="i-ph-pulse" :aria-label="t('activity.title')" data-testid="activity-link" />
 
     <template #body>
       <!-- ActivityFeed hat async setup (useFetch) → braucht hier eine eigene
@@ -37,14 +37,14 @@ function onBodyClick(event: MouseEvent) {
 
     <template #footer>
       <UButton
-        :to="localePath('/feed')"
+        :to="localePath('/activity')"
         color="neutral"
         variant="link"
         icon="i-ph-arrow-right"
-        data-testid="feed-page-link"
+        data-testid="activity-page-link"
         @click="open = false"
       >
-        {{ t('feed.openPage') }}
+        {{ t('activity.openPage') }}
       </UButton>
     </template>
   </USlideover>

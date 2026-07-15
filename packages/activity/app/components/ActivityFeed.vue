@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const props = defineProps<{
-  /** Moderations-Modus: Löschen-Buttons + Lösch-Aktion (dashboard/feed) */
+  /** Moderations-Modus: Löschen-Buttons + Lösch-Aktion (dashboard/activity) */
   moderate?: boolean
 }>()
 
@@ -58,22 +58,22 @@ async function onRemove(id: string) {
   if (!props.moderate) return
   try {
     await remove(id)
-    toast.add({ title: t('feed.deleted'), color: 'success' })
+    toast.add({ title: t('activity.deleted'), color: 'success' })
   }
   catch {
-    toast.add({ title: t('feed.deleteFailed'), color: 'error' })
+    toast.add({ title: t('activity.deleteFailed'), color: 'error' })
   }
 }
 </script>
 
 <template>
   <div>
-    <p v-if="!pending && rows.length === 0" class="py-12 text-center text-sm text-muted" data-feed-empty>
-      {{ t('feed.empty') }}
+    <p v-if="!pending && rows.length === 0" class="py-12 text-center text-sm text-muted" data-activity-empty>
+      {{ t('activity.empty') }}
     </p>
 
-    <div v-else class="divide-y divide-default" data-feed-list>
-      <div v-for="group in groups" :key="group.head.$id" data-feed-group>
+    <div v-else class="divide-y divide-default" data-activity-list>
+      <div v-for="group in groups" :key="group.head.$id" data-activity-group>
         <ActivityItem :activity="group.head" :moderate="moderate" @remove="onRemove" />
 
         <template v-if="group.items.length > 1">
@@ -82,10 +82,10 @@ async function onRemove(id: string) {
               color="neutral"
               variant="link"
               size="xs"
-              data-feed-group-more
+              data-activity-group-more
               @click="expand(group.head.$id)"
             >
-              {{ t('feed.groupMore', { count: group.items.length - 1 }) }}
+              {{ t('activity.groupMore', { count: group.items.length - 1 }) }}
             </UButton>
           </div>
           <template v-else>
@@ -101,17 +101,17 @@ async function onRemove(id: string) {
       </div>
     </div>
 
-    <div ref="sentinel" aria-hidden="true" class="h-px" data-feed-sentinel />
+    <div ref="sentinel" aria-hidden="true" class="h-px" data-activity-sentinel />
 
     <div v-if="nextCursor" class="pt-4 text-center">
       <UButton
         color="neutral"
         variant="subtle"
         :loading="loadingMore"
-        data-feed-load-more
+        data-activity-load-more
         @click="loadMore"
       >
-        {{ t('feed.loadMore') }}
+        {{ t('activity.loadMore') }}
       </UButton>
     </div>
   </div>

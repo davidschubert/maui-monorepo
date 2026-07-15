@@ -105,7 +105,12 @@
       "voteInvalid": "Invalid vote."
     }
   },
-  "feed": {
+  "admin": {
+    "nav": {
+      "posts": "Feed"
+    }
+  },
+  "activity": {
     "types": {
       "post": {
         "published": "{name} posted in the community"
@@ -113,11 +118,6 @@
       "milestone": {
         "posts": "🎉 Community post number {count} was just published!"
       }
-    }
-  },
-  "admin": {
-    "nav": {
-      "posts": "Feed"
     }
   }
 }

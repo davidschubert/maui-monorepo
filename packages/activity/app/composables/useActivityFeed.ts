@@ -1,4 +1,4 @@
-import { ACTIVITIES_TABLE, type Activity, type FeedActivity, type FeedListResponse } from '../../shared/types/activity'
+import { ACTIVITIES_TABLE, type Activity, type ActivityEntry, type ActivityListResponse } from '../../shared/types/activity'
 
 /**
  * Zustand + Laden des Activity-Feeds: erste Seite SSR-hydriert (useFetch),
@@ -14,7 +14,7 @@ import { ACTIVITIES_TABLE, type Activity, type FeedActivity, type FeedListRespon
 export async function useActivityFeed() {
   const config = useRuntimeConfig()
 
-  const rows = ref<FeedActivity[]>([])
+  const rows = ref<ActivityEntry[]>([])
   const nextCursor = ref<string | null>(null)
 
   // Alles Stoppbare einsammeln — onBeforeUnmount räumt gesammelt auf
@@ -40,7 +40,7 @@ export async function useActivityFeed() {
     stops.length = 0
   })
 
-  const { data, pending, error, refresh } = await useFetch<FeedListResponse>('/api/feed')
+  const { data, pending, error, refresh } = await useFetch<ActivityListResponse>('/api/activity')
   // Watcher entsteht NACH dem await (außerhalb des Component-Scopes) →
   // manuell stoppen (onBeforeUnmount oben), sonst leakt er pro Navigation.
   stops.push(watch(data, (value) => {
@@ -54,7 +54,7 @@ export async function useActivityFeed() {
     if (!nextCursor.value || loadingMore.value) return
     loadingMore.value = true
     try {
-      const res = await $fetch<FeedListResponse>('/api/feed', { query: { cursor: nextCursor.value } })
+      const res = await $fetch<ActivityListResponse>('/api/activity', { query: { cursor: nextCursor.value } })
       // Dedupe: Realtime kann Einträge bereits vorn eingefügt haben
       const known = new Set(rows.value.map(row => row.$id))
       rows.value = [...rows.value, ...res.rows.filter(row => !known.has(row.$id))]
@@ -65,9 +65,9 @@ export async function useActivityFeed() {
     }
   }
 
-  /** Eintrag löschen (Moderation, feed.manage) — Route ist die Autorität. */
+  /** Eintrag löschen (Moderation, activity.manage) — Route ist die Autorität. */
   async function remove(id: string) {
-    await $fetch(`/api/feed/${id}`, { method: 'DELETE' })
+    await $fetch(`/api/activity/${id}`, { method: 'DELETE' })
     rows.value = rows.value.filter(row => row.$id !== id)
   }
 

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { FeedActivity } from '../../shared/types/activity'
+import type { ActivityEntry } from '../../shared/types/activity'
 
 const props = defineProps<{
-  activity: FeedActivity
-  /** Moderations-Modus: zeigt den Löschen-Button (dashboard/feed) */
+  activity: ActivityEntry
+  /** Moderations-Modus: zeigt den Löschen-Button (dashboard/activity) */
   moderate?: boolean
 }>()
 
@@ -20,12 +20,12 @@ const safeLink = computed(() => {
   return link && /^\/(?![/\\%])[^\s\\]*$/.test(link) ? link : '/'
 })
 
-// Ereignis-Text: feed.types.<type> (z. B. feed.types.comment.created);
+// Ereignis-Text: activity.types.<type> (z. B. activity.types.comment.created);
 // unbekannte Typen fallen auf 'generic' zurück — künftige Ereignis-Typen
 // älterer Layer-Stände brechen den Feed nicht.
 const messageKey = computed(() => {
-  const key = `feed.types.${props.activity.type}`
-  return te(key) ? key : 'feed.types.generic'
+  const key = `activity.types.${props.activity.type}`
+  return te(key) ? key : 'activity.types.generic'
 })
 
 // Kleine Zusatzdaten (z. B. snippet) — defensiv geparst, kein Vertrauen in die Row
@@ -72,7 +72,7 @@ const isSystem = computed(() => props.activity.actorId === 'system')
 
     <NuxtLink :to="localePath(safeLink)" class="min-w-0 flex-1">
       <i18n-t :keypath="messageKey" tag="p" scope="global" class="text-sm text-muted">
-        <template #name><span class="font-medium text-default">{{ activity.actorName || t('feed.someone') }}</span></template>
+        <template #name><span class="font-medium text-default">{{ activity.actorName || t('activity.someone') }}</span></template>
         <template #count><span class="font-medium text-default">{{ metadata.count ?? '' }}</span></template>
       </i18n-t>
       <p v-if="snippet" class="truncate text-xs text-muted">{{ snippet }}</p>
@@ -85,7 +85,7 @@ const isSystem = computed(() => props.activity.actorId === 'system')
       color="error"
       variant="ghost"
       size="xs"
-      :aria-label="t('feed.delete')"
+      :aria-label="t('activity.delete')"
       @click="emit('remove', activity.$id)"
     />
   </div>

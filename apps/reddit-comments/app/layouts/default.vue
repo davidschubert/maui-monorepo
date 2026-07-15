@@ -19,7 +19,7 @@ const centerNav = computed<NavigationMenuItem[]>(() => [
       ...(isLoggedIn.value
         ? [
             { label: t('courses.list.title'), icon: 'i-ph-graduation-cap', description: t('courses.list.description'), to: localePath('/courses') },
-            { label: t('feed.title'), icon: 'i-ph-pulse', description: t('feed.description'), to: localePath('/feed') },
+            { label: t('activity.title'), icon: 'i-ph-pulse', description: t('activity.description'), to: localePath('/activity') },
           ]
         : []),
     ],
@@ -50,7 +50,7 @@ const centerNav = computed<NavigationMenuItem[]>(() => [
           />
         </div>
         <div class="flex items-center justify-self-end gap-2">
-          <FeedSlideover v-if="isLoggedIn" />
+          <ActivitySlideover v-if="isLoggedIn" />
           <WhatsNewButton />
           <DisplaySettingsMenu />
           <NotificationBell v-if="isLoggedIn" />

@@ -104,7 +104,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Activity-Feed (Core-Vertrag recordActivity, best-effort wie notify) —
-  // packages/feed rendert daraus „{name} hat einen Kommentar geschrieben"
+  // packages/activity rendert daraus „{name} hat einen Kommentar geschrieben"
   // (feed.types.comment.created); kein Import aus feed (CONCEPT A14).
   await recordActivity(event, {
     actorId: user.$id,

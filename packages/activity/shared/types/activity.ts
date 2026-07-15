@@ -9,7 +9,7 @@ import type { Models } from 'node-appwrite'
 export interface Activity extends Models.Row {
   actorId: string
   actorName: string
-  /** Ereignis-Typ, z. B. 'comment.created' — UI übersetzt via feed.types.<type> */
+  /** Ereignis-Typ, z. B. 'comment.created' — UI übersetzt via activity.types.<type> */
   type: string
   objectType: string
   objectId: string
@@ -21,12 +21,12 @@ export interface Activity extends Models.Row {
 }
 
 /** Listen-Eintrag, um den Actor-Avatar angereichert (wie comments) */
-export interface FeedActivity extends Activity {
+export interface ActivityEntry extends Activity {
   actorAvatarUrl?: string
 }
 
-export interface FeedListResponse {
-  rows: FeedActivity[]
+export interface ActivityListResponse {
+  rows: ActivityEntry[]
   /** $id der letzten Row der Seite — null, wenn keine weitere Seite existiert */
   nextCursor: string | null
 }

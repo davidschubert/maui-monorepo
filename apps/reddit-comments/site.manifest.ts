@@ -19,7 +19,7 @@ export default {
     'billing',
     'courses',
     'tickets',
-    'feed',
+    'activity',
     'moderation',
   ],
 } satisfies SiteManifest

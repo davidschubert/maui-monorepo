@@ -1,5 +1,5 @@
 import { Query } from 'node-appwrite'
-import { ACTIVITIES_TABLE, type Activity, type FeedListResponse } from '../../../shared/types/activity'
+import { ACTIVITIES_TABLE, type Activity, type ActivityListResponse } from '../../../shared/types/activity'
 
 const PAGE_SIZE = 25
 
@@ -8,7 +8,7 @@ const PAGE_SIZE = 25
  * die Rows tragen read(users) (recordActivity), gelesen wird über den
  * SessionClient, damit die Row-Security die Autorität bleibt (A3).
  */
-export default defineEventHandler(async (event): Promise<FeedListResponse> => {
+export default defineEventHandler(async (event): Promise<ActivityListResponse> => {
   if (!event.context.user) {
     throw createError({ status: 401, statusText: 'Unauthorized' })
   }
@@ -27,7 +27,7 @@ export default defineEventHandler(async (event): Promise<FeedListResponse> => {
     ],
   }).catch((error) => {
     // Ungültiger Cursor / abgelaufene Session als 4xx durchreichen, nicht als 500
-    throw toH3Error(error, 'Could not load feed')
+    throw toH3Error(error, 'Could not load activity feed')
   })
 
   // Actor-Avatare aus den Account-prefs anreichern (gebündelt, wie comments)

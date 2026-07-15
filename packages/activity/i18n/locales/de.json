@@ -1,5 +1,10 @@
 {
-  "feed": {
+  "admin": {
+    "nav": {
+      "activity": "Aktivität"
+    }
+  },
+  "activity": {
     "title": "Aktivität",
     "description": "Was gerade in der Community passiert.",
     "empty": "Noch keine Aktivität.",
@@ -37,11 +42,6 @@
         "members": "🎉 Die Community hat jetzt {count} Mitglieder!",
         "comments": "🎉 Der {count}. Kommentar wurde geschrieben!"
       }
-    }
-  },
-  "admin": {
-    "nav": {
-      "feed": "Aktivität"
     }
   }
 }

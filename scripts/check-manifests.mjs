@@ -31,7 +31,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 // Layer zuerst (höchste Priorität), Fundament core → system am Ende.
 const EXTENDS_ORDER = [
   'themes', 'admin', 'comments', 'posts', 'events', 'feedback',
-  'billing', 'courses', 'tickets', 'feed', 'moderation',
+  'billing', 'courses', 'tickets', 'activity', 'moderation',
 ]
 const FOUNDATION_ALWAYS = ['core', 'system']
 

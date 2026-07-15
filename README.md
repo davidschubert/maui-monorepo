@@ -9,7 +9,7 @@ Nuxt 4 Monorepo mit zentralem **Core Layer** und komponierbaren **Feature Layers
 ```
 packages/core            ← Ebene 1: Fundament (besitzt KEINE Appwrite Tables!)
 packages/system          ← Fundament: Infra-Tabellen (audit_logs, app_config, notifications)
-packages/*               ← Ebene 2: Feature Layers (themes, comments, posts, events, feed, feedback, billing, courses, tickets, moderation, admin)
+packages/*               ← Ebene 2: Feature Layers (themes, comments, posts, events, activity, feedback, billing, courses, tickets, moderation, admin)
 apps/*                   ← Ebene 3: dünne Apps, komponieren Core + Features
 ```
 
@@ -103,7 +103,7 @@ maui-monorepo/
 │   │   └── scripts/migrations/ # idempotente Schema-Migrationen
 │   ├── posts/                 # Feature Layer: Community-Feed (Posts, Polls, Fragen)
 │   ├── events/                # Feature Layer: Event-Kalender (RSVP, ICS, Live-Teilnehmerzahl)
-│   ├── feed/                  # Feature Layer: Activity-Feed (UI zum Core-Vertrag recordActivity)
+│   ├── activity/              # Feature Layer: Activity-Feed (UI zum Core-Vertrag recordActivity)
 │   ├── feedback/              # Feature Layer: Feedback-Widget (Button unten links, Admin-Sichtung)
 │   ├── billing/               # Feature Layer: Stripe-Abos (Checkout, Webhook, Entitlements, Portal)
 │   ├── courses/               # Feature Layer: Async Course Builder / LMS (Lektionen, Fortschritt, paid via billing)
@@ -113,7 +113,7 @@ maui-monorepo/
 │   └── themes/                # Feature Layer: Theming
 ├── apps/
 │   ├── _template/             # Kopiervorlage für neue Apps (Port 3002, README mit Schritten)
-│   └── reddit-comments/       # dünne App: extends [themes, admin, comments, posts, events, feedback, billing, courses, tickets, feed, moderation, core, system] (Port 3001)
+│   └── reddit-comments/       # dünne App: extends [themes, admin, comments, posts, events, feedback, billing, courses, tickets, activity, moderation, core, system] (Port 3001)
 │       └── scripts/           # bootstrap.ts (Fresh-Instance-Setup), seed-demo.ts (Demo-Daten)
 ├── docs/
 │   ├── CONCEPT.md             # Architektur-Konzept (v2)

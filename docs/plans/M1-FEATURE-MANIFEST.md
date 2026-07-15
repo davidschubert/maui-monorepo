@@ -63,7 +63,7 @@ Katalog-Artefakt-Publishing (M6), Codegen beim Scaffolding (M4).
 Verfahren wie bootstrap.ts).
 
 Tier-Zuordnung: **foundation** = core, system, admin, themes, billing ·
-**optional** = comments, posts, events, feed, feedback, courses, tickets,
+**optional** = comments, posts, events, activity, feedback, courses, tickets,
 moderation. `requires` initial: comments→moderation, posts→moderation —
 weitere ergeben sich beim Schreiben aus den realen Layer-Verträgen (werden
 im PR einzeln begründet).

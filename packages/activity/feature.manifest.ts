@@ -1,7 +1,7 @@
 import type { FeatureManifest } from '../core/shared/types/manifest'
 
 export default {
-  key: 'feed',
+  key: 'activity',
   tier: 'optional',
   // Liest nur die system-eigene activities-Table (recordActivity im Core) —
   // keine harten Layer-Abhängigkeiten, ohne Content-Features nur leerer.

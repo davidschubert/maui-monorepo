@@ -6,7 +6,7 @@ import { ACTIVITIES_TABLE } from '../../../shared/types/activity'
  * Autorität ist die Capability, nicht eine Row-Permission.
  */
 export default defineEventHandler(async (event) => {
-  requirePermission(event, 'feed.manage')
+  requirePermission(event, 'activity.manage')
 
   const id = getRouterParam(event, 'id')
   if (!id) {
