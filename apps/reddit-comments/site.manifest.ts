@@ -15,6 +15,7 @@ export default {
     'comments',
     'posts',
     'events',
+    'media',
     'feedback',
     'billing',
     'courses',

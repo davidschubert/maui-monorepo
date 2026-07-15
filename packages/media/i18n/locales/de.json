@@ -1,0 +1,33 @@
+{
+  "admin": {
+    "nav": {
+      "media": "Medien"
+    }
+  },
+  "media": {
+    "admin": {
+      "title": "Medien",
+      "upload": "Hochladen",
+      "uploaded": "{count} Bild(er) hochgeladen",
+      "uploadFailed": "Upload fehlgeschlagen",
+      "empty": "Noch keine Medien — lade dein erstes Bild hoch.",
+      "featured": "Hervorgehoben",
+      "draft": "Entwurf",
+      "edit": "Bearbeiten",
+      "editTitle": "Medien-Eintrag bearbeiten",
+      "fieldTitle": "Titel",
+      "fieldSubtitle": "Untertitel",
+      "fieldSubtitleHint": "z. B. der Aufnahmeort",
+      "fieldAlt": "Alt-Text (Barrierefreiheit)",
+      "fieldFeatured": "Hervorheben (z. B. breite Kachel in der Galerie)",
+      "togglePublished": "Sichtbarkeit umschalten",
+      "delete": "Löschen",
+      "deleteConfirm": "„{title}\" wirklich löschen? Die Datei wird mit entfernt.",
+      "deleteFailed": "Löschen fehlgeschlagen",
+      "save": "Speichern",
+      "saved": "Gespeichert",
+      "saveFailed": "Speichern fehlgeschlagen",
+      "cancel": "Abbrechen"
+    }
+  }
+}

@@ -25,6 +25,7 @@
     "@maui/events": "workspace:*",
     "@maui/activity": "workspace:*",
     "@maui/feedback": "workspace:*",
+    "@maui/media": "workspace:*",
     "@maui/moderation": "workspace:*",
     "@maui/posts": "workspace:*",
     "@maui/system": "workspace:*",

@@ -1,0 +1,33 @@
+{
+  "admin": {
+    "nav": {
+      "media": "Media"
+    }
+  },
+  "media": {
+    "admin": {
+      "title": "Media",
+      "upload": "Upload",
+      "uploaded": "{count} image(s) uploaded",
+      "uploadFailed": "Upload failed",
+      "empty": "No media yet — upload your first image.",
+      "featured": "Featured",
+      "draft": "Draft",
+      "edit": "Edit",
+      "editTitle": "Edit media item",
+      "fieldTitle": "Title",
+      "fieldSubtitle": "Subtitle",
+      "fieldSubtitleHint": "e.g. the shooting location",
+      "fieldAlt": "Alt text (accessibility)",
+      "fieldFeatured": "Feature (e.g. wide tile in the gallery)",
+      "togglePublished": "Toggle visibility",
+      "delete": "Delete",
+      "deleteConfirm": "Really delete \"{title}\"? The file is removed as well.",
+      "deleteFailed": "Delete failed",
+      "save": "Save",
+      "saved": "Saved",
+      "saveFailed": "Save failed",
+      "cancel": "Cancel"
+    }
+  }
+}

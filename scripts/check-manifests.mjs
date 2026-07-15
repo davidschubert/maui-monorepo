@@ -30,7 +30,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 // Kanonische extends-Reihenfolge (IST der reddit-comments-App): UI-/Feature-
 // Layer zuerst (höchste Priorität), Fundament core → system am Ende.
 const EXTENDS_ORDER = [
-  'themes', 'admin', 'comments', 'posts', 'events', 'feedback',
+  'themes', 'admin', 'comments', 'posts', 'events', 'media', 'feedback',
   'billing', 'courses', 'tickets', 'activity', 'moderation',
 ]
 const FOUNDATION_ALWAYS = ['core', 'system']
