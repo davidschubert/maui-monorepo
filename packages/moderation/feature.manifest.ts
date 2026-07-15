@@ -4,6 +4,7 @@ export default {
   key: 'moderation',
   tier: 'optional',
   hasMigrations: true,
+  apiPrefixes: ['/api/reports'],
   title: { en: 'Moderation', de: 'Moderation' },
   description: {
     en: 'Reports, escalation handling and moderator workflows. Activated automatically by content features like comments and posts.',

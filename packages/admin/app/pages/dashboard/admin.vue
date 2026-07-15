@@ -16,6 +16,7 @@ const links = computed<NavigationMenuItem[]>(() => {
   if (userHasCapability(u, 'changelog.manage')) items.push({ label: t('admin.changelog.title'), icon: 'i-ph-megaphone', to: localePath('/dashboard/admin/changelog') })
   // Roadmap-Tab entfernt — abgelöst durch das Ticket-Board (tickets-Layer, /dashboard/tickets)
   if (userHasCapability(u, 'system.manage')) items.push({ label: t('admin.config.title'), icon: 'i-ph-toggle-left', to: localePath('/dashboard/admin/config') })
+  if (userHasCapability(u, 'system.manage')) items.push({ label: t('admin.features.title'), icon: 'i-ph-puzzle-piece', to: localePath('/dashboard/admin/features') })
   if (userHasCapability(u, 'users.manage')) items.push({ label: t('admin.gdprExports.title'), icon: 'i-ph-file-lock', to: localePath('/dashboard/admin/gdpr-exports') })
   return items
 })

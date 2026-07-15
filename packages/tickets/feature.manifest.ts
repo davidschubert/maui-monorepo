@@ -4,6 +4,7 @@ export default {
   key: 'tickets',
   tier: 'optional',
   hasMigrations: true,
+  apiPrefixes: ['/api/tickets'],
   title: { en: 'Support Tickets', de: 'Support-Tickets' },
   description: {
     en: 'Support ticket board with assignment, notifications and optional AI triage.',

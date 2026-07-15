@@ -6,6 +6,12 @@ import type { NavigationMenuItem } from '@nuxt/ui'
 const { t } = useI18n()
 const localePath = useLocalePath()
 const { isLoggedIn } = useCurrentUser()
+// Laufzeit-Feature-Gates (F2): reagieren live auf den Admin-Toggle —
+// nur Ausblenden; die Autorität ist die core feature-gate-Middleware.
+const activityEnabled = useFeature('activity')
+const coursesEnabled = useFeature('courses')
+const eventsEnabled = useFeature('events')
+const postsEnabled = useFeature('posts')
 
 // Seiten-Nav mittig: Home · Products (Dropdown, vertikal mit Beschreibungen) · Pricing
 const centerNav = computed<NavigationMenuItem[]>(() => [
@@ -14,12 +20,12 @@ const centerNav = computed<NavigationMenuItem[]>(() => [
     label: t('app.nav.products'),
     icon: 'i-ph-squares-four',
     children: [
-      { label: t('posts.feed.title'), icon: 'i-ph-users-three', description: t('posts.feed.description'), to: localePath('/community') },
-      { label: t('events.list.title'), icon: 'i-ph-calendar-dots', description: t('events.list.description'), to: localePath('/events') },
+      ...(postsEnabled.value ? [{ label: t('posts.feed.title'), icon: 'i-ph-users-three', description: t('posts.feed.description'), to: localePath('/community') }] : []),
+      ...(eventsEnabled.value ? [{ label: t('events.list.title'), icon: 'i-ph-calendar-dots', description: t('events.list.description'), to: localePath('/events') }] : []),
       ...(isLoggedIn.value
         ? [
-            { label: t('courses.list.title'), icon: 'i-ph-graduation-cap', description: t('courses.list.description'), to: localePath('/courses') },
-            { label: t('activity.title'), icon: 'i-ph-pulse', description: t('activity.description'), to: localePath('/activity') },
+            ...(coursesEnabled.value ? [{ label: t('courses.list.title'), icon: 'i-ph-graduation-cap', description: t('courses.list.description'), to: localePath('/courses') }] : []),
+            ...(activityEnabled.value ? [{ label: t('activity.title'), icon: 'i-ph-pulse', description: t('activity.description'), to: localePath('/activity') }] : []),
           ]
         : []),
     ],
@@ -50,7 +56,7 @@ const centerNav = computed<NavigationMenuItem[]>(() => [
           />
         </div>
         <div class="flex items-center justify-self-end gap-2">
-          <ActivitySlideover v-if="isLoggedIn" />
+          <ActivitySlideover v-if="isLoggedIn && activityEnabled" />
           <WhatsNewButton />
           <DisplaySettingsMenu />
           <NotificationBell v-if="isLoggedIn" />

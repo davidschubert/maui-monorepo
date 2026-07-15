@@ -346,6 +346,17 @@
       "downloadError": "Download fehlgeschlagen.",
       "confirmTitle": "Snapshot löschen?",
       "confirmText": "{name} endgültig löschen? Der Snapshot kann danach nicht mehr abgerufen werden."
+    },
+    "features": {
+      "title": "Features",
+      "description": "Einkompilierte Features dieser Site — optionale lassen sich zur Laufzeit schalten, ohne Deploy. Daten bleiben beim Abschalten erhalten.",
+      "foundation": "Grundgerüst",
+      "inactive": "Deaktiviert",
+      "requires": "Benötigt: {list}",
+      "dataKept": "Deine Daten bleiben erhalten.",
+      "enabled": "{name} aktiviert",
+      "disabled": "{name} deaktiviert",
+      "toggleFailed": "Feature konnte nicht umgeschaltet werden"
     }
   },
   "whatsNew": {

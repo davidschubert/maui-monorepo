@@ -5,6 +5,7 @@ export default {
   tier: 'optional',
   requires: ['moderation'],
   hasMigrations: true,
+  apiPrefixes: ['/api/comments'],
   title: { en: 'Comments', de: 'Kommentare' },
   description: {
     en: 'Threaded comments with realtime updates, votes, mentions, markdown, guest reading and an embeddable widget.',

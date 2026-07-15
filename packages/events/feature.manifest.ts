@@ -4,6 +4,7 @@ export default {
   key: 'events',
   tier: 'optional',
   hasMigrations: true,
+  apiPrefixes: ['/api/events'],
   title: { en: 'Events', de: 'Events' },
   description: {
     en: 'Events with series, RSVPs and tickets — including an embeddable event view.',

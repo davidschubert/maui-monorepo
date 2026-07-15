@@ -346,6 +346,17 @@
       "downloadError": "Download failed.",
       "confirmTitle": "Delete snapshot?",
       "confirmText": "Permanently delete {name}? The snapshot can no longer be retrieved afterwards."
+    },
+    "features": {
+      "title": "Features",
+      "description": "Features compiled into this site — optional ones can be toggled at runtime, no deploy needed. Your data is kept when disabling.",
+      "foundation": "Foundation",
+      "inactive": "Disabled",
+      "requires": "Requires: {list}",
+      "dataKept": "Your data is kept.",
+      "enabled": "{name} enabled",
+      "disabled": "{name} disabled",
+      "toggleFailed": "Could not toggle feature"
     }
   },
   "whatsNew": {

@@ -4,6 +4,7 @@ export default {
   key: 'feedback',
   tier: 'optional',
   hasMigrations: true,
+  apiPrefixes: ['/api/feedback'],
   title: { en: 'Feedback', de: 'Feedback' },
   description: {
     en: 'Collect user feedback with status workflow and admin triage.',

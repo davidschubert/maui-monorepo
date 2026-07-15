@@ -6,6 +6,7 @@ export default {
   // KEIN requires auf billing: der Layer kennt billing bewusst nicht —
   // die App registriert den Access-Guard (courseAccess-Vertrag).
   hasMigrations: true,
+  apiPrefixes: ['/api/courses', '/api/lessons'],
   title: { en: 'Courses', de: 'Kurse' },
   description: {
     en: 'Courses with lessons and progress tracking; paid access plugs in via the app-level access guard.',

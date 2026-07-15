@@ -5,6 +5,7 @@ export default {
   tier: 'optional',
   requires: ['moderation'],
   hasMigrations: true,
+  apiPrefixes: ['/api/posts'],
   title: { en: 'Posts', de: 'Beiträge' },
   description: {
     en: 'User-generated posts with markdown, moderation assist and activity feed integration.',
