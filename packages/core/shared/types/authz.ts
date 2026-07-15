@@ -15,6 +15,7 @@ export type Capability =
   | 'storage.manage'
   | 'audit.read'
   | 'activity.manage'
+  | 'media.manage'
   | 'posts.moderate'
   | 'events.manage'
   | 'feedback.manage'
