@@ -1,4 +1,5 @@
 import { Permission, Query, Role, type Models } from 'node-appwrite'
+import type { H3Event } from 'h3'
 import { COMMENTS_TABLE } from '../../shared/types/comment'
 
 /**
@@ -25,11 +26,17 @@ export type ModeratableCommentRow = Models.Row & {
   rootId: string | null
 }
 
-/** Hide: Status-Update (Event erreicht Leser noch) → dann Permission entziehen. */
+/**
+ * Hide: Status-Update (Event erreicht Leser noch) → dann Permission entziehen.
+ * Mit `event` werden zusätzlich die Activity-Feed-Einträge des Kommentars
+ * entfernt (removeActivitiesForObject, core) — sonst bleibt sein
+ * metadata-Snippet im Feed sichtbar, obwohl der Inhalt wegmoderiert ist.
+ */
 export async function hideCommentRow(
   admin: ReturnType<typeof createAdminClient>,
   databaseId: string,
   row: Models.Row,
+  event?: H3Event,
 ): Promise<Models.Row & { status: string }> {
   const updated = await admin.tablesDB.updateRow<Models.Row & { status: string }>({
     databaseId, tableId: COMMENTS_TABLE, rowId: row.$id, data: { status: 'hidden' },
@@ -52,6 +59,9 @@ export async function hideCommentRow(
         console.error(`[moderation] Permission-Entzug fehlgeschlagen — hidden-Kommentar ${row.$id} bleibt Roh-REST-lesbar bis zum Re-Hide:`, error)
       })
   }
+  if (event) {
+    await removeActivitiesForObject(event, { objectType: 'comment', objectId: row.$id })
+  }
   return updated
 }
 
@@ -65,6 +75,7 @@ export async function hideCommentDescendants(
   admin: ReturnType<typeof createAdminClient>,
   databaseId: string,
   row: ModeratableCommentRow,
+  event?: H3Event,
 ): Promise<void> {
   const threadRoot = row.rootId ?? row.$id
   // Ganzen Thread laden (alle Status → korrekte Baumstruktur), dann Nachfahren
@@ -106,7 +117,7 @@ export async function hideCommentDescendants(
   }
   // Nur aktive Nachfahren ausblenden — deleted-Tombstones + bereits hidden bleiben.
   const toHide = threadRows.filter(r => r.$id !== row.$id && subtree.has(r.$id) && r.status === 'active')
-  await Promise.all(toHide.map(r => hideCommentRow(admin, databaseId, r).catch((error) => {
+  await Promise.all(toHide.map(r => hideCommentRow(admin, databaseId, r, event).catch((error) => {
     // best effort (kein 500 nach erfolgter Parent-Mutation), aber sichtbar
     console.error(`[moderation] Cascade-Hide für Nachfahre ${r.$id} fehlgeschlagen:`, error)
   })))

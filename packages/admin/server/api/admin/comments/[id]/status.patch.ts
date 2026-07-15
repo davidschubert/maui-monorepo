@@ -43,7 +43,7 @@ export default defineEventHandler(async (event) => {
   // Write: Status zurück + read(any) wieder anhängen (Event folgt den neuen
   // Permissions → erreicht Leser wieder).
   const updated = await (status === 'hidden'
-    ? hideCommentRow(admin, databaseId, row)
+    ? hideCommentRow(admin, databaseId, row, event)
     : admin.tablesDB.updateRow<Models.Row & { status: string }>({
         databaseId,
         tableId: 'comments',
@@ -56,7 +56,7 @@ export default defineEventHandler(async (event) => {
   // Cascade-Hide: Wiederherstellen kaskadiert bewusst NICHT (nur der Parent;
   // Antworten ggf. einzeln).
   if (status === 'hidden') {
-    await hideCommentDescendants(admin, databaseId, row)
+    await hideCommentDescendants(admin, databaseId, row, event)
   }
 
   await recordAudit(event, {

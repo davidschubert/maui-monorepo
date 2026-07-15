@@ -28,8 +28,8 @@ export default defineNitroPlugin(() => {
     }).catch(() => null)
     if (!row || row.status !== 'active') return
 
-    await hideCommentRow(admin, databaseId, row)
-    await hideCommentDescendants(admin, databaseId, row)
+    await hideCommentRow(admin, databaseId, row, event)
+    await hideCommentDescendants(admin, databaseId, row, event)
     console.warn(`[comments] Auto-Hide: Kommentar ${targetId} nach ${openCount} offenen Meldungen ausgeblendet (Threshold ${threshold}) — Meldungen bleiben offen für die Moderation.`)
   })
 })

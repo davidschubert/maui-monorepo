@@ -44,8 +44,8 @@ export default defineEventHandler(async (event) => {
 
       if (action === 'hide') {
         if (row.status !== 'hidden') {
-          await hideCommentRow(admin, databaseId, row)
-          await hideCommentDescendants(admin, databaseId, row)
+          await hideCommentRow(admin, databaseId, row, event)
+          await hideCommentDescendants(admin, databaseId, row, event)
         }
         // Ausblenden schließt zugleich die offenen Meldungen (Lifecycle,
         // wie der Einzel-Flow in der Queue)
