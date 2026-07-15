@@ -13,8 +13,8 @@ export interface ActivityInput {
   /** Klarname zum Anzeigezeitpunkt (Snapshot, wie comments.authorName). */
   actorName: string
   /**
-   * Ereignis-Typ, z. B. 'comment.created' — der Konsument (packages/feed)
-   * übersetzt via i18n-Key `feed.types.<type>`. KEINE fertigen Sätze
+   * Ereignis-Typ, z. B. 'comment.created' — der Konsument (packages/activity)
+   * übersetzt via i18n-Key `activity.types.<type>`. KEINE fertigen Sätze
    * speichern (Locale-Wechsel wirkt so rückwirkend, bewusste Abweichung
    * von notify()).
    */
@@ -38,7 +38,7 @@ export interface ActivityInput {
  * auslösenden Request (z. B. das Erstellen eines Kommentars) nicht scheitern
  * lassen. Feature-Layer rufen diesen Vertrag auf, statt selbst auf die Tabelle
  * zuzugreifen (kein Cross-Layer-String-Coupling, CONCEPT A14) — die UI-Welt
- * dazu liefert packages/feed.
+ * dazu liefert packages/activity.
  *
  * Sichtbarkeit: v1 immer 'members' (read für Role.users()). Der Spaltenwert
  * 'public' ist im Schema vorgesehen, wird aber bewusst NICHT verdrahtet (v2).
@@ -67,7 +67,7 @@ export async function recordActivity(event: H3Event, input: ActivityInput): Prom
         visibility: 'members',
       },
       // Row-Security: eingeloggte User lesen; verwaltet (gelöscht) wird
-      // server-seitig via Admin-Client (feed.manage-Route bzw. GDPR).
+      // server-seitig via Admin-Client (activity.manage-Route bzw. GDPR).
       permissions: [
         Permission.read(Role.users()),
       ],

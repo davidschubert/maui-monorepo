@@ -14,7 +14,7 @@ export type Capability =
   | 'system.manage'
   | 'storage.manage'
   | 'audit.read'
-  | 'feed.manage'
+  | 'activity.manage'
   | 'posts.moderate'
   | 'events.manage'
   | 'feedback.manage'
