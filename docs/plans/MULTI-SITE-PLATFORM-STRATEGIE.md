@@ -1,0 +1,603 @@
+# Multi-Site-Platform-Strategie — „Maui Platform"
+
+Stand: 2026-07-14 · Status: **Konzept-Entwurf zur Diskussion** (noch kein Go)
+
+Dieses Dokument beantwortet: Wie wird aus dem maui-monorepo (heute: Baukasten
+für einzelne Apps) eine Plattform, die (1) Davids eigene Sites, (2) betreute
+Kundenprojekte und (3) perspektivisch Self-Service-SaaS trägt — ohne die
+bewährten Kern-Entscheidungen (CONCEPT.md A1–A14) zu brechen.
+
+Leitplanken aus der Abstimmung mit David (2026-07-14):
+- Start: 3–10 eigene Sites (Portfolio, maui.photos, Community, …)
+- Danach: Agentur-Modell (Kundenprojekte, David bleibt Voll-Admin)
+- Ziel: echtes SaaS (Self-Service-Registrierung, Sites mit eigener URL,
+  Features per Bezahlung freischalten, kein Handanlegen pro Projekt)
+- Monetarisierung pro Projekt flexibel; David selbst hat einen Comp-/Premium-
+  Zugang (zahlt nie)
+- **Alle Sites bleiben im Monorepo** (ein Core-Fix deployed alle Sites)
+
+**Update 2. Runde (2026-07-14):**
+- **D2 (Projekt-pro-Site) und D3 (Hybrid-Dashboard): von David bestätigt ✅**
+- **Onboarding-Wizard revidiert:** kein WordPress-artiger On-Site-Wizard mehr.
+  Der Erstellungs-Flow lebt im Control Plane (hawaii.studio: Signup → Site
+  anlegen → Basics/Theme/Features) — siehe F4 neu. Ein dünner On-Site-`/setup`
+  bleibt nur als optionaler Fallback für Klasse-A-Übergaben.
+- **Bausteine-Tiering:** `media` (Galerie) = optionales Feature;
+  `pages`/Mini-CMS = **foundation** (jede Site braucht pflegbare Seiten + SEO).
+- **Portfolio-Neuaufbau ohne Strapi** — Content kommt vollständig aus den
+  eigenen Feature-Layern (Appwrite).
+- **Lokal-first:** M1–M5 werden komplett lokal (OrbStack-Appwrite) gebaut;
+  PHASE-17 ist erst Voraussetzung für den Live-Gang und M6+ (Provisioning
+  gegen echte Infrastruktur).
+- **Sprachen: EN = Default, DE = optional** — entspricht exakt der
+  bestehenden i18n-Strategie (`prefix_except_default`, en ohne Prefix,
+  de unter `/de/*`). Im Onboarding (F4.2) wählt der Ersteller die aktiven
+  Locales seiner Site. Plattform-Regel: JEDER Feature-Layer liefert seine
+  Locale-Files immer für ALLE Plattform-Sprachen (heute en+de) — eine neue
+  Sprache später ist damit ein reiner Übersetzungs-Durchlauf durch die
+  Layer-Locales, kein Architektur-Thema.
+
+---
+
+## 1. Realitäts-Check: Was der Plan trifft und wo er kollidiert
+
+### Trägt bereits (nicht anfassen, nur ausbauen)
+
+| Baustein | Beleg |
+|---|---|
+| Layer-Komposition per `extends` = Feature an/aus pro Site | `apps/_template/nuxt.config.ts` |
+| Entkoppelte Verträge (Admin-Nav-Registry, `registerUserDataContributor`, Escalation-Handler) | CONCEPT A14 |
+| Idempotente Migrationen + zentraler Runner `pnpm migrate --app` | `scripts/migrate.mjs` |
+| Runtime-Config-Kanal existiert: `app_config`-Row + `useRuntimeFlags()` + Realtime-Push ohne Reload | `packages/core/server/utils/appConfig.ts`, `plugins/realtime-config.client.ts` |
+| Laufzeit-Override-Muster existiert: `getEffectiveAiConfig()` (Build-Default < DB-Override) | `core/server/utils/aiComplete.ts` |
+| Billing-Layer (Stripe Checkout/Portal/Webhook/Entitlements) fertig | GOALS Phase 23 |
+| `apps/_template` + Bootstrap-Script als Scaffold | `apps/_template/scripts/bootstrap.ts` |
+
+### Kollidiert mit dem SaaS-Ziel (bewusste Alt-Entscheidungen)
+
+1. **„1 App = 1 eigene Appwrite-Instanz"** (A1) — für eigene Sites gut, für
+   Self-Service unbezahlbar (ein Server pro Anmeldung). → Präzisierung nötig:
+   Isolation auf **Projekt**-Ebene statt Instanz-Ebene (§ D2).
+2. **RBAC ist bewusst single-tenant** (Label-basiert, „keine Teams") — für
+   eine Site korrekt; Workspaces/Kunden brauchen aber eine Mandanten-Ebene.
+   → Lösung: Mandanten leben NUR im Control Plane, Sites bleiben single-tenant.
+3. **Feature-Wahl ist Buildzeit** (`extends` + `package.json`, doppelt
+   gepflegt) — „im Dashboard aktivieren" ist damit strukturell unmöglich.
+   → Zwei-Klassen-Modell (§ D1) + Laufzeit-Gates (§ F).
+4. **Migrationen teils destruktiv** (comments-002-Erstumbau, Frische-Guard im
+   Bootstrap) — nachträgliches Feature-Aktivieren auf befüllter Prod-Instanz
+   ist heute riskant. → Muss „additiv-sicher" werden, bevor ein Wizard
+   Migrationen anstoßen darf.
+5. **In-Memory-Rate-Limit / Single-Instanz-Annahmen** (A2, PHASE-17 A.8) —
+   für die Multi-Site-Platform-App Pflicht-Umbau auf Redis.
+6. **Same-Root-Domain-Zwang App↔Appwrite** (A3, Cookie/Realtime) — bleibt
+   gültig und diktiert das Domain-Modell (§ D4). Kein Bug, aber jede
+   Custom-Domain braucht einen passenden API-Host derselben Root-Domain.
+7. **Kein Setup-Wizard, kein Framework-Billing** — beides existiert schlicht
+   nicht; `packages/billing` monetarisiert End-User IN einer App, nicht die
+   Plattform selbst.
+
+**Fazit:** Der Plan ist tragfähig, aber „SaaS von Anfang an" heißt nicht
+„SaaS zuerst bauen". Es heißt: die vier Nahtstellen (Site-Manifest,
+Laufzeit-Gates, Entitlements, Provisioning-API) so bauen, dass sie in allen
+drei Horizonten identisch funktionieren. Alles davon nützt sofort den eigenen
+Sites — nichts ist Wegwerf-Arbeit für hypothetische Kunden.
+
+---
+
+## 2. Ziel-Architektur
+
+### D0 — Drei Horizonte, eine Architektur
+
+```
+Horizont 1 (jetzt):    Eigene Sites        → Studio-Sites + Wizard + Laufzeit-Gates
+Horizont 2 (danach):   Agentur/Kunden      → Control Plane + Provisioner + Workspaces
+Horizont 3 (später):   Self-Service-SaaS   → Platform-App + Stripe-Entitlements + Domain-Automation
+```
+
+### D1 — Zwei Site-Klassen (löst den Konflikt Monorepo ⟷ Self-Service)
+
+**Klasse A: Studio-Site** — eine dünne App im Monorepo (`apps/portfolio`,
+`apps/maui-photos`, `apps/community`, Kundenprojekte mit Custom-Design).
+- Feature-Wahl per `extends` (Buildzeit) + Laufzeit-Gates für Feinheiten.
+- Volle gestalterische Freiheit (eigene Pages/Components/Overrides).
+- Deploy: eigene ploi-Site + Deploy-Webhook (bestehendes PHASE-17-Modell).
+- Neue Studio-Site anlegen = Scaffold-Script (§ P1), kein Self-Service.
+
+**Klasse B: Platform-Site** — EINE generische App `apps/platform`, die
+**alle** Feature-Layer einkompiliert hat und pro Hostname zur Laufzeit
+entscheidet, welche Site sie rendert und welche Features aktiv sind.
+- Ein Deployment bedient N Sites (Wildcard-Hostname `*.hawaii.studio`).
+- Site-Erzeugung = DB-Eintrag + Appwrite-Projekt, KEIN Build, KEIN Deploy
+  → das ist die einzige Architektur, mit der sich Fremde selbst eine Site
+  erstellen können, während alles im Monorepo bleibt.
+- Gestaltung über Custom Themes/Fonts (existiert!) statt Code-Overrides.
+- Braucht: Redis-Rate-Limit, hostname→Site-Auflösung, per-Request-Appwrite-
+  Projekt-Auswahl.
+
+**Pilot-Rolle der Studio-Sites (bestätigt 2026-07-14):** Neue Features
+werden als Feature-LAYER (`packages/*`) gebaut und in einer Studio-Site
+pilotiert (z. B. media-Layer in `apps/maui-photos`). Da `apps/platform`
+schlicht alle Layer einkompiliert, ist ein gereifter Layer dort automatisch
+verfügbar — es wird nichts aus der App „herüberkopiert"; die App ist das
+Testgelände, der Layer das Produkt.
+
+**Upgrade-Pfad B→A (Warum):** Das ist der natürliche Upsell-/Wachstumspfad
+des Agentur-Modells — ein Kunde startet günstig self-service (B), wächst und
+bucht später Custom-Design/Sonderfunktionen, die nur eine eigene App kann.
+Der Pfad kostet uns keine Extra-Arbeit; er fällt aus der Architektur
+(Daten im Appwrite-Projekt, Frontend austauschbar) gratis ab.
+
+**Upgrade-Pfad B→A (Wie):** Alle Daten einer Site (User, Inhalte, Theme, Config)
+leben in IHREM Appwrite-Projekt — nie in der Platform-App. Aushärten heißt
+daher nur Frontend-Tausch, null Datenmigration: neue dünne App aus dem
+Template mit demselben Feature-Set scaffolden → `.env` aufs BESTEHENDE
+Appwrite-Projekt zeigen lassen → deployen → Domain-Routing von
+`apps/platform` auf die neue App umstellen (Sessions bleiben gültig —
+Cookie `a_session_<PROJECT_ID>` hängt an Domain + Projekt, beides
+unverändert). Danach volle Klasse-A-Gestaltungsfreiheit.
+
+**Reihenfolge:** Klasse A sofort (eigene Sites). Klasse B erst in Horizont 3
+bauen — aber alle Verträge (Manifest, Gates, Entitlements) von Anfang an so
+schneiden, dass Klasse B sie unverändert konsumieren kann.
+
+### D2 — Appwrite: ein Server, ein PROJEKT pro Site
+
+Präzisierung von A1: Die Isolations-Einheit ist das **Appwrite-Projekt**
+(eigene DB, eigene User, eigener Storage, eigener Cookie
+`a_session_<PROJECT_ID>`), nicht zwingend der Server.
+
+- **Ein gemeinsamer self-hosted Appwrite-Server** (Hetzner, das bestehende
+  PHASE-17-Setup) hostet die Projekte aller eigenen + Platform-Sites.
+- Pro Site: eigenes Projekt + eigene Database + eigene Keys. DSGVO-Trennung
+  und „Kunde A nie neben Kunde B in derselben DB" bleiben voll erhalten.
+- Eskalations-Stufen bleiben möglich: sensibler Kunde → dedizierte Instanz
+  (heutiges A1-Modell); Kunde will Datenhoheit → Appwrite Cloud auf
+  Kundenaccount. Das Manifest (§ F1) trägt dafür ein `appwrite.endpoint`.
+- Skalierung: ab ~X Sites zweiter Appwrite-Server; das Sites-Register im
+  Control Plane kennt pro Site ihren Endpoint → Sharding ist trivial.
+
+⚠️ MariaDB/Ressourcen: viele Projekte auf einer Instanz teilen sich Worker
+und DB — Health-Monitoring pro Projekt (Control Plane) einplanen; der
+bekannte Realtime-Container-Watchdog (PHASE-17) gilt dann für alle Sites
+gleichzeitig → Single Point of Failure bewusst akzeptieren + überwachen.
+
+### D3 — Dashboard: **Hybrid** (Empfehlung)
+
+- **Jede Site behält ihr eigenes `/dashboard`** (Inhalte, Kommentare,
+  Moderation, Themes, Mitglieder). Gründe: (a) Kunden-/Site-Admins arbeiten
+  in IHRER Domain mit IHRER Session — kein Cross-Instance-Auth-Bruch des
+  Cookie-Modells; (b) Sites bleiben funktionsfähig, auch wenn das Control
+  Plane down ist; (c) das gesamte bestehende Admin-Paket wird unverändert
+  weiterverwendet.
+- **hawaii.studio = Control Plane** („Mission Control", eigene Maui-App
+  `apps/studio` mit eigenem Appwrite-Projekt): Workspace-/Site-Register,
+  Provisionierung, Feature-Entitlements + Plan/Abo je Site, Health/Status
+  aller Sites, Abrechnungen. Linear-artiger Workspace-Switcher, der zu den
+  Site-Dashboards **verlinkt** (später optional SSO-Handoff via kurzlebigem
+  Token — bewusst NICHT Teil des MVP).
+- Eine „zentrale Schaltzentrale", die fremde Site-Inhalte direkt editiert,
+  wird **abgelehnt**: sie müsste das Session-Cookie-Modell (A3) umgehen,
+  Admin-Keys aller Sites zentral halten und macht hawaii.studio zum
+  Totalausfall-Risiko und Angriffsziel Nr. 1.
+
+Warum das trotzdem Davids „Schaltzentrale"-Bedürfnis erfüllt: ALLES, was
+site-übergreifend ist (welche Site hat welche Features, welcher Kunde zahlt
+was, welche Site ist unhealthy, neue Site anlegen) lebt zentral. Nur die
+site-INTERNE Arbeit bleibt in der Site — wo sie ohnehin kontextuell hingehört.
+
+### D4 — Domain-Modell
+
+Constraint (A3, unverändert): Site-Frontend und Appwrite-Endpoint müssen auf
+derselben **Root-Domain** liegen (Session-Cookie + authentifiziertes Realtime).
+
+- **Default:** jede neue Site startet als `<slug>.hawaii.studio`;
+  Appwrite-API zentral unter `api.hawaii.studio` → same root, Cookies ok.
+  Ploi/Cloudflare: Wildcard-DNS `*.hawaii.studio` + Wildcard-Cert einmalig.
+- **Custom Domain, Frontend-TLS (Klasse B):** Empfehlung **Caddy (oder
+  Traefik) mit On-Demand-TLS** vor `apps/platform`: erster Request auf einen
+  unbekannten Hostname → Caddy fragt einen `ask`-Endpoint des Control Plane
+  („gehört diese Domain einer Site?") → Let's-Encrypt-Cert wird on the fly
+  ausgestellt. Null Per-Domain-Konfiguration; das Standard-Muster für
+  SaaS-Custom-Domains. Alternative: Cloudflare for SaaS (Custom Hostnames,
+  100 frei) — weniger Eigenbetrieb, mehr Vendor-Bindung.
+- **Custom Domain, Appwrite-API — zwei Optionen:**
+  - *Option 1 (volle Parität, Studio-Sites):* `api.<kundendomain>` als
+    **Appwrite Custom Domain pro Projekt** (offiziell unterstützt: CNAME auf
+    den Appwrite-Host, Zertifikat automatisch; self-hosted via
+    `_APP_DOMAIN_TARGET` + certificates-worker). Eigene Sites:
+    10-Minuten-Handgriff; automatisierbar — Spike S2.
+  - *Option 2 (pragmatisch, Platform-Sites):* zentraler Endpoint
+    `api.hawaii.studio` für ALLE Platform-Sites, auch unter Custom Domains.
+    Trägt, weil die Architektur SSR-first ist (CRUD server-seitig, Cookie ist
+    First-Party auf der Site-Domain) und die geteilte Realtime **JWT-
+    authentifiziert** ist (kein Cookie zum Appwrite-Host nötig). Einschränkung:
+    cookie-native Browser-Pfade (useRealtimeAccount-Instant-Revoke,
+    Presences-Cookie-GET) degradieren cross-root → brauchen JWT-/Server-Proxy-
+    Varianten oder Polling-Fallback. Option 1 später als „White-Label-API"-
+    Premium-Feature anbieten.
+- OAuth-Callbacks, `NUXT_PUBLIC_I18N_BASE_URL`, Web-Platform-Registrierung
+  hängen an der Domain → gehören ins Provisioning-Script, nicht in Doku.
+
+---
+
+### D5 — Rollenmodell (entschieden 2026-07-14)
+
+Rollen leben auf ZWEI getrennten Ebenen — bewusst nicht vermischt:
+
+**Plattform-Ebene (hawaii.studio, eigener User-Pool):**
+- `superadmin` (David): alles im Control Plane — Sites/Workspaces anlegen,
+  suspendieren, löschen, Features/Entitlements schalten, Pläne, Health.
+- `owner` (Kunde): sieht/verwaltet NUR den eigenen Workspace (seine Sites,
+  sein Abo, seine Domains, Feature-Buchung).
+- Später bei Bedarf: `member` (Kunde lädt Kollegen in seinen Workspace ein)
+  — Datenmodell (Workspace↔User-Relation) von Anfang an so anlegen, Rolle
+  aber erst bauen, wenn gebraucht.
+
+**Site-Ebene (pro Appwrite-Projekt, bestehendes Label-RBAC + eine neue Rolle):**
+- `admin` (der Kunde auf seiner Site): Inhalte, Einstellungen, Nutzer
+  verwalten, Moderatoren/Editoren ernennen.
+- `editor` (**aufgenommen, David 2026-07-14**): reine Inhalts-Rolle —
+  Inhalte **anlegen, bearbeiten, deaktivieren (unveröffentlichen), löschen**
+  über alle aktivierten Content-Features (pages, posts, media, events,
+  courses, changelog-Einträge …). KEIN Zugriff auf: Site-Settings,
+  Feature-Toggles, Nutzer-/Rollenverwaltung, Moderation, Billing.
+  Umsetzung als neues Label in der bestehenden Capability-Matrix
+  (Capability-Familie `content.*`, die Content-Layer deklarieren ihre
+  Routen dagegen); wird konkret gebaut, sobald der pages-Layer kommt.
+- `moderator`: Moderations-Capabilities (bestehende Matrix, unverändert).
+- User ohne Label = normales Mitglied/End-User der Site.
+
+**Davids „Superadmin überall" — präzisiert (von David bestätigt ✅):**
+- Klasse A / Agentur-Sites: der Provisioner legt Davids Admin-Account im
+  Site-Projekt automatisch mit an („David bleibt Voll-Admin" — vertraglich
+  so vereinbart, Teil des Agentur-Modells).
+- Klasse B / Self-Service-Sites: KEIN stiller Dauer-Admin-Account in
+  fremden Sites. Superadmin-Macht wirkt über das Control Plane (Lifecycle:
+  suspendieren/löschen/Features) — Inhalts-Zugriff nur als **transparenter
+  Support-Zugang**: zeitlich begrenzt, geloggt (Audit), idealerweise vom
+  Owner ausgelöst („Support-Zugriff gewähren"). Das ist DSGVO-/Vertrauens-
+  Hygiene und gehört in ToS/AVV (L7).
+
+## 3. Das Feature-System (Herzstück, nützt allen Horizonten)
+
+### F1 — Feature-Manifest pro Layer
+
+Heute doppelt gepflegt (`extends` + `package.json`) und nirgends maschinen-
+lesbar, WAS ein Layer braucht. Neu: jeder Feature-Layer exportiert ein
+Manifest (Konvention `packages/<layer>/feature.manifest.ts`):
+
+```ts
+export default defineFeatureManifest({
+  key: 'comments',
+  tier: 'optional',              // 'foundation' | 'optional'
+  entitlementKey: 'comments',    // Abgleich mit Control-Plane-Plan
+  requires: ['moderation'],      // Layer-Abhängigkeiten
+  migrations: 'scripts/migrations',
+  adminModules: [...],           // wandert aus app.config hierher (Referenz)
+  runtimeGate: 'maui.comments.enabled',
+})
+```
+
+- Ein Site-Manifest pro App (`apps/<site>/site.manifest.ts`) listet die
+  gewählten Features; ein Codegen-/Check-Script hält `extends` +
+  `package.json` synchron (Single Source of Truth, CI-geprüft).
+- Grundgerüst laut David = foundation-tier: core, system, auth/profile
+  (core), billing, themes, admin, audit (system), changelog. Optional:
+  comments, courses, events, feedback, feed, posts, tickets, moderation
+  (auto-required von comments/posts).
+
+### F2 — Laufzeit-Gates verallgemeinern (`getEffectiveConfig`)
+
+Das AI-Override-Muster (`app_config.aiModel > maui.ai`) wird generalisiert:
+
+- `app_config` bekommt ein `features`-JSON (system-Migration): pro
+  Feature-Key `enabled` + optionale Settings-Overrides.
+- `getEffectiveFeature(key)` (server) = Entitlement (§ F3) ∧
+  `app_config.features[key]` ∧ `maui.<key>`-Build-Default.
+- Client: `useFeature(key)` — reaktiv über den EXISTIERENDEN
+  realtime-config-Kanal (Toggle im Dashboard wirkt live, ohne Reload).
+- Enforcement bleibt server-seitig an den Routen (wie heute
+  `commentsEnabled`); UI blendet nur aus.
+- Wichtig: Für Studio-Sites ist das Gate ein **Aus-Schalter innerhalb der
+  einkompilierten Features** (Feature deaktivieren ohne Deploy). Für
+  Platform-Sites ist es der EINZIGE Schalter.
+
+### F3 — Entitlements (Monetarisierung, David = comp)
+
+- Control Plane besitzt `workspaces`, `sites`, `plans`, `entitlements`
+  (eigene Tables im Studio-Appwrite-Projekt) + Stripe via vorhandenem
+  `packages/billing`-Muster (Abo pro Workspace/Site statt pro End-User).
+- Jede Site erhält ihr Entitlement-Set als **signiertes Dokument** (JWT o.
+  signierte JSON, Public Key in der Site-Env): Site cached es in
+  `app_config`, prüft Signatur+Ablauf, refresht periodisch. Vorteile:
+  Site bleibt bei Control-Plane-Ausfall funktionsfähig (Grace-Period),
+  kein Live-Call pro Request, nicht fälschbar.
+- Davids Workspace: Plan `studio-unlimited` (alles frei) — Monetarisierung
+  ist damit von Tag 1 modelliert, ohne dass irgendwer zahlen muss.
+- Kill-Switch: Entitlement läuft ab → Feature fällt auf `disabled`,
+  Daten bleiben (nie destruktiv bei Zahlungsausfall).
+
+### F4 — Onboarding-Flow im Control Plane (revidiert 2026-07-14)
+
+Der „Wizard" ist der **Site-Erstellungs-Flow in `apps/studio`**, nicht eine
+On-Site-Seite:
+
+1. **Signup/Login auf hawaii.studio** (Studio hat ein eigenes Appwrite-Projekt
+   mit eigenem User-Pool — das sind die Plattform-Kunden, getrennt von den
+   End-Usern der einzelnen Sites).
+2. **„Neue Site":** Name + Slug (`<slug>.hawaii.studio`) → Basics (Sprache) →
+   Theme aus der Galerie → Feature-Auswahl (aus den Manifesten, mit
+   Plan-/Preis-Hinweis) → Anlegen.
+3. **Provisioner** (§ P2) erzeugt Appwrite-Projekt, fährt Migrationen
+   (foundation + gewählte Features), schreibt `app_config` inkl. Theme,
+   legt den Ersteller als **Site-Admin im Site-Projekt** an (gleiche E-Mail,
+   Passwort-Set-Link) und stellt Entitlements aus.
+4. **Ergebnis:** `<slug>.hawaii.studio` ist live; Site-internes Arbeiten unter
+   `<slug>.hawaii.studio/dashboard` (eigene Session der Site); Plan/Features/
+   Domains/Billing weiter auf hawaii.studio (D3-Hybrid).
+5. **Custom Domain nachträglich** über hawaii.studio → „Domain verbinden":
+   DNS-Anleitung (CNAME/A) → Verifikation → Zertifikat automatisch (D4).
+6. **Feature-Aktivierung nachträglich:** Toggle in hawaii.studio (oder
+   Site-Dashboard, das ans Control Plane delegiert) → setzt Entitlement +
+   `app_config.features` (F2); fehlende Migrationen führt der
+   Provisioner-Worker aus — NIE der Nuxt-Web-Prozess (hat bewusst keinen
+   Migrations-Key). Bei Studio-Sites alternativ der Betreiber per
+   `pnpm migrate --app <site> --layer <l>`.
+7. **On-Site-`/setup` (optionaler Fallback, de-priorisiert):** dünner
+   Claim-Schritt mit Setup-Token für Klasse-A-Übergaben ohne Control Plane.
+8. **Voraussetzung bleibt:** Migrationen aller optionalen Layer müssen
+   „additiv-sicher auf befüllter Instanz" auditiert sein (comments-002-
+   Erstumbau!), bevor irgendein automatischer Pfad Migrationen anstößt.
+
+---
+
+### F5 — Plattform-Changelog (Idee David, 2026-07-14)
+
+Für Platform-Sites (Klasse B) gibt es EINEN Plattform-Changelog („was ist im
+Hotel neu"): Einträge werden mit Feature-Keys getaggt (`comments`, `media`,
+`core`, …), jede Site zeigt ihren Gästen/Admins nur Einträge zu Features, die
+sie aktiviert hat (+ `core`/foundation immer). Quelle kann der bestehende
+Changelog-Track bleiben (Conventional Commits → Layer-Scope = Feature-Key).
+Klasse-A-Sites behalten optional zusätzlich ihren eigenen Site-Changelog
+(bestehender changelog-Baustein, unverändert).
+
+### F6 — Schema- & Namens-Governance (Anforderung David, 2026-07-14)
+
+Die Datenstruktur in Appwrite muss über alle SaaS-Ebenen hinweg identisch,
+clean und selbsterklärend sein — sie ist bei hunderten Projekten das einzige,
+was Ordnung hält. Verbindliche Konventionen (bestehende fortgeschrieben):
+
+- **Projekt-ID = Site-Slug** (z. B. `maui-photos`, `lisas-bakery`) — überall
+  wiedererkennbar (Cookie `a_session_<slug>`, Console, Logs, Register).
+- **Database-ID immer `main`** (bestehende Konvention) — jede Site strukturell
+  identisch; ein Blick in ein beliebiges Projekt genügt, um alle zu verstehen.
+- **Tables:** snake_case, Owner-Layer laut A14-Matrix; JEDE Table gehört genau
+  einem Layer und entsteht NUR durch dessen nummerierte Migrationen
+  (`NNN-*.ts`) — die Migrationshistorie IST die Schema-Doku.
+- **Buckets:** feste Namen pro Zweck (`avatars`, `fonts`, künftig `media`).
+- **Keys:** pro Projekt exakt zwei (Runtime + Migrations, bestehende Regel);
+  Benennung `<slug>-runtime` / `<slug>-migrations`.
+- **Feature-Keys** (Manifest F1) = Layer-Name = Entitlement-Key = Changelog-
+  Tag = `maui.<key>`-Gate — EIN Begriff pro Feature durch alle Ebenen.
+- **Drift-Check:** ein Script vergleicht Ist-Schema einer Instanz gegen die
+  Migrations-Definitionen (Teil der Health-Checks im Control Plane) — Sites
+  dürfen strukturell nie voneinander abweichen, nur im Feature-SET.
+
+### F7 — Feature-Katalog: Aktivieren wie WordPress-Plugins (David, 3. Runde)
+
+Die Feature-Auswahl (Onboarding F4.2 + nachträglich im Dashboard) ist kein
+nackter Schalter-Stapel, sondern ein **kuratierter Katalog** — UX-Vorbild
+WordPress-Plugin-Seite, aber ausschließlich First-Party:
+
+- Jedes Feature = eine Karte: Anzeigename, Kurzbeschreibung + „Was kann
+  ich damit?"-Detailtext (i18n en+de), Icon, 1–2 Screenshots,
+  Preis-/Plan-Badge (aus Entitlements), Abhängigkeits-Hinweis („aktiviert
+  automatisch: Moderation").
+- Quelle ist das Feature-Manifest (F1) — es bekommt dafür die Felder
+  `title`/`description` (i18n-Keys), `icon`, `screenshots[]`. KEINE zweite
+  Datenquelle; der Katalog rendert die Manifeste der verfügbaren Layer.
+- Zustände pro Karte: `aktiv` / `inaktiv` / `im Plan enthalten` /
+  `Upgrade nötig` (→ Checkout) / `bald verfügbar`.
+- Deaktivieren ist immer verlustfrei (F2/F3-Grundsatz: Feature aus =
+  unsichtbar, Daten bleiben) — das gehört als Hinweis auf jede Karte
+  („Deine Daten bleiben erhalten").
+- Bewusst NICHT: Third-Party-Plugins/Marketplace. Der Katalog listet nur
+  eigene, gewartete Layer — Qualität ist das Verkaufsargument gegenüber
+  dem WordPress-Plugin-Wildwuchs.
+
+## 4. Provisionierung
+
+### P1 — Horizont 1: `pnpm create-site` (Scaffold-Script)
+
+Ein Kommando statt 5–10 manueller Schritte: kopiert `_template`, patcht
+Name/Port/Env, legt per **Appwrite-Console-API/CLI** Projekt + Keys + Platform
+an (Spike S1), führt `bootstrap` aus, generiert Setup-Token, druckt die
+ploi/Cloudflare-Restschritte als Checkliste. Danach: Domain aufrufen → Wizard.
+
+### P2 — Horizont 2/3: Provisioner-Worker im Control Plane
+
+Eigener Node-Daemon (nicht die Nuxt-App; er hält die mächtigen Keys):
+Site-Antrag → Appwrite-Projekt anlegen → Migrationen (foundation + gewählte
+Features) → DNS (Cloudflare-API: `<slug>.hawaii.studio`) → bei Klasse A
+zusätzlich ploi-API (Site + Env + Deploy-Webhook) → Entitlements ausstellen →
+Setup-Link an den Ersteller. Jeder Schritt idempotent + im Sites-Register
+protokolliert (Status-Maschine: `provisioning → ready → error`).
+
+### Spikes (vor Umsetzungs-Go verifizieren)
+
+- **S1:** Appwrite-Projekt-Erstellung self-hosted automatisieren.
+  Empfehlung: **offizielle Appwrite CLI** (`appwrite projects create` etc.,
+  Console-Account-Login, non-interaktiver CI-Modus) bzw. Console-SDK
+  `@appwrite.io/console` im Provisioner. Risiko „inoffizielle API" wird
+  neutralisiert durch: (a) wir kontrollieren die Server-Version selbst
+  (self-hosted, Upgrades nur bewusst), (b) **CI-Smoke-Test** gegen die
+  vorhandene Wegwerf-CI-Appwrite (Projekt anlegen → Key → Platform → löschen)
+  — bricht ein Upgrade die API, wird es sofort rot, (c) Fallback-Muster
+  **Projekt-Pool**: N Projekte auf Vorrat anlegen, bei Signup nur zuweisen.
+  Explizit KEINE „KI klickt die Console"-Automatik — Provisioning muss
+  deterministisch sein.
+- **S2:** Custom-Domain + Zertifikat pro Projekt self-hosted end-to-end
+  (CNAME → Verify → Cert), manuell und dann per API; plus Caddy-On-Demand-TLS-
+  PoC für Frontend-Domains (D4).
+- **S3:** `apps/platform`-Machbarkeit: pro-Request-Projekt-Auflösung.
+  Lösungsskizze: Nitro-Middleware löst `Host` → Site-Record (LRU/Redis-Cache
+  über dem Sites-Register, Realtime-Invalidierung) → `event.context.site`
+  {projectId, endpoint, verschlüsselt hinterlegter Runtime-Key}. Da ALLES
+  CRUD durch `server/api/*` läuft, ist der Umbau auf `server/lib/appwrite.ts`
+  konzentriert (Client-Factories nehmen `event` statt statischer
+  runtimeConfig). Client-seitig: `useSiteConfig()` (SSR-injiziert in den
+  Payload) ersetzt direkte `useRuntimeConfig().public.appwrite*`-Reads;
+  Cookie-Namen (`a_session_<PROJECT_ID>`) sind bereits pro Projekt eindeutig.
+  PoC: 2 Projekte, 1 Platform-App, Hostname-Switch, Login + Realtime-Isolation
+  verifizieren. Bleibt der technisch riskanteste Punkt von Horizont 3.
+
+---
+
+## 5. Aufräumarbeiten am Bestand (Befunde der Analyse)
+
+1. `extends`/`package.json`-Duplikation → Site-Manifest + Check (F1). 
+2. Destruktive Migrations-Pfade auditieren; Bootstrap-Frische-Guard um
+   „Layer nachinstallieren"-Modus ergänzen (F4.5).
+3. Rate-Limit auf Redis-Store umstellbar machen (Interface jetzt, Redis wenn
+   Klasse B kommt; PHASE-17 A.8 kennt das schon).
+4. RBAC unangetastet lassen (Sites bleiben single-tenant); Workspace-RBAC
+   nur im Control Plane (dort ggf. Appwrite Teams — genau der in
+   RBAC-CONCEPT.md vorgesehene Auslöser ist jetzt da).
+5. Port-Vergabe + `.env`-Konventionen ins Scaffold-Script (P1).
+6. **Fehlende Bausteine fürs Grundgerüst-Versprechen** (Tiering entschieden
+   2026-07-14): `packages/pages` (Mini-CMS: pflegbare Seiten + SEO/Meta) =
+   **foundation** — jede Site braucht das; `packages/media` (Galerie/Bilder —
+   maui.photos braucht ihn, heute hartkodierte `photos.ts`) = **optional**es
+   Feature. Beide sind Kandidaten für die nächsten Feature-Layer und laufen
+   über dasselbe Manifest-System (F1).
+7. Sub-Projekte: `nuxt4-saas-template` archivieren (toter Vorläufer);
+   `nuxt3-davidschubert.com` als `apps/portfolio` neu aufsetzen statt
+   migrieren — **ohne Strapi** (entschieden 2026-07-14): Content kommt
+   vollständig aus den eigenen Feature-Layern (pages/posts/media auf
+   Appwrite); `nuxt-maui-photos` Design behalten, als `apps/maui-photos`
+   einziehen sobald media-Layer existiert; `hawaiistudio` (Prismic) ist
+   KEINE Basis fürs Control Plane — frisch als `apps/studio` bauen.
+
+---
+
+## 6. Roadmap
+
+| Phase | Inhalt | Horizont | Schätzung |
+|---|---|---|---|
+| M1 | Feature-Manifest + Site-Manifest + CI-Check | 1 | 2–3 PT |
+| M2 | Laufzeit-Gates generalisieren (F2) + Feature-Seite im Admin | 1 | 3–4 PT |
+| M3 | Migrations-Audit „additiv-sicher" + Feature-Aktivierung nachträglich (F4.6/F4.8) | 1 | 3–5 PT |
+| M4 | `pnpm create-site` + Spike S1 | 1 | 3–4 PT |
+| M5 | Eigene Sites einziehen: `apps/portfolio`, `apps/maui-photos` (+ media-Layer), Community | 1 | je 3–8 PT |
+| M6 | Control Plane MVP `apps/studio` (Register, Health, manuelle Entitlements, Site-Erstellungs-Flow = F4) | 2 | 8–12 PT |
+| M7 | Provisioner-Worker + ploi/Cloudflare-APIs + Spike S2 | 2 | 6–10 PT |
+| M8 | Workspace-Billing (Stripe) + signierte Entitlements (F3 voll) | 2/3 | 5–8 PT |
+| M9 | `apps/platform` (Klasse B) + Redis + Spike S3 + Self-Service-Signup | 3 | 15–25 PT |
+
+**PHASE-17-Abhängigkeit (präzisiert 2026-07-14):** M1–M5 laufen komplett
+lokal (OrbStack-Appwrite; `create-site` legt Projekte auf der lokalen Instanz
+an, Sites auf localhost-Ports). PHASE-17 wird Voraussetzung, sobald etwas
+LIVE geht: eigene Sites deployen (Ende M5) und alles ab M6/M7 (Provisioning,
+DNS/TLS, Health gegen echte Infrastruktur).
+
+## 7. Identifizierte Lücken (2. Review) — **alle bestätigt ✅ (3. Runde, 2026-07-14)**
+
+Von David einzeln abgenickt („Machen wir so"), inkl. dreier Ergänzungen
+(siehe L3/L6/L8). Nach Horizont sortiert: wann die Lücke BLOCKIEREND wird.
+
+### L1 — Backup & Restore PRO SITE (blockiert: erste fremden Daten, H2)
+Der geteilte Appwrite-Server bündelt alle Sites in EINER MariaDB + einem
+Volume-Satz. Instanz-Backup (Dump + Volumes) ist einfach — aber das
+Versprechen „Daten gehen nie verloren" braucht **Restore pro Site**: eine
+einzelne Site auf Stand gestern zurückholen, ohne die anderen anzufassen.
+Appwrite kann das nicht nativ → eigenes Konzept nötig: nächtlicher
+logischer Per-Projekt-Export (Rows/Files via Admin-Key, Struktur kommt aus
+den Migrationen) + Restore-Script in ein frisches Projekt. **Restore-Übung
+gehört in die Betreiber-Checkliste** — ein ungetestetes Backup ist keins.
+
+### L2 — Site-Lifecycle-Ende: Kündigung, Export, Löschung (H2/H3)
+Heute existiert GDPR pro USER (`registerUserDataContributor`). Es fehlt die
+SITE-Ebene: Kündigung → Grace-Period (Site read-only/offline, Daten bleiben)
+→ Daten-Takeout (Export-Format = derselbe Per-Projekt-Export aus L1) →
+endgültige Projekt-Löschung mit Frist. Auch für Agentur-Kunden relevant
+(„ich will mit meinen Daten woanders hin"). Status-Maschine im Sites-Register:
+`active → suspended → exporting → deleted`.
+
+### L3 — Quotas & Missbrauch (blockiert: Self-Service, H3)
+Nirgends begrenzt heute, was eine Site verbrauchen darf. Pro Plan nötig:
+Storage-Quota (media!), Upload-Größen, User-/Row-Zahlen, Mail-Volumen,
+Rate-Limits. Dazu Plattform-Missbrauch: Fremde publizieren unter
+`*.hawaii.studio` → Phishing/Spam-Sites treffen DEINE Domain-Reputation und
+Haftung (DSA). Braucht: Melde-Mechanismus, Suspend-Knopf im Control Plane
+(existiert als Status in L2), Signup-Schutz (E-Mail-Verify + Rate-Limit,
+ggf. manuelle Freigabe am Anfang).
+**Ergänzung David:** Quota-Defaults kommen aus den Superadmin-Settings
+(pro Plan), sind aber PRO SITE individuell überschreibbar (z. B. User-Limit
+für einen einzelnen Kunden anheben) — Auflösung analog F2:
+Site-Override > Plan-Default > Plattform-Default.
+
+### L4 — Transaktions-E-Mail pro Site (H2)
+`sendMail()` existiert, aber: VON welcher Adresse mailt lisas-bakery.com?
+Entscheidung: Stufe 1 = zentraler Absender (`no-reply@mail.hawaii.studio`,
+„im Auftrag von <Site>", Reply-To Site-Owner) — eine Domain, deren
+SPF/DKIM/Reputation wir pflegen. Stufe 2 (Premium/Klasse A) = eigene
+Absender-Domain des Kunden (er setzt SPF/DKIM-Records, wir verifizieren —
+analog Custom-Domain-Flow). Mail-Volumen zählt in die Quota (L3).
+
+### L5 — Deploy- & Migrations-Orchestrierung über N Sites (H1, ab M5!)
+Monorepo heißt: EIN Push aktualisiert alle Klasse-A-Sites — aber jede hat ihr
+EIGENES Appwrite-Projekt, dessen Schema mitziehen muss. Nötig: Deploy-Pipeline
+pro Site führt VOR dem Code-Switch `pnpm migrate --app <site>` aus (Migrationen
+sind idempotent + additiv-sicher nach M3 — Code n-1 muss mit Schema n laufen,
+d. h. Migrationen immer abwärtskompatibel schreiben). Plus **Canary-Reihenfolge**:
+eigene Sites zuerst, Kunden-Sites danach (einfach über die ploi-Webhook-
+Reihenfolge). Gleiches Prinzip für Appwrite-SERVER-Upgrades: Staging-Instanz
+zuerst, dann der geteilte Server (betrifft ALLE Sites gleichzeitig!).
+
+### L6 — Zentrales Monitoring & Alerting (H2)
+`maui.observability` existiert pro App; es fehlt die Plattform-Sicht: Uptime-
+Checks pro Site, Error-Raten, Realtime-Container-Watchdog (bekannter
+Swoole-Crash trifft künftig ALLE Sites), Quota-Verbrauch, Cert-Abläufe.
+Gehört ins Control Plane (M6-Health-Teil), Alerting an David (E-Mail reicht
+anfangs). Der geteilte Server ist ein akzeptierter SPOF — akzeptiert heißt:
+überwacht + Restore-Plan (L1) + dokumentierte Wiederanlauf-Zeit.
+**Ergänzung David:** Getrennt vom Plattform-Monitoring wird
+**Site-Analytics** (Besucherstatistiken fürs eigene Dashboard des Kunden)
+ein eigenes, KOSTENPFLICHTIGES Feature (Layer-Kandidat `analytics`, läuft
+über das normale Manifest-/Entitlement-System; datenschutzfreundlich,
+cookielos — passt zu maui.consent).
+
+### L7 — Rechtsrahmen der Plattform (H2 vor erstem Kunden)
+Sobald Kunden-Sites laufen, ist David **Auftragsverarbeiter**: AVV/DPA-Vorlage,
+ToS der Plattform, Subprozessoren-Liste (Hetzner, Stripe, Cloudflare, ggf.
+Mail-Provider), Preis-/Plan-Blatt. Kein Code — aber ohne das kein seriöser
+zahlender Kunde. Impressum/Datenschutz PRO SITE liefert der pages-Layer
+(Standardseiten als Templates beim Onboarding vorbefüllen — passt zu Davids
+Punkt „Impressum, Datenschutz, Kontakt gibt es fast immer").
+
+### L8 — OAuth auf Custom Domains (Fußnote, H3)
+Social-Login (`maui.auth.providers`) braucht pro OAuth-App registrierte
+Redirect-Domains. Für hunderte Platform-Sites mit Custom Domains ist „ein
+Google-Client pro Site" nicht wartbar. Pragmatik: OAuth-Buttons auf
+Platform-Sites zunächst nur unter `*.hawaii.studio` (eine registrierte
+Domain-Familie) bzw. E-Mail/OTP-Login als Default; volle OAuth-Freiheit
+ist **kostenpflichtiges Premium-Feature** (bestätigt David). Später prüfen:
+zentraler Auth-Broker.
+
+## 8. Bewusste Ablehnungen
+
+- **Ein zentrales Dashboard, das Site-Inhalte fremder Instanzen editiert** —
+  bricht das Cookie-/Session-Modell (A3), zentralisiert alle Admin-Keys.
+- **Echte Multi-Tenancy in EINER Database (tenantId-Spalten)** — verwirft
+  die komplette Row-Permission-/DSGVO-Architektur; Appwrite-Projekt pro
+  Site ist die richtige Isolations-Einheit.
+- **Getrennte Repos / versionierte Packages jetzt** — Monorepo-first bleibt
+  (A8); Auslagerung erst, wenn ein Kunde Code-Übergabe verlangt.
+- **Appwrite Sites als Hosting für die Nuxt-Apps** — Deploy-Rezept existiert
+  zwar (Memory), aber ploi-Modell aus PHASE-17 ist erprobt und wird nicht
+  parallel ersetzt. Neu bewerten, wenn der Provisioner steht.
+- **SSO zwischen Control Plane und Site-Dashboards im MVP** — erst Links,
+  Token-Handoff später (Sicherheits-Review nötig).
+- **SaaS-First bauen** — Klasse B (`apps/platform`) kommt zuletzt; bis dahin
+  zahlen die Verträge (Manifest/Gates/Entitlements) auf eigene Sites ein.
