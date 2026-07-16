@@ -4,8 +4,14 @@
  * gelesen/geschrieben wird server-seitig (sites.manage-Routen) bzw. vom
  * Job-Runner (Admin-Key). Additiv + idempotent (409 → skip).
  *
- * Zeilenbudget (MariaDB/utf8mb4, ~16k Zeichen je Row): log 10000 + payload
- * 2000 + result 1000 + Kleinspalten ≈ 13,3k — bewusst unter dem Limit.
+ * Zeilenbudget (MariaDB/utf8mb4, ~16k Zeichen je Row): log 8000 + payload
+ * 2000 + result 1000 + Kleinspalten ≈ 11,3k — bewusst mit Headroom.
+ * WICHTIG: Appwrite prüft die Zeilengröße VOR dem Duplikat-Check — an einem
+ * vollen Table antwortet ein Re-Create 400 (column_limit_exceeded) statt
+ * 409. Idempotenz läuft hier deshalb über listColumns-Inspektion, nicht
+ * über 409-Skip; Bestandsinstanzen mit log=10000 werden per Update-Step
+ * auf 8000 geschrumpft (Job-Logs sind gekürzte Tails, kein Datenverlust
+ * über die Kürzung hinaus).
  *
  *   pnpm migrate --app <app> --layer studio
  */
@@ -62,33 +68,55 @@ await step('Table provisioning_jobs', () => tablesDB.createTable({
   rowSecurity: false,
 }))
 
-await step('Column provisioning_jobs.type', () => tablesDB.createVarcharColumn({
+// Idempotenz per Inspektion (siehe Kopfkommentar: 400 statt 409 am vollen Table)
+const existingJobColumns = new Map(
+  (await tablesDB.listColumns({ databaseId, tableId: 'provisioning_jobs' })).columns
+    .map(column => [column.key, column as unknown as { size?: number }]),
+)
+
+async function columnStep(key: string, create: () => Promise<unknown>) {
+  if (existingJobColumns.has(key)) {
+    console.log(`↷ Column provisioning_jobs.${key} (existiert bereits)`)
+    return
+  }
+  await step(`Column provisioning_jobs.${key}`, create)
+}
+
+await columnStep('type', () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'provisioning_jobs', key: 'type', size: 32, required: true,
 }))
-await step('Column provisioning_jobs.payload', () => tablesDB.createVarcharColumn({
+await columnStep('payload', () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'provisioning_jobs', key: 'payload', size: 2000, required: true,
 }))
-await step('Column provisioning_jobs.status', () => tablesDB.createVarcharColumn({
+await columnStep('status', () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'provisioning_jobs', key: 'status', size: 16, required: false, xdefault: 'queued',
 }))
-await step('Column provisioning_jobs.log', () => tablesDB.createVarcharColumn({
-  databaseId, tableId: 'provisioning_jobs', key: 'log', size: 10000, required: false, xdefault: '',
+await columnStep('log', () => tablesDB.createVarcharColumn({
+  databaseId, tableId: 'provisioning_jobs', key: 'log', size: 8000, required: false, xdefault: '',
 }))
-await step('Column provisioning_jobs.result', () => tablesDB.createVarcharColumn({
+await columnStep('result', () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'provisioning_jobs', key: 'result', size: 1000, required: false, xdefault: '',
 }))
-await step('Column provisioning_jobs.requestedBy', () => tablesDB.createVarcharColumn({
+await columnStep('requestedBy', () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'provisioning_jobs', key: 'requestedBy', size: 64, required: false, xdefault: '',
 }))
-await step('Column provisioning_jobs.runnerId', () => tablesDB.createVarcharColumn({
+await columnStep('runnerId', () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'provisioning_jobs', key: 'runnerId', size: 64, required: false, xdefault: '',
 }))
-await step('Column provisioning_jobs.startedAt', () => tablesDB.createDatetimeColumn({
+await columnStep('startedAt', () => tablesDB.createDatetimeColumn({
   databaseId, tableId: 'provisioning_jobs', key: 'startedAt', required: false,
 }))
-await step('Column provisioning_jobs.finishedAt', () => tablesDB.createDatetimeColumn({
+await columnStep('finishedAt', () => tablesDB.createDatetimeColumn({
   databaseId, tableId: 'provisioning_jobs', key: 'finishedAt', required: false,
 }))
+
+// Bestandsinstanzen: log von 10000 → 8000 schrumpfen (Headroom fürs Zeilenbudget)
+const logColumn = existingJobColumns.get('log')
+if (logColumn && (logColumn.size ?? 0) > 8000) {
+  await step('Column provisioning_jobs.log auf 8000 schrumpfen', () => tablesDB.updateVarcharColumn({
+    databaseId, tableId: 'provisioning_jobs', key: 'log', size: 8000, required: false, xdefault: '',
+  }))
+}
 
 await waitForColumns('provisioning_jobs')
 

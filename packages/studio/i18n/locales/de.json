@@ -41,6 +41,15 @@
       "created": "Job für {name} angelegt — der Runner übernimmt.",
       "createFailed": "Job konnte nicht angelegt werden",
       "log": "Log"
+    },
+    "entitlements": {
+      "manage": "Features",
+      "title": "Features für {name}",
+      "help": "Zugeteilte Features (F3-Vorstufe) — Signatur und Zustellung an die Site folgen mit dem Billing-Ausbau.",
+      "saved": "Features für {name} gespeichert",
+      "saveFailed": "Features konnten nicht gespeichert werden",
+      "none": "Keine Features zugeteilt",
+      "save": "Speichern"
     }
   }
 }

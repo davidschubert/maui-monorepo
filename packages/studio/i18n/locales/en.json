@@ -41,6 +41,15 @@
       "created": "Job for {name} created — the runner takes over.",
       "createFailed": "Could not create job",
       "log": "Log"
+    },
+    "entitlements": {
+      "manage": "Features",
+      "title": "Features for {name}",
+      "help": "Granted features (F3 precursor) — signing and delivery to the site follow with the billing rollout.",
+      "saved": "Features for {name} saved",
+      "saveFailed": "Could not save features",
+      "none": "No features granted",
+      "save": "Save"
     }
   }
 }

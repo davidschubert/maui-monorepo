@@ -11,7 +11,8 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCap
 const { t, locale } = useI18n()
 const toast = useToast()
 
-const { data, refresh } = await useFetch<{ sites: SiteRow[] }>('/api/studio/sites')
+type SiteWithEntitlements = SiteRow & { entitlements: string[] }
+const { data, refresh } = await useFetch<{ sites: SiteWithEntitlements[] }>('/api/studio/sites')
 const { data: jobsData, refresh: refreshJobs } = await useFetch<{ jobs: JobRow[] }>('/api/studio/jobs')
 const { data: catalogData } = await useFetch<{ features: FeatureCatalogEntry[] }>('/api/studio/features')
 
@@ -69,23 +70,24 @@ const selectableFeatures = computed(() =>
     .sort((a, b) => (a.tier === b.tier ? a.key.localeCompare(b.key) : a.tier === 'foundation' ? -1 : 1)))
 const text = (value: { en: string, de: string }) => (locale.value.startsWith('de') ? value.de : value.en)
 
-function toggleFeature(key: string, on: boolean) {
+function toggleIn(list: Ref<string[]>, key: string, on: boolean) {
   const catalog = selectableFeatures.value
   if (on) {
     // requires-Schluss: Abhängigkeiten automatisch mit auswählen
     const add = (k: string) => {
-      if (selected.value.includes(k)) return
-      selected.value.push(k)
+      if (list.value.includes(k)) return
+      list.value.push(k)
       for (const req of catalog.find(f => f.key === k)?.requires ?? []) add(req)
     }
     add(key)
   }
   else {
     // Abwahl nimmt Features mit, die dieses voraussetzen
-    selected.value = selected.value.filter(k =>
+    list.value = list.value.filter(k =>
       k !== key && !(catalog.find(f => f.key === k)?.requires ?? []).includes(key))
   }
 }
+const toggleFeature = (key: string, on: boolean) => toggleIn(selected, key, on)
 
 async function createSite() {
   creating.value = true
@@ -106,6 +108,37 @@ async function createSite() {
     creating.value = false
   }
   await refreshJobs()
+}
+
+// ── Entitlements (T3): Grant-Set je Site verwalten ──────────────────────────
+const entitlementSite = ref<SiteWithEntitlements | null>(null)
+const grantSelection = ref<string[]>([])
+const savingGrants = ref(false)
+
+function openEntitlements(site: SiteWithEntitlements) {
+  entitlementSite.value = site
+  grantSelection.value = [...site.entitlements]
+}
+const toggleGrant = (key: string, on: boolean) => toggleIn(grantSelection, key, on)
+
+async function saveEntitlements() {
+  if (!entitlementSite.value) return
+  savingGrants.value = true
+  try {
+    await $fetch(`/api/studio/sites/${entitlementSite.value.$id}/entitlements`, {
+      method: 'PUT',
+      body: { features: grantSelection.value },
+    })
+    toast.add({ title: t('studio.entitlements.saved', { name: entitlementSite.value.name }), color: 'success' })
+    entitlementSite.value = null
+  }
+  catch (error) {
+    toast.add({ title: t('studio.entitlements.saveFailed'), description: (error as { statusMessage?: string })?.statusMessage, color: 'error' })
+  }
+  finally {
+    savingGrants.value = false
+  }
+  await refresh()
 }
 
 // ── Jobs-Liste + Polling, solange Jobs offen sind ───────────────────────────
@@ -172,8 +205,17 @@ const jobColor = (s: string) => (s === 'done' ? 'success' : s === 'running' ? 'i
                 {{ t('studio.sites.lastCheck', { at: new Date(site.healthCheckedAt).toLocaleString() }) }}
               </p>
             </ClientOnly>
+            <div class="mt-1 flex flex-wrap items-center gap-1" :data-site-entitlements="site.entitlements.join(',')">
+              <template v-if="site.entitlements.length">
+                <UBadge v-for="feature in site.entitlements" :key="feature" color="neutral" variant="outline" size="sm">{{ feature }}</UBadge>
+              </template>
+              <span v-else class="text-xs text-muted">{{ t('studio.entitlements.none') }}</span>
+            </div>
           </div>
           <div class="flex items-center gap-1">
+            <UButton icon="i-ph-stack" size="sm" color="neutral" variant="ghost" :data-site-entitle="site.slug" @click="openEntitlements(site)">
+              {{ t('studio.entitlements.manage') }}
+            </UButton>
             <UButton icon="i-ph-heartbeat" size="sm" color="neutral" variant="ghost" :loading="checking === site.$id" :data-site-check="site.slug" @click="checkHealth(site)">
               {{ t('studio.sites.check') }}
             </UButton>
@@ -222,6 +264,34 @@ const jobColor = (s: string) => (s === 'done' ? 'success' : s === 'running' ? 'i
           <div class="flex w-full justify-end gap-2">
             <UButton color="neutral" variant="ghost" @click="showRegister = false">{{ t('studio.sites.cancel') }}</UButton>
             <UButton data-sites-save @click="register">{{ t('studio.sites.save') }}</UButton>
+          </div>
+        </template>
+      </UModal>
+
+      <!-- T3: Entitlements einer Site verwalten -->
+      <UModal :open="!!entitlementSite" :title="t('studio.entitlements.title', { name: entitlementSite?.name ?? '' })" @update:open="entitlementSite = null">
+        <template #body>
+          <UFormField :label="t('studio.jobs.fieldFeatures')" :help="t('studio.entitlements.help')">
+            <p v-if="!selectableFeatures.length" class="text-sm text-muted">{{ t('studio.jobs.catalogEmpty') }}</p>
+            <div v-else class="max-h-72 space-y-2 overflow-y-auto pr-1">
+              <UCheckbox
+                v-for="feature in selectableFeatures"
+                :key="feature.key"
+                :model-value="grantSelection.includes(feature.key)"
+                :label="text(feature.title)"
+                :description="text(feature.description)"
+                :data-grant-feature="feature.key"
+                @update:model-value="toggleGrant(feature.key, $event === true)"
+              />
+            </div>
+          </UFormField>
+        </template>
+        <template #footer>
+          <div class="flex w-full justify-end gap-2">
+            <UButton color="neutral" variant="ghost" @click="entitlementSite = null">{{ t('studio.sites.cancel') }}</UButton>
+            <UButton :loading="savingGrants" :disabled="!selectableFeatures.length" data-grant-save @click="saveEntitlements">
+              {{ t('studio.entitlements.save') }}
+            </UButton>
           </div>
         </template>
       </UModal>

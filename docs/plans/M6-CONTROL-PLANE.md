@@ -1,6 +1,6 @@
 # M6 — Control Plane `apps/studio` (Umsetzungsplan)
 
-Stand: 2026-07-16 · Status: **T1 + T2 fertig, verifiziert** (Go David nach Gate G2)
+Stand: 2026-07-16 · Status: **T1–T3 fertig, verifiziert** (Go David nach Gate G2)
 Kontext: Strategie D3 (Hybrid), § 8 Vertrauensgrenzen, L2/L5/L6.
 
 ## Architektur-Entscheidung
@@ -59,3 +59,31 @@ Health-Checks beide „ok". Der geparkte G2-JWT-Befund ist aufgeklärt
   Eintrag) → UI zeigte done + Log. Probe danach rückstandsfrei entfernt
   (Projekt gelöscht, apps/ + Lockfile zurückgesetzt, Register-Eintrag raus;
   Job-Row bleibt als Historie).
+
+## Status T3 — ✅ fertig (2026-07-16, browser-verifiziert)
+
+- **Vertrag** (`shared/types/entitlement.ts`, Migration studio-003): Table
+  `entitlements` — Row pro Site×Feature (siteProjectId = F6-Identität,
+  featureKey, status, notes; unique site×feature). Row existiert = Feature
+  zugeteilt; `status` ist Vorwärts-Kompatibilität für M8 (suspended/Grace).
+  Bewusst OHNE Signatur/Plan/Zustellung — das kommt mit M8/Stripe; bis dahin
+  ist die Table die manuell gepflegte Wahrheit, und `featureGates.ts` (core)
+  behält seinen vorbereiteten Andockpunkt („dritte UND-Bedingung").
+- **API:** GET /api/studio/sites liefert `entitlements: string[]` je Site mit;
+  PUT /api/studio/sites/:id/entitlements ersetzt das Grant-Set
+  (Katalog-validiert, gleiche Nicht-zuteilbar-Regel core/system/studio wie
+  T2). Deregistrieren räumt die Entitlement-Rows der Site mit ab
+  (Register-seitige Daten — das Site-Projekt bleibt unberührt).
+- **Runner-Auto-Grant:** `studio-jobs` teilt einer frisch provisionierten
+  Site ihre gewählten Features automatisch zu.
+- **UI:** Feature-Chips am Site-Eintrag + „Features"-Modal (Katalog-Checkboxen
+  mit requires-Autoselect, geteilt mit dem Neue-Site-Picker).
+- **Betriebs-Learnings dieses Pakets:**
+  1. `provisioning_jobs` lag am MariaDB-Zeilenbudget — Appwrite prüft die
+     Zeilengröße VOR dem Duplikat-Check, ein idempotenter Re-Run bekam 400
+     (column_limit_exceeded) statt 409. studio-002 ist jetzt
+     inspektionsbasiert idempotent (listColumns) und schrumpft `log` auf
+     8000 (Headroom; Runner kürzt auf 7500).
+  2. HMR-stale DOM: Klicks auf einen vor dem HMR-Reload gerenderten Dialog
+     verpuffen — nach Layer-Edits Seite neu laden, dann UI-Flows testen
+     (deckt sich mit dem bekannten Vite/HMR-Muster).

@@ -23,7 +23,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const watch = process.argv.includes('--watch')
 const RUNNER_ID = `${hostname()}#${process.pid}`
-const LOG_LIMIT = 9500 // Spalte log: 10000 (studio-002) — Tail gewinnt
+const LOG_LIMIT = 7500 // Spalte log: 8000 (studio-002) — Tail gewinnt
 
 function fail(message) {
   console.error(`✗ ${message}`)
@@ -130,6 +130,17 @@ async function runSiteCreate(job, payload) {
     })
     if (status === 201) siteRowId = json.$id
     else console.error(`⚠ Register-Eintrag (${status}): ${json?.message ?? ''}`)
+
+    // Auto-Grant (M6-T3): die gewählten Features sind der Site zugeteilt
+    for (const featureKey of features) {
+      const grant = await api(rowsPath('entitlements'), 'POST', {
+        rowId: 'unique()',
+        data: { siteProjectId, featureKey, status: 'active', notes: `create-site via Job ${job.$id}` },
+      })
+      if (grant.status !== 201 && grant.status !== 409) {
+        console.error(`⚠ Entitlement ${featureKey} (${grant.status}): ${grant.json?.message ?? ''}`)
+      }
+    }
   }
 
   await updateJob(job.$id, {
