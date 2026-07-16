@@ -239,13 +239,15 @@ if (!skipAppwrite && consoleEmail && consolePassword) {
     console.log(`✔ Key ${kind}-${name}`)
   }
 
-  // Web-Platform localhost (platformId ist pro Projekt eindeutig — S0-verifiziert)
+  // Web-Platform localhost — platformId GLOBAL eindeutig: auf der Haupt-Instanz
+  // kollidieren Platform-IDs projektübergreifend (G2-Befund 2, spikes/s3-minimal);
+  // ein 409 hieße hier „Platform liegt in einem ANDEREN Projekt", das eigene
+  // bliebe ohne Platform (Origin-Checks schlagen fehl).
   {
     const { status, json } = await consoleApi(`/projects/${projectId}/platforms`, 'POST', {
-      platformId: 'web', type: 'web', name: 'Web', hostname: 'localhost',
+      platformId: `web-${name}-localhost`, type: 'web', name: 'Web', hostname: 'localhost',
     })
     if (status === 201) console.log('✔ Web-Platform localhost')
-    else if (status === 409) console.log('↷ Web-Platform existiert')
     else fail(`Platform (${status}): ${json?.message ?? ''}`)
   }
 

@@ -29,12 +29,38 @@ Login/Me/Realtime/Ping-Buttons; Realtime nach dem Core-Muster
 
 ### Befunde (für Voll-S3 / G3 + Provisioner)
 
-1. **JWT-Event-Lieferung für `read(users)`-Channels im Spike nicht
-   reproduziert** — mit `read(any)` liefert derselbe Socket sofort.
-   Cores Produktions-Muster funktioniert nachweislich täglich (M2-Toggle,
-   Notifications) → Diskrepanz liegt im Spike-Setup (vermutlich
-   setJWT-/Connect-Detail des Web-SDK v26). MUSS in Voll-S3 (G3) geklärt
-   werden, bevor Klasse-B-Sites private Realtime-Channels nutzen.
+1. **JWT-Event-Lieferung für `read(users)`-Channels — AUFGEKLÄRT
+   (2026-07-16, Node-verifiziert):** Appwrite **1.9.5 liest den
+   `&jwt=`-Query-Param am Realtime-Endpoint NICHT** (kein Codepfad in
+   realtime.php/connection.php/Message-Handlern; JWT-Auth existiert nur
+   als `x-appwrite-jwt`-HTTP-Header, den Browser-WebSockets nicht setzen
+   können). Web-SDK 26 sendet den Param bereits — es ist dem Server
+   voraus. Die Hypothese „Realtime-Klasse + `&jwt=` ok" ist damit
+   **widerlegt**.
+   - **Warum Cores Prod-Muster trotzdem funktioniert:** same-site
+     (Subdomain-/localhost-Architektur) → das `a_session_<project>`-Cookie
+     reitet auf dem WS-Handshake mit; die Auth kommt vom Cookie. Der
+     15-min-JWT aus `useRealtimeClient` ist für die WS-Auth auf 1.9.5
+     ein No-Op (schadet aber nicht, da Query-Param ignoriert).
+   - **Cookie-freier, browserfähiger Pfad (verifiziert, Row-Event auf
+     read(users)-Row empfangen):** Message-Protokoll in STRIKTER
+     Reihenfolge — connect (nur `project` im Query) → auf server-seitiges
+     `connected` warten (Messages davor → 1008 „Missing project context"
+     + Close) → `subscribe` (data = **Array** von
+     `{subscriptionId, channels, queries}`) → `authentication`
+     (`data.session` = Session-Secret) → Events fließen.
+   - **Reihenfolge kritisch (1.9.5-Bug):** `authentication` VOR der
+     ersten Subscription verliert die User-Bindung (der Handler
+     unsubscribed/rebindet nur BESTEHENDE Subscriptions; ohne solche
+     bleibt die Connection Gast, Folge-Subscribes binden ohne User).
+     Genau diese Reihenfolge fährt das SDK 26 (`setSession`-Autoflow:
+     erst authentication, dann subscribes) → 0 Events.
+   - **Konsequenz Klasse-B (Entscheidung in G3):** private
+     Realtime-Channels cross-site erfordern entweder (a) das
+     Session-Secret im Browser-JS (bricht httpOnly — abzulehnen),
+     (b) ein Appwrite-Upgrade auf eine Version, die `jwt` am
+     Realtime-Endpoint liest, oder (c) Verzicht auf private Channels im
+     Embed (read(any) + where-Filter wie bei Kommentaren).
 2. **Platform-IDs kollidieren projektübergreifend** auf dieser Instanz
    (409 bei web-alpha im zweiten Projekt) — wie Key-IDs global eindeutig
    wählen (Provisioner: `web-<site>-<host>`), obwohl es auf der
