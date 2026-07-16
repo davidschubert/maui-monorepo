@@ -1,0 +1,10 @@
+{
+  "name": "s3-minimal-spike",
+  "private": true,
+  "type": "module",
+  "scripts": { "start": "node server.mjs" },
+  "dependencies": {
+    "h3": "^1.13.0",
+    "node-appwrite": "^26.2.0"
+  }
+}

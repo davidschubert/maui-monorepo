@@ -1,0 +1,4 @@
+{
+  "alpha.localhost": { "siteId": "alpha", "projectId": "s3-alpha", "endpoint": "http://localhost/v1" },
+  "beta.localhost": { "siteId": "beta", "projectId": "s3-beta", "endpoint": "http://localhost/v1" }
+}

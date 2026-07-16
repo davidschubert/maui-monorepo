@@ -668,7 +668,7 @@ zur Regel „S2 + Minimal-S3 vor M6").
 | M3 | Migrations-Audit „additiv-sicher" + Feature-Aktivierung nachträglich (F4.6/F4.8) | 1 | 3–5 PT |
 | M4 | ✅ **BESTANDEN (2026-07-15):** `pnpm create-site` (Scaffold + Console-Provisionierung + manifest-gefilterte Migrationen) — **G1/S1 läuft dauerhaft als CI-Step** (e2e.yml provisioniert bei jedem Push ein Projekt auf der echten Wegwerf-Appwrite; erster Lauf grün). Provisioner-Learnings in [M4-CREATE-SITE.md](M4-CREATE-SITE.md) | 1 | ✅ |
 | M5 | Eigene Sites einziehen: `apps/portfolio`, `apps/photos` (+ media-Layer), Community | 1 | je 3–8 PT |
-| **G2** | **Gate vor M6:** Spike S2 (Custom-Domain+Cert e2e) + Minimal-S3 („2 Projekte × 2 Domains × Auth × Realtime") bestanden — sonst kein M6 | 2 | 2–4 PT |
+| **G2** | **TEILWEISE BESTANDEN (2026-07-15,** [spikes/s3-minimal](../../spikes/s3-minimal/README.md)**):** Minimal-S3 ✅ Browser-verifiziert (2 echte Projekte auf der Haupt-Instanz, parallele Sessions, Realtime-Isolation mit sauberem Kreuz-Check). S2: API-Oberfläche (`/proxy/rules`) self-hosted verifiziert ✅ — der e2e-Beweis (CNAME+Cert) braucht echte Domains → **Pflichtpunkt in Phase 17 vor jedem Custom-Domain-Feature**. Befund für G3: JWT-Event-Lieferung für read(users)-Channels im Spike offen (Cores Prod-Muster funktioniert; Spike-Detail klären). **M6-Freigabe: Control-Plane-Verträge können auf dieser Basis geschnitten werden.** | 2 | ✅/⚠ |
 | M6 | Control Plane MVP `apps/studio` (Register, Health, manuelle Entitlements, Site-Erstellungs-Flow = F4) | 2 | 8–12 PT |
 | M7 | Provisioner-Worker + ploi/Cloudflare-APIs (S2 bereits in G2 bestanden) | 2 | 6–10 PT |
 | M8 | Workspace-Billing (Stripe) + signierte Entitlements (F3 voll) | 2/3 | 5–8 PT |
