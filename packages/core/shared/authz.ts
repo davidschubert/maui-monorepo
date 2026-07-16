@@ -19,6 +19,7 @@ export const ALL_CAPABILITIES: readonly Capability[] = [
   'audit.read',
   'activity.manage',
   'media.manage',
+  'sites.manage',
   'posts.moderate',
   'events.manage',
   'feedback.manage',

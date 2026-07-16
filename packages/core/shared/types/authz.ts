@@ -16,6 +16,7 @@ export type Capability =
   | 'audit.read'
   | 'activity.manage'
   | 'media.manage'
+  | 'sites.manage'
   | 'posts.moderate'
   | 'events.manage'
   | 'feedback.manage'
