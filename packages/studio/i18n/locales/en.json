@@ -26,6 +26,21 @@
       "deregisterFailed": "Removal failed",
       "save": "Register",
       "cancel": "Cancel"
+    },
+    "jobs": {
+      "newSite": "New site",
+      "newSiteTitle": "Create a new site",
+      "title": "Provisioning",
+      "fieldName": "Name",
+      "fieldNameHint": "lowercase, digits, hyphens",
+      "fieldFeatures": "Features",
+      "fieldFeaturesHelp": "core + system are always included; dependencies are selected automatically.",
+      "catalogEmpty": "Feature catalog is empty — run pnpm studio:jobs once.",
+      "runnerHint": "Execution: pnpm studio:jobs (repo-side)",
+      "create": "Create job",
+      "created": "Job for {name} created — the runner takes over.",
+      "createFailed": "Could not create job",
+      "log": "Log"
     }
   }
 }

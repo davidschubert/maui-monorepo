@@ -26,6 +26,21 @@
       "deregisterFailed": "Entfernen fehlgeschlagen",
       "save": "Registrieren",
       "cancel": "Abbrechen"
+    },
+    "jobs": {
+      "newSite": "Neue Site",
+      "newSiteTitle": "Neue Site erstellen",
+      "title": "Provisionierung",
+      "fieldName": "Name",
+      "fieldNameHint": "kleinbuchstaben, ziffern, bindestriche",
+      "fieldFeatures": "Features",
+      "fieldFeaturesHelp": "core + system sind immer dabei; Abhängigkeiten werden automatisch mitgewählt.",
+      "catalogEmpty": "Feature-Katalog leer — einmal pnpm studio:jobs laufen lassen.",
+      "runnerHint": "Ausführung: pnpm studio:jobs (repo-seitig)",
+      "create": "Job anlegen",
+      "created": "Job für {name} angelegt — der Runner übernimmt.",
+      "createFailed": "Job konnte nicht angelegt werden",
+      "log": "Log"
     }
   }
 }

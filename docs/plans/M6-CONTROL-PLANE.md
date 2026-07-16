@@ -1,6 +1,6 @@
 # M6 — Control Plane `apps/studio` (Umsetzungsplan)
 
-Stand: 2026-07-16 · Status: **T1 in Umsetzung** (Go David nach Gate G2)
+Stand: 2026-07-16 · Status: **T1 + T2 fertig, verifiziert** (Go David nach Gate G2)
 Kontext: Strategie D3 (Hybrid), § 8 Vertrauensgrenzen, L2/L5/L6.
 
 ## Architektur-Entscheidung
@@ -29,15 +29,33 @@ Sites, aber KEINE Site-Inhalte, keine Site-Sessions, keine Site-Keys
 - **T4: Health-Automatik** (Intervall-Plugin wie Digest-Sweep) +
   Feature-Snapshot je Site.
 
-## Status T1
+## Status T1 — ✅ fertig (2026-07-16, browser-verifiziert)
 
-Code komplett (Layer + Scaffold `apps/studio`, Port 3004, „15 Layer,
-4 Apps — konsistent"). **Provisionierung + Live-Verifikation warten auf
-die Erholung der lokalen Appwrite-Instanz** (VM-Thrashing am 2026-07-15/16;
-Health-Endpoint antwortet, DB-Operationen hängen → OrbStack-Neustart durch
-David empfohlen, mehr VM-RAM für M6/M7-Arbeit ebenfalls). Danach:
-`create-site`-Provisionierung nachholen (Projekt fürs Studio), Migration,
-photos + reddit-comments registrieren, Health-Checks browser-verifizieren.
+Studio provisioniert (Projekt `studio-1xsl`, Port 3004, Admin
+admin@studio.local); photos (`photos-qgry`) + reddit-comments registriert,
+Health-Checks beide „ok". Der geparkte G2-JWT-Befund ist aufgeklärt
+(spikes/s3-minimal/README, Befund 1).
 
-Offen aus G2 (parallel geparkt): JWT-Realtime-Verifikation
-(/tmp/jwt-test.mjs, läuft in 15 s sobald die Instanz DB-gesund ist).
+## Status T2 — ✅ fertig (2026-07-16, e2e-verifiziert)
+
+- **Vertrag** (`packages/studio/shared/types/job.ts`, Migration studio-002):
+  Table `provisioning_jobs` (type/payload/status/log/result/requestedBy/
+  runnerId, queued→running→done/error) + Table `feature_catalog`
+  (rowId = Feature-Key; Katalog-Texte aus den Manifesten). Beide ohne
+  Client-Permissions.
+- **§-8-Schnitt:** Der Web-Prozess BESCHREIBT Jobs nur (POST /api/studio/jobs,
+  Frühvalidierung gegen den Katalog: wählbar = alles außer core/system/studio,
+  requires-Schluss, Duplikat-Checks). Ausgeführt wird repo-seitig von
+  `pnpm studio:jobs [--watch]` (scripts/studio-jobs.mjs): synct den
+  Feature-Katalog aus packages/*/feature.manifest.ts, claimt die Queue und
+  spawnt create-site mit den Console-Credentials des Operators; Log/Result
+  landen am Job, die fertige Site im Register. Der M7-Provisioner-Worker
+  übernimmt denselben Vertrag.
+- **UI:** „Neue Site"-Dialog (Name + Feature-Picker aus dem Katalog mit
+  requires-Autoselect) + Provisionierungs-Liste mit Status-Badges und
+  aufklappbarem Log; Polling nur solange Jobs offen sind.
+- **E2E-Abnahme:** Job `t2-probe` über die UI angelegt → Runner provisionierte
+  Projekt `t2-probe-4etm` (Scaffold, Keys, Platform, Bootstrap, Register-
+  Eintrag) → UI zeigte done + Log. Probe danach rückstandsfrei entfernt
+  (Projekt gelöscht, apps/ + Lockfile zurückgesetzt, Register-Eintrag raus;
+  Job-Row bleibt als Historie).

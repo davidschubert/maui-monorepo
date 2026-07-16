@@ -14,6 +14,7 @@
     "changelog:draft": "node --env-file=apps/reddit-comments/.env packages/admin/scripts/changelog-draft.mjs",
     "migrate": "node --experimental-strip-types scripts/migrate.mjs",
     "create-site": "node --experimental-strip-types scripts/create-site.mjs",
+    "studio:jobs": "node --experimental-strip-types scripts/studio-jobs.mjs",
     "check:manifests": "node --experimental-strip-types scripts/check-manifests.mjs"
   },
   "devDependencies": {
