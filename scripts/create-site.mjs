@@ -27,7 +27,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const FOUNDATION_ALWAYS = ['core', 'system']
 // Muss der EXTENDS_ORDER in check-manifests.mjs entsprechen
 const EXTENDS_ORDER = [
-  'themes', 'admin', 'comments', 'posts', 'events', 'media', 'feedback',
+  'themes', 'admin', 'studio', 'comments', 'posts', 'events', 'media', 'feedback',
   'billing', 'courses', 'tickets', 'activity', 'moderation',
 ]
 const DEFAULT_FEATURES = ['themes', 'admin', 'comments', 'moderation']

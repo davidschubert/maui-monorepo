@@ -1,0 +1,31 @@
+{
+  "admin": {
+    "nav": {
+      "sites": "Sites"
+    }
+  },
+  "studio": {
+    "sites": {
+      "title": "Sites",
+      "empty": "Noch keine Sites registriert.",
+      "register": "Site registrieren",
+      "registerTitle": "Bestehende Site registrieren",
+      "registered": "{name} registriert",
+      "registerFailed": "Registrierung fehlgeschlagen",
+      "fieldName": "Name",
+      "fieldSlug": "Slug (Anzeige, veränderlich)",
+      "fieldProjectId": "Appwrite-Projekt-ID",
+      "fieldProjectIdHint": "unveränderliche Identität (F6)",
+      "fieldEndpoint": "Appwrite-Endpoint",
+      "fieldAppUrl": "App-URL (optional)",
+      "check": "Prüfen",
+      "lastCheck": "Zuletzt geprüft: {at}",
+      "healthFailed": "Health-Check fehlgeschlagen",
+      "deregister": "Aus dem Register entfernen",
+      "deregisterConfirm": "„{name}\" aus dem Register entfernen? Das Appwrite-Projekt und seine Daten bleiben unberührt.",
+      "deregisterFailed": "Entfernen fehlgeschlagen",
+      "save": "Registrieren",
+      "cancel": "Abbrechen"
+    }
+  }
+}
