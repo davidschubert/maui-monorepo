@@ -86,7 +86,7 @@ Feature-Layer die Daten besitzen.
   Vertrag bekommt system erstmals `server/plugins` + `server/utils`.
 - Admin-Client bietet alle nötigen Services: `users`, `tablesDB`, `storage`,
   `presences` (`core/server/lib/appwrite.ts` Z. 58–63).
-- Buckets gehören der App: `apps/reddit-comments/scripts/bootstrap.ts` legt den
+- Buckets gehören der App: `apps/comments/scripts/bootstrap.ts` legt den
   `avatars`-Bucket an (Z. 58–70); die Storage-Routen in core allowlisten NUR
   den Avatars-Bucket (`storage/[bucket]/[fileId].delete.ts` Z. 14–16).
 
@@ -438,7 +438,7 @@ Reihenfolge = Abhängigkeitsreihenfolge; nach jedem Schritt lint/typecheck grün
    `admin/server/api/admin/users/[id]/export.get.ts` auf
    `exportUserCompletely`; `dataExport.ts` von comments-Wissen befreien
    (§4.9). **(M)**
-10. **Bucket + Snapshot** — `apps/reddit-comments/scripts/bootstrap.ts`:
+10. **Bucket + Snapshot** — `apps/comments/scripts/bootstrap.ts`:
     `gdpr-exports`-Bucket (idempotent, §4.8); `.env(.example)`:
     `NUXT_PUBLIC_APPWRITE_GDPR_BUCKET`; Snapshot-Schritt in
     `deleteUserCompletely` (createFile + read(label:admin)). **(M)**
@@ -531,5 +531,5 @@ Geschätzter Gesamtumfang: ~2–3 fokussierte Arbeitstage.
     starten → Registry leer bzw. teilbesetzt, Self-Delete + Self-Export
     funktionieren ohne 500 (Kompositionstest).
 14. **Regression:** bestehende comments/admin/core-Testsuiten + `nuxi
-    typecheck` in reddit-comments; Realtime-E2E (`e2e/realtime.spec.ts`)
+    typecheck` in comments; Realtime-E2E (`e2e/realtime.spec.ts`)
     unverändert grün.

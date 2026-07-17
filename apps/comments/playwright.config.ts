@@ -18,7 +18,7 @@ try {
 catch { /* keine .env → env-gated Tests skippen */ }
 
 /**
- * E2E-Smoke-Tests für reddit-comments (Port 3001).
+ * E2E-Smoke-Tests für comments (Port 3001).
  *
  * Nutzt das systeminstallierte Google Chrome (channel: 'chrome') — kein
  * Playwright-Browser-Download nötig. Läuft gegen einen bereits laufenden Dev-

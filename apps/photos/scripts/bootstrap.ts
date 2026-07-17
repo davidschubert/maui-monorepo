@@ -131,7 +131,7 @@ console.log('\n— Migrationen —')
 execSync(`node --experimental-strip-types ${resolve(APP_DIR, '../../scripts/migrate.mjs')} --app ${APP_NAME}`, { stdio: 'inherit' })
 
 // 6) Optional: Seed — nur wenn die App ein seed-Script mitbringt (die
-// Template-Kopie hat keins; Vorlage: apps/reddit-comments/scripts/seed-demo.ts)
+// Template-Kopie hat keins; Vorlage: apps/comments/scripts/seed-demo.ts)
 if (withSeed) {
   if (APP_PKG.scripts?.seed) {
     console.log('\n— Demo-Seed —')

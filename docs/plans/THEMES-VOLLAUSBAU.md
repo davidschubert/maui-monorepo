@@ -102,7 +102,7 @@ Nuxt-UI-Tokens (`--ui-bg`, `--ui-text-muted`, `--ui-border`, …) hängen per
   (`primary: 'sky'`, `neutral: 'mist'`); das Maui-Default-Theme ist
   monochrom. Core bleibt themes-frei (Layer-Matrix CONCEPT A14: themes
   besitzt Tokens/CSS/Switcher, kein Appwrite, keine Business-Logik).
-- **App-Einbindung**: `apps/reddit-comments/nuxt.config.ts` →
+- **App-Einbindung**: `apps/comments/nuxt.config.ts` →
   `extends: ['../../packages/themes', …, '../../packages/core', …]`
   (früher gelistet = höhere Priorität). Apps ohne themes-Layer (z.B.
   core/.playground) ignorieren die Cookies einfach.
@@ -246,7 +246,7 @@ Schätzung: **S** ≤ ½ Tag · **M** ≈ 1 Tag · **L** ≈ 2–3 Tage.
    Themes als Ramp-Streifen), damit QA pro Theme auf einen Blick geht;
    Kontrast-Badges (AA pass/fail) aus `getComputedStyle` live anzeigen.
 8. **[M] QA-Durchlauf** (Abschnitt 6): automatisierte Checks + manuelle
-   Stichprobe (je 3 Themes hell/dunkel in reddit-comments + styleguide),
+   Stichprobe (je 3 Themes hell/dunkel in comments + styleguide),
    E2E-Smoke ergänzen (Cookie setzen → `data-theme` + Link im SSR-HTML,
    ungültiger Cookie → Default; analog Phase-15-Nachweis).
 9. **[S] Doku + Abschluss**: CONCEPT.md (Themes-Abschnitte), GOALS.md
@@ -282,7 +282,7 @@ Gesamtaufwand grob **7–10 Personentage**; gut in 2–3 Goals schneidbar
   Theme) fallen still auf Default (bestehende Validierung deckt das ab —
   Test ergänzen).
 - **Toolchain**: `nvm use 22`; `pnpm --filter @maui/themes lint`, App-
-  `nuxi typecheck` (prüft transitiv), `pnpm --filter reddit-comments e2e`.
+  `nuxi typecheck` (prüft transitiv), `pnpm --filter comments e2e`.
   Erst grün, dann nächster Schritt.
 
 ---
@@ -310,6 +310,6 @@ Gesamtaufwand grob **7–10 Personentage**; gut in 2–3 Goals schneidbar
 - `packages/themes/app/pages/styleguide.vue` — Demo/QA-Seite
 - `packages/themes/public/themes/*.css` — 8 Theme-CSS + `neutral.css`
 - `packages/core/app/app.config.ts` — Maui-Default (`ui.colors`: sky/mist)
-- `apps/reddit-comments/nuxt.config.ts` — Layer-Einbindung via `extends`
+- `apps/comments/nuxt.config.ts` — Layer-Einbindung via `extends`
 - `docs/CONCEPT.md` (Z. 98/109/465/522–525), `docs/GOALS.md` (Phase 15,
   Backlog), Obsidian: `02 - Projects/maui-design-system/design-system.md`

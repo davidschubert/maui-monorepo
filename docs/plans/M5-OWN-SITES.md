@@ -19,7 +19,7 @@ nuxt-maui-photos: title, location→subtitle, span→featured):
 - **Verkabelung**: feature.manifest (optional, apiPrefixes ['/api/media']),
   Registrier-Plugin, EXTENDS_ORDER + LAYER_ORDER + create-site,
   Capability in core authz
-- **Verifikation live** im Vollausbau-Testgelände reddit-comments
+- **Verifikation live** im Vollausbau-Testgelände comments
   (bekommt media dauerhaft — passt zu seiner Rolle): Upload → öffentliche
   Liste → Feature-Toggle aus → /api/media 404
 - Kein GDPR-Contributor nötig: Rows tragen bewusst KEINE User-Referenz
@@ -45,7 +45,7 @@ Seiten der alten nuxt3-davidschubert.com übernommen werden).
 
 ## Ergebnis
 
-**P1 ✅ (2026-07-15):** media-Layer gebaut und im Testgelände reddit-comments
+**P1 ✅ (2026-07-15):** media-Layer gebaut und im Testgelände comments
 live bewiesen (Upload/RBAC/Entwürfe/Feature-Gate/Admin-UI) — Details im
 Commit `453dda5`.
 

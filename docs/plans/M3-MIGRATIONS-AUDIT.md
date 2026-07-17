@@ -31,7 +31,7 @@ comments-002-Erstumbau (destruktiver Schema-Neuaufbau).
 - Audit-Tabelle vollständig, alle Einträge additiv-sicher oder
   destruktiv-mit-Guard (+ Marker)
 - Negativprobe: Migration mit ungeschütztem deleteTable → check rot
-- `pnpm migrate --app reddit-comments` läuft komplett grün auf der
+- `pnpm migrate --app comments` läuft komplett grün auf der
   befüllten lokalen Instanz (Re-Run-Beweis: idempotent + zerstörungsfrei)
 - Bootstrap-Frische-Guard bleibt (Erst-Setup), dokumentierter Weg fürs
   NACH-Aktivieren: `pnpm migrate --app <app> --layer <layer>`
@@ -74,7 +74,7 @@ demonstriert (comments-002 ohne Marker → rot).
 
 ### Abnahme-Beweis (befüllte lokale Instanz)
 
-Voller Re-Run `pnpm migrate --app reddit-comments`: „Kein Alt-Schema
+Voller Re-Run `pnpm migrate --app comments`: „Kein Alt-Schema
 erkannt — DROP übersprungen", alle Migrationen grün, Datenbestand
 identisch (150 Kommentare, 27 Members vorher = nachher).
 

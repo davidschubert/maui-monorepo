@@ -2,7 +2,7 @@
 /**
  * Default-Seite des Layers — öffentlich (Gäste lesen, Mitglieder posten).
  * Apps überschreiben diese Seite, um den #comments-Slot mit ihrem
- * comments-Layer zu füllen (A14-Komposition, siehe reddit-comments).
+ * comments-Layer zu füllen (A14-Komposition, siehe comments).
  */
 const { t } = useI18n()
 

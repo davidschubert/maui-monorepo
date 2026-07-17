@@ -22,10 +22,10 @@ im Dashboard unter **Changelog** poliert und veröffentlicht — wie bisher.
 | V1 | **Prod-Appwrite** (self-hosted ≥ 1.9.5) läuft, per **HTTPS** öffentlich erreichbar (z. B. `api.<domain>/v1`) | GitHub muss den Webhook zustellen können; `localhost` scheidet aus (der Grund, warum 2A existiert) |
 | V2 | **Functions-Domain** der Instanz konfiguriert: `_APP_DOMAIN_FUNCTIONS=functions.<domain>` in der Appwrite-`.env` + **Wildcard-DNS** `*.functions.<domain>` + **TLS** (Traefik/Caddy stellt Zertifikate aus) | Jede Function bekommt eine generierte Subdomain — das wird die Payload-URL des Webhooks |
 | V3 | `changelog`-Table existiert in der Prod-DB (admin-Layer-Migration gelaufen, DEPLOYMENT.md Schritt 2) | Die Function schreibt per `createRow` in `tableId: 'changelog'` |
-| V4 | **Appwrite CLI** lokal installiert + eingeloggt gegen die **Prod**-Instanz (`appwrite login`, Projekt `reddit-comments` bzw. Prod-Project-ID) | Deploy läuft über `appwrite push` aus dem Repo-Root (nutzt `appwrite.config.json`) |
+| V4 | **Appwrite CLI** lokal installiert + eingeloggt gegen die **Prod**-Instanz (`appwrite login`, Projekt `comments` bzw. Prod-Project-ID) | Deploy läuft über `appwrite push` aus dem Repo-Root (nutzt `appwrite.config.json`) |
 | V5 | Release-Prozess aktiv: release-please-PR-Merge erzeugt Tag + **GitHub-Release** (`action=published`) | Nur `release/published`-Events lösen den Draft aus; Draft-/Pre-Release-Anlegen ohne „publish" tut nichts |
 
-> **Hinweis Project-ID:** `appwrite.config.json` trägt aktuell `projectId: reddit-comments`.
+> **Hinweis Project-ID:** `appwrite.config.json` trägt aktuell `projectId: comments`.
 > Weicht die Prod-Project-ID ab, vor dem Push anpassen (oder per
 > `appwrite push --project-id <prod>` überschreiben). Perspektivisch steht die
 > Umbenennung `appwrite.config.json` → `appwrite.config.json` an (neuer CLI-Name,
@@ -233,6 +233,6 @@ Beide teilen `functions/changelog-draft/src/parse.js` (unit-getestet in
 Draft-Rows — sie können koexistieren, ohne sich zu stören. Einzige Disziplin:
 nach einem manuellen 2A-Lauf für einen Release, den 2B schon verarbeitet hat,
 den Duplikat-Draft löschen. **Achtung Prod-Ziel:** 2A zeigt per `--env-file` auf
-`apps/reddit-comments/.env` (Dev) — für einen Prod-Draft die
+`apps/comments/.env` (Dev) — für einen Prod-Draft die
 `.env.production` verwenden (vgl. DEPLOYMENT.md und das offene
 Migrations-Runner-Finding in OPEN-ITEMS).

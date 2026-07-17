@@ -2,20 +2,20 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "reddit-comments",
+      "name": "comments",
       "runtimeExecutable": "zsh",
       "runtimeArgs": [
         "-c",
-        "source ~/.nvm/nvm.sh && nvm use 22 >/dev/null && exec pnpm --filter reddit-comments dev"
+        "source ~/.nvm/nvm.sh && nvm use 22 >/dev/null && exec pnpm --filter comments dev"
       ],
       "port": 3001
     },
     {
-      "name": "reddit-comments-3002",
+      "name": "comments-3002",
       "runtimeExecutable": "zsh",
       "runtimeArgs": [
         "-c",
-        "source ~/.nvm/nvm.sh && nvm use 22 >/dev/null && exec pnpm --filter reddit-comments exec nuxi dev --port 3002"
+        "source ~/.nvm/nvm.sh && nvm use 22 >/dev/null && exec pnpm --filter comments exec nuxi dev --port 3002"
       ],
       "port": 3002
     },
@@ -47,11 +47,11 @@
       "port": 3004
     },
     {
-      "name": "reddit-comments-auto",
+      "name": "comments-auto",
       "runtimeExecutable": "zsh",
       "runtimeArgs": [
         "-c",
-        "source ~/.nvm/nvm.sh && nvm use 22 >/dev/null && exec pnpm --filter reddit-comments exec nuxi dev"
+        "source ~/.nvm/nvm.sh && nvm use 22 >/dev/null && exec pnpm --filter comments exec nuxi dev"
       ],
       "autoPort": true
     }

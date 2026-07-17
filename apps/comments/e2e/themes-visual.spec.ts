@@ -10,7 +10,7 @@ import { test, expect } from '@playwright/test'
  * Bausteine mit festen Werten und leerem Kommentar-Thread.
  *
  * Baselines aktualisieren (nach GEWOLLTEN Änderungen):
- *   pnpm --filter reddit-comments e2e -- --update-snapshots themes-visual
+ *   pnpm --filter comments e2e -- --update-snapshots themes-visual
  *
  * Deterministik: Light-Mode erzwungen, Animationen/Übergänge abgeschaltet.
  * CI-Skip: Baselines sind Plattform-spezifisch (-darwin) — bis die CI eigene

@@ -26,7 +26,7 @@ jobs:
     steps:
       - run: echo "Deploy-Skeleton — ploi.io-Webhook wird manuell konfiguriert (siehe Kommentare in dieser Datei)."
 
-  # deploy-reddit-comments:
+  # deploy-comments:
   #   runs-on: ubuntu-latest
   #   steps:
   #     - name: Trigger ploi.io deploy webhook

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Zentraler Migrations-Runner — löst die frühere Pinnung aller Layer-Migrations
- * auf apps/reddit-comments/.env. Jede App hat ihre EIGENE Appwrite-Instanz;
+ * auf apps/comments/.env. Jede App hat ihre EIGENE Appwrite-Instanz;
  * der Runner macht explizit, GEGEN WELCHE davon migriert wird.
  *
  *   pnpm migrate --app <app>            # alle Layer gegen apps/<app>/.env

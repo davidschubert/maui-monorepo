@@ -2,7 +2,7 @@
 /**
  * Detailseite des Layers. Apps überschreiben diese Seite, um den
  * #comments-Slot mit ihrem comments-Layer zu füllen (A14-Komposition,
- * siehe reddit-comments) — der Layer selbst kennt comments nicht.
+ * siehe comments) — der Layer selbst kennt comments nicht.
  */
 import type { EventDetailResponse } from '../../../shared/types/event'
 

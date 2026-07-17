@@ -8,7 +8,7 @@ import type { SiteManifest } from '../../packages/core/shared/types/manifest'
  * extends-Priorität diktiert EXTENDS_ORDER in scripts/check-manifests.mjs.
  */
 export default {
-  siteId: 'reddit-comments',
+  siteId: 'comments',
   features: [
     'themes',
     'admin',

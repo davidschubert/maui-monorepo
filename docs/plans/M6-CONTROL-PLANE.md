@@ -32,7 +32,7 @@ Sites, aber KEINE Site-Inhalte, keine Site-Sessions, keine Site-Keys
 ## Status T1 — ✅ fertig (2026-07-16, browser-verifiziert)
 
 Studio provisioniert (Projekt `studio-1xsl`, Port 3004, Admin
-admin@studio.local); photos (`photos-qgry`) + reddit-comments registriert,
+admin@studio.local); photos (`photos-qgry`) + comments registriert,
 Health-Checks beide „ok". Der geparkte G2-JWT-Befund ist aufgeklärt
 (spikes/s3-minimal/README, Befund 1).
 
@@ -105,7 +105,7 @@ Health-Checks beide „ok". Der geparkte G2-JWT-Befund ist aufgeklärt
 - **UI:** „Läuft:"-Chipzeile je Site (implizite Keys core/system/studio
   ausgeblendet); läuft ein Feature OHNE Entitlement, warnt der Chip
   (orange) — der eigentliche Kontroll-Wert des Snapshots. Verifiziert:
-  photos deckungsgleich (neutral), reddit-comments mit Warn-Chips für die
+  photos deckungsgleich (neutral), comments mit Warn-Chips für die
   einkompilierten, aber nicht zugeteilten Features.
 
 ## Nach M6 (Roadmap)

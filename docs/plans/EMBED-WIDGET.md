@@ -88,7 +88,7 @@ schlankes Vite-Build ohne Nuxt UI.
   Comment-Domäne — kein Core-Kandidat (Regel 3: eigene Tables → nie Core).
 - **`packages/core`** liefert nur generische Bausteine, falls nötig
   (z. B. Security-Header-Helper). Keine neue Kopplung core→comments.
-- **Konsumierende App** (reddit-comments bzw. später eine dedizierte
+- **Konsumierende App** (comments bzw. später eine dedizierte
   Embed-App auf Port 3002+) aktiviert das Feature per Config-Gate
   `maui.comments.embed` (Core-Default-Muster: aus; App schaltet explizit an —
   analog `maui.analytics`).
@@ -239,11 +239,11 @@ Presence (Thread-Presence, Typing, JWT-Pflicht) bleibt im Embed **deaktiviert**
   Notification-Composables halten, `routeRules`-SWR-Cache für `/embed` prüfen.
   Ein separates Micro-Bundle (Preact/vanilla) wäre eine spätere Optimierung,
   kein MVP-Kriterium.
-- **Welche App serviert?** MVP: die bestehende reddit-comments-App (Feature
+- **Welche App serviert?** MVP: die bestehende comments-App (Feature
   per `maui.comments.embed` angeschaltet). Der saubere Endzustand ist eine
   dedizierte dünne App `apps/embed-comments` (Port 3002+, eigene
   Appwrite-Instanz) — die hängt aber am offenen Punkt „Migrations auf
-  reddit-comments gepinnt"/App-Template (OPEN-ITEMS, Idee 1) und ist deshalb
+  comments gepinnt"/App-Template (OPEN-ITEMS, Idee 1) und ist deshalb
   Ausbau, nicht MVP.
 
 ### (e) Theming/Dark-Mode auf Fremdseiten
@@ -331,7 +331,7 @@ Doku, eigener Abschnitt „SEO-Verhalten"):
 
 ### MVP („einbettbar + sicher lesbar, schreiben nach Login im Popup")
 
-- iframe-Embed via `embed.js` + `/embed`-Seite in reddit-comments,
+- iframe-Embed via `embed.js` + `/embed`-Seite in comments,
   Config-Gate `maui.comments.embed` (Default aus)
 - Gäste: lesen + live (Realtime als Invalidierungs-Signal, § 3c Option 1 —
   schließt zugleich den offenen `hidden`-REST-Punkt)
@@ -392,7 +392,7 @@ IE/Legacy-Browser.
 
 5. ✅ **(2026-07-09)** Gate `maui.comments.embed` (enabled + allowedOrigins,
    Default aus) in [comments/app.config.ts](../../packages/comments/app/app.config.ts);
-   `/embed` wirft 404 wenn deaktiviert. reddit-comments aktiviert mit
+   `/embed` wirft 404 wenn deaktiviert. comments aktiviert mit
    `allowedOrigins: ['*']` (bewusste Demo-App-Entscheidung, E7).
 6. ✅ **(2026-07-09)** [embed.vue](../../packages/comments/app/pages/embed.vue) +
    [layouts/embed.vue](../../packages/comments/app/layouts/embed.vue): Zod-Params
@@ -409,7 +409,7 @@ IE/Legacy-Browser.
 8. ✅ **(2026-07-09)** Test-Hostseite
    [.embed-test/index.html](../../packages/comments/.embed-test/index.html)
    (Widget-Origin/Theme per Query steuerbar) + Playwright-Smoke
-   [embed.spec.ts](../../apps/reddit-comments/e2e/embed.spec.ts) (eigener
+   [embed.spec.ts](../../apps/comments/e2e/embed.spec.ts) (eigener
    node:http-Host-Server pro Worker): iframe lädt cross-origin, Sektion
    rendert, Resize setzt Pixel-Höhe, 400-Validierung + Header-Split. Manuell
    zusätzlich verifiziert: Realtime-Pille im Gast-iframe (neuer Kommentar
@@ -456,7 +456,7 @@ IE/Legacy-Browser.
     (Multi-Instanz-Betrieb, bestehendes TODO aus A2 — hier Voraussetzung).
 17. **(L)** Dedizierte `apps/embed-comments` (Port 3002+, eigene Instanz)
     sobald App-Template + entkoppelte Migrations existieren (OPEN-ITEMS
-    Idee 1 ist Vorbedingung); reddit-comments-Embed-Gate dann wieder aus.
+    Idee 1 ist Vorbedingung); comments-Embed-Gate dann wieder aus.
 
 ### Phase E4 — Ausbau (optional, je nach Traktion)
 
@@ -486,7 +486,7 @@ IE/Legacy-Browser.
    Allowlist (`maui.comments.embed.allowedOrigins`) im MVP, Registry-Table in
    E3. Bestätigen, sobald klar ist, ob der erste Einsatz eigene oder fremde
    Seiten sind (eigene Seiten → Allowlist reicht lange).
-4. **Wo läuft das erste produktive Embed?** reddit-comments-App mitbenutzen
+4. **Wo läuft das erste produktive Embed?** comments-App mitbenutzen
    (schnell, aber vermischt Produkt + Demo) vs. auf `apps/embed-comments`
    warten (sauber, aber von OPEN-ITEMS Idee 1 blockiert).
 5. **`targetId`-Konvention für Drittseiten:** freie ID (Integrator wählt,

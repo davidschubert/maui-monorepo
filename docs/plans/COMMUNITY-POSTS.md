@@ -113,7 +113,7 @@ Unique-Index postId+userId, Index postId+optionIndex (Zählung).
 ## 5. Offene Entscheidungen (vor dem Goal fixieren oder im Goal annehmen)
 
 1. Seiten-Name `/community` vs. `/` der künftigen Community-App —
-   v1-Annahme: eigene Seite `/community` in reddit-comments als Pilot.
+   v1-Annahme: eigene Seite `/community` in comments als Pilot.
 2. Poll-Ergebnis-Sichtbarkeit vor eigener Stimme (P3-Default: verdeckt) —
    ok?
 3. Gäste sehen den Feed (read any), dürfen aber nichts (posten/stimmen/

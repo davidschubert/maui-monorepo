@@ -4,7 +4,7 @@ export default defineNuxtConfig({
   // core + system bilden das Fundament und bleiben immer.
   extends: ['../../packages/themes', '../../packages/admin', '../../packages/studio', '../../packages/core', '../../packages/system'],
 
-  // Port pro App eindeutig vergeben (Konvention: 3001 reddit-comments, 3002+ weitere)
+  // Port pro App eindeutig vergeben (Konvention: 3001 comments, 3002+ weitere)
   devServer: {
     port: 3004,
   },

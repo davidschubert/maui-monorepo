@@ -6,7 +6,7 @@
  * `pnpm bootstrap --seed` (DB, Bucket, Migrationen, Demo-Daten).
  *
  *   node scripts/ci/appwrite-setup.mjs \
- *     --endpoint http://localhost:8080/v1 --app apps/reddit-comments
+ *     --endpoint http://localhost:8080/v1 --app apps/comments
  *
  * Idempotent genug für Wiederholungsläufe gegen dieselbe Instanz (409 → weiter,
  * Login statt Signup); gedacht aber für Wegwerf-Instanzen (CI).
@@ -21,8 +21,8 @@ function arg(name, fallback) {
 }
 
 const endpoint = (arg('endpoint', 'http://localhost:8080/v1')).replace(/\/$/, '')
-const appDir = arg('app', 'apps/reddit-comments')
-const projectId = arg('project', 'reddit-comments')
+const appDir = arg('app', 'apps/comments')
+const projectId = arg('project', 'comments')
 const EMAIL = 'ci@example.com'
 const PASSWORD = 'ci-console-password-2026'
 

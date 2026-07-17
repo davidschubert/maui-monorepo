@@ -61,26 +61,26 @@ jobs:
           exit 1
 
       - name: Console-Setup (Projekt, Key, Platform, .env)
-        run: node scripts/ci/appwrite-setup.mjs --endpoint http://localhost:8080/v1 --app apps/reddit-comments
+        run: node scripts/ci/appwrite-setup.mjs --endpoint http://localhost:8080/v1 --app apps/comments
 
       - name: Bootstrap (DB, Bucket, Migrationen) + Seed
-        run: pnpm --filter reddit-comments run bootstrap --seed
+        run: pnpm --filter comments run bootstrap --seed
 
       # Changelog-Einträge (v0.1…): der Smoke-Test prüft die öffentliche
       # Vollhistorie — auf der frischen Instanz sonst leer
       - name: Changelog seeden
-        run: node --env-file=apps/reddit-comments/.env packages/admin/scripts/seed-changelog.mjs
+        run: node --env-file=apps/comments/.env packages/admin/scripts/seed-changelog.mjs
 
       # channel 'chrome' (playwright.config) — auf ubuntu-latest vorinstalliert
       - name: Playwright-E2E (inkl. Realtime gegen echte Instanz)
-        run: pnpm --filter reddit-comments exec playwright test
+        run: pnpm --filter comments exec playwright test
 
       - name: Playwright-Artefakte sichern
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-test-results
-          path: apps/reddit-comments/test-results
+          path: apps/comments/test-results
           retention-days: 7
 
       # Gate G1/S1 (M4): create-site end-to-end gegen die echte Wegwerf-

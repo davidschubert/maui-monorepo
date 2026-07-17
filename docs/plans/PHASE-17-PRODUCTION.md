@@ -13,6 +13,17 @@ Beide MÜSSEN auf derselben Root-Domain liegen (Session-Cookie
 `a_session_<PROJECT_ID>` mit Domain `.example.com`, sonst kein
 authentifiziertes Realtime — CONCEPT A3, CLAUDE.md).
 
+> **ENTSCHIEDEN (2026-07-17, David):** Root-Domain = **`pukalani.app`**
+> (vorhanden, über Cloudflare registriert → DNS liegt bei Cloudflare,
+> `api.pukalani.app` zwingend „DNS only"/graue Wolke). Erste App:
+> **comments** (`comments.pukalani.app` + `api.pukalani.app`); die App heißt
+> projektweit `comments` (vormals reddit-comments — die Appwrite-Projekt-ID
+> der DEV-Instanz bleibt `reddit-comments`, unveränderliche F6-Identität;
+> das Prod-Projekt wird frisch als `comments` angelegt). Reihenfolge:
+> **erst portfolio bauen, dann PHASE-17 in einem Rutsch, danach M8-Stripe.**
+> Root-Domain: vorerst Redirect auf die App, Landingpage später.
+> Alle A.10-Entscheidungen unten sind gefallen.
+
 ---
 
 ## TEIL A — Technischer Plan
@@ -133,15 +144,15 @@ ist die spätere Optimierung).
    und Migrations-Key (`databases/tables/columns/indexes` + `storage` für den
    Bucket + `projects.write` falls die Platform per API angelegt werden soll).
 3. **Schema-Bootstrap (automatisiert, idempotent):** `pnpm bootstrap` existiert
-   (`apps/reddit-comments/scripts/bootstrap.ts`) und legt DB, Avatars-Bucket,
+   (`apps/comments/scripts/bootstrap.ts`) und legt DB, Avatars-Bucket,
    Web-Platform (best-effort) und ALLE Layer-Migrationen
    (system→comments→moderation→admin) in einem Lauf an — 409 → skip, Guard
    gegen destruktiven Re-Run. Für Prod läuft er **von der lokalen Maschine**
    gegen den Prod-Endpoint mit einer nicht committeten `.env.production`:
-   `node --experimental-strip-types --env-file=apps/reddit-comments/.env.production
-   apps/reddit-comments/scripts/bootstrap.ts`. **Kein `--seed` in Prod**
+   `node --experimental-strip-types --env-file=apps/comments/.env.production
+   apps/comments/scripts/bootstrap.ts`. **Kein `--seed` in Prod**
    (Demo-User/Demo-Kommentare sind dev-only). Achtung (OPEN-ITEMS, bekannt):
-   die Layer-`migrate`-Scripts pinnen `--env-file` auf reddit-comments — für
+   die Layer-`migrate`-Scripts pinnen `--env-file` auf comments — für
    DIESE App korrekt, für App 2 vor deren Go-Live entkoppeln.
 4. **Platforms/Domains:** `comments.example.com` als Web-Platform registrieren
    (CORS + Cookie); die Platform aus dem Bootstrap ist `localhost` und Prod
@@ -162,7 +173,7 @@ ist die spätere Optimierung).
 - **Prozess-Supervision: ploi-Daemon (= systemd)** statt PM2. Begründung: ein
   einzelner Nitro-Prozess braucht kein PM2-Cluster; systemd-Restart-Policy
   (`Restart=always`) deckt Crashes ab; eine Schicht weniger. Daemon-Kommando:
-  `node /home/ploi/comments.example.com/apps/reddit-comments/.output/server/index.mjs`
+  `node /home/ploi/comments.example.com/apps/comments/.output/server/index.mjs`
   mit `PORT=3000`, `HOST=127.0.0.1`, `NODE_ENV=production`.
   (PM2 bleibt die Option, wenn später echtes Zero-Downtime-Reload gewünscht
   ist — s. Zero-Downtime unten.)
@@ -174,7 +185,7 @@ ist die spätere Optimierung).
   git pull origin main
   npm i -g pnpm
   pnpm install --frozen-lockfile
-  pnpm --filter reddit-comments build
+  pnpm --filter comments build
   # Daemon-Restart (ploi-Platzhalter oder systemctl):
   {RESTART_DAEMON}   # bzw.: sudo systemctl restart ploi-daemon-<id>
   curl -fsS http://127.0.0.1:3000/api/health || exit 1
@@ -209,7 +220,7 @@ Das Skeleton (`.github/workflows/deploy.yml`) wird so scharfgeschaltet:
   manueller Hebel bleibt drin.
 - **Job:** der bereits auskommentierte Einzeiler —
   `curl -fsS -X POST "${{ secrets.PLOI_DEPLOY_WEBHOOK_REDDIT_COMMENTS }}"` —
-  plus `concurrency: deploy-reddit-comments` (kein Webhook-Doppelfeuer bei
+  plus `concurrency: deploy-comments` (kein Webhook-Doppelfeuer bei
   schnellen Push-Folgen) und `permissions: {}` (der Job braucht nicht mal
   `contents: read`).
 - **Secret:** `PLOI_DEPLOY_WEBHOOK_REDDIT_COMMENTS` = die von ploi pro Site
@@ -338,20 +349,28 @@ Zusätzlich in die Betriebs-Doku: nach jedem Appwrite-Upgrade/`docker compose
 up` den Realtime-Pfad rauchtesten (zweiter Browser sieht Kommentar live —
 DEPLOYMENT.md §5 hat den Schritt schon).
 
-### A.10 Offene Entscheidungen
+### A.10 Entscheidungen — ✅ ALLE GEFALLEN (2026-07-17, David)
 
-| # | Entscheidung | Optionen / Tendenz |
+| # | Entscheidung | ✅ Beschluss |
 |---|---|---|
-| 1 | **Root-Domain** | vorhandene Domain vs. neue kaufen — blockiert DNS-Block in Teil B |
-| 2 | **SMTP-Anbieter** | Resend / Postmark / Brevo / Mailgun — Transaktions-Mail, EU-Region bevorzugt; Tendenz: Resend oder Postmark (Zustellbarkeit) |
-| 3 | **Zero-Downtime Stufe 2** | ploi Zero-Downtime-Deploy (releases/current-Symlink) vs. PM2-reload vs. „1–2 s Restart akzeptieren" — Tendenz: Restart akzeptieren, später releases-Struktur |
-| 4 | **Offsite-Backup-Ziel** | Hetzner Storage Box (BX11) vs. S3/B2 — Tendenz: Storage Box (gleiche Rechnung, rsync) |
-| 5 | **Monitoring-Dienst** | UptimeRobot vs. Better Stack vs. ploi-only — Tendenz: UptimeRobot free + ploi-Server-Monitoring |
-| 6 | **`/console`-IP-Restriktion** | Whitelist-Emails reichen? Zusätzliche Traefik-IP-Allowlist = Stufe 2 |
-| 7 | **Appwrite Function `changelog-draft`** | Track 2B (GitHub-Release-Webhook) wird erst MIT öffentlicher Domain aktiv — direkt bei Go-Live deployen oder als Follow-up? Tendenz: Follow-up (Woche 2) |
-| 8 | **Observability-Gate** | Sentry o.ä. (OPEN-ITEMS Idee 5) — vor oder nach Go-Live? Tendenz: direkt nach |
-| 9 | **CI-Gate-Umfang** | Deploy nur nach „Test" oder auch nach „Typecheck"+„Lint"? Tendenz: Test reicht als Gate, Rest bleibt Warnlampe |
-| 10 | **www/Root-Redirect** | Root-Domain auf die App redirecten oder Landingpage? |
+| 1 | **Root-Domain** | **`pukalani.app`** (vorhanden, Cloudflare-Registrar → DNS bei Cloudflare, api-Record „DNS only") |
+| 2 | **SMTP-Anbieter** | **Resend** (EU-Region wählen, Absender-Domain pukalani.app verifizieren) |
+| 3 | **Zero-Downtime Stufe 2** | **1–2 s Restart akzeptieren**; releases-Struktur später nachrüstbar |
+| 4 | **Offsite-Backup-Ziel** | **Hetzner Storage Box BX11** (rsync, gleiche Rechnung) |
+| 5 | **Monitoring-Dienst** | **UptimeRobot free** + ploi-Server-Monitoring |
+| 6 | **`/console`-IP-Restriktion** | **Whitelist reicht** (`_APP_CONSOLE_WHITELIST_EMAILS=mail@davidschubert.com`); IP-Allowlist = Stufe 2 bei Bedarf |
+| 7 | **Appwrite Function `changelog-draft`** | **Follow-up Woche 2** nach Go-Live |
+| 8 | **Observability-Gate** | **Direkt nach Go-Live** (Woche 1: Sentry am maui.observability-Gate andocken) |
+| 9 | **CI-Gate-Umfang** | **Nur „Test" grün gated den Deploy**; Typecheck/Lint bleiben Warnlampen |
+| 10 | **www/Root-Redirect** | **Vorerst Redirect auf die App**, Plattform-Landingpage später |
+
+Alerts (UptimeRobot, Watchdog, Health-Sweep): **mail@davidschubert.com**.
+Projektweite Beschlüsse vom selben Datum: Klasse-B-Realtime → vor G3
+**Appwrite-Upgrade prüfen** (liest eine neuere Version den jwt-Query-Param
+am Realtime-Endpoint?); Community-Site → **später entscheiden** (M5 gilt mit
+photos + portfolio als komplett); **M8-Stripe nach PHASE-17**; Journal/Blog
+und pages (Standardseiten) werden **eigene Feature-Layer** (nicht Teil der
+portfolio-Site — die bleibt Landing + Cases).
 
 ---
 
@@ -406,8 +425,8 @@ Reihenfolge einhalten — jeder Block baut auf dem vorherigen auf.
 
 ### Block 5 — Schema-Bootstrap (von der lokalen Maschine)
 
-- [ ] `cp apps/reddit-comments/.env.example apps/reddit-comments/.env.production` und füllen: Endpoint `https://api.example.com/v1`, Project-ID, `NUXT_PUBLIC_APPWRITE_DATABASE_ID=main`, `NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET=avatars`, `NUXT_APPWRITE_KEY=<migrations-prod>` (Bootstrap braucht die Schema-Scopes) — Datei ist durch `.gitignore` (`.env*`) gedeckt, trotzdem: NIE committen
-- [ ] `nvm use 22` und Bootstrap laufen lassen: `node --experimental-strip-types --env-file=apps/reddit-comments/.env.production apps/reddit-comments/scripts/bootstrap.ts` (OHNE `--seed`!)
+- [ ] `cp apps/comments/.env.example apps/comments/.env.production` und füllen: Endpoint `https://api.example.com/v1`, Project-ID, `NUXT_PUBLIC_APPWRITE_DATABASE_ID=main`, `NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET=avatars`, `NUXT_APPWRITE_KEY=<migrations-prod>` (Bootstrap braucht die Schema-Scopes) — Datei ist durch `.gitignore` (`.env*`) gedeckt, trotzdem: NIE committen
+- [ ] `nvm use 22` und Bootstrap laufen lassen: `node --experimental-strip-types --env-file=apps/comments/.env.production apps/comments/scripts/bootstrap.ts` (OHNE `--seed`!)
 - [ ] ✅ Ausgabe: Datenbank ✔/↷, Bucket ✔/↷, alle Migrationen system→comments→moderation→admin grün
 - [ ] Console → Projekt → Platforms: Web-Platform mit Hostname `comments.example.com` hinzufügen
 - [ ] Console → Auth → Security: Wegwerf-E-Mail-Blocking aktivieren (P3-Betreiber-Toggle)
@@ -417,9 +436,9 @@ Reihenfolge einhalten — jeder Block baut auf dem vorherigen auf.
 
 - [ ] ploi → Server „app-prod" → „Create Site": Domain `comments.example.com`, Projekt-Typ NodeJS/Proxy auf Port **3000**
 - [ ] Repository verbinden: GitHub-Repo, Branch `main` (ploi „Quick Deploy" AUS lassen — Deploy kommt aus Actions, Block 8)
-- [ ] Deploy-Script setzen (A.4): `git pull` → `npm i -g pnpm` → `pnpm install --frozen-lockfile` → `pnpm --filter reddit-comments build` → Daemon-Restart → Health-Curl
+- [ ] Deploy-Script setzen (A.4): `git pull` → `npm i -g pnpm` → `pnpm install --frozen-lockfile` → `pnpm --filter comments build` → Daemon-Restart → Health-Curl
 - [ ] Environment-Variablen der Site setzen (DEPLOYMENT.md §3): `NUXT_APPWRITE_KEY=<nuxt-ssr-prod>`, `NUXT_PUBLIC_APPWRITE_ENDPOINT=https://api.example.com/v1`, `NUXT_PUBLIC_APPWRITE_PROJECT_ID=…`, `NUXT_PUBLIC_APPWRITE_DATABASE_ID=main`, `NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET=avatars`, `NUXT_PUBLIC_APP_URL=https://comments.example.com` — **KEIN Migrations-Key!**
-- [ ] Daemon anlegen: `node .../apps/reddit-comments/.output/server/index.mjs`, Env `PORT=3000 HOST=127.0.0.1 NODE_ENV=production`, User `ploi`
+- [ ] Daemon anlegen: `node .../apps/comments/.output/server/index.mjs`, Env `PORT=3000 HOST=127.0.0.1 NODE_ENV=production`, User `ploi`
 - [ ] Let's-Encrypt-Zertifikat für die Site ausstellen (ploi-Button) ⏳ (Sekunden bis Minuten)
 - [ ] Ersten Deploy manuell in ploi auslösen („Deploy now")
 - [ ] ✅ `curl -s https://comments.example.com/api/health` → `{"ok":true,…}`

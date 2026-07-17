@@ -22,7 +22,7 @@ apps/*                   ← Ebene 3: Apps komponieren Core + Feature Layers
 ```
 
 ```ts
-// apps/reddit-comments/nuxt.config.ts
+// apps/comments/nuxt.config.ts
 export default defineNuxtConfig({
   extends: [
     '../../packages/comments',   // früher gelistet = höhere Priorität
@@ -34,7 +34,7 @@ export default defineNuxtConfig({
 **Kompositions-Regeln:**
 - In `extends` haben **früher gelistete Layer Vorrang** vor späteren; die App selbst überschreibt alles
 - Feature Layers extenden den Core **nicht** selbst — sie setzen seine Konventionen voraus, die App komponiert beides (hält Feature Layers entkoppelt und einzeln testbar)
-- Apps werden dünn: `apps/reddit-comments` ist nur noch Komposition + Branding, die Logik lebt in `packages/comments`
+- Apps werden dünn: `apps/comments` ist nur noch Komposition + Branding, die Logik lebt in `packages/comments`
 
 **Entscheidungs-Framework — was gehört in den Core?**
 
@@ -282,7 +282,7 @@ maui-monorepo/
 │   └── courses/                           # Feature Layer (LMS)
 │
 ├── apps/
-│   ├── reddit-comments/                   # dünn: Komposition + Branding
+│   ├── comments/                   # dünn: Komposition + Branding
 │   │   ├── app/                           # nur Overrides + app-spezifische Pages
 │   │   ├── scripts/migrations/
 │   │   ├── app.config.ts                  # Theme-Override + maui.* Gates
@@ -427,9 +427,9 @@ Für jetzt: alles im Monorepo. Migration raus ist einfacher als rein.
 ### A9 — Deployment: ploi.io mit Monorepo
 
 ```
-Root Path:      apps/reddit-comments
-Build Command:  pnpm --filter reddit-comments build
-Start Command:  node apps/reddit-comments/.output/server/index.mjs
+Root Path:      apps/comments
+Build Command:  pnpm --filter comments build
+Start Command:  node apps/comments/.output/server/index.mjs
 ```
 
 Deploy-Script: `npm i -g pnpm && pnpm install --frozen-lockfile && pnpm --filter <app> build`. Env Vars in ploi.io als Server Environment Variables (nie als Datei).
@@ -462,7 +462,7 @@ NUXT_PUBLIC_APP_URL=https://<app-domain>
 ### A12 — Node.js, Ports, Git
 
 - `.nvmrc`: Node 22 (nvm lokal, ploi.io + GitHub Actions via `node-version-file`)
-- Ports: Core Playground 3000, reddit-comments 3001, weitere 3002+ · parallel: `pnpm --parallel -r dev`
+- Ports: Core Playground 3000, comments 3001, weitere 3002+ · parallel: `pnpm --parallel -r dev`
 - Branches: `main` / `dev` / `feature/*` / `fix/*` · Conventional Commits
 - `.gitignore`: `.env*` (außer `.env.example`), `.nuxt/`, `.output/`, `node_modules/`
 
@@ -592,7 +592,7 @@ Immer explizites `Query.limit(...)` setzen (Default 25 → stille Trunkierung).
 - [ ] pnpm Catalog für geteilte Dependencies definieren (nuxt, @nuxt/ui, pinia, zod, appwrite SDKs)
 - [ ] `packages/core/` als Nuxt Layer initialisieren (`nuxi init --template layer`)
 - [ ] `.playground/` einrichten (Port 3000)
-- [ ] `apps/reddit-comments/` initialisieren, `extends` einbinden (Port 3001)
+- [ ] `apps/comments/` initialisieren, `extends` einbinden (Port 3001)
 - [ ] Smoke Test: Komponente aus Core in App rendern, HMR prüfen
 
 ### Phase 2 – Design-Fundament
@@ -618,7 +618,7 @@ Immer explizites `Query.limit(...)` setzen (Default 25 → stille Trunkierung).
 - [ ] Zod Schemas
 - [ ] `LoginForm`/`RegisterForm` auf `UAuthForm`-Basis + `LogoutButton`
 - [ ] Route Middleware + `pages/login.vue`/`register.vue`
-- [ ] End-to-End-Test in reddit-comments: Browser-Realtime läuft authentifiziert
+- [ ] End-to-End-Test in comments: Browser-Realtime läuft authentifiziert
 
 ### Phase 5 – Layouts & User Components
 - [ ] `layouts/default.vue` + `auth.vue` (dashboard → später `packages/admin`)
@@ -646,7 +646,7 @@ Immer explizites `Query.limit(...)` setzen (Default 25 → stille Trunkierung).
 - [ ] Layer-Struktur: Components, Server Routes, `shared/types/comment.ts`
 - [ ] Migration: comments + votes Tables (eigene Instanz der App)
 - [ ] Realtime via `useRealtimeRows<Comment>` mit Query-Filter auf postId
-- [ ] In `apps/reddit-comments` komponieren — App bleibt dünn
+- [ ] In `apps/comments` komponieren — App bleibt dünn
 
 ### Phase 11 – Reddit Comment System App
 - [ ] Weiter mit [[reddit-comment-system-setup]] Roadmap

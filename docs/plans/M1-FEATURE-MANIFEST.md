@@ -70,7 +70,7 @@ im PR einzeln begründet).
 
 ### P3 — 2 Site-Manifeste · ~0,25 PT
 
-- `apps/reddit-comments/site.manifest.ts` (alle 11 Feature-Layer)
+- `apps/comments/site.manifest.ts` (alle 11 Feature-Layer)
 - `apps/_template/site.manifest.ts` (themes, admin, comments, moderation)
 
 ### P4 — Check-Script + CI · ~1 PT
@@ -86,7 +86,7 @@ Workflow). Prüfungen:
    (comments ohne moderation → rot).
 3. **Konsistenz `extends`:** Menge = Manifest-Features + core + system;
    Reihenfolge folgt der kanonischen `EXTENDS_ORDER` (eine Konstante im
-   Script, abgeleitet aus der heutigen reddit-comments-Reihenfolge;
+   Script, abgeleitet aus der heutigen comments-Reihenfolge;
    früher = höhere Priorität, core/system am Ende).
 4. **Konsistenz `package.json`:** `@maui/*`-Dependencies = exakt dieselbe
    Menge (fehlend ODER überzählig → rot).
@@ -109,7 +109,7 @@ App ⇒ site.manifest.ts, check:manifests hält extends/package.json ehrlich")
 2. **Negativproben rot** (je einmal demonstriert): Feature aus `extends`
    entfernt · `@maui/comments` aus package.json entfernt · moderation aus
    site.manifest gestrichen während comments drin ist · Layer ohne Manifest.
-3. `pnpm typecheck` grün; `pnpm -r test` grün; reddit-comments bootet lokal
+3. `pnpm typecheck` grün; `pnpm -r test` grün; comments bootet lokal
    (Smoke) — Verhalten unverändert.
 4. CI-Lauf (lint.yml) enthält den Check und ist grün.
 
@@ -117,7 +117,7 @@ App ⇒ site.manifest.ts, check:manifests hält extends/package.json ehrlich")
 
 - `--experimental-strip-types` lädt kein `satisfies` mit Nicht-Type-Import →
   strikt `import type` in Manifesten (Check-Script erzwingt das per Grep).
-- `feed` extended reddit-comments heute evtl. mit Sonderreihenfolge —
+- `feed` extended comments heute evtl. mit Sonderreihenfolge —
   EXTENDS_ORDER wird beim Bau aus dem IST abgeleitet, nicht erfunden;
   falls das IST inkonsistent ist, entscheidet der PR explizit.
 - Kein Laufzeit-Import der Manifeste in M1 (kein Nuxt-Modul nötig) — die

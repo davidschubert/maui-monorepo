@@ -182,12 +182,12 @@ Vollständiges Konzept: docs/CONCEPT.md
   package.json referenziert "catalog:" — geteilte Deps auch in App-package.json
 
 ## Ports
-core/.playground: 3000 · reddit-comments: 3001 · weitere: 3002+ ·
+core/.playground: 3000 · comments: 3001 · weitere: 3002+ ·
 Docs-Site: 4000 (docs/, `pnpm dev:docs` — eigenständige Nuxt-Content-App,
 KEIN Layer/keine apps/*-App, Inhalte in docs/content/)
 
 ## Tests
-pnpm -r test (Unit) · Playwright-E2E in apps/reddit-comments (Base-URL per
+pnpm -r test (Unit) · Playwright-E2E in apps/comments (Base-URL per
 PW_BASE_URL überschreibbar — parallele Dev-Sessions) · themes-visual zielt
 auf die deterministische /visual-Seite (NIE Live-Daten screenshotten) ·
 CI e2e.yml fährt eine echte Wegwerf-Appwrite (ci/appwrite +

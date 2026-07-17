@@ -110,7 +110,10 @@ await columnStep('finishedAt', () => tablesDB.createDatetimeColumn({
   databaseId, tableId: 'provisioning_jobs', key: 'finishedAt', required: false,
 }))
 
-// Bestandsinstanzen: log von 10000 → 8000 schrumpfen (Headroom fürs Zeilenbudget)
+// Bestandsinstanzen: log von 10000 → 8000 schrumpfen (Headroom fürs Zeilenbudget).
+// destruktiv-ok: updateVarcharColumn schrumpft NUR die log-Spalte und NUR wenn
+// sie größer als 8000 ist; Job-Logs sind bereits gekürzte Tails (Runner-Limit
+// 7500) — es gehen keine Daten über die ohnehin geltende Kürzung hinaus verloren.
 const logColumn = existingJobColumns.get('log')
 if (logColumn && (logColumn.size ?? 0) > 8000) {
   await step('Column provisioning_jobs.log auf 8000 schrumpfen', () => tablesDB.updateVarcharColumn({

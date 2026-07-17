@@ -48,7 +48,7 @@ pnpm changelog:draft -- --version=v1.5 # Version ins Entwurfs-Feld
 
 Läuft **lokal**, weil das self-hosted Appwrite unter `localhost` für GitHub CI
 nicht erreichbar ist. Der Runtime-Key kommt via `--env-file` aus
-`apps/reddit-comments/.env`.
+`apps/comments/.env`.
 
 ### 2B — Appwrite Function (späterer Ausbau, optional)
 

@@ -75,10 +75,10 @@ maui: {
 ## Lokal ausprobieren
 
 ```bash
-# App mit aktiviertem Gate starten (reddit-comments: bereits aktiv), dann:
+# App mit aktiviertem Gate starten (comments: bereits aktiv), dann:
 cd packages/comments/.embed-test && python3 -m http.server 4999
 # → http://localhost:4999/?widget=http://localhost:3001
 #   (&theme=dark, &primary=rose, &locale=de werden durchgereicht)
 ```
 
-E2E-Smoke: `pnpm --filter reddit-comments exec playwright test e2e/embed.spec.ts`
+E2E-Smoke: `pnpm --filter comments exec playwright test e2e/embed.spec.ts`

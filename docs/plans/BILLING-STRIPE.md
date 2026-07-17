@@ -425,7 +425,7 @@ Kein eigener Cancel-Endpoint in v1 — das Portal ist die einzige Mutations-UI
 Paid-Einzelevents (EVENTS-V2 §5) sind events-seitig FERTIG vorbereitet —
 Billing muss nur noch verbinden:
 
-- **Guard steht schon**: `apps/reddit-comments/server/plugins/event-tickets.ts`
+- **Guard steht schon**: `apps/comments/server/plugins/event-tickets.ts`
   registriert `hasEventTicket` als `registerEventTicketGuard` — daran ändert
   Phase 23 NICHTS.
 - **Checkout (neuer Mode `payment` statt `subscription`)**: CTA „Ticket

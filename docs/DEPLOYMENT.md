@@ -1,10 +1,10 @@
-# Deployment-Runbook — reddit-comments (Phase 17)
+# Deployment-Runbook — comments (Phase 17)
 
 Stand: 2026-06-28. Praktischer Leitfaden, um die App in Produktion zu bringen.
 Ergänzt [CONCEPT.md](CONCEPT.md) (A9 Deployment, A11 Env, A3 Session-Cookie).
 
 > **Architektur:** Nuxt 4 (SSR) → Nitro Node-Server. Build erzeugt
-> `apps/reddit-comments/.output/server/index.mjs`. Backend = eigene self-hosted
+> `apps/comments/.output/server/index.mjs`. Backend = eigene self-hosted
 > Appwrite-Instanz. Hosting/Deploy über **ploi.io**.
 
 ---
@@ -52,7 +52,7 @@ Prod-Endpoint — mit dem **Migrations-Key**, nicht vom App-Server aus.
 
 ```bash
 # Prod-Werte in eine separate Datei (NICHT committen):
-cp apps/reddit-comments/.env.example apps/reddit-comments/.env.production
+cp apps/comments/.env.example apps/comments/.env.production
 #   → NUXT_PUBLIC_APPWRITE_ENDPOINT = https://api.<domain>/v1
 #   → NUXT_PUBLIC_APPWRITE_PROJECT_ID / _DATABASE_ID = Prod-Werte
 #   → NUXT_APPWRITE_MIGRATIONS_KEY = Prod-Migrations-Key
@@ -60,7 +60,7 @@ cp apps/reddit-comments/.env.example apps/reddit-comments/.env.production
 # Reihenfolge: Fundament zuerst (system), dann Features. Alle idempotent (409→skip).
 for L in system comments moderation admin; do
   pnpm --filter @maui/$L exec node --experimental-strip-types \
-    --env-file=../../apps/reddit-comments/.env.production \
+    --env-file=../../apps/comments/.env.production \
     scripts/migrations/*.ts   # bzw. die migrate-Skripte je Layer
 done
 ```
@@ -74,8 +74,8 @@ done
 
 Danach den **Avatar-Bucket** anlegen (nutzt den Migrations-Key):
 ```bash
-node --experimental-strip-types --env-file=apps/reddit-comments/.env.production \
-  apps/reddit-comments/scripts/setup-avatars-bucket.ts
+node --experimental-strip-types --env-file=apps/comments/.env.production \
+  apps/comments/scripts/setup-avatars-bucket.ts
 ```
 → Die Bucket-ID kommt als `NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET` in die App-Env (Schritt 3).
 
@@ -87,9 +87,9 @@ danach).
 
 | Feld | Wert |
 |---|---|
-| Root Path | `apps/reddit-comments` |
-| Install/Build | `npm i -g pnpm && pnpm install --frozen-lockfile && pnpm --filter reddit-comments build` |
-| Start Command | `node apps/reddit-comments/.output/server/index.mjs` |
+| Root Path | `apps/comments` |
+| Install/Build | `npm i -g pnpm && pnpm install --frozen-lockfile && pnpm --filter comments build` |
+| Start Command | `node apps/comments/.output/server/index.mjs` |
 | Port | Nitro hört auf `PORT` (Default 3000) — ploi.io-Reverse-Proxy darauf zeigen |
 
 **Server Environment Variables** in ploi.io (NICHT im Repo):

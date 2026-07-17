@@ -3,8 +3,8 @@
  * für die Live-Demo (Target demo-post/post). Bewusst mit XSS/Injection-Payloads,
  * um die sichere Darstellung (Vue-Autoescaping, kein v-html) zu verifizieren.
  *
- *   node --experimental-strip-types --env-file=apps/reddit-comments/.env \
- *     apps/reddit-comments/scripts/seed-demo.ts [--force]
+ *   node --experimental-strip-types --env-file=apps/comments/.env \
+ *     apps/comments/scripts/seed-demo.ts [--force]
  *
  * Idempotent: User werden über die E-Mail wiederverwendet; Kommentare werden nur
  * angelegt, wenn das Target noch leer ist (oder --force). Benötigte Key-Scopes:
@@ -17,7 +17,7 @@ const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
 const databaseId = process.env.NUXT_PUBLIC_APPWRITE_DATABASE_ID
 const apiKey = process.env.NUXT_APPWRITE_KEY ?? process.env.NUXT_APPWRITE_MIGRATIONS_KEY
 if (!endpoint || !projectId || !apiKey || !databaseId) {
-  console.error('Fehlende Env-Vars — mit --env-file=apps/reddit-comments/.env aufrufen.')
+  console.error('Fehlende Env-Vars — mit --env-file=apps/comments/.env aufrufen.')
   process.exit(1)
 }
 const force = process.argv.includes('--force')

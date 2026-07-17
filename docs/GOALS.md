@@ -11,7 +11,7 @@
 > ✅ **Erledigt am 2026-06-09.** Root-Tooling (package.json, pnpm-workspace.yaml
 > mit Catalog, .npmrc `shamefully-hoist=false`, .nvmrc Node 22, Root tsconfig.json),
 > `packages/core` als Nuxt Layer mit `.playground` (Port 3000),
-> `apps/reddit-comments` extended Core relativ (Port 3001). Nachweis: `pnpm install`
+> `apps/comments` extended Core relativ (Port 3001). Nachweis: `pnpm install`
 > fehlerfrei, `nuxi typecheck` grün in Core + App, beide Server gestartet,
 > `curl http://localhost:3001` enthält "MAUI-CORE-SMOKE" aus `packages/core`.
 
@@ -20,7 +20,7 @@
 Endzustand: Root-Tooling steht (package.json, pnpm-workspace.yaml inkl.
 Catalog, .npmrc mit shamefully-hoist=false, .nvmrc mit Node 22, Root
 tsconfig.json), packages/core ist als Nuxt Layer mit .playground
-initialisiert, apps/reddit-comments extended den Core via relative Pfade.
+initialisiert, apps/comments extended den Core via relative Pfade.
 Nachweis: `pnpm install` läuft fehlerfrei durch, `nuxi typecheck` ist in
 core und app grün, der Core-Playground startet auf Port 3000, die App
 startet auf Port 3001 und `curl http://localhost:3001` enthält den Text
@@ -54,7 +54,7 @@ packages/core/app.config.ts (primary, neutral, radius), main.css mit
 Tailwind 4 @import + @source für den Layer-Pfad, Color Tokens definiert.
 Nachweis: `nuxi typecheck` grün; eine Demo-Page /theme-check in der App
 rendert einen UButton und `curl http://localhost:3001/theme-check`
-enthält "THEME-CHECK"; Override-Test: apps/reddit-comments/app.config.ts
+enthält "THEME-CHECK"; Override-Test: apps/comments/app.config.ts
 setzt primary auf einen anderen Wert und Claude zeigt per Konsolen-Output
 (useAppConfig Dump im Dev-Modus), dass der Merge App > Core greift;
 eine Tailwind-Klasse aus einer Core-Komponente wirkt in der App
@@ -80,7 +80,7 @@ packages/themes, später). Maximal 25 Turns.
 > liefert in SDK v26 ein Promise — Cleanup wartet die Auflösung ab);
 > .env.example in der App. Nachweis: typecheck grün in Core + App,
 > `curl http://localhost:3001/api/health` → `{"ok":true,"user":null}` gegen
-> die lokale OrbStack-Instanz (Appwrite 1.9.0, Projekt reddit-comments,
+> die lokale OrbStack-Instanz (Appwrite 1.9.0, Projekt comments,
 > Datenbank main, Key-Scopes health.read/databases.*/users.*/sessions.write).
 
 ```
@@ -112,7 +112,7 @@ stoppen und melden statt mocken. Maximal 30 Turns.
 
 > ✅ **Erledigt am 2026-06-10.** Server Routes signup/login/logout/me +
 > OAuth-Skeleton (github/google via createOAuth2Token); Session-Cookie
-> `a_session_reddit-comments` mit httpOnly+sameSite=strict, secure konditional
+> `a_session_comments` mit httpOnly+sameSite=strict, secure konditional
 > (!import.meta.dev); plugins/auth.server.ts hydratisiert useAuthStore
 > (Pinia Composition Style, stores/ via imports.dirs registriert — Layer-stores
 > werden nicht auto-gescannt); useCurrentUser(); Zod-Schemas (z.email, v4);
@@ -356,7 +356,7 @@ shared/types/comment.ts (extends Models.Row), Server Routes
 Components (CommentThread, CommentForm, VoteButtons),
 Realtime-Anbindung via useRealtimeRows<Comment> mit Query-Filter auf
 postId, Migration-Script scripts/migrations/001-comments-tables.ts;
-apps/reddit-comments komponiert extends: [comments, core].
+apps/comments komponiert extends: [comments, core].
 Nachweis gegen die lokale OrbStack-Instanz: Migration-Script läuft durch
 und loggt die angelegten Tables; curl-Sequenz: POST /api/comments mit
 Session-Cookie → 201 mit Row-JSON, GET /api/comments?postId=… → Liste
@@ -442,7 +442,7 @@ deleted → "[gelöscht]"-Platzhalter), CommentForm (optional parentId).
 Optimistic Updates für Kommentar + Vote mit Rollback; Realtime fügt
 fremde Kommentare gezielt ein (where auf targetId+targetType, kein
 Full-Refresh); alle Layer-Strings als i18n keys (de+en);
-apps/reddit-comments bindet <CommentSection target-id="demo-post"
+apps/comments bindet <CommentSection target-id="demo-post"
 target-type="post" /> auf der Index-Page ein.
 Nachweis: pnpm -r typecheck, lint und test grün; Migration 002 loggt
 das neue Schema; curl-Sequenz gegen die lokale Instanz mit ZWEI Usern
@@ -778,7 +778,7 @@ eingeloggten Profil bleibt Backlog. Maximal 35 Turns.
 Endzustand: Prod-Appwrite auf Hetzner unter https://api.<domain>/v1
 (Custom Domain, A3) mit Projekt, Runtime- + Migrations-Key,
 registrierter Web-Plattform und durchgelaufenen Migrationen 001+002;
-ploi.io-Site für apps/reddit-comments (Root Path, Build Command,
+ploi.io-Site für apps/comments (Root Path, Build Command,
 Start Command, Env Vars als Server Environment Variables);
 deploy.yml-Webhook-Job aktiv (Secret PLOI_DEPLOY_WEBHOOK_…);
 App live unter https://<domain> — Session-Cookie auf der Root-Domain
@@ -841,7 +841,7 @@ Maximal 25 Turns.
 ## Phase 19 – Email-OTP-Login (passwortlos, OrbStack-Stil) ✅ (abgeschlossen 2026-06-11)
 
 > ✅ **Erledigt am 2026-06-11.** Config-Gate maui.auth.otp (Core false,
-> reddit-comments true); login.vue schaltet zwischen AuthLoginForm und
+> comments true); login.vue schaltet zwischen AuthLoginForm und
 > neuem AuthOtpLoginForm um (data-otp-toggle); OTP-Form zweistufig:
 > E-Mail → POST /api/auth/otp (Guest, createEmailToken mit phrase:true,
 > Auto-Signup unbekannter E-Mails) → UPinInput (6, otp, autofocus,
@@ -1024,7 +1024,7 @@ Einträge); i18n de+en, alle Strings als Keys.
 (4) ERSTE QUELLE: packages/comments ruft recordActivity() beim
 Kommentar-Create auf (type 'comment.created', link zur Ziel-Seite) —
 comments importiert dafür NICHTS aus feed, nur den Core-Vertrag.
-(5) apps/reddit-comments extended feed und verlinkt /feed in der Nav.
+(5) apps/comments extended feed und verlinkt /feed in der Nav.
 Nachweis gegen die lokale Instanz: Migration 014 loggt Table/Columns/
 Indizes (2× laufen lassen = Idempotenz-Beweis); curl: Kommentar-POST →
 GET /api/feed enthält den Eintrag mit type 'comment.created' und
@@ -1114,7 +1114,7 @@ Admin-Seite dashboard/events (Anlegen/Bearbeiten/Absagen) via
 maui.admin.modules (requiredCapability events.manage).
 Integrationen: recordActivity 'event.published' beim Publish und
 'event.rsvp' bei going-RSVP (Core-Vertrag aus Phase 21);
-apps/reddit-comments extended events und bindet auf der Detailseite
+apps/comments extended events und bindet auf der Detailseite
 <CommentSection :target-id="event.$id" target-type="event" /> ein
 (Komposition in der App, KEIN Import comments↔events).
 GDPR: server/plugins/user-data.ts registriert einen Contributor —
@@ -1302,7 +1302,7 @@ Prev/Next). UI Builder: dashboard/courses (Liste) +
 dashboard/courses/:id (Lektionen anlegen/sortieren/publishen,
 useEditAwareness-Anzeige) via maui.admin.modules mit children.
 Integrationen: recordActivity 'course.published' und
-'course.completed'; apps/reddit-comments (Pilot) extended courses,
+'course.completed'; apps/comments (Pilot) extended courses,
 bindet in LessonView <CommentSection :target-id="lesson.$id"
 target-type="lesson" /> ein UND registriert den Access-Guard, der
 billings requireEntitlement(event, course.entitlementFeature)
@@ -1411,7 +1411,7 @@ Raw-HTML (CommentMarkdown-Muster). recordActivity
 milestone.posts (Core-Erweiterung der Union, additiv).
 GDPR-Contributor: Posts → Tombstone (deleted, Inhalt geblankt),
 poll_votes → Hard-Delete. i18n de+en; Zod-Factories;
-apps/reddit-comments extended posts, /community in der Nav.
+apps/comments extended posts, /community in der Nav.
 Nachweis gegen die lokale Instanz: Migration 2× (Idempotenz);
 curl-Flows mit ZWEI Usern + Admin: Post/Frage/Poll erstellen (je
 201), Gast GET /api/posts 200 aber POST 401; Poll: User B stimmt →
