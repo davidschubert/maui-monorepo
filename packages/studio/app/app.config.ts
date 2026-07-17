@@ -8,6 +8,7 @@ export default defineAppConfig({
       modules: [
         {
           id: 'sites',
+          featureKey: 'studio',
           labelKey: 'admin.nav.sites',
           icon: 'i-ph-globe-hemisphere-west',
           to: '/dashboard/sites',

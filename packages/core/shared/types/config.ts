@@ -15,6 +15,15 @@ export interface FeatureRuntimeState {
   status: FeatureStatus
 }
 
+/**
+ * Das EINE Laufzeit-Gate-Prädikat (F2): fehlender Eintrag = AN (kompiliert =
+ * von der Site gewollt). Geteilt von useFeature (Client), featureGates
+ * (Server) und der Dashboard-Nav — damit die Regel nie auseinanderläuft.
+ */
+export function isFeatureStateEnabled(state: FeatureRuntimeState | undefined): boolean {
+  return state ? state.enabled && state.status === 'active' : true
+}
+
 export interface AppConfig {
   /** Neuregistrierungen erlaubt */
   registrationEnabled: boolean

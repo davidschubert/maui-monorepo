@@ -2,6 +2,7 @@
 // Account-Menü unten links in der Sidebar (Vorbild: UserMenu des Nuxt-UI-Templates),
 // angepasst an unser Theme-System (Maui-Themes + Varianten), Appearance, Sprache, Logout.
 import type { DropdownMenuItem } from '@nuxt/ui'
+import { isFeatureStateEnabled } from '../../../core/shared/types/config'
 
 defineProps<{ collapsed?: boolean }>()
 
@@ -13,6 +14,7 @@ const localePath = useLocalePath()
 const colorMode = useColorMode()
 const auth = useAuthStore()
 const appConfig = useAppConfig()
+const runtimeFlags = useRuntimeFlags()
 const { themes, theme, variant, setTheme, setVariant, neutrals, neutral, setNeutral } = useTheme()
 const localeOptions = useLocaleOptions()
 
@@ -115,9 +117,11 @@ const items = computed<SwatchItem[][]>(() => {
   }))
 
   // Registry-Module mit placement 'userMenu' (z.B. Abos aus dem billing-Layer)
-  // sitzen ÜBER den Einstellungen — Konto-nahe Bereiche gehören hierher (A14)
+  // sitzen ÜBER den Einstellungen — Konto-nahe Bereiche gehören hierher (A14).
+  // Feature-Gate wie in der Sidebar: deaktivierte Features verschwinden (F2).
   const userMenuModules: DropdownMenuItem[] = ((appConfig.maui?.admin?.modules ?? []) as MauiAdminModule[])
-    .filter(m => m.placement === 'userMenu' && userHasCapability(auth.user, m.requiredCapability))
+    .filter(m => m.placement === 'userMenu' && userHasCapability(auth.user, m.requiredCapability)
+      && (!m.featureKey || isFeatureStateEnabled(runtimeFlags.value.features[m.featureKey])))
     .map(m => ({ label: t(m.labelKey), icon: m.icon, to: localePath(m.to) }))
 
   return [

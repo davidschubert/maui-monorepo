@@ -11,6 +11,7 @@ export default defineAppConfig({
       modules: [
         {
           id: 'comments',
+          featureKey: 'comments',
           labelKey: 'admin.nav.comments',
           icon: 'i-ph-chat-circle',
           to: '/dashboard/comments',

@@ -3,11 +3,19 @@
 // UDashboardGroup + collapsible/resizable Sidebar (Brand oben, UserMenu unten),
 // Command-Palette-Suche (⌘K). Die Seiten rendern in <slot/> als UDashboardPanel.
 import type { CommandPaletteGroup, CommandPaletteItem, NavigationMenuItem } from '@nuxt/ui'
+import { isFeatureStateEnabled } from '../../../core/shared/types/config'
 
 const { t } = useI18n()
 const localePath = useLocalePath()
 const auth = useAuthStore()
 const appConfig = useAppConfig()
+
+// Laufzeit-Feature-Gates (F2): Module deaktivierter Features verschwinden
+// aus der Nav — live über den Realtime-Config-Kanal (useRuntimeFlags).
+// Nur UX; die Autorität bleibt die Server-Middleware (Routen 404en).
+const runtimeFlags = useRuntimeFlags()
+const featureOn = (featureKey?: string) =>
+  !featureKey || isFeatureStateEnabled(runtimeFlags.value.features[featureKey])
 
 const open = ref(false)
 
@@ -53,7 +61,7 @@ const links = computed<NavigationMenuItem[]>(() => {
       : { label: t(m.labelKey), icon: m.icon, to: localePath(m.to), onSelect: close }
   }
   const modules = ((appConfig.maui?.admin?.modules ?? []) as MauiAdminModule[])
-    .filter(m => (m.placement ?? 'nav') === 'nav' && userHasCapability(u, m.requiredCapability))
+    .filter(m => (m.placement ?? 'nav') === 'nav' && userHasCapability(u, m.requiredCapability) && featureOn(m.featureKey))
   for (const m of modules.filter(m => !m.group)) items.push(toItem(m))
   // Gruppen in fester Reihenfolge; innerhalb sortiert 'order' (sonst Registry-
   // Reihenfolge). Label-Abstand kommt einheitlich über :ui der UNavigationMenu.

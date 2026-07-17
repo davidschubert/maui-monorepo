@@ -7,10 +7,9 @@
  * Events → useRuntimeFlags), ohne Reload. NUR fürs Ausblenden — die
  * Autorität ist die Server-Middleware (feature-gate).
  */
+import { isFeatureStateEnabled } from '../../shared/types/config'
+
 export function useFeature(key: string) {
   const flags = useRuntimeFlags()
-  return computed(() => {
-    const state = flags.value.features[key]
-    return state ? state.enabled && state.status === 'active' : true
-  })
+  return computed(() => isFeatureStateEnabled(flags.value.features[key]))
 }

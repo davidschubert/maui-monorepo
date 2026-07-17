@@ -11,6 +11,7 @@ export default defineAppConfig({
       modules: [
         {
           id: 'activity',
+          featureKey: 'activity',
           labelKey: 'admin.nav.activity',
           icon: 'i-ph-pulse',
           to: '/dashboard/activity',

@@ -1,5 +1,5 @@
 import type { H3Event } from 'h3'
-import type { FeatureRuntimeState } from '../../shared/types/config'
+import { isFeatureStateEnabled, type FeatureRuntimeState } from '../../shared/types/config'
 import { evaluateEntitlement, parseEntitlementPublicKeys, verifyEntitlementDocument, type EntitlementPayload } from './entitlementDocument'
 
 /**
@@ -69,9 +69,7 @@ function entitlementAllows(state: GateState, key: string): boolean {
 export async function isFeatureEnabled(event: H3Event, key: string): Promise<boolean> {
   if (!getFeatureRegistry().has(key)) return false
   const state = await getGateState(event)
-  const runtimeState = state.features[key]
-  const runtimeOn = runtimeState ? runtimeState.enabled && runtimeState.status === 'active' : true
-  return runtimeOn && entitlementAllows(state, key)
+  return isFeatureStateEnabled(state.features[key]) && entitlementAllows(state, key)
 }
 
 /**

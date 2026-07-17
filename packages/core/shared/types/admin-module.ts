@@ -27,6 +27,13 @@ export interface MauiAdminModuleChild {
 export interface MauiAdminModule {
   /** Stabile ID (key/Dedup) */
   id: string
+  /**
+   * Feature-Key des besitzenden Layers (F2): ist das Feature per Laufzeit-
+   * Gate deaktiviert, blendet die Dashboard-Nav den Eintrag aus (live über
+   * den Realtime-Config-Kanal). Ohne Angabe immer sichtbar — die AUTORITÄT
+   * bleibt die Server-Middleware (Routen 404en), die Nav ist nur UX.
+   */
+  featureKey?: string
   /** i18n-Key des Nav-Labels */
   labelKey: string
   /** Icon (i-ph-…) */

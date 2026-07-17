@@ -9,6 +9,7 @@ export default defineAppConfig({
       modules: [
         {
           id: 'media',
+          featureKey: 'media',
           labelKey: 'admin.nav.media',
           icon: 'i-ph-images',
           to: '/dashboard/media',
