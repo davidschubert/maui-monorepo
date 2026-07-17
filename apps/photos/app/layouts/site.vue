@@ -1,3 +1,9 @@
+<script setup lang="ts">
+// photos.css wirkt nur unter body.photos-site (P2-Polish): Login/Dashboard
+// (andere Layouts) behalten den Standard-Look der Plattform.
+useHead({ bodyAttrs: { class: 'photos-site' } })
+</script>
+
 <template>
   <div class="site">
     <AppHeader />

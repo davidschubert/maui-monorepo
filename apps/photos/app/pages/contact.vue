@@ -11,18 +11,21 @@ useHead({
   ],
 })
 
-const form = reactive({ name: '', email: '', message: '' })
-const sent = ref(false)
+const form = reactive({ name: '', email: '', message: '', website: '' })
+const state = ref<'idle' | 'sending' | 'sent' | 'unavailable' | 'error'>('idle')
 
-// No backend yet — this opens the visitor's mail client. Swap for a real
-// endpoint (e.g. a Nuxt server route or a form service) when ready.
-const submit = () => {
-  const subject = encodeURIComponent('Enquiry via maui.photos')
-  const body = encodeURIComponent(
-    `${form.message}\n\n— ${form.name} (${form.email})`,
-  )
-  window.location.href = `mailto:hello@maui.photos?subject=${subject}&body=${body}`
-  sent.value = true
+// Server-Route (P2-Polish): validiert + drosselt + verschickt über den
+// Core-Mailer; 503 = SMTP nicht konfiguriert → sichtbarer mailto-Fallback.
+const submit = async () => {
+  state.value = 'sending'
+  try {
+    await $fetch('/api/contact', { method: 'POST', body: { ...form } })
+    state.value = 'sent'
+    Object.assign(form, { name: '', email: '', message: '', website: '' })
+  }
+  catch (error) {
+    state.value = (error as { statusCode?: number })?.statusCode === 503 ? 'unavailable' : 'error'
+  }
 }
 </script>
 
@@ -52,12 +55,26 @@ const submit = () => {
         </div>
         <div class="field">
           <label for="message">Message</label>
-          <textarea id="message" v-model="form.message" rows="5" required />
+          <textarea id="message" v-model="form.message" rows="5" required minlength="5" />
         </div>
-        <button type="submit" class="btn btn--solid">Send message</button>
-        <p v-if="sent" class="form__note">
-          Thanks — your mail client should have opened. If not, email us
-          directly at hello@maui.photos.
+        <!-- Honeypot: unsichtbar für Menschen, Bots füllen es aus -->
+        <div class="field field--hp" aria-hidden="true">
+          <label for="website">Website</label>
+          <input id="website" v-model="form.website" type="text" tabindex="-1" autocomplete="off" />
+        </div>
+        <button type="submit" class="btn btn--solid" :disabled="state === 'sending'">
+          {{ state === 'sending' ? 'Sending…' : 'Send message' }}
+        </button>
+        <p v-if="state === 'sent'" class="form__note" data-contact-sent>
+          Thanks — your message is on its way. We usually reply within two days.
+        </p>
+        <p v-else-if="state === 'unavailable'" class="form__note">
+          The form is taking a break — please email us directly at
+          <a href="mailto:hello@maui.photos">hello@maui.photos</a>.
+        </p>
+        <p v-else-if="state === 'error'" class="form__note">
+          That didn't go through. Try again in a few minutes or email
+          <a href="mailto:hello@maui.photos">hello@maui.photos</a>.
         </p>
       </form>
 
@@ -142,6 +159,17 @@ const submit = () => {
 .form__note {
   color: var(--accent-soft);
   font-size: 0.9rem;
+}
+.form__note a {
+  color: var(--accent);
+}
+/* Honeypot: aus dem Sichtbereich, aber nicht display:none (zu leicht erkennbar) */
+.field--hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
 }
 .contact__aside {
   display: flex;

@@ -68,8 +68,16 @@ Folge-Cleanup notiert: Moderations-TYPEN (ModeratedComment & Co.) liegen
 noch in admin/shared (type-only-Import, build-sicher) — Eigentums-
 Entwirrung bei Gelegenheit.
 
-**Offen (P2-Polish, bewusst):** Kontakt-Formular server-seitig (heute
-mailto wie Original) · Font auf selbst-gehostete Registry umziehen ·
-photos.css wirkt global (Login/Dashboard der photos-App im Dark-Look).
+**P2-Polish ✅ (2026-07-17, browser-verifiziert):**
+- Kontakt server-seitig: POST /api/contact (zod, Honeypot, eigener
+  Mini-Rate-Limit 3/10 min pro IP, Versand über den Core-Mailer; SMTP aus
+  → 503 und die Seite verweist sichtbar auf die direkte Adresse).
+  Empfänger via NUXT_CONTACT_EMAIL. Mailpit-Beweis: Mail kam an.
+- Font self-hosted: Google-Link raus; explizite font-family-Deklaration in
+  photos.css (Registry-Muster) → @nuxt/fonts lädt Cormorant Garamond von
+  /_fonts/*.woff2 inkl. generierter Fallback-Familie.
+- photos.css gescopet auf body.photos-site (site-Layout setzt bodyAttrs;
+  Vars auf body statt :root gegen Theme-Var-Kollisionen) — Login/Dashboard
+  wieder im Plattform-Standard-Look, Site-Look unverändert.
 
 **P3 (apps/portfolio):** wartet auf Scope-Gespräch mit David.

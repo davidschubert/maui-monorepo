@@ -9,21 +9,23 @@ export default defineNuxtConfig({
     port: 3003,
   },
 
-  // Editorial-Design der Site (Port aus nuxt-maui-photos): eigene CSS-Tokens
-  // + Cormorant Garamond. TODO (Polish): Font auf die self-hostende
-  // fonts.css-Registry des Core umziehen (statt Google-Link).
+  // Editorial-Design der Site (Port aus nuxt-maui-photos): eigene CSS-Tokens,
+  // gescopet auf body.photos-site (site-Layout) — Login/Dashboard behalten
+  // den Standard-Look. Cormorant Garamond self-hostet @nuxt/fonts über die
+  // font-family-Deklaration in photos.css (Registry-Muster, kein Google-Link).
   css: ['~/assets/css/photos.css'],
 
   app: {
     head: {
       meta: [{ name: 'theme-color', content: '#0b0c0e' }],
-      link: [
-        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&display=swap' },
-      ],
     },
     pageTransition: { name: 'page', mode: 'out-in' },
+  },
+
+  runtimeConfig: {
+    // Empfänger des Kontakt-Formulars (Override: NUXT_CONTACT_EMAIL);
+    // Versand über den Core-Mailer (NUXT_SMTP_*, lokal Mailpit)
+    contactEmail: 'hello@maui.photos',
   },
 
   // Eigene Keys der App — werden mit den Core-Locales gemergt (gleicher code)
