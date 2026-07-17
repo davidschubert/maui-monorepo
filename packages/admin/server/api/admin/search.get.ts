@@ -10,7 +10,10 @@ type CommentRow = Models.Row & { content: string, authorId: string, authorName: 
 
 /** Globale Admin-Suche (User + Kommentare) für die Command-Palette. */
 export default defineEventHandler(async (event): Promise<SearchResult> => {
-  requirePermission(event, 'dashboard.access')
+  const requester = requirePermission(event, 'dashboard.access')
+  // E-Mail ist PII: nur mit users.manage in der Antwort (RBAC-CONCEPT —
+  // dashboard.access-Gate gilt nur ohne PII). Moderatoren sehen nur Namen.
+  const includeEmail = hasCapability(requester.labels, 'users.manage')
 
   const q = String(getQuery(event).q ?? '').trim()
   if (q.length < 2) return { users: [], comments: [] }
@@ -29,7 +32,7 @@ export default defineEventHandler(async (event): Promise<SearchResult> => {
   ])
 
   return {
-    users: users.users.map(u => ({ $id: u.$id, name: u.name, email: u.email })),
+    users: users.users.map(u => ({ $id: u.$id, name: u.name, email: includeEmail ? u.email : '' })),
     comments: comments.rows.map(r => ({
       $id: r.$id,
       content: r.content.length > 80 ? `${r.content.slice(0, 80)}…` : r.content,

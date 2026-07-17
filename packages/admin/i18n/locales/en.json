@@ -15,15 +15,11 @@
       "audit": "Activity log",
       "homepage": "View site",
       "people": "People",
-      "peopleAll": "All users",
-      "peopleActive": "Active",
-      "peopleNew": "New",
       "groups": {
         "products": "Products",
         "management": "Management",
         "design": "Design"
-      },
-      "peopleOnline": "Users online"
+      }
     },
     "config": {
       "title": "Configuration",

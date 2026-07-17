@@ -26,14 +26,7 @@ const sidebarClass = computed(() => {
 const close = () => { open.value = false }
 const route = useRoute()
 
-// People-Zähler für die Nav-Badges (Alle/Aktiv/Neu) — nur mit users.manage
-// abrufbar; ohne Daten bleiben die Badges einfach weg (lazy, best-effort).
 const canManageUsers = computed(() => userHasCapability(auth.user, 'users.manage'))
-const { data: peopleStats } = useFetch<{ total: number, active: number, new: number, online: number }>('/api/admin/users/stats', {
-  lazy: true,
-  server: false,
-  immediate: canManageUsers.value,
-})
 
 // Hauptnavigation oben — je Eintrag nach Capability gefiltert (RBAC). Overview
 // sieht jeder mit dashboard.access; der Rest nur mit der jeweiligen Capability.
@@ -43,19 +36,7 @@ const links = computed<NavigationMenuItem[]>(() => {
     { label: t('admin.nav.overview'), icon: 'i-ph-gauge', to: localePath('/dashboard'), exact: true, onSelect: close },
   ]
   if (canManageUsers.value) {
-    // People-Abschnitt (Referenz: CRM-Sidebar) — Unterpunkte mit Live-Zählern
-    const stats = peopleStats.value
-    items.push({
-      label: t('admin.nav.people'),
-      icon: 'i-ph-users',
-      defaultOpen: route.path.includes('/dashboard/users'),
-      children: [
-        { label: t('admin.nav.peopleAll'), to: localePath('/dashboard/users'), exact: true, badge: stats ? String(stats.total) : undefined, onSelect: close },
-        { label: t('admin.nav.peopleActive'), to: localePath('/dashboard/users?filter=active'), badge: stats ? String(stats.active) : undefined, onSelect: close },
-        { label: t('admin.nav.peopleNew'), to: localePath('/dashboard/users?filter=new'), badge: stats ? String(stats.new) : undefined, onSelect: close },
-        { label: t('admin.nav.peopleOnline'), to: localePath('/dashboard/users?filter=online'), badge: stats ? String(stats.online) : undefined, onSelect: close },
-      ],
-    })
+    items.push({ label: t('admin.nav.people'), icon: 'i-ph-users', to: localePath('/dashboard/users'), onSelect: close })
   }
   // Von Feature-Layern registrierte Dashboard-Module (z.B. comments-Moderation),
   // capability-gefiltert — admin kennt sie nicht hart (Modul-Registry, A14).

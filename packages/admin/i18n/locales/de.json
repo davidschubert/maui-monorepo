@@ -15,15 +15,11 @@
       "audit": "Aktivitätsprotokoll",
       "homepage": "Zur Website",
       "people": "Personen",
-      "peopleAll": "Alle Benutzer",
-      "peopleActive": "Aktiv",
-      "peopleNew": "Neu",
       "groups": {
         "products": "Products",
         "management": "Management",
         "design": "Design"
-      },
-      "peopleOnline": "Benutzer online"
+      }
     },
     "config": {
       "title": "Konfiguration",
