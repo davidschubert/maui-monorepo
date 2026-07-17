@@ -1,8 +1,8 @@
 import { Query } from 'node-appwrite'
 import type { Models } from 'node-appwrite'
-import type { AdminUserDetailResponse, ModeratedComment } from '../../../../../shared/types/admin'
+import type { AdminUserComment, AdminUserDetailResponse } from '../../../../../shared/types/admin'
 
-type CommentRow = Models.Row & Omit<ModeratedComment, '$id' | '$createdAt'>
+type CommentRow = Models.Row & Omit<AdminUserComment, '$id' | '$createdAt'>
 
 /** Vollständige User-Sicht: Profil, aktive Sessions und letzte Kommentare. */
 export default defineEventHandler(async (event): Promise<AdminUserDetailResponse> => {

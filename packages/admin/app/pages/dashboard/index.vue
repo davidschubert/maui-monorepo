@@ -2,10 +2,10 @@
 import type { Models } from 'node-appwrite'
 import type {
   AdminAnalytics,
-  AdminCommentListResponse,
   AdminStats,
   AuditLogEntry,
   AuditLogListResponse,
+  ReportedCommentsSummary,
   StorageOverview,
 } from '../../../shared/types/admin'
 
@@ -55,7 +55,7 @@ const onlineUsers = computed(() => presence.value?.users ?? [])
 const { present } = usePresence()
 
 // --- Widgets (client-seitig, blockiert SSR nicht) -----------------------------
-const { data: reported, refresh: refreshReported } = useFetch<AdminCommentListResponse>('/api/admin/comments', {
+const { data: reported, refresh: refreshReported } = useFetch<ReportedCommentsSummary>('/api/admin/comments', {
   query: { status: 'reported', page: 1 }, lazy: true, server: false,
 })
 const reportedList = computed(() => (reported.value?.comments ?? []).slice(0, 5))

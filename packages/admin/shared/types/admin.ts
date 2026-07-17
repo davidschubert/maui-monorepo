@@ -92,7 +92,7 @@ export interface AdminUserDetailResponse {
   sessions: AdminUserSession[]
   activity: AdminUserActivity[]
   targets: AdminUserTarget[]
-  comments: ModeratedComment[]
+  comments: AdminUserComment[]
   commentsTotal: number
 }
 
@@ -194,14 +194,15 @@ export interface ChangelogListResponse {
 }
 
 /** Status-Filter der Moderations-Liste */
-export type ModerationFilter = 'reported' | 'hidden' | 'all'
-
 /**
- * Minimale Comment-Shape für die Moderation — bewusst lokal definiert
- * statt Cross-Package-Import aus packages/comments (Layer bleiben entkoppelt;
- * admin kennt nur die Felder, die es moderiert).
+ * Minimale Comment-Shape für Admin-Ansichten (User-Detail, Dashboard-Widget)
+ * — bewusst lokal definiert statt Cross-Package-Import (Typen-Entwirrung
+ * nach A14): Der VOLLE Moderations-Vertrag (ModeratedComment & Co.) gehört
+ * seit dem Routen-Umzug dem comments-Layer (comments/shared/types/
+ * moderation.ts); admin als Fundament-Layer hängt nie von Features ab und
+ * kennt nur die Felder, die es rendert (strukturell kompatibel).
  */
-export interface ModeratedComment {
+export interface AdminUserComment {
   $id: string
   $createdAt: string
   content: string
@@ -210,28 +211,13 @@ export interface ModeratedComment {
   targetId: string
   targetType: string
   status: string
-  /** Anzahl offener Meldungen (nur im 'reported'-Filter gesetzt; Moderation-Layer) */
-  reportCount?: number
-}
-
-export interface AdminCommentListResponse {
-  total: number
-  comments: ModeratedComment[]
-  /** true = KI-Assist nutzbar (maui.ai an + NUXT_AI_KEY gesetzt) → UI zeigt den Button */
-  aiAssist: boolean
 }
 
 /**
- * Advisory-Antwort des KI-Moderations-Assists (POST /api/admin/comments/:id/assist).
- * Reine Empfehlung — Aktionen löst weiterhin der Moderator aus.
+ * Minimale Sicht des Dashboard-Widgets „Gemeldete Kommentare" auf
+ * GET /api/admin/comments (Route + voller Vertrag: comments-Layer).
  */
-export interface ModerationAssist {
-  /** 'hide' = Ausblenden empfohlen · 'dismiss' = Kommentar ok, Meldungen verwerfen */
-  action: 'hide' | 'dismiss'
-  /** Schwere des Verstoßes 1 (harmlos) – 5 (gravierend) */
-  severity: number
-  /** 2-3 Sätze Begründung (Deutsch) */
-  assessment: string
-  /** Verwendetes Model (Transparenz im UI/Debugging) */
-  model: string
+export interface ReportedCommentsSummary {
+  total: number
+  comments: AdminUserComment[]
 }
