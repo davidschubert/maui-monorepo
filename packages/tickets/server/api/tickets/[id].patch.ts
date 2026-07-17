@@ -78,7 +78,7 @@ export default defineEventHandler(async (event): Promise<TicketRow> => {
         for (const member of added) {
           await notify(event, {
             recipientId: member.id,
-            type: 'reminder',
+            type: 'ticket',
             title: updated.title,
             body: 'Dir wurde dieses Ticket zugewiesen',
             link: `/dashboard/tickets?ticket=${updated.$id}`,

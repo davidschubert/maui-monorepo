@@ -79,14 +79,22 @@ export default defineEventHandler(async (event) => {
         await upsertSubscription(event, subscription, stripeEvent.created, subscription.metadata?.userId ?? null)
 
         if (stripeEvent.type === 'invoice.payment_failed') {
-          // §6/§9: Zahlungsfehlschlag → In-App-notify (Core-Vertrag, best-effort)
+          // §6/§9: Zahlungsfehlschlag → In-App-notify (Core-Vertrag, best-effort).
+          // Body-Sprache aus den Empfänger-Prefs (wie der Mail-Zweig, Fallback en) —
+          // Bell-Bodies sind gespeicherter Roh-Text, daher hier lokalisiert erzeugen
           const row = await findSubscriptionRow(event, subscriptionId)
           if (row) {
+            const { users } = createAdminClient(event)
+            const prefs = await users.get({ userId: row.userId })
+              .then(u => resolveEmailPrefs(u.prefs as Record<string, unknown>))
+              .catch(() => null)
             await notify(event, {
               recipientId: row.userId,
-              type: 'reminder',
-              title: 'Billing',
-              body: 'Payment failed — please update your payment method. / Zahlung fehlgeschlagen — bitte Zahlungsmethode aktualisieren.',
+              type: 'billing',
+              title: row.planId,
+              body: prefs?.emailLocale === 'de'
+                ? 'Zahlung fehlgeschlagen — bitte Zahlungsmethode aktualisieren.'
+                : 'Payment failed — please update your payment method.',
               link: '/account/billing',
             })
           }

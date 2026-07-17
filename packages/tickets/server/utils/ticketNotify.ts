@@ -33,7 +33,7 @@ export async function notifyTicketPeople(event: H3Event, ticket: TicketRow, inpu
     for (const recipientId of recipients) {
       await notify(event, {
         recipientId,
-        type: 'reminder',
+        type: 'ticket',
         title: input.title,
         body: input.body,
         link: `/dashboard/tickets?ticket=${ticket.$id}`,
