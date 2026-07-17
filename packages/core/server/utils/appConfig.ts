@@ -6,8 +6,10 @@ import { DEFAULT_APP_CONFIG, parseFeaturesColumn, type AppConfig } from '../../s
  * Liest die Laufzeit-Feature-Flags (app_config/global). Fällt bei fehlender
  * Zeile/Table oder Fehler auf permissive Defaults zurück, damit ein Config-
  * Problem die App nie blockiert. Die Table gehört dem admin-Layer.
+ * event optional: Intervall-Plugins (entitlements-pull) rufen ohne
+ * Request-Kontext auf — gleiches Muster wie createAdminClient().
  */
-export async function getAppConfig(event: H3Event): Promise<AppConfig> {
+export async function getAppConfig(event?: H3Event): Promise<AppConfig> {
   try {
     const config = useRuntimeConfig(event)
     const admin = createAdminClient(event)

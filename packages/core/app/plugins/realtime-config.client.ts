@@ -26,6 +26,8 @@ export default defineNuxtPlugin(() => {
           maintenanceMode: event.payload.maintenanceMode ?? flags.value.maintenanceMode,
           // features-Spalte reist als JSON-String im Row-Payload mit (system-018)
           features: 'features' in event.payload ? parseFeaturesColumn(event.payload.features) : flags.value.features,
+          // Entitlement-Dokument ist Server-Sache (featureGates) — Client trägt es nur durch
+          entitlementsDoc: flags.value.entitlementsDoc,
         }
       },
     )
