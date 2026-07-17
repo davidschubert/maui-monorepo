@@ -114,3 +114,31 @@ M7 (Provisioner-Worker + ploi/Cloudflare) braucht PHASE-17-Infrastruktur;
 vorher bieten sich M5/P3 `apps/portfolio` (Scope-Frage an David offen) oder
 P2-Polish photos an. Entitlement-ZUSTELLUNG an die Sites (signiertes
 Dokument, dritte UND-Bedingung in featureGates) ist M8.
+
+## M8-Vorbereitung — ✅ Zustellung steht (2026-07-17, e2e-verifiziert)
+
+Die signierte Entitlement-Zustellung ist gebaut (P2-Polish und M6 waren
+vorher fertig); M8 selbst muss nur noch Stripe/Workspaces/Pläne anschließen:
+
+- **Dokument** (core `entitlementDocument.ts`, 20 Unit-Tests): Ed25519,
+  `base64url(payload).base64url(sig)`, kid-Rotation, Clock-Skew ±5 min,
+  validUntil/graceUntil/suspended nach § F3 (Signatur wird IMMER geprüft;
+  Grace toleriert nur fachlichen Ablauf; jenseits graceUntil bzw. bei
+  suspended degradiert optional-Tier auf AUS; foundation nie geschaltet).
+- **Aussteller** (studio): `GET /api/platform/entitlements/:projectId`
+  (öffentlich, Microcache 60 s; features aus den Grant-Rows, suspended aus
+  sites.status; 503 ohne Signier-Schlüssel). Keys: `pnpm entitlements:keygen`
+  — privater Schlüssel NUR im Studio, kid→Public-Key-Map in den Site-Envs.
+- **Site-Seite** (core): entitlements-pull-Plugin (15 min + Erst-Lauf;
+  no-op ohne NUXT_ENTITLEMENTS_URL) + POST /api/platform/entitlements/refresh
+  (system.manage); nur VERIFIZIERTE Dokumente landen in
+  app_config.entitlements (system-019). featureGates: Registry ∧
+  app_config.features ∧ Entitlement — kein Dokument = neutral AN
+  (Einführungssicherheit), unverifizierbares Dokument = optional-Tier AUS.
+- **E2E-Beweis (photos):** Boot-Pull persistierte das Dokument automatisch;
+  media-Grant im Studio entzogen → Pull → `/api/media` 404 + Snapshot ohne
+  media; Re-Grant → 200. Der Kreis Studio-Grant → signiertes Dokument →
+  wirksames Gate ist geschlossen.
+- **Stolperfalle dokumentiert:** Nitro destr-t Env-Werte —
+  `NUXT_ENTITLEMENTS_PUBLIC_KEYS='{"k1":…}'` kommt als OBJEKT in der
+  runtimeConfig an; `parseEntitlementPublicKeys()` akzeptiert beide Formen.

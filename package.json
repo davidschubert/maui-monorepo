@@ -15,6 +15,7 @@
     "migrate": "node --experimental-strip-types scripts/migrate.mjs",
     "create-site": "node --experimental-strip-types scripts/create-site.mjs",
     "studio:jobs": "node --experimental-strip-types scripts/studio-jobs.mjs",
+    "entitlements:keygen": "node scripts/entitlements-keygen.mjs",
     "check:manifests": "node --experimental-strip-types scripts/check-manifests.mjs"
   },
   "devDependencies": {
