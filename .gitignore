@@ -5,6 +5,7 @@ node_modules/
 .nuxt/
 .output/
 dist/
+.data/
 
 # Env — nur .env.example committen
 .env
