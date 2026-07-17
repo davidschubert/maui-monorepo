@@ -91,6 +91,12 @@ export default defineEventHandler((event) => {
   const onFailure = FAILURE_LIMITED.has(route)
   if (!always && !onFailure && !write) return
 
+  // ⚠️ Trust-Proxy-Annahme (wie authAudit.ts): X-Forwarded-For ist nur hinter
+  // einem Proxy vertrauenswürdig, der den Header ÜBERSCHREIBT (ploi/nginx) —
+  // direkt exponiert könnte ein Client per gefälschtem XFF frische Buckets
+  // ziehen und das Login-Limit umgehen. Prod: App nie ohne Proxy exponieren
+  // (Phase-17-Checkliste: Port 3000 nur hinter nginx, Firewall erzwingt es).
+  //
   // Fehlt die IP (exotische Proxy-Setups), NICHT alle Clients in einen
   // gemeinsamen 'unknown'-Topf werfen (sie würden sich gegenseitig aussperren) —
   // stattdessen auf die Session-Identität ausweichen; 'unknown' nur als letzter

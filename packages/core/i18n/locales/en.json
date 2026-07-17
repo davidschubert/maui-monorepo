@@ -200,6 +200,8 @@
     "replied": "{name} replied to your comment",
     "mentioned": "{name} mentioned you in a comment",
     "reminder": "Reminder: {name} starts soon",
+    "ticket": "Ticket update: {name}",
+    "billing": "Payment issue: {name}",
     "email": {
       "title": "Email notifications",
       "description": "Also receive bell notifications (replies, mentions, reminders) by email.",

@@ -30,7 +30,7 @@ const COPY: Record<EmailLocale, {
   footer: string
 }> = {
   de: {
-    types: { reply: 'hat auf deinen Kommentar geantwortet', mention: 'hat dich erwähnt', reminder: 'Erinnerung' },
+    types: { reply: 'hat auf deinen Kommentar geantwortet', mention: 'hat dich erwähnt', reminder: 'Erinnerung', ticket: '— Ticket-Update', billing: '— Zahlungsproblem' },
     fallbackType: 'Neue Benachrichtigung',
     openLink: 'Ansehen',
     digestSubject: count => `${count} neue Benachrichtigung${count === 1 ? '' : 'en'}`,
@@ -38,7 +38,7 @@ const COPY: Record<EmailLocale, {
     footer: 'Du erhältst diese Mail, weil E-Mail-Benachrichtigungen in deinen Einstellungen aktiv sind. Abstellen: Dashboard → Einstellungen → Benachrichtigungen.',
   },
   en: {
-    types: { reply: 'replied to your comment', mention: 'mentioned you', reminder: 'Reminder' },
+    types: { reply: 'replied to your comment', mention: 'mentioned you', reminder: 'Reminder', ticket: '— ticket update', billing: '— payment issue' },
     fallbackType: 'New notification',
     openLink: 'View',
     digestSubject: count => `${count} new notification${count === 1 ? '' : 's'}`,

@@ -200,6 +200,8 @@
     "replied": "{name} hat auf deinen Kommentar geantwortet",
     "mentioned": "{name} hat dich in einem Kommentar erwähnt",
     "reminder": "Erinnerung: {name} beginnt bald",
+    "ticket": "Ticket-Update: {name}",
+    "billing": "Zahlungsproblem: {name}",
     "email": {
       "title": "E-Mail-Benachrichtigungen",
       "description": "Bell-Benachrichtigungen (Antworten, Erwähnungen, Erinnerungen) zusätzlich per E-Mail erhalten.",
