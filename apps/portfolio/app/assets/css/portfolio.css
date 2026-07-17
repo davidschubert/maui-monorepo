@@ -1,0 +1,144 @@
+/* Portfolio-Design (Port der nuxt3-davidschubert.com-DNA: Syne, Uppercase-
+   Hero, dunkel + Glibbergreen) — GESCOPET auf body.portfolio-site (setzt das
+   site-Layout via bodyAttrs): Login/Dashboard behalten den Standard-Look.
+   Vars auf body statt :root gegen Theme-Var-Kollisionen (Muster photos). */
+
+body.portfolio-site {
+  --bg: #0b0b10;
+  --bg-soft: #121218;
+  --surface: #181822;
+  --text: #f1efe9;
+  --text-soft: #9d9aa8;
+  --line: rgba(255, 255, 255, 0.09);
+  --accent: #a4f5b9;
+  --accent-ink: #0c1d12;
+  --metal: #565584;
+  --maxw: 1200px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  background: var(--bg);
+  color: var(--text);
+  /* Explizite Familie — @nuxt/fonts erkennt die Deklaration und self-hostet */
+  font-family: "Syne", ui-sans-serif, system-ui, sans-serif;
+  line-height: 1.65;
+  font-size: 16px;
+  overflow-x: hidden;
+}
+
+.portfolio-site * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html:has(body.portfolio-site) {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.portfolio-site a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.portfolio-site h1,
+.portfolio-site h2,
+.portfolio-site h3 {
+  font-family: "Syne", ui-sans-serif, system-ui, sans-serif;
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.portfolio-site .container {
+  width: 100%;
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 4vw, 3rem);
+}
+
+.portfolio-site .eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.portfolio-site .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.9rem 1.8rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+  transition: background 0.35s var(--ease), border-color 0.35s var(--ease),
+    color 0.35s var(--ease), transform 0.35s var(--ease);
+}
+
+.portfolio-site .btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.portfolio-site .btn--solid {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.portfolio-site .btn--solid:hover {
+  background: #c3f9d0;
+  border-color: #c3f9d0;
+  color: var(--accent-ink);
+}
+
+.portfolio-site .section {
+  padding-block: clamp(4rem, 9vw, 8rem);
+}
+
+/* fade-in on load */
+.portfolio-site .reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  animation: portfolio-reveal 0.9s var(--ease) forwards;
+}
+
+@keyframes portfolio-reveal {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Nuxt page transition (greift nur auf Seiten unter dem site-Layout) */
+.portfolio-site .page-enter-active,
+.portfolio-site .page-leave-active {
+  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
+}
+.portfolio-site .page-enter-from,
+.portfolio-site .page-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portfolio-site .reveal {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .portfolio-site .page-enter-active,
+  .portfolio-site .page-leave-active {
+    transition: none;
+  }
+  html:has(body.portfolio-site) {
+    scroll-behavior: auto;
+  }
+}

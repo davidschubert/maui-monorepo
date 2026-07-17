@@ -80,4 +80,16 @@ Entwirrung bei Gelegenheit.
   Vars auf body statt :root gegen Theme-Var-Kollisionen) — Login/Dashboard
   wieder im Plattform-Standard-Look, Site-Look unverändert.
 
-**P3 (apps/portfolio):** wartet auf Scope-Gespräch mit David.
+**P3 ✅ (2026-07-17, browser-verifiziert) → M5 KOMPLETT:** apps/portfolio —
+Scope-Beschluss David: **nur Landing + Cases**; Journal/Blog und pages
+(Standardseiten) werden später EIGENE Feature-Layer. Provisioniert als
+Dogfooding über den Studio-Job-Flow (Projekt `portfolio-g4ml`, Port 3005,
+Features themes+admin, Register + Grants automatisch). Design = DNA der
+alten nuxt3-davidschubert.com: Syne (self-hosted via @nuxt/fonts),
+Uppercase-Hero („Digitale Markenerlebnisse", Original-de/en-Texte), dunkel
+mit Glibbergreen (#A4F5B9); CSS gescopet auf body.portfolio-site (Muster
+photos). Cases als typisierte Daten (app/data/cases.ts, drei echte
+Projekte: Maui Platform, Comments, maui.photos) mit Detailseiten +
+Next-Case-Navigation; i18n de/en; Kontakt = mailto-CTA (bewusst ohne
+Server-Formular — die Site hat kein SMTP-Bedürfnis, LinkedIn/Mail reichen).
+Community-Site: später entscheiden (Beschluss) — M5 gilt als komplett.

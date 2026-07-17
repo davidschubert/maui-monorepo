@@ -47,6 +47,15 @@
       "port": 3004
     },
     {
+      "name": "portfolio",
+      "runtimeExecutable": "zsh",
+      "runtimeArgs": [
+        "-c",
+        "source ~/.nvm/nvm.sh && nvm use 22 >/dev/null && exec pnpm --filter portfolio dev"
+      ],
+      "port": 3005
+    },
+    {
       "name": "comments-auto",
       "runtimeExecutable": "zsh",
       "runtimeArgs": [

@@ -1,0 +1,42 @@
+{
+  "app": {
+    "tagline": "David Schubert — UI/UX design & web development"
+  },
+  "portfolio": {
+    "nav": {
+      "label": "Main navigation",
+      "cases": "Work",
+      "about": "About",
+      "contact": "Contact"
+    },
+    "hero": {
+      "eyebrow": "UI/UX design & web development",
+      "headline": "Digital brand experiences",
+      "intro": "A dependable design and development studio committed to growing your business. Got a project in mind? Let’s talk!",
+      "cta": "Get in touch",
+      "secondary": "View work"
+    },
+    "cases": {
+      "eyebrow": "Selected work",
+      "title": "Cases"
+    },
+    "about": {
+      "eyebrow": "About",
+      "title": "Design meets engineering",
+      "p1": "I’m David — a UI/UX designer and full-stack developer from concept to operations. I build digital products where design and engineering come from one hand: clear interfaces, clean architecture, measurable impact.",
+      "p2": "I’m currently building a multi-site platform on Nuxt 4 and Appwrite that composes sites like this one — dashboard, realtime and its own control plane included."
+    },
+    "contact": {
+      "title": "Got a project in mind? Let’s talk.",
+      "cta": "Get in touch"
+    },
+    "case": {
+      "back": "All work",
+      "stack": "Technologies",
+      "next": "Next case"
+    },
+    "footer": {
+      "tagline": "Maui Platform · Nuxt 4 + Appwrite"
+    }
+  }
+}
