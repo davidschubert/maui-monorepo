@@ -1,33 +1,44 @@
-# Deploy-Skeleton (Phase 9) — NUR Dokumentation, bewusst ohne Secrets.
+# Deploy nach PHASE-17-Plan (A.5, scharfgeschaltet 2026-07-17):
+# feuert den ploi.io-Deploy-Webhook NUR, wenn der „Test"-Workflow auf main
+# grün durchgelaufen ist — lint/typecheck bleiben bewusst Warnlampen
+# (Beschluss A.10 #9). `workflow_dispatch` als manueller Hebel bleibt.
 #
-# Deployment läuft über ploi.io (siehe docs/CONCEPT.md A9):
-#   Root Path:      apps/<app>
-#   Build Command:  pnpm --filter <app> build
-#   Start Command:  node apps/<app>/.output/server/index.mjs
-#   Deploy-Script:  npm i -g pnpm && pnpm install --frozen-lockfile && pnpm --filter <app> build
+# Aktivierung am Go-Live-Tag (Teil B, Block 8):
+#   1. ploi → Site comments.pukalani.app → Deploy-Webhook-URL kopieren
+#   2. Repo-Secret PLOI_DEPLOY_WEBHOOK_COMMENTS = Webhook-URL
+# Ohne das Secret ist der curl ein no-op (Guard unten) — der Workflow ist
+# damit gefahrlos schon VOR dem Go-Live auf main.
 #
-# Aktivierung später:
-#   1. In ploi.io pro App einen Deploy-Webhook erzeugen
-#   2. Webhook-URL als Repo-Secret PLOI_DEPLOY_WEBHOOK_REDDIT_COMMENTS hinterlegen
-#   3. Den auskommentierten Job unten einkommentieren
-#
-# Env Vars (NUXT_APPWRITE_KEY etc.) leben als Server Environment Variables
-# in ploi.io — NIE im Repo.
+# Env Vars (NUXT_APPWRITE_KEY etc.) leben als Site-Environment in ploi.io —
+# NIE im Repo; ploi „Quick Deploy" bleibt AUS (sonst deployt ungetesteter
+# Code an den Actions vorbei).
 
 name: Deploy
 
 on:
-  # Bewusst nur manuell auslösbar, solange der Webhook nicht konfiguriert ist
+  workflow_run:
+    workflows: [Test]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 
-jobs:
-  noop:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Deploy-Skeleton — ploi.io-Webhook wird manuell konfiguriert (siehe Kommentare in dieser Datei)."
+permissions: {}
 
-  # deploy-comments:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Trigger ploi.io deploy webhook
-  #       run: curl -fsS -X POST "${{ secrets.PLOI_DEPLOY_WEBHOOK_REDDIT_COMMENTS }}"
+concurrency:
+  group: deploy-comments
+  cancel-in-progress: false
+
+jobs:
+  deploy-comments:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: Trigger ploi.io deploy webhook
+        env:
+          WEBHOOK: ${{ secrets.PLOI_DEPLOY_WEBHOOK_COMMENTS }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "Secret PLOI_DEPLOY_WEBHOOK_COMMENTS nicht gesetzt — Deploy übersprungen (Go-Live Block 8)."
+            exit 0
+          fi
+          curl -fsS -X POST "$WEBHOOK"

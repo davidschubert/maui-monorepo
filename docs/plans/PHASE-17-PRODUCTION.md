@@ -210,7 +210,7 @@ ist die spätere Optimierung).
 
 ### A.5 Deploy-Webhook aus GitHub Actions (deploy.yml fertig gedacht)
 
-Das Skeleton (`.github/workflows/deploy.yml`) wird so scharfgeschaltet:
+**✅ SCHARFGESCHALTET (2026-07-17):** deploy.yml läuft bereits auf main — workflow_run auf „Test", concurrency, permissions: {}; ohne das Secret ist der Webhook-Call ein no-op. Am Go-Live-Tag bleibt nur Block 8 (Secret setzen). Ursprünglicher Plan:
 
 - **Trigger:** statt `on: push` direkt → **`workflow_run` auf den bestehenden
   „Test"-Workflow** (der auf `main`-Pushes läuft), Bedingung
@@ -219,11 +219,11 @@ Das Skeleton (`.github/workflows/deploy.yml`) wird so scharfgeschaltet:
   als eigene Workflows und bleiben Warnlampen. `workflow_dispatch` als
   manueller Hebel bleibt drin.
 - **Job:** der bereits auskommentierte Einzeiler —
-  `curl -fsS -X POST "${{ secrets.PLOI_DEPLOY_WEBHOOK_REDDIT_COMMENTS }}"` —
+  `curl -fsS -X POST "${{ secrets.PLOI_DEPLOY_WEBHOOK_COMMENTS }}"` —
   plus `concurrency: deploy-comments` (kein Webhook-Doppelfeuer bei
   schnellen Push-Folgen) und `permissions: {}` (der Job braucht nicht mal
   `contents: read`).
-- **Secret:** `PLOI_DEPLOY_WEBHOOK_REDDIT_COMMENTS` = die von ploi pro Site
+- **Secret:** `PLOI_DEPLOY_WEBHOOK_COMMENTS` = die von ploi pro Site
   generierte Deploy-Webhook-URL (Repo-Settings → Secrets → Actions).
 - **Bewusst NICHT:** Build in Actions + Artefakt-Push auf den Server. Der Build
   läuft auf dem Server (ploi-Deploy-Script) — einfacher, und die
@@ -457,13 +457,13 @@ Reihenfolge einhalten — jeder Block baut auf dem vorherigen auf.
 ### Block 8 — GitHub Actions Deploy-Webhook
 
 - [ ] ploi → Site → Deploy-Webhook-URL kopieren
-- [ ] GitHub → Repo → Settings → Secrets and variables → Actions → Secret `PLOI_DEPLOY_WEBHOOK_REDDIT_COMMENTS` = Webhook-URL
-- [ ] `deploy.yml` scharfschalten: `workflow_run` auf „Test" (branch main, conclusion success) + `workflow_dispatch`, Job = `curl -fsS -X POST "$SECRET"`, `concurrency`, `permissions: {}` (A.5) — Commit auf main
+- [ ] GitHub → Repo → Settings → Secrets and variables → Actions → Secret `PLOI_DEPLOY_WEBHOOK_COMMENTS` = Webhook-URL
+- [x] `deploy.yml` scharfgeschaltet (2026-07-17, vorab) — ohne Secret no-op; hier nur noch das Secret setzen
 - [ ] ✅ Trivialen Commit auf `main` pushen → Actions: Test grün → Deploy-Workflow feuert → ploi zeigt neuen Deploy → `/api/health` weiter `ok:true`
 
 ### Block 9 — Backups (Server 2)
 
-- [ ] Backup-Script `/opt/backup/appwrite-backup.sh` anlegen: MariaDB-Dump (gzip) + Volume-Tars (`appwrite-uploads`, `appwrite-config`, `appwrite-functions`) nach `/backup`, Rotation 14 Tage (A.6)
+- [ ] Backup-Script aus dem Repo kopieren: `ops/appwrite-backup.sh` → `/opt/ops/` (✅ lokal gegen die dev-Instanz getestet: Dump 1053 Tabellen + korrekte Projekt-Volumes; Env: APPWRITE_COMPOSE_DIR, BACKUP_DIR, OFFSITE_TARGET)
 - [ ] Cron: täglich 03:30 Uhr, Ausgabe in Logfile
 - [ ] Hetzner **Storage Box BX11** bestellen 💶 (~4 €/Monat), SSH-Key hinterlegen
 - [ ] Offsite-Sync ans Backup-Script anhängen (rsync auf die Storage Box)
@@ -474,7 +474,7 @@ Reihenfolge einhalten — jeder Block baut auf dem vorherigen auf.
 
 - [ ] UptimeRobot (o.ä.): Monitor 1 `https://comments.example.com/api/health` (Keyword `"ok":true`), Monitor 2 `https://api.example.com/` — Alerts an eigene E-Mail
 - [ ] ploi-Monitoring für beide Server aktivieren (Server 2 als „server only" verbinden): CPU/RAM/**Disk**-Schwellwerte + Notification
-- [ ] Realtime-Watchdog auf Server 2 installieren (A.9): Cron alle 5 min, WS-Handshake-Check gegen `/v1/realtime`, bei Fail `docker compose up -d --no-deps appwrite-realtime` + Alert-Mail
+- [ ] Realtime-Watchdog aus dem Repo kopieren: `ops/realtime-watchdog.sh` → `/opt/ops/` + Cron alle 5 min (✅ lokal getestet: Stopp-Probe → Container neu erstellt → 101-Handshake; optional ALERT_WEBHOOK)
 - [ ] ✅ Watchdog-Probe: `docker compose stop appwrite-realtime` → binnen 5 min läuft der Container wieder + Alert kam an → Live-Kommentar-Test erneut grün
 - [ ] ✅ Ausfall-Probe: Daemon auf Server 1 stoppen → UptimeRobot alarmiert → Daemon startet (systemd) automatisch neu
 
