@@ -11,7 +11,7 @@ export async function getAppConfig(event: H3Event): Promise<AppConfig> {
   try {
     const config = useRuntimeConfig(event)
     const admin = createAdminClient(event)
-    const row = await admin.tablesDB.getRow<Models.Row & { features?: string } & Partial<Omit<AppConfig, 'features'>>>({
+    const row = await admin.tablesDB.getRow<Models.Row & { features?: string, entitlements?: string } & Partial<Omit<AppConfig, 'features' | 'entitlementsDoc'>>>({
       databaseId: config.public.appwriteDatabaseId,
       tableId: 'app_config',
       rowId: 'global',
@@ -22,6 +22,8 @@ export async function getAppConfig(event: H3Event): Promise<AppConfig> {
       maintenanceMode: row.maintenanceMode ?? DEFAULT_APP_CONFIG.maintenanceMode,
       // Spalte ist ein JSON-String (system-018) — fehlertolerant geparst
       features: parseFeaturesColumn(row.features),
+      // Rohes signiertes Dokument (system-019) — Prüfung macht featureGates
+      entitlementsDoc: typeof row.entitlements === 'string' ? row.entitlements : '',
     }
   }
   catch {

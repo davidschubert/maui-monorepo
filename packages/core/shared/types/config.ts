@@ -28,6 +28,13 @@ export interface AppConfig {
    * Persistiert als JSON-String in app_config.features (system-018).
    */
   features: Record<string, FeatureRuntimeState>
+  /**
+   * Rohes signiertes Entitlement-Dokument (F3/M8-Vorbereitung, system-019) —
+   * geschrieben vom entitlements-pull-Plugin, geprüft/bewertet in
+   * featureGates (server/utils/entitlementDocument.ts). Leer = kein
+   * Dokument = Entitlement-Bedingung neutral AN.
+   */
+  entitlementsDoc: string
 }
 
 export const DEFAULT_APP_CONFIG: AppConfig = {
@@ -35,6 +42,7 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
   commentsEnabled: true,
   maintenanceMode: false,
   features: {},
+  entitlementsDoc: '',
 }
 
 /**

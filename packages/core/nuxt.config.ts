@@ -66,6 +66,12 @@ export default defineNuxtConfig({
     smtpUser: '',
     smtpPass: '',
     smtpFrom: '',
+    // server-only! Entitlement-Zustellung (F3/M8-Vorbereitung): URL des
+    // Control-Plane-Dokuments (leer = Pull aus, Gates neutral) + kid→Public-
+    // Key-Map (JSON, SPKI-DER base64). Env: NUXT_ENTITLEMENTS_URL /
+    // NUXT_ENTITLEMENTS_PUBLIC_KEYS — Keys erzeugt scripts/entitlements-keygen.mjs
+    entitlementsUrl: '',
+    entitlementsPublicKeys: '',
     public: {
       appwriteEndpoint: '',
       appwriteProjectId: '',
