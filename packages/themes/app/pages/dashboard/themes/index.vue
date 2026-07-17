@@ -267,7 +267,7 @@ function sanitizeConfig(raw: unknown): Record<string, unknown> | undefined {
   if (typeof raw !== 'object' || raw === null) return undefined
   const source = raw as Record<string, unknown>
   const picked: Record<string, unknown> = {}
-  for (const key of ['mode', 'anchor', 'hueShift', 'saturation', 'lightnessMax', 'lightnessMin', 'radius', 'neutral', 'darkAlias', 'font']) {
+  for (const key of ['mode', 'anchor', 'hueShift', 'saturation', 'lightnessMax', 'lightnessMin', 'radius', 'neutral', 'darkAlias', 'font', 'fontHeading', 'headingWeight', 'headingTracking', 'headingUppercase']) {
     if (source[key] !== undefined) picked[key] = source[key]
   }
   return Object.keys(picked).length ? picked : undefined
