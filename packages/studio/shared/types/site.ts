@@ -25,6 +25,9 @@ export interface SiteRow extends Models.Row {
   healthStatus: HealthStatus
   healthCheckedAt: string | null
   notes: string
+  /** JSON-Array der wirksam aktiven Feature-Keys der Site — Snapshot vom
+   *  Health-Sweep (GET /api/platform/features der Site, M6-T4). */
+  features: string
 }
 
 export const SITES_TABLE = 'sites'

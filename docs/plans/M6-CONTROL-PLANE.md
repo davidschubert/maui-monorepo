@@ -1,6 +1,6 @@
 # M6 — Control Plane `apps/studio` (Umsetzungsplan)
 
-Stand: 2026-07-16 · Status: **T1–T3 fertig, verifiziert** (Go David nach Gate G2)
+Stand: 2026-07-17 · Status: **T1–T4 fertig, verifiziert — M6 komplett** (Go David nach Gate G2)
 Kontext: Strategie D3 (Hybrid), § 8 Vertrauensgrenzen, L2/L5/L6.
 
 ## Architektur-Entscheidung
@@ -87,3 +87,30 @@ Health-Checks beide „ok". Der geparkte G2-JWT-Befund ist aufgeklärt
   2. HMR-stale DOM: Klicks auf einen vor dem HMR-Reload gerenderten Dialog
      verpuffen — nach Layer-Edits Seite neu laden, dann UI-Flows testen
      (deckt sich mit dem bekannten Vite/HMR-Muster).
+
+## Status T4 — ✅ fertig (2026-07-17, browser-verifiziert) → M6 KOMPLETT
+
+- **Health-Automatik:** `server/plugins/health-sweep.ts` (Digest-Sweep-Muster:
+  setInterval 5 min + Erst-Lauf 15 s nach Boot, unref, Single-Instanz-
+  Annahme); Logik geteilt mit der manuellen Route in
+  `server/utils/siteHealth.ts` (checkSiteHealth/runHealthSweep). Geloggt wird
+  nur bei Änderung oder nicht-ok — das L6-Alerting (E-Mail) dockt später
+  genau dort an.
+- **Feature-Snapshot je Site:** neue öffentliche Core-Route
+  `GET /api/platform/features` (eigener Core-Commit; nur wirksam aktive
+  Feature-Keys, Microcache 60 s) — bewusst unauthentifiziert, weil Studio
+  nach § 8 keine Site-Keys hält. Der Sweep liest sie von erreichbaren Apps
+  und persistiert das Array in `sites.features` (studio-004); ein
+  fehlgeschlagener Abruf löscht den letzten bekannten Snapshot nicht.
+- **UI:** „Läuft:"-Chipzeile je Site (implizite Keys core/system/studio
+  ausgeblendet); läuft ein Feature OHNE Entitlement, warnt der Chip
+  (orange) — der eigentliche Kontroll-Wert des Snapshots. Verifiziert:
+  photos deckungsgleich (neutral), reddit-comments mit Warn-Chips für die
+  einkompilierten, aber nicht zugeteilten Features.
+
+## Nach M6 (Roadmap)
+
+M7 (Provisioner-Worker + ploi/Cloudflare) braucht PHASE-17-Infrastruktur;
+vorher bieten sich M5/P3 `apps/portfolio` (Scope-Frage an David offen) oder
+P2-Polish photos an. Entitlement-ZUSTELLUNG an die Sites (signiertes
+Dokument, dritte UND-Bedingung in featureGates) ist M8.

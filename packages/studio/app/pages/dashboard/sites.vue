@@ -157,6 +157,18 @@ onMounted(() => {
 })
 onUnmounted(() => { if (pollTimer) clearInterval(pollTimer) })
 
+/** Feature-Snapshot der Site (vom Health-Sweep, T4) — implizite Keys werden
+ *  nicht angezeigt; läuft etwas ohne Entitlement, warnt der Chip. */
+const IMPLICIT_FEATURES = ['core', 'system', 'studio']
+function runningFeatures(site: SiteWithEntitlements): string[] {
+  try {
+    return (JSON.parse(site.features || '[]') as string[]).filter(key => !IMPLICIT_FEATURES.includes(key))
+  }
+  catch {
+    return []
+  }
+}
+
 const healthColor = (s: string) => (s === 'ok' ? 'success' : s === 'degraded' ? 'warning' : s === 'down' ? 'error' : 'neutral') as 'success' | 'warning' | 'error' | 'neutral'
 const statusColor = (s: string) => (s === 'active' ? 'success' : s === 'provisioning' ? 'info' : s === 'error' || s === 'deletion_failed' ? 'error' : 'warning') as 'success' | 'info' | 'error' | 'warning'
 const jobColor = (s: string) => (s === 'done' ? 'success' : s === 'running' ? 'info' : s === 'error' ? 'error' : 'neutral') as 'success' | 'info' | 'error' | 'neutral'
@@ -210,6 +222,19 @@ const jobColor = (s: string) => (s === 'done' ? 'success' : s === 'running' ? 'i
                 <UBadge v-for="feature in site.entitlements" :key="feature" color="neutral" variant="outline" size="sm">{{ feature }}</UBadge>
               </template>
               <span v-else class="text-xs text-muted">{{ t('studio.entitlements.none') }}</span>
+            </div>
+            <div v-if="runningFeatures(site).length" class="mt-1 flex flex-wrap items-center gap-1" :data-site-running="runningFeatures(site).join(',')">
+              <span class="text-xs text-muted">{{ t('studio.sites.running') }}</span>
+              <UBadge
+                v-for="feature in runningFeatures(site)"
+                :key="feature"
+                :color="site.entitlements.includes(feature) ? 'neutral' : 'warning'"
+                variant="subtle"
+                size="sm"
+                :title="site.entitlements.includes(feature) ? undefined : t('studio.sites.runningUnentitled')"
+              >
+                {{ feature }}
+              </UBadge>
             </div>
           </div>
           <div class="flex items-center gap-1">

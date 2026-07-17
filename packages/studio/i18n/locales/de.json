@@ -25,7 +25,9 @@
       "deregisterConfirm": "„{name}\" aus dem Register entfernen? Das Appwrite-Projekt und seine Daten bleiben unberührt.",
       "deregisterFailed": "Entfernen fehlgeschlagen",
       "save": "Registrieren",
-      "cancel": "Abbrechen"
+      "cancel": "Abbrechen",
+      "running": "Läuft:",
+      "runningUnentitled": "Läuft ohne zugeteiltes Feature"
     },
     "jobs": {
       "newSite": "Neue Site",
