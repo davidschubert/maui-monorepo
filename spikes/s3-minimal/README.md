@@ -61,6 +61,16 @@ Login/Me/Realtime/Ping-Buttons; Realtime nach dem Core-Muster
      (b) ein Appwrite-Upgrade auf eine Version, die `jwt` am
      Realtime-Endpoint liest, oder (c) Verzicht auf private Channels im
      Embed (read(any) + where-Filter wie bei Kommentaren).
+   - **Upstream-Recherche (2026-07-17, Beschluss „Upgrade prüfen"):**
+     Appwrite `main` liest den jwt-Query inzwischen als Header-Fallback —
+     `$authJWT = $request->getHeaderLine('x-appwrite-jwt',
+     (string)($request->getParam('jwt', '')))` in
+     app/init/realtime/connection.php — aber das ist in **keiner Release**
+     (Stand 2026-07-17: Latest = 1.9.5, ohne Fallback). **Pfad (b) ist
+     damit bestätigt:** aufs nächste Release (> 1.9.5) warten, Upgrade nach
+     APPWRITE-1.9.5-UPGRADE.md-Prozedur, dann den G2-JWT-Test hier
+     wiederholen (SDK 26 sendet den Param bereits — es sollte „einfach
+     angehen").
 2. **Platform-IDs kollidieren projektübergreifend** auf dieser Instanz
    (409 bei web-alpha im zweiten Projekt) — wie Key-IDs global eindeutig
    wählen (Provisioner: `web-<site>-<host>`), obwohl es auf der
