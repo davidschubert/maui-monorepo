@@ -20,6 +20,15 @@
       "port": 3002
     },
     {
+      "name": "docs",
+      "runtimeExecutable": "zsh",
+      "runtimeArgs": [
+        "-c",
+        "source ~/.nvm/nvm.sh && nvm use 22 >/dev/null && exec pnpm --filter @maui/docs dev"
+      ],
+      "port": 4000
+    },
+    {
       "name": "photos",
       "runtimeExecutable": "zsh",
       "runtimeArgs": [
@@ -27,6 +36,15 @@
         "source ~/.nvm/nvm.sh && nvm use 22 >/dev/null && exec pnpm --filter photos dev"
       ],
       "port": 3003
+    },
+    {
+      "name": "studio",
+      "runtimeExecutable": "zsh",
+      "runtimeArgs": [
+        "-c",
+        "source ~/.nvm/nvm.sh && nvm use 22 >/dev/null && exec pnpm --filter studio dev"
+      ],
+      "port": 3004
     },
     {
       "name": "reddit-comments-auto",

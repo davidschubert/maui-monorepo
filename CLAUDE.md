@@ -182,7 +182,9 @@ Vollständiges Konzept: docs/CONCEPT.md
   package.json referenziert "catalog:" — geteilte Deps auch in App-package.json
 
 ## Ports
-core/.playground: 3000 · reddit-comments: 3001 · weitere: 3002+
+core/.playground: 3000 · reddit-comments: 3001 · weitere: 3002+ ·
+Docs-Site: 4000 (docs/, `pnpm dev:docs` — eigenständige Nuxt-Content-App,
+KEIN Layer/keine apps/*-App, Inhalte in docs/content/)
 
 ## Tests
 pnpm -r test (Unit) · Playwright-E2E in apps/reddit-comments (Base-URL per
