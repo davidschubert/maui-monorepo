@@ -6,7 +6,7 @@ import { POSTS_TABLE, type CommunityPost } from '../../../../shared/types/post'
  * entziehen, sonst bleibt der Post per Roh-REST gast-lesbar).
  */
 export default defineEventHandler(async (event) => {
-  requirePermission(event, 'posts.moderate')
+  const user = requirePermission(event, 'posts.moderate')
 
   const id = getRouterParam(event, 'id')
   if (!id) {
@@ -39,6 +39,16 @@ export default defineEventHandler(async (event) => {
         console.error(`[posts] Permission-Entzug fehlgeschlagen — hidden-Post ${id} bleibt Roh-REST-lesbar bis zum Re-Hide:`, error)
       })
   }
+
+  // Ausblenden schließt zugleich die offenen Meldungen (moderation-Vertrag,
+  // wie der comments-Flow) — best-effort: der Hide ist bereits passiert,
+  // ein Resolve-Fehler darf ihn nicht als gescheitert melden
+  await resolveReportsForTarget(event, 'post', id, 'hidden', user.$id)
+    .catch(error => console.error(`[posts] Meldungen zu Post ${id} konnten nicht aufgelöst werden:`, error))
+
+  // Feed-Einträge des Posts entfernen (core-Vertrag) — sonst bleibt sein
+  // metadata-Snippet im Activity-Feed sichtbar, obwohl der Inhalt weg ist
+  await removeActivitiesForObject(event, { objectType: 'post', objectId: id })
 
   return { ok: true }
 })
