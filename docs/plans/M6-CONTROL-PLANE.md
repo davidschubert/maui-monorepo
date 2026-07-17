@@ -94,8 +94,10 @@ Health-Checks beide „ok". Der geparkte G2-JWT-Befund ist aufgeklärt
   setInterval 5 min + Erst-Lauf 15 s nach Boot, unref, Single-Instanz-
   Annahme); Logik geteilt mit der manuellen Route in
   `server/utils/siteHealth.ts` (checkSiteHealth/runHealthSweep). Geloggt wird
-  nur bei Änderung oder nicht-ok — das L6-Alerting (E-Mail) dockt später
-  genau dort an.
+  nur bei Änderung oder nicht-ok. **L6-Alerting ✅ (2026-07-17):** Statuswechsel
+  gehen als Mail an NUXT_ALERT_EMAIL (Beschluss: mail@davidschubert.com) —
+  nur bei ÄNDERUNGEN, nie bei anhaltendem Zustand; Mailpit-verifiziert
+  (photos/comments →ok-Erholung).
 - **Feature-Snapshot je Site:** neue öffentliche Core-Route
   `GET /api/platform/features` (eigener Core-Commit; nur wirksam aktive
   Feature-Keys, Microcache 60 s) — bewusst unauthentifiziert, weil Studio
