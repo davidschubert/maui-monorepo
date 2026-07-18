@@ -533,6 +533,18 @@ Health-check-URL der Site auf `https://comments.pukalani.app/api/health`
 gesetzt (Mail bei Nicht-200 nach Deploy). Deploy #2 der Site war bereits
 Successful (195 s, inkl. NODE_OPTIONS-Fix). Der Push DIESES Commits ist der
 e2e-Beweis: Test → Deploy-Workflow → ploi-Deploy #3.
+**✅ KETTE BEWIESEN (2026-07-18):** Push `fb57f02` → Test grün →
+Deploy-Workflow grün → ploi zog den Commit, baute (Artefakt 18:26 UTC) und
+restartete pm2 (neue PID, restarts=1) — „Restart process after deployment"
+funktioniert. Site danach extern 200.
+
+**✅ BLOCK 9 KOMPLETT (2026-07-18):** Storage Box provisioniert, echter
+Benutzername `u634923` (NICHT die Box-ID — steht in der Console-Spalte
+„Benutzername"). rsync über SSH Port 23, Key-Auth verifiziert (Box-Shell ist
+restricted — kein echo; und Vorsicht: inneres `ssh` in Remote-Scripts braucht
+`-n`, sonst frisst es das stdin-Script). OFFSITE_TARGET=
+`storagebox:backups/appwrite` am Cron; Beweis: 2 komplette Backup-Sätze
+(Dump + 3 Volume-Tars) liegen offsite.
 
 - [ ] ploi → Site → Deploy-Webhook-URL kopieren
 - [ ] GitHub → Repo → Settings → Secrets and variables → Actions → Secret `PLOI_DEPLOY_WEBHOOK_COMMENTS` = Webhook-URL
