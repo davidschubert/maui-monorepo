@@ -425,6 +425,22 @@ Reihenfolge einhalten — jeder Block baut auf dem vorherigen auf.
 
 ### Block 4 — Appwrite-Prod installieren (Server 2)
 
+**✅ ERLEDIGT bis auf Davids Console-Schritte (2026-07-18, via SSH ploi@188.245.61.155):**
+Installer 1.9.5 non-interaktiv (`--interactive=N --no-start=true --database=mariadb`,
+Flags aus dem Image-Source — gepiptes stdin startet sonst einen Web-Installer!).
+`.env` VOR dem Erststart gehärtet: alle Default-Secrets ersetzt (OpenSSL-Key,
+DB-Passwörter, Executor-Secret — Werte in `~/.appwrite-secrets`, chmod 600,
+→ Passwort-Manager!), Domains auf api.pukalani.app, Force-HTTPS, Abuse,
+Console-Whitelist (mail@davidschubert.com), Resend-SMTP (Key = Platzhalter
+`RESEND_KEY_HIER_EINSETZEN` — David ersetzt ihn selbst, nie durch den Chat).
+Stolperfalle: LE-Zertifikat braucht **`_APP_EMAIL_CERTIFICATES`** (eigene Var,
+nicht nur SYSTEM_SECURITY_EMAIL) + manuellen Anstoß
+`docker compose exec appwrite ssl domain="api.pukalani.app"`. Verifiziert von
+außen: `/v1/health/version` → 1.9.5, gültiges LE-Zert, HTTP-GET→301 (HEAD
+gibt 500 — Appwrite-Eigenheit, harmlos), Console erreichbar. Die
+Dateien in `~/appwrite` gehören `ploi` (docker-chown-Trick — ploi hat kein
+passwortloses sudo, aber docker-Gruppe).
+
 - [ ] Auf „appwrite-prod": Docker + Compose-Plugin installieren (`curl -fsSL https://get.docker.com | sh`)
 - [ ] Appwrite **1.9.5** installieren (Installer nach APPWRITE-1.9.5-UPGRADE.md-Muster, Tag `1.9.5` pinnen), HTTP 80 / HTTPS 443
 - [ ] Appwrite-`.env` setzen: `_APP_ENV=production`, `_APP_DOMAIN=api.example.com`, `_APP_DOMAIN_TARGET=api.example.com`, `_APP_OPTIONS_FORCE_HTTPS=enabled`, `_APP_CONSOLE_WHITELIST_ROOT=enabled`, `_APP_CONSOLE_WHITELIST_EMAILS=mail@davidschubert.com`, `_APP_OPTIONS_ABUSE=enabled`, SMTP-Werte aus Block 0 → `docker compose up -d`
@@ -444,6 +460,36 @@ Reihenfolge einhalten — jeder Block baut auf dem vorherigen auf.
 - [ ] ✅ Console → TablesDB: Tables `audit_logs, app_config, notifications, comments, comment_votes, reports, changelog` existieren
 
 ### Block 6 — ploi-Site für die App
+
+**✅ ANGELEGT (2026-07-18, ploi-Panel per Browser):** Site 389772
+`comments.pukalani.app` auf app-prod (118713), Typ NodeJS — ploi hat **Port
+3001** vergeben (statt geplanter 3000; überall übernommen). Repo
+`davidschubert/maui-monorepo@main` verbunden (Quick Deploy AUS — Achtung:
+der Branch-Loader wählt den ERSTEN Branch vor, dependabot/* — auf main
+korrigieren!). Bewusste Abweichung von A.4: **pm2 statt systemd-Daemon** —
+ploi's NodeJS-Site-Typ bietet nur PM2/Supervisor, dafür restartet ploi den
+Prozess nach jedem Deploy automatisch (Setting „Restart process after
+deployment") und der Deploy braucht kein sudo. Start-Kommando `bash
+start-prod.sh` (Wrapper sourct die Site-`.env` → Nitro liest zur Laufzeit
+keine .env; Secrets so NICHT in der pm2-Cmdline). `.env`-Skeleton liegt
+(chmod 600, Platzhalter für PROJECT_ID/Runtime-Key/Resend). Deploy-Script
+nutzt **corepack pnpm** (kein global-Install nötig; COREPACK_ENABLE_DOWNLOAD_
+PROMPT=0). Server hat Node **24** (nodesource, ploi-Default) — engines
+`>=22` erfüllt, Abweichung vom getesteten 22 beobachten. LE-Zertifikat
+ausgestellt (Stolperfalle: `public/`-Webroot musste erst per mkdir angelegt
+werden — Monorepo hat keins). **Deploy-Learnings:** (1) Erster Build starb
+mit OOM — Nodes Default-Heap-Cap ~1,9 GB, nicht der Server (3,7 GB RAM +
+4,7 GB Swap vorhanden) → `export NODE_OPTIONS=--max-old-space-size=4096` im
+Deploy-Script, Build #2 grün. (2) ploi schreibt für NodeJS-Sites KEINEN
+Proxy-vHost — nginx blieb auf statischem /public (403/404) → vHost im
+Panel-Editor auf `proxy_pass http://127.0.0.1:3001` + WebSocket-Header
+(`Connection $http_connection` — kein connection_upgrade-Map auf dem Server)
+umgeschrieben, Test ok, Reload ok. (3) pm2-Reboot-Festigkeit ohne sudo:
+`pm2 save` + `@reboot pm2 resurrect` im ploi-User-Crontab (das
+sudo-pflichtige `pm2 startup` entfällt). **Verifiziert von außen:**
+Startseite 200 (42 KB SSR-HTML) über TLS; `/api/health` erreicht Nitro —
+antwortet bis zum Eintragen von Project-ID/Runtime-Key erwartungsgemäß mit
+INTERNAL_ERROR (Platzhalter-Env).
 
 - [ ] ploi → Server „app-prod" → „Create Site": Domain `comments.example.com`, Projekt-Typ NodeJS/Proxy auf Port **3000**
 - [ ] Repository verbinden: GitHub-Repo, Branch `main` (ploi „Quick Deploy" AUS lassen — Deploy kommt aus Actions, Block 8)
@@ -473,6 +519,13 @@ Reihenfolge einhalten — jeder Block baut auf dem vorherigen auf.
 - [ ] ✅ Trivialen Commit auf `main` pushen → Actions: Test grün → Deploy-Workflow feuert → ploi zeigt neuen Deploy → `/api/health` weiter `ok:true`
 
 ### Block 9 — Backups (Server 2)
+
+**✅ INSTALLIERT bis auf Storage Box (2026-07-18):** Scripts unter
+`/home/ploi/ops/` (nicht /opt — ploi-User ohne passwortloses sudo), Crons im
+ploi-User-Crontab: Watchdog */5, Backup 03:30 → Logs in `~/ops/logs/`,
+BACKUP_DIR=/home/ploi/backup. Beweis-Läufe grün: Watchdog Handshake 101;
+Backup Dump + 3 Volume-Tars. Offen: Storage Box bestellen + OFFSITE_TARGET
+an den Cron hängen.
 
 - [ ] Backup-Script aus dem Repo kopieren: `ops/appwrite-backup.sh` → `/opt/ops/` (✅ lokal gegen die dev-Instanz getestet: Dump 1053 Tabellen + korrekte Projekt-Volumes; Env: APPWRITE_COMPOSE_DIR, BACKUP_DIR, OFFSITE_TARGET)
 - [ ] Cron: täglich 03:30 Uhr, Ausgabe in Logfile
