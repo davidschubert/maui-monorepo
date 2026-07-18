@@ -526,6 +526,14 @@ INTERNAL_ERROR (Platzhalter-Env).
 
 ### Block 8 — GitHub Actions Deploy-Webhook
 
+**✅ SECRET GESETZT (2026-07-18):** Webhook-URL per ploi-„Copy" →
+macOS-Zwischenablage → `pbpaste | gh secret set PLOI_DEPLOY_WEBHOOK_COMMENTS`
+(Wert nie im Chat/Transkript; Clipboard danach geleert). Zusätzlich ploi
+Health-check-URL der Site auf `https://comments.pukalani.app/api/health`
+gesetzt (Mail bei Nicht-200 nach Deploy). Deploy #2 der Site war bereits
+Successful (195 s, inkl. NODE_OPTIONS-Fix). Der Push DIESES Commits ist der
+e2e-Beweis: Test → Deploy-Workflow → ploi-Deploy #3.
+
 - [ ] ploi → Site → Deploy-Webhook-URL kopieren
 - [ ] GitHub → Repo → Settings → Secrets and variables → Actions → Secret `PLOI_DEPLOY_WEBHOOK_COMMENTS` = Webhook-URL
 - [x] `deploy.yml` scharfgeschaltet (2026-07-17, vorab) — ohne Secret no-op; hier nur noch das Secret setzen
