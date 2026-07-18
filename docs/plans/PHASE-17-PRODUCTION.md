@@ -376,6 +376,17 @@ portfolio-Site — die bleibt Landing + Cases).
 
 ## TEIL B — Betreiber-Checkliste (David)
 
+> **GENERALPROBE ✅ (lokal, 2026-07-17):** Der Deploy-Pfad ist vorab
+> durchgespielt — `pnpm --filter comments build` läuft sauber (26 MB
+> .output; photos/studio/portfolio bauen ebenfalls), der Nitro-Prod-Boot
+> exakt wie der ploi-Daemon (`PORT=3000 HOST=127.0.0.1 node
+> .output/server/index.mjs`) liefert /api/health ok + Seite + Login gegen
+> die lokale Instanz. **Restore-Probe bestanden:** ops/appwrite-backup.sh-
+> Dump in eine Wegwerf-MariaDB (mariadb:11) importiert → 855 Tabellen,
+> 11 Projekte plausibel. Am Go-Live-Tag bleiben damit nur noch die
+> Infrastruktur-Schritte (Konten, Server, DNS, Envs) — jeder Code-Pfad
+> der Checkliste ist bereits einmal grün gelaufen.
+
 Legende: 💶 = kostet Geld · ⏳ = DNS-/Wartezeit · ✅-Zeilen = Verifikation.
 Reihenfolge einhalten — jeder Block baut auf dem vorherigen auf.
 
