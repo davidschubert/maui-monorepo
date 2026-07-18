@@ -144,7 +144,12 @@ _Alle erledigt (2026-06-24) — siehe „Bereits erledigt"._
 
 ## 🗺️ Roadmap — bewusst ausgeklammert
 
-- **Phase 17 – Production Deployment**: Prod-Appwrite (Hetzner), Domain, ploi.io-Site, Deploy-Webhook ([deploy.yml](../.github/workflows/deploy.yml) ist Skeleton).
+- 🔄 **Phase 17 – Production Deployment** (Stand 2026-07-18, [Checkliste](plans/PHASE-17-PRODUCTION.md)):
+  Infrastruktur KOMPLETT — Appwrite 1.9.5 auf api.pukalani.app, ploi-Site
+  comments.pukalani.app (pm2, Auto-Deploy-Kette Push→Test→Deploy→pm2-Restart
+  e2e bewiesen), Offsite-Backups (Storage Box), UptimeRobot, Watchdog, HSTS.
+  Offen NUR noch: 3 Key-Werte einsetzen (David) → Schema-Bootstrap +
+  Funktions-Smoke-Test (Blöcke 5/7) + Abschluss-Doku.
 - ✅ **Phase 18 – Realtime/Presence auf SDK** (KOMPLETT erledigt 2026-07-01
   auf 1.9.5+MariaDB — GOALS-Header nachgezogen + Trigger-Task
   `appwrite-release-watch` gelöscht am 2026-07-09):

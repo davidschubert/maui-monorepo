@@ -1,7 +1,23 @@
 # Deployment-Runbook — comments (Phase 17)
 
-Stand: 2026-06-28. Praktischer Leitfaden, um die App in Produktion zu bringen.
-Ergänzt [CONCEPT.md](CONCEPT.md) (A9 Deployment, A11 Env, A3 Session-Cookie).
+Stand: 2026-07-18 (Go-Live-Woche). Praktischer Leitfaden, um die App in
+Produktion zu bringen. Ergänzt [CONCEPT.md](CONCEPT.md) (A9 Deployment,
+A11 Env, A3 Session-Cookie) und
+[plans/PHASE-17-PRODUCTION.md](plans/PHASE-17-PRODUCTION.md) (Checkliste +
+alle Go-Live-Learnings im Detail).
+
+> **Ist-Stand (pukalani.app):** App `comments.pukalani.app` (app-prod,
+> 49.13.211.173, ploi-Site 389772) · Appwrite `api.pukalani.app`
+> (appwrite-prod, 188.245.61.155, 1.9.5, Projekt-ID `comments`) · Cloudflare
+> DNS „DNS only" · Resend-SMTP · UptimeRobot · Storage Box `maui-backup`
+> (Offsite-Backups). Abweichungen vom ursprünglichen Plan, die sich bewährt
+> haben: **pm2 statt systemd-Daemon** (ploi-NodeJS-Site, „Restart process
+> after deployment"), **Port 3001** (von ploi vergeben), **corepack pnpm**
+> statt npm-global, `NODE_OPTIONS=--max-old-space-size=4096` im
+> Deploy-Script (Node-Default-Heap ~1,9 GB reicht dem Nuxt-Build nicht),
+> Runtime-Env via `start-prod.sh`-Wrapper, der die Site-`.env` sourct
+> (Nitro liest zur Laufzeit KEINE .env), HSTS als eigene Include-Datei
+> `/etc/nginx/ploi/<site>/server/hsts.conf`.
 
 > **Architektur:** Nuxt 4 (SSR) → Nitro Node-Server. Build erzeugt
 > `apps/comments/.output/server/index.mjs`. Backend = eigene self-hosted
@@ -35,12 +51,16 @@ Sag mir, sobald das steht — dann gehen wir die Schritte gemeinsam durch.
 3. **Platforms / Domains** (CORS + OAuth + Cookie): die App-Domain UND die
    Appwrite-Domain als Web-Platform registrieren. Bei self-hosted 1.9.0:
    *Multiple Application Domains* nutzen.
-4. **Zwei API-Keys** (Konzept A2):
-   - **Runtime-Key** (`nuxt-ssr-prod`): Scopes `sessions.write`,
-     `users.read`, `users.write`, `rows.read`, `rows.write`, `health.read`.
-   - **Migrations-Key** (`migrations-prod`): Scopes `databases.*`, `tables.*`,
-     `columns.*`, `indexes.*`. **Nur für den Migrationslauf** — kommt NIE auf den
-     App-Server.
+4. **Zwei API-Keys** (Konzept A2; Scope-Liste 2026-07-18 präzisiert):
+   - **Runtime-Key** (`nuxt-ssr-prod`): `sessions.write`, `users.read`,
+     `users.write`, `rows.read`, `rows.write`, `health.read` **plus**
+     `files.read`, `files.write` (Avatar-Upload + GDPR-Snapshot laufen über
+     den Admin-Client) und `presences.read`, `presences.write`
+     (Presence-Heartbeat/Reader) — 10 Scopes.
+   - **Migrations-Key** (`migrations-prod`): `databases.*`, `tables.*`,
+     `columns.*`, `indexes.*` **plus** `buckets.*` (der Bootstrap legt die
+     Buckets an) — 10 Scopes. **Nur für den Migrationslauf** — kommt NIE auf
+     den App-Server.
 5. **SMTP** in der Appwrite-Installation (`.env` der Instanz, nicht in der
    Console) konfigurieren, sonst keine Auth-Mails.
 6. **TLS** für die Appwrite-Subdomain (ploi.io/Caddy/Traefik) — Cookie braucht `secure`.
@@ -51,66 +71,64 @@ Migrationen laufen **von einer vertrauenswürdigen Maschine** (lokal/CI) gegen d
 Prod-Endpoint — mit dem **Migrations-Key**, nicht vom App-Server aus.
 
 ```bash
-# Prod-Werte in eine separate Datei (NICHT committen):
+# Prod-Werte in eine separate Datei (NICHT committen; .gitignore deckt .env*):
 cp apps/comments/.env.example apps/comments/.env.production
-#   → NUXT_PUBLIC_APPWRITE_ENDPOINT = https://api.<domain>/v1
-#   → NUXT_PUBLIC_APPWRITE_PROJECT_ID / _DATABASE_ID = Prod-Werte
+#   → NUXT_PUBLIC_APPWRITE_ENDPOINT = https://api.pukalani.app/v1
+#   → NUXT_PUBLIC_APPWRITE_PROJECT_ID = comments · _DATABASE_ID = main
 #   → NUXT_APPWRITE_MIGRATIONS_KEY = Prod-Migrations-Key
 
-# Reihenfolge: Fundament zuerst (system), dann Features. Alle idempotent (409→skip).
-for L in system comments moderation admin; do
-  pnpm --filter @maui/$L exec node --experimental-strip-types \
-    --env-file=../../apps/comments/.env.production \
-    scripts/migrations/*.ts   # bzw. die migrate-Skripte je Layer
-done
-```
-
-> Praktisch: die `migrate`-Skripte je Layer zeigen auf die Dev-`.env`. Für Prod
-> entweder `.env.production` an dieselbe Stelle kopieren und `pnpm --filter @maui/<L> migrate`
-> laufen lassen, oder die Migrations-Dateien direkt mit `--env-file=.env.production`
-> aufrufen. Tabellen-Owner: **system** (audit_logs, app_config, notifications,
-> presence) · **comments** (comments, comment_votes) · **moderation** (reports) ·
-> **admin** (changelog). `core`/`themes` haben keine Tables.
-
-Danach den **Avatar-Bucket** anlegen (nutzt den Migrations-Key):
-```bash
+# EIN Befehl: Datenbank + Buckets + alle Migrationen
+# (system→comments→moderation→admin), idempotent (409→skip).
+nvm use 22
 node --experimental-strip-types --env-file=apps/comments/.env.production \
-  apps/comments/scripts/setup-avatars-bucket.ts
+  apps/comments/scripts/bootstrap.ts        # OHNE --seed (Prod!)
 ```
-→ Die Bucket-ID kommt als `NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET` in die App-Env (Schritt 3).
+
+> Tabellen-Owner: **system** (audit_logs, app_config, notifications) ·
+> **comments** (comments, comment_votes) · **moderation** (reports) ·
+> **admin** (changelog). `core`/`themes` haben keine Tables. Der Bootstrap
+> legt auch den `avatars`-Bucket an (daher braucht der Migrations-Key
+> `buckets.*`).
 
 **Bootstrap-Admin:** der erste Owner braucht das `admin`-Label. In der Appwrite
 Console beim eigenen User unter *Labels* `admin` setzen (Self-Lockout-Schutz greift
 danach).
 
-## 3. ploi.io-Site konfigurieren
+## 3. ploi.io-Site konfigurieren (so läuft es in Prod)
 
-| Feld | Wert |
+| Feld | Wert (pukalani-Ist-Stand) |
 |---|---|
-| Root Path | `apps/comments` |
-| Install/Build | `npm i -g pnpm && pnpm install --frozen-lockfile && pnpm --filter comments build` |
-| Start Command | `node apps/comments/.output/server/index.mjs` |
-| Port | Nitro hört auf `PORT` (Default 3000) — ploi.io-Reverse-Proxy darauf zeigen |
+| Site-Typ | NodeJS — ploi vergibt den Port (hier **3001**); nginx-vHost proxied NICHT automatisch → `location /` manuell auf `proxy_pass http://127.0.0.1:3001` + WebSocket-Header umstellen (Panel-nginx-Editor) |
+| NodeJS-Service | PM2, Start command `bash start-prod.sh`, „Restart process after deployment" AN |
+| Deploy-Script | `git pull` → `export COREPACK_ENABLE_DOWNLOAD_PROMPT=0` → `export NODE_OPTIONS=--max-old-space-size=4096` → `corepack pnpm install --frozen-lockfile` → `corepack pnpm --filter comments build` (pm2-Restart macht ploi) |
+| Reboot-Festigkeit | `pm2 save` einmalig + `@reboot pm2 resurrect` im ploi-Crontab (kein sudo nötig) |
+| HSTS | eigene Include-Datei `server/hsts.conf` mit `add_header Strict-Transport-Security "max-age=15768000" always;` |
 
-**Server Environment Variables** in ploi.io (NICHT im Repo):
+**Runtime-Env** liegt in `/home/ploi/<site>/.env` (chmod 600) und wird vom
+`start-prod.sh`-Wrapper mit `set -a; source .env` in die Prozess-Umgebung
+gehoben — Nitro liest zur Laufzeit keine .env-Datei:
 ```
 NUXT_APPWRITE_KEY=<Runtime-Key>                     # server-only
-NUXT_PUBLIC_APPWRITE_ENDPOINT=https://api.<domain>/v1
-NUXT_PUBLIC_APPWRITE_PROJECT_ID=<prod>
-NUXT_PUBLIC_APPWRITE_DATABASE_ID=<prod>
-NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET=<bucket-id aus Schritt 2>
-NUXT_PUBLIC_APP_URL=https://<app-domain>
+NUXT_PUBLIC_APPWRITE_ENDPOINT=https://api.pukalani.app/v1
+NUXT_PUBLIC_APPWRITE_PROJECT_ID=comments
+NUXT_PUBLIC_APPWRITE_DATABASE_ID=main
+NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET=avatars
+NUXT_PUBLIC_APP_URL=https://comments.pukalani.app
+NUXT_PUBLIC_I18N_BASE_URL=https://comments.pukalani.app
+NUXT_SMTP_HOST=smtp.resend.com                      # + PORT/USER/PASS/FROM
 ```
 > **NICHT** auf den Server: `NUXT_APPWRITE_MIGRATIONS_KEY`. Der gehört nur zum
-> Migrationslauf (Schritt 2).
+> Migrationslauf (Schritt 2). Nach Env-Änderungen: `pm2 restart <prozess>`.
 
 ## 4. Deploy auslösen
 
-- **Jetzt:** `.github/workflows/deploy.yml` ist ein Skeleton (manuell, no-op).
-- **Aktivieren:** in ploi.io einen Deploy-Webhook erzeugen, die URL als Repo-Secret
-  `PLOI_DEPLOY_WEBHOOK_REDDIT_COMMENTS` hinterlegen, den auskommentierten Job in
-  `deploy.yml` einkommentieren. Dann deployt jeder Push auf `main` automatisch.
-- **Alternativ:** ploi.io direkt aufs Repo zeigen lassen (Quick Deploy bei Push).
+- **Aktiv seit 2026-07-18:** jeder Push auf `main` → CI „Test" → Workflow
+  „Deploy" ruft den ploi-Webhook (Repo-Secret
+  `PLOI_DEPLOY_WEBHOOK_COMMENTS`) → ploi pullt, baut, restartet pm2.
+  Kette e2e verifiziert. ploi Quick Deploy bleibt bewusst AUS (Deploy nur
+  nach grünem Test).
+- ploi-„Health check URL" der Site steht auf
+  `https://comments.pukalani.app/api/health` → Mail bei Nicht-200 nach Deploy.
 
 ## 5. Verifikation nach dem Deploy
 
