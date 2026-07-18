@@ -549,6 +549,23 @@ an den Cron hängen.
 
 ### Block 10 — Monitoring & Watchdog
 
+**UptimeRobot ✅ (2026-07-18, per Browser in Davids Account):** Monitor 1
+`https://api.pukalani.app/v1/health/version` (HTTP, 5 min) — aktiv und grün.
+Monitor 2 `https://comments.pukalani.app/api/health` (Keyword-Monitor,
+Incident wenn `"ok":true` FEHLT, 5 min) — angelegt aber PAUSIERT, bis die
+Appwrite-Keys eingesetzt sind und der Smoke-Test grün ist (sonst
+Dauer-Alarm). E-Mail-Alerts an mail@davidschubert.com, Test-Mail verschickt.
+Öffentliche Status-Page bewusst DEAKTIVIERT (kann später aktiviert werden).
+
+**Storage Box ✅ bestellt (2026-07-18):** `maui-backup` BX11 (1 TB,
+3,81 €/Monat, Falkenstein, #617130) über die Hetzner Console. SSH-Support
+aktiviert, SSH-Key des ploi-Users von appwrite-prod hinterlegt
+(`ploi-appwrite-prod-backup`); Passwort NICHT gesetzt (SSH-Key-Auth; bei
+Bedarf jederzeit „Passwort zurücksetzen" in der Console). ~/.ssh/config auf
+appwrite-prod: Host `storagebox` → u617130.your-storagebox.de:23. Externe
+Erreichbarkeit AUS (Hetzner-intern reicht). OFFSITE_TARGET kommt an den
+Cron, sobald die Box provisioniert ist + rsync-Probe grün.
+
 - [ ] UptimeRobot (o.ä.): Monitor 1 `https://comments.example.com/api/health` (Keyword `"ok":true`), Monitor 2 `https://api.example.com/` — Alerts an eigene E-Mail
 - [ ] ploi-Monitoring für beide Server aktivieren (Server 2 als „server only" verbinden): CPU/RAM/**Disk**-Schwellwerte + Notification
 - [ ] Realtime-Watchdog aus dem Repo kopieren: `ops/realtime-watchdog.sh` → `/opt/ops/` + Cron alle 5 min (✅ lokal getestet: Stopp-Probe → Container neu erstellt → 101-Handshake; optional ALERT_WEBHOOK)
