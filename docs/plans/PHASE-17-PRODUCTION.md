@@ -596,7 +596,7 @@ Cron, sobald die Box provisioniert ist + rsync-Probe grün.
 
 - [ ] Alle Werte (IPs, IDs, Keys, Webhook, Storage-Box) final im Passwort-Manager
 - [ ] `docs/DEPLOYMENT.md` um die realen Werte-Platzhalter/Erkenntnisse ergänzen; OPEN-ITEMS: Phase 17 als ✅ mit Datum; README-Status-Tabelle aktualisieren + committen + pushen
-- [ ] Follow-ups terminieren (A.10): `changelog-draft`-Function deployen (Track 2B, braucht die jetzt vorhandene öffentliche Domain), Observability-Gate, `comment_votes`-Table-Read-Migration, Zero-Downtime Stufe 2
+- [ ] Follow-ups terminieren (A.10): `changelog-draft`-Function deployen (Track 2B, braucht die jetzt vorhandene öffentliche Domain), Zero-Downtime Stufe 2. (Zwei früher gelistete Punkte waren veraltet: `comment_votes`-Table-Read seit 2026-07-02 gelöst (comments-007/008, s. A.8); Observability-Gate ist in apps/comments/app/app.config.ts längst aktiv — enabled + clientErrors.)
 
 **Laufende Kosten (Zielbild):** CX32 ~7 € + CX22 ~4 € + Backups ~1,40 € +
 Storage Box ~4 € + ploi ~8–10 € + Domain anteilig ≈ **25–28 €/Monat**.
