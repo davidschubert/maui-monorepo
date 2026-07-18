@@ -452,6 +452,19 @@ passwortloses sudo, aber docker-Gruppe).
 
 ### Block 5 — Schema-Bootstrap (von der lokalen Maschine)
 
+**Vorarbeit ✅ (2026-07-18):** Projekt `comments` + beide Keys von David
+angelegt; Claude hat per Console (Davids Browser-Session) beide Keys auf
+least-privilege eingeengt (je 10 Scopes — Runtime: users.r/w, sessions.write,
+rows.r/w, files.r/w, health.read, presences.r/w; Migrations: databases/
+tables/columns/indexes/buckets je r/w — buckets wegen Bootstrap-Bucket-
+Anlage, files/presences als dokumentierte Ergänzung zu DEPLOYMENT.md §1),
+Web-Platform `comments.pukalani.app` (Typ Nuxt) angelegt,
+`apps/comments/.env.production` mit allen Nicht-Secrets vorbereitet.
+**Known-Limitation:** „Deny disposable emails" (Auth → Security) lässt sich
+auf 1.9.5 self-hosted NICHT speichern — die gebundelte Console ist dem
+Server-API voraus (PATCH-Endpoint fehlt, Update verpufft nach Reload).
+Beim nächsten Appwrite-Upgrade erneut versuchen; bis dahin ohne.
+
 - [ ] `cp apps/comments/.env.example apps/comments/.env.production` und füllen: Endpoint `https://api.example.com/v1`, Project-ID, `NUXT_PUBLIC_APPWRITE_DATABASE_ID=main`, `NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET=avatars`, `NUXT_APPWRITE_KEY=<migrations-prod>` (Bootstrap braucht die Schema-Scopes) — Datei ist durch `.gitignore` (`.env*`) gedeckt, trotzdem: NIE committen
 - [ ] `nvm use 22` und Bootstrap laufen lassen: `node --experimental-strip-types --env-file=apps/comments/.env.production apps/comments/scripts/bootstrap.ts` (OHNE `--seed`!)
 - [ ] ✅ Ausgabe: Datenbank ✔/↷, Bucket ✔/↷, alle Migrationen system→comments→moderation→admin grün
