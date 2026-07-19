@@ -4,7 +4,9 @@ const appConfig = useAppConfig()
 const { user, isLoggedIn } = useCurrentUser()
 const toast = useToast()
 
-// Pro Tab einmal wegklickbar (kein Cookie — der Hinweis darf wiederkommen)
+// Session-Dismiss nach erfolgreichem Resend; das X des UBanner persistiert
+// zusätzlich pro User in localStorage (banner-email-verify-<userId>) —
+// nach einem harten Reload bleibt der Banner damit weggeklickt.
 const dismissed = ref(false)
 const sending = ref(false)
 
@@ -14,6 +16,12 @@ const visible = computed(() =>
   && user.value?.emailVerification === false
   && !dismissed.value,
 )
+
+const actions = computed(() => [{
+  label: t('auth.verification.resend'),
+  loading: sending.value,
+  onClick: () => { void resend() },
+}])
 
 async function resend() {
   sending.value = true
@@ -32,18 +40,14 @@ async function resend() {
 </script>
 
 <template>
-  <div
+  <UBanner
     v-if="visible"
-    role="region"
-    :aria-label="t('auth.verification.bannerTitle')"
+    :id="`email-verify-${user?.$id}`"
+    icon="i-lucide-mail-warning"
+    color="neutral"
+    :title="t('auth.verification.bannerMessage')"
+    :actions="actions"
+    close
     data-testid="email-verify-banner"
-    class="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-xl rounded-lg border border-default bg-default p-4 shadow-lg"
-  >
-    <p class="text-sm font-medium">{{ t('auth.verification.bannerTitle') }}</p>
-    <p class="mt-1 text-sm text-muted">{{ t('auth.verification.bannerMessage') }}</p>
-    <div class="mt-3 flex justify-end gap-2">
-      <UButton color="neutral" variant="ghost" size="sm" @click="dismissed = true">{{ t('auth.verification.later') }}</UButton>
-      <UButton size="sm" :loading="sending" @click="resend">{{ t('auth.verification.resend') }}</UButton>
-    </div>
-  </div>
+  />
 </template>

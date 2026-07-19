@@ -6,6 +6,7 @@ const { isLoggedIn } = useCurrentUser()
 
 <template>
   <div class="flex min-h-screen flex-col">
+    <AuthEmailVerifyBanner />
     <header class="border-b border-default">
       <nav data-testid="main-nav" class="mx-auto flex w-full max-w-5xl items-center justify-between p-4">
         <NuxtLink :to="localePath('/')" class="font-bold tracking-tight">Maui</NuxtLink>
@@ -27,6 +28,5 @@ const { isLoggedIn } = useCurrentUser()
     </footer>
 
     <ConsentCookieBanner />
-    <AuthEmailVerifyBanner />
   </div>
 </template>

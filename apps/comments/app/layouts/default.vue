@@ -36,6 +36,7 @@ const centerNav = computed<NavigationMenuItem[]>(() => [
 
 <template>
   <div class="flex min-h-screen flex-col">
+    <AuthEmailVerifyBanner />
     <header class="border-b border-default">
       <!-- Volle Breite, drei Zonen: Brand links, Seiten-Nav zentriert, Utilities rechts.
            Unter md bricht die Seiten-Nav in eine eigene, zentrierte Zeile um. -->
@@ -81,6 +82,5 @@ const centerNav = computed<NavigationMenuItem[]>(() => [
     <FeedbackButton />
 
     <ConsentCookieBanner />
-    <AuthEmailVerifyBanner />
   </div>
 </template>
