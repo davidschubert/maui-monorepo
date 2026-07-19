@@ -1,7 +1,8 @@
 {
   "admin": {
     "nav": {
-      "sites": "Sites"
+      "sites": "Sites",
+      "workspaces": "Workspaces"
     }
   },
   "studio": {
@@ -52,6 +53,27 @@
       "saveFailed": "Features konnten nicht gespeichert werden",
       "none": "Keine Features zugeteilt",
       "save": "Speichern"
+    },
+    "workspaces": {
+      "title": "Workspaces",
+      "create": "Workspace anlegen",
+      "createTitle": "Neuen Workspace anlegen",
+      "created": "Workspace „{name}“ angelegt",
+      "createFailed": "Anlegen fehlgeschlagen",
+      "edit": "Bearbeiten",
+      "editTitle": "Workspace „{name}“ bearbeiten",
+      "saved": "Workspace „{name}“ gespeichert",
+      "saveFailed": "Speichern fehlgeschlagen",
+      "empty": "Noch keine Workspaces — lege den ersten an.",
+      "noSites": "Keine Sites zugeordnet",
+      "planFeatures": "Plan-Features",
+      "fieldName": "Name",
+      "fieldOwnerEmail": "Inhaber-E-Mail",
+      "fieldOwnerEmailHint": "Rechnungs-/Kontaktadresse des Kunden",
+      "operator": "Betreiber",
+      "assignLabel": "Workspace zuordnen",
+      "assigned": "Workspace-Zuordnung von „{name}“ gespeichert",
+      "assignFailed": "Zuordnung fehlgeschlagen"
     }
   }
 }

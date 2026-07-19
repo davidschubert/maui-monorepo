@@ -1,7 +1,8 @@
 {
   "admin": {
     "nav": {
-      "sites": "Sites"
+      "sites": "Sites",
+      "workspaces": "Workspaces"
     }
   },
   "studio": {
@@ -52,6 +53,27 @@
       "saveFailed": "Could not save features",
       "none": "No features granted",
       "save": "Save"
+    },
+    "workspaces": {
+      "title": "Workspaces",
+      "create": "Create workspace",
+      "createTitle": "Create a new workspace",
+      "created": "Workspace “{name}” created",
+      "createFailed": "Creation failed",
+      "edit": "Edit",
+      "editTitle": "Edit workspace “{name}”",
+      "saved": "Workspace “{name}” saved",
+      "saveFailed": "Saving failed",
+      "empty": "No workspaces yet — create the first one.",
+      "noSites": "No sites assigned",
+      "planFeatures": "Plan features",
+      "fieldName": "Name",
+      "fieldOwnerEmail": "Owner email",
+      "fieldOwnerEmailHint": "Billing/contact address of the customer",
+      "operator": "Operator",
+      "assignLabel": "Assign workspace",
+      "assigned": "Workspace assignment of “{name}” saved",
+      "assignFailed": "Assignment failed"
     }
   }
 }

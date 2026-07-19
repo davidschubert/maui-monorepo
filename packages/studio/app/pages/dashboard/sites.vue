@@ -15,6 +15,28 @@ type SiteWithEntitlements = SiteRow & { entitlements: string[] }
 const { data, refresh } = await useFetch<{ sites: SiteWithEntitlements[] }>('/api/studio/sites')
 const { data: jobsData, refresh: refreshJobs } = await useFetch<{ jobs: JobRow[] }>('/api/studio/jobs')
 const { data: catalogData } = await useFetch<{ features: FeatureCatalogEntry[] }>('/api/studio/features')
+const { data: workspacesData } = await useFetch<{ workspaces: { $id: string, name: string }[] }>('/api/studio/workspaces')
+
+// ── Workspace-Zuordnung (M8-T2) ─────────────────────────────────────────────
+// Sentinel statt '': Reka-SelectItem verbietet Leerstrings als value
+const NO_WORKSPACE = 'operator'
+const workspaceOptions = computed(() => [
+  { label: t('studio.workspaces.operator'), value: NO_WORKSPACE },
+  ...(workspacesData.value?.workspaces ?? []).map(w => ({ label: w.name, value: w.$id })),
+])
+
+async function assignWorkspace(site: SiteRow, value: string) {
+  const workspaceId = value === NO_WORKSPACE ? '' : value
+  if (workspaceId === (site.workspaceId ?? '')) return
+  try {
+    await $fetch(`/api/studio/sites/${site.$id}`, { method: 'PATCH', body: { workspaceId } })
+    toast.add({ title: t('studio.workspaces.assigned', { name: site.name }), color: 'success' })
+  }
+  catch (error) {
+    toast.add({ title: t('studio.workspaces.assignFailed'), description: (error as { statusMessage?: string })?.statusMessage, color: 'error' })
+  }
+  await refresh()
+}
 
 // ── Manuelle Registrierung (T1) ─────────────────────────────────────────────
 const showRegister = ref(false)
@@ -238,6 +260,15 @@ const jobColor = (s: string) => (s === 'done' ? 'success' : s === 'running' ? 'i
             </div>
           </div>
           <div class="flex items-center gap-1">
+            <USelect
+              :model-value="site.workspaceId || NO_WORKSPACE"
+              :items="workspaceOptions"
+              size="sm"
+              :ui="{ content: 'min-w-fit' }"
+              :aria-label="t('studio.workspaces.assignLabel')"
+              :data-site-workspace="site.slug"
+              @update:model-value="assignWorkspace(site, $event as string)"
+            />
             <UButton icon="i-ph-stack" size="sm" color="neutral" variant="ghost" :data-site-entitle="site.slug" @click="openEntitlements(site)">
               {{ t('studio.entitlements.manage') }}
             </UButton>

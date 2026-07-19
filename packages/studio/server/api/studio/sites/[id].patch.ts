@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { SITES_TABLE, SITE_STATUSES, type SiteRow } from '../../../../shared/types/site'
+import { WORKSPACES_TABLE } from '../../../../shared/types/workspace'
 
 const patchSchema = z.object({
   name: z.string().trim().min(1).max(100).optional(),
@@ -7,6 +8,8 @@ const patchSchema = z.object({
   appUrl: z.string().url().max(256).or(z.literal('')).optional(),
   status: z.enum(SITE_STATUSES).optional(),
   notes: z.string().max(1000).optional(),
+  /** Workspace-Zuordnung (M8-T2); '' = Betreiber-Workspace (Zuordnung lösen). */
+  workspaceId: z.string().max(36).optional(),
 }).strict()
 
 /**
@@ -29,6 +32,17 @@ export default defineEventHandler(async (event) => {
 
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
+
+  // Zuordnung nur zu existierenden Workspaces — ein Tippfehler darf keine
+  // Geister-Zuordnung erzeugen ('' löst die Zuordnung, keine Prüfung nötig)
+  if (body.workspaceId) {
+    await admin.tablesDB.getRow({
+      databaseId: config.public.appwriteDatabaseId,
+      tableId: WORKSPACES_TABLE,
+      rowId: body.workspaceId,
+    }).catch((error) => { throw toH3Error(error, 'Workspace not found') })
+  }
+
   const row = await admin.tablesDB.updateRow<SiteRow>({
     databaseId: config.public.appwriteDatabaseId,
     tableId: SITES_TABLE,

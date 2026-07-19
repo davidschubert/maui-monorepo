@@ -28,6 +28,9 @@ export interface SiteRow extends Models.Row {
   /** JSON-Array der wirksam aktiven Feature-Keys der Site — Snapshot vom
    *  Health-Sweep (GET /api/platform/features der Site, M6-T4). */
   features: string
+  /** Workspace-Zuordnung (M8, Migration studio-006); '' = impliziter
+   *  Betreiber-Workspace (volle manuelle Grants, Verhalten wie vor M8). */
+  workspaceId: string
 }
 
 export const SITES_TABLE = 'sites'
