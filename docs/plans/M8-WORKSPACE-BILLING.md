@@ -70,6 +70,48 @@ Mode einen Preis mit diesem lookup_key anlegen, fertig.
      den Rest selbst (featureGates evaluiert das Dokument bereits).
 3. Zustellung: unverändert der 15-min-Pull der signierten Dokumente.
 
+## Umsetzungsstand T3 (2026-07-19, nachts autonom)
+
+- **billing-Layer**: neuer Abo-Lifecycle-Vertrag `registerSubscriptionFulfillment`
+  (Spiegel des Checkout-Vertrags): der Webhook reicht nach Signatur-Check +
+  nicht-stalem Upsert ein `VerifiedSubscriptionUpdate` (Status, Metadata,
+  Periodenende) an App-Handler weiter. Dazu `createSubscriptionCheckoutSession`
+  (mode subscription, Metadata auch auf `subscription_data` — nur so tragen
+  spätere subscription.*-Events die workspaceId) BEWUSST ohne den
+  409-„bereits aktiv"-Check (Operator hält mehrere Workspace-Abos).
+- **studio-Layer**: `replaceSiteGrants` (gemeinsame Ersetzen-Logik mit
+  entitlements.put), `applyWorkspacePlan` (Katalog laden → requires-Schluss →
+  alle Workspace-Sites syncen → Workspace-Row patchen),
+  `handleWorkspaceSubscriptionUpdate` (Policy pure:
+  `subscriptionUpdateToAction`, 13 Unit-Tests).
+- **apps/studio**: extends billing (Manifest/Deps/checks grün),
+  `maui.billing.enabled` an (plans leer — kein Site-Abo-Verkauf),
+  Fulfillment-Plugin (A14 wie apps/comments↔events), Checkout-Route
+  `POST /api/studio/workspaces/:id/checkout`, billing-Migration gegen
+  studio-1xsl gelaufen. UI: „Plan ändern"-Modal (Radio pro/business →
+  Stripe-hosted Checkout; Downgrade-Hinweis).
+- **Kündigungs-Design-ÄNDERUNG gegenüber dem Entwurf**: keine eigenen
+  validUntil/graceUntil-Spalten — STRIPE ist der Timer.
+  `cancel_at_period_end` hält den Status bis zum Periodenende auf active;
+  erst `customer.subscription.deleted` liefert canceled → der Handler setzt
+  den Workspace aufs **free-Set** zurück (NIE null Features — Gekündigte sind
+  nie schlechter gestellt als Nie-Zahler). past_due/unpaid = Status-Marker,
+  Grants bleiben (Stripe-Dunning ist die Grace-Periode).
+- **Stripe (Test-Mode/Sandbox, acct Hawaii Studio)**: Produkte angelegt und
+  per Dashboard-Suche verifiziert — „Workspace Pro" 29 €/Monat
+  (`workspace_pro_monthly`) + „Workspace Business" 79 €/Monat
+  (`workspace_business_monthly`). Preise sind PLATZHALTER — Davids
+  Entscheidung, im Test-Mode beliebig änderbar.
+- **Was fürs Test-Mode-E2E noch fehlt (David, ~5 min):**
+  1. Test-Secret-Key (sk_test_…) aus dem Stripe-Dashboard →
+     `apps/studio/.env` als `NUXT_STRIPE_SECRET_KEY` (Zwischenablage/nano,
+     nie durch den Chat).
+  2. Für Webhooks lokal: `stripe listen --forward-to
+     localhost:3004/api/stripe/webhook` (Stripe CLI, einmal `stripe login`) —
+     das ausgegebene whsec_… als `NUXT_STRIPE_WEBHOOK_SECRET` in dieselbe .env.
+  3. Studio-Dev neu starten → Workspaces → „Plan ändern" → Testkarte
+     4242 4242 4242 4242 → Grants aller Workspace-Sites springen um.
+
 ## Reine Funktionen zuerst (Unit-testbar ohne Stripe)
 
 - `planToGrants(planKey, catalog, sites) → Grant-Operationen` (pure)

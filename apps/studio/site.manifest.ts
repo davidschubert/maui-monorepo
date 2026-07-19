@@ -11,5 +11,6 @@ export default {
     'themes',
     'admin',
     'studio',
+    'billing',
   ],
 } satisfies SiteManifest

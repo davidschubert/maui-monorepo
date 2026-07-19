@@ -7,6 +7,11 @@ export default defineAppConfig({
   //   consent: true,
   //   auth: { providers: ['github'], termsUrl: '/agb', otp: true },
   // }
-  maui: {},
+  maui: {
+    // M8: Stripe-Transport des billing-Layers für WORKSPACE-Billing aktivieren.
+    // plans bleibt leer — das Studio verkauft keine Site-Abos an Endnutzer;
+    // die Workspace-Pläne leben in maui.studio.plans (lookup_keys).
+    billing: { enabled: true },
+  },
   ui: {},
 })

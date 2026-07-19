@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { closeOverRequires, planToGrants, subscriptionEventToWorkspacePatch } from '../shared/workspaceBilling'
+import { closeOverRequires, planToGrants, subscriptionUpdateToAction } from '../shared/workspaceBilling'
 import type { StudioPlanCatalog } from '../shared/types/workspace'
 
 const CATALOG = [
@@ -52,36 +52,42 @@ describe('planToGrants', () => {
   })
 })
 
-describe('subscriptionEventToWorkspacePatch', () => {
-  it('active setzt Plan + Status', () => {
-    expect(subscriptionEventToWorkspacePatch({ type: 'subscription.active', plan: 'pro' }))
-      .toEqual({ plan: 'pro', status: 'active' })
+describe('subscriptionUpdateToAction', () => {
+  const meta = (extra: Record<string, string> = {}) => ({ workspaceId: 'ws-1', plan: 'pro', ...extra })
+
+  it('active/trialing wenden den Plan aus der Metadata an', () => {
+    expect(subscriptionUpdateToAction({ status: 'active', metadata: meta() }, PLANS))
+      .toEqual({ kind: 'apply-plan', workspaceId: 'ws-1', plan: 'pro' })
+    expect(subscriptionUpdateToAction({ status: 'trialing', metadata: meta() }, PLANS))
+      .toEqual({ kind: 'apply-plan', workspaceId: 'ws-1', plan: 'pro' })
   })
 
-  it('active ohne plan-Metadata ist ein Fehler', () => {
-    expect(() => subscriptionEventToWorkspacePatch({ type: 'subscription.active' }))
-      .toThrow(/ohne plan-Metadata/)
+  it('ohne workspaceId-Metadata wird ignoriert (fremdes Abo, z. B. Site-Billing)', () => {
+    expect(subscriptionUpdateToAction({ status: 'active', metadata: { plan: 'pro' } }, PLANS))
+      .toEqual({ kind: 'ignore', reason: 'no-workspace-metadata' })
   })
 
-  it('past_due ändert nur den Status (Entitlements bleiben)', () => {
-    expect(subscriptionEventToWorkspacePatch({ type: 'subscription.past_due' }))
-      .toEqual({ status: 'past_due' })
+  it('unbekannter/fehlender Plan wird ignoriert statt geraten', () => {
+    expect(subscriptionUpdateToAction({ status: 'active', metadata: meta({ plan: 'enterprise' }) }, PLANS).kind).toBe('ignore')
+    expect(subscriptionUpdateToAction({ status: 'active', metadata: { workspaceId: 'ws-1' } }, PLANS).kind).toBe('ignore')
   })
 
-  it('canceled läuft über validUntil/graceUntil aus statt sofort zu löschen', () => {
-    const patch = subscriptionEventToWorkspacePatch(
-      { type: 'subscription.canceled', currentPeriodEnd: '2026-08-01T00:00:00.000Z' },
-      { graceDays: 7 },
-    )
-    expect(patch.status).toBe('canceled')
-    expect(patch.validUntil).toBe('2026-08-01T00:00:00.000Z')
-    expect(patch.graceUntil).toBe('2026-08-08T00:00:00.000Z')
+  it('past_due/unpaid markieren nur den Status (Grants bleiben — Stripe-Dunning ist die Grace)', () => {
+    expect(subscriptionUpdateToAction({ status: 'past_due', metadata: meta() }, PLANS))
+      .toEqual({ kind: 'past-due', workspaceId: 'ws-1' })
+    expect(subscriptionUpdateToAction({ status: 'unpaid', metadata: meta() }, PLANS))
+      .toEqual({ kind: 'past-due', workspaceId: 'ws-1' })
   })
 
-  it('canceled ohne/mit kaputtem Periodenende ist ein Fehler', () => {
-    expect(() => subscriptionEventToWorkspacePatch({ type: 'subscription.canceled' }))
-      .toThrow(/ohne currentPeriodEnd/)
-    expect(() => subscriptionEventToWorkspacePatch({ type: 'subscription.canceled', currentPeriodEnd: 'nope' }))
-      .toThrow(/Ungültiges currentPeriodEnd/)
+  it('canceled/incomplete_expired fallen aufs free-Set zurück (nie auf null Features)', () => {
+    expect(subscriptionUpdateToAction({ status: 'canceled', metadata: meta() }, PLANS))
+      .toEqual({ kind: 'free-fallback', workspaceId: 'ws-1' })
+    expect(subscriptionUpdateToAction({ status: 'incomplete_expired', metadata: meta() }, PLANS))
+      .toEqual({ kind: 'free-fallback', workspaceId: 'ws-1' })
+  })
+
+  it('incomplete/paused/Unbekanntes fasst nichts an', () => {
+    expect(subscriptionUpdateToAction({ status: 'incomplete', metadata: meta() }, PLANS).kind).toBe('ignore')
+    expect(subscriptionUpdateToAction({ status: 'paused', metadata: meta() }, PLANS).kind).toBe('ignore')
   })
 })

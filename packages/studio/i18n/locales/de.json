@@ -73,7 +73,15 @@
       "operator": "Betreiber",
       "assignLabel": "Workspace zuordnen",
       "assigned": "Workspace-Zuordnung von „{name}“ gespeichert",
-      "assignFailed": "Zuordnung fehlgeschlagen"
+      "assignFailed": "Zuordnung fehlgeschlagen",
+      "changePlan": "Plan ändern",
+      "changePlanTitle": "Plan für „{name}“ ändern",
+      "currentPlan": "Aktueller Plan",
+      "targetPlan": "Neuer Plan",
+      "changePlanHelp": "Bezahlpläne laufen über den Stripe-Checkout; die Features aller zugeordneten Sites werden nach Zahlungseingang automatisch synchronisiert.",
+      "downgradeHint": "Downgrade auf free: Abo in Stripe kündigen — zum Periodenende fällt der Workspace automatisch aufs free-Set zurück.",
+      "toCheckout": "Zum Checkout",
+      "checkoutFailed": "Checkout konnte nicht gestartet werden"
     }
   }
 }

@@ -66,6 +66,38 @@ async function saveEdit() {
   await refresh()
 }
 
+// ── Plan ändern (T3): paid → Stripe-hosted Checkout; free → Kündigungs-Hinweis ──
+const planTarget = ref<WorkspaceWithSites | null>(null)
+const chosenPlan = ref('')
+const startingCheckout = ref(false)
+const { locale } = useI18n()
+
+const paidPlans = computed(() =>
+  Object.entries((appConfig.maui as { studio?: { plans?: Record<string, { lookupKey: string | null }> } }).studio?.plans ?? {})
+    .filter(([, plan]) => plan.lookupKey)
+    .map(([key]) => key))
+
+function openPlanChange(workspace: WorkspaceWithSites) {
+  planTarget.value = workspace
+  chosenPlan.value = paidPlans.value.find(key => key !== workspace.plan) ?? paidPlans.value[0] ?? ''
+}
+
+async function startCheckout() {
+  if (!planTarget.value || !chosenPlan.value) return
+  startingCheckout.value = true
+  try {
+    const { url } = await $fetch<{ url: string }>(`/api/studio/workspaces/${planTarget.value.$id}/checkout`, {
+      method: 'POST',
+      body: { plan: chosenPlan.value, locale: locale.value.startsWith('de') ? 'de' : 'en' },
+    })
+    window.location.href = url
+  }
+  catch (error) {
+    toast.add({ title: t('studio.workspaces.checkoutFailed'), description: (error as { statusMessage?: string })?.statusMessage, color: 'error' })
+    startingCheckout.value = false
+  }
+}
+
 const planColor = (plan: string) => (plan === 'business' ? 'primary' : plan === 'pro' ? 'info' : 'neutral') as 'primary' | 'info' | 'neutral'
 const statusColor = (s: string) => (s === 'active' ? 'success' : s === 'past_due' ? 'warning' : 'error') as 'success' | 'warning' | 'error'
 </script>
@@ -110,6 +142,9 @@ const statusColor = (s: string) => (s === 'active' ? 'success' : s === 'past_due
             </p>
           </div>
           <div class="flex items-center gap-1">
+            <UButton icon="i-ph-credit-card" size="sm" color="neutral" variant="ghost" :data-workspace-plan-change="workspace.name" @click="openPlanChange(workspace)">
+              {{ t('studio.workspaces.changePlan') }}
+            </UButton>
             <UButton icon="i-ph-pencil-simple" size="sm" color="neutral" variant="ghost" :data-workspace-edit="workspace.name" @click="openEdit(workspace)">
               {{ t('studio.workspaces.edit') }}
             </UButton>
@@ -131,6 +166,33 @@ const statusColor = (s: string) => (s === 'active' ? 'success' : s === 'past_due
             <UButton color="neutral" variant="ghost" @click="showCreate = false">{{ t('studio.sites.cancel') }}</UButton>
             <UButton :disabled="!form.name.trim() || !form.ownerEmail.trim()" :loading="creating" data-workspace-save @click="createWorkspace">
               {{ t('studio.workspaces.create') }}
+            </UButton>
+          </div>
+        </template>
+      </UModal>
+
+      <!-- T3: Plan ändern — paid via Stripe-hosted Checkout, Downgrade via Kündigung -->
+      <UModal :open="!!planTarget" :title="t('studio.workspaces.changePlanTitle', { name: planTarget?.name ?? '' })" @update:open="planTarget = null">
+        <template #body>
+          <div class="space-y-4">
+            <p class="text-sm text-muted">
+              {{ t('studio.workspaces.currentPlan') }}: <UBadge :color="planColor(planTarget?.plan ?? 'free')" variant="subtle" size="sm">{{ planTarget?.plan }}</UBadge>
+            </p>
+            <UFormField :label="t('studio.workspaces.targetPlan')" :help="t('studio.workspaces.changePlanHelp')">
+              <URadioGroup
+                v-model="chosenPlan"
+                :items="paidPlans.map(key => ({ label: `${key} — ${planFeatures(key).join(', ')}`, value: key }))"
+                data-plan-choice
+              />
+            </UFormField>
+            <p class="text-xs text-muted">{{ t('studio.workspaces.downgradeHint') }}</p>
+          </div>
+        </template>
+        <template #footer>
+          <div class="flex w-full justify-end gap-2">
+            <UButton color="neutral" variant="ghost" @click="planTarget = null">{{ t('studio.sites.cancel') }}</UButton>
+            <UButton :disabled="!chosenPlan || chosenPlan === planTarget?.plan" :loading="startingCheckout" data-plan-checkout @click="startCheckout">
+              {{ t('studio.workspaces.toCheckout') }}
             </UButton>
           </div>
         </template>

@@ -1,5 +1,5 @@
 import type { FeatureCatalogEntry } from './types/job'
-import type { StudioPlanCatalog, WorkspaceStatus } from './types/workspace'
+import type { StudioPlanCatalog } from './types/workspace'
 
 /**
  * M8 Workspace-Billing — die PUREN Bausteine (ohne Stripe, ohne I/O):
@@ -52,50 +52,52 @@ export function planToGrants(
   return siteProjectIds.map(siteProjectId => ({ siteProjectId, features }))
 }
 
-/** Vom billing-Layer bereits VERIFIZIERTES Abo-Ereignis (nie rohes
- *  Stripe-JSON — Signatur/Idempotenz gehören dem billing-Layer). */
-export interface VerifiedSubscriptionEvent {
-  type: 'subscription.active' | 'subscription.past_due' | 'subscription.canceled'
-  /** Plan-Key aus der Checkout-Metadata; Pflicht bei subscription.active. */
-  plan?: string
-  /** Periodenende (ISO) — Basis für validUntil/graceUntil beim Auslaufen. */
-  currentPeriodEnd?: string
+/** Vom billing-Layer bereits VERIFIZIERTES Abo-Update (nie rohes
+ *  Stripe-JSON — Signatur/Idempotenz gehören dem billing-Layer). Bewusst
+ *  strukturell statt Import des billing-Typs: studio kennt billing nicht
+ *  (A14) — die APP komponiert beide (Fulfillment-Plugin). */
+export interface WorkspaceSubscriptionUpdate {
+  /** Stripe-Statusraum (billing B3): active/trialing/past_due/canceled/… */
+  status: string
+  /** subscription_data.metadata aus dem Workspace-Checkout. */
+  metadata: Record<string, string>
 }
 
-export interface WorkspacePatch {
-  plan?: string
-  status: WorkspaceStatus
-  /** Nur bei Kündigung gesetzt: ab wann die Entitlements auslaufen (F3). */
-  validUntil?: string
-  graceUntil?: string
-}
+/** Entscheidung des Fulfillment-Handlers — pure, damit die Policy ohne
+ *  Stripe/Appwrite testbar ist. Kündigungs-Timing macht STRIPE selbst:
+ *  cancel_at_period_end hält den Status bis zum Periodenende auf 'active',
+ *  erst das echte Ende liefert 'canceled' → dann fällt der Workspace aufs
+ *  free-Set zurück (NIE auf null Features — ein gekündigter Kunde ist nie
+ *  schlechter gestellt als einer, der nie gezahlt hat). */
+export type WorkspaceBillingAction =
+  | { kind: 'ignore', reason: string }
+  | { kind: 'apply-plan', workspaceId: string, plan: string }
+  | { kind: 'past-due', workspaceId: string }
+  | { kind: 'free-fallback', workspaceId: string }
 
-const DAY_MS = 24 * 60 * 60 * 1000
+export function subscriptionUpdateToAction(
+  update: WorkspaceSubscriptionUpdate,
+  plans: StudioPlanCatalog,
+): WorkspaceBillingAction {
+  const workspaceId = update.metadata.workspaceId
+  if (!workspaceId) return { kind: 'ignore', reason: 'no-workspace-metadata' }
 
-/** Abo-Ereignis → Workspace-Patch. Kündigungen löschen NICHTS sofort:
- *  validUntil = Periodenende, graceUntil = +graceDays — die Sites werten
- *  das signierte Dokument selbst aus (featureGates, M8-Vorbereitung). */
-export function subscriptionEventToWorkspacePatch(
-  event: VerifiedSubscriptionEvent,
-  options: { graceDays?: number } = {},
-): WorkspacePatch {
-  const graceDays = options.graceDays ?? 7
-  switch (event.type) {
-    case 'subscription.active': {
-      if (!event.plan) throw new Error('subscription.active ohne plan-Metadata')
-      return { plan: event.plan, status: 'active' }
+  switch (update.status) {
+    case 'active':
+    case 'trialing': {
+      const plan = update.metadata.plan
+      if (!plan || !plans[plan]) return { kind: 'ignore', reason: `unknown-plan-${plan ?? 'missing'}` }
+      return { kind: 'apply-plan', workspaceId, plan }
     }
-    case 'subscription.past_due':
-      return { status: 'past_due' }
-    case 'subscription.canceled': {
-      if (!event.currentPeriodEnd) throw new Error('subscription.canceled ohne currentPeriodEnd')
-      const end = new Date(event.currentPeriodEnd)
-      if (Number.isNaN(end.getTime())) throw new Error(`Ungültiges currentPeriodEnd "${event.currentPeriodEnd}"`)
-      return {
-        status: 'canceled',
-        validUntil: end.toISOString(),
-        graceUntil: new Date(end.getTime() + graceDays * DAY_MS).toISOString(),
-      }
-    }
+    case 'past_due':
+    case 'unpaid':
+      // Grants bleiben — Stripe-Dunning ist die Grace-Periode
+      return { kind: 'past-due', workspaceId }
+    case 'canceled':
+    case 'incomplete_expired':
+      return { kind: 'free-fallback', workspaceId }
+    default:
+      // incomplete (Checkout offen), paused, Unbekanntes → nichts anfassen
+      return { kind: 'ignore', reason: `status-${update.status}` }
   }
 }

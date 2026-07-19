@@ -61,6 +61,38 @@ export function subscriptionToPatch(
   }
 }
 
+/**
+ * Subscription-Objekt → verifiziertes Update für den Abo-Lifecycle-Vertrag
+ * (M8, registerSubscriptionFulfillment). Pure — nutzt dieselbe Periodenende-
+ * Logik wie subscriptionToPatch (Basil-Breaking-Change, Item-Fallback).
+ */
+export function subscriptionToVerifiedUpdate(
+  subscription: Stripe.Subscription,
+  eventCreated: number,
+): {
+    stripeSubscriptionId: string
+    stripeCustomerId: string
+    status: SubscriptionStatus
+    currentPeriodEnd: string
+    cancelAtPeriodEnd: boolean
+    metadata: Record<string, string>
+    eventCreated: number
+  } {
+  const item = subscription.items.data[0]
+  const legacyPeriodEnd = (subscription as unknown as { current_period_end?: number }).current_period_end
+  const periodEnd = item?.current_period_end ?? legacyPeriodEnd ?? 0
+
+  return {
+    stripeSubscriptionId: subscription.id,
+    stripeCustomerId: typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id,
+    status: toSubscriptionStatus(subscription.status),
+    currentPeriodEnd: new Date(periodEnd * 1000).toISOString(),
+    cancelAtPeriodEnd: subscription.cancel_at_period_end === true,
+    metadata: (subscription.metadata ?? {}) as Record<string, string>,
+    eventCreated,
+  }
+}
+
 /** B4-Stale-Guard: ältere (out-of-order/retryte) Events verwerfen */
 export function isStale(existing: Pick<BillingSubscriptionRow, 'lastStripeEventAt'> | null, eventCreated: number): boolean {
   return !!existing && existing.lastStripeEventAt > eventCreated

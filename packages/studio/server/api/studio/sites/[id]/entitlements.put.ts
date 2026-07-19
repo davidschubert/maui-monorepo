@@ -1,8 +1,8 @@
-import { ID, Query } from 'node-appwrite'
+import { Query } from 'node-appwrite'
 import { z } from 'zod'
 import { SITES_TABLE, type SiteRow } from '../../../../../shared/types/site'
-import { ENTITLEMENTS_TABLE, type EntitlementRow } from '../../../../../shared/types/entitlement'
 import { FEATURE_CATALOG_TABLE, type FeatureCatalogRow } from '../../../../../shared/types/job'
+import { replaceSiteGrants } from '../../../../utils/workspaceGrants'
 
 const putSchema = z.object({
   features: z.array(z.string().regex(/^[a-z][a-z0-9-]*$/)).max(20),
@@ -43,29 +43,9 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const { rows: existing } = await admin.tablesDB.listRows<EntitlementRow>({
-    databaseId, tableId: ENTITLEMENTS_TABLE,
-    queries: [Query.equal('siteProjectId', site.projectId), Query.limit(100)],
-  }).catch((error) => { throw toH3Error(error, 'Could not load entitlements') })
+  // Gemeinsame Ersetzen-Logik mit dem Workspace-Billing-Sync (M8-T3)
+  await replaceSiteGrants(event, site.projectId, body.features)
+    .catch((error) => { throw toH3Error(error, 'Could not update entitlements') })
 
-  const wanted = new Set(body.features)
-  const have = new Set(existing.map(row => row.featureKey))
-
-  const operations: Promise<unknown>[] = []
-  for (const feature of wanted) {
-    if (!have.has(feature)) {
-      operations.push(admin.tablesDB.createRow<EntitlementRow>({
-        databaseId, tableId: ENTITLEMENTS_TABLE, rowId: ID.unique(),
-        data: { siteProjectId: site.projectId, featureKey: feature, status: 'active', notes: '' },
-      }))
-    }
-  }
-  for (const row of existing) {
-    if (!wanted.has(row.featureKey)) {
-      operations.push(admin.tablesDB.deleteRow({ databaseId, tableId: ENTITLEMENTS_TABLE, rowId: row.$id }))
-    }
-  }
-  await Promise.all(operations).catch((error) => { throw toH3Error(error, 'Could not update entitlements') })
-
-  return { id, projectId: site.projectId, features: [...wanted].sort() }
+  return { id, projectId: site.projectId, features: [...new Set(body.features)].sort() }
 })

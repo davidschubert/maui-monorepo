@@ -435,6 +435,9 @@ importers:
       '@maui/admin':
         specifier: workspace:*
         version: link:../../packages/admin
+      '@maui/billing':
+        specifier: workspace:*
+        version: link:../../packages/billing
       '@maui/core':
         specifier: workspace:*
         version: link:../../packages/core
