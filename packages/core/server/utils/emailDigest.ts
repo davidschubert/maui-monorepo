@@ -75,6 +75,8 @@ export async function runEmailDigestSweep(): Promise<DigestSweepResult> {
       try {
         const recipient = await admin.users.get({ userId: recipientId }).catch(() => null)
         if (!recipient?.email) { result.skipped++; continue }
+        // Spam-Schutz: nur verifizierte Adressen (wie der Instant-Zweig)
+        if (!recipient.emailVerification) { result.skipped++; continue }
         const prefs = resolveEmailPrefs(recipient.prefs as Record<string, unknown>)
         if (prefs.emailNotifications !== 'digest') { result.skipped++; continue }
 

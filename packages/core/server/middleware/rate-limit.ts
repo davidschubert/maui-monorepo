@@ -39,6 +39,7 @@ function prune(now: number) {
 const ALWAYS_LIMITED = new Set([
   'POST /api/auth/recovery',
   'POST /api/auth/otp',
+  'POST /api/auth/verification',
 ])
 // Credential-/Code-/Token-Prüfung: nur FEHLgeschlagene Versuche zählen — ein
 // erfolgreicher Login/Reset (200) soll das Budget nicht aufbrauchen. Der

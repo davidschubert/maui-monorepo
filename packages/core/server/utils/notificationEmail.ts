@@ -120,6 +120,9 @@ export async function maybeSendInstantEmail(event: H3Event, input: NotifyInput):
     const recipient = await users.get({ userId: input.recipientId })
     const prefs = resolveEmailPrefs(recipient.prefs as Record<string, unknown>)
     if (prefs.emailNotifications !== 'instant' || !recipient.email) return
+    // Spam-Schutz: Mails NUR an verifizierte Adressen — sonst könnte ein
+    // Account mit fremder E-Mail Dritten unsere Notifications zustellen.
+    if (!recipient.emailVerification) return
     const mail = buildInstantEmail(event, prefs.emailLocale, input)
     await sendMail(event, { ...mail, to: recipient.email })
   }

@@ -81,5 +81,6 @@ const centerNav = computed<NavigationMenuItem[]>(() => [
     <FeedbackButton />
 
     <ConsentCookieBanner />
+    <AuthEmailVerifyBanner />
   </div>
 </template>

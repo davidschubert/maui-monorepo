@@ -27,6 +27,12 @@ export default defineAppConfig({
       /** Passwortloser Login per E-Mail-Code (Appwrite Email-OTP) —
        *  Ergänzung zum Passwort-Login, kein Ersatz */
       otp: false,
+      /** Nicht-blockierende E-Mail-Verifizierung: Signup verschickt eine
+       *  Bestätigungs-Mail (Instanz-SMTP), eingeloggt erscheint ein Banner
+       *  bis zur Bestätigung. E-Mail-Notifications (instant/digest) gehen
+       *  IMMER nur an verifizierte Adressen — unabhängig von diesem Flag
+       *  (Spam-Schutz). OTP-Logins verifizieren automatisch. */
+      verification: true,
     },
     analytics: {
       enabled: false,

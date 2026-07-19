@@ -126,6 +126,12 @@ export const resetServerSchema = z.object({
   password: strongPassword(),
 })
 
+/** E-Mail-Verifizierung bestätigen (userId+secret aus dem Mail-Link) */
+export const verificationConfirmSchema = z.object({
+  userId: z.string().min(1),
+  secret: z.string().min(1),
+})
+
 /** Passwort-Änderung im eingeloggten Zustand: aktuelles + neues (stark) + Bestätigung */
 export function createPasswordChangeSchema(t: TranslateFn = identity) {
   return z.object({

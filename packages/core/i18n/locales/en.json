@@ -66,6 +66,23 @@
       "requestNew": "Request a new link"
     },
     "networkError": "Server unreachable — please try again later.",
+    "verification": {
+      "bannerTitle": "Please confirm your email address",
+      "bannerMessage": "We sent you a confirmation link. We can only email you once your address is confirmed.",
+      "resend": "Resend link",
+      "later": "Later",
+      "sentTitle": "Confirmation link sent",
+      "sentDescription": "Check your inbox (and your spam folder).",
+      "sendFailed": "Sending failed — please try again later.",
+      "working": "Confirming your email address …",
+      "successTitle": "Email confirmed",
+      "successMessage": "Thanks! Your address is now verified.",
+      "invalidTitle": "Link invalid or expired",
+      "invalidMessage": "Request a new confirmation link from the banner.",
+      "needsLoginTitle": "Please sign in first",
+      "needsLoginMessage": "Sign in, then open the link from the email again.",
+      "backHome": "Back to home"
+    },
     "otp": {
       "title": "Sign in with code",
       "description": "We will send you a 6-digit code — no password needed.",

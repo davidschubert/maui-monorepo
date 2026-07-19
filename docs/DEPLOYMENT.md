@@ -136,6 +136,10 @@ NUXT_SMTP_HOST=smtp.resend.com                      # + PORT/USER/PASS/FROM
 
 - [ ] `GET https://<app-domain>/api/health` → ok
 - [ ] Registrierung + Login (Session-Cookie `a_session_<PROJECT_ID>`, httpOnly+secure)
+- [ ] **E-Mail-Verifizierung** (seit 2026-07-19, `maui.auth.verification`):
+      Signup verschickt die Bestätigungs-Mail (Instanz-SMTP), Banner erscheint
+      eingeloggt, `/verify`-Link bestätigt. Mails an Notifications
+      (instant/digest) gehen NUR an verifizierte Adressen.
 - [ ] Kommentar erstellen / voten / antworten
 - [ ] **Realtime:** zweiter Browser sieht neuen Kommentar live (bestätigt die
       Same-Root-Domain-Cookie-Konfiguration aus A3)

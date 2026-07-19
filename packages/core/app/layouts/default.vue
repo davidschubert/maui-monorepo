@@ -27,5 +27,6 @@ const { isLoggedIn } = useCurrentUser()
     </footer>
 
     <ConsentCookieBanner />
+    <AuthEmailVerifyBanner />
   </div>
 </template>

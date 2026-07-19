@@ -1,4 +1,4 @@
-import { AppwriteException, ID, Query } from 'node-appwrite'
+import { Account, AppwriteException, Client, ID, Query } from 'node-appwrite'
 import { createAdminClient, setSessionCookie } from '../../lib/appwrite'
 import { registerSchema } from '../../../schemas/auth'
 
@@ -39,6 +39,26 @@ export default defineEventHandler(async (event) => {
 
   setSessionCookie(event, session.secret, session.expire)
   await logAuthEvent(event, 'user.login', { userId: session.userId, name, method: 'signup' })
+
+  // Nicht-blockierende E-Mail-Verifizierung (maui.auth.verification): die
+  // Bestätigungs-Mail geht über die Instanz-SMTP raus, der User ist trotzdem
+  // sofort eingeloggt. Best-effort — ein Mail-Fehler darf den Signup nie
+  // kippen. Der frische Session-Secret ist noch nicht im Request-Cookie,
+  // daher ein eigener Client statt createSessionClient(event).
+  const config = useRuntimeConfig(event)
+  const appConfig2 = useAppConfig(event) as { maui?: { auth?: { verification?: boolean } } }
+  if (appConfig2.maui?.auth?.verification && config.public.appUrl) {
+    try {
+      const sessionAccount = new Account(new Client()
+        .setEndpoint(config.public.appwriteEndpoint)
+        .setProject(config.public.appwriteProjectId)
+        .setSession(session.secret))
+      await sessionAccount.createVerification({ url: `${config.public.appUrl}/verify` })
+    }
+    catch (error) {
+      console.error('[core] Verifizierungs-Mail nach Signup fehlgeschlagen:', error)
+    }
+  }
 
   // Activity-Feed: „ist der Community beigetreten" (best-effort). Bewusst NUR
   // hier — der OTP-Flow legt User schon beim Token-Versand an (unverifiziert),

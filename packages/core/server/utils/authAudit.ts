@@ -15,6 +15,7 @@ export type AuthAuditAction =
   | 'user.self_deleted'
   | 'user.password_changed'
   | 'user.recovery_requested'
+  | 'user.email_verified'
   | 'user.profile_updated'
 
 /**
