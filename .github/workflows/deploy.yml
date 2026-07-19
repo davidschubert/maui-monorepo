@@ -34,11 +34,38 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     steps:
       - name: Trigger ploi.io deploy webhook
+        id: webhook
         env:
           WEBHOOK: ${{ secrets.PLOI_DEPLOY_WEBHOOK_COMMENTS }}
         run: |
           if [ -z "$WEBHOOK" ]; then
             echo "Secret PLOI_DEPLOY_WEBHOOK_COMMENTS nicht gesetzt — Deploy übersprungen (Go-Live Block 8)."
+            echo "triggered=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           curl -fsS -X POST "$WEBHOOK"
+          echo "triggered=true" >> "$GITHUB_OUTPUT"
+
+      # Härtung (2026-07-19): ploi verschluckt Webhooks, die während eines
+      # laufenden Deploys eintreffen — dieser Schritt macht das SICHTBAR.
+      # /api/health liefert seither den gebauten Commit (buildSha, Build-Zeit
+      # aus git); wir pollen, bis Prod den erwarteten SHA meldet, sonst rot.
+      # Bei workflow_run zählt der SHA des auslösenden Test-Laufs.
+      - name: Verify deployed commit
+        if: steps.webhook.outputs.triggered == 'true'
+        env:
+          EXPECTED_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          HEALTH_URL: https://comments.pukalani.app/api/health
+        run: |
+          echo "Erwarte Commit $EXPECTED_SHA auf $HEALTH_URL (Build ~3-5 min) …"
+          for i in $(seq 1 40); do
+            BUILD=$(curl -fsS -m 15 "$HEALTH_URL" | jq -r '.build // empty' || true)
+            if [ "$BUILD" = "$EXPECTED_SHA" ]; then
+              echo "✔ Prod läuft auf $BUILD"
+              exit 0
+            fi
+            echo "  ($i/40) Prod meldet '${BUILD:-n/a}' — warte 20 s …"
+            sleep 20
+          done
+          echo "✗ Prod hat $EXPECTED_SHA nach ~13 min nicht erreicht — ploi-Deploy prüfen (verschluckter Webhook? Build-Fehler?)."
+          exit 1

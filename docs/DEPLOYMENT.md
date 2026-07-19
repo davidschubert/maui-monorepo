@@ -136,6 +136,12 @@ NUXT_SMTP_HOST=smtp.resend.com                      # + PORT/USER/PASS/FROM
   `PLOI_DEPLOY_WEBHOOK_COMMENTS`) → ploi pullt, baut, restartet pm2.
   Kette e2e verifiziert. ploi Quick Deploy bleibt bewusst AUS (Deploy nur
   nach grünem Test).
+- **Härtung seit 2026-07-19:** ploi verschluckt Webhooks, die während eines
+  laufenden Deploys eintreffen (beobachtet bei zwei Pushes binnen ~3 min).
+  `/api/health` liefert deshalb den gebauten Commit (`build`, zur Build-Zeit
+  aus git), und der Deploy-Workflow pollt nach dem Webhook bis Prod den
+  erwarteten SHA meldet (~13 min Timeout) — ein verlorener Deploy macht den
+  Workflow ROT statt still zu bleiben. Abhilfe dann: Workflow re-runnen.
 - ploi-„Health check URL" der Site steht auf
   `https://comments.pukalani.app/api/health` → Mail bei Nicht-200 nach Deploy.
 

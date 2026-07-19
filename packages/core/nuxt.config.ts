@@ -1,7 +1,20 @@
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import { execSync } from 'node:child_process'
 
 const currentDir = dirname(fileURLToPath(import.meta.url))
+
+// Build-Identität für /api/health (Deploy-Verifikation, A.5-Härtung):
+// zur BUILD-Zeit aus git gelesen — ploi baut aus dem Repo, CI ebenso.
+// Kein git verfügbar (z. B. Docker-Kontext ohne .git) → '' (Health zeigt null).
+function resolveBuildSha(): string {
+  try {
+    return execSync('git rev-parse HEAD', { cwd: currentDir, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
+  }
+  catch {
+    return ''
+  }
+}
 
 export default defineNuxtConfig({
   modules: ['@nuxt/ui', '@pinia/nuxt', '@nuxtjs/i18n'],
@@ -78,6 +91,10 @@ export default defineNuxtConfig({
     // über den Core-Mailer (ohne SMTP still no-op).
     alertEmail: '',
     public: {
+      // Deployter Commit (Build-Zeit aus git) — /api/health spiegelt ihn,
+      // der Deploy-Workflow verifiziert damit, dass ploi den erwarteten
+      // Stand wirklich gebaut hat (verschluckte Webhooks fallen sofort auf)
+      buildSha: resolveBuildSha(),
       appwriteEndpoint: '',
       appwriteProjectId: '',
       appwriteDatabaseId: '',

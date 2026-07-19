@@ -11,5 +11,7 @@ export default defineEventHandler(async (event) => {
   return {
     ok: status.status === 'pass',
     user: event.context.user ?? null,
+    // Deployter Commit (Build-Zeit) — Basis der Deploy-Verifikation (A.5)
+    build: useRuntimeConfig(event).public.buildSha || null,
   }
 })
