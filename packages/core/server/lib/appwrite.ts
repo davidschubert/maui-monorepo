@@ -30,13 +30,30 @@ export function clearSessionCookie(event: H3Event) {
 }
 
 /**
+ * UI-Sprache des Requests (i18n_redirected-Cookie von @nuxtjs/i18n,
+ * detectBrowserLanguage redirectOn 'all' hält es aktuell). Nur Format
+ * validieren, KEINE App-Locale-Whitelist: Appwrite bringt ~60 Übersetzungen
+ * mit und fällt bei unbekannten Codes selbst auf Englisch zurück — neue
+ * App-Sprachen (es, pl, …) funktionieren damit ohne Änderung hier.
+ */
+export function requestLocale(event?: H3Event): string | undefined {
+  if (!event) return undefined
+  const cookie = getCookie(event, 'i18n_redirected')
+  return cookie && /^[a-z]{2,3}(-[A-Za-z]{2,4})?$/.test(cookie) ? cookie : undefined
+}
+
+/**
  * Reicht den Browser-User-Agent an Appwrite weiter, damit serverseitig erzeugte
- * Sessions das echte Gerät (Browser + Version + OS) statt des Node-SDK aufzeichnen.
+ * Sessions das echte Gerät (Browser + Version + OS) statt des Node-SDK
+ * aufzeichnen — plus die UI-Sprache (X-Appwrite-Locale), damit Appwrite-Mails
+ * (Verification/OTP/Recovery) in der Sprache des Users rausgehen.
  */
 function forwardClientContext(client: Client, event?: H3Event) {
   if (!event) return
   const userAgent = getHeader(event, 'user-agent')
   if (userAgent) client.setForwardedUserAgent(userAgent)
+  const locale = requestLocale(event)
+  if (locale) client.setLocale(locale)
 }
 
 /**

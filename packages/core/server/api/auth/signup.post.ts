@@ -1,5 +1,5 @@
 import { Account, AppwriteException, Client, ID, Query } from 'node-appwrite'
-import { createAdminClient, setSessionCookie } from '../../lib/appwrite'
+import { createAdminClient, requestLocale, setSessionCookie } from '../../lib/appwrite'
 import { registerSchema } from '../../../schemas/auth'
 
 /**
@@ -49,11 +49,13 @@ export default defineEventHandler(async (event) => {
   const appConfig2 = useAppConfig() as { maui?: { auth?: { verification?: boolean } } }
   if (appConfig2.maui?.auth?.verification && config.public.appUrl) {
     try {
-      const sessionAccount = new Account(new Client()
+      const client = new Client()
         .setEndpoint(config.public.appwriteEndpoint)
         .setProject(config.public.appwriteProjectId)
-        .setSession(session.secret))
-      await sessionAccount.createVerification({ url: `${config.public.appUrl}/verify` })
+        .setSession(session.secret)
+      const locale = requestLocale(event)
+      if (locale) client.setLocale(locale)
+      await new Account(client).createVerification({ url: `${config.public.appUrl}/verify` })
     }
     catch (error) {
       console.error('[core] Verifizierungs-Mail nach Signup fehlgeschlagen:', error)
