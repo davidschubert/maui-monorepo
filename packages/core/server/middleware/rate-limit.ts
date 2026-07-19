@@ -48,6 +48,8 @@ const FAILURE_LIMITED = new Set([
   'POST /api/auth/login',
   'POST /api/auth/otp/verify',
   'PUT /api/auth/recovery',
+  // Verification-Confirm ist session-los (Cross-Device) → Token-Raten drosseln
+  'PUT /api/auth/verification',
 ])
 // Schreib-Routen mit teils dynamischen Segmenten ([id]) → Regex + stabiler
 // Bucket-Name, damit z.B. Vote-Spam über viele Kommentar-IDs EIN Budget teilt

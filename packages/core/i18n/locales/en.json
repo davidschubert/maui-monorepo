@@ -79,8 +79,6 @@
       "successMessage": "Thanks! Your address is now verified.",
       "invalidTitle": "Link invalid or expired",
       "invalidMessage": "Request a new confirmation link from the banner.",
-      "needsLoginTitle": "Please sign in first",
-      "needsLoginMessage": "Sign in, then open the link from the email again.",
       "backHome": "Back to home"
     },
     "otp": {

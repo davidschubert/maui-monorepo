@@ -79,8 +79,6 @@
       "successMessage": "Danke! Deine Adresse ist jetzt verifiziert.",
       "invalidTitle": "Link ungültig oder abgelaufen",
       "invalidMessage": "Fordere über das Banner einen neuen Bestätigungslink an.",
-      "needsLoginTitle": "Bitte zuerst anmelden",
-      "needsLoginMessage": "Melde dich an und öffne den Link aus der E-Mail danach erneut.",
       "backHome": "Zur Startseite"
     },
     "otp": {

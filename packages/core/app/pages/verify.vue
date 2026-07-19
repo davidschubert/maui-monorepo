@@ -1,8 +1,9 @@
 <script setup lang="ts">
 /**
  * Ziel des Verifizierungs-Links (Mail nach Signup bzw. Banner-Resend):
- * bestätigt userId+secret aus der Query über die eigene Session. Nicht
- * eingeloggt → Login-Hinweis (der Link bleibt bis zum Ablauf gültig).
+ * bestätigt userId+secret aus der Query — BEWUSST ohne Login-Pflicht, der
+ * Link wird oft auf einem anderen Gerät geöffnet (Mail am Handy). Mit
+ * Session wird der Auth-State refresht, damit der Banner sofort verschwindet.
  */
 const { t } = useI18n()
 const localePath = useLocalePath()
@@ -10,7 +11,7 @@ const route = useRoute()
 const { isLoggedIn } = useCurrentUser()
 const authStore = useAuthStore()
 
-const state = ref<'working' | 'success' | 'invalid' | 'needsLogin'>('working')
+const state = ref<'working' | 'success' | 'invalid'>('working')
 
 onMounted(async () => {
   const userId = typeof route.query.userId === 'string' ? route.query.userId : ''
@@ -19,13 +20,9 @@ onMounted(async () => {
     state.value = 'invalid'
     return
   }
-  if (!isLoggedIn.value) {
-    state.value = 'needsLogin'
-    return
-  }
   try {
     await $fetch('/api/auth/verification', { method: 'PUT', body: { userId, secret } })
-    await authStore.refresh() // Banner verschwindet sofort
+    if (isLoggedIn.value) await authStore.refresh() // Banner verschwindet sofort
     state.value = 'success'
   }
   catch {
@@ -45,13 +42,6 @@ onMounted(async () => {
       <h1 class="mt-3 text-xl font-semibold">{{ t('auth.verification.successTitle') }}</h1>
       <p class="mt-2 text-sm text-muted">{{ t('auth.verification.successMessage') }}</p>
       <UButton :to="localePath('/')" class="mt-6">{{ t('auth.verification.backHome') }}</UButton>
-    </template>
-
-    <template v-else-if="state === 'needsLogin'">
-      <UIcon name="i-ph-sign-in" class="mx-auto size-10 text-muted" />
-      <h1 class="mt-3 text-xl font-semibold">{{ t('auth.verification.needsLoginTitle') }}</h1>
-      <p class="mt-2 text-sm text-muted">{{ t('auth.verification.needsLoginMessage') }}</p>
-      <UButton :to="localePath('/login')" class="mt-6">{{ t('auth.login.title') }}</UButton>
     </template>
 
     <template v-else>
