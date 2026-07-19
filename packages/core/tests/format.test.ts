@@ -66,6 +66,14 @@ describe('formatRelativeTime', () => {
     expect(formatRelativeTime(new Date('2026-06-11T11:00:00Z'), { now, locale: 'en-US' })).toBe('1 hour ago')
   })
 
+  it('klemmt kleinen Zukunfts-Drift auf „jetzt" (Client-Uhr geht nach)', () => {
+    expect(formatRelativeTime(new Date('2026-06-11T12:00:13Z'), { now })).toBe('jetzt')
+  })
+
+  it('lässt echte Zukunftsdaten unangetastet', () => {
+    expect(formatRelativeTime(new Date('2026-06-14T12:00:00Z'), { now })).toBe('in 3 Tagen')
+  })
+
   it('fällt auf Sekunden zurück', () => {
     expect(formatRelativeTime(new Date('2026-06-11T11:59:30Z'), { now })).toBe('vor 30 Sekunden')
   })

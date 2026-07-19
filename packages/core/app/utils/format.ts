@@ -38,6 +38,11 @@ const RELATIVE_UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
   ['minute', 60],
 ]
 
+// Uhren-Drift-Klemme: Server-Zeitstempel können der Client-Uhr um Sekunden
+// vorauseilen — „in 13 Sekunden" für einen frischen Kommentar ist absurd.
+// Kleine Zukunft wird zu „jetzt"; ECHTE Zukunftsdaten (Events) bleiben.
+const CLOCK_DRIFT_CLAMP_SECONDS = 90
+
 /** "vor 5 Minuten" / "gestern" — now ist injizierbar (Testbarkeit) */
 export function formatRelativeTime(
   value: Date | string | number,
@@ -45,7 +50,8 @@ export function formatRelativeTime(
 ): string {
   const date = value instanceof Date ? value : new Date(value)
   const now = options.now ?? new Date()
-  const diffSeconds = Math.round((date.getTime() - now.getTime()) / 1000)
+  let diffSeconds = Math.round((date.getTime() - now.getTime()) / 1000)
+  if (diffSeconds > 0 && diffSeconds < CLOCK_DRIFT_CLAMP_SECONDS) diffSeconds = 0
   const formatter = new Intl.RelativeTimeFormat(options.locale ?? 'de-DE', { numeric: 'auto' })
 
   for (const [unit, seconds] of RELATIVE_UNITS) {
