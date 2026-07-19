@@ -125,12 +125,19 @@ Logik und den Handler mit gefaktem Event ab.
 ## Abnahme (Ende M8)
 
 - [ ] Checkout im Test-Mode: Workspace free→pro → Grants aller Workspace-
-      Sites springen auf das pro-Set → Site-Pull → Feature an (Browser)
-- [ ] Kündigung → validUntil/graceUntil gesetzt → nach Ablauf Feature aus
-      (Zeitreise per Testable-Clock, nicht Warten)
-- [ ] requires-Schluss: Plan mit `posts` granted automatisch `moderation`
-- [ ] Bestands-Sites ohne Workspace unverändert (Regression)
-- [ ] GDPR: workspaces-Contributor (ownerEmail!)
+      Sites springen auf das pro-Set → Site-Pull → Feature an (Browser) —
+      **wartet nur noch auf Davids Test-Key + stripe listen (s. o.)**
+- [ ] Kündigung (Test-Mode: Abo in Stripe sofort beenden) →
+      subscription.deleted → free-Fallback: Grants = free-Set, nie leer
+- [x] requires-Schluss: Plan mit `posts` granted automatisch `moderation`
+      (Unit-Tests + applyWorkspacePlan über den Katalog-Table)
+- [x] Bestands-Sites ohne Workspace unverändert (workspaceId '' wird vom
+      Sync nie angefasst — Query filtert auf die Workspace-Id)
+- [x] GDPR: bewusste v1-Entscheidung STATT Contributor — Workspace-Owner
+      sind (noch) keine Studio-User, der Core-GDPR-Vertrag ist userId-
+      keyed und greift hier nicht. ownerEmail-Löschung = manueller
+      Betreiber-Vorgang (Row löschen), dokumentiert am WorkspaceRow-Typ.
+      Der Contributor kommt mit M9/Self-Service, wenn Owner echte User werden.
 
 ## Beantwortete Check-in-Fragen (David, 2026-07-19)
 
