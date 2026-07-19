@@ -27,6 +27,36 @@ export interface WorkspaceRow extends Models.Row {
 
 export const WORKSPACES_TABLE = 'workspaces'
 
+/** Mitgliedschaft User↔Workspace (M9, Migration studio-007) — Membership
+ *  IST die Berechtigung des Kundenbereichs (/workspace); v1 nur 'owner'. */
+export const WORKSPACE_MEMBER_ROLES = ['owner'] as const
+export type WorkspaceMemberRole = (typeof WORKSPACE_MEMBER_ROLES)[number]
+
+export interface WorkspaceMemberRow extends Models.Row {
+  workspaceId: string
+  userId: string
+  role: WorkspaceMemberRole
+}
+
+export const WORKSPACE_MEMBERS_TABLE = 'workspace_members'
+
+/** Einmalige Owner-Einladung (M9, Migration studio-008) — DB hält nur den
+ *  SHA-256-Hash des Tokens; der Klartext steht allein im Mail-Link. */
+export const WORKSPACE_INVITE_STATUSES = ['pending', 'accepted'] as const
+export type WorkspaceInviteStatus = (typeof WORKSPACE_INVITE_STATUSES)[number]
+
+export interface WorkspaceInviteRow extends Models.Row {
+  workspaceId: string
+  email: string
+  tokenHash: string
+  status: WorkspaceInviteStatus
+  expiresAt: string
+  /** userId nach Annahme; bis dahin ''. */
+  acceptedBy: string
+}
+
+export const WORKSPACE_INVITES_TABLE = 'workspace_invites'
+
 /** Ein Plan im Code-Katalog `maui.studio.plans`. */
 export interface StudioPlan {
   /** Stripe-lookup_key des Preises (Muster des billing-Layers: Test-/Live-
