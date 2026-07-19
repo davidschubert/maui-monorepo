@@ -20,7 +20,7 @@ const centerNav = computed<NavigationMenuItem[]>(() => [
     label: t('app.nav.products'),
     icon: 'i-ph-squares-four',
     children: [
-      ...(postsEnabled.value ? [{ label: t('posts.feed.title'), icon: 'i-ph-users-three', description: t('posts.feed.description'), to: localePath('/community') }] : []),
+      ...(postsEnabled.value ? [{ label: t('posts.feed.title'), icon: 'i-ph-users-three', description: t('posts.feed.description'), to: localePath('/feed') }] : []),
       ...(eventsEnabled.value ? [{ label: t('events.list.title'), icon: 'i-ph-calendar-dots', description: t('events.list.description'), to: localePath('/events') }] : []),
       ...(isLoggedIn.value
         ? [

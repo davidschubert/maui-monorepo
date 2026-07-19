@@ -55,7 +55,7 @@ export async function publishDuePosts(event: H3Event): Promise<void> {
         type: 'post.published',
         objectType: 'post',
         objectId: updated.$id,
-        link: '/community',
+        link: '/feed',
         metadata: { snippet: updated.title || updated.body.slice(0, 140) },
       })
     }

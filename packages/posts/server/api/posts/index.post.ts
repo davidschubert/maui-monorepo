@@ -65,13 +65,13 @@ export default defineEventHandler(async (event) => {
       type: 'post.published',
       objectType: 'post',
       objectId: row.$id,
-      link: '/community',
+      link: '/feed',
       metadata: { snippet: row.title || row.body.slice(0, 140) },
     })
     const total = await tablesDB.listRows({
       databaseId, tableId: POSTS_TABLE, queries: [Query.limit(1)],
     }).then(r => r.total).catch(() => 0)
-    await maybeRecordMilestone(event, { type: 'milestone.posts', count: total, link: '/community' })
+    await maybeRecordMilestone(event, { type: 'milestone.posts', count: total, link: '/feed' })
   }
 
   setResponseStatus(event, 201)

@@ -46,7 +46,7 @@ async function loadCounts(ids: string[]) {
 
     <PostFeed class="mt-6" :reply-counts="replyCounts" @rows-changed="loadCounts">
       <template #comments="{ post }">
-        <CommentSection :target-id="post.$id" target-type="post" target-url="/community" />
+        <CommentSection :target-id="post.$id" target-type="post" target-url="/feed" />
       </template>
     </PostFeed>
   </UContainer>

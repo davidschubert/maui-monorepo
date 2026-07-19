@@ -6,6 +6,12 @@
  * KEIN comments-Import. Extended den Core NICHT selbst.
  */
 export default defineNuxtConfig({
+  // Alt-URL /community → /feed (Rename 2026-07-19): 301 für Bookmarks und
+  // Alt-Links in Bestandsdaten (Notification-/Activity-Rows, targetUrl)
+  routeRules: {
+    '/community': { redirect: { to: '/feed', statusCode: 301 } },
+    '/de/community': { redirect: { to: '/de/feed', statusCode: 301 } },
+  },
   // Eigene Layer-Strings — mergen mit Core- und App-Locales (gleiche codes)
   i18n: {
     locales: [
