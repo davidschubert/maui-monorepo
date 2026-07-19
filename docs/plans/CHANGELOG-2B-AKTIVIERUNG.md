@@ -37,9 +37,13 @@ Die Function läuft auf der Prod-Instanz (`api.pukalani.app`, Projekt
   Smoke-Test manueller Pfad `{ok:true, counted:62}` (Draft geprüft +
   gelöscht), Negativtests 401 (falsches `x-manual-secret`, gefälschte
   `x-hub-signature-256`).
-- **Phase E (echter Release-E2E)** bewusst offen — läuft mit dem nächsten
-  regulären release-please-Release mit; danach Recent Deliveries + Dashboard
-  prüfen (Schritte 13–16).
+- **Phase E ✅ (2026-07-19, Release v2.0.0):** release-please-PR #14 gemerged
+  → GitHub-Release published → Delivery 200 → Function legte
+  `Entwurf v2.0.0` an (aus allen Commits seit v1.5.0). Draft kuratiert
+  (DE + EN — das Formular verlangt beide; `title/body` = DE-Legacy,
+  `titleEn/bodyEn` = Pflicht-EN) und im Dashboard veröffentlicht →
+  öffentliche `/changelog`-Seite + „Was ist neu" zeigen ihn. Der
+  Release-Commit lief parallel über die Zero-Downtime-Deploy-Kette auf Prod.
 
 ---
 
