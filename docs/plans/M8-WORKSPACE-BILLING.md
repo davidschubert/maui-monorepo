@@ -124,11 +124,20 @@ Logik und den Handler mit gefaktem Event ab.
 
 ## Abnahme (Ende M8)
 
-- [ ] Checkout im Test-Mode: Workspace free→pro → Grants aller Workspace-
-      Sites springen auf das pro-Set → Site-Pull → Feature an (Browser) —
-      **wartet nur noch auf Davids Test-Key + stripe listen (s. o.)**
-- [ ] Kündigung (Test-Mode: Abo in Stripe sofort beenden) →
-      subscription.deleted → free-Fallback: Grants = free-Set, nie leer
+- [x] Checkout im Test-Mode ✅ **BEWIESEN 2026-07-19**: „Agentur Demo"
+      free→business über die Stripe-hosted Seite (Testkarte 4242) →
+      Webhook via `stripe listen` → Workspace plan=business,
+      stripeCustomerId gesetzt, photos-Grants = requires-geschlossenes
+      business-Set (activity, comments, courses, events, feedback, media,
+      moderation, posts, tickets). Bewusst business statt pro fürs
+      Dogfooding: pro hätte photos das media-Feature entzogen (korrekte
+      Enforcement-Semantik — Foundation admin/themes sind entitlement-frei
+      immer an, evaluateEntitlement).
+- [x] Kündigung ✅ **BEWIESEN 2026-07-19**: Abo im Stripe-Dashboard sofort
+      beendet → subscription.deleted → free-Fallback: plan=free,
+      status=active, photos-Grants = [comments, moderation] — nie leer.
+      (Demo-Zustand danach zurückgesetzt: photos wieder Betreiber-Workspace
+      mit admin/media/themes.)
 - [x] requires-Schluss: Plan mit `posts` granted automatisch `moderation`
       (Unit-Tests + applyWorkspacePlan über den Katalog-Table)
 - [x] Bestands-Sites ohne Workspace unverändert (workspaceId '' wird vom
