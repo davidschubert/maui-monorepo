@@ -20,6 +20,17 @@ const { data: presence } = useFetch<{ count: number }>('/api/presence/count', {
 const { data: stats } = useFetch<{ comments: number, members: number }>('/api/stats')
 const online = computed(() => presence.value?.count ?? 0)
 
+// Statistik-Box läuft mit dem Live-Kommentarzähler mit: die Demo-Sektion
+// teilt denselben keyed Store — Realtime-Änderungen (neu/gelöscht) werden
+// als Delta auf den SSR-Stats-Wert gebucht. Der erste Sprung (0 → initiale
+// Ladung) ist KEIN Delta und wird übersprungen; die absolute Wahrheit holt
+// sich der nächste Seitenaufruf ohnehin frisch (/api/stats, 10s-Cache).
+const demoStore = useCommentStoreFor(DEMO_TARGET.type, DEMO_TARGET.id)
+watch(() => demoStore.total, (next, prev) => {
+  // useFetch-Data ist shallow (Nuxt-4-Default) → Objekt ERSETZEN, nicht mutieren
+  if (prev > 0 && stats.value) stats.value = { ...stats.value, comments: stats.value.comments + (next - prev) }
+})
+
 const features = computed(() => [
   { icon: 'i-ph-lightning', key: 'realtime' },
   { icon: 'i-ph-palette', key: 'themes' },

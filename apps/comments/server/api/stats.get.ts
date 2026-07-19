@@ -4,10 +4,13 @@ import { Query } from 'node-appwrite'
  * Öffentliche Eckdaten für die Landingpage: Anzahl aktiver Kommentare + Mitglieder.
  * Bewusst ohne Auth (Showcase) — nur aggregierte Zahlen, keine Inhalte/PII. Nutzt
  * den Runtime-Key serverseitig (rows.read + users.read). Degradiert auf 0.
- * Microcache 60s (Idee 3 / Audit L11): öffentlich + ungedrosselt — ohne Cache
- * wären 2 Appwrite-Count-Queries pro Landingpage-Hit ein billiger Last-Hebel.
+ * Microcache 10s (Idee 3 / Audit L11; 60→10s nach UX-Befund 2026-07-19 —
+ * die Box hing sichtbar hinter dem Live-Kommentarzähler her): öffentlich +
+ * ungedrosselt — ohne Cache wären 2 Appwrite-Count-Queries pro
+ * Landingpage-Hit ein billiger Last-Hebel. Live-Anmutung zwischen den
+ * Refreshes macht die Startseite selbst (Delta aus dem Kommentar-Store).
  */
-const statsCache = createMicrocache<{ comments: number, members: number }>(60_000)
+const statsCache = createMicrocache<{ comments: number, members: number }>(10_000)
 
 export default defineEventHandler(async (event) => {
   const cached = statsCache.get('stats')

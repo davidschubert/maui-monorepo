@@ -125,7 +125,9 @@ function presenceLabel(u: PresenceUser): string {
   <section ref="sectionEl" class="space-y-5" data-comment-section>
     <header class="flex items-center justify-between gap-4">
       <h2 class="text-lg font-semibold">{{ t('comments.title') }} ({{ store.total }})</h2>
-      <USelect v-model="sort" :items="sortOptions" size="sm" :aria-label="t('comments.sort.label')" />
+      <!-- content min-w-fit: die Dropdown-Breite folgt sonst dem schmalen
+           Trigger („Neu") und schneidet längere Options-Labels ab -->
+      <USelect v-model="sort" :items="sortOptions" size="sm" :ui="{ content: 'min-w-fit' }" :aria-label="t('comments.sort.label')" />
     </header>
 
     <div v-if="others.length || typingText" class="flex min-h-6 flex-wrap items-center gap-3 text-xs text-muted" data-thread-presence>
