@@ -363,6 +363,13 @@ const commentStoreSetup = () => {
     const auth = useAuthStore()
     const isOwn = payload.authorId === auth.user?.$id
 
+    // Eigenes Create-Echo, während der eigene POST noch läuft (optimistischer
+    // temp-Platzhalter in rows): IGNORIEREN — sonst zählt der Kommentar kurz
+    // doppelt (N+2) bis die POST-Response reconciled → sichtbares Flackern.
+    // Die POST-Response übernimmt Einfügen + Zählung; kommt sie nicht an,
+    // heilt der Rollback/nächste Fetch. Fremde Tabs haben keinen temp → zählen normal.
+    if (isOwn && rows.value.some(row => row.$id.startsWith('temp-'))) return
+
     // Antwort: nur einblenden, wenn der Eltern-Kommentar geladen ist — sonst wäre
     // sie gezählt aber unsichtbar (threaded rendert nur Replies geladener Parents).
     // Nicht geladener Parent (paginiert) → ignorieren, kommt beim nächsten Fetch.
