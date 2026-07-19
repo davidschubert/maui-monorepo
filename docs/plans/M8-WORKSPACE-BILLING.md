@@ -1,6 +1,9 @@
 # M8 — Workspace-Billing (Stripe) + F3 voll
 
-Status: **ENTWURF zum Check-in** (2026-07-18, Claude). Baut auf der
+Status: **BESCHLOSSEN — in Umsetzung** (Check-in 2026-07-19, David):
+Plan-Schnitt **free/pro/business** · Workspace-Verwaltung v1 **nur
+Studio-Dashboard** (Self-Service = M9) · **gleicher Stripe-Account,
+eigene Produkte** (Price-IDs via Env, Start im Test-Mode). Baut auf der
 M8-Vorbereitung auf (signierte Entitlement-Zustellung ist FERTIG:
 `entitlementDocument.ts`, Studio-Aussteller, Site-Pull, featureGates =
 Registry ∧ Laufzeit ∧ Entitlement). M8 verbindet nur noch: **wer zahlt
@@ -39,14 +42,17 @@ gleiche Logik wie `theme.catalog.ts`):
 
 ```ts
 plans: {
-  free:     { stripePriceId: null,            features: ['comments'] },
-  pro:      { stripePriceId: 'price_…(env)',  features: ['comments','events','posts','activity'] },
-  business: { stripePriceId: 'price_…(env)',  features: [/* alles aus feature_catalog außer Experimental */] },
+  free:     { lookupKey: null,                         features: ['comments'] },
+  pro:      { lookupKey: 'workspace_pro_monthly',      features: ['comments','posts','events','activity','feedback'] },
+  business: { lookupKey: 'workspace_business_monthly', features: [/* alle optional-tier Features */] },
 }
 ```
 
-Price-IDs kommen aus `NUXT_STUDIO_STRIPE_PRICE_*`-Envs (server-only), damit
-Test-/Live-Mode ohne Codeänderung wechselbar ist.
+**Abweichung vom Entwurf (umgesetzt 2026-07-19):** statt Price-IDs aus Envs
+nutzen die Pläne Stripe-**lookup_keys** — exakt das bewiesene Muster des
+billing-Layers (`resolvePriceByLookupKey`): Test-/Live-Mode wechselbar ohne
+Codeänderung UND ohne Env-Pflege, die Keys sind nicht geheim. In Stripe je
+Mode einen Preis mit diesem lookup_key anlegen, fertig.
 
 ## Fluss
 
@@ -84,10 +90,11 @@ Logik und den Handler mit gefaktem Event ab.
 - [ ] Bestands-Sites ohne Workspace unverändert (Regression)
 - [ ] GDPR: workspaces-Contributor (ownerEmail!)
 
-## Offene Fragen an David (Check-in)
+## Beantwortete Check-in-Fragen (David, 2026-07-19)
 
-1. Plan-Schnitt ok (free/pro/business) oder andere Namen/Sets?
-2. Workspace-Verwaltung v1: reicht Anlegen/Zuordnen im Studio-Dashboard
-   (kein Self-Service — das ist M9)?
-3. Stripe-Account: eigener Account/Test-Mode für die Plattform, getrennt vom
-   Site-Billing (empfohlen: gleicher Account, eigene Produkte)?
+1. Plan-Schnitt: **free/pro/business** wie vorgeschlagen.
+2. Workspace-Verwaltung v1: **nur Studio-Dashboard** (Anlegen/Zuordnen durch
+   den Betreiber; Checkout/Kündigung über Stripe-hosted Pages). Self-Service
+   bleibt M9.
+3. Stripe: **gleicher Account, eigene Produkte** für Workspace-Pläne
+   (Lookup-Keys/Price-IDs via server-only Envs); Aufbau im Test-Mode.

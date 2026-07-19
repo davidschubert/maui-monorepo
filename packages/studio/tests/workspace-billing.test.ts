@@ -11,8 +11,8 @@ const CATALOG = [
 ]
 
 const PLANS: StudioPlanCatalog = {
-  free: { stripePriceId: null, features: ['comments'] },
-  pro: { stripePriceId: 'price_pro', features: ['comments', 'posts', 'events'] },
+  free: { lookupKey: null, features: ['comments'] },
+  pro: { lookupKey: 'workspace_pro_monthly', features: ['comments', 'posts', 'events'] },
 }
 
 describe('closeOverRequires', () => {

@@ -29,8 +29,10 @@ export const WORKSPACES_TABLE = 'workspaces'
 
 /** Ein Plan im Code-Katalog `maui.studio.plans`. */
 export interface StudioPlan {
-  /** Stripe-Price-ID (aus server-only Env); null = kostenloser Plan ohne Checkout. */
-  stripePriceId: string | null
+  /** Stripe-lookup_key des Preises (Muster des billing-Layers: Test-/Live-
+   *  Mode wechseln ohne Codeänderung, Auflösung via resolvePriceByLookupKey);
+   *  null = kostenloser Plan ohne Checkout. */
+  lookupKey: string | null
   /** Feature-Keys, die der Plan gewährt (VOR requires-Schluss). */
   features: string[]
 }
