@@ -26,7 +26,7 @@ const online = computed(() => presence.value?.count ?? 0)
 // Ladung) ist KEIN Delta und wird übersprungen; die absolute Wahrheit holt
 // sich der nächste Seitenaufruf ohnehin frisch (/api/stats, 10s-Cache).
 const demoStore = useCommentStoreFor(DEMO_TARGET.type, DEMO_TARGET.id)
-watch(() => demoStore.total, (next, prev) => {
+watch(() => demoStore.activeTotal, (next, prev) => {
   // useFetch-Data ist shallow (Nuxt-4-Default) → Objekt ERSETZEN, nicht mutieren
   if (prev > 0 && stats.value) stats.value = { ...stats.value, comments: stats.value.comments + (next - prev) }
 })

@@ -56,8 +56,10 @@ export type VoteValue = 1 | -1
 
 /** GET /api/comments Response: Rows + eigene Votes als separate Map */
 export interface CommentListResponse {
-  /** Alle nicht-hidden Kommentare des Targets (für die Überschrift) */
+  /** Alle nicht-hidden Kommentare des Targets — Pagination-Sentinel (rows enthalten auch deleted-Platzhalter) */
   total: number
+  /** Nur status=active — die EINE Anzeige-Zahl (Überschrift + Landingpage-Stats zählen identisch) */
+  activeTotal: number
   /** Anzahl Top-Level-Threads — Basis der Pagination (eine Seite = N Threads + Subtrees) */
   topLevelTotal: number
   rows: Comment[]

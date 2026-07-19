@@ -29,8 +29,10 @@ const commentStoreSetup = () => {
   /** Interner Pfad der Seite (für die Reply-Notification) — vom CommentSection gesetzt */
   const targetUrl = ref('')
   const rows = ref<Comment[]>([])
-  /** Alle nicht-hidden Kommentare (Überschrift) */
+  /** Alle nicht-hidden Kommentare (inkl. deleted-Platzhalter) — Pagination-Sentinel */
   const total = ref(0)
+  /** Nur status=active — die Anzeige-Zahl (Überschrift, Landingpage-Stats) */
+  const activeTotal = ref(0)
   /** Top-Level-Threads — Basis der Pagination (eine Seite = N Threads + Subtrees) */
   const topLevelTotal = ref(0)
   const userVotes = ref<Record<string, VoteValue>>({})
@@ -94,6 +96,9 @@ const commentStoreSetup = () => {
       if (seq !== fetchSeq) return // eine neuere Anfrage läuft/lief — verwerfen
       rows.value = response.rows
       total.value = response.total
+      // Fallback: 10s-Gast-Cache kann direkt nach einem Deploy noch Antworten
+      // ohne activeTotal liefern
+      activeTotal.value = response.activeTotal ?? response.total
       topLevelTotal.value = response.topLevelTotal
       userVotes.value = response.myVotes
       userReports.value = new Set(response.myReports)
@@ -186,6 +191,7 @@ const commentStoreSetup = () => {
     }
     rows.value = [temp, ...rows.value]
     total.value += 1
+    activeTotal.value += 1
 
     try {
       const created = await $fetch<Comment>('/api/comments', {
@@ -197,7 +203,7 @@ const commentStoreSetup = () => {
       // blind temp→created zu mappen, sonst entsteht ein Duplikat.
       const alreadyPresent = rows.value.some(row => row.$id === created.$id)
       rows.value = rows.value.filter(row => row.$id !== temp.$id)
-      if (alreadyPresent) total.value -= 1 // Realtime hat bereits gezählt
+      if (alreadyPresent) { total.value -= 1; activeTotal.value -= 1 } // Realtime hat bereits gezählt
       upsertRow(created)
       return created
     }
@@ -205,6 +211,7 @@ const commentStoreSetup = () => {
       // Rollback: optimistisch eingefügten Kommentar wieder entfernen
       rows.value = rows.value.filter(row => row.$id !== temp.$id)
       total.value -= 1
+      activeTotal.value -= 1
       throw error
     }
   }
@@ -278,6 +285,9 @@ const commentStoreSetup = () => {
     // authorAvatarUrl ist nur angereichert (keine DB-Spalte) — Updates ohne sie
     // (Vote-/Edit-Responses, Realtime) würden sie sonst löschen
     const prev = rows.value[index]!
+    // Soft-Delete-Übergang zählt hier zentral (eigener Delete + Realtime-Echo
+    // laufen beide durch upsertRow — idempotent, weil prev danach deleted ist)
+    if (prev.status === 'active' && comment.status === 'deleted') activeTotal.value = Math.max(0, activeTotal.value - 1)
     const merged = comment.authorAvatarUrl === undefined && prev.authorAvatarUrl !== undefined
       ? { ...comment, authorAvatarUrl: prev.authorAvatarUrl }
       : comment
@@ -293,6 +303,8 @@ const commentStoreSetup = () => {
   function removeWithDescendants(id: string) {
     const toRemove = descendantIds(rows.value, id)
     const removedVisible = rows.value.filter(row => toRemove.has(row.$id)).length
+    const removedActive = rows.value.filter(row => toRemove.has(row.$id) && row.status === 'active').length
+    activeTotal.value = Math.max(0, activeTotal.value - removedActive)
     rows.value = rows.value.filter(row => !toRemove.has(row.$id))
     pending.value = pending.value.filter(row => !toRemove.has(row.$id))
     // Gepufferte Antworten mit entferntem Ziel/Parent ebenfalls verwerfen
@@ -307,6 +319,7 @@ const commentStoreSetup = () => {
     // unabhängig von der Reihenfolge der flachen Liste richtig ein.
     rows.value = [...pending.value, ...pendingReplies.value, ...rows.value]
     total.value += pending.value.length + pendingReplies.value.length
+    activeTotal.value += pending.value.length + pendingReplies.value.length
     pending.value = []
     pendingReplies.value = []
   }
@@ -334,6 +347,7 @@ const commentStoreSetup = () => {
       if (removedByHide.has(payload.$id) && payload.status === 'active') {
         removedByHide.delete(payload.$id)
         total.value += 1
+        activeTotal.value += 1
         upsertRow(payload)
       }
       return
@@ -355,6 +369,7 @@ const commentStoreSetup = () => {
     if (payload.parentId) {
       if (rows.value.some(row => row.$id === payload.parentId)) {
         total.value += 1
+        activeTotal.value += 1
         upsertRow(payload)
       }
       // Antwort auf einen noch GEPUFFERTEN Kommentar: mitpuffern statt verwerfen
@@ -371,6 +386,7 @@ const commentStoreSetup = () => {
     // Top-Level: eigenes direkt einblenden, fremdes puffern (Pill)
     if (isOwn) {
       total.value += 1
+      activeTotal.value += 1
       upsertRow(payload)
     }
     else {
@@ -389,6 +405,7 @@ const commentStoreSetup = () => {
     userReports,
     rows,
     total,
+    activeTotal,
     topLevelTotal,
     userVotes,
     sortMode,

@@ -160,13 +160,28 @@ export default defineEventHandler(async (event): Promise<CommentListResponse> =>
     }
   }
 
-  // 3) Gesamtzahl aller nicht-hidden Kommentare für die Überschrift
-  const totalRes = await tablesDB.listRows<Comment>({
-    databaseId,
-    tableId: COMMENTS_TABLE,
-    queries: [...baseFilters, Query.limit(1)],
-  })
+  // 3) Zwei Zähler: total (nicht-hidden, inkl. deleted-Platzhalter) bleibt der
+  // Pagination-Sentinel; activeTotal (nur active) ist die Anzeige-Zahl — ein
+  // gelöschter Kommentar zählt nirgends mehr als Kommentar.
+  const [totalRes, activeRes] = await Promise.all([
+    tablesDB.listRows<Comment>({
+      databaseId,
+      tableId: COMMENTS_TABLE,
+      queries: [...baseFilters, Query.limit(1)],
+    }),
+    tablesDB.listRows<Comment>({
+      databaseId,
+      tableId: COMMENTS_TABLE,
+      queries: [
+        Query.equal('targetId', targetId),
+        Query.equal('targetType', targetType),
+        Query.equal('status', ['active']),
+        Query.limit(1),
+      ],
+    }),
+  ])
   const total = totalRes.total
+  const activeTotal = activeRes.total
 
   // Soft-gelöschte bleiben als Thread-Platzhalter in der Antwort, aber Inhalt/
   // Autor werden SERVER-seitig geblankt — der „[gelöscht]"-Text der UI wäre
@@ -204,7 +219,7 @@ export default defineEventHandler(async (event): Promise<CommentListResponse> =>
     myReports = [...reported]
   }
 
-  const response = { total, topLevelTotal, rows, myVotes, myReports }
+  const response = { total, activeTotal, topLevelTotal, rows, myVotes, myReports }
   if (isGuest && page === 1) {
     guestCache.set(cacheKey, response)
   }
