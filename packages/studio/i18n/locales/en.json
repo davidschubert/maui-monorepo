@@ -82,6 +82,32 @@
       "downgradeHint": "Downgrade to free: cancel the subscription in Stripe — at period end the workspace falls back to the free set automatically.",
       "toCheckout": "Go to checkout",
       "checkoutFailed": "Could not start checkout"
+    },
+    "invite": {
+      "send": "Invite owner",
+      "resend": "Resend invitation",
+      "sent": "Invitation sent to {email}",
+      "sendFailed": "Invitation failed",
+      "pending": "Invitation pending",
+      "ownerActive": "Owner active",
+      "working": "Checking invitation …",
+      "successTitle": "Welcome to your workspace!",
+      "successMessage": "Your invitation has been accepted — you can now manage your workspace.",
+      "needsLoginTitle": "Please sign in first",
+      "needsLoginMessage": "Sign in with your invited email address (code via email) — the invitation is applied automatically afterwards.",
+      "invalidTitle": "Invitation invalid or expired",
+      "invalidMessage": "Please request a new invitation.",
+      "toWorkspace": "Go to workspace"
+    },
+    "customer": {
+      "title": "My workspace",
+      "subtitle": "Plan, billing and sites of your workspace.",
+      "empty": "No workspace is linked to your account yet — follow the invitation link from your email.",
+      "sites": "Sites",
+      "portal": "Manage billing",
+      "portalFailed": "Could not open the portal",
+      "noBillingYet": "No billing account yet — start a checkout first.",
+      "downgradeHint": "Manage cancellation and payment method via “Manage billing” — after cancelling, the workspace falls back to free at period end."
     }
   }
 }

@@ -11,8 +11,25 @@ const { t } = useI18n()
 const toast = useToast()
 const appConfig = useAppConfig()
 
-type WorkspaceWithSites = WorkspaceRow & { siteSlugs: string[] }
+type WorkspaceWithSites = WorkspaceRow & { siteSlugs: string[], memberCount: number, pendingInvite: boolean }
 const { data, refresh } = await useFetch<{ workspaces: WorkspaceWithSites[] }>('/api/studio/workspaces')
+
+// ── Owner einladen (M9-T2) ─────────────────────────────────────────────────
+const inviting = ref<string | null>(null)
+async function inviteOwner(workspace: WorkspaceWithSites) {
+  inviting.value = workspace.$id
+  try {
+    const { email } = await $fetch<{ email: string }>(`/api/studio/workspaces/${workspace.$id}/invite`, { method: 'POST' })
+    toast.add({ title: t('studio.invite.sent', { email }), color: 'success' })
+  }
+  catch (error) {
+    toast.add({ title: t('studio.invite.sendFailed'), description: (error as { statusMessage?: string })?.statusMessage, color: 'error' })
+  }
+  finally {
+    inviting.value = null
+  }
+  await refresh()
+}
 
 const planFeatures = (plan: string): string[] =>
   (appConfig.maui as { studio?: { plans?: Record<string, { features: string[] }> } }).studio?.plans?.[plan]?.features ?? []
@@ -130,7 +147,11 @@ const statusColor = (s: string) => (s === 'active' ? 'success' : s === 'past_due
               <UBadge :color="planColor(workspace.plan)" variant="subtle" size="sm" :data-workspace-plan="workspace.plan">{{ workspace.plan }}</UBadge>
               <UBadge :color="statusColor(workspace.status)" variant="subtle" size="sm">{{ workspace.status }}</UBadge>
             </div>
-            <p class="mt-0.5 truncate text-sm text-muted">{{ workspace.ownerEmail }}</p>
+            <p class="mt-0.5 flex flex-wrap items-center gap-2 truncate text-sm text-muted">
+              {{ workspace.ownerEmail }}
+              <UBadge v-if="workspace.memberCount > 0" color="success" variant="subtle" size="sm" data-workspace-owner-active>{{ t('studio.invite.ownerActive') }}</UBadge>
+              <UBadge v-else-if="workspace.pendingInvite" color="info" variant="subtle" size="sm" data-workspace-invite-pending>{{ t('studio.invite.pending') }}</UBadge>
+            </p>
             <div class="mt-1 flex flex-wrap items-center gap-1" :data-workspace-sites="workspace.siteSlugs.join(',')">
               <template v-if="workspace.siteSlugs.length">
                 <UBadge v-for="slug in workspace.siteSlugs" :key="slug" color="neutral" variant="outline" size="sm">{{ slug }}</UBadge>
@@ -142,6 +163,18 @@ const statusColor = (s: string) => (s === 'active' ? 'success' : s === 'past_due
             </p>
           </div>
           <div class="flex items-center gap-1">
+            <UButton
+              v-if="workspace.memberCount === 0"
+              icon="i-ph-paper-plane-tilt"
+              size="sm"
+              color="neutral"
+              variant="ghost"
+              :loading="inviting === workspace.$id"
+              :data-workspace-invite="workspace.name"
+              @click="inviteOwner(workspace)"
+            >
+              {{ workspace.pendingInvite ? t('studio.invite.resend') : t('studio.invite.send') }}
+            </UButton>
             <UButton icon="i-ph-credit-card" size="sm" color="neutral" variant="ghost" :data-workspace-plan-change="workspace.name" @click="openPlanChange(workspace)">
               {{ t('studio.workspaces.changePlan') }}
             </UButton>

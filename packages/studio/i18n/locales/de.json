@@ -82,6 +82,32 @@
       "downgradeHint": "Downgrade auf free: Abo in Stripe kündigen — zum Periodenende fällt der Workspace automatisch aufs free-Set zurück.",
       "toCheckout": "Zum Checkout",
       "checkoutFailed": "Checkout konnte nicht gestartet werden"
+    },
+    "invite": {
+      "send": "Owner einladen",
+      "resend": "Einladung erneut senden",
+      "sent": "Einladung an {email} verschickt",
+      "sendFailed": "Einladung fehlgeschlagen",
+      "pending": "Einladung offen",
+      "ownerActive": "Owner aktiv",
+      "working": "Einladung wird geprüft …",
+      "successTitle": "Willkommen im Workspace!",
+      "successMessage": "Deine Einladung wurde angenommen — du kannst deinen Workspace jetzt verwalten.",
+      "needsLoginTitle": "Bitte zuerst anmelden",
+      "needsLoginMessage": "Melde dich mit deiner eingeladenen E-Mail-Adresse an (Code per E-Mail) — die Einladung wird danach automatisch übernommen.",
+      "invalidTitle": "Einladung ungültig oder abgelaufen",
+      "invalidMessage": "Bitte eine neue Einladung anfordern.",
+      "toWorkspace": "Zum Workspace"
+    },
+    "customer": {
+      "title": "Mein Workspace",
+      "subtitle": "Plan, Abrechnung und Sites deines Workspace.",
+      "empty": "Deinem Konto ist noch kein Workspace zugeordnet — folge dem Einladungslink aus deiner E-Mail.",
+      "sites": "Sites",
+      "portal": "Abrechnung verwalten",
+      "portalFailed": "Portal konnte nicht geöffnet werden",
+      "noBillingYet": "Noch keine Abrechnung vorhanden — starte zuerst einen Checkout.",
+      "downgradeHint": "Kündigung und Zahlungsmethode verwaltest du unter „Abrechnung verwalten“ — nach einer Kündigung fällt der Workspace zum Periodenende automatisch auf free zurück."
     }
   }
 }

@@ -68,7 +68,24 @@ statt am Kunden. M9 behebt genau das plus die minimale UI dafür:
   wiederverwenden).
 - **T4** E2E im Test-Mode (zweiter Browser als Kunde), Doku, Memory.
 
-## Offene Fragen an David (Check-in)
+## Abnahme (v1, alles BEWIESEN 2026-07-19 im Test-Mode)
+
+- [x] Betreiber lädt Owner ein → Mail (Mailpit) mit Accept-Link;
+      Re-Invite ersetzt alte pending-Links.
+- [x] Kunde: OTP-Login (legt User an) → Accept bindet Membership;
+      E-Mail-Mismatch → 403, Token-Reuse → 400, Nicht-Mitglied-Checkout → 403.
+- [x] /workspace zeigt Plan/Status/Features + Sites read-only; Empty-State
+      ohne Membership; localStorage-Brücke für Accept-nach-Login.
+- [x] **Owner-Checkout:** Stripe-Customer = KUNDE (kunde.ohana@…, E-Mail im
+      Checkout vorausgefüllt) → business → Grant-Sync der Workspace-Sites
+      (portfolio bekam das requires-geschlossene business-Set).
+- [x] Kündigung (Dashboard, sofort) → free-Fallback [comments, moderation].
+- [x] Betreiber-Register zeigt Owner-Status (Einladung offen / Owner aktiv).
+- [x] GDPR-Contributor 'studio' registriert (Membership-Export/-Löschung).
+- Demo-Zustand: Workspace „Kunde Ohana" (free, Owner aktiv) bleibt in Dev;
+  portfolio wieder Betreiber-Workspace mit admin/themes.
+
+## Beantwortete Check-in-Fragen (per Empfehlung, Davids Pauschal-Freigabe)
 
 1. **Einladung per OTP-Login ok?** (Empfehlung: ja — nutzt den bewiesenen
    Core-Flow, kein Passwort-Setup nötig. Alternative: Passwort-Registrierung
