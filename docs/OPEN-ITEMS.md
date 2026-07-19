@@ -25,9 +25,12 @@ nutzbar). Reihenfolge = grobe Priorität.
   Prod braucht nur noch NUXT_PUBLIC_I18N_BASE_URL + NUXT_SMTP_* auf echte Werte.
   (Empfehlung: 2 Hetzner-VMs, ploi-Daemon, deploy.yml via workflow_run,
   Realtime-Watchdog; ~60 abhakbare Schritte, ~25–28 €/Monat).
-- **Changelog Track 2B aktivieren** (braucht Prod + Domain):
-  [docs/plans/CHANGELOG-2B-AKTIVIERUNG.md](plans/CHANGELOG-2B-AKTIVIERUNG.md)
-  (17 Schritte; Env-Vars, GitHub-Webhook, HMAC-Tests, Rollback).
+- ✅ **Changelog Track 2B AKTIV** (2026-07-19): Function `changelog-draft`
+  läuft auf Prod, GitHub-Release-Webhook → `https://changelog.pukalani.app/`
+  (Custom Domain mit Let's-Encrypt; functions-Subdomains bekommen auf 1.9.5
+  kein Einzel-Cert). Smoke-/HMAC-Tests bestanden; echter Release-E2E läuft
+  mit dem nächsten release-please-Release mit. Ist-Zustand + Betrieb:
+  [docs/plans/CHANGELOG-2B-AKTIVIERUNG.md](plans/CHANGELOG-2B-AKTIVIERUNG.md).
 
 ## 📋 Pläne für größere Ausbauten (bereit, brauchen Go + Entscheidungen)
 

@@ -1,5 +1,48 @@
 # Aktivierungs-Plan — Changelog Track 2B (Appwrite Function)
 
+## ✅ AKTIVIERT 2026-07-19 (Prod) — Ist-Zustand
+
+Die Function läuft auf der Prod-Instanz (`api.pukalani.app`, Projekt
+`comments`). Abweichungen und Ist-Werte gegenüber dem Plan unten:
+
+- **Payload-URL: `https://changelog.pukalani.app/`** — eine **Custom Domain**
+  (Cloudflare-A-Record → 188.245.61.155, DNS only), NICHT die generierte
+  `*.functions.`-Subdomain. Grund: Appwrite 1.9.5 stellt für Subdomains unter
+  `_APP_DOMAIN_FUNCTIONS` **kein Einzelzertifikat** aus (erwartet ein
+  Wildcard-Cert, das wir nicht haben) — die Rule wird zwar „verified", bleibt
+  aber auf dem Traefik-Default-Cert. Der Custom-Domain-Flow (Console →
+  Function → Domains → Add domain → Verify) durchläuft dagegen die echte
+  Verifikation und der certificates-Worker holt ein Let's-Encrypt-Cert
+  (bewiesen: CN=changelog.pukalani.app, gültig bis 2026-10-17).
+- **Runtime:** Server-`.env` hatte nur die alten Default-Runtimes —
+  `_APP_FUNCTIONS_RUNTIMES="node-22"` gesetzt + `docker compose up -d`
+  (appwrite + Executor neu erstellt), erst danach akzeptiert der Push node-22.
+- **Deploy:** Appwrite CLI **22.x via `npx appwrite-cli@latest`** (die
+  Homebrew-CLI 2.0.2 kennt `push` nicht). Konfiguration per
+  `appwrite client --endpoint https://api.pukalani.app/v1 --project-id
+  comments --key …` (migrations-prod-Key; liegt danach in `~/.appwrite/`),
+  dann `push functions --function-id changelog-draft --force`.
+  `create-variable` braucht in CLI 22 zusätzlich `--variable-id 'unique()'`.
+- **migrations-prod-Key-Scopes** erweitert: original 12 (Databases 10 +
+  Storage buckets.read/write) **+ Functions-Kategorie (6)** = 18. Die
+  CLI-Warnung `missing scopes (["rules.read"])` beim Push ist erwartbar und
+  harmlos — die Domain-Rule wurde stattdessen über die Console angelegt.
+- **Variablen** gesetzt: `APPWRITE_DATABASE_ID=main`,
+  `GITHUB_REPO=davidschubert/maui-monorepo`, `GITHUB_WEBHOOK_SECRET`
+  (secret; Wert nur in Appwrite-Variable + GitHub-Webhook). WICHTIG: nach dem
+  Setzen der Variablen ist ein **Redeploy nötig** (laufende Runtime sieht
+  neue Variablen nicht → „Function nicht konfiguriert").
+- **GitHub-Webhook** id `654489788`: nur Releases-Event, `application/json`,
+  aktiv. Beweise: Ping-Delivery **200** (durchläuft die HMAC-Prüfung),
+  Smoke-Test manueller Pfad `{ok:true, counted:62}` (Draft geprüft +
+  gelöscht), Negativtests 401 (falsches `x-manual-secret`, gefälschte
+  `x-hub-signature-256`).
+- **Phase E (echter Release-E2E)** bewusst offen — läuft mit dem nächsten
+  regulären release-please-Release mit; danach Recent Deliveries + Dashboard
+  prüfen (Schritte 13–16).
+
+---
+
 Stand: 2026-07-01. Plan-Dokument, **kein Code-Change nötig** — die Function
 [`functions/changelog-draft`](../../functions/changelog-draft) ist deploy-bereit
 (siehe [OPEN-ITEMS](../OPEN-ITEMS.md), Roadmap-Eintrag Track 2B). Dieses Dokument

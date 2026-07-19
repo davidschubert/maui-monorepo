@@ -31,7 +31,7 @@ Die nutzerseitigen Release-Notes leben in der Appwrite-Tabelle `changelog`
 (Dashboard → Changelog, öffentlich via „Was ist neu"-Popover). Sie sind
 **kuratiert** — gruppierte, verständliche Notes, kein Commit-Log.
 
-### 2A — Lokaler Draft-Generator (aktiv)
+### 2A — Lokaler Draft-Generator (Fallback)
 
 [`packages/admin/scripts/changelog-draft.mjs`](../packages/admin/scripts/changelog-draft.mjs)
 liest die Commits seit dem letzten Tag, mappt Typen auf Kategorien
@@ -48,15 +48,19 @@ pnpm changelog:draft -- --version=v1.5 # Version ins Entwurfs-Feld
 
 Läuft **lokal**, weil das self-hosted Appwrite unter `localhost` für GitHub CI
 nicht erreichbar ist. Der Runtime-Key kommt via `--env-file` aus
-`apps/comments/.env`.
+`apps/comments/.env`. Seit 2B aktiv ist, ist 2A das **Ausnahme-Werkzeug**
+(Ad-hoc-Drafts zwischen Releases, Recovery bei 2B-Fehlern, Dev-Instanz) —
+Abgrenzung in [CHANGELOG-2B-AKTIVIERUNG.md](plans/CHANGELOG-2B-AKTIVIERUNG.md) § 7.
 
-### 2B — Appwrite Function (späterer Ausbau, optional)
+### 2B — Appwrite Function (AKTIV auf Prod seit 2026-07-19)
 
-Voll hands-off: GitHub-**Release-Webhook** → Appwrite Function parst die Commits
-und legt den Draft direkt an. Eine Function läuft *innerhalb* von Appwrite,
-erreicht die DB also direkt (löst das `localhost`-Problem). Sinnvoll erst, wenn
-Prod mit öffentlicher Domain steht — die Parsing-Logik aus 2A wird dabei
-wiederverwendet.
+Voll hands-off: GitHub-**Release-Webhook** (nur Releases-Event, HMAC-signiert)
+→ `https://changelog.pukalani.app/` (Custom Domain der Function
+`changelog-draft` auf der Prod-Instanz) → Function parst die Commits via
+Compare-API und legt den Draft direkt an (`published:false`). Eine Function
+läuft *innerhalb* von Appwrite, erreicht die DB also direkt (löst das
+`localhost`-Problem). Betrieb, Fehlerfälle und Rollback:
+[CHANGELOG-2B-AKTIVIERUNG.md](plans/CHANGELOG-2B-AKTIVIERUNG.md) §§ 5–6.
 
 ## Warum getrennt?
 
