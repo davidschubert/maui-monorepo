@@ -65,6 +65,13 @@ Sag mir, sobald das steht — dann gehen wir die Schritte gemeinsam durch.
      App-Server.
 5. **SMTP** in der Appwrite-Installation (`.env` der Instanz, nicht in der
    Console) konfigurieren, sonst keine Auth-Mails.
+   **Pflicht-Patch (Appwrite 1.9.5):** der mails-Worker verliert mit dem
+   hartkodierten SMTP-`keepAlive: true` still die ERSTE Mail nach einer
+   Leerlaufphase (PHPMailer-`false` wird verschluckt, Worker loggt trotzdem
+   „success") — auf beiden Instanzen mountet `docker-compose.override.yml`
+   deshalb eine gepatchte `registers.php` (`keepAlive: false`) in
+   `appwrite-worker-mails`. Details/Beweis: PHASE-17-PRODUCTION.md Block 7.
+   Beim Upgrade Patch neu ziehen oder entfernen, falls upstream gefixt.
 6. **TLS** für die Appwrite-Subdomain (ploi.io/Caddy/Traefik) — Cookie braucht `secure`.
 
 ## 2. Migrationen gegen Prod laufen lassen

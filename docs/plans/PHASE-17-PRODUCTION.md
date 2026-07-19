@@ -541,6 +541,25 @@ KEINE Verification-Mail (Passwort-Signup by design) — der SMTP-Beweis läuft
 über die **OTP-Login-Mail** (kam an, Resend-Kette bewiesen). UptimeRobot-
 Monitor 2 (Keyword `"ok":true`) wieder aktiviert, Health liefert `ok:true`.
 
+**Nachtrag E-Mail-Verifizierung + Appwrite-SMTP-Bug (2026-07-19):** Seit
+`17c8ae3` verschickt der Signup eine nicht-blockierende Verification-Mail
+(`maui.auth.verification`). Auf Prod kam sie zunächst NICHT an, obwohl der
+mails-Worker `mail.status success` loggte — Ursache ist ein **Appwrite-
+1.9.5-Bug**: der Instanz-SMTP-Adapter läuft mit `keepAlive: true`
+(hartkodiert in `app/init/registers.php`); stirbt die Verbindung im
+Leerlauf (Resend-/Mailpit-Idle-Timeout), gibt PHPMailer nur `false` zurück,
+`utopia-php/messaging` wirft keine Exception → Worker loggt „success", die
+Mail ist weg. Muster: **immer die ERSTE Mail nach einer Leerlaufphase**
+(Worker-Dauer wenige ms statt ~2 s), die nächste geht durch — deshalb kam
+„Link erneut senden" an, die Signup-Mail nicht. Betrifft auch OTP-Mails.
+Fix auf beiden Instanzen (dev + prod): `docker-compose.override.yml`
+mountet eine gepatchte `registers.php` (`keepAlive: false`) NUR in
+`appwrite-worker-mails` (`patches/registers-1.9.5-keepalive-off.php` im
+Compose-Verzeichnis). Deterministisch bewiesen: Verbindungs-Kill
+(Mailpit-Restart) → Signup → Mail kam vor dem Patch nie, danach immer.
+**Beim Appwrite-Upgrade:** Patch-Datei aus dem neuen Image neu ziehen oder
+Override löschen, falls upstream gefixt.
+
 - [ ] Registrieren + E-Mail-Verifizierung kommt an (SMTP-Beweis) → Login
 - [ ] ✅ DevTools: Cookie `a_session_<PROJECT_ID>` mit Domain `.example.com`, httpOnly+secure
 - [ ] Eigenem User in der Appwrite-Console das Label `admin` geben → Dashboard erreichbar
