@@ -4,9 +4,10 @@ const appConfig = useAppConfig()
 const { user, isLoggedIn } = useCurrentUser()
 const toast = useToast()
 
-// Session-Dismiss nach erfolgreichem Resend; das X des UBanner persistiert
-// zusätzlich pro User in localStorage (banner-email-verify-<userId>) —
-// nach einem harten Reload bleibt der Banner damit weggeklickt.
+// BEWUSST kein Close/X und keine UBanner-id: solange die Adresse
+// unverifiziert ist, soll der Banner bei jedem Besuch wiederkommen (ein
+// localStorage-Dismiss würde die Verifizierung dauerhaft unsichtbar machen).
+// Nur nach erfolgreichem Resend verschwindet er für die laufende Sitzung.
 const dismissed = ref(false)
 const sending = ref(false)
 
@@ -42,12 +43,10 @@ async function resend() {
 <template>
   <UBanner
     v-if="visible"
-    :id="`email-verify-${user?.$id}`"
     icon="i-lucide-mail-warning"
     color="neutral"
     :title="t('auth.verification.bannerMessage')"
     :actions="actions"
-    close
     data-testid="email-verify-banner"
   />
 </template>
