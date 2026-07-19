@@ -1,5 +1,87 @@
 # Changelog
 
+## [2.0.0](https://github.com/davidschubert/maui-monorepo/compare/v1.5.0...v2.0.0) (2026-07-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* **activity:** Layer feed → activity umbenannt (Klarheit vs. Community-Feed)
+* **core:** Capability feed.manage → activity.manage
+
+### Features
+
+* **admin:** Dashboard-Nav blendet deaktivierte Features live aus (F2) ([73f9219](https://github.com/davidschubert/maui-monorepo/commit/73f921979924a8c9efeea53c14a22017ef14f27f))
+* **admin:** Feature-Katalog-Seite + Laufzeit-Toggles (M2, F7-Vorstufe) ([ac05809](https://github.com/davidschubert/maui-monorepo/commit/ac05809c7bef5d8512e49a74105fd10ccd8f13f3))
+* **admin:** Nav-Vereinfachung (People ohne Unterpunkte/Zähler) + PII-Gate der globalen Suche ([422a4e6](https://github.com/davidschubert/maui-monorepo/commit/422a4e6102a95a5e2d6f6d7f9283cdc4f98b45ef))
+* **core,ci:** Deploy-Verifikation — Health meldet Build-Commit, Workflow pollt ([dc70bb7](https://github.com/davidschubert/maui-monorepo/commit/dc70bb7c71cd832be52e8ed285a0aa961e8d0c00))
+* **core:** Appwrite-Auth-Mails in der UI-Sprache des Users (X-Appwrite-Locale) ([d684aae](https://github.com/davidschubert/maui-monorepo/commit/d684aae6e9e4c666dccef1088692f017103edfad))
+* **core:** Capability media.manage ([79a425f](https://github.com/davidschubert/maui-monorepo/commit/79a425fff31b68a495059fad1c55fc5a1c6bd5e2))
+* **core:** Capability sites.manage ([8b0e6ec](https://github.com/davidschubert/maui-monorepo/commit/8b0e6ec78c941c19c5b72dfa641b52d1fd7259e4))
+* **core:** Laufzeit-Feature-Gates (F2/M2) — Registry, Middleware, useFeature ([4fa5fcb](https://github.com/davidschubert/maui-monorepo/commit/4fa5fcb74e40256a2de4874974804ac221ab8a79))
+* **core:** Manifest-Typen + Zod-Schemas (M1/P1) ([87641a5](https://github.com/davidschubert/maui-monorepo/commit/87641a57fd447a2dad11d5a6a8448e586511d7e0))
+* **core:** nicht-blockierende E-Mail-Verifizierung für alle Apps ([17c8ae3](https://github.com/davidschubert/maui-monorepo/commit/17c8ae38a1d9960a11b1f3bdad9355992c528377))
+* **core:** Notification-Typen ticket/billing + locale-gebundenes useFormatCurrency ([85154e8](https://github.com/davidschubert/maui-monorepo/commit/85154e8cf11202c3cf405a3048a4c3db2b39cc99))
+* **core:** öffentlicher Feature-Snapshot GET /api/platform/features ([8342fe9](https://github.com/davidschubert/maui-monorepo/commit/8342fe964cf4ad3e9940cbad6dd038ee1b0a339a))
+* **core:** PresenceAvatar auf UChip ([e701d71](https://github.com/davidschubert/maui-monorepo/commit/e701d710ac74d01a22ed4fcb066944517d89eb75))
+* **core:** removeActivitiesForObject() — Gegenstueck zu recordActivity fuer Moderations-Cascades ([e0e7164](https://github.com/davidschubert/maui-monorepo/commit/e0e71646680327c7280eddae013678a4a25dc533))
+* **core:** signierte Entitlement-Zustellung — dritte UND-Bedingung in featureGates (F3/M8-Vorbereitung) ([1ce4467](https://github.com/davidschubert/maui-monorepo/commit/1ce44674673fd41c0a3f33f32253811356044f10))
+* **docs:** eigenständige Docs-Site (Nuxt Content, Port 4000) ([a982f2c](https://github.com/davidschubert/maui-monorepo/commit/a982f2c134525a8eeaac814be53aac7b68c0e114))
+* Feature-Manifeste fuer alle 13 Layer + Site-Manifeste (M1/P2+P3) ([42285da](https://github.com/davidschubert/maui-monorepo/commit/42285da61943cf192b06d53deeafa473dfec48c8))
+* **media:** Medien-Galerie-Layer — erster Manifest-geborener Feature-Layer (M5/P1) ([453dda5](https://github.com/davidschubert/maui-monorepo/commit/453dda5b09869d7cc2ff23acb4865d96c98cf945))
+* **ops:** PHASE-17-Ops-Paket — deploy.yml scharf, Watchdog + Backup-Script (lokal getestet) ([596aa77](https://github.com/davidschubert/maui-monorepo/commit/596aa7793471c74e843c094d32d948bfe831769f))
+* **ops:** pm2-Ecosystem (Cluster-Mode) für Zero-Downtime-Deploy Stufe 2 ([cdc5eeb](https://github.com/davidschubert/maui-monorepo/commit/cdc5eeb8248032deede4eeaece38749703f698eb))
+* **photos:** apps/photos — maui.photos als Klasse-A-Site (M5/P2) ([aa088c4](https://github.com/davidschubert/maui-monorepo/commit/aa088c481e5375e196a28b5cee12a7cb38c18f9a))
+* **photos:** P2-Polish — Kontakt-Route, Font-Self-Hosting, photos.css gescopet (M5/P2 komplett) ([54ffc6e](https://github.com/davidschubert/maui-monorepo/commit/54ffc6e80d70015808e5420d9558b82bdd86d840))
+* **portfolio:** apps/portfolio — Landing + Cases (M5 komplett) ([ba294ff](https://github.com/davidschubert/maui-monorepo/commit/ba294ffbfe6a602ff30cf9ce70d604a90d81f0a5))
+* **scripts:** check-manifests Runner + CI-Step in lint.yml (M1/P4) ([dac0794](https://github.com/davidschubert/maui-monorepo/commit/dac07945b230676ba384110e1629a8904601ecd5))
+* **scripts:** pnpm create-site — neue Studio-Site in einem Befehl (M4, Gate G1) ([9360d36](https://github.com/davidschubert/maui-monorepo/commit/9360d364a115af9d9e0ef8f18c8da84ac75aac9b))
+* **spikes:** Gate G2 — Minimal-S3 im Browser bestanden, S2-API verifiziert ([d7611e2](https://github.com/davidschubert/maui-monorepo/commit/d7611e24b1cbd1709c06d9a47dee01be2fdf10a9))
+* **spikes:** S0-Gate bestanden — Multi-Projekt-Aufloesung pro Request (12/12) ([61e85d7](https://github.com/davidschubert/maui-monorepo/commit/61e85d710e2e0ce5e665b92b897fe4d6e1cf601f))
+* **studio,billing:** M8-T3 — Workspace-Checkout, Abo-Fulfillment, Grant-Sync ([6a08c8d](https://github.com/davidschubert/maui-monorepo/commit/6a08c8d18f4814bc8c8b1163a259ab60cd9b6bf1))
+* **studio:** Control Plane T1 — Sites-Register + Health (M6) ([0c6bb81](https://github.com/davidschubert/maui-monorepo/commit/0c6bb81bcc426747efc54b15daee8a9266153421))
+* **studio:** Control Plane T2 — Site-Erstellungs-Flow als Job (M6) ([868b99b](https://github.com/davidschubert/maui-monorepo/commit/868b99bf78581dc90e3f1f6b80fb993e1a3da563))
+* **studio:** Control Plane T3 — manuelle Entitlements (M6, F3-Vorstufe) ([a466609](https://github.com/davidschubert/maui-monorepo/commit/a466609e8bf88c5652a27431a66e5486ea6f40c9))
+* **studio:** Control Plane T4 — Health-Automatik + Feature-Snapshot (M6 komplett) ([0fddbbc](https://github.com/davidschubert/maui-monorepo/commit/0fddbbc724abfbd99dbcd6a638f7aa9119f84473))
+* **studio:** Entitlement-Aussteller + Keygen — Zustellung e2e verifiziert (M8-Vorbereitung) ([16e5daf](https://github.com/davidschubert/maui-monorepo/commit/16e5dafdd7c1e18f1896e1ff475eea6c3a5511e9))
+* **studio:** L6-Alerting — Health-Sweep mailt Statuswechsel an NUXT_ALERT_EMAIL ([756b78d](https://github.com/davidschubert/maui-monorepo/commit/756b78df1efed70962d5d35350b41d2ab931983c))
+* **studio:** M8-Fundament — workspaces (studio-005), sites.workspaceId (studio-006), pure Billing-Bausteine + 12 Unit-Tests ([ff7ff07](https://github.com/davidschubert/maui-monorepo/commit/ff7ff0763817dda0e2b6dd59b926915dcbc1f766))
+* **studio:** M8-T1 — Plan-Katalog free/pro/business (maui.studio.plans) ([02a920a](https://github.com/davidschubert/maui-monorepo/commit/02a920a09f1e66df9567a16fa94dc51bbb734cdd))
+* **studio:** M8-T2 — Workspace-Verwaltung im Studio-Dashboard ([fb3082a](https://github.com/davidschubert/maui-monorepo/commit/fb3082ad9a88f7021c5bda9d2c00dc7ed96ce4df))
+* **studio:** M9 v1 — Workspace-Self-Service (Invite, Kundenbereich, Owner-Billing) ([183a0f1](https://github.com/davidschubert/maui-monorepo/commit/183a0f18d1facf9da67eb340f0ae456be52453c0))
+* **studio:** M9-T1 — workspace_members/-invites + GDPR-Contributor ([d80e5ba](https://github.com/davidschubert/maui-monorepo/commit/d80e5ba2869dae87285bab8699445b01b6d963ee))
+* **themes:** Katalog-Generator-Vorarbeit (Vollausbau Schritt 3) ([3e735ce](https://github.com/davidschubert/maui-monorepo/commit/3e735ced1b0925e7d772ce081832f3e72bb8b874))
+* **tickets,billing:** eigene Notification-Typen nutzen + lokalisierte Billing-Benachrichtigung ([7cc4dfa](https://github.com/davidschubert/maui-monorepo/commit/7cc4dfa5ad4708a60a1f9d6bb7cd1ef1bb68e922))
+
+
+### Bug Fixes
+
+* **admin:** Grundgeruest-Features zeigen "Immer aktiv" statt totem Schalter ([03ac00c](https://github.com/davidschubert/maui-monorepo/commit/03ac00c9f1bc2858104620c8af0cfb8c012905c5))
+* **app:** Products-Dropdown nicht mehr rechts abgeschnitten ([9361a6e](https://github.com/davidschubert/maui-monorepo/commit/9361a6eef8c33ed038b80299eed44a87c6de09b3))
+* **comments:** Header und Stats zählen identisch — gelöschte zählen nirgends ([e30b538](https://github.com/davidschubert/maui-monorepo/commit/e30b538c11f0081c10ab348e0151578e24edfdb7))
+* **comments:** M3-Migrations-Audit — comments-002-Guard wasserdicht + Destruktiv-Check ([4535c96](https://github.com/davidschubert/maui-monorepo/commit/4535c96e74e9f04ea601eb298cb8a9ffaa95fc27))
+* **comments:** Moderations-Hide entfernt Activity-Feed-Eintraege mit (Inhalts-Leak) ([a3e9ade](https://github.com/davidschubert/maui-monorepo/commit/a3e9ade0b42a60b22c9143d28da25e4dedb0eb3f))
+* **comments:** Stats-Box läuft live mit + Sortier-Dropdown ungekürzt ([bb9c37e](https://github.com/davidschubert/maui-monorepo/commit/bb9c37ee759fbdbca776f9217be33e66becda0eb))
+* **comments:** Zähler-Flackern beim Absenden (N+2-Blitz) beseitigt ([d4c82a4](https://github.com/davidschubert/maui-monorepo/commit/d4c82a44592d2a3797c5e94892d42219dbe9d1d1))
+* **core:** E-Mail-Verifizierung ohne Login bestätigen (Cross-Device) ([abe1870](https://github.com/davidschubert/maui-monorepo/commit/abe1870e62de9819f66145d4be86d55b9a7ba62d))
+* **core:** Entitlement-Zustellung typfest — Client-Flags tragen entitlementsDoc durch, getAppConfig eventlos aufrufbar ([09289b4](https://github.com/davidschubert/maui-monorepo/commit/09289b420004a5065be2d97d5eca644495281c6c))
+* **core:** formatRelativeTime klemmt kleinen Zukunfts-Drift auf „jetzt" ([fcc2b3f](https://github.com/davidschubert/maui-monorepo/commit/fcc2b3f42e04814ff9fcced40634ce117a82035e))
+* **core:** useAppConfig ohne event-Argument im Signup (Typecheck) ([0505049](https://github.com/davidschubert/maui-monorepo/commit/05050498a55a9a979a3e40ccac11dfa1189aa274))
+* **core:** Verifizierungs-Banner als UBanner oben, Dismiss persistiert pro User ([f051b78](https://github.com/davidschubert/maui-monorepo/commit/f051b78c1308b987bf80b91d3ead43ba51d04e6b))
+* **core:** Verifizierungs-Banner ohne X — bleibt bis zur Bestätigung sichtbar ([ab5096c](https://github.com/davidschubert/maui-monorepo/commit/ab5096c34c4289acc57d9decfa42280f3531b54c))
+* **posts:** Hide schließt offene Meldungen und räumt den Activity-Feed ([13bf38d](https://github.com/davidschubert/maui-monorepo/commit/13bf38d029826ed384c449083f02d4bba85e1617))
+* **scripts:** create-site installiert mit --no-frozen-lockfile (G1 in CI) ([e4632ca](https://github.com/davidschubert/maui-monorepo/commit/e4632ca6b0db79a69ac70ad24463233daf933881))
+* **themes:** sanitizeConfig kennt die additiven v2-Keys ([1ad2bc0](https://github.com/davidschubert/maui-monorepo/commit/1ad2bc08f77fc7904b5ebf6525c4c04ab685672b))
+
+
+### Refactoring
+
+* **activity:** Layer feed → activity umbenannt (Klarheit vs. Community-Feed) ([d4c4fa0](https://github.com/davidschubert/maui-monorepo/commit/d4c4fa057a6722f8f8191bd011edd3fddfd5fac1))
+* App heißt jetzt überall comments (vormals reddit-comments) ([35b4b84](https://github.com/davidschubert/maui-monorepo/commit/35b4b84c81794cc8b4304ca2959ae36a09cd9475))
+* **comments:** Kommentar-Moderation zieht zum Owner-Layer (A14) ([08a6a07](https://github.com/davidschubert/maui-monorepo/commit/08a6a071bb699aee49b33ca54acb012d7ef2d300))
+* **comments:** Typen-Entwirrung nach A14 — Moderations-Vertrag zieht zum Routen-Owner ([15eeab9](https://github.com/davidschubert/maui-monorepo/commit/15eeab90588e52972cec9287ce3cd857f9025b71))
+* **core:** Capability feed.manage → activity.manage ([8e05966](https://github.com/davidschubert/maui-monorepo/commit/8e05966427f8f50dbba65815962364366a2a3f89))
+* **posts:** Feed-URL /community → /feed (mit 301-Redirects) ([2467bbd](https://github.com/davidschubert/maui-monorepo/commit/2467bbd67ad1b645c42d45c9401218094e0d882a))
+
 ## [1.5.0](https://github.com/davidschubert/maui-monorepo/compare/v1.4.0...v1.5.0) (2026-07-11)
 
 
