@@ -46,7 +46,7 @@ export default defineEventHandler(async (event) => {
   // kippen. Der frische Session-Secret ist noch nicht im Request-Cookie,
   // daher ein eigener Client statt createSessionClient(event).
   const config = useRuntimeConfig(event)
-  const appConfig2 = useAppConfig(event) as { maui?: { auth?: { verification?: boolean } } }
+  const appConfig2 = useAppConfig() as { maui?: { auth?: { verification?: boolean } } }
   if (appConfig2.maui?.auth?.verification && config.public.appUrl) {
     try {
       const sessionAccount = new Account(new Client()
