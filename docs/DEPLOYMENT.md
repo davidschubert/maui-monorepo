@@ -108,14 +108,15 @@ danach).
 | Feld | Wert (pukalani-Ist-Stand) |
 |---|---|
 | Site-Typ | NodeJS — ploi vergibt den Port (hier **3001**); nginx-vHost proxied NICHT automatisch → `location /` manuell auf `proxy_pass http://127.0.0.1:3001` + WebSocket-Header umstellen (Panel-nginx-Editor) |
-| NodeJS-Service | PM2, Start command `bash start-prod.sh`, „Restart process after deployment" AN |
-| Deploy-Script | `git pull` → `export COREPACK_ENABLE_DOWNLOAD_PROMPT=0` → `export NODE_OPTIONS=--max-old-space-size=4096` → `corepack pnpm install --frozen-lockfile` → `corepack pnpm --filter comments build` (pm2-Restart macht ploi) |
-| Reboot-Festigkeit | `pm2 save` einmalig + `@reboot pm2 resurrect` im ploi-Crontab (kein sudo nötig) |
+| NodeJS-Service | pm2 **Cluster-Mode** via [`ops/ecosystem-comments.config.cjs`](../ops/ecosystem-comments.config.cjs) (seit 2026-07-19, Zero-Downtime Stufe 2). „Restart process after deployment" **AUS** — den Prozesswechsel macht `pm2 reload` im Deploy-Script. ploi-Start-command `bash start-prod.sh` ist nur noch historischer Rest (ploi startet nichts mehr) |
+| Deploy-Script | `git pull` → corepack-Install/Build wie gehabt → **dann Release-Flow**: `.output` nach `/home/ploi/releases/comments/<sha>/` kopieren, `current`-Symlink atomar flippen (`ln -s` + `mv -Tf`), `pm2 startOrReload ops/ecosystem-comments.config.cjs --update-env`, `pm2 save`, alte Releases auf 5 stutzen. Der alte Worker serviert bis der neue `listening` ist → **kein 502**, und der laufende Prozess liest nie aus einem halb überschriebenen `.output` |
+| Reboot-Festigkeit | `pm2 save` macht das Deploy-Script; `@reboot pm2 resurrect` im ploi-Crontab (kein sudo nötig) |
 | HSTS | eigene Include-Datei `server/hsts.conf` mit `add_header Strict-Transport-Security "max-age=15768000" always;` |
 
-**Runtime-Env** liegt in `/home/ploi/<site>/.env` (chmod 600) und wird vom
-`start-prod.sh`-Wrapper mit `set -a; source .env` in die Prozess-Umgebung
-gehoben — Nitro liest zur Laufzeit keine .env-Datei:
+**Runtime-Env** liegt in `/home/ploi/<site>/.env` (chmod 600) und wird von
+`ops/ecosystem-comments.config.cjs` beim `pm2 startOrReload … --update-env`
+geparst und in die Prozess-Umgebung gehoben — Nitro liest zur Laufzeit keine
+.env-Datei:
 ```
 NUXT_APPWRITE_KEY=<Runtime-Key>                     # server-only
 NUXT_PUBLIC_APPWRITE_ENDPOINT=https://api.pukalani.app/v1
@@ -127,7 +128,10 @@ NUXT_PUBLIC_I18N_BASE_URL=https://comments.pukalani.app
 NUXT_SMTP_HOST=smtp.resend.com                      # + PORT/USER/PASS/FROM
 ```
 > **NICHT** auf den Server: `NUXT_APPWRITE_MIGRATIONS_KEY`. Der gehört nur zum
-> Migrationslauf (Schritt 2). Nach Env-Änderungen: `pm2 restart <prozess>`.
+> Migrationslauf (Schritt 2). Nach Env-Änderungen: `pm2 startOrReload
+> /home/ploi/comments.pukalani.app/ops/ecosystem-comments.config.cjs
+> --update-env` (downtime-frei; ein `pm2 restart` ginge auch, reißt aber
+> eine Lücke).
 
 ## 4. Deploy auslösen
 
@@ -144,6 +148,13 @@ NUXT_SMTP_HOST=smtp.resend.com                      # + PORT/USER/PASS/FROM
   Workflow ROT statt still zu bleiben. Abhilfe dann: Workflow re-runnen.
 - ploi-„Health check URL" der Site steht auf
   `https://comments.pukalani.app/api/health` → Mail bei Nicht-200 nach Deploy.
+- **Zero-Downtime Stufe 2 (seit 2026-07-19):** Deploys erzeugen ein
+  eingefrorenes Release unter `/home/ploi/releases/comments/<sha>/` und
+  wechseln per Symlink-Flip + `pm2 reload` (Cluster-Mode). Beweis: curl-Loop
+  auf `/api/health` alle ~0,3 s über einen kompletten Deploy — 0 Nicht-200.
+  Rollback im Notfall: `current`-Symlink auf ein älteres Release zeigen
+  lassen + `pm2 reload commentspukalaniapp` (die letzten 5 Releases bleiben
+  liegen).
 
 ## 5. Verifikation nach dem Deploy
 
