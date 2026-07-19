@@ -59,8 +59,10 @@ Sag mir, sobald das steht — dann gehen wir die Schritte gemeinsam durch.
      (Presence-Heartbeat/Reader) — 10 Scopes.
    - **Migrations-Key** (`migrations-prod`): `databases.*`, `tables.*`,
      `columns.*`, `indexes.*` **plus** `buckets.*` (der Bootstrap legt die
-     Buckets an) — 10 Scopes. **Nur für den Migrationslauf** — kommt NIE auf
-     den App-Server.
+     Buckets an) **plus** `rows.read`, `rows.write` (Migrationen seeden
+     Default-Rows und machen Row-Backfills — Prod-Learning 2026-07-19) —
+     12 Scopes. **Nur für den Migrationslauf** — kommt NIE auf den
+     App-Server.
 5. **SMTP** in der Appwrite-Installation (`.env` der Instanz, nicht in der
    Console) konfigurieren, sonst keine Auth-Mails.
 6. **TLS** für die Appwrite-Subdomain (ploi.io/Caddy/Traefik) — Cookie braucht `secure`.

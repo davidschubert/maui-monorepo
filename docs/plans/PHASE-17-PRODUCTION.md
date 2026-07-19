@@ -452,6 +452,19 @@ passwortloses sudo, aber docker-Gruppe).
 
 ### Block 5 — Schema-Bootstrap (von der lokalen Maschine)
 
+**✅ KOMPLETT (2026-07-19):** Bootstrap gegen api.pukalani.app gelaufen —
+29 Tables (alle Pflicht-Tables vorhanden), Buckets, alle Layer-Migrationen
+system→comments→…→admin. **Drei Prod-Learnings:**
+1. Der **Migrations-Key braucht auch `rows.read/write`** — Migrationen
+   seeden Default-Rows (system-002 app_config) und machen Row-Backfills
+   (comments-005/006). In Dev nie aufgefallen (Vollzugriffs-Key).
+2. Der bekannte Budget-vor-409-Effekt schlägt beim RE-Run des kompletten
+   system-Layers zu (system-011 wirft column_limit_exceeded für die längst
+   existierende Spalte). Workaround: nach einem Teil-Fehlschlag die
+   restlichen Layer einzeln mit `--layer` weiterfahren statt von vorn.
+3. `migrate.mjs` ohne `--env-file` fällt auf die Dev-.env zurück — bei
+   Prod-Läufen IMMER `--env-file apps/<app>/.env.production` mitgeben.
+
 **Vorarbeit ✅ (2026-07-18):** Projekt `comments` + beide Keys von David
 angelegt; Claude hat per Console (Davids Browser-Session) beide Keys auf
 least-privilege eingeengt (je 10 Scopes — Runtime: users.r/w, sessions.write,
@@ -515,6 +528,18 @@ INTERNAL_ERROR (Platzhalter-Env).
 - [ ] ✅ Seite lädt im Browser, HTTPS-Schloss ok, HSTS-Header gesetzt (ploi-Toggle)
 
 ### Block 7 — Funktions-Smoke-Test (DEPLOYMENT.md §5)
+
+**✅ KOMPLETT (2026-07-19):** Registrierung + Login (David), `admin`-Label
+per Console-API gesetzt (PUT /users/:id/labels — der UI-Chip-Klick
+persistierte nicht), Kommentar erstellt. **Gast-Beweis:** curl ohne Cookies
+sieht die Kommentare (Row-read(any)). **Realtime-Beweis:** Beobachter-Tab
+minutenlang offen → zweiter Kommentar lief OHNE Reload live ein, Presence
+„1 gerade online". Bundle-Leak-Check automatisiert: kein NUXT_APPWRITE_KEY
+in HTML/JS-Assets. /changelog 200. **Klarstellung zum Checklisten-Punkt
+„Verifizierungs-Mail":** die App verschickt bei der Registrierung bewusst
+KEINE Verification-Mail (Passwort-Signup by design) — der SMTP-Beweis läuft
+über die **OTP-Login-Mail** (kam an, Resend-Kette bewiesen). UptimeRobot-
+Monitor 2 (Keyword `"ok":true`) wieder aktiviert, Health liefert `ok:true`.
 
 - [ ] Registrieren + E-Mail-Verifizierung kommt an (SMTP-Beweis) → Login
 - [ ] ✅ DevTools: Cookie `a_session_<PROJECT_ID>` mit Domain `.example.com`, httpOnly+secure
