@@ -1,15 +1,18 @@
 # Deploy nach PHASE-17-Plan (A.5, scharfgeschaltet 2026-07-17):
-# feuert den ploi.io-Deploy-Webhook NUR, wenn der „Test"-Workflow auf main
+# feuert die ploi.io-Deploy-Webhooks NUR, wenn der „Test"-Workflow auf main
 # grün durchgelaufen ist — lint/typecheck bleiben bewusst Warnlampen
 # (Beschluss A.10 #9). `workflow_dispatch` als manueller Hebel bleibt.
 #
-# Aktivierung am Go-Live-Tag (Teil B, Block 8):
-#   1. ploi → Site comments.pukalani.app → Deploy-Webhook-URL kopieren
-#   2. Repo-Secret PLOI_DEPLOY_WEBHOOK_COMMENTS = Webhook-URL
-# Ohne das Secret ist der curl ein no-op (Guard unten) — der Workflow ist
-# damit gefahrlos schon VOR dem Go-Live auf main.
+# Seit H2-Live (2026-07-19) deployt die Kette DREI Sites SEQUENZIELL
+# (comments → portfolio → studio): der App-Server (2 Cores / 3,7 GB) verkraftet
+# keine parallelen Nuxt-Builds (OOM-Kill 137 beobachtet) — deshalb wird jede
+# Site erst getriggert, wenn die vorige ihren buildSha auf /api/health meldet.
 #
-# Env Vars (NUXT_APPWRITE_KEY etc.) leben als Site-Environment in ploi.io —
+# Aktivierung je Site: ploi → Site → Deploy-Webhook-URL kopieren →
+# Repo-Secret PLOI_DEPLOY_WEBHOOK_<SITE> setzen. Ohne Secret ist der
+# jeweilige Schritt ein no-op (Guard unten).
+#
+# Env Vars (NUXT_APPWRITE_KEY etc.) leben als Server-.env je Site —
 # NIE im Repo; ploi „Quick Deploy" bleibt AUS (sonst deployt ungetesteter
 # Code an den Actions vorbei).
 
@@ -25,47 +28,59 @@ on:
 permissions: {}
 
 concurrency:
-  group: deploy-comments
+  group: deploy-sites
   cancel-in-progress: false
 
 jobs:
-  deploy-comments:
+  deploy:
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    env:
+      EXPECTED_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
     steps:
-      - name: Trigger ploi.io deploy webhook
-        id: webhook
-        env:
-          WEBHOOK: ${{ secrets.PLOI_DEPLOY_WEBHOOK_COMMENTS }}
+      # Härtung (2026-07-19): ploi verschluckt Webhooks, die während eines
+      # laufenden Deploys eintreffen — das Verify macht das SICHTBAR.
+      # /api/health liefert den gebauten Commit (buildSha, Build-Zeit aus git);
+      # wir pollen, bis Prod den erwarteten SHA meldet, sonst rot.
+      # Bei workflow_run zählt der SHA des auslösenden Test-Laufs.
+      - name: Deploy-Helfer definieren
         run: |
+          cat > /tmp/deploy-site.sh <<'SCRIPT'
+          #!/usr/bin/env bash
+          # $1 = Site-Name, $2 = Webhook-URL (leer = skip), $3 = Health-URL
+          set -u
+          SITE="$1"; WEBHOOK="$2"; HEALTH_URL="$3"; EXPECTED="$4"
           if [ -z "$WEBHOOK" ]; then
-            echo "Secret PLOI_DEPLOY_WEBHOOK_COMMENTS nicht gesetzt — Deploy übersprungen (Go-Live Block 8)."
-            echo "triggered=false" >> "$GITHUB_OUTPUT"
+            echo "[$SITE] Secret nicht gesetzt — Deploy übersprungen."
             exit 0
           fi
-          curl -fsS -X POST "$WEBHOOK"
-          echo "triggered=true" >> "$GITHUB_OUTPUT"
-
-      # Härtung (2026-07-19): ploi verschluckt Webhooks, die während eines
-      # laufenden Deploys eintreffen — dieser Schritt macht das SICHTBAR.
-      # /api/health liefert seither den gebauten Commit (buildSha, Build-Zeit
-      # aus git); wir pollen, bis Prod den erwarteten SHA meldet, sonst rot.
-      # Bei workflow_run zählt der SHA des auslösenden Test-Laufs.
-      - name: Verify deployed commit
-        if: steps.webhook.outputs.triggered == 'true'
-        env:
-          EXPECTED_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
-          HEALTH_URL: https://comments.pukalani.app/api/health
-        run: |
-          echo "Erwarte Commit $EXPECTED_SHA auf $HEALTH_URL (Build ~3-5 min) …"
+          curl -fsS -X POST "$WEBHOOK" || { echo "[$SITE] Webhook-Call fehlgeschlagen"; exit 1; }
+          echo "[$SITE] Erwarte Commit $EXPECTED auf $HEALTH_URL (Build ~3-5 min) …"
           for i in $(seq 1 40); do
             BUILD=$(curl -fsS -m 15 "$HEALTH_URL" | jq -r '.build // empty' || true)
-            if [ "$BUILD" = "$EXPECTED_SHA" ]; then
-              echo "✔ Prod läuft auf $BUILD"
+            if [ "$BUILD" = "$EXPECTED" ]; then
+              echo "[$SITE] ✔ Prod läuft auf $BUILD"
               exit 0
             fi
-            echo "  ($i/40) Prod meldet '${BUILD:-n/a}' — warte 20 s …"
+            echo "[$SITE]   ($i/40) Prod meldet '${BUILD:-n/a}' — warte 20 s …"
             sleep 20
           done
-          echo "✗ Prod hat $EXPECTED_SHA nach ~13 min nicht erreicht — ploi-Deploy prüfen (verschluckter Webhook? Build-Fehler?)."
+          echo "[$SITE] ✗ Prod hat $EXPECTED nach ~13 min nicht erreicht — ploi-Deploy prüfen (verschluckter Webhook? Build-Fehler?)."
           exit 1
+          SCRIPT
+          chmod +x /tmp/deploy-site.sh
+
+      - name: comments deployen + verifizieren
+        env:
+          WEBHOOK: ${{ secrets.PLOI_DEPLOY_WEBHOOK_COMMENTS }}
+        run: /tmp/deploy-site.sh comments "$WEBHOOK" "https://comments.pukalani.app/api/health" "$EXPECTED_SHA"
+
+      - name: portfolio deployen + verifizieren
+        env:
+          WEBHOOK: ${{ secrets.PLOI_DEPLOY_WEBHOOK_PORTFOLIO }}
+        run: /tmp/deploy-site.sh portfolio "$WEBHOOK" "https://portfolio.pukalani.app/api/health" "$EXPECTED_SHA"
+
+      - name: studio deployen + verifizieren
+        env:
+          WEBHOOK: ${{ secrets.PLOI_DEPLOY_WEBHOOK_STUDIO }}
+        run: /tmp/deploy-site.sh studio "$WEBHOOK" "https://studio.pukalani.app/api/health" "$EXPECTED_SHA"
