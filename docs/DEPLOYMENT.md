@@ -1,23 +1,32 @@
-# Deployment-Runbook — comments (Phase 17)
+# Deployment-Runbook — Prod-Sites (Phase 17 / H2)
 
-Stand: 2026-07-18 (Go-Live-Woche). Praktischer Leitfaden, um die App in
+Stand: 2026-07-19 (Multi-Site). Praktischer Leitfaden, um Apps in
 Produktion zu bringen. Ergänzt [CONCEPT.md](CONCEPT.md) (A9 Deployment,
 A11 Env, A3 Session-Cookie) und
 [plans/PHASE-17-PRODUCTION.md](plans/PHASE-17-PRODUCTION.md) (Checkliste +
 alle Go-Live-Learnings im Detail).
 
-> **Ist-Stand (pukalani.app):** App `comments.pukalani.app` (app-prod,
-> 49.13.211.173, ploi-Site 389772) · Appwrite `api.pukalani.app`
-> (appwrite-prod, 188.245.61.155, 1.9.5, Projekt-ID `comments`) · Cloudflare
-> DNS „DNS only" · Resend-SMTP · UptimeRobot · Storage Box `maui-backup`
-> (Offsite-Backups). Abweichungen vom ursprünglichen Plan, die sich bewährt
-> haben: **pm2 statt systemd-Daemon** (ploi-NodeJS-Site, „Restart process
-> after deployment"), **Port 3001** (von ploi vergeben), **corepack pnpm**
-> statt npm-global, `NODE_OPTIONS=--max-old-space-size=4096` im
-> Deploy-Script (Node-Default-Heap ~1,9 GB reicht dem Nuxt-Build nicht),
-> Runtime-Env via `start-prod.sh`-Wrapper, der die Site-`.env` sourct
-> (Nitro liest zur Laufzeit KEINE .env), HSTS als eigene Include-Datei
+> **Ist-Stand (pukalani.app), EIN App-Server (app-prod, 49.13.211.173) mit
+> DREI ploi-Sites:** `comments.pukalani.app` (Site 389772, Port **3001**) ·
+> `portfolio.pukalani.app` (Site 390041, Port **3002**) ·
+> `studio.pukalani.app` (Site 390042, Port **3003**). Appwrite
+> `api.pukalani.app` (appwrite-prod, 188.245.61.155, 1.9.5) mit **einem
+> Projekt je Site** (`comments`, `portfolio`, `studio` — F6-Muster
+> Projekt-pro-Site, je eigene nuxt-ssr-prod/migrations-prod-Keys +
+> Web-Platform). Cloudflare DNS „DNS only" · Resend-SMTP (nur comments +
+> studio) · UptimeRobot · Storage Box `maui-backup` (Offsite-Backups; die
+> MariaDB-Dumps decken alle Projekte ab).
+> Bewährte Abweichungen vom ursprünglichen Plan: **pm2 Cluster-Mode über
+> `ops/ecosystem-<app>.config.cjs`** (seit A.10 Stufe 2 — parst die
+> Site-`.env`, Nitro liest zur Laufzeit KEINE .env), **corepack pnpm**,
+> `NODE_OPTIONS=--max-old-space-size=4096` im Deploy-Script (Node-Default-
+> Heap ~1,9 GB reicht dem Nuxt-Build nicht), HSTS als eigene Include-Datei
 > `/etc/nginx/ploi/<site>/server/hsts.conf`.
+>
+> **RAM-Regel (2 Cores / 3,7 GB + 4,7 GB Swap):** ein Nuxt-Build braucht
+> ~3,4 GB — **nie zwei Builds parallel** (beobachteter OOM-Kill 137).
+> deploy.yml deployt die drei Sites deshalb SEQUENZIELL und wartet je Site
+> auf den buildSha-Beweis, bevor die nächste startet.
 
 > **Architektur:** Nuxt 4 (SSR) → Nitro Node-Server. Build erzeugt
 > `apps/comments/.output/server/index.mjs`. Backend = eigene self-hosted
@@ -135,11 +144,13 @@ NUXT_SMTP_HOST=smtp.resend.com                      # + PORT/USER/PASS/FROM
 
 ## 4. Deploy auslösen
 
-- **Aktiv seit 2026-07-18:** jeder Push auf `main` → CI „Test" → Workflow
-  „Deploy" ruft den ploi-Webhook (Repo-Secret
-  `PLOI_DEPLOY_WEBHOOK_COMMENTS`) → ploi pullt, baut, restartet pm2.
-  Kette e2e verifiziert. ploi Quick Deploy bleibt bewusst AUS (Deploy nur
-  nach grünem Test).
+- **Aktiv seit 2026-07-18 (Multi-Site seit 2026-07-19):** jeder Push auf
+  `main` → CI „Test" → Workflow „Deploy" ruft die ploi-Webhooks
+  SEQUENZIELL (comments → portfolio → studio; Repo-Secrets
+  `PLOI_DEPLOY_WEBHOOK_{COMMENTS,PORTFOLIO,STUDIO}`, fehlendes Secret =
+  Site wird übersprungen) → ploi pullt, baut, `pm2 reload`. Kette e2e
+  verifiziert. ploi Quick Deploy bleibt bewusst AUS (Deploy nur nach
+  grünem Test), „Restart after deployment" bei allen drei Sites AUS.
 - **Härtung seit 2026-07-19:** ploi verschluckt Webhooks, die während eines
   laufenden Deploys eintreffen (beobachtet bei zwei Pushes binnen ~3 min).
   `/api/health` liefert deshalb den gebauten Commit (`build`, zur Build-Zeit
