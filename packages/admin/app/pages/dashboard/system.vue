@@ -361,7 +361,7 @@ async function confirmUpdate() {
                                 variant="soft"
                                 icon="i-ph-arrow-circle-up"
                                 class="ms-1 font-sans"
-                                @click="pendingUpdate = dep"
+                                @click="() => { pendingUpdate = dep }"
                               >
                                 {{ t('dashboard.system.stack.update') }}
                               </UButton>
@@ -399,7 +399,7 @@ async function confirmUpdate() {
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" :disabled="updating" @click="pendingUpdate = null">{{ t('ui.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" :disabled="updating" @click="() => { pendingUpdate = null }">{{ t('ui.cancel') }}</UButton>
             <UButton color="warning" icon="i-ph-arrow-circle-up" :loading="updating" @click="confirmUpdate">{{ t('dashboard.system.stack.updateConfirmBtn') }}</UButton>
           </div>
         </template>

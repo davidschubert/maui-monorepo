@@ -71,7 +71,7 @@ async function signOutAll() {
         variant="subtle"
         icon="i-ph-sign-out"
         :disabled="(data?.sessions.length ?? 0) === 0"
-        @click="confirmAll = true"
+        @click="() => { confirmAll = true }"
       >
         {{ t('account.sessions.signOutAll') }}
       </UButton>
@@ -104,7 +104,7 @@ async function signOutAll() {
       </template>
       <template #footer>
         <div class="flex w-full justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="confirmAll = false">{{ t('account.sessions.cancel') }}</UButton>
+          <UButton color="neutral" variant="ghost" @click="() => { confirmAll = false }">{{ t('account.sessions.cancel') }}</UButton>
           <UButton color="error" :loading="busyAll" @click="signOutAll">{{ t('account.sessions.confirmAll') }}</UButton>
         </div>
       </template>

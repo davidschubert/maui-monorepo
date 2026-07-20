@@ -88,7 +88,7 @@ async function executePending() {
           <UButton
             v-if="current?.orphanAware && current.orphanCount > 0"
             color="error" variant="subtle" icon="i-ph-broom"
-            @click="pending = { kind: 'orphans' }"
+            @click="() => { pending = { kind: 'orphans' } }"
           >
             {{ t('admin.storage.deleteOrphans', { count: current.orphanCount }) }}
           </UButton>
@@ -154,7 +154,7 @@ async function executePending() {
                 <p class="text-xs text-muted">{{ formatBytes(file.sizeBytes) }} · {{ formatRelativeTime(file.$createdAt) }}</p>
               </div>
               <UBadge v-if="file.orphan" color="warning" variant="subtle" size="sm">{{ t('admin.storage.orphan') }}</UBadge>
-              <UButton v-if="!current.readOnly" color="error" variant="ghost" size="xs" icon="i-ph-trash" @click="pending = { kind: 'one', file }" />
+              <UButton v-if="!current.readOnly" color="error" variant="ghost" size="xs" icon="i-ph-trash" @click="() => { pending = { kind: 'one', file } }" />
             </li>
           </ul>
         </div>
@@ -178,7 +178,7 @@ async function executePending() {
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="pending = null">{{ t('ui.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { pending = null }">{{ t('ui.cancel') }}</UButton>
             <UButton color="error" :loading="busy" @click="executePending">{{ t('admin.users.confirmAction') }}</UButton>
           </div>
         </template>

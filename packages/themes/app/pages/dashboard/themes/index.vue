@@ -345,7 +345,7 @@ async function importTheme(event: Event) {
                 :color="colorMode.preference === mode ? 'primary' : 'neutral'"
                 :variant="colorMode.preference === mode ? 'subtle' : 'ghost'"
                 :aria-label="t(`themes.appearance.${mode}`)"
-                @click="colorMode.preference = mode"
+                @click="() => { colorMode.preference = mode }"
               />
             </div>
             <div class="flex min-w-0 items-center gap-2">
@@ -451,7 +451,7 @@ async function importTheme(event: Event) {
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="builtinRename = null">{{ t('ui.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { builtinRename = null }">{{ t('ui.cancel') }}</UButton>
             <UButton color="primary" :loading="busy" @click="saveBuiltinRename">{{ t('ui.save') }}</UButton>
           </div>
         </template>
@@ -468,7 +468,7 @@ async function importTheme(event: Event) {
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="pendingDelete = null">{{ t('ui.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { pendingDelete = null }">{{ t('ui.cancel') }}</UButton>
             <UButton color="error" :loading="busy" @click="executeDelete">{{ t('themes.studio.delete') }}</UButton>
           </div>
         </template>

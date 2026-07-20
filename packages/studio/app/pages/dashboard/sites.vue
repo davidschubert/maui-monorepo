@@ -204,10 +204,10 @@ const jobColor = (s: string) => (s === 'done' ? 'success' : s === 'running' ? 'i
           <UDashboardSidebarCollapse />
         </template>
         <template #right>
-          <UButton icon="i-ph-plus" color="neutral" variant="outline" data-sites-register @click="showRegister = true">
+          <UButton icon="i-ph-plus" color="neutral" variant="outline" data-sites-register @click="() => { showRegister = true }">
             {{ t('studio.sites.register') }}
           </UButton>
-          <UButton icon="i-ph-rocket-launch" data-sites-create @click="showCreate = true">
+          <UButton icon="i-ph-rocket-launch" data-sites-create @click="() => { showCreate = true }">
             {{ t('studio.jobs.newSite') }}
           </UButton>
         </template>
@@ -291,7 +291,7 @@ const jobColor = (s: string) => (s === 'done' ? 'success' : s === 'running' ? 'i
                 <UBadge :color="jobColor(job.status)" variant="subtle" size="sm" :data-job-status="job.status">{{ job.status }}</UBadge>
                 <span class="text-xs text-muted">{{ (jobPayload(job).features ?? []).join(', ') }}</span>
               </div>
-              <UButton v-if="job.log" size="xs" color="neutral" variant="ghost" :icon="expandedLog === job.$id ? 'i-ph-caret-up' : 'i-ph-caret-down'" @click="expandedLog = expandedLog === job.$id ? null : job.$id">
+              <UButton v-if="job.log" size="xs" color="neutral" variant="ghost" :icon="expandedLog === job.$id ? 'i-ph-caret-up' : 'i-ph-caret-down'" @click="() => { expandedLog = expandedLog === job.$id ? null : job.$id }">
                 {{ t('studio.jobs.log') }}
               </UButton>
             </div>
@@ -306,7 +306,7 @@ const jobColor = (s: string) => (s === 'done' ? 'success' : s === 'running' ? 'i
       </template>
 
       <!-- T1: bestehende Site manuell registrieren -->
-      <UModal :open="showRegister" :title="t('studio.sites.registerTitle')" @update:open="showRegister = false">
+      <UModal :open="showRegister" :title="t('studio.sites.registerTitle')" @update:open="() => { showRegister = false }">
         <template #body>
           <div class="space-y-4">
             <UFormField :label="t('studio.sites.fieldName')"><UInput v-model="form.name" class="w-full" /></UFormField>
@@ -318,14 +318,14 @@ const jobColor = (s: string) => (s === 'done' ? 'success' : s === 'running' ? 'i
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="showRegister = false">{{ t('studio.sites.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { showRegister = false }">{{ t('studio.sites.cancel') }}</UButton>
             <UButton data-sites-save @click="register">{{ t('studio.sites.save') }}</UButton>
           </div>
         </template>
       </UModal>
 
       <!-- T3: Entitlements einer Site verwalten -->
-      <UModal :open="!!entitlementSite" :title="t('studio.entitlements.title', { name: entitlementSite?.name ?? '' })" @update:open="entitlementSite = null">
+      <UModal :open="!!entitlementSite" :title="t('studio.entitlements.title', { name: entitlementSite?.name ?? '' })" @update:open="() => { entitlementSite = null }">
         <template #body>
           <UFormField :label="t('studio.jobs.fieldFeatures')" :help="t('studio.entitlements.help')">
             <p v-if="!selectableFeatures.length" class="text-sm text-muted">{{ t('studio.jobs.catalogEmpty') }}</p>
@@ -344,7 +344,7 @@ const jobColor = (s: string) => (s === 'done' ? 'success' : s === 'running' ? 'i
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="entitlementSite = null">{{ t('studio.sites.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { entitlementSite = null }">{{ t('studio.sites.cancel') }}</UButton>
             <UButton :loading="savingGrants" :disabled="!selectableFeatures.length" data-grant-save @click="saveEntitlements">
               {{ t('studio.entitlements.save') }}
             </UButton>
@@ -353,7 +353,7 @@ const jobColor = (s: string) => (s === 'done' ? 'success' : s === 'running' ? 'i
       </UModal>
 
       <!-- T2: neue Site als Provisionierungs-Job -->
-      <UModal :open="showCreate" :title="t('studio.jobs.newSiteTitle')" @update:open="showCreate = false">
+      <UModal :open="showCreate" :title="t('studio.jobs.newSiteTitle')" @update:open="() => { showCreate = false }">
         <template #body>
           <div class="space-y-4">
             <UFormField :label="t('studio.jobs.fieldName')" :hint="t('studio.jobs.fieldNameHint')">
@@ -379,7 +379,7 @@ const jobColor = (s: string) => (s === 'done' ? 'success' : s === 'running' ? 'i
           <div class="flex w-full items-center justify-between gap-2">
             <p class="text-xs text-muted">{{ t('studio.jobs.runnerHint') }}</p>
             <div class="flex gap-2">
-              <UButton color="neutral" variant="ghost" @click="showCreate = false">{{ t('studio.sites.cancel') }}</UButton>
+              <UButton color="neutral" variant="ghost" @click="() => { showCreate = false }">{{ t('studio.sites.cancel') }}</UButton>
               <UButton :disabled="!createName.trim() || !selectableFeatures.length" :loading="creating" data-create-save @click="createSite">
                 {{ t('studio.jobs.create') }}
               </UButton>

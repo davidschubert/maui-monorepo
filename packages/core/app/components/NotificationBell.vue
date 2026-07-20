@@ -113,7 +113,7 @@ function messageKey(type: string): string {
           :key="n.$id"
           :to="localePath(safeLink(n.link))"
           class="block rounded-md px-2 py-2 transition-colors hover:bg-elevated"
-          @click="open = false"
+          @click="() => { open = false }"
         >
           <div class="flex items-center gap-1.5">
             <span class="size-1.5 shrink-0 rounded-full" :class="n.read ? 'bg-transparent' : 'bg-primary'" />

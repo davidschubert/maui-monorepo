@@ -127,7 +127,7 @@ const statusColor = (s: string) => (s === 'active' ? 'success' : s === 'past_due
           <UDashboardSidebarCollapse />
         </template>
         <template #right>
-          <UButton icon="i-ph-plus" data-workspaces-create @click="showCreate = true">
+          <UButton icon="i-ph-plus" data-workspaces-create @click="() => { showCreate = true }">
             {{ t('studio.workspaces.create') }}
           </UButton>
         </template>
@@ -185,7 +185,7 @@ const statusColor = (s: string) => (s === 'active' ? 'success' : s === 'past_due
         </div>
       </div>
 
-      <UModal :open="showCreate" :title="t('studio.workspaces.createTitle')" @update:open="showCreate = false">
+      <UModal :open="showCreate" :title="t('studio.workspaces.createTitle')" @update:open="() => { showCreate = false }">
         <template #body>
           <div class="space-y-4">
             <UFormField :label="t('studio.workspaces.fieldName')"><UInput v-model="form.name" class="w-full" data-workspace-name /></UFormField>
@@ -196,7 +196,7 @@ const statusColor = (s: string) => (s === 'active' ? 'success' : s === 'past_due
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="showCreate = false">{{ t('studio.sites.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { showCreate = false }">{{ t('studio.sites.cancel') }}</UButton>
             <UButton :disabled="!form.name.trim() || !form.ownerEmail.trim()" :loading="creating" data-workspace-save @click="createWorkspace">
               {{ t('studio.workspaces.create') }}
             </UButton>
@@ -205,7 +205,7 @@ const statusColor = (s: string) => (s === 'active' ? 'success' : s === 'past_due
       </UModal>
 
       <!-- T3: Plan ändern — paid via Stripe-hosted Checkout, Downgrade via Kündigung -->
-      <UModal :open="!!planTarget" :title="t('studio.workspaces.changePlanTitle', { name: planTarget?.name ?? '' })" @update:open="planTarget = null">
+      <UModal :open="!!planTarget" :title="t('studio.workspaces.changePlanTitle', { name: planTarget?.name ?? '' })" @update:open="() => { planTarget = null }">
         <template #body>
           <div class="space-y-4">
             <p class="text-sm text-muted">
@@ -223,7 +223,7 @@ const statusColor = (s: string) => (s === 'active' ? 'success' : s === 'past_due
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="planTarget = null">{{ t('studio.sites.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { planTarget = null }">{{ t('studio.sites.cancel') }}</UButton>
             <UButton :disabled="!chosenPlan || chosenPlan === planTarget?.plan" :loading="startingCheckout" data-plan-checkout @click="startCheckout">
               {{ t('studio.workspaces.toCheckout') }}
             </UButton>
@@ -231,7 +231,7 @@ const statusColor = (s: string) => (s === 'active' ? 'success' : s === 'past_due
         </template>
       </UModal>
 
-      <UModal :open="!!editing" :title="t('studio.workspaces.editTitle', { name: editing?.name ?? '' })" @update:open="editing = null">
+      <UModal :open="!!editing" :title="t('studio.workspaces.editTitle', { name: editing?.name ?? '' })" @update:open="() => { editing = null }">
         <template #body>
           <div class="space-y-4">
             <UFormField :label="t('studio.workspaces.fieldName')"><UInput v-model="editForm.name" class="w-full" /></UFormField>
@@ -240,7 +240,7 @@ const statusColor = (s: string) => (s === 'active' ? 'success' : s === 'past_due
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="editing = null">{{ t('studio.sites.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { editing = null }">{{ t('studio.sites.cancel') }}</UButton>
             <UButton :loading="savingEdit" @click="saveEdit">{{ t('studio.sites.save') }}</UButton>
           </div>
         </template>

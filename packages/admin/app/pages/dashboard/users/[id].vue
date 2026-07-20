@@ -192,7 +192,7 @@ async function executePending() {
               <UButton color="neutral" variant="subtle" icon="i-ph-download-simple" :loading="exporting" @click="exportData">
                 {{ t('admin.users.export') }}
               </UButton>
-              <UButton color="neutral" variant="subtle" icon="i-ph-sign-out" @click="pending = { type: 'sessions' }">
+              <UButton color="neutral" variant="subtle" icon="i-ph-sign-out" @click="() => { pending = { type: 'sessions' } }">
                 {{ t('admin.users.clearSessions') }}
               </UButton>
             </div>
@@ -385,14 +385,14 @@ async function executePending() {
                 <UButton
                   v-if="user.status"
                   block color="error" variant="subtle" icon="i-ph-prohibit" :disabled="isSelf"
-                  @click="pending = { type: 'block' }"
+                  @click="() => { pending = { type: 'block' } }"
                 >
                   {{ t('admin.users.block') }}
                 </UButton>
-                <UButton v-else block color="success" variant="subtle" icon="i-ph-lock-open" @click="pending = { type: 'unblock' }">
+                <UButton v-else block color="success" variant="subtle" icon="i-ph-lock-open" @click="() => { pending = { type: 'unblock' } }">
                   {{ t('admin.users.unblock') }}
                 </UButton>
-                <UButton block color="error" variant="subtle" icon="i-ph-trash" :disabled="isSelf" @click="pending = { type: 'delete' }">
+                <UButton block color="error" variant="subtle" icon="i-ph-trash" :disabled="isSelf" @click="() => { pending = { type: 'delete' } }">
                   {{ t('admin.users.deleteUser') }}
                 </UButton>
               </div>
@@ -411,7 +411,7 @@ async function executePending() {
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="pending = null">{{ t('ui.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { pending = null }">{{ t('ui.cancel') }}</UButton>
             <UButton :color="pending?.type === 'block' || pending?.type === 'delete' ? 'error' : 'primary'" :loading="busy" @click="executePending">
               {{ t('admin.users.confirmAction') }}
             </UButton>

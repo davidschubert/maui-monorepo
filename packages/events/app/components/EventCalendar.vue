@@ -127,7 +127,7 @@ watch(month, load, { immediate: true })
         />
         <UButton
           color="neutral" variant="ghost" size="xs"
-          data-testid="calendar-today" @click="month = startOfMonth(new Date())"
+          data-testid="calendar-today" @click="() => { month = startOfMonth(new Date()) }"
         >
           {{ t('events.calendar.today') }}
         </UButton>

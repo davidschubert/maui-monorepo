@@ -24,7 +24,7 @@ const links = [
 <template>
   <header class="header" :class="{ 'is-scrolled': scrolled }">
     <div class="header__inner container">
-      <NuxtLink to="/" class="brand" @click="open = false">
+      <NuxtLink to="/" class="brand" @click="() => { open = false }">
         maui<span>.photos</span>
       </NuxtLink>
 
@@ -34,7 +34,7 @@ const links = [
           :key="link.to"
           :to="localePath(link.to)"
           class="nav__link"
-          @click="open = false"
+          @click="() => { open = false }"
         >
           {{ link.label }}
         </NuxtLink>
@@ -45,7 +45,7 @@ const links = [
         :class="{ 'is-open': open }"
         :aria-expanded="open"
         aria-label="Toggle menu"
-        @click="open = !open"
+        @click="() => { open = !open }"
       >
         <span /><span /><span />
       </button>

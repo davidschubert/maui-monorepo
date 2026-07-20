@@ -89,7 +89,7 @@ async function openPortal() {
         :variant="interval === 'monthly' ? 'soft' : 'ghost'"
         size="sm"
         data-testid="interval-monthly"
-        @click="interval = 'monthly'"
+        @click="() => { interval = 'monthly' }"
       >
         {{ t('billing.pricing.monthly') }}
       </UButton>
@@ -98,7 +98,7 @@ async function openPortal() {
         :variant="interval === 'yearly' ? 'soft' : 'ghost'"
         size="sm"
         data-testid="interval-yearly"
-        @click="interval = 'yearly'"
+        @click="() => { interval = 'yearly' }"
       >
         {{ t('billing.pricing.yearly') }}
       </UButton>

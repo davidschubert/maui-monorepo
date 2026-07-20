@@ -81,7 +81,7 @@ async function submit() {
               <UIcon name="i-ph-confetti" class="size-8 text-primary" />
               <p class="font-medium">{{ t('feedback.form.thanksTitle') }}</p>
               <p class="text-sm text-muted">{{ t('feedback.form.thanksText') }}</p>
-              <UButton color="neutral" variant="ghost" size="sm" class="mt-1" @click="open = false">
+              <UButton color="neutral" variant="ghost" size="sm" class="mt-1" @click="() => { open = false }">
                 {{ t('feedback.form.close') }}
               </UButton>
             </div>
@@ -99,7 +99,7 @@ async function submit() {
                 :color="category === option.value ? 'primary' : 'neutral'"
                 :variant="category === option.value ? 'soft' : 'ghost'"
                 :data-feedback-category="option.value"
-                @click="category = option.value"
+                @click="() => { category = option.value }"
               >
                 {{ t(`feedback.categories.${option.value}`) }}
               </UButton>
@@ -119,7 +119,7 @@ async function submit() {
             <p v-if="!isLoggedIn" class="text-xs text-dimmed">{{ t('feedback.form.guestHint') }}</p>
 
             <div class="flex justify-end gap-2">
-              <UButton color="neutral" variant="ghost" size="sm" @click="open = false">
+              <UButton color="neutral" variant="ghost" size="sm" @click="() => { open = false }">
                 {{ t('feedback.form.cancel') }}
               </UButton>
               <UButton type="submit" size="sm" :loading="busy" :disabled="message.trim().length < 3" data-testid="feedback-send">

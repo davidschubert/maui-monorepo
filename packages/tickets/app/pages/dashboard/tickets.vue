@@ -139,7 +139,7 @@ async function addList() {
             variant="ghost"
             size="sm"
             data-testid="watching-open"
-            @click="watchingOpen = true; void refreshWatching()"
+            @click="() => { watchingOpen = true; void refreshWatching() }"
           >
             {{ t('tickets.watch.listTitle') }}
             <UBadge v-if="watchedIds.size" color="neutral" variant="subtle" size="sm">{{ watchedIds.size }}</UBadge>
@@ -152,7 +152,7 @@ async function addList() {
               size="sm"
               :aria-label="t('tickets.settings.title')"
               data-testid="board-settings-open"
-              @click="settingsOpen = true"
+              @click="() => { settingsOpen = true }"
             />
           </UTooltip>
         </template>
@@ -216,7 +216,7 @@ async function addList() {
               autofocus
               :placeholder="t('tickets.board.listTitlePlaceholder')"
               class="w-full"
-              @keydown.escape="addingList = false"
+              @keydown.escape="() => { addingList = false }"
               @blur="!newListTitle.trim() && (addingList = false)"
             />
           </form>
@@ -228,7 +228,7 @@ async function addList() {
             block
             class="justify-start"
             data-testid="add-list"
-            @click="addingList = true"
+            @click="() => { addingList = true }"
           >
             {{ t('tickets.board.addList') }}
           </UButton>

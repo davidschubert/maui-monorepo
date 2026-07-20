@@ -126,7 +126,7 @@ function onToggle(value: boolean) {
           v-if="entries.length"
           :to="localePath('/changelog')"
           class="block border-t border-default px-3 py-2.5 text-center text-sm font-medium text-primary hover:underline"
-          @click="open = false"
+          @click="() => { open = false }"
         >
           {{ t('whatsNew.viewAll') }}
         </NuxtLink>

@@ -30,7 +30,7 @@ async function deleteAccount() {
     class="bg-linear-to-tl from-error/10 from-5% to-default"
   >
     <template #footer>
-      <UButton :label="t('account.delete.button')" color="error" @click="open = true" />
+      <UButton :label="t('account.delete.button')" color="error" @click="() => { open = true }" />
     </template>
 
     <UModal v-model:open="open" :title="t('account.delete.confirmTitle')">
@@ -39,7 +39,7 @@ async function deleteAccount() {
       </template>
       <template #footer>
         <div class="flex w-full justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="open = false">{{ t('account.delete.cancel') }}</UButton>
+          <UButton color="neutral" variant="ghost" @click="() => { open = false }">{{ t('account.delete.cancel') }}</UButton>
           <UButton color="error" :loading="loading" @click="deleteAccount">{{ t('account.delete.confirm') }}</UButton>
         </div>
       </template>

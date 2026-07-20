@@ -70,7 +70,7 @@ async function onRetract() {
     <UButton
       v-else
       :size="size" color="neutral" variant="ghost" icon="i-ph-flag"
-      @click="open = true"
+      @click="() => { open = true }"
     >
       {{ t('moderation.report.action') }}
     </UButton>
@@ -91,7 +91,7 @@ async function onRetract() {
       </template>
       <template #footer>
         <div class="flex w-full justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="open = false">
+          <UButton color="neutral" variant="ghost" @click="() => { open = false }">
             {{ t('moderation.report.cancel') }}
           </UButton>
           <UButton color="error" :loading="pending" :disabled="!reason" @click="onSubmit">

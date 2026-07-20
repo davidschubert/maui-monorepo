@@ -208,7 +208,7 @@ function confirmLeave() {
                             size="xs"
                             :color="draft.config.darkAlias === stufe ? 'primary' : 'neutral'"
                             :variant="draft.config.darkAlias === stufe ? 'subtle' : 'ghost'"
-                            @click="draft.config.darkAlias = stufe"
+                            @click="() => { draft!.config.darkAlias = stufe }"
                           >
                             {{ stufe }}{{ stufe === 400 ? ` · ${t('themes.studio.defaultOption')}` : '' }}
                           </UButton>
@@ -220,7 +220,7 @@ function confirmLeave() {
                             size="xs"
                             :color="draft.config.radius === null ? 'primary' : 'neutral'"
                             :variant="draft.config.radius === null ? 'subtle' : 'ghost'"
-                            @click="draft.config.radius = null"
+                            @click="() => { draft!.config.radius = null }"
                           >
                             {{ t('themes.studio.radiusDefault') }}
                           </UButton>
@@ -230,7 +230,7 @@ function confirmLeave() {
                             size="xs"
                             :color="draft.config.radius === r ? 'primary' : 'neutral'"
                             :variant="draft.config.radius === r ? 'subtle' : 'ghost'"
-                            @click="draft.config.radius = r"
+                            @click="() => { draft!.config.radius = r }"
                           >
                             {{ r }}
                           </UButton>
@@ -301,7 +301,7 @@ function confirmLeave() {
                           size="xs"
                           :color="draft.config.headingWeight === null ? 'primary' : 'neutral'"
                           :variant="draft.config.headingWeight === null ? 'subtle' : 'ghost'"
-                          @click="draft.config.headingWeight = null"
+                          @click="() => { draft!.config.headingWeight = null }"
                         >
                           {{ t('themes.studio.defaultOption') }}
                         </UButton>
@@ -311,7 +311,7 @@ function confirmLeave() {
                           size="xs"
                           :color="draft.config.headingWeight === w ? 'primary' : 'neutral'"
                           :variant="draft.config.headingWeight === w ? 'subtle' : 'ghost'"
-                          @click="draft.config.headingWeight = w"
+                          @click="() => { draft!.config.headingWeight = w }"
                         >
                           {{ w }}
                         </UButton>
@@ -371,7 +371,7 @@ function confirmLeave() {
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="pendingLeave = null">{{ t('themes.studio.keepEditing') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { pendingLeave = null }">{{ t('themes.studio.keepEditing') }}</UButton>
             <UButton color="error" @click="confirmLeave">{{ t('themes.studio.discard') }}</UButton>
           </div>
         </template>

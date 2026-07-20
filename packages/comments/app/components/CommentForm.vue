@@ -154,9 +154,9 @@ async function onSubmit(event: FormSubmitEvent<FormInput>) {
           :placeholder="parentId ? t('comments.form.replyPlaceholder') : t('comments.form.placeholder')"
           class="w-full"
           data-comment-input
-          @focusin="expanded = true; activateReply()"
+          @focusin="() => { expanded = true; activateReply() }"
           @input="onInput"
-          @keydown.escape="mentionQuery = null"
+          @keydown.escape="() => { mentionQuery = null }"
         />
         <div
           v-if="mentionSuggestions.length"

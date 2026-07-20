@@ -144,7 +144,7 @@ const healthColor = (s: string) => (s === 'ok' ? 'success' : s === 'degraded' ? 
       </UCard>
     </div>
 
-    <UModal :open="!!planTarget" :title="t('studio.workspaces.changePlanTitle', { name: planTarget?.name ?? '' })" @update:open="planTarget = null">
+    <UModal :open="!!planTarget" :title="t('studio.workspaces.changePlanTitle', { name: planTarget?.name ?? '' })" @update:open="() => { planTarget = null }">
       <template #body>
         <div class="space-y-4">
           <p class="text-sm text-muted">
@@ -162,7 +162,7 @@ const healthColor = (s: string) => (s === 'ok' ? 'success' : s === 'degraded' ? 
       </template>
       <template #footer>
         <div class="flex w-full justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="planTarget = null">{{ t('studio.sites.cancel') }}</UButton>
+          <UButton color="neutral" variant="ghost" @click="() => { planTarget = null }">{{ t('studio.sites.cancel') }}</UButton>
           <UButton :disabled="!chosenPlan || chosenPlan === planTarget?.plan" :loading="startingCheckout" data-customer-plan-checkout @click="startCheckout">
             {{ t('studio.workspaces.toCheckout') }}
           </UButton>

@@ -66,7 +66,7 @@ const clampStyle = computed<CSSProperties | undefined>(() =>
       class="mt-1 cursor-pointer text-xs font-medium text-muted transition-colors hover:text-default"
       :aria-expanded="expanded"
       data-clamp-toggle
-      @click="expanded = !expanded"
+      @click="() => { expanded = !expanded }"
     >
       {{ expanded ? t('ui.showLess') : t('ui.showMore') }}
     </button>

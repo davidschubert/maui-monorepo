@@ -147,7 +147,7 @@ async function confirmDelete() {
           <span class="text-xs text-muted">{{ fmtDate(entry.date || entry.$createdAt) }}</span>
           <div class="ms-auto flex gap-1">
             <UButton size="xs" color="neutral" variant="ghost" icon="i-ph-pencil-simple" @click="openEdit(entry)">{{ t('admin.changelog.edit') }}</UButton>
-            <UButton size="xs" color="error" variant="ghost" icon="i-ph-trash" @click="pendingDelete = entry">{{ t('admin.changelog.delete') }}</UButton>
+            <UButton size="xs" color="error" variant="ghost" icon="i-ph-trash" @click="() => { pendingDelete = entry }">{{ t('admin.changelog.delete') }}</UButton>
           </div>
         </div>
         <p class="mt-2 whitespace-pre-line text-sm text-muted">{{ localized(entry, 'body') }}</p>
@@ -204,7 +204,7 @@ async function confirmDelete() {
             <USwitch v-model="state.published" :label="t('admin.changelog.form.published')" />
           </UFormField>
           <div class="flex justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="open = false">{{ t('ui.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { open = false }">{{ t('ui.cancel') }}</UButton>
             <UButton type="submit" :loading="busy">{{ t('admin.changelog.save') }}</UButton>
           </div>
         </UForm>
@@ -217,7 +217,7 @@ async function confirmDelete() {
       </template>
       <template #footer>
         <div class="flex w-full justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="pendingDelete = null">{{ t('ui.cancel') }}</UButton>
+          <UButton color="neutral" variant="ghost" @click="() => { pendingDelete = null }">{{ t('ui.cancel') }}</UButton>
           <UButton color="error" :loading="busy" @click="confirmDelete">{{ t('admin.changelog.delete') }}</UButton>
         </div>
       </template>

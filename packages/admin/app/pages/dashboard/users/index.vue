@@ -296,10 +296,10 @@ async function createUser() {
         </template>
       <div v-if="selected.size > 0" class="mb-3 flex flex-wrap items-center gap-2" data-users-bulkbar>
         <UBadge color="neutral" variant="subtle">{{ t('admin.users.bulk.count', { count: selected.size }) }}</UBadge>
-        <UButton size="xs" color="error" variant="soft" icon="i-ph-prohibit" data-bulk-block @click="bulkPending = 'block'">
+        <UButton size="xs" color="error" variant="soft" icon="i-ph-prohibit" data-bulk-block @click="() => { bulkPending = 'block' }">
           {{ t('admin.users.block') }}
         </UButton>
-        <UButton size="xs" color="success" variant="soft" icon="i-ph-lock-open" data-bulk-unblock @click="bulkPending = 'unblock'">
+        <UButton size="xs" color="success" variant="soft" icon="i-ph-lock-open" data-bulk-unblock @click="() => { bulkPending = 'unblock' }">
           {{ t('admin.users.unblock') }}
         </UButton>
       </div>
@@ -416,7 +416,7 @@ async function createUser() {
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="bulkPending = null">{{ t('ui.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { bulkPending = null }">{{ t('ui.cancel') }}</UButton>
             <UButton :color="bulkPending === 'block' ? 'error' : 'primary'" :loading="bulkBusy" data-bulk-confirm @click="executeBulk">
               {{ t('admin.users.confirmAction') }}
             </UButton>
@@ -430,7 +430,7 @@ async function createUser() {
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="pending = null">{{ t('ui.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { pending = null }">{{ t('ui.cancel') }}</UButton>
             <UButton :color="pending?.type === 'block' || pending?.type === 'delete' ? 'error' : 'primary'" :loading="busy" @click="executePending">
               {{ t('admin.users.confirmAction') }}
             </UButton>
@@ -458,9 +458,9 @@ async function createUser() {
                   size="sm"
                   :color="createForm.roles.includes(role) ? 'primary' : 'neutral'"
                   :variant="createForm.roles.includes(role) ? 'soft' : 'ghost'"
-                  @click="createForm.roles = createForm.roles.includes(role)
+                  @click="() => { createForm.roles = createForm.roles.includes(role)
                     ? createForm.roles.filter(r => r !== role)
-                    : [...createForm.roles, role]"
+                    : [...createForm.roles, role] }"
                 >
                   {{ role }}
                 </UButton>
@@ -468,7 +468,7 @@ async function createUser() {
             </UFormField>
 
             <div class="flex justify-end gap-2 pt-2">
-              <UButton color="neutral" variant="ghost" @click="createOpen = false">{{ t('ui.cancel') }}</UButton>
+              <UButton color="neutral" variant="ghost" @click="() => { createOpen = false }">{{ t('ui.cancel') }}</UButton>
               <UButton
                 type="submit"
                 :loading="createBusy"

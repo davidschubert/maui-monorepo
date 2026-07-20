@@ -293,7 +293,7 @@ function weightLabel(weight: number): string {
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="editor = null">{{ t('ui.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { editor = null }">{{ t('ui.cancel') }}</UButton>
             <UButton color="primary" :disabled="!editorValid" :loading="busy" @click="saveEditor">{{ t('ui.save') }}</UButton>
           </div>
         </template>
@@ -310,7 +310,7 @@ function weightLabel(weight: number): string {
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="pendingDelete = null">{{ t('ui.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { pendingDelete = null }">{{ t('ui.cancel') }}</UButton>
             <UButton color="error" :loading="busy" @click="executeDelete">{{ t('themes.studio.delete') }}</UButton>
           </div>
         </template>

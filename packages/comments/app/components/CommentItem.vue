@@ -126,7 +126,7 @@ const reportReasons = computed(() => [
       <UTextarea v-model="editContent" :rows="3" class="mt-2 w-full" />
       <div class="mt-2 flex gap-2">
         <UButton size="xs" :loading="busy" @click="saveEdit">{{ t('comments.item.save') }}</UButton>
-        <UButton size="xs" color="neutral" variant="ghost" @click="editing = false">{{ t('comments.item.cancel') }}</UButton>
+        <UButton size="xs" color="neutral" variant="ghost" @click="() => { editing = false }">{{ t('comments.item.cancel') }}</UButton>
       </div>
     </template>
 
@@ -165,7 +165,7 @@ const reportReasons = computed(() => [
           :variant="replying ? 'soft' : 'ghost'"
           :icon="replying ? 'i-ph-x' : 'i-ph-chat-circle'"
           :aria-expanded="replying"
-          @click="replying = !replying"
+          @click="() => { replying = !replying }"
         >
           {{ replying ? t('comments.item.cancel') : t('comments.item.reply') }}
         </UButton>
@@ -196,7 +196,7 @@ const reportReasons = computed(() => [
         <CommentForm
           :parent-id="comment.$id"
           autofocus
-          @created="replying = false"
+          @created="() => { replying = false }"
         />
       </div>
     </div>

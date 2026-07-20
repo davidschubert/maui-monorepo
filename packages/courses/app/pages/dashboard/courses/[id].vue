@@ -251,7 +251,7 @@ async function moveLesson(index: number, delta: number) {
               <UInput v-model="lessonForm.videoUrl" type="url" class="w-full" :maxlength="500" placeholder="https://" />
             </UFormField>
             <div class="flex justify-end gap-2 pt-2">
-              <UButton color="neutral" variant="ghost" @click="lessonModal = false">{{ t('ui.cancel') }}</UButton>
+              <UButton color="neutral" variant="ghost" @click="() => { lessonModal = false }">{{ t('ui.cancel') }}</UButton>
               <UButton type="submit" :loading="lessonSaving" data-testid="lesson-form-save">{{ t('courses.admin.form.save') }}</UButton>
             </div>
           </form>

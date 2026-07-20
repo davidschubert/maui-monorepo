@@ -473,7 +473,7 @@ const createdAtText = computed(() =>
     :close="false"
     :dismissible="!descriptionDirty"
     :ui="{ content: 'max-w-5xl' }"
-    @close:prevent="confirmClose = true"
+    @close:prevent="() => { confirmClose = true }"
   >
     <template #body>
       <div v-if="ticket" class="max-h-[82vh] overflow-y-auto" data-testid="ticket-modal">
@@ -568,7 +568,7 @@ const createdAtText = computed(() =>
               icon="i-ph-pencil-simple"
               color="neutral" variant="ghost" size="xs"
               data-testid="description-edit"
-              @click="editingDescription = true"
+              @click="() => { editingDescription = true }"
             >
               {{ t('tickets.modal.edit') }}
             </UButton>
@@ -620,7 +620,7 @@ const createdAtText = computed(() =>
               />
               <UCheckbox v-model="item.done" />
               <span class="flex-1 text-sm" :class="item.done ? 'text-muted line-through' : ''">{{ item.text }}</span>
-              <UButton icon="i-ph-x" color="neutral" variant="ghost" size="xs" :aria-label="t('tickets.modal.removeItem')" @click="checklist.splice(itemIndex, 1)" />
+              <UButton icon="i-ph-x" color="neutral" variant="ghost" size="xs" :aria-label="t('tickets.modal.removeItem')" @click="() => { checklist.splice(itemIndex, 1) }" />
             </li>
           </ul>
           <form class="mt-2 flex gap-2" @submit.prevent="addChecklistItem">
@@ -666,7 +666,7 @@ const createdAtText = computed(() =>
         <div v-if="confirmDelete" class="mt-6 flex items-center justify-between gap-2 rounded-lg border border-error/40 bg-error/5 p-3">
           <p class="text-sm text-error">{{ t('tickets.modal.deleteConfirmText') }}</p>
           <div class="flex gap-2">
-            <UButton color="neutral" variant="ghost" size="sm" @click="confirmDelete = false">{{ t('ui.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" size="sm" @click="() => { confirmDelete = false }">{{ t('ui.cancel') }}</UButton>
             <UButton color="error" size="sm" :loading="busy" @click="remove">{{ t('tickets.modal.delete') }}</UButton>
           </div>
         </div>

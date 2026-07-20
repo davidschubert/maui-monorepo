@@ -116,7 +116,7 @@ async function remove(item: MediaItem) {
         </div>
       </div>
 
-      <UModal :open="!!editing" :title="t('media.admin.editTitle')" @update:open="editing = null">
+      <UModal :open="!!editing" :title="t('media.admin.editTitle')" @update:open="() => { editing = null }">
         <template #body>
           <div class="space-y-4">
             <UFormField :label="t('media.admin.fieldTitle')">
@@ -133,7 +133,7 @@ async function remove(item: MediaItem) {
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="editing = null">{{ t('media.admin.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { editing = null }">{{ t('media.admin.cancel') }}</UButton>
             <UButton data-media-save @click="saveEdit">{{ t('media.admin.save') }}</UButton>
           </div>
         </template>

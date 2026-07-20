@@ -92,7 +92,7 @@ async function submit() {
           variant="ghost"
           size="sm"
           data-composer-schedule-toggle
-          @click="showSchedule = !showSchedule"
+          @click="() => { showSchedule = !showSchedule }"
         >
           {{ t('posts.composer.schedule') }}
         </UButton>

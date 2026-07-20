@@ -42,7 +42,7 @@ function onBodyClick(event: MouseEvent) {
         variant="link"
         icon="i-ph-arrow-right"
         data-testid="activity-page-link"
-        @click="open = false"
+        @click="() => { open = false }"
       >
         {{ t('activity.openPage') }}
       </UButton>

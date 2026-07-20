@@ -227,13 +227,13 @@ async function executePending() {
       />
       <template v-if="selected.size > 0">
         <UBadge color="neutral" variant="subtle">{{ t('admin.moderation.bulk.count', { count: selected.size }) }}</UBadge>
-        <UButton size="xs" color="error" variant="soft" icon="i-ph-eye-slash" data-bulk-hide @click="bulkPending = 'hide'">
+        <UButton size="xs" color="error" variant="soft" icon="i-ph-eye-slash" data-bulk-hide @click="() => { bulkPending = 'hide' }">
           {{ t('admin.moderation.hide') }}
         </UButton>
-        <UButton size="xs" color="primary" variant="soft" icon="i-ph-check" data-bulk-dismiss @click="bulkPending = 'dismiss'">
+        <UButton size="xs" color="primary" variant="soft" icon="i-ph-check" data-bulk-dismiss @click="() => { bulkPending = 'dismiss' }">
           {{ t('admin.moderation.dismiss') }}
         </UButton>
-        <UButton size="xs" color="success" variant="soft" icon="i-ph-eye" data-bulk-restore @click="bulkPending = 'restore'">
+        <UButton size="xs" color="success" variant="soft" icon="i-ph-eye" data-bulk-restore @click="() => { bulkPending = 'restore' }">
           {{ t('admin.moderation.restore') }}
         </UButton>
       </template>
@@ -306,21 +306,21 @@ async function executePending() {
           <UButton
             v-if="comment.status !== 'hidden' && comment.status !== 'deleted'"
             size="xs" color="error" variant="ghost" icon="i-ph-eye-slash"
-            @click="pending = { action: 'hidden', comment }"
+            @click="() => { pending = { action: 'hidden', comment } }"
           >
             {{ t('admin.moderation.hide') }}
           </UButton>
           <UButton
             v-if="comment.status !== 'active' && comment.status !== 'deleted'"
             size="xs" color="success" variant="ghost" icon="i-ph-eye"
-            @click="pending = { action: 'active', comment }"
+            @click="() => { pending = { action: 'active', comment } }"
           >
             {{ t('admin.moderation.restore') }}
           </UButton>
           <UButton
             v-if="comment.reportCount"
             size="xs" color="primary" variant="ghost" icon="i-ph-check"
-            @click="pending = { action: 'dismiss', comment }"
+            @click="() => { pending = { action: 'dismiss', comment } }"
           >
             {{ t('admin.moderation.dismiss') }}
           </UButton>
@@ -335,7 +335,7 @@ async function executePending() {
           <UButton
             size="xs" color="error" variant="ghost" icon="i-ph-prohibit"
             :disabled="comment.authorId === me?.$id"
-            @click="pending = { action: 'block', comment }"
+            @click="() => { pending = { action: 'block', comment } }"
           >
             {{ t('admin.moderation.blockAuthor') }}
           </UButton>
@@ -360,7 +360,7 @@ async function executePending() {
       </template>
       <template #footer>
         <div class="flex w-full justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="bulkPending = null">{{ t('ui.cancel') }}</UButton>
+          <UButton color="neutral" variant="ghost" @click="() => { bulkPending = null }">{{ t('ui.cancel') }}</UButton>
           <UButton :color="bulkPending === 'hide' ? 'error' : 'primary'" :loading="bulkBusy" data-bulk-confirm @click="executeBulk">
             {{ t('admin.users.confirmAction') }}
           </UButton>
@@ -374,7 +374,7 @@ async function executePending() {
       </template>
       <template #footer>
         <div class="flex w-full justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="pending = null">{{ t('ui.cancel') }}</UButton>
+          <UButton color="neutral" variant="ghost" @click="() => { pending = null }">{{ t('ui.cancel') }}</UButton>
           <UButton :color="pending?.action === 'active' || pending?.action === 'dismiss' ? 'primary' : 'error'" :loading="busy" @click="executePending">
             {{ t('admin.users.confirmAction') }}
           </UButton>

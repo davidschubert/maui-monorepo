@@ -19,7 +19,7 @@ const scene = ref<typeof SCENES[number]>('branding')
         size="xs"
         :color="scene === s ? 'primary' : 'neutral'"
         :variant="scene === s ? 'subtle' : 'ghost'"
-        @click="scene = s"
+        @click="() => { scene = s }"
       >
         {{ t(`themes.studio.scenes.${s}`) }}
       </UButton>

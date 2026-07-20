@@ -70,7 +70,7 @@ const statusColor = (row: CourseRow) =>
           <UDashboardSidebarCollapse />
         </template>
         <template #right>
-          <UButton icon="i-ph-plus" size="sm" data-testid="course-create" @click="modalOpen = true">
+          <UButton icon="i-ph-plus" size="sm" data-testid="course-create" @click="() => { modalOpen = true }">
             {{ t('courses.admin.create') }}
           </UButton>
         </template>
@@ -129,7 +129,7 @@ const statusColor = (row: CourseRow) =>
                   size="sm"
                   :color="form.access === option ? 'primary' : 'neutral'"
                   :variant="form.access === option ? 'soft' : 'ghost'"
-                  @click="form.access = option"
+                  @click="() => { form.access = option }"
                 >
                   {{ t(`courses.access.${option}`) }}
                 </UButton>
@@ -145,7 +145,7 @@ const statusColor = (row: CourseRow) =>
             </UFormField>
 
             <div class="flex justify-end gap-2 pt-2">
-              <UButton color="neutral" variant="ghost" @click="modalOpen = false">{{ t('ui.cancel') }}</UButton>
+              <UButton color="neutral" variant="ghost" @click="() => { modalOpen = false }">{{ t('ui.cancel') }}</UButton>
               <UButton type="submit" :loading="saving" data-testid="course-form-save">{{ t('courses.admin.form.save') }}</UButton>
             </div>
           </form>

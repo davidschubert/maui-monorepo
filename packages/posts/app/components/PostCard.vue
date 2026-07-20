@@ -151,7 +151,7 @@ const showTooltip = computed(() => (props.replyCount ?? 0) > 0)
         />
         <UTextarea v-model="editBody" :rows="3" autoresize class="w-full" />
         <div class="flex justify-end gap-2">
-          <UButton color="neutral" variant="ghost" size="xs" @click="editing = false">{{ t('ui.cancel') }}</UButton>
+          <UButton color="neutral" variant="ghost" size="xs" @click="() => { editing = false }">{{ t('ui.cancel') }}</UButton>
           <UButton size="xs" :loading="busy" @click="saveEdit">{{ t('posts.card.save') }}</UButton>
         </div>
       </template>
@@ -179,7 +179,7 @@ const showTooltip = computed(() => (props.replyCount ?? 0) > 0)
           :aria-label="ctaLabel"
           :aria-expanded="commentsOpen"
           data-post-comments-toggle
-          @click="commentsOpen = !commentsOpen"
+          @click="() => { commentsOpen = !commentsOpen }"
         >
           {{ countLabel }}
         </UButton>

@@ -77,7 +77,7 @@ async function executeDelete() {
           <UButton size="xs" color="neutral" variant="subtle" icon="i-ph-download-simple" @click="download(file)">
             {{ t('admin.gdprExports.download') }}
           </UButton>
-          <UButton size="xs" color="error" variant="subtle" icon="i-ph-trash" @click="pendingDelete = file">
+          <UButton size="xs" color="error" variant="subtle" icon="i-ph-trash" @click="() => { pendingDelete = file }">
             {{ t('admin.gdprExports.delete') }}
           </UButton>
         </div>
@@ -90,7 +90,7 @@ async function executeDelete() {
       </template>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="pendingDelete = null">{{ t('ui.cancel') }}</UButton>
+          <UButton color="neutral" variant="ghost" @click="() => { pendingDelete = null }">{{ t('ui.cancel') }}</UButton>
           <UButton color="error" :loading="busy" @click="executeDelete">{{ t('admin.gdprExports.delete') }}</UButton>
         </div>
       </template>

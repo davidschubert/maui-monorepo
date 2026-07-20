@@ -332,7 +332,7 @@ const statusColor = (row: EventRow) =>
                 v-if="isSeriesMaster(row) && (!row.seriesUntil || new Date(row.seriesUntil) > new Date())"
                 color="neutral" variant="ghost" size="xs" icon="i-ph-repeat"
                 :data-series-stop="row.$id"
-                @click="confirmStopSeries = row"
+                @click="() => { confirmStopSeries = row }"
               >
                 {{ t('events.admin.stopSeries') }}
               </UButton>
@@ -405,7 +405,7 @@ const statusColor = (row: EventRow) =>
                   :color="form.locationType === 'venue' ? 'primary' : 'neutral'"
                   :variant="form.locationType === 'venue' ? 'soft' : 'ghost'"
                   size="sm" icon="i-ph-map-pin"
-                  @click="form.locationType = 'venue'"
+                  @click="() => { form.locationType = 'venue' }"
                 >
                   {{ t('events.admin.form.venue') }}
                 </UButton>
@@ -413,7 +413,7 @@ const statusColor = (row: EventRow) =>
                   :color="form.locationType === 'online' ? 'primary' : 'neutral'"
                   :variant="form.locationType === 'online' ? 'soft' : 'ghost'"
                   size="sm" icon="i-ph-video-camera"
-                  @click="form.locationType = 'online'"
+                  @click="() => { form.locationType = 'online' }"
                 >
                   {{ t('events.admin.form.online') }}
                 </UButton>
@@ -455,7 +455,7 @@ const statusColor = (row: EventRow) =>
                   :color="form.access === 'free' ? 'primary' : 'neutral'"
                   :variant="form.access === 'free' ? 'soft' : 'ghost'"
                   size="sm"
-                  @click="form.access = 'free'"
+                  @click="() => { form.access = 'free' }"
                 >
                   {{ t('events.card.free') }}
                 </UButton>
@@ -463,7 +463,7 @@ const statusColor = (row: EventRow) =>
                   :color="form.access === 'paid' ? 'primary' : 'neutral'"
                   :variant="form.access === 'paid' ? 'soft' : 'ghost'"
                   size="sm" icon="i-ph-ticket"
-                  @click="form.access = 'paid'"
+                  @click="() => { form.access = 'paid' }"
                 >
                   {{ t('events.card.paid') }}
                 </UButton>
@@ -510,7 +510,7 @@ const statusColor = (row: EventRow) =>
             </UFormField>
 
             <div class="flex justify-end gap-2 pt-2">
-              <UButton color="neutral" variant="ghost" @click="modalOpen = false">
+              <UButton color="neutral" variant="ghost" @click="() => { modalOpen = false }">
                 {{ t('events.admin.form.cancel') }}
               </UButton>
               <UButton type="submit" :loading="saving" data-testid="event-form-save">
@@ -532,7 +532,7 @@ const statusColor = (row: EventRow) =>
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="confirmStopSeries = null">{{ t('events.admin.form.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { confirmStopSeries = null }">{{ t('events.admin.form.cancel') }}</UButton>
             <UButton color="error" :loading="stoppingSeries" data-testid="series-stop-confirm" @click="stopSeries">
               {{ t('events.admin.stopSeries') }}
             </UButton>

@@ -106,7 +106,7 @@ async function onSubmit(event: FormSubmitEvent<LoginInput>) {
               :icon="showPassword ? 'i-ph-eye-slash' : 'i-ph-eye'"
               :aria-label="t('auth.fields.togglePassword')"
               tabindex="-1"
-              @click="showPassword = !showPassword"
+              @click="() => { showPassword = !showPassword }"
             />
           </template>
         </UInput>

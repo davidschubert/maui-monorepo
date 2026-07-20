@@ -149,7 +149,7 @@ const groups = computed(() => {
           :variant="filter === item ? 'soft' : 'ghost'"
           size="sm"
           :data-filter="item"
-          @click="filter = item"
+          @click="() => { filter = item }"
         >
           {{ t(`events.list.filters.${item}`) }}
         </UButton>
@@ -162,7 +162,7 @@ const groups = computed(() => {
             :variant="filter === item ? 'soft' : 'ghost'"
             size="sm"
             :data-filter="item"
-            @click="filter = item"
+            @click="() => { filter = item }"
           >
             {{ t(`events.list.filters.${item}`) }}
           </UButton>
@@ -198,8 +198,8 @@ const groups = computed(() => {
               :event="event"
               :highlighted="calendarHoveredId === event.$id"
               @updated="onCardUpdated"
-              @mouseenter="hoveredId = event.$id"
-              @mouseleave="hoveredId = null"
+              @mouseenter="() => { hoveredId = event.$id }"
+              @mouseleave="() => { hoveredId = null }"
             />
           </div>
         </section>
@@ -215,7 +215,7 @@ const groups = computed(() => {
     <!-- Rechte Spalte: Kalender, dauerhaft sichtbar (mobil unter der Liste) -->
     <aside class="mt-8 lg:sticky lg:top-4 lg:mt-0">
       <ClientOnly>
-        <EventCalendar :highlight-id="hoveredId" @hover="calendarHoveredId = $event" />
+        <EventCalendar :highlight-id="hoveredId" @hover="($event) => { calendarHoveredId = $event }" />
         <template #fallback>
           <div class="flex justify-center py-16"><UIcon name="i-ph-spinner" class="size-6 animate-spin text-muted" /></div>
         </template>

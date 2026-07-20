@@ -91,7 +91,7 @@ async function onSubmit(event: FormSubmitEvent<RegisterFormInput>) {
               :icon="showPassword ? 'i-ph-eye-slash' : 'i-ph-eye'"
               :aria-label="t('auth.fields.togglePassword')"
               tabindex="-1"
-              @click="showPassword = !showPassword"
+              @click="() => { showPassword = !showPassword }"
             />
           </template>
         </UInput>
@@ -113,7 +113,7 @@ async function onSubmit(event: FormSubmitEvent<RegisterFormInput>) {
               :icon="showPasswordConfirm ? 'i-ph-eye-slash' : 'i-ph-eye'"
               :aria-label="t('auth.fields.togglePassword')"
               tabindex="-1"
-              @click="showPasswordConfirm = !showPasswordConfirm"
+              @click="() => { showPasswordConfirm = !showPasswordConfirm }"
             />
           </template>
         </UInput>

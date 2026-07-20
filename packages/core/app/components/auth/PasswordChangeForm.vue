@@ -40,7 +40,7 @@ async function onSubmit(event: FormSubmitEvent<PasswordChangeInput>) {
       <UFormField :label="t('account.password.current')" name="currentPassword" required>
         <UInput v-model="state.currentPassword" :type="showCurrent ? 'text' : 'password'" size="lg" class="w-full">
           <template #trailing>
-            <UButton color="neutral" variant="link" size="sm" :icon="showCurrent ? 'i-ph-eye-slash' : 'i-ph-eye'" :aria-label="t('auth.fields.togglePassword')" tabindex="-1" @click="showCurrent = !showCurrent" />
+            <UButton color="neutral" variant="link" size="sm" :icon="showCurrent ? 'i-ph-eye-slash' : 'i-ph-eye'" :aria-label="t('auth.fields.togglePassword')" tabindex="-1" @click="() => { showCurrent = !showCurrent }" />
           </template>
         </UInput>
       </UFormField>
@@ -48,7 +48,7 @@ async function onSubmit(event: FormSubmitEvent<PasswordChangeInput>) {
       <UFormField :label="t('account.password.new')" name="password" required>
         <UInput v-model="state.password" :type="showNew ? 'text' : 'password'" size="lg" :placeholder="t('auth.fields.passwordHint')" class="w-full">
           <template #trailing>
-            <UButton color="neutral" variant="link" size="sm" :icon="showNew ? 'i-ph-eye-slash' : 'i-ph-eye'" :aria-label="t('auth.fields.togglePassword')" tabindex="-1" @click="showNew = !showNew" />
+            <UButton color="neutral" variant="link" size="sm" :icon="showNew ? 'i-ph-eye-slash' : 'i-ph-eye'" :aria-label="t('auth.fields.togglePassword')" tabindex="-1" @click="() => { showNew = !showNew }" />
           </template>
         </UInput>
       </UFormField>
@@ -56,7 +56,7 @@ async function onSubmit(event: FormSubmitEvent<PasswordChangeInput>) {
       <UFormField :label="t('account.password.confirm')" name="passwordConfirm" required>
         <UInput v-model="state.passwordConfirm" :type="showConfirm ? 'text' : 'password'" size="lg" class="w-full">
           <template #trailing>
-            <UButton color="neutral" variant="link" size="sm" :icon="showConfirm ? 'i-ph-eye-slash' : 'i-ph-eye'" :aria-label="t('auth.fields.togglePassword')" tabindex="-1" @click="showConfirm = !showConfirm" />
+            <UButton color="neutral" variant="link" size="sm" :icon="showConfirm ? 'i-ph-eye-slash' : 'i-ph-eye'" :aria-label="t('auth.fields.togglePassword')" tabindex="-1" @click="() => { showConfirm = !showConfirm }" />
           </template>
         </UInput>
       </UFormField>

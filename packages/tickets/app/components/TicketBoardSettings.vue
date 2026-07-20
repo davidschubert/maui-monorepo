@@ -105,7 +105,7 @@ async function save(resetToDefault = false) {
           {{ t('tickets.settings.reset') }}
         </UButton>
         <div class="flex gap-2">
-          <UButton color="neutral" variant="ghost" size="sm" @click="open = false">{{ t('ui.cancel') }}</UButton>
+          <UButton color="neutral" variant="ghost" size="sm" @click="() => { open = false }">{{ t('ui.cancel') }}</UButton>
           <UButton color="primary" size="sm" :loading="saving" data-testid="settings-save" @click="save()">
             {{ t('ui.save') }}
           </UButton>

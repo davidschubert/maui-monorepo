@@ -207,7 +207,7 @@ const menuItems = computed(() => [[
         class="flex-1"
         @blur="saveRename"
         @keydown.enter="saveRename"
-        @keydown.escape="renaming = false"
+        @keydown.escape="() => { renaming = false }"
       />
       <h2 v-else class="min-w-0 flex-1 truncate text-sm font-semibold" @dblclick="startRename">
         {{ list.title }}
@@ -249,7 +249,7 @@ const menuItems = computed(() => [[
           autofocus
           :placeholder="t('tickets.list.cardTitlePlaceholder')"
           class="w-full"
-          @keydown.escape="adding = false"
+          @keydown.escape="() => { adding = false }"
           @blur="!newTitle.trim() && (adding = false)"
         />
       </form>
@@ -265,7 +265,7 @@ const menuItems = computed(() => [[
         block
         class="justify-start"
         data-testid="add-card"
-        @click="adding = true"
+        @click="() => { adding = true }"
       >
         {{ t('tickets.list.addCard') }}
       </UButton>
@@ -286,7 +286,7 @@ const menuItems = computed(() => [[
       </template>
       <template #footer>
         <div class="flex w-full justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="confirmingDelete = false">{{ t('ui.cancel') }}</UButton>
+          <UButton color="neutral" variant="ghost" @click="() => { confirmingDelete = false }">{{ t('ui.cancel') }}</UButton>
           <UButton color="error" :loading="deleting" data-testid="confirm-delete-list" @click="deleteList">
             {{ t('tickets.list.delete') }}
           </UButton>
