@@ -15,6 +15,15 @@
 # Env Vars (NUXT_APPWRITE_KEY etc.) leben als Server-.env je Site —
 # NIE im Repo; ploi „Quick Deploy" bleibt AUS (sonst deployt ungetesteter
 # Code an den Actions vorbei).
+#
+# Doku-Skip (2026-07-20): ein main-Push mit AUSSCHLIESSLICH Doku-/CI-/Meta-
+# Änderungen (docs/**, .github/**, *.md, …) baut identischen App-Output —
+# ein Deploy wäre 3× Nuxt-Build für nichts. Der changes-Step vergleicht den
+# aktuell auf Prod deployten Commit (comments/api/health) gegen den neuen
+# Stand und ÜBERSPRINGT den Deploy, wenn keine App-relevante Datei betroffen
+# ist. FAIL-SAFE: bei unbekanntem Prod-SHA, nicht auflösbarem Diff oder
+# workflow_dispatch wird IMMER deployt (lieber ein Deploy zu viel als
+# veraltetes Prod).
 
 name: Deploy
 
@@ -25,7 +34,8 @@ on:
     branches: [main]
   workflow_dispatch:
 
-permissions: {}
+permissions:
+  contents: read
 
 concurrency:
   group: deploy-sites
@@ -38,12 +48,50 @@ jobs:
     env:
       EXPECTED_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
     steps:
+      - name: Repo auschecken (für Change-Diff)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Nur-Doku/CI/Meta-Änderungen erkennen → Deploy überspringen.
+      # Ignorierbar heißt: der App-Build-Output kann sich dadurch nicht ändern.
+      # Alles andere (apps/**, packages/**, ops/**, scripts/**, package.json,
+      # lockfiles, …) gilt als deploy-relevant.
+      - name: Deploy nötig?
+        id: changes
+        run: |
+          set -u
+          IGNORE='^(docs/|\.github/|\.claude/|\.codex/|.*\.md$|LICENSE$|\.gitignore$|\.editorconfig$)'
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Manueller Trigger — deploye immer."
+            echo "skip=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          PROD=$(curl -fsS -m 15 https://comments.pukalani.app/api/health | jq -r '.build // empty' || true)
+          if [ -z "$PROD" ] || ! git cat-file -e "${PROD}^{commit}" 2>/dev/null; then
+            echo "Prod-SHA unbekannt oder nicht im Repo ('${PROD:-n/a}') — deploye sicherheitshalber."
+            echo "skip=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          FILES=$(git diff --name-only "$PROD" "$EXPECTED_SHA" || true)
+          if [ -z "$FILES" ]; then
+            echo "Keine Datei-Änderungen ggü. Prod ($PROD) — nichts zu deployen."
+            echo "skip=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          RELEVANT=$(echo "$FILES" | grep -vE "$IGNORE" || true)
+          if [ -z "$RELEVANT" ]; then
+            echo "Nur Doku/CI/Meta geändert — Deploy übersprungen:"; echo "$FILES" | sed 's/^/  /'
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "App-relevante Änderungen — deploye:"; echo "$RELEVANT" | sed 's/^/  /'
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       # Härtung (2026-07-19): ploi verschluckt Webhooks, die während eines
       # laufenden Deploys eintreffen — das Verify macht das SICHTBAR.
       # /api/health liefert den gebauten Commit (buildSha, Build-Zeit aus git);
       # wir pollen, bis Prod den erwarteten SHA meldet, sonst rot.
       # Bei workflow_run zählt der SHA des auslösenden Test-Laufs.
       - name: Deploy-Helfer definieren
+        if: steps.changes.outputs.skip != 'true'
         run: |
           cat > /tmp/deploy-site.sh <<'SCRIPT'
           #!/usr/bin/env bash
@@ -71,16 +119,19 @@ jobs:
           chmod +x /tmp/deploy-site.sh
 
       - name: comments deployen + verifizieren
+        if: steps.changes.outputs.skip != 'true'
         env:
           WEBHOOK: ${{ secrets.PLOI_DEPLOY_WEBHOOK_COMMENTS }}
         run: /tmp/deploy-site.sh comments "$WEBHOOK" "https://comments.pukalani.app/api/health" "$EXPECTED_SHA"
 
       - name: portfolio deployen + verifizieren
+        if: steps.changes.outputs.skip != 'true'
         env:
           WEBHOOK: ${{ secrets.PLOI_DEPLOY_WEBHOOK_PORTFOLIO }}
         run: /tmp/deploy-site.sh portfolio "$WEBHOOK" "https://portfolio.pukalani.app/api/health" "$EXPECTED_SHA"
 
       - name: studio deployen + verifizieren
+        if: steps.changes.outputs.skip != 'true'
         env:
           WEBHOOK: ${{ secrets.PLOI_DEPLOY_WEBHOOK_STUDIO }}
         run: /tmp/deploy-site.sh studio "$WEBHOOK" "https://studio.pukalani.app/api/health" "$EXPECTED_SHA"
