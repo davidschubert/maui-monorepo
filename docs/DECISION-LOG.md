@@ -7,6 +7,80 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-07-21 (Nacht) — Autonomer Durchlauf: Fixes + Analyse + Live-Preise
+
+David gab Freigabe, nachts so viele offene Punkte wie möglich umzusetzen und
+aktiv nach neuen zu suchen. Ergebnis:
+
+### Live-Preise angelegt (Stripe-Connector)
+Über den autorisierten Stripe-Connector 4 **Live**-Preise idempotent angelegt
+(EUR, von David bestätigt): `workspace_pro_monthly` 19 €, `workspace_pro_yearly`
+190 €, `workspace_business_monthly` 49 €, `workspace_business_yearly` 490 € —
+Produkte `prod_UvTbOz5jtnqCXn` (Pro) / `prod_UvTcGRkKpAlYse` (Business). Der
+Connector läuft im **LIVE**-Modus (`livemode:true`) — vor jedem Schreiben geprüft.
+
+### Bugfix: Plan-Wechsel-Doppelabo (Guard)
+Beide Workspace-Checkout-Routen (Kunde + Betreiber, apps/studio/server) blocken
+jetzt einen zweiten Checkout, wenn der Workspace schon einen Bezahl-Plan hat
+(409 → Portal). Pure `isPaidPlanKey` + Tests. Verhindert Doppelabrechnung.
+
+### Deploy-Härtung: Verify akzeptiert Nachfahren-SHA
+Die wiederkehrende Push-Race (ploi baut latest-main, Verify erwartet Trigger-SHA)
+ist behoben: das Verify akzeptiert BUILD auch, wenn git beweist, dass EXPECTED
+ein Vorfahre von BUILD ist (git fetch + merge-base --is-ancestor). Fail-safe
+erhalten (nie false-pass). Direkt danach live erprobt (Release+Core-Race sauber
+konsolidiert durch Abbrechen der überholten Deploys + einen gehärteten Deploy).
+
+### Analyse-Pass (Agent) — neue offene Punkte
+- **HOCH — Cross-Subscription-Kannibalisierung:** `handleWorkspaceSubscriptionUpdate`
+  macht `free-fallback` bei `subscription.deleted` allein per `metadata.workspaceId`;
+  der Stale-Guard wirkt nur pro `stripeSubscriptionId`. Existieren zwei Subs für
+  EINEN Workspace, degradiert das Kündigen der alten den Workspace auf free,
+  obwohl ein neueres Abo ihn hochgestuft hat. Der neue Doppelabo-Guard verhindert
+  die Vorbedingung (kein Zweit-Checkout), heilt die Fulfillment-Logik aber NICHT.
+  **Sauberer Fix (offen, braucht Migration):** `stripeSubscriptionId` auf der
+  workspace-Row speichern; free-fallback nur, wenn die gekündigte Sub die aktuell
+  hinterlegte ist. Nicht autonom gemacht (Prod-Schema-Migration).
+- **MITTEL — Owner kann Betreiber-Abo nicht selbst verwalten:** Betreiber-Checkout
+  bindet den Stripe-Customer an die Operator-userId; die Owner-Portal-Route sucht
+  per Owner-userId → 404. Fix: Betreiber-Checkout sollte `ensureCustomer` für den
+  Workspace-Owner machen. Offen.
+- **MITTEL — kein Rollen-Check auf Owner-Checkout:** `requireWorkspaceMember`
+  akzeptiert jedes Mitglied; heute entschärft (accept.post legt alle als `owner`
+  an). Bei echten Mehrstufen-Rollen nachziehen.
+- **LOW (gefixt) — malformed `requires`-JSON** in workspaceGrants: jetzt defensiv
+  geparst (kaputte Row → [] + Log statt Webhook-500-Endlosschleife).
+- **LOW (offen) — stille Truncation** bei >100 Sites/Grants (Query.limit(100) ohne
+  Pagination im Plan-Sync). Heute unkritisch.
+- **Saubere Bereiche (bestätigt):** alle 26 Server-Routen mit Auth-Guard, keine
+  TODO/FIXME im Prod-Code, i18n de/en-Parität, Migrationen 409-idempotent,
+  Fehler durchweg maskiert.
+
+### Analyse-Pass 2 (Agent) — Core-Security: 0 kritisch, 0 hoch ✅
+Auth/Session/RBAC/Realtime/GDPR/Secrets „außergewöhnlich sauber" (Defense-in-Depth).
+Verifiziert sauber: Admin-/Session-Client-Trennung (kein Rechte-Eskalations-Missbrauch),
+Session-Cookie httpOnly+strict+secure, OAuth-Redirects origin-gebunden (kein
+Open-Redirect), RBAC-Guards + Rollenvergabe mit Eskalations-/Last-Admin-/Self-
+Lockout-Schutz, Row-Permissions per-User, Realtime-Grenze = Row-Read-Permissions
+(kein Fremd-Stream), Zod+Fehler-Maskierung überall, GDPR-Contributor vollständig,
+keine Secret-Leaks/hardcodierten Keys. Restrisiken (alle infra-abhängig, bereits
+im Code dokumentiert): In-Memory-Rate-Limit + X-Forwarded-For-Trust → **vor
+horizontaler Skalierung** absichern (geteilter Rate-Limit-Store, Trust-Proxy
+erzwingen); `sites.manage` global statt workspace-scoped → erst bei mehreren
+Agentur-Operatoren (H2) relevant.
+
+### NEUER wichtiger Fund: Rechts-Seiten fehlen (Impressum/AGB/Datenschutz)
+studio hat KEINE Legal-Pages und `maui.auth.termsUrl` ist leer. Doppelt kritisch:
+(1) für eine deutsche SaaS **gesetzliche Pflicht** (Impressum, AGB, DSGVO-
+Datenschutzerklärung); (2) Stripe **verlangt** AGB-/Datenschutz-URLs für die
+Live-Billing-Portal-Konfiguration → der „Plan-Wechsel via Portal"-Teil des
+Doppelabo-Fixes ist darauf blockiert. Rechtstexte gehören zu David/Anwalt (nicht
+KI-generiert). Portal-Config ist als fertiger Schritt vorbereitet (features:
+subscription_update mit den 4 Preisen + proration, cancel, payment_method,
+invoice_history), sobald die Legal-URLs existieren.
+
+---
+
 ## 2026-07-21 — Stripe maximal vorbereiten (ohne Aktivierung)
 
 David will Stripe so weit wie möglich fertig machen, aber Bank/Live-Aktivierung

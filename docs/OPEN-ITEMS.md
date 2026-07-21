@@ -23,6 +23,14 @@ nutzbar). Reihenfolge = grobe Priorität.
 > `--max-old-space-size`-Cap oder Build-Cooldown; (b) Push-Race (ploi baut latest
 > vs. Verify-Trigger-SHA) → Verify könnte Nachfahren-SHA akzeptieren (behutsam,
 > fail-safe bewahren). Sofort-Mitigation: Commits bündeln, nicht schnell nach-pushen.
+> **Neue Funde (2026-07-21 Nacht, Analyse-Pass — Details im [DECISION-LOG.md](DECISION-LOG.md)):**
+> **🔴 Rechts-Seiten fehlen** (Impressum/AGB/Datenschutz) — deutsche SaaS-Pflicht
+> UND Stripe-Voraussetzung fürs Live-Portal; Rechtstexte = David/Anwalt.
+> **🟠 Cross-Sub-Kannibalisierung** im Fulfillment (free-fallback nicht abo-
+> autoritativ) — braucht `workspace.stripeSubscriptionId` (Migration).
+> **🟠 Owner kann Betreiber-Abo nicht selbst im Portal verwalten** (Customer-
+> Mismatch). Gefixt in der Nacht: Doppelabo-Guard, defensiver requires-Parse,
+> Deploy-Verify-Härtung (Nachfahren-SHA). Live angelegt: 4 Stripe-Preise (EUR).
 > **Laufendes Beschluss-/Ideen-Protokoll:** [DECISION-LOG.md](DECISION-LOG.md).
 
 > **2026-07-06 bis 2026-07-09 — Produkt-Arc „Community-Plattform":**
