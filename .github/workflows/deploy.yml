@@ -106,9 +106,20 @@ jobs:
           echo "[$SITE] Erwarte Commit $EXPECTED auf $HEALTH_URL (Build ~3-5 min) …"
           for i in $(seq 1 40); do
             BUILD=$(curl -fsS -m 15 "$HEALTH_URL" | jq -r '.build // empty' || true)
-            if [ "$BUILD" = "$EXPECTED" ]; then
-              echo "[$SITE] ✔ Prod läuft auf $BUILD"
-              exit 0
+            if [ -n "$BUILD" ]; then
+              if [ "$BUILD" = "$EXPECTED" ]; then
+                echo "[$SITE] ✔ Prod läuft auf $BUILD"
+                exit 0
+              fi
+              # ploi baut IMMER latest-main. Landet WÄHREND des Deploys ein neuerer
+              # Commit (der EXPECTED enthält), ist das KEIN Fehler — sonst röten sich
+              # schnelle Folge-Deploys gegenseitig (Push-Race). Nur akzeptieren, wenn
+              # git BEWEIST, dass EXPECTED ein Vorfahre von BUILD ist. Alles andere
+              # (leerer/alter/nicht-fetchbarer BUILD) → weiter warten (fail-safe, nie false-pass).
+              if git fetch -q origin "$BUILD" 2>/dev/null && git merge-base --is-ancestor "$EXPECTED" "$BUILD" 2>/dev/null; then
+                echo "[$SITE] ✔ Prod läuft auf $BUILD (Nachfahre von $EXPECTED — neuerer Deploy enthält diesen Stand)"
+                exit 0
+              fi
             fi
             echo "[$SITE]   ($i/40) Prod meldet '${BUILD:-n/a}' — warte 20 s …"
             sleep 20
