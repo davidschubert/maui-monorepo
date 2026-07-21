@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { closeOverRequires, isPaidPlanKey, pickLookupKey, planToGrants, subscriptionUpdateToAction } from '../shared/workspaceBilling'
+import { closeOverRequires, isPaidPlanKey, pickLookupKey, planToGrants, shouldApplyFreeFallback, subscriptionUpdateToAction } from '../shared/workspaceBilling'
 import type { StudioPlanCatalog } from '../shared/types/workspace'
 
 const CATALOG = [
@@ -82,40 +82,55 @@ describe('planToGrants', () => {
 
 describe('subscriptionUpdateToAction', () => {
   const meta = (extra: Record<string, string> = {}) => ({ workspaceId: 'ws-1', plan: 'pro', ...extra })
+  // Update-Objekt aus dem billing-Layer (trägt immer die stripeSubscriptionId).
+  const upd = (status: string, metadata: Record<string, string>, sub = 'sub_A') => ({ status, metadata, stripeSubscriptionId: sub })
 
-  it('active/trialing wenden den Plan aus der Metadata an', () => {
-    expect(subscriptionUpdateToAction({ status: 'active', metadata: meta() }, PLANS))
-      .toEqual({ kind: 'apply-plan', workspaceId: 'ws-1', plan: 'pro' })
-    expect(subscriptionUpdateToAction({ status: 'trialing', metadata: meta() }, PLANS))
-      .toEqual({ kind: 'apply-plan', workspaceId: 'ws-1', plan: 'pro' })
+  it('active/trialing wenden den Plan aus der Metadata an (mit Sub-Id)', () => {
+    expect(subscriptionUpdateToAction(upd('active', meta()), PLANS))
+      .toEqual({ kind: 'apply-plan', workspaceId: 'ws-1', plan: 'pro', stripeSubscriptionId: 'sub_A' })
+    expect(subscriptionUpdateToAction(upd('trialing', meta()), PLANS))
+      .toEqual({ kind: 'apply-plan', workspaceId: 'ws-1', plan: 'pro', stripeSubscriptionId: 'sub_A' })
   })
 
   it('ohne workspaceId-Metadata wird ignoriert (fremdes Abo, z. B. Site-Billing)', () => {
-    expect(subscriptionUpdateToAction({ status: 'active', metadata: { plan: 'pro' } }, PLANS))
+    expect(subscriptionUpdateToAction(upd('active', { plan: 'pro' }), PLANS))
       .toEqual({ kind: 'ignore', reason: 'no-workspace-metadata' })
   })
 
   it('unbekannter/fehlender Plan wird ignoriert statt geraten', () => {
-    expect(subscriptionUpdateToAction({ status: 'active', metadata: meta({ plan: 'enterprise' }) }, PLANS).kind).toBe('ignore')
-    expect(subscriptionUpdateToAction({ status: 'active', metadata: { workspaceId: 'ws-1' } }, PLANS).kind).toBe('ignore')
+    expect(subscriptionUpdateToAction(upd('active', meta({ plan: 'enterprise' })), PLANS).kind).toBe('ignore')
+    expect(subscriptionUpdateToAction(upd('active', { workspaceId: 'ws-1' }), PLANS).kind).toBe('ignore')
   })
 
   it('past_due/unpaid markieren nur den Status (Grants bleiben — Stripe-Dunning ist die Grace)', () => {
-    expect(subscriptionUpdateToAction({ status: 'past_due', metadata: meta() }, PLANS))
+    expect(subscriptionUpdateToAction(upd('past_due', meta()), PLANS))
       .toEqual({ kind: 'past-due', workspaceId: 'ws-1' })
-    expect(subscriptionUpdateToAction({ status: 'unpaid', metadata: meta() }, PLANS))
+    expect(subscriptionUpdateToAction(upd('unpaid', meta()), PLANS))
       .toEqual({ kind: 'past-due', workspaceId: 'ws-1' })
   })
 
-  it('canceled/incomplete_expired fallen aufs free-Set zurück (nie auf null Features)', () => {
-    expect(subscriptionUpdateToAction({ status: 'canceled', metadata: meta() }, PLANS))
-      .toEqual({ kind: 'free-fallback', workspaceId: 'ws-1' })
-    expect(subscriptionUpdateToAction({ status: 'incomplete_expired', metadata: meta() }, PLANS))
-      .toEqual({ kind: 'free-fallback', workspaceId: 'ws-1' })
+  it('canceled/incomplete_expired fallen aufs free-Set zurück (mit Sub-Id für den Guard)', () => {
+    expect(subscriptionUpdateToAction(upd('canceled', meta()), PLANS))
+      .toEqual({ kind: 'free-fallback', workspaceId: 'ws-1', stripeSubscriptionId: 'sub_A' })
+    expect(subscriptionUpdateToAction(upd('incomplete_expired', meta()), PLANS))
+      .toEqual({ kind: 'free-fallback', workspaceId: 'ws-1', stripeSubscriptionId: 'sub_A' })
   })
 
   it('incomplete/paused/Unbekanntes fasst nichts an', () => {
-    expect(subscriptionUpdateToAction({ status: 'incomplete', metadata: meta() }, PLANS).kind).toBe('ignore')
-    expect(subscriptionUpdateToAction({ status: 'paused', metadata: meta() }, PLANS).kind).toBe('ignore')
+    expect(subscriptionUpdateToAction(upd('incomplete', meta()), PLANS).kind).toBe('ignore')
+    expect(subscriptionUpdateToAction(upd('paused', meta()), PLANS).kind).toBe('ignore')
+  })
+})
+
+describe('shouldApplyFreeFallback (Cross-Sub-Guard #6)', () => {
+  it('degradiert, wenn die gekündigte Sub die hinterlegte ist', () => {
+    expect(shouldApplyFreeFallback('sub_A', 'sub_A')).toBe(true)
+  })
+  it('degradiert bei leerem gespeicherten Wert (Legacy-Row / vor studio-009)', () => {
+    expect(shouldApplyFreeFallback('', 'sub_A')).toBe(true)
+  })
+  it('degradiert NICHT, wenn eine ANDERE (neuere) Sub hinterlegt ist', () => {
+    // Kern des Bugs: altes Abo sub_A wird gekündigt, aber sub_B stuft schon hoch.
+    expect(shouldApplyFreeFallback('sub_B', 'sub_A')).toBe(false)
   })
 })

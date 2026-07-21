@@ -1,6 +1,6 @@
 import { ID, Query } from 'node-appwrite'
 import type { H3Event } from 'h3'
-import { closeOverRequires, subscriptionUpdateToAction } from '../../shared/workspaceBilling'
+import { closeOverRequires, shouldApplyFreeFallback, subscriptionUpdateToAction } from '../../shared/workspaceBilling'
 import { SITES_TABLE, type SiteRow } from '../../shared/types/site'
 import { ENTITLEMENTS_TABLE, type EntitlementRow } from '../../shared/types/entitlement'
 import { FEATURE_CATALOG_TABLE, type FeatureCatalogRow } from '../../shared/types/job'
@@ -54,6 +54,10 @@ export async function applyWorkspacePlan(event: H3Event, input: {
   planFeatures: readonly string[]
   status: WorkspaceStatus
   stripeCustomerId?: string
+  /** Aktuelle Stripe-Subscription auf der Row hinterlegen (Cross-Sub-Guard #6).
+   *  '' löscht den Bezug (nach free-Fallback), undefined lässt ihn unberührt
+   *  (z. B. manuelle Plan-Pflege). */
+  stripeSubscriptionId?: string
 }): Promise<{ sites: number, features: string[] }> {
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
@@ -76,10 +80,17 @@ export async function applyWorkspacePlan(event: H3Event, input: {
   })
   const features = closeOverRequires(input.planFeatures, catalogEntries)
 
-  const { rows: sites } = await admin.tablesDB.listRows<SiteRow>({
-    databaseId, tableId: SITES_TABLE,
-    queries: [Query.equal('workspaceId', input.workspaceId), Query.limit(100)],
-  })
+  // ALLE Sites des Workspace paginieren — ein Abo-Update darf NIE still nur
+  // die ersten 100 Sites syncen und den Rest ungrantet lassen (No-silent-caps).
+  const sites: SiteRow[] = []
+  for (let offset = 0; ; offset += 100) {
+    const page = await admin.tablesDB.listRows<SiteRow>({
+      databaseId, tableId: SITES_TABLE,
+      queries: [Query.equal('workspaceId', input.workspaceId), Query.limit(100), Query.offset(offset)],
+    })
+    sites.push(...page.rows)
+    if (page.rows.length < 100) break
+  }
 
   for (const site of sites) {
     await replaceSiteGrants(event, site.projectId, features)
@@ -91,6 +102,8 @@ export async function applyWorkspacePlan(event: H3Event, input: {
       plan: input.plan,
       status: input.status,
       ...(input.stripeCustomerId ? { stripeCustomerId: input.stripeCustomerId } : {}),
+      // '' (Fallback) muss geschrieben werden → auf undefined prüfen, nicht truthy
+      ...(input.stripeSubscriptionId !== undefined ? { stripeSubscriptionId: input.stripeSubscriptionId } : {}),
     },
   })
 
@@ -121,6 +134,7 @@ export async function handleWorkspaceSubscriptionUpdate(event: H3Event, update: 
   status: string
   metadata: Record<string, string>
   stripeCustomerId: string
+  stripeSubscriptionId: string
 }): Promise<void> {
   const appConfig = useAppConfig() as { maui?: { studio?: { plans?: StudioPlanCatalog } } }
   const plans = appConfig.maui?.studio?.plans ?? {}
@@ -136,6 +150,8 @@ export async function handleWorkspaceSubscriptionUpdate(event: H3Event, update: 
         planFeatures: plans[action.plan]!.features,
         status: 'active',
         stripeCustomerId: update.stripeCustomerId,
+        // Diese Sub wird die maßgebliche für den Workspace (Cross-Sub-Guard #6).
+        stripeSubscriptionId: action.stripeSubscriptionId,
       })
       console.info(`[studio] Workspace ${action.workspaceId} → Plan ${action.plan} (${result.sites} Sites, Features: ${result.features.join(', ')})`)
       return
@@ -150,11 +166,28 @@ export async function handleWorkspaceSubscriptionUpdate(event: H3Event, update: 
         console.error('[studio] free-Plan fehlt im Katalog — Fallback übersprungen')
         return
       }
+      // Cross-Sub-Guard (#6): nur wenn die gekündigte Sub die aktuell
+      // hinterlegte ist (oder keine hinterlegt) — sonst hat ein NEUERES Abo
+      // den Workspace bereits hochgestuft und die alte Kündigung ist stale.
+      const config = useRuntimeConfig(event)
+      const admin = createAdminClient(event)
+      const workspace = await admin.tablesDB.getRow<WorkspaceRow>({
+        databaseId: config.public.appwriteDatabaseId,
+        tableId: WORKSPACES_TABLE,
+        rowId: action.workspaceId,
+      }).catch(() => null)
+      const storedSub = workspace?.stripeSubscriptionId ?? ''
+      if (!shouldApplyFreeFallback(storedSub, action.stripeSubscriptionId)) {
+        console.warn(`[studio] Workspace ${action.workspaceId}: Kündigung von ${action.stripeSubscriptionId} ignoriert — aktuell gilt ${storedSub} (Cross-Sub-Guard)`)
+        return
+      }
       const result = await applyWorkspacePlan(event, {
         workspaceId: action.workspaceId,
         plan: 'free',
         planFeatures: free.features,
         status: 'active',
+        // Abo-Bezug lösen: der Workspace hat kein aktives Abo mehr.
+        stripeSubscriptionId: '',
       })
       console.info(`[studio] Workspace ${action.workspaceId} → free-Fallback nach Kündigung (${result.sites} Sites)`)
     }

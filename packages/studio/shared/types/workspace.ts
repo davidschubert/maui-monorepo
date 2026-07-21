@@ -20,6 +20,10 @@ export interface WorkspaceRow extends Models.Row {
   ownerEmail: string
   /** Stripe-Customer, sobald der erste Checkout lief; bis dahin ''. */
   stripeCustomerId: string
+  /** AKTUELL gültige Stripe-Subscription (Migration studio-009). Basis des
+   *  Cross-Sub-Guards: nur ihre Kündigung darf den Workspace auf free
+   *  zurückstufen. '' = kein Abo / Legacy-Row. */
+  stripeSubscriptionId: string
   /** Plan-Key aus `maui.studio.plans` (Code-Katalog, kein Table). */
   plan: string
   status: WorkspaceStatus
@@ -70,7 +74,9 @@ export interface StudioPlan {
   features: string[]
 }
 
-/** Abrechnungsintervall eines Abos. */
-export type BillingInterval = 'monthly' | 'yearly'
+/** Abrechnungsintervall eines Workspace-Abos. Bewusst studio-eigen (A14:
+ *  studio hängt nicht am billing-Layer) — eigener Name vermeidet die
+ *  Nuxt-Auto-Import-Kollision mit billing/BillingInterval. */
+export type WorkspaceBillingInterval = 'monthly' | 'yearly'
 
 export type StudioPlanCatalog = Record<string, StudioPlan>

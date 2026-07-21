@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
     databaseId: config.public.appwriteDatabaseId,
     tableId: WORKSPACES_TABLE,
     rowId: ID.unique(),
-    data: { name: body.name, ownerEmail: body.ownerEmail, stripeCustomerId: '', plan: 'free', status: 'active' },
+    data: { name: body.name, ownerEmail: body.ownerEmail, stripeCustomerId: '', stripeSubscriptionId: '', plan: 'free', status: 'active' },
   }).catch((error) => { throw toH3Error(error, 'Could not create workspace') })
 
   return { id: row.$id, name: row.name, ownerEmail: row.ownerEmail, plan: row.plan, status: row.status }

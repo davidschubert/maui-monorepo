@@ -1,5 +1,5 @@
 import type { FeatureCatalogEntry } from './types/job'
-import type { BillingInterval, StudioPlan, StudioPlanCatalog } from './types/workspace'
+import type { StudioPlan, StudioPlanCatalog, WorkspaceBillingInterval } from './types/workspace'
 
 /**
  * M8 Workspace-Billing — die PUREN Bausteine (ohne Stripe, ohne I/O):
@@ -34,7 +34,7 @@ export function closeOverRequires(
 /** Den passenden Stripe-lookup_key für Plan + Intervall wählen. Jahres-Preis
  *  optional: fehlt er, fällt 'yearly' bewusst auf den Monatspreis zurück (statt
  *  zu brechen). null = Plan ohne Checkout (free). Pure → unit-testbar. */
-export function pickLookupKey(plan: Pick<StudioPlan, 'lookupKey' | 'lookupKeyYearly'>, interval: BillingInterval): string | null {
+export function pickLookupKey(plan: Pick<StudioPlan, 'lookupKey' | 'lookupKeyYearly'>, interval: WorkspaceBillingInterval): string | null {
   if (interval === 'yearly') return plan.lookupKeyYearly ?? plan.lookupKey
   return plan.lookupKey
 }
@@ -77,6 +77,9 @@ export interface WorkspaceSubscriptionUpdate {
   status: string
   /** subscription_data.metadata aus dem Workspace-Checkout. */
   metadata: Record<string, string>
+  /** Die Stripe-Subscription, auf die sich dieses Event bezieht — für den
+   *  Cross-Sub-Guard (nur die aktuell hinterlegte Sub darf degradieren). */
+  stripeSubscriptionId: string
 }
 
 /** Entscheidung des Fulfillment-Handlers — pure, damit die Policy ohne
@@ -87,9 +90,9 @@ export interface WorkspaceSubscriptionUpdate {
  *  schlechter gestellt als einer, der nie gezahlt hat). */
 export type WorkspaceBillingAction =
   | { kind: 'ignore', reason: string }
-  | { kind: 'apply-plan', workspaceId: string, plan: string }
+  | { kind: 'apply-plan', workspaceId: string, plan: string, stripeSubscriptionId: string }
   | { kind: 'past-due', workspaceId: string }
-  | { kind: 'free-fallback', workspaceId: string }
+  | { kind: 'free-fallback', workspaceId: string, stripeSubscriptionId: string }
 
 export function subscriptionUpdateToAction(
   update: WorkspaceSubscriptionUpdate,
@@ -103,7 +106,7 @@ export function subscriptionUpdateToAction(
     case 'trialing': {
       const plan = update.metadata.plan
       if (!plan || !plans[plan]) return { kind: 'ignore', reason: `unknown-plan-${plan ?? 'missing'}` }
-      return { kind: 'apply-plan', workspaceId, plan }
+      return { kind: 'apply-plan', workspaceId, plan, stripeSubscriptionId: update.stripeSubscriptionId }
     }
     case 'past_due':
     case 'unpaid':
@@ -111,9 +114,20 @@ export function subscriptionUpdateToAction(
       return { kind: 'past-due', workspaceId }
     case 'canceled':
     case 'incomplete_expired':
-      return { kind: 'free-fallback', workspaceId }
+      return { kind: 'free-fallback', workspaceId, stripeSubscriptionId: update.stripeSubscriptionId }
     default:
       // incomplete (Checkout offen), paused, Unbekanntes → nichts anfassen
       return { kind: 'ignore', reason: `status-${update.status}` }
   }
+}
+
+/**
+ * Cross-Sub-Guard (#6): darf die gekündigte Subscription den Workspace auf
+ * `free` zurückstufen? NUR, wenn sie die aktuell hinterlegte ist — oder gar
+ * keine hinterlegt ist (Legacy-Row / vor studio-009). Ist eine ANDERE,
+ * neuere Sub hinterlegt, ist das Kündigen der alten stale und darf ein
+ * frisch gekauftes Abo nicht kannibalisieren. Pure → unit-testbar.
+ */
+export function shouldApplyFreeFallback(storedSubscriptionId: string, canceledSubscriptionId: string): boolean {
+  return storedSubscriptionId === '' || storedSubscriptionId === canceledSubscriptionId
 }

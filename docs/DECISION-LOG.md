@@ -7,6 +7,39 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-07-21 (Tag 2) — Money-Path-Härtung Runde 3 (vor Stripe-Live)
+
+Abarbeitung der offenen Analyse-Funde (unten), soweit ohne Live-Billing-Risiko
+autonom machbar:
+
+- **HOCH Cross-Sub-Kannibalisierung — GEFIXT.** Migration studio-009 gibt
+  `workspaces.stripeSubscriptionId`; der Fulfillment-Handler speichert bei
+  `apply-plan` die maßgebliche Sub und degradiert bei `subscription.deleted`
+  nur noch, wenn die gekündigte Sub die hinterlegte ist (pure Guard
+  `shouldApplyFreeFallback`, unit-getestet). Ein neueres Abo kann so vom
+  Kündigen eines älteren nicht mehr kannibalisiert werden. Prod-Migration
+  gelaufen (additiv, leerer Default = Legacy-Row erlaubt den Fallback).
+- **LOW Duplicate-Import `BillingInterval` — GEFIXT.** studio-Typ zu
+  `WorkspaceBillingInterval` umbenannt (A14: studio bleibt vom billing-Layer
+  entkoppelt, eigener Name statt Cross-Layer-Import) — Nuxt-Warnung weg.
+- **LOW stille Truncation Plan-Sync — GEFIXT.** `applyWorkspacePlan` paginiert
+  jetzt ALLE Sites eines Workspace (statt `Query.limit(100)`), damit ein
+  Abo-Update nie still nur die ersten 100 Sites grantet.
+- **MITTEL Owner-Portal-Mismatch — BEWUSST OFFEN (braucht Davids Freigabe).**
+  Der saubere Fix ändert, an WELCHEN Stripe-Customer ein Live-Abo gebunden
+  wird (Owner- statt Betreiber-scoped). Nicht autonom auf dem Money-Path
+  geändert; das heutige Verhalten (404 im Owner-Portal, wenn der Betreiber
+  ausgecheckt hat) ist SICHER — der naive Fix (Betreiber-Customer im
+  Owner-Portal öffnen) würde im Agentur-Modell fremde Abos desselben
+  Customers exponieren (Daten-Leak). **Empfohlener Fix:** Workspace-scoped
+  Stripe-Customer beim Checkout (Customer pro Workspace/Owner, auf der
+  workspace-Row gespeichert), Portal öffnet `workspace.stripeCustomerId`.
+  Braucht eine billing-Util-Erweiterung (`createSubscriptionCheckoutSession`
+  mit explizitem Customer statt immer `event.context.user`) — vor Stripe-Live
+  mit David.
+
+---
+
 ## 2026-07-21 (Nacht) — Autonomer Durchlauf: Fixes + Analyse + Live-Preise
 
 David gab Freigabe, nachts so viele offene Punkte wie möglich umzusetzen und
