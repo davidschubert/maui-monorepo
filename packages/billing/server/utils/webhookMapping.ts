@@ -98,6 +98,21 @@ export function isStale(existing: Pick<BillingSubscriptionRow, 'lastStripeEventA
   return !!existing && existing.lastStripeEventAt > eventCreated
 }
 
+/** Zahlungs-Problem-Status (Dunning): Zugriff bleibt, aber der User muss handeln */
+export const FAILED_PAYMENT_STATUSES: readonly SubscriptionStatus[] = ['past_due', 'unpaid']
+
+/**
+ * Soll bei invoice.payment_failed eine (In-App-)Benachrichtigung raus?
+ * NUR beim ÜBERGANG in einen Zahlungs-Problem-Status — nicht, wenn das Abo
+ * schon in Dunning war. Sonst spammt jeder Stripe-Retry/jede Doppelzustellung
+ * desselben Events den User (der Stale-Guard nutzt `>`, ein Retry mit gleichem
+ * Timestamp gilt als „angewandt"). Pure → unit-testbar.
+ */
+export function isNewPaymentFailure(previousStatus: SubscriptionStatus | null, newStatus: SubscriptionStatus): boolean {
+  const failed = (s: SubscriptionStatus | null) => s !== null && FAILED_PAYMENT_STATUSES.includes(s)
+  return failed(newStatus) && !failed(previousStatus)
+}
+
 /** Event-Allowlist (B4): alles andere → 200 + no-op */
 export const WEBHOOK_ALLOWLIST = new Set([
   'checkout.session.completed',

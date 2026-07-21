@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type Stripe from 'stripe'
-import { isStale, planIdForPrice, subscriptionToPatch, toSubscriptionStatus, WEBHOOK_ALLOWLIST } from '../server/utils/webhookMapping'
+import { isNewPaymentFailure, isStale, planIdForPrice, subscriptionToPatch, toSubscriptionStatus, WEBHOOK_ALLOWLIST } from '../server/utils/webhookMapping'
 import type { MauiBillingPlan } from '../shared/types/billing'
 
 const PLANS: MauiBillingPlan[] = [
@@ -71,6 +71,26 @@ describe('isStale (B4 Out-of-order-Guard)', () => {
     expect(isStale({ lastStripeEventAt: 100 }, 100)).toBe(false)
     expect(isStale({ lastStripeEventAt: 100 }, 101)).toBe(false)
     expect(isStale(null, 1)).toBe(false)
+  })
+})
+
+describe('isNewPaymentFailure (Retry-Doppel-Notify verhindern)', () => {
+  it('notify NUR beim Übergang IN einen Zahlungs-Problem-Status', () => {
+    // echter Übergang → notify
+    expect(isNewPaymentFailure('active', 'past_due')).toBe(true)
+    expect(isNewPaymentFailure('active', 'unpaid')).toBe(true)
+    expect(isNewPaymentFailure(null, 'past_due')).toBe(true) // erstes Event ist schon ein Fehlschlag
+  })
+  it('KEIN erneuter notify, wenn schon in Dunning (Retry/Doppel-Event)', () => {
+    expect(isNewPaymentFailure('past_due', 'past_due')).toBe(false) // der eigentliche Bugfix
+    expect(isNewPaymentFailure('unpaid', 'past_due')).toBe(false)
+    expect(isNewPaymentFailure('past_due', 'unpaid')).toBe(false)
+  })
+  it('kein notify bei aktiven/erholten Status', () => {
+    expect(isNewPaymentFailure('active', 'active')).toBe(false)
+    expect(isNewPaymentFailure('past_due', 'active')).toBe(false) // Recovery
+    expect(isNewPaymentFailure(null, 'active')).toBe(false)
+    expect(isNewPaymentFailure('canceled', 'canceled')).toBe(false)
   })
 })
 

@@ -6,8 +6,9 @@ import {
   BILLING_SUBSCRIPTIONS_TABLE,
   type BillingCustomerRow,
   type BillingSubscriptionRow,
+  type SubscriptionStatus,
 } from '../../../shared/types/billing'
-import { isStale, subscriptionToPatch, subscriptionToVerifiedUpdate, toSubscriptionStatus, WEBHOOK_ALLOWLIST, type SubscriptionPatch } from '../../utils/webhookMapping'
+import { isNewPaymentFailure, isStale, subscriptionToPatch, subscriptionToVerifiedUpdate, toSubscriptionStatus, WEBHOOK_ALLOWLIST, type SubscriptionPatch } from '../../utils/webhookMapping'
 
 /**
  * Stripe-Webhook (B1/B4): Signatur-Verifikation über den RAW-Body, Event-
@@ -56,7 +57,7 @@ export default defineEventHandler(async (event) => {
         else if (session.mode === 'subscription' && session.subscription) {
           const subscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription.id
           const subscription = await stripe.subscriptions.retrieve(subscriptionId)
-          const applied = await upsertSubscription(event, subscription, stripeEvent.created, session.client_reference_id ?? session.metadata?.userId ?? null)
+          const { applied } = await upsertSubscription(event, subscription, stripeEvent.created, session.client_reference_id ?? session.metadata?.userId ?? null)
           if (applied) await runSubscriptionFulfillments(event, subscriptionToVerifiedUpdate(subscription, stripeEvent.created))
         }
         break
@@ -65,7 +66,7 @@ export default defineEventHandler(async (event) => {
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted': {
         const subscription = stripeEvent.data.object
-        const applied = await upsertSubscription(event, subscription, stripeEvent.created, subscription.metadata?.userId ?? null)
+        const { applied } = await upsertSubscription(event, subscription, stripeEvent.created, subscription.metadata?.userId ?? null)
         if (applied) await runSubscriptionFulfillments(event, subscriptionToVerifiedUpdate(subscription, stripeEvent.created))
         break
       }
@@ -78,10 +79,14 @@ export default defineEventHandler(async (event) => {
         const subscriptionId = typeof ref === 'string' ? ref : ref?.id
         if (!subscriptionId) break
         const subscription = await stripe.subscriptions.retrieve(subscriptionId)
-        const applied = await upsertSubscription(event, subscription, stripeEvent.created, subscription.metadata?.userId ?? null)
+        const { applied, previousStatus } = await upsertSubscription(event, subscription, stripeEvent.created, subscription.metadata?.userId ?? null)
         if (applied) await runSubscriptionFulfillments(event, subscriptionToVerifiedUpdate(subscription, stripeEvent.created))
 
-        if (stripeEvent.type === 'invoice.payment_failed') {
+        // Notify NUR beim echten Übergang in einen Zahlungs-Problem-Status —
+        // sonst spammt jeder Stripe-Retry/Doppel-Event denselben Hinweis.
+        if (stripeEvent.type === 'invoice.payment_failed'
+          && applied
+          && isNewPaymentFailure(previousStatus, toSubscriptionStatus(subscription.status))) {
           // §6/§9: Zahlungsfehlschlag → In-App-notify (Core-Vertrag, best-effort).
           // Body-Sprache aus den Empfänger-Prefs (wie der Mail-Zweig, Fallback en) —
           // Bell-Bodies sind gespeicherter Roh-Text, daher hier lokalisiert erzeugen
@@ -138,16 +143,22 @@ async function resolveUserId(event: H3Event, stripeCustomerId: string, hint: str
   return res.rows[0]?.userId ?? null
 }
 
-/** Idempotenter Upsert (B4): Unique uq_stripe_sub + Stale-Guard */
-/** @returns true, wenn ein nicht-staler Upsert tatsächlich angewandt wurde (Basis für den Abo-Lifecycle-Vertrag) */
-async function upsertSubscription(event: H3Event, subscription: Stripe.Subscription, eventCreated: number, userIdHint: string | null): Promise<boolean> {
+/**
+ * Idempotenter Upsert (B4): Unique uq_stripe_sub + Stale-Guard.
+ * @returns applied = true, wenn ein nicht-staler Upsert angewandt wurde (Basis
+ *   des Abo-Lifecycle-Vertrags); previousStatus = Status VOR diesem Event
+ *   (null = Row existierte nicht) — trägt die Transition-Erkennung für die
+ *   Zahlungsfehler-Benachrichtigung (verhindert Retry-Doppel-Notify).
+ */
+async function upsertSubscription(event: H3Event, subscription: Stripe.Subscription, eventCreated: number, userIdHint: string | null): Promise<{ applied: boolean, previousStatus: SubscriptionStatus | null }> {
   const billingConfig = await getBillingConfig(event)
   const patch: SubscriptionPatch = subscriptionToPatch(subscription, billingConfig.plans, eventCreated)
   // deleted-Events tragen den finalen Status im Objekt ('canceled')
   patch.status = toSubscriptionStatus(subscription.status)
 
   const existing = await findSubscriptionRow(event, subscription.id)
-  if (isStale(existing, eventCreated)) return false
+  const previousStatus = existing?.status ?? null
+  if (isStale(existing, eventCreated)) return { applied: false, previousStatus }
 
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
@@ -160,14 +171,14 @@ async function upsertSubscription(event: H3Event, subscription: Stripe.Subscript
       rowId: existing.$id,
       data: { ...patch, userId: existing.userId },
     })
-    return true
+    return { applied: true, previousStatus }
   }
 
   const userId = await resolveUserId(event, patch.stripeCustomerId, userIdHint)
   if (!userId) {
     // Ohne Zuordnung keine Row — loggen, 200 lassen (Retry würde nichts ändern)
     console.error(`[billing] Webhook: kein userId-Mapping für Customer ${patch.stripeCustomerId} (Sub ${subscription.id})`)
-    return false
+    return { applied: false, previousStatus }
   }
 
   try {
@@ -178,7 +189,7 @@ async function upsertSubscription(event: H3Event, subscription: Stripe.Subscript
       data: { ...patch, userId },
       permissions: [Permission.read(Role.user(userId))],
     })
-    return true
+    return { applied: true, previousStatus }
   }
   catch (error) {
     // Unique-Race (Retry/Out-of-order-Create): Gewinner-Row aktualisieren
@@ -191,9 +202,9 @@ async function upsertSubscription(event: H3Event, subscription: Stripe.Subscript
           rowId: winner.$id,
           data: { ...patch, userId: winner.userId },
         })
-        return true
+        return { applied: true, previousStatus: winner.status }
       }
-      return false
+      return { applied: false, previousStatus: winner?.status ?? previousStatus }
     }
     throw error
   }
