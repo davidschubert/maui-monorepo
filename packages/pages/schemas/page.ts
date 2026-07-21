@@ -5,7 +5,9 @@ type TranslateFn = (key: string) => string
 const identity: TranslateFn = key => key
 
 export const MAX_PAGE_TITLE = 256
-export const MAX_PAGE_BODY = 100_000
+// utf8mb4-ZEILENbudget (nicht die Einzelspalte): body teilt sich die ~65 KB/Zeile
+// mit title/slug/locale/status + Appwrite-Interna → 14.000 als sichere Obergrenze.
+export const MAX_PAGE_BODY = 14_000
 
 // slug = sprechender URL-Pfad (impressum, agb, datenschutz): klein, keine Slashes
 const slugRe = /^[a-z][a-z0-9-]*$/
