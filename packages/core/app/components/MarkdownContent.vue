@@ -36,6 +36,10 @@ function renderBlock(block: BlockNode): VNodeChild {
         block.items.map(item => h('li', renderInline(item))))
     case 'quote':
       return h('blockquote', { class: 'border-s-2 border-default ps-3 text-muted whitespace-pre-line' }, renderInline(block.children))
+    case 'heading':
+      return h(block.level === 2 ? 'h2' : 'h3', {
+        class: block.level === 2 ? 'text-lg font-semibold mt-4 mb-1' : 'text-base font-semibold mt-3 mb-1',
+      }, renderInline(block.children))
     default:
       return h('p', { class: 'whitespace-pre-line' }, renderInline(block.children))
   }

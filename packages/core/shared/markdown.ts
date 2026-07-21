@@ -21,6 +21,7 @@ export type InlineNode
 
 export type BlockNode
   = | { type: 'paragraph', children: InlineNode[] }
+    | { type: 'heading', level: 2 | 3, children: InlineNode[] }
     | { type: 'list', ordered: boolean, items: InlineNode[][] }
     | { type: 'quote', children: InlineNode[] }
     | { type: 'codeblock', text: string }
@@ -78,6 +79,15 @@ export function parseMarkdown(source: string): BlockNode[] {
       continue
     }
 
+    // Überschrift (##/###) — die Seiten-Überschrift (h1) ist separat, daher h2/h3
+    const headingMatch = /^(#{1,6})\s+(.*)$/.exec(line.trimStart())
+    if (headingMatch) {
+      const level = headingMatch[1]!.length <= 2 ? 2 : 3
+      blocks.push({ type: 'heading', level, children: parseInline(headingMatch[2]!.trim()) })
+      i++
+      continue
+    }
+
     // Liste (- oder 1.)
     const listMatch = /^\s*(?:[-*]|\d+\.)\s+/.exec(line)
     if (listMatch) {
@@ -109,7 +119,8 @@ export function parseMarkdown(source: string): BlockNode[] {
     const buf: string[] = []
     while (i < lines.length && lines[i]!.trim() !== ''
       && !lines[i]!.trimStart().startsWith('```') && !lines[i]!.trimStart().startsWith('>')
-      && !/^\s*(?:[-*]|\d+\.)\s+/.test(lines[i]!)) {
+      && !/^\s*(?:[-*]|\d+\.)\s+/.test(lines[i]!)
+      && !/^#{1,6}\s+/.test(lines[i]!.trimStart())) {
       buf.push(lines[i]!)
       i++
     }

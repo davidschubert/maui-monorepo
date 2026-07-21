@@ -88,3 +88,19 @@ describe('isSafeHref', () => {
     expect(isSafeHref(href)).toBe(false)
   })
 })
+
+describe('parseMarkdown Überschriften', () => {
+  it('## → heading level 2, ### → level 3', () => {
+    const blocks = parseMarkdown('## Abschnitt\n\n### Unterabschnitt')
+    expect(blocks[0]).toMatchObject({ type: 'heading', level: 2 })
+    expect(blocks[1]).toMatchObject({ type: 'heading', level: 3 })
+  })
+  it('# zählt als level 2 (die Seiten-Überschrift ist separat)', () => {
+    expect(parseMarkdown('# Titel')[0]).toMatchObject({ type: 'heading', level: 2 })
+  })
+  it('trennt Überschrift von folgendem Absatz', () => {
+    const blocks = parseMarkdown('## Kopf\nText danach')
+    expect(blocks[0]!.type).toBe('heading')
+    expect(blocks[1]!.type).toBe('paragraph')
+  })
+})
