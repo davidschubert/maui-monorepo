@@ -7,6 +7,27 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-07-20 (später) — Money-Path-Review vor Stripe-Live
+
+### Fix: `invoice.payment_failed`-Notify nur beim echten Statuswechsel
+Beim Review des Billing-Money-Paths (vor dem Live-Gang) gefunden: der In-App-
+Benachrichtigungs-Zweig bei `invoice.payment_failed` lief **unabhängig** vom
+Stale-Guard. Weil `isStale` strikt `>` nutzt, gilt ein Stripe-Retry (gleicher
+`event.created`) als „angewandt" → der Hinweis „Zahlung fehlgeschlagen" feuerte
+mehrfach (Stripe liefert at-least-once + retryt auf 5xx). Fix: `upsertSubscription`
+gibt jetzt `previousStatus` zurück; notify nur beim **Übergang** in
+`past_due`/`unpaid` (pure `isNewPaymentFailure` + Unit-Tests). Commit `532bb4e`.
+
+### Befund: der restliche Money-Path ist sauber
+Geprüft und für gut befunden: Checkout (planId Zod-validiert gegen konfigurierte
+Pläne → kein Preis-Tampering; userId via `client_reference_id` +
+`subscription_data.metadata`), Webhook-Idempotenz (Upsert nach
+`stripeSubscriptionId` + Unique-Race-Handling), Entitlements (fail-closed bei
+DB-Fehler), Studio-Grant-Sync (deklarativer Replace + pure
+`subscriptionUpdateToAction` → Webhook-Retry-sicher). Kein weiterer Fix nötig.
+
+---
+
 ## 2026-07-20 — Wartungs- & Horizont-3-Block
 
 ### Entscheidung: Multi-Tenancy = Pool + Silo (zwei-stufig)
