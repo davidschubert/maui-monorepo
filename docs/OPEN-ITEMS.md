@@ -4,6 +4,22 @@ Stand: 2026-07-10 (nach dem Ideen-Batch 1–5: E-Mail-Digest, Bulk/CSV, Microcac
 eigenständige Liste offener Themen (für eine frische Session als Startpunkt
 nutzbar). Reihenfolge = grobe Priorität.
 
+> **Aktueller Stand (2026-07-20) — Kurzüberblick oben drauf:**
+> **LIVE:** comments + portfolio + studio auf `*.pukalani.app` (eine Appwrite-Org,
+> saubere IDs), Auto-Deploy (Push→Test→Deploy, überspringt Doku/CI/Spikes),
+> Zero-Downtime Stufe 2, Changelog-2B, Alerting, GDPR. M1–M9 komplett.
+> **Als Betriebssystem für eigene Sites: ~98 % fertig** (Rest = Kleinkram unten).
+> **Als verkaufbares SaaS: ~60–65 %** — es fehlt der Horizont-3-Ausbau
+> (Multi-Tenancy) + Stripe-Live.
+>
+> **Offene Entscheidungen bei David:** (1) Horizont-3 = **Pool+Silo** entschieden →
+> Blueprint + Spike stehen ([HORIZONT-3-POOL-SILO-BLUEPRINT.md](plans/HORIZONT-3-POOL-SILO-BLUEPRINT.md)),
+> Bau nächste Etappe. (2) Stripe-Live: [STRIPE-GO-LIVE-RUNBOOK.md](plans/STRIPE-GO-LIVE-RUNBOOK.md)
+> (David setzt Keys). (3) release-please PR #17 mergen (Release + Changelog-Draft).
+> **Braucht Davids `workflow`-Token:** CI-Bumps #16/#15/#2 im GitHub-Web mergen.
+> **Kleinkram:** Wegwerf-Projekte s3-alpha/beta löschen, Demo-Passwörter rotieren.
+> **Laufendes Beschluss-/Ideen-Protokoll:** [DECISION-LOG.md](DECISION-LOG.md).
+
 > **2026-07-06 bis 2026-07-09 — Produkt-Arc „Community-Plattform":**
 > GOALS-Phasen 21–27 sind komplett (Feed, Events + v2 inkl. Serien, Billing,
 > Courses, Posts), dazu Tickets-Board P1–P4 und das **KI-Paket** (core
