@@ -5,6 +5,31 @@
     }
   },
   "pages": {
+    "admin": {
+      "title": "Pages",
+      "subtitle": "Editable content pages (imprint, terms, privacy) with per-language versions.",
+      "new": "New page",
+      "empty": "No pages yet.",
+      "selectHint": "Select a page on the left, or create a new one.",
+      "slug": "Slug (URL path)",
+      "slugHelp": "Lowercase, e.g. impressum — becomes /impressum. Cannot be changed later.",
+      "slugRequired": "Please enter a slug",
+      "pageTitle": "Title",
+      "body": "Content",
+      "published": "Published",
+      "save": "Save",
+      "delete": "Delete page",
+      "saved": "Saved",
+      "saveFailed": "Could not save",
+      "deleted": "Page deleted",
+      "deleteFailed": "Could not delete",
+      "loadFailed": "Could not load page",
+      "titleRequired": "Please enter a title",
+      "locale": {
+        "en": "English",
+        "de": "German"
+      }
+    },
     "validation": {
       "slugInvalid": "Invalid slug (lowercase letters, digits, hyphens)",
       "localeInvalid": "Invalid language code",

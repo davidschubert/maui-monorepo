@@ -5,6 +5,31 @@
     }
   },
   "pages": {
+    "admin": {
+      "title": "Seiten",
+      "subtitle": "Editierbare Inhaltsseiten (Impressum, AGB, Datenschutz) mit Sprachversionen.",
+      "new": "Neue Seite",
+      "empty": "Noch keine Seiten.",
+      "selectHint": "Links eine Seite wählen oder eine neue anlegen.",
+      "slug": "Slug (URL-Pfad)",
+      "slugHelp": "Kleinbuchstaben, z. B. impressum — wird zu /impressum. Später nicht änderbar.",
+      "slugRequired": "Bitte einen Slug eingeben",
+      "pageTitle": "Titel",
+      "body": "Inhalt",
+      "published": "Veröffentlicht",
+      "save": "Speichern",
+      "delete": "Seite löschen",
+      "saved": "Gespeichert",
+      "saveFailed": "Konnte nicht gespeichert werden",
+      "deleted": "Seite gelöscht",
+      "deleteFailed": "Konnte nicht gelöscht werden",
+      "loadFailed": "Seite konnte nicht geladen werden",
+      "titleRequired": "Bitte einen Titel eingeben",
+      "locale": {
+        "en": "Englisch",
+        "de": "Deutsch"
+      }
+    },
     "validation": {
       "slugInvalid": "Ungültiger Slug (Kleinbuchstaben, Ziffern, Bindestriche)",
       "localeInvalid": "Ungültiger Sprachcode",
