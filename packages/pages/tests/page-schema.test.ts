@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createPageUpsertSchema } from '../schemas/page'
 
 const schema = createPageUpsertSchema()
-const valid = { slug: 'impressum', locale: 'en', title: 'Imprint', body: '# Hi', status: 'published' as const }
+const valid = { slug: 'imprint', locale: 'en', title: 'Imprint', body: '# Hi', status: 'published' as const }
 
 describe('createPageUpsertSchema', () => {
   it('akzeptiert eine gültige Seite', () => {

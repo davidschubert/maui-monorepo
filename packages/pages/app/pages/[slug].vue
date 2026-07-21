@@ -2,7 +2,7 @@
 import type { PublicPage } from '../../shared/types/page'
 
 /**
- * Öffentliche Inhaltsseite unter sprechendem Pfad (/impressum, /agb …).
+ * Öffentliche Inhaltsseite unter sprechendem Pfad (/imprint, /terms …).
  * Dynamische Route mit NIEDRIGER Priorität — statische App-Routen (/login,
  * /dashboard …) gewinnen. Nur veröffentlichte Seiten; sonst 404.
  */

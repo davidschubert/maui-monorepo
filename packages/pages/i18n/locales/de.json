@@ -12,7 +12,7 @@
       "empty": "Noch keine Seiten.",
       "selectHint": "Links eine Seite wählen oder eine neue anlegen.",
       "slug": "Slug (URL-Pfad)",
-      "slugHelp": "Kleinbuchstaben, z. B. impressum — wird zu /impressum. Später nicht änderbar.",
+      "slugHelp": "Kleinbuchstaben, z. B. imprint — wird zu /imprint. Später nicht änderbar.",
       "slugRequired": "Bitte einen Slug eingeben",
       "pageTitle": "Titel",
       "body": "Inhalt",

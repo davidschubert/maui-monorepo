@@ -12,7 +12,7 @@
       "empty": "No pages yet.",
       "selectHint": "Select a page on the left, or create a new one.",
       "slug": "Slug (URL path)",
-      "slugHelp": "Lowercase, e.g. impressum — becomes /impressum. Cannot be changed later.",
+      "slugHelp": "Lowercase, e.g. imprint — becomes /imprint. Cannot be changed later.",
       "slugRequired": "Please enter a slug",
       "pageTitle": "Title",
       "body": "Content",

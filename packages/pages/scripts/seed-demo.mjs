@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Seed: 3 Demo-Rechtsseiten (Impressum/AGB/Datenschutz) je EN + DE, idempotent
+ * Seed: 3 Demo-Rechtsseiten (imprint/terms/privacy) je EN + DE, idempotent
  * (upsert nach slug+locale). Inhalt ist ABSICHTLICH ein deutlich markierter
  * PLATZHALTER — die echten Rechtstexte trägt David/Anwalt im Dashboard ein.
  *
@@ -49,9 +49,9 @@ Lorem ipsum. Inhalt hier ergänzen.
 Lorem ipsum. Inhalt hier ergänzen.`
 
 const PAGES = [
-  { slug: 'impressum', sortOrder: 0, en: { title: 'Imprint' }, de: { title: 'Impressum' } },
-  { slug: 'agb', sortOrder: 1, en: { title: 'Terms & Conditions' }, de: { title: 'AGB' } },
-  { slug: 'datenschutz', sortOrder: 2, en: { title: 'Privacy Policy' }, de: { title: 'Datenschutzerklärung' } },
+  { slug: 'imprint', sortOrder: 0, en: { title: 'Imprint' }, de: { title: 'Impressum' } },
+  { slug: 'terms', sortOrder: 1, en: { title: 'Terms & Conditions' }, de: { title: 'AGB' } },
+  { slug: 'privacy', sortOrder: 2, en: { title: 'Privacy Policy' }, de: { title: 'Datenschutzerklärung' } },
 ]
 
 async function upsert(slug, locale, title, body, sortOrder) {

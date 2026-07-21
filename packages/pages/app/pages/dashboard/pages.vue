@@ -164,7 +164,7 @@ async function deletePage() {
       <UCard v-if="editing">
         <template #header>
           <UFormField :label="t('pages.admin.slug')" :help="t('pages.admin.slugHelp')">
-            <UInput v-model="slugInput" :disabled="!isNew" placeholder="impressum" class="w-full font-mono" />
+            <UInput v-model="slugInput" :disabled="!isNew" placeholder="imprint" class="w-full font-mono" />
           </UFormField>
         </template>
 
