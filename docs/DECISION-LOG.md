@@ -7,6 +7,28 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-07-21 — Stripe maximal vorbereiten (ohne Aktivierung)
+
+David will Stripe so weit wie möglich fertig machen, aber Bank/Live-Aktivierung
+erst später (er sucht noch eine Bank). Umgesetzt (test-mode-ready):
+
+### Feature: Jahres-Abos für Workspace-Pläne
+`StudioPlan` um optionales `lookupKeyYearly` erweitert (additiv, bricht nichts);
+Katalog pro/business mit `workspace_{pro,business}_yearly`. Pure
+`pickLookupKey(plan, interval)` wählt den Preis (yearly-ohne-Preis → Fallback
+monthly). Beide Checkout-Routen (Kunde + Betreiber) akzeptieren `interval`,
+Kunden-UI bekommt einen Monats/Jahres-Umschalter. **Wichtig/elegant:** der
+Webhook bleibt unberührt — der Plan steht in `subscription.metadata`, nicht im
+Preis, also ist das Intervall für den Lifecycle transparent. Commit `7864e7d`.
+
+### Skript: `scripts/stripe/ensure-prices.mjs`
+Legt alle 4 Products/Prices idempotent an (Vorschau ohne `--apply`), liest nur
+`STRIPE_KEY` aus Davids Shell, erkennt Test/Live am Präfix. Beträge = Platzhalter.
+Damit ist der Test-Mode-Katalog jetzt per Skript anlegbar — kein Handklicken,
+keine Bank nötig. Details: [STRIPE-GO-LIVE-RUNBOOK.md](plans/STRIPE-GO-LIVE-RUNBOOK.md).
+
+---
+
 ## 2026-07-21 — Deploy-Incident: studio-Build-Starvation + Push-Race (behoben)
 
 Beim Ausrollen des Billing-Fixes (`532bb4e`) sind ZWEI Pipeline-Schwächen

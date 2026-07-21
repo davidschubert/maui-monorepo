@@ -40,17 +40,18 @@ NUXT_STRIPE_WEBHOOK_SECRET=whsec_…    # [David] aus dem Live-Webhook-Endpoint 
 
 - **2.1 [David] Account aktivieren** — „Activate payments": Geschäftsdaten,
   Bankverbindung, Identität. Ohne Aktivierung kein Live-Charge.
-- **2.2 [David] Products + Prices in LIVE anlegen — mit exakt denselben
-  `lookup_key`s wie im Test-Mode:**
-  | Plan | lookup_key | Betrag (Beispiel, David legt fest) | Intervall |
+- **2.2 [David] Products + Prices anlegen — mit exakt diesen `lookup_key`s**
+  (Monats- UND Jahres-Intervall sind seit 2026-07-21 im Code verdrahtet):
+  | Plan | lookup_key | Betrag (Platzhalter, David legt fest) | Intervall |
   |---|---|---|---|
   | Workspace Pro | `workspace_pro_monthly` | z. B. 19 €/Monat | monatlich |
+  | Workspace Pro | `workspace_pro_yearly` | z. B. 190 €/Jahr | jährlich |
   | Workspace Business | `workspace_business_monthly` | z. B. 49 €/Monat | monatlich |
+  | Workspace Business | `workspace_business_yearly` | z. B. 490 €/Jahr | jährlich |
 
-  Wichtig: Beim Price den **`lookup_key` setzen** (nicht nur den Namen). Falls
-  monatlich **und** jährlich geplant (BILLING-STRIPE §6.1): zweiter Price je Plan
-  mit `_yearly`-Suffix-Konvention — dann Code/Config um die Intervall-Keys
-  ergänzen (heute nur `_monthly` verdrahtet).
+  Am einfachsten NICHT von Hand klicken, sondern das Skript (Schritt 3) nehmen —
+  es setzt die `lookup_key`s korrekt. Wichtig: der `lookup_key` ist mode-stabil
+  (Test ↔ Live identisch), daher funktioniert derselbe Katalog in beiden Modi.
 - **2.3 [David] Customer Portal (Live) konfigurieren** — dieselben Einstellungen
   wie Sandbox (Plan-Wechsel erlaubt, Kündigung `cancel_at_period_end`,
   Rechnungshistorie). Sandbox-Config wird **nicht** automatisch nach Live kopiert.
@@ -60,17 +61,21 @@ NUXT_STRIPE_WEBHOOK_SECRET=whsec_…    # [David] aus dem Live-Webhook-Endpoint 
 - **2.5 [David] Dynamische Zahlungsmethoden** im Live-Dashboard prüfen (Karten
   aktiv; SEPA nur, wenn der asynchrone „Zahlung wird verarbeitet"-Pfad gewünscht).
 
-## 3. Preis-Anlage automatisierbar machen (optional, [automatisierbar])
+## 3. Preise per Skript anlegen ([automatisierbar], Skript existiert)
 
-Statt die Prices von Hand zu klicken, kann ein idempotentes Skript sie mit den
-richtigen `lookup_key`s anlegen — Claude kann es schreiben, **David führt es mit
-seinem Live-Key aus** (der Key bleibt in Davids Shell):
+`scripts/stripe/ensure-prices.mjs` legt alle 4 Products/Prices **idempotent** an
+(bestehende `lookup_key`s werden übersprungen). Läuft mit Davids Key — der Key
+bleibt in Davids Shell, das Skript liest nur `STRIPE_KEY`:
 ```bash
-# scripts/stripe/ensure-prices.mjs  (Skizze — legt Products/Prices idempotent an)
-#   liest maui.studio.plans, prüft prices.list({lookup_keys}), legt fehlende an.
-STRIPE_KEY=sk_live_… node scripts/stripe/ensure-prices.mjs
+# Erst Vorschau (ändert nichts):
+STRIPE_KEY=sk_test_… node scripts/stripe/ensure-prices.mjs
+# Dann anlegen (Test-Mode zum Vorbereiten, später sk_live_… für echt):
+STRIPE_KEY=sk_test_… node scripts/stripe/ensure-prices.mjs --apply
 ```
-→ Als eigener Task einplanbar, wenn David den Live-Preis-Katalog final hat.
+**Vor dem Lauf:** die Beträge im Skript (aktuell Platzhalter: Pro 19/190 €,
+Business 49/490 €) auf die echten Preise setzen. Das Skript erkennt Live vs.
+Test am Key-Präfix und meldet es. Damit kannst du **jetzt schon** den kompletten
+Test-Mode-Katalog anlegen und Checkouts durchspielen — ganz ohne Bank/Aktivierung.
 
 ## 4. Live-Webhook-Endpoint einrichten [David]
 
