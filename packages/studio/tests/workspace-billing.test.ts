@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { closeOverRequires, pickLookupKey, planToGrants, subscriptionUpdateToAction } from '../shared/workspaceBilling'
+import { closeOverRequires, isPaidPlanKey, pickLookupKey, planToGrants, subscriptionUpdateToAction } from '../shared/workspaceBilling'
 import type { StudioPlanCatalog } from '../shared/types/workspace'
 
 const CATALOG = [
@@ -31,6 +31,20 @@ describe('closeOverRequires', () => {
 
   it('leeres Set bleibt leer', () => {
     expect(closeOverRequires([], CATALOG)).toEqual([])
+  })
+})
+
+describe('isPaidPlanKey (Doppelabo-Guard)', () => {
+  it('bezahlter Plan (hat lookupKey) → true', () => {
+    expect(isPaidPlanKey('pro', PLANS)).toBe(true)
+  })
+  it('free (lookupKey null) → false', () => {
+    expect(isPaidPlanKey('free', PLANS)).toBe(false)
+  })
+  it('leer/unbekannt → false (kein Guard-Fehlalarm)', () => {
+    expect(isPaidPlanKey(undefined, PLANS)).toBe(false)
+    expect(isPaidPlanKey(null, PLANS)).toBe(false)
+    expect(isPaidPlanKey('gibtsnicht', PLANS)).toBe(false)
   })
 })
 

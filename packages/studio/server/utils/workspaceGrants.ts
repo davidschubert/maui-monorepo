@@ -62,7 +62,18 @@ export async function applyWorkspacePlan(event: H3Event, input: {
   const { rows: catalog } = await admin.tablesDB.listRows<FeatureCatalogRow>({
     databaseId, tableId: FEATURE_CATALOG_TABLE, queries: [Query.limit(100)],
   })
-  const catalogEntries = catalog.map(row => ({ key: row.$id, requires: JSON.parse(row.requires || '[]') as string[] }))
+  // requires DEFENSIV parsen: ungültiges JSON in EINER Katalog-Row darf nicht
+  // den ganzen Abo-Lifecycle blockieren (sonst Webhook-500 → Stripe-Retry-Schleife).
+  // Kaputte Row → leere requires + Log; Betreiber sieht es und korrigiert die Daten.
+  const catalogEntries = catalog.map((row) => {
+    try {
+      return { key: row.$id, requires: JSON.parse(row.requires || '[]') as string[] }
+    }
+    catch {
+      console.error(`[studio] feature_catalog "${row.$id}": ungültiges requires-JSON — als [] behandelt`)
+      return { key: row.$id, requires: [] as string[] }
+    }
+  })
   const features = closeOverRequires(input.planFeatures, catalogEntries)
 
   const { rows: sites } = await admin.tablesDB.listRows<SiteRow>({

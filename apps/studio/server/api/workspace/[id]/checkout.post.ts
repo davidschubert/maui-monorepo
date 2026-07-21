@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import type { StudioPlanCatalog } from '../../../../../../packages/studio/shared/types/workspace'
-import { pickLookupKey } from '../../../../../../packages/studio/shared/workspaceBilling'
+import { isPaidPlanKey, pickLookupKey } from '../../../../../../packages/studio/shared/workspaceBilling'
 
 const checkoutSchema = z.object({
   plan: z.string().regex(/^[a-z][a-z0-9-]*$/),
@@ -25,7 +25,14 @@ export default defineEventHandler(async (event) => {
   const { workspace } = await requireWorkspaceMember(event, id)
 
   const appConfig = useAppConfig() as { maui?: { studio?: { plans?: StudioPlanCatalog } } }
-  const plan = appConfig.maui?.studio?.plans?.[body.plan]
+  const plans = appConfig.maui?.studio?.plans ?? {}
+  // Doppelabo-Schutz: ein bereits bezahlter Workspace darf keinen ZWEITEN Checkout
+  // starten (das legte ein zweites Stripe-Abo an → Doppelabrechnung). Plan-/
+  // Intervall-Wechsel läuft übers Stripe-Portal (Proration). free → bezahlt bleibt ok.
+  if (isPaidPlanKey(workspace.plan, plans)) {
+    throw createError({ status: 409, statusText: 'Workspace already on a paid plan — use the billing portal to change it' })
+  }
+  const plan = plans[body.plan]
   if (!plan) {
     throw createError({ status: 400, statusText: 'Unknown plan' })
   }

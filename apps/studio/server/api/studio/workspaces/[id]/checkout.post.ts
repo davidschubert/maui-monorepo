@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { WORKSPACES_TABLE, type StudioPlanCatalog, type WorkspaceRow } from '../../../../../../../packages/studio/shared/types/workspace'
-import { pickLookupKey } from '../../../../../../../packages/studio/shared/workspaceBilling'
+import { isPaidPlanKey, pickLookupKey } from '../../../../../../../packages/studio/shared/workspaceBilling'
 
 const checkoutSchema = z.object({
   plan: z.string().regex(/^[a-z][a-z0-9-]*$/),
@@ -26,7 +26,8 @@ export default defineEventHandler(async (event) => {
   const body = await readValidatedBody(event, checkoutSchema.parse)
 
   const appConfig = useAppConfig() as { maui?: { studio?: { plans?: StudioPlanCatalog } } }
-  const plan = appConfig.maui?.studio?.plans?.[body.plan]
+  const plans = appConfig.maui?.studio?.plans ?? {}
+  const plan = plans[body.plan]
   if (!plan) {
     throw createError({ status: 400, statusText: 'Unknown plan' })
   }
@@ -43,6 +44,12 @@ export default defineEventHandler(async (event) => {
     tableId: WORKSPACES_TABLE,
     rowId: id,
   }).catch((error) => { throw toH3Error(error, 'Workspace not found') })
+
+  // Doppelabo-Schutz (per Workspace): auch die Betreiber-Route legt für einen
+  // bereits bezahlten Workspace kein zweites Abo an (Wechsel läuft übers Portal).
+  if (isPaidPlanKey(workspace.plan, plans)) {
+    throw createError({ status: 409, statusText: 'Workspace already on a paid plan — change it in the billing portal' })
+  }
 
   const origin = getRequestURL(event).origin
   const localePrefix = body.locale === 'de' ? '/de' : ''

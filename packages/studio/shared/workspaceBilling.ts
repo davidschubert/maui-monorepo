@@ -39,6 +39,14 @@ export function pickLookupKey(plan: Pick<StudioPlan, 'lookupKey' | 'lookupKeyYea
   return plan.lookupKey
 }
 
+/** Ist der Workspace auf einem BEZAHL-Plan (hat einen Stripe-lookupKey)? Basis
+ *  für den Doppelabo-Schutz: ein bereits bezahltes Abo darf keinen zweiten
+ *  Checkout starten (Wechsel läuft übers Stripe-Portal). Pure → unit-testbar. */
+export function isPaidPlanKey(planKey: string | undefined | null, plans: StudioPlanCatalog): boolean {
+  const plan = planKey ? plans[planKey] : undefined
+  return !!plan?.lookupKey
+}
+
 export interface PlanGrantSet {
   siteProjectId: string
   /** Gewünschtes Entitlement-Set (requires-geschlossen, sortiert). */
