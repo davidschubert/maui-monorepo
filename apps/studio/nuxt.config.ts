@@ -2,7 +2,7 @@ export default defineNuxtConfig({
   // früher gelistet = höhere Priorität — Feature Layer vor dem Core.
   // Nicht benötigte Layer einfach entfernen (und aus package.json streichen);
   // core + system bilden das Fundament und bleiben immer.
-  extends: ['../../packages/themes', '../../packages/admin', '../../packages/studio', '../../packages/billing', '../../packages/core', '../../packages/system'],
+  extends: ['../../packages/themes', '../../packages/admin', '../../packages/studio', '../../packages/billing', '../../packages/pages', '../../packages/core', '../../packages/system'],
 
   // Port pro App eindeutig vergeben (Konvention: 3001 comments, 3002+ weitere)
   devServer: {

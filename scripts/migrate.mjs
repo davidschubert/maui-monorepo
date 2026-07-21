@@ -24,7 +24,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 // Fundament zuerst — admin liest z. B. Tables, die system/comments anlegen.
-const LAYER_ORDER = ['system', 'comments', 'posts', 'events', 'media', 'feedback', 'billing', 'courses', 'tickets', 'moderation', 'studio', 'admin']
+const LAYER_ORDER = ['system', 'comments', 'posts', 'events', 'media', 'feedback', 'billing', 'pages', 'courses', 'tickets', 'moderation', 'studio', 'admin']
 
 function parseArgs(argv) {
   const args = { app: null, envFile: null, layers: [] }

@@ -26,6 +26,7 @@ export const ALL_CAPABILITIES: readonly Capability[] = [
   'billing.manage',
   'courses.manage',
   'tickets.manage',
+  'pages.manage',
 ]
 
 /** Alle zuweisbaren Rollen. */

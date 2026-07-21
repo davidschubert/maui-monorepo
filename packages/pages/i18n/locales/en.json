@@ -1,0 +1,17 @@
+{
+  "admin": {
+    "nav": {
+      "pages": "Pages"
+    }
+  },
+  "pages": {
+    "validation": {
+      "slugInvalid": "Invalid slug (lowercase letters, digits, hyphens)",
+      "localeInvalid": "Invalid language code",
+      "titleRequired": "Title is required",
+      "titleMax": "Title is too long",
+      "bodyMax": "Content is too long",
+      "statusInvalid": "Invalid status"
+    }
+  }
+}

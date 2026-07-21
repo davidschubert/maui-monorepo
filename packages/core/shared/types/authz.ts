@@ -23,5 +23,6 @@ export type Capability =
   | 'billing.manage'
   | 'courses.manage'
   | 'tickets.manage'
+  | 'pages.manage'
 
 export type Role = 'admin' | 'moderator'

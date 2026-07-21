@@ -12,5 +12,6 @@ export default {
     'admin',
     'studio',
     'billing',
+    'pages',
   ],
 } satisfies SiteManifest

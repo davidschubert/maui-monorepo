@@ -17,6 +17,7 @@
     "@maui/admin": "workspace:*",
     "@maui/billing": "workspace:*",
     "@maui/core": "workspace:*",
+    "@maui/pages": "workspace:*",
     "@maui/studio": "workspace:*",
     "@maui/system": "workspace:*",
     "@maui/themes": "workspace:*",
