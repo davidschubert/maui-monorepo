@@ -24,8 +24,13 @@ nutzbar). Reihenfolge = grobe Priorität.
 > vs. Verify-Trigger-SHA) → Verify könnte Nachfahren-SHA akzeptieren (behutsam,
 > fail-safe bewahren). Sofort-Mitigation: Commits bündeln, nicht schnell nach-pushen.
 > **Neue Funde (2026-07-21 Nacht, Analyse-Pass — Details im [DECISION-LOG.md](DECISION-LOG.md)):**
-> **🔴 Rechts-Seiten fehlen** (Impressum/AGB/Datenschutz) — deutsche SaaS-Pflicht
-> UND Stripe-Voraussetzung fürs Live-Portal; Rechtstexte = David/Anwalt.
+> **🟢 Rechts-Seiten-FEATURE steht** (2026-07-21): neuer `pages`-Layer +
+> editierbares Dashboard `/dashboard/pages` (UEditor, EN-Standard + DE-Reiter),
+> öffentlich live unter `/impressum,/agb,/datenschutz` (+`/de/*`) auf studio.
+> Demo-Platzhalter geseedet. **Offen = nur die echten Rechtstexte** (David/Anwalt
+> im Dashboard eintragen), dann Stripe-Live-Portal freischaltbar. Body-Limit
+> 14.000 Zeichen/Sprache (MariaDB-Zeilenbudget) — sehr lange Datenschutztexte
+> ggf. aufteilen.
 > **🟠 Cross-Sub-Kannibalisierung** im Fulfillment (free-fallback nicht abo-
 > autoritativ) — braucht `workspace.stripeSubscriptionId` (Migration).
 > **🟠 Owner kann Betreiber-Abo nicht selbst im Portal verwalten** (Customer-
