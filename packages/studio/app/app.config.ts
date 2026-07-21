@@ -13,8 +13,8 @@ export default defineAppConfig({
       // ohne Codeänderung; Preis in Stripe anlegen und Key vergeben).
       plans: {
         free: { lookupKey: null, features: ['comments'] },
-        pro: { lookupKey: 'workspace_pro_monthly', features: ['comments', 'posts', 'events', 'activity', 'feedback'] },
-        business: { lookupKey: 'workspace_business_monthly', features: ['comments', 'posts', 'events', 'activity', 'feedback', 'courses', 'tickets', 'media'] },
+        pro: { lookupKey: 'workspace_pro_monthly', lookupKeyYearly: 'workspace_pro_yearly', features: ['comments', 'posts', 'events', 'activity', 'feedback'] },
+        business: { lookupKey: 'workspace_business_monthly', lookupKeyYearly: 'workspace_business_yearly', features: ['comments', 'posts', 'events', 'activity', 'feedback', 'courses', 'tickets', 'media'] },
       },
     },
     admin: {

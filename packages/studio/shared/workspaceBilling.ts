@@ -1,5 +1,5 @@
 import type { FeatureCatalogEntry } from './types/job'
-import type { StudioPlanCatalog } from './types/workspace'
+import type { BillingInterval, StudioPlan, StudioPlanCatalog } from './types/workspace'
 
 /**
  * M8 Workspace-Billing — die PUREN Bausteine (ohne Stripe, ohne I/O):
@@ -29,6 +29,14 @@ export function closeOverRequires(
     queue.push(...entry.requires)
   }
   return [...result].sort()
+}
+
+/** Den passenden Stripe-lookup_key für Plan + Intervall wählen. Jahres-Preis
+ *  optional: fehlt er, fällt 'yearly' bewusst auf den Monatspreis zurück (statt
+ *  zu brechen). null = Plan ohne Checkout (free). Pure → unit-testbar. */
+export function pickLookupKey(plan: Pick<StudioPlan, 'lookupKey' | 'lookupKeyYearly'>, interval: BillingInterval): string | null {
+  if (interval === 'yearly') return plan.lookupKeyYearly ?? plan.lookupKey
+  return plan.lookupKey
 }
 
 export interface PlanGrantSet {

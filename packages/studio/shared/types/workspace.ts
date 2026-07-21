@@ -59,12 +59,18 @@ export const WORKSPACE_INVITES_TABLE = 'workspace_invites'
 
 /** Ein Plan im Code-Katalog `maui.studio.plans`. */
 export interface StudioPlan {
-  /** Stripe-lookup_key des Preises (Muster des billing-Layers: Test-/Live-
-   *  Mode wechseln ohne Codeänderung, Auflösung via resolvePriceByLookupKey);
+  /** Stripe-lookup_key des MONATS-Preises (Muster des billing-Layers: Test-/
+   *  Live-Mode wechseln ohne Codeänderung, Auflösung via resolvePriceByLookupKey);
    *  null = kostenloser Plan ohne Checkout. */
   lookupKey: string | null
+  /** Optionaler lookup_key des JAHRES-Preises (gleicher Plan, anderes Intervall).
+   *  Fehlt er, gibt es für diesen Plan nur das Monats-Abo. */
+  lookupKeyYearly?: string | null
   /** Feature-Keys, die der Plan gewährt (VOR requires-Schluss). */
   features: string[]
 }
+
+/** Abrechnungsintervall eines Abos. */
+export type BillingInterval = 'monthly' | 'yearly'
 
 export type StudioPlanCatalog = Record<string, StudioPlan>

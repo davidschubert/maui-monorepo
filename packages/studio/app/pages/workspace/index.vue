@@ -52,10 +52,12 @@ const paidPlans = computed(() =>
 // ── Plan ändern (Owner-Checkout) ───────────────────────────────────────────
 const planTarget = ref<OwnWorkspace | null>(null)
 const chosenPlan = ref('')
+const chosenInterval = ref<'monthly' | 'yearly'>('monthly')
 const startingCheckout = ref(false)
 
 function openPlanChange(workspace: OwnWorkspace) {
   planTarget.value = workspace
+  chosenInterval.value = 'monthly'
   chosenPlan.value = paidPlans.value.find(plan => plan.key !== workspace.plan)?.key ?? paidPlans.value[0]?.key ?? ''
 }
 
@@ -65,7 +67,7 @@ async function startCheckout() {
   try {
     const { url } = await $fetch<{ url: string }>(`/api/workspace/${planTarget.value.id}/checkout`, {
       method: 'POST',
-      body: { plan: chosenPlan.value, locale: locale.value.startsWith('de') ? 'de' : 'en' },
+      body: { plan: chosenPlan.value, interval: chosenInterval.value, locale: locale.value.startsWith('de') ? 'de' : 'en' },
     })
     window.location.href = url
   }
@@ -155,6 +157,17 @@ const healthColor = (s: string) => (s === 'ok' ? 'success' : s === 'degraded' ? 
               v-model="chosenPlan"
               :items="paidPlans.map(plan => ({ label: `${plan.key} — ${plan.features.join(', ')}`, value: plan.key }))"
               data-customer-plan-choice
+            />
+          </UFormField>
+          <UFormField :label="t('studio.workspaces.interval')">
+            <URadioGroup
+              v-model="chosenInterval"
+              orientation="horizontal"
+              :items="[
+                { label: t('studio.workspaces.intervalMonthly'), value: 'monthly' },
+                { label: t('studio.workspaces.intervalYearly'), value: 'yearly' },
+              ]"
+              data-customer-interval-choice
             />
           </UFormField>
           <p class="text-xs text-muted">{{ t('studio.customer.downgradeHint') }}</p>

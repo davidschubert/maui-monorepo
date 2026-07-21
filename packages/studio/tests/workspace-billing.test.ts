@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { closeOverRequires, planToGrants, subscriptionUpdateToAction } from '../shared/workspaceBilling'
+import { closeOverRequires, pickLookupKey, planToGrants, subscriptionUpdateToAction } from '../shared/workspaceBilling'
 import type { StudioPlanCatalog } from '../shared/types/workspace'
 
 const CATALOG = [
@@ -12,7 +12,7 @@ const CATALOG = [
 
 const PLANS: StudioPlanCatalog = {
   free: { lookupKey: null, features: ['comments'] },
-  pro: { lookupKey: 'workspace_pro_monthly', features: ['comments', 'posts', 'events'] },
+  pro: { lookupKey: 'workspace_pro_monthly', lookupKeyYearly: 'workspace_pro_yearly', features: ['comments', 'posts', 'events'] },
 }
 
 describe('closeOverRequires', () => {
@@ -31,6 +31,20 @@ describe('closeOverRequires', () => {
 
   it('leeres Set bleibt leer', () => {
     expect(closeOverRequires([], CATALOG)).toEqual([])
+  })
+})
+
+describe('pickLookupKey (Monats-/Jahres-Intervall)', () => {
+  it('wählt den Monats- bzw. Jahres-lookup_key', () => {
+    expect(pickLookupKey(PLANS.pro!, 'monthly')).toBe('workspace_pro_monthly')
+    expect(pickLookupKey(PLANS.pro!, 'yearly')).toBe('workspace_pro_yearly')
+  })
+  it('free (kein Preis) bleibt null in beiden Intervallen', () => {
+    expect(pickLookupKey(PLANS.free!, 'monthly')).toBeNull()
+    expect(pickLookupKey(PLANS.free!, 'yearly')).toBeNull()
+  })
+  it('fehlt der Jahrespreis, fällt yearly bewusst auf den Monatspreis zurück', () => {
+    expect(pickLookupKey({ lookupKey: 'only_monthly' }, 'yearly')).toBe('only_monthly')
   })
 })
 

@@ -79,6 +79,9 @@
       "currentPlan": "Current plan",
       "targetPlan": "New plan",
       "changePlanHelp": "Paid plans go through Stripe checkout; the features of all assigned sites are synced automatically after payment.",
+      "interval": "Billing",
+      "intervalMonthly": "Monthly",
+      "intervalYearly": "Yearly",
       "downgradeHint": "Downgrade to free: cancel the subscription in Stripe — at period end the workspace falls back to the free set automatically.",
       "toCheckout": "Go to checkout",
       "checkoutFailed": "Could not start checkout"

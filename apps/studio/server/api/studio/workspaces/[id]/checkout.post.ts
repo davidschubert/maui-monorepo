@@ -1,8 +1,10 @@
 import { z } from 'zod'
 import { WORKSPACES_TABLE, type StudioPlanCatalog, type WorkspaceRow } from '../../../../../../../packages/studio/shared/types/workspace'
+import { pickLookupKey } from '../../../../../../../packages/studio/shared/workspaceBilling'
 
 const checkoutSchema = z.object({
   plan: z.string().regex(/^[a-z][a-z0-9-]*$/),
+  interval: z.enum(['monthly', 'yearly']).optional(),
   locale: z.enum(['de', 'en']).optional(),
 }).strict()
 
@@ -28,7 +30,9 @@ export default defineEventHandler(async (event) => {
   if (!plan) {
     throw createError({ status: 400, statusText: 'Unknown plan' })
   }
-  if (!plan.lookupKey) {
+  const interval = body.interval ?? 'monthly'
+  const lookupKey = pickLookupKey(plan, interval)
+  if (!lookupKey) {
     throw createError({ status: 400, statusText: 'Plan has no checkout (free)' })
   }
 
@@ -43,8 +47,8 @@ export default defineEventHandler(async (event) => {
   const origin = getRequestURL(event).origin
   const localePrefix = body.locale === 'de' ? '/de' : ''
   const url = await createSubscriptionCheckoutSession(event, {
-    lookupKey: plan.lookupKey,
-    metadata: { workspaceId: workspace.$id, plan: body.plan },
+    lookupKey,
+    metadata: { workspaceId: workspace.$id, plan: body.plan, interval },
     successUrl: `${origin}${localePrefix}/dashboard/workspaces?checkout=success`,
     cancelUrl: `${origin}${localePrefix}/dashboard/workspaces?checkout=cancel`,
   })

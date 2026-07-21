@@ -79,6 +79,9 @@
       "currentPlan": "Aktueller Plan",
       "targetPlan": "Neuer Plan",
       "changePlanHelp": "Bezahlpläne laufen über den Stripe-Checkout; die Features aller zugeordneten Sites werden nach Zahlungseingang automatisch synchronisiert.",
+      "interval": "Abrechnung",
+      "intervalMonthly": "Monatlich",
+      "intervalYearly": "Jährlich",
       "downgradeHint": "Downgrade auf free: Abo in Stripe kündigen — zum Periodenende fällt der Workspace automatisch aufs free-Set zurück.",
       "toCheckout": "Zum Checkout",
       "checkoutFailed": "Checkout konnte nicht gestartet werden"
