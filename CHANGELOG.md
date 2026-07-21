@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.1.0](https://github.com/davidschubert/maui-monorepo/compare/v2.0.0...v2.1.0) (2026-07-21)
+
+
+### Features
+
+* **ci:** Deploy-Kette sequenziell für comments → portfolio → studio ([02f23cc](https://github.com/davidschubert/maui-monorepo/commit/02f23cc2dd36b85b47d3fc2a7f73b77247f07413))
+* **ops:** pm2-Ecosystem-Configs für portfolio (3002) + studio (3003) ([c396bd5](https://github.com/davidschubert/maui-monorepo/commit/c396bd53413b0bbeb867ad2e609d81c556a7d560))
+* **studio:** Jahres-Abos für Workspace-Pläne (Stripe-vorbereitet) ([7864e7d](https://github.com/davidschubert/maui-monorepo/commit/7864e7d1626e1070182fcd913c9b3c41f9a749a9))
+* **studio:** OTP-Login für den Betreiber aktivieren (H2-Live) ([fca9678](https://github.com/davidschubert/maui-monorepo/commit/fca96781f56d90bcae6bb118fc8fe6446a367601))
+
+
+### Bug Fixes
+
+* **billing:** payment-failed-Notify nur beim echten Statuswechsel (idempotent) ([532bb4e](https://github.com/davidschubert/maui-monorepo/commit/532bb4e0cdb1a7c632998c363802cb9241002a49))
+* **core:** /api/health beantwortet auch HEAD (health.ts statt health.get.ts) ([ce1c656](https://github.com/davidschubert/maui-monorepo/commit/ce1c656c72bdae99bd06d52d243481de815fc7c9))
+
 ## [2.0.0](https://github.com/davidschubert/maui-monorepo/compare/v1.5.0...v2.0.0) (2026-07-19)
 
 
