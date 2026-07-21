@@ -7,6 +7,42 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-07-21 — Deploy-Incident: studio-Build-Starvation + Push-Race (behoben)
+
+Beim Ausrollen des Billing-Fixes (`532bb4e`) sind ZWEI Pipeline-Schwächen
+aufgetreten. **Kein Outage** — dank ZDT (Stufe 2) lief studio durchgehend auf
+dem alten Build weiter; behoben durch einen einzelnen studio-Deploy. Endstand:
+alle 3 Sites auf `f8601c5`.
+
+### Befund 1 (Auslöser): Push-Race — ploi baut *latest*, Verify erwartet Trigger-SHA
+Fix- und Doku-Commit kurz hintereinander gepusht → als die Deploy-Kette portfolio
+erreichte, baute ploi bereits den neueren Commit, während das Verify-Gate den
+Trigger-SHA erwartete → Mismatch → Gate schlug (korrekt) an und **stoppte die
+sequentielle Kette vor studio**. Das Gate hat richtig gehandelt; der Fehler war
+das zu schnelle Doppel-Push.
+- **Sofort-Mitigation:** Commits bündeln und in EINEM Push rausgeben; nach einem
+  App-Push warten, bis der Deploy grün ist, bevor der nächste kommt.
+- **Empfohlene Härtung (braucht Davids Review — NICHT autonom gemacht):** das
+  Verify akzeptiert auch einen *Nachfahren* des EXPECTED_SHA
+  (`git fetch origin $BUILD && git merge-base --is-ancestor $EXPECTED $BUILD`).
+  Vorsicht: aktuell ist das Gate **fail-safe** (falscher Fehlalarm statt
+  falscher Erfolg); die Härtung darf diese Eigenschaft nicht kippen.
+
+### Befund 2 (der wichtigere): studio-Build verhungert als 3. Build in Folge
+Ein sauberer `workflow_dispatch` (kein Race) baute comments ✓ + portfolio ✓, dann
+**studio ✗** — Health oszillierte `n/a`↔`7dc1c8d`, nie `f8601c5`. Ursache: der
+2-Core/3,7-GB-Server (≈3,4 GB je Nuxt-Build) verkraftet studio (größte App) nicht
+als DRITTEN Build direkt nach comments+portfolio → OOM/Starvation. **Beweis:** ein
+studio-Deploy ALLEIN bei idle-Server war in ~140 s grün. Die bestehende
+Sequenzialisierung (keine PARALLELEN Builds) reicht also nicht — auch sequentiell
+kann der letzte, größte Build verhungern.
+- **Recovery (gemacht):** studio-ploi-Deploy einzeln gefeuert, Server idle → grün.
+- **Empfohlene Fixes (Davids Entscheidung):** (a) Swap/RAM erhöhen; (b) je Build
+  `NODE_OPTIONS=--max-old-space-size` kappen; (c) Build-Pause/Cooldown zwischen den
+  Sites; (d) Verify-Timeout großzügiger. → als offener Punkt in OPEN-ITEMS.
+
+---
+
 ## 2026-07-20 (später) — Money-Path-Review vor Stripe-Live
 
 ### Fix: `invoice.payment_failed`-Notify nur beim echten Statuswechsel

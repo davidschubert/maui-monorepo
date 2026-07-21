@@ -18,6 +18,11 @@ nutzbar). Reihenfolge = grobe Priorität.
 > (David setzt Keys). (3) release-please PR #17 mergen (Release + Changelog-Draft).
 > **Braucht Davids `workflow`-Token:** CI-Bumps #16/#15/#2 im GitHub-Web mergen.
 > **Kleinkram:** Wegwerf-Projekte s3-alpha/beta löschen, Demo-Passwörter rotieren.
+> **Deploy-Pipeline-Härtung (2026-07-21-Incident, [DECISION-LOG.md](DECISION-LOG.md)):**
+> (a) studio-Build verhungert als 3. sequentieller Build (RAM) → Swap/RAM oder
+> `--max-old-space-size`-Cap oder Build-Cooldown; (b) Push-Race (ploi baut latest
+> vs. Verify-Trigger-SHA) → Verify könnte Nachfahren-SHA akzeptieren (behutsam,
+> fail-safe bewahren). Sofort-Mitigation: Commits bündeln, nicht schnell nach-pushen.
 > **Laufendes Beschluss-/Ideen-Protokoll:** [DECISION-LOG.md](DECISION-LOG.md).
 
 > **2026-07-06 bis 2026-07-09 — Produkt-Arc „Community-Plattform":**
