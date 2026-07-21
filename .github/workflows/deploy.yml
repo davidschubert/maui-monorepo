@@ -17,7 +17,7 @@
 # Code an den Actions vorbei).
 #
 # Doku-Skip (2026-07-20): ein main-Push mit AUSSCHLIESSLICH Doku-/CI-/Meta-
-# Änderungen (docs/**, .github/**, *.md, …) baut identischen App-Output —
+# Änderungen (docs/**, spikes/**, .github/**, *.md, …) baut identischen App-Output —
 # ein Deploy wäre 3× Nuxt-Build für nichts. Der changes-Step vergleicht den
 # aktuell auf Prod deployten Commit (comments/api/health) gegen den neuen
 # Stand und ÜBERSPRINGT den Deploy, wenn keine App-relevante Datei betroffen
@@ -61,7 +61,7 @@ jobs:
         id: changes
         run: |
           set -u
-          IGNORE='^(docs/|\.github/|\.claude/|\.codex/|.*\.md$|LICENSE$|\.gitignore$|\.editorconfig$)'
+          IGNORE='^(docs/|spikes/|\.github/|\.claude/|\.codex/|.*\.md$|LICENSE$|\.gitignore$|\.editorconfig$)'
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "Manueller Trigger — deploye immer."
             echo "skip=false" >> "$GITHUB_OUTPUT"; exit 0
