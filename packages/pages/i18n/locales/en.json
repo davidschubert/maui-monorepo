@@ -16,6 +16,8 @@
       "slugRequired": "Please enter a slug",
       "pageTitle": "Title",
       "body": "Content",
+      "charCount": "{count} / {max} characters",
+      "bodyTooLong": "Text too long: {count} of at most {max} characters. Please shorten it.",
       "published": "Published",
       "save": "Save",
       "delete": "Delete page",

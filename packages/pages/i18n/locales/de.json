@@ -16,6 +16,8 @@
       "slugRequired": "Bitte einen Slug eingeben",
       "pageTitle": "Titel",
       "body": "Inhalt",
+      "charCount": "{count} / {max} Zeichen",
+      "bodyTooLong": "Text zu lang: {count} von maximal {max} Zeichen. Bitte kürzen.",
       "published": "Veröffentlicht",
       "save": "Speichern",
       "delete": "Seite löschen",

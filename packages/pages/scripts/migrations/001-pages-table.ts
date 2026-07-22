@@ -82,14 +82,18 @@ await columnStep('Column pages.locale', 'locale', cols, () => tablesDB.createVar
 await columnStep('Column pages.title', 'title', cols, () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'pages', key: 'title', size: 256, required: true,
 }))
-// body = Markdown. Grenze ist NICHT die Einzelspalte (16.381), sondern das
-// utf8mb4-ZEILENbudget: MariaDB max ~65.535 Bytes/Zeile ÷ 4 Bytes/Zeichen,
-// minus title/slug/locale/status + Appwrite-Interna. body(16000) sprengt das
-// (64.002 B allein) → 14.000 als sichere Obergrenze mit Marge. Sehr lange
-// Rechtstexte ggf. auf mehrere Seiten aufteilen (oder später storage-backed).
-await columnStep('Column pages.body', 'body', cols, () => tablesDB.createVarcharColumn({
-  databaseId, tableId: 'pages', key: 'body', size: 14000, required: false, xdefault: '',
-}))
+// body = Markdown, als MEDIUMTEXT (off-row, zählt NICHT ins ~65-KB-Zeilen-
+// budget von MariaDB — VARCHAR(14000) tat das und war für echte Rechtstexte
+// zu klein, siehe pages-002). Obergrenze setzt die App per Zod (MAX_PAGE_BODY).
+await columnStep('Column pages.body', 'body', cols, async () => {
+  try {
+    await tablesDB.createMediumtextColumn({ databaseId, tableId: 'pages', key: 'body', required: false, xdefault: '' })
+  }
+  catch {
+    // Manche MariaDB-Setups erlauben kein DEFAULT auf TEXT — ohne Default erneut
+    await tablesDB.createMediumtextColumn({ databaseId, tableId: 'pages', key: 'body', required: false })
+  }
+})
 await columnStep('Column pages.status', 'status', cols, () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'pages', key: 'status', size: 12, required: true,
 }))

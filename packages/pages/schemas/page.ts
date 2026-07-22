@@ -5,9 +5,10 @@ type TranslateFn = (key: string) => string
 const identity: TranslateFn = key => key
 
 export const MAX_PAGE_TITLE = 256
-// utf8mb4-ZEILENbudget (nicht die Einzelspalte): body teilt sich die ~65 KB/Zeile
-// mit title/slug/locale/status + Appwrite-Interna → 14.000 als sichere Obergrenze.
-export const MAX_PAGE_BODY = 14_000
+// body ist MEDIUMTEXT (off-row, seit pages-002) — die Spalte fasst ~16 MB.
+// 200.000 Zeichen sind ein reiner SSR-/Missbrauchsschutz (längste deutsche
+// Datenschutzerklärungen liegen bei ~50–80k), kein Storage-Limit mehr.
+export const MAX_PAGE_BODY = 200_000
 
 // slug = sprechender URL-Pfad (imprint, terms, privacy): klein, keine Slashes
 const slugRe = /^[a-z][a-z0-9-]*$/

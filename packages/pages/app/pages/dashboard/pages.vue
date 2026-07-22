@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { EditorToolbarItem } from '@nuxt/ui'
+import { MAX_PAGE_BODY } from '../../../schemas/page'
 import type { PageGroup, PageRow } from '../../../shared/types/page'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'pages.manage' })
@@ -80,6 +81,13 @@ async function saveLocale(locale: Locale) {
   const form = forms[locale]
   if (!form.title.trim()) {
     toast.add({ title: t('pages.admin.titleRequired'), color: 'error' })
+    return
+  }
+  if (form.body.length > MAX_PAGE_BODY) {
+    toast.add({
+      title: t('pages.admin.bodyTooLong', { count: form.body.length.toLocaleString(), max: MAX_PAGE_BODY.toLocaleString() }),
+      color: 'error',
+    })
     return
   }
   saving.value = true
@@ -184,10 +192,20 @@ async function deletePage() {
                 >
                   <UEditorToolbar :editor="editor" :items="toolbarItems" class="border-b border-default px-1.5 py-1" />
                 </UEditor>
+                <template #help>
+                  <span :class="forms[item.value as Locale].body.length > MAX_PAGE_BODY ? 'text-error' : ''">
+                    {{ t('pages.admin.charCount', { count: forms[item.value as Locale].body.length.toLocaleString(), max: MAX_PAGE_BODY.toLocaleString() }) }}
+                  </span>
+                </template>
               </UFormField>
               <div class="flex items-center justify-between border-t border-default pt-3">
                 <USwitch v-model="forms[item.value as Locale].published" :label="t('pages.admin.published')" />
-                <UButton :loading="saving" :label="t('pages.admin.save')" @click="() => saveLocale(item.value as Locale)" />
+                <UButton
+                  :loading="saving"
+                  :disabled="forms[item.value as Locale].body.length > MAX_PAGE_BODY"
+                  :label="t('pages.admin.save')"
+                  @click="() => saveLocale(item.value as Locale)"
+                />
               </div>
             </div>
           </template>
