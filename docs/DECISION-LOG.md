@@ -12,13 +12,25 @@ die kleinen, verstreuten Beschlüsse.
 Abarbeitung der offenen Analyse-Funde (unten), soweit ohne Live-Billing-Risiko
 autonom machbar:
 
-- **HOCH Cross-Sub-Kannibalisierung — GEFIXT.** Migration studio-009 gibt
-  `workspaces.stripeSubscriptionId`; der Fulfillment-Handler speichert bei
-  `apply-plan` die maßgebliche Sub und degradiert bei `subscription.deleted`
-  nur noch, wenn die gekündigte Sub die hinterlegte ist (pure Guard
-  `shouldApplyFreeFallback`, unit-getestet). Ein neueres Abo kann so vom
-  Kündigen eines älteren nicht mehr kannibalisiert werden. Prod-Migration
-  gelaufen (additiv, leerer Default = Legacy-Row erlaubt den Fallback).
+- **HOCH Cross-Sub-Kannibalisierung — TEILWEISE gehärtet, Restrisiko OFFEN.**
+  Migration studio-009 gibt `workspaces.stripeSubscriptionId`; der Handler
+  speichert bei `apply-plan` die maßgebliche Sub und degradiert bei
+  `subscription.deleted` nur, wenn die gekündigte Sub die hinterlegte ist
+  (pure `shouldApplyFreeFallback`, unit-getestet, + fail-CLOSED bei Lesefehler).
+  Das schließt den häufigen Fall (altes Abo sofort gekündigt, neues gilt).
+  **Nicht vollständig** (adversariales Re-Audit, 2026-07-21): der APPLY-Pfad
+  überschreibt `stripeSubscriptionId` bedingungslos (last-writer-wins). Bei
+  ZWEI koexistierenden aktiven Abos rebindet ein Zwischen-`active`-Event des
+  cancel-at-period-end-Abos den Speicher aufs alte Abo → beim späteren
+  `deleted` fällt der Workspace auf free, obwohl das zweite Abo zahlt. Auch der
+  umgekehrte Fall (das gespeicherte Abo wird gekündigt, ein älteres bleibt
+  aktiv) degradiert falsch. **Vollständiger Fix (offen, braucht David — Live-
+  Billing):** Einzel-Abo-Invariante durchsetzen (bei `apply-plan` andere
+  aktive Workspace-Abos via Stripe kündigen) ODER free-Fallback nur, wenn
+  KEIN weiteres aktives Abo des Workspace existiert (Query gegen die billing-
+  `subscriptions` — braucht einen billing-Vertrag, A14). Die Vorbedingung
+  (zwei aktive Abos) entsteht nur über eine Checkout-Race gegen den noch nicht
+  angewandten Webhook — der `isPaidPlanKey`-Doppelabo-Guard ist check-then-act.
 - **LOW Duplicate-Import `BillingInterval` — GEFIXT.** studio-Typ zu
   `WorkspaceBillingInterval` umbenannt (A14: studio bleibt vom billing-Layer
   entkoppelt, eigener Name statt Cross-Layer-Import) — Nuxt-Warnung weg.

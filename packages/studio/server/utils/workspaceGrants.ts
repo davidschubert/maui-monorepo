@@ -16,10 +16,17 @@ export async function replaceSiteGrants(event: H3Event, siteProjectId: string, f
   const admin = createAdminClient(event)
   const databaseId = config.public.appwriteDatabaseId
 
-  const { rows: existing } = await admin.tablesDB.listRows<EntitlementRow>({
-    databaseId, tableId: ENTITLEMENTS_TABLE,
-    queries: [Query.equal('siteProjectId', siteProjectId), Query.limit(100)],
-  })
+  // ALLE Grants der Site paginieren (No-silent-caps): das deklarative ERSETZEN
+  // muss das vollständige Ist-Set sehen, sonst blieben >100 Rows unberührt.
+  const existing: EntitlementRow[] = []
+  for (let offset = 0; ; offset += 100) {
+    const page = await admin.tablesDB.listRows<EntitlementRow>({
+      databaseId, tableId: ENTITLEMENTS_TABLE,
+      queries: [Query.equal('siteProjectId', siteProjectId), Query.limit(100), Query.offset(offset)],
+    })
+    existing.push(...page.rows)
+    if (page.rows.length < 100) break
+  }
 
   const wanted = new Set(features)
   const have = new Set(existing.map(row => row.featureKey))
@@ -175,8 +182,15 @@ export async function handleWorkspaceSubscriptionUpdate(event: H3Event, update: 
         databaseId: config.public.appwriteDatabaseId,
         tableId: WORKSPACES_TABLE,
         rowId: action.workspaceId,
-      }).catch(() => null)
-      const storedSub = workspace?.stripeSubscriptionId ?? ''
+      }).catch((error) => {
+        console.error(`[studio] Workspace ${action.workspaceId}: Lesefehler im free-Fallback — Downgrade übersprungen (fail-closed, Stripe retryt)`, error)
+        return null
+      })
+      // FAIL-CLOSED: bei Lesefehler (oder gelöschtem Workspace) NIE degradieren —
+      // ein bezahltes Abo darf nicht wegen eines transienten Read-Fehlers auf free
+      // fallen. Stripe liefert das Event erneut; beim nächsten Mal greift der Guard.
+      if (!workspace) return
+      const storedSub = workspace.stripeSubscriptionId ?? ''
       if (!shouldApplyFreeFallback(storedSub, action.stripeSubscriptionId)) {
         console.warn(`[studio] Workspace ${action.workspaceId}: Kündigung von ${action.stripeSubscriptionId} ignoriert — aktuell gilt ${storedSub} (Cross-Sub-Guard)`)
         return
