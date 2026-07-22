@@ -18,16 +18,16 @@ Legende: **[David]** nur David · **[Claude]** autonom machbar ·
 |---|------|-----|---------|---|
 | 1 | **Rechtstexte eintragen** (Imprint/Terms/Privacy EN+DE im Dashboard, Platzhalter ersetzen; Anwalt) | David | leicht | 5 |
 | 2 | **Stripe-Live scharfschalten** ([Runbook](plans/STRIPE-GO-LIVE-RUNBOOK.md)): 2.1 Bank-Aktivierung [David] · 2.2 Live-Webhook [David] · 2.3 Keys in Server-.env [David] · 2.4 Live-Portal konfigurieren (braucht #1) [Claude] · 2.5 Minimal-Verifikation [beide] | beide | mittel | 12 |
-| 3 | **Money-Path-Rest vor Live** ([DECISION-LOG](DECISION-LOG.md)): 3.1 #6b Einzel-Abo-Durchsetzung (apply-plan-Rebind-Lücke) · 3.2 #7a Owner-Portal-Mismatch (Workspace-scoped Customer) — beides Live-Billing → Davids Freigabe, Claude baut | beide | mittel | 8 |
+| 3 | ✅ **Money-Path-Rest — ERLEDIGT (2026-07-22, deployt):** #6b via Stripe-Autorität (free-Fallback prüft lebende Abos direkt bei Stripe), #7a via Workspace-Customer (ensureWorkspaceCustomer; Owner-Portal öffnet workspace.stripeCustomerId). Details [DECISION-LOG](DECISION-LOG.md). | — | — | 8 |
 | 4 | **Horizont 3 — Pool+Silo Multi-Tenancy** ([Blueprint](plans/HORIZONT-3-POOL-SILO-BLUEPRINT.md), Spike ✅, Schicht 1 ✅): 4.1 Pool-Datenpfad end-to-end (tenantId + scopeQuery + Isolationsbeweis, 12 %) · 4.2 L5 Wellen-Migrationen (10 %) · 4.3 S4 Quota-Enforcement (8 %) · 4.4 Onboarding-Flow Pool-Site/Silo-Upgrade (10 %) | Claude (Etappen-Go: David) | schwer | 40 |
 | 5 | **Embed-Widget E2–E4** ([Plan](plans/EMBED-WIDGET.md)): Schreiben im iframe (CHIPS-Cookies, echte Cross-Site-Domains jetzt vorhanden), Site-Registry, Redis-Rate-Limit | Claude (Prio: David) | schwer | 12 |
 | 6 | **Themes-Vollausbau 26×11** ([Plan](plans/THEMES-VOLLAUSBAU.md), braucht E1–E7-Entscheidungen) | beide | schwer | 10 |
-| 7 | **Deploy-RAM-Härtung**: studio als 3. Build verhungert (Swap oder --max-old-space-size oder Cooldown) | Claude | leicht | 3 |
-| 8 | **Shared Rate-Limit-Store** (in-memory → geteilt; nötig vor >1 Instanz) | Claude | mittel | 3 |
-| 9 | **E2E auf portfolio/studio ausweiten** (Playwright läuft nur auf comments) | Claude | mittel | 3 |
+| 7 | ✅ **Deploy-RAM — ERLEDIGT (2026-07-22):** Swap war schon da (18.07.); NODE_OPTIONS=--max-old-space-size=2560 im Kopf der ploi-`~/.bashrc` (App-Server). Praxistest: 2 Deploys in Folge, alle Builds sauber. | — | — | 3 |
+| 8 | **Shared Rate-Limit-Store** — BLOCKIERT auf Infra-Entscheidung [David]: braucht einen echten geteilten Store (Redis auf dem App-Server? Kosten/Pflege) — eine Abstraktion ohne Backend wäre toter Code. Nötig erst vor >1 Instanz/App. | David→Claude | mittel | 3 |
+| 9 | ✅ **E2E — ERLEDIGT (2026-07-22):** Playwright-Smoke für studio (10 Tests, inkl. Rechtsseiten + Guards) und portfolio (5 Tests, inkl. hreflang) nach dem comments-Muster; `pnpm --filter <app> e2e`. | — | — | 3 |
 | 10 | **SaaS-Feature-Ideen speccen** (10 Ideen in Davids privaten Notizen → Input nötig) | David→beide | mittel | 2 |
 | 11 | **GitHub-Klicks**: Release-PR #18 + CI-Bumps #16/#15/#2 mergen (workflow-Token) | David | leicht | 1 |
-| 12 | **Kleinkram**: Demo-Passwörter rotieren [Claude] · Wegwerf-Projekte s3-*/s0-* lokal löschen (optional) [David] · >14k-Rechtstexte ggf. splitten (nur falls nötig) | beide | leicht | 1 |
+| 12 | **Kleinkram**: ✅ Demo-Passwörter — gegenstandslos (2026-07-22 verifiziert: KEINE @demo.local-User auf einer der 3 Prod-Instanzen; Seed-User existieren nur lokal/CI). ✅ >14k-Limit weg (body=MEDIUMTEXT seit pages-002). Offen: Wegwerf-Projekte s3-*/s0-* lokal löschen (optional) [David]. | David | leicht | 1 |
 
 Zurückgestellt (bewusst, zählt nicht): Flag-Registry statt `commentsEnabled`
 (lohnt erst mit dem nächsten Flag), `useFormatCurrency`-Vorhaltung,
