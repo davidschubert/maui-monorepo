@@ -7,6 +7,44 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-07-22 — Abarbeitung Master-To-do (#7, #12, #3 komplett)
+
+David gab Freigabe, alle offenen Punkte nacheinander umzusetzen (Blockierte
+überspringen). Stripe ist noch NICHT live → der sichere Moment für die
+Money-Path-Umbauten.
+
+- **#7 Deploy-RAM — ERLEDIGT (server-seitig).** App-Server hatte bereits
+  4,7 GB Swap (seit 18.07.), der 21.07.-Incident war also Swap-Thrashing.
+  Fix: `NODE_OPTIONS=--max-old-space-size=2560` im Kopf der ploi-User-
+  `~/.bashrc` (VOR dem PS1-Guard — ploi-Deploys laufen als ssh→bash und lesen
+  genau diesen Kopf; pm2-Laufzeit via cron-resurrect bleibt unberührt).
+  Verifiziert: ssh-Kommando zeigt 2752-MB-Heap-Limit. Backup:
+  `~/.bashrc.bak-node-options`.
+- **#12 Demo-Passwörter — GEGENSTANDSLOS (verifiziert).** Alle 3 Prod-
+  Instanzen haben KEINE @demo.local-User (nur Davids Konten, Betreiber
+  passwortlos/OTP). Die Seed-Demo-User mit Repo-Passwort existieren nur
+  lokal/CI — dort ist das bekannte Passwort gewollt.
+- **#3.1 (#6b) Cross-Sub VOLLSTÄNDIG — GEFIXT (Stripe als Autorität).**
+  Statt Einzel-Abo-Zwangskündigung (destruktiv, verworfen): der free-Fallback
+  fragt jetzt DIREKT bei Stripe nach, ob für den Workspace ein anderes
+  lebendes Abo existiert (`listCustomerSubscriptionSummaries`, billing;
+  injizierter `hasOtherActiveSubscription`-Vertrag, A14 via App-Plugin).
+  Damit ist die apply-plan-Rebind-Lücke des Teilfixes egal — die lokale
+  stripeSubscriptionId ist nur noch Vorfilter, Stripe entscheidet. Fehlerpfade
+  jetzt konsistent: transiente Fehler WERFEN (Webhook 500 → Stripe retryt),
+  404-Workspace = legitimer Skip; das frühere stille return hätte den Retry
+  verhindert.
+- **#3.2 (#7a) Owner-Portal-Mismatch — GEFIXT (Workspace-Customer).** Beide
+  Workspace-Checkouts (Betreiber + Owner) binden ans neue
+  `ensureWorkspaceCustomer` (App-Utility, `createStandaloneCustomer` aus
+  billing, Race-Dedupe nach B11-Muster, Id auf der workspace-Row). Das
+  Owner-Portal öffnet `workspace.stripeCustomerId` statt des userId-Lookups —
+  kein 404 mehr nach Betreiber-Checkout, und kein Daten-Leak (jeder Workspace
+  hat seinen eigenen Customer). App-eigene Abos (billing-Layer) bleiben
+  user-gebunden, unverändert.
+
+---
+
 ## 2026-07-21 (Tag 2) — Money-Path-Härtung Runde 3 (vor Stripe-Live)
 
 Abarbeitung der offenen Analyse-Funde (unten), soweit ohne Live-Billing-Risiko

@@ -53,8 +53,12 @@ export default defineEventHandler(async (event) => {
 
   const origin = getRequestURL(event).origin
   const localePrefix = body.locale === 'de' ? '/de' : ''
+  // #7a: auch der Betreiber-Checkout bindet ans WORKSPACE-Customer — der Owner
+  // kann das Abo danach selbst im Portal verwalten (kein Customer-Mismatch mehr).
+  const stripeCustomerId = await ensureWorkspaceCustomer(event, workspace)
   const url = await createSubscriptionCheckoutSession(event, {
     lookupKey,
+    stripeCustomerId,
     metadata: { workspaceId: workspace.$id, plan: body.plan, interval },
     successUrl: `${origin}${localePrefix}/dashboard/workspaces?checkout=success`,
     cancelUrl: `${origin}${localePrefix}/dashboard/workspaces?checkout=cancel`,

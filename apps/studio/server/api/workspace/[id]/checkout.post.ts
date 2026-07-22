@@ -44,8 +44,12 @@ export default defineEventHandler(async (event) => {
 
   const origin = getRequestURL(event).origin
   const localePrefix = body.locale === 'de' ? '/de' : ''
+  // #7a: Abo hängt am WORKSPACE-Customer (nicht am eingeloggten User) — nur so
+  // funktioniert das Owner-Portal unabhängig davon, wer den Checkout auslöste.
+  const stripeCustomerId = await ensureWorkspaceCustomer(event, workspace)
   const url = await createSubscriptionCheckoutSession(event, {
     lookupKey,
+    stripeCustomerId,
     metadata: { workspaceId: workspace.$id, plan: body.plan, interval },
     successUrl: `${origin}${localePrefix}/workspace?checkout=success`,
     cancelUrl: `${origin}${localePrefix}/workspace?checkout=cancel`,

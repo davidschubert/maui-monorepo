@@ -4,6 +4,28 @@ import type { Models } from 'node-appwrite'
 import { BILLING_CUSTOMERS_TABLE, type BillingCustomerRow } from '../../shared/types/billing'
 
 /**
+ * Eigenständiger Stripe-Customer OHNE billing_customers-Row (#7a): für
+ * Kompositionen, in denen der Customer an einem ANDEREN Objekt hängt als am
+ * eingeloggten User — z. B. der Workspace-Customer des studio-Layers (die App
+ * speichert die Id auf der workspace-Row). So verwaltet der Workspace-OWNER
+ * sein Abo im Portal, auch wenn der BETREIBER den Checkout ausgelöst hat.
+ * Der Aufrufer ist für Persistenz + Dedupe der Id verantwortlich.
+ */
+export async function createStandaloneCustomer(event: H3Event, input: {
+  email?: string
+  name?: string
+  metadata?: Record<string, string>
+}): Promise<string> {
+  const stripe = useStripe(event)
+  const customer = await stripe.customers.create({
+    email: input.email || undefined,
+    name: input.name || undefined,
+    metadata: input.metadata ?? {},
+  }).catch(error => toStripeSafeError(error, 'customers.create (standalone) fehlgeschlagen'))
+  return customer.id
+}
+
+/**
  * userId ↔ stripeCustomerId (B11): lazy beim ersten Checkout. Unique-Index
  * uq_user ist der Race-Schutz — verliert unser Create, lesen wir die
  * Gewinner-Row nach und löschen den doppelt erzeugten Stripe-Customer.

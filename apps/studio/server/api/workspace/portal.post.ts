@@ -1,11 +1,13 @@
-import { Query } from 'node-appwrite'
-import { BILLING_CUSTOMERS_TABLE, type BillingCustomerRow } from '../../../../../packages/billing/shared/types/billing'
+import { WORKSPACES_TABLE, type WorkspaceRow } from '../../../../../packages/studio/shared/types/workspace'
 
 /**
  * Stripe-Kundenportal für Workspace-Owner (M9-T3) — APP-Route (A14).
  * Kündigung/Zahlungsmethode/Rechnungen laufen über das seit M8 konfigurierte
- * Portal; Voraussetzung: mindestens eine Membership (sonst 403) und ein
- * Billing-Customer (entsteht mit dem ersten Checkout, sonst 404).
+ * Portal. Der Customer ist seit #7a der WORKSPACE-Customer
+ * (workspace.stripeCustomerId) — nicht mehr der billing_customers-Lookup per
+ * userId, der 404te, wenn der BETREIBER den Checkout ausgelöst hatte
+ * (Customer hing dann am Operator statt am Owner). Voraussetzung bleibt:
+ * Membership (403) und ein Customer vom ersten Checkout (404).
  * Rückkehr in den Kundenbereich.
  */
 export default defineEventHandler(async (event) => {
@@ -19,14 +21,17 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 403, statusText: 'Not a workspace member' })
   }
 
+  // v1: ein Owner gehört zu genau einem Workspace (accept legt 'owner' an) —
+  // die erste Membership ist der Kundenbereichs-Kontext (wie /workspace selbst).
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
-  const customer = await admin.tablesDB.listRows<BillingCustomerRow>({
+  const workspace = await admin.tablesDB.getRow<WorkspaceRow>({
     databaseId: config.public.appwriteDatabaseId,
-    tableId: BILLING_CUSTOMERS_TABLE,
-    queries: [Query.equal('userId', user.$id), Query.limit(1)],
-  })
-  if (!customer.rows[0]) {
+    tableId: WORKSPACES_TABLE,
+    rowId: memberships[0]!.workspaceId,
+  }).catch((error) => { throw toH3Error(error, 'Workspace not found') })
+
+  if (!workspace.stripeCustomerId) {
     throw createError({ status: 404, statusText: 'No billing account yet' })
   }
 
@@ -34,7 +39,7 @@ export default defineEventHandler(async (event) => {
   const localePrefix = typeof getQuery(event).locale === 'string' && getQuery(event).locale === 'de' ? '/de' : ''
   const stripe = useStripe(event)
   const session = await stripe.billingPortal.sessions.create({
-    customer: customer.rows[0].stripeCustomerId,
+    customer: workspace.stripeCustomerId,
     return_url: `${origin}${localePrefix}/workspace`,
   }).catch(error => toStripeSafeError(error, 'billingPortal.sessions.create (workspace) fehlgeschlagen'))
 

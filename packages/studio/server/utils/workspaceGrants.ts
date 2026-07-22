@@ -137,11 +137,21 @@ export async function setWorkspaceStatus(event: H3Event, workspaceId: string, st
  * macht Stripe (cancel_at_period_end → 'canceled' erst zum echten Ende);
  * danach fällt der Workspace aufs free-Set zurück, NIE auf null Features.
  */
+/** Autoritäts-Check (#6b), von der APP verdrahtet (A14: studio kennt billing/
+ *  Stripe nicht): existiert für den Workspace ein ANDERES lebendes Abo? */
+export type OtherActiveSubscriptionCheck = (event: H3Event, input: {
+  stripeCustomerId: string
+  workspaceId: string
+  exceptSubscriptionId: string
+}) => Promise<boolean>
+
 export async function handleWorkspaceSubscriptionUpdate(event: H3Event, update: {
   status: string
   metadata: Record<string, string>
   stripeCustomerId: string
   stripeSubscriptionId: string
+}, options?: {
+  hasOtherActiveSubscription?: OtherActiveSubscriptionCheck
 }): Promise<void> {
   const appConfig = useAppConfig() as { maui?: { studio?: { plans?: StudioPlanCatalog } } }
   const plans = appConfig.maui?.studio?.plans ?? {}
@@ -183,17 +193,42 @@ export async function handleWorkspaceSubscriptionUpdate(event: H3Event, update: 
         tableId: WORKSPACES_TABLE,
         rowId: action.workspaceId,
       }).catch((error) => {
-        console.error(`[studio] Workspace ${action.workspaceId}: Lesefehler im free-Fallback — Downgrade übersprungen (fail-closed, Stripe retryt)`, error)
-        return null
+        // 404 = Workspace gelöscht → legitim nichts zu tun. Alles andere ist
+        // transient → rethrow (Webhook 500 → Stripe retryt; nur so kommt das
+        // Event wieder — ein stilles 200 würde den Fallback verschlucken).
+        if (typeof error === 'object' && error !== null && 'code' in error && error.code === 404) return null
+        console.error(`[studio] Workspace ${action.workspaceId}: Lesefehler im free-Fallback — abgebrochen (fail-closed)`, error)
+        throw error
       })
-      // FAIL-CLOSED: bei Lesefehler (oder gelöschtem Workspace) NIE degradieren —
-      // ein bezahltes Abo darf nicht wegen eines transienten Read-Fehlers auf free
-      // fallen. Stripe liefert das Event erneut; beim nächsten Mal greift der Guard.
       if (!workspace) return
       const storedSub = workspace.stripeSubscriptionId ?? ''
       if (!shouldApplyFreeFallback(storedSub, action.stripeSubscriptionId)) {
         console.warn(`[studio] Workspace ${action.workspaceId}: Kündigung von ${action.stripeSubscriptionId} ignoriert — aktuell gilt ${storedSub} (Cross-Sub-Guard)`)
         return
+      }
+      // Autoritäts-Check bei STRIPE (#6b): der lokale stripeSubscriptionId-
+      // Speicher kann durch out-of-order-Events rebinden (last-writer-wins im
+      // apply-Pfad) — Stripe selbst nicht. Lebt für diesen Workspace noch ein
+      // anderes Abo, wäre der free-Fallback Kannibalisierung → überspringen.
+      // FAIL-CLOSED: schlägt der Check fehl, NICHT degradieren (Stripe retryt).
+      if (options?.hasOtherActiveSubscription && update.stripeCustomerId) {
+        try {
+          const other = await options.hasOtherActiveSubscription(event, {
+            stripeCustomerId: update.stripeCustomerId,
+            workspaceId: action.workspaceId,
+            exceptSubscriptionId: action.stripeSubscriptionId,
+          })
+          if (other) {
+            console.warn(`[studio] Workspace ${action.workspaceId}: free-Fallback übersprungen — ein anderes Abo lebt noch bei Stripe (Cross-Sub-Autorität)`)
+            return
+          }
+        }
+        catch (error) {
+          // Rethrow → Webhook 500 → Stripe stellt das Event erneut zu und der
+          // Check läuft später gegen eine gesunde API (nur so retryt Stripe).
+          console.error(`[studio] Workspace ${action.workspaceId}: Cross-Sub-Autoritäts-Check fehlgeschlagen — Downgrade abgebrochen (fail-closed)`, error)
+          throw error
+        }
       }
       const result = await applyWorkspacePlan(event, {
         workspaceId: action.workspaceId,
