@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { EditorToolbarItem } from '@nuxt/ui'
+import type { EditorToolbarItem, NavigationMenuItem } from '@nuxt/ui'
 import { MAX_PAGE_BODY } from '../../../schemas/page'
 import type { PageGroup, PageRow } from '../../../shared/types/page'
 
@@ -40,6 +40,23 @@ const saving = ref(false)
 
 const editing = computed(() => isNew.value || selectedSlug.value !== null)
 const localeTabs = computed(() => LOCALES.map(l => ({ label: t(`pages.admin.locale.${l}`), value: l })))
+// Fußleiste + Zähler wirken auf die AKTIVE Sprachversion (Tab)
+const activeForm = computed(() => forms[activeLocale.value])
+const bodyTooLong = computed(() => activeForm.value.body.length > MAX_PAGE_BODY)
+
+// Seiten-Menü links (Muster: Dashboard-Nav) — active + Locale-Badges je Seite
+const navItems = computed<NavigationMenuItem[]>(() => groups.value.map(group => ({
+  label: `/${group.slug}`,
+  value: group.slug,
+  slot: 'page' as const,
+  active: selectedSlug.value === group.slug,
+  onSelect: () => { selectPage(group.slug) },
+})))
+
+// Slot-Items sind generisch typisiert — Locale-Badges über den value-Key auflösen
+function localesForItem(item: { value?: string }): PageGroup['locales'] {
+  return groups.value.find(group => group.slug === item.value)?.locales ?? []
+}
 
 function resetForms() {
   for (const l of LOCALES) forms[l] = emptyLocale()
@@ -72,7 +89,8 @@ function newPage() {
   resetForms()
 }
 
-async function saveLocale(locale: Locale) {
+async function saveActiveLocale() {
+  const locale = activeLocale.value
   const slug = (isNew.value ? slugInput.value : selectedSlug.value ?? '').trim()
   if (!slug) {
     toast.add({ title: t('pages.admin.slugRequired'), color: 'error' })
@@ -131,32 +149,32 @@ async function deletePage() {
 </script>
 
 <template>
-  <div class="p-4 sm:p-6">
-    <div class="mb-4 flex items-center justify-between gap-3">
-      <div>
-        <h1 class="text-xl font-semibold">{{ t('pages.admin.title') }}</h1>
-        <p class="text-sm text-muted">{{ t('pages.admin.subtitle') }}</p>
-      </div>
-      <UButton icon="i-ph-plus" :label="t('pages.admin.new')" @click="newPage" />
-    </div>
+  <UDashboardPanel id="pages">
+    <template #header>
+      <UDashboardNavbar :title="t('pages.admin.title')">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+        <template #right>
+          <UButton icon="i-ph-plus" :label="t('pages.admin.new')" @click="newPage" />
+        </template>
+      </UDashboardNavbar>
+    </template>
 
-    <div class="grid gap-4 lg:grid-cols-[260px_1fr]">
-      <!-- Menü: die Seiten -->
-      <nav class="space-y-1">
-        <UButton
-          v-for="g in groups"
-          :key="g.slug"
-          :variant="selectedSlug === g.slug ? 'soft' : 'ghost'"
-          color="neutral"
-          block
-          class="justify-between"
-          @click="() => selectPage(g.slug)"
+    <!-- #body ist der Scroll-Container des Panels — Menü + Formular scrollen hier,
+         die Fußleiste (#footer) bleibt wie die Kopfleiste immer sichtbar. -->
+    <template #body>
+      <div class="grid gap-6 lg:grid-cols-[220px_1fr]">
+        <!-- Seiten-Navigation -->
+        <UNavigationMenu
+          orientation="vertical"
+          :items="navItems"
+          class="lg:sticky lg:top-0 lg:self-start"
         >
-          <span class="truncate font-mono text-sm">/{{ g.slug }}</span>
-          <template #trailing>
+          <template #page-trailing="{ item }">
             <span class="flex gap-1">
               <UBadge
-                v-for="loc in g.locales"
+                v-for="loc in localesForItem(item)"
                 :key="loc.$id"
                 size="sm"
                 :color="loc.status === 'published' ? 'success' : 'neutral'"
@@ -164,60 +182,63 @@ async function deletePage() {
               >{{ loc.locale }}</UBadge>
             </span>
           </template>
-        </UButton>
-        <p v-if="!groups.length" class="px-2 py-4 text-sm text-muted">{{ t('pages.admin.empty') }}</p>
-      </nav>
+        </UNavigationMenu>
+        <p v-if="!groups.length && !editing" class="text-sm text-muted lg:col-span-2">{{ t('pages.admin.empty') }}</p>
 
-      <!-- Editor -->
-      <UCard v-if="editing">
-        <template #header>
+        <!-- Formular -->
+        <div v-if="editing" class="min-w-0 space-y-4">
           <UFormField :label="t('pages.admin.slug')" :help="t('pages.admin.slugHelp')">
             <UInput v-model="slugInput" :disabled="!isNew" placeholder="imprint" class="w-full font-mono" />
           </UFormField>
-        </template>
 
-        <UTabs v-model="activeLocale" :items="localeTabs" class="w-full">
-          <template #content="{ item }">
-            <div class="space-y-3 pt-2">
-              <UFormField :label="t('pages.admin.pageTitle')">
-                <UInput v-model="forms[item.value as Locale].title" class="w-full" />
-              </UFormField>
-              <UFormField :label="t('pages.admin.body')">
-                <UEditor
-                  v-slot="{ editor }"
-                  v-model="forms[item.value as Locale].body"
-                  content-type="markdown"
-                  class="w-full rounded-md border border-default"
-                  :ui="{ base: 'px-3 py-2', content: 'min-h-64' }"
-                >
-                  <UEditorToolbar :editor="editor" :items="toolbarItems" class="border-b border-default px-1.5 py-1" />
-                </UEditor>
-                <template #help>
-                  <span :class="forms[item.value as Locale].body.length > MAX_PAGE_BODY ? 'text-error' : ''">
-                    {{ t('pages.admin.charCount', { count: forms[item.value as Locale].body.length.toLocaleString(), max: MAX_PAGE_BODY.toLocaleString() }) }}
-                  </span>
-                </template>
-              </UFormField>
-              <div class="flex items-center justify-between border-t border-default pt-3">
-                <USwitch v-model="forms[item.value as Locale].published" :label="t('pages.admin.published')" />
-                <UButton
-                  :loading="saving"
-                  :disabled="forms[item.value as Locale].body.length > MAX_PAGE_BODY"
-                  :label="t('pages.admin.save')"
-                  @click="() => saveLocale(item.value as Locale)"
-                />
+          <UTabs v-model="activeLocale" :items="localeTabs" class="w-full">
+            <template #content="{ item }">
+              <div class="space-y-3 pt-2">
+                <UFormField :label="t('pages.admin.pageTitle')">
+                  <UInput v-model="forms[item.value as Locale].title" class="w-full" />
+                </UFormField>
+                <UFormField :label="t('pages.admin.body')">
+                  <UEditor
+                    v-slot="{ editor }"
+                    v-model="forms[item.value as Locale].body"
+                    content-type="markdown"
+                    class="w-full rounded-md border border-default"
+                    :ui="{ base: 'px-3 py-2', content: 'min-h-64' }"
+                  >
+                    <UEditorToolbar :editor="editor" :items="toolbarItems" class="border-b border-default px-1.5 py-1" />
+                  </UEditor>
+                  <template #help>
+                    <span :class="forms[item.value as Locale].body.length > MAX_PAGE_BODY ? 'text-error' : ''">
+                      {{ t('pages.admin.charCount', { count: forms[item.value as Locale].body.length.toLocaleString(), max: MAX_PAGE_BODY.toLocaleString() }) }}
+                    </span>
+                  </template>
+                </UFormField>
               </div>
-            </div>
-          </template>
-        </UTabs>
-
-        <template v-if="selectedSlug" #footer>
-          <UButton color="error" variant="soft" icon="i-ph-trash" :label="t('pages.admin.delete')" @click="deletePage" />
-        </template>
-      </UCard>
-      <div v-else class="flex items-center justify-center rounded-lg border border-dashed border-default p-12 text-center text-muted">
-        {{ t('pages.admin.selectHint') }}
+            </template>
+          </UTabs>
+        </div>
+        <div v-else-if="groups.length" class="flex items-center justify-center rounded-lg border border-dashed border-default p-12 text-center text-muted">
+          {{ t('pages.admin.selectHint') }}
+        </div>
       </div>
-    </div>
-  </div>
+    </template>
+
+    <!-- Fußleiste: wirkt auf die aktive Sprachversion (Tab) -->
+    <template #footer>
+      <div v-if="editing" class="flex items-center justify-between gap-3 border-t border-default px-4 py-3 sm:px-6">
+        <USwitch v-model="forms[activeLocale].published" :label="t('pages.admin.published')" />
+        <div class="flex items-center gap-2">
+          <UButton
+            v-if="selectedSlug"
+            color="error"
+            variant="soft"
+            icon="i-ph-trash"
+            :label="t('pages.admin.delete')"
+            @click="deletePage"
+          />
+          <UButton :loading="saving" :disabled="bodyTooLong" :label="t('pages.admin.save')" @click="saveActiveLocale" />
+        </div>
+      </div>
+    </template>
+  </UDashboardPanel>
 </template>
