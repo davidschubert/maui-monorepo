@@ -66,11 +66,13 @@ export default defineEventHandler(async (event): Promise<CommentListResponse> =>
   const windowed = sort === 'trending' || sort === 'discussed'
   const offset = (page - 1) * PAGE_SIZE
 
-  const baseFilters = [
+  // Horizont-3 Naht 3 (ruhend): im Pool-Modus hängt scopeQuery den tenantId-
+  // Filter an — ALLE Folge-Queries dieser Route bauen auf baseFilters auf.
+  const baseFilters = scopeQuery(event, [
     Query.equal('targetId', targetId),
     Query.equal('targetType', targetType),
     Query.notEqual('status', 'hidden'),
-  ]
+  ])
 
   // Stabiler Sekundär-Sort: ohne Tiebreaker können Zeilen mit gleichem score
   // (viele bei 0) über Seitengrenzen doppeln oder fehlen.
@@ -172,12 +174,12 @@ export default defineEventHandler(async (event): Promise<CommentListResponse> =>
     tablesDB.listRows<Comment>({
       databaseId,
       tableId: COMMENTS_TABLE,
-      queries: [
+      queries: scopeQuery(event, [
         Query.equal('targetId', targetId),
         Query.equal('targetType', targetType),
         Query.equal('status', ['active']),
         Query.limit(1),
-      ],
+      ]),
     }),
   ])
   const total = totalRes.total

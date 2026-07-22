@@ -43,6 +43,9 @@ export interface Comment extends Models.Row {
   downvotes: number
   score: number
   status: CommentStatus
+  /** Horizont-3 Pool-Modus (Migration comments-011, ruhend): Mandant der Row.
+   *  '' / fehlend = Silo-/Einzelbetrieb (heutiges Verhalten). */
+  tenantId?: string
 }
 
 export interface CommentVote extends Models.Row {

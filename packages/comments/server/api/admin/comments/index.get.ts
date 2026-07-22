@@ -48,7 +48,9 @@ export default defineEventHandler(async (event): Promise<AdminCommentListRespons
     const result = await admin.tablesDB.listRows<CommentRow>({
       databaseId,
       tableId: 'comments',
-      queries: [Query.equal('$id', pageIds), Query.limit(pageIds.length)],
+      // Horizont-3 Naht 3 (ruhend): Admin-Client umgeht Row-Permissions —
+      // der scopeQuery-Filter ist im Pool-Modus die Grenze der Moderations-Queue.
+      queries: scopeQuery(event, [Query.equal('$id', pageIds), Query.limit(pageIds.length)]),
     })
     const byId = new Map(result.rows.map(row => [row.$id, row]))
     const comments = pageIds
@@ -61,12 +63,12 @@ export default defineEventHandler(async (event): Promise<AdminCommentListRespons
   const result = await admin.tablesDB.listRows<CommentRow>({
     databaseId,
     tableId: 'comments',
-    queries: [
+    queries: scopeQuery(event, [
       ...(status === 'all' ? [] : [Query.equal('status', status)]),
       Query.orderDesc('$createdAt'),
       Query.limit(PAGE_SIZE),
       Query.offset(offset),
-    ],
+    ]),
   })
 
   return {

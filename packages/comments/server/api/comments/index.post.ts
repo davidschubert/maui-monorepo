@@ -47,7 +47,8 @@ export default defineEventHandler(async (event) => {
     databaseId,
     tableId: COMMENTS_TABLE,
     rowId: ID.unique(),
-    data: {
+    // Horizont-3 Naht 3 (ruhend): im Pool-Modus stempelt scopeRow die tenantId
+    data: scopeRow(event, {
       targetId: body.targetId,
       targetType: body.targetType,
       content: body.content,
@@ -62,7 +63,7 @@ export default defineEventHandler(async (event) => {
       downvotes: 0,
       score: 0,
       status: 'active',
-    },
+    }),
     // Lesen erlaubt die ROW (any) — nicht mehr die Table: hidden-Kommentare
     // verlieren beim Ausblenden ihre read(any)-Row-Permission und sind damit
     // auch per Roh-REST/Web-SDK unlesbar (Migration 008). Gast-Realtime läuft

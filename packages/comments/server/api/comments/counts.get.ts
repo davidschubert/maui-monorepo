@@ -28,12 +28,12 @@ export default defineEventHandler(async (event): Promise<{ counts: Record<string
     tablesDB.listRows({
       databaseId,
       tableId: COMMENTS_TABLE,
-      queries: [
+      queries: scopeQuery(event, [
         Query.equal('targetId', id),
         Query.equal('targetType', targetType),
         Query.notEqual('status', 'hidden'),
         Query.limit(1),
-      ],
+      ]),
     }).then(r => r.total).catch(() => 0),
   ))
 
