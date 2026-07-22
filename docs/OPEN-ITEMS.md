@@ -1,42 +1,37 @@
 # Offene Punkte
 
-Stand: 2026-07-10 (nach dem Ideen-Batch 1–5: E-Mail-Digest, Bulk/CSV, Microcache, CI-Appwrite, Auto-Hide). Vollständige,
-eigenständige Liste offener Themen (für eine frische Session als Startpunkt
-nutzbar). Reihenfolge = grobe Priorität.
+Stand: **2026-07-21 (Master-To-do, gewichtet)**. Vollständige, eigenständige
+Liste offener Themen (für eine frische Session als Startpunkt nutzbar).
 
-> **Aktueller Stand (2026-07-20) — Kurzüberblick oben drauf:**
-> **LIVE:** comments + portfolio + studio auf `*.pukalani.app` (eine Appwrite-Org,
-> saubere IDs), Auto-Deploy (Push→Test→Deploy, überspringt Doku/CI/Spikes),
-> Zero-Downtime Stufe 2, Changelog-2B, Alerting, GDPR. M1–M9 komplett.
-> **Als Betriebssystem für eigene Sites: ~98 % fertig** (Rest = Kleinkram unten).
-> **Als verkaufbares SaaS: ~60–65 %** — es fehlt der Horizont-3-Ausbau
-> (Multi-Tenancy) + Stripe-Live.
->
-> **Offene Entscheidungen bei David:** (1) Horizont-3 = **Pool+Silo** entschieden →
-> Blueprint + Spike stehen ([HORIZONT-3-POOL-SILO-BLUEPRINT.md](plans/HORIZONT-3-POOL-SILO-BLUEPRINT.md)),
-> Bau nächste Etappe. (2) Stripe-Live: [STRIPE-GO-LIVE-RUNBOOK.md](plans/STRIPE-GO-LIVE-RUNBOOK.md)
-> (David setzt Keys). (3) release-please PR #17 mergen (Release + Changelog-Draft).
-> **Braucht Davids `workflow`-Token:** CI-Bumps #16/#15/#2 im GitHub-Web mergen.
-> **Kleinkram:** Wegwerf-Projekte s3-alpha/beta löschen, Demo-Passwörter rotieren.
-> **Deploy-Pipeline-Härtung (2026-07-21-Incident, [DECISION-LOG.md](DECISION-LOG.md)):**
-> (a) studio-Build verhungert als 3. sequentieller Build (RAM) → Swap/RAM oder
-> `--max-old-space-size`-Cap oder Build-Cooldown; (b) Push-Race (ploi baut latest
-> vs. Verify-Trigger-SHA) → Verify könnte Nachfahren-SHA akzeptieren (behutsam,
-> fail-safe bewahren). Sofort-Mitigation: Commits bündeln, nicht schnell nach-pushen.
-> **Neue Funde (2026-07-21 Nacht, Analyse-Pass — Details im [DECISION-LOG.md](DECISION-LOG.md)):**
-> **🟢 Rechts-Seiten-FEATURE steht** (2026-07-21): neuer `pages`-Layer +
-> editierbares Dashboard `/dashboard/pages` (UEditor, EN-Standard + DE-Reiter),
-> öffentlich live unter `/impressum,/agb,/datenschutz` (+`/de/*`) auf studio.
-> Demo-Platzhalter geseedet. **Offen = nur die echten Rechtstexte** (David/Anwalt
-> im Dashboard eintragen), dann Stripe-Live-Portal freischaltbar. Body-Limit
-> 14.000 Zeichen/Sprache (MariaDB-Zeilenbudget) — sehr lange Datenschutztexte
-> ggf. aufteilen.
-> **🟠 Cross-Sub-Kannibalisierung** im Fulfillment (free-fallback nicht abo-
-> autoritativ) — braucht `workspace.stripeSubscriptionId` (Migration).
-> **🟠 Owner kann Betreiber-Abo nicht selbst im Portal verwalten** (Customer-
-> Mismatch). Gefixt in der Nacht: Doppelabo-Guard, defensiver requires-Parse,
-> Deploy-Verify-Härtung (Nachfahren-SHA). Live angelegt: 4 Stripe-Preise (EUR).
-> **Laufendes Beschluss-/Ideen-Protokoll:** [DECISION-LOG.md](DECISION-LOG.md).
+> **LIVE:** comments + portfolio + studio auf `*.pukalani.app`, Auto-Deploy,
+> Zero-Downtime Stufe 2, Changelog-2B, Alerting, GDPR, pages-Layer
+> (/imprint,/terms,/privacy editierbar + Footer-Links). M1–M9 komplett.
+> **Als Betriebssystem für eigene Sites: ~98 %. Als verkaufbares SaaS: ~65 %.**
+> Beschluss-/Ideen-Protokoll: [DECISION-LOG.md](DECISION-LOG.md).
+
+## 📌 Master-To-do (gewichtet, Summe = 100 %)
+
+Legende: **[David]** nur David · **[Claude]** autonom machbar ·
+**[beide]** Claude baut, David entscheidet/gibt frei.
+
+| # | Task | Wer | Schwere | % |
+|---|------|-----|---------|---|
+| 1 | **Rechtstexte eintragen** (Imprint/Terms/Privacy EN+DE im Dashboard, Platzhalter ersetzen; Anwalt) | David | leicht | 5 |
+| 2 | **Stripe-Live scharfschalten** ([Runbook](plans/STRIPE-GO-LIVE-RUNBOOK.md)): 2.1 Bank-Aktivierung [David] · 2.2 Live-Webhook [David] · 2.3 Keys in Server-.env [David] · 2.4 Live-Portal konfigurieren (braucht #1) [Claude] · 2.5 Minimal-Verifikation [beide] | beide | mittel | 12 |
+| 3 | **Money-Path-Rest vor Live** ([DECISION-LOG](DECISION-LOG.md)): 3.1 #6b Einzel-Abo-Durchsetzung (apply-plan-Rebind-Lücke) · 3.2 #7a Owner-Portal-Mismatch (Workspace-scoped Customer) — beides Live-Billing → Davids Freigabe, Claude baut | beide | mittel | 8 |
+| 4 | **Horizont 3 — Pool+Silo Multi-Tenancy** ([Blueprint](plans/HORIZONT-3-POOL-SILO-BLUEPRINT.md), Spike ✅, Schicht 1 ✅): 4.1 Pool-Datenpfad end-to-end (tenantId + scopeQuery + Isolationsbeweis, 12 %) · 4.2 L5 Wellen-Migrationen (10 %) · 4.3 S4 Quota-Enforcement (8 %) · 4.4 Onboarding-Flow Pool-Site/Silo-Upgrade (10 %) | Claude (Etappen-Go: David) | schwer | 40 |
+| 5 | **Embed-Widget E2–E4** ([Plan](plans/EMBED-WIDGET.md)): Schreiben im iframe (CHIPS-Cookies, echte Cross-Site-Domains jetzt vorhanden), Site-Registry, Redis-Rate-Limit | Claude (Prio: David) | schwer | 12 |
+| 6 | **Themes-Vollausbau 26×11** ([Plan](plans/THEMES-VOLLAUSBAU.md), braucht E1–E7-Entscheidungen) | beide | schwer | 10 |
+| 7 | **Deploy-RAM-Härtung**: studio als 3. Build verhungert (Swap oder --max-old-space-size oder Cooldown) | Claude | leicht | 3 |
+| 8 | **Shared Rate-Limit-Store** (in-memory → geteilt; nötig vor >1 Instanz) | Claude | mittel | 3 |
+| 9 | **E2E auf portfolio/studio ausweiten** (Playwright läuft nur auf comments) | Claude | mittel | 3 |
+| 10 | **SaaS-Feature-Ideen speccen** (10 Ideen in Davids privaten Notizen → Input nötig) | David→beide | mittel | 2 |
+| 11 | **GitHub-Klicks**: Release-PR #18 + CI-Bumps #16/#15/#2 mergen (workflow-Token) | David | leicht | 1 |
+| 12 | **Kleinkram**: Demo-Passwörter rotieren [Claude] · Wegwerf-Projekte s3-*/s0-* lokal löschen (optional) [David] · >14k-Rechtstexte ggf. splitten (nur falls nötig) | beide | leicht | 1 |
+
+Zurückgestellt (bewusst, zählt nicht): Flag-Registry statt `commentsEnabled`
+(lohnt erst mit dem nächsten Flag), `useFormatCurrency`-Vorhaltung,
+targetType-LOW-Residual (kommt mit comment_reports-Modell).
 
 > **2026-07-06 bis 2026-07-09 — Produkt-Arc „Community-Plattform":**
 > GOALS-Phasen 21–27 sind komplett (Feed, Events + v2 inkl. Serien, Billing,
