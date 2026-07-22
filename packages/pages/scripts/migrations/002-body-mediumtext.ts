@@ -114,6 +114,9 @@ else {
     await copyColumn('body', 'body_tmp')
     // 3: alte varchar-Spalte weg
     console.log('✔ body (varchar) löschen')
+    // destruktiv-ok: Typwechsel varchar→mediumtext geht nur über Drop+Recreate;
+    // die Daten sind unmittelbar zuvor vollständig nach body_tmp kopiert (und
+    // werden nach dem Recreate zurückkopiert) — Re-Run setzt an jedem Punkt auf.
     await tablesDB.deleteColumn({ databaseId, tableId: TABLE, key: 'body' })
     await waitGone('body')
   }

@@ -408,6 +408,9 @@ importers:
       '@nuxt/eslint-config':
         specifier: 'catalog:'
         version: 1.16.0(@typescript-eslint/utils@8.62.0(eslint@10.7.0(jiti@2.7.0))(typescript@5.9.3))(@vue/compiler-sfc@3.5.39)(eslint@10.7.0(jiti@2.7.0))(typescript@5.9.3)
+      '@playwright/test':
+        specifier: 'catalog:'
+        version: 1.61.1
       '@types/node':
         specifier: 'catalog:'
         version: 22.20.0
@@ -490,6 +493,9 @@ importers:
       '@nuxt/eslint-config':
         specifier: 'catalog:'
         version: 1.16.0(@typescript-eslint/utils@8.62.0(eslint@10.7.0(jiti@2.7.0))(typescript@5.9.3))(@vue/compiler-sfc@3.5.39)(eslint@10.7.0(jiti@2.7.0))(typescript@5.9.3)
+      '@playwright/test':
+        specifier: 'catalog:'
+        version: 1.61.1
       '@types/node':
         specifier: 'catalog:'
         version: 22.20.0
