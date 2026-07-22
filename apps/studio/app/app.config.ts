@@ -15,6 +15,12 @@ export default defineAppConfig({
     // plans bleibt leer — das Studio verkauft keine Site-Abos an Endnutzer;
     // die Workspace-Pläne leben in maui.studio.plans (lookup_keys).
     billing: { enabled: true },
+    // Footer-Rechtslinks → die editierbaren pages-Seiten (Layer pages).
+    legalLinks: [
+      { to: '/imprint', labelKey: 'legal.imprint' },
+      { to: '/terms', labelKey: 'legal.terms' },
+      { to: '/privacy', labelKey: 'legal.privacy' },
+    ],
   },
   ui: {},
 })

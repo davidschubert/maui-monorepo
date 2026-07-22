@@ -2,6 +2,11 @@
   "app": {
     "tagline": "New Maui app"
   },
+  "legal": {
+    "imprint": "Imprint",
+    "terms": "Terms",
+    "privacy": "Privacy"
+  },
   "home": {
     "subtitle": "This app was created from apps/_template — adjust branding, pages and config gates."
   }

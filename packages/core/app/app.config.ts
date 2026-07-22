@@ -46,6 +46,10 @@ export default defineAppConfig({
     consent: {
       enabled: false,
     },
+    /** Footer-Rechtslinks (Impressum/AGB/Datenschutz o. ä.). Core-Default leer
+     *  → das Standard-Layout zeigt keine; Apps mit öffentlichen Seiten füllen
+     *  sie (to = interner Pfad via localePath, labelKey = i18n-Key). */
+    legalLinks: [] as { to: string, labelKey: string }[],
     security: {
       /** CSRF-Origin-Check für unsichere Methoden auf /api/* (server/middleware/
        *  csrf-origin.ts). PFLICHT, sobald eine App das partitionierte

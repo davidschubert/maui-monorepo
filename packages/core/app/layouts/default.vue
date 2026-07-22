@@ -2,6 +2,10 @@
 const { t } = useI18n()
 const localePath = useLocalePath()
 const { isLoggedIn } = useCurrentUser()
+const appConfig = useAppConfig()
+// Footer-Rechtslinks aus der App-Config (Core-Default leer) — config-gated,
+// damit interne Apps ohne öffentliche Seiten keinen Footer-Ballast tragen.
+const legalLinks = computed(() => appConfig.maui?.legalLinks ?? [])
 </script>
 
 <template>
@@ -22,8 +26,18 @@ const { isLoggedIn } = useCurrentUser()
     </main>
 
     <footer class="border-t border-default">
-      <div class="mx-auto w-full max-w-5xl p-4 text-sm text-muted">
-        Maui · Nuxt 4 + Appwrite
+      <div class="mx-auto flex w-full max-w-5xl flex-col gap-2 p-4 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
+        <span>Maui · Nuxt 4 + Appwrite</span>
+        <nav v-if="legalLinks.length" class="flex flex-wrap gap-x-4 gap-y-1">
+          <NuxtLink
+            v-for="link in legalLinks"
+            :key="link.to"
+            :to="localePath(link.to)"
+            class="hover:text-default"
+          >
+            {{ t(link.labelKey) }}
+          </NuxtLink>
+        </nav>
       </div>
     </footer>
 

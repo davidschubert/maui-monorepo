@@ -2,6 +2,11 @@
   "app": {
     "tagline": "Neue Maui-App"
   },
+  "legal": {
+    "imprint": "Impressum",
+    "terms": "AGB",
+    "privacy": "Datenschutz"
+  },
   "home": {
     "subtitle": "Diese App wurde aus apps/_template erstellt — Branding, Seiten und Config-Gates anpassen."
   }
