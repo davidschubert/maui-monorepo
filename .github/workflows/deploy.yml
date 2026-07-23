@@ -1,30 +1,32 @@
-# Deploy nach PHASE-17-Plan (A.5, scharfgeschaltet 2026-07-17):
-# feuert die ploi.io-Deploy-Webhooks NUR, wenn der „Test"-Workflow auf main
-# grün durchgelaufen ist — lint/typecheck bleiben bewusst Warnlampen
-# (Beschluss A.10 #9). `workflow_dispatch` als manueller Hebel bleibt.
+# Deploy nach PHASE-17-Plan (A.5), seit 2026-07-23 als CI-BUILD-DEPLOY:
+# GitHub Actions BAUT alle Apps und schiebt nur das fertige .output per
+# rsync auf den Server (Symlink-Flip + pm2 reload wie bei ZDT Stufe 2).
+# Der App-Server (CX23, 2 Cores / 3,7 GB) baut damit NICHTS mehr — die
+# frühere RAM-Regel (nie zwei Nuxt-Builds parallel, OOM-Kill 137, 3584-MB-
+# Heap für platform) betrifft nur noch den ploi-Webhook-FALLBACK (s. u.).
 #
-# Seit H2-Live (2026-07-19) deployt die Kette die Sites SEQUENZIELL
-# (comments → portfolio → studio → platform, letztere seit H3-Rollout
-# 2026-07-22): der App-Server (2 Cores / 3,7 GB) verkraftet
-# keine parallelen Nuxt-Builds (OOM-Kill 137 beobachtet) — deshalb wird jede
-# Site erst getriggert, wenn die vorige ihren buildSha auf /api/health meldet.
+# Feuert NUR, wenn der „Test"-Workflow auf main grün durchgelaufen ist —
+# lint/typecheck bleiben bewusst Warnlampen (Beschluss A.10 #9).
+# `workflow_dispatch` als manueller Hebel bleibt.
 #
-# Aktivierung je Site: ploi → Site → Deploy-Webhook-URL kopieren →
-# Repo-Secret PLOI_DEPLOY_WEBHOOK_<SITE> setzen. Ohne Secret ist der
-# jeweilige Schritt ein no-op (Guard unten).
+# Zugang: dedizierter SSH-Deploy-Key (Repo-Secret PLOI_SSH_KEY, ploi-User,
+# authorized_keys auf app-prod); Host-Key ist unten GEPINNT (kein blindes
+# ssh-keyscan zur Laufzeit). Ohne Secret ist der Deploy ein no-op.
+#
+# FALLBACK (Server baut selbst): die ploi-Deploy-Scripts der 4 Sites sind
+# unverändert funktionsfähig — im Notfall (Actions down) in ploi den
+# Deploy-Button drücken oder die Webhooks feuern
+# (Secrets PLOI_DEPLOY_WEBHOOK_* existieren weiter, werden hier aber
+# nicht mehr benutzt).
 #
 # Env Vars (NUXT_APPWRITE_KEY etc.) leben als Server-.env je Site —
-# NIE im Repo; ploi „Quick Deploy" bleibt AUS (sonst deployt ungetesteter
-# Code an den Actions vorbei).
+# NIE im Repo; ploi „Quick Deploy" bleibt AUS.
 #
-# Doku-Skip (2026-07-20): ein main-Push mit AUSSCHLIESSLICH Doku-/CI-/Meta-
-# Änderungen (docs/**, spikes/**, .github/**, *.md, …) baut identischen App-Output —
-# ein Deploy wäre 3× Nuxt-Build für nichts. Der changes-Step vergleicht den
-# aktuell auf Prod deployten Commit (comments/api/health) gegen den neuen
-# Stand und ÜBERSPRINGT den Deploy, wenn keine App-relevante Datei betroffen
-# ist. FAIL-SAFE: bei unbekanntem Prod-SHA, nicht auflösbarem Diff oder
-# workflow_dispatch wird IMMER deployt (lieber ein Deploy zu viel als
-# veraltetes Prod).
+# Doku-Skip: ein main-Push mit AUSSCHLIESSLICH Doku-/CI-/Meta-Änderungen
+# (docs/**, spikes/**, .github/**, *.md, …) baut identischen App-Output —
+# der changes-Step vergleicht den auf Prod deployten Commit gegen den neuen
+# Stand und überspringt dann. FAIL-SAFE: bei unbekanntem Prod-SHA, nicht
+# auflösbarem Diff oder workflow_dispatch wird IMMER deployt.
 
 name: Deploy
 
@@ -42,22 +44,25 @@ concurrency:
   group: deploy-sites
   cancel-in-progress: false
 
+env:
+  SERVER: 49.13.211.173
+  SERVER_HOSTKEY: '49.13.211.173 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAVud82T4BSPvg5wH84jnRuP+JdG2hP52FAf+h9ckcCe'
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     env:
       EXPECTED_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: '0'
     steps:
-      - name: Repo auschecken (für Change-Diff)
+      - name: Repo auschecken
         uses: actions/checkout@v7
         with:
+          ref: ${{ env.EXPECTED_SHA }}
           fetch-depth: 0
 
       # Nur-Doku/CI/Meta-Änderungen erkennen → Deploy überspringen.
-      # Ignorierbar heißt: der App-Build-Output kann sich dadurch nicht ändern.
-      # Alles andere (apps/**, packages/**, ops/**, scripts/**, package.json,
-      # lockfiles, …) gilt als deploy-relevant.
       - name: Deploy nötig?
         id: changes
         run: |
@@ -86,70 +91,82 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # Härtung (2026-07-19): ploi verschluckt Webhooks, die während eines
-      # laufenden Deploys eintreffen — das Verify macht das SICHTBAR.
-      # /api/health liefert den gebauten Commit (buildSha, Build-Zeit aus git);
-      # wir pollen, bis Prod den erwarteten SHA meldet, sonst rot.
-      # Bei workflow_run zählt der SHA des auslösenden Test-Laufs.
-      - name: Deploy-Helfer definieren
+      - name: SSH einrichten (gepinnter Host-Key)
+        if: steps.changes.outputs.skip != 'true'
+        env:
+          SSH_KEY: ${{ secrets.PLOI_SSH_KEY }}
+        run: |
+          set -u
+          if [ -z "$SSH_KEY" ]; then
+            echo "::error::Secret PLOI_SSH_KEY fehlt — CI-Build-Deploy kann nicht ausliefern."
+            exit 1
+          fi
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$SERVER_HOSTKEY" > ~/.ssh/known_hosts
+          printf 'Host prod\n  HostName %s\n  User ploi\n  IdentityFile ~/.ssh/deploy_key\n  IdentitiesOnly yes\n' "$SERVER" >> ~/.ssh/config
+
+      - uses: pnpm/action-setup@v6
+        if: steps.changes.outputs.skip != 'true'
+      - uses: actions/setup-node@v7
+        if: steps.changes.outputs.skip != 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        if: steps.changes.outputs.skip != 'true'
+        run: pnpm install --frozen-lockfile
+
+      # Alle Apps auf DIESEM Runner bauen (sequenziell, 4c/16GB — kein
+      # Server-RAM-Druck mehr), dann je App ausliefern + verifizieren.
+      - name: Apps bauen
         if: steps.changes.outputs.skip != 'true'
         run: |
-          cat > /tmp/deploy-site.sh <<'SCRIPT'
-          #!/usr/bin/env bash
-          # $1 = Site-Name, $2 = Webhook-URL (leer = skip), $3 = Health-URL
-          set -u
-          SITE="$1"; WEBHOOK="$2"; HEALTH_URL="$3"; EXPECTED="$4"
-          if [ -z "$WEBHOOK" ]; then
-            echo "[$SITE] Secret nicht gesetzt — Deploy übersprungen."
-            exit 0
-          fi
-          curl -fsS -X POST "$WEBHOOK" || { echo "[$SITE] Webhook-Call fehlgeschlagen"; exit 1; }
-          echo "[$SITE] Erwarte Commit $EXPECTED auf $HEALTH_URL (Build ~3-5 min) …"
-          for i in $(seq 1 40); do
-            BUILD=$(curl -fsS -m 15 "$HEALTH_URL" | jq -r '.build // empty' || true)
-            if [ -n "$BUILD" ]; then
-              if [ "$BUILD" = "$EXPECTED" ]; then
-                echo "[$SITE] ✔ Prod läuft auf $BUILD"
-                exit 0
-              fi
-              # ploi baut IMMER latest-main. Landet WÄHREND des Deploys ein neuerer
-              # Commit (der EXPECTED enthält), ist das KEIN Fehler — sonst röten sich
-              # schnelle Folge-Deploys gegenseitig (Push-Race). Nur akzeptieren, wenn
-              # git BEWEIST, dass EXPECTED ein Vorfahre von BUILD ist. Alles andere
-              # (leerer/alter/nicht-fetchbarer BUILD) → weiter warten (fail-safe, nie false-pass).
-              if git fetch -q origin "$BUILD" 2>/dev/null && git merge-base --is-ancestor "$EXPECTED" "$BUILD" 2>/dev/null; then
-                echo "[$SITE] ✔ Prod läuft auf $BUILD (Nachfahre von $EXPECTED — neuerer Deploy enthält diesen Stand)"
-                exit 0
-              fi
-            fi
-            echo "[$SITE]   ($i/40) Prod meldet '${BUILD:-n/a}' — warte 20 s …"
-            sleep 20
+          set -eu
+          for app in comments portfolio studio platform; do
+            echo "::group::Build $app"
+            pnpm --filter "$app" build
+            echo "::endgroup::"
           done
-          echo "[$SITE] ✗ Prod hat $EXPECTED nach ~13 min nicht erreicht — ploi-Deploy prüfen (verschluckter Webhook? Build-Fehler?)."
-          exit 1
-          SCRIPT
-          chmod +x /tmp/deploy-site.sh
 
-      - name: comments deployen + verifizieren
+      - name: Ausliefern + verifizieren (rsync → Symlink-Flip → pm2 reload)
         if: steps.changes.outputs.skip != 'true'
-        env:
-          WEBHOOK: ${{ secrets.PLOI_DEPLOY_WEBHOOK_COMMENTS }}
-        run: /tmp/deploy-site.sh comments "$WEBHOOK" "https://comments.pukalani.app/api/health" "$EXPECTED_SHA"
+        run: |
+          set -eu
+          declare -A SITE=( [comments]=comments.pukalani.app [portfolio]=portfolio.pukalani.app [studio]=studio.pukalani.app [platform]=platform.pukalani.app )
+          for app in comments portfolio studio platform; do
+            site="${SITE[$app]}"
+            echo "::group::Deploy $app → $site"
+            RELEASES="/home/ploi/releases/$app"
+            RELEASE="$RELEASES/$EXPECTED_SHA"
+            rsync -az --delete "apps/$app/.output/" "prod:$RELEASE/"
+            # Flip + Reload wie im bisherigen ploi-Script (ZDT Stufe 2):
+            # git pull hält ops/ecosystem-*.config.cjs im Site-Checkout aktuell
+            # (dort baut niemand mehr — der Checkout liefert nur Configs/Scripts).
+            ssh prod "set -eu
+              git -C /home/ploi/$site pull -q origin main || echo 'WARN: git pull im Site-Checkout fehlgeschlagen (ops-Configs evtl. alt)'
+              ln -s '$RELEASE' '$RELEASES/current.tmp'
+              mv -Tf '$RELEASES/current.tmp' '$RELEASES/current'
+              pm2 startOrReload /home/ploi/$site/ops/ecosystem-$app.config.cjs --update-env
+              pm2 save
+              ls -1dt $RELEASES/*/ 2>/dev/null | tail -n +6 | xargs -r rm -rf
+              echo '$app geflippt auf $EXPECTED_SHA'"
+            echo "::endgroup::"
 
-      - name: portfolio deployen + verifizieren
-        if: steps.changes.outputs.skip != 'true'
-        env:
-          WEBHOOK: ${{ secrets.PLOI_DEPLOY_WEBHOOK_PORTFOLIO }}
-        run: /tmp/deploy-site.sh portfolio "$WEBHOOK" "https://portfolio.pukalani.app/api/health" "$EXPECTED_SHA"
-
-      - name: studio deployen + verifizieren
-        if: steps.changes.outputs.skip != 'true'
-        env:
-          WEBHOOK: ${{ secrets.PLOI_DEPLOY_WEBHOOK_STUDIO }}
-        run: /tmp/deploy-site.sh studio "$WEBHOOK" "https://studio.pukalani.app/api/health" "$EXPECTED_SHA"
-
-      - name: platform deployen + verifizieren
-        if: steps.changes.outputs.skip != 'true'
-        env:
-          WEBHOOK: ${{ secrets.PLOI_DEPLOY_WEBHOOK_PLATFORM }}
-        run: /tmp/deploy-site.sh platform "$WEBHOOK" "https://platform.pukalani.app/api/health" "$EXPECTED_SHA"
+            echo "[$app] Erwarte Commit $EXPECTED_SHA auf https://$site/api/health …"
+            ok=""
+            for i in $(seq 1 12); do
+              BUILD=$(curl -fsS -m 15 "https://$site/api/health" | jq -r '.build // empty' || true)
+              if [ "$BUILD" = "$EXPECTED_SHA" ]; then
+                echo "[$app] ✔ Prod läuft auf $BUILD"; ok=1; break
+              fi
+              echo "[$app]   ($i/12) Prod meldet '${BUILD:-n/a}' — warte 5 s …"
+              sleep 5
+            done
+            if [ -z "$ok" ]; then
+              echo "::error::[$app] Prod hat $EXPECTED_SHA nach ~60 s nicht erreicht — pm2-Logs prüfen."
+              exit 1
+            fi
+          done
