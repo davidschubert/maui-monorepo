@@ -191,13 +191,22 @@ NUXT_REDIS_URL=redis://127.0.0.1:6379               # geteilter Rate-Limit-Store
 
 ## 4. Deploy auslösen
 
-- **Aktiv seit 2026-07-18 (Multi-Site seit 2026-07-19):** jeder Push auf
-  `main` → CI „Test" → Workflow „Deploy" ruft die ploi-Webhooks
-  SEQUENZIELL (comments → portfolio → studio → platform; Repo-Secrets
-  `PLOI_DEPLOY_WEBHOOK_{COMMENTS,PORTFOLIO,STUDIO,PLATFORM}`, fehlendes
-  Secret = Site wird übersprungen) → ploi pullt, baut, `pm2 reload`. Kette
-  e2e verifiziert. ploi Quick Deploy bleibt bewusst AUS (Deploy nur nach
-  grünem Test), „Restart after deployment" bei allen Sites AUS.
+- **CI-BUILD-DEPLOY (seit 2026-07-23, ersetzt den Webhook-Weg):** jeder
+  Push auf `main` → CI „Test" → Workflow „Deploy" **baut alle 4 Apps auf
+  dem Actions-Runner** (Node aus `.nvmrc`, pnpm-Cache) und schiebt nur das
+  fertige `.output` per rsync nach `/home/ploi/releases/<app>/<sha>/`,
+  dann der bekannte ZDT-Flip (Symlink + `pm2 startOrReload` + Prune) und
+  Health-Verify je App. **Der App-Server baut damit NICHTS mehr** — die
+  RAM-Regel oben gilt nur noch für den Fallback. Zugang: dedizierter
+  SSH-Deploy-Key (Repo-Secret `PLOI_SSH_KEY`, gepinnter Host-Key im
+  Workflow; Schlüsselpaar lokal in `~/.maui-secrets/gh-deploy-key`).
+  Das `git pull` im Site-Checkout hält nur noch ops-Configs aktuell.
+- **Fallback (Server baut selbst):** die ploi-Deploy-Scripts der 4 Sites
+  sind unverändert funktionsfähig — bei Actions-Ausfall in ploi den
+  Deploy-Button drücken (oder Webhooks feuern; Secrets
+  `PLOI_DEPLOY_WEBHOOK_*` existieren weiter). Dann gilt die RAM-Regel
+  (sequenziell, platform braucht 3584 MB Heap).
+  ploi Quick Deploy bleibt bewusst AUS, „Restart after deployment" AUS.
   Hinweis platform: `/api/health` ist bei aktiver Tenancy bewusst von der
   Tenant-Pflicht ausgenommen (Middleware-Ausnahme in core), sonst könnte
   das Deploy-Verify den kanonischen Site-Host nicht pollen.
