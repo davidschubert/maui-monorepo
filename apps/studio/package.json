@@ -27,6 +27,7 @@
     "@nuxtjs/mdc": "catalog:",
     "@pinia/nuxt": "catalog:",
     "appwrite": "catalog:",
+    "ioredis": "catalog:",
     "node-appwrite": "catalog:",
     "nodemailer": "catalog:",
     "nuxt": "catalog:",

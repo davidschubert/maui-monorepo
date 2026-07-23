@@ -90,6 +90,12 @@ export default defineNuxtConfig({
     // Leer = keine Alert-Mails. Env: NUXT_ALERT_EMAIL — Versand best-effort
     // über den Core-Mailer (ohne SMTP still no-op).
     alertEmail: '',
+    // server-only! Geteilter Rate-Limit-Store (OPEN-ITEMS #8, Beschluss
+    // 2026-07-22: Redis auf app-prod). Leer = In-Memory pro Instanz (Dev/
+    // Single-Instanz unverändert). Env: NUXT_REDIS_URL, z. B.
+    // redis://127.0.0.1:6379 — ALLE Sites eines Servers teilen die Instanz,
+    // die Keys sind pro Appwrite-Projekt gescoped (keine App-Kollisionen).
+    redisUrl: '',
     public: {
       // Deployter Commit (Build-Zeit aus git) — /api/health spiegelt ihn,
       // der Deploy-Workflow verifiziert damit, dass ploi den erwarteten

@@ -174,7 +174,15 @@ NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET=avatars
 NUXT_PUBLIC_APP_URL=https://comments.pukalani.app
 NUXT_PUBLIC_I18N_BASE_URL=https://comments.pukalani.app
 NUXT_SMTP_HOST=smtp.resend.com                      # + PORT/USER/PASS/FROM
+NUXT_REDIS_URL=redis://127.0.0.1:6379               # geteilter Rate-Limit-Store
 ```
+> **Rate-Limit-Store (seit 2026-07-23):** mit `NUXT_REDIS_URL` zählen alle
+> Instanzen/Cluster-Worker einer App ihre Rate-Limits GETEILT in Redis
+> (läuft auf app-prod lokal auf 6379, bei der Server-Einrichtung
+> mitinstalliert); Keys sind pro Appwrite-Projekt gescoped (`rl:<projekt>:…`),
+> mehrere Sites teilen also gefahrlos EINE Redis-Instanz. Leer = In-Memory
+> pro Instanz (Dev). Fail-open: stirbt Redis, drosselt der In-Memory-Fallback
+> weiter (lautes Log) — nie 500er wegen Redis.
 > **NICHT** auf den Server: `NUXT_APPWRITE_MIGRATIONS_KEY`. Der gehört nur zum
 > Migrationslauf (Schritt 2). Nach Env-Änderungen: `pm2 startOrReload
 > /home/ploi/comments.pukalani.app/ops/ecosystem-comments.config.cjs

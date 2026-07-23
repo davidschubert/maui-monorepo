@@ -18,6 +18,7 @@
     "@nuxtjs/i18n": "catalog:",
     "@pinia/nuxt": "catalog:",
     "appwrite": "catalog:",
+    "ioredis": "catalog:",
     "node-appwrite": "catalog:",
     "nodemailer": "catalog:",
     "pinia": "catalog:",

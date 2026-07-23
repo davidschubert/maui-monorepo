@@ -7,8 +7,10 @@
  *    (v.a. Voten) deutlich frequenter ist — reiner Bot-/Spam-Schutz, kein
  *    Bremsen normaler Nutzung.
  *
- * ⚠️ In-memory Map — reicht für Single-Instanz (ploi.io). Multi-Instanz-
- * Produktion braucht einen geteilten Store (z.B. Redis via Nitro Storage).
+ * Zählung läuft über den Rate-Limit-Store (server/utils/rateLimitStore.ts):
+ * mit NUXT_REDIS_URL geteilt über alle Instanzen/Cluster-Worker (Fixed-
+ * Window in Redis), ohne wie bisher in-memory pro Instanz. Fail-open bei
+ * totem Redis (Fallback drosselt pro Instanz weiter).
  */
 const WINDOW_MS = 60_000
 const MAX_ATTEMPTS = 5
@@ -22,16 +24,6 @@ const TOKEN_MAX = 10
 // Queries (top-level, replies, total, avatars) — großzügig, aber nicht frei,
 // sonst ist die öffentliche Route ein billiger DoS-Hebel auf Drittseiten.
 const READ_MAX = 120
-const PRUNE_THRESHOLD = 1_000
-
-const attempts = new Map<string, number[]>()
-
-function prune(now: number) {
-  if (attempts.size < PRUNE_THRESHOLD) return
-  for (const [key, timestamps] of attempts) {
-    if (timestamps.every(ts => now - ts >= WINDOW_MS)) attempts.delete(key)
-  }
-}
 
 // Routen werden je METHODE+Pfad gematcht, damit z.B. der Reset-Confirm
 // (PUT /recovery) nicht das Mail-Budget des Anforderns (POST /recovery) teilt.
@@ -83,7 +75,7 @@ const WRITE_LIMITED: { re: RegExp, bucket: string, max?: number }[] = [
   // der Schutz des Webhooks ist die Signatur-Verifikation (billing B4).
 ]
 
-export default defineEventHandler((event) => {
+export default defineEventHandler(async (event) => {
   const isWriteMethod = event.method === 'POST' || event.method === 'PUT' || event.method === 'PATCH'
   const pathname = getRequestURL(event).pathname
   const route = `${event.method} ${pathname}`
@@ -109,32 +101,25 @@ export default defineEventHandler((event) => {
     ?? 'unknown'
   // Eigenes Budget pro Bucket bzw. Methode+Route — Login-/Reset-Versuche und
   // verschiedene Schreib-Aktionen verbrauchen nicht gegenseitig ihr Kontingent.
-  const key = `${ip}:${write ? write.bucket : route}`
+  const { store, prefix } = useRateLimitStore(event)
+  const key = `${prefix}${ip}:${write ? write.bucket : route}`
   const max = write ? (write.max ?? WRITE_MAX) : MAX_ATTEMPTS
-  const now = Date.now()
-  prune(now)
 
-  const recent = (attempts.get(key) ?? []).filter(ts => now - ts < WINDOW_MS)
+  // Zähl-Routen (always/write): hit() zählt UND prüft in einem Schritt (kein
+  // peek/hit-Race, atomar in Redis) — der (max+1)-te Request im Fenster blockt.
+  // Failure-Routen: nur lesen; gezählt wird erst nach 4xx/5xx-Antwort.
+  const counting = always || Boolean(write)
+  const state = counting ? await store.hit(key, WINDOW_MS) : await store.peek(key, WINDOW_MS)
 
-  if (recent.length >= max) {
-    const oldest = recent[0] ?? now
-    setHeader(event, 'Retry-After', Math.max(1, Math.ceil((WINDOW_MS - (now - oldest)) / 1000)))
+  if (counting ? state.count > max : state.count >= max) {
+    setHeader(event, 'Retry-After', Math.max(1, Math.ceil(state.resetInMs / 1000)))
     throw createError({ status: 429, statusText: 'Too Many Requests' })
   }
 
-  const record = () => {
-    const r = (attempts.get(key) ?? []).filter(ts => Date.now() - ts < WINDOW_MS)
-    r.push(Date.now())
-    attempts.set(key, r)
-  }
-
-  if (always || write) {
-    record()
-  }
-  else {
+  if (!always && !write) {
     // Erst nach der Antwort entscheiden: nur 4xx/5xx (Fehlversuch) zählt.
     event.node.res.once('finish', () => {
-      if (event.node.res.statusCode >= 400) record()
+      if (event.node.res.statusCode >= 400) void store.hit(key, WINDOW_MS)
     })
   }
 })
