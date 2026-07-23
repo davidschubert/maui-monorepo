@@ -23,6 +23,11 @@ export default defineEventHandler(async (event) => {
   const host = normalizeHost(getHeader(event, 'host'))
   const tenant = await resolver(host)
   if (!tenant) {
+    // Infra-Sonde bleibt host-unabhängig erreichbar: Deploy-Verify + Monitoring
+    // pollen /api/health über den kanonischen Site-Host, der selbst KEIN Tenant
+    // ist. Die Route ist user- und tenant-agnostisch (buildSha/Uptime) — ohne
+    // tenant im Context leakt nichts.
+    if (event.path.split('?')[0] === '/api/health') return
     throw createError({ status: 404, statusText: 'Unknown host' })
   }
   event.context.tenant = tenant
