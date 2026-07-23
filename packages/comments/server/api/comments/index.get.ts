@@ -51,7 +51,12 @@ export default defineEventHandler(async (event): Promise<CommentListResponse> =>
   const page = Math.max(1, Number(query.page ?? 1) || 1)
 
   const isGuest = !event.context.user
-  const cacheKey = `${targetType}:${targetId}:${sort}`
+  // Tenant gehört in den Key: ohne ihn serviert der Gast-Cache Kunde B die
+  // Seite von Kunde A (Cross-Tenant-Leak — im Platform-E2E real gefangen).
+  // Single-Tenant-Betrieb: Tenant null → konstantes Präfix, Verhalten wie bisher.
+  const tenant = useTenant(event)
+  const tenantKey = tenant?.mode === 'pool' ? tenant.tenantId : 'single'
+  const cacheKey = `${tenantKey}:${targetType}:${targetId}:${sort}`
   if (isGuest && page === 1) {
     const cached = guestCache.get(cacheKey)
     if (cached) return cached

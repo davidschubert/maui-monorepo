@@ -1,0 +1,8 @@
+{
+  "app": {
+    "tagline": "New Maui app"
+  },
+  "home": {
+    "subtitle": "This app was created from apps/_template — adjust branding, pages and config gates."
+  }
+}

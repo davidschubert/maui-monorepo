@@ -7,6 +7,31 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-07-22 (3) — apps/platform: der Multi-Tenant-Beweis end-to-end
+
+Die erste echte Multi-Tenant-App (aus apps/_template, Features themes/admin/
+comments/moderation): `maui.tenancy` AN, Resolver = createTenantsTableResolver
+gegen das Control Plane (NUXT_PLATFORM_CONTROL_*, eigener read-only-Key;
+ohne Env → dokumentiert fail-open + Warnung, CI-Build-sicher). Port 3006.
+
+**Lokaler E2E-Beweis** (ein Dev-Server, EIN Pool-Projekt, tenants-Register im
+lokalen studio): kunde-a.localhost sieht NUR den A-Kommentar, kunde-b NUR den
+B-Kommentar (auch im Cache-Hit-Pfad), fremd.localhost → 404, SSR 200.
+
+**Echter Fund des E2E (der Grund, warum man so testet):** der GAST-MICROCACHE
+der Kommentar-Liste keyte ohne Tenant — Kunde A füllte den Cache, Kunde B bekam
+Kunde-A-Inhalt (Cross-Tenant-Leak). Fix: tenantId im Cache-Key (Single-Tenant:
+konstantes Präfix, Verhalten unverändert). **Lehre für die Fläche: JEDER
+Microcache, der auf der Platform-App lebt, braucht den Tenant im Key** — als
+Nächstes betrifft das den admin-changelogCache (notiert in OPEN-ITEMS #4).
+
+**Prod-Rollout (braucht David):** (a) Wildcard-DNS `*.pukalani.app` (oder
+eigene Kundendomains via CNAME), (b) ploi-Site für platform + Deploy-Kette,
+(c) echtes Pool-Appwrite-Projekt (Migrationen comments+moderation+system) +
+Control-Plane-read-only-Key. Bis dahin lebt die App nur lokal/CI.
+
+---
+
 ## 2026-07-22 (2) — H3 Naht 1/2: Tenant-Auflösung produktiv (ruhend)
 
 Nach Etappe 4.1 (Pool-Datenpfad) die Auflösungs-Schicht, exakt nach Blueprint:
