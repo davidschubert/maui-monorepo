@@ -18,14 +18,14 @@ catalog:
   node-appwrite: ^26.2.0
   '@types/node': ^22.18.0
   nuxt: ^4.4.8
-  '@nuxt/ui': ^4.9.0
+  '@nuxt/ui': ^4.10.0
   '@nuxtjs/mdc': ^0.22.2
   '@pinia/nuxt': ^0.11.3
   pinia: ^3.0.4
   vue: ^3.5.38
   typescript: ^5.9.3
   vitest: ^4.1.8
-  vue-tsc: ^3.3.7
+  vue-tsc: ^3.3.8
   zod: ^4.4.3
   jiti: ^2.7.0
   nodemailer: ^7.0.0

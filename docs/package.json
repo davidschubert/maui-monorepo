@@ -12,9 +12,9 @@
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
-    "@iconify-json/lucide": "^1.2.114",
-    "@iconify-json/simple-icons": "^1.2.87",
-    "@nuxt/content": "^3.14.0",
+    "@iconify-json/lucide": "^1.2.118",
+    "@iconify-json/simple-icons": "^1.2.91",
+    "@nuxt/content": "^3.15.1",
     "@nuxt/ui": "catalog:",
     "nuxt": "catalog:"
   },
