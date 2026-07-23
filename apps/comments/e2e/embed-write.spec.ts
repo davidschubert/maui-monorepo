@@ -41,7 +41,7 @@ test.afterAll(async () => {
 })
 
 test.describe('Embed-Login (E2, Popup-Handoff)', () => {
-  test('Gast → Popup-Login → Composer im iframe → Kommentar schreiben', async ({ page, context, baseURL }) => {
+  test('Gast → Popup-Login → Composer im iframe → Kommentar schreiben', async ({ page, context, request, baseURL }) => {
     const targetId = `e2e-embed-write-${Date.now()}`
     await page.goto(`http://localhost:${hostPort}/?widget=${baseURL}&target=${targetId}`)
 
@@ -89,5 +89,12 @@ test.describe('Embed-Login (E2, Popup-Handoff)', () => {
     await frame.locator('[data-comment-composer] textarea').fill('E2-Embed-Kommentar über den Popup-Login')
     await frame.locator('[data-comment-composer] button[type="submit"]').click()
     await expect(frame.locator('[data-comment-section]')).toContainText('E2-Embed-Kommentar über den Popup-Login', { timeout: 15_000 })
+
+    // PERSISTENZ statt Optimistic-UI: die sichtbare Einfügung kann einen
+    // fehlgeschlagenen POST kurz kaschieren — die API ist die Autorität.
+    await expect.poll(async () => {
+      const res = await request.get(`${baseURL}/api/comments?targetId=${targetId}&targetType=blog`)
+      return ((await res.json()) as { total: number }).total
+    }, { timeout: 10_000 }).toBeGreaterThan(0)
   })
 })
