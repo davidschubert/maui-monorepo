@@ -16,7 +16,9 @@ export default defineEventHandler(async (event): Promise<ChangelogListResponse> 
   const page = Math.max(1, Number(query.page) || 1)
   const category = String(query.category ?? '')
 
-  const cacheKey = `${page}:${limit}:${category}`
+  // Cross-Tenant-Cache-Regel (H3): auf tenancy-fähigen Apps trägt der Key den
+  // Tenant, sonst leakt die Liste von Kunde A an Kunde B ('single' ohne Tenancy).
+  const cacheKey = `${tenantCacheScope(event)}:${page}:${limit}:${category}`
   const cached = changelogCache.get(cacheKey)
   if (cached) return cached
 
