@@ -60,8 +60,21 @@ maui: {
 ## Verhalten & Grenzen
 
 - **Gäste lesen + live**: Kommentare erscheinen ohne Reload (Realtime hinter
-  der „Neue Kommentare anzeigen"-Pille). **Schreiben erfordert Login** — im
-  MVP heißt das: auf der Widget-Domain anmelden (Popup-Flow kommt mit E2).
+  der „Neue Kommentare anzeigen"-Pille).
+- **Schreiben im Widget (seit E2, 2026-07-23)**: der „Anmelden"-Button im
+  Widget öffnet ein **Popup** auf der Widget-Domain (voller normaler Login
+  inkl. Code-Login). Nach dem Login übernimmt das iframe die Session über ein
+  kurzlebiges Handoff-Token und ein **CHIPS-partitioniertes** Session-Cookie
+  (`SameSite=None; Secure; Partitioned`) — kommentieren, antworten, voten,
+  melden funktionieren dann direkt im Widget. Konsequenz der Partitionierung
+  (Industrie-Standard, wie Disqus): die Anmeldung gilt **pro Einbetter-Domain**.
+  Browser, die das partitionierte Cookie verwerfen, bleiben read-only und
+  zeigen einen Hinweis mit Deep-Link zur Widget-Domain.
+  Sicherheit: die Schreib-Routen sind zusätzlich durch den
+  CSRF-Origin-Check geschützt (`maui.security.csrfOriginCheck` — PFLICHT,
+  sobald `maui.auth.embedSession` an ist); das Handoff-Token ist
+  verschlüsselt, 60 s gültig und wird vor dem Cookie-Setzen gegen Appwrite
+  validiert.
 - **SEO**: Kommentare leben im iframe unter der Widget-Origin — Crawler der
   Drittseite sehen sie nicht (wie bei Disqus). `/embed` selbst ist `noindex`.
   Wer Kommentar-Inhalte fürs eigene SEO braucht, wartet auf die

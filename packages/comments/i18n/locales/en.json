@@ -18,6 +18,10 @@
     },
     "loginLink": "Sign in",
     "loginSuffix": " to join the discussion.",
+    "embed": {
+      "loginBlocked": "Your browser blocks signing in inside the embedded widget.",
+      "openSite": "Comment directly on our site"
+    },
     "disabled": {
       "title": "Comments disabled",
       "text": "New comments are currently disabled. Existing comments stay visible.",

@@ -18,6 +18,11 @@ provide(commentStoreKey, store)
 const config = useRuntimeConfig()
 const { isLoggedIn } = useCurrentUser()
 
+// E2: im iframe-Embed (provide in pages/embed.vue) wird der Gast-CTA zum
+// Popup-Login — Navigation auf /login würde den User im Widget einsperren.
+const isEmbed = inject('mauiEmbed', false)
+const embedLogin = isEmbed ? useEmbedLogin() : null
+
 // Kommentar-Policy aus den Laufzeit-Flags bereitstellen (synchron, vor await).
 // Refs auf Top-Level holen — verschachtelte Refs (policy.canWrite) unwrappen im
 // Template NICHT automatisch.
@@ -158,6 +163,23 @@ function presenceLabel(u: PresenceUser): string {
          der direkt darunter aufklappt -->
     <div v-else-if="isLoggedIn" class="rounded-lg bg-elevated/40 p-3 ring ring-default" data-comment-composer>
       <CommentForm />
+    </div>
+    <div v-else-if="embedLogin" class="text-sm text-muted" data-embed-login>
+      <p v-if="embedLogin.status.value === 'blocked'">
+        {{ t('comments.embed.loginBlocked') }}
+        <ULink :href="config.public.appUrl || '/'" target="_blank" rel="noopener" class="font-medium text-primary">
+          {{ t('comments.embed.openSite') }}
+        </ULink>
+      </p>
+      <UButton
+        v-else
+        size="sm"
+        variant="soft"
+        icon="i-ph-sign-in"
+        :loading="embedLogin.status.value === 'waiting'"
+        :label="t('comments.loginLink')"
+        @click="() => embedLogin?.openLoginPopup()"
+      />
     </div>
     <p v-else class="text-sm text-muted">
       <ULink :to="localePath('/login')" class="font-medium text-primary">{{ t('comments.loginLink') }}</ULink>{{ t('comments.loginSuffix') }}

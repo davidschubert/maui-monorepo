@@ -11,6 +11,15 @@ export default defineAppConfig({
     auth: {
       // Passwortloser Code-Login (Phase 19) — Email-OTP ist instanzseitig aktiv
       otp: true,
+      // E2 Embed-Login: Popup-Handoff → CHIPS-partitioniertes Session-Cookie
+      // (/api/auth/embed-handoff + /api/auth/embed-session). Nur zusammen mit
+      // csrfOriginCheck aktivieren — SameSite=None reißt sonst den CSRF-Schutz.
+      embedSession: true,
+    },
+    security: {
+      // PFLICHT seit embedSession (Embed-Plan § 3b): partitionierte Cookies
+      // schützen nicht mehr per sameSite — unsichere Methoden prüfen Origin.
+      csrfOriginCheck: true,
     },
     observability: {
       // Strukturierte 5xx-Server-Logs + Client-Error-Inbox (Core-Default: aus)

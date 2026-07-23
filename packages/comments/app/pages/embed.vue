@@ -11,6 +11,11 @@ import { z } from 'zod'
  */
 definePageMeta({ layout: 'embed' })
 
+// E2: CommentSection (und Kinder) wissen, dass sie eingebettet laufen —
+// der Gast-CTA wird zum Popup-Login statt einer Navigation (das iframe
+// selbst darf nie auf /login navigieren, der User säße im Widget fest).
+provide('mauiEmbed', true)
+
 const appConfig = useAppConfig() as {
   maui?: { comments?: { embed?: { enabled?: boolean } } }
   ui: { colors: { primary: string } }

@@ -1,7 +1,10 @@
 # Embed-Widget — Einbettbares Kommentarsystem (Disqus-Alternative)
 
-> **Status:** E0 ✅ + E1 ✅ (Read-only-MVP live, 2026-07-09 — Integrations-Doku:
-> [docs/EMBED.md](../EMBED.md)) · E2 (Schreiben via Login-Popup + CHIPS) offen · Stand 2026-07-09
+> **Status:** E0 ✅ + E1 ✅ (Read-only-MVP live, 2026-07-09) · **E2 ✅
+> (2026-07-23: Schreiben via Login-Popup + CHIPS — Tasks 9–12 umgesetzt,
+> Playwright-E2E `embed-write.spec.ts` grün; Cross-Site-Testseite:
+> https://davidschubert.com/maui-embed-test.html)** · E3 teilweise (Task 16
+> Redis-Rate-Limit ✅ 2026-07-23) · Integrations-Doku: [docs/EMBED.md](../EMBED.md)
 > **Herkunft:** OPEN-ITEMS.md, Idee 9 — „targetId/targetType-Architektur ist dafür
 > gebaut (Disqus-Nische, self-hosted)". Aufwand-Gesamtschätzung: L.
 > **Bezug:** [CONCEPT.md](../CONCEPT.md) (A2/A3/A14), [OPEN-ITEMS.md](../OPEN-ITEMS.md),

@@ -18,6 +18,10 @@
     },
     "loginLink": "Anmelden",
     "loginSuffix": ", um zu kommentieren.",
+    "embed": {
+      "loginBlocked": "Dein Browser blockiert die Anmeldung im eingebetteten Widget.",
+      "openSite": "Direkt auf unserer Seite kommentieren"
+    },
     "disabled": {
       "title": "Kommentare deaktiviert",
       "text": "Neue Kommentare sind derzeit deaktiviert. Bestehende Kommentare bleiben sichtbar.",
