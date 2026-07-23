@@ -17,8 +17,10 @@ export interface EmbeddableRoute {
    * Erlaubte Einbetter-Origins zum Request-Zeitpunkt. Rückgabe:
    * `['*']` = jede Seite darf framen · Liste = Allowlist (zusätzlich zu
    * 'self') · leer = nur 'self' (z. B. Gate deaktiviert).
+   * Darf async sein (E3: Registry-gespeiste Allowlist aus einer Table —
+   * der Aufrufer cached selbst, z. B. per Microcache).
    */
-  origins: (event: H3Event) => string[]
+  origins: (event: H3Event) => string[] | Promise<string[]>
 }
 
 const routes: EmbeddableRoute[] = []
@@ -33,13 +35,14 @@ function stripLocale(pathname: string): string {
 }
 
 /** Wert für `frame-ancestors` zum Pfad — Default `'self'`. */
-export function resolveFrameAncestors(event: H3Event, pathname: string): string {
+export async function resolveFrameAncestors(event: H3Event, pathname: string): Promise<string> {
   const path = stripLocale(pathname)
   const match = routes.find(r => path === r.prefix || path.startsWith(`${r.prefix}/`) || path.startsWith(`${r.prefix}?`))
   if (!match) return `'self'`
-  const origins = match.origins(event)
+  const origins = await match.origins(event)
   if (origins.includes('*')) return '*'
-  // Nur http(s)-Origins zulassen — die Liste landet unescaped im CSP-Header
-  const safe = origins.filter(o => /^https?:\/\/[\w.:[\]-]+$/.test(o))
+  // Nur http(s)-Origins zulassen — die Liste landet unescaped im CSP-Header.
+  // ':*' als Port-Wildcard ist gültige CSP-host-source (Dev/E2E: localhost:*).
+  const safe = origins.filter(o => /^https?:\/\/[\w.[\]-]+(:(\d+|\*))?$/.test(o))
   return safe.length ? `'self' ${safe.join(' ')}` : `'self'`
 }

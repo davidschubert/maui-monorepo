@@ -20,7 +20,38 @@
     "loginSuffix": ", um zu kommentieren.",
     "embed": {
       "loginBlocked": "Dein Browser blockiert die Anmeldung im eingebetteten Widget.",
-      "openSite": "Direkt auf unserer Seite kommentieren"
+      "openSite": "Direkt auf unserer Seite kommentieren",
+      "notRegisteredTitle": "Diese Website ist nicht freigeschaltet",
+      "notRegisteredText": "Das Kommentar-Widget ist für diese Domain oder diesen Inhaltstyp nicht registriert. Betreiber schalten Domains im Dashboard unter „Embed-Sites“ frei."
+    },
+    "embedAdmin": {
+      "title": "Embed-Sites",
+      "subtitle": "Registrierte Einbetter-Domains des Kommentar-Widgets: nur diese Websites dürfen das Widget einbetten (frame-ancestors-CSP). Änderungen greifen sofort.",
+      "new": "Neue Site",
+      "empty": "Noch keine Einbetter-Domains registriert.",
+      "created": "Site registriert",
+      "createFailed": "Site konnte nicht registriert werden",
+      "enabled": "Site aktiviert",
+      "disabled": "Site deaktiviert",
+      "updateFailed": "Site konnte nicht aktualisiert werden",
+      "deleted": "Site gelöscht",
+      "deleteFailed": "Site konnte nicht gelöscht werden",
+      "host": "Domain (Host)",
+      "hostHelp": "Kanonischer Hostname der Einbetter-Seite, klein, ohne https:// — z. B. blog.kunde.de",
+      "label": "Anzeigename (optional)",
+      "targetTypes": "Erlaubte targetTypes (optional)",
+      "targetTypesHelp": "Kommagetrennt, z. B. blog, page — leer = alle Inhaltstypen erlaubt.",
+      "allTargetTypes": "alle targetTypes",
+      "activeBadge": "aktiv",
+      "inactiveBadge": "aus",
+      "enable": "Aktivieren",
+      "disable": "Deaktivieren",
+      "delete": "Löschen",
+      "create": "Registrieren",
+      "validation": {
+        "hostInvalid": "Kein gültiger Hostname",
+        "targetTypeInvalid": "Ungültiger targetType"
+      }
     },
     "disabled": {
       "title": "Kommentare deaktiviert",
@@ -74,6 +105,11 @@
       "targetRequired": "Target fehlt",
       "contentRequired": "Der Kommentar darf nicht leer sein",
       "contentMax": "Maximal 10.000 Zeichen"
+    }
+  },
+  "admin": {
+    "nav": {
+      "embedSites": "Embed-Sites"
     }
   }
 }

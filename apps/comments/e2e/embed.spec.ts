@@ -56,10 +56,11 @@ test.describe('Embed-Widget (cross-origin iframe)', () => {
     const bad = await request.get(`${baseURL}/embed`)
     expect(bad.status()).toBe(400)
 
-    // Mit Params → 200, framebar (Gate: allowedOrigins ['*']) + noindex
+    // Mit Params → 200, framebar für die statische Dev-Allowlist
+    // (localhost:*; Prod-Domains kommen seit E3 aus der Site-Registry) + noindex
     const ok = await request.get(`${baseURL}/embed?targetId=e2e-embed-smoke&targetType=blog`)
     expect(ok.status()).toBe(200)
-    expect(ok.headers()['content-security-policy']).toContain('frame-ancestors *')
+    expect(ok.headers()['content-security-policy']).toContain('http://localhost:*')
     expect(await ok.text()).toContain('noindex')
 
     // Alle übrigen Seiten bleiben clickjacking-geschützt ('self')

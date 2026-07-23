@@ -30,12 +30,15 @@ export default defineAppConfig({
       // Auto-Hide: ab 3 offenen Meldungen verschwindet ein Kommentar aus der
       // Öffentlichkeit, bis die Moderation entscheidet (Meldungen bleiben offen)
       autoHideReports: 3,
-      // iframe-Embed (Plan E1): /embed + embed.js aktiv; '*' = jede Seite darf
-      // einbetten — bewusste Entscheidung für die Demo-App (Embed-Plan E7);
-      // Produktions-Apps tragen hier ihre Einbetter-Origins ein.
+      // iframe-Embed: seit E3 speist die SITE-REGISTRY (embed_sites,
+      // /dashboard/embed) die frame-ancestors-CSP — hier stehen nur noch
+      // statische Zusatz-Origins: localhost:* fürs Dev-/E2E-Umfeld
+      // (Port-Wildcard ist gültige CSP-host-source; in Prod praktisch
+      // wirkungslos, ein „Angreifer" bräuchte die Maschine des Users).
+      // '*' bliebe die bewusste „offen wie Disqus"-Option (Plan § 6.7).
       embed: {
         enabled: true,
-        allowedOrigins: ['*'],
+        allowedOrigins: ['http://localhost:*', 'http://127.0.0.1:*'],
       },
     },
     feedback: {

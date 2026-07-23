@@ -19,6 +19,17 @@ export default defineAppConfig({
           group: 'products',
           order: 5,
         },
+        {
+          // E3 Site-Registry: registrierte Einbetter-Domains des Widgets
+          id: 'embed-sites',
+          featureKey: 'comments',
+          labelKey: 'admin.nav.embedSites',
+          icon: 'i-ph-plug',
+          to: '/dashboard/embed',
+          requiredCapability: 'system.manage',
+          group: 'products',
+          order: 6,
+        },
       ],
     },
     comments: {

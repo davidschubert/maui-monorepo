@@ -64,9 +64,11 @@ const WRITE_LIMITED: { re: RegExp, bucket: string, max?: number }[] = [
   // Writes/JWTs erzeugen lassen. heartbeat+leave teilen EIN Budget.
   { re: /^POST \/api\/presence\/(heartbeat|leave)$/, bucket: 'presence:write', max: PRESENCE_MAX },
   { re: /^GET \/api\/auth\/realtime-token$/, bucket: 'auth:jwt', max: TOKEN_MAX },
-  // Öffentliche Kommentar-Lese-Route (Embed macht sie zur beworbenen Fläche
+  // Öffentliche Kommentar-Lese-Routen (Embed macht sie zur beworbenen Fläche
   // auf fremden Seiten) — eigener Read-Bucket statt „GET ist frei".
+  // count (E3) ist CORS-offen und microcached, teilt denselben Bucket.
   { re: /^GET \/api\/comments$/, bucket: 'comments:read', max: READ_MAX },
+  { re: /^GET \/api\/comments\/count$/, bucket: 'comments:read', max: READ_MAX },
   // Client-Error-Inbox (Observability-Gate): der Client dedupliziert/kappt
   // selbst (10/Session) — das Limit hier stoppt Scripting/kaputte Clients.
   { re: /^POST \/api\/telemetry\/error$/, bucket: 'telemetry:error', max: 30 },

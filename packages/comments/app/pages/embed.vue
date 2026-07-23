@@ -43,6 +43,18 @@ if (!parsed.success) {
 }
 const params = parsed.data
 
+// E3 Site-Registry (best effort — die HARTE Grenze ist die CSP): unbekannte
+// Einbetter-Hosts bzw. nicht freigegebene targetTypes bekommen eine
+// freundliche Meldung statt einer Kommentar-Sektion.
+const { t } = useI18n()
+const { data: siteCheck } = await useFetch<{ verdict: string }>('/api/comments/embed-site', {
+  query: { url: params.url, targetType: params.targetType },
+})
+const embedBlocked = computed(() => {
+  const verdict = siteCheck.value?.verdict
+  return verdict === 'unknown-host' || verdict === 'target-type-blocked'
+})
+
 useSeoMeta({ robots: 'noindex, nofollow' })
 // Transparent NUR bei theme=auto: dort folgen Host und Widget demselben
 // prefers-color-scheme → Kontrast passt immer. Bei explizitem light/dark
@@ -104,7 +116,17 @@ onMounted(() => {
 </script>
 
 <template>
+  <UAlert
+    v-if="embedBlocked"
+    color="neutral"
+    variant="subtle"
+    icon="i-ph-plug"
+    data-embed-blocked
+    :title="t('comments.embed.notRegisteredTitle')"
+    :description="t('comments.embed.notRegisteredText')"
+  />
   <CommentSection
+    v-else
     :target-id="params.targetId"
     :target-type="params.targetType"
     :target-url="$route.fullPath"

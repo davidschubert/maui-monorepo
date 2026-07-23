@@ -44,18 +44,40 @@ maui: {
   comments: {
     embed: {
       enabled: true,
-      // Einbetter-Origins für frame-ancestors; ['*'] = jede Seite darf
-      // einbetten (bewusste Entscheidung), sonst explizite Origins:
-      allowedOrigins: ['https://blog.example.com'],
+      // Statische Zusatz-Origins für frame-ancestors. Seit E3 kommen die
+      // Prod-Domains aus der SITE-REGISTRY (s. u.) — hier stehen nur noch
+      // Dev-/Sonderfälle. ['*'] bleibt die bewusste „offen wie Disqus"-Option.
+      allowedOrigins: ['http://localhost:*'],
     },
   },
 },
 ```
 
+- **Site-Registry (E3, empfohlen):** registrierte Einbetter-Domains verwaltest
+  du im Dashboard unter **„Embed-Sites"** (`/dashboard/embed`, `system.manage`).
+  Nur diese Domains dürfen das Widget einbetten (frame-ancestors-CSP);
+  optional je Domain die erlaubten `targetTypes` begrenzen. Änderungen greifen
+  sofort (Cache write-invalidiert). Unregistrierte Einbetter sehen eine
+  freundliche Meldung statt eines leeren Rahmens.
 - `/embed` liefert 404, solange das Gate aus ist; alle übrigen Routen tragen
   `frame-ancestors 'self'` (Clickjacking-Schutz für Login/Dashboard).
-- `GET /api/comments` ist rate-limitiert (~120/min/IP) — das Widget selbst
-  bleibt davon im Normalbetrieb weit entfernt.
+- `GET /api/comments` (+ `/api/comments/count`) ist rate-limitiert
+  (~120/min/IP) — das Widget selbst bleibt davon im Normalbetrieb weit entfernt.
+
+### Kommentar-Zähler auf der Hostseite
+
+`embed.js` befüllt jedes Element mit `data-maui-count` (CORS-read-only,
+keine Cookies) — z. B. für „N Kommentare"-Links in einer Artikelliste:
+
+```html
+<a href="/blog/post-42#kommentare">
+  <span data-maui-count data-target-id="post-42" data-target-type="blog">…</span>
+</a>
+<script async src="https://<widget-domain>/embed.js"></script>
+```
+
+`data-target-type` ist optional (Default `page`). Der Zähler funktioniert
+auch ohne Widget-iframe auf der Seite (das Script allein genügt).
 
 ## Verhalten & Grenzen
 

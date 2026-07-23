@@ -20,7 +20,38 @@
     "loginSuffix": " to join the discussion.",
     "embed": {
       "loginBlocked": "Your browser blocks signing in inside the embedded widget.",
-      "openSite": "Comment directly on our site"
+      "openSite": "Comment directly on our site",
+      "notRegisteredTitle": "This website is not registered",
+      "notRegisteredText": "The comment widget is not registered for this domain or content type. Operators can register domains in the dashboard under \"Embed sites\"."
+    },
+    "embedAdmin": {
+      "title": "Embed sites",
+      "subtitle": "Registered embedder domains of the comment widget: only these websites may embed the widget (frame-ancestors CSP). Changes apply immediately.",
+      "new": "New site",
+      "empty": "No embedder domains registered yet.",
+      "created": "Site registered",
+      "createFailed": "Could not register site",
+      "enabled": "Site enabled",
+      "disabled": "Site disabled",
+      "updateFailed": "Could not update site",
+      "deleted": "Site deleted",
+      "deleteFailed": "Could not delete site",
+      "host": "Domain (host)",
+      "hostHelp": "Canonical hostname of the embedding page, lowercase, without https:// — e.g. blog.customer.com",
+      "label": "Display name (optional)",
+      "targetTypes": "Allowed targetTypes (optional)",
+      "targetTypesHelp": "Comma-separated, e.g. blog, page — empty = all content types allowed.",
+      "allTargetTypes": "all targetTypes",
+      "activeBadge": "active",
+      "inactiveBadge": "off",
+      "enable": "Enable",
+      "disable": "Disable",
+      "delete": "Delete",
+      "create": "Register",
+      "validation": {
+        "hostInvalid": "Not a valid hostname",
+        "targetTypeInvalid": "Invalid targetType"
+      }
     },
     "disabled": {
       "title": "Comments disabled",
@@ -74,6 +105,11 @@
       "targetRequired": "Target is missing",
       "contentRequired": "The comment must not be empty",
       "contentMax": "At most 10,000 characters"
+    }
+  },
+  "admin": {
+    "nav": {
+      "embedSites": "Embed sites"
     }
   }
 }

@@ -8,8 +8,8 @@ import { resolveFrameAncestors } from '../utils/frameAncestors'
  * Dokumente werden geframet) — render:response greift genau richtig.
  */
 export default defineNitroPlugin((nitroApp) => {
-  nitroApp.hooks.hook('render:response', (response, { event }) => {
-    const value = resolveFrameAncestors(event, getRequestURL(event).pathname)
+  nitroApp.hooks.hook('render:response', async (response, { event }) => {
+    const value = await resolveFrameAncestors(event, getRequestURL(event).pathname)
     response.headers = {
       ...response.headers,
       'content-security-policy': `frame-ancestors ${value}`,
