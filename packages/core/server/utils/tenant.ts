@@ -13,9 +13,10 @@ import type { TenantContext } from '../../shared/types/tenant'
  * den Row-Permissions).
  */
 
-/** Tenant des Requests (von einer künftigen Middleware gesetzt; heute immer null). */
+/** Tenant des Requests — gesetzt von server/middleware/00.tenant.ts (Naht 1),
+ *  null im Single-Tenant-Betrieb (Gate aus / kein Resolver). */
 export function useTenant(event: H3Event): TenantContext | null {
-  return (event.context as { tenant?: TenantContext }).tenant ?? null
+  return event.context.tenant ?? null
 }
 
 // ── PURE Kern (unit-testbar, ohne h3) ───────────────────────────────────────

@@ -7,6 +7,30 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-07-22 (2) — H3 Naht 1/2: Tenant-Auflösung produktiv (ruhend)
+
+Nach Etappe 4.1 (Pool-Datenpfad) die Auflösungs-Schicht, exakt nach Blueprint:
+
+- **Naht 1:** `core/server/middleware/00.tenant.ts` (läuft vor auth.ts) —
+  Config-Gate `maui.tenancy.enabled` (Core-Default AUS → No-Op, heutiger
+  Betrieb ungeändert). Aktiv gilt die Spike-Semantik: bekannter Host →
+  `event.context.tenant`; unbekannter Host → 404 (keine Default-Site);
+  Resolver-Fehler → 500 (fail-loud, NIE still ins Default-Projekt).
+  Auflösungsquelle ist ein von der App registrierter **Resolver-Vertrag**
+  (`registerTenantResolver`, A14: core kennt keine tenants-Tabelle — die
+  kommt mit der Platform-App, gecacht via createMicrocache).
+- **Naht 2:** `resolvedProjectId()` in den Client-Factories + Cookie-Name —
+  Tenant-Projekt vor .env-Projekt, ohne Tenant exakt wie bisher.
+  **Bewusste Grenze:** dynamischer Silo-ADMIN-Zugriff (fremdes Projekt →
+  fremder Key) wirft 501 statt mit dem falschen Key 401-Salat zu produzieren;
+  die Key-Registry ist eine spätere Etappe. Pool (gleiches Projekt) läuft.
+- Beweise: normalizeHost pure-getestet (Ports/IPv6/FQDN), core 104 Tests grün,
+  studio-E2E 10/10 mit aktiver-aber-ruhender Middleware. Der SCHARF-Beweis
+  (Gate an + echter Resolver) kommt naturgemäß mit der Platform-App, die den
+  Resolver registriert — die Semantik selbst ist im Spike s5 bewiesen.
+
+---
+
 ## 2026-07-22 — Abarbeitung Master-To-do (#7, #12, #3 komplett)
 
 David gab Freigabe, alle offenen Punkte nacheinander umzusetzen (Blockierte

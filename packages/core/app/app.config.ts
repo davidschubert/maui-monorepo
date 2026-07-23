@@ -50,6 +50,14 @@ export default defineAppConfig({
      *  → das Standard-Layout zeigt keine; Apps mit öffentlichen Seiten füllen
      *  sie (to = interner Pfad via localePath, labelKey = i18n-Key). */
     legalLinks: [] as { to: string, labelKey: string }[],
+    tenancy: {
+      /** Horizont-3 Mandanten-Auflösung (Naht 1): Host → TenantContext via
+       *  registriertem Resolver (registerTenantResolver, Nitro-Plugin der
+       *  Platform-App). Core-Default AUS — Single-Tenant-Apps (heutiger
+       *  Betrieb) tragen null Overhead; bei aktivem Gate ohne Resolver bleibt
+       *  die Middleware ein No-Op (fail-open auf heutiges Verhalten). */
+      enabled: false,
+    },
     security: {
       /** CSRF-Origin-Check für unsichere Methoden auf /api/* (server/middleware/
        *  csrf-origin.ts). PFLICHT, sobald eine App das partitionierte

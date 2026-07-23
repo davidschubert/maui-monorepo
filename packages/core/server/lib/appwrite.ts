@@ -2,13 +2,23 @@ import { Client, Account, TablesDB, Health, Storage, Users, Presences } from 'no
 import type { H3Event } from 'h3'
 
 /**
+ * Projekt des Requests (Horizont-3 Naht 2): der Tenant-Context der Middleware
+ * 00.tenant.ts gewinnt, sonst das .env-Projekt — ohne Tenant (heutiger
+ * Betrieb, Tests) exakt das bisherige Verhalten.
+ */
+function resolvedProjectId(event: H3Event | undefined): string {
+  const config = useRuntimeConfig(event)
+  return event?.context.tenant?.projectId ?? config.public.appwriteProjectId
+}
+
+/**
  * Cookie-Name nach Konzept A3: a_session_<PROJECT_ID>.
  * Das Web SDK erkennt dieses Cookie automatisch — Browser-Realtime
- * läuft damit authentifiziert statt anonym.
+ * läuft damit authentifiziert statt anonym. Zieht im Tenant-Betrieb
+ * automatisch mit dem aufgelösten Projekt mit (Naht 2).
  */
 export function sessionCookieName(event: H3Event): string {
-  const config = useRuntimeConfig(event)
-  return `a_session_${config.public.appwriteProjectId}`
+  return `a_session_${resolvedProjectId(event)}`
 }
 
 /**
@@ -63,9 +73,18 @@ function forwardClientContext(client: Client, event?: H3Event) {
  */
 export function createAdminClient(event?: H3Event) {
   const config = useRuntimeConfig(event)
+  const projectId = resolvedProjectId(event)
+  // Naht-2-Grenze (bewusst): der API-Key der .env gehört zum .env-Projekt.
+  // Pool-Tenants teilen genau dieses Projekt → identische projectId, Key passt.
+  // Ein DYNAMISCHER Silo-Tenant (fremdes Projekt) braucht eine Key-Registry —
+  // die ist eine spätere Etappe. Bis dahin: fail-loud statt 401-Salat mit
+  // falschem Key (still falsche Credentials wären unschuldbar schwer zu debuggen).
+  if (projectId !== config.public.appwriteProjectId) {
+    throw createError({ status: 501, statusText: 'Dynamic silo admin access not implemented' })
+  }
   const client = new Client()
     .setEndpoint(config.public.appwriteEndpoint)
-    .setProject(config.public.appwriteProjectId)
+    .setProject(projectId)
     .setKey(config.appwriteKey)
 
   forwardClientContext(client, event)
@@ -90,7 +109,9 @@ export function createSessionClient(event: H3Event) {
   const config = useRuntimeConfig(event)
   const client = new Client()
     .setEndpoint(config.public.appwriteEndpoint)
-    .setProject(config.public.appwriteProjectId)
+    // Naht 2: Tenant-Projekt (Middleware 00.tenant.ts) vor .env-Projekt —
+    // Session-Cookie-Name zieht über sessionCookieName() automatisch mit.
+    .setProject(resolvedProjectId(event))
 
   const session = getCookie(event, sessionCookieName(event))
   if (session) client.setSession(session)
