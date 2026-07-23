@@ -3,8 +3,9 @@
 # grün durchgelaufen ist — lint/typecheck bleiben bewusst Warnlampen
 # (Beschluss A.10 #9). `workflow_dispatch` als manueller Hebel bleibt.
 #
-# Seit H2-Live (2026-07-19) deployt die Kette DREI Sites SEQUENZIELL
-# (comments → portfolio → studio): der App-Server (2 Cores / 3,7 GB) verkraftet
+# Seit H2-Live (2026-07-19) deployt die Kette die Sites SEQUENZIELL
+# (comments → portfolio → studio → platform, letztere seit H3-Rollout
+# 2026-07-22): der App-Server (2 Cores / 3,7 GB) verkraftet
 # keine parallelen Nuxt-Builds (OOM-Kill 137 beobachtet) — deshalb wird jede
 # Site erst getriggert, wenn die vorige ihren buildSha auf /api/health meldet.
 #
@@ -146,3 +147,9 @@ jobs:
         env:
           WEBHOOK: ${{ secrets.PLOI_DEPLOY_WEBHOOK_STUDIO }}
         run: /tmp/deploy-site.sh studio "$WEBHOOK" "https://studio.pukalani.app/api/health" "$EXPECTED_SHA"
+
+      - name: platform deployen + verifizieren
+        if: steps.changes.outputs.skip != 'true'
+        env:
+          WEBHOOK: ${{ secrets.PLOI_DEPLOY_WEBHOOK_PLATFORM }}
+        run: /tmp/deploy-site.sh platform "$WEBHOOK" "https://platform.pukalani.app/api/health" "$EXPECTED_SHA"
