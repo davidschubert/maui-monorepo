@@ -63,6 +63,15 @@
         "source ~/.nvm/nvm.sh && nvm use 22 >/dev/null && exec pnpm --filter comments exec nuxi dev"
       ],
       "autoPort": true
+    },
+    {
+      "name": "core-playground",
+      "runtimeExecutable": "zsh",
+      "runtimeArgs": [
+        "-c",
+        "source ~/.nvm/nvm.sh && nvm use 22 >/dev/null && exec pnpm --filter @maui/core exec nuxi dev .playground --port 3010"
+      ],
+      "port": 3010
     }
   ]
 }
