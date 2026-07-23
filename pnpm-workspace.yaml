@@ -18,7 +18,7 @@ catalog:
   node-appwrite: ^26.2.0
   '@types/node': ^22.18.0
   nuxt: ^4.4.8
-  '@nuxt/ui': ^4.9.0
+  '@nuxt/ui': ^4.10.0
   '@nuxtjs/mdc': ^0.22.2
   '@pinia/nuxt': ^0.11.3
   pinia: ^3.0.4
