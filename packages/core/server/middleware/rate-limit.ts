@@ -42,6 +42,8 @@ const FAILURE_LIMITED = new Set([
   'PUT /api/auth/recovery',
   // Verification-Confirm ist session-los (Cross-Device) → Token-Raten drosseln
   'PUT /api/auth/verification',
+  // Embed-Handoff-Einlösung (E2): session-los, Token = Beweis → Raten drosseln
+  'POST /api/auth/embed-session',
 ])
 // Schreib-Routen mit teils dynamischen Segmenten ([id]) → Regex + stabiler
 // Bucket-Name, damit z.B. Vote-Spam über viele Kommentar-IDs EIN Budget teilt

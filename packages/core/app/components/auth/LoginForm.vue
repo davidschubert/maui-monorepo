@@ -7,6 +7,7 @@ const localePath = useLocalePath()
 const appConfig = useAppConfig()
 const auth = useAuthStore()
 const toast = useToast()
+const { isEmbedPopup, completeEmbedLogin } = useEmbedPopup()
 
 const loading = ref(false)
 const errorMessage = ref<string | null>(null)
@@ -40,6 +41,8 @@ async function onSubmit(event: FormSubmitEvent<LoginInput>) {
   try {
     await $fetch('/api/auth/login', { method: 'POST', body: event.data })
     await auth.refresh()
+    // Embed-Popup (E2): Session ans iframe übergeben statt zu navigieren
+    if (await completeEmbedLogin()) return
     // Toast (unten rechts, auto-dismiss) — überlebt die Navigation
     toast.add({ title: t('auth.login.success'), color: 'success', icon: 'i-ph-check-circle' })
     await navigateTo(localePath('/'))
@@ -119,7 +122,7 @@ async function onSubmit(event: FormSubmitEvent<LoginInput>) {
     <template v-if="otpEnabled">
       <USeparator :label="t('auth.or')" />
       <UButton
-        :to="localePath('/login/code')"
+        :to="{ path: localePath('/login/code'), query: isEmbedPopup ? { embed: '1' } : {} }"
         icon="i-ph-envelope-simple"
         color="neutral"
         variant="subtle"

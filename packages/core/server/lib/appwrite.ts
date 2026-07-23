@@ -24,14 +24,24 @@ export function sessionCookieName(event: H3Event): string {
 /**
  * Session-Cookie setzen/löschen — httpOnly + sameSite immer, secure in
  * Produktion (localhost hat kein HTTPS, daher konditional via import.meta.dev).
+ *
+ * Embed-Modus (E2, § 3a): `partitioned` setzt DASSELBE Cookie als
+ * CHIPS-partitioniertes `SameSite=None; Secure; Partitioned` — nur für den
+ * Embed-Kontext (/api/auth/embed-session), NIE für die Haupt-App (dort
+ * bleibt 'strict', sonst fällt der CSRF-Schutz; Backstop dafür ist die
+ * csrf-origin-Middleware). Partitioned verlangt Secure — der Modus ist
+ * daher nur unter HTTPS wirksam (Dev-http: Browser verwirft es, der
+ * Cross-Site-Beweis läuft auf echten Domains).
  */
-export function setSessionCookie(event: H3Event, secret: string, expire: string) {
+export function setSessionCookie(event: H3Event, secret: string, expire: string, options?: { partitioned?: boolean }) {
+  const partitioned = options?.partitioned === true
   setCookie(event, sessionCookieName(event), secret, {
     expires: new Date(expire),
     path: '/',
     httpOnly: true,
-    secure: !import.meta.dev,
-    sameSite: 'strict',
+    secure: partitioned ? true : !import.meta.dev,
+    sameSite: partitioned ? 'none' : 'strict',
+    partitioned,
   })
 }
 

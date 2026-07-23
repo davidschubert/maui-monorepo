@@ -11,6 +11,7 @@ const { t } = useI18n()
 const localePath = useLocalePath()
 const appConfig = useAppConfig()
 const auth = useAuthStore()
+const { completeEmbedLogin } = useEmbedPopup()
 const toast = useToast()
 
 const step = ref<'email' | 'code'>('email')
@@ -125,6 +126,8 @@ async function verify() {
       }
     }
 
+    // Embed-Popup (E2): Session ans iframe übergeben statt zu navigieren
+    if (await completeEmbedLogin()) return
     toast.add({ title: t('auth.login.success'), color: 'success', icon: 'i-ph-check-circle' })
     await navigateTo(localePath('/'))
   }
