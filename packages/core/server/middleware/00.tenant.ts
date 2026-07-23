@@ -20,14 +20,18 @@ export default defineEventHandler(async (event) => {
   // auf heutiges Verhalten (Single-Tenant); die App merkt es beim Aktivieren.
   if (!resolver) return
 
+  // Host-unabhängige Infra-Pfade — beide tenant-agnostisch, nichts leakt:
+  // - /api/health: Deploy-Verify + Monitoring pollen den kanonischen Site-Host,
+  //   der selbst KEIN Tenant ist (buildSha/Uptime).
+  // - /_i18n/: nuxt-i18n lädt Locale-Messages im Prod-Build per INTERNEM
+  //   self-fetch OHNE Host-Header — ein 404 hier ließe jede Seite mit rohen
+  //   i18n-Keys rendern (Prod-Befund 2026-07-23). Inhalte sind build-statisch.
+  const path = event.path.split('?')[0] ?? ''
+  if (path === '/api/health' || path.startsWith('/_i18n/')) return
+
   const host = normalizeHost(getHeader(event, 'host'))
   const tenant = await resolver(host)
   if (!tenant) {
-    // Infra-Sonde bleibt host-unabhängig erreichbar: Deploy-Verify + Monitoring
-    // pollen /api/health über den kanonischen Site-Host, der selbst KEIN Tenant
-    // ist. Die Route ist user- und tenant-agnostisch (buildSha/Uptime) — ohne
-    // tenant im Context leakt nichts.
-    if (event.path.split('?')[0] === '/api/health') return
     throw createError({ status: 404, statusText: 'Unknown host' })
   }
   event.context.tenant = tenant
