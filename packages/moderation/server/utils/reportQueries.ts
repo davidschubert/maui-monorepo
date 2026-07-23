@@ -32,13 +32,13 @@ export async function myOpenReportTargetIds(
     const res = await tablesDB.listRows<Report>({
       databaseId,
       tableId: REPORTS_TABLE,
-      queries: [
+      queries: scopeQuery(event, [
         Query.equal('reporterId', reporterId),
         Query.equal('targetType', targetType),
         Query.equal('targetId', batch),
         Query.equal('status', 'open'),
         Query.limit(batch.length),
-      ],
+      ]),
     })
     for (const row of res.rows) result.add(row.targetId)
   }
@@ -66,12 +66,12 @@ export async function resolveReportsForTarget(
   const open = await tablesDB.listRows<Report>({
     databaseId,
     tableId: REPORTS_TABLE,
-    queries: [
+    queries: scopeQuery(event, [
       Query.equal('targetType', targetType),
       Query.equal('targetId', targetId),
       Query.equal('status', 'open'),
       Query.limit(REPORTS_WINDOW),
-    ],
+    ]),
   })
   if (open.total > open.rows.length) {
     console.warn(`[moderation] resolve ${targetType}/${targetId}: ${open.total} offene Meldungen, Fenster ${REPORTS_WINDOW} — Rest bleibt open`)
@@ -108,13 +108,13 @@ export async function openReportsForTarget(
   const res = await tablesDB.listRows<Report>({
     databaseId: config.public.appwriteDatabaseId,
     tableId: REPORTS_TABLE,
-    queries: [
+    queries: scopeQuery(event, [
       Query.equal('targetType', targetType),
       Query.equal('targetId', targetId),
       Query.equal('status', 'open'),
       Query.orderDesc('$createdAt'),
       Query.limit(100),
-    ],
+    ]),
   })
   return res.rows
 }
@@ -132,12 +132,12 @@ export async function openReportsByTarget(
   const res = await tablesDB.listRows<Report>({
     databaseId: config.public.appwriteDatabaseId,
     tableId: REPORTS_TABLE,
-    queries: [
+    queries: scopeQuery(event, [
       Query.equal('targetType', targetType),
       Query.equal('status', 'open'),
       Query.orderDesc('$createdAt'),
       Query.limit(REPORTS_WINDOW),
-    ],
+    ]),
   })
 
   const counts = new Map<string, number>()

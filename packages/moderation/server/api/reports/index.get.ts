@@ -29,6 +29,7 @@ export default defineEventHandler(async (event): Promise<ReportListResponse> => 
   if (status !== 'all') queries.push(Query.equal('status', status))
   if (targetType) queries.push(Query.equal('targetType', targetType))
 
-  const res = await tablesDB.listRows<Report>({ databaseId, tableId: REPORTS_TABLE, queries })
+  // H3: im Pool nur die Meldungen des aktuellen Mandanten (Naht 3)
+  const res = await tablesDB.listRows<Report>({ databaseId, tableId: REPORTS_TABLE, queries: scopeQuery(event, queries) })
   return { total: res.total, rows: res.rows }
 })

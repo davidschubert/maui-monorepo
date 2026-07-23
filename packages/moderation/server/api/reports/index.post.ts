@@ -32,7 +32,8 @@ export default defineEventHandler(async (event) => {
       databaseId,
       tableId: REPORTS_TABLE,
       rowId: ID.unique(),
-      data: {
+      // H3-Pool-Datenpfad: im Pool stempelt scopeRow die tenantId (Naht 3).
+      data: scopeRow(event, {
         reporterId: user.$id,
         targetType: input.targetType,
         targetId: input.targetId,
@@ -41,7 +42,7 @@ export default defineEventHandler(async (event) => {
         status: 'open',
         resolvedBy: null,
         resolution: null,
-      },
+      }),
       permissions: [
         Permission.read(Role.user(user.$id)),
         Permission.delete(Role.user(user.$id)),

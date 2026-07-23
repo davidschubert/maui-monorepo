@@ -23,15 +23,17 @@ export default defineEventHandler(async (event) => {
   const databaseId = config.public.appwriteDatabaseId
   const { tablesDB } = createSessionClient(event)
 
+  // H3: derselbe Pool-User kann dasselbe Target auf ZWEI Mandanten gemeldet
+  // haben (geteilter users-Namensraum) — scopeQuery zieht die richtige Row.
   const existing = await tablesDB.listRows<Report>({
     databaseId,
     tableId: REPORTS_TABLE,
-    queries: [
+    queries: scopeQuery(event, [
       Query.equal('reporterId', user.$id),
       Query.equal('targetType', targetType),
       Query.equal('targetId', targetId),
       Query.limit(1),
-    ],
+    ]),
   })
 
   // Nichts zu tun, wenn keine eigene Meldung existiert (idempotent)

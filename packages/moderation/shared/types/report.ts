@@ -19,6 +19,8 @@ export interface Report extends Models.Row {
   status: ReportStatus
   resolvedBy: string | null
   resolution: string | null
+  /** H3-Pool-Datenpfad (moderation-002); '' = Silo/Einzelbetrieb. */
+  tenantId?: string
 }
 
 /** Eine wählbare Begründung — Label liefert (lokalisiert) der Konsument. */
