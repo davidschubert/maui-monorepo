@@ -5,6 +5,9 @@
 export default defineAppConfig({
   maui: {
     studio: {
+      /** Das geteilte Pool-Appwrite-Projekt neuer Tenants (Onboarding-Default —
+       *  der Betreiber tippt nur noch Name/Host, das Projekt füllt der Server). */
+      defaultPoolProject: 'pool',
       // M8-Plan-Katalog (Check-in 2026-07-19: free/pro/business) — bewusst
       // Code statt Table (versioniert wie theme.catalog). features = VOR
       // requires-Schluss (moderation kommt z. B. über comments/posts mit);

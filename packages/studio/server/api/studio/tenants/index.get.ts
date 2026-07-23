@@ -15,6 +15,6 @@ export default defineEventHandler(async (event) => {
     console.warn(`[studio] tenants-Liste gekappt: ${rows.length}/${total} — Pagination nachrüsten`)
   }
   return { total, tenants: rows.map(row => ({
-    id: row.$id, host: row.host, mode: row.mode, projectId: row.projectId, tenantId: row.tenantId, status: row.status,
+    id: row.$id, name: row.name, host: row.host, mode: row.mode, projectId: row.projectId, tenantId: row.tenantId, status: row.status,
   })) }
 })

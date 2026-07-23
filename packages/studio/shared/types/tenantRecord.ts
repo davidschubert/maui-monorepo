@@ -14,8 +14,10 @@ export type TenantMode = (typeof TENANT_MODES)[number]
 export const TENANT_STATUSES = ['active', 'disabled'] as const
 export type TenantStatus = (typeof TENANT_STATUSES)[number]
 
-/** Row-Typ zur `tenants`-Table (Schema: Migration studio-010). */
+/** Row-Typ zur `tenants`-Table (Schema: Migrationen studio-010/011). */
 export interface TenantRow extends Models.Row {
+  /** Anzeigename des Kunden (studio-011); '' = Bestand vor der Migration. */
+  name: string
   /** Kanonischer Host (klein, ohne Port) — Unique-Index uq_host. */
   host: string
   mode: TenantMode

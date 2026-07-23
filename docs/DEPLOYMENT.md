@@ -10,7 +10,7 @@ alle Go-Live-Learnings im Detail).
 > DREI ploi-Sites:** `comments.pukalani.app` (Site 389772, Port **3001**) ·
 > `portfolio.pukalani.app` (Site 390041, Port **3002**) ·
 > `studio.pukalani.app` (Site 390042, Port **3003**). Appwrite
-> `api.pukalani.app` (appwrite-prod, 188.245.61.155, 1.9.5) mit **einem
+> `api.pukalani.app` (appwrite-prod, 188.245.61.155, 1.9.6) mit **einem
 > Projekt je Site** (`comments`, `portfolio`, `studio` — F6-Muster
 > Projekt-pro-Site, je eigene nuxt-ssr-prod/migrations-prod-Keys +
 > Web-Platform). Cloudflare DNS „DNS only" · Resend-SMTP (nur comments +
@@ -74,7 +74,7 @@ Sag mir, sobald das steht — dann gehen wir die Schritte gemeinsam durch.
      App-Server.
 5. **SMTP** in der Appwrite-Installation (`.env` der Instanz, nicht in der
    Console) konfigurieren, sonst keine Auth-Mails.
-   **Pflicht-Patch (Appwrite 1.9.5):** der mails-Worker verliert mit dem
+   **Pflicht-Patch (Appwrite 1.9.5/1.9.6):** der mails-Worker verliert mit dem
    hartkodierten SMTP-`keepAlive: true` still die ERSTE Mail nach einer
    Leerlaufphase (PHPMailer-`false` wird verschluckt, Worker loggt trotzdem
    „success") — auf beiden Instanzen mountet `docker-compose.override.yml`

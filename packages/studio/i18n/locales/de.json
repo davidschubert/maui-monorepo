@@ -143,8 +143,15 @@
         "hostInvalid": "Kein gültiger Hostname",
         "modeInvalid": "Ungültiger Modus",
         "projectInvalid": "Keine gültige Projekt-ID",
-        "tenantIdInvalid": "Keine gültige Tenant-ID"
-      }
+        "tenantIdInvalid": "Keine gültige Tenant-ID",
+        "hostReserved": "Diese Subdomain ist für die Plattform reserviert",
+        "nameRequired": "Bitte einen Namen eingeben"
+      },
+      "name": "Kundenname",
+      "nameHelp": "Aus dem Namen wird die Subdomain vorgeschlagen — du kannst sie noch anpassen.",
+      "namePlaceholder": "z. B. Bäckerei Müller",
+      "advanced": "Erweitert",
+      "projectPlaceholder": "leer = geteiltes Pool-Projekt"
     }
   }
 }

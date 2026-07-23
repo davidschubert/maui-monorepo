@@ -6,7 +6,7 @@ Vollständiges Konzept: docs/CONCEPT.md
 
 ## Stack
 - Nuxt 4.4.x (Composition API, SSR), Nuxt UI 4.8.x, Pinia, Tailwind CSS 4
-- node-appwrite (Server SDK) + appwrite (Web SDK, NUR Realtime) — Appwrite self-hosted 1.9.5
+- node-appwrite (Server SDK) + appwrite (Web SDK, NUR Realtime) — Appwrite self-hosted 1.9.6
 - Zod, @nuxtjs/i18n (de+en), TypeScript strict, pnpm Workspaces, Node 22
 
 ## Architektur (3 Ebenen)

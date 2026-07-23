@@ -143,8 +143,15 @@
         "hostInvalid": "Not a valid hostname",
         "modeInvalid": "Invalid mode",
         "projectInvalid": "Not a valid project ID",
-        "tenantIdInvalid": "Not a valid tenant ID"
-      }
+        "tenantIdInvalid": "Not a valid tenant ID",
+        "hostReserved": "This subdomain is reserved for the platform",
+        "nameRequired": "Please enter a name"
+      },
+      "name": "Customer name",
+      "nameHelp": "The subdomain is suggested from this name — you can still edit it.",
+      "namePlaceholder": "e.g. Bakery Miller",
+      "advanced": "Advanced",
+      "projectPlaceholder": "empty = shared pool project"
     }
   }
 }
