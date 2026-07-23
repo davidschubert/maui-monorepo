@@ -1,5 +1,42 @@
 # Changelog
 
+## [2.2.0](https://github.com/davidschubert/maui-monorepo/compare/v2.1.0...v2.2.0) (2026-07-23)
+
+
+### Features
+
+* **comments:** H3-4.1 Pool-Datenpfad — tenantId + scopeQuery/scopeRow + Isolationsbeweis ([0e2205a](https://github.com/davidschubert/maui-monorepo/commit/0e2205ad9cc9ee7348176af70a3497bea5b4be9d))
+* **core:** assertPoolWriteQuota — generisches Pool-Quota (H3-4.3, Blueprint S4) ([82c9192](https://github.com/davidschubert/maui-monorepo/commit/82c919247f94847e7d40a0d34c627fee9a27e564))
+* **core:** config-gated Rechtslinks im Footer + studio verlinkt imprint/terms/privacy ([5cf27c0](https://github.com/davidschubert/maui-monorepo/commit/5cf27c05f89faddcf44eb9df0280aa9853315d3a))
+* **core:** geteilter Rate-Limit-Store — Redis via NUXT_REDIS_URL (OPEN-ITEMS [#8](https://github.com/davidschubert/maui-monorepo/issues/8)) ([52c68ec](https://github.com/davidschubert/maui-monorepo/commit/52c68ec43fb234f08246a4a75691eb637c5d3212))
+* **core:** H3 Naht 1/2 — Tenant-Middleware + Resolver-Vertrag + Factories (ruhend) ([fc052c8](https://github.com/davidschubert/maui-monorepo/commit/fc052c8e1753d26fd7512d6280d56031d7db48e9))
+* **core:** Horizont-3 Schicht 1 — ruhender tenantContext + scopeQuery/scopeRow ([972a5dc](https://github.com/davidschubert/maui-monorepo/commit/972a5dce2aafe9d4e2ace1fcc34daaa0a5427b27))
+* **pages:** Dashboard-Gerüst für /dashboard/pages — Navbar, NavigationMenu, feste Fußleiste ([b48ec97](https://github.com/davidschubert/maui-monorepo/commit/b48ec9784970cc1e85a45f1c33e9a68e84b380a7))
+* **pages:** englische Slugs imprint/terms/privacy (apple.com-Muster) ([8b67e11](https://github.com/davidschubert/maui-monorepo/commit/8b67e11a9d1087fba7029e25e099b940f60849fa))
+* **pages:** P1 — Feature-Layer packages/pages (Datenmodell, API, Migration) + studio ([36bf2da](https://github.com/davidschubert/maui-monorepo/commit/36bf2dabb2a62bdb434de511720487ffab77915e))
+* **pages:** P2 — Admin-UI /dashboard/pages (Menü + UEditor + Sprach-Reiter) ([388e842](https://github.com/davidschubert/maui-monorepo/commit/388e8426ca6a46ab953ed7be639c1500ef1eb4aa))
+* **pages:** P3 — öffentliches Rendern (/impressum,/agb,/datenschutz) + Demo-Seed ([eb3d952](https://github.com/davidschubert/maui-monorepo/commit/eb3d952f489ab71c0c7b5fc879fcef6f1d9dd3a5))
+* **platform:** apps/platform — erste Multi-Tenant-App + E2E-Beweis; fix(comments): Gast-Cache tenant-keyed ([734ad26](https://github.com/davidschubert/maui-monorepo/commit/734ad26ad67b1cf8bee47cb577c9b232256365cb))
+* **platform:** Kommentar-Quota für Pool-Tenants scharf (1000/Tag, 50k gesamt) ([f055245](https://github.com/davidschubert/maui-monorepo/commit/f0552458029c62daa0c79406103d32d95ec54741))
+* **studio,core:** H3 tenants-Register + Table-Resolver + Playground-Scharf-Dogfood ([8a0334a](https://github.com/davidschubert/maui-monorepo/commit/8a0334a26d1a30d6e559f07341d03e841fdaea82))
+* **studio:** Tenant-Onboarding-UX — Name führt, Subdomain folgt, Pool-Defaults ([a6bb9f8](https://github.com/davidschubert/maui-monorepo/commit/a6bb9f867a8fe0f71ae5e1e1a2d88c43f9683a13))
+* **studio:** Tenants-Verwaltung /dashboard/tenants — neue Pool-Site per Klick (H3-Onboarding) ([5c34274](https://github.com/davidschubert/maui-monorepo/commit/5c342743b9249279f87e35f67449460446528373))
+* **studio:** Wellen-Migrationen (H3-4.2) — tenants.wave + Runner --wave ([5024ddd](https://github.com/davidschubert/maui-monorepo/commit/5024ddd90c2be435d7708869b14a139653eb45d1))
+
+
+### Bug Fixes
+
+* **admin:** öffentlicher Changelog-Microcache tenant-aware (Cache-Key-Scope) ([8b830fd](https://github.com/davidschubert/maui-monorepo/commit/8b830fdedec2bede2d49f939605888997367bad5))
+* **billing,studio:** Cross-Sub via Stripe-Autorität + Workspace-Customer fürs Owner-Portal ([ec3190d](https://github.com/davidschubert/maui-monorepo/commit/ec3190d00cd75f5757e5ad70b1710611e5954ef2))
+* **core:** /_i18n/-Interna von der Tenant-Pflicht ausnehmen — Prod renderte rohe i18n-Keys ([8fe946c](https://github.com/davidschubert/maui-monorepo/commit/8fe946cb22b7e0905ca854e602261df4fcaaf624))
+* **core:** /api/health bleibt bei aktiver Tenancy host-unabhängig erreichbar ([ad4b2f1](https://github.com/davidschubert/maui-monorepo/commit/ad4b2f176c64a02bd7b9d0cda9995847d0eaa610))
+* **core:** tenantCacheScope — Microcache-Keys tragen den Tenant (H3-Cache-Regel) ([ce1a5a1](https://github.com/davidschubert/maui-monorepo/commit/ce1a5a12e8261f3efb7d3d72e759a45a4d5f1291))
+* **pages:** body auf 14.000 begrenzen (utf8mb4-Zeilenbudget) ([50b4d69](https://github.com/davidschubert/maui-monorepo/commit/50b4d6928b4271b1ff826c84d8c5c75ea0a46e0e))
+* **pages:** body auf MEDIUMTEXT — 14k-Limit weg, Zähler + klare Meldung im Editor ([ca785b1](https://github.com/davidschubert/maui-monorepo/commit/ca785b1936e34cb26a6c611eadf5df30616bcf36))
+* **studio:** Cross-Sub-Guard + Plan-Sync-Pagination + BillingInterval-Rename ([6543d0b](https://github.com/davidschubert/maui-monorepo/commit/6543d0bb752b6c5c1b762fae311451b50a7f3357))
+* **studio:** Cross-Sub-Guard fail-closed + Entitlements-Pagination ([02f7fad](https://github.com/davidschubert/maui-monorepo/commit/02f7fad9189386002de868da576cf325e69ad515))
+* **studio:** Doppelabo-Guard + defensiver requires-Parse (Money-Path-Härtung) ([daa27f6](https://github.com/davidschubert/maui-monorepo/commit/daa27f6ebc33c58d36040562c7093c0a497373c8))
+
 ## [2.1.0](https://github.com/davidschubert/maui-monorepo/compare/v2.0.0...v2.1.0) (2026-07-21)
 
 
