@@ -1,12 +1,14 @@
 # Offene Punkte
 
-Stand: **2026-07-21 (Master-To-do, gewichtet)**. Vollständige, eigenständige
+Stand: **2026-07-23 (Master-To-do, gewichtet)**. Vollständige, eigenständige
 Liste offener Themen (für eine frische Session als Startpunkt nutzbar).
 
-> **LIVE:** comments + portfolio + studio auf `*.pukalani.app`, Auto-Deploy,
+> **LIVE:** comments + portfolio + studio + **platform** (Multi-Tenant,
+> `*.pukalani.app`-Wildcard — demo.pukalani.app läuft als erster Pool-Tenant,
+> neue Kundensite = ein Klick im Studio, kein Build), Auto-Deploy (4 Sites),
 > Zero-Downtime Stufe 2, Changelog-2B, Alerting, GDPR, pages-Layer
 > (/imprint,/terms,/privacy editierbar + Footer-Links). M1–M9 komplett.
-> **Als Betriebssystem für eigene Sites: ~98 %. Als verkaufbares SaaS: ~65 %.**
+> **Als Betriebssystem für eigene Sites: ~98 %. Als verkaufbares SaaS: ~75 %.**
 > Beschluss-/Ideen-Protokoll: [DECISION-LOG.md](DECISION-LOG.md).
 
 ## 📌 Master-To-do (gewichtet, Summe = 100 %)
@@ -22,17 +24,25 @@ Legende Status: **✅ fertig** · **🔨 in Bearbeitung** (Teiletappen laufen) �
 | 1 | **Rechtstexte eintragen** (Imprint/Terms/Privacy EN+DE im Dashboard, Platzhalter ersetzen; Anwalt). Schaltet #2.4 frei. | David | leicht | 5 | 👉 als Nächstes |
 | 2 | **Stripe-Live scharfschalten** ([Runbook](plans/STRIPE-GO-LIVE-RUNBOOK.md)): 2.1 Bank-Aktivierung [David] · 2.2 Live-Webhook [David] · 2.3 Keys in Server-.env [David] · 2.4 Live-Portal konfigurieren (braucht #1) [Claude] · 2.5 Minimal-Verifikation [beide] | beide | mittel | 12 | ⭕ offen (wartet auf #1 + David) |
 | 3 | **Money-Path-Rest** — #6b Cross-Sub via Stripe-Autorität + #7a Workspace-Customer/Owner-Portal. Deployt 2026-07-22, Details [DECISION-LOG](DECISION-LOG.md). | — | — | 8 | ✅ fertig |
-| 4 | **Horizont 3 — Pool+Silo Multi-Tenancy** ([Blueprint](plans/HORIZONT-3-POOL-SILO-BLUEPRINT.md); Spike ✅, Schicht 1 ✅, **4.1 Pool-Datenpfad ✅**, **Naht 1/2 Auflösung ✅**, **tenants-Register + Table-Resolver + SCHARF-Beweis ✅** — Playground fährt das Gate aktiv: silo/pool/404 per Host-Header bewiesen, alle 2026-07-22). **apps/platform ✅ lokal bewiesen** (2 Pool-Kunden strikt getrennt; Gast-Cache-Leak gefunden + gefixt). **Onboarding ✅ (2026-07-22):** /dashboard/tenants im Studio (CRUD + an/aus, sites.manage) — Voll-Loop bewiesen: Host vorher 404 → Tenant per Klick → Platform-App live ohne Build; disabled → 404 binnen Sekunden; Delete per UI. Offen: **Platform-Prod-Rollout [David]:** Wildcard-DNS + ploi-Site + Pool-Projekt (Schritte im DECISION-LOG) · 4.2 Wellen-Migrationen (10 %) · 4.3 Quota (8 %) · Naht 4 Tenant-Label-Permissions · Silo-Admin-Key-Registry · Fläche: weitere Tabellen + tenant-aware Microcaches (changelogCache!) · tenant-genaue Feature-Gates (Design offen) | Claude (Etappen-Go: David) | schwer | 40 | 🔨 in Bearbeitung |
+| 4 | **Horizont 3 — Pool+Silo Multi-Tenancy** ([Blueprint](plans/HORIZONT-3-POOL-SILO-BLUEPRINT.md)) — **Kern KOMPLETT (2026-07-23):** Spike ✅ · Schicht 1 ✅ · 4.1 Pool-Datenpfad ✅ · Naht 1/2 ✅ · tenants-Register + Resolver ✅ · Onboarding-UI ✅ · **Prod-Rollout ✅** (platform.pukalani.app als 4. ploi-Site, Wildcard-DNS + ploi-verwaltetes Wildcard-TLS, Pool-Projekt `pool` mit 9 Tabellen, demo.pukalani.app live: 200 + gescopte Liste, unbekannte Hosts 404; Deploy-Kette + Secret; Learnings: platform-Build braucht 3584 MB Heap, `/api/health` + `/_i18n/` sind host-freie Infra-Pfade) · **4.2 Wellen-Migrationen ✅** (tenants.wave internal→canary→stable, `pnpm migrate --wave` + Studio-UI, fail-loud, studio-012 auf Dev+Prod) · **4.3 Quota ✅ scharf** (assertPoolWriteQuota, comments 1000/Tag + 50k gesamt im Pool, 429 lokal bewiesen — **Zahlen abnicken, s. Kasten unten**) · Microcaches tenant-aware ✅ (tenantCacheScope: changelog, features). Offen (Rest ~8 %): Naht 4 Tenant-Label-Permissions · Silo-Admin-Key-Registry + dedizierter Control-Plane-read-only-Key · Fläche: weitere Tabellen (posts/events/…) in den Pool-Datenpfad · tenant-genaue Feature-Gates + Plan→Tenant-Zuordnung (Design) · platform-Landing ist noch Template-Seite | Claude (Etappen-Go: David) | schwer | 40 | 🔨 32/40 fertig |
 | 5 | **Embed-Widget E2–E4** ([Plan](plans/EMBED-WIDGET.md)): Schreiben im iframe (CHIPS-Cookies, echte Cross-Site-Domains jetzt vorhanden), Site-Registry, Redis-Rate-Limit | Claude (Prio: David) | schwer | 12 | ⭕ offen (Prio-Entscheidung) |
 | 6 | **Themes-Vollausbau 26×11** ([Plan](plans/THEMES-VOLLAUSBAU.md), braucht E1–E7-Entscheidungen) | beide | schwer | 10 | ⭕ offen (E1–E7) |
-| 7 | **Deploy-RAM-Härtung** — Swap (18.07.) + NODE_OPTIONS-Cap 2560 in ploi-`~/.bashrc`; Praxistest: Deploys in Folge sauber. | — | — | 3 | ✅ fertig |
+| 7 | **Deploy-RAM-Härtung** — Swap (18.07.) + NODE_OPTIONS-Cap 2560 in ploi-`~/.bashrc`; Praxistest: Deploys in Folge sauber. Nachtrag 23.07.: platform-Build braucht 3584 (Deploy-Script), Überhang läuft in den Swap. | — | — | 3 | ✅ fertig |
 | 8 | **Shared Rate-Limit-Store** — braucht Infra-Entscheidung [David] (Redis auf dem App-Server? Kosten/Pflege); Abstraktion ohne Backend wäre toter Code. Nötig erst vor >1 Instanz/App. | David→Claude | mittel | 3 | ⭕ offen (Entscheidung) |
 | 9 | **E2E studio + portfolio** — Playwright-Smoke (10 + 5 Tests) nach comments-Muster; `pnpm --filter <app> e2e`. | — | — | 3 | ✅ fertig |
 | 10 | **SaaS-Feature-Ideen speccen** (10 Ideen in Davids privaten Notizen → Input nötig) | David→beide | mittel | 2 | ⭕ offen (Input) |
 | 11 | **GitHub-Klicks**: Release-PR #18 + CI-Bumps #16/#15/#2 mergen (workflow-Token). ~5 Minuten. | David | leicht | 1 | 👉 als Nächstes |
 | 12 | **Kleinkram** — ✅ Demo-Passwörter (gegenstandslos, keine @demo.local-User auf Prod) · ✅ >14k-Limit (MEDIUMTEXT). Rest: Wegwerf-Projekte s3-*/s0-* lokal löschen (optional) | David | leicht | 1 | ⭕ offen (optional) |
 
-**Fertig-Anteil: 14 % ✅ · in Bearbeitung: 40 % (davon 4.1 ≈ 12 % erledigt) · wartet auf David: Rest.**
+**Fertig-Anteil: ~46 % ✅ (14 % + 32/40 von H3) · wartet auf David: Rest.**
+
+> **📋 Quota-Zahlen zum Abnicken (H3-4.3, seit 2026-07-23 im Pool aktiv):**
+> Heute gilt EIN Pool-Default (Tenants sind noch keinem Plan zugeordnet):
+> **Kommentare 1.000/Tag (rollierende 24 h) + 50.000 gesamt je Tenant.**
+> Vorschlag für die spätere Plan-Zuordnung: free 200/Tag + 5.000 gesamt ·
+> pro 1.000/Tag + 50.000 · business 5.000/Tag + 250.000. Silo-Kunden: ohne
+> Limit (eigenes Projekt). Einspruch/Änderung → eine Zeile in
+> `apps/platform/app/app.config.ts` (maui.tenancy.quota).
 
 Zurückgestellt (bewusst, zählt nicht): Flag-Registry statt `commentsEnabled`
 (lohnt erst mit dem nächsten Flag), `useFormatCurrency`-Vorhaltung,
