@@ -27,8 +27,8 @@ export default defineEventHandler(async (event) => {
     databaseId: config.public.appwriteDatabaseId,
     tableId: TENANTS_TABLE,
     rowId: ID.unique(),
-    data: { name: body.name, host: body.host, mode: body.mode, projectId, tenantId, status: 'active' },
+    data: { name: body.name, host: body.host, mode: body.mode, projectId, tenantId, status: 'active', wave: body.wave ?? 'stable' },
   }).catch((error) => { throw toH3Error(error, 'Could not create tenant') })
 
-  return { id: row.$id, name: row.name, host: row.host, mode: row.mode, projectId: row.projectId, tenantId: row.tenantId, status: row.status }
+  return { id: row.$id, name: row.name, host: row.host, mode: row.mode, projectId: row.projectId, tenantId: row.tenantId, status: row.status, wave: row.wave }
 })

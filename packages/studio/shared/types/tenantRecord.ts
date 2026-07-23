@@ -14,6 +14,11 @@ export type TenantMode = (typeof TENANT_MODES)[number]
 export const TENANT_STATUSES = ['active', 'disabled'] as const
 export type TenantStatus = (typeof TENANT_STATUSES)[number]
 
+/** H3-4.2: Silo-Schema-Updates rollen in DREI Wellen aus (Blueprint L5).
+ *  Pool-Tenants teilen EIN Projekt — ihre Welle ist ohne Wirkung. */
+export const TENANT_WAVES = ['internal', 'canary', 'stable'] as const
+export type TenantWave = (typeof TENANT_WAVES)[number]
+
 /** Row-Typ zur `tenants`-Table (Schema: Migrationen studio-010/011). */
 export interface TenantRow extends Models.Row {
   /** Anzeigename des Kunden (studio-011); '' = Bestand vor der Migration. */
@@ -27,6 +32,8 @@ export interface TenantRow extends Models.Row {
   tenantId: string
   /** disabled = Host bewusst offline (Resolver liefert null → 404). */
   status: TenantStatus
+  /** Update-Welle des BACKING-Projekts (studio-012); '' = Bestand → stable. */
+  wave: TenantWave | ''
 }
 
 export const TENANTS_TABLE = 'tenants'

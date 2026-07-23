@@ -151,7 +151,15 @@
       "nameHelp": "Aus dem Namen wird die Subdomain vorgeschlagen — du kannst sie noch anpassen.",
       "namePlaceholder": "z. B. Bäckerei Müller",
       "advanced": "Erweitert",
-      "projectPlaceholder": "leer = geteiltes Pool-Projekt"
+      "projectPlaceholder": "leer = geteiltes Pool-Projekt",
+      "waveLabel": "Update-Welle",
+      "waveHelp": "Silo-Schema-Updates rollen in drei Wellen aus: internal (eigene Tests) → canary (wenige Freiwillige) → stable (alle). Pool-Tenants teilen ein Projekt — für sie ist die Welle ohne Wirkung.",
+      "waveChanged": "Update-Welle geändert",
+      "wave": {
+        "internal": "Internal (eigene Tests)",
+        "canary": "Canary (Vorab)",
+        "stable": "Stable (Standard)"
+      }
     }
   }
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { nameToSubdomain, OPERATOR_APEX } from '../../../schemas/tenant'
-import type { TenantMode, TenantStatus } from '../../../shared/types/tenantRecord'
+import type { TenantMode, TenantStatus, TenantWave } from '../../../shared/types/tenantRecord'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'sites.manage' })
 
@@ -8,7 +8,7 @@ const { t } = useI18n()
 const toast = useToast()
 useHead({ title: () => t('studio.tenants.title') })
 
-interface TenantDto { id: string, name: string, host: string, mode: TenantMode, projectId: string, tenantId: string, status: TenantStatus }
+interface TenantDto { id: string, name: string, host: string, mode: TenantMode, projectId: string, tenantId: string, status: TenantStatus, wave: TenantWave }
 
 const { data, refresh } = await useFetch<{ total: number, tenants: TenantDto[] }>('/api/studio/tenants', { lazy: true, server: false })
 const tenants = computed(() => data.value?.tenants ?? [])
@@ -16,10 +16,15 @@ const tenants = computed(() => data.value?.tenants ?? [])
 const showCreate = ref(false)
 const showAdvanced = ref(false)
 const saving = ref(false)
-const form = reactive({ name: '', host: '', mode: 'pool' as TenantMode, projectId: '' })
+const form = reactive({ name: '', host: '', mode: 'pool' as TenantMode, projectId: '', wave: 'stable' as TenantWave })
 const modeItems = computed(() => [
   { label: t('studio.tenants.mode.pool'), value: 'pool' },
   { label: t('studio.tenants.mode.silo'), value: 'silo' },
+])
+const waveItems = computed(() => [
+  { label: t('studio.tenants.wave.internal'), value: 'internal' },
+  { label: t('studio.tenants.wave.canary'), value: 'canary' },
+  { label: t('studio.tenants.wave.stable'), value: 'stable' },
 ])
 
 // UX: der Name führt — die Subdomain folgt live, solange der Betreiber das
@@ -36,6 +41,7 @@ function openCreate() {
   form.host = ''
   form.mode = 'pool'
   form.projectId = ''
+  form.wave = 'stable'
   hostTouched.value = false
   showAdvanced.value = false
   showCreate.value = true
@@ -52,6 +58,7 @@ async function createTenant() {
         mode: form.mode,
         // leer = Server nimmt den Pool-Default (maui.studio.defaultPoolProject)
         ...(form.projectId ? { projectId: form.projectId } : {}),
+        ...(form.wave !== 'stable' ? { wave: form.wave } : {}),
       },
     })
     toast.add({ title: t('studio.tenants.created'), color: 'success' })
@@ -63,6 +70,18 @@ async function createTenant() {
   }
   finally {
     saving.value = false
+  }
+}
+
+async function changeWave(tenant: TenantDto, wave: TenantWave) {
+  if (wave === tenant.wave) return
+  try {
+    await $fetch(`/api/studio/tenants/${tenant.id}`, { method: 'PATCH', body: { wave } })
+    toast.add({ title: t('studio.tenants.waveChanged'), color: 'success' })
+    await refresh()
+  }
+  catch {
+    toast.add({ title: t('studio.tenants.updateFailed'), color: 'error' })
   }
 }
 
@@ -116,6 +135,7 @@ async function removeTenant(tenant: TenantDto) {
               <p class="font-medium">{{ tenant.name || tenant.host }}</p>
               <UBadge :color="tenant.mode === 'pool' ? 'primary' : 'neutral'" variant="subtle" size="sm">{{ tenant.mode }}</UBadge>
               <UBadge :color="tenant.status === 'active' ? 'success' : 'neutral'" variant="subtle" size="sm">{{ tenant.status }}</UBadge>
+              <UBadge v-if="tenant.mode === 'silo' && tenant.wave !== 'stable'" color="warning" variant="subtle" size="sm">{{ t(`studio.tenants.wave.${tenant.wave}`) }}</UBadge>
             </div>
             <p class="mt-0.5 truncate font-mono text-sm text-muted">
               <a :href="`https://${tenant.host}`" target="_blank" rel="noopener" class="hover:underline">{{ tenant.host }}</a>
@@ -123,6 +143,14 @@ async function removeTenant(tenant: TenantDto) {
             </p>
           </div>
           <div class="flex items-center gap-2">
+            <USelect
+              v-if="tenant.mode === 'silo'"
+              :model-value="tenant.wave"
+              :items="waveItems"
+              size="sm"
+              :aria-label="t('studio.tenants.waveLabel')"
+              @update:model-value="(wave) => changeWave(tenant, wave as TenantWave)"
+            />
             <UButton
               color="neutral"
               variant="outline"
@@ -161,6 +189,9 @@ async function removeTenant(tenant: TenantDto) {
           </UFormField>
           <UFormField :label="t('studio.tenants.project')" :help="t('studio.tenants.projectHelp')">
             <UInput v-model="form.projectId" :placeholder="t('studio.tenants.projectPlaceholder')" class="w-full font-mono" />
+          </UFormField>
+          <UFormField v-if="form.mode === 'silo'" :label="t('studio.tenants.waveLabel')" :help="t('studio.tenants.waveHelp')">
+            <USelect v-model="form.wave" :items="waveItems" class="w-full" />
           </UFormField>
         </div>
       </div>

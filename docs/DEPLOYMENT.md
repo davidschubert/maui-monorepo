@@ -7,13 +7,20 @@ A11 Env, A3 Session-Cookie) und
 alle Go-Live-Learnings im Detail).
 
 > **Ist-Stand (pukalani.app), EIN App-Server (app-prod, 49.13.211.173) mit
-> DREI ploi-Sites:** `comments.pukalani.app` (Site 389772, Port **3001**) ·
+> VIER ploi-Sites:** `comments.pukalani.app` (Site 389772, Port **3001**) ·
 > `portfolio.pukalani.app` (Site 390041, Port **3002**) ·
-> `studio.pukalani.app` (Site 390042, Port **3003**). Appwrite
+> `studio.pukalani.app` (Site 390042, Port **3003**) ·
+> `platform.pukalani.app` (Site 391312, Port **3004**, seit H3-Rollout
+> 2026-07-23 — Multi-Tenant-App: `server_name platform.pukalani.app
+> *.pukalani.app` + ploi-verwaltetes **Wildcard-TLS** `*.pukalani.app`
+> via DNS-Challenge; jede Kunden-Subdomain landet hier und wird über das
+> tenants-Register des studio-Control-Plane aufgelöst,
+> NUXT_PLATFORM_CONTROL_*-Env). Appwrite
 > `api.pukalani.app` (appwrite-prod, 188.245.61.155, 1.9.6) mit **einem
 > Projekt je Site** (`comments`, `portfolio`, `studio` — F6-Muster
 > Projekt-pro-Site, je eigene nuxt-ssr-prod/migrations-prod-Keys +
-> Web-Platform). Cloudflare DNS „DNS only" · Resend-SMTP (nur comments +
+> Web-Platform) **plus** dem geteilten Pool-Projekt `pool` (H3: eine
+> Appwrite-Instanz/DB für alle Pool-Tenants, Zeilen-Scope per tenantId). Cloudflare DNS „DNS only" · Resend-SMTP (nur comments +
 > studio) · UptimeRobot · Storage Box `maui-backup` (Offsite-Backups; die
 > MariaDB-Dumps decken alle Projekte ab).
 > Bewährte Abweichungen vom ursprünglichen Plan: **pm2 Cluster-Mode über
@@ -25,8 +32,11 @@ alle Go-Live-Learnings im Detail).
 >
 > **RAM-Regel (2 Cores / 3,7 GB + 4,7 GB Swap):** ein Nuxt-Build braucht
 > ~3,4 GB — **nie zwei Builds parallel** (beobachteter OOM-Kill 137).
-> deploy.yml deployt die drei Sites deshalb SEQUENZIELL und wartet je Site
-> auf den buildSha-Beweis, bevor die nächste startet.
+> deploy.yml deployt die vier Sites deshalb SEQUENZIELL und wartet je Site
+> auf den buildSha-Beweis, bevor die nächste startet. Die platform-App
+> bündelt die meisten Layer und braucht im Deploy-Script
+> `--max-old-space-size=3584` (2560 und 3072 OOMten beim Nitro-Bundling,
+> beobachtet 2026-07-23 — der Überhang läuft in den Swap).
 
 > **Architektur:** Nuxt 4 (SSR) → Nitro Node-Server. Build erzeugt
 > `apps/comments/.output/server/index.mjs`. Backend = eigene self-hosted
@@ -112,11 +122,40 @@ node --experimental-strip-types --env-file=apps/comments/.env.production \
 Console beim eigenen User unter *Labels* `admin` setzen (Self-Lockout-Schutz greift
 danach).
 
+### 2b. Wellen-Migrationen (H3-4.2 — Multi-Tenant-Schema-Rollouts)
+
+Sobald FREMDE Silo-Projekte existieren, rollen Schema-Änderungen in **drei
+Wellen** aus; der **Pool migriert immer genau einmal** (ein geteiltes Projekt,
+`pnpm migrate --env-file <pool-migrations.env>`). Die Welle eines Tenants
+steht im tenants-Register (`wave`: internal → canary → stable, Studio-UI
+„Update-Welle", nur für Silos wirksam; Bestand = stable).
+
+```bash
+# Silo-Projekte einer Welle migrieren (Reihenfolge: internal → canary → stable)
+pnpm migrate --wave internal --control-env apps/studio/.env.production
+pnpm migrate --wave canary   --control-env apps/studio/.env.production
+pnpm migrate --wave stable   --control-env apps/studio/.env.production
+```
+
+- `--control-env` = Env der **Control-Plane-Instanz** (studio) — daraus kommen
+  die Silo-Projekte der Welle. Nie raten, immer explizit.
+- Je Silo-Projekt braucht der Runner eine Migrations-Env-Datei
+  `~/.appwrite-secrets/migrations/<projectId>.env` (Format wie jede App-.env:
+  `NUXT_PUBLIC_APPWRITE_*` + `NUXT_APPWRITE_MIGRATIONS_KEY`; `--keys-dir`
+  überschreibt den Ordner). Fehlt eine, bricht der Lauf ab, BEVOR irgendein
+  Projekt migriert wird (keine halbe Welle).
+- **Disziplin:** Migrationen sind ADDITIV (Code n-1 verträgt Schema n) —
+  erst die Spalte überall, dann der Code-Deploy, Aufräumen später. Beispiel
+  2026-07-23: `tenants.wave` (studio-012) lief auf Prod, BEVOR der Code
+  deployt wurde, der das Feld schreibt.
+- disabled-Tenants migrieren mit (ein reaktivierter Host braucht aktuelles
+  Schema); mehrere Hosts pro Projekt werden dedupliziert.
+
 ## 3. ploi.io-Site konfigurieren (so läuft es in Prod)
 
 | Feld | Wert (pukalani-Ist-Stand) |
 |---|---|
-| Site-Typ | NodeJS — ploi vergibt den Port (hier **3001**); nginx-vHost proxied NICHT automatisch → `location /` manuell auf `proxy_pass http://127.0.0.1:3001` + WebSocket-Header umstellen (Panel-nginx-Editor) |
+| Site-Typ | NodeJS — ploi vergibt den Port (hier **3001**); nginx-vHost proxied NICHT automatisch → `location /` manuell auf `proxy_pass http://127.0.0.1:3001` + WebSocket-Header umstellen. **Robuster Weg (Learning 2026-07-23): die ploi-API statt des Panel-Editors** — `GET/PATCH /api/servers/{srv}/sites/{site}/nginx-configuration` (JSON `{"content": …}`) + `POST /api/servers/{srv}/services/nginx/restart`; der Monaco-Editor im Panel lässt sich nicht zuverlässig automatisiert befüllen. Auch Deploy-Script (`…/deploy/script`) und Deploy-Trigger (`POST …/deploy`) gehen per API |
 | NodeJS-Service | pm2 **Cluster-Mode** via [`ops/ecosystem-comments.config.cjs`](../ops/ecosystem-comments.config.cjs) (seit 2026-07-19, Zero-Downtime Stufe 2). „Restart process after deployment" **AUS** — den Prozesswechsel macht `pm2 reload` im Deploy-Script. ploi-Start-command `bash start-prod.sh` ist nur noch historischer Rest (ploi startet nichts mehr) |
 | Deploy-Script | `git pull` → corepack-Install/Build wie gehabt → **dann Release-Flow**: `.output` nach `/home/ploi/releases/comments/<sha>/` kopieren, `current`-Symlink atomar flippen (`ln -s` + `mv -Tf`), `pm2 startOrReload ops/ecosystem-comments.config.cjs --update-env`, `pm2 save`, alte Releases auf 5 stutzen. Der alte Worker serviert bis der neue `listening` ist → **kein 502**, und der laufende Prozess liest nie aus einem halb überschriebenen `.output` |
 | Reboot-Festigkeit | `pm2 save` macht das Deploy-Script; `@reboot pm2 resurrect` im ploi-Crontab (kein sudo nötig) |
@@ -146,11 +185,14 @@ NUXT_SMTP_HOST=smtp.resend.com                      # + PORT/USER/PASS/FROM
 
 - **Aktiv seit 2026-07-18 (Multi-Site seit 2026-07-19):** jeder Push auf
   `main` → CI „Test" → Workflow „Deploy" ruft die ploi-Webhooks
-  SEQUENZIELL (comments → portfolio → studio; Repo-Secrets
-  `PLOI_DEPLOY_WEBHOOK_{COMMENTS,PORTFOLIO,STUDIO}`, fehlendes Secret =
-  Site wird übersprungen) → ploi pullt, baut, `pm2 reload`. Kette e2e
-  verifiziert. ploi Quick Deploy bleibt bewusst AUS (Deploy nur nach
-  grünem Test), „Restart after deployment" bei allen drei Sites AUS.
+  SEQUENZIELL (comments → portfolio → studio → platform; Repo-Secrets
+  `PLOI_DEPLOY_WEBHOOK_{COMMENTS,PORTFOLIO,STUDIO,PLATFORM}`, fehlendes
+  Secret = Site wird übersprungen) → ploi pullt, baut, `pm2 reload`. Kette
+  e2e verifiziert. ploi Quick Deploy bleibt bewusst AUS (Deploy nur nach
+  grünem Test), „Restart after deployment" bei allen Sites AUS.
+  Hinweis platform: `/api/health` ist bei aktiver Tenancy bewusst von der
+  Tenant-Pflicht ausgenommen (Middleware-Ausnahme in core), sonst könnte
+  das Deploy-Verify den kanonischen Site-Host nicht pollen.
 - **Härtung seit 2026-07-19:** ploi verschluckt Webhooks, die während eines
   laufenden Deploys eintreffen (beobachtet bei zwei Pushes binnen ~3 min).
   `/api/health` liefert deshalb den gebauten Commit (`build`, zur Build-Zeit

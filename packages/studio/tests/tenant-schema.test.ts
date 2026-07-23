@@ -39,10 +39,16 @@ describe('tenantCreateSchema', () => {
   })
 })
 
-describe('tenantStatusSchema', () => {
+describe('tenantStatusSchema (PATCH-Body: status und/oder wave)', () => {
   it('nur active|disabled', () => {
     expect(tenantStatusSchema.safeParse({ status: 'active' }).success).toBe(true)
     expect(tenantStatusSchema.safeParse({ status: 'deleted' }).success).toBe(false)
+  })
+  it('wave allein oder kombiniert; leerer Patch abgelehnt', () => {
+    expect(tenantStatusSchema.safeParse({ wave: 'canary' }).success).toBe(true)
+    expect(tenantStatusSchema.safeParse({ status: 'active', wave: 'internal' }).success).toBe(true)
+    expect(tenantStatusSchema.safeParse({ wave: 'beta' }).success).toBe(false)
+    expect(tenantStatusSchema.safeParse({}).success).toBe(false)
   })
 })
 

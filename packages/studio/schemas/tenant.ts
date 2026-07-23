@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { TENANT_MODES } from '../shared/types/tenantRecord'
+import { TENANT_MODES, TENANT_WAVES } from '../shared/types/tenantRecord'
 
 type TranslateFn = (key: string) => string
 const identity: TranslateFn = key => key
@@ -72,12 +72,15 @@ export function createTenantCreateSchema(t: TranslateFn = identity) {
     mode: z.enum(TENANT_MODES, t('studio.tenants.validation.modeInvalid')),
     projectId: z.string().trim().regex(idRe, t('studio.tenants.validation.projectInvalid')).optional(),
     tenantId: z.string().trim().regex(idRe, t('studio.tenants.validation.tenantIdInvalid')).optional(),
+    wave: z.enum(TENANT_WAVES).optional(),
   }).strict()
 }
 
 export const tenantCreateSchema = createTenantCreateSchema()
 
-/** Status-Umschalter (active ⇄ disabled). */
+/** PATCH-Body: Status-Umschalter (active ⇄ disabled) und/oder Wellen-Wechsel —
+ *  mindestens ein Feld. (Name historisch, deckt seit H3-4.2 auch `wave`.) */
 export const tenantStatusSchema = z.object({
-  status: z.enum(['active', 'disabled']),
-}).strict()
+  status: z.enum(['active', 'disabled']).optional(),
+  wave: z.enum(TENANT_WAVES).optional(),
+}).strict().refine(body => body.status !== undefined || body.wave !== undefined, 'empty patch')

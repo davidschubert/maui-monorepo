@@ -151,7 +151,15 @@
       "nameHelp": "The subdomain is suggested from this name — you can still edit it.",
       "namePlaceholder": "e.g. Bakery Miller",
       "advanced": "Advanced",
-      "projectPlaceholder": "empty = shared pool project"
+      "projectPlaceholder": "empty = shared pool project",
+      "waveLabel": "Update wave",
+      "waveHelp": "Silo schema updates roll out in three waves: internal (own tests) → canary (a few volunteers) → stable (everyone). Pool tenants share one project — the wave has no effect for them.",
+      "waveChanged": "Update wave changed",
+      "wave": {
+        "internal": "Internal (own tests)",
+        "canary": "Canary (early)",
+        "stable": "Stable (default)"
+      }
     }
   }
 }
