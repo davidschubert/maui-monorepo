@@ -2,7 +2,8 @@
   "admin": {
     "nav": {
       "sites": "Sites",
-      "workspaces": "Workspaces"
+      "workspaces": "Workspaces",
+      "tenants": "Tenants"
     }
   },
   "studio": {
@@ -111,6 +112,39 @@
       "portalFailed": "Could not open the portal",
       "noBillingYet": "No billing account yet — start a checkout first.",
       "downgradeHint": "Manage cancellation and payment method via “Manage billing” — after cancelling, the workspace falls back to free at period end."
+    },
+    "tenants": {
+      "title": "Tenants",
+      "subtitle": "Host-to-customer register of the platform app: one row per customer domain — a new pool site goes live with a single entry (no build). Disabled hosts return 404 within 30 seconds.",
+      "new": "New tenant",
+      "empty": "No tenants yet.",
+      "created": "Tenant created",
+      "createFailed": "Could not create tenant",
+      "enabled": "Tenant enabled",
+      "disabled": "Tenant disabled",
+      "updateFailed": "Could not update tenant",
+      "deleted": "Tenant deleted",
+      "deleteFailed": "Could not delete tenant",
+      "host": "Host (customer domain)",
+      "hostHelp": "Canonical hostname, lowercase, no port — e.g. kunde-a.pukalani.app. DNS must point to the platform app.",
+      "modeLabel": "Mode",
+      "modeHelp": "Pool: shared project, rows scoped per tenant. Silo: own Appwrite project.",
+      "project": "Appwrite project ID",
+      "projectHelp": "Pool: the shared pool project. Silo: the customer’s own project.",
+      "enable": "Enable",
+      "disable": "Disable",
+      "delete": "Delete",
+      "create": "Create",
+      "mode": {
+        "pool": "Pool (shared)",
+        "silo": "Silo (own project)"
+      },
+      "validation": {
+        "hostInvalid": "Not a valid hostname",
+        "modeInvalid": "Invalid mode",
+        "projectInvalid": "Not a valid project ID",
+        "tenantIdInvalid": "Not a valid tenant ID"
+      }
     }
   }
 }

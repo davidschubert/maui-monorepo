@@ -2,7 +2,8 @@
   "admin": {
     "nav": {
       "sites": "Sites",
-      "workspaces": "Workspaces"
+      "workspaces": "Workspaces",
+      "tenants": "Tenants"
     }
   },
   "studio": {
@@ -111,6 +112,39 @@
       "portalFailed": "Portal konnte nicht geöffnet werden",
       "noBillingYet": "Noch keine Abrechnung vorhanden — starte zuerst einen Checkout.",
       "downgradeHint": "Kündigung und Zahlungsmethode verwaltest du unter „Abrechnung verwalten“ — nach einer Kündigung fällt der Workspace zum Periodenende automatisch auf free zurück."
+    },
+    "tenants": {
+      "title": "Tenants",
+      "subtitle": "Host-zu-Kunde-Register der Platform-App: eine Zeile pro Kundendomain — eine neue Pool-Site geht mit einem einzigen Eintrag live (kein Build). Deaktivierte Hosts liefern binnen 30 Sekunden 404.",
+      "new": "Neuer Tenant",
+      "empty": "Noch keine Tenants.",
+      "created": "Tenant angelegt",
+      "createFailed": "Tenant konnte nicht angelegt werden",
+      "enabled": "Tenant aktiviert",
+      "disabled": "Tenant deaktiviert",
+      "updateFailed": "Tenant konnte nicht aktualisiert werden",
+      "deleted": "Tenant gelöscht",
+      "deleteFailed": "Tenant konnte nicht gelöscht werden",
+      "host": "Host (Kundendomain)",
+      "hostHelp": "Kanonischer Hostname, klein, ohne Port — z. B. kunde-a.pukalani.app. DNS muss auf die Platform-App zeigen.",
+      "modeLabel": "Modus",
+      "modeHelp": "Pool: geteiltes Projekt, Zeilen pro Mandant gescoped. Silo: eigenes Appwrite-Projekt.",
+      "project": "Appwrite-Projekt-ID",
+      "projectHelp": "Pool: das geteilte Pool-Projekt. Silo: das eigene Projekt des Kunden.",
+      "enable": "Aktivieren",
+      "disable": "Deaktivieren",
+      "delete": "Löschen",
+      "create": "Anlegen",
+      "mode": {
+        "pool": "Pool (geteilt)",
+        "silo": "Silo (eigenes Projekt)"
+      },
+      "validation": {
+        "hostInvalid": "Kein gültiger Hostname",
+        "modeInvalid": "Ungültiger Modus",
+        "projectInvalid": "Keine gültige Projekt-ID",
+        "tenantIdInvalid": "Keine gültige Tenant-ID"
+      }
     }
   }
 }
