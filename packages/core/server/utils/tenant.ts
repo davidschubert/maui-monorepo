@@ -36,10 +36,26 @@ export function scopeRowFor<T extends Record<string, unknown>>(
   return { ...data }
 }
 
+/**
+ * Cache-Scope für Microcaches (Cross-Tenant-Cache-Regel, H3): JEDER Microcache
+ * auf einer tenancy-fähigen App MUSS den Tenant im Key tragen, sonst leakt
+ * die Antwort von Kunde A an Kunde B (Pool: andere Datenzeilen; Silo: sogar
+ * ein anderes Appwrite-Projekt). Single-Tenant-Betrieb → stabiler Key
+ * 'single' (Verhalten unverändert).
+ */
+export function tenantCacheScopeFor(tenant: TenantContext | null): string {
+  if (!tenant) return 'single'
+  return tenant.mode === 'pool' ? `pool:${tenant.tenantId}` : `silo:${tenant.projectId}`
+}
+
 // ── event-Wrapper (das, was Feature-Code aufruft) ───────────────────────────
 
 export function scopeQuery(event: H3Event, queries: string[] = []): string[] {
   return scopeQueriesFor(useTenant(event), queries)
+}
+
+export function tenantCacheScope(event: H3Event): string {
+  return tenantCacheScopeFor(useTenant(event))
 }
 
 export function scopeRow<T extends Record<string, unknown>>(event: H3Event, data: T): T & { tenantId?: string } {

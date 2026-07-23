@@ -9,7 +9,10 @@
 const snapshotCache = createMicrocache<{ features: string[] }>(60_000)
 
 export default defineEventHandler(async (event) => {
-  const cached = snapshotCache.get('features')
+  // Cross-Tenant-Cache-Regel (H3): Silo-Tenants zeigen auf ein anderes Projekt,
+  // Pool-Tenants können künftig eigene Gates haben — Key trägt den Tenant.
+  const cacheKey = `features:${tenantCacheScope(event)}`
+  const cached = snapshotCache.get(cacheKey)
   if (cached) return cached
 
   const states = await getEffectiveFeatures(event)
@@ -19,6 +22,6 @@ export default defineEventHandler(async (event) => {
       .map(([key]) => key)
       .sort(),
   }
-  snapshotCache.set('features', response)
+  snapshotCache.set(cacheKey, response)
   return response
 })

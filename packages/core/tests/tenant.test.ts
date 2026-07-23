@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { scopeQueriesFor, scopeRowFor } from '../server/utils/tenant'
+import { scopeQueriesFor, scopeRowFor, tenantCacheScopeFor } from '../server/utils/tenant'
 import type { TenantContext } from '../shared/types/tenant'
 
 const pool: TenantContext = { mode: 'pool', projectId: 'shared-1', tenantId: 'acme' }
@@ -32,5 +32,19 @@ describe('scopeRowFor', () => {
   })
   it('null (ruhend): kein tenantId → heutiges Verhalten', () => {
     expect(scopeRowFor(null, { text: 'hi' }).tenantId).toBeUndefined()
+  })
+})
+
+describe('tenantCacheScopeFor (Cross-Tenant-Cache-Regel)', () => {
+  it('pool: Scope trägt die tenantId — zwei Pool-Kunden teilen keinen Key', () => {
+    expect(tenantCacheScopeFor(pool)).toBe('pool:acme')
+    expect(tenantCacheScopeFor({ mode: 'pool', projectId: 'shared-1', tenantId: 'other' }))
+      .not.toBe(tenantCacheScopeFor(pool))
+  })
+  it('silo: Scope trägt das Projekt', () => {
+    expect(tenantCacheScopeFor(silo)).toBe('silo:silo-bigcorp')
+  })
+  it('null (Single-Tenant): stabiler Key — Verhalten unverändert', () => {
+    expect(tenantCacheScopeFor(null)).toBe('single')
   })
 })
