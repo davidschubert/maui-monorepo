@@ -9,6 +9,9 @@ export default defineEventHandler(async (event) => {
   }
 
   await assertCommentsWritable(event)
+  // H3-4.3: Pool-Tenants dürfen den geteilten Server nicht erschöpfen —
+  // Limits aus maui.tenancy.quota (Core-Default aus), Silo/Single-Tenant no-op.
+  await assertPoolWriteQuota(event, { kind: 'comments', tableId: COMMENTS_TABLE })
 
   const body = await readValidatedBody(event, commentSchema.parse)
   const config = useRuntimeConfig(event)
