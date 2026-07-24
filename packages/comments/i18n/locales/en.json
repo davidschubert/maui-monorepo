@@ -104,7 +104,10 @@
     "validation": {
       "targetRequired": "Target is missing",
       "contentRequired": "The comment must not be empty",
-      "contentMax": "At most 10,000 characters"
+      "contentMax": "At most 10,000 characters",
+      "guestNameRequired": "Please enter a name (at least 2 characters)",
+      "guestNameMax": "At most 60 characters",
+      "guestEmailInvalid": "Please enter a valid email address"
     }
   },
   "admin": {

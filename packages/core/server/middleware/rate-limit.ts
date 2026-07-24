@@ -51,6 +51,9 @@ const FAILURE_LIMITED = new Set([
 // bewusst: schon Moderator-gated, kein offener Abuse-Vektor.
 const WRITE_LIMITED: { re: RegExp, bucket: string, max?: number }[] = [
   { re: /^POST \/api\/comments$/, bucket: 'comments:create' },
+  // Gast-Kommentare (Embed E4): unauth. Write → enges Budget wie Feedback,
+  // reiner Spam-Backstop (die harte Grenze ist zusätzlich das Tenant-Quota).
+  { re: /^POST \/api\/comments\/guest$/, bucket: 'comments:guest', max: 5 },
   { re: /^PATCH \/api\/comments\/[^/]+$/, bucket: 'comments:edit' },
   { re: /^POST \/api\/comments\/[^/]+\/vote$/, bucket: 'comments:vote' },
   { re: /^POST \/api\/reports$/, bucket: 'reports:create' },

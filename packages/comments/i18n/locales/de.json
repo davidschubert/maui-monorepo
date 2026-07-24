@@ -104,7 +104,10 @@
     "validation": {
       "targetRequired": "Target fehlt",
       "contentRequired": "Der Kommentar darf nicht leer sein",
-      "contentMax": "Maximal 10.000 Zeichen"
+      "contentMax": "Maximal 10.000 Zeichen",
+      "guestNameRequired": "Bitte gib einen Namen an (mind. 2 Zeichen)",
+      "guestNameMax": "Maximal 60 Zeichen",
+      "guestEmailInvalid": "Bitte gib eine gültige E-Mail-Adresse an"
     }
   },
   "admin": {

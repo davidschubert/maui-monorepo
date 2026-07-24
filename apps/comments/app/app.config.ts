@@ -39,6 +39,9 @@ export default defineAppConfig({
       embed: {
         enabled: true,
         allowedOrigins: ['http://localhost:*', 'http://127.0.0.1:*'],
+        // Gast-Kommentare im Widget (Embed E4): Kommentieren ohne Account
+        // (Name+E-Mail, keine Verifikation). E-Mail landet nur in guest_authors.
+        guests: true,
       },
     },
     feedback: {

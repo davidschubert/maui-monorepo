@@ -49,6 +49,10 @@ export default defineAppConfig({
          *  Leer = nur 'self' (kein Fremd-Framing) · ['*'] = jede Seite darf
          *  einbetten (bewusste Betreiber-Entscheidung, Embed-Plan E7). */
         allowedOrigins: [] as string[],
+        /** Gast-Kommentare im Widget (Embed-Plan E4, Task 20): Kommentieren
+         *  ohne Account (Name+E-Mail, keine Verifikation). Default aus — die
+         *  App aktiviert bewusst; greift nur zusätzlich zu `enabled`. */
+        guests: false,
       },
     },
   },

@@ -24,6 +24,13 @@ export interface Comment extends Models.Row {
   authorId: string
   authorName: string
   /**
+   * Herkunft des Autors: 'user' (Appwrite-Account, Default/Bestand) oder
+   * 'guest' (Embed-Gast ohne Account, Name+E-Mail — Migration comments-013).
+   * Gast-Rows haben authorId '' und keine Vote-/Edit-Permissions; die E-Mail
+   * lebt NUR in guest_authors (operator-read), NIE auf dieser read(any)-Row.
+   */
+  authorKind?: 'user' | 'guest'
+  /**
    * Avatar-URL des Autors — KEINE DB-Spalte, sondern beim Lesen aus den
    * Account-prefs angereichert (immer aktuell). Bei Realtime-Events fremder
    * User fehlt sie → UserAvatar fällt auf Initialen zurück, bis neu geladen wird.
