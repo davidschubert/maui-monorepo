@@ -75,6 +75,13 @@ Vollständiges Konzept: docs/CONCEPT.md
   Seite"). PresenceAvatar (core): Avatar + Icon-Badge in der Ecke (tippt/antwortet)
 
 ## Themes (Layer themes; Tables besitzt system, Admin-Routen admin — A14)
+- Built-in-Katalog 26×11 (seit 2026-07-24): theme.catalog.ts ist der EINZIGE
+  Input — `pnpm --filter @maui/themes generate -- --write` erzeugt
+  public/themes/*.css + themeRegistry.gen.ts (committet; CI-Gate
+  `check:themes` in lint.yml: Regenerieren darf kein Diff erzeugen). Ramps
+  ankern die Basisfarbe fest auf Stufe 500; Kontrast-Gate verschiebt
+  --ui-primary-Stufen selbst. Öffentlicher Picker = ThemePickerModal
+  (Grid + sticky Varianten-Reihe), NIE CSS/Registry von Hand editieren.
 - Theme-Studio: /dashboard/themes (Galerie, Zweispalten), Editor als Vollseite
   (/new, /:id — Dock: Boxen „Farben"+„Schriften", je EIN „Erweitert"),
   Schriften-Verwaltung /dashboard/themes/fonts. Konzept + bewusste

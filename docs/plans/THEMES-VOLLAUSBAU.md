@@ -1,9 +1,29 @@
 # Plan: Themes-Vollausbau (26×11)
 
-Stand: 2026-07-01 · Status: **Plan, noch kein Code** · Backlog-Referenz:
-[GOALS.md → Backlog](../GOALS.md) („Themes-Vollausbau: 26 Themes × 11
-Farbvariationen, sobald die Phase-15-Infrastruktur steht") und
-[OPEN-ITEMS.md](../OPEN-ITEMS.md) („Backlog: Themes-Vollausbau (26×11)").
+Stand: 2026-07-24 · Status: **✅ UMGESETZT** · Backlog-Referenz:
+[GOALS.md → Backlog](../GOALS.md) und [OPEN-ITEMS.md](../OPEN-ITEMS.md).
+
+> **Umsetzung (2026-07-24, Entscheidungen E1–E7 vom 2026-07-23):**
+> Kuratierter Katalog [`theme.catalog.ts`](../../packages/themes/theme.catalog.ts)
+> — 26 Farbwelten (E1b: default zählt nicht): 21 chromatische über den
+> oklch-Hue-Kreis (~17°-Raster, kuratiert benannt: Crimson→Coral→Sunset→…→
+> Flamingo) + 5 gedeckte Ausreißer (Graphite, Espresso, Sage, Plum, Steel);
+> je Basis + 10 Varianten (E2a) über ein einheitliches tonales Schema
+> (soft/muted/vivid/deep/bright/warm/cool/dawn/dusk/pastel; ocean/forest/
+> sunset behalten ihre 2 Bestands-Varianten, graphite hat Material-Tönungen).
+> **Abnahme-Entscheidung Anker:** Basis fest auf Stufe 500 (RAMP_CONFIG in
+> themeGen.ts) statt Auto-Anker — der Auto-Anker verschob helle Basen sichtbar
+> (sunset 500: #f47e2a→#a64d00, abgelehnt); mit Anker 500 bleiben alle
+> Bestands-500er byte-gleich und `--ui-primary` überall 600/400. Kontrast-Gate
+> verschiebt selbst (citrus/bright 600→700, plum/deep 400→300 u. a.).
+> Registry: `themeRegistry.gen.ts` committet, `THEME_REGISTRY` = default +
+> GENERATED_THEMES (E6a); CI-Gate `pnpm --filter @maui/themes check:themes`
+> in lint.yml (Regenerieren darf kein Diff erzeugen; byte-genau verifiziert).
+> Picker: `ThemePickerModal` (E7b) — Swatch-Grid + sticky Varianten-Reihe,
+> DisplaySettingsMenu zeigt die aktive Wahl und öffnet das Modal. Bewiesen:
+> 62 Unit-Tests + 4 Guard-Tests (26×11, IDs unique, Dateien existieren,
+> Farben distinkt), SSR-Beweis (Cookie→data-theme+CSS-Link, ungültig→Default),
+> Visual-Baselines 9/9 neu + grün, Dark-Stichprobe neue Themes.
 
 ---
 
