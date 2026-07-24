@@ -4,6 +4,10 @@
     "neutralLabel": "Neutral",
     "neutralTinted": "Tinted (theme color)",
     "variantDefault": "Default",
+    "picker": {
+      "title": "Choose a theme",
+      "variants": "Color variation"
+    },
     "modeLabel": "Appearance",
     "appearance": {
       "light": "Light",

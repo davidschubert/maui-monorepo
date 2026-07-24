@@ -8,56 +8,27 @@ type SwatchItem = DropdownMenuItem & { swatchIcon?: string, swatchColor?: string
 
 const { t, locale, setLocale } = useI18n()
 const colorMode = useColorMode()
-const { themes, theme, variant, setTheme, setVariant, neutrals, neutral, setNeutral } = useTheme()
+const { theme, variant, neutrals, neutral, setNeutral } = useTheme()
 const localeOptions = useLocaleOptions()
 
 const capitalize = (value: string) => value.charAt(0).toUpperCase() + value.slice(1)
 
-function selectTheme(id: string, variantId: string | null) {
-  setTheme(id)
-  if (variantId) setVariant(variantId)
-}
+// 26×11 (E7b): das Theme wird nicht mehr im Dropdown gewählt (26 Themes ×
+// 11er-Untermenü ist unbedienbar), sondern im Grid-Modal — der Menü-Eintrag
+// zeigt die aktive Wahl (Name + Swatch) und öffnet den Picker.
+const pickerOpen = ref(false)
 
 const items = computed<SwatchItem[][]>(() => {
-  const themeChildren: SwatchItem[] = themes.value.map((entry) => {
-    if (!entry.variants.length) {
-      return {
-        label: entry.name,
-        slot: 'swatch',
-        swatchIcon: 'i-ph-palette',
-        swatchColor: entry.color,
-        type: 'checkbox',
-        checked: theme.value.id === entry.id,
-        onSelect: (event: Event) => { event.preventDefault(); selectTheme(entry.id, null) },
-      }
-    }
-    return {
-      label: entry.name,
-      slot: 'swatch',
-      swatchIcon: 'i-ph-palette',
-      swatchColor: entry.color,
-      children: [
-        {
-          label: t('themes.variantDefault'),
-          slot: 'swatch',
-          swatchIcon: 'i-ph-swatches',
-          swatchColor: entry.color,
-          type: 'checkbox',
-          checked: theme.value.id === entry.id && variant.value === null,
-          onSelect: (event: Event) => { event.preventDefault(); selectTheme(entry.id, null) },
-        },
-        ...entry.variants.map((v): SwatchItem => ({
-          label: capitalize(v.id),
-          slot: 'swatch',
-          swatchIcon: 'i-ph-swatches',
-          swatchColor: v.color,
-          type: 'checkbox',
-          checked: theme.value.id === entry.id && variant.value === v.id,
-          onSelect: (event: Event) => { event.preventDefault(); selectTheme(entry.id, v.id) },
-        })),
-      ],
-    }
-  })
+  const activeColor = variant.value
+    ? theme.value.variants.find(v => v.id === variant.value)?.color ?? theme.value.color
+    : theme.value.color
+  const themeChildren: SwatchItem[] = [{
+    label: variant.value ? `${theme.value.name} · ${capitalize(variant.value)}` : theme.value.name,
+    slot: 'swatch',
+    swatchIcon: 'i-ph-palette',
+    swatchColor: activeColor,
+    onSelect: () => { pickerOpen.value = true },
+  }]
 
   const neutralChildren: SwatchItem[] = neutrals.value.map(n => ({
     label: n.tinted ? t('themes.neutralTinted') : capitalize(n.id),
@@ -110,4 +81,7 @@ const items = computed<SwatchItem[][]>(() => {
       />
     </template>
   </UDropdownMenu>
+  <!-- Grid-Picker lebt NEBEN dem Dropdown (nicht darin): das Dropdown schließt
+       beim Klick, das Modal bleibt eigenständig offen (Reka-Teleport) -->
+  <ThemePickerModal v-model:open="pickerOpen" />
 </template>

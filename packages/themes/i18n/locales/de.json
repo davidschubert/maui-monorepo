@@ -4,6 +4,10 @@
     "neutralLabel": "Neutral",
     "neutralTinted": "Getönt (Theme-Farbe)",
     "variantDefault": "Standard",
+    "picker": {
+      "title": "Theme wählen",
+      "variants": "Farbvariation"
+    },
     "modeLabel": "Erscheinungsbild",
     "appearance": {
       "light": "Hell",
