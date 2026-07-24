@@ -10,6 +10,15 @@
 > Entscheidungen: sicheres Markdown (kein Roh-HTML), eine Sprache genügt,
 > Tenant-Theme wird geerbt, Silo nutzt dasselbe Muster.
 >
+> **Nachtrag (Pooling-Fix, pages-004):** Der Live-Isolationsbeweis
+> (`packages/comments/scripts/verify-pool-isolation.mjs`, jetzt mit pages-Block)
+> legte einen echten Pool-Bug offen — der Unique-Index `uq_slug_locale`
+> (slug+locale) verbot ZWEI Tenants dieselbe `home`-Seite (der zweite `create`
+> warf 409). Migration `pages-004` ersetzt ihn durch `uq_slug_locale_tenant`
+> (slug+locale+tenantId); im Single-Tenant-Betrieb (tenantId '') identisches
+> Verhalten. Ausgerollt auf lokalen Pool, Prod-Pool und studio Dev/Prod;
+> Isolationsbeweis danach **13/13** auf lokalem UND Prod-Pool.
+>
 > **Offen (Folge-Etappen):** Block-Baukasten (bewusst später) · Reserved-
 > `home`-Hinweis im pages-Admin (kleiner UX-Zusatz) · „wer editiert die
 > Homepage pro Tenant" hängt am offenen Design „Admin-per-Tenant".

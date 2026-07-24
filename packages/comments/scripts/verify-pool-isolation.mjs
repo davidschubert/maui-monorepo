@@ -96,6 +96,29 @@ try {
     queries: [Query.equal('targetId', TARGET), Query.limit(25)],
   })
   check('ohne Scope mischen sich beide Tenants (Beweis, dass der Filter nötig ist)', mixed.rows.length === 2, `(${mixed.rows.length})`)
+
+  // ── pages (Tenant-Homepage) — nur wenn die Tabelle existiert (platform/studio) ──
+  const hasPages = await tablesDB.listRows({ databaseId, tableId: 'pages', queries: [Query.limit(1)] })
+    .then(() => true).catch(() => false)
+  if (hasPages) {
+    const SLUG = `iso-home-${TARGET}` // gleicher slug für BEIDE Tenants (Härtefall)
+    for (const [tid, title] of [[TA, 'A-Home'], [TB, 'B-Home']]) {
+      const row = await tablesDB.createRow({
+        databaseId, tableId: 'pages', rowId: ID.unique(),
+        data: { slug: SLUG, locale: 'en', title, body: `# ${title}`, status: 'published', sortOrder: 0, tenantId: tid },
+      })
+      created.push({ table: 'pages', id: row.$id })
+    }
+    const pA = await tablesDB.listRows({ databaseId, tableId: 'pages', queries: [Query.equal('slug', SLUG), Query.equal('tenantId', TA), Query.limit(5)] })
+    const pB = await tablesDB.listRows({ databaseId, tableId: 'pages', queries: [Query.equal('slug', SLUG), Query.equal('tenantId', TB), Query.limit(5)] })
+    check('pages: A sieht genau 1 Seite (eigener slug-home)', pA.rows.length === 1, `(${pA.rows.length})`)
+    check('pages: A sieht NUR eigene', pA.rows.every(r => r.tenantId === TA && r.title === 'A-Home'))
+    check('pages: B sieht genau 1 Seite', pB.rows.length === 1, `(${pB.rows.length})`)
+    check('pages: B sieht NUR eigene', pB.rows.every(r => r.tenantId === TB && r.title === 'B-Home'))
+  }
+  else {
+    console.log('↷ pages-Tabelle nicht vorhanden — übersprungen (kein platform/studio-Projekt)')
+  }
 }
 finally {
   // Selbst-Aufräumen — auch bei Fehler
