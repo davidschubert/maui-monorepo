@@ -7,6 +7,41 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-07-23 (Fragerunde) — Entscheidungen für die offenen Blöcke
+
+David hat per Fragerunde alle offenen Design-/Freigabe-Punkte beantwortet
+(autonome Umsetzung freigegeben). Reihenfolge der Abarbeitung: **Key-Tausch →
+Quota → Homepage → E4**, danach Themes-Vollausbau.
+
+- **Read-only-Control-Plane-Key**: Tausch freigegeben (mit Vorab-curl-Test +
+  altem Key als Rollback). **BEFUND/BLOCKER:** die Key-ERSTELLUNG braucht
+  Console-Rechte im `studio`-Projekt (Team „Pukalani App"), OTP-gebunden = David.
+  Die einzige lingernde Console-Session gehört `provisioner@pukalani.app` —
+  ein Account, der laut Cleanup (Task #69, `session-handover-2026-07-16`)
+  gelöscht sein sollte. Bewusst NICHT für eine Prod-Sicherheitsoperation
+  genutzt (Gegenteil von least-privilege; Session gehört ohnehin entfernt).
+  → Runbook für David in [PLATFORM-CONTROL-KEY-SWAP.md](plans/PLATFORM-CONTROL-KEY-SWAP.md);
+  **zusätzlich: verwaisten Provisioner-Account/Session prüfen + löschen.**
+- **Quota-Zahlen**: Plan-Staffelung übernommen — free 200/Tag + 5.000 gesamt ·
+  pro 1.000/Tag + 50.000 · business 5.000/Tag + 250.000; Silo ohne Limit. Ich
+  verdrahte Plan→Limit (die assertPoolWriteQuota-Mechanik steht seit H3-4.3).
+- **Tenant-Homepage** (pro Tenant konfigurierbar, „pro Tenant"): MVP =
+  CMS-Markdown (sicheres Subset, KEIN Roh-HTML) + optional EIN einbettbarer
+  Kommentar-Block; EINE Sprache Pflicht (weitere optional); Tenant-Theme wird
+  geerbt; Silo nutzt dasselbe pages-Muster. Konzept:
+  [PLATFORM-TENANT-HOMEPAGE.md](plans/PLATFORM-TENANT-HOMEPAGE.md).
+- **Embed E4**: alle drei bauen, Reihenfolge Presence → Gast → Web-Component.
+  **Gast-Kommentare**: Name+E-Mail OHNE Verifikation (Disqus-Gastmodus,
+  niedrigste Hürde), Spam über Auto-Hide + Rate-Limit + Honeypot.
+- **Themes-Vollausbau E1–E7** (alle Plan-Empfehlungen bestätigt): E1 Default
+  zählt NICHT (26 echte neue Farbwelten) · E2 11 = Basis+10 · E3 Neutral bleibt
+  separate Achse · E4 Hue-Raster (26×~13,8°) als Startpunkt, dann kuratieren+
+  benennen · E5 Themes rein farblich (Fonts/Radius = Backlog) · E6 committete
+  `.gen.ts` + CI-„Output aktuell"-Check · E7 Grid-Modal-Picker (Dropdown mit
+  26×11 unbedienbar). Umsetzung: [THEMES-VOLLAUSBAU.md](plans/THEMES-VOLLAUSBAU.md).
+- **Aufräumer**: Hetzner-Rescale-Thema geschlossen (CI-Build-Deploy → CX23
+  reicht, Server baut nichts). Themes-Vollausbau rückt nach vorn.
+
 ## 2026-07-22 (3) — apps/platform: der Multi-Tenant-Beweis end-to-end
 
 Die erste echte Multi-Tenant-App (aus apps/_template, Features themes/admin/

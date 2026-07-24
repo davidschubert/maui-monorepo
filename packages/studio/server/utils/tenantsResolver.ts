@@ -20,11 +20,14 @@ import { TENANTS_TABLE, type TenantRow } from '../../shared/types/tenantRecord'
  */
 
 /** Pure (unit-getestet): tenants-Row → TenantContext. */
-export function mapTenantRowToContext(row: Pick<TenantRow, 'mode' | 'projectId' | 'tenantId' | 'status'> | null): TenantContext | null {
+export function mapTenantRowToContext(row: Pick<TenantRow, 'mode' | 'projectId' | 'tenantId' | 'status' | 'plan'> | null): TenantContext | null {
   if (!row || row.status !== 'active') return null
   if (row.mode === 'silo') return { mode: 'silo', projectId: row.projectId }
   // Pool ohne tenantId wäre ein Datenfehler — NIE ungescoped durchlassen
-  if (row.mode === 'pool' && row.tenantId) return { mode: 'pool', projectId: row.projectId, tenantId: row.tenantId }
+  if (row.mode === 'pool' && row.tenantId) {
+    // '' (Bestand vor studio-013) → free; der Plan staffelt die Quota
+    return { mode: 'pool', projectId: row.projectId, tenantId: row.tenantId, plan: row.plan || 'free' }
+  }
   return null
 }
 

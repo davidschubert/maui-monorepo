@@ -17,5 +17,6 @@ export default defineEventHandler(async (event) => {
   return { total, tenants: rows.map(row => ({
     id: row.$id, name: row.name, host: row.host, mode: row.mode, projectId: row.projectId, tenantId: row.tenantId, status: row.status,
     wave: row.wave === '' || row.wave == null ? 'stable' as const : row.wave,
+    plan: row.plan === '' || row.plan == null ? 'free' as const : row.plan,
   })) }
 })

@@ -8,13 +8,16 @@ export default defineAppConfig({
     tenancy: {
       enabled: true,
       // H3-4.3 Quota (Blueprint S4): Pool-Kunden erschöpfen den geteilten
-      // Server nicht. Zahlen = Vorschlag „pro"-Niveau als Pool-Default,
-      // solange Tenants noch keinem Plan zugeordnet sind (Katalog-Vorschlag
-      // in docs/OPEN-ITEMS.md, David nickt ab). Silo-Tenants: kein Limit
-      // (eigenes Projekt). perDay = rollierende 24 h.
+      // Server nicht. PRO PLAN gestaffelt (David-Freigabe 2026-07-23) — der
+      // Tenant trägt seinen Plan (tenants.plan, studio-013, Default free).
+      // Silo-Tenants: kein Limit (eigenes Projekt). perDay = rollierende 24 h.
       quota: {
         enabled: true,
-        comments: { perDay: 1000, total: 50_000 },
+        plans: {
+          free: { comments: { perDay: 200, total: 5_000 } },
+          pro: { comments: { perDay: 1000, total: 50_000 } },
+          business: { comments: { perDay: 5000, total: 250_000 } },
+        },
       },
     },
   },

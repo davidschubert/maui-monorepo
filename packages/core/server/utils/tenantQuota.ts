@@ -10,15 +10,20 @@ import type { H3Event } from 'h3'
  *   await assertPoolWriteQuota(event, { kind: 'comments', tableId: COMMENTS_TABLE })
  *
  * Limits kommen aus app.config maui.tenancy.quota (Core-Default AUS; die
- * Platform-App aktiviert und setzt Zahlen):
+ * Platform-App aktiviert und staffelt sie PRO PLAN):
  *
- *   maui: { tenancy: { quota: { enabled: true, comments: { perDay: 1000, total: 50_000 } } } }
+ *   maui: { tenancy: { quota: { enabled: true, plans: {
+ *     free:     { comments: { perDay: 200,  total: 5_000 } },
+ *     pro:      { comments: { perDay: 1000, total: 50_000 } },
+ *     business: { comments: { perDay: 5000, total: 250_000 } },
+ *   } } } }
  *
- * Semantik: greift NUR für Pool-Tenants (Silo = eigenes Projekt, erschöpft
- * niemanden mit). perDay = rollierende 24 h (kein Mitternachts-Reset-Gaming),
- * total = Bestand gesamt; 0/fehlend = unbegrenzt. Kosten: zwei indizierte
- * Count-Queries pro Schreibzugriff (idx_tenant, Single-Instanz ok) —
- * Überschreitung wirft 429.
+ * Der Plan des Tenants (TenantContext.plan, Default 'free') wählt die Zeile;
+ * unbekannter Plan → 'free'. Semantik: greift NUR für Pool-Tenants (Silo =
+ * eigenes Projekt, erschöpft niemanden mit). perDay = rollierende 24 h (kein
+ * Mitternachts-Reset-Gaming), total = Bestand gesamt; 0/fehlend = unbegrenzt.
+ * Kosten: zwei indizierte Count-Queries pro Write (idx_tenant) → 429 bei
+ * Überschreitung.
  */
 
 export interface TenantQuotaLimits {
@@ -30,7 +35,8 @@ export interface TenantQuotaLimits {
 
 interface TenancyQuotaConfig {
   enabled?: boolean
-  [kind: string]: TenantQuotaLimits | boolean | undefined
+  /** Limits je Plan-Key (free/pro/business): { [plan]: { [kind]: Limits } }. */
+  plans?: Record<string, Record<string, TenantQuotaLimits | undefined> | undefined>
 }
 
 /** PURE Entscheidung (unit-getestet): welches Limit ist verletzt? */
@@ -43,6 +49,17 @@ export function evaluateQuota(
   return 'ok'
 }
 
+/** PURE Auflösung (unit-getestet): Limits für Plan+kind; unbekannter Plan → free. */
+export function limitsForPlan(
+  plans: TenancyQuotaConfig['plans'],
+  plan: string | undefined,
+  kind: string,
+): TenantQuotaLimits | undefined {
+  if (!plans) return undefined
+  const forPlan = plans[plan ?? 'free'] ?? plans.free
+  return forPlan?.[kind]
+}
+
 export async function assertPoolWriteQuota(event: H3Event, options: { kind: string, tableId: string }): Promise<void> {
   const tenant = useTenant(event)
   if (tenant?.mode !== 'pool') return
@@ -50,8 +67,8 @@ export async function assertPoolWriteQuota(event: H3Event, options: { kind: stri
   const appConfig = useAppConfig() as { maui?: { tenancy?: { quota?: TenancyQuotaConfig } } }
   const quota = appConfig.maui?.tenancy?.quota
   if (quota?.enabled !== true) return
-  const limits = quota[options.kind]
-  if (!limits || typeof limits === 'boolean') return
+  const limits = limitsForPlan(quota.plans, tenant.plan, options.kind)
+  if (!limits) return
 
   const config = useRuntimeConfig(event)
   const { tablesDB } = createAdminClient(event)

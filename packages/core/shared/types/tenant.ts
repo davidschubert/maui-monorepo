@@ -10,5 +10,9 @@
 export type TenantContext =
   /** Eigenes Appwrite-Projekt (Isolation am Projekt) — Spezial-/Enterprise-Kunde. */
   | { mode: 'silo', projectId: string }
-  /** Geteiltes Projekt, Zeilen-Scope über tenantId — Standard-SaaS-Kunde. */
-  | { mode: 'pool', projectId: string, tenantId: string }
+  /**
+   * Geteiltes Projekt, Zeilen-Scope über tenantId — Standard-SaaS-Kunde.
+   * `plan` (free/pro/business, Default free) staffelt die Quota — core bleibt
+   * plan-name-agnostisch (nur ein String-Key in den quota.plans-Katalog).
+   */
+  | { mode: 'pool', projectId: string, tenantId: string, plan?: string }

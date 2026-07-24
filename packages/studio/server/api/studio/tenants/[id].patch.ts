@@ -19,7 +19,8 @@ export default defineEventHandler(async (event) => {
     data: {
       ...(body.status !== undefined ? { status: body.status } : {}),
       ...(body.wave !== undefined ? { wave: body.wave } : {}),
+      ...(body.plan !== undefined ? { plan: body.plan } : {}),
     },
   }).catch((error) => { throw toH3Error(error, 'Could not update tenant') })
-  return { id: row.$id, status: row.status, wave: row.wave }
+  return { id: row.$id, status: row.status, wave: row.wave, plan: row.plan }
 })

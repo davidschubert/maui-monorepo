@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { TENANT_MODES, TENANT_WAVES } from '../shared/types/tenantRecord'
+import { TENANT_MODES, TENANT_PLANS, TENANT_WAVES } from '../shared/types/tenantRecord'
 
 type TranslateFn = (key: string) => string
 const identity: TranslateFn = key => key
@@ -73,6 +73,7 @@ export function createTenantCreateSchema(t: TranslateFn = identity) {
     projectId: z.string().trim().regex(idRe, t('studio.tenants.validation.projectInvalid')).optional(),
     tenantId: z.string().trim().regex(idRe, t('studio.tenants.validation.tenantIdInvalid')).optional(),
     wave: z.enum(TENANT_WAVES).optional(),
+    plan: z.enum(TENANT_PLANS).optional(),
   }).strict()
 }
 
@@ -83,4 +84,8 @@ export const tenantCreateSchema = createTenantCreateSchema()
 export const tenantStatusSchema = z.object({
   status: z.enum(['active', 'disabled']).optional(),
   wave: z.enum(TENANT_WAVES).optional(),
-}).strict().refine(body => body.status !== undefined || body.wave !== undefined, 'empty patch')
+  plan: z.enum(TENANT_PLANS).optional(),
+}).strict().refine(
+  body => body.status !== undefined || body.wave !== undefined || body.plan !== undefined,
+  'empty patch',
+)

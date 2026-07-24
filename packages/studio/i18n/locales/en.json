@@ -159,6 +159,14 @@
         "internal": "Internal (own tests)",
         "canary": "Canary (early)",
         "stable": "Stable (default)"
+      },
+      "planLabel": "Plan",
+      "planHelp": "Tiers the usage limits of the pool tenant (e.g. comments per day). Silo customers have no limit.",
+      "planChanged": "Plan changed",
+      "plan": {
+        "free": "Free",
+        "pro": "Pro",
+        "business": "Business"
       }
     }
   }

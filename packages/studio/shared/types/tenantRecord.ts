@@ -19,6 +19,11 @@ export type TenantStatus = (typeof TENANT_STATUSES)[number]
 export const TENANT_WAVES = ['internal', 'canary', 'stable'] as const
 export type TenantWave = (typeof TENANT_WAVES)[number]
 
+/** Quota-Plan des Pool-Tenants (studio-013); staffelt die Quota-Limits
+ *  (maui.tenancy.quota.plans). Default free; für Silo ohne Wirkung. */
+export const TENANT_PLANS = ['free', 'pro', 'business'] as const
+export type TenantPlan = (typeof TENANT_PLANS)[number]
+
 /** Row-Typ zur `tenants`-Table (Schema: Migrationen studio-010/011). */
 export interface TenantRow extends Models.Row {
   /** Anzeigename des Kunden (studio-011); '' = Bestand vor der Migration. */
@@ -34,6 +39,8 @@ export interface TenantRow extends Models.Row {
   status: TenantStatus
   /** Update-Welle des BACKING-Projekts (studio-012); '' = Bestand → stable. */
   wave: TenantWave | ''
+  /** Quota-Plan (studio-013); '' = Bestand → free. */
+  plan: TenantPlan | ''
 }
 
 export const TENANTS_TABLE = 'tenants'
