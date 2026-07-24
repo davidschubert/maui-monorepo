@@ -1,5 +1,28 @@
 # Changelog
 
+## [2.3.0](https://github.com/davidschubert/maui-monorepo/compare/v2.2.0...v2.3.0) (2026-07-24)
+
+
+### Features
+
+* **comments:** Embed Site-Registry + count-API (E3, Plan Tasks 14+15) ([b9dc294](https://github.com/davidschubert/maui-monorepo/commit/b9dc2945131ab27aafbb9533ab0d898d2a6d5702))
+* **comments:** Gast-Kommentar-Formular im Widget (E4 [#20](https://github.com/davidschubert/maui-monorepo/issues/20) Frontend) ([be2e669](https://github.com/davidschubert/maui-monorepo/commit/be2e669b934ab96e3990bebea85c604446e3b0a1))
+* **comments:** Gast-Kommentare im Embed (E4 [#20](https://github.com/davidschubert/maui-monorepo/issues/20)) — Backend + Gate ([e26c58c](https://github.com/davidschubert/maui-monorepo/commit/e26c58c90a6350f8644f245b2fb18264f279dae5))
+* **comments:** Schreiben im Embed (E2) — Popup-Login-CTA + CSRF-Gate scharf ([3093f5b](https://github.com/davidschubert/maui-monorepo/commit/3093f5bebcd3522cbd87d72532e8de61e9886e9c))
+* **comments:** Web-Component &lt;maui-comments&gt; (E4 [#19](https://github.com/davidschubert/maui-monorepo/issues/19), safe iframe-Variante) ([3d9134c](https://github.com/davidschubert/maui-monorepo/commit/3d9134cd03bfc02ab3b97f3812c578847df432cf))
+* **core:** Embed-Session-Handoff (E2) — Popup-Login übergibt Session als CHIPS-Cookie ([4cf18b3](https://github.com/davidschubert/maui-monorepo/commit/4cf18b3caaab13d8b4c0be338edaefd407effad2))
+* **h3:** Quota pro Plan — tenants.plan (free/pro/business) staffelt die Limits ([5503376](https://github.com/davidschubert/maui-monorepo/commit/550337636286cfd62f6e7d5a1766e2acbf13cf29))
+* **moderation:** reports in den H3-Pool-Datenpfad (tenantId + scopeQuery/scopeRow) ([8e03338](https://github.com/davidschubert/maui-monorepo/commit/8e03338e19d532c74cbc77f0c200e9411fc5324c))
+* **platform:** konfigurierbare Tenant-Homepage — pages-Layer gepoolt + home-Route ([e9b1675](https://github.com/davidschubert/maui-monorepo/commit/e9b16751cef6975efe999f0c6f298e7dfb1fffc2))
+* **studio:** Quota-Limits + Stripe-Preise im Dashboard editierbar ([23414db](https://github.com/davidschubert/maui-monorepo/commit/23414db386e0caacc13e4c21b71724c94e6fa980))
+* **themes:** 26x11-Vollausbau — kuratierter Katalog, Generator scharf, CI-Gate ([7522ae1](https://github.com/davidschubert/maui-monorepo/commit/7522ae12a99e024528f53f8872d2789125100336))
+* **themes:** Grid-Modal-Picker (E7b) + Visual-Baselines der neuen Kurven ([bee9c88](https://github.com/davidschubert/maui-monorepo/commit/bee9c886fa7fc49f02a9758a7209abe2dc521d97))
+
+
+### Bug Fixes
+
+* **pages:** tenant-aware Unique-Index — zwei Pool-Tenants dürfen dieselbe home-Seite ([1c6fd14](https://github.com/davidschubert/maui-monorepo/commit/1c6fd14b3a842e0a7cd8f26636e1589154b94030))
+
 ## [2.2.0](https://github.com/davidschubert/maui-monorepo/compare/v2.1.0...v2.2.0) (2026-07-23)
 
 
