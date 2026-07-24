@@ -7,7 +7,8 @@
   "scripts": {
     "lint": "eslint .",
     "test": "vitest run",
-    "generate": "jiti scripts/generate-themes.ts"
+    "generate": "jiti scripts/generate-themes.ts",
+    "check:themes": "jiti scripts/generate-themes.ts --check"
   },
   "dependencies": {
     "@nuxt/ui": "catalog:"

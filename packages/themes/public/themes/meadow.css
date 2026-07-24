@@ -1,0 +1,183 @@
+/* Maui Theme: meadow — GENERIERT von scripts/generate-themes.ts, nicht von Hand editieren */
+
+:root[data-theme='meadow'] {
+  --ui-color-primary-50: #f5f8dd;
+  --ui-color-primary-100: #eef3c0;
+  --ui-color-primary-200: #e4ea9d;
+  --ui-color-primary-300: #cfd66b;
+  --ui-color-primary-400: #b7bd32;
+  --ui-color-primary-500: #a8ad00;
+  --ui-color-primary-600: #848800;
+  --ui-color-primary-700: #636600;
+  --ui-color-primary-800: #464800;
+  --ui-color-primary-900: #2c2e00;
+  --ui-color-primary-950: #0e0f00;
+  --ui-primary: var(--ui-color-primary-600);
+  --ui-radius: 0.375rem;
+}
+
+.dark[data-theme='meadow'] {
+  --ui-primary: var(--ui-color-primary-400);
+}
+
+/* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
+
+:root[data-theme='meadow'][data-variant='soft'] {
+  --ui-color-primary-50: #f5f7e6;
+  --ui-color-primary-100: #eef1d0;
+  --ui-color-primary-200: #e3e8b6;
+  --ui-color-primary-300: #ced391;
+  --ui-color-primary-400: #b6bb6c;
+  --ui-color-primary-500: #a6ab5a;
+  --ui-color-primary-600: #838739;
+  --ui-color-primary-700: #62661f;
+  --ui-color-primary-800: #46480a;
+  --ui-color-primary-900: #2c2e00;
+  --ui-color-primary-950: #0e0f00;
+}
+
+/* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
+
+:root[data-theme='meadow'][data-variant='muted'] {
+  --ui-color-primary-50: #f5f6ec;
+  --ui-color-primary-100: #eef0dd;
+  --ui-color-primary-200: #e3e6ca;
+  --ui-color-primary-300: #cdd1ac;
+  --ui-color-primary-400: #b5b98d;
+  --ui-color-primary-500: #a5a97d;
+  --ui-color-primary-600: #82855c;
+  --ui-color-primary-700: #616440;
+  --ui-color-primary-800: #45472a;
+  --ui-color-primary-900: #2b2d16;
+  --ui-color-primary-950: #0e0e02;
+}
+
+/* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
+
+:root[data-theme='meadow'][data-variant='vivid'] {
+  --ui-color-primary-50: #f5f8df;
+  --ui-color-primary-100: #ecf0c0;
+  --ui-color-primary-200: #dee49c;
+  --ui-color-primary-300: #c7cd6a;
+  --ui-color-primary-400: #adb232;
+  --ui-color-primary-500: #9ba000;
+  --ui-color-primary-600: #7a7e00;
+  --ui-color-primary-700: #5c5f00;
+  --ui-color-primary-800: #424400;
+  --ui-color-primary-900: #2a2c00;
+  --ui-color-primary-950: #0e0f00;
+}
+
+/* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
+
+:root[data-theme='meadow'][data-variant='deep'] {
+  --ui-color-primary-50: #f5f8e1;
+  --ui-color-primary-100: #e8ecc0;
+  --ui-color-primary-200: #d7dc9b;
+  --ui-color-primary-300: #bcc169;
+  --ui-color-primary-400: #9ea332;
+  --ui-color-primary-500: #898d00;
+  --ui-color-primary-600: #6c7000;
+  --ui-color-primary-700: #525500;
+  --ui-color-primary-800: #3b3d00;
+  --ui-color-primary-900: #272800;
+  --ui-color-primary-950: #0e0f00;
+}
+
+/* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
+
+:root[data-theme='meadow'][data-variant='bright'] {
+  --ui-color-primary-50: #f5f8db;
+  --ui-color-primary-100: #f4f9bf;
+  --ui-color-primary-200: #eff59e;
+  --ui-color-primary-300: #e0e76d;
+  --ui-color-primary-400: #ccd330;
+  --ui-color-primary-500: #c2c800;
+  --ui-color-primary-600: #989d00;
+  --ui-color-primary-700: #717500;
+  --ui-color-primary-800: #4f5200;
+  --ui-color-primary-900: #303200;
+  --ui-color-primary-950: #0e0f00;
+  --ui-primary: var(--ui-color-primary-700);
+}
+
+/* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
+
+:root[data-theme='meadow'][data-variant='warm'] {
+  --ui-color-primary-50: #ecfbde;
+  --ui-color-primary-100: #ddf9c1;
+  --ui-color-primary-200: #c9f39f;
+  --ui-color-primary-300: #abe16e;
+  --ui-color-primary-400: #8dca37;
+  --ui-color-primary-500: #7cba10;
+  --ui-color-primary-600: #609300;
+  --ui-color-primary-700: #476e00;
+  --ui-color-primary-800: #314f00;
+  --ui-color-primary-900: #1e3200;
+  --ui-color-primary-950: #071100;
+}
+
+/* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
+
+:root[data-theme='meadow'][data-variant='cool'] {
+  --ui-color-primary-50: #fcf5dd;
+  --ui-color-primary-100: #fbeebf;
+  --ui-color-primary-200: #f6e39c;
+  --ui-color-primary-300: #e7cc6b;
+  --ui-color-primary-400: #d2b231;
+  --ui-color-primary-500: #c3a200;
+  --ui-color-primary-600: #9a7f00;
+  --ui-color-primary-700: #745f00;
+  --ui-color-primary-800: #534300;
+  --ui-color-primary-900: #352a00;
+  --ui-color-primary-950: #120d00;
+}
+
+/* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
+
+:root[data-theme='meadow'][data-variant='dawn'] {
+  --ui-color-primary-50: #fff3e3;
+  --ui-color-primary-100: #ffeed6;
+  --ui-color-primary-200: #ffe3bd;
+  --ui-color-primary-300: #ffcb7f;
+  --ui-color-primary-400: #f7ae30;
+  --ui-color-primary-500: #eaa000;
+  --ui-color-primary-600: #b97d00;
+  --ui-color-primary-700: #8b5d00;
+  --ui-color-primary-800: #634100;
+  --ui-color-primary-900: #3e2800;
+  --ui-color-primary-950: #160b00;
+}
+
+/* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
+
+:root[data-theme='meadow'][data-variant='dusk'] {
+  --ui-color-primary-50: #e3fde6;
+  --ui-color-primary-100: #c7f9cc;
+  --ui-color-primary-200: #a4f1af;
+  --ui-color-primary-300: #74dd87;
+  --ui-color-primary-400: #3ac35d;
+  --ui-color-primary-500: #05b047;
+  --ui-color-primary-600: #008b36;
+  --ui-color-primary-700: #006a27;
+  --ui-color-primary-800: #004c1a;
+  --ui-color-primary-900: #00320e;
+  --ui-color-primary-950: #001203;
+}
+
+/* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
+
+:root[data-theme='meadow'][data-variant='pastel'] {
+  --ui-color-primary-50: #f5f7e8;
+  --ui-color-primary-100: #f5f7dc;
+  --ui-color-primary-200: #f0f4cc;
+  --ui-color-primary-300: #e1e6b0;
+  --ui-color-primary-400: #cfd494;
+  --ui-color-primary-500: #c5ca89;
+  --ui-color-primary-600: #9a9f62;
+  --ui-color-primary-700: #737741;
+  --ui-color-primary-800: #505326;
+  --ui-color-primary-900: #313210;
+  --ui-color-primary-950: #0e0f00;
+  --ui-primary: var(--ui-color-primary-700);
+}

@@ -44,6 +44,15 @@ const MIN_RATIO = 3
 const LIGHT_CANDIDATES: Shade[] = [600, 700, 800]
 const DARK_CANDIDATES: Shade[] = [400, 300, 200]
 
+// Anker fest auf 500: die Katalog-Basisfarbe IST die 500er-Stufe — wie in den
+// handkuratierten Bestands-CSS (und im Tailwind-Denkmodell „Brand = 500").
+// Der Auto-Anker (nächstliegende Helligkeit) würde helle Basen (sunset,
+// citrus) auf 300/400 legen und die halbe Ramp sichtbar verdunkeln — bewusst
+// abgelehnt bei der Abnahme (2026-07-24): visuelle Kontinuität der Live-Sites
+// + „Katalogfarbe = Swatch = 500" schlagen die perfekte Kurventreue. Zu helle
+// --ui-primary-Stufen fängt das Kontrast-Gate (Stufen-Shift).
+const RAMP_CONFIG = { anchor: 500 as Shade }
+
 /** 'oklch(58.5% 0.233 277.117)' | '#rrggbb' → '#rrggbb' (klein); null = ungültig */
 export function specColorToHex(value: string): string | null {
   if (HEX_COLOR_RE.test(value)) return value.toLowerCase()
@@ -72,7 +81,7 @@ function rampBlock(ramp: Record<Shade, string>, indent = '  '): string {
 export function generateTheme(spec: ThemeSpec): GeneratedTheme {
   const baseHex = specColorToHex(spec.base)
   if (!baseHex) throw new Error(`Theme '${spec.id}': ungültige Basisfarbe '${spec.base}'`)
-  const baseRamp = generateRamp(baseHex)
+  const baseRamp = generateRamp(baseHex, RAMP_CONFIG)
   if (!baseRamp) throw new Error(`Theme '${spec.id}': Ramp-Generierung fehlgeschlagen`)
 
   const adjustments: string[] = []
@@ -102,7 +111,7 @@ export function generateTheme(spec: ThemeSpec): GeneratedTheme {
   for (const variant of spec.variants) {
     const variantHex = specColorToHex(variant.base)
     if (!variantHex) throw new Error(`Theme '${spec.id}', Variante '${variant.id}': ungültige Farbe '${variant.base}'`)
-    const variantRamp = generateRamp(variantHex)
+    const variantRamp = generateRamp(variantHex, RAMP_CONFIG)
     if (!variantRamp) throw new Error(`Theme '${spec.id}', Variante '${variant.id}': Ramp fehlgeschlagen`)
 
     const vLight = pickPrimaryShade(variantRamp, LIGHT_CANDIDATES, LIGHT_BG)
@@ -151,7 +160,7 @@ export function buildRegistryModule(themes: GeneratedTheme[], specs: ThemeSpec[]
     ].join('\n')
   }).join('\n')
   return [
-    `// GENERIERT von scripts/generate-themes.ts aus theme.spec.ts — nicht von Hand editieren.`,
+    `// GENERIERT von scripts/generate-themes.ts aus theme.catalog.ts — nicht von Hand editieren.`,
     `// Handgepflegt bleiben: default-Eintrag, NEUTRAL_REGISTRY, Typen (themeRegistry.ts).`,
     `import type { MauiTheme } from './themeRegistry'`,
     ``,

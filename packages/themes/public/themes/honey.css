@@ -1,0 +1,183 @@
+/* Maui Theme: honey — GENERIERT von scripts/generate-themes.ts, nicht von Hand editieren */
+
+:root[data-theme='honey'] {
+  --ui-color-primary-50: #fef5dc;
+  --ui-color-primary-100: #ffefc5;
+  --ui-color-primary-200: #ffe59f;
+  --ui-color-primary-300: #f3cf6b;
+  --ui-color-primary-400: #e1b631;
+  --ui-color-primary-500: #d4a800;
+  --ui-color-primary-600: #a78400;
+  --ui-color-primary-700: #7e6200;
+  --ui-color-primary-800: #594500;
+  --ui-color-primary-900: #382a00;
+  --ui-color-primary-950: #130c00;
+  --ui-primary: var(--ui-color-primary-600);
+  --ui-radius: 0.375rem;
+}
+
+.dark[data-theme='honey'] {
+  --ui-primary: var(--ui-color-primary-400);
+}
+
+/* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
+
+:root[data-theme='honey'][data-variant='soft'] {
+  --ui-color-primary-50: #faf5e7;
+  --ui-color-primary-100: #faefd4;
+  --ui-color-primary-200: #f5e6be;
+  --ui-color-primary-300: #e6d29d;
+  --ui-color-primary-400: #d1ba7b;
+  --ui-color-primary-500: #c4ac6b;
+  --ui-color-primary-600: #9d8648;
+  --ui-color-primary-700: #78642d;
+  --ui-color-primary-800: #564617;
+  --ui-color-primary-900: #372b05;
+  --ui-color-primary-950: #130c00;
+}
+
+/* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
+
+:root[data-theme='honey'][data-variant='muted'] {
+  --ui-color-primary-50: #f8f5ed;
+  --ui-color-primary-100: #f5f0e0;
+  --ui-color-primary-200: #efe6cf;
+  --ui-color-primary-300: #ddd2b4;
+  --ui-color-primary-400: #c8bb98;
+  --ui-color-primary-500: #baad89;
+  --ui-color-primary-600: #948866;
+  --ui-color-primary-700: #706548;
+  --ui-color-primary-800: #50472f;
+  --ui-color-primary-900: #322c19;
+  --ui-color-primary-950: #110d03;
+}
+
+/* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
+
+:root[data-theme='honey'][data-variant='vivid'] {
+  --ui-color-primary-50: #fdf5dd;
+  --ui-color-primary-100: #fdecbf;
+  --ui-color-primary-200: #f9e09c;
+  --ui-color-primary-300: #eac86b;
+  --ui-color-primary-400: #d5ad31;
+  --ui-color-primary-500: #c59c00;
+  --ui-color-primary-600: #9c7b00;
+  --ui-color-primary-700: #755c00;
+  --ui-color-primary-800: #544100;
+  --ui-color-primary-900: #362900;
+  --ui-color-primary-950: #130c00;
+}
+
+/* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
+
+:root[data-theme='honey'][data-variant='deep'] {
+  --ui-color-primary-50: #fdf5df;
+  --ui-color-primary-100: #f8e8bf;
+  --ui-color-primary-200: #efd89b;
+  --ui-color-primary-300: #dbbd69;
+  --ui-color-primary-400: #c29e32;
+  --ui-color-primary-500: #af8a00;
+  --ui-color-primary-600: #8b6d00;
+  --ui-color-primary-700: #695200;
+  --ui-color-primary-800: #4c3b00;
+  --ui-color-primary-900: #322600;
+  --ui-color-primary-950: #130c00;
+}
+
+/* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
+
+:root[data-theme='honey'][data-variant='bright'] {
+  --ui-color-primary-50: #fef5db;
+  --ui-color-primary-100: #fff5da;
+  --ui-color-primary-200: #fff0ca;
+  --ui-color-primary-300: #ffe08c;
+  --ui-color-primary-400: #f8cb41;
+  --ui-color-primary-500: #f0c12a;
+  --ui-color-primary-600: #be9600;
+  --ui-color-primary-700: #8e7000;
+  --ui-color-primary-800: #634d00;
+  --ui-color-primary-900: #3d2e00;
+  --ui-color-primary-950: #130c00;
+  --ui-primary: var(--ui-color-primary-700);
+}
+
+/* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
+
+:root[data-theme='honey'][data-variant='warm'] {
+  --ui-color-primary-50: #f7f7dd;
+  --ui-color-primary-100: #f4f4c0;
+  --ui-color-primary-200: #ecec9e;
+  --ui-color-primary-300: #dbd96d;
+  --ui-color-primary-400: #c6c234;
+  --ui-color-primary-500: #b8b40b;
+  --ui-color-primary-600: #918d00;
+  --ui-color-primary-700: #6c6a00;
+  --ui-color-primary-800: #4c4a00;
+  --ui-color-primary-900: #302e00;
+  --ui-color-primary-950: #0f0e00;
+}
+
+/* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
+
+:root[data-theme='honey'][data-variant='cool'] {
+  --ui-color-primary-50: #fff3e5;
+  --ui-color-primary-100: #ffedd7;
+  --ui-color-primary-200: #ffe1be;
+  --ui-color-primary-300: #ffc882;
+  --ui-color-primary-400: #f8a932;
+  --ui-color-primary-500: #eb9a04;
+  --ui-color-primary-600: #ba7800;
+  --ui-color-primary-700: #8c5a00;
+  --ui-color-primary-800: #643f00;
+  --ui-color-primary-900: #3f2600;
+  --ui-color-primary-950: #160a00;
+}
+
+/* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
+
+:root[data-theme='honey'][data-variant='dawn'] {
+  --ui-color-primary-50: #fff2eb;
+  --ui-color-primary-100: #ffefe5;
+  --ui-color-primary-200: #ffe7d7;
+  --ui-color-primary-300: #ffd0b2;
+  --ui-color-primary-400: #ffb27f;
+  --ui-color-primary-500: #ffa05e;
+  --ui-color-primary-600: #d17837;
+  --ui-color-primary-700: #a25617;
+  --ui-color-primary-800: #763900;
+  --ui-color-primary-900: #4b2100;
+  --ui-color-primary-950: #1a0700;
+}
+
+/* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
+
+:root[data-theme='honey'][data-variant='dusk'] {
+  --ui-color-primary-50: #effae1;
+  --ui-color-primary-100: #e1f5c4;
+  --ui-color-primary-200: #cfeba3;
+  --ui-color-primary-300: #b2d775;
+  --ui-color-primary-400: #95be45;
+  --ui-color-primary-500: #83ac29;
+  --ui-color-primary-600: #658900;
+  --ui-color-primary-700: #4b6700;
+  --ui-color-primary-800: #354a00;
+  --ui-color-primary-900: #212f00;
+  --ui-color-primary-950: #091000;
+}
+
+/* Farbvariation via CSS-Variablen: data-variant überschreibt die Primary-Ramp */
+
+:root[data-theme='honey'][data-variant='pastel'] {
+  --ui-color-primary-50: #f9f5e9;
+  --ui-color-primary-100: #fef6e0;
+  --ui-color-primary-200: #fff3d5;
+  --ui-color-primary-300: #f6e5bb;
+  --ui-color-primary-400: #e7d4a1;
+  --ui-color-primary-500: #e0cc98;
+  --ui-color-primary-600: #b29f6e;
+  --ui-color-primary-700: #86764b;
+  --ui-color-primary-800: #5e512e;
+  --ui-color-primary-900: #3a3015;
+  --ui-color-primary-950: #130c00;
+  --ui-primary: var(--ui-color-primary-700);
+}

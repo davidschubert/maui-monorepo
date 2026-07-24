@@ -1,3 +1,5 @@
+import { GENERATED_THEMES } from './themeRegistry.gen'
+
 export interface MauiVariant {
   /** data-variant Wert (überschreibt die Primary-Ramp) */
   id: string
@@ -86,26 +88,12 @@ export const NEUTRAL_REGISTRY: MauiNeutral[] = [
   { id: 'olive', color: 'oklch(58% 0.031 107.3)' },
 ]
 
-// Farben = primary-500 aus den jeweiligen public/themes/*.css (Default = neutral,
-// da das Maui-Theme monochrom ist: --ui-primary black/white).
+// 26×11-Vollausbau (Katalog: theme.catalog.ts, Generator: scripts/
+// generate-themes.ts): die generierten Themes kommen aus themeRegistry.gen.ts
+// (committet, CI prüft „Regenerieren erzeugt kein Diff" — E6a). Handgepflegt
+// bleiben hier nur der default-Eintrag (Core-Zustand ohne CSS-Datei) und die
+// NEUTRAL_REGISTRY (separate Achse, E3a).
 export const THEME_REGISTRY: MauiTheme[] = [
   { id: DEFAULT_THEME_ID, name: 'Maui', file: null, color: '#737373', variants: [] },
-  { id: 'ocean', name: 'Ocean', file: '/themes/ocean.css', color: '#2f7fee', variants: [
-    { id: 'teal', color: '#3be3d5' },
-    { id: 'indigo', color: '#6235e9' },
-  ] },
-  { id: 'forest', name: 'Forest', file: '/themes/forest.css', color: '#51cd85', variants: [
-    { id: 'lime', color: '#84d24b' },
-    { id: 'moss', color: '#a8c15c' },
-  ] },
-  { id: 'sunset', name: 'Sunset', file: '/themes/sunset.css', color: '#f47e2a', variants: [
-    { id: 'rose', color: '#e93562' },
-    { id: 'violet', color: '#b640dd' },
-  ] },
-  // Tailwind-v4-Paletten (oklch-Ramps generiert aus tailwindcss/theme.css)
-  { id: 'midnight', name: 'Midnight', file: '/themes/midnight.css', color: 'oklch(58.5% 0.233 277.117)', variants: [] },
-  { id: 'berry', name: 'Berry', file: '/themes/berry.css', color: 'oklch(66.7% 0.295 322.15)', variants: [] },
-  { id: 'crimson', name: 'Crimson', file: '/themes/crimson.css', color: 'oklch(64.5% 0.246 16.439)', variants: [] },
-  { id: 'citrus', name: 'Citrus', file: '/themes/citrus.css', color: 'oklch(76.9% 0.188 70.08)', variants: [] },
-  { id: 'graphite', name: 'Graphite', file: '/themes/graphite.css', color: 'oklch(55.2% 0.016 285.938)', variants: [] },
+  ...GENERATED_THEMES,
 ]
