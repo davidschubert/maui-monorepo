@@ -472,9 +472,17 @@ IE/Legacy-Browser.
     /v1/presences` → 200 (Reader). Gäste senden keinen Heartbeat (kein
     Session-Prinzipal) — die Traffic-Abwägung entschärft sich damit von
     selbst.
-19. **(L)** Web-Component-Variante als separates Micro-Bundle (Vite-Lib-Build,
-    Shadow DOM, ohne Nuxt UI) für Inline-Integration + CORS-API mit
-    Registry-Allowlist.
+19. **(L)** ✅ TEILWEISE UMGESETZT (2026-07-23, safe subset) — Web-Component
+    `<maui-comments>` (`public/maui-comments.js`, dependency-frei, kein Build-
+    Schritt, Shadow DOM). Rendert bewusst das SANDBOXED iframe (nicht inline),
+    behält so die iframe-XSS-Sandbox und braucht KEINE CORS-Öffnung. Attribute
+    reagieren live (theme via postMessage, sonst iframe-Reload). Live
+    verifiziert: Element definiert, Shadow-Root + iframe, korrekte /embed-URL,
+    Resize greift (height 308px). **Bewusst NICHT (später, supervised):** die
+    echte Inline-Render-Variante ohne iframe — sie entfernt die iframe-Sandbox
+    (§ 3d „Inhalt vom JS entkoppelt") und öffnet die Kommentar-API per CORS-
+    Allowlist; das ist eigener Sanitizer + neue Angriffsfläche, kein
+    unbeaufsichtigtes Stück (Guardrail: docs/DECISION-LOG, „reshape not copy").
 20. **(M)** ✅ UMGESETZT (2026-07-23) — Guest-Kommentare (Name+Email ohne
     Account, OHNE Double-Opt-In/Verifikation, bewusste Produktentscheidung).
     POST `/api/comments/guest` (Gate `embed.guests`, Rate-Limit 5/min/IP,

@@ -21,6 +21,27 @@ selbst gehosteten Widget — DSGVO-freundlich by design.
   data-target-type="blog"></script>
 ```
 
+### Alternative: Web-Component (E4)
+
+Statt Script-Tag mit `data-*` bindet man das Widget deklarativ als
+Custom-Element `<maui-comments>` ein — bequemer in CMS/Frameworks, die
+Custom Elements sauberer handhaben als eingefügte `<script>`-Tags:
+
+```html
+<script async src="https://<widget-domain>/maui-comments.js"></script>
+<maui-comments target-id="mein-blogpost-42" target-type="blog"
+  theme="auto" locale="de" primary="sky"></maui-comments>
+```
+
+Attribute reagieren live: `theme` umstellen steuert das Widget ohne Reload
+(via `postMessage`), andere Attribute laden das iframe neu. Das Element
+rendert dasselbe **sandboxed iframe** im Shadow DOM — identische Sicherheit
+wie der Script-Loader (fremder Inhalt bleibt vom Host-DOM entkoppelt, kein
+CORS nötig). Eine echte Inline-Variante (Kommentare direkt im Host-DOM ohne
+iframe) ist bewusst NICHT umgesetzt — sie bräuchte einen eigenen HTML-
+Sanitizer + eine CORS-Allowlist der Kommentar-API (größeres, sicherheits-
+sensibles Stück; s. `plans/EMBED-WIDGET.md` § 6).
+
 ### Attribute-Referenz
 
 | Attribut | Pflicht | Default | Bedeutung |
