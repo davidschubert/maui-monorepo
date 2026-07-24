@@ -67,7 +67,9 @@ export async function assertPoolWriteQuota(event: H3Event, options: { kind: stri
   const appConfig = useAppConfig() as { maui?: { tenancy?: { quota?: TenancyQuotaConfig } } }
   const quota = appConfig.maui?.tenancy?.quota
   if (quota?.enabled !== true) return
-  const limits = limitsForPlan(quota.plans, tenant.plan, options.kind)
+  // Fallback-Kette: vom Resolver aufgelöste Katalog-Limits (tenant_plans,
+  // Studio-editierbar) schlagen den statischen app.config-Katalog.
+  const limits = tenant.limits?.[options.kind] ?? limitsForPlan(quota.plans, tenant.plan, options.kind)
   if (!limits) return
 
   const config = useRuntimeConfig(event)

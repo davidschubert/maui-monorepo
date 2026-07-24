@@ -14,5 +14,9 @@ export type TenantContext =
    * Geteiltes Projekt, Zeilen-Scope über tenantId — Standard-SaaS-Kunde.
    * `plan` (free/pro/business, Default free) staffelt die Quota — core bleibt
    * plan-name-agnostisch (nur ein String-Key in den quota.plans-Katalog).
+   * `limits` (optional): vom Resolver bereits AUFGELÖSTE Quota-Limits je
+   * kind (z. B. aus dem editierbaren tenant_plans-Katalog des Control Plane)
+   * — hat Vorrang vor dem statischen app.config-Katalog (Fallback-Kette in
+   * assertPoolWriteQuota).
    */
-  | { mode: 'pool', projectId: string, tenantId: string, plan?: string }
+  | { mode: 'pool', projectId: string, tenantId: string, plan?: string, limits?: Record<string, { perDay?: number, total?: number }> }

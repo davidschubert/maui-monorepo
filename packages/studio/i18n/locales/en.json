@@ -168,6 +168,31 @@
         "pro": "Pro",
         "business": "Business"
       }
+    },
+    "plans": {
+      "title": "Plans & limits (pool)",
+      "subtitle": "Quota limits per plan — apply to all pool sites without a deploy (take effect within 90 seconds). 0 = unlimited.",
+      "commentsPerDay": "Comments / day",
+      "commentsTotal": "Comments total",
+      "save": "Save",
+      "saved": "Limits saved — effective within 90 seconds.",
+      "saveFailed": "Could not save limits.",
+      "hint": "perDay counts a rolling 24 hours; total = overall per site. 0 means unlimited."
+    },
+    "prices": {
+      "title": "Prices (Stripe)",
+      "subtitle": "Workspace plan prices — changes create a new price in Stripe and archive the old one.",
+      "newAmount": "New price (€)",
+      "save": "Change price",
+      "saved": "Price updated.",
+      "saveFailed": "Could not change the price.",
+      "missing": "not provisioned",
+      "unavailable": "Stripe unreachable or billing not configured.",
+      "grandfatherNote": "Existing subscriptions keep their current price (grandfathering) — only new checkouts pay the new price.",
+      "interval": {
+        "monthly": "monthly",
+        "yearly": "yearly"
+      }
     }
   }
 }

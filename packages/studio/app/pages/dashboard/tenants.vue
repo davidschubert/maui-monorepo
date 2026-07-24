@@ -126,6 +126,42 @@ async function removeTenant(tenant: TenantDto) {
     toast.add({ title: t('studio.tenants.deleteFailed'), color: 'error' })
   }
 }
+
+// ── Editierbarer Quota-Katalog (tenant_plans, studio-014) ────────────────────
+// Zahlen wirken im Pool nach ≤ 90 s (Katalog-Cache 60 s + Host-Cache 30 s im
+// platform-Resolver) — kein Deploy nötig. 0 = unbegrenzt.
+interface PlanLimitsDto { key: string, limits: Record<string, { perDay?: number, total?: number }> }
+const { data: plansData, refresh: refreshPlans } = await useFetch<{ plans: PlanLimitsDto[] }>('/api/studio/plans', { lazy: true, server: false })
+const planEdits = reactive<Record<string, { perDay: number, total: number }>>({})
+watch(() => plansData.value?.plans, (plans) => {
+  for (const plan of plans ?? []) {
+    planEdits[plan.key] = {
+      perDay: plan.limits.comments?.perDay ?? 0,
+      total: plan.limits.comments?.total ?? 0,
+    }
+  }
+}, { immediate: true })
+const planSaving = ref<string | null>(null)
+
+async function savePlanLimits(key: string) {
+  const edit = planEdits[key]
+  if (!edit) return
+  planSaving.value = key
+  try {
+    await $fetch(`/api/studio/plans/${key}`, {
+      method: 'PATCH',
+      body: { comments: { perDay: edit.perDay, total: edit.total } },
+    })
+    toast.add({ title: t('studio.plans.saved'), color: 'success' })
+    await refreshPlans()
+  }
+  catch {
+    toast.add({ title: t('studio.plans.saveFailed'), color: 'error' })
+  }
+  finally {
+    planSaving.value = null
+  }
+}
 </script>
 
 <template>
@@ -190,6 +226,34 @@ async function removeTenant(tenant: TenantDto) {
           </div>
         </div>
       </div>
+
+      <!-- Editierbarer Quota-Katalog (tenant_plans): Zahlen wirken im Pool
+           ohne Deploy (Resolver-Cache ≤ 90 s). 0 = unbegrenzt. -->
+      <section class="mt-8 rounded-lg border border-default p-4" data-plan-limits>
+        <h2 class="font-semibold">{{ t('studio.plans.title') }}</h2>
+        <p class="mt-1 text-sm text-muted">{{ t('studio.plans.subtitle') }}</p>
+        <div class="mt-4 space-y-3">
+          <div v-for="plan in plansData?.plans ?? []" :key="plan.key" class="flex flex-wrap items-end gap-3" :data-plan-row="plan.key">
+            <UBadge :color="plan.key === 'business' ? 'primary' : plan.key === 'pro' ? 'info' : 'neutral'" variant="subtle" class="mb-1.5 w-20 justify-center">
+              {{ t(`studio.tenants.plan.${plan.key}`) }}
+            </UBadge>
+            <UFormField :label="t('studio.plans.commentsPerDay')" size="sm">
+              <UInput v-model.number="planEdits[plan.key]!.perDay" type="number" min="0" size="sm" class="w-32" />
+            </UFormField>
+            <UFormField :label="t('studio.plans.commentsTotal')" size="sm">
+              <UInput v-model.number="planEdits[plan.key]!.total" type="number" min="0" size="sm" class="w-32" />
+            </UFormField>
+            <UButton
+              size="sm"
+              variant="soft"
+              :loading="planSaving === plan.key"
+              :label="t('studio.plans.save')"
+              @click="() => savePlanLimits(plan.key)"
+            />
+          </div>
+        </div>
+        <p class="mt-3 text-xs text-dimmed">{{ t('studio.plans.hint') }}</p>
+      </section>
     </template>
   </UDashboardPanel>
 

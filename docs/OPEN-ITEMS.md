@@ -36,13 +36,12 @@ Legende Status: **✅ fertig** · **🔨 in Bearbeitung** (Teiletappen laufen) �
 
 **Fertig-Anteil: ~46 % ✅ (14 % + 32/40 von H3) · wartet auf David: Rest.**
 
-> **📋 Quota-Zahlen zum Abnicken (H3-4.3, seit 2026-07-23 im Pool aktiv):**
-> Heute gilt EIN Pool-Default (Tenants sind noch keinem Plan zugeordnet):
-> **Kommentare 1.000/Tag (rollierende 24 h) + 50.000 gesamt je Tenant.**
-> Vorschlag für die spätere Plan-Zuordnung: free 200/Tag + 5.000 gesamt ·
-> pro 1.000/Tag + 50.000 · business 5.000/Tag + 250.000. Silo-Kunden: ohne
-> Limit (eigenes Projekt). Einspruch/Änderung → eine Zeile in
-> `apps/platform/app/app.config.ts` (maui.tenancy.quota).
+> **📋 Quota-Zahlen (H3-4.3) — seit 2026-07-24 IM STUDIO EDITIERBAR:**
+> Studio → Tenants → „Pläne & Limits": free 200/Tag + 5.000 gesamt ·
+> pro 1.000/50.000 · business 5.000/250.000 (Seed = beschlossene Zahlen;
+> 0 = unbegrenzt). Änderungen wirken im Pool nach ≤ 90 s ohne Deploy
+> (tenant_plans, studio-014 → Resolver legt Limits in den TenantContext;
+> app.config bleibt Fallback). Silo-Kunden: ohne Limit (eigenes Projekt).
 
 Zurückgestellt (bewusst, zählt nicht): Flag-Registry statt `commentsEnabled`
 (lohnt erst mit dem nächsten Flag), `useFormatCurrency`-Vorhaltung,

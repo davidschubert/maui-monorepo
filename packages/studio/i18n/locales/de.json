@@ -168,6 +168,31 @@
         "pro": "Pro",
         "business": "Business"
       }
+    },
+    "plans": {
+      "title": "Pläne & Limits (Pool)",
+      "subtitle": "Quota-Limits je Plan — wirken auf alle Pool-Sites ohne Deploy (greifen nach spätestens 90 Sekunden). 0 = unbegrenzt.",
+      "commentsPerDay": "Kommentare / Tag",
+      "commentsTotal": "Kommentare gesamt",
+      "save": "Speichern",
+      "saved": "Limits gespeichert — wirken in spätestens 90 Sekunden.",
+      "saveFailed": "Limits konnten nicht gespeichert werden.",
+      "hint": "perDay zählt rollierende 24 Stunden; gesamt = Bestand je Site. 0 bedeutet unbegrenzt."
+    },
+    "prices": {
+      "title": "Preise (Stripe)",
+      "subtitle": "Preise der Workspace-Pläne — Änderungen legen in Stripe einen neuen Preis an und archivieren den alten.",
+      "newAmount": "Neuer Preis (€)",
+      "save": "Preis ändern",
+      "saved": "Preis aktualisiert.",
+      "saveFailed": "Preis konnte nicht geändert werden.",
+      "missing": "nicht angelegt",
+      "unavailable": "Stripe nicht erreichbar oder Billing nicht konfiguriert.",
+      "grandfatherNote": "Bestehende Abos behalten ihren bisherigen Preis (Grandfathering) — nur neue Abschlüsse zahlen den neuen Preis.",
+      "interval": {
+        "monthly": "monatlich",
+        "yearly": "jährlich"
+      }
     }
   }
 }

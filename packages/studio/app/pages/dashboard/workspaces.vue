@@ -117,6 +117,45 @@ async function startCheckout() {
 
 const planColor = (plan: string) => (plan === 'business' ? 'primary' : plan === 'pro' ? 'info' : 'neutral') as 'primary' | 'info' | 'neutral'
 const statusColor = (s: string) => (s === 'active' ? 'success' : s === 'past_due' ? 'warning' : 'error') as 'success' | 'warning' | 'error'
+
+// ── Stripe-Preise (App-Route /api/studio/billing/prices) ─────────────────────
+// Stripe-Preise sind unveränderlich — „ändern" legt einen neuen Price mit
+// lookup_key-Transfer an und archiviert den alten. Neue Checkouts zahlen
+// sofort den neuen Preis; Bestands-Abos behalten ihren (Grandfathering).
+interface PriceDto { plan: string, interval: 'monthly' | 'yearly', lookupKey: string, amount: number | null, currency: string | null, productName: string | null }
+const { data: pricesData, refresh: refreshPrices, error: pricesError } = await useFetch<{ prices: PriceDto[], livemode: boolean }>('/api/studio/billing/prices', { lazy: true, server: false })
+const priceEdits = reactive<Record<string, number>>({})
+watch(() => pricesData.value?.prices, (prices) => {
+  for (const price of prices ?? []) {
+    // Cent → Euro fürs Eingabefeld
+    priceEdits[price.lookupKey] = price.amount === null ? 0 : price.amount / 100
+  }
+}, { immediate: true })
+const priceSaving = ref<string | null>(null)
+
+async function savePrice(price: PriceDto) {
+  const euro = priceEdits[price.lookupKey]
+  if (euro === undefined || euro <= 0) return
+  priceSaving.value = price.lookupKey
+  try {
+    await $fetch('/api/studio/billing/prices', {
+      method: 'POST',
+      body: { plan: price.plan, interval: price.interval, amount: Math.round(euro * 100) },
+    })
+    toast.add({ title: t('studio.prices.saved'), description: t('studio.prices.grandfatherNote'), color: 'success' })
+    await refreshPrices()
+  }
+  catch (error) {
+    toast.add({ title: t('studio.prices.saveFailed'), description: (error as { statusMessage?: string })?.statusMessage, color: 'error' })
+  }
+  finally {
+    priceSaving.value = null
+  }
+}
+
+const formatAmount = (price: PriceDto) => price.amount === null
+  ? t('studio.prices.missing')
+  : new Intl.NumberFormat('de-DE', { style: 'currency', currency: (price.currency ?? 'eur').toUpperCase() }).format(price.amount / 100)
 </script>
 
 <template>
@@ -184,6 +223,38 @@ const statusColor = (s: string) => (s === 'active' ? 'success' : s === 'past_due
           </div>
         </div>
       </div>
+
+      <!-- Stripe-Preise des Plan-Katalogs: editierbar per lookup_key-Transfer.
+           Bestands-Abos behalten den alten Preis (Grandfathering-Hinweis). -->
+      <section class="mt-8 rounded-lg border border-default p-4" data-price-admin>
+        <div class="flex flex-wrap items-center gap-2">
+          <h2 class="font-semibold">{{ t('studio.prices.title') }}</h2>
+          <UBadge v-if="pricesData" :color="pricesData.livemode ? 'success' : 'warning'" variant="subtle" size="sm">
+            {{ pricesData.livemode ? 'Live' : 'Test' }}
+          </UBadge>
+        </div>
+        <p class="mt-1 text-sm text-muted">{{ t('studio.prices.subtitle') }}</p>
+        <p v-if="pricesError" class="mt-3 text-sm text-warning">{{ t('studio.prices.unavailable') }}</p>
+        <div v-else class="mt-4 space-y-3">
+          <div v-for="price in pricesData?.prices ?? []" :key="price.lookupKey" class="flex flex-wrap items-end gap-3" :data-price-row="price.lookupKey">
+            <UBadge :color="planColor(price.plan)" variant="subtle" class="mb-1.5 w-20 justify-center">{{ price.plan }}</UBadge>
+            <span class="mb-1.5 w-24 text-sm text-muted">{{ t(`studio.prices.interval.${price.interval}`) }}</span>
+            <span class="mb-1.5 w-24 text-sm font-medium" data-price-current>{{ formatAmount(price) }}</span>
+            <UFormField :label="t('studio.prices.newAmount')" size="sm">
+              <UInput v-model.number="priceEdits[price.lookupKey]" type="number" min="1" step="0.01" size="sm" class="w-32" :disabled="price.amount === null" />
+            </UFormField>
+            <UButton
+              size="sm"
+              variant="soft"
+              :loading="priceSaving === price.lookupKey"
+              :disabled="price.amount === null"
+              :label="t('studio.prices.save')"
+              @click="() => savePrice(price)"
+            />
+          </div>
+        </div>
+        <p class="mt-3 text-xs text-dimmed">{{ t('studio.prices.grandfatherNote') }}</p>
+      </section>
 
       <UModal :open="showCreate" :title="t('studio.workspaces.createTitle')" @update:open="() => { showCreate = false }">
         <template #body>

@@ -44,3 +44,42 @@ export interface TenantRow extends Models.Row {
 }
 
 export const TENANTS_TABLE = 'tenants'
+
+/** Quota-Limits eines Plans je Schreib-Art (Spiegel von core TenantQuotaLimits). */
+export interface TenantPlanLimits {
+  perDay?: number
+  total?: number
+}
+
+/** Row-Typ zur `tenant_plans`-Table (studio-014): der im Studio EDITIERBARE
+ *  Quota-Katalog. `limits` = JSON { [kind]: { perDay, total } } (z. B.
+ *  kind 'comments'); 0/fehlend = unbegrenzt. rowId = key. */
+export interface TenantPlanRow extends Models.Row {
+  key: TenantPlan
+  /** JSON-String — parseTenantPlanLimits() macht daraus das Objekt. */
+  limits: string
+}
+
+export const TENANT_PLANS_TABLE = 'tenant_plans'
+
+/** PURE (unit-getestet): limits-JSON defensiv parsen — kaputte/fremde Werte
+ *  fallen auf {} zurück (Quota greift dann via app.config-Fallback). */
+export function parseTenantPlanLimits(raw: string): Record<string, TenantPlanLimits> {
+  try {
+    const parsed = JSON.parse(raw) as unknown
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {}
+    const result: Record<string, TenantPlanLimits> = {}
+    for (const [kind, value] of Object.entries(parsed as Record<string, unknown>)) {
+      if (typeof value !== 'object' || value === null) continue
+      const { perDay, total } = value as { perDay?: unknown, total?: unknown }
+      const limits: TenantPlanLimits = {}
+      if (typeof perDay === 'number' && Number.isFinite(perDay) && perDay >= 0) limits.perDay = perDay
+      if (typeof total === 'number' && Number.isFinite(total) && total >= 0) limits.total = total
+      result[kind] = limits
+    }
+    return result
+  }
+  catch {
+    return {}
+  }
+}
