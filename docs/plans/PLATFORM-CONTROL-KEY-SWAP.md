@@ -1,7 +1,22 @@
 # Runbook: dedizierter Read-only-Control-Plane-Key (platform)
 
-> **Status:** wartet auf David (Key-Erstellung ist Console/OTP-gebunden).
-> Freigegeben (2026-07-23). ~5 Minuten. Ziel: least-privilege.
+> **Status: ✅ UMGESETZT (2026-07-24, autonom).** Der Weg über Davids Console
+> war nicht nötig: der provisioner-Account existierte noch (H3-Rollout hatte
+> ihn nach Task #69 wiederverwendet — er war Owner des pool-Projekts!). Per
+> etabliertem Runner-Muster (Passwort-Datei → curl-Session, Secrets
+> file-to-file): Key `platform-control-readonly` (NUR `rows.read`) auf studio
+> erstellt, getestet (tenants lesbar, Write → 401), auf app-prod getauscht
+> (pm2 reload; demo 200 / unknown 404 / health ok; `.env.bak-keyswap` als
+> Rollback). Zusätzlich: geleakten comments/migrations-prod-Key rotiert
+> (Secret war in einem Chat-Output gelandet; Ersatz mit identischen 18 Scopes,
+> prefs.json + .env.production umgeschrieben, alter Key gelöscht, Read-Probe
+> grün). Danach ENDGÜLTIGER Cleanup: pool-Projekt per PATCH /team ins
+> Pukalani-App-Team transferiert (alle 4 Projekte gehören jetzt David), Team
+> `provisioning` gelöscht, provisioner-Account samt Sessions/Targets/
+> Memberships entfernt, lokale console.jar/provisioner.pw gelöscht.
+> Debug-Fund dabei: Appwrite-500 `openssl_decrypt cipher_algo empty` beim
+> Console-Login, wenn eine Membership-Row `secret=''` (statt NULL oder
+> verschlüsseltem JSON) trägt.
 
 ## Warum
 
