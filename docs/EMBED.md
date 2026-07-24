@@ -1,8 +1,11 @@
 # Embed-Widget — Kommentare auf Drittseiten einbetten
 
-> Stand: 2026-07-09 · Status: **E0+E1 (Read-only-MVP) live** · Plan/Architektur:
-> [plans/EMBED-WIDGET.md](plans/EMBED-WIDGET.md) · Schreiben im Embed (Login-
-> Popup + CHIPS-Session) folgt mit Phase E2.
+> Stand: 2026-07-23 · Status: **E0–E3 live + E4-Gast-Kommentare** · Plan/
+> Architektur: [plans/EMBED-WIDGET.md](plans/EMBED-WIDGET.md). Schreiben im
+> Embed läuft für eingeloggte User (Login-Popup + CHIPS-Session, E2) UND für
+> Gäste ohne Account (Name+E-Mail, ohne Verifikation, E4 — Gate
+> `maui.comments.embed.guests`, Default aus; die E-Mail landet nur in der
+> operator-lesbaren Tabelle `guest_authors`, nie auf der öffentlichen Row).
 
 Beliebige Drittseiten (Blog, Docs, statisches HTML — Stack egal) binden das
 Kommentar-Widget per `<script>`-Tag ein. Es lädt als iframe von der
@@ -48,10 +51,23 @@ maui: {
       // Prod-Domains aus der SITE-REGISTRY (s. u.) — hier stehen nur noch
       // Dev-/Sonderfälle. ['*'] bleibt die bewusste „offen wie Disqus"-Option.
       allowedOrigins: ['http://localhost:*'],
+      // Gast-Kommentare (E4): ohne Account kommentieren (Name+E-Mail, keine
+      // Verifikation). Default aus; greift nur zusätzlich zu `enabled`.
+      guests: true,
     },
   },
 },
 ```
+
+- **Gast-Kommentare (E4, `guests`):** ist das Gate an, zeigt das Widget
+  Nicht-Eingeloggten ein Formular mit Name + E-Mail + Text (POST
+  `/api/comments/guest`). Guardrails: enger Rate-Limit-Bucket (5/min/IP),
+  zählt gegen das Tenant-Quota, kein `operatorTargets`-Thread. **Datenschutz:**
+  die E-Mail steht NIE auf der öffentlichen (read(any)) Kommentar-Row — nur
+  der frei gewählte Anzeigename. Name/E-Mail/IP-Hash liegen getrennt in der
+  Tabelle `guest_authors` (nur admin/moderator lesbar) für Moderation + DSGVO.
+  Gast-Rows tragen `authorKind: 'guest'`, `authorId: ''` und keine
+  Edit-/Vote-Rechte.
 
 - **Site-Registry (E3, empfohlen):** registrierte Einbetter-Domains verwaltest
   du im Dashboard unter **„Embed-Sites"** (`/dashboard/embed`, `system.manage`).

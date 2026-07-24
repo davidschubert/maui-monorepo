@@ -469,8 +469,12 @@ IE/Legacy-Browser.
 19. **(L)** Web-Component-Variante als separates Micro-Bundle (Vite-Lib-Build,
     Shadow DOM, ohne Nuxt UI) für Inline-Integration + CORS-API mit
     Registry-Allowlist.
-20. **(M)** Guest-Kommentare (Name+Email ohne Account, Double-Opt-In?) —
-    erst nach Produktentscheidung (§ 6).
+20. **(M)** ✅ UMGESETZT (2026-07-23) — Guest-Kommentare (Name+Email ohne
+    Account, OHNE Double-Opt-In/Verifikation, bewusste Produktentscheidung).
+    POST `/api/comments/guest` (Gate `embed.guests`, Rate-Limit 5/min/IP,
+    Tenant-Quota, kein operatorTarget), comments-013 (`authorKind` +
+    operator-lesbare `guest_authors`-Tabelle; E-Mail nie auf der read(any)-
+    Row), GuestCommentForm im Widget + „Gast"-Badge. Live verifiziert.
 
 ---
 
