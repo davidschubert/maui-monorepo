@@ -463,9 +463,15 @@ IE/Legacy-Browser.
 
 ### Phase E4 — Ausbau (optional, je nach Traktion)
 
-18. **(M)** Presence/Typing für eingeloggte Embed-User (JWT-Pfad im iframe
-    aktivieren — funktioniert mit partitionierter Session, braucht aber
-    Bundle-/Traffic-Abwägung).
+18. **(M)** ✅ VERIFIZIERT (2026-07-23) — Presence/Typing für eingeloggte
+    Embed-User. Kein Code nötig: der geteilte Realtime-Socket-Umbau (nach
+    diesem Plan gebaut, s. CLAUDE.md „Realtime seit P1") trägt Presence
+    unverändert ins iframe. Live im Embed nachgewiesen (eingeloggt via
+    CHIPS-Session): `POST /api/presence/heartbeat` → 200, `GET
+    /api/auth/realtime-token` → 200 (JWT im partitionierten iframe), `GET
+    /v1/presences` → 200 (Reader). Gäste senden keinen Heartbeat (kein
+    Session-Prinzipal) — die Traffic-Abwägung entschärft sich damit von
+    selbst.
 19. **(L)** Web-Component-Variante als separates Micro-Bundle (Vite-Lib-Build,
     Shadow DOM, ohne Nuxt UI) für Inline-Integration + CORS-API mit
     Registry-Allowlist.

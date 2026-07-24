@@ -69,6 +69,11 @@ maui: {
   Gast-Rows tragen `authorKind: 'guest'`, `authorId: ''` und keine
   Edit-/Vote-Rechte.
 
+- **Presence/Typing (E4) für eingeloggte Embed-User:** funktioniert ohne
+  Zusatzarbeit — der geteilte Realtime-Socket trägt Thread-Presence, Typing
+  und Reader unverändert ins iframe (JWT im partitionierten CHIPS-Kontext).
+  Gäste senden keinen Heartbeat, erzeugen also keine Presence-Last.
+
 - **Site-Registry (E3, empfohlen):** registrierte Einbetter-Domains verwaltest
   du im Dashboard unter **„Embed-Sites"** (`/dashboard/embed`, `system.manage`).
   Nur diese Domains dürfen das Widget einbetten (frame-ancestors-CSP);
