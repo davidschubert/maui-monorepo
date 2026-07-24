@@ -1,6 +1,6 @@
 # Offene Punkte
 
-Stand: **2026-07-23 (Master-To-do, gewichtet)**. Vollständige, eigenständige
+Stand: **2026-07-24 (Master-To-do, gewichtet)**. Vollständige, eigenständige
 Liste offener Themen (für eine frische Session als Startpunkt nutzbar).
 
 > **LIVE:** comments + portfolio + studio + **platform** (Multi-Tenant,
@@ -34,7 +34,7 @@ Legende Status: **✅ fertig** · **🔨 in Bearbeitung** (Teiletappen laufen) �
 | 11 | **GitHub-Klicks** — ✅ 2026-07-23: #16/#15/#2 hatte David am 21.07. gemergt; Release-PR #18 gemergt → **v2.2.0 released** (Changelog-Draft automatisch angelegt — Kuratieren + Publish von v2.1.0 UND v2.2.0 liegt bei David im Dashboard). Neu offen: Dependabot #19–23 (npm-Bumps, kein workflow-Scope nötig). | — | — | 1 | ✅ fertig |
 | 12 | **Kleinkram** — ✅ Demo-Passwörter · ✅ >14k-Limit (MEDIUMTEXT) · ✅ Wegwerf-Projekte gelöscht (2026-07-24): alle 7 lokalen Probes (s0-*, s1-probe-*, s3-*) weg — 5 regulär via Console-API (Login als Spike-User s0-admin), 2 chirurgisch per DB (Appwrite-Delete warf `openssl_decrypt cipher_algo empty`-500; 132 präfix-verifizierte Tabellen gedroppt + Console-Rows entfernt), Wegwerf-Teams s0-org/maui-sites gelöscht, Spike-Console-User s0-admin (hartkodiertes PW!) entfernt, Redis-Cache geflusht; echte Projekte per Smoke verifiziert (401 vs 404). ✅ Dependabot #19–23: von Dependabot selbst geschlossen — die Bumps (u. a. @nuxt/ui 4.10, vue-tsc 3.3.8) kamen längst über den pnpm-Catalog rein. | — | — | 1 | ✅ fertig |
 
-**Fertig-Anteil: ~46 % ✅ (14 % + 32/40 von H3) · wartet auf David: Rest.**
+**Fertig-Anteil: ~81 % ✅ (42 % + 39/40 von H3) · offener Rest (~19 %) wartet fast vollständig auf David: Rechtstexte-Rest (5) + Stripe-Live (12) + Ideen-Input (2).**
 
 > **📋 Quota-Zahlen (H3-4.3) — seit 2026-07-24 IM STUDIO EDITIERBAR:**
 > Studio → Tenants → „Pläne & Limits": free 200/Tag + 5.000 gesamt ·
