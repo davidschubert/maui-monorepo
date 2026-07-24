@@ -11,7 +11,28 @@
 
 > **Die schlanke, datenschutz-native Community-Plattform, die ein Solo-Maker
 > in 60 Sekunden startet — nicht mit den Großen mithalten, sondern die
-> unkomplizierte, faire, DSGVO-native Alternative sein.**
+> unkomplizierte, faire, DSGVO-native Alternative zu Circle, Skool & Mighty
+> Networks sein.**
+
+## Was das Produkt IST (Positionierung — wichtig)
+
+**Pukalani ist eine COMMUNITY-PLATTFORM, kein Kommentarsystem.** Das
+Kommentar-Feature ist **Infrastruktur / Mittel zum Zweck** — das Bindegewebe,
+das unter Beiträgen, Kursen, Events und Threads läuft. Deshalb der Start damit;
+der Nutzen ist die ganze Plattform. Die Bausteine:
+
+- **Feed / Beiträge** — Nutzer-Beiträge (Markdown), Umfragen, Fragen, Activity-Feed
+- **Kurse** — Lektionen + Fortschritt, Bezahl-Zugang free/members/pro (Billing)
+- **Events** — online/präsenz, Serien, Zusagen, Tickets (kostenlos/kostenpflichtig), einbettbar
+- **Diskussionen (Kommentare)** — Realtime, Votes, @-Mentions, Präsenz, Gast-Zugriff, Embed
+- **Moderation** — Meldungen, Eskalation, KI-Assist (von Content-Features mitaktiviert)
+- **Branding** — eigene Themes + Schriften, eigene Startseiten, eigene Domain
+- **Betrieb** — Support-Tickets, Billing (Stripe), Admin-Dashboard, mehrsprachig (DE/EN)
+
+**Wettbewerb = Circle ($89–419/Mo) · Skool ($99/Mo) · Mighty Networks
+($41–360/Mo) · Discourse.** NICHT Disqus/Cusdis. Unsere Lücke: schlank + DSGVO +
+DE-Hosting + planbarer Preis + **modular** (nur die Bausteine, die man braucht) +
+einbettbar. Details: [PUKALANI-LANDINGPAGE.md](PUKALANI-LANDINGPAGE.md).
 
 Heute: **Betriebssystem für eigene Sites ~98 %**, **verkaufbares SaaS ~75 %**.
 Die Lücke ist NICHT Technik — es ist die **Selbstbedienungs-Schicht**: Fremde
@@ -133,9 +154,11 @@ verortet. Zahlen live aus dem Studio-Katalog (das Preis-Editing existiert seit
 Analytics. Wir müssen einige Bereiche neu sortieren und schärfen."
 **Entscheidung:** **`activity` + Analytics + Usage werden zu EINEM Bereich
 „Insights"** zusammengeführt (§A Gruppe 4). Nicht drei Nav-Punkte, sondern einer
-mit Tabs/Abschnitten:
-- **Überblick:** Kommentare/Woche, neue vs. wiederkehrende Kommentierende,
-  aktivste Threads, Peak-Zeiten.
+mit Tabs/Abschnitten. **Community-weit, nicht kommentar-zentriert** — die
+Kennzahlen decken ALLE Bausteine ab:
+- **Überblick:** aktive Mitglieder (neu vs. wiederkehrend), neue Beiträge/
+  Kommentare/Woche, Kurs-Einschreibungen + -Abschlüsse, Event-Zusagen, aktivste
+  Threads, Peak-Zeiten. Je Baustein nur, wenn er aktiviert ist.
 - **Aktivität:** der bestehende Activity-Feed (chronologisch, „wer hat was").
 - **Nutzung:** die Quota-Ansicht aus #3.
 - **Technik:** aggregierte **Snapshots** (nie Live-Queries über Kundendaten),
@@ -264,8 +287,12 @@ Startpunkt.
   die Auswahl.
 - **Homepage-Block-Baukasten** — eigenes Großprojekt; Markdown-CMS reicht fürs MVP.
 - **Custom Domains für Pool** — erst nach stabilem Silo + zahlendem Bedarf.
-- **Mit den Großen konkurrieren** (News-Redaktions-Workflows, 100k/Tag) — bewusst
-  nicht unsere Liga. Schlank + fair + DSGVO ist die Positionierung.
+- **Native Mobile-Apps mit Push** (Skool/Mighty haben sie) — großes eigenes
+  Projekt; die responsive Web-App reicht fürs MVP. Ehrlich auf der Landingpage
+  benannt (V.9) statt versteckt.
+- **Mit den ganz Großen konkurrieren** (50k-Mitglieder-Communities, Enterprise-
+  SSO, Redaktions-Workflows) — bewusst nicht unsere Liga. Schlank + fair + DSGVO
+  für Solo-Maker und kleine Teams ist die Positionierung.
 
 ## Nächster konkreter Schritt
 
