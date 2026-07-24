@@ -24,6 +24,15 @@
       "notRegisteredTitle": "Diese Website ist nicht freigeschaltet",
       "notRegisteredText": "Das Kommentar-Widget ist für diese Domain oder diesen Inhaltstyp nicht registriert. Betreiber schalten Domains im Dashboard unter „Embed-Sites“ frei."
     },
+    "guest": {
+      "badge": "Gast",
+      "namePlaceholder": "Dein Name",
+      "emailPlaceholder": "E-Mail (wird nicht veröffentlicht)",
+      "emailHint": "Deine E-Mail bleibt privat und wird nicht angezeigt.",
+      "orSignIn": "Oder",
+      "posted": "Dein Kommentar wurde veröffentlicht.",
+      "rateLimited": "Zu viele Kommentare in kurzer Zeit. Bitte versuch es gleich noch einmal."
+    },
     "embedAdmin": {
       "title": "Embed-Sites",
       "subtitle": "Registrierte Einbetter-Domains des Kommentar-Widgets: nur diese Websites dürfen das Widget einbetten (frame-ancestors-CSP). Änderungen greifen sofort.",

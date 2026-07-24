@@ -23,6 +23,12 @@ const { isLoggedIn } = useCurrentUser()
 const isEmbed = inject('mauiEmbed', false)
 const embedLogin = isEmbed ? useEmbedLogin() : null
 
+// Gast-Kommentare (E4): nur im Embed und nur wenn der Betreiber sie freigibt
+// (maui.comments.embed.guests). Dann darf man ohne Account mit Name+E-Mail
+// schreiben — der Login-Popup bleibt als Zusatzoption.
+const appConfig = useAppConfig() as { maui?: { comments?: { embed?: { guests?: boolean } } } }
+const guestsEnabled = computed(() => isEmbed && !!appConfig.maui?.comments?.embed?.guests)
+
 // Kommentar-Policy aus den Laufzeit-Flags bereitstellen (synchron, vor await).
 // Refs auf Top-Level holen — verschachtelte Refs (policy.canWrite) unwrappen im
 // Template NICHT automatisch.
@@ -163,6 +169,28 @@ function presenceLabel(u: PresenceUser): string {
          der direkt darunter aufklappt -->
     <div v-else-if="isLoggedIn" class="rounded-lg bg-elevated/40 p-3 ring ring-default" data-comment-composer>
       <CommentForm />
+    </div>
+    <!-- Gast-Kommentar (Embed E4): Name+E-Mail ohne Account. Login-Popup als
+         Zusatzoption darunter (Konto = Voten/Bearbeiten/Benachrichtigungen). -->
+    <div v-else-if="guestsEnabled" class="rounded-lg bg-elevated/40 p-3 ring ring-default" data-guest-composer>
+      <GuestCommentForm />
+      <p v-if="embedLogin" class="mt-2 text-xs text-muted">
+        {{ t('comments.guest.orSignIn') }}
+        <template v-if="embedLogin.status.value === 'blocked'">
+          <ULink :href="config.public.appUrl || '/'" target="_blank" rel="noopener" class="font-medium text-primary">
+            {{ t('comments.embed.openSite') }}
+          </ULink>
+        </template>
+        <UButton
+          v-else
+          size="xs"
+          variant="link"
+          class="p-0"
+          :loading="embedLogin.status.value === 'waiting'"
+          :label="t('comments.loginLink')"
+          @click="() => embedLogin?.openLoginPopup()"
+        />
+      </p>
     </div>
     <div v-else-if="embedLogin" class="text-sm text-muted" data-embed-login>
       <p v-if="embedLogin.status.value === 'blocked'">

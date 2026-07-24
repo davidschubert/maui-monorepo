@@ -102,6 +102,10 @@ const reportReasons = computed(() => [
     <div class="flex items-center gap-2 text-xs text-muted">
       <UserAvatar :user="{ name: comment.authorName, prefs: { avatarUrl: comment.authorAvatarUrl } }" size="xs" />
       <span class="font-medium text-default">{{ comment.authorName }}</span>
+      <!-- Gast-Kennzeichnung (Embed E4): kein Account, frei gewählter Name -->
+      <UBadge v-if="comment.authorKind === 'guest'" color="neutral" variant="subtle" size="sm">
+        {{ t('comments.guest.badge') }}
+      </UBadge>
       <span aria-hidden="true">·</span>
       <span :title="formatDate(comment.$createdAt)">{{ formatRelativeTime(comment.$createdAt) }}</span>
       <span v-if="comment.editedAt" :title="formatDate(comment.editedAt)">· {{ t('comments.item.edited') }}</span>

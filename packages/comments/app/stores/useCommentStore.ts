@@ -216,6 +216,55 @@ const commentStoreSetup = () => {
     }
   }
 
+  /**
+   * Gast-Kommentar (Embed E4): kein Account — Name+E-Mail gehen an
+   * /api/comments/guest. Wie addComment optimistisch, aber authorKind 'guest'
+   * und authorId '' (kein Vote/Edit). Die E-Mail wird nur gesendet, nie im
+   * Store gehalten.
+   */
+  async function addGuestComment(content: string, guestName: string, guestEmail: string, parentId?: string) {
+    const now = new Date().toISOString()
+    const parent = parentId ? rows.value.find(r => r.$id === parentId) : undefined
+    const temp: Comment = {
+      $id: `temp-${Math.random().toString(36).slice(2)}`,
+      $sequence: '', $createdAt: now, $updatedAt: now, $permissions: [], $databaseId: '', $tableId: '',
+      targetId: targetId.value,
+      targetType: targetType.value,
+      content,
+      authorId: '',
+      authorName: guestName,
+      authorKind: 'guest',
+      parentId: parentId ?? null,
+      targetUrl: targetUrl.value || null,
+      rootId: parent ? (parent.rootId ?? parent.$id) : null,
+      depth: parent ? parent.depth + 1 : 0,
+      editedAt: null,
+      upvotes: 0, downvotes: 0, score: 0,
+      status: 'active',
+    }
+    rows.value = [temp, ...rows.value]
+    total.value += 1
+    activeTotal.value += 1
+
+    try {
+      const created = await $fetch<Comment>('/api/comments/guest', {
+        method: 'POST',
+        body: { targetId: targetId.value, targetType: targetType.value, content, parentId, targetUrl: targetUrl.value || undefined, guestName, guestEmail },
+      })
+      const alreadyPresent = rows.value.some(row => row.$id === created.$id)
+      rows.value = rows.value.filter(row => row.$id !== temp.$id)
+      if (alreadyPresent) { total.value -= 1; activeTotal.value -= 1 }
+      upsertRow(created)
+      return created
+    }
+    catch (error) {
+      rows.value = rows.value.filter(row => row.$id !== temp.$id)
+      total.value -= 1
+      activeTotal.value -= 1
+      throw error
+    }
+  }
+
   // In-Flight-Serialisierung pro Kommentar: zwei schnelle Klicks (Doppelklick,
   // Up→Down-Wechsel) starten sonst zwei parallele POSTs — der zweite Snapshot
   // enthielte den optimistischen Stand des ersten, und ein Rollback/Reconcile
@@ -427,6 +476,7 @@ const commentStoreSetup = () => {
     loadAll,
     setSortMode,
     addComment,
+    addGuestComment,
     vote,
     updateComment,
     deleteComment,

@@ -24,6 +24,15 @@
       "notRegisteredTitle": "This website is not registered",
       "notRegisteredText": "The comment widget is not registered for this domain or content type. Operators can register domains in the dashboard under \"Embed sites\"."
     },
+    "guest": {
+      "badge": "Guest",
+      "namePlaceholder": "Your name",
+      "emailPlaceholder": "Email (not published)",
+      "emailHint": "Your email stays private and is never shown.",
+      "orSignIn": "Or",
+      "posted": "Your comment has been posted.",
+      "rateLimited": "Too many comments in a short time. Please try again in a moment."
+    },
     "embedAdmin": {
       "title": "Embed sites",
       "subtitle": "Registered embedder domains of the comment widget: only these websites may embed the widget (frame-ancestors CSP). Changes apply immediately.",
