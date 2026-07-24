@@ -13,7 +13,7 @@ export default defineEventHandler(async (event): Promise<{ rows: PageRow[] }> =>
   const res = await admin.tablesDB.listRows<PageRow>({
     databaseId: config.public.appwriteDatabaseId,
     tableId: PAGES_TABLE,
-    queries: [Query.equal('slug', slug), Query.limit(20)],
+    queries: scopeQuery(event, [Query.equal('slug', slug), Query.limit(20)]),
   }).catch((error) => {
     throw toH3Error(error, 'Could not load page')
   })

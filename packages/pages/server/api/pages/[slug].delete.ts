@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
   const res = await admin.tablesDB.listRows<PageRow>({
     databaseId,
     tableId: PAGES_TABLE,
-    queries: [Query.equal('slug', slug), Query.limit(50)],
+    queries: scopeQuery(event, [Query.equal('slug', slug), Query.limit(50)]),
   }).catch((error) => {
     throw toH3Error(error, 'Could not delete page')
   })

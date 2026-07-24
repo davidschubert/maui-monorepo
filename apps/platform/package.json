@@ -17,6 +17,7 @@
     "@maui/comments": "workspace:*",
     "@maui/core": "workspace:*",
     "@maui/moderation": "workspace:*",
+    "@maui/pages": "workspace:*",
     "@maui/system": "workspace:*",
     "@maui/themes": "workspace:*",
     "@nuxt/ui": "catalog:",

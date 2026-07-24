@@ -18,5 +18,6 @@ export default {
     'admin',
     'comments',
     'moderation',
+    'pages',
   ],
 } satisfies SiteManifest

@@ -1,8 +1,18 @@
 # Platform: Tenant-Homepage (pro Tenant konfigurierbar)
 
-> **Status:** Konzept-Skizze (2026-07-23) — Entscheidung „pro Tenant
-> konfigurierbar" ist gefallen (David), die Umsetzung ist noch NICHT gebaut.
-> Dies ist die Landkarte + die offenen Fragen, damit der Bau auf Fakten steht.
+> **Status:** ✅ MVP UMGESETZT (2026-07-23). pages-Layer in apps/platform
+> eingehängt + gepoolt (pages-003 tenantId; Migration Pool-Projekt + studio
+> Dev/Prod), platform `index.vue` rendert die `home`-Seite des Request-Tenants
+> (locale-aware, `useRequestFetch` reicht den Host/Tenant an den SSR-internen
+> Fetch weiter) mit Fallback; die Zeile `[[comments]]` im Body wird zum
+> Kommentar-Block. Lokal bewiesen: kunde-a rendert seine Seite + Kommentare,
+> kunde-b bekommt den Fallback und sieht NICHTS von kunde-a. Umsetzung der
+> Entscheidungen: sicheres Markdown (kein Roh-HTML), eine Sprache genügt,
+> Tenant-Theme wird geerbt, Silo nutzt dasselbe Muster.
+>
+> **Offen (Folge-Etappen):** Block-Baukasten (bewusst später) · Reserved-
+> `home`-Hinweis im pages-Admin (kleiner UX-Zusatz) · „wer editiert die
+> Homepage pro Tenant" hängt am offenen Design „Admin-per-Tenant".
 > Bezug: [HORIZONT-3-POOL-SILO-BLUEPRINT.md](HORIZONT-3-POOL-SILO-BLUEPRINT.md),
 > `apps/platform`, `packages/pages` (CMS), `packages/comments` (Datenpfad).
 

@@ -11,19 +11,22 @@ export default defineEventHandler(async (event): Promise<PageRow> => {
   const admin = createAdminClient(event)
   const databaseId = config.public.appwriteDatabaseId
 
-  const data = {
+  // H3-Pool: im Pool stempelt scopeRow die tenantId (Naht 3) — der Upsert-
+  // Lookup MUSS ebenso gescopet sein, sonst trifft slug+locale die Seite
+  // eines fremden Tenants (geteilter slug-Namensraum: jeder hat 'home').
+  const data = scopeRow(event, {
     slug: body.slug,
     locale: body.locale,
     title: body.title,
     body: body.body,
     status: body.status,
     sortOrder: body.sortOrder ?? 0,
-  }
+  })
 
   const existing = await admin.tablesDB.listRows<PageRow>({
     databaseId,
     tableId: PAGES_TABLE,
-    queries: [Query.equal('slug', body.slug), Query.equal('locale', body.locale), Query.limit(1)],
+    queries: scopeQuery(event, [Query.equal('slug', body.slug), Query.equal('locale', body.locale), Query.limit(1)]),
   }).catch((error) => {
     throw toH3Error(error, 'Could not save page')
   })

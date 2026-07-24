@@ -18,7 +18,7 @@ export default defineEventHandler(async (event): Promise<PublicPage> => {
   const res = await admin.tablesDB.listRows<PageRow>({
     databaseId: config.public.appwriteDatabaseId,
     tableId: PAGES_TABLE,
-    queries: [Query.equal('slug', slug), Query.equal('status', 'published'), Query.limit(20)],
+    queries: scopeQuery(event, [Query.equal('slug', slug), Query.equal('status', 'published'), Query.limit(20)]),
   }).catch((error) => {
     throw toH3Error(error, 'Could not load page')
   })

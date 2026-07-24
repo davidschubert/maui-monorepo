@@ -14,6 +14,8 @@ export type PageStatus = (typeof PAGE_STATUSES)[number]
 export interface PageRow extends Models.Row {
   slug: string
   locale: string
+  /** H3-Pool-Datenpfad (pages-003); '' = Silo/Einzelbetrieb. */
+  tenantId?: string
   title: string
   body: string
   status: PageStatus

@@ -10,7 +10,7 @@ export default defineEventHandler(async (event): Promise<{ groups: PageGroup[] }
   const res = await admin.tablesDB.listRows<PageRow>({
     databaseId: config.public.appwriteDatabaseId,
     tableId: PAGES_TABLE,
-    queries: [Query.orderAsc('sortOrder'), Query.limit(500)],
+    queries: scopeQuery(event, [Query.orderAsc('sortOrder'), Query.limit(500)]),
   }).catch((error) => {
     throw toH3Error(error, 'Could not load pages')
   })
