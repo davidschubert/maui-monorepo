@@ -3,6 +3,7 @@
 // definiert ihn aber nicht. Reine Zod-/Daten-Module, kein Laufzeit-Coupling.
 import { onboardingSiteSchema } from '../../../../studio/schemas/onboarding'
 import { callControlPlane, mintRuntimeJwt } from '../../utils/controlPlane'
+import { grantSiteLabel } from '../../utils/siteLabel'
 
 /**
  * Community anlegen — der öffentliche Abschluss des Wizards (Schritt 7).
@@ -29,6 +30,8 @@ export default defineEventHandler(async (event) => {
   const jwt = await mintRuntimeJwt(event)
 
   const result = await callControlPlane<CreatedSite>(event, '/api/studio/onboarding/site', { jwt, site })
+
+  await grantSiteLabel(event, result.siteId)
 
   logEvent('info', 'onboarding.site_requested', {
     siteId: result.siteId,

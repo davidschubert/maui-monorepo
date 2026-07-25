@@ -40,6 +40,21 @@ export default defineEventHandler(async (event) => {
     }).then(row => row.themeSettings).catch(() => null),
   ])
 
+  const settings = parseJson<Record<string, unknown>>(settingsRaw) ?? {}
+
+  // Branding PRO MANDANT (O5): im Pool teilen sich alle Communities dieses
+  // Projekt und damit app_config.themeSettings — das Onboarding schreibt den
+  // gewählten Vibe deshalb an den Tenant, und hier schlägt er die
+  // Instanz-Einstellung. Ohne Tenant-Branding bleibt alles wie bisher.
+  const tenant = event.context.tenant
+  if (tenant?.theme) {
+    settings.defaultThemeId = tenant.theme
+    // Variante bewusst NUR setzen, wenn der Vibe eine hat: sonst würde eine
+    // leere Variante die Instanz-Einstellung überschreiben und die Basisfarbe
+    // erzwingen, wo vielleicht eine Variante gewollt war.
+    if (tenant.variant) settings.defaultVariantId = tenant.variant
+  }
+
   return {
     themes: rows.map(row => ({
       id: row.$id,
@@ -49,6 +64,6 @@ export default defineEventHandler(async (event) => {
       config: parseJson<Record<string, unknown>>(row.config),
       variants: parseJson<{ id: string, color: string }[]>(row.variants),
     })),
-    settings: parseJson<Record<string, unknown>>(settingsRaw) ?? {},
+    settings,
   }
 })

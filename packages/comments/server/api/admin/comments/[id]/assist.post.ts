@@ -37,7 +37,7 @@ function buildPrompt(comment: CommentRow, reports: { reason: string, note: strin
 }
 
 export default defineEventHandler(async (event): Promise<ModerationAssist> => {
-  requirePermission(event, 'comments.moderate')
+  await requireSitePermission(event, 'comments.moderate')
 
   if (!isAiAvailable(event)) {
     throw createError({ status: 503, statusText: 'AI assist not configured' })

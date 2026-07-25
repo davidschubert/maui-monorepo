@@ -9,6 +9,22 @@ export default defineNuxtConfig({
     port: 3006,
   },
 
+  vite: {
+    server: {
+      /**
+       * NUR DEV. Diese App wird PRO HOSTNAME anders bedient, und die vom
+       * Onboarding erzeugten Communities heißen `<slug>.pukalani.app` — auch
+       * lokal, weil der Server den Host baut. Vite lässt von Haus aus nur
+       * `localhost` und `*.localhost` durch (Schutz vor DNS-Rebinding) und
+       * antwortet sonst mit 403 „Blocked request"; ohne diesen Eintrag ist eine
+       * frisch angelegte Community lokal nicht testbar, und der Fehler sieht
+       * wie ein Mandanten-Bug aus. Produktion ist nicht betroffen (Nitro-Build
+       * ohne Vite).
+       */
+      allowedHosts: ['.localhost', '.pukalani.app'],
+    },
+  },
+
   // Eigene Keys der App — werden mit den Core-Locales gemergt (gleicher code)
   i18n: {
     locales: [

@@ -13,9 +13,22 @@
  * Playground den Kontext ohne bauen; der reale tenants-Resolver setzt ihn aus
  * row.$id. requireTenantPermission verlangt ihn (fehlt er → fail-closed).
  */
+/**
+ * Branding des Mandanten (O5): das im Onboarding gewählte Built-in-Theme-Paar.
+ *
+ * MUSS am Mandanten hängen und nicht im Projekt: `app_config.themeSettings` ist
+ * EINE Row pro Appwrite-Projekt — im Pool teilen sich alle Communities sie, ein
+ * Schreiber hätte also alle anderen mit umgefärbt. Leer/fehlend = die
+ * Instanz-Einstellung gilt weiter (heutiges Verhalten).
+ */
+export interface TenantBranding {
+  theme?: string
+  variant?: string
+}
+
 export type TenantContext =
   /** Eigenes Appwrite-Projekt (Isolation am Projekt) — Spezial-/Enterprise-Kunde. */
-  | { mode: 'silo', projectId: string, siteId?: string }
+  | ({ mode: 'silo', projectId: string, siteId?: string } & TenantBranding)
   /**
    * Geteiltes Projekt, Zeilen-Scope über tenantId — Standard-SaaS-Kunde.
    * `plan` (free/pro/business, Default free) staffelt die Quota — core bleibt
@@ -25,4 +38,4 @@ export type TenantContext =
    * — hat Vorrang vor dem statischen app.config-Katalog (Fallback-Kette in
    * assertPoolWriteQuota).
    */
-  | { mode: 'pool', projectId: string, tenantId: string, plan?: string, limits?: Record<string, { perDay?: number, total?: number }>, siteId?: string }
+  | ({ mode: 'pool', projectId: string, tenantId: string, plan?: string, limits?: Record<string, { perDay?: number, total?: number }>, siteId?: string } & TenantBranding)

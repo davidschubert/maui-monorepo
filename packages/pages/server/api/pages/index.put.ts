@@ -4,7 +4,7 @@ import { PAGES_TABLE, type PageRow } from '../../../shared/types/page'
 
 /** Admin: eine Seiten-Sprachversion anlegen/aktualisieren (upsert nach slug+locale). */
 export default defineEventHandler(async (event): Promise<PageRow> => {
-  requirePermission(event, 'pages.manage')
+  await requireSitePermission(event, 'pages.manage')
   const body = await readValidatedBody(event, pageUpsertSchema.parse)
 
   const config = useRuntimeConfig(event)

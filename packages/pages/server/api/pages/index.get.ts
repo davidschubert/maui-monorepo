@@ -3,7 +3,7 @@ import { PAGES_TABLE, type PageGroup, type PageRow } from '../../../shared/types
 
 /** Admin: alle Seiten, nach slug gruppiert (das aufklappbare Menü). */
 export default defineEventHandler(async (event): Promise<{ groups: PageGroup[] }> => {
-  requirePermission(event, 'pages.manage')
+  await requireSitePermission(event, 'pages.manage')
 
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)

@@ -8,6 +8,16 @@ import {
   type SiteVibeId,
 } from '../../../../studio/shared/onboarding'
 import { OPERATOR_APEX, nameToSubdomain } from '../../../../studio/schemas/tenant'
+import {
+  WIZARD_STEPS,
+  isStepComplete,
+  nextStep,
+  normalizeStep,
+  previousStep,
+  stepIndex,
+  type SlugCheck,
+  type WizardStep,
+} from '../../../shared/wizardSteps'
 import type { Choice } from '../../components/OnboardingChoices.vue'
 
 /**
@@ -24,8 +34,7 @@ import type { Choice } from '../../components/OnboardingChoices.vue'
  */
 definePageMeta({ layout: 'onboarding', middleware: 'auth' })
 
-const STEPS = ['basics', 'size', 'category', 'description', 'goal', 'vibe', 'summary'] as const
-type Step = (typeof STEPS)[number]
+const STEPS = WIZARD_STEPS
 
 const { t, locale } = useI18n()
 const route = useRoute()
@@ -35,13 +44,10 @@ const draft = useOnboardingDraft()
 const auth = useAuthStore()
 
 // ── Schritt aus der URL (fehlerhafte Werte → erster Schritt) ────────────────
-const step = computed<Step>(() => {
-  const value = String(route.query.step ?? '')
-  return (STEPS as readonly string[]).includes(value) ? value as Step : STEPS[0]
-})
-const index = computed(() => STEPS.indexOf(step.value))
+const step = computed<WizardStep>(() => normalizeStep(route.query.step))
+const index = computed(() => stepIndex(step.value))
 
-function goTo(next: Step) {
+function goTo(next: WizardStep) {
   router.push({ query: { ...route.query, step: next } })
 }
 
@@ -72,7 +78,7 @@ watch(() => draft.value.name, (name) => {
 
 const host = computed(() => draft.value.slug ? `${draft.value.slug}.${OPERATOR_APEX}` : '')
 
-const slugState = ref<'idle' | 'checking' | 'free' | 'taken' | 'error'>('idle')
+const slugState = ref<SlugCheck>('idle')
 const aiAvailable = ref(false)
 let slugTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -142,34 +148,16 @@ async function suggest() {
   }
 }
 
-// ── Weiter-Bedingungen je Schritt ───────────────────────────────────────────
-const canContinue = computed(() => {
-  switch (step.value) {
-    case 'basics':
-      return (draft.value.name ?? '').trim().length >= 2
-        && (draft.value.slug ?? '').length >= 3
-        && slugState.value !== 'taken'
-        && slugState.value !== 'checking'
-        && !!draft.value.purpose
-    case 'size': return !!draft.value.memberRange
-    case 'category': return !!draft.value.category
-    case 'description': return true // bewusst überspringbar
-    case 'goal': return !!draft.value.goal
-    case 'vibe': return !!draft.value.vibe
-    case 'summary': return true
-    // Unerreichbar (der Schritt kommt aus STEPS), aber die sichere Antwort für
-    // einen künftigen Schritt ohne eigene Bedingung ist „noch nicht".
-    default: return false
-  }
-})
+// ── Weiter-Bedingung je Schritt (Regel + Tests: shared/wizardSteps.ts) ──────
+const canContinue = computed(() => isStepComplete(step.value, draft.value, slugState.value))
 
 function next() {
   if (!canContinue.value) return
-  const target = STEPS[index.value + 1]
+  const target = nextStep(step.value)
   if (target) goTo(target)
 }
 function back() {
-  const target = STEPS[index.value - 1]
+  const target = previousStep(step.value)
   if (target) goTo(target)
   else navigateTo(localePath('/start'))
 }

@@ -3,6 +3,7 @@ import { createMicrocache } from '../../../core/server/utils/microcache'
 import type { TenantResolver } from '../../../core/server/utils/tenantResolver'
 import type { TenantContext } from '../../../core/shared/types/tenant'
 import { TENANT_PLANS_TABLE, TENANTS_TABLE, parseTenantPlanLimits, type TenantPlanLimits, type TenantPlanRow, type TenantRow } from '../../shared/types/tenantRecord'
+import { isSafeThemeToken } from '../../shared/onboarding'
 
 /**
  * Horizont-3 Naht 1 — Resolver-Implementierung über die tenants-Table des
@@ -24,12 +25,19 @@ import { TENANT_PLANS_TABLE, TENANTS_TABLE, parseTenantPlanLimits, type TenantPl
  *  gesetzt, wenn die Row eine $id trägt (der reale Read immer; Test-Fixtures
  *  optional). Trägt die Site-Rollen-Auflösung (requireTenantPermission). */
 export function mapTenantRowToContext(
-  row: (Pick<TenantRow, 'mode' | 'projectId' | 'tenantId' | 'status' | 'plan'> & { $id?: string }) | null,
+  row: (Pick<TenantRow, 'mode' | 'projectId' | 'tenantId' | 'status' | 'plan'> & { $id?: string, theme?: string | null, variant?: string | null }) | null,
   planCatalog?: Record<string, Record<string, TenantPlanLimits>>,
 ): TenantContext | null {
   if (!row || row.status !== 'active') return null
   const siteId = row.$id ? { siteId: row.$id } : {}
-  if (row.mode === 'silo') return { mode: 'silo', projectId: row.projectId, ...siteId }
+  // Branding des Mandanten (O5). Nur attribut-sichere Tokens reisen mit: die
+  // Werte landen als data-theme/data-variant im <html>, und der Wächter hier ist
+  // die erste von zwei Linien (die zweite ist SAFE_ATTR im themes-Layer).
+  const branding = {
+    ...(row.theme && isSafeThemeToken(row.theme) ? { theme: row.theme } : {}),
+    ...(row.variant && isSafeThemeToken(row.variant) ? { variant: row.variant } : {}),
+  }
+  if (row.mode === 'silo') return { mode: 'silo', projectId: row.projectId, ...siteId, ...branding }
   // Pool ohne tenantId wäre ein Datenfehler — NIE ungescoped durchlassen
   if (row.mode === 'pool' && row.tenantId) {
     // '' (Bestand vor studio-013) → free; der Plan staffelt die Quota.
@@ -37,7 +45,7 @@ export function mapTenantRowToContext(
     // vorhanden, reisen sie aufgelöst im Context (Vorrang vor app.config).
     const plan = row.plan || 'free'
     const limits = planCatalog?.[plan] ?? planCatalog?.free
-    return { mode: 'pool', projectId: row.projectId, tenantId: row.tenantId, plan, ...(limits ? { limits } : {}), ...siteId }
+    return { mode: 'pool', projectId: row.projectId, tenantId: row.tenantId, plan, ...(limits ? { limits } : {}), ...siteId, ...branding }
   }
   return null
 }

@@ -10,7 +10,7 @@ const PAGE_SIZE = 25
  * optional targetType.
  */
 export default defineEventHandler(async (event): Promise<ReportListResponse> => {
-  requirePermission(event, 'reports.moderate')
+  await requireSitePermission(event, 'reports.moderate')
 
   const query = getQuery(event)
   const status = typeof query.status === 'string' ? query.status : 'open'
