@@ -653,8 +653,20 @@ wird über Theme-Töne/Hintergründe gelöst (passt zur bestehenden Theme-Engine
    Grau→Sonne + puka-Motiv + Scroll-Reveal, reduced-motion-fest) und SEO
    (locale-Titel/Description, hreflang, JSON-LD Organization/SoftwareApplication/
    FAQPage). Prod-Build grün.
-6. **Abnahme (offen/Rest):** volle Dramaturgie-Ausbaustufen (Vergleich `/vs/*`,
-   Anwendungsfälle `/fuer/*`, Story-Sektion, echte Preise aus dem Studio-Katalog,
-   Social Proof) + Lighthouse/Perf-Budget + 2 benigne Hydration-Mismatches (ohne
-   erfassbare Detail-Warnung, Render korrekt) noch zu klären; Deploy/Go-Live =
-   Davids Freigabe.
+6. **Ausbaustufe 2 ✅ (2026-07-24):** Story-Sektion (§4.12, 4 Stränge) ·
+   Vergleichs-Sektion + `/vs/{circle,skool,mighty-networks}` · Für-wen-Sektion +
+   `/fuer/{coaches,kurse,creator,vereine}`. Licht-Kette stufenlos gemacht
+   (Übergangs- + Halte-Töne). **Abnahme grün:** 1 H1 + saubere H2/H3-Hierarchie,
+   keine namenlosen Links/Buttons, Deko `aria-hidden`, Tabelle mit `<caption>` +
+   `scope`-Headern, FAQ als native `<details>`; Mobile 375 px → **0 px**
+   horizontaler Seiten-Overflow (breite Tabelle scrollt im eigenen Container);
+   `prefers-reduced-motion` neutralisiert Reveal + Parallax; Prod-Build grün.
+   **Hydration-Mismatches geklärt (kein Defekt):** sie treten NUR auf, wenn das
+   `i18n_redirected`-Cookie der URL-Locale widerspricht (z. B. Cookie `en`,
+   Aufruf `/de`) — SSR rendert die URL-Locale, der Client folgt dem Cookie. Das
+   ist die bewusste Core-Strategie (`redirectOn: 'all'`, CLAUDE.md). Mit
+   passendem Cookie: 0 Console-Fehler auf allen Routen.
+7. **Rest (offen):** echte Preise aus dem Studio-Katalog (#4), Social Proof mit
+   echten Kunden, weitere SEO-Seiten (`/dsgvo`, `/wechseln`, `/glossar`,
+   Feature-Seiten), Lighthouse/Perf-Budget-Messung; Deploy/Go-Live = Davids
+   Freigabe.
