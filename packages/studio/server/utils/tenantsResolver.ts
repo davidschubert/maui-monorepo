@@ -19,13 +19,17 @@ import { TENANT_PLANS_TABLE, TENANTS_TABLE, parseTenantPlanLimits, type TenantPl
  * Plane nicht pro Request hämmern können.
  */
 
-/** Pure (unit-getestet): tenants-Row (+ optionaler Plan-Katalog) → TenantContext. */
+/** Pure (unit-getestet): tenants-Row (+ optionaler Plan-Katalog) → TenantContext.
+ *  siteId = row.$id (G1: der Tenant IST die kanonische Kunden-Site) — additiv
+ *  gesetzt, wenn die Row eine $id trägt (der reale Read immer; Test-Fixtures
+ *  optional). Trägt die Site-Rollen-Auflösung (requireTenantPermission). */
 export function mapTenantRowToContext(
-  row: Pick<TenantRow, 'mode' | 'projectId' | 'tenantId' | 'status' | 'plan'> | null,
+  row: (Pick<TenantRow, 'mode' | 'projectId' | 'tenantId' | 'status' | 'plan'> & { $id?: string }) | null,
   planCatalog?: Record<string, Record<string, TenantPlanLimits>>,
 ): TenantContext | null {
   if (!row || row.status !== 'active') return null
-  if (row.mode === 'silo') return { mode: 'silo', projectId: row.projectId }
+  const siteId = row.$id ? { siteId: row.$id } : {}
+  if (row.mode === 'silo') return { mode: 'silo', projectId: row.projectId, ...siteId }
   // Pool ohne tenantId wäre ein Datenfehler — NIE ungescoped durchlassen
   if (row.mode === 'pool' && row.tenantId) {
     // '' (Bestand vor studio-013) → free; der Plan staffelt die Quota.
@@ -33,7 +37,7 @@ export function mapTenantRowToContext(
     // vorhanden, reisen sie aufgelöst im Context (Vorrang vor app.config).
     const plan = row.plan || 'free'
     const limits = planCatalog?.[plan] ?? planCatalog?.free
-    return { mode: 'pool', projectId: row.projectId, tenantId: row.tenantId, plan, ...(limits ? { limits } : {}) }
+    return { mode: 'pool', projectId: row.projectId, tenantId: row.tenantId, plan, ...(limits ? { limits } : {}), ...siteId }
   }
   return null
 }

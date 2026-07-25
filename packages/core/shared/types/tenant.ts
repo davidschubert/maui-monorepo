@@ -7,9 +7,15 @@
  * getestetes Fundament bereit; die Verdrahtung in die Client-Factories +
  * Auflösungs-Middleware kommt als eigener, bewusster Schritt.
  */
+/**
+ * `siteId` (G1): die kanonische Kunden-Site = tenants.$id (G0-Entscheidung
+ * „der Tenant IST die Site"). Additiv/optional, weil Bestands-Fixtures +
+ * Playground den Kontext ohne bauen; der reale tenants-Resolver setzt ihn aus
+ * row.$id. requireTenantPermission verlangt ihn (fehlt er → fail-closed).
+ */
 export type TenantContext =
   /** Eigenes Appwrite-Projekt (Isolation am Projekt) — Spezial-/Enterprise-Kunde. */
-  | { mode: 'silo', projectId: string }
+  | { mode: 'silo', projectId: string, siteId?: string }
   /**
    * Geteiltes Projekt, Zeilen-Scope über tenantId — Standard-SaaS-Kunde.
    * `plan` (free/pro/business, Default free) staffelt die Quota — core bleibt
@@ -19,4 +25,4 @@ export type TenantContext =
    * — hat Vorrang vor dem statischen app.config-Katalog (Fallback-Kette in
    * assertPoolWriteQuota).
    */
-  | { mode: 'pool', projectId: string, tenantId: string, plan?: string, limits?: Record<string, { perDay?: number, total?: number }> }
+  | { mode: 'pool', projectId: string, tenantId: string, plan?: string, limits?: Record<string, { perDay?: number, total?: number }>, siteId?: string }

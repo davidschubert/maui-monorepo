@@ -38,6 +38,12 @@ describe('mapTenantRowToContext (pure)', () => {
     expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: 'pro' }, {}))
       .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'pro' })
   })
+  it('G1: $id reist als siteId in den Context (pool + silo)', () => {
+    expect(mapTenantRowToContext({ $id: 'site-abc', mode: 'silo', projectId: 'p1', tenantId: '', status: 'active', plan: '' }))
+      .toEqual({ mode: 'silo', projectId: 'p1', siteId: 'site-abc' })
+    expect(mapTenantRowToContext({ $id: 'site-xyz', mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: '' }))
+      .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'free', siteId: 'site-xyz' })
+  })
 })
 
 describe('parseTenantPlanLimits (pure, defensiv)', () => {
