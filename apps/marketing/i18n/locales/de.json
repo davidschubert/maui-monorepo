@@ -34,9 +34,18 @@
       "painLabel": "Das nervt",
       "gainLabel": "So machen wir es",
       "rows": [
-        { "pain": "Hohe Grundpreise + Transaktionsgebühren", "gain": "Fairer, planbarer Preis. Kostenloser Einstieg." },
-        { "pain": "Unklare Datenwege & Werbe-Tracking", "gain": "In Deutschland gehostet, kein Werbe-Tracking." },
-        { "pain": "Alles-oder-nichts-Monolith", "gain": "Modular: aktivier nur, was du brauchst." }
+        {
+          "pain": "Hohe Grundpreise + Transaktionsgebühren",
+          "gain": "Fairer, planbarer Preis. Kostenloser Einstieg."
+        },
+        {
+          "pain": "Unklare Datenwege & Werbe-Tracking",
+          "gain": "In Deutschland gehostet, kein Werbe-Tracking."
+        },
+        {
+          "pain": "Alles-oder-nichts-Monolith",
+          "gain": "Modular: aktivier nur, was du brauchst."
+        }
       ]
     },
     "steps": {
@@ -44,9 +53,21 @@
       "title": "In 60 Sekunden deine eigene Community.",
       "badge": "unter 60 Sekunden",
       "items": [
-        { "n": "1", "title": "Registrieren", "text": "E-Mail genügt, Login per Code – kein Passwort-Zwang." },
-        { "n": "2", "title": "Deine Site benennen", "text": "deinname.pukalani.app ist sofort live." },
-        { "n": "3", "title": "Bausteine wählen", "text": "Feed, Kurse, Events, Diskussionen an- oder ausschalten. Dein Design dazu. Fertig." }
+        {
+          "n": "1",
+          "title": "Registrieren",
+          "text": "E-Mail genügt, Login per Code – kein Passwort-Zwang."
+        },
+        {
+          "n": "2",
+          "title": "Deine Site benennen",
+          "text": "deinname.pukalani.app ist sofort live."
+        },
+        {
+          "n": "3",
+          "title": "Bausteine wählen",
+          "text": "Feed, Kurse, Events, Diskussionen an- oder ausschalten. Dein Design dazu. Fertig."
+        }
       ]
     },
     "blocks": {
@@ -56,33 +77,288 @@
       "available": "Verfügbar",
       "earlyAccess": "Early Access",
       "items": [
-        { "icon": "i-ph-chats-circle-bold", "title": "Diskussionen", "text": "Echtzeit-Kommentare mit verschachtelten Threads, Votes, {'@'}-Erwähnungen und Live-Präsenz – unter jedem Inhalt.", "status": "available" },
-        { "icon": "i-ph-shield-check-bold", "title": "Moderation", "text": "Melde-System, zweiphasiges Ausblenden, KI-Assistenz als Zweitmeinung – der Mensch entscheidet.", "status": "available" },
-        { "icon": "i-ph-note-bold", "title": "Seiten & Branding", "text": "Eigene Seiten, 26 Farbwelten, eigene Schriften – deine Community sieht aus wie du.", "status": "available" },
-        { "icon": "i-ph-broadcast-bold", "title": "Beiträge & Feed", "text": "Nutzer-Beiträge in Markdown, Umfragen und Fragen, chronologischer Activity-Feed.", "status": "earlyAccess" },
-        { "icon": "i-ph-graduation-cap-bold", "title": "Kurse", "text": "Lektionen mit Fortschritt, Zugang frei/für Mitglieder/Pro – Bezahl-Zugang über Stripe.", "status": "earlyAccess" },
-        { "icon": "i-ph-calendar-check-bold", "title": "Events", "text": "Online oder vor Ort, Einzeltermine oder Serien, mit Zusagen und Tickets – sogar einbettbar.", "status": "earlyAccess" }
+        {
+          "icon": "i-ph-chats-circle-bold",
+          "title": "Diskussionen",
+          "text": "Echtzeit-Kommentare mit verschachtelten Threads, Votes, {'@'}-Erwähnungen und Live-Präsenz – unter jedem Inhalt.",
+          "status": "available"
+        },
+        {
+          "icon": "i-ph-shield-check-bold",
+          "title": "Moderation",
+          "text": "Melde-System, zweiphasiges Ausblenden, KI-Assistenz als Zweitmeinung – der Mensch entscheidet.",
+          "status": "available"
+        },
+        {
+          "icon": "i-ph-note-bold",
+          "title": "Seiten & Branding",
+          "text": "Eigene Seiten, 26 Farbwelten, eigene Schriften – deine Community sieht aus wie du.",
+          "status": "available"
+        },
+        {
+          "icon": "i-ph-broadcast-bold",
+          "title": "Beiträge & Feed",
+          "text": "Nutzer-Beiträge in Markdown, Umfragen und Fragen, chronologischer Activity-Feed.",
+          "status": "earlyAccess"
+        },
+        {
+          "icon": "i-ph-graduation-cap-bold",
+          "title": "Kurse",
+          "text": "Lektionen mit Fortschritt, Zugang frei/für Mitglieder/Pro – Bezahl-Zugang über Stripe.",
+          "status": "earlyAccess"
+        },
+        {
+          "icon": "i-ph-calendar-check-bold",
+          "title": "Events",
+          "text": "Online oder vor Ort, Einzeltermine oder Serien, mit Zusagen und Tickets – sogar einbettbar.",
+          "status": "earlyAccess"
+        }
       ]
     },
     "modular": {
       "kicker": "Modular statt Monolith",
       "title": "Nimm nur, was du brauchst.",
       "lead": "Nur Kurse verkaufen? Aktivier Kurse. Community drumherum? Schalt Feed und Diskussionen dazu. Events? Ein Klick. Bei Pukalani wächst die Plattform mit dir, statt dich mit Funktionen zu erschlagen, die du nie öffnest.",
-      "blocks": { "discussions": "Diskussionen", "moderation": "Moderation", "feed": "Feed", "courses": "Kurse", "events": "Events" },
-      "presets": { "only": "Nur Diskussionen", "community": "Community", "all": "Alles" }
+      "blocks": {
+        "discussions": "Diskussionen",
+        "moderation": "Moderation",
+        "feed": "Feed",
+        "courses": "Kurse",
+        "events": "Events"
+      },
+      "presets": {
+        "only": "Nur Diskussionen",
+        "community": "Community",
+        "all": "Alles"
+      }
     },
     "privacy": {
       "kicker": "Datenschutz & Hosting",
       "title": "DSGVO ist bei uns der Standard – nicht das Upgrade.",
       "lead": "Deine Community-Daten liegen in Deutschland, nicht in einer fernen Cloud. Kein Werbe-Tracking, kein Weiterverkauf – datensparsam by Design.",
       "points": [
-        { "icon": "i-ph-flag-bold", "text": "Server in Deutschland (Hetzner)" },
-        { "icon": "i-ph-eye-slash-bold", "text": "Kein Werbe-Tracking, keine Werbung, kein Datenverkauf" },
-        { "icon": "i-ph-cookie-bold", "text": "Datensparsame First-Party-Sessions" },
-        { "icon": "i-ph-export-bold", "text": "Export- und Löschprozesse" },
-        { "icon": "i-ph-lock-simple-bold", "text": "Transportverschlüsselung" }
+        {
+          "icon": "i-ph-flag-bold",
+          "text": "Server in Deutschland (Hetzner)"
+        },
+        {
+          "icon": "i-ph-eye-slash-bold",
+          "text": "Kein Werbe-Tracking, keine Werbung, kein Datenverkauf"
+        },
+        {
+          "icon": "i-ph-cookie-bold",
+          "text": "Datensparsame First-Party-Sessions"
+        },
+        {
+          "icon": "i-ph-export-bold",
+          "text": "Export- und Löschprozesse"
+        },
+        {
+          "icon": "i-ph-lock-simple-bold",
+          "text": "Transportverschlüsselung"
+        }
       ],
       "note": "Was am Ende zählt, ist die konkrete Konfiguration deiner Site und deine Rechtstexte – pauschale Versprechen machen wir bewusst nicht."
+    },
+    "features": {
+      "backHome": "Zur Startseite",
+      "highlightsTitle": "Was drin ist",
+      "ctaTitle": "Ausprobieren – kostenlos",
+      "ctaLead": "In 60 Sekunden steht deine Community. Danach entscheidest du.",
+      "items": {
+        "diskussionen": {
+          "name": "Diskussionen",
+          "metaTitle": "Echtzeit-Diskussionen für deine Community – ohne Werbe-Tracking",
+          "metaDescription": "Verschachtelte Threads, Votes, {'@'}-Erwähnungen und Live-Präsenz – unter jedem Inhalt, einbettbar in deine Website. In Deutschland gehostet.",
+          "title": "Diskussionen, die man spürt",
+          "sub": "Threads, Votes, Erwähnungen und Live-Präsenz – unter jedem Inhalt.",
+          "intro": "Diskussionen sind bei uns kein Anhängsel, sondern das Bindegewebe: Sie laufen unter Beiträgen, Kursen und Events – und lassen sich sogar in deine bestehende Website einbetten. Und weil man live sieht, wer liest oder tippt, fühlt sich der Ort bewohnt an statt verlassen.",
+          "highlights": [
+            "Verschachtelte Threads mit Antwort-Tiefe, damit Nebendiskussionen lesbar bleiben",
+            "Votes und Sortierung, damit Gutes oben landet",
+            "{'@'}-Erwähnungen mit Benachrichtigung – auch per E-Mail, wenn gewünscht",
+            "Live-Präsenz: wer liest, wer tippt, wer antwortet",
+            "Einbettbar in fremde Seiten (auch für Gäste, wenn du es erlaubst)",
+            "Moderation inklusive: Melden, zweiphasiges Ausblenden, KI-Zweitmeinung"
+          ]
+        },
+        "branding": {
+          "name": "Branding",
+          "metaTitle": "White-Label-Community – dein Design, deine Schriften, deine Domain",
+          "metaDescription": "26 Farbwelten, eigene Themes und Schriften, eigene Seiten – und auf Wunsch deine eigene Domain. Deine Community sieht aus wie du, nicht wie Software.",
+          "title": "Deine Community sieht aus wie DU",
+          "sub": "26 Farbwelten, eigene Schriften, eigene Seiten – und auf Wunsch deine Domain.",
+          "intro": "Nichts verrät eine Standard-Plattform schneller als ihr Standard-Look. Bei Pukalani wählst du eine von 26 Farbwelten (je mit zehn tonalen Varianten), setzt Text- und Überschriften-Schrift getrennt und legst eigene Seiten an. Deine Mitglieder landen bei dir – nicht in etwas, das nach Software aussieht.",
+          "highlights": [
+            "26 kuratierte Farbwelten, jede mit zehn tonalen Varianten",
+            "Eigene Themes aus einer Basisfarbe – Kontrast wird automatisch geprüft",
+            "Schriften getrennt für Text und Überschriften, eigene WOFF2-Uploads möglich",
+            "Hell und dunkel ohne Extra-Arbeit",
+            "Eigene Seiten (Start, Über, Regeln) im Editor",
+            "Eigene Domain für Silo-Kunden – ohne Umzug deiner Inhalte"
+          ]
+        }
+      }
+    },
+    "glossary": {
+      "metaTitle": "Community-Glossar – Feed, Thread, Moderation, Präsenz erklärt",
+      "metaDescription": "Die wichtigsten Begriffe rund um Community-Plattformen kurz erklärt: Feed, Thread, Moderation, Präsenz, Embed, eigene Domain, Rollen, Early Access.",
+      "kicker": "Glossar",
+      "title": "Community-Begriffe, kurz erklärt",
+      "lead": "Ohne Fachjargon-Nebel: die Wörter, die auf dieser Seite und in der Plattform vorkommen – jeweils in zwei Sätzen.",
+      "terms": [
+        {
+          "term": "Community-Plattform",
+          "def": "Ein eigener Ort, an dem deine Mitglieder schreiben, lernen und sich treffen – unter deinem Namen, deinem Design und deiner Domain. Anders als eine Facebook-Gruppe gehört sie dir, nicht einem fremden Netzwerk."
+        },
+        {
+          "term": "Feed",
+          "def": "Der chronologische Strom aus Beiträgen und Ereignissen deiner Community. Er zeigt, was gerade passiert – und hält Menschen wieder-kommend."
+        },
+        {
+          "term": "Thread",
+          "def": "Eine Diskussion mit Antworten, die unter dem Ausgangsbeitrag eingerückt hängen. So bleiben Nebendiskussionen lesbar statt sich zu vermischen."
+        },
+        {
+          "term": "Moderation",
+          "def": "Alles, was Inhalte verträglich hält: Melden, Ausblenden, Wiederherstellen, Regeln durchsetzen. Bei uns mit KI-Zweitmeinung – entscheiden tut ein Mensch."
+        },
+        {
+          "term": "Präsenz (Presence)",
+          "def": "Die Live-Anzeige, wer gerade liest, tippt oder antwortet. Sie macht eine Community spürbar bewohnt statt tot."
+        },
+        {
+          "term": "Embed",
+          "def": "Ein Baustein deiner Community, eingebettet in eine andere Website – zum Beispiel Diskussionen unter deinen Blogartikeln. Du musst dafür nichts umziehen."
+        },
+        {
+          "term": "Eigene Domain",
+          "def": "Deine Community läuft unter deiner Adresse, etwa community.deinefirma.de, statt unter einer fremden. Bei uns ist das für Silo-Kunden vorgesehen."
+        },
+        {
+          "term": "Rollen",
+          "def": "Wer darf was: Owner, Admin, Moderator, Editor, Viewer. Rollen verhindern, dass alle alles können – und dass niemand etwas kann."
+        },
+        {
+          "term": "Bausteine",
+          "def": "Die einzeln an- und abschaltbaren Teile der Plattform: Diskussionen, Moderation, Seiten, Feed, Kurse, Events. Du nimmst nur, was du brauchst."
+        },
+        {
+          "term": "Early Access",
+          "def": "Ein Baustein, den es gibt, der aber noch nicht für alle freigegeben ist. Wir markieren das so – statt es wie ein fertiges Tarif-Versprechen aussehen zu lassen."
+        },
+        {
+          "term": "Mitglieder-only",
+          "def": "Inhalte, die nur angemeldete Mitglieder deiner Community sehen. Bei uns ist das die Voreinstellung; öffentlich lesbar ist ein bewusster Schalter."
+        },
+        {
+          "term": "Datenexport",
+          "def": "Deine Inhalte und Mitgliederdaten in einem maschinenlesbaren Paket. Er ist der Grund, warum ein Wechsel zu uns keine Einbahnstraße ist."
+        }
+      ],
+      "ctaTitle": "Genug gelesen?",
+      "ctaLead": "Starte deine Community kostenlos – erklären kannst du sie danach."
+    },
+    "switch": {
+      "metaTitle": "Von Circle oder Skool wechseln – ohne Risiko umziehen",
+      "metaDescription": "So ziehst du deine Community um: parallel starten, Mitglieder einladen, kein Lock-in. Ehrlich zum Import — Automatik ist geplant, heute begleiten wir den Umzug.",
+      "kicker": "Umziehen",
+      "title": "Wechseln, ohne dass deine Community es ausbadet",
+      "lead": "Kein Stichtag, kein Blindflug: Du startest parallel, holst deine Leute in Ruhe rüber und behältst die alte Plattform, bis du sicher bist.",
+      "honestTitle": "Ehrlich zum Import",
+      "honest": "Automatische Importer für Circle, Skool oder Mighty Networks haben wir noch nicht – sie sind geplant. Heute begleiten wir den Umzug: Inhalte, die dir wichtig sind, ziehen wir gemeinsam um, den Rest lässt du bewusst zurück (meistens ist das ein Vorteil). Was du bei uns anlegst, kannst du jederzeit exportieren – der Rückweg bleibt offen.",
+      "stepsTitle": "Der Umzug in vier Schritten",
+      "steps": [
+        {
+          "n": "1",
+          "title": "Parallel starten",
+          "text": "Lege deine Pukalani-Community kostenlos an – deine alte Plattform läuft unverändert weiter. Kein Risiko, kein Stichtag."
+        },
+        {
+          "n": "2",
+          "title": "Bausteine wählen",
+          "text": "Schalte an, was du wirklich nutzt. Viele merken hier: die Hälfte der alten Funktionen hat nie jemand geöffnet."
+        },
+        {
+          "n": "3",
+          "title": "Kern-Inhalte mitnehmen",
+          "text": "Wichtige Beiträge, Seiten und Termine kommen mit – begleitet, nicht auf Zuruf. Alte Diskussionen darfst du bewusst archivieren statt schleppen."
+        },
+        {
+          "n": "4",
+          "title": "Mitglieder einladen",
+          "text": "Einladung raus, Login per Code – ohne Passwort-Zwang. Danach kündigst du drüben, wenn es sich richtig anfühlt."
+        }
+      ],
+      "keepTitle": "Was du dabei gewinnst",
+      "keep": [
+        "Planbarer Preis ohne Transaktionsgebühr auf deine Umsätze",
+        "Daten in Deutschland, kein Werbe-Tracking",
+        "Deine Domain, dein Design – deine Community heißt wie du",
+        "Kein Lock-in: Export und Löschung sind eingebaut, nicht erkauft"
+      ],
+      "ctaTitle": "Parallel starten – kostenlos",
+      "ctaLead": "Erst anlegen, dann entscheiden. Die alte Plattform bleibt, bis du sicher bist."
+    },
+    "gdpr": {
+      "metaTitle": "Datenschutz bei Pukalani – in Deutschland gehostet, ohne Werbe-Tracking",
+      "metaDescription": "Wie wir Datenschutz technisch umsetzen: Server in Deutschland, kein Werbe-Tracking, First-Party-Sessions, Export und Löschung. Ehrlich, ohne Pauschal-Siegel.",
+      "kicker": "Datenschutz & Betrieb",
+      "title": "Wie wir Datenschutz umsetzen",
+      "lead": "Kein Siegel, keine Marketing-Formel: hier steht, wo deine Daten liegen, was wir nicht tun – und was wir bewusst nicht versprechen.",
+      "disclaimerTitle": "Was diese Seite ist – und was nicht",
+      "disclaimer": "Diese Seite erklärt unsere Technik und unseren Betrieb. Sie ist keine Rechtsberatung und ersetzt nicht die Datenschutzerklärung deiner Community – die brauchst du für deine eigene Site, passend zu den Bausteinen, die du aktivierst.",
+      "legalLink": "Unsere eigene Datenschutzerklärung",
+      "sections": [
+        {
+          "icon": "i-ph-flag-bold",
+          "title": "Wo deine Daten liegen",
+          "text": "Auf Servern in Deutschland (Hetzner). Wir betreiben die Datenbank selbst gehostet – es sitzt keine US-Cloud im Datenpfad deiner Community."
+        },
+        {
+          "icon": "i-ph-eye-slash-bold",
+          "title": "Was wir nicht tun",
+          "text": "Kein Werbe-Tracking, keine Werbung, kein Verkauf oder Weitergeben deiner Daten zu Werbezwecken, keine Profilbildung über fremde Seiten hinweg. Deine Mitglieder sind unser Nutzer – nicht unser Produkt."
+        },
+        {
+          "icon": "i-ph-cookie-bold",
+          "title": "Sessions statt Tracker",
+          "text": "Für die Anmeldung nutzen wir ein technisch notwendiges First-Party-Cookie (httpOnly, secure, sameSite) – keine Werbe-IDs, keine Drittanbieter-Skripte im Standardbetrieb. Analytics ist ein Schalter, der bei uns standardmäßig aus ist."
+        },
+        {
+          "icon": "i-ph-export-bold",
+          "title": "Deine Daten gehören dir",
+          "text": "Export und Löschung sind eingebaute Prozesse, nicht Support-Tickets: vollständiger Datenexport auf Wunsch, vollständige Löschung inklusive Vorab-Snapshot, damit nichts versehentlich verschwindet."
+        },
+        {
+          "icon": "i-ph-lock-simple-bold",
+          "title": "Transport und Zugriff",
+          "text": "Verschlüsselte Übertragung (TLS), getrennte Schlüssel für Betrieb und Migrationen, Server-Geheimnisse nie im Browser. Wer in deiner Community was sieht, regeln Rollen – nicht Zufall."
+        },
+        {
+          "icon": "i-ph-handshake-bold",
+          "title": "Auftragsverarbeitung",
+          "text": "Betreibst du eine Community bei uns, bist du verantwortlich und wir verarbeiten in deinem Auftrag. Dafür brauchst du einen Auftragsverarbeitungsvertrag mit uns – sprich uns an, wir klären das vor dem Start deiner Community."
+        }
+      ],
+      "notPromisedTitle": "Was wir bewusst nicht versprechen",
+      "notPromisedLead": "Andere setzen hier Siegel. Wir schreiben lieber hin, warum es die nicht gibt:",
+      "notPromised": [
+        {
+          "claim": "„DSGVO-konform\" als Pauschal-Siegel",
+          "why": "Konformität hängt an deiner Konfiguration, deinen Rechtstexten und deinen Prozessen – nicht allein an unserer Software. Wir liefern die Technik dafür, das Siegel kann dir niemand verkaufen."
+        },
+        {
+          "claim": "„Kein Cookie-Banner nötig\"",
+          "why": "Ob du eines brauchst, entscheidet, welche Dienste du auf deiner Site aktivierst. Im Standardbetrieb setzen wir keine Werbe-Cookies – aber diese Bewertung gehört zu deiner Seite, nicht in unsere Werbung."
+        },
+        {
+          "claim": "„Tägliche Backups, garantierte Wiederherstellung\"",
+          "why": "Wir sichern regelmäßig. Eine Zusage zu Wiederherstellungszeit und maximalem Datenverlust veröffentlichen wir erst, wenn ein dokumentierter Restore-Test dahintersteht."
+        }
+      ],
+      "ctaTitle": "Community starten – kostenlos",
+      "ctaLead": "Kostenlos testen, jederzeit exportieren, jederzeit löschen."
     },
     "audience": {
       "kicker": "Für wen",
@@ -90,10 +366,30 @@
       "lead": "Vier typische Wege in eine eigene Community. Finde deinen.",
       "more": "Mehr dazu",
       "items": [
-        { "slug": "coaches", "icon": "i-ph-users-three-bold", "title": "Coaches & Trainer", "text": "Kurse, Diskussion und Treffen an einem geschützten Ort, den du steuerst." },
-        { "slug": "kurse", "icon": "i-ph-graduation-cap-bold", "title": "Kurs-Ersteller", "text": "Verkaufe Kurse mit Community drumherum – zu einem planbaren Preis." },
-        { "slug": "creator", "icon": "i-ph-pen-nib-bold", "title": "Creator & Autoren", "text": "Deine Community unter deiner Marke, ohne fremde Werbung." },
-        { "slug": "vereine", "icon": "i-ph-buildings-bold", "title": "Vereine & Organisationen", "text": "Mitglieder, Events und Austausch – in Deutschland gehostet." }
+        {
+          "slug": "coaches",
+          "icon": "i-ph-users-three-bold",
+          "title": "Coaches & Trainer",
+          "text": "Kurse, Diskussion und Treffen an einem geschützten Ort, den du steuerst."
+        },
+        {
+          "slug": "kurse",
+          "icon": "i-ph-graduation-cap-bold",
+          "title": "Kurs-Ersteller",
+          "text": "Verkaufe Kurse mit Community drumherum – zu einem planbaren Preis."
+        },
+        {
+          "slug": "creator",
+          "icon": "i-ph-pen-nib-bold",
+          "title": "Creator & Autoren",
+          "text": "Deine Community unter deiner Marke, ohne fremde Werbung."
+        },
+        {
+          "slug": "vereine",
+          "icon": "i-ph-buildings-bold",
+          "title": "Vereine & Organisationen",
+          "text": "Mitglieder, Events und Austausch – in Deutschland gehostet."
+        }
       ]
     },
     "audiencePages": {
@@ -154,13 +450,55 @@
       "criterion": "Kriterium",
       "us": "Pukalani",
       "rows": [
-        { "label": "Einstiegspreis pro Monat", "us": "kostenlos", "circle": "89 $ (Professional)", "skool": "9 $ (Hobby)", "mighty": "79 $ (Launch)" },
-        { "label": "Transaktionsgebühr", "us": "keine", "circle": "2 %", "skool": "10 % (Hobby) · 2,9 % (Pro)", "mighty": "2 %" },
-        { "label": "Hosting / Firmensitz", "us": "Deutschland", "circle": "USA", "skool": "USA", "mighty": "USA" },
-        { "label": "Kurse inkl. Bezahl-Zugang", "us": "ja (Early Access)", "circle": "ja", "skool": "ja", "mighty": "ja" },
-        { "label": "Bausteine einzeln abschaltbar", "us": "ja", "circle": "Suite", "skool": "Suite", "mighty": "Suite" },
-        { "label": "Bausteine in eigene Website einbettbar", "us": "ja (Diskussionen, Events)", "circle": "k. A.", "skool": "k. A.", "mighty": "k. A." },
-        { "label": "Native Mobile-Apps mit Push", "us": "nein", "circle": "ja", "skool": "ja", "mighty": "ja" }
+        {
+          "label": "Einstiegspreis pro Monat",
+          "us": "kostenlos",
+          "circle": "89 $ (Professional)",
+          "skool": "9 $ (Hobby)",
+          "mighty": "79 $ (Launch)"
+        },
+        {
+          "label": "Transaktionsgebühr",
+          "us": "keine",
+          "circle": "2 %",
+          "skool": "10 % (Hobby) · 2,9 % (Pro)",
+          "mighty": "2 %"
+        },
+        {
+          "label": "Hosting / Firmensitz",
+          "us": "Deutschland",
+          "circle": "USA",
+          "skool": "USA",
+          "mighty": "USA"
+        },
+        {
+          "label": "Kurse inkl. Bezahl-Zugang",
+          "us": "ja (Early Access)",
+          "circle": "ja",
+          "skool": "ja",
+          "mighty": "ja"
+        },
+        {
+          "label": "Bausteine einzeln abschaltbar",
+          "us": "ja",
+          "circle": "Suite",
+          "skool": "Suite",
+          "mighty": "Suite"
+        },
+        {
+          "label": "Bausteine in eigene Website einbettbar",
+          "us": "ja (Diskussionen, Events)",
+          "circle": "k. A.",
+          "skool": "k. A.",
+          "mighty": "k. A."
+        },
+        {
+          "label": "Native Mobile-Apps mit Push",
+          "us": "nein",
+          "circle": "ja",
+          "skool": "ja",
+          "mighty": "ja"
+        }
       ],
       "note": "„k. A.\" heißt: wir konnten es nicht sauber belegen — und behaupten dann nichts. Findest du einen Fehler, schreib uns; wir korrigieren.",
       "honest": "Du willst native iOS-/Android-Apps mit Push, oder eine Community mit 50.000 Mitgliedern und Enterprise-SSO? Dann sind die großen Suiten (noch) die bessere Wahl. Für alle, die schlank, fair und datenschutz-nah starten wollen, sind wir der richtige Weg."
@@ -210,9 +548,24 @@
       "lead": "Aktuell im Early Access, mit Einladung. Kostenlos starten, jederzeit kündbar, Datenexport inklusive.",
       "eaBadge": "Early Access – auf Einladung",
       "plans": [
-        { "name": "Free", "desc": "Zum Starten – eine Community, faire Limits, die Kern-Bausteine.", "cta": "Kostenlos starten", "featured": false },
-        { "name": "Pro", "desc": "Für wachsende Communities – mehr Bausteine (Feed, Events), höhere Limits, kleines Team.", "cta": "Early Access anfragen", "featured": true },
-        { "name": "Business", "desc": "Für Profis – alle Bausteine inkl. Kurse, eigene Domain, Webhooks/API, unbegrenzte Sitze.", "cta": "Early Access anfragen", "featured": false }
+        {
+          "name": "Free",
+          "desc": "Zum Starten – eine Community, faire Limits, die Kern-Bausteine.",
+          "cta": "Kostenlos starten",
+          "featured": false
+        },
+        {
+          "name": "Pro",
+          "desc": "Für wachsende Communities – mehr Bausteine (Feed, Events), höhere Limits, kleines Team.",
+          "cta": "Early Access anfragen",
+          "featured": true
+        },
+        {
+          "name": "Business",
+          "desc": "Für Profis – alle Bausteine inkl. Kurse, eigene Domain, Webhooks/API, unbegrenzte Sitze.",
+          "cta": "Early Access anfragen",
+          "featured": false
+        }
       ],
       "silo": "Eigene Instanz + eigene Domain (community.deinefirma.de)? Sprich mit uns.",
       "numbersNote": "Konkrete Zahlen folgen mit dem öffentlichen Start."
@@ -221,12 +574,30 @@
       "kicker": "Häufige Fragen",
       "title": "Noch Fragen? Hier die häufigsten.",
       "items": [
-        { "q": "Wo liegen meine Daten?", "a": "In Deutschland, bei Hetzner. Kein Werbe-Tracking, kein Weiterverkauf. Export und Löschung sind jederzeit möglich." },
-        { "q": "Kann ich meine bestehende Seite behalten?", "a": "Ja. Deine Community läuft unter deinem Namen und Design; einzelne Bausteine wie Diskussionen lassen sich sogar in deine bestehende Website einbetten." },
-        { "q": "Was kostet es?", "a": "Der Einstieg ist kostenlos. Pro und Business kommen mit dem öffentlichen Start; aktuell läuft ein Early Access auf Einladung." },
-        { "q": "Kann ich jederzeit kündigen?", "a": "Ja. Keine Mindestlaufzeit, und du nimmst deine Daten per Export mit." },
-        { "q": "In welchen Sprachen gibt es die Plattform?", "a": "Start mit Deutsch und Englisch; weitere Sprachen folgen." },
-        { "q": "Muss ich alle Bausteine nutzen?", "a": "Nein – jeder Baustein ist an- und abschaltbar. Du startest schlank und ergänzt, was du brauchst." }
+        {
+          "q": "Wo liegen meine Daten?",
+          "a": "In Deutschland, bei Hetzner. Kein Werbe-Tracking, kein Weiterverkauf. Export und Löschung sind jederzeit möglich."
+        },
+        {
+          "q": "Kann ich meine bestehende Seite behalten?",
+          "a": "Ja. Deine Community läuft unter deinem Namen und Design; einzelne Bausteine wie Diskussionen lassen sich sogar in deine bestehende Website einbetten."
+        },
+        {
+          "q": "Was kostet es?",
+          "a": "Der Einstieg ist kostenlos. Pro und Business kommen mit dem öffentlichen Start; aktuell läuft ein Early Access auf Einladung."
+        },
+        {
+          "q": "Kann ich jederzeit kündigen?",
+          "a": "Ja. Keine Mindestlaufzeit, und du nimmst deine Daten per Export mit."
+        },
+        {
+          "q": "In welchen Sprachen gibt es die Plattform?",
+          "a": "Start mit Deutsch und Englisch; weitere Sprachen folgen."
+        },
+        {
+          "q": "Muss ich alle Bausteine nutzen?",
+          "a": "Nein – jeder Baustein ist an- und abschaltbar. Du startest schlank und ergänzt, was du brauchst."
+        }
       ]
     },
     "story": {
@@ -234,10 +605,22 @@
       "title": "Ein Loch in den Wolken.",
       "intro": "Weit draußen im Pazifik liegt Maui. Hoch an den Hängen des Haleakalā gibt es einen Ort namens Pukalani. Sein Name wird als Öffnung zum Himmel verstanden — eine puka im Grau, durch die Licht fällt. Genau dort ist die Idee zu dieser Plattform entstanden.",
       "strands": [
-        { "title": "Das Loch in den Wolken.", "text": "Das Netz ist heute meist bewölkt – voller Tracking, Werbung, Lärm und geschlossener Netzwerke, in denen deine Community dir nie ganz gehört. Pukalani ist die Öffnung, durch die die Sonne bricht: ein klarer, ruhiger Ort, ohne all das Grau." },
-        { "title": "Das Tor zum Himmel.", "text": "Puka und lani lässt sich als „Öffnung zum Himmel\" lesen – eine Tür. Und genau so soll sich der Anfang anfühlen: Du gehst hindurch, und in sechzig Sekunden steht deine eigene Community – ohne Server, ohne Handbuch, ohne Umwege." },
-        { "title": "Fruchtbarer Boden.", "text": "Pukalani liegt im Hochland, auf reichem Vulkanboden, auf dem seit Generationen Dinge wachsen. Das ist unser Versprechen: ein Ort, an dem deine Community wächst – deine Beiträge, deine Kurse, deine Events, deine Menschen." },
-        { "title": "Eine Welt für sich.", "text": "Deine Community ist bei uns eine eigene, lebendige Welt – souverän und ganz die deine. Sie versickert nicht in einem fremden Netzwerk. Was du hier baust, gehört dir." }
+        {
+          "title": "Das Loch in den Wolken.",
+          "text": "Das Netz ist heute meist bewölkt – voller Tracking, Werbung, Lärm und geschlossener Netzwerke, in denen deine Community dir nie ganz gehört. Pukalani ist die Öffnung, durch die die Sonne bricht: ein klarer, ruhiger Ort, ohne all das Grau."
+        },
+        {
+          "title": "Das Tor zum Himmel.",
+          "text": "Puka und lani lässt sich als „Öffnung zum Himmel\" lesen – eine Tür. Und genau so soll sich der Anfang anfühlen: Du gehst hindurch, und in sechzig Sekunden steht deine eigene Community – ohne Server, ohne Handbuch, ohne Umwege."
+        },
+        {
+          "title": "Fruchtbarer Boden.",
+          "text": "Pukalani liegt im Hochland, auf reichem Vulkanboden, auf dem seit Generationen Dinge wachsen. Das ist unser Versprechen: ein Ort, an dem deine Community wächst – deine Beiträge, deine Kurse, deine Events, deine Menschen."
+        },
+        {
+          "title": "Eine Welt für sich.",
+          "text": "Deine Community ist bei uns eine eigene, lebendige Welt – souverän und ganz die deine. Sie versickert nicht in einem fremden Netzwerk. Was du hier baust, gehört dir."
+        }
       ],
       "outro": "Gebaut von einem, der die Plattform selbst haben wollte: ehrlich, schlank, DSGVO-nah – ohne dich oder deine Mitglieder zum Produkt zu machen. Pukalani ist ein besonderer Ort. Pukalani.app soll einer sein."
     },
@@ -262,7 +645,21 @@
       "imprint": "Impressum",
       "terms": "AGB",
       "rights": "Alle Rechte vorbehalten.",
-      "madeIn": "Mit Aloha gebaut. Gehostet in Deutschland."
+      "madeIn": "Mit Aloha gebaut. Gehostet in Deutschland.",
+      "colCompare": "Vergleich",
+      "colUseCases": "Anwendungsfälle",
+      "featDiscussions": "Diskussionen",
+      "featBranding": "Branding",
+      "glossary": "Glossar",
+      "vsCircle": "vs Circle",
+      "vsSkool": "vs Skool",
+      "vsMighty": "vs Mighty Networks",
+      "switchPage": "Wechseln",
+      "privacyHow": "Wie wir Datenschutz umsetzen",
+      "forCoaches": "Für Coaches",
+      "forCourses": "Für Kurs-Ersteller",
+      "forCreator": "Für Creator",
+      "forClubs": "Für Vereine"
     }
   }
 }

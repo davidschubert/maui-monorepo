@@ -34,9 +34,18 @@
       "painLabel": "The pain",
       "gainLabel": "How we do it",
       "rows": [
-        { "pain": "High base prices + transaction fees", "gain": "Fair, predictable price. Free to start." },
-        { "pain": "Unclear data flows & ad tracking", "gain": "Hosted in Germany, no ad tracking." },
-        { "pain": "All-or-nothing monolith", "gain": "Modular: switch on only what you need." }
+        {
+          "pain": "High base prices + transaction fees",
+          "gain": "Fair, predictable price. Free to start."
+        },
+        {
+          "pain": "Unclear data flows & ad tracking",
+          "gain": "Hosted in Germany, no ad tracking."
+        },
+        {
+          "pain": "All-or-nothing monolith",
+          "gain": "Modular: switch on only what you need."
+        }
       ]
     },
     "steps": {
@@ -44,9 +53,21 @@
       "title": "Your own community in 60 seconds.",
       "badge": "under 60 seconds",
       "items": [
-        { "n": "1", "title": "Sign up", "text": "Email is enough, log in with a code – no password required." },
-        { "n": "2", "title": "Name your site", "text": "yourname.pukalani.app is live instantly." },
-        { "n": "3", "title": "Pick your blocks", "text": "Turn feed, courses, events and discussions on or off. Add your design. Done." }
+        {
+          "n": "1",
+          "title": "Sign up",
+          "text": "Email is enough, log in with a code – no password required."
+        },
+        {
+          "n": "2",
+          "title": "Name your site",
+          "text": "yourname.pukalani.app is live instantly."
+        },
+        {
+          "n": "3",
+          "title": "Pick your blocks",
+          "text": "Turn feed, courses, events and discussions on or off. Add your design. Done."
+        }
       ]
     },
     "blocks": {
@@ -56,33 +77,288 @@
       "available": "Available",
       "earlyAccess": "Early access",
       "items": [
-        { "icon": "i-ph-chats-circle-bold", "title": "Discussions", "text": "Real-time comments with nested threads, votes, {'@'}-mentions and live presence – under any content.", "status": "available" },
-        { "icon": "i-ph-shield-check-bold", "title": "Moderation", "text": "Reporting, two-phase hiding, AI assistance as a second opinion – the human decides.", "status": "available" },
-        { "icon": "i-ph-note-bold", "title": "Pages & branding", "text": "Your own pages, 26 colour worlds, custom fonts – your community looks like you.", "status": "available" },
-        { "icon": "i-ph-broadcast-bold", "title": "Posts & feed", "text": "Member posts in Markdown, polls and questions, a chronological activity feed.", "status": "earlyAccess" },
-        { "icon": "i-ph-graduation-cap-bold", "title": "Courses", "text": "Lessons with progress, access free/members/pro – paid access via Stripe.", "status": "earlyAccess" },
-        { "icon": "i-ph-calendar-check-bold", "title": "Events", "text": "Online or in person, single or recurring, with RSVPs and tickets – even embeddable.", "status": "earlyAccess" }
+        {
+          "icon": "i-ph-chats-circle-bold",
+          "title": "Discussions",
+          "text": "Real-time comments with nested threads, votes, {'@'}-mentions and live presence – under any content.",
+          "status": "available"
+        },
+        {
+          "icon": "i-ph-shield-check-bold",
+          "title": "Moderation",
+          "text": "Reporting, two-phase hiding, AI assistance as a second opinion – the human decides.",
+          "status": "available"
+        },
+        {
+          "icon": "i-ph-note-bold",
+          "title": "Pages & branding",
+          "text": "Your own pages, 26 colour worlds, custom fonts – your community looks like you.",
+          "status": "available"
+        },
+        {
+          "icon": "i-ph-broadcast-bold",
+          "title": "Posts & feed",
+          "text": "Member posts in Markdown, polls and questions, a chronological activity feed.",
+          "status": "earlyAccess"
+        },
+        {
+          "icon": "i-ph-graduation-cap-bold",
+          "title": "Courses",
+          "text": "Lessons with progress, access free/members/pro – paid access via Stripe.",
+          "status": "earlyAccess"
+        },
+        {
+          "icon": "i-ph-calendar-check-bold",
+          "title": "Events",
+          "text": "Online or in person, single or recurring, with RSVPs and tickets – even embeddable.",
+          "status": "earlyAccess"
+        }
       ]
     },
     "modular": {
       "kicker": "Modular, not monolith",
       "title": "Take only what you need.",
       "lead": "Just selling courses? Turn on courses. Community around it? Add feed and discussions. Events? One click. With Pukalani the platform grows with you, instead of burying you in features you never open.",
-      "blocks": { "discussions": "Discussions", "moderation": "Moderation", "feed": "Feed", "courses": "Courses", "events": "Events" },
-      "presets": { "only": "Discussions only", "community": "Community", "all": "Everything" }
+      "blocks": {
+        "discussions": "Discussions",
+        "moderation": "Moderation",
+        "feed": "Feed",
+        "courses": "Courses",
+        "events": "Events"
+      },
+      "presets": {
+        "only": "Discussions only",
+        "community": "Community",
+        "all": "Everything"
+      }
     },
     "privacy": {
       "kicker": "Privacy & hosting",
       "title": "Privacy is the standard here – not the upgrade.",
       "lead": "Your community data lives in Germany, not in some far-away cloud. No ad tracking, no reselling – data-minimal by design.",
       "points": [
-        { "icon": "i-ph-flag-bold", "text": "Servers in Germany (Hetzner)" },
-        { "icon": "i-ph-eye-slash-bold", "text": "No ad tracking, no ads, no data selling" },
-        { "icon": "i-ph-cookie-bold", "text": "Data-minimal first-party sessions" },
-        { "icon": "i-ph-export-bold", "text": "Export and deletion flows" },
-        { "icon": "i-ph-lock-simple-bold", "text": "Transport encryption" }
+        {
+          "icon": "i-ph-flag-bold",
+          "text": "Servers in Germany (Hetzner)"
+        },
+        {
+          "icon": "i-ph-eye-slash-bold",
+          "text": "No ad tracking, no ads, no data selling"
+        },
+        {
+          "icon": "i-ph-cookie-bold",
+          "text": "Data-minimal first-party sessions"
+        },
+        {
+          "icon": "i-ph-export-bold",
+          "text": "Export and deletion flows"
+        },
+        {
+          "icon": "i-ph-lock-simple-bold",
+          "text": "Transport encryption"
+        }
       ],
       "note": "What matters in the end is your site's actual configuration and your legal texts – we deliberately avoid blanket promises."
+    },
+    "features": {
+      "backHome": "Back to home",
+      "highlightsTitle": "What's inside",
+      "ctaTitle": "Try it – free",
+      "ctaLead": "Your community stands in 60 seconds. You decide after that.",
+      "items": {
+        "diskussionen": {
+          "name": "Discussions",
+          "metaTitle": "Real-time discussions for your community – without ad tracking",
+          "metaDescription": "Nested threads, votes, {'@'}-mentions and live presence – under any content, embeddable in your website. Hosted in Germany.",
+          "title": "Discussions you can feel",
+          "sub": "Threads, votes, mentions and live presence – under any content.",
+          "intro": "Discussions aren't an add-on here, they're the connective tissue: they run under posts, courses and events – and they can even be embedded into your existing website. And because you can see live who's reading or typing, the place feels inhabited instead of abandoned.",
+          "highlights": [
+            "Nested threads with reply depth, so side conversations stay readable",
+            "Votes and sorting, so the good stuff rises",
+            "{'@'}-mentions with notifications – by email too, if you want",
+            "Live presence: who's reading, who's typing, who's replying",
+            "Embeddable into other sites (guests too, if you allow it)",
+            "Moderation included: reporting, two-phase hiding, AI second opinion"
+          ]
+        },
+        "branding": {
+          "name": "Branding",
+          "metaTitle": "White-label community – your design, your fonts, your domain",
+          "metaDescription": "26 colour worlds, custom themes and fonts, your own pages – and your own domain on request. Your community looks like you, not like software.",
+          "title": "Your community looks like YOU",
+          "sub": "26 colour worlds, custom fonts, your own pages – and your domain on request.",
+          "intro": "Nothing gives away an off-the-shelf platform faster than its off-the-shelf look. With Pukalani you pick one of 26 colour worlds (each with ten tonal variants), set body and heading fonts separately, and create your own pages. Your members land with you – not in something that looks like software.",
+          "highlights": [
+            "26 curated colour worlds, each with ten tonal variants",
+            "Custom themes from a single base colour – contrast is checked automatically",
+            "Fonts set separately for body and headings, own WOFF2 uploads possible",
+            "Light and dark without extra work",
+            "Your own pages (home, about, rules) in the editor",
+            "Custom domain for silo customers – without migrating your content"
+          ]
+        }
+      }
+    },
+    "glossary": {
+      "metaTitle": "Community glossary – feed, thread, moderation, presence explained",
+      "metaDescription": "The key terms around community platforms, briefly explained: feed, thread, moderation, presence, embed, custom domain, roles, early access.",
+      "kicker": "Glossary",
+      "title": "Community terms, briefly explained",
+      "lead": "No jargon fog: the words used on this site and inside the platform – two sentences each.",
+      "terms": [
+        {
+          "term": "Community platform",
+          "def": "A place of your own where your members write, learn and meet – under your name, your design and your domain. Unlike a Facebook group, it belongs to you, not to someone else's network."
+        },
+        {
+          "term": "Feed",
+          "def": "The chronological stream of posts and events in your community. It shows what's happening right now – and keeps people coming back."
+        },
+        {
+          "term": "Thread",
+          "def": "A discussion whose replies sit indented under the original post. That keeps side conversations readable instead of tangled."
+        },
+        {
+          "term": "Moderation",
+          "def": "Everything that keeps content civil: reporting, hiding, restoring, enforcing rules. With us there's an AI second opinion – a human decides."
+        },
+        {
+          "term": "Presence",
+          "def": "The live indication of who is reading, typing or replying. It makes a community feel inhabited instead of dead."
+        },
+        {
+          "term": "Embed",
+          "def": "A block of your community placed inside another website – for example discussions under your blog posts. You don't have to migrate anything."
+        },
+        {
+          "term": "Custom domain",
+          "def": "Your community runs under your address, e.g. community.yourcompany.com, instead of someone else's. With us that's intended for silo customers."
+        },
+        {
+          "term": "Roles",
+          "def": "Who may do what: owner, admin, moderator, editor, viewer. Roles stop everyone from being able to do everything – and stop nobody from being able to do anything."
+        },
+        {
+          "term": "Building blocks",
+          "def": "The individually switchable parts of the platform: discussions, moderation, pages, feed, courses, events. You take only what you need."
+        },
+        {
+          "term": "Early access",
+          "def": "A block that exists but isn't released to everyone yet. We label it that way – instead of letting it look like a finished plan promise."
+        },
+        {
+          "term": "Members-only",
+          "def": "Content only signed-in members of your community can see. With us that's the default; publicly readable is a deliberate switch."
+        },
+        {
+          "term": "Data export",
+          "def": "Your content and member data in a machine-readable package. It's the reason switching to us isn't a one-way street."
+        }
+      ],
+      "ctaTitle": "Read enough?",
+      "ctaLead": "Start your community for free – you can explain it afterwards."
+    },
+    "switch": {
+      "metaTitle": "Switching from Circle or Skool – move without risk",
+      "metaDescription": "How to move your community: start in parallel, invite members, no lock-in. Honest about import — automation is planned, today we guide the move.",
+      "kicker": "Switching",
+      "title": "Switch without your community paying for it",
+      "lead": "No cut-off date, no blind flight: you start in parallel, bring your people over calmly, and keep the old platform until you're sure.",
+      "honestTitle": "Honest about import",
+      "honest": "We don't have automatic importers for Circle, Skool or Mighty Networks yet – they're planned. Today we guide the move: we bring over the content that matters to you, and you deliberately leave the rest behind (usually that's an advantage). Whatever you create with us you can export at any time – the way back stays open.",
+      "stepsTitle": "The move in four steps",
+      "steps": [
+        {
+          "n": "1",
+          "title": "Start in parallel",
+          "text": "Create your Pukalani community for free – your old platform keeps running untouched. No risk, no deadline."
+        },
+        {
+          "n": "2",
+          "title": "Pick your blocks",
+          "text": "Switch on what you actually use. Many people notice here: nobody ever opened half of the old features."
+        },
+        {
+          "n": "3",
+          "title": "Bring the core content",
+          "text": "Important posts, pages and dates come along – guided, not guesswork. Old discussions can be archived on purpose instead of dragged along."
+        },
+        {
+          "n": "4",
+          "title": "Invite members",
+          "text": "Send the invitation, log in with a code – no password required. Then you cancel over there when it feels right."
+        }
+      ],
+      "keepTitle": "What you gain",
+      "keep": [
+        "A predictable price with no transaction fee on your revenue",
+        "Data in Germany, no ad tracking",
+        "Your domain, your design – your community is named after you",
+        "No lock-in: export and deletion are built in, not sold to you"
+      ],
+      "ctaTitle": "Start in parallel – free",
+      "ctaLead": "Create first, decide later. The old platform stays until you're sure."
+    },
+    "gdpr": {
+      "metaTitle": "Privacy at Pukalani – hosted in Germany, no ad tracking",
+      "metaDescription": "How we implement privacy technically: servers in Germany, no ad tracking, first-party sessions, export and deletion. Honest, without blanket seals.",
+      "kicker": "Privacy & operations",
+      "title": "How we implement privacy",
+      "lead": "No seal, no marketing formula: here's where your data lives, what we don't do – and what we deliberately don't promise.",
+      "disclaimerTitle": "What this page is – and isn't",
+      "disclaimer": "This page explains our technology and operations. It is not legal advice and does not replace your community's own privacy policy – you need that for your own site, matching the blocks you switch on.",
+      "legalLink": "Our own privacy policy",
+      "sections": [
+        {
+          "icon": "i-ph-flag-bold",
+          "title": "Where your data lives",
+          "text": "On servers in Germany (Hetzner). We run the database self-hosted – there is no US cloud in your community's data path."
+        },
+        {
+          "icon": "i-ph-eye-slash-bold",
+          "title": "What we don't do",
+          "text": "No ad tracking, no ads, no selling or sharing your data for advertising, no cross-site profiling. Your members are our users – not our product."
+        },
+        {
+          "icon": "i-ph-cookie-bold",
+          "title": "Sessions instead of trackers",
+          "text": "For sign-in we use a strictly necessary first-party cookie (httpOnly, secure, sameSite) – no ad IDs, no third-party scripts in standard operation. Analytics is a switch, and ours is off by default."
+        },
+        {
+          "icon": "i-ph-export-bold",
+          "title": "Your data is yours",
+          "text": "Export and deletion are built-in flows, not support tickets: full data export on request, full deletion including a prior snapshot so nothing disappears by accident."
+        },
+        {
+          "icon": "i-ph-lock-simple-bold",
+          "title": "Transport and access",
+          "text": "Encrypted transport (TLS), separate keys for operations and migrations, server secrets never in the browser. Who sees what in your community is governed by roles – not by chance."
+        },
+        {
+          "icon": "i-ph-handshake-bold",
+          "title": "Data processing agreement",
+          "text": "If you run a community with us, you are the controller and we process on your behalf. That requires a data processing agreement with us – talk to us and we'll sort it out before your community goes live."
+        }
+      ],
+      "notPromisedTitle": "What we deliberately don't promise",
+      "notPromisedLead": "Others put seals here. We'd rather write down why there aren't any:",
+      "notPromised": [
+        {
+          "claim": "“GDPR-compliant” as a blanket seal",
+          "why": "Compliance depends on your configuration, your legal texts and your processes – not on our software alone. We provide the technology for it; nobody can sell you the seal."
+        },
+        {
+          "claim": "“No cookie banner needed”",
+          "why": "Whether you need one depends on which services you enable on your site. In standard operation we set no advertising cookies – but that assessment belongs to your site, not to our marketing."
+        },
+        {
+          "claim": "“Daily backups, guaranteed recovery”",
+          "why": "We back up regularly. We'll publish a commitment on recovery time and maximum data loss only once a documented restore test stands behind it."
+        }
+      ],
+      "ctaTitle": "Start your community – free",
+      "ctaLead": "Try it free, export anytime, delete anytime."
     },
     "audience": {
       "kicker": "Who it's for",
@@ -90,10 +366,30 @@
       "lead": "Four typical paths into your own community. Find yours.",
       "more": "Learn more",
       "items": [
-        { "slug": "coaches", "icon": "i-ph-users-three-bold", "title": "Coaches & trainers", "text": "Courses, discussion and meetups in one protected place that you steer." },
-        { "slug": "kurse", "icon": "i-ph-graduation-cap-bold", "title": "Course creators", "text": "Sell courses with a community around them – at a predictable price." },
-        { "slug": "creator", "icon": "i-ph-pen-nib-bold", "title": "Creators & writers", "text": "Your community under your brand, without someone else's ads." },
-        { "slug": "vereine", "icon": "i-ph-buildings-bold", "title": "Clubs & organisations", "text": "Members, events and exchange – hosted in Germany." }
+        {
+          "slug": "coaches",
+          "icon": "i-ph-users-three-bold",
+          "title": "Coaches & trainers",
+          "text": "Courses, discussion and meetups in one protected place that you steer."
+        },
+        {
+          "slug": "kurse",
+          "icon": "i-ph-graduation-cap-bold",
+          "title": "Course creators",
+          "text": "Sell courses with a community around them – at a predictable price."
+        },
+        {
+          "slug": "creator",
+          "icon": "i-ph-pen-nib-bold",
+          "title": "Creators & writers",
+          "text": "Your community under your brand, without someone else's ads."
+        },
+        {
+          "slug": "vereine",
+          "icon": "i-ph-buildings-bold",
+          "title": "Clubs & organisations",
+          "text": "Members, events and exchange – hosted in Germany."
+        }
       ]
     },
     "audiencePages": {
@@ -154,13 +450,55 @@
       "criterion": "Criterion",
       "us": "Pukalani",
       "rows": [
-        { "label": "Entry price per month", "us": "free", "circle": "$89 (Professional)", "skool": "$9 (Hobby)", "mighty": "$79 (Launch)" },
-        { "label": "Transaction fee", "us": "none", "circle": "2%", "skool": "10% (Hobby) · 2.9% (Pro)", "mighty": "2%" },
-        { "label": "Hosting / company base", "us": "Germany", "circle": "USA", "skool": "USA", "mighty": "USA" },
-        { "label": "Courses incl. paid access", "us": "yes (early access)", "circle": "yes", "skool": "yes", "mighty": "yes" },
-        { "label": "Blocks can be switched off individually", "us": "yes", "circle": "suite", "skool": "suite", "mighty": "suite" },
-        { "label": "Blocks embeddable in your own website", "us": "yes (discussions, events)", "circle": "n/a", "skool": "n/a", "mighty": "n/a" },
-        { "label": "Native mobile apps with push", "us": "no", "circle": "yes", "skool": "yes", "mighty": "yes" }
+        {
+          "label": "Entry price per month",
+          "us": "free",
+          "circle": "$89 (Professional)",
+          "skool": "$9 (Hobby)",
+          "mighty": "$79 (Launch)"
+        },
+        {
+          "label": "Transaction fee",
+          "us": "none",
+          "circle": "2%",
+          "skool": "10% (Hobby) · 2.9% (Pro)",
+          "mighty": "2%"
+        },
+        {
+          "label": "Hosting / company base",
+          "us": "Germany",
+          "circle": "USA",
+          "skool": "USA",
+          "mighty": "USA"
+        },
+        {
+          "label": "Courses incl. paid access",
+          "us": "yes (early access)",
+          "circle": "yes",
+          "skool": "yes",
+          "mighty": "yes"
+        },
+        {
+          "label": "Blocks can be switched off individually",
+          "us": "yes",
+          "circle": "suite",
+          "skool": "suite",
+          "mighty": "suite"
+        },
+        {
+          "label": "Blocks embeddable in your own website",
+          "us": "yes (discussions, events)",
+          "circle": "n/a",
+          "skool": "n/a",
+          "mighty": "n/a"
+        },
+        {
+          "label": "Native mobile apps with push",
+          "us": "no",
+          "circle": "yes",
+          "skool": "yes",
+          "mighty": "yes"
+        }
       ],
       "note": "“n/a” means: we couldn't verify it properly — so we don't claim anything. Spot a mistake? Tell us and we'll fix it.",
       "honest": "You want native iOS/Android apps with push, or a community with 50,000 members and enterprise SSO? Then the big suites are (still) the better choice. For everyone who wants to start lean, fair and privacy-close, we're the right way."
@@ -210,9 +548,24 @@
       "lead": "Currently in early access, by invitation. Start free, cancel anytime, data export included.",
       "eaBadge": "Early access – by invitation",
       "plans": [
-        { "name": "Free", "desc": "To get started – one community, fair limits, the core blocks.", "cta": "Start free", "featured": false },
-        { "name": "Pro", "desc": "For growing communities – more blocks (feed, events), higher limits, a small team.", "cta": "Request early access", "featured": true },
-        { "name": "Business", "desc": "For pros – all blocks incl. courses, custom domain, webhooks/API, unlimited seats.", "cta": "Request early access", "featured": false }
+        {
+          "name": "Free",
+          "desc": "To get started – one community, fair limits, the core blocks.",
+          "cta": "Start free",
+          "featured": false
+        },
+        {
+          "name": "Pro",
+          "desc": "For growing communities – more blocks (feed, events), higher limits, a small team.",
+          "cta": "Request early access",
+          "featured": true
+        },
+        {
+          "name": "Business",
+          "desc": "For pros – all blocks incl. courses, custom domain, webhooks/API, unlimited seats.",
+          "cta": "Request early access",
+          "featured": false
+        }
       ],
       "silo": "Your own instance + your own domain (community.yourcompany.com)? Talk to us.",
       "numbersNote": "Concrete numbers come with the public launch."
@@ -221,12 +574,30 @@
       "kicker": "Common questions",
       "title": "Questions? Here are the most common ones.",
       "items": [
-        { "q": "Where is my data stored?", "a": "In Germany, at Hetzner. No ad tracking, no reselling. Export and deletion are available anytime." },
-        { "q": "Can I keep my existing site?", "a": "Yes. Your community runs under your name and design; individual blocks like discussions can even be embedded into your existing website." },
-        { "q": "What does it cost?", "a": "Getting started is free. Pro and Business arrive with the public launch; right now there's an early access by invitation." },
-        { "q": "Can I cancel anytime?", "a": "Yes. No minimum term, and you take your data with you via export." },
-        { "q": "Which languages are supported?", "a": "Starting with German and English; more languages will follow." },
-        { "q": "Do I have to use all blocks?", "a": "No – every block can be switched on or off. Start lean and add what you need." }
+        {
+          "q": "Where is my data stored?",
+          "a": "In Germany, at Hetzner. No ad tracking, no reselling. Export and deletion are available anytime."
+        },
+        {
+          "q": "Can I keep my existing site?",
+          "a": "Yes. Your community runs under your name and design; individual blocks like discussions can even be embedded into your existing website."
+        },
+        {
+          "q": "What does it cost?",
+          "a": "Getting started is free. Pro and Business arrive with the public launch; right now there's an early access by invitation."
+        },
+        {
+          "q": "Can I cancel anytime?",
+          "a": "Yes. No minimum term, and you take your data with you via export."
+        },
+        {
+          "q": "Which languages are supported?",
+          "a": "Starting with German and English; more languages will follow."
+        },
+        {
+          "q": "Do I have to use all blocks?",
+          "a": "No – every block can be switched on or off. Start lean and add what you need."
+        }
       ]
     },
     "story": {
@@ -234,10 +605,22 @@
       "title": "A hole in the clouds.",
       "intro": "Far out in the Pacific lies Maui. High on the slopes of Haleakalā is a place called Pukalani. Its name is understood as an opening to the sky — a puka in the grey where light breaks through. That's where the idea for this platform was born.",
       "strands": [
-        { "title": "The hole in the clouds.", "text": "Today's web is mostly clouded – full of tracking, ads, noise and closed networks where your community never truly belongs to you. Pukalani is the opening where the sun breaks through: a clear, calm place, without all the grey." },
-        { "title": "The gateway to the sky.", "text": "Puka and lani can be read as “an opening to the sky” — a door. And that's how the beginning should feel: you step through, and in sixty seconds your own community stands – no servers, no manual, no detours." },
-        { "title": "Fertile ground.", "text": "Pukalani sits in the highlands, on rich volcanic soil where things have grown for generations. That's our promise: a place where your community grows – your posts, your courses, your events, your people." },
-        { "title": "A world of its own.", "text": "Your community here is its own living world — sovereign, and entirely yours. It doesn't fade into someone else's network. What you build here belongs to you." }
+        {
+          "title": "The hole in the clouds.",
+          "text": "Today's web is mostly clouded – full of tracking, ads, noise and closed networks where your community never truly belongs to you. Pukalani is the opening where the sun breaks through: a clear, calm place, without all the grey."
+        },
+        {
+          "title": "The gateway to the sky.",
+          "text": "Puka and lani can be read as “an opening to the sky” — a door. And that's how the beginning should feel: you step through, and in sixty seconds your own community stands – no servers, no manual, no detours."
+        },
+        {
+          "title": "Fertile ground.",
+          "text": "Pukalani sits in the highlands, on rich volcanic soil where things have grown for generations. That's our promise: a place where your community grows – your posts, your courses, your events, your people."
+        },
+        {
+          "title": "A world of its own.",
+          "text": "Your community here is its own living world — sovereign, and entirely yours. It doesn't fade into someone else's network. What you build here belongs to you."
+        }
       ],
       "outro": "Built by someone who wanted this platform to exist: honest, lean, privacy-first – without turning you or your members into the product. Pukalani is a special place. Pukalani.app is meant to be one too."
     },
@@ -262,7 +645,21 @@
       "imprint": "Imprint",
       "terms": "Terms",
       "rights": "All rights reserved.",
-      "madeIn": "Built with aloha. Hosted in Germany."
+      "madeIn": "Built with aloha. Hosted in Germany.",
+      "colCompare": "Compare",
+      "colUseCases": "Use cases",
+      "featDiscussions": "Discussions",
+      "featBranding": "Branding",
+      "glossary": "Glossary",
+      "vsCircle": "vs Circle",
+      "vsSkool": "vs Skool",
+      "vsMighty": "vs Mighty Networks",
+      "switchPage": "Switching",
+      "privacyHow": "How we do privacy",
+      "forCoaches": "For coaches",
+      "forCourses": "For course creators",
+      "forCreator": "For creators",
+      "forClubs": "For clubs"
     }
   }
 }

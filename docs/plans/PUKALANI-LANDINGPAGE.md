@@ -666,7 +666,24 @@ wird über Theme-Töne/Hintergründe gelöst (passt zur bestehenden Theme-Engine
    Aufruf `/de`) — SSR rendert die URL-Locale, der Client folgt dem Cookie. Das
    ist die bewusste Core-Strategie (`redirectOn: 'all'`, CLAUDE.md). Mit
    passendem Cookie: 0 Console-Fehler auf allen Routen.
-7. **Rest (offen):** echte Preise aus dem Studio-Katalog (#4), Social Proof mit
-   echten Kunden, weitere SEO-Seiten (`/dsgvo`, `/wechseln`, `/glossar`,
-   Feature-Seiten), Lighthouse/Perf-Budget-Messung; Deploy/Go-Live = Davids
-   Freigabe.
+7. **Ausbaustufe 3 ✅ (2026-07-24) — SEO-Unterseiten + Infrastruktur:**
+   `/gdpr` ↔ `/de/dsgvo` (Trust-Erklärseite MIT Abschnitt „Was wir bewusst nicht
+   versprechen" — kein Pauschal-Siegel, kein „kein Cookie-Banner", keine
+   Backup-Garantie) · `/switch` ↔ `/de/wechseln` (Umzug: ehrlicher Import-Hinweis
+   ganz oben, weil Importer laut §2.4 GEPLANT sind) · `/glossary` ↔ `/de/glossar`
+   (12 Begriffe, `DefinedTermSet`-JSON-LD) · `/features/diskussionen` +
+   `/features/branding`. **Locale-eigene Pfade** via `defineI18nRoute` (EN echte
+   englische URLs, falsche Locale-Pfade 302 → korrekte). **sitemap.xml + robots.txt**
+   als schlanke Server-Routen aus EINER Routen-Liste
+   (`server/utils/marketingRoutes.ts`) inkl. hreflang-Alternates; Footer mit 12
+   internen Links (Silo-SEO). Beweis: **alle 26 Sitemap-URLs → 200**, Footer-Links
+   lokalisiert, Prod-Build grün (beide Server-Routen im Output).
+   **Bewusst ZURÜCKGESTELLT:** `/features/kurse` + `/features/events` (404) —
+   eine eigene Verkaufsseite für einen Early-Access-Baustein liest wie eine
+   Live-Zusage und verstößt gegen die Copy-Regel; kommt, sobald ihr Baustein-Gate
+   grün ist.
+8. **Rest (offen):** echte Preise aus dem Studio-Katalog (#4), Social Proof mit
+   echten Kunden, `/status` (Roadmap #10), Lighthouse/Perf-Budget-Messung;
+   Deploy/Go-Live = Davids Freigabe. Kleinigkeit: `/fuer/*` und `/vs/*` haben in
+   EN noch deutsche Pfad-Segmente (`/fuer/coaches`) — bei Bedarf per
+   `defineI18nRoute` auf `/for/coaches` heben (Redirect-Pflege beachten).

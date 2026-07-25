@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { t } = useI18n()
+const localePath = useLocalePath()
 const { start, demo } = useProductLinks()
 const year = 2026 // statisch: Date.now() steht im Build nicht zur Verfügung
 </script>
@@ -20,13 +21,31 @@ const year = 2026 // statisch: Date.now() steht im Build nicht zur Verfügung
         <h3>{{ t('marketing.footer.colProduct') }}</h3>
         <a :href="start">{{ t('marketing.footer.start') }}</a>
         <a :href="demo">{{ t('marketing.footer.demo') }}</a>
-        <a href="#bausteine">{{ t('marketing.nav.features') }}</a>
-        <a href="#preise">{{ t('marketing.nav.pricing') }}</a>
+        <NuxtLink :to="localePath('/features/diskussionen')">{{ t('marketing.footer.featDiscussions') }}</NuxtLink>
+        <NuxtLink :to="localePath('/features/branding')">{{ t('marketing.footer.featBranding') }}</NuxtLink>
+        <NuxtLink :to="localePath('/glossar')">{{ t('marketing.footer.glossary') }}</NuxtLink>
+      </nav>
+
+      <nav class="foot-col" aria-label="Vergleich">
+        <h3>{{ t('marketing.footer.colCompare') }}</h3>
+        <NuxtLink :to="localePath('/vs/circle')">{{ t('marketing.footer.vsCircle') }}</NuxtLink>
+        <NuxtLink :to="localePath('/vs/skool')">{{ t('marketing.footer.vsSkool') }}</NuxtLink>
+        <NuxtLink :to="localePath('/vs/mighty-networks')">{{ t('marketing.footer.vsMighty') }}</NuxtLink>
+        <NuxtLink :to="localePath('/wechseln')">{{ t('marketing.footer.switchPage') }}</NuxtLink>
+      </nav>
+
+      <nav class="foot-col" aria-label="Anwendungsfälle">
+        <h3>{{ t('marketing.footer.colUseCases') }}</h3>
+        <NuxtLink :to="localePath('/fuer/coaches')">{{ t('marketing.footer.forCoaches') }}</NuxtLink>
+        <NuxtLink :to="localePath('/fuer/kurse')">{{ t('marketing.footer.forCourses') }}</NuxtLink>
+        <NuxtLink :to="localePath('/fuer/creator')">{{ t('marketing.footer.forCreator') }}</NuxtLink>
+        <NuxtLink :to="localePath('/fuer/vereine')">{{ t('marketing.footer.forClubs') }}</NuxtLink>
       </nav>
 
       <nav class="foot-col" aria-label="Über">
         <h3>{{ t('marketing.footer.colCompany') }}</h3>
-        <a href="#geschichte">{{ t('marketing.footer.story') }}</a>
+        <NuxtLink :to="localePath('/')">{{ t('marketing.footer.story') }}</NuxtLink>
+        <NuxtLink :to="localePath('/dsgvo')">{{ t('marketing.footer.privacyHow') }}</NuxtLink>
         <a href="https://changelog.pukalani.app">{{ t('marketing.footer.changelog') }}</a>
       </nav>
 
@@ -110,7 +129,17 @@ const year = 2026 // statisch: Date.now() steht im Build nicht zur Verfügung
   color: hsl(var(--puka-mist) / 0.6);
 }
 
+.foot-col :deep(a) {
+  color: hsl(var(--puka-cloud) / 0.85);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+.foot-col :deep(a:hover) { color: hsl(var(--puka-sun)); }
+
 @media (min-width: 640px) {
-  .mkt-footer-inner { grid-template-columns: 2fr 1fr 1fr 1fr; }
+  .mkt-footer-inner { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 900px) {
+  .mkt-footer-inner { grid-template-columns: 1.6fr repeat(4, 1fr); }
 }
 </style>

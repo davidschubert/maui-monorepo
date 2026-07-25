@@ -72,7 +72,14 @@ const rows = computed(() =>
 .prob-gain p { color: hsl(var(--puka-ink)); font-weight: 600; }
 .prob-icon-pain { color: hsl(var(--puka-ink-soft) / 0.55); width: 1.4rem; height: 1.4rem; flex: none; }
 .prob-icon-gain { color: hsl(var(--puka-sun)); width: 1.4rem; height: 1.4rem; flex: none; }
-.prob-arrow { color: hsl(var(--puka-ink) / 0.2); width: 1.1rem; height: 1.1rem; margin-left: 0.35rem; }
+/* Der Übergangspfeil ist ein Trenner zwischen „Das nervt" und „So machen wir
+   es" — er gehört mittig in die Karte, nicht links unter das Icon. */
+.prob-arrow {
+  color: hsl(var(--puka-ink) / 0.2);
+  width: 1.1rem;
+  height: 1.1rem;
+  align-self: center;
+}
 
 @media (min-width: 820px) {
   .prob-grid { grid-template-columns: repeat(3, 1fr); }

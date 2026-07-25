@@ -28,7 +28,7 @@ const trust = computed(() => [
           <UButton :to="start" color="warning" size="xl" class="cta-primary">
             {{ t('marketing.hero.ctaPrimary') }}
           </UButton>
-          <UButton :to="demo" variant="ghost" size="xl" class="cta-secondary" icon="i-ph-play-circle">
+          <UButton :to="demo" color="neutral" variant="outline" size="xl" class="cta-secondary" icon="i-ph-play-circle">
             {{ t('marketing.hero.ctaSecondary') }}
           </UButton>
         </div>
@@ -106,6 +106,24 @@ const trust = computed(() => [
   flex-wrap: wrap;
   gap: 0.85rem;
   margin: 2rem 0 1.75rem;
+}
+/* Der sekundäre CTA steht auf HELLEM Grund (tone-cloud). Die Ghost-Variante war
+   dort doppelt schwach: viel zu helle Schrift (unlesbar) UND ohne Kante nicht als
+   Button erkennbar. Jetzt: sichtbare Kante + Ink-Text (hoher Kontrast); beim
+   Hover wechselt NUR die Fläche, nicht die Textfarbe — ein Farbwechsel nach
+   Orange lag mit 2,8:1 unter der Lesbarkeitsschwelle. */
+.cta-secondary {
+  color: hsl(var(--puka-ink)) !important;
+  font-weight: 600;
+  /* Nuxt UI zeichnet die outline-Variante per Ring — die Kante hier explizit,
+     sonst bleibt border-width 0 und der Button hat sichtbar keinen Rahmen. */
+  border: 1px solid hsl(var(--puka-ink) / 0.22) !important;
+  background: hsl(0 0% 100% / 0.55) !important;
+}
+.cta-secondary:hover {
+  color: hsl(var(--puka-ink)) !important;
+  border-color: hsl(var(--puka-ink) / 0.4) !important;
+  background: hsl(0 0% 100% / 0.9) !important;
 }
 .hero-trust {
   display: flex;
