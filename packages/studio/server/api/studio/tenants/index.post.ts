@@ -27,7 +27,27 @@ export default defineEventHandler(async (event) => {
     databaseId: config.public.appwriteDatabaseId,
     tableId: TENANTS_TABLE,
     rowId: ID.unique(),
-    data: { name: body.name, host: body.host, mode: body.mode, projectId, tenantId, status: 'active', wave: body.wave ?? 'stable', plan: body.plan ?? 'free' },
+    // Bewusst ALLE Spalten explizit: so erzwingt der Compiler bei jeder neuen
+    // tenants-Spalte eine Entscheidung, was eine per Hand angelegte Site dort
+    // bekommt (statt sie stillschweigend auf null zu lassen). Der Betreiber-Weg
+    // legt KEINE Testphase an — die gehört zum Self-Service-Onboarding.
+    data: {
+      name: body.name,
+      host: body.host,
+      mode: body.mode,
+      projectId,
+      tenantId,
+      status: 'active',
+      wave: body.wave ?? 'stable',
+      plan: body.plan ?? 'free',
+      workspaceId: '',
+      theme: '',
+      variant: '',
+      audience: 'members',
+      trialEndsAt: null,
+      profile: '',
+      inviteCodeId: '',
+    },
   }).catch((error) => { throw toH3Error(error, 'Could not create tenant') })
 
   return { id: row.$id, name: row.name, host: row.host, mode: row.mode, projectId: row.projectId, tenantId: row.tenantId, status: row.status, wave: row.wave, plan: row.plan }

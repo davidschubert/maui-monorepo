@@ -24,6 +24,30 @@ export type TenantWave = (typeof TENANT_WAVES)[number]
 export const TENANT_PLANS = ['free', 'pro', 'business'] as const
 export type TenantPlan = (typeof TENANT_PLANS)[number]
 
+/**
+ * Lese-Publikum der Site (studio-016). G0-Entscheidung 7 (David, 2026-07-24):
+ * **privat als Default, öffentlich opt-in**. 'members' = Rows tragen
+ * `read(Role.label(siteId))` (harte Appwrite-Grenze, H3-Naht 4); 'public' =
+ * `read(Role.any())` als bewusster Schalter pro Site.
+ */
+export const TENANT_AUDIENCES = ['members', 'public'] as const
+export type TenantAudience = (typeof TENANT_AUDIENCES)[number]
+
+/**
+ * PURE (unit-getestet): das Lese-Publikum einer Row auflösen — FAIL-CLOSED.
+ *
+ * Nur der exakte Wert `'public'` öffnet eine Site. Alles andere (`null` bei
+ * Rows von vor studio-016, `''`, ein Tippfehler, ein fremder Wert) ist
+ * `'members'`. Warum das eine eigene Funktion ist und kein `|| 'members'`:
+ * hier hängt eine Datenschutz-Grenze dran, und ein direkter Vergleich
+ * (`audience !== 'members'` → öffentlich) hätte JEDE Bestands-Row öffentlich
+ * gemacht — Appwrite backfillt Spalten-Defaults nicht (auf Dev + Prod
+ * verifiziert: `audience` liest sich dort als `null`).
+ */
+export function resolveTenantAudience(value: string | null | undefined): TenantAudience {
+  return value === 'public' ? 'public' : 'members'
+}
+
 /** Row-Typ zur `tenants`-Table (Schema: Migrationen studio-010/011). */
 export interface TenantRow extends Models.Row {
   /** Anzeigename des Kunden (studio-011); '' = Bestand vor der Migration. */
@@ -45,6 +69,26 @@ export interface TenantRow extends Models.Row {
    *  Kunden-Site → `$id` = siteId; hier hängt das abrechnende Workspace.
    *  '' = noch keinem Workspace zugeordnet (Billing-Verdrahtung folgt G2/G3). */
   workspaceId: string
+  /** Onboarding (studio-016): Built-in-Theme-Id des gewählten Vibes;
+   *  '' = Instanz-Default aus app_config.themeSettings. */
+  theme: string
+  /** Tonale Variante des Themes; '' = Basisfarbe der Welt. */
+  variant: string
+  /** Lese-Publikum. `null` bei Rows, die VOR studio-016 entstanden sind:
+   *  Appwrite backfillt Spalten-Defaults nicht (verifiziert auf Dev + Prod,
+   *  gleiches Verhalten wie bei `plan` aus studio-013). IMMER über
+   *  resolveTenantAudience() lesen — nie direkt vergleichen. */
+  audience: TenantAudience | '' | null
+  /** Ende der 14-Tage-Pro-Testphase (Appwrite-Datetime → ISO-String, `null`
+   *  wenn nie gesetzt). Nach Ablauf setzt der Sweep `plan` auf free —
+   *  nie sperren, nie löschen (F3-Grundsatz). Echte Datetime-Spalte, damit
+   *  der Sweep sie mit einem Range-Query findet statt alle Rows zu lesen. */
+  trialEndsAt: string | null
+  /** Onboarding-Antworten als JSON (parseSiteProfile); '' = ohne Wizard angelegt. */
+  profile: string
+  /** Einladungs-Code, mit dem diese Community entstanden ist (Abuse-Spur);
+   *  '' = ohne Code angelegt (Betreiber-Weg im Studio). */
+  inviteCodeId: string
 }
 
 export const TENANTS_TABLE = 'tenants'

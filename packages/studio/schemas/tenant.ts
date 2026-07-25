@@ -28,6 +28,14 @@ export const OPERATOR_APEX = 'pukalani.app'
 export const RESERVED_SUBDOMAINS = new Set([
   'www', 'api', 'app', 'mail', 'smtp', 'admin', 'console', 'status',
   'comments', 'portfolio', 'studio', 'platform', 'changelog', 'functions', 'send',
+  // Phishing-Schutz (Self-Service-Onboarding, SAAS-ROADMAP #1): Hosts, die wie
+  // die Plattform selbst klingen, dürfen nie einem Kunden gehören —
+  // `login.pukalani.app` in fremder Hand ist eine Anmeldedaten-Falle mit
+  // unserem Namen und gültigem Zertifikat.
+  'login', 'signin', 'signup', 'register', 'account', 'accounts', 'auth',
+  'security', 'support', 'help', 'billing', 'pay', 'payment', 'payments',
+  'verify', 'password', 'reset', 'invoice', 'pukalani', 'docs', 'blog',
+  'static', 'assets', 'cdn', 'ns1', 'ns2', 'mx', 'dev', 'staging', 'test',
 ])
 
 export function isReservedHost(host: string): boolean {
@@ -37,6 +45,37 @@ export function isReservedHost(host: string): boolean {
   // erste Label-Ebene entscheidet (auch foo.functions.… bleibt reserviert)
   const first = sub.split('.').at(-1) ?? sub
   return RESERVED_SUBDOMAINS.has(first)
+}
+
+/**
+ * Self-Service-Onboarding: der Kunde wählt NUR das erste Label, den Host baut
+ * der Server. Das ist die schärfere Grenze — ein Selbstbedienungs-Nutzer kann
+ * damit strukturell keinen fremden oder infrastrukturellen Hostnamen
+ * beantragen (kein `api.pukalani.app`, kein `mail.fremde-domain.de`), während
+ * der Betreiber-Weg im Studio weiterhin volle Hosts registrieren darf
+ * (Custom Domains).
+ *
+ * Mindestens 3 Zeichen: Ein-/Zwei-Zeichen-Labels sind knappes, begehrtes Gut
+ * und sollen nicht per Skript wegschnappbar sein.
+ */
+export const SLUG_MIN = 3
+export const SLUG_MAX = 40
+const slugRe = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/
+
+export function isReservedSlug(slug: string): boolean {
+  return RESERVED_SUBDOMAINS.has(slug)
+}
+
+export function slugToHost(slug: string, apex: string = OPERATOR_APEX): string {
+  return `${slug}.${apex}`
+}
+
+export function createSlugSchema(t: TranslateFn = identity) {
+  return z.string().trim().toLowerCase()
+    .min(SLUG_MIN, t('onboarding.validation.slugShort'))
+    .max(SLUG_MAX, t('onboarding.validation.slugLong'))
+    .regex(slugRe, t('onboarding.validation.slugInvalid'))
+    .refine(slug => !isReservedSlug(slug), t('onboarding.validation.slugReserved'))
 }
 
 /**
