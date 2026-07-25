@@ -45,6 +45,45 @@ export interface InviteCodeRow extends Models.Row {
 
 export const INVITE_CODES_TABLE = 'invite_codes'
 
+/**
+ * Zustand eines Codes im VORRAT (fürs Dashboard) — nicht zu verwechseln mit
+ * der Einlöse-Prüfung unten. Hier zählt, was der Betreiber sehen will:
+ * wie viele Plätze habe ich noch, wie viele sind unterwegs, wie viele
+ * angekommen.
+ */
+export type InviteCodeState = 'redeemed' | 'revoked' | 'expired' | 'assigned' | 'free'
+
+export interface StockSummary {
+  total: number
+  free: number
+  assigned: number
+  redeemed: number
+  expired: number
+  revoked: number
+}
+
+/** PURE (unit-getestet). Reihenfolge zählt: eingelöst bleibt eingelöst, auch
+ *  wenn der Code danach abgelaufen wäre — sonst verschwindet ein Erfolg aus
+ *  der Statistik, nur weil Zeit vergeht. */
+export function inviteCodeState(
+  row: Pick<InviteCodeRow, 'status' | 'expiresAt'> & { boundEmail?: string, redeemedAt?: string | null, uses?: number },
+  now: number,
+): InviteCodeState {
+  if (row.redeemedAt || (row.uses ?? 0) > 0) return 'redeemed'
+  if ((row.status || 'active') !== 'active') return 'revoked'
+  if (row.expiresAt && Date.parse(row.expiresAt) <= now) return 'expired'
+  return row.boundEmail ? 'assigned' : 'free'
+}
+
+export function summarizeStock(
+  rows: readonly (Pick<InviteCodeRow, 'status' | 'expiresAt'> & { boundEmail?: string, redeemedAt?: string | null, uses?: number })[],
+  now: number,
+): StockSummary {
+  const summary: StockSummary = { total: rows.length, free: 0, assigned: 0, redeemed: 0, expired: 0, revoked: 0 }
+  for (const row of rows) summary[inviteCodeState(row, now)] += 1
+  return summary
+}
+
 export type InviteCodeRejection = 'unknown' | 'revoked' | 'expired' | 'exhausted' | 'wrong_email'
 
 export interface InviteCodeVerdict {

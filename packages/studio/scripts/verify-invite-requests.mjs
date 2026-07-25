@@ -2,9 +2,14 @@
  * Beweis für die Einladungs-Warteschlange (studio-017).
  *
  * Fährt den GANZEN Weg gegen die laufenden Dev-Server:
- *   anfragen (öffentlich, ohne Konto) → Betreiber weist zu → Mail mit Code
- *   (aus Mailpit gelesen, nicht simuliert) → Kunde löst im Wizard ein →
- *   Warteschlange steht auf „eingelöst → host".
+ *   anfragen (öffentlich, ohne Konto) → Betreiber-Mail landet in Mailpit →
+ *   Zuweisung → Kunde löst im Wizard ein → Warteschlange steht auf
+ *   „eingelöst → host".
+ *
+ * EHRLICH ZUR REICHWEITE: die Zuweisung selbst wird ohne Betreiber-Session
+ * über die Datenschicht nachgestellt (die Route lehnt anonym korrekt ab —
+ * das wird geprüft). Der Klartext-Code kommt daher aus dem Skript, nicht aus
+ * der Kunden-Mail; alles danach ist der echte Weg.
  *
  * Prüft außerdem, was NICHT gehen darf: derselbe Code bei einer anderen
  * Adresse, doppelte Anfragen, Erinnerung vor Ablauf der Sperrfrist, Honeypot.
@@ -91,15 +96,24 @@ async function callStudio(path, { method = 'GET', body } = {}) {
   return { status: res.status, json, text }
 }
 
-/** Den zuletzt an eine Adresse gegangenen Code aus Mailpit fischen. */
-async function codeFromMail(email) {
-  const res = await fetch(`${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:${email}`)}&limit=5`)
-  if (!res.ok) return null
-  const { messages = [] } = await res.json()
-  if (!messages.length) return null
-  const detail = await fetch(`${MAILPIT}/api/v1/message/${messages[0].ID}`).then(r => r.json())
-  const match = (detail.Text || '').match(/MAUI-[A-Z0-9]{4}-[A-Z0-9]{4}/)
-  return match ? match[0] : null
+/**
+ * Nach einer Mail mit diesem Betreff suchen. Mailpit ist optional (lokaler
+ * SMTP-Fänger) — ist es nicht da, meldet der Beweis das ehrlich als
+ * übersprungen, statt grün zu tun.
+ */
+async function mailWithSubject(fragment, attempts = 10) {
+  for (let i = 0; i < attempts; i++) {
+    const res = await fetch(`${MAILPIT}/api/v1/search?query=${encodeURIComponent(`subject:"${fragment}"`)}&limit=5`)
+      .catch(() => null)
+    if (!res) return { available: false }
+    if (res.ok) {
+      const { messages = [] } = await res.json()
+      if (messages.length) return { available: true, message: messages[0] }
+    }
+    // Der Versand läuft nebenläufig zur Antwort — kurz nachfassen.
+    await new Promise(resolve => setTimeout(resolve, 300))
+  }
+  return { available: true, message: null }
 }
 
 try {
@@ -133,6 +147,11 @@ try {
   check('genau EINE Zeile trotz zweier Anfragen', mine.length === 1, `${mine.length}`)
   check('Bot-Anfrage wurde NICHT gespeichert', !botRow)
   const requestId = mine[0]?.$id
+
+  // Der Betreiber soll die Anfrage nicht erst im Dashboard entdecken müssen.
+  const operatorMail = await mailWithSubject(`Early-Access-Anfrage von ${email}`)
+  if (!operatorMail.available) console.log('   ⊘ Mailpit nicht erreichbar — Betreiber-Mail ungeprüft')
+  else check('Betreiber-Mail zur neuen Anfrage liegt in Mailpit', !!operatorMail.message)
 
   console.log('\n2. Betreiber weist zu (Mail geht raus)')
   const assign = await callStudio(`/api/studio/invite-requests/${requestId}/assign`, { method: 'POST' })

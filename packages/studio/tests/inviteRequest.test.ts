@@ -4,7 +4,8 @@ import {
   evaluateReminder,
   summarizeRequests,
 } from '../shared/types/inviteRequest'
-import { evaluateInviteCode } from '../shared/types/inviteCode'
+import { evaluateInviteCode, inviteCodeState, summarizeStock } from '../shared/types/inviteCode'
+import { shouldPruneRequest } from '../server/utils/inviteRequestPrune'
 
 const NOW = Date.parse('2026-08-01T12:00:00.000Z')
 const HOUR = 60 * 60 * 1000
@@ -94,6 +95,57 @@ describe('An eine Adresse gebundene Codes', () => {
     const usedUp = { ...bound, uses: 1 }
     expect(evaluateInviteCode(usedUp, NOW, 'bob@example.test').reason).toBe('wrong_email')
     expect(evaluateInviteCode(usedUp, NOW, 'anna@example.test').reason).toBe('exhausted')
+  })
+})
+
+describe('Vorrat: was ist frei, unterwegs, angekommen?', () => {
+  const free = { status: 'active' as const, expiresAt: '', boundEmail: '', uses: 0 }
+
+  it('zählt die Zustände auseinander', () => {
+    const summary = summarizeStock([
+      free,
+      { ...free, boundEmail: 'a@example.test' },
+      { ...free, boundEmail: 'b@example.test', redeemedAt: new Date(NOW - DAY).toISOString() },
+      { ...free, expiresAt: new Date(NOW - DAY).toISOString() },
+      { ...free, status: 'revoked' as const },
+    ], NOW)
+    expect(summary).toEqual({ total: 5, free: 1, assigned: 1, redeemed: 1, expired: 1, revoked: 1 })
+  })
+
+  it('lässt eingelöst eingelöst bleiben — auch nach Ablauf', () => {
+    // Sonst verschwände ein Erfolg aus der Statistik, nur weil Zeit vergeht.
+    const redeemedThenExpired = {
+      ...free,
+      boundEmail: 'a@example.test',
+      redeemedAt: new Date(NOW - 30 * DAY).toISOString(),
+      expiresAt: new Date(NOW - 10 * DAY).toISOString(),
+    }
+    expect(inviteCodeState(redeemedThenExpired, NOW)).toBe('redeemed')
+  })
+
+  it('erkennt einen verbrauchten Code auch ohne Zeitstempel als eingelöst', () => {
+    expect(inviteCodeState({ ...free, uses: 1 }, NOW)).toBe('redeemed')
+  })
+})
+
+describe('Aufräumen erledigter Anfragen', () => {
+  it('löscht Abgelehntes nach 30 und Eingelöstes nach 90 Tagen', () => {
+    expect(shouldPruneRequest({ status: 'declined', redeemedAt: null, $updatedAt: new Date(NOW - 31 * DAY).toISOString() }, NOW)).toBe(true)
+    expect(shouldPruneRequest({ status: 'declined', redeemedAt: null, $updatedAt: new Date(NOW - 10 * DAY).toISOString() }, NOW)).toBe(false)
+    expect(shouldPruneRequest({ status: 'redeemed', redeemedAt: new Date(NOW - 91 * DAY).toISOString() }, NOW)).toBe(true)
+    expect(shouldPruneRequest({ status: 'redeemed', redeemedAt: new Date(NOW - 60 * DAY).toISOString() }, NOW)).toBe(false)
+  })
+
+  it('rührt nichts an, wo jemand auf Antwort wartet', () => {
+    const old = new Date(NOW - 400 * DAY).toISOString()
+    for (const status of ['new', 'assigned', 'deferred'] as const) {
+      expect(shouldPruneRequest({ status, redeemedAt: null, $updatedAt: old }, NOW), status).toBe(false)
+    }
+  })
+
+  it('löscht nichts ohne verlässlichen Zeitstempel', () => {
+    expect(shouldPruneRequest({ status: 'declined', redeemedAt: null }, NOW)).toBe(false)
+    expect(shouldPruneRequest({ status: 'declined', redeemedAt: null, $updatedAt: 'irgendwann' }, NOW)).toBe(false)
   })
 })
 

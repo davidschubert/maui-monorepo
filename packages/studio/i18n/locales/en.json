@@ -80,11 +80,32 @@
       "reactivate": "Reactivate",
       "reactivated": "Code reactivated",
       "updateFailed": "Update failed",
+      "redeemedOn": "redeemed on {date}",
       "state": {
         "active": "valid",
+        "free": "free",
+        "assigned": "assigned",
+        "redeemed": "redeemed",
         "expired": "expired",
         "used": "used up",
         "revoked": "revoked"
+      },
+      "stock": {
+        "free": "free in stock",
+        "assigned": "assigned, open",
+        "redeemed": "redeemed",
+        "expired": "expired",
+        "funnel": "{assigned} handed out · {redeemed} redeemed · {communities} communities created",
+        "lowTitle": "Only {count} free slots left",
+        "lowHint": "Refill the stock before the next request has to wait.",
+        "fill": "Refill stock",
+        "fillAction": "Create",
+        "fillHint": "Creates empty slots. A real code only comes into being when it is assigned to a request — so no finished secrets are ever lying around.",
+        "countField": "Amount",
+        "expiresHint": "Shelf life of the slot itself. The assigned code gets a fresh 14 days regardless.",
+        "created": "{count} slots created",
+        "onlyFree": "{count} free slots in stock — nothing handed out yet. Assigned codes show up here.",
+        "truncated": "More than 1000 codes: these numbers are a lower bound."
       }
     },
     "sites": {

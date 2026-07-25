@@ -80,11 +80,32 @@
       "reactivate": "Freigeben",
       "reactivated": "Code wieder freigegeben",
       "updateFailed": "Änderung fehlgeschlagen",
+      "redeemedOn": "eingelöst am {date}",
       "state": {
         "active": "gültig",
+        "free": "frei",
+        "assigned": "zugewiesen",
+        "redeemed": "eingelöst",
         "expired": "abgelaufen",
         "used": "aufgebraucht",
         "revoked": "gesperrt"
+      },
+      "stock": {
+        "free": "frei im Vorrat",
+        "assigned": "zugewiesen, offen",
+        "redeemed": "eingelöst",
+        "expired": "abgelaufen",
+        "funnel": "{assigned} vergeben · {redeemed} eingelöst · {communities} Communities angelegt",
+        "lowTitle": "Nur noch {count} freie Plätze",
+        "lowHint": "Vorrat auffüllen, bevor die nächste Anfrage wartet.",
+        "fill": "Vorrat auffüllen",
+        "fillAction": "Anlegen",
+        "fillHint": "Legt leere Plätze an. Ein echter Code entsteht erst bei der Zuweisung an eine Anfrage — es liegen also nie fertige Geheimnisse herum.",
+        "countField": "Anzahl",
+        "expiresHint": "Haltbarkeit des Platzes im Vorrat. Der zugewiesene Code bekommt davon unabhängig 14 frische Tage.",
+        "created": "{count} Plätze angelegt",
+        "onlyFree": "{count} freie Plätze im Vorrat — noch nichts vergeben. Zugewiesene Codes erscheinen hier.",
+        "truncated": "Mehr als 1000 Codes: die Zahlen sind eine Untergrenze."
       }
     },
     "sites": {

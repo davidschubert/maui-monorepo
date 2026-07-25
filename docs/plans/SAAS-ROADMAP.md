@@ -155,6 +155,22 @@ Status: 🟢 beschlossen · 🔵 beschlossen, Vertrag/UX offen · 🟡 später.
 > **Anlegen**, nicht fürs Registrieren — sonst könnten sich die eingeladenen
 > MITGLIEDER bestehender Communities nicht mehr anmelden.
 >
+> **Nachgeliefert (2026-07-25), Einladungs-Betrieb:** `studio-017` —
+> Warteschlange `invite_requests` (öffentliches `/anfragen` mit Honeypot +
+> Rate-Limit, Betreiber-Mail + In-App-Benachrichtigung), Zuweisung per Klick im
+> Dashboard (`/dashboard/requests`), an die Adresse GEBUNDENE Codes
+> (weiterleiten bringt nichts), Erinnerung mit 24-h-Sperrfrist und max. 3
+> Versuchen (ersetzt den Code, widerruft den alten), Einlöse-Rückschreibung
+> („eingelöst am / welche Community"). Vorrat: Sammel-Anlage auf
+> `/dashboard/invites` legt LEERE Plätze an — der Klartext entsteht erst beim
+> Zuweisen, es liegen also nie fertige Geheimnisse herum. Statistik zeigt
+> frei/zugewiesen/eingelöst/abgelaufen + Trichter (vergeben → eingelöst →
+> Communities); über 1000 Codes weist sie die Kappung aus statt zu raten.
+> Personenbezug wird aufgeräumt: abgelehnte Anfragen nach 30, eingelöste nach
+> 90 Tagen (stündlicher Sweep, Datenschutz-Abschnitt ergänzt).
+> Beweise: `packages/studio/scripts/verify-invite-requests.mjs` (17/17) und
+> `verify-invite-stock.mjs` (19/19, echte Betreiber-Sitzung).
+>
 > **Noch offen (bewusst, kein Blocker des Trichters):** Trial-Countdown-Banner
 > in der Community · Erinnerung vor Ablauf (die Fertig-Seite verspricht sie
 > deshalb NICHT) · Kundenbereich-Umzug `/workspace` → `app.pukalani.app` ·

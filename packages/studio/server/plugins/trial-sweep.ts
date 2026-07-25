@@ -1,4 +1,5 @@
 import { runTrialSweep } from '../utils/trialSweep'
+import { pruneInviteRequests } from '../utils/inviteRequestPrune'
 
 /**
  * Testphasen-Automatik (O6): abgelaufene Trials fallen auf den kostenlosen
@@ -22,6 +23,17 @@ export default defineNitroPlugin(() => {
       }
     }).catch((error) => {
       console.error('[studio] Testphasen-Sweep fehlgeschlagen:', error instanceof Error ? error.message : error)
+    })
+
+    // Teilt sich bewusst den Takt: beides sind stündliche Aufräumarbeiten am
+    // selben Register, und ein zweiter Timer wäre nur ein zweiter Ort, an dem
+    // man nach dem Grund für ein verschwundenes Datum sucht.
+    void pruneInviteRequests().then((result) => {
+      if (result.deleted) {
+        console.info(`[studio] Erledigte Anfragen gelöscht: ${result.deleted}`)
+      }
+    }).catch((error) => {
+      console.error('[studio] Anfragen-Aufräumen fehlgeschlagen:', error instanceof Error ? error.message : error)
     })
   }
 

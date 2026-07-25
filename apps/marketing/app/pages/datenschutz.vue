@@ -6,5 +6,5 @@ defineI18nRoute({ paths: { en: '/privacy', de: '/datenschutz' } })
 </script>
 
 <template>
-  <LegalPage scope="privacy" :section-count="7" />
+  <LegalPage scope="privacy" :section-count="8" />
 </template>
