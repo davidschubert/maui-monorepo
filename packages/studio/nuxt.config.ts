@@ -13,6 +13,22 @@ export default defineNuxtConfig({
     // Leer = GET /api/platform/entitlements/:projectId antwortet 503.
     entitlementsPrivateKey: '',
     entitlementsKid: '',
+    // server-only! Service-Secret des Self-Service-Onboardings (SAAS-ROADMAP #1):
+    // beweist, dass der Aufrufer von /api/studio/onboarding/* unser eigenes
+    // Platform-Deployment ist. Env: NUXT_STUDIO_ONBOARDING_SECRET (dasselbe
+    // Geheimnis dort als NUXT_ONBOARDING_SERVICE_SECRET).
+    // LEER = die Onboarding-Routen existieren nicht (404) — Default-aus, damit
+    // ein vergessenes Secret nicht in einen offenen Trichter mündet.
+    studioOnboardingSecret: '',
+    public: {
+      // Laufzeit-Override des Pool-Projekts (Muster wie getEffectiveAiConfig:
+      // app.config = Build-Default, Env = Umgebung). NÖTIG, weil das Pool-
+      // Projekt pro Umgebung anders heißt — lokal 'reddit-comments', in Prod
+      // 'pool'. Ein hartkodierter Default hätte lokal gegen ein nicht
+      // existierendes Projekt provisioniert.
+      // Env: NUXT_PUBLIC_STUDIO_POOL_PROJECT. Leer = app.config-Default.
+      studioPoolProject: '',
+    },
   },
   i18n: {
     locales: [

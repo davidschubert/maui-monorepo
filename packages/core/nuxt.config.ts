@@ -112,6 +112,13 @@ export default defineNuxtConfig({
       appwriteGdprBucket: '',
       // Gegenpart zu NUXT_PUBLIC_APP_URL — ohne Skeleton-Key mappt die Env-Var ins Leere
       appUrl: '',
+      tenancy: {
+        // Kontroll-Hosts der Multi-Tenant-App (Kundenbereich/Onboarding),
+        // kommagetrennt: NUXT_PUBLIC_TENANCY_CONTROL_HOSTS. Laufzeit-Override
+        // von maui.tenancy.controlHosts — die Hosts unterscheiden sich je
+        // Umgebung (lokal app.localhost, Prod app.pukalani.app).
+        controlHosts: '',
+      },
     },
   },
 })

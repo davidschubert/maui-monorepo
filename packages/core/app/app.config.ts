@@ -57,6 +57,25 @@ export default defineAppConfig({
        *  Betrieb) tragen null Overhead; bei aktivem Gate ohne Resolver bleibt
        *  die Middleware ein No-Op (fail-open auf heutiges Verhalten). */
       enabled: false,
+      /**
+       * KONTROLL-Hosts: Hostnamen derselben App, die bewusst KEIN Mandant sind
+       * (Kundenbereich/Onboarding, z. B. app.pukalani.app). Ohne diese Liste
+       * bekämen sie 404 wie jeder unbekannte Host.
+       *
+       * Laufzeit-Override: NUXT_PUBLIC_TENANCY_CONTROL_HOSTS (kommagetrennt) —
+       * die Hosts unterscheiden sich je Umgebung (lokal app.localhost).
+       */
+      controlHosts: [] as string[],
+      /**
+       * Was auf einem Kontroll-Host überhaupt aufgerufen werden darf (Präfix-
+       * Vergleich, fail-closed: alles andere → 404).
+       *
+       * Der Grund ist kein Aufräumzwang, sondern Datentrennung: auf einem Host
+       * OHNE Mandanten würde `scopeQuery` nicht scopen — `/api/comments` liefe
+       * dort quer über ALLE Communities des Pool-Projekts. Diese Liste ist
+       * die Grenze, die das verhindert; jeder Eintrag ist eine Entscheidung.
+       */
+      controlApiPrefixes: ['/api/auth/', '/api/onboarding/', '/api/health', '/api/telemetry/'] as string[],
     },
     security: {
       /** CSRF-Origin-Check für unsichere Methoden auf /api/* (server/middleware/

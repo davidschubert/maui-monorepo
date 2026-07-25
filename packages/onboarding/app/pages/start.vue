@@ -1,0 +1,88 @@
+<script setup lang="ts">
+/**
+ * Eintritt in den Setup-Flow (SAAS-ROADMAP #1).
+ *
+ * Schritt 0 ist das Early-Access-Tor: der Einladungs-Code wird HIER geprüft,
+ * nicht am Ende. Sieben Schritte auszufüllen und dann abgewiesen zu werden
+ * wäre die schlechteste mögliche erste Erfahrung mit dem Produkt.
+ *
+ * Die Prüfung ist nicht verbrauchend (POST /api/onboarding/precheck) — der
+ * Code wird erst beim Anlegen der Community eingelöst.
+ */
+definePageMeta({ layout: 'onboarding', middleware: 'auth' })
+
+const { t } = useI18n()
+const localePath = useLocalePath()
+const auth = useAuthStore()
+const draft = useOnboardingDraft()
+
+const code = ref(draft.value.inviteCode ?? '')
+const checking = ref(false)
+const rejected = ref(false)
+
+async function submit() {
+  if (!code.value.trim() || checking.value) return
+  checking.value = true
+  rejected.value = false
+  try {
+    const result = await $fetch<{ codeValid?: boolean }>('/api/onboarding/precheck', {
+      method: 'POST',
+      body: { code: code.value.trim() },
+    })
+    if (!result.codeValid) {
+      rejected.value = true
+      return
+    }
+    draft.value.inviteCode = code.value.trim()
+    await navigateTo(localePath('/start/community'))
+  }
+  catch {
+    rejected.value = true
+  }
+  finally {
+    checking.value = false
+  }
+}
+
+useHead({ title: () => t('onboarding.gate.title') })
+</script>
+
+<template>
+  <div class="space-y-8">
+    <div class="space-y-3">
+      <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">
+        {{ t('onboarding.gate.heading', { name: auth.user?.name || t('onboarding.gate.fallbackName') }) }}
+      </h1>
+      <p class="text-muted">{{ t('onboarding.gate.intro') }}</p>
+    </div>
+
+    <form class="space-y-4" @submit.prevent="submit">
+      <UFormField :label="t('onboarding.gate.codeLabel')" :description="t('onboarding.gate.codeHint')">
+        <UInput
+          v-model="code"
+          :placeholder="t('onboarding.gate.codePlaceholder')"
+          autocapitalize="characters"
+          autocomplete="off"
+          spellcheck="false"
+          size="lg"
+          class="w-full font-mono"
+          :aria-invalid="rejected"
+          aria-describedby="code-error"
+        />
+      </UFormField>
+
+      <p v-if="rejected" id="code-error" class="flex items-start gap-2 text-sm text-error">
+        <UIcon name="i-ph-warning-circle" class="mt-0.5 size-4 shrink-0" />
+        {{ t('onboarding.gate.rejected') }}
+      </p>
+
+      <UButton type="submit" size="lg" :loading="checking" :disabled="!code.trim()" block>
+        {{ t('onboarding.gate.submit') }}
+      </UButton>
+    </form>
+
+    <p class="text-sm text-dimmed">
+      {{ t('onboarding.gate.noCode') }}
+    </p>
+  </div>
+</template>

@@ -77,6 +77,13 @@ const WRITE_LIMITED: { re: RegExp, bucket: string, max?: number }[] = [
   { re: /^POST \/api\/telemetry\/error$/, bucket: 'telemetry:error', max: 30 },
   // Feedback-Widget: auch Gäste dürfen senden → enges Budget gegen Spam
   { re: /^POST \/api\/feedback$/, bucket: 'feedback:create', max: 5 },
+  // Self-Service-Onboarding (SAAS-ROADMAP #1): das Anlegen ist teuer (Rows im
+  // Control Plane, eine Subdomain wird belegt) → enges Budget. Die Vorprüfung
+  // ist billiger, aber ein Rate-Limit gehört trotzdem davor: sie beantwortet
+  // „gilt dieser Code?" und „ist dieser Name frei?" und wäre sonst ein
+  // Werkzeug zum Durchprobieren. Beides ist zusätzlich session-gated.
+  { re: /^POST \/api\/onboarding\/site$/, bucket: 'onboarding:create', max: 5 },
+  { re: /^POST \/api\/onboarding\/precheck$/, bucket: 'onboarding:precheck', max: 30 },
   // BEWUSST NICHT gelistet: POST /api/stripe/webhook — Stripe-Retries dürfen
   // nie in den 429-Bucket laufen; ungelistete Routen sind hier ohnehin frei,
   // der Schutz des Webhooks ist die Signatur-Verifikation (billing B4).

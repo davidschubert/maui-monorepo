@@ -19,5 +19,8 @@ export default {
     'comments',
     'moderation',
     'pages',
+    // Der öffentliche Trichter — läuft nur auf den Kontroll-Hosts dieser App
+    // (maui.tenancy.controlHosts), nicht auf den Community-Hosts.
+    'onboarding',
   ],
 } satisfies SiteManifest

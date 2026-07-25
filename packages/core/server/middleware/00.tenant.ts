@@ -11,8 +11,14 @@
  * Muss alphabetisch VOR auth.ts laufen (00.-Prefix): die Client-Factories
  * (Naht 2) lesen den Tenant bereits beim Session-Lookup.
  */
+// shared/*.ts wird im server-Verzeichnis NICHT auto-importiert (nur
+// shared/utils + shared/types) — deshalb explizit.
+import { isControlHost } from '../../shared/controlCenter'
+
 export default defineEventHandler(async (event) => {
-  const appConfig = useAppConfig() as { maui?: { tenancy?: { enabled?: boolean } } }
+  const appConfig = useAppConfig() as {
+    maui?: { tenancy?: { enabled?: boolean, controlHosts?: string[] } }
+  }
   if (appConfig.maui?.tenancy?.enabled !== true) return
 
   const resolver = getTenantResolver()
@@ -30,6 +36,18 @@ export default defineEventHandler(async (event) => {
   if (path === '/api/health' || path.startsWith('/_i18n/')) return
 
   const host = normalizeHost(getHeader(event, 'host'))
+
+  // KONTROLL-Hosts (Kundenbereich/Onboarding, z. B. app.pukalani.app): bewusst
+  // KEIN Mandant — hier wird eine Community erst erzeugt. Ohne diese Ausnahme
+  // liefe der Host in den 404 für unbekannte Hosts. Weil ohne Mandanten aber
+  // NICHTS gescopt ist, engt 01.control-center.ts die erlaubten Pfade
+  // fail-closed ein (die Ausnahme ist also kein Loch, sondern ein anderer,
+  // engerer Modus).
+  if (isControlHost(host, controlHosts(event))) {
+    event.context.controlCenter = true
+    return
+  }
+
   const tenant = await resolver(host)
   if (!tenant) {
     throw createError({ status: 404, statusText: 'Unknown host' })

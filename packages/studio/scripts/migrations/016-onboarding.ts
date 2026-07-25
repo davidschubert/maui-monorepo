@@ -101,6 +101,15 @@ await step('Index tenants.idx_trial', () => tablesDB.createIndex({
   columns: ['trialEndsAt'],
 }))
 
+// ── 1b. site_members: „welche Communities gehören DIESEM Nutzer?" ───────────
+// Der Onboarding-Pfad muss das Konto-Kontingent prüfen (eine Community in der
+// Testphase) — das ist eine Abfrage über den Runtime-User, nicht über die
+// Site. idx_lookup (siteId, projectId, userId) trägt sie nicht.
+await step('Index site_members.idx_owner', () => tablesDB.createIndex({
+  databaseId, tableId: 'site_members', key: 'idx_owner', type: TablesDBIndexType.Key,
+  columns: ['runtimeProjectId', 'runtimeUserId'],
+}))
+
 // ── 2. invite_codes (Early-Access-Tor) ──────────────────────────────────────
 await step('Table invite_codes', () => tablesDB.createTable({
   databaseId, tableId: 'invite_codes', name: 'Invite Codes',

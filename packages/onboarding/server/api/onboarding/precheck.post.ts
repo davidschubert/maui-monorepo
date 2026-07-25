@@ -1,0 +1,30 @@
+import { z } from 'zod'
+// Cross-Layer als expliziter Vertrag (s. site.post.ts).
+import { inviteCodeSchema } from '../../../../studio/schemas/onboarding'
+import { createSlugSchema } from '../../../../studio/schemas/tenant'
+import { callControlPlane } from '../../utils/controlPlane'
+
+/**
+ * Live-Prüfung im Wizard: gilt der Code, ist die Adresse frei?
+ *
+ * Session Pflicht, obwohl hier nichts entsteht: sonst wäre das ein offener
+ * Endpunkt, mit dem sich Einladungs-Codes durchprobieren und belegte
+ * Subdomains abgrasen lassen. Zusätzlich drosselt die core-Rate-Limit-
+ * Middleware pro IP.
+ */
+const bodySchema = z.object({
+  code: inviteCodeSchema.optional(),
+  slug: createSlugSchema().optional(),
+}).strict().refine(body => body.code !== undefined || body.slug !== undefined, 'empty precheck')
+
+export default defineEventHandler(async (event) => {
+  if (!event.context.user) {
+    throw createError({ status: 401, statusText: 'Unauthorized' })
+  }
+  const body = await readValidatedBody(event, bodySchema.parse)
+  return callControlPlane<{ codeValid?: boolean, slugAvailable?: boolean }>(
+    event,
+    '/api/studio/onboarding/precheck',
+    body,
+  )
+})

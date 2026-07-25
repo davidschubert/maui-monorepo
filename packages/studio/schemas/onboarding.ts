@@ -6,13 +6,19 @@ import {
   SITE_MEMBER_RANGES,
   SITE_PURPOSES,
   SITE_VIBES,
+  type SiteGoal,
+  type SiteVibeId,
 } from '../shared/onboarding'
 import { createSlugSchema } from './tenant'
 
 type TranslateFn = (key: string) => string
 const identity: TranslateFn = key => key
 
-const VIBE_IDS = SITE_VIBES.map(vibe => vibe.id) as unknown as [string, ...string[]]
+// z.enum verlangt ein Tupel; die Katalog-Listen sind Arrays. Die Casts halten
+// die LITERAL-Typen (nicht `string`), damit der geparste Body direkt in
+// SiteProfile passt — sonst schlägt der Compiler erst an der Schreibstelle zu.
+const VIBE_IDS = SITE_VIBES.map(vibe => vibe.id) as unknown as [SiteVibeId, ...SiteVibeId[]]
+const GOAL_IDS = SITE_GOAL_IDS as unknown as [SiteGoal, ...SiteGoal[]]
 
 /** Code-Format: der Betreiber stellt sie aus, der Kunde tippt sie ab —
  *  deshalb großzügig (Bindestriche erlaubt), aber längenbegrenzt. */
@@ -43,7 +49,7 @@ export function createOnboardingSiteSchema(t: TranslateFn = identity) {
     purpose: z.enum(SITE_PURPOSES),
     memberRange: z.enum(SITE_MEMBER_RANGES),
     category: z.enum(SITE_CATEGORIES),
-    goal: z.enum(SITE_GOAL_IDS as unknown as [string, ...string[]]),
+    goal: z.enum(GOAL_IDS),
     description: z.string().trim().max(SITE_DESCRIPTION_MAX).optional(),
     vibe: z.enum(VIBE_IDS),
     inviteCode: inviteCodeSchema,

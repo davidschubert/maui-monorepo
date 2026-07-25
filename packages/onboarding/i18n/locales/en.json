@@ -1,0 +1,26 @@
+{
+  "onboarding": {
+    "layout": {
+      "footer": "Pukalani · Community software made and hosted in Germany"
+    },
+    "gate": {
+      "title": "Set up your community",
+      "heading": "Welcome, {name}.",
+      "fallbackName": "good to have you here",
+      "intro": "Pukalani is in early access — you need an invite code. After that we'll set up your community together in a few steps.",
+      "codeLabel": "Invite code",
+      "codeHint": "It's in your invitation email. Capitalisation doesn't matter.",
+      "codePlaceholder": "MAUI-XXXX-XXXX",
+      "submit": "Continue",
+      "rejected": "That code isn't valid (any more). Check the spelling — or ask us for a new one.",
+      "noCode": "No code? Tell us what you want to use Pukalani for — we invite new communities continuously."
+    },
+    "validation": {
+      "nameRequired": "Give your community a name.",
+      "slugShort": "At least 3 characters.",
+      "slugLong": "At most 40 characters.",
+      "slugInvalid": "Lowercase letters, numbers and hyphens only.",
+      "slugReserved": "That address is reserved. Please pick another one."
+    }
+  }
+}
