@@ -1,5 +1,9 @@
 {
   "marketing": {
+    "meta": {
+      "title": "Pukalani – Community-Plattform, in Deutschland gehostet",
+      "description": "Beiträge, Kurse, Events und Diskussionen unter deinem Namen und Design. Datenschutz-nativ, in Deutschland gehostet, ohne Werbe-Tracking. Die schlanke Alternative zu Circle & Skool. Kostenlos starten."
+    },
     "nav": {
       "features": "Bausteine",
       "pricing": "Preise",

@@ -1,5 +1,9 @@
 {
   "marketing": {
+    "meta": {
+      "title": "Pukalani – Your own community platform, privacy-first",
+      "description": "Posts, courses, events and discussions under your own brand and domain. Privacy-first, hosted in Germany, no ad tracking. The lean alternative to Circle & Skool. Start free."
+    },
     "nav": {
       "features": "Building blocks",
       "pricing": "Pricing",

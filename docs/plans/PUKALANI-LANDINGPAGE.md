@@ -514,8 +514,9 @@ eingebaut. Beispiele erst nach finalem Visual:
 
 ## 5. Umsetzungs-Hinweise (technisch)
 
-- **Wo:** eigene Route auf `pukalani.app` (Wurzel-Domain, NICHT `platform`/`studio`).
-  Kandidat: schlanke neue `apps/marketing`-App oder `portfolio`-Basis. Offen.
+- **Wo:** ✅ **`apps/marketing`** gebaut (Port 3007 lokal, extends nur core+system
+  — schlank, öffentlich, statisch). MVP live-fähig (Prod-Build grün). Deploy auf
+  die `pukalani.app`-Wurzel + Go-Live = Davids Freigabe (öffentliche Marketing-Seite).
 - **i18n:** `prefix_except_default` (EN default, `/de/*`); `useLocaleHead`
   liefert hreflang/canonical.
 - **SEO-Basis:** Metadaten, Canonical/Hreflang, `sitemap.xml`, `robots.txt`,
@@ -646,8 +647,14 @@ wird über Theme-Töne/Hintergründe gelöst (passt zur bestehenden Theme-Engine
    unklare Ableitung aus einer Kunden-/Portfolio-App.
 4. **Content-Inventar:** jede Sektion als `belegt`, `Roadmap` oder `entfernen`
    markieren; rechtliche Claims freigeben lassen.
-5. **MVP bauen:** Hero → Problem → belegte Bausteine → Datenschutz → Preis/
-   Early Access → FAQ → CTA. Die volle Dramaturgie (§6.4) danach ergänzen.
-6. **Abnahme:** EN/DE, Tastatur/Screenreader, `prefers-reduced-motion`, Mobile,
-   Performance-Budget, strukturierte Daten und alle CTA-Ziele automatisiert
-   prüfen.
+5. **MVP bauen:** ✅ **fertig (2026-07-24, apps/marketing)** — Hero → Problem →
+   So-funktioniert's → Bausteine (Claim-Gate-Badges) → Modular → Datenschutz →
+   Preise/Early-Access → FAQ → CTA, DE+EN, inkl. Licht-Dramaturgie (§6.3:
+   Grau→Sonne + puka-Motiv + Scroll-Reveal, reduced-motion-fest) und SEO
+   (locale-Titel/Description, hreflang, JSON-LD Organization/SoftwareApplication/
+   FAQPage). Prod-Build grün.
+6. **Abnahme (offen/Rest):** volle Dramaturgie-Ausbaustufen (Vergleich `/vs/*`,
+   Anwendungsfälle `/fuer/*`, Story-Sektion, echte Preise aus dem Studio-Katalog,
+   Social Proof) + Lighthouse/Perf-Budget + 2 benigne Hydration-Mismatches (ohne
+   erfassbare Detail-Warnung, Render korrekt) noch zu klären; Deploy/Go-Live =
+   Davids Freigabe.
