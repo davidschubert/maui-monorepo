@@ -389,18 +389,29 @@ Format: **Name · UX-Ziel · SEO-Fokus · Elemente**.
 ### V.12 Über uns / Unsere Geschichte
 - **H2 (DE):** „Ein Loch in den Wolken."
 - **H2 (EN):** „A hole in the clouds."
-- **Fertige Copy (DE):**
+- **Fertige Copy (DE)** — die drei Bedeutungs-Stränge (Loch in den Wolken /
+  Tor zum Himmel / fruchtbarer Boden) sind bewusst als Absatzbögen eingewoben:
   > „Es gibt einen Ort auf Maui, hoch an den Hängen des Vulkans Haleakalā, wo
   > sich in der Regenzeit die Wolken teilen. Während ringsum alles grau ist,
   > bricht dort die Sonne durch – durch eine *puka*, ein Loch im Himmel. Die
-  > Hawaiianer nannten diesen Ort **Pukalani**: das Tor zum Himmel.
+  > Hawaiianer nannten diesen Ort **Pukalani**. Genau dort ist diese Plattform
+  > entstanden.
   >
-  > Genau dort ist diese Plattform entstanden. Und der Name blieb, weil er
-  > erzählt, wofür wir stehen: Das Netz ist heute meist bewölkt – voller
+  > **Das Loch in den Wolken.** Das Netz ist heute meist bewölkt – voller
   > Tracking, Werbung, Lärm und geschlossener Netzwerke, in denen deine
-  > Community dir nie ganz gehört. **Pukalani ist die Öffnung, durch die die
-  > Sonne bricht.** Ein klarer, ruhiger Ort, der dir gehört – für deine
-  > Beiträge, deine Kurse, deine Events, deine Menschen.
+  > Community dir nie ganz gehört. Pukalani ist die Öffnung, durch die die Sonne
+  > bricht: ein klarer, ruhiger Ort, ohne all das Grau. Was du hier baust, gehört
+  > dir – ganz.
+  >
+  > **Das Tor zum Himmel.** *Puka* und *lani* heißt wörtlich „Öffnung zum
+  > Himmel" – eine Tür. Und genau so soll sich der Anfang anfühlen: Du gehst
+  > hindurch, und in sechzig Sekunden steht deine eigene Community – ohne Server,
+  > ohne Handbuch, ohne Umwege.
+  >
+  > **Fruchtbarer Boden.** Pukalani liegt im Hochland, auf reichem Vulkanboden,
+  > auf dem seit Generationen Dinge wachsen. Das ist unser Versprechen: ein Ort,
+  > an dem deine Community wächst – deine Beiträge, deine Kurse, deine Events,
+  > deine Menschen – statt in einem fremden Netzwerk zu versickern.
   >
   > Gebaut von einem, der die Plattform selbst haben wollte: ehrlich, schlank,
   > DSGVO-nah – ohne dich oder deine Mitglieder zum Produkt zu machen. Pukalani
@@ -409,14 +420,22 @@ Format: **Name · UX-Ziel · SEO-Fokus · Elemente**.
   > „There's a place on Maui, high on the slopes of the Haleakalā volcano, where
   > the clouds part in the rainy season. While everything around is grey, the
   > sun breaks through – through a *puka*, a hole in the sky. Hawaiians named
-  > this place **Pukalani**: the gateway to heaven.
+  > this place **Pukalani**. That's where this platform was born.
   >
-  > That's where this platform was born, and the name stayed because it tells
-  > you what we stand for. Today's web is mostly clouded – full of tracking,
+  > **The hole in the clouds.** Today's web is mostly clouded – full of tracking,
   > ads, noise and closed networks where your community never truly belongs to
-  > you. **Pukalani is the opening where the sun breaks through.** A clear,
-  > calm place that's yours – for your posts, your courses, your events, your
-  > people.
+  > you. Pukalani is the opening where the sun breaks through: a clear, calm
+  > place, without all the grey. What you build here is yours – entirely.
+  >
+  > **The gateway to the sky.** *Puka* and *lani* literally means „opening to
+  > the sky" – a door. And that's how the beginning should feel: you step
+  > through, and in sixty seconds your own community stands – no servers, no
+  > manual, no detours.
+  >
+  > **Fertile ground.** Pukalani sits in the highlands, on rich volcanic soil
+  > where things have grown for generations. That's our promise: a place where
+  > your community grows – your posts, your courses, your events, your people –
+  > instead of fading into someone else's network.
   >
   > Built by someone who wanted this platform to exist: honest, lean,
   > privacy-first – without turning you or your members into the product.
