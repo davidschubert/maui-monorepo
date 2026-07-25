@@ -52,6 +52,19 @@ export default defineAppConfig({
           group: 'management',
           order: 3,
         },
+        {
+          // Early-Access-Tor des Self-Service-Onboardings: hier stellt der
+          // Betreiber die Codes aus, mit denen Fremde eine Community anlegen
+          // dürfen. Ohne gültigen Code kommt niemand in den Wizard.
+          id: 'invites',
+          featureKey: 'studio',
+          labelKey: 'admin.nav.invites',
+          icon: 'i-ph-key',
+          to: '/dashboard/invites',
+          requiredCapability: 'sites.manage',
+          group: 'management',
+          order: 4,
+        },
       ],
     },
   },

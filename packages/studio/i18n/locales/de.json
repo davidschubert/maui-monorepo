@@ -3,10 +3,48 @@
     "nav": {
       "sites": "Sites",
       "workspaces": "Workspaces",
-      "tenants": "Tenants"
+      "tenants": "Tenants",
+      "invites": "Einladungen"
     }
   },
   "studio": {
+    "invites": {
+      "title": "Einladungs-Codes",
+      "subtitle": "Wer eine Community anlegen will, braucht im Early Access einen Code. Der Klartext erscheint genau EINMAL — beim Ausstellen.",
+      "new": "Neuer Code",
+      "create": "Code ausstellen",
+      "createFailed": "Code konnte nicht ausgestellt werden",
+      "empty": "Noch keine Codes ausgestellt.",
+      "noLabel": "Ohne Notiz",
+      "labelField": "Notiz",
+      "labelHint": "Nur für dich — hilft später zu wissen, wofür der Code war.",
+      "labelPlaceholder": "z. B. Newsletter-Welle 1",
+      "maxUsesField": "Einlösungen",
+      "maxUsesHint": "1 = einmalig (empfohlen). 0 = unbegrenzt.",
+      "expiresField": "Gültig für … Tage",
+      "expiresHint": "0 = ohne Ablauf. Ein Code ohne Ablauf gilt für immer — im Zweifel lieber befristen.",
+      "issuedTitle": "Code ausgestellt",
+      "issuedHint": "Kopiere ihn jetzt. Er wird nicht gespeichert und ist danach nicht wiederherstellbar — verloren heißt: einen neuen ausstellen.",
+      "copy": "Kopieren",
+      "copied": "Kopiert",
+      "copyFailed": "Kopieren nicht möglich — bitte abtippen.",
+      "done": "Fertig",
+      "uses": "{uses} von {max} eingelöst",
+      "usesUnlimited": "{uses}x eingelöst · unbegrenzt",
+      "until": "gültig bis {date}",
+      "noExpiry": "ohne Ablauf",
+      "revoke": "Sperren",
+      "revoked": "Code gesperrt",
+      "reactivate": "Freigeben",
+      "reactivated": "Code wieder freigegeben",
+      "updateFailed": "Änderung fehlgeschlagen",
+      "state": {
+        "active": "gültig",
+        "expired": "abgelaufen",
+        "used": "aufgebraucht",
+        "revoked": "gesperrt"
+      }
+    },
     "sites": {
       "title": "Sites",
       "empty": "Noch keine Sites registriert.",

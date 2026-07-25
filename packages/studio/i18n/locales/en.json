@@ -3,10 +3,48 @@
     "nav": {
       "sites": "Sites",
       "workspaces": "Workspaces",
-      "tenants": "Tenants"
+      "tenants": "Tenants",
+      "invites": "Invites"
     }
   },
   "studio": {
+    "invites": {
+      "title": "Invite codes",
+      "subtitle": "During early access, creating a community requires a code. The plaintext appears exactly ONCE — when you issue it.",
+      "new": "New code",
+      "create": "Issue code",
+      "createFailed": "Could not issue the code",
+      "empty": "No codes issued yet.",
+      "noLabel": "No note",
+      "labelField": "Note",
+      "labelHint": "For you only — helps you remember what the code was for.",
+      "labelPlaceholder": "e.g. newsletter wave 1",
+      "maxUsesField": "Redemptions",
+      "maxUsesHint": "1 = single use (recommended). 0 = unlimited.",
+      "expiresField": "Valid for … days",
+      "expiresHint": "0 = no expiry. A code without expiry is valid forever — when in doubt, set a limit.",
+      "issuedTitle": "Code issued",
+      "issuedHint": "Copy it now. It is not stored and cannot be recovered — lost means issuing a new one.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "copyFailed": "Copying failed — please type it out.",
+      "done": "Done",
+      "uses": "{uses} of {max} redeemed",
+      "usesUnlimited": "redeemed {uses}x · unlimited",
+      "until": "valid until {date}",
+      "noExpiry": "no expiry",
+      "revoke": "Revoke",
+      "revoked": "Code revoked",
+      "reactivate": "Reactivate",
+      "reactivated": "Code reactivated",
+      "updateFailed": "Update failed",
+      "state": {
+        "active": "valid",
+        "expired": "expired",
+        "used": "used up",
+        "revoked": "revoked"
+      }
+    },
     "sites": {
       "title": "Sites",
       "empty": "No sites registered yet.",
