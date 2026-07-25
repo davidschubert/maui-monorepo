@@ -195,7 +195,32 @@ try {
   const strangerAfter = await poolUsers.get({ userId: stranger.userId })
   check('Fremder hat es NICHT', !(strangerAfter.labels ?? []).includes(siteId), JSON.stringify(strangerAfter.labels))
 
-  console.log('\n5. Projekt-globale Betreiber-Routen bleiben für Kunden zu')
+  console.log('\n5. Handoff: in der Community ankommen — eingeloggt (Schritt 9)')
+  // Session-Cookies sind host-only: die Anmeldung auf app.* gilt auf der
+  // Subdomain nicht. Der Handoff ist die Brücke.
+  const noCookieYet = await call(host, '/api/auth/me')
+  check('ohne Handoff ist man auf der Community NICHT eingeloggt', noCookieYet.status === 401, `Status ${noCookieYet.status}`)
+
+  const handoff = await call(CONTROL_HOST, '/api/onboarding/handoff', {
+    method: 'POST', cookie: ownerCookie, body: { siteId },
+  })
+  check('Kontroll-Host siegelt ein Token', handoff.status === 200 && !!handoff.json?.token, `Status ${handoff.status}`)
+
+  const exchange = await call(host, `/api/auth/site-session?token=${encodeURIComponent(handoff.json?.token ?? '')}&to=%2F`)
+  const handoffCookie = exchange.setCookie.find(c => c.startsWith('a_session_'))?.split(';')[0]
+  check('Community-Host löst ein und leitet weiter', exchange.status === 302, `Status ${exchange.status}`)
+  check('setzt sein eigenes Session-Cookie', !!handoffCookie, exchange.setCookie.join(' | ').slice(0, 120))
+
+  const meOnTenant = handoffCookie ? await call(host, '/api/auth/me', { cookie: handoffCookie }) : { status: 0, json: null }
+  check('danach ist man auf der Community eingeloggt', meOnTenant.status === 200 && meOnTenant.json?.email === owner.email, `Status ${meOnTenant.status}`)
+
+  const badToken = await call(host, '/api/auth/site-session?token=kaputt')
+  check('manipuliertes Token → 401, kein Cookie', badToken.status === 401 && !badToken.setCookie.some(c => c.startsWith('a_session_')), `Status ${badToken.status}`)
+
+  const openRedirect = await call(host, `/api/auth/site-session?token=${encodeURIComponent(handoff.json?.token ?? '')}&to=https%3A%2F%2Fboese.example`)
+  check('absolutes Weiterleitungsziel wird abgewiesen (kein Open Redirect)', openRedirect.status === 400, `Status ${openRedirect.status}`)
+
+  console.log('\n6. Projekt-globale Betreiber-Routen bleiben für Kunden zu')
   for (const path of ['/api/admin/config', '/api/admin/users', '/api/admin/audit']) {
     const res = await call(host, path, { cookie: ownerCookie })
     check(`${path} → 403 für den Site-Owner`, res.status === 403, `Status ${res.status}`)
@@ -206,7 +231,7 @@ catch (error) {
   console.error('\n✗ Abbruch:', error?.message || error)
 }
 finally {
-  console.log('\n6. Aufräumen')
+  console.log('\n7. Aufräumen')
   for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'site_members', rowId: id }).catch(() => {})
   for (const id of cleanup.tenants) await control.deleteRow({ databaseId, tableId: 'tenants', rowId: id }).catch(() => {})
   for (const id of cleanup.workspaces) await control.deleteRow({ databaseId, tableId: 'workspaces', rowId: id }).catch(() => {})

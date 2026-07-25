@@ -137,7 +137,7 @@
       "open": "Open community",
       "hints": {
         "private": "Private by default: content is members-only. \"Publicly readable\" is a switch in the settings.",
-        "trial": "The trial runs for 14 days. We'll remind you before it ends.",
+        "trial": "The trial runs for 14 days. After that the free plan applies automatically — smaller limits, nothing for you to do.",
         "settings": "Name, address, colours and home page can be changed any time in your community's dashboard."
       }
     },

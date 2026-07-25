@@ -137,7 +137,7 @@
       "open": "Community öffnen",
       "hints": {
         "private": "Privat gestartet: Inhalte sind nur für Mitglieder sichtbar. „Öffentlich lesbar\" ist ein Schalter in den Einstellungen.",
-        "trial": "Die Testphase läuft 14 Tage. Wir erinnern dich, bevor sie endet.",
+        "trial": "Die Testphase läuft 14 Tage. Danach gilt automatisch der kostenlose Tarif — mit kleineren Limits, ohne dass du etwas tun musst.",
         "settings": "Name, Adresse, Farben und Startseite änderst du jederzeit im Dashboard deiner Community."
       }
     },

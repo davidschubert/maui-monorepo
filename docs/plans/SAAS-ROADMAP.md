@@ -133,7 +133,33 @@ Die Nummern bleiben als stabile Ideen-IDs erhalten; die Delivery-Reihenfolge
 steht separat weiter unten. `S/M/L` = relative Größe, keine Schätzung.
 Status: 🟢 beschlossen · 🔵 beschlossen, Vertrag/UX offen · 🟡 später.
 
-### 1 — Self-Service-Onboarding „Community in 60 Sekunden" · L · 🟢
+### 1 — Self-Service-Onboarding „Community in 60 Sekunden" · L · ✅ GEBAUT (2026-07-25)
+> **Abnahme bestanden:** 10 unbeaufsichtigte Läufe, **Median 0,3 s** vom Signup
+> bis zur erreichbaren Site (DoD ≤ 60 s), Retry idempotent (dieselbe Community,
+> Code nicht doppelt verbraucht), keine zusätzliche Row bei abgelehnter Eingabe
+> oder Kontingent-Stopp. Läufe reproduzierbar:
+> `packages/onboarding/scripts/acceptance-onboarding.mjs`.
+>
+> **Gebaut in O1–O6:** Layer `packages/onboarding` (Wizard, 7 Schritte, EN/DE) ·
+> `studio-016` (Vibe, Testphase, Profil, `invite_codes`) · Provisionierung im
+> Control Plane mit Service-Secret **und** selbst geprüftem Appwrite-JWT ·
+> Idempotenz über den Hostnamen · Kompensation statt halber Community ·
+> Kontroll-Host `app.pukalani.app` als Nicht-Mandant mit fail-closed
+> API-Allowlist · Branding pro Mandant · `requireSitePermission` (Site-Rolle vor
+> protokolliertem Operator-Break-Glass) · Site-Label für Naht 4 · Startseite aus
+> der Beschreibung · Testphasen-Sweep (bezahlte Kunden ausgenommen).
+>
+> **Davids Entscheidungen (2026-07-24):** Invite-Code-Gate im Early Access ·
+> 14 Tage Pro ohne Zahlungsdaten · 1 Community im Trial, danach bis 3 · KI nur
+> als optionaler Vorschlag. Wichtige Präzisierung beim Bau: der Code gilt fürs
+> **Anlegen**, nicht fürs Registrieren — sonst könnten sich die eingeladenen
+> MITGLIEDER bestehender Communities nicht mehr anmelden.
+>
+> **Noch offen (bewusst, kein Blocker des Trichters):** Trial-Countdown-Banner
+> in der Community · Erinnerung vor Ablauf (die Fertig-Seite verspricht sie
+> deshalb NICHT) · Kundenbereich-Umzug `/workspace` → `app.pukalani.app` ·
+> Abuse-/Suspend-Pfad · Deploy des Hosts (ploi + Env).
+
 **Davids Wort:** „Finde ich gut, sollten wir so umsetzen."
 Öffentlicher Registrierungs-Wrapper auf `pukalani.app`: Name + Plan → Subdomain
 sofort live. Die Maschinerie existiert (Klick-Provisionierung, Wellen, Quota,

@@ -108,6 +108,30 @@ Vollständiges Konzept: docs/CONCEPT.md
 - Admin-Nav-Registry (maui.admin.modules) kann children (Unterpunkte,
   RBAC-gefiltert, exact für Index-Einträge)
 
+## Self-Service-Onboarding (Layer onboarding, seit 2026-07-25)
+- Trichter auf `app.pukalani.app` = KONTROLL-Host der Platform-App: bewusst
+  KEIN Mandant (`maui.tenancy.controlHosts`, Env-Override
+  NUXT_PUBLIC_TENANCY_CONTROL_HOSTS). Weil dort NICHTS gescopt ist, lässt
+  `01.control-center.ts` nur `maui.tenancy.controlApiPrefixes` zu — alles
+  andere 404. Neuer Endpunkt im Kundenbereich ⇒ Präfix bewusst eintragen.
+- Anlegen gehört dem Control Plane: `POST /api/studio/onboarding/site` verlangt
+  Service-Secret (NUXT_STUDIO_ONBOARDING_SECRET ⇔ NUXT_ONBOARDING_SERVICE_SECRET)
+  UND ein Appwrite-JWT, das das Control Plane SELBST gegen das Pool-Projekt
+  prüft. Idempotenz über den Hostnamen (kein Idempotency-Key); Owner-Mitgliedschaft
+  scheitert ⇒ Tenant wird zurückgerollt.
+- Vertrag (Kataloge, 6 Vibes, Testphase, Kontingent):
+  `packages/studio/shared/onboarding.ts` — der Wizard-Layer konsumiert ihn.
+- Branding gehört dem MANDANTEN (`tenants.theme/variant`), nicht dem Projekt:
+  `app_config.themeSettings` ist EINE Row pro Projekt.
+- Site-Routen autorisieren über `requireSitePermission` (Site-Rolle, dann
+  protokollierter Operator-Break-Glass) — NIE `requirePermission` erweitern:
+  die ist synchron und wird ohne await gerufen.
+- Beweise: `packages/onboarding/scripts/{verify-control-host,verify-site-authz,
+  acceptance-onboarding}.mjs` + `packages/studio/scripts/verify-onboarding.mjs`.
+  Lokal testen: `seed-local-tester.mjs` (Konto+Code, `--clean` räumt auf).
+  Node's `fetch` verwirft einen eigenen Host-Header, und Nitro hört auf `[::1]`
+  (Vites HMR-Server auf IPv4) — die Skripte nutzen deshalb node:http über ::1.
+
 ## KI, E-Mail, Embed, Moderation (Core-Bausteine seit 2026-07-09/10)
 - KI: aiComplete()/aiCompleteJson() (core/server/utils/aiComplete.ts) = EIN
   Transport für OpenAI-kompatible APIs (Default OpenRouter). Gate maui.ai

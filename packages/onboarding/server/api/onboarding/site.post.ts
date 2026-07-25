@@ -4,6 +4,8 @@
 import { onboardingSiteSchema } from '../../../../studio/schemas/onboarding'
 import { callControlPlane, mintRuntimeJwt } from '../../utils/controlPlane'
 import { grantSiteLabel } from '../../utils/siteLabel'
+// Der pages-Layer besitzt die Tabelle und stellt den Seed-Helfer bereit (A14).
+import { seedHomePage } from '../../../../pages/server/utils/seedHomePage'
 
 /**
  * Community anlegen — der öffentliche Abschluss des Wizards (Schritt 7).
@@ -19,6 +21,7 @@ export interface CreatedSite {
   plan: string
   trialEndsAt: string | null
   workspaceId: string
+  tenantId: string
   reused: boolean
 }
 
@@ -32,6 +35,28 @@ export default defineEventHandler(async (event) => {
   const result = await callControlPlane<CreatedSite>(event, '/api/studio/onboarding/site', { jwt, site })
 
   await grantSiteLabel(event, result.siteId)
+
+  // Erste Startseite (Schritt 8). BEST EFFORT und bewusst nach der Anlage: die
+  // Community existiert schon: an einer fehlgeschlagenen Seite darf sie nicht
+  // scheitern. Der Owner sieht dann die Willkommens-Variante und kann selbst
+  // eine anlegen — der Fehler steht im Log, nicht im Gesicht des Kunden.
+  if (!result.reused) {
+    await seedHomePage(event, {
+      tenantId: result.tenantId,
+      locale: site.locale ?? 'de',
+      title: site.name,
+      description: site.description,
+      fallbackBody: site.locale === 'en'
+        ? `Welcome to ${site.name}. This page is yours — edit it in the dashboard whenever you like.`
+        : `Willkommen bei ${site.name}. Diese Seite gehört dir — du kannst sie im Dashboard jederzeit ändern.`,
+    }).catch((error) => {
+      logEvent('error', 'onboarding.home_page_failed', {
+        siteId: result.siteId,
+        message: error instanceof Error ? error.message : String(error),
+      })
+      return null
+    })
+  }
 
   logEvent('info', 'onboarding.site_requested', {
     siteId: result.siteId,

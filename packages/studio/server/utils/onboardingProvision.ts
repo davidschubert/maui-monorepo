@@ -50,6 +50,9 @@ export interface ProvisionResult {
   plan: string
   trialEndsAt: string | null
   workspaceId: string
+  /** Zeilen-Scope im Pool — die Runtime braucht ihn, um die erste Seite der
+   *  Community anzulegen (sie läuft dabei OHNE Mandanten-Kontext). */
+  tenantId: string
   /** true = derselbe Aufruf lief schon einmal durch (Retry/Doppelklick). */
   reused: boolean
 }
@@ -173,6 +176,7 @@ export async function provisionCommunity(
         plan: existing.plan || 'free',
         trialEndsAt: existing.trialEndsAt,
         workspaceId: existing.workspaceId || '',
+        tenantId: existing.tenantId,
         reused: true,
       }
     }
@@ -197,6 +201,7 @@ export async function provisionCommunity(
   // im Projekt des Nutzers entstehen, sonst gehört ihm seine Site nicht.
   const projectId = identity.projectId
 
+  const tenantId = `t-${ID.unique()}`
   const tenant = await admin.tablesDB.createRow<TenantRow>({
     databaseId,
     tableId: TENANTS_TABLE,
@@ -206,7 +211,7 @@ export async function provisionCommunity(
       host,
       mode: 'pool',
       projectId,
-      tenantId: `t-${ID.unique()}`,
+      tenantId,
       status: 'active',
       wave: 'stable',
       // Testphase: Pro-QUOTA für 14 Tage. Die Pro-FEATURES (Feed, Events)
@@ -269,6 +274,7 @@ export async function provisionCommunity(
     plan: TRIAL_PLAN,
     trialEndsAt: tenant.trialEndsAt,
     workspaceId: workspace.$id,
+    tenantId,
     reused: false,
   }
 }

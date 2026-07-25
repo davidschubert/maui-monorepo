@@ -44,6 +44,9 @@ const FAILURE_LIMITED = new Set([
   'PUT /api/auth/verification',
   // Embed-Handoff-Einlösung (E2): session-los, Token = Beweis → Raten drosseln
   'POST /api/auth/embed-session',
+  // Site-Handoff (O6): dito — der Token IST der Beweis, also nur Fehlversuche
+  // zählen (ein erfolgreicher Sprung in die eigene Community kostet nichts).
+  'GET /api/auth/site-session',
 ])
 // Schreib-Routen mit teils dynamischen Segmenten ([id]) → Regex + stabiler
 // Bucket-Name, damit z.B. Vote-Spam über viele Kommentar-IDs EIN Budget teilt

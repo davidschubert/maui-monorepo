@@ -14,11 +14,44 @@ const route = useRoute()
 const draft = useOnboardingDraft()
 
 const host = computed(() => String(route.query.host ?? ''))
-const name = computed(() => draft.value.name ?? '')
+const siteId = computed(() => String(route.query.site ?? ''))
+// Der Name kommt aus dem Entwurf; nach dem Leeren (unten) bleibt er in dieser
+// Kopie stehen, damit die Überschrift beim Neuladen nicht leer wird.
+const name = ref(draft.value.name ?? '')
 
 // Der Entwurf hat seinen Zweck erfüllt — er darf nicht im Tab liegen bleiben
 // und beim nächsten „Neue Community" mit alten Antworten auftauchen.
 onMounted(() => clearOnboardingDraft())
+
+/**
+ * Schritt 9: in der Community ankommen — EINGELOGGT.
+ *
+ * Session-Cookies sind host-only, die Anmeldung auf app.* gilt auf der
+ * Subdomain also nicht. Deshalb wird beim KLICK ein 60-Sekunden-Handoff-Token
+ * gesiegelt (nicht beim Rendern: bei einem langsamen Leser wäre es abgelaufen),
+ * das der Community-Host gegen Appwrite prüft, bevor er sein Cookie setzt.
+ *
+ * Scheitert der Handoff, führt der Link trotzdem zur Community — dann eben mit
+ * Login. Ein kaputter Handoff darf keine Sackgasse sein.
+ */
+const opening = ref(false)
+
+async function openCommunity() {
+  if (!host.value || opening.value) return
+  opening.value = true
+  let target = `https://${host.value}/`
+  try {
+    const { token } = await $fetch<{ token: string }>('/api/onboarding/handoff', {
+      method: 'POST',
+      body: { siteId: siteId.value },
+    })
+    target = `https://${host.value}/api/auth/site-session?token=${encodeURIComponent(token)}&to=%2F`
+  }
+  catch {
+    // Fallback: ohne Handoff wenigstens zur Community (dort Login).
+  }
+  window.location.href = target
+}
 
 useHead({ title: () => t('onboarding.done.title') })
 </script>
@@ -40,7 +73,15 @@ useHead({ title: () => t('onboarding.done.title') })
         <p class="text-sm text-muted">{{ t('onboarding.done.addressLabel') }}</p>
         <p class="break-all font-medium">{{ host }}</p>
       </div>
-      <UButton v-if="host" :to="`https://${host}`" external size="lg" trailing-icon="i-ph-arrow-up-right" block>
+      <UButton
+        v-if="host"
+        type="button"
+        size="lg"
+        :loading="opening"
+        trailing-icon="i-ph-arrow-up-right"
+        block
+        @click="openCommunity"
+      >
         {{ t('onboarding.done.open') }}
       </UButton>
     </div>
