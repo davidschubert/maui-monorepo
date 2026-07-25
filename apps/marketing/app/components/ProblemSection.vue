@@ -2,11 +2,11 @@
 // Szene 2 — der Gegenspieler tritt auf (§6.4): das „bewölkte Netz". Noch
 // gedämpfter Ton (tone-mist), Frustration + Wiedererkennen, dann die Brücke
 // zur Erleichterung.
-const { t, tm, rt } = useI18n()
+const { t } = useI18n()
 const rows = computed(() =>
-  (tm('marketing.problem.rows') as Array<{ pain: unknown, gain: unknown }>).map(r => ({
-    pain: rt(r.pain as string),
-    gain: rt(r.gain as string),
+  [0, 1, 2].map(i => ({
+    pain: t(`marketing.problem.rows.${i}.pain`),
+    gain: t(`marketing.problem.rows.${i}.gain`),
   })),
 )
 </script>

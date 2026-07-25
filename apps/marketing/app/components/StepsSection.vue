@@ -1,12 +1,12 @@
 <script setup lang="ts">
 // Szene 3 — der Mentor reicht die Karte (§6.4): drei Schritte, die Tür öffnet
 // sich. Hoffnung/Erleichterung, der Ton klart auf (tone-sky).
-const { t, tm, rt } = useI18n()
+const { t } = useI18n()
 const items = computed(() =>
-  (tm('marketing.steps.items') as Array<{ n: unknown, title: unknown, text: unknown }>).map(s => ({
-    n: rt(s.n as string),
-    title: rt(s.title as string),
-    text: rt(s.text as string),
+  [0, 1, 2].map(i => ({
+    n: t(`marketing.steps.items.${i}.n`),
+    title: t(`marketing.steps.items.${i}.title`),
+    text: t(`marketing.steps.items.${i}.text`),
   })),
 )
 </script>

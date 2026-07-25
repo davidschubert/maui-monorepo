@@ -45,6 +45,73 @@
         { "n": "3", "title": "Bausteine wählen", "text": "Feed, Kurse, Events, Diskussionen an- oder ausschalten. Dein Design dazu. Fertig." }
       ]
     },
+    "blocks": {
+      "kicker": "Die Bausteine",
+      "title": "Eine Plattform, viele Bausteine. Du entscheidest, welche.",
+      "lead": "Jeder Baustein ist an- und abschaltbar. Kein Ballast.",
+      "available": "Verfügbar",
+      "earlyAccess": "Early Access",
+      "items": [
+        { "icon": "i-ph-chats-circle-bold", "title": "Diskussionen", "text": "Echtzeit-Kommentare mit verschachtelten Threads, Votes, {'@'}-Erwähnungen und Live-Präsenz – unter jedem Inhalt.", "status": "available" },
+        { "icon": "i-ph-shield-check-bold", "title": "Moderation", "text": "Melde-System, zweiphasiges Ausblenden, KI-Assistenz als Zweitmeinung – der Mensch entscheidet.", "status": "available" },
+        { "icon": "i-ph-note-bold", "title": "Seiten & Branding", "text": "Eigene Seiten, 26 Farbwelten, eigene Schriften – deine Community sieht aus wie du.", "status": "available" },
+        { "icon": "i-ph-broadcast-bold", "title": "Beiträge & Feed", "text": "Nutzer-Beiträge in Markdown, Umfragen und Fragen, chronologischer Activity-Feed.", "status": "earlyAccess" },
+        { "icon": "i-ph-graduation-cap-bold", "title": "Kurse", "text": "Lektionen mit Fortschritt, Zugang frei/für Mitglieder/Pro – Bezahl-Zugang über Stripe.", "status": "earlyAccess" },
+        { "icon": "i-ph-calendar-check-bold", "title": "Events", "text": "Online oder vor Ort, Einzeltermine oder Serien, mit Zusagen und Tickets – sogar einbettbar.", "status": "earlyAccess" }
+      ]
+    },
+    "modular": {
+      "kicker": "Modular statt Monolith",
+      "title": "Nimm nur, was du brauchst.",
+      "lead": "Nur Kurse verkaufen? Aktivier Kurse. Community drumherum? Schalt Feed und Diskussionen dazu. Events? Ein Klick. Bei Pukalani wächst die Plattform mit dir, statt dich mit Funktionen zu erschlagen, die du nie öffnest.",
+      "blocks": { "discussions": "Diskussionen", "moderation": "Moderation", "feed": "Feed", "courses": "Kurse", "events": "Events" },
+      "presets": { "only": "Nur Diskussionen", "community": "Community", "all": "Alles" }
+    },
+    "privacy": {
+      "kicker": "Datenschutz & Hosting",
+      "title": "DSGVO ist bei uns der Standard – nicht das Upgrade.",
+      "lead": "Deine Community-Daten liegen in Deutschland, nicht in einer fernen Cloud. Kein Werbe-Tracking, kein Weiterverkauf – datensparsam by Design.",
+      "points": [
+        { "icon": "i-ph-flag-bold", "text": "Server in Deutschland (Hetzner)" },
+        { "icon": "i-ph-eye-slash-bold", "text": "Kein Werbe-Tracking, keine Werbung, kein Datenverkauf" },
+        { "icon": "i-ph-cookie-bold", "text": "Datensparsame First-Party-Sessions" },
+        { "icon": "i-ph-export-bold", "text": "Export- und Löschprozesse" },
+        { "icon": "i-ph-lock-simple-bold", "text": "Transportverschlüsselung" }
+      ],
+      "note": "Was am Ende zählt, ist die konkrete Konfiguration deiner Site und deine Rechtstexte – pauschale Versprechen machen wir bewusst nicht."
+    },
+    "pricing": {
+      "kicker": "Preise",
+      "title": "Ein fairer Preis für deine ganze Community – nicht pro Baustein.",
+      "lead": "Aktuell im Early Access, mit Einladung. Kostenlos starten, jederzeit kündbar, Datenexport inklusive.",
+      "eaBadge": "Early Access – auf Einladung",
+      "plans": [
+        { "name": "Free", "desc": "Zum Starten – eine Community, faire Limits, die Kern-Bausteine.", "cta": "Kostenlos starten", "featured": false },
+        { "name": "Pro", "desc": "Für wachsende Communities – mehr Bausteine (Feed, Events), höhere Limits, kleines Team.", "cta": "Early Access anfragen", "featured": true },
+        { "name": "Business", "desc": "Für Profis – alle Bausteine inkl. Kurse, eigene Domain, Webhooks/API, unbegrenzte Sitze.", "cta": "Early Access anfragen", "featured": false }
+      ],
+      "silo": "Eigene Instanz + eigene Domain (community.deinefirma.de)? Sprich mit uns.",
+      "numbersNote": "Konkrete Zahlen folgen mit dem öffentlichen Start."
+    },
+    "faq": {
+      "kicker": "Häufige Fragen",
+      "title": "Noch Fragen? Hier die häufigsten.",
+      "items": [
+        { "q": "Wo liegen meine Daten?", "a": "In Deutschland, bei Hetzner. Kein Werbe-Tracking, kein Weiterverkauf. Export und Löschung sind jederzeit möglich." },
+        { "q": "Kann ich meine bestehende Seite behalten?", "a": "Ja. Deine Community läuft unter deinem Namen und Design; einzelne Bausteine wie Diskussionen lassen sich sogar in deine bestehende Website einbetten." },
+        { "q": "Was kostet es?", "a": "Der Einstieg ist kostenlos. Pro und Business kommen mit dem öffentlichen Start; aktuell läuft ein Early Access auf Einladung." },
+        { "q": "Kann ich jederzeit kündigen?", "a": "Ja. Keine Mindestlaufzeit, und du nimmst deine Daten per Export mit." },
+        { "q": "In welchen Sprachen gibt es die Plattform?", "a": "Start mit Deutsch und Englisch; weitere Sprachen folgen." },
+        { "q": "Muss ich alle Bausteine nutzen?", "a": "Nein – jeder Baustein ist an- und abschaltbar. Du startest schlank und ergänzt, was du brauchst." }
+      ]
+    },
+    "cta": {
+      "title": "Bereit für deine eigene Community?",
+      "lead": "Tritt durch das Tor – in 60 Sekunden steht deine Community. Kostenlos, ohne Risiko.",
+      "primary": "Kostenlos starten",
+      "secondary": "Live-Demo ansehen",
+      "refrain": "Wo die Sonne durchbricht."
+    },
     "footer": {
       "tagline": "Deine eigene Community-Plattform — schlank, DSGVO-nativ, in Deutschland gehostet.",
       "refrain": "Wo die Sonne durchbricht.",

@@ -45,6 +45,73 @@
         { "n": "3", "title": "Pick your blocks", "text": "Turn feed, courses, events and discussions on or off. Add your design. Done." }
       ]
     },
+    "blocks": {
+      "kicker": "The building blocks",
+      "title": "One platform, many blocks. You decide which.",
+      "lead": "Every block can be switched on or off. No ballast.",
+      "available": "Available",
+      "earlyAccess": "Early access",
+      "items": [
+        { "icon": "i-ph-chats-circle-bold", "title": "Discussions", "text": "Real-time comments with nested threads, votes, {'@'}-mentions and live presence – under any content.", "status": "available" },
+        { "icon": "i-ph-shield-check-bold", "title": "Moderation", "text": "Reporting, two-phase hiding, AI assistance as a second opinion – the human decides.", "status": "available" },
+        { "icon": "i-ph-note-bold", "title": "Pages & branding", "text": "Your own pages, 26 colour worlds, custom fonts – your community looks like you.", "status": "available" },
+        { "icon": "i-ph-broadcast-bold", "title": "Posts & feed", "text": "Member posts in Markdown, polls and questions, a chronological activity feed.", "status": "earlyAccess" },
+        { "icon": "i-ph-graduation-cap-bold", "title": "Courses", "text": "Lessons with progress, access free/members/pro – paid access via Stripe.", "status": "earlyAccess" },
+        { "icon": "i-ph-calendar-check-bold", "title": "Events", "text": "Online or in person, single or recurring, with RSVPs and tickets – even embeddable.", "status": "earlyAccess" }
+      ]
+    },
+    "modular": {
+      "kicker": "Modular, not monolith",
+      "title": "Take only what you need.",
+      "lead": "Just selling courses? Turn on courses. Community around it? Add feed and discussions. Events? One click. With Pukalani the platform grows with you, instead of burying you in features you never open.",
+      "blocks": { "discussions": "Discussions", "moderation": "Moderation", "feed": "Feed", "courses": "Courses", "events": "Events" },
+      "presets": { "only": "Discussions only", "community": "Community", "all": "Everything" }
+    },
+    "privacy": {
+      "kicker": "Privacy & hosting",
+      "title": "Privacy is the standard here – not the upgrade.",
+      "lead": "Your community data lives in Germany, not in some far-away cloud. No ad tracking, no reselling – data-minimal by design.",
+      "points": [
+        { "icon": "i-ph-flag-bold", "text": "Servers in Germany (Hetzner)" },
+        { "icon": "i-ph-eye-slash-bold", "text": "No ad tracking, no ads, no data selling" },
+        { "icon": "i-ph-cookie-bold", "text": "Data-minimal first-party sessions" },
+        { "icon": "i-ph-export-bold", "text": "Export and deletion flows" },
+        { "icon": "i-ph-lock-simple-bold", "text": "Transport encryption" }
+      ],
+      "note": "What matters in the end is your site's actual configuration and your legal texts – we deliberately avoid blanket promises."
+    },
+    "pricing": {
+      "kicker": "Pricing",
+      "title": "One fair price for your whole community – not per block.",
+      "lead": "Currently in early access, by invitation. Start free, cancel anytime, data export included.",
+      "eaBadge": "Early access – by invitation",
+      "plans": [
+        { "name": "Free", "desc": "To get started – one community, fair limits, the core blocks.", "cta": "Start free", "featured": false },
+        { "name": "Pro", "desc": "For growing communities – more blocks (feed, events), higher limits, a small team.", "cta": "Request early access", "featured": true },
+        { "name": "Business", "desc": "For pros – all blocks incl. courses, custom domain, webhooks/API, unlimited seats.", "cta": "Request early access", "featured": false }
+      ],
+      "silo": "Your own instance + your own domain (community.yourcompany.com)? Talk to us.",
+      "numbersNote": "Concrete numbers come with the public launch."
+    },
+    "faq": {
+      "kicker": "Common questions",
+      "title": "Questions? Here are the most common ones.",
+      "items": [
+        { "q": "Where is my data stored?", "a": "In Germany, at Hetzner. No ad tracking, no reselling. Export and deletion are available anytime." },
+        { "q": "Can I keep my existing site?", "a": "Yes. Your community runs under your name and design; individual blocks like discussions can even be embedded into your existing website." },
+        { "q": "What does it cost?", "a": "Getting started is free. Pro and Business arrive with the public launch; right now there's an early access by invitation." },
+        { "q": "Can I cancel anytime?", "a": "Yes. No minimum term, and you take your data with you via export." },
+        { "q": "Which languages are supported?", "a": "Starting with German and English; more languages will follow." },
+        { "q": "Do I have to use all blocks?", "a": "No – every block can be switched on or off. Start lean and add what you need." }
+      ]
+    },
+    "cta": {
+      "title": "Ready for your own community?",
+      "lead": "Step through the door – your community stands in 60 seconds. Free, no risk.",
+      "primary": "Start free",
+      "secondary": "See the live demo",
+      "refrain": "Where the sun breaks through."
+    },
     "footer": {
       "tagline": "Your own community platform — lean, privacy-first, hosted in Germany.",
       "refrain": "Where the sun breaks through.",

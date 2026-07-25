@@ -10,6 +10,11 @@ useReveal()
     <HeroSection />
     <ProblemSection />
     <StepsSection />
-    <!-- L4+: Bausteine · Modular · Datenschutz · Preise · FAQ · CTA -->
+    <BlocksSection />
+    <ModularSection />
+    <PrivacySection />
+    <PricingSection />
+    <FaqSection />
+    <CtaSection />
   </div>
 </template>
