@@ -389,8 +389,8 @@ gezeigt, wenn Messfenster und Berechnung transparent sind.
 
 | Gate | Inhalt | Exit-Kriterium |
 |---|---|---|
-| **G0 Produktvertrag** | §A Oberflächen/IA · §B Angebots-Slice · ADR für Identitäten/Rollen | Nav, Rollenmatrix, kanonische `siteId`-Verknüpfung und Early-Access-Scope entschieden |
-| **G1 Sicherheit** | H3-Naht 4 vollständig · #2 Tenant-Autorisierung | automatisierte Pool/Silo-Isolation, Rollenwechsel und Invite-Replay grün |
+| **G0 Produktvertrag** ✅ | §A Oberflächen/IA · §B Angebots-Slice · ADR für Identitäten/Rollen | ✅ Nav, Rollenmatrix, kanonische `siteId` (= `tenants.$id`) und Early-Access-Scope entschieden ([G0](G0-PRODUKTVERTRAG.md)) |
+| **G1 Sicherheit** ✅ | H3-Naht 4 (Mechanismus) · #2 Tenant-Autorisierung | ✅ automatisierte Pool/Silo-Isolation, Rollenwechsel, Invite-Replay grün (162 core + 58 studio, lokal+prod). Rest: Naht-4-Live-Wiring hängt an Audience-Entscheidung (privat/öffentlich) |
 | **G2 Betriebsreife** | Rechtsfreigabe · Restore-Test/RPO/RTO · Site-Export/Löschung · Abuse/Suspend · Stripe-Live-Runbook | erster fremder zahlender Kunde kann sicher aufgenommen und wieder sauber offboarded werden |
 | **G3 Kaufpfad** | #4 Preis/Upgrade · #1 zunächst invite-only · Landingpage mit Early-Access-Claims | Signup→Site→Checkout/Portal→Kündigung als E2E grün |
 | **G4 Offener Launch** | #3 Usage/Warnungen · öffentlicher Abuse-Schutz · 60-Sekunden-Messung | zehn unbeaufsichtigte Onboardings, Alerts/Recovery und Claim-Gates grün |
