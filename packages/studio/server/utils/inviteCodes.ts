@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto'
+import { createHash, randomInt } from 'node:crypto'
 import { Query } from 'node-appwrite'
 import type { H3Event } from 'h3'
 import { INVITE_CODES_TABLE, evaluateInviteCode, type InviteCodeRow, type InviteCodeVerdict } from '../../shared/types/inviteCode'
@@ -16,6 +16,21 @@ export function hashInviteCode(code: string): string {
   return createHash('sha256').update(code.trim().toUpperCase(), 'utf8').digest('hex')
 }
 
+/**
+ * Einen neuen Code-Klartext erzeugen. Verwechslungsfreies Alphabet (kein 0/O,
+ * kein 1/I/L) — Codes werden abgetippt und am Telefon vorgelesen; randomInt
+ * (CSPRNG), weil der Code das Zugangsgeheimnis IST.
+ *
+ * Hier und nicht in der Route, weil zwei Wege ihn brauchen: der Betreiber, der
+ * einen Code ausstellt, und die Zuweisung aus der Warteschlange.
+ */
+const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+
+export function issueCodeValue(): string {
+  const block = (length: number) => Array.from({ length }, () => ALPHABET[randomInt(ALPHABET.length)]).join('')
+  return `MAUI-${block(4)}-${block(4)}`
+}
+
 export async function findInviteCode(event: H3Event, code: string): Promise<InviteCodeRow | null> {
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
@@ -31,10 +46,17 @@ export interface InviteCheck extends InviteCodeVerdict {
   row: InviteCodeRow | null
 }
 
-/** Nicht-verbrauchende Prüfung (Wizard-Eintritt). */
-export async function checkInviteCode(event: H3Event, code: string, now: number = Date.now()): Promise<InviteCheck> {
+/** Nicht-verbrauchende Prüfung (Wizard-Eintritt). `email` entscheidet über
+ *  gebundene Codes (studio-017) — ohne sie gilt ein gebundener Code als
+ *  ungültig, nie als frei. */
+export async function checkInviteCode(
+  event: H3Event,
+  code: string,
+  now: number = Date.now(),
+  email?: string,
+): Promise<InviteCheck> {
   const row = await findInviteCode(event, code)
-  return { ...evaluateInviteCode(row, now), row }
+  return { ...evaluateInviteCode(row, now, email), row }
 }
 
 /**

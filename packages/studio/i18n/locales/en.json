@@ -4,10 +4,52 @@
       "sites": "Sites",
       "workspaces": "Workspaces",
       "tenants": "Tenants",
+      "inviteRequests": "Requests",
       "invites": "Invites"
     }
   },
   "studio": {
+    "requests": {
+      "title": "Early access requests",
+      "subtitle": "Who wants to start a community? Assigning sends an email with code and direct link right away — you never see the code, it only exists between generation and sending.",
+      "refresh": "Reload",
+      "empty": "No requests yet.",
+      "stats": {
+        "new": "new",
+        "waiting": "waiting to redeem",
+        "redeemed": "redeemed",
+        "total": "total"
+      },
+      "status": {
+        "new": "new",
+        "assigned": "code sent",
+        "redeemed": "redeemed",
+        "declined": "declined",
+        "deferred": "deferred"
+      },
+      "askedOn": "asked on {date}",
+      "assignedOn": "code sent on {date}",
+      "redeemedOn": "redeemed on {date}",
+      "codeExpiresIn": "expires in {days} days",
+      "codeExpired": "code expired",
+      "reminderCount": "reminder {count}",
+      "assign": "Assign code",
+      "assigned": "Code sent to {email}",
+      "assignFailed": "Assignment failed",
+      "mailFailed": "The code was issued, but the email did not go out — check SMTP and send a reminder.",
+      "remind": "Remind",
+      "reminded": "New code sent to {email}",
+      "remindBlocked": {
+        "cooldown": "Reminded less than 24 hours ago.",
+        "limit": "Three reminders is the limit — reach out personally.",
+        "not-assigned": "Assign first.",
+        "already-redeemed": "Already redeemed."
+      },
+      "defer": "Defer",
+      "decline": "Decline",
+      "openSite": "Open community",
+      "updateFailed": "Update failed"
+    },
     "invites": {
       "title": "Invite codes",
       "subtitle": "During early access, creating a community requires a code. The plaintext appears exactly ONCE — when you issue it.",

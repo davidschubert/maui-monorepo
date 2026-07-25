@@ -53,6 +53,19 @@ export default defineAppConfig({
           order: 3,
         },
         {
+          // Die Warteschlange: wer hat Early Access angefragt, wem wurde ein
+          // Code geschickt, wer hat ihn eingelöst. Steht VOR den Codes, weil
+          // hier die tägliche Arbeit passiert.
+          id: 'invite-requests',
+          featureKey: 'studio',
+          labelKey: 'admin.nav.inviteRequests',
+          icon: 'i-ph-envelope-simple',
+          to: '/dashboard/requests',
+          requiredCapability: 'sites.manage',
+          group: 'management',
+          order: 4,
+        },
+        {
           // Early-Access-Tor des Self-Service-Onboardings: hier stellt der
           // Betreiber die Codes aus, mit denen Fremde eine Community anlegen
           // dürfen. Ohne gültigen Code kommt niemand in den Wizard.
@@ -63,7 +76,7 @@ export default defineAppConfig({
           to: '/dashboard/invites',
           requiredCapability: 'sites.manage',
           group: 'management',
-          order: 4,
+          order: 5,
         },
       ],
     },

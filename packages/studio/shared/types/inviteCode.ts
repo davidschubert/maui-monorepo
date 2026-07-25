@@ -32,15 +32,31 @@ export interface InviteCodeRow extends Models.Row {
   /** Ablauf (ISO); '' = ohne Ablauf. */
   expiresAt: string
   status: InviteCodeStatus | ''
+  /** studio-017: nur DIESE Adresse darf einlösen; '' = Inhaberpapier
+   *  (Betreiber-Weg, wie bisher). Macht einen weitergeleiteten Code wertlos. */
+  boundEmail?: string
+  /** Die Anfrage, aus der die Zuweisung entstand; '' = ohne Anfrage. */
+  requestId?: string
+  assignedAt?: string | null
+  /** TATSACHE der Einlösung (nicht Vermutung) + was daraus wurde. */
+  redeemedAt?: string | null
+  redeemedSiteId?: string
 }
 
 export const INVITE_CODES_TABLE = 'invite_codes'
 
-export type InviteCodeRejection = 'unknown' | 'revoked' | 'expired' | 'exhausted'
+export type InviteCodeRejection = 'unknown' | 'revoked' | 'expired' | 'exhausted' | 'wrong_email'
 
 export interface InviteCodeVerdict {
   valid: boolean
   reason?: InviteCodeRejection
+}
+
+/** E-Mail-Vergleich für die Bindung: Groß-/Kleinschreibung ist bei Adressen
+ *  keine Unterscheidung, die ein Mensch trifft — und ein Tippfehler in der
+ *  Schreibweise dürfte niemanden aus seiner eigenen Einladung aussperren. */
+function sameEmail(a: string, b: string): boolean {
+  return a.trim().toLowerCase() === b.trim().toLowerCase()
 }
 
 /**
@@ -52,9 +68,18 @@ export interface InviteCodeVerdict {
  * Ein leerer/kaputter Status gilt als 'active' (Bestandsdaten), ein
  * unlesbares Ablaufdatum dagegen als ABGELAUFEN: im Zweifel zu.
  */
-export function evaluateInviteCode(row: Pick<InviteCodeRow, 'status' | 'expiresAt' | 'maxUses' | 'uses'> | null, now: number): InviteCodeVerdict {
+export function evaluateInviteCode(
+  row: Pick<InviteCodeRow, 'status' | 'expiresAt' | 'maxUses' | 'uses'> & { boundEmail?: string } | null,
+  now: number,
+  /** Adresse des Einlösenden. Fehlt sie, gilt ein GEBUNDENER Code als
+   *  ungültig — ein an jemanden vergebener Code darf nie anonym greifen. */
+  email?: string,
+): InviteCodeVerdict {
   if (!row) return { valid: false, reason: 'unknown' }
   if ((row.status || 'active') !== 'active') return { valid: false, reason: 'revoked' }
+  if (row.boundEmail) {
+    if (!email || !sameEmail(row.boundEmail, email)) return { valid: false, reason: 'wrong_email' }
+  }
   if (row.expiresAt) {
     const expires = Date.parse(row.expiresAt)
     if (!Number.isFinite(expires) || expires <= now) return { valid: false, reason: 'expired' }

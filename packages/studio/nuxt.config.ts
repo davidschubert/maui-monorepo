@@ -20,6 +20,9 @@ export default defineNuxtConfig({
     // LEER = die Onboarding-Routen existieren nicht (404) — Default-aus, damit
     // ein vergessenes Secret nicht in einen offenen Trichter mündet.
     studioOnboardingSecret: '',
+    // Wohin die Einladungs-Mail verlinkt (Kundenbereich, nicht das Studio).
+    // Env: NUXT_ONBOARDING_START_URL — Default zeigt auf die Prod-Adresse.
+    onboardingStartUrl: 'https://app.pukalani.app/start',
     public: {
       // Laufzeit-Override des Pool-Projekts (Muster wie getEffectiveAiConfig:
       // app.config = Build-Default, Env = Umgebung). NÖTIG, weil das Pool-

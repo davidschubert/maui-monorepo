@@ -25,7 +25,10 @@ export default defineEventHandler(async (event) => {
   const result = await callControlPlane<{ codeValid?: boolean, slugAvailable?: boolean }>(
     event,
     '/api/studio/onboarding/precheck',
-    body,
+    // Die Adresse kommt aus der SESSION, nicht aus dem Body — sonst könnte
+    // jemand die Bindung eines fremden Codes umgehen, indem er die Adresse
+    // des Eingeladenen mitschickt.
+    { ...body, email: event.context.user.email },
   )
   // Wird hier mitgeliefert, damit das UI den KI-Knopf (Schritt 4) nur zeigt,
   // wenn er auch funktioniert — der Wizard fragt diese Route ohnehin.

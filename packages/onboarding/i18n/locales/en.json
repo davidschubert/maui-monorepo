@@ -15,6 +15,23 @@
       "rejected": "That code isn't valid (any more). Check the spelling — or ask us for a new one.",
       "noCode": "No code? Tell us what you want to use Pukalani for — we invite new communities continuously."
     },
+    "request": {
+      "title": "Request early access",
+      "intro": "Pukalani is still in early access. Leave your address — we'll get back to you with an invite code as soon as a spot opens up.",
+      "emailLabel": "Email address",
+      "emailHint": "The code goes to this address and is only valid for it.",
+      "noteLabel": "What do you want to use Pukalani for?",
+      "noteHint": "Two sentences are enough. Helps us judge whether it's a fit right now.",
+      "notePlaceholder": "We're a club with …",
+      "submit": "Send request",
+      "failed": "That didn't work just now. Try again in a minute.",
+      "privacy": "We store your address only to send you access — and delete it if nothing comes of it.",
+      "hasCode": "Already have a code?",
+      "hasCodeLink": "Redeem it here",
+      "doneTitle": "Received.",
+      "doneBody": "We have your request. As soon as a spot opens up, you'll get an invite code by email.",
+      "doneHint": "Check your spam folder too — and if the email doesn't arrive, just write to us again."
+    },
     "progress": "Step {step} of {total}",
     "back": "Back",
     "next": "Continue",

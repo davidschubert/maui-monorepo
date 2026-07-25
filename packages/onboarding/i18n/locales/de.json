@@ -15,6 +15,23 @@
       "rejected": "Dieser Code gilt nicht (mehr). Prüfe die Schreibweise — oder frag uns nach einem neuen.",
       "noCode": "Keinen Code? Schreib uns, wofür du Pukalani nutzen willst — wir laden laufend neue Communities ein."
     },
+    "request": {
+      "title": "Early Access anfragen",
+      "intro": "Pukalani ist noch im Early Access. Hinterlass deine Adresse — wir melden uns mit einem Einladungs-Code, sobald ein Platz frei ist.",
+      "emailLabel": "E-Mail-Adresse",
+      "emailHint": "An diese Adresse geht der Code. Er gilt nur für sie.",
+      "noteLabel": "Wofür willst du Pukalani nutzen?",
+      "noteHint": "Zwei Sätze reichen. Hilft uns einzuschätzen, ob es gerade passt.",
+      "notePlaceholder": "Wir sind ein Verein mit …",
+      "submit": "Anfrage senden",
+      "failed": "Das hat gerade nicht geklappt. Versuch es in einer Minute noch einmal.",
+      "privacy": "Wir speichern deine Adresse nur, um dir den Zugang zu schicken — und löschen sie, wenn nichts daraus wird.",
+      "hasCode": "Du hast schon einen Code?",
+      "hasCodeLink": "Hier einlösen",
+      "doneTitle": "Angekommen.",
+      "doneBody": "Wir haben deine Anfrage. Sobald ein Platz frei ist, bekommst du einen Einladungs-Code per E-Mail.",
+      "doneHint": "Schau auch im Spam-Ordner nach — und wenn die Mail nicht ankommt, schreib uns einfach noch einmal."
+    },
     "progress": "Schritt {step} von {total}",
     "back": "Zurück",
     "next": "Weiter",

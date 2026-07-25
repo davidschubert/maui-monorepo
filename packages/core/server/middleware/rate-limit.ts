@@ -89,6 +89,9 @@ const WRITE_LIMITED: { re: RegExp, bucket: string, max?: number }[] = [
   { re: /^POST \/api\/onboarding\/precheck$/, bucket: 'onboarding:precheck', max: 30 },
   // KI-Vorschlag: jeder Klick kostet echtes Geld beim Anbieter.
   { re: /^POST \/api\/onboarding\/suggest$/, bucket: 'onboarding:suggest', max: 10 },
+  // Early-Access-Anfrage: die EINZIGE session-lose Schreibroute des Trichters,
+  // und sie verschickt Mail an den Betreiber → engstes Budget.
+  { re: /^POST \/api\/onboarding\/request$/, bucket: 'onboarding:request', max: 3 },
   // BEWUSST NICHT gelistet: POST /api/stripe/webhook — Stripe-Retries dürfen
   // nie in den 429-Bucket laufen; ungelistete Routen sind hier ohnehin frei,
   // der Schutz des Webhooks ist die Signatur-Verifikation (billing B4).

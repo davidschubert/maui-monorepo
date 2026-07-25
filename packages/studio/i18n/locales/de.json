@@ -4,10 +4,52 @@
       "sites": "Sites",
       "workspaces": "Workspaces",
       "tenants": "Tenants",
+      "inviteRequests": "Anfragen",
       "invites": "Einladungen"
     }
   },
   "studio": {
+    "requests": {
+      "title": "Early-Access-Anfragen",
+      "subtitle": "Wer möchte eine Community starten? Zuweisen schickt sofort eine Mail mit Code und Direktlink — den Code siehst du nie, er existiert nur zwischen Erzeugung und Versand.",
+      "refresh": "Neu laden",
+      "empty": "Noch keine Anfragen.",
+      "stats": {
+        "new": "neu",
+        "waiting": "wartet auf Einlösung",
+        "redeemed": "eingelöst",
+        "total": "gesamt"
+      },
+      "status": {
+        "new": "neu",
+        "assigned": "Code verschickt",
+        "redeemed": "eingelöst",
+        "declined": "abgelehnt",
+        "deferred": "zurückgestellt"
+      },
+      "askedOn": "angefragt am {date}",
+      "assignedOn": "Code verschickt am {date}",
+      "redeemedOn": "eingelöst am {date}",
+      "codeExpiresIn": "läuft in {days} Tagen ab",
+      "codeExpired": "Code abgelaufen",
+      "reminderCount": "{count}. Erinnerung",
+      "assign": "Code zuweisen",
+      "assigned": "Code an {email} verschickt",
+      "assignFailed": "Zuweisung fehlgeschlagen",
+      "mailFailed": "Code wurde vergeben, aber die Mail ging nicht raus — bitte SMTP prüfen und erneut erinnern.",
+      "remind": "Erinnern",
+      "reminded": "Neuer Code an {email} verschickt",
+      "remindBlocked": {
+        "cooldown": "Zuletzt vor weniger als 24 Stunden erinnert.",
+        "limit": "Nach drei Erinnerungen ist Schluss — melde dich persönlich.",
+        "not-assigned": "Erst zuweisen.",
+        "already-redeemed": "Bereits eingelöst."
+      },
+      "defer": "Zurückstellen",
+      "decline": "Ablehnen",
+      "openSite": "Community öffnen",
+      "updateFailed": "Änderung fehlgeschlagen"
+    },
     "invites": {
       "title": "Einladungs-Codes",
       "subtitle": "Wer eine Community anlegen will, braucht im Early Access einen Code. Der Klartext erscheint genau EINMAL — beim Ausstellen.",

@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { onboardingSiteSchema } from '../../../../schemas/onboarding'
 import { checkInviteCode, consumeInviteCode } from '../../../utils/inviteCodes'
+import { markCodeRedeemed } from '../../../utils/inviteRequests'
 import { provisionCommunity } from '../../../utils/onboardingProvision'
 import { requireOnboardingCaller, verifyRuntimeIdentity } from '../../../utils/onboardingService'
 
@@ -26,8 +27,10 @@ export default defineEventHandler(async (event) => {
   const identity = await verifyRuntimeIdentity(event, body.jwt)
 
   // Early-Access-Tor. Nach außen bleibt jede Ablehnung dieselbe Antwort
-  // (kein Code-Ratespiel), der Grund steht nur im Log.
-  const invite = await checkInviteCode(event, body.site.inviteCode)
+  // (kein Code-Ratespiel), der Grund steht nur im Log. Die Adresse geht mit:
+  // ein an jemanden vergebener Code (studio-017) gilt NUR für dessen Konto —
+  // weiterleiten bringt nichts.
+  const invite = await checkInviteCode(event, body.site.inviteCode, Date.now(), identity.email)
   if (!invite.valid) {
     logEvent('warn', 'onboarding.invite_rejected', {
       reason: invite.reason,
@@ -52,7 +55,13 @@ export default defineEventHandler(async (event) => {
 
   // Erst nach erfolgreicher Anlage — und nur, wenn wirklich etwas Neues
   // entstanden ist: ein Retry (reused) darf den Code nicht zweimal kosten.
-  if (!result.reused && invite.row) await consumeInviteCode(event, invite.row)
+  if (!result.reused && invite.row) {
+    await consumeInviteCode(event, invite.row)
+    // Rückschreibung: aus „zugewiesen" wird die TATSACHE „eingelöst am … →
+    // diese Community". Ohne sie wüsste der Betreiber nie, ob seine Einladung
+    // angekommen ist — und genau das ist die Frage, die er stellt.
+    await markCodeRedeemed(event, invite.row, result.siteId)
+  }
 
   return result
 })

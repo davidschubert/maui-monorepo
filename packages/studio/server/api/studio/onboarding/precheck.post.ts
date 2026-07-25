@@ -22,6 +22,10 @@ import { requireOnboardingCaller } from '../../../utils/onboardingService'
 const bodySchema = z.object({
   code: inviteCodeSchema.optional(),
   slug: createSlugSchema().optional(),
+  /** Adresse des eingeloggten Nutzers — nötig, seit Codes an eine Adresse
+   *  gebunden sein können (studio-017). Ohne sie gilt ein gebundener Code als
+   *  ungültig, und der eingeladene Kunde käme nicht durch sein eigenes Tor. */
+  email: z.string().trim().toLowerCase().email().max(254).optional(),
 }).strict().refine(body => body.code !== undefined || body.slug !== undefined, 'empty precheck')
 
 export default defineEventHandler(async (event) => {
@@ -31,7 +35,7 @@ export default defineEventHandler(async (event) => {
   const result: { codeValid?: boolean, slugAvailable?: boolean } = {}
 
   if (body.code !== undefined) {
-    const invite = await checkInviteCode(event, body.code)
+    const invite = await checkInviteCode(event, body.code, Date.now(), body.email)
     if (!invite.valid) {
       logEvent('info', 'onboarding.precheck_invite_rejected', { reason: invite.reason })
     }
