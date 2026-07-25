@@ -27,6 +27,13 @@ export const ALL_CAPABILITIES: readonly Capability[] = [
   'courses.manage',
   'tickets.manage',
   'pages.manage',
+  // G1 — Kunden-Site-Caps (tenantAuthz.ts). Im Wildcard, damit der Operator-
+  // Admin sie ebenfalls hält; die Site-Rollen-Verteilung lebt in tenantAuthz.ts.
+  'posts.write',
+  'branding.manage',
+  'team.manage',
+  'site.transfer',
+  'site.delete',
 ]
 
 /** Alle zuweisbaren Rollen. */

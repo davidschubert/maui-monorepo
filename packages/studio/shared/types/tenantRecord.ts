@@ -41,6 +41,10 @@ export interface TenantRow extends Models.Row {
   wave: TenantWave | ''
   /** Quota-Plan (studio-013); '' = Bestand → free. */
   plan: TenantPlan | ''
+  /** G1 (studio-015): Billing-/Owner-Anker. Der Tenant IST die kanonische
+   *  Kunden-Site → `$id` = siteId; hier hängt das abrechnende Workspace.
+   *  '' = noch keinem Workspace zugeordnet (Billing-Verdrahtung folgt G2/G3). */
+  workspaceId: string
 }
 
 export const TENANTS_TABLE = 'tenants'
