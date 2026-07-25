@@ -23,6 +23,28 @@
       },
       "refrain": "Your place, where the sun breaks through."
     },
+    "problem": {
+      "kicker": "The clouded web",
+      "title": "A real community should belong to you – not to someone else's network.",
+      "lead": "Circle, Skool and Mighty Networks are powerful – but for small communities often expensive and heavier than you need. Self-hosted forums like Discourse save money but cost you server ops and headaches. Pukalani is the lean middle path: a complete community platform you start without hassle, fully under your brand – with a transparent, predictable price.",
+      "painLabel": "The pain",
+      "gainLabel": "How we do it",
+      "rows": [
+        { "pain": "High base prices + transaction fees", "gain": "Fair, predictable price. Free to start." },
+        { "pain": "Unclear data flows & ad tracking", "gain": "Hosted in Germany, no ad tracking." },
+        { "pain": "All-or-nothing monolith", "gain": "Modular: switch on only what you need." }
+      ]
+    },
+    "steps": {
+      "kicker": "The way through",
+      "title": "Your own community in 60 seconds.",
+      "badge": "under 60 seconds",
+      "items": [
+        { "n": "1", "title": "Sign up", "text": "Email is enough, log in with a code – no password required." },
+        { "n": "2", "title": "Name your site", "text": "yourname.pukalani.app is live instantly." },
+        { "n": "3", "title": "Pick your blocks", "text": "Turn feed, courses, events and discussions on or off. Add your design. Done." }
+      ]
+    },
     "footer": {
       "tagline": "Your own community platform — lean, privacy-first, hosted in Germany.",
       "refrain": "Where the sun breaks through.",

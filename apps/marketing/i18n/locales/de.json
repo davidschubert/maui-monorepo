@@ -23,6 +23,28 @@
       },
       "refrain": "Dein Ort, wo die Sonne durchbricht."
     },
+    "problem": {
+      "kicker": "Das bewölkte Netz",
+      "title": "Eine echte Community sollte dir gehören – nicht einem fremden Netzwerk.",
+      "lead": "Circle, Skool und Mighty Networks sind mächtig – aber für kleine Communities oft teuer und umfangreicher als nötig. Self-hosted Foren wie Discourse sparen Geld, kosten dich aber Server-Betrieb und Nerven. Pukalani ist der schlanke Mittelweg: eine vollständige Community-Plattform, die du unkompliziert startest, komplett unter deiner Marke – mit transparentem, planbarem Preis.",
+      "painLabel": "Das nervt",
+      "gainLabel": "So machen wir es",
+      "rows": [
+        { "pain": "Hohe Grundpreise + Transaktionsgebühren", "gain": "Fairer, planbarer Preis. Kostenloser Einstieg." },
+        { "pain": "Unklare Datenwege & Werbe-Tracking", "gain": "In Deutschland gehostet, kein Werbe-Tracking." },
+        { "pain": "Alles-oder-nichts-Monolith", "gain": "Modular: aktivier nur, was du brauchst." }
+      ]
+    },
+    "steps": {
+      "kicker": "Der Weg hindurch",
+      "title": "In 60 Sekunden deine eigene Community.",
+      "badge": "unter 60 Sekunden",
+      "items": [
+        { "n": "1", "title": "Registrieren", "text": "E-Mail genügt, Login per Code – kein Passwort-Zwang." },
+        { "n": "2", "title": "Deine Site benennen", "text": "deinname.pukalani.app ist sofort live." },
+        { "n": "3", "title": "Bausteine wählen", "text": "Feed, Kurse, Events, Diskussionen an- oder ausschalten. Dein Design dazu. Fertig." }
+      ]
+    },
     "footer": {
       "tagline": "Deine eigene Community-Plattform — schlank, DSGVO-nativ, in Deutschland gehostet.",
       "refrain": "Wo die Sonne durchbricht.",

@@ -8,6 +8,8 @@ useReveal()
 <template>
   <div class="mkt-page">
     <HeroSection />
-    <!-- L3+: Problem/Lösung · So funktioniert's · Bausteine · … -->
+    <ProblemSection />
+    <StepsSection />
+    <!-- L4+: Bausteine · Modular · Datenschutz · Preise · FAQ · CTA -->
   </div>
 </template>
