@@ -7,8 +7,20 @@
 > §2.4 (Claim-Gates), [HORIZONT-3-POOL-SILO-BLUEPRINT.md](HORIZONT-3-POOL-SILO-BLUEPRINT.md).
 >
 > Dieses Dokument liefert die vier G0-Artefakte als **Vorschlag mit Empfehlung**.
-> Jede offene Entscheidung ist am Ende (§5) gesammelt. Nichts hier ist final,
-> bevor David abnickt.
+> Jede offene Entscheidung ist am Ende (§5) gesammelt.
+>
+> **✅ Check-in-Entscheidungen (David, 2026-07-24):**
+> 1. **Kundenbereich-Host:** eigener Host **`app.pukalani.app`** (Marketing =
+>    `pukalani.app`, Produkt = `app.*`, Operator = `studio.*`).
+> 2. **`site_members`:** im **Control Plane**, Cross-Projekt-Read gecacht,
+>    **Revoke wirkt ≤ 60 s**.
+> 3. **Rollen:** **FÜNF** Site-Rollen — Owner, Admin, Moderator, **Editor**,
+>    **Viewer** (Abstufung s. §2.4).
+> 4. **Early-Access-Scope:** **belegter Scope** (Diskussionen, Moderation,
+>    Seiten, Themes, Embed), invite-only; Feed/Kurse/Events erst mit grünem
+>    Baustein-Gate.
+> 5. **Offen (kein Blocker für G1):** Tarif-Zuordnung §3.3 (Baustein×Plan) +
+>    kanonische `siteId`-Referenz — s. §5.
 
 ---
 
@@ -18,9 +30,9 @@ Verbindliche Trennung nach Zielgruppe + Vertrauensgrenze (Roadmap §A). Drei
 Oberflächen, nie vermischt:
 
 ### 1.1 Kundenbereich / Control Center
-*Zielgruppe:* Owner + Kunden-Admins. *Wo:* heute `/workspace` (Studio-App);
-Zielhost in §5 zu entscheiden. *Zweck:* das Geschäftliche — Sites, Abrechnung,
-Team, Nutzung.
+*Zielgruppe:* Owner + Kunden-Admins. *Wo:* **`app.pukalani.app`** (✅ entschieden;
+Migration von heute `/workspace` in der Studio-App als G-Schritt). *Zweck:* das
+Geschäftliche — Sites, Abrechnung, Team, Nutzung.
 
 ```
 Kundenbereich (Control Center)
@@ -154,21 +166,39 @@ keine Daten-Isolation und umgekehrt.
   dem read-only-Key). Gecacht ~30–60 s, keyed auf `{siteId, runtimeUserId}`.
   Revoke wirkt binnen Cache-TTL (in §5 zu bestätigen).
 
-### 2.4 Site-Rollen → Capabilities (Vorschlag)
+### 2.4 Site-Rollen → Capabilities (✅ 5 Rollen, David 2026-07-24)
 
-Wiederverwendung des bestehenden `Capability`-Vokabulars, aber als **eigener**
-Tenant-Map (getrennt von der Operator-`ROLE_CAPABILITIES`):
+`TENANT_ROLES = ['owner','admin','moderator','editor','viewer']` — eigener
+Tenant-Map (getrennt von der Operator-`ROLE_CAPABILITIES`), wiederverwendet aber
+das bestehende `Capability`-Vokabular. **Monoton gestuft** (jede Rolle ⊇ der
+schwächeren, außer wo bewusst getrennt):
 
-| Site-Rolle | Bedeutung (Ein-Satz) | Capabilities (Vorschlag) |
+| Site-Rolle | Bedeutung (Ein-Satz, fürs Tooltip) | Capabilities |
 |---|---|---|
-| **owner** | „darf alles auf der Site, inkl. Team" | alle Site-Caps + Team-Verwaltung; **Abrechnung NICHT hier** (Workspace-Ebene) |
-| **admin** | „verwaltet Site, Inhalte, Design, Team; keine Abrechnung" | `dashboard.access`, `comments.moderate`, `reports.moderate`, `posts.moderate`, `pages.manage`, `media.manage`, `events.manage`, `courses.manage`, `activity.manage` + Team |
-| **moderator** | „bearbeitet Meldungen, blendet Kommentare aus" | `dashboard.access`, `comments.moderate`, `reports.moderate`, `posts.moderate` |
+| **owner** | „darf alles auf der Site, inkl. Team & Übergabe" | wie admin **+** Owner-Transfer, Site löschen |
+| **admin** | „verwaltet Site, Inhalte, Design & Team; keine Abrechnung" | `dashboard.access`, `pages.manage`, `media.manage`, `events.manage`, `courses.manage`, `activity.manage`, `comments.moderate`, `reports.moderate`, `posts.moderate` **+ Team** (Mitglieder einladen/blockieren, Rollen bis `admin` vergeben), **+ Branding/Themes** |
+| **moderator** | „bearbeitet Meldungen & blendet Kommentare/Beiträge aus" | `dashboard.access`, `comments.moderate`, `reports.moderate`, `posts.moderate` |
+| **editor** | „schreibt & pflegt Seiten und Beiträge; keine Moderation, kein Design" | `dashboard.access`, `pages.manage`, `posts.write`\*, `events.manage`\*, `media.manage` — **kein** `*.moderate`, **kein** Branding, **kein** Team |
+| **viewer** | „sieht Inhalte und darf kommentieren" | `dashboard.access` (nur lesend) + normales Kommentieren als eingeloggtes Mitglied — **keine** Verwaltungs-Caps |
 
+\* **Neue Capabilities nötig:** das heutige `authz.ts` kennt nur `*.manage`/
+`*.moderate`. Für „Editor darf schreiben, aber nicht moderieren/veröffentlichen-
+freigeben" braucht es feinere Caps, z. B. `posts.write`, `events.write` (oder
+ein `content.author`-Bündel). **Ableitung in G1** — im ADR bewusst als Erweiterung
+des Capability-Sets markiert, damit die Rolle nicht heimlich zu viel darf.
+
+**Grenzen & Regeln:**
 - **Abrechnung** (`billing.manage`) bleibt an der **Workspace-Owner-Rolle**
-  (`workspace_members`), NICHT an Site-Rollen — Geld ist Workspace-Sache.
-- **Owner-Transfer** ist ein eigener, sicherheitskritischer Flow (nicht einfach
-  ein Rollen-Dropdown).
+  (`workspace_members`), NIE an Site-Rollen — Geld ist Workspace-Sache.
+- **Rollen-Vergabe-Schranke:** ein Admin darf **nicht** Owner-Rechte vergeben
+  und niemanden über die eigene Stufe heben (keine Rechte-Eskalation).
+- **Owner** = genau einer je Site; **Owner-Transfer** ist ein eigener,
+  sicherheitskritischer Flow (nicht nur ein Dropdown; Bestätigung + Audit).
+- **Viewer** ist die Standard-Rolle für „eingeladenes Mitglied ohne
+  Verwaltungsrechte" — sie ersetzt kein Gast-Lesen (das bleibt öffentlich),
+  sondern ist der niedrigste **verwaltete** Mitglieds-Rang.
+- Alle fünf Rollen sind im G1-Isolationsbeweis abzudecken (jede Rolle sieht/darf
+  genau ihr Set — und nichts von fremden Tenants).
 
 ### 2.5 Invite-Flow (Runtime-Identität explizit binden)
 
@@ -247,34 +277,47 @@ klar markierte Roadmap-Sektion, nie als Tarifbestandteil getarnt.
 
 ---
 
-## 5. Offene Entscheidungen für den Check-in
+## 5. Entscheidungen — Stand
 
-Diese Punkte braucht G0 von David — danach ist G0 abgeschlossen und G1 startet:
+**✅ Entschieden (David, 2026-07-24):**
+1. **Kundenbereich-Host:** eigener Host **`app.pukalani.app`** (Marketing
+   `pukalani.app` · Produkt `app.*` · Operator `studio.*`).
+2. **`site_members`:** **Control Plane**, Cross-Projekt-Read gecacht, **Revoke
+   ≤ 60 s** (Cache-TTL 30–60 s, keyed `{siteId, runtimeUserId}`).
+3. **Rollen:** **FÜNF** — Owner / Admin / Moderator / Editor / Viewer (§2.4).
+   *Konsequenz:* Capability-Set wird um Autoren-Caps (`posts.write`/`events.write`
+   o. ä.) erweitert — in G1 ableiten.
+5. **Early-Access-Scope:** **belegter Scope** (Diskussionen, Moderation, Seiten,
+   Themes, Embed), invite-only; Feed/Kurse/Events erst mit grünem Baustein-Gate.
 
-1. **Kundenbereich-Host:** bleibt der Kundenbereich unter `studio.pukalani.app/
-   workspace`, oder bekommt er einen eigenen Host (z. B. `app.pukalani.app`),
-   getrennt von der Marketing-Startseite `pukalani.app`? *(Empfehlung: eigener
-   Host `app.pukalani.app` — saubere Trennung Marketing ↔ Produkt.)*
-2. **`site_members`-Speicherort:** Control Plane (Empfehlung, konsistent mit
-   tenants/plans, Cross-Projekt-Read gecacht) ODER Runtime-Projekt (lokaler
-   Read, aber gespaltene Sicht)? Und die **Cache-TTL für Revoke** (Vorschlag
-   30–60 s).
-3. **Site-Rollen-Set:** genügen `owner/admin/moderator` (Empfehlung), oder wird
-   eine „editor"-Rolle (Inhalte, keine Moderation) gebraucht?
-4. **Tarif-Zuordnung (§3.3):** welche Bausteine in Free/Pro/Business? Vor allem:
-   Feed ab Pro? Kurse nur Business? *(Vorschlag steht, Zahlen/Grenzen offen.)*
-5. **Early-Access-Scope (§3.1):** startet EA wirklich ohne Feed/Kurse/Events —
-   also als „Branded Discussions"? *(Empfehlung: ja, ehrlich zum belegten Stand.)*
+**🟡 Offen (kein G1-Blocker — vor G3/GA klären):**
+4. **Tarif-Zuordnung (§3.3):** welche Bausteine in Free/Pro/Business (Feed ab
+   Pro? Kurse nur Business?). Vorschlag steht; Zahlen/Grenzen später.
 6. **Kanonische `siteId`:** `tenants` bekommt eine `siteId`-Referenz auf
-   `sites.$id` — bestätigen (kleiner, aber grundlegender Datenmodell-Schritt für
-   G1).
+   `sites.$id`. Empfehlung: **ja** — kleiner, aber grundlegender Datenmodell-
+   Schritt, den G1 ohnehin braucht (site_members referenziert `siteId`). Wird
+   als erster Migrationsschritt in G1 umgesetzt, sofern kein Einspruch.
 
 ---
 
 ## Nächster Schritt
 
-Check-in zu §5 (6 Entscheidungen). Nach Abnahme: **G1 bauen** — `site_members`
-+ `requireTenantPermission` + tenant-namespaced Row-Permissions (Naht 4) + der
-automatisierte Isolationsbeweis (derselbe Runtime-User in zwei Pool-Tenants,
-verschiedene Rollen; Pool↔Silo-Parität; Invite-Replay; Revoke; Owner-Transfer;
-protokollierter Break-Glass-Operatorzugriff).
+§5 ist bis auf die zwei nicht-blockierenden Punkte (Tarif-Zuordnung, `siteId` —
+letzterer läuft als erster G1-Migrationsschritt) **entschieden**. Damit ist G0
+im Kern abgeschlossen und **G1 kann starten**:
+
+1. `tenants` → kanonische **`siteId`**-Referenz (Migration).
+2. **`site_members`** (Control Plane) + 5-Rollen-`TENANT_ROLE_CAPABILITIES`
+   (inkl. neuer Autoren-Caps für Editor).
+3. **`requireTenantPermission(event, capability)`** über
+   `{siteId, runtimeProjectId, runtimeUserId}`, gecacht (Revoke ≤ 60 s);
+   `requirePermission` bleibt für Operator-/Single-Tenant-Routen.
+4. **Row-Permissions (Naht 4)** tenant-namespaced — unabhängig getestet.
+5. **Automatisierter Isolationsbeweis:** derselbe Runtime-User in zwei
+   Pool-Tenants mit verschiedenen Rollen; jede der 5 Rollen sieht/darf genau
+   ihr Set; Pool↔Silo-Parität; Invite-Replay; Revoke ≤ 60 s; Owner-Transfer;
+   protokollierter Break-Glass-Operatorzugriff ohne stillen Dauer-Bypass.
+
+Der Kundenbereich-Umzug nach `app.pukalani.app` ist ein eigener Infra-Schritt
+(neuer ploi-Host + Route), der parallel zu G1 vorbereitet, aber erst mit dem
+Kaufpfad (G3) scharf geschaltet wird.
