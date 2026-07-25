@@ -21,6 +21,8 @@ useReveal()
 const base = `marketing.vs.items.${slug}`
 const name = computed(() => t(`${base}.name`))
 
+const ogImage = useOgImage(`vs-${slug}`)
+
 useSeoMeta({
   title: () => t(`${base}.metaTitle`),
   description: () => t(`${base}.metaDescription`),
@@ -28,6 +30,9 @@ useSeoMeta({
   ogDescription: () => t(`${base}.metaDescription`),
   ogType: 'article',
   ogSiteName: 'Pukalani',
+  ogImage: () => ogImage.value,
+  twitterImage: () => ogImage.value,
+  twitterCard: 'summary_large_image',
 })
 </script>
 

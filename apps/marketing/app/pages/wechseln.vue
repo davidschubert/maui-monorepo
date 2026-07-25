@@ -22,6 +22,8 @@ const steps = computed(() =>
 )
 const keep = computed(() => [0, 1, 2, 3].map(i => t(`marketing.switch.keep.${i}`)))
 
+const ogImage = useOgImage('switch')
+
 useSeoMeta({
   title: () => t('marketing.switch.metaTitle'),
   description: () => t('marketing.switch.metaDescription'),
@@ -29,6 +31,8 @@ useSeoMeta({
   ogDescription: () => t('marketing.switch.metaDescription'),
   ogType: 'article',
   ogSiteName: 'Pukalani',
+  ogImage: () => ogImage.value,
+  twitterImage: () => ogImage.value,
 })
 </script>
 

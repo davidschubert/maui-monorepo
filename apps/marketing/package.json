@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "nuxi preview",
     "typecheck": "nuxi typecheck",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "og:images": "node scripts/og-images.mjs"
   },
   "dependencies": {
     "@iconify-json/ph": "catalog:",

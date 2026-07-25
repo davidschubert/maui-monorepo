@@ -1,10 +1,14 @@
 <script setup lang="ts">
-// Anwendungsfall-Seiten (§3.1): /fuer/coaches · /fuer/kurse · /fuer/creator ·
-// /fuer/vereine (EN unter /fuer/*, DE unter /de/fuer/*). Nischen-Long-Tail +
-// Identifikation; jede Seite endet mit CTA und verlinkt zurück (Silo-SEO).
-// Claim-Gates (§2.4) respektiert: noch nicht ausgelieferte Bausteine stehen als
-// „später" in der Bausteine-Zeile, nie als aktuelle Zusage.
+// Anwendungsfall-Seiten (§3.1): coaches · kurse · creator · vereine.
+// Nischen-Long-Tail + Identifikation; jede Seite endet mit CTA und verlinkt
+// zurück (Silo-SEO). Claim-Gates (§2.4) respektiert: noch nicht ausgelieferte
+// Bausteine stehen als „später" in der Bausteine-Zeile, nie als Zusage.
+//
+// Locale-Pfade: EN /for/* · DE /de/fuer/* — ein deutsches Pfad-Segment auf der
+// englischen Seite wäre für EN-SEO verschenkt. Umgestellt, solange die Site
+// noch nicht live ist (keine Redirect-Altlast).
 definePageMeta({ layout: 'site' })
+defineI18nRoute({ paths: { en: '/for/[slug]', de: '/fuer/[slug]' } })
 
 const SLUGS = ['coaches', 'kurse', 'creator', 'vereine'] as const
 const route = useRoute()
@@ -20,6 +24,8 @@ useReveal()
 
 const base = `marketing.audiencePages.items.${slug}`
 
+const ogImage = useOgImage(`for-${slug}`)
+
 useSeoMeta({
   title: () => t(`${base}.metaTitle`),
   description: () => t(`${base}.metaDescription`),
@@ -27,6 +33,9 @@ useSeoMeta({
   ogDescription: () => t(`${base}.metaDescription`),
   ogType: 'article',
   ogSiteName: 'Pukalani',
+  ogImage: () => ogImage.value,
+  twitterImage: () => ogImage.value,
+  twitterCard: 'summary_large_image',
 })
 </script>
 

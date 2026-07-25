@@ -5,11 +5,12 @@ definePageMeta({ layout: 'site' })
 useReveal()
 
 const { t, locale } = useI18n()
-const config = useRuntimeConfig()
-const baseUrl = ((config.public as Record<string, unknown>).i18nBaseUrl as string) || 'https://pukalani.app'
+const baseUrl = useSiteBaseUrl()
 
 // Meta (Title/Description je Locale) — Canonical/Hreflang liefert useLocaleHead
-// (app.vue). og:image bewusst offen bis ein echtes Social-Bild vorliegt.
+// (app.vue). og:image = seiteneigenes Bild aus public/og (scripts/og-images.mjs).
+const ogImage = useOgImage('home')
+
 useSeoMeta({
   title: () => t('marketing.meta.title'),
   description: () => t('marketing.meta.description'),
@@ -17,6 +18,8 @@ useSeoMeta({
   ogDescription: () => t('marketing.meta.description'),
   ogType: 'website',
   ogSiteName: 'Pukalani',
+  ogImage: () => ogImage.value,
+  twitterImage: () => ogImage.value,
   twitterCard: 'summary_large_image',
 })
 
@@ -68,6 +71,7 @@ useHead(() => ({
     <PrivacySection />
     <AudienceSection />
     <ComparisonSection />
+    <ProofSection />
     <PricingSection />
     <StorySection />
     <!-- Bewusste Abweichung von §6.4 (dort CTA → FAQ): die FAQ steht VOR der

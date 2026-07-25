@@ -20,6 +20,8 @@ const terms = computed(() =>
   })),
 )
 
+const ogImage = useOgImage('glossary')
+
 useSeoMeta({
   title: () => t('marketing.glossary.metaTitle'),
   description: () => t('marketing.glossary.metaDescription'),
@@ -27,6 +29,8 @@ useSeoMeta({
   ogDescription: () => t('marketing.glossary.metaDescription'),
   ogType: 'article',
   ogSiteName: 'Pukalani',
+  ogImage: () => ogImage.value,
+  twitterImage: () => ogImage.value,
 })
 
 // Strukturierte Daten passend zum Inhaltstyp (keine erfundenen Werte).

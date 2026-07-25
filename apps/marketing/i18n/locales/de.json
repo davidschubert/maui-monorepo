@@ -11,7 +11,8 @@
       "signIn": "Anmelden",
       "start": "Kostenlos starten",
       "toGerman": "Deutsch",
-      "toEnglish": "English"
+      "toEnglish": "English",
+      "menu": "Menü öffnen"
     },
     "hero": {
       "eyebrow": "Deine Community-Plattform, DSGVO-nativ",
@@ -197,8 +198,43 @@
             "Eigene Seiten (Start, Über, Regeln) im Editor",
             "Eigene Domain für Silo-Kunden – ohne Umzug deiner Inhalte"
           ]
+        },
+        "kurse": {
+          "name": "Kurse",
+          "metaTitle": "Online-Kurse in deiner Community – Lektionen, Fortschritt, Bezahl-Zugang",
+          "metaDescription": "Kurse mit Lektionen, Fortschritt und Bezahl-Zugang über Stripe – unter deiner Marke, in Deutschland gehostet. Aktuell im Early Access auf Einladung.",
+          "title": "Kurse, die in der Community leben",
+          "sub": "Lektionen, Fortschritt und Bezahl-Zugang – dort, wo auch diskutiert wird.",
+          "intro": "Ein Kurs bei Pukalani ist keine abgeschlossene Insel: Unter jeder Lektion kann diskutiert werden, Fragen bleiben auffindbar, und der Fortschritt gehört den Teilnehmern. Zugang gibt es frei, nur für Mitglieder oder kostenpflichtig – die Abwicklung läuft über Stripe, ohne dass wir an deinen Umsätzen mitschneiden.",
+          "highlights": [
+            "Lektionen in Markdown, sauber gesetzt und XSS-sicher",
+            "Fortschritt pro Teilnehmer, serverseitig bestätigt – kein Klick-Bluff",
+            "Zugang frei, nur für Mitglieder oder kostenpflichtig",
+            "Bezahl-Zugang über Stripe, keine Transaktionsgebühr von uns",
+            "Diskussionen direkt unter jeder Lektion",
+            "Builder mit Reihenfolge-Änderung und Bearbeitungs-Präsenz im Team"
+          ]
+        },
+        "events": {
+          "name": "Events",
+          "metaTitle": "Events für deine Community – online, vor Ort, Serien, Tickets",
+          "metaDescription": "Events mit Zusagen, Kapazität, Serienterminen, Erinnerungen und Tickets – einbettbar in deine Website. Aktuell im Early Access auf Einladung.",
+          "title": "Termine, zu denen Leute wirklich kommen",
+          "sub": "Online oder vor Ort, Einzeltermine oder Serien – mit Zusagen und Tickets.",
+          "intro": "Events sind der Grund, warum aus Mitgliedern Menschen werden, die sich kennen. Deshalb gibt es hier nicht nur einen Kalendereintrag: Zusagen mit Kapazitätsgrenze, Serientermine, Erinnerungen vor dem Start, Kalender-Export – und auf Wunsch Tickets.",
+          "highlights": [
+            "Online oder vor Ort, mit Provider-Erkennung für Video-Links",
+            "Zusagen (ja/vielleicht/nein) mit server-autoritativer Kapazitätsgrenze",
+            "Serientermine als echte Einzeltermine – jeder mit eigener Zusageliste",
+            "Erinnerung vor dem Start, ohne dass du daran denken musst",
+            "Kalender-Export (ICS) und Teilnehmerliste für Angemeldete",
+            "Einbettbar in deine bestehende Website"
+          ]
         }
-      }
+      },
+      "eaBannerTitle": "Early Access – noch nicht für alle freigegeben",
+      "eaBannerText": "Dieser Baustein ist gebaut und läuft, aber noch nicht Teil des offenen Angebots. Du kannst ihn im Early Access auf Einladung nutzen – wir schalten ihn gemeinsam frei. Ein Kauf ist hier bewusst nicht möglich.",
+      "eaCta": "Early Access anfragen"
     },
     "glossary": {
       "metaTitle": "Community-Glossar – Feed, Thread, Moderation, Präsenz erklärt",
@@ -598,7 +634,9 @@
           "q": "Muss ich alle Bausteine nutzen?",
           "a": "Nein – jeder Baustein ist an- und abschaltbar. Du startest schlank und ergänzt, was du brauchst."
         }
-      ]
+      ],
+      "metaTitle": "Häufige Fragen zu Pukalani – Datenschutz, Preise, Umzug",
+      "metaDescription": "Antworten auf die häufigsten Fragen: wo die Daten liegen, was es kostet, ob du deine Seite behalten kannst, Kündigung, Sprachen, Bausteine."
     },
     "story": {
       "kicker": "Unsere Geschichte",
@@ -659,7 +697,151 @@
       "forCoaches": "Für Coaches",
       "forCourses": "Für Kurs-Ersteller",
       "forCreator": "Für Creator",
-      "forClubs": "Für Vereine"
+      "forClubs": "Für Vereine",
+      "featCourses": "Kurse",
+      "featEvents": "Events",
+      "faq": "Häufige Fragen"
+    },
+    "legal": {
+      "draftBadge": "Entwurf – noch nicht rechtsverbindlich",
+      "draftNote": "Diese Seite ist ein Platzhalter mit der nötigen Struktur. Die verbindlichen Texte kommen vor dem öffentlichen Start von uns bzw. unserer Rechtsberatung. Bis dahin gilt: hier steht nichts, worauf du dich verlassen kannst.",
+      "backHome": "Zur Startseite",
+      "contactHint": "Fragen bis dahin? Schreib uns – wir antworten.",
+      "imprint": {
+        "metaTitle": "Impressum – Pukalani",
+        "title": "Impressum",
+        "lead": "Angaben gemäß § 5 DDG.",
+        "sections": [
+          {
+            "title": "Anbieter",
+            "body": "Name, Anschrift und Rechtsform des Anbieters folgen mit den verbindlichen Texten."
+          },
+          {
+            "title": "Kontakt",
+            "body": "E-Mail-Adresse und – soweit vorhanden – Telefonnummer folgen."
+          },
+          {
+            "title": "Vertretungsberechtigte",
+            "body": "Verantwortliche Person(en) folgen."
+          },
+          {
+            "title": "Umsatzsteuer-Identifikationsnummer",
+            "body": "USt-IdNr. gemäß § 27 a UStG, soweit vorhanden."
+          },
+          {
+            "title": "Verantwortlich für den Inhalt",
+            "body": "Angabe folgt."
+          },
+          {
+            "title": "Streitschlichtung",
+            "body": "Hinweis zur Teilnahme bzw. Nicht-Teilnahme an Streitbeilegungsverfahren folgt."
+          }
+        ]
+      },
+      "privacy": {
+        "metaTitle": "Datenschutzerklärung – Pukalani",
+        "title": "Datenschutzerklärung",
+        "lead": "Die verbindliche Erklärung für pukalani.app. Wie wir Datenschutz technisch umsetzen, steht separat.",
+        "seeAlso": "Technische Umsetzung ansehen",
+        "sections": [
+          {
+            "title": "Verantwortlicher",
+            "body": "Name und Kontaktdaten des Verantwortlichen folgen."
+          },
+          {
+            "title": "Welche Daten wir verarbeiten",
+            "body": "Server-Logs, Session-Cookie bei Anmeldung, Kontaktanfragen – im Detail mit den verbindlichen Texten."
+          },
+          {
+            "title": "Rechtsgrundlagen",
+            "body": "Angabe der jeweiligen Rechtsgrundlage je Verarbeitung folgt."
+          },
+          {
+            "title": "Hosting und Auftragsverarbeiter",
+            "body": "Serverstandort Deutschland (Hetzner); vollständige Liste der Auftragsverarbeiter folgt."
+          },
+          {
+            "title": "Speicherdauer",
+            "body": "Löschfristen je Datenart folgen."
+          },
+          {
+            "title": "Deine Rechte",
+            "body": "Auskunft, Berichtigung, Löschung, Einschränkung, Widerspruch, Datenübertragbarkeit, Beschwerde bei der Aufsichtsbehörde."
+          },
+          {
+            "title": "Cookies",
+            "body": "Im Standardbetrieb setzen wir ein technisch notwendiges Session-Cookie und keine Werbe-Cookies. Die verbindliche Aufstellung folgt."
+          }
+        ]
+      },
+      "terms": {
+        "metaTitle": "Allgemeine Geschäftsbedingungen – Pukalani",
+        "title": "Allgemeine Geschäftsbedingungen",
+        "lead": "Die Bedingungen für die Nutzung von Pukalani.",
+        "sections": [
+          {
+            "title": "Geltungsbereich",
+            "body": "Welche Leistungen die AGB erfassen, folgt."
+          },
+          {
+            "title": "Vertragsschluss",
+            "body": "Wie der Vertrag zustande kommt (Registrierung, Bestellung), folgt."
+          },
+          {
+            "title": "Leistungen und Verfügbarkeit",
+            "body": "Leistungsumfang je Tarif; eine Verfügbarkeitszusage geben wir erst, wenn sie belegt ist."
+          },
+          {
+            "title": "Preise und Zahlung",
+            "body": "Preise, Abrechnungszeitraum und Zahlungsabwicklung folgen mit dem öffentlichen Start."
+          },
+          {
+            "title": "Pflichten der Nutzer",
+            "body": "Zulässige Inhalte, Verbot rechtswidriger Nutzung, Verantwortung für eigene Community-Regeln."
+          },
+          {
+            "title": "Laufzeit und Kündigung",
+            "body": "Keine Mindestlaufzeit vorgesehen; Details folgen."
+          },
+          {
+            "title": "Haftung",
+            "body": "Haftungsregelungen folgen."
+          },
+          {
+            "title": "Änderungen der AGB",
+            "body": "Verfahren für Änderungen folgt."
+          }
+        ]
+      }
+    },
+    "proof": {
+      "kicker": "Wir nutzen es selbst",
+      "title": "Kein Testimonial-Theater. Sondern Sites, die du anklicken kannst.",
+      "lead": "Wir haben (noch) keine Kundenstimmen — also erfinden wir keine. Stattdessen läuft Pukalani da, wo es weh tut: bei uns selbst, im echten Betrieb.",
+      "visit": "Ansehen",
+      "items": [
+        {
+          "name": "comments.pukalani.app",
+          "what": "Diskussionen, Moderation und das Embed-Widget im täglichen Einsatz — inklusive Gast-Kommentaren und Live-Präsenz.",
+          "url": "https://comments.pukalani.app"
+        },
+        {
+          "name": "demo.pukalani.app",
+          "what": "Eine echte Pool-Community: per Klick im Studio angelegt, eigener Host, eigener Datenraum — genau der Weg, den auch du gehst.",
+          "url": "https://demo.pukalani.app"
+        },
+        {
+          "name": "portfolio.pukalani.app",
+          "what": "Dieselbe Plattform in einem völlig anderen Design — der Beweis, dass Branding nicht bei einer Akzentfarbe endet.",
+          "url": "https://portfolio.pukalani.app"
+        },
+        {
+          "name": "changelog.pukalani.app",
+          "what": "Was wir wann geändert haben, öffentlich nachlesbar. Auch die Wochen, in denen wenig passiert ist.",
+          "url": "https://changelog.pukalani.app"
+        }
+      ],
+      "honest": "Wenn hier irgendwann echte Kundenstimmen stehen, dann mit Namen, Community und Einwilligung — und nicht vorher."
     }
   }
 }

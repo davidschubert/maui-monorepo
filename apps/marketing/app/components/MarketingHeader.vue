@@ -20,6 +20,22 @@ const { start } = useProductLinks()
         <a href="#geschichte" class="nav-link">{{ t('marketing.nav.story') }}</a>
       </nav>
 
+      <!-- Mobil: die Desktop-Nav ist ausgeblendet — ohne diesen Ausklapper wären
+           Bausteine/Preise/Geschichte auf dem Handy gar nicht erreichbar.
+           Bewusst <details>: kein JS, tastatur- und screenreader-fähig, und es
+           funktioniert auch, wenn Hydration noch läuft. -->
+      <details class="mkt-nav-mobile">
+        <summary :aria-label="t('marketing.nav.menu')">
+          <UIcon name="i-ph-list-bold" />
+        </summary>
+        <div class="mkt-nav-mobile-panel">
+          <a href="#bausteine">{{ t('marketing.nav.features') }}</a>
+          <a href="#preise">{{ t('marketing.nav.pricing') }}</a>
+          <a href="#geschichte">{{ t('marketing.nav.story') }}</a>
+          <a href="#faq">{{ t('marketing.faq.kicker') }}</a>
+        </div>
+      </details>
+
       <div class="mkt-header-actions">
         <NuxtLink
           :to="switchLocalePath(locale === 'de' ? 'en' : 'de')"
@@ -89,8 +105,52 @@ const { start } = useProductLinks()
 }
 .lang-switch:hover { background: hsl(var(--puka-ink) / 0.06); }
 
+/* ── Mobil-Ausklapper (nur unter 768px sichtbar) ──────────────────────────── */
+.mkt-nav-mobile {
+  position: relative;
+  margin-left: auto;
+}
+.mkt-nav-mobile summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 0.55rem;
+  cursor: pointer;
+  color: hsl(var(--puka-ink));
+  list-style: none;
+}
+.mkt-nav-mobile summary::-webkit-details-marker { display: none; }
+.mkt-nav-mobile summary:hover { background: hsl(var(--puka-ink) / 0.06); }
+.mkt-nav-mobile summary :deep(svg) { width: 1.35rem; height: 1.35rem; }
+.mkt-nav-mobile-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  min-width: 12rem;
+  display: flex;
+  flex-direction: column;
+  padding: 0.4rem;
+  border-radius: 0.8rem;
+  background: hsl(0 0% 100%);
+  border: 1px solid hsl(var(--puka-ink) / 0.1);
+  box-shadow: 0 18px 40px -20px hsl(var(--puka-ink) / 0.45);
+  z-index: 60;
+}
+.mkt-nav-mobile-panel a {
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.5rem;
+  color: hsl(var(--puka-ink));
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.mkt-nav-mobile-panel a:hover { background: hsl(var(--puka-ink) / 0.05); }
+
 @media (min-width: 768px) {
   .mkt-nav { display: flex; }
+  .mkt-nav-mobile { display: none; }
   .mkt-header-actions { margin-left: 0; }
 }
 </style>

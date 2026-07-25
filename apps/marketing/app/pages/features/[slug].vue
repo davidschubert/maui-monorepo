@@ -1,15 +1,17 @@
 <script setup lang="ts">
-// Feature-Cluster-Seiten (§3.1): /features/diskussionen · /features/branding.
+// Feature-Cluster-Seiten (§3.1): diskussionen · branding · kurse · events.
 //
-// BEWUSST NUR DIE BELEGTEN BAUSTEINE (§2.4): /features/kurse und
-// /features/events fehlen absichtlich. Eine eigene Verkaufsseite für einen
-// Early-Access-Baustein liest wie eine Live-Zusage — genau das verbietet die
-// Copy-Regel („keine ‚Coming soon'-Karte darf wie ein aktueller
-// Tarifbestandteil aussehen"). Sie kommen, sobald ihr Baustein-Gate grün ist;
-// bis dahin sind Kurse/Events auf der Startseite als Early Access markiert.
+// Claim-Gate-Umsetzung (§2.4, Entscheidung David 2026-07-24): Kurse und Events
+// SIND Early Access. Ihre Seiten existieren, aber sie dürfen nicht wie ein
+// aktueller Tarifbestandteil aussehen. Deshalb:
+//   1. ein prominenter Early-Access-Banner GANZ OBEN (nicht kleingedruckt),
+//   2. KEIN Kauf-/„Kostenlos starten"-CTA — nur „Early Access anfragen",
+//   3. die Highlights beschreiben ausschließlich, was tatsächlich existiert.
 definePageMeta({ layout: 'site' })
 
-const SLUGS = ['diskussionen', 'branding'] as const
+const SLUGS = ['diskussionen', 'branding', 'kurse', 'events'] as const
+/** Bausteine, die noch NICHT im offenen Angebot sind (§2.4). */
+const EARLY_ACCESS_SLUGS: readonly string[] = ['kurse', 'events']
 const route = useRoute()
 const slug = String(route.params.slug)
 if (!SLUGS.includes(slug as (typeof SLUGS)[number])) {
@@ -19,13 +21,17 @@ if (!SLUGS.includes(slug as (typeof SLUGS)[number])) {
 const HIGHLIGHT_COUNT = 6
 const { t } = useI18n()
 const localePath = useLocalePath()
-const { start, demo } = useProductLinks()
+const { start, demo, signIn } = useProductLinks()
 useReveal()
+
+const isEarlyAccess = computed(() => EARLY_ACCESS_SLUGS.includes(slug))
 
 const base = `marketing.features.items.${slug}`
 const highlights = computed(() =>
   Array.from({ length: HIGHLIGHT_COUNT }, (_, i) => t(`${base}.highlights.${i}`)),
 )
+
+const ogImage = useOgImage(`features-${slug}`)
 
 useSeoMeta({
   title: () => t(`${base}.metaTitle`),
@@ -34,6 +40,9 @@ useSeoMeta({
   ogDescription: () => t(`${base}.metaDescription`),
   ogType: 'article',
   ogSiteName: 'Pukalani',
+  ogImage: () => ogImage.value,
+  twitterImage: () => ogImage.value,
+  twitterCard: 'summary_large_image',
 })
 </script>
 
@@ -49,6 +58,14 @@ useSeoMeta({
         <h1 class="feat-title">{{ t(`${base}.title`) }}</h1>
         <p class="feat-sub">{{ t(`${base}.sub`) }}</p>
         <p class="mkt-lead">{{ t(`${base}.intro`) }}</p>
+
+        <!-- Early Access: der Hinweis steht VOR den Vorteilen, nicht danach. -->
+        <aside v-if="isEarlyAccess" class="feat-ea">
+          <h2 class="feat-ea-title">
+            <UIcon name="i-ph-seal-warning-bold" /> {{ t('marketing.features.eaBannerTitle') }}
+          </h2>
+          <p>{{ t('marketing.features.eaBannerText') }}</p>
+        </aside>
       </div>
     </section>
 
@@ -69,10 +86,18 @@ useSeoMeta({
     <section class="mkt-cta-block tone-ink">
       <div class="mkt-inner mkt-narrow mkt-cta-inner" data-reveal>
         <PukaMark :size="38" />
-        <h2 class="mkt-cta-title">{{ t('marketing.features.ctaTitle') }}</h2>
-        <p class="mkt-cta-lead">{{ t('marketing.features.ctaLead') }}</p>
+        <h2 class="mkt-cta-title">
+          {{ isEarlyAccess ? t('marketing.features.eaBannerTitle') : t('marketing.features.ctaTitle') }}
+        </h2>
+        <p class="mkt-cta-lead">
+          {{ isEarlyAccess ? t('marketing.features.eaBannerText') : t('marketing.features.ctaLead') }}
+        </p>
         <div class="feat-cta-buttons">
-          <UButton :to="start" color="warning" size="xl">{{ t('marketing.hero.ctaPrimary') }}</UButton>
+          <!-- Early Access: KEIN Kauf-/Gratis-CTA — nur anfragen. -->
+          <UButton v-if="isEarlyAccess" :to="signIn" color="warning" size="xl">
+            {{ t('marketing.features.eaCta') }}
+          </UButton>
+          <UButton v-else :to="start" color="warning" size="xl">{{ t('marketing.hero.ctaPrimary') }}</UButton>
           <UButton :to="demo" variant="ghost" color="neutral" size="xl" icon="i-ph-play-circle" class="feat-ghost">
             {{ t('marketing.hero.ctaSecondary') }}
           </UButton>
@@ -127,6 +152,28 @@ useSeoMeta({
   margin-top: 0.15rem;
   color: hsl(var(--puka-sun-deep));
 }
+.feat-ea {
+  margin-top: 2rem;
+  padding: 1.25rem 1.4rem;
+  background: hsl(var(--puka-sun) / 0.16);
+  border-left: 3px solid hsl(var(--puka-sun-deep));
+  border-radius: 0.7rem;
+  color: hsl(var(--puka-ink) / 0.85);
+  line-height: 1.6;
+}
+.feat-ea-title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: hsl(var(--puka-sun-deep));
+  margin-bottom: 0.45rem;
+}
+.feat-ea-title :deep(svg) { width: 1.1rem; height: 1.1rem; flex: none; }
+
 .feat-cta-buttons {
   display: flex;
   flex-wrap: wrap;

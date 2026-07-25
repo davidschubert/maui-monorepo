@@ -30,6 +30,8 @@ const notPromised = computed(() =>
   })),
 )
 
+const ogImage = useOgImage('gdpr')
+
 useSeoMeta({
   title: () => t('marketing.gdpr.metaTitle'),
   description: () => t('marketing.gdpr.metaDescription'),
@@ -37,6 +39,8 @@ useSeoMeta({
   ogDescription: () => t('marketing.gdpr.metaDescription'),
   ogType: 'article',
   ogSiteName: 'Pukalani',
+  ogImage: () => ogImage.value,
+  twitterImage: () => ogImage.value,
 })
 </script>
 

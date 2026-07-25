@@ -22,7 +22,10 @@ const year = 2026 // statisch: Date.now() steht im Build nicht zur Verfügung
         <a :href="start">{{ t('marketing.footer.start') }}</a>
         <a :href="demo">{{ t('marketing.footer.demo') }}</a>
         <NuxtLink :to="localePath('/features/diskussionen')">{{ t('marketing.footer.featDiscussions') }}</NuxtLink>
+        <NuxtLink :to="localePath('/features/kurse')">{{ t('marketing.footer.featCourses') }}</NuxtLink>
+        <NuxtLink :to="localePath('/features/events')">{{ t('marketing.footer.featEvents') }}</NuxtLink>
         <NuxtLink :to="localePath('/features/branding')">{{ t('marketing.footer.featBranding') }}</NuxtLink>
+        <NuxtLink :to="localePath('/faq')">{{ t('marketing.footer.faq') }}</NuxtLink>
         <NuxtLink :to="localePath('/glossar')">{{ t('marketing.footer.glossary') }}</NuxtLink>
       </nav>
 
@@ -49,11 +52,13 @@ const year = 2026 // statisch: Date.now() steht im Build nicht zur Verfügung
         <a href="https://changelog.pukalani.app">{{ t('marketing.footer.changelog') }}</a>
       </nav>
 
+      <!-- Rechtstexte liegen auf DIESER Domain (Impressumspflicht), nicht als
+           Link auf app.pukalani.app. -->
       <nav class="foot-col" aria-label="Rechtliches">
         <h3>{{ t('marketing.footer.colLegal') }}</h3>
-        <a href="https://app.pukalani.app/datenschutz">{{ t('marketing.footer.privacy') }}</a>
-        <a href="https://app.pukalani.app/impressum">{{ t('marketing.footer.imprint') }}</a>
-        <a href="https://app.pukalani.app/agb">{{ t('marketing.footer.terms') }}</a>
+        <NuxtLink :to="localePath('/datenschutz')">{{ t('marketing.footer.privacy') }}</NuxtLink>
+        <NuxtLink :to="localePath('/impressum')">{{ t('marketing.footer.imprint') }}</NuxtLink>
+        <NuxtLink :to="localePath('/agb')">{{ t('marketing.footer.terms') }}</NuxtLink>
       </nav>
     </div>
 
@@ -140,6 +145,9 @@ const year = 2026 // statisch: Date.now() steht im Build nicht zur Verfügung
   .mkt-footer-inner { grid-template-columns: repeat(2, 1fr); }
 }
 @media (min-width: 900px) {
-  .mkt-footer-inner { grid-template-columns: 1.6fr repeat(4, 1fr); }
+  .mkt-footer-inner { grid-template-columns: 1.5fr repeat(3, 1fr); }
+}
+@media (min-width: 1150px) {
+  .mkt-footer-inner { grid-template-columns: 1.5fr repeat(4, 1fr); }
 }
 </style>

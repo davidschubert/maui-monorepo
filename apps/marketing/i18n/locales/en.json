@@ -11,7 +11,8 @@
       "signIn": "Sign in",
       "start": "Start free",
       "toGerman": "Deutsch",
-      "toEnglish": "English"
+      "toEnglish": "English",
+      "menu": "Open menu"
     },
     "hero": {
       "eyebrow": "Your community platform, privacy-first",
@@ -197,8 +198,43 @@
             "Your own pages (home, about, rules) in the editor",
             "Custom domain for silo customers – without migrating your content"
           ]
+        },
+        "kurse": {
+          "name": "Courses",
+          "metaTitle": "Online courses inside your community – lessons, progress, paid access",
+          "metaDescription": "Courses with lessons, progress and paid access via Stripe – under your brand, hosted in Germany. Currently in early access by invitation.",
+          "title": "Courses that live inside the community",
+          "sub": "Lessons, progress and paid access – right where the discussion happens.",
+          "intro": "A course in Pukalani is not a sealed island: every lesson can be discussed underneath, questions stay findable, and progress belongs to the participants. Access can be free, members-only or paid – handled via Stripe, without us taking a cut of your revenue.",
+          "highlights": [
+            "Lessons in Markdown, cleanly typeset and XSS-safe",
+            "Per-participant progress, confirmed server-side – no click bluff",
+            "Access free, members-only or paid",
+            "Paid access via Stripe, no transaction fee from us",
+            "Discussions directly under each lesson",
+            "Builder with reordering and edit presence for your team"
+          ]
+        },
+        "events": {
+          "name": "Events",
+          "metaTitle": "Events for your community – online, in person, recurring, tickets",
+          "metaDescription": "Events with RSVPs, capacity, recurring dates, reminders and tickets – embeddable in your website. Currently in early access by invitation.",
+          "title": "Dates people actually show up for",
+          "sub": "Online or in person, single or recurring – with RSVPs and tickets.",
+          "intro": "Events are the reason members turn into people who know each other. So this is more than a calendar entry: RSVPs with a capacity limit, recurring dates, reminders before the start, calendar export – and tickets if you want them.",
+          "highlights": [
+            "Online or in person, with provider detection for video links",
+            "RSVPs (yes/maybe/no) with a server-authoritative capacity limit",
+            "Recurring dates as real individual events – each with its own RSVP list",
+            "A reminder before the start, without you having to remember",
+            "Calendar export (ICS) and attendee list for signed-in members",
+            "Embeddable into your existing website"
+          ]
         }
-      }
+      },
+      "eaBannerTitle": "Early access – not released to everyone yet",
+      "eaBannerText": "This block is built and running, but not yet part of the open offer. You can use it in early access by invitation – we enable it together. Buying it here is deliberately not possible.",
+      "eaCta": "Request early access"
     },
     "glossary": {
       "metaTitle": "Community glossary – feed, thread, moderation, presence explained",
@@ -598,7 +634,9 @@
           "q": "Do I have to use all blocks?",
           "a": "No – every block can be switched on or off. Start lean and add what you need."
         }
-      ]
+      ],
+      "metaTitle": "Frequently asked questions – privacy, pricing, switching",
+      "metaDescription": "Answers to the most common questions: where the data lives, what it costs, whether you can keep your site, cancellation, languages, blocks."
     },
     "story": {
       "kicker": "Our story",
@@ -659,7 +697,151 @@
       "forCoaches": "For coaches",
       "forCourses": "For course creators",
       "forCreator": "For creators",
-      "forClubs": "For clubs"
+      "forClubs": "For clubs",
+      "featCourses": "Courses",
+      "featEvents": "Events",
+      "faq": "FAQ"
+    },
+    "legal": {
+      "draftBadge": "Draft – not yet legally binding",
+      "draftNote": "This page is a placeholder with the required structure. The binding texts will come from us and our legal advisors before the public launch. Until then: nothing here is something you can rely on.",
+      "backHome": "Back to home",
+      "contactHint": "Questions in the meantime? Write to us – we answer.",
+      "imprint": {
+        "metaTitle": "Imprint – Pukalani",
+        "title": "Imprint",
+        "lead": "Information pursuant to § 5 DDG (German Digital Services Act).",
+        "sections": [
+          {
+            "title": "Provider",
+            "body": "Name, address and legal form of the provider will follow with the binding texts."
+          },
+          {
+            "title": "Contact",
+            "body": "Email address and – where available – phone number will follow."
+          },
+          {
+            "title": "Authorised representatives",
+            "body": "Responsible person(s) will follow."
+          },
+          {
+            "title": "VAT identification number",
+            "body": "VAT ID pursuant to § 27 a UStG, where applicable."
+          },
+          {
+            "title": "Responsible for content",
+            "body": "Details will follow."
+          },
+          {
+            "title": "Dispute resolution",
+            "body": "Statement on participation in dispute resolution procedures will follow."
+          }
+        ]
+      },
+      "privacy": {
+        "metaTitle": "Privacy policy – Pukalani",
+        "title": "Privacy policy",
+        "lead": "The binding policy for pukalani.app. How we implement privacy technically is documented separately.",
+        "seeAlso": "See the technical implementation",
+        "sections": [
+          {
+            "title": "Controller",
+            "body": "Name and contact details of the controller will follow."
+          },
+          {
+            "title": "What data we process",
+            "body": "Server logs, session cookie on sign-in, contact requests – in detail with the binding texts."
+          },
+          {
+            "title": "Legal bases",
+            "body": "The legal basis for each processing activity will follow."
+          },
+          {
+            "title": "Hosting and processors",
+            "body": "Server location Germany (Hetzner); the full list of processors will follow."
+          },
+          {
+            "title": "Retention",
+            "body": "Deletion periods per data category will follow."
+          },
+          {
+            "title": "Your rights",
+            "body": "Access, rectification, erasure, restriction, objection, data portability, complaint to a supervisory authority."
+          },
+          {
+            "title": "Cookies",
+            "body": "In standard operation we set a strictly necessary session cookie and no advertising cookies. The binding list will follow."
+          }
+        ]
+      },
+      "terms": {
+        "metaTitle": "Terms and conditions – Pukalani",
+        "title": "Terms and conditions",
+        "lead": "The terms for using Pukalani.",
+        "sections": [
+          {
+            "title": "Scope",
+            "body": "Which services these terms cover will follow."
+          },
+          {
+            "title": "Conclusion of contract",
+            "body": "How the contract is formed (registration, order) will follow."
+          },
+          {
+            "title": "Services and availability",
+            "body": "Scope per plan; we will only commit to availability once it is proven."
+          },
+          {
+            "title": "Prices and payment",
+            "body": "Prices, billing period and payment processing will follow with the public launch."
+          },
+          {
+            "title": "User obligations",
+            "body": "Permitted content, prohibition of unlawful use, responsibility for your own community rules."
+          },
+          {
+            "title": "Term and cancellation",
+            "body": "No minimum term is envisaged; details will follow."
+          },
+          {
+            "title": "Liability",
+            "body": "Liability provisions will follow."
+          },
+          {
+            "title": "Changes to these terms",
+            "body": "The procedure for changes will follow."
+          }
+        ]
+      }
+    },
+    "proof": {
+      "kicker": "We use it ourselves",
+      "title": "No testimonial theatre. Just sites you can click.",
+      "lead": "We don't have customer quotes (yet) — so we don't invent any. Instead Pukalani runs where it hurts: on our own sites, in real operation.",
+      "visit": "Visit",
+      "items": [
+        {
+          "name": "comments.pukalani.app",
+          "what": "Discussions, moderation and the embed widget in daily use — including guest comments and live presence.",
+          "url": "https://comments.pukalani.app"
+        },
+        {
+          "name": "demo.pukalani.app",
+          "what": "A real pool community: created with one click in the studio, own host, own data space — exactly the path you take.",
+          "url": "https://demo.pukalani.app"
+        },
+        {
+          "name": "portfolio.pukalani.app",
+          "what": "The same platform in a completely different design — proof that branding doesn't stop at an accent colour.",
+          "url": "https://portfolio.pukalani.app"
+        },
+        {
+          "name": "changelog.pukalani.app",
+          "what": "What we changed and when, publicly readable. Including the weeks where little happened.",
+          "url": "https://changelog.pukalani.app"
+        }
+      ],
+      "honest": "If real customer quotes ever appear here, they will come with a name, a community and consent — and not before."
     }
   }
 }
