@@ -32,10 +32,43 @@ Deutschland gehostet, **modular** (nimm nur die Bausteine, die du brauchst).
 
 ## 0. Marken-Fundament
 
-**Name:** *Pukalani* ist hawaiianisch — **puka** (Öffnung, Tür, Tor) + **lani**
-(Himmel) = „Tor zum Himmel". Zugleich ein realer Ort auf **Maui** (dem internen
-Projektnamen). Storytelling-Klammer: **Aloha-Haltung** — freundlich, ruhig,
-menschlich. Der emotionale Gegenpol zu lauten, teuren, überladenen US-Plattformen.
+### 0.1 Die Herkunft (die Seele der Marke)
+
+**Pukalani ist ein echter Ort — und das Produkt ist dort entstanden.** Nicht
+erfunden, nicht ausgedacht: **Pukalani liegt im Upcountry von Maui, Hawaii, an
+den grünen Hängen des Vulkans Haleakalā auf rund 465 Metern Höhe** — die größte
+Stadt des Hochlands, umgeben von fruchtbarem Vulkanboden, auf dem seit
+Generationen Dinge wachsen. Genau hier, an diesem besonderen Ort, ist die Idee
+zu dieser Plattform entstanden.
+
+**Der Name erzählt die ganze Geschichte.** *Pukalani* setzt sich zusammen aus
+**puka** (Öffnung, Loch, Tor) und **lani** (Himmel) — wörtlich „**Tor zum
+Himmel**". Der Name kommt von einem realen Naturphänomen: In der Regenzeit
+bilden sich rund um Haleakalā dichte Wolken – über und unter dem Ort. Doch
+genau über Pukalani bleibt eine **puka**, ein Loch in den Wolken. **Die Sonne
+bricht durch, während ringsum alles grau ist.** Pukalani ist der helle Fleck.
+
+### 0.2 Die kreative Brücke zur Plattform (ehrlich abgeleitet)
+
+Das heutige Netz ist **bewölkt**: Tracking, Werbung, Lärm, Komplexität,
+geschlossene Netzwerke, in denen deine Community dir nicht gehört. **Pukalani.app
+ist die puka** — die Öffnung, durch die die Sonne bricht. Ein klarer, ruhiger,
+heller Ort für deine Community:
+- **Das Loch in den Wolken** = kein Tracking, keine Werbung, kein Lärm. Klarheit,
+  wo andere Grau liefern.
+- **Das Tor zum Himmel** = eine Tür, die sich öffnet — der einfache Eingang zu
+  deiner eigenen Community-Heimat (in 60 Sekunden).
+- **Der fruchtbare Boden** = ein Ort, an dem Communities wachsen dürfen, statt in
+  einem fremden Netzwerk zu versickern.
+
+Storytelling-Klammer: **Aloha-Haltung** — freundlich, ruhig, menschlich,
+sonnig. Der emotionale Gegenpol zu lauten, teuren, überladenen US-Plattformen.
+**Pukalani ist ein besonderer Ort. Pukalani.app soll einer sein.**
+
+> Verwendungs-Hinweis: Maui/Hawaii-Kontext bewusst und dezent einsetzen (Wärme,
+> Licht, Ruhe, Wachstum) — nie kitschig-touristisch. Die Sonne-durch-die-Wolken-
+> Metapher ist der rote Faden; Bildsprache: warmes Licht, grüne Hänge, ein
+> klarer Himmelsausschnitt. Kein Palmen-Klischee.
 
 **Kern-USP (eine Zeile):**
 > **Deine eigene Community-Plattform — Beiträge, Kurse, Events und Diskussionen
@@ -353,11 +386,43 @@ Format: **Name · UX-Ziel · SEO-Fokus · Elemente**.
   Sprich mit uns."
 - Zahlen live aus dem Studio-Katalog (Idee 4).
 
-### V.12 Über uns
-- **H2:** „Aus Liebe zur Einfachheit gebaut."
-- Solo-Maker-Story, Pukalani-Namens-Herkunft (Hawaii, „Tor zum Himmel"),
-  Versprechen: „Ich baue die Community-Plattform, die ich selbst haben wollte –
-  ehrlich, schlank, ohne dich oder deine Mitglieder zum Produkt zu machen."
+### V.12 Über uns / Unsere Geschichte
+- **H2 (DE):** „Ein Loch in den Wolken."
+- **H2 (EN):** „A hole in the clouds."
+- **Fertige Copy (DE):**
+  > „Es gibt einen Ort auf Maui, hoch an den Hängen des Vulkans Haleakalā, wo
+  > sich in der Regenzeit die Wolken teilen. Während ringsum alles grau ist,
+  > bricht dort die Sonne durch – durch eine *puka*, ein Loch im Himmel. Die
+  > Hawaiianer nannten diesen Ort **Pukalani**: das Tor zum Himmel.
+  >
+  > Genau dort ist diese Plattform entstanden. Und der Name blieb, weil er
+  > erzählt, wofür wir stehen: Das Netz ist heute meist bewölkt – voller
+  > Tracking, Werbung, Lärm und geschlossener Netzwerke, in denen deine
+  > Community dir nie ganz gehört. **Pukalani ist die Öffnung, durch die die
+  > Sonne bricht.** Ein klarer, ruhiger Ort, der dir gehört – für deine
+  > Beiträge, deine Kurse, deine Events, deine Menschen.
+  >
+  > Gebaut von einem, der die Plattform selbst haben wollte: ehrlich, schlank,
+  > DSGVO-nah – ohne dich oder deine Mitglieder zum Produkt zu machen. Pukalani
+  > ist ein besonderer Ort. Pukalani.app soll einer sein."
+- **Fertige Copy (EN):**
+  > „There's a place on Maui, high on the slopes of the Haleakalā volcano, where
+  > the clouds part in the rainy season. While everything around is grey, the
+  > sun breaks through – through a *puka*, a hole in the sky. Hawaiians named
+  > this place **Pukalani**: the gateway to heaven.
+  >
+  > That's where this platform was born, and the name stayed because it tells
+  > you what we stand for. Today's web is mostly clouded – full of tracking,
+  > ads, noise and closed networks where your community never truly belongs to
+  > you. **Pukalani is the opening where the sun breaks through.** A clear,
+  > calm place that's yours – for your posts, your courses, your events, your
+  > people.
+  >
+  > Built by someone who wanted this platform to exist: honest, lean,
+  > privacy-first – without turning you or your members into the product.
+  > Pukalani is a special place. Pukalani.app is meant to be one too."
+- **Kurzform (für Hero-Dachzeile / Footer-Claim):**
+  „Dein Ort, wo die Sonne durchbricht." / „Where the sun breaks through."
 
 ### V.13 Alt-Texte (keyword-strategisch)
 - Hero: „Pukalani Community-Plattform mit Feed, Kursen und Events unter eigener
