@@ -15,6 +15,132 @@
       "rejected": "That code isn't valid (any more). Check the spelling — or ask us for a new one.",
       "noCode": "No code? Tell us what you want to use Pukalani for — we invite new communities continuously."
     },
+    "progress": "Step {step} of {total}",
+    "back": "Back",
+    "next": "Continue",
+    "skip": "Skip",
+    "create": "Create community",
+    "earlyAccessBadge": "soon",
+    "steps": {
+      "basics": {
+        "title": "Name and address",
+        "heading": "Let's start, {name}.",
+        "intro": "A working title is perfectly fine — you can change both later."
+      },
+      "size": {
+        "title": "How many people are you bringing?",
+        "intro": "An estimate is enough. We use it to set things up for you, not to hold you back."
+      },
+      "category": {
+        "title": "What is yours about?",
+        "intro": "Pick the closest one. It doesn't decide any features — it helps us show you relevant things."
+      },
+      "description": {
+        "title": "Who are you bringing together?",
+        "intro": "Two sentences are enough. They become the first version of your home page — editable once you're in."
+      },
+      "goal": {
+        "title": "What would feel like real success in six months?",
+        "intro": "Pick what matters most. We use it to show you the right next steps."
+      },
+      "vibe": {
+        "title": "Which mood fits?",
+        "intro": "Colours and type for your community. Six starting points from our catalogue.",
+        "changeable": "Later you get the full range — 26 colour worlds with eleven shades each, plus your own fonts."
+      },
+      "summary": {
+        "title": "Does this look right?",
+        "intro": "Check your answers. One click creates your community — the trial starts at that moment."
+      }
+    },
+    "fields": {
+      "name": "What should your community be called?",
+      "nameHint": "The name appears in the site header and in emails.",
+      "namePlaceholder": "e.g. Jungle Zipline",
+      "address": "Address",
+      "addressPlaceholder": "jungle-zipline",
+      "addressHint": "Lowercase letters, numbers and hyphens. You can connect your own domain later.",
+      "addressChecking": "Checking …",
+      "addressFree": "{host} is available.",
+      "addressTaken": "That address is already taken. Please pick another one.",
+      "addressUnknown": "We couldn't check just now — you can still continue.",
+      "purpose": "Why are you here?",
+      "description": "Description",
+      "descriptionHint": "Who do you bring together, and what for? Write it the way you'd tell a friend.",
+      "descriptionPlaceholder": "We're people who …",
+      "suggest": "Draft it for me",
+      "suggestFailed": "The draft didn't work. Feel free to write your own — or try again later.",
+      "suggestNote": "The draft comes from an AI and is just that: read it, change it, throw it away. Nothing is saved until you continue."
+    },
+    "purposes": {
+      "new": { "label": "Build a new community", "hint": "You're starting from zero." },
+      "migrate": { "label": "Move an existing community", "hint": "It exists already — somewhere else." },
+      "looking": { "label": "Just looking around", "hint": "Perfectly fine." }
+    },
+    "sizes": {
+      "none": "Nobody yet",
+      "to100": "Up to 100",
+      "to500": "100 to 500",
+      "to1000": "500 to 1,000",
+      "to5000": "1,000 to 5,000",
+      "over5000": "More than 5,000"
+    },
+    "categories": {
+      "coaching": { "label": "Coaching & consulting", "hint": "Guidance, groups, sparring" },
+      "education": { "label": "Courses & education", "hint": "Learning, teaching, certificates" },
+      "creator": { "label": "Creator & audience", "hint": "Newsletter, video, podcast" },
+      "club": { "label": "Clubs & volunteering", "hint": "Members, dates, notices" },
+      "business": { "label": "Companies & teams", "hint": "Customers, partners, staff" },
+      "health": { "label": "Health & sport", "hint": "Training, nutrition, recovery" },
+      "craft": { "label": "Craft & hobby", "hint": "Making, collecting, repairing" },
+      "other": { "label": "Something else", "hint": "Tell us in the next step." }
+    },
+    "goals": {
+      "relationships": { "label": "Build relationships", "hint": "Members who show up for each other." },
+      "discussion": { "label": "Get conversations going", "hint": "Threads where something actually happens." },
+      "knowledge": { "label": "Collect knowledge", "hint": "Findable instead of lost in chat." },
+      "reach": { "label": "Reach more of the right people", "hint": "Publicly readable content that gets found." },
+      "events": { "label": "Host events", "hint": "Dates, sign-ups, reminders." },
+      "courses": { "label": "Start a programme", "hint": "Courses with structure and progress." },
+      "revenue": { "label": "Charge membership fees", "hint": "Paid memberships." }
+    },
+    "vibes": {
+      "calm": { "label": "Calm & clear", "hint": "Restrained, lots of air" },
+      "warm": { "label": "Warm & inviting", "hint": "Friendly, approachable" },
+      "fresh": { "label": "Fresh & lively", "hint": "Awake, in motion" },
+      "focused": { "label": "Deep & focused", "hint": "Serious, dependable" },
+      "bold": { "label": "Bold & strong", "hint": "Loud, with an attitude" },
+      "elegant": { "label": "Elegant & muted", "hint": "Sober, high-end" }
+    },
+    "summary": {
+      "name": "Name",
+      "address": "Address",
+      "purpose": "Why you're here",
+      "size": "Members",
+      "category": "Field",
+      "goal": "Goal for 6 months",
+      "vibe": "Mood",
+      "trialTitle": "14 days of Pro, no payment details",
+      "trialBody": "After that your community continues on the free plan — with smaller limits. Nothing is locked, nothing is deleted."
+    },
+    "errors": {
+      "hostTaken": "That address was just taken. Go back one step and pick another one.",
+      "notAllowed": "That didn't work: either the invite code is no longer valid, or you already have a community in its trial.",
+      "invalid": "One of the answers doesn't fit. Please walk back through the steps.",
+      "unavailable": "We couldn't create the community just now. Try again in a minute — your answers are kept."
+    },
+    "done": {
+      "title": "Your community is live",
+      "heading": "{name} is live.",
+      "intro": "You're the owner. The community is private — only invited members can see the content.",
+      "addressLabel": "Your address",
+      "open": "Open community",
+      "hints": {
+        "private": "Private by default: content is members-only. \"Publicly readable\" is a switch in the settings.",
+        "trial": "The trial runs for 14 days. We'll remind you before it ends.",
+        "settings": "Name, address, colours and home page can be changed any time in your community's dashboard."
+      }
+    },
     "validation": {
       "nameRequired": "Give your community a name.",
       "slugShort": "At least 3 characters.",

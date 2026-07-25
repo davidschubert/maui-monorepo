@@ -15,6 +15,132 @@
       "rejected": "Dieser Code gilt nicht (mehr). Prüfe die Schreibweise — oder frag uns nach einem neuen.",
       "noCode": "Keinen Code? Schreib uns, wofür du Pukalani nutzen willst — wir laden laufend neue Communities ein."
     },
+    "progress": "Schritt {step} von {total}",
+    "back": "Zurück",
+    "next": "Weiter",
+    "skip": "Überspringen",
+    "create": "Community erstellen",
+    "earlyAccessBadge": "bald",
+    "steps": {
+      "basics": {
+        "title": "Name und Adresse",
+        "heading": "Fangen wir an, {name}.",
+        "intro": "Ein Arbeitstitel reicht völlig — beides lässt sich später ändern."
+      },
+      "size": {
+        "title": "Wie viele Menschen bringst du mit?",
+        "intro": "Eine Schätzung genügt. Wir richten die Community danach ein, nicht ab."
+      },
+      "category": {
+        "title": "Worum geht es bei dir?",
+        "intro": "Wähle das Naheliegendste. Es bestimmt keine Funktionen, sondern hilft uns, dir Passendes zu zeigen."
+      },
+      "description": {
+        "title": "Wen bringst du zusammen?",
+        "intro": "Zwei Sätze reichen. Daraus entsteht die erste Version deiner Startseite — änderbar, sobald du drin bist."
+      },
+      "goal": {
+        "title": "Was wäre in sechs Monaten ein echter Erfolg?",
+        "intro": "Wähle das Wichtigste. Wir nutzen die Antwort, um dir die richtigen nächsten Schritte zu zeigen."
+      },
+      "vibe": {
+        "title": "Welche Stimmung passt?",
+        "intro": "Farben und Schrift deiner Community. Sechs Startpunkte aus unserem Katalog.",
+        "changeable": "Später hast du die vollständige Auswahl — 26 Farbwelten mit je elf Abstufungen, plus eigene Schriften."
+      },
+      "summary": {
+        "title": "Passt das so?",
+        "intro": "Prüf die Angaben. Mit dem Klick entsteht deine Community — die Testphase beginnt in diesem Moment."
+      }
+    },
+    "fields": {
+      "name": "Wie soll deine Community heißen?",
+      "nameHint": "Der Name steht später im Kopf der Seite und in E-Mails.",
+      "namePlaceholder": "z. B. Jungle Zipline",
+      "address": "Adresse",
+      "addressPlaceholder": "jungle-zipline",
+      "addressHint": "Kleinbuchstaben, Zahlen und Bindestriche. Eine eigene Domain kannst du später verbinden.",
+      "addressChecking": "Wird geprüft …",
+      "addressFree": "{host} ist frei.",
+      "addressTaken": "Diese Adresse ist schon belegt. Wähle bitte eine andere.",
+      "addressUnknown": "Konnte gerade nicht geprüft werden — du kannst trotzdem weitermachen.",
+      "purpose": "Warum bist du hier?",
+      "description": "Beschreibung",
+      "descriptionHint": "Wen bringst du zusammen, und wofür? Schreib es, wie du es einem Bekannten erzählen würdest.",
+      "descriptionPlaceholder": "Wir sind Menschen, die …",
+      "suggest": "Vorschlag schreiben",
+      "suggestFailed": "Der Vorschlag hat nicht funktioniert. Schreib gern selbst — oder versuch es später noch einmal.",
+      "suggestNote": "Der Vorschlag kommt von einer KI und ist ein Entwurf: lies ihn, ändere ihn, wirf ihn weg. Er wird erst gespeichert, wenn du weitergehst."
+    },
+    "purposes": {
+      "new": { "label": "Eine neue Community aufbauen", "hint": "Du startest bei null." },
+      "migrate": { "label": "Eine bestehende Community umziehen", "hint": "Es gibt sie schon — woanders." },
+      "looking": { "label": "Ich schaue mich erst mal um", "hint": "Völlig in Ordnung." }
+    },
+    "sizes": {
+      "none": "Noch niemand",
+      "to100": "Bis 100",
+      "to500": "100 bis 500",
+      "to1000": "500 bis 1.000",
+      "to5000": "1.000 bis 5.000",
+      "over5000": "Mehr als 5.000"
+    },
+    "categories": {
+      "coaching": { "label": "Coaching & Beratung", "hint": "Begleitung, Gruppen, Sparring" },
+      "education": { "label": "Kurse & Bildung", "hint": "Lernen, Lehren, Zertifikate" },
+      "creator": { "label": "Creator & Publikum", "hint": "Newsletter, Videos, Podcast" },
+      "club": { "label": "Vereine & Ehrenamt", "hint": "Mitglieder, Termine, Aushänge" },
+      "business": { "label": "Unternehmen & Teams", "hint": "Kunden, Partner, Belegschaft" },
+      "health": { "label": "Gesundheit & Sport", "hint": "Training, Ernährung, Genesung" },
+      "craft": { "label": "Handwerk & Hobby", "hint": "Machen, Sammeln, Reparieren" },
+      "other": { "label": "Etwas anderes", "hint": "Erzähl es uns im nächsten Schritt." }
+    },
+    "goals": {
+      "relationships": { "label": "Beziehungen aufbauen", "hint": "Mitglieder, die füreinander da sind." },
+      "discussion": { "label": "Gespräche in Gang bringen", "hint": "Threads, in denen wirklich etwas passiert." },
+      "knowledge": { "label": "Wissen sammeln", "hint": "Auffindbar statt im Chat verschwunden." },
+      "reach": { "label": "Mehr von den richtigen Leuten erreichen", "hint": "Öffentlich lesbare Inhalte, die gefunden werden." },
+      "events": { "label": "Events veranstalten", "hint": "Termine, Anmeldungen, Erinnerungen." },
+      "courses": { "label": "Ein Programm starten", "hint": "Kurse mit Struktur und Fortschritt." },
+      "revenue": { "label": "Mitgliedsbeiträge einnehmen", "hint": "Bezahlte Mitgliedschaften." }
+    },
+    "vibes": {
+      "calm": { "label": "Ruhig & klar", "hint": "Zurückgenommen, viel Luft" },
+      "warm": { "label": "Warm & einladend", "hint": "Freundlich, nahbar" },
+      "fresh": { "label": "Frisch & lebendig", "hint": "Wach, in Bewegung" },
+      "focused": { "label": "Tief & konzentriert", "hint": "Ernst, verlässlich" },
+      "bold": { "label": "Kräftig & mutig", "hint": "Laut, mit Haltung" },
+      "elegant": { "label": "Elegant & gedeckt", "hint": "Nüchtern, hochwertig" }
+    },
+    "summary": {
+      "name": "Name",
+      "address": "Adresse",
+      "purpose": "Warum du hier bist",
+      "size": "Mitglieder",
+      "category": "Bereich",
+      "goal": "Ziel für 6 Monate",
+      "vibe": "Stimmung",
+      "trialTitle": "14 Tage Pro, ohne Zahlungsdaten",
+      "trialBody": "Danach läuft deine Community im kostenlosen Tarif weiter — mit kleineren Limits. Nichts wird gesperrt, nichts gelöscht."
+    },
+    "errors": {
+      "hostTaken": "Diese Adresse wurde gerade belegt. Geh einen Schritt zurück und wähle eine andere.",
+      "notAllowed": "Das ging nicht: entweder gilt der Einladungs-Code nicht mehr, oder du hast bereits eine Community in der Testphase.",
+      "invalid": "Eine Angabe passt nicht. Geh die Schritte noch einmal durch.",
+      "unavailable": "Wir konnten die Community gerade nicht anlegen. Versuch es in einer Minute noch einmal — deine Antworten bleiben erhalten."
+    },
+    "done": {
+      "title": "Deine Community steht",
+      "heading": "{name} steht.",
+      "intro": "Du bist Owner. Die Community ist privat — nur eingeladene Mitglieder sehen die Inhalte.",
+      "addressLabel": "Deine Adresse",
+      "open": "Community öffnen",
+      "hints": {
+        "private": "Privat gestartet: Inhalte sind nur für Mitglieder sichtbar. „Öffentlich lesbar\" ist ein Schalter in den Einstellungen.",
+        "trial": "Die Testphase läuft 14 Tage. Wir erinnern dich, bevor sie endet.",
+        "settings": "Name, Adresse, Farben und Startseite änderst du jederzeit im Dashboard deiner Community."
+      }
+    },
     "validation": {
       "nameRequired": "Gib deiner Community einen Namen.",
       "slugShort": "Mindestens 3 Zeichen.",

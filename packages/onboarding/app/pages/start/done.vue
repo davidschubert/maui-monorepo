@@ -1,0 +1,55 @@
+<script setup lang="ts">
+/**
+ * Schritt 8 — der erste Einblick.
+ *
+ * Diese Seite ist in O4 bewusst schlicht: sie bestätigt, was entstanden ist,
+ * und verlinkt die Community. Das Willkommensfenster IN der Community, die
+ * erzeugte Startseite und der Session-Handoff (damit man dort auch eingeloggt
+ * ankommt) sind eigener Bau — O6.
+ */
+definePageMeta({ layout: 'onboarding', middleware: 'auth' })
+
+const { t } = useI18n()
+const route = useRoute()
+const draft = useOnboardingDraft()
+
+const host = computed(() => String(route.query.host ?? ''))
+const name = computed(() => draft.value.name ?? '')
+
+// Der Entwurf hat seinen Zweck erfüllt — er darf nicht im Tab liegen bleiben
+// und beim nächsten „Neue Community" mit alten Antworten auftauchen.
+onMounted(() => clearOnboardingDraft())
+
+useHead({ title: () => t('onboarding.done.title') })
+</script>
+
+<template>
+  <div class="space-y-8">
+    <div class="space-y-3">
+      <span class="grid size-12 place-items-center rounded-2xl bg-primary/10 text-primary">
+        <UIcon name="i-ph-sun-horizon" class="size-6" />
+      </span>
+      <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">
+        {{ t('onboarding.done.heading', { name }) }}
+      </h1>
+      <p class="text-muted">{{ t('onboarding.done.intro') }}</p>
+    </div>
+
+    <div class="space-y-4 rounded-xl border border-default p-5">
+      <div class="space-y-1">
+        <p class="text-sm text-muted">{{ t('onboarding.done.addressLabel') }}</p>
+        <p class="break-all font-medium">{{ host }}</p>
+      </div>
+      <UButton v-if="host" :to="`https://${host}`" external size="lg" trailing-icon="i-ph-arrow-up-right" block>
+        {{ t('onboarding.done.open') }}
+      </UButton>
+    </div>
+
+    <ul class="space-y-3 text-sm">
+      <li v-for="hint in ['private', 'trial', 'settings']" :key="hint" class="flex items-start gap-3">
+        <UIcon name="i-ph-check-circle" class="mt-0.5 size-4 shrink-0 text-primary" />
+        <span class="text-muted">{{ t(`onboarding.done.hints.${hint}`) }}</span>
+      </li>
+    </ul>
+  </div>
+</template>

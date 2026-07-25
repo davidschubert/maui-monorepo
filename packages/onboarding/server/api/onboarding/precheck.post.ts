@@ -22,9 +22,12 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 401, statusText: 'Unauthorized' })
   }
   const body = await readValidatedBody(event, bodySchema.parse)
-  return callControlPlane<{ codeValid?: boolean, slugAvailable?: boolean }>(
+  const result = await callControlPlane<{ codeValid?: boolean, slugAvailable?: boolean }>(
     event,
     '/api/studio/onboarding/precheck',
     body,
   )
+  // Wird hier mitgeliefert, damit das UI den KI-Knopf (Schritt 4) nur zeigt,
+  // wenn er auch funktioniert — der Wizard fragt diese Route ohnehin.
+  return { ...result, aiAvailable: isAiAvailable(event) }
 })
