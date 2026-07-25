@@ -1,0 +1,16 @@
+/*
+ * Licht-Dramaturgie der Marketing-Startseite (§6.3): die Seite hellt beim
+ * Scrollen auf — von „bewölktem" Grau oben zu warmem Sonnenlicht unten. Alle
+ * Regeln unter body.marketing-site gescopet (Login/Dashboard der Layer bleiben
+ * unberührt). Details folgen in L2; hier das Fundament.
+ */
+.marketing-site {
+  /* puka-Palette (Sonne durch die Wolken) — bewusst neben der Theme-Engine,
+     weil die Dramaturzie eigene, feste Licht-Töne braucht. */
+  --puka-cloud: 220 14% 96%;   /* kühles Wolkengrau (oben) */
+  --puka-mist: 214 16% 90%;
+  --puka-sky: 205 60% 88%;     /* aufklarender Himmel */
+  --puka-dawn: 36 90% 90%;     /* warmes Morgenlicht (unten) */
+  --puka-sun: 40 96% 62%;      /* die Sonne */
+  --puka-ink: 220 40% 14%;     /* Text auf hellem Grund */
+}

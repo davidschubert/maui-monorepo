@@ -81,6 +81,15 @@
         "source ~/.nvm/nvm.sh && nvm use 22 >/dev/null && exec pnpm --filter platform dev"
       ],
       "port": 3006
+    },
+    {
+      "name": "marketing",
+      "runtimeExecutable": "zsh",
+      "runtimeArgs": [
+        "-c",
+        "source ~/.nvm/nvm.sh && nvm use 22 >/dev/null && exec pnpm --filter marketing dev"
+      ],
+      "port": 3007
     }
   ]
 }

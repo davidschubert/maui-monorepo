@@ -60,6 +60,9 @@ else {
 }
 
 if (await indexExists('uq_slug_locale')) {
+  // destruktiv-ok: der alte, NICHT-tenant-aware Unique-Index wird erst entfernt,
+  // NACHDEM der tenant-aware Ersatz (uq_slug_locale_tenant) angelegt + verfügbar
+  // ist — Daten bleiben unberührt, nur die Constraint wird korrekt ersetzt.
   await tablesDB.deleteIndex({ databaseId, tableId: 'pages', key: 'uq_slug_locale' })
     .catch((error) => { if (!hasCode(error, 404)) throw error })
   console.log('✔ alter Unique-Index uq_slug_locale entfernt')

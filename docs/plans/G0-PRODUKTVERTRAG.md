@@ -318,6 +318,13 @@ klar markierte Roadmap-Sektion, nie als Tarifbestandteil getarnt.
 6. **Kanonische `siteId`:** ✅ **= `tenants.$id`** (der Tenant IST die
    Kunden-Site; `sites` bleibt Infra-Register). `tenants` bekommt in G1 nur
    `workspaceId` (Billing-Anker); keine `sites`-Doppelzeilen.
+7. **Lese-Publikum je Site (Naht 4):** ✅ **privat als Default, öffentlich
+   opt-in** (David, 2026-07-24). Jede Community-Site startet mitglieder-only
+   (`read(Role.label(siteId))` — harte Appwrite-Grenze); „öffentlich lesbar"
+   ist ein bewusster Schalter pro Site (`read(any)`). Der Naht-4-Mechanismus
+   (`tenantRowPermissionsFor`, Default `'members'`) setzt das bereits um; das
+   Live-Wiring in den Schreibpfad + die Session-Label-Vergabe je Site folgen
+   mit dem Onboarding (G3-Nähe).
 
 **Damit ist G0 vollständig abgeschlossen.**
 
