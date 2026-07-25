@@ -15,7 +15,6 @@
     "@iconify-json/ph": "catalog:",
     "@maui/core": "workspace:*",
     "@maui/system": "workspace:*",
-    "@maui/themes": "workspace:*",
     "@nuxt/ui": "catalog:",
     "@nuxtjs/i18n": "catalog:",
     "@pinia/nuxt": "catalog:",

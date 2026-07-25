@@ -1,8 +1,10 @@
 export default defineNuxtConfig({
-  // Marketing-Startseite von pukalani.app (Wurzel). Schlanke App: Fundament
-  // (core + system) + themes (für die Farbwelten-Vorschau + das Licht-Motiv).
-  // Bewusst KEIN admin/comments/… — die Seite ist öffentlich + statisch.
-  extends: ['../../packages/themes', '../../packages/core', '../../packages/system'],
+  // Marketing-Startseite von pukalani.app (Wurzel). Bewusst NUR das Fundament
+  // (core + system) — kein admin/themes/comments: die Seite ist öffentlich +
+  // statisch, das Licht-Motiv ist eigenständiges CSS, und die Farbwelten-
+  // Vorschau liest später die statische Theme-Registry direkt (kein
+  // Dashboard-Layer nötig).
+  extends: ['../../packages/core', '../../packages/system'],
 
   // Port pro App eindeutig (3001 comments · 3004 platform · 3005 portfolio · 3007 marketing)
   devServer: {

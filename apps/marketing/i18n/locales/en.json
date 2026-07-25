@@ -1,11 +1,43 @@
 {
   "marketing": {
+    "nav": {
+      "features": "Building blocks",
+      "pricing": "Pricing",
+      "story": "Story",
+      "signIn": "Sign in",
+      "start": "Start free",
+      "toGerman": "Deutsch",
+      "toEnglish": "English"
+    },
     "hero": {
       "eyebrow": "Your community platform, privacy-first",
       "title": "Your community. Your courses. Your rules.",
       "sub": "Posts, courses, events and discussions under your own name and design. Hosted in Germany, no ad tracking. The lean, fair alternative to bloated community suites.",
       "ctaPrimary": "Start free",
-      "ctaSecondary": "See the live demo"
+      "ctaSecondary": "See the live demo",
+      "trust": {
+        "hosting": "Hosted in Germany",
+        "tracking": "No ad tracking",
+        "privacy": "Privacy by design",
+        "modular": "Modular"
+      },
+      "refrain": "Your place, where the sun breaks through."
+    },
+    "footer": {
+      "tagline": "Your own community platform — lean, privacy-first, hosted in Germany.",
+      "refrain": "Where the sun breaks through.",
+      "colProduct": "Product",
+      "colCompany": "About",
+      "colLegal": "Legal",
+      "start": "Start free",
+      "demo": "Live demo",
+      "changelog": "Changelog",
+      "story": "Our story",
+      "privacy": "Privacy",
+      "imprint": "Imprint",
+      "terms": "Terms",
+      "rights": "All rights reserved.",
+      "madeIn": "Built with aloha. Hosted in Germany."
     }
   }
 }

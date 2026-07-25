@@ -295,9 +295,6 @@ importers:
       '@maui/system':
         specifier: workspace:*
         version: link:../../packages/system
-      '@maui/themes':
-        specifier: workspace:*
-        version: link:../../packages/themes
       '@nuxt/ui':
         specifier: 'catalog:'
         version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)

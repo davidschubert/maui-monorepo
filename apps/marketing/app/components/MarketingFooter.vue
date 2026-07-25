@@ -1,0 +1,116 @@
+<script setup lang="ts">
+const { t } = useI18n()
+const { start, demo } = useProductLinks()
+const year = 2026 // statisch: Date.now() steht im Build nicht zur Verfügung
+</script>
+
+<template>
+  <footer class="mkt-footer tone-ink">
+    <div class="mkt-footer-inner">
+      <div class="foot-brand">
+        <div class="foot-brand-row">
+          <PukaMark :size="24" />
+          <span class="foot-word">Pukalani</span>
+        </div>
+        <p class="foot-tagline">{{ t('marketing.footer.tagline') }}</p>
+        <p class="foot-refrain">„{{ t('marketing.footer.refrain') }}"</p>
+      </div>
+
+      <nav class="foot-col" aria-label="Produkt">
+        <h3>{{ t('marketing.footer.colProduct') }}</h3>
+        <a :href="start">{{ t('marketing.footer.start') }}</a>
+        <a :href="demo">{{ t('marketing.footer.demo') }}</a>
+        <a href="#bausteine">{{ t('marketing.nav.features') }}</a>
+        <a href="#preise">{{ t('marketing.nav.pricing') }}</a>
+      </nav>
+
+      <nav class="foot-col" aria-label="Über">
+        <h3>{{ t('marketing.footer.colCompany') }}</h3>
+        <a href="#geschichte">{{ t('marketing.footer.story') }}</a>
+        <a href="https://changelog.pukalani.app">{{ t('marketing.footer.changelog') }}</a>
+      </nav>
+
+      <nav class="foot-col" aria-label="Rechtliches">
+        <h3>{{ t('marketing.footer.colLegal') }}</h3>
+        <a href="https://app.pukalani.app/datenschutz">{{ t('marketing.footer.privacy') }}</a>
+        <a href="https://app.pukalani.app/impressum">{{ t('marketing.footer.imprint') }}</a>
+        <a href="https://app.pukalani.app/agb">{{ t('marketing.footer.terms') }}</a>
+      </nav>
+    </div>
+
+    <div class="mkt-footer-base">
+      <span>© {{ year }} Pukalani. {{ t('marketing.footer.rights') }}</span>
+      <span>{{ t('marketing.footer.madeIn') }}</span>
+    </div>
+  </footer>
+</template>
+
+<style scoped>
+.mkt-footer {
+  padding: clamp(3rem, 6vw, 5rem) 1.5rem 2rem;
+}
+.mkt-footer-inner {
+  max-width: 72rem;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+}
+.foot-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.foot-word {
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: hsl(var(--puka-cloud));
+}
+.foot-tagline {
+  margin-top: 0.75rem;
+  max-width: 22rem;
+  color: hsl(var(--puka-mist) / 0.75);
+  line-height: 1.55;
+  font-size: 0.95rem;
+}
+.foot-refrain {
+  margin-top: 0.75rem;
+  color: hsl(var(--puka-sun));
+  font-style: italic;
+  font-size: 0.95rem;
+}
+.foot-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.foot-col h3 {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: hsl(var(--puka-mist) / 0.6);
+  margin-bottom: 0.2rem;
+}
+.foot-col a {
+  color: hsl(var(--puka-cloud) / 0.85);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+.foot-col a:hover { color: hsl(var(--puka-sun)); }
+.mkt-footer-base {
+  max-width: 72rem;
+  margin: 2.5rem auto 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid hsl(var(--puka-cloud) / 0.12);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: hsl(var(--puka-mist) / 0.6);
+}
+
+@media (min-width: 640px) {
+  .mkt-footer-inner { grid-template-columns: 2fr 1fr 1fr 1fr; }
+}
+</style>

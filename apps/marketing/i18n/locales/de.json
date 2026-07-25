@@ -1,11 +1,43 @@
 {
   "marketing": {
+    "nav": {
+      "features": "Bausteine",
+      "pricing": "Preise",
+      "story": "Geschichte",
+      "signIn": "Anmelden",
+      "start": "Kostenlos starten",
+      "toGerman": "Deutsch",
+      "toEnglish": "English"
+    },
     "hero": {
       "eyebrow": "Deine Community-Plattform, DSGVO-nativ",
       "title": "Deine Community. Deine Kurse. Deine Regeln.",
       "sub": "Beiträge, Kurse, Events und Diskussionen unter deinem Namen und deinem Design. In Deutschland gehostet und ohne Werbe-Tracking. Die schlanke, faire Alternative zu großen Community-Suiten.",
       "ctaPrimary": "Kostenlos starten",
-      "ctaSecondary": "Live-Demo ansehen"
+      "ctaSecondary": "Live-Demo ansehen",
+      "trust": {
+        "hosting": "In Deutschland gehostet",
+        "tracking": "Kein Werbe-Tracking",
+        "privacy": "Privacy by Design",
+        "modular": "Modular"
+      },
+      "refrain": "Dein Ort, wo die Sonne durchbricht."
+    },
+    "footer": {
+      "tagline": "Deine eigene Community-Plattform — schlank, DSGVO-nativ, in Deutschland gehostet.",
+      "refrain": "Wo die Sonne durchbricht.",
+      "colProduct": "Produkt",
+      "colCompany": "Über",
+      "colLegal": "Rechtliches",
+      "start": "Kostenlos starten",
+      "demo": "Live-Demo",
+      "changelog": "Changelog",
+      "story": "Unsere Geschichte",
+      "privacy": "Datenschutz",
+      "imprint": "Impressum",
+      "terms": "AGB",
+      "rights": "Alle Rechte vorbehalten.",
+      "madeIn": "Mit Aloha gebaut. Gehostet in Deutschland."
     }
   }
 }
