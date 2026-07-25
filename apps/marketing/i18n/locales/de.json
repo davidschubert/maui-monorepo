@@ -84,6 +84,65 @@
       ],
       "note": "Was am Ende zählt, ist die konkrete Konfiguration deiner Site und deine Rechtstexte – pauschale Versprechen machen wir bewusst nicht."
     },
+    "compare": {
+      "kicker": "Ehrlich verglichen",
+      "title": "Ehrlich verglichen. Auch da, wo wir (noch) nicht die Antwort sind.",
+      "lead": "Wir vergleichen nur, was wir belegen können — mit Quellen und Datum. Wo wir schwächer sind, steht es hier genauso drin.",
+      "asOf": "Stand: 24. Juli 2026 · Angaben der Anbieter-Preisseiten, quartalsweise geprüft",
+      "sources": "Quellen:",
+      "criterion": "Kriterium",
+      "us": "Pukalani",
+      "rows": [
+        { "label": "Einstiegspreis pro Monat", "us": "kostenlos", "circle": "89 $ (Professional)", "skool": "9 $ (Hobby)", "mighty": "79 $ (Launch)" },
+        { "label": "Transaktionsgebühr", "us": "keine", "circle": "2 %", "skool": "10 % (Hobby) · 2,9 % (Pro)", "mighty": "2 %" },
+        { "label": "Hosting / Firmensitz", "us": "Deutschland", "circle": "USA", "skool": "USA", "mighty": "USA" },
+        { "label": "Kurse inkl. Bezahl-Zugang", "us": "ja (Early Access)", "circle": "ja", "skool": "ja", "mighty": "ja" },
+        { "label": "Bausteine einzeln abschaltbar", "us": "ja", "circle": "Suite", "skool": "Suite", "mighty": "Suite" },
+        { "label": "Bausteine in eigene Website einbettbar", "us": "ja (Diskussionen, Events)", "circle": "k. A.", "skool": "k. A.", "mighty": "k. A." },
+        { "label": "Native Mobile-Apps mit Push", "us": "nein", "circle": "ja", "skool": "ja", "mighty": "ja" }
+      ],
+      "note": "„k. A.\" heißt: wir konnten es nicht sauber belegen — und behaupten dann nichts. Findest du einen Fehler, schreib uns; wir korrigieren.",
+      "honest": "Du willst native iOS-/Android-Apps mit Push, oder eine Community mit 50.000 Mitgliedern und Enterprise-SSO? Dann sind die großen Suiten (noch) die bessere Wahl. Für alle, die schlank, fair und datenschutz-nah starten wollen, sind wir der richtige Weg."
+    },
+    "vs": {
+      "backHome": "Zur Startseite",
+      "whenThemTitle": "Wann {name} die bessere Wahl ist",
+      "whenUsTitle": "Wann Pukalani passt",
+      "ctaTitle": "Community starten – kostenlos",
+      "ctaLead": "Kein Risiko, keine Mindestlaufzeit, Datenexport inklusive.",
+      "items": {
+        "circle": {
+          "name": "Circle",
+          "metaTitle": "Circle-Alternative: Pukalani – DSGVO-nah, in Deutschland gehostet",
+          "metaDescription": "Pukalani vs Circle: schlanke Community-Plattform ohne 89-$-Einstieg und ohne Transaktionsgebühr, in Deutschland gehostet. Ehrlicher Vergleich mit Quellen.",
+          "title": "Pukalani vs Circle",
+          "sub": "Die schlanke, datenschutz-nahe Alternative — für Communities, die keine ganze Suite brauchen.",
+          "intro": "Circle ist mächtig: breite Suite, Automationen, Skalierung. Genau das ist für kleine und mittlere Communities oft mehr, als sie brauchen – und teurer, als sie wollen. Pukalani setzt dagegen auf wenige, gut gemachte Bausteine, Hosting in Deutschland und einen planbaren Preis ohne Transaktionsgebühr.",
+          "whenThem": "Du brauchst eine breite Suite mit vielen Automationen, native Mobile-Apps mit Push oder skalierst auf sehr große Mitgliederzahlen mit Enterprise-Anforderungen. Dann bekommst du bei Circle mehr Fläche.",
+          "whenUs": "Du willst eine eigene Community-Heimat unter deinem Namen, in Deutschland gehostet, ohne Werbe-Tracking und ohne Transaktionsgebühr – und du willst nur die Bausteine anschalten, die du wirklich nutzt."
+        },
+        "skool": {
+          "name": "Skool",
+          "metaTitle": "Skool-Alternative: Pukalani – DSGVO-nah, ohne 10 % Gebühr",
+          "metaDescription": "Pukalani vs Skool: Community + Kurse unter deiner Marke, in Deutschland gehostet, ohne Transaktionsgebühr auf deine Umsätze. Ehrlicher Vergleich mit Quellen.",
+          "title": "Pukalani vs Skool",
+          "sub": "Community und Kurse unter deiner Marke — ohne Anteil an deinen Umsätzen.",
+          "intro": "Skool ist bewusst einfach und stark im Gamification-Ansatz. Der Einstieg ist günstig, kostet dich im Hobby-Tarif aber 10 % deiner Umsätze. Pukalani nimmt keine Transaktionsgebühr, hostet in Deutschland und lässt dich Design, Domain und Bausteine selbst bestimmen.",
+          "whenThem": "Du magst den gamifizierten, sehr geführten Ansatz, willst dich um nichts kümmern und die Community darf aussehen wie Skool. Dann ist Skool schnell und stimmig.",
+          "whenUs": "Deine Community soll aussehen und heißen wie DU, deine Umsätze bleiben vollständig bei dir, und Datenschutz ist dir nicht nur ein Häkchen. Dazu willst du Diskussionen oder Events auch in deine bestehende Website einbetten."
+        },
+        "mighty-networks": {
+          "name": "Mighty Networks",
+          "metaTitle": "Mighty-Networks-Alternative: Pukalani – schlank und in DE gehostet",
+          "metaDescription": "Pukalani vs Mighty Networks: eigene Community-Plattform, in Deutschland gehostet, modular statt Suite, ohne Transaktionsgebühr. Ehrlicher Vergleich mit Quellen.",
+          "title": "Pukalani vs Mighty Networks",
+          "sub": "Modular statt Suite — deine Community, dein Design, deine Daten in Deutschland.",
+          "intro": "Mighty Networks bringt Community, Kurse und Events samt Mobile-Apps zusammen. Das ist stark, wenn du die ganze Breite willst. Pukalani ist der schlanke Gegenentwurf: nur die Bausteine, die du brauchst, in Deutschland gehostet, ohne Transaktionsgebühr – und einzelne Bausteine sind in deine eigene Website einbettbar.",
+          "whenThem": "Du brauchst native Mobile-Apps mit Push und die volle Breite einer etablierten Suite, inklusive großer Reichweiten-Features. Dann liefert Mighty mehr.",
+          "whenUs": "Du willst schlank starten, planbar zahlen, in Deutschland hosten und selbst entscheiden, welche Bausteine überhaupt sichtbar sind – ohne Ballast, den du nie öffnest."
+        }
+      }
+    },
     "pricing": {
       "kicker": "Preise",
       "title": "Ein fairer Preis für deine ganze Community – nicht pro Baustein.",

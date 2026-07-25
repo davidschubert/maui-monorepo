@@ -66,6 +66,7 @@ useHead(() => ({
     <BlocksSection />
     <ModularSection />
     <PrivacySection />
+    <ComparisonSection />
     <PricingSection />
     <StorySection />
     <!-- Bewusste Abweichung von §6.4 (dort CTA → FAQ): die FAQ steht VOR der
