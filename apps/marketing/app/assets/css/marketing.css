@@ -25,12 +25,22 @@
   text-rendering: optimizeLegibility;
 }
 
-/* ── Sektions-Töne: der Grau→Sonne-Verlauf über den Scroll ────────────────── */
+/* ── Sektions-Töne: der Grau→Sonne-Verlauf über den Scroll ─────────────────
+ * WICHTIG (§6.3): das Licht hellt MONOTON auf — jede Sektion beginnt in dem
+ * Ton, in dem die vorige endete. Deshalb gibt es Übergangs-Töne (Gradienten)
+ * UND Halte-Töne (flach). Ein Gradient direkt nach seinem eigenen Endton würde
+ * ins Kühle zurückspringen (sichtbarer Bruch) — daher die *-hold-Varianten.
+ * Kette: cloud → mist → sky(↗) → sky-hold → dawn(↗) → dawn-hold → sun(↗)
+ *        → sun-hold → ink (der dunkelwarme Peak).
+ */
 .marketing-site .tone-cloud { background: hsl(var(--puka-cloud)); }
 .marketing-site .tone-mist { background: hsl(var(--puka-mist)); }
 .marketing-site .tone-sky { background: linear-gradient(180deg, hsl(var(--puka-mist)), hsl(var(--puka-sky))); }
+.marketing-site .tone-sky-hold { background: hsl(var(--puka-sky)); }
 .marketing-site .tone-dawn { background: linear-gradient(180deg, hsl(var(--puka-sky)), hsl(var(--puka-dawn))); }
+.marketing-site .tone-dawn-hold { background: hsl(var(--puka-dawn)); }
 .marketing-site .tone-sun { background: linear-gradient(180deg, hsl(var(--puka-dawn)), hsl(38 96% 82%)); }
+.marketing-site .tone-sun-hold { background: hsl(38 96% 82%); }
 .marketing-site .tone-ink {
   background: hsl(var(--puka-ink));
   color: hsl(var(--puka-cloud));

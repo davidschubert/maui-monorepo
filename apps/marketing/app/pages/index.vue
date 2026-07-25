@@ -67,6 +67,12 @@ useHead(() => ({
     <ModularSection />
     <PrivacySection />
     <PricingSection />
+    <StorySection />
+    <!-- Bewusste Abweichung von §6.4 (dort CTA → FAQ): die FAQ steht VOR der
+         CTA, damit das Licht-Motiv (§6.3) monoton zum Peak aufhellt und die
+         Seite auf dem dunkelwarmen Abschluss-CTA endet — CTA (dunkel) → FAQ
+         (hell) → Footer (dunkel) hätte wie ein Fehler gewirkt. Inhaltlich
+         entkräftet die FAQ die letzten Zweifel direkt VOR der Aufforderung. -->
     <FaqSection />
     <CtaSection />
   </div>

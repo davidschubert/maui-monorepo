@@ -15,7 +15,7 @@ const plans = computed(() =>
 </script>
 
 <template>
-  <section id="preise" class="mkt-section tone-dawn">
+  <section id="preise" class="mkt-section tone-dawn-hold">
     <div class="mkt-inner mkt-narrow pricing-head" data-reveal>
       <p class="mkt-kicker">{{ t('marketing.pricing.kicker') }}</p>
       <h2 class="mkt-h2">{{ t('marketing.pricing.title') }}</h2>

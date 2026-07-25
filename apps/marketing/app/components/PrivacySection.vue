@@ -11,7 +11,7 @@ const points = computed(() =>
 </script>
 
 <template>
-  <section id="datenschutz" class="mkt-section tone-sky">
+  <section id="datenschutz" class="mkt-section tone-dawn-hold">
     <div class="mkt-inner priv-grid">
       <div class="priv-copy" data-reveal>
         <p class="mkt-kicker">{{ t('marketing.privacy.kicker') }}</p>

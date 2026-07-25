@@ -14,7 +14,7 @@ const items = computed(() =>
 </script>
 
 <template>
-  <section id="bausteine" class="mkt-section tone-dawn">
+  <section id="bausteine" class="mkt-section tone-sky-hold">
     <div class="mkt-inner mkt-narrow blocks-head" data-reveal>
       <p class="mkt-kicker">{{ t('marketing.blocks.kicker') }}</p>
       <h2 class="mkt-h2">{{ t('marketing.blocks.title') }}</h2>

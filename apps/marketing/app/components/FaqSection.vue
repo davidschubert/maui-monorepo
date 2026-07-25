@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Szene 14 — Denouement (§6.4): letzte Fäden, Ruhe. Native <details> =
 // tastatur-/screenreader-freundlich, kein JS, funktioniert mit reduced-motion.
-// Ton zurück zur Ruhe (cloud).
+// Ton bleibt warm (dawn): das Licht-Motiv (§6.3) hellt monoton zum CTA-Peak auf.
 const { t } = useI18n()
 const items = computed(() =>
   [0, 1, 2, 3, 4, 5].map(i => ({
@@ -12,7 +12,7 @@ const items = computed(() =>
 </script>
 
 <template>
-  <section id="faq" class="mkt-section tone-cloud">
+  <section id="faq" class="mkt-section tone-sun-hold">
     <div class="mkt-inner mkt-narrow faq-head" data-reveal>
       <p class="mkt-kicker">{{ t('marketing.faq.kicker') }}</p>
       <h2 class="mkt-h2">{{ t('marketing.faq.title') }}</h2>

@@ -109,6 +109,18 @@
         { "q": "Muss ich alle Bausteine nutzen?", "a": "Nein – jeder Baustein ist an- und abschaltbar. Du startest schlank und ergänzt, was du brauchst." }
       ]
     },
+    "story": {
+      "kicker": "Unsere Geschichte",
+      "title": "Ein Loch in den Wolken.",
+      "intro": "Weit draußen im Pazifik liegt Maui. Hoch an den Hängen des Haleakalā gibt es einen Ort namens Pukalani. Sein Name wird als Öffnung zum Himmel verstanden — eine puka im Grau, durch die Licht fällt. Genau dort ist die Idee zu dieser Plattform entstanden.",
+      "strands": [
+        { "title": "Das Loch in den Wolken.", "text": "Das Netz ist heute meist bewölkt – voller Tracking, Werbung, Lärm und geschlossener Netzwerke, in denen deine Community dir nie ganz gehört. Pukalani ist die Öffnung, durch die die Sonne bricht: ein klarer, ruhiger Ort, ohne all das Grau." },
+        { "title": "Das Tor zum Himmel.", "text": "Puka und lani lässt sich als „Öffnung zum Himmel\" lesen – eine Tür. Und genau so soll sich der Anfang anfühlen: Du gehst hindurch, und in sechzig Sekunden steht deine eigene Community – ohne Server, ohne Handbuch, ohne Umwege." },
+        { "title": "Fruchtbarer Boden.", "text": "Pukalani liegt im Hochland, auf reichem Vulkanboden, auf dem seit Generationen Dinge wachsen. Das ist unser Versprechen: ein Ort, an dem deine Community wächst – deine Beiträge, deine Kurse, deine Events, deine Menschen." },
+        { "title": "Eine Welt für sich.", "text": "Deine Community ist bei uns eine eigene, lebendige Welt – souverän und ganz die deine. Sie versickert nicht in einem fremden Netzwerk. Was du hier baust, gehört dir." }
+      ],
+      "outro": "Gebaut von einem, der die Plattform selbst haben wollte: ehrlich, schlank, DSGVO-nah – ohne dich oder deine Mitglieder zum Produkt zu machen. Pukalani ist ein besonderer Ort. Pukalani.app soll einer sein."
+    },
     "cta": {
       "title": "Bereit für deine eigene Community?",
       "lead": "Tritt durch das Tor – in 60 Sekunden steht deine Community. Kostenlos, ohne Risiko.",

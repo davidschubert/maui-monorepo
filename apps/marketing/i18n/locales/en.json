@@ -109,6 +109,18 @@
         { "q": "Do I have to use all blocks?", "a": "No – every block can be switched on or off. Start lean and add what you need." }
       ]
     },
+    "story": {
+      "kicker": "Our story",
+      "title": "A hole in the clouds.",
+      "intro": "Far out in the Pacific lies Maui. High on the slopes of Haleakalā is a place called Pukalani. Its name is understood as an opening to the sky — a puka in the grey where light breaks through. That's where the idea for this platform was born.",
+      "strands": [
+        { "title": "The hole in the clouds.", "text": "Today's web is mostly clouded – full of tracking, ads, noise and closed networks where your community never truly belongs to you. Pukalani is the opening where the sun breaks through: a clear, calm place, without all the grey." },
+        { "title": "The gateway to the sky.", "text": "Puka and lani can be read as “an opening to the sky” — a door. And that's how the beginning should feel: you step through, and in sixty seconds your own community stands – no servers, no manual, no detours." },
+        { "title": "Fertile ground.", "text": "Pukalani sits in the highlands, on rich volcanic soil where things have grown for generations. That's our promise: a place where your community grows – your posts, your courses, your events, your people." },
+        { "title": "A world of its own.", "text": "Your community here is its own living world — sovereign, and entirely yours. It doesn't fade into someone else's network. What you build here belongs to you." }
+      ],
+      "outro": "Built by someone who wanted this platform to exist: honest, lean, privacy-first – without turning you or your members into the product. Pukalani is a special place. Pukalani.app is meant to be one too."
+    },
     "cta": {
       "title": "Ready for your own community?",
       "lead": "Step through the door – your community stands in 60 seconds. Free, no risk.",
