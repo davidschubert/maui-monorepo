@@ -66,6 +66,7 @@ useHead(() => ({
     <BlocksSection />
     <ModularSection />
     <PrivacySection />
+    <AudienceSection />
     <ComparisonSection />
     <PricingSection />
     <StorySection />

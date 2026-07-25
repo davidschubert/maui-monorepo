@@ -84,6 +84,67 @@
       ],
       "note": "Was am Ende zählt, ist die konkrete Konfiguration deiner Site und deine Rechtstexte – pauschale Versprechen machen wir bewusst nicht."
     },
+    "audience": {
+      "kicker": "Für wen",
+      "title": "Gebaut für Menschen, die eine Community aufbauen – nicht für Konzerne.",
+      "lead": "Vier typische Wege in eine eigene Community. Finde deinen.",
+      "more": "Mehr dazu",
+      "items": [
+        { "slug": "coaches", "icon": "i-ph-users-three-bold", "title": "Coaches & Trainer", "text": "Kurse, Diskussion und Treffen an einem geschützten Ort, den du steuerst." },
+        { "slug": "kurse", "icon": "i-ph-graduation-cap-bold", "title": "Kurs-Ersteller", "text": "Verkaufe Kurse mit Community drumherum – zu einem planbaren Preis." },
+        { "slug": "creator", "icon": "i-ph-pen-nib-bold", "title": "Creator & Autoren", "text": "Deine Community unter deiner Marke, ohne fremde Werbung." },
+        { "slug": "vereine", "icon": "i-ph-buildings-bold", "title": "Vereine & Organisationen", "text": "Mitglieder, Events und Austausch – in Deutschland gehostet." }
+      ]
+    },
+    "audiencePages": {
+      "backHome": "Zur Startseite",
+      "fitTitle": "Warum Pukalani hier passt",
+      "blocksTitle": "Diese Bausteine brauchst du dafür",
+      "ctaTitle": "Klingt nach dir?",
+      "ctaLead": "Starte kostenlos – in 60 Sekunden steht deine Community.",
+      "items": {
+        "coaches": {
+          "name": "Coaches & Trainer",
+          "metaTitle": "Community-Plattform für Coaches – DSGVO-nah, in Deutschland gehostet",
+          "metaDescription": "Ein geschützter Ort für Teilnehmer: Diskussionen, Kurse und Treffen unter deinem Namen. In Deutschland gehostet, ohne Werbe-Tracking. Kostenlos starten.",
+          "title": "Deine Community als Coach oder Trainerin",
+          "sub": "Ein Ort, an dem deine Teilnehmer diskutieren, lernen und sich treffen – und den DU steuerst.",
+          "intro": "Wenn Begleitung endet, weil die WhatsApp-Gruppe unübersichtlich wird, verliert dein Programm seine Wirkung. Eine eigene Community hält Menschen zusammen: Fragen landen sichtbar, Antworten bleiben auffindbar, Termine sind an einem Ort.",
+          "fit": "Du bestimmst Design, Domain und Regeln. Moderation ist eingebaut (inklusive KI-Assistenz als Zweitmeinung – entscheiden tust du). Und weil in Deutschland gehostet und ohne Werbe-Tracking gearbeitet wird, kannst du deinen Teilnehmern ruhigen Gewissens einen Link schicken.",
+          "blocks": "Diskussionen · Moderation · Seiten & Branding · später Kurse und Events"
+        },
+        "kurse": {
+          "name": "Kurs-Ersteller",
+          "metaTitle": "Online-Kurse mit Community – eigene Plattform, DSGVO-nah",
+          "metaDescription": "Kurse verkaufen mit Community drumherum: Lektionen, Fortschritt, Bezahl-Zugang über Stripe – unter deiner Marke, in Deutschland gehostet, ohne Transaktionsgebühr.",
+          "title": "Kurse verkaufen – mit Community drumherum",
+          "sub": "Lektionen, Fortschritt und Bezahl-Zugang, ohne Anteil an deinen Umsätzen.",
+          "intro": "Ein Kurs allein ist eine Datei. Ein Kurs mit Community ist ein Ergebnis: Teilnehmer fragen nach, bleiben dran, empfehlen weiter. Genau diese Kombination ist bei Pukalani ein Baustein-Klick voneinander entfernt.",
+          "fit": "Zugang frei, nur für Mitglieder oder kostenpflichtig – Bezahl-Zugang läuft über Stripe. Wir nehmen keine Transaktionsgebühr: was du verdienst, bleibt bei dir. Preis planbar, Daten in Deutschland, Export jederzeit.",
+          "blocks": "Kurse (Early Access) · Diskussionen · Seiten & Branding"
+        },
+        "creator": {
+          "name": "Creator & Autoren",
+          "metaTitle": "Community für Creator & Newsletter-Autoren – unter deiner Marke",
+          "metaDescription": "Diskussion und Austausch unter deiner Marke statt in einem fremden Netzwerk: einbettbar in deine Website, in Deutschland gehostet, ohne Werbe-Tracking.",
+          "title": "Deine Leser bekommen einen Ort – bei dir",
+          "sub": "Diskussion unter deiner Marke, einbettbar in die Seite, die du längst hast.",
+          "intro": "Kommentare unter Beiträgen, ein Feed für Ankündigungen, gelegentlich ein Live-Termin: daraus wird aus Publikum eine Community. Und zwar auf deiner Domain, nicht in einem Netzwerk, das dir die Reichweite morgen wieder wegnimmt.",
+          "fit": "Einzelne Bausteine lassen sich in deine bestehende Website einbetten – du musst nichts umziehen. Kein Werbe-Tracking, keine Werbung, keine Weitergabe: deine Leser bleiben deine Leser.",
+          "blocks": "Diskussionen (einbettbar) · Moderation · Seiten & Branding · später Feed"
+        },
+        "vereine": {
+          "name": "Vereine & Organisationen",
+          "metaTitle": "Community-Software für Vereine – in Deutschland gehostet, DSGVO-nah",
+          "metaDescription": "Mitgliederbereich mit Diskussionen, Ankündigungen und Terminen – in Deutschland gehostet, datensparsam, ohne Werbe-Tracking. Kostenlos starten.",
+          "title": "Mitglieder, Termine und Austausch an einem Ort",
+          "sub": "Ein Mitgliederbereich, den auch Nicht-Techniker bedienen – gehostet in Deutschland.",
+          "intro": "Rundmails, drei Chatgruppen und ein PDF-Kalender: so verliert man Mitglieder statt sie einzubinden. Ein ruhiger, gemeinsamer Ort ersetzt das – ohne dass jemand einen Server betreuen muss.",
+          "fit": "Kein Betrieb, keine Plugin-Bastelei: du legst die Site an und arbeitest los. Daten liegen in Deutschland, Rollen regeln klar, wer moderiert, schreibt oder nur mitliest – und der Einstieg ist kostenlos.",
+          "blocks": "Diskussionen · Moderation · Seiten & Branding · später Events"
+        }
+      }
+    },
     "compare": {
       "kicker": "Ehrlich verglichen",
       "title": "Ehrlich verglichen. Auch da, wo wir (noch) nicht die Antwort sind.",

@@ -84,6 +84,67 @@
       ],
       "note": "What matters in the end is your site's actual configuration and your legal texts – we deliberately avoid blanket promises."
     },
+    "audience": {
+      "kicker": "Who it's for",
+      "title": "Built for people building a community – not for corporations.",
+      "lead": "Four typical paths into your own community. Find yours.",
+      "more": "Learn more",
+      "items": [
+        { "slug": "coaches", "icon": "i-ph-users-three-bold", "title": "Coaches & trainers", "text": "Courses, discussion and meetups in one protected place that you steer." },
+        { "slug": "kurse", "icon": "i-ph-graduation-cap-bold", "title": "Course creators", "text": "Sell courses with a community around them – at a predictable price." },
+        { "slug": "creator", "icon": "i-ph-pen-nib-bold", "title": "Creators & writers", "text": "Your community under your brand, without someone else's ads." },
+        { "slug": "vereine", "icon": "i-ph-buildings-bold", "title": "Clubs & organisations", "text": "Members, events and exchange – hosted in Germany." }
+      ]
+    },
+    "audiencePages": {
+      "backHome": "Back to home",
+      "fitTitle": "Why Pukalani fits here",
+      "blocksTitle": "The blocks you need for this",
+      "ctaTitle": "Sounds like you?",
+      "ctaLead": "Start free – your community stands in 60 seconds.",
+      "items": {
+        "coaches": {
+          "name": "Coaches & trainers",
+          "metaTitle": "Community platform for coaches – privacy-first, hosted in Germany",
+          "metaDescription": "A protected place for participants: discussions, courses and meetups under your name. Hosted in Germany, no ad tracking. Start free.",
+          "title": "Your community as a coach or trainer",
+          "sub": "A place where your participants discuss, learn and meet – and that YOU steer.",
+          "intro": "When guidance fades because the WhatsApp group turns into noise, your programme loses its effect. Your own community holds people together: questions land visibly, answers stay findable, dates live in one place.",
+          "fit": "You decide on design, domain and rules. Moderation is built in (including AI assistance as a second opinion – you decide). And because it's hosted in Germany without ad tracking, you can send participants a link with a clear conscience.",
+          "blocks": "Discussions · moderation · pages & branding · courses and events later"
+        },
+        "kurse": {
+          "name": "Course creators",
+          "metaTitle": "Online courses with a community – your own platform, privacy-first",
+          "metaDescription": "Sell courses with a community around them: lessons, progress, paid access via Stripe – under your brand, hosted in Germany, no transaction fee.",
+          "title": "Sell courses – with a community around them",
+          "sub": "Lessons, progress and paid access, without a cut of your revenue.",
+          "intro": "A course on its own is a file. A course with a community is an outcome: participants ask, stay engaged, recommend it. That combination is one block-click apart in Pukalani.",
+          "fit": "Access free, members-only or paid – paid access runs through Stripe. We take no transaction fee: what you earn stays yours. Predictable price, data in Germany, export anytime.",
+          "blocks": "Courses (early access) · discussions · pages & branding"
+        },
+        "creator": {
+          "name": "Creators & writers",
+          "metaTitle": "Community for creators & newsletter writers – under your brand",
+          "metaDescription": "Discussion and exchange under your brand instead of someone else's network: embeddable in your website, hosted in Germany, no ad tracking.",
+          "title": "Your readers get a place – with you",
+          "sub": "Discussion under your brand, embeddable in the site you already have.",
+          "intro": "Comments under posts, a feed for announcements, the occasional live session: that's how an audience becomes a community. On your domain – not in a network that can take your reach away tomorrow.",
+          "fit": "Individual blocks embed into your existing website – you don't have to move anything. No ad tracking, no ads, no passing data on: your readers stay your readers.",
+          "blocks": "Discussions (embeddable) · moderation · pages & branding · feed later"
+        },
+        "vereine": {
+          "name": "Clubs & organisations",
+          "metaTitle": "Community software for clubs – hosted in Germany, privacy-first",
+          "metaDescription": "A members' area with discussions, announcements and dates – hosted in Germany, data-minimal, no ad tracking. Start free.",
+          "title": "Members, dates and exchange in one place",
+          "sub": "A members' area that non-technical people can run – hosted in Germany.",
+          "intro": "Mass emails, three chat groups and a PDF calendar: that's how you lose members instead of involving them. One calm, shared place replaces it – without anyone having to maintain a server.",
+          "fit": "No ops, no plugin tinkering: you create the site and get going. Data sits in Germany, roles clearly govern who moderates, writes or just reads – and getting started is free.",
+          "blocks": "Discussions · moderation · pages & branding · events later"
+        }
+      }
+    },
     "compare": {
       "kicker": "An honest comparison",
       "title": "Compared honestly. Including where we're (not yet) the answer.",
