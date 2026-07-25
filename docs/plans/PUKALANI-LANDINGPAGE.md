@@ -682,8 +682,31 @@ wird über Theme-Töne/Hintergründe gelöst (passt zur bestehenden Theme-Engine
    eine eigene Verkaufsseite für einen Early-Access-Baustein liest wie eine
    Live-Zusage und verstößt gegen die Copy-Regel; kommt, sobald ihr Baustein-Gate
    grün ist.
-8. **Rest (offen):** echte Preise aus dem Studio-Katalog (#4), Social Proof mit
-   echten Kunden, `/status` (Roadmap #10), Lighthouse/Perf-Budget-Messung;
-   Deploy/Go-Live = Davids Freigabe. Kleinigkeit: `/fuer/*` und `/vs/*` haben in
-   EN noch deutsche Pfad-Segmente (`/fuer/coaches`) — bei Bedarf per
-   `defineI18nRoute` auf `/for/coaches` heben (Redirect-Pflege beachten).
+8. **Ausbaustufe 4 ✅ (2026-07-24) — Landingpage inhaltlich VOLLSTÄNDIG**
+   (Davids Entscheidungen):
+   - **Rechtstexte auf der eigenen Domain** (Impressumspflicht § 5 DDG):
+     `/imprint` ↔ `/de/impressum`, `/privacy` ↔ `/de/datenschutz`, `/terms` ↔
+     `/de/agb` über eine gemeinsame `LegalPage`. Struktur komplett, Texte als
+     **Entwurf** markiert (erster Block) und `noindex` bis zu den verbindlichen
+     Fassungen — deshalb bewusst NICHT in der Sitemap. **Davids offener Punkt:
+     die verbindlichen Texte** (er/Rechtsberatung).
+   - **`/features/kurse` + `/features/events`** gebaut MIT Early-Access-Banner
+     vor den Vorteilen und ohne Kauf-CTA (nur „Early Access anfragen").
+   - **ProofSection** statt Testimonials: vier echte, anklickbare Live-Sites
+     (comments/demo/portfolio/changelog) + die Zusage, dass echte Stimmen nur
+     mit Name, Community und Einwilligung kommen.
+   - **32 OG-Bilder** (jede Seite × DE/EN) via `scripts/og-images.mjs`
+     (vorhandenes Playwright + System-Chrome, Titel aus den i18n-Dateien, JPEG
+     q90 → 1,8 MB statt 8,6 MB, committet — Prod braucht keinen Renderer).
+   - **`/faq`** als eigene Seite, **englische Pfade** `/for/*`.
+   - **Mobil-Nav-Lücke geschlossen**: unter 768 px war die Navigation
+     `display:none` — drei Ziele waren auf dem Handy unerreichbar.
+   Zwei Bugs dabei gefunden: `NUXT_PUBLIC_I18N_BASE_URL` liegt unter
+   `public.i18n.baseUrl` (og:image + JSON-LD zeigten lokal auf die Prod-Domain →
+   `useSiteBaseUrl()` mit Request-Fallback); Nitro braucht für ein NEU angelegtes
+   `public/`-Unterverzeichnis einen Neustart.
+9. **Rest (offen, nicht mehr Landingpage-Bau):** echte Preise aus dem
+   Studio-Katalog (#4, hängt an Stripe-Live) · Social Proof mit echten Kunden ·
+   `/status` (Roadmap #10, braucht echte Uptime-Daten) · Lighthouse/Perf-Messung ·
+   **Deploy/Go-Live auf `pukalani.app` = Davids Freigabe** (dafür fehlen noch:
+   ploi-Site + DNS + Appwrite-Projekt/Env für marketing, Deploy-Kette erweitern).
