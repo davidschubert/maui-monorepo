@@ -143,18 +143,29 @@ keine Daten-Isolation und umgekehrt.
 
 ### 2.3 Entscheidung: `site_members` (Control Plane) + `requireTenantPermission`
 
+> **✅ Kanonische Site = der Tenant (David, 2026-07-24).** Die `sites`-Tabelle
+> bleibt das **Operator-/Infra-Register** (deployte Plattform-Apps: comments,
+> portfolio, studio, platform). Eine **Kunden-Community-Site = eine `tenants`-
+> Zeile** (Pool: Zeilen-Scope im geteilten Projekt; Silo: eigenes Projekt,
+> `mode='silo'`). **Rollen UND Abrechnung hängen am Tenant.** Damit ist die
+> kanonische **`siteId` = `tenants.$id`** — kein Zwang zu Doppel-Zeilen in
+> `sites`, keine gespaltene Wahrheit. (Korrigiert einen früheren Entwurf, der
+> fälschlich auf `sites.$id` zeigte — die Prod-Daten zeigten: Pool-Tenants
+> haben gar keine `sites`-Zeile.)
+
 **Neue Tabelle `site_members`** (Control Plane / Studio-Projekt):
 
 | Spalte | Zweck |
 |---|---|
-| `siteId` | kanonische, unveränderliche Site-Identität (= `sites.$id`) |
+| `siteId` | kanonische Site-Identität = **`tenants.$id`** |
 | `runtimeProjectId` | Appwrite-Projekt, in dem der User lebt (Pool = geteilt, Silo = eigenes) |
 | `runtimeUserId` | die Appwrite-User-ID IN diesem Projekt |
-| `role` | `owner` \| `admin` \| `moderator` (Site-Rollen, s. 2.4) |
+| `role` | `owner` \| `admin` \| `moderator` \| `editor` \| `viewer` (Site-Rollen, s. 2.4) |
 | `status` | `active` \| `invited` \| `suspended` |
 
-- `tenants` referenziert künftig die kanonische **`siteId`** (heute nur
-  `projectId`/`tenantId`); `sites.workspaceId` liefert den Owner-Kontext.
+- Der Tenant trägt künftig `tenants.workspaceId` (Billing-/Owner-Kontext) —
+  ersetzt die Rolle, die früher `sites.workspaceId` spielen sollte. Billing-
+  Verdrahtung an den Tenant kommt in G2/G3; in G1 wird nur die Spalte angelegt.
 - **Keine E-Mail als Autorisierungsschlüssel** — E-Mail ist nur fürs Einladen.
 - **`requireTenantPermission(event, capability)`** autorisiert Site-Routen über
   `{siteId, runtimeProjectId, runtimeUserId}` → Rolle aus `site_members` →
@@ -233,26 +244,35 @@ Zusätzlich **Feed/Beiträge**; **Kurse** und **Events** erst, wenn ihr Baustein
 Gate grün ist (§B: Manifest + Pool-Migration + Row-Permissions + Runtime-Gate +
 Quota + GDPR-/Site-Export-Contributor + EN/DE + Pool/Silo-E2E + Tariflimit).
 
-### 3.3 Tarifmatrix (Vorschlag — Zahlen offen, s. §5)
+### 3.3 Tarifmatrix (✅ David 2026-07-24)
 
-| Baustein | Free | Pro | Business | Gate-Status |
+**Leitlinie:** Free = echte Kern-Community (adoptionsstark), Pro =
+Community-Ausbau, Business = das „Geld-verdienen"-Paket. Kurse rechtfertigen
+Business. Community-Mitglieder (Viewer) sind in **allen** Plänen unbegrenzt —
+begrenzt werden nur **Verwaltungs-Sitze** (Rollen ab Moderator).
+
+| Baustein / Grenze | Free | Pro | Business | Gate-Status |
 |---|---|---|---|---|
 | Diskussionen | ✓ | ✓ | ✓ | belegt |
 | Moderation (+KI-Assist) | ✓ | ✓ | ✓ | belegt (KI advisory, #8) |
 | Seiten (CMS) | ✓ | ✓ | ✓ | belegt |
 | Themes/Branding | Basis | ✓ | ✓ | belegt |
 | Embed (Widget/Web-Component) | ✓ | ✓ | ✓ | belegt |
-| Feed/Beiträge | – | ✓ | ✓ | GA-Gate (Integration offen) |
-| Events | – | ✓ | ✓ | GA-Gate |
-| Kurse (Bezahl-Zugang) | – | – | ✓ | GA-Gate |
-| Import/Export | – | ✓ | ✓ | #6 |
-| Webhooks/API | – | – | ✓ | #7 (Business) |
-| Eigene Domain | – | – | ✓ (Silo) | #9 |
-| Analytics/Insights | Basis | ✓ | ✓ | #5 |
-| Usage-Limits | niedrig | mittel | hoch | Quota-Katalog (existiert) |
+| **Feed / Beiträge** | – | ✓ | ✓ | GA-Gate (Integration offen) |
+| **Events** | – | ✓ | ✓ | GA-Gate |
+| **Kurse (Bezahl-Zugang)** | – | – | ✓ | GA-Gate |
+| Import / Export | – | ✓ | ✓ | #6 |
+| Analytics / Insights | Basis | ✓ | ✓ | #5 |
+| **Webhooks / API** | – | – | ✓ | #7 |
+| **Eigene Domain** | – | – | ✓ (Silo) | #9 |
+| Community-Mitglieder (Viewer) | ∞ | ∞ | ∞ | — |
+| **Verwaltungs-Sitze** (Mod/Editor/Admin) | 0 (nur Owner) | klein (z. B. 3) | ∞ (inkl. mehrere Admins) | #2 |
+| Usage-Limits (Quota) | niedrig | mittel | hoch | Studio-Katalog (existiert) |
 
-> Die konkreten Limit-Zahlen kommen aus dem editierbaren Studio-Katalog
-> (existiert); die Baustein↔Plan-Zuordnung ist der offene Teil (§5).
+**Konkrete Zahlen** (Verwaltungs-Sitze-Grenze Pro, Quota-Limits) kommen aus dem
+editierbaren Studio-Katalog — die Baustein↔Plan-Zuordnung ist damit **fixiert**.
+Die genaue Pro-Sitze-Zahl (Vorschlag 3) und die Limit-Werte werden beim Bau von
+#2/G3 gesetzt (nicht mehr strategisch offen).
 
 ---
 
@@ -290,13 +310,16 @@ klar markierte Roadmap-Sektion, nie als Tarifbestandteil getarnt.
 5. **Early-Access-Scope:** **belegter Scope** (Diskussionen, Moderation, Seiten,
    Themes, Embed), invite-only; Feed/Kurse/Events erst mit grünem Baustein-Gate.
 
-**🟡 Offen (kein G1-Blocker — vor G3/GA klären):**
-4. **Tarif-Zuordnung (§3.3):** welche Bausteine in Free/Pro/Business (Feed ab
-   Pro? Kurse nur Business?). Vorschlag steht; Zahlen/Grenzen später.
-6. **Kanonische `siteId`:** `tenants` bekommt eine `siteId`-Referenz auf
-   `sites.$id`. Empfehlung: **ja** — kleiner, aber grundlegender Datenmodell-
-   Schritt, den G1 ohnehin braucht (site_members referenziert `siteId`). Wird
-   als erster Migrationsschritt in G1 umgesetzt, sofern kein Einspruch.
+4. **Tarif-Zuordnung (§3.3):** ✅ **entschieden** — Free = Diskussionen/
+   Moderation/Seiten/Themes/Embed (solo); Pro = + Feed/Events/Import-Export/
+   Analytics + kleines Team; Business = + Kurse/Webhooks-API/eigene Domain +
+   unbegrenzt Sitze. Nur noch die konkreten Zahlen (Pro-Sitze, Limits) werden
+   beim Bau gesetzt.
+6. **Kanonische `siteId`:** ✅ **= `tenants.$id`** (der Tenant IST die
+   Kunden-Site; `sites` bleibt Infra-Register). `tenants` bekommt in G1 nur
+   `workspaceId` (Billing-Anker); keine `sites`-Doppelzeilen.
+
+**Damit ist G0 vollständig abgeschlossen.**
 
 ---
 
