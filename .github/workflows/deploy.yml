@@ -159,9 +159,17 @@ jobs:
             # ersetzt es also NICHT, sondern startet daneben (zwei Prozesse,
             # ein Port, gemischte Builds — passiert beim studio→control-Rename,
             # gemessen 6:4 bei 10 Aufrufen). Darum unten die Serien-Probe.
+            # REPLACE (einmalig): pm2 reload behaelt den GESPEICHERTEN Script-
+            # Pfad — ein Pfadwechsel in der Ecosystem-Datei (releases/studio →
+            # releases/control) kommt per reload nie an, der Prozess serviert
+            # weiter den alten Build. Nur delete + frischer Start liest den
+            # neuen Pfad. Kostet Sekunden Downtime; nach einem gruenen Deploy
+            # ist der Eintrag Geschichte und darf raus.
+            REPLACE_PM2=""; [ "$app" = "control" ] && REPLACE_PM2="controlpukalaniapp"
             ssh prod "set -eu
               ln -s '$RELEASE' '$RELEASES/current.tmp'
               mv -Tf '$RELEASES/current.tmp' '$RELEASES/current'
+              ${REPLACE_PM2:+pm2 delete $REPLACE_PM2 2>/dev/null || true}
               pm2 startOrReload /home/ploi/$site/ops/ecosystem-$app.config.cjs --update-env
               pm2 save
               ls -1dt $RELEASES/*/ 2>/dev/null | tail -n +6 | xargs -r rm -rf
