@@ -50,6 +50,9 @@ const year = 2026 // statisch: Date.now() steht im Build nicht zur Verfügung
         <NuxtLink :to="localePath('/')">{{ t('marketing.footer.story') }}</NuxtLink>
         <NuxtLink :to="localePath('/dsgvo')">{{ t('marketing.footer.privacyHow') }}</NuxtLink>
         <a href="https://changelog.pukalani.app">{{ t('marketing.footer.changelog') }}</a>
+        <!-- Die Statusseite liegt bewusst NICHT bei uns: sie muss antworten,
+             wenn unser Server es nicht tut. -->
+        <a href="https://status.pukalani.app" rel="noopener">{{ t('marketing.footer.status') }}</a>
       </nav>
 
       <!-- Rechtstexte liegen auf DIESER Domain (Impressumspflicht), nicht als
