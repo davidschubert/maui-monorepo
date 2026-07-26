@@ -117,10 +117,8 @@ Zwei Lehren, beide in deploy.yml verewigt:
    braucht einmalig delete + start.
 
 Offene Krümel:
-- [ ] Appwrite-Projekt `studio` löschen — Modal war offen, letzter Klick
-      liegt bei David (Löschung kann 500en → Memory „Provisioner"-Rezept).
-- [ ] Server-Rest `/home/ploi/releases/studio/` entfernen (~150 MB).
+- [x] Appwrite-Projekt `studio` gelöscht (David, 2026-07-26 — sauber, kein 500; verifiziert: 404/control 200).
+- [x] Server-Rest `/home/ploi/releases/studio/` entfernt (185 MB).
 - [ ] Bei Stripe-Live: Webhook-Endpoint auf control.pukalani.app umstellen,
       danach Alias `studio.` + Doppel-Zertifikat zurückbauen.
-- [ ] GitHub-Secret PLOI_DEPLOY_WEBHOOK_STUDIO ist tot (Site gelöscht) —
-      entfernen; für control gibt es bewusst keinen ploi-Webhook.
+- [x] GitHub-Secret PLOI_DEPLOY_WEBHOOK_STUDIO entfernt.
