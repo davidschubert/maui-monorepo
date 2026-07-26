@@ -202,6 +202,22 @@ Vollständiges Konzept: docs/CONCEPT.md
   Neue Layer mit User-Daten MÜSSEN einen Contributor registrieren.
 - app.config.ts wird tief gemergt — App überschreibt nur was nötig
 
+## Mandanten-Isolation: EINE Datentür (seit 2026-07-26)
+- In `server/api/**` mandantenfähiger Layer geht Datenzugriff über
+  `tenantDb(event)` (core/server/utils/tenantDb.ts) — NICHT über
+  `createAdminClient().tablesDB` / `createSessionClient().tablesDB` direkt.
+  `list/find/count` scopen immer, `get/update/remove` belegen die Zugehörigkeit
+  VOR der Aktion, `create` stempelt tenantId + Row-Permissions. `as:'operator'`
+  = Admin-Client (Moderation) — dort ist die Tür die EINZIGE Grenze, weil der
+  Admin-Client die Row-Permissions bewusst umgeht.
+- Warum: Isolation hing an drei Dingen, an die man sich erinnern musste
+  (scopeQuery/scopeRow/ID-Prüfung). Am 2026-07-26 hat genau das versagt (drei
+  Moderations-Routen lasen fremde Zeilen per ID, commit 1cc4855).
+- AUSSERHALB der Tür erlaubt (per Definition mandantenübergreifend):
+  Migrationen, Sweeps/Intervall-Plugins, GDPR-Orchestrierung, Control Plane.
+- `tenantId` kommt NIE vom Aufrufer (stripTenantKey) — sonst schreibt ein
+  durchgereichter Body in einen fremden Mandanten.
+
 ## Coding Rules
 - <script setup lang="ts">, Nuxt UI Komponenten bevorzugen. Auth-Formulare:
   UAuthForm ist die VORLAGE (Optik/Struktur) — Login/Register/OTP sind bewusst
