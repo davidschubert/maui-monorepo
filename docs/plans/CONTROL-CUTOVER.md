@@ -142,8 +142,17 @@ Der Cutover riss zwei Fäden, die erst später sichtbar wurden:
 Offene Krümel:
 - [x] Appwrite-Projekt `studio` gelöscht (David, 2026-07-26 — sauber, kein 500; verifiziert: 404/control 200).
 - [x] Server-Rest `/home/ploi/releases/studio/` entfernt (185 MB).
-- [ ] Bei Stripe-Live: Webhook-Endpoint auf control.pukalani.app umstellen,
-      danach Alias `studio.` + Doppel-Zertifikat zurückbauen.
+- [x] Stripe-Webhook auf control umgestellt (2026-07-26, Test-Mode, per Edit
+      der Endpoint-URL — gleiche we_-ID, gleiches Signing-Secret, Beweis:
+      POST ohne Signatur → 400 auf control). Beim Stripe-LIVE-Gang wird der
+      Live-Webhook direkt auf control angelegt.
+- [x] Cloudflare-DNS (2026-07-26): expliziter A-Record `control` →
+      49.13.211.173 (DNS only, wie Wildcard) angelegt, Alt-Record `studio`
+      gelöscht — der Alias läuft weiter über `*.pukalani.app` (verifiziert:
+      dig + https 200 auf beiden).
+- [ ] Gelegenheits-Krümel: ploi-Alias `studio.` + Doppel-Zertifikat der
+      control-Site zurückbauen (nichts zeigt mehr auf studio; nur noch alte
+      Bookmarks). Beim Zert-Neuausstellen control-only SAN.
 - [x] GitHub-Secret PLOI_DEPLOY_WEBHOOK_STUDIO entfernt.
 - [ ] Read-only-Key im Projekt control erzeugen (David, Console) und den
       Interim-Runtime-Key in der platform-.env ersetzen (s. Nachwehen).

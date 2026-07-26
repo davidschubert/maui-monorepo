@@ -24,6 +24,10 @@
 export interface TenantBranding {
   theme?: string
   variant?: string
+  /** Anzeigename des Mandanten (tenants.name) — trägt den öffentlichen
+   *  Header der Community-Hosts („Morgenlicht" statt App-Brand). Reiner
+   *  Text, wird NIE als Attribut/HTML interpoliert. */
+  name?: string
 }
 
 export type TenantContext =

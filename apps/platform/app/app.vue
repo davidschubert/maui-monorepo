@@ -13,7 +13,7 @@ useHead(() => ({
 
 <template>
   <UApp>
-    <PlatformDemoBanner />
+    <!-- Demo-Banner lebt im default-LAYOUT (P3) — Auth-Seiten bleiben frei. -->
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>

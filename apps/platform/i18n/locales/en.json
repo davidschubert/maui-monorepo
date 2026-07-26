@@ -8,5 +8,8 @@
   "demo": {
     "banner": "This is a demo community with sample content.",
     "cta": "Start your own community"
+  },
+  "nav": {
+    "feed": "Feed"
   }
 }

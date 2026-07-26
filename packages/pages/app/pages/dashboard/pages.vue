@@ -132,7 +132,10 @@ async function deletePage() {
   if (!slug) return
   saving.value = true
   try {
-    await $fetch(`/api/pages/${slug}`, { method: 'DELETE' })
+    // String-Konkatenation statt Template-Literal: das Literal matcht im
+    // typed router AUCH /api/pages/public (GET-only, seit der Nav-Liste) —
+    // der Methoden-Schnitt verbietet dann faelschlich DELETE.
+    await $fetch('/api/pages/' + encodeURIComponent(slug), { method: 'DELETE' })
     toast.add({ title: t('pages.admin.deleted'), color: 'success' })
     newPage()
     selectedSlug.value = null

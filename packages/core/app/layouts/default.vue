@@ -6,6 +6,10 @@ const appConfig = useAppConfig()
 // Footer-Rechtslinks aus der App-Config (Core-Default leer) — config-gated,
 // damit interne Apps ohne öffentliche Seiten keinen Footer-Ballast tragen.
 const legalLinks = computed(() => appConfig.maui?.legalLinks ?? [])
+// Brand: Tenant-Name (Pool-Host, z. B. „Morgenlicht") vor App-Brand vor
+// dem historischen „Maui"-Fallback.
+const tenantBrand = useTenantBrand()
+const brand = computed(() => tenantBrand.value ?? appConfig.maui?.brand?.name ?? 'Maui')
 </script>
 
 <template>
@@ -13,8 +17,9 @@ const legalLinks = computed(() => appConfig.maui?.legalLinks ?? [])
     <AuthEmailVerifyBanner />
     <header class="border-b border-default">
       <nav data-testid="main-nav" class="mx-auto flex w-full max-w-5xl items-center justify-between p-4">
-        <NuxtLink :to="localePath('/')" class="font-bold tracking-tight">Maui</NuxtLink>
+        <NuxtLink :to="localePath('/')" class="font-bold tracking-tight">{{ brand }}</NuxtLink>
         <div class="flex items-center gap-2">
+          <CoreLocaleSwitcher />
           <UserMenu v-if="isLoggedIn" />
           <UButton v-else :to="localePath('/login')" color="neutral" variant="ghost">{{ t('auth.login.title') }}</UButton>
         </div>
@@ -27,7 +32,7 @@ const legalLinks = computed(() => appConfig.maui?.legalLinks ?? [])
 
     <footer class="border-t border-default">
       <div class="mx-auto flex w-full max-w-5xl flex-col gap-2 p-4 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
-        <span>Maui · Nuxt 4 + Appwrite</span>
+        <span>{{ brand }}</span>
         <nav v-if="legalLinks.length" class="flex flex-wrap gap-x-4 gap-y-1">
           <NuxtLink
             v-for="link in legalLinks"
