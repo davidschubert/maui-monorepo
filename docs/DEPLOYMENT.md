@@ -9,7 +9,7 @@ alle Go-Live-Learnings im Detail).
 > **Ist-Stand (pukalani.app), EIN App-Server (app-prod, 49.13.211.173) mit
 > VIER ploi-Sites:** `comments.pukalani.app` (Site 389772, Port **3001**) ·
 > `portfolio.pukalani.app` (Site 390041, Port **3002**) ·
-> `studio.pukalani.app` (Site 390042, Port **3003**) ·
+> `control.pukalani.app` (Site 390042, Port **3003**) ·
 > `platform.pukalani.app` (Site 391312, Port **3004**, seit H3-Rollout
 > 2026-07-23 — Multi-Tenant-App: `server_name platform.pukalani.app
 > *.pukalani.app` + ploi-verwaltetes **Wildcard-TLS** `*.pukalani.app`
@@ -127,14 +127,14 @@ danach).
 Sobald FREMDE Silo-Projekte existieren, rollen Schema-Änderungen in **drei
 Wellen** aus; der **Pool migriert immer genau einmal** (ein geteiltes Projekt,
 `pnpm migrate --env-file <pool-migrations.env>`). Die Welle eines Tenants
-steht im tenants-Register (`wave`: internal → canary → stable, Studio-UI
+steht im tenants-Register (`wave`: internal → canary → stable, Control-UI
 „Update-Welle", nur für Silos wirksam; Bestand = stable).
 
 ```bash
 # Silo-Projekte einer Welle migrieren (Reihenfolge: internal → canary → stable)
-pnpm migrate --wave internal --control-env apps/studio/.env.production
-pnpm migrate --wave canary   --control-env apps/studio/.env.production
-pnpm migrate --wave stable   --control-env apps/studio/.env.production
+pnpm migrate --wave internal --control-env apps/control/.env.production
+pnpm migrate --wave canary   --control-env apps/control/.env.production
+pnpm migrate --wave stable   --control-env apps/control/.env.production
 ```
 
 - `--control-env` = Env der **Control-Plane-Instanz** (studio) — daraus kommen

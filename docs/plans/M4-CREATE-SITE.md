@@ -1,7 +1,7 @@
 # M4 — `pnpm create-site` + Gate G1/S1 (Umsetzungsplan)
 
 Stand: 2026-07-14 · Status: **in Umsetzung** (Go David)
-Kontext: Strategie P1 — eine neue Studio-Site in EINEM Befehl statt 5–10
+Kontext: Strategie P1 — eine neue Control-Site in EINEM Befehl statt 5–10
 Handschritten; Gate G1 = Spike S1 (Projekt-Anlage per Console-API) bestanden.
 
 ## Was `pnpm create-site <name>` tut

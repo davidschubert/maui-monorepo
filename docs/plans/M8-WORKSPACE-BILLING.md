@@ -2,7 +2,7 @@
 
 Status: **BESCHLOSSEN — in Umsetzung** (Check-in 2026-07-19, David):
 Plan-Schnitt **free/pro/business** · Workspace-Verwaltung v1 **nur
-Studio-Dashboard** (Self-Service = M9) · **gleicher Stripe-Account,
+Control-Dashboard** (Self-Service = M9) · **gleicher Stripe-Account,
 eigene Produkte** (Price-IDs via Env, Start im Test-Mode). Baut auf der
 M8-Vorbereitung auf (signierte Entitlement-Zustellung ist FERTIG:
 `entitlementDocument.ts`, Studio-Aussteller, Site-Pull, featureGates =
@@ -56,7 +56,7 @@ Mode einen Preis mit diesem lookup_key anlegen, fertig.
 
 ## Fluss
 
-1. Studio-Dashboard: Workspace-Detail bekommt „Plan ändern" → hosted
+1. Control-Dashboard: Workspace-Detail bekommt „Plan ändern" → hosted
    Checkout des billing-Layers mit `metadata: { workspaceId, plan }`.
 2. Webhook (billing verifiziert Signatur) → `registerCheckoutFulfillment`-
    Handler im studio-Layer:
@@ -84,10 +84,10 @@ Mode einen Preis mit diesem lookup_key anlegen, fertig.
   alle Workspace-Sites syncen → Workspace-Row patchen),
   `handleWorkspaceSubscriptionUpdate` (Policy pure:
   `subscriptionUpdateToAction`, 13 Unit-Tests).
-- **apps/studio**: extends billing (Manifest/Deps/checks grün),
+- **apps/control**: extends billing (Manifest/Deps/checks grün),
   `maui.billing.enabled` an (plans leer — kein Site-Abo-Verkauf),
   Fulfillment-Plugin (A14 wie apps/comments↔events), Checkout-Route
-  `POST /api/studio/workspaces/:id/checkout`, billing-Migration gegen
+  `POST /api/control/workspaces/:id/checkout`, billing-Migration gegen
   studio-1xsl gelaufen. UI: „Plan ändern"-Modal (Radio pro/business →
   Stripe-hosted Checkout; Downgrade-Hinweis).
 - **Kündigungs-Design-ÄNDERUNG gegenüber dem Entwurf**: keine eigenen
@@ -104,7 +104,7 @@ Mode einen Preis mit diesem lookup_key anlegen, fertig.
   Entscheidung, im Test-Mode beliebig änderbar.
 - **Was fürs Test-Mode-E2E noch fehlt (David, ~5 min):**
   1. Test-Secret-Key (sk_test_…) aus dem Stripe-Dashboard →
-     `apps/studio/.env` als `NUXT_STRIPE_SECRET_KEY` (Zwischenablage/nano,
+     `apps/control/.env` als `NUXT_STRIPE_SECRET_KEY` (Zwischenablage/nano,
      nie durch den Chat).
   2. Für Webhooks lokal: `stripe listen --forward-to
      localhost:3004/api/stripe/webhook` (Stripe CLI, einmal `stripe login`) —
@@ -143,7 +143,7 @@ Logik und den Handler mit gefaktem Event ab.
 - [x] Bestands-Sites ohne Workspace unverändert (workspaceId '' wird vom
       Sync nie angefasst — Query filtert auf die Workspace-Id)
 - [x] GDPR: bewusste v1-Entscheidung STATT Contributor — Workspace-Owner
-      sind (noch) keine Studio-User, der Core-GDPR-Vertrag ist userId-
+      sind (noch) keine Control-User, der Core-GDPR-Vertrag ist userId-
       keyed und greift hier nicht. ownerEmail-Löschung = manueller
       Betreiber-Vorgang (Row löschen), dokumentiert am WorkspaceRow-Typ.
       Der Contributor kommt mit M9/Self-Service, wenn Owner echte User werden.
@@ -151,7 +151,7 @@ Logik und den Handler mit gefaktem Event ab.
 ## Beantwortete Check-in-Fragen (David, 2026-07-19)
 
 1. Plan-Schnitt: **free/pro/business** wie vorgeschlagen.
-2. Workspace-Verwaltung v1: **nur Studio-Dashboard** (Anlegen/Zuordnen durch
+2. Workspace-Verwaltung v1: **nur Control-Dashboard** (Anlegen/Zuordnen durch
    den Betreiber; Checkout/Kündigung über Stripe-hosted Pages). Self-Service
    bleibt M9.
 3. Stripe: **gleicher Account, eigene Produkte** für Workspace-Pläne

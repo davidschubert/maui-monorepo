@@ -41,7 +41,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const WAVES = ['internal', 'canary', 'stable']
 // Fundament zuerst — admin liest z. B. Tables, die system/comments anlegen.
-const LAYER_ORDER = ['system', 'comments', 'posts', 'events', 'media', 'feedback', 'billing', 'pages', 'courses', 'tickets', 'moderation', 'studio', 'admin']
+const LAYER_ORDER = ['system', 'comments', 'posts', 'events', 'media', 'feedback', 'billing', 'pages', 'courses', 'tickets', 'moderation', 'control', 'admin']
 
 function parseArgs(argv) {
   const args = { app: null, envFile: null, layers: [], wave: null, controlEnv: null, keysDir: null }
@@ -177,7 +177,7 @@ function runWave(args, layers) {
 
   const list = spawnSync(
     process.execPath,
-    ['--experimental-strip-types', `--env-file=${controlEnv}`, join(ROOT, 'packages', 'studio', 'scripts', 'list-silo-tenants.ts'), args.wave],
+    ['--experimental-strip-types', `--env-file=${controlEnv}`, join(ROOT, 'packages', 'control', 'scripts', 'list-silo-tenants.ts'), args.wave],
     { cwd: join(ROOT, 'packages', 'studio'), encoding: 'utf8' },
   )
   if (list.status !== 0) {

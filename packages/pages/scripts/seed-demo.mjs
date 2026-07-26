@@ -6,7 +6,7 @@
  *
  * Voraussetzung: Migration pages-001 gelaufen. Aufruf über den Runner:
  *   pnpm migrate --app studio --layer pages   # legt die Tabelle an
- *   node --env-file=apps/studio/.env.production packages/pages/scripts/seed-demo.mjs
+ *   node --env-file=apps/control/.env.production packages/pages/scripts/seed-demo.mjs
  */
 import { Client, ID, Query, TablesDB } from 'node-appwrite'
 

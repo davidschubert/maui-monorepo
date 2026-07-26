@@ -1,4 +1,4 @@
-import type { SiteVibeId } from '../../../studio/shared/onboarding'
+import type { SiteVibeId } from '../../../control/shared/onboarding'
 
 /**
  * Der Entwurf, während der Wizard läuft.

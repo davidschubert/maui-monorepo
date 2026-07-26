@@ -79,7 +79,7 @@ vermischen.
 2. **Site-Dashboard** (`<tenant-host>/dashboard`): Inhalte, Moderation,
    Mitglieder, Theme, Community-Analytics und site-spezifische Einstellungen.
    Zielgruppe: Owner, Admins und Moderatoren dieser Site.
-3. **Operator Studio** (`studio.pukalani.app`): Tenants, Wellen,
+3. **Operator Control** (`control.pukalani.app`): Tenants, Wellen,
    Provisionierungsjobs, Plankatalog, Systemzustand. Nur Plattformbetreiber;
    niemals Bestandteil der Kundennavigation.
 
@@ -168,7 +168,7 @@ Status: 🟢 beschlossen · 🔵 beschlossen, Vertrag/UX offen · 🟡 später.
 > Communities); über 1000 Codes weist sie die Kappung aus statt zu raten.
 > Personenbezug wird aufgeräumt: abgelehnte Anfragen nach 30, eingelöste nach
 > 90 Tagen (stündlicher Sweep, Datenschutz-Abschnitt ergänzt).
-> Beweise: `packages/studio/scripts/verify-invite-requests.mjs` (17/17) und
+> Beweise: `packages/control/scripts/verify-invite-requests.mjs` (17/17) und
 > `verify-invite-stock.mjs` (19/19, echte Betreiber-Sitzung).
 >
 > **Noch offen (bewusst, kein Blocker des Trichters):** Trial-Countdown-Banner

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * create-site (M4/P1): neue Studio-Site in EINEM Befehl statt 5–10
+ * create-site (M4/P1): neue Control-Site in EINEM Befehl statt 5–10
  * Handschritten — Scaffold aus apps/_template, Appwrite-Projekt + Keys +
  * Platform per Console-REST (Gate G1/S1), .env, Install, Bootstrap
  * (DB/Buckets + manifest-gefilterte Migrationen).
@@ -27,7 +27,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const FOUNDATION_ALWAYS = ['core', 'system']
 // Muss der EXTENDS_ORDER in check-manifests.mjs entsprechen
 const EXTENDS_ORDER = [
-  'themes', 'admin', 'studio', 'comments', 'posts', 'events', 'media', 'feedback',
+  'themes', 'admin', 'control', 'comments', 'posts', 'events', 'media', 'feedback',
   'billing', 'courses', 'tickets', 'activity', 'moderation',
 ]
 const DEFAULT_FEATURES = ['themes', 'admin', 'comments', 'moderation']

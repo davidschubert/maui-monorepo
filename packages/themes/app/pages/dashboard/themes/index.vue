@@ -329,7 +329,7 @@ async function importTheme(event: Event) {
     </template>
 
     <template #body>
-      <!-- Zweispalten-Layout wie im Studio-Editor: Galerie links, Szenen rechts -->
+      <!-- Zweispalten-Layout wie im Control-Editor: Galerie links, Szenen rechts -->
       <div class="mx-auto grid w-full max-w-6xl min-w-0 gap-4 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)] lg:items-start">
         <div class="flex min-w-0 flex-col gap-4">
         <!-- Schnell-Umschalter: Erscheinungsbild + Neutral -->
@@ -430,7 +430,7 @@ async function importTheme(event: Event) {
         </section>
         </div>
 
-        <!-- Live-Vorschau: dieselben Szenen wie im Studio-Editor, bleibt beim
+        <!-- Live-Vorschau: dieselben Szenen wie im Control-Editor, bleibt beim
              Scrollen durch die Galerie sichtbar -->
         <section class="min-w-0 lg:sticky lg:top-4">
           <h2 class="mb-3 font-semibold">{{ t('themes.studio.showcase') }}</h2>

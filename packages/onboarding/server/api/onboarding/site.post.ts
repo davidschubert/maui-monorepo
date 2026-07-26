@@ -1,7 +1,7 @@
 // Cross-Layer als EXPLIZITER Vertrag (A14): der Onboarding-Vertrag gehört dem
 // Control Plane (es besitzt tenants/site_members) — dieser Layer konsumiert ihn,
 // definiert ihn aber nicht. Reine Zod-/Daten-Module, kein Laufzeit-Coupling.
-import { onboardingSiteSchema } from '../../../../studio/schemas/onboarding'
+import { onboardingSiteSchema } from '../../../../control/schemas/onboarding'
 import { callControlPlane, mintRuntimeJwt } from '../../utils/controlPlane'
 import { grantSiteLabel } from '../../utils/siteLabel'
 // Der pages-Layer besitzt die Tabelle und stellt den Seed-Helfer bereit (A14).
@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
   const site = await readValidatedBody(event, onboardingSiteSchema.parse)
   const jwt = await mintRuntimeJwt(event)
 
-  const result = await callControlPlane<CreatedSite>(event, '/api/studio/onboarding/site', { jwt, site })
+  const result = await callControlPlane<CreatedSite>(event, '/api/control/onboarding/site', { jwt, site })
 
   await grantSiteLabel(event, result.siteId)
 

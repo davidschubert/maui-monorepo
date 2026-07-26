@@ -101,7 +101,7 @@ NUXT_STRIPE_WEBHOOK_SECRET=whsec_…    # das Live-Secret aus Schritt 4
 ```
 Dann **ohne Rebuild** neu laden (Stripe-Keys sind Runtime-Config):
 ```bash
-pm2 reload ecosystem-studio.config.cjs --update-env
+pm2 reload ecosystem-control.config.cjs --update-env
 ```
 Verifizieren, dass der Prozess die neuen Keys sieht (kein sk_test mehr):
 `pm2 env <id> | grep STRIPE` (zeigt gesetzt/nicht den Wert loggen).
@@ -126,7 +126,7 @@ Verifizieren, dass der Prozess die neuen Keys sieht (kein sk_test mehr):
 Reiner Env-Rückschritt, kein Deploy:
 ```bash
 # Server-.env zurück auf sk_test_… / das Test-whsec_…
-pm2 reload ecosystem-studio.config.cjs --update-env
+pm2 reload ecosystem-control.config.cjs --update-env
 ```
 Der Live-Webhook-Endpoint kann im Dashboard deaktiviert bleiben; Test-Mode läuft
 über den Stripe-CLI-`listen`- bzw. den bestehenden Test-Endpoint weiter.

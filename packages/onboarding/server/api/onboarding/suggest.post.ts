@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { SITE_CATEGORIES, SITE_DESCRIPTION_MAX, SITE_MEMBER_RANGES } from '../../../../studio/shared/onboarding'
+import { SITE_CATEGORIES, SITE_DESCRIPTION_MAX, SITE_MEMBER_RANGES } from '../../../../control/shared/onboarding'
 
 /**
  * KI-VORSCHLAG für die Beschreibung (Schritt 4) — Davids Entscheidung

@@ -1,4 +1,4 @@
-# M9 — Workspace-Self-Service (Kundenbereich im Studio)
+# M9 — Workspace-Self-Service (Kundenbereich im Control)
 
 Status: **IN UMSETZUNG mit den Empfehlungs-Antworten** (2026-07-19 —
 David: „baue alles nacheinander ab"; die drei Check-in-Fragen unten sind
@@ -6,7 +6,7 @@ mit ihren Empfehlungen beantwortet, Veto jederzeit möglich: OTP-Einladung ·
 Kundenbereich `/workspace` in der Studio-App · Kündigung übers
 Stripe-Portal). Baut auf M8 auf
 (Workspaces, Plan-Katalog, Checkout+Fulfillment+Grant-Sync sind FERTIG und
-Test-Mode-abgenommen). M9 macht aus `ownerEmail` einen echten Studio-User:
+Test-Mode-abgenommen). M9 macht aus `ownerEmail` einen echten Control-User:
 Kunden sehen ihren Workspace, zahlen selbst und verwalten ihr Abo — der
 Betreiber hört auf, Checkout-Stellvertreter zu sein. Horizont-2-Schritt
 der [Plattform-Strategie](MULTI-SITE-PLATFORM-STRATEGIE.md) (D0), noch

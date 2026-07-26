@@ -1,12 +1,12 @@
-# M6 — Control Plane `apps/studio` (Umsetzungsplan)
+# M6 — Control Plane `apps/control` (Umsetzungsplan)
 
 Stand: 2026-07-17 · Status: **T1–T4 fertig, verifiziert — M6 komplett** (Go David nach Gate G2)
 Kontext: Strategie D3 (Hybrid), § 8 Vertrauensgrenzen, L2/L5/L6.
 
 ## Architektur-Entscheidung
 
-Das Control Plane entsteht als **normaler Manifest-Layer `packages/studio`**
-+ dünne App `apps/studio` (später hawaii.studio) — gebaut mit den eigenen
+Das Control Plane entsteht als **normaler Manifest-Layer `packages/control`**
++ dünne App `apps/control` (später hawaii.studio) — gebaut mit den eigenen
 Werkzeugen der Plattform (create-site, Manifeste, Gates). Vertrauensgrenze
 aus § 8 gilt ab Tag 1: Das Register kennt Endpoints/Status/Metadaten der
 Sites, aber KEINE Site-Inhalte, keine Site-Sessions, keine Site-Keys
@@ -18,7 +18,7 @@ Sites, aber KEINE Site-Inhalte, keine Site-Sessions, keine Site-Keys
   (studio-001: name, slug veränderlich, projectId unveränderlich (F6),
   endpoint, appUrl, Lifecycle-`status` mit den L2/P2-Zuständen,
   healthStatus/healthCheckedAt, notes; Permissions [] — nur Server liest).
-  Routen `/api/studio/sites` (CRUD + POST /:id/health: probt
+  Routen `/api/control/sites` (CRUD + POST /:id/health: probt
   Appwrite-Health + App-URL → ok/degraded/down) hinter neuer Capability
   `sites.manage`. Dashboard-Seite /dashboard/sites (Liste mit Status-/
   Health-Badges, manuelle Registrierung, Health-Check-Button).
@@ -38,15 +38,15 @@ Health-Checks beide „ok". Der geparkte G2-JWT-Befund ist aufgeklärt
 
 ## Status T2 — ✅ fertig (2026-07-16, e2e-verifiziert)
 
-- **Vertrag** (`packages/studio/shared/types/job.ts`, Migration studio-002):
+- **Vertrag** (`packages/control/shared/types/job.ts`, Migration studio-002):
   Table `provisioning_jobs` (type/payload/status/log/result/requestedBy/
   runnerId, queued→running→done/error) + Table `feature_catalog`
   (rowId = Feature-Key; Katalog-Texte aus den Manifesten). Beide ohne
   Client-Permissions.
-- **§-8-Schnitt:** Der Web-Prozess BESCHREIBT Jobs nur (POST /api/studio/jobs,
+- **§-8-Schnitt:** Der Web-Prozess BESCHREIBT Jobs nur (POST /api/control/jobs,
   Frühvalidierung gegen den Katalog: wählbar = alles außer core/system/studio,
   requires-Schluss, Duplikat-Checks). Ausgeführt wird repo-seitig von
-  `pnpm studio:jobs [--watch]` (scripts/studio-jobs.mjs): synct den
+  `pnpm control:jobs [--watch]` (scripts/control-jobs.mjs): synct den
   Feature-Katalog aus packages/*/feature.manifest.ts, claimt die Queue und
   spawnt create-site mit den Console-Credentials des Operators; Log/Result
   landen am Job, die fertige Site im Register. Der M7-Provisioner-Worker
@@ -69,12 +69,12 @@ Health-Checks beide „ok". Der geparkte G2-JWT-Befund ist aufgeklärt
   Bewusst OHNE Signatur/Plan/Zustellung — das kommt mit M8/Stripe; bis dahin
   ist die Table die manuell gepflegte Wahrheit, und `featureGates.ts` (core)
   behält seinen vorbereiteten Andockpunkt („dritte UND-Bedingung").
-- **API:** GET /api/studio/sites liefert `entitlements: string[]` je Site mit;
-  PUT /api/studio/sites/:id/entitlements ersetzt das Grant-Set
+- **API:** GET /api/control/sites liefert `entitlements: string[]` je Site mit;
+  PUT /api/control/sites/:id/entitlements ersetzt das Grant-Set
   (Katalog-validiert, gleiche Nicht-zuteilbar-Regel core/system/studio wie
   T2). Deregistrieren räumt die Entitlement-Rows der Site mit ab
   (Register-seitige Daten — das Site-Projekt bleibt unberührt).
-- **Runner-Auto-Grant:** `studio-jobs` teilt einer frisch provisionierten
+- **Runner-Auto-Grant:** `control-jobs` teilt einer frisch provisionierten
   Site ihre gewählten Features automatisch zu.
 - **UI:** Feature-Chips am Site-Eintrag + „Features"-Modal (Katalog-Checkboxen
   mit requires-Autoselect, geteilt mit dem Neue-Site-Picker).
@@ -130,7 +130,7 @@ vorher fertig); M8 selbst muss nur noch Stripe/Workspaces/Pläne anschließen:
 - **Aussteller** (studio): `GET /api/platform/entitlements/:projectId`
   (öffentlich, Microcache 60 s; features aus den Grant-Rows, suspended aus
   sites.status; 503 ohne Signier-Schlüssel). Keys: `pnpm entitlements:keygen`
-  — privater Schlüssel NUR im Studio, kid→Public-Key-Map in den Site-Envs.
+  — privater Schlüssel NUR im Control, kid→Public-Key-Map in den Site-Envs.
 - **Site-Seite** (core): entitlements-pull-Plugin (15 min + Erst-Lauf;
   no-op ohne NUXT_ENTITLEMENTS_URL) + POST /api/platform/entitlements/refresh
   (system.manage); nur VERIFIZIERTE Dokumente landen in
@@ -138,7 +138,7 @@ vorher fertig); M8 selbst muss nur noch Stripe/Workspaces/Pläne anschließen:
   app_config.features ∧ Entitlement — kein Dokument = neutral AN
   (Einführungssicherheit), unverifizierbares Dokument = optional-Tier AUS.
 - **E2E-Beweis (photos):** Boot-Pull persistierte das Dokument automatisch;
-  media-Grant im Studio entzogen → Pull → `/api/media` 404 + Snapshot ohne
+  media-Grant im Control entzogen → Pull → `/api/media` 404 + Snapshot ohne
   media; Re-Grant → 200. Der Kreis Studio-Grant → signiertes Dokument →
   wirksames Gate ist geschlossen.
 - **Stolperfalle dokumentiert:** Nitro destr-t Env-Werte —

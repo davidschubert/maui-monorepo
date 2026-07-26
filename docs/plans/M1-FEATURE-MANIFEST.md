@@ -23,7 +23,7 @@ Katalog-Artefakt-Publishing (M6), Codegen beim Scaffolding (M4).
 - **E2 — Pflicht-Fundament in M1 = nur `core` + `system`.** Die weiteren
   foundation-Layer (admin, themes, billing, später pages) sind
   Katalog-Semantik („bei Platform-Sites immer an"), werden aber für
-  Studio-Sites NICHT erzwungen — Beleg: `_template` extended heute bewusst
+  Control-Sites NICHT erzwungen — Beleg: `_template` extended heute bewusst
   kein billing. Erzwingen würde M1 zum Umbau-Paket machen.
 - **E3 — `moderation` bleibt eigenes Manifest** mit tier `optional`, wird
   aber via `requires` von comments/posts automatisch mitgezogen (Katalog

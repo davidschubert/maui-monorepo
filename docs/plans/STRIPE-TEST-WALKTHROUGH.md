@@ -9,7 +9,7 @@ deinen Login — die machst du; alles andere ist vorbereitet.
 
 ## Vorab: Infra ist verifiziert (2026-07-21) ✅
 
-Von außen geprüft, alles bereit auf `studio.pukalani.app`:
+Von außen geprüft, alles bereit auf `control.pukalani.app`:
 - Webhook `POST /api/stripe/webhook` prüft Signaturen (unsigniert → 400) → das
   `whsec_`-Test-Secret ist gesetzt.
 - Billing ist aktiv, Checkout- + Portal-Routen leben (401 ohne Login, kein 404).

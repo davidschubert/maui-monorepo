@@ -13,7 +13,7 @@
  * übersprungen. Der Key bleibt in DEINER Shell — dieses Skript liest nur STRIPE_KEY.
  * Beträge unten sind PLATZHALTER — vor dem Live-Lauf auf echte Preise setzen.
  *
- * WICHTIG: Die lookup_key-Liste MUSS zu packages/studio/app/app.config.ts
+ * WICHTIG: Die lookup_key-Liste MUSS zu packages/control/app/app.config.ts
  * (maui.studio.plans) passen. Ändert sich der Katalog, hier nachziehen.
  */
 import Stripe from 'stripe'

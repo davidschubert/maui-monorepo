@@ -1,4 +1,4 @@
-<script setup lang="ts">import { SITE_VIBES, type SiteVibeId } from '../../../studio/shared/onboarding'
+<script setup lang="ts">import { SITE_VIBES, type SiteVibeId } from '../../../control/shared/onboarding'
 
 /**
  * Vibe-Auswahl (Schritt 6).

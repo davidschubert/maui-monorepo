@@ -525,7 +525,7 @@ in ihrer Datei eine Regel steht, sondern weil sie im Themes-Layer liegt.
 > Seit 2026-07: eine `presence`-TABELLE gibt es nicht mehr (Presence läuft komplett über
 > die Appwrite Presences API, A4); dafür besitzt system die Theme-Tabellen `custom_themes`/
 > `custom_fonts` (Migrationen 009–013) und serviert sie über die öffentlichen Read-Routen
-> `GET /api/themes` + `/api/fonts` — die Studio-UI liegt im themes-Layer, die Admin-CRUD-Routen
+> `GET /api/themes` + `/api/fonts` — die Control-UI liegt im themes-Layer, die Admin-CRUD-Routen
 > im admin-Layer (Schema-Owner ≠ UI-Welt bleibt gewahrt).
 
 ---

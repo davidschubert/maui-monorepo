@@ -86,7 +86,7 @@ export default defineNuxtConfig({
     entitlementsUrl: '',
     entitlementsPublicKeys: '',
     // server-only! Alert-Empfänger für Betriebs-Mails (L6: Health-Sweep-
-    // Statuswechsel im Studio; Beschluss 2026-07-17: mail@davidschubert.com).
+    // Statuswechsel im Control; Beschluss 2026-07-17: mail@davidschubert.com).
     // Leer = keine Alert-Mails. Env: NUXT_ALERT_EMAIL — Versand best-effort
     // über den Core-Mailer (ohne SMTP still no-op).
     alertEmail: '',

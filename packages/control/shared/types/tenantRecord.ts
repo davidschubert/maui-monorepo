@@ -1,0 +1,133 @@
+import type { Models } from 'node-appwrite'
+
+/**
+ * Horizont-3 tenants-Register (Blueprint Naht 1): das Control Plane (studio)
+ * BESITZT die Zuordnung Host → Mandant. Gelesen wird sie von Platform-Apps
+ * über createTenantsTableResolver (server/utils/tenantsResolver.ts) — mit
+ * expliziten Verbindungsdaten, weil der Leser in einem ANDEREN Projekt läuft
+ * (Cross-Projekt-Read auf das Control Plane, read-only).
+ */
+
+export const TENANT_MODES = ['pool', 'silo'] as const
+export type TenantMode = (typeof TENANT_MODES)[number]
+
+export const TENANT_STATUSES = ['active', 'disabled'] as const
+export type TenantStatus = (typeof TENANT_STATUSES)[number]
+
+/** H3-4.2: Silo-Schema-Updates rollen in DREI Wellen aus (Blueprint L5).
+ *  Pool-Tenants teilen EIN Projekt — ihre Welle ist ohne Wirkung. */
+export const TENANT_WAVES = ['internal', 'canary', 'stable'] as const
+export type TenantWave = (typeof TENANT_WAVES)[number]
+
+/** Quota-Plan des Pool-Tenants (studio-013); staffelt die Quota-Limits
+ *  (maui.tenancy.quota.plans). Default free; für Silo ohne Wirkung. */
+export const TENANT_PLANS = ['free', 'pro', 'business'] as const
+export type TenantPlan = (typeof TENANT_PLANS)[number]
+
+/**
+ * Lese-Publikum der Site (studio-016). G0-Entscheidung 7 (David, 2026-07-24):
+ * **privat als Default, öffentlich opt-in**. 'members' = Rows tragen
+ * `read(Role.label(siteId))` (harte Appwrite-Grenze, H3-Naht 4); 'public' =
+ * `read(Role.any())` als bewusster Schalter pro Site.
+ */
+export const TENANT_AUDIENCES = ['members', 'public'] as const
+export type TenantAudience = (typeof TENANT_AUDIENCES)[number]
+
+/**
+ * PURE (unit-getestet): das Lese-Publikum einer Row auflösen — FAIL-CLOSED.
+ *
+ * Nur der exakte Wert `'public'` öffnet eine Site. Alles andere (`null` bei
+ * Rows von vor studio-016, `''`, ein Tippfehler, ein fremder Wert) ist
+ * `'members'`. Warum das eine eigene Funktion ist und kein `|| 'members'`:
+ * hier hängt eine Datenschutz-Grenze dran, und ein direkter Vergleich
+ * (`audience !== 'members'` → öffentlich) hätte JEDE Bestands-Row öffentlich
+ * gemacht — Appwrite backfillt Spalten-Defaults nicht (auf Dev + Prod
+ * verifiziert: `audience` liest sich dort als `null`).
+ */
+export function resolveTenantAudience(value: string | null | undefined): TenantAudience {
+  return value === 'public' ? 'public' : 'members'
+}
+
+/** Row-Typ zur `tenants`-Table (Schema: Migrationen studio-010/011). */
+export interface TenantRow extends Models.Row {
+  /** Anzeigename des Kunden (studio-011); '' = Bestand vor der Migration. */
+  name: string
+  /** Kanonischer Host (klein, ohne Port) — Unique-Index uq_host. */
+  host: string
+  mode: TenantMode
+  /** Appwrite-Projekt, das den Host bedient (Pool: das geteilte Projekt). */
+  projectId: string
+  /** Zeilen-Scope im Pool (Migrationen wie comments-011); '' bei silo. */
+  tenantId: string
+  /** disabled = Host bewusst offline (Resolver liefert null → 404). */
+  status: TenantStatus
+  /** Update-Welle des BACKING-Projekts (studio-012); '' = Bestand → stable. */
+  wave: TenantWave | ''
+  /** Quota-Plan (studio-013); '' = Bestand → free. */
+  plan: TenantPlan | ''
+  /** G1 (studio-015): Billing-/Owner-Anker. Der Tenant IST die kanonische
+   *  Kunden-Site → `$id` = siteId; hier hängt das abrechnende Workspace.
+   *  '' = noch keinem Workspace zugeordnet (Billing-Verdrahtung folgt G2/G3). */
+  workspaceId: string
+  /** Onboarding (studio-016): Built-in-Theme-Id des gewählten Vibes;
+   *  '' = Instanz-Default aus app_config.themeSettings. */
+  theme: string
+  /** Tonale Variante des Themes; '' = Basisfarbe der Welt. */
+  variant: string
+  /** Lese-Publikum. `null` bei Rows, die VOR studio-016 entstanden sind:
+   *  Appwrite backfillt Spalten-Defaults nicht (verifiziert auf Dev + Prod,
+   *  gleiches Verhalten wie bei `plan` aus studio-013). IMMER über
+   *  resolveTenantAudience() lesen — nie direkt vergleichen. */
+  audience: TenantAudience | '' | null
+  /** Ende der 14-Tage-Pro-Testphase (Appwrite-Datetime → ISO-String, `null`
+   *  wenn nie gesetzt). Nach Ablauf setzt der Sweep `plan` auf free —
+   *  nie sperren, nie löschen (F3-Grundsatz). Echte Datetime-Spalte, damit
+   *  der Sweep sie mit einem Range-Query findet statt alle Rows zu lesen. */
+  trialEndsAt: string | null
+  /** Onboarding-Antworten als JSON (parseSiteProfile); '' = ohne Wizard angelegt. */
+  profile: string
+  /** Einladungs-Code, mit dem diese Community entstanden ist (Abuse-Spur);
+   *  '' = ohne Code angelegt (Betreiber-Weg im Control). */
+  inviteCodeId: string
+}
+
+export const TENANTS_TABLE = 'tenants'
+
+/** Quota-Limits eines Plans je Schreib-Art (Spiegel von core TenantQuotaLimits). */
+export interface TenantPlanLimits {
+  perDay?: number
+  total?: number
+}
+
+/** Row-Typ zur `tenant_plans`-Table (studio-014): der im Control EDITIERBARE
+ *  Quota-Katalog. `limits` = JSON { [kind]: { perDay, total } } (z. B.
+ *  kind 'comments'); 0/fehlend = unbegrenzt. rowId = key. */
+export interface TenantPlanRow extends Models.Row {
+  key: TenantPlan
+  /** JSON-String — parseTenantPlanLimits() macht daraus das Objekt. */
+  limits: string
+}
+
+export const TENANT_PLANS_TABLE = 'tenant_plans'
+
+/** PURE (unit-getestet): limits-JSON defensiv parsen — kaputte/fremde Werte
+ *  fallen auf {} zurück (Quota greift dann via app.config-Fallback). */
+export function parseTenantPlanLimits(raw: string): Record<string, TenantPlanLimits> {
+  try {
+    const parsed = JSON.parse(raw) as unknown
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {}
+    const result: Record<string, TenantPlanLimits> = {}
+    for (const [kind, value] of Object.entries(parsed as Record<string, unknown>)) {
+      if (typeof value !== 'object' || value === null) continue
+      const { perDay, total } = value as { perDay?: unknown, total?: unknown }
+      const limits: TenantPlanLimits = {}
+      if (typeof perDay === 'number' && Number.isFinite(perDay) && perDay >= 0) limits.perDay = perDay
+      if (typeof total === 'number' && Number.isFinite(total) && total >= 0) limits.total = total
+      result[kind] = limits
+    }
+    return result
+  }
+  catch {
+    return {}
+  }
+}

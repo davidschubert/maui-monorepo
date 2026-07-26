@@ -1,7 +1,7 @@
 import { z } from 'zod'
 // Cross-Layer als expliziter Vertrag (s. site.post.ts).
-import { inviteCodeSchema } from '../../../../studio/schemas/onboarding'
-import { createSlugSchema } from '../../../../studio/schemas/tenant'
+import { inviteCodeSchema } from '../../../../control/schemas/onboarding'
+import { createSlugSchema } from '../../../../control/schemas/tenant'
 import { callControlPlane } from '../../utils/controlPlane'
 
 /**
@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
   const body = await readValidatedBody(event, bodySchema.parse)
   const result = await callControlPlane<{ codeValid?: boolean, slugAvailable?: boolean }>(
     event,
-    '/api/studio/onboarding/precheck',
+    '/api/control/onboarding/precheck',
     // Die Adresse kommt aus der SESSION, nicht aus dem Body — sonst könnte
     // jemand die Bindung eines fremden Codes umgehen, indem er die Adresse
     // des Eingeladenen mitschickt.

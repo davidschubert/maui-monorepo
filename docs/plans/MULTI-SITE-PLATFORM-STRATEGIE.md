@@ -102,21 +102,21 @@ Sites — nichts ist Wegwerf-Arbeit für hypothetische Kunden.
 ### D0 — Drei Horizonte, eine Architektur
 
 ```
-Horizont 1 (jetzt):    Eigene Sites        → Studio-Sites + create-site + Laufzeit-Gates
+Horizont 1 (jetzt):    Eigene Sites        → Control-Sites + create-site + Laufzeit-Gates
 Horizont 2 (danach):   Agentur/Kunden      → Control Plane + Provisioner + Workspaces
 Horizont 3 (später):   Self-Service-SaaS   → Platform-App + Stripe-Entitlements + Domain-Automation
 ```
 
 ### D1 — Zwei Site-Klassen (löst den Konflikt Monorepo ⟷ Self-Service)
 
-**Klasse A: Studio-Site** — eine dünne App im Monorepo (`apps/portfolio`,
+**Klasse A: Control-Site** — eine dünne App im Monorepo (`apps/portfolio`,
 `apps/photos`, `apps/community`, Kundenprojekte mit Custom-Design).
 Benennungs-Entscheidung (David, 2026-07-14): die eigenen Sites heißen
 `apps/portfolio` und `apps/photos`.
 - Feature-Wahl per `extends` (Buildzeit) + Laufzeit-Gates für Feinheiten.
 - Volle gestalterische Freiheit (eigene Pages/Components/Overrides).
 - Deploy: eigene ploi-Site + Deploy-Webhook (bestehendes PHASE-17-Modell).
-- Neue Studio-Site anlegen = Scaffold-Script (§ P1), kein Self-Service.
+- Neue Control-Site anlegen = Scaffold-Script (§ P1), kein Self-Service.
 
 **Klasse B: Platform-Site** — EINE generische App `apps/platform`, die
 **alle** Feature-Layer einkompiliert hat und pro Hostname zur Laufzeit
@@ -130,8 +130,8 @@ entscheidet, welche Site sie rendert und welche Features aktiv sind.
 - Braucht: Redis-Rate-Limit, hostname→Site-Auflösung, per-Request-Appwrite-
   Projekt-Auswahl.
 
-**Pilot-Rolle der Studio-Sites (bestätigt 2026-07-14):** Neue Features
-werden als Feature-LAYER (`packages/*`) gebaut und in einer Studio-Site
+**Pilot-Rolle der Control-Sites (bestätigt 2026-07-14):** Neue Features
+werden als Feature-LAYER (`packages/*`) gebaut und in einer Control-Site
 pilotiert (z. B. media-Layer in `apps/photos`). Da `apps/platform`
 schlicht alle Layer einkompiliert, ist ein gereifter Layer dort automatisch
 verfügbar — es wird nichts aus der App „herüberkopiert"; die App ist das
@@ -208,7 +208,7 @@ gleichzeitig → Single Point of Failure bewusst akzeptieren + überwachen.
   Plane down ist; (c) das gesamte bestehende Admin-Paket wird unverändert
   weiterverwendet.
 - **hawaii.studio = Control Plane** („Mission Control", eigene Maui-App
-  `apps/studio` mit eigenem Appwrite-Projekt): Workspace-/Site-Register,
+  `apps/control` mit eigenem Appwrite-Projekt): Workspace-/Site-Register,
   Provisionierung, Feature-Entitlements + Plan/Abo je Site, Health/Status
   aller Sites, Abrechnungen. Linear-artiger Workspace-Switcher, der zu den
   Site-Dashboards **verlinkt** (später optional SSO-Handoff via kurzlebigem
@@ -241,7 +241,7 @@ derselben **Root-Domain** liegen (Session-Cookie + authentifiziertes Realtime).
   SaaS-Custom-Domains. Alternative: Cloudflare for SaaS (Custom Hostnames,
   100 frei) — weniger Eigenbetrieb, mehr Vendor-Bindung.
 - **Custom Domain, Appwrite-API — zwei Optionen:**
-  - *Option 1 (volle Parität, Studio-Sites):* `api.<kundendomain>` als
+  - *Option 1 (volle Parität, Control-Sites):* `api.<kundendomain>` als
     **Appwrite Custom Domain pro Projekt** (offiziell unterstützt: CNAME auf
     den Appwrite-Host, Zertifikat automatisch; self-hosted via
     `_APP_DOMAIN_TARGET` + certificates-worker). Eigene Sites:
@@ -328,7 +328,7 @@ export default defineFeatureManifest({
   generiert der Build ein validiertes, VERSIONIERTES Katalog-Artefakt
   (JSON aus allen Manifesten). Veröffentlichungsrichtung: das Artefakt wird
   beim **Release ins Control Plane publiziert** (API/Storage des
-  Studio-Projekts, nicht einkompiliert) — so kann `apps/studio` unabhängig
+  Control-Projekts, nicht einkompiliert) — so kann `apps/control` unabhängig
   von der Platform-App deployen. Drei getrennte Versionen:
   `catalogVersion` (Stand des Artefakts) · `platformReleaseVersion`
   (was die laufende Platform-App tatsächlich enthält) · und statt eines
@@ -386,14 +386,14 @@ Das AI-Override-Muster (`app_config.aiModel > maui.ai`) wird generalisiert:
   `moderation` fehl, bleiben vorbereitete, aber INAKTIVE Schemaanteile
   zurück; Recovery läuft vorwärts per Retry; der Status bleibt
   `provisioning`/`error` und ALLE Gates der Kette bleiben geschlossen.
-- Wichtig: Für Studio-Sites ist das Gate ein **Aus-Schalter innerhalb der
+- Wichtig: Für Control-Sites ist das Gate ein **Aus-Schalter innerhalb der
   einkompilierten Features** (Feature deaktivieren ohne Deploy). Für
   Platform-Sites ist es der EINZIGE Schalter.
 
 ### F3 — Entitlements (Monetarisierung, David = comp)
 
 - Control Plane besitzt `workspaces`, `sites`, `plans`, `entitlements`
-  (eigene Tables im Studio-Appwrite-Projekt) + Stripe via vorhandenem
+  (eigene Tables im Control-Appwrite-Projekt) + Stripe via vorhandenem
   `packages/billing`-Muster (Abo pro Workspace/Site statt pro End-User).
 - Jede Site erhält ihr Entitlement-Set als **signiertes Dokument** (JWT o.
   signierte JSON, Public Key in der Site-Env): Site cached es in
@@ -429,7 +429,7 @@ Das AI-Override-Muster (`app_config.aiModel > maui.ai`) wird generalisiert:
 
 ### F4 — Onboarding-Flow im Control Plane (revidiert 2026-07-14)
 
-Der „Wizard" ist der **Site-Erstellungs-Flow in `apps/studio`**, nicht eine
+Der „Wizard" ist der **Site-Erstellungs-Flow in `apps/control`**, nicht eine
 On-Site-Seite:
 
 1. **Signup/Login auf hawaii.studio** (Studio hat ein eigenes Appwrite-Projekt
@@ -461,7 +461,7 @@ On-Site-Seite:
    Migrations-Key)** → erst DANACH Entitlement ausstellen/aktualisieren →
    Runtime-Gate (`app_config.features`) aktivieren → `active`. Bei einem
    Fehler bleiben Entitlement und Gate unverändert geschlossen
-   (Status `error`, Vorwärts-Recovery per Retry). Bei Studio-Sites führt
+   (Status `error`, Vorwärts-Recovery per Retry). Bei Control-Sites führt
    die Migration alternativ der Betreiber per
    `pnpm migrate --app <site> --layer <l>` aus — gleiche Reihenfolge.
 7. **On-Site-`/setup` (optionaler Fallback, de-priorisiert):** dünner
@@ -650,7 +650,7 @@ und E-Mail-Links auf beiden Domains.
    vollständig aus den eigenen Feature-Layern (pages/posts/media auf
    Appwrite); `nuxt-maui-photos` Design behalten, als `apps/photos`
    einziehen sobald media-Layer existiert; `hawaiistudio` (Prismic) ist
-   KEINE Basis fürs Control Plane — frisch als `apps/studio` bauen.
+   KEINE Basis fürs Control Plane — frisch als `apps/control` bauen.
 
 ---
 
@@ -669,7 +669,7 @@ zur Regel „S2 + Minimal-S3 vor M6").
 | M4 | ✅ **BESTANDEN (2026-07-15):** `pnpm create-site` (Scaffold + Console-Provisionierung + manifest-gefilterte Migrationen) — **G1/S1 läuft dauerhaft als CI-Step** (e2e.yml provisioniert bei jedem Push ein Projekt auf der echten Wegwerf-Appwrite; erster Lauf grün). Provisioner-Learnings in [M4-CREATE-SITE.md](M4-CREATE-SITE.md) | 1 | ✅ |
 | M5 | Eigene Sites einziehen: `apps/portfolio`, `apps/photos` (+ media-Layer), Community | 1 | je 3–8 PT |
 | **G2** | **TEILWEISE BESTANDEN (2026-07-15,** [spikes/s3-minimal](../../spikes/s3-minimal/README.md)**):** Minimal-S3 ✅ Browser-verifiziert (2 echte Projekte auf der Haupt-Instanz, parallele Sessions, Realtime-Isolation mit sauberem Kreuz-Check). S2: API-Oberfläche (`/proxy/rules`) self-hosted verifiziert ✅ — der e2e-Beweis (CNAME+Cert) braucht echte Domains → **Pflichtpunkt in Phase 17 vor jedem Custom-Domain-Feature**. Befund für G3 (aufgeklärt 2026-07-16): Appwrite 1.9.5 liest `&jwt=` am Realtime-Endpoint NICHT — Cores Prod-Muster funktioniert über das same-site Session-Cookie, nicht über den JWT. Cookie-freier Pfad verifiziert (subscribe-Message VOR authentication-Message, Session-Secret), aber cross-site-tauglich nur mit Secret-im-JS (abzulehnen), Server-Upgrade oder read(any)-Verzicht → Entscheidung für Klasse-B-Private-Channels in G3 (Details im Spike-README). **Upstream-Recherche 2026-07-17: Appwrite main hat den jwt-Query-Fallback bereits gemerged, aber noch nicht released (Latest = 1.9.5) — Pfad „Upgrade" bestätigt, aufs nächste Release warten.** **M6-Freigabe: Control-Plane-Verträge können auf dieser Basis geschnitten werden.** | 2 | ✅/⚠ |
-| M6 | Control Plane MVP `apps/studio` (Register, Health, manuelle Entitlements, Site-Erstellungs-Flow = F4) | 2 | 8–12 PT |
+| M6 | Control Plane MVP `apps/control` (Register, Health, manuelle Entitlements, Site-Erstellungs-Flow = F4) | 2 | 8–12 PT |
 | M7 | Provisioner-Worker + ploi/Cloudflare-APIs (S2 bereits in G2 bestanden) | 2 | 6–10 PT |
 | M8 | Workspace-Billing (Stripe) + signierte Entitlements (F3 voll) | 2/3 | 5–8 PT |
 | **G3** | **Gate vor M9:** volles S3 (komplette Browser-PoC-Checkliste inkl. Session-CRUD-Abnahmekriterien) + **S4 Quota-Enforcement** bestanden — sonst kein M9/Self-Service | 3 | 4–7 PT |
@@ -810,7 +810,7 @@ zentraler Auth-Broker.
 
 ## 8. Invarianten & Vertrauensgrenzen (4. Runde)
 
-- **Control Plane** (`apps/studio`): kennt alle Sites + Entitlements; besitzt
+- **Control Plane** (`apps/control`): kennt alle Sites + Entitlements; besitzt
   KEINE Site-Inhalte und keine Site-Sessions. Diese Grenze gilt nur, wenn
   sie ERZWUNGEN wird (5. Runde) — sonst ist das Control Plane über den
   Provisioner mittelbar allmächtig: der Provisioner akzeptiert nur eng

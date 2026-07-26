@@ -5,7 +5,7 @@
  * damit man den Setup-Flow im Browser wie ein Kunde durchgehen kann. Beides
  * lässt sich mit `--clean` restlos entfernen.
  *
- *   POOL_KEY=… node --env-file=apps/studio/.env \
+ *   POOL_KEY=… node --env-file=apps/control/.env \
  *     packages/onboarding/scripts/seed-local-tester.mjs [--clean]
  */
 import { createHash } from 'node:crypto'
@@ -16,7 +16,7 @@ const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const controlProject = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
 const databaseId = process.env.NUXT_PUBLIC_APPWRITE_DATABASE_ID
 const controlKey = process.env.NUXT_APPWRITE_MIGRATIONS_KEY || process.env.NUXT_APPWRITE_KEY
-const poolProject = process.env.NUXT_PUBLIC_STUDIO_POOL_PROJECT || 'pool'
+const poolProject = process.env.NUXT_PUBLIC_CONTROL_POOL_PROJECT || 'pool'
 const poolKey = process.env.POOL_KEY
 
 if (!endpoint || !controlProject || !databaseId || !controlKey || !poolKey) {

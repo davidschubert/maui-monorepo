@@ -109,19 +109,18 @@ Vollständiges Konzept: docs/CONCEPT.md
   RBAC-gefiltert, exact für Index-Einträge)
 
 ## Hosts (Umbenennung 2026-07-25, Davids Entscheidung)
-- `control.pukalani.app` = Betreiber-Oberfläche (Alias der ploi-Site
-  `studio.pukalani.app`, die weiter antwortet — Deploy-Verify und
-  Stripe-Webhook hängen an ihr). Der Name folgt dem Begriff, den der Code
-  überall benutzt (Control Plane).
+- `control.pukalani.app` = Betreiber-Oberfläche. Der Name folgt dem Begriff,
+  den der Code überall benutzt (Control Plane). `studio.pukalani.app` bleibt
+  als Alias bestehen und antwortet weiter — der Stripe-Webhook hängt an ihm.
 - `my.pukalani.app` = Kundenbereich, `start.pukalani.app` = Kurz-Link in den
   Wizard, `app.pukalani.app` = Altname, bleibt vorerst. ALLE DREI sind
   Kontroll-Hosts derselben Platform-App und brauchen weder DNS noch eigene
   Site (Wildcard `*.pukalani.app` zeigt schon dorthin).
 - TLS-Falle: Port 80 antwortet nur für explizit konfigurierte Hosts, also
   scheitert die HTTP-Prüfung von Let's Encrypt für Aliase. Lösung ist das
-  Wildcard-Zertifikat per DNS-Prüfung (Cloudflare) — so auf der Studio-Site
+  Wildcard-Zertifikat per DNS-Prüfung (Cloudflare) — so auf der Control-Site
   gemacht.
-- Neue Namen IMMER in RESERVED_SUBDOMAINS (packages/studio/schemas/tenant.ts),
+- Neue Namen IMMER in RESERVED_SUBDOMAINS (packages/control/schemas/tenant.ts),
   sonst kann ein Selbstbedienungs-Kunde sie beantragen.
 
 ## Self-Service-Onboarding (Layer onboarding, seit 2026-07-25)
@@ -134,20 +133,20 @@ Vollständiges Konzept: docs/CONCEPT.md
   `?redirect=` an (safeRedirectTarget, core/shared — NUR Pfade auf diesem
   Host), nach der Anmeldung geht es zurück, der Wizard liest `?code=` und
   prüft ohne Klick. Post-Auth-Ziel IMMER über useAuthRedirect().
-- Anlegen gehört dem Control Plane: `POST /api/studio/onboarding/site` verlangt
-  Service-Secret (NUXT_STUDIO_ONBOARDING_SECRET ⇔ NUXT_ONBOARDING_SERVICE_SECRET)
+- Anlegen gehört dem Control Plane: `POST /api/control/onboarding/site` verlangt
+  Service-Secret (NUXT_CONTROL_ONBOARDING_SECRET ⇔ NUXT_ONBOARDING_SERVICE_SECRET)
   UND ein Appwrite-JWT, das das Control Plane SELBST gegen das Pool-Projekt
   prüft. Idempotenz über den Hostnamen (kein Idempotency-Key); Owner-Mitgliedschaft
   scheitert ⇒ Tenant wird zurückgerollt.
 - Vertrag (Kataloge, 6 Vibes, Testphase, Kontingent):
-  `packages/studio/shared/onboarding.ts` — der Wizard-Layer konsumiert ihn.
+  `packages/control/shared/onboarding.ts` — der Wizard-Layer konsumiert ihn.
 - Branding gehört dem MANDANTEN (`tenants.theme/variant`), nicht dem Projekt:
   `app_config.themeSettings` ist EINE Row pro Projekt.
 - Site-Routen autorisieren über `requireSitePermission` (Site-Rolle, dann
   protokollierter Operator-Break-Glass) — NIE `requirePermission` erweitern:
   die ist synchron und wird ohne await gerufen.
 - Beweise: `packages/onboarding/scripts/{verify-control-host,verify-site-authz,
-  acceptance-onboarding}.mjs` + `packages/studio/scripts/verify-onboarding.mjs`.
+  acceptance-onboarding}.mjs` + `packages/control/scripts/verify-onboarding.mjs`.
   Lokal testen: `seed-local-tester.mjs` (Konto+Code, `--clean` räumt auf).
   Node's `fetch` verwirft einen eigenen Host-Header, und Nitro hört auf `[::1]`
   (Vites HMR-Server auf IPv4) — die Skripte nutzen deshalb node:http über ::1.

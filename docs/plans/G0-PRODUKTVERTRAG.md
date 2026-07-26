@@ -71,7 +71,7 @@ Site-Dashboard  (RBAC- + Feature-gefiltert; Feature-Registry bleibt Quelle)
 ```
 
 ### 1.3 Operator Studio
-*Zielgruppe:* NUR Plattformbetreiber (du). *Wo:* `studio.pukalani.app`. *Zweck:*
+*Zielgruppe:* NUR Plattformbetreiber (du). *Wo:* `control.pukalani.app`. *Zweck:*
 die Plattform selbst. **Niemals Teil der Kundennavigation.**
 
 ```
@@ -124,7 +124,7 @@ dann Schnellaktionen. Kein Feature-Wühltisch.
   `admin`-Label gilt damit **pool-weit** — Kunde A wäre Admin auch bei Kunde B.
   Das ist die zentrale Sicherheitslücke vor offenem Self-Service.
 - **Zwei getrennte Identitäts-Welten**, die NIE gleichgesetzt werden dürfen:
-  - **Control-Plane-Identität** (Studio-Projekt): `workspace_members.userId` —
+  - **Control-Plane-Identität** (Control-Projekt): `workspace_members.userId` —
     für Abrechnung/Kundenbereich. Existiert.
   - **Runtime-Identität** (Pool-/Silo-Projekt): der User, der auf der Site
     kommentiert/moderiert. Seine `userId` ist **nur zusammen mit `projectId`
@@ -153,7 +153,7 @@ keine Daten-Isolation und umgekehrt.
 > fälschlich auf `sites.$id` zeigte — die Prod-Daten zeigten: Pool-Tenants
 > haben gar keine `sites`-Zeile.)
 
-**Neue Tabelle `site_members`** (Control Plane / Studio-Projekt):
+**Neue Tabelle `site_members`** (Control Plane / Control-Projekt):
 
 | Spalte | Zweck |
 |---|---|

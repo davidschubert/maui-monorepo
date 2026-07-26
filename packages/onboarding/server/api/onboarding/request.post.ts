@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
     return { ok: true }
   }
 
-  await callControlPlane(event, '/api/studio/onboarding/request', {
+  await callControlPlane(event, '/api/control/onboarding/request', {
     email: body.email,
     note: body.note ?? '',
     locale: body.locale ?? 'de',

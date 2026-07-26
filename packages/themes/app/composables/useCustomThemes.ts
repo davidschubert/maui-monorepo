@@ -19,7 +19,7 @@ export function useThemeSettingsState() {
   return useState<ThemeSettings>('maui-theme-settings', () => ({}))
 }
 
-/** Beide States vom Server holen (App-Start + nach CRUD im Studio) — best effort. */
+/** Beide States vom Server holen (App-Start + nach CRUD im Control) — best effort. */
 export async function refreshCustomThemes(): Promise<void> {
   const customs = useCustomThemesState()
   const settings = useThemeSettingsState()

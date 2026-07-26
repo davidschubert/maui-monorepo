@@ -125,7 +125,7 @@ jobs:
         if: steps.changes.outputs.skip != 'true'
         run: |
           set -eu
-          for app in comments portfolio studio platform; do
+          for app in comments portfolio control platform; do
             echo "::group::Build $app"
             pnpm --filter "$app" build
             echo "::endgroup::"
@@ -135,8 +135,8 @@ jobs:
         if: steps.changes.outputs.skip != 'true'
         run: |
           set -eu
-          declare -A SITE=( [comments]=comments.pukalani.app [portfolio]=portfolio.pukalani.app [studio]=studio.pukalani.app [platform]=platform.pukalani.app )
-          for app in comments portfolio studio platform; do
+          declare -A SITE=( [comments]=comments.pukalani.app [portfolio]=portfolio.pukalani.app [control]=control.pukalani.app [platform]=platform.pukalani.app )
+          for app in comments portfolio control platform; do
             site="${SITE[$app]}"
             echo "::group::Deploy $app → $site"
             RELEASES="/home/ploi/releases/$app"

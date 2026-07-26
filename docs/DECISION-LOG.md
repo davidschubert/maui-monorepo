@@ -187,7 +187,7 @@ Produkte `prod_UvTbOz5jtnqCXn` (Pro) / `prod_UvTcGRkKpAlYse` (Business). Der
 Connector läuft im **LIVE**-Modus (`livemode:true`) — vor jedem Schreiben geprüft.
 
 ### Bugfix: Plan-Wechsel-Doppelabo (Guard)
-Beide Workspace-Checkout-Routen (Kunde + Betreiber, apps/studio/server) blocken
+Beide Workspace-Checkout-Routen (Kunde + Betreiber, apps/control/server) blocken
 jetzt einen zweiten Checkout, wenn der Workspace schon einen Bezahl-Plan hat
 (409 → Portal). Pure `isPaidPlanKey` + Tests. Verhindert Doppelabrechnung.
 
@@ -254,7 +254,7 @@ David will Stripe so weit wie möglich fertig machen, aber Bank/Live-Aktivierung
 erst später (er sucht noch eine Bank). Umgesetzt (test-mode-ready):
 
 ### Feature: Jahres-Abos für Workspace-Pläne
-`StudioPlan` um optionales `lookupKeyYearly` erweitert (additiv, bricht nichts);
+`ControlPlan` um optionales `lookupKeyYearly` erweitert (additiv, bricht nichts);
 Katalog pro/business mit `workspace_{pro,business}_yearly`. Pure
 `pickLookupKey(plan, interval)` wählt den Preis (yearly-ohne-Preis → Fallback
 monthly). Beide Checkout-Routen (Kunde + Betreiber) akzeptieren `interval`,

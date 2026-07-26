@@ -6,8 +6,8 @@ import {
   SITE_PURPOSES,
   isEarlyAccessGoal,
   type SiteVibeId,
-} from '../../../../studio/shared/onboarding'
-import { OPERATOR_APEX, nameToSubdomain } from '../../../../studio/schemas/tenant'
+} from '../../../../control/shared/onboarding'
+import { OPERATOR_APEX, nameToSubdomain } from '../../../../control/schemas/tenant'
 import {
   WIZARD_STEPS,
   isStepComplete,

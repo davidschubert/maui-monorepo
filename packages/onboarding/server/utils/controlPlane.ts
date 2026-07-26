@@ -7,7 +7,7 @@ import type { H3Event } from 'h3'
  * Anlegen einer Community gehört dorthin, also ruft der Trichter die
  * auditierte Service-Route auf — mit Secret im Header (beweist: unser
  * Deployment) und dem Appwrite-JWT des Nutzers im Body (beweist: dieser
- * Nutzer). Details der Naht: packages/studio/server/utils/onboardingService.ts
+ * Nutzer). Details der Naht: packages/control/server/utils/onboardingService.ts
  *
  * Fehler werden bewusst DURCHGELASSEN, nicht geglättet: 403 (Code/Kontingent)
  * und 409 (Adresse belegt) sind Aussagen für den Nutzer. Nur was gar nicht

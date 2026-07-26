@@ -38,11 +38,11 @@
       "port": 3003
     },
     {
-      "name": "studio",
+      "name": "control",
       "runtimeExecutable": "zsh",
       "runtimeArgs": [
         "-c",
-        "source ~/.nvm/nvm.sh && nvm use 22 >/dev/null && exec pnpm --filter studio dev"
+        "source ~/.nvm/nvm.sh && nvm use 22 >/dev/null && exec pnpm --filter control dev"
       ],
       "port": 3004
     },

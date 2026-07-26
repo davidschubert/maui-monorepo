@@ -1,0 +1,307 @@
+<script setup lang="ts">
+import { nameToSubdomain, OPERATOR_APEX } from '../../../schemas/tenant'
+import type { TenantMode, TenantPlan, TenantStatus, TenantWave } from '../../../shared/types/tenantRecord'
+
+definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'sites.manage' })
+
+const { t } = useI18n()
+const toast = useToast()
+useHead({ title: () => t('control.tenants.title') })
+
+interface TenantDto { id: string, name: string, host: string, mode: TenantMode, projectId: string, tenantId: string, status: TenantStatus, wave: TenantWave, plan: TenantPlan }
+
+const { data, refresh } = await useFetch<{ total: number, tenants: TenantDto[] }>('/api/control/tenants', { lazy: true, server: false })
+const tenants = computed(() => data.value?.tenants ?? [])
+
+const showCreate = ref(false)
+const showAdvanced = ref(false)
+const saving = ref(false)
+const form = reactive({ name: '', host: '', mode: 'pool' as TenantMode, projectId: '', wave: 'stable' as TenantWave, plan: 'free' as TenantPlan })
+const modeItems = computed(() => [
+  { label: t('control.tenants.mode.pool'), value: 'pool' },
+  { label: t('control.tenants.mode.silo'), value: 'silo' },
+])
+const waveItems = computed(() => [
+  { label: t('control.tenants.wave.internal'), value: 'internal' },
+  { label: t('control.tenants.wave.canary'), value: 'canary' },
+  { label: t('control.tenants.wave.stable'), value: 'stable' },
+])
+const planItems = computed(() => [
+  { label: t('control.tenants.plan.free'), value: 'free' },
+  { label: t('control.tenants.plan.pro'), value: 'pro' },
+  { label: t('control.tenants.plan.business'), value: 'business' },
+])
+
+// UX: der Name führt — die Subdomain folgt live, solange der Betreiber das
+// Host-Feld nicht selbst angefasst hat (dann gewinnt seine Eingabe).
+const hostTouched = ref(false)
+watch(() => form.name, (name) => {
+  if (hostTouched.value) return
+  const slug = nameToSubdomain(name)
+  form.host = slug ? `${slug}.${OPERATOR_APEX}` : ''
+})
+
+function openCreate() {
+  form.name = ''
+  form.host = ''
+  form.mode = 'pool'
+  form.projectId = ''
+  form.wave = 'stable'
+  form.plan = 'free'
+  hostTouched.value = false
+  showAdvanced.value = false
+  showCreate.value = true
+}
+
+async function createTenant() {
+  saving.value = true
+  try {
+    await $fetch('/api/control/tenants', {
+      method: 'POST',
+      body: {
+        name: form.name,
+        host: form.host,
+        mode: form.mode,
+        // leer = Server nimmt den Pool-Default (maui.studio.defaultPoolProject)
+        ...(form.projectId ? { projectId: form.projectId } : {}),
+        ...(form.wave !== 'stable' ? { wave: form.wave } : {}),
+        ...(form.plan !== 'free' ? { plan: form.plan } : {}),
+      },
+    })
+    toast.add({ title: t('control.tenants.created'), color: 'success' })
+    showCreate.value = false
+    await refresh()
+  }
+  catch (error) {
+    toast.add({ title: t('control.tenants.createFailed'), description: (error as { statusMessage?: string })?.statusMessage, color: 'error' })
+  }
+  finally {
+    saving.value = false
+  }
+}
+
+async function changeWave(tenant: TenantDto, wave: TenantWave) {
+  if (wave === tenant.wave) return
+  try {
+    await $fetch(`/api/control/tenants/${tenant.id}`, { method: 'PATCH', body: { wave } })
+    toast.add({ title: t('control.tenants.waveChanged'), color: 'success' })
+    await refresh()
+  }
+  catch {
+    toast.add({ title: t('control.tenants.updateFailed'), color: 'error' })
+  }
+}
+
+async function changePlan(tenant: TenantDto, plan: TenantPlan) {
+  if (plan === tenant.plan) return
+  try {
+    await $fetch(`/api/control/tenants/${tenant.id}`, { method: 'PATCH', body: { plan } })
+    toast.add({ title: t('control.tenants.planChanged'), color: 'success' })
+    await refresh()
+  }
+  catch {
+    toast.add({ title: t('control.tenants.updateFailed'), color: 'error' })
+  }
+}
+
+async function toggleStatus(tenant: TenantDto) {
+  const status = tenant.status === 'active' ? 'disabled' : 'active'
+  try {
+    await $fetch(`/api/control/tenants/${tenant.id}`, { method: 'PATCH', body: { status } })
+    toast.add({ title: t(status === 'active' ? 'control.tenants.enabled' : 'control.tenants.disabled'), color: 'success' })
+    await refresh()
+  }
+  catch {
+    toast.add({ title: t('control.tenants.updateFailed'), color: 'error' })
+  }
+}
+
+async function removeTenant(tenant: TenantDto) {
+  try {
+    await $fetch(`/api/control/tenants/${tenant.id}`, { method: 'DELETE' })
+    toast.add({ title: t('control.tenants.deleted'), color: 'success' })
+    await refresh()
+  }
+  catch {
+    toast.add({ title: t('control.tenants.deleteFailed'), color: 'error' })
+  }
+}
+
+// ── Editierbarer Quota-Katalog (tenant_plans, studio-014) ────────────────────
+// Zahlen wirken im Pool nach ≤ 90 s (Katalog-Cache 60 s + Host-Cache 30 s im
+// platform-Resolver) — kein Deploy nötig. 0 = unbegrenzt.
+interface PlanLimitsDto { key: string, limits: Record<string, { perDay?: number, total?: number }> }
+const { data: plansData, refresh: refreshPlans } = await useFetch<{ plans: PlanLimitsDto[] }>('/api/control/plans', { lazy: true, server: false })
+const planEdits = reactive<Record<string, { perDay: number, total: number }>>({})
+watch(() => plansData.value?.plans, (plans) => {
+  for (const plan of plans ?? []) {
+    planEdits[plan.key] = {
+      perDay: plan.limits.comments?.perDay ?? 0,
+      total: plan.limits.comments?.total ?? 0,
+    }
+  }
+}, { immediate: true })
+const planSaving = ref<string | null>(null)
+
+async function savePlanLimits(key: string) {
+  const edit = planEdits[key]
+  if (!edit) return
+  planSaving.value = key
+  try {
+    await $fetch(`/api/control/plans/${key}`, {
+      method: 'PATCH',
+      body: { comments: { perDay: edit.perDay, total: edit.total } },
+    })
+    toast.add({ title: t('control.plans.saved'), color: 'success' })
+    await refreshPlans()
+  }
+  catch {
+    toast.add({ title: t('control.plans.saveFailed'), color: 'error' })
+  }
+  finally {
+    planSaving.value = null
+  }
+}
+</script>
+
+<template>
+  <UDashboardPanel id="tenants">
+    <template #header>
+      <UDashboardNavbar :title="t('control.tenants.title')">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+        <template #right>
+          <UButton icon="i-ph-plus" data-tenants-create :label="t('control.tenants.new')" @click="openCreate" />
+        </template>
+      </UDashboardNavbar>
+    </template>
+
+    <template #body>
+      <p class="mb-4 text-sm text-muted">{{ t('control.tenants.subtitle') }}</p>
+
+      <p v-if="!tenants.length" class="py-12 text-center text-sm text-muted" data-tenants-empty>
+        {{ t('control.tenants.empty') }}
+      </p>
+      <div v-else class="divide-y divide-default" data-tenants-list>
+        <div v-for="tenant in tenants" :key="tenant.id" class="flex flex-wrap items-center justify-between gap-3 py-4" :data-tenant="tenant.host">
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <p class="font-medium">{{ tenant.name || tenant.host }}</p>
+              <UBadge :color="tenant.mode === 'pool' ? 'primary' : 'neutral'" variant="subtle" size="sm">{{ tenant.mode }}</UBadge>
+              <UBadge :color="tenant.status === 'active' ? 'success' : 'neutral'" variant="subtle" size="sm">{{ tenant.status }}</UBadge>
+              <UBadge v-if="tenant.mode === 'pool'" :color="tenant.plan === 'business' ? 'primary' : tenant.plan === 'pro' ? 'info' : 'neutral'" variant="subtle" size="sm">{{ t(`control.tenants.plan.${tenant.plan}`) }}</UBadge>
+              <UBadge v-if="tenant.mode === 'silo' && tenant.wave !== 'stable'" color="warning" variant="subtle" size="sm">{{ t(`control.tenants.wave.${tenant.wave}`) }}</UBadge>
+            </div>
+            <p class="mt-0.5 truncate font-mono text-sm text-muted">
+              <a :href="`https://${tenant.host}`" target="_blank" rel="noopener" class="hover:underline">{{ tenant.host }}</a>
+              · {{ tenant.projectId }}<template v-if="tenant.tenantId"> · {{ tenant.tenantId }}</template>
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <USelect
+              v-if="tenant.mode === 'pool'"
+              :model-value="tenant.plan"
+              :items="planItems"
+              size="sm"
+              :aria-label="t('control.tenants.planLabel')"
+              @update:model-value="(plan) => changePlan(tenant, plan as TenantPlan)"
+            />
+            <USelect
+              v-if="tenant.mode === 'silo'"
+              :model-value="tenant.wave"
+              :items="waveItems"
+              size="sm"
+              :aria-label="t('control.tenants.waveLabel')"
+              @update:model-value="(wave) => changeWave(tenant, wave as TenantWave)"
+            />
+            <UButton
+              color="neutral"
+              variant="outline"
+              size="sm"
+              :label="tenant.status === 'active' ? t('control.tenants.disable') : t('control.tenants.enable')"
+              @click="() => toggleStatus(tenant)"
+            />
+            <UButton color="error" variant="soft" size="sm" icon="i-ph-trash" :aria-label="t('control.tenants.delete')" @click="() => removeTenant(tenant)" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Editierbarer Quota-Katalog (tenant_plans): Zahlen wirken im Pool
+           ohne Deploy (Resolver-Cache ≤ 90 s). 0 = unbegrenzt. -->
+      <section class="mt-8 rounded-lg border border-default p-4" data-plan-limits>
+        <h2 class="font-semibold">{{ t('control.plans.title') }}</h2>
+        <p class="mt-1 text-sm text-muted">{{ t('control.plans.subtitle') }}</p>
+        <div class="mt-4 space-y-3">
+          <div v-for="plan in plansData?.plans ?? []" :key="plan.key" class="flex flex-wrap items-end gap-3" :data-plan-row="plan.key">
+            <UBadge :color="plan.key === 'business' ? 'primary' : plan.key === 'pro' ? 'info' : 'neutral'" variant="subtle" class="mb-1.5 w-20 justify-center">
+              {{ t(`control.tenants.plan.${plan.key}`) }}
+            </UBadge>
+            <UFormField :label="t('control.plans.commentsPerDay')" size="sm">
+              <UInput v-model.number="planEdits[plan.key]!.perDay" type="number" min="0" size="sm" class="w-32" />
+            </UFormField>
+            <UFormField :label="t('control.plans.commentsTotal')" size="sm">
+              <UInput v-model.number="planEdits[plan.key]!.total" type="number" min="0" size="sm" class="w-32" />
+            </UFormField>
+            <UButton
+              size="sm"
+              variant="soft"
+              :loading="planSaving === plan.key"
+              :label="t('control.plans.save')"
+              @click="() => savePlanLimits(plan.key)"
+            />
+          </div>
+        </div>
+        <p class="mt-3 text-xs text-dimmed">{{ t('control.plans.hint') }}</p>
+      </section>
+    </template>
+  </UDashboardPanel>
+
+  <UModal v-model:open="showCreate" :title="t('control.tenants.new')">
+    <template #body>
+      <div class="space-y-3">
+        <UFormField :label="t('control.tenants.name')" :help="t('control.tenants.nameHelp')">
+          <UInput v-model="form.name" :placeholder="t('control.tenants.namePlaceholder')" class="w-full" autofocus />
+        </UFormField>
+        <UFormField :label="t('control.tenants.host')" :help="t('control.tenants.hostHelp')">
+          <UInput v-model="form.host" placeholder="kunde-a.pukalani.app" class="w-full font-mono" @input="() => { hostTouched = true }" />
+        </UFormField>
+
+        <UButton
+          color="neutral"
+          variant="ghost"
+          size="sm"
+          :icon="showAdvanced ? 'i-ph-caret-up' : 'i-ph-caret-down'"
+          :label="t('control.tenants.advanced')"
+          @click="() => { showAdvanced = !showAdvanced }"
+        />
+        <div v-if="showAdvanced" class="space-y-3 rounded-md border border-default p-3">
+          <UFormField :label="t('control.tenants.modeLabel')" :help="t('control.tenants.modeHelp')">
+            <USelect v-model="form.mode" :items="modeItems" class="w-full" />
+          </UFormField>
+          <UFormField :label="t('control.tenants.project')" :help="t('control.tenants.projectHelp')">
+            <UInput v-model="form.projectId" :placeholder="t('control.tenants.projectPlaceholder')" class="w-full font-mono" />
+          </UFormField>
+          <UFormField v-if="form.mode === 'silo'" :label="t('control.tenants.waveLabel')" :help="t('control.tenants.waveHelp')">
+            <USelect v-model="form.wave" :items="waveItems" class="w-full" />
+          </UFormField>
+          <UFormField v-if="form.mode === 'pool'" :label="t('control.tenants.planLabel')" :help="t('control.tenants.planHelp')">
+            <USelect v-model="form.plan" :items="planItems" class="w-full" />
+          </UFormField>
+        </div>
+      </div>
+    </template>
+    <template #footer>
+      <div class="flex w-full justify-end gap-2">
+        <UButton color="neutral" variant="ghost" :label="t('ui.cancel')" @click="() => { showCreate = false }" />
+        <UButton
+          :loading="saving"
+          :disabled="!form.name || !form.host || (form.mode === 'silo' && !form.projectId)"
+          data-tenants-save
+          :label="t('control.tenants.create')"
+          @click="createTenant"
+        />
+      </div>
+    </template>
+  </UModal>
+</template>

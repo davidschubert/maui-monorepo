@@ -2,7 +2,7 @@
 /**
  * entitlements-keygen (F3/M8-Vorbereitung): erzeugt ein Ed25519-Schlüsselpaar
  * für die signierte Entitlement-Zustellung und druckt die Env-Zeilen —
- * privater Schlüssel NUR ins Studio (Aussteller), öffentlicher in die
+ * privater Schlüssel NUR ins Control (Aussteller), öffentlicher in die
  * Site-Envs (Prüfer). Rotation: neues Paar mit neuer kid erzeugen, Public-
  * Key-Map der Sites um die neue kid ERWEITERN (alte behalten, bis kein
  * altes Dokument mehr im Umlauf ist), dann Studio auf die neue kid umstellen.
@@ -26,7 +26,7 @@ const publicB64 = publicKey.export({ format: 'der', type: 'spki' }).toString('ba
 
 console.log(`Ed25519-Schlüsselpaar erzeugt (kid: ${kid})
 
-── Studio (.env von apps/studio — Aussteller, NIE committen) ──────────────
+── Studio (.env von apps/control — Aussteller, NIE committen) ──────────────
 NUXT_ENTITLEMENTS_PRIVATE_KEY=${privateB64}
 NUXT_ENTITLEMENTS_KID=${kid}
 

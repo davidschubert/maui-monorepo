@@ -30,7 +30,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 // Kanonische extends-Reihenfolge (IST der comments-App): UI-/Feature-
 // Layer zuerst (höchste Priorität), Fundament core → system am Ende.
 const EXTENDS_ORDER = [
-  'themes', 'admin', 'studio', 'comments', 'posts', 'events', 'media', 'feedback',
+  'themes', 'admin', 'control', 'comments', 'posts', 'events', 'media', 'feedback',
   'billing', 'courses', 'tickets', 'activity', 'moderation',
 ]
 const FOUNDATION_ALWAYS = ['core', 'system']

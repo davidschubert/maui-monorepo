@@ -1,5 +1,5 @@
-import { createTenantsTableResolver } from '../../../../packages/studio/server/utils/tenantsResolver'
-import { createSiteMembersResolver } from '../../../../packages/studio/server/utils/siteMembersResolver'
+import { createTenantsTableResolver } from '../../../../packages/control/server/utils/tenantsResolver'
+import { createSiteMembersResolver } from '../../../../packages/control/server/utils/siteMembersResolver'
 
 /**
  * A14-Komposition: die APP verdrahtet die core-Resolver-Verträge mit den
