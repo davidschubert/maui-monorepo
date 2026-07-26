@@ -37,6 +37,12 @@ module.exports = {
     {
       name: 'commentspukalaniapp',
       script: `${CURRENT}/server/index.mjs`,
+      // cwd EXPLIZIT (3. pm2-Falle, 2026-07-26): ohne cwd friert pm2 das
+      // Shell-cwd des ERSTSTARTS ein — als das Verzeichnis der alten
+      // studio-Site geloescht wurde, konnte pm2 portfolio nicht mehr
+      // spawnen (ENOENT, errored, Site down). CURRENT existiert, solange
+      // es die App gibt.
+      cwd: CURRENT,
       exec_mode: 'cluster',
       instances: 1,
       // Alter Worker bekommt nach dem Listening des neuen 8 s für offene

@@ -164,9 +164,15 @@ jobs:
             # reload nie an (der Prozess serviert weiter den alten Build, die
             # Serien-Probe unten faengt es). Dann braucht es EINMALIG
             # `pm2 delete <name>` vor dem startOrReload.
+            # pm2-heal.sh (3. Falle, 2026-07-26): loescht den Prozess vorab,
+            # wenn er errored ist oder sein eingefrorener cwd nicht mehr
+            # existiert (Erststart-Shell-cwd zeigte auf die geloeschte
+            # studio-Site → spawn-ENOENT, portfolio down). Ecosystem-Dateien
+            # setzen seitdem cwd: CURRENT — der Heiler bleibt als Backstop.
             ssh prod "set -eu
               ln -s '$RELEASE' '$RELEASES/current.tmp'
               mv -Tf '$RELEASES/current.tmp' '$RELEASES/current'
+              bash /home/ploi/$site/ops/pm2-heal.sh ${app}pukalaniapp
               pm2 startOrReload /home/ploi/$site/ops/ecosystem-$app.config.cjs --update-env
               pm2 save
               ls -1dt $RELEASES/*/ 2>/dev/null | tail -n +6 | xargs -r rm -rf
