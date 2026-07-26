@@ -10,9 +10,11 @@ import type { TicketListRow, TicketRow, TicketSort } from '../../shared/types/ti
  *
  * Karten-Container ist eine TransitionGroup: Nachrücken/Platzmachen läuft
  * als FLIP (Kurven siehe <style>, nachgemessen am Referenz-Motion-Design).
- * Während eines Drags und einen Frame nach dem Drop sind die Transitions
- * AUS ([data-dragging]) — sonst animieren die Hover-Platzhalter mit und die
- * gedroppte Karte gleitet sichtbar vom alten zum neuen Slot statt zu sitzen.
+ * Während eines Drags sind die Transitions AUS ([data-dragging]) — sonst
+ * animieren die Hover-Platzhalter mit. Beim Reorder-Drop in derselben
+ * Spalte bleibt zusätzlich ein Frame aus (settling, setzt moveTicket),
+ * damit die gedroppte Karte sofort im Ziel-Slot sitzt; Spaltenwechsel
+ * fliegen stattdessen sichtbar (useTicketBoardFlight, auch bei DnD).
  * [data-incoming] setzt useTicketBoardFlight während ein Kartenflug landet.
  */
 const props = defineProps<{
@@ -34,7 +36,7 @@ const toast = useToast()
 // Geteilter Drag-Zustand über alle Spalten (useState statt Prop-Drilling)
 const drag = useState<{ type: 'card' | 'list', id: string, height: number } | null>('tickets-drag', () => null)
 const hoverIndex = ref<number | null>(null)
-// Nach dem Drop bleibt die FLIP-Transition einen Frame aus (geteilt, s. o.)
+// Reorder-Drop in derselben Spalte: FLIP einen Frame aus (setzt moveTicket)
 const settling = useState<boolean>('tickets-drag-settling', () => false)
 
 /**
@@ -84,10 +86,6 @@ function onHeaderDragStart(event: DragEvent) {
 function onDragEnd() {
   drag.value = null
   hoverIndex.value = null
-  // Re-Render nach dem Drop passiert im nächsten Frame — solange bleiben die
-  // Move-Transitions aus, damit die gedroppte Karte sofort im Ziel-Slot sitzt
-  settling.value = true
-  requestAnimationFrame(() => requestAnimationFrame(() => { settling.value = false }))
 }
 
 /** Einfüge-Index: obere Kartenhälfte = davor, untere = danach */

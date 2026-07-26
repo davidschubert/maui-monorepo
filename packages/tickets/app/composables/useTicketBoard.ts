@@ -61,10 +61,12 @@ export function useTicketBoard() {
     return TICKET_POSITION_GAP
   }
 
-  /** Spaltenwechsel, die lokal (per DnD) passiert sind — der Kartenflug
-      (useTicketBoardFlight) überspringt sie: die Karte liegt beim Drop
-      schon unterm Cursor, ein Flug sähe falsch aus. */
-  const localMoveIds = new Set<string>()
+  /** Beim Reorder INNERHALB einer Spalte soll die gedroppte Karte sofort im
+      Ziel-Slot sitzen (kein FLIP-Glide vom alten Platz — fühlte sich wie Lag
+      an). Spaltenwechsel dagegen fliegen IMMER sichtbar, auch per DnD
+      (useTicketBoardFlight) — Davids Wunsch: das Board soll die Referenz-
+      Animation genau beim Draggen zeigen. */
+  const settling = useState<boolean>('tickets-drag-settling', () => false)
 
   /** Karte optimistisch verschieben, dann PATCH (Fehler → Refresh als Wahrheit) */
   async function moveTicket(ticket: TicketRow, listId: string, index: number) {
@@ -75,7 +77,10 @@ export function useTicketBoard() {
     if (sourceIndex !== -1 && sourceIndex < index) index--
     const position = positionAt(bucket, index, ticket.$id)
     if (ticket.listId === listId && ticket.position === position) return
-    if (ticket.listId !== listId) localMoveIds.add(ticket.$id)
+    if (ticket.listId === listId) {
+      settling.value = true
+      requestAnimationFrame(() => requestAnimationFrame(() => { settling.value = false }))
+    }
     ticket.listId = listId
     ticket.position = position
     // useFetch-data ist in Nuxt 4 SHALLOW — ohne Re-Assign rendert die
@@ -105,5 +110,5 @@ export function useTicketBoard() {
     }
   }
 
-  return { data, lists, ticketsByList, refresh, status, error, moveTicket, moveList, positionAt, localMoveIds }
+  return { data, lists, ticketsByList, refresh, status, error, moveTicket, moveList, positionAt }
 }
