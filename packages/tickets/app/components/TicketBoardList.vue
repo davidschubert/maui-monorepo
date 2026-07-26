@@ -10,14 +10,14 @@ import type { TicketListRow, TicketRow, TicketSort } from '../../shared/types/ti
  *
  * Karten-Container ist eine TransitionGroup: Nachrücken/Platzmachen läuft
  * als FLIP (Kurven siehe <style>, nachgemessen am Referenz-Motion-Design).
- * WÄHREND des Drags ist die Animation live ([data-dragging], schnelle
- * 200-ms-Kurve): die Karten gleiten auseinander, wo der Platzhalter
- * hinwandert — das IST die DnD-Animation (Davids Feedback 2026-07-26).
- * Beim Loslassen dagegen sitzt die Karte sofort: einen Frame nach dem
- * Drop sind die Transitions aus ([data-settling]), sonst gleitet die
- * gedroppte Karte sichtbar vom alten Slot herüber. Kartenflüge
- * (useTicketBoardFlight) gibt es nur für nicht selbst gezogene Wechsel;
- * [data-incoming] setzt das Composable, während ein Flug landet.
+ * WÄHREND des Drags sind die Transitions AUS ([data-dragging]): der
+ * Platzhalter klappt sofort auf — präzises, direktes Drag-Gefühl (Davids
+ * Entscheidung 2026-07-26 nach Test beider Varianten; das 200-ms-Gleiten
+ * beim Ziehen fühlte sich schlechter an). Nach dem Drop bleibt ein Frame
+ * aus ([data-settling]), sonst gleitet die gedroppte Karte sichtbar vom
+ * alten Slot herüber. FLIP animiert damit nur Menü-Sortieren und die
+ * Reflows der Kartenflüge (useTicketBoardFlight, nur fremdausgelöste
+ * Wechsel); [data-incoming] setzt das Composable, während ein Flug landet.
  */
 const props = defineProps<{
   list: TicketListRow
@@ -376,11 +376,11 @@ const menuItems = computed(() => [[
   transition: transform 330ms cubic-bezier(0.55, 0.05, 0.8, 0.5) 350ms;
 }
 
-/* WÄHREND des Drags: Live-Platzmachen — die Karten gleiten schnell und
-   knackig auseinander/zusammen, wo der Platzhalter hinwandert. Kurz genug,
-   um dem Cursor zu folgen, ohne träge zu wirken */
+/* WÄHREND des Drags keine FLIP-Moves: der Platzhalter klappt SOFORT auf —
+   das ursprüngliche, präzise Drag-Gefühl (Davids Feedback: das Gleiten
+   beim Ziehen fühlte sich schlechter an als das Sofort-Verhalten) */
 section[data-dragging] .board-card-move {
-  transition: transform 200ms cubic-bezier(0.2, 0, 0, 1);
+  transition: none;
 }
 
 /* Einen Frame nach dem Drop keine FLIP-Moves: die gedroppte Karte muss
@@ -408,8 +408,7 @@ section[data-hover-frozen] [data-ticket] {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .board-card-move,
-  section[data-dragging] .board-card-move {
+  .board-card-move {
     transition: none;
   }
 }
