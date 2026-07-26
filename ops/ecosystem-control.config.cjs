@@ -1,16 +1,12 @@
 // Zero-Downtime-Deploy (A.10-Muster, s. ecosystem-comments.config.cjs):
 // pm2-Cluster des Control Plane auf Port 3003; Script zeigt auf den
 // current-Symlink, die Server-.env wird beim (Re-)Load geparst.
-//
-// SERVER-PFADE TRAGEN NOCH DEN ALTNAMEN: die ploi-Site heißt weiterhin
-// studio.pukalani.app (control.* haengt als Alias daran und antwortet). Diese
-// Konstanten sind die WAHRHEIT ueber die Maschine, nicht ueber die Anwendung —
-// sie umzubenennen, bevor das Verzeichnis umgezogen ist, wuerde den naechsten
-// pm2-Reload ins Leere laufen lassen. Sie wandern beim ploi-Cutover mit.
+// Seit dem Cutover 2026-07-26 heisst auch die Maschine control
+// (ploi-Site 392163, Appwrite-Projekt control).
 const fs = require('node:fs')
 
-const ENV_FILE = '/home/ploi/studio.pukalani.app/.env'
-const CURRENT = '/home/ploi/releases/studio/current'
+const ENV_FILE = '/home/ploi/control.pukalani.app/.env'
+const CURRENT = '/home/ploi/releases/control/current'
 
 function parseEnvFile(path) {
   const env = {}

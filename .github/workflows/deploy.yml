@@ -137,38 +137,32 @@ jobs:
           set -eu
           # SITE = ploi-Site (Verzeichnis + Host fuer die Health-Probe),
           # SLOT  = Release-Verzeichnis unter /home/ploi/releases.
-          # Beide tragen fuer control noch den Altnamen studio: die App heisst
-          # seit der Umbenennung control, die MASCHINE noch nicht. Erst der
-          # ploi-Cutover zieht Verzeichnis, Site und Zertifikat um; bis dahin
-          # waere ein Umbenennen hier ein Deploy ins Leere.
-          declare -A SITE=( [comments]=comments.pukalani.app [portfolio]=portfolio.pukalani.app [control]=studio.pukalani.app [platform]=platform.pukalani.app )
-          declare -A SLOT=( [comments]=comments [portfolio]=portfolio [control]=studio [platform]=platform )
-          # LEGACY = pm2-Prozess, der nach einer Umbenennung verwaist zurueckbleibt.
-          # `pm2 startOrReload` findet Prozesse ueber den NAMEN in der Ecosystem-
-          # Datei. Als aus ecosystem-studio ecosystem-control wurde, hat pm2 also
-          # einen zweiten Prozess gestartet, statt den alten zu ersetzen — und der
-          # alte lief mit dem ALTEN Build auf demselben Port 3003 weiter. Ergebnis:
-          # das Control Plane antwortete zufaellig mal aus dem einen, mal aus dem
-          # anderen Build (gemessen 6:4 bei 10 Aufrufen). Die Health-Probe unten
-          # konnte das nicht sehen — sie fragt einmal und war zufrieden.
-          # Nach einem gruenen Deploy ist der Eintrag Geschichte und darf raus.
-          declare -A LEGACY=( [control]=studiopukalaniapp )
+          # Seit dem Cutover (2026-07-26) heisst auch die Maschine control:
+          # eigene ploi-Site 392163, Release-Slot releases/control.
+          declare -A SITE=( [comments]=comments.pukalani.app [portfolio]=portfolio.pukalani.app [control]=control.pukalani.app [platform]=platform.pukalani.app )
+          declare -A SLOT=( [comments]=comments [portfolio]=portfolio [control]=control [platform]=platform )
           for app in comments portfolio control platform; do
             site="${SITE[$app]}"
-            LEGACY_PM2="${LEGACY[$app]:-}"
             echo "::group::Deploy $app → $site"
             RELEASES="/home/ploi/releases/${SLOT[$app]}"
             RELEASE="$RELEASES/$EXPECTED_SHA"
             rsync -az --delete "apps/$app/.output/" "prod:$RELEASE/"
-            # Flip + Reload wie im bisherigen ploi-Script (ZDT Stufe 2):
-            # git pull hält ops/ecosystem-*.config.cjs im Site-Checkout aktuell
-            # (dort baut niemand mehr — der Checkout liefert nur Configs/Scripts).
+            # ops-Configs liefert die CI selbst aus (rsync) — frueher hielt ein
+            # `git pull` im Site-Checkout sie aktuell, aber ein voller Monorepo-
+            # Checkout auf dem Server nur fuer zwei Config-Dateien ist keiner
+            # mehr wert: die control-Site hat seit dem Cutover bewusst keinen.
+            # (Die uebrigen Sites behalten ihre Checkouts fuer den ploi-
+            # FALLBACK-Deploy — der macht sein eigenes git pull.)
+            rsync -az ops/ "prod:/home/ploi/$site/ops/"
+            # Flip + Reload (ZDT Stufe 2). pm2 startOrReload findet den Prozess
+            # ueber den NAMEN in der Ecosystem-Datei — bei einer Umbenennung
+            # ersetzt es also NICHT, sondern startet daneben (zwei Prozesse,
+            # ein Port, gemischte Builds — passiert beim studio→control-Rename,
+            # gemessen 6:4 bei 10 Aufrufen). Darum unten die Serien-Probe.
             ssh prod "set -eu
-              git -C /home/ploi/$site pull -q origin main || echo 'WARN: git pull im Site-Checkout fehlgeschlagen (ops-Configs evtl. alt)'
               ln -s '$RELEASE' '$RELEASES/current.tmp'
               mv -Tf '$RELEASES/current.tmp' '$RELEASES/current'
               pm2 startOrReload /home/ploi/$site/ops/ecosystem-$app.config.cjs --update-env
-              ${LEGACY_PM2:+pm2 delete $LEGACY_PM2 2>/dev/null || true}
               pm2 save
               ls -1dt $RELEASES/*/ 2>/dev/null | tail -n +6 | xargs -r rm -rf
               echo '$app geflippt auf $EXPECTED_SHA'"
