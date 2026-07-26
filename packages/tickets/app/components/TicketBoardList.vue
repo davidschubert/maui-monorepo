@@ -41,6 +41,18 @@ const hoverIndex = ref<number | null>(null)
 // Nach dem Drop bleibt die FLIP-Transition einen Frame aus (geteilt, s. o.)
 const settling = useState<boolean>('tickets-drag-settling', () => false)
 
+// Chromium friert :hover beim nativen DnD auf der Dragstart-Position ein und
+// wertet erst bei der nächsten Mausbewegung neu aus — bis dahin trüge sonst
+// die Karte, die an die alte Stelle nachgerückt ist, den Hover-Rahmen.
+// Solange „eingefroren": Hover-Optik der Karten neutralisieren (CSS unten).
+const hoverFrozen = useState<boolean>('tickets-hover-frozen', () => false)
+function unfreezeHover() {
+  hoverFrozen.value = false
+}
+onBeforeUnmount(() => {
+  window.removeEventListener('pointermove', unfreezeHover)
+})
+
 /**
  * Karten + Einfüge-Platzhalter als EINE flache, durchgehend gekeyte Liste —
  * die TransitionGroup verträgt keine Fragmente (template v-for mit zwei
@@ -51,9 +63,16 @@ type RenderItem
     | { kind: 'placeholder', key: string }
 const renderItems = computed<RenderItem[]>(() => {
   const items: RenderItem[] = []
-  const slot = drag.value?.type === 'card' ? hoverIndex.value : null
+  let slot = drag.value?.type === 'card' ? hoverIndex.value : null
+  if (slot !== null) {
+    // Slots direkt vor/hinter der gezogenen Karte sind No-ops — kein
+    // Platzhalter (die Karte läge dort, wo sie ohnehin schon sitzt);
+    // gleiche Regel wie beim Listen-Drag in onListHover
+    const dragIndex = props.tickets.findIndex(ticket => ticket.$id === drag.value?.id)
+    if (dragIndex !== -1 && (slot === dragIndex || slot === dragIndex + 1)) slot = null
+  }
   props.tickets.forEach((ticket, index) => {
-    if (slot === index && drag.value?.id !== ticket.$id) items.push({ kind: 'placeholder', key: `slot-${index}` })
+    if (slot === index) items.push({ kind: 'placeholder', key: `slot-${index}` })
     items.push({ kind: 'card', key: ticket.$id, ticket, index })
   })
   if (slot === props.tickets.length) items.push({ kind: 'placeholder', key: 'slot-end' })
@@ -77,6 +96,7 @@ function onCardDragStart(event: DragEvent, ticket: TicketRow) {
   event.dataTransfer?.setData('text/plain', ticket.$id)
   if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
   tiltedDragImage(event)
+  hoverFrozen.value = true
   drag.value = { type: 'card', id: ticket.$id, height: (event.currentTarget as HTMLElement).offsetHeight }
 }
 function onHeaderDragStart(event: DragEvent) {
@@ -84,6 +104,7 @@ function onHeaderDragStart(event: DragEvent) {
   if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
   const column = (event.currentTarget as HTMLElement).closest('section')
   event.dataTransfer?.setDragImage(column ?? (event.currentTarget as HTMLElement), event.offsetX, event.offsetY)
+  hoverFrozen.value = true
   drag.value = { type: 'list', id: props.list.$id, height: column?.offsetHeight ?? 120 }
 }
 function onDragEnd() {
@@ -93,6 +114,8 @@ function onDragEnd() {
   // Move-Transitions aus, damit die gedroppte Karte sofort im Ziel-Slot sitzt
   settling.value = true
   requestAnimationFrame(() => requestAnimationFrame(() => { settling.value = false }))
+  // Hover bleibt neutralisiert, bis die Maus sich wirklich wieder bewegt
+  window.addEventListener('pointermove', unfreezeHover, { once: true })
 }
 
 /** Einfüge-Index: obere Kartenhälfte = davor, untere = danach */
@@ -228,6 +251,7 @@ const menuItems = computed(() => [[
     :data-list="list.$id"
     :data-dragging="drag ? '' : undefined"
     :data-settling="settling ? '' : undefined"
+    :data-hover-frozen="hoverFrozen ? '' : undefined"
     @dragover="onColumnDragOver"
     @dragleave="onColumnDragLeave"
     @drop.prevent="onColumnDrop"
@@ -364,6 +388,23 @@ section[data-dragging] .board-card-move {
    (steht nach der Drag-Regel — gewinnt bei gleichzeitigem Zutreffen) */
 section[data-settling] .board-card-move {
   transition: none;
+}
+
+/* Chromium lässt :hover nach nativem DnD bis zur nächsten Mausbewegung auf
+   der Dragstart-Position stehen — die nachgerückte Karte wirkte „aktiv".
+   Solange eingefroren: Hover-Rahmen ALLER Karten neutralisieren (unlayerte
+   Komponenten-Regel schlägt die Tailwind-Utility hover:border-primary/50) */
+section[data-hover-frozen] [data-ticket] {
+  border-color: var(--ui-border);
+}
+
+/* Der Karten-Container scrollt weiter, zeigt aber nie einen Scrollbalken —
+   die FLIP-Transforms ließen ihn sonst sekundenweise aufblitzen */
+[data-cards] {
+  scrollbar-width: none;
+}
+[data-cards]::-webkit-scrollbar {
+  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
