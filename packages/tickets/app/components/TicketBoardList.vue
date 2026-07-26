@@ -118,11 +118,14 @@ function onDragEnd() {
   window.addEventListener('pointermove', unfreezeHover, { once: true })
 }
 
-/** Einfüge-Index: obere Kartenhälfte = davor, untere = danach */
+/** Einfüge-Index: obere Kartenhälfte = davor, untere = danach.
+    NICHT event.offsetY benutzen — das ist relativ zum getroffenen KIND-
+    Element (Titel/Badge/Chip), nicht zur Karte: beim Überfahren der Kinder
+    kippte die Hälften-Entscheidung ständig und der Platzhalter flackerte. */
 function onCardDragOver(event: DragEvent, cardIndex: number) {
   if (drag.value?.type !== 'card') return
-  const el = event.currentTarget as HTMLElement
-  hoverIndex.value = cardIndex + (event.offsetY > el.offsetHeight / 2 ? 1 : 0)
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  hoverIndex.value = cardIndex + (event.clientY - rect.top > rect.height / 2 ? 1 : 0)
 }
 function onColumnDragOver(event: DragEvent) {
   event.preventDefault()
@@ -131,8 +134,9 @@ function onColumnDragOver(event: DragEvent) {
     if (hoverIndex.value === null) hoverIndex.value = props.tickets.length
   }
   else if (drag.value?.type === 'list') {
-    const el = event.currentTarget as HTMLElement
-    emit('listHover', props.index + (event.offsetX > el.offsetWidth / 2 ? 1 : 0))
+    // gleiche Falle wie bei offsetY: clientX gegen das Spalten-Rechteck
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+    emit('listHover', props.index + (event.clientX - rect.left > rect.width / 2 ? 1 : 0))
   }
 }
 function onColumnDragLeave(event: DragEvent) {
