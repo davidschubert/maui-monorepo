@@ -108,12 +108,32 @@ Vollständiges Konzept: docs/CONCEPT.md
 - Admin-Nav-Registry (maui.admin.modules) kann children (Unterpunkte,
   RBAC-gefiltert, exact für Index-Einträge)
 
+## Hosts (Umbenennung 2026-07-25, Davids Entscheidung)
+- `control.pukalani.app` = Betreiber-Oberfläche (Alias der ploi-Site
+  `studio.pukalani.app`, die weiter antwortet — Deploy-Verify und
+  Stripe-Webhook hängen an ihr). Der Name folgt dem Begriff, den der Code
+  überall benutzt (Control Plane).
+- `my.pukalani.app` = Kundenbereich, `start.pukalani.app` = Kurz-Link in den
+  Wizard, `app.pukalani.app` = Altname, bleibt vorerst. ALLE DREI sind
+  Kontroll-Hosts derselben Platform-App und brauchen weder DNS noch eigene
+  Site (Wildcard `*.pukalani.app` zeigt schon dorthin).
+- TLS-Falle: Port 80 antwortet nur für explizit konfigurierte Hosts, also
+  scheitert die HTTP-Prüfung von Let's Encrypt für Aliase. Lösung ist das
+  Wildcard-Zertifikat per DNS-Prüfung (Cloudflare) — so auf der Studio-Site
+  gemacht.
+- Neue Namen IMMER in RESERVED_SUBDOMAINS (packages/studio/schemas/tenant.ts),
+  sonst kann ein Selbstbedienungs-Kunde sie beantragen.
+
 ## Self-Service-Onboarding (Layer onboarding, seit 2026-07-25)
-- Trichter auf `app.pukalani.app` = KONTROLL-Host der Platform-App: bewusst
-  KEIN Mandant (`maui.tenancy.controlHosts`, Env-Override
+- Trichter auf den Kontroll-Hosts der Platform-App: bewusst KEIN Mandant
+  (`maui.tenancy.controlHosts`, Env-Override
   NUXT_PUBLIC_TENANCY_CONTROL_HOSTS). Weil dort NICHTS gescopt ist, lässt
   `01.control-center.ts` nur `maui.tenancy.controlApiPrefixes` zu — alles
   andere 404. Neuer Endpunkt im Kundenbereich ⇒ Präfix bewusst eintragen.
+- Einladungs-Link: `start.pukalani.app?code=…` → Auth-Guard hängt das Ziel als
+  `?redirect=` an (safeRedirectTarget, core/shared — NUR Pfade auf diesem
+  Host), nach der Anmeldung geht es zurück, der Wizard liest `?code=` und
+  prüft ohne Klick. Post-Auth-Ziel IMMER über useAuthRedirect().
 - Anlegen gehört dem Control Plane: `POST /api/studio/onboarding/site` verlangt
   Service-Secret (NUXT_STUDIO_ONBOARDING_SECRET ⇔ NUXT_ONBOARDING_SERVICE_SECRET)
   UND ein Appwrite-JWT, das das Control Plane SELBST gegen das Pool-Projekt
