@@ -16,20 +16,18 @@ export default defineNitroPlugin(() => {
     const threshold = appConfig.maui?.comments?.autoHideReports ?? 0
     if (threshold <= 0 || openCount < threshold) return
 
-    const config = useRuntimeConfig(event)
-    const admin = createAdminClient(event)
-    const databaseId = config.public.appwriteDatabaseId
-
     // Nur aktive Kommentare — hidden (schon moderiert/auto-versteckt),
     // deleted (Tombstone) und Junk-targetIds (Meldungen prüfen Existenz nicht)
-    // bleiben unangetastet.
-    const row = await admin.tablesDB.getRow<ModeratableCommentRow>({
-      databaseId, tableId: COMMENTS_TABLE, rowId: targetId,
-    }).catch(() => null)
+    // bleiben unangetastet. Die Tür weist zusätzlich fremde Mandanten ab; ein
+    // Auto-Hide über die Grenze hinweg wäre besonders tückisch, weil ihn
+    // niemand auslöst und niemand sieht.
+    const row = await tenantDb(event, { as: 'operator' })
+      .get<ModeratableCommentRow>(COMMENTS_TABLE, targetId, 'Comment not found')
+      .catch(() => null)
     if (!row || row.status !== 'active') return
 
-    await hideCommentRow(admin, databaseId, row, event)
-    await hideCommentDescendants(admin, databaseId, row, event)
+    await hideCommentRow(event, row)
+    await hideCommentDescendants(event, row)
     console.warn(`[comments] Auto-Hide: Kommentar ${targetId} nach ${openCount} offenen Meldungen ausgeblendet (Threshold ${threshold}) — Meldungen bleiben offen für die Moderation.`)
   })
 })

@@ -30,9 +30,10 @@ export default defineEventHandler(async (event): Promise<AdminCommentListRespons
   const page = Math.max(1, Number(query.page ?? 1) || 1)
   const offset = (page - 1) * PAGE_SIZE
 
-  const config = useRuntimeConfig(event)
-  const admin = createAdminClient(event)
-  const databaseId = config.public.appwriteDatabaseId
+  // Betreiber-Weg durch die Tür — der Filter kommt von dort, nicht aus dieser
+  // Route. Vorher stand hier scopeQuery von Hand; genau solche Stellen wollen
+  // wir nicht mehr pflegen müssen.
+  const ops = tenantDb(event, { as: 'operator' })
   // KI-Assist-Verfügbarkeit einmal pro Liste — das UI blendet den Button
   // sonst gar nicht erst ein (core-Gate maui.ai + NUXT_AI_KEY)
   const aiAssist = isAiAvailable(event)
@@ -45,13 +46,10 @@ export default defineEventHandler(async (event): Promise<AdminCommentListRespons
     if (pageIds.length === 0) {
       return { total: order.length, comments: [], aiAssist }
     }
-    const result = await admin.tablesDB.listRows<CommentRow>({
-      databaseId,
-      tableId: 'comments',
-      // Horizont-3 Naht 3 (ruhend): Admin-Client umgeht Row-Permissions —
-      // der scopeQuery-Filter ist im Pool-Modus die Grenze der Moderations-Queue.
-      queries: scopeQuery(event, [Query.equal('$id', pageIds), Query.limit(pageIds.length)]),
-    })
+    const result = await ops.list<CommentRow>('comments', [
+      Query.equal('$id', pageIds),
+      Query.limit(pageIds.length),
+    ])
     const byId = new Map(result.rows.map(row => [row.$id, row]))
     const comments = pageIds
       .map(id => byId.get(id))
@@ -60,16 +58,12 @@ export default defineEventHandler(async (event): Promise<AdminCommentListRespons
     return { total: order.length, comments, aiAssist }
   }
 
-  const result = await admin.tablesDB.listRows<CommentRow>({
-    databaseId,
-    tableId: 'comments',
-    queries: scopeQuery(event, [
-      ...(status === 'all' ? [] : [Query.equal('status', status)]),
-      Query.orderDesc('$createdAt'),
-      Query.limit(PAGE_SIZE),
-      Query.offset(offset),
-    ]),
-  })
+  const result = await ops.list<CommentRow>('comments', [
+    ...(status === 'all' ? [] : [Query.equal('status', status)]),
+    Query.orderDesc('$createdAt'),
+    Query.limit(PAGE_SIZE),
+    Query.offset(offset),
+  ])
 
   return {
     total: result.total,
