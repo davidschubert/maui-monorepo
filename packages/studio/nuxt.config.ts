@@ -22,7 +22,10 @@ export default defineNuxtConfig({
     studioOnboardingSecret: '',
     // Wohin die Einladungs-Mail verlinkt (Kundenbereich, nicht das Studio).
     // Env: NUXT_ONBOARDING_START_URL — Default zeigt auf die Prod-Adresse.
-    onboardingStartUrl: 'https://app.pukalani.app/start',
+    // Umbenennung 2026-07-25: der Kunde bekommt den Kurz-Link. `start` ist ein
+    // Kontroll-Host derselben Platform-App, die Weiterleitung auf den Wizard
+    // macht die control-center-Middleware.
+    onboardingStartUrl: 'https://start.pukalani.app',
     public: {
       // Laufzeit-Override des Pool-Projekts (Muster wie getEffectiveAiConfig:
       // app.config = Build-Default, Env = Umgebung). NÖTIG, weil das Pool-

@@ -28,6 +28,11 @@ export const OPERATOR_APEX = 'pukalani.app'
 export const RESERVED_SUBDOMAINS = new Set([
   'www', 'api', 'app', 'mail', 'smtp', 'admin', 'console', 'status',
   'comments', 'portfolio', 'studio', 'platform', 'changelog', 'functions', 'send',
+  // Umbenennung 2026-07-25: die neuen Plattform-Hosts. `control` ist der
+  // Maschinenraum, `my` der Kundenbereich, `start` der Kurz-Link in den
+  // Wizard — dieselbe Phishing-Logik wie unten: in fremder Hand wären das
+  // Anmeldedaten-Fallen mit unserem Namen und gültigem Zertifikat.
+  'control', 'my', 'start', 'manage', 'new', 'photos',
   // Phishing-Schutz (Self-Service-Onboarding, SAAS-ROADMAP #1): Hosts, die wie
   // die Plattform selbst klingen, dürfen nie einem Kunden gehören —
   // `login.pukalani.app` in fremder Hand ist eine Anmeldedaten-Falle mit

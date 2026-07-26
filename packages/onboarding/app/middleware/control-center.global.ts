@@ -17,7 +17,10 @@ export default defineNuxtRouteMiddleware((to) => {
   const path = to.path.replace(/^\/(de|en)(?=\/|$)/, '') || '/'
 
   if (isControlCenter) {
-    if (path === '/') return navigateTo(localePath('/start'))
+    // Query MITNEHMEN: der Direktlink aus der Einladungs-Mail ist
+    // `https://start.pukalani.app?code=…`. Ohne das fiele der Code beim
+    // Weiterleiten weg und der Eingeladene müsste ihn abtippen.
+    if (path === '/') return navigateTo({ path: localePath('/start'), query: to.query })
     return
   }
 

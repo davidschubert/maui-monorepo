@@ -22,7 +22,7 @@ export async function sendInviteMail(event: H3Event, input: InviteMailInput): Pr
   const config = useRuntimeConfig(event) as { onboardingStartUrl?: string }
   // Der Trichter lebt auf dem Kundenbereich-Host, nicht im Studio — die URL
   // kommt deshalb aus der Env und nicht aus public.appUrl.
-  const startUrl = (config.onboardingStartUrl || 'https://app.pukalani.app/start').replace(/\/+$/, '')
+  const startUrl = (config.onboardingStartUrl || 'https://start.pukalani.app').replace(/\/+$/, '')
   const link = `${startUrl}?code=${encodeURIComponent(input.code)}`
   const german = input.locale !== 'en'
 

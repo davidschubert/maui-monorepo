@@ -230,6 +230,15 @@ describe('Slug (der Kunde wählt nur das erste Label)', () => {
     }
   })
 
+  it('sperrt die Plattform-Hosts der Umbenennung (control/my/start)', () => {
+    // Sonst könnte ein Selbstbedienungs-Kunde `my.pukalani.app` bekommen — mit
+    // gültigem Zertifikat und unserem Namen die perfekte Anmeldedaten-Falle.
+    for (const reserved of ['control', 'my', 'start', 'manage', 'new', 'photos', 'status', 'docs']) {
+      expect(isReservedSlug(reserved), reserved).toBe(true)
+      expect(slug.safeParse(reserved).success, reserved).toBe(false)
+    }
+  })
+
   it('weist alles ab, was kein DNS-Label ist', () => {
     for (const bad of ['ab', '-vorne', 'hinten-', 'punkt.im.namen', 'umläute', 'unter_strich', 'a'.repeat(41), '']) {
       expect(slug.safeParse(bad).success, bad).toBe(false)

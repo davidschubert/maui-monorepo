@@ -8,12 +8,18 @@ export default defineAppConfig({
     tenancy: {
       enabled: true,
       // Der Kundenbereich (Self-Service-Onboarding, SAAS-ROADMAP #1) läuft auf
-      // DEMSELBEN Deployment, ist aber kein Mandant. `app` ist in
-      // RESERVED_SUBDOMAINS gesperrt, kann also niemals ein Tenant-Host werden;
+      // DEMSELBEN Deployment, ist aber kein Mandant. Alle drei Namen sind in
+      // RESERVED_SUBDOMAINS gesperrt, können also niemals Tenant-Hosts werden;
       // die Wildcard-DNS `*.pukalani.app` zeigt schon hierher — es braucht
       // also keine neue ploi-Site. Lokal per
       // NUXT_PUBLIC_TENANCY_CONTROL_HOSTS=app.localhost überschreiben.
-      controlHosts: ['app.pukalani.app'],
+      //
+      // Umbenennung 2026-07-25 (Davids Entscheidung): `my` ist der Kundenbereich
+      // (trägt Anmeldung UND späteren Kontobereich — Abo, Rechnungen, Team),
+      // `start` ist der Kurz-Link in den Wizard (Visitenkarte, Bio), `app`
+      // bleibt vorerst als Weiterleitung bestehen. Die Liste ist bewusst
+      // ADDITIV: solange alle drei antworten, sperrt kein Deploy jemanden aus.
+      controlHosts: ['my.pukalani.app', 'start.pukalani.app', 'app.pukalani.app'],
       // H3-4.3 Quota (Blueprint S4): Pool-Kunden erschöpfen den geteilten
       // Server nicht. PRO PLAN gestaffelt (David-Freigabe 2026-07-23) — der
       // Tenant trägt seinen Plan (tenants.plan, studio-013, Default free).
