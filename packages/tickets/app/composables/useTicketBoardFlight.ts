@@ -9,14 +9,18 @@ const FLIGHT_MS = 800
 const MAX_FLIGHTS = 3
 
 /**
- * „Kartenflug" für JEDEN Spaltenwechsel: eigenes Drag & Drop (Davids
- * Wunsch — beim Loslassen segelt die Karte vom alten Platz in den Ziel-
- * Slot), Realtime-Moves anderer Nutzer, Verschieben übers Ticket-Modal,
- * Fehler-Reverts. Die Karte fliegt als Klon im Overlay von der alten zur
- * neuen Spalte, während die Spalten per TransitionGroup-FLIP nachrücken
- * (TicketBoardList). Reorder INNERHALB einer Spalte fliegt nie (kein Diff).
+ * „Kartenflug" für NICHT selbst gezogene Spaltenwechsel: Realtime-Moves
+ * anderer Nutzer, Verschieben übers Ticket-Modal, Fehler-Reverts. Die Karte
+ * fliegt als Klon im Overlay von der alten zur neuen Spalte, während die
+ * Spalten per TransitionGroup-FLIP nachrücken (TicketBoardList). Eigenes
+ * DnD fliegt NICHT nach dem Loslassen — dessen Animation ist das Live-
+ * Platzmachen WÄHREND des Ziehens ([data-dragging] in TicketBoardList);
+ * moveTicket meldet die eigenen Wechsel über localMoveIds.
  */
-export function useTicketBoardFlight(ticketsByList: ComputedRef<Map<string, TicketRow[]>>) {
+export function useTicketBoardFlight(
+  ticketsByList: ComputedRef<Map<string, TicketRow[]>>,
+  localMoveIds: Set<string>,
+) {
   const previousList = new Map<string, string>()
   const active = new Set<() => void>()
 
@@ -88,7 +92,9 @@ export function useTicketBoardFlight(ticketsByList: ComputedRef<Map<string, Tick
     for (const [listId, tickets] of map) {
       for (const ticket of tickets) {
         const before = previousList.get(ticket.$id)
-        if (before && before !== listId) moved.push({ id: ticket.$id, listId })
+        if (before && before !== listId && !localMoveIds.delete(ticket.$id)) {
+          moved.push({ id: ticket.$id, listId })
+        }
       }
     }
     previousList.clear()

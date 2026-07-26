@@ -10,12 +10,14 @@ import type { TicketListRow, TicketRow, TicketSort } from '../../shared/types/ti
  *
  * Karten-Container ist eine TransitionGroup: Nachrücken/Platzmachen läuft
  * als FLIP (Kurven siehe <style>, nachgemessen am Referenz-Motion-Design).
- * Während eines Drags sind die Transitions AUS ([data-dragging]) — sonst
- * animieren die Hover-Platzhalter mit. Beim Reorder-Drop in derselben
- * Spalte bleibt zusätzlich ein Frame aus (settling, setzt moveTicket),
- * damit die gedroppte Karte sofort im Ziel-Slot sitzt; Spaltenwechsel
- * fliegen stattdessen sichtbar (useTicketBoardFlight, auch bei DnD).
- * [data-incoming] setzt useTicketBoardFlight während ein Kartenflug landet.
+ * WÄHREND des Drags ist die Animation live ([data-dragging], schnelle
+ * 200-ms-Kurve): die Karten gleiten auseinander, wo der Platzhalter
+ * hinwandert — das IST die DnD-Animation (Davids Feedback 2026-07-26).
+ * Beim Loslassen dagegen sitzt die Karte sofort: einen Frame nach dem
+ * Drop sind die Transitions aus ([data-settling]), sonst gleitet die
+ * gedroppte Karte sichtbar vom alten Slot herüber. Kartenflüge
+ * (useTicketBoardFlight) gibt es nur für nicht selbst gezogene Wechsel;
+ * [data-incoming] setzt das Composable, während ein Flug landet.
  */
 const props = defineProps<{
   list: TicketListRow
@@ -36,7 +38,7 @@ const toast = useToast()
 // Geteilter Drag-Zustand über alle Spalten (useState statt Prop-Drilling)
 const drag = useState<{ type: 'card' | 'list', id: string, height: number } | null>('tickets-drag', () => null)
 const hoverIndex = ref<number | null>(null)
-// Reorder-Drop in derselben Spalte: FLIP einen Frame aus (setzt moveTicket)
+// Nach dem Drop bleibt die FLIP-Transition einen Frame aus (geteilt, s. o.)
 const settling = useState<boolean>('tickets-drag-settling', () => false)
 
 /**
@@ -58,11 +60,12 @@ const renderItems = computed<RenderItem[]>(() => {
   return items
 })
 
-/** Trello-Kippeffekt: Klon als Drag-Image, 4° rotiert (Original bleibt im Fluss) */
+/** Trello-Kippeffekt: Klon als Drag-Image, 4° rotiert + Flug-Schatten aus dem
+    Referenz-Motion-Design (Original bleibt im Fluss) */
 function tiltedDragImage(event: DragEvent) {
   const source = event.currentTarget as HTMLElement
   const clone = source.cloneNode(true) as HTMLElement
-  clone.style.cssText = `position:fixed;top:-1000px;left:-1000px;width:${source.offsetWidth}px;transform:rotate(4deg);pointer-events:none;`
+  clone.style.cssText = `position:fixed;top:-1000px;left:-1000px;width:${source.offsetWidth}px;transform:rotate(4deg);pointer-events:none;box-shadow:0 12px 32px rgb(0 0 0 / 0.18);border-radius:0.5rem;`
   document.body.appendChild(clone)
   event.dataTransfer?.setDragImage(clone, event.offsetX, event.offsetY)
   setTimeout(() => clone.remove(), 0)
@@ -86,6 +89,10 @@ function onHeaderDragStart(event: DragEvent) {
 function onDragEnd() {
   drag.value = null
   hoverIndex.value = null
+  // Re-Render nach dem Drop passiert im nächsten Frame — solange bleiben die
+  // Move-Transitions aus, damit die gedroppte Karte sofort im Ziel-Slot sitzt
+  settling.value = true
+  requestAnimationFrame(() => requestAnimationFrame(() => { settling.value = false }))
 }
 
 /** Einfüge-Index: obere Kartenhälfte = davor, untere = danach */
@@ -219,7 +226,8 @@ const menuItems = computed(() => [[
     class="flex max-h-full w-72 shrink-0 flex-col rounded-xl bg-elevated/60 transition"
     :class="drag?.type === 'list' && drag.id === list.$id ? 'opacity-40 grayscale' : ''"
     :data-list="list.$id"
-    :data-dragging="drag || settling ? '' : undefined"
+    :data-dragging="drag ? '' : undefined"
+    :data-settling="settling ? '' : undefined"
     @dragover="onColumnDragOver"
     @dragleave="onColumnDragLeave"
     @drop.prevent="onColumnDrop"
@@ -344,15 +352,23 @@ const menuItems = computed(() => [[
   transition: transform 330ms cubic-bezier(0.55, 0.05, 0.8, 0.5) 350ms;
 }
 
-/* Während eines Drags (und einen Frame nach dem Drop) keine FLIP-Moves:
-   Hover-Platzhalter würden sonst träge mitanimieren, die gedroppte Karte
-   würde vom alten Slot herübergleiten statt unterm Cursor zu sitzen */
+/* WÄHREND des Drags: Live-Platzmachen — die Karten gleiten schnell und
+   knackig auseinander/zusammen, wo der Platzhalter hinwandert. Kurz genug,
+   um dem Cursor zu folgen, ohne träge zu wirken */
 section[data-dragging] .board-card-move {
+  transition: transform 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Einen Frame nach dem Drop keine FLIP-Moves: die gedroppte Karte muss
+   sofort im Ziel-Slot sitzen statt vom alten Slot herüberzugleiten
+   (steht nach der Drag-Regel — gewinnt bei gleichzeitigem Zutreffen) */
+section[data-settling] .board-card-move {
   transition: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .board-card-move {
+  .board-card-move,
+  section[data-dragging] .board-card-move {
     transition: none;
   }
 }
