@@ -110,11 +110,34 @@ Alle Schritte gelaufen, Beweise im Sitzungsprotokoll. Ergebnis:
   Precheck-Probe belegt). deploy.yml: SITE/SLOT auf control, ops/ per rsync.
 - UptimeRobot-Monitor auf control umgestellt.
 
-Zwei Lehren, beide in deploy.yml verewigt:
+Drei Lehren, alle in deploy.yml/ops verewigt:
 1. pm2 startOrReload findet Prozesse über den NAMEN — Umbenennung erzeugt
    einen Waisen auf demselben Port (gemischte Builds 6:4).
 2. pm2 reload wendet einen geänderten script-Pfad NICHT an — Pfadwechsel
    braucht einmalig delete + start.
+3. pm2 friert ohne explizites cwd das Shell-cwd des ERSTSTARTS ein — das
+   zeigte auf die gelöschte studio-Site, portfolio konnte nach dem
+   Aufräumen nicht mehr spawnen (ENOENT, errored, 502, ~9 h am 2026-07-26).
+   Seitdem: `cwd: CURRENT` in allen ops/ecosystem-*.config.cjs +
+   ops/pm2-heal.sh löscht errored-Prozesse/tote cwds vor jedem
+   startOrReload (Backstop in deploy.yml).
+
+## Nachwehen (2026-07-26, beide gefixt)
+
+Der Cutover riss zwei Fäden, die erst später sichtbar wurden:
+- **platform-.env zeigte auf das tote Projekt**: `NUXT_PLATFORM_CONTROL_
+  PROJECT_ID=studio` + zugehöriger Key — jede Tenant-Resolution warf 500,
+  ALLE Tenant-Hosts (demo.*) waren API-tot. Fix: Projekt `control` +
+  INTERIM der control-Runtime-Key (Datei-zu-Datei). OFFEN: David erzeugt
+  in der Console einen READ-ONLY-Key (nur rows.read, wie der Vorgänger
+  aus 0d6b0fb) und ersetzt den Interim-Key in
+  `/home/ploi/platform.pukalani.app/.env` → danach Deploy dispatchen.
+- **control-.env**: `NUXT_PUBLIC_I18N_BASE_URL` stand noch auf
+  `https://studio.pukalani.app` (falsche hreflang/canonical) → auf
+  control umgestellt.
+- Merksatz: eine Projekt-Löschung ist erst fertig, wenn `grep -r studio
+  /home/ploi/*/.env` leer ist — die Data-Plane-Apps referenzieren das
+  Control-Plane-Projekt AUCH.
 
 Offene Krümel:
 - [x] Appwrite-Projekt `studio` gelöscht (David, 2026-07-26 — sauber, kein 500; verifiziert: 404/control 200).
@@ -122,3 +145,8 @@ Offene Krümel:
 - [ ] Bei Stripe-Live: Webhook-Endpoint auf control.pukalani.app umstellen,
       danach Alias `studio.` + Doppel-Zertifikat zurückbauen.
 - [x] GitHub-Secret PLOI_DEPLOY_WEBHOOK_STUDIO entfernt.
+- [ ] Read-only-Key im Projekt control erzeugen (David, Console) und den
+      Interim-Runtime-Key in der platform-.env ersetzen (s. Nachwehen).
+- [ ] UptimeRobot-Monitor 803548622: Friendly-Name sagt noch „studio…"
+      (URL prüft schon control) — SPA rendert das Edit-Formular nur im
+      fokussierten Tab, daher Ein-Klick für David.
