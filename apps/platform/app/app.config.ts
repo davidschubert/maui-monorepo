@@ -1,5 +1,6 @@
 export default defineAppConfig({
   maui: {
+    brand: { name: 'Pukalani' },
     // DIE Multi-Tenant-App (Horizont 3): das Tenant-Gate ist hier AN — die
     // Middleware 00.tenant.ts (core) löst jeden Request-Host über den in
     // server/plugins/tenant-resolver.ts registrierten Resolver auf.
