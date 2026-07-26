@@ -108,10 +108,16 @@ Vollständiges Konzept: docs/CONCEPT.md
 - Admin-Nav-Registry (maui.admin.modules) kann children (Unterpunkte,
   RBAC-gefiltert, exact für Index-Einträge)
 
-## Hosts (Umbenennung 2026-07-25, Davids Entscheidung)
-- `control.pukalani.app` = Betreiber-Oberfläche. Der Name folgt dem Begriff,
-  den der Code überall benutzt (Control Plane). `studio.pukalani.app` bleibt
-  als Alias bestehen und antwortet weiter — der Stripe-Webhook hängt an ihm.
+## Hosts (Umbenennung 2026-07-25, Cutover 2026-07-26 — Davids Entscheidung)
+- `control.pukalani.app` = Betreiber-Oberfläche, seit dem Cutover VOLLSTÄNDIG:
+  eigene ploi-Site 392163 (nginx → Port 3003, eigenes LE-Zertifikat für
+  control+studio), Release-Slot `releases/control`, Appwrite-Projekt
+  `control` (Session-Cookie a_session_control). `studio.pukalani.app` ist
+  nur noch ALIAS dieser Site — der Stripe-Webhook zeigt weiter auf ihn
+  (bei Stripe-Live auf control umstellen, dann kann der Alias weg).
+  Die control-Site hat BEWUSST kein Repository: die CI rsynct .output UND
+  ops/-Configs; ploi-Fallback-Deploy gibt es für control nicht (Fallback =
+  Runbook docs/plans/CONTROL-CUTOVER.md).
 - `my.pukalani.app` = Kundenbereich, `start.pukalani.app` = Kurz-Link in den
   Wizard, `app.pukalani.app` = Altname, bleibt vorerst. ALLE DREI sind
   Kontroll-Hosts derselben Platform-App und brauchen weder DNS noch eigene

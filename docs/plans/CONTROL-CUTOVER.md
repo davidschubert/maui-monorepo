@@ -93,3 +93,34 @@ Kopier-Knopf, lokal `pbpaste > datei`.
 - ein Stripe-Test-Event kommt an
 - `packages/onboarding/scripts/verify-control-host.mjs` und
   `verify-site-authz.mjs` laufen gruen gegen den neuen Host
+
+---
+
+## Stand 2026-07-26: DURCHGEFÜHRT
+
+Alle Schritte gelaufen, Beweise im Sitzungsprotokoll. Ergebnis:
+- Projekt `control` live (Schema deckungsgleich per Diff, 25 Rows + Konto
+  umgezogen, Keys in ~/.appwrite-secrets/control-*.key, Dump des Altprojekts
+  in ~/.appwrite-secrets/backups/studio-final-dump.json — 32 Rows + 1 User).
+- ploi-Site 392163 `control.pukalani.app` (nginx → 3003, LE-Zertifikat für
+  control+studio per DNS-01), Alt-Site 390042 gelöscht, `studio.` = Alias.
+- pm2 `controlpukalaniapp` läuft aus `releases/control/current` mit
+  `.env` aus `/home/ploi/control.pukalani.app/` (inkl. Onboarding-Secret —
+  der Self-Service-Trichter ist damit erstmals auf Prod OFFEN, per
+  Precheck-Probe belegt). deploy.yml: SITE/SLOT auf control, ops/ per rsync.
+- UptimeRobot-Monitor auf control umgestellt.
+
+Zwei Lehren, beide in deploy.yml verewigt:
+1. pm2 startOrReload findet Prozesse über den NAMEN — Umbenennung erzeugt
+   einen Waisen auf demselben Port (gemischte Builds 6:4).
+2. pm2 reload wendet einen geänderten script-Pfad NICHT an — Pfadwechsel
+   braucht einmalig delete + start.
+
+Offene Krümel:
+- [ ] Appwrite-Projekt `studio` löschen — Modal war offen, letzter Klick
+      liegt bei David (Löschung kann 500en → Memory „Provisioner"-Rezept).
+- [ ] Server-Rest `/home/ploi/releases/studio/` entfernen (~150 MB).
+- [ ] Bei Stripe-Live: Webhook-Endpoint auf control.pukalani.app umstellen,
+      danach Alias `studio.` + Doppel-Zertifikat zurückbauen.
+- [ ] GitHub-Secret PLOI_DEPLOY_WEBHOOK_STUDIO ist tot (Site gelöscht) —
+      entfernen; für control gibt es bewusst keinen ploi-Webhook.
