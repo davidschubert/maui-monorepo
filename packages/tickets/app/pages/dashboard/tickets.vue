@@ -15,10 +15,10 @@ const toast = useToast()
 
 useHead({ title: () => t('tickets.board.title') })
 
-const { data, lists, ticketsByList, refresh, error, moveTicket, moveList, localMoveIds } = useTicketBoard()
+const { data, lists, ticketsByList, refresh, error, moveTicket, moveList } = useTicketBoard()
 
-// Kartenflug für fremdausgelöste Spaltenwechsel (Realtime, Modal, Reverts)
-useTicketBoardFlight(ticketsByList, localMoveIds)
+// Kartenflug bei jedem Spaltenwechsel (DnD, Realtime, Modal, Reverts)
+useTicketBoardFlight(ticketsByList)
 
 // Board-Einstellungen (KI-Modell-Wechsel)
 const settingsOpen = ref(false)
