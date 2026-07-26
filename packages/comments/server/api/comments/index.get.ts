@@ -62,22 +62,22 @@ export default defineEventHandler(async (event): Promise<CommentListResponse> =>
     if (cached) return cached
   }
 
-  const config = useRuntimeConfig(event)
-  const { tablesDB } = createSessionClient(event)
-  const databaseId = config.public.appwriteDatabaseId
+  // Alle Abfragen dieser Route gehen durch die mandantensichere Tür — der
+  // Filter kommt von dort, nicht aus baseFilters (siehe CLAUDE.md).
+  const db = tenantDb(event)
 
   // Fenster-Sorts: erst die neuesten WINDOW_CAP Threads holen, in-memory
   // ranken, dann slicen (sonst würde nur EINE $createdAt-Seite umsortiert)
   const windowed = sort === 'trending' || sort === 'discussed'
   const offset = (page - 1) * PAGE_SIZE
 
-  // Horizont-3 Naht 3 (ruhend): im Pool-Modus hängt scopeQuery den tenantId-
-  // Filter an — ALLE Folge-Queries dieser Route bauen auf baseFilters auf.
-  const baseFilters = scopeQuery(event, [
+  // Die fachlichen Filter. Den Mandanten hängt die Tür an — deshalb steht er
+  // hier NICHT mehr, und deshalb kann ihn hier auch niemand vergessen.
+  const baseFilters = [
     Query.equal('targetId', targetId),
     Query.equal('targetType', targetType),
     Query.notEqual('status', 'hidden'),
-  ])
+  ]
 
   // Stabiler Sekundär-Sort: ohne Tiebreaker können Zeilen mit gleichem score
   // (viele bei 0) über Seitengrenzen doppeln oder fehlen.
@@ -86,17 +86,13 @@ export default defineEventHandler(async (event): Promise<CommentListResponse> =>
     : [Query.orderDesc('$createdAt')]
 
   // 1) Top-Level-Threads paginieren (parentId null)
-  const topRes = await tablesDB.listRows<Comment>({
-    databaseId,
-    tableId: COMMENTS_TABLE,
-    queries: [
-      ...baseFilters,
-      Query.isNull('parentId'),
-      ...order,
-      Query.limit(windowed ? WINDOW_CAP : PAGE_SIZE),
-      Query.offset(windowed ? 0 : offset),
-    ],
-  })
+  const topRes = await db.list<Comment>(COMMENTS_TABLE, [
+    ...baseFilters,
+    Query.isNull('parentId'),
+    ...order,
+    Query.limit(windowed ? WINDOW_CAP : PAGE_SIZE),
+    Query.offset(windowed ? 0 : offset),
+  ])
 
   let ranked = topRes.rows
   if (sort === 'trending') {
@@ -114,17 +110,13 @@ export default defineEventHandler(async (event): Promise<CommentListResponse> =>
       let cursor: string | undefined
       let collected = 0
       while (collected < COUNT_HARD_CAP) {
-        const res = await tablesDB.listRows<Comment>({
-          databaseId,
-          tableId: COMMENTS_TABLE,
-          queries: [
-            ...baseFilters,
-            Query.equal('rootId', chunk),
-            Query.select(['$id', 'rootId']),
-            Query.limit(COUNT_PAGE),
-            ...(cursor ? [Query.cursorAfter(cursor)] : []),
-          ],
-        })
+        const res = await db.list<Comment>(COMMENTS_TABLE, [
+          ...baseFilters,
+          Query.equal('rootId', chunk),
+          Query.select(['$id', 'rootId']),
+          Query.limit(COUNT_PAGE),
+          ...(cursor ? [Query.cursorAfter(cursor)] : []),
+        ])
         for (const row of res.rows) {
           if (row.rootId) counts.set(row.rootId, (counts.get(row.rootId) ?? 0) + 1)
         }
@@ -148,16 +140,12 @@ export default defineEventHandler(async (event): Promise<CommentListResponse> =>
     const rootIds = topLevel.map(t => t.$id)
     let cursor: string | undefined
     while (replies.length < REPLY_HARD_CAP) {
-      const repRes = await tablesDB.listRows<Comment>({
-        databaseId,
-        tableId: COMMENTS_TABLE,
-        queries: [
-          ...baseFilters,
-          Query.equal('rootId', rootIds),
-          Query.limit(REPLY_PAGE),
-          ...(cursor ? [Query.cursorAfter(cursor)] : []),
-        ],
-      })
+      const repRes = await db.list<Comment>(COMMENTS_TABLE, [
+        ...baseFilters,
+        Query.equal('rootId', rootIds),
+        Query.limit(REPLY_PAGE),
+        ...(cursor ? [Query.cursorAfter(cursor)] : []),
+      ])
       replies.push(...repRes.rows)
       if (repRes.rows.length < REPLY_PAGE) break
       cursor = repRes.rows.at(-1)!.$id
@@ -170,25 +158,14 @@ export default defineEventHandler(async (event): Promise<CommentListResponse> =>
   // 3) Zwei Zähler: total (nicht-hidden, inkl. deleted-Platzhalter) bleibt der
   // Pagination-Sentinel; activeTotal (nur active) ist die Anzeige-Zahl — ein
   // gelöschter Kommentar zählt nirgends mehr als Kommentar.
-  const [totalRes, activeRes] = await Promise.all([
-    tablesDB.listRows<Comment>({
-      databaseId,
-      tableId: COMMENTS_TABLE,
-      queries: [...baseFilters, Query.limit(1)],
-    }),
-    tablesDB.listRows<Comment>({
-      databaseId,
-      tableId: COMMENTS_TABLE,
-      queries: scopeQuery(event, [
-        Query.equal('targetId', targetId),
-        Query.equal('targetType', targetType),
-        Query.equal('status', ['active']),
-        Query.limit(1),
-      ]),
-    }),
+  const [total, activeTotal] = await Promise.all([
+    db.count(COMMENTS_TABLE, baseFilters),
+    db.count(COMMENTS_TABLE, [
+      Query.equal('targetId', targetId),
+      Query.equal('targetType', targetType),
+      Query.equal('status', ['active']),
+    ]),
   ])
-  const total = totalRes.total
-  const activeTotal = activeRes.total
 
   // Soft-gelöschte bleiben als Thread-Platzhalter in der Antwort, aber Inhalt/
   // Autor werden SERVER-seitig geblankt — der „[gelöscht]"-Text der UI wäre
@@ -210,11 +187,13 @@ export default defineEventHandler(async (event): Promise<CommentListResponse> =>
     // Query.equal ist auf 100 Werte begrenzt → in Batches (Subtrees können groß sein)
     for (let i = 0; i < ids.length; i += 100) {
       const batch = ids.slice(i, i + 100)
-      const votes = await tablesDB.listRows<CommentVote>({
-        databaseId,
-        tableId: VOTES_TABLE,
-        queries: [Query.equal('userId', user.$id), Query.equal('commentId', batch), Query.limit(batch.length)],
-      })
+      // Stimmen tragen seit comments-014 selbst eine tenantId — dadurch geht
+      // auch diese Tabelle durch die Tür und bleibt keine Ausnahme.
+      const votes = await db.list<CommentVote>(VOTES_TABLE, [
+        Query.equal('userId', user.$id),
+        Query.equal('commentId', batch),
+        Query.limit(batch.length),
+      ])
       for (const vote of votes.rows) {
         myVotes[vote.commentId] = vote.value === 1 ? 1 : -1
       }

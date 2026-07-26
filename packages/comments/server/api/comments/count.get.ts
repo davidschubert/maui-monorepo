@@ -26,18 +26,11 @@ export default defineEventHandler(async (event): Promise<{ count: number }> => {
   const cached = countCache.get(cacheKey)
   if (cached !== undefined) return { count: cached }
 
-  const config = useRuntimeConfig(event)
-  const { tablesDB } = createSessionClient(event)
-  const count = await tablesDB.listRows({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: COMMENTS_TABLE,
-    queries: scopeQuery(event, [
-      Query.equal('targetId', targetId),
-      Query.equal('targetType', targetType),
-      Query.notEqual('status', 'hidden'),
-      Query.limit(1),
-    ]),
-  }).then(r => r.total).catch(() => 0)
+  const count = await tenantDb(event).count(COMMENTS_TABLE, [
+    Query.equal('targetId', targetId),
+    Query.equal('targetType', targetType),
+    Query.notEqual('status', 'hidden'),
+  ]).catch(() => 0)
 
   countCache.set(cacheKey, count)
   return { count }

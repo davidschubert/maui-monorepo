@@ -20,21 +20,13 @@ export default defineEventHandler(async (event): Promise<{ counts: Record<string
     throw createError({ status: 422, statusText: 'Too many targets' })
   }
 
-  const config = useRuntimeConfig(event)
-  const { tablesDB } = createSessionClient(event)
-  const databaseId = config.public.appwriteDatabaseId
-
+  const db = tenantDb(event)
   const totals = await Promise.all(ids.map(id =>
-    tablesDB.listRows({
-      databaseId,
-      tableId: COMMENTS_TABLE,
-      queries: scopeQuery(event, [
-        Query.equal('targetId', id),
-        Query.equal('targetType', targetType),
-        Query.notEqual('status', 'hidden'),
-        Query.limit(1),
-      ]),
-    }).then(r => r.total).catch(() => 0),
+    db.count(COMMENTS_TABLE, [
+      Query.equal('targetId', id),
+      Query.equal('targetType', targetType),
+      Query.notEqual('status', 'hidden'),
+    ]).catch(() => 0),
   ))
 
   return { counts: Object.fromEntries(ids.map((id, index) => [id, totals[index] ?? 0])) }
