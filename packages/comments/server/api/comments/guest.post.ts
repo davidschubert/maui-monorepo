@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { ID, Permission, Role } from 'node-appwrite'
+import { Permission, Role } from 'node-appwrite'
 import { guestCommentSchema } from '../../../schemas/comment'
 import { COMMENTS_TABLE, MAX_COMMENT_DEPTH, type Comment } from '../../../shared/types/comment'
 
@@ -39,19 +39,16 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 403, statusText: 'Guests cannot comment on this target' })
   }
 
-  const config = useRuntimeConfig(event)
-  const databaseId = config.public.appwriteDatabaseId
-  const { tablesDB } = createAdminClient(event)
+  // Gast-Schreibweg: es gibt keine Sitzung, also Service-Credentials — und
+  // damit ist die Tür hier die EINZIGE Mandantengrenze.
+  const db = tenantDb(event, { as: 'operator' })
 
   // Antwort: Parent laden → rootId/depth/maxDepth wie im regulären Pfad.
   let parent: Comment | null = null
   let rootId: string | null = null
   let depth = 0
   if (body.parentId) {
-    parent = await tablesDB.getRow<Comment>({ databaseId, tableId: COMMENTS_TABLE, rowId: body.parentId }).catch(() => null)
-    if (!parent) {
-      throw createError({ status: 404, statusText: 'Parent comment not found' })
-    }
+    parent = await db.get<Comment>(COMMENTS_TABLE, body.parentId, 'Parent comment not found')
     // Nur innerhalb desselben Targets antworten — kein Cross-Thread-Einschmuggeln.
     if (parent.targetId !== body.targetId || parent.targetType !== body.targetType) {
       throw createError({ status: 422, statusText: 'Parent belongs to a different thread' })
@@ -63,11 +60,7 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const row = await tablesDB.createRow<Comment>({
-    databaseId,
-    tableId: COMMENTS_TABLE,
-    rowId: ID.unique(),
-    data: scopeRow(event, {
+  const row = await db.create<Comment>(COMMENTS_TABLE, {
       targetId: body.targetId,
       targetType: body.targetType,
       content: body.content,
@@ -82,8 +75,8 @@ export default defineEventHandler(async (event) => {
       upvotes: 0,
       downvotes: 0,
       score: 0,
-      status: 'active',
-    }),
+    status: 'active',
+  }, {
     // Nur lesbar (Gast-Realtime wie bei Nutzer-Rows). KEINE update/delete-
     // Permission — es gibt keinen Prinzipal, der sie je einlösen könnte.
     permissions: [Permission.read(Role.any())],
@@ -94,13 +87,9 @@ export default defineEventHandler(async (event) => {
   // Kontaktdaten getrennt ablegen (operator-read). Best-effort: schlägt das
   // fehl, bleibt der Kommentar bestehen — aber ohne moderierbare Kontaktspur.
   const ipHash = createHash('sha256').update(getRequestIP(event, { xForwardedFor: true }) ?? '').digest('hex')
-  await tablesDB.createRow({
-    databaseId,
-    tableId: 'guest_authors',
-    rowId: ID.unique(),
-    data: scopeRow(event, { commentId: row.$id, name: body.guestName, email: body.guestEmail, ipHash }),
-    permissions: [],
-  }).catch((error) => {
+  await db.create('guest_authors', {
+    commentId: row.$id, name: body.guestName, email: body.guestEmail, ipHash,
+  }, { permissions: [] }).catch((error) => {
     logEvent('error', 'guest_author_persist_failed', { commentId: row.$id, error: String(error) })
   })
 

@@ -19,30 +19,21 @@ export default defineEventHandler(async (event) => {
   // Löschen bleibt bei deaktivierten Kommentaren erlaubt — nur Wartung friert es ein
   await assertNotMaintenance(event)
 
-  const config = useRuntimeConfig(event)
-  const databaseId = config.public.appwriteDatabaseId
-  const { tablesDB } = createSessionClient(event)
+  const db = tenantDb(event)
 
   // Status-Guard (Parität zum Patch): nur AKTIVE Kommentare sind löschbar.
   // Ohne die Sperre könnte der Autor einen vom Moderator ausgeblendeten
   // Kommentar per hidden→deleted wieder sichtbar machen — der Listen-Filter
   // lässt deleted (als „[gelöscht]"-Platzhalter) durch, hidden nicht, und der
   // kaskadiert versteckte Subtree würde wieder erreichbar.
-  const existing = await tablesDB.getRow<Comment>({ databaseId, tableId: COMMENTS_TABLE, rowId: commentId }).catch(() => null)
-  if (!existing) {
-    throw createError({ status: 404, statusText: 'Comment not found' })
-  }
+  // `get` der Tür belegt zugleich die Mandanten-Zugehörigkeit.
+  const existing = await db.get<Comment>(COMMENTS_TABLE, commentId, 'Comment not found')
   if (existing.status !== 'active') {
     throw createError({ status: 409, statusText: 'Comment not deletable' })
   }
 
   try {
-    return await tablesDB.updateRow<Comment>({
-      databaseId,
-      tableId: COMMENTS_TABLE,
-      rowId: commentId,
-      data: { status: 'deleted' },
-    })
+    return await db.update<Comment>(COMMENTS_TABLE, commentId, { status: 'deleted' }, 'Comment not found')
   }
   catch (error) {
     // Row-Security-401 (nicht der Autor) → 403; echte 5xx nicht als 403 tarnen.
