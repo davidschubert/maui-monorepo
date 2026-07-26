@@ -34,6 +34,11 @@ export default defineEventHandler(async (event) => {
     rowId: commentId,
   }).catch((error) => { throw toH3Error(error, 'Comment not found') })
 
+  // Der Admin-Client umgeht die Row-Permissions ABSICHTLICH — deshalb muss die
+  // Mandantengrenze hier von Hand gezogen werden. Ohne das könnte eine
+  // Moderatorin von Community A einen Kommentar aus Community B ausblenden.
+  assertTenantRow(event, row, 'Comment not found')
+
   // Soft-Delete-Kommentare sind sichtbar, aber NICHT moderierbar (Constraint)
   if (row.status === 'deleted') {
     throw createError({ status: 400, statusText: 'Deleted comments cannot be moderated' })

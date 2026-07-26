@@ -39,6 +39,11 @@ export default defineEventHandler(async (event) => {
       const row = await admin.tablesDB.getRow<ModeratableCommentRow>({
         databaseId, tableId: 'comments', rowId: id,
       })
+      // Mandantengrenze JE ID: der Admin-Client umgeht die Row-Permissions,
+      // und eine Sammel-Aktion ist der bequemste Ort, fremde IDs unterzumischen.
+      // Fremdes landet in `failed` — von außen nicht von „gibt es nicht"
+      // unterscheidbar.
+      if (!rowBelongsToTenant(useTenant(event), row)) { failed.push(id); continue }
       // Soft-Delete-Tombstones sind nicht moderierbar (wie Einzel-Route)
       if (row.status === 'deleted') { failed.push(id); continue }
 

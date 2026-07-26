@@ -48,6 +48,33 @@ export function tenantCacheScopeFor(tenant: TenantContext | null): string {
   return tenant.mode === 'pool' ? `pool:${tenant.tenantId}` : `silo:${tenant.projectId}`
 }
 
+/**
+ * Gehört diese Zeile dem Mandanten? PURE (unit-getestet).
+ *
+ * WARUM ES DAS BRAUCHT: `scopeQuery` schützt nur LISTEN. Wer eine Zeile per ID
+ * mit dem ADMIN-Client lädt (`getRow`/`updateRow`/`deleteRow`), umgeht beides —
+ * den Filter (keine Query) UND die Row-Permissions (der Admin-Client ist
+ * absichtlich allmächtig). Ohne diese Prüfung könnte eine Moderatorin von
+ * Community A mit einer ID aus Community B fremde Inhalte lesen oder
+ * ausblenden. IDs sind nicht erratbar, aber sie sickern durch (Embeds, Links,
+ * Screenshots) — „schwer zu erraten" ist keine Zugriffskontrolle.
+ *
+ * Fail-CLOSED: im Pool-Modus ohne `tenantId` an der Zeile (Bestand vor der
+ * Migration) gilt sie als FREMD. Lieber ein 404 auf eine eigene Altzeile als
+ * ein Treffer auf eine fremde.
+ */
+export function rowBelongsToTenant(tenant: TenantContext | null, row: unknown): boolean {
+  if (!row || typeof row !== 'object') return false
+  // Silo/Single-Tenant: das Projekt ist die Grenze, jede Zeile gehört dazu.
+  if (tenant?.mode !== 'pool') return true
+  // `unknown` statt eines engen Row-Typs: die Zeilen kommen aus dem SDK und
+  // tragen je Layer andere Typen. Ein enger Parameter-Typ hätte an jeder
+  // Aufrufstelle einen Cast erzwungen — und ein Cast ist genau die Stelle, an
+  // der so eine Prüfung später versehentlich weggeräumt wird.
+  const tenantId = (row as { tenantId?: unknown }).tenantId
+  return typeof tenantId === 'string' && tenantId !== '' && tenantId === tenant.tenantId
+}
+
 // ── event-Wrapper (das, was Feature-Code aufruft) ───────────────────────────
 
 export function scopeQuery(event: H3Event, queries: string[] = []): string[] {
@@ -60,4 +87,18 @@ export function tenantCacheScope(event: H3Event): string {
 
 export function scopeRow<T extends Record<string, unknown>>(event: H3Event, data: T): T & { tenantId?: string } {
   return scopeRowFor(useTenant(event), data)
+}
+
+/**
+ * Wache für den Zugriff PER ID mit dem Admin-Client. Wirft 404 — nicht 403:
+ * ein 403 würde bestätigen, dass die Zeile existiert, und damit fremde IDs
+ * verifizierbar machen. Für den Aufrufer sieht eine fremde Zeile genauso aus
+ * wie eine, die es nicht gibt.
+ *
+ *   const row = await admin.tablesDB.getRow(…)
+ *   assertTenantRow(event, row, 'Comment not found')
+ */
+export function assertTenantRow(event: H3Event, row: unknown, statusText = 'Not found'): void {
+  if (rowBelongsToTenant(useTenant(event), row)) return
+  throw createError({ status: 404, statusText })
 }

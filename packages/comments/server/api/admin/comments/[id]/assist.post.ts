@@ -57,6 +57,10 @@ export default defineEventHandler(async (event): Promise<ModerationAssist> => {
     rowId: commentId,
   }).catch((error) => { throw toH3Error(error, 'Comment not found') })
 
+  // Ohne diese Grenze könnte eine Moderatorin von Community A den TEXT eines
+  // fremden Kommentars lesen (die KI-Einschätzung gibt ihn wieder).
+  assertTenantRow(event, comment, 'Comment not found')
+
   const reports = await openReportsForTarget(event, 'comment', commentId)
   if (reports.length === 0) {
     throw createError({ status: 400, statusText: 'No open reports for this comment' })

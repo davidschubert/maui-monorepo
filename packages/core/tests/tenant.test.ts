@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { scopeQueriesFor, scopeRowFor, tenantCacheScopeFor } from '../server/utils/tenant'
+import { rowBelongsToTenant, scopeQueriesFor, scopeRowFor, tenantCacheScopeFor } from '../server/utils/tenant'
 import type { TenantContext } from '../shared/types/tenant'
 
 const pool: TenantContext = { mode: 'pool', projectId: 'shared-1', tenantId: 'acme' }
@@ -46,5 +46,31 @@ describe('tenantCacheScopeFor (Cross-Tenant-Cache-Regel)', () => {
   })
   it('null (Single-Tenant): stabiler Key — Verhalten unverändert', () => {
     expect(tenantCacheScopeFor(null)).toBe('single')
+  })
+})
+
+describe('rowBelongsToTenant — die Grenze beim Zugriff PER ID', () => {
+  it('pool: nur die eigene Zeile', () => {
+    expect(rowBelongsToTenant(pool, { tenantId: 'acme' })).toBe(true)
+    expect(rowBelongsToTenant(pool, { tenantId: 'fremd' })).toBe(false)
+  })
+
+  it('pool: Zeile OHNE tenantId gilt als fremd (fail-closed)', () => {
+    // Bestand vor der Migration. Lieber ein 404 auf eine eigene Altzeile als
+    // ein Treffer auf eine fremde.
+    expect(rowBelongsToTenant(pool, { tenantId: '' })).toBe(false)
+    expect(rowBelongsToTenant(pool, {})).toBe(false)
+    expect(rowBelongsToTenant(pool, { tenantId: null })).toBe(false)
+  })
+
+  it('silo und Single-Tenant: das Projekt IST die Grenze', () => {
+    expect(rowBelongsToTenant(silo, { tenantId: '' })).toBe(true)
+    expect(rowBelongsToTenant(silo, {})).toBe(true)
+    expect(rowBelongsToTenant(null, {})).toBe(true)
+  })
+
+  it('nichts vorhanden ist nie "meins"', () => {
+    expect(rowBelongsToTenant(pool, null)).toBe(false)
+    expect(rowBelongsToTenant(null, undefined)).toBe(false)
   })
 })
