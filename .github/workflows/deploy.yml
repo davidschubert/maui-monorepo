@@ -143,8 +143,19 @@ jobs:
           # waere ein Umbenennen hier ein Deploy ins Leere.
           declare -A SITE=( [comments]=comments.pukalani.app [portfolio]=portfolio.pukalani.app [control]=studio.pukalani.app [platform]=platform.pukalani.app )
           declare -A SLOT=( [comments]=comments [portfolio]=portfolio [control]=studio [platform]=platform )
+          # LEGACY = pm2-Prozess, der nach einer Umbenennung verwaist zurueckbleibt.
+          # `pm2 startOrReload` findet Prozesse ueber den NAMEN in der Ecosystem-
+          # Datei. Als aus ecosystem-studio ecosystem-control wurde, hat pm2 also
+          # einen zweiten Prozess gestartet, statt den alten zu ersetzen — und der
+          # alte lief mit dem ALTEN Build auf demselben Port 3003 weiter. Ergebnis:
+          # das Control Plane antwortete zufaellig mal aus dem einen, mal aus dem
+          # anderen Build (gemessen 6:4 bei 10 Aufrufen). Die Health-Probe unten
+          # konnte das nicht sehen — sie fragt einmal und war zufrieden.
+          # Nach einem gruenen Deploy ist der Eintrag Geschichte und darf raus.
+          declare -A LEGACY=( [control]=studiopukalaniapp )
           for app in comments portfolio control platform; do
             site="${SITE[$app]}"
+            LEGACY_PM2="${LEGACY[$app]:-}"
             echo "::group::Deploy $app → $site"
             RELEASES="/home/ploi/releases/${SLOT[$app]}"
             RELEASE="$RELEASES/$EXPECTED_SHA"
@@ -157,23 +168,36 @@ jobs:
               ln -s '$RELEASE' '$RELEASES/current.tmp'
               mv -Tf '$RELEASES/current.tmp' '$RELEASES/current'
               pm2 startOrReload /home/ploi/$site/ops/ecosystem-$app.config.cjs --update-env
+              ${LEGACY_PM2:+pm2 delete $LEGACY_PM2 2>/dev/null || true}
               pm2 save
               ls -1dt $RELEASES/*/ 2>/dev/null | tail -n +6 | xargs -r rm -rf
               echo '$app geflippt auf $EXPECTED_SHA'"
             echo "::endgroup::"
 
-            echo "[$app] Erwarte Commit $EXPECTED_SHA auf https://$site/api/health …"
-            ok=""
-            for i in $(seq 1 12); do
+            # DREI Treffer in Folge, nicht einer. Eine einzelne Abfrage beweist
+            # nur, dass IRGENDEIN Prozess hinter dem Host den neuen Build hat —
+            # nicht, dass alle ihn haben. Genau daran ist der Rename-Deploy
+            # vorbeigelaufen: zwei Prozesse auf einem Port, einer alt, und die
+            # erste Abfrage traf zufaellig den neuen.
+            echo "[$app] Erwarte Commit $EXPECTED_SHA auf https://$site/api/health (3x in Folge) …"
+            ok=""; streak=0
+            for i in $(seq 1 20); do
               BUILD=$(curl -fsS -m 15 "https://$site/api/health" | jq -r '.build // empty' || true)
               if [ "$BUILD" = "$EXPECTED_SHA" ]; then
-                echo "[$app] ✔ Prod läuft auf $BUILD"; ok=1; break
+                streak=$((streak + 1))
+                if [ "$streak" -ge 3 ]; then
+                  echo "[$app] ✔ Prod läuft durchgängig auf $BUILD"; ok=1; break
+                fi
+                echo "[$app]   ($i/20) Treffer $streak/3 …"
+              else
+                [ "$streak" -gt 0 ] && echo "[$app]   ($i/20) Serie gerissen — '$BUILD' statt $EXPECTED_SHA (mehrere Prozesse am Port?)"
+                streak=0
+                echo "[$app]   ($i/20) Prod meldet '${BUILD:-n/a}' — warte 5 s …"
               fi
-              echo "[$app]   ($i/12) Prod meldet '${BUILD:-n/a}' — warte 5 s …"
               sleep 5
             done
             if [ -z "$ok" ]; then
-              echo "::error::[$app] Prod hat $EXPECTED_SHA nach ~60 s nicht erreicht — pm2-Logs prüfen."
+              echo "::error::[$app] Prod hat $EXPECTED_SHA nicht stabil erreicht — pm2 list prüfen (verwaister Prozess am selben Port?)."
               exit 1
             fi
           done
