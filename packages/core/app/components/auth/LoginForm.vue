@@ -4,6 +4,7 @@ import { createLoginSchema, type LoginInput } from '../../../schemas/auth'
 
 const { t } = useI18n()
 const localePath = useLocalePath()
+const { afterAuthTarget } = useAuthRedirect()
 const appConfig = useAppConfig()
 const auth = useAuthStore()
 const toast = useToast()
@@ -45,7 +46,7 @@ async function onSubmit(event: FormSubmitEvent<LoginInput>) {
     if (await completeEmbedLogin()) return
     // Toast (unten rechts, auto-dismiss) — überlebt die Navigation
     toast.add({ title: t('auth.login.success'), color: 'success', icon: 'i-ph-check-circle' })
-    await navigateTo(localePath('/'))
+    await navigateTo(afterAuthTarget())
   }
   catch (error) {
     errorMessage.value = isNetworkError(error) ? t('auth.networkError') : t('auth.login.failed')

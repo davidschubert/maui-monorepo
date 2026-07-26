@@ -16,9 +16,24 @@ const localePath = useLocalePath()
 const auth = useAuthStore()
 const draft = useOnboardingDraft()
 
-const code = ref(draft.value.inviteCode ?? '')
+/**
+ * Der Code kann aus DREI Quellen kommen, in dieser Reihenfolge:
+ *  1. `?code=` — der Direktlink aus der Einladungs-Mail. Er hat Vorrang, weil
+ *     er der frischeste ist (eine Erinnerung ERSETZT den alten Code).
+ *  2. der gespeicherte Entwurf — wer den Wizard verlassen hat, tippt nicht neu.
+ *  3. leer — dann tippt der Eingeladene ihn ab.
+ */
+const route = useRoute()
+const codeFromLink = typeof route.query.code === 'string' ? route.query.code.trim() : ''
+const code = ref(codeFromLink || draft.value.inviteCode || '')
 const checking = ref(false)
 const rejected = ref(false)
+
+// Kam der Code per Link, muss niemand auf „Weiter" drücken — das ist der
+// „direkt loslegen"-Teil, den die Mail verspricht.
+onMounted(() => {
+  if (codeFromLink) void submit()
+})
 
 async function submit() {
   if (!code.value.trim() || checking.value) return

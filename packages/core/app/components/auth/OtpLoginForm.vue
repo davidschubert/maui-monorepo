@@ -8,7 +8,7 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
-const localePath = useLocalePath()
+const { afterAuthTarget } = useAuthRedirect()
 const appConfig = useAppConfig()
 const auth = useAuthStore()
 const { completeEmbedLogin } = useEmbedPopup()
@@ -129,7 +129,7 @@ async function verify() {
     // Embed-Popup (E2): Session ans iframe übergeben statt zu navigieren
     if (await completeEmbedLogin()) return
     toast.add({ title: t('auth.login.success'), color: 'success', icon: 'i-ph-check-circle' })
-    await navigateTo(localePath('/'))
+    await navigateTo(afterAuthTarget())
   }
   catch {
     errorMessage.value = t('auth.otp.invalidCode')

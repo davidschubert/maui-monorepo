@@ -3,7 +3,7 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import { createRegisterFormSchema, type RegisterFormInput } from '../../../schemas/auth'
 
 const { t } = useI18n()
-const localePath = useLocalePath()
+const { afterAuthTarget } = useAuthRedirect()
 const appConfig = useAppConfig()
 const auth = useAuthStore()
 const loading = ref(false)
@@ -39,7 +39,7 @@ async function onSubmit(event: FormSubmitEvent<RegisterFormInput>) {
       body: { name: event.data.name, email: event.data.email, password: event.data.password },
     })
     await auth.refresh()
-    await navigateTo(localePath('/'))
+    await navigateTo(afterAuthTarget())
   }
   catch (error) {
     // Server weg ≠ Account existiert ≠ Registrierung zu — ehrliche Meldung je nach Ursache
