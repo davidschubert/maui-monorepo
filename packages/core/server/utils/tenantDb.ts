@@ -158,6 +158,22 @@ export function tenantDb(event: H3Event, options: TenantDbOptions = {}) {
       })
     },
 
+    /**
+     * NUR die Row-Permissions ändern (keine Datenfelder) — erst Zugehörigkeit
+     * belegen. Braucht z. B. das Ausblenden: dort wird in einem zweiten Schritt
+     * die read(any)-Permission entzogen, nachdem das Status-Event schon
+     * ausgeliefert ist.
+     */
+    async updatePermissions<T extends Models.Row>(
+      tableId: string,
+      rowId: string,
+      permissions: string[],
+      notFound = 'Not found',
+    ): Promise<T> {
+      await get(tableId, rowId, notFound)
+      return tablesDB.updateRow<T>({ databaseId, tableId, rowId, permissions })
+    },
+
     /** Löschen — erst Zugehörigkeit belegen. */
     async remove(tableId: string, rowId: string, notFound = 'Not found'): Promise<void> {
       await get(tableId, rowId, notFound)

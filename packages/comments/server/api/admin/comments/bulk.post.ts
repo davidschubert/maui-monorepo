@@ -20,9 +20,7 @@ export default defineEventHandler(async (event) => {
   const { user } = await requireSitePermission(event, 'comments.moderate')
   const { action, ids } = await readValidatedBody(event, bulkSchema.parse)
 
-  const config = useRuntimeConfig(event)
-  const admin = createAdminClient(event)
-  const databaseId = config.public.appwriteDatabaseId
+  const ops = tenantDb(event, { as: 'operator' })
 
   const done: string[] = []
   const failed: string[] = []
@@ -36,21 +34,17 @@ export default defineEventHandler(async (event) => {
         continue
       }
 
-      const row = await admin.tablesDB.getRow<ModeratableCommentRow>({
-        databaseId, tableId: 'comments', rowId: id,
-      })
-      // Mandantengrenze JE ID: der Admin-Client umgeht die Row-Permissions,
-      // und eine Sammel-Aktion ist der bequemste Ort, fremde IDs unterzumischen.
-      // Fremdes landet in `failed` — von außen nicht von „gibt es nicht"
-      // unterscheidbar.
-      if (!rowBelongsToTenant(useTenant(event), row)) { failed.push(id); continue }
+      // Die Tür prüft JE ID die Zugehörigkeit — eine Sammel-Aktion ist der
+      // bequemste Ort, fremde IDs unterzumischen. Fremdes wirft 404 und landet
+      // unten in `failed`, von außen nicht von „gibt es nicht" zu unterscheiden.
+      const row = await ops.get<ModeratableCommentRow>('comments', id, 'Comment not found')
       // Soft-Delete-Tombstones sind nicht moderierbar (wie Einzel-Route)
       if (row.status === 'deleted') { failed.push(id); continue }
 
       if (action === 'hide') {
         if (row.status !== 'hidden') {
-          await hideCommentRow(admin, databaseId, row, event)
-          await hideCommentDescendants(admin, databaseId, row, event)
+          await hideCommentRow(event, row)
+          await hideCommentDescendants(event, row)
         }
         // Ausblenden schließt zugleich die offenen Meldungen (Lifecycle,
         // wie der Einzel-Flow in der Queue)
@@ -58,13 +52,10 @@ export default defineEventHandler(async (event) => {
       }
       else if (row.status !== 'active') {
         // restore: Status zurück + read(any) wieder anhängen (ein Write)
-        await admin.tablesDB.updateRow<Models.Row & { status: string }>({
-          databaseId,
-          tableId: 'comments',
-          rowId: id,
-          data: { status: 'active' },
-          permissions: row.$permissions.includes(COMMENT_READ_ANY) ? undefined : [...row.$permissions, COMMENT_READ_ANY],
-        })
+        await ops.update<Models.Row & { status: string }>('comments', id, { status: 'active' }, 'Comment not found')
+        if (!row.$permissions.includes(COMMENT_READ_ANY)) {
+          await ops.updatePermissions('comments', id, [...row.$permissions, COMMENT_READ_ANY], 'Comment not found')
+        }
       }
       done.push(id)
     }

@@ -17,18 +17,14 @@ export default defineEventHandler(async (event) => {
   await assertCommentsWritable(event)
 
   const { content } = await readValidatedBody(event, commentUpdateSchema.parse)
-  const config = useRuntimeConfig(event)
-  const databaseId = config.public.appwriteDatabaseId
-  const { tablesDB } = createSessionClient(event)
+  const db = tenantDb(event)
 
   // Status prüfen: nur aktive/gemeldete Kommentare sind editierbar. Ohne diese
   // Sperre könnte der Autor per direktem Call den Inhalt eines ausgeblendeten
   // (hidden) oder soft-gelöschten (deleted) Kommentars überschreiben — die UI
   // versteckt „Bearbeiten" dort nur clientseitig.
-  const existing = await tablesDB.getRow<Comment>({ databaseId, tableId: COMMENTS_TABLE, rowId: commentId }).catch(() => null)
-  if (!existing) {
-    throw createError({ status: 404, statusText: 'Comment not found' })
-  }
+  // `get` der Tür belegt zugleich die Mandanten-Zugehörigkeit.
+  const existing = await db.get<Comment>(COMMENTS_TABLE, commentId, 'Comment not found')
   if (existing.status !== 'active') {
     throw createError({ status: 409, statusText: 'Comment not editable' })
   }
@@ -36,12 +32,12 @@ export default defineEventHandler(async (event) => {
   try {
     // Sparse Update — Row-Security wirft 401, wenn nicht der Autor schreibt.
     // editedAt markiert die echte Bearbeitung (≠ $updatedAt, das auch Votes bumpen).
-    return await tablesDB.updateRow<Comment>({
-      databaseId,
-      tableId: COMMENTS_TABLE,
-      rowId: commentId,
-      data: { content, editedAt: new Date().toISOString() },
-    })
+    return await db.update<Comment>(
+      COMMENTS_TABLE,
+      commentId,
+      { content, editedAt: new Date().toISOString() },
+      'Comment not found',
+    )
   }
   catch (error) {
     // Row-Security-401 (nicht der Autor) → 403; echte 5xx nicht als 403 tarnen.

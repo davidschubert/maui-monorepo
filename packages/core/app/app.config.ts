@@ -4,6 +4,19 @@ export default defineAppConfig({
   // maui.* Config-Gates: Core-Default ist IMMER aus — Apps aktivieren explizit.
   // Interne Tools bleiben komplett clean, öffentliche Seiten brauchen 3 Zeilen.
   maui: {
+    /**
+     * Name im Dashboard-Kopf. War bis 2026-07-26 als „Hawaii Studio" im
+     * admin-Layer festverdrahtet — und damit stand der Firmenname des
+     * BETREIBERS auch im Dashboard jeder Kunden-Community. Der Default hier
+     * ist bewusst neutral; jede App setzt ihren eigenen.
+     *
+     * OFFEN: auf einem Mandanten-Host gehört hier der Community-Name hin. Der
+     * ist heute nur serverseitig bekannt (useTenant) — ihn in die Client-
+     * Payload zu heben ist ein eigener kleiner Schritt.
+     */
+    brand: {
+      name: 'Pukalani',
+    },
     admin: {
       /** Modul-Registry: Feature-Layer tragen hier ihre Dashboard-Sektionen ein
        *  (deep-merged/konkateniert über alle Layer). Das Dashboard-Layout rendert

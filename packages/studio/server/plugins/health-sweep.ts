@@ -27,7 +27,7 @@ export default defineNitroPlugin(() => {
       if (result.changed.length && config.alertEmail) {
         const sent = await sendMail(undefined, {
           to: config.alertEmail,
-          subject: `[studio] Site-Health: ${result.changed.join(', ')}`,
+          subject: `[control] Site-Health: ${result.changed.join(', ')}`,
           text: [
             `Der Health-Sweep hat Statuswechsel festgestellt:`,
             ...result.changed.map(entry => `  · ${entry}`),
@@ -35,7 +35,7 @@ export default defineNitroPlugin(() => {
             `Aktuell nicht ok: ${result.notOk.join(', ') || 'alles ok'}`,
             `Geprüfte Sites: ${result.checked}`,
             '',
-            'Details im Studio: /dashboard/sites',
+            'Details im Control: /dashboard/sites',
           ].join('\n'),
         }).catch(() => false)
         if (!sent) {

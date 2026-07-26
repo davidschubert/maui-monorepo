@@ -1,4 +1,4 @@
-import { ID, Permission, Query, Role } from 'node-appwrite'
+import { Permission, Role } from 'node-appwrite'
 import { commentSchema } from '../../../schemas/comment'
 import { COMMENTS_TABLE, MAX_COMMENT_DEPTH, type Comment } from '../../../shared/types/comment'
 
@@ -14,9 +14,6 @@ export default defineEventHandler(async (event) => {
   await assertPoolWriteQuota(event, { kind: 'comments', tableId: COMMENTS_TABLE })
 
   const body = await readValidatedBody(event, commentSchema.parse)
-  const config = useRuntimeConfig(event)
-  const databaseId = config.public.appwriteDatabaseId
-  const { tablesDB } = createSessionClient(event)
 
   // Operator-Targets (maui.comments.operatorTargets, z. B. 'ticket'): nur
   // Operatoren dürfen schreiben, und die Rows sind NICHT read(any), sondern
@@ -25,17 +22,20 @@ export default defineEventHandler(async (event) => {
   const operatorTarget = (appConfig.maui?.comments?.operatorTargets ?? []).includes(body.targetType)
   if (operatorTarget) requirePermission(event, 'dashboard.access')
 
+  // Operator-Rows tragen Role.label-Permissions — die kann nur der Admin-Client
+  // setzen (Session-User dürfen fremde Label-Rollen nicht vergeben). Beide
+  // Türklinken scopen identisch; nur der Client dahinter unterscheidet sich.
+  const db = tenantDb(event, { as: operatorTarget ? 'operator' : 'member' })
+
   // Bei einer Antwort: Eltern-Kommentar vorab holen → rootId/depth ableiten,
   // maxDepth prüfen und den Parent für die Notification wiederverwenden.
+  // `get` der Tür stellt zugleich sicher, dass die Antwort nicht an den
+  // Kommentar eines FREMDEN Mandanten gehängt wird.
   let parent: Comment | null = null
   let rootId: string | null = null
   let depth = 0
   if (body.parentId) {
-    parent = await tablesDB.getRow<Comment>({ databaseId, tableId: COMMENTS_TABLE, rowId: body.parentId })
-      .catch(() => null)
-    if (!parent) {
-      throw createError({ status: 404, statusText: 'Parent comment not found' })
-    }
+    parent = await db.get<Comment>(COMMENTS_TABLE, body.parentId, 'Parent comment not found')
     rootId = parent.rootId ?? parent.$id
     depth = parent.depth + 1
     if (depth > MAX_COMMENT_DEPTH) {
@@ -43,34 +43,28 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // Operator-Rows tragen Role.label-Permissions — die kann nur der
-  // Admin-Client setzen (Session-User dürfen fremde Label-Rollen nicht vergeben)
-  const writer = operatorTarget ? createAdminClient(event).tablesDB : tablesDB
-  const row = await writer.createRow<Comment>({
-    databaseId,
-    tableId: COMMENTS_TABLE,
-    rowId: ID.unique(),
-    // Horizont-3 Naht 3 (ruhend): im Pool-Modus stempelt scopeRow die tenantId
-    data: scopeRow(event, {
-      targetId: body.targetId,
-      targetType: body.targetType,
-      content: body.content,
-      parentId: body.parentId ?? null,
-      targetUrl: body.targetUrl ?? null,
-      rootId,
-      depth,
-      editedAt: null,
-      authorId: user.$id,
-      authorName: user.name,
-      upvotes: 0,
-      downvotes: 0,
-      score: 0,
-      status: 'active',
-    }),
-    // Lesen erlaubt die ROW (any) — nicht mehr die Table: hidden-Kommentare
-    // verlieren beim Ausblenden ihre read(any)-Row-Permission und sind damit
-    // auch per Roh-REST/Web-SDK unlesbar (Migration 008). Gast-Realtime läuft
-    // über die Row-Permission weiter. Ändern/löschen nur der Autor.
+  // Die tenantId stempelt die Tür — deshalb steht sie hier nicht.
+  const row = await db.create<Comment>(COMMENTS_TABLE, {
+    targetId: body.targetId,
+    targetType: body.targetType,
+    content: body.content,
+    parentId: body.parentId ?? null,
+    targetUrl: body.targetUrl ?? null,
+    rootId,
+    depth,
+    editedAt: null,
+    authorId: user.$id,
+    authorName: user.name,
+    upvotes: 0,
+    downvotes: 0,
+    score: 0,
+    status: 'active',
+  }, {
+    // Eigene Permissions statt des Standard-Publikums: Kommentare sind
+    // BEWUSST read(any) — der Embed-Fall zeigt Threads auf fremden Seiten,
+    // auch Gästen. Ausblenden entzieht die Row-Permission (Migration 008),
+    // damit ist ein hidden-Kommentar auch per Roh-REST unlesbar. Ändern und
+    // löschen darf nur der Autor. Operator-Targets sehen NUR admin/moderator.
     permissions: [
       ...(operatorTarget
         ? [Permission.read(Role.label('admin')), Permission.read(Role.label('moderator'))]
@@ -121,9 +115,10 @@ export default defineEventHandler(async (event) => {
   })
   // Meilenstein („1.000 Kommentare") — ein billiger Count (limit 1 → total),
   // best-effort über den Core-Vertrag
-  const commentTotal = await tablesDB.listRows({
-    databaseId, tableId: COMMENTS_TABLE, queries: [Query.limit(1)],
-  }).then(r => r.total).catch(() => 0)
+  // Durch die Tür zählt der Meilenstein die Kommentare DIESER Community —
+  // vorher war es die Gesamtzahl über alle Mandanten, und Kunde B hätte den
+  // „1.000 Kommentare"-Moment von Kunde A gefeiert.
+  const commentTotal = await db.count(COMMENTS_TABLE).catch(() => 0)
   await maybeRecordMilestone(event, { type: 'milestone.comments', count: commentTotal, link })
 
   setResponseStatus(event, 201)

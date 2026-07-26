@@ -48,18 +48,9 @@ export default defineEventHandler(async (event): Promise<ModerationAssist> => {
     throw createError({ status: 400, statusText: 'Missing comment id' })
   }
 
-  const config = useRuntimeConfig(event)
-  const admin = createAdminClient(event)
-
-  const comment = await admin.tablesDB.getRow<CommentRow>({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: 'comments',
-    rowId: commentId,
-  }).catch((error) => { throw toH3Error(error, 'Comment not found') })
-
-  // Ohne diese Grenze könnte eine Moderatorin von Community A den TEXT eines
-  // fremden Kommentars lesen (die KI-Einschätzung gibt ihn wieder).
-  assertTenantRow(event, comment, 'Comment not found')
+  // Die Tür weist fremde Mandanten ab, BEVOR der Text die KI erreicht.
+  const comment = await tenantDb(event, { as: 'operator' })
+    .get<CommentRow>('comments', commentId, 'Comment not found')
 
   const reports = await openReportsForTarget(event, 'comment', commentId)
   if (reports.length === 0) {

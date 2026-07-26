@@ -8,6 +8,7 @@ export default defineAppConfig({
   //   auth: { providers: ['github'], termsUrl: '/agb', otp: true },
   // }
   maui: {
+    brand: { name: 'Pukalani Control' },
     // Betreiber-Login per OTP-Code (H2-Live): der Studio-Admin braucht kein
     // Passwort — Prod-Konto wurde server-seitig ohne Passwort angelegt.
     auth: { otp: true, termsUrl: '/terms' },

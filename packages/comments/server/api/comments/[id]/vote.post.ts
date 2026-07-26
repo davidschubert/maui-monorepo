@@ -1,4 +1,4 @@
-import { AppwriteException, ID, Permission, Query, Role } from 'node-appwrite'
+import { AppwriteException, Permission, Query, Role } from 'node-appwrite'
 import { voteSchema } from '../../../../schemas/comment'
 import {
   COMMENTS_TABLE,
@@ -36,52 +36,42 @@ export default defineEventHandler(async (event): Promise<VoteResponse> => {
   await assertCommentsWritable(event)
 
   const { value } = await readValidatedBody(event, voteSchema.parse)
-  const config = useRuntimeConfig(event)
-  const databaseId = config.public.appwriteDatabaseId
-  const { tablesDB } = createSessionClient(event)
-  const admin = createAdminClient(event)
+  // Zwei Türklinken, ein Vorgang: die eigene Stimme schreibt der User selbst
+  // (Session), die autoritativen Zähler liest und schreibt der Betreiber-Weg
+  // (Admin sieht ALLE Stimmen). Gescopt wird bei beiden gleich.
+  const db = tenantDb(event)
+  const ops = tenantDb(event, { as: 'operator' })
 
   // Status prüfen: auf gelöschte/ausgeblendete Kommentare darf nicht gevotet
   // werden (UI blockt nur clientseitig). Sonst ließen sich Vote-Rows + Score
   // eines [gelöscht]-Platzhalters per direktem Request manipulieren.
-  const target = await admin.tablesDB.getRow<Comment>({ databaseId, tableId: COMMENTS_TABLE, rowId: commentId }).catch(() => null)
-  if (!target) {
-    throw createError({ status: 404, statusText: 'Comment not found' })
-  }
+  // `get` der Tür weist zugleich Stimmen auf fremde Mandanten ab.
+  const target = await ops.get<Comment>(COMMENTS_TABLE, commentId, 'Comment not found')
   if (target.status !== 'active') {
     throw createError({ status: 409, statusText: 'Comment not votable' })
   }
 
-  const existing = await tablesDB.listRows<CommentVote>({
-    databaseId,
-    tableId: VOTES_TABLE,
-    queries: [
-      Query.equal('commentId', commentId),
-      Query.equal('userId', user.$id),
-      Query.limit(1),
-    ],
-  })
-
-  const current = existing.rows[0]
+  const current = await db.find<CommentVote>(VOTES_TABLE, [
+    Query.equal('commentId', commentId),
+    Query.equal('userId', user.$id),
+  ])
 
   if (current && current.value === value) {
     // Toggle: Vote entfernen
-    await tablesDB.deleteRow({ databaseId, tableId: VOTES_TABLE, rowId: current.$id })
+    await db.remove(VOTES_TABLE, current.$id, 'Vote not found')
   }
   else if (current) {
     // Umdrehen
-    await tablesDB.updateRow<CommentVote>({ databaseId, tableId: VOTES_TABLE, rowId: current.$id, data: { value } })
+    await db.update<CommentVote>(VOTES_TABLE, current.$id, { value }, 'Vote not found')
   }
   else {
     // Neuer Vote. Bei Doppelklick können zwei Requests parallel hier landen — der
     // Unique-Index (commentId,userId) lässt nur einen durch; der 409 des zweiten
     // ist kein Fehler (Counts + myVote werden unten autoritativ neu gelesen).
     try {
-      await tablesDB.createRow<CommentVote>({
-        databaseId,
-        tableId: VOTES_TABLE,
-        rowId: ID.unique(),
-        data: { commentId, userId: user.$id, value },
+      await db.create<CommentVote>(VOTES_TABLE, { commentId, userId: user.$id, value }, {
+        // Die eigene Stimme sieht NUR der Stimmende (Lehre comment_votes):
+        // die Liste liefert die API aggregiert, nicht die Rohzeilen.
         permissions: [
           Permission.read(Role.user(user.$id)),
           Permission.update(Role.user(user.$id)),
@@ -105,18 +95,18 @@ export default defineEventHandler(async (event): Promise<VoteResponse> => {
   // hinterlassen (Lost Update — Zähler driften bis zum nächsten Vote).
   return await serializePerComment(commentId, async (): Promise<VoteResponse> => {
     const [upvotes, downvotes, mine] = await Promise.all([
-      admin.tablesDB.listRows({ databaseId, tableId: VOTES_TABLE, queries: [Query.equal('commentId', commentId), Query.equal('value', 1), Query.limit(1)] }).then(r => r.total),
-      admin.tablesDB.listRows({ databaseId, tableId: VOTES_TABLE, queries: [Query.equal('commentId', commentId), Query.equal('value', -1), Query.limit(1)] }).then(r => r.total),
-      admin.tablesDB.listRows<CommentVote>({ databaseId, tableId: VOTES_TABLE, queries: [Query.equal('commentId', commentId), Query.equal('userId', user.$id), Query.limit(1)] }),
+      ops.count(VOTES_TABLE, [Query.equal('commentId', commentId), Query.equal('value', 1)]),
+      ops.count(VOTES_TABLE, [Query.equal('commentId', commentId), Query.equal('value', -1)]),
+      ops.find<CommentVote>(VOTES_TABLE, [Query.equal('commentId', commentId), Query.equal('userId', user.$id)]),
     ])
-    const myVote: VoteValue | null = mine.rows[0]?.value === -1 ? -1 : mine.rows[0] ? 1 : null
+    const myVote: VoteValue | null = mine?.value === -1 ? -1 : mine ? 1 : null
 
-    const comment = await admin.tablesDB.updateRow<Comment>({
-      databaseId,
-      tableId: COMMENTS_TABLE,
-      rowId: commentId,
-      data: { upvotes, downvotes, score: upvotes - downvotes },
-    })
+    const comment = await ops.update<Comment>(
+      COMMENTS_TABLE,
+      commentId,
+      { upvotes, downvotes, score: upvotes - downvotes },
+      'Comment not found',
+    )
 
     return { comment, myVote }
   })

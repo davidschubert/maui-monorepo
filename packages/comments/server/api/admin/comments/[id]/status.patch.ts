@@ -23,21 +23,11 @@ export default defineEventHandler(async (event) => {
   }
 
   const { status } = await readValidatedBody(event, moderationSchema.parse)
-  const config = useRuntimeConfig(event)
-  const admin = createAdminClient(event)
-  const databaseId = config.public.appwriteDatabaseId
-
-  // Fehlender Kommentar → 404 (nicht 500). toH3Error mappt Appwrite-4xx korrekt.
-  const row = await admin.tablesDB.getRow<ModeratableCommentRow>({
-    databaseId,
-    tableId: 'comments',
-    rowId: commentId,
-  }).catch((error) => { throw toH3Error(error, 'Comment not found') })
-
-  // Der Admin-Client umgeht die Row-Permissions ABSICHTLICH — deshalb muss die
-  // Mandantengrenze hier von Hand gezogen werden. Ohne das könnte eine
-  // Moderatorin von Community A einen Kommentar aus Community B ausblenden.
-  assertTenantRow(event, row, 'Comment not found')
+  // Betreiber-Weg durch die Tür: sie zieht die Mandantengrenze, die der
+  // Admin-Client sonst umgeht — und liefert 404 statt 403, damit ein
+  // Fehlschlag keine fremde ID bestätigt.
+  const ops = tenantDb(event, { as: 'operator' })
+  const row = await ops.get<ModeratableCommentRow>('comments', commentId, 'Comment not found')
 
   // Soft-Delete-Kommentare sind sichtbar, aber NICHT moderierbar (Constraint)
   if (row.status === 'deleted') {
@@ -48,20 +38,21 @@ export default defineEventHandler(async (event) => {
   // Write: Status zurück + read(any) wieder anhängen (Event folgt den neuen
   // Permissions → erreicht Leser wieder).
   const updated = await (status === 'hidden'
-    ? hideCommentRow(admin, databaseId, row, event)
-    : admin.tablesDB.updateRow<Models.Row & { status: string }>({
-        databaseId,
-        tableId: 'comments',
-        rowId: commentId,
-        data: { status },
-        permissions: row.$permissions.includes(COMMENT_READ_ANY) ? undefined : [...row.$permissions, COMMENT_READ_ANY],
-      })
+    ? hideCommentRow(event, row)
+    : ops.update<Models.Row & { status: string }>('comments', commentId, { status }, 'Comment not found')
+        .then(updatedRow => row.$permissions.includes(COMMENT_READ_ANY)
+          ? updatedRow
+          // Restore gibt read(any) zurück — Event folgt den neuen Permissions
+          // und erreicht Leser wieder.
+          : ops.updatePermissions<Models.Row & { status: string }>(
+              'comments', commentId, [...row.$permissions, COMMENT_READ_ANY], 'Comment not found',
+            ))
   ).catch((error) => { throw toH3Error(error, 'Could not update comment') })
 
   // Cascade-Hide: Wiederherstellen kaskadiert bewusst NICHT (nur der Parent;
   // Antworten ggf. einzeln).
   if (status === 'hidden') {
-    await hideCommentDescendants(admin, databaseId, row, event)
+    await hideCommentDescendants(event, row)
   }
 
   await recordAudit(event, {

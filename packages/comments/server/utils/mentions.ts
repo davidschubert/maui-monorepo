@@ -29,18 +29,16 @@ export async function resolveMentions(
   if (!opts.content.includes('@')) return []
 
   try {
-    const config = useRuntimeConfig(event)
-    const admin = createAdminClient(event)
-    const res = await admin.tablesDB.listRows<Comment>({
-      databaseId: config.public.appwriteDatabaseId,
-      tableId: COMMENTS_TABLE,
-      queries: [
-        Query.equal('targetId', opts.targetId),
-        Query.equal('targetType', opts.targetType),
-        Query.orderDesc('$createdAt'),
-        Query.limit(PARTICIPANT_CAP),
-      ],
-    })
+    // WICHTIG, dass das gescopt ist: zwei Communities können denselben
+    // targetId tragen (z. B. 'home'). Ungescopt sammelte diese Abfrage
+    // Teilnehmer aus dem Thread eines FREMDEN Mandanten ein — und die
+    // @-Erwähnung hätte sie benachrichtigt.
+    const res = await tenantDb(event, { as: 'operator' }).list<Comment>(COMMENTS_TABLE, [
+      Query.equal('targetId', opts.targetId),
+      Query.equal('targetType', opts.targetType),
+      Query.orderDesc('$createdAt'),
+      Query.limit(PARTICIPANT_CAP),
+    ])
 
     const participants = new Map<string, string>() // userId → Name
     for (const row of res.rows) {
