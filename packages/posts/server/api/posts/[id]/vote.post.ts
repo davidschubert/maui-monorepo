@@ -1,4 +1,4 @@
-import { ID, Permission, Query, Role } from 'node-appwrite'
+import { Permission, Query, Role } from 'node-appwrite'
 import { voteSchema } from '../../../../schemas/post'
 import { POLL_VOTES_TABLE, POSTS_TABLE, type CommunityPost, type PollVote } from '../../../../shared/types/post'
 
@@ -20,12 +20,11 @@ export default defineEventHandler(async (event) => {
   }
 
   const { optionIndex } = await readValidatedBody(event, voteSchema.parse)
-  const config = useRuntimeConfig(event)
-  const databaseId = config.public.appwriteDatabaseId
-  const admin = createAdminClient(event)
+  // Datentür als Operator (poll_votes haben bewusst keine User-Schreibrechte;
+  // create stempelt den Mandanten, get/list belegen die Zugehörigkeit).
+  const db = tenantDb(event, { as: 'operator' })
 
-  const post = await admin.tablesDB.getRow<CommunityPost>({ databaseId, tableId: POSTS_TABLE, rowId: id })
-    .catch((error) => { throw toH3Error(error, 'Post not found') })
+  const post = await db.get<CommunityPost>(POSTS_TABLE, id, 'Post not found')
   if (post.type !== 'poll' || post.status !== 'published') {
     throw createError({ status: 409, statusText: 'Not an open poll' })
   }
@@ -37,42 +36,36 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 422, statusText: 'Unknown option' })
   }
 
-  const existing = await admin.tablesDB.listRows<PollVote>({
-    databaseId,
-    tableId: POLL_VOTES_TABLE,
-    queries: [Query.equal('postId', id), Query.equal('userId', user.$id), Query.limit(1)],
-  })
-  const current = existing.rows[0]
+  const current = await db.find<PollVote>(POLL_VOTES_TABLE, [
+    Query.equal('postId', id),
+    Query.equal('userId', user.$id),
+  ])
 
   if (current && current.optionIndex === optionIndex) {
     // Toggle: gleiche Option erneut = Stimme zurückziehen
-    await admin.tablesDB.deleteRow({ databaseId, tableId: POLL_VOTES_TABLE, rowId: current.$id })
+    await db.remove(POLL_VOTES_TABLE, current.$id)
   }
   else if (current) {
-    await admin.tablesDB.updateRow({
-      databaseId, tableId: POLL_VOTES_TABLE, rowId: current.$id, data: { optionIndex },
-    })
+    await db.update(POLL_VOTES_TABLE, current.$id, { optionIndex })
   }
   else {
-    await admin.tablesDB.createRow({
-      databaseId,
-      tableId: POLL_VOTES_TABLE,
-      rowId: ID.unique(),
-      data: { postId: id, userId: user.$id, optionIndex },
+    await db.create(POLL_VOTES_TABLE, {
+      postId: id,
+      userId: user.$id,
+      optionIndex,
+    }, {
       // eigene Stimme lesbar (Debug/Export) — mehr nicht
       permissions: [Permission.read(Role.user(user.$id))],
     }).catch(async (error) => {
       // Unique-Index-Race (Doppelklick/zwei Tabs): der Gewinner steht — dessen
       // Row auf die gewünschte Option ziehen statt 409 zu leaken
       if (typeof error === 'object' && error !== null && 'code' in error && error.code === 409) {
-        const winner = await admin.tablesDB.listRows<PollVote>({
-          databaseId, tableId: POLL_VOTES_TABLE,
-          queries: [Query.equal('postId', id), Query.equal('userId', user.$id), Query.limit(1)],
-        })
-        if (winner.rows[0] && winner.rows[0].optionIndex !== optionIndex) {
-          await admin.tablesDB.updateRow({
-            databaseId, tableId: POLL_VOTES_TABLE, rowId: winner.rows[0].$id, data: { optionIndex },
-          })
+        const winner = await db.find<PollVote>(POLL_VOTES_TABLE, [
+          Query.equal('postId', id),
+          Query.equal('userId', user.$id),
+        ])
+        if (winner && winner.optionIndex !== optionIndex) {
+          await db.update(POLL_VOTES_TABLE, winner.$id, { optionIndex })
         }
         return
       }

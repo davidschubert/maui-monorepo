@@ -18,37 +18,32 @@ export function parsePollOptions(row: Pick<CommunityPost, 'pollOptions'>): strin
 }
 
 /**
- * Publish-on-read (Plan P4): fällige scheduled-Posts SYSTEMWEIT auf published
- * heben — beim Lesen des Feeds, kein Cron nötig. Admin-Client (fremde Rows);
- * best-effort: ein Fehler hier darf den Feed-GET nie scheitern lassen.
- * Verzögertes Publish meldet den Feed-Eintrag (recordActivity) nach.
+ * Publish-on-read (Plan P4): fällige scheduled-Posts auf published heben —
+ * beim Lesen des Feeds, kein Cron nötig. Datentür als Operator (fremde Rows,
+ * aber NUR die des eigenen Mandanten: jeder Feed-GET veröffentlicht die
+ * fälligen Posts seiner Community — im Pool bleibt nichts liegen, weil jede
+ * Community ihren eigenen Feed liest). Best-effort: ein Fehler hier darf den
+ * Feed-GET nie scheitern lassen.
  */
 export async function publishDuePosts(event: H3Event): Promise<void> {
   try {
-    const config = useRuntimeConfig(event)
-    const databaseId = config.public.appwriteDatabaseId
-    const admin = createAdminClient(event)
+    const db = tenantDb(event, { as: 'operator' })
     const now = new Date().toISOString()
 
-    const due = await admin.tablesDB.listRows<CommunityPost>({
-      databaseId,
-      tableId: POSTS_TABLE,
-      queries: [
-        Query.equal('status', 'scheduled'),
-        Query.lessThanEqual('scheduledAt', now),
-        Query.limit(25),
-      ],
-    })
+    const due = await db.list<CommunityPost>(POSTS_TABLE, [
+      Query.equal('status', 'scheduled'),
+      Query.lessThanEqual('scheduledAt', now),
+      Query.limit(25),
+    ])
 
     for (const row of due.rows) {
-      const updated = await admin.tablesDB.updateRow<CommunityPost>({
-        databaseId,
-        tableId: POSTS_TABLE,
-        rowId: row.$id,
-        data: { status: 'published', publishedAt: now },
-        // Autor-Rechte bleiben, Leserecht für alle kommt dazu
-        permissions: [...new Set([...row.$permissions, POST_READ_ANY])],
+      const updated = await db.update<CommunityPost>(POSTS_TABLE, row.$id, {
+        status: 'published',
+        publishedAt: now,
       })
+      // Autor-Rechte bleiben, Leserecht für alle kommt dazu (zweiter Schritt:
+      // die Tür trennt Daten- und Permission-Writes bewusst)
+      await db.updatePermissions(POSTS_TABLE, row.$id, [...new Set([...row.$permissions, POST_READ_ANY])])
       await recordActivity(event, {
         actorId: updated.authorId,
         actorName: updated.authorName,
@@ -67,7 +62,8 @@ export async function publishDuePosts(event: H3Event): Promise<void> {
 
 /**
  * Eigene Up-/Downvotes für eine Seite Posts — EIN Query (kein N+1).
- * Admin-Client: die Vote-Rows sind nur für den jeweiligen Voter lesbar.
+ * Datentür als Operator: die Vote-Rows sind nur für den jeweiligen Voter
+ * lesbar, der userId-Filter unten ist die fachliche Eingrenzung.
  */
 export async function postVotesFor(
   event: H3Event,
@@ -75,21 +71,20 @@ export async function postVotesFor(
   userId: string | null,
 ): Promise<Map<string, PostVoteValue>> {
   if (!userId || posts.length === 0) return new Map()
-  const config = useRuntimeConfig(event)
-  const admin = createAdminClient(event)
-  const res = await admin.tablesDB.listRows<PostVote>({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: POST_VOTES_TABLE,
-    queries: [Query.equal('userId', userId), Query.equal('postId', posts.map(p => p.$id)), Query.limit(posts.length)],
-  }).catch(() => ({ rows: [] as PostVote[] }))
+  const db = tenantDb(event, { as: 'operator' })
+  const res = await db.list<PostVote>(POST_VOTES_TABLE, [
+    Query.equal('userId', userId),
+    Query.equal('postId', posts.map(p => p.$id)),
+    Query.limit(posts.length),
+  ]).catch(() => ({ rows: [] as PostVote[] }))
   return new Map(res.rows.map(vote => [vote.postId, vote.value]))
 }
 
 /**
  * Poll-Zustände für eine Seite Posts: eigene Stimmen aus EINEM Query (kein
  * N+1); Zählung per gebündelter Count-Queries NUR wo Ergebnisse sichtbar
- * sind (eigene Stimme oder Poll beendet — Plan P3). Admin-Client, weil
- * poll_votes bewusst keine breite Read-Permission tragen.
+ * sind (eigene Stimme oder Poll beendet — Plan P3). Datentür als Operator,
+ * weil poll_votes bewusst keine breite Read-Permission tragen.
  */
 export async function pollStatesFor(
   event: H3Event,
@@ -99,19 +94,17 @@ export async function pollStatesFor(
   const polls = posts.filter(p => p.type === 'poll')
   if (polls.length === 0) return new Map()
 
-  const config = useRuntimeConfig(event)
-  const databaseId = config.public.appwriteDatabaseId
-  const admin = createAdminClient(event)
+  const db = tenantDb(event, { as: 'operator' })
   const now = Date.now()
 
   const myVotes = new Map<string, number>()
   if (userId) {
     // Query.equal ist auf 100 Werte begrenzt — eine Feed-Seite (25) bleibt weit darunter
-    const res = await admin.tablesDB.listRows<PollVote>({
-      databaseId,
-      tableId: POLL_VOTES_TABLE,
-      queries: [Query.equal('userId', userId), Query.equal('postId', polls.map(p => p.$id)), Query.limit(polls.length)],
-    })
+    const res = await db.list<PollVote>(POLL_VOTES_TABLE, [
+      Query.equal('userId', userId),
+      Query.equal('postId', polls.map(p => p.$id)),
+      Query.limit(polls.length),
+    ])
     for (const vote of res.rows) myVotes.set(vote.postId, vote.optionIndex)
   }
 
@@ -126,11 +119,10 @@ export async function pollStatesFor(
     let totalVotes = 0
     if (results) {
       counts = await Promise.all(options.map((_, index) =>
-        admin.tablesDB.listRows({
-          databaseId,
-          tableId: POLL_VOTES_TABLE,
-          queries: [Query.equal('postId', poll.$id), Query.equal('optionIndex', index), Query.limit(1)],
-        }).then(r => r.total),
+        db.count(POLL_VOTES_TABLE, [
+          Query.equal('postId', poll.$id),
+          Query.equal('optionIndex', index),
+        ]),
       ))
       totalVotes = counts.reduce((sum, c) => sum + c, 0)
     }

@@ -9,18 +9,14 @@ import { POSTS_TABLE, type CommunityPost, type PostModerationResponse } from '..
 export default defineEventHandler(async (event): Promise<PostModerationResponse> => {
   requirePermission(event, 'posts.moderate')
 
-  const config = useRuntimeConfig(event)
-  const admin = createAdminClient(event)
-
-  const res = await admin.tablesDB.listRows<CommunityPost>({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: POSTS_TABLE,
-    queries: [
-      Query.equal('status', ['published', 'hidden', 'scheduled']),
-      Query.orderDesc('$createdAt'),
-      Query.limit(50),
-    ],
-  }).catch((error) => { throw toH3Error(error, 'Could not load posts') })
+  // Datentür als Operator: Moderation sieht alle Status — aber nur die
+  // Posts des EIGENEN Mandanten (der Admin-Client umgeht Row-Permissions,
+  // die Tür ist hier die einzige Grenze).
+  const res = await tenantDb(event, { as: 'operator' }).list<CommunityPost>(POSTS_TABLE, [
+    Query.equal('status', ['published', 'hidden', 'scheduled']),
+    Query.orderDesc('$createdAt'),
+    Query.limit(50),
+  ]).catch((error) => { throw toH3Error(error, 'Could not load posts') })
 
   const reports = await openReportsByTarget(event, 'post')
 

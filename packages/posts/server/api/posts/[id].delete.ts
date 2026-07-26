@@ -17,12 +17,11 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 400, statusText: 'Missing post id' })
   }
 
-  const config = useRuntimeConfig(event)
-  const databaseId = config.public.appwriteDatabaseId
-  const admin = createAdminClient(event)
+  // Datentür als Operator (Permission-Entzug ist autoritativ) — get belegt
+  // die Zugehörigkeit: ein fremder Mandant bekommt 404, nie die Row.
+  const db = tenantDb(event, { as: 'operator' })
 
-  const row = await admin.tablesDB.getRow<CommunityPost>({ databaseId, tableId: POSTS_TABLE, rowId: id })
-    .catch((error) => { throw toH3Error(error, 'Post not found') })
+  const row = await db.get<CommunityPost>(POSTS_TABLE, id, 'Post not found')
   if (row.authorId !== user.$id) {
     throw createError({ status: 403, statusText: 'Forbidden' })
   }
@@ -30,19 +29,15 @@ export default defineEventHandler(async (event) => {
     return { ok: true }
   }
 
-  await admin.tablesDB.updateRow({
-    databaseId,
-    tableId: POSTS_TABLE,
-    rowId: id,
-    data: { status: 'deleted' },
-    // Nur der Autor behält Leserecht (eigene Historie); update bleibt für
-    // Idempotenz-Wiederholungen, ein "Un-Delete" gibt es bewusst nicht (v1).
-    permissions: [
-      Permission.read(Role.user(user.$id)),
-      Permission.update(Role.user(user.$id)),
-      Permission.delete(Role.user(user.$id)),
-    ],
-  }).catch((error) => { throw toH3Error(error, 'Could not delete post') })
+  await db.update(POSTS_TABLE, id, { status: 'deleted' })
+    .catch((error) => { throw toH3Error(error, 'Could not delete post') })
+  // Nur der Autor behält Leserecht (eigene Historie); update bleibt für
+  // Idempotenz-Wiederholungen, ein "Un-Delete" gibt es bewusst nicht (v1).
+  await db.updatePermissions(POSTS_TABLE, id, [
+    Permission.read(Role.user(user.$id)),
+    Permission.update(Role.user(user.$id)),
+    Permission.delete(Role.user(user.$id)),
+  ]).catch((error) => { throw toH3Error(error, 'Could not delete post') })
 
   return { ok: true }
 })

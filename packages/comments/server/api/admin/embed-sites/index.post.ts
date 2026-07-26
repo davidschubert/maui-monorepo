@@ -1,4 +1,3 @@
-import { ID } from 'node-appwrite'
 import { embedSiteSchema } from '../../../../schemas/embedSite'
 import { EMBED_SITES_TABLE, type EmbedSiteRow } from '../../../../shared/types/embedSite'
 import { invalidateEmbedSitesCache } from '../../../utils/embedSites'
@@ -10,18 +9,14 @@ export default defineEventHandler(async (event) => {
   requirePermission(event, 'system.manage')
   const body = await readValidatedBody(event, embedSiteSchema.parse)
 
-  const config = useRuntimeConfig(event)
-  const admin = createAdminClient(event)
-  const row = await admin.tablesDB.createRow<EmbedSiteRow>({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: EMBED_SITES_TABLE,
-    rowId: ID.unique(),
-    data: {
-      host: body.host,
-      label: body.label ?? '',
-      targetTypes: body.targetTypes ?? [],
-      active: body.active ?? true,
-    },
+  // Datentür als Operator: stempelt den Mandanten (Unique ist seit
+  // comments-015 (tenantId, host) — derselbe Host darf in zwei Communities
+  // registriert sein, aber nicht doppelt in einer).
+  const row = await tenantDb(event, { as: 'operator' }).create<EmbedSiteRow>(EMBED_SITES_TABLE, {
+    host: body.host,
+    label: body.label ?? '',
+    targetTypes: body.targetTypes ?? [],
+    active: body.active ?? true,
   }).catch((error) => { throw toH3Error(error, 'Could not create embed site') })
 
   invalidateEmbedSitesCache()

@@ -544,6 +544,9 @@ importers:
       '@maui/pages':
         specifier: workspace:*
         version: link:../../packages/pages
+      '@maui/posts':
+        specifier: workspace:*
+        version: link:../../packages/posts
       '@maui/system':
         specifier: workspace:*
         version: link:../../packages/system

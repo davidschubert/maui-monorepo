@@ -19,12 +19,11 @@ export default defineEventHandler(async (event) => {
   }
 
   const input = await readValidatedBody(event, postEditSchema.parse)
-  const config = useRuntimeConfig(event)
-  const databaseId = config.public.appwriteDatabaseId
-  const { tablesDB } = createSessionClient(event)
+  // Datentür (member): Session-Client — die Row-Security des Autors bleibt
+  // die erste Grenze, die Tür belegt zusätzlich die Zugehörigkeit.
+  const db = tenantDb(event)
 
-  const row = await tablesDB.getRow<CommunityPost>({ databaseId, tableId: POSTS_TABLE, rowId: id })
-    .catch((error) => { throw toH3Error(error, 'Post not found') })
+  const row = await db.get<CommunityPost>(POSTS_TABLE, id, 'Post not found')
   if (row.authorId !== user.$id) {
     throw createError({ status: 403, statusText: 'Forbidden' })
   }
@@ -33,22 +32,19 @@ export default defineEventHandler(async (event) => {
   }
 
   if (row.type === 'poll') {
-    const admin = createAdminClient(event)
-    const foreign = await admin.tablesDB.listRows({
-      databaseId,
-      tableId: POLL_VOTES_TABLE,
-      queries: [Query.equal('postId', id), Query.notEqual('userId', user.$id), Query.limit(1)],
-    })
-    if (foreign.total > 0) {
+    // Operator: fremde Vote-Rows zählen (tragen keine breite Read-Permission)
+    const foreign = await tenantDb(event, { as: 'operator' }).count(POLL_VOTES_TABLE, [
+      Query.equal('postId', id),
+      Query.notEqual('userId', user.$id),
+    ])
+    if (foreign > 0) {
       throw createError({ status: 409, statusText: 'Poll already has votes' })
     }
   }
 
-  const updated = await tablesDB.updateRow<CommunityPost>({
-    databaseId,
-    tableId: POSTS_TABLE,
-    rowId: id,
-    data: { title: input.title || null, body: input.body },
+  const updated = await db.update<CommunityPost>(POSTS_TABLE, id, {
+    title: input.title || null,
+    body: input.body,
   }).catch((error) => { throw toH3Error(error, 'Could not update post') })
 
   return updated

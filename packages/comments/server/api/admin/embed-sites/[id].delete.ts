@@ -7,13 +7,9 @@ export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ status: 400, statusText: 'Missing site id' })
 
-  const config = useRuntimeConfig(event)
-  const admin = createAdminClient(event)
-  await admin.tablesDB.deleteRow({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: EMBED_SITES_TABLE,
-    rowId: id,
-  }).catch((error) => { throw toH3Error(error, 'Could not delete embed site') })
+  // Datentür als Operator — remove belegt die Zugehörigkeit (fremd → 404).
+  await tenantDb(event, { as: 'operator' }).remove(EMBED_SITES_TABLE, id, 'Embed site not found')
+    .catch((error) => { throw toH3Error(error, 'Could not delete embed site') })
 
   invalidateEmbedSitesCache()
   return { ok: true }

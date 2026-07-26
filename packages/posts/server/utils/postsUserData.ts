@@ -9,6 +9,10 @@ import { POLL_VOTES_TABLE, POSTS_TABLE, POST_VOTES_TABLE, type CommunityPost, ty
  * Stimmen oder eine Frage mit Antworten ist Gesprächskontext anderer — Inhalt,
  * Titel und Autor werden geblankt, status 'deleted', Leserecht entzogen.
  * poll_votes → Hard-Delete (reine Verhaltens-Daten des Users).
+ *
+ * BEWUSST AUSSERHALB der Datentür (tenantDb): GDPR ist user-zentriert und
+ * per Definition mandantenübergreifend — die Daten eines Users müssen über
+ * ALLE Communities exportiert/gelöscht werden (CLAUDE.md, Ausnahmenliste).
  */
 export async function postsExportUserData(event: H3Event, userId: string) {
   const config = useRuntimeConfig(event)

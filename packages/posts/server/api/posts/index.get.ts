@@ -12,19 +12,14 @@ export default defineEventHandler(async (event): Promise<PostListResponse> => {
   await publishDuePosts(event)
 
   const cursor = getQuery(event).cursor
-  const config = useRuntimeConfig(event)
-  const { tablesDB } = createSessionClient(event)
-
-  const res = await tablesDB.listRows<CommunityPost>({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: POSTS_TABLE,
-    queries: [
-      Query.equal('status', 'published'),
-      Query.orderDesc('publishedAt'),
-      Query.limit(PAGE_SIZE),
-      ...(typeof cursor === 'string' && cursor.length > 0 ? [Query.cursorAfter(cursor)] : []),
-    ],
-  }).catch((error) => {
+  // Datentür (member): Session-Client wie bisher — Gäste sehen nur
+  // read(any)-Rows — plus Mandanten-Filter im Pool.
+  const res = await tenantDb(event).list<CommunityPost>(POSTS_TABLE, [
+    Query.equal('status', 'published'),
+    Query.orderDesc('publishedAt'),
+    Query.limit(PAGE_SIZE),
+    ...(typeof cursor === 'string' && cursor.length > 0 ? [Query.cursorAfter(cursor)] : []),
+  ]).catch((error) => {
     // Ungültiger Cursor / abgelaufene Session als 4xx durchreichen, nicht als 500
     throw toH3Error(error, 'Could not load posts')
   })

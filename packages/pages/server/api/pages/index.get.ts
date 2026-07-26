@@ -5,13 +5,11 @@ import { PAGES_TABLE, type PageGroup, type PageRow } from '../../../shared/types
 export default defineEventHandler(async (event): Promise<{ groups: PageGroup[] }> => {
   await requireSitePermission(event, 'pages.manage')
 
-  const config = useRuntimeConfig(event)
-  const admin = createAdminClient(event)
-  const res = await admin.tablesDB.listRows<PageRow>({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: PAGES_TABLE,
-    queries: scopeQuery(event, [Query.orderAsc('sortOrder'), Query.limit(500)]),
-  }).catch((error) => {
+  // Datentür statt Hand-Scope (scopeQuery) — gleicher Filter, eine Autorität.
+  const res = await tenantDb(event, { as: 'operator' }).list<PageRow>(PAGES_TABLE, [
+    Query.orderAsc('sortOrder'),
+    Query.limit(500),
+  ]).catch((error) => {
     throw toH3Error(error, 'Could not load pages')
   })
 

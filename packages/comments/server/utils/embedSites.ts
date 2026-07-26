@@ -20,13 +20,11 @@ export async function listEmbedSites(event: H3Event): Promise<EmbedSiteLike[]> {
   const cached = sitesCache.get(cacheKey)
   if (cached) return cached
 
-  const config = useRuntimeConfig(event)
-  const { tablesDB } = createAdminClient(event)
-  const { rows } = await tablesDB.listRows<EmbedSiteRow>({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: EMBED_SITES_TABLE,
-    queries: [Query.limit(200)],
-  })
+  // Datentür als Operator: die CSP eines Tenants baut sich NUR aus seinem
+  // Register (der Cache-Key trug den Tenant schon — jetzt tut es die Query).
+  const { rows } = await tenantDb(event, { as: 'operator' }).list<EmbedSiteRow>(EMBED_SITES_TABLE, [
+    Query.limit(200),
+  ])
   const sites = rows.map(row => ({
     host: row.host,
     targetTypes: row.targetTypes ?? [],

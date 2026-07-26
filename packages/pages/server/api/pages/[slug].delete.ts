@@ -9,23 +9,18 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 400, statusText: 'Missing slug' })
   }
 
-  const config = useRuntimeConfig(event)
-  const admin = createAdminClient(event)
-  const databaseId = config.public.appwriteDatabaseId
-
-  const res = await admin.tablesDB.listRows<PageRow>({
-    databaseId,
-    tableId: PAGES_TABLE,
-    queries: scopeQuery(event, [Query.equal('slug', slug), Query.limit(50)]),
-  }).catch((error) => {
+  const db = tenantDb(event, { as: 'operator' })
+  const res = await db.list<PageRow>(PAGES_TABLE, [
+    Query.equal('slug', slug),
+    Query.limit(50),
+  ]).catch((error) => {
     throw toH3Error(error, 'Could not delete page')
   })
 
-  await Promise.all(res.rows.map(row =>
-    admin.tablesDB.deleteRow({ databaseId, tableId: PAGES_TABLE, rowId: row.$id }),
-  )).catch((error) => {
-    throw toH3Error(error, 'Could not delete page')
-  })
+  await Promise.all(res.rows.map(row => db.remove(PAGES_TABLE, row.$id)))
+    .catch((error) => {
+      throw toH3Error(error, 'Could not delete page')
+    })
 
   return { deleted: res.rows.length }
 })

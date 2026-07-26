@@ -1,4 +1,4 @@
-import { ID, Permission, Query, Role } from 'node-appwrite'
+import { Permission, Role } from 'node-appwrite'
 import { postSchema } from '../../../schemas/post'
 import { POSTS_TABLE, type CommunityPost } from '../../../shared/types/post'
 
@@ -19,35 +19,36 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 403, statusText: 'Maintenance mode' })
   }
 
+  // Pool-Quota (No-Op, bis der Plan-Katalog posts-Limits trägt — der Hook
+  // steht, damit die Zahlen nur noch Konfiguration sind, kein Code)
+  await assertPoolWriteQuota(event, { kind: 'posts', tableId: POSTS_TABLE })
+
   const body = await readValidatedBody(event, postSchema.parse)
-  const config = useRuntimeConfig(event)
-  const databaseId = config.public.appwriteDatabaseId
-  const { tablesDB } = createSessionClient(event)
+  // Datentür (member): stempelt tenantId; Session-Client wie bisher.
+  const db = tenantDb(event)
 
   const scheduled = !!body.scheduledAt
   const now = new Date().toISOString()
 
-  const row = await tablesDB.createRow<CommunityPost>({
-    databaseId,
-    tableId: POSTS_TABLE,
-    rowId: ID.unique(),
-    data: {
-      type: body.type,
-      title: body.title || null,
-      body: body.body,
-      authorId: user.$id,
-      authorName: user.name,
-      status: scheduled ? 'scheduled' : 'published',
-      scheduledAt: body.scheduledAt ?? null,
-      publishedAt: scheduled ? null : now,
-      pollOptions: body.type === 'poll' ? JSON.stringify(body.pollOptions) : null,
-      pollEndsAt: body.type === 'poll' ? (body.pollEndsAt ?? null) : null,
-      upvotes: 0,
-      downvotes: 0,
-      score: 0,
-    },
-    // published: alle lesen (hidden entzieht das wieder); scheduled: nur der
-    // Autor liest — Publish-on-read fügt read(any) beim Fälligwerden hinzu.
+  const row = await db.create<CommunityPost>(POSTS_TABLE, {
+    type: body.type,
+    title: body.title || null,
+    body: body.body,
+    authorId: user.$id,
+    authorName: user.name,
+    status: scheduled ? 'scheduled' : 'published',
+    scheduledAt: body.scheduledAt ?? null,
+    publishedAt: scheduled ? null : now,
+    pollOptions: body.type === 'poll' ? JSON.stringify(body.pollOptions) : null,
+    pollEndsAt: body.type === 'poll' ? (body.pollEndsAt ?? null) : null,
+    upvotes: 0,
+    downvotes: 0,
+    score: 0,
+  }, {
+    // Eigene Permissions statt des Standard-Publikums: published-Posts sind
+    // BEWUSST read(any) wie Kommentare (öffentlicher Community-Feed, auch für
+    // Gäste); hidden/deleted entziehen das wieder. scheduled: nur der Autor
+    // liest — Publish-on-read fügt read(any) beim Fälligwerden hinzu.
     permissions: [
       ...(scheduled ? [Permission.read(Role.user(user.$id))] : [POST_READ_ANY]),
       Permission.update(Role.user(user.$id)),
@@ -68,9 +69,9 @@ export default defineEventHandler(async (event) => {
       link: '/feed',
       metadata: { snippet: row.title || row.body.slice(0, 140) },
     })
-    const total = await tablesDB.listRows({
-      databaseId, tableId: POSTS_TABLE, queries: [Query.limit(1)],
-    }).then(r => r.total).catch(() => 0)
+    // Gescopt gezählt: der Meilenstein gehört DIESER Community, nicht dem
+    // Pool (dieselbe Falle wie beim 1000-Kommentare-Meilenstein).
+    const total = await db.count(POSTS_TABLE).catch(() => 0)
     await maybeRecordMilestone(event, { type: 'milestone.posts', count: total, link: '/feed' })
   }
 

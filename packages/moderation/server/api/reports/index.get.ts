@@ -17,10 +17,6 @@ export default defineEventHandler(async (event): Promise<ReportListResponse> => 
   const targetType = typeof query.targetType === 'string' ? query.targetType : ''
   const page = Math.max(1, Number.parseInt(typeof query.page === 'string' ? query.page : '1', 10) || 1)
 
-  const config = useRuntimeConfig(event)
-  const databaseId = config.public.appwriteDatabaseId
-  const { tablesDB } = createAdminClient(event)
-
   const queries = [
     Query.orderDesc('$createdAt'),
     Query.limit(PAGE_SIZE),
@@ -29,7 +25,7 @@ export default defineEventHandler(async (event): Promise<ReportListResponse> => 
   if (status !== 'all') queries.push(Query.equal('status', status))
   if (targetType) queries.push(Query.equal('targetType', targetType))
 
-  // H3: im Pool nur die Meldungen des aktuellen Mandanten (Naht 3)
-  const res = await tablesDB.listRows<Report>({ databaseId, tableId: REPORTS_TABLE, queries: scopeQuery(event, queries) })
+  // Datentür als Operator: im Pool nur die Meldungen des aktuellen Mandanten
+  const res = await tenantDb(event, { as: 'operator' }).list<Report>(REPORTS_TABLE, queries)
   return { total: res.total, rows: res.rows }
 })

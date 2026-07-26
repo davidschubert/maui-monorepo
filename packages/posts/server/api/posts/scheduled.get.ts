@@ -12,19 +12,12 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 401, statusText: 'Unauthorized' })
   }
 
-  const config = useRuntimeConfig(event)
-  const { tablesDB } = createSessionClient(event)
-
-  const res = await tablesDB.listRows<CommunityPost>({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: POSTS_TABLE,
-    queries: [
-      Query.equal('status', 'scheduled'),
-      Query.equal('authorId', user.$id),
-      Query.orderAsc('scheduledAt'),
-      Query.limit(25),
-    ],
-  }).catch((error) => { throw toH3Error(error, 'Could not load scheduled posts') })
+  const res = await tenantDb(event).list<CommunityPost>(POSTS_TABLE, [
+    Query.equal('status', 'scheduled'),
+    Query.equal('authorId', user.$id),
+    Query.orderAsc('scheduledAt'),
+    Query.limit(25),
+  ]).catch((error) => { throw toH3Error(error, 'Could not load scheduled posts') })
 
   return { rows: res.rows }
 })

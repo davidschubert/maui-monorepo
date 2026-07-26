@@ -56,14 +56,10 @@ export default defineEventHandler(async (event): Promise<PostModerationAssist> =
     throw createError({ status: 400, statusText: 'Missing post id' })
   }
 
-  const config = useRuntimeConfig(event)
-  const admin = createAdminClient(event)
-
-  const post = await admin.tablesDB.getRow<CommunityPost>({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: POSTS_TABLE,
-    rowId: postId,
-  }).catch((error) => { throw toH3Error(error, 'Post not found') })
+  // Datentür als Operator — get belegt die Zugehörigkeit (fremd → 404),
+  // bevor Post-Inhalt an die KI geht.
+  const post = await tenantDb(event, { as: 'operator' })
+    .get<CommunityPost>(POSTS_TABLE, postId, 'Post not found')
 
   const reports = await openReportsForTarget(event, 'post', postId)
   if (reports.length === 0) {

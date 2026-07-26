@@ -17,6 +17,7 @@ export default {
     'themes',
     'admin',
     'comments',
+    'posts',
     'moderation',
     'pages',
     // Der öffentliche Trichter — läuft nur auf den Kontroll-Hosts dieser App

@@ -13,25 +13,20 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 400, statusText: 'Missing post id' })
   }
 
-  const config = useRuntimeConfig(event)
-  const databaseId = config.public.appwriteDatabaseId
-  const admin = createAdminClient(event)
+  // Datentür als Operator: get belegt die Zugehörigkeit (fremder Mandant →
+  // 404), erst dann wird moderiert.
+  const db = tenantDb(event, { as: 'operator' })
 
-  const row = await admin.tablesDB.getRow<CommunityPost>({ databaseId, tableId: POSTS_TABLE, rowId: id })
-    .catch((error) => { throw toH3Error(error, 'Post not found') })
+  const row = await db.get<CommunityPost>(POSTS_TABLE, id, 'Post not found')
   if (row.status !== 'published') {
     throw createError({ status: 409, statusText: 'Only published posts can be hidden' })
   }
 
-  const updated = await admin.tablesDB.updateRow<CommunityPost>({
-    databaseId, tableId: POSTS_TABLE, rowId: id, data: { status: 'hidden' },
-  })
+  const updated = await db.update<CommunityPost>(POSTS_TABLE, id, { status: 'hidden' })
 
   if (updated.$permissions.includes(POST_READ_ANY)) {
-    const withdraw = () => admin.tablesDB.updateRow({
-      databaseId, tableId: POSTS_TABLE, rowId: id,
-      permissions: updated.$permissions.filter(p => p !== POST_READ_ANY),
-    })
+    const withdraw = () => db.updatePermissions(POSTS_TABLE, id,
+      updated.$permissions.filter(p => p !== POST_READ_ANY))
     // Phase 2 muss halten — Retry für transiente Fehler, persistente laut loggen
     await withdraw()
       .catch(() => withdraw())

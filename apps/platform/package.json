@@ -19,6 +19,7 @@
     "@maui/moderation": "workspace:*",
     "@maui/onboarding": "workspace:*",
     "@maui/pages": "workspace:*",
+    "@maui/posts": "workspace:*",
     "@maui/system": "workspace:*",
     "@maui/themes": "workspace:*",
     "@nuxt/ui": "catalog:",

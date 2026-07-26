@@ -9,18 +9,12 @@ export default defineEventHandler(async (event) => {
   if (!id) throw createError({ status: 400, statusText: 'Missing site id' })
   const body = await readValidatedBody(event, embedSitePatchSchema.parse)
 
-  const config = useRuntimeConfig(event)
-  const admin = createAdminClient(event)
-  const row = await admin.tablesDB.updateRow<EmbedSiteRow>({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: EMBED_SITES_TABLE,
-    rowId: id,
-    data: {
+  // Datentür als Operator — update belegt die Zugehörigkeit (fremd → 404).
+  const row = await tenantDb(event, { as: 'operator' }).update<EmbedSiteRow>(EMBED_SITES_TABLE, id, {
       ...(body.host !== undefined ? { host: body.host } : {}),
       ...(body.label !== undefined ? { label: body.label } : {}),
       ...(body.targetTypes !== undefined ? { targetTypes: body.targetTypes } : {}),
       ...(body.active !== undefined ? { active: body.active } : {}),
-    },
   }).catch((error) => { throw toH3Error(error, 'Could not update embed site') })
 
   invalidateEmbedSitesCache()

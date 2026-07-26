@@ -222,6 +222,11 @@ Vollständiges Konzept: docs/CONCEPT.md
   Migrationen, Sweeps/Intervall-Plugins, GDPR-Orchestrierung, Control Plane.
 - `tenantId` kommt NIE vom Aufrufer (stripTenantKey) — sonst schreibt ein
   durchgereichter Body in einen fremden Mandanten.
+- BACKSTOP (seit 2026-07-27): ESLint verbietet rohes `.tablesDB` in
+  `server/api/**` der gepoolten Layer (comments, posts, pages, moderation —
+  eslint.config.mjs, no-restricted-syntax). Neue Pool-Layer in die Liste
+  aufnehmen, sobald ihre Tabellen tenantId tragen. Pool-Unique-Regel gilt
+  weiter: Unique-Indizes brauchen tenantId (z. B. comments-015 uq_tenant_host).
 
 ## Coding Rules
 - <script setup lang="ts">, Nuxt UI Komponenten bevorzugen. Auth-Formulare:

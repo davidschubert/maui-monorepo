@@ -9,23 +9,20 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 400, statusText: 'Missing post id' })
   }
 
-  const config = useRuntimeConfig(event)
-  const databaseId = config.public.appwriteDatabaseId
-  const admin = createAdminClient(event)
+  // Datentür als Operator — get belegt die Zugehörigkeit (fremd → 404).
+  const db = tenantDb(event, { as: 'operator' })
 
-  const row = await admin.tablesDB.getRow<CommunityPost>({ databaseId, tableId: POSTS_TABLE, rowId: id })
-    .catch((error) => { throw toH3Error(error, 'Post not found') })
+  const row = await db.get<CommunityPost>(POSTS_TABLE, id, 'Post not found')
   if (row.status !== 'hidden') {
     throw createError({ status: 409, statusText: 'Only hidden posts can be restored' })
   }
 
-  await admin.tablesDB.updateRow({
-    databaseId,
-    tableId: POSTS_TABLE,
-    rowId: id,
-    data: { status: 'published' },
-    permissions: [...new Set([...row.$permissions, POST_READ_ANY])],
-  }).catch((error) => { throw toH3Error(error, 'Could not restore post') })
+  // Erst das Leserecht zurück, dann der Status — so ist die Row beim
+  // Status-Realtime-Event bereits wieder lesbar.
+  await db.updatePermissions(POSTS_TABLE, id, [...new Set([...row.$permissions, POST_READ_ANY])])
+    .catch((error) => { throw toH3Error(error, 'Could not restore post') })
+  await db.update(POSTS_TABLE, id, { status: 'published' })
+    .catch((error) => { throw toH3Error(error, 'Could not restore post') })
 
   return { ok: true }
 })

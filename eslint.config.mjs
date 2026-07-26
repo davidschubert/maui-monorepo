@@ -66,4 +66,28 @@ export default createConfigForNuxt({
       ],
     }],
   },
+}).append({
+  // DATENTÜR-BACKSTOP (CLAUDE.md „Mandanten-Isolation: EINE Datentür"): in
+  // server/api/** der gepoolten Layer geht Datenzugriff NUR über tenantDb —
+  // rohes `.tablesDB` der Client-Factories umgeht Scoping, tenantId-Stempel
+  // und Zugehörigkeitsbeleg. Genau so sind am 2026-07-26/27 vier echte
+  // Cross-Tenant-Lecks entstanden bzw. gefunden worden (drei Moderations-
+  // Routen, mentions, embed-sites). Neue Pool-Layer kommen in diese Liste,
+  // sobald ihre Tabellen tenantId tragen. AUSSERHALB von server/api bleibt
+  // rohes tablesDB erlaubt (GDPR-Contributors, Sweeps — die Ausnahmen aus
+  // CLAUDE.md), deshalb ist der Scope bewusst eng.
+  files: [
+    'packages/comments/server/api/**',
+    'packages/posts/server/api/**',
+    'packages/pages/server/api/**',
+    'packages/moderation/server/api/**',
+  ],
+  rules: {
+    'no-restricted-syntax': ['error',
+      { selector: 'MemberExpression[property.name="tablesDB"]',
+        message: 'Datenzugriff in server/api gepoolter Layer NUR über tenantDb(event) — rohes tablesDB umgeht die Mandanten-Tür (CLAUDE.md).' },
+      { selector: 'ObjectPattern > Property[key.name="tablesDB"]',
+        message: 'Kein Destructuring von tablesDB aus den Client-Factories — Datenzugriff über tenantDb(event) (CLAUDE.md).' },
+    ],
+  },
 })

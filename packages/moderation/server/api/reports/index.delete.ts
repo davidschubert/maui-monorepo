@@ -19,26 +19,19 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 400, statusText: 'Missing target' })
   }
 
-  const config = useRuntimeConfig(event)
-  const databaseId = config.public.appwriteDatabaseId
-  const { tablesDB } = createSessionClient(event)
-
-  // H3: derselbe Pool-User kann dasselbe Target auf ZWEI Mandanten gemeldet
-  // haben (geteilter users-Namensraum) — scopeQuery zieht die richtige Row.
-  const existing = await tablesDB.listRows<Report>({
-    databaseId,
-    tableId: REPORTS_TABLE,
-    queries: scopeQuery(event, [
-      Query.equal('reporterId', user.$id),
-      Query.equal('targetType', targetType),
-      Query.equal('targetId', targetId),
-      Query.limit(1),
-    ]),
-  })
+  // Datentür (member): derselbe Pool-User kann dasselbe Target auf ZWEI
+  // Mandanten gemeldet haben (geteilter users-Namensraum) — die Tür zieht
+  // die richtige Row.
+  const db = tenantDb(event)
+  const existing = await db.find<Report>(REPORTS_TABLE, [
+    Query.equal('reporterId', user.$id),
+    Query.equal('targetType', targetType),
+    Query.equal('targetId', targetId),
+  ])
 
   // Nichts zu tun, wenn keine eigene Meldung existiert (idempotent)
-  if (existing.rows.length > 0) {
-    await tablesDB.deleteRow({ databaseId, tableId: REPORTS_TABLE, rowId: existing.rows[0]!.$id })
+  if (existing) {
+    await db.remove(REPORTS_TABLE, existing.$id)
   }
 
   return { ok: true }
