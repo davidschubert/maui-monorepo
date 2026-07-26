@@ -1,6 +1,26 @@
 export default defineAppConfig({
   maui: {
     brand: { name: 'Pukalani' },
+    // Demo-Community „Morgenlicht" (Tagesliste 2026-07-26): der Banner macht
+    // auf diesen Hosts sichtbar, dass Inhalte Beispiel-Material sind; der CTA
+    // führt in den Self-Service-Trichter.
+    demo: {
+      hosts: ['demo.pukalani.app'],
+      ctaUrl: 'https://start.pukalani.app',
+    },
+    // KI-Assist (Moderation) ist als Gate AN — wirksam wird es erst, wenn
+    // NUXT_AI_KEY auf dem Server liegt (isAiAvailable prüft beides). Demo-
+    // Entscheidung „alle Features an" (David, 2026-07-26).
+    ai: { enabled: true },
+    // Strukturierte 5xx-Logs + Client-Error-Inbox — auf der Multi-Tenant-App
+    // ohnehin überfällig (der platform-.env-Ausfall wäre damit im Log
+    // sofort benannt gewesen statt nur als generischer 500 sichtbar).
+    observability: { enabled: true },
+    comments: {
+      // Moderations-Demo: ab 3 offenen Meldungen verschwindet ein Kommentar
+      // automatisch aus der öffentlichen Ansicht (zweiphasiges Hide).
+      autoHideReports: 3,
+    },
     // DIE Multi-Tenant-App (Horizont 3): das Tenant-Gate ist hier AN — die
     // Middleware 00.tenant.ts (core) löst jeden Request-Host über den in
     // server/plugins/tenant-resolver.ts registrierten Resolver auf.

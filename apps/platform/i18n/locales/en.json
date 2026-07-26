@@ -1,8 +1,12 @@
 {
   "app": {
-    "tagline": "New Maui app"
+    "tagline": "Community platform by Pukalani"
   },
   "home": {
     "subtitle": "This app was created from apps/_template — adjust branding, pages and config gates."
+  },
+  "demo": {
+    "banner": "This is a demo community with sample content.",
+    "cta": "Start your own community"
   }
 }

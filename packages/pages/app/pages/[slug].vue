@@ -10,9 +10,15 @@ const route = useRoute()
 const { locale } = useI18n()
 const slug = computed(() => String(route.params.slug ?? ''))
 
+// useRequestFetch statt $fetch: der SSR-interne Aufruf MUSS den Host-Header
+// (= Tenant) der eingehenden Anfrage weiterreichen, sonst löst die Tenant-
+// Middleware im Pool keinen Mandanten auf und JEDE Inhaltsseite wäre 404 —
+// genau so auf demo.pukalani.app gefunden (Morgenlicht-Seed, 2026-07-26).
+// Im Silo-Betrieb verhält sich useRequestFetch wie $fetch.
+const requestFetch = useRequestFetch()
 const { data: page, error } = await useAsyncData(
   () => `page-${slug.value}-${locale.value}`,
-  () => $fetch<PublicPage>(`/api/pages/public/${slug.value}`, { query: { locale: locale.value } }),
+  () => requestFetch<PublicPage>(`/api/pages/public/${slug.value}`, { query: { locale: locale.value } }),
   { watch: [locale] },
 )
 

@@ -13,6 +13,7 @@ useHead(() => ({
 
 <template>
   <UApp>
+    <PlatformDemoBanner />
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
