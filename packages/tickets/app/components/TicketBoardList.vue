@@ -7,6 +7,13 @@ import type { TicketListRow, TicketRow, TicketSort } from '../../shared/types/ti
  * Original ausgegraut, Einfüge-PLATZHALTER in Kartengröße statt Linie.
  * Listen-Drag meldet Hover/Drop nach oben (die Seite rendert den
  * Spalten-Platzhalter zwischen den Listen).
+ *
+ * Karten-Container ist eine TransitionGroup: Nachrücken/Platzmachen läuft
+ * als FLIP (Kurven siehe <style>, nachgemessen am Referenz-Motion-Design).
+ * Während eines Drags und einen Frame nach dem Drop sind die Transitions
+ * AUS ([data-dragging]) — sonst animieren die Hover-Platzhalter mit und die
+ * gedroppte Karte gleitet sichtbar vom alten zum neuen Slot statt zu sitzen.
+ * [data-incoming] setzt useTicketBoardFlight während ein Kartenflug landet.
  */
 const props = defineProps<{
   list: TicketListRow
@@ -27,6 +34,27 @@ const toast = useToast()
 // Geteilter Drag-Zustand über alle Spalten (useState statt Prop-Drilling)
 const drag = useState<{ type: 'card' | 'list', id: string, height: number } | null>('tickets-drag', () => null)
 const hoverIndex = ref<number | null>(null)
+// Nach dem Drop bleibt die FLIP-Transition einen Frame aus (geteilt, s. o.)
+const settling = useState<boolean>('tickets-drag-settling', () => false)
+
+/**
+ * Karten + Einfüge-Platzhalter als EINE flache, durchgehend gekeyte Liste —
+ * die TransitionGroup verträgt keine Fragmente (template v-for mit zwei
+ * Wurzeln), jedes Kind braucht genau ein Element mit Key.
+ */
+type RenderItem
+  = | { kind: 'card', key: string, ticket: TicketRow, index: number }
+    | { kind: 'placeholder', key: string }
+const renderItems = computed<RenderItem[]>(() => {
+  const items: RenderItem[] = []
+  const slot = drag.value?.type === 'card' ? hoverIndex.value : null
+  props.tickets.forEach((ticket, index) => {
+    if (slot === index && drag.value?.id !== ticket.$id) items.push({ kind: 'placeholder', key: `slot-${index}` })
+    items.push({ kind: 'card', key: ticket.$id, ticket, index })
+  })
+  if (slot === props.tickets.length) items.push({ kind: 'placeholder', key: 'slot-end' })
+  return items
+})
 
 /** Trello-Kippeffekt: Klon als Drag-Image, 4° rotiert (Original bleibt im Fluss) */
 function tiltedDragImage(event: DragEvent) {
@@ -56,6 +84,10 @@ function onHeaderDragStart(event: DragEvent) {
 function onDragEnd() {
   drag.value = null
   hoverIndex.value = null
+  // Re-Render nach dem Drop passiert im nächsten Frame — solange bleiben die
+  // Move-Transitions aus, damit die gedroppte Karte sofort im Ziel-Slot sitzt
+  settling.value = true
+  requestAnimationFrame(() => requestAnimationFrame(() => { settling.value = false }))
 }
 
 /** Einfüge-Index: obere Kartenhälfte = davor, untere = danach */
@@ -189,6 +221,7 @@ const menuItems = computed(() => [[
     class="flex max-h-full w-72 shrink-0 flex-col rounded-xl bg-elevated/60 transition"
     :class="drag?.type === 'list' && drag.id === list.$id ? 'opacity-40 grayscale' : ''"
     :data-list="list.$id"
+    :data-dragging="drag || settling ? '' : undefined"
     @dragover="onColumnDragOver"
     @dragleave="onColumnDragLeave"
     @drop.prevent="onColumnDrop"
@@ -218,31 +251,27 @@ const menuItems = computed(() => [[
       </UDropdownMenu>
     </header>
 
-    <div class="flex-1 space-y-2 overflow-y-auto px-2 pb-2">
-      <template v-for="(ticket, cardIndex) in tickets" :key="ticket.$id">
-        <!-- Platzhalter in Kartengröße (Trello-Muster) statt dünner Linie -->
-        <div
-          v-if="drag?.type === 'card' && hoverIndex === cardIndex && drag.id !== ticket.$id"
-          class="rounded-lg bg-accented/40"
-          :style="{ height: `${drag.height}px` }"
-        />
-        <div
-          draggable="true"
-          :class="drag?.id === ticket.$id ? 'opacity-40 grayscale' : ''"
-          @dragstart="onCardDragStart($event, ticket)"
-          @dragend="onDragEnd"
-          @dragover.prevent="onCardDragOver($event, cardIndex)"
-        >
-          <TicketBoardCard :ticket="ticket" @open="emit('open', ticket)" />
-        </div>
-      </template>
+    <TransitionGroup
+      tag="div"
+      name="board-card"
+      class="flex-1 space-y-2 overflow-y-auto px-2 pb-2"
+      data-cards
+    >
+      <!-- Platzhalter in Kartengröße (Trello-Muster) statt dünner Linie -->
       <div
-        v-if="drag?.type === 'card' && hoverIndex === tickets.length"
-        class="rounded-lg bg-accented/40"
-        :style="{ height: `${drag.height}px` }"
-      />
+        v-for="item in renderItems"
+        :key="item.key"
+        :draggable="item.kind === 'card'"
+        :class="item.kind === 'card' && drag?.id === item.ticket.$id ? 'opacity-40 grayscale' : ''"
+        @dragstart="item.kind === 'card' ? onCardDragStart($event, item.ticket) : undefined"
+        @dragend="onDragEnd"
+        @dragover.prevent="item.kind === 'card' ? onCardDragOver($event, item.index) : undefined"
+      >
+        <TicketBoardCard v-if="item.kind === 'card'" :ticket="item.ticket" @open="emit('open', item.ticket)" />
+        <div v-else class="rounded-lg bg-accented/40" :style="{ height: `${drag?.height ?? 0}px` }" />
+      </div>
 
-      <form v-if="adding" @submit.prevent="addCard">
+      <form v-if="adding" key="add-form" @submit.prevent="addCard">
         <UInput
           v-model="newTitle"
           size="sm"
@@ -253,7 +282,7 @@ const menuItems = computed(() => [[
           @blur="!newTitle.trim() && (adding = false)"
         />
       </form>
-    </div>
+    </TransitionGroup>
 
     <footer class="p-2 pt-0">
       <UButton
@@ -295,3 +324,38 @@ const menuItems = computed(() => [[
     </UModal>
   </section>
 </template>
+
+<style scoped>
+/* Nachrücken/Platzmachen (FLIP): Kurve nachgemessen am Referenz-Motion-
+   Design — ease-in-out mit betont langem Ausklang, 450 ms */
+.board-card-move {
+  transition: transform 450ms cubic-bezier(0.5, 0, 0.15, 1);
+}
+
+/* Entfernte Karten sofort aus dem Fluss nehmen: bleibt der Leaver bis zum
+   nächsten Frame stehen, sieht die FLIP-Messung keine Positionsänderung und
+   die Nachbarn springen statt nachzurücken */
+.board-card-leave-active {
+  display: none;
+}
+
+/* Zielspalte eines Kartenflugs (useTicketBoardFlight): der Slot öffnet sich
+   erst kurz vor der Landung — beschleunigendes „Wegdrücken" (ease-in),
+   330 ms mit 350 ms Verzögerung, fertig kurz bevor der Klon aufsetzt */
+[data-incoming] .board-card-move {
+  transition: transform 330ms cubic-bezier(0.55, 0.05, 0.8, 0.5) 350ms;
+}
+
+/* Während eines Drags (und einen Frame nach dem Drop) keine FLIP-Moves:
+   Hover-Platzhalter würden sonst träge mitanimieren, die gedroppte Karte
+   würde vom alten Slot herübergleiten statt unterm Cursor zu sitzen */
+section[data-dragging] .board-card-move {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .board-card-move {
+    transition: none;
+  }
+}
+</style>

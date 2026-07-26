@@ -61,6 +61,11 @@ export function useTicketBoard() {
     return TICKET_POSITION_GAP
   }
 
+  /** Spaltenwechsel, die lokal (per DnD) passiert sind — der Kartenflug
+      (useTicketBoardFlight) überspringt sie: die Karte liegt beim Drop
+      schon unterm Cursor, ein Flug sähe falsch aus. */
+  const localMoveIds = new Set<string>()
+
   /** Karte optimistisch verschieben, dann PATCH (Fehler → Refresh als Wahrheit) */
   async function moveTicket(ticket: TicketRow, listId: string, index: number) {
     const bucket = ticketsByList.value.get(listId) ?? []
@@ -70,6 +75,7 @@ export function useTicketBoard() {
     if (sourceIndex !== -1 && sourceIndex < index) index--
     const position = positionAt(bucket, index, ticket.$id)
     if (ticket.listId === listId && ticket.position === position) return
+    if (ticket.listId !== listId) localMoveIds.add(ticket.$id)
     ticket.listId = listId
     ticket.position = position
     // useFetch-data ist in Nuxt 4 SHALLOW — ohne Re-Assign rendert die
@@ -99,5 +105,5 @@ export function useTicketBoard() {
     }
   }
 
-  return { data, lists, ticketsByList, refresh, status, error, moveTicket, moveList, positionAt }
+  return { data, lists, ticketsByList, refresh, status, error, moveTicket, moveList, positionAt, localMoveIds }
 }
