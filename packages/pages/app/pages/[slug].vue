@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { pageExcerpt } from '../../shared/pageExcerpt'
 import type { PublicPage } from '../../shared/types/page'
 
 /**
@@ -23,10 +24,15 @@ const { data: page, error } = await useAsyncData(
 )
 
 if (error.value || !page.value) {
-  throw createError({ statusCode: 404, statusMessage: 'Page not found' })
+  // status/statusText ist der Projektvertrag (CLAUDE.md, Audit-Befund K8)
+  throw createError({ status: 404, statusText: 'Page not found' })
 }
 
-useHead({ title: () => page.value?.title ?? '' })
+// „<Seitenname> · <Brand>" + Beschreibung aus dem ersten Textabsatz der Seite
+// (Audit-Befunde S8/S5) — geteilte Links waren vorher markenlos und nackt.
+useBrandTitle(() => page.value?.title ?? '', {
+  description: () => pageExcerpt(page.value?.body ?? ''),
+})
 </script>
 
 <template>

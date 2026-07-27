@@ -6,7 +6,9 @@
  */
 const { t } = useI18n()
 
-useHead({ title: () => t('posts.feed.title') })
+// „Feed · <Brand>" + lokalisierte Beschreibung (Audit-Befunde S8/S5) — dieselbe
+// Kopf-Composable wie die blueprint-Variante dieser Seite.
+useBrandTitle(() => t('posts.feed.title'), { description: () => t('posts.feed.description') })
 </script>
 
 <template>

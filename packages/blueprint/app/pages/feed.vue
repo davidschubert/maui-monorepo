@@ -10,7 +10,9 @@
  */
 const { t } = useI18n()
 
-useHead({ title: () => t('posts.feed.title') })
+// „Feed · <Brand>" + lokalisierte Beschreibung (Audit-Befunde S8/S5): der Titel
+// war markenlos und in EN wie DE gleich, geteilte Links kamen nackt an.
+useBrandTitle(() => t('posts.feed.title'), { description: () => t('posts.feed.description') })
 
 // Kommentar-Anzahl je Post (comments-Layer-API). Die ERSTE Seite wird im
 // SSR mitgeladen, damit die Buttons ohne Wort→Zahl-Flash hydratisieren:
