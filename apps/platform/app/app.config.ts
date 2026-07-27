@@ -21,6 +21,11 @@ export default defineAppConfig({
       // automatisch aus der öffentlichen Ansicht (zweiphasiges Hide).
       autoHideReports: 3,
     },
+    // Mehr-Host-Betrieb: canonical/hreflang/og:url müssen den Host tragen, der
+    // den Request bekommen hat. Diese App bedient JEDEN Mandanten-Host plus die
+    // Kontroll-Hosts — mit der einen Env-Basis (NUXT_PUBLIC_I18N_BASE_URL)
+    // zeigten sie überall auf platform.pukalani.app (Audit-Befund B1).
+    seo: { originFromRequest: true },
     // DIE Multi-Tenant-App (Horizont 3): das Tenant-Gate ist hier AN — die
     // Middleware 00.tenant.ts (core) löst jeden Request-Host über den in
     // server/plugins/tenant-resolver.ts registrierten Resolver auf.
