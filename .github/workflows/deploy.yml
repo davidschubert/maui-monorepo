@@ -22,6 +22,15 @@
 # Env Vars (NUXT_APPWRITE_KEY etc.) leben als Server-.env je Site —
 # NIE im Repo; ploi „Quick Deploy" bleibt AUS.
 #
+# HINWEIS (2026-07-27): die App "marketing" (pukalani.app) ist voruebergehend
+# NICHT in den Schleifen — der Apex hat noch kein gueltiges Zertifikat. Die
+# ganze Zone teilt EINE certbot-Lineage (/etc/letsencrypt/live/pukalani.app);
+# ploi leitet den Lineage-Namen aus der Basis-Domain ab, jede neue Anforderung
+# UEBERSCHREIBT sie also. Aktuell traegt sie nur "*.pukalani.app" (die
+# Tenant-Hosts), nicht den Apex. Sobald EIN Zertifikat mit BEIDEN Namen
+# (Apex + Wildcard, www ist von der Wildcard gedeckt) installiert ist:
+# marketing hier in beide Schleifen zurueckholen — SITE/SLOT stehen schon.
+#
 # Doku-Skip: ein main-Push mit AUSSCHLIESSLICH Doku-/CI-/Meta-Änderungen
 # (docs/**, spikes/**, .github/**, *.md, …) baut identischen App-Output —
 # der changes-Step vergleicht den auf Prod deployten Commit gegen den neuen
@@ -125,7 +134,7 @@ jobs:
         if: steps.changes.outputs.skip != 'true'
         run: |
           set -eu
-          for app in comments portfolio control platform marketing; do
+          for app in comments portfolio control platform; do  # marketing: siehe unten (TLS-Klemme)
             echo "::group::Build $app"
             pnpm --filter "$app" build
             echo "::endgroup::"
@@ -141,7 +150,7 @@ jobs:
           # eigene ploi-Site 392163, Release-Slot releases/control.
           declare -A SITE=( [comments]=comments.pukalani.app [portfolio]=portfolio.pukalani.app [control]=control.pukalani.app [platform]=platform.pukalani.app [marketing]=pukalani.app )
           declare -A SLOT=( [comments]=comments [portfolio]=portfolio [control]=control [platform]=platform [marketing]=marketing )
-          for app in comments portfolio control platform marketing; do
+          for app in comments portfolio control platform; do  # marketing: siehe unten (TLS-Klemme)
             site="${SITE[$app]}"
             echo "::group::Deploy $app → $site"
             RELEASES="/home/ploi/releases/${SLOT[$app]}"
