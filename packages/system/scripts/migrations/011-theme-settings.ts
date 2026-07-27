@@ -45,9 +45,29 @@ async function step(label: string, run: () => Promise<unknown>) {
   }
 }
 
+/**
+ * app_config ist am utf8mb4-Zeilenbudget von MariaDB — Appwrite prüft die
+ * Größe VOR der Duplikat-Erkennung und antwortet auf ein erneutes
+ * createColumn mit 400 `column_limit_exceeded` statt 409. Ohne Vorab-Check
+ * wäre diese Migration nicht mehr idempotent (N2).
+ */
+async function ensureColumn(tableId: string, key: string, create: () => Promise<unknown>) {
+  try {
+    const { columns } = await tablesDB.listColumns({ databaseId: databaseId!, tableId })
+    if (columns.some(column => column.key === key)) {
+      console.log(`↷ Column ${tableId}.${key} (existiert bereits)`)
+      return
+    }
+  }
+  catch {
+    // Table fehlt o. Ä. — step() unten meldet es sauber
+  }
+  await step(`Column ${tableId}.${key}`, create)
+}
+
 console.log(`Migration system-011 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
-await step('Column app_config.themeSettings', () => tablesDB.createVarcharColumn({
+await ensureColumn('app_config', 'themeSettings', () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'app_config', key: 'themeSettings', size: 4096, required: false,
 }))
 await step('Column custom_themes.variants', () => tablesDB.createVarcharColumn({

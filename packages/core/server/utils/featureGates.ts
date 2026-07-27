@@ -1,6 +1,7 @@
 import type { H3Event } from 'h3'
 import { isFeatureStateEnabled, type FeatureRuntimeState } from '../../shared/types/config'
 import { evaluateEntitlement, parseEntitlementPublicKeys, verifyEntitlementDocument, type EntitlementPayload } from './entitlementDocument'
+import { getEntitlementsDocument } from './entitlementsStore'
 
 /**
  * Effektive Feature-Gates (F2 + F3): enabled(key) = einkompiliert (Registry)
@@ -35,13 +36,19 @@ export function invalidateFeatureGateCache(): void {
 async function getGateState(event: H3Event): Promise<GateState> {
   if (cache && Date.now() - cache.at < CACHE_TTL_MS) return cache.state
 
-  const appConfig = await getAppConfig(event)
+  // Zwei Quellen, bewusst getrennt: die öffentlichen Flags stehen in
+  // app_config (Table-read(any)), das signierte Dokument in app_secrets
+  // (server-only, system-020 — Audit-Befund N2).
+  const [appConfig, entitlementsDoc] = await Promise.all([
+    getAppConfig(event),
+    getEntitlementsDocument(event),
+  ])
   const runtime = useRuntimeConfig(event)
 
   let entitlement: GateState['entitlement'] = null
-  if (appConfig.entitlementsDoc) {
+  if (entitlementsDoc) {
     const result = verifyEntitlementDocument(
-      appConfig.entitlementsDoc,
+      entitlementsDoc,
       parseEntitlementPublicKeys(runtime.entitlementsPublicKeys),
       runtime.public.appwriteProjectId,
     )
