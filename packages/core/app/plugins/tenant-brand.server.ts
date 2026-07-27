@@ -23,4 +23,11 @@ export default defineNuxtPlugin(() => {
   // enthält (Nav/Badges) — die AUTORITÄT bleibt requirePlanProduct auf den
   // Server-Routen. null = kein Pool-Tenant → UI zeigt alles.
   useState<string | null>('maui-tenant-plan', () => (tenant?.mode === 'pool' ? tenant.plan ?? null : null))
+  // Zugangsregel der Community (S1): schließt die Register-Seite und zeigt
+  // stattdessen den „nur auf Einladung"-Hinweis. Auch hier ist die AUTORITÄT
+  // serverseitig (assertTenantRegistrationOpen an den Auth-Routen) — dieser
+  // Wert ist nur die Ansage an den Besucher. null = kein Tenant-Host.
+  useState<boolean | null>('maui-tenant-open-registration', () => (
+    tenant ? tenant.openRegistration !== false : null
+  ))
 })

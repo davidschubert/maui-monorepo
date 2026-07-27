@@ -223,6 +223,8 @@
       "createFailed": "Tenant konnte nicht angelegt werden",
       "enabled": "Tenant aktiviert",
       "disabled": "Tenant deaktiviert",
+      "updated": "Tenant aktualisiert",
+      "openRegistration": "Offene Registrierung",
       "updateFailed": "Tenant konnte nicht aktualisiert werden",
       "deleted": "Tenant gelöscht",
       "deleteFailed": "Tenant konnte nicht gelöscht werden",

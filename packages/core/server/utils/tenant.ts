@@ -75,6 +75,19 @@ export function rowBelongsToTenant(tenant: TenantContext | null, row: unknown): 
   return typeof tenantId === 'string' && tenantId !== '' && tenantId === tenant.tenantId
 }
 
+/**
+ * Darf sich auf DIESEM Host jeder ein Konto anlegen? PURE (unit-getestet).
+ *
+ * `null` (kein Mandanten-Kontext: Silo-App, Kontroll-Host, Playground) → ja.
+ * Diese Deployments haben keine Community-Grenze, ihre Registrierung regelt
+ * weiterhin `app_config.registrationEnabled` — der Schalter hier ist bewusst
+ * NUR die Mandanten-Ebene und darf Bestands-Apps nicht anfassen.
+ * `openRegistration === undefined` (Fixture/älterer Resolver) → ebenfalls ja.
+ */
+export function registrationOpenFor(tenant: TenantContext | null): boolean {
+  return tenant?.openRegistration !== false
+}
+
 // ── event-Wrapper (das, was Feature-Code aufruft) ───────────────────────────
 
 export function scopeQuery(event: H3Event, queries: string[] = []): string[] {
@@ -101,4 +114,24 @@ export function scopeRow<T extends Record<string, unknown>>(event: H3Event, data
 export function assertTenantRow(event: H3Event, row: unknown, statusText = 'Not found'): void {
   if (rowBelongsToTenant(useTenant(event), row)) return
   throw createError({ status: 404, statusText })
+}
+
+/** Ist die Mitglieder-Registrierung dieses Mandanten offen? (S1) */
+export function tenantRegistrationOpen(event: H3Event): boolean {
+  return registrationOpenFor(useTenant(event))
+}
+
+/**
+ * Wache für JEDE Route, die ein neues Konto anlegen kann (S1, Davids
+ * Entscheidung 4). Die AUTORITÄT sitzt hier, nicht im UI: die Register-Seite
+ * zeigt bei geschlossener Registrierung nur einen Hinweis, aber ein POST auf
+ * /api/auth/signup umgeht jedes Markup.
+ *
+ * 403 mit einer NEUTRALEN, detailfreien Meldung: ob eine Community geschlossen
+ * ist, ist keine Auskunft, die man an Fremde verteilt, und die lesbare Fassung
+ * steht ohnehin lokalisiert auf der Seite (auth.register.inviteOnly*).
+ */
+export function assertTenantRegistrationOpen(event: H3Event): void {
+  if (tenantRegistrationOpen(event)) return
+  throw createError({ status: 403, statusText: 'Registration is closed' })
 }

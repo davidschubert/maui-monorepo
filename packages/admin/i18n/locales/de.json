@@ -385,7 +385,18 @@
       "general": "Allgemein",
       "notifications": "Benachrichtigungen",
       "sessions": "Sitzungen",
-      "security": "Sicherheit"
+      "security": "Sicherheit",
+      "community": "Community"
+    },
+    "community": {
+      "title": "Community",
+      "description": "Einstellungen, die dieser Community gehören.",
+      "openRegistration": "Offene Registrierung",
+      "openRegistrationDesc": "Ist der Schalter an, kann sich jeder ein Konto anlegen. Aus heißt: neue Mitglieder kommen nur auf Einladung dazu.",
+      "saved": "Gespeichert.",
+      "saveFailed": "Konnte nicht gespeichert werden.",
+      "noTenantTitle": "Keine Community auf diesem Host",
+      "noTenantText": "Diese Einstellungen gelten für eine einzelne Community. Auf dieser Instanz regelt die Registrierung die Betreiber-Konfiguration."
     },
     "sidebar": {
       "label": "Seitenleiste",

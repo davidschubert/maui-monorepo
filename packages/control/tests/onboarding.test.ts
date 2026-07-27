@@ -20,7 +20,7 @@ import {
   trialEndsAt,
 } from '../shared/onboarding'
 import { evaluateInviteCode } from '../shared/types/inviteCode'
-import { resolveTenantAudience } from '../shared/types/tenantRecord'
+import { resolveTenantAudience, resolveTenantOpenRegistration } from '../shared/types/tenantRecord'
 import { createOnboardingSiteSchema, inviteCodeSchema } from '../schemas/onboarding'
 import { createSlugSchema, isReservedSlug, slugToHost } from '../schemas/tenant'
 
@@ -130,6 +130,21 @@ describe('Anzahl Communities pro Konto', () => {
   it('zählt deaktivierte Sites nicht mit', () => {
     const disabled = { status: 'disabled', trialEndsAt: trialEndsAt(NOW) }
     expect(evaluateSiteQuota([disabled], NOW)).toMatchObject({ allowed: true, limit: 3 })
+  })
+})
+
+describe('Offene Registrierung (fail-OPEN, S1)', () => {
+  it('schließt die Registrierung nur beim exakten Wert false', () => {
+    expect(resolveTenantOpenRegistration(false)).toBe(false)
+  })
+
+  it('lässt alles andere offen — insbesondere Bestands-Rows mit null', () => {
+    // Gegenstück zu resolveTenantAudience: dort hängt eine Datenschutzgrenze
+    // an der Spalte (fail-closed), hier eine Produktentscheidung. Eine
+    // Bestands-Community stillschweigend zuzumachen wäre der Schaden.
+    for (const value of [true, null, undefined]) {
+      expect(resolveTenantOpenRegistration(value), String(value)).toBe(true)
+    }
   })
 })
 

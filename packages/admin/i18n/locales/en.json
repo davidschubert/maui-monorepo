@@ -385,7 +385,18 @@
       "general": "General",
       "notifications": "Notifications",
       "sessions": "Sessions",
-      "security": "Security"
+      "security": "Security",
+      "community": "Community"
+    },
+    "community": {
+      "title": "Community",
+      "description": "Settings that belong to this community.",
+      "openRegistration": "Open registration",
+      "openRegistrationDesc": "When this is on, anyone can create an account. When it's off, new members join by invitation only.",
+      "saved": "Saved.",
+      "saveFailed": "Could not be saved.",
+      "noTenantTitle": "No community on this host",
+      "noTenantText": "These settings apply to a single community. On this instance, registration is governed by the operator configuration."
     },
     "sidebar": {
       "label": "Sidebar",

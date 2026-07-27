@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { rowBelongsToTenant, scopeQueriesFor, scopeRowFor, tenantCacheScopeFor } from '../server/utils/tenant'
+import { registrationOpenFor, rowBelongsToTenant, scopeQueriesFor, scopeRowFor, tenantCacheScopeFor } from '../server/utils/tenant'
 import type { TenantContext } from '../shared/types/tenant'
 
 const pool: TenantContext = { mode: 'pool', projectId: 'shared-1', tenantId: 'acme' }
@@ -72,5 +72,23 @@ describe('rowBelongsToTenant — die Grenze beim Zugriff PER ID', () => {
   it('nichts vorhanden ist nie "meins"', () => {
     expect(rowBelongsToTenant(pool, null)).toBe(false)
     expect(rowBelongsToTenant(null, undefined)).toBe(false)
+  })
+})
+
+describe('registrationOpenFor (S1)', () => {
+  it('kein Mandant (Silo-App, Kontroll-Host, Playground) → offen', () => {
+    // Diese Deployments haben keine Community-Grenze; ihre Registrierung regelt
+    // weiterhin app_config.registrationEnabled. Der Schalter darf sie nicht
+    // anfassen — sonst hätte S1 Bestands-Apps zugemacht.
+    expect(registrationOpenFor(null)).toBe(true)
+  })
+  it('Mandant ohne das Feld (Fixture/älterer Resolver) → offen', () => {
+    expect(registrationOpenFor(pool)).toBe(true)
+    expect(registrationOpenFor(silo)).toBe(true)
+  })
+  it('nur der exakte Wert false schließt — pool wie silo', () => {
+    expect(registrationOpenFor({ ...pool, openRegistration: false })).toBe(false)
+    expect(registrationOpenFor({ ...silo, openRegistration: false })).toBe(false)
+    expect(registrationOpenFor({ ...pool, openRegistration: true })).toBe(true)
   })
 })

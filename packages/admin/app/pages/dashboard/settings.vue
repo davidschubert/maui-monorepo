@@ -9,11 +9,20 @@ const { t } = useI18n()
 const localePath = useLocalePath()
 const route = useRoute()
 
+// Community-Einstellungen (S1) gibt es NUR auf Mandanten-Hosts: ohne Tenant
+// (Silo-App, Kontroll-Host) gehört die Registrierung der Instanz, nicht einer
+// Community — der Reiter wäre dort ein leeres Versprechen. null = kein Tenant.
+const { openRegistration } = useTenantOpenRegistration()
+const isTenantHost = computed(() => openRegistration.value !== null)
+
 const links = computed<NavigationMenuItem[]>(() => [
   { label: t('dashboard.settings.general'), icon: 'i-ph-user', to: localePath('/dashboard/settings'), exact: true },
   { label: t('dashboard.settings.notifications'), icon: 'i-ph-bell', to: localePath('/dashboard/settings/notifications') },
   { label: t('dashboard.settings.sessions'), icon: 'i-ph-devices', to: localePath('/dashboard/settings/sessions') },
   { label: t('dashboard.settings.security'), icon: 'i-ph-shield', to: localePath('/dashboard/settings/security') },
+  ...(isTenantHost.value
+    ? [{ label: t('dashboard.settings.community'), icon: 'i-ph-users-three', to: localePath('/dashboard/settings/community') }]
+    : []),
 ])
 
 // Die Sessions-Tabelle braucht mehr Breite (5 Spalten) — Formularseiten bleiben

@@ -47,6 +47,10 @@ export default defineEventHandler(async (event) => {
       trialEndsAt: null,
       profile: '',
       inviteCodeId: '',
+      // Mitglieder-Registrierung offen (studio-018, Default AN): explizit
+      // geschrieben statt auf den Spalten-Default vertraut — dann trägt die Row
+      // die Entscheidung selbst und der Resolver braucht keinen Fallback.
+      openRegistration: true,
     },
   }).catch((error) => { throw toH3Error(error, 'Could not create tenant') })
 

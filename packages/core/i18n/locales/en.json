@@ -21,6 +21,8 @@
       "closedTitle": "Registration closed",
       "closedText": "New sign-ups are currently disabled. Please check back later.",
       "maintenanceText": "We're in maintenance mode right now, so new sign-ups are paused. Please try again later.",
+      "inviteOnlyTitle": "Invitation only",
+      "inviteOnlyText": "{brand} is only welcoming new members by invitation right now. If you already have an invitation, just sign in.",
       "toLogin": "Back to sign in",
       "hasAccount": "Already have an account?",
       "loginLink": "Sign in",

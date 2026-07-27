@@ -11,6 +11,10 @@ export default defineEventHandler(async (event) => {
   if (!appConfig.registrationEnabled || appConfig.maintenanceMode) {
     throw createError({ status: 403, statusText: 'Registration is currently disabled' })
   }
+  // Zweite, MANDANTEN-Ebene (S1): app_config ist EINE Row pro Projekt — im Pool
+  // teilen sich alle Communities sie, der Schalter oben kann also nicht pro
+  // Community stehen. tenants.openRegistration kann es (studio-018).
+  assertTenantRegistrationOpen(event)
 
   const { email, password, name } = await readValidatedBody(event, registerSchema.parse)
   const { account } = createAdminClient(event)
