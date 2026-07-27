@@ -9,6 +9,8 @@ const PAGE_SIZE = 25
  * Vorab publish-on-read für fällige geplante Posts (Plan P4).
  */
 export default defineEventHandler(async (event): Promise<PostListResponse> => {
+  // Produkt-Gate (P4): der Posting-Feed ist ab Plan personal enthalten.
+  requirePlanProduct(event, 'posts')
   await publishDuePosts(event)
 
   const cursor = getQuery(event).cursor

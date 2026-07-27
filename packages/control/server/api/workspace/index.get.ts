@@ -5,6 +5,7 @@ import {
   type WorkspaceRow,
 } from '../../../shared/types/workspace'
 import { SITES_TABLE, type SiteRow } from '../../../shared/types/site'
+import { normalizeTenantPlan } from '../../../shared/types/tenantRecord'
 import { listOwnMemberships } from '../../utils/workspaceMembers'
 
 /**
@@ -44,7 +45,7 @@ export default defineEventHandler(async (event) => {
       id: workspace.$id,
       name: workspace.name,
       plan: workspace.plan,
-      planFeatures: plans[workspace.plan]?.features ?? [],
+      planFeatures: plans[normalizeTenantPlan(workspace.plan)]?.features ?? [],
       status: workspace.status,
       role: member.role,
       sites: sites.map(site => ({

@@ -110,8 +110,8 @@ export function isSafeThemeToken(value: string): boolean {
 /** Entscheidung David (2026-07-24): 14 Tage Pro, ohne Zahlungsdaten. */
 export const TRIAL_DAYS = 14
 export const TRIAL_PLAN = 'pro' as const
-/** Nach Ablauf: Downgrade auf Free. NIE sperren, NIE löschen (F3-Grundsatz). */
-export const TRIAL_FALLBACK_PLAN = 'free' as const
+/** Nach Ablauf: Downgrade auf Basic (P4-Rename; vorher 'free'). NIE sperren, NIE löschen (F3-Grundsatz). */
+export const TRIAL_FALLBACK_PLAN = 'basic' as const
 
 /** Ende der Testphase als ISO-String (Appwrite-Datetime-Spalte). */
 export function trialEndsAt(now: number, days: number = TRIAL_DAYS): string {

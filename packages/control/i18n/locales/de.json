@@ -265,9 +265,9 @@
       "planHelp": "Staffelt die Nutzungs-Limits des Pool-Tenants (z. B. Kommentare pro Tag). Silo-Kunden haben kein Limit.",
       "planChanged": "Plan geändert",
       "plan": {
-        "free": "Free",
-        "pro": "Pro",
-        "business": "Business"
+        "basic": "Basic",
+        "personal": "Personal",
+        "pro": "Pro"
       }
     },
     "plans": {

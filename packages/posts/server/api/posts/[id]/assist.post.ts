@@ -46,6 +46,8 @@ function buildPrompt(post: CommunityPost, reports: { reason: string, note: strin
 
 export default defineEventHandler(async (event): Promise<PostModerationAssist> => {
   requirePermission(event, 'posts.moderate')
+  // Produkt-Gate (P4): KI-Assist ist ein Pro-Produkt (kostet pro Aufruf).
+  requirePlanProduct(event, 'ai')
 
   if (!isAiAvailable(event)) {
     throw createError({ status: 503, statusText: 'AI assist not configured' })

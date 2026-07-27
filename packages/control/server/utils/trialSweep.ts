@@ -1,6 +1,6 @@
 import { Query } from 'node-appwrite'
 import { TRIAL_FALLBACK_PLAN, TRIAL_PLAN } from '../../shared/onboarding'
-import { TENANTS_TABLE, type TenantRow } from '../../shared/types/tenantRecord'
+import { TENANTS_TABLE, normalizeTenantPlan, type TenantRow } from '../../shared/types/tenantRecord'
 import { WORKSPACES_TABLE, type WorkspaceRow } from '../../shared/types/workspace'
 
 /**
@@ -33,8 +33,8 @@ export function shouldEndTrial(
   if (!tenant.trialEndsAt) return false
   const end = Date.parse(tenant.trialEndsAt)
   if (!Number.isFinite(end) || end > now) return false
-  // Bezahlt = Hände weg.
-  return !workspacePlan || workspacePlan === 'free'
+  // Bezahlt = Hände weg. normalizeTenantPlan: Alt-Bestand 'free' zählt als basic.
+  return !workspacePlan || normalizeTenantPlan(workspacePlan) === 'basic'
 }
 
 export interface TrialSweepResult {

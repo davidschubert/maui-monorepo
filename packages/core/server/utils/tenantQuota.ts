@@ -35,7 +35,8 @@ export interface TenantQuotaLimits {
 
 interface TenancyQuotaConfig {
   enabled?: boolean
-  /** Limits je Plan-Key (free/pro/business): { [plan]: { [kind]: Limits } }. */
+  /** Limits je Plan-Key (basic/personal/pro): { [plan]: { [kind]: Limits } } —
+   *  aufsteigend sortiert, der erste Key ist der Fallback. */
   plans?: Record<string, Record<string, TenantQuotaLimits | undefined> | undefined>
 }
 
@@ -49,14 +50,19 @@ export function evaluateQuota(
   return 'ok'
 }
 
-/** PURE Auflösung (unit-getestet): Limits für Plan+kind; unbekannter Plan → free. */
+/** PURE Auflösung (unit-getestet): Limits für Plan+kind. Unbekannter/
+ *  fehlender Plan → ERSTER Katalog-Eintrag (Konvention: der Katalog ist
+ *  aufsteigend sortiert, der erste Key ist der niedrigste Plan). Core
+ *  bleibt damit plan-name-agnostisch — vor dem Rename hing hier ein
+ *  hartes 'free'. */
 export function limitsForPlan(
   plans: TenancyQuotaConfig['plans'],
   plan: string | undefined,
   kind: string,
 ): TenantQuotaLimits | undefined {
   if (!plans) return undefined
-  const forPlan = plans[plan ?? 'free'] ?? plans.free
+  const fallbackKey = Object.keys(plans)[0]
+  const forPlan = (plan ? plans[plan] : undefined) ?? (fallbackKey ? plans[fallbackKey] : undefined)
   return forPlan?.[kind]
 }
 

@@ -207,6 +207,20 @@ Vollständiges Konzept: docs/CONCEPT.md
   Neue Layer mit User-Daten MÜSSEN einen Contributor registrieren.
 - app.config.ts wird tief gemergt — App überschreibt nur was nötig
 
+## Pläne & Produkte (P4-Rename 2026-07-26, Davids Pricing-Entscheid)
+- Pool-Pläne heißen **basic / personal / pro** (vorher free/pro/business —
+  normalizeTenantPlan() mappt Altwerte; Daten sind migriert). Enterprise ist
+  KEIN Plan-Key: das ist das Silo-/Pukalani-Studio-Angebot. Preise: Personal
+  29 €, Pro 149 €, jährlich −25 % (scripts/stripe/ensure-prices.mjs — zieht
+  lookup_keys bei Betragsänderung auf neue Prices um).
+- Kundensprache: „**Produkte**" statt Features/Bausteine (Landing, UI,
+  Pricing). Im CODE bleibt das Vokabular `features` (Manifeste, Gates).
+- Produkt-Gating im Pool: maui.tenancy.products (Produkt-Key → Mindest-Plan,
+  Plan-Ordnung = Reihenfolge der quota.plans-Keys) + requirePlanProduct(event,
+  key) an den API-Einstiegen (posts = personal, ai = pro; 404 wie Datentür).
+  UI-Sichtbarkeit via useTenantPlan().planAllows(); Demo-Hosts zeigen
+  PlatformPlanBadge („Ab Personal/Pro") an den Produkten.
+
 ## Mandanten-Isolation: EINE Datentür (seit 2026-07-26)
 - In `server/api/**` mandantenfähiger Layer geht Datenzugriff über
   `tenantDb(event)` (core/server/utils/tenantDb.ts) — NICHT über

@@ -5,7 +5,7 @@
       "description": "Posts, courses, events and discussions under your own brand and domain. Privacy-first, hosted in Germany, no ad tracking. The lean alternative to Circle & Skool. Start free."
     },
     "nav": {
-      "features": "Building blocks",
+      "features": "Products",
       "pricing": "Pricing",
       "story": "Story",
       "signIn": "Sign in",
@@ -72,7 +72,7 @@
       ]
     },
     "blocks": {
-      "kicker": "The building blocks",
+      "kicker": "The products",
       "title": "One platform, many blocks. You decide which.",
       "lead": "Every block can be switched on or off. No ballast.",
       "available": "Available",
@@ -276,7 +276,7 @@
           "def": "Who may do what: owner, admin, moderator, editor, viewer. Roles stop everyone from being able to do everything – and stop nobody from being able to do anything."
         },
         {
-          "term": "Building blocks",
+          "term": "Products",
           "def": "The individually switchable parts of the platform: discussions, moderation, pages, feed, courses, events. You take only what you need."
         },
         {
@@ -552,7 +552,7 @@
           "metaDescription": "Pukalani vs Circle: a lean community platform without a $89 entry and without transaction fees, hosted in Germany. Honest comparison with sources.",
           "title": "Pukalani vs Circle",
           "sub": "The lean, privacy-close alternative — for communities that don't need a whole suite.",
-          "intro": "Circle is powerful: a broad suite, automations, scale. For small and mid-sized communities that's often more than they need – and pricier than they want. Pukalani bets on a few well-made building blocks, hosting in Germany and a predictable price with no transaction fee.",
+          "intro": "Circle is powerful: a broad suite, automations, scale. For small and mid-sized communities that's often more than they need – and pricier than they want. Pukalani bets on a few well-made products, hosting in Germany and a predictable price with no transaction fee.",
           "whenThem": "You need a broad suite with lots of automations, native mobile apps with push, or you're scaling to very large memberships with enterprise requirements. Circle gives you more surface there.",
           "whenUs": "You want your own community home under your name, hosted in Germany, without ad tracking and without transaction fees – and you only want to switch on the blocks you actually use."
         },
@@ -562,7 +562,7 @@
           "metaDescription": "Pukalani vs Skool: community + courses under your own brand, hosted in Germany, with no transaction fee on your revenue. Honest comparison with sources.",
           "title": "Pukalani vs Skool",
           "sub": "Community and courses under your brand — without a cut of your revenue.",
-          "intro": "Skool is deliberately simple and strong on gamification. Entry is cheap, but on the Hobby plan it costs you 10% of your revenue. Pukalani takes no transaction fee, hosts in Germany, and lets you decide on design, domain and building blocks yourself.",
+          "intro": "Skool is deliberately simple and strong on gamification. Entry is cheap, but on the Hobby plan it costs you 10% of your revenue. Pukalani takes no transaction fee, hosts in Germany, and lets you decide on design, domain and products yourself.",
           "whenThem": "You like the gamified, highly guided approach, want zero setup worries, and it's fine that your community looks like Skool. Then Skool is fast and coherent.",
           "whenUs": "Your community should look and be named like YOU, your revenue stays fully yours, and privacy isn't just a checkbox. Plus you want to embed discussions or events into your existing website."
         },
@@ -580,31 +580,43 @@
     },
     "pricing": {
       "kicker": "Pricing",
-      "title": "One fair price for your whole community – not per block.",
-      "lead": "Currently in early access, by invitation. Start free, cancel anytime, data export included.",
-      "eaBadge": "Early access – by invitation",
-      "plans": [
-        {
-          "name": "Free",
-          "desc": "To get started – one community, fair limits, the core blocks.",
-          "cta": "Start free",
-          "featured": false
+      "title": "One fair price for your whole community – not per product.",
+      "lead": "Start free, cancel anytime, data export included. Currently in early access by invitation.",
+      "intervalLabel": "Billing interval",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "freePrice": "€0",
+      "freeNote": "Free forever",
+      "perMonth": "per month",
+      "perMonthYearly": "per month, billed yearly",
+      "enterprisePrice": "Custom",
+      "enterpriseNote": "Tailored project",
+      "plans": {
+        "basic": {
+          "name": "Basic",
+          "tag": "01 · Free",
+          "desc": "To get going – one community, discussions, pages, theme catalog, and basic moderation.",
+          "cta": "Get started"
         },
-        {
+        "personal": {
+          "name": "Personal",
+          "tag": "02 · Popular",
+          "desc": "For coaches and creators – posting feed with polls, custom themes and fonts, embed widget, email notifications, higher limits.",
+          "cta": "Get Personal"
+        },
+        "pro": {
           "name": "Pro",
-          "desc": "For growing communities – more blocks (feed, events), higher limits, a small team.",
-          "cta": "Request early access",
-          "featured": true
+          "tag": "03 · Teams",
+          "desc": "For teams – everything in Personal plus team roles, AI moderation assistant, highest limits. Courses and events first.",
+          "cta": "Get Pro"
         },
-        {
-          "name": "Business",
-          "desc": "For pros – all blocks incl. courses, custom domain, webhooks/API, unlimited seats.",
-          "cta": "Request early access",
-          "featured": false
+        "enterprise": {
+          "name": "Enterprise",
+          "tag": "04 · Pukalani Studio",
+          "desc": "Your own instance, your own domain – with consultation, strategy, concept, design, and technical implementation from one hand.",
+          "cta": "Register interest"
         }
-      ],
-      "silo": "Your own instance + your own domain (community.yourcompany.com)? Talk to us.",
-      "numbersNote": "Concrete numbers come with the public launch."
+      }
     },
     "faq": {
       "kicker": "Common questions",

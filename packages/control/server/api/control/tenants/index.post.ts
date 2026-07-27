@@ -39,7 +39,7 @@ export default defineEventHandler(async (event) => {
       tenantId,
       status: 'active',
       wave: body.wave ?? 'stable',
-      plan: body.plan ?? 'free',
+      plan: body.plan ?? 'basic',
       workspaceId: '',
       theme: '',
       variant: '',

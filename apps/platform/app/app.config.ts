@@ -45,13 +45,25 @@ export default defineAppConfig({
       // Server nicht. PRO PLAN gestaffelt (David-Freigabe 2026-07-23) — der
       // Tenant trägt seinen Plan (tenants.plan, studio-013, Default free).
       // Silo-Tenants: kein Limit (eigenes Projekt). perDay = rollierende 24 h.
+      // Plan-Rename 2026-07-26 (Davids Pricing: Basic/Personal/Pro) —
+      // Zahlen unverändert, nur die Keys sind umgezogen.
       quota: {
         enabled: true,
         plans: {
-          free: { comments: { perDay: 200, total: 5_000 } },
-          pro: { comments: { perDay: 1000, total: 50_000 } },
-          business: { comments: { perDay: 5000, total: 250_000 } },
+          basic: { comments: { perDay: 200, total: 5_000 } },
+          personal: { comments: { perDay: 1000, total: 50_000 } },
+          pro: { comments: { perDay: 5000, total: 250_000 } },
         },
+      },
+      // Produkt-Zugriff pro Plan (P4, Davids Zuordnung 2026-07-26): Produkt-
+      // Key → Mindest-Plan. Nicht gelistete Produkte (comments, pages,
+      // themes-Katalog, Moderation) sind Basic = frei. KI zählt als Pro-
+      // Produkt (kostet uns pro Aufruf); Events/Courses folgen bei GA.
+      products: {
+        posts: 'personal',
+        ai: 'pro',
+        events: 'pro',
+        courses: 'pro',
       },
     },
   },

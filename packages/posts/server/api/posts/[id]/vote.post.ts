@@ -9,6 +9,8 @@ import { POLL_VOTES_TABLE, POSTS_TABLE, type CommunityPost, type PollVote } from
  * Poll-Zustand (Ergebnisse sichtbar, solange die eigene Stimme steht).
  */
 export default defineEventHandler(async (event) => {
+  // Produkt-Gate (P4): der Posting-Feed ist ab Plan personal enthalten.
+  requirePlanProduct(event, 'posts')
   const user = event.context.user
   if (!user) {
     throw createError({ status: 401, statusText: 'Unauthorized' })

@@ -5,7 +5,7 @@
       "description": "Beiträge, Kurse, Events und Diskussionen unter deinem Namen und Design. Datenschutz-nativ, in Deutschland gehostet, ohne Werbe-Tracking. Die schlanke Alternative zu Circle & Skool. Kostenlos starten."
     },
     "nav": {
-      "features": "Bausteine",
+      "features": "Produkte",
       "pricing": "Preise",
       "story": "Geschichte",
       "signIn": "Anmelden",
@@ -66,15 +66,15 @@
         },
         {
           "n": "3",
-          "title": "Bausteine wählen",
+          "title": "Produkte wählen",
           "text": "Feed, Kurse, Events, Diskussionen an- oder ausschalten. Dein Design dazu. Fertig."
         }
       ]
     },
     "blocks": {
-      "kicker": "Die Bausteine",
-      "title": "Eine Plattform, viele Bausteine. Du entscheidest, welche.",
-      "lead": "Jeder Baustein ist an- und abschaltbar. Kein Ballast.",
+      "kicker": "Die Produkte",
+      "title": "Eine Plattform, viele Produkte. Du entscheidest, welche.",
+      "lead": "Jeder Produkt ist an- und abschaltbar. Kein Ballast.",
       "available": "Verfügbar",
       "earlyAccess": "Early Access",
       "items": [
@@ -233,7 +233,7 @@
         }
       },
       "eaBannerTitle": "Early Access – noch nicht für alle freigegeben",
-      "eaBannerText": "Dieser Baustein ist gebaut und läuft, aber noch nicht Teil des offenen Angebots. Du kannst ihn im Early Access auf Einladung nutzen – wir schalten ihn gemeinsam frei. Ein Kauf ist hier bewusst nicht möglich.",
+      "eaBannerText": "Dieser Produkt ist gebaut und läuft, aber noch nicht Teil des offenen Angebots. Du kannst ihn im Early Access auf Einladung nutzen – wir schalten ihn gemeinsam frei. Ein Kauf ist hier bewusst nicht möglich.",
       "eaCta": "Early Access anfragen"
     },
     "glossary": {
@@ -265,7 +265,7 @@
         },
         {
           "term": "Embed",
-          "def": "Ein Baustein deiner Community, eingebettet in eine andere Website – zum Beispiel Diskussionen unter deinen Blogartikeln. Du musst dafür nichts umziehen."
+          "def": "Ein Produkt deiner Community, eingebettet in eine andere Website – zum Beispiel Diskussionen unter deinen Blogartikeln. Du musst dafür nichts umziehen."
         },
         {
           "term": "Eigene Domain",
@@ -276,12 +276,12 @@
           "def": "Wer darf was: Owner, Admin, Moderator, Editor, Viewer. Rollen verhindern, dass alle alles können – und dass niemand etwas kann."
         },
         {
-          "term": "Bausteine",
+          "term": "Produkte",
           "def": "Die einzeln an- und abschaltbaren Teile der Plattform: Diskussionen, Moderation, Seiten, Feed, Kurse, Events. Du nimmst nur, was du brauchst."
         },
         {
           "term": "Early Access",
-          "def": "Ein Baustein, den es gibt, der aber noch nicht für alle freigegeben ist. Wir markieren das so – statt es wie ein fertiges Tarif-Versprechen aussehen zu lassen."
+          "def": "Ein Produkt, den es gibt, der aber noch nicht für alle freigegeben ist. Wir markieren das so – statt es wie ein fertiges Tarif-Versprechen aussehen zu lassen."
         },
         {
           "term": "Mitglieder-only",
@@ -312,7 +312,7 @@
         },
         {
           "n": "2",
-          "title": "Bausteine wählen",
+          "title": "Produkte wählen",
           "text": "Schalte an, was du wirklich nutzt. Viele merken hier: die Hälfte der alten Funktionen hat nie jemand geöffnet."
         },
         {
@@ -343,7 +343,7 @@
       "title": "Wie wir Datenschutz umsetzen",
       "lead": "Kein Siegel, keine Marketing-Formel: hier steht, wo deine Daten liegen, was wir nicht tun – und was wir bewusst nicht versprechen.",
       "disclaimerTitle": "Was diese Seite ist – und was nicht",
-      "disclaimer": "Diese Seite erklärt unsere Technik und unseren Betrieb. Sie ist keine Rechtsberatung und ersetzt nicht die Datenschutzerklärung deiner Community – die brauchst du für deine eigene Site, passend zu den Bausteinen, die du aktivierst.",
+      "disclaimer": "Diese Seite erklärt unsere Technik und unseren Betrieb. Sie ist keine Rechtsberatung und ersetzt nicht die Datenschutzerklärung deiner Community – die brauchst du für deine eigene Site, passend zu den Produkten, die du aktivierst.",
       "legalLink": "Unsere eigene Datenschutzerklärung",
       "sections": [
         {
@@ -431,7 +431,7 @@
     "audiencePages": {
       "backHome": "Zur Startseite",
       "fitTitle": "Warum Pukalani hier passt",
-      "blocksTitle": "Diese Bausteine brauchst du dafür",
+      "blocksTitle": "Diese Produkte brauchst du dafür",
       "ctaTitle": "Klingt nach dir?",
       "ctaLead": "Starte kostenlos – in 60 Sekunden steht deine Community.",
       "items": {
@@ -451,7 +451,7 @@
           "metaDescription": "Kurse verkaufen mit Community drumherum: Lektionen, Fortschritt, Bezahl-Zugang über Stripe – unter deiner Marke, in Deutschland gehostet, ohne Transaktionsgebühr.",
           "title": "Kurse verkaufen – mit Community drumherum",
           "sub": "Lektionen, Fortschritt und Bezahl-Zugang, ohne Anteil an deinen Umsätzen.",
-          "intro": "Ein Kurs allein ist eine Datei. Ein Kurs mit Community ist ein Ergebnis: Teilnehmer fragen nach, bleiben dran, empfehlen weiter. Genau diese Kombination ist bei Pukalani ein Baustein-Klick voneinander entfernt.",
+          "intro": "Ein Kurs allein ist eine Datei. Ein Kurs mit Community ist ein Ergebnis: Teilnehmer fragen nach, bleiben dran, empfehlen weiter. Genau diese Kombination ist bei Pukalani ein Produkt-Klick voneinander entfernt.",
           "fit": "Zugang frei, nur für Mitglieder oder kostenpflichtig – Bezahl-Zugang läuft über Stripe. Wir nehmen keine Transaktionsgebühr: was du verdienst, bleibt bei dir. Preis planbar, Daten in Deutschland, Export jederzeit.",
           "blocks": "Kurse (Early Access) · Diskussionen · Seiten & Branding"
         },
@@ -462,7 +462,7 @@
           "title": "Deine Leser bekommen einen Ort – bei dir",
           "sub": "Diskussion unter deiner Marke, einbettbar in die Seite, die du längst hast.",
           "intro": "Kommentare unter Beiträgen, ein Feed für Ankündigungen, gelegentlich ein Live-Termin: daraus wird aus Publikum eine Community. Und zwar auf deiner Domain, nicht in einem Netzwerk, das dir die Reichweite morgen wieder wegnimmt.",
-          "fit": "Einzelne Bausteine lassen sich in deine bestehende Website einbetten – du musst nichts umziehen. Kein Werbe-Tracking, keine Werbung, keine Weitergabe: deine Leser bleiben deine Leser.",
+          "fit": "Einzelne Produkte lassen sich in deine bestehende Website einbetten – du musst nichts umziehen. Kein Werbe-Tracking, keine Werbung, keine Weitergabe: deine Leser bleiben deine Leser.",
           "blocks": "Diskussionen (einbettbar) · Moderation · Seiten & Branding · später Feed"
         },
         "vereine": {
@@ -515,14 +515,14 @@
           "mighty": "ja"
         },
         {
-          "label": "Bausteine einzeln abschaltbar",
+          "label": "Produkte einzeln abschaltbar",
           "us": "ja",
           "circle": "Suite",
           "skool": "Suite",
           "mighty": "Suite"
         },
         {
-          "label": "Bausteine in eigene Website einbettbar",
+          "label": "Produkte in eigene Website einbettbar",
           "us": "ja (Diskussionen, Events)",
           "circle": "k. A.",
           "skool": "k. A.",
@@ -552,9 +552,9 @@
           "metaDescription": "Pukalani vs Circle: schlanke Community-Plattform ohne 89-$-Einstieg und ohne Transaktionsgebühr, in Deutschland gehostet. Ehrlicher Vergleich mit Quellen.",
           "title": "Pukalani vs Circle",
           "sub": "Die schlanke, datenschutz-nahe Alternative — für Communities, die keine ganze Suite brauchen.",
-          "intro": "Circle ist mächtig: breite Suite, Automationen, Skalierung. Genau das ist für kleine und mittlere Communities oft mehr, als sie brauchen – und teurer, als sie wollen. Pukalani setzt dagegen auf wenige, gut gemachte Bausteine, Hosting in Deutschland und einen planbaren Preis ohne Transaktionsgebühr.",
+          "intro": "Circle ist mächtig: breite Suite, Automationen, Skalierung. Genau das ist für kleine und mittlere Communities oft mehr, als sie brauchen – und teurer, als sie wollen. Pukalani setzt dagegen auf wenige, gut gemachte Produkte, Hosting in Deutschland und einen planbaren Preis ohne Transaktionsgebühr.",
           "whenThem": "Du brauchst eine breite Suite mit vielen Automationen, native Mobile-Apps mit Push oder skalierst auf sehr große Mitgliederzahlen mit Enterprise-Anforderungen. Dann bekommst du bei Circle mehr Fläche.",
-          "whenUs": "Du willst eine eigene Community-Heimat unter deinem Namen, in Deutschland gehostet, ohne Werbe-Tracking und ohne Transaktionsgebühr – und du willst nur die Bausteine anschalten, die du wirklich nutzt."
+          "whenUs": "Du willst eine eigene Community-Heimat unter deinem Namen, in Deutschland gehostet, ohne Werbe-Tracking und ohne Transaktionsgebühr – und du willst nur die Produkte anschalten, die du wirklich nutzt."
         },
         "skool": {
           "name": "Skool",
@@ -562,7 +562,7 @@
           "metaDescription": "Pukalani vs Skool: Community + Kurse unter deiner Marke, in Deutschland gehostet, ohne Transaktionsgebühr auf deine Umsätze. Ehrlicher Vergleich mit Quellen.",
           "title": "Pukalani vs Skool",
           "sub": "Community und Kurse unter deiner Marke — ohne Anteil an deinen Umsätzen.",
-          "intro": "Skool ist bewusst einfach und stark im Gamification-Ansatz. Der Einstieg ist günstig, kostet dich im Hobby-Tarif aber 10 % deiner Umsätze. Pukalani nimmt keine Transaktionsgebühr, hostet in Deutschland und lässt dich Design, Domain und Bausteine selbst bestimmen.",
+          "intro": "Skool ist bewusst einfach und stark im Gamification-Ansatz. Der Einstieg ist günstig, kostet dich im Hobby-Tarif aber 10 % deiner Umsätze. Pukalani nimmt keine Transaktionsgebühr, hostet in Deutschland und lässt dich Design, Domain und Produkte selbst bestimmen.",
           "whenThem": "Du magst den gamifizierten, sehr geführten Ansatz, willst dich um nichts kümmern und die Community darf aussehen wie Skool. Dann ist Skool schnell und stimmig.",
           "whenUs": "Deine Community soll aussehen und heißen wie DU, deine Umsätze bleiben vollständig bei dir, und Datenschutz ist dir nicht nur ein Häkchen. Dazu willst du Diskussionen oder Events auch in deine bestehende Website einbetten."
         },
@@ -572,39 +572,51 @@
           "metaDescription": "Pukalani vs Mighty Networks: eigene Community-Plattform, in Deutschland gehostet, modular statt Suite, ohne Transaktionsgebühr. Ehrlicher Vergleich mit Quellen.",
           "title": "Pukalani vs Mighty Networks",
           "sub": "Modular statt Suite — deine Community, dein Design, deine Daten in Deutschland.",
-          "intro": "Mighty Networks bringt Community, Kurse und Events samt Mobile-Apps zusammen. Das ist stark, wenn du die ganze Breite willst. Pukalani ist der schlanke Gegenentwurf: nur die Bausteine, die du brauchst, in Deutschland gehostet, ohne Transaktionsgebühr – und einzelne Bausteine sind in deine eigene Website einbettbar.",
+          "intro": "Mighty Networks bringt Community, Kurse und Events samt Mobile-Apps zusammen. Das ist stark, wenn du die ganze Breite willst. Pukalani ist der schlanke Gegenentwurf: nur die Produkte, die du brauchst, in Deutschland gehostet, ohne Transaktionsgebühr – und einzelne Produkte sind in deine eigene Website einbettbar.",
           "whenThem": "Du brauchst native Mobile-Apps mit Push und die volle Breite einer etablierten Suite, inklusive großer Reichweiten-Features. Dann liefert Mighty mehr.",
-          "whenUs": "Du willst schlank starten, planbar zahlen, in Deutschland hosten und selbst entscheiden, welche Bausteine überhaupt sichtbar sind – ohne Ballast, den du nie öffnest."
+          "whenUs": "Du willst schlank starten, planbar zahlen, in Deutschland hosten und selbst entscheiden, welche Produkte überhaupt sichtbar sind – ohne Ballast, den du nie öffnest."
         }
       }
     },
     "pricing": {
       "kicker": "Preise",
-      "title": "Ein fairer Preis für deine ganze Community – nicht pro Baustein.",
-      "lead": "Aktuell im Early Access, mit Einladung. Kostenlos starten, jederzeit kündbar, Datenexport inklusive.",
-      "eaBadge": "Early Access – auf Einladung",
-      "plans": [
-        {
-          "name": "Free",
-          "desc": "Zum Starten – eine Community, faire Limits, die Kern-Bausteine.",
-          "cta": "Kostenlos starten",
-          "featured": false
+      "title": "Ein fairer Preis für deine ganze Community – nicht pro Produkt.",
+      "lead": "Kostenlos starten, jederzeit kündbar, Datenexport inklusive. Aktuell im Early Access mit Einladung.",
+      "intervalLabel": "Abrechnungszeitraum",
+      "monthly": "Monatlich",
+      "yearly": "Jährlich",
+      "freePrice": "0 €",
+      "freeNote": "Für immer kostenlos",
+      "perMonth": "pro Monat",
+      "perMonthYearly": "pro Monat, jährlich abgerechnet",
+      "enterprisePrice": "Individuell",
+      "enterpriseNote": "Projekt nach Maß",
+      "plans": {
+        "basic": {
+          "name": "Basic",
+          "tag": "01 · Kostenlos",
+          "desc": "Zum Starten – eine Community, Diskussionen, Seiten, Theme-Katalog und Basis-Moderation.",
+          "cta": "Kostenlos starten"
         },
-        {
+        "personal": {
+          "name": "Personal",
+          "tag": "02 · Beliebt",
+          "desc": "Für Coaches und Creator – Posting-Feed mit Umfragen, eigene Themes und Schriften, Embed-Widget, E-Mail-Benachrichtigungen, höhere Limits.",
+          "cta": "Personal holen"
+        },
+        "pro": {
           "name": "Pro",
-          "desc": "Für wachsende Communities – mehr Bausteine (Feed, Events), höhere Limits, kleines Team.",
-          "cta": "Early Access anfragen",
-          "featured": true
+          "tag": "03 · Teams",
+          "desc": "Für Teams – alles aus Personal plus Team-Rollen, KI-Moderations-Assistent, höchste Limits. Kurse und Events zuerst.",
+          "cta": "Pro holen"
         },
-        {
-          "name": "Business",
-          "desc": "Für Profis – alle Bausteine inkl. Kurse, eigene Domain, Webhooks/API, unbegrenzte Sitze.",
-          "cta": "Early Access anfragen",
-          "featured": false
+        "enterprise": {
+          "name": "Enterprise",
+          "tag": "04 · Pukalani Studio",
+          "desc": "Eigene Instanz, eigene Domain – mit Beratung, Strategie, Konzeption, Design und technischer Umsetzung aus einer Hand.",
+          "cta": "Interesse anmelden"
         }
-      ],
-      "silo": "Eigene Instanz + eigene Domain (community.deinefirma.de)? Sprich mit uns.",
-      "numbersNote": "Konkrete Zahlen folgen mit dem öffentlichen Start."
+      }
     },
     "faq": {
       "kicker": "Häufige Fragen",
@@ -616,7 +628,7 @@
         },
         {
           "q": "Kann ich meine bestehende Seite behalten?",
-          "a": "Ja. Deine Community läuft unter deinem Namen und Design; einzelne Bausteine wie Diskussionen lassen sich sogar in deine bestehende Website einbetten."
+          "a": "Ja. Deine Community läuft unter deinem Namen und Design; einzelne Produkte wie Diskussionen lassen sich sogar in deine bestehende Website einbetten."
         },
         {
           "q": "Was kostet es?",
@@ -631,12 +643,12 @@
           "a": "Start mit Deutsch und Englisch; weitere Sprachen folgen."
         },
         {
-          "q": "Muss ich alle Bausteine nutzen?",
-          "a": "Nein – jeder Baustein ist an- und abschaltbar. Du startest schlank und ergänzt, was du brauchst."
+          "q": "Muss ich alle Produkte nutzen?",
+          "a": "Nein – jeder Produkt ist an- und abschaltbar. Du startest schlank und ergänzt, was du brauchst."
         }
       ],
       "metaTitle": "Häufige Fragen zu Pukalani – Datenschutz, Preise, Umzug",
-      "metaDescription": "Antworten auf die häufigsten Fragen: wo die Daten liegen, was es kostet, ob du deine Seite behalten kannst, Kündigung, Sprachen, Bausteine."
+      "metaDescription": "Antworten auf die häufigsten Fragen: wo die Daten liegen, was es kostet, ob du deine Seite behalten kannst, Kündigung, Sprachen, Produkte."
     },
     "story": {
       "kicker": "Unsere Geschichte",

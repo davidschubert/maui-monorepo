@@ -12,4 +12,8 @@ export default defineNuxtPlugin(() => {
   const event = useRequestEvent()
   const tenant = event?.context.tenant
   useState<string | null>('maui-tenant-brand', () => tenant?.name ?? null)
+  // Plan zusätzlich (P4): das UI blendet Produkte aus, die der Plan nicht
+  // enthält (Nav/Badges) — die AUTORITÄT bleibt requirePlanProduct auf den
+  // Server-Routen. null = kein Pool-Tenant → UI zeigt alles.
+  useState<string | null>('maui-tenant-plan', () => (tenant?.mode === 'pool' ? tenant.plan ?? null : null))
 })

@@ -178,9 +178,9 @@ export async function handleWorkspaceSubscriptionUpdate(event: H3Event, update: 
       console.warn(`[studio] Workspace ${action.workspaceId} → past_due (Grants bleiben, Stripe-Dunning läuft)`)
       return
     case 'free-fallback': {
-      const free = plans.free
+      const free = plans.basic
       if (!free) {
-        console.error('[studio] free-Plan fehlt im Katalog — Fallback übersprungen')
+        console.error('[studio] basic-Plan fehlt im Katalog — Fallback übersprungen')
         return
       }
       // Cross-Sub-Guard (#6): nur wenn die gekündigte Sub die aktuell
@@ -232,7 +232,7 @@ export async function handleWorkspaceSubscriptionUpdate(event: H3Event, update: 
       }
       const result = await applyWorkspacePlan(event, {
         workspaceId: action.workspaceId,
-        plan: 'free',
+        plan: 'basic',
         planFeatures: free.features,
         status: 'active',
         // Abo-Bezug lösen: der Workspace hat kein aktives Abo mehr.

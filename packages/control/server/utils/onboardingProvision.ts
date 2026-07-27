@@ -9,7 +9,7 @@ import {
   type SiteProfile,
 } from '../../shared/onboarding'
 import { slugToHost } from '../../schemas/tenant'
-import { TENANTS_TABLE, type TenantRow } from '../../shared/types/tenantRecord'
+import { TENANTS_TABLE, normalizeTenantPlan, type TenantRow } from '../../shared/types/tenantRecord'
 import { SITE_MEMBERS_TABLE, type SiteMemberRow } from '../../shared/types/siteMember'
 import { WORKSPACES_TABLE, type WorkspaceRow } from '../../shared/types/workspace'
 import type { InviteCodeRow } from '../../shared/types/inviteCode'
@@ -132,7 +132,7 @@ async function findOrCreateWorkspace(event: H3Event, identity: RuntimeIdentity, 
       ownerEmail: identity.email,
       stripeCustomerId: '',
       stripeSubscriptionId: '',
-      plan: 'free',
+      plan: 'basic',
       status: 'active',
     },
   })
@@ -173,7 +173,7 @@ export async function provisionCommunity(
         siteId: existing.$id,
         host: existing.host,
         url: siteUrl(existing.host),
-        plan: existing.plan || 'free',
+        plan: normalizeTenantPlan(existing.plan),
         trialEndsAt: existing.trialEndsAt,
         workspaceId: existing.workspaceId || '',
         tenantId: existing.tenantId,

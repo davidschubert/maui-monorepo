@@ -10,6 +10,8 @@ import { POSTS_TABLE, POST_VOTES_TABLE, type CommunityPost, type PostVote, type 
  * serialisiert pro Post gegen Lost Updates.
  */
 export default defineEventHandler(async (event): Promise<PostVoteResponse> => {
+  // Produkt-Gate (P4): der Posting-Feed ist ab Plan personal enthalten.
+  requirePlanProduct(event, 'posts')
   const user = event.context.user
   if (!user) {
     throw createError({ status: 401, statusText: 'Unauthorized' })

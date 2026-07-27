@@ -19,10 +19,29 @@ export type TenantStatus = (typeof TENANT_STATUSES)[number]
 export const TENANT_WAVES = ['internal', 'canary', 'stable'] as const
 export type TenantWave = (typeof TENANT_WAVES)[number]
 
-/** Quota-Plan des Pool-Tenants (studio-013); staffelt die Quota-Limits
- *  (maui.tenancy.quota.plans). Default free; für Silo ohne Wirkung. */
-export const TENANT_PLANS = ['free', 'pro', 'business'] as const
+/**
+ * Plan des Pool-Tenants (studio-013); staffelt Quota-Limits UND Produkt-
+ * Zugriff (maui.tenancy.quota.plans / maui.tenancy.products).
+ *
+ * Rename 2026-07-26 (Davids Pricing-Entscheid „Basic/Personal/Pro"):
+ * free→basic · pro→personal · business→pro. Bestandsdaten wurden im selben
+ * Zug migriert (t-demo, tenant_plans-Rows); für Alt-Werte, die noch in
+ * Spalten-Defaults ('' bzw. 'free') stecken, gibt es normalizeTenantPlan().
+ * Enterprise ist bewusst KEIN Key: das ist das Silo-/Studio-Angebot, kein
+ * Self-Service-Plan.
+ */
+export const TENANT_PLANS = ['basic', 'personal', 'pro'] as const
 export type TenantPlan = (typeof TENANT_PLANS)[number]
+export const DEFAULT_TENANT_PLAN: TenantPlan = 'basic'
+
+/** Alt-Werte auf die neuen Keys mappen. 'pro' (alt = Mitte) ist absichtlich
+ *  NICHT gemappt — die Daten wurden vollständig migriert, es gab keinen
+ *  Alt-'pro'-Tenant; ein heutiges 'pro' ist immer der neue Top-Plan. */
+export function normalizeTenantPlan(value: string | null | undefined): TenantPlan {
+  if (value === 'business') return 'pro'
+  if (!value || value === 'free') return DEFAULT_TENANT_PLAN
+  return (TENANT_PLANS as readonly string[]).includes(value) ? value as TenantPlan : DEFAULT_TENANT_PLAN
+}
 
 /**
  * Lese-Publikum der Site (studio-016). G0-Entscheidung 7 (David, 2026-07-24):

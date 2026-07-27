@@ -115,7 +115,7 @@ async function startCheckout() {
   }
 }
 
-const planColor = (plan: string) => (plan === 'business' ? 'primary' : plan === 'pro' ? 'info' : 'neutral') as 'primary' | 'info' | 'neutral'
+const planColor = (plan: string) => (plan === 'pro' ? 'primary' : plan === 'personal' ? 'info' : 'neutral') as 'primary' | 'info' | 'neutral'
 const statusColor = (s: string) => (s === 'active' ? 'success' : s === 'past_due' ? 'warning' : 'error') as 'success' | 'warning' | 'error'
 
 // ── Stripe-Preise (App-Route /api/control/billing/prices) ─────────────────────
@@ -280,7 +280,7 @@ const formatAmount = (price: PriceDto) => price.amount === null
         <template #body>
           <div class="space-y-4">
             <p class="text-sm text-muted">
-              {{ t('control.workspaces.currentPlan') }}: <UBadge :color="planColor(planTarget?.plan ?? 'free')" variant="subtle" size="sm">{{ planTarget?.plan }}</UBadge>
+              {{ t('control.workspaces.currentPlan') }}: <UBadge :color="planColor(planTarget?.plan ?? 'basic')" variant="subtle" size="sm">{{ planTarget?.plan }}</UBadge>
             </p>
             <UFormField :label="t('control.workspaces.targetPlan')" :help="t('control.workspaces.changePlanHelp')">
               <URadioGroup

@@ -2,7 +2,7 @@ import { Client, Query, TablesDB } from 'node-appwrite'
 import { createMicrocache } from '../../../core/server/utils/microcache'
 import type { TenantResolver } from '../../../core/server/utils/tenantResolver'
 import type { TenantContext } from '../../../core/shared/types/tenant'
-import { TENANT_PLANS_TABLE, TENANTS_TABLE, parseTenantPlanLimits, type TenantPlanLimits, type TenantPlanRow, type TenantRow } from '../../shared/types/tenantRecord'
+import { DEFAULT_TENANT_PLAN, TENANT_PLANS_TABLE, TENANTS_TABLE, normalizeTenantPlan, parseTenantPlanLimits, type TenantPlanLimits, type TenantPlanRow, type TenantRow } from '../../shared/types/tenantRecord'
 import { isSafeThemeToken } from '../../shared/onboarding'
 
 /**
@@ -43,11 +43,12 @@ export function mapTenantRowToContext(
   if (row.mode === 'silo') return { mode: 'silo', projectId: row.projectId, ...siteId, ...branding }
   // Pool ohne tenantId wäre ein Datenfehler — NIE ungescoped durchlassen
   if (row.mode === 'pool' && row.tenantId) {
-    // '' (Bestand vor studio-013) → free; der Plan staffelt die Quota.
-    // Limits aus dem EDITIERBAREN Katalog (tenant_plans, studio-014) — wenn
-    // vorhanden, reisen sie aufgelöst im Context (Vorrang vor app.config).
-    const plan = row.plan || 'free'
-    const limits = planCatalog?.[plan] ?? planCatalog?.free
+    // normalizeTenantPlan: ''/'free'-Bestand → basic, 'business' → pro
+    // (Rename 2026-07-26). Limits aus dem EDITIERBAREN Katalog (tenant_plans,
+    // studio-014) — wenn vorhanden, reisen sie aufgelöst im Context
+    // (Vorrang vor app.config).
+    const plan = normalizeTenantPlan(row.plan)
+    const limits = planCatalog?.[plan] ?? planCatalog?.[DEFAULT_TENANT_PLAN]
     return { mode: 'pool', projectId: row.projectId, tenantId: row.tenantId, plan, ...(limits ? { limits } : {}), ...siteId, ...branding }
   }
   return null

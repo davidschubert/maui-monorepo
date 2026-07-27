@@ -8,9 +8,9 @@ describe('mapTenantRowToContext (pure)', () => {
     expect(mapTenantRowToContext({ mode: 'silo', projectId: 'p1', tenantId: '', status: 'active', plan: '' }))
       .toEqual({ mode: 'silo', projectId: 'p1' })
   })
-  it('active pool → pool-Context mit tenantId + Plan-Default free', () => {
+  it('active pool → pool-Context mit tenantId + Plan-Default basic', () => {
     expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: '' }))
-      .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'free' })
+      .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'basic' })
   })
   it('disabled → null (Host bewusst offline)', () => {
     expect(mapTenantRowToContext({ mode: 'silo', projectId: 'p1', tenantId: '', status: 'disabled', plan: '' })).toBeNull()
@@ -23,16 +23,16 @@ describe('mapTenantRowToContext (pure)', () => {
   })
   it('Plan-Katalog: Limits des Plans reisen aufgelöst im Context', () => {
     const catalog = {
-      free: { comments: { perDay: 200, total: 5000 } },
-      pro: { comments: { perDay: 1000, total: 50000 } },
+      basic: { comments: { perDay: 200, total: 5000 } },
+      personal: { comments: { perDay: 1000, total: 50000 } },
     }
-    expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: 'pro' }, catalog))
-      .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'pro', limits: { comments: { perDay: 1000, total: 50000 } } })
+    expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: 'personal' }, catalog))
+      .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'personal', limits: { comments: { perDay: 1000, total: 50000 } } })
   })
-  it('Plan-Katalog: unbekannter Plan fällt auf free zurück', () => {
-    const catalog = { free: { comments: { perDay: 200 } } }
+  it('Plan-Katalog: unbekannter Plan wird auf basic normalisiert', () => {
+    const catalog = { basic: { comments: { perDay: 200 } } }
     expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: 'enterprise' as never }, catalog))
-      .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'enterprise', limits: { comments: { perDay: 200 } } })
+      .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'basic', limits: { comments: { perDay: 200 } } })
   })
   it('leerer Katalog: Context ohne limits (app.config-Fallback greift)', () => {
     expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: 'pro' }, {}))
@@ -42,7 +42,7 @@ describe('mapTenantRowToContext (pure)', () => {
     expect(mapTenantRowToContext({ $id: 'site-abc', mode: 'silo', projectId: 'p1', tenantId: '', status: 'active', plan: '' }))
       .toEqual({ mode: 'silo', projectId: 'p1', siteId: 'site-abc' })
     expect(mapTenantRowToContext({ $id: 'site-xyz', mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: '' }))
-      .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'free', siteId: 'site-xyz' })
+      .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'basic', siteId: 'site-xyz' })
   })
 })
 
@@ -105,10 +105,10 @@ describe.skipIf(!hasEnv)('createTenantsTableResolver (echte Appwrite)', () => {
     })
 
     // Seit studio-014 reisen die Katalog-Limits (tenant_plans) im Context mit —
-    // Plan-Default free, Limits aus dem Seed/aktuellen Katalog (Zahlen variabel,
+    // Plan-Default basic, Limits aus dem Seed/aktuellen Katalog (Zahlen variabel,
     // Control-editierbar: nur Struktur prüfen, nicht die konkreten Werte).
     const resolved = await resolve(HOST_POOL)
-    expect(resolved).toMatchObject({ mode: 'pool', projectId: 'shared-project', tenantId: 't-demo', plan: 'free' })
+    expect(resolved).toMatchObject({ mode: 'pool', projectId: 'shared-project', tenantId: 't-demo', plan: 'basic' })
     if (resolved?.mode === 'pool' && resolved.limits) {
       expect(resolved.limits.comments?.perDay).toBeTypeOf('number')
     }

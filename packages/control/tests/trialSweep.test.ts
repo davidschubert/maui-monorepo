@@ -10,29 +10,29 @@ const base = { plan: 'pro' as const, trialEndsAt: EXPIRED, status: 'active' as c
 
 describe('Testphase beenden', () => {
   it('stuft eine abgelaufene, unbezahlte Testphase herab', () => {
-    expect(shouldEndTrial(base, 'free', NOW)).toBe(true)
+    expect(shouldEndTrial(base, 'basic', NOW)).toBe(true)
     expect(shouldEndTrial(base, null, NOW)).toBe(true)
   })
 
   it('lässt eine laufende Testphase in Ruhe', () => {
-    expect(shouldEndTrial({ ...base, trialEndsAt: RUNNING }, 'free', NOW)).toBe(false)
+    expect(shouldEndTrial({ ...base, trialEndsAt: RUNNING }, 'basic', NOW)).toBe(false)
   })
 
   it('fasst BEZAHLTE Kunden nicht an — auch bei altem Trial-Datum', () => {
     // Das ist der teure Fehler, den dieser Test verhindert: wer inzwischen Pro
     // gekauft hat, darf nicht herabgestuft werden, nur weil sein
     // Testphasen-Datum in der Vergangenheit liegt.
+    expect(shouldEndTrial(base, 'personal', NOW)).toBe(false)
     expect(shouldEndTrial(base, 'pro', NOW)).toBe(false)
-    expect(shouldEndTrial(base, 'business', NOW)).toBe(false)
   })
 
   it('ignoriert Tenants, die gar nicht im Trial-Plan sind', () => {
-    expect(shouldEndTrial({ ...base, plan: 'free' }, 'free', NOW)).toBe(false)
-    expect(shouldEndTrial({ ...base, plan: 'business' }, 'free', NOW)).toBe(false)
+    expect(shouldEndTrial({ ...base, plan: 'basic' }, 'basic', NOW)).toBe(false)
+    expect(shouldEndTrial({ ...base, plan: 'personal' }, 'basic', NOW)).toBe(false)
   })
 
   it('ignoriert deaktivierte Sites', () => {
-    expect(shouldEndTrial({ ...base, status: 'disabled' }, 'free', NOW)).toBe(false)
+    expect(shouldEndTrial({ ...base, status: 'disabled' }, 'basic', NOW)).toBe(false)
   })
 
   it('verträgt fehlende und kaputte Datumswerte, ohne herabzustufen', () => {

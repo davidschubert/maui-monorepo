@@ -17,6 +17,9 @@ const appConfig = useAppConfig()
 
 const tenantBrand = useTenantBrand()
 const brand = computed(() => tenantBrand.value ?? appConfig.maui?.brand?.name ?? 'Pukalani')
+// Produkt-Sichtbarkeit (P4): Basic-Tenants sehen den Feed-Link nicht —
+// die Autorität ist requirePlanProduct auf den posts-Routen.
+const { planAllows } = useTenantPlan()
 const legalLinks = computed(() => appConfig.maui?.legalLinks ?? [])
 
 // useRequestFetch: der SSR-interne Aufruf MUSS den Host-Header (= Tenant)
@@ -39,8 +42,13 @@ const pageLinks = computed(() => (navPages.value ?? []).filter(page => page.slug
         <div class="flex min-w-0 items-center gap-6">
           <NuxtLink :to="localePath('/')" class="shrink-0 font-bold tracking-tight">{{ brand }}</NuxtLink>
           <div class="flex items-center gap-4 overflow-x-auto text-sm">
-            <NuxtLink :to="localePath('/feed')" class="whitespace-nowrap text-muted hover:text-default">
+            <NuxtLink
+              v-if="planAllows('posts')"
+              :to="localePath('/feed')"
+              class="flex items-center gap-1.5 whitespace-nowrap text-muted hover:text-default"
+            >
               {{ t('nav.feed') }}
+              <PlatformPlanBadge product="posts" />
             </NuxtLink>
             <NuxtLink
               v-for="page in pageLinks"

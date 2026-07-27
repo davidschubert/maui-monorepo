@@ -16,7 +16,7 @@ const tenants = computed(() => data.value?.tenants ?? [])
 const showCreate = ref(false)
 const showAdvanced = ref(false)
 const saving = ref(false)
-const form = reactive({ name: '', host: '', mode: 'pool' as TenantMode, projectId: '', wave: 'stable' as TenantWave, plan: 'free' as TenantPlan })
+const form = reactive({ name: '', host: '', mode: 'pool' as TenantMode, projectId: '', wave: 'stable' as TenantWave, plan: 'basic' as TenantPlan })
 const modeItems = computed(() => [
   { label: t('control.tenants.mode.pool'), value: 'pool' },
   { label: t('control.tenants.mode.silo'), value: 'silo' },
@@ -27,9 +27,9 @@ const waveItems = computed(() => [
   { label: t('control.tenants.wave.stable'), value: 'stable' },
 ])
 const planItems = computed(() => [
-  { label: t('control.tenants.plan.free'), value: 'free' },
+  { label: t('control.tenants.plan.basic'), value: 'basic' },
+  { label: t('control.tenants.plan.personal'), value: 'personal' },
   { label: t('control.tenants.plan.pro'), value: 'pro' },
-  { label: t('control.tenants.plan.business'), value: 'business' },
 ])
 
 // UX: der Name führt — die Subdomain folgt live, solange der Betreiber das
@@ -47,7 +47,7 @@ function openCreate() {
   form.mode = 'pool'
   form.projectId = ''
   form.wave = 'stable'
-  form.plan = 'free'
+  form.plan = 'basic'
   hostTouched.value = false
   showAdvanced.value = false
   showCreate.value = true
@@ -65,7 +65,7 @@ async function createTenant() {
         // leer = Server nimmt den Pool-Default (maui.studio.defaultPoolProject)
         ...(form.projectId ? { projectId: form.projectId } : {}),
         ...(form.wave !== 'stable' ? { wave: form.wave } : {}),
-        ...(form.plan !== 'free' ? { plan: form.plan } : {}),
+        ...(form.plan !== 'basic' ? { plan: form.plan } : {}),
       },
     })
     toast.add({ title: t('control.tenants.created'), color: 'success' })
@@ -190,7 +190,7 @@ async function savePlanLimits(key: string) {
               <p class="font-medium">{{ tenant.name || tenant.host }}</p>
               <UBadge :color="tenant.mode === 'pool' ? 'primary' : 'neutral'" variant="subtle" size="sm">{{ tenant.mode }}</UBadge>
               <UBadge :color="tenant.status === 'active' ? 'success' : 'neutral'" variant="subtle" size="sm">{{ tenant.status }}</UBadge>
-              <UBadge v-if="tenant.mode === 'pool'" :color="tenant.plan === 'business' ? 'primary' : tenant.plan === 'pro' ? 'info' : 'neutral'" variant="subtle" size="sm">{{ t(`control.tenants.plan.${tenant.plan}`) }}</UBadge>
+              <UBadge v-if="tenant.mode === 'pool'" :color="tenant.plan === 'pro' ? 'primary' : tenant.plan === 'personal' ? 'info' : 'neutral'" variant="subtle" size="sm">{{ t(`control.tenants.plan.${tenant.plan}`) }}</UBadge>
               <UBadge v-if="tenant.mode === 'silo' && tenant.wave !== 'stable'" color="warning" variant="subtle" size="sm">{{ t(`control.tenants.wave.${tenant.wave}`) }}</UBadge>
             </div>
             <p class="mt-0.5 truncate font-mono text-sm text-muted">
@@ -234,7 +234,7 @@ async function savePlanLimits(key: string) {
         <p class="mt-1 text-sm text-muted">{{ t('control.plans.subtitle') }}</p>
         <div class="mt-4 space-y-3">
           <div v-for="plan in plansData?.plans ?? []" :key="plan.key" class="flex flex-wrap items-end gap-3" :data-plan-row="plan.key">
-            <UBadge :color="plan.key === 'business' ? 'primary' : plan.key === 'pro' ? 'info' : 'neutral'" variant="subtle" class="mb-1.5 w-20 justify-center">
+            <UBadge :color="plan.key === 'pro' ? 'primary' : plan.key === 'personal' ? 'info' : 'neutral'" variant="subtle" class="mb-1.5 w-20 justify-center">
               {{ t(`control.tenants.plan.${plan.key}`) }}
             </UBadge>
             <UFormField :label="t('control.plans.commentsPerDay')" size="sm">

@@ -8,16 +8,18 @@ export default defineAppConfig({
       /** Das geteilte Pool-Appwrite-Projekt neuer Tenants (Onboarding-Default —
        *  der Betreiber tippt nur noch Name/Host, das Projekt füllt der Server). */
       defaultPoolProject: 'pool',
-      // M8-Plan-Katalog (Check-in 2026-07-19: free/pro/business) — bewusst
-      // Code statt Table (versioniert wie theme.catalog). features = VOR
-      // requires-Schluss (moderation kommt z. B. über comments/posts mit);
-      // nur optional-tier Features (foundation ist nie entitlement-gated).
-      // lookupKey = Stripe-Price-lookup_key (billing-Muster: Test-/Live-Mode
-      // ohne Codeänderung; Preis in Stripe anlegen und Key vergeben).
+      // Plan-Katalog (P4-Rename 2026-07-26, Davids Pricing-Entscheid:
+      // Basic 0 € / Personal 29 € / Pro 149 €, jährlich −25 %; Enterprise =
+      // Studio-Angebot, KEIN Self-Service-Plan) — bewusst Code statt Table
+      // (versioniert wie theme.catalog). features = VOR requires-Schluss
+      // (moderation kommt z. B. über comments/posts mit); nur optional-tier
+      // Features (foundation ist nie entitlement-gated). lookupKey =
+      // Stripe-Price-lookup_key (scripts/stripe/ensure-prices.mjs legt die
+      // Preise an und zieht Keys bei Betragsänderung auf neue Prices um).
       plans: {
-        free: { lookupKey: null, features: ['comments'] },
-        pro: { lookupKey: 'workspace_pro_monthly', lookupKeyYearly: 'workspace_pro_yearly', features: ['comments', 'posts', 'events', 'activity', 'feedback'] },
-        business: { lookupKey: 'workspace_business_monthly', lookupKeyYearly: 'workspace_business_yearly', features: ['comments', 'posts', 'events', 'activity', 'feedback', 'courses', 'tickets', 'media'] },
+        basic: { lookupKey: null, features: ['comments', 'pages'] },
+        personal: { lookupKey: 'workspace_personal_monthly', lookupKeyYearly: 'workspace_personal_yearly', features: ['comments', 'pages', 'posts', 'activity', 'feedback'] },
+        pro: { lookupKey: 'workspace_pro_monthly', lookupKeyYearly: 'workspace_pro_yearly', features: ['comments', 'pages', 'posts', 'activity', 'feedback', 'events', 'courses', 'tickets', 'media'] },
       },
     },
     admin: {
