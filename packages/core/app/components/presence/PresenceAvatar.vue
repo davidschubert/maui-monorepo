@@ -9,21 +9,26 @@
  */
 type BadgeColor = 'primary' | 'success' | 'info' | 'warning' | 'error' | 'neutral'
 
-defineProps<{
+const props = defineProps<{
   name: string
   avatarUrl?: string
   /** Icon-Badge, z.B. 'i-ph-pencil-simple' (tippt) oder 'i-ph-arrow-bend-up-left' (antwortet) */
   icon?: string
   iconColor?: BadgeColor
 }>()
+
+// Initialen aus avatarInitials (core app/utils/avatar.ts) statt aus dem
+// eingebauten UAvatar-Fallback — der nahm das erste Zeichen jedes Wortes
+// („Lena (Coach)" → „L(", Audit-Befund S2)
+const initials = computed(() => avatarInitials(props.name))
 </script>
 
 <template>
   <UChip v-if="icon" :color="iconColor ?? 'primary'" size="3xl" position="bottom-right" inset>
-    <UAvatar :src="avatarUrl || undefined" :alt="name" />
+    <UAvatar :src="avatarUrl || undefined" :alt="name" :text="initials" />
     <template #content>
       <UIcon :name="icon" class="size-2" />
     </template>
   </UChip>
-  <UAvatar v-else :src="avatarUrl || undefined" :alt="name" />
+  <UAvatar v-else :src="avatarUrl || undefined" :alt="name" :text="initials" />
 </template>

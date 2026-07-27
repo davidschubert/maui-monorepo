@@ -48,7 +48,15 @@ async function createSite() {
   }
 }
 
+/**
+ * An/Aus läuft über USwitch (Davids UX-Regel, Audit-Befund K9) — der Schalter
+ * ist ungebunden (:model-value), die Wahrheit kommt nach dem PATCH aus dem
+ * refresh(). `pending` sperrt genau die laufende Zeile gegen Doppelklicks.
+ */
+const pending = ref<string | null>(null)
+
 async function toggleActive(site: EmbedSiteDto) {
+  pending.value = site.id
   try {
     await $fetch(`/api/admin/embed-sites/${site.id}`, { method: 'PATCH', body: { active: !site.active } })
     toast.add({ title: t(site.active ? 'comments.embedAdmin.disabled' : 'comments.embedAdmin.enabled'), color: 'success' })
@@ -56,6 +64,9 @@ async function toggleActive(site: EmbedSiteDto) {
   }
   catch {
     toast.add({ title: t('comments.embedAdmin.updateFailed'), color: 'error' })
+  }
+  finally {
+    pending.value = null
   }
 }
 
@@ -104,13 +115,14 @@ async function removeSite(site: EmbedSiteDto) {
               {{ site.targetTypes.length ? site.targetTypes.join(', ') : t('comments.embedAdmin.allTargetTypes') }}
             </p>
           </div>
-          <div class="flex items-center gap-2">
-            <UButton
-              color="neutral"
-              variant="outline"
-              size="sm"
-              :label="site.active ? t('comments.embedAdmin.disable') : t('comments.embedAdmin.enable')"
-              @click="() => toggleActive(site)"
+          <div class="flex items-center gap-3">
+            <USwitch
+              :model-value="site.active"
+              :disabled="pending === site.id"
+              :aria-label="site.active ? t('comments.embedAdmin.disable') : t('comments.embedAdmin.enable')"
+              :label="t('comments.embedAdmin.activeToggle')"
+              :data-embed-site-toggle="site.host"
+              @update:model-value="() => toggleActive(site)"
             />
             <UButton color="error" variant="soft" size="sm" icon="i-ph-trash" :aria-label="t('comments.embedAdmin.delete')" @click="() => removeSite(site)" />
           </div>
@@ -123,13 +135,13 @@ async function removeSite(site: EmbedSiteDto) {
     <template #body>
       <div class="space-y-3">
         <UFormField :label="t('comments.embedAdmin.host')" :help="t('comments.embedAdmin.hostHelp')">
-          <UInput v-model="form.host" placeholder="blog.kunde.de" class="w-full font-mono" autofocus />
+          <UInput v-model="form.host" :placeholder="t('comments.embedAdmin.hostPlaceholder')" class="w-full font-mono" autofocus />
         </UFormField>
         <UFormField :label="t('comments.embedAdmin.label')">
           <UInput v-model="form.label" class="w-full" />
         </UFormField>
         <UFormField :label="t('comments.embedAdmin.targetTypes')" :help="t('comments.embedAdmin.targetTypesHelp')">
-          <UInput v-model="form.targetTypes" placeholder="blog, page" class="w-full font-mono" />
+          <UInput v-model="form.targetTypes" :placeholder="t('comments.embedAdmin.targetTypesPlaceholder')" class="w-full font-mono" />
         </UFormField>
       </div>
     </template>

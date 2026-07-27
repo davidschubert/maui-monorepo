@@ -191,7 +191,7 @@ async function deletePage() {
         <!-- Formular -->
         <div v-if="editing" class="min-w-0 space-y-4">
           <UFormField :label="t('pages.admin.slug')" :help="t('pages.admin.slugHelp')">
-            <UInput v-model="slugInput" :disabled="!isNew" placeholder="imprint" class="w-full font-mono" />
+            <UInput v-model="slugInput" :disabled="!isNew" :placeholder="t('pages.admin.slugPlaceholder')" class="w-full font-mono" />
           </UFormField>
 
           <UTabs v-model="activeLocale" :items="localeTabs" class="w-full">

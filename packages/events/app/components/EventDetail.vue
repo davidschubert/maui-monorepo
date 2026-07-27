@@ -377,7 +377,7 @@ const start = computed(() => new Date(event.value.startAt))
           {{ event.title }}
         </h1>
         <div v-if="event.organizerName" class="mt-2 flex items-center gap-2 text-sm text-muted">
-          <UAvatar :src="initial.organizerAvatarUrl ?? undefined" :alt="event.organizerName" size="xs" />
+          <UAvatar :src="initial.organizerAvatarUrl ?? undefined" :alt="event.organizerName" :text="avatarInitials(event.organizerName)" size="xs" />
           <span>{{ t('events.detail.organizer', { name: event.organizerName }) }}</span>
         </div>
 
@@ -414,7 +414,7 @@ const start = computed(() => new Date(event.value.startAt))
             :key="attendee.userId"
             class="flex items-center gap-2 rounded-lg border border-default p-2"
           >
-            <UAvatar :src="attendee.avatarUrl ?? undefined" :alt="attendee.name" size="sm" />
+            <UAvatar :src="attendee.avatarUrl ?? undefined" :alt="attendee.name" :text="avatarInitials(attendee.name)" size="sm" />
             <span class="truncate text-sm">{{ attendee.name }}</span>
           </div>
         </div>
