@@ -24,10 +24,15 @@ import tls from 'node:tls'
 
 /** Öffentliche Hosts der Zone. Neue Kunden-Subdomains sind von der Wildcard
  *  gedeckt und müssen hier NICHT eingetragen werden — nur eigenständige
- *  Namen (Apex) und Hosts mit eigenem Zertifikat. */
+ *  Namen (Apex) und Hosts mit eigenem Zertifikat.
+ *
+ *  `ip` = gegen den URSPRUNG prüfen (SNI-Handshake auf die feste IP, an der
+ *  DNS vorbei). Ohne `ip` wird der Name normal aufgelöst — das ist der Weg
+ *  für Hosts, die proxied über Cloudflare laufen und am Ursprung bewusst
+ *  KEIN eigenes Zertifikat haben (Apex, seit 2026-07-27). */
 const HOSTS = [
-  { host: 'pukalani.app', ip: '49.13.211.173', note: 'Landing (Apex — die Wildcard deckt ihn NICHT ab!)' },
-  { host: 'www.pukalani.app', ip: '49.13.211.173', note: 'Landing' },
+  { host: 'pukalani.app', note: 'Landing (Apex — proxied über Cloudflare, am Ursprung BEWUSST ohne Zertifikat)' },
+  { host: 'www.pukalani.app', ip: '49.13.211.173', note: 'Landing am Ursprung (von der Wildcard gedeckt)' },
   { host: 'control.pukalani.app', ip: '49.13.211.173', note: 'Control Plane' },
   { host: 'comments.pukalani.app', ip: '49.13.211.173', note: 'Silo-Kunde' },
   { host: 'portfolio.pukalani.app', ip: '49.13.211.173', note: 'Silo-Kunde' },
@@ -55,7 +60,7 @@ function sanCovers(san, host) {
 function peerCert(host, ip) {
   return new Promise((resolve) => {
     const socket = tls.connect({
-      host: ip, port: 443, servername: host, timeout: 10_000,
+      host: ip ?? host, port: 443, servername: host, timeout: 10_000,
       // Wir wollen das Zertifikat auch dann SEHEN, wenn es nicht passt —
       // die Bewertung machen wir selbst und mit klarer Fehlermeldung.
       rejectUnauthorized: false,
@@ -101,10 +106,12 @@ for (const { host, ip, note } of HOSTS) {
 if (failures.length) {
   console.error(`\n✗ ${failures.length} Host(s) kaputt:`)
   for (const f of failures) console.error(`  · ${f}`)
-  console.error('\nWahrscheinlichste Ursache: eine Zertifikats-Anforderung in ploi hat die')
-  console.error('geteilte Lineage /etc/letsencrypt/live/pukalani.app/ überschrieben.')
-  console.error('Reparatur: EIN Zertifikat mit "pukalani.app,*.pukalani.app" anfordern')
-  console.error('(Subdomains NICHT mit auflisten — Let\'s Encrypt lehnt sie als redundant ab).')
+  console.error('\nWahrscheinlichste Ursache bei einem *.pukalani.app-Host: eine Zertifikats-')
+  console.error('Anforderung in ploi hat die geteilte Lineage /etc/letsencrypt/live/pukalani.app/')
+  console.error('überschrieben. Reparatur: auf der ploi-Site platform.pukalani.app den Eintrag')
+  console.error('löschen und "*.pukalani.app" per DNS-Prüfung neu anfordern.')
+  console.error('Beim Apex dagegen liegt es NICHT am Ursprung — er läuft proxied über')
+  console.error('Cloudflare (Zonen-Modus "Full", gepinnt) und hat dort bewusst kein Zertifikat.')
   console.error('Details: docs/content/2.architektur/6.hosts-und-ports.md')
   process.exit(1)
 }

@@ -129,9 +129,16 @@ Vollständiges Konzept: docs/CONCEPT.md
   Aliase/Wildcards, deshalb IMMER DNS-01 über Cloudflare. (2) ploi leitet den
   certbot-Lineage-Namen aus der BASIS-Domain ab: die ganze Zone teilt
   `/etc/letsencrypt/live/pukalani.app/`, jede Anforderung ÜBERSCHREIBT sie.
-  Also EIN Zertifikat mit Apex + Wildcard (`pukalani.app,*.pukalani.app`);
-  Subdomains wie `www`/`platform` dürfen NICHT mit rein (LE: „redundant with
-  a wildcard"). Details + Prüfbefehl: docs/content/2.architektur/6.hosts-und-ports.md
+  Ein gemeinsames Apex+Wildcard-Zertifikat ist über ploi NICHT herstellbar
+  (ploi fordert nur die Domains DER SITE an und filtert Fremdnamen raus).
+  Deshalb seit 2026-07-27: `pukalani.app` läuft als EINZIGER Host der Zone
+  **proxied** über Cloudflare (Zonen-Modus fest „Full", Automatik AUS) und
+  braucht am Ursprung KEIN Zertifikat; alle anderen Hosts leben vom Wildcard
+  `*.pukalani.app`. VERBOTEN: „Add certificate"/„Force-renew" auf der
+  ploi-Site `pukalani.app` — das überschreibt das Kunden-Wildcard. Neu
+  anfordern nur auf der Site `platform.pukalani.app` mit `*.pukalani.app`.
+  Wächter `node scripts/ops/verify-tls.mjs` (alle 30 min + nach jedem Deploy).
+  Details: docs/content/2.architektur/6.hosts-und-ports.md
 - Neue Namen IMMER in RESERVED_SUBDOMAINS (packages/control/schemas/tenant.ts),
   sonst kann ein Selbstbedienungs-Kunde sie beantragen.
 
