@@ -1,8 +1,11 @@
-# Nutzersicht-Rundgang Pool-Vier — konsolidierte Kanten (2026-07-27)
+# Pool-Audit 2026-07-27 — Nutzersicht der Pool-Vier (konsolidierte Befunde)
 
 Bilanz-Schritt 2. Vier read-only-Agenten (Live-Gast auf demo.pukalani.app,
 Code-Kanten, i18n/Wording, Layout-Analyse), danach Gegencheck jeder
 kritischen Behauptung im Hauptstrang. Fixes NUR nach Davids Priorisierung.
+
+Begriffe (Davids Festlegung): der Vorgang heißt **Audit**, die Einträge
+heißen **Findings/Befunde**.
 
 ## Gegencheck-Ergebnisse (wichtig — nicht alles stimmte)
 
@@ -21,7 +24,7 @@ kritischen Behauptung im Hauptstrang. Fixes NUR nach Davids Priorisierung.
 
 ## BLOCKER (aus Kundensicht nicht verkaufbar)
 
-| # | Kante | Ort/Ursache |
+| # | Befund | Ort/Ursache |
 | --- | --- | --- |
 | B1 | canonical/hreflang/og:url aller Tenant-Seiten zeigen auf platform.pukalani.app — Google indexiert die Kundendomain nicht, Sprachlinks führen zum falschen Host | i18n.baseUrl statisch aus Env; muss im Pool pro Request-Host aufgelöst werden |
 | B2 | 404 = rohes JSON statt gebrandeter Fehlerseite (auch /impressum, /robots.txt, /sitemap.xml) | Fehler schlägt vor dem Vue-Renderer auf; Diagnose beim Fix |
@@ -29,7 +32,7 @@ kritischen Behauptung im Hauptstrang. Fixes NUR nach Davids Priorisierung.
 
 ## STÖREND
 
-| # | Kante | Anmerkung |
+| # | Befund | Anmerkung |
 | --- | --- | --- |
 | S1 | Register-Sackgasse: Login verlinkt „Register", die ohne Invite-Code nirgends hinführt | Produktentscheidung: Hinweis/Code-Feld oder Link ausblenden |
 | S2 | Avatar-Initialen „L(" bei „Lena (Coach)" — Initialen-Logik nimmt 1. Zeichen jedes Wortes | core-Avatar-Utility |
@@ -44,7 +47,7 @@ kritischen Behauptung im Hauptstrang. Fixes NUR nach Davids Priorisierung.
 
 ## KOSMETIK
 
-| # | Kante |
+| # | Befund |
 | --- | --- |
 | K1 | Demo-Banner ist handgebautes div statt `UBanner` (Nuxt UI 4.10) — Davids Regel: offizielle Komponenten |
 | K2 | favicon 78-Byte-Platzhalter, kein apple-touch-icon/theme-color je Tenant |
