@@ -1,0 +1,20 @@
+{
+  "docs": {
+    "siteName": "Pukalani Help",
+    "toWebsite": "Go to pukalani.app",
+    "toc": "On this page",
+    "sections": {
+      "anleitung": "Guide",
+      "entwickler": "Developers"
+    },
+    "search": {
+      "placeholder": "Search the help …"
+    },
+    "footer": {
+      "credits": "Pukalani · {year} · Hosted in Germany",
+      "website": "Website",
+      "imprint": "Imprint",
+      "privacy": "Privacy"
+    }
+  }
+}
