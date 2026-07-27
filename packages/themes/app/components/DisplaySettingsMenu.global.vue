@@ -18,6 +18,17 @@ const capitalize = (value: string) => value.charAt(0).toUpperCase() + value.slic
 // zeigt die aktive Wahl (Name + Swatch) und öffnet den Picker.
 const pickerOpen = ref(false)
 
+// Der Grid-Picker wird ERST beim ersten Öffnen gemountet (Audit-Befund K4):
+// dieses Menü steht in jedem öffentlichen Header (auch auf /login), das Modal
+// samt Reka-Dialog-Maschinerie landete damit im Preload jeder Seite — obwohl
+// die allermeisten Besucher es nie öffnen. `pickerMounted` geht nur EINMAL auf
+// true und nie zurück: ein offenes Modal per v-if zu unmounten ist die bekannte
+// Reka-Falle (Teleport + Fokus-Falle bleiben zurück).
+const pickerMounted = ref(false)
+watch(pickerOpen, (open) => {
+  if (open) pickerMounted.value = true
+})
+
 const items = computed<SwatchItem[][]>(() => {
   const activeColor = variant.value
     ? theme.value.variants.find(v => v.id === variant.value)?.color ?? theme.value.color
@@ -82,6 +93,7 @@ const items = computed<SwatchItem[][]>(() => {
     </template>
   </UDropdownMenu>
   <!-- Grid-Picker lebt NEBEN dem Dropdown (nicht darin): das Dropdown schließt
-       beim Klick, das Modal bleibt eigenständig offen (Reka-Teleport) -->
-  <ThemePickerModal v-model:open="pickerOpen" />
+       beim Klick, das Modal bleibt eigenständig offen (Reka-Teleport).
+       Lazy + v-if: der Chunk kommt erst beim ersten Öffnen (K4). -->
+  <LazyThemePickerModal v-if="pickerMounted" v-model:open="pickerOpen" />
 </template>

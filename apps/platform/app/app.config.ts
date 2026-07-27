@@ -41,7 +41,10 @@ export default defineAppConfig({
     // den Request bekommen hat. Diese App bedient JEDEN Mandanten-Host plus die
     // Kontroll-Hosts — mit der einen Env-Basis (NUXT_PUBLIC_I18N_BASE_URL)
     // zeigten sie überall auf platform.pukalani.app (Audit-Befund B1).
-    seo: { originFromRequest: true },
+    // Bildmarke je Community (K2): jeder Mandanten-Host bekommt ein eigenes
+    // Favicon (Kreis in seiner Theme-Farbe + Initial) aus /favicon.svg statt
+    // des Nitro-Platzhalters, dazu theme-color in derselben Farbe.
+    seo: { originFromRequest: true, tenantFavicon: true },
     // DIE Multi-Tenant-App (Horizont 3): das Tenant-Gate ist hier AN — die
     // Middleware 00.tenant.ts (core) löst jeden Request-Host über den in
     // server/plugins/tenant-resolver.ts registrierten Resolver auf.

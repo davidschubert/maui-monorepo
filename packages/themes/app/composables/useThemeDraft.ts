@@ -198,12 +198,12 @@ export function useThemeDraft() {
   watch([draft, ramp], () => {
     if (import.meta.server) return
     const html = document.documentElement
-    let styleEl = document.getElementById('maui-draft-theme') as HTMLStyleElement | null
+    let styleEl = document.getElementById('pk-draft-theme') as HTMLStyleElement | null
     if (draft.value && ramp.value) {
       previewActive = true
       if (!styleEl) {
         styleEl = document.createElement('style')
-        styleEl.id = 'maui-draft-theme'
+        styleEl.id = 'pk-draft-theme'
         document.head.appendChild(styleEl)
       }
       styleEl.textContent = customThemeCss({ id: 'draft', name: 'Draft', primary: draft.value.primary, order: 0, config: draftConfig() }, 'c-draft')
@@ -225,7 +225,7 @@ export function useThemeDraft() {
   }, { deep: true })
   onScopeDispose(() => {
     if (import.meta.server) return
-    document.getElementById('maui-draft-theme')?.remove()
+    document.getElementById('pk-draft-theme')?.remove()
     if (previewActive) applyActiveThemeAttrs()
   })
 
