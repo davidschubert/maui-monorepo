@@ -8,7 +8,7 @@ const { t } = useI18n()
 const toast = useToast()
 useHead({ title: () => t('control.tenants.title') })
 
-interface TenantDto { id: string, name: string, host: string, mode: TenantMode, projectId: string, tenantId: string, status: TenantStatus, wave: TenantWave, plan: TenantPlan }
+interface TenantDto { id: string, name: string, host: string, mode: TenantMode, projectId: string, tenantId: string, status: TenantStatus, wave: TenantWave, plan: TenantPlan, openRegistration: boolean }
 
 const { data, refresh } = await useFetch<{ total: number, tenants: TenantDto[] }>('/api/control/tenants', { lazy: true, server: false })
 const tenants = computed(() => data.value?.tenants ?? [])
@@ -116,6 +116,24 @@ async function toggleStatus(tenant: TenantDto) {
   }
 }
 
+/**
+ * S1: Mitglieder-Registrierung der Community. Der Schalter GEHÖRT der Kundin
+ * (/dashboard/settings/community auf ihrem Host) — hier steht er als
+ * Support-Weg, weil der Kunden-Pfad eine aktive site_members-Rolle verlangt
+ * und ein Betreiber die bewusst nicht hat.
+ */
+async function toggleOpenRegistration(tenant: TenantDto, openRegistration: boolean) {
+  try {
+    await $fetch(`/api/control/tenants/${tenant.id}`, { method: 'PATCH', body: { openRegistration } })
+    toast.add({ title: t('control.tenants.updated'), color: 'success' })
+    await refresh()
+  }
+  catch {
+    toast.add({ title: t('control.tenants.updateFailed'), color: 'error' })
+    await refresh()
+  }
+}
+
 async function removeTenant(tenant: TenantDto) {
   try {
     await $fetch(`/api/control/tenants/${tenant.id}`, { method: 'DELETE' })
@@ -214,6 +232,14 @@ async function savePlanLimits(key: string) {
               size="sm"
               :aria-label="t('control.tenants.waveLabel')"
               @update:model-value="(wave) => changeWave(tenant, wave as TenantWave)"
+            />
+            <USwitch
+              :model-value="tenant.openRegistration"
+              size="sm"
+              :label="t('control.tenants.openRegistration')"
+              :aria-label="t('control.tenants.openRegistration')"
+              :data-tenant-open-registration="tenant.openRegistration"
+              @update:model-value="(open: boolean) => toggleOpenRegistration(tenant, open)"
             />
             <UButton
               color="neutral"

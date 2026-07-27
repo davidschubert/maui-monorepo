@@ -223,6 +223,8 @@
       "createFailed": "Could not create tenant",
       "enabled": "Tenant enabled",
       "disabled": "Tenant disabled",
+      "updated": "Tenant updated",
+      "openRegistration": "Open registration",
       "updateFailed": "Could not update tenant",
       "deleted": "Tenant deleted",
       "deleteFailed": "Could not delete tenant",

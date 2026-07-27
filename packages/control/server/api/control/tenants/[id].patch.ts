@@ -1,5 +1,5 @@
 import { tenantStatusSchema } from '../../../../schemas/tenant'
-import { TENANTS_TABLE, type TenantRow } from '../../../../shared/types/tenantRecord'
+import { TENANTS_TABLE, resolveTenantOpenRegistration, type TenantRow } from '../../../../shared/types/tenantRecord'
 
 /** Betreiber: Tenant an/aus (disabled → Resolver liefert null → Host 404;
  *  greift durch den Resolver-Cache spätestens nach 30 s) und/oder
@@ -20,7 +20,8 @@ export default defineEventHandler(async (event) => {
       ...(body.status !== undefined ? { status: body.status } : {}),
       ...(body.wave !== undefined ? { wave: body.wave } : {}),
       ...(body.plan !== undefined ? { plan: body.plan } : {}),
+      ...(body.openRegistration !== undefined ? { openRegistration: body.openRegistration } : {}),
     },
   }).catch((error) => { throw toH3Error(error, 'Could not update tenant') })
-  return { id: row.$id, status: row.status, wave: row.wave, plan: row.plan }
+  return { id: row.$id, status: row.status, wave: row.wave, plan: row.plan, openRegistration: resolveTenantOpenRegistration(row.openRegistration) }
 })

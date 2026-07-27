@@ -132,7 +132,11 @@ export const tenantStatusSchema = z.object({
   status: z.enum(['active', 'disabled']).optional(),
   wave: z.enum(TENANT_WAVES).optional(),
   plan: z.enum(TENANT_PLANS).optional(),
+  /** S1: Mitglieder-Registrierung der Community. Gehört fachlich der Kundin
+   *  (Dashboard-Schalter), steht hier aber ebenfalls — sonst hätte der
+   *  Betreiber im Support-Fall keinen Weg an einen zugemachten Mandanten. */
+  openRegistration: z.boolean().optional(),
 }).strict().refine(
-  body => body.status !== undefined || body.wave !== undefined || body.plan !== undefined,
+  body => body.status !== undefined || body.wave !== undefined || body.plan !== undefined || body.openRegistration !== undefined,
   'empty patch',
 )

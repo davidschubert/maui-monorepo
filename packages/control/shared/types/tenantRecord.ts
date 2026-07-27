@@ -53,6 +53,24 @@ export const TENANT_AUDIENCES = ['members', 'public'] as const
 export type TenantAudience = (typeof TENANT_AUDIENCES)[number]
 
 /**
+ * PURE (unit-getestet): darf sich jeder auf dieser Community-Site ein Konto
+ * anlegen? (studio-018) — FAIL-OPEN, und das ist hier Absicht.
+ *
+ * Nur der exakte Wert `false` schließt die Registrierung. `null` (Rows von vor
+ * studio-018 — Appwrite backfillt Spalten-Defaults nicht) und `undefined`
+ * bedeuten „nie etwas entschieden" und behalten das bisherige Verhalten:
+ * offen. Default AN ist Davids Entscheidung 4 (2026-07-27, Audit-Befund S1).
+ *
+ * Bewusster Gegensatz zu resolveTenantAudience(), das fail-CLOSED liest: dort
+ * hängt eine Datenschutzgrenze an der Spalte, hier eine Produktentscheidung.
+ * Eine Bestands-Community stillschweigend zuzumachen wäre der Schaden — nicht
+ * eine offene Community offen zu lassen.
+ */
+export function resolveTenantOpenRegistration(value: boolean | null | undefined): boolean {
+  return value !== false
+}
+
+/**
  * PURE (unit-getestet): das Lese-Publikum einer Row auflösen — FAIL-CLOSED.
  *
  * Nur der exakte Wert `'public'` öffnet eine Site. Alles andere (`null` bei
@@ -108,6 +126,10 @@ export interface TenantRow extends Models.Row {
   /** Einladungs-Code, mit dem diese Community entstanden ist (Abuse-Spur);
    *  '' = ohne Code angelegt (Betreiber-Weg im Control). */
   inviteCodeId: string
+  /** Mitglieder-Registrierung offen? (studio-018, S1/Entscheidung 4). `null`
+   *  bei Rows von VOR der Migration — IMMER über
+   *  resolveTenantOpenRegistration() lesen, nie direkt vergleichen. */
+  openRegistration: boolean | null
 }
 
 export const TENANTS_TABLE = 'tenants'
