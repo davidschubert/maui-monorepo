@@ -8,8 +8,7 @@ definePageMeta({ layout: 'auth', middleware: 'guest' })
 // meistgebookmarkte Seite eines Mandanten — der Tab/Lesezeichen-Name muss den
 // Community-Namen tragen, nicht leer bleiben.
 const { t } = useI18n()
-const brand = useBrandName()
-useHead({ title: () => t('ui.metaTitle', { page: t('auth.login.title'), brand: brand.value }) })
+useBrandTitle(() => t('auth.login.title'))
 </script>
 
 <template>

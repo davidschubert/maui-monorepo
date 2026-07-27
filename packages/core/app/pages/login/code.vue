@@ -13,8 +13,7 @@ if (appConfig.maui?.auth?.otp !== true) {
 }
 
 // Seitentitel „Mit Code anmelden · <Brand>" — gleiche Kette wie /login (B3).
-const brand = useBrandName()
-useHead({ title: () => t('ui.metaTitle', { page: t('auth.otp.title'), brand: brand.value }) })
+useBrandTitle(() => t('auth.otp.title'))
 </script>
 
 <template>
