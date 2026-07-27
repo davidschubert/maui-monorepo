@@ -1,4 +1,4 @@
-import type { AppConfig } from '../../shared/types/config'
+import type { PublicAppConfig } from '../../shared/types/config'
 
 /**
  * Initiales Befüllen der Laufzeit-Flags: serverseitig einmal /api/config holen
@@ -10,7 +10,7 @@ export default defineNuxtPlugin(async () => {
   if (!import.meta.server) return
   const flags = useRuntimeFlags()
   try {
-    flags.value = await $fetch<AppConfig>('/api/config')
+    flags.value = await $fetch<PublicAppConfig>('/api/config')
   }
   catch {
     // permissive Defaults beibehalten

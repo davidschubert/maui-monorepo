@@ -6,7 +6,14 @@
  * Nuxt-Payload zum Client reist. Kein Tenant (Silo/Control-Host) → null,
  * der Header fällt auf maui.brand.name zurück.
  *
- * Bewusst NUR der Name — projectId/tenantId/plan bleiben serverseitig.
+ * SPIEGEL-INVENTAR (Audit-Befund K5 — beim Erweitern mitpflegen!): dieser
+ * State reist im __NUXT__-Payload JEDER Seite mit, auch unauthentifiziert.
+ * Es wird deshalb GENAU gespiegelt, was clientseitig gelesen wird:
+ *   - `name` → useTenantBrand() → useBrandName() (öffentlicher Header)
+ *   - `plan` → useTenantPlan().planAllows() (Produkt-Sichtbarkeit in Nav/Badges)
+ * NICHT gespiegelt (kein Client-Leser): projectId, tenantId, siteId, limits,
+ * mode, theme/variant (die reisen als <html>-Attribute, nicht als Daten).
+ * Neues Feld hier hinein nur MIT nachgewiesenem Client-Leser.
  */
 export default defineNuxtPlugin(() => {
   const event = useRequestEvent()

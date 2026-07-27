@@ -1,5 +1,5 @@
 import type { AppwriteRow } from '../../shared/types/appwrite'
-import { parseFeaturesColumn, type AppConfig } from '../../shared/types/config'
+import { parseFeaturesColumn, type PublicAppConfig } from '../../shared/types/config'
 
 /**
  * Propagiert Änderungen der Laufzeit-Flags (app_config/global) live an alle
@@ -16,7 +16,7 @@ export default defineNuxtPlugin(() => {
   const flags = useRuntimeFlags()
   const scope = effectScope(true)
   scope.run(() => {
-    useRealtimeRows<AppwriteRow & { features?: string } & Partial<Omit<AppConfig, 'features'>>>(
+    useRealtimeRows<AppwriteRow & { features?: string } & Partial<Omit<PublicAppConfig, 'features'>>>(
       config.public.appwriteDatabaseId,
       'app_config',
       (event) => {
@@ -26,8 +26,10 @@ export default defineNuxtPlugin(() => {
           maintenanceMode: event.payload.maintenanceMode ?? flags.value.maintenanceMode,
           // features-Spalte reist als JSON-String im Row-Payload mit (system-018)
           features: 'features' in event.payload ? parseFeaturesColumn(event.payload.features) : flags.value.features,
-          // Entitlement-Dokument ist Server-Sache (featureGates) — Client trägt es nur durch
-          entitlementsDoc: flags.value.entitlementsDoc,
+          // KEIN entitlementsDoc (K5): das Dokument ist Server-Sache
+          // (featureGates) und darf den Client-State nicht betreten. Die
+          // Row-Spalte `entitlements` reist im Realtime-Event zwar mit
+          // (app_config ist read:any, system-005) — wir lesen sie nicht.
         }
       },
     )
