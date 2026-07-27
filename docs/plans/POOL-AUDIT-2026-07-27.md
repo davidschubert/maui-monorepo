@@ -48,7 +48,7 @@ bekommt bewusst JSON (Nuxt-Heuristik für API-Clients — Browser/Crawler HTML).
 | ✅ S3 | Deutsche CMS-Texte verlinken EN-Routen (/feed statt /de/feed), dazu nofollow + harter Reload auf interne Links | pages-Renderer: interne Links lokalisieren + als Client-Navigation |
 | S4 | Seed-Inhalte nur deutsch — EN-Besucher sieht „zweisprachig" nur bei Buttons | Demo-Content-Entscheidung (zweisprachige Seeds?) |
 | ✅¹ S5 | Keine meta description/og:title/og:image auf Tenant-Seiten — geteilte Links nackt | ¹ Basis behoben: Titel-Muster (useBrandTitle) + description/og:description aus CMS-Excerpt bzw. Feed-Text. OFFEN: og:image (Design-Entscheidung) |
-| S6 | robots.txt + sitemap.xml fehlen auf Tenant-Hosts | Feature-Entscheidung (pro Tenant generieren) |
+| ✅ S6 | robots.txt + sitemap.xml fehlen auf Tenant-Hosts | Server-Routen der platform-App, PRO HOST: Tenant = Allow + Sitemap auf die eigene Origin; Sitemap aus echten Daten (Startseite + veröffentlichte CMS-Slugs über `tenantDb`, `/feed` nur wenn der Plan `posts` erlaubt) + hreflang de/en. Kontroll-Hosts (my./start.) = `Disallow: /` und sitemap 404 |
 | S7 | Footer ohne Impressum/Datenschutz-Links; /impressum 404 auf demo | rechtlich relevant für DE-Kunden; CMS-Seiten + legalLinks je Tenant |
 | ✅ S8 | Titel „Feed"/„About me" ohne Community-Namen, EN=DE titelgleich | Titel-Muster „Seite · Tenant" |
 | S9 | Layout-Drift: comments-Layout hartcodiert Brand „Hawaii Studio" (ignoriert Tenant-Kette); toter legalLinks-Footer in platform; 3 Bauweisen für Nav/Sprache/Footer | Konsolidierung ins blueprint-Layout (Analyse liegt vor, 3 Geschmacksfragen bei David) |
@@ -94,7 +94,7 @@ den _template-Anleitungstext LIVE auf Tenant-Startseiten und my./start. aus).
 Suite: 18 Layer konsistent, alle Layer-Tests grün (core 221), Parität 23/23.
 
 Weiter OFFEN: S1 Register-Sackgasse (Produktentscheidung) · S4 zweisprachige
-Demo-Seeds (Entscheidung) · S6 robots/sitemap je Tenant · S7 Impressum/
+Demo-Seeds (Entscheidung) · S7 Impressum/
 Datenschutz je Tenant + Footer · S9 Layout-Konsolidierung (3 Geschmacksfragen
 bei David) · og:image (S5-Rest) · K2 Favicon je Tenant · K3 interne Namen im
 DOM · K4 Bundling der Login-Seite · K5 __NUXT__-Payload · K6 Unterstrich-
