@@ -4,23 +4,30 @@
 // über das Config-Gate maui.demo.hosts (leer = Banner existiert nicht) —
 // bewusst KEIN Tenant-Feld: der Demo-Status ist eine Deployment-Aussage
 // dieser App, kein Datenmodell des Control Plane.
+//
+// Optik: offizielles UBanner (Audit K1) — wie CoreAuthEmailVerifyBanner.
+// BEWUSST kein close/keine UBanner-id: der Hinweis ist eine Eigenschaft des
+// Hosts und darf nicht per localStorage dauerhaft wegklickbar sein.
+const { t } = useI18n()
 const appConfig = useAppConfig()
 const host = useRequestURL().host
 const demo = computed(() => (appConfig.maui as { demo?: { hosts?: string[], ctaUrl?: string } }).demo)
 const isDemo = computed(() => (demo.value?.hosts ?? []).includes(host))
+
+// CTA in den Self-Service-Trichter (absolute URL → ULink rendert ein
+// externes <a>, gleiches Verhalten wie der frühere handgebaute Link).
+const actions = computed(() => (demo.value?.ctaUrl
+  ? [{ label: t('demo.cta'), to: demo.value.ctaUrl, variant: 'subtle' as const }]
+  : undefined))
 </script>
 
 <template>
-  <div
+  <UBanner
     v-if="isDemo"
-    class="bg-primary-100 dark:bg-primary-950 text-primary-900 dark:text-primary-100 text-sm text-center px-4 py-1.5"
-  >
-    <UIcon name="i-ph-sun-horizon" class="inline-block size-4 align-text-bottom" aria-hidden="true" />
-    {{ $t('demo.banner') }}
-    <a
-      v-if="demo?.ctaUrl"
-      :href="demo.ctaUrl"
-      class="underline underline-offset-2 font-medium"
-    >{{ $t('demo.cta') }}</a>
-  </div>
+    icon="i-ph-sun-horizon"
+    color="primary"
+    :title="t('demo.banner')"
+    :actions="actions"
+    data-testid="demo-banner"
+  />
 </template>

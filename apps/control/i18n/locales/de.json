@@ -1,6 +1,6 @@
 {
   "app": {
-    "tagline": "Neue Maui-App"
+    "tagline": "Betreiber-Oberfläche von Pukalani"
   },
   "legal": {
     "imprint": "Impressum",
@@ -8,6 +8,6 @@
     "privacy": "Datenschutz"
   },
   "home": {
-    "subtitle": "Diese App wurde aus apps/_template erstellt — Branding, Seiten und Config-Gates anpassen."
+    "subtitle": "Sites, Workspaces und Mandanten der Plattform verwalten — weiter im Dashboard."
   }
 }

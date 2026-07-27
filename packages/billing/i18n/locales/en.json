@@ -27,7 +27,7 @@
       "subtitle": "Your plan, invoices and payment method.",
       "manage": "Manage subscription",
       "upgrade": "Upgrade",
-      "freeText": "You are on the free plan — the essentials are included.",
+      "freeText": "You are on the free Basic plan — the essentials are included.",
       "renewsAt": "Renews on {date}",
       "endsAt": "Ends on {date}",
       "pastDueHint": "Your last payment failed — please update your payment method.",
@@ -53,7 +53,7 @@
       "paused": "Paused"
     },
     "plans": {
-      "free": "Free",
+      "free": "Basic",
       "pro": "Pro",
       "proDescription": "For everyone who wants more.",
       "freeDescription": "The free starting point."
