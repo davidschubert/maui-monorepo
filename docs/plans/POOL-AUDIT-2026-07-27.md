@@ -59,9 +59,9 @@ bekommt bewusst JSON (Nuxt-Heuristik für API-Clients — Browser/Crawler HTML).
 | # | Befund |
 | --- | --- |
 | ✅ K1 | Demo-Banner ist handgebautes div statt `UBanner` (Nuxt UI 4.10) — Davids Regel: offizielle Komponenten |
-| K2 | favicon 78-Byte-Platzhalter, kein apple-touch-icon/theme-color je Tenant |
-| K3 | interne Produktnamen im DOM (id="maui-theme-css") |
-| K4 | Login lädt changelog.css + ~68 Chunks (Bundling unaufgeräumt) |
+| ✅ K2 | favicon 78-Byte-Platzhalter, kein apple-touch-icon/theme-color je Tenant |
+| ✅ K3 | interne Produktnamen im DOM (id="maui-theme-css") |
+| ✅¹ K4 | Login lädt changelog.css + ~68 Chunks (Bundling unaufgeräumt) |
 | ✅ K5 | __NUXT__-Payload der Login-Seite enthält Plan/entitlementsDoc im Klartext |
 | ✅ K6 | Markdown mit Unterstrich-Betonung wird nicht gerendert (_…_ sichtbar) |
 | ✅ K7 | Sprachwechsler „DE / EN" wirkt wie Debug-Element (kein Label/aria) |
@@ -128,3 +128,36 @@ NEUE Befunde aus der Nacht (offen):
 - N4: Demo indexierbar? (S6) Produktfrage David.
 - N5: Paid-Events im Pool fail-closed bis Webhook Mandanten stempelt;
   Site-Owner-Eventverwaltung braucht requireSitePermission-Verdrahtung.
+
+## P10-Bilanz (2026-07-28) — das Audit ist damit ABGESCHLOSSEN
+
+Behoben: N1 (Site-Rollen gespiegelt, Dashboard-Zugang + gefilterte Nav fuer
+Owner, 30/30-E2E — die Kunden-Selbstverwaltungs-Kette ist komplett) · N2
+(entitlements in app_secrets mit leeren Permissions, 2-Wege-Read, Altspalte
+wird aktiv geleert; Nebenfund behoben: system-Migrationen waren seit 019 auf
+Bestandsinstanzen nicht mehr idempotent; system-020 auf allen 4 Prod-Instanzen
+angewendet) · N5a (Events-Verwaltung via requireSitePermission/events.manage,
+20/20 Pool + 7/7 Silo; N5b fail-closed per Test genagelt) · K2 (Bildmarke je
+Community: Theme-Farbe + Initial, gegated, Silo unveraendert) · K3 (pk-Ids;
+Cookies/postMessage-Vertraege bewusst unangetastet) · K4¹ (ehrlich vermessen:
+Chunks = normales Nuxt-Prefetch; ein Hebel umgesetzt −3 Preload-Chunks;
+groessere Hebel als Entscheidungen dokumentiert). Dazu ausserhalb des Audits:
+apps/help (freigegeben, Deploy-Kette offen) + control.pukalani.app/docs
+(interne Doku hinter Betreiber-Auth inkl. Content-API-Guard + Prerender-Falle).
+
+NEUE Befunde aus P10 (offen):
+- N6: Default-Theme heisst im Kunden-Picker sichtbar "Maui" — Namensentscheidung David.
+- N7: /changelog antwortet auf Tenant-Hosts 200 (Betreiber-Changelog fuer
+  Kunden-Besucher erreichbar) — Scope-Entscheidung, Route gaten oder oeffnen.
+- N8: Owner-Overview zeigt Nullwerte (Stats-Routen Operator-only) —
+  Folgeschritt tenant-gescopte Stats via requireSitePermission.
+- N9: Theme-Studio verlangt system.manage — duerfen Owner ihre Themes selbst
+  waehlen? (Davids Erscheinungs-Prinzip spricht dafuer.)
+- K4-Hebel (Entscheidungen): Appwrite-Web-SDK dynamisch laden (72 kB Entry,
+  eigenes Paket, Realtime-E2E noetig) · prefetch-Hints filtern (groesster
+  Hebel, kostet Navigations-Vorsprung) · Legacy-Spalten-Drop system-021
+  (erst wenn ALLE Instanzen neuen Code fahren).
+
+WEITER OFFEN (David): N3 Baselines sichten · N4 Demo indexierbar? ·
+Netto/Brutto · og:image-Design · help.pukalani.app-Host bestaetigen +
+Deploy-Kette · apps/control/.env.production zeigt noch auf studio (Altlast).
