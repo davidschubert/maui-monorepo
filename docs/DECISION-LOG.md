@@ -412,3 +412,23 @@ die sonst nirgends stehen — kein Ersatz für die `plans/*`-Detaildokumente ode
 die Git-Historie. Format je Eintrag: **Kategorie: Titel** (Entscheidung /
 Korrektur / Änderung / Befund / Doku / Idee) + 2–4 Sätze „warum", inkl.
 verworfener Alternative, mit Verweis auf Commit/Doc.
+
+## 2026-07-27 — Audit-Folgeentscheidungen (David, per Klick-Fragen)
+
+1. **Header-Nav (S9):** Inline-Reihe mit Überlauf (ab ~5 Einträgen Mehr-Dropdown).
+2. **Sprach-UI (S9):** DisplaySettingsMenu überall (marketing behält den
+   schlanken Switcher — kein themes-Layer).
+3. **Footer (S9):** Brand + legalLinks + optionaler Changelog-Link, aus Config.
+4. **Mitglieder-Registrierung (S1):** pro Community schaltbar (USwitch „Offene
+   Registrierung", Default AN); Invite-Code bleibt nur fürs GRÜNDEN.
+   Übergang: ehrlicher Hinweis auf der Register-Seite.
+5. **Rechtstexte je Community (S7):** der Kunde pflegt Impressum/Datenschutz
+   als CMS-Seiten; Vorlagen beim Onboarding; Footer verlinkt sie. Demo
+   Morgenlicht verlinkt auf das pukalani.app-Impressum.
+6. **Demo-Seeds (S4):** ZWEISPRACHIG ausbauen (Davids Wahl, bewusst gegen die
+   Empfehlung „so lassen") — EN-Besucher sollen englische Beispiele sehen.
+7. **Wording (K10):** Kunden-Dashboard (admin-Layer) sagt „Produkte";
+   Control Plane bleibt bei „Features".
+8. **Pool-Reihenfolge:** Events zuerst durch die Datentür, dann Kurse.
+9. **Alte Worktrees:** Docs-App wird JETZT reviewt (Ergebnis an David);
+   Block-Editor bleibt geparkt (Feature-Stopp).
