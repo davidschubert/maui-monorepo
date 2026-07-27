@@ -215,3 +215,13 @@ jobs:
               exit 1
             fi
           done
+
+      # TLS-Nachkontrolle: liefert JEDER Host noch ein passendes Zertifikat?
+      # Die Health-Probe oben prüft nur die Hosts, die gerade deployt wurden —
+      # ein zerschossenes Zertifikat auf einem ANDEREN Host (geteilte
+      # certbot-Lineage, Vorfall 2026-07-27) bliebe sonst unentdeckt.
+      # Läuft auch, wenn ein App-Schritt vorher rot war: dann ist die
+      # TLS-Aussage besonders wichtig.
+      - name: TLS aller Hosts prüfen
+        if: always() && steps.changes.outputs.skip != 'true'
+        run: node scripts/ops/verify-tls.mjs

@@ -1,0 +1,37 @@
+# TLS-Wächter: prüft alle 30 Minuten, ob JEDER öffentliche Host ein
+# passendes, gültiges Zertifikat ausliefert.
+#
+# WARUM (Vorfall 2026-07-27): ploi/certbot teilen sich pro Zone EINE
+# Lineage — eine Zertifikats-Anforderung für irgendeine Site kann still das
+# Zertifikat aller anderen ersetzen. platform + demo waren so ~40 Minuten
+# TLS-tot, ohne dass irgendetwas Alarm geschlagen hat: nginx lief, die Apps
+# antworteten, nur der Handshake brach. Genau diese blinde Stelle deckt
+# dieser Lauf ab — er fasst NICHTS an, er schaut nur hin.
+#
+# Ein Fehlschlag schickt GitHub die übliche Workflow-Fehlermail. Die
+# Ausgabe nennt Host, gelieferte SAN-Liste und den Reparaturweg.
+
+name: TLS-Wächter
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tls-watch
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Zertifikate prüfen
+        run: node scripts/ops/verify-tls.mjs
