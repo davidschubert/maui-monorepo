@@ -11,6 +11,10 @@ const appConfig = useAppConfig()
 if (appConfig.maui?.auth?.otp !== true) {
   await navigateTo(localePath('/login'))
 }
+
+// Seitentitel „Mit Code anmelden · <Brand>" — gleiche Kette wie /login (B3).
+const brand = useBrandName()
+useHead({ title: () => t('ui.metaTitle', { page: t('auth.otp.title'), brand: brand.value }) })
 </script>
 
 <template>

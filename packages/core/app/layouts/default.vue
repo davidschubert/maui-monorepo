@@ -7,9 +7,8 @@ const appConfig = useAppConfig()
 // damit interne Apps ohne öffentliche Seiten keinen Footer-Ballast tragen.
 const legalLinks = computed(() => appConfig.maui?.legalLinks ?? [])
 // Brand: Tenant-Name (Pool-Host, z. B. „Morgenlicht") vor App-Brand vor
-// dem historischen „Maui"-Fallback.
-const tenantBrand = useTenantBrand()
-const brand = computed(() => tenantBrand.value ?? appConfig.maui?.brand?.name ?? 'Maui')
+// dem historischen „Maui"-Fallback — Kette in useBrandName().
+const brand = useBrandName()
 </script>
 
 <template>

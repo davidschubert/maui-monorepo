@@ -134,7 +134,8 @@
     },
     "adminArea": "Dashboard",
     "showMore": "Show more",
-    "showLess": "Show less"
+    "showLess": "Show less",
+    "metaTitle": "{page} · {brand}"
   },
   "profile": {
     "saved": "Profile saved",

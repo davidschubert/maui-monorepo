@@ -5,7 +5,7 @@ const localePath = useLocalePath()
 </script>
 
 <template>
-  <main class="relative flex min-h-screen items-center justify-center p-8">
+  <main class="relative flex min-h-screen flex-col items-center justify-center gap-5 p-8">
     <UButton
       :to="localePath('/')"
       icon="i-ph-arrow-left"
@@ -16,6 +16,7 @@ const localePath = useLocalePath()
     >
       {{ t('ui.backToHome') }}
     </UButton>
+    <AuthBrandHeader />
     <slot />
     <ConsentCookieBanner />
   </main>
