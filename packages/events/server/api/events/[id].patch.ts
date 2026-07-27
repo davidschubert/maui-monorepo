@@ -6,9 +6,14 @@ import { EVENTS_TABLE, isSeriesMaster, type EventRow } from '../../../shared/typ
  * Event bearbeiten / publishen (events.manage). Status-Übergänge hier:
  * draft→published (setzt read(any), meldet den Feed-Eintrag) und
  * published→draft (entzieht read(any)). Absagen läuft über DELETE.
- * Abgesagte Events sind nicht mehr editierbar.
+ * Abgesagte Events sind nicht mehr editierbar. Datentür als Operator:
+ * get/update belegen die Zugehörigkeit — ein fremder Mandant bekommt 404.
+ * Die Tür trennt Daten- und Permission-Writes bewusst (Muster posts
+ * publishDuePosts): erst update, dann updatePermissions.
  */
 export default defineEventHandler(async (event) => {
+  // Produkt-Gate (P4): Events sind ab Plan pro enthalten.
+  requirePlanProduct(event, 'events')
   const user = requirePermission(event, 'events.manage')
 
   const id = getRouterParam(event, 'id')
@@ -17,12 +22,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readValidatedBody(event, eventEditSchema.parse)
-  const config = useRuntimeConfig(event)
-  const databaseId = config.public.appwriteDatabaseId
-  const admin = createAdminClient(event)
+  const db = tenantDb(event, { as: 'operator' })
 
-  const row = await admin.tablesDB.getRow<EventRow>({ databaseId, tableId: EVENTS_TABLE, rowId: id })
-    .catch((error) => { throw toH3Error(error, 'Event not found') })
+  const row = await db.get<EventRow>(EVENTS_TABLE, id, 'Event not found')
   if (row.status === 'cancelled') {
     throw createError({ status: 409, statusText: 'Cancelled events cannot be edited' })
   }
@@ -63,35 +65,33 @@ export default defineEventHandler(async (event) => {
   const replayPublishing = typeof body.replayUrl === 'string' && body.replayUrl.length > 0
     && !row.replayUrl && (row.status === 'published' || publishing)
 
-  const updated = await admin.tablesDB.updateRow<EventRow>({
-    databaseId,
-    tableId: EVENTS_TABLE,
-    rowId: id,
-    data,
-    // Leserecht folgt dem Status: published = alle, draft = niemand
-    ...(publishing ? { permissions: [...new Set([...row.$permissions, EVENT_READ_ANY])] } : {}),
-    ...(unpublishing ? { permissions: row.$permissions.filter(p => p !== EVENT_READ_ANY) } : {}),
-  }).catch((error) => {
+  const updated = await db.update<EventRow>(EVENTS_TABLE, id, data, 'Event not found').catch((error) => {
     throw toH3Error(error, 'Could not update event')
   })
+  // Leserecht folgt dem Status: published = alle, draft = niemand
+  if (publishing) {
+    await db.updatePermissions(EVENTS_TABLE, id, [...new Set([...row.$permissions, EVENT_READ_ANY])])
+      .catch((error) => { throw toH3Error(error, 'Could not update event') })
+  }
+  if (unpublishing) {
+    await db.updatePermissions(EVENTS_TABLE, id, row.$permissions.filter(p => p !== EVENT_READ_ANY))
+      .catch((error) => { throw toH3Error(error, 'Could not update event') })
+  }
 
   // Serie (§7e): Publish/Unpublish des MASTERS zieht seine Instanzen mit
   // (Lifecycle-Ausnahme von „Instanzen sind eigenständig" — vor dem Launch
   // will man die ganze Serie schalten); abgesagte Instanzen bleiben abgesagt.
   if ((publishing || unpublishing) && isSeriesMaster(updated)) {
-    const instances = await admin.tablesDB.listRows<EventRow>({
-      databaseId, tableId: EVENTS_TABLE,
-      queries: [Query.equal('seriesId', updated.$id), Query.notEqual('$id', updated.$id), Query.limit(200)],
-    }).catch(() => ({ rows: [] as EventRow[] }))
+    const instances = await db.list<EventRow>(EVENTS_TABLE, [
+      Query.equal('seriesId', updated.$id), Query.notEqual('$id', updated.$id), Query.limit(200),
+    ]).catch(() => ({ rows: [] as EventRow[] }))
     for (const instance of instances.rows) {
       if (instance.status === 'cancelled') continue
-      await admin.tablesDB.updateRow({
-        databaseId, tableId: EVENTS_TABLE, rowId: instance.$id,
-        data: { status: publishing ? 'published' : 'draft' },
-        permissions: publishing
+      await db.update(EVENTS_TABLE, instance.$id, { status: publishing ? 'published' : 'draft' })
+        .then(() => db.updatePermissions(EVENTS_TABLE, instance.$id, publishing
           ? [...new Set([...instance.$permissions, EVENT_READ_ANY])]
-          : instance.$permissions.filter(p => p !== EVENT_READ_ANY),
-      }).catch(error => console.warn('[events] Serien-Publish-Propagation fehlgeschlagen:', error))
+          : instance.$permissions.filter(p => p !== EVENT_READ_ANY)))
+        .catch(error => console.warn('[events] Serien-Publish-Propagation fehlgeschlagen:', error))
     }
   }
 

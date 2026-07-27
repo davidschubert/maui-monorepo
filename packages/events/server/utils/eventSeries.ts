@@ -1,4 +1,4 @@
-import { ID, Query } from 'node-appwrite'
+import { Query } from 'node-appwrite'
 import type { H3Event } from 'h3'
 import { EVENTS_TABLE, type EventRecurrence, type EventRow } from '../../shared/types/event'
 
@@ -72,25 +72,22 @@ function instanceData(master: EventRow, startAt: string, endAt: string | null, i
 export async function expandSeries(event: H3Event, master: EventRow): Promise<number> {
   if (!master.recurrence || master.seriesId !== master.$id) return 0
 
-  const config = useRuntimeConfig(event)
-  const admin = createAdminClient(event)
-  const databaseId = config.public.appwriteDatabaseId
+  // Datentür als Operator: update/list belegen bzw. scopen die Zugehörigkeit,
+  // create stempelt den Mandanten auf jede Instanz.
+  const db = tenantDb(event, { as: 'operator' })
 
   const windowEnd = Date.now() + SERIES_WINDOW_DAYS * 86_400_000
   const hardEnd = master.seriesUntil ? Date.parse(master.seriesUntil) : Infinity
 
   // Marker ZUERST (Idempotenz gegen parallele Top-ups)
-  await admin.tablesDB.updateRow({
-    databaseId, tableId: EVENTS_TABLE, rowId: master.$id,
-    data: { seriesGeneratedUntil: new Date(Math.min(windowEnd, hardEnd === Infinity ? windowEnd : hardEnd)).toISOString() },
-  })
+  await db.update(EVENTS_TABLE, master.$id, {
+    seriesGeneratedUntil: new Date(Math.min(windowEnd, hardEnd === Infinity ? windowEnd : hardEnd)).toISOString(),
+  }, 'Event not found')
 
   // Jüngste Instanz der Serie als Ausgangspunkt
-  const latest = await admin.tablesDB.listRows<EventRow>({
-    databaseId, tableId: EVENTS_TABLE,
-    queries: [Query.equal('seriesId', master.$id), Query.orderDesc('startAt'), Query.limit(1)],
-  })
-  const last = latest.rows[0] ?? master
+  const last = await db.find<EventRow>(EVENTS_TABLE, [
+    Query.equal('seriesId', master.$id), Query.orderDesc('startAt'),
+  ]) ?? master
   const durationMs = master.endAt ? Date.parse(master.endAt) - Date.parse(master.startAt) : null
 
   let created = 0
@@ -102,9 +99,7 @@ export async function expandSeries(event: H3Event, master: EventRow): Promise<nu
     if (startMs > windowEnd || startMs > hardEnd) break
     index++
     const endAt = durationMs !== null ? new Date(startMs + durationMs).toISOString() : null
-    await admin.tablesDB.createRow({
-      databaseId, tableId: EVENTS_TABLE, rowId: ID.unique(),
-      data: instanceData(master, cursorStart, endAt, index),
+    await db.create(EVENTS_TABLE, instanceData(master, cursorStart, endAt, index), {
       // Leserechte wie beim Master (published → read any; draft → nur Verwaltung)
       permissions: master.status === 'published' ? [EVENT_READ_ANY] : [],
     }).catch((error) => {
@@ -117,17 +112,16 @@ export async function expandSeries(event: H3Event, master: EventRow): Promise<nu
 
 /**
  * on-read-Top-up: Master, deren Fenster abgelaufen ist, nachziehen —
- * best-effort (Fehler loggen, Liste nie blockieren).
+ * best-effort (Fehler loggen, Liste nie blockieren). Datentür als Operator:
+ * jeder Listen-GET zieht die Serien SEINES Mandanten nach (Muster
+ * publishDuePosts — im Pool bleibt nichts liegen, weil jede Community
+ * ihre eigene Liste liest).
  */
 export async function topUpSeries(event: H3Event): Promise<void> {
   try {
-    const config = useRuntimeConfig(event)
-    const admin = createAdminClient(event)
-    const masters = await admin.tablesDB.listRows<EventRow>({
-      databaseId: config.public.appwriteDatabaseId,
-      tableId: EVENTS_TABLE,
-      queries: [Query.notEqual('recurrence', ''), Query.limit(50)],
-    })
+    const masters = await tenantDb(event, { as: 'operator' }).list<EventRow>(EVENTS_TABLE, [
+      Query.notEqual('recurrence', ''), Query.limit(50),
+    ])
     const threshold = Date.now() + (SERIES_WINDOW_DAYS - 14) * 86_400_000
     for (const master of masters.rows) {
       if (!master.recurrence || master.seriesId !== master.$id || master.status === 'cancelled') continue

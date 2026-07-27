@@ -541,6 +541,9 @@ importers:
       '@maui/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@maui/events':
+        specifier: workspace:*
+        version: link:../../packages/events
       '@maui/moderation':
         specifier: workspace:*
         version: link:../../packages/moderation

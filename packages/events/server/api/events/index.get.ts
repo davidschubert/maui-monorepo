@@ -25,6 +25,8 @@ type MineFilter = (typeof MINE_FILTERS)[number]
  * Öffentlich lesbar (Gäste sehen die Liste — RSVP erst nach Login).
  */
 export default defineEventHandler(async (event): Promise<EventListResponse> => {
+  // Produkt-Gate (P4): Events sind ab Plan pro enthalten.
+  requirePlanProduct(event, 'events')
   // Reminder-Sweep on-read (E3, best-effort — wirft nie, kein Cron nötig)
   await sweepEventReminders(event)
   // Serien-Fenster nachziehen (§7e) — best-effort, wirft nie
@@ -44,34 +46,28 @@ export default defineEventHandler(async (event): Promise<EventListResponse> => {
   const mine = typeof query.mine === 'string' && (MINE_FILTERS as readonly string[]).includes(query.mine)
     ? query.mine as MineFilter
     : null
-  const config = useRuntimeConfig(event)
-  const databaseId = config.public.appwriteDatabaseId
-  const { tablesDB } = createSessionClient(event)
   const now = new Date().toISOString()
 
-  // Meine-Filter: erst die eigenen RSVP-/Vote-Ziel-Ids sammeln (Admin-Client —
-  // die Tabellen haben bewusst keine breite Read-Permission)
+  // Meine-Filter: erst die eigenen RSVP-/Vote-Ziel-Ids sammeln — Datentür als
+  // Operator (die Tabellen haben bewusst keine breite Read-Permission; die
+  // Tür scopet im Pool zusätzlich auf den Mandanten)
   let mineIds: string[] | null = null
   if (mine) {
     const user = event.context.user
     if (!user) {
       throw createError({ status: 401, statusText: 'Unauthorized' })
     }
-    const admin = createAdminClient(event)
+    const ops = tenantDb(event, { as: 'operator' })
     if (mine === 'liked') {
-      const res = await admin.tablesDB.listRows<EventVote>({
-        databaseId,
-        tableId: EVENT_VOTES_TABLE,
-        queries: [Query.equal('userId', user.$id), Query.equal('value', 1), Query.orderDesc('$createdAt'), Query.limit(MINE_IDS_LIMIT)],
-      }).catch(() => ({ rows: [] as EventVote[] }))
+      const res = await ops.list<EventVote>(EVENT_VOTES_TABLE, [
+        Query.equal('userId', user.$id), Query.equal('value', 1), Query.orderDesc('$createdAt'), Query.limit(MINE_IDS_LIMIT),
+      ]).catch(() => ({ rows: [] as EventVote[] }))
       mineIds = res.rows.map(r => r.eventId)
     }
     else {
-      const res = await admin.tablesDB.listRows<EventRsvpRow>({
-        databaseId,
-        tableId: EVENT_RSVPS_TABLE,
-        queries: [Query.equal('userId', user.$id), Query.equal('status', 'going'), Query.orderDesc('$createdAt'), Query.limit(MINE_IDS_LIMIT)],
-      }).catch(() => ({ rows: [] as EventRsvpRow[] }))
+      const res = await ops.list<EventRsvpRow>(EVENT_RSVPS_TABLE, [
+        Query.equal('userId', user.$id), Query.equal('status', 'going'), Query.orderDesc('$createdAt'), Query.limit(MINE_IDS_LIMIT),
+      ]).catch(() => ({ rows: [] as EventRsvpRow[] }))
       mineIds = res.rows.map(r => r.eventId)
     }
     if (mineIds.length === 0) {
@@ -79,38 +75,36 @@ export default defineEventHandler(async (event): Promise<EventListResponse> => {
     }
   }
 
-  const res = await tablesDB.listRows<EventRow>({
-    databaseId,
-    tableId: EVENTS_TABLE,
-    queries: [
-      Query.equal('status', 'published'),
-      ...(q.length > 0 ? [Query.search('title', q)] : []),
-      ...(mineIds
+  // Datentür (member): Session-Client wie bisher — Gäste sehen nur
+  // read(any)-Rows — plus Mandanten-Filter im Pool.
+  const res = await tenantDb(event).list<EventRow>(EVENTS_TABLE, [
+    Query.equal('status', 'published'),
+    ...(q.length > 0 ? [Query.search('title', q)] : []),
+    ...(mineIds
+      ? [
+          Query.equal('$id', mineIds),
+          // going = kommende Zusagen · attended = besuchte (vorbei) ·
+          // liked = zeitlos, neueste zuerst
+          ...(mine === 'going' ? [Query.greaterThanEqual('startAt', now), Query.orderAsc('startAt')] : []),
+          ...(mine === 'attended' ? [Query.lessThan('startAt', now), Query.orderDesc('startAt')] : []),
+          ...(mine === 'liked' ? [Query.orderDesc('startAt')] : []),
+          Query.limit(RANGE_LIMIT),
+        ]
+      : range
         ? [
-            Query.equal('$id', mineIds),
-            // going = kommende Zusagen · attended = besuchte (vorbei) ·
-            // liked = zeitlos, neueste zuerst
-            ...(mine === 'going' ? [Query.greaterThanEqual('startAt', now), Query.orderAsc('startAt')] : []),
-            ...(mine === 'attended' ? [Query.lessThan('startAt', now), Query.orderDesc('startAt')] : []),
-            ...(mine === 'liked' ? [Query.orderDesc('startAt')] : []),
+            Query.greaterThanEqual('startAt', new Date(from).toISOString()),
+            Query.lessThan('startAt', new Date(to).toISOString()),
+            Query.orderAsc('startAt'),
             Query.limit(RANGE_LIMIT),
           ]
-        : range
-          ? [
-              Query.greaterThanEqual('startAt', new Date(from).toISOString()),
-              Query.lessThan('startAt', new Date(to).toISOString()),
-              Query.orderAsc('startAt'),
-              Query.limit(RANGE_LIMIT),
-            ]
-          : [
-              ...(past
-                ? [Query.lessThan('startAt', now), Query.orderDesc('startAt')]
-                : [Query.greaterThanEqual('startAt', now), Query.orderAsc('startAt')]),
-              Query.limit(PAGE_SIZE),
-              ...(typeof cursor === 'string' && cursor.length > 0 ? [Query.cursorAfter(cursor)] : []),
-            ]),
-    ],
-  }).catch((error) => {
+        : [
+            ...(past
+              ? [Query.lessThan('startAt', now), Query.orderDesc('startAt')]
+              : [Query.greaterThanEqual('startAt', now), Query.orderAsc('startAt')]),
+            Query.limit(PAGE_SIZE),
+            ...(typeof cursor === 'string' && cursor.length > 0 ? [Query.cursorAfter(cursor)] : []),
+          ]),
+  ]).catch((error) => {
     // Ungültiger Cursor / abgelaufene Session als 4xx durchreichen, nicht als 500
     throw toH3Error(error, 'Could not load events')
   })

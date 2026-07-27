@@ -17,6 +17,7 @@
     "@maui/blueprint": "workspace:*",
     "@maui/comments": "workspace:*",
     "@maui/core": "workspace:*",
+    "@maui/events": "workspace:*",
     "@maui/moderation": "workspace:*",
     "@maui/onboarding": "workspace:*",
     "@maui/pages": "workspace:*",

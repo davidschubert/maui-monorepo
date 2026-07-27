@@ -3,9 +3,12 @@ import { EVENTS_TABLE, type EventRow } from '../../../shared/types/event'
 /**
  * Event absagen — SOFT-Cancel (events.manage): status 'cancelled', die Row
  * bleibt (Teilnehmer sollen die Absage sehen, Leserecht bleibt bestehen).
- * Kein Hard-Delete im API-Vertrag (v1). Idempotent.
+ * Kein Hard-Delete im API-Vertrag (v1). Idempotent. Datentür als Operator:
+ * get/update belegen die Zugehörigkeit — ein fremder Mandant bekommt 404.
  */
 export default defineEventHandler(async (event) => {
+  // Produkt-Gate (P4): Events sind ab Plan pro enthalten.
+  requirePlanProduct(event, 'events')
   requirePermission(event, 'events.manage')
 
   const id = getRouterParam(event, 'id')
@@ -13,22 +16,14 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 400, statusText: 'Missing event id' })
   }
 
-  const config = useRuntimeConfig(event)
-  const databaseId = config.public.appwriteDatabaseId
-  const admin = createAdminClient(event)
+  const db = tenantDb(event, { as: 'operator' })
 
-  const row = await admin.tablesDB.getRow<EventRow>({ databaseId, tableId: EVENTS_TABLE, rowId: id })
-    .catch((error) => { throw toH3Error(error, 'Event not found') })
+  const row = await db.get<EventRow>(EVENTS_TABLE, id, 'Event not found')
   if (row.status === 'cancelled') {
     return { ok: true }
   }
 
-  await admin.tablesDB.updateRow({
-    databaseId,
-    tableId: EVENTS_TABLE,
-    rowId: id,
-    data: { status: 'cancelled' },
-  }).catch((error) => {
+  await db.update(EVENTS_TABLE, id, { status: 'cancelled' }, 'Event not found').catch((error) => {
     throw toH3Error(error, 'Could not cancel event')
   })
 
