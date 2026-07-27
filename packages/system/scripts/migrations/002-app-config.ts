@@ -49,6 +49,25 @@ async function step(label: string, run: () => Promise<unknown>) {
     throw error
   }
 }
+/**
+ * app_config ist am utf8mb4-Zeilenbudget von MariaDB angekommen — Appwrite
+ * prüft die Größe VOR der Duplikat-Erkennung und antwortet auf ein erneutes
+ * createColumn mit 400 `column_limit_exceeded` statt 409. Ohne Vorab-Check
+ * wäre diese Migration nicht mehr idempotent (N2).
+ */
+async function ensureColumn(tableId: string, key: string, create: () => Promise<unknown>) {
+  try {
+    const { columns } = await tablesDB.listColumns({ databaseId: databaseId!, tableId })
+    if (columns.some(column => column.key === key)) {
+      console.log(`↷ Column ${tableId}.${key} (existiert bereits)`)
+      return
+    }
+  }
+  catch {
+    // Table fehlt o. Ä. — step() unten meldet es sauber
+  }
+  await step(`Column ${tableId}.${key}`, create)
+}
 async function waitForColumns(tableId: string) {
   for (let i = 0; i < 30; i++) {
     const { columns } = await tablesDB.listColumns({ databaseId: databaseId!, tableId })
@@ -64,13 +83,13 @@ await step('Table app_config', () => tablesDB.createTable({
   databaseId, tableId: 'app_config', name: 'App Config', permissions: [], rowSecurity: false,
 }))
 
-await step('Column app_config.registrationEnabled', () => tablesDB.createBooleanColumn({
+await ensureColumn('app_config', 'registrationEnabled', () => tablesDB.createBooleanColumn({
   databaseId, tableId: 'app_config', key: 'registrationEnabled', required: false, xdefault: true,
 }))
-await step('Column app_config.commentsEnabled', () => tablesDB.createBooleanColumn({
+await ensureColumn('app_config', 'commentsEnabled', () => tablesDB.createBooleanColumn({
   databaseId, tableId: 'app_config', key: 'commentsEnabled', required: false, xdefault: true,
 }))
-await step('Column app_config.maintenanceMode', () => tablesDB.createBooleanColumn({
+await ensureColumn('app_config', 'maintenanceMode', () => tablesDB.createBooleanColumn({
   databaseId, tableId: 'app_config', key: 'maintenanceMode', required: false, xdefault: false,
 }))
 

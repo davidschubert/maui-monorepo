@@ -27,18 +27,38 @@ const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(proj
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
 }
+/**
+ * app_config ist am utf8mb4-Zeilenbudget von MariaDB — Appwrite prüft die
+ * Größe VOR der Duplikat-Erkennung und antwortet auf ein erneutes
+ * createColumn mit 400 `column_limit_exceeded` statt 409. Ohne Vorab-Check
+ * wäre diese Migration nicht mehr idempotent (N2).
+ */
+async function columnExists(tableId: string, key: string): Promise<boolean> {
+  try {
+    const { columns } = await tablesDB.listColumns({ databaseId: databaseId!, tableId })
+    return columns.some(column => column.key === key)
+  }
+  catch {
+    return false
+  }
+}
 
 console.log(`Migration system-018 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
-try {
-  await tablesDB.createVarcharColumn({
-    databaseId, tableId: 'app_config', key: 'features', size: 4000, required: false, xdefault: '',
-  })
-  console.log('✔ Column app_config.features')
+if (await columnExists('app_config', 'features')) {
+  console.log('↷ Column app_config.features (existiert bereits)')
 }
-catch (error) {
-  if (hasCode(error, 409)) console.log('↷ Column app_config.features (existiert bereits)')
-  else throw error
+else {
+  try {
+    await tablesDB.createVarcharColumn({
+      databaseId, tableId: 'app_config', key: 'features', size: 4000, required: false, xdefault: '',
+    })
+    console.log('✔ Column app_config.features')
+  }
+  catch (error) {
+    if (hasCode(error, 409)) console.log('↷ Column app_config.features (existiert bereits)')
+    else throw error
+  }
 }
 
 console.log('✔ Migration system-018 fertig')
