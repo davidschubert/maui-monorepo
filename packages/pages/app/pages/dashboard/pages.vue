@@ -1,8 +1,36 @@
 <script setup lang="ts">
-import type { EditorToolbarItem, TableColumn } from '@nuxt/ui'
+import type { EditorToolbarItem, TableColumn, TabsItem } from '@nuxt/ui'
 import { MAX_PAGE_BODY } from '../../../schemas/page'
 import type { PageGroup, PageRow } from '../../../shared/types/page'
 
+/**
+ * Seiten-Editor (Betreiber). Text-Editieren bestehender Inhalte, AUSBAUSTUFE (a)
+ * — bewusst KEIN Block-Editor-Umbau (kein Blockmodell, kein Drag&Drop, keine
+ * Bausteine; das wäre ein eigenes Projekt, vgl. docs/plans/
+ * PLATFORM-TENANT-HOMEPAGE.md §5). Leitprinzip Einfachheit.
+ *
+ * (a) heißt hier genau dreierlei — „was ich schreibe, steht so auf der Seite":
+ * 1. Die Schreibfläche kann nur noch, was der öffentliche Renderer
+ *    (core MarkdownContent, sicheres Subset, kein v-html) auch darstellt:
+ *    kein Bild, kein @-Mention-Menü, kein Durchgestrichen. Umgekehrt sind
+ *    Inline-Code und Codeblock jetzt auch in der Toolbar — der Renderer kann
+ *    beides, die Toolbar hat es bisher verschwiegen.
+ * 2. Drei Ansichten pro Sprachversion: Schreiben (WYSIWYG) · Markdown
+ *    (Rohtext) · Vorschau. Die Vorschau rendert mit EXAKT derselben
+ *    MarkdownContent-Komponente wie /[slug] — kein zweiter Renderpfad.
+ *    Der Markdown-Modus ist für bestehende Bodies da: Zeile gezielt
+ *    korrigieren / Text einfügen, ohne Tiptap-Serialisierung dazwischen.
+ * 3. Nur EINE Ansicht ist gleichzeitig montiert (v-if): sonst schreiben
+ *    UEditor (normalisiert beim Serialisieren) und Rohtext-Feld über
+ *    dasselbe v-model gegeneinander.
+ *
+ * Bewusst NICHT in (a) (Kandidaten für später, in dieser Reihenfolge):
+ * Abschnitts-weises Editieren, Schutz vor ungespeicherten Änderungen beim
+ * Seitenwechsel, Bild-Upload, Slot-/Regler-Zoo für Typografie.
+ * Bekannte Rest-Unschärfe: `---` (Trennlinie) und verschachtelte Listen
+ * kann Tiptap erzeugen, der Renderer stellt sie nicht (bzw. flach) dar —
+ * sichtbar wird das in der Vorschau, deshalb hier kein weiterer Umbau.
+ */
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'pages.manage' })
 
 const { t } = useI18n()
@@ -14,17 +42,33 @@ useHead({ title: () => t('pages.admin.title') })
 const LOCALES = ['en', 'de'] as const
 type Locale = (typeof LOCALES)[number]
 
-// Markdown-Toolbar (identisch zum Changelog/Tickets-Muster)
+// Markdown-Toolbar — deckt genau das Subset von core/shared/markdown.ts ab
+// (fett, kursiv, `code`, h2/h3, Listen, Link, Zitat, Codeblock).
 const toolbarItems: EditorToolbarItem[] = [
   { kind: 'mark', mark: 'bold', icon: 'i-ph-text-b' },
   { kind: 'mark', mark: 'italic', icon: 'i-ph-text-italic' },
+  { kind: 'mark', mark: 'code', icon: 'i-ph-code-simple' },
   { kind: 'heading', level: 2, icon: 'i-ph-text-h-two' },
   { kind: 'heading', level: 3, icon: 'i-ph-text-h-three' },
   { kind: 'bulletList', icon: 'i-ph-list-bullets' },
   { kind: 'orderedList', icon: 'i-ph-list-numbers' },
   { kind: 'link', icon: 'i-ph-link' },
   { kind: 'blockquote', icon: 'i-ph-quotes' },
+  { kind: 'codeBlock', icon: 'i-ph-code' },
 ]
+
+// Was der Renderer nicht kann, soll der Editor gar nicht erst anbieten:
+// Durchgestrichen (~~) hat im Subset keine Entsprechung.
+const editorStarterKit = { strike: false as const }
+
+// Ansicht der Inhalts-Spalte (gilt für den aktiven Sprachreiter)
+const BODY_MODES = ['write', 'markdown', 'preview'] as const
+type BodyMode = (typeof BODY_MODES)[number]
+const bodyMode = ref<BodyMode>('write')
+const bodyModeItems = computed<TabsItem[]>(() => BODY_MODES.map(mode => ({
+  label: t(`pages.admin.mode.${mode}`),
+  value: mode,
+})))
 
 const { data: listData, refresh: refreshList } = await useFetch<{ groups: PageGroup[] }>('/api/pages', { lazy: true, server: false })
 const groups = computed(() => listData.value?.groups ?? [])
@@ -294,15 +338,52 @@ async function deletePage() {
                   <UInput v-model="forms[item.value as Locale].title" class="w-full" />
                 </UFormField>
                 <UFormField :label="t('pages.admin.body')">
-                  <UEditor
-                    v-slot="{ editor }"
-                    v-model="forms[item.value as Locale].body"
-                    content-type="markdown"
-                    class="w-full rounded-md border border-default"
-                    :ui="{ base: 'px-3 py-2', content: 'min-h-64' }"
-                  >
-                    <UEditorToolbar :editor="editor" :items="toolbarItems" class="border-b border-default px-1.5 py-1" />
-                  </UEditor>
+                  <template #hint>
+                    <UTabs
+                      v-model="bodyMode"
+                      :items="bodyModeItems"
+                      :content="false"
+                      size="xs"
+                      color="neutral"
+                    />
+                  </template>
+                  <!-- Genau EINE Ansicht ist montiert (siehe Kopfkommentar, Punkt 3). -->
+                  <div class="space-y-2">
+                    <UEditor
+                      v-if="bodyMode === 'write'"
+                      v-slot="{ editor }"
+                      v-model="forms[item.value as Locale].body"
+                      content-type="markdown"
+                      :starter-kit="editorStarterKit"
+                      :image="false"
+                      :mention="false"
+                      class="w-full rounded-md border border-default"
+                      :ui="{ base: 'px-3 py-2', content: 'min-h-64' }"
+                    >
+                      <UEditorToolbar :editor="editor" :items="toolbarItems" class="border-b border-default px-1.5 py-1" />
+                    </UEditor>
+
+                    <template v-else-if="bodyMode === 'markdown'">
+                      <UTextarea
+                        v-model="forms[item.value as Locale].body"
+                        :rows="18"
+                        class="w-full"
+                        :ui="{ base: 'font-mono text-sm' }"
+                      />
+                      <p class="text-xs text-muted">{{ t('pages.admin.markdownHint') }}</p>
+                    </template>
+
+                    <template v-else>
+                      <div class="min-h-64 rounded-md border border-default px-4 py-3">
+                        <p class="mb-2 text-xs text-muted">{{ t('pages.admin.previewHint') }}</p>
+                        <article class="space-y-3">
+                          <h1 class="text-2xl font-bold">{{ forms[item.value as Locale].title }}</h1>
+                          <MarkdownContent v-if="forms[item.value as Locale].body.trim()" :source="forms[item.value as Locale].body" />
+                          <p v-else class="text-sm text-muted">{{ t('pages.admin.previewEmpty') }}</p>
+                        </article>
+                      </div>
+                    </template>
+                  </div>
                   <template #help>
                     <span :class="forms[item.value as Locale].body.length > MAX_PAGE_BODY ? 'text-error' : ''">
                       {{ t('pages.admin.charCount', { count: forms[item.value as Locale].body.length.toLocaleString(), max: MAX_PAGE_BODY.toLocaleString() }) }}

@@ -25,6 +25,14 @@
       "slugRequired": "Bitte eine Adresse eingeben",
       "pageTitle": "Titel",
       "body": "Inhalt",
+      "mode": {
+        "write": "Schreiben",
+        "markdown": "Markdown",
+        "preview": "Vorschau"
+      },
+      "markdownHint": "Sicheres Markdown-Subset: **fett**, *kursiv*, `Code`, [Link](/pfad), Listen (- / 1.), > Zitate, ``` Codeblöcke. Alles andere erscheint auf der Seite als Text.",
+      "previewHint": "So sieht der Inhalt auf der öffentlichen Seite aus.",
+      "previewEmpty": "Noch kein Inhalt.",
       "charCount": "{count} / {max} Zeichen",
       "bodyTooLong": "Text zu lang: {count} von maximal {max} Zeichen. Bitte kürzen.",
       "bodyTooLongHint": "Kürze den Text oder teile ihn auf eine zweite Seite auf — gespeichert wurde nichts.",

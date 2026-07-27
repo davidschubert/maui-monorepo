@@ -25,6 +25,14 @@
       "slugRequired": "Please enter an address",
       "pageTitle": "Title",
       "body": "Content",
+      "mode": {
+        "write": "Write",
+        "markdown": "Markdown",
+        "preview": "Preview"
+      },
+      "markdownHint": "Safe Markdown subset: **bold**, *italic*, `code`, [link](/path), lists (- / 1.), > quotes, ``` code blocks. Anything else shows up as plain text on the page.",
+      "previewHint": "This is how the content looks on the public page.",
+      "previewEmpty": "No content yet.",
       "charCount": "{count} / {max} characters",
       "bodyTooLong": "Text too long: {count} of at most {max} characters. Please shorten it.",
       "bodyTooLongHint": "Shorten the text or split it across a second page — nothing was saved.",
