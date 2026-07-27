@@ -92,6 +92,13 @@ jobs:
             echo "skip=true" >> "$GITHUB_OUTPUT"; exit 0
           fi
           RELEVANT=$(echo "$FILES" | grep -vE "$IGNORE" || true)
+          # AUSNAHME von der docs/-Ignorierung: docs/content/ ist seit control/docs
+          # (2026-07-28) Teil des control-BUILDS (Nuxt Content bettet die interne
+          # Doku ins Server-Bundle ein) — Aenderungen dort MUESSEN deployen, sonst
+          # bleibt control.pukalani.app/docs veraltet. grep -E kennt keine
+          # Lookaheads, deshalb hier explizit zurueckgeholt statt im IGNORE-Regex.
+          DOCS_CONTENT=$(echo "$FILES" | grep -E '^docs/content/' || true)
+          RELEVANT=$(printf '%s\n%s\n' "$RELEVANT" "$DOCS_CONTENT" | grep -v '^$' || true)
           if [ -z "$RELEVANT" ]; then
             echo "Nur Doku/CI/Meta geändert — Deploy übersprungen:"; echo "$FILES" | sed 's/^/  /'
             echo "skip=true" >> "$GITHUB_OUTPUT"
