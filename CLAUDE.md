@@ -282,8 +282,13 @@ Vollständiges Konzept: docs/CONCEPT.md
   lose Requests wie Crawler behalten die URL-Locale, sonst EN-Content unter
   /de/*): interne Links/Redirects IMMER über localePath() — auch in Middleware
   (useLocalePath()('/...')), sonst geht der Locale-Prefix verloren. SEO:
-  useLocaleHead in den App-app.vue liefert hreflang/canonical/og:locale;
-  absolute URLs via NUXT_PUBLIC_I18N_BASE_URL (i18n.baseUrl-Skeleton in core)
+  useLocaleSeoHead() (core) ist der EINZIGE Aufruf in jeder app.vue und liefert
+  hreflang/canonical/og:url/og:locale + lang/dir; absolute URLs via
+  NUXT_PUBLIC_I18N_BASE_URL (i18n.baseUrl-Skeleton in core). MEHR-HOST-Apps
+  (Pool) setzen zusätzlich maui.seo.originFromRequest: dann kommt Host+Port aus
+  dem Request und nur das SCHEMA aus der Env (core/shared/seoOrigin.ts) — mit
+  der einen Env-Basis zeigten canonical/hreflang/og:url auf ALLEN Mandanten-
+  Hosts auf platform.pukalani.app (Audit-Befund B1)
 - createError mit status/statusText (nicht statusCode/statusMessage),
   keine Appwrite-Fehlerdetails an Clients leaken
 - useToast kommt aus Nuxt UI — nicht im Core re-exportieren (schattet Auto-Import)

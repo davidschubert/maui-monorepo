@@ -63,6 +63,21 @@ export default defineAppConfig({
      *  → das Standard-Layout zeigt keine; Apps mit öffentlichen Seiten füllen
      *  sie (to = interner Pfad via localePath, labelKey = i18n-Key). */
     legalLinks: [] as { to: string, labelKey: string }[],
+    seo: {
+      /**
+       * Basis-URL für canonical/hreflang/og:url aus dem REQUEST-Host statt aus
+       * `NUXT_PUBLIC_I18N_BASE_URL` (useLocaleSeoHead). Core-Default AUS:
+       * Single-Host-Apps haben genau eine öffentliche URL, und die soll die Env
+       * bestimmen (auch für Aliase — control kanonisiert bewusst auf control).
+       *
+       * AN gehört das Gate in jede App, die MEHRERE Hosts bedient: die Env kann
+       * nur einen tragen, weshalb auf allen Mandanten-Hosts der Pool-App der
+       * Betreiber-Host in canonical/hreflang/og:url stand (Audit-Befund B1) —
+       * Google indexierte die Kundendomain nicht, Sprachlinks verließen den
+       * Mandanten. Das Schema bleibt Sache der Env (shared/seoOrigin.ts).
+       */
+      originFromRequest: false,
+    },
     tenancy: {
       /** Horizont-3 Mandanten-Auflösung (Naht 1): Host → TenantContext via
        *  registriertem Resolver (registerTenantResolver, Nitro-Plugin der
