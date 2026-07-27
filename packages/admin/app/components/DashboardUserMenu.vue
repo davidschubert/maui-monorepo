@@ -17,6 +17,7 @@ const appConfig = useAppConfig()
 const runtimeFlags = useRuntimeFlags()
 const { themes, theme, variant, setTheme, setVariant, neutrals, neutral, setNeutral } = useTheme()
 const localeOptions = useLocaleOptions()
+const { capabilities: siteCaps } = useSiteRole()
 
 // Sidebar-Optik (sidebar | floating | inset) — geteilt mit dem Dashboard-Layout via Cookie
 const sidebarVariant = useCookie<'sidebar' | 'floating' | 'inset'>('maui-sidebar-variant', { default: () => 'floating' })
@@ -119,8 +120,11 @@ const items = computed<SwatchItem[][]>(() => {
   // Registry-Module mit placement 'userMenu' (z.B. Abos aus dem billing-Layer)
   // sitzen ÜBER den Einstellungen — Konto-nahe Bereiche gehören hierher (A14).
   // Feature-Gate wie in der Sidebar: deaktivierte Features verschwinden (F2).
+  // Capability aus Label ODER Site-Rolle (N1, wie Sidebar) — für Site-Rollen
+  // ändert sich praktisch nichts (billing.manage & Co. tragen sie nicht).
   const userMenuModules: DropdownMenuItem[] = ((appConfig.maui?.admin?.modules ?? []) as MauiAdminModule[])
-    .filter(m => m.placement === 'userMenu' && userHasCapability(auth.user, m.requiredCapability)
+    .filter(m => m.placement === 'userMenu'
+      && (userHasCapability(auth.user, m.requiredCapability) || siteCaps.value.has(m.requiredCapability))
       && (!m.featureKey || isFeatureStateEnabled(runtimeFlags.value.features[m.featureKey])))
     .map(m => ({ label: t(m.labelKey), icon: m.icon, to: localePath(m.to) }))
 
