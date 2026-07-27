@@ -21,6 +21,12 @@ Vollständiges Konzept: docs/CONCEPT.md
   `pnpm check:manifests` (CI/lint) erzwingt Konsistenz mit extends +
   package.json + migrate.mjs-LAYER_ORDER — neue Layer/Apps immer mit
   Manifest anlegen. Strategie: docs/plans/MULTI-SITE-PLATFORM-STRATEGIE.md
+- packages/blueprint = KOMPOSITIONS-Layer („Bauplan", seit 2026-07-27): der
+  EINZIGE Layer, der mehrere Produkt-Layer kennen darf — Produkt-
+  Kompositionen (Feed+Kommentare, …) existieren GENAU EINMAL hier, nie je
+  App (Pool und Silo müssen identisches Produktverhalten zeigen —
+  docs/plans/PRODUKT-BILANZ.md). In extends VOR den Produkt-Layern listen.
+  Keine Produkt-Logik, keine Tables, kein server/ in blueprint.
 - Layer-Grenzen-Matrix (wer darf was besitzen) + Durchsetzung: CONCEPT.md A14.
   Neue Cross-Layer-Abhängigkeiten als EXPLIZITE Verträge (kein impliziter
   Auto-Import/String-Coupling); ESLint no-restricted-imports als Backstop.

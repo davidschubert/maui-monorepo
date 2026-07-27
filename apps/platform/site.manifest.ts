@@ -16,6 +16,9 @@ export default {
   features: [
     'themes',
     'admin',
+    // Bauplan: die EINE Produkt-Komposition (Feed+Kommentare, …) — Pool und
+    // Silo zeigen damit identisches Produktverhalten (PRODUKT-BILANZ.md)
+    'blueprint',
     'comments',
     'posts',
     'moderation',

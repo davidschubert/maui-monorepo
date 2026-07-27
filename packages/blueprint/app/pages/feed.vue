@@ -1,9 +1,12 @@
 <script setup lang="ts">
 /**
- * App-Override der posts-Layer-Seite: füllt den #comments-Slot mit dem
+ * BAUPLAN-Komposition Feed + Kommentare (umgezogen aus apps/comments,
+ * 2026-07-27): füllt den #comments-Slot des posts-Layers mit dem
  * comments-Layer (targetType 'post') und liefert die Kommentar-Counts für
- * die Buttons — genau die A14-Komposition, für die beide Layer gebaut sind
- * (die App darf beide kennen, sie sich nicht).
+ * die Buttons. Vorher lag diese Verdrahtung nur in der comments-App —
+ * die Pool-Sites (platform) zeigten denselben Feed OHNE Kommentare.
+ * Jetzt existiert sie genau einmal; jede Site, die blueprint extended,
+ * bekommt exakt dasselbe Produktverhalten (PRODUKT-BILANZ.md).
  */
 const { t } = useI18n()
 
@@ -12,6 +15,9 @@ useHead({ title: () => t('posts.feed.title') })
 // Kommentar-Anzahl je Post (comments-Layer-API). Die ERSTE Seite wird im
 // SSR mitgeladen, damit die Buttons ohne Wort→Zahl-Flash hydratisieren:
 // derselbe useFetch-Key wie in PostFeed → EIN Request, geteilter Payload.
+// useRequestFetch statt $fetch: im Pool entscheidet der Host über den
+// Mandanten — $fetch verlöre ihn im SSR (CLAUDE.md).
+const requestFetch = useRequestFetch()
 const { data: firstPage } = await useFetch<{ rows: { $id: string }[] }>('/api/posts')
 const initialIds = firstPage.value?.rows.map(row => row.$id) ?? []
 const { data: initialCounts } = await useFetch<{ counts: Record<string, number> }>('/api/comments/counts', {
@@ -28,7 +34,7 @@ async function loadCounts(ids: string[]) {
   const missing = ids.filter(id => !(id in replyCounts.value))
   if (missing.length === 0) return
   try {
-    const res = await $fetch<{ counts: Record<string, number> }>('/api/comments/counts', {
+    const res = await requestFetch<{ counts: Record<string, number> }>('/api/comments/counts', {
       query: { targetType: 'post', targetIds: missing.join(',') },
     })
     replyCounts.value = { ...replyCounts.value, ...res.counts }

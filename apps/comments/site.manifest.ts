@@ -12,6 +12,7 @@ export default {
   features: [
     'themes',
     'admin',
+    'blueprint',
     'comments',
     'posts',
     'events',
