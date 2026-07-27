@@ -5,12 +5,7 @@
   "home": {
     "subtitle": "This community is just getting started — there will be more to discover here soon."
   },
-  "demo": {
-    "banner": "This is a demo community with sample content.",
-    "cta": "Start your own community",
-    "planBadge": "From {plan}"
-  },
-  "nav": {
-    "feed": "Feed"
+  "legal": {
+    "imprint": "Imprint"
   }
 }
