@@ -1,0 +1,39 @@
+{
+  "name": "help",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxi dev --port 3008",
+    "build": "nuxi build",
+    "lint": "eslint .",
+    "preview": "nuxi preview",
+    "typecheck": "nuxi typecheck"
+  },
+  "dependencies": {
+    "@iconify-json/lucide": "catalog:",
+    "@iconify-json/ph": "catalog:",
+    "@maui/core": "workspace:*",
+    "@maui/system": "workspace:*",
+    "@nuxt/content": "catalog:",
+    "@nuxt/ui": "catalog:",
+    "@nuxtjs/i18n": "catalog:",
+    "@pinia/nuxt": "catalog:",
+    "appwrite": "catalog:",
+    "ioredis": "catalog:",
+    "node-appwrite": "catalog:",
+    "nodemailer": "catalog:",
+    "nuxt": "catalog:",
+    "pinia": "catalog:",
+    "vue": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@nuxt/eslint-config": "catalog:",
+    "@types/node": "catalog:",
+    "@types/nodemailer": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vue-tsc": "catalog:"
+  }
+}
