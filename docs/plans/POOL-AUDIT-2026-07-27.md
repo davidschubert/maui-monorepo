@@ -43,15 +43,15 @@ bekommt bewusst JSON (Nuxt-Heuristik für API-Clients — Browser/Crawler HTML).
 
 | # | Befund | Anmerkung |
 | --- | --- | --- |
-| S1 | Register-Sackgasse: Login verlinkt „Register", die ohne Invite-Code nirgends hinführt | Produktentscheidung: Hinweis/Code-Feld oder Link ausblenden |
+| ✅ S1 | Register-Sackgasse: Login verlinkt „Register", die ohne Invite-Code nirgends hinführt | Produktentscheidung: Hinweis/Code-Feld oder Link ausblenden |
 | ✅ S2 | Avatar-Initialen „L(" bei „Lena (Coach)" — Initialen-Logik nimmt 1. Zeichen jedes Wortes | core-Avatar-Utility |
 | ✅ S3 | Deutsche CMS-Texte verlinken EN-Routen (/feed statt /de/feed), dazu nofollow + harter Reload auf interne Links | pages-Renderer: interne Links lokalisieren + als Client-Navigation |
-| S4 | Seed-Inhalte nur deutsch — EN-Besucher sieht „zweisprachig" nur bei Buttons | Demo-Content-Entscheidung (zweisprachige Seeds?) |
+| ✅ S4 | Seed-Inhalte nur deutsch — EN-Besucher sieht „zweisprachig" nur bei Buttons | Demo-Content-Entscheidung (zweisprachige Seeds?) |
 | ✅¹ S5 | Keine meta description/og:title/og:image auf Tenant-Seiten — geteilte Links nackt | ¹ Basis behoben: Titel-Muster (useBrandTitle) + description/og:description aus CMS-Excerpt bzw. Feed-Text. OFFEN: og:image (Design-Entscheidung) |
 | ✅ S6 | robots.txt + sitemap.xml fehlen auf Tenant-Hosts | Server-Routen der platform-App, PRO HOST: Tenant = Allow + Sitemap auf die eigene Origin; Sitemap aus echten Daten (Startseite + veröffentlichte CMS-Slugs über `tenantDb`, `/feed` nur wenn der Plan `posts` erlaubt) + hreflang de/en. Kontroll-Hosts (my./start.) = `Disallow: /` und sitemap 404 |
 | S7 | Footer ohne Impressum/Datenschutz-Links; /impressum 404 auf demo | rechtlich relevant für DE-Kunden; CMS-Seiten + legalLinks je Tenant |
 | ✅ S8 | Titel „Feed"/„About me" ohne Community-Namen, EN=DE titelgleich | Titel-Muster „Seite · Tenant" |
-| S9 | Layout-Drift: comments-Layout hartcodiert Brand „Hawaii Studio" (ignoriert Tenant-Kette); toter legalLinks-Footer in platform; 3 Bauweisen für Nav/Sprache/Footer | Konsolidierung ins blueprint-Layout (Analyse liegt vor, 3 Geschmacksfragen bei David) |
+| ✅ S9 | Layout-Drift: comments-Layout hartcodiert Brand „Hawaii Studio" (ignoriert Tenant-Kette); toter legalLinks-Footer in platform; 3 Bauweisen für Nav/Sprache/Footer | Konsolidierung ins blueprint-Layout (Analyse liegt vor, 3 Geschmacksfragen bei David) |
 | ✅ S10 | billing-Kundenbereich nennt Pläne noch „Free/Pro" statt Basic/Personal/Pro (Plan-Katalog der Silo-Workspaces) | Wording-Angleich; control-Texte „free" ebenso |
 
 ## KOSMETIK
@@ -62,12 +62,12 @@ bekommt bewusst JSON (Nuxt-Heuristik für API-Clients — Browser/Crawler HTML).
 | K2 | favicon 78-Byte-Platzhalter, kein apple-touch-icon/theme-color je Tenant |
 | K3 | interne Produktnamen im DOM (id="maui-theme-css") |
 | K4 | Login lädt changelog.css + ~68 Chunks (Bundling unaufgeräumt) |
-| K5 | __NUXT__-Payload der Login-Seite enthält Plan/entitlementsDoc im Klartext |
-| K6 | Markdown mit Unterstrich-Betonung wird nicht gerendert (_…_ sichtbar) |
-| K7 | Sprachwechsler „DE / EN" wirkt wie Debug-Element (kein Label/aria) |
+| ✅ K5 | __NUXT__-Payload der Login-Seite enthält Plan/entitlementsDoc im Klartext |
+| ✅ K6 | Markdown mit Unterstrich-Betonung wird nicht gerendert (_…_ sichtbar) |
+| ✅ K7 | Sprachwechsler „DE / EN" wirkt wie Debug-Element (kein Label/aria) |
 | ✅ K8 | Platzhalter-Literale statt i18n (embed.vue:126/132, pages.vue:194); createError-Vertrag verletzt (pages [slug].vue statusCode/statusMessage; embed.vue englische statusText) |
 | ✅ K9 | Embed-Site Aktiv/Inaktiv als UButton statt USwitch (Davids UX-Regel) |
-| K10 | Wording „Features" in Admin-/Control-Oberflächen (betreiberseitig — Entscheidung, ob „Produkte" auch intern gilt) |
+| ✅ K10 | Wording „Features" in Admin-/Control-Oberflächen (betreiberseitig — Entscheidung, ob „Produkte" auch intern gilt) |
 | ✅ K11 | app.tagline-Reste „Neue Maui-App" in _template/control/photos; platform-tagline „Community-Plattform von Pukalani" pro Tenant ausgespielt |
 
 ## Positiv (bestätigt sauber)
@@ -100,3 +100,31 @@ bei David) · og:image (S5-Rest) · K2 Favicon je Tenant · K3 interne Namen im
 DOM · K4 Bundling der Login-Seite · K5 __NUXT__-Payload · K6 Unterstrich-
 Markdown · K7 Sprachwechsler-UI (Teil der S9-Entscheidung) · K10 Features-
 Wording im Admin (Entscheidung).
+
+## Nachtschicht-Bilanz (2026-07-28, 8 Worktree-Agenten)
+
+Behoben und gemergt: S9+K7 (EIN Community-Layout im blueprint, chrome-Registry
+als Map mit Override/Abschalten, Inline-Nav mit Überlauf, DisplaySettingsMenu,
+Config-Footer mit Legal-CMS-Links; App-Layouts + Platform-Components gelöscht) ·
+Events durch die Datentür (13 Routen + 4 Utils, Migration events-006,
+Isolationsbeweis 14/14, in platform montiert, Plan-Gate pro) · S1 (Offene
+Registrierung pro Community: Schalter über die Service-Naht mit
+site_members-Pflicht, Server-Gate 403, Hinweis-Seite; Migration studio-018) ·
+S4 (Morgenlicht zweisprachig, LIVE geseedet; dabei Key-Fix: Seed lief mit
+blindem Migrations-Key) · S6 (robots+sitemap je Tenant, Datentür) · S7
+(Impressum/Datenschutz-Vorlagen als Entwurf je neuer Community + Backfill) ·
+K10 (Produkte-Wording im Kunden-Dashboard) · K5 (entitlementsDoc aus dem
+Payload + /api/config typisiert projiziert) · K6 (Unterstrich-Markdown).
+
+NEUE Befunde aus der Nacht (offen):
+- N1 (WICHTIG): Site-Owner erreichen /dashboard nicht — Zugang hängt an
+  globalen Operator-Labels, Site-Rollen werden nicht in den Client gespiegelt.
+  Der Kunden-Registrierungs-Switch ist serverseitig fertig, per UI erst nach
+  diesem Spiegeln erreichbar. (S1-Bericht Punkt 1)
+- N2: app_config ist Table-read(any) und trägt die entitlements-Spalte —
+  Appwrite-Direktweg umgeht die Payload-Diät; braucht system-Migration.
+- N3: 9 themes-visual-Baselines brechen erwartungsgemäß (Header-Umbau) —
+  David sichtet, dann `pnpm --filter comments e2e -- --update-snapshots`.
+- N4: Demo indexierbar? (S6) Produktfrage David.
+- N5: Paid-Events im Pool fail-closed bis Webhook Mandanten stempelt;
+  Site-Owner-Eventverwaltung braucht requireSitePermission-Verdrahtung.
