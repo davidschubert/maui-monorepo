@@ -1,5 +1,5 @@
 {
-  "name": "docs-site",
+  "name": "help",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -11,11 +11,11 @@
     "typecheck": "nuxi typecheck"
   },
   "dependencies": {
-    "@iconify-json/lucide": "^1.2.118",
+    "@iconify-json/lucide": "catalog:",
     "@iconify-json/ph": "catalog:",
     "@maui/core": "workspace:*",
     "@maui/system": "workspace:*",
-    "@nuxt/content": "^3.15.1",
+    "@nuxt/content": "catalog:",
     "@nuxt/ui": "catalog:",
     "@nuxtjs/i18n": "catalog:",
     "@pinia/nuxt": "catalog:",

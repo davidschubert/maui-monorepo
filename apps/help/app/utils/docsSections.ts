@@ -1,21 +1,18 @@
 import type { InjectionKey, Ref } from 'vue'
 import type { ContentNavigationItem } from '@nuxt/content'
+import type { DocsNavigation, DocsSection, DocsSectionKey } from '../../shared/types/docs'
 
 /**
  * Die zwei Abschnitte der Hilfe-Site = die zwei Content-Sammlungen
  * (content.config.ts). EINE Quelle für Kopfzeile, Seitenleiste und
  * Seiten-Abfrage — der Abschnitt wird immer aus dem Pfad abgeleitet,
- * nie geraten.
+ * nie geraten. Die Domänen-Typen dazu liegen in shared/types/docs.ts
+ * (Projektregel), hier bleibt nur die Utility.
  */
 export const DOCS_SECTIONS = [
   { key: 'anleitung', prefix: '/anleitung', labelKey: 'docs.sections.anleitung', icon: 'i-ph-compass' },
   { key: 'entwickler', prefix: '/entwickler', labelKey: 'docs.sections.entwickler', icon: 'i-ph-code' },
-] as const
-
-export type DocsSectionKey = (typeof DOCS_SECTIONS)[number]['key']
-
-/** Navigation je Sammlung, wie app.vue sie bereitstellt. */
-export type DocsNavigation = Record<DocsSectionKey, ContentNavigationItem[]>
+] as const satisfies readonly DocsSection[]
 
 export const docsNavigationKey = Symbol('docs-navigation') as InjectionKey<Ref<DocsNavigation | null | undefined>>
 

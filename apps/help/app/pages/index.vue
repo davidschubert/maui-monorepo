@@ -8,17 +8,18 @@ if (!page.value) {
   throw createError({ status: 404, statusText: 'Page not found', fatal: true })
 }
 
-const title = page.value.seo?.title || page.value.title
-const description = page.value.seo?.description || page.value.description
+const brand = useBrandName()
 
-useSeoMeta({
-  // Startseite trägt den Site-Namen schon selbst — die Vorlage aus app.vue
-  // würde ihn sonst doppeln.
-  titleTemplate: '',
-  title,
-  ogTitle: title,
-  description,
-  ogDescription: description,
+// Titel im Hausmuster „<Seite> · <Brand>" (useBrandTitle, Core). Die Startseite
+// trägt den Site-Namen in ihrem Frontmatter schon selbst — dann bleibt der
+// Seitenname leer, sonst stünde „Pukalani Hilfe · Pukalani Hilfe" im Tab.
+const pageName = computed(() => {
+  const title = page.value?.seo?.title || page.value?.title || ''
+  return title === brand.value ? '' : title
+})
+
+useBrandTitle(pageName, {
+  description: () => page.value?.seo?.description || page.value?.description,
 })
 </script>
 

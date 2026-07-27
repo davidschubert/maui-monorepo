@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { findPageHeadline } from '@nuxt/content/utils'
+import type { DocsNavigation } from '../../shared/types/docs'
 
 definePageMeta({ layout: 'docs' })
 
@@ -22,14 +23,11 @@ if (!page.value) {
 const { data: surround } = await useAsyncData(`${route.path}-surround`, () =>
   queryCollectionItemSurroundings(section.value, route.path, { fields: ['description'] }))
 
-const title = page.value.seo?.title || page.value.title
-const description = page.value.seo?.description || page.value.description
-
-useSeoMeta({
-  title,
-  ogTitle: title,
-  description,
-  ogDescription: description,
+// Titel + Social-Tags im Hausmuster „<Seite> · <Brand>" (useBrandTitle, Core —
+// Audit-Befund S8/S5). Getter statt fixer Werte, damit ein Seitenwechsel
+// innerhalb der Route ([...slug]) den Kopf mitzieht.
+useBrandTitle(() => page.value?.seo?.title || page.value?.title || '', {
+  description: () => page.value?.seo?.description || page.value?.description,
 })
 
 const headline = computed(() => findPageHeadline(

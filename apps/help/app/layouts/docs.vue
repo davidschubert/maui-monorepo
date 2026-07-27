@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { DocsNavigation } from '../../shared/types/docs'
+
 // Seitenleiste = Navigation des AKTIVEN Abschnitts (Anleitung | Entwickler).
 const route = useRoute()
 const fallback = ref<DocsNavigation | null>(null)

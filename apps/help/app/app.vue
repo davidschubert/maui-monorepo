@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import type { DocsNavigation } from '../shared/types/docs'
+
 // Dünne App: Kopf/Fuß + die beiden Content-Sammlungen. Inhalt lebt in content/.
 const { t } = useI18n()
+const brand = useBrandName()
 
 const { data: navigation } = await useAsyncData('docs-navigation', async () => {
   const [anleitung, entwickler] = await Promise.all([
@@ -26,16 +29,17 @@ const searchNavigation = computed(() => [
 
 provide(docsNavigationKey, navigation)
 
-const localeHead = useLocaleHead({ seo: true, lang: true, dir: true })
-useHead(() => ({
-  htmlAttrs: localeHead.value.htmlAttrs,
-  link: localeHead.value.link,
-  meta: localeHead.value.meta,
-  titleTemplate: (title?: string) => (title ? `${title} — ${t('docs.siteName')}` : t('docs.siteName')),
-}))
+// SEO-Kopf: EIN Core-Aufruf (lang/dir, canonical, og:url/og:locale) statt der
+// handgebauten useLocaleHead/useHead-Kopie — Audit-Befund B1. Single-Host-App,
+// also bleibt das Gate `maui.seo.originFromRequest` aus und die absolute Basis
+// kommt aus NUXT_PUBLIC_I18N_BASE_URL. Wegen der i18n-Strategie `no_prefix`
+// (Begründung in nuxt.config.ts) entfallen hier hreflang-Alternates.
+useLocaleSeoHead()
 
+// KEIN eigenes titleTemplate mehr: den Titel setzen die Seiten selbst über
+// useBrandTitle() im Hausmuster „<Seite> · <Brand>" (Audit-Befund S8).
 useSeoMeta({
-  ogSiteName: () => t('docs.siteName'),
+  ogSiteName: () => brand.value,
 })
 </script>
 

@@ -1,5 +1,6 @@
 export default defineNuxtConfig({
-  // Öffentliche Hilfe-Site (docs.pukalani.app) für Community-Betreiber.
+  // Öffentliche Hilfe-Site für Community-Betreiber (Ziel-Host
+  // help.pukalani.app — Annahme, siehe site.manifest.ts; heute Dev-only).
   // Bewusst NUR das Fundament (core + system) — kein admin/themes/comments:
   // die Seite ist öffentlich, liest nichts aus Appwrite und rendert
   // ausschließlich Markdown aus `content/`. Das Fundament liefert trotzdem
@@ -29,13 +30,22 @@ export default defineNuxtConfig({
   },
 
   /**
-   * BEWUSSTE Abweichung von der Monorepo-Strategie 'prefix_except_default':
-   * die Hilfe-Inhalte gibt es NUR auf Deutsch (eine Content-Sammlung, keine
-   * Sprachvarianten). Mit dem Prefix-Modus läge derselbe deutsche Text unter
-   * `/anleitung` UND `/de/anleitung` — doppelter Inhalt, geteilter
-   * Suchindex, und der Browser-Sprach-Redirect (redirectOn: 'all') schöbe
-   * Leser zwischen beiden hin und her. `no_prefix` hält Route und
-   * Content-Pfad deckungsgleich (`queryCollection().path(route.path)`).
+   * BEWUSSTE, von David freigegebene Abweichung vom Hausmuster
+   * 'prefix_except_default' (CLAUDE.md „Coding Rules"): die Hilfe-Inhalte gibt
+   * es NUR auf Deutsch (eine Content-Sammlung, keine Sprachvarianten). Mit dem
+   * Prefix-Modus läge derselbe deutsche Text unter `/anleitung` UND
+   * `/de/anleitung` — doppelter Inhalt, geteilter Suchindex, und der
+   * Browser-Sprach-Redirect (redirectOn: 'all') schöbe Leser zwischen beiden
+   * hin und her. `no_prefix` hält Route und Content-Pfad deckungsgleich
+   * (`queryCollection().path(route.path)`).
+   *
+   * PREIS der Abweichung, bewusst akzeptiert: ohne Locale-Prefixe gibt es
+   * keine unterscheidbaren URLs je Sprache — `useLocaleSeoHead()` liefert hier
+   * also lang/dir + canonical, aber KEINE hreflang-Alternates. Das ist korrekt,
+   * solange es die Inhalte nur auf Deutsch gibt. Sobald echte englische
+   * Inhalte dazukommen, MUSS diese Site auf 'prefix_except_default'
+   * zurückgeführt werden (sonst wäre EN unsichtbar für Suchmaschinen).
+   *
    * Die Oberfläche (Kopf/Fuß/Suche) bleibt zweisprachig — die Keys liegen
    * wie üblich in i18n/locales und mergen mit den Core-Locales.
    */

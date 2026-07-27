@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { DocsNavigation } from '../../shared/types/docs'
+
 // Kopfzeile: Marke, Abschnitts-Umschalter (die zwei Sammlungen), Suche.
 const { t } = useI18n()
 const localePath = useLocalePath()
