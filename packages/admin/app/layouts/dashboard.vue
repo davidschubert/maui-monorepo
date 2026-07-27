@@ -4,6 +4,7 @@
 // Command-Palette-Suche (⌘K). Die Seiten rendern in <slot/> als UDashboardPanel.
 import type { CommandPaletteGroup, CommandPaletteItem, NavigationMenuItem } from '@nuxt/ui'
 import { isFeatureStateEnabled } from '../../../core/shared/types/config'
+import type { Capability } from '../../../core/shared/types/authz'
 
 const { t } = useI18n()
 const localePath = useLocalePath()
@@ -34,12 +35,29 @@ const sidebarClass = computed(() => {
 const close = () => { open.value = false }
 const route = useRoute()
 
-const canManageUsers = computed(() => userHasCapability(auth.user, 'users.manage'))
+// Capability-Prüfung mit ZWEI Quellen (N1): Operator-Labels ODER die Site-
+// Rolle dieses Mandanten (useSiteRole, SSR-gespiegelt). Die Zuordnung ist
+// KONSERVATIV, weil sie sich vollständig aus den vorhandenen Capabilities der
+// Module × der Rollen-Matrix (core/shared/tenantAuthz.ts) ergibt — hier wird
+// keine neue Rechte-Liste gepflegt. Für einen Site-OWNER heißt das:
+//   sichtbar: Overview (dashboard.access), Kommentare (comments.moderate),
+//     Beiträge (posts.moderate), Events/Kurse/Activity (events/courses/
+//     activity.manage), Seiten (pages.manage), Medien (media.manage),
+//     Einstellungen inkl. Community-Registrierung (team.manage via Page-Meta)
+//   unsichtbar (Operator-only, Site-Rollen tragen die Caps nicht):
+//     People (users.manage), Admin/Audit (audit.read), Storage
+//     (storage.manage), System/Themes/Config/Features/Embed (system.manage),
+//     Sites/Control (sites.manage), Billing (billing.manage), Feedback/
+//     Tickets (feedback/tickets.manage)
+const { capabilities: siteCaps } = useSiteRole()
+const can = (capability: Capability) =>
+  userHasCapability(auth.user, capability) || siteCaps.value.has(capability)
+
+const canManageUsers = computed(() => can('users.manage'))
 
 // Hauptnavigation oben — je Eintrag nach Capability gefiltert (RBAC). Overview
 // sieht jeder mit dashboard.access; der Rest nur mit der jeweiligen Capability.
 const links = computed<NavigationMenuItem[]>(() => {
-  const u = auth.user
   const items: NavigationMenuItem[] = [
     { label: t('admin.nav.overview'), icon: 'i-ph-gauge', to: localePath('/dashboard'), exact: true, onSelect: close },
   ]
@@ -54,14 +72,14 @@ const links = computed<NavigationMenuItem[]>(() => {
   // 'userMenu' gehört ins Account-Menü (DashboardUserMenu), nicht hierher.
   const toItem = (m: MauiAdminModule): NavigationMenuItem => {
     const children = (m.children ?? [])
-      .filter(child => userHasCapability(u, child.requiredCapability ?? m.requiredCapability))
+      .filter(child => can(child.requiredCapability ?? m.requiredCapability))
       .map(child => ({ label: t(child.labelKey), icon: child.icon, to: localePath(child.to), exact: child.exact, onSelect: close }))
     return children.length
       ? { label: t(m.labelKey), icon: m.icon, defaultOpen: route.path.startsWith(localePath(m.to)), children }
       : { label: t(m.labelKey), icon: m.icon, to: localePath(m.to), onSelect: close }
   }
   const modules = ((appConfig.maui?.admin?.modules ?? []) as MauiAdminModule[])
-    .filter(m => (m.placement ?? 'nav') === 'nav' && userHasCapability(u, m.requiredCapability) && featureOn(m.featureKey))
+    .filter(m => (m.placement ?? 'nav') === 'nav' && can(m.requiredCapability) && featureOn(m.featureKey))
   for (const m of modules.filter(m => !m.group)) items.push(toItem(m))
   // Gruppen in fester Reihenfolge; innerhalb sortiert 'order' (sonst Registry-
   // Reihenfolge). Label-Abstand kommt einheitlich über :ui der UNavigationMenu.
@@ -79,12 +97,13 @@ const links = computed<NavigationMenuItem[]>(() => {
 
 // Admin/System unten — knapp über dem User-Menü, ebenfalls capability-gefiltert
 const bottomLinks = computed<NavigationMenuItem[]>(() => {
-  const u = auth.user
   const items: NavigationMenuItem[] = []
-  if (userHasCapability(u, 'audit.read')) items.push({ label: t('admin.nav.admin'), icon: 'i-ph-shield-check', to: localePath('/dashboard/admin'), onSelect: close })
+  // Operator-Infrastruktur: Site-Rollen tragen diese Caps nicht — can() fällt
+  // für reine Site-Mitglieder automatisch auf „unsichtbar" zurück.
+  if (can('audit.read')) items.push({ label: t('admin.nav.admin'), icon: 'i-ph-shield-check', to: localePath('/dashboard/admin'), onSelect: close })
   // Storage sitzt bei der Infrastruktur (selten gebraucht), nicht bei den Produkten
-  if (userHasCapability(u, 'storage.manage')) items.push({ label: t('admin.nav.storage'), icon: 'i-ph-folder', to: localePath('/dashboard/storage'), onSelect: close })
-  if (userHasCapability(u, 'system.manage')) items.push({ label: t('admin.nav.system'), icon: 'i-ph-cpu', to: localePath('/dashboard/system'), onSelect: close })
+  if (can('storage.manage')) items.push({ label: t('admin.nav.storage'), icon: 'i-ph-folder', to: localePath('/dashboard/storage'), onSelect: close })
+  if (can('system.manage')) items.push({ label: t('admin.nav.system'), icon: 'i-ph-cpu', to: localePath('/dashboard/system'), onSelect: close })
   // Raus aus dem Dashboard: zurück zur Startseite (ohne Capability — jeder)
   items.push({ label: t('admin.nav.homepage'), icon: 'i-ph-house', to: localePath('/'), onSelect: close })
   return items

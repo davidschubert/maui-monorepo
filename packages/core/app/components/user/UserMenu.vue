@@ -5,6 +5,7 @@ const { t } = useI18n()
 const localePath = useLocalePath()
 const auth = useAuthStore()
 const { logout } = useLogout()
+const canSiteDashboard = useSiteCapability('dashboard.access')
 
 const items = computed<DropdownMenuItem[]>(() => [
   {
@@ -13,9 +14,10 @@ const items = computed<DropdownMenuItem[]>(() => [
     type: 'label',
   },
   { type: 'separator' },
-  // Dashboard-Link für jeden mit dashboard.access-Capability (admin + moderator);
+  // Dashboard-Link für jeden mit dashboard.access — per Operator-Label (admin +
+  // moderator) ODER Site-Rolle dieses Mandanten (N1);
   // die Route liefert der admin-Layer — Apps ohne ihn haben keine solchen User.
-  ...(userHasCapability(auth.user, 'dashboard.access')
+  ...(userHasCapability(auth.user, 'dashboard.access') || canSiteDashboard.value
     ? [{ label: t('ui.adminArea'), icon: 'i-ph-gauge', to: localePath('/dashboard') } satisfies DropdownMenuItem]
     : []),
   {

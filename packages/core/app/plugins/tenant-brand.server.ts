@@ -11,10 +11,17 @@
  * Es wird deshalb GENAU gespiegelt, was clientseitig gelesen wird:
  *   - `name` → useTenantBrand() → useBrandName() (öffentlicher Header)
  *   - `plan` → useTenantPlan().planAllows() (Produkt-Sichtbarkeit in Nav/Badges)
+ *   - `siteRole` → useSiteRole()/useSiteCapability() (Dashboard-Zugang + Nav,
+ *     N1) — NUR der Rollen-String des EINGELOGGTEN Users auf DIESEM Mandanten
+ *     (server/middleware/site-role.ts); Gäste bekommen null. Die Capabilities
+ *     werden clientseitig aus der geteilten Matrix (shared/tenantAuthz)
+ *     abgeleitet — es reist kein fremdes Datum mit.
  * NICHT gespiegelt (kein Client-Leser): projectId, tenantId, siteId, limits,
  * mode, theme/variant (die reisen als <html>-Attribute, nicht als Daten).
  * Neues Feld hier hinein nur MIT nachgewiesenem Client-Leser.
  */
+import type { TenantRole } from '../../shared/tenantAuthz'
+
 export default defineNuxtPlugin(() => {
   const event = useRequestEvent()
   const tenant = event?.context.tenant
@@ -30,4 +37,9 @@ export default defineNuxtPlugin(() => {
   useState<boolean | null>('maui-tenant-open-registration', () => (
     tenant ? tenant.openRegistration !== false : null
   ))
+  // Site-Rolle des eingeloggten Users (N1): EXPLIZITE Zuweisung statt
+  // Init-Funktion — der Auth-Store (läuft früher) initialisiert denselben
+  // Key bereits mit null; eine Init-Funktion würde hier still verpuffen.
+  const siteRole = useState<TenantRole | null>('maui-site-role', () => null)
+  siteRole.value = event?.context.siteRole ?? null
 })

@@ -1,8 +1,21 @@
+import type { Capability } from '../../../core/shared/types/authz'
+
 /**
  * Route-Middleware für Dashboard-Pages (UX-Schicht — die Autorität sind die
- * requirePermission()-Gates in den Server Routes). Erfordert die dashboard.access-
- * Capability; eine Page kann via `definePageMeta({ requiredCapability })` eine
- * zusätzliche Capability verlangen (z.B. 'users.manage'). Siehe docs/RBAC-CONCEPT.md.
+ * requirePermission()/requireSitePermission()-Gates in den Server Routes).
+ *
+ * ZWEI Wege hinein (N1, analog decideSiteAccess auf dem Server):
+ *  1. Operator-Label (admin/moderator) mit dashboard.access — unverändert,
+ *     inkl. Break-Glass auf Kunden-Sites.
+ *  2. SITE-Rolle mit dashboard.access (useSiteRole, SSR-gespiegelt): laut
+ *     Rechte-Matrix in shared/tenantAuthz.ts tragen ALLE fünf Site-Rollen
+ *     (owner/admin/moderator/editor/viewer) dashboard.access — die Matrix ist
+ *     die Quelle, hier wird nichts neu erfunden. Was jemand DRIN sieht,
+ *     filtern Nav (dashboard-Layout) und `requiredCapability` je Page.
+ *
+ * Eine Page kann via `definePageMeta({ requiredCapability })` eine zusätzliche
+ * Capability verlangen (z.B. 'users.manage') — auch die erfüllt entweder ein
+ * Label ODER die Site-Rolle. Siehe docs/RBAC-CONCEPT.md.
  */
 export default defineNuxtRouteMiddleware((to) => {
   const auth = useAuthStore()
@@ -11,12 +24,17 @@ export default defineNuxtRouteMiddleware((to) => {
     return navigateTo(useLocalePath()('/login'))
   }
 
-  if (!userHasCapability(auth.user, 'dashboard.access')) {
+  const { capabilities: siteCaps } = useSiteRole()
+  const can = (capability: Capability) =>
+    userHasCapability(auth.user, capability) || siteCaps.value.has(capability)
+
+  if (!can('dashboard.access')) {
     throw createError({ status: 403, statusText: 'Forbidden' })
   }
 
   const required = to.meta.requiredCapability
-  if (required && !userHasCapabilityName(auth.user, required)) {
+  // Unbekannte Namen ergeben in BEIDEN Prüfungen false (deny-by-default).
+  if (required && !userHasCapabilityName(auth.user, required) && !siteCaps.value.has(required as Capability)) {
     throw createError({ status: 403, statusText: 'Forbidden' })
   }
 })
