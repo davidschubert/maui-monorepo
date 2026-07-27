@@ -3,11 +3,14 @@ import { EVENTS_TABLE, type EventRow } from '../../../../shared/types/event'
 /**
  * Cover entfernen (events.manage) — Row zuerst, Datei danach (best-effort).
  * Datentür als Operator: get/update belegen die Zugehörigkeit.
+ *
+ * AUTORISIERUNG (N5): `requireSitePermission` — Site-Rolle vor protokolliertem
+ * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
  */
 export default defineEventHandler(async (event) => {
   // Produkt-Gate (P4): Events sind ab Plan pro enthalten.
   requirePlanProduct(event, 'events')
-  requirePermission(event, 'events.manage')
+  await requireSitePermission(event, 'events.manage')
 
   const id = getRouterParam(event, 'id')
   if (!id) {

@@ -7,11 +7,14 @@ import { EVENTS_TABLE, isSeriesMaster, type EventRow } from '../../../../shared/
  * Rows bleiben sichtbar, Teilnehmer sehen die Absage). Vergangene Termine
  * bleiben unangetastet. Idempotent. Datentür als Operator: get/list/update
  * belegen bzw. scopen die Zugehörigkeit — fremde Serien bekommen 404.
+ *
+ * AUTORISIERUNG (N5): `requireSitePermission` — Site-Rolle vor protokolliertem
+ * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
  */
 export default defineEventHandler(async (event) => {
   // Produkt-Gate (P4): Events sind ab Plan pro enthalten.
   requirePlanProduct(event, 'events')
-  requirePermission(event, 'events.manage')
+  await requireSitePermission(event, 'events.manage')
 
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ status: 400, statusText: 'Missing event id' })

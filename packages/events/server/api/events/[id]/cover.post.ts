@@ -10,6 +10,9 @@ import { EVENTS_TABLE, MAX_EVENT_COVER_BYTES, isSeriesEvent, isSeriesMaster, typ
  * wird gelöscht, best-effort). Rows über die Datentür als Operator
  * (get/update belegen die Zugehörigkeit); Storage bleibt Admin-Client —
  * Files tragen keinen Mandanten, die Referenz (coverFileId) tut es.
+ *
+ * AUTORISIERUNG (N5): `requireSitePermission` — Site-Rolle vor protokolliertem
+ * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
  */
 function isImage(data: Buffer): boolean {
   if (data.length < 12) return false
@@ -22,7 +25,7 @@ function isImage(data: Buffer): boolean {
 export default defineEventHandler(async (event) => {
   // Produkt-Gate (P4): Events sind ab Plan pro enthalten.
   requirePlanProduct(event, 'events')
-  requirePermission(event, 'events.manage')
+  await requireSitePermission(event, 'events.manage')
 
   const id = getRouterParam(event, 'id')
   if (!id) {
