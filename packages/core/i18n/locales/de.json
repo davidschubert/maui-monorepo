@@ -21,6 +21,8 @@
       "closedTitle": "Registrierung geschlossen",
       "closedText": "Neue Registrierungen sind derzeit deaktiviert. Bitte schau später wieder vorbei.",
       "maintenanceText": "Wir befinden uns gerade im Wartungsmodus, daher sind neue Registrierungen pausiert. Bitte versuche es später erneut.",
+      "inviteOnlyTitle": "Nur auf Einladung",
+      "inviteOnlyText": "{brand} nimmt neue Mitglieder aktuell nur auf Einladung auf. Wenn du schon eine Einladung hast, melde dich einfach an.",
       "toLogin": "Zurück zur Anmeldung",
       "hasAccount": "Schon einen Account?",
       "loginLink": "Anmelden",

@@ -7,10 +7,13 @@ const { t } = useI18n()
 const localePath = useLocalePath()
 const appConfig = useAppConfig()
 const flags = useRuntimeFlags()
+// S1: „nur auf Einladung" ist ebenfalls geschlossen — sonst wäre die
+// Code-Registrierung die offene Hintertür zur zugemachten Community.
+const { closed: inviteOnly } = useTenantOpenRegistration()
 
 // OTP deaktiviert ODER Registrierung geschlossen → zurück zu /register
-// (dort liegt der "Registrierung geschlossen"-Hinweis zentral)
-if (appConfig.maui?.auth?.otp !== true || !flags.value.registrationEnabled || flags.value.maintenanceMode) {
+// (dort liegen ALLE „geschlossen"-Hinweise zentral, inkl. des S1-Texts)
+if (appConfig.maui?.auth?.otp !== true || !flags.value.registrationEnabled || flags.value.maintenanceMode || inviteOnly.value) {
   await navigateTo(localePath('/register'))
 }
 

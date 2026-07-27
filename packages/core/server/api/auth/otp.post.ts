@@ -11,11 +11,14 @@ import { recoverySchema } from '../../../schemas/auth'
 export default defineEventHandler(async (event) => {
   const { email } = await readValidatedBody(event, recoverySchema.parse)
 
-  // Auto-Signup würde die Registrierungssperre umgehen: Ist die Registrierung
-  // zu (oder Wartungsmodus), dürfen sich nur BESTEHENDE User per Code einloggen
-  // — für unbekannte E-Mails keine Neuanlage.
+  // Auto-Signup würde die Registrierungssperre umgehen: ist die Registrierung
+  // zu, dürfen sich nur BESTEHENDE User per Code einloggen — für unbekannte
+  // E-Mails keine Neuanlage. „Zu" hat ZWEI Ebenen, und eine genügt: die
+  // Instanz-Sperre (app_config/Wartungsmodus, EINE Row pro Projekt) und — seit
+  // S1 — die Mandanten-Sperre (tenants.openRegistration, studio-018), die im
+  // Pool pro Community stehen kann, wo app_config es nicht kann.
   const appConfig = await getAppConfig(event)
-  if (!appConfig.registrationEnabled || appConfig.maintenanceMode) {
+  if (!appConfig.registrationEnabled || appConfig.maintenanceMode || !tenantRegistrationOpen(event)) {
     // Exakter Treffer mit explizitem Limit (search ohne Limit könnte den
     // exakten Match jenseits der 25er-Default-Seite verfehlen und einen legitimen
     // bestehenden User fälschlich aussperren). E-Mail ist im Schema bereits

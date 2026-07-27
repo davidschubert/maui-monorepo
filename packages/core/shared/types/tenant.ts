@@ -30,9 +30,26 @@ export interface TenantBranding {
   name?: string
 }
 
+/**
+ * Produkt-Schalter des Mandanten (S1, Davids Entscheidung 4 vom 2026-07-27).
+ *
+ * Getrennt von TenantBranding, weil hier keine Optik hängt, sondern eine
+ * Zugangsregel: die Autorität ist der Server (assertTenantRegistrationOpen an
+ * den Auth-Routen), das UI spiegelt sie nur.
+ *
+ * `openRegistration` ist OPTIONAL und `undefined` heißt „offen" — Silo-Apps,
+ * Playground und Bestands-Fixtures bauen den Kontext ohne das Feld, und die
+ * dürfen sich nicht plötzlich zumachen. Der reale Resolver setzt es explizit.
+ */
+export interface TenantPolicy {
+  /** false = neue Mitglieder nur auf Einladung (Register-Seite zeigt Hinweis,
+   *  Auth-Routen antworten 403). undefined/true = offen wie bisher. */
+  openRegistration?: boolean
+}
+
 export type TenantContext =
   /** Eigenes Appwrite-Projekt (Isolation am Projekt) — Spezial-/Enterprise-Kunde. */
-  | ({ mode: 'silo', projectId: string, siteId?: string } & TenantBranding)
+  | ({ mode: 'silo', projectId: string, siteId?: string } & TenantBranding & TenantPolicy)
   /**
    * Geteiltes Projekt, Zeilen-Scope über tenantId — Standard-SaaS-Kunde.
    * `plan` (free/pro/business, Default free) staffelt die Quota — core bleibt
@@ -42,4 +59,4 @@ export type TenantContext =
    * — hat Vorrang vor dem statischen app.config-Katalog (Fallback-Kette in
    * assertPoolWriteQuota).
    */
-  | ({ mode: 'pool', projectId: string, tenantId: string, plan?: string, limits?: Record<string, { perDay?: number, total?: number }>, siteId?: string } & TenantBranding)
+  | ({ mode: 'pool', projectId: string, tenantId: string, plan?: string, limits?: Record<string, { perDay?: number, total?: number }>, siteId?: string } & TenantBranding & TenantPolicy)
