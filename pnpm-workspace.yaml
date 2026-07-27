@@ -21,6 +21,7 @@ catalog:
   '@types/node': ^22.18.0
   nuxt: ^4.4.8
   '@nuxt/ui': ^4.10.0
+  '@nuxt/content': ^3.15.1
   '@nuxtjs/mdc': ^0.22.2
   '@pinia/nuxt': ^0.11.3
   pinia: ^3.0.4

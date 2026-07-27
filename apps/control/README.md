@@ -40,6 +40,28 @@ Migrations-Runner heraus (`scripts/migrate.mjs` ignoriert `_*`).
    - `app/pages/`: eigene Seiten; Layout-Overrides optional unter `app/layouts/`
      (Core bringt `default` + `auth` mit)
 
+## Interne Projekt-Doku unter `/docs`
+
+`control.pukalani.app/docs` rendert **dieselben Markdown-Quellen** wie die
+eigenständige Docs-App (`pnpm dev:docs`, Port 4000): `docs/content/**`. Es wird
+nichts kopiert und nichts synchronisiert — `content.config.ts` zeigt per `cwd`
+direkt dorthin (Collection `internalDocs`, `prefix: '/docs'`).
+
+- **Auth:** der ganze Bereich hängt an der Betreiber-Session. Seiten UND die
+  Content-API (`/__nuxt_content/**` — `sql_dump.txt` ist die komplette Doku!)
+  laufen fail-closed durch `server/middleware/docs-guard.ts`. Gast → Login
+  bzw. 401, niemals Inhalt.
+- **Prerender ist bewusst AUS** (`nuxt.config.ts`): sonst läge der SQL-Dump als
+  statische Datei in `.output/public/` und würde am Guard vorbei ausgeliefert.
+- **Build:** die Inhalte werden beim Build eingebettet (`.output/server/chunks/
+  build/database.compressed.mjs`) — der Deploy braucht `docs/content` zur
+  Laufzeit NICHT, wohl aber beim Bauen.
+- **Beweis:**
+  ```bash
+  node --env-file=apps/control/.env apps/control/scripts/verify-docs-access.mjs
+  ```
+  (Dev-Server muss laufen; `PROBE_BASE=…` für einen anderen Port.)
+
 ## Konventionen (Kurzfassung)
 
 - CRUD nur über `server/api/*` der Layer — nie Web-SDK-CRUD im Client

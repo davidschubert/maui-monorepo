@@ -9,5 +9,12 @@
   },
   "home": {
     "subtitle": "Sites, Workspaces und Mandanten der Plattform verwalten — weiter im Dashboard."
+  },
+  "control": {
+    "docs": {
+      "nav": "Doku",
+      "title": "Projekt-Doku",
+      "overview": "Überblick"
+    }
   }
 }
