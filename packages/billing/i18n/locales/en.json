@@ -11,13 +11,13 @@
       "currentPlan": "Your current plan",
       "included": "Included in your plan",
       "loginCta": "Sign in to upgrade",
-      "freeFeatures": "All core community features",
+      "freeFeatures": "All the community basics",
       "alreadyActive": "You already have an active subscription — manage it via the portal.",
       "checkoutFailed": "Could not start the checkout.",
       "disabled": "Subscriptions are not enabled here yet.",
       "perMonth": "/month",
       "perYear": "/year",
-      "compareTitle": "Compare features across plans"
+      "compareTitle": "Compare what's included across plans"
     },
     "compare": {
       "includedA11y": "Included"

@@ -66,8 +66,8 @@
         "slugHelp": "URL-Teil: kleinbuchstaben-mit-bindestrichen.",
         "description": "Beschreibung",
         "access": "Zugang",
-        "entitlement": "Entitlement-Feature",
-        "entitlementHelp": "Feature-String aus dem Abo-Plan (z. B. paidCourses) — der App-Guard prüft ihn.",
+        "entitlement": "Freischalt-Schlüssel",
+        "entitlementHelp": "Freischalt-Schlüssel aus dem Abo-Plan (z. B. paidCourses) — die App prüft ihn beim Zugriff.",
         "content": "Inhalt (Markdown)",
         "markdownHelp": "Markdown wird unterstützt — **fett**, Listen, Links.",
         "videoUrl": "Video-URL (optional)",
@@ -84,7 +84,7 @@
       "contentRequired": "Inhalt angeben.",
       "contentMax": "Inhalt ist zu lang (max. 15.000 Zeichen).",
       "urlInvalid": "Keine gültige URL.",
-      "paidNeedsFeature": "Pro-Kurse brauchen ein Entitlement-Feature.",
+      "paidNeedsFeature": "Pro-Kurse brauchen einen Freischalt-Schlüssel.",
       "orderRequired": "Reihenfolge fehlt."
     }
   },

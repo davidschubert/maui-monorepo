@@ -66,8 +66,8 @@
         "slugHelp": "URL part: lowercase-with-dashes.",
         "description": "Description",
         "access": "Access",
-        "entitlement": "Entitlement feature",
-        "entitlementHelp": "Feature string from the subscription plan (e.g. paidCourses) — checked by the app guard.",
+        "entitlement": "Unlock key",
+        "entitlementHelp": "Unlock key from the subscription plan (e.g. paidCourses) — the app checks it on access.",
         "content": "Content (Markdown)",
         "markdownHelp": "Markdown is supported — **bold**, lists, links.",
         "videoUrl": "Video URL (optional)",
@@ -84,7 +84,7 @@
       "contentRequired": "Please add content.",
       "contentMax": "Content is too long (max. 15,000 characters).",
       "urlInvalid": "Not a valid URL.",
-      "paidNeedsFeature": "Paid courses need an entitlement feature.",
+      "paidNeedsFeature": "Paid courses need an unlock key.",
       "orderRequired": "Missing order."
     }
   },
