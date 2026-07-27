@@ -21,6 +21,11 @@ const appConfig = useAppConfig() as {
   ui: { colors: { primary: string } }
 }
 // Gate: Feature aus → 404 (kein Hinweis, dass die Route existiert)
+//
+// statusText bleibt bewusst knappes technisches Englisch: er ist HTTP-/Server-
+// Vertrag (Logs, API-Clients), NICHT die Anzeige. Was ein Mensch liest, rendert
+// CoreErrorPage aus i18n (error.notFound / error.generic) — deshalb steht hier
+// kein deutscher Satz und wir übergeben auch keine message (Audit-Befund K8).
 if (!appConfig.maui?.comments?.embed?.enabled) {
   throw createError({ status: 404, statusText: 'Not Found' })
 }
@@ -39,6 +44,8 @@ const paramsSchema = z.object({
 })
 const parsed = paramsSchema.safeParse(useRoute().query)
 if (!parsed.success) {
+  // Wie oben: statusText = technischer Vertrag, Anzeige kommt lokalisiert aus
+  // CoreErrorPage. Keine Zod-Details nach außen (kein Schema-Leak).
   throw createError({ status: 400, statusText: 'Invalid embed parameters' })
 }
 const params = parsed.data
