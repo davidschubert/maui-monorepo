@@ -6,9 +6,34 @@ import { logEvent, shapeErrorLog } from './utils/logEvent'
  * `{ ok:false, code, message }` zurück (für externe Konsumenten), ohne
  * Stacktraces/Appwrite-Details (≥500 → generisch).
  *
- * Nicht-API-Fehler werden NICHT angefasst (kein send) → Nitro/Nuxt fällt auf den
- * Standard-Renderer zurück, der die gebrandete error.vue rendert (verifiziert:
- * Browser-Request auf eine fehlende Seite liefert weiterhin die volle HTML-Seite).
+ * Nicht-API-Fehler beantwortet dieser Handler BEWUSST nicht (kein send) —
+ * dann übernimmt der NÄCHSTE Handler der Nitro-Kette: der von Nuxt
+ * mitgelieferte, der die gebrandete error.vue (CoreErrorPage) rendert.
+ *
+ * WICHTIG — warum die Kette explizit in nuxt.config.ts gebaut wird
+ * (Audit-Befund B2, 2026-07-27): `nitro.errorHandler` in der nuxt.config
+ * ERSETZT Nuxts eigenen Handler, statt ihn zu ergänzen. @nuxt/nitro-server
+ * 4.4.8 registriert seinen Renderer-Handler nur, wenn das Feld noch leer ist
+ * (`if (!nitroConfig.errorHandler && …) nitroConfig.errorHandler =
+ * resolve(distDir, 'runtime/handlers/error')`, dist/index.mjs:402). Weil der
+ * Core das Feld gesetzt hatte, blieb in nitropack 2.13.4 nur noch
+ * `[dieser Handler, internal/error/prod]` in der Kette — und
+ * `internal/error/prod` antwortet AUSNAHMSLOS mit
+ * `{"error":true,"url":…,"statusCode":404,…}` als `application/json`
+ * (dist/runtime/internal/error/prod.mjs), auch bei `Accept: text/html`.
+ * Ergebnis: es gab faktisch KEINE 404-Seite, obwohl jede App eine
+ * app/error.vue hat. Seit dem Fix hängt dieser Handler VOR Nuxts Handler
+ * (`nitro:config`-Hook in packages/core/nuxt.config.ts) — die Kette lautet
+ * `[dieser Handler, Nuxt-Renderer, internal/error/prod]`, und wer zuerst
+ * antwortet (event.handled), beendet sie. Also: `nitro.errorHandler` hier
+ * NIE wieder direkt in der nuxt.config setzen.
+ *
+ * Bewusst UNVERÄNDERT gelassen: Nuxts Handler überlässt „JSON-Clients" das
+ * Feld (isJsonRequest — `Accept: application/json`, `.json`, `/api/`, UA
+ * curl/httpie, sec-fetch-mode: cors). Ein nacktes `curl <seite>` sieht daher
+ * weiterhin Nitros Debug-JSON; Browser, Crawler und alles mit
+ * `Accept: text/html` bekommen die HTML-Seite. Das ist Nitro/Nuxt-
+ * Standardverhalten (Content-Negotiation), keine Regression.
  *
  * Observability-Gate (maui.observability): unbehandelte 5xx werden HIER — der
  * zentralen Fehlerstelle — als strukturierte JSON-Zeile geloggt (logEvent).
