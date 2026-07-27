@@ -37,10 +37,13 @@ export default defineAppConfig({
       //
       // Umbenennung 2026-07-25 (Davids Entscheidung): `my` ist der Kundenbereich
       // (trägt Anmeldung UND späteren Kontobereich — Abo, Rechnungen, Team),
-      // `start` ist der Kurz-Link in den Wizard (Visitenkarte, Bio), `app`
-      // bleibt vorerst als Weiterleitung bestehen. Die Liste ist bewusst
-      // ADDITIV: solange alle drei antworten, sperrt kein Deploy jemanden aus.
-      controlHosts: ['my.pukalani.app', 'start.pukalani.app', 'app.pukalani.app'],
+      // `start` ist der Kurz-Link in den Wizard (Visitenkarte, Bio).
+      // Der Altname `app` ist am 2026-07-27 ENTFERNT (Davids Entscheidung):
+      // er war nie beworben, hatte nie einen eigenen DNS-Eintrag (lief über
+      // die Wildcard) und stand nur noch hier. Er antwortet jetzt 404 wie
+      // jeder unbekannte Host. `app` bleibt in RESERVED_SUBDOMAINS gesperrt —
+      // ein Selbstbedienungs-Kunde darf den Namen NIE bekommen (Phishing).
+      controlHosts: ['my.pukalani.app', 'start.pukalani.app'],
       // H3-4.3 Quota (Blueprint S4): Pool-Kunden erschöpfen den geteilten
       // Server nicht. PRO PLAN gestaffelt (David-Freigabe 2026-07-23) — der
       // Tenant trägt seinen Plan (tenants.plan, studio-013, Default free).

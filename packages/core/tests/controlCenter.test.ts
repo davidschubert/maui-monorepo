@@ -5,8 +5,8 @@ const PREFIXES = ['/api/auth/', '/api/onboarding/', '/api/health', '/api/telemet
 
 describe('Kontroll-Hosts auflösen', () => {
   it('liest die kommagetrennte Env-Liste und normalisiert', () => {
-    expect(parseControlHosts(' App.Pukalani.App , start.pukalani.app ')).toEqual([
-      'app.pukalani.app', 'start.pukalani.app',
+    expect(parseControlHosts(' My.Pukalani.App , start.pukalani.app ')).toEqual([
+      'my.pukalani.app', 'start.pukalani.app',
     ])
   })
 
@@ -17,26 +17,26 @@ describe('Kontroll-Hosts auflösen', () => {
   })
 
   it('nimmt die Env VOR der app.config (Umgebung schlägt Build)', () => {
-    expect(resolveControlHosts('app.localhost', ['app.pukalani.app'])).toEqual(['app.localhost'])
-    expect(resolveControlHosts('', ['app.pukalani.app'])).toEqual(['app.pukalani.app'])
+    expect(resolveControlHosts('app.localhost', ['my.pukalani.app'])).toEqual(['app.localhost'])
+    expect(resolveControlHosts('', ['my.pukalani.app'])).toEqual(['my.pukalani.app'])
     expect(resolveControlHosts(undefined, undefined)).toEqual([])
   })
 
   it('vergleicht Hosts unabhängig von Groß-/Kleinschreibung', () => {
-    const hosts = resolveControlHosts(undefined, ['app.pukalani.app'])
-    expect(isControlHost('APP.pukalani.app', hosts)).toBe(true)
-    expect(isControlHost('app.pukalani.app', hosts)).toBe(true)
+    const hosts = resolveControlHosts(undefined, ['my.pukalani.app'])
+    expect(isControlHost('MY.pukalani.app', hosts)).toBe(true)
+    expect(isControlHost('my.pukalani.app', hosts)).toBe(true)
   })
 
   it('hält Community-Hosts und Leerwerte draußen', () => {
-    const hosts = ['app.pukalani.app']
-    for (const host of ['kunde.pukalani.app', 'pukalani.app', 'app.pukalani.app.evil.com', '', undefined, null]) {
+    const hosts = ['my.pukalani.app']
+    for (const host of ['kunde.pukalani.app', 'pukalani.app', 'my.pukalani.app.evil.com', '', undefined, null]) {
       expect(isControlHost(host, hosts), String(host)).toBe(false)
     }
   })
 
   it('ist ohne konfigurierte Hosts immer false (kein Versehens-Kundenbereich)', () => {
-    expect(isControlHost('app.pukalani.app', [])).toBe(false)
+    expect(isControlHost('my.pukalani.app', [])).toBe(false)
   })
 })
 

@@ -32,6 +32,9 @@ export const RESERVED_SUBDOMAINS = new Set([
   // Maschinenraum, `my` der Kundenbereich, `start` der Kurz-Link in den
   // Wizard — dieselbe Phishing-Logik wie unten: in fremder Hand wären das
   // Anmeldedaten-Fallen mit unserem Namen und gültigem Zertifikat.
+  // Merke: `app` (oben) und `studio` sind ABGESCHALTETE Altnamen, bleiben
+  // aber gesperrt — ein zurückgegebener Plattform-Name ist der beste
+  // Phishing-Köder, den es gibt.
   'control', 'my', 'start', 'manage', 'new', 'photos',
   // Phishing-Schutz (Self-Service-Onboarding, SAAS-ROADMAP #1): Hosts, die wie
   // die Plattform selbst klingen, dürfen nie einem Kunden gehören —

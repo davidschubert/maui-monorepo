@@ -1,7 +1,7 @@
 /**
  * Feature Layer: Onboarding — der öffentliche Trichter „Community in 60
  * Sekunden" (SAAS-ROADMAP #1). Lebt NUR in apps/platform und dort nur auf den
- * KONTROLL-Hosts (maui.tenancy.controlHosts, z. B. app.pukalani.app): dort gibt
+ * KONTROLL-Hosts (maui.tenancy.controlHosts, z. B. my.pukalani.app): dort gibt
  * es bewusst keinen Mandanten, weil hier erst einer entsteht.
  *
  * BESITZT KEINE Appwrite-Tables. Alles, was entsteht, gehört dem Control Plane

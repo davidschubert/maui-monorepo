@@ -119,13 +119,19 @@ Vollständiges Konzept: docs/CONCEPT.md
   ops/-Configs; ploi-Fallback-Deploy gibt es für control nicht (Fallback =
   Runbook docs/plans/CONTROL-CUTOVER.md).
 - `my.pukalani.app` = Kundenbereich, `start.pukalani.app` = Kurz-Link in den
-  Wizard, `app.pukalani.app` = Altname, bleibt vorerst. ALLE DREI sind
-  Kontroll-Hosts derselben Platform-App und brauchen weder DNS noch eigene
-  Site (Wildcard `*.pukalani.app` zeigt schon dorthin).
-- TLS-Falle: Port 80 antwortet nur für explizit konfigurierte Hosts, also
-  scheitert die HTTP-Prüfung von Let's Encrypt für Aliase. Lösung ist das
-  Wildcard-Zertifikat per DNS-Prüfung (Cloudflare) — so auf der Control-Site
-  gemacht.
+  Wizard. BEIDE sind Kontroll-Hosts derselben Platform-App und brauchen weder
+  DNS noch eigene Site (Wildcard `*.pukalani.app` zeigt schon dorthin).
+  `app.pukalani.app` (Altname) ist am 2026-07-27 ENTFERNT — nie beworben, kein
+  DNS-Eintrag, stand nur in controlHosts; antwortet jetzt 404. Der Name bleibt
+  in RESERVED_SUBDOMAINS gesperrt (Phishing).
+- TLS-Fallen (beide live erwischt): (1) Port 80 antwortet nur für explizit
+  konfigurierte Hosts — die HTTP-Prüfung von Let's Encrypt scheitert für
+  Aliase/Wildcards, deshalb IMMER DNS-01 über Cloudflare. (2) ploi leitet den
+  certbot-Lineage-Namen aus der BASIS-Domain ab: die ganze Zone teilt
+  `/etc/letsencrypt/live/pukalani.app/`, jede Anforderung ÜBERSCHREIBT sie.
+  Also EIN Zertifikat mit Apex + Wildcard (`pukalani.app,*.pukalani.app`);
+  Subdomains wie `www`/`platform` dürfen NICHT mit rein (LE: „redundant with
+  a wildcard"). Details + Prüfbefehl: docs/content/2.architektur/6.hosts-und-ports.md
 - Neue Namen IMMER in RESERVED_SUBDOMAINS (packages/control/schemas/tenant.ts),
   sonst kann ein Selbstbedienungs-Kunde sie beantragen.
 
