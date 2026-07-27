@@ -4,6 +4,13 @@
  */
 export default defineAppConfig({
   maui: {
+    // Chrome-Registry (S9): pages ist die CMS-Nav-Quelle — das blueprint-
+    // Layout holt /api/pages/public NUR, wenn dieses Flag (= dieser Layer)
+    // da ist. Veröffentlichte Seiten erscheinen in der Haupt-Nav, Seiten mit
+    // Legal-Slugs (imprint/impressum/privacy/datenschutz) im Footer.
+    chrome: {
+      pagesNav: true,
+    },
     admin: {
       modules: [
         {

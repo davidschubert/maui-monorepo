@@ -5,6 +5,13 @@
  */
 export default defineAppConfig({
   maui: {
+    // Chrome-Registry (S9): der schwebende Feedback-Button (fixed unten
+    // links) — Zone 'overlay', gehört semantisch nicht in die Header-Nav.
+    chrome: {
+      utilities: {
+        feedback: { component: 'FeedbackButton', order: 10, zone: 'overlay' },
+      },
+    },
     admin: {
       modules: [
         {
