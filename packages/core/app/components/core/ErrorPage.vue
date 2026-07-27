@@ -11,12 +11,9 @@ const props = defineProps<{ error: NuxtError }>()
 
 const { t } = useI18n()
 const localePath = useLocalePath()
-const appConfig = useAppConfig()
-// Brand-Kette wie im Layout: Tenant-Name (Pool-Host) vor App-Brand vor
-// dem historischen „Maui"-Fallback. Vorher stand hier hart „MAUI-ERROR" —
-// interner Produktname auf einer Kundenseite (Audit B2/K3).
-const tenantBrand = useTenantBrand()
-const brand = computed(() => tenantBrand.value ?? appConfig.maui?.brand?.name ?? 'Maui')
+// EINE Brand-Kette für alle (useBrandName: Tenant vor App-Brand vor
+// „Maui"-Fallback) — vorher stand hier hart „MAUI-ERROR" (Audit B2/K3).
+const brand = useBrandName()
 
 const status = computed(() => props.error?.statusCode ?? 500)
 const description = computed(() => (status.value === 404 ? t('error.notFound') : t('error.generic')))
