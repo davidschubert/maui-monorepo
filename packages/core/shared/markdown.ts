@@ -8,8 +8,9 @@
  * MarkdownContent.vue über h()-vnodes rendert — es gibt KEINEN v-html-Pfad,
  * Raw-HTML bleibt Text (Vue escaped), unbekannte Syntax degradiert zu Text.
  *
- * Unterstützt: **fett**, *kursiv*, `code`, [Text](URL) (nur https?:// oder
- * interner /-Pfad), Absätze, - / 1. Listen, > Zitate, ```Codeblöcke```.
+ * Unterstützt: **fett**, __fett__, *kursiv*, _kursiv_, `code`, [Text](URL)
+ * (nur https?:// oder interner /-Pfad), Absätze, - / 1. Listen, > Zitate,
+ * ```Codeblöcke```.
  */
 
 export type InlineNode
@@ -31,7 +32,27 @@ export function isSafeHref(href: string): boolean {
   return /^https?:\/\/\S+$/.test(href) || /^\/(?![/\\%])[^\s\\]*$/.test(href)
 }
 
-const INLINE_RE = /(\*\*([^*]+)\*\*)|(\*([^*]+)\*)|(`([^`]+)`)|(\[([^\]]+)\]\(([^)\s]+)\))/
+/**
+ * Betonung mit Unterstrich (`_kursiv_`, `__fett__`) folgt GENAU den Regeln der
+ * Stern-Variante — gleiche Reihenfolge (doppelt vor einfach), gleicher
+ * Inhalts-Filter (`[^_]+`, also keine Verschachtelung derselben Marke),
+ * gleiche Rekursion, unvollständige Syntax bleibt Text.
+ *
+ * EINE bewusste Abweichung (die einzige, die `_` von `*` unterscheidet):
+ * Unterstriche betonen NICHT innerhalb eines Wortes. Ohne diese Klemme würde
+ * `snake_case_wort` zu „snake<em>case</em>wort" — Unterstriche stecken in
+ * Bezeichnern/Dateinamen, Sterne nicht. Umgesetzt als Flanken-Check auf BEIDEN
+ * Seiten: links/rechts darf kein Buchstabe, keine Zahl und kein weiterer
+ * Unterstrich stehen (`(?<![\p{L}\p{N}_])` … `(?![\p{L}\p{N}_])`).
+ * Unicode-fähig (`u`), damit „Straße_x_" genauso geschützt ist wie „foo_x_";
+ * das mitgeklemmte `_` verhindert zusätzlich, dass `foo__bar__baz` über den
+ * inneren Unterstrich doch noch als `_bar_` durchrutscht.
+ * Folge (bewusst): dicht gepackte Unterstrich-Läufe wie `_a__b_` finden kein
+ * Paar und bleiben Text — dieselbe „unbekannte Syntax degradiert zu Text"-
+ * Regel wie bei `**offen`.
+ * Gruppen: 10/11 = __fett__, 12/13 = _kursiv_.
+ */
+const INLINE_RE = /(\*\*([^*]+)\*\*)|(\*([^*]+)\*)|(`([^`]+)`)|(\[([^\]]+)\]\(([^)\s]+)\))|((?<![\p{L}\p{N}_])__([^_]+)__(?![\p{L}\p{N}_]))|((?<![\p{L}\p{N}_])_([^_]+)_(?![\p{L}\p{N}_]))/u
 
 export function parseInline(text: string): InlineNode[] {
   const nodes: InlineNode[] = []
@@ -46,6 +67,8 @@ export function parseInline(text: string): InlineNode[] {
     if (match[2] !== undefined) nodes.push({ type: 'strong', children: parseInline(match[2]) })
     else if (match[4] !== undefined) nodes.push({ type: 'em', children: parseInline(match[4]) })
     else if (match[6] !== undefined) nodes.push({ type: 'code', text: match[6] })
+    else if (match[11] !== undefined) nodes.push({ type: 'strong', children: parseInline(match[11]) })
+    else if (match[13] !== undefined) nodes.push({ type: 'em', children: parseInline(match[13]) })
     else if (match[8] !== undefined && match[9] !== undefined) {
       // Unsichere Ziele (javascript:, data:, //evil) NICHT verlinken — nur Text
       if (isSafeHref(match[9])) nodes.push({ type: 'link', href: match[9], children: parseInline(match[8]) })

@@ -46,6 +46,92 @@ describe('parseInline', () => {
   })
 })
 
+describe('parseInline Unterstrich-Betonung (K6)', () => {
+  it('_kursiv_ → em (wie *kursiv*)', () => {
+    expect(parseInline('_kursiv_')).toEqual([
+      { type: 'em', children: [{ type: 'text', text: 'kursiv' }] },
+    ])
+    // der sichtbare Audit-Befund von demo.pukalani.app/ueber-mich
+    expect(parseInline('_The fastest way to reach me is a post in the feed._')).toEqual([
+      { type: 'em', children: [{ type: 'text', text: 'The fastest way to reach me is a post in the feed.' }] },
+    ])
+  })
+
+  it('__fett__ → strong (doppelt gewinnt vor einfach, wie **fett**)', () => {
+    expect(parseInline('__fett__')).toEqual([
+      { type: 'strong', children: [{ type: 'text', text: 'fett' }] },
+    ])
+  })
+
+  it('mischt sich mit der Stern-Variante und verschachtelt gleich', () => {
+    expect(parseInline('a *b* und __c__')).toEqual([
+      { type: 'text', text: 'a ' },
+      { type: 'em', children: [{ type: 'text', text: 'b' }] },
+      { type: 'text', text: ' und ' },
+      { type: 'strong', children: [{ type: 'text', text: 'c' }] },
+    ])
+    expect(parseInline('__fett *kursiv*__')).toEqual([
+      { type: 'strong', children: [
+        { type: 'text', text: 'fett ' },
+        { type: 'em', children: [{ type: 'text', text: 'kursiv' }] },
+      ] },
+    ])
+    expect(parseInline('_kursiv **fett**_')).toEqual([
+      { type: 'em', children: [
+        { type: 'text', text: 'kursiv ' },
+        { type: 'strong', children: [{ type: 'text', text: 'fett' }] },
+      ] },
+    ])
+  })
+
+  it('betont NICHT innerhalb eines Wortes (snake_case bleibt Text)', () => {
+    expect(parseInline('snake_case_wort')).toEqual([{ type: 'text', text: 'snake_case_wort' }])
+    expect(parseInline('MY_ENV_VAR und foo__bar__baz')).toEqual([
+      { type: 'text', text: 'MY_ENV_VAR und foo__bar__baz' },
+    ])
+    // Flanke nur einseitig frei genügt nicht (rechts klebt ein Wortzeichen)
+    expect(parseInline('_a_b')).toEqual([{ type: 'text', text: '_a_b' }])
+    // Unicode: „ß" ist ein Buchstabe, also auch eine Wortflanke
+    expect(parseInline('Straße_x_')).toEqual([{ type: 'text', text: 'Straße_x_' }])
+    // Zahlen ebenso (2_3_4 ist keine Betonung)
+    expect(parseInline('2_3_4')).toEqual([{ type: 'text', text: '2_3_4' }])
+  })
+
+  it('unvollständige Syntax degradiert zu Text (wie *)', () => {
+    expect(parseInline('_offen')).toEqual([{ type: 'text', text: '_offen' }])
+    expect(parseInline('__offen')).toEqual([{ type: 'text', text: '__offen' }])
+    expect(parseInline('nur _ ein Unterstrich')).toEqual([{ type: 'text', text: 'nur _ ein Unterstrich' }])
+  })
+
+  it('greift im Link-Text', () => {
+    expect(parseInline('[_kursiv_](https://example.com)')).toEqual([
+      { type: 'link', href: 'https://example.com', children: [
+        { type: 'em', children: [{ type: 'text', text: 'kursiv' }] },
+      ] },
+    ])
+    expect(parseInline('[__fett__](/dashboard)')).toEqual([
+      { type: 'link', href: '/dashboard', children: [
+        { type: 'strong', children: [{ type: 'text', text: 'fett' }] },
+      ] },
+    ])
+    // Ziele mit Unterstrich bleiben unangetastet — der Href ist keine Betonung
+    expect(parseInline('[x](/a_b_c)')).toEqual([
+      { type: 'link', href: '/a_b_c', children: [{ type: 'text', text: 'x' }] },
+    ])
+  })
+
+  it('funktioniert in allen Block-Typen (parseMarkdown reicht durch)', () => {
+    expect(parseMarkdown('- _a_')).toEqual([
+      { type: 'list', ordered: false, items: [[{ type: 'em', children: [{ type: 'text', text: 'a' }] }]] },
+    ])
+    expect(parseMarkdown('## __Kopf__')[0]).toEqual({
+      type: 'heading',
+      level: 2,
+      children: [{ type: 'strong', children: [{ type: 'text', text: 'Kopf' }] }],
+    })
+  })
+})
+
 describe('parseMarkdown', () => {
   it('trennt Absätze an Leerzeilen', () => {
     const blocks = parseMarkdown('eins\n\nzwei')

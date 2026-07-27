@@ -55,6 +55,42 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
 }
 
 /**
+ * Die Teilmenge der Laufzeit-Flags, die den Client SEHEN DARF (Audit-Befund
+ * K5). `entitlementsDoc` ist bewusst NICHT dabei: das signierte Dokument ist
+ * eine kaufmännische Server-Angelegenheit (siteProjectId, Feature-Zuteilung,
+ * `suspended`, Gültigkeitsfenster, `kid`) — bewertet wird es ausschließlich in
+ * server/utils/featureGates.ts. Es hatte NIE einen Client-Leser, reiste aber
+ * über useState(`maui-runtime-flags`) im Klartext in den __NUXT__-Payload
+ * JEDER Seite (auch unauthentifiziert, z. B. /login) und über die öffentliche
+ * Route GET /api/config.
+ *
+ * REGEL: neue AppConfig-Felder sind erst mal server-only. Ein Feld gehört nur
+ * dann hier hinein, wenn es einen echten Client-Leser gibt.
+ */
+export type PublicAppConfig = Omit<AppConfig, 'entitlementsDoc'>
+
+export const DEFAULT_PUBLIC_APP_CONFIG: PublicAppConfig = {
+  registrationEnabled: DEFAULT_APP_CONFIG.registrationEnabled,
+  commentsEnabled: DEFAULT_APP_CONFIG.commentsEnabled,
+  maintenanceMode: DEFAULT_APP_CONFIG.maintenanceMode,
+  features: {},
+}
+
+/**
+ * Projiziert die vollen Laufzeit-Flags auf die client-sichtbare Teilmenge.
+ * Bewusst Feld-für-Feld (kein `delete`/Rest-Spread): ein neues, versehentlich
+ * sensibles AppConfig-Feld rutscht so NICHT automatisch durch.
+ */
+export function toPublicAppConfig(config: AppConfig): PublicAppConfig {
+  return {
+    registrationEnabled: config.registrationEnabled,
+    commentsEnabled: config.commentsEnabled,
+    maintenanceMode: config.maintenanceMode,
+    features: config.features,
+  }
+}
+
+/**
  * Parst die features-Spalte (JSON-String) fehlertolerant — kaputtes JSON
  * oder falsche Formen fallen auf {} zurück (= alles an), damit ein
  * Config-Schaden nie die Site lahmlegt.
