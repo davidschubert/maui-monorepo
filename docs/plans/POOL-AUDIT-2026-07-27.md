@@ -38,36 +38,37 @@ bekommt bewusst JSON (Nuxt-Heuristik für API-Clients — Browser/Crawler HTML).
 | B2 | Es gibt KEINE 404-Seite (von David selbst bestätigt): unbekannte Pfade liefern rohes Nitro-JSON statt einer gebrandeten Fehlerseite mit Weg zurück (auch /impressum, /robots.txt, /sitemap.xml). Die vorhandene app/error.vue (CoreErrorPage-Wrapper) greift auf Tenant-Hosts nicht | Fehler schlägt vor dem Vue-Renderer auf; Diagnose beim Fix. Fix umfasst BEIDES: Ursache (Renderer erreicht error.vue nicht) UND eine gestaltete, tenant-gebrandete 404-Seite |
 | B3 | /login ohne `<title>`, ohne sichtbares Tenant-Branding im Markup | core-Login-Seite setzt keinen Titel; Brand nur im JS-Payload |
 
-## STÖREND
+## STÖREND — Stand nach Paket B (2026-07-27, gemergt; Live-Beweis nach Deploy)
+
 
 | # | Befund | Anmerkung |
 | --- | --- | --- |
 | S1 | Register-Sackgasse: Login verlinkt „Register", die ohne Invite-Code nirgends hinführt | Produktentscheidung: Hinweis/Code-Feld oder Link ausblenden |
-| S2 | Avatar-Initialen „L(" bei „Lena (Coach)" — Initialen-Logik nimmt 1. Zeichen jedes Wortes | core-Avatar-Utility |
-| S3 | Deutsche CMS-Texte verlinken EN-Routen (/feed statt /de/feed), dazu nofollow + harter Reload auf interne Links | pages-Renderer: interne Links lokalisieren + als Client-Navigation |
+| ✅ S2 | Avatar-Initialen „L(" bei „Lena (Coach)" — Initialen-Logik nimmt 1. Zeichen jedes Wortes | core-Avatar-Utility |
+| ✅ S3 | Deutsche CMS-Texte verlinken EN-Routen (/feed statt /de/feed), dazu nofollow + harter Reload auf interne Links | pages-Renderer: interne Links lokalisieren + als Client-Navigation |
 | S4 | Seed-Inhalte nur deutsch — EN-Besucher sieht „zweisprachig" nur bei Buttons | Demo-Content-Entscheidung (zweisprachige Seeds?) |
-| S5 | Keine meta description/og:title/og:image auf Tenant-Seiten — geteilte Links nackt | Tenant-SEO-Grundausstattung |
+| ✅¹ S5 | Keine meta description/og:title/og:image auf Tenant-Seiten — geteilte Links nackt | ¹ Basis behoben: Titel-Muster (useBrandTitle) + description/og:description aus CMS-Excerpt bzw. Feed-Text. OFFEN: og:image (Design-Entscheidung) |
 | S6 | robots.txt + sitemap.xml fehlen auf Tenant-Hosts | Feature-Entscheidung (pro Tenant generieren) |
 | S7 | Footer ohne Impressum/Datenschutz-Links; /impressum 404 auf demo | rechtlich relevant für DE-Kunden; CMS-Seiten + legalLinks je Tenant |
-| S8 | Titel „Feed"/„About me" ohne Community-Namen, EN=DE titelgleich | Titel-Muster „Seite · Tenant" |
+| ✅ S8 | Titel „Feed"/„About me" ohne Community-Namen, EN=DE titelgleich | Titel-Muster „Seite · Tenant" |
 | S9 | Layout-Drift: comments-Layout hartcodiert Brand „Hawaii Studio" (ignoriert Tenant-Kette); toter legalLinks-Footer in platform; 3 Bauweisen für Nav/Sprache/Footer | Konsolidierung ins blueprint-Layout (Analyse liegt vor, 3 Geschmacksfragen bei David) |
-| S10 | billing-Kundenbereich nennt Pläne noch „Free/Pro" statt Basic/Personal/Pro (Plan-Katalog der Silo-Workspaces) | Wording-Angleich; control-Texte „free" ebenso |
+| ✅ S10 | billing-Kundenbereich nennt Pläne noch „Free/Pro" statt Basic/Personal/Pro (Plan-Katalog der Silo-Workspaces) | Wording-Angleich; control-Texte „free" ebenso |
 
 ## KOSMETIK
 
 | # | Befund |
 | --- | --- |
-| K1 | Demo-Banner ist handgebautes div statt `UBanner` (Nuxt UI 4.10) — Davids Regel: offizielle Komponenten |
+| ✅ K1 | Demo-Banner ist handgebautes div statt `UBanner` (Nuxt UI 4.10) — Davids Regel: offizielle Komponenten |
 | K2 | favicon 78-Byte-Platzhalter, kein apple-touch-icon/theme-color je Tenant |
 | K3 | interne Produktnamen im DOM (id="maui-theme-css") |
 | K4 | Login lädt changelog.css + ~68 Chunks (Bundling unaufgeräumt) |
 | K5 | __NUXT__-Payload der Login-Seite enthält Plan/entitlementsDoc im Klartext |
 | K6 | Markdown mit Unterstrich-Betonung wird nicht gerendert (_…_ sichtbar) |
 | K7 | Sprachwechsler „DE / EN" wirkt wie Debug-Element (kein Label/aria) |
-| K8 | Platzhalter-Literale statt i18n (embed.vue:126/132, pages.vue:194); createError-Vertrag verletzt (pages [slug].vue statusCode/statusMessage; embed.vue englische statusText) |
-| K9 | Embed-Site Aktiv/Inaktiv als UButton statt USwitch (Davids UX-Regel) |
+| ✅ K8 | Platzhalter-Literale statt i18n (embed.vue:126/132, pages.vue:194); createError-Vertrag verletzt (pages [slug].vue statusCode/statusMessage; embed.vue englische statusText) |
+| ✅ K9 | Embed-Site Aktiv/Inaktiv als UButton statt USwitch (Davids UX-Regel) |
 | K10 | Wording „Features" in Admin-/Control-Oberflächen (betreiberseitig — Entscheidung, ob „Produkte" auch intern gilt) |
-| K11 | app.tagline-Reste „Neue Maui-App" in _template/control/photos; platform-tagline „Community-Plattform von Pukalani" pro Tenant ausgespielt |
+| ✅ K11 | app.tagline-Reste „Neue Maui-App" in _template/control/photos; platform-tagline „Community-Plattform von Pukalani" pro Tenant ausgespielt |
 
 ## Positiv (bestätigt sauber)
 
@@ -76,3 +77,26 @@ bekommt bewusst JSON (Nuxt-Heuristik für API-Clients — Browser/Crawler HTML).
 - lang/dir pro Locale korrekt; localePath überall in Nav-Code verwendet
 - Keine TODO/FIXME-Leichen in den Pool-Vier
 - de/en-Schlüsselparität 23/23
+
+## Paket-B-Bilanz (2026-07-27)
+
+Vier Opus-Worktree-Agenten, konfliktfrei gemergt. Behoben: S2 (avatarInitials-
+Util im core, Unicode-fest, 8 Tests — Ursache lag in Nuxt UIs Avatar-Fallback),
+S3 (contentLinks-Klassifizierung im core-MarkdownContent: eigene Pfade werden
+NuxtLink + localePath ohne nofollow, fremde bleiben unverändert — heilt auch
+posts/comments/Tenant-Homepage), S5-Basis + S8 (useBrandTitle-Muster + og:title,
+descriptions lokalisiert; register/forgot/reset betitelt = B3-Rest), S10
+(Plan-Label Basic — Keys/Stripe unangetastet, Key/Label-Trennung im Code
+kommentiert), K1 (UBanner statt Hand-div), K8 (Platzhalter in i18n; createError-
+Vertrag in [slug].vue; embed.vue war schon korrekt, dort Kommentar statt Fix),
+K9 (USwitch), K11 (Taglines; dabei entdeckt und behoben: home.subtitle spielte
+den _template-Anleitungstext LIVE auf Tenant-Startseiten und my./start. aus).
+Suite: 18 Layer konsistent, alle Layer-Tests grün (core 221), Parität 23/23.
+
+Weiter OFFEN: S1 Register-Sackgasse (Produktentscheidung) · S4 zweisprachige
+Demo-Seeds (Entscheidung) · S6 robots/sitemap je Tenant · S7 Impressum/
+Datenschutz je Tenant + Footer · S9 Layout-Konsolidierung (3 Geschmacksfragen
+bei David) · og:image (S5-Rest) · K2 Favicon je Tenant · K3 interne Namen im
+DOM · K4 Bundling der Login-Seite · K5 __NUXT__-Payload · K6 Unterstrich-
+Markdown · K7 Sprachwechsler-UI (Teil der S9-Entscheidung) · K10 Features-
+Wording im Admin (Entscheidung).
