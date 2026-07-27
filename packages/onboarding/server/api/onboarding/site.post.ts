@@ -4,8 +4,9 @@
 import { onboardingSiteSchema } from '../../../../control/schemas/onboarding'
 import { callControlPlane, mintRuntimeJwt } from '../../utils/controlPlane'
 import { grantSiteLabel } from '../../utils/siteLabel'
-// Der pages-Layer besitzt die Tabelle und stellt den Seed-Helfer bereit (A14).
+// Der pages-Layer besitzt die Tabelle und stellt die Seed-Helfer bereit (A14).
 import { seedHomePage } from '../../../../pages/server/utils/seedHomePage'
+import { seedLegalPages } from '../../../../pages/server/utils/seedLegalPages'
 
 /**
  * Community anlegen — der öffentliche Abschluss des Wizards (Schritt 7).
@@ -51,6 +52,22 @@ export default defineEventHandler(async (event) => {
         : `Willkommen bei ${site.name}. Diese Seite gehört dir — du kannst sie im Dashboard jederzeit ändern.`,
     }).catch((error) => {
       logEvent('error', 'onboarding.home_page_failed', {
+        siteId: result.siteId,
+        message: error instanceof Error ? error.message : String(error),
+      })
+      return null
+    })
+
+    // Impressum + Datenschutz als VORLAGEN-ENTWÜRFE (Audit-Befund S7). Bewusst
+    // unveröffentlicht: der Kunde ist Betreiber seiner Community, er muss die
+    // Angaben selbst machen und selbst veröffentlichen — ein Rechtstext voller
+    // Platzhalter darf nie öffentlich erreichbar sein. Best effort wie die
+    // Startseite: die Community existiert schon, daran darf sie nicht scheitern.
+    await seedLegalPages(event, {
+      tenantId: result.tenantId,
+      locale: site.locale ?? 'de',
+    }).catch((error) => {
+      logEvent('error', 'onboarding.legal_pages_failed', {
         siteId: result.siteId,
         message: error instanceof Error ? error.message : String(error),
       })
