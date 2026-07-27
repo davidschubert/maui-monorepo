@@ -1,5 +1,6 @@
 import { Query } from 'node-appwrite'
 import type { H3Event } from 'h3'
+import type { TenantDb } from '../../../core/server/utils/tenantDb'
 import { EVENT_RSVPS_TABLE, EVENTS_TABLE, type EventRow, type EventRsvpRow } from '../../shared/types/event'
 
 /** Vorlauf der Erinnerung (Entscheidung David, EVENTS-V2 §8.2: 24 h) */
@@ -27,35 +28,27 @@ export async function sweepEventReminders(event: H3Event): Promise<void> {
 }
 
 async function doSweep(event: H3Event): Promise<void> {
-  const config = useRuntimeConfig(event)
-  const databaseId = config.public.appwriteDatabaseId
-  const admin = createAdminClient(event)
+  // Datentür als Operator: jeder GET sweept die fälligen Events SEINES
+  // Mandanten (Muster publishDuePosts) — list scopet, update belegt die
+  // Zugehörigkeit. Die RSVP-Suche pro Event bleibt eventId-gebunden
+  // (eventId ist bereits mandantenbelegt).
+  const db = tenantDb(event, { as: 'operator' })
   const now = Date.now()
 
-  const due = await admin.tablesDB.listRows<EventRow>({
-    databaseId,
-    tableId: EVENTS_TABLE,
-    queries: [
-      Query.equal('status', 'published'),
-      Query.greaterThan('startAt', new Date(now).toISOString()),
-      Query.lessThanEqual('startAt', new Date(now + REMINDER_LEAD_MS).toISOString()),
-      Query.isNull('remindersSentAt'),
-      Query.limit(10),
-    ],
-  })
+  const due = await db.list<EventRow>(EVENTS_TABLE, [
+    Query.equal('status', 'published'),
+    Query.greaterThan('startAt', new Date(now).toISOString()),
+    Query.lessThanEqual('startAt', new Date(now + REMINDER_LEAD_MS).toISOString()),
+    Query.isNull('remindersSentAt'),
+    Query.limit(10),
+  ])
 
   for (const row of due.rows) {
     // Flag ZUERST — schlägt notify danach fehl, lieber eine verpasste
     // Erinnerung als Duplikate bei jedem weiteren GET
-    await admin.tablesDB.updateRow({
-      databaseId, tableId: EVENTS_TABLE, rowId: row.$id,
-      data: { remindersSentAt: new Date(now).toISOString() },
-    })
+    await db.update(EVENTS_TABLE, row.$id, { remindersSentAt: new Date(now).toISOString() })
 
-    const rsvps = await listAllRows<EventRsvpRow>(admin.tablesDB, databaseId, EVENT_RSVPS_TABLE, [
-      Query.equal('eventId', row.$id),
-      Query.equal('status', 'going'),
-    ])
+    const rsvps = await listAllScopedRsvps(db, row.$id)
     for (const rsvp of rsvps) {
       // Typ 'reminder' rendert die Bell als „Erinnerung: {title} beginnt
       // bald"; body = Startzeit als Text (notify speichert bewusst fertigen
@@ -71,5 +64,24 @@ async function doSweep(event: H3Event): Promise<void> {
         link: `/events/${row.$id}`,
       })
     }
+  }
+}
+
+/** Alle going-RSVPs eines Events — cursor-paginiert DURCH die Tür (Ersatz
+ *  für listAllRows, das den rohen Client bräuchte). */
+async function listAllScopedRsvps(db: TenantDb, eventId: string): Promise<EventRsvpRow[]> {
+  const all: EventRsvpRow[] = []
+  let cursor: string | null = null
+  while (true) {
+    const queries = [
+      Query.equal('eventId', eventId),
+      Query.equal('status', 'going'),
+      Query.limit(100),
+      ...(cursor === null ? [] : [Query.cursorAfter(cursor)]),
+    ]
+    const rows: EventRsvpRow[] = (await db.list<EventRsvpRow>(EVENT_RSVPS_TABLE, queries)).rows
+    all.push(...rows)
+    if (rows.length < 100) return all
+    cursor = rows.at(-1)!.$id
   }
 }

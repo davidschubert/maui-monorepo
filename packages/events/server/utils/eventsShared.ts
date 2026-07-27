@@ -7,8 +7,9 @@ export const EVENT_READ_ANY = Permission.read(Role.any())
 
 /**
  * Eigene RSVPs des Users zu einer Event-Seite — EIN Query (kein N+1,
- * Muster comment-/poll-Votes). Admin-Client: event_rsvps haben bewusst
- * keine breite Read-Permission.
+ * Muster comment-/poll-Votes). Datentür als Operator: event_rsvps haben
+ * bewusst keine breite Read-Permission; im Pool scopet die Tür zusätzlich
+ * auf den Mandanten.
  */
 export async function myRsvpsFor(
   event: H3Event,
@@ -18,17 +19,11 @@ export async function myRsvpsFor(
   const map = new Map<string, RsvpStatus>()
   if (!userId || eventIds.length === 0) return map
 
-  const config = useRuntimeConfig(event)
-  const admin = createAdminClient(event)
-  const res = await admin.tablesDB.listRows<EventRsvpRow>({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: EVENT_RSVPS_TABLE,
-    queries: [
-      Query.equal('userId', userId),
-      Query.equal('eventId', eventIds),
-      Query.limit(eventIds.length),
-    ],
-  }).catch(() => ({ rows: [] as EventRsvpRow[] }))
+  const res = await tenantDb(event, { as: 'operator' }).list<EventRsvpRow>(EVENT_RSVPS_TABLE, [
+    Query.equal('userId', userId),
+    Query.equal('eventId', eventIds),
+    Query.limit(eventIds.length),
+  ]).catch(() => ({ rows: [] as EventRsvpRow[] }))
 
   for (const row of res.rows) map.set(row.eventId, row.status)
   return map
@@ -43,17 +38,11 @@ export async function myVotesFor(
   const map = new Map<string, EventVoteValue>()
   if (!userId || eventIds.length === 0) return map
 
-  const config = useRuntimeConfig(event)
-  const admin = createAdminClient(event)
-  const res = await admin.tablesDB.listRows<EventVote>({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: EVENT_VOTES_TABLE,
-    queries: [
-      Query.equal('userId', userId),
-      Query.equal('eventId', eventIds),
-      Query.limit(eventIds.length),
-    ],
-  }).catch(() => ({ rows: [] as EventVote[] }))
+  const res = await tenantDb(event, { as: 'operator' }).list<EventVote>(EVENT_VOTES_TABLE, [
+    Query.equal('userId', userId),
+    Query.equal('eventId', eventIds),
+    Query.limit(eventIds.length),
+  ]).catch(() => ({ rows: [] as EventVote[] }))
 
   for (const row of res.rows) map.set(row.eventId, row.value)
   return map
@@ -62,18 +51,12 @@ export async function myVotesFor(
 /** Zusager-Rows für eine Menge Events — gebündelt, defensiv leer */
 async function goingRsvpsFor(event: H3Event, eventIds: string[], limit: number): Promise<EventRsvpRow[]> {
   if (eventIds.length === 0) return []
-  const config = useRuntimeConfig(event)
-  const admin = createAdminClient(event)
-  const res = await admin.tablesDB.listRows<EventRsvpRow>({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: EVENT_RSVPS_TABLE,
-    queries: [
-      Query.equal('eventId', eventIds),
-      Query.equal('status', 'going'),
-      Query.orderAsc('$createdAt'),
-      Query.limit(limit),
-    ],
-  }).catch(() => ({ rows: [] as EventRsvpRow[] }))
+  const res = await tenantDb(event, { as: 'operator' }).list<EventRsvpRow>(EVENT_RSVPS_TABLE, [
+    Query.equal('eventId', eventIds),
+    Query.equal('status', 'going'),
+    Query.orderAsc('$createdAt'),
+    Query.limit(limit),
+  ]).catch(() => ({ rows: [] as EventRsvpRow[] }))
   return res.rows
 }
 

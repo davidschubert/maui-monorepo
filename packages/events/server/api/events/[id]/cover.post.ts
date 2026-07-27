@@ -7,7 +7,9 @@ import { EVENTS_TABLE, MAX_EVENT_COVER_BYTES, isSeriesEvent, isSeriesMaster, typ
  * der deklarierte MIME-Typ ist Client-Input (Muster fonts/upload).
  * Bucket 'event-covers' (Migration events-002): öffentlich lesbar,
  * geschrieben wird nur hier. Ersetzt ein vorhandenes Cover (altes File
- * wird gelöscht, best-effort).
+ * wird gelöscht, best-effort). Rows über die Datentür als Operator
+ * (get/update belegen die Zugehörigkeit); Storage bleibt Admin-Client —
+ * Files tragen keinen Mandanten, die Referenz (coverFileId) tut es.
  */
 function isImage(data: Buffer): boolean {
   if (data.length < 12) return false
@@ -18,6 +20,8 @@ function isImage(data: Buffer): boolean {
 }
 
 export default defineEventHandler(async (event) => {
+  // Produkt-Gate (P4): Events sind ab Plan pro enthalten.
+  requirePlanProduct(event, 'events')
   requirePermission(event, 'events.manage')
 
   const id = getRouterParam(event, 'id')
@@ -25,12 +29,10 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 400, statusText: 'Missing event id' })
   }
 
-  const config = useRuntimeConfig(event)
-  const databaseId = config.public.appwriteDatabaseId
+  const db = tenantDb(event, { as: 'operator' })
   const admin = createAdminClient(event)
 
-  const row = await admin.tablesDB.getRow<EventRow>({ databaseId, tableId: EVENTS_TABLE, rowId: id })
-    .catch((error) => { throw toH3Error(error, 'Event not found') })
+  const row = await db.get<EventRow>(EVENTS_TABLE, id, 'Event not found')
 
   const form = await readMultipartFormData(event)
   const filePart = form?.find(part => part.name === 'file' && part.filename)
@@ -50,9 +52,7 @@ export default defineEventHandler(async (event) => {
     file: InputFile.fromBuffer(filePart.data, filePart.filename),
   }).catch((error) => { throw toH3Error(error, 'Covers bucket missing — run migrations') })
 
-  await admin.tablesDB.updateRow({
-    databaseId, tableId: EVENTS_TABLE, rowId: id, data: { coverFileId: file.$id },
-  }).catch(async (error) => {
+  await db.update(EVENTS_TABLE, id, { coverFileId: file.$id }, 'Event not found').catch(async (error) => {
     // Row-Update gescheitert → verwaiste Datei nicht liegen lassen
     await admin.storage.deleteFile({ bucketId: 'event-covers', fileId: file.$id }).catch(() => {})
     throw toH3Error(error, 'Could not save cover')
@@ -61,15 +61,12 @@ export default defineEventHandler(async (event) => {
   // Serie (§7e): neues MASTER-Cover auf Instanzen propagieren, die noch das
   // alte (oder kein) Cover tragen — individuell gesetzte Cover bleiben
   if (isSeriesMaster(row)) {
-    const instances = await admin.tablesDB.listRows<EventRow>({
-      databaseId, tableId: EVENTS_TABLE,
-      queries: [Query.equal('seriesId', row.$id), Query.notEqual('$id', row.$id), Query.limit(200)],
-    }).catch(() => ({ rows: [] as EventRow[] }))
+    const instances = await db.list<EventRow>(EVENTS_TABLE, [
+      Query.equal('seriesId', row.$id), Query.notEqual('$id', row.$id), Query.limit(200),
+    ]).catch(() => ({ rows: [] as EventRow[] }))
     for (const instance of instances.rows) {
       if (instance.coverFileId !== row.coverFileId) continue
-      await admin.tablesDB.updateRow({
-        databaseId, tableId: EVENTS_TABLE, rowId: instance.$id, data: { coverFileId: file.$id },
-      }).catch(() => {})
+      await db.update(EVENTS_TABLE, instance.$id, { coverFileId: file.$id }).catch(() => {})
     }
   }
 

@@ -36,21 +36,19 @@ export async function assertCanRsvpGoing(event: H3Event, row: EventRow, userId: 
   }
 }
 
-/** Hat der User ein bezahltes Ticket? (Standard-Guard-Implementierung) */
+/**
+ * Hat der User ein bezahltes Ticket? (Standard-Guard-Implementierung.)
+ * Datentür als Operator: im Pool zählt nur ein Ticket des EIGENEN Mandanten —
+ * fail-closed, solange der Billing-Webhook dort keine Tickets stempelt
+ * (paid-Events im Pool sind noch nicht verdrahtet).
+ */
 export async function hasEventTicket(event: H3Event, eventId: string, userId: string): Promise<boolean> {
-  const config = useRuntimeConfig(event)
-  const admin = createAdminClient(event)
-  const res = await admin.tablesDB.listRows<EventTicketRow>({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: EVENT_TICKETS_TABLE,
-    queries: [
-      Query.equal('eventId', eventId),
-      Query.equal('userId', userId),
-      Query.equal('status', 'paid'),
-      Query.limit(1),
-    ],
-  }).catch(() => ({ rows: [] as EventTicketRow[] }))
-  return res.rows.length > 0
+  const ticket = await tenantDb(event, { as: 'operator' }).find<EventTicketRow>(EVENT_TICKETS_TABLE, [
+    Query.equal('eventId', eventId),
+    Query.equal('userId', userId),
+    Query.equal('status', 'paid'),
+  ]).catch(() => null)
+  return ticket !== null
 }
 
 export interface GrantEventTicketInput {
@@ -64,6 +62,12 @@ export interface GrantEventTicketInput {
  * Ticket ausstellen (idempotent) — der EINZIGE Schreibweg in event_tickets.
  * Konsument: der Billing-Webhook (Phase 23) bei checkout.session.completed.
  * Unique-Index eventId+userId macht Webhook-Retries gefahrlos.
+ *
+ * BEWUSST Admin-Client statt Datentür (CLAUDE.md-Ausnahme: der Webhook ist
+ * kein Mandanten-Request — er kommt von Stripe, ohne Tenant-Host). Heute
+ * schreibt nur die SILO-App (apps/comments) Tickets; bevor paid-Events in
+ * den Pool kommen, MUSS dieser Pfad den Mandanten aus dem Event ableiten
+ * und stempeln (sonst findet hasEventTicket sie nicht — fail-closed).
  */
 export async function grantEventTicket(event: H3Event, input: GrantEventTicketInput): Promise<EventTicketRow> {
   const config = useRuntimeConfig(event)

@@ -1,15 +1,18 @@
-import { AppwriteException, ID, Permission, Query, Role } from 'node-appwrite'
+import { AppwriteException, Permission, Query, Role } from 'node-appwrite'
 import { eventVoteSchema } from '../../../../schemas/event'
 import { EVENT_VOTES_TABLE, EVENTS_TABLE, type EventRow, type EventVote, type EventVoteResponse, type EventVoteValue } from '../../../../shared/types/event'
 
 /**
  * Up-/Downvote auf ein Event — Toggle-Semantik (Muster posts/score):
  *   kein Vote → anlegen · gleicher Value → entfernen · anderer → umdrehen.
- * Vote-Rows schreibt der User selbst (SessionClient, Unique-Index sichert ab);
- * danach Recount + EIN Write der Zähler (Admin) → ein Realtime-Event,
+ * Zwei Türen, wie die zwei Clients zuvor: member (Session — User schreibt
+ * seine Vote-Row selbst, Row-Security + Unique-Index sichern ab) und
+ * operator (autoritativer Recount + Zähler-Write auf fremder Row);
  * serialisiert pro Event gegen Lost Updates.
  */
 export default defineEventHandler(async (event): Promise<EventVoteResponse> => {
+  // Produkt-Gate (P4): Events sind ab Plan pro enthalten.
+  requirePlanProduct(event, 'events')
   const user = event.context.user
   if (!user) {
     throw createError({ status: 401, statusText: 'Unauthorized' })
@@ -21,40 +24,31 @@ export default defineEventHandler(async (event): Promise<EventVoteResponse> => {
   }
 
   const { value } = await readValidatedBody(event, eventVoteSchema.parse)
-  const config = useRuntimeConfig(event)
-  const databaseId = config.public.appwriteDatabaseId
-  const { tablesDB } = createSessionClient(event)
-  const admin = createAdminClient(event)
+  const db = tenantDb(event)
+  const ops = tenantDb(event, { as: 'operator' })
 
-  // Nur sichtbare Events sind votbar (published/cancelled — drafts nie)
-  const target = await admin.tablesDB.getRow<EventRow>({ databaseId, tableId: EVENTS_TABLE, rowId: id }).catch(() => null)
-  if (!target) {
-    throw createError({ status: 404, statusText: 'Event not found' })
-  }
+  // Nur sichtbare Events sind votbar (published/cancelled — drafts nie);
+  // get belegt die Zugehörigkeit — ein fremder Mandant bekommt 404.
+  const target = await ops.get<EventRow>(EVENTS_TABLE, id, 'Event not found')
   if (target.status === 'draft') {
     throw createError({ status: 409, statusText: 'Event not votable' })
   }
 
-  const existing = await tablesDB.listRows<EventVote>({
-    databaseId,
-    tableId: EVENT_VOTES_TABLE,
-    queries: [Query.equal('eventId', id), Query.equal('userId', user.$id), Query.limit(1)],
-  })
-  const current = existing.rows[0]
+  const current = await db.find<EventVote>(EVENT_VOTES_TABLE, [
+    Query.equal('eventId', id), Query.equal('userId', user.$id),
+  ])
 
   if (current && current.value === value) {
-    await tablesDB.deleteRow({ databaseId, tableId: EVENT_VOTES_TABLE, rowId: current.$id })
+    await db.remove(EVENT_VOTES_TABLE, current.$id)
   }
   else if (current) {
-    await tablesDB.updateRow<EventVote>({ databaseId, tableId: EVENT_VOTES_TABLE, rowId: current.$id, data: { value } })
+    await db.update<EventVote>(EVENT_VOTES_TABLE, current.$id, { value })
   }
   else {
     try {
-      await tablesDB.createRow<EventVote>({
-        databaseId,
-        tableId: EVENT_VOTES_TABLE,
-        rowId: ID.unique(),
-        data: { eventId: id, userId: user.$id, value },
+      await db.create<EventVote>(EVENT_VOTES_TABLE, {
+        eventId: id, userId: user.$id, value,
+      }, {
         permissions: [
           Permission.read(Role.user(user.$id)),
           Permission.update(Role.user(user.$id)),
@@ -73,17 +67,14 @@ export default defineEventHandler(async (event): Promise<EventVoteResponse> => {
 
   return await serializePerEvent(id, async (): Promise<EventVoteResponse> => {
     const [upvotes, downvotes, mine] = await Promise.all([
-      admin.tablesDB.listRows({ databaseId, tableId: EVENT_VOTES_TABLE, queries: [Query.equal('eventId', id), Query.equal('value', 1), Query.limit(1)] }).then(r => r.total),
-      admin.tablesDB.listRows({ databaseId, tableId: EVENT_VOTES_TABLE, queries: [Query.equal('eventId', id), Query.equal('value', -1), Query.limit(1)] }).then(r => r.total),
-      admin.tablesDB.listRows<EventVote>({ databaseId, tableId: EVENT_VOTES_TABLE, queries: [Query.equal('eventId', id), Query.equal('userId', user.$id), Query.limit(1)] }),
+      ops.count(EVENT_VOTES_TABLE, [Query.equal('eventId', id), Query.equal('value', 1)]),
+      ops.count(EVENT_VOTES_TABLE, [Query.equal('eventId', id), Query.equal('value', -1)]),
+      ops.find<EventVote>(EVENT_VOTES_TABLE, [Query.equal('eventId', id), Query.equal('userId', user.$id)]),
     ])
-    const myVote: EventVoteValue | null = mine.rows[0]?.value === -1 ? -1 : mine.rows[0] ? 1 : null
+    const myVote: EventVoteValue | null = mine?.value === -1 ? -1 : mine ? 1 : null
 
-    const updated = await admin.tablesDB.updateRow<EventRow>({
-      databaseId,
-      tableId: EVENTS_TABLE,
-      rowId: id,
-      data: { upvotes, downvotes, score: upvotes - downvotes },
+    const updated = await ops.update<EventRow>(EVENTS_TABLE, id, {
+      upvotes, downvotes, score: upvotes - downvotes,
     })
 
     return { event: updated, myVote }
