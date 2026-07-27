@@ -9,5 +9,12 @@
   },
   "home": {
     "subtitle": "Manage the platform's sites, workspaces and tenants — continue in the dashboard."
+  },
+  "control": {
+    "docs": {
+      "nav": "Docs",
+      "title": "Project docs",
+      "overview": "Overview"
+    }
   }
 }

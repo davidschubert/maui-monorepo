@@ -12,6 +12,9 @@ catalogs:
     '@iconify-json/ph':
       specifier: ^1.2.2
       version: 1.2.2
+    '@nuxt/content':
+      specifier: ^3.15.1
+      version: 3.15.2
     '@nuxt/eslint-config':
       specifier: ^1.15.2
       version: 1.16.0
@@ -316,6 +319,9 @@ importers:
       '@maui/themes':
         specifier: workspace:*
         version: link:../../packages/themes
+      '@nuxt/content':
+        specifier: 'catalog:'
+        version: 3.15.2(esbuild@0.28.1)(magic-string@0.30.21)(magicast@0.5.3)(oxc-parser@0.139.0)(rollup@4.62.2)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))
       '@nuxt/ui':
         specifier: 'catalog:'
         version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
