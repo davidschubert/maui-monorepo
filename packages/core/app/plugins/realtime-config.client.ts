@@ -26,10 +26,11 @@ export default defineNuxtPlugin(() => {
           maintenanceMode: event.payload.maintenanceMode ?? flags.value.maintenanceMode,
           // features-Spalte reist als JSON-String im Row-Payload mit (system-018)
           features: 'features' in event.payload ? parseFeaturesColumn(event.payload.features) : flags.value.features,
-          // KEIN entitlementsDoc (K5): das Dokument ist Server-Sache
-          // (featureGates) und darf den Client-State nicht betreten. Die
-          // Row-Spalte `entitlements` reist im Realtime-Event zwar mit
-          // (app_config ist read:any, system-005) — wir lesen sie nicht.
+          // KEIN Entitlement-Dokument (K5/N2): das Dokument ist Server-Sache
+          // (featureGates). Es liegt seit system-020 in der server-only
+          // Tabelle app_secrets und reist deshalb gar nicht mehr in diesem
+          // read(any)-Event mit; die Altspalte app_config.entitlements wird
+          // vom Pull geleert. Hier wird sie ohnehin nie gelesen.
         }
       },
     )
