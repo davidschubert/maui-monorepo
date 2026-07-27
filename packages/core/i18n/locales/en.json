@@ -135,6 +135,7 @@
     "adminArea": "Dashboard",
     "showMore": "Show more",
     "showLess": "Show less",
+    "more": "More",
     "metaTitle": "{page} · {brand}"
   },
   "profile": {
@@ -237,5 +238,10 @@
     "notFound": "This page does not exist.",
     "generic": "Something went wrong.",
     "backHome": "Back to home"
+  },
+  "demo": {
+    "banner": "This is a demo community with sample content.",
+    "cta": "Start your own community",
+    "planBadge": "From {plan}"
   }
 }

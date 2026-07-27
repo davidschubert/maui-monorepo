@@ -1,9 +1,9 @@
 <script setup lang="ts">
-// Demo-Hinweis (Morgenlicht, Tagesliste #2): Besucher der Demo-Community
-// sollen jederzeit sehen, dass Inhalte Beispiel-Material sind. Host-basiert
-// über das Config-Gate maui.demo.hosts (leer = Banner existiert nicht) —
-// bewusst KEIN Tenant-Feld: der Demo-Status ist eine Deployment-Aussage
-// dieser App, kein Datenmodell des Control Plane.
+// Demo-Hinweis (umgezogen aus apps/platform, Layout-Konsolidierung S9):
+// Besucher einer Demo-Site sollen jederzeit sehen, dass Inhalte Beispiel-
+// Material sind. Host-basiert über das Config-Gate maui.demo.hosts (leer =
+// Banner existiert nicht) — bewusst KEIN Tenant-Feld: der Demo-Status ist
+// eine Deployment-Aussage der App, kein Datenmodell des Control Plane.
 //
 // Optik: offizielles UBanner (Audit K1) — wie CoreAuthEmailVerifyBanner.
 // BEWUSST kein close/keine UBanner-id: der Hinweis ist eine Eigenschaft des
