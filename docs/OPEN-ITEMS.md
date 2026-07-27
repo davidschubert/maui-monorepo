@@ -3,7 +3,10 @@
 Stand: **2026-07-24 (Master-To-do, gewichtet)**. Vollständige, eigenständige
 Liste offener Themen (für eine frische Session als Startpunkt nutzbar).
 
-> **LIVE:** comments + portfolio + studio + **platform** (Multi-Tenant,
+> **LIVE:** **pukalani.app** (Landing, seit 2026-07-27 — Apex proxied über
+> Cloudflare, braucht am Ursprung KEIN Zertifikat mehr und kann das
+> Kunden-Wildcard damit nicht mehr überschreiben; TLS-Wächter alle 30 min),
+> comments + portfolio + studio + **platform** (Multi-Tenant,
 > `*.pukalani.app`-Wildcard — demo.pukalani.app läuft als erster Pool-Tenant,
 > neue Kundensite = ein Klick im Control, kein Build), Auto-Deploy (4 Sites),
 > Zero-Downtime Stufe 2, Changelog-2B, Alerting, GDPR, pages-Layer
