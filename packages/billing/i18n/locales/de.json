@@ -27,7 +27,7 @@
       "subtitle": "Dein Plan, deine Rechnungen, deine Zahlungsmethode.",
       "manage": "Abo verwalten",
       "upgrade": "Upgraden",
-      "freeText": "Du nutzt den kostenlosen Stand — alles Wesentliche ist dabei.",
+      "freeText": "Du nutzt den kostenlosen Basic-Plan — alles Wesentliche ist dabei.",
       "renewsAt": "Verlängert sich am {date}",
       "endsAt": "Endet am {date}",
       "pastDueHint": "Deine letzte Zahlung ist fehlgeschlagen — bitte Zahlungsmethode aktualisieren.",
@@ -53,7 +53,7 @@
       "paused": "Pausiert"
     },
     "plans": {
-      "free": "Free",
+      "free": "Basic",
       "pro": "Pro",
       "proDescription": "Für alle, die mehr wollen.",
       "freeDescription": "Der kostenlose Einstieg."

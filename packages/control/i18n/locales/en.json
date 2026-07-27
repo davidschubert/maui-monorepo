@@ -184,7 +184,7 @@
       "interval": "Billing",
       "intervalMonthly": "Monthly",
       "intervalYearly": "Yearly",
-      "downgradeHint": "Downgrade to free: cancel the subscription in Stripe — at period end the workspace falls back to the free set automatically.",
+      "downgradeHint": "Downgrade: cancel the subscription in Stripe — at period end the workspace falls back to the free Basic plan automatically.",
       "toCheckout": "Go to checkout",
       "checkoutFailed": "Could not start checkout"
     },
@@ -212,7 +212,7 @@
       "portal": "Manage billing",
       "portalFailed": "Could not open the portal",
       "noBillingYet": "No billing account yet — start a checkout first.",
-      "downgradeHint": "Manage cancellation and payment method via “Manage billing” — after cancelling, the workspace falls back to free at period end."
+      "downgradeHint": "Manage cancellation and payment method via “Manage billing” — after cancelling, the workspace falls back to the free Basic plan at period end."
     },
     "tenants": {
       "title": "Tenants",

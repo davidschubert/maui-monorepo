@@ -184,7 +184,7 @@
       "interval": "Abrechnung",
       "intervalMonthly": "Monatlich",
       "intervalYearly": "Jährlich",
-      "downgradeHint": "Downgrade auf free: Abo in Stripe kündigen — zum Periodenende fällt der Workspace automatisch aufs free-Set zurück.",
+      "downgradeHint": "Downgrade: Abo in Stripe kündigen — zum Periodenende fällt der Workspace automatisch auf den kostenlosen Basic-Plan zurück.",
       "toCheckout": "Zum Checkout",
       "checkoutFailed": "Checkout konnte nicht gestartet werden"
     },
@@ -212,7 +212,7 @@
       "portal": "Abrechnung verwalten",
       "portalFailed": "Portal konnte nicht geöffnet werden",
       "noBillingYet": "Noch keine Abrechnung vorhanden — starte zuerst einen Checkout.",
-      "downgradeHint": "Kündigung und Zahlungsmethode verwaltest du unter „Abrechnung verwalten“ — nach einer Kündigung fällt der Workspace zum Periodenende automatisch auf free zurück."
+      "downgradeHint": "Kündigung und Zahlungsmethode verwaltest du unter „Abrechnung verwalten“ — nach einer Kündigung fällt der Workspace zum Periodenende automatisch auf den kostenlosen Basic-Plan zurück."
     },
     "tenants": {
       "title": "Tenants",

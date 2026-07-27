@@ -65,6 +65,9 @@ export default defineAppConfig({
       trialDays: 0,
       plans: [
         {
+          // Plan-ID + labelKey bleiben BEWUSST 'free' (Bestandsdaten,
+          // checkout-Schema, Webhook-Mapping) — das ANZEIGE-Label hinter
+          // billing.plans.free heißt seit dem P4-Rename „Basic" (Audit S10).
           id: 'free',
           labelKey: 'billing.plans.free',
           features: [],
