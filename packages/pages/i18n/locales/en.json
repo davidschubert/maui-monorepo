@@ -13,6 +13,7 @@
       "selectHint": "Select a page on the left, or create a new one.",
       "slug": "Slug (URL path)",
       "slugHelp": "Lowercase, e.g. imprint — becomes /imprint. Cannot be changed later.",
+      "slugPlaceholder": "imprint",
       "slugRequired": "Please enter a slug",
       "pageTitle": "Title",
       "body": "Content",

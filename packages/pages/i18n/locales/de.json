@@ -13,6 +13,7 @@
       "selectHint": "Links eine Seite wählen oder eine neue anlegen.",
       "slug": "Slug (URL-Pfad)",
       "slugHelp": "Kleinbuchstaben, z. B. imprint — wird zu /imprint. Später nicht änderbar.",
+      "slugPlaceholder": "imprint",
       "slugRequired": "Bitte einen Slug eingeben",
       "pageTitle": "Titel",
       "body": "Inhalt",
