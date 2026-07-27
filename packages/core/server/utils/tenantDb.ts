@@ -174,6 +174,42 @@ export function tenantDb(event: H3Event, options: TenantDbOptions = {}) {
       return tablesDB.updateRow<T>({ databaseId, tableId, rowId, permissions })
     },
 
+    /**
+     * Atomarer Zähler-Schritt nach oben — erst Zugehörigkeit belegen, dann
+     * increment. `max` deckelt hart (Appwrite wirft beim Überschreiten) —
+     * das ist z. B. das überbuchungssichere Kapazitäts-Gate der Event-RSVPs.
+     */
+    async increment<T extends Models.Row>(
+      tableId: string,
+      rowId: string,
+      column: string,
+      options: { value?: number, max?: number } = {},
+      notFound = 'Not found',
+    ): Promise<T> {
+      await get(tableId, rowId, notFound)
+      return tablesDB.incrementRowColumn({
+        databaseId, tableId, rowId, column,
+        value: options.value ?? 1,
+        ...(options.max !== undefined ? { max: options.max } : {}),
+      }) as Promise<T>
+    },
+
+    /** Atomarer Zähler-Schritt nach unten — erst Zugehörigkeit belegen. */
+    async decrement<T extends Models.Row>(
+      tableId: string,
+      rowId: string,
+      column: string,
+      options: { value?: number, min?: number } = {},
+      notFound = 'Not found',
+    ): Promise<T> {
+      await get(tableId, rowId, notFound)
+      return tablesDB.decrementRowColumn({
+        databaseId, tableId, rowId, column,
+        value: options.value ?? 1,
+        ...(options.min !== undefined ? { min: options.min } : {}),
+      }) as Promise<T>
+    },
+
     /** Löschen — erst Zugehörigkeit belegen. */
     async remove(tableId: string, rowId: string, notFound = 'Not found'): Promise<void> {
       await get(tableId, rowId, notFound)
