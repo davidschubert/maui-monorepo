@@ -432,3 +432,12 @@ verworfener Alternative, mit Verweis auf Commit/Doc.
 8. **Pool-Reihenfolge:** Events zuerst durch die Datentür, dann Kurse.
 9. **Alte Worktrees:** Docs-App wird JETZT reviewt (Ergebnis an David);
    Block-Editor bleibt geparkt (Feature-Stopp).
+
+## 2026-07-28 — P10-Folgeentscheidungen (David: „leg los" auf die Empfehlungen)
+
+10. **N6:** Default-Theme wird im Kunden-Picker umbenannt (Anzeige-Label, KEIN Key/Datenwert).
+11. **N7:** /changelog wird auf Tenant-Hosts gegated (Betreiber-Changelog ist kein Kundeninhalt); Silo + Kontroll-Hosts unverändert.
+12. **N9:** Site-Owner dürfen Theme/Variante ihrer Community selbst wählen — über die Service-Naht (tenants.theme/variant, Muster S1-Registrierungs-Switch), Capability branding.manage. Das Operator-Theme-Studio (Custom-Theme-EDITOR) bleibt system.manage.
+13. **N4:** Die Demo bleibt bei Google indexierbar (Schaufenster).
+14. **help.pukalani.app** bestätigt; Deploy-Kette wird gebaut (Prod-Port 3006).
+15. **Nächstes Produkt:** Kurse durch die Datentür (letzter Silo-Gefangene der Produkt-Bilanz).
