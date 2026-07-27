@@ -40,6 +40,14 @@ const HOSTS = [
   { host: 'demo.pukalani.app', ip: '49.13.211.173', note: 'Pool-Tenant (Stellvertreter für ALLE Kunden)' },
   { host: 'my.pukalani.app', ip: '49.13.211.173', note: 'Kundenbereich' },
   { host: 'start.pukalani.app', ip: '49.13.211.173', note: 'Wizard-Kurzlink' },
+  // Von der Wildcard gedeckt — es gibt und braucht KEINE eigene Zertifikats-
+  // Anforderung fuer diesen Host (Lineage-Falle, s. Kopf der Datei). Der
+  // Handshake ist schon gruen, BEVOR die ploi-Site existiert: nginx liefert
+  // dem unbekannten Host den Default-Vhost mit demselben Wildcard aus
+  // (verifiziert am 2026-07-27 per openssl gegen die IP → CN=*.pukalani.app,
+  // HTTP dabei 404). Der Eintrag prueft also ab sofort die Wildcard-Gesundheit
+  // und ab dem Go-Live zusaetzlich die Site.
+  { host: 'help.pukalani.app', ip: '49.13.211.173', note: 'Hilfe-Site (von der Wildcard gedeckt)' },
   { host: 'api.pukalani.app', ip: '188.245.61.155', note: 'Appwrite' },
 ]
 

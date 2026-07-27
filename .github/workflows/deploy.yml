@@ -141,7 +141,7 @@ jobs:
         if: steps.changes.outputs.skip != 'true'
         run: |
           set -eu
-          for app in comments portfolio control platform marketing; do
+          for app in comments portfolio control platform marketing help; do
             echo "::group::Build $app"
             pnpm --filter "$app" build
             echo "::endgroup::"
@@ -155,9 +155,9 @@ jobs:
           # SLOT  = Release-Verzeichnis unter /home/ploi/releases.
           # Seit dem Cutover (2026-07-26) heisst auch die Maschine control:
           # eigene ploi-Site 392163, Release-Slot releases/control.
-          declare -A SITE=( [comments]=comments.pukalani.app [portfolio]=portfolio.pukalani.app [control]=control.pukalani.app [platform]=platform.pukalani.app [marketing]=pukalani.app )
-          declare -A SLOT=( [comments]=comments [portfolio]=portfolio [control]=control [platform]=platform [marketing]=marketing )
-          for app in comments portfolio control platform marketing; do
+          declare -A SITE=( [comments]=comments.pukalani.app [portfolio]=portfolio.pukalani.app [control]=control.pukalani.app [platform]=platform.pukalani.app [marketing]=pukalani.app [help]=help.pukalani.app )
+          declare -A SLOT=( [comments]=comments [portfolio]=portfolio [control]=control [platform]=platform [marketing]=marketing [help]=help )
+          for app in comments portfolio control platform marketing help; do
             site="${SITE[$app]}"
             echo "::group::Deploy $app → $site"
             RELEASES="/home/ploi/releases/${SLOT[$app]}"
@@ -166,9 +166,12 @@ jobs:
             # ops-Configs liefert die CI selbst aus (rsync) — frueher hielt ein
             # `git pull` im Site-Checkout sie aktuell, aber ein voller Monorepo-
             # Checkout auf dem Server nur fuer zwei Config-Dateien ist keiner
-            # mehr wert: die control-Site hat seit dem Cutover bewusst keinen.
+            # mehr wert: die control-Site hat seit dem Cutover bewusst keinen,
+            # die help-Site (2026-07-28) genauso.
             # (Die uebrigen Sites behalten ihre Checkouts fuer den ploi-
-            # FALLBACK-Deploy — der macht sein eigenes git pull.)
+            # FALLBACK-Deploy — der macht sein eigenes git pull. Fuer control
+            # und help gibt es diesen Fallback bewusst nicht; Ersatz sind die
+            # Runbooks docs/plans/CONTROL-CUTOVER.md bzw. HELP-GO-LIVE.md.)
             rsync -az ops/ "prod:/home/ploi/$site/ops/"
             # Flip + Reload (ZDT Stufe 2). pm2 startOrReload findet den Prozess
             # ueber den NAMEN in der Ecosystem-Datei — bei einer Umbenennung
