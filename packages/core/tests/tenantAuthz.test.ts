@@ -107,8 +107,21 @@ describe('Rollen-Trennung (die harten Grenzen)', () => {
     }
   })
 
+  it('JEDE Site-Rolle trägt dashboard.access (N1 — Vertrag der admin-Middleware: Site-Mitglieder erreichen das Kunden-Dashboard; was sie DRIN sehen, filtern Nav + requiredCapability)', () => {
+    for (const role of TENANT_ROLES) {
+      expect(tenantRoleHasCapability(role, 'dashboard.access')).toBe(true)
+    }
+  })
+
   it('KEINE Site-Rolle hat Instanz-weite Operator-Rechte', () => {
-    const operatorOnly: Capability[] = ['billing.manage', 'system.manage', 'sites.manage', 'users.manage']
+    // Zugleich der Nav-Vertrag (N1): Module/Links mit diesen Caps bleiben für
+    // reine Site-Mitglieder unsichtbar (People, Admin/Audit, Storage, System/
+    // Themes/Config, Sites, Billing, Feedback, Tickets, Changelog).
+    const operatorOnly: Capability[] = [
+      'billing.manage', 'system.manage', 'sites.manage', 'users.manage',
+      'audit.read', 'storage.manage', 'feedback.manage', 'tickets.manage',
+      'changelog.manage',
+    ]
     for (const role of TENANT_ROLES) {
       for (const cap of operatorOnly) {
         expect(tenantRoleHasCapability(role, cap)).toBe(false)
