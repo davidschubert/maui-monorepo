@@ -8,6 +8,22 @@ export default defineAppConfig({
       hosts: ['demo.pukalani.app'],
       ctaUrl: 'https://start.pukalani.app',
     },
+    // Chrome-Registry (S9): der Operator-Changelog (admin-Layer schaltet
+    // WhatsNew-Button + Footer-Link per Default an) ist KEIN Tenant-Inhalt —
+    // auf Kunden-Hosts bleiben beide aus (Map-Override, `false` = ab).
+    chrome: {
+      utilities: {
+        whatsNew: false,
+      },
+      changelogLink: false,
+    },
+    // Footer-Fallback (Davids Entscheidung 5, 2026-07-27): Kunden pflegen
+    // Impressum/Datenschutz als CMS-Seiten (Legal-Slugs → Footer); solange
+    // ein Tenant (z. B. die Demo Morgenlicht) keine hat, verlinkt der Footer
+    // das Betreiber-Impressum auf pukalani.app (externer Link).
+    legalLinks: [
+      { to: 'https://pukalani.app/imprint', labelKey: 'legal.imprint' },
+    ],
     // KI-Assist (Moderation) ist als Gate AN — wirksam wird es erst, wenn
     // NUXT_AI_KEY auf dem Server liegt (isAiAvailable prüft beides). Demo-
     // Entscheidung „alle Features an" (David, 2026-07-26).

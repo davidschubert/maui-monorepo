@@ -4,6 +4,18 @@ export default defineAppConfig({
   // maui: { auth: { providers: ['github'], termsUrl: '/agb' } }
   maui: {
     brand: { name: 'Hawaii Studio' },
+    // Chrome-Registry (S9): Nav-Einträge für events/courses stehen BEWUSST
+    // hier statt in den Layern — deren Kompositionen bleiben App-Sache, bis
+    // die Produkte durch die Datentür gegangen und im Pool montiert sind
+    // (blueprint/feature.manifest.ts, Bilanz-Reihenfolge Schritt 3). Dann
+    // ziehen die Einträge in die Layer-app.configs um. Gates wie im alten
+    // Layout: Events öffentlich, Kurse nur eingeloggt.
+    chrome: {
+      nav: {
+        events: { labelKey: 'events.list.title', to: '/events', icon: 'i-ph-calendar-dots', order: 20, featureKey: 'events' },
+        courses: { labelKey: 'courses.list.title', to: '/courses', icon: 'i-ph-graduation-cap', order: 30, featureKey: 'courses', requiresAuth: true },
+      },
+    },
     ai: {
       // Core-KI (aiComplete): Moderations-Assist in der Queue; Key server-only
       // via NUXT_AI_KEY. Die Ticket-Triage läuft weiter über maui.tickets.ai.

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-// Produkt-Badge der Demo (P4, Davids Idee 2026-07-26): auf Demo-Hosts zeigt
-// jedes Produkt, ab welchem Plan es enthalten ist — die Demo läuft auf dem
-// höchsten Plan und wird so nebenbei zur Preisseite mit Beweis. Basic-
-// Produkte tragen KEIN Badge (was frei ist, muss nicht erklärt werden).
-// Außerhalb der Demo-Hosts rendert die Komponente nichts.
+// Produkt-Badge der Demo (P4, Davids Idee 2026-07-26; umgezogen aus
+// apps/platform neben useTenantPlan — Layout-Konsolidierung S9): auf
+// Demo-Hosts zeigt jedes Produkt, ab welchem Plan es enthalten ist — die
+// Demo läuft auf dem höchsten Plan und wird so nebenbei zur Preisseite mit
+// Beweis. Basic-Produkte tragen KEIN Badge (was frei ist, muss nicht
+// erklärt werden). Außerhalb der Demo-Hosts rendert die Komponente nichts.
 const props = defineProps<{ product: string }>()
 
 const appConfig = useAppConfig()

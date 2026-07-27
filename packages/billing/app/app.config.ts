@@ -4,6 +4,13 @@
  */
 export default defineAppConfig({
   maui: {
+    // Chrome-Registry (S9): öffentlicher Pricing-Link — bewusst hohe Order,
+    // Preise stehen am Ende der Nav (nach Produkten und CMS-Seiten).
+    chrome: {
+      nav: {
+        pricing: { labelKey: 'billing.pricing.title', to: '/pricing', icon: 'i-ph-tag', order: 90 },
+      },
+    },
     billing: {
       enabled: false,
       currency: 'eur',

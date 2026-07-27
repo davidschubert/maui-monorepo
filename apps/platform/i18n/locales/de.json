@@ -5,12 +5,7 @@
   "home": {
     "subtitle": "Diese Community ist gerade im Aufbau — bald gibt es hier mehr zu entdecken."
   },
-  "demo": {
-    "banner": "Das ist eine Demo-Community mit Beispiel-Inhalten.",
-    "cta": "Eigene Community starten",
-    "planBadge": "Ab {plan}"
-  },
-  "nav": {
-    "feed": "Feed"
+  "legal": {
+    "imprint": "Impressum"
   }
 }

@@ -1,4 +1,5 @@
 import type { MauiAdminModule } from '../shared/types/admin-module'
+import type { MauiChromeNavConfig, MauiChromeUtilityConfig } from '../shared/types/chrome'
 
 export default defineAppConfig({
   // maui.* Config-Gates: Core-Default ist IMMER aus — Apps aktivieren explizit.
@@ -22,6 +23,39 @@ export default defineAppConfig({
        *  (deep-merged/konkateniert über alle Layer). Das Dashboard-Layout rendert
        *  die Nav daraus, capability-gefiltert. */
       modules: [] as MauiAdminModule[],
+    },
+    /**
+     * Chrome-Registry (Audit S9): Header-Nav + Header-Utilities der
+     * öffentlichen Community-Seiten. Feature-Layer registrieren sich selbst
+     * (Objekt-Map, Key = stabile ID; `false` schaltet einen Eintrag ab —
+     * s. shared/types/chrome.ts). Konsument ist das blueprint-default-Layout;
+     * das core-default-Layout bleibt bewusst registry-frei (marketing & Co.).
+     */
+    chrome: {
+      nav: {} as MauiChromeNavConfig,
+      utilities: {
+        // Benachrichtigungen sind Core-Funktionalität — core registriert
+        // seine eigene Glocke (nur eingeloggt), alle anderen Utilities
+        // kommen aus den Feature-Layern.
+        notifications: { component: 'NotificationBell', order: 40, requiresAuth: true },
+      } as MauiChromeUtilityConfig,
+      /** Footer-Link auf /changelog — der admin-Layer (Besitzer der Seite)
+       *  schaltet ihn an; Apps können ihn wieder abschalten (platform). */
+      changelogLink: false,
+      /** CMS-Seiten als Nav-/Footer-Quelle — registriert der pages-Layer;
+       *  ohne ihn macht das Layout keinen /api/pages/public-Fetch. */
+      pagesNav: false,
+    },
+    /**
+     * Demo-Host-Gate (CoreDemoBanner + CorePlanBadge): auf diesen Hosts ist
+     * die Site eine Demo mit Beispiel-Inhalten — Banner oben, Plan-Badges an
+     * den Produkten. Leer = beides existiert nicht. Bewusst KEIN Tenant-Feld:
+     * der Demo-Status ist eine Deployment-Aussage der App.
+     */
+    demo: {
+      hosts: [] as string[],
+      /** CTA in den Self-Service-Trichter (absolute URL) — leer = kein CTA */
+      ctaUrl: '',
     },
     ai: {
       /** Server-seitige KI-Features (aiComplete: Moderations-Assist, Layer-
