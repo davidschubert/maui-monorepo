@@ -111,6 +111,19 @@ export default defineAppConfig({
        * Mandanten. Das Schema bleibt Sache der Env (shared/seoOrigin.ts).
        */
       originFromRequest: false,
+      /**
+       * Bildmarke pro Mandant (Audit-Befund K2): `<link rel="icon">` auf die
+       * serverseitig generierte `/favicon.svg` (Kreis in der Primärfarbe des
+       * Mandanten-Themes + Initial) plus `<meta name="theme-color">` in
+       * derselben Farbe. Core-Default AUS — eine Silo-App hat ein eigenes,
+       * gestaltetes Favicon und darf es nicht verlieren.
+       *
+       * AN gehört das Gate in Apps, die viele Communities auf einem Deployment
+       * bedienen: dort lieferte jeder Kunden-Host Nitros 78-Byte-Platzhalter
+       * aus. Die App MUSS dann eine Route `/favicon.svg` mitbringen
+       * (apps/platform/server/routes/favicon.svg.get.ts).
+       */
+      tenantFavicon: false,
     },
     tenancy: {
       /** Horizont-3 Mandanten-Auflösung (Naht 1): Host → TenantContext via
