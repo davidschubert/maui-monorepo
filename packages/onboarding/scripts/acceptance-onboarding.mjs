@@ -199,6 +199,14 @@ try {
     },
   })
   check('gibt dieselbe Community zurück', retry.json?.siteId === last.site.siteId && retry.json?.reused === true, JSON.stringify(retry.json))
+  // Seiten sind Teil der Idempotenz: ein Doppelklick darf keine zweite
+  // Startseite und keine zweiten Rechtsseiten-Vorlagen erzeugen (Befund S7).
+  const pagesAfterRetry = await pool.listRows({
+    databaseId: poolDatabaseId, tableId: 'pages',
+    queries: [Query.equal('tenantId', last.site.tenantId), Query.limit(25)],
+  })
+  check('genau 3 Seiten nach dem Retry (home + Impressum + Datenschutz)', pagesAfterRetry.rows.length === 3,
+    pagesAfterRetry.rows.map(row => `${row.slug}/${row.locale}`).join(', '))
 
   console.log('\n3. Abbruch hinterlässt nichts')
   const before = await countTenants()
@@ -233,6 +241,27 @@ try {
 
   const homeRes = await call(last.site.host, '/api/pages/public/home?locale=de')
   check('Startseite aus der Beschreibung erzeugt', homeRes.status === 200 && /Abnahmelauf/.test(homeRes.json?.body ?? ''), `Status ${homeRes.status}`)
+
+  // Audit-Befund S7: Impressum + Datenschutz entstehen als VORLAGEN-ENTWÜRFE.
+  // Geprüft werden beide Seiten der Sache — im Datenbestand vorhanden UND
+  // öffentlich unsichtbar. Nur zusammen ist das die Zusage: der Betreiber hat
+  // etwas zum Ausfüllen, aber niemand sieht einen leeren Rechtstext.
+  const legalRows = await pool.listRows({
+    databaseId: poolDatabaseId, tableId: 'pages',
+    queries: [Query.equal('tenantId', last.site.tenantId), Query.equal('slug', ['imprint', 'privacy']), Query.limit(25)],
+  })
+  check('Impressum + Datenschutz als Vorlage angelegt', legalRows.rows.length === 2, `${legalRows.rows.length} Rows`)
+  check('beide sind ENTWURF (nicht veröffentlicht)', legalRows.rows.every(row => row.status === 'draft'))
+  check('beide tragen den Mandanten-Scope', legalRows.rows.every(row => row.tenantId === last.site.tenantId))
+  check('beide tragen Platzhalter-Marker', legalRows.rows.every(row => row.body.includes('[AUSFÜLLEN:')))
+  const imprintPublic = await call(last.site.host, '/api/pages/public/imprint?locale=de')
+  check('Impressum ist öffentlich NICHT abrufbar → 404', imprintPublic.status === 404, `Status ${imprintPublic.status}`)
+  const imprintPage = await call(last.site.host, '/de/imprint')
+  check('Seite /de/imprint antwortet 404 (Entwurf)', imprintPage.status === 404, `Status ${imprintPage.status}`)
+  const nav = await call(last.site.host, '/api/pages/public?locale=de')
+  check('Entwürfe stehen nicht in der öffentlichen Navigation',
+    Array.isArray(nav.json) && !nav.json.some(item => item.slug === 'imprint' || item.slug === 'privacy'),
+    JSON.stringify(nav.json))
 
   console.log(`\n  Tenants vor dem Lauf: ${tenantsBefore} · danach: ${after}`)
 }
