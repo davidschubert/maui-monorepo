@@ -1,9 +1,9 @@
 {
   "app": {
-    "tagline": "Community platform by Pukalani"
+    "tagline": "Your community"
   },
   "home": {
-    "subtitle": "This app was created from apps/_template — adjust branding, pages and config gates."
+    "subtitle": "This community is just getting started — there will be more to discover here soon."
   },
   "demo": {
     "banner": "This is a demo community with sample content.",

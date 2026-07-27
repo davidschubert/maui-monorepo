@@ -1,6 +1,6 @@
 {
   "app": {
-    "tagline": "New Maui app"
+    "tagline": "Pukalani operator console"
   },
   "legal": {
     "imprint": "Imprint",
@@ -8,6 +8,6 @@
     "privacy": "Privacy"
   },
   "home": {
-    "subtitle": "This app was created from apps/_template — adjust branding, pages and config gates."
+    "subtitle": "Manage the platform's sites, workspaces and tenants — continue in the dashboard."
   }
 }
