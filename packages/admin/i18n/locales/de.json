@@ -16,14 +16,14 @@
       "homepage": "Zur Website",
       "people": "Personen",
       "groups": {
-        "products": "Products",
+        "products": "Produkte",
         "management": "Management",
         "design": "Design"
       }
     },
     "config": {
       "title": "Konfiguration",
-      "description": "Laufzeit-Feature-Flags — wirken sofort, ohne Deploy.",
+      "description": "Laufzeit-Einstellungen dieser Site — wirken sofort, ohne Deploy.",
       "registrationEnabled": "Registrierung offen",
       "registrationEnabledDesc": "Erlaubt das Anlegen neuer Accounts.",
       "commentsEnabled": "Kommentare aktiv",
@@ -31,7 +31,7 @@
       "maintenanceMode": "Wartungsmodus",
       "maintenanceModeDesc": "Friert Schreibvorgänge ein — blockiert Registrierung und Kommentare.",
       "aiModel": "KI-Modell (Laufzeit-Override)",
-      "aiModelDesc": "Modell für Core-KI-Features (Moderations-Assist). Leer = Build-Default {model}. Format: vendor/model (OpenRouter).",
+      "aiModelDesc": "Modell für die eingebaute KI (Moderations-Assist). Leer = Build-Default {model}. Format: vendor/model (OpenRouter).",
       "save": "Speichern",
       "saved": "Konfiguration gespeichert."
     },
@@ -137,7 +137,7 @@
       "empty": "Noch keine Changelog-Einträge.",
       "confirmDelete": "„{title}“ endgültig löschen?",
       "category": {
-        "feature": "Feature",
+        "feature": "Neu",
         "improvement": "Verbesserung",
         "fix": "Fix"
       },
@@ -344,15 +344,15 @@
       "confirmText": "{name} endgültig löschen? Der Snapshot kann danach nicht mehr abgerufen werden."
     },
     "features": {
-      "title": "Features",
-      "description": "Einkompilierte Features dieser Site — optionale lassen sich zur Laufzeit schalten, ohne Deploy. Daten bleiben beim Abschalten erhalten.",
+      "title": "Produkte",
+      "description": "Einkompilierte Produkte dieser Site — optionale lassen sich zur Laufzeit schalten, ohne Deploy. Daten bleiben beim Abschalten erhalten.",
       "foundation": "Grundgerüst",
       "inactive": "Deaktiviert",
       "requires": "Benötigt: {list}",
       "dataKept": "Deine Daten bleiben erhalten.",
       "enabled": "{name} aktiviert",
       "disabled": "{name} deaktiviert",
-      "toggleFailed": "Feature konnte nicht umgeschaltet werden",
+      "toggleFailed": "Produkt konnte nicht umgeschaltet werden",
       "alwaysOn": "Immer aktiv"
     }
   },
@@ -432,7 +432,7 @@
       "stack": {
         "title": "Stack",
         "description": "Eingesetzte Layer, Module und Abhängigkeiten.",
-        "layers": "Feature-Layer",
+        "layers": "Produkt-Layer",
         "files": "Dateien",
         "layerCat": {
           "components": "Komponenten",
