@@ -59,9 +59,28 @@ export default defineNuxtConfig({
     dirs: [join(currentDir, './app/stores')],
   },
 
-  // Stabiles Fehler-Envelope für /api (server/error.ts) — externe API-Konsumenten
-  nitro: {
-    errorHandler: join(currentDir, './server/error.ts'),
+  // Stabiles Fehler-Envelope für /api (server/error.ts) — externe API-Konsumenten.
+  //
+  // ACHTUNG (Audit-Befund B2, 2026-07-27): NICHT als `nitro: { errorHandler }`
+  // setzen! @nuxt/nitro-server 4.4.8 registriert seinen EIGENEN Nitro-Handler
+  // (der die gebrandete error.vue rendert) nur, wenn das Feld noch leer ist
+  // (dist/index.mjs:402: `if (!nitroConfig.errorHandler && …)`). Ein Wert in
+  // der nuxt.config verdrängte ihn also — übrig blieb Nitros eingebauter
+  // `internal/error/prod`, der IMMER rohes JSON schickt (nitropack 2.13.4).
+  // Damit gab es faktisch keine 404-Seite. Deshalb hängen wir uns hier VOR
+  // die bestehende Kette: `nitro:config` läuft NACH Nuxts Zuweisung
+  // (callHook in @nuxt/nitro-server erst später), Nitro erlaubt ein Array und
+  // ruft die Handler in Reihenfolge, bis einer geantwortet hat (event.handled).
+  hooks: {
+    'nitro:config': (nitroConfig) => {
+      const ownHandler = join(currentDir, './server/error.ts')
+      const existing = nitroConfig.errorHandler
+      const chain = existing === undefined
+        ? []
+        : (Array.isArray(existing) ? existing : [existing])
+      if (chain.includes(ownHandler)) return
+      nitroConfig.errorHandler = [ownHandler, ...chain]
+    },
   },
 
   // Skeleton mit Leer-Defaults (Typ-Inferenz) — echte Werte aus .env der App.

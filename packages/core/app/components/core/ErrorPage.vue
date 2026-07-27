@@ -7,20 +7,30 @@ import type { NuxtError } from '#app'
  *
  *   <template><CoreErrorPage :error="error" /></template>
  */
-defineProps<{ error: NuxtError }>()
+const props = defineProps<{ error: NuxtError }>()
 
 const { t } = useI18n()
 const localePath = useLocalePath()
+const appConfig = useAppConfig()
+// Brand-Kette wie im Layout: Tenant-Name (Pool-Host) vor App-Brand vor
+// dem historischen „Maui"-Fallback. Vorher stand hier hart „MAUI-ERROR" —
+// interner Produktname auf einer Kundenseite (Audit B2/K3).
+const tenantBrand = useTenantBrand()
+const brand = computed(() => tenantBrand.value ?? appConfig.maui?.brand?.name ?? 'Maui')
+
+const status = computed(() => props.error?.statusCode ?? 500)
+const description = computed(() => (status.value === 404 ? t('error.notFound') : t('error.generic')))
+
+// Titel statt nackter URL im Tab/in geteilten Links: „404 · Morgenlicht"
+useHead({ title: () => `${status.value} · ${brand.value}` })
 </script>
 
 <template>
   <UApp>
     <main class="flex min-h-screen flex-col items-center justify-center gap-4 p-8 text-center">
-      <p class="font-mono text-sm text-muted">MAUI-ERROR</p>
-      <h1 class="text-5xl font-bold">{{ error.statusCode }}</h1>
-      <p class="text-muted">
-        {{ error.statusCode === 404 ? t('error.notFound') : t('error.generic') }}
-      </p>
+      <p class="text-sm font-medium text-muted">{{ brand }}</p>
+      <h1 class="text-5xl font-bold">{{ status }}</h1>
+      <p class="text-muted">{{ description }}</p>
       <UButton @click="clearError({ redirect: localePath('/') })">{{ t('error.backHome') }}</UButton>
     </main>
   </UApp>
