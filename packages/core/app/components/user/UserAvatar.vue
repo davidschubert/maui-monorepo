@@ -22,8 +22,12 @@ const src = computed(() => {
 })
 
 const alt = computed(() => resolved.value?.name || resolved.value?.email || 'User')
+// Initialen selbst berechnen (avatarInitials, core app/utils/avatar.ts) — der
+// eingebaute UAvatar-Fallback nimmt das erste Zeichen jedes Wortes und zeigte
+// bei „Lena (Coach)" ein „L(" (Audit-Befund S2)
+const initials = computed(() => avatarInitials(resolved.value?.name, resolved.value?.email))
 </script>
 
 <template>
-  <UAvatar :src="src" :alt="alt" :size="size ?? 'md'" />
+  <UAvatar :src="src" :alt="alt" :text="initials" :size="size ?? 'md'" />
 </template>
