@@ -11,6 +11,9 @@ const toast = useToast()
 const loading = ref(false)
 const failed = ref(false)
 
+// Seitentitel „Neues Passwort · <Brand>" — gleiche Kette wie /login (B3-Rest).
+useBrandTitle(() => t('auth.reset.title'))
+
 // userId + secret kommen aus dem Link der Recovery-Mail
 const userId = computed(() => String(route.query.userId ?? ''))
 const secret = computed(() => String(route.query.secret ?? ''))

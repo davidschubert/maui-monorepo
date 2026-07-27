@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { pageExcerpt } from '../../../../packages/pages/shared/pageExcerpt'
 import type { PublicPage } from '../../../../packages/pages/shared/types/page'
 
 /**
@@ -30,7 +31,14 @@ const parts = computed(() => {
   return { markdown: body.slice(0, idx), showComments: true }
 })
 
-useHead({ title: () => page.value?.title ?? t('app.tagline') })
+// „<Seitenname> · <Brand>", ohne home-Eintrag der Brand allein (Audit S8) +
+// Beschreibung aus dem ersten Textabsatz der home-Seite (S5). Vorher stand hier
+// als Fallback die Betreiber-Tagline im Tab JEDES Mandanten (K11).
+// Ohne home-Eintrag bleibt die description WEG: der Platzhaltertext der
+// Willkommens-Sektion ist keine Beschreibung dieses Mandanten (K11).
+useBrandTitle(() => page.value?.title ?? '', {
+  description: () => (page.value ? pageExcerpt(parts.value.markdown) : undefined),
+})
 </script>
 
 <template>

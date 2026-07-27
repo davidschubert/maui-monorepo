@@ -9,6 +9,9 @@ const localePath = useLocalePath()
 const loading = ref(false)
 const sent = ref(false)
 
+// Seitentitel „Passwort vergessen · <Brand>" — gleiche Kette wie /login (B3-Rest).
+useBrandTitle(() => t('auth.forgot.title'))
+
 const schema = computed(() => createRecoverySchema(t))
 const sharedEmail = useState('maui-auth-email', () => '')
 const state = reactive<RecoveryInput>({ email: sharedEmail.value })

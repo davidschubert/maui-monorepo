@@ -10,6 +10,8 @@ const appConfig = useAppConfig()
 const flags = useRuntimeFlags()
 
 const otpEnabled = computed(() => appConfig.maui?.auth?.otp === true)
+// Seitentitel „Registrieren · <Brand>" — gleiche Kette wie /login (B3-Rest).
+useBrandTitle(() => t('auth.register.title'))
 // Registrierung zu, wenn der Flag aus ist ODER Wartungsmodus läuft (friert Writes ein)
 const registrationClosed = computed(() => !flags.value.registrationEnabled || flags.value.maintenanceMode)
 const closedText = computed(() => flags.value.maintenanceMode

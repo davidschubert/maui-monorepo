@@ -13,6 +13,9 @@ const flags = useRuntimeFlags()
 if (appConfig.maui?.auth?.otp !== true || !flags.value.registrationEnabled || flags.value.maintenanceMode) {
   await navigateTo(localePath('/register'))
 }
+
+// Seitentitel „Mit Code registrieren · <Brand>" — gleiche Kette wie /login (B3-Rest).
+useBrandTitle(() => t('auth.otp.registerTitle'))
 </script>
 
 <template>

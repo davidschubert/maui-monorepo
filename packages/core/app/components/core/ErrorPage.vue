@@ -18,8 +18,9 @@ const brand = useBrandName()
 const status = computed(() => props.error?.statusCode ?? 500)
 const description = computed(() => (status.value === 404 ? t('error.notFound') : t('error.generic')))
 
-// Titel statt nackter URL im Tab/in geteilten Links: „404 · Morgenlicht"
-useHead({ title: () => `${status.value} · ${brand.value}` })
+// Titel statt nackter URL im Tab/in geteilten Links: „404 · Morgenlicht" —
+// über dieselbe Composable wie alle anderen Seiten (ui.metaTitle-Muster, S8).
+useBrandTitle(() => String(status.value))
 </script>
 
 <template>
