@@ -27,7 +27,7 @@ heißen **Findings/Befunde**.
 | # | Befund | Ort/Ursache |
 | --- | --- | --- |
 | B1 | canonical/hreflang/og:url aller Tenant-Seiten zeigen auf platform.pukalani.app — Google indexiert die Kundendomain nicht, Sprachlinks führen zum falschen Host | i18n.baseUrl statisch aus Env; muss im Pool pro Request-Host aufgelöst werden |
-| B2 | 404 = rohes JSON statt gebrandeter Fehlerseite (auch /impressum, /robots.txt, /sitemap.xml) | Fehler schlägt vor dem Vue-Renderer auf; Diagnose beim Fix |
+| B2 | Es gibt KEINE 404-Seite (von David selbst bestätigt): unbekannte Pfade liefern rohes Nitro-JSON statt einer gebrandeten Fehlerseite mit Weg zurück (auch /impressum, /robots.txt, /sitemap.xml). Die vorhandene app/error.vue (CoreErrorPage-Wrapper) greift auf Tenant-Hosts nicht | Fehler schlägt vor dem Vue-Renderer auf; Diagnose beim Fix. Fix umfasst BEIDES: Ursache (Renderer erreicht error.vue nicht) UND eine gestaltete, tenant-gebrandete 404-Seite |
 | B3 | /login ohne `<title>`, ohne sichtbares Tenant-Branding im Markup | core-Login-Seite setzt keinen Titel; Brand nur im JS-Payload |
 
 ## STÖREND
