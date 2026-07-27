@@ -78,6 +78,8 @@ await step(`Unique-Index ${TABLE}.uq_tenant_host`, () => tablesDB.createIndex({
 }))
 
 try {
+  // destruktiv-ok: uq_host wird durch uq_tenant_host ERSETZT (oben zuerst
+  // angelegt) — es gibt nie ein Fenster ohne Duplikat-Schutz.
   await tablesDB.deleteIndex({ databaseId, tableId: TABLE, key: 'uq_host' })
   console.log(`✔ Alter Unique-Index ${TABLE}.uq_host entfernt`)
 }

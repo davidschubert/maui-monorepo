@@ -125,7 +125,7 @@ jobs:
         if: steps.changes.outputs.skip != 'true'
         run: |
           set -eu
-          for app in comments portfolio control platform; do
+          for app in comments portfolio control platform marketing; do
             echo "::group::Build $app"
             pnpm --filter "$app" build
             echo "::endgroup::"
@@ -139,9 +139,9 @@ jobs:
           # SLOT  = Release-Verzeichnis unter /home/ploi/releases.
           # Seit dem Cutover (2026-07-26) heisst auch die Maschine control:
           # eigene ploi-Site 392163, Release-Slot releases/control.
-          declare -A SITE=( [comments]=comments.pukalani.app [portfolio]=portfolio.pukalani.app [control]=control.pukalani.app [platform]=platform.pukalani.app )
-          declare -A SLOT=( [comments]=comments [portfolio]=portfolio [control]=control [platform]=platform )
-          for app in comments portfolio control platform; do
+          declare -A SITE=( [comments]=comments.pukalani.app [portfolio]=portfolio.pukalani.app [control]=control.pukalani.app [platform]=platform.pukalani.app [marketing]=pukalani.app )
+          declare -A SLOT=( [comments]=comments [portfolio]=portfolio [control]=control [platform]=platform [marketing]=marketing )
+          for app in comments portfolio control platform marketing; do
             site="${SITE[$app]}"
             echo "::group::Deploy $app → $site"
             RELEASES="/home/ploi/releases/${SLOT[$app]}"
