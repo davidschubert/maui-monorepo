@@ -555,6 +555,7 @@ const createdAtText = computed(() =>
               :key="member.id"
               :src="avatarById.get(member.id)"
               :alt="member.name"
+              :text="avatarInitials(member.name)"
               :title="member.name"
             />
           </UAvatarGroup>

@@ -118,7 +118,7 @@ const reportReasons = computed(() => [
       >
         <UAvatarGroup size="3xs" :max="3">
           <UTooltip v-for="u in nearHere" :key="u.userId" :text="u.userName">
-            <UAvatar :src="u.avatarUrl || undefined" :alt="u.userName" />
+            <UAvatar :src="u.avatarUrl || undefined" :alt="u.userName" :text="avatarInitials(u.userName)" />
           </UTooltip>
         </UAvatarGroup>
       </div>

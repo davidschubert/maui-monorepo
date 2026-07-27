@@ -16,7 +16,7 @@ const { others } = useViewingPresence()
   >
     <UAvatarGroup size="2xs" :max="4">
       <UTooltip v-for="u in others" :key="u.userId" :text="u.userName">
-        <UAvatar :src="u.avatarUrl || undefined" :alt="u.userName" />
+        <UAvatar :src="u.avatarUrl || undefined" :alt="u.userName" :text="avatarInitials(u.userName)" />
       </UTooltip>
     </UAvatarGroup>
     <span class="pe-0.5 text-xs text-muted">{{ others.length }}</span>
