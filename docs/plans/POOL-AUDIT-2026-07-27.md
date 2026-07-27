@@ -22,7 +22,15 @@ heißen **Findings/Befunde**.
   Stand VOR dem blueprint-Deploy; nach dem Deploy erneut prüfen.
 - ✅ i18n-Parität de/en: makellos (23/23 Paare identisch) — kein Handlungsbedarf.
 
-## BLOCKER (aus Kundensicht nicht verkaufbar)
+## BLOCKER (aus Kundensicht nicht verkaufbar) — ALLE BEHOBEN ✅ (2026-07-27, Paket A)
+
+Live-Beweise nach Deploy e02de81 auf demo.pukalani.app: canonical/hreflang/og:url
+= demo-Origin (B1) · 404 = text/html mit „404 · Morgenlicht" (B2, heilt ALLE
+Apps — comments-404 jetzt ebenfalls HTML) · Login „Anmelden · Morgenlicht" +
+sichtbarer Brand im Markup (B3). Silo-Gegenprobe: comments-canonical unverändert
+env-basiert. Rest-Notizen: register/forgot/reset haben Brand-Kopf, aber noch
+keinen <title> (kleiner Folgeschritt mit S1); nacktes curl ohne Accept-Header
+bekommt bewusst JSON (Nuxt-Heuristik für API-Clients — Browser/Crawler HTML).
 
 | # | Befund | Ort/Ursache |
 | --- | --- | --- |
