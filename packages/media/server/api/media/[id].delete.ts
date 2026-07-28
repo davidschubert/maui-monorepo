@@ -3,6 +3,12 @@ import { MEDIA_TABLE, MEDIA_BUCKET, type MediaItem } from '../../../shared/types
 /**
  * Medien-Eintrag löschen (media.manage) — Row zuerst, dann Datei (best-effort).
  *
+ * DATENTÜR (C1b): `get` und `remove` belegen beide die Zugehörigkeit — eine
+ * fremde Row antwortet 404 wie eine, die es nicht gibt. `as:'operator'` ist
+ * fachlich nötig: `media_items`-Rows tragen seit media-002 NUR Leserechte,
+ * gelöscht wird server-seitig hinter der Capability. Der Admin-Client umgeht
+ * Row-Permissions, damit ist die Tür hier die EINZIGE Mandanten-Grenze.
+ *
  * AUTORISIERUNG (S3): `requireSitePermission` — Site-Rolle vor protokolliertem
  * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
  * Das `await` ist Pflicht — ohne wäre der Gate fail-open.
@@ -15,15 +21,14 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 400, statusText: 'Missing media id' })
   }
 
-  const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
-  const databaseId = config.public.appwriteDatabaseId
+  const db = tenantDb(event, { as: 'operator' })
 
-  const row = await admin.tablesDB.getRow<MediaItem>({ databaseId, tableId: MEDIA_TABLE, rowId: id })
-    .catch((error) => { throw toH3Error(error, 'Media item not found') })
-
-  await admin.tablesDB.deleteRow({ databaseId, tableId: MEDIA_TABLE, rowId: id })
-    .catch((error) => { throw toH3Error(error, 'Could not delete media item') })
+  // Erst lesen (fileId für den Bucket-Cleanup), dann löschen — beide Schritte
+  // gehen durch die Tür, die zweite Prüfung ist der Preis dafür, dass die
+  // Zugehörigkeit nirgends „schon vorher geprüft" geglaubt werden muss.
+  const row = await db.get<MediaItem>(MEDIA_TABLE, id, 'Media item not found')
+  await db.remove(MEDIA_TABLE, id, 'Media item not found')
 
   // Datei best-effort — eine Waise im Bucket ist ärgerlich, aber kein Leak
   // (Row weg = nicht mehr gelistet); laut loggen statt 500 nach Row-Delete.

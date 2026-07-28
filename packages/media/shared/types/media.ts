@@ -13,6 +13,9 @@ export interface MediaItem extends Models.Row {
   featured: boolean
   published: boolean
   sortOrder: number
+  /** Mandant der Row (Migration media-003, Datentür C1b).
+   *  '' / fehlend = Silo-/Einzelbetrieb. */
+  tenantId?: string
 }
 
 /** Öffentlicher Listen-Eintrag — um die View-URL angereichert. */

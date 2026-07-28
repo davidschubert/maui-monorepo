@@ -13,6 +13,18 @@ import { MEDIA_TABLE, MEDIA_BUCKET, MAX_MEDIA_BYTES, type MediaItem } from '../.
  * beide read(any) — ein späterer Entwurfs-Zustand entzieht es wieder
  * (applyMediaVisibility).
  *
+ * DATENTÜR (C1b): `create` stempelt den Mandanten. `as:'operator'` ist fachlich
+ * nötig — `media_items` trägt seit media-002 KEINE Table-Permissions, ein
+ * Session-Client darf dort nicht schreiben; Medien anlegen ist Server-Sache
+ * hinter `media.manage`. Der Admin-Client umgeht Row-Permissions, damit ist die
+ * Tür hier die EINZIGE Mandanten-Grenze.
+ *
+ * Die Row-Permissions bleiben explizit (mediaPermissionsFor) statt aus der Tür:
+ * das Publikum hängt am `published`-Status, nicht am Mandanten — veröffentlichte
+ * Galerie-Bilder sind bewusst read(any) (Gäste sehen die Galerie), Entwürfe
+ * tragen nur den Verwaltungs-Read. Die DATEI im Bucket trägt keinen Mandanten;
+ * die Referenz (fileId) auf der gestempelten Row tut es (Muster events-Cover).
+ *
  * AUTORISIERUNG (S3): `requireSitePermission` — Site-Rolle vor protokolliertem
  * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
  * Das `await` ist Pflicht — ohne wäre der Gate fail-open.
@@ -49,8 +61,8 @@ export default defineEventHandler(async (event) => {
   const subtitle = field('subtitle').slice(0, 200)
   const alt = field('alt').slice(0, 300)
 
-  const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
+  const db = tenantDb(event, { as: 'operator' })
 
   const published = true
   const permissions = mediaPermissionsFor(published)
@@ -62,13 +74,9 @@ export default defineEventHandler(async (event) => {
     permissions,
   }).catch((error) => { throw toH3Error(error, 'Media bucket missing — run migrations') })
 
-  const row = await admin.tablesDB.createRow<MediaItem>({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: MEDIA_TABLE,
-    rowId: ID.unique(),
-    data: { title, subtitle, alt, fileId: file.$id, featured: false, published, sortOrder: 0 },
-    permissions,
-  }).catch(async (error) => {
+  const row = await db.create<MediaItem>(MEDIA_TABLE, {
+    title, subtitle, alt, fileId: file.$id, featured: false, published, sortOrder: 0,
+  }, { permissions }).catch(async (error) => {
     // Row gescheitert → verwaiste Datei nicht liegen lassen
     await admin.storage.deleteFile({ bucketId: MEDIA_BUCKET, fileId: file.$id }).catch(() => {})
     throw toH3Error(error, 'Could not save media item')

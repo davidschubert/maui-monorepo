@@ -18,6 +18,13 @@ const patchSchema = z.object({
  * nicht geändert hat: so heilt ein zweiter Klick einen zuvor gescheiterten
  * Permission-Write, statt ihn stillschweigend zu überspringen.
  *
+ * DATENTÜR (C1b): `update` belegt die Zugehörigkeit VOR dem Schreiben — eine
+ * fremde Row antwortet 404 wie eine, die es nicht gibt. `as:'operator'` ist
+ * fachlich nötig: `media_items`-Rows tragen seit media-002 NUR Leserechte,
+ * niemand darf sie per Session-Client ändern; die Autorität ist die Capability.
+ * Der Admin-Client umgeht Row-Permissions, damit ist die Tür hier die EINZIGE
+ * Mandanten-Grenze.
+ *
  * AUTORISIERUNG (S3): `requireSitePermission` — Site-Rolle vor protokolliertem
  * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
  * Das `await` ist Pflicht — ohne wäre der Gate fail-open.
@@ -34,14 +41,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 422, statusText: 'Empty patch' })
   }
 
-  const config = useRuntimeConfig(event)
-  const admin = createAdminClient(event)
-  const row = await admin.tablesDB.updateRow<MediaItem>({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: MEDIA_TABLE,
-    rowId: id,
-    data: body,
-  }).catch((error) => { throw toH3Error(error, 'Media item not found') })
+  const db = tenantDb(event, { as: 'operator' })
+  const row = await db.update<MediaItem>(MEDIA_TABLE, id, body, 'Media item not found')
 
   if (body.published !== undefined) {
     await applyMediaVisibility(event, row, body.published).catch((error) => {
