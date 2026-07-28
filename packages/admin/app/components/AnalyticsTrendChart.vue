@@ -5,10 +5,14 @@ const props = defineProps<{
   points: AnalyticsPoint[]
   usersLabel: string
   commentsLabel: string
-  usersTotal: number
+  /** null = Kennzahl nicht ausgewiesen (Pool, Audit-Befund B2) → Reihe und
+   *  Legenden-Eintrag entfallen, statt eine fremde Zahl zu zeigen. */
+  usersTotal: number | null
   commentsTotal: number
   todayLabel: string
 }>()
+
+const showUsers = computed(() => props.usersTotal !== null)
 
 const { locale } = useI18n()
 
@@ -68,7 +72,9 @@ const bars = computed(() => {
     return {
       usersPath: hUsers ? roundRect(x, yUsers, barW, hUsers, both ? 0 : r, r) : '',
       commentsPath: hComments ? roundRect(x, yComments, barW, hComments, r, both ? 0 : r) : '',
-      title: `${shortDate(p.date)} · ${props.usersLabel} ${p.users} · ${props.commentsLabel} ${p.comments}`,
+      title: showUsers.value
+        ? `${shortDate(p.date)} · ${props.usersLabel} ${p.users} · ${props.commentsLabel} ${p.comments}`
+        : `${shortDate(p.date)} · ${props.commentsLabel} ${p.comments}`,
     }
   })
 })
@@ -94,7 +100,7 @@ const xTicks = computed(() => {
       :viewBox.attr="`0 0 ${W} ${H}`"
       class="h-auto w-full"
       role="img"
-      :aria-label="`${usersLabel}: ${usersTotal} · ${commentsLabel}: ${commentsTotal}`"
+      :aria-label="showUsers ? `${usersLabel}: ${usersTotal} · ${commentsLabel}: ${commentsTotal}` : `${commentsLabel}: ${commentsTotal}`"
     >
       <!-- Gridlines -->
       <line
@@ -123,7 +129,7 @@ const xTicks = computed(() => {
 
     <!-- Legende mit Summen unten links -->
     <div class="mt-3 flex flex-wrap items-center gap-4 text-sm">
-      <span class="flex items-center gap-1.5">
+      <span v-if="showUsers" class="flex items-center gap-1.5">
         <span class="size-2 rounded-full bg-primary" />
         <span class="font-bold tabular-nums">{{ usersTotal }}</span>
         <span class="text-muted">{{ usersLabel }}</span>

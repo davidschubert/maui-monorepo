@@ -68,21 +68,37 @@ export default createConfigForNuxt({
   },
 }).append({
   // DATENTÜR-BACKSTOP (CLAUDE.md „Mandanten-Isolation: EINE Datentür"): in
-  // server/api/** der gepoolten Layer geht Datenzugriff NUR über tenantDb —
-  // rohes `.tablesDB` der Client-Factories umgeht Scoping, tenantId-Stempel
-  // und Zugehörigkeitsbeleg. Genau so sind am 2026-07-26/27 vier echte
-  // Cross-Tenant-Lecks entstanden bzw. gefunden worden (drei Moderations-
-  // Routen, mentions, embed-sites). Neue Pool-Layer kommen in diese Liste,
-  // sobald ihre Tabellen tenantId tragen. AUSSERHALB von server/api bleibt
-  // rohes tablesDB erlaubt (GDPR-Contributors, Sweeps — die Ausnahmen aus
-  // CLAUDE.md), deshalb ist der Scope bewusst eng.
+  // server/api/** UND server/plugins/** der gepoolten Layer geht Datenzugriff
+  // NUR über tenantDb — rohes `.tablesDB` der Client-Factories umgeht Scoping,
+  // tenantId-Stempel und Zugehörigkeitsbeleg. Genau so sind am 2026-07-26/27
+  // vier echte Cross-Tenant-Lecks entstanden bzw. gefunden worden (drei
+  // Moderations-Routen, mentions, embed-sites). Neue Pool-Layer kommen in
+  // diese Liste, sobald ihre Tabellen tenantId tragen.
+  //
+  // WARUM server/plugins DAZUGEHÖRT (Audit-Befund B2, 2026-07-27): der
+  // Dashboard-Stats-Contributor von comments liegt in server/plugins, nicht in
+  // server/api — er zählte deshalb ungebremst pool-weit und lieferte die Zahl
+  // an eine Kunden-Ansicht. Plugins, die einen H3Event bekommen, bedienen einen
+  // REQUEST und gehören damit hinter dieselbe Tür wie eine Route.
+  //
+  // AUSSERHALB dieser beiden Verzeichnisse bleibt rohes tablesDB erlaubt
+  // (Migrationen, Sweeps, GDPR-Contributors in server/utils, Control Plane —
+  // die Ausnahmen aus CLAUDE.md), deshalb ist der Scope bewusst eng. Ein
+  // eventloser Sweep-Plugin bräuchte künftig eine begründete
+  // eslint-disable-next-line — nicht eine Aufweichung der Regel.
   files: [
     'packages/comments/server/api/**',
+    'packages/comments/server/plugins/**',
     'packages/posts/server/api/**',
+    'packages/posts/server/plugins/**',
     'packages/events/server/api/**',
+    'packages/events/server/plugins/**',
     'packages/courses/server/api/**',
+    'packages/courses/server/plugins/**',
     'packages/pages/server/api/**',
+    'packages/pages/server/plugins/**',
     'packages/moderation/server/api/**',
+    'packages/moderation/server/plugins/**',
   ],
   rules: {
     'no-restricted-syntax': ['error',
