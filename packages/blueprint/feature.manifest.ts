@@ -1,7 +1,7 @@
 import type { FeatureManifest } from '../core/shared/types/manifest'
 
 /**
- * KOMPOSITIONS-LAYER (Davids „Bauplan", 2026-07-27 — docs/plans/PRODUKT-BILANZ.md).
+ * KOMPOSITIONS-LAYER (Davids „Bauplan", 2026-07-27 — docs/referenz/PRODUKT-BILANZ.md).
  *
  * Einziger Layer, der mehrere PRODUKT-Layer kennen DARF: sein ganzer Zweck
  * ist das Zusammenstecken (A14-Komposition), das vorher App-Sache war und

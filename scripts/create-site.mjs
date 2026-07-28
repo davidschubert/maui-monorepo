@@ -319,5 +319,5 @@ ${runtimeKey ? `  Appwrite:  Projekt ${projectId} auf ${endpoint}` : `
 
   Für PROD später (Phase 17): ploi-Site + DNS (A-Records app/api auf
   derselben Root-Domain) + Deploy-Webhook — Checkliste in
-  docs/plans/PHASE-17-PRODUCTION.md.
+  docs/archiv/PHASE-17-PRODUCTION.md.
 `)

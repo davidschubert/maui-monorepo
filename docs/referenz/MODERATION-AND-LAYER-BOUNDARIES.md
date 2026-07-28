@@ -10,7 +10,7 @@ Ideen wurden am bestehenden Projekt zu konkreten Lösungen umgeformt (Leitplanke
 Beide hängen zusammen: Die Matrix (Teil A) **entscheidet**, wo der Moderation-Layer (Teil B)
 leben darf. Moderation ist zugleich der erste Praxistest der vertrag-basierten Durchsetzung.
 
-Ergänzt [CONCEPT.md](CONCEPT.md) (A14), [RBAC-CONCEPT.md](RBAC-CONCEPT.md), [OPEN-ITEMS.md](OPEN-ITEMS.md).
+Ergänzt [CONCEPT.md](../CONCEPT.md) (A14), [RBAC-CONCEPT.md](RBAC-CONCEPT.md), [OPEN-ITEMS.md](../OPEN-ITEMS.md).
 
 **Getroffene Entscheidungen (2026-06-27):** Layer-Name `moderation` · eigene Capability
 `reports.moderate` (`<domain>.<verb>` wie der bestehende Katalog) · Reihenfolge: erst
@@ -214,7 +214,7 @@ Quelle wird klarer:
 
 ## Umsetzungs-Reihenfolge (beschlossen)
 
-1. ✅ **Matrix + ESLint-Backstop** (Teil A, 2026-06-27) — Matrix in [CONCEPT.md](CONCEPT.md) (A14)
+1. ✅ **Matrix + ESLint-Backstop** (Teil A, 2026-06-27) — Matrix in [CONCEPT.md](../CONCEPT.md) (A14)
    + Pointer in CLAUDE.md, ESLint-Regeln für die bestehenden Layer in `eslint.config.mjs`.
 2. ✅ **`packages/moderation`-Layer** (2026-06-27) — Layer verdrahtet (in App-`extends` vor core),
    `reports.moderate`-Capability in core, `shared/types/report.ts`, `schemas/report.ts`,

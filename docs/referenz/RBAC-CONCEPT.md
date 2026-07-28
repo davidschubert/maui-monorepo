@@ -1,8 +1,8 @@
 # Rollen- & Rechte-Konzept (RBAC)
 
 Stand: 2026-06-25. Implementierungsreifes Konzept für ein dashboard-konfigurierbares
-Rollen-/Rechtemanagement. Ergänzt [CONCEPT.md](CONCEPT.md) (Architektur) und
-[OPEN-ITEMS.md](OPEN-ITEMS.md).
+Rollen-/Rechtemanagement. Ergänzt [CONCEPT.md](../CONCEPT.md) (Architektur) und
+[OPEN-ITEMS.md](../OPEN-ITEMS.md).
 
 ## Getroffene Entscheidungen
 
@@ -117,7 +117,7 @@ Labels-Update: `neueLabels = (bestehende Labels − alle Rollen-Labels) ∪ ausg
    ⊆ seiner eigenen ist. (Ein Moderator könnte ohnehin nicht hierher — `users.manage`
    ist admin-only — aber die Regel ist zukunftssicher.)
 2. **Last-Admin-Garantie:** Entzug von `admin` beim letzten Admin → 400 `last_admin`
-   ([assertNotLastAdmin](../packages/admin/server/utils/admins.ts) bleibt, prüft weiter das `admin`-Label).
+   ([assertNotLastAdmin](../../packages/admin/server/utils/admins.ts) bleibt, prüft weiter das `admin`-Label).
 3. **Kein Selbst-Lockout:** eigene `admin`-Rolle nicht entziehbar (wie heute).
 
 ## Audit & i18n

@@ -4,7 +4,7 @@
 > (2026-07-23: Schreiben via Login-Popup + CHIPS — Tasks 9–12 umgesetzt,
 > Playwright-E2E `embed-write.spec.ts` grün; Cross-Site-Testseite:
 > https://davidschubert.com/maui-embed-test.html)** · E3 teilweise (Task 16
-> Redis-Rate-Limit ✅ 2026-07-23) · Integrations-Doku: [docs/EMBED.md](../EMBED.md)
+> Redis-Rate-Limit ✅ 2026-07-23) · Integrations-Doku: [docs/referenz/EMBED.md](../referenz/EMBED.md)
 > **Herkunft:** OPEN-ITEMS.md, Idee 9 — „targetId/targetType-Architektur ist dafür
 > gebaut (Disqus-Nische, self-hosted)". Aufwand-Gesamtschätzung: L.
 > **Bezug:** [CONCEPT.md](../CONCEPT.md) (A2/A3/A14), [OPEN-ITEMS.md](../OPEN-ITEMS.md),
@@ -444,7 +444,7 @@ IE/Legacy-Browser.
 
 ### Phase E3 — Produktisierung
 
-13. **(S)** Integrations-Doku `docs/plans/EMBED-WIDGET.md` → `docs/EMBED.md`
+13. **(S)** Integrations-Doku `docs/archiv/EMBED-WIDGET.md` → `docs/referenz/EMBED.md`
     bzw. öffentliche Doku-Seite: Snippet, Attribute-Referenz, Theming,
     SEO-Grenze (§ 3g), DSGVO-Argumentation (self-hosted, keine Third-Party-
     Requests, partitionierte Cookies), Browser-Matrix (CHIPS).

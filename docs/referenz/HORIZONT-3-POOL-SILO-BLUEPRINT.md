@@ -14,7 +14,7 @@ Stand: 2026-07-20. **Entscheidung getroffen (David):** Maui fährt Horizont 3 al
 
 Das ist das anerkannte SaaS-Standardmuster „**Pool + Silo**" (AWS SaaS Lens:
 silo/pool/bridge). Es widerspricht der früheren M10-Weiche nicht, sondern
-konkretisiert sie: [M10-HORIZONT-3-SKALIERUNG.md](M10-HORIZONT-3-SKALIERUNG.md)
+konkretisiert sie: [M10-HORIZONT-3-SKALIERUNG.md](../archiv/M10-HORIZONT-3-SKALIERUNG.md)
 hatte A (Projekt-pro-Kunde) vs. B (shared-DB) als Entweder/oder gestellt —
 David wählt **A für Spezialkunden + B für die Masse**, mit *einer* Codebase,
 die beides bedient.

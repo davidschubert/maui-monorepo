@@ -51,7 +51,7 @@ Stand: 2026-07-01. Plan-Dokument, **kein Code-Change nötig** — die Function
 [`functions/changelog-draft`](../../functions/changelog-draft) ist deploy-bereit
 (siehe [OPEN-ITEMS](../OPEN-ITEMS.md), Roadmap-Eintrag Track 2B). Dieses Dokument
 beschreibt die Aktivierung, sobald Phase 17 (Prod-Appwrite + öffentliche Domain,
-[DEPLOYMENT.md](../DEPLOYMENT.md)) steht.
+[DEPLOYMENT.md](../runbooks/DEPLOYMENT.md)) steht.
 
 **Was passiert nach der Aktivierung:** GitHub-Release veröffentlicht →
 GitHub-Webhook (HMAC-SHA256-signiert) → Function ermittelt das Vorgänger-Tag
@@ -210,7 +210,7 @@ in den GitHub-Repo-Settings · **[CLI]** = per Terminal/Appwrite CLI · **[Serve
 
 ### Phase F — Abschluss
 
-17. **[Doku]** [CHANGELOG-WORKFLOW.md](../CHANGELOG-WORKFLOW.md) aktualisieren:
+17. **[Doku]** [CHANGELOG-WORKFLOW.md](../referenz/CHANGELOG-WORKFLOW.md) aktualisieren:
     2B von „späterer Ausbau" auf **aktiv** setzen, 2A als manuellen Fallback
     kennzeichnen (s. Abschnitt 7). README/OPEN-ITEMS-Status nachziehen, committen.
 

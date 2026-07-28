@@ -1,5 +1,5 @@
 /**
- * Migration events-002: Events v2 Teil A (Plan docs/plans/EVENTS-V2.md, E1+E2).
+ * Migration events-002: Events v2 Teil A (Plan docs/archiv/EVENTS-V2.md, E1+E2).
  *
  * AUSSCHLIESSLICH additiv: neue nullable Spalten coverFileId/locationType/
  * replayUrl auf `events` + Bucket `event-covers` (öffentlich lesbar wie

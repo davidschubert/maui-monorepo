@@ -4,7 +4,7 @@
 > Community-Positionierung, Marken-Story, Claim-Gates und Dramaturgie §6).
 > Grundlage für die öffentliche Vermarktungs-
 > Seite der SaaS-Plattform. Querverweise:
-> [SAAS-ROADMAP.md](SAAS-ROADMAP.md) · [MULTI-SITE-PLATFORM-STRATEGIE.md](MULTI-SITE-PLATFORM-STRATEGIE.md)
+> [SAAS-ROADMAP.md](SAAS-ROADMAP.md) · [MULTI-SITE-PLATFORM-STRATEGIE.md](../referenz/MULTI-SITE-PLATFORM-STRATEGIE.md)
 > · [EMBED-WIDGET.md](EMBED-WIDGET.md) · [THEMES-VOLLAUSBAU.md](THEMES-VOLLAUSBAU.md).
 >
 > **Auftrag:** SEO-maximierte, konversionsstarke Landingpage mit Storytelling.

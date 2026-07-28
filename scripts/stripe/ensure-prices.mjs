@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Stripe Products/Prices idempotent anlegen — für den Go-Live-Runbook
- * (docs/plans/STRIPE-GO-LIVE-RUNBOOK.md §3). Legt genau die `lookup_key`s an,
+ * (docs/runbooks/STRIPE-GO-LIVE-RUNBOOK.md §3). Legt genau die `lookup_key`s an,
  * die der Code erwartet (maui.studio.plans, Monats- + Jahres-Intervall).
  *
  * NUTZUNG (David, mit dem eigenen Key — Test ODER Live):

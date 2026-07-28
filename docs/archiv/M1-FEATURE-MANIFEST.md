@@ -1,7 +1,7 @@
 # M1 — Feature-Manifest + Site-Manifest + CI-Check (Umsetzungsplan)
 
 Stand: 2026-07-14 · Status: **zur Abnahme** (Paket-Prinzip: erst Go, dann Bau)
-Kontext: [MULTI-SITE-PLATFORM-STRATEGIE.md](MULTI-SITE-PLATFORM-STRATEGIE.md)
+Kontext: [MULTI-SITE-PLATFORM-STRATEGIE.md](../referenz/MULTI-SITE-PLATFORM-STRATEGIE.md)
 F1 · Gate S0 ✅ bestanden — die Vertrags-Formen sind validiert.
 
 ## Ziel

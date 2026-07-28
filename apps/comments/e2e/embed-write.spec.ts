@@ -14,7 +14,7 @@ import { test, expect } from '@playwright/test'
  * localhost:PORT↔PORT ist same-SITE — der Flow (Popup, Token, Cookie-Setzen,
  * Composer) wird hier vollständig bewiesen; das CHIPS-Partitionierungs-
  * Verhalten selbst greift erst auf echten Cross-Site-Domains (Prod-Beweis
- * auf davidschubert.com, dokumentiert in docs/EMBED.md).
+ * auf davidschubert.com, dokumentiert in docs/referenz/EMBED.md).
  *
  * Credentials: Demo-Seed (pnpm seed) — lokal wie in CI (bootstrap --seed).
  */

@@ -1,5 +1,5 @@
 /**
- * Migration tickets-001: ticket_lists + tickets (Plan: docs/plans/TICKETS-BOARD.md).
+ * Migration tickets-001: ticket_lists + tickets (Plan: docs/archiv/TICKETS-BOARD.md).
  *
  * rowSecurity = false; Table-Read für label:admin + label:moderator → die
  * geteilte JWT-SDK-Realtime liefert Operatoren Live-Updates. Writes laufen

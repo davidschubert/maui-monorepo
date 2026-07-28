@@ -1,6 +1,6 @@
 # Spike S0 — Multi-Projekt-Auflösung pro Request (Wegwerf)
 
-Decision Gate aus [docs/plans/MULTI-SITE-PLATFORM-STRATEGIE.md](../../docs/plans/MULTI-SITE-PLATFORM-STRATEGIE.md):
+Decision Gate aus [docs/referenz/MULTI-SITE-PLATFORM-STRATEGIE.md](../../docs/referenz/MULTI-SITE-PLATFORM-STRATEGIE.md):
 validiert die **FORM der Verträge**, bevor M1 sie festschreibt. Kein Produkt-Code.
 
 ## Verträge unter Test

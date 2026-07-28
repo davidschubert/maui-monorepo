@@ -1,7 +1,7 @@
 # Embed-Widget — Kommentare auf Drittseiten einbetten
 
 > Stand: 2026-07-23 · Status: **E0–E3 live + E4-Gast-Kommentare** · Plan/
-> Architektur: [plans/EMBED-WIDGET.md](plans/EMBED-WIDGET.md). Schreiben im
+> Architektur: [plans/EMBED-WIDGET.md](../archiv/EMBED-WIDGET.md). Schreiben im
 > Embed läuft für eingeloggte User (Login-Popup + CHIPS-Session, E2) UND für
 > Gäste ohne Account (Name+E-Mail, ohne Verifikation, E4 — Gate
 > `maui.comments.embed.guests`, Default aus; die E-Mail landet nur in der

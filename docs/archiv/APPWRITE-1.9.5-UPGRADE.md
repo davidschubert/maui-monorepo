@@ -3,7 +3,7 @@
 Stand: 2026-06-30. Self-hosted Appwrite von **1.9.0 → 1.9.5**. Ziel: Phase 18
 (Realtime-Rückbau aufs SDK + `usePresence`) entsperren und die neuen self-hosted
 Features nutzen. Quellen: GitHub-Release 1.9.5, Appwrite Realtime-/Auth-/Storage-Docs
-(autoritativ geprüft), siehe auch [OPEN-ITEMS.md](OPEN-ITEMS.md) Phase 18.
+(autoritativ geprüft), siehe auch [OPEN-ITEMS.md](../OPEN-ITEMS.md) Phase 18.
 
 ## TL;DR — Verdikt
 

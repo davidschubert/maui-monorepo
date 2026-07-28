@@ -20,7 +20,7 @@ Quota → Homepage → E4**, danach Themes-Vollausbau.
   ein Account, der laut Cleanup (Task #69, `session-handover-2026-07-16`)
   gelöscht sein sollte. Bewusst NICHT für eine Prod-Sicherheitsoperation
   genutzt (Gegenteil von least-privilege; Session gehört ohnehin entfernt).
-  → Runbook für David in [PLATFORM-CONTROL-KEY-SWAP.md](plans/PLATFORM-CONTROL-KEY-SWAP.md);
+  → Runbook für David in [PLATFORM-CONTROL-KEY-SWAP.md](runbooks/PLATFORM-CONTROL-KEY-SWAP.md);
   **zusätzlich: verwaisten Provisioner-Account/Session prüfen + löschen.**
 - **Quota-Zahlen**: Plan-Staffelung übernommen — free 200/Tag + 5.000 gesamt ·
   pro 1.000/Tag + 50.000 · business 5.000/Tag + 250.000; Silo ohne Limit. Ich
@@ -29,7 +29,7 @@ Quota → Homepage → E4**, danach Themes-Vollausbau.
   CMS-Markdown (sicheres Subset, KEIN Roh-HTML) + optional EIN einbettbarer
   Kommentar-Block; EINE Sprache Pflicht (weitere optional); Tenant-Theme wird
   geerbt; Silo nutzt dasselbe pages-Muster. Konzept:
-  [PLATFORM-TENANT-HOMEPAGE.md](plans/PLATFORM-TENANT-HOMEPAGE.md).
+  [PLATFORM-TENANT-HOMEPAGE.md](archiv/PLATFORM-TENANT-HOMEPAGE.md).
 - **Embed E4**: alle drei bauen, Reihenfolge Presence → Gast → Web-Component.
   **Gast-Kommentare**: Name+E-Mail OHNE Verifikation (Disqus-Gastmodus,
   niedrigste Hürde), Spam über Auto-Hide + Rate-Limit + Honeypot.
@@ -38,7 +38,7 @@ Quota → Homepage → E4**, danach Themes-Vollausbau.
   separate Achse · E4 Hue-Raster (26×~13,8°) als Startpunkt, dann kuratieren+
   benennen · E5 Themes rein farblich (Fonts/Radius = Backlog) · E6 committete
   `.gen.ts` + CI-„Output aktuell"-Check · E7 Grid-Modal-Picker (Dropdown mit
-  26×11 unbedienbar). Umsetzung: [THEMES-VOLLAUSBAU.md](plans/THEMES-VOLLAUSBAU.md).
+  26×11 unbedienbar). Umsetzung: [THEMES-VOLLAUSBAU.md](archiv/THEMES-VOLLAUSBAU.md).
 - **Aufräumer**: Hetzner-Rescale-Thema geschlossen (CI-Build-Deploy → CX23
   reicht, Server baut nichts). Themes-Vollausbau rückt nach vorn.
 
@@ -266,7 +266,7 @@ Preis, also ist das Intervall für den Lifecycle transparent. Commit `7864e7d`.
 Legt alle 4 Products/Prices idempotent an (Vorschau ohne `--apply`), liest nur
 `STRIPE_KEY` aus Davids Shell, erkennt Test/Live am Präfix. Beträge = Platzhalter.
 Damit ist der Test-Mode-Katalog jetzt per Skript anlegbar — kein Handklicken,
-keine Bank nötig. Details: [STRIPE-GO-LIVE-RUNBOOK.md](plans/STRIPE-GO-LIVE-RUNBOOK.md).
+keine Bank nötig. Details: [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md).
 
 ---
 
@@ -336,7 +336,7 @@ ist zu **„A und B"** aufgelöst: gepoolte Standard-Kunden (shared-DB + `tenant
 agnostischen Datenzugriffs-Schicht. Idee von David: Spezialprojekte bauen →
 Features in den Pool „fließen" lassen. Bewertung: trägt (Standardmuster „Pool +
 Silo"). Blueprint + bestandener Isolations-Spike:
-[HORIZONT-3-POOL-SILO-BLUEPRINT.md](plans/HORIZONT-3-POOL-SILO-BLUEPRINT.md),
+[HORIZONT-3-POOL-SILO-BLUEPRINT.md](referenz/HORIZONT-3-POOL-SILO-BLUEPRINT.md),
 `spikes/s5-pool-silo` (15/15, inkl. Defense-in-Depth-Beweis).
 
 ### Korrektur: vue-tsc 3.3.7 deckt echten latenten Typfehler auf (nicht Flake)
@@ -369,7 +369,7 @@ keinen 3-Site-Build auslösen. Commit `495c238`.
 
 ### Doku: Stripe Go-Live Runbook erstellt
 Der in BILLING-STRIPE.md Phase B-8 #29 vertagte Betriebs-Runbook existiert jetzt:
-[STRIPE-GO-LIVE-RUNBOOK.md](plans/STRIPE-GO-LIVE-RUNBOOK.md). Kernpunkt:
+[STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md). Kernpunkt:
 `lookup_key`s sind mode-stabil → Go-Live = Live-Preise mit gleichen Keys + Key-
 Tausch in der .env + `pm2 reload`, **kein** Deploy. Live-Key-/Bankdaten-Schritte
 bleiben bei David (Sicherheits-Grenze).
@@ -388,7 +388,7 @@ umbenannt → beantwortet GET **und** HEAD. Merke: `.get.ts` ≠ HEAD.
 In der Live-Diskussion fälschlich als „schon gebaut" bezeichnet. Tatsächlich:
 `spikes/s0-multi-project` = bestandener Wegwerf-Spike; produktiv läuft reines
 Single-Tenant-per-Deployment (statische Projekt-Bindung in `appwrite.ts`).
-Festgehalten in [M10-HORIZONT-3-SKALIERUNG.md](plans/M10-HORIZONT-3-SKALIERUNG.md).
+Festgehalten in [M10-HORIZONT-3-SKALIERUNG.md](archiv/M10-HORIZONT-3-SKALIERUNG.md).
 
 ### Änderung: deploy.yml überspringt Doku-/CI-/Meta-Pushes
 Ein main-Push mit ausschließlich `docs/**`/`.github/**`/`*.md`-Änderungen baut

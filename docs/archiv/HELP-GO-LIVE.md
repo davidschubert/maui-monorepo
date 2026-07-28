@@ -36,7 +36,7 @@ Fallback ist dieses Runbook plus ein manueller rsync/pm2-Lauf.
 - ploi-API-Token: `~/.maui-secrets/ploi-api.token` — Server `app-prod` =
   **118713**. Die nginx-Config **per API** setzen, nicht im Panel-Editor: der
   Monaco-Editor lässt sich nicht zuverlässig automatisiert befüllen
-  (Learning 2026-07-23, `docs/DEPLOYMENT.md` §3).
+  (Learning 2026-07-23, `docs/runbooks/DEPLOYMENT.md` §3).
 - ssh auf `ploi@49.13.211.173` (derselbe Zugang wie beim Deploy).
 - Kein Cloudflare-Token nötig — **es gibt keine Zertifikats-Aktion** (Schritt 5).
 

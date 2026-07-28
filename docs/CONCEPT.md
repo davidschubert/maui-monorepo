@@ -97,14 +97,14 @@ apps/       ← Vollständige, deploybare Nuxt-Applikationen
 | `packages/core` | ✅ Aktiv | Nuxt Layer: SSR-Auth, Appwrite-Fundament, RBAC, Design-Basis, Utils, GDPR-/Stats-Verträge |
 | `packages/system` | ✅ Aktiv | Fundament: Schema-Owner der Infra-Tabellen (audit_logs, app_config, notifications, custom_themes, custom_fonts) + GDPR-Contributor, öffentliche Read-Routen /api/themes + /api/fonts |
 | `packages/moderation` | ✅ Aktiv | Fundament: generisches Melde-/Report-System (reports-Table, Queue-Verträge, ReportButton) |
-| `packages/themes` | ✅ Aktiv | Theme-Studio (Galerie + Editor), 9 Built-ins + Custom Themes (OKLCH-Ramp-Generator), 2 Schrift-Rollen inkl. WOFF2-Uploads, Live-Propagation — Konzept: docs/THEMES-CONCEPT-V2.md |
+| `packages/themes` | ✅ Aktiv | Theme-Studio (Galerie + Editor), 9 Built-ins + Custom Themes (OKLCH-Ramp-Generator), 2 Schrift-Rollen inkl. WOFF2-Uploads, Live-Propagation — Konzept: docs/referenz/THEMES-CONCEPT-V2.md |
 | `packages/comments` | ✅ Aktiv | Kommentarsystem: targetId/targetType, Votes, Realtime — Spec: [[reddit-comment-system-setup]] |
 | `packages/admin` | ✅ Aktiv | Dashboard (RBAC-Capabilities), User-Verwaltung, Moderations-Queue, Changelog, Audit, GDPR-Exporte, Theme-/Font-Admin-Routen |
 | `packages/posts` | ✅ Aktiv | Community-Feed: Posts, Multiple-Choice-Polls (verdeckte Ergebnisse), offene Fragen, Scheduled Questions (publish-on-read), zweiphasiges Hide, Kommentare via `#comments`-Slot |
-| `packages/events` | ✅ Aktiv | Event-Kalender: RSVP mit server-autoritativem Zähler, Landing Pages, Monats-Kalender, „Join live", Replays, Reminder ohne Cron, Paid-Tickets via billing-Vertrag — Plan: docs/plans/EVENTS-V2.md |
+| `packages/events` | ✅ Aktiv | Event-Kalender: RSVP mit server-autoritativem Zähler, Landing Pages, Monats-Kalender, „Join live", Replays, Reminder ohne Cron, Paid-Tickets via billing-Vertrag — Plan: docs/archiv/EVENTS-V2.md |
 | `packages/feed` | ✅ Aktiv | Activity-Feed: UI zum Core-Vertrag `recordActivity()` (Cursor-Pagination, Realtime, Gruppierung, 9 Ereignis-Typen) |
 | `packages/feedback` | ✅ Aktiv | Feedback-Widget: Button unten links, Popup (Gäste + Rate-Limit), Admin-Sichtung (`feedback.manage`) |
-| `packages/billing` | ✅ Aktiv | Stripe: hosted Checkout/Portal, Webhook (Signatur/Allowlist/Stale-Guard), Entitlements + `useBilling` (Realtime), Fulfillment-Vertrag `registerCheckoutFulfillment` — Plan: docs/plans/BILLING-STRIPE.md |
+| `packages/billing` | ✅ Aktiv | Stripe: hosted Checkout/Portal, Webhook (Signatur/Allowlist/Stale-Guard), Entitlements + `useBilling` (Realtime), Fulfillment-Vertrag `registerCheckoutFulfillment` — Plan: docs/archiv/BILLING-STRIPE.md |
 | `packages/courses` | ✅ Aktiv | LMS v1: Markdown-Lektionen, Enrollment + server-autoritativer Fortschritt, Builder mit Edit-Awareness, Zugang free/members/paid via `registerCourseAccessGuard` (billing-Entitlements) |
 | `packages/appwrite-functions` | 🔜 Zukunft | Appwrite Functions (Webhooks, CRON, Events) — `functions/changelog-draft` existiert bereits standalone |
 
@@ -189,8 +189,8 @@ maui-monorepo/
 │   │   │   ├── assets/css/main.css        # Tailwind 4 Basis + @source
 │   │   │   ├── components/
 │   │   │   │   ├── auth/
-│   │   │   │   │   ├── LoginForm.vue      # UForm, UAuthForm als Vorlage (docs/AUTH-FORMS.md)
-│   │   │   │   │   ├── RegisterForm.vue   # UForm, UAuthForm als Vorlage (docs/AUTH-FORMS.md)
+│   │   │   │   │   ├── LoginForm.vue      # UForm, UAuthForm als Vorlage (docs/referenz/AUTH-FORMS.md)
+│   │   │   │   │   ├── RegisterForm.vue   # UForm, UAuthForm als Vorlage (docs/referenz/AUTH-FORMS.md)
 │   │   │   │   │   └── LogoutButton.vue
 │   │   │   │   ├── user/
 │   │   │   │   │   ├── UserAvatar.vue
@@ -486,7 +486,7 @@ in ihrer Datei eine Regel steht, sondern weil sie im Themes-Layer liegt.
 | `comments` | `comments`/`comment_votes`, Comment-API/UI/Store | Admin-Logik, fremde Feature-Tables | core, (moderation) |
 | `admin` | `changelog`, Dashboard/Moderation-Queue | Feature-interne Imports, Feature-Domänen-Logik | core, (moderation, system) |
 
-**Durchsetzung — zweistufig** (ausführlich: [MODERATION-AND-LAYER-BOUNDARIES.md](MODERATION-AND-LAYER-BOUNDARIES.md)):
+**Durchsetzung — zweistufig** (ausführlich: [MODERATION-AND-LAYER-BOUNDARIES.md](referenz/MODERATION-AND-LAYER-BOUNDARIES.md)):
 
 1. **Architektonisch (primär):** Cross-Layer-Kopplung läuft heute implizit über Auto-Import
    bzw. String (`tableId: 'comments'`). Neue Abhängigkeiten werden als **explizite, typisierte
@@ -543,7 +543,7 @@ in ihrer Datei eine Regel steht, sondern weil sie im Themes-Layer liegt.
 **App:**
 - `plugins/auth.server.ts` — hydratisiert User aus h3 context in den Store (kein Client-Fetch beim Start)
 - `useCurrentUser()` + Pinia `useAuthStore` (user, isLoggedIn)
-- `LoginForm.vue` / `RegisterForm.vue` — **`UAuthForm`** (Nuxt UI 4) als Vorlage; real bewusst eigene `UForm`-Implementierungen (2-Schritt-OTP, Security-Phrase, geteilter E-Mail-State, AGB-Gate) — Entscheidung + Details in docs/AUTH-FORMS.md
+- `LoginForm.vue` / `RegisterForm.vue` — **`UAuthForm`** (Nuxt UI 4) als Vorlage; real bewusst eigene `UForm`-Implementierungen (2-Schritt-OTP, Security-Phrase, geteilter E-Mail-State, AGB-Gate) — Entscheidung + Details in docs/referenz/AUTH-FORMS.md
 - Route Middleware `auth.ts` / `guest.ts`
 - `pages/login.vue` + `register.vue` — out-of-the-box, überschreibbar
 
@@ -568,7 +568,7 @@ Immer explizites `Query.limit(...)` setzen (Default 25 → stille Trunkierung).
 - `app.config.ts` — Maui Default Theme (Nuxt UI: primary, neutral, radius, fonts)
 - `main.css` — Tailwind 4 `@import` + `@source` + CSS Custom Properties
 - Color Tokens: primary / secondary / neutral / success / warning / error / info
-- Das Multi-Theme-System lebt in `packages/themes` (9 Built-ins + Custom Themes aus einer Basisfarbe, Schrift-Rollen, `useTheme`) — Konzept: docs/THEMES-CONCEPT-V2.md
+- Das Multi-Theme-System lebt in `packages/themes` (9 Built-ins + Custom Themes aus einer Basisfarbe, Schrift-Rollen, `useTheme`) — Konzept: docs/referenz/THEMES-CONCEPT-V2.md
 
 ### Utilities
 

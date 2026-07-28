@@ -1,5 +1,5 @@
 /**
- * Migration events-004: Phase 27 (Plan docs/plans/EVENTS-V2.md, E3+E4).
+ * Migration events-004: Phase 27 (Plan docs/archiv/EVENTS-V2.md, E3+E4).
  *
  * AUSSCHLIESSLICH additiv:
  * - events: remindersSentAt (Idempotenz-Flag des Reminder-Sweeps),

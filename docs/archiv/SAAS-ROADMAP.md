@@ -4,8 +4,8 @@
 > dem Ideen-Gespräch mit David. Ersetzt den verlorenen „10-Ideen"-Zettel und
 > trennt Zielbild, Launch-Gates und spätere Wachstumsfeatures. Querbezug:
 > [PUKALANI-LANDINGPAGE.md](PUKALANI-LANDINGPAGE.md) ·
-> [MULTI-SITE-PLATFORM-STRATEGIE.md](MULTI-SITE-PLATFORM-STRATEGIE.md) ·
-> [HORIZONT-3-POOL-SILO-BLUEPRINT.md](HORIZONT-3-POOL-SILO-BLUEPRINT.md) ·
+> [MULTI-SITE-PLATFORM-STRATEGIE.md](../referenz/MULTI-SITE-PLATFORM-STRATEGIE.md) ·
+> [HORIZONT-3-POOL-SILO-BLUEPRINT.md](../referenz/HORIZONT-3-POOL-SILO-BLUEPRINT.md) ·
 > [OPEN-ITEMS.md](../OPEN-ITEMS.md).
 
 ## Nordstern
@@ -431,7 +431,7 @@ gezeigt, wenn Messfenster und Berechnung transparent sind.
 
 | Gate | Inhalt | Exit-Kriterium |
 |---|---|---|
-| **G0 Produktvertrag** ✅ | §A Oberflächen/IA · §B Angebots-Slice · ADR für Identitäten/Rollen | ✅ Nav, Rollenmatrix, kanonische `siteId` (= `tenants.$id`) und Early-Access-Scope entschieden ([G0](G0-PRODUKTVERTRAG.md)) |
+| **G0 Produktvertrag** ✅ | §A Oberflächen/IA · §B Angebots-Slice · ADR für Identitäten/Rollen | ✅ Nav, Rollenmatrix, kanonische `siteId` (= `tenants.$id`) und Early-Access-Scope entschieden ([G0](../referenz/G0-PRODUKTVERTRAG.md)) |
 | **G1 Sicherheit** ✅ | H3-Naht 4 (Mechanismus) · #2 Tenant-Autorisierung | ✅ automatisierte Pool/Silo-Isolation, Rollenwechsel, Invite-Replay grün (162 core + 58 studio, lokal+prod). Rest: Naht-4-Live-Wiring hängt an Audience-Entscheidung (privat/öffentlich) |
 | **G2 Betriebsreife** | Rechtsfreigabe · Restore-Test/RPO/RTO · Site-Export/Löschung · Abuse/Suspend · Stripe-Live-Runbook | erster fremder zahlender Kunde kann sicher aufgenommen und wieder sauber offboarded werden |
 | **G3 Kaufpfad** | #4 Preis/Upgrade · #1 zunächst invite-only · Landingpage mit Early-Access-Claims | Signup→Site→Checkout/Portal→Kündigung als E2E grün |

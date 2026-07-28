@@ -1,6 +1,6 @@
 /**
  * Horizont-3 (Pool+Silo) — Mandanten-Kontext pro Request.
- * Siehe docs/plans/HORIZONT-3-POOL-SILO-BLUEPRINT.md (Naht 1).
+ * Siehe docs/referenz/HORIZONT-3-POOL-SILO-BLUEPRINT.md (Naht 1).
  *
  * RUHEND: Heute setzt NICHTS `event.context.tenant` — ohne Kontext läuft alles
  * wie bisher (Single-Tenant pro Deployment). Der Typ + die Helfer stehen als

@@ -20,12 +20,12 @@ Vollständiges Konzept: docs/CONCEPT.md
   JEDE App site.manifest.ts = Single Source der Feature-Wahl.
   `pnpm check:manifests` (CI/lint) erzwingt Konsistenz mit extends +
   package.json + migrate.mjs-LAYER_ORDER — neue Layer/Apps immer mit
-  Manifest anlegen. Strategie: docs/plans/MULTI-SITE-PLATFORM-STRATEGIE.md
+  Manifest anlegen. Strategie: docs/referenz/MULTI-SITE-PLATFORM-STRATEGIE.md
 - packages/blueprint = KOMPOSITIONS-Layer („Bauplan", seit 2026-07-27): der
   EINZIGE Layer, der mehrere Produkt-Layer kennen darf — Produkt-
   Kompositionen (Feed+Kommentare, …) existieren GENAU EINMAL hier, nie je
   App (Pool und Silo müssen identisches Produktverhalten zeigen —
-  docs/plans/PRODUKT-BILANZ.md). In extends VOR den Produkt-Layern listen.
+  docs/referenz/PRODUKT-BILANZ.md). In extends VOR den Produkt-Layern listen.
   Keine Produkt-Logik, keine Tables, kein server/ in blueprint.
 - Layer-Grenzen-Matrix (wer darf was besitzen) + Durchsetzung: CONCEPT.md A14.
   Neue Cross-Layer-Abhängigkeiten als EXPLIZITE Verträge (kein impliziter
@@ -96,7 +96,7 @@ Vollständiges Konzept: docs/CONCEPT.md
 - Theme-Studio: /dashboard/themes (Galerie, Zweispalten), Editor als Vollseite
   (/new, /:id — Dock: Boxen „Farben"+„Schriften", je EIN „Erweitert"),
   Schriften-Verwaltung /dashboard/themes/fonts. Konzept + bewusste
-  Ablehnungen: docs/THEMES-CONCEPT-V2.md — Einfachheit ist Leitprinzip
+  Ablehnungen: docs/referenz/THEMES-CONCEPT-V2.md — Einfachheit ist Leitprinzip
   (Standardansicht = wenige Entscheidungen, kein Slot-/Regler-Zoo)
 - Custom Themes: Table custom_themes (system-Migrationen 009–013), Ramp zur
   Laufzeit aus EINER Basisfarbe (themes/shared/ramp.ts, OKLCH + Tests).
@@ -128,7 +128,7 @@ Vollständiges Konzept: docs/CONCEPT.md
   (bei Stripe-Live auf control umstellen, dann kann der Alias weg).
   Die control-Site hat BEWUSST kein Repository: die CI rsynct .output UND
   ops/-Configs; ploi-Fallback-Deploy gibt es für control nicht (Fallback =
-  Runbook docs/plans/CONTROL-CUTOVER.md).
+  Runbook docs/runbooks/CONTROL-CUTOVER.md).
 - `my.pukalani.app` = Kundenbereich, `start.pukalani.app` = Kurz-Link in den
   Wizard. BEIDE sind Kontroll-Hosts derselben Platform-App und brauchen weder
   DNS noch eigene Site (Wildcard `*.pukalani.app` zeigt schon dorthin).
@@ -198,7 +198,7 @@ Vollständiges Konzept: docs/CONCEPT.md
   Kandidaten aus UNGELESENEN notifications-Rows (kein User-Scan), max 1
   Mail/Tag (prefs.emailDigestLastAt, merge!), Intervall-Plugin 30 min +
   POST /api/notifications/run-digest (system.manage).
-- Embed (Read-only-MVP, docs/EMBED.md): Gate maui.comments.embed
+- Embed (Read-only-MVP, docs/referenz/EMBED.md): Gate maui.comments.embed
   (enabled/allowedOrigins, Default aus) → /embed-Seite + public/embed.js.
   frame-ancestors via core-Registry registerEmbeddableRoute (Default 'self'
   auf ALLEN SSR-Seiten); csrf-origin.ts-Middleware (maui.security.
@@ -286,7 +286,7 @@ Vollständiges Konzept: docs/CONCEPT.md
 - <script setup lang="ts">, Nuxt UI Komponenten bevorzugen. Auth-Formulare:
   UAuthForm ist die VORLAGE (Optik/Struktur) — Login/Register/OTP sind bewusst
   eigene UForm-Implementierungen (2-Schritt-OTP, Security-Phrase, geteilter
-  E-Mail-State, AGB-Gate); Details in docs/AUTH-FORMS.md
+  E-Mail-State, AGB-Gate); Details in docs/referenz/AUTH-FORMS.md
 - Pinia defineStore Composition Style; Layer-stores via imports.dirs registrieren
   (werden nicht auto-gescannt)
 - Relative Pfade im Layer (kein ~/ oder @/)
@@ -332,3 +332,30 @@ scripts/ci/appwrite-setup.mjs → bootstrap --seed → volle Suite inkl. Realtim
 ## Git
 Conventional Commits · BREAKING CHANGE(core): Prefix · Core-Änderungen
 in eigenem Commit · vor Core-Update alle Apps lokal starten
+
+## Doku-Ordnung (seit 2026-07-28) — Karte: docs/README.md
+Vier Sorten, jede mit genau EINEM Zuhause. Wer eine neue Datei anlegt,
+entscheidet zuerst die Sorte; sonst wächst wieder ein Wildwuchs, in dem
+niemand weiß, ob ein Häkchen noch Arbeit bedeutet.
+- **Steuerung** `docs/` — **docs/OPEN-ITEMS.md ist DIE EINE offene-Punkte-
+  Liste** (gewichteter Master + feinkörnige Arbeitsliste A–F). Offene Punkte
+  gehören AUSSCHLIESSLICH dorthin, NIE in ein Plan-Dokument und NIE in eine
+  zweite Liste (am 2026-07-28 gab es kurz `OFFENE-TASKS.md` daneben — genau
+  die Doppelpflege, die das verhindert). Dazu CONCEPT.md (Architektur A1–A14),
+  GOALS.md, DECISION-LOG.md.
+- **Referenz** `docs/referenz/` — wie ist X gebaut (RBAC, Themes, Embed,
+  Auth-Forms, Moderation, Pool/Silo-Blueprint, Produkt-Bilanz, Manifest-
+  Strategie, Produktvertrag, Changelog-Workflow). Lebt mit dem Code.
+- **Runbooks** `docs/runbooks/` — Betriebs-Anleitungen (Deployment, Stripe
+  Go-Live + Testmodus, Control-Cutover, Key-Swap). Die Häkchen dort sind ECHT
+  und werden pro Durchlauf abgehakt.
+- **Archiv** `docs/archiv/` (+ `archiv/audits/`) — ausgeführte Pläne und
+  Audits. Wertvoll als Begründung und Rezept, aber KEINE Arbeitsliste:
+  offene Kästchen sind bewusst zu Aufzählungen entschärft.
+- `docs/plans/` enthält nur, was NOCH NICHT gebaut ist. Sobald ein Plan
+  ausgeführt ist: Datei nach `archiv/`, Reste nach OPEN-ITEMS.md.
+- `docs/content/` = interne Doku-SITE (control.pukalani.app/docs),
+  `apps/help/content/` = Kunden-Hilfe (help.pukalani.app) — beides Produkt,
+  kein Planungsdokument.
+- Regelwerk für Agenten: NUR CLAUDE.md. `AGENTS.md` ist ein Zeiger darauf —
+  Inhalt dort NIE duplizieren (die alte Kopie war 144 Zeilen veraltet).

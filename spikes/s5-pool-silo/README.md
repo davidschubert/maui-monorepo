@@ -1,6 +1,6 @@
 # Spike S5 — Pool + Silo Mandanten-Kern (Wegwerf)
 
-Begleitet [docs/plans/HORIZONT-3-POOL-SILO-BLUEPRINT.md](../../docs/plans/HORIZONT-3-POOL-SILO-BLUEPRINT.md).
+Begleitet [docs/referenz/HORIZONT-3-POOL-SILO-BLUEPRINT.md](../../docs/referenz/HORIZONT-3-POOL-SILO-BLUEPRINT.md).
 Beweist den **Kern** von Davids Zwei-Tier-Entscheidung (gepoolte Standard-Kunden
 + Silo für Spezialkunden) an reiner Logik, **ohne** echtes Appwrite. Kein
 Produkt-Code — validiert die Isolations-Garantie, bevor der Produktions-Umbau

@@ -5,7 +5,7 @@ import type { H3Event } from 'h3'
 import { createSessionClient } from '../lib/appwrite'
 
 /**
- * GDPR-Orchestrierung (Plan: docs/plans/GDPR-DELETE-AND-EXPORT.md §4.3).
+ * GDPR-Orchestrierung (Plan: docs/archiv/GDPR-DELETE-AND-EXPORT.md §4.3).
  *
  * `exportUserCompletely` sammelt Account + Sessions (Core-Domäne) und die
  * Daten aller registrierten UserDataContributors — vollständig, paginiert.

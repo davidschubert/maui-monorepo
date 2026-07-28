@@ -42,7 +42,7 @@ derselbe String, also zeigt „N sehen diese Seite" heute fremde Namen.
 `read("users")`. Jeder eingeloggte Pool-User kann `presences.list()` direkt
 gegen Appwrite aufrufen und sieht dann alles — unabhängig davon, was unsere
 App filtert. Vollständiger Verschluss braucht eine Entscheidung, siehe A4 in
-[OPEN-ITEMS.md](../OPEN-ITEMS.md) (Arbeitsliste A4).
+[OPEN-ITEMS.md](../../OPEN-ITEMS.md) (Arbeitsliste A4).
 
 **Wie groß ist der Schaden heute?** Klein: der Pool hat bisher im
 Wesentlichen `demo` als Mandanten. Das ist ein Fehler, den man **vor** den

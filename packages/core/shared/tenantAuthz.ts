@@ -4,7 +4,7 @@ import type { Capability } from './types/authz'
  * Kunden-Site-Rollen (G1) — die Rechte-Matrix für Mitglieder EINER Community-
  * Site, getrennt vom Operator-RBAC in authz.ts.
  *
- * Zwei bewusst getrennte Welten (docs/plans/G0-PRODUKTVERTRAG.md §2):
+ * Zwei bewusst getrennte Welten (docs/referenz/G0-PRODUKTVERTRAG.md §2):
  *  - authz.ts (Role = admin|moderator) = Betreiber/Operator (globale Appwrite-
  *    Labels auf DEINER Instanz; über die GANZE Plattform gültig).
  *  - tenantAuthz.ts (TenantRole) = die 5 Rollen INNERHALB einer Kunden-Site.

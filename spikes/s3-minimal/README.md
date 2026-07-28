@@ -1,6 +1,6 @@
 # Spike Minimal-S3 + S2-Probe (Gate G2) — Wegwerf
 
-Decision Gate aus [MULTI-SITE-PLATFORM-STRATEGIE.md](../../docs/plans/MULTI-SITE-PLATFORM-STRATEGIE.md):
+Decision Gate aus [MULTI-SITE-PLATFORM-STRATEGIE.md](../../docs/referenz/MULTI-SITE-PLATFORM-STRATEGIE.md):
 Browser-PoC „2 Projekte × 2 Hostnames × Auth × Realtime" — vor den
 Control-Plane-Verträgen (M6).
 

@@ -25,7 +25,7 @@
  * BEVOR irgendein Projekt migriert wird (fail-loud statt halber Welle).
  * Ablauf eines Schema-Rollouts: additive Migration (Code n-1 verträgt Schema n)
  * → wave internal → verifizieren → canary → stable → Code-Deploy → Aufräum-
- * Migration später (Details: docs/DEPLOYMENT.md).
+ * Migration später (Details: docs/runbooks/DEPLOYMENT.md).
  *
  * Layer-Reihenfolge: Fundament zuerst (system → comments → moderation → admin);
  * innerhalb eines Layers laufen die Scripts lexikografisch nach Dateiname

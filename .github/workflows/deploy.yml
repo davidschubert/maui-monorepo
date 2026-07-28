@@ -171,7 +171,7 @@ jobs:
             # (Die uebrigen Sites behalten ihre Checkouts fuer den ploi-
             # FALLBACK-Deploy — der macht sein eigenes git pull. Fuer control
             # und help gibt es diesen Fallback bewusst nicht; Ersatz sind die
-            # Runbooks docs/plans/CONTROL-CUTOVER.md bzw. HELP-GO-LIVE.md.)
+            # Runbooks docs/runbooks/CONTROL-CUTOVER.md bzw. HELP-GO-LIVE.md.)
             rsync -az ops/ "prod:/home/ploi/$site/ops/"
             # Flip + Reload (ZDT Stufe 2). pm2 startOrReload findet den Prozess
             # ueber den NAMEN in der Ecosystem-Datei — bei einer Umbenennung

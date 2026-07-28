@@ -9,7 +9,7 @@ Stripe-Portal). Baut auf M8 auf
 Test-Mode-abgenommen). M9 macht aus `ownerEmail` einen echten Control-User:
 Kunden sehen ihren Workspace, zahlen selbst und verwalten ihr Abo — der
 Betreiber hört auf, Checkout-Stellvertreter zu sein. Horizont-2-Schritt
-der [Plattform-Strategie](MULTI-SITE-PLATFORM-STRATEGIE.md) (D0), noch
+der [Plattform-Strategie](../referenz/MULTI-SITE-PLATFORM-STRATEGIE.md) (D0), noch
 KEIN Horizont-3-SaaS (keine Self-Service-Registrierung, keine
 Site-Provisionierung aus Kundenhand).
 

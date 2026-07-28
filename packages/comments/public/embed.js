@@ -1,5 +1,5 @@
 /**
- * Maui Comments — Embed-Loader (Disqus-Modell, docs/plans/EMBED-WIDGET.md).
+ * Maui Comments — Embed-Loader (Disqus-Modell, docs/archiv/EMBED-WIDGET.md).
  * Dependency-frei, kein Build-Schritt, versionslos stabil.
  *
  * Integration:

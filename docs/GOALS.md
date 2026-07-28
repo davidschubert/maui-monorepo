@@ -955,7 +955,7 @@ Auto-Signup-Verhalten unverändert; AGB-Pflicht nur im register-Modus
 > Endnutzer-Feature: eigenes Datenmodell nach comments-Muster, dockt an
 > Feed + Kommentare + Presence an. **Billing (23)** genau dann, wenn es
 > etwas zu verkaufen gibt — der fertige Plan liegt in
-> docs/plans/BILLING-STRIPE.md, das Goal exekutiert ihn. **Courses (24)**
+> docs/archiv/BILLING-STRIPE.md, das Goal exekutiert ihn. **Courses (24)**
 > als monetarisierbarer Endpunkt konsumiert alle drei: Lektions-Diskussionen
 > = comments, Kurs-Aktivität = feed, Paid-Zugang = billing-Entitlements.
 > Jede Stufe ist einzeln shipbar; nach jeder Phase ist das Produkt fertig
@@ -1176,7 +1176,7 @@ erstellt Events" ist bewusst v2. Maximal 45 Turns.
 > Unit-Tests + bewiesene Webhook-Pipeline abgedeckt.
 
 > Der vollständige Plan steht seit 2026-07-02 in
-> docs/plans/BILLING-STRIPE.md (Architektur B1–B9, Datenmodell,
+> docs/archiv/BILLING-STRIPE.md (Architektur B1–B9, Datenmodell,
 > Abläufe, Todo-Phasen B-0 bis B-8, Test-Strategie §7). Dieses Goal
 > exekutiert ihn — es wiederholt die Details bewusst nicht. VOR dem
 > Start: die offenen Entscheidungen aus §6 (mind. Pricing-Modell +
@@ -1188,7 +1188,7 @@ erstellt Events" ist bewusst v2. Maximal 45 Turns.
 > (privat) — nur notify() bei Zahlungsfehlschlag, wie im Plan.
 
 ```
-/goal Phase 23 (packages/billing laut docs/plans/BILLING-STRIPE.md)
+/goal Phase 23 (packages/billing laut docs/archiv/BILLING-STRIPE.md)
 ist abgeschlossen.
 Endzustand: alle Plan-Phasen B-0 bis B-8 umgesetzt — packages/billing
 als Layer mit Config-Gate maui.billing (Core-Default enabled: false),
@@ -1367,7 +1367,7 @@ Schema-Änderungen nur via Migration. Maximal 60 Turns.
 > Einordnung im Roadmap-v3-Arc: logisch DIREKT nach Phase 21 (und vor
 > Events) — der Member-Content-Feed ist das Herz der Community-Plattform;
 > Events (22) und Courses (24) docken später an dieselben Muster an.
-> Plan mit allen Entscheidungen (P1–P7): docs/plans/COMMUNITY-POSTS.md —
+> Plan mit allen Entscheidungen (P1–P7): docs/archiv/COMMUNITY-POSTS.md —
 > Kern: EIN Datenmodell mit type post/poll/question; Antworten sind der
 > comments-Layer (targetType 'post', App-Komposition); Poll-Votes
 > server-autoritativ, Ergebnisse erst nach eigener Stimme; Scheduled
@@ -1375,7 +1375,7 @@ Schema-Änderungen nur via Migration. Maximal 60 Turns.
 > Rate-Limit + generischem moderation-Vertrag + posts.moderate.
 
 ```
-/goal Phase 25 (packages/posts laut docs/plans/COMMUNITY-POSTS.md)
+/goal Phase 25 (packages/posts laut docs/archiv/COMMUNITY-POSTS.md)
 ist abgeschlossen.
 Endzustand: packages/posts als Feature-Layer. Migration 001
 (idempotent, pnpm migrate --app): community_posts (type post/poll/
@@ -1466,7 +1466,7 @@ Maximal 60 Turns.
 > der „Archiv"-Match aus Phase 22 war ein Substring-Fehlschluss
 > („Archive" enthält „Archiv").
 
-> Exekutiert [docs/plans/EVENTS-V2.md](plans/EVENTS-V2.md) **E1+E2** — der Plan
+> Exekutiert [docs/archiv/EVENTS-V2.md](archiv/EVENTS-V2.md) **E1+E2** — der Plan
 > enthält die Referenz-Analyse (Circle.so), alle Leitplanken-Entscheidungen
 > (§2: was gebaut, was abgelehnt wird — u. a. KEINE Recurrence, KEINE Likes,
 > KEIN DM-Automation-Builder, kein Video-Hosting) und das additive Datenmodell.
@@ -1474,7 +1474,7 @@ Maximal 60 Turns.
 > mit David fixieren und im Plan nachtragen — ohne Entscheidung stoppen.
 
 ```
-/goal Phase 26 (Events v2 Teil A laut docs/plans/EVENTS-V2.md, E1+E2)
+/goal Phase 26 (Events v2 Teil A laut docs/archiv/EVENTS-V2.md, E1+E2)
 ist abgeschlossen.
 Endzustand: Migration events-002 (additiv: coverFileId, locationType,
 replayUrl; Bucket event-covers mit Magic-Bytes-Check, Muster fonts) —
@@ -1536,14 +1536,14 @@ Maximal 50 Turns.
 > App-Verdrahtung statt „Playground" (der Playground komponiert events
 > nicht) — stärkerer Beweis, gleiche Aussage. typecheck/lint/test grün.
 
-> Exekutiert [docs/plans/EVENTS-V2.md](plans/EVENTS-V2.md) **E3+E4**. Reminder
+> Exekutiert [docs/archiv/EVENTS-V2.md](archiv/EVENTS-V2.md) **E3+E4**. Reminder
 > ohne Cron (on-read-Sweep, Muster publishDuePosts) über den bestehenden
 > notify()-Vertrag; Paid Events werden vollständig VORBEREITET (Schema, Guard-
 > Vertrag, UI-Zustaende, fail-closed) — der Checkout selbst kommt aus Phase 23
 > (BILLING-STRIPE.md), die dann NUR noch Guard + Webhook verbindet.
 
 ```
-/goal Phase 27 (Events v2 Teil B laut docs/plans/EVENTS-V2.md, E3+E4)
+/goal Phase 27 (Events v2 Teil B laut docs/archiv/EVENTS-V2.md, E3+E4)
 ist abgeschlossen.
 Endzustand: (E3) Migration events-003 (remindersSentAt); Reminder-
 Sweep best-effort in den events-GETs (published, startAt <= now+24h,
@@ -1590,7 +1590,7 @@ idempotent sein. Maximal 50 Turns.
   Phase-15-Infrastruktur steht (Fleißarbeit, gut automatisierbar)
 - **packages/billing**: Stripe Checkout/Webhooks/Subscriptions —
   ✂️ als **Phase 23** geschnitten (2026-07-06, Roadmap v3);
-  Plan: docs/plans/BILLING-STRIPE.md
+  Plan: docs/archiv/BILLING-STRIPE.md
 - **Activity Feed / Events / Courses**: ✂️ als **Phasen 21/22/24**
   geschnitten (2026-07-06, Roadmap v3 — Produkt-Arc Community-Plattform)
 - **E2E-Tests (Playwright)** pro App — Konzept A13 sagt "wenn Core

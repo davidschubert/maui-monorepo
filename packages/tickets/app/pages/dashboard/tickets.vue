@@ -2,7 +2,7 @@
 import type { TicketRow } from '../../../shared/types/ticket'
 
 /**
- * Ticket-Board (Trello-Muster, Plan docs/plans/TICKETS-BOARD.md): horizontal
+ * Ticket-Board (Trello-Muster, Plan docs/archiv/TICKETS-BOARD.md): horizontal
  * scrollende Listen, natives DnD (Karten + Listen), Deep-Link ?ticket=<id>
  * öffnet das Karten-Modal (teilbar). Operator-only (tickets.manage).
  */

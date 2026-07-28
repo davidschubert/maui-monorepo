@@ -8,7 +8,7 @@ Ist das im Betrieb nicht total hinderlich? Wie lösen das Circle/Mighty?"*
 Dieses Dokument ordnet die Frage präzise ein (mit Ist-Zustand aus dem Code),
 korrigiert eine frühere Ungenauigkeit und benennt die EINE Entscheidung, die
 vor dem Bau von Horizont 3 fällt. Es ergänzt
-[MULTI-SITE-PLATFORM-STRATEGIE.md](MULTI-SITE-PLATFORM-STRATEGIE.md) (D0
+[MULTI-SITE-PLATFORM-STRATEGIE.md](../referenz/MULTI-SITE-PLATFORM-STRATEGIE.md) (D0
 Horizonte, §10 Ablehnungen), widerspricht ihr NICHT.
 
 ---

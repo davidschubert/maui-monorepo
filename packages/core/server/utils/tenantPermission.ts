@@ -8,7 +8,7 @@ import { isTenantRole, tenantRoleHasCapability, type TenantRole } from '../../sh
  * aus tenantAuthz.ts). Getrennt von requirePermission (Operator-RBAC über
  * User-Labels), das für Betreiber-/Single-Tenant-Routen bleibt.
  *
- * Zwei bewusst getrennte Identitätswelten (docs/plans/G0-PRODUKTVERTRAG.md §2):
+ * Zwei bewusst getrennte Identitätswelten (docs/referenz/G0-PRODUKTVERTRAG.md §2):
  *  - Operator: globale Appwrite-Labels auf DEINER Instanz → requirePermission.
  *  - Site-Mitglied: eine Rolle in site_members, verankert an der Runtime-
  *    Identität {siteId = tenants.$id, runtimeProjectId, runtimeUserId}.

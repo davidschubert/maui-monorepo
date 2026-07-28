@@ -23,7 +23,7 @@
  * Einbetter-Seite) und es braucht KEINE CORS-Öffnung der Kommentar-API. Eine
  * echte Inline-Variante (Kommentare direkt im Host-DOM, ohne iframe) wäre ein
  * größeres, sicherheitssensibles Stück (eigener Sanitizer + CORS-Allowlist) —
- * bewusst NICHT hier, siehe docs/plans/EMBED-WIDGET.md § 6.
+ * bewusst NICHT hier, siehe docs/archiv/EMBED-WIDGET.md § 6.
  */
 (function () {
   'use strict'

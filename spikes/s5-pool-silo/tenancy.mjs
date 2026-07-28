@@ -2,7 +2,7 @@
  * Spike S5 — Pool+Silo Mandanten-Kern (Wegwerf, KEIN Produkt-Code).
  *
  * Modelliert die drei tragenden Nähte aus
- * docs/plans/HORIZONT-3-POOL-SILO-BLUEPRINT.md OHNE echtes Appwrite, damit die
+ * docs/referenz/HORIZONT-3-POOL-SILO-BLUEPRINT.md OHNE echtes Appwrite, damit die
  * Isolations-Garantie — inklusive Defense-in-Depth — auf Fakten steht, bevor
  * Produktions-Umbau beginnt.
  *

@@ -1,9 +1,9 @@
 # G0 — Produktvertrag (Entscheidungsvorlage für den Check-in)
 
 > **Status:** Entwurf (2026-07-24) für den gemeinsamen G0-Check-in aus
-> [SAAS-ROADMAP.md](SAAS-ROADMAP.md). **Kein Bau** — reine Entscheidungen.
+> [SAAS-ROADMAP.md](../archiv/SAAS-ROADMAP.md). **Kein Bau** — reine Entscheidungen.
 > Nach Abnahme startet G1 (Tenant-Autorisierung + Row-Permission-Naht +
-> Isolationsbeweis). Querbezug: [PUKALANI-LANDINGPAGE.md](PUKALANI-LANDINGPAGE.md)
+> Isolationsbeweis). Querbezug: [PUKALANI-LANDINGPAGE.md](../archiv/PUKALANI-LANDINGPAGE.md)
 > §2.4 (Claim-Gates), [HORIZONT-3-POOL-SILO-BLUEPRINT.md](HORIZONT-3-POOL-SILO-BLUEPRINT.md).
 >
 > Dieses Dokument liefert die vier G0-Artefakte als **Vorschlag mit Empfehlung**.

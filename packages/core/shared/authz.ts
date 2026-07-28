@@ -1,7 +1,7 @@
 import type { Capability, Role } from './types/authz'
 
 /**
- * Die Rechte-Matrix (Single Source of Truth) — siehe docs/RBAC-CONCEPT.md.
+ * Die Rechte-Matrix (Single Source of Truth) — siehe docs/referenz/RBAC-CONCEPT.md.
  * Bewusst im Code (versioniert, type-safe), NICHT runtime-editierbar. Pure TS
  * ohne Nuxt-/Appwrite-Deps → von Server (server/utils) UND Client (app/utils)
  * via relativem Import nutzbar.

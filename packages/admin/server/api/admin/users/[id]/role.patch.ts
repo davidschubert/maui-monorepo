@@ -7,7 +7,7 @@ const roleSchema = z.object({
 
 /**
  * Rollen eines Users setzen (Mehrfachauswahl, als Appwrite-Labels gespeichert).
- * Ersetzt das frühere { admin: boolean }. Siehe docs/RBAC-CONCEPT.md.
+ * Ersetzt das frühere { admin: boolean }. Siehe docs/referenz/RBAC-CONCEPT.md.
  */
 export default defineEventHandler(async (event) => {
   const actor = requirePermission(event, 'users.manage')

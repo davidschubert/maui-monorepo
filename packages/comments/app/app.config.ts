@@ -41,7 +41,7 @@ export default defineAppConfig({
        *  automatisch (zweiphasig + Cascade) ausgeblendet — Meldungen bleiben
        *  offen, der Moderator entscheidet final. 0 = aus (Default). */
       autoHideReports: 0,
-      /** iframe-Embed (Disqus-Modell, docs/plans/EMBED-WIDGET.md): /embed-Seite
+      /** iframe-Embed (Disqus-Modell, docs/archiv/EMBED-WIDGET.md): /embed-Seite
        *  + public/embed.js. Default aus — die App aktiviert explizit. */
       embed: {
         enabled: false,

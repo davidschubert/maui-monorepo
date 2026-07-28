@@ -6,15 +6,15 @@ wäre WIP-Rauschen für Endnutzer).
 ## Track 1 — Entwickler-`CHANGELOG.md` (voll automatisch)
 
 Aus den Conventional Commits via **release-please**
-([`.github/workflows/release-please.yml`](../.github/workflows/release-please.yml)).
+([`.github/workflows/release-please.yml`](../../.github/workflows/release-please.yml)).
 
 - Bei Push auf `main` pflegt release-please einen **Release-PR**: sammelt
   `feat`/`fix`/`perf`/`refactor`, schreibt `CHANGELOG.md` fort, schlägt die
   nächste SemVer-Version vor.
 - **Merge des PRs** erzeugt Git-Tag + GitHub-Release.
 - Kein DB-Zugriff, keine Secrets — nutzt den eingebauten `GITHUB_TOKEN`.
-- Konfiguration: [`release-please-config.json`](../release-please-config.json),
-  Stand der Versionen: [`.release-please-manifest.json`](../.release-please-manifest.json)
+- Konfiguration: [`release-please-config.json`](../../release-please-config.json),
+  Stand der Versionen: [`.release-please-manifest.json`](../../.release-please-manifest.json)
   (gestartet bei `1.4.0`, passend zum bisherigen Produkt-Changelog → nächstes
   `feat` ⇒ `1.5.0`).
 - `bootstrap-sha` begrenzt den ersten Lauf auf Commits **nach** dem
@@ -33,7 +33,7 @@ Die nutzerseitigen Release-Notes leben in der Appwrite-Tabelle `changelog`
 
 ### 2A — Lokaler Draft-Generator (Fallback)
 
-[`packages/admin/scripts/changelog-draft.mjs`](../packages/admin/scripts/changelog-draft.mjs)
+[`packages/admin/scripts/changelog-draft.mjs`](../../packages/admin/scripts/changelog-draft.mjs)
 liest die Commits seit dem letzten Tag, mappt Typen auf Kategorien
 (`feat`→Feature, `fix`→Fix, `perf`/`refactor`→Verbesserung) und legt **einen
 Entwurf** (`published:false`) mit gruppierter Stichpunktliste an. Den arbeitest
@@ -50,7 +50,7 @@ Läuft **lokal**, weil das self-hosted Appwrite unter `localhost` für GitHub CI
 nicht erreichbar ist. Der Runtime-Key kommt via `--env-file` aus
 `apps/comments/.env`. Seit 2B aktiv ist, ist 2A das **Ausnahme-Werkzeug**
 (Ad-hoc-Drafts zwischen Releases, Recovery bei 2B-Fehlern, Dev-Instanz) —
-Abgrenzung in [CHANGELOG-2B-AKTIVIERUNG.md](plans/CHANGELOG-2B-AKTIVIERUNG.md) § 7.
+Abgrenzung in [CHANGELOG-2B-AKTIVIERUNG.md](../archiv/CHANGELOG-2B-AKTIVIERUNG.md) § 7.
 
 ### 2B — Appwrite Function (AKTIV auf Prod seit 2026-07-19)
 
@@ -60,7 +60,7 @@ Voll hands-off: GitHub-**Release-Webhook** (nur Releases-Event, HMAC-signiert)
 Compare-API und legt den Draft direkt an (`published:false`). Eine Function
 läuft *innerhalb* von Appwrite, erreicht die DB also direkt (löst das
 `localhost`-Problem). Betrieb, Fehlerfälle und Rollback:
-[CHANGELOG-2B-AKTIVIERUNG.md](plans/CHANGELOG-2B-AKTIVIERUNG.md) §§ 5–6.
+[CHANGELOG-2B-AKTIVIERUNG.md](../archiv/CHANGELOG-2B-AKTIVIERUNG.md) §§ 5–6.
 
 ## Warum getrennt?
 

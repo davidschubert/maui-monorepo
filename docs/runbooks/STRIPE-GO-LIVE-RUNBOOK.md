@@ -1,6 +1,6 @@
 # Stripe Go-Live Runbook (Test → Live)
 
-Stand: 2026-07-20. Löst den in [BILLING-STRIPE.md](BILLING-STRIPE.md) Phase B-8 #29
+Stand: 2026-07-20. Löst den in [BILLING-STRIPE.md](../archiv/BILLING-STRIPE.md) Phase B-8 #29
 vertagten „Betriebs-Runbook / Go-Live-Checklist" ein. Aktuell läuft alles im
 **Stripe-Sandbox/Test-Mode** (M8/M9 test-mode-verifiziert). Dieser Runbook macht
 den Umstieg auf **Live** reproduzierbar.

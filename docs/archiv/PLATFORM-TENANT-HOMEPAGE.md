@@ -22,7 +22,7 @@
 > **Offen (Folge-Etappen):** Block-Baukasten (bewusst später) · Reserved-
 > `home`-Hinweis im pages-Admin (kleiner UX-Zusatz) · „wer editiert die
 > Homepage pro Tenant" hängt am offenen Design „Admin-per-Tenant".
-> Bezug: [HORIZONT-3-POOL-SILO-BLUEPRINT.md](HORIZONT-3-POOL-SILO-BLUEPRINT.md),
+> Bezug: [HORIZONT-3-POOL-SILO-BLUEPRINT.md](../referenz/HORIZONT-3-POOL-SILO-BLUEPRINT.md),
 > `apps/platform`, `packages/pages` (CMS), `packages/comments` (Datenpfad).
 
 ## 1. Problem

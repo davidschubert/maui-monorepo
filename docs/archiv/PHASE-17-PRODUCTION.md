@@ -16,7 +16,7 @@
 > dokumentiert — im Zweifel gilt die Doku dort, nicht dieser Plan.
 
 Stand: 2026-07-01. **Plan-Dokument — kein Code.** Ergänzt das bestehende Runbook
-[DEPLOYMENT.md](../DEPLOYMENT.md) (Console-Setup, Migrationen, ploi-Site-Felder,
+[DEPLOYMENT.md](../runbooks/DEPLOYMENT.md) (Console-Setup, Migrationen, ploi-Site-Felder,
 Env-Referenz) und [CONCEPT.md](../CONCEPT.md) A3/A9/A10/A11/A12. Dieses Dokument
 beantwortet die Infrastruktur-Fragen, die das Runbook offen lässt (Server-Zuschnitt,
 DNS/TLS, Backups, Monitoring, Hardening, Realtime-Watchdog) und liefert die
@@ -78,7 +78,7 @@ comments.example.com                  api.example.com
    runter — und umgekehrt kann ein Deploy-Build (pnpm install + nuxt build) nicht
    die Appwrite-DB verhungern lassen.
 3. **Unabhängige Lebenszyklen:** Appwrite-Upgrades (Backup → upgrade →
-   `migrate`, siehe [APPWRITE-1.9.5-UPGRADE.md](../APPWRITE-1.9.5-UPGRADE.md))
+   `migrate`, siehe [APPWRITE-1.9.5-UPGRADE.md](APPWRITE-1.9.5-UPGRADE.md))
    und App-Deploys (mehrmals täglich) haben völlig verschiedene Rhythmen und
    Backup-Anforderungen.
 4. **Konzept-Konformität:** „Jede App: EIGENE Appwrite-Instanz" (CLAUDE.md) —
@@ -654,7 +654,7 @@ Cron, sobald die Box provisioniert ist + rsync-Probe grün.
 ### Block 11 — Abschluss
 
 - Alle Werte (IPs, IDs, Keys, Webhook, Storage-Box) final im Passwort-Manager
-- `docs/DEPLOYMENT.md` um die realen Werte-Platzhalter/Erkenntnisse ergänzen; OPEN-ITEMS: Phase 17 als ✅ mit Datum; README-Status-Tabelle aktualisieren + committen + pushen
+- `docs/runbooks/DEPLOYMENT.md` um die realen Werte-Platzhalter/Erkenntnisse ergänzen; OPEN-ITEMS: Phase 17 als ✅ mit Datum; README-Status-Tabelle aktualisieren + committen + pushen
 - Follow-ups terminieren (A.10): `changelog-draft`-Function deployen (Track 2B, braucht die jetzt vorhandene öffentliche Domain), Zero-Downtime Stufe 2. (Zwei früher gelistete Punkte waren veraltet: `comment_votes`-Table-Read seit 2026-07-02 gelöst (comments-007/008, s. A.8); Observability-Gate ist in apps/comments/app/app.config.ts längst aktiv — enabled + clientErrors.)
 
 **Laufende Kosten (Zielbild):** CX32 ~7 € + CX22 ~4 € + Backups ~1,40 € +

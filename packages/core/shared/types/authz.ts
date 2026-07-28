@@ -1,5 +1,5 @@
 /**
- * Autorisierungs-Modell (RBAC) — siehe docs/RBAC-CONCEPT.md.
+ * Autorisierungs-Modell (RBAC) — siehe docs/referenz/RBAC-CONCEPT.md.
  *
  * Capabilities = atomare Fähigkeiten, gegen die Routen/UI gaten (Code-Identifier,
  * dürfen Punkte enthalten). Rollen = benannte Capability-Bündel, am User als

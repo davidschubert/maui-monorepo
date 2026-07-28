@@ -15,7 +15,7 @@ import type { Capability } from '../../../core/shared/types/authz'
  *
  * Eine Page kann via `definePageMeta({ requiredCapability })` eine zusätzliche
  * Capability verlangen (z.B. 'users.manage') — auch die erfüllt entweder ein
- * Label ODER die Site-Rolle. Siehe docs/RBAC-CONCEPT.md.
+ * Label ODER die Site-Rolle. Siehe docs/referenz/RBAC-CONCEPT.md.
  */
 export default defineNuxtRouteMiddleware((to) => {
   const auth = useAuthStore()

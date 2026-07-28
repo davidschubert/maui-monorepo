@@ -1,9 +1,9 @@
 # Deployment-Runbook — Prod-Sites (Phase 17 / H2)
 
 Stand: 2026-07-19 (Multi-Site). Praktischer Leitfaden, um Apps in
-Produktion zu bringen. Ergänzt [CONCEPT.md](CONCEPT.md) (A9 Deployment,
+Produktion zu bringen. Ergänzt [CONCEPT.md](../CONCEPT.md) (A9 Deployment,
 A11 Env, A3 Session-Cookie) und
-[plans/PHASE-17-PRODUCTION.md](plans/PHASE-17-PRODUCTION.md) (Checkliste +
+[plans/PHASE-17-PRODUCTION.md](../archiv/PHASE-17-PRODUCTION.md) (Checkliste +
 alle Go-Live-Learnings im Detail).
 
 > **Ist-Stand (pukalani.app), EIN App-Server (app-prod, 49.13.211.173) mit
@@ -156,7 +156,7 @@ pnpm migrate --wave stable   --control-env apps/control/.env.production
 | Feld | Wert (pukalani-Ist-Stand) |
 |---|---|
 | Site-Typ | NodeJS — ploi vergibt den Port (hier **3001**); nginx-vHost proxied NICHT automatisch → `location /` manuell auf `proxy_pass http://127.0.0.1:3001` + WebSocket-Header umstellen. **Robuster Weg (Learning 2026-07-23): die ploi-API statt des Panel-Editors** — `GET/PATCH /api/servers/{srv}/sites/{site}/nginx-configuration` (JSON `{"content": …}`) + `POST /api/servers/{srv}/services/nginx/restart`; der Monaco-Editor im Panel lässt sich nicht zuverlässig automatisiert befüllen. Auch Deploy-Script (`…/deploy/script`) und Deploy-Trigger (`POST …/deploy`) gehen per API |
-| NodeJS-Service | pm2 **Cluster-Mode** via [`ops/ecosystem-comments.config.cjs`](../ops/ecosystem-comments.config.cjs) (seit 2026-07-19, Zero-Downtime Stufe 2). „Restart process after deployment" **AUS** — den Prozesswechsel macht `pm2 reload` im Deploy-Script. ploi-Start-command `bash start-prod.sh` ist nur noch historischer Rest (ploi startet nichts mehr) |
+| NodeJS-Service | pm2 **Cluster-Mode** via [`ops/ecosystem-comments.config.cjs`](../../ops/ecosystem-comments.config.cjs) (seit 2026-07-19, Zero-Downtime Stufe 2). „Restart process after deployment" **AUS** — den Prozesswechsel macht `pm2 reload` im Deploy-Script. ploi-Start-command `bash start-prod.sh` ist nur noch historischer Rest (ploi startet nichts mehr) |
 | Deploy-Script | `git pull` → corepack-Install/Build wie gehabt → **dann Release-Flow**: `.output` nach `/home/ploi/releases/comments/<sha>/` kopieren, `current`-Symlink atomar flippen (`ln -s` + `mv -Tf`), `pm2 startOrReload ops/ecosystem-comments.config.cjs --update-env`, `pm2 save`, alte Releases auf 5 stutzen. Der alte Worker serviert bis der neue `listening` ist → **kein 502**, und der laufende Prozess liest nie aus einem halb überschriebenen `.output` |
 | Reboot-Festigkeit | `pm2 save` macht das Deploy-Script; `@reboot pm2 resurrect` im ploi-Crontab (kein sudo nötig) |
 | HSTS | eigene Include-Datei `server/hsts.conf` mit `add_header Strict-Transport-Security "max-age=15768000" always;` |
