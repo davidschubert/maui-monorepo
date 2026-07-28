@@ -94,6 +94,10 @@ export const NEUTRAL_REGISTRY: MauiNeutral[] = [
 // bleiben hier nur der default-Eintrag (Core-Zustand ohne CSS-Datei) und die
 // NEUTRAL_REGISTRY (separate Achse, E3a).
 export const THEME_REGISTRY: MauiTheme[] = [
-  { id: DEFAULT_THEME_ID, name: 'Maui', file: null, color: '#737373', variants: [] },
+  // ANZEIGE-Label 'Sunrise' (N6, Davids Entscheidung 2026-07-28): im Picker
+  // stand hier der interne Produktname „Maui" — der gehört nicht vor Kunden.
+  // Umbenannt wurde AUSSCHLIESSLICH das Label; die Id bleibt `default`
+  // (tenants.theme, data-theme, CSS-Dateinamen, gespeicherte Configs).
+  { id: DEFAULT_THEME_ID, name: 'Sunrise', file: null, color: '#737373', variants: [] },
   ...GENERATED_THEMES,
 ]
