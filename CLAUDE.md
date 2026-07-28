@@ -261,10 +261,13 @@ Vollständiges Konzept: docs/CONCEPT.md
 - `tenantId` kommt NIE vom Aufrufer (stripTenantKey) — sonst schreibt ein
   durchgereichter Body in einen fremden Mandanten.
 - BACKSTOP (seit 2026-07-27): ESLint verbietet rohes `.tablesDB` in
-  `server/api/**` der gepoolten Layer (comments, posts, pages, moderation —
-  eslint.config.mjs, no-restricted-syntax). Neue Pool-Layer in die Liste
-  aufnehmen, sobald ihre Tabellen tenantId tragen. Pool-Unique-Regel gilt
-  weiter: Unique-Indizes brauchen tenantId (z. B. comments-015 uq_tenant_host).
+  `server/api/**` der gepoolten Layer (comments, posts, pages, moderation,
+  events, courses — eslint.config.mjs, no-restricted-syntax). Neue Pool-Layer
+  in die Liste aufnehmen, sobald ihre Tabellen tenantId tragen. Pool-Unique-
+  Regel gilt weiter, ABER nur für tenant-RELATIVE Schlüssel: Host/Slug brauchen
+  tenantId (comments-015 uq_tenant_host, pages-004, courses-002 uq_tenant_slug),
+  Row-Id-basierte NICHT (events/courses (courseId,userId) — eine Row-Id ist
+  global eindeutig, da kann kein Mandant kollidieren).
 - BETREIBER-Inhalt gehört nicht auf Mandanten-Hosts (N7, seit 2026-07-28):
   der öffentliche Changelog (admin-Layer) antwortet dort 404 — Seite via
   `useIsTenantHost()` (core, pure Ausschluss-Rechnung in shared/controlCenter.ts:
