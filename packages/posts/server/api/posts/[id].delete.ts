@@ -19,6 +19,12 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 400, statusText: 'Missing post id' })
   }
 
+  // Wartungsmodus friert ALLE Schreibvorgänge ein (s. [id].patch.ts).
+  const appConfig = await getAppConfig(event)
+  if (appConfig.maintenanceMode) {
+    throw createError({ status: 403, statusText: 'Maintenance mode' })
+  }
+
   // Datentür als Operator (Permission-Entzug ist autoritativ) — get belegt
   // die Zugehörigkeit: ein fremder Mandant bekommt 404, nie die Row.
   const db = tenantDb(event, { as: 'operator' })

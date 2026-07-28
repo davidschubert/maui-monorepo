@@ -20,6 +20,14 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 400, statusText: 'Missing post id' })
   }
 
+  // Wartungsmodus friert ALLE Schreibvorgänge ein, nicht nur das Anlegen —
+  // Muster commentPolicy.assertNotMaintenance: dort steht auch das Bearbeiten
+  // und Löschen EIGENER Inhalte still. Sonst ist der Schalter nur halb wirksam.
+  const appConfig = await getAppConfig(event)
+  if (appConfig.maintenanceMode) {
+    throw createError({ status: 403, statusText: 'Maintenance mode' })
+  }
+
   const input = await readValidatedBody(event, postEditSchema.parse)
   // Datentür (member): Session-Client — die Row-Security des Autors bleibt
   // die erste Grenze, die Tür belegt zusätzlich die Zugehörigkeit.
