@@ -71,6 +71,7 @@ Presence-metadata legen.
 | C6 | **system-021**: Legacy-Spalte `app_config.entitlements` droppen — **erst wenn alle Instanzen neuen Code fahren**. Gibt Zeilenbudget frei. | N2 |
 | C7 | **apple-touch-icon je Community** (PNG-Pflicht, aus dem SVG nicht ableitbar) | K2-Rest |
 | C8 | **Suche in der internen Doku** (`control.pukalani.app/docs`) — bewusst weggelassen. | control/docs |
+| C9 | **Der E2E-Job in CI ist dauerhaft rot** — in den letzten 60 Läufen kein einziger grüner, mindestens seit dem 27.07. mittags. Es hängt an EINEM Test: `apps/comments/e2e/embed-write.spec.ts` wartet 30 s auf die Hydration im Embed-`<iframe>` (`__vue_app__`) und läuft in den Timeout. Verdacht: die bekannte localhost-Falle (Ports sind same-**site**, echtes Cross-Site-Gastverhalten braucht echte Domains). Das ist **nicht** von den Audit-Fixes verursacht — es war vorher schon rot. Wichtig ist es trotzdem: ein Job, der immer rot ist, sagt nichts mehr, und die anderen E2E-Fälle (inkl. Realtime) laufen mit ihm ins Leere. Entweder reparieren oder den einen Fall begründet überspringen — aber der Job muss wieder etwas bedeuten. | CI-Beobachtung 2026-07-28 |
 
 ## 4. Bekannt und bewusst zu (nicht vergessen)
 
