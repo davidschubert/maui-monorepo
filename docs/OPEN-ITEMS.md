@@ -175,7 +175,7 @@ Presence-metadata legen.
 
 | # | Zustand | Öffnet sich, wenn … |
 | --- | --- | --- |
-| D1 | **Paid-Events und Paid-Kurse im Pool fail-closed** — der Stripe-Webhook stempelt keinen Mandanten, `grantEventTicket`/Kursbuchung landen ohne `tenantId` und werden von der Datentür nicht gefunden. Per Test genagelt. | Billing mandantenfähig wird |
+| D1 | **Paid-Events und Paid-Kurse im Pool fail-closed** — der Stripe-Webhook hat keinen Tenant-Host. **Events-Hälfte erledigt (2026-07-28, S7):** `grantEventTicket` leitet den Mandanten aus dem EVENT ab und stempelt ihn; der Lesepfad findet das eigene Ticket, das des Nachbarn nicht, Bestands-Tickets bleiben fail-closed. Offen bleibt die Pool-VERDRAHTUNG (Checkout-Route + Fulfillment-Plugin gibt es nur in `apps/comments`) und die Kurs-Hälfte (für bezahlte Kurse existiert noch gar kein Webhook-Pfad; die Einschreibung läuft heute über eine normale Route und ist damit gestempelt). Per Test genagelt. | Billing mandantenfähig wird |
 | D2 | **`/changelog` auf Tenant-Hosts 404** (N7, gewollt) | — |
 | D3 | **Demo ist indexierbar** (N4, Davids Entscheidung) | — |
 | D4 | **Cloudflare Origin Certificate** für die Landing → erlaubt „Full (Strict)" und löst pukalani.app ganz aus Let's Encrypt. Privater Schlüssel muss durchs Dashboard. | David es einmal macht |
