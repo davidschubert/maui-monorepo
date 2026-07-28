@@ -128,6 +128,9 @@
     "sortBy": "Nach {label} sortieren",
     "sortedAsc": "{label}, aufsteigend sortiert",
     "sortedDesc": "{label}, absteigend sortiert",
+    "confirm": {
+      "confirm": "Bestätigen"
+    },
     "consent": {
       "title": "Cookie-Einwilligung",
       "message": "Wir verwenden Cookies für anonyme Nutzungsstatistiken. Analytics lädt erst nach deiner Zustimmung.",

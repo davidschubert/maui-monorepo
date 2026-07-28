@@ -7,6 +7,7 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCap
 
 const { t } = useI18n()
 const toast = useToast()
+const confirm = useConfirm()
 const { formatDateTime } = useEventDateFormat()
 
 useHead({ title: () => t('events.admin.title') })
@@ -213,23 +214,24 @@ const recurrenceItems = computed(() => [
   { label: t('events.series.monthly'), value: 'monthly' },
 ])
 
-const confirmStopSeries = ref<EventRow | null>(null)
-const stoppingSeries = ref(false)
-async function stopSeries() {
-  const master = confirmStopSeries.value
-  if (!master) return
-  stoppingSeries.value = true
+async function stopSeries(master: EventRow) {
   try {
-    const res = await $fetch<{ cancelled: number }>(`/api/events/${master.$id}/series` as string, { method: 'DELETE' })
-    toast.add({ title: t('events.admin.seriesStopped', { count: res.cancelled }), color: 'success', icon: 'i-ph-repeat' })
-    confirmStopSeries.value = null
+    let cancelled = 0
+    const ok = await confirm({
+      title: t('events.admin.stopSeriesTitle', { title: master.title }),
+      description: t('events.admin.stopSeriesText'),
+      confirmLabel: t('events.admin.stopSeries'),
+      action: async () => {
+        const res = await $fetch<{ cancelled: number }>(`/api/events/${master.$id}/series` as string, { method: 'DELETE' })
+        cancelled = res.cancelled
+      },
+    })
+    if (!ok) return
+    toast.add({ title: t('events.admin.seriesStopped', { count: cancelled }), color: 'success', icon: 'i-ph-repeat' })
     await refresh()
   }
   catch {
     toast.add({ title: t('events.admin.actionFailed'), color: 'error' })
-  }
-  finally {
-    stoppingSeries.value = false
   }
 }
 
@@ -253,17 +255,19 @@ async function setStatus(row: EventRow, target: 'published' | 'draft') {
 }
 
 async function cancelEvent(row: EventRow) {
-  busyId.value = row.$id
   try {
-    await $fetch(`/api/events/${row.$id}` as string, { method: 'DELETE' })
+    const ok = await confirm({
+      title: t('events.admin.confirmCancelTitle'),
+      description: t('events.admin.confirmCancelText', { title: row.title }),
+      confirmLabel: t('events.admin.cancel'),
+      action: () => $fetch(`/api/events/${row.$id}` as string, { method: 'DELETE' }),
+    })
+    if (!ok) return
     toast.add({ title: t('events.admin.cancelled'), color: 'success' })
     await refresh()
   }
   catch {
     toast.add({ title: t('events.admin.actionFailed'), color: 'error' })
-  }
-  finally {
-    busyId.value = ''
   }
 }
 
@@ -332,7 +336,7 @@ const statusColor = (row: EventRow) =>
                 v-if="isSeriesMaster(row) && (!row.seriesUntil || new Date(row.seriesUntil) > new Date())"
                 color="neutral" variant="ghost" size="xs" icon="i-ph-repeat"
                 :data-series-stop="row.$id"
-                @click="() => { confirmStopSeries = row }"
+                @click="stopSeries(row)"
               >
                 {{ t('events.admin.stopSeries') }}
               </UButton>
@@ -521,24 +525,6 @@ const statusColor = (row: EventRow) =>
         </template>
       </UModal>
 
-      <!-- Serie beenden — künftige Termine werden abgesagt, Vergangenheit bleibt -->
-      <UModal
-        :open="confirmStopSeries !== null"
-        :title="t('events.admin.stopSeriesTitle', { title: confirmStopSeries?.title ?? '' })"
-        @update:open="(value: boolean) => { if (!value) confirmStopSeries = null }"
-      >
-        <template #body>
-          <p class="text-sm">{{ t('events.admin.stopSeriesText') }}</p>
-        </template>
-        <template #footer>
-          <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="() => { confirmStopSeries = null }">{{ t('events.admin.form.cancel') }}</UButton>
-            <UButton color="error" :loading="stoppingSeries" data-testid="series-stop-confirm" @click="stopSeries">
-              {{ t('events.admin.stopSeries') }}
-            </UButton>
-          </div>
-        </template>
-      </UModal>
     </template>
   </UDashboardPanel>
 </template>

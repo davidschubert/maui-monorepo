@@ -194,20 +194,22 @@ async function addCard() {
 }
 
 // Lösch-Bestätigung (immer fragen — löscht Liste MITSAMT Karten)
-const confirmingDelete = ref(false)
-const deleting = ref(false)
+const confirm = useConfirm()
 async function deleteList() {
-  deleting.value = true
   try {
-    await $fetch(`/api/tickets/lists/${props.list.$id}`, { method: 'DELETE' })
-    confirmingDelete.value = false
+    const ok = await confirm({
+      title: t('tickets.list.deleteConfirmTitle', { title: props.list.title }),
+      description: props.tickets.length > 0
+        ? t('tickets.list.deleteConfirmWithCards', { count: props.tickets.length })
+        : t('tickets.list.deleteConfirmEmpty'),
+      confirmLabel: t('tickets.list.delete'),
+      action: () => $fetch(`/api/tickets/lists/${props.list.$id}`, { method: 'DELETE' }),
+    })
+    if (!ok) return
     emit('refresh')
   }
   catch {
     toast.add({ title: t('tickets.errors.action'), color: 'error' })
-  }
-  finally {
-    deleting.value = false
   }
 }
 
@@ -244,7 +246,7 @@ const menuItems = computed(() => [[
   { label: t('tickets.list.sortOldest'), icon: 'i-ph-sort-ascending', onSelect: () => listAction('createdAsc') },
   { label: t('tickets.list.sortAlpha'), icon: 'i-ph-text-aa', onSelect: () => listAction('alpha') },
 ], [
-  { label: t('tickets.list.delete'), icon: 'i-ph-trash', color: 'error' as const, onSelect: () => { confirmingDelete.value = true } },
+  { label: t('tickets.list.delete'), icon: 'i-ph-trash', color: 'error' as const, onSelect: () => { void deleteList() } },
 ]])
 </script>
 
@@ -334,28 +336,6 @@ const menuItems = computed(() => [[
       </UButton>
     </footer>
 
-    <!-- Löschen IMMER bestätigen — nicht-leere Listen nehmen ihre Karten mit -->
-    <UModal
-      :open="confirmingDelete"
-      :title="t('tickets.list.deleteConfirmTitle', { title: list.title })"
-      @update:open="(value: boolean) => { if (!value) confirmingDelete = false }"
-    >
-      <template #body>
-        <p class="text-sm">
-          {{ tickets.length > 0
-            ? t('tickets.list.deleteConfirmWithCards', { count: tickets.length })
-            : t('tickets.list.deleteConfirmEmpty') }}
-        </p>
-      </template>
-      <template #footer>
-        <div class="flex w-full justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="() => { confirmingDelete = false }">{{ t('ui.cancel') }}</UButton>
-          <UButton color="error" :loading="deleting" data-testid="confirm-delete-list" @click="deleteList">
-            {{ t('tickets.list.delete') }}
-          </UButton>
-        </div>
-      </template>
-    </UModal>
   </section>
 </template>
 

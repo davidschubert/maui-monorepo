@@ -45,6 +45,8 @@
       "updateFailed": "Could not update site",
       "deleted": "Site deleted",
       "deleteFailed": "Could not delete site",
+      "confirmDeleteTitle": "Delete embedder domain?",
+      "confirmDeleteText": "{host} will no longer be allowed to embed the widget. This takes effect immediately.",
       "host": "Domain (host)",
       "hostHelp": "Canonical hostname of the embedding page, lowercase, without https:// — e.g. blog.customer.com",
       "hostPlaceholder": "blog.customer.com",

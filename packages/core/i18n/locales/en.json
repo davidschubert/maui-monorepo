@@ -128,6 +128,9 @@
     "sortBy": "Sort by {label}",
     "sortedAsc": "{label}, sorted ascending",
     "sortedDesc": "{label}, sorted descending",
+    "confirm": {
+      "confirm": "Confirm"
+    },
     "consent": {
       "title": "Cookie consent",
       "message": "We use cookies for anonymous usage statistics. Analytics only loads after your consent.",

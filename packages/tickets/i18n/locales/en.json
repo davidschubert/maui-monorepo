@@ -82,7 +82,8 @@
       "share": "Copy ticket link",
       "linkCopied": "Ticket link copied.",
       "delete": "Delete ticket",
-      "deleteConfirmText": "Permanently delete this ticket?",
+      "deleteConfirmTitle": "Delete ticket?",
+      "deleteConfirmText": "The ticket is deleted for good — including its checklist, attachments and history.",
       "deleted": "Ticket deleted.",
       "createdBy": "Created by {name} · {date}"
     },

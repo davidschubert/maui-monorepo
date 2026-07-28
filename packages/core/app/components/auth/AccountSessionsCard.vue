@@ -22,9 +22,8 @@ useRealtimeAccount(() => {
 })
 onScopeDispose(() => clearTimeout(liveTimer))
 
-const confirmAll = ref(false)
+const confirm = useConfirm()
 const busyId = ref<string | null>(null)
-const busyAll = ref(false)
 
 /** Eigene Session(s) beendet → ausloggen und zur Startseite */
 async function signOutSelf() {
@@ -49,16 +48,19 @@ async function signOut(session: UserSession) {
 }
 
 async function signOutAll() {
-  busyAll.value = true
   try {
-    await $fetch('/api/auth/sessions', { method: 'DELETE' })
-    confirmAll.value = false
+    const ok = await confirm({
+      title: t('account.sessions.confirmAllTitle'),
+      description: t('account.sessions.confirmAllText'),
+      confirmLabel: t('account.sessions.confirmAll'),
+      action: () => $fetch('/api/auth/sessions', { method: 'DELETE' }),
+    })
+    if (!ok) return
     toast.add({ title: t('account.sessions.signedOut'), color: 'success' })
     await signOutSelf()
   }
   catch {
     toast.add({ title: t('account.sessions.signOutFailed'), color: 'error' })
-    busyAll.value = false
   }
 }
 </script>
@@ -71,7 +73,7 @@ async function signOutAll() {
         variant="subtle"
         icon="i-ph-sign-out"
         :disabled="(data?.sessions.length ?? 0) === 0"
-        @click="() => { confirmAll = true }"
+        @click="signOutAll"
       >
         {{ t('account.sessions.signOutAll') }}
       </UButton>
@@ -97,17 +99,5 @@ async function signOutAll() {
         </template>
       </SessionsTable>
     </ClientOnly>
-
-    <UModal v-model:open="confirmAll" :title="t('account.sessions.confirmAllTitle')">
-      <template #body>
-        <p class="text-sm">{{ t('account.sessions.confirmAllText') }}</p>
-      </template>
-      <template #footer>
-        <div class="flex w-full justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="() => { confirmAll = false }">{{ t('account.sessions.cancel') }}</UButton>
-          <UButton color="error" :loading="busyAll" @click="signOutAll">{{ t('account.sessions.confirmAll') }}</UButton>
-        </div>
-      </template>
-    </UModal>
   </UPageCard>
 </template>

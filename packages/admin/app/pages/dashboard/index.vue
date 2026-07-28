@@ -18,6 +18,7 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
 const { t, te, locale } = useI18n()
 const localePath = useLocalePath()
 const toast = useToast()
+const confirm = useConfirm()
 const config = useRuntimeConfig()
 const auth = useAuthStore()
 const { formatRelativeTime } = useFormatRelativeTime()
@@ -115,19 +116,24 @@ function formatBytes(bytes: number): string {
 }
 
 // --- Schnellmoderation aus dem "Zu moderieren"-Widget -------------------------
-const busyId = ref<string | null>(null)
-async function moderate(id: string, status: 'hidden' | 'active') {
-  busyId.value = id
+// Rückfrage über useConfirm() — dieselbe Aktion muss sich hier verhalten wie in
+// der Moderations-Liste (/dashboard/comments), sonst gibt es zwei Verhalten für
+// einen Knopf (Audit-Befund C10).
+async function moderate(comment: { $id: string, authorName: string }, status: 'hidden' | 'active') {
   try {
-    await $fetch(`/api/admin/comments/${id}/status`, { method: 'PATCH', body: { status } })
+    const ok = await confirm({
+      title: t('admin.users.confirmTitle'),
+      description: t(status === 'hidden' ? 'admin.moderation.confirmHide' : 'admin.moderation.confirmRestore', { name: comment.authorName }),
+      confirmLabel: t(status === 'hidden' ? 'admin.moderation.hide' : 'admin.moderation.restore'),
+      color: status === 'hidden' ? 'error' : 'primary',
+      action: () => $fetch(`/api/admin/comments/${comment.$id}/status`, { method: 'PATCH', body: { status } }),
+    })
+    if (!ok) return
     toast.add({ title: t(status === 'hidden' ? 'admin.moderation.hidden' : 'admin.moderation.restored'), color: 'success' })
     await Promise.all([refreshReported(), refreshStats()])
   }
   catch {
     toast.add({ title: t('admin.users.actionFailed'), color: 'error' })
-  }
-  finally {
-    busyId.value = null
   }
 }
 
@@ -261,8 +267,8 @@ onScopeDispose(() => {
                 </div>
                 <p class="line-clamp-2 whitespace-pre-line">{{ c.content }}</p>
                 <div class="mt-1.5 flex gap-1">
-                  <UButton size="xs" color="error" variant="ghost" icon="i-ph-eye-slash" :loading="busyId === c.$id" @click="moderate(c.$id, 'hidden')">{{ t('admin.moderation.hide') }}</UButton>
-                  <UButton size="xs" color="success" variant="ghost" icon="i-ph-eye" :loading="busyId === c.$id" @click="moderate(c.$id, 'active')">{{ t('admin.moderation.restore') }}</UButton>
+                  <UButton size="xs" color="error" variant="ghost" icon="i-ph-eye-slash" @click="moderate(c, 'hidden')">{{ t('admin.moderation.hide') }}</UButton>
+                  <UButton size="xs" color="success" variant="ghost" icon="i-ph-eye" @click="moderate(c, 'active')">{{ t('admin.moderation.restore') }}</UButton>
                 </div>
               </li>
             </ul>

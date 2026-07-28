@@ -13,6 +13,7 @@ const { t } = useI18n()
 const toast = useToast()
 const route = useRoute()
 const localePath = useLocalePath()
+const confirm = useConfirm()
 
 const courseId = route.params.id as string
 const { data: course, status, refresh } = await useFetch<CourseRow & { lessons: LessonRow[] }>(`/api/courses/${courseId}/manage`, {
@@ -105,16 +106,18 @@ async function toggleLessonStatus(lesson: LessonRow) {
 }
 
 async function removeLesson(lesson: LessonRow) {
-  lessonBusyId.value = lesson.$id
   try {
-    await $fetch(`/api/lessons/${lesson.$id}` as string, { method: 'DELETE' })
+    const ok = await confirm({
+      title: t('courses.admin.confirmDeleteLessonTitle'),
+      description: t('courses.admin.confirmDeleteLessonText', { title: lesson.title }),
+      confirmLabel: t('courses.admin.deleteLesson'),
+      action: () => $fetch(`/api/lessons/${lesson.$id}` as string, { method: 'DELETE' }),
+    })
+    if (!ok) return
     await refresh()
   }
   catch {
     toast.add({ title: t('courses.admin.saveFailed'), color: 'error' })
-  }
-  finally {
-    lessonBusyId.value = ''
   }
 }
 

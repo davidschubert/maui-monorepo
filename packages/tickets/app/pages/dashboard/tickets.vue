@@ -111,12 +111,17 @@ function onListDrop() {
 // Liste hinzufügen (rechts außen, Trello-Muster)
 const addingList = ref(false)
 const newListTitle = ref('')
+// `addingListBusy` schließt das Doppelklick-Loch: Enter + Klick legten zwei
+// Listen an (Audit-Befund C10).
+const addingListBusy = ref(false)
 async function addList() {
   const title = newListTitle.value.trim()
   if (!title) {
     addingList.value = false
     return
   }
+  if (addingListBusy.value) return
+  addingListBusy.value = true
   try {
     await $fetch('/api/tickets/lists', { method: 'POST', body: { title } })
     newListTitle.value = ''
@@ -125,6 +130,9 @@ async function addList() {
   }
   catch {
     toast.add({ title: t('tickets.errors.action'), color: 'error' })
+  }
+  finally {
+    addingListBusy.value = false
   }
 }
 </script>
@@ -218,6 +226,7 @@ async function addList() {
               v-model="newListTitle"
               size="sm"
               autofocus
+              :disabled="addingListBusy"
               :placeholder="t('tickets.board.listTitlePlaceholder')"
               class="w-full"
               @keydown.escape="() => { addingList = false }"

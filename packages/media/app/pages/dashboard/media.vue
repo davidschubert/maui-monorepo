@@ -8,6 +8,7 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCap
 
 const { t } = useI18n()
 const toast = useToast()
+const confirm = useConfirm()
 
 // Verwaltungs-Sicht: ?all=1 (media.manage) liefert ALLE Einträge inkl.
 // Entwürfe in voller Row-Form — die öffentliche Route zeigt nur published.
@@ -45,8 +46,12 @@ function openEdit(item: AdminMediaItem) {
   Object.assign(editState, { title: item.title, subtitle: item.subtitle, alt: item.alt, featured: item.featured })
 }
 
+// `saving` sperrt den Speichern-Knopf gegen Doppelklicks (Audit-Befund C10)
+const saving = ref(false)
+
 async function saveEdit() {
-  if (!editing.value) return
+  if (!editing.value || saving.value) return
+  saving.value = true
   try {
     await $fetch(`/api/media/${editing.value.$id}`, { method: 'PATCH', body: { ...editState } })
     toast.add({ title: t('media.admin.saved'), color: 'success' })
@@ -55,6 +60,9 @@ async function saveEdit() {
   }
   catch {
     toast.add({ title: t('media.admin.saveFailed'), color: 'error' })
+  }
+  finally {
+    saving.value = false
   }
 }
 
@@ -66,10 +74,18 @@ async function togglePublished(item: MediaItem) {
 }
 
 async function remove(item: MediaItem) {
-  if (!confirm(t('media.admin.deleteConfirm', { title: item.title }))) return
-  await $fetch(`/api/media/${item.$id}`, { method: 'DELETE' }).catch(() => {
+  try {
+    const ok = await confirm({
+      title: t('media.admin.deleteConfirmTitle'),
+      description: t('media.admin.deleteConfirm', { title: item.title }),
+      confirmLabel: t('media.admin.delete'),
+      action: () => $fetch(`/api/media/${item.$id}`, { method: 'DELETE' }),
+    })
+    if (!ok) return
+  }
+  catch {
     toast.add({ title: t('media.admin.deleteFailed'), color: 'error' })
-  })
+  }
   await refresh()
 }
 </script>
@@ -133,8 +149,8 @@ async function remove(item: MediaItem) {
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="() => { editing = null }">{{ t('media.admin.cancel') }}</UButton>
-            <UButton data-media-save @click="saveEdit">{{ t('media.admin.save') }}</UButton>
+            <UButton color="neutral" variant="ghost" :disabled="saving" @click="() => { editing = null }">{{ t('media.admin.cancel') }}</UButton>
+            <UButton :loading="saving" :disabled="saving" data-media-save @click="saveEdit">{{ t('media.admin.save') }}</UButton>
           </div>
         </template>
       </UModal>

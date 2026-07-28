@@ -5,6 +5,7 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCap
 
 const { t } = useI18n()
 const toast = useToast()
+const confirm = useConfirm()
 const { formatRelativeTime } = useFormatRelativeTime()
 const { page, setPage } = usePagination()
 const appConfig = useAppConfig()
@@ -97,17 +98,19 @@ async function toTicket(row: FeedbackRow) {
 }
 
 async function remove(row: FeedbackRow) {
-  busyId.value = row.$id
   try {
-    await $fetch(`/api/feedback/${row.$id}`, { method: 'DELETE' })
+    const ok = await confirm({
+      title: t('feedback.admin.confirmDeleteTitle'),
+      description: t('feedback.admin.confirmDeleteText'),
+      confirmLabel: t('feedback.admin.delete'),
+      action: () => $fetch(`/api/feedback/${row.$id}`, { method: 'DELETE' }),
+    })
+    if (!ok) return
     toast.add({ title: t('feedback.admin.deleted'), color: 'success' })
     await refresh()
   }
   catch {
     toast.add({ title: t('feedback.admin.actionFailed'), color: 'error' })
-  }
-  finally {
-    busyId.value = ''
   }
 }
 </script>

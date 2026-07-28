@@ -82,7 +82,8 @@
       "share": "Ticket-Link kopieren",
       "linkCopied": "Ticket-Link kopiert.",
       "delete": "Ticket löschen",
-      "deleteConfirmText": "Dieses Ticket endgültig löschen?",
+      "deleteConfirmTitle": "Ticket löschen?",
+      "deleteConfirmText": "Das Ticket wird endgültig gelöscht — mit Checkliste, Anhängen und Verlauf.",
       "deleted": "Ticket gelöscht.",
       "createdBy": "Angelegt von {name} · {date}"
     },
