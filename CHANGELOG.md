@@ -1,5 +1,136 @@
 # Changelog
 
+## [3.0.0](https://github.com/davidschubert/maui-monorepo/compare/v2.3.0...v3.0.0) (2026-07-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* **platform:** Altname app.pukalani.app abgeschaltet
+* **pricing:** Basic/Personal/Pro + Produkt-Gating im Pool — Davids Pricing-Entscheid
+* **posts:** durch die Datentür + im Pool — und der Backstop, der sofort traf
+* **control:** studio → control im ganzen Repo
+
+### Features
+
+* **admin,onboarding:** Schalter „Offene Registrierung" im Kunden-Dashboard ([11e2317](https://github.com/davidschubert/maui-monorepo/commit/11e2317ff085cc8fa5d0bc152e2ca8bd1d14ea3f))
+* **admin:** /changelog auf Mandanten-Hosts gaten (N7) ([97ae2f0](https://github.com/davidschubert/maui-monorepo/commit/97ae2f02015d6226373d33c0c4c9edaf44ac77c7))
+* **admin:** Dashboard-Zugang + Nav für Site-Rollen öffnen (N1) + E2E-Beweis ([c09a996](https://github.com/davidschubert/maui-monorepo/commit/c09a996d20b7a8cbc65bfd13daae233e353862a0))
+* **blueprint:** DAS Community-Layout — Registry-getriebene Zonen (Audit S9/K7) ([46fc776](https://github.com/davidschubert/maui-monorepo/commit/46fc7764af6b62dc7902fc0a60702f230d8e6937))
+* **blueprint:** Kompositions-Layer „Bauplan" — Produkt-Verdrahtung existiert genau einmal ([eb87aed](https://github.com/davidschubert/maui-monorepo/commit/eb87aed94c405bbcc87bb85e2d8d86046bb49e48))
+* **comments:** Brand-Kopf im auth-Layout-Override spiegeln (Audit B3) ([b503a18](https://github.com/davidschubert/maui-monorepo/commit/b503a18b89a5cbc50be51ca0b4e7a5abe9938b34))
+* **control:** interne Projekt-Doku unter /docs hinter der Betreiber-Auth ([26024c6](https://github.com/davidschubert/maui-monorepo/commit/26024c61bd28f9107135a3e74d42b09dbd8ba634))
+* **control:** tenants.openRegistration (studio-018) + Betreiber-Schreibweg ([1384e34](https://github.com/davidschubert/maui-monorepo/commit/1384e34f74182f3b84daaca1e059b61183091798))
+* **core:** Branding pro Community + Rollen, die an ihrer Site kleben (O5) ([733e623](https://github.com/davidschubert/maui-monorepo/commit/733e623fda58483a8e585fa616f29e7f86263d42))
+* **core:** Chrome-Registry-Vertrag + DemoBanner/PlanBadge ziehen in den Core (Audit S9) ([f33d59c](https://github.com/davidschubert/maui-monorepo/commit/f33d59c8863e2550fd0c45bfbf0ba49d009a7107))
+* **core:** Config-Gate maui.seo.tenantFavicon für Mandanten-Bildmarken ([459aaef](https://github.com/davidschubert/maui-monorepo/commit/459aaefd55102fbbc71d99591ae2e565b63ec3cd))
+* **core:** G1-1/2 — Kunden-Site-Rollen-Modell (5 Rollen) + site_members-Schema ([2cceeea](https://github.com/davidschubert/maui-monorepo/commit/2cceeea46a76202c3566fcab7bb377d31b15d8ff))
+* **core:** G1-3 — requireTenantPermission (Site-Rollen, cross-Projekt, gecacht) ([9684ec7](https://github.com/davidschubert/maui-monorepo/commit/9684ec760b96ab7fdef67319fc42b9ea6bc3a848))
+* **core:** G1-4 — tenant-genamete Row-Permissions (H3-Naht 4, Mechanismus) ([6f6a4d0](https://github.com/davidschubert/maui-monorepo/commit/6f6a4d04a4393cbcd9ea972162a0c38be3080011))
+* **core:** Login-Seiten mit Titel und sichtbarem Brand-Kopf (Audit B3) ([083cbde](https://github.com/davidschubert/maui-monorepo/commit/083cbde0f43a7fcb7bef272d1094ce9003ad10ab))
+* **core:** Mandanten-Branding SSR-gespiegelt (useTenantBranding) ([2dabef5](https://github.com/davidschubert/maui-monorepo/commit/2dabef5e85975a718307b1bd935458b88d5a223e))
+* **core:** Mitglieder-Registrierung pro Community schaltbar (S1) ([445b9cb](https://github.com/davidschubert/maui-monorepo/commit/445b9cb020214bf12d9d46543ec7647501f636fe))
+* **core:** Site-Rolle SSR-gespiegelt (N1) — useSiteRole/useSiteCapability + /api/site/role ([cff0fe9](https://github.com/davidschubert/maui-monorepo/commit/cff0fe9c7880a4e5198207f58de1bb05f61b3bb0))
+* **core:** tenantDb erhält atomare Zähler (increment/decrement) ([0aaeb6d](https://github.com/davidschubert/maui-monorepo/commit/0aaeb6df4516ea0e029e72cb4b521e5988cca99a))
+* **core:** useBrandTitle-Composable + Seitentitel für Register-/Passwort-Seiten ([8639733](https://github.com/davidschubert/maui-monorepo/commit/86397337f53edcb0f9e402f2251dc61b2a2037b4))
+* **core:** useIsTenantHost — Betreiber-Inhalt von Mandanten-Hosts fernhalten ([b535320](https://github.com/davidschubert/maui-monorepo/commit/b535320aa294f3434a99880dbbbb0733c3c51b09))
+* **courses:** Kurse durch die Datentür (Pool-Isolation, Entscheidung 15) ([9d43b4e](https://github.com/davidschubert/maui-monorepo/commit/9d43b4e3770cae11b701d974371a938c7a14fb8d))
+* **docs:** öffentliche Hilfe-Site apps/docs (Anleitung + Entwickler) ([21922ce](https://github.com/davidschubert/maui-monorepo/commit/21922ce502e13835fed685cd062796acbb64a616))
+* **events:** Events durch die Datentür (Pool-Isolation, Entscheidung 8) ([339fb02](https://github.com/davidschubert/maui-monorepo/commit/339fb02f22b780f711383776e213b509d34bfa6d))
+* **hosts:** control/my/start als neue Plattform-Hosts (additiv) ([21847b6](https://github.com/davidschubert/maui-monorepo/commit/21847b6152fb3c5c9882c765dffaa38b6f8ca25b))
+* **marketing:** L1 — apps/marketing scaffolden (Boot, i18n EN/DE, Manifest) ([7eaa60b](https://github.com/davidschubert/maui-monorepo/commit/7eaa60b7b3eab2ff1f151ec4f6f2824e840fb6ee))
+* **marketing:** L2 — Licht-Dramaturgie + Hero (Cold Open) + Chrome ([407f49e](https://github.com/davidschubert/maui-monorepo/commit/407f49e269174b184448e58c0eb98d7e8a31c5cc))
+* **marketing:** L3 — Szenen 2+3 (Problem/Lösung + So funktioniert's) ([3edfc8f](https://github.com/davidschubert/maui-monorepo/commit/3edfc8fd16bcdf430824b259ce754b236a13f60b))
+* **marketing:** L4 — Bausteine, Modular, Datenschutz, Preise/EA, FAQ, CTA ([bcf339f](https://github.com/davidschubert/maui-monorepo/commit/bcf339fac5814a43969af58680fb671d9d987d18))
+* **marketing:** L5 — SEO + strukturierte Daten + MVP-Abschluss ([fb32a0d](https://github.com/davidschubert/maui-monorepo/commit/fb32a0d85e47e230b7fd9f569adced22fd418bf7))
+* **marketing:** Statusseite verlinkt (status.pukalani.app) ([ef7eea3](https://github.com/davidschubert/maui-monorepo/commit/ef7eea3c07b20ab164ee532f447b7a14261c7754))
+* **marketing:** T1a — Story-Sektion „Ein Loch in den Wolken" + stufenloses Licht ([c60458c](https://github.com/davidschubert/maui-monorepo/commit/c60458caccdfbc87ef46903582335c4383754b20))
+* **marketing:** T1b — ehrliche Vergleichs-Sektion + /vs/{circle,skool,mighty-networks} ([953a6dc](https://github.com/davidschubert/maui-monorepo/commit/953a6dc5a24ac5e2fb4553410c4a8d076da52891))
+* **marketing:** T1c — Für-wen-Sektion + /fuer/{coaches,kurse,creator,vereine} ([ad3a331](https://github.com/davidschubert/maui-monorepo/commit/ad3a331f7d8d93d603e2c4e3a70cb101370af553))
+* **marketing:** T2 — SEO-Unterseiten (/dsgvo, /wechseln, /glossar, /features) + sitemap/robots ([61d868d](https://github.com/davidschubert/maui-monorepo/commit/61d868dfa5f0b9cc5fea743ac230024dd6a0e184))
+* **marketing:** T3 — Rechtstexte, Kurse/Events-Seiten, Dogfooding-Beweis, OG-Bilder, /faq, Mobil-Nav ([1adac93](https://github.com/davidschubert/maui-monorepo/commit/1adac93ef93e39a0eaaaa49637d0e4d2830db201))
+* **onboarding:** erster Einblick, Handoff in die Community, Testphasen-Ende (O6) ([9534297](https://github.com/davidschubert/maui-monorepo/commit/9534297946578a5ae0577fefa45155d274281a0b))
+* **onboarding:** Provisionierungs-Naht + Kundenbereich-Host (O2+O3) ([bca85a2](https://github.com/davidschubert/maui-monorepo/commit/bca85a24e959181bd78db0ee10fb941bc3d874cd))
+* **onboarding:** Setup-Wizard in sieben Schritten (O4) ([af67fe1](https://github.com/davidschubert/maui-monorepo/commit/af67fe10fa3754fedbfe6bdd96973949fe1f9259))
+* **onboarding:** Site-Owner wählen Theme + Variante ihrer Community ([58d867d](https://github.com/davidschubert/maui-monorepo/commit/58d867dc189e9bff14b25ada084c7d36272df281))
+* **ops:** pukalani.app in die Deploy-Kette — Landing-Go-Live (P5) ([76e4937](https://github.com/davidschubert/maui-monorepo/commit/76e49374e33985869848faecc222e34a6e3266f3))
+* **ops:** TLS-Waechter — geteilte certbot-Lineage kann nicht mehr still zuschlagen ([3fdb35e](https://github.com/davidschubert/maui-monorepo/commit/3fdb35e9953653501fb8fe81ac67986c2c7712fd))
+* **pages:** Impressum + Datenschutz als Vorlagen-Entwürfe beim Onboarding ([49bf4c4](https://github.com/davidschubert/maui-monorepo/commit/49bf4c401d6414e532ad32b0775b79c565365f05))
+* **platform:** courses-Produkt im Pool mounten ([daf239f](https://github.com/davidschubert/maui-monorepo/commit/daf239f043982a8bcbea42ecba53b13f6e90bc5f))
+* **platform:** Demo-Community „Morgenlicht" — Content-Seed, Demo-Banner, Pro-Gates ([91e2e33](https://github.com/davidschubert/maui-monorepo/commit/91e2e334db33232c017fea88e11f04f89ceffc97))
+* **platform:** Demo-Community Morgenlicht zweisprachig (Befund S4) ([4dd60b4](https://github.com/davidschubert/maui-monorepo/commit/4dd60b46d5ef7a09c672b476844505249cb323ae))
+* **platform:** events-Produkt im Pool mounten ([84c1bd4](https://github.com/davidschubert/maui-monorepo/commit/84c1bd44d97d577cb36b7a3d877dba002f300f57))
+* **platform:** robots.txt + sitemap.xml pro Tenant-Host (Audit S6) ([c179dd9](https://github.com/davidschubert/maui-monorepo/commit/c179dd93fe2da318b1a8095478dcc9fac2efc48f))
+* **platform:** Tenant-Header — Nav aus CMS-Seiten, Tenant-Name, Sprachwechsler ([d51084b](https://github.com/davidschubert/maui-monorepo/commit/d51084b699d294d6ae5de1a57a5e395c21b6c6dc))
+* **posts:** durch die Datentür + im Pool — und der Backstop, der sofort traf ([0f06dcf](https://github.com/davidschubert/maui-monorepo/commit/0f06dcf40ee370c3f86583117f6b6e89d251c666))
+* **pricing:** Basic/Personal/Pro + Produkt-Gating im Pool — Davids Pricing-Entscheid ([076ffb3](https://github.com/davidschubert/maui-monorepo/commit/076ffb3304d6d64db5efb51c50db4446f17be2a1))
+* **seo:** Marken-Titel + meta description auf den Tenant-Seiten (S8/S5) ([bf3604a](https://github.com/davidschubert/maui-monorepo/commit/bf3604ae52c2583625814c62f063ff8d9c94c30c))
+* **studio:** Einladungs-Codes im Dashboard ausstellen ([fdaee13](https://github.com/davidschubert/maui-monorepo/commit/fdaee130e3aa953f105643f5a3ab0f93e1032750))
+* **studio:** Einladungs-Vorrat, Trichter-Statistik und Aufräumregel ([983de31](https://github.com/davidschubert/maui-monorepo/commit/983de319e919c1fc036ac8272ffca20e20c23273))
+* **studio:** Einladungs-Warteschlange — anfragen, zuweisen, einlösen sehen ([5a55e8e](https://github.com/davidschubert/maui-monorepo/commit/5a55e8ee3d8f9dff688b20f30807923288bf8143))
+* **studio:** Onboarding-Vertrag + studio-016 (Vibe, Testphase, Invite-Codes) ([84f1490](https://github.com/davidschubert/maui-monorepo/commit/84f1490144ba7598d8277afaba3622ccb8054c9c))
+* **tenancy:** EINE mandantensichere Datentür statt Konvention ([dbe771f](https://github.com/davidschubert/maui-monorepo/commit/dbe771f344a8fb5c0445de377164f97bba1d18b3))
+* **themes,admin,activity,feedback,billing,pages:** Chrome-Registrierungen + themes-auth-Override (S9) ([6996576](https://github.com/davidschubert/maui-monorepo/commit/6996576700e822c074b115c7708856f3c0d8b412))
+* **themes:** Bildmarke je Community, neutrale Head-Ids, Picker-Chunk erst beim Öffnen ([0067466](https://github.com/davidschubert/maui-monorepo/commit/0067466463caab8fc1497a785c8f64a382e36f1d))
+* **themes:** Default-Theme heißt im Kunden-Picker „Sunrise" (N6) ([d782446](https://github.com/davidschubert/maui-monorepo/commit/d782446d776e59664072a42a2c60a66eadd5a467))
+* **tickets:** Kartenflug + FLIP-Reflow im Board ([453b774](https://github.com/davidschubert/maui-monorepo/commit/453b774113ac9e3169768258da6556dd546509c7))
+* **tickets:** Kartenflug + FLIP-Reflow im Board (Referenz-Motion-Design) ([f4d56af](https://github.com/davidschubert/maui-monorepo/commit/f4d56af492ca9ba360a8d493f2db3664328a5980))
+* **tickets:** Kartenflug auch beim eigenen Drag & Drop ([623db6f](https://github.com/davidschubert/maui-monorepo/commit/623db6f35985d226ffb320072b831c4f45879aa0))
+* **tickets:** Kartenflug auch beim eigenen Drag & Drop ([d6c4b99](https://github.com/davidschubert/maui-monorepo/commit/d6c4b99f4dc23b05063352c3d63faf8f2c87760c))
+
+
+### Bug Fixes
+
+* **admin:** entitlementsDoc aus GET /api/admin/config nehmen (K5) ([fd6f415](https://github.com/davidschubert/maui-monorepo/commit/fd6f415d0c995b07458161e155fce262001ba064))
+* **auth:** Ziel überlebt die Anmeldung (?redirect=) — Einladungs-Link wirkt ([e79a42d](https://github.com/davidschubert/maui-monorepo/commit/e79a42d35b3f2ddf1bec044f74f38ed732735ba9))
+* Avatar-Initialen auch an den rohen UAvatar-Stellen (Audit S2) ([c9744b1](https://github.com/davidschubert/maui-monorepo/commit/c9744b1662eb69ece6ff60658a57923f80750c0c))
+* **ci:** Pfadwechsel braucht pm2 delete+start — reload behaelt den Script-Pfad ([616e6a4](https://github.com/davidschubert/maui-monorepo/commit/616e6a4c1bf0b6c4518ff418c08957e2a1d3d5f4))
+* **ci:** pm2-Prozessname aus der Site ableiten, nicht aus dem App-Namen ([a766dfe](https://github.com/davidschubert/maui-monorepo/commit/a766dfe0805e211ce74006db1859a9319434bc5a))
+* **ci:** verwaisten pm2-Prozess entfernen + Health-Probe härten ([24bfb47](https://github.com/davidschubert/maui-monorepo/commit/24bfb47d799cff633fb8f85e746943046397c83f))
+* **comments:** Embed-Site-Schalter als USwitch + Platzhalter aus i18n (K8/K9) ([ef8cf4d](https://github.com/davidschubert/maui-monorepo/commit/ef8cf4d89c09fc1b290197542c3a382d173a23a4))
+* **control:** gestrandete App-Routen /api/studio/* → /api/control/* ([011c7dd](https://github.com/davidschubert/maui-monorepo/commit/011c7dd509dac2af814a0d140aeaa3eac0950011))
+* **core:** 404 rendert wieder die gebrandete Fehlerseite (Audit B2) ([83e72c7](https://github.com/davidschubert/maui-monorepo/commit/83e72c7c2eb2d5e90afc194351e5beff3f63529f))
+* **core:** Avatar-Initialen Unicode-fest statt „L(" (Audit S2) ([755ed8b](https://github.com/davidschubert/maui-monorepo/commit/755ed8bd32af5987eafc7aaa01c4eda2e17d149c))
+* **core:** Entitlement-Dokument nur noch aus/in app_secrets (N2) ([cbc3852](https://github.com/davidschubert/maui-monorepo/commit/cbc385228bd2609e928157d666eb16d0fa7ccbc7))
+* **core:** entitlementsDoc nicht mehr in den Client-Payload spiegeln (K5) ([4cfcb64](https://github.com/davidschubert/maui-monorepo/commit/4cfcb64e069f0dc888189bca81de637b29176815))
+* **core:** interne Links in Inhalten lokalisieren, kein nofollow (Audit S3) ([6503bcd](https://github.com/davidschubert/maui-monorepo/commit/6503bcd30c7a638e01a11b520036b772cfe5739b))
+* **core:** SEO-Basis pro Request-Host im Pool (Audit-Befund B1) ([471169a](https://github.com/davidschubert/maui-monorepo/commit/471169a835ffbd0d18cc5bbd56c2152107e38eb7))
+* **core:** Unterstrich-Betonung im Markdown-Subset-Parser (K6) ([5bc597a](https://github.com/davidschubert/maui-monorepo/commit/5bc597afe46a3bda6f1da675ab59f5f0c7f5265e))
+* **events:** Site-Owner verwalten ihre Events — requireSitePermission (Audit N5a) ([b51f611](https://github.com/davidschubert/maui-monorepo/commit/b51f611bde4fcf66bcb623a9e50c6821a9dede71))
+* **i18n:** Plan-Wording auf Basic/Personal/Pro angeglichen (Audit S10) ([0bdc9f3](https://github.com/davidschubert/maui-monorepo/commit/0bdc9f3d13fe74b61f0bc0c026a6e5d36f2432ee))
+* **i18n:** Template-Reste in app.tagline/home.subtitle ersetzt (Audit K11) ([df29697](https://github.com/davidschubert/maui-monorepo/commit/df29697607c50f9ffa29652825e78952a6b49bc5))
+* **marketing:** eigener Health ohne Appwrite — die Landing hat keine Datenebene ([cf7107c](https://github.com/davidschubert/maui-monorepo/commit/cf7107c542d9803e535a18ad69db63910f6ed44c))
+* **ops:** pm2-cwd-Waise heilt sich selbst — portfolio-Ausfall nach Cutover ([faef842](https://github.com/davidschubert/maui-monorepo/commit/faef84276d0034b706982f58b0138f2547094820))
+* **pages:** Slug-Platzhalter „imprint" aus i18n (Audit K8) ([af00c41](https://github.com/davidschubert/maui-monorepo/commit/af00c41fd1ceff2c752dc597920f3e563dd1c4b0))
+* **system:** signiertes Entitlement-Dokument in server-only Tabelle app_secrets (N2) ([25d08a8](https://github.com/davidschubert/maui-monorepo/commit/25d08a84f83a40ff92b97bf415a722a9dae31f38))
+* **tenancy:** Mandantengrenze beim Zugriff PER ID (3 Moderations-Routen) ([1cc4855](https://github.com/davidschubert/maui-monorepo/commit/1cc48552d2afbf5f3427b6975e0bd7e08dea3c38))
+* **tickets:** DnD-Animation ins Ziehen verlegen statt Nachklapp-Flug ([45f69a0](https://github.com/davidschubert/maui-monorepo/commit/45f69a0d61e76100bfc435b244285fe03e5c47de))
+* **tickets:** DnD-Animation ins Ziehen verlegen statt Nachklapp-Flug ([bdd528d](https://github.com/davidschubert/maui-monorepo/commit/bdd528df7c8b0b12e92ad90df90c357f32b38bc7))
+* **tickets:** drei DnD-Bugs im Board ([a185d19](https://github.com/davidschubert/maui-monorepo/commit/a185d19d1474422f0f69a47fedacc530339bdf74))
+* **tickets:** drei DnD-Bugs im Board ([6bd0555](https://github.com/davidschubert/maui-monorepo/commit/6bd055546a4e0470bffe1a01045ae6eca70cf11b))
+* **tickets:** flackernder Einfüge-Platzhalter beim Karten-Drag ([0c7c0cc](https://github.com/davidschubert/maui-monorepo/commit/0c7c0cce772d63cbfb81fa168e89fe5c76abbeb4))
+* **tickets:** flackernder Einfüge-Platzhalter beim Karten-Drag ([3c8bfdd](https://github.com/davidschubert/maui-monorepo/commit/3c8bfdd81ef962c862b054a184bbb0e28f17d6c8))
+* **tickets:** Sofort-Platzhalter beim Ziehen wiederherstellen ([3f81a2b](https://github.com/davidschubert/maui-monorepo/commit/3f81a2bf012d00a1698560991496b634a5e8967f))
+* **tickets:** Sofort-Platzhalter beim Ziehen wiederherstellen ([1984ac3](https://github.com/davidschubert/maui-monorepo/commit/1984ac335858e60d89d98e8a6a489f5984b8ad4a))
+* **workspace:** doppelten @nuxt/content-Catalog-Eintrag aus Auto-Merge dedupliziert ([b47816e](https://github.com/davidschubert/maui-monorepo/commit/b47816e4628cd75020e2cb19aa54785c79171193))
+
+
+### Refactoring
+
+* **brand:** Marken-Name konfigurierbar + Wording Studio → Control ([81ee5d7](https://github.com/davidschubert/maui-monorepo/commit/81ee5d7d43a5eef214b7b3b61ce573062305721c))
+* **comments,platform:** App-Layout-Overrides gelöscht — blueprint übernimmt (Audit S9) ([733f75d](https://github.com/davidschubert/maui-monorepo/commit/733f75dee3059567bcf670bea7517b2ad07db285))
+* **comments:** Lese-Routen durch die Datentür + Stimmen mit tenantId ([7475a6f](https://github.com/davidschubert/maui-monorepo/commit/7475a6f59be4e2fc7bdbba9c0f800302f7446195))
+* **comments:** Operator-Seite durch die Tür — Layer komplett ([d567e00](https://github.com/davidschubert/maui-monorepo/commit/d567e00e9a5df026d2c0f49cc2a68fdf04747091))
+* **comments:** Schreib-Routen durch die Datentür ([140130f](https://github.com/davidschubert/maui-monorepo/commit/140130f43cb7ad03fc464d700cbcfed64ad56321))
+* **control:** studio → control im ganzen Repo ([dc92430](https://github.com/davidschubert/maui-monorepo/commit/dc92430f835a4ca9069358cbbc67305b95aeb6d4))
+* **core:** ErrorPage nutzt useBrandName — eine Brand-Kette statt zwei ([e02de81](https://github.com/davidschubert/maui-monorepo/commit/e02de81bf3c6d72de86f00d92564121cbc49cdeb))
+* **help:** apps/docs → apps/help + Merge-Review-Nacharbeit ([cdfe908](https://github.com/davidschubert/maui-monorepo/commit/cdfe90837b7261490ca313d7efb1229e00d8f34b))
+* **platform:** Demo-Banner als offizielles UBanner (Audit K1) ([d70df89](https://github.com/davidschubert/maui-monorepo/commit/d70df89772dbe8bc47cdd1c81ef90a852928a5a0))
+
+
+### Chores
+
+* **platform:** Altname app.pukalani.app abgeschaltet ([e626b69](https://github.com/davidschubert/maui-monorepo/commit/e626b69ec13aa95f74c1b04fb09ab625fc00dd47))
+
 ## [2.3.0](https://github.com/davidschubert/maui-monorepo/compare/v2.2.0...v2.3.0) (2026-07-24)
 
 
