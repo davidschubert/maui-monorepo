@@ -1,20 +1,28 @@
 <script setup lang="ts">
 /**
  * Einstellungen → Community: die Schalter, die der KUNDIN gehören (nicht dem
- * Betreiber). Erster Bewohner ist „Offene Registrierung" (Audit-Befund S1,
- * Davids Entscheidung 4 vom 2026-07-27) — der Einladungs-Code gilt nur fürs
- * GRÜNDEN einer Community, wer beitreten darf, entscheidet die Community.
+ * Betreiber). Zwei Bewohner:
+ *
+ *  1. „Offene Registrierung" (Audit-Befund S1, Davids Entscheidung 4 vom
+ *     2026-07-27) — der Einladungs-Code gilt nur fürs GRÜNDEN einer
+ *     Community, wer beitreten darf, entscheidet die Community.
+ *  2. „Erscheinungsbild" (Davids Entscheidung 12 vom 2026-07-28) — Theme +
+ *     Variante der Community. „Nur Erscheinung ist variabel" gehört damit in
+ *     Kundenhand; der Custom-Theme-EDITOR bleibt Betreiber-Werkzeug
+ *     (/dashboard/themes, system.manage), hier wird aus dem BUILT-IN-Katalog
+ *     gewählt (26 Welten × Varianten, derselbe öffentliche Grid-Picker).
  *
  * Nur auf MANDANTEN-Hosts sinnvoll: eine Silo-App oder ein Kontroll-Host hat
- * keine Community-Grenze, dort regelt die Registrierung weiterhin die
- * Instanz-Einstellung (Betreiber-Seite /dashboard/admin/config). Ohne Tenant
- * steht hier deshalb ein Hinweis statt eines Schalters — und der Reiter ist in
- * der Settings-Navigation ausgeblendet.
+ * keine Community-Grenze, dort regeln Registrierung und Optik weiterhin die
+ * Instanz-Einstellungen (Betreiber-Seiten /dashboard/admin/config bzw.
+ * /dashboard/themes). Ohne Tenant steht hier deshalb ein Hinweis statt der
+ * Schalter — und der Reiter ist in der Settings-Navigation ausgeblendet.
  *
- * VERTRAG ZUM SERVER: die Route `/api/site/registration` liegt im
- * onboarding-Layer, weil DIESER die Service-Naht zum Control Plane besitzt
- * (`tenants` gehört dorthin, die Platform-App hat nur einen Read-only-Key).
- * Siehe packages/onboarding/server/api/site/registration.patch.ts.
+ * VERTRAG ZUM SERVER: beide Routen (`/api/site/registration`,
+ * `/api/site/branding`) liegen im onboarding-Layer, weil DIESER die
+ * Service-Naht zum Control Plane besitzt (`tenants` gehört dorthin, die
+ * Platform-App hat nur einen Read-only-Key). Siehe
+ * packages/onboarding/server/api/site/{registration.patch,branding.patch}.ts.
  */
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'team.manage' })
 
@@ -22,7 +30,7 @@ const { t } = useI18n()
 const toast = useToast()
 
 const { openRegistration } = useTenantOpenRegistration()
-/** null = kein Mandanten-Host → Schalter hat hier keine Bedeutung. */
+/** null = kein Mandanten-Host → die Schalter haben hier keine Bedeutung. */
 const isTenantHost = computed(() => openRegistration.value !== null)
 
 const value = ref(openRegistration.value !== false)
@@ -49,6 +57,68 @@ async function save(next: boolean) {
   }
   finally {
     saving.value = false
+  }
+}
+
+// ── Erscheinungsbild ────────────────────────────────────────────────────────
+
+/**
+ * Eigene Capability (nicht `team.manage`): Branding und Team sind in der
+ * Site-Rollen-Matrix getrennte Rechte. Heute tragen beide dieselben Rollen
+ * (owner + admin) — geprüft wird trotzdem das RICHTIGE, damit eine spätere
+ * Rolle „nur Gestaltung" oder „nur Team" hier nicht falsch landet. Die
+ * AUTORITÄT bleibt requireSitePermission auf der Route.
+ */
+const canBranding = useSiteCapability('branding.manage')
+const { branding } = useTenantBranding()
+
+// Namen + Farbe der Auswahl kommen aus der Theme-Registry des themes-Layers
+// (Auto-Import wie im DashboardUserMenu) — nicht aus einer zweiten Liste hier.
+const { themes } = useTheme()
+
+const selection = computed(() => branding.value ?? { theme: '', variant: '' })
+const selectedTheme = computed(() => themes.value.find(entry => entry.id === selection.value.theme) ?? null)
+const selectedVariantColor = computed(() =>
+  selectedTheme.value?.variants.find(v => v.id === selection.value.variant)?.color
+  ?? selectedTheme.value?.color
+  ?? null,
+)
+const capitalize = (value: string) => value.charAt(0).toUpperCase() + value.slice(1)
+/** '' = nie gewählt → die Instanz-Einstellung gilt (ehrlich benennen). */
+const selectionLabel = computed(() => {
+  if (!selectedTheme.value) return t('dashboard.community.appearance.inherited')
+  return selection.value.variant
+    ? `${selectedTheme.value.name} · ${capitalize(selection.value.variant)}`
+    : selectedTheme.value.name
+})
+
+const pickerOpen = ref(false)
+// Erst beim ersten Öffnen mounten (Audit-Befund K4) und nie wieder unmounten —
+// ein offenes Modal per v-if zu entfernen ist die bekannte Reka-Falle.
+const pickerMounted = ref(false)
+watch(pickerOpen, (open) => { if (open) pickerMounted.value = true })
+
+const savingBranding = ref(false)
+async function saveBranding(next: { theme: string, variant: string }) {
+  if (savingBranding.value) return
+  savingBranding.value = true
+  try {
+    const result = await $fetch<{ theme: string, variant: string }>('/api/site/branding', {
+      method: 'PATCH',
+      body: next,
+    })
+    // Wie beim Registrierungs-Schalter: der geschriebene Wert kommt aus der
+    // ANTWORT. Der Resolver-Cache der Platform-App hält den alten Stand noch
+    // bis zu 30 s — die öffentliche Community färbt sich also gleich um, aber
+    // nicht in derselben Sekunde. Genau das sagt der Hinweis unten.
+    branding.value = { theme: result.theme, variant: result.variant }
+    toast.add({ title: t('dashboard.community.appearance.saved'), color: 'success' })
+  }
+  catch {
+    toast.add({ title: t('dashboard.community.saveFailed'), color: 'error' })
+  }
+  finally {
+    savingBranding.value = false
   }
 }
 </script>
@@ -86,5 +156,53 @@ async function save(next: boolean) {
         @update:model-value="(next: boolean) => save(next)"
       />
     </div>
+  </UPageCard>
+
+  <!-- Erscheinungsbild: eigene Karte, eigene Capability. Auf Nicht-Mandanten-
+       Hosts gar nicht erst zeigen — dort gehört die Optik der Instanz. -->
+  <UPageCard
+    v-if="isTenantHost && canBranding"
+    :title="t('dashboard.community.appearance.title')"
+    :description="t('dashboard.community.appearance.description')"
+    variant="subtle"
+  >
+    <div class="flex items-center justify-between gap-4" data-community-branding>
+      <div class="flex items-start gap-3">
+        <span
+          v-if="selectedVariantColor"
+          class="mt-0.5 size-5 shrink-0 rounded-full shadow-inner ring-1 ring-black/10"
+          :style="{ backgroundColor: selectedVariantColor }"
+          aria-hidden="true"
+        />
+        <UIcon v-else name="i-ph-palette" class="mt-0.5 size-5 shrink-0 text-muted" />
+        <div>
+          <p class="text-sm font-medium" data-community-theme>{{ selectionLabel }}</p>
+          <p class="text-sm text-muted">{{ t('dashboard.community.appearance.propagation') }}</p>
+        </div>
+      </div>
+      <UButton
+        color="neutral"
+        variant="subtle"
+        icon="i-ph-swatches"
+        :loading="savingBranding"
+        @click="pickerOpen = true"
+      >
+        {{ t('dashboard.community.appearance.change') }}
+      </UButton>
+    </div>
+
+    <!-- DERSELBE öffentliche Grid-Picker (themes-Layer), nur kontrolliert:
+         `selection` macht ihn zum Formularfeld dieser Community, statt das
+         Theme-Cookie des Owners umzustellen. `builtin-only`, weil Custom
+         Themes pro Appwrite-PROJEKT liegen und im Pool nicht einem einzelnen
+         Mandanten gehören. -->
+    <ThemePickerModal
+      v-if="pickerMounted"
+      v-model:open="pickerOpen"
+      :selection="selection"
+      builtin-only
+      :title="t('dashboard.community.appearance.pickerTitle')"
+      @select="saveBranding"
+    />
   </UPageCard>
 </template>

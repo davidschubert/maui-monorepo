@@ -396,7 +396,16 @@
       "saved": "Gespeichert.",
       "saveFailed": "Konnte nicht gespeichert werden.",
       "noTenantTitle": "Keine Community auf diesem Host",
-      "noTenantText": "Diese Einstellungen gelten für eine einzelne Community. Auf dieser Instanz regelt die Registrierung die Betreiber-Konfiguration."
+      "noTenantText": "Diese Einstellungen gelten für eine einzelne Community. Auf dieser Instanz regelt die Registrierung die Betreiber-Konfiguration.",
+      "appearance": {
+        "title": "Erscheinungsbild",
+        "description": "Farbwelt dieser Community — sie gilt für alle, die eure Seiten besuchen.",
+        "change": "Ändern",
+        "pickerTitle": "Farbwelt der Community",
+        "inherited": "Noch nichts gewählt (Voreinstellung)",
+        "propagation": "Neue Farbe erscheint binnen einer halben Minute auf allen Seiten.",
+        "saved": "Erscheinungsbild gespeichert."
+      }
     },
     "sidebar": {
       "label": "Seitenleiste",
