@@ -45,6 +45,8 @@
       "updateFailed": "Site konnte nicht aktualisiert werden",
       "deleted": "Site gelöscht",
       "deleteFailed": "Site konnte nicht gelöscht werden",
+      "confirmDeleteTitle": "Einbetter-Domain löschen?",
+      "confirmDeleteText": "{host} darf das Widget danach nicht mehr einbetten. Das wirkt sofort.",
       "host": "Domain (Host)",
       "hostHelp": "Kanonischer Hostname der Einbetter-Seite, klein, ohne https:// — z. B. blog.kunde.de",
       "hostPlaceholder": "blog.kunde.de",

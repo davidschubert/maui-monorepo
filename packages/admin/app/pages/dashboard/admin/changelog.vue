@@ -7,6 +7,7 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCap
 
 const { t, locale } = useI18n()
 const toast = useToast()
+const confirm = useConfirm()
 const today = () => new Date().toISOString().slice(0, 10)
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(locale.value, { day: '2-digit', month: 'short', year: 'numeric' })
 
@@ -99,21 +100,20 @@ async function onSubmit(event: FormSubmitEvent<FormInput>) {
   }
 }
 
-const pendingDelete = ref<ChangelogEntry | null>(null)
-async function confirmDelete() {
-  if (!pendingDelete.value) return
-  busy.value = true
+async function remove(entry: ChangelogEntry) {
   try {
-    await $fetch(`/api/admin/changelog/${pendingDelete.value.$id}`, { method: 'DELETE' })
+    const ok = await confirm({
+      title: t('admin.changelog.delete'),
+      description: t('admin.changelog.confirmDelete', { title: localized(entry, 'title') }),
+      confirmLabel: t('admin.changelog.delete'),
+      action: () => $fetch(`/api/admin/changelog/${entry.$id}`, { method: 'DELETE' }),
+    })
+    if (!ok) return
     toast.add({ title: t('admin.changelog.deleted'), color: 'success' })
-    pendingDelete.value = null
     await refresh()
   }
   catch {
     toast.add({ title: t('admin.users.actionFailed'), color: 'error' })
-  }
-  finally {
-    busy.value = false
   }
 }
 </script>
@@ -147,7 +147,7 @@ async function confirmDelete() {
           <span class="text-xs text-muted">{{ fmtDate(entry.date || entry.$createdAt) }}</span>
           <div class="ms-auto flex gap-1">
             <UButton size="xs" color="neutral" variant="ghost" icon="i-ph-pencil-simple" @click="openEdit(entry)">{{ t('admin.changelog.edit') }}</UButton>
-            <UButton size="xs" color="error" variant="ghost" icon="i-ph-trash" @click="() => { pendingDelete = entry }">{{ t('admin.changelog.delete') }}</UButton>
+            <UButton size="xs" color="error" variant="ghost" icon="i-ph-trash" @click="remove(entry)">{{ t('admin.changelog.delete') }}</UButton>
           </div>
         </div>
         <p class="mt-2 whitespace-pre-line text-sm text-muted">{{ localized(entry, 'body') }}</p>
@@ -211,16 +211,5 @@ async function confirmDelete() {
       </template>
     </UModal>
 
-    <UModal :open="pendingDelete !== null" :title="t('admin.changelog.delete')" @update:open="(v: boolean) => { if (!v) pendingDelete = null }">
-      <template #body>
-        <p class="text-sm">{{ t('admin.changelog.confirmDelete', { title: pendingDelete ? localized(pendingDelete, 'title') : '' }) }}</p>
-      </template>
-      <template #footer>
-        <div class="flex w-full justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="() => { pendingDelete = null }">{{ t('ui.cancel') }}</UButton>
-          <UButton color="error" :loading="busy" @click="confirmDelete">{{ t('admin.changelog.delete') }}</UButton>
-        </div>
-      </template>
-    </UModal>
   </div>
 </template>

@@ -87,6 +87,8 @@
       "published": "Event published.",
       "unpublished": "Event unpublished.",
       "cancelled": "Event cancelled.",
+      "confirmCancelTitle": "Cancel event?",
+      "confirmCancelText": "“{title}” will show as cancelled for everyone. Registered guests see the cancellation right away.",
       "actionFailed": "Action failed.",
       "status": {
         "draft": "Draft",

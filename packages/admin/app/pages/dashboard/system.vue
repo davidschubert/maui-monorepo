@@ -5,6 +5,7 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCap
 
 const { t, locale } = useI18n()
 const toast = useToast()
+const confirm = useConfirm()
 const isDev = import.meta.dev
 
 // Live-/per-Request-Daten ohne SEO-Relevanz → client-seitig (kein SSR-Render,
@@ -71,19 +72,24 @@ const checkedCount = computed(() => (data.value?.dependencies ?? []).filter(d =>
 
 // --- Dev-only: Dependency-Update (Catalog-Bump + pnpm install) ----------------
 type Dep = SystemInfo['dependencies'][number]
-const pendingUpdate = ref<Dep | null>(null)
-const updating = ref(false)
 const justUpdated = ref(new Set<string>())
 
-async function confirmUpdate() {
-  const dep = pendingUpdate.value
-  if (!dep) return
-  updating.value = true
+async function updateDep(dep: Dep) {
   try {
-    const res = await $fetch<{ to: string }>('/api/admin/system/update', { method: 'POST', body: { name: dep.name } })
+    let to = ''
+    const ok = await confirm({
+      title: t('dashboard.system.stack.updateTitle'),
+      description: `${t('dashboard.system.stack.updateConfirm', { name: dep.name, from: dep.version, to: dep.latest })} ${t('dashboard.system.stack.updateNote')}`,
+      confirmLabel: t('dashboard.system.stack.updateConfirmBtn'),
+      color: 'warning',
+      action: async () => {
+        const res = await $fetch<{ to: string }>('/api/admin/system/update', { method: 'POST', body: { name: dep.name } })
+        to = res.to
+      },
+    })
+    if (!ok) return
     justUpdated.value = new Set(justUpdated.value).add(dep.name)
-    toast.add({ title: t('dashboard.system.stack.updateStarted', { name: dep.name, version: res.to }), color: 'success', duration: 8000 })
-    pendingUpdate.value = null
+    toast.add({ title: t('dashboard.system.stack.updateStarted', { name: dep.name, version: to }), color: 'success', duration: 8000 })
   }
   catch (error) {
     const detail = (error as { statusMessage?: string, data?: { statusMessage?: string } })
@@ -92,9 +98,6 @@ async function confirmUpdate() {
       description: detail.data?.statusMessage ?? detail.statusMessage,
       color: 'error',
     })
-  }
-  finally {
-    updating.value = false
   }
 }
 </script>
@@ -361,7 +364,7 @@ async function confirmUpdate() {
                                 variant="soft"
                                 icon="i-ph-arrow-circle-up"
                                 class="ms-1 font-sans"
-                                @click="() => { pendingUpdate = dep }"
+                                @click="updateDep(dep)"
                               >
                                 {{ t('dashboard.system.stack.update') }}
                               </UButton>
@@ -386,24 +389,6 @@ async function confirmUpdate() {
         </ClientOnly>
       </div>
 
-      <UModal
-        :open="pendingUpdate !== null"
-        :title="t('dashboard.system.stack.updateTitle')"
-        @update:open="(v: boolean) => { if (!v) pendingUpdate = null }"
-      >
-        <template #body>
-          <p class="text-sm">
-            {{ t('dashboard.system.stack.updateConfirm', { name: pendingUpdate?.name, from: pendingUpdate?.version, to: pendingUpdate?.latest }) }}
-          </p>
-          <p class="mt-2 text-xs text-muted">{{ t('dashboard.system.stack.updateNote') }}</p>
-        </template>
-        <template #footer>
-          <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" :disabled="updating" @click="() => { pendingUpdate = null }">{{ t('ui.cancel') }}</UButton>
-            <UButton color="warning" icon="i-ph-arrow-circle-up" :loading="updating" @click="confirmUpdate">{{ t('dashboard.system.stack.updateConfirmBtn') }}</UButton>
-          </div>
-        </template>
-      </UModal>
     </template>
   </UDashboardPanel>
 </template>

@@ -13,12 +13,13 @@ interface GdprExportFile {
 
 const { t } = useI18n()
 const toast = useToast()
+const confirm = useConfirm()
 const { formatDate } = useFormatDate()
 
 const { data, refresh } = await useFetch<{ total: number, files: GdprExportFile[] }>('/api/admin/gdpr-exports')
 
-const busy = ref(false)
-const pendingDelete = ref<GdprExportFile | null>(null)
+// Doppelklick-Schutz für den Download (der Löschweg sperrt im Dialog selbst)
+const downloading = ref('')
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
@@ -27,6 +28,8 @@ function formatSize(bytes: number): string {
 }
 
 async function download(file: GdprExportFile) {
+  if (downloading.value) return
+  downloading.value = file.$id
   try {
     const blob = await $fetch<Blob>(`/api/admin/gdpr-exports/${file.$id}`, { responseType: 'blob' })
     const url = URL.createObjectURL(blob)
@@ -39,22 +42,25 @@ async function download(file: GdprExportFile) {
   catch {
     toast.add({ title: t('admin.gdprExports.downloadError'), color: 'error' })
   }
+  finally {
+    downloading.value = ''
+  }
 }
 
-async function executeDelete() {
-  if (!pendingDelete.value) return
-  busy.value = true
+async function remove(file: GdprExportFile) {
   try {
-    await $fetch(`/api/admin/gdpr-exports/${pendingDelete.value.$id}`, { method: 'DELETE' })
+    const ok = await confirm({
+      title: t('admin.gdprExports.confirmTitle'),
+      description: t('admin.gdprExports.confirmText', { name: file.name }),
+      confirmLabel: t('admin.gdprExports.delete'),
+      action: () => $fetch(`/api/admin/gdpr-exports/${file.$id}`, { method: 'DELETE' }),
+    })
+    if (!ok) return
     toast.add({ title: t('admin.gdprExports.deleted'), color: 'success' })
-    pendingDelete.value = null
     await refresh()
   }
   catch {
     toast.add({ title: t('admin.gdprExports.deleteError'), color: 'error' })
-  }
-  finally {
-    busy.value = false
   }
 }
 </script>
@@ -74,26 +80,18 @@ async function executeDelete() {
           <p class="text-xs text-muted">{{ formatDate(file.$createdAt) }} · {{ formatSize(file.sizeOriginal) }}</p>
         </div>
         <div class="flex items-center gap-2">
-          <UButton size="xs" color="neutral" variant="subtle" icon="i-ph-download-simple" @click="download(file)">
+          <UButton
+            size="xs" color="neutral" variant="subtle" icon="i-ph-download-simple"
+            :loading="downloading === file.$id" :disabled="!!downloading"
+            @click="download(file)"
+          >
             {{ t('admin.gdprExports.download') }}
           </UButton>
-          <UButton size="xs" color="error" variant="subtle" icon="i-ph-trash" @click="() => { pendingDelete = file }">
+          <UButton size="xs" color="error" variant="subtle" icon="i-ph-trash" @click="remove(file)">
             {{ t('admin.gdprExports.delete') }}
           </UButton>
         </div>
       </li>
     </ul>
-
-    <UModal :open="pendingDelete !== null" :title="t('admin.gdprExports.confirmTitle')" @update:open="(value: boolean) => { if (!value) pendingDelete = null }">
-      <template #body>
-        <p class="text-sm">{{ t('admin.gdprExports.confirmText', { name: pendingDelete?.name ?? '' }) }}</p>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="() => { pendingDelete = null }">{{ t('ui.cancel') }}</UButton>
-          <UButton color="error" :loading="busy" @click="executeDelete">{{ t('admin.gdprExports.delete') }}</UButton>
-        </div>
-      </template>
-    </UModal>
   </div>
 </template>

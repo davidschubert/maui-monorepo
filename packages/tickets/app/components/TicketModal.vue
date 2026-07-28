@@ -43,7 +43,7 @@ const checklist = ref<TicketChecklistItem[]>([])
 const members = ref<TicketMember[]>([])
 const newChecklistItem = ref('')
 const busy = ref(false)
-const confirmDelete = ref(false)
+const confirm = useConfirm()
 
 // Beschreibung hat einen EIGENEN Edit-Zyklus: Änderungen greifen erst mit
 // ihrem Speichern-Button; Schließen mit ungespeicherten Änderungen fragt nach
@@ -89,7 +89,6 @@ watch(() => props.ticket?.$id, () => {
   checklist.value = parseTicketChecklist(ticket.checklist)
   members.value = parseTicketMembers(ticket.membersJson)
   newChecklistItem.value = ''
-  confirmDelete.value = false
   void nextTick(() => { syncing.value = false })
 }, { immediate: true })
 
@@ -363,19 +362,22 @@ async function duplicate() {
 }
 
 async function remove() {
-  if (!props.ticket) return
-  busy.value = true
+  const ticket = props.ticket
+  if (!ticket) return
   try {
-    await $fetch(`/api/tickets/${props.ticket.$id}`, { method: 'DELETE' })
+    const ok = await confirm({
+      title: t('tickets.modal.deleteConfirmTitle'),
+      description: t('tickets.modal.deleteConfirmText'),
+      confirmLabel: t('tickets.modal.delete'),
+      action: () => $fetch(`/api/tickets/${ticket.$id}`, { method: 'DELETE' }),
+    })
+    if (!ok) return
     toast.add({ title: t('tickets.modal.deleted'), color: 'success' })
     emit('refresh')
     open.value = false
   }
   catch {
     toast.add({ title: t('tickets.errors.action'), color: 'error' })
-  }
-  finally {
-    busy.value = false
   }
 }
 
@@ -458,7 +460,7 @@ const menuItems = computed(() => [[
   { label: t('tickets.export.copy'), icon: 'i-ph-clipboard-text', onSelect: copyMarkdown },
   { label: t('tickets.export.download'), icon: 'i-ph-download-simple', onSelect: downloadMarkdown },
 ], [
-  { label: t('tickets.modal.delete'), icon: 'i-ph-trash', color: 'error' as const, onSelect: () => { confirmDelete.value = true } },
+  { label: t('tickets.modal.delete'), icon: 'i-ph-trash', color: 'error' as const, onSelect: () => { void remove() } },
 ]])
 
 const createdAtText = computed(() =>
@@ -662,14 +664,6 @@ const createdAtText = computed(() =>
             </li>
           </ul>
           <p v-else class="mt-2 text-xs text-muted">{{ t('tickets.files.empty') }}</p>
-        </div>
-
-        <div v-if="confirmDelete" class="mt-6 flex items-center justify-between gap-2 rounded-lg border border-error/40 bg-error/5 p-3">
-          <p class="text-sm text-error">{{ t('tickets.modal.deleteConfirmText') }}</p>
-          <div class="flex gap-2">
-            <UButton color="neutral" variant="ghost" size="sm" @click="() => { confirmDelete = false }">{{ t('ui.cancel') }}</UButton>
-            <UButton color="error" size="sm" :loading="busy" @click="remove">{{ t('tickets.modal.delete') }}</UButton>
-          </div>
         </div>
 
         <!-- Kein Speichern-Button — Änderungen sichern sich selbst (Autosave);

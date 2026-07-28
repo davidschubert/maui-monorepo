@@ -125,6 +125,7 @@
       "lastCheck": "Zuletzt geprüft: {at}",
       "healthFailed": "Health-Check fehlgeschlagen",
       "deregister": "Aus dem Register entfernen",
+      "deregisterTitle": "Site aus dem Register entfernen?",
       "deregisterConfirm": "„{name}\" aus dem Register entfernen? Das Appwrite-Projekt und seine Daten bleiben unberührt.",
       "deregisterFailed": "Entfernen fehlgeschlagen",
       "save": "Registrieren",

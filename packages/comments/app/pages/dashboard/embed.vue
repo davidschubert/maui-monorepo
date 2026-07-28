@@ -3,6 +3,7 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCap
 
 const { t } = useI18n()
 const toast = useToast()
+const confirm = useConfirm()
 useHead({ title: () => t('comments.embedAdmin.title') })
 
 interface EmbedSiteDto { id: string, host: string, label: string, targetTypes: string[], active: boolean }
@@ -72,7 +73,13 @@ async function toggleActive(site: EmbedSiteDto) {
 
 async function removeSite(site: EmbedSiteDto) {
   try {
-    await $fetch(`/api/admin/embed-sites/${site.id}`, { method: 'DELETE' })
+    const ok = await confirm({
+      title: t('comments.embedAdmin.confirmDeleteTitle'),
+      description: t('comments.embedAdmin.confirmDeleteText', { host: site.host }),
+      confirmLabel: t('comments.embedAdmin.delete'),
+      action: () => $fetch(`/api/admin/embed-sites/${site.id}`, { method: 'DELETE' }),
+    })
+    if (!ok) return
     toast.add({ title: t('comments.embedAdmin.deleted'), color: 'success' })
     await refresh()
   }

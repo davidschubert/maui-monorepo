@@ -26,6 +26,8 @@
       "saveFailed": "Konnte nicht gespeichert werden",
       "deleted": "Seite gelöscht",
       "deleteFailed": "Konnte nicht gelöscht werden",
+      "confirmDeleteTitle": "Seite löschen?",
+      "confirmDeleteText": "„{slug}“ verschwindet mit allen Sprachversionen — Links darauf laufen danach ins Leere.",
       "loadFailed": "Seite konnte nicht geladen werden",
       "titleRequired": "Bitte einen Titel eingeben",
       "locale": {

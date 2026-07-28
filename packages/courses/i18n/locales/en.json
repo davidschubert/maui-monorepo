@@ -46,6 +46,7 @@
       "create": "New course",
       "createTitle": "Create course",
       "edit": "Edit",
+      "emptyTitle": "No courses yet",
       "empty": "No courses yet — create the first one.",
       "backToList": "All courses",
       "publish": "Publish",
@@ -58,6 +59,9 @@
       "lessonsTitle": "Lessons ({count})",
       "addLesson": "Add lesson",
       "editLesson": "Edit lesson",
+      "deleteLesson": "Delete lesson",
+      "confirmDeleteLessonTitle": "Delete lesson?",
+      "confirmDeleteLessonText": "“{title}” will be deleted for good — including for participants who already read it.",
       "noLessons": "No lessons yet — start with the first one.",
       "editingWarning": "{name} is editing this course right now, too.",
       "form": {

@@ -87,9 +87,17 @@ const statusColor = (row: CourseRow) =>
           <UIcon name="i-ph-spinner" class="size-6 animate-spin text-muted" />
         </div>
 
-        <p v-else-if="!data?.rows.length" class="py-16 text-center text-sm text-muted">
-          {{ t('courses.admin.empty') }}
-        </p>
+        <!-- „noch nichts angelegt" → der eine nächste Schritt ist Anlegen -->
+        <CoreEmptyState
+          v-else-if="!data?.rows.length"
+          icon="i-ph-graduation-cap"
+          :title="t('courses.admin.emptyTitle')"
+          :description="t('courses.admin.empty')"
+          :action-label="t('courses.admin.create')"
+          action-icon="i-ph-plus"
+          class="py-16"
+          @action="() => { modalOpen = true }"
+        />
 
         <ul v-else class="divide-y divide-default" data-testid="courses-admin-list">
           <li v-for="row in data.rows" :key="row.$id" class="flex items-center gap-3 py-3 text-sm">

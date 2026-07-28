@@ -46,6 +46,7 @@
       "create": "Neuer Kurs",
       "createTitle": "Kurs anlegen",
       "edit": "Bearbeiten",
+      "emptyTitle": "Noch keine Kurse",
       "empty": "Noch keine Kurse — leg den ersten an.",
       "backToList": "Alle Kurse",
       "publish": "Veröffentlichen",
@@ -58,6 +59,9 @@
       "lessonsTitle": "Lektionen ({count})",
       "addLesson": "Lektion hinzufügen",
       "editLesson": "Lektion bearbeiten",
+      "deleteLesson": "Lektion löschen",
+      "confirmDeleteLessonTitle": "Lektion löschen?",
+      "confirmDeleteLessonText": "„{title}“ wird endgültig gelöscht — auch für Teilnehmende, die sie schon gesehen haben.",
       "noLessons": "Noch keine Lektionen — fang mit der ersten an.",
       "editingWarning": "{name} bearbeitet diesen Kurs gerade ebenfalls.",
       "form": {

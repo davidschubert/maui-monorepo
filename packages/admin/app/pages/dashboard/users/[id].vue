@@ -7,6 +7,7 @@ const route = useRoute()
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
 const toast = useToast()
+const confirm = useConfirm()
 const auth = useAuthStore()
 const { user: me } = useCurrentUser()
 const { formatRelativeTime } = useFormatRelativeTime()
@@ -25,8 +26,7 @@ const memberSince = computed(() =>
   user.value ? new Date(user.value.registration).toLocaleDateString(locale.value, { month: 'short', year: 'numeric' }) : '',
 )
 
-const pending = ref<{ type: 'block' | 'unblock' | 'sessions' | 'delete' } | null>(null)
-const busy = ref(false)
+type UserAction = 'block' | 'unblock' | 'sessions' | 'delete'
 const exporting = ref(false)
 
 // --- Rollen (Mehrfachauswahl) -------------------------------------------------
@@ -106,48 +106,53 @@ async function exportData() {
   }
 }
 
-const confirmText = computed(() => {
-  if (!pending.value || !user.value) return ''
-  return t(`admin.users.confirm.${pending.value.type}`, { name: user.value.name })
-})
-
-async function executePending() {
-  if (!pending.value || !user.value) return
-  busy.value = true
-  const { type } = pending.value
+async function runUserAction(type: UserAction) {
+  const target = user.value
+  if (!target) return
   try {
+    let selfLogout = false
+    const ok = await confirm({
+      title: t('admin.users.confirmTitle'),
+      description: t(`admin.users.confirm.${type}`, { name: target.name }),
+      confirmLabel: t('admin.users.confirmAction'),
+      color: type === 'block' || type === 'delete' ? 'error' : 'primary',
+      action: async () => {
+        if (type === 'sessions') {
+          const result = await $fetch<{ ok: boolean, self: boolean }>(`/api/admin/users/${target.$id}/sessions`, { method: 'DELETE' })
+          selfLogout = result.self
+        }
+        else if (type === 'delete') {
+          // `as string`: das Template-Literal matcht im typed router auch die GET-only
+          // Route /api/admin/users/stats — die Method-Union kollabiert sonst
+          await $fetch(`/api/admin/users/${target.$id}` as string, { method: 'DELETE' })
+        }
+        else {
+          await $fetch(`/api/admin/users/${target.$id}/status`, { method: 'PATCH', body: { blocked: type === 'block' } })
+        }
+      },
+    })
+    if (!ok) return
     if (type === 'sessions') {
-      const result = await $fetch<{ ok: boolean, self: boolean }>(`/api/admin/users/${user.value.$id}/sessions`, { method: 'DELETE' })
       toast.add({ title: t('admin.users.sessionsCleared'), color: 'success' })
-      if (result.self) {
-        pending.value = null
+      if (selfLogout) {
         auth.setUser(null)
         await navigateTo(localePath('/'))
         return
       }
     }
     else if (type === 'delete') {
-      // `as string`: das Template-Literal matcht im typed router auch die GET-only
-      // Route /api/admin/users/stats — die Method-Union kollabiert sonst
-      await $fetch(`/api/admin/users/${user.value.$id}` as string, { method: 'DELETE' })
       toast.add({ title: t('admin.users.deleted'), color: 'success' })
-      pending.value = null
       await navigateTo(localePath('/dashboard/users'))
       return
     }
     else {
-      await $fetch(`/api/admin/users/${user.value.$id}/status`, { method: 'PATCH', body: { blocked: type === 'block' } })
       toast.add({ title: t(type === 'block' ? 'admin.users.blocked' : 'admin.users.unblocked'), color: 'success' })
     }
-    pending.value = null
     await refresh()
   }
   catch (error) {
     const code = (error as { data?: { data?: { code?: string } } })?.data?.data?.code
     toast.add({ title: code === 'last_admin' ? t('admin.users.lastAdmin') : t('admin.users.actionFailed'), color: 'error' })
-  }
-  finally {
-    busy.value = false
   }
 }
 </script>
@@ -192,7 +197,7 @@ async function executePending() {
               <UButton color="neutral" variant="subtle" icon="i-ph-download-simple" :loading="exporting" @click="exportData">
                 {{ t('admin.users.export') }}
               </UButton>
-              <UButton color="neutral" variant="subtle" icon="i-ph-sign-out" @click="() => { pending = { type: 'sessions' } }">
+              <UButton color="neutral" variant="subtle" icon="i-ph-sign-out" @click="runUserAction('sessions')">
                 {{ t('admin.users.clearSessions') }}
               </UButton>
             </div>
@@ -385,14 +390,14 @@ async function executePending() {
                 <UButton
                   v-if="user.status"
                   block color="error" variant="subtle" icon="i-ph-prohibit" :disabled="isSelf"
-                  @click="() => { pending = { type: 'block' } }"
+                  @click="runUserAction('block')"
                 >
                   {{ t('admin.users.block') }}
                 </UButton>
-                <UButton v-else block color="success" variant="subtle" icon="i-ph-lock-open" @click="() => { pending = { type: 'unblock' } }">
+                <UButton v-else block color="success" variant="subtle" icon="i-ph-lock-open" @click="runUserAction('unblock')">
                   {{ t('admin.users.unblock') }}
                 </UButton>
-                <UButton block color="error" variant="subtle" icon="i-ph-trash" :disabled="isSelf" @click="() => { pending = { type: 'delete' } }">
+                <UButton block color="error" variant="subtle" icon="i-ph-trash" :disabled="isSelf" @click="runUserAction('delete')">
                   {{ t('admin.users.deleteUser') }}
                 </UButton>
               </div>
@@ -405,19 +410,6 @@ async function executePending() {
         {{ t('admin.users.notFound') }}
       </div>
 
-      <UModal :open="pending !== null" :title="t('admin.users.confirmTitle')" @update:open="(value: boolean) => { if (!value) pending = null }">
-        <template #body>
-          <p class="text-sm">{{ confirmText }}</p>
-        </template>
-        <template #footer>
-          <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="() => { pending = null }">{{ t('ui.cancel') }}</UButton>
-            <UButton :color="pending?.type === 'block' || pending?.type === 'delete' ? 'error' : 'primary'" :loading="busy" @click="executePending">
-              {{ t('admin.users.confirmAction') }}
-            </UButton>
-          </div>
-        </template>
-      </UModal>
     </template>
   </UDashboardPanel>
 </template>

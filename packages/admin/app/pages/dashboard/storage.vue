@@ -14,8 +14,7 @@ const { data, status, refresh } = useFetch<StorageOverview>('/api/admin/storage'
   server: false,
 })
 
-const pending = ref<{ kind: 'one', file: StorageFileEntry } | { kind: 'orphans' } | null>(null)
-const busy = ref(false)
+const confirm = useConfirm()
 
 // Bucket-Wechsler über alle Buckets der Instanz (buckets.read)
 const selectedBucket = ref('')
@@ -53,27 +52,57 @@ async function deleteFile(id: string) {
   await $fetch(`/api/admin/storage/${selectedBucket.value}/${id}`, { method: 'DELETE' })
 }
 
-async function executePending() {
-  if (!pending.value) return
-  busy.value = true
+/**
+ * EIN Weg für beide Löschungen (useConfirm, Audit-Befund C10). Die
+ * kontextabhängige Warnung „hängt noch an einem Benutzer" bleibt erhalten —
+ * sie geht als `warning` in denselben Dialog.
+ */
+async function confirmDelete(options: {
+  description: string
+  warning?: { title: string, description?: string }
+  action: () => Promise<void>
+}) {
   try {
-    if (pending.value.kind === 'one') {
-      await deleteFile(pending.value.file.$id)
-    }
-    else {
-      const orphans = current.value?.files.filter(f => f.orphan) ?? []
-      for (const f of orphans) await deleteFile(f.$id)
-    }
+    const ok = await confirm({
+      title: t('admin.storage.confirmTitle'),
+      description: options.description,
+      confirmLabel: t('admin.users.confirmAction'),
+      warning: options.warning,
+      action: options.action,
+    })
+    if (!ok) return
     toast.add({ title: t('admin.storage.deleted'), color: 'success' })
-    pending.value = null
     await refresh()
   }
   catch {
     toast.add({ title: t('admin.users.actionFailed'), color: 'error' })
   }
-  finally {
-    busy.value = false
-  }
+}
+
+/** Einzelne Datei löschen */
+function removeFile(file: StorageFileEntry) {
+  const linked = current.value?.orphanAware && !file.orphan
+  return confirmDelete({
+    description: t('admin.storage.confirmOne'),
+    warning: linked
+      ? {
+          title: t('admin.storage.linkedWarningTitle'),
+          description: t('admin.storage.linkedWarningText', { name: file.linkedUserName }),
+        }
+      : undefined,
+    action: () => deleteFile(file.$id),
+  })
+}
+
+/** Alle verwaisten Dateien des Buckets löschen */
+function removeOrphans() {
+  const orphans = current.value?.files.filter(f => f.orphan) ?? []
+  return confirmDelete({
+    description: t('admin.storage.confirmOrphans', { count: orphans.length }),
+    action: async () => {
+      for (const f of orphans) await deleteFile(f.$id)
+    },
+  })
 }
 </script>
 
@@ -88,7 +117,7 @@ async function executePending() {
           <UButton
             v-if="current?.orphanAware && current.orphanCount > 0"
             color="error" variant="subtle" icon="i-ph-broom"
-            @click="() => { pending = { kind: 'orphans' } }"
+            @click="removeOrphans"
           >
             {{ t('admin.storage.deleteOrphans', { count: current.orphanCount }) }}
           </UButton>
@@ -154,35 +183,12 @@ async function executePending() {
                 <p class="text-xs text-muted">{{ formatBytes(file.sizeBytes) }} · {{ formatRelativeTime(file.$createdAt) }}</p>
               </div>
               <UBadge v-if="file.orphan" color="warning" variant="subtle" size="sm">{{ t('admin.storage.orphan') }}</UBadge>
-              <UButton v-if="!current.readOnly" color="error" variant="ghost" size="xs" icon="i-ph-trash" @click="() => { pending = { kind: 'one', file } }" />
+              <UButton v-if="!current.readOnly" color="error" variant="ghost" size="xs" icon="i-ph-trash" @click="removeFile(file)" />
             </li>
           </ul>
         </div>
       </ClientOnly>
 
-      <UModal :open="pending !== null" :title="t('admin.storage.confirmTitle')" @update:open="(v: boolean) => { if (!v) pending = null }">
-        <template #body>
-          <div class="space-y-3">
-            <p class="text-sm">
-              {{ pending?.kind === 'orphans' ? t('admin.storage.confirmOrphans', { count: current?.orphanCount ?? 0 }) : t('admin.storage.confirmOne') }}
-            </p>
-            <UAlert
-              v-if="pending?.kind === 'one' && current?.orphanAware && !pending.file.orphan"
-              color="error"
-              variant="subtle"
-              icon="i-ph-warning-octagon"
-              :title="t('admin.storage.linkedWarningTitle')"
-              :description="t('admin.storage.linkedWarningText', { name: pending.file.linkedUserName })"
-            />
-          </div>
-        </template>
-        <template #footer>
-          <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="() => { pending = null }">{{ t('ui.cancel') }}</UButton>
-            <UButton color="error" :loading="busy" @click="executePending">{{ t('admin.users.confirmAction') }}</UButton>
-          </div>
-        </template>
-      </UModal>
     </template>
   </UDashboardPanel>
 </template>

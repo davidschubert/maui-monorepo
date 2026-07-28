@@ -7,6 +7,7 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCap
 
 const { t } = useI18n()
 const toast = useToast()
+const confirm = useConfirm()
 useHead({ title: () => t('pages.admin.title') })
 
 // EN = Standardsprache, DE = weiterer Reiter (weitere Sprachen später additiv)
@@ -130,12 +131,17 @@ async function saveActiveLocale() {
 async function deletePage() {
   const slug = selectedSlug.value
   if (!slug) return
-  saving.value = true
   try {
-    // String-Konkatenation statt Template-Literal: das Literal matcht im
-    // typed router AUCH /api/pages/public (GET-only, seit der Nav-Liste) —
-    // der Methoden-Schnitt verbietet dann faelschlich DELETE.
-    await $fetch('/api/pages/' + encodeURIComponent(slug), { method: 'DELETE' })
+    const ok = await confirm({
+      title: t('pages.admin.confirmDeleteTitle'),
+      description: t('pages.admin.confirmDeleteText', { slug }),
+      confirmLabel: t('pages.admin.delete'),
+      // String-Konkatenation statt Template-Literal: das Literal matcht im
+      // typed router AUCH /api/pages/public (GET-only, seit der Nav-Liste) —
+      // der Methoden-Schnitt verbietet dann faelschlich DELETE.
+      action: () => $fetch('/api/pages/' + encodeURIComponent(slug), { method: 'DELETE' }),
+    })
+    if (!ok) return
     toast.add({ title: t('pages.admin.deleted'), color: 'success' })
     newPage()
     selectedSlug.value = null
@@ -144,9 +150,6 @@ async function deletePage() {
   }
   catch {
     toast.add({ title: t('pages.admin.deleteFailed'), color: 'error' })
-  }
-  finally {
-    saving.value = false
   }
 }
 </script>

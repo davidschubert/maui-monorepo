@@ -8,6 +8,7 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCap
 const { t } = useI18n()
 const { formatDate } = useFormatDate()
 const toast = useToast()
+const confirm = useConfirm()
 const route = useRoute()
 const localePath = useLocalePath()
 const { user: me } = useCurrentUser()
@@ -99,32 +100,36 @@ watch(data, () => {
 })
 
 type BulkAction = 'hide' | 'restore' | 'dismiss'
-const bulkPending = ref<BulkAction | null>(null)
-const bulkBusy = ref(false)
 
-async function executeBulk() {
-  if (!bulkPending.value || selected.value.size === 0) return
-  bulkBusy.value = true
+async function runBulk(action: BulkAction) {
+  if (selected.value.size === 0) return
   try {
-    const result = await $fetch<{ ok: boolean, done: string[], failed: string[] }>('/api/admin/comments/bulk', {
-      method: 'POST',
-      body: { action: bulkPending.value, ids: [...selected.value] },
+    let result: { done: string[], failed: string[] } | null = null
+    const ok = await confirm({
+      title: t('admin.users.confirmTitle'),
+      description: t(`admin.moderation.bulk.confirm.${action}`, { count: selected.value.size }),
+      confirmLabel: t('admin.users.confirmAction'),
+      color: action === 'hide' ? 'error' : 'primary',
+      action: async () => {
+        result = await $fetch<{ ok: boolean, done: string[], failed: string[] }>('/api/admin/comments/bulk', {
+          method: 'POST',
+          body: { action, ids: [...selected.value] },
+        })
+      },
     })
+    if (!ok || !result) return
+    const { done, failed } = result as { done: string[], failed: string[] }
     toast.add({
-      title: result.failed.length
-        ? t('admin.moderation.bulk.partial', { done: result.done.length, failed: result.failed.length })
-        : t('admin.moderation.bulk.done', { count: result.done.length }),
-      color: result.failed.length ? 'warning' : 'success',
+      title: failed.length
+        ? t('admin.moderation.bulk.partial', { done: done.length, failed: failed.length })
+        : t('admin.moderation.bulk.done', { count: done.length }),
+      color: failed.length ? 'warning' : 'success',
     })
-    bulkPending.value = null
     selected.value = new Set()
     await refresh()
   }
   catch {
     toast.add({ title: t('admin.users.actionFailed'), color: 'error' })
-  }
-  finally {
-    bulkBusy.value = false
   }
 }
 
@@ -135,23 +140,13 @@ const filterLinks = computed<NavigationMenuItem[]>(() => FILTERS.map(value => ({
   onSelect: () => setFilter(value),
 })))
 
-type PendingAction =
-  | { action: 'hidden' | 'active', comment: ModeratedComment }
-  | { action: 'block', comment: ModeratedComment }
-  | { action: 'dismiss', comment: ModeratedComment }
+type PendingAction = 'hidden' | 'active' | 'block' | 'dismiss'
 
-const pending = ref<PendingAction | null>(null)
-const busy = ref(false)
-
-// Claim-Lock: solange ein Moderator das Bestätigen-Modal für einen Kommentar
+// Claim-Lock: solange ein Moderator den Bestätigungsdialog für einen Kommentar
 // offen hat, beansprucht er ihn (presence action). Andere Moderatoren sehen den
 // Badge "X bearbeitet gerade" und vermeiden Doppelarbeit.
 const { reviewers, claim, release } = useModerationPresence()
 const reviewerFor = (id: string) => reviewers.value.get(`comment:${id}`)
-watch(pending, (value) => {
-  if (value) claim(`comment:${value.comment.$id}`)
-  else release()
-})
 
 // KI-Assist (advisory): Einschätzung pro Kommentar einholen und inline zeigen —
 // die KI empfiehlt nur, die Aktions-Buttons bleiben die einzige Ausführung.
@@ -173,44 +168,49 @@ async function requestAssist(comment: ModeratedComment) {
   }
 }
 
-const confirmText = computed(() => {
-  if (!pending.value) return ''
-  const name = pending.value.comment.authorName
-  if (pending.value.action === 'block') return t('admin.users.confirm.block', { name })
-  if (pending.value.action === 'dismiss') return t('admin.moderation.confirmDismiss', { name })
-  return t(pending.value.action === 'hidden' ? 'admin.moderation.confirmHide' : 'admin.moderation.confirmRestore', { name })
-})
+function confirmTextFor(action: PendingAction, name: string): string {
+  if (action === 'block') return t('admin.users.confirm.block', { name })
+  if (action === 'dismiss') return t('admin.moderation.confirmDismiss', { name })
+  return t(action === 'hidden' ? 'admin.moderation.confirmHide' : 'admin.moderation.confirmRestore', { name })
+}
 
-async function executePending() {
-  if (!pending.value) return
-  const { action, comment } = pending.value
-  busy.value = true
+async function moderate(action: PendingAction, comment: ModeratedComment) {
+  // Der Claim hängt jetzt am offenen Dialog statt an einem `pending`-Ref.
+  claim(`comment:${comment.$id}`)
   try {
-    if (action === 'block') {
-      await $fetch(`/api/admin/users/${comment.authorId}/status`, { method: 'PATCH', body: { blocked: true } })
-      toast.add({ title: t('admin.users.blocked'), color: 'success' })
-    }
-    else if (action === 'dismiss') {
-      // Meldungen verwerfen, Kommentar bleibt sichtbar
-      await $fetch('/api/reports/resolve', { method: 'POST', body: { targetType: 'comment', targetId: comment.$id, resolution: 'no_action' } })
-      toast.add({ title: t('admin.moderation.dismissed'), color: 'success' })
-    }
-    else {
-      await $fetch(`/api/admin/comments/${comment.$id}/status`, { method: 'PATCH', body: { status: action } })
-      // Ausblenden schließt zugleich die offenen Meldungen (Lifecycle)
-      if (action === 'hidden') {
-        await $fetch('/api/reports/resolve', { method: 'POST', body: { targetType: 'comment', targetId: comment.$id, resolution: 'hidden' } })
-      }
-      toast.add({ title: t(action === 'hidden' ? 'admin.moderation.hidden' : 'admin.moderation.restored'), color: 'success' })
-    }
-    pending.value = null
+    const ok = await confirm({
+      title: t('admin.users.confirmTitle'),
+      description: confirmTextFor(action, comment.authorName),
+      confirmLabel: t('admin.users.confirmAction'),
+      color: action === 'active' || action === 'dismiss' ? 'primary' : 'error',
+      action: async () => {
+        if (action === 'block') {
+          await $fetch(`/api/admin/users/${comment.authorId}/status`, { method: 'PATCH', body: { blocked: true } })
+        }
+        else if (action === 'dismiss') {
+          // Meldungen verwerfen, Kommentar bleibt sichtbar
+          await $fetch('/api/reports/resolve', { method: 'POST', body: { targetType: 'comment', targetId: comment.$id, resolution: 'no_action' } })
+        }
+        else {
+          await $fetch(`/api/admin/comments/${comment.$id}/status`, { method: 'PATCH', body: { status: action } })
+          // Ausblenden schließt zugleich die offenen Meldungen (Lifecycle)
+          if (action === 'hidden') {
+            await $fetch('/api/reports/resolve', { method: 'POST', body: { targetType: 'comment', targetId: comment.$id, resolution: 'hidden' } })
+          }
+        }
+      },
+    })
+    if (!ok) return
+    if (action === 'block') toast.add({ title: t('admin.users.blocked'), color: 'success' })
+    else if (action === 'dismiss') toast.add({ title: t('admin.moderation.dismissed'), color: 'success' })
+    else toast.add({ title: t(action === 'hidden' ? 'admin.moderation.hidden' : 'admin.moderation.restored'), color: 'success' })
     await refresh()
   }
   catch {
     toast.add({ title: t('admin.users.actionFailed'), color: 'error' })
   }
   finally {
-    busy.value = false
+    release()
   }
 }
 </script>
@@ -243,13 +243,13 @@ async function executePending() {
       />
       <template v-if="selected.size > 0">
         <UBadge color="neutral" variant="subtle">{{ t('admin.moderation.bulk.count', { count: selected.size }) }}</UBadge>
-        <UButton size="xs" color="error" variant="soft" icon="i-ph-eye-slash" data-bulk-hide @click="() => { bulkPending = 'hide' }">
+        <UButton size="xs" color="error" variant="soft" icon="i-ph-eye-slash" data-bulk-hide @click="runBulk('hide')">
           {{ t('admin.moderation.hide') }}
         </UButton>
-        <UButton size="xs" color="primary" variant="soft" icon="i-ph-check" data-bulk-dismiss @click="() => { bulkPending = 'dismiss' }">
+        <UButton size="xs" color="primary" variant="soft" icon="i-ph-check" data-bulk-dismiss @click="runBulk('dismiss')">
           {{ t('admin.moderation.dismiss') }}
         </UButton>
-        <UButton size="xs" color="success" variant="soft" icon="i-ph-eye" data-bulk-restore @click="() => { bulkPending = 'restore' }">
+        <UButton size="xs" color="success" variant="soft" icon="i-ph-eye" data-bulk-restore @click="runBulk('restore')">
           {{ t('admin.moderation.restore') }}
         </UButton>
       </template>
@@ -325,21 +325,21 @@ async function executePending() {
           <UButton
             v-if="comment.status !== 'hidden' && comment.status !== 'deleted'"
             size="xs" color="error" variant="ghost" icon="i-ph-eye-slash"
-            @click="() => { pending = { action: 'hidden', comment } }"
+            @click="moderate('hidden', comment)"
           >
             {{ t('admin.moderation.hide') }}
           </UButton>
           <UButton
             v-if="comment.status !== 'active' && comment.status !== 'deleted'"
             size="xs" color="success" variant="ghost" icon="i-ph-eye"
-            @click="() => { pending = { action: 'active', comment } }"
+            @click="moderate('active', comment)"
           >
             {{ t('admin.moderation.restore') }}
           </UButton>
           <UButton
             v-if="comment.reportCount"
             size="xs" color="primary" variant="ghost" icon="i-ph-check"
-            @click="() => { pending = { action: 'dismiss', comment } }"
+            @click="moderate('dismiss', comment)"
           >
             {{ t('admin.moderation.dismiss') }}
           </UButton>
@@ -357,7 +357,7 @@ async function executePending() {
             v-if="canManageUsers"
             size="xs" color="error" variant="ghost" icon="i-ph-prohibit"
             :disabled="comment.authorId === me?.$id"
-            @click="() => { pending = { action: 'block', comment } }"
+            @click="moderate('block', comment)"
           >
             {{ t('admin.moderation.blockAuthor') }}
           </UButton>
@@ -376,33 +376,6 @@ async function executePending() {
       @update:page="setPage"
     />
 
-    <UModal :open="bulkPending !== null" :title="t('admin.users.confirmTitle')" @update:open="(value: boolean) => { if (!value) bulkPending = null }">
-      <template #body>
-        <p class="text-sm">{{ bulkPending ? t(`admin.moderation.bulk.confirm.${bulkPending}`, { count: selected.size }) : '' }}</p>
-      </template>
-      <template #footer>
-        <div class="flex w-full justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="() => { bulkPending = null }">{{ t('ui.cancel') }}</UButton>
-          <UButton :color="bulkPending === 'hide' ? 'error' : 'primary'" :loading="bulkBusy" data-bulk-confirm @click="executeBulk">
-            {{ t('admin.users.confirmAction') }}
-          </UButton>
-        </div>
-      </template>
-    </UModal>
-
-    <UModal :open="pending !== null" :title="t('admin.users.confirmTitle')" @update:open="(value: boolean) => { if (!value) pending = null }">
-      <template #body>
-        <p class="text-sm">{{ confirmText }}</p>
-      </template>
-      <template #footer>
-        <div class="flex w-full justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="() => { pending = null }">{{ t('ui.cancel') }}</UButton>
-          <UButton :color="pending?.action === 'active' || pending?.action === 'dismiss' ? 'primary' : 'error'" :loading="busy" @click="executePending">
-            {{ t('admin.users.confirmAction') }}
-          </UButton>
-        </div>
-      </template>
-    </UModal>
     </template>
   </UDashboardPanel>
 </template>

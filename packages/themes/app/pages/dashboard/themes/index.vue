@@ -165,7 +165,7 @@ function cardMenu(entry: GalleryEntry): DropdownMenuItem[][] {
         { label: t('themes.studio.exportJson'), icon: 'i-ph-download-simple', onSelect: () => downloadJson(custom) },
       ],
       [
-        { label: t('themes.studio.delete'), icon: 'i-ph-trash', color: 'error', onSelect: () => { pendingDelete.value = custom } },
+        { label: t('themes.studio.delete'), icon: 'i-ph-trash', color: 'error', onSelect: () => { void remove(custom) } },
       ],
     ]
   }
@@ -190,26 +190,26 @@ function cardMenu(entry: GalleryEntry): DropdownMenuItem[][] {
 const busy = ref(false)
 
 // ── Löschen ────────────────────────────────────────────────────────────────
-const pendingDelete = ref<CustomThemeDto | null>(null)
+const confirm = useConfirm()
 
-async function executeDelete() {
-  if (!pendingDelete.value) return
-  busy.value = true
+async function remove(custom: CustomThemeDto) {
   try {
-    // `as string`: die typisierte Route bietet an diesem Literal nur PATCH an
-    // (Nitro-Typegen-Kante mit settings.patch im selben Segment)
-    await $fetch(`/api/admin/themes/${pendingDelete.value.id}` as string, { method: 'DELETE' })
+    const ok = await confirm({
+      title: t('themes.studio.deleteConfirmTitle'),
+      description: t('themes.studio.deleteConfirmText', { name: custom.name }),
+      confirmLabel: t('themes.studio.delete'),
+      // `as string`: die typisierte Route bietet an diesem Literal nur PATCH an
+      // (Nitro-Typegen-Kante mit settings.patch im selben Segment)
+      action: () => $fetch(`/api/admin/themes/${custom.id}` as string, { method: 'DELETE' }),
+    })
+    if (!ok) return
     // War das gelöschte Theme aktiv, zurück auf den Default
-    if (theme.value.id === customThemeAttr(pendingDelete.value.id)) setTheme('default')
+    if (theme.value.id === customThemeAttr(custom.id)) setTheme('default')
     await refreshCustomThemes()
     toast.add({ title: t('themes.studio.deleted'), color: 'success' })
-    pendingDelete.value = null
   }
   catch {
     toast.add({ title: t('themes.studio.error'), color: 'error' })
-  }
-  finally {
-    busy.value = false
   }
 }
 
@@ -453,23 +453,6 @@ async function importTheme(event: Event) {
           <div class="flex w-full justify-end gap-2">
             <UButton color="neutral" variant="ghost" @click="() => { builtinRename = null }">{{ t('ui.cancel') }}</UButton>
             <UButton color="primary" :loading="busy" @click="saveBuiltinRename">{{ t('ui.save') }}</UButton>
-          </div>
-        </template>
-      </UModal>
-
-      <!-- Lösch-Bestätigung -->
-      <UModal
-        :open="pendingDelete !== null"
-        :title="t('themes.studio.deleteConfirmTitle')"
-        @update:open="(value: boolean) => { if (!value) pendingDelete = null }"
-      >
-        <template #body>
-          <p class="text-sm">{{ t('themes.studio.deleteConfirmText', { name: pendingDelete?.name ?? '' }) }}</p>
-        </template>
-        <template #footer>
-          <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="() => { pendingDelete = null }">{{ t('ui.cancel') }}</UButton>
-            <UButton color="error" :loading="busy" @click="executeDelete">{{ t('themes.studio.delete') }}</UButton>
           </div>
         </template>
       </UModal>

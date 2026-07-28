@@ -9,6 +9,7 @@ const { formatRelativeTime } = useFormatRelativeTime()
 const { formatDate } = useFormatDate()
 const localePath = useLocalePath()
 const toast = useToast()
+const confirm = useConfirm()
 const auth = useAuthStore()
 const { user: me } = useCurrentUser()
 
@@ -72,6 +73,18 @@ function runSearch() {
   setPage(1)
 }
 
+// „Filter ohne Treffer" ist ein eigener Leerzustand (Audit-Befund C11): Suche
+// ODER People-Filter aktiv → der nächste Schritt ist Zurücksetzen.
+const hasActiveFilter = computed(() => filter.value !== null || activeSearch.value !== '')
+function resetFilters() {
+  search.value = ''
+  activeSearch.value = ''
+  const query = { ...route.query }
+  delete query.filter
+  void router.replace({ query })
+  setPage(1)
+}
+
 const columns: TableColumn<AdminUserRow>[] = [
   { id: 'select', header: () => '' },
   { accessorKey: 'name', header: () => t('admin.users.name') },
@@ -85,8 +98,7 @@ const columns: TableColumn<AdminUserRow>[] = [
   { id: 'actions', header: () => '' },
 ]
 
-const pending = ref<{ type: 'block' | 'unblock' | 'sessions' | 'delete', user: AdminUserRow } | null>(null)
-const busy = ref(false)
+type UserAction = 'block' | 'unblock' | 'sessions' | 'delete'
 const exportingId = ref<string | null>(null)
 
 // ---- Bulk-Aktionen (Multi-Select): block/unblock + CSV-Export ----
@@ -109,32 +121,35 @@ watch(data, () => {
   selected.value = new Set([...selected.value].filter(id => visible.has(id)))
 })
 
-const bulkPending = ref<'block' | 'unblock' | null>(null)
-const bulkBusy = ref(false)
-
-async function executeBulk() {
-  if (!bulkPending.value || selected.value.size === 0) return
-  bulkBusy.value = true
+async function runBulk(action: 'block' | 'unblock') {
+  if (selected.value.size === 0) return
   try {
-    const result = await $fetch<{ ok: boolean, done: string[], failed: string[] }>('/api/admin/users/bulk', {
-      method: 'POST',
-      body: { action: bulkPending.value, ids: [...selected.value] },
+    let result: { ok: boolean, done: string[], failed: string[] } | null = null
+    const ok = await confirm({
+      title: t('admin.users.confirmTitle'),
+      description: t(`admin.users.bulk.confirm.${action}`, { count: selected.value.size }),
+      confirmLabel: t('admin.users.confirmAction'),
+      color: action === 'block' ? 'error' : 'primary',
+      action: async () => {
+        result = await $fetch<{ ok: boolean, done: string[], failed: string[] }>('/api/admin/users/bulk', {
+          method: 'POST',
+          body: { action, ids: [...selected.value] },
+        })
+      },
     })
+    if (!ok || !result) return
+    const { done, failed } = result as { done: string[], failed: string[] }
     toast.add({
-      title: result.failed.length
-        ? t('admin.users.bulk.partial', { done: result.done.length, failed: result.failed.length })
-        : t('admin.users.bulk.done', { count: result.done.length }),
-      color: result.failed.length ? 'warning' : 'success',
+      title: failed.length
+        ? t('admin.users.bulk.partial', { done: done.length, failed: failed.length })
+        : t('admin.users.bulk.done', { count: done.length }),
+      color: failed.length ? 'warning' : 'success',
     })
-    bulkPending.value = null
     selected.value = new Set()
     await refresh()
   }
   catch {
     toast.add({ title: t('admin.users.actionFailed'), color: 'error' })
-  }
-  finally {
-    bulkBusy.value = false
   }
 }
 
@@ -142,11 +157,6 @@ async function executeBulk() {
 function exportCsv() {
   window.location.href = '/api/admin/users/export-csv'
 }
-
-const confirmText = computed(() => {
-  if (!pending.value) return ''
-  return t(`admin.users.confirm.${pending.value.type}`, { name: pending.value.user.name })
-})
 
 async function exportUser(user: AdminUserRow) {
   exportingId.value = user.$id
@@ -175,51 +185,62 @@ function rowActions(user: AdminUserRow): DropdownMenuItem[][] {
   return [
     [
       user.status
-        ? { label: t('admin.users.block'), icon: 'i-ph-prohibit', color: 'error', disabled: isSelf, onSelect: () => { pending.value = { type: 'block', user } } }
-        : { label: t('admin.users.unblock'), icon: 'i-ph-lock-open', color: 'success', onSelect: () => { pending.value = { type: 'unblock', user } } },
-      { label: t('admin.users.clearSessions'), icon: 'i-ph-sign-out', onSelect: () => { pending.value = { type: 'sessions', user } } },
+        ? { label: t('admin.users.block'), icon: 'i-ph-prohibit', color: 'error', disabled: isSelf, onSelect: () => { void runUserAction('block', user) } }
+        : { label: t('admin.users.unblock'), icon: 'i-ph-lock-open', color: 'success', onSelect: () => { void runUserAction('unblock', user) } },
+      { label: t('admin.users.clearSessions'), icon: 'i-ph-sign-out', onSelect: () => { void runUserAction('sessions', user) } },
       { label: t('admin.users.detail.manageRoles'), icon: 'i-ph-shield-star', onSelect: () => navigateTo(localePath(`/dashboard/users/${user.$id}`)) },
       { label: t('admin.users.export'), icon: 'i-ph-download-simple', onSelect: () => exportUser(user) },
     ],
     [
-      { label: t('admin.users.deleteUser'), icon: 'i-ph-trash', color: 'error', disabled: isSelf, onSelect: () => { pending.value = { type: 'delete', user } } },
+      { label: t('admin.users.deleteUser'), icon: 'i-ph-trash', color: 'error', disabled: isSelf, onSelect: () => { void runUserAction('delete', user) } },
     ],
   ]
 }
 
-async function executePending() {
-  if (!pending.value) return
-  busy.value = true
-  const { type, user } = pending.value
+async function runUserAction(type: UserAction, user: AdminUserRow) {
   try {
+    // `selfLogout`: das Leeren der eigenen Sitzungen wirft einen selbst raus —
+    // dann kein Toast, sondern Abmeldung.
+    let selfLogout = false
+    const ok = await confirm({
+      title: t('admin.users.confirmTitle'),
+      description: t(`admin.users.confirm.${type}`, { name: user.name }),
+      confirmLabel: t('admin.users.confirmAction'),
+      color: type === 'block' || type === 'delete' ? 'error' : 'primary',
+      action: async () => {
+        if (type === 'sessions') {
+          const result = await $fetch<{ ok: boolean, self: boolean }>(`/api/admin/users/${user.$id}/sessions`, { method: 'DELETE' })
+          selfLogout = result.self
+        }
+        else if (type === 'delete') {
+          // `as string`: Template-Literal matcht auch /api/admin/users/stats (GET-only)
+          await $fetch(`/api/admin/users/${user.$id}` as string, { method: 'DELETE' })
+        }
+        else {
+          await $fetch(`/api/admin/users/${user.$id}/status`, { method: 'PATCH', body: { blocked: type === 'block' } })
+        }
+      },
+    })
+    if (!ok) return
     if (type === 'sessions') {
-      const result = await $fetch<{ ok: boolean, self: boolean }>(`/api/admin/users/${user.$id}/sessions`, { method: 'DELETE' })
       toast.add({ title: t('admin.users.sessionsCleared'), color: 'success' })
-      if (result.self) {
-        pending.value = null
+      if (selfLogout) {
         auth.setUser(null)
         await navigateTo(localePath('/'))
         return
       }
     }
     else if (type === 'delete') {
-      // `as string`: Template-Literal matcht auch /api/admin/users/stats (GET-only)
-      await $fetch(`/api/admin/users/${user.$id}` as string, { method: 'DELETE' })
       toast.add({ title: t('admin.users.deleted'), color: 'success' })
     }
     else {
-      await $fetch(`/api/admin/users/${user.$id}/status`, { method: 'PATCH', body: { blocked: type === 'block' } })
       toast.add({ title: t(type === 'block' ? 'admin.users.blocked' : 'admin.users.unblocked'), color: 'success' })
     }
-    pending.value = null
     await refresh()
   }
   catch (error) {
     const code = (error as { data?: { data?: { code?: string } } })?.data?.data?.code
     toast.add({ title: code === 'last_admin' ? t('admin.users.lastAdmin') : t('admin.users.actionFailed'), color: 'error' })
-  }
-  finally {
-    busy.value = false
   }
 }
 
@@ -296,10 +317,10 @@ async function createUser() {
         </template>
       <div v-if="selected.size > 0" class="mb-3 flex flex-wrap items-center gap-2" data-users-bulkbar>
         <UBadge color="neutral" variant="subtle">{{ t('admin.users.bulk.count', { count: selected.size }) }}</UBadge>
-        <UButton size="xs" color="error" variant="soft" icon="i-ph-prohibit" data-bulk-block @click="() => { bulkPending = 'block' }">
+        <UButton size="xs" color="error" variant="soft" icon="i-ph-prohibit" data-bulk-block @click="runBulk('block')">
           {{ t('admin.users.block') }}
         </UButton>
-        <UButton size="xs" color="success" variant="soft" icon="i-ph-lock-open" data-bulk-unblock @click="() => { bulkPending = 'unblock' }">
+        <UButton size="xs" color="success" variant="soft" icon="i-ph-lock-open" data-bulk-unblock @click="runBulk('unblock')">
           {{ t('admin.users.unblock') }}
         </UButton>
       </div>
@@ -398,6 +419,33 @@ async function createUser() {
             </UDropdownMenu>
           </div>
         </template>
+        <!--
+          Leerzustand als MUSTER (Audit-Befund C11): „Filter/Suche ohne Treffer"
+          ist ein ANDERER Zustand als „noch nichts angelegt" — hier ist der eine
+          nächste Schritt das Zurücksetzen, nicht das Anlegen. Ohne Filter zeigen
+          wir nur die Erklärung (eine Nutzerliste ist nie wirklich leer: man
+          selbst steht drin).
+        -->
+        <template #empty>
+          <CoreEmptyState
+            v-if="hasActiveFilter"
+            icon="i-ph-funnel"
+            :title="t('ui.empty.noResultsTitle')"
+            :description="t('ui.empty.noResultsText')"
+            :action-label="t('ui.empty.resetFilters')"
+            action-icon="i-ph-arrow-counter-clockwise"
+            @action="resetFilters"
+          />
+          <CoreEmptyState
+            v-else
+            icon="i-ph-users"
+            :title="t('admin.users.emptyTitle')"
+            :description="t('admin.users.emptyText')"
+            :action-label="t('admin.users.add.cta')"
+            action-icon="i-ph-plus"
+            @action="openCreate"
+          />
+        </template>
       </UTable>
 
       <UPagination
@@ -409,34 +457,6 @@ async function createUser() {
         @update:page="setPage"
       />
       </ClientOnly>
-
-      <UModal :open="bulkPending !== null" :title="t('admin.users.confirmTitle')" @update:open="(value: boolean) => { if (!value) bulkPending = null }">
-        <template #body>
-          <p class="text-sm">{{ bulkPending ? t(`admin.users.bulk.confirm.${bulkPending}`, { count: selected.size }) : '' }}</p>
-        </template>
-        <template #footer>
-          <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="() => { bulkPending = null }">{{ t('ui.cancel') }}</UButton>
-            <UButton :color="bulkPending === 'block' ? 'error' : 'primary'" :loading="bulkBusy" data-bulk-confirm @click="executeBulk">
-              {{ t('admin.users.confirmAction') }}
-            </UButton>
-          </div>
-        </template>
-      </UModal>
-
-      <UModal :open="pending !== null" :title="t('admin.users.confirmTitle')" @update:open="(value: boolean) => { if (!value) pending = null }">
-        <template #body>
-          <p class="text-sm">{{ confirmText }}</p>
-        </template>
-        <template #footer>
-          <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="() => { pending = null }">{{ t('ui.cancel') }}</UButton>
-            <UButton :color="pending?.type === 'block' || pending?.type === 'delete' ? 'error' : 'primary'" :loading="busy" @click="executePending">
-              {{ t('admin.users.confirmAction') }}
-            </UButton>
-          </div>
-        </template>
-      </UModal>
 
       <UModal v-model:open="createOpen" :title="t('admin.users.add.title')">
         <template #body>

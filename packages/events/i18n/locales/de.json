@@ -87,6 +87,8 @@
       "published": "Event veröffentlicht.",
       "unpublished": "Event zurückgezogen.",
       "cancelled": "Event abgesagt.",
+      "confirmCancelTitle": "Event absagen?",
+      "confirmCancelText": "„{title}“ wird für alle als abgesagt angezeigt. Angemeldete Gäste sehen die Absage sofort.",
       "actionFailed": "Aktion fehlgeschlagen.",
       "status": {
         "draft": "Entwurf",

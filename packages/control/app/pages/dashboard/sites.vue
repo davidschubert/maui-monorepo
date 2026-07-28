@@ -10,6 +10,7 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCap
 
 const { t, locale } = useI18n()
 const toast = useToast()
+const confirm = useConfirm()
 
 type SiteWithEntitlements = SiteRow & { entitlements: string[] }
 const { data, refresh } = await useFetch<{ sites: SiteWithEntitlements[] }>('/api/control/sites')
@@ -71,10 +72,18 @@ async function checkHealth(site: SiteRow) {
 }
 
 async function deregister(site: SiteRow) {
-  if (!confirm(t('control.sites.deregisterConfirm', { name: site.name }))) return
-  await $fetch(`/api/control/sites/${site.$id}`, { method: 'DELETE' }).catch(() => {
+  try {
+    const ok = await confirm({
+      title: t('control.sites.deregisterTitle'),
+      description: t('control.sites.deregisterConfirm', { name: site.name }),
+      confirmLabel: t('control.sites.deregister'),
+      action: () => $fetch(`/api/control/sites/${site.$id}`, { method: 'DELETE' }),
+    })
+    if (!ok) return
+  }
+  catch {
     toast.add({ title: t('control.sites.deregisterFailed'), color: 'error' })
-  })
+  }
   await refresh()
 }
 

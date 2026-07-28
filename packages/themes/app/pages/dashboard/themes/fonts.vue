@@ -143,22 +143,22 @@ async function move(font: CustomFontDto, direction: -1 | 1) {
   }
 }
 
-const pendingDelete = ref<CustomFontDto | null>(null)
+const confirm = useConfirm()
 
-async function executeDelete() {
-  if (!pendingDelete.value) return
-  busy.value = true
+async function remove(font: CustomFontDto) {
   try {
-    await $fetch(`/api/admin/fonts/${pendingDelete.value.id}`, { method: 'DELETE' })
+    const ok = await confirm({
+      title: t('themes.fonts.deleteConfirmTitle'),
+      description: t('themes.fonts.deleteConfirmText', { name: font.name }),
+      confirmLabel: t('themes.studio.delete'),
+      action: () => $fetch(`/api/admin/fonts/${font.id}`, { method: 'DELETE' }),
+    })
+    if (!ok) return
     await refreshCustomFonts()
     toast.add({ title: t('themes.fonts.deleted'), color: 'success' })
-    pendingDelete.value = null
   }
   catch {
     toast.add({ title: t('themes.studio.error'), color: 'error' })
-  }
-  finally {
-    busy.value = false
   }
 }
 
@@ -170,7 +170,7 @@ function fontMenu(font: CustomFontDto): DropdownMenuItem[][] {
       { label: t('themes.studio.moveDown'), icon: 'i-ph-arrow-down', disabled: busy.value, onSelect: () => { void move(font, 1) } },
     ],
     [
-      { label: t('themes.studio.delete'), icon: 'i-ph-trash', color: 'error', onSelect: () => { pendingDelete.value = font } },
+      { label: t('themes.studio.delete'), icon: 'i-ph-trash', color: 'error', onSelect: () => { void remove(font) } },
     ],
   ]
 }
@@ -295,23 +295,6 @@ function weightLabel(weight: number): string {
           <div class="flex w-full justify-end gap-2">
             <UButton color="neutral" variant="ghost" @click="() => { editor = null }">{{ t('ui.cancel') }}</UButton>
             <UButton color="primary" :disabled="!editorValid" :loading="busy" @click="saveEditor">{{ t('ui.save') }}</UButton>
-          </div>
-        </template>
-      </UModal>
-
-      <!-- Lösch-Bestätigung -->
-      <UModal
-        :open="pendingDelete !== null"
-        :title="t('themes.fonts.deleteConfirmTitle')"
-        @update:open="(value: boolean) => { if (!value) pendingDelete = null }"
-      >
-        <template #body>
-          <p class="text-sm">{{ t('themes.fonts.deleteConfirmText', { name: pendingDelete?.name ?? '' }) }}</p>
-        </template>
-        <template #footer>
-          <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="() => { pendingDelete = null }">{{ t('ui.cancel') }}</UButton>
-            <UButton color="error" :loading="busy" @click="executeDelete">{{ t('themes.studio.delete') }}</UButton>
           </div>
         </template>
       </UModal>

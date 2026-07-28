@@ -128,6 +128,14 @@
     "sortBy": "Nach {label} sortieren",
     "sortedAsc": "{label}, aufsteigend sortiert",
     "sortedDesc": "{label}, absteigend sortiert",
+    "confirm": {
+      "confirm": "Bestätigen"
+    },
+    "empty": {
+      "noResultsTitle": "Keine Treffer",
+      "noResultsText": "Zu deinen Filtern passt gerade nichts.",
+      "resetFilters": "Filter zurücksetzen"
+    },
     "consent": {
       "title": "Cookie-Einwilligung",
       "message": "Wir verwenden Cookies für anonyme Nutzungsstatistiken. Analytics lädt erst nach deiner Zustimmung.",

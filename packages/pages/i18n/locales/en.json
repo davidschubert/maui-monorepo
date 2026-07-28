@@ -26,6 +26,8 @@
       "saveFailed": "Could not save",
       "deleted": "Page deleted",
       "deleteFailed": "Could not delete",
+      "confirmDeleteTitle": "Delete page?",
+      "confirmDeleteText": "“{slug}” disappears with all its language versions — links to it will break.",
       "loadFailed": "Could not load page",
       "titleRequired": "Please enter a title",
       "locale": {
