@@ -39,10 +39,22 @@ export default defineEventHandler(async (event) => {
   })
 
   if (!result.ok) {
+    // S8: die rohen Layer-Fehler (regelmäßig AppwriteException-Texte mit
+    // Tabellen-Ids) bleiben SERVERSEITIG. `deleteUserCompletely` loggt jeden
+    // einzelnen strukturiert; hier kommt die Zusammenfassung dazu, damit ein
+    // Teilfehler auch dann im Log steht, wenn niemand hinsieht.
+    // Der Client bekommt die brauchbare Hälfte: WELCHE Layer offen sind (dort
+    // setzt der Re-Run an) — nicht, woran sie gescheitert sind.
+    const failed = result.results.filter(r => !r.ok).map(r => r.id)
+    logEvent('error', 'gdpr.delete_incomplete', {
+      userId,
+      failed,
+      results: result.results,
+    })
     throw createError({
       status: 500,
       statusText: 'User deletion incomplete — user is blocked, retry to finish cleanup',
-      data: { results: result.results, exportFileId: result.exportFileId },
+      data: { results: publicContributorResults(result.results), failed, exportFileId: result.exportFileId },
     })
   }
 
