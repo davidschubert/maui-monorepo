@@ -46,6 +46,7 @@
       "create": "New course",
       "createTitle": "Create course",
       "edit": "Edit",
+      "emptyTitle": "No courses yet",
       "empty": "No courses yet — create the first one.",
       "backToList": "All courses",
       "publish": "Publish",

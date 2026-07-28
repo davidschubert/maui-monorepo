@@ -46,6 +46,7 @@
       "create": "Neuer Kurs",
       "createTitle": "Kurs anlegen",
       "edit": "Bearbeiten",
+      "emptyTitle": "Noch keine Kurse",
       "empty": "Noch keine Kurse — leg den ersten an.",
       "backToList": "Alle Kurse",
       "publish": "Veröffentlichen",

@@ -250,6 +250,8 @@
       "verifiedEmail": "E-Mail",
       "verifiedPhone": "Telefon",
       "notFound": "User nicht gefunden.",
+      "emptyTitle": "Noch keine Benutzer",
+      "emptyText": "Hier stehen alle Menschen mit Zugang. Lade den ersten ein.",
       "add": {
         "cta": "Benutzer hinzufügen",
         "title": "Benutzer anlegen",

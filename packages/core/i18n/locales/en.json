@@ -131,6 +131,11 @@
     "confirm": {
       "confirm": "Confirm"
     },
+    "empty": {
+      "noResultsTitle": "No results",
+      "noResultsText": "Nothing matches your filters right now.",
+      "resetFilters": "Reset filters"
+    },
     "consent": {
       "title": "Cookie consent",
       "message": "We use cookies for anonymous usage statistics. Analytics only loads after your consent.",

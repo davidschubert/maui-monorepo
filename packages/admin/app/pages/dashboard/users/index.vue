@@ -73,6 +73,18 @@ function runSearch() {
   setPage(1)
 }
 
+// „Filter ohne Treffer" ist ein eigener Leerzustand (Audit-Befund C11): Suche
+// ODER People-Filter aktiv → der nächste Schritt ist Zurücksetzen.
+const hasActiveFilter = computed(() => filter.value !== null || activeSearch.value !== '')
+function resetFilters() {
+  search.value = ''
+  activeSearch.value = ''
+  const query = { ...route.query }
+  delete query.filter
+  void router.replace({ query })
+  setPage(1)
+}
+
 const columns: TableColumn<AdminUserRow>[] = [
   { id: 'select', header: () => '' },
   { accessorKey: 'name', header: () => t('admin.users.name') },
@@ -406,6 +418,33 @@ async function createUser() {
               <UButton icon="i-ph-dots-three-vertical" color="neutral" variant="ghost" size="xs" :loading="exportingId === row.original.$id" />
             </UDropdownMenu>
           </div>
+        </template>
+        <!--
+          Leerzustand als MUSTER (Audit-Befund C11): „Filter/Suche ohne Treffer"
+          ist ein ANDERER Zustand als „noch nichts angelegt" — hier ist der eine
+          nächste Schritt das Zurücksetzen, nicht das Anlegen. Ohne Filter zeigen
+          wir nur die Erklärung (eine Nutzerliste ist nie wirklich leer: man
+          selbst steht drin).
+        -->
+        <template #empty>
+          <CoreEmptyState
+            v-if="hasActiveFilter"
+            icon="i-ph-funnel"
+            :title="t('ui.empty.noResultsTitle')"
+            :description="t('ui.empty.noResultsText')"
+            :action-label="t('ui.empty.resetFilters')"
+            action-icon="i-ph-arrow-counter-clockwise"
+            @action="resetFilters"
+          />
+          <CoreEmptyState
+            v-else
+            icon="i-ph-users"
+            :title="t('admin.users.emptyTitle')"
+            :description="t('admin.users.emptyText')"
+            :action-label="t('admin.users.add.cta')"
+            action-icon="i-ph-plus"
+            @action="openCreate"
+          />
         </template>
       </UTable>
 

@@ -250,6 +250,8 @@
       "verifiedEmail": "Email",
       "verifiedPhone": "Phone",
       "notFound": "User not found.",
+      "emptyTitle": "No users yet",
+      "emptyText": "Everyone with access shows up here. Invite the first one.",
       "add": {
         "cta": "Add users",
         "title": "Create user",

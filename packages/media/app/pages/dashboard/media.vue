@@ -107,9 +107,18 @@ async function remove(item: MediaItem) {
     </template>
 
     <template #body>
-      <p v-if="!data?.items.length" class="py-12 text-center text-sm text-muted" data-media-empty>
-        {{ t('media.admin.empty') }}
-      </p>
+      <!-- Galerie ohne Inhalt: der eine nächste Schritt ist der Upload -->
+      <CoreEmptyState
+        v-if="!data?.items.length"
+        icon="i-ph-images"
+        :title="t('media.admin.emptyTitle')"
+        :description="t('media.admin.empty')"
+        :action-label="t('media.admin.upload')"
+        action-icon="i-ph-upload-simple"
+        class="py-12"
+        data-media-empty
+        @action="fileInput?.click()"
+      />
 
       <div v-else class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4" data-media-grid>
         <div v-for="item in data.items" :key="item.$id" class="group relative overflow-hidden rounded-lg border border-default" :data-media-item="item.$id">

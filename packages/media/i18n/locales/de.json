@@ -10,6 +10,7 @@
       "upload": "Hochladen",
       "uploaded": "{count} Bild(er) hochgeladen",
       "uploadFailed": "Upload fehlgeschlagen",
+      "emptyTitle": "Noch keine Bilder",
       "empty": "Noch keine Medien — lade dein erstes Bild hoch.",
       "featured": "Hervorgehoben",
       "draft": "Entwurf",
