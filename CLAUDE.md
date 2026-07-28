@@ -261,9 +261,15 @@ Vollständiges Konzept: docs/CONCEPT.md
 - `tenantId` kommt NIE vom Aufrufer (stripTenantKey) — sonst schreibt ein
   durchgereichter Body in einen fremden Mandanten.
 - BACKSTOP (seit 2026-07-27): ESLint verbietet rohes `.tablesDB` in
-  `server/api/**` der gepoolten Layer (comments, posts, pages, moderation,
-  events, courses — eslint.config.mjs, no-restricted-syntax). Neue Pool-Layer
-  in die Liste aufnehmen, sobald ihre Tabellen tenantId tragen. Pool-Unique-
+  `server/api/**` UND `server/plugins/**` der gepoolten Layer (comments, posts,
+  pages, moderation, events, courses — eslint.config.mjs, no-restricted-syntax).
+  `server/plugins/**` kam am 2026-07-28 dazu (Dashboard-Audit B2): der
+  Stats-Contributor von comments liegt dort und zählte deshalb ungebremst
+  pool-weit in eine Kunden-Ansicht. Wer einen H3Event bekommt, bedient einen
+  REQUEST und gehört hinter dieselbe Tür wie eine Route; eventlose Sweeps
+  brauchen eine begründete eslint-disable-Zeile statt einer Aufweichung.
+  Neue Pool-Layer in die Liste aufnehmen, sobald ihre Tabellen tenantId
+  tragen. Pool-Unique-
   Regel gilt weiter, ABER nur für tenant-RELATIVE Schlüssel: Host/Slug brauchen
   tenantId (comments-015 uq_tenant_host, pages-004, courses-002 uq_tenant_slug),
   Row-Id-basierte NICHT (events/courses (courseId,userId) — eine Row-Id ist
