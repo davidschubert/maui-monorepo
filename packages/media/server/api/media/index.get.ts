@@ -9,7 +9,15 @@ const PAGE_LIMIT = 100
  *   user-agnostisch (Microcache-Kandidat, v2)
  * - ?all=1 (media.manage): ALLE Einträge inkl. Entwürfe, volle Row-Form
  *   (Verwaltungs-Sicht /dashboard/media)
- * View-URLs zeigen direkt auf den read(any)-Bucket.
+ *
+ * Der `published`-Filter ist seit media-002 NICHT mehr der einzige Schutz:
+ * Row und Datei tragen das Leserecht selbst (rowSecurity/fileSecurity), ein
+ * Entwurf ist also auch an dieser Route vorbei nicht abrufbar. Der Filter
+ * bleibt als Sicherheitsnetz und weil die Liste über den Admin-Client läuft
+ * (der Row-Permissions bewusst umgeht).
+ *
+ * View-URLs zeigen direkt in den Bucket — für veröffentlichte Einträge trägt
+ * die Datei read(any), Entwurfs-Dateien nur den Verwaltungs-Read.
  */
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event)

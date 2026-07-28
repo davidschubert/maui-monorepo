@@ -10,7 +10,14 @@ const patchSchema = z.object({
   sortOrder: z.number().int().min(0).max(100_000).optional(),
 }).strict()
 
-/** Metadaten/Status eines Medien-Eintrags ändern (media.manage). */
+/**
+ * Metadaten/Status eines Medien-Eintrags ändern (media.manage).
+ *
+ * SICHTBARKEIT (media-002): trägt der Patch `published`, folgt das Leserecht
+ * von Row UND Datei dem neuen Status — bewusst auch dann, wenn sich der Wert
+ * nicht geändert hat: so heilt ein zweiter Klick einen zuvor gescheiterten
+ * Permission-Write, statt ihn stillschweigend zu überspringen.
+ */
 export default defineEventHandler(async (event) => {
   requirePermission(event, 'media.manage')
 
@@ -31,6 +38,12 @@ export default defineEventHandler(async (event) => {
     rowId: id,
     data: body,
   }).catch((error) => { throw toH3Error(error, 'Media item not found') })
+
+  if (body.published !== undefined) {
+    await applyMediaVisibility(event, row, body.published).catch((error) => {
+      throw toH3Error(error, 'Could not update media visibility')
+    })
+  }
 
   return { id: row.$id, ...body }
 })

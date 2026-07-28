@@ -1,14 +1,18 @@
 /**
  * Migration media-001: Table `media_items` + Bucket `media` — verwaltete
  * Bild-Galerie (Titel/Untertitel/Alt, featured, published, sortOrder).
- * Bucket ist read(any) (öffentliche Galerie-Bilder); GESCHRIEBEN wird nur
- * server-seitig über die media.manage-Routen (Admin-Client). Rows tragen
- * bewusst KEINE User-Referenz (Attribution übers Audit-Log). Additiv +
- * idempotent (409 → skip).
+ * GESCHRIEBEN wird nur server-seitig über die media.manage-Routen
+ * (Admin-Client). Rows tragen bewusst KEINE User-Referenz (Attribution übers
+ * Audit-Log). Additiv + idempotent (409 → skip).
+ *
+ * SICHTBARKEIT (korrigiert mit media-002, Audit-Befund B3): weder Table noch
+ * Bucket tragen ein pauschales read(any) — das Leserecht hängt an Row und
+ * Datei und folgt `published`. Eine FRISCHE Instanz entsteht damit von
+ * vornherein dicht; media-002 zieht nur den Bestand nach.
  *
  *   pnpm migrate --app <app> --layer media
  */
-import { Client, TablesDB, Storage, Permission, Role, TablesDBIndexType } from 'node-appwrite'
+import { Client, TablesDB, Storage, TablesDBIndexType } from 'node-appwrite'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -58,10 +62,10 @@ console.log(`Migration media-001 gegen ${endpoint} / Projekt ${projectId} / DB $
 
 await step('Table media_items', () => tablesDB.createTable({
   databaseId, tableId: 'media_items', name: 'Media Items',
-  // Published-Sichtbarkeit steuert die GET-Route (published-Filter);
-  // Table-read(any) hält die öffentliche Liste ohne Row-Permission-Pflege.
-  permissions: [Permission.read(Role.any())],
-  rowSecurity: false,
+  // Kein Table-weites Leserecht: die ROW entscheidet (read(any) erst beim
+  // Veröffentlichen — server/utils/mediaPermissions.ts, Muster events).
+  permissions: [],
+  rowSecurity: true,
 }))
 
 await step('Column media_items.title', () => tablesDB.createVarcharColumn({
@@ -95,8 +99,11 @@ await step('Index media_items.idx_published_order', () => tablesDB.createIndex({
 
 await step('Bucket media', () => storage.createBucket({
   bucketId: 'media', name: 'media',
-  permissions: [Permission.read(Role.any())],
-  fileSecurity: false, enabled: true,
+  // Wie die Table: keine Bucket-weiten Rechte, die DATEI trägt ihr Leserecht
+  // (Muster gdpr-exports). Sonst wäre ein Entwurf über die fileId weiter
+  // abrufbar — ein Schutz, den man umgehen kann, ist keiner.
+  permissions: [],
+  fileSecurity: true, enabled: true,
   maximumFileSize: 15 * 1024 * 1024,
   allowedFileExtensions: ['png', 'jpg', 'jpeg', 'webp'],
   compression: 'none', encryption: false, antivirus: false,

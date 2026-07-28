@@ -7,6 +7,11 @@ import { MEDIA_TABLE, MEDIA_BUCKET, MAX_MEDIA_BYTES, type MediaItem } from '../.
  * optional `title`/`subtitle`/`alt`. Magic-Bytes-Check (Muster events-Cover)
  * — der deklarierte MIME-Typ ist Client-Input. Orphan-Cleanup, wenn die
  * Row nach dem Upload scheitert.
+ *
+ * SICHTBARKEIT (media-002): Row UND Datei tragen das Leserecht selbst. Neue
+ * Einträge entstehen veröffentlicht (published: true) und bekommen deshalb
+ * beide read(any) — ein späterer Entwurfs-Zustand entzieht es wieder
+ * (applyMediaVisibility).
  */
 function isImage(data: Buffer): boolean {
   if (data.length < 12) return false
@@ -43,17 +48,22 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
 
+  const published = true
+  const permissions = mediaPermissionsFor(published)
+
   const file = await admin.storage.createFile({
     bucketId: MEDIA_BUCKET,
     fileId: ID.unique(),
     file: InputFile.fromBuffer(filePart.data, filePart.filename),
+    permissions,
   }).catch((error) => { throw toH3Error(error, 'Media bucket missing — run migrations') })
 
   const row = await admin.tablesDB.createRow<MediaItem>({
     databaseId: config.public.appwriteDatabaseId,
     tableId: MEDIA_TABLE,
     rowId: ID.unique(),
-    data: { title, subtitle, alt, fileId: file.$id, featured: false, published: true, sortOrder: 0 },
+    data: { title, subtitle, alt, fileId: file.$id, featured: false, published, sortOrder: 0 },
+    permissions,
   }).catch(async (error) => {
     // Row gescheitert → verwaiste Datei nicht liegen lassen
     await admin.storage.deleteFile({ bucketId: MEDIA_BUCKET, fileId: file.$id }).catch(() => {})
