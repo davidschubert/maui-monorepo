@@ -396,7 +396,16 @@
       "saved": "Saved.",
       "saveFailed": "Could not be saved.",
       "noTenantTitle": "No community on this host",
-      "noTenantText": "These settings apply to a single community. On this instance, registration is governed by the operator configuration."
+      "noTenantText": "These settings apply to a single community. On this instance, registration is governed by the operator configuration.",
+      "appearance": {
+        "title": "Appearance",
+        "description": "The colour world of this community — everyone visiting your pages sees it.",
+        "change": "Change",
+        "pickerTitle": "Community colours",
+        "inherited": "Nothing chosen yet (default)",
+        "propagation": "A new colour reaches every page within half a minute.",
+        "saved": "Appearance saved."
+      }
     },
     "sidebar": {
       "label": "Sidebar",
