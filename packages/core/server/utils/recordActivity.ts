@@ -1,4 +1,4 @@
-import { ID, Permission, Query, Role } from 'node-appwrite'
+import { Query } from 'node-appwrite'
 import type { H3Event } from 'h3'
 
 /** Table-Id des Activity-Streams (Schema: system-Migration 014). */
@@ -40,8 +40,16 @@ export interface ActivityInput {
  * zuzugreifen (kein Cross-Layer-String-Coupling, CONCEPT A14) — die UI-Welt
  * dazu liefert packages/activity.
  *
- * Sichtbarkeit: v1 immer 'members' (read für Role.users()). Der Spaltenwert
- * 'public' ist im Schema vorgesehen, wird aber bewusst NICHT verdrahtet (v2).
+ * Sichtbarkeit: v1 immer 'members' (read für Role.users() im Silo, im Pool für
+ * die Mitglieder DIESER Site). Der Spaltenwert 'public' ist im Schema
+ * vorgesehen, wird aber bewusst NICHT verdrahtet (v2).
+ *
+ * DATENTÜR (C1b): `create` stempelt tenantId (system-021) und setzt die
+ * Row-Permissions über tenantRowPermissions — im Pool Role.label(siteId) statt
+ * Role.users(), sonst bekäme jedes eingeloggte Pool-Mitglied die Feed-Einträge
+ * ALLER Communities (auch über Realtime, das genau an diesen Row-Rechten
+ * hängt). `as:'operator'` ist fachlich nötig: `activities` trägt keine
+ * Table-Permissions, geschrieben wird ausschließlich hier, server-seitig.
  */
 export async function recordActivity(event: H3Event, input: ActivityInput): Promise<void> {
   try {
@@ -50,27 +58,20 @@ export async function recordActivity(event: H3Event, input: ActivityInput): Prom
     // wäre unparsebar) — der Feed-Eintrag bleibt ohne Zusatzdaten nutzbar.
     const safeMetadata = metadata.length > METADATA_MAX ? '' : metadata
 
-    const config = useRuntimeConfig(event)
-    const { tablesDB } = createAdminClient(event)
-    await tablesDB.createRow({
-      databaseId: config.public.appwriteDatabaseId,
-      tableId: ACTIVITIES_TABLE,
-      rowId: ID.unique(),
-      data: {
-        actorId: input.actorId,
-        actorName: input.actorName,
-        type: input.type,
-        objectType: input.objectType,
-        objectId: input.objectId,
-        link: input.link,
-        metadata: safeMetadata,
-        visibility: 'members',
-      },
-      // Row-Security: eingeloggte User lesen; verwaltet (gelöscht) wird
-      // server-seitig via Admin-Client (activity.manage-Route bzw. GDPR).
-      permissions: [
-        Permission.read(Role.users()),
-      ],
+    await tenantDb(event, { as: 'operator' }).create(ACTIVITIES_TABLE, {
+      actorId: input.actorId,
+      actorName: input.actorName,
+      type: input.type,
+      objectType: input.objectType,
+      objectId: input.objectId,
+      link: input.link,
+      metadata: safeMetadata,
+      visibility: 'members',
+    }, {
+      // 'members' = Role.users() im Silo, Role.label(siteId) im Pool.
+      // Verwaltet (gelöscht) wird server-seitig via Admin-Client
+      // (activity.manage-Route bzw. GDPR) — deshalb kein ownerUserId.
+      read: 'members',
     })
   }
   catch {
@@ -86,6 +87,16 @@ export async function recordActivity(event: H3Event, input: ActivityInput): Prom
  * recordActivity, aber LAUT — ein liegengebliebener Eintrag ist ein
  * Inhalts-Leak, kein Kosmetikproblem. Ein späteres Restore erzeugt bewusst
  * KEINEN neuen Eintrag (der Feed ist ein Ereignis-Log, kein Index).
+ *
+ * BEWUSST OHNE MANDANTEN-FILTER (C1b) — die eine Ausnahme in dieser Datei:
+ * gelöscht wird ausschließlich über `objectId`, und das ist eine GLOBAL
+ * eindeutige Appwrite-Row-Id (dieselbe Begründung wie bei den Row-Id-basierten
+ * Unique-Indizes, CLAUDE.md). Zwei Mandanten können denselben objectId gar
+ * nicht tragen; der Filter könnte also nichts Fremdes schützen, würde aber
+ * genau das verhindern, wofür die Funktion da ist: BESTANDS-Einträge ohne
+ * tenantId (vor system-021 geschrieben) würden von ihrer eigenen Aufräumung
+ * nicht mehr gefunden — wegmoderierter Inhalt bliebe als metadata-Snippet im
+ * Feed stehen. Fail-closed wäre hier das Leck.
  */
 export async function removeActivitiesForObject(
   event: H3Event,
