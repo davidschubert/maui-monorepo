@@ -582,75 +582,82 @@ Immer explizites `Query.limit(...)` setzen (Default 25 → stille Trunkierung).
 
 ## Implementierungs-Roadmap
 
+> **✅ AUSGEFÜHRT — Historie (Stand 2026-07-28).** Diese Roadmap beschreibt den
+> Bau des Monorepos von Phase 1 an; sie ist abgearbeitet, das Produkt läuft auf
+> sieben Hosts. Die Punkte stehen deshalb als Aufzählung, nicht als Kästchen:
+> als **Chronik** bleiben sie nützlich (sie erklärt, warum die Layer so liegen,
+> wie sie liegen), als **To-do-Liste** waren sie irreführend. Aktuelle offene
+> Punkte: [OPEN-ITEMS.md](OPEN-ITEMS.md).
+
 > **Status v2.1:** Phasen 1–10 sind abgeschlossen (✅ 2026-06-09/10) — Nachweise und
 > Erkenntnisse pro Phase in **docs/GOALS.md**. Offen aus den Checklisten unten sind
 > nur Produktions-TODOs: Custom Domain für den Appwrite-Endpoint (A3, Phase 3) und
 > das ploi.io-Setup (A9, Phase 9 — deploy.yml liegt als dokumentiertes Skeleton bereit).
 
 ### Phase 1 – Monorepo Setup
-- [ ] Root `package.json`, `pnpm-workspace.yaml`, `.npmrc`, `.nvmrc` (22), Root `tsconfig.json`
-- [ ] pnpm Catalog für geteilte Dependencies definieren (nuxt, @nuxt/ui, pinia, zod, appwrite SDKs)
-- [ ] `packages/core/` als Nuxt Layer initialisieren (`nuxi init --template layer`)
-- [ ] `.playground/` einrichten (Port 3000)
-- [ ] `apps/comments/` initialisieren, `extends` einbinden (Port 3001)
-- [ ] Smoke Test: Komponente aus Core in App rendern, HMR prüfen
+- Root `package.json`, `pnpm-workspace.yaml`, `.npmrc`, `.nvmrc` (22), Root `tsconfig.json`
+- pnpm Catalog für geteilte Dependencies definieren (nuxt, @nuxt/ui, pinia, zod, appwrite SDKs)
+- `packages/core/` als Nuxt Layer initialisieren (`nuxi init --template layer`)
+- `.playground/` einrichten (Port 3000)
+- `apps/comments/` initialisieren, `extends` einbinden (Port 3001)
+- Smoke Test: Komponente aus Core in App rendern, HMR prüfen
 
 ### Phase 2 – Design-Fundament
-- [ ] Nuxt UI 4 in Core installieren + konfigurieren
-- [ ] Maui Default Theme in `app.config.ts`
-- [ ] `main.css` mit Tailwind 4 + `@source` für Layer-Pfad
-- [ ] Override-Test: App-`app.config.ts` überschreibt Core Theme
+- Nuxt UI 4 in Core installieren + konfigurieren
+- Maui Default Theme in `app.config.ts`
+- `main.css` mit Tailwind 4 + `@source` für Layer-Pfad
+- Override-Test: App-`app.config.ts` überschreibt Core Theme
 
 ### Phase 3 – Appwrite SSR-Fundament
-- [ ] `node-appwrite` (Server) + `appwrite` (Web, Realtime) installieren
-- [ ] `server/lib/appwrite.ts` — AdminClient + SessionClient
-- [ ] `runtimeConfig` Skeleton (`appwriteKey` privat + `public.*`)
-- [ ] `server/middleware/auth.ts` + `shared/types/h3.d.ts`
-- [ ] `app/utils/appwrite.client.ts` (Web SDK, nur Realtime)
-- [ ] `useRealtimeRows()` mit SSR-Guard
-- [ ] Custom Domain für Appwrite-Endpoint einrichten (A3), CORS-Plattformen registrieren
-- [ ] `.env.example` pro App
+- `node-appwrite` (Server) + `appwrite` (Web, Realtime) installieren
+- `server/lib/appwrite.ts` — AdminClient + SessionClient
+- `runtimeConfig` Skeleton (`appwriteKey` privat + `public.*`)
+- `server/middleware/auth.ts` + `shared/types/h3.d.ts`
+- `app/utils/appwrite.client.ts` (Web SDK, nur Realtime)
+- `useRealtimeRows()` mit SSR-Guard
+- Custom Domain für Appwrite-Endpoint einrichten (A3), CORS-Plattformen registrieren
+- `.env.example` pro App
 
 ### Phase 4 – Auth
-- [ ] Server Routes: signup, login, logout, OAuth
-- [ ] Session-Cookie `a_session_<PROJECT_ID>` (httpOnly, secure, sameSite, Root-Domain)
-- [ ] `plugins/auth.server.ts` + `useAuthStore` + `useCurrentUser()`
-- [ ] Zod Schemas
-- [ ] `LoginForm`/`RegisterForm` auf `UAuthForm`-Basis + `LogoutButton`
-- [ ] Route Middleware + `pages/login.vue`/`register.vue`
-- [ ] End-to-End-Test in comments: Browser-Realtime läuft authentifiziert
+- Server Routes: signup, login, logout, OAuth
+- Session-Cookie `a_session_<PROJECT_ID>` (httpOnly, secure, sameSite, Root-Domain)
+- `plugins/auth.server.ts` + `useAuthStore` + `useCurrentUser()`
+- Zod Schemas
+- `LoginForm`/`RegisterForm` auf `UAuthForm`-Basis + `LogoutButton`
+- Route Middleware + `pages/login.vue`/`register.vue`
+- End-to-End-Test in comments: Browser-Realtime läuft authentifiziert
 
 ### Phase 5 – Layouts & User Components
-- [ ] `layouts/default.vue` + `auth.vue` (dashboard → später `packages/admin`)
-- [ ] `UserAvatar`, `UserMenu`, `UserProfileForm` (prefs statt eigener Table)
-- [ ] `pages/error.vue`
+- `layouts/default.vue` + `auth.vue` (dashboard → später `packages/admin`)
+- `UserAvatar`, `UserMenu`, `UserProfileForm` (prefs statt eigener Table)
+- `pages/error.vue`
 
 ### Phase 6 – Utilities, SEO, Analytics-Gate
-- [ ] `useSeo`, `usePagination`, `useToast`, `useFormatDate`, `useFormatCurrency`, `useStorage`
-- [ ] `maui.*` Defaults in Core `app.config.ts` (analytics/consent: false)
-- [ ] `analytics.client.ts` Plugin mit Config-Gate + `useAnalytics` + `CookieBanner` + `useCookieConsent`
-- [ ] Test: App ohne Gate lädt kein Script
+- `useSeo`, `usePagination`, `useToast`, `useFormatDate`, `useFormatCurrency`, `useStorage`
+- `maui.*` Defaults in Core `app.config.ts` (analytics/consent: false)
+- `analytics.client.ts` Plugin mit Config-Gate + `useAnalytics` + `CookieBanner` + `useCookieConsent`
+- Test: App ohne Gate lädt kein Script
 
 ### Phase 7 – i18n
-- [ ] `@nuxtjs/i18n` in Core, `de.json` + `en.json`
-- [ ] Test: App übernimmt Core Translations + ergänzt eigene
+- `@nuxtjs/i18n` in Core, `de.json` + `en.json`
+- Test: App übernimmt Core Translations + ergänzt eigene
 
 ### Phase 8 – Testing
-- [ ] Vitest in Core, Unit Tests für Format-/Pagination-Composables
+- Vitest in Core, Unit Tests für Format-/Pagination-Composables
 
 ### Phase 9 – CI / Deployment
-- [ ] `typecheck.yml`, `lint.yml`, `deploy.yml` (mit `node-version-file: .nvmrc`)
-- [ ] ploi.io: Root Path + Build Command pro App, Env Vars
+- `typecheck.yml`, `lint.yml`, `deploy.yml` (mit `node-version-file: .nvmrc`)
+- ploi.io: Root Path + Build Command pro App, Env Vars
 
 ### Phase 10 – `packages/comments` Feature Layer ✨ neu
-- [ ] Layer-Struktur: Components, Server Routes, `shared/types/comment.ts`
-- [ ] Migration: comments + votes Tables (eigene Instanz der App)
-- [ ] Realtime via `useRealtimeRows<Comment>` mit Query-Filter auf postId
-- [ ] In `apps/comments` komponieren — App bleibt dünn
+- Layer-Struktur: Components, Server Routes, `shared/types/comment.ts`
+- Migration: comments + votes Tables (eigene Instanz der App)
+- Realtime via `useRealtimeRows<Comment>` mit Query-Filter auf postId
+- In `apps/comments` komponieren — App bleibt dünn
 
 ### Phase 11 – Reddit Comment System App
-- [ ] Weiter mit [[reddit-comment-system-setup]] Roadmap
-- [ ] `usePresence()` nachrüsten sobald Presences self-hosted verfügbar
+- Weiter mit [[reddit-comment-system-setup]] Roadmap
+- `usePresence()` nachrüsten sobald Presences self-hosted verfügbar
 
 ---
 

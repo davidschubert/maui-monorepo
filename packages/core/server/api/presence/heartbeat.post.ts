@@ -50,7 +50,7 @@ export default defineEventHandler(async (event) => {
       // read("users"): andere eingeloggte User sehen die Presence.
       //
       // ⚠️ OFFENES RESTRISIKO IM POOL (Audit B1, dokumentiert in
-      // docs/OFFENE-TASKS.md A4): `read("users")` heißt JEDER eingeloggte User
+      // docs/OPEN-ITEMS.md, Arbeitsliste A4): `read("users")` heißt JEDER eingeloggte User
       // des geteilten Projekts — also auch Mitglieder FREMDER Communities.
       // Der tenantId-Filter (presenceFilter.ts / usePresence.ts) ist die
       // ANWENDUNGS-Oberfläche, NICHT die Datenbank-Grenze: wer presences.list()

@@ -1,5 +1,20 @@
 # Phase 17 — Production Deployment (Hetzner + ploi.io + Custom Domain)
 
+> **✅ AUSGEFÜHRT — dieses Dokument ist HISTORIE (Stand 2026-07-28).**
+> Die Betreiber-Checkliste in Teil B wurde im Juli 2026 abgearbeitet; seither
+> laufen **sieben Hosts** produktiv (pukalani.app, control, my/start, platform,
+> demo, comments, portfolio, help — Appwrite auf api.pukalani.app), mit
+> Auto-Deploy, Zero-Downtime Stufe 2, Backups, Monitoring und TLS-Wächter.
+> Die Haken in Teil B sind deshalb zu neutralen Aufzählungen geworden: als
+> **Rezept** bleibt der Ablauf wertvoll (der nächste Server folgt ihm wieder),
+> als **To-do-Liste** war er irreführend — 67 offene Kästchen für längst
+> erledigte Arbeit. Was aus dem Betrieb wirklich offen ist, steht in
+> [OPEN-ITEMS.md](../OPEN-ITEMS.md), Arbeitsliste Abschnitt E.
+> Abweichungen von diesem Plan (Server-Größe, Hostnamen, die
+> Cloudflare-Apex-Entscheidung) sind in
+> [6.hosts-und-ports.md](../content/2.architektur/6.hosts-und-ports.md)
+> dokumentiert — im Zweifel gilt die Doku dort, nicht dieser Plan.
+
 Stand: 2026-07-01. **Plan-Dokument — kein Code.** Ergänzt das bestehende Runbook
 [DEPLOYMENT.md](../DEPLOYMENT.md) (Console-Setup, Migrationen, ploi-Site-Felder,
 Env-Referenz) und [CONCEPT.md](../CONCEPT.md) A3/A9/A10/A11/A12. Dieses Dokument
@@ -392,36 +407,36 @@ Reihenfolge einhalten — jeder Block baut auf dem vorherigen auf.
 
 ### Block 0 — Entscheidungen & Konten (Vorabend)
 
-- [ ] Root-Domain festlegen (A.10 #1); falls neu: Domain registrieren 💶 (~10–20 €/Jahr)
-- [ ] SMTP-Anbieter wählen (A.10 #2), Account anlegen, Absender-Domain
+- Root-Domain festlegen (A.10 #1); falls neu: Domain registrieren 💶 (~10–20 €/Jahr)
+- SMTP-Anbieter wählen (A.10 #2), Account anlegen, Absender-Domain
       verifizieren (SPF/DKIM-Records notieren — kommen in Block 2 mit ins DNS) 💶 (Free-Tier reicht oft)
-- [ ] ploi.io-Account bereit (Plan mit 2 Servern) 💶 (~8–10 €/Monat)
-- [ ] Hetzner-Cloud-Account bereit, SSH-Key hinterlegt
-- [ ] Passwort-Manager-Eintrag „maui-prod" anlegen (sammelt gleich: Keys, IDs, Webhook-URL)
+- ploi.io-Account bereit (Plan mit 2 Servern) 💶 (~8–10 €/Monat)
+- Hetzner-Cloud-Account bereit, SSH-Key hinterlegt
+- Passwort-Manager-Eintrag „maui-prod" anlegen (sammelt gleich: Keys, IDs, Webhook-URL)
 
 ### Block 1 — Server bestellen 💶
 
-- [ ] Hetzner Cloud: **CX32** bestellen (Ubuntu 24.04, Standort FSN/NBG, SSH-Key) → „appwrite-prod", IP notieren 💶 (~7 €/Monat)
-- [ ] Hetzner Cloud: **CX22** bestellen (Ubuntu 24.04, gleicher Standort, SSH-Key) → „app-prod", IP notieren 💶 (~4 €/Monat)
-- [ ] Hetzner Cloud Firewall „web-basic" anlegen: Inbound 22/80/443, sonst zu; beiden Servern zuweisen
-- [ ] Hetzner Server-Backups für „appwrite-prod" aktivieren 💶 (20 % Aufpreis, ~1,40 €/Monat)
-- [ ] ✅ `ssh root@<ip-app>` und `ssh root@<ip-appwrite>` funktionieren per Key
+- Hetzner Cloud: **CX32** bestellen (Ubuntu 24.04, Standort FSN/NBG, SSH-Key) → „appwrite-prod", IP notieren 💶 (~7 €/Monat)
+- Hetzner Cloud: **CX22** bestellen (Ubuntu 24.04, gleicher Standort, SSH-Key) → „app-prod", IP notieren 💶 (~4 €/Monat)
+- Hetzner Cloud Firewall „web-basic" anlegen: Inbound 22/80/443, sonst zu; beiden Servern zuweisen
+- Hetzner Server-Backups für „appwrite-prod" aktivieren 💶 (20 % Aufpreis, ~1,40 €/Monat)
+- ✅ `ssh root@<ip-app>` und `ssh root@<ip-appwrite>` funktionieren per Key
 
 ### Block 2 — DNS ⏳
 
-- [ ] TTL der Zone auf 300 s senken (falls möglich)
-- [ ] A-Record `comments.example.com` → IP „app-prod"
-- [ ] A-Record `api.example.com` → IP „appwrite-prod"
-- [ ] SPF/DKIM/DMARC-Records des SMTP-Anbieters eintragen (aus Block 0)
-- [ ] ⏳ Propagation abwarten (Minuten bis Stunden)
-- [ ] ✅ `dig +short comments.example.com` und `dig +short api.example.com` liefern die richtigen IPs
+- TTL der Zone auf 300 s senken (falls möglich)
+- A-Record `comments.example.com` → IP „app-prod"
+- A-Record `api.example.com` → IP „appwrite-prod"
+- SPF/DKIM/DMARC-Records des SMTP-Anbieters eintragen (aus Block 0)
+- ⏳ Propagation abwarten (Minuten bis Stunden)
+- ✅ `dig +short comments.example.com` und `dig +short api.example.com` liefern die richtigen IPs
 
 ### Block 3 — Server 1 an ploi hängen
 
-- [ ] ploi: „Create Server" → „Custom/Hetzner" → IP von „app-prod" + Root-Zugang → Provisionierung durchlaufen lassen (~10 min)
-- [ ] ploi: Node.js **22** auf dem Server installieren/aktivieren
-- [ ] ploi: fail2ban/ufw-Status prüfen (Standard bei Provisionierung), SSH-Passwort-Login ist aus
-- [ ] ✅ Server erscheint „grün" in ploi, `ssh ploi@<ip-app>` funktioniert
+- ploi: „Create Server" → „Custom/Hetzner" → IP von „app-prod" + Root-Zugang → Provisionierung durchlaufen lassen (~10 min)
+- ploi: Node.js **22** auf dem Server installieren/aktivieren
+- ploi: fail2ban/ufw-Status prüfen (Standard bei Provisionierung), SSH-Passwort-Login ist aus
+- ✅ Server erscheint „grün" in ploi, `ssh ploi@<ip-app>` funktioniert
 
 ### Block 4 — Appwrite-Prod installieren (Server 2)
 
@@ -441,14 +456,14 @@ gibt 500 — Appwrite-Eigenheit, harmlos), Console erreichbar. Die
 Dateien in `~/appwrite` gehören `ploi` (docker-chown-Trick — ploi hat kein
 passwortloses sudo, aber docker-Gruppe).
 
-- [ ] Auf „appwrite-prod": Docker + Compose-Plugin installieren (`curl -fsSL https://get.docker.com | sh`)
-- [ ] Appwrite **1.9.5** installieren (Installer nach APPWRITE-1.9.5-UPGRADE.md-Muster, Tag `1.9.5` pinnen), HTTP 80 / HTTPS 443
-- [ ] Appwrite-`.env` setzen: `_APP_ENV=production`, `_APP_DOMAIN=api.example.com`, `_APP_DOMAIN_TARGET=api.example.com`, `_APP_OPTIONS_FORCE_HTTPS=enabled`, `_APP_CONSOLE_WHITELIST_ROOT=enabled`, `_APP_CONSOLE_WHITELIST_EMAILS=mail@davidschubert.com`, `_APP_OPTIONS_ABUSE=enabled`, SMTP-Werte aus Block 0 → `docker compose up -d`
-- [ ] ⏳ Traefik holt das Let's-Encrypt-Zertifikat (Minuten; braucht das DNS aus Block 2)
-- [ ] ✅ `curl -sI https://api.example.com/` liefert eine Antwort mit gültigem TLS (kein Zertifikatsfehler)
-- [ ] Console öffnen (`https://api.example.com/console`) → Account registrieren (whitelisted E-Mail) → Projekt anlegen → **Project ID notieren**
-- [ ] Zwei API-Keys anlegen (DEPLOYMENT.md §1): `nuxt-ssr-prod` (Runtime) + `migrations-prod` → in den Passwort-Manager
-- [ ] ✅ Console-Logout → Neu-Registrierung mit fremder Mail wird abgelehnt (Whitelist greift)
+- Auf „appwrite-prod": Docker + Compose-Plugin installieren (`curl -fsSL https://get.docker.com | sh`)
+- Appwrite **1.9.5** installieren (Installer nach APPWRITE-1.9.5-UPGRADE.md-Muster, Tag `1.9.5` pinnen), HTTP 80 / HTTPS 443
+- Appwrite-`.env` setzen: `_APP_ENV=production`, `_APP_DOMAIN=api.example.com`, `_APP_DOMAIN_TARGET=api.example.com`, `_APP_OPTIONS_FORCE_HTTPS=enabled`, `_APP_CONSOLE_WHITELIST_ROOT=enabled`, `_APP_CONSOLE_WHITELIST_EMAILS=mail@davidschubert.com`, `_APP_OPTIONS_ABUSE=enabled`, SMTP-Werte aus Block 0 → `docker compose up -d`
+- ⏳ Traefik holt das Let's-Encrypt-Zertifikat (Minuten; braucht das DNS aus Block 2)
+- ✅ `curl -sI https://api.example.com/` liefert eine Antwort mit gültigem TLS (kein Zertifikatsfehler)
+- Console öffnen (`https://api.example.com/console`) → Account registrieren (whitelisted E-Mail) → Projekt anlegen → **Project ID notieren**
+- Zwei API-Keys anlegen (DEPLOYMENT.md §1): `nuxt-ssr-prod` (Runtime) + `migrations-prod` → in den Passwort-Manager
+- ✅ Console-Logout → Neu-Registrierung mit fremder Mail wird abgelehnt (Whitelist greift)
 
 ### Block 5 — Schema-Bootstrap (von der lokalen Maschine)
 
@@ -478,12 +493,12 @@ auf 1.9.5 self-hosted NICHT speichern — die gebundelte Console ist dem
 Server-API voraus (PATCH-Endpoint fehlt, Update verpufft nach Reload).
 Beim nächsten Appwrite-Upgrade erneut versuchen; bis dahin ohne.
 
-- [ ] `cp apps/comments/.env.example apps/comments/.env.production` und füllen: Endpoint `https://api.example.com/v1`, Project-ID, `NUXT_PUBLIC_APPWRITE_DATABASE_ID=main`, `NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET=avatars`, `NUXT_APPWRITE_KEY=<migrations-prod>` (Bootstrap braucht die Schema-Scopes) — Datei ist durch `.gitignore` (`.env*`) gedeckt, trotzdem: NIE committen
-- [ ] `nvm use 22` und Bootstrap laufen lassen: `node --experimental-strip-types --env-file=apps/comments/.env.production apps/comments/scripts/bootstrap.ts` (OHNE `--seed`!)
-- [ ] ✅ Ausgabe: Datenbank ✔/↷, Bucket ✔/↷, alle Migrationen system→comments→moderation→admin grün
-- [ ] Console → Projekt → Platforms: Web-Platform mit Hostname `comments.example.com` hinzufügen
-- [ ] Console → Auth → Security: Wegwerf-E-Mail-Blocking aktivieren (P3-Betreiber-Toggle)
-- [ ] ✅ Console → TablesDB: Tables `audit_logs, app_config, notifications, comments, comment_votes, reports, changelog` existieren
+- `cp apps/comments/.env.example apps/comments/.env.production` und füllen: Endpoint `https://api.example.com/v1`, Project-ID, `NUXT_PUBLIC_APPWRITE_DATABASE_ID=main`, `NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET=avatars`, `NUXT_APPWRITE_KEY=<migrations-prod>` (Bootstrap braucht die Schema-Scopes) — Datei ist durch `.gitignore` (`.env*`) gedeckt, trotzdem: NIE committen
+- `nvm use 22` und Bootstrap laufen lassen: `node --experimental-strip-types --env-file=apps/comments/.env.production apps/comments/scripts/bootstrap.ts` (OHNE `--seed`!)
+- ✅ Ausgabe: Datenbank ✔/↷, Bucket ✔/↷, alle Migrationen system→comments→moderation→admin grün
+- Console → Projekt → Platforms: Web-Platform mit Hostname `comments.example.com` hinzufügen
+- Console → Auth → Security: Wegwerf-E-Mail-Blocking aktivieren (P3-Betreiber-Toggle)
+- ✅ Console → TablesDB: Tables `audit_logs, app_config, notifications, comments, comment_votes, reports, changelog` existieren
 
 ### Block 6 — ploi-Site für die App
 
@@ -517,15 +532,15 @@ Startseite 200 (42 KB SSR-HTML) über TLS; `/api/health` erreicht Nitro —
 antwortet bis zum Eintragen von Project-ID/Runtime-Key erwartungsgemäß mit
 INTERNAL_ERROR (Platzhalter-Env).
 
-- [ ] ploi → Server „app-prod" → „Create Site": Domain `comments.example.com`, Projekt-Typ NodeJS/Proxy auf Port **3000**
-- [ ] Repository verbinden: GitHub-Repo, Branch `main` (ploi „Quick Deploy" AUS lassen — Deploy kommt aus Actions, Block 8)
-- [ ] Deploy-Script setzen (A.4): `git pull` → `npm i -g pnpm` → `pnpm install --frozen-lockfile` → `pnpm --filter comments build` → Daemon-Restart → Health-Curl
-- [ ] Environment-Variablen der Site setzen (DEPLOYMENT.md §3): `NUXT_APPWRITE_KEY=<nuxt-ssr-prod>`, `NUXT_PUBLIC_APPWRITE_ENDPOINT=https://api.example.com/v1`, `NUXT_PUBLIC_APPWRITE_PROJECT_ID=…`, `NUXT_PUBLIC_APPWRITE_DATABASE_ID=main`, `NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET=avatars`, `NUXT_PUBLIC_APP_URL=https://comments.example.com` — **KEIN Migrations-Key!**
-- [ ] Daemon anlegen: `node .../apps/comments/.output/server/index.mjs`, Env `PORT=3000 HOST=127.0.0.1 NODE_ENV=production`, User `ploi`
-- [ ] Let's-Encrypt-Zertifikat für die Site ausstellen (ploi-Button) ⏳ (Sekunden bis Minuten)
-- [ ] Ersten Deploy manuell in ploi auslösen („Deploy now")
-- [ ] ✅ `curl -s https://comments.example.com/api/health` → `{"ok":true,…}`
-- [ ] ✅ Seite lädt im Browser, HTTPS-Schloss ok, HSTS-Header gesetzt (ploi-Toggle)
+- ploi → Server „app-prod" → „Create Site": Domain `comments.example.com`, Projekt-Typ NodeJS/Proxy auf Port **3000**
+- Repository verbinden: GitHub-Repo, Branch `main` (ploi „Quick Deploy" AUS lassen — Deploy kommt aus Actions, Block 8)
+- Deploy-Script setzen (A.4): `git pull` → `npm i -g pnpm` → `pnpm install --frozen-lockfile` → `pnpm --filter comments build` → Daemon-Restart → Health-Curl
+- Environment-Variablen der Site setzen (DEPLOYMENT.md §3): `NUXT_APPWRITE_KEY=<nuxt-ssr-prod>`, `NUXT_PUBLIC_APPWRITE_ENDPOINT=https://api.example.com/v1`, `NUXT_PUBLIC_APPWRITE_PROJECT_ID=…`, `NUXT_PUBLIC_APPWRITE_DATABASE_ID=main`, `NUXT_PUBLIC_APPWRITE_AVATARS_BUCKET=avatars`, `NUXT_PUBLIC_APP_URL=https://comments.example.com` — **KEIN Migrations-Key!**
+- Daemon anlegen: `node .../apps/comments/.output/server/index.mjs`, Env `PORT=3000 HOST=127.0.0.1 NODE_ENV=production`, User `ploi`
+- Let's-Encrypt-Zertifikat für die Site ausstellen (ploi-Button) ⏳ (Sekunden bis Minuten)
+- Ersten Deploy manuell in ploi auslösen („Deploy now")
+- ✅ `curl -s https://comments.example.com/api/health` → `{"ok":true,…}`
+- ✅ Seite lädt im Browser, HTTPS-Schloss ok, HSTS-Header gesetzt (ploi-Toggle)
 
 ### Block 7 — Funktions-Smoke-Test (DEPLOYMENT.md §5)
 
@@ -560,13 +575,13 @@ Compose-Verzeichnis). Deterministisch bewiesen: Verbindungs-Kill
 **Beim Appwrite-Upgrade:** Patch-Datei aus dem neuen Image neu ziehen oder
 Override löschen, falls upstream gefixt.
 
-- [ ] Registrieren + E-Mail-Verifizierung kommt an (SMTP-Beweis) → Login
-- [ ] ✅ DevTools: Cookie `a_session_<PROJECT_ID>` mit Domain `.example.com`, httpOnly+secure
-- [ ] Eigenem User in der Appwrite-Console das Label `admin` geben → Dashboard erreichbar
-- [ ] Kommentar erstellen / voten / antworten
-- [ ] ✅ **Realtime:** zweiter Browser (Gast-Tab) sieht den neuen Kommentar live — beweist Same-Root-Domain-Cookie + JWT-Socket + gesunden realtime-Container
-- [ ] Melden → Moderations-Queue; Reply-Notification-Link stimmt; `/changelog` rendert
-- [ ] ✅ DevTools → Sources: Suche nach `NUXT_APPWRITE_KEY` im Bundle → 0 Treffer
+- Registrieren + E-Mail-Verifizierung kommt an (SMTP-Beweis) → Login
+- ✅ DevTools: Cookie `a_session_<PROJECT_ID>` mit Domain `.example.com`, httpOnly+secure
+- Eigenem User in der Appwrite-Console das Label `admin` geben → Dashboard erreichbar
+- Kommentar erstellen / voten / antworten
+- ✅ **Realtime:** zweiter Browser (Gast-Tab) sieht den neuen Kommentar live — beweist Same-Root-Domain-Cookie + JWT-Socket + gesunden realtime-Container
+- Melden → Moderations-Queue; Reply-Notification-Link stimmt; `/changelog` rendert
+- ✅ DevTools → Sources: Suche nach `NUXT_APPWRITE_KEY` im Bundle → 0 Treffer
 
 ### Block 8 — GitHub Actions Deploy-Webhook
 
@@ -590,10 +605,10 @@ restricted — kein echo; und Vorsicht: inneres `ssh` in Remote-Scripts braucht
 `storagebox:backups/appwrite` am Cron; Beweis: 2 komplette Backup-Sätze
 (Dump + 3 Volume-Tars) liegen offsite.
 
-- [ ] ploi → Site → Deploy-Webhook-URL kopieren
-- [ ] GitHub → Repo → Settings → Secrets and variables → Actions → Secret `PLOI_DEPLOY_WEBHOOK_COMMENTS` = Webhook-URL
+- ploi → Site → Deploy-Webhook-URL kopieren
+- GitHub → Repo → Settings → Secrets and variables → Actions → Secret `PLOI_DEPLOY_WEBHOOK_COMMENTS` = Webhook-URL
 - [x] `deploy.yml` scharfgeschaltet (2026-07-17, vorab) — ohne Secret no-op; hier nur noch das Secret setzen
-- [ ] ✅ Trivialen Commit auf `main` pushen → Actions: Test grün → Deploy-Workflow feuert → ploi zeigt neuen Deploy → `/api/health` weiter `ok:true`
+- ✅ Trivialen Commit auf `main` pushen → Actions: Test grün → Deploy-Workflow feuert → ploi zeigt neuen Deploy → `/api/health` weiter `ok:true`
 
 ### Block 9 — Backups (Server 2)
 
@@ -604,12 +619,12 @@ BACKUP_DIR=/home/ploi/backup. Beweis-Läufe grün: Watchdog Handshake 101;
 Backup Dump + 3 Volume-Tars. Offen: Storage Box bestellen + OFFSITE_TARGET
 an den Cron hängen.
 
-- [ ] Backup-Script aus dem Repo kopieren: `ops/appwrite-backup.sh` → `/opt/ops/` (✅ lokal gegen die dev-Instanz getestet: Dump 1053 Tabellen + korrekte Projekt-Volumes; Env: APPWRITE_COMPOSE_DIR, BACKUP_DIR, OFFSITE_TARGET)
-- [ ] Cron: täglich 03:30 Uhr, Ausgabe in Logfile
-- [ ] Hetzner **Storage Box BX11** bestellen 💶 (~4 €/Monat), SSH-Key hinterlegen
-- [ ] Offsite-Sync ans Backup-Script anhängen (rsync auf die Storage Box)
-- [ ] ✅ Script einmal manuell laufen lassen: Dump + Tars in `/backup` UND auf der Storage Box vorhanden
-- [ ] ✅ **Restore-Probe:** Dump in eine lokale Wegwerf-MariaDB einspielen (`docker run mariadb` + Import) → Tabellen vorhanden, Row-Counts plausibel
+- Backup-Script aus dem Repo kopieren: `ops/appwrite-backup.sh` → `/opt/ops/` (✅ lokal gegen die dev-Instanz getestet: Dump 1053 Tabellen + korrekte Projekt-Volumes; Env: APPWRITE_COMPOSE_DIR, BACKUP_DIR, OFFSITE_TARGET)
+- Cron: täglich 03:30 Uhr, Ausgabe in Logfile
+- Hetzner **Storage Box BX11** bestellen 💶 (~4 €/Monat), SSH-Key hinterlegen
+- Offsite-Sync ans Backup-Script anhängen (rsync auf die Storage Box)
+- ✅ Script einmal manuell laufen lassen: Dump + Tars in `/backup` UND auf der Storage Box vorhanden
+- ✅ **Restore-Probe:** Dump in eine lokale Wegwerf-MariaDB einspielen (`docker run mariadb` + Import) → Tabellen vorhanden, Row-Counts plausibel
 
 ### Block 10 — Monitoring & Watchdog
 
@@ -630,17 +645,17 @@ appwrite-prod: Host `storagebox` → u617130.your-storagebox.de:23. Externe
 Erreichbarkeit AUS (Hetzner-intern reicht). OFFSITE_TARGET kommt an den
 Cron, sobald die Box provisioniert ist + rsync-Probe grün.
 
-- [ ] UptimeRobot (o.ä.): Monitor 1 `https://comments.example.com/api/health` (Keyword `"ok":true`), Monitor 2 `https://api.example.com/` — Alerts an eigene E-Mail
-- [ ] ploi-Monitoring für beide Server aktivieren (Server 2 als „server only" verbinden): CPU/RAM/**Disk**-Schwellwerte + Notification
-- [ ] Realtime-Watchdog aus dem Repo kopieren: `ops/realtime-watchdog.sh` → `/opt/ops/` + Cron alle 5 min (✅ lokal getestet: Stopp-Probe → Container neu erstellt → 101-Handshake; optional ALERT_WEBHOOK)
-- [ ] ✅ Watchdog-Probe: `docker compose stop appwrite-realtime` → binnen 5 min läuft der Container wieder + Alert kam an → Live-Kommentar-Test erneut grün
-- [ ] ✅ Ausfall-Probe: Daemon auf Server 1 stoppen → UptimeRobot alarmiert → Daemon startet (systemd) automatisch neu
+- UptimeRobot (o.ä.): Monitor 1 `https://comments.example.com/api/health` (Keyword `"ok":true`), Monitor 2 `https://api.example.com/` — Alerts an eigene E-Mail
+- ploi-Monitoring für beide Server aktivieren (Server 2 als „server only" verbinden): CPU/RAM/**Disk**-Schwellwerte + Notification
+- Realtime-Watchdog aus dem Repo kopieren: `ops/realtime-watchdog.sh` → `/opt/ops/` + Cron alle 5 min (✅ lokal getestet: Stopp-Probe → Container neu erstellt → 101-Handshake; optional ALERT_WEBHOOK)
+- ✅ Watchdog-Probe: `docker compose stop appwrite-realtime` → binnen 5 min läuft der Container wieder + Alert kam an → Live-Kommentar-Test erneut grün
+- ✅ Ausfall-Probe: Daemon auf Server 1 stoppen → UptimeRobot alarmiert → Daemon startet (systemd) automatisch neu
 
 ### Block 11 — Abschluss
 
-- [ ] Alle Werte (IPs, IDs, Keys, Webhook, Storage-Box) final im Passwort-Manager
-- [ ] `docs/DEPLOYMENT.md` um die realen Werte-Platzhalter/Erkenntnisse ergänzen; OPEN-ITEMS: Phase 17 als ✅ mit Datum; README-Status-Tabelle aktualisieren + committen + pushen
-- [ ] Follow-ups terminieren (A.10): `changelog-draft`-Function deployen (Track 2B, braucht die jetzt vorhandene öffentliche Domain), Zero-Downtime Stufe 2. (Zwei früher gelistete Punkte waren veraltet: `comment_votes`-Table-Read seit 2026-07-02 gelöst (comments-007/008, s. A.8); Observability-Gate ist in apps/comments/app/app.config.ts längst aktiv — enabled + clientErrors.)
+- Alle Werte (IPs, IDs, Keys, Webhook, Storage-Box) final im Passwort-Manager
+- `docs/DEPLOYMENT.md` um die realen Werte-Platzhalter/Erkenntnisse ergänzen; OPEN-ITEMS: Phase 17 als ✅ mit Datum; README-Status-Tabelle aktualisieren + committen + pushen
+- Follow-ups terminieren (A.10): `changelog-draft`-Function deployen (Track 2B, braucht die jetzt vorhandene öffentliche Domain), Zero-Downtime Stufe 2. (Zwei früher gelistete Punkte waren veraltet: `comment_votes`-Table-Read seit 2026-07-02 gelöst (comments-007/008, s. A.8); Observability-Gate ist in apps/comments/app/app.config.ts längst aktiv — enabled + clientErrors.)
 
 **Laufende Kosten (Zielbild):** CX32 ~7 € + CX22 ~4 € + Backups ~1,40 € +
 Storage Box ~4 € + ploi ~8–10 € + Domain anteilig ≈ **25–28 €/Monat**.

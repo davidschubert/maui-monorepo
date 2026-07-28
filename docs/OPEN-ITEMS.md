@@ -1,17 +1,29 @@
 # Offene Punkte
 
-Stand: **2026-07-24 (Master-To-do, gewichtet)**. Vollständige, eigenständige
+Stand: **2026-07-28 (Master-To-do, gewichtet)**. Vollständige, eigenständige
 Liste offener Themen (für eine frische Session als Startpunkt nutzbar).
 
-> **LIVE:** **pukalani.app** (Landing, seit 2026-07-27 — Apex proxied über
-> Cloudflare, braucht am Ursprung KEIN Zertifikat mehr und kann das
-> Kunden-Wildcard damit nicht mehr überschreiben; TLS-Wächter alle 30 min),
-> comments + portfolio + studio + **platform** (Multi-Tenant,
-> `*.pukalani.app`-Wildcard — demo.pukalani.app läuft als erster Pool-Tenant,
-> neue Kundensite = ein Klick im Control, kein Build), Auto-Deploy (4 Sites),
-> Zero-Downtime Stufe 2, Changelog-2B, Alerting, GDPR, pages-Layer
-> (/imprint,/terms,/privacy editierbar + Footer-Links). M1–M9 komplett.
-> **Als Betriebssystem für eigene Sites: ~98 %. Als verkaufbares SaaS: ~75 %.**
+> **⚠️ DIES IST DIE EINE LISTE.** Am 2026-07-28 stand kurzzeitig eine zweite
+> (`docs/OFFENE-TASKS.md`) daneben — sie ist hier eingeflossen und wieder
+> gelöscht. Neue offene Punkte kommen HIERHER: der gewichtete Master unten
+> für Produkt-Brocken, die **Arbeitsliste** darunter für Feinkörniges.
+> Plan-Dokumente in `docs/plans/` sind Beschreibung, nicht To-do — was aus
+> ihnen offen bleibt, gehört in eine der beiden Listen hier.
+
+> **LIVE (7 Hosts):** **pukalani.app** (Landing, seit 2026-07-27 — Apex
+> proxied über Cloudflare, braucht am Ursprung KEIN Zertifikat mehr und kann
+> das Kunden-Wildcard damit nicht mehr überschreiben; TLS-Wächter alle
+> 30 min), **control** (Betreiber) + **my/start** (Kundenbereich + Wizard),
+> comments + portfolio, **platform** (Multi-Tenant, `*.pukalani.app`-Wildcard
+> — demo.pukalani.app als erster Pool-Tenant, neue Kundensite = ein Klick im
+> Control, kein Build), **help.pukalani.app** (Hilfe-Site, seit 2026-07-27)
+> und die interne Doku unter `control.pukalani.app/docs`. Auto-Deploy
+> (6 Sites), Zero-Downtime Stufe 2, Changelog-2B, Alerting, GDPR, pages-Layer
+> (/imprint,/terms,/privacy editierbar + Footer-Links). M1–M9 komplett,
+> Self-Service-Onboarding komplett, **alle sechs Kundenprodukte durch die
+> Datentür** (comments, posts, pages, moderation, events, courses).
+> Release **v3.0.0** (2026-07-28).
+> **Als Betriebssystem für eigene Sites: ~98 %. Als verkaufbares SaaS: ~85 %.**
 > Beschluss-/Ideen-Protokoll: [DECISION-LOG.md](DECISION-LOG.md).
 
 ## 📌 Master-To-do (gewichtet, Summe = 100 %)
@@ -27,18 +39,18 @@ Legende Status: **✅ fertig** · **🔨 in Bearbeitung** (Teiletappen laufen) �
 | 1 | **Rechtstexte** — Entwürfe LIVE (2026-07-23): vollständige, stack-spezifische Texte (Impressum § 5 DDG, DSGVO-Datenschutzerklärung mit Hetzner/Resend/Stripe/Cookies/Betroffenenrechten, AGB mit Plänen/Kündigung/UGC/Haftung) DE+EN auf studio /imprint,/terms,/privacy — jeweils mit sichtbarem „Entwurf"-Hinweis. Rest [David]: Adresse/USt-IdNr.-Platzhalter im Dashboard ausfüllen + Anwalt drüberschauen lassen (schaltet #2.4 frei). | David | leicht | 5 | 🔨 Entwürfe drin |
 | 2 | **Stripe-Live scharfschalten** ([Runbook](plans/STRIPE-GO-LIVE-RUNBOOK.md)): 2.1 Bank-Aktivierung [David] · 2.2 Live-Webhook [David] · 2.3 Keys in Server-.env [David] · 2.4 Live-Portal konfigurieren (braucht #1) [Claude] · 2.5 Minimal-Verifikation [beide] | beide | mittel | 12 | ⭕ offen (wartet auf #1 + David) |
 | 3 | **Money-Path-Rest** — #6b Cross-Sub via Stripe-Autorität + #7a Workspace-Customer/Owner-Portal. Deployt 2026-07-22, Details [DECISION-LOG](DECISION-LOG.md). | — | — | 8 | ✅ fertig |
-| 4 | **Horizont 3 — Pool+Silo Multi-Tenancy** ([Blueprint](plans/HORIZONT-3-POOL-SILO-BLUEPRINT.md)) — **Kern KOMPLETT (2026-07-23):** Spike ✅ · Schicht 1 ✅ · 4.1 Pool-Datenpfad ✅ · Naht 1/2 ✅ · tenants-Register + Resolver ✅ · Onboarding-UI ✅ · **Prod-Rollout ✅** (platform.pukalani.app als 4. ploi-Site, Wildcard-DNS + ploi-verwaltetes Wildcard-TLS, Pool-Projekt `pool` mit 9 Tabellen, demo.pukalani.app live: 200 + gescopte Liste, unbekannte Hosts 404; Deploy-Kette + Secret; Learnings: platform-Build braucht 3584 MB Heap, `/api/health` + `/_i18n/` sind host-freie Infra-Pfade) · **4.2 Wellen-Migrationen ✅** (tenants.wave internal→canary→stable, `pnpm migrate --wave` + Control-UI, fail-loud, studio-012 auf Dev+Prod) · **4.3 Quota ✅ scharf** (assertPoolWriteQuota, comments 1000/Tag + 50k gesamt im Pool, 429 lokal bewiesen — **Zahlen abnicken, s. Kasten unten**) · Microcaches tenant-aware ✅ (tenantCacheScope: changelog, features). **Fläche 2 ✅** reports (moderation-002) gepoolt. **Quota pro Plan ✅ (2026-07-23):** tenants.plan (studio-013, free/pro/business) staffelt die Limits (free 200/Tag+5k · pro 1.000/50k · business 5.000/250k; Silo ohne Limit); limitsForPlan pure-getestet, Control-UI Plan-Badge+Select, Migration Dev+Prod. **Tenant-Homepage MVP ✅ (2026-07-23):** pages-Layer in platform gepoolt (pages-003), index.vue rendert die `home`-Seite des Tenants (Markdown + `[[comments]]`-Block, useRequestFetch für Host-Weitergabe), Isolation lokal bewiesen (kunde-a Seite / kunde-b Fallback). **Live-Isolationsskript** [verify-pool-isolation.mjs](../packages/comments/scripts/verify-pool-isolation.mjs). **Read-only-Control-Plane-Key ✅ (2026-07-24, autonom):** `platform-control-readonly` (NUR rows.read) live auf app-prod (Write-Probe 401, demo 200/unknown 404); dabei kompletten Provisioner-Cleanup nachgeholt (pool-Projekt → Pukalani-App-Team, Team provisioning + provisioner-Account weg — alle 4 Prod-Projekte gehören jetzt David) + geleakten comments/migrations-Key rotiert ([Runbook](plans/PLATFORM-CONTROL-KEY-SWAP.md)). **Community-Plattform G0+G1 ✅ (2026-07-24, autonom):** Produktvertrag ([G0](plans/G0-PRODUKTVERTRAG.md), David: Nav, 5-Rollen, Tarif, EA-Scope; kanonische Kunden-Site = **der Tenant**) + Sicherheits-Naht ([Roadmap](plans/SAAS-ROADMAP.md) G1): `studio-015` (`tenants.workspaceId` + `site_members`), core `tenantAuthz` (5 Site-Rollen owner/admin/mod/editor/viewer), `requireTenantPermission` (Cross-Projekt, 30-s-Cache, fail-closed), **Naht 4** `tenantRowPermissionsFor` (read(label(siteId)), Mechanismus + 11 Tests) + **Isolationsbeweis** grün lokal+prod (162 core + 58 studio). Offen (Rest ~1 %): Naht-4-**Live-Wiring** in den Schreibpfad + Session-Label je Site (hängt an Audience-Entscheidung privat/öffentlich — David) · Silo-Admin-Key-Registry · „Admin per Tenant" (wer editiert die Homepage) · Homepage-Block-Baukasten (später) | Claude (Etappen-Go: David) | schwer | 40 | 🔨 39/40 fertig |
+| 4 | **Horizont 3 — Pool+Silo Multi-Tenancy** ([Blueprint](plans/HORIZONT-3-POOL-SILO-BLUEPRINT.md)) — **Kern KOMPLETT (2026-07-23):** Spike ✅ · Schicht 1 ✅ · 4.1 Pool-Datenpfad ✅ · Naht 1/2 ✅ · tenants-Register + Resolver ✅ · Onboarding-UI ✅ · **Prod-Rollout ✅** (platform.pukalani.app als 4. ploi-Site, Wildcard-DNS + ploi-verwaltetes Wildcard-TLS, Pool-Projekt `pool` mit 9 Tabellen, demo.pukalani.app live: 200 + gescopte Liste, unbekannte Hosts 404; Deploy-Kette + Secret; Learnings: platform-Build braucht 3584 MB Heap, `/api/health` + `/_i18n/` sind host-freie Infra-Pfade) · **4.2 Wellen-Migrationen ✅** (tenants.wave internal→canary→stable, `pnpm migrate --wave` + Control-UI, fail-loud, studio-012 auf Dev+Prod) · **4.3 Quota ✅ scharf** (assertPoolWriteQuota, comments 1000/Tag + 50k gesamt im Pool, 429 lokal bewiesen — **Zahlen abnicken, s. Kasten unten**) · Microcaches tenant-aware ✅ (tenantCacheScope: changelog, features). **Fläche 2 ✅** reports (moderation-002) gepoolt. **Quota pro Plan ✅ (2026-07-23):** tenants.plan (studio-013, free/pro/business) staffelt die Limits (free 200/Tag+5k · pro 1.000/50k · business 5.000/250k; Silo ohne Limit); limitsForPlan pure-getestet, Control-UI Plan-Badge+Select, Migration Dev+Prod. **Tenant-Homepage MVP ✅ (2026-07-23):** pages-Layer in platform gepoolt (pages-003), index.vue rendert die `home`-Seite des Tenants (Markdown + `[[comments]]`-Block, useRequestFetch für Host-Weitergabe), Isolation lokal bewiesen (kunde-a Seite / kunde-b Fallback). **Live-Isolationsskript** [verify-pool-isolation.mjs](../packages/comments/scripts/verify-pool-isolation.mjs). **Read-only-Control-Plane-Key ✅ (2026-07-24, autonom):** `platform-control-readonly` (NUR rows.read) live auf app-prod (Write-Probe 401, demo 200/unknown 404); dabei kompletten Provisioner-Cleanup nachgeholt (pool-Projekt → Pukalani-App-Team, Team provisioning + provisioner-Account weg — alle 4 Prod-Projekte gehören jetzt David) + geleakten comments/migrations-Key rotiert ([Runbook](plans/PLATFORM-CONTROL-KEY-SWAP.md)). **Community-Plattform G0+G1 ✅ (2026-07-24, autonom):** Produktvertrag ([G0](plans/G0-PRODUKTVERTRAG.md), David: Nav, 5-Rollen, Tarif, EA-Scope; kanonische Kunden-Site = **der Tenant**) + Sicherheits-Naht ([Roadmap](plans/SAAS-ROADMAP.md) G1): `studio-015` (`tenants.workspaceId` + `site_members`), core `tenantAuthz` (5 Site-Rollen owner/admin/mod/editor/viewer), `requireTenantPermission` (Cross-Projekt, 30-s-Cache, fail-closed), **Naht 4** `tenantRowPermissionsFor` (read(label(siteId)), Mechanismus + 11 Tests) + **Isolationsbeweis** grün lokal+prod (162 core + 58 studio). **Nachtrag 2026-07-25/28:** Naht-4-Live-Wiring + Session-Label je Site sind mit O5 erledigt (Site-Label wird gesetzt, `requireSitePermission` gilt), „Admin per Tenant" ist mit den Site-Rollen (N1) erledigt — der Owner erreicht sein Dashboard und sieht nur seine Capabilities. Offen (Rest ~1 %): **Audience-Entscheidung privat/öffentlich** (David — davon hängt ab, ob Community-Inhalte überhaupt ohne Login lesbar sein sollen) · Silo-Admin-Key-Registry · Homepage-Block-Baukasten (später, geparkt) | Claude (Etappen-Go: David) | schwer | 40 | 🔨 39/40 fertig |
 | 5 | **Embed-Widget E2–E4** ([Plan](plans/EMBED-WIDGET.md)) — **E2 ✅ + E3 ✅ (2026-07-23):** E2 = Schreiben im iframe (Popup-Login + Handoff-Token + CHIPS-Cookie; CSRF-scharf; prod-bewiesen cross-site von davidschubert.com inkl. Cookie-Forensik). **E3 = Site-Registry** `embed_sites` (comments-012, Dev+Prod) + Admin-UI `/dashboard/embed` + Registry-gespeiste frame-ancestors-CSP (allowedOrigins jetzt `['http://localhost:*']` statt `['*']`; davidschubert.com in Prod-Registry) + `GET /api/comments/count` (CORS, `data-maui-count`-Loader) + Redis-Rate-Limit. Bewiesen: CRUD per API (Create/409/PATCH/DELETE), CSP-from-Registry + count-CORS + 3 Fehlermeldungs-Zweige, 10 Unit-Tests, Embed-E2E grün. **E4 ✅ (2026-07-23):** (1) **Gast-Kommentare** ohne Account (Name+E-Mail, ohne Verifikation) — POST `/api/comments/guest` (Gate `embed.guests`, Rate-Limit 5/min/IP, Tenant-Quota, kein operatorTarget), comments-013 (`authorKind` + operator-lesbare `guest_authors`-Tabelle; **E-Mail nie auf der read(any)-Row**), GuestCommentForm + „Gast"-Badge; live bewiesen (POST 201, keine E-Mail in der öffentlichen Liste, anon-Read von guest_authors 401, Browser-E2E). Aktiviert auf der comments-App. Migration: lokaler Pool, Prod-Pool, Prod-comments. (2) **Presence im Embed** — funktioniert out of the box (geteilter Realtime-Socket trägt sie ins iframe; heartbeat+realtime-token+presences alle 200 live nachgewiesen). (3) **Web-Component** `<maui-comments>` (public/maui-comments.js, Shadow DOM, sandboxed iframe → keine XSS-/CORS-Fläche); live bewiesen (Shadow-Root+iframe, Resize 308px). **Bewusst später (supervised):** echte Inline-Render-Variante ohne iframe (eigener Sanitizer + CORS-Allowlist) + E3-Task-17 (dedizierte apps/embed-comments). | Claude | schwer | 12 | ✅ E2–E4 fertig |
 | 6 | **Themes-Vollausbau 26×11** ([Plan](plans/THEMES-VOLLAUSBAU.md)) — **✅ FERTIG (2026-07-24, E1–E7 alle per Empfehlung):** kuratierter Katalog `theme.catalog.ts` (21 Hue-Kreis-Welten + 5 gedeckte Ausreißer, je Basis+10 tonale Varianten = 286 Ramps), Generator mit Kontrast-Gate (Anker fest 500 — Bestands-500er byte-gleich, `--ui-primary` bleibt 600/400), committete `themeRegistry.gen.ts` + CI-Gate `check:themes` (lint.yml), Grid-Modal-Picker mit sticky Varianten-Reihe (E7b). Bewiesen: 62 Unit-Tests + Guard (26×11), SSR-Cookie-Beweis, Visual-Baselines 9/9 neu, Dark-Stichprobe. | Claude | schwer | 10 | ✅ fertig |
 | 7 | **Deploy-RAM-Härtung** — Swap (18.07.) + NODE_OPTIONS-Cap 2560 in ploi-`~/.bashrc`; Praxistest: Deploys in Folge sauber. Nachtrag 23.07.: platform-Build braucht 3584 (Deploy-Script), Überhang läuft in den Swap. | — | — | 3 | ✅ fertig |
 | 8 | **Shared Rate-Limit-Store** — ✅ 2026-07-23: Redis lief auf app-prod bereits (bei Server-Einrichtung mitinstalliert, localhost:6379). Core `rateLimitStore.ts` (Fixed-Window, peek/hit; Redis wenn `NUXT_REDIS_URL` gesetzt, sonst In-Memory; fail-open mit Log; Keys pro Appwrite-Projekt gescoped), Middleware umgestellt, Unit-Tests + lokaler E2E (5×200 → 429, geteilter Redis-Zähler). | — | — | 3 | ✅ fertig |
 | 9 | **E2E studio + portfolio** — Playwright-Smoke (10 + 5 Tests) nach comments-Muster; `pnpm --filter <app> e2e`. | — | — | 3 | ✅ fertig |
 | 13 | **Self-Service-Onboarding ✅ GEBAUT (2026-07-25, O1–O6)** — der öffentliche Trichter läuft: `app.pukalani.app` (Kontroll-Host, Nicht-Mandant mit fail-closed API-Allowlist) → Invite-Code → **Wizard in 7 Schritten** → Community steht → **Handoff, der eingeloggt ankommt**. Abnahme nach Roadmap-DoD: **10 unbeaufsichtigte Läufe, Median 0,3 s**, Retry idempotent, keine Waisen-Rows. Dazu: Branding pro Mandant (nicht pro Projekt), `requireSitePermission` (Site-Rolle vor protokolliertem Break-Glass), Site-Label für Naht 4, Startseite aus der Beschreibung, Testphasen-Sweep. **Hosts umbenannt (2026-07-25):** `control.` (Betreiber, Alias der Control-Site + Wildcard-Zertifikat) · `my.` (Kundenbereich) · `start.` (Kurz-Link in den Wizard) — alle live, Altnamen antworten weiter. **Rest [beide]:** Trial-Banner + Ablauf-Erinnerung · Kundenbereich-Umzug `/workspace` → `my.*` · Abuse-/Suspend-Pfad · 301 von den Altnamen (bewusst später: Deploy-Verify und Stripe-Webhook hängen an `studio.*`) · Statusseite bei UptimeRobot. Details: [SAAS-ROADMAP #1](plans/SAAS-ROADMAP.md) | Claude | schwer | — | ✅ Trichter fertig |
-| 10 | **SaaS-Produkt-Roadmap + pukalani.app-Landingpage** — ✅ SPEZIFIZIERT (2026-07-24): der verlorene „10-Ideen"-Zettel wurde durch [SAAS-ROADMAP.md](plans/SAAS-ROADMAP.md) ersetzt (9 Ideen, Davids Entscheidungen je Idee, UI/UX-Konzepte für Tenant-Selbstverwaltung/Dashboard-IA/Custom-Domains) + [PUKALANI-LANDINGPAGE.md](plans/PUKALANI-LANDINGPAGE.md) (SEO+UX-Konzept). **Nächster Griff (Vorschlag):** §A Dashboard-IA → #2 Tenant-Selbstverwaltung (Sicherheitsnaht 4) → #1 Self-Service-Onboarding. Bau-Freigabe je Block bei David. | beide | mittel | 2 | 🔨 spezifiziert, Bau-Go offen |
+| 10 | **SaaS-Produkt-Roadmap + pukalani.app-Landingpage** — ✅ SPEZIFIZIERT (2026-07-24): der verlorene „10-Ideen"-Zettel wurde durch [SAAS-ROADMAP.md](plans/SAAS-ROADMAP.md) ersetzt (9 Ideen, Davids Entscheidungen je Idee, UI/UX-Konzepte für Tenant-Selbstverwaltung/Dashboard-IA/Custom-Domains) + [PUKALANI-LANDINGPAGE.md](plans/PUKALANI-LANDINGPAGE.md) (SEO+UX-Konzept). **✅ GEBAUT (2026-07-27):** die Landing ist live auf `pukalani.app` (ploi-Site 392338, Apex proxied über Cloudflare), Roadmap-Blöcke §A Dashboard-IA, #2 Tenant-Selbstverwaltung und #1 Self-Service-Onboarding sind umgesetzt. Rest: laufende Inhaltspflege (Netto/Brutto s. Arbeitsliste A3, og:image B2). | beide | mittel | 2 | ✅ Landing live |
 | 11 | **GitHub-Klicks** — ✅ 2026-07-23: #16/#15/#2 hatte David am 21.07. gemergt; Release-PR #18 gemergt → **v2.2.0 released** (Changelog-Draft automatisch angelegt — Kuratieren + Publish von v2.1.0 UND v2.2.0 liegt bei David im Dashboard). Neu offen: Dependabot #19–23 (npm-Bumps, kein workflow-Scope nötig). | — | — | 1 | ✅ fertig |
 | 12 | **Kleinkram** — ✅ Demo-Passwörter · ✅ >14k-Limit (MEDIUMTEXT) · ✅ Wegwerf-Projekte gelöscht (2026-07-24): alle 7 lokalen Probes (s0-*, s1-probe-*, s3-*) weg — 5 regulär via Console-API (Login als Spike-User s0-admin), 2 chirurgisch per DB (Appwrite-Delete warf `openssl_decrypt cipher_algo empty`-500; 132 präfix-verifizierte Tabellen gedroppt + Console-Rows entfernt), Wegwerf-Teams s0-org/maui-sites gelöscht, Spike-Console-User s0-admin (hartkodiertes PW!) entfernt, Redis-Cache geflusht; echte Projekte per Smoke verifiziert (401 vs 404). ✅ Dependabot #19–23: von Dependabot selbst geschlossen — die Bumps (u. a. @nuxt/ui 4.10, vue-tsc 3.3.8) kamen längst über den pnpm-Catalog rein. | — | — | 1 | ✅ fertig |
 
-**Fertig-Anteil: ~81 % ✅ (42 % + 39/40 von H3) · offener Rest (~19 %) wartet fast vollständig auf David: Rechtstexte-Rest (5) + Stripe-Live (12) + Ideen-Input (2).**
+**Fertig-Anteil: 82 % ✅ (43 % + 39/40 von H3) · offener Rest (18 %) wartet fast vollständig auf David: Rechtstexte (5) + Stripe-Live (12) + Audience-Entscheidung (1).**
 
 > **📋 Quota-Zahlen (H3-4.3) — seit 2026-07-24 IM STUDIO EDITIERBAR:**
 > Studio → Tenants → „Pläne & Limits": free 200/Tag + 5.000 gesamt ·
@@ -50,6 +62,114 @@ Legende Status: **✅ fertig** · **🔨 in Bearbeitung** (Teiletappen laufen) �
 Zurückgestellt (bewusst, zählt nicht): Flag-Registry statt `commentsEnabled`
 (lohnt erst mit dem nächsten Flag), `useFormatCurrency`-Vorhaltung,
 targetType-LOW-Residual (kommt mit comment_reports-Modell).
+
+---
+
+## 🔧 Arbeitsliste (feinkörnig, Stand 2026-07-28)
+
+Der Rest der Audit-Wochen (Pool-Audit 26.–27.07., Dashboard-Audit 28.07.) plus
+die Krümel, die in Plan-Dokumenten hängen geblieben waren. Trägt **keine
+Prozente** — das macht der gewichtete Master oben. Legende wie dort.
+
+### A — blockiert den ersten zahlenden Kunden
+
+| # | Task | Wer |
+| --- | --- | --- |
+| A1 | **Echte Rechtstexte** für pukalani.app (Impressum/Datenschutz/AGB). Routen stehen, Texte sind Entwurf + `noindex`. Identisch mit Master #1. | David (ggf. Anwalt) |
+| A2 | **Stripe Live-Modus** — Keys, Live-Webhook (zeigt noch auf den `studio`-Alias!), Preise prüfen. Identisch mit Master #2. Vorstufe: **A2a** die 6 manuellen Testmodus-Schritte in [STRIPE-TEST-WALKTHROUGH.md](plans/STRIPE-TEST-WALKTHROUGH.md) durchspielen (ensure-prices, Monats-/Jahres-Checkout, Portal-Kündigung, Test-Clock-Periodenende, `payment_failed`) — das ist die Absicherung, bevor echtes Geld fließt. | David |
+| A3 | **Netto/Brutto-Angabe** — weder Landing (`apps/marketing` PricingSection + Locales) noch Hilfe-Site (`apps/help/content/anleitung/5.abrechnung.md`) weisen MwSt. aus. **PAngV-Risiko** bei B2C in Deutschland. | David entscheidet, Claude setzt um |
+| A4 | **Presence-Rows sind pool-weit lesbar** — Anwendungs-Filter steht, Datenbank-Grenze fehlt (Details unten). | David entscheidet, Claude baut |
+
+#### A4 — Presence: Anwendungs-Filter steht, Datenbank-Grenze fehlt
+
+Behoben ist die **Oberfläche**: Presencen tragen im Pool seit dem B1-Fix ein
+`metadata.tenantId` (`packages/core/server/api/presence/heartbeat.post.ts`), und
+beide Leser filtern fail-closed darauf — server-seitig `toOnlinePresences`
+(`core/server/utils/presenceFilter.ts`, u. a. hinter `GET /api/presence/count`),
+client-seitig `usePresence()`. Kein Mandanten-UI zeigt noch fremde Anwesende.
+
+**Offen ist die Grenze darunter.** Die Presence-Row trägt `read("users")` — im
+geteilten Pool-Projekt heißt das *jeder eingeloggte User aller Communities*. Wer
+das Web-SDK von Hand bemüht (`presences.list()` mit dem eigenen Session-Cookie),
+bekommt weiterhin `userId`, `userName` und `avatarUrl` sämtlicher gerade online
+befindlicher User **aller** Mandanten. Der Filter ist Anwendungslogik, keine
+Zugriffskontrolle.
+
+**Entscheidungsfrage:** Wie wird zugemacht?
+
+- **(a) Appwrite-Team pro Mandant** — `read("team:<tenantId>")` statt
+  `read("users")`. Die Grenze zieht dann Appwrite selbst, Realtime und die
+  ~280 ms Latenz bleiben. Kostet ein Team je Community plus Mitgliedschafts-
+  Pflege an jedem Beitritt/Austritt (und einen Rückbau-Pfad für Bestandsuser).
+- **(b) Presences server-only** — Permissions nur für den Owner, alle Leser über
+  Server-Routen. Wenig Bauaufwand, aber der direkte Realtime-Pfad entfällt:
+  Anwesenheit käme über 20s-Polling statt in ~280 ms, spürbar bei
+  Tipp-Indikatoren und „N sehen diese Seite".
+
+Bis zur Entscheidung gilt: **keine PII über Name und Avatar hinaus** in die
+Presence-metadata legen.
+
+### B — Entscheidungen, die Arbeit freischalten
+
+| # | Frage | Wer |
+| --- | --- | --- |
+| B1 | **Visual-Baselines** (9 Stück) sichten, dann `pnpm --filter comments e2e -- --update-snapshots themes-visual` — der Header-Umbau (S9) hat sie erwartungsgemäß gebrochen. | David sichtet, dann Claude |
+| B2 | **og:image je Tenant-Seite** — geteilte Links kommen ohne Bild an. Braucht eine Design-Entscheidung (generiertes Bild mit Theme-Farbe + Community-Name?). | David |
+| B3 | **Theme-Name „Sunrise"** steht im Picker neben dem bestehenden „Sunset" — verwandt klingende Namen für Unverwandtes. Alternative „Aloha", eine Zeile. | David |
+| B4 | **Perf-Hebel (K4)**: (a) Appwrite-Web-SDK dynamisch laden (72 kB Entry, Umbau am Realtime-Subsystem) · (b) spekulative `prefetch`-Hints filtern (größter Messwert, kostet den Navigations-Vorsprung nach dem Login). | David wählt, Claude baut |
+| B5 | **Besucher-Theme vs. Community-Theme** — wer selbst ein Theme gewählt hat, sieht weiter seins statt der Community-Farbe. Soll das Branding auf Mandanten-Hosts überstimmen? | David |
+| B6 | **Listen-Muster im Dashboard** — heute `UTable` in 2 von ~20 Listen, 18 handgebaut. `UTable` als Standard für Datenlisten, oder bewusst Karten und `UTable` nur mit Sortierung/Filter? Ohne diese Entscheidung bleiben die 18 Listen ungleich (Dashboard-Audit, UI-Hebel 3). | David |
+
+### C — Claude kann sofort
+
+| # | Task | Herkunft |
+| --- | --- | --- |
+| C0 | **Migration media-002 auf prod fahren** — sperrt unveröffentlichte Bilder zu. Nur die zwei Silo-Instanzen mit media: **photos** und **comments**. ⚠️ **ERST Code deployen, DANN migrieren** (Begründung im Migrations-Kopf: sonst zeigt die Galerie für ein Fenster kaputte Bilder). Code ist seit 2026-07-28 live. | Dashboard-Audit B3 |
+| C1 | **Owner-Overview zeigt Nullwerte** — `/api/admin/stats\|analytics` sind operator-only, Kennzahlen fehlen dem Site-Owner. Öffnen über `requireSitePermission`. **Vorbedingung erledigt:** die drei Lesungen sind gescopt (Audit B2), das Öffnen leckt nicht mehr. Die Nutzerzahl fehlt im Pool bewusst — sie bräuchte einen Mitglieder-Count aus dem Control Plane. | Pool-Audit N8 |
+| C1b | **media und activity haben keine Datentür** — der Rechte-Gate steht (Audit S3), aber beide Layer haben keine `tenantId`-Tabellen und gehen direkt über den Admin-Client. Vor dem ERSTEN Einsatz in `apps/platform`: tenantId-Migration + `tenantDb()`, sonst sieht jede Site die Galerie jeder anderen. Warnung steht in beiden `nuxt.config.ts`. | Dashboard-Audit S3 |
+| C2 | **UI-Plan-Gate für Kurse/Events** in der Nav (`maui.chrome.nav`, blueprint) — heute per Direktlink erreichbar, läuft in den API-404. | Kurse-Bericht / Audit S4 |
+| C3 | **Kompositionen Events + Kurse in den Bauplan** — `EventDetail`/`LessonView` füllen ihren `#comments`-Slot bisher nur in `apps/comments`. | Produkt-Bilanz |
+| C4 | **Nav-Einträge events/courses** aus `apps/comments/app/app.config.ts` in die Layer verschieben. | S9-Bericht |
+| C5 | **register/forgot/reset ohne `<title>`** (Brand-Kopf haben sie seit B3). | Pool-Audit B3-Rest |
+| C6 | **system-021**: Legacy-Spalte `app_config.entitlements` droppen — **erst wenn alle Instanzen neuen Code fahren**. | Pool-Audit N2 |
+| C7 | **apple-touch-icon je Community** (PNG-Pflicht, aus dem SVG nicht ableitbar). | Pool-Audit K2-Rest |
+| C8 | **Suche in der internen Doku** (`control.pukalani.app/docs`) — bewusst weggelassen. | control/docs |
+| C9 | **Der E2E-Job in CI ist dauerhaft rot** — in 60 Läufen kein grüner, mindestens seit 27.07. mittags. Es hängt an EINEM Test: `apps/comments/e2e/embed-write.spec.ts` wartet 30 s auf die Hydration im Embed-`<iframe>`. Verdacht: die localhost-Falle (Ports sind same-**site**, echtes Cross-Site-Gastverhalten braucht echte Domains). Nicht von den Audit-Fixes verursacht. Entweder reparieren oder den einen Fall begründet überspringen — ein Job, der immer rot ist, sagt nichts mehr und nimmt die übrigen E2E-Fälle inkl. Realtime mit. | CI-Beobachtung 28.07. |
+| C10 | **Destruktive Aktionen ohne Rückfrage** — sechs Stellen löschen mit einem Klick (Einbetter-Domain, Lektion, Seite, Feedback, Event absagen, Kommentar verstecken), eine ruft natives `window.confirm()` (`media.vue:69`), acht machen es richtig mit `UModal` — und `events.vue` macht beides in derselben Datei. Ein Bestätigungs-Vertrag räumt das plus die fünf Doppelklick-Löcher gemeinsam ab. Der einzige UI-Befund, der Daten kosten kann. | Dashboard-Audit, UI-Hebel 2 |
+| C11 | **Leerzustände** — ~20 Listen zeigen eine graue Textzeile, `UEmpty` wird 0× benutzt, `USkeleton` 0× im Dashboard. Ein Baustein (Icon + Satz + der eine nächste Schritt) trifft jede Seite auf einmal; die Texte sind größtenteils da. Erste Seite als Muster zeigen, dann ausrollen. | Dashboard-Audit, UI-Hebel 1 |
+| C12 | **Dashboard-Kleinteile** (Dashboard-Audit, Teil 2): `storage.vue` paginiert nicht · fehlende Leerzustände in `users/index.vue` + `admin/features.vue` · interne IDs im Kundenblick (`billing.vue` userId/planId, rohe Rollen-Keys, Appwrite-Event-Namen) · Jargon in Feldern („Slug", „Bucket", Platzhalter `paidCourses`) · handgebaut statt Nuxt UI (4× Button-Paar statt `URadioGroup`, Rollen-Picker, Online-Punkt, `UCollapsible`, Emoji-Badge) · 238 Toasts, nur 20 mit `description` · stumme Erfolge · Icon-Buttons ohne Label (8 Stellen) · ein hartcodierter Prosa-String (`themes/fonts.vue:249`) · `events.vue:309` ohne `flex-wrap`. | Dashboard-Audit |
+| C13 | **Audit-Reste S2, S5–S10** — Overview ohne `requiredCapability` · „Autor sperren" ungegated · `notifications` ohne tenantId (gemischte Liste bei Doppel-Mitgliedschaft) · `grantEventTicket` ohne Stempel · Appwrite-Fehlertext im Body bei fehlgeschlagener Nutzerlöschung · tote Capabilities (kein Einstieg für `branding.manage`, `posts.write`, `team.manage`, `site.transfer/delete`) · `requirePlanProduct('posts')` fehlt auf vier Routen, `maintenanceMode` auf zwei. Details + Prüfvermerke: [DASHBOARD-AUDIT-2026-07-28.md](plans/DASHBOARD-AUDIT-2026-07-28.md). | Dashboard-Audit |
+
+### D — bekannt und bewusst zu
+
+| # | Zustand | Öffnet sich, wenn … |
+| --- | --- | --- |
+| D1 | **Paid-Events und Paid-Kurse im Pool fail-closed** — der Stripe-Webhook stempelt keinen Mandanten, `grantEventTicket`/Kursbuchung landen ohne `tenantId` und werden von der Datentür nicht gefunden. Per Test genagelt. | Billing mandantenfähig wird |
+| D2 | **`/changelog` auf Tenant-Hosts 404** (N7, gewollt) | — |
+| D3 | **Demo ist indexierbar** (N4, Davids Entscheidung) | — |
+| D4 | **Cloudflare Origin Certificate** für die Landing → erlaubt „Full (Strict)" und löst pukalani.app ganz aus Let's Encrypt. Privater Schlüssel muss durchs Dashboard. | David es einmal macht |
+
+### E — Betrieb / Hygiene
+
+| # | Task |
+| --- | --- |
+| E1 | **`apps/control/.env.production` zeigt noch auf das gelöschte Projekt `studio`** (Cutover-Altlast). Der Prod-Migrationspfad läuft korrekt über `~/.appwrite-secrets/migrations/control.env` — die Datei im Repo ist irreführend. |
+| E2 | **UptimeRobot**: Monitor für `help.pukalani.app` ergänzen · Monitor 803548622 heißt noch „studio…" (Friendly-Name nachziehen). |
+| E3 | **Hetzner-Rescale** prüfen (CX33 knapp bei sechs Apps + Builds). [David] |
+| E4 | **Cutover-Krümel** ([CONTROL-CUTOVER.md](plans/CONTROL-CUTOVER.md)): ploi-Alias `studio.` + Doppel-Zertifikat der Control-Site aufräumen (geht erst, wenn der Stripe-Webhook auf `control` zeigt → hängt an A2) · Read-only-Key im Projekt `control` erzeugen [David, Console]. |
+| E5 | **Wellen-Migrationen**: Silo-Instanzen `photos`/`portfolio` fahren `system` mit — bei künftigen system-Migrationen mitdenken (`--wave`). |
+| E6 | **Worktrees aufräumen** — `.claude/worktrees/agent-*` (alle gemergt außer dem geparkten Block-Editor). |
+
+### F — später, bewusst geparkt
+
+- **Discussions** als eigenes Produkt — Konzept fertig in
+  [DISCUSSIONS-KONZEPT.md](plans/DISCUSSIONS-KONZEPT.md) (Kategorien vom Admin,
+  Threads von Mitgliedern, URL mit stabiler ID + austauschbarem Slug). Bau erst,
+  wenn die Kundenselbstverwaltung rund läuft.
+- **Block-Editor-Worktree** (`worktree-agent-a762b1bc42bba74d7`) — nie reviewt,
+  Feature-Stopp.
+- **Silo → Pool**: `comments` und `portfolio` laufen als eigene Instanzen.
+  Langfristig ist der Pool das Produkt; Silo bleibt das Enterprise-Angebot.
 
 > **2026-07-06 bis 2026-07-09 — Produkt-Arc „Community-Plattform":**
 > GOALS-Phasen 21–27 sind komplett (Feed, Events + v2 inkl. Serien, Billing,

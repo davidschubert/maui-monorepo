@@ -148,7 +148,7 @@ Ports: Core Playground **3000** · comments **3001** · weitere Apps 3002+
 | 14 | `packages/admin`: Moderation | ✅ 2026-06-10 |
 | 15 | `packages/themes` (Infrastruktur + 3 Themes) | ✅ 2026-06-10 |
 | 16 | Auth-UX-Feinschliff (Recovery-Flow, Provider-Buttons, Confirm/AGB) | ✅ 2026-06-11 |
-| 17 | Production Deployment (Hetzner, ploi.io, Custom Domain) | 🔜 |
+| 17 | Production Deployment (Hetzner, ploi.io, Custom Domain) — Auto-Deploy, Zero-Downtime Stufe 2, Backups, Monitoring, TLS-Wächter; bis 2026-07-27 auf **7 Hosts** gewachsen | ✅ 2026-07-18 |
 | 18 | Realtime/Presence auf SDK — Presence komplett auf Presences-API ✅ · P1 Rows-Rückbau ✅ (eine geteilte JWT-SDK-Realtime) | ✅ 2026-07-01 |
 | 19 | Email-OTP-Login (passwortlos) | ✅ 2026-06-11 |
 | 20 | OTP-Registrierung (Name, AGB, E-Mail-Normalisierung) | ✅ 2026-06-12 |
