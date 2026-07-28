@@ -16,9 +16,15 @@
  *     (server/middleware/site-role.ts); Gäste bekommen null. Die Capabilities
  *     werden clientseitig aus der geteilten Matrix (shared/tenantAuthz)
  *     abgeleitet — es reist kein fremdes Datum mit.
+ *   - `theme`/`variant` → useTenantBranding() (Entscheidung 12, 2026-07-28):
+ *     der Erscheinungsbild-Abschnitt in /dashboard/settings/community zeigt
+ *     die GESETZTE Wahl der Community. Bis dahin gab es dafür keinen
+ *     Client-Leser (die Werte reisten nur als <html>-Attribute) — mit dem
+ *     Kunden-Picker gibt es einen, und das Inventar wächst mit. Beide Werte
+ *     sind ohnehin öffentlich sichtbar: sie STEHEN als data-theme/data-variant
+ *     im HTML jeder Seite.
  * NICHT gespiegelt (kein Client-Leser): projectId, tenantId, siteId, limits,
- * mode, theme/variant (die reisen als <html>-Attribute, nicht als Daten).
- * Neues Feld hier hinein nur MIT nachgewiesenem Client-Leser.
+ * mode. Neues Feld hier hinein nur MIT nachgewiesenem Client-Leser.
  */
 import type { TenantRole } from '../../shared/tenantAuthz'
 
@@ -36,6 +42,12 @@ export default defineNuxtPlugin(() => {
   // Wert ist nur die Ansage an den Besucher. null = kein Tenant-Host.
   useState<boolean | null>('maui-tenant-open-registration', () => (
     tenant ? tenant.openRegistration !== false : null
+  ))
+  // Erscheinungsbild der Community (Entscheidung 12): die GESETZTE Wahl, nicht
+  // die aufgelöste — '' heißt „nichts gewählt, Instanz-Einstellung gilt" und
+  // muss im Dashboard als solches erkennbar bleiben. null = kein Tenant-Host.
+  useState<{ theme: string, variant: string } | null>('maui-tenant-branding', () => (
+    tenant ? { theme: tenant.theme ?? '', variant: tenant.variant ?? '' } : null
   ))
   // Site-Rolle des eingeloggten Users (N1): EXPLIZITE Zuweisung statt
   // Init-Funktion — der Auth-Store (läuft früher) initialisiert denselben
