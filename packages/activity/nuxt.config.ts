@@ -4,11 +4,18 @@
  * Extended den Core NICHT selbst — die App komponiert beide:
  * extends: [activity, …, core].
  *
- * NICHT POOL-FÄHIG (Stand S3): `activities` trägt KEINE tenantId. Der
- * Autorisierungs-Gate ist bereits `requireSitePermission`, aber die DATEN-Tür
- * fehlt — vor dem ersten Einsatz in apps/platform braucht die Table eine
- * tenantId-Migration + Umstellung auf tenantDb(), sonst löscht ein Site-Admin
- * Feed-Einträge fremder Mandanten.
+ * POOL-FÄHIG seit C1b (2026-07-28): `activities` trägt `tenantId`
+ * (Migration system-021 — die Table gehört system, A14), beide server/api-
+ * Routen gehen über die Datentür `tenantDb(event)`, und recordActivity() (core)
+ * stempelt Mandant + tenant-genamete Row-Permissions. Der Realtime-Stream
+ * filtert zusätzlich clientseitig (useTenantId) — er liest direkt gegen
+ * Appwrite, an ihm greift keine Server-Tür. Autorisierung: S3
+ * (`requireSitePermission`).
+ *
+ * BESTAND auf der Pool-Instanz (platform) trägt keine tenantId und ist im Pool
+ * daher unsichtbar (fail-closed) — folgenlos, solange `activity` nicht in
+ * apps/platform/site.manifest.ts steht. Wer den Feed dort einschaltet,
+ * entscheidet vorher über Backfill oder Wegwerfen (siehe system-021).
  */
 export default defineNuxtConfig({
   // Eigene Layer-Strings — mergen mit Core- und App-Locales (gleiche codes)
