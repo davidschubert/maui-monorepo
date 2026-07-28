@@ -9,6 +9,7 @@
  *   - bleibt ein Fremder draußen, obwohl er auf DERSELBEN Instanz eingeloggt ist?
  *   - reist eine Owner-Rolle NICHT auf eine andere Community mit?
  *   - hat der Owner das Site-Label bekommen (Naht 4, privates Lesen)?
+ *   - sieht er die Kennzahlen SEINER Übersicht (C1) — und ein Fremder nicht?
  *
  * Räumt am Ende alles weg, was es angelegt hat.
  *
@@ -225,6 +226,24 @@ try {
     const res = await call(host, path, { cookie: ownerCookie })
     check(`${path} → 403 für den Site-Owner`, res.status === 403, `Status ${res.status}`)
   }
+
+  console.log('\n6b. Die Kennzahlen der Übersicht gehören dagegen dem Owner (C1)')
+  const ownerStats = await call(host, '/api/admin/stats', { cookie: ownerCookie })
+  check('/api/admin/stats → 200 (vorher 403: der Gate war label-only)', ownerStats.status === 200, `Status ${ownerStats.status}`)
+  check('Nutzerzahl bleibt im Pool leer — Projekt-Nutzer ≠ Site-Mitglieder',
+    ownerStats.json?.usersTotal === null, JSON.stringify(ownerStats.json))
+  check('gemeldete Kommentare kommen mit (Owner trägt comments.moderate)',
+    typeof ownerStats.json?.commentsReported === 'number', JSON.stringify(ownerStats.json))
+  const ownerAnalytics = await call(host, '/api/admin/analytics?days=7', { cookie: ownerCookie })
+  check('/api/admin/analytics → 200 mit 7 Tagespunkten',
+    ownerAnalytics.status === 200 && ownerAnalytics.json?.points?.length === 7,
+    `Status ${ownerAnalytics.status}`)
+  check('Registrierungs-Reihe bleibt im Pool bewusst leer',
+    ownerAnalytics.json?.usersInRange === null, JSON.stringify(ownerAnalytics.json?.usersInRange))
+  const strangerStats = await call(host, '/api/admin/stats', { cookie: strangerCookie })
+  check('Fremder (eingeloggt, kein Mitglied) → 403', strangerStats.status === 403, `Status ${strangerStats.status}`)
+  const guestStats = await call(host, '/api/admin/stats')
+  check('Gast ohne Session → 401', guestStats.status === 401, `Status ${guestStats.status}`)
 }
 catch (error) {
   fail++
