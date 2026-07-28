@@ -145,10 +145,19 @@ groessere Hebel als Entscheidungen dokumentiert). Dazu ausserhalb des Audits:
 apps/help (freigegeben, Deploy-Kette offen) + control.pukalani.app/docs
 (interne Doku hinter Betreiber-Auth inkl. Content-API-Guard + Prerender-Falle).
 
-NEUE Befunde aus P10 (offen):
-- N6: Default-Theme heisst im Kunden-Picker sichtbar "Maui" — Namensentscheidung David.
-- N7: /changelog antwortet auf Tenant-Hosts 200 (Betreiber-Changelog fuer
-  Kunden-Besucher erreichbar) — Scope-Entscheidung, Route gaten oder oeffnen.
+NEUE Befunde aus P10:
+- N6 ✅ (2026-07-28, DECISION-LOG 10): Default-Theme heisst im Picker jetzt
+  "Sunrise" (Kollisionspruefung: der 26er-Katalog hat kein "Sunrise" — wohl
+  aber "Sunset"; kein "Aloha"). Umbenannt wurde AUSSCHLIESSLICH das
+  Anzeige-Label in app/utils/themeRegistry.ts — Id bleibt `default`
+  (tenants.theme, data-theme, CSS-Dateinamen, gespeicherte Configs
+  unangetastet). Regenerieren erzeugt kein Diff, check:themes byte-gleich.
+- N7 ✅ (2026-07-28, DECISION-LOG 11): /changelog + /api/changelog antworten
+  auf Mandanten-Hosts 404. Zwei Sperren: Seite via useIsTenantHost()
+  (pure Ausschluss-Rechnung aus shared/controlCenter.ts — Tenant-Gate an und
+  kein Kontroll-Host), API via useTenant(event) (aufgeloester Kontext, das
+  ist die Autoritaet). Kontroll-Hosts (my./start.) und Silo-Apps (comments,
+  dort im Footer verlinkt) unveraendert — nachgemessen dev + Prod-Build.
 - N8: Owner-Overview zeigt Nullwerte (Stats-Routen Operator-only) —
   Folgeschritt tenant-gescopte Stats via requireSitePermission.
 - N9: Theme-Studio verlangt system.manage — duerfen Owner ihre Themes selbst
