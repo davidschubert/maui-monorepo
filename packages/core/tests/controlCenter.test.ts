@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isAllowedControlPath, isControlHost, parseControlHosts, resolveControlHosts } from '../shared/controlCenter'
+import { isAllowedControlPath, isControlHost, isTenantHost, parseControlHosts, resolveControlHosts } from '../shared/controlCenter'
 
 const PREFIXES = ['/api/auth/', '/api/onboarding/', '/api/health', '/api/telemetry/']
 
@@ -37,6 +37,36 @@ describe('Kontroll-Hosts auflösen', () => {
 
   it('ist ohne konfigurierte Hosts immer false (kein Versehens-Kundenbereich)', () => {
     expect(isControlHost('my.pukalani.app', [])).toBe(false)
+  })
+})
+
+describe('Mandanten-Host erkennen (Betreiber-Inhalt sperren, N7)', () => {
+  const CONTROL = ['my.pukalani.app', 'start.pukalani.app']
+
+  it('ist ohne Tenant-Gate IMMER false — Silo-Apps bleiben unverändert', () => {
+    for (const host of ['localhost', 'kommentare.example.com', 'my.pukalani.app']) {
+      expect(isTenantHost(false, host, CONTROL), String(host)).toBe(false)
+      expect(isTenantHost(false, host, []), String(host)).toBe(false)
+    }
+  })
+
+  it('lässt die Kontroll-Hosts der Pool-App in Ruhe', () => {
+    expect(isTenantHost(true, 'my.pukalani.app', CONTROL)).toBe(false)
+    expect(isTenantHost(true, 'START.pukalani.app', CONTROL)).toBe(false)
+  })
+
+  it('erkennt jede Kunden-Community als Mandanten-Host', () => {
+    for (const host of ['kunde-a.localhost', 'morgenlicht.pukalani.app', 'demo.pukalani.app']) {
+      expect(isTenantHost(true, host, CONTROL), host).toBe(true)
+    }
+  })
+
+  it('ist fail-closed: unbekannte/leere Hosts gelten als Mandanten-Host', () => {
+    // Die Middleware gibt diesen Hosts ohnehin 404 — aber Betreiber-Inhalt
+    // darf auch dann nicht durchrutschen, wenn hier etwas Unerwartetes ankommt.
+    for (const host of ['', undefined, null, 'irgendwas.example.com']) {
+      expect(isTenantHost(true, host, CONTROL), String(host)).toBe(true)
+    }
   })
 })
 
