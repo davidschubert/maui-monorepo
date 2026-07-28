@@ -5,6 +5,10 @@ import { POSTS_TABLE, type CommunityPost, type PostModerationAssist } from '../.
  * der Kommentar-Assist im admin-Layer: core aiComplete (Gate maui.ai +
  * NUXT_AI_KEY), Meldegründe über den moderation-Vertrag openReportsForTarget,
  * die KI ändert NICHTS — der Moderator entscheidet.
+ *
+ * AUTORISIERUNG (S1): `requireSitePermission` — Site-Rolle vor protokolliertem
+ * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
+ * Das `await` ist Pflicht — ohne wäre der Gate fail-open.
  */
 
 function parsePollOptions(raw: string | null): string[] {
@@ -45,7 +49,7 @@ function buildPrompt(post: CommunityPost, reports: { reason: string, note: strin
 }
 
 export default defineEventHandler(async (event): Promise<PostModerationAssist> => {
-  requirePermission(event, 'posts.moderate')
+  await requireSitePermission(event, 'posts.moderate')
   // Produkt-Gate (P4): KI-Assist ist ein Pro-Produkt (kostet pro Aufruf).
   requirePlanProduct(event, 'ai')
 
