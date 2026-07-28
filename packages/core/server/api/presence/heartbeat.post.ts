@@ -25,6 +25,13 @@ export default defineEventHandler(async (event) => {
 
   const prefs = user.prefs as { avatarUrl?: string } | undefined
   const metadata: Record<string, unknown> = { userName: user.name }
+  // Mandant (Audit B1): im Pool teilen sich ALLE Communities ein Appwrite-
+  // Projekt und damit EINEN Presences-Raum. Ohne dieses Merkmal kann kein Leser
+  // fremde Anwesende aussortieren. NIE aus dem Body (der Zod-Parse verwirft
+  // unbekannte Felder ohnehin) — nur aus dem serverseitig aufgelösten Kontext.
+  // Silo/kein Tenant: NICHT setzen — die Leser erwarten dort „ohne tenantId".
+  const tenant = useTenant(event)
+  if (tenant?.mode === 'pool') metadata.tenantId = tenant.tenantId
   if (typeof prefs?.avatarUrl === 'string' && prefs.avatarUrl) metadata.avatarUrl = prefs.avatarUrl
   if (body.scope) metadata.scope = body.scope
   if (body.action) metadata.action = body.action
@@ -41,6 +48,21 @@ export default defineEventHandler(async (event) => {
       userId: user.$id,
       status: 'online',
       // read("users"): andere eingeloggte User sehen die Presence.
+      //
+      // ⚠️ OFFENES RESTRISIKO IM POOL (Audit B1, dokumentiert in
+      // docs/OFFENE-TASKS.md A4): `read("users")` heißt JEDER eingeloggte User
+      // des geteilten Projekts — also auch Mitglieder FREMDER Communities.
+      // Der tenantId-Filter (presenceFilter.ts / usePresence.ts) ist die
+      // ANWENDUNGS-Oberfläche, NICHT die Datenbank-Grenze: wer presences.list()
+      // von Hand gegen Appwrite ruft, sieht weiterhin userId + userName +
+      // avatarUrl aller Online-User aller Mandanten. Ein vollständiger
+      // Verschluss braucht eine Entscheidung: (a) ein Appwrite-Team pro Mandant
+      // und read("team:<id>") statt read("users") — oder (b) Presences
+      // server-only (Permissions nur für den Owner) und ALLE Leser über
+      // Server-Routen, was die gemessenen ~280 ms Realtime-Latenz gegen
+      // 20s-Polling eintauscht. Bis dahin: keine PII über Name/Avatar hinaus
+      // in die metadata legen.
+      //
       // update/delete für den Owner: Appwrites Realtime-Presence-Handler
       // (Presences/State.php) UPDATEt die Presence beim WS-Verarbeiten — ohne
       // diese Rechte wirft er „No permissions for action 'update'" und der

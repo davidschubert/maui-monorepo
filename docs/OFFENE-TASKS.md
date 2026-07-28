@@ -14,6 +14,38 @@ konkrete Rest-Liste dieser Audit-Woche. Legende: **[David]** nur David ·
 | A1 | **Echte Rechtstexte** für pukalani.app (Impressum/Datenschutz/AGB). Die Routen stehen, die Texte sind Entwurf + `noindex`. | David (ggf. Anwalt) | Ohne verbindliche Texte kein Verkauf in DE |
 | A2 | **Stripe Live-Modus**: Keys tauschen, Webhook auf `control` umstellen (hängt noch am `studio`-Alias), Preise live prüfen. Runbook: `docs/plans/STRIPE-LIVE-RUNBOOK.md` | David | Ohne Live-Mode kein Geldeingang |
 | A3 | **Netto/Brutto-Angabe**. Weder Landing (`apps/marketing` PricingSection + Locales) noch Hilfe-Site (`apps/help/content/anleitung/5.abrechnung.md`) weisen MwSt. aus. | David entscheidet, Claude setzt um | **PAngV-Risiko** bei B2C in Deutschland |
+| A4 | **Presence-Rows sind pool-weit lesbar** (Restrisiko aus Audit B1, s. u.) | David entscheidet, Claude baut | Kunde A kann die Online-Namen von Kunde B auslesen |
+
+### A4 — Presence: Anwendungs-Filter steht, Datenbank-Grenze fehlt
+
+Behoben ist die **Oberfläche**: Presencen tragen im Pool seit dem B1-Fix ein
+`metadata.tenantId` (`packages/core/server/api/presence/heartbeat.post.ts`), und
+beide Leser filtern fail-closed darauf — server-seitig
+`toOnlinePresences` (`core/server/utils/presenceFilter.ts`, u. a. hinter
+`GET /api/presence/count` und den Admin-User-Listen), client-seitig
+`usePresence()` (`core/app/composables/usePresence.ts`). Kein Mandanten-UI zeigt
+noch fremde Anwesende.
+
+**Offen ist die Grenze darunter.** Die Presence-Row trägt `read("users")` — im
+geteilten Pool-Projekt heißt das *jeder eingeloggte User aller Communities*. Wer
+das Web-SDK von Hand bemüht (`presences.list()` mit dem eigenen Session-Cookie),
+bekommt weiterhin `userId`, `userName` und `avatarUrl` sämtlicher gerade online
+befindlicher User **aller** Mandanten. Der Filter ist Anwendungslogik, keine
+Zugriffskontrolle.
+
+**Entscheidungsfrage an David:** Wie wird zugemacht?
+
+- **(a) Appwrite-Team pro Mandant** — `read("team:<tenantId>")` statt
+  `read("users")`. Die Grenze zieht dann Appwrite selbst, Realtime und die
+  ~280 ms Latenz bleiben. Kostet ein Team je Community plus Mitgliedschafts-
+  Pflege an jedem Beitritt/Austritt (und einen Rückbau-Pfad für Bestandsuser).
+- **(b) Presences server-only** — Permissions nur noch für den Owner, alle Leser
+  gehen über Server-Routen. Wenig Bauaufwand, aber der direkte Realtime-Pfad
+  entfällt: Anwesenheit käme über 20s-Polling statt in ~280 ms, spürbar bei
+  Tipp-Indikatoren und „N sehen diese Seite".
+
+Bis zur Entscheidung gilt: **keine PII über Name und Avatar hinaus** in die
+Presence-metadata legen.
 
 ## 2. Entscheidungen, die Arbeit freischalten
 

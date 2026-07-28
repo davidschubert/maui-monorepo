@@ -1,7 +1,8 @@
 /**
  * Reine (Nuxt-freie) Presence-Logik — testbar ohne Server-Kontext.
  * `toOnlinePresences` filtert eine rohe Presences-Liste auf „online jetzt"
- * (Aktualität < freshMs) und mappt die metadata auf ein sicheres Shape.
+ * (Aktualität < freshMs) UND auf den erwarteten Mandanten, und mappt die
+ * metadata auf ein sicheres Shape.
  */
 export interface OnlinePresence {
   userId: string
@@ -24,13 +25,34 @@ export interface RawServerPresence {
 // Sauberes Verlassen entfernt die Presence sofort (leave-Beacon), daher unkritisch.
 export const PRESENCE_FRESH_MS = 180_000
 
+/**
+ * Mandanten-Filter (Audit B1). Im Pool teilen sich ALLE Communities ein
+ * Appwrite-Projekt und damit EINEN Presences-Raum — ohne diesen Vergleich sähe
+ * ein Mitglied von Kunde A die Namen aller gerade online befindlichen User
+ * ALLER Kunden.
+ *
+ * Strikte Gleichheit in BEIDE Richtungen (fail-closed): eine Presence OHNE
+ * tenantId gehört nicht auf einen Mandanten-Host (Alt-Presence, fremdes
+ * Deployment), eine MIT tenantId nicht auf einen Kontroll-Host oder in eine
+ * Silo-App. Kein „unbekannt = passt schon".
+ *
+ * `expectedTenantId` fehlt/undefined = Silo/Single-Tenant → es passen genau die
+ * Presencen ohne tenantId, also das heutige Verhalten.
+ */
+function belongsToTenant(meta: Record<string, unknown>, expectedTenantId?: string | null): boolean {
+  const actual = typeof meta.tenantId === 'string' ? meta.tenantId : ''
+  return actual === (expectedTenantId ?? '')
+}
+
 export function toOnlinePresences(
   raw: RawServerPresence[],
   now: number,
   freshMs: number = PRESENCE_FRESH_MS,
+  expectedTenantId?: string | null,
 ): OnlinePresence[] {
   return raw
     .filter(p => now - Date.parse(p.$updatedAt) < freshMs)
+    .filter(p => belongsToTenant((p.metadata ?? {}) as Record<string, unknown>, expectedTenantId))
     .map((p) => {
       const meta = (p.metadata ?? {}) as Record<string, unknown>
       return {
