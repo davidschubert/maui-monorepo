@@ -21,6 +21,14 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 400, statusText: 'Missing post id' })
   }
 
+  // Wartungsmodus friert ALLE Schreibvorgänge ein — die Schwester-Route
+  // [id]/score.post.ts (Up-/Downvote) prüft das seit jeher, die Poll-Stimme
+  // hier nicht. Beide schreiben, beide gehören still.
+  const appConfig = await getAppConfig(event)
+  if (appConfig.maintenanceMode) {
+    throw createError({ status: 403, statusText: 'Maintenance mode' })
+  }
+
   const { optionIndex } = await readValidatedBody(event, voteSchema.parse)
   // Datentür als Operator (poll_votes haben bewusst keine User-Schreibrechte;
   // create stempelt den Mandanten, get/list belegen die Zugehörigkeit).

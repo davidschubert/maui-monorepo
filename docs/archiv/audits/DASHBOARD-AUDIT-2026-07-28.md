@@ -90,12 +90,12 @@ Veröffentlichen); das ist die Vorlage.
 | S2 | **Overview ohne `requiredCapability`.** Eintrittsbarriere ist nur `dashboard.access`, das alle fünf Site-Rollen tragen. Ein `viewer` sieht die Hide/Restore-Buttons der Schnellmoderation und alle Kacheln auf 0. | [gemeldet] |
 | S3 | **media und activity wiederholen S1** (latent — beide Layer laufen nicht im Pool). | [verifiziert] |
 | S4 | **Die Nav kennt das Plan-Gating nicht.** Ein Owner auf `basic` sieht „Events" und „Kurse"; die Routen antworten 404. Deckt sich mit Task C2. | [gemeldet] |
-| S5 | **„Autor sperren" im Kommentar-Dashboard ist ungegated** (`comments.vue:340` → operator-only Route). | [gemeldet] |
-| S6 | **`notifications` trägt kein tenantId.** Row-Security verhindert Fremdlesen korrekt — aber wer in zwei Communities Mitglied ist, sieht auf beiden eine gemischte Liste. | [gemeldet] |
-| S7 | **`grantEventTicket` schreibt ohne tenantId-Stempel** in eine tenantId-Tabelle. Heute fail-closed (bekannt als D1), wird zum Datenintegritätsbug, sobald bezahlte Events in den Pool gehen. | [gemeldet] |
-| S8 | **Appwrite-Fehlertexte im Body** bei fehlgeschlagener Nutzerlöschung (`users/[id]/index.delete.ts:42`). Publikum `users.manage`, aber die einzige Stelle, die die Regel bricht. | [gemeldet] |
-| S9 | **Tote Capabilities:** kein Dashboard-Einstieg für `branding.manage`, `posts.write`, `team.manage` (nur der Registrierungs-Schalter), `site.transfer`, `site.delete`. Ein **Editor** sieht auf platform faktisch nur Overview, Events, Seiten. | [gemeldet] |
-| S10 | Kleinteile: `requirePlanProduct('posts')` fehlt auf vier posts-Routen (nach Downgrade bleibt Bearbeiten offen) · `maintenanceMode` fehlt auf zwei · tickets-Triage-Guard sitzt im Util statt in der Route · Dashboard rendert auf den Kontroll-Hosts als tote Shell. | [gemeldet] |
+| S5 | **„Autor sperren" im Kommentar-Dashboard ist ungegated** (`comments.vue:340` → operator-only Route). | [verifiziert 2026-07-28, gefixt] |
+| S6 | **`notifications` trägt kein tenantId.** Row-Security verhindert Fremdlesen korrekt — aber wer in zwei Communities Mitglied ist, sieht auf beiden eine gemischte Liste. | [verifiziert 2026-07-28 — abgespalten als C15] |
+| S7 | **`grantEventTicket` schreibt ohne tenantId-Stempel** in eine tenantId-Tabelle. Heute fail-closed (bekannt als D1), wird zum Datenintegritätsbug, sobald bezahlte Events in den Pool gehen. | [verifiziert 2026-07-28, gefixt] |
+| S8 | **Appwrite-Fehlertexte im Body** bei fehlgeschlagener Nutzerlöschung (`users/[id]/index.delete.ts:42`). Publikum `users.manage`, aber die einzige Stelle, die die Regel bricht. | [verifiziert 2026-07-28, gefixt] |
+| S9 | **Tote Capabilities:** kein Dashboard-Einstieg für `branding.manage`, `posts.write`, `team.manage` (nur der Registrierungs-Schalter), `site.transfer`, `site.delete`. Ein **Editor** sieht auf platform faktisch nur Overview, Events, Seiten. | [gemeldet — neu als C16] |
+| S10 | Kleinteile: `requirePlanProduct('posts')` fehlt auf vier posts-Routen (nach Downgrade bleibt Bearbeiten offen) · `maintenanceMode` fehlt auf zwei · tickets-Triage-Guard sitzt im Util statt in der Route · Dashboard rendert auf den Kontroll-Hosts als tote Shell. | [verifiziert 2026-07-28, gefixt (mit Korrekturen)] |
 
 ### ✅ Geprüft und sauber
 
@@ -215,7 +215,15 @@ sortiert/gefiltert wird?
 | S1 posts-Guards | ✅ gefixt + gemergt (+ Test) |
 | S3 media/activity-Guards | ✅ Gate gefixt — **Datentür fehlt weiter** (C1b) |
 | S2 Overview-Widgets | ✅ gefixt + getestet (zusammen mit C1 — Widgets einzeln capability-gegated) |
-| S4–S10 | offen — brauchen teils deine Entscheidung |
+| S5 „Autor sperren" | ✅ **bestätigt** und gefixt + Test — Knopf UND Autoren-Link gaten auf `users.manage`. Derselbe Link steckte auch in der Schnellmoderation der Übersicht (`admin/dashboard/index.vue:258`), mit erledigt |
+| S7 grantEventTicket | ✅ **bestätigt** und gefixt + Test — der Mandant kommt aus dem EVENT (die einzige Quelle, die im Webhook stimmen kann); ein nicht lesbares Event wirft, statt ungestempelt zu schreiben. D1 nachgezogen |
+| S8 Appwrite-Fehlertexte | ✅ **bestätigt** und gefixt + Test — `publicContributorResults()` als Client-Sicht, rohe Meldungen nur noch strukturiert im Log (`gdpr.contributor_failed`, `gdpr.delete_incomplete`) |
+| S10a Produkt-Gate | ✅ **bestätigt**, aber weiter als gemeldet: es fehlte an SIEBEN Routen, nicht an vier. `hide`/`restore`/`assist` mussten mit — sonst wäre die Moderations-SEITE 404 gegangen, während ihre Aktions-Routen weiterschreiben |
+| S10b Wartungsmodus | ✅ **bestätigt mit Korrektur**: die Prüfung sitzt in `index.post` und **`score.post`**, nicht in `vote.post`. `vote.post` (Poll-Stimme) war ein DRITTER Fehlstand, keine Referenz. Moderations-Routen bleiben bewusst offen (Muster comments) |
+| S10c Triage-Guard | ✅ **bestätigt** und gefixt + Test — Gate in der Route, im Util bleibt er als zweite Verteidigung. Triage war die einzige der 21 tickets-Routen ohne eigenen Gate |
+| S6 notifications ohne tenantId | ✅ **bestätigt**, bewusst NICHT halb gebaut — als eigener Punkt abgespalten (OPEN-ITEMS C15) mit Umfang und drei Entscheidungen: Umgang mit dem Bestand, mandantenlose Nachrichten (Stripe/Control-Plane), Host-Auflösung für die Mail-Links |
+| S4, S9 | offen — S4 ist C2, S9 neu aufgenommen als C16 |
+| S10 „tote Shell auf Kontroll-Hosts" | ungeprüft — dieser vierte Teilbefund von S10 war nicht Teil des Auftrags |
 | UI-Hebel 1 (Leerzustände) | offen — Baustein-Entwurf zuerst, dann Rollout |
 | UI-Hebel 2 (Löschen-Vertrag) | offen |
 | UI-Hebel 3 (Listen-Muster) | **braucht deine Entscheidung** |

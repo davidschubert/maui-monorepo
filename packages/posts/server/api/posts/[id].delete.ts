@@ -7,6 +7,8 @@ import { POSTS_TABLE, type CommunityPost } from '../../../shared/types/post'
  * GDPR-Snapshot). Admin-Client für den Permission-Entzug (autoritativ).
  */
 export default defineEventHandler(async (event) => {
+  // Produkt-Gate (P4): der Posting-Feed ist ab Plan personal enthalten.
+  requirePlanProduct(event, 'posts')
   const user = event.context.user
   if (!user) {
     throw createError({ status: 401, statusText: 'Unauthorized' })
@@ -15,6 +17,12 @@ export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
   if (!id) {
     throw createError({ status: 400, statusText: 'Missing post id' })
+  }
+
+  // Wartungsmodus friert ALLE Schreibvorgänge ein (s. [id].patch.ts).
+  const appConfig = await getAppConfig(event)
+  if (appConfig.maintenanceMode) {
+    throw createError({ status: 403, statusText: 'Maintenance mode' })
   }
 
   // Datentür als Operator (Permission-Entzug ist autoritativ) — get belegt

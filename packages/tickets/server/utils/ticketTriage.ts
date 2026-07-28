@@ -132,6 +132,10 @@ async function callCompletions(event: H3Event, config: TicketsAiConfig, apiKey: 
 }
 
 export async function triageTicket(event: H3Event, ticketId: string): Promise<TicketRow> {
+  // Zweite Verteidigung (S10c): die AUTORITÄT ist der gleichlautende Gate in
+  // der Route (api/tickets/[id]/triage.post.ts). Hier bleibt er für künftige
+  // Aufrufer stehen — ein Gate im Util ist billig, aber er darf nie der
+  // einzige sein: er wandert mit jedem Refactor mit, die Route nicht.
   requirePermission(event, 'tickets.manage')
 
   const config = await getEffectiveTicketsAiConfig(event)

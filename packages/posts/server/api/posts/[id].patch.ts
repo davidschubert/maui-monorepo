@@ -8,6 +8,8 @@ import { POLL_VOTES_TABLE, POSTS_TABLE, type CommunityPost } from '../../../shar
  * bereits abgegebenen Stimmen zu ändern wäre Manipulations-Fläche.
  */
 export default defineEventHandler(async (event) => {
+  // Produkt-Gate (P4): der Posting-Feed ist ab Plan personal enthalten.
+  requirePlanProduct(event, 'posts')
   const user = event.context.user
   if (!user) {
     throw createError({ status: 401, statusText: 'Unauthorized' })
@@ -16,6 +18,14 @@ export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
   if (!id) {
     throw createError({ status: 400, statusText: 'Missing post id' })
+  }
+
+  // Wartungsmodus friert ALLE Schreibvorgänge ein, nicht nur das Anlegen —
+  // Muster commentPolicy.assertNotMaintenance: dort steht auch das Bearbeiten
+  // und Löschen EIGENER Inhalte still. Sonst ist der Schalter nur halb wirksam.
+  const appConfig = await getAppConfig(event)
+  if (appConfig.maintenanceMode) {
+    throw createError({ status: 403, statusText: 'Maintenance mode' })
   }
 
   const input = await readValidatedBody(event, postEditSchema.parse)

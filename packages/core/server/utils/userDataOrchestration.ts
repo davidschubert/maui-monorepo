@@ -29,7 +29,31 @@ export interface ContributorRunResult {
   ok: boolean
   deleted: number
   anonymized: number
+  /**
+   * Rohe Fehlermeldung des Layers — regelmäßig eine `AppwriteException`
+   * (Tabellen-Ids, interne Formulierungen). SERVERSEITIGE Diagnose: dieses
+   * Feld gehört ins Log, NIE in eine HTTP-Antwort (Audit-Befund S8, CLAUDE.md
+   * „keine Appwrite-Fehlerdetails an Clients leaken"). Wer das Ergebnis an
+   * einen Client weitergibt, nimmt `publicContributorResults()`.
+   */
   error?: string
+}
+
+/** Was ein Client über einen gescheiterten Layer erfahren darf. */
+export interface PublicContributorResult {
+  id: string
+  ok: boolean
+  deleted: number
+  anonymized: number
+}
+
+/**
+ * Client-Sicht auf die Contributor-Ergebnisse: WELCHE Layer gescheitert sind
+ * (das ist die brauchbare Auskunft — sie sagt dem Betreiber, wo der Re-Run
+ * ansetzt), aber nicht WORAN. Die Begründung bleibt im Server-Log.
+ */
+export function publicContributorResults(results: ContributorRunResult[]): PublicContributorResult[] {
+  return results.map(({ id, ok, deleted, anonymized }) => ({ id, ok, deleted, anonymized }))
 }
 
 export interface DeleteUserResult {
@@ -163,7 +187,13 @@ export async function deleteUserCompletely(
       results.push({ id: contributor.id, ok: true, ...result })
     }
     catch (error) {
-      results.push({ id: contributor.id, ok: false, deleted: 0, anonymized: 0, error: error instanceof Error ? error.message : String(error) })
+      const message = error instanceof Error ? error.message : String(error)
+      // Diagnose SOFORT und strukturiert ins Log (S8): sie ist das, was den
+      // Re-Run leitet — und sie verlässt den Server nicht mehr über die
+      // Antwort. Ohne diese Zeile hinge sie allein an der Route, die das
+      // Ergebnis gerade auswertet.
+      logEvent('error', 'gdpr.contributor_failed', { contributor: contributor.id, userId, message })
+      results.push({ id: contributor.id, ok: false, deleted: 0, anonymized: 0, error: message })
     }
   }
 

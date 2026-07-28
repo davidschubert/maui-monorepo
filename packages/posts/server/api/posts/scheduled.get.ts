@@ -7,6 +7,8 @@ import { POSTS_TABLE, type CommunityPost } from '../../../shared/types/post'
  * authorId-Filter ist das explizite Sicherheitsnetz obendrauf.
  */
 export default defineEventHandler(async (event) => {
+  // Produkt-Gate (P4): der Posting-Feed ist ab Plan personal enthalten.
+  requirePlanProduct(event, 'posts')
   const user = event.context.user
   if (!user) {
     throw createError({ status: 401, statusText: 'Unauthorized' })
