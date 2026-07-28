@@ -214,7 +214,8 @@ sortiert/gefiltert wird?
 | B3 Medien-Rechte | ✅ vollständig zu — Code gemergt, Migration am 2026-07-28 auf `comments` gefahren und live nachgemessen |
 | S1 posts-Guards | ✅ gefixt + gemergt (+ Test) |
 | S3 media/activity-Guards | ✅ Gate gefixt — **Datentür fehlt weiter** (C1b) |
-| S2, S4–S10 | offen — brauchen teils deine Entscheidung |
+| S2 Overview-Widgets | ✅ gefixt + getestet (zusammen mit C1 — Widgets einzeln capability-gegated) |
+| S4–S10 | offen — brauchen teils deine Entscheidung |
 | UI-Hebel 1 (Leerzustände) | offen — Baustein-Entwurf zuerst, dann Rollout |
 | UI-Hebel 2 (Löschen-Vertrag) | offen |
 | UI-Hebel 3 (Listen-Muster) | **braucht deine Entscheidung** |

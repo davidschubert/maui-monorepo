@@ -44,7 +44,16 @@ async function collectCreatedAt(
  * Tages-Zeitreihe für Registrierungen + Kommentare im gewählten Zeitraum.
  * Chart-Buckets UND KPI-Totals stammen aus DERSELBEN paginierten In-Range-Menge
  * → Balken und Legende können nicht auseinanderlaufen (früher: 200er-Sample für
- * die Buckets vs. autoritative Count-Query für die Totals). Admin-only.
+ * die Buckets vs. autoritative Count-Query für die Totals).
+ *
+ * AUTORISIERUNG (C1): `await requireSitePermission(event, 'dashboard.access')` —
+ * dieselbe Wahl und dieselbe Begründung wie bei `/api/admin/stats`: das Chart
+ * gehört zur Dashboard-Startseite, die jede der fünf Site-Rollen erreicht, und
+ * es zeigt die Aktivitätskurve der EIGENEN Community — aggregiert über
+ * Inhalte, die ein Mitglied auf der Site ohnehin lesen kann. Ein engerer Gate
+ * ließe Editor und Viewer wieder auf ein leeres Diagramm schauen. Das `await`
+ * ist Pflicht: `requireSitePermission` ist bewusst asynchron (siteAccess.ts),
+ * ohne `await` wäre die Prüfung keine.
  *
  * MANDANTENDICHT (Audit-Befund B2, 2026-07-27):
  *  - Kommentare gehen durch die Datentür (`tenantDb`, operator-Klinke wie
@@ -57,7 +66,7 @@ async function collectCreatedAt(
  *    keine Zahl als eine fremde (`usersInRange: null`, Balken bleiben leer).
  */
 export default defineEventHandler(async (event): Promise<AdminAnalytics> => {
-  requirePermission(event, 'dashboard.access')
+  await requireSitePermission(event, 'dashboard.access')
 
   const db = tenantDb(event, { as: 'operator' })
   const admin = createAdminClient(event)

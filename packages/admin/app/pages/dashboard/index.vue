@@ -8,7 +8,11 @@ import type {
   ReportedCommentsSummary,
   StorageOverview,
 } from '../../../shared/types/admin'
+import type { Capability } from '../../../../core/shared/types/authz'
 
+// BEWUSST ohne `requiredCapability`: die Übersicht ist die Landeseite JEDER
+// Site-Rolle (alle fünf tragen `dashboard.access`, tenantAuthz.ts). Gegated
+// wird deshalb Widget für Widget (Audit-Befund S2, s. `can()` unten).
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
 
 const { t, te, locale } = useI18n()
@@ -29,6 +33,20 @@ onMounted(() => {
   })
 })
 
+// --- Capability-Gates der Widgets (Audit-Befund S2) ---------------------------
+// Zwei Quellen wie in der Nav (N1): Operator-Label ODER Site-Rolle. Ohne diese
+// Gates zeigte die Übersicht einem `viewer` die Hide/Restore-Knöpfe der
+// Schnellmoderation (deren Route ihn abweist — der Knopf log also) und feuerte
+// bei jedem Seitenaufruf zwei Fetches ab, die für Site-Rollen nur 403 liefern
+// können: `audit.read` und `storage.manage` trägt KEINE der fünf Rollen.
+// Nur UX-Schicht — die Autorität sind die Gates in den Server-Routen.
+const { capabilities: siteCaps } = useSiteRole()
+const can = (capability: Capability) =>
+  userHasCapability(auth.user, capability) || siteCaps.value.has(capability)
+const canModerateComments = computed(() => can('comments.moderate'))
+const canReadAudit = computed(() => can('audit.read'))
+const canManageStorage = computed(() => can('storage.manage'))
+
 // --- Kennzahlen + Chart (SSR) -------------------------------------------------
 const { data: stats, refresh: refreshStats } = await useFetch<AdminStats>('/api/admin/stats')
 
@@ -37,16 +55,24 @@ const { data: analytics, refresh: refreshAnalytics } = await useFetch<AdminAnaly
   query: computed(() => ({ days: days.value })),
 })
 
-// `usersTotal: null` = die Nutzerzahl wird auf diesem Deployment bewusst nicht
-// ausgewiesen (Pool: Projekt-Nutzer ≠ Mitglieder DIESER Site, Audit-Befund B2)
-// — die Karte entfällt dann ganz, statt eine fremde oder eine 0 zu zeigen.
+// `null` = diese Zahl wird für diesen Aufrufer bewusst nicht ausgewiesen — die
+// Karte entfällt dann ganz, statt eine fremde oder eine 0 zu zeigen:
+//  - `usersTotal` im Pool (Projekt-Nutzer ≠ Mitglieder DIESER Site, Befund B2)
+//  - `commentsReported` ohne `comments.moderate` (Moderations-Wissen, C1)
 const cards = computed(() => [
   ...(stats.value?.usersTotal !== null && stats.value?.usersTotal !== undefined
     ? [{ label: t('admin.stats.users'), value: stats.value.usersTotal, delta: analytics.value?.usersInRange ?? 0, icon: 'i-ph-users', to: localePath('/dashboard/users') }]
     : []),
   { label: t('admin.stats.comments'), value: stats.value?.commentsTotal ?? 0, delta: analytics.value?.commentsInRange ?? 0, icon: 'i-ph-chat-circle', to: localePath('/dashboard/comments') },
-  { label: t('admin.stats.reported'), value: stats.value?.commentsReported ?? 0, delta: 0, icon: 'i-ph-flag', to: localePath({ path: '/dashboard/comments', query: { status: 'reported' } }) },
+  ...(stats.value?.commentsReported !== null && stats.value?.commentsReported !== undefined
+    ? [{ label: t('admin.stats.reported'), value: stats.value.commentsReported, delta: 0, icon: 'i-ph-flag', to: localePath({ path: '/dashboard/comments', query: { status: 'reported' } }) }]
+    : []),
 ])
+
+const cardGridClass = computed(() => {
+  if (cards.value.length >= 3) return 'sm:grid-cols-3'
+  return cards.value.length === 2 ? 'sm:grid-cols-2' : ''
+})
 
 // --- Online-Presence (live) ---------------------------------------------------
 interface OnlineUser { userId: string, userName: string, avatarUrl: string }
@@ -60,17 +86,21 @@ const onlineUsers = computed(() => presence.value?.users ?? [])
 const { present } = usePresence()
 
 // --- Widgets (client-seitig, blockiert SSR nicht) -----------------------------
+// `immediate` folgt der Capability: ohne sie bleibt die Anfrage aus, statt
+// vorhersehbar in ein 403 zu laufen (das Widget rendert ohnehin nicht).
 const { data: reported, refresh: refreshReported } = useFetch<ReportedCommentsSummary>('/api/admin/comments', {
-  query: { status: 'reported', page: 1 }, lazy: true, server: false,
+  query: { status: 'reported', page: 1 }, lazy: true, server: false, immediate: canModerateComments.value,
 })
 const reportedList = computed(() => (reported.value?.comments ?? []).slice(0, 5))
 
 const { data: audit, refresh: refreshAudit } = useFetch<AuditLogListResponse>('/api/admin/audit', {
-  query: { page: 1 }, lazy: true, server: false,
+  query: { page: 1 }, lazy: true, server: false, immediate: canReadAudit.value,
 })
 const auditList = computed(() => (audit.value?.entries ?? []).slice(0, 6))
 
-const { data: storage } = useFetch<StorageOverview>('/api/admin/storage', { lazy: true, server: false })
+const { data: storage } = useFetch<StorageOverview>('/api/admin/storage', {
+  lazy: true, server: false, immediate: canManageStorage.value,
+})
 
 function actionText(entry: AuditLogEntry): string {
   const key = `admin.audit.action.${entry.action}`
@@ -111,7 +141,12 @@ let presencePoll: ReturnType<typeof setInterval> | undefined
 
 useRealtimeRows<Models.Row>(config.public.appwriteDatabaseId, 'comments', () => {
   clearTimeout(commentsTimer)
-  commentsTimer = setTimeout(() => { void refreshStats(); void refreshAnalytics(); void refreshReported() }, 500)
+  commentsTimer = setTimeout(() => {
+    void refreshStats()
+    void refreshAnalytics()
+    // refresh() würde die unterdrückte Anfrage nachholen — nur mit Capability.
+    if (canModerateComments.value) void refreshReported()
+  }, 500)
 })
 watch(present, () => {
   clearTimeout(presenceTimer)
@@ -119,7 +154,7 @@ watch(present, () => {
 })
 useRealtimeRows<Models.Row>(config.public.appwriteDatabaseId, 'audit_logs', () => {
   clearTimeout(auditTimer)
-  auditTimer = setTimeout(() => { void refreshAudit() }, 500)
+  auditTimer = setTimeout(() => { if (canReadAudit.value) void refreshAudit() }, 500)
 })
 onMounted(() => { presencePoll = setInterval(() => { void refreshPresence() }, 30_000) })
 
@@ -168,7 +203,7 @@ onScopeDispose(() => {
         </UCard>
 
         <!-- KPIs -->
-        <div class="grid gap-4" :class="cards.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'" data-stat-cards>
+        <div class="grid gap-4" :class="cardGridClass" data-stat-cards>
           <UCard v-for="card in cards" :key="card.label">
             <NuxtLink :to="card.to" class="flex items-center gap-3">
               <UIcon :name="card.icon" class="size-8 shrink-0 text-primary" />
@@ -200,9 +235,13 @@ onScopeDispose(() => {
           />
         </UCard>
 
-        <!-- Zu moderieren + Letzte Aktivität -->
-        <div class="grid gap-4 sm:gap-6 lg:grid-cols-2">
-          <UCard>
+        <!-- Zu moderieren (comments.moderate) + Letzte Aktivität (audit.read) -->
+        <div
+          v-if="canModerateComments || canReadAudit"
+          class="grid gap-4 sm:gap-6"
+          :class="canModerateComments && canReadAudit ? 'lg:grid-cols-2' : ''"
+        >
+          <UCard v-if="canModerateComments">
             <template #header>
               <div class="flex items-center justify-between gap-2">
                 <h2 class="flex items-center gap-2 font-semibold">
@@ -229,7 +268,7 @@ onScopeDispose(() => {
             </ul>
           </UCard>
 
-          <UCard>
+          <UCard v-if="canReadAudit">
             <template #header>
               <div class="flex items-center justify-between gap-2">
                 <h2 class="font-semibold">{{ t('admin.overview.recentActivity') }}</h2>
@@ -247,8 +286,8 @@ onScopeDispose(() => {
           </UCard>
         </div>
 
-        <!-- Speicher -->
-        <UCard v-if="storage?.available">
+        <!-- Speicher (storage.manage) -->
+        <UCard v-if="canManageStorage && storage?.available">
           <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 text-sm">
             <h2 class="font-semibold">{{ t('admin.overview.storage') }}</h2>
             <div class="flex flex-wrap items-center gap-x-6 gap-y-1 text-muted">

@@ -101,7 +101,9 @@ export interface AdminStats {
    *  Audit-Befund B2) — die Karte entfällt dann. */
   usersTotal: number | null
   commentsTotal: number
-  commentsReported: number
+  /** null = ohne `comments.moderate` bewusst nicht ausgewiesen (offene Meldungen
+   *  sind Moderations-Wissen, C1) — die Karte entfällt dann. */
+  commentsReported: number | null
 }
 
 /** Ein Tag in der Analytics-Zeitreihe */
