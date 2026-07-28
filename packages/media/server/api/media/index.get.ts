@@ -18,12 +18,16 @@ const PAGE_LIMIT = 100
  *
  * View-URLs zeigen direkt in den Bucket — für veröffentlichte Einträge trägt
  * die Datei read(any), Entwurfs-Dateien nur den Verwaltungs-Read.
+ *
+ * AUTORISIERUNG (S3): `requireSitePermission` — `media.manage` IST eine
+ * Site-Capability (EDITOR-Bündel, tenantAuthz.ts), und /dashboard/media
+ * verlangt genau sie. Das `await` ist Pflicht — ohne wäre der Gate fail-open.
  */
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
   const withDrafts = getQuery(event).all !== undefined
-  if (withDrafts) requirePermission(event, 'media.manage')
+  if (withDrafts) await requireSitePermission(event, 'media.manage')
 
   const res = await admin.tablesDB.listRows<MediaItem>({
     databaseId: config.public.appwriteDatabaseId,

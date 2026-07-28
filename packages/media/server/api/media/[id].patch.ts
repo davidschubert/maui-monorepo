@@ -17,9 +17,13 @@ const patchSchema = z.object({
  * von Row UND Datei dem neuen Status — bewusst auch dann, wenn sich der Wert
  * nicht geändert hat: so heilt ein zweiter Klick einen zuvor gescheiterten
  * Permission-Write, statt ihn stillschweigend zu überspringen.
+ *
+ * AUTORISIERUNG (S3): `requireSitePermission` — Site-Rolle vor protokolliertem
+ * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
+ * Das `await` ist Pflicht — ohne wäre der Gate fail-open.
  */
 export default defineEventHandler(async (event) => {
-  requirePermission(event, 'media.manage')
+  await requireSitePermission(event, 'media.manage')
 
   const id = getRouterParam(event, 'id')
   if (!id) {

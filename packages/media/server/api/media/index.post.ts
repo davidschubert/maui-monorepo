@@ -12,6 +12,10 @@ import { MEDIA_TABLE, MEDIA_BUCKET, MAX_MEDIA_BYTES, type MediaItem } from '../.
  * Einträge entstehen veröffentlicht (published: true) und bekommen deshalb
  * beide read(any) — ein späterer Entwurfs-Zustand entzieht es wieder
  * (applyMediaVisibility).
+ *
+ * AUTORISIERUNG (S3): `requireSitePermission` — Site-Rolle vor protokolliertem
+ * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
+ * Das `await` ist Pflicht — ohne wäre der Gate fail-open.
  */
 function isImage(data: Buffer): boolean {
   if (data.length < 12) return false
@@ -22,7 +26,7 @@ function isImage(data: Buffer): boolean {
 }
 
 export default defineEventHandler(async (event) => {
-  requirePermission(event, 'media.manage')
+  await requireSitePermission(event, 'media.manage')
 
   const form = await readMultipartFormData(event)
   const filePart = form?.find(part => part.name === 'file' && part.filename)
