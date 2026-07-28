@@ -99,6 +99,14 @@ export interface EventTicketRow extends Models.Row {
   status: EventTicketStatus
   stripeSessionId: string | null
   amount: number | null
+  /**
+   * Mandant (events-006). Der Stripe-Webhook hat keinen Tenant-Kontext, der
+   * Wert kommt deshalb aus der Event-Row selbst (grantEventTicket) — im
+   * Silo/Altbestand ''. Ohne dieses Feld ließ sich das Ticket zwar schreiben,
+   * aber der Typ kannte es nicht: der Stempel aus Audit-Befund S7 wäre beim
+   * nächsten Refactor stillschweigend wieder verschwunden.
+   */
+  tenantId: string
 }
 
 export type EventVoteValue = 1 | -1
