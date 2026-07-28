@@ -14,7 +14,17 @@ defineProps<{ items: PublicMediaItem[] }>()
       class="tile"
       :class="{ 'tile--wide': photo.featured }"
     >
-      <img :src="photo.src" :alt="photo.alt" loading="lazy">
+      <!-- srcset + sizes: der Browser lädt die Fassung, die zur Kachelbreite
+           passt. Schmale Kachel = halbe Zeilenbreite, breite (featured) = ganze;
+           darunter, auf einspaltigen Bildschirmen, immer die Viewportbreite. -->
+      <img
+        :src="photo.src"
+        :srcset="photo.srcset || undefined"
+        :sizes="photo.featured ? '(min-width: 700px) 100vw, 100vw' : '(min-width: 700px) 50vw, 100vw'"
+        :alt="photo.alt"
+        loading="lazy"
+        decoding="async"
+      >
       <figcaption class="tile__cap">
         <span class="tile__title">{{ photo.title }}</span>
         <span class="tile__loc">{{ photo.subtitle }}</span>

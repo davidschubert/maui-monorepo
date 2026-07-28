@@ -2,7 +2,7 @@
 // Medien-Verwaltung (media.manage): Upload + Grid mit Publish-Toggle,
 // Metadaten-Bearbeitung (Titel/Untertitel/Alt/featured) und Löschen.
 // Öffentliche Konsumenten lesen /api/media (nur published).
-import type { MediaItem } from '../../../shared/types/media'
+import type { AdminMediaItem, MediaItem } from '../../../shared/types/media'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'media.manage' })
 
@@ -11,7 +11,7 @@ const toast = useToast()
 
 // Verwaltungs-Sicht: ?all=1 (media.manage) liefert ALLE Einträge inkl.
 // Entwürfe in voller Row-Form — die öffentliche Route zeigt nur published.
-const { data, refresh } = await useFetch<{ items: (MediaItem & { src: string })[] }>('/api/media', { query: { all: 1 } })
+const { data, refresh } = await useFetch<{ items: AdminMediaItem[] }>('/api/media', { query: { all: 1 } })
 
 const fileInput = ref<HTMLInputElement>()
 const uploading = ref(false)
@@ -37,10 +37,10 @@ async function upload(files: FileList | null) {
   }
 }
 
-const editing = ref<(MediaItem & { src: string }) | null>(null)
+const editing = ref<AdminMediaItem | null>(null)
 const editState = reactive({ title: '', subtitle: '', alt: '', featured: false })
 
-function openEdit(item: MediaItem & { src: string }) {
+function openEdit(item: AdminMediaItem) {
   editing.value = item
   Object.assign(editState, { title: item.title, subtitle: item.subtitle, alt: item.alt, featured: item.featured })
 }
@@ -97,7 +97,7 @@ async function remove(item: MediaItem) {
 
       <div v-else class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4" data-media-grid>
         <div v-for="item in data.items" :key="item.$id" class="group relative overflow-hidden rounded-lg border border-default" :data-media-item="item.$id">
-          <img :src="item.src" :alt="item.alt || item.title" class="aspect-square w-full object-cover" :class="item.published ? '' : 'opacity-40'" loading="lazy">
+          <img :src="item.src" :srcset="item.srcset || undefined" sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw" decoding="async" :alt="item.alt || item.title" class="aspect-square w-full object-cover" :class="item.published ? '' : 'opacity-40'" loading="lazy">
           <div class="p-2">
             <p class="truncate text-sm font-medium">{{ item.title }}</p>
             <p class="truncate text-xs text-muted">{{ item.subtitle || '—' }}</p>

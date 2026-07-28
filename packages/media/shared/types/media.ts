@@ -22,7 +22,24 @@ export interface PublicMediaItem {
   subtitle: string
   alt: string
   featured: boolean
+  /** Skalierte Standard-Fassung (Bild-Naht, core/shared/storageImage). */
   src: string
+  /**
+   * Kandidaten in mehreren Breiten für das `srcset`-Attribut — der Browser
+   * wählt selbst, was zu Viewport und Pixeldichte passt. Leer, falls keine
+   * brauchbare Breite übrig bleibt; dann trägt `src` allein.
+   */
+  srcset: string
+}
+
+/**
+ * Verwaltungs-Form: die Row PLUS die vom Server gebauten Bild-URLs. Vorher
+ * stand `MediaItem & { src: string }` an drei Stellen in der Dashboard-Seite —
+ * beim Ergänzen von `srcset` musste man alle drei finden. Ein Typ, ein Ort.
+ */
+export interface AdminMediaItem extends MediaItem {
+  src: string
+  srcset: string
 }
 
 export const MEDIA_TABLE = 'media_items'
