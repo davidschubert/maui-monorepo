@@ -12,6 +12,22 @@ const route = useRoute()
 const localePath = useLocalePath()
 const { user: me } = useCurrentUser()
 
+// --- Nutzer-Verwaltung: eigenes Gate (Audit-Befund S5) -----------------------
+// Diese Seite verlangt `comments.moderate` — eine SITE-Capability, die jeder
+// Moderator einer Kunden-Site trägt. Zwei Elemente hier greifen aber in die
+// NUTZER-Verwaltung, und die ist operator-only (`users.manage`, das KEINE der
+// fünf Site-Rollen hält, tenantAuthz.ts):
+//   - „Autor sperren" PATCHt /api/admin/users/:id/status (requirePermission
+//     'users.manage') — für einen Site-Moderator war der Knopf eine Lüge: er
+//     sah ihn, klickte, und bekam 403.
+//   - der Autorname verlinkte auf /dashboard/users/:id, das dieselbe
+//     Capability als requiredCapability führt — der Klick lief ins Leere.
+// Zwei Quellen wie in der Nav (N1) und in der Übersicht (S2): Operator-Label
+// ODER Site-Rolle. Nur UX-Schicht — die Autorität bleibt der Gate der Route.
+const { capabilities: siteCaps } = useSiteRole()
+const canManageUsers = computed(() =>
+  userHasCapability(me.value, 'users.manage') || siteCaps.value.has('users.manage'))
+
 const FILTERS: ModerationFilter[] = ['all', 'reported', 'hidden']
 const FILTER_ICON: Record<ModerationFilter, string> = {
   all: 'i-ph-list-bullets',
@@ -254,9 +270,12 @@ async function executePending() {
             :data-moderation-select="comment.$id"
             @update:model-value="toggleSelected(comment.$id)"
           />
-          <ULink :to="localePath(`/dashboard/users/${comment.authorId}`)" class="font-medium text-default hover:text-primary hover:underline">
+<!-- S5: Link nur, wenn die Nutzer-Detailseite auch erreichbar ist —
+               sonst der reine Name statt eines Links in ein 403. -->
+          <ULink v-if="canManageUsers" :to="localePath(`/dashboard/users/${comment.authorId}`)" class="font-medium text-default hover:text-primary hover:underline">
             {{ comment.authorName }}
           </ULink>
+          <span v-else class="font-medium text-default">{{ comment.authorName }}</span>
           <span>·</span>
           <span>{{ comment.targetType }}/{{ comment.targetId }}</span>
           <span>·</span>
@@ -332,7 +351,10 @@ async function executePending() {
           >
             {{ t('admin.moderation.assist.button') }}
           </UButton>
+<!-- S5: „Autor sperren" greift in die NUTZER-Verwaltung (users.manage,
+               operator-only) — für Site-Moderatoren gar nicht erst anbieten. -->
           <UButton
+            v-if="canManageUsers"
             size="xs" color="error" variant="ghost" icon="i-ph-prohibit"
             :disabled="comment.authorId === me?.$id"
             @click="() => { pending = { action: 'block', comment } }"

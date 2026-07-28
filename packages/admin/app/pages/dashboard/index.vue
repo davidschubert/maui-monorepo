@@ -46,6 +46,11 @@ const can = (capability: Capability) =>
 const canModerateComments = computed(() => can('comments.moderate'))
 const canReadAudit = computed(() => can('audit.read'))
 const canManageStorage = computed(() => can('storage.manage'))
+// S5: die Schnellmoderation ist für JEDEN Site-Moderator sichtbar, ihr
+// Autoren-Link zeigte aber auf /dashboard/users/:id — eine Seite mit
+// `requiredCapability: 'users.manage'`, die keine Site-Rolle trägt. Ohne die
+// Capability bleibt der Name reiner Text statt eines Links in ein 403.
+const canManageUsers = computed(() => can('users.manage'))
 
 // --- Kennzahlen + Chart (SSR) -------------------------------------------------
 const { data: stats, refresh: refreshStats } = await useFetch<AdminStats>('/api/admin/stats')
@@ -255,7 +260,8 @@ onScopeDispose(() => {
             <ul v-else class="space-y-3">
               <li v-for="c in reportedList" :key="c.$id" class="border-b border-default/60 pb-3 text-sm last:border-0 last:pb-0">
                 <div class="mb-1 flex items-center gap-2 text-xs text-muted">
-                  <ULink :to="localePath(`/dashboard/users/${c.authorId}`)" class="font-medium text-default hover:text-primary hover:underline">{{ c.authorName }}</ULink>
+                  <ULink v-if="canManageUsers" :to="localePath(`/dashboard/users/${c.authorId}`)" class="font-medium text-default hover:text-primary hover:underline">{{ c.authorName }}</ULink>
+                  <span v-else class="font-medium text-default">{{ c.authorName }}</span>
                   <span>·</span>
                   <span>{{ formatRelativeTime(c.$createdAt) }}</span>
                 </div>
