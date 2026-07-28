@@ -2,7 +2,6 @@
 
 ## [2.3.0](https://github.com/davidschubert/maui-monorepo/compare/v2.2.0...v2.3.0) (2026-07-24)
 
-
 ### Features
 
 * **comments:** Embed Site-Registry + count-API (E3, Plan Tasks 14+15) ([b9dc294](https://github.com/davidschubert/maui-monorepo/commit/b9dc2945131ab27aafbb9533ab0d898d2a6d5702))
@@ -18,13 +17,11 @@
 * **themes:** 26x11-Vollausbau — kuratierter Katalog, Generator scharf, CI-Gate ([7522ae1](https://github.com/davidschubert/maui-monorepo/commit/7522ae12a99e024528f53f8872d2789125100336))
 * **themes:** Grid-Modal-Picker (E7b) + Visual-Baselines der neuen Kurven ([bee9c88](https://github.com/davidschubert/maui-monorepo/commit/bee9c886fa7fc49f02a9758a7209abe2dc521d97))
 
-
 ### Bug Fixes
 
 * **pages:** tenant-aware Unique-Index — zwei Pool-Tenants dürfen dieselbe home-Seite ([1c6fd14](https://github.com/davidschubert/maui-monorepo/commit/1c6fd14b3a842e0a7cd8f26636e1589154b94030))
 
 ## [2.2.0](https://github.com/davidschubert/maui-monorepo/compare/v2.1.0...v2.2.0) (2026-07-23)
-
 
 ### Features
 
@@ -46,7 +43,6 @@
 * **studio:** Tenants-Verwaltung /dashboard/tenants — neue Pool-Site per Klick (H3-Onboarding) ([5c34274](https://github.com/davidschubert/maui-monorepo/commit/5c342743b9249279f87e35f67449460446528373))
 * **studio:** Wellen-Migrationen (H3-4.2) — tenants.wave + Runner --wave ([5024ddd](https://github.com/davidschubert/maui-monorepo/commit/5024ddd90c2be435d7708869b14a139653eb45d1))
 
-
 ### Bug Fixes
 
 * **admin:** öffentlicher Changelog-Microcache tenant-aware (Cache-Key-Scope) ([8b830fd](https://github.com/davidschubert/maui-monorepo/commit/8b830fdedec2bede2d49f939605888997367bad5))
@@ -62,7 +58,6 @@
 
 ## [2.1.0](https://github.com/davidschubert/maui-monorepo/compare/v2.0.0...v2.1.0) (2026-07-21)
 
-
 ### Features
 
 * **ci:** Deploy-Kette sequenziell für comments → portfolio → studio ([02f23cc](https://github.com/davidschubert/maui-monorepo/commit/02f23cc2dd36b85b47d3fc2a7f73b77247f07413))
@@ -70,14 +65,12 @@
 * **studio:** Jahres-Abos für Workspace-Pläne (Stripe-vorbereitet) ([7864e7d](https://github.com/davidschubert/maui-monorepo/commit/7864e7d1626e1070182fcd913c9b3c41f9a749a9))
 * **studio:** OTP-Login für den Betreiber aktivieren (H2-Live) ([fca9678](https://github.com/davidschubert/maui-monorepo/commit/fca96781f56d90bcae6bb118fc8fe6446a367601))
 
-
 ### Bug Fixes
 
 * **billing:** payment-failed-Notify nur beim echten Statuswechsel (idempotent) ([532bb4e](https://github.com/davidschubert/maui-monorepo/commit/532bb4e0cdb1a7c632998c363802cb9241002a49))
 * **core:** /api/health beantwortet auch HEAD (health.ts statt health.get.ts) ([ce1c656](https://github.com/davidschubert/maui-monorepo/commit/ce1c656c72bdae99bd06d52d243481de815fc7c9))
 
 ## [2.0.0](https://github.com/davidschubert/maui-monorepo/compare/v1.5.0...v2.0.0) (2026-07-19)
-
 
 ### ⚠ BREAKING CHANGES
 
@@ -128,7 +121,6 @@
 * **themes:** Katalog-Generator-Vorarbeit (Vollausbau Schritt 3) ([3e735ce](https://github.com/davidschubert/maui-monorepo/commit/3e735ced1b0925e7d772ce081832f3e72bb8b874))
 * **tickets,billing:** eigene Notification-Typen nutzen + lokalisierte Billing-Benachrichtigung ([7cc4dfa](https://github.com/davidschubert/maui-monorepo/commit/7cc4dfa5ad4708a60a1f9d6bb7cd1ef1bb68e922))
 
-
 ### Bug Fixes
 
 * **admin:** Grundgeruest-Features zeigen "Immer aktiv" statt totem Schalter ([03ac00c](https://github.com/davidschubert/maui-monorepo/commit/03ac00c9f1bc2858104620c8af0cfb8c012905c5))
@@ -148,7 +140,6 @@
 * **scripts:** create-site installiert mit --no-frozen-lockfile (G1 in CI) ([e4632ca](https://github.com/davidschubert/maui-monorepo/commit/e4632ca6b0db79a69ac70ad24463233daf933881))
 * **themes:** sanitizeConfig kennt die additiven v2-Keys ([1ad2bc0](https://github.com/davidschubert/maui-monorepo/commit/1ad2bc08f77fc7904b5ebf6525c4c04ab685672b))
 
-
 ### Refactoring
 
 * **activity:** Layer feed → activity umbenannt (Klarheit vs. Community-Feed) ([d4c4fa0](https://github.com/davidschubert/maui-monorepo/commit/d4c4fa057a6722f8f8191bd011edd3fddfd5fac1))
@@ -159,7 +150,6 @@
 * **posts:** Feed-URL /community → /feed (mit 301-Redirects) ([2467bbd](https://github.com/davidschubert/maui-monorepo/commit/2467bbd67ad1b645c42d45c9401218094e0d882a))
 
 ## [1.5.0](https://github.com/davidschubert/maui-monorepo/compare/v1.4.0...v1.5.0) (2026-07-11)
-
 
 ### Features
 
@@ -326,7 +316,6 @@
 * **tickets:** packages/tickets — Ticket-Board (Trello-Kanban) P1 ([0ec3cd7](https://github.com/davidschubert/maui-monorepo/commit/0ec3cd767d14b4e2de83d8c879427e090e16d21e))
 * zentraler Migrations-Runner + apps/_template als Kopiervorlage ([e701ce7](https://github.com/davidschubert/maui-monorepo/commit/e701ce7b8e12fa074afaa743e2f6fc7e65a5a242))
 
-
 ### Bug Fixes
 
 * **a11y,i18n:** chart aria-label, OTP resend error reset, localized sidebar variants ([19cd217](https://github.com/davidschubert/maui-monorepo/commit/19cd21796184dff876f064ab1a7572295da9b94f))
@@ -406,12 +395,10 @@
 * **tickets:** Checklisten-Drag funktioniert jetzt mit echter Maus ([4998d82](https://github.com/davidschubert/maui-monorepo/commit/4998d82d2f306e51e70452ac895f28f35e6c92e4))
 * **tickets:** Checklisten-Sortierung per Pointer-Capture + Autosave statt Speichern-Button ([7cb8a7b](https://github.com/davidschubert/maui-monorepo/commit/7cb8a7b75acba9ea23b95563c0a3a9d63c04695f))
 
-
 ### Performance
 
 * **admin:** TTL-cache layer scan + healthCheck 'unknown' default ([f1b3c9e](https://github.com/davidschubert/maui-monorepo/commit/f1b3c9ec1513443e6a1bf08502a019a95ac6880a))
 * Microcaching für öffentliche GETs (Idee 3, Audit L11) ([aa15e02](https://github.com/davidschubert/maui-monorepo/commit/aa15e0257643d4c15cf7625ca05414a22c9f86b0))
-
 
 ### Refactoring
 
@@ -429,3 +416,154 @@
 * **presence:** unify on Appwrite Presences API, drop legacy table ([9a97bad](https://github.com/davidschubert/maui-monorepo/commit/9a97badbb7e68786c016f568c8bb0e32cf0eb828))
 * **tickets:** KI-Triage über core aiComplete ([40d60ae](https://github.com/davidschubert/maui-monorepo/commit/40d60ae71be7811bc709779284fa3097a7dae928))
 * unify avatar resolution into a single core resolveAvatars util ([d3aaefd](https://github.com/davidschubert/maui-monorepo/commit/d3aaefd56613fbadf95f141dcb6b2b90dda1df55))
+
+## 1.4.0 (2026-06-23)
+
+> **Nachgetragen am 2026-07-27.** Diese Sektion deckt den Projektstart ab:
+> die 159 Commits vom ersten Commit (2026-06-09) bis zum 2026-06-23.
+> Sie fehlte, weil `release-please-config.json` ein `bootstrap-sha` auf den
+> 2026-06-23 gesetzt hat — alles davor lag außerhalb des Sichtfelds des
+> Werkzeugs. Nachgetragen direkt aus der Git-Historie, gleiche Gliederung.
+> Einen Tag `v1.4.0` gibt es nicht; die Version ist der Name, den
+> release-please dem Stand vor `v1.5.0` bereits gegeben hat.
+
+### Features
+
+* scaffold monorepo with core layer and reddit-comments app (phase 1) ([120221d](https://github.com/davidschubert/maui-monorepo/commit/120221db29de6390f619cc0b9b005ad182e37ced))
+* **core:** add Maui default theme and Tailwind 4 design foundation (phase 2) ([92545a4](https://github.com/davidschubert/maui-monorepo/commit/92545a4566e2b41b71b6f01d4c95de6dc823751a))
+* **core:** switch theme to Geist font, sky/neutral colors and Phosphor icons ([0c26330](https://github.com/davidschubert/maui-monorepo/commit/0c2633012f1ece8e71a320a0218ab22c84a22d20))
+* **core:** add Appwrite SSR foundation with two-client architecture (phase 3) ([3a4eb46](https://github.com/davidschubert/maui-monorepo/commit/3a4eb46ed0c43111d5f2581ada39fcd8127e39db))
+* **core:** add SSR auth with session cookie and UAuthForm components (phase 4) ([dc5d278](https://github.com/davidschubert/maui-monorepo/commit/dc5d278d6ce64db3fa5a238400bfab27960d88d7))
+* **core:** add layouts, user components and error page (phase 5) ([e8a5da5](https://github.com/davidschubert/maui-monorepo/commit/e8a5da5f058fec79f39354c54c6ac4dbd7a7be78))
+* **core:** add utilities, SEO and config-gated analytics/consent (phase 6) ([1a7b6bd](https://github.com/davidschubert/maui-monorepo/commit/1a7b6bdfde31e9dd0d14dd22a1c3e4cf58be3c2b))
+* **core:** add i18n with de/en shared strings and translated auth (phase 7) ([3a3020d](https://github.com/davidschubert/maui-monorepo/commit/3a3020d25e170ed6063dfa1c1296c2c3185c9a84))
+* **core:** rework useRealtimeRows on native WebSocket, expose server utils ([59acb98](https://github.com/davidschubert/maui-monorepo/commit/59acb983d8bae5f3f8b632d38f40d4963ddd7eac))
+* **comments:** add comments feature layer with tables, votes and realtime (phase 10) ([5e3e51d](https://github.com/davidschubert/maui-monorepo/commit/5e3e51d36379dd9b875fe7c90d8fae0eccb15694))
+* **core:** accept minimal user shape in UserAvatar ([85f01f6](https://github.com/davidschubert/maui-monorepo/commit/85f01f603d2c20b54e0b13ef6fd313d7e3f5e5cc))
+* **comments:** build reddit comment system app (phase 11) ([a79904d](https://github.com/davidschubert/maui-monorepo/commit/a79904d3ba07ad85e39dfece510ae74d46ffe2f0))
+* **core:** rate-limit login route against brute force ([c831284](https://github.com/davidschubert/maui-monorepo/commit/c831284bc1963e1a92815064945c9189f3fd48b2))
+* **core:** add users service accessor, admin detection and admin menu link ([c19d27e](https://github.com/davidschubert/maui-monorepo/commit/c19d27edce053ad32c84aeb55b2c06ea37965ba0))
+* **admin:** add dashboard foundation with user management (phase 13) ([1157797](https://github.com/davidschubert/maui-monorepo/commit/11577970cc5c568215c6559dd08b64005b2e356a))
+* **admin:** add comment moderation (phase 14) ([2bd26cb](https://github.com/davidschubert/maui-monorepo/commit/2bd26cb1e7f72d237b3c1edbbafcb5a99f13e708))
+* **themes:** add theme infrastructure with three example themes (phase 15) ([881d80b](https://github.com/davidschubert/maui-monorepo/commit/881d80b81af6779fa85b45f31b983f98fa037f5e))
+* **themes:** add light/dark/system selector to theme switcher ([3b9d151](https://github.com/davidschubert/maui-monorepo/commit/3b9d151c43f3ab881655d4a1f27db0015b24c681))
+* **core:** add password recovery flow and auth form polish (phase 16) ([c2541c7](https://github.com/davidschubert/maui-monorepo/commit/c2541c7e5ba35fb7b732412b10328a7f65f55e4d))
+* ux corrections from review round ([f638665](https://github.com/davidschubert/maui-monorepo/commit/f63866526cc7e79b0091749d55475ceb9d3da66b))
+* **core:** add passwordless email-otp login and logout toast (phase 19) ([486fa3b](https://github.com/davidschubert/maui-monorepo/commit/486fa3bea4011568691c211d3d987fa019b9210b))
+* **core:** complete otp registration with name, terms and email normalization (phase 20) ([d62fb11](https://github.com/davidschubert/maui-monorepo/commit/d62fb11a9c7deb90df93ec4a9661b7242d1b73ab))
+* **BREAKING** **core:** en-default i18n with prefix strategy, localePath routing, string extraction ([35f23c3](https://github.com/davidschubert/maui-monorepo/commit/35f23c379d69cf17784ce58a0ad0d8bbe33058d9))
+* **themes:** color-chip theme/variant selects + language switcher ([d120240](https://github.com/davidschubert/maui-monorepo/commit/d12024044ca55808fc41668efdef707972dc5f59))
+* **core:** canonical no-trailing-slash URLs (301 redirect + canonical link) ([fbc2762](https://github.com/davidschubert/maui-monorepo/commit/fbc276267b28b1afab49e156fb9a89d6efe5c916))
+* **core:** two-step password login (email -> password) ([be0963a](https://github.com/davidschubert/maui-monorepo/commit/be0963a49d338057cf0f299898ba01a1052fbcec))
+* **core:** password strength indicator on register (+ enforce complexity) ([be059d0](https://github.com/davidschubert/maui-monorepo/commit/be059d0a3122ed04dd98adc220058a6eff26dc20))
+* **core:** require + carry over name on code registration ([89c4333](https://github.com/davidschubert/maui-monorepo/commit/89c433314cd5e0bbc7fe23d1d88897e29e7b8b25))
+* **admin:** rebuild dashboard shell from Nuxt UI dashboard template (Phase A) ([e313450](https://github.com/davidschubert/maui-monorepo/commit/e3134502f246c8cb71eb76960ede34ba73199eee))
+* **core:** useFormatRelativeTime — locale-bound relative time ([a975ac6](https://github.com/davidschubert/maui-monorepo/commit/a975ac6e3e42308c7cd10e719e3c2f3b1a262a15))
+* **core:** account settings backend + components (Phase B) ([36f65ae](https://github.com/davidschubert/maui-monorepo/commit/36f65aeb4c24f4bdcea08fe1078f35be7dc69618))
+* **admin:** dashboard Settings area — General + Security (Phase B) ([2776f66](https://github.com/davidschubert/maui-monorepo/commit/2776f664a455328fe41c97bc763e6d15cdc3d45a))
+* **core:** add circle-flags icon set + panel-style sidebar collapse icon ([5a8a719](https://github.com/davidschubert/maui-monorepo/commit/5a8a719a91ae2827d9ed8322b2b99ee67065a543))
+* **admin:** richer language + theme account menu ([d5a24c2](https://github.com/davidschubert/maui-monorepo/commit/d5a24c2a618b7a0a99aef7ee7d90dbaa84251b9a))
+* **admin:** switchable sidebar look (sidebar/floating/inset), default floating ([8dafd7a](https://github.com/davidschubert/maui-monorepo/commit/8dafd7a489f9c1e964b1a5fd85ea9939a857cc3d))
+* **themes:** DisplaySettingsMenu in the public header (theme/appearance/language) ([cdeb96c](https://github.com/davidschubert/maui-monorepo/commit/cdeb96c0c1c38fe965fd85dbd064d12e8cc8fdba))
+* **app:** DisplaySettingsMenu on auth pages, drop the floating widget ([8dba4f3](https://github.com/davidschubert/maui-monorepo/commit/8dba4f3b4d499c2985667d216f03afb315baa857))
+* **core:** add phone + profile photo upload to profile settings ([3e7aeb9](https://github.com/davidschubert/maui-monorepo/commit/3e7aeb99dd291c03a5699947d11aa3716c881b6e))
+* **core:** add password strength meter to password change form ([203cea7](https://github.com/davidschubert/maui-monorepo/commit/203cea7b21b80d166a948e160ad1deece1cdc147))
+* **core:** proper avatar upload (drag-drop, WebP preview, cleanup) ([cd567ab](https://github.com/davidschubert/maui-monorepo/commit/cd567abd8fc31ab83077263c0f347c0226745af4))
+* **core:** account sessions — list + sign out (one / all) ([9aee444](https://github.com/davidschubert/maui-monorepo/commit/9aee44462231aaf237c85211222a640eac263e0c))
+* **admin:** Sessions tab in dashboard settings ([4e0309e](https://github.com/davidschubert/maui-monorepo/commit/4e0309e4b332c5082d71c3c3eb0f21be7602c11d))
+* **core:** record + show real browser/OS for sessions ([5c3ec90](https://github.com/davidschubert/maui-monorepo/commit/5c3ec90783d227ad855c9b90acdbaec394591108))
+* **admin:** System dashboard page — ops/infrastructure overview ([a8fad11](https://github.com/davidschubert/maui-monorepo/commit/a8fad11254024101d649ffb864240235ec7ec530))
+* **admin:** user detail page ([102fa11](https://github.com/davidschubert/maui-monorepo/commit/102fa1160af1223fb177b4c1e6dc8a67772a78ac))
+* **admin:** moderation — block author + link to author detail ([fd3793c](https://github.com/davidschubert/maui-monorepo/commit/fd3793c8e63b9b2d8ccf094527e2ee01fb9b4648))
+* **admin:** audit log for privileged actions ([50fd431](https://github.com/davidschubert/maui-monorepo/commit/50fd4316100e78c71a3578558c7a86c0c3b25f0e))
+* **admin:** grant/revoke admin role from user detail ([73ed872](https://github.com/davidschubert/maui-monorepo/commit/73ed87212e0c19eb805c3ca6b8b8022bb46666d7))
+* **admin:** activity chart on the overview ([a790b21](https://github.com/davidschubert/maui-monorepo/commit/a790b21a90df4e98813015aa3d9a42db76078d8e))
+* **admin:** storage browser with orphan cleanup ([d282a61](https://github.com/davidschubert/maui-monorepo/commit/d282a61dd53fb3db7c52b8522d27166282916835))
+* **core:** runtime feature-flag read + registration gate ([e0b7285](https://github.com/davidschubert/maui-monorepo/commit/e0b72859a8b295aad287dbf8af0ac9290458dca4))
+* **admin:** feature-flags configuration page ([1471641](https://github.com/davidschubert/maui-monorepo/commit/147164102bddc7ef7fbdcc04692bc0798368e56f))
+* **admin:** global search in the command palette ([6139d5a](https://github.com/davidschubert/maui-monorepo/commit/6139d5a546375601b221fa1f3a40b5be971d9b95))
+* **core:** in-app notifications (bell, list, mark-read) ([10de769](https://github.com/davidschubert/maui-monorepo/commit/10de769c696acdb47896c275f69ae5eaea029753))
+* **admin:** notifications table + reply trigger + header bell ([c13316b](https://github.com/davidschubert/maui-monorepo/commit/c13316b2b9e3759c177c30e38c58029d89bd34c4))
+* **core:** GDPR self-service data export ([3c73a43](https://github.com/davidschubert/maui-monorepo/commit/3c73a43e7181008181aea22a900bf53b1b0543cc))
+* **admin:** GDPR — export + delete a user ([a0e5e01](https://github.com/davidschubert/maui-monorepo/commit/a0e5e018d1765782274e59e4bce0d0f6100920be))
+* **admin:** rework audit into Activity log (table, IP, names) ([edcaf01](https://github.com/davidschubert/maui-monorepo/commit/edcaf01a814ec9000a02b514d9fb1e42964a171b))
+* **core:** shared SessionsTable with headers + created/last-active ([0b291d3](https://github.com/davidschubert/maui-monorepo/commit/0b291d3d349da9d60b17003e2c96de4ee2001425))
+* **admin:** rebuild user detail page ([80dea03](https://github.com/davidschubert/maui-monorepo/commit/80dea03faa12056edb081dd6429753d7675fae78))
+* **admin:** moderation filter as tabs ([df6c767](https://github.com/davidschubert/maui-monorepo/commit/df6c7676f589f91b200cd53e2be9ebaba897e263))
+* **admin:** storage label + bucket select, config save alignment ([bb078c0](https://github.com/davidschubert/maui-monorepo/commit/bb078c06895b8a9589cdef930d67740ead76c491))
+* **admin:** group Admin section + refine activity log ([92fd2c2](https://github.com/davidschubert/maui-monorepo/commit/92fd2c2dbbc106ef4ffd92388249170fb3226988))
+* **admin:** overview layout + activity chart polish ([fe45d64](https://github.com/davidschubert/maui-monorepo/commit/fe45d64106b0c7694eccbf355ab2e743b0b4c0d4))
+* **admin:** user list — avatars, full actions, verified detail, search ([22ba2c3](https://github.com/davidschubert/maui-monorepo/commit/22ba2c3c71c9641591b35d2d636587869f45b744))
+* **admin:** user detail — timestamp format, session count, self-session ([490cedd](https://github.com/davidschubert/maui-monorepo/commit/490cedd152a94d76a2ddadbaa7cde3a225224efa))
+* **admin:** wider sessions settings + moderation tab order ([a1deba6](https://github.com/davidschubert/maui-monorepo/commit/a1deba68fd15499b179fe8b1ef25f5376bb77687))
+* **admin:** warn before deleting a linked storage file ([cef60ef](https://github.com/davidschubert/maui-monorepo/commit/cef60efa4d2b38dd167a00fb20c0c1fd208552d8))
+* **core:** enforce the registration flag in UI, errors, and OTP ([f33acb5](https://github.com/davidschubert/maui-monorepo/commit/f33acb5742ff28a77408727fe10ec2405095e764))
+* **comments:** enforce comments-enabled + maintenance flags end-to-end ([a510e3d](https://github.com/davidschubert/maui-monorepo/commit/a510e3d6a03610a7521ff72b92abe0b24bd1e3e6))
+* **comments:** show author avatars from account prefs ([a5947b8](https://github.com/davidschubert/maui-monorepo/commit/a5947b8814f4d79bb9d1e20631aa4337a1513132))
+* **admin:** activity log — actor avatar + profile link ([4daa65e](https://github.com/davidschubert/maui-monorepo/commit/4daa65e052fa2fbd701972a7b30a51ba362692fc))
+* **themes:** runtime neutral-color picker (9 palettes) ([243a54f](https://github.com/davidschubert/maui-monorepo/commit/243a54f2967be3d070a2e95d0e23b3a101e234a5))
+* **comments:** realtime polish — hide live + "show new" pill ([25e572f](https://github.com/davidschubert/maui-monorepo/commit/25e572f2ccbffb242c03cd1346528e3221ce4790))
+* **core:** live runtime flags via realtime ([#4](https://github.com/davidschubert/maui-monorepo/issues/4)) ([3ba8324](https://github.com/davidschubert/maui-monorepo/commit/3ba832454df179227c49abbdb163a2c2f9ffff06))
+* **admin:** live dashboard — moderation, stats, activity log ([#5](https://github.com/davidschubert/maui-monorepo/issues/5)/[#7](https://github.com/davidschubert/maui-monorepo/issues/7)/[#6](https://github.com/davidschubert/maui-monorepo/issues/6)) ([207e142](https://github.com/davidschubert/maui-monorepo/commit/207e142ed984a7d166a547dcd740f232454a531b))
+* **core:** live session revocation ([#9](https://github.com/davidschubert/maui-monorepo/issues/9)) ([22ee7d7](https://github.com/davidschubert/maui-monorepo/commit/22ee7d7aa54e00708497263d738ad84336198a77))
+* **core:** presence backend — heartbeat + online count ([329a7a9](https://github.com/davidschubert/maui-monorepo/commit/329a7a9e9a4b499d0970a06fca007c89f336c263))
+* **admin:** live "online now" count on the dashboard ([#11](https://github.com/davidschubert/maui-monorepo/issues/11)) ([0e03443](https://github.com/davidschubert/maui-monorepo/commit/0e034431c9822f5e887c1cd1b8f423cf72a89eed))
+* **core:** presence scopes + typing; fix empty-body heartbeat ([0fabe24](https://github.com/davidschubert/maui-monorepo/commit/0fabe24be2a8848bd23bdedb5adf943d5c84b8b6))
+* **comments:** thread presence + typing indicator ([#10](https://github.com/davidschubert/maui-monorepo/issues/10)) ([947186b](https://github.com/davidschubert/maui-monorepo/commit/947186b931101e3b4892b7dbf36f3a7692241ea9))
+* **core:** log login/logout to the activity log ([832139f](https://github.com/davidschubert/maui-monorepo/commit/832139fa71d4adb91d9cdb60e746df402fe3a0d2))
+* **admin:** render login/logout in the activity log ([6b3145a](https://github.com/davidschubert/maui-monorepo/commit/6b3145a8a89922c7917e037b10e05db3ef850b49))
+* **core:** reusable server-side table sorting (useTableSort + SortableHeader) ([8bd1cce](https://github.com/davidschubert/maui-monorepo/commit/8bd1cce4b9057c9e3516949e1a8d3677b8ba3087))
+* **admin:** sortable columns on users + activity log ([621fe8a](https://github.com/davidschubert/maui-monorepo/commit/621fe8a7c06ae71ec2e50c8cf97c9184210bf5d7))
+* **admin:** sort users by verified and labels too ([32b9923](https://github.com/davidschubert/maui-monorepo/commit/32b992381e092924ad04eecafd7793dd7a683d9d))
+* **admin:** online dot + sortable "active now" column in users list ([7a3138e](https://github.com/davidschubert/maui-monorepo/commit/7a3138e87c32f38a2aac64ac8faf21b02e52d273))
+* **core:** presence count returns avatar URLs of online users ([7c2ebbb](https://github.com/davidschubert/maui-monorepo/commit/7c2ebbb3290ae2c8cfee733fd5f91da0fb8fd804))
+* **admin:** online presence as an avatar group in dashboard content ([ec32078](https://github.com/davidschubert/maui-monorepo/commit/ec32078c747a725bc08a436213f55f90a112be79))
+* **admin:** "active now" shows green Online / red Offline ([ab22aa3](https://github.com/davidschubert/maui-monorepo/commit/ab22aa31847b9906b503548fadee4b8b29d93279))
+* **admin:** moderation defaults to "All" + icons on filter tabs ([8d5cad0](https://github.com/davidschubert/maui-monorepo/commit/8d5cad0e1072ba3e5ab9e95615591ccf140bbf3f))
+* **admin:** richer dashboard overview ([f587d49](https://github.com/davidschubert/maui-monorepo/commit/f587d49bdbaf48a0875ad813598674d7748d03fb))
+* **admin:** product changelog ("what's new") ([f65b1f0](https://github.com/davidschubert/maui-monorepo/commit/f65b1f04db16dfe9a9d27f6cc7a0276f2a1aca36))
+* **admin:** changelog release dates + seed full history ([466be65](https://github.com/davidschubert/maui-monorepo/commit/466be65e041876505043972ebc04319c37f1ee5b))
+
+### Bug Fixes
+
+* **core:** map NUXT_PUBLIC_APP_URL via public.appUrl runtime config key ([5a40b7b](https://github.com/davidschubert/maui-monorepo/commit/5a40b7b03800d4eb9971d44961d2bafbc8f5cfb4))
+* **core:** give playground an index page ([205c0d3](https://github.com/davidschubert/maui-monorepo/commit/205c0d33404e92fadf403ec6e6b730b55a28bccb))
+* **core:** distinguish server-unreachable from real auth failures ([8e5305f](https://github.com/davidschubert/maui-monorepo/commit/8e5305fe252d02fe1befb4cbceb2d78c5bc85074))
+* **core:** show otp name field only in register mode ([18f5268](https://github.com/davidschubert/maui-monorepo/commit/18f5268a18b0f468bf2ea0870c014e3602ef341e))
+* **core:** german validation messages, submit-only validation, dedicated otp pages ([98e0a5d](https://github.com/davidschubert/maui-monorepo/commit/98e0a5de1f48a6c73d5a7dc65c4c00f481e80887))
+* **comments:** submit-only validation on comment form ([39b2678](https://github.com/davidschubert/maui-monorepo/commit/39b26789c6cbe2dcb4e38983bb8a4110fb4b2559))
+* **comments:** localize login link in CommentSection ([cf23f1f](https://github.com/davidschubert/maui-monorepo/commit/cf23f1fa9de5a4349f9631bdc8695977002bcf50))
+* **admin:** localePath for dashboard nav and auth redirect ([95bf287](https://github.com/davidschubert/maui-monorepo/commit/95bf28793c3601a0930883992646aa81354b468c))
+* **core:** use prefix_except_default i18n — en unprefixed at /, others under /de ([bffd481](https://github.com/davidschubert/maui-monorepo/commit/bffd481e270e0c8f8b75dc705104f1342eae80fa))
+* **core:** login step 2 — back/submit 50/50 row, no arrow ([1c58483](https://github.com/davidschubert/maui-monorepo/commit/1c58483d7d5f74887766abcc33f608b25dff9b77))
+* **core:** login step 2 — move code-login below actions with "or" separator ([bd16a46](https://github.com/davidschubert/maui-monorepo/commit/bd16a465382a81fcb2e5ee728c2f91166ecfcd35))
+* **core:** lock step-2 email field (disabled + lock icon) ([684f80e](https://github.com/davidschubert/maui-monorepo/commit/684f80e61b38a07e53aa9d2eb481849e56cc08fb))
+* **core:** move step-2 email lock icon to trailing ([fc02384](https://github.com/davidschubert/maui-monorepo/commit/fc02384c7f5f5c5c4aa33f0ccd9b5f33bf0fb145))
+* **core:** revert to single-step password login (Model A) ([3b09a51](https://github.com/davidschubert/maui-monorepo/commit/3b09a518beb3a0ef7a2757b4002e282639cf466e))
+* **core:** consistent method-switch styling across auth pages ([fcd9783](https://github.com/davidschubert/maui-monorepo/commit/fcd978367258c20bb1d506ff08ba749ac8e0ea56))
+* **core:** move register "Already have an account" link below the actions ([2a2b164](https://github.com/davidschubert/maui-monorepo/commit/2a2b164fe8b5bb44acdf0089004965975fc1acc8))
+* **core:** give buttons a pointer cursor (Nuxt UI v4 default is none) ([c394ae2](https://github.com/davidschubert/maui-monorepo/commit/c394ae2870dac24d99fed58061eb26c1173a9fc1))
+* **core:** separator between last action and the login/register cross-link ([a0388b8](https://github.com/davidschubert/maui-monorepo/commit/a0388b887ae0f9fe8c0daf8441e8341dfb251056))
+* **core:** add cross-link footer to the code auth pages ([aceefe8](https://github.com/davidschubert/maui-monorepo/commit/aceefe8e7b6cc6e28525338fb1b5d189cb3623ae))
+* **admin:** localized relative time in the users table ([2fe355f](https://github.com/davidschubert/maui-monorepo/commit/2fe355f93f16be219ca6b8d97d91c5f9c1e6dd22))
+* **admin,themes:** capitalize variant color names in the menus ([4092735](https://github.com/davidschubert/maui-monorepo/commit/4092735a0f944405ff260ff18c206084f666349f))
+* **admin:** floating sidebar overflow — cap height to viewport minus margin ([70750e5](https://github.com/davidschubert/maui-monorepo/commit/70750e5dedf5f90ce07dc6b45e2baa1e70ab839d))
+* **comments:** duplicate comment from optimistic + realtime race ([9bbd52f](https://github.com/davidschubert/maui-monorepo/commit/9bbd52f228e2598a9ee0b808a56ae07048af7fde))
+* **admin:** log out + redirect when ending your own sessions ([7662ced](https://github.com/davidschubert/maui-monorepo/commit/7662ced9274faa30ed915314898c80730a54b538))
+* **core:** write phone to native Appwrite field instead of prefs ([bd7b8eb](https://github.com/davidschubert/maui-monorepo/commit/bd7b8eb77dac6a8eb7dd63bbe426e86fd8becf8f))
+* **core:** avatar upload trigger — render via #leading, not #default ([158607b](https://github.com/davidschubert/maui-monorepo/commit/158607bf673f49a9629838bed2e0cbf013abe60f))
+* **core:** upload avatar on save, not on pick (no orphan files) ([81ea171](https://github.com/davidschubert/maui-monorepo/commit/81ea171d52088033dd703e373fce29303faefec9))
+* **admin:** never remove the last admin ([d94777c](https://github.com/davidschubert/maui-monorepo/commit/d94777c5730f70d5e11b138a14a71b90728e10d2))
+* **themes:** apply theme colors in light mode ([0177d7d](https://github.com/davidschubert/maui-monorepo/commit/0177d7d97bbbc30f5ef38bc9afa7a6f35bf78972))
+* **admin:** readable + crisp activity chart ([788b7ae](https://github.com/davidschubert/maui-monorepo/commit/788b7ae91022c260330941d2076a4c9604608499))
+* **core:** stop online count flickering 0/1 on reload ([5ae0514](https://github.com/davidschubert/maui-monorepo/commit/5ae0514f039381af81d71c01777f8eea401ab00e))
+* **comments:** restore reappears live (complete realtime transitions) ([445ae7d](https://github.com/davidschubert/maui-monorepo/commit/445ae7d6402e16b6ba2ee4482c257ebf20ecffea))
+* **core:** pagination stuck on page 1 (setPage over-clamped) ([4481b2d](https://github.com/davidschubert/maui-monorepo/commit/4481b2deaea33047a2b21f6e70fad16a89d31125))
+* **admin:** online dot no longer tints all user avatars green ([5f7d053](https://github.com/davidschubert/maui-monorepo/commit/5f7d053a69bf3da02e66a74207109cafc2dd8890))
+
+### Refactoring
+
+* **admin:** rename admin area route /admin -> /dashboard ([ece4928](https://github.com/davidschubert/maui-monorepo/commit/ece4928ae40e7bd318b5c6c92c8697e9606f7a11))
+* **core:** point admin-area menu link to /dashboard ([99d1b64](https://github.com/davidschubert/maui-monorepo/commit/99d1b642b253597ed70aec6d0a71fcb6760100f6))
+* **admin:** drop Settings from the main nav ([244cae7](https://github.com/davidschubert/maui-monorepo/commit/244cae762308dac1d9bb6fc8f6ac0275cafdb63f))
+* **admin:** title user detail page "Profile" not the name ([75aa19d](https://github.com/davidschubert/maui-monorepo/commit/75aa19d30fa9fd5fcf2b4f783e05995d5741d442))
