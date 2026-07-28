@@ -3,6 +3,19 @@
 // Nuxt-UI-ChangelogVersions-Layout (Timeline). Kein Auth.
 import type { ChangelogEntry, ChangelogListResponse } from '../../shared/types/admin'
 
+// N7 (Davids Entscheidung 2026-07-28): Das hier ist der Changelog des
+// BETREIBERS, kein Inhalt eines Mandanten. Auf den Kunden-Hosts der Pool-App
+// war er trotz abgeschaltetem Footer-Link und WhatsNew-Button
+// (maui.chrome.changelogLink/whatsNew: false) direkt aufrufbar — die
+// Chrome-Registry versteckt nur, sie sperrt nicht. Auf einem Mandanten-Host
+// gibt es diese Seite deshalb schlicht nicht: 404 wie jeder unbekannte Inhalt.
+// UNVERÄNDERT bleiben Kontroll-Hosts (my./start., dort kein Mandant) und die
+// Silo-Apps (comments: /changelog ist dort gewollt und im Footer verlinkt).
+// Zweite, serverseitige Sperre: server/api/changelog.get.ts.
+if (useIsTenantHost()) {
+  throw createError({ status: 404, statusText: 'Not found' })
+}
+
 const { t, locale } = useI18n()
 
 const LIMIT = 20

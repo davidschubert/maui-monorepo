@@ -33,6 +33,34 @@ export function isControlHost(host: string | undefined | null, hosts: readonly s
 }
 
 /**
+ * Gegenprobe: läuft dieser Request auf einem MANDANTEN-Host? PURE.
+ *
+ * Für BETREIBER-Inhalte, die es auf einer Kunden-Community nicht geben darf
+ * (N7: der öffentliche Changelog). Die Herleitung ist eine Ausschluss-Rechnung
+ * und genau deshalb ohne aufgelösten Tenant-Kontext möglich — `00.tenant.ts`
+ * beantwortet bei aktivem Gate JEDEN Request auf genau drei Arten:
+ * Kontroll-Host, aufgelöster Mandant oder 404 für unbekannte Hosts. Was also
+ * überhaupt rendert und kein Kontroll-Host ist, IST ein Mandanten-Host.
+ * Ohne Tenant-Gate (Silo-Apps wie comments, Playground) gibt es überhaupt
+ * keine Mandanten → immer false, Bestands-Apps bleiben unverändert.
+ *
+ * Fail-CLOSED beim unbekannten Host: der bekommt zwar schon in der Middleware
+ * 404, aber die Rechnung hier würde ihn ohnehin als Mandanten-Host werten —
+ * lieber ein 404 zu viel auf Betreiber-Inhalt als eines zu wenig.
+ *
+ * Serverseitig ist das NICHT die Wahrheit, sondern `useTenant(event)`
+ * (server/utils/tenant.ts): dort liegt der wirklich aufgelöste Kontext.
+ */
+export function isTenantHost(
+  tenancyEnabled: boolean,
+  host: string | undefined | null,
+  controlHosts: readonly string[],
+): boolean {
+  if (!tenancyEnabled) return false
+  return !isControlHost(host, controlHosts)
+}
+
+/**
  * Darf dieser API-Pfad auf einem Kontroll-Host laufen?
  *
  * FAIL-CLOSED — nur ausdrücklich erlaubte Präfixe kommen durch. Der Grund ist

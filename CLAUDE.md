@@ -88,6 +88,11 @@ Vollständiges Konzept: docs/CONCEPT.md
   ankern die Basisfarbe fest auf Stufe 500; Kontrast-Gate verschiebt
   --ui-primary-Stufen selbst. Öffentlicher Picker = ThemePickerModal
   (Grid + sticky Varianten-Reihe), NIE CSS/Registry von Hand editieren.
+  AUSNAHME `default`: steht bewusst NICHT im Katalog, sondern handgepflegt in
+  app/utils/themeRegistry.ts. Sein Anzeige-Label ist seit 2026-07-28
+  „**Sunrise**" (vorher „Maui" — interner Produktname vor Kunden, N6). Label
+  ≠ Key: die Id bleibt `default` (tenants.theme, data-theme, CSS-Dateinamen,
+  gespeicherte Configs) — Theme-Namen nie über die Id umbenennen.
 - Theme-Studio: /dashboard/themes (Galerie, Zweispalten), Editor als Vollseite
   (/new, /:id — Dock: Boxen „Farben"+„Schriften", je EIN „Erweitert"),
   Schriften-Verwaltung /dashboard/themes/fonts. Konzept + bewusste
@@ -260,6 +265,13 @@ Vollständiges Konzept: docs/CONCEPT.md
   eslint.config.mjs, no-restricted-syntax). Neue Pool-Layer in die Liste
   aufnehmen, sobald ihre Tabellen tenantId tragen. Pool-Unique-Regel gilt
   weiter: Unique-Indizes brauchen tenantId (z. B. comments-015 uq_tenant_host).
+- BETREIBER-Inhalt gehört nicht auf Mandanten-Hosts (N7, seit 2026-07-28):
+  der öffentliche Changelog (admin-Layer) antwortet dort 404 — Seite via
+  `useIsTenantHost()` (core, pure Ausschluss-Rechnung in shared/controlCenter.ts:
+  Tenant-Gate an UND kein Kontroll-Host ⇒ Mandant), API via `useTenant(event)`.
+  Die Chrome-Registry (`maui.chrome.changelogLink/whatsNew: false`) versteckt
+  nur — jede neue Betreiber-Seite braucht BEIDE Sperren, Seite und Route.
+  Kontroll-Hosts und Silo-Apps (comments) bleiben unberührt.
 
 ## Coding Rules
 - <script setup lang="ts">, Nuxt UI Komponenten bevorzugen. Auth-Formulare:

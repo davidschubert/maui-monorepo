@@ -11,6 +11,21 @@ const CATEGORIES = new Set(['feature', 'improvement', 'fix'])
  * (listAllChangelogRows), im Speicher paginieren.
  */
 export default defineEventHandler(async (event): Promise<ChangelogListResponse> => {
+  // N7 (Davids Entscheidung 2026-07-28): Betreiber-Changelog ≠ Mandanten-
+  // Inhalt. Auf einem Mandanten-Host existiert diese Route nicht — 404 wie
+  // ein unbekannter Pfad, damit die Antwort nichts über den Betreiber verrät.
+  // Die AUTORITÄT sitzt hier, nicht in der Seite: ein $fetch auf
+  // /api/changelog umgeht jedes Markup (dieselbe Logik wie beim
+  // Registrierungs-Gate, s. assertTenantRegistrationOpen).
+  // `useTenant(event)` ist der aufgelöste Kontext aus 00.tenant.ts:
+  //   Mandanten-Host → gesetzt (Pool wie Silo) ⇒ gesperrt
+  //   Kontroll-Host  → null (dort greift ohnehin 01.control-center.ts,
+  //                    /api/changelog steht nicht in controlApiPrefixes)
+  //   Silo-App ohne Tenant-Gate (comments) → null ⇒ unverändert erreichbar
+  if (useTenant(event)) {
+    throw createError({ status: 404, statusText: 'Not found' })
+  }
+
   const query = getQuery(event)
   const limit = Math.min(50, Math.max(1, Number(query.limit) || 20))
   const page = Math.max(1, Number(query.page) || 1)

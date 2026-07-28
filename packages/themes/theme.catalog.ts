@@ -9,7 +9,8 @@ import { rgbToOklch, type Oklch } from './shared/oklch'
  * `pnpm --filter @maui/themes generate`.
  *
  * KURATIERTER 26×11-KATALOG (Entscheidungen E1–E7, 2026-07-23):
- *  - E1(b): `default` (Maui, monochrom) zählt NICHT — 26 echte Farbwelten.
+ *  - E1(b): `default` (Label „Sunrise", monochrom — steht handgepflegt in
+ *    app/utils/themeRegistry.ts, NICHT hier) zählt NICHT — 26 echte Farbwelten.
  *  - E2(a): 11 Farbvariationen = Basis + 10 `data-variant`-Overrides.
  *  - E4: Hue-Raster über den oklch-Kreis als STARTPUNKT (21 chromatische
  *    Welten, ~17° Abstand), dann kuratiert + benannt; dazu 5 kuratierte
