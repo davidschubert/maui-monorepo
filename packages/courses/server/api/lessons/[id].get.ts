@@ -1,10 +1,16 @@
-import { COURSES_TABLE, LESSONS_TABLE, type CourseRow, type LessonRow } from '../../../shared/types/course'
+import type { LessonRow } from '../../../shared/types/course'
 
 /**
  * Lektions-CONTENT: nur nach Enrollment + Access-Check (paid → App-Guard).
  * Titel-Listen liefert die Kurs-Übersicht; der Inhalt bleibt hinter dem Tor.
+ *
+ * Datentür als Operator (publishedLessonWithCourse): Lektionen tragen bewusst
+ * KEINE Read-Permission, der Admin-Client umgeht sie — die Tür ist hier die
+ * einzige Mandanten-Grenze und belegt die Zugehörigkeit VOR der Ausgabe.
  */
 export default defineEventHandler(async (event): Promise<LessonRow & { courseSlug: string }> => {
+  // Produkt-Gate (P4): Kurse sind ab Plan pro enthalten.
+  requirePlanProduct(event, 'courses')
   const user = event.context.user
   if (!user) {
     throw createError({ status: 401, statusText: 'Unauthorized' })
@@ -15,18 +21,7 @@ export default defineEventHandler(async (event): Promise<LessonRow & { courseSlu
     throw createError({ status: 400, statusText: 'Missing lesson id' })
   }
 
-  const config = useRuntimeConfig(event)
-  const databaseId = config.public.appwriteDatabaseId
-  const admin = createAdminClient(event)
-
-  const lesson = await admin.tablesDB.getRow<LessonRow>({ databaseId, tableId: LESSONS_TABLE, rowId: id })
-    .catch((error) => { throw toH3Error(error, 'Lesson not found') })
-  if (lesson.status !== 'published') {
-    throw createError({ status: 404, statusText: 'Lesson not found' })
-  }
-
-  const course = await admin.tablesDB.getRow<CourseRow>({ databaseId, tableId: COURSES_TABLE, rowId: lesson.courseId })
-    .catch((error) => { throw toH3Error(error, 'Course not found') })
+  const { lesson, course } = await publishedLessonWithCourse(event, id)
   if (course.status !== 'published') {
     throw createError({ status: 404, statusText: 'Course not found' })
   }

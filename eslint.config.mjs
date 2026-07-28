@@ -80,6 +80,7 @@ export default createConfigForNuxt({
     'packages/comments/server/api/**',
     'packages/posts/server/api/**',
     'packages/events/server/api/**',
+    'packages/courses/server/api/**',
     'packages/pages/server/api/**',
     'packages/moderation/server/api/**',
   ],

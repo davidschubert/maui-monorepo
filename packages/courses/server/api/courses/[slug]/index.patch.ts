@@ -4,9 +4,14 @@ import { COURSES_TABLE, type CourseRow } from '../../../../shared/types/course'
 /**
  * Kurs bearbeiten (courses.manage; [slug]-Segment = Row-ID im Builder).
  * publish setzt read(users) + recordActivity; draft/archived entziehen es.
+ * Datentür als Operator: get/update belegen die Zugehörigkeit — ein fremder
+ * Mandant bekommt 404. Die Tür trennt Daten- und Permission-Writes bewusst
+ * (Muster events/posts): erst update, dann updatePermissions.
  */
 export default defineEventHandler(async (event) => {
-  const user = requirePermission(event, 'courses.manage')
+  // Produkt-Gate (P4): Kurse sind ab Plan pro enthalten.
+  requirePlanProduct(event, 'courses')
+  const { user } = await requireSitePermission(event, 'courses.manage')
 
   const id = getRouterParam(event, 'slug')
   if (!id) {
@@ -14,12 +19,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readValidatedBody(event, courseEditSchema.parse)
-  const config = useRuntimeConfig(event)
-  const databaseId = config.public.appwriteDatabaseId
-  const admin = createAdminClient(event)
+  const db = tenantDb(event, { as: 'operator' })
 
-  const row = await admin.tablesDB.getRow<CourseRow>({ databaseId, tableId: COURSES_TABLE, rowId: id })
-    .catch((error) => { throw toH3Error(error, 'Course not found') })
+  const row = await db.get<CourseRow>(COURSES_TABLE, id, 'Course not found')
 
   // paid braucht das Entitlement-Feature — gegen den MERGED Zustand
   const mergedAccess = body.access ?? row.access
@@ -39,16 +41,18 @@ export default defineEventHandler(async (event) => {
   if (body.entitlementFeature !== undefined) data.entitlementFeature = mergedAccess === 'paid' ? body.entitlementFeature : null
   if (body.status !== undefined) data.status = body.status
 
-  const updated = await admin.tablesDB.updateRow<CourseRow>({
-    databaseId,
-    tableId: COURSES_TABLE,
-    rowId: id,
-    data,
-    ...(publishing ? { permissions: [...new Set([...row.$permissions, COURSE_READ_USERS])] } : {}),
-    ...(unpublishing ? { permissions: row.$permissions.filter(p => p !== COURSE_READ_USERS) } : {}),
-  }).catch((error) => {
+  const updated = await db.update<CourseRow>(COURSES_TABLE, id, data, 'Course not found').catch((error) => {
     throw toH3Error(error, 'Could not update course')
   })
+  // Leserecht folgt dem Status: published = Mitglieder, sonst niemand
+  if (publishing) {
+    await db.updatePermissions(COURSES_TABLE, id, [...new Set([...row.$permissions, COURSE_READ_USERS])])
+      .catch((error) => { throw toH3Error(error, 'Could not update course') })
+  }
+  if (unpublishing) {
+    await db.updatePermissions(COURSES_TABLE, id, row.$permissions.filter(p => p !== COURSE_READ_USERS))
+      .catch((error) => { throw toH3Error(error, 'Could not update course') })
+  }
 
   if (publishing) {
     await recordActivity(event, {

@@ -620,6 +620,9 @@ importers:
       '@maui/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@maui/courses':
+        specifier: workspace:*
+        version: link:../../packages/courses
       '@maui/events':
         specifier: workspace:*
         version: link:../../packages/events
