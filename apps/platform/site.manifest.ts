@@ -24,6 +24,9 @@ export default {
     // Events im Pool (Entscheidung 8, 2026-07-27) — Produkt-Gate: ab Plan pro
     // (maui.tenancy.products), Datenzugriff durch die Datentür (events-006)
     'events',
+    // Kurse im Pool (Entscheidung 15, 2026-07-27) — Produkt-Gate: ab Plan pro
+    // (maui.tenancy.products), Datenzugriff durch die Datentür (courses-002)
+    'courses',
     'moderation',
     'pages',
     // Der öffentliche Trichter — läuft nur auf den Kontroll-Hosts dieser App
