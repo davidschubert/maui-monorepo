@@ -43,6 +43,26 @@ function isFresh(p: RawPresence): boolean {
   return !!p.$updatedAt && (Date.now() - Date.parse(p.$updatedAt) < FRESH_MS)
 }
 
+/**
+ * Mandant dieses Hosts (Audit B1) — vom tenant-brand-Plugin in den Payload
+ * gespiegelt. Dieser Leser ist der EINZIGE Grund, warum die Id überhaupt zum
+ * Client reist: er holt die Presencen direkt von Appwrite, und im Pool liegen
+ * dort die Anwesenden ALLER Communities in EINEM Raum. null = Silo/Kontroll-Host.
+ */
+function useTenantIdState() {
+  return useState<string | null>('maui-tenant-id', () => null)
+}
+
+/**
+ * Gehört diese Presence auf diesen Host? Strikt in BEIDE Richtungen
+ * (fail-closed, spiegelt server/utils/presenceFilter.ts): ohne tenantId gehört
+ * sie nicht auf einen Mandanten-Host, mit tenantId nicht auf einen Kontroll-Host.
+ */
+function belongsToTenant(p: RawPresence, expectedTenantId: string | null): boolean {
+  const actual = typeof p.metadata?.tenantId === 'string' ? p.metadata.tenantId : ''
+  return actual === (expectedTenantId ?? '')
+}
+
 // Die geteilte, JWT-authentifizierte Realtime-Verbindung + der Cookie-Client für
 // presences.list() leben in useRealtimeClient (auto-import): EINE WS für die ganze
 // App (Presence + Row-Streams). Verifiziert: Event-Round-Trip ~280ms.
@@ -82,6 +102,7 @@ export function usePresenceState() {
   if (import.meta.server) return noop
 
   const auth = useAuthStore()
+  const tenantId = useTenantIdState()
 
   // Zwei Schreibwege — bewusst kombiniert:
   // 1) HTTP-Heartbeat (Admin-Client, server-seitig): ZUVERLÄSSIG (Cookie-Auth,
@@ -107,6 +128,12 @@ export function usePresenceState() {
         const prefs = user.prefs as { avatarUrl?: string } | undefined
         const metadata: Record<string, unknown> = { userName: user.name, ...myMeta.value }
         if (prefs?.avatarUrl) metadata.avatarUrl = prefs.avatarUrl
+        // tenantId MUSS mit (Audit B1): der WS-Upsert ERSETZT die metadata der
+        // server geschriebenen Presence. Ohne das Merkmal wäre sie bis zum
+        // nächsten HTTP-Heartbeat mandantenlos — und damit für jeden Leser
+        // (fail-closed) unsichtbar. Wert kommt aus dem SSR-Payload, nicht vom
+        // User; der Server stempelt beim HTTP-Heartbeat denselben.
+        if (tenantId.value) metadata.tenantId = tenantId.value
         return realtime.upsertPresence({
           presenceId: user.$id,
           status: 'online',
@@ -175,6 +202,7 @@ export function usePresence(predicate: (u: PresenceUser) => boolean = () => true
   }
 
   const auth = useAuthStore()
+  const tenantId = useTenantIdState()
   const client = realtimeCookieClient()
   const realtime = sharedRealtime()
   const presences = new Presences(client)
@@ -193,6 +221,11 @@ export function usePresence(predicate: (u: PresenceUser) => boolean = () => true
       const res = await presences.list({ queries: [Query.limit(200)] })
       const next = new Map<string, PresenceUser>()
       for (const p of (res.presences ?? []) as unknown as RawPresence[]) {
+        // Mandanten-Filter VOR dem predicate (B1): die meisten Prädikate
+        // vergleichen Row-Ids (global eindeutig), aber `page` ist auf JEDEM
+        // Mandanten derselbe String ('/dashboard/pages') — ohne diese Zeile
+        // zeigte useViewingPresence die Namen fremder Kunden.
+        if (!belongsToTenant(p, tenantId.value)) continue
         const u = toUser(p)
         if (p.status && isFresh(p) && predicate(u)) next.set(u.userId, u)
       }

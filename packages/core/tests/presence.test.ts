@@ -42,3 +42,36 @@ describe('toOnlinePresences', () => {
     expect(toOnlinePresences(list, NOW, 40_000)).toHaveLength(1)
   })
 })
+
+// Audit B1: im Pool teilen sich alle Communities EINEN Presences-Raum.
+describe('toOnlinePresences — Mandanten-Filter', () => {
+  const list = [
+    raw({ userId: 'mine', agoMs: 1_000, metadata: { userName: 'Mia', tenantId: 't-a' } }),
+    raw({ userId: 'foreign', agoMs: 1_000, metadata: { userName: 'Fred', tenantId: 't-b' } }),
+    raw({ userId: 'tenantless', agoMs: 1_000, metadata: { userName: 'Tim' } }),
+  ]
+
+  it('lässt auf einem Pool-Host nur den eigenen Mandanten durch', () => {
+    const ids = toOnlinePresences(list, NOW, PRESENCE_FRESH_MS, 't-a').map(p => p.userId)
+    expect(ids).toEqual(['mine'])
+  })
+
+  it('filtert eine Presence OHNE tenantId auf einem Pool-Host raus (fail-closed)', () => {
+    const ids = toOnlinePresences(list, NOW, PRESENCE_FRESH_MS, 't-b').map(p => p.userId)
+    expect(ids).toEqual(['foreign'])
+    expect(ids).not.toContain('tenantless')
+  })
+
+  it('Silo/Single-Tenant (kein erwarteter Mandant): nur Presencen ohne tenantId', () => {
+    // Verhalten unverändert gegenüber vor B1 — dort trägt KEINE Presence eine
+    // tenantId, also bleiben alle sichtbar. Eine fremde mit tenantId gehört
+    // nicht hierher (anderes Projekt/Deployment) und fällt raus.
+    expect(toOnlinePresences(list, NOW).map(p => p.userId)).toEqual(['tenantless'])
+    expect(toOnlinePresences(list, NOW, PRESENCE_FRESH_MS, null).map(p => p.userId)).toEqual(['tenantless'])
+  })
+
+  it('reicht die tenantId NICHT nach außen durch', () => {
+    const [p] = toOnlinePresences(list, NOW, PRESENCE_FRESH_MS, 't-a')
+    expect(p).not.toHaveProperty('tenantId')
+  })
+})

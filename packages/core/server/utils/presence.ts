@@ -1,15 +1,22 @@
 import { Query } from 'node-appwrite'
 import type { H3Event } from 'h3'
-import { toOnlinePresences, type OnlinePresence, type RawServerPresence } from './presenceFilter'
+import { toOnlinePresences, PRESENCE_FRESH_MS, type OnlinePresence, type RawServerPresence } from './presenceFilter'
 
 export type { OnlinePresence }
 
 /**
  * Alle aktuell anwesenden User über die Appwrite **Presences API** (self-hostbar
- * seit 1.9.5). Recency-Filter + metadata-Mapping steckt in der reinen (getesteten)
- * `toOnlinePresences`. Degradiert auf []. Explizites Limit statt Default 25.
+ * seit 1.9.5). Recency-Filter, Mandanten-Filter + metadata-Mapping stecken in
+ * der reinen (getesteten) `toOnlinePresences`. Degradiert auf []. Explizites
+ * Limit statt Default 25.
+ *
+ * Die Presences-API kennt kein tenantId-Prädikat (die metadata ist ein
+ * JSON-Blob) — es wird also pool-weit gelesen und HIER auf den Mandanten des
+ * Requests eingeengt. Restrisiko: s. Kommentar in api/presence/heartbeat.post.ts.
  */
 export async function listOnlinePresences(event: H3Event): Promise<OnlinePresence[]> {
+  const tenant = useTenant(event)
+  const expectedTenantId = tenant?.mode === 'pool' ? tenant.tenantId : undefined
   try {
     const { presences } = createAdminClient(event)
     // Seitenweise bis zur Erschöpfung (Cap 1000 als Notanker) — ein einzelnes
@@ -23,7 +30,7 @@ export async function listOnlinePresences(event: H3Event): Promise<OnlinePresenc
       all.push(...batch)
       if (batch.length < PAGE) break
     }
-    return toOnlinePresences(all, Date.now())
+    return toOnlinePresences(all, Date.now(), PRESENCE_FRESH_MS, expectedTenantId)
   }
   catch {
     return []
