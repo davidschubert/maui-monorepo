@@ -49,9 +49,13 @@ function buildPrompt(post: CommunityPost, reports: { reason: string, note: strin
 }
 
 export default defineEventHandler(async (event): Promise<PostModerationAssist> => {
-  await requireSitePermission(event, 'posts.moderate')
-  // Produkt-Gate (P4): KI-Assist ist ein Pro-Produkt (kostet pro Aufruf).
+  // Produkt-Gates (P4) VOR der Autorisierung — beide, nicht nur 'ai': dass
+  // 'ai' heute den höheren Mindest-Plan hat (pro > personal), ist eine
+  // KONFIGURATION der App (maui.tenancy.products), keine Garantie. Wer sie
+  // umstellt, soll nicht versehentlich eine posts-Route öffnen.
+  requirePlanProduct(event, 'posts')
   requirePlanProduct(event, 'ai')
+  await requireSitePermission(event, 'posts.moderate')
 
   if (!isAiAvailable(event)) {
     throw createError({ status: 503, statusText: 'AI assist not configured' })

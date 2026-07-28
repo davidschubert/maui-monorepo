@@ -14,6 +14,10 @@ import { POSTS_TABLE, type CommunityPost, type PostModerationResponse } from '..
  * Das `await` ist Pflicht — ohne wäre der Gate fail-open.
  */
 export default defineEventHandler(async (event): Promise<PostModerationResponse> => {
+  // Produkt-Gate (P4) VOR der Autorisierung: enthält der Plan das Produkt
+  // nicht, existiert es für diesen Mandanten gar nicht — 404 wie die Datentür,
+  // statt erst zu prüfen, wer etwas moderieren darf, das es hier nicht gibt.
+  requirePlanProduct(event, 'posts')
   await requireSitePermission(event, 'posts.moderate')
 
   // Datentür als Operator: Moderation sieht alle Status — aber nur die
