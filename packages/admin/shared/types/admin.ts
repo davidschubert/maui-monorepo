@@ -97,7 +97,9 @@ export interface AdminUserDetailResponse {
 }
 
 export interface AdminStats {
-  usersTotal: number
+  /** null = im Pool bewusst nicht ausgewiesen (Projekt-Nutzer ≠ Site-Mitglieder,
+   *  Audit-Befund B2) — die Karte entfällt dann. */
+  usersTotal: number | null
   commentsTotal: number
   commentsReported: number
 }
@@ -112,7 +114,9 @@ export interface AnalyticsPoint {
 export interface AdminAnalytics {
   rangeDays: number
   points: AnalyticsPoint[]
-  usersInRange: number
+  /** null = im Pool bewusst nicht ausgewiesen (Audit-Befund B2); die
+   *  Registrierungs-Reihe bleibt dann leer (points[].users === 0). */
+  usersInRange: number | null
   commentsInRange: number
 }
 

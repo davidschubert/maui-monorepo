@@ -45,12 +45,23 @@ async function collectCreatedAt(
  * Chart-Buckets UND KPI-Totals stammen aus DERSELBEN paginierten In-Range-Menge
  * → Balken und Legende können nicht auseinanderlaufen (früher: 200er-Sample für
  * die Buckets vs. autoritative Count-Query für die Totals). Admin-only.
+ *
+ * MANDANTENDICHT (Audit-Befund B2, 2026-07-27):
+ *  - Kommentare gehen durch die Datentür (`tenantDb`, operator-Klinke wie
+ *    bisher der Admin-Client) — die frühere rohe Abfrage zeichnete im Pool die
+ *    Zeitreihe ALLER Mandanten in das Dashboard EINES Kunden.
+ *  - Registrierungen entfallen im Pool: `users.list()` ist die Nutzerliste des
+ *    geteilten PROJEKTS, nicht die Mitglieder dieser Site. Eine mandanten-
+ *    genaue Zahl gäbe es nur über `site_members` im Control Plane — ein neuer
+ *    Cross-Projekt-Vertrag, den diese Kennzahl nicht rechtfertigt. Lieber
+ *    keine Zahl als eine fremde (`usersInRange: null`, Balken bleiben leer).
  */
 export default defineEventHandler(async (event): Promise<AdminAnalytics> => {
   requirePermission(event, 'dashboard.access')
 
-  const config = useRuntimeConfig(event)
+  const db = tenantDb(event, { as: 'operator' })
   const admin = createAdminClient(event)
+  const poolTenant = db.tenant?.mode === 'pool'
 
   const requested = Number(getQuery(event).days ?? 30)
   const DAYS = ALLOWED_DAYS.includes(requested) ? requested : 30
@@ -61,23 +72,22 @@ export default defineEventHandler(async (event): Promise<AdminAnalytics> => {
   cutoff.setUTCDate(cutoff.getUTCDate() - (DAYS - 1))
   const cutoffIso = cutoff.toISOString()
 
-  const dbId = config.public.appwriteDatabaseId
   const userTotal = { count: 0, capped: false }
   const commentTotal = { count: 0, capped: false }
 
   const [userDates, commentDates] = await Promise.all([
-    collectCreatedAt(userTotal, async (cursor) => {
-      const r = await admin.users.list({
-        queries: [Query.greaterThanEqual('$createdAt', cutoffIso), Query.orderDesc('$createdAt'), Query.limit(PAGE), ...(cursor ? [Query.cursorAfter(cursor)] : [])],
-      })
-      return { items: r.users.map(u => ({ id: u.$id, createdAt: u.$createdAt })), total: r.total }
-    }),
+    poolTenant
+      ? Promise.resolve<string[]>([])
+      : collectCreatedAt(userTotal, async (cursor) => {
+          const r = await admin.users.list({
+            queries: [Query.greaterThanEqual('$createdAt', cutoffIso), Query.orderDesc('$createdAt'), Query.limit(PAGE), ...(cursor ? [Query.cursorAfter(cursor)] : [])],
+          })
+          return { items: r.users.map(u => ({ id: u.$id, createdAt: u.$createdAt })), total: r.total }
+        }),
     collectCreatedAt(commentTotal, async (cursor) => {
-      const r = await admin.tablesDB.listRows<Models.Row>({
-        databaseId: dbId,
-        tableId: 'comments',
-        queries: [Query.greaterThanEqual('$createdAt', cutoffIso), Query.orderDesc('$createdAt'), Query.limit(PAGE), ...(cursor ? [Query.cursorAfter(cursor)] : [])],
-      })
+      const r = await db.list<Models.Row>('comments', [
+        Query.greaterThanEqual('$createdAt', cutoffIso), Query.orderDesc('$createdAt'), Query.limit(PAGE), ...(cursor ? [Query.cursorAfter(cursor)] : []),
+      ])
       return { items: r.rows.map(row => ({ id: row.$id, createdAt: row.$createdAt })), total: r.total }
     }),
   ])
@@ -108,7 +118,8 @@ export default defineEventHandler(async (event): Promise<AdminAnalytics> => {
     rangeDays: DAYS,
     points,
     // Totals aus derselben Menge wie die Buckets → konsistent mit dem Chart.
-    usersInRange: userDates.length,
+    // null = im Pool bewusst nicht ausgewiesen (s. Kopfkommentar).
+    usersInRange: poolTenant ? null : userDates.length,
     commentsInRange: commentDates.length,
   }
 })

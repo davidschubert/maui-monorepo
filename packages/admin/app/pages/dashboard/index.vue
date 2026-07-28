@@ -37,8 +37,13 @@ const { data: analytics, refresh: refreshAnalytics } = await useFetch<AdminAnaly
   query: computed(() => ({ days: days.value })),
 })
 
+// `usersTotal: null` = die Nutzerzahl wird auf diesem Deployment bewusst nicht
+// ausgewiesen (Pool: Projekt-Nutzer ≠ Mitglieder DIESER Site, Audit-Befund B2)
+// — die Karte entfällt dann ganz, statt eine fremde oder eine 0 zu zeigen.
 const cards = computed(() => [
-  { label: t('admin.stats.users'), value: stats.value?.usersTotal ?? 0, delta: analytics.value?.usersInRange ?? 0, icon: 'i-ph-users', to: localePath('/dashboard/users') },
+  ...(stats.value?.usersTotal !== null && stats.value?.usersTotal !== undefined
+    ? [{ label: t('admin.stats.users'), value: stats.value.usersTotal, delta: analytics.value?.usersInRange ?? 0, icon: 'i-ph-users', to: localePath('/dashboard/users') }]
+    : []),
   { label: t('admin.stats.comments'), value: stats.value?.commentsTotal ?? 0, delta: analytics.value?.commentsInRange ?? 0, icon: 'i-ph-chat-circle', to: localePath('/dashboard/comments') },
   { label: t('admin.stats.reported'), value: stats.value?.commentsReported ?? 0, delta: 0, icon: 'i-ph-flag', to: localePath({ path: '/dashboard/comments', query: { status: 'reported' } }) },
 ])
@@ -163,7 +168,7 @@ onScopeDispose(() => {
         </UCard>
 
         <!-- KPIs -->
-        <div class="grid gap-4 sm:grid-cols-3" data-stat-cards>
+        <div class="grid gap-4" :class="cards.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'" data-stat-cards>
           <UCard v-for="card in cards" :key="card.label">
             <NuxtLink :to="card.to" class="flex items-center gap-3">
               <UIcon :name="card.icon" class="size-8 shrink-0 text-primary" />
