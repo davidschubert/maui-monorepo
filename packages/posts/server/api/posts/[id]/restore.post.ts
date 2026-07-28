@@ -1,8 +1,14 @@
 import { POSTS_TABLE, type CommunityPost } from '../../../../shared/types/post'
 
-/** Moderation: ausgeblendeten Post wiederherstellen (Status + read(any) zurück). */
+/**
+ * Moderation: ausgeblendeten Post wiederherstellen (Status + read(any) zurück).
+ *
+ * AUTORISIERUNG (S1): `requireSitePermission` — Site-Rolle vor protokolliertem
+ * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
+ * Das `await` ist Pflicht — ohne wäre der Gate fail-open.
+ */
 export default defineEventHandler(async (event) => {
-  requirePermission(event, 'posts.moderate')
+  await requireSitePermission(event, 'posts.moderate')
 
   const id = getRouterParam(event, 'id')
   if (!id) {

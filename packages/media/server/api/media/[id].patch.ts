@@ -10,9 +10,20 @@ const patchSchema = z.object({
   sortOrder: z.number().int().min(0).max(100_000).optional(),
 }).strict()
 
-/** Metadaten/Status eines Medien-Eintrags ändern (media.manage). */
+/**
+ * Metadaten/Status eines Medien-Eintrags ändern (media.manage).
+ *
+ * SICHTBARKEIT (media-002): trägt der Patch `published`, folgt das Leserecht
+ * von Row UND Datei dem neuen Status — bewusst auch dann, wenn sich der Wert
+ * nicht geändert hat: so heilt ein zweiter Klick einen zuvor gescheiterten
+ * Permission-Write, statt ihn stillschweigend zu überspringen.
+ *
+ * AUTORISIERUNG (S3): `requireSitePermission` — Site-Rolle vor protokolliertem
+ * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
+ * Das `await` ist Pflicht — ohne wäre der Gate fail-open.
+ */
 export default defineEventHandler(async (event) => {
-  requirePermission(event, 'media.manage')
+  await requireSitePermission(event, 'media.manage')
 
   const id = getRouterParam(event, 'id')
   if (!id) {
@@ -31,6 +42,12 @@ export default defineEventHandler(async (event) => {
     rowId: id,
     data: body,
   }).catch((error) => { throw toH3Error(error, 'Media item not found') })
+
+  if (body.published !== undefined) {
+    await applyMediaVisibility(event, row, body.published).catch((error) => {
+      throw toH3Error(error, 'Could not update media visibility')
+    })
+  }
 
   return { id: row.$id, ...body }
 })

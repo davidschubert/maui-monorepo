@@ -1,8 +1,14 @@
 import { MEDIA_TABLE, MEDIA_BUCKET, type MediaItem } from '../../../shared/types/media'
 
-/** Medien-Eintrag löschen (media.manage) — Row zuerst, dann Datei (best-effort). */
+/**
+ * Medien-Eintrag löschen (media.manage) — Row zuerst, dann Datei (best-effort).
+ *
+ * AUTORISIERUNG (S3): `requireSitePermission` — Site-Rolle vor protokolliertem
+ * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
+ * Das `await` ist Pflicht — ohne wäre der Gate fail-open.
+ */
 export default defineEventHandler(async (event) => {
-  requirePermission(event, 'media.manage')
+  await requireSitePermission(event, 'media.manage')
 
   const id = getRouterParam(event, 'id')
   if (!id) {

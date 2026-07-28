@@ -4,9 +4,15 @@ import { ACTIVITIES_TABLE } from '../../../shared/types/activity'
  * Einzelnen Feed-Eintrag löschen (Moderation). Admin-Client, weil die Rows
  * bewusst ohne User-delete-Permission entstehen (recordActivity) — die
  * Autorität ist die Capability, nicht eine Row-Permission.
+ *
+ * AUTORISIERUNG (S3): `requireSitePermission` — `activity.manage` IST eine
+ * Site-Capability (ADMIN-Bündel, tenantAuthz.ts), und /dashboard/activity
+ * verlangt genau sie. Site-Rolle vor protokolliertem Operator-Break-Glass;
+ * ohne Mandanten-Kontext (Silo) weiterhin globales Label. Das `await` ist
+ * Pflicht — ohne wäre der Gate fail-open.
  */
 export default defineEventHandler(async (event) => {
-  requirePermission(event, 'activity.manage')
+  await requireSitePermission(event, 'activity.manage')
 
   const id = getRouterParam(event, 'id')
   if (!id) {

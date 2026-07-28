@@ -4,9 +4,13 @@ import { POSTS_TABLE, type CommunityPost } from '../../../../shared/types/post'
  * Moderation: Post ausblenden — zweiphasig wie comments (Status-Update
  * zuerst, damit das Realtime-Event Leser noch erreicht; dann read(any)
  * entziehen, sonst bleibt der Post per Roh-REST gast-lesbar).
+ *
+ * AUTORISIERUNG (S1): `requireSitePermission` — Site-Rolle vor protokolliertem
+ * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
+ * Das `await` ist Pflicht — ohne wäre der Gate fail-open.
  */
 export default defineEventHandler(async (event) => {
-  const user = requirePermission(event, 'posts.moderate')
+  const { user } = await requireSitePermission(event, 'posts.moderate')
 
   const id = getRouterParam(event, 'id')
   if (!id) {
