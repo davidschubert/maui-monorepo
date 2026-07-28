@@ -23,15 +23,21 @@
  *     Kunden-Picker gibt es einen, und das Inventar wächst mit. Beide Werte
  *     sind ohnehin öffentlich sichtbar: sie STEHEN als data-theme/data-variant
  *     im HTML jeder Seite.
- *   - `tenantId` → usePresence() (Audit-Befund B1, 2026-07-28): der Client-
+ *   - `tenantId` → useTenantId(), gelesen von usePresence() und dem
+ *     Activity-Realtime-Stream (useActivityFeed, C1b): der Client-
  *     Presence-Leser holt die Presencen DIREKT von Appwrite (Cookie-GET +
  *     Realtime), und im Pool liegen dort die Anwesenden ALLER Communities in
  *     EINEM Raum. Ohne den Mandanten kann er fremde nicht aussortieren —
  *     `useViewingPresence` zeigte sonst „N sehen diese Seite" mit den Namen
  *     fremder Kunden (metadata.page ist auf jedem Mandanten derselbe String).
  *     Kein Geheimnis: die Id benennt die Site, auf der der Besucher ohnehin
- *     steht, und trägt für sich genommen keine Daten. Trotzdem bleibt es beim
- *     EINEN Leser — keine weiteren Konsumenten dafür öffnen.
+ *     steht, und trägt für sich genommen keine Daten. Der Activity-Feed
+ *     (C1b) ist der ZWEITE Leser derselben Sorte: sein Realtime-Stream
+ *     abonniert die `activities`-Rows direkt, und wer in zwei Communities
+ *     Mitglied ist, trägt beide Site-Labels — ohne Filter erschienen fremde
+ *     Ereignisse im Feed. Die Regel bleibt eng: NUR Leser, die ohne
+ *     Server-Route direkt gegen Appwrite lesen, dürfen dazukommen — kein
+ *     allgemeiner „aktueller Mandant"-Getter für UI-Logik.
  * NICHT gespiegelt (kein Client-Leser): projectId, siteId, limits, mode.
  * Neues Feld hier hinein nur MIT nachgewiesenem Client-Leser.
  */
@@ -45,9 +51,10 @@ export default defineNuxtPlugin(() => {
   // enthält (Nav/Badges) — die AUTORITÄT bleibt requirePlanProduct auf den
   // Server-Routen. null = kein Pool-Tenant → UI zeigt alles.
   useState<string | null>('maui-tenant-plan', () => (tenant?.mode === 'pool' ? tenant.plan ?? null : null))
-  // Mandanten-Id (B1): AUSSCHLIESSLICH für den Presence-Filter in usePresence()
-  // — der einzige Client-Leser, der direkt (ohne Server-Route) gegen Appwrite
-  // liest und deshalb selbst scopen muss. null = kein Pool-Tenant.
+  // Mandanten-Id (B1, C1b): AUSSCHLIESSLICH für die Client-Leser, die DIREKT
+  // (ohne Server-Route) gegen Appwrite lesen und deshalb selbst scopen müssen —
+  // usePresence() und der Activity-Realtime-Stream, beide über useTenantId().
+  // null = kein Pool-Tenant.
   useState<string | null>('maui-tenant-id', () => (tenant?.mode === 'pool' ? tenant.tenantId : null))
   // Zugangsregel der Community (S1): schließt die Register-Seite und zeigt
   // stattdessen den „nur auf Einladung"-Hinweis. Auch hier ist die AUTORITÄT

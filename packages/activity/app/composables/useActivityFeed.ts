@@ -13,6 +13,7 @@ import { ACTIVITIES_TABLE, type Activity, type ActivityEntry, type ActivityListR
  */
 export async function useActivityFeed() {
   const config = useRuntimeConfig()
+  const tenantId = useTenantId()
 
   const rows = ref<ActivityEntry[]>([])
   const nextCursor = ref<string | null>(null)
@@ -33,6 +34,13 @@ export async function useActivityFeed() {
           rows.value = rows.value.filter(row => row.$id !== ev.payload.$id)
         }
       },
+      // Mandanten-Netz (C1b): die HARTE Grenze sind die Row-Permissions
+      // (recordActivity stempelt im Pool Role.label(siteId)). Sie greift aber
+      // nicht bei jemandem, der in ZWEI Communities Mitglied ist — der trägt
+      // beide Labels und bekäme auf Host A auch die Ereignisse von B zugestellt.
+      // Die Liste selbst ist serverseitig gescopt; nur dieser Stream liest
+      // direkt gegen Appwrite und muss deshalb selbst filtern.
+      { where: payload => rowBelongsToHost(payload, tenantId.value) },
     ))
   })
   onBeforeUnmount(() => {

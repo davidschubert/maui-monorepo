@@ -5,8 +5,11 @@ const PAGE_SIZE = 25
 
 /**
  * Activity-Feed, chronologisch absteigend, Cursor-paginiert. Session Pflicht —
- * die Rows tragen read(users) (recordActivity), gelesen wird über den
- * SessionClient, damit die Row-Security die Autorität bleibt (A3).
+ * die Rows tragen den Mitglieder-Read (recordActivity), gelesen wird über die
+ * MITGLIEDER-Klinke der Datentür (Session-Client), damit die Row-Security die
+ * Autorität bleibt (A3) und der Mandanten-Filter das Netz darunter (C1b).
+ * Kein `as:'operator'`: hier gibt es nichts zu sehen, was der Session-Client
+ * nicht sehen dürfte.
  */
 export default defineEventHandler(async (event): Promise<ActivityListResponse> => {
   if (!event.context.user) {
@@ -14,18 +17,12 @@ export default defineEventHandler(async (event): Promise<ActivityListResponse> =
   }
 
   const cursor = getQuery(event).cursor
-  const config = useRuntimeConfig(event)
-  const { tablesDB } = createSessionClient(event)
 
-  const res = await tablesDB.listRows<Activity>({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: ACTIVITIES_TABLE,
-    queries: [
-      Query.orderDesc('$createdAt'),
-      Query.limit(PAGE_SIZE),
-      ...(typeof cursor === 'string' && cursor.length > 0 ? [Query.cursorAfter(cursor)] : []),
-    ],
-  }).catch((error) => {
+  const res = await tenantDb(event).list<Activity>(ACTIVITIES_TABLE, [
+    Query.orderDesc('$createdAt'),
+    Query.limit(PAGE_SIZE),
+    ...(typeof cursor === 'string' && cursor.length > 0 ? [Query.cursorAfter(cursor)] : []),
+  ]).catch((error) => {
     // Ungültiger Cursor / abgelaufene Session als 4xx durchreichen, nicht als 500
     throw toH3Error(error, 'Could not load activity feed')
   })

@@ -4,12 +4,17 @@
  * Erster komplett Manifest-geborener Layer (M5/P1). Extended den Core NICHT
  * selbst — die App komponiert beide: extends: [media, …, core].
  *
- * NICHT POOL-FÄHIG (Stand S3): `media_items` trägt KEINE tenantId, die Routen
- * gehen deshalb bewusst direkt über den Admin-Client statt über tenantDb().
- * Der Autorisierungs-Gate ist bereits `requireSitePermission`, aber die
- * DATEN-Tür fehlt — vor dem ersten Einsatz in apps/platform braucht der Layer
- * eine tenantId-Migration + Umstellung auf tenantDb(), sonst sähe jede Site
- * die Galerie jeder anderen.
+ * POOL-FÄHIG seit C1b (2026-07-28): `media_items` trägt `tenantId`
+ * (Migration media-003), ALLE server/api-Routen und applyMediaVisibility gehen
+ * über die Datentür `tenantDb(event)`; der ESLint-Backstop verbietet rohes
+ * `.tablesDB` in server/api und server/plugins. Autorisierung: S3
+ * (`requireSitePermission`), Sichtbarkeit: media-002 (Row + Datei).
+ *
+ * OFFEN vor dem ersten Einsatz in apps/platform (kein Leck, aber eine Lücke):
+ * Entwurfs-DATEIEN im Bucket `media` tragen nur den GLOBALEN Operator-Read
+ * (`Role.label('admin')`) — im Pool könnte die Redaktion einer Kunden-Site ihre
+ * eigenen Entwürfe nicht vorschauen. Begründung + Richtung (server-seitige
+ * Vorschau-Route statt Site-Label) in server/utils/mediaPermissions.ts.
  */
 export default defineNuxtConfig({
   // Eigene Layer-Strings — mergen mit Core- und App-Locales (gleiche codes)

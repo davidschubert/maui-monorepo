@@ -1,9 +1,14 @@
 import { ACTIVITIES_TABLE } from '../../../shared/types/activity'
 
 /**
- * Einzelnen Feed-Eintrag löschen (Moderation). Admin-Client, weil die Rows
- * bewusst ohne User-delete-Permission entstehen (recordActivity) — die
- * Autorität ist die Capability, nicht eine Row-Permission.
+ * Einzelnen Feed-Eintrag löschen (Moderation).
+ *
+ * DATENTÜR (C1b): `remove` belegt die Zugehörigkeit VOR dem Löschen — ein
+ * fremder Eintrag antwortet 404 wie einer, den es nicht gibt. `as:'operator'`
+ * ist fachlich nötig, weil die Rows bewusst ohne User-delete-Permission
+ * entstehen (recordActivity): die Autorität ist die Capability, nicht eine
+ * Row-Permission. Der Admin-Client umgeht Row-Permissions, damit ist die Tür
+ * hier die EINZIGE Mandanten-Grenze.
  *
  * AUTORISIERUNG (S3): `requireSitePermission` — `activity.manage` IST eine
  * Site-Capability (ADMIN-Bündel, tenantAuthz.ts), und /dashboard/activity
@@ -19,13 +24,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 400, statusText: 'Missing activity id' })
   }
 
-  const config = useRuntimeConfig(event)
-  const { tablesDB } = createAdminClient(event)
-  await tablesDB.deleteRow({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: ACTIVITIES_TABLE,
-    rowId: id,
-  }).catch((error) => { throw toH3Error(error, 'Activity not found') })
+  await tenantDb(event, { as: 'operator' }).remove(ACTIVITIES_TABLE, id, 'Activity not found')
 
   return { ok: true }
 })

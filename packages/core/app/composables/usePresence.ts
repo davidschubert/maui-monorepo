@@ -44,16 +44,6 @@ function isFresh(p: RawPresence): boolean {
 }
 
 /**
- * Mandant dieses Hosts (Audit B1) — vom tenant-brand-Plugin in den Payload
- * gespiegelt. Dieser Leser ist der EINZIGE Grund, warum die Id überhaupt zum
- * Client reist: er holt die Presencen direkt von Appwrite, und im Pool liegen
- * dort die Anwesenden ALLER Communities in EINEM Raum. null = Silo/Kontroll-Host.
- */
-function useTenantIdState() {
-  return useState<string | null>('maui-tenant-id', () => null)
-}
-
-/**
  * Gehört diese Presence auf diesen Host? Strikt in BEIDE Richtungen
  * (fail-closed, spiegelt server/utils/presenceFilter.ts): ohne tenantId gehört
  * sie nicht auf einen Mandanten-Host, mit tenantId nicht auf einen Kontroll-Host.
@@ -102,7 +92,7 @@ export function usePresenceState() {
   if (import.meta.server) return noop
 
   const auth = useAuthStore()
-  const tenantId = useTenantIdState()
+  const tenantId = useTenantId()
 
   // Zwei Schreibwege — bewusst kombiniert:
   // 1) HTTP-Heartbeat (Admin-Client, server-seitig): ZUVERLÄSSIG (Cookie-Auth,
@@ -202,7 +192,7 @@ export function usePresence(predicate: (u: PresenceUser) => boolean = () => true
   }
 
   const auth = useAuthStore()
-  const tenantId = useTenantIdState()
+  const tenantId = useTenantId()
   const client = realtimeCookieClient()
   const realtime = sharedRealtime()
   const presences = new Presences(client)

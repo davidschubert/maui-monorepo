@@ -99,6 +99,10 @@ export default createConfigForNuxt({
     'packages/pages/server/plugins/**',
     'packages/moderation/server/api/**',
     'packages/moderation/server/plugins/**',
+    'packages/media/server/api/**',
+    'packages/media/server/plugins/**',
+    'packages/activity/server/api/**',
+    'packages/activity/server/plugins/**',
   ],
   rules: {
     'no-restricted-syntax': ['error',

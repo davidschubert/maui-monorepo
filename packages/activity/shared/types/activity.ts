@@ -18,6 +18,9 @@ export interface Activity extends Models.Row {
   metadata: string
   /** v1 immer 'members' ('public' reserviert, v2) */
   visibility: string
+  /** Mandant der Row (Migration system-021, Datentür C1b).
+   *  '' / fehlend = Silo-/Einzelbetrieb. */
+  tenantId?: string
 }
 
 /** Listen-Eintrag, um den Actor-Avatar angereichert (wie comments) */

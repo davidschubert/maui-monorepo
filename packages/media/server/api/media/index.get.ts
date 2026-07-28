@@ -22,12 +22,20 @@ const PAGE_LIMIT = 100
  *
  * Der `published`-Filter ist seit media-002 NICHT mehr der einzige Schutz:
  * Row und Datei tragen das Leserecht selbst (rowSecurity/fileSecurity), ein
- * Entwurf ist also auch an dieser Route vorbei nicht abrufbar. Der Filter
- * bleibt als Sicherheitsnetz und weil die Liste über den Admin-Client läuft
- * (der Row-Permissions bewusst umgeht).
+ * Entwurf ist also auch an dieser Route vorbei nicht abrufbar.
  *
  * View-URLs zeigen direkt in den Bucket — für veröffentlichte Einträge trägt
  * die Datei read(any), Entwurfs-Dateien nur den Verwaltungs-Read.
+ *
+ * DATENTÜR (C1b): beide Modi gehen über tenantDb(event) — die Liste trägt den
+ * Mandanten-Filter also immer.
+ *  - öffentlich: Mitglieder-/Gast-Klinke. Veröffentlichte Rows tragen read(any)
+ *    (media-002), der Session-Client sieht sie auch ohne Session; die
+ *    Row-Permissions bleiben so die Autorität, der Filter ist das Netz darunter.
+ *  - ?all=1: `as:'operator'` ist hier fachlich NÖTIG — Entwurfs-Rows tragen
+ *    BEWUSST kein breites Leserecht (media-002), der Session-Client bekäme sie
+ *    gar nicht zu sehen. Der Admin-Client umgeht Row-Permissions, damit ist die
+ *    Tür in diesem Zweig die EINZIGE Mandanten-Grenze.
  *
  * AUTORISIERUNG (S3): `requireSitePermission` — `media.manage` IST eine
  * Site-Capability (EDITOR-Bündel, tenantAuthz.ts), und /dashboard/media
@@ -35,20 +43,16 @@ const PAGE_LIMIT = 100
  */
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event)
-  const admin = createAdminClient(event)
   const withDrafts = getQuery(event).all !== undefined
   if (withDrafts) await requireSitePermission(event, 'media.manage')
 
-  const res = await admin.tablesDB.listRows<MediaItem>({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: MEDIA_TABLE,
-    queries: [
-      ...(withDrafts ? [] : [Query.equal('published', true)]),
-      Query.orderAsc('sortOrder'),
-      Query.orderDesc('$createdAt'),
-      Query.limit(PAGE_LIMIT),
-    ],
-  }).catch((error) => { throw toH3Error(error, 'Could not load media') })
+  const db = tenantDb(event, withDrafts ? { as: 'operator' } : {})
+  const res = await db.list<MediaItem>(MEDIA_TABLE, [
+    ...(withDrafts ? [] : [Query.equal('published', true)]),
+    Query.orderAsc('sortOrder'),
+    Query.orderDesc('$createdAt'),
+    Query.limit(PAGE_LIMIT),
+  ]).catch((error) => { throw toH3Error(error, 'Could not load media') })
 
   const base = {
     endpoint: config.public.appwriteEndpoint,
