@@ -441,6 +441,20 @@ und Claim-Lock werden **entfernt**, nicht auf 20 s verlangsamt. Eine Sperre, die
    (`Realtime.php`, `$roles = $payload->getRead()`), nicht für `GET /v1/presences`.
    **Das ist die eine Annahme, auf der alles ruht — sie gehört als Erstes in das
    Prüfskript aus Punkt 2.**
+
+   > **✅ NACHGEMESSEN (2026-07-28, gegen die lokale Appwrite 1.9.6):** Diese
+   > Annahme stimmt. Probe: eine Presence mit `read("users")` per Admin-Client
+   > angelegt, dann `GET /v1/presences` **ohne Session** (nur mit
+   > `X-Appwrite-Project`) — Antwort **HTTP 401 `general_unauthorized_scope`**,
+   > während derselbe Bestand mit dem Admin-Key sichtbar war (3 Presences). Die
+   > REST-Liste erzwingt die Leserechte also genauso wie der Realtime-Pfad; der
+   > Gast-Rolle fehlt `presences.read` bzw. sie ist nicht in `read("users")`.
+   > Damit trägt der Mechanismus, auf dem Weg (a) und (c) beide beruhen.
+   > **Was damit NICHT belegt ist:** dass eine `label:`-gescopte Presence für
+   > einen eingeloggten Nutzer OHNE dieses Label unsichtbar bleibt. Das folgt
+   > aus demselben Rollen-Abgleich, ist aber nicht separat gemessen — genau
+   > dafür braucht es das Zwei-Konten-Skript aus Punkt 2.
+   > (Probe-Presence wurde nach der Messung wieder gelöscht.)
 4. **Ich habe nicht geprüft, ob Appwrite Labels irgendwo an andere Nutzer
    ausliefert.** Wenn ein Nutzerobjekt mit `labels` in einer für Dritte lesbaren
    Antwort auftaucht, wäre die Zugehörigkeit zu Communities darüber ablesbar —
