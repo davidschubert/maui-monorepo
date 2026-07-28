@@ -211,7 +211,7 @@ sortiert/gefiltert wird?
 | --- | --- |
 | B1 Presence | ✅ gefixt + gemergt (Restrisiko A4 offen) |
 | B2 Kennzahlen + ESLint-Lücke | ✅ gefixt + gemergt |
-| B3 Medien-Rechte | ✅ gefixt + gemergt — **Migration media-002 muss noch auf prod** (C0) |
+| B3 Medien-Rechte | ✅ vollständig zu — Code gemergt, Migration am 2026-07-28 auf `comments` gefahren und live nachgemessen |
 | S1 posts-Guards | ✅ gefixt + gemergt (+ Test) |
 | S3 media/activity-Guards | ✅ Gate gefixt — **Datentür fehlt weiter** (C1b) |
 | S2, S4–S10 | offen — brauchen teils deine Entscheidung |
