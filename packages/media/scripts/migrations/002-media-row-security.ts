@@ -24,6 +24,17 @@
  * Idempotent: erneutes Ausführen schreibt nur, was abweicht (409 → skip).
  *
  *   pnpm migrate --app <app> --layer media
+ *
+ * ⚠️ REIHENFOLGE IN PROD: ERST den Code deployen, DANN migrieren — nicht
+ * umgekehrt. Grund: nach der Migration vergibt nur der NEUE Code Row- und
+ * Datei-Rechte. Läuft dann noch der alte, bekommt ein frisch hochgeladenes,
+ * veröffentlichtes Bild gar keine Rechte — die Liste zeigt es (sie liest über
+ * den Admin-Client, der Row-Permissions umgeht), aber das <img> holt die Datei
+ * DIREKT aus dem Bucket und bekommt 404. Andersherum gibt es kein Fenster: mit
+ * neuem Code vor der Migration werden die Rechte schon gestempelt, sie wirken
+ * nur noch nicht — nichts ist kaputt, es ist bloß noch nicht dicht.
+ * Betroffene Prod-Instanzen: photos und comments (die einzigen mit media im
+ * Manifest — nicht platform, control, help, marketing, portfolio).
  */
 import { Client, Compression, Permission, Query, Role, Storage, TablesDB, type Models } from 'node-appwrite'
 

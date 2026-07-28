@@ -209,11 +209,11 @@ sortiert/gefiltert wird?
 
 | Befund | Status |
 | --- | --- |
-| B1 Presence | in Arbeit |
-| B2 Kennzahlen + ESLint-Lücke | in Arbeit |
-| B3 Medien-Rechte | in Arbeit |
-| S1 posts-Guards | in Arbeit |
-| S3 media/activity-Guards | in Arbeit |
+| B1 Presence | ✅ gefixt + gemergt (Restrisiko A4 offen) |
+| B2 Kennzahlen + ESLint-Lücke | ✅ gefixt + gemergt |
+| B3 Medien-Rechte | ✅ gefixt + gemergt — **Migration media-002 muss noch auf prod** (C0) |
+| S1 posts-Guards | ✅ gefixt + gemergt (+ Test) |
+| S3 media/activity-Guards | ✅ Gate gefixt — **Datentür fehlt weiter** (C1b) |
 | S2, S4–S10 | offen — brauchen teils deine Entscheidung |
 | UI-Hebel 1 (Leerzustände) | offen — Baustein-Entwurf zuerst, dann Rollout |
 | UI-Hebel 2 (Löschen-Vertrag) | offen |

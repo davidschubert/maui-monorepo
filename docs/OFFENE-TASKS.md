@@ -61,7 +61,9 @@ Presence-metadata legen.
 
 | # | Task | Herkunft |
 | --- | --- | --- |
-| C1 | **Owner-Overview zeigt Nullwerte**: `/api/admin/stats\|analytics` sind Operator-only. Tenant-gescopte Kennzahlen über `requireSitePermission`. | N8 |
+| C0 | **media-002 auf prod fahren** — die Migration, die unveröffentlichte Bilder zusperrt, liegt im Repo und ist lokal bewiesen, aber prod läuft noch offen. Nur die zwei Silo-Instanzen mit media: **photos** und **comments**. ⚠️ **ERST Code deployen, DANN migrieren** (umgekehrt zeigt die Galerie für ein Fenster kaputte Bilder — Begründung im Migrations-Kopf). | Audit B3 |
+| C1 | **Owner-Overview zeigt Nullwerte**: `/api/admin/stats\|analytics` sind Operator-only. Tenant-gescopte Kennzahlen über `requireSitePermission`. **Vorbedingung erledigt** (Audit B2): die drei Lesungen sind gescopt, das Öffnen leckt jetzt nicht mehr. Die Nutzerzahl fehlt im Pool bewusst — sie bräuchte einen Mitglieder-Count aus dem Control Plane. | N8 |
+| C1b | **media und activity haben keine Datentür.** Der Rechte-Gate steht seit S3, aber beide Layer haben keine `tenantId`-Tabellen und gehen direkt über den Admin-Client. Vor dem ERSTEN Einsatz in `apps/platform`: tenantId-Migration + `tenantDb()`, sonst sieht jede Site die Galerie jeder anderen. Steht als Warnung in beiden `nuxt.config.ts`. | Audit S3 |
 | C2 | **UI-Plan-Gate für Kurse** in der Nav (`maui.chrome.nav`, blueprint) — heute ist `/courses` per Direktlink erreichbar und läuft in den API-404. Events hat dasselbe Muster. | Kurse-Bericht |
 | C3 | **Kompositionen für Events + Kurse in den Bauplan**: `EventDetail`/`LessonView` füllen ihren `#comments`-Slot bisher nur in `apps/comments`. Jetzt möglich, da beide Produkte im Pool sind. | Produkt-Bilanz |
 | C4 | **Nav-Einträge events/courses** von `apps/comments/app/app.config.ts` in die Layer verschieben (Kommentar steht dort) — sie waren App-seitig, bis die Produkte durch die Tür waren. | S9-Bericht |
