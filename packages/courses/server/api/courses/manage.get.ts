@@ -1,17 +1,22 @@
 import { Query } from 'node-appwrite'
 import { COURSES_TABLE, type CourseRow } from '../../../shared/types/course'
 
-/** Builder-Liste (courses.manage): ALLE Status inkl. drafts. */
+/**
+ * Builder-Liste (courses.manage): ALLE Status inkl. drafts — deshalb Datentür
+ * als Operator (drafts tragen bewusst keine Read-Permission; der Admin-Client
+ * umgeht Row-Permissions, die Tür ist hier die einzige Grenze).
+ *
+ * AUTORISIERUNG: `requireSitePermission` — Site-Rolle vor protokolliertem
+ * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
+ */
 export default defineEventHandler(async (event): Promise<{ rows: CourseRow[] }> => {
-  requirePermission(event, 'courses.manage')
+  // Produkt-Gate (P4): Kurse sind ab Plan pro enthalten.
+  requirePlanProduct(event, 'courses')
+  await requireSitePermission(event, 'courses.manage')
 
-  const config = useRuntimeConfig(event)
-  const admin = createAdminClient(event)
-  const res = await admin.tablesDB.listRows<CourseRow>({
-    databaseId: config.public.appwriteDatabaseId,
-    tableId: COURSES_TABLE,
-    queries: [Query.orderDesc('$createdAt'), Query.limit(100)],
-  }).catch((error) => {
+  const res = await tenantDb(event, { as: 'operator' }).list<CourseRow>(COURSES_TABLE, [
+    Query.orderDesc('$createdAt'), Query.limit(100),
+  ]).catch((error) => {
     throw toH3Error(error, 'Could not load courses')
   })
   return { rows: res.rows }

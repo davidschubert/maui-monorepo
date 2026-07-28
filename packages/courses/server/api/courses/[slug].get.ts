@@ -5,8 +5,15 @@ import { COURSES_TABLE, LESSON_PROGRESS_TABLE, LESSONS_TABLE, type CourseDetailR
  * Kurs-Übersicht (per Slug): Detail + Lektions-TITEL (published) für
  * Eingeloggte — Lektions-CONTENT liefert erst GET /api/lessons/:id nach
  * Enrollment + Access-Check. Fortschritt des Users kommt mit.
+ *
+ * Datentür: der Kurs über die member-Tür (Session-Client wie bisher, plus
+ * Mandanten-Filter — der Slug eines Nachbarn ist im Pool nicht auffindbar),
+ * Lektionen/Fortschritt als Operator (beide tragen bewusst keine breite
+ * Read-Permission).
  */
 export default defineEventHandler(async (event): Promise<CourseDetailResponse> => {
+  // Produkt-Gate (P4): Kurse sind ab Plan pro enthalten.
+  requirePlanProduct(event, 'courses')
   const user = event.context.user
   if (!user) {
     throw createError({ status: 401, statusText: 'Unauthorized' })
@@ -17,33 +24,21 @@ export default defineEventHandler(async (event): Promise<CourseDetailResponse> =
     throw createError({ status: 400, statusText: 'Missing slug' })
   }
 
-  const config = useRuntimeConfig(event)
-  const databaseId = config.public.appwriteDatabaseId
-  const { tablesDB } = createSessionClient(event)
-
-  const courses = await tablesDB.listRows<CourseRow>({
-    databaseId,
-    tableId: COURSES_TABLE,
-    queries: [Query.equal('slug', slug), Query.limit(1)],
-  }).catch((error) => { throw toH3Error(error, 'Course not found') })
-  const course = courses.rows[0]
+  const course = await tenantDb(event).find<CourseRow>(COURSES_TABLE, [Query.equal('slug', slug)])
+    .catch((error) => { throw toH3Error(error, 'Course not found') })
   if (!course || course.status !== 'published') {
     throw createError({ status: 404, statusText: 'Course not found' })
   }
 
-  const admin = createAdminClient(event)
+  const ops = tenantDb(event, { as: 'operator' })
   const [lessons, enrollment, progress] = await Promise.all([
-    admin.tablesDB.listRows<LessonRow>({
-      databaseId,
-      tableId: LESSONS_TABLE,
-      queries: [Query.equal('courseId', course.$id), Query.equal('status', 'published'), Query.orderAsc('order'), Query.limit(500)],
-    }),
+    ops.list<LessonRow>(LESSONS_TABLE, [
+      Query.equal('courseId', course.$id), Query.equal('status', 'published'), Query.orderAsc('order'), Query.limit(500),
+    ]),
     enrollmentFor(event, course.$id, user.$id),
-    admin.tablesDB.listRows<LessonProgressRow>({
-      databaseId,
-      tableId: LESSON_PROGRESS_TABLE,
-      queries: [Query.equal('courseId', course.$id), Query.equal('userId', user.$id), Query.limit(500)],
-    }).catch(() => ({ rows: [] as LessonProgressRow[] })),
+    ops.list<LessonProgressRow>(LESSON_PROGRESS_TABLE, [
+      Query.equal('courseId', course.$id), Query.equal('userId', user.$id), Query.limit(500),
+    ]).catch(() => ({ rows: [] as LessonProgressRow[] })),
   ])
 
   return {
