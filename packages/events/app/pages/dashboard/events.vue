@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
 import { createEventSchema } from '../../../schemas/event'
 import type { EventRow } from '../../../shared/types/event'
 import { effectiveLocationType, isSeriesEvent, isSeriesMaster } from '../../../shared/types/event'
@@ -273,6 +274,44 @@ async function cancelEvent(row: EventRow) {
 
 const statusColor = (row: EventRow) =>
   row.status === 'published' ? 'success' : row.status === 'cancelled' ? 'error' : 'neutral'
+
+// Ort und Teilnehmerzahl sind Kontext — auf schmalen Schirmen fallen sie weg.
+const HIDE_MD = { td: 'hidden md:table-cell', th: 'hidden md:table-cell' }
+const HIDE_LG = { td: 'hidden lg:table-cell', th: 'hidden lg:table-cell' }
+
+const columns = computed<TableColumn<EventRow>[]>(() => [
+  { accessorKey: 'title', header: () => t('events.admin.col.event') },
+  { accessorKey: 'startAt', header: () => t('events.admin.col.start'), id: 'start' },
+  { accessorKey: 'location', header: () => t('events.admin.col.location'), meta: { class: HIDE_LG } },
+  { id: 'attendees', header: () => t('events.admin.col.attendees'), meta: { class: HIDE_MD } },
+  { accessorKey: 'status', header: () => t('events.admin.col.status') },
+  { id: 'actions', header: () => '' },
+])
+
+/**
+ * Zeilen-Aktionen — die Bedingungen sind unverändert: „Serie beenden" nur
+ * beim Serien-Master mit laufender Regel, Veröffentlichen/Zurückziehen je
+ * nach Status, Bearbeiten und Absagen nicht mehr bei abgesagten Terminen.
+ */
+function rowActions(row: EventRow): DropdownMenuItem[][] {
+  const items: DropdownMenuItem[] = []
+  if (row.status === 'draft') {
+    items.push({ label: t('events.admin.publish'), icon: 'i-ph-paper-plane-tilt', color: 'success', onSelect: () => { void setStatus(row, 'published') } })
+  }
+  if (row.status === 'published') {
+    items.push({ label: t('events.admin.unpublish'), icon: 'i-ph-eye-slash', onSelect: () => { void setStatus(row, 'draft') } })
+  }
+  if (row.status !== 'cancelled') {
+    items.push({ label: t('events.admin.edit'), icon: 'i-ph-pencil-simple', onSelect: () => openEdit(row) })
+  }
+  if (isSeriesMaster(row) && (!row.seriesUntil || new Date(row.seriesUntil) > new Date())) {
+    items.push({ label: t('events.admin.stopSeries'), icon: 'i-ph-repeat', onSelect: () => { void stopSeries(row) } })
+  }
+  const destructive: DropdownMenuItem[] = row.status !== 'cancelled'
+    ? [{ label: t('events.admin.cancel'), icon: 'i-ph-calendar-x', color: 'error', onSelect: () => { void cancelEvent(row) } }]
+    : []
+  return destructive.length ? [items, destructive] : [items]
+}
 </script>
 
 <template>
@@ -304,77 +343,73 @@ const statusColor = (row: EventRow) =>
           <UIcon name="i-ph-spinner" class="size-6 animate-spin text-muted" />
         </div>
 
-        <div v-else>
-          <p v-if="!filteredRows.length" class="py-16 text-center text-sm text-muted">
-            {{ t('events.admin.empty') }}
-          </p>
-
-          <ul v-else class="divide-y divide-default">
-            <li v-for="row in filteredRows" :key="row.$id" class="flex items-center gap-3 py-3 text-sm" :data-admin-event="row.$id">
-              <div class="min-w-0 flex-1">
-                <p class="truncate font-medium">{{ row.title }}</p>
-                <p class="text-xs text-muted">
-                  {{ formatDateTime(row.startAt) }}
-                  <template v-if="row.location"> · {{ row.location }}</template>
-                  · {{ t('events.card.attendees', { count: row.attendeeCount }) }}<template v-if="row.capacity !== null">/{{ row.capacity }}</template>
-                </p>
-              </div>
-
+        <UTable v-else :data="filteredRows" :columns="columns" data-events-table>
+          <template #title-cell="{ row }">
+            <div class="flex min-w-0 items-center gap-2" :data-admin-event="row.original.$id">
+              <span class="truncate font-medium">{{ row.original.title }}</span>
               <!-- Serie: Master trägt die Regel, Instanzen den Serien-Hinweis -->
-              <UBadge v-if="isSeriesMaster(row)" color="info" variant="subtle" size="sm" icon="i-ph-repeat" :data-series-master="row.$id">
-                {{ t(`events.series.${row.recurrence}`) }}
+              <UBadge v-if="isSeriesMaster(row.original)" color="info" variant="subtle" size="sm" icon="i-ph-repeat" :data-series-master="row.original.$id">
+                {{ t(`events.series.${row.original.recurrence}`) }}
               </UBadge>
-              <UTooltip v-else-if="isSeriesEvent(row)" :text="t('events.series.instanceHint')">
+              <UTooltip v-else-if="isSeriesEvent(row.original)" :text="t('events.series.instanceHint')">
                 <UIcon name="i-ph-repeat" class="size-4 shrink-0 text-muted" />
               </UTooltip>
+            </div>
+          </template>
+          <template #start-cell="{ row }">
+            <span class="whitespace-nowrap text-sm text-muted">{{ formatDateTime(row.original.startAt) }}</span>
+          </template>
+          <template #location-cell="{ row }">
+            <span class="text-sm text-muted">{{ row.original.location || '—' }}</span>
+          </template>
+          <template #attendees-cell="{ row }">
+            <span class="whitespace-nowrap text-sm tabular-nums text-muted">
+              {{ t('events.card.attendees', { count: row.original.attendeeCount }) }}<template v-if="row.original.capacity !== null">/{{ row.original.capacity }}</template>
+            </span>
+          </template>
+          <template #status-cell="{ row }">
+            <UBadge :color="statusColor(row.original)" variant="subtle" size="sm">
+              {{ t(`events.admin.status.${row.original.status}`) }}
+            </UBadge>
+          </template>
+          <template #actions-cell="{ row }">
+            <div class="flex justify-end">
+              <UDropdownMenu :items="rowActions(row.original)" :content="{ align: 'end' }">
+                <UButton
+                  icon="i-ph-dots-three-vertical"
+                  color="neutral"
+                  variant="ghost"
+                  size="xs"
+                  :aria-label="t('events.admin.rowActions')"
+                  :loading="busyId === row.original.$id"
+                  :data-admin-publish="row.original.$id"
+                  :data-admin-cancel="row.original.$id"
+                />
+              </UDropdownMenu>
+            </div>
+          </template>
 
-              <UBadge :color="statusColor(row)" variant="subtle" size="sm">
-                {{ t(`events.admin.status.${row.status}`) }}
-              </UBadge>
-
-              <UButton
-                v-if="isSeriesMaster(row) && (!row.seriesUntil || new Date(row.seriesUntil) > new Date())"
-                color="neutral" variant="ghost" size="xs" icon="i-ph-repeat"
-                :data-series-stop="row.$id"
-                @click="stopSeries(row)"
-              >
-                {{ t('events.admin.stopSeries') }}
-              </UButton>
-
-              <UButton
-                v-if="row.status === 'draft'"
-                color="success" variant="ghost" size="xs" icon="i-ph-paper-plane-tilt"
-                :loading="busyId === row.$id" :data-admin-publish="row.$id"
-                @click="setStatus(row, 'published')"
-              >
-                {{ t('events.admin.publish') }}
-              </UButton>
-              <UButton
-                v-if="row.status === 'published'"
-                color="neutral" variant="ghost" size="xs" icon="i-ph-eye-slash"
-                :loading="busyId === row.$id"
-                @click="setStatus(row, 'draft')"
-              >
-                {{ t('events.admin.unpublish') }}
-              </UButton>
-              <UButton
-                v-if="row.status !== 'cancelled'"
-                color="neutral" variant="ghost" size="xs" icon="i-ph-pencil-simple"
-                @click="openEdit(row)"
-              >
-                {{ t('events.admin.edit') }}
-              </UButton>
-              <UButton
-                v-if="row.status !== 'cancelled'"
-                color="error" variant="ghost" size="xs" icon="i-ph-calendar-x"
-                :loading="busyId === row.$id" :data-admin-cancel="row.$id"
-                @click="cancelEvent(row)"
-              >
-                {{ t('events.admin.cancel') }}
-              </UButton>
-            </li>
-          </ul>
-        </div>
+          <template #empty>
+            <CoreEmptyState
+              v-if="locationFilter !== 'all'"
+              icon="i-ph-funnel"
+              :title="t('ui.empty.noResultsTitle')"
+              :description="t('ui.empty.noResultsText')"
+              :action-label="t('ui.empty.resetFilters')"
+              action-icon="i-ph-arrow-counter-clockwise"
+              @action="() => { locationFilter = 'all' }"
+            />
+            <CoreEmptyState
+              v-else
+              icon="i-ph-calendar-dots"
+              :title="t('events.admin.emptyTitle')"
+              :description="t('events.admin.empty')"
+              :action-label="t('events.admin.create')"
+              action-icon="i-ph-plus"
+              @action="openCreate"
+            />
+          </template>
+        </UTable>
       </ClientOnly>
 
       <UModal v-model:open="modalOpen" :title="editingId ? t('events.admin.editTitle') : t('events.admin.createTitle')">
