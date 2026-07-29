@@ -28,7 +28,18 @@
       "open": "Open",
       "resolved": "Resolved",
       "empty": "Nothing here — either all done or no feedback yet.",
+      "emptyTitle": "No feedback",
       "guest": "Guest",
+      "search": "Search",
+      "searchPlaceholder": "Search feedback …",
+      "rowActions": "Actions for this feedback",
+      "col": {
+        "category": "Category",
+        "message": "Message",
+        "from": "From",
+        "page": "Page",
+        "date": "Date"
+      },
       "markResolved": "Resolve",
       "reopen": "Reopen",
       "deleted": "Feedback deleted.",
