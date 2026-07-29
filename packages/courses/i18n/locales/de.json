@@ -47,6 +47,13 @@
       "createTitle": "Kurs anlegen",
       "edit": "Bearbeiten",
       "emptyTitle": "Noch keine Kurse",
+      "col": {
+        "title": "Titel",
+        "slug": "Adresse",
+        "access": "Zugang",
+        "lessons": "Lektionen",
+        "status": "Status"
+      },
       "empty": "Noch keine Kurse — leg den ersten an.",
       "backToList": "Alle Kurse",
       "publish": "Veröffentlichen",

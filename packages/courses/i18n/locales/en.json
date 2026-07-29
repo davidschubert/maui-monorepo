@@ -47,6 +47,13 @@
       "createTitle": "Create course",
       "edit": "Edit",
       "emptyTitle": "No courses yet",
+      "col": {
+        "title": "Title",
+        "slug": "Address",
+        "access": "Access",
+        "lessons": "Lessons",
+        "status": "Status"
+      },
       "empty": "No courses yet — create the first one.",
       "backToList": "All courses",
       "publish": "Publish",

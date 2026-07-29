@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { TableColumn } from '@nuxt/ui'
 import { createCourseSchema } from '../../../../schemas/course'
 import type { CourseRow } from '../../../../shared/types/course'
 
@@ -60,6 +61,20 @@ async function save() {
 
 const statusColor = (row: CourseRow) =>
   row.status === 'published' ? 'success' as const : row.status === 'archived' ? 'neutral' as const : 'warning' as const
+
+// Nebenspalten fallen auf schmalen Schirmen weg — Titel, Status und die
+// Aktion tragen die Entscheidung.
+const HIDE_SM = { td: 'hidden sm:table-cell', th: 'hidden sm:table-cell' }
+const HIDE_MD = { td: 'hidden md:table-cell', th: 'hidden md:table-cell' }
+
+const columns = computed<TableColumn<CourseRow>[]>(() => [
+  { accessorKey: 'title', header: () => t('courses.admin.col.title') },
+  { accessorKey: 'slug', header: () => t('courses.admin.col.slug'), meta: { class: HIDE_MD } },
+  { accessorKey: 'access', header: () => t('courses.admin.col.access'), meta: { class: HIDE_SM } },
+  { accessorKey: 'lessonCount', header: () => t('courses.admin.col.lessons'), meta: { class: HIDE_SM } },
+  { accessorKey: 'status', header: () => t('courses.admin.col.status') },
+  { id: 'actions', header: () => '' },
+])
 </script>
 
 <template>
@@ -87,34 +102,50 @@ const statusColor = (row: CourseRow) =>
           <UIcon name="i-ph-spinner" class="size-6 animate-spin text-muted" />
         </div>
 
-        <!-- „noch nichts angelegt" → der eine nächste Schritt ist Anlegen -->
-        <CoreEmptyState
-          v-else-if="!data?.rows.length"
-          icon="i-ph-graduation-cap"
-          :title="t('courses.admin.emptyTitle')"
-          :description="t('courses.admin.empty')"
-          :action-label="t('courses.admin.create')"
-          action-icon="i-ph-plus"
-          class="py-16"
-          @action="() => { modalOpen = true }"
-        />
-
-        <ul v-else class="divide-y divide-default" data-testid="courses-admin-list">
-          <li v-for="row in data.rows" :key="row.$id" class="flex items-center gap-3 py-3 text-sm">
-            <div class="min-w-0 flex-1">
-              <p class="truncate font-medium">{{ row.title }}</p>
-              <p class="text-xs text-muted">/{{ row.slug }} · {{ t(`courses.access.${row.access}`) }} · {{ t('courses.list.lessons', { count: row.lessonCount }) }}</p>
-            </div>
-            <UBadge :color="statusColor(row)" variant="subtle" size="sm">{{ t(`courses.status.${row.status}`) }}</UBadge>
-            <UButton
-              color="neutral" variant="ghost" size="xs" icon="i-ph-pencil-simple"
-              :to="localePath(`/dashboard/courses/${row.$id}`)"
-              :data-course-edit="row.$id"
+        <UTable v-else :data="data?.rows ?? []" :columns="columns" data-testid="courses-admin-list">
+          <template #title-cell="{ row }">
+            <ULink
+              :to="localePath(`/dashboard/courses/${row.original.$id}`)"
+              class="font-medium text-default hover:text-primary hover:underline"
             >
-              {{ t('courses.admin.edit') }}
-            </UButton>
-          </li>
-        </ul>
+              {{ row.original.title }}
+            </ULink>
+          </template>
+          <template #slug-cell="{ row }">
+            <span class="font-mono text-xs text-muted">/{{ row.original.slug }}</span>
+          </template>
+          <template #access-cell="{ row }">
+            {{ t(`courses.access.${row.original.access}`) }}
+          </template>
+          <template #lessonCount-cell="{ row }">
+            <span class="tabular-nums">{{ row.original.lessonCount }}</span>
+          </template>
+          <template #status-cell="{ row }">
+            <UBadge :color="statusColor(row.original)" variant="subtle" size="sm">{{ t(`courses.status.${row.original.status}`) }}</UBadge>
+          </template>
+          <template #actions-cell="{ row }">
+            <div class="flex justify-end">
+              <UButton
+                color="neutral" variant="ghost" size="xs" icon="i-ph-pencil-simple"
+                :to="localePath(`/dashboard/courses/${row.original.$id}`)"
+                :data-course-edit="row.original.$id"
+              >
+                {{ t('courses.admin.edit') }}
+              </UButton>
+            </div>
+          </template>
+          <!-- „noch nichts angelegt" → der eine nächste Schritt ist Anlegen -->
+          <template #empty>
+            <CoreEmptyState
+              icon="i-ph-graduation-cap"
+              :title="t('courses.admin.emptyTitle')"
+              :description="t('courses.admin.empty')"
+              :action-label="t('courses.admin.create')"
+              action-icon="i-ph-plus"
+              @action="() => { modalOpen = true }"
+            />
+          </template>
+        </UTable>
       </ClientOnly>
 
       <UModal v-model:open="modalOpen" :title="t('courses.admin.createTitle')">
