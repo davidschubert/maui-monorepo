@@ -294,6 +294,17 @@
         "deleted": "Gelöscht"
       },
       "empty": "Keine Kommentare in dieser Ansicht.",
+      "emptyTitle": "Nichts zu moderieren",
+      "search": "Suchen",
+      "searchPlaceholder": "Kommentare durchsuchen …",
+      "rowActions": "Aktionen für diesen Kommentar",
+      "col": {
+        "author": "Autor",
+        "comment": "Kommentar",
+        "target": "Ziel",
+        "status": "Status",
+        "date": "Datum"
+      },
       "hide": "Ausblenden",
       "restore": "Wiederherstellen",
       "blockAuthor": "Autor sperren",
