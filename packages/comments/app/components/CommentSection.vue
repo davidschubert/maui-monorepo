@@ -171,7 +171,11 @@ function presenceLabel(u: PresenceUser): string {
       <CommentForm />
     </div>
     <!-- Gast-Kommentar (Embed E4): Name+E-Mail ohne Account. Login-Popup als
-         Zusatzoption darunter (Konto = Voten/Bearbeiten/Benachrichtigungen). -->
+         Zusatzoption darunter (Konto = Voten/Bearbeiten/Benachrichtigungen).
+         ACHTUNG: dieser Zweig steht VOR data-embed-login und verdrängt ihn,
+         sobald maui.comments.embed.guests an ist. Der Popup-Login-Knopf trägt
+         deshalb in BEIDEN Zweigen denselben Haken data-embed-login-cta — die
+         E2E-Spec hing am Container-Haken und war ab E4 dauerhaft rot. -->
     <div v-else-if="guestsEnabled" class="rounded-lg bg-elevated/40 p-3 ring ring-default" data-guest-composer>
       <GuestCommentForm />
       <p v-if="embedLogin" class="mt-2 text-xs text-muted">
@@ -186,6 +190,7 @@ function presenceLabel(u: PresenceUser): string {
           size="xs"
           variant="link"
           class="p-0"
+          data-embed-login-cta
           :loading="embedLogin.status.value === 'waiting'"
           :label="t('comments.loginLink')"
           @click="() => embedLogin?.openLoginPopup()"
@@ -204,6 +209,7 @@ function presenceLabel(u: PresenceUser): string {
         size="sm"
         variant="soft"
         icon="i-ph-sign-in"
+        data-embed-login-cta
         :loading="embedLogin.status.value === 'waiting'"
         :label="t('comments.loginLink')"
         @click="() => embedLogin?.openLoginPopup()"

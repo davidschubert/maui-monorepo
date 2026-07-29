@@ -32,11 +32,26 @@ test.beforeAll(async () => {
 })
 
 test.afterAll(async () => {
+  // closeAllConnections() VOR close() — sonst hält der Browser die Keep-alive-
+  // Sockets offen, der Worker beendet sich nicht und Playwright meldet nach
+  // 300 s einen Fehler ausserhalb jedes Tests (Exit 1 trotz grüner Suite).
+  // Ausführliche Begründung in embed-write.spec.ts.
+  hostServer.closeAllConnections()
   await new Promise<void>(done => hostServer.close(() => done()))
 })
 
 test.describe('Embed-Widget (cross-origin iframe)', () => {
   test('Drittseite lädt das Widget: iframe, Kommentar-Sektion, Resize', async ({ page, baseURL }) => {
+    // /embed im Browser vorwärmen und die Hydration abwarten — der Loader
+    // versteckt das iframe endgültig, wenn binnen 10 s keine Höhe gemeldet
+    // wird, und der Dev-Server kompiliert Route + Client-Bundle erst beim
+    // ersten echten Aufruf. Ausführliche Begründung in embed-write.spec.ts.
+    await page.goto(`${baseURL}/embed?targetId=e2e-embed-smoke&targetType=blog`)
+    await page.waitForFunction(() => {
+      const root = document.querySelector('#__nuxt') as { __vue_app__?: unknown } | null
+      return Boolean(root?.__vue_app__)
+    }, undefined, { timeout: 60_000 })
+
     await page.goto(`http://localhost:${hostPort}/?widget=${baseURL}&target=e2e-embed-smoke`)
 
     const iframe = page.locator('#maui-comments iframe')
