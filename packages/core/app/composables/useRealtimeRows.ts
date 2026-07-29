@@ -51,6 +51,24 @@ export function useRealtimeRows<T extends AppwriteRow>(
 ): () => void {
   if (import.meta.server) return () => {}
 
+  /**
+   * OHNE DATENEBENE GIBT ES NICHTS ZU ABONNIEREN (Live-Vorfall 2026-07-29).
+   *
+   * Apps wie `help` und `marketing` erben den core-Layer, haben aber bewusst
+   * KEINE Appwrite-Instanz — `appwriteDatabaseId` ist dort der leere Default.
+   * Der SDK-Kanalbau (`Channel.tablesdb('')`) wirft dann „Channel ID is
+   * required". Weil das in einem PLUGIN passiert (realtime-config.client.ts,
+   * realtime-themes.client.ts), macht Nuxt daraus einen fatalen
+   * App-Start-Fehler: help.pukalani.app lieferte HTTP 200 mit sauberem
+   * SSR-HTML, und der Browser malte trotzdem eine 500-Seite darüber — der
+   * Server war nie das Problem.
+   *
+   * Der Guard steht bewusst HIER und nicht in den Plugins: sonst muss sich
+   * jeder künftige Aufrufer daran erinnern. Eine Stelle entscheidet, ob
+   * Realtime überhaupt möglich ist.
+   */
+  if (!databaseId || !tableId) return () => {}
+
   const channel = options.rowId
     ? Channel.tablesdb(databaseId).table(tableId).row(options.rowId)
     : Channel.tablesdb(databaseId).table(tableId).row()
