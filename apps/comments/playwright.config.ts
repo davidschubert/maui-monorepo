@@ -35,9 +35,21 @@ const baseURL = process.env.PW_BASE_URL ?? 'http://localhost:3001'
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
+  // Playwrights Standard sind 30 s pro Test. Die Suite fährt aber gegen den
+  // DEV-Server (webServer unten, in CI genauso), und der kompiliert jede Route
+  // beim ERSTEN Zugriff — kalt gemessen: `/` gut 25 s, `/embed` samt
+  // Client-Bundle über 30 s. Mit 30 s Budget scheiterte deshalb nicht der
+  // Testgegenstand, sondern der Kaltstart, und der Bericht zeigte auf eine
+  // beliebige Wartezeile. 90 s trennt „Server baut noch" von „Sache kaputt";
+  // die inneren Erwartungen bleiben eng, die fangen echte Regressionen.
+  timeout: 90_000,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? 'github' : 'list',
+  // In CI ZUSÄTZLICH 'list': der github-Reporter meldet nur „N skipped" als
+  // Zahl — welcher Fall verschwunden ist, stand nirgends. Ein übersprungener
+  // Test muss im Job-Log beim Namen genannt werden, sonst kann eine Suite
+  // still leerlaufen, ohne dass der grüne Haken lügt.
+  reporter: process.env.CI ? [['github'], ['list']] : 'list',
   use: {
     baseURL,
     locale: 'en-US',

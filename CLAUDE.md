@@ -327,7 +327,28 @@ pnpm -r test (Unit) · Playwright-E2E in apps/comments (Base-URL per
 PW_BASE_URL überschreibbar — parallele Dev-Sessions) · themes-visual zielt
 auf die deterministische /visual-Seite (NIE Live-Daten screenshotten) ·
 CI e2e.yml fährt eine echte Wegwerf-Appwrite (ci/appwrite +
-scripts/ci/appwrite-setup.mjs → bootstrap --seed → volle Suite inkl. Realtime)
+scripts/ci/appwrite-setup.mjs → bootstrap --seed → volle Suite inkl. Realtime).
+E2E läuft gegen den DEV-Server (auch in CI) — drei Fallen, alle 2026-07-28
+live erwischt: (1) Ein Test darf nicht an einem CONTAINER-Haken hängen, wenn
+ein Config-Gate den Zweig austauscht (`data-embed-login` vs. Gast-Composer bei
+`maui.comments.embed.guests`) — Haken ans handelnde Element. (2) KALTSTART:
+der Dev-Server kompiliert jede Route beim ersten Zugriff (`/` ~25 s, `/embed`
+mit Client-Bundle >30 s, dazu jede /api/auth-Route beim ersten Aufruf).
+Deshalb Test-Budget 90 s statt der 30 s Standard, Lebendigkeits-Wartezeiten
+60 s, und die Embed-Specs rufen `/embed` einmal IM BROWSER auf und warten dort
+bis zur HYDRATION, bevor die Hostseite lädt — ein SSR-Abruf (oder ein `goto`
+nur bis 'load') wärmt das Client-Bundle NICHT. Grund: `embed.js`
+versteckt das iframe nach 10 s ohne Höhen-Meldung ENDGÜLTIG (display:none),
+und die Höhe kommt erst aus onMounted. Ein zu knappes Budget meldet eine
+Zeitüberschreitung an beliebiger Stelle statt der echten Ursache; `retries: 1`
+kaschiert das zu „flaky" — grün, aber wertlos. (3) Der bekannte
+Teardown-Hang ist KEIN kosmetisches Warten: Playwright force-killt jeden
+Worker nach 300 s und zählt das als Fehler AUSSERHALB jedes Tests → Exit 1
+trotz grüner Suite. Er tritt NUR lokal (macOS) auf, in CI nie — dort läuft die
+Suite in ~1,6 min sauber durch. Test-eigene `node:http`-Server rufen deshalb
+`closeAllConnections()` vor `close()` (richtige Hygiene, `close()` wartet sonst
+auf Keep-alive-Sockets), das allein behebt den lokalen Hang aber NICHT: er
+trifft auch Worker ohne eigenen Server. Ursache lokal weiter offen.
 
 ## Git
 Conventional Commits · BREAKING CHANGE(core): Prefix · Core-Änderungen
