@@ -108,36 +108,7 @@ Prozente** — das macht der gewichtete Master oben. Legende wie dort.
 | A1 | **Echte Rechtstexte** für pukalani.app (Impressum/Datenschutz/AGB). Routen stehen, Texte sind Entwurf + `noindex`. Identisch mit Master #1. | David (ggf. Anwalt) |
 | A2 | **Stripe Live-Modus** — Keys, Live-Webhook (zeigt noch auf den `studio`-Alias!), Preise prüfen. Identisch mit Master #2. Vorstufe: **A2a** die 6 manuellen Testmodus-Schritte in [STRIPE-TEST-WALKTHROUGH.md](runbooks/STRIPE-TEST-WALKTHROUGH.md) durchspielen (ensure-prices, Monats-/Jahres-Checkout, Portal-Kündigung, Test-Clock-Periodenende, `payment_failed`) — das ist die Absicherung, bevor echtes Geld fließt. | David |
 | A3 | **Netto/Brutto-Angabe** — ✅ ERLEDIGT (2026-07-29, Davids Entscheid: **Brutto**): 29 €/149 € sind Endpreise, Hinweis „inkl. 19 % MwSt." / „incl. 19 % VAT" steht AM Preis — Landing (`PricingSection` + FAQ, de/en), Hilfe (`anleitung/5.abrechnung.md`), Billing-Preistafel (`packages/billing`), Betreiber-Preisfeld (control) als „brutto" beschriftet. **REST [David]:** Stripe legt die Prices ohne `tax_behavior` an und die Checkouts laufen mit `automatic_tax` — steht das Konto-Default auf „exclusive", rechnet Stripe 19 % oben drauf und widerspricht der Landing. Prüfung vor dem Live-Gang: [STRIPE-GO-LIVE-RUNBOOK](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) §2.4. | ✅ Claude · Stripe-Rest David |
-| A4 | **Presence-Rows sind pool-weit lesbar** — Anwendungs-Filter steht, Datenbank-Grenze fehlt (Details unten). | David entscheidet, Claude baut |
-
-#### A4 — Presence: Anwendungs-Filter steht, Datenbank-Grenze fehlt
-
-Behoben ist die **Oberfläche**: Presencen tragen im Pool seit dem B1-Fix ein
-`metadata.tenantId` (`packages/core/server/api/presence/heartbeat.post.ts`), und
-beide Leser filtern fail-closed darauf — server-seitig `toOnlinePresences`
-(`core/server/utils/presenceFilter.ts`, u. a. hinter `GET /api/presence/count`),
-client-seitig `usePresence()`. Kein Mandanten-UI zeigt noch fremde Anwesende.
-
-**Offen ist die Grenze darunter.** Die Presence-Row trägt `read("users")` — im
-geteilten Pool-Projekt heißt das *jeder eingeloggte User aller Communities*. Wer
-das Web-SDK von Hand bemüht (`presences.list()` mit dem eigenen Session-Cookie),
-bekommt weiterhin `userId`, `userName` und `avatarUrl` sämtlicher gerade online
-befindlicher User **aller** Mandanten. Der Filter ist Anwendungslogik, keine
-Zugriffskontrolle.
-
-**Entscheidungsfrage:** Wie wird zugemacht?
-
-- **(a) Appwrite-Team pro Mandant** — `read("team:<tenantId>")` statt
-  `read("users")`. Die Grenze zieht dann Appwrite selbst, Realtime und die
-  ~280 ms Latenz bleiben. Kostet ein Team je Community plus Mitgliedschafts-
-  Pflege an jedem Beitritt/Austritt (und einen Rückbau-Pfad für Bestandsuser).
-- **(b) Presences server-only** — Permissions nur für den Owner, alle Leser über
-  Server-Routen. Wenig Bauaufwand, aber der direkte Realtime-Pfad entfällt:
-  Anwesenheit käme über 20s-Polling statt in ~280 ms, spürbar bei
-  Tipp-Indikatoren und „N sehen diese Seite".
-
-Bis zur Entscheidung gilt: **keine PII über Name und Avatar hinaus** in die
-Presence-metadata legen.
+| ~~A4~~ | ~~**Presence-Rows sind pool-weit lesbar**~~ — **erledigt 2026-07-29** (Weg (c), Davids Entscheidung): Presencen tragen im Pool `read("label:<siteId>")` statt `read("users")`, das Label vergibt `core/server/middleware/site-label.ts` an jeden eingeloggten Nutzer eines Mandanten-Hosts. Der tenantId-Filter bleibt als Netz. Beweis in beide Richtungen: `packages/core/scripts/verify-presence-boundary.mjs` (22/22). Analyse + Umsetzungs-Stand: [PRESENCE-GRENZE.md](archiv/PRESENCE-GRENZE.md) Abschnitt 8. | ✅ |
 
 ### B — Entscheidungen, die Arbeit freischalten
 

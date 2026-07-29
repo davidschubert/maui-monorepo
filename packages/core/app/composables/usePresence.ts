@@ -1,5 +1,6 @@
 import type { Ref } from 'vue'
 import { Channel, Presences, Query } from 'appwrite'
+import { presencePermissions } from '../../shared/presencePermissions'
 
 export interface PresenceUser {
   userId: string
@@ -76,13 +77,17 @@ const toUser = (p: RawPresence): PresenceUser => ({
 // statt jeweils eigene (kollidierende) Presences zu upserten.
 interface Meta { scope?: string, action?: string, typing?: boolean, page?: string, replyingTo?: string, near?: string, away?: boolean }
 let stateStarted = false
+/** Der WS-Upsert-Fehlschlag wird EINMAL pro Tab gemeldet (siehe upsertWs). */
+let wsUpsertWarned = false
 const myMeta: Ref<Meta> = ref({})
 
 /**
  * Verwaltet die EIGENE Presence des eingeloggten Users (Appwrite Presences API,
  * self-hostbar seit 1.9.5): upsert bei Login/metadata-Änderung + Heartbeat,
- * Server-Expiry räumt ab. `read("users")` macht sie für eingeloggte User lesbar.
- * SSR: no-op. Idempotenter Start (Modul-Flag) → genau ein Heartbeat/Watcher.
+ * Server-Expiry räumt ab. Lesbar ist sie für das Publikum aus
+ * shared/presencePermissions (Pool: nur wer das Site-Label trägt; Silo: jede/r
+ * eingeloggte). SSR: no-op. Idempotenter Start (Modul-Flag) → genau ein
+ * Heartbeat/Watcher.
  */
 export function usePresenceState() {
   const noop = {
@@ -93,6 +98,10 @@ export function usePresenceState() {
 
   const auth = useAuthStore()
   const tenantId = useTenantId()
+  // Label-Schlüssel der Community (A4): der WS-Upsert ERSETZT die Permissions
+  // der server geschriebenen Presence — ohne ihn wäre sie bis zum nächsten
+  // HTTP-Heartbeat wieder pool-weit lesbar.
+  const siteId = useSiteId()
 
   // Zwei Schreibwege — bewusst kombiniert:
   // 1) HTTP-Heartbeat (Admin-Client, server-seitig): ZUVERLÄSSIG (Cookie-Auth,
@@ -127,11 +136,26 @@ export function usePresenceState() {
         return realtime.upsertPresence({
           presenceId: user.$id,
           status: 'online',
-          permissions: [`read("users")`, `update("user:${user.$id}")`, `delete("user:${user.$id}")`],
+          // DIESELBE Grenze wie der Server (A4) — Pool: read("label:<siteId>"),
+          // Silo/Single-Tenant: read("users"). Der Bauer ist geteilt und per
+          // Test an tenantRowPermissionsFor genagelt (tests/presencePermissions).
+          permissions: presencePermissions(!!tenantId.value, siteId.value, user.$id),
           metadata,
         })
       })
-      .catch(() => {}) // WS nicht verfügbar → HTTP-Heartbeat trägt die Presence
+      .catch((error: unknown) => {
+        // WS nicht verfügbar → der HTTP-Heartbeat trägt die Presence weiter
+        // (nur ohne Sofortmeldung), der Ausfall ist also gutartig. SEIT A4 wird
+        // er trotzdem gemeldet statt still geschluckt: Appwrite lässt einen
+        // JWT-Aufrufer nur Rechte setzen, deren Rolle er SELBST trägt — fehlt
+        // das Site-Label (Vergabe fehlgeschlagen), scheitert GENAU HIER der
+        // Upsert, und zwar unsichtbar. EINMAL pro Tab, sonst schriebe der
+        // 20-s-Heartbeat die Konsole voll.
+        if (!wsUpsertWarned) {
+          wsUpsertWarned = true
+          console.warn('[presence] WS-Upsert fehlgeschlagen — Anwesenheit läuft nur über den HTTP-Heartbeat (kein Sofort-Signal). Fehlt das Site-Label?', error)
+        }
+      })
   }
   function upsert() {
     upsertHttp()
