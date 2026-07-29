@@ -6,7 +6,7 @@
  * Die @font-face-Regeln für die Vorschau werden hier lokal in den Head
  * gerendert (App-weit übernimmt das das theme-Plugin, Paket 3).
  */
-import type { DropdownMenuItem } from '@nuxt/ui'
+import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
 import type { CustomFontDto } from '../../../../shared/fonts'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'system.manage' })
@@ -25,6 +25,17 @@ await useAsyncData('maui-fonts-admin', async () => {
 // die Vorschau unten nutzt die Familien direkt, kein lokales CSS nötig.
 const sortedFonts = computed(() => [...fonts.value].sort((a, b) => a.order - b.order))
 const busy = ref(false)
+
+// Wie in der Mediathek: Tabelle, aber die Vorschau-Spalte trägt den
+// visuellen Charakter — hier ist die Vorschau der Satz IN der echten Schrift.
+const HIDE_MD = { td: 'hidden md:table-cell', th: 'hidden md:table-cell' }
+
+const columns = computed<TableColumn<CustomFontDto>[]>(() => [
+  { accessorKey: 'name', header: () => t('themes.fonts.col.name') },
+  { id: 'preview', header: () => t('themes.fonts.col.preview') },
+  { id: 'weights', header: () => t('themes.fonts.col.weights'), meta: { class: HIDE_MD } },
+  { id: 'actions', header: () => '' },
+])
 
 const NAME_RE = /^[a-z0-9][a-z0-9 _-]{0,63}$/i
 const WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900]
@@ -201,40 +212,48 @@ function weightLabel(weight: number): string {
       <div class="mx-auto flex w-full max-w-4xl min-w-0 flex-col gap-3">
         <UAlert icon="i-ph-info" color="neutral" variant="subtle" :description="t('themes.fonts.hint')" />
 
-        <p v-if="!sortedFonts.length" class="py-8 text-center text-sm text-muted">
-          {{ t('themes.fonts.empty') }}
-        </p>
-
-        <UPageCard
-          v-for="font in sortedFonts"
-          :key="font.id"
-          variant="subtle"
-          :ui="{ container: 'min-w-0 p-4 sm:p-4' }"
-        >
-          <div class="flex items-start justify-between gap-2">
-            <div class="min-w-0 space-y-2">
-              <div class="flex min-w-0 flex-wrap items-center gap-2">
-                <span class="truncate font-medium">{{ font.name }}</span>
-                <UBadge
-                  v-for="file in font.files"
-                  :key="file.fileId"
-                  color="neutral" variant="subtle" size="sm"
-                >
-                  {{ file.variable ? t('themes.fonts.variableBadge') : file.weight }}
-                </UBadge>
-              </div>
-              <p class="truncate text-2xl" :style="{ fontFamily: `'${font.name}', sans-serif` }">
-                {{ t('themes.fonts.previewText') }}
-              </p>
+        <UTable :data="sortedFonts" :columns="columns" data-fonts-table>
+          <template #name-cell="{ row }">
+            <span class="font-medium">{{ row.original.name }}</span>
+          </template>
+          <template #preview-cell="{ row }">
+            <p class="truncate text-2xl" :style="{ fontFamily: `'${row.original.name}', sans-serif` }">
+              {{ t('themes.fonts.previewText') }}
+            </p>
+          </template>
+          <template #weights-cell="{ row }">
+            <div class="flex flex-wrap gap-1">
+              <UBadge
+                v-for="file in row.original.files"
+                :key="file.fileId"
+                color="neutral" variant="subtle" size="sm"
+              >
+                {{ file.variable ? t('themes.fonts.variableBadge') : file.weight }}
+              </UBadge>
             </div>
-            <UDropdownMenu :items="fontMenu(font)" :content="{ align: 'end' }">
-              <UButton
-                icon="i-ph-dots-three-vertical" size="xs" color="neutral" variant="ghost"
-                :aria-label="t('themes.studio.cardActions')"
-              />
-            </UDropdownMenu>
-          </div>
-        </UPageCard>
+          </template>
+          <template #actions-cell="{ row }">
+            <div class="flex justify-end">
+              <UDropdownMenu :items="fontMenu(row.original)" :content="{ align: 'end' }">
+                <UButton
+                  icon="i-ph-dots-three-vertical" size="xs" color="neutral" variant="ghost"
+                  :aria-label="t('themes.studio.cardActions')"
+                />
+              </UDropdownMenu>
+            </div>
+          </template>
+
+          <template #empty>
+            <CoreEmptyState
+              icon="i-ph-text-aa"
+              :title="t('themes.fonts.emptyTitle')"
+              :description="t('themes.fonts.empty')"
+              :action-label="t('themes.fonts.add')"
+              action-icon="i-ph-plus"
+              @action="openCreate"
+            />
+          </template>
+        </UTable>
       </div>
 
       <!-- Editor-Modal: Name + WOFF2 je Gewicht ODER eine Variable-Font-Datei -->
