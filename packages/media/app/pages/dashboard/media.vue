@@ -2,6 +2,7 @@
 // Medien-Verwaltung (media.manage): Upload + Grid mit Publish-Toggle,
 // Metadaten-Bearbeitung (Titel/Untertitel/Alt/featured) und Löschen.
 // Öffentliche Konsumenten lesen /api/media (nur published).
+import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
 import type { AdminMediaItem, MediaItem } from '../../../shared/types/media'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'media.manage' })
@@ -9,10 +10,34 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCap
 const { t } = useI18n()
 const toast = useToast()
 const confirm = useConfirm()
+const { formatDate } = useFormatDate()
 
 // Verwaltungs-Sicht: ?all=1 (media.manage) liefert ALLE Einträge inkl.
 // Entwürfe in voller Row-Form — die öffentliche Route zeigt nur published.
 const { data, refresh } = await useFetch<{ items: AdminMediaItem[] }>('/api/media', { query: { all: 1 } })
+
+// Suche und Sortierung laufen hier im BROWSER, nicht auf dem Server: die
+// Route liefert die Mediathek in einem Rutsch (PAGE_LIMIT 100). Eine
+// Server-Suche würde denselben Datensatz ein zweites Mal holen.
+const search = ref('')
+const { sortField, sortDir, toggle } = useTableSort('$createdAt', 'desc')
+
+const rows = computed(() => {
+  const needle = search.value.trim().toLowerCase()
+  const list = (data.value?.items ?? []).filter(item => !needle
+    || item.title.toLowerCase().includes(needle)
+    || item.subtitle.toLowerCase().includes(needle)
+    || item.alt.toLowerCase().includes(needle))
+  const factor = sortDir.value === 'asc' ? 1 : -1
+  return [...list].sort((a, b) => sortField.value === 'title'
+    ? factor * a.title.localeCompare(b.title)
+    : factor * (Date.parse(a.$createdAt) - Date.parse(b.$createdAt)))
+})
+
+const hasActiveFilter = computed(() => search.value.trim() !== '')
+function resetFilters() {
+  search.value = ''
+}
 
 const fileInput = ref<HTMLInputElement>()
 const uploading = ref(false)
@@ -88,6 +113,36 @@ async function remove(item: MediaItem) {
   }
   await refresh()
 }
+
+// Der visuelle Charakter bleibt: die erste Spalte ist das Bild. Untertitel
+// und Datum fallen auf schmalen Schirmen weg.
+const HIDE_MD = { td: 'hidden md:table-cell', th: 'hidden md:table-cell' }
+const HIDE_LG = { td: 'hidden lg:table-cell', th: 'hidden lg:table-cell' }
+
+const columns = computed<TableColumn<AdminMediaItem>[]>(() => [
+  { id: 'preview', header: () => t('media.admin.col.preview') },
+  { accessorKey: 'title', header: () => t('media.admin.col.title') },
+  { accessorKey: 'subtitle', header: () => t('media.admin.col.subtitle'), meta: { class: HIDE_MD } },
+  { id: 'state', header: () => t('media.admin.col.state') },
+  { accessorKey: '$createdAt', header: () => t('media.admin.col.uploaded'), id: 'uploaded', meta: { class: HIDE_LG } },
+  { id: 'actions', header: () => '' },
+])
+
+function rowActions(item: AdminMediaItem): DropdownMenuItem[][] {
+  return [
+    [
+      { label: t('media.admin.edit'), icon: 'i-ph-pencil-simple', onSelect: () => openEdit(item) },
+      {
+        label: item.published ? t('media.admin.unpublish') : t('media.admin.publish'),
+        icon: item.published ? 'i-ph-eye-slash' : 'i-ph-eye',
+        onSelect: () => { void togglePublished(item) },
+      },
+    ],
+    [
+      { label: t('media.admin.delete'), icon: 'i-ph-trash', color: 'error', onSelect: () => { void remove(item) } },
+    ],
+  ]
+}
 </script>
 
 <template>
@@ -107,39 +162,101 @@ async function remove(item: MediaItem) {
     </template>
 
     <template #body>
-      <!-- Galerie ohne Inhalt: der eine nächste Schritt ist der Upload -->
-      <CoreEmptyState
-        v-if="!data?.items.length"
-        icon="i-ph-images"
-        :title="t('media.admin.emptyTitle')"
-        :description="t('media.admin.empty')"
-        :action-label="t('media.admin.upload')"
-        action-icon="i-ph-upload-simple"
-        class="py-12"
-        data-media-empty
-        @action="fileInput?.click()"
+      <UInput
+        v-model="search"
+        icon="i-ph-magnifying-glass"
+        :placeholder="t('media.admin.searchPlaceholder')"
+        class="mb-4 max-w-md"
+        data-media-search
       />
 
-      <div v-else class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4" data-media-grid>
-        <div v-for="item in data.items" :key="item.$id" class="group relative overflow-hidden rounded-lg border border-default" :data-media-item="item.$id">
-          <img :src="item.src" :srcset="item.srcset || undefined" sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw" decoding="async" :alt="item.alt || item.title" class="aspect-square w-full object-cover" :class="item.published ? '' : 'opacity-40'" loading="lazy">
-          <div class="p-2">
-            <p class="truncate text-sm font-medium">{{ item.title }}</p>
-            <p class="truncate text-xs text-muted">{{ item.subtitle || '—' }}</p>
-            <div class="mt-2 flex items-center justify-between gap-1">
-              <div class="flex items-center gap-1">
-                <UBadge v-if="item.featured" size="sm" color="primary" variant="subtle">{{ t('media.admin.featured') }}</UBadge>
-                <UBadge v-if="!item.published" size="sm" color="warning" variant="subtle">{{ t('media.admin.draft') }}</UBadge>
-              </div>
-              <div class="flex items-center">
-                <UButton icon="i-ph-pencil-simple" size="xs" color="neutral" variant="ghost" :aria-label="t('media.admin.edit')" @click="openEdit(item)" />
-                <UButton :icon="item.published ? 'i-ph-eye-slash' : 'i-ph-eye'" size="xs" color="neutral" variant="ghost" :aria-label="t('media.admin.togglePublished')" @click="togglePublished(item)" />
-                <UButton icon="i-ph-trash" size="xs" color="error" variant="ghost" :aria-label="t('media.admin.delete')" @click="remove(item)" />
-              </div>
-            </div>
+      <!--
+        Tabelle statt Kachel-Galerie (Davids Entscheidung 2026-07-28: EIN
+        Konzept, überall). Der visuelle Charakter bleibt über die
+        Vorschau-Spalte erhalten — das Bild ist die erste Spalte, nicht eine
+        Zeile Text.
+      -->
+      <UTable :data="rows" :columns="columns" data-media-grid>
+        <template #title-header>
+          <SortableHeader :label="t('media.admin.col.title')" field="title" :active="sortField" :dir="sortDir" @toggle="toggle" />
+        </template>
+        <template #uploaded-header>
+          <SortableHeader :label="t('media.admin.col.uploaded')" field="$createdAt" :active="sortField" :dir="sortDir" @toggle="toggle" />
+        </template>
+
+        <template #preview-cell="{ row }">
+          <img
+            :src="row.original.src"
+            :srcset="row.original.srcset || undefined"
+            sizes="64px"
+            decoding="async"
+            loading="lazy"
+            :alt="row.original.alt || row.original.title"
+            class="size-16 rounded-md border border-default object-cover"
+            :class="row.original.published ? '' : 'opacity-40'"
+            :data-media-item="row.original.$id"
+          >
+        </template>
+        <template #title-cell="{ row }">
+          <button
+            type="button"
+            class="cursor-pointer text-left font-medium text-default hover:text-primary hover:underline"
+            @click="openEdit(row.original)"
+          >
+            {{ row.original.title }}
+          </button>
+        </template>
+        <template #subtitle-cell="{ row }">
+          <span class="text-sm text-muted">{{ row.original.subtitle || '—' }}</span>
+        </template>
+        <template #state-cell="{ row }">
+          <div class="flex flex-wrap items-center gap-1">
+            <UBadge v-if="row.original.featured" size="sm" color="primary" variant="subtle">{{ t('media.admin.featured') }}</UBadge>
+            <UBadge :color="row.original.published ? 'success' : 'warning'" size="sm" variant="subtle">
+              {{ row.original.published ? t('media.admin.published') : t('media.admin.draft') }}
+            </UBadge>
           </div>
-        </div>
-      </div>
+        </template>
+        <template #uploaded-cell="{ row }">
+          <span class="whitespace-nowrap text-sm text-muted">{{ formatDate(row.original.$createdAt) }}</span>
+        </template>
+        <template #actions-cell="{ row }">
+          <div class="flex justify-end">
+            <UDropdownMenu :items="rowActions(row.original)" :content="{ align: 'end' }">
+              <UButton
+                icon="i-ph-dots-three-vertical"
+                color="neutral"
+                variant="ghost"
+                size="xs"
+                :aria-label="t('media.admin.rowActions')"
+              />
+            </UDropdownMenu>
+          </div>
+        </template>
+
+        <template #empty>
+          <CoreEmptyState
+            v-if="hasActiveFilter"
+            icon="i-ph-funnel"
+            :title="t('ui.empty.noResultsTitle')"
+            :description="t('ui.empty.noResultsText')"
+            :action-label="t('ui.empty.resetFilters')"
+            action-icon="i-ph-arrow-counter-clockwise"
+            @action="resetFilters"
+          />
+          <!-- Galerie ohne Inhalt: der eine nächste Schritt ist der Upload -->
+          <CoreEmptyState
+            v-else
+            icon="i-ph-images"
+            :title="t('media.admin.emptyTitle')"
+            :description="t('media.admin.empty')"
+            :action-label="t('media.admin.upload')"
+            action-icon="i-ph-upload-simple"
+            data-media-empty
+            @action="fileInput?.click()"
+          />
+        </template>
+      </UTable>
 
       <UModal :open="!!editing" :title="t('media.admin.editTitle')" @update:open="() => { editing = null }">
         <template #body>

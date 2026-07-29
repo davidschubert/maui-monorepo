@@ -14,6 +14,18 @@
       "empty": "No media yet — upload your first image.",
       "featured": "Featured",
       "draft": "Draft",
+      "published": "Visible",
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "searchPlaceholder": "Search media …",
+      "rowActions": "Actions for this image",
+      "col": {
+        "preview": "Preview",
+        "title": "Title",
+        "subtitle": "Subtitle",
+        "state": "Status",
+        "uploaded": "Uploaded"
+      },
       "edit": "Edit",
       "editTitle": "Edit media item",
       "fieldTitle": "Title",
