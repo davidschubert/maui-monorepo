@@ -55,9 +55,13 @@
       "targetTypesHelp": "Kommagetrennt, z. B. blog, page — leer = alle Inhaltstypen erlaubt.",
       "targetTypesPlaceholder": "blog, page",
       "allTargetTypes": "alle targetTypes",
-      "activeBadge": "aktiv",
-      "activeToggle": "Aktiv",
-      "inactiveBadge": "aus",
+      "emptyTitle": "Keine Domains registriert",
+      "col": {
+        "host": "Domain",
+        "label": "Anzeigename",
+        "targets": "Inhaltstypen",
+        "active": "Aktiv"
+      },
       "enable": "Aktivieren",
       "disable": "Deaktivieren",
       "delete": "Löschen",
