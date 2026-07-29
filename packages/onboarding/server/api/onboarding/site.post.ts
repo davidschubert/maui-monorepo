@@ -3,7 +3,6 @@
 // definiert ihn aber nicht. Reine Zod-/Daten-Module, kein Laufzeit-Coupling.
 import { onboardingSiteSchema } from '../../../../control/schemas/onboarding'
 import { callControlPlane, mintRuntimeJwt } from '../../utils/controlPlane'
-import { grantSiteLabel } from '../../utils/siteLabel'
 // Der pages-Layer besitzt die Tabelle und stellt die Seed-Helfer bereit (A14).
 import { seedHomePage } from '../../../../pages/server/utils/seedHomePage'
 import { seedLegalPages } from '../../../../pages/server/utils/seedLegalPages'
@@ -35,6 +34,12 @@ export default defineEventHandler(async (event) => {
 
   const result = await callControlPlane<CreatedSite>(event, '/api/control/onboarding/site', { jwt, site })
 
+  // Das Site-Label sofort, nicht erst beim ersten Besuch: der Wizard leitet
+  // direkt auf den frischen Community-Host weiter, und dort soll der Gründer
+  // ohne Umweg lesen können. Der Helfer lebt seit A4 in core (auto-import) und
+  // wird ab jetzt zusätzlich von server/middleware/site-label.ts an JEDES
+  // Mitglied vergeben — hier bleibt er, weil dieser Request auf dem
+  // KONTROLL-Host läuft, wo es noch keinen Mandanten-Kontext gibt.
   await grantSiteLabel(event, result.siteId)
 
   // Erste Startseite (Schritt 8). BEST EFFORT und bewusst nach der Anlage: die

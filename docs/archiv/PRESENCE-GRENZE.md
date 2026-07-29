@@ -1,5 +1,12 @@
 # Presence-Grenze: wie machen wir sie zu?
 
+> **✅ ENTSCHIEDEN UND GEBAUT (2026-07-29).** David hat **Weg (c)** gewählt;
+> die Umsetzung steht und ist in beide Richtungen bewiesen. Was gebaut wurde,
+> was bewusst NICHT, und die eine verbliebene Falle: **Abschnitt 8** ganz unten.
+> Der Rest dieses Dokuments ist die Analyse, die zu der Entscheidung geführt
+> hat — unverändert stehen gelassen, weil die Belege (Appwrite-Quelltext,
+> Leser-Inventar, Kosten je Weg) weiterhin die Begründung tragen.
+
 Entscheidungsvorlage zu OPEN-ITEMS **A4**. Stand 2026-07-28.
 Alle Aussagen sind am Code belegt — Quelle steht jeweils dabei. Was ich *nicht*
 belegen konnte, steht gesammelt am Ende (Abschnitt 7).
@@ -469,3 +476,175 @@ und Claim-Lock werden **entfernt**, nicht auf 20 s verlangsamt. Eine Sperre, die
    einer Berechtigungsänderung an Presences berührt wird**, habe ich nicht
    geprüft. Nach Aktenlage nicht — er hört auf `account`-Kanäle, nicht auf
    `presences`.
+
+---
+
+## 8. Umsetzung (2026-07-29) — Weg (c), gebaut und bewiesen
+
+### 8.1 Die Entscheidung, die das Dokument offen ließ: wer ist „Mitglied"?
+
+**Antwort: wer eingeloggt einen Mandanten-Host benutzt.** Vergeben wird das
+Label in einer neuen Fundament-Middleware
+`packages/core/server/middleware/site-label.ts` (läuft alphabetisch nach
+`00.tenant.ts` und `auth.ts`, vor `site-role.ts`): steht ein User im Kontext und
+ist der Host ein **Pool**-Mandant mit `siteId`, bekommt er `grantSiteLabel()`.
+Kein neues Register, kein neuer Schlüssel, keine Naht ins Control Plane.
+
+Warum genau dort und nicht im Presence-Heartbeat, wie in Abschnitt 5 als
+Alternative genannt: das Label muss stehen, **bevor** sich der Realtime-WS
+verbindet (Abschnitt 5, „was schiefgehen kann", Punkt 1). Die Middleware greift
+beim SSR-Request, also lange vor der Hydration. Der Heartbeat käme nach dem
+Verbindungsaufbau — genau die Reihenfolge, die die stale-Rollen-Falle auslöst.
+
+Eigenschaften, die den Ausschlag gaben:
+- **Idempotent** — Vorab-Ausschluss über `user.labels.includes(siteId)` aus dem
+  ohnehin geladenen Request-Kontext. Nach dem ersten Kontakt kostet die
+  Middleware einen String-Vergleich, keinen Appwrite-Aufruf.
+- **Additiv, mehrfach-fähig** — `grantSiteLabel` liest die Labels vor dem
+  Schreiben **frisch** (`users.get`) und hängt an. Wer in drei Communities
+  unterwegs ist, trägt drei Labels; Operator-Labels (`admin`/`moderator`)
+  bleiben unangetastet. Das frische Lesen schließt das Lost-Update-Fenster
+  zweier paralleler Requests auf zwei Hosts; ginge doch eines verloren, heilt
+  der nächste Request es (bewiesen: Abschnitt 8.4, Schritt 7).
+- **Fail-closed und gutartig** — schlägt die Vergabe fehl, wirft nichts; der
+  Nutzer sieht dann keine Anwesenden (statt fremde), und der nächste Request
+  versucht es erneut. Fehlschläge stehen als `site_label.failed` im Log.
+- **Label ≠ Rolle** — ein Site-Label gewährt KEINE Capability (`hasCapability`
+  kennt nur `admin`/`moderator`). Neu und bewusst: `grantSiteLabel` verweigert
+  ausdrücklich Labels, die eine Operator-Rolle wären (`site_label.reserved`) —
+  seit die Vergabe an jeden geht, wäre eine Site mit der `$id` „admin" sonst
+  eine Rechteausweitung per Tippfehler.
+
+### 8.2 Was geändert wurde
+
+| Datei | Änderung |
+|---|---|
+| `packages/core/server/middleware/site-label.ts` | **neu** — die Vergabe (s. o.) |
+| `packages/core/server/utils/siteLabel.ts` | **verschoben** aus `packages/onboarding/server/utils/` (der einzige Aufrufer war die Wizard-Route, also bekam nur der Gründer das Label) + frisches Lesen, Rollen-Sperre, Log-Zeile bei Erfolg |
+| `packages/core/server/api/presence/heartbeat.post.ts` | `read("users")` → `tenantRowPermissionsFor(tenant, { read: 'members', ownerUserId })` — derselbe Bauer wie für jede andere Zeile (`tenantDb.create`), keine Presence-Sonderregel |
+| `packages/core/shared/presencePermissions.ts` | **neu** — dieselben Rechte als reine Strings für den Browser (der kann `node-appwrite` nicht laden) |
+| `packages/core/app/composables/usePresence.ts` | WS-Upsert schreibt dieselben Rechte; der bisher **stumme** `catch` meldet jetzt einmal pro Tab (Abschnitt 5, „was schiefgehen kann", Punkt 2) |
+| `packages/core/app/composables/useTenantId.ts` | `useSiteId()` — der Label-Schlüssel für den Client |
+| `packages/core/app/plugins/tenant-brand.server.ts` | spiegelt `siteId` (Inventar K5 mitgepflegt, mit nachgewiesenem Leser) |
+| `packages/core/tests/presencePermissions.test.ts` | **neu** — nagelt den Client-Bauer Fall für Fall an `tenantRowPermissionsFor`; ohne diesen Test wären es zwei Wahrheiten |
+| `packages/core/scripts/verify-presence-boundary.mjs` | **neu** — der Beweis (Abschnitt 8.4) |
+| `packages/onboarding/scripts/verify-site-authz.mjs` | Label-Erwartung auf die neue Bedeutung gezogen (s. 8.3) |
+
+**Nicht angefasst, absichtlich:**
+- Der `tenantId`-Filter in `presenceFilter.ts` und `usePresence.ts` **bleibt**.
+  Er ist jetzt das Netz unter der Grenze, nicht mehr die Grenze. Er fängt
+  außerdem einen Fall, den die Permission nicht abdeckt: wer in ZWEI
+  Communities Mitglied ist, trägt beide Labels und bekäme sonst auf Host A die
+  Anwesenden von B mitgeliefert.
+- **Weg (d)** (`userName`/`avatarUrl` aus der metadata) wurde NICHT
+  mitgenommen, obwohl Abschnitt 6 ihn als Kleinigkeit empfiehlt. Grund: er ist
+  eine eigene Entscheidung mit eigenem Preis — die Namen müssten dann über
+  `count.get.ts`/`resolveAvatars()` nachgeladen werden, was den Reader-Pfad
+  umbaut. Hinter der jetzt geschlossenen Grenze ist er reine Tiefenstaffelung
+  und kein offener Punkt mehr. Wer ihn will, baut ihn separat.
+- **Silo bleibt unverändert.** `tenantRowPermissionsFor` liefert dort weiter
+  `read("users")` — das Projekt IST die Grenze, ein Label wäre Zeremonie. Die
+  comments-App (Silo) sieht keinen Unterschied: kein Tenant-Kontext ⇒ die
+  Middleware ist ein No-Op, die Permission ist Zeichen für Zeichen die alte.
+
+### 8.3 Zwei Nebenwirkungen, die man kennen muss
+
+**(1) Das Site-Label bedeutet ab jetzt etwas anderes.** Vorher: „Gründer dieser
+Community". Jetzt: „hat diesen Host eingeloggt benutzt". `verify-site-authz.mjs`
+prüfte bis heute „Fremder hat das Label NICHT" — das stimmt nicht mehr und wurde
+umgeschrieben: der Fremde trägt es, bleibt aber bei `/api/pages` bei 403, weil
+Autorisierung über `requireSitePermission` (Site-Rolle) läuft und nicht über
+Labels. Der Gegenbeweis steht daneben: wer den Host nie besucht hat, bekommt
+nichts.
+
+**(2) Zwei Dinge, die vorher faktisch „owner only" waren, funktionieren jetzt
+wie entworfen.** Beide hängen an `read(label(siteId))`:
+- Der **Activity-Feed** (`recordActivity.ts`, `visibility: 'members'`) — sein
+  Kommentar beschreibt Mitglieder mit Site-Labels; bis heute hatte die nur der
+  Gründer, also sah nur er den Feed.
+- Der Vorbehalt in `packages/courses/server/utils/courseAccess.ts:12` („dieses
+  Label bekommt heute NUR der Site-Owner … aus ‚members only' würde faktisch
+  ‚owner only'") ist **entfallen**. Der Kurs-Katalog steht bewusst weiter auf
+  `Role.users()`; das umzustellen ist eine eigene, jetzt erst mögliche
+  Entscheidung — nicht Teil dieser Änderung.
+
+### 8.4 Der Beweis
+
+`node --env-file=apps/platform/.env packages/core/scripts/verify-presence-boundary.mjs`
+
+Zwei Akte. **Akt 1** braucht keinen Server und beweist den Mechanismus, auf dem
+alles ruht (die offene Annahme aus 7.3): echte Sessions, `presences.list()`
+direkt gegen Appwrite — also genau der Konsolen-Angriff. **Akt 2** fährt
+denselben Beweis durch unseren Code (Middleware + Heartbeat + zwei echte
+Mandanten-Hosts) und wird ohne laufenden Dev-Server übersprungen.
+
+```
+1. VORHER — read("users"): der Befund, reproduziert
+  ✔ Alice (FREMDE Community) SIEHT Bobs Presence — das ist das Leck
+  ✔ Bea (Bobs Community) sieht sie auch
+  ✔ Bob sieht seine eigene
+2. NACHHER — read("label:<siteId>"): die Grenze zieht Appwrite
+  ✔ Alice (FREMDE Community) sieht Bobs Presence NICHT MEHR
+  ✔ Bea (Mitglied derselben Community) sieht sie WEITERHIN
+  ✔ Bob sieht seine eigene weiterhin
+3. Gegenprobe in die andere Richtung (Site A)
+  ✔ Bob sieht Alice' Presence NICHT
+  ✔ Alice sieht ihre eigene
+4. Fail-closed: Pool-Zeile ohne Site-Label (Datenfehler)
+  ✔ niemand sieht sie — auch nicht das eigene Mitglied
+5. Der Angreifer hat keinen Sonderweg
+  ✔ ohne Session (Gast) kommt nichts heraus
+── Akt 2: der echte Pfad (Middleware + Heartbeat) ──
+6. Label-Vergabe: „hat den Host benutzt" (kunde-a.localhost / kunde-b.localhost)
+  ✔ frisch angelegt: noch kein Label
+  ✔ Ann trägt GENAU ein Label (ihr Host)
+  ✔ Ben trägt GENAU ein Label (sein Host)
+  ✔ die beiden Labels sind VERSCHIEDEN (zwei Communities)
+  ✔ Nick (nie auf einem Mandanten-Host) trägt keines
+7. Mehrfach-Mitgliedschaft + Idempotenz
+  ✔ Ann in ZWEI Communities → zwei Labels (additiv, nichts geht verloren)
+  ✔ weitere Besuche ändern nichts (idempotent)
+8. Heartbeat schreibt die Grenze — Gegenprobe zwischen zwei Mandanten
+  ✔ Heartbeat auf Kunde B → 200
+  ✔ geschriebene Permission ist read("label:6a61bc9d00395ab6b312")
+  ✔ und KEIN read("users") mehr
+  ✔ Nick (eingeloggt, fremde/keine Community) sieht Bens Presence NICHT
+  ✔ Carl (Mitglied von Kunde B) sieht sie
+✔ 22 bestanden, 0 fehlgeschlagen
+```
+
+Damit ist auch 7.3 erledigt: `GET /v1/presences` erzwingt die Leserechte, und
+zwar auch label-genau — eine `label:`-gescopte Presence bleibt für einen
+eingeloggten Nutzer **ohne** dieses Label unsichtbar (Schritt 2, Zeile 1).
+
+### 8.5 Die eine Falle, die bleibt: frisch vergebenes Label + offene WS
+
+Abschnitt 5 nennt sie: Appwrite berechnet die Rollen einer **offenen**
+WS-Verbindung bei einer Label-Änderung NICHT neu (bei Team-Mitgliedschaften
+schon). Nachgeprüft, wann sie in unserem Ablauf greifen kann:
+
+- **Erster Aufruf eines Hosts (Normalfall): unkritisch.** Das Label kommt im
+  SSR-Request; der WS verbindet erst nach der Hydration.
+- **Login per Client-Fetch: unkritisch, aber knapp.** `POST /api/auth/login`
+  selbst vergibt nichts (die Session entsteht erst in der Antwort, die
+  Middleware sieht noch keinen User). Der Auth-Store löst danach
+  `syncRealtimeAuth(true)` aus, und das holt zuerst
+  `GET /api/auth/realtime-token` — **dieser** Request trägt das Cookie, vergibt
+  also das Label, und erst danach wird der JWT gemintet und die WS neu
+  verbunden. Die Reihenfolge stimmt, aber sie ist Zufall der Aufrufkette und
+  kein Vertrag: wer `syncRealtimeAuth` je so umbaut, dass die WS vor dem ersten
+  authentifizierten Request steht, holt sich die Falle zurück.
+- **Der Rest-Fall, der wirklich bleibt:** die Vergabe scheitert transient
+  (Appwrite kurz weg) und glückt erst bei einem späteren `/api/*`-Request,
+  während die WS längst offen ist. Dann trägt die Verbindung veraltete Rollen
+  bis zum nächsten Reconnect — der 12-Minuten-JWT-Refresh setzt nur `setJWT`
+  und verbindet NICHT neu. Folge: keine Sofort-Ereignisse, aber der 20-s-Poll
+  (`presences.list()` über REST, Rollen pro Request frisch) trägt die
+  Anwesenheit. Gutartig, sichtbar im Log (`site_label.failed`), heilt beim
+  nächsten Reload.
+
+Ein Reconnect nach erfolgreicher Vergabe wäre möglich, wurde aber bewusst
+**nicht** gebaut: er löst einen Fall, der nur nach einem Appwrite-Fehler
+eintritt, kostet dafür eine Verbindungsunterbrechung auf jedem Pfad und eine
+Kopplung zwischen Server-Middleware und Realtime-Client, die es heute nicht
+gibt.

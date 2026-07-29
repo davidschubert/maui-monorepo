@@ -67,7 +67,7 @@ Vollständiges Konzept: docs/CONCEPT.md
   schreiben — der Web-SDK-Client hat keine Session, daher wird realtime.
   upsertPresence() über einen Guest-WS verworfen und PUT /presences → 401. Der
   WRITE läuft daher server-seitig: POST /api/presence/heartbeat upsertet mit dem
-  Admin-Client (read("users"), expiresAt 90s). usePresenceState() = einzige
+  Admin-Client (expiresAt 90s). usePresenceState() = einzige
   Heartbeat-Autorität pro Tab (ruft die Route bei Login/metadata-Änderung + alle
   20s + bei visibilitychange/focus). usePresence(predicate) = Reader — liest
   direkt über die Presences-API (presences.list() per Cookie-GET funktioniert +
@@ -79,6 +79,18 @@ Vollständiges Konzept: docs/CONCEPT.md
   replyingTo + near), useModerationPresence (action reviewing:*), useEditAwareness
   (action editing:*), useViewingPresence (page → DashboardViewers „N sehen diese
   Seite"). PresenceAvatar (core): Avatar + Icon-Badge in der Ecke (tippt/antwortet)
+- PRESENCE-GRENZE (A4, seit 2026-07-29 — vorher `read("users")`, also im Pool
+  JEDER eingeloggte User ALLER Communities): die Presence trägt jetzt dieselben
+  Rechte wie jede andere Zeile — `tenantRowPermissionsFor` ⇒ Pool
+  `read("label:<siteId>")`, Silo/Single-Tenant unverändert `read("users")`.
+  Geschrieben wird sie an ZWEI Stellen (heartbeat.post.ts UND der WS-Upsert in
+  usePresenceState, der die Permissions ERSETZT) — beide bauen sie aus
+  core/shared/presencePermissions.ts, per Test an tenantRowPermissionsFor
+  genagelt. Der tenantId-Filter (presenceFilter.ts/usePresence.ts) BLEIBT als
+  Netz (Mehrfach-Mitgliedschaft). Beweis beidseitig:
+  `packages/core/scripts/verify-presence-boundary.mjs`; Analyse + Rest-Falle
+  (Label-Änderung berechnet die Rollen OFFENER WS nicht neu):
+  docs/archiv/PRESENCE-GRENZE.md Abschnitt 8.
 
 ## Themes (Layer themes; Tables besitzt system, Admin-Routen admin — A14)
 - Built-in-Katalog 26×11 (seit 2026-07-24): theme.catalog.ts ist der EINZIGE
@@ -274,6 +286,17 @@ Vollständiges Konzept: docs/CONCEPT.md
   tenantId (comments-015 uq_tenant_host, pages-004, courses-002 uq_tenant_slug),
   Row-Id-basierte NICHT (events/courses (courseId,userId) — eine Row-Id ist
   global eindeutig, da kann kein Mandant kollidieren).
+- SITE-LABEL = „hat den Host eingeloggt benutzt" (A4, seit 2026-07-29):
+  `core/server/middleware/site-label.ts` vergibt `Role.label(siteId)` an JEDEN
+  eingeloggten Nutzer eines Pool-Mandanten (idempotent, additiv — mehrere
+  Communities = mehrere Labels; `grantSiteLabel` in core/server/utils). Das ist
+  die Mitgliedschaftsdefinition, die zum heutigen Produkt passt: `site_members`
+  liegt im Control Plane und trägt produktiv NUR den Gründer. Ohne diese
+  Vergabe wäre jede `read('members')`-Zeile faktisch owner-only (genau das war
+  der Activity-Feed bis dahin). Ein Label ist ein LESE-Publikum, KEINE Rolle —
+  Autorisierung läuft über requireSitePermission/Site-Rollen, `hasCapability`
+  kennt nur 'admin'/'moderator' (grantSiteLabel verweigert solche Labels).
+  Kommen geschlossene Communities, wandert der Aufruf an die Beitrittsstelle.
 - BETREIBER-Inhalt gehört nicht auf Mandanten-Hosts (N7, seit 2026-07-28):
   der öffentliche Changelog (admin-Layer) antwortet dort 404 — Seite via
   `useIsTenantHost()` (core, pure Ausschluss-Rechnung in shared/controlCenter.ts:

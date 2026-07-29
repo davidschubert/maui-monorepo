@@ -47,31 +47,27 @@ export default defineEventHandler(async (event) => {
       presenceId: user.$id,
       userId: user.$id,
       status: 'online',
-      // read("users"): andere eingeloggte User sehen die Presence.
+      // DIE GRENZE (A4, seit 2026-07-29 — Weg (c) aus
+      // docs/archiv/PRESENCE-GRENZE.md, David entschieden):
+      // Pool → read("label:<siteId>"), Silo/Single-Tenant → read("users") wie
+      // bisher. Vorher stand hier im Pool `read("users")` — im geteilten
+      // Projekt also JEDER eingeloggte User ALLER Communities: wer
+      // presences.list() von Hand gegen Appwrite rief, sah userId + userName +
+      // avatarUrl aller Online-User aller Mandanten (Audit B1). Der
+      // tenantId-Filter (presenceFilter.ts / usePresence.ts) war dagegen nur
+      // ANWENDUNGSLOGIK; jetzt zieht Appwrite die Grenze selbst und der Filter
+      // ist das Netz darunter (Gürtel und Hosenträger — NICHT entfernen).
       //
-      // ⚠️ OFFENES RESTRISIKO IM POOL (Audit B1, dokumentiert in
-      // docs/OPEN-ITEMS.md, Arbeitsliste A4): `read("users")` heißt JEDER eingeloggte User
-      // des geteilten Projekts — also auch Mitglieder FREMDER Communities.
-      // Der tenantId-Filter (presenceFilter.ts / usePresence.ts) ist die
-      // ANWENDUNGS-Oberfläche, NICHT die Datenbank-Grenze: wer presences.list()
-      // von Hand gegen Appwrite ruft, sieht weiterhin userId + userName +
-      // avatarUrl aller Online-User aller Mandanten. Ein vollständiger
-      // Verschluss braucht eine Entscheidung: (a) ein Appwrite-Team pro Mandant
-      // und read("team:<id>") statt read("users") — oder (b) Presences
-      // server-only (Permissions nur für den Owner) und ALLE Leser über
-      // Server-Routen, was die gemessenen ~280 ms Realtime-Latenz gegen
-      // 20s-Polling eintauscht. Bis dahin: keine PII über Name/Avatar hinaus
-      // in die metadata legen.
+      // `tenantRowPermissionsFor` ist bewusst DERSELBE Bauer wie für alle
+      // anderen Zeilen (tenantDb.create) — keine Presence-Sonderregel. Das
+      // Label trägt, wer den Host benutzt (server/middleware/site-label.ts).
+      // Pool ohne siteId (Datenfehler) → kein read: fail-closed.
       //
       // update/delete für den Owner: Appwrites Realtime-Presence-Handler
       // (Presences/State.php) UPDATEt die Presence beim WS-Verarbeiten — ohne
       // diese Rechte wirft er „No permissions for action 'update'" und der
       // Realtime-Pfad bricht ab (nur read würde die Owner-Defaults verdrängen).
-      permissions: [
-        `read("users")`,
-        `update("user:${user.$id}")`,
-        `delete("user:${user.$id}")`,
-      ],
+      permissions: tenantRowPermissionsFor(tenant, { read: 'members', ownerUserId: user.$id }),
       expiresAt: new Date(Date.now() + PRESENCE_TTL_MS).toISOString(),
       metadata,
     })

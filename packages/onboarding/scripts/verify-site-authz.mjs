@@ -191,10 +191,26 @@ try {
   check('Fremder darf fremde Meldungen NICHT sehen', strangerReports.status === 403, `Status ${strangerReports.status}`)
 
   console.log('\n4. Site-Label (Naht 4: privates Lesen)')
+  // SEIT A4 (2026-07-29) bedeutet das Label „hat diesen Host eingeloggt
+  // benutzt" — server/middleware/site-label.ts vergibt es an JEDES Mitglied,
+  // nicht mehr nur an den Gründer. Ohne diese Ausweitung sähe niemand außer
+  // dem Owner Anwesende oder den Activity-Feed (beide hängen an
+  // read(label(siteId))). Das Label ist ein LESE-PUBLIKUM, KEINE Rolle: es
+  // gewährt keine einzige Capability (hasCapability kennt nur
+  // 'admin'/'moderator') — die 403er aus Schritt 3 beweisen das direkt.
   const ownerAfter = await poolUsers.get({ userId: owner.userId })
   check('Owner hat das Site-Label', (ownerAfter.labels ?? []).includes(siteId), JSON.stringify(ownerAfter.labels))
   const strangerAfter = await poolUsers.get({ userId: stranger.userId })
-  check('Fremder hat es NICHT', !(strangerAfter.labels ?? []).includes(siteId), JSON.stringify(strangerAfter.labels))
+  check('Fremder trägt es ebenfalls — er hat den Host benutzt (A4)',
+    (strangerAfter.labels ?? []).includes(siteId), JSON.stringify(strangerAfter.labels))
+  check('…und bleibt trotzdem draußen: Label ≠ Rolle (Schritt 3: 403)',
+    strangerPages.status === 403, `Status ${strangerPages.status}`)
+  // Der Gegenbeweis: wer den Host NIE berührt hat, bekommt auch nichts.
+  const outsider = await createPoolUser('outsider')
+  await login(outsider) // nur auf dem KONTROLL-Host — dort gibt es keinen Mandanten
+  const outsiderAfter = await poolUsers.get({ userId: outsider.userId })
+  check('Wer den Host nie besucht hat, trägt das Label NICHT',
+    !(outsiderAfter.labels ?? []).includes(siteId), JSON.stringify(outsiderAfter.labels))
 
   console.log('\n5. Handoff: in der Community ankommen — eingeloggt (Schritt 9)')
   // Session-Cookies sind host-only: die Anmeldung auf app.* gilt auf der
