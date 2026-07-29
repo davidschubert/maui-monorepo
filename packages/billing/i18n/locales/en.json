@@ -17,6 +17,7 @@
       "disabled": "Subscriptions are not enabled here yet.",
       "perMonth": "/month",
       "perYear": "/year",
+      "vatNote": "incl. 19 % VAT",
       "compareTitle": "Compare what's included across plans"
     },
     "compare": {

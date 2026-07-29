@@ -589,6 +589,7 @@
       "freeNote": "Free forever",
       "perMonth": "per month",
       "perMonthYearly": "per month, billed yearly",
+      "vatNote": "incl. 19 % VAT",
       "enterprisePrice": "Custom",
       "enterpriseNote": "Tailored project",
       "plans": {
@@ -632,7 +633,7 @@
         },
         {
           "q": "What does it cost?",
-          "a": "Basic stays free. Personal and Pro arrive with the public launch, Enterprise is the guided project with Pukalani Studio; right now there's an early access by invitation."
+          "a": "Basic stays free. Personal is €29 and Pro €149 per month – final prices incl. 19 % VAT, 25 % less when paid yearly. Enterprise is the guided project with Pukalani Studio; right now there's an early access by invitation."
         },
         {
           "q": "Can I cancel anytime?",
