@@ -43,8 +43,8 @@ catalogs:
       specifier: ^7.0.0
       version: 7.0.12
     appwrite:
-      specifier: ^26.0.0
-      version: 26.1.0
+      specifier: ^26.2.0
+      version: 26.2.0
     eslint:
       specifier: ^10.7.0
       version: 10.7.0
@@ -136,7 +136,7 @@ importers:
         version: 0.11.3(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))
       appwrite:
         specifier: 'catalog:'
-        version: 26.1.0
+        version: 26.2.0
       ioredis:
         specifier: 'catalog:'
         version: 5.11.1
@@ -233,7 +233,7 @@ importers:
         version: link:../../packages/tickets
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.4.0(@vue/compiler-dom@3.5.39)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup@4.62.2)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
@@ -245,7 +245,7 @@ importers:
         version: 0.11.3(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))
       appwrite:
         specifier: 'catalog:'
-        version: 26.1.0
+        version: 26.2.0
       ioredis:
         specifier: 'catalog:'
         version: 5.11.1
@@ -327,7 +327,7 @@ importers:
         version: 3.15.2(esbuild@0.28.1)(magic-string@0.30.21)(magicast@0.5.3)(oxc-parser@0.139.0)(rollup@4.62.2)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.4.0(@vue/compiler-dom@3.5.39)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup@4.62.2)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
@@ -339,7 +339,7 @@ importers:
         version: 0.11.3(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))
       appwrite:
         specifier: 'catalog:'
-        version: 26.1.0
+        version: 26.2.0
       ioredis:
         specifier: 'catalog:'
         version: 5.11.1
@@ -403,7 +403,7 @@ importers:
         version: 3.15.2(esbuild@0.28.1)(magic-string@0.30.21)(magicast@0.5.3)(oxc-parser@0.139.0)(rollup@4.62.2)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.4.0(@vue/compiler-dom@3.5.39)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup@4.62.2)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
@@ -412,7 +412,7 @@ importers:
         version: 0.11.3(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))
       appwrite:
         specifier: 'catalog:'
-        version: 26.1.0
+        version: 26.2.0
       ioredis:
         specifier: 'catalog:'
         version: 5.11.1
@@ -467,7 +467,7 @@ importers:
         version: link:../../packages/system
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.4.0(@vue/compiler-dom@3.5.39)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup@4.62.2)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
@@ -476,7 +476,7 @@ importers:
         version: 0.11.3(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))
       appwrite:
         specifier: 'catalog:'
-        version: 26.1.0
+        version: 26.2.0
       ioredis:
         specifier: 'catalog:'
         version: 5.11.1
@@ -546,7 +546,7 @@ importers:
         version: link:../../packages/themes
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.4.0(@vue/compiler-dom@3.5.39)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup@4.62.2)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
@@ -558,7 +558,7 @@ importers:
         version: 0.11.3(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))
       appwrite:
         specifier: 'catalog:'
-        version: 26.1.0
+        version: 26.2.0
       ioredis:
         specifier: 'catalog:'
         version: 5.11.1
@@ -646,7 +646,7 @@ importers:
         version: link:../../packages/themes
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.4.0(@vue/compiler-dom@3.5.39)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup@4.62.2)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
@@ -658,7 +658,7 @@ importers:
         version: 0.11.3(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))
       appwrite:
         specifier: 'catalog:'
-        version: 26.1.0
+        version: 26.2.0
       ioredis:
         specifier: 'catalog:'
         version: 5.11.1
@@ -722,7 +722,7 @@ importers:
         version: link:../../packages/themes
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.4.0(@vue/compiler-dom@3.5.39)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup@4.62.2)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
@@ -734,7 +734,7 @@ importers:
         version: 0.11.3(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))
       appwrite:
         specifier: 'catalog:'
-        version: 26.1.0
+        version: 26.2.0
       ioredis:
         specifier: 'catalog:'
         version: 5.11.1
@@ -792,7 +792,7 @@ importers:
         version: 3.15.2(esbuild@0.28.1)(magic-string@0.30.21)(magicast@0.5.3)(oxc-parser@0.139.0)(rollup@4.62.2)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       nuxt:
         specifier: 'catalog:'
         version: 4.4.8(@babel/plugin-syntax-jsx@7.29.7(@babel/core@7.29.7))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.7))(@parcel/watcher@2.5.6)(@types/node@22.20.0)(@vue/compiler-sfc@3.5.39)(cac@6.7.14)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(lightningcss@1.32.0)(magicast@0.5.3)(optionator@0.9.4)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup-plugin-visualizer@7.0.1(rollup@4.62.2))(rollup@4.62.2)(terser@5.48.0)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue-tsc@3.3.8(typescript@5.9.3))(yaml@2.9.0)
@@ -808,7 +808,7 @@ importers:
     dependencies:
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.4.0(@vue/compiler-dom@3.5.39)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup@4.62.2)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
@@ -839,7 +839,7 @@ importers:
     dependencies:
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.4.0(@vue/compiler-dom@3.5.39)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup@4.62.2)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
@@ -876,7 +876,7 @@ importers:
     dependencies:
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.4.0(@vue/compiler-dom@3.5.39)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup@4.62.2)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
@@ -913,7 +913,7 @@ importers:
     dependencies:
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.4.0(@vue/compiler-dom@3.5.39)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup@4.62.2)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
@@ -938,7 +938,7 @@ importers:
     dependencies:
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.4.0(@vue/compiler-dom@3.5.39)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup@4.62.2)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
@@ -975,7 +975,7 @@ importers:
     dependencies:
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.4.0(@vue/compiler-dom@3.5.39)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup@4.62.2)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
@@ -1015,7 +1015,7 @@ importers:
         version: 1.2.2
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.4.0(@vue/compiler-dom@3.5.39)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup@4.62.2)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
@@ -1024,7 +1024,7 @@ importers:
         version: 0.11.3(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))
       appwrite:
         specifier: 'catalog:'
-        version: 26.1.0
+        version: 26.2.0
       ioredis:
         specifier: 'catalog:'
         version: 5.11.1
@@ -1073,7 +1073,7 @@ importers:
     dependencies:
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.4.0(@vue/compiler-dom@3.5.39)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup@4.62.2)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
@@ -1107,7 +1107,7 @@ importers:
     dependencies:
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.4.0(@vue/compiler-dom@3.5.39)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup@4.62.2)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
@@ -1141,7 +1141,7 @@ importers:
     dependencies:
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.4.0(@vue/compiler-dom@3.5.39)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup@4.62.2)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
@@ -1175,7 +1175,7 @@ importers:
     dependencies:
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.4.0(@vue/compiler-dom@3.5.39)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup@4.62.2)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
@@ -1209,7 +1209,7 @@ importers:
     dependencies:
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.4.0(@vue/compiler-dom@3.5.39)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup@4.62.2)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
@@ -1240,7 +1240,7 @@ importers:
     dependencies:
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.4.0(@vue/compiler-dom@3.5.39)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup@4.62.2)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
@@ -1274,7 +1274,7 @@ importers:
     dependencies:
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.4.0(@vue/compiler-dom@3.5.39)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup@4.62.2)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
@@ -1308,7 +1308,7 @@ importers:
     dependencies:
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.4.0(@vue/compiler-dom@3.5.39)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup@4.62.2)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
@@ -1364,7 +1364,7 @@ importers:
     dependencies:
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
     devDependencies:
       '@nuxt/eslint-config':
         specifier: 'catalog:'
@@ -1389,7 +1389,7 @@ importers:
     dependencies:
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)
+        version: 4.10.0(a65b4cfb5ca175f08ace831120cb4b57)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.4.0(@vue/compiler-dom@3.5.39)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.7.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rollup@4.62.2)(typescript@5.9.3)(vite@7.3.6(@types/node@22.20.0)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
@@ -4637,8 +4637,8 @@ packages:
     resolution: {integrity: sha512-KMReFUr0B4t+D+OBkjR3KYqvocp2XaSzO55UcB6mgQMd3KbcE+mWTyvVV7D/zsdEbNnV6acZUutkiHQXvTr1Rw==}
     engines: {node: '>= 8'}
 
-  appwrite@26.1.0:
-    resolution: {integrity: sha512-BLcSz1/F83V4W0mHAW3SO9kahVfpqStIDI2+m0N0m2UfxIJl7XU5KW/EhPoek8qje+6JPtf3VWoRaPq4k8L86g==}
+  appwrite@26.2.0:
+    resolution: {integrity: sha512-8TCd4mMKhhUxGF9sjZ6W2V1gesnj43v1SFZoeAue/0O0ikMXIU92p96PiRn0D4nAVvFM/92bluTTb/PoXH5mnQ==}
     engines: {node: '>=18.0.0'}
 
   archiver-utils@5.0.2:
@@ -9914,7 +9914,7 @@ snapshots:
       - vue
       - webpack
 
-  '@nuxt/ui@4.10.0(a8d4ba9635de9ed6dc90f352d41f8f54)':
+  '@nuxt/ui@4.10.0(a65b4cfb5ca175f08ace831120cb4b57)':
     dependencies:
       '@floating-ui/dom': 1.8.0
       '@iconify/vue': 5.0.1(vue@3.5.39(typescript@5.9.3))
@@ -11954,7 +11954,7 @@ snapshots:
       normalize-path: 3.0.0
       picomatch: 2.3.2
 
-  appwrite@26.1.0:
+  appwrite@26.2.0:
     dependencies:
       json-bigint: 1.0.0
 
