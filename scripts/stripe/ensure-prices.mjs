@@ -28,6 +28,17 @@ const CURRENCY = 'eur'
 // Personal 29 €/Monat, Pro (Teams) 149 €/Monat, jährlich exakt −25 %
 // (29·12·0,75 = 261 €; 149·12·0,75 = 1341 €). Basic ist kostenlos (kein
 // Price), Enterprise ist das Studio-Angebot (kein Self-Service-Checkout).
+//
+// BRUTTO seit Davids Entscheid 2026-07-29 (OPEN-ITEMS A3): Landing und Hilfe
+// weisen diese Beträge als Endpreise „inkl. 19 % MwSt." aus. Die Prices hier
+// werden OHNE `tax_behavior` angelegt, Stripe fällt also auf das Konto-Default
+// zurück — und die Checkouts laufen mit `automatic_tax: { enabled: true }`.
+// Steht das Konto-Default auf „exclusive", schlägt Stripe die 19 % OBEN DRAUF
+// (29 € → 34,51 €) und widerspricht damit der Landing. VOR dem Live-Gang
+// prüfen: Konto-Default auf „inclusive" (Stripe → Tax Settings) ODER hier
+// `tax_behavior: 'inclusive'` an prices.create ergänzen. Siehe
+// docs/runbooks/STRIPE-GO-LIVE-RUNBOOK.md §2.4. NICHT im laufenden Testmodus
+// umstellen, ohne den Katalog neu anzulegen — tax_behavior ist unveränderlich.
 const PRODUCTS = [
   {
     key: 'workspace_personal',

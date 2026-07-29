@@ -285,8 +285,8 @@
     },
     "prices": {
       "title": "Prices (Stripe)",
-      "subtitle": "Workspace plan prices — changes create a new price in Stripe and archive the old one.",
-      "newAmount": "New price (€)",
+      "subtitle": "Workspace plan prices — changes create a new price in Stripe and archive the old one. Amounts are GROSS: the landing page and help site show them as final prices incl. 19 % VAT.",
+      "newAmount": "New price (€, gross incl. VAT)",
       "save": "Change price",
       "saved": "Price updated.",
       "saveFailed": "Could not change the price.",

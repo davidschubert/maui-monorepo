@@ -589,6 +589,7 @@
       "freeNote": "Für immer kostenlos",
       "perMonth": "pro Monat",
       "perMonthYearly": "pro Monat, jährlich abgerechnet",
+      "vatNote": "inkl. 19 % MwSt.",
       "enterprisePrice": "Individuell",
       "enterpriseNote": "Projekt nach Maß",
       "plans": {
@@ -632,7 +633,7 @@
         },
         {
           "q": "Was kostet es?",
-          "a": "Basic ist dauerhaft kostenlos. Personal und Pro kommen mit dem öffentlichen Start, Enterprise ist das begleitete Projekt mit Pukalani Studio; aktuell läuft ein Early Access auf Einladung."
+          "a": "Basic ist dauerhaft kostenlos. Personal kostet 29 € und Pro 149 € im Monat – Endpreise inkl. 19 % MwSt., jährlich gezahlt 25 % weniger. Enterprise ist das begleitete Projekt mit Pukalani Studio; aktuell läuft ein Early Access auf Einladung."
         },
         {
           "q": "Kann ich jederzeit kündigen?",

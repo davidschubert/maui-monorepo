@@ -58,6 +58,17 @@ NUXT_STRIPE_WEBHOOK_SECRET=whsec_…    # [David] aus dem Live-Webhook-Endpoint 
 - **2.4 [David] Stripe Tax (Live) aktivieren** — `automatic_tax` ist im Code an
   (B2C, §6.3); im Live-Dashboard die Steuer-Registrierung(en) hinterlegen (OSS-
   Schwelle 10 k€ beachten).
+  **PFLICHT-PRÜFUNG seit 2026-07-29 (OPEN-ITEMS A3):** Landing (`PricingSection`)
+  und Hilfe weisen 29 €/149 € als **Endpreise inkl. 19 % MwSt.** aus. Die Prices
+  werden ohne `tax_behavior` angelegt → Stripe nimmt das **Konto-Default**.
+  Steht das auf „exclusive", rechnet der Checkout 19 % OBEN DRAUF (29 € →
+  34,51 €) und widerspricht der Landing. Also entweder das Konto-Default auf
+  **inclusive** stellen (Stripe → Settings → Tax → *Default tax behavior*)
+  **oder** `tax_behavior: 'inclusive'` in `scripts/stripe/ensure-prices.mjs`
+  ergänzen — beides VOR dem ersten Live-Price. `tax_behavior` ist an einem Price
+  unveränderlich: ein falsch angelegter Price muss ersetzt werden (das Skript
+  zieht den `lookup_key` bei Betragsdrift um, aber nicht bei reiner
+  Steuer-Umstellung — dafür Betrag kurz ändern oder Price von Hand ersetzen).
 - **2.5 [David] Dynamische Zahlungsmethoden** im Live-Dashboard prüfen (Karten
   aktiv; SEPA nur, wenn der asynchrone „Zahlung wird verarbeitet"-Pfad gewünscht).
 

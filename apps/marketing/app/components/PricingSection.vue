@@ -11,6 +11,13 @@ const yearly = ref(false)
 
 // Cent-Beträge = Stripe-Katalog (scripts/stripe/ensure-prices.mjs).
 // yearlyMonthly = Jahrespreis / 12 (exakt −25 %), Anzeige pro Monat.
+//
+// BRUTTO (Davids Entscheid 2026-07-29, OPEN-ITEMS A3): die Beträge sind
+// Endpreise inkl. 19 % MwSt. Das Publikum ist gemischt (Zielgruppenseite
+// /fuer/vereine — Vereine sind oft keine Unternehmer), und gegenüber
+// Verbrauchern verlangt die PAngV den Gesamtpreis inklusive Umsatzsteuer.
+// Der Hinweis steht deshalb AM Preis (vatNote), nicht im Fußzeilen-Kleingedruckten,
+// und gilt für beide Intervalle (monatlich wie jährlich).
 const PRICES = { personal: { monthly: 2900, yearly: 26100 }, pro: { monthly: 14900, yearly: 134100 } } as const
 
 function perMonth(key: keyof typeof PRICES): number {
@@ -18,10 +25,10 @@ function perMonth(key: keyof typeof PRICES): number {
 }
 
 const plans = computed(() => [
-  { key: 'basic', price: t('marketing.pricing.freePrice'), note: t('marketing.pricing.freeNote'), to: start, featured: false },
-  { key: 'personal', price: n(perMonth('personal'), { style: 'currency', currency: 'EUR' }), note: yearly.value ? t('marketing.pricing.perMonthYearly') : t('marketing.pricing.perMonth'), to: signIn, featured: true },
-  { key: 'pro', price: n(perMonth('pro'), { style: 'currency', currency: 'EUR' }), note: yearly.value ? t('marketing.pricing.perMonthYearly') : t('marketing.pricing.perMonth'), to: signIn, featured: false },
-  { key: 'enterprise', price: t('marketing.pricing.enterprisePrice'), note: t('marketing.pricing.enterpriseNote'), to: signIn, featured: false },
+  { key: 'basic', price: t('marketing.pricing.freePrice'), note: t('marketing.pricing.freeNote'), vat: false, to: start, featured: false },
+  { key: 'personal', price: n(perMonth('personal'), { style: 'currency', currency: 'EUR' }), note: yearly.value ? t('marketing.pricing.perMonthYearly') : t('marketing.pricing.perMonth'), vat: true, to: signIn, featured: true },
+  { key: 'pro', price: n(perMonth('pro'), { style: 'currency', currency: 'EUR' }), note: yearly.value ? t('marketing.pricing.perMonthYearly') : t('marketing.pricing.perMonth'), vat: true, to: signIn, featured: false },
+  { key: 'enterprise', price: t('marketing.pricing.enterprisePrice'), note: t('marketing.pricing.enterpriseNote'), vat: false, to: signIn, featured: false },
 ].map(plan => ({
   ...plan,
   name: t(`marketing.pricing.plans.${plan.key}.name`),
@@ -52,7 +59,11 @@ const plans = computed(() => [
       >
         <p class="plan-tag">{{ plan.tag }}</p>
         <h3 class="plan-name">{{ plan.name }}</h3>
-        <p class="plan-price">{{ plan.price }}<span class="plan-price-note">{{ plan.note }}</span></p>
+        <p class="plan-price">
+          {{ plan.price }}
+          <span class="plan-price-note">{{ plan.note }}</span>
+          <span v-if="plan.vat" class="plan-price-vat">{{ t('marketing.pricing.vatNote') }}</span>
+        </p>
         <p class="plan-desc">{{ plan.desc }}</p>
         <UButton
           :to="plan.to"
@@ -121,6 +132,9 @@ const plans = computed(() => [
 .plan-name { font-size: 1.3rem; font-weight: 800; }
 .plan-price { font-size: 1.6rem; font-weight: 800; margin: 0.5rem 0 0.25rem; color: hsl(var(--puka-ink)); }
 .plan-price-note { display: block; font-size: 0.78rem; font-weight: 500; color: hsl(var(--puka-ink-soft) / 0.7); }
+/* Pflichtangabe (PAngV): steht am Preis und bleibt lesbar — bewusst kräftiger
+   als die Intervall-Zeile darüber, damit sie nicht als Kleingedrucktes wirkt. */
+.plan-price-vat { display: block; font-size: 0.78rem; font-weight: 600; color: hsl(var(--puka-ink-soft)); }
 .plan-desc { color: hsl(var(--puka-ink-soft)); line-height: 1.55; flex: 1; margin-bottom: 1.25rem; }
 
 @media (min-width: 980px) { .pricing-grid { grid-template-columns: repeat(4, 1fr); } }

@@ -126,6 +126,17 @@ async function openPortal() {
           <span class="text-4xl font-bold tracking-tight">{{ planPrice(plan.id, plan.lookupKeys) ?? '—' }}</span>
           <span class="text-sm text-muted">{{ interval === 'monthly' ? t('billing.pricing.perMonth') : t('billing.pricing.perYear') }}</span>
         </p>
+        <!-- PAngV: Endpreis-Hinweis AM Preis, nur für Bezahlpläne mit echtem
+             Betrag (free braucht keinen, „—" ist kein Preis). Der Satz steckt
+             im i18n-Key, damit eine App mit anderem Steuersitz ihn überschreiben
+             kann — der Anbieter sitzt heute in Deutschland (19 %). -->
+        <p
+          v-if="plan.lookupKeys && planPrice(plan.id, plan.lookupKeys)"
+          class="mt-1 text-sm font-medium text-toned"
+          :data-plan-vat="plan.id"
+        >
+          {{ t('billing.pricing.vatNote') }}
+        </p>
 
         <p class="mt-3 text-muted">{{ t(`${plan.labelKey}Description`) }}</p>
 
