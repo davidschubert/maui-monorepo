@@ -40,7 +40,17 @@
       "empty": "No subscriptions yet.",
       "disabled": "maui.billing is not enabled — subscriptions appear here once the app turns the gate on.",
       "cancelling": "ending",
-      "user": "User"
+      "user": "User",
+      "emptyTitle": "No subscriptions yet",
+      "lookup": "Look up",
+      "lookupPlaceholder": "Enter a user ID or cus_…",
+      "col": {
+        "plan": "Plan",
+        "status": "Status",
+        "user": "User",
+        "renews": "Renews on",
+        "updated": "Last changed"
+      }
     },
     "status": {
       "active": "Active",
