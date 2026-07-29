@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { createLessonSchema } from '../../../../schemas/course'
+import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
 import type { CourseRow, LessonRow } from '../../../../shared/types/course'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'courses.manage' })
@@ -136,6 +137,34 @@ async function moveLesson(index: number, delta: number) {
     toast.add({ title: t('courses.admin.saveFailed'), color: 'error' })
   }
 }
+
+/**
+ * Auch die Lektionen sind eine Tabelle (B6). Die Reihenfolge IST hier eine
+ * Aussage — deshalb bleibt die Nummer die erste Spalte und die Hoch/Runter-
+ * Knöpfe bleiben sichtbar in der Zeile statt im Menü zu verschwinden.
+ */
+const HIDE_SM = { td: 'hidden sm:table-cell', th: 'hidden sm:table-cell' }
+
+const lessonColumns = computed<TableColumn<LessonRow>[]>(() => [
+  { id: 'order', header: () => t('courses.admin.col.order') },
+  { accessorKey: 'title', header: () => t('courses.admin.col.lesson') },
+  { accessorKey: 'status', header: () => t('courses.admin.col.status'), meta: { class: HIDE_SM } },
+  { id: 'actions', header: () => '' },
+])
+
+function lessonActions(lesson: LessonRow): DropdownMenuItem[][] {
+  return [
+    [
+      {
+        label: lesson.status === 'published' ? t('courses.admin.unpublish') : t('courses.admin.publish'),
+        icon: lesson.status === 'published' ? 'i-ph-eye-slash' : 'i-ph-paper-plane-tilt',
+        onSelect: () => { void toggleLessonStatus(lesson) },
+      },
+      { label: t('courses.admin.editLesson'), icon: 'i-ph-pencil-simple', onSelect: () => openLessonEdit(lesson) },
+    ],
+    [{ label: t('courses.admin.deleteLesson'), icon: 'i-ph-trash', color: 'error', onSelect: () => { void removeLesson(lesson) } }],
+  ]
+}
 </script>
 
 <template>
@@ -209,35 +238,61 @@ async function moveLesson(index: number, delta: number) {
             </UButton>
           </div>
 
-          <p v-if="course.lessons.length === 0" class="py-8 text-center text-sm text-muted">
-            {{ t('courses.admin.noLessons') }}
-          </p>
-
-          <ul v-else class="divide-y divide-default" data-testid="builder-lessons">
-            <li v-for="(lesson, index) in course.lessons" :key="lesson.$id" class="flex items-center gap-2 py-2 text-sm">
-              <div class="flex flex-col">
-                <UButton color="neutral" variant="ghost" size="xs" icon="i-ph-caret-up" :disabled="index === 0" @click="moveLesson(index, -1)" />
-                <UButton color="neutral" variant="ghost" size="xs" icon="i-ph-caret-down" :disabled="index === course.lessons.length - 1" @click="moveLesson(index, 1)" />
+          <UTable :data="course.lessons" :columns="lessonColumns" data-testid="builder-lessons">
+            <template #order-cell="{ row }">
+              <div class="flex items-center gap-1">
+                <div class="flex flex-col">
+                  <UButton
+                    color="neutral" variant="ghost" size="xs" icon="i-ph-caret-up"
+                    :aria-label="t('courses.admin.moveUp')"
+                    :disabled="row.index === 0"
+                    @click="moveLesson(row.index, -1)"
+                  />
+                  <UButton
+                    color="neutral" variant="ghost" size="xs" icon="i-ph-caret-down"
+                    :aria-label="t('courses.admin.moveDown')"
+                    :disabled="row.index === course.lessons.length - 1"
+                    @click="moveLesson(row.index, 1)"
+                  />
+                </div>
+                <span class="w-6 text-right tabular-nums text-muted">{{ row.index + 1 }}.</span>
               </div>
-              <span class="w-6 text-right text-muted">{{ index + 1 }}.</span>
-              <span class="min-w-0 flex-1 truncate">{{ lesson.title }}</span>
-              <UBadge :color="lesson.status === 'published' ? 'success' : 'warning'" variant="subtle" size="sm">
-                {{ t(`courses.status.${lesson.status}`) }}
+            </template>
+            <template #title-cell="{ row }">
+              <span class="block max-w-md truncate font-medium">{{ row.original.title }}</span>
+            </template>
+            <template #status-cell="{ row }">
+              <UBadge :color="row.original.status === 'published' ? 'success' : 'warning'" variant="subtle" size="sm">
+                {{ t(`courses.status.${row.original.status}`) }}
               </UBadge>
-              <UButton
-                :color="lesson.status === 'published' ? 'neutral' : 'success'"
-                variant="ghost" size="xs"
-                :icon="lesson.status === 'published' ? 'i-ph-eye-slash' : 'i-ph-paper-plane-tilt'"
-                :loading="lessonBusyId === lesson.$id"
-                :data-lesson-publish="lesson.$id"
-                @click="toggleLessonStatus(lesson)"
-              >
-                {{ lesson.status === 'published' ? t('courses.admin.unpublish') : t('courses.admin.publish') }}
-              </UButton>
-              <UButton color="neutral" variant="ghost" size="xs" icon="i-ph-pencil-simple" @click="openLessonEdit(lesson)" />
-              <UButton color="error" variant="ghost" size="xs" icon="i-ph-trash" :disabled="lessonBusyId === lesson.$id" @click="removeLesson(lesson)" />
-            </li>
-          </ul>
+            </template>
+            <template #actions-cell="{ row }">
+              <div class="flex justify-end">
+                <UDropdownMenu :items="lessonActions(row.original)" :content="{ align: 'end' }">
+                  <UButton
+                    icon="i-ph-dots-three-vertical"
+                    color="neutral"
+                    variant="ghost"
+                    size="xs"
+                    :aria-label="t('courses.admin.lessonActions')"
+                    :loading="lessonBusyId === row.original.$id"
+                    :data-lesson-publish="row.original.$id"
+                  />
+                </UDropdownMenu>
+              </div>
+            </template>
+
+            <template #empty>
+              <CoreEmptyState
+                icon="i-ph-list-numbers"
+                :title="t('courses.admin.noLessonsTitle')"
+                :description="t('courses.admin.noLessons')"
+                :action-label="t('courses.admin.addLesson')"
+                action-icon="i-ph-plus"
+                @action="openLessonCreate"
+              />
+            </template>
+          </UTable>
         </template>
       </ClientOnly>
 

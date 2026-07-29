@@ -52,7 +52,9 @@
         "slug": "Address",
         "access": "Access",
         "lessons": "Lessons",
-        "status": "Status"
+        "status": "Status",
+        "order": "No.",
+        "lesson": "Lesson"
       },
       "empty": "No courses yet — create the first one.",
       "backToList": "All courses",
@@ -70,6 +72,10 @@
       "confirmDeleteLessonTitle": "Delete lesson?",
       "confirmDeleteLessonText": "“{title}” will be deleted for good — including for participants who already read it.",
       "noLessons": "No lessons yet — start with the first one.",
+      "noLessonsTitle": "No lessons yet",
+      "lessonActions": "Actions for this lesson",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
       "editingWarning": "{name} is editing this course right now, too.",
       "form": {
         "title": "Title",
