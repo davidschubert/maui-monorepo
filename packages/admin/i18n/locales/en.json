@@ -259,7 +259,14 @@
         "passwordless": "passwordless (OTP/OAuth)",
         "activity": {
           "title": "Activity log (Appwrite)",
-          "empty": "No activity entries."
+          "empty": "No activity entries.",
+          "emptyTitle": "No activity",
+          "col": {
+            "event": "Event",
+            "client": "Device",
+            "location": "Location",
+            "time": "Time"
+          }
         },
         "targets": {
           "title": "Notification channels",

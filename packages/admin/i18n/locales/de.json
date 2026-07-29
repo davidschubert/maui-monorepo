@@ -259,7 +259,14 @@
         "passwordless": "passwortlos (OTP/OAuth)",
         "activity": {
           "title": "Aktivitätsprotokoll (Appwrite)",
-          "empty": "Keine Aktivitäts-Einträge."
+          "empty": "Keine Aktivitäts-Einträge.",
+          "emptyTitle": "Keine Aktivität",
+          "col": {
+            "event": "Ereignis",
+            "client": "Gerät",
+            "location": "Standort",
+            "time": "Zeit"
+          }
         },
         "targets": {
           "title": "Benachrichtigungskanäle",
