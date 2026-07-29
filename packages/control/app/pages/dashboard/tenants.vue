@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
 import { nameToSubdomain, OPERATOR_APEX } from '../../../schemas/tenant'
 import type { TenantMode, TenantPlan, TenantStatus, TenantWave } from '../../../shared/types/tenantRecord'
 
@@ -6,6 +7,7 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCap
 
 const { t } = useI18n()
 const toast = useToast()
+const confirm = useConfirm()
 useHead({ title: () => t('control.tenants.title') })
 
 interface TenantDto { id: string, name: string, host: string, mode: TenantMode, projectId: string, tenantId: string, status: TenantStatus, wave: TenantWave, plan: TenantPlan, openRegistration: boolean }
@@ -134,9 +136,23 @@ async function toggleOpenRegistration(tenant: TenantDto, openRegistration: boole
   }
 }
 
+/**
+ * Löschen geht jetzt durch useConfirm (Löschen-Vertrag, seit 2026-07-28).
+ * Vorher löschte EIN Klick auf das Papierkorb-Symbol den Mandanten einer
+ * Kundin ohne Rückfrage — die einzige Liste im Dashboard, in der das noch so
+ * war. Beim Umbau auf die Tabelle wandert die Aktion ins Zeilen-Menü; ohne
+ * Rückfrage wäre sie dort genauso scharf, nur unauffälliger.
+ */
 async function removeTenant(tenant: TenantDto) {
   try {
-    await $fetch(`/api/control/tenants/${tenant.id}`, { method: 'DELETE' })
+    const ok = await confirm({
+      title: t('control.tenants.confirmDeleteTitle'),
+      description: t('control.tenants.confirmDeleteText', { host: tenant.host }),
+      confirmLabel: t('control.tenants.delete'),
+      color: 'error',
+      action: () => $fetch(`/api/control/tenants/${tenant.id}`, { method: 'DELETE' }),
+    })
+    if (!ok) return
     toast.add({ title: t('control.tenants.deleted'), color: 'success' })
     await refresh()
   }
@@ -180,6 +196,29 @@ async function savePlanLimits(key: string) {
     planSaving.value = null
   }
 }
+
+const HIDE_MD = { td: 'hidden md:table-cell', th: 'hidden md:table-cell' }
+const HIDE_LG = { td: 'hidden lg:table-cell', th: 'hidden lg:table-cell' }
+
+const columns = computed<TableColumn<TenantDto>[]>(() => [
+  { accessorKey: 'name', header: () => t('control.tenants.col.site') },
+  { accessorKey: 'mode', header: () => t('control.tenants.col.mode'), meta: { class: HIDE_MD } },
+  { id: 'tier', header: () => t('control.tenants.col.tier') },
+  { id: 'registration', header: () => t('control.tenants.col.registration'), meta: { class: HIDE_LG } },
+  { accessorKey: 'status', header: () => t('control.tenants.col.status') },
+  { id: 'actions', header: () => '' },
+])
+
+function rowActions(tenant: TenantDto): DropdownMenuItem[][] {
+  return [
+    [{
+      label: tenant.status === 'active' ? t('control.tenants.disable') : t('control.tenants.enable'),
+      icon: tenant.status === 'active' ? 'i-ph-pause' : 'i-ph-play',
+      onSelect: () => { void toggleStatus(tenant) },
+    }],
+    [{ label: t('control.tenants.delete'), icon: 'i-ph-trash', color: 'error', onSelect: () => { void removeTenant(tenant) } }],
+  ]
+}
 </script>
 
 <template>
@@ -198,60 +237,79 @@ async function savePlanLimits(key: string) {
     <template #body>
       <p class="mb-4 text-sm text-muted">{{ t('control.tenants.subtitle') }}</p>
 
-      <p v-if="!tenants.length" class="py-12 text-center text-sm text-muted" data-tenants-empty>
-        {{ t('control.tenants.empty') }}
-      </p>
-      <div v-else class="divide-y divide-default" data-tenants-list>
-        <div v-for="tenant in tenants" :key="tenant.id" class="flex flex-wrap items-center justify-between gap-3 py-4" :data-tenant="tenant.host">
-          <div class="min-w-0">
-            <div class="flex flex-wrap items-center gap-2">
-              <p class="font-medium">{{ tenant.name || tenant.host }}</p>
-              <UBadge :color="tenant.mode === 'pool' ? 'primary' : 'neutral'" variant="subtle" size="sm">{{ tenant.mode }}</UBadge>
-              <UBadge :color="tenant.status === 'active' ? 'success' : 'neutral'" variant="subtle" size="sm">{{ tenant.status }}</UBadge>
-              <UBadge v-if="tenant.mode === 'pool'" :color="tenant.plan === 'pro' ? 'primary' : tenant.plan === 'personal' ? 'info' : 'neutral'" variant="subtle" size="sm">{{ t(`control.tenants.plan.${tenant.plan}`) }}</UBadge>
-              <UBadge v-if="tenant.mode === 'silo' && tenant.wave !== 'stable'" color="warning" variant="subtle" size="sm">{{ t(`control.tenants.wave.${tenant.wave}`) }}</UBadge>
-            </div>
-            <p class="mt-0.5 truncate font-mono text-sm text-muted">
-              <a :href="`https://${tenant.host}`" target="_blank" rel="noopener" class="hover:underline">{{ tenant.host }}</a>
-              · {{ tenant.projectId }}<template v-if="tenant.tenantId"> · {{ tenant.tenantId }}</template>
+      <UTable :data="tenants" :columns="columns" data-tenants-list>
+        <template #name-cell="{ row }">
+          <div class="min-w-0" :data-tenant="row.original.host">
+            <p class="font-medium">{{ row.original.name || row.original.host }}</p>
+            <p class="truncate font-mono text-xs text-muted">
+              <a :href="`https://${row.original.host}`" target="_blank" rel="noopener" class="hover:underline">{{ row.original.host }}</a>
+              · {{ row.original.projectId }}<template v-if="row.original.tenantId"> · {{ row.original.tenantId }}</template>
             </p>
           </div>
-          <div class="flex items-center gap-2">
-            <USelect
-              v-if="tenant.mode === 'pool'"
-              :model-value="tenant.plan"
-              :items="planItems"
-              size="sm"
-              :aria-label="t('control.tenants.planLabel')"
-              @update:model-value="(plan) => changePlan(tenant, plan as TenantPlan)"
-            />
-            <USelect
-              v-if="tenant.mode === 'silo'"
-              :model-value="tenant.wave"
-              :items="waveItems"
-              size="sm"
-              :aria-label="t('control.tenants.waveLabel')"
-              @update:model-value="(wave) => changeWave(tenant, wave as TenantWave)"
-            />
-            <USwitch
-              :model-value="tenant.openRegistration"
-              size="sm"
-              :label="t('control.tenants.openRegistration')"
-              :aria-label="t('control.tenants.openRegistration')"
-              :data-tenant-open-registration="tenant.openRegistration"
-              @update:model-value="(open: boolean) => toggleOpenRegistration(tenant, open)"
-            />
-            <UButton
-              color="neutral"
-              variant="outline"
-              size="sm"
-              :label="tenant.status === 'active' ? t('control.tenants.disable') : t('control.tenants.enable')"
-              @click="() => toggleStatus(tenant)"
-            />
-            <UButton color="error" variant="soft" size="sm" icon="i-ph-trash" :aria-label="t('control.tenants.delete')" @click="() => removeTenant(tenant)" />
+        </template>
+        <template #mode-cell="{ row }">
+          <UBadge :color="row.original.mode === 'pool' ? 'primary' : 'neutral'" variant="subtle" size="sm">{{ row.original.mode }}</UBadge>
+        </template>
+        <!-- Pool-Mandanten haben einen Plan, Silo-Mandanten eine Welle —
+             dieselbe Spalte, weil es dieselbe Frage ist: „was bekommt der?" -->
+        <template #tier-cell="{ row }">
+          <USelect
+            v-if="row.original.mode === 'pool'"
+            :model-value="row.original.plan"
+            :items="planItems"
+            size="sm"
+            class="w-36"
+            :aria-label="t('control.tenants.planLabel')"
+            @update:model-value="(plan) => changePlan(row.original, plan as TenantPlan)"
+          />
+          <USelect
+            v-else
+            :model-value="row.original.wave"
+            :items="waveItems"
+            size="sm"
+            class="w-36"
+            :aria-label="t('control.tenants.waveLabel')"
+            @update:model-value="(wave) => changeWave(row.original, wave as TenantWave)"
+          />
+        </template>
+        <template #registration-cell="{ row }">
+          <USwitch
+            :model-value="row.original.openRegistration"
+            size="sm"
+            :aria-label="t('control.tenants.openRegistration')"
+            :data-tenant-open-registration="row.original.openRegistration"
+            @update:model-value="(open: boolean) => toggleOpenRegistration(row.original, open)"
+          />
+        </template>
+        <template #status-cell="{ row }">
+          <UBadge :color="row.original.status === 'active' ? 'success' : 'neutral'" variant="subtle" size="sm">{{ row.original.status }}</UBadge>
+        </template>
+        <template #actions-cell="{ row }">
+          <div class="flex justify-end">
+            <UDropdownMenu :items="rowActions(row.original)" :content="{ align: 'end' }">
+              <UButton
+                icon="i-ph-dots-three-vertical"
+                color="neutral"
+                variant="ghost"
+                size="xs"
+                :aria-label="t('control.tenants.rowActions')"
+              />
+            </UDropdownMenu>
           </div>
-        </div>
-      </div>
+        </template>
+
+        <template #empty>
+          <CoreEmptyState
+            icon="i-ph-buildings"
+            :title="t('control.tenants.emptyTitle')"
+            :description="t('control.tenants.empty')"
+            :action-label="t('control.tenants.new')"
+            action-icon="i-ph-plus"
+            data-tenants-empty
+            @action="openCreate"
+          />
+        </template>
+      </UTable>
 
       <!-- Editierbarer Quota-Katalog (tenant_plans): Zahlen wirken im Pool
            ohne Deploy (Resolver-Cache ≤ 90 s). 0 = unbegrenzt. -->

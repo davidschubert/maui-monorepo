@@ -48,7 +48,15 @@
       "defer": "Defer",
       "decline": "Decline",
       "openSite": "Open community",
-      "updateFailed": "Update failed"
+      "updateFailed": "Update failed",
+      "emptyTitle": "Nobody is waiting",
+      "rowActions": "Actions for this request",
+      "col": {
+        "email": "Email",
+        "note": "Note",
+        "status": "Status",
+        "state": "State"
+      }
     },
     "invites": {
       "title": "Invite codes",
@@ -106,6 +114,14 @@
         "created": "{count} slots created",
         "onlyFree": "{count} free slots in stock — nothing handed out yet. Assigned codes show up here.",
         "truncated": "More than 1000 codes: these numbers are a lower bound."
+      },
+      "emptyTitle": "No codes in progress",
+      "col": {
+        "code": "Code",
+        "state": "State",
+        "recipient": "Recipient",
+        "uses": "Uses",
+        "expires": "Valid until"
       }
     },
     "sites": {
@@ -131,7 +147,15 @@
       "save": "Register",
       "cancel": "Cancel",
       "running": "Running:",
-      "runningUnentitled": "Running without a granted feature"
+      "runningUnentitled": "Running without a granted feature",
+      "emptyTitle": "No sites yet",
+      "rowActions": "Actions for this site",
+      "col": {
+        "site": "Site",
+        "state": "Status",
+        "features": "Products",
+        "workspace": "Workspace"
+      }
     },
     "jobs": {
       "newSite": "New site",
@@ -146,7 +170,12 @@
       "create": "Create job",
       "created": "Job for {name} created — the runner takes over.",
       "createFailed": "Could not create job",
-      "log": "Log"
+      "log": "Log",
+      "col": {
+        "job": "Job",
+        "features": "Products",
+        "status": "Status"
+      }
     },
     "entitlements": {
       "manage": "Features",
@@ -187,7 +216,16 @@
       "intervalYearly": "Yearly",
       "downgradeHint": "Downgrade: cancel the subscription in Stripe — at period end the workspace falls back to the free Basic plan automatically.",
       "toCheckout": "Go to checkout",
-      "checkoutFailed": "Could not start checkout"
+      "checkoutFailed": "Could not start checkout",
+      "emptyTitle": "No workspaces yet",
+      "rowActions": "Actions for this workspace",
+      "col": {
+        "workspace": "Workspace",
+        "owner": "Owner",
+        "plan": "Plan",
+        "status": "Status",
+        "sites": "Sites"
+      }
     },
     "invite": {
       "send": "Invite owner",
@@ -271,6 +309,17 @@
         "basic": "Basic",
         "personal": "Personal",
         "pro": "Pro"
+      },
+      "emptyTitle": "No tenants yet",
+      "rowActions": "Actions for this tenant",
+      "confirmDeleteTitle": "Delete tenant?",
+      "confirmDeleteText": "Permanently delete {host}? The site will no longer be reachable.",
+      "col": {
+        "site": "Site",
+        "mode": "Mode",
+        "tier": "Plan / wave",
+        "registration": "Registration",
+        "status": "Status"
       }
     },
     "plans": {

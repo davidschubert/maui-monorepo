@@ -3,6 +3,7 @@
 // Workspaces anlegen/umbenennen, Plan-/Status-Übersicht, zugeordnete Sites.
 // Plan-Wechsel läuft BEWUSST nicht hier, sondern über Checkout + Fulfillment
 // (T3) — plan/status sind in der PATCH-Route nicht schreibbar.
+import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
 import type { WorkspaceRow } from '../../../shared/types/workspace'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'sites.manage' })
@@ -156,6 +157,38 @@ async function savePrice(price: PriceDto) {
 const formatAmount = (price: PriceDto) => price.amount === null
   ? t('control.prices.missing')
   : new Intl.NumberFormat('de-DE', { style: 'currency', currency: (price.currency ?? 'eur').toUpperCase() }).format(price.amount / 100)
+
+const HIDE_MD = { td: 'hidden md:table-cell', th: 'hidden md:table-cell' }
+const HIDE_LG = { td: 'hidden lg:table-cell', th: 'hidden lg:table-cell' }
+
+const columns = computed<TableColumn<WorkspaceWithSites>[]>(() => [
+  { accessorKey: 'name', header: () => t('control.workspaces.col.workspace') },
+  { accessorKey: 'ownerEmail', header: () => t('control.workspaces.col.owner') },
+  { accessorKey: 'plan', header: () => t('control.workspaces.col.plan') },
+  { accessorKey: 'status', header: () => t('control.workspaces.col.status'), meta: { class: HIDE_MD } },
+  { id: 'sites', header: () => t('control.workspaces.col.sites'), meta: { class: HIDE_LG } },
+  { id: 'actions', header: () => '' },
+])
+
+/**
+ * Zeilen-Aktionen. „Einladen" erscheint weiter NUR, solange kein Mitglied
+ * aktiv ist (memberCount === 0) — dieselbe Bedingung wie zuvor am Knopf.
+ */
+function rowActions(workspace: WorkspaceWithSites): DropdownMenuItem[][] {
+  const items: DropdownMenuItem[] = []
+  if (workspace.memberCount === 0) {
+    items.push({
+      label: workspace.pendingInvite ? t('control.invite.resend') : t('control.invite.send'),
+      icon: 'i-ph-paper-plane-tilt',
+      onSelect: () => { void inviteOwner(workspace) },
+    })
+  }
+  items.push(
+    { label: t('control.workspaces.changePlan'), icon: 'i-ph-credit-card', onSelect: () => openPlanChange(workspace) },
+    { label: t('control.workspaces.edit'), icon: 'i-ph-pencil-simple', onSelect: () => openEdit(workspace) },
+  )
+  return [items]
+}
 </script>
 
 <template>
@@ -174,55 +207,64 @@ const formatAmount = (price: PriceDto) => price.amount === null
     </template>
 
     <template #body>
-      <p v-if="!data?.workspaces.length" class="py-12 text-center text-sm text-muted" data-workspaces-empty>
-        {{ t('control.workspaces.empty') }}
-      </p>
+      <UTable :data="data?.workspaces ?? []" :columns="columns" data-workspaces-list>
+        <template #name-cell="{ row }">
+          <div class="min-w-0" :data-workspace="row.original.name">
+            <p class="font-medium">{{ row.original.name }}</p>
+            <p class="text-xs text-muted">
+              {{ t('control.workspaces.planFeatures') }}: {{ planFeatures(row.original.plan).join(', ') || '—' }}
+            </p>
+          </div>
+        </template>
+        <template #ownerEmail-cell="{ row }">
+          <div class="flex min-w-0 flex-wrap items-center gap-2">
+            <span class="truncate text-sm">{{ row.original.ownerEmail }}</span>
+            <UBadge v-if="row.original.memberCount > 0" color="success" variant="subtle" size="sm" data-workspace-owner-active>{{ t('control.invite.ownerActive') }}</UBadge>
+            <UBadge v-else-if="row.original.pendingInvite" color="info" variant="subtle" size="sm" data-workspace-invite-pending>{{ t('control.invite.pending') }}</UBadge>
+          </div>
+        </template>
+        <template #plan-cell="{ row }">
+          <UBadge :color="planColor(row.original.plan)" variant="subtle" size="sm" :data-workspace-plan="row.original.plan">{{ row.original.plan }}</UBadge>
+        </template>
+        <template #status-cell="{ row }">
+          <UBadge :color="statusColor(row.original.status)" variant="subtle" size="sm">{{ row.original.status }}</UBadge>
+        </template>
+        <template #sites-cell="{ row }">
+          <div class="flex flex-wrap items-center gap-1" :data-workspace-sites="row.original.siteSlugs.join(',')">
+            <template v-if="row.original.siteSlugs.length">
+              <UBadge v-for="slug in row.original.siteSlugs" :key="slug" color="neutral" variant="outline" size="sm">{{ slug }}</UBadge>
+            </template>
+            <span v-else class="text-xs text-muted">{{ t('control.workspaces.noSites') }}</span>
+          </div>
+        </template>
+        <template #actions-cell="{ row }">
+          <div class="flex justify-end">
+            <UDropdownMenu :items="rowActions(row.original)" :content="{ align: 'end' }">
+              <UButton
+                icon="i-ph-dots-three-vertical"
+                color="neutral"
+                variant="ghost"
+                size="xs"
+                :aria-label="t('control.workspaces.rowActions')"
+                :loading="inviting === row.original.$id"
+                :data-workspace-edit="row.original.name"
+              />
+            </UDropdownMenu>
+          </div>
+        </template>
 
-      <div v-else class="divide-y divide-default" data-workspaces-list>
-        <div v-for="workspace in data.workspaces" :key="workspace.$id" class="flex flex-wrap items-center justify-between gap-3 py-4" :data-workspace="workspace.name">
-          <div class="min-w-0">
-            <div class="flex flex-wrap items-center gap-2">
-              <p class="font-medium">{{ workspace.name }}</p>
-              <UBadge :color="planColor(workspace.plan)" variant="subtle" size="sm" :data-workspace-plan="workspace.plan">{{ workspace.plan }}</UBadge>
-              <UBadge :color="statusColor(workspace.status)" variant="subtle" size="sm">{{ workspace.status }}</UBadge>
-            </div>
-            <p class="mt-0.5 flex flex-wrap items-center gap-2 truncate text-sm text-muted">
-              {{ workspace.ownerEmail }}
-              <UBadge v-if="workspace.memberCount > 0" color="success" variant="subtle" size="sm" data-workspace-owner-active>{{ t('control.invite.ownerActive') }}</UBadge>
-              <UBadge v-else-if="workspace.pendingInvite" color="info" variant="subtle" size="sm" data-workspace-invite-pending>{{ t('control.invite.pending') }}</UBadge>
-            </p>
-            <div class="mt-1 flex flex-wrap items-center gap-1" :data-workspace-sites="workspace.siteSlugs.join(',')">
-              <template v-if="workspace.siteSlugs.length">
-                <UBadge v-for="slug in workspace.siteSlugs" :key="slug" color="neutral" variant="outline" size="sm">{{ slug }}</UBadge>
-              </template>
-              <span v-else class="text-xs text-muted">{{ t('control.workspaces.noSites') }}</span>
-            </div>
-            <p class="mt-1 text-xs text-muted">
-              {{ t('control.workspaces.planFeatures') }}: {{ planFeatures(workspace.plan).join(', ') || '—' }}
-            </p>
-          </div>
-          <div class="flex items-center gap-1">
-            <UButton
-              v-if="workspace.memberCount === 0"
-              icon="i-ph-paper-plane-tilt"
-              size="sm"
-              color="neutral"
-              variant="ghost"
-              :loading="inviting === workspace.$id"
-              :data-workspace-invite="workspace.name"
-              @click="inviteOwner(workspace)"
-            >
-              {{ workspace.pendingInvite ? t('control.invite.resend') : t('control.invite.send') }}
-            </UButton>
-            <UButton icon="i-ph-credit-card" size="sm" color="neutral" variant="ghost" :data-workspace-plan-change="workspace.name" @click="openPlanChange(workspace)">
-              {{ t('control.workspaces.changePlan') }}
-            </UButton>
-            <UButton icon="i-ph-pencil-simple" size="sm" color="neutral" variant="ghost" :data-workspace-edit="workspace.name" @click="openEdit(workspace)">
-              {{ t('control.workspaces.edit') }}
-            </UButton>
-          </div>
-        </div>
-      </div>
+        <template #empty>
+          <CoreEmptyState
+            icon="i-ph-briefcase"
+            :title="t('control.workspaces.emptyTitle')"
+            :description="t('control.workspaces.empty')"
+            :action-label="t('control.workspaces.create')"
+            action-icon="i-ph-plus"
+            data-workspaces-empty
+            @action="() => { showCreate = true }"
+          />
+        </template>
+      </UTable>
 
       <!-- Stripe-Preise des Plan-Katalogs: editierbar per lookup_key-Transfer.
            Bestands-Abos behalten den alten Preis (Grandfathering-Hinweis). -->

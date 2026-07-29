@@ -48,7 +48,15 @@
       "defer": "Zurückstellen",
       "decline": "Ablehnen",
       "openSite": "Community öffnen",
-      "updateFailed": "Änderung fehlgeschlagen"
+      "updateFailed": "Änderung fehlgeschlagen",
+      "emptyTitle": "Niemand wartet",
+      "rowActions": "Aktionen für diese Anfrage",
+      "col": {
+        "email": "E-Mail",
+        "note": "Notiz",
+        "status": "Status",
+        "state": "Stand"
+      }
     },
     "invites": {
       "title": "Einladungs-Codes",
@@ -106,6 +114,14 @@
         "created": "{count} Plätze angelegt",
         "onlyFree": "{count} freie Plätze im Vorrat — noch nichts vergeben. Zugewiesene Codes erscheinen hier.",
         "truncated": "Mehr als 1000 Codes: die Zahlen sind eine Untergrenze."
+      },
+      "emptyTitle": "Keine Codes mit Vorgang",
+      "col": {
+        "code": "Code",
+        "state": "Zustand",
+        "recipient": "Empfänger",
+        "uses": "Nutzungen",
+        "expires": "Gültig bis"
       }
     },
     "sites": {
@@ -131,7 +147,15 @@
       "save": "Registrieren",
       "cancel": "Abbrechen",
       "running": "Läuft:",
-      "runningUnentitled": "Läuft ohne zugeteiltes Feature"
+      "runningUnentitled": "Läuft ohne zugeteiltes Feature",
+      "emptyTitle": "Noch keine Sites",
+      "rowActions": "Aktionen für diese Site",
+      "col": {
+        "site": "Site",
+        "state": "Status",
+        "features": "Produkte",
+        "workspace": "Workspace"
+      }
     },
     "jobs": {
       "newSite": "Neue Site",
@@ -146,7 +170,12 @@
       "create": "Job anlegen",
       "created": "Job für {name} angelegt — der Runner übernimmt.",
       "createFailed": "Job konnte nicht angelegt werden",
-      "log": "Log"
+      "log": "Log",
+      "col": {
+        "job": "Job",
+        "features": "Produkte",
+        "status": "Status"
+      }
     },
     "entitlements": {
       "manage": "Features",
@@ -187,7 +216,16 @@
       "intervalYearly": "Jährlich",
       "downgradeHint": "Downgrade: Abo in Stripe kündigen — zum Periodenende fällt der Workspace automatisch auf den kostenlosen Basic-Plan zurück.",
       "toCheckout": "Zum Checkout",
-      "checkoutFailed": "Checkout konnte nicht gestartet werden"
+      "checkoutFailed": "Checkout konnte nicht gestartet werden",
+      "emptyTitle": "Noch keine Workspaces",
+      "rowActions": "Aktionen für diesen Workspace",
+      "col": {
+        "workspace": "Workspace",
+        "owner": "Inhaber",
+        "plan": "Plan",
+        "status": "Status",
+        "sites": "Sites"
+      }
     },
     "invite": {
       "send": "Owner einladen",
@@ -271,6 +309,17 @@
         "basic": "Basic",
         "personal": "Personal",
         "pro": "Pro"
+      },
+      "emptyTitle": "Noch keine Mandanten",
+      "rowActions": "Aktionen für diesen Mandanten",
+      "confirmDeleteTitle": "Mandant löschen?",
+      "confirmDeleteText": "{host} endgültig löschen? Die Site ist danach nicht mehr erreichbar.",
+      "col": {
+        "site": "Site",
+        "mode": "Modus",
+        "tier": "Plan / Welle",
+        "registration": "Registrierung",
+        "status": "Status"
       }
     },
     "plans": {

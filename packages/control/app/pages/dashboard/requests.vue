@@ -10,6 +10,8 @@
  * neuen aus und sperrt den alten (denselben können wir nicht schicken, wir
  * kennen ihn nicht).
  */
+import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
+
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'sites.manage' })
 
 const { t, locale } = useI18n()
@@ -101,6 +103,47 @@ const statusColor: Record<RequestDto['status'], 'neutral' | 'info' | 'success' |
   declined: 'neutral',
   deferred: 'neutral',
 }
+
+const HIDE_MD = { td: 'hidden md:table-cell', th: 'hidden md:table-cell' }
+
+const columns = computed<TableColumn<RequestDto>[]>(() => [
+  { accessorKey: 'email', header: () => t('control.requests.col.email') },
+  { accessorKey: 'note', header: () => t('control.requests.col.note'), meta: { class: HIDE_MD } },
+  { accessorKey: 'status', header: () => t('control.requests.col.status') },
+  { id: 'state', header: () => t('control.requests.col.state') },
+  { id: 'actions', header: () => '' },
+])
+
+/**
+ * Zeilen-Aktionen — die Fallunterscheidung nach Status bleibt exakt die
+ * gleiche wie vorher in der Knopfleiste: eingelöst → Site öffnen, zugewiesen
+ * → erinnern (nur wenn canRemind), sonst zuweisen/zurückstellen/ablehnen.
+ */
+function rowActions(request: RequestDto): DropdownMenuItem[][] {
+  if (request.status === 'redeemed') {
+    return request.host
+      ? [[{ label: t('control.requests.openSite'), icon: 'i-ph-arrow-up-right', to: `https://${request.host}`, target: '_blank' }]]
+      : []
+  }
+  if (request.status === 'assigned') {
+    return [[{
+      label: t('control.requests.remind'),
+      icon: 'i-ph-bell-ringing',
+      disabled: !request.canRemind,
+      onSelect: () => { void assign(request) },
+    }]]
+  }
+  const items: DropdownMenuItem[] = [
+    { label: t('control.requests.assign'), icon: 'i-ph-paper-plane-tilt', onSelect: () => { void assign(request) } },
+  ]
+  if (request.status !== 'deferred') {
+    items.push({ label: t('control.requests.defer'), icon: 'i-ph-clock-counter-clockwise', onSelect: () => { void setStatus(request, 'deferred') } })
+  }
+  if (request.status !== 'declined') {
+    items.push({ label: t('control.requests.decline'), icon: 'i-ph-x', color: 'error', onSelect: () => { void setStatus(request, 'declined') } })
+  }
+  return [items]
+}
 </script>
 
 <template>
@@ -134,107 +177,76 @@ const statusColor: Record<RequestDto['status'], 'neutral' | 'info' | 'success' |
         </div>
       </div>
 
-      <p v-if="!requests.length" class="py-12 text-center text-sm text-muted" data-requests-empty>
-        {{ t('control.requests.empty') }}
-      </p>
-
-      <div v-else class="divide-y divide-default" data-requests-list>
-        <div v-for="request in requests" :key="request.id" class="flex flex-wrap items-start justify-between gap-3 py-4">
-          <div class="min-w-0 space-y-1">
-            <div class="flex flex-wrap items-center gap-2">
-              <p class="font-medium">{{ request.email }}</p>
-              <UBadge :color="statusColor[request.status]" variant="subtle" size="sm">
-                {{ t(`control.requests.status.${request.status}`) }}
-              </UBadge>
-              <UBadge v-if="request.reminders" color="neutral" variant="subtle" size="sm">
-                {{ t('control.requests.reminderCount', { count: request.reminders }) }}
-              </UBadge>
-            </div>
-
-            <p v-if="request.note" class="max-w-prose text-sm text-muted">„{{ request.note }}"</p>
-
-            <!-- Die eine Zeile, die sagt, was Sache ist -->
-            <p class="text-sm text-dimmed">
-              <template v-if="request.status === 'redeemed'">
-                {{ t('control.requests.redeemedOn', { date: formatDate(request.redeemedAt) }) }}
-                <template v-if="request.host">
-                  · <a :href="`https://${request.host}`" target="_blank" rel="noopener" class="font-mono hover:underline">{{ request.host }}</a>
-                </template>
-              </template>
-              <template v-else-if="request.status === 'assigned'">
-                {{ t('control.requests.assignedOn', { date: formatDate(request.assignedAt) }) }}
-                <template v-if="daysUntil(request.codeExpiresAt) !== null">
-                  ·
-                  <span :class="(daysUntil(request.codeExpiresAt) ?? 99) <= 3 ? 'text-warning' : ''">
-                    {{ (daysUntil(request.codeExpiresAt) ?? 0) > 0
-                      ? t('control.requests.codeExpiresIn', { days: daysUntil(request.codeExpiresAt) })
-                      : t('control.requests.codeExpired') }}
-                  </span>
-                </template>
-              </template>
-              <template v-else>
-                {{ t('control.requests.askedOn', { date: formatDate(request.createdAt) }) }}
-              </template>
+      <UTable :data="requests" :columns="columns" data-requests-list>
+        <template #email-cell="{ row }">
+          <div class="min-w-0">
+            <p class="font-medium">{{ row.original.email }}</p>
+            <p v-if="row.original.reminders" class="text-xs text-muted">
+              {{ t('control.requests.reminderCount', { count: row.original.reminders }) }}
             </p>
           </div>
-
-          <div class="flex flex-wrap items-center gap-2">
-            <template v-if="request.status === 'redeemed'">
-              <UButton
-                v-if="request.host"
-                :to="`https://${request.host}`"
-                external
-                target="_blank"
-                color="neutral"
-                variant="ghost"
-                size="sm"
-                trailing-icon="i-ph-arrow-up-right"
-                :label="t('control.requests.openSite')"
-              />
+        </template>
+        <template #note-cell="{ row }">
+          <p v-if="row.original.note" class="line-clamp-2 max-w-xs text-sm text-muted" :title="row.original.note">„{{ row.original.note }}"</p>
+          <span v-else class="text-muted">—</span>
+        </template>
+        <template #status-cell="{ row }">
+          <UBadge :color="statusColor[row.original.status]" variant="subtle" size="sm">
+            {{ t(`control.requests.status.${row.original.status}`) }}
+          </UBadge>
+        </template>
+        <!-- Die eine Zeile, die sagt, was Sache ist -->
+        <template #state-cell="{ row }">
+          <div class="text-sm text-dimmed">
+            <template v-if="row.original.status === 'redeemed'">
+              {{ t('control.requests.redeemedOn', { date: formatDate(row.original.redeemedAt) }) }}
+              <template v-if="row.original.host">
+                · <a :href="`https://${row.original.host}`" target="_blank" rel="noopener" class="font-mono hover:underline">{{ row.original.host }}</a>
+              </template>
             </template>
-
-            <template v-else-if="request.status === 'assigned'">
-              <UButton
-                :color="request.remindSuggested ? 'primary' : 'neutral'"
-                :variant="request.remindSuggested ? 'solid' : 'ghost'"
-                size="sm"
-                icon="i-ph-bell-ringing"
-                :loading="busy === request.id"
-                :disabled="!request.canRemind"
-                :title="!request.canRemind ? t(`control.requests.remindBlocked.${request.remindBlocked || 'cooldown'}`) : ''"
-                :label="t('control.requests.remind')"
-                @click="assign(request)"
-              />
+            <template v-else-if="row.original.status === 'assigned'">
+              {{ t('control.requests.assignedOn', { date: formatDate(row.original.assignedAt) }) }}
+              <template v-if="daysUntil(row.original.codeExpiresAt) !== null">
+                ·
+                <span :class="(daysUntil(row.original.codeExpiresAt) ?? 99) <= 3 ? 'text-warning' : ''">
+                  {{ (daysUntil(row.original.codeExpiresAt) ?? 0) > 0
+                    ? t('control.requests.codeExpiresIn', { days: daysUntil(row.original.codeExpiresAt) })
+                    : t('control.requests.codeExpired') }}
+                </span>
+              </template>
             </template>
-
             <template v-else>
-              <UButton
-                size="sm"
-                icon="i-ph-paper-plane-tilt"
-                :loading="busy === request.id"
-                :label="t('control.requests.assign')"
-                @click="assign(request)"
-              />
-              <UButton
-                v-if="request.status !== 'deferred'"
-                color="neutral"
-                variant="ghost"
-                size="sm"
-                :label="t('control.requests.defer')"
-                @click="setStatus(request, 'deferred')"
-              />
-              <UButton
-                v-if="request.status !== 'declined'"
-                color="neutral"
-                variant="ghost"
-                size="sm"
-                :label="t('control.requests.decline')"
-                @click="setStatus(request, 'declined')"
-              />
+              {{ t('control.requests.askedOn', { date: formatDate(row.original.createdAt) }) }}
             </template>
           </div>
-        </div>
-      </div>
+        </template>
+        <template #actions-cell="{ row }">
+          <div class="flex justify-end">
+            <UDropdownMenu v-if="rowActions(row.original).length" :items="rowActions(row.original)" :content="{ align: 'end' }">
+              <UButton
+                :icon="row.original.remindSuggested ? 'i-ph-bell-ringing' : 'i-ph-dots-three-vertical'"
+                :color="row.original.remindSuggested ? 'primary' : 'neutral'"
+                :variant="row.original.remindSuggested ? 'soft' : 'ghost'"
+                size="xs"
+                :aria-label="t('control.requests.rowActions')"
+                :loading="busy === row.original.id"
+                :title="row.original.status === 'assigned' && !row.original.canRemind
+                  ? t(`control.requests.remindBlocked.${row.original.remindBlocked || 'cooldown'}`)
+                  : ''"
+              />
+            </UDropdownMenu>
+          </div>
+        </template>
+
+        <template #empty>
+          <CoreEmptyState
+            icon="i-ph-envelope-simple"
+            :title="t('control.requests.emptyTitle')"
+            :description="t('control.requests.empty')"
+            data-requests-empty
+          />
+        </template>
+      </UTable>
     </template>
   </UDashboardPanel>
 </template>
