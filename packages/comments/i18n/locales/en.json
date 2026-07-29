@@ -55,9 +55,13 @@
       "targetTypesHelp": "Comma-separated, e.g. blog, page — empty = all content types allowed.",
       "targetTypesPlaceholder": "blog, page",
       "allTargetTypes": "all targetTypes",
-      "activeBadge": "active",
-      "activeToggle": "Active",
-      "inactiveBadge": "off",
+      "emptyTitle": "No domains registered",
+      "col": {
+        "host": "Domain",
+        "label": "Display name",
+        "targets": "Content types",
+        "active": "Active"
+      },
       "enable": "Enable",
       "disable": "Disable",
       "delete": "Delete",

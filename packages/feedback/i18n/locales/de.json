@@ -28,7 +28,18 @@
       "open": "Offen",
       "resolved": "Erledigt",
       "empty": "Nichts da — entweder alles erledigt oder noch kein Feedback.",
+      "emptyTitle": "Kein Feedback",
       "guest": "Gast",
+      "search": "Suchen",
+      "searchPlaceholder": "Feedback durchsuchen …",
+      "rowActions": "Aktionen für diese Rückmeldung",
+      "col": {
+        "category": "Kategorie",
+        "message": "Nachricht",
+        "from": "Von",
+        "page": "Seite",
+        "date": "Datum"
+      },
       "markResolved": "Erledigt",
       "reopen": "Wieder öffnen",
       "deleted": "Feedback gelöscht.",

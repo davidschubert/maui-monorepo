@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { TableColumn } from '@nuxt/ui'
+
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'system.manage' })
 
 const { t } = useI18n()
@@ -10,6 +12,16 @@ interface EmbedSiteDto { id: string, host: string, label: string, targetTypes: s
 
 const { data, refresh } = await useFetch<{ total: number, sites: EmbedSiteDto[] }>('/api/admin/embed-sites', { lazy: true, server: false })
 const sites = computed(() => data.value?.sites ?? [])
+
+const HIDE_SM = { td: 'hidden sm:table-cell', th: 'hidden sm:table-cell' }
+
+const columns = computed<TableColumn<EmbedSiteDto>[]>(() => [
+  { accessorKey: 'host', header: () => t('comments.embedAdmin.col.host') },
+  { accessorKey: 'label', header: () => t('comments.embedAdmin.col.label'), meta: { class: HIDE_SM } },
+  { id: 'targets', header: () => t('comments.embedAdmin.col.targets'), meta: { class: HIDE_SM } },
+  { accessorKey: 'active', header: () => t('comments.embedAdmin.col.active') },
+  { id: 'actions', header: () => '' },
+])
 
 const showCreate = ref(false)
 const saving = ref(false)
@@ -105,36 +117,52 @@ async function removeSite(site: EmbedSiteDto) {
     <template #body>
       <p class="mb-4 text-sm text-muted">{{ t('comments.embedAdmin.subtitle') }}</p>
 
-      <p v-if="!sites.length" class="py-12 text-center text-sm text-muted" data-embed-sites-empty>
-        {{ t('comments.embedAdmin.empty') }}
-      </p>
-      <div v-else class="divide-y divide-default" data-embed-sites-list>
-        <div v-for="site in sites" :key="site.id" class="flex flex-wrap items-center justify-between gap-3 py-4" :data-embed-site="site.host">
-          <div class="min-w-0">
-            <div class="flex flex-wrap items-center gap-2">
-              <p class="font-medium font-mono">{{ site.host }}</p>
-              <UBadge :color="site.active ? 'success' : 'neutral'" variant="subtle" size="sm">
-                {{ site.active ? t('comments.embedAdmin.activeBadge') : t('comments.embedAdmin.inactiveBadge') }}
-              </UBadge>
-            </div>
-            <p class="mt-0.5 truncate text-sm text-muted">
-              <template v-if="site.label">{{ site.label }} · </template>
-              {{ site.targetTypes.length ? site.targetTypes.join(', ') : t('comments.embedAdmin.allTargetTypes') }}
-            </p>
-          </div>
-          <div class="flex items-center gap-3">
-            <USwitch
-              :model-value="site.active"
-              :disabled="pending === site.id"
-              :aria-label="site.active ? t('comments.embedAdmin.disable') : t('comments.embedAdmin.enable')"
-              :label="t('comments.embedAdmin.activeToggle')"
-              :data-embed-site-toggle="site.host"
-              @update:model-value="() => toggleActive(site)"
+      <UTable :data="sites" :columns="columns" data-embed-sites-list>
+        <template #host-cell="{ row }">
+          <span class="font-mono font-medium" :data-embed-site="row.original.host">{{ row.original.host }}</span>
+        </template>
+        <template #label-cell="{ row }">
+          <span class="text-sm text-muted">{{ row.original.label || '—' }}</span>
+        </template>
+        <template #targets-cell="{ row }">
+          <span class="text-sm text-muted">
+            {{ row.original.targetTypes.length ? row.original.targetTypes.join(', ') : t('comments.embedAdmin.allTargetTypes') }}
+          </span>
+        </template>
+        <template #active-cell="{ row }">
+          <USwitch
+            :model-value="row.original.active"
+            :disabled="pending === row.original.id"
+            :aria-label="row.original.active ? t('comments.embedAdmin.disable') : t('comments.embedAdmin.enable')"
+            :data-embed-site-toggle="row.original.host"
+            @update:model-value="() => toggleActive(row.original)"
+          />
+        </template>
+        <template #actions-cell="{ row }">
+          <div class="flex justify-end">
+            <UButton
+              color="error"
+              variant="ghost"
+              size="xs"
+              icon="i-ph-trash"
+              :aria-label="t('comments.embedAdmin.delete')"
+              @click="() => removeSite(row.original)"
             />
-            <UButton color="error" variant="soft" size="sm" icon="i-ph-trash" :aria-label="t('comments.embedAdmin.delete')" @click="() => removeSite(site)" />
           </div>
-        </div>
-      </div>
+        </template>
+
+        <template #empty>
+          <CoreEmptyState
+            icon="i-ph-code"
+            :title="t('comments.embedAdmin.emptyTitle')"
+            :description="t('comments.embedAdmin.empty')"
+            :action-label="t('comments.embedAdmin.new')"
+            action-icon="i-ph-plus"
+            data-embed-sites-empty
+            @action="openCreate"
+          />
+        </template>
+      </UTable>
     </template>
   </UDashboardPanel>
 

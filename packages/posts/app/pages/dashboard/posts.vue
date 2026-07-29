@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
 import type { CommunityPost, PostModerationAssist, PostModerationResponse } from '../../../shared/types/post'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'posts.moderate' })
@@ -75,6 +76,46 @@ function snippet(post: CommunityPost): string {
   const text = post.title || post.body
   return text.length > 120 ? `${text.slice(0, 120)}…` : text
 }
+
+function typeLabel(post: CommunityPost): string {
+  return t(`posts.composer.type${post.type === 'poll' ? 'Poll' : post.type === 'question' ? 'Question' : 'Post'}`)
+}
+
+// Autor und Typ sind Kontext — auf schmalen Schirmen fallen sie weg.
+const HIDE_SM = { td: 'hidden sm:table-cell', th: 'hidden sm:table-cell' }
+const HIDE_MD = { td: 'hidden md:table-cell', th: 'hidden md:table-cell' }
+
+const columns = computed<TableColumn<CommunityPost>[]>(() => [
+  { id: 'post', header: () => t('posts.moderation.col.post') },
+  { accessorKey: 'authorName', header: () => t('posts.moderation.col.author'), meta: { class: HIDE_SM } },
+  { accessorKey: 'type', header: () => t('posts.moderation.col.type'), meta: { class: HIDE_MD } },
+  { id: 'state', header: () => t('posts.moderation.col.state') },
+  { accessorKey: '$createdAt', header: () => t('posts.moderation.col.date'), id: 'createdAt', meta: { class: HIDE_MD } },
+  { id: 'actions', header: () => '' },
+])
+
+/** Wartende Beiträge: dieselbe Tabelle, nur ohne Aktionen (sie sind noch nicht da). */
+const scheduledColumns = computed<TableColumn<CommunityPost>[]>(() => [
+  { id: 'post', header: () => t('posts.moderation.col.post') },
+  { accessorKey: 'authorName', header: () => t('posts.moderation.col.author'), meta: { class: HIDE_SM } },
+  { id: 'scheduledAt', header: () => t('posts.moderation.col.scheduled') },
+])
+
+/**
+ * Zeilen-Aktionen. Der KI-Assist bleibt an dieselben zwei Bedingungen
+ * gebunden wie zuvor: gemeldeter Beitrag UND vom Server gemeldete
+ * KI-Verfügbarkeit (data.aiAssist).
+ */
+function rowActions(post: CommunityPost): DropdownMenuItem[][] {
+  const items: DropdownMenuItem[] = []
+  if (data.value?.reportCounts[post.$id] && data.value?.aiAssist) {
+    items.push({ label: t('posts.moderation.assist.button'), icon: 'i-ph-sparkle', onSelect: () => { void requestAssist(post) } })
+  }
+  items.push(post.status === 'hidden'
+    ? { label: t('posts.moderation.restore'), icon: 'i-ph-eye', color: 'success', onSelect: () => { void setHidden(post, false) } }
+    : { label: t('posts.moderation.hide'), icon: 'i-ph-eye-slash', color: 'error', onSelect: () => { void setHidden(post, true) } })
+  return [items]
+}
 </script>
 
 <template>
@@ -104,71 +145,96 @@ function snippet(post: CommunityPost): string {
         <div v-else class="space-y-8">
           <section v-if="scheduled.length > 0" data-mod-scheduled>
             <h2 class="mb-2 font-semibold">{{ t('posts.moderation.queue') }}</h2>
-            <ul class="divide-y divide-default">
-              <li v-for="post in scheduled" :key="post.$id" class="flex items-center gap-3 py-2 text-sm">
-                <UIcon name="i-ph-clock" class="size-4 shrink-0 text-muted" />
-                <span class="min-w-0 flex-1 truncate">{{ snippet(post) }}</span>
-                <span class="shrink-0 text-xs text-muted">{{ post.authorName }}</span>
-                <span class="shrink-0 text-xs text-dimmed">{{ post.scheduledAt ? formatRelativeTime(post.scheduledAt) : '' }}</span>
-              </li>
-            </ul>
+            <UTable :data="scheduled" :columns="scheduledColumns">
+              <template #post-cell="{ row }">
+                <span class="flex items-center gap-2">
+                  <UIcon name="i-ph-clock" class="size-4 shrink-0 text-muted" />
+                  <span class="block max-w-md truncate">{{ snippet(row.original) }}</span>
+                </span>
+              </template>
+              <template #authorName-cell="{ row }">
+                <span class="text-sm text-muted">{{ row.original.authorName }}</span>
+              </template>
+              <template #scheduledAt-cell="{ row }">
+                <span class="whitespace-nowrap text-sm text-dimmed">
+                  {{ row.original.scheduledAt ? formatRelativeTime(row.original.scheduledAt) : '—' }}
+                </span>
+              </template>
+            </UTable>
           </section>
 
           <section data-mod-posts>
             <h2 class="mb-2 font-semibold">{{ t('posts.moderation.recent') }}</h2>
-            <p v-if="visible.length === 0" class="text-sm text-muted">{{ t('posts.moderation.empty') }}</p>
-            <ul v-else class="divide-y divide-default">
-              <li v-for="post in visible" :key="post.$id" class="py-2 text-sm" :data-mod-post="post.$id">
-                <div class="flex items-center gap-3">
-                  <div class="min-w-0 flex-1">
-                    <p class="truncate">{{ snippet(post) }}</p>
-                    <p class="text-xs text-muted">
-                      {{ post.authorName }} · {{ t(`posts.composer.type${post.type === 'poll' ? 'Poll' : post.type === 'question' ? 'Question' : 'Post'}`) }}
-                      · {{ formatRelativeTime(post.$createdAt) }}
-                    </p>
-                  </div>
-                  <UBadge v-if="data?.reportCounts[post.$id]" color="warning" variant="subtle" size="sm" data-mod-reported>
-                    {{ t('posts.moderation.reports', { count: data.reportCounts[post.$id] }) }}
+            <UTable :data="visible" :columns="columns">
+              <template #post-cell="{ row }">
+                <div class="max-w-md min-w-0" :data-mod-post="row.original.$id">
+                  <p class="truncate" :title="row.original.title || row.original.body">{{ snippet(row.original) }}</p>
+                  <UAlert
+                    v-if="assistFor(row.original.$id)"
+                    class="mt-2"
+                    :color="assistFor(row.original.$id)!.action === 'hide' ? 'warning' : 'success'"
+                    variant="subtle"
+                    icon="i-ph-sparkle"
+                    :title="t(`posts.moderation.assist.action.${assistFor(row.original.$id)!.action}`, { severity: assistFor(row.original.$id)!.severity })"
+                    :description="assistFor(row.original.$id)!.assessment"
+                    data-mod-assist-result
+                  />
+                </div>
+              </template>
+              <template #authorName-cell="{ row }">
+                <span class="text-sm text-muted">{{ row.original.authorName }}</span>
+              </template>
+              <template #type-cell="{ row }">
+                <span class="whitespace-nowrap text-sm text-muted">{{ typeLabel(row.original) }}</span>
+              </template>
+              <template #state-cell="{ row }">
+                <div class="flex flex-wrap items-center gap-1">
+                  <UBadge v-if="data?.reportCounts[row.original.$id]" color="warning" variant="subtle" size="sm" data-mod-reported>
+                    {{ t('posts.moderation.reports', { count: data.reportCounts[row.original.$id] }) }}
                   </UBadge>
-                  <UBadge v-if="post.status === 'hidden'" color="error" variant="subtle" size="sm">
+                  <UBadge v-if="row.original.status === 'hidden'" color="error" variant="subtle" size="sm">
                     {{ t('posts.moderation.hiddenBadge') }}
                   </UBadge>
-                  <UButton
-                    v-if="data?.reportCounts[post.$id] && data?.aiAssist"
-                    color="neutral"
-                    variant="ghost"
-                    size="xs"
-                    icon="i-ph-sparkle"
-                    :loading="assistBusy === post.$id"
-                    :data-mod-assist="post.$id"
-                    @click="requestAssist(post)"
-                  >
-                    {{ t('posts.moderation.assist.button') }}
-                  </UButton>
-                  <UButton
-                    :color="post.status === 'hidden' ? 'success' : 'error'"
-                    variant="ghost"
-                    size="xs"
-                    :icon="post.status === 'hidden' ? 'i-ph-eye' : 'i-ph-eye-slash'"
-                    :loading="busyId === post.$id"
-                    :data-mod-toggle="post.$id"
-                    @click="setHidden(post, post.status !== 'hidden')"
-                  >
-                    {{ post.status === 'hidden' ? t('posts.moderation.restore') : t('posts.moderation.hide') }}
-                  </UButton>
+                  <span v-if="!data?.reportCounts[row.original.$id] && row.original.status !== 'hidden'" class="text-muted">—</span>
                 </div>
-                <UAlert
-                  v-if="assistFor(post.$id)"
-                  class="mt-2"
-                  :color="assistFor(post.$id)!.action === 'hide' ? 'warning' : 'success'"
-                  variant="subtle"
-                  icon="i-ph-sparkle"
-                  :title="t(`posts.moderation.assist.action.${assistFor(post.$id)!.action}`, { severity: assistFor(post.$id)!.severity })"
-                  :description="assistFor(post.$id)!.assessment"
-                  data-mod-assist-result
+              </template>
+              <template #createdAt-cell="{ row }">
+                <span class="whitespace-nowrap text-sm text-muted">{{ formatRelativeTime(row.original.$createdAt) }}</span>
+              </template>
+              <template #actions-cell="{ row }">
+                <div class="flex justify-end">
+                  <UDropdownMenu :items="rowActions(row.original)" :content="{ align: 'end' }">
+                    <UButton
+                      icon="i-ph-dots-three-vertical"
+                      color="neutral"
+                      variant="ghost"
+                      size="xs"
+                      :aria-label="t('posts.moderation.rowActions')"
+                      :loading="busyId === row.original.$id || assistBusy === row.original.$id"
+                      :data-mod-toggle="row.original.$id"
+                    />
+                  </UDropdownMenu>
+                </div>
+              </template>
+
+              <template #empty>
+                <CoreEmptyState
+                  v-if="typeFilter !== 'all'"
+                  icon="i-ph-funnel"
+                  :title="t('ui.empty.noResultsTitle')"
+                  :description="t('ui.empty.noResultsText')"
+                  :action-label="t('ui.empty.resetFilters')"
+                  action-icon="i-ph-arrow-counter-clockwise"
+                  @action="() => { typeFilter = 'all' }"
                 />
-              </li>
-            </ul>
+                <CoreEmptyState
+                  v-else
+                  icon="i-ph-article"
+                  :title="t('posts.moderation.emptyTitle')"
+                  :description="t('posts.moderation.empty')"
+                />
+              </template>
+            </UTable>
           </section>
         </div>
       </ClientOnly>

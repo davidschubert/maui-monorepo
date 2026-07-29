@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { AdminUserDetailResponse } from '../../../../shared/types/admin'
+import type { TableColumn } from '@nuxt/ui'
+import type { AdminUserActivity, AdminUserDetailResponse } from '../../../../shared/types/admin'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'users.manage' })
 
@@ -73,6 +74,16 @@ function exactDateTime(iso: string): string {
     day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false,
   })
 }
+
+// Aktivitätsprotokoll als Tabelle — dieselben vier kompakten Spalten wie in
+// der SessionsTable direkt darüber (B6: eine Karte, zwei Bauweisen war der
+// auffälligste Bruch auf dieser Seite).
+const activityColumns = computed<TableColumn<AdminUserActivity>[]>(() => [
+  { accessorKey: 'event', header: () => t('admin.users.detail.activity.col.event') },
+  { id: 'client', header: () => t('admin.users.detail.activity.col.client') },
+  { id: 'location', header: () => t('admin.users.detail.activity.col.location') },
+  { accessorKey: 'time', header: () => t('admin.users.detail.activity.col.time') },
+])
 
 async function copyId() {
   if (!user.value) return
@@ -311,35 +322,56 @@ async function runUserAction(type: UserAction) {
             </UPageCard>
 
             <!-- Aktivitätsprotokoll (Appwrite users.listLogs — auch beendete Sessions) -->
-            <UPageCard variant="subtle">
+            <!-- min-w-0 wie bei den Sessions: sonst wächst die Karte auf
+                 Inhaltsbreite der Tabelle statt sie scrollen zu lassen -->
+            <UPageCard variant="subtle" :ui="{ container: 'min-w-0' }">
               <div class="mb-3 flex items-center justify-between">
                 <h3 class="font-semibold">{{ t('admin.users.detail.activity.title') }}</h3>
                 <UBadge color="neutral" variant="subtle">{{ data?.activity.length ?? 0 }}</UBadge>
               </div>
-              <p v-if="(data?.activity.length ?? 0) === 0" class="text-sm text-muted">{{ t('admin.users.detail.activity.empty') }}</p>
-              <ul v-else class="space-y-2.5">
-                <li v-for="(log, index) in data?.activity" :key="index" class="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-default/60 pb-2.5 text-sm last:border-0 last:pb-0">
-                  <UBadge color="neutral" variant="subtle" size="sm" class="font-mono">{{ log.event }}</UBadge>
-                  <span class="text-xs text-muted" :title="exactDateTime(log.time)">{{ formatRelativeTime(log.time) }}</span>
-                  <span class="flex items-center gap-1 text-xs text-muted">
-                    <UIcon :name="flagIcon(log.countryCode)" class="size-3.5 shrink-0" />
-                    {{ log.countryName || t('account.sessions.unknown') }}
+              <UTable :data="data?.activity ?? []" :columns="activityColumns" data-user-activity>
+                <template #event-cell="{ row }">
+                  <UBadge color="neutral" variant="subtle" size="sm" class="font-mono">{{ row.original.event }}</UBadge>
+                </template>
+                <template #client-cell="{ row }">
+                  <div class="flex min-w-0 flex-col gap-1 text-xs text-muted">
+                    <span v-if="row.original.clientName" class="flex items-center gap-1.5">
+                      <UIcon :name="browserIcon(row.original.clientName)" class="size-3.5 shrink-0" />
+                      <span class="truncate">{{ [row.original.clientName, row.original.clientVersion].filter(Boolean).join(' ') }}</span>
+                    </span>
+                    <span v-if="row.original.osName" class="flex items-center gap-1.5">
+                      <UIcon :name="osIcon(row.original.osName)" class="size-3.5 shrink-0" />
+                      <span class="truncate">{{ [row.original.osName, row.original.osVersion].filter(Boolean).join(' ') }}</span>
+                    </span>
+                    <span v-if="row.original.deviceName" class="flex items-center gap-1.5">
+                      <UIcon :name="deviceIcon(row.original.deviceName)" class="size-3.5 shrink-0" />
+                      <span class="truncate">{{ row.original.deviceName }}</span>
+                    </span>
+                  </div>
+                </template>
+                <template #location-cell="{ row }">
+                  <div class="flex min-w-0 flex-col gap-1 text-xs">
+                    <span class="flex items-center gap-1.5 text-muted">
+                      <UIcon :name="flagIcon(row.original.countryCode)" class="size-3.5 shrink-0" />
+                      <span class="truncate">{{ row.original.countryName || t('account.sessions.unknown') }}</span>
+                    </span>
+                    <span class="truncate font-mono text-dimmed">{{ row.original.ip || '—' }}</span>
+                  </div>
+                </template>
+                <template #time-cell="{ row }">
+                  <span class="whitespace-nowrap text-xs text-muted" :title="exactDateTime(row.original.time)">
+                    {{ formatRelativeTime(row.original.time) }}
                   </span>
-                  <span class="font-mono text-xs text-dimmed">{{ log.ip }}</span>
-                  <span v-if="log.clientName" class="flex items-center gap-1 text-xs text-muted">
-                    <UIcon :name="browserIcon(log.clientName)" class="size-3.5 shrink-0" />
-                    {{ [log.clientName, log.clientVersion].filter(Boolean).join(' ') }}
-                  </span>
-                  <span v-if="log.osName" class="flex items-center gap-1 text-xs text-muted">
-                    <UIcon :name="osIcon(log.osName)" class="size-3.5 shrink-0" />
-                    {{ [log.osName, log.osVersion].filter(Boolean).join(' ') }}
-                  </span>
-                  <span v-if="log.deviceName" class="flex items-center gap-1 text-xs text-muted">
-                    <UIcon :name="deviceIcon(log.deviceName)" class="size-3.5 shrink-0" />
-                    {{ log.deviceName }}
-                  </span>
-                </li>
-              </ul>
+                </template>
+
+                <template #empty>
+                  <CoreEmptyState
+                    icon="i-ph-clock-counter-clockwise"
+                    :title="t('admin.users.detail.activity.emptyTitle')"
+                    :description="t('admin.users.detail.activity.empty')"
+                  />
+                </template>
+              </UTable>
             </UPageCard>
           </div>
 

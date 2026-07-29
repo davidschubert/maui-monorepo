@@ -14,6 +14,18 @@
       "empty": "Noch keine Medien — lade dein erstes Bild hoch.",
       "featured": "Hervorgehoben",
       "draft": "Entwurf",
+      "published": "Sichtbar",
+      "publish": "Veröffentlichen",
+      "unpublish": "Zurückziehen",
+      "searchPlaceholder": "Medien durchsuchen …",
+      "rowActions": "Aktionen für dieses Bild",
+      "col": {
+        "preview": "Vorschau",
+        "title": "Titel",
+        "subtitle": "Untertitel",
+        "state": "Status",
+        "uploaded": "Hochgeladen"
+      },
       "edit": "Bearbeiten",
       "editTitle": "Medien-Eintrag bearbeiten",
       "fieldTitle": "Titel",

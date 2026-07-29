@@ -5,7 +5,7 @@
  * Studio-Editor-Seite (/dashboard/themes/new bzw. /:id).
  * Registriert via maui.admin.modules (Layer-Vertrag, A14).
  */
-import type { DropdownMenuItem } from '@nuxt/ui'
+import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
 import type { CustomThemeDto, ThemeSettings } from '../../../../shared/ramp'
 import { THEME_REGISTRY } from '../../../utils/themeRegistry'
 import { customThemeAttr, customThemeCss } from '../../../../shared/ramp'
@@ -120,6 +120,31 @@ function isActive(id: string): boolean {
 }
 
 // 3-Punkte-Menü pro Karte: alle Aktionen gebündelt (Karte selbst = Wechseln)
+/**
+ * Galerie als Tabelle (Davids Entscheidung 2026-07-28: EIN Konzept, überall).
+ * Der visuelle Charakter bleibt in der Vorschau-Spalte: die Farbkreise sind
+ * dieselben, und sie bleiben klickbar (UTable ignoriert Klicks auf Buttons
+ * und Links beim Zeilen-Klick — der Zeilen-Klick wählt das Theme, der
+ * Kreis-Klick zusätzlich die Variante).
+ */
+const galleryColumns = computed<TableColumn<GalleryEntry>[]>(() => [
+  { id: 'swatches', header: () => t('themes.studio.col.preview') },
+  { accessorKey: 'name', header: () => t('themes.studio.col.theme') },
+  { id: 'actions', header: () => '' },
+])
+
+// Aktive Zeile hervorheben, ausgeblendete Themes dimmen — dieselbe Aussage
+// wie vorher der Ring bzw. die Deckkraft an der Karte.
+const galleryMeta = computed(() => ({
+  class: {
+    tr: (row: { original: GalleryEntry }) => [
+      'cursor-pointer',
+      isActive(row.original.id) ? 'bg-elevated' : '',
+      row.original.hidden ? 'opacity-50' : '',
+    ].filter(Boolean).join(' '),
+  },
+}))
+
 function cardMenu(entry: GalleryEntry): DropdownMenuItem[][] {
   const isDefault = (variantId?: string) =>
     effectiveDefaultId.value === entry.id && (settings.value.defaultVariantId ?? undefined) === variantId
@@ -370,62 +395,60 @@ async function importTheme(event: Event) {
         <!-- Galerie -->
         <section>
           <h2 class="mb-3 font-semibold">{{ t('themes.studio.gallery') }}</h2>
-          <div class="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-1">
-            <UPageCard
-              v-for="entry in galleryThemes"
-              :key="entry.id"
-              variant="subtle"
-              class="cursor-pointer transition"
-              :class="[isActive(entry.id) ? 'ring-2 ring-primary' : 'hover:ring-accented', entry.hidden ? 'opacity-50' : '']"
-              :ui="{ container: 'min-w-0 p-4 sm:p-4' }"
-              @click="setTheme(entry.id)"
-            >
-              <div class="flex items-start justify-between gap-2">
-                <div class="min-w-0 space-y-2.5">
-                  <!-- Zeile 1: Name (+ dezente Status-Badges) -->
-                  <div class="flex min-w-0 items-center gap-2">
-                    <span class="truncate font-medium">{{ entry.name }}</span>
-                    <UBadge v-if="entry.isCustom" color="neutral" variant="subtle" size="sm">{{ t('themes.studio.customBadge') }}</UBadge>
-                    <UBadge v-if="effectiveDefaultId === entry.id" color="info" variant="subtle" size="sm">
-                      {{ settings.defaultVariantId ? `${t('themes.studio.defaultBadge')} · ${capitalize(settings.defaultVariantId)}` : t('themes.studio.defaultBadge') }}
-                    </UBadge>
-                    <UIcon v-if="entry.hidden" name="i-ph-eye-slash" class="size-4 shrink-0 text-muted" />
-                  </div>
-                  <!-- Zeile 2: Farben als Kreise (Basis + Varianten) -->
-                  <div class="flex flex-wrap items-center gap-1.5" @click.stop>
-                    <button
-                      type="button"
-                      class="size-6 rounded-full transition"
-                      :class="isActive(entry.id) && variant === null ? 'ring-2 ring-primary ring-offset-2 ring-offset-default' : 'ring-1 ring-default hover:ring-2'"
-                      :style="{ backgroundColor: entry.color }"
-                      :title="t('themes.variantDefault')"
-                      :aria-label="t('themes.variantDefault')"
-                      @click="setTheme(entry.id)"
-                    />
-                    <button
-                      v-for="v in entry.variants"
-                      :key="v.id"
-                      type="button"
-                      class="size-6 rounded-full transition"
-                      :class="isActive(entry.id) && variant === v.id ? 'ring-2 ring-primary ring-offset-2 ring-offset-default' : 'ring-1 ring-default hover:ring-2'"
-                      :style="{ backgroundColor: v.color }"
-                      :title="capitalize(v.id)"
-                      :aria-label="capitalize(v.id)"
-                      @click="() => { setTheme(entry.id); setVariant(v.id) }"
-                    />
-                  </div>
-                </div>
-                <!-- Alle Aktionen im 3-Punkte-Menü -->
-                <UDropdownMenu :items="cardMenu(entry)" :content="{ align: 'end' }">
+          <UTable
+            :data="galleryThemes"
+            :columns="galleryColumns"
+            :meta="galleryMeta"
+            data-themes-gallery
+            @select="(_event: Event, row: { original: GalleryEntry }) => setTheme(row.original.id)"
+          >
+            <!-- Vorschau: Basis + Varianten als Farbkreise -->
+            <template #swatches-cell="{ row }">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <button
+                  type="button"
+                  class="size-6 rounded-full transition"
+                  :class="isActive(row.original.id) && variant === null ? 'ring-2 ring-primary ring-offset-2 ring-offset-default' : 'ring-1 ring-default hover:ring-2'"
+                  :style="{ backgroundColor: row.original.color }"
+                  :title="t('themes.variantDefault')"
+                  :aria-label="t('themes.variantDefault')"
+                  @click="setTheme(row.original.id)"
+                />
+                <button
+                  v-for="v in row.original.variants"
+                  :key="v.id"
+                  type="button"
+                  class="size-6 rounded-full transition"
+                  :class="isActive(row.original.id) && variant === v.id ? 'ring-2 ring-primary ring-offset-2 ring-offset-default' : 'ring-1 ring-default hover:ring-2'"
+                  :style="{ backgroundColor: v.color }"
+                  :title="capitalize(v.id)"
+                  :aria-label="capitalize(v.id)"
+                  @click="() => { setTheme(row.original.id); setVariant(v.id) }"
+                />
+              </div>
+            </template>
+            <template #name-cell="{ row }">
+              <div class="flex min-w-0 flex-wrap items-center gap-2">
+                <span class="truncate font-medium">{{ row.original.name }}</span>
+                <UBadge v-if="row.original.isCustom" color="neutral" variant="subtle" size="sm">{{ t('themes.studio.customBadge') }}</UBadge>
+                <UBadge v-if="effectiveDefaultId === row.original.id" color="info" variant="subtle" size="sm">
+                  {{ settings.defaultVariantId ? `${t('themes.studio.defaultBadge')} · ${capitalize(settings.defaultVariantId)}` : t('themes.studio.defaultBadge') }}
+                </UBadge>
+                <UIcon v-if="row.original.hidden" name="i-ph-eye-slash" class="size-4 shrink-0 text-muted" />
+              </div>
+            </template>
+            <!-- Alle Aktionen im 3-Punkte-Menü -->
+            <template #actions-cell="{ row }">
+              <div class="flex justify-end">
+                <UDropdownMenu :items="cardMenu(row.original)" :content="{ align: 'end' }">
                   <UButton
                     icon="i-ph-dots-three-vertical" size="xs" color="neutral" variant="ghost"
                     :aria-label="t('themes.studio.cardActions')"
-                    @click.stop
                   />
                 </UDropdownMenu>
               </div>
-            </UPageCard>
-          </div>
+            </template>
+          </UTable>
           <p class="mt-2 text-xs text-muted">{{ t('themes.studio.galleryHint') }}</p>
         </section>
         </div>

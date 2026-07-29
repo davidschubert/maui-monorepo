@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { EditorToolbarItem, FormSubmitEvent } from '@nuxt/ui'
+import type { DropdownMenuItem, EditorToolbarItem, FormSubmitEvent, TableColumn } from '@nuxt/ui'
 import { z } from 'zod'
 import type { ChangelogEntry, ChangelogListResponse } from '../../../../shared/types/admin'
 
@@ -116,6 +116,25 @@ async function remove(entry: ChangelogEntry) {
     toast.add({ title: t('admin.users.actionFailed'), color: 'error' })
   }
 }
+
+const HIDE_SM = { td: 'hidden sm:table-cell', th: 'hidden sm:table-cell' }
+const HIDE_MD = { td: 'hidden md:table-cell', th: 'hidden md:table-cell' }
+
+const columns = computed<TableColumn<ChangelogEntry>[]>(() => [
+  { accessorKey: 'category', header: () => t('admin.changelog.col.category'), meta: { class: HIDE_SM } },
+  { id: 'entry', header: () => t('admin.changelog.col.entry') },
+  { accessorKey: 'version', header: () => t('admin.changelog.col.version'), meta: { class: HIDE_MD } },
+  { id: 'state', header: () => t('admin.changelog.col.state') },
+  { accessorKey: 'date', header: () => t('admin.changelog.col.date') },
+  { id: 'actions', header: () => '' },
+])
+
+function rowActions(entry: ChangelogEntry): DropdownMenuItem[][] {
+  return [
+    [{ label: t('admin.changelog.edit'), icon: 'i-ph-pencil-simple', onSelect: () => openEdit(entry) }],
+    [{ label: t('admin.changelog.delete'), icon: 'i-ph-trash', color: 'error', onSelect: () => { void remove(entry) } }],
+  ]
+}
 </script>
 
 <template>
@@ -134,25 +153,59 @@ async function remove(entry: ChangelogEntry) {
       :description="t('admin.presence.alsoEditingHint')"
     />
 
-    <p v-if="!entries.length" class="text-sm text-muted">{{ t('admin.changelog.empty') }}</p>
-
-    <ul v-else class="space-y-3">
-      <li v-for="entry in entries" :key="entry.$id" class="rounded-lg border border-default p-4">
-        <div class="flex flex-wrap items-center gap-2">
-          <UBadge :color="categoryColor(entry.category)" variant="subtle" size="sm">{{ t(`admin.changelog.category.${entry.category || 'feature'}`) }}</UBadge>
-          <span class="font-semibold">{{ localized(entry, 'title') }}</span>
-          <UBadge v-if="entry.version" color="neutral" variant="subtle" size="sm">{{ entry.version }}</UBadge>
-          <UBadge v-if="!entry.published" color="warning" variant="subtle" size="sm">{{ t('admin.changelog.draft') }}</UBadge>
-          <UBadge v-if="!entry.titleEn || !entry.bodyEn" color="warning" variant="subtle" size="sm">{{ t('admin.changelog.missingEn') }}</UBadge>
-          <span class="text-xs text-muted">{{ fmtDate(entry.date || entry.$createdAt) }}</span>
-          <div class="ms-auto flex gap-1">
-            <UButton size="xs" color="neutral" variant="ghost" icon="i-ph-pencil-simple" @click="openEdit(entry)">{{ t('admin.changelog.edit') }}</UButton>
-            <UButton size="xs" color="error" variant="ghost" icon="i-ph-trash" @click="remove(entry)">{{ t('admin.changelog.delete') }}</UButton>
-          </div>
+    <UTable :data="entries" :columns="columns" data-changelog-table>
+      <template #category-cell="{ row }">
+        <UBadge :color="categoryColor(row.original.category)" variant="subtle" size="sm">
+          {{ t(`admin.changelog.category.${row.original.category || 'feature'}`) }}
+        </UBadge>
+      </template>
+      <template #entry-cell="{ row }">
+        <div class="max-w-md min-w-0">
+          <p class="font-semibold">{{ localized(row.original, 'title') }}</p>
+          <p class="line-clamp-2 whitespace-pre-line text-sm text-muted">{{ localized(row.original, 'body') }}</p>
         </div>
-        <p class="mt-2 whitespace-pre-line text-sm text-muted">{{ localized(entry, 'body') }}</p>
-      </li>
-    </ul>
+      </template>
+      <template #version-cell="{ row }">
+        <UBadge v-if="row.original.version" color="neutral" variant="subtle" size="sm">{{ row.original.version }}</UBadge>
+        <span v-else class="text-muted">—</span>
+      </template>
+      <template #state-cell="{ row }">
+        <div class="flex flex-wrap items-center gap-1">
+          <UBadge v-if="!row.original.published" color="warning" variant="subtle" size="sm">{{ t('admin.changelog.draft') }}</UBadge>
+          <UBadge v-if="!row.original.titleEn || !row.original.bodyEn" color="warning" variant="subtle" size="sm">{{ t('admin.changelog.missingEn') }}</UBadge>
+          <UBadge v-if="row.original.published && row.original.titleEn && row.original.bodyEn" color="success" variant="subtle" size="sm">
+            {{ t('admin.changelog.live') }}
+          </UBadge>
+        </div>
+      </template>
+      <template #date-cell="{ row }">
+        <span class="whitespace-nowrap text-sm text-muted">{{ fmtDate(row.original.date || row.original.$createdAt) }}</span>
+      </template>
+      <template #actions-cell="{ row }">
+        <div class="flex justify-end">
+          <UDropdownMenu :items="rowActions(row.original)" :content="{ align: 'end' }">
+            <UButton
+              icon="i-ph-dots-three-vertical"
+              color="neutral"
+              variant="ghost"
+              size="xs"
+              :aria-label="t('admin.changelog.rowActions')"
+            />
+          </UDropdownMenu>
+        </div>
+      </template>
+
+      <template #empty>
+        <CoreEmptyState
+          icon="i-ph-megaphone"
+          :title="t('admin.changelog.emptyTitle')"
+          :description="t('admin.changelog.empty')"
+          :action-label="t('admin.changelog.new')"
+          action-icon="i-ph-plus"
+          @action="openCreate"
+        />
+      </template>
+    </UTable>
 
     <UModal v-model:open="open" :title="editingId ? t('admin.changelog.editTitle') : t('admin.changelog.new')">
       <template #body>

@@ -2,6 +2,8 @@
 // GDPR-Pre-Delete-Snapshots: Liste + Download + manuelles Löschen. Die Dateien
 // entstehen bei jeder Account-Löschung (Self + Admin) und verfallen nach 30
 // Tagen automatisch (Lazy-Cleanup beim Listen/Snapshotten).
+import type { TableColumn } from '@nuxt/ui'
+
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'users.manage' })
 
 interface GdprExportFile {
@@ -63,35 +65,55 @@ async function remove(file: GdprExportFile) {
     toast.add({ title: t('admin.gdprExports.deleteError'), color: 'error' })
   }
 }
+
+const HIDE_SM = { td: 'hidden sm:table-cell', th: 'hidden sm:table-cell' }
+
+const columns = computed<TableColumn<GdprExportFile>[]>(() => [
+  { accessorKey: 'name', header: () => t('admin.gdprExports.col.file') },
+  { accessorKey: 'sizeOriginal', header: () => t('admin.gdprExports.col.size'), id: 'size', meta: { class: HIDE_SM } },
+  { accessorKey: '$createdAt', header: () => t('admin.gdprExports.col.created'), id: 'created' },
+  { id: 'actions', header: () => '' },
+])
 </script>
 
 <template>
   <div class="space-y-4">
     <p class="text-sm text-muted">{{ t('admin.gdprExports.hint') }}</p>
 
-    <p v-if="!data?.files.length" class="py-12 text-center text-sm text-muted">
-      {{ t('admin.gdprExports.empty') }}
-    </p>
-
-    <ul v-else class="divide-y divide-default rounded-lg border border-default">
-      <li v-for="file in data.files" :key="file.$id" class="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
-        <div class="min-w-0">
-          <p class="truncate font-mono text-sm">{{ file.name }}</p>
-          <p class="text-xs text-muted">{{ formatDate(file.$createdAt) }} · {{ formatSize(file.sizeOriginal) }}</p>
-        </div>
-        <div class="flex items-center gap-2">
+    <UTable :data="data?.files ?? []" :columns="columns" data-gdpr-exports-table>
+      <template #name-cell="{ row }">
+        <span class="block max-w-xs truncate font-mono text-sm" :title="row.original.name">{{ row.original.name }}</span>
+      </template>
+      <template #size-cell="{ row }">
+        <span class="whitespace-nowrap tabular-nums text-muted">{{ formatSize(row.original.sizeOriginal) }}</span>
+      </template>
+      <template #created-cell="{ row }">
+        <span class="whitespace-nowrap text-muted">{{ formatDate(row.original.$createdAt) }}</span>
+      </template>
+      <template #actions-cell="{ row }">
+        <div class="flex items-center justify-end gap-2">
           <UButton
             size="xs" color="neutral" variant="subtle" icon="i-ph-download-simple"
-            :loading="downloading === file.$id" :disabled="!!downloading"
-            @click="download(file)"
+            :loading="downloading === row.original.$id" :disabled="!!downloading"
+            @click="download(row.original)"
           >
             {{ t('admin.gdprExports.download') }}
           </UButton>
-          <UButton size="xs" color="error" variant="subtle" icon="i-ph-trash" @click="remove(file)">
-            {{ t('admin.gdprExports.delete') }}
-          </UButton>
+          <UButton
+            size="xs" color="error" variant="subtle" icon="i-ph-trash"
+            :aria-label="t('admin.gdprExports.delete')"
+            @click="remove(row.original)"
+          />
         </div>
-      </li>
-    </ul>
+      </template>
+
+      <template #empty>
+        <CoreEmptyState
+          icon="i-ph-file-lock"
+          :title="t('admin.gdprExports.emptyTitle')"
+          :description="t('admin.gdprExports.empty')"
+        />
+      </template>
+    </UTable>
   </div>
 </template>

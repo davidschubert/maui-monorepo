@@ -10,7 +10,15 @@
       "subtitle": "Editable content pages (imprint, terms, privacy) with per-language versions.",
       "new": "New page",
       "empty": "No pages yet.",
-      "selectHint": "Select a page on the left, or create a new one.",
+      "emptyTitle": "No pages yet",
+      "edit": "Edit",
+      "backToList": "Back to the list",
+      "searchPlaceholder": "Search pages …",
+      "col": {
+        "address": "Address",
+        "pageTitle": "Title",
+        "languages": "Languages"
+      },
       "slug": "Slug (URL path)",
       "slugHelp": "Lowercase, e.g. imprint — becomes /imprint. Cannot be changed later.",
       "slugPlaceholder": "imprint",

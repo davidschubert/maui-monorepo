@@ -10,6 +10,9 @@ export default defineEventHandler(async (event): Promise<FeedbackListResponse> =
   const query = getQuery(event)
   const status = query.status === 'open' || query.status === 'resolved' ? query.status : null
   const page = Math.max(1, Number(query.page ?? 1) || 1)
+  // Suche über den Fulltext-Index feedback.idx_message_search (Migration 002)
+  const search = String(query.search ?? '').trim()
+  const dir = query.dir === 'asc' ? 'asc' : 'desc'
 
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
@@ -19,7 +22,8 @@ export default defineEventHandler(async (event): Promise<FeedbackListResponse> =
     tableId: FEEDBACK_TABLE,
     queries: [
       ...(status ? [Query.equal('status', status)] : []),
-      Query.orderDesc('$createdAt'),
+      ...(search ? [Query.search('message', search)] : []),
+      dir === 'asc' ? Query.orderAsc('$createdAt') : Query.orderDesc('$createdAt'),
       Query.limit(PAGE_SIZE),
       Query.offset((page - 1) * PAGE_SIZE),
     ],

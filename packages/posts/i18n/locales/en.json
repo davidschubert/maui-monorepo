@@ -69,6 +69,16 @@
       "queue": "Scheduled posts",
       "recent": "Recent posts",
       "empty": "No posts.",
+      "emptyTitle": "No posts",
+      "rowActions": "Actions for this post",
+      "col": {
+        "post": "Post",
+        "author": "Author",
+        "type": "Type",
+        "state": "Status",
+        "date": "Date",
+        "scheduled": "Scheduled for"
+      },
       "reports": "{count} reports",
       "hiddenBadge": "Hidden",
       "hide": "Hide",

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
 import type { FeedbackListResponse, FeedbackRow } from '../../../shared/types/feedback'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'feedback.manage' })
@@ -33,11 +34,38 @@ const filterLinks = computed(() => FILTERS.map(value => ({
   onSelect: () => { filter.value = value },
 })))
 
+// Suche über den Fulltext-Index auf feedback.message (Migration 002) —
+// erst auf Absenden, damit nicht jeder Tastendruck eine Abfrage auslöst.
+const search = ref('')
+const activeSearch = ref('')
+const { sortField, sortDir, toggle } = useTableSort('$createdAt', 'desc')
+
+function runSearch() {
+  activeSearch.value = search.value.trim()
+  setPage(1)
+}
+
 const { data, status: fetchStatus, refresh } = await useFetch<FeedbackListResponse>('/api/feedback', {
-  query: computed(() => ({ status: filter.value, page: page.value })),
+  query: computed(() => ({
+    status: filter.value,
+    page: page.value,
+    search: activeSearch.value,
+    dir: sortDir.value,
+  })),
   lazy: true,
   server: false,
 })
+
+watch(sortDir, () => setPage(1))
+
+// „Filter/Suche ohne Treffer" ist ein eigener Leerzustand — hier ist der eine
+// nächste Schritt das Zurücksetzen, nicht das Anlegen.
+const hasActiveFilter = computed(() => activeSearch.value !== '' || filter.value !== 'open')
+function resetFilters() {
+  search.value = ''
+  activeSearch.value = ''
+  filter.value = 'open'
+}
 
 const CATEGORY_ICON: Record<string, string> = {
   idea: 'i-ph-lightbulb',
@@ -113,6 +141,37 @@ async function remove(row: FeedbackRow) {
     toast.add({ title: t('feedback.admin.actionFailed'), color: 'error' })
   }
 }
+
+// Seite und Absender sind Kontext — auf schmalen Schirmen fallen sie weg.
+const HIDE_MD = { td: 'hidden md:table-cell', th: 'hidden md:table-cell' }
+const HIDE_LG = { td: 'hidden lg:table-cell', th: 'hidden lg:table-cell' }
+
+const columns = computed<TableColumn<FeedbackRow>[]>(() => [
+  { accessorKey: 'category', header: () => t('feedback.admin.col.category') },
+  { accessorKey: 'message', header: () => t('feedback.admin.col.message') },
+  { accessorKey: 'userName', header: () => t('feedback.admin.col.from'), meta: { class: HIDE_MD } },
+  { accessorKey: 'page', header: () => t('feedback.admin.col.page'), meta: { class: HIDE_LG } },
+  { accessorKey: '$createdAt', header: () => t('feedback.admin.col.date'), id: 'createdAt' },
+  { id: 'actions', header: () => '' },
+])
+
+/**
+ * Zeilen-Aktionen. `canConvert` bleibt das Gate für „Ticket daraus machen"
+ * (Endpoint gesetzt UND tickets.manage) — der Umbau darf es nicht verlieren.
+ */
+function rowActions(row: FeedbackRow): DropdownMenuItem[][] {
+  const items: DropdownMenuItem[] = []
+  if (canConvert.value) {
+    items.push({ label: t('feedback.admin.toTicket'), icon: 'i-ph-kanban', onSelect: () => { void toTicket(row) } })
+  }
+  items.push(row.status === 'open'
+    ? { label: t('feedback.admin.markResolved'), icon: 'i-ph-check', onSelect: () => { void setDone(row, true) } }
+    : { label: t('feedback.admin.reopen'), icon: 'i-ph-arrow-counter-clockwise', onSelect: () => { void setDone(row, false) } })
+  return [
+    items,
+    [{ label: t('feedback.admin.delete'), icon: 'i-ph-trash', color: 'error', onSelect: () => { void remove(row) } }],
+  ]
+}
 </script>
 
 <template>
@@ -139,51 +198,79 @@ async function remove(row: FeedbackRow) {
           <UIcon name="i-ph-spinner" class="size-6 animate-spin text-muted" />
         </div>
 
-        <p v-else-if="!data?.rows.length" class="py-16 text-center text-sm text-muted" data-testid="feedback-empty">
-          {{ t('feedback.admin.empty') }}
-        </p>
-
-        <ul v-else class="divide-y divide-default" data-testid="feedback-list">
-          <li v-for="row in data.rows" :key="row.$id" class="flex items-start gap-3 py-3 text-sm">
-            <UIcon :name="CATEGORY_ICON[row.category] ?? 'i-ph-chat-circle-dots'" class="mt-0.5 size-4 shrink-0 text-muted" />
-            <div class="min-w-0 flex-1">
-              <p class="whitespace-pre-line">{{ row.message }}</p>
-              <p class="mt-1 text-xs text-muted">
-                {{ row.userName || t('feedback.admin.guest') }}
-                <template v-if="row.page"> · {{ row.page }}</template>
-                · {{ formatRelativeTime(row.$createdAt) }}
-              </p>
-            </div>
-            <UButton
-              v-if="canConvert"
-              color="neutral"
-              variant="ghost"
-              size="xs"
-              icon="i-ph-kanban"
-              :loading="busyId === row.$id"
-              :data-feedback-ticket="row.$id"
-              @click="toTicket(row)"
-            >
-              {{ t('feedback.admin.toTicket') }}
-            </UButton>
-            <UButton
-              :color="row.status === 'open' ? 'success' : 'neutral'"
-              variant="ghost"
-              size="xs"
-              :icon="row.status === 'open' ? 'i-ph-check' : 'i-ph-arrow-counter-clockwise'"
-              :loading="busyId === row.$id"
-              :data-feedback-toggle="row.$id"
-              @click="setDone(row, row.status === 'open')"
-            >
-              {{ row.status === 'open' ? t('feedback.admin.markResolved') : t('feedback.admin.reopen') }}
-            </UButton>
-            <UButton
-              color="error" variant="ghost" size="xs" icon="i-ph-trash"
-              :disabled="busyId === row.$id"
-              @click="remove(row)"
+        <template v-else>
+          <form class="mb-4 flex max-w-md gap-2" @submit.prevent="runSearch">
+            <UInput
+              v-model="search"
+              icon="i-ph-magnifying-glass"
+              :placeholder="t('feedback.admin.searchPlaceholder')"
+              class="flex-1"
+              data-feedback-search
             />
-          </li>
-        </ul>
+            <UButton type="submit" color="neutral" variant="subtle">{{ t('feedback.admin.search') }}</UButton>
+          </form>
+
+          <UTable :data="data?.rows ?? []" :columns="columns" data-testid="feedback-list">
+            <template #createdAt-header>
+              <SortableHeader :label="t('feedback.admin.col.date')" field="$createdAt" :active="sortField" :dir="sortDir" @toggle="toggle" />
+            </template>
+
+            <template #category-cell="{ row }">
+              <span class="flex items-center gap-1.5 whitespace-nowrap">
+                <UIcon :name="CATEGORY_ICON[row.original.category] ?? 'i-ph-chat-circle-dots'" class="size-4 shrink-0 text-muted" />
+                {{ t(`feedback.categories.${row.original.category}`) }}
+              </span>
+            </template>
+            <template #message-cell="{ row }">
+              <p class="line-clamp-3 max-w-md min-w-0 whitespace-pre-line text-sm" :title="row.original.message">
+                {{ row.original.message }}
+              </p>
+            </template>
+            <template #userName-cell="{ row }">
+              <span class="text-sm">{{ row.original.userName || t('feedback.admin.guest') }}</span>
+            </template>
+            <template #page-cell="{ row }">
+              <span class="font-mono text-xs text-muted">{{ row.original.page || '—' }}</span>
+            </template>
+            <template #createdAt-cell="{ row }">
+              <span class="whitespace-nowrap text-sm text-muted">{{ formatRelativeTime(row.original.$createdAt) }}</span>
+            </template>
+            <template #actions-cell="{ row }">
+              <div class="flex justify-end">
+                <UDropdownMenu :items="rowActions(row.original)" :content="{ align: 'end' }">
+                  <UButton
+                    icon="i-ph-dots-three-vertical"
+                    color="neutral"
+                    variant="ghost"
+                    size="xs"
+                    :aria-label="t('feedback.admin.rowActions')"
+                    :loading="busyId === row.original.$id"
+                    :data-feedback-actions="row.original.$id"
+                  />
+                </UDropdownMenu>
+              </div>
+            </template>
+
+            <template #empty>
+              <CoreEmptyState
+                v-if="hasActiveFilter"
+                icon="i-ph-funnel"
+                :title="t('ui.empty.noResultsTitle')"
+                :description="t('ui.empty.noResultsText')"
+                :action-label="t('ui.empty.resetFilters')"
+                action-icon="i-ph-arrow-counter-clockwise"
+                @action="resetFilters"
+              />
+              <CoreEmptyState
+                v-else
+                icon="i-ph-tray"
+                :title="t('feedback.admin.emptyTitle')"
+                :description="t('feedback.admin.empty')"
+                data-testid="feedback-empty"
+              />
+            </template>
+          </UTable>
+        </template>
 
         <UPagination
           v-if="(data?.total ?? 0) > 50"

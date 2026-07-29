@@ -43,6 +43,16 @@
       "orphans": "Unlinked",
       "orphan": "Unlinked",
       "empty": "No files in this bucket.",
+      "emptyTitle": "Bucket is empty",
+      "searchPlaceholder": "Search files …",
+      "deleteFile": "Delete file",
+      "col": {
+        "preview": "Preview",
+        "name": "Name",
+        "size": "Size",
+        "uploaded": "Uploaded",
+        "state": "Status"
+      },
       "deleted": "File(s) deleted.",
       "deleteOrphans": "Delete unlinked ({count})",
       "confirmTitle": "Delete file",
@@ -135,6 +145,16 @@
       "draft": "Draft",
       "missingEn": "EN missing",
       "empty": "No changelog entries yet.",
+      "emptyTitle": "Nothing published yet",
+      "live": "Published",
+      "rowActions": "Actions for this entry",
+      "col": {
+        "category": "Category",
+        "entry": "Entry",
+        "version": "Version",
+        "state": "Status",
+        "date": "Date"
+      },
       "confirmDelete": "Delete \"{title}\" permanently?",
       "category": {
         "feature": "New",
@@ -239,7 +259,14 @@
         "passwordless": "passwordless (OTP/OAuth)",
         "activity": {
           "title": "Activity log (Appwrite)",
-          "empty": "No activity entries."
+          "empty": "No activity entries.",
+          "emptyTitle": "No activity",
+          "col": {
+            "event": "Event",
+            "client": "Device",
+            "location": "Location",
+            "time": "Time"
+          }
         },
         "targets": {
           "title": "Notification channels",
@@ -294,6 +321,17 @@
         "deleted": "Deleted"
       },
       "empty": "No comments in this view.",
+      "emptyTitle": "Nothing to moderate",
+      "search": "Search",
+      "searchPlaceholder": "Search comments …",
+      "rowActions": "Actions for this comment",
+      "col": {
+        "author": "Author",
+        "comment": "Comment",
+        "target": "Target",
+        "status": "Status",
+        "date": "Date"
+      },
       "hide": "Hide",
       "restore": "Restore",
       "blockAuthor": "Block author",
@@ -337,6 +375,12 @@
       "title": "GDPR exports",
       "hint": "Pre-delete snapshots of deleted accounts — created automatically with every account deletion, removed automatically after 30 days.",
       "empty": "No snapshots available.",
+      "emptyTitle": "No snapshots",
+      "col": {
+        "file": "File",
+        "size": "Size",
+        "created": "Created"
+      },
       "download": "Download",
       "delete": "Delete",
       "deleted": "Snapshot deleted.",

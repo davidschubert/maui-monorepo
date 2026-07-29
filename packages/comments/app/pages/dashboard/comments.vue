@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Models } from 'node-appwrite'
-import type { NavigationMenuItem } from '@nuxt/ui'
+import type { DropdownMenuItem, NavigationMenuItem, TableColumn } from '@nuxt/ui'
 import type { AdminCommentListResponse, ModeratedComment, ModerationAssist, ModerationFilter } from '../../../shared/types/moderation'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'comments.moderate' })
@@ -44,6 +44,21 @@ function filterFromQuery(): ModerationFilter {
 }
 const filter = ref<ModerationFilter>(filterFromQuery())
 const { page, setPage } = usePagination()
+const { sortField, sortDir, toggle } = useTableSort('$createdAt', 'desc')
+
+// Suche über den Fulltext-Index auf comments.content — erst auf Absenden,
+// damit nicht jeder Tastendruck eine Abfrage auslöst.
+const search = ref('')
+const activeSearch = ref('')
+function runSearch() {
+  activeSearch.value = search.value.trim()
+  setPage(1)
+}
+
+// In der Meldungs-Queue ist die Reihenfolge „neueste Meldung zuerst" —
+// eine Datums-/Status-Sortierung wäre dort eine andere Aussage, deshalb
+// zeigen wir die Sortierpfeile nur in den übrigen Ansichten.
+const sortable = computed(() => filter.value !== 'reported')
 
 // Query-Änderungen auf derselben Route (z.B. erneuter Klick auf eine Stat-Card
 // mit ?status=reported, während die Seite schon offen ist) übernehmen — die
@@ -57,8 +72,17 @@ watch(() => route.query.status, () => {
 })
 
 const { data, refresh } = await useFetch<AdminCommentListResponse>('/api/admin/comments', {
-  query: computed(() => ({ status: filter.value, page: page.value })),
+  query: computed(() => ({
+    status: filter.value,
+    page: page.value,
+    search: activeSearch.value,
+    sort: sortField.value,
+    dir: sortDir.value,
+  })),
 })
+
+// Sortierwechsel → zurück auf Seite 1
+watch([sortField, sortDir], () => setPage(1))
 
 // Live: bei Kommentar-Events (neu, gemeldet, moderiert) die aktuelle Ansicht
 // entprellt nachladen — neue/gemeldete Kommentare poppen ohne Reload auf.
@@ -77,6 +101,15 @@ onScopeDispose(() => clearTimeout(liveTimer))
 function setFilter(value: ModerationFilter) {
   filter.value = value
   setPage(1)
+}
+
+// „Filter/Suche ohne Treffer" ist ein anderer Leerzustand als „nichts da":
+// hier ist der eine nächste Schritt das Zurücksetzen.
+const hasActiveFilter = computed(() => filter.value !== 'all' || activeSearch.value !== '')
+function resetFilters() {
+  search.value = ''
+  activeSearch.value = ''
+  setFilter('all')
 }
 
 // ---- Bulk-Moderation (Multi-Select): hide/restore/dismiss für die Auswahl ----
@@ -213,6 +246,55 @@ async function moderate(action: PendingAction, comment: ModeratedComment) {
     release()
   }
 }
+
+// `meta.class` blendet die Nebenspalten auf schmalen Schirmen aus — Autor,
+// Kommentar, Status und Aktionen tragen die Entscheidung, Ziel und Datum sind
+// Kontext. Die Tabelle selbst scrollt in ihrem eigenen Gefäß (UTable-Root),
+// der Seiten-Body nie horizontal.
+const HIDE_LG = { td: 'hidden lg:table-cell', th: 'hidden lg:table-cell' }
+const HIDE_MD = { td: 'hidden md:table-cell', th: 'hidden md:table-cell' }
+
+const columns = computed<TableColumn<ModeratedComment>[]>(() => [
+  { id: 'select', header: () => '' },
+  { accessorKey: 'authorName', header: () => t('admin.moderation.col.author') },
+  { accessorKey: 'content', header: () => t('admin.moderation.col.comment') },
+  { id: 'target', header: () => t('admin.moderation.col.target'), meta: { class: HIDE_LG } },
+  { accessorKey: 'status', header: () => t('admin.moderation.col.status') },
+  { accessorKey: '$createdAt', header: () => t('admin.moderation.col.date'), id: 'createdAt', meta: { class: HIDE_MD } },
+  { id: 'actions', header: () => '' },
+])
+
+/**
+ * Zeilen-Aktionen im Menü — dieselben Aufrufe wie zuvor als Knopfleiste,
+ * inklusive der Gates: „Autor sperren" nur mit `users.manage` (S5), der
+ * KI-Assist nur, wenn der Server ihn meldet.
+ */
+function rowActions(comment: ModeratedComment): DropdownMenuItem[][] {
+  if (comment.status === 'deleted') return []
+  const items: DropdownMenuItem[] = []
+  if (comment.status !== 'hidden') {
+    items.push({ label: t('admin.moderation.hide'), icon: 'i-ph-eye-slash', color: 'error', onSelect: () => { void moderate('hidden', comment) } })
+  }
+  if (comment.status !== 'active') {
+    items.push({ label: t('admin.moderation.restore'), icon: 'i-ph-eye', color: 'success', onSelect: () => { void moderate('active', comment) } })
+  }
+  if (comment.reportCount) {
+    items.push({ label: t('admin.moderation.dismiss'), icon: 'i-ph-check', onSelect: () => { void moderate('dismiss', comment) } })
+  }
+  if (comment.reportCount && data.value?.aiAssist) {
+    items.push({ label: t('admin.moderation.assist.button'), icon: 'i-ph-sparkle', onSelect: () => { void requestAssist(comment) } })
+  }
+  const blockGroup: DropdownMenuItem[] = canManageUsers.value
+    ? [{
+        label: t('admin.moderation.blockAuthor'),
+        icon: 'i-ph-prohibit',
+        color: 'error',
+        disabled: comment.authorId === me.value?.$id,
+        onSelect: () => { void moderate('block', comment) },
+      }]
+    : []
+  return blockGroup.length ? [items, blockGroup] : [items]
+}
 </script>
 
 <template>
@@ -230,18 +312,18 @@ async function moderate(action: PendingAction, comment: ModeratedComment) {
     </template>
 
     <template #body>
-      <p v-if="(data?.comments?.length ?? 0) === 0" class="text-sm text-muted">
-      {{ t('admin.moderation.empty') }}
-    </p>
+      <form class="mb-4 flex max-w-md gap-2" @submit.prevent="runSearch">
+        <UInput
+          v-model="search"
+          icon="i-ph-magnifying-glass"
+          :placeholder="t('admin.moderation.searchPlaceholder')"
+          class="flex-1"
+          data-moderation-search
+        />
+        <UButton type="submit" color="neutral" variant="subtle">{{ t('admin.moderation.search') }}</UButton>
+      </form>
 
-    <div v-else class="mb-3 flex flex-wrap items-center gap-2" data-moderation-bulkbar>
-      <UCheckbox
-        :model-value="allSelected"
-        :label="t('admin.moderation.bulk.selectAll')"
-        data-moderation-select-all
-        @update:model-value="toggleAll"
-      />
-      <template v-if="selected.size > 0">
+      <div v-if="selected.size > 0" class="mb-3 flex flex-wrap items-center gap-2" data-moderation-bulkbar>
         <UBadge color="neutral" variant="subtle">{{ t('admin.moderation.bulk.count', { count: selected.size }) }}</UBadge>
         <UButton size="xs" color="error" variant="soft" icon="i-ph-eye-slash" data-bulk-hide @click="runBulk('hide')">
           {{ t('admin.moderation.hide') }}
@@ -252,130 +334,139 @@ async function moderate(action: PendingAction, comment: ModeratedComment) {
         <UButton size="xs" color="success" variant="soft" icon="i-ph-eye" data-bulk-restore @click="runBulk('restore')">
           {{ t('admin.moderation.restore') }}
         </UButton>
-      </template>
-    </div>
+      </div>
 
-    <ul v-if="(data?.comments?.length ?? 0) > 0" class="space-y-3" data-moderation-list>
-      <li
-        v-for="comment in data?.comments"
-        :key="comment.$id"
-        class="rounded-lg border border-default p-4"
-        :data-moderation-id="comment.$id"
-      >
-        <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
+      <UTable :data="data?.comments ?? []" :columns="columns" data-moderation-list>
+        <template #select-header>
           <UCheckbox
-            v-if="comment.status !== 'deleted'"
-            :model-value="isSelected(comment.$id)"
-            :aria-label="t('admin.moderation.bulk.selectOne')"
-            :data-moderation-select="comment.$id"
-            @update:model-value="toggleSelected(comment.$id)"
+            :model-value="allSelected"
+            :aria-label="t('admin.moderation.bulk.selectAll')"
+            data-moderation-select-all
+            @update:model-value="toggleAll"
           />
-<!-- S5: Link nur, wenn die Nutzer-Detailseite auch erreichbar ist —
+        </template>
+        <template #select-cell="{ row }">
+          <UCheckbox
+            v-if="row.original.status !== 'deleted'"
+            :model-value="isSelected(row.original.$id)"
+            :aria-label="t('admin.moderation.bulk.selectOne')"
+            :data-moderation-select="row.original.$id"
+            @update:model-value="toggleSelected(row.original.$id)"
+          />
+        </template>
+
+        <template #status-header>
+          <SortableHeader v-if="sortable" :label="t('admin.moderation.col.status')" field="status" :active="sortField" :dir="sortDir" @toggle="toggle" />
+          <span v-else>{{ t('admin.moderation.col.status') }}</span>
+        </template>
+        <template #createdAt-header>
+          <SortableHeader v-if="sortable" :label="t('admin.moderation.col.date')" field="$createdAt" :active="sortField" :dir="sortDir" @toggle="toggle" />
+          <span v-else>{{ t('admin.moderation.col.date') }}</span>
+        </template>
+
+        <template #authorName-cell="{ row }">
+          <!-- S5: Link nur, wenn die Nutzer-Detailseite auch erreichbar ist —
                sonst der reine Name statt eines Links in ein 403. -->
-          <ULink v-if="canManageUsers" :to="localePath(`/dashboard/users/${comment.authorId}`)" class="font-medium text-default hover:text-primary hover:underline">
-            {{ comment.authorName }}
-          </ULink>
-          <span v-else class="font-medium text-default">{{ comment.authorName }}</span>
-          <span>·</span>
-          <span>{{ comment.targetType }}/{{ comment.targetId }}</span>
-          <span>·</span>
-          <span>{{ formatDate(comment.$createdAt) }}</span>
-          <UBadge
-            :color="comment.status === 'hidden' ? 'error' : 'neutral'"
-            variant="subtle"
-            size="sm"
-          >
-            {{ t(`admin.moderation.status.${comment.status}`) }}
-          </UBadge>
-          <UBadge
-            v-if="comment.reportCount"
-            color="warning"
-            variant="subtle"
-            size="sm"
-            icon="i-ph-flag"
-            :aria-label="t('admin.moderation.reportsLabel', { count: comment.reportCount })"
-          >
-            {{ comment.reportCount }}
-          </UBadge>
-          <UBadge
-            v-if="reviewerFor(comment.$id)"
-            color="info"
-            variant="subtle"
-            size="sm"
-            icon="i-ph-lock-simple"
-          >
-            {{ t('admin.moderation.reviewing', { name: reviewerFor(comment.$id) }) }}
-          </UBadge>
-        </div>
-
-        <p class="mt-2 whitespace-pre-line text-sm">{{ comment.content }}</p>
-
-        <UAlert
-          v-if="assistFor(comment.$id)"
-          class="mt-3"
-          :color="assistFor(comment.$id)!.action === 'hide' ? 'warning' : 'success'"
-          variant="subtle"
-          icon="i-ph-sparkle"
-          :title="t(`admin.moderation.assist.action.${assistFor(comment.$id)!.action}`, { severity: assistFor(comment.$id)!.severity })"
-          :description="assistFor(comment.$id)!.assessment"
-          data-moderation-assist
-        />
-
-        <div class="mt-3 flex flex-wrap gap-2">
-          <UButton
-            v-if="comment.status !== 'hidden' && comment.status !== 'deleted'"
-            size="xs" color="error" variant="ghost" icon="i-ph-eye-slash"
-            @click="moderate('hidden', comment)"
-          >
-            {{ t('admin.moderation.hide') }}
-          </UButton>
-          <UButton
-            v-if="comment.status !== 'active' && comment.status !== 'deleted'"
-            size="xs" color="success" variant="ghost" icon="i-ph-eye"
-            @click="moderate('active', comment)"
-          >
-            {{ t('admin.moderation.restore') }}
-          </UButton>
-          <UButton
-            v-if="comment.reportCount"
-            size="xs" color="primary" variant="ghost" icon="i-ph-check"
-            @click="moderate('dismiss', comment)"
-          >
-            {{ t('admin.moderation.dismiss') }}
-          </UButton>
-          <UButton
-            v-if="comment.reportCount && data?.aiAssist"
-            size="xs" color="neutral" variant="ghost" icon="i-ph-sparkle"
-            :loading="assistBusy === comment.$id"
-            @click="requestAssist(comment)"
-          >
-            {{ t('admin.moderation.assist.button') }}
-          </UButton>
-<!-- S5: „Autor sperren" greift in die NUTZER-Verwaltung (users.manage,
-               operator-only) — für Site-Moderatoren gar nicht erst anbieten. -->
-          <UButton
+          <ULink
             v-if="canManageUsers"
-            size="xs" color="error" variant="ghost" icon="i-ph-prohibit"
-            :disabled="comment.authorId === me?.$id"
-            @click="moderate('block', comment)"
+            :to="localePath(`/dashboard/users/${row.original.authorId}`)"
+            class="font-medium text-default hover:text-primary hover:underline"
           >
-            {{ t('admin.moderation.blockAuthor') }}
-          </UButton>
-          <span v-if="comment.status === 'deleted'" class="text-xs italic text-muted">
-            {{ t('admin.moderation.notModeratable') }}
-          </span>
-        </div>
-      </li>
-    </ul>
+            {{ row.original.authorName }}
+          </ULink>
+          <span v-else class="font-medium text-default">{{ row.original.authorName }}</span>
+        </template>
 
-    <UPagination
-      v-if="(data?.total ?? 0) > 25"
-      :page="page"
-      :total="data?.total ?? 0"
-      :items-per-page="25"
-      @update:page="setPage"
-    />
+        <template #content-cell="{ row }">
+          <div class="max-w-md min-w-0" :data-moderation-id="row.original.$id">
+            <p class="line-clamp-3 whitespace-pre-line text-sm" :title="row.original.content">{{ row.original.content }}</p>
+            <UAlert
+              v-if="assistFor(row.original.$id)"
+              class="mt-2"
+              :color="assistFor(row.original.$id)!.action === 'hide' ? 'warning' : 'success'"
+              variant="subtle"
+              icon="i-ph-sparkle"
+              :title="t(`admin.moderation.assist.action.${assistFor(row.original.$id)!.action}`, { severity: assistFor(row.original.$id)!.severity })"
+              :description="assistFor(row.original.$id)!.assessment"
+              data-moderation-assist
+            />
+          </div>
+        </template>
 
+        <template #target-cell="{ row }">
+          <span class="font-mono text-xs text-muted">{{ row.original.targetType }}/{{ row.original.targetId }}</span>
+        </template>
+
+        <template #status-cell="{ row }">
+          <div class="flex flex-wrap items-center gap-1">
+            <UBadge :color="row.original.status === 'hidden' ? 'error' : 'neutral'" variant="subtle" size="sm">
+              {{ t(`admin.moderation.status.${row.original.status}`) }}
+            </UBadge>
+            <UBadge
+              v-if="row.original.reportCount"
+              color="warning"
+              variant="subtle"
+              size="sm"
+              icon="i-ph-flag"
+              :aria-label="t('admin.moderation.reportsLabel', { count: row.original.reportCount })"
+            >
+              {{ row.original.reportCount }}
+            </UBadge>
+            <UBadge v-if="reviewerFor(row.original.$id)" color="info" variant="subtle" size="sm" icon="i-ph-lock-simple">
+              {{ t('admin.moderation.reviewing', { name: reviewerFor(row.original.$id) }) }}
+            </UBadge>
+          </div>
+        </template>
+
+        <template #createdAt-cell="{ row }">
+          <span class="whitespace-nowrap text-sm text-muted">{{ formatDate(row.original.$createdAt) }}</span>
+        </template>
+
+        <template #actions-cell="{ row }">
+          <div class="flex justify-end">
+            <span v-if="row.original.status === 'deleted'" class="text-xs italic whitespace-nowrap text-muted">
+              {{ t('admin.moderation.notModeratable') }}
+            </span>
+            <UDropdownMenu v-else :items="rowActions(row.original)" :content="{ align: 'end' }">
+              <UButton
+                icon="i-ph-dots-three-vertical"
+                color="neutral"
+                variant="ghost"
+                size="xs"
+                :aria-label="t('admin.moderation.rowActions')"
+                :loading="assistBusy === row.original.$id"
+              />
+            </UDropdownMenu>
+          </div>
+        </template>
+
+        <template #empty>
+          <CoreEmptyState
+            v-if="hasActiveFilter"
+            icon="i-ph-funnel"
+            :title="t('ui.empty.noResultsTitle')"
+            :description="t('ui.empty.noResultsText')"
+            :action-label="t('ui.empty.resetFilters')"
+            action-icon="i-ph-arrow-counter-clockwise"
+            @action="resetFilters"
+          />
+          <CoreEmptyState
+            v-else
+            icon="i-ph-chats-circle"
+            :title="t('admin.moderation.emptyTitle')"
+            :description="t('admin.moderation.empty')"
+          />
+        </template>
+      </UTable>
+
+      <UPagination
+        v-if="(data?.total ?? 0) > 25"
+        class="mt-4"
+        :page="page"
+        :total="data?.total ?? 0"
+        :items-per-page="25"
+        @update:page="setPage"
+      />
     </template>
   </UDashboardPanel>
 </template>

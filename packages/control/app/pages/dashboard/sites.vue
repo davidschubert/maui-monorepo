@@ -3,6 +3,7 @@
 // Übersicht aller Sites mit Lifecycle-Status + Health, manuelle Registrierung
 // bestehender Sites und „Neue Site" als Provisionierungs-Job — ausgeführt
 // repo-seitig von `pnpm control:jobs` (§ 8: der Web-Prozess beschreibt nur).
+import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
 import type { SiteRow } from '../../../shared/types/site'
 import type { FeatureCatalogEntry, JobRow, SiteCreateJobPayload, SiteCreateJobResult } from '../../../shared/types/job'
 
@@ -203,6 +204,34 @@ function runningFeatures(site: SiteWithEntitlements): string[] {
 const healthColor = (s: string) => (s === 'ok' ? 'success' : s === 'degraded' ? 'warning' : s === 'down' ? 'error' : 'neutral') as 'success' | 'warning' | 'error' | 'neutral'
 const statusColor = (s: string) => (s === 'active' ? 'success' : s === 'provisioning' ? 'info' : s === 'error' || s === 'deletion_failed' ? 'error' : 'warning') as 'success' | 'info' | 'error' | 'warning'
 const jobColor = (s: string) => (s === 'done' ? 'success' : s === 'running' ? 'info' : s === 'error' ? 'error' : 'neutral') as 'success' | 'info' | 'error' | 'neutral'
+
+const HIDE_MD = { td: 'hidden md:table-cell', th: 'hidden md:table-cell' }
+const HIDE_LG = { td: 'hidden lg:table-cell', th: 'hidden lg:table-cell' }
+
+const siteColumns = computed<TableColumn<SiteWithEntitlements>[]>(() => [
+  { accessorKey: 'name', header: () => t('control.sites.col.site') },
+  { id: 'state', header: () => t('control.sites.col.state') },
+  { id: 'features', header: () => t('control.sites.col.features'), meta: { class: HIDE_LG } },
+  { id: 'workspace', header: () => t('control.sites.col.workspace'), meta: { class: HIDE_MD } },
+  { id: 'actions', header: () => '' },
+])
+
+const jobColumns = computed<TableColumn<JobRow>[]>(() => [
+  { id: 'job', header: () => t('control.jobs.col.job') },
+  { id: 'jobFeatures', header: () => t('control.jobs.col.features'), meta: { class: HIDE_MD } },
+  { accessorKey: 'status', header: () => t('control.jobs.col.status') },
+  { id: 'jobActions', header: () => '' },
+])
+
+function siteActions(site: SiteWithEntitlements): DropdownMenuItem[][] {
+  return [
+    [
+      { label: t('control.entitlements.manage'), icon: 'i-ph-stack', onSelect: () => openEntitlements(site) },
+      { label: t('control.sites.check'), icon: 'i-ph-heartbeat', onSelect: () => { void checkHealth(site) } },
+    ],
+    [{ label: t('control.sites.deregister'), icon: 'i-ph-trash', color: 'error', onSelect: () => { void deregister(site) } }],
+  ]
+}
 </script>
 
 <template>
@@ -224,94 +253,130 @@ const jobColor = (s: string) => (s === 'done' ? 'success' : s === 'running' ? 'i
     </template>
 
     <template #body>
-      <p v-if="!data?.sites.length" class="py-12 text-center text-sm text-muted" data-sites-empty>
-        {{ t('control.sites.empty') }}
-      </p>
-
-      <div v-else class="divide-y divide-default" data-sites-list>
-        <div v-for="site in data.sites" :key="site.$id" class="flex flex-wrap items-center justify-between gap-3 py-4" :data-site="site.slug">
-          <div class="min-w-0">
-            <div class="flex flex-wrap items-center gap-2">
-              <p class="font-medium">{{ site.name }}</p>
-              <UBadge :color="statusColor(site.status)" variant="subtle" size="sm">{{ site.status }}</UBadge>
-              <UBadge :color="healthColor(site.healthStatus)" variant="subtle" size="sm" :data-site-health="site.healthStatus">
-                {{ site.healthStatus }}
-              </UBadge>
-            </div>
-            <p class="mt-0.5 truncate text-sm text-muted">
-              {{ site.projectId }} · {{ site.endpoint }}
-              <template v-if="site.appUrl"> · <a :href="site.appUrl" target="_blank" rel="noopener" class="underline">{{ site.appUrl }}</a></template>
+      <UTable :data="data?.sites ?? []" :columns="siteColumns" data-sites-list>
+        <template #name-cell="{ row }">
+          <div class="min-w-0" :data-site="row.original.slug">
+            <p class="font-medium">{{ row.original.name }}</p>
+            <p class="truncate text-xs text-muted">
+              {{ row.original.projectId }} · {{ row.original.endpoint }}
+              <template v-if="row.original.appUrl"> · <a :href="row.original.appUrl" target="_blank" rel="noopener" class="underline">{{ row.original.appUrl }}</a></template>
             </p>
+          </div>
+        </template>
+        <template #state-cell="{ row }">
+          <div class="flex flex-wrap items-center gap-1">
+            <UBadge :color="statusColor(row.original.status)" variant="subtle" size="sm">{{ row.original.status }}</UBadge>
+            <UBadge :color="healthColor(row.original.healthStatus)" variant="subtle" size="sm" :data-site-health="row.original.healthStatus">
+              {{ row.original.healthStatus }}
+            </UBadge>
             <!-- ClientOnly: toLocaleString weicht zwischen Node-SSR und Browser ab (Hydration) -->
             <ClientOnly>
-              <p v-if="site.healthCheckedAt" class="text-xs text-muted">
-                {{ t('control.sites.lastCheck', { at: new Date(site.healthCheckedAt).toLocaleString() }) }}
+              <p v-if="row.original.healthCheckedAt" class="w-full text-xs text-muted">
+                {{ t('control.sites.lastCheck', { at: new Date(row.original.healthCheckedAt).toLocaleString() }) }}
               </p>
             </ClientOnly>
-            <div class="mt-1 flex flex-wrap items-center gap-1" :data-site-entitlements="site.entitlements.join(',')">
-              <template v-if="site.entitlements.length">
-                <UBadge v-for="feature in site.entitlements" :key="feature" color="neutral" variant="outline" size="sm">{{ feature }}</UBadge>
+          </div>
+        </template>
+        <template #features-cell="{ row }">
+          <div class="space-y-1">
+            <div class="flex flex-wrap items-center gap-1" :data-site-entitlements="row.original.entitlements.join(',')">
+              <template v-if="row.original.entitlements.length">
+                <UBadge v-for="feature in row.original.entitlements" :key="feature" color="neutral" variant="outline" size="sm">{{ feature }}</UBadge>
               </template>
               <span v-else class="text-xs text-muted">{{ t('control.entitlements.none') }}</span>
             </div>
-            <div v-if="runningFeatures(site).length" class="mt-1 flex flex-wrap items-center gap-1" :data-site-running="runningFeatures(site).join(',')">
+            <div v-if="runningFeatures(row.original).length" class="flex flex-wrap items-center gap-1" :data-site-running="runningFeatures(row.original).join(',')">
               <span class="text-xs text-muted">{{ t('control.sites.running') }}</span>
               <UBadge
-                v-for="feature in runningFeatures(site)"
+                v-for="feature in runningFeatures(row.original)"
                 :key="feature"
-                :color="site.entitlements.includes(feature) ? 'neutral' : 'warning'"
+                :color="row.original.entitlements.includes(feature) ? 'neutral' : 'warning'"
                 variant="subtle"
                 size="sm"
-                :title="site.entitlements.includes(feature) ? undefined : t('control.sites.runningUnentitled')"
+                :title="row.original.entitlements.includes(feature) ? undefined : t('control.sites.runningUnentitled')"
               >
                 {{ feature }}
               </UBadge>
             </div>
           </div>
-          <div class="flex items-center gap-1">
-            <USelect
-              :model-value="site.workspaceId || NO_WORKSPACE"
-              :items="workspaceOptions"
-              size="sm"
-              :ui="{ content: 'min-w-fit' }"
-              :aria-label="t('control.workspaces.assignLabel')"
-              :data-site-workspace="site.slug"
-              @update:model-value="assignWorkspace(site, $event as string)"
-            />
-            <UButton icon="i-ph-stack" size="sm" color="neutral" variant="ghost" :data-site-entitle="site.slug" @click="openEntitlements(site)">
-              {{ t('control.entitlements.manage') }}
-            </UButton>
-            <UButton icon="i-ph-heartbeat" size="sm" color="neutral" variant="ghost" :loading="checking === site.$id" :data-site-check="site.slug" @click="checkHealth(site)">
-              {{ t('control.sites.check') }}
-            </UButton>
-            <UButton icon="i-ph-trash" size="sm" color="error" variant="ghost" :aria-label="t('control.sites.deregister')" @click="deregister(site)" />
+        </template>
+        <template #workspace-cell="{ row }">
+          <USelect
+            :model-value="row.original.workspaceId || NO_WORKSPACE"
+            :items="workspaceOptions"
+            size="sm"
+            class="w-40"
+            :ui="{ content: 'min-w-fit' }"
+            :aria-label="t('control.workspaces.assignLabel')"
+            :data-site-workspace="row.original.slug"
+            @update:model-value="assignWorkspace(row.original, $event as string)"
+          />
+        </template>
+        <template #actions-cell="{ row }">
+          <div class="flex justify-end">
+            <UDropdownMenu :items="siteActions(row.original)" :content="{ align: 'end' }">
+              <UButton
+                icon="i-ph-dots-three-vertical"
+                color="neutral"
+                variant="ghost"
+                size="xs"
+                :aria-label="t('control.sites.rowActions')"
+                :loading="checking === row.original.$id"
+                :data-site-check="row.original.slug"
+              />
+            </UDropdownMenu>
           </div>
-        </div>
-      </div>
+        </template>
+
+        <template #empty>
+          <CoreEmptyState
+            icon="i-ph-globe"
+            :title="t('control.sites.emptyTitle')"
+            :description="t('control.sites.empty')"
+            :action-label="t('control.jobs.newSite')"
+            action-icon="i-ph-rocket-launch"
+            data-sites-empty
+            @action="() => { showCreate = true }"
+          />
+        </template>
+      </UTable>
 
       <!-- Provisionierungs-Jobs (T2) -->
       <template v-if="jobsData?.jobs.length">
         <h2 class="mt-10 mb-2 text-sm font-semibold text-highlighted">{{ t('control.jobs.title') }}</h2>
-        <div class="divide-y divide-default" data-jobs-list>
-          <div v-for="job in jobsData.jobs" :key="job.$id" class="py-3" :data-job="jobPayload(job).name">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div class="flex flex-wrap items-center gap-2">
-                <p class="font-medium">{{ jobPayload(job).name }}</p>
-                <UBadge :color="jobColor(job.status)" variant="subtle" size="sm" :data-job-status="job.status">{{ job.status }}</UBadge>
-                <span class="text-xs text-muted">{{ (jobPayload(job).features ?? []).join(', ') }}</span>
-              </div>
-              <UButton v-if="job.log" size="xs" color="neutral" variant="ghost" :icon="expandedLog === job.$id ? 'i-ph-caret-up' : 'i-ph-caret-down'" @click="() => { expandedLog = expandedLog === job.$id ? null : job.$id }">
+        <UTable :data="jobsData.jobs" :columns="jobColumns" data-jobs-list>
+          <template #job-cell="{ row }">
+            <div class="min-w-0" :data-job="jobPayload(row.original).name">
+              <p class="font-medium">{{ jobPayload(row.original).name }}</p>
+              <p class="text-xs text-muted">
+                <ClientOnly>{{ new Date(row.original.$createdAt).toLocaleString() }}</ClientOnly>
+                <template v-if="jobResult(row.original)?.projectId"> · {{ jobResult(row.original)!.projectId }}</template>
+                <template v-if="jobResult(row.original)?.appUrl"> · <a :href="jobResult(row.original)!.appUrl" target="_blank" rel="noopener" class="underline">{{ jobResult(row.original)!.appUrl }}</a></template>
+              </p>
+              <pre v-if="expandedLog === row.original.$id" class="mt-2 max-h-64 overflow-auto rounded bg-elevated p-3 text-xs whitespace-pre-wrap" data-job-log>{{ row.original.log }}</pre>
+            </div>
+          </template>
+          <template #jobFeatures-cell="{ row }">
+            <span class="text-xs text-muted">{{ (jobPayload(row.original).features ?? []).join(', ') }}</span>
+          </template>
+          <template #status-cell="{ row }">
+            <UBadge :color="jobColor(row.original.status)" variant="subtle" size="sm" :data-job-status="row.original.status">{{ row.original.status }}</UBadge>
+          </template>
+          <template #jobActions-cell="{ row }">
+            <div class="flex justify-end">
+              <UButton
+                v-if="row.original.log"
+                size="xs"
+                color="neutral"
+                variant="ghost"
+                :icon="expandedLog === row.original.$id ? 'i-ph-caret-up' : 'i-ph-caret-down'"
+                @click="() => { expandedLog = expandedLog === row.original.$id ? null : row.original.$id }"
+              >
                 {{ t('control.jobs.log') }}
               </UButton>
             </div>
-            <p class="mt-0.5 text-xs text-muted">
-              <ClientOnly>{{ new Date(job.$createdAt).toLocaleString() }}</ClientOnly>
-              <template v-if="jobResult(job)?.projectId"> · {{ jobResult(job)!.projectId }}</template>
-              <template v-if="jobResult(job)?.appUrl"> · <a :href="jobResult(job)!.appUrl" target="_blank" rel="noopener" class="underline">{{ jobResult(job)!.appUrl }}</a></template>
-            </p>
-            <pre v-if="expandedLog === job.$id" class="mt-2 max-h-64 overflow-auto rounded bg-elevated p-3 text-xs whitespace-pre-wrap" data-job-log>{{ job.log }}</pre>
-          </div>
-        </div>
+          </template>
+        </UTable>
       </template>
 
       <!-- T1: bestehende Site manuell registrieren -->

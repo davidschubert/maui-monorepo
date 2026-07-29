@@ -82,6 +82,15 @@
       "unpublish": "Zurückziehen",
       "cancel": "Absagen",
       "empty": "Noch keine Events — leg das erste an.",
+      "emptyTitle": "Noch keine Events",
+      "rowActions": "Aktionen für diesen Termin",
+      "col": {
+        "event": "Termin",
+        "start": "Beginn",
+        "location": "Ort",
+        "attendees": "Teilnehmer",
+        "status": "Status"
+      },
       "saved": "Event gespeichert.",
       "saveFailed": "Event konnte nicht gespeichert werden.",
       "published": "Event veröffentlicht.",

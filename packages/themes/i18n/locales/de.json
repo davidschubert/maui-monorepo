@@ -30,6 +30,12 @@
       "uploadError": "Upload fehlgeschlagen — nur WOFF2 bis 3 MB.",
       "previewText": "Zwölf Boxkämpfer jagen Viktor quer über den Deich",
       "empty": "Noch keine Schriften — lade deine erste WOFF2-Datei hoch.",
+      "emptyTitle": "Noch keine Schriften",
+      "col": {
+        "name": "Name",
+        "preview": "Vorschau",
+        "weights": "Schnitte"
+      },
       "hint": "Nur WOFF2 (das können alle modernen Browser). Bitte nur Schriften mit passender Lizenz hochladen.",
       "saved": "Schrift gespeichert.",
       "deleted": "Schrift gelöscht.",
@@ -42,7 +48,11 @@
       "navLabel": "Branding",
       "title": "Theme-Studio",
       "gallery": "Theme-Galerie",
-      "galleryHint": "Klick auf eine Karte wechselt das Theme live — Varianten über die Farbpunkte. Die Auswahl gilt für DEINEN Browser (Cookie), wie im Anzeige-Menü.",
+      "galleryHint": "Klick auf eine Zeile wechselt das Theme live — Varianten über die Farbpunkte. Die Auswahl gilt für DEINEN Browser (Cookie), wie im Anzeige-Menü.",
+      "col": {
+        "preview": "Vorschau",
+        "theme": "Theme"
+      },
       "customBadge": "Eigenes",
       "active": "Aktiv",
       "create": "Neues Theme",

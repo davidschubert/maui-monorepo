@@ -43,6 +43,16 @@
       "orphans": "Nicht verknüpft",
       "orphan": "Nicht verknüpft",
       "empty": "Keine Dateien in diesem Bucket.",
+      "emptyTitle": "Bucket ist leer",
+      "searchPlaceholder": "Dateien durchsuchen …",
+      "deleteFile": "Datei löschen",
+      "col": {
+        "preview": "Vorschau",
+        "name": "Name",
+        "size": "Größe",
+        "uploaded": "Hochgeladen",
+        "state": "Status"
+      },
       "deleted": "Datei(en) gelöscht.",
       "deleteOrphans": "Nicht verknüpfte löschen ({count})",
       "confirmTitle": "Datei löschen",
@@ -135,6 +145,16 @@
       "draft": "Entwurf",
       "missingEn": "EN fehlt",
       "empty": "Noch keine Changelog-Einträge.",
+      "emptyTitle": "Noch nichts veröffentlicht",
+      "live": "Veröffentlicht",
+      "rowActions": "Aktionen für diesen Eintrag",
+      "col": {
+        "category": "Kategorie",
+        "entry": "Eintrag",
+        "version": "Version",
+        "state": "Status",
+        "date": "Datum"
+      },
       "confirmDelete": "„{title}“ endgültig löschen?",
       "category": {
         "feature": "Neu",
@@ -239,7 +259,14 @@
         "passwordless": "passwortlos (OTP/OAuth)",
         "activity": {
           "title": "Aktivitätsprotokoll (Appwrite)",
-          "empty": "Keine Aktivitäts-Einträge."
+          "empty": "Keine Aktivitäts-Einträge.",
+          "emptyTitle": "Keine Aktivität",
+          "col": {
+            "event": "Ereignis",
+            "client": "Gerät",
+            "location": "Standort",
+            "time": "Zeit"
+          }
         },
         "targets": {
           "title": "Benachrichtigungskanäle",
@@ -294,6 +321,17 @@
         "deleted": "Gelöscht"
       },
       "empty": "Keine Kommentare in dieser Ansicht.",
+      "emptyTitle": "Nichts zu moderieren",
+      "search": "Suchen",
+      "searchPlaceholder": "Kommentare durchsuchen …",
+      "rowActions": "Aktionen für diesen Kommentar",
+      "col": {
+        "author": "Autor",
+        "comment": "Kommentar",
+        "target": "Ziel",
+        "status": "Status",
+        "date": "Datum"
+      },
       "hide": "Ausblenden",
       "restore": "Wiederherstellen",
       "blockAuthor": "Autor sperren",
@@ -337,6 +375,12 @@
       "title": "GDPR-Exporte",
       "hint": "Pre-Delete-Snapshots gelöschter Accounts — bei jeder Account-Löschung automatisch erstellt, nach 30 Tagen automatisch entfernt.",
       "empty": "Keine Snapshots vorhanden.",
+      "emptyTitle": "Keine Snapshots",
+      "col": {
+        "file": "Datei",
+        "size": "Größe",
+        "created": "Erstellt"
+      },
       "download": "Download",
       "delete": "Löschen",
       "deleted": "Snapshot gelöscht.",

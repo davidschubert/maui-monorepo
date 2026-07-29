@@ -82,6 +82,15 @@
       "unpublish": "Unpublish",
       "cancel": "Cancel event",
       "empty": "No events yet — create the first one.",
+      "emptyTitle": "No events yet",
+      "rowActions": "Actions for this event",
+      "col": {
+        "event": "Event",
+        "start": "Starts",
+        "location": "Location",
+        "attendees": "Attendees",
+        "status": "Status"
+      },
       "saved": "Event saved.",
       "saveFailed": "Could not save the event.",
       "published": "Event published.",

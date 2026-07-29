@@ -8,6 +8,8 @@
  * bleibt offen, bis der Betreiber sie schließt, und sagt deutlich, dass der
  * Code nicht wiederherstellbar ist.
  */
+import type { TableColumn } from '@nuxt/ui'
+
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'sites.manage' })
 
 const { t, locale } = useI18n()
@@ -156,6 +158,17 @@ const STATE_COLORS: Record<InviteDto['state'], 'success' | 'primary' | 'neutral'
   expired: 'warning',
   revoked: 'neutral',
 }
+
+const HIDE_MD = { td: 'hidden md:table-cell', th: 'hidden md:table-cell' }
+
+const columns = computed<TableColumn<InviteDto>[]>(() => [
+  { accessorKey: 'label', header: () => t('control.invites.col.code') },
+  { accessorKey: 'state', header: () => t('control.invites.col.state') },
+  { accessorKey: 'boundEmail', header: () => t('control.invites.col.recipient') },
+  { id: 'uses', header: () => t('control.invites.col.uses'), meta: { class: HIDE_MD } },
+  { accessorKey: 'expiresAt', header: () => t('control.invites.col.expires'), id: 'expires', meta: { class: HIDE_MD } },
+  { id: 'actions', header: () => '' },
+])
 </script>
 
 <template>
@@ -238,40 +251,61 @@ const STATE_COLORS: Record<InviteDto['state'], 'success' | 'primary' | 'neutral'
         </div>
       </div>
 
-      <p v-if="!codes.length" class="py-12 text-center text-sm text-muted" data-invites-empty>
-        {{ stock?.free ? t('control.invites.stock.onlyFree', { count: stock.free }) : t('control.invites.empty') }}
-      </p>
-      <div v-else class="divide-y divide-default" data-invites-list>
-        <div v-for="code in codes" :key="code.id" class="flex flex-wrap items-center justify-between gap-3 py-4">
-          <div class="min-w-0">
-            <div class="flex flex-wrap items-center gap-2">
-              <p class="font-medium">{{ code.label || t('control.invites.noLabel') }}</p>
-              <UBadge :color="STATE_COLORS[code.state]" variant="subtle" size="sm">
-                {{ t(`control.invites.state.${code.state}`) }}
-              </UBadge>
-            </div>
-            <p class="mt-0.5 text-sm text-muted">
-              {{ code.maxUses === 0
-                ? t('control.invites.usesUnlimited', { uses: code.uses })
-                : t('control.invites.uses', { uses: code.uses, max: code.maxUses }) }}
-              <template v-if="code.expiresAt"> · {{ t('control.invites.until', { date: formatDate(code.expiresAt) }) }}</template>
-              <template v-else> · {{ t('control.invites.noExpiry') }}</template>
-            </p>
-            <!-- An wen ging er, und kam er an? -->
-            <p v-if="code.boundEmail" class="mt-0.5 truncate text-sm text-muted">
-              {{ code.boundEmail }}
-              <template v-if="code.redeemedAt"> · {{ t('control.invites.redeemedOn', { date: formatDate(code.redeemedAt) }) }}</template>
+      <UTable :data="codes" :columns="columns" data-invites-list>
+        <template #label-cell="{ row }">
+          <span class="font-medium">{{ row.original.label || t('control.invites.noLabel') }}</span>
+        </template>
+        <template #state-cell="{ row }">
+          <UBadge :color="STATE_COLORS[row.original.state]" variant="subtle" size="sm">
+            {{ t(`control.invites.state.${row.original.state}`) }}
+          </UBadge>
+        </template>
+        <!-- An wen ging er, und kam er an? -->
+        <template #boundEmail-cell="{ row }">
+          <div v-if="row.original.boundEmail" class="min-w-0">
+            <p class="truncate text-sm">{{ row.original.boundEmail }}</p>
+            <p v-if="row.original.redeemedAt" class="text-xs text-muted">
+              {{ t('control.invites.redeemedOn', { date: formatDate(row.original.redeemedAt) }) }}
             </p>
           </div>
-          <UButton
-            :label="t(code.status === 'revoked' ? 'control.invites.reactivate' : 'control.invites.revoke')"
-            :color="code.status === 'revoked' ? 'neutral' : 'error'"
-            variant="ghost"
-            size="sm"
-            @click="setStatus(code, code.status === 'revoked' ? 'active' : 'revoked')"
+          <span v-else class="text-muted">—</span>
+        </template>
+        <template #uses-cell="{ row }">
+          <span class="whitespace-nowrap text-sm text-muted">
+            {{ row.original.maxUses === 0
+              ? t('control.invites.usesUnlimited', { uses: row.original.uses })
+              : t('control.invites.uses', { uses: row.original.uses, max: row.original.maxUses }) }}
+          </span>
+        </template>
+        <template #expires-cell="{ row }">
+          <span class="whitespace-nowrap text-sm text-muted">
+            {{ row.original.expiresAt ? formatDate(row.original.expiresAt) : t('control.invites.noExpiry') }}
+          </span>
+        </template>
+        <template #actions-cell="{ row }">
+          <div class="flex justify-end">
+            <UButton
+              :label="t(row.original.status === 'revoked' ? 'control.invites.reactivate' : 'control.invites.revoke')"
+              :color="row.original.status === 'revoked' ? 'neutral' : 'error'"
+              variant="ghost"
+              size="xs"
+              @click="setStatus(row.original, row.original.status === 'revoked' ? 'active' : 'revoked')"
+            />
+          </div>
+        </template>
+
+        <template #empty>
+          <CoreEmptyState
+            icon="i-ph-key"
+            :title="t('control.invites.emptyTitle')"
+            :description="stock?.free ? t('control.invites.stock.onlyFree', { count: stock.free }) : t('control.invites.empty')"
+            :action-label="t('control.invites.new')"
+            action-icon="i-ph-plus"
+            data-invites-empty
+            @action="openCreate"
           />
-        </div>
-      </div>
+        </template>
+      </UTable>
 
       <UModal v-model:open="showCreate" :title="t('control.invites.new')">
         <template #body>

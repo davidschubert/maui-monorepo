@@ -4,6 +4,10 @@ import type { AdminCommentListResponse, ModeratedComment, ModerationFilter } fro
 
 const PAGE_SIZE = 25
 const FILTERS: ModerationFilter[] = ['reported', 'hidden', 'all']
+/** Sortierbar sind nur indizierte Spalten (Migration 002) — alles andere fällt zurück. */
+const SORTABLE = new Set(['$createdAt', 'status'])
+/** Appwrite nimmt je `equal`-Query höchstens 100 Werte. */
+const ID_CHUNK = 100
 
 type CommentRow = Models.Row & Omit<ModeratedComment, '$id' | '$createdAt' | 'reportCount'>
 
@@ -29,6 +33,11 @@ export default defineEventHandler(async (event): Promise<AdminCommentListRespons
     : 'reported'
   const page = Math.max(1, Number(query.page ?? 1) || 1)
   const offset = (page - 1) * PAGE_SIZE
+  // Suche läuft über den Fulltext-Index comments.content_search (Migration 004)
+  const search = String(query.search ?? '').trim()
+  const searchQueries = search ? [Query.search('content', search)] : []
+  const sort = SORTABLE.has(String(query.sort ?? '')) ? String(query.sort) : '$createdAt'
+  const dir = query.dir === 'asc' ? 'asc' : 'desc'
 
   // Betreiber-Weg durch die Tür — der Filter kommt von dort, nicht aus dieser
   // Route. Vorher stand hier scopeQuery von Hand; genau solche Stellen wollen
@@ -42,9 +51,28 @@ export default defineEventHandler(async (event): Promise<AdminCommentListRespons
   // aus comment.status — über den expliziten Vertrag, nicht direkt (Layer-Grenze A14).
   if (status === 'reported') {
     const { order, counts } = await openReportsByTarget(event, 'comment')
-    const pageIds = order.slice(offset, offset + PAGE_SIZE)
+    // Die Reihenfolge der Queue ist „neueste Meldung zuerst" — eine
+    // Sortierung nach Datum/Status wäre hier eine andere Aussage, deshalb
+    // bietet die Oberfläche in dieser Ansicht bewusst keine an.
+    let ids = order
+    if (search) {
+      // Suche innerhalb der gemeldeten Menge: die ist durch REPORTS_WINDOW
+      // (500) gedeckelt, `equal` nimmt 100 Werte je Abfrage → max. 5 Abfragen.
+      const matched = new Set<string>()
+      for (let i = 0; i < ids.length; i += ID_CHUNK) {
+        const chunk = ids.slice(i, i + ID_CHUNK)
+        const hits = await ops.list<CommentRow>('comments', [
+          Query.equal('$id', chunk),
+          ...searchQueries,
+          Query.limit(chunk.length),
+        ])
+        for (const row of hits.rows) matched.add(row.$id)
+      }
+      ids = ids.filter(id => matched.has(id))
+    }
+    const pageIds = ids.slice(offset, offset + PAGE_SIZE)
     if (pageIds.length === 0) {
-      return { total: order.length, comments: [], aiAssist }
+      return { total: ids.length, comments: [], aiAssist }
     }
     const result = await ops.list<CommentRow>('comments', [
       Query.equal('$id', pageIds),
@@ -55,12 +83,13 @@ export default defineEventHandler(async (event): Promise<AdminCommentListRespons
       .map(id => byId.get(id))
       .filter((row): row is CommentRow => row !== undefined)
       .map(row => ({ ...toModerated(row), reportCount: counts.get(row.$id) ?? 0 }))
-    return { total: order.length, comments, aiAssist }
+    return { total: ids.length, comments, aiAssist }
   }
 
   const result = await ops.list<CommentRow>('comments', [
     ...(status === 'all' ? [] : [Query.equal('status', status)]),
-    Query.orderDesc('$createdAt'),
+    ...searchQueries,
+    dir === 'asc' ? Query.orderAsc(sort) : Query.orderDesc(sort),
     Query.limit(PAGE_SIZE),
     Query.offset(offset),
   ])

@@ -47,6 +47,15 @@
       "createTitle": "Kurs anlegen",
       "edit": "Bearbeiten",
       "emptyTitle": "Noch keine Kurse",
+      "col": {
+        "title": "Titel",
+        "slug": "Adresse",
+        "access": "Zugang",
+        "lessons": "Lektionen",
+        "status": "Status",
+        "order": "Nr.",
+        "lesson": "Lektion"
+      },
       "empty": "Noch keine Kurse — leg den ersten an.",
       "backToList": "Alle Kurse",
       "publish": "Veröffentlichen",
@@ -63,6 +72,10 @@
       "confirmDeleteLessonTitle": "Lektion löschen?",
       "confirmDeleteLessonText": "„{title}“ wird endgültig gelöscht — auch für Teilnehmende, die sie schon gesehen haben.",
       "noLessons": "Noch keine Lektionen — fang mit der ersten an.",
+      "noLessonsTitle": "Noch keine Lektionen",
+      "lessonActions": "Aktionen für diese Lektion",
+      "moveUp": "Nach oben",
+      "moveDown": "Nach unten",
       "editingWarning": "{name} bearbeitet diesen Kurs gerade ebenfalls.",
       "form": {
         "title": "Titel",
