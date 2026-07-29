@@ -10,7 +10,15 @@
       "subtitle": "Editierbare Inhaltsseiten (Impressum, AGB, Datenschutz) mit Sprachversionen.",
       "new": "Neue Seite",
       "empty": "Noch keine Seiten.",
-      "selectHint": "Links eine Seite wählen oder eine neue anlegen.",
+      "emptyTitle": "Noch keine Seiten",
+      "edit": "Bearbeiten",
+      "backToList": "Zurück zur Liste",
+      "searchPlaceholder": "Seiten durchsuchen …",
+      "col": {
+        "address": "Adresse",
+        "pageTitle": "Titel",
+        "languages": "Sprachen"
+      },
       "slug": "Slug (URL-Pfad)",
       "slugHelp": "Kleinbuchstaben, z. B. imprint — wird zu /imprint. Später nicht änderbar.",
       "slugPlaceholder": "imprint",

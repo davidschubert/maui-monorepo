@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { EditorToolbarItem, NavigationMenuItem } from '@nuxt/ui'
+import type { EditorToolbarItem, TableColumn } from '@nuxt/ui'
 import { MAX_PAGE_BODY } from '../../../schemas/page'
 import type { PageGroup, PageRow } from '../../../shared/types/page'
 
@@ -45,18 +45,37 @@ const localeTabs = computed(() => LOCALES.map(l => ({ label: t(`pages.admin.loca
 const activeForm = computed(() => forms[activeLocale.value])
 const bodyTooLong = computed(() => activeForm.value.body.length > MAX_PAGE_BODY)
 
-// Seiten-Menü links (Muster: Dashboard-Nav) — active + Locale-Badges je Seite
-const navItems = computed<NavigationMenuItem[]>(() => groups.value.map(group => ({
-  label: `/${group.slug}`,
-  value: group.slug,
-  slot: 'page' as const,
-  active: selectedSlug.value === group.slug,
-  onSelect: () => { selectPage(group.slug) },
-})))
+/**
+ * Liste UND Editor auf einer Seite, aber nacheinander statt nebeneinander
+ * (B6): vorher stand links ein 220-px-Menü, in dem der Slug die einzige
+ * Information war. Jetzt zeigt die Seite eine Tabelle, bis eine Seite
+ * ausgewählt ist — dann tritt der Editor an ihre Stelle. Dasselbe Muster wie
+ * bei Kursen und Themes: Liste, dann Editor.
+ */
+const search = ref('')
+const filteredGroups = computed(() => {
+  const needle = search.value.trim().toLowerCase()
+  if (!needle) return groups.value
+  return groups.value.filter(group => group.slug.toLowerCase().includes(needle)
+    || group.locales.some(locale => locale.title.toLowerCase().includes(needle)))
+})
 
-// Slot-Items sind generisch typisiert — Locale-Badges über den value-Key auflösen
-function localesForItem(item: { value?: string }): PageGroup['locales'] {
-  return groups.value.find(group => group.slug === item.value)?.locales ?? []
+const columns = computed<TableColumn<PageGroup>[]>(() => [
+  { accessorKey: 'slug', header: () => t('pages.admin.col.address') },
+  { id: 'title', header: () => t('pages.admin.col.pageTitle') },
+  { id: 'locales', header: () => t('pages.admin.col.languages') },
+  { id: 'actions', header: () => '' },
+])
+
+/** Anzeige-Titel: die Sprachversion der Oberfläche, sonst die erste vorhandene. */
+function displayTitle(group: PageGroup): string {
+  return group.locales.find(l => l.locale === 'en')?.title || group.locales[0]?.title || ''
+}
+
+function closeEditor() {
+  isNew.value = false
+  selectedSlug.value = null
+  resetForms()
 }
 
 function resetForms() {
@@ -143,9 +162,8 @@ async function deletePage() {
     })
     if (!ok) return
     toast.add({ title: t('pages.admin.deleted'), color: 'success' })
-    newPage()
-    selectedSlug.value = null
-    isNew.value = false
+    // Nach dem Löschen zurück in die Liste — der Editor hätte kein Ziel mehr.
+    closeEditor()
     await refreshList()
   }
   catch {
@@ -159,10 +177,18 @@ async function deletePage() {
     <template #header>
       <UDashboardNavbar :title="t('pages.admin.title')">
         <template #leading>
-          <UDashboardSidebarCollapse />
+          <UButton
+            v-if="editing"
+            icon="i-ph-arrow-left"
+            color="neutral"
+            variant="ghost"
+            :aria-label="t('pages.admin.backToList')"
+            @click="closeEditor"
+          />
+          <UDashboardSidebarCollapse v-else />
         </template>
         <template #right>
-          <UButton icon="i-ph-plus" :label="t('pages.admin.new')" @click="newPage" />
+          <UButton v-if="!editing" icon="i-ph-plus" :label="t('pages.admin.new')" @click="newPage" />
         </template>
       </UDashboardNavbar>
     </template>
@@ -170,17 +196,33 @@ async function deletePage() {
     <!-- #body ist der Scroll-Container des Panels — Menü + Formular scrollen hier,
          die Fußleiste (#footer) bleibt wie die Kopfleiste immer sichtbar. -->
     <template #body>
-      <div class="grid gap-6 lg:grid-cols-[220px_1fr]">
-        <!-- Seiten-Navigation -->
-        <UNavigationMenu
-          orientation="vertical"
-          :items="navItems"
-          class="lg:sticky lg:top-0 lg:self-start"
-        >
-          <template #page-trailing="{ item }">
-            <span class="flex gap-1">
+      <!-- Liste, solange keine Seite offen ist -->
+      <template v-if="!editing">
+        <UInput
+          v-model="search"
+          icon="i-ph-magnifying-glass"
+          :placeholder="t('pages.admin.searchPlaceholder')"
+          class="mb-4 max-w-md"
+          data-pages-search
+        />
+
+        <UTable :data="filteredGroups" :columns="columns" data-pages-table>
+          <template #slug-cell="{ row }">
+            <button
+              type="button"
+              class="cursor-pointer font-mono font-medium text-default hover:text-primary hover:underline"
+              @click="selectPage(row.original.slug)"
+            >
+              /{{ row.original.slug }}
+            </button>
+          </template>
+          <template #title-cell="{ row }">
+            <span class="text-sm">{{ displayTitle(row.original) }}</span>
+          </template>
+          <template #locales-cell="{ row }">
+            <span class="flex flex-wrap gap-1">
               <UBadge
-                v-for="loc in localesForItem(item)"
+                v-for="loc in row.original.locales"
                 :key="loc.$id"
                 size="sm"
                 :color="loc.status === 'published' ? 'success' : 'neutral'"
@@ -188,9 +230,43 @@ async function deletePage() {
               >{{ loc.locale }}</UBadge>
             </span>
           </template>
-        </UNavigationMenu>
-        <p v-if="!groups.length && !editing" class="text-sm text-muted lg:col-span-2">{{ t('pages.admin.empty') }}</p>
+          <template #actions-cell="{ row }">
+            <div class="flex justify-end">
+              <UButton
+                color="neutral"
+                variant="ghost"
+                size="xs"
+                icon="i-ph-pencil-simple"
+                :label="t('pages.admin.edit')"
+                @click="selectPage(row.original.slug)"
+              />
+            </div>
+          </template>
 
+          <template #empty>
+            <CoreEmptyState
+              v-if="search.trim()"
+              icon="i-ph-funnel"
+              :title="t('ui.empty.noResultsTitle')"
+              :description="t('ui.empty.noResultsText')"
+              :action-label="t('ui.empty.resetFilters')"
+              action-icon="i-ph-arrow-counter-clockwise"
+              @action="() => { search = '' }"
+            />
+            <CoreEmptyState
+              v-else
+              icon="i-ph-file-text"
+              :title="t('pages.admin.emptyTitle')"
+              :description="t('pages.admin.empty')"
+              :action-label="t('pages.admin.new')"
+              action-icon="i-ph-plus"
+              @action="newPage"
+            />
+          </template>
+        </UTable>
+      </template>
+
+      <div class="grid gap-6">
         <!-- Formular -->
         <div v-if="editing" class="min-w-0 space-y-4">
           <UFormField :label="t('pages.admin.slug')" :help="t('pages.admin.slugHelp')">
@@ -222,9 +298,6 @@ async function deletePage() {
               </div>
             </template>
           </UTabs>
-        </div>
-        <div v-else-if="groups.length" class="flex items-center justify-center rounded-lg border border-dashed border-default p-12 text-center text-muted">
-          {{ t('pages.admin.selectHint') }}
         </div>
       </div>
     </template>
