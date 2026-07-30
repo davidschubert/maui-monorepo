@@ -5,7 +5,7 @@
  * LIVE-Beweis über die ECHTE API (Muster events/verify-pool-isolation +
  * onboarding/verify-site-authz) gegen den laufenden Platform-Dev-Server:
  *
- *   1. Ein site_members-OWNER auf kunde-a OHNE jedes Operator-Label darf
+ *   1. Ein community_members-OWNER auf kunde-a OHNE jedes Operator-Label darf
  *      seine Events verwalten: manage/POST/PATCH/cover/series/DELETE.
  *   2. Genau dieser User bleibt auf kunde-b draußen (403) — die Rolle klebt
  *      an ihrer Community und reist nicht mit.
@@ -200,9 +200,9 @@ try {
     // Der Owner: Mitglied von kunde-a, KEIN Operator-Label.
     const owner = await createUser('owner')
     const member = await control.createRow({
-      databaseId: controlDb, tableId: 'site_members', rowId: ID.unique(),
+      databaseId: controlDb, tableId: 'community_members', rowId: ID.unique(),
       data: {
-        siteId: tenantA.$id,
+        communityId: tenantA.$id,
         runtimeProjectId: tenantA.projectId,
         runtimeUserId: owner.userId,
         role: 'owner',
@@ -272,7 +272,7 @@ catch (error) {
 finally {
   console.log('\n5. Aufräumen')
   for (const id of cleanup.events) await pool.deleteRow({ databaseId, tableId: 'events', rowId: id }).catch(() => {})
-  for (const id of cleanup.members) await control?.deleteRow({ databaseId: controlDb, tableId: 'site_members', rowId: id }).catch(() => {})
+  for (const id of cleanup.members) await control?.deleteRow({ databaseId: controlDb, tableId: 'community_members', rowId: id }).catch(() => {})
   for (const id of cleanup.users) await poolUsers.delete({ userId: id }).catch(() => {})
   for (const { id, plan } of cleanup.planRestore) {
     await control?.updateRow({ databaseId: controlDb, tableId: 'tenants', rowId: id, data: { plan } }).catch(() => {})

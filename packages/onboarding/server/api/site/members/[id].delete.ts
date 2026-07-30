@@ -28,7 +28,7 @@ import { requireSiteTeamGate } from '../../../utils/siteTeamGate'
  * Label weg). Zurück kommt der Zugang nie von selbst.
  */
 export default defineEventHandler(async (event) => {
-  const { siteId, jwt } = await requireSiteTeamGate(event, 'team.manage')
+  const { communityId, jwt } = await requireSiteTeamGate(event, 'team.manage')
   const memberId = getRouterParam(event, 'id')
   if (!memberId) {
     throw createError({ status: 400, statusText: 'Missing member id' })
@@ -42,15 +42,15 @@ export default defineEventHandler(async (event) => {
   }>(
     event,
     '/api/control/site/members/remove',
-    { jwt, siteId, memberId },
+    { jwt, communityId, memberId },
   )
 
   if (result.runtimeUserId) {
     // Erst merken, dann einziehen: der Rollen-Resolver cacht 30 s, und ohne
     // diese Notiz vergäbe die Label-Middleware das Publikum beim nächsten
     // Request der entfernten Person sofort wieder (siehe siteJoin.ts).
-    rememberSiteAccessRevoked(siteId, result.runtimeUserId)
-    await revokeSiteLabel(event, siteId, result.runtimeUserId)
+    rememberSiteAccessRevoked(communityId, result.runtimeUserId)
+    await revokeSiteLabel(event, communityId, result.runtimeUserId)
   }
 
   return { ok: result.ok, memberId: result.memberId, status: result.status }

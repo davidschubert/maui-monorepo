@@ -171,7 +171,7 @@ async function create() {
   creating.value = true
   createError.value = ''
   try {
-    const site = await $fetch<{ siteId: string, host: string, url: string, trialEndsAt: string | null }>('/api/onboarding/site', {
+    const site = await $fetch<{ communityId: string, host: string, url: string, trialEndsAt: string | null }>('/api/onboarding/site', {
       method: 'POST',
       body: {
         name: (draft.value.name ?? '').trim(),
@@ -186,7 +186,7 @@ async function create() {
         locale: locale.value,
       },
     })
-    await navigateTo({ path: localePath('/start/done'), query: { site: site.siteId, host: site.host } })
+    await navigateTo({ path: localePath('/start/done'), query: { site: site.communityId, host: site.host } })
   }
   catch (error) {
     const status = (error as { status?: number, statusCode?: number }).status

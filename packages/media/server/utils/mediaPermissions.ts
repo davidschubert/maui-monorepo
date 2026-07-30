@@ -26,7 +26,7 @@ export const MEDIA_READ_ANY = Permission.read(Role.any())
  * Cross-Tenant ist das die enge Seite (kein Kunde sieht fremde Entwürfe), aber
  * die eigene Redaktion sähe im Pool in /dashboard/media kaputte Entwurfs-Bilder.
  * Das ist KEIN Datenleck und deshalb bewusst NICHT hier geflickt: ein
- * Site-Label (Role.label(siteId)) würde Entwürfe allen MITGLIEDERN der Site
+ * Site-Label (Role.label(communityId)) würde Entwürfe allen MITGLIEDERN der Site
  * öffnen — die richtige Lösung ist eine server-seitige Vorschau-Route für
  * Entwurfsdateien. Offen, bevor media in apps/platform gezogen wird.
  */

@@ -167,15 +167,15 @@ try {
       locale: 'de',
     },
   })
-  check('angelegt', created.status === 200 && !!created.json?.siteId, `${created.status} ${created.text.slice(0, 200)}`)
-  const siteId = created.json?.siteId
+  check('angelegt', created.status === 200 && !!created.json?.communityId, `${created.status} ${created.text.slice(0, 200)}`)
+  const communityId = created.json?.communityId
   const host = created.json?.host
-  if (siteId) cleanup.tenants.push(siteId)
+  if (communityId) cleanup.tenants.push(communityId)
 
-  const tenantRow = siteId ? await control.getRow({ databaseId, tableId: 'tenants', rowId: siteId }) : null
+  const tenantRow = communityId ? await control.getRow({ databaseId, tableId: 'tenants', rowId: communityId }) : null
   if (tenantRow?.workspaceId) cleanup.workspaces.push(tenantRow.workspaceId)
   const members = await control.listRows({
-    databaseId, tableId: 'site_members', queries: [Query.equal('siteId', siteId ?? 'x'), Query.limit(10)],
+    databaseId, tableId: 'community_members', queries: [Query.equal('communityId', communityId ?? 'x'), Query.limit(10)],
   })
   cleanup.members.push(...members.rows.map(row => row.$id))
 
@@ -205,20 +205,20 @@ try {
 
   console.log('\n4. Site-Label (Naht 4: privates Lesen)')
   // SEIT A5 (2026-07-29) bedeutet das Label „ist Mitglied dieser Community" —
-  // abgeleitet aus einer site_members-Zeile MIT ZUGANG, nicht mehr aus „hat den
+  // abgeleitet aus einer community_members-Zeile MIT ZUGANG, nicht mehr aus „hat den
   // Host benutzt" (das war A4, und daran scheiterte „Zugang entziehen": das
   // Publikum kam beim nächsten Besuch zurück). Vergeben wird es von
   // server/middleware/site-label.ts an jedes Mitglied — ohne das sähe niemand
   // außer dem Owner Anwesende oder den Activity-Feed (beide hängen an
-  // read(label(siteId))). Das Label ist ein LESE-PUBLIKUM, KEINE Rolle: es
+  // read(label(communityId))). Das Label ist ein LESE-PUBLIKUM, KEINE Rolle: es
   // gewährt keine einzige Capability (hasCapability kennt nur
   // 'admin'/'moderator') — die 403er aus Schritt 3 beweisen das direkt.
   const ownerAfter = await poolUsers.get({ userId: owner.userId })
   check('Owner hat das Site-Label (Gründung = Mitgliedschaft)',
-    (ownerAfter.labels ?? []).includes(siteId), JSON.stringify(ownerAfter.labels))
+    (ownerAfter.labels ?? []).includes(communityId), JSON.stringify(ownerAfter.labels))
   const strangerAfter = await poolUsers.get({ userId: stranger.userId })
   check('Fremder (eingeloggt, kein Mitglied) trägt es NICHT — Besuchen ist kein Beitritt',
-    !(strangerAfter.labels ?? []).includes(siteId), JSON.stringify(strangerAfter.labels))
+    !(strangerAfter.labels ?? []).includes(communityId), JSON.stringify(strangerAfter.labels))
   check('…und bleibt auch sonst draußen: Label ≠ Rolle (Schritt 3: 403)',
     strangerPages.status === 403, `Status ${strangerPages.status}`)
   // Der Gegenbeweis: wer den Host NIE berührt hat, bekommt erst recht nichts.
@@ -226,7 +226,7 @@ try {
   await login(outsider) // nur auf dem KONTROLL-Host — dort gibt es keinen Mandanten
   const outsiderAfter = await poolUsers.get({ userId: outsider.userId })
   check('Wer den Host nie besucht hat, trägt das Label NICHT',
-    !(outsiderAfter.labels ?? []).includes(siteId), JSON.stringify(outsiderAfter.labels))
+    !(outsiderAfter.labels ?? []).includes(communityId), JSON.stringify(outsiderAfter.labels))
 
   console.log('\n5. Handoff: in der Community ankommen — eingeloggt (Schritt 9)')
   // Session-Cookies sind host-only: die Anmeldung auf app.* gilt auf der
@@ -235,7 +235,7 @@ try {
   check('ohne Handoff ist man auf der Community NICHT eingeloggt', noCookieYet.status === 401, `Status ${noCookieYet.status}`)
 
   const handoff = await call(CONTROL_HOST, '/api/onboarding/handoff', {
-    method: 'POST', cookie: ownerCookie, body: { siteId },
+    method: 'POST', cookie: ownerCookie, body: { communityId },
   })
   check('Kontroll-Host siegelt ein Token', handoff.status === 200 && !!handoff.json?.token, `Status ${handoff.status}`)
 
@@ -288,10 +288,10 @@ try {
     const account = await createPoolUser(role)
     const row = await control.createRow({
       databaseId,
-      tableId: 'site_members',
+      tableId: 'community_members',
       rowId: ID.unique(),
       data: {
-        siteId,
+        communityId,
         runtimeProjectId: poolProject,
         runtimeUserId: account.userId,
         role,
@@ -355,7 +355,7 @@ try {
     method: 'PATCH', cookie: staff.admin.cookie, body: { role: 'moderator' },
   })
   check('Admin darf eine Rolle ändern → 200', promote.status === 200, `Status ${promote.status} ${promote.text.slice(0, 160)}`)
-  const viewerRow = await control.getRow({ databaseId, tableId: 'site_members', rowId: staff.viewer.memberId })
+  const viewerRow = await control.getRow({ databaseId, tableId: 'community_members', rowId: staff.viewer.memberId })
   check('…und die Zeile trägt die neue Rolle', viewerRow.role === 'moderator', `role=${viewerRow.role}`)
   const selfDemote = await call(host, `/api/site/members/${staff.admin.memberId}`, {
     method: 'PATCH', cookie: staff.admin.cookie, body: { role: 'viewer' },
@@ -406,7 +406,7 @@ try {
     method: 'DELETE', cookie: staff.admin.cookie,
   })
   check('Admin darf entfernen → 200', removeEditor.status === 200, `Status ${removeEditor.status} ${removeEditor.text.slice(0, 160)}`)
-  const editorRow = await control.getRow({ databaseId, tableId: 'site_members', rowId: staff.editor.memberId })
+  const editorRow = await control.getRow({ databaseId, tableId: 'community_members', rowId: staff.editor.memberId })
   check('die Mitgliedschaft ist NICHT gelöscht, sondern status=removed',
     editorRow.status === 'removed' && !!editorRow.removedAt, JSON.stringify({ status: editorRow.status, removedAt: editorRow.removedAt }))
 
@@ -432,8 +432,8 @@ try {
     method: 'POST', cookie: ownerCookie,
   })
   check('Owner darf übertragen → 200', ownerTransfer.status === 200, `Status ${ownerTransfer.status} ${ownerTransfer.text.slice(0, 160)}`)
-  const newOwner = await control.getRow({ databaseId, tableId: 'site_members', rowId: staff.admin.memberId })
-  const oldOwner = ownerMemberId ? await control.getRow({ databaseId, tableId: 'site_members', rowId: ownerMemberId }) : null
+  const newOwner = await control.getRow({ databaseId, tableId: 'community_members', rowId: staff.admin.memberId })
+  const oldOwner = ownerMemberId ? await control.getRow({ databaseId, tableId: 'community_members', rowId: ownerMemberId }) : null
   check('das Ziel ist jetzt Owner', newOwner.role === 'owner', `role=${newOwner.role}`)
   check('der Übertragende ist Admin — nicht draußen', oldOwner?.role === 'admin', `role=${oldOwner?.role}`)
 
@@ -455,15 +455,15 @@ try {
   const memberRowOf = async (userId) => {
     const res = await control.listRows({
       databaseId,
-      tableId: 'site_members',
-      queries: [Query.equal('siteId', siteId ?? 'x'), Query.equal('runtimeUserId', userId), Query.limit(1)],
+      tableId: 'community_members',
+      queries: [Query.equal('communityId', communityId ?? 'x'), Query.equal('runtimeUserId', userId), Query.limit(1)],
     })
     const row = res.rows[0] ?? null
     if (row && !cleanup.members.includes(row.$id)) cleanup.members.push(row.$id)
     return row
   }
   const labelsOf = async userId => (await poolUsers.get({ userId })).labels ?? []
-  const hasLabel = async userId => (await labelsOf(userId)).includes(siteId)
+  const hasLabel = async userId => (await labelsOf(userId)).includes(communityId)
 
   /** Presences-Client mit ECHTER Session — liest an unserem Code vorbei. */
   const presencesAs = async (userId) => {
@@ -528,7 +528,7 @@ try {
 
   console.log('  b) Entfernen nimmt das Lese-Publikum wirklich weg')
   // Gegenprobe VOR dem Entzug: der Beigetretene sieht die Presence eines anderen
-  // Mitglieds. Geschrieben wird sie über unsere echte Route (read("label:<siteId>")).
+  // Mitglieds. Geschrieben wird sie über unsere echte Route (read("label:<communityId>")).
   const beat = await call(host, '/api/presence/heartbeat', {
     method: 'POST', cookie: staff.moderator.cookie, body: { scope: `a5:${Date.now()}` },
   })
@@ -594,10 +594,10 @@ try {
   // Mail-Versand in dieser Umgebung nicht garantiert ist.
   const inviteRow = await control.createRow({
     databaseId,
-    tableId: 'site_invites',
+    tableId: 'community_invites',
     rowId: ID.unique(),
     data: {
-      siteId,
+      communityId,
       email: outsider2.email,
       role: 'viewer',
       status: 'pending',
@@ -626,7 +626,7 @@ try {
   // schon drin war, wird nicht durch eine inzwischen geschlossene Tür ausgesperrt.
   const legacy = await createPoolUser('legacy')
   const legacyCookie = await login(legacy)
-  await poolUsers.updateLabels({ userId: legacy.userId, labels: [siteId] })
+  await poolUsers.updateLabels({ userId: legacy.userId, labels: [communityId] })
   check('Ausgangslage: Label da, aber KEINE Mitgliedschaft',
     (await hasLabel(legacy.userId)) && (await memberRowOf(legacy.userId)) === null)
 
@@ -646,9 +646,9 @@ try {
   const ghost = await createPoolUser('ghost')
   const ghostCookie = await login(ghost)
   const ghostRow = await control.createRow({
-    databaseId, tableId: 'site_members', rowId: ID.unique(),
+    databaseId, tableId: 'community_members', rowId: ID.unique(),
     data: {
-      siteId,
+      communityId,
       runtimeProjectId: poolProject,
       runtimeUserId: ghost.userId,
       role: 'viewer',
@@ -658,7 +658,7 @@ try {
     },
   })
   cleanup.members.push(ghostRow.$id)
-  await poolUsers.updateLabels({ userId: ghost.userId, labels: [siteId] })
+  await poolUsers.updateLabels({ userId: ghost.userId, labels: [communityId] })
   const ghostVisit = await call(host, '/api/auth/me', { cookie: ghostCookie })
   check('entzogener Zugang + hängendes Label → 200', ghostVisit.status === 200, `Status ${ghostVisit.status}`)
   check('…das Label wird eingezogen, die Zeile NICHT wiederbelebt',
@@ -684,8 +684,8 @@ finally {
     const poolPresences = new Presences(new Client().setEndpoint(endpoint).setProject(poolProject).setKey(poolKey))
     for (const id of cleanup.presences) await poolPresences.delete({ presenceId: id }).catch(() => {})
   }
-  for (const id of cleanup.invites) await control.deleteRow({ databaseId, tableId: 'site_invites', rowId: id }).catch(() => {})
-  for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'site_members', rowId: id }).catch(() => {})
+  for (const id of cleanup.invites) await control.deleteRow({ databaseId, tableId: 'community_invites', rowId: id }).catch(() => {})
+  for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'community_members', rowId: id }).catch(() => {})
   for (const id of cleanup.tenants) await control.deleteRow({ databaseId, tableId: 'tenants', rowId: id }).catch(() => {})
   for (const id of cleanup.workspaces) await control.deleteRow({ databaseId, tableId: 'workspaces', rowId: id }).catch(() => {})
   for (const id of cleanup.codes) await control.deleteRow({ databaseId, tableId: 'invite_codes', rowId: id }).catch(() => {})

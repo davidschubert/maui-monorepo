@@ -59,11 +59,11 @@ afterEach(() => {
 
 const poolUser = { $id: 'u-1' }
 const poolEvent = {
-  context: { user: poolUser, tenant: { mode: 'pool', projectId: 'p', tenantId: 'kunde-a', siteId: 's-a' } },
+  context: { user: poolUser, tenant: { mode: 'pool', projectId: 'p', tenantId: 'kunde-a', communityId: 's-a' } },
 } as unknown as H3Event
 const siloEvent = { context: { user: poolUser } } as unknown as H3Event
 const guestPoolEvent = {
-  context: { tenant: { mode: 'pool', projectId: 'p', tenantId: 'kunde-a', siteId: 's-a' } },
+  context: { tenant: { mode: 'pool', projectId: 'p', tenantId: 'kunde-a', communityId: 's-a' } },
 } as unknown as H3Event
 
 const paidCourse = { $id: 'c-1', access: 'paid', entitlementFeature: 'paidCourses' } as CourseRow

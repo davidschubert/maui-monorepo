@@ -9,7 +9,7 @@ import { requireSiteTeamGate } from '../../../../utils/siteTeamGate'
  * Danach ist der Übertragende Admin.
  */
 export default defineEventHandler(async (event) => {
-  const { siteId, jwt } = await requireSiteTeamGate(event, 'site.transfer')
+  const { communityId, jwt } = await requireSiteTeamGate(event, 'site.transfer')
   const memberId = getRouterParam(event, 'id')
   if (!memberId) {
     throw createError({ status: 400, statusText: 'Missing member id' })
@@ -18,6 +18,6 @@ export default defineEventHandler(async (event) => {
   return await callControlPlane<{ ok: boolean, ownerMemberId: string }>(
     event,
     '/api/control/site/members/transfer',
-    { jwt, siteId, memberId },
+    { jwt, communityId, memberId },
   )
 })

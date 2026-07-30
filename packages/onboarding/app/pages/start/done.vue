@@ -14,7 +14,7 @@ const route = useRoute()
 const draft = useOnboardingDraft()
 
 const host = computed(() => String(route.query.host ?? ''))
-const siteId = computed(() => String(route.query.site ?? ''))
+const communityId = computed(() => String(route.query.site ?? ''))
 // Der Name kommt aus dem Entwurf; nach dem Leeren (unten) bleibt er in dieser
 // Kopie stehen, damit die Überschrift beim Neuladen nicht leer wird.
 const name = ref(draft.value.name ?? '')
@@ -43,7 +43,7 @@ async function openCommunity() {
   try {
     const { token } = await $fetch<{ token: string }>('/api/onboarding/handoff', {
       method: 'POST',
-      body: { siteId: siteId.value },
+      body: { communityId: communityId.value },
     })
     target = `https://${host.value}/api/auth/site-session?token=${encodeURIComponent(token)}&to=%2F`
   }

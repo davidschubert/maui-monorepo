@@ -61,7 +61,7 @@ async function collectCreatedAt(
  *    Zeitreihe ALLER Mandanten in das Dashboard EINES Kunden.
  *  - Registrierungen entfallen im Pool: `users.list()` ist die Nutzerliste des
  *    geteilten PROJEKTS, nicht die Mitglieder dieser Site. Eine mandanten-
- *    genaue Zahl gäbe es nur über `site_members` im Control Plane — ein neuer
+ *    genaue Zahl gäbe es nur über `community_members` im Control Plane — ein neuer
  *    Cross-Projekt-Vertrag, den diese Kennzahl nicht rechtfertigt. Lieber
  *    keine Zahl als eine fremde (`usersInRange: null`, Balken bleiben leer).
  */

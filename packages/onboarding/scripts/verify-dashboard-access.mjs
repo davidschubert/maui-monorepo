@@ -5,7 +5,7 @@
  * Fährt den ECHTEN Kundenpfad gegen den laufenden Platform-Server (Port 3141)
  * + das laufende Control Plane (Port 3004, für den Registrierungs-Schalter):
  * zwei Communities anlegen, dann prüfen:
- *   - Owner (User OHNE Operator-Label, nur site_members-owner) → /dashboard
+ *   - Owner (User OHNE Operator-Label, nur community_members-owner) → /dashboard
  *     SSR 200 mit GEFILTERTER Nav (Produkte ja, Operator-Module nein)
  *   - derselbe User auf der ANDEREN Community (keine Mitgliedschaft) → 403
  *   - User ganz ohne Rolle → 403 (wie heute)
@@ -144,17 +144,17 @@ async function createCommunity(account, cookie, slug, name) {
       locale: 'de',
     },
   })
-  if (created.status !== 200 || !created.json?.siteId) {
+  if (created.status !== 200 || !created.json?.communityId) {
     throw new Error(`Community ${slug} nicht angelegt (${created.status}): ${created.text.slice(0, 200)}`)
   }
-  cleanup.tenants.push(created.json.siteId)
-  const tenantRow = await control.getRow({ databaseId, tableId: 'tenants', rowId: created.json.siteId }).catch(() => null)
+  cleanup.tenants.push(created.json.communityId)
+  const tenantRow = await control.getRow({ databaseId, tableId: 'tenants', rowId: created.json.communityId }).catch(() => null)
   if (tenantRow?.workspaceId) cleanup.workspaces.push(tenantRow.workspaceId)
   const members = await control.listRows({
-    databaseId, tableId: 'site_members', queries: [Query.equal('siteId', created.json.siteId), Query.limit(10)],
+    databaseId, tableId: 'community_members', queries: [Query.equal('communityId', created.json.communityId), Query.limit(10)],
   })
   cleanup.members.push(...members.rows.map(row => row.$id))
-  return { siteId: created.json.siteId, host: created.json.host }
+  return { communityId: created.json.communityId, host: created.json.host }
 }
 
 /** Der Host-Resolver cacht negativ (30 s) — nach der Anlage kurz nachfassen. */
@@ -241,7 +241,7 @@ try {
   })
   check('PATCH openRegistration=false → 200', closeIt.status === 200 && closeIt.json?.openRegistration === false,
     `Status ${closeIt.status} ${closeIt.text.slice(0, 160)}`)
-  const tenantAfter = await control.getRow({ databaseId, tableId: 'tenants', rowId: siteA.siteId })
+  const tenantAfter = await control.getRow({ databaseId, tableId: 'tenants', rowId: siteA.communityId })
   check('Control Plane trägt den Wert (tenants.openRegistration=false)', tenantAfter.openRegistration === false,
     JSON.stringify(tenantAfter.openRegistration))
   const reopen = await call(siteA.host, '/api/site/registration', {
@@ -272,7 +272,7 @@ catch (error) {
 }
 finally {
   console.log('\n10. Aufräumen')
-  for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'site_members', rowId: id }).catch(() => {})
+  for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'community_members', rowId: id }).catch(() => {})
   for (const id of cleanup.tenants) await control.deleteRow({ databaseId, tableId: 'tenants', rowId: id }).catch(() => {})
   for (const id of cleanup.workspaces) await control.deleteRow({ databaseId, tableId: 'workspaces', rowId: id }).catch(() => {})
   for (const id of cleanup.codes) await control.deleteRow({ databaseId, tableId: 'invite_codes', rowId: id }).catch(() => {})

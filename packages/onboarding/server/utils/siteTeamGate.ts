@@ -17,13 +17,13 @@ import { mintRuntimeJwt } from './controlPlane'
  *  3. Kurzlebiges JWT des Handelnden. Es beweist dem Control Plane, WER handelt;
  *     das Service-Secret beweist nur, WELCHES Deployment fragt.
  *
- * `siteId` kommt aus dem SERVER-Kontext (Host-Auflösung), nie aus dem Body —
+ * `communityId` kommt aus dem SERVER-Kontext (Host-Auflösung), nie aus dem Body —
  * sonst könnte ein durchgereichter Wert das Team einer fremden Community
  * umbauen. Das Control Plane prüft die Rolle danach ohnehin noch selbst; diese
  * Prüfung hier ist die schnelle, die 403 gibt, bevor ein JWT geprägt wird.
  */
 export interface SiteTeamGate {
-  siteId: string
+  communityId: string
   jwt: string
 }
 
@@ -31,10 +31,10 @@ export async function requireSiteTeamGate(event: H3Event, capability: Capability
   await requireSitePermission(event, capability)
 
   const tenant = useTenant(event)
-  if (!tenant?.siteId) {
+  if (!tenant?.communityId) {
     throw createError({ status: 404, statusText: 'Not found' })
   }
 
   const jwt = await mintRuntimeJwt(event)
-  return { siteId: tenant.siteId, jwt }
+  return { communityId: tenant.communityId, jwt }
 }

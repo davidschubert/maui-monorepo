@@ -35,7 +35,7 @@ export async function useActivityFeed() {
         }
       },
       // Mandanten-Netz (C1b): die HARTE Grenze sind die Row-Permissions
-      // (recordActivity stempelt im Pool Role.label(siteId)). Sie greift aber
+      // (recordActivity stempelt im Pool Role.label(communityId)). Sie greift aber
       // nicht bei jemandem, der in ZWEI Communities Mitglied ist — der trägt
       // beide Labels und bekäme auf Host A auch die Ereignisse von B zugestellt.
       // Die Liste selbst ist serverseitig gescopt; nur dieser Stream liest

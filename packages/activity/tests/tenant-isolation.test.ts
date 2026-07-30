@@ -14,7 +14,7 @@ import type { TenantContext } from '../../core/shared/types/tenant'
  *     belegt,
  *  2. der Realtime-Stream, der DIREKT gegen Appwrite liest → dort trägt die
  *     Row-Permission die Grenze (tenantRowPermissionsFor, im Pool
- *     Role.label(siteId) statt Role.users()).
+ *     Role.label(communityId) statt Role.users()).
  *
  * Env-gated wie der comments-Test: ohne Appwrite-Env skippt die Suite. Lokal:
  * Env der comments-App exportieren (set -a; source apps/comments/.env).
@@ -26,8 +26,8 @@ const apiKey = process.env.NUXT_APPWRITE_KEY
 const hasEnv = !!(endpoint && projectId && databaseId && apiKey)
 
 const stamp = Date.now()
-const TENANT_A: TenantContext = { mode: 'pool', projectId: projectId ?? '', tenantId: `t-act-a-${stamp}`, siteId: `siteA${stamp}` }
-const TENANT_B: TenantContext = { mode: 'pool', projectId: projectId ?? '', tenantId: `t-act-b-${stamp}`, siteId: `siteB${stamp}` }
+const TENANT_A: TenantContext = { mode: 'pool', projectId: projectId ?? '', tenantId: `t-act-a-${stamp}`, communityId: `siteA${stamp}` }
+const TENANT_B: TenantContext = { mode: 'pool', projectId: projectId ?? '', tenantId: `t-act-b-${stamp}`, communityId: `siteB${stamp}` }
 /** Eigener objectType, damit der Test nur seine eigenen Zeilen sieht. */
 const OBJECT_TYPE = `iso-${stamp}`.slice(0, 64)
 
@@ -101,7 +101,7 @@ describe.skipIf(!hasEnv)('Pool-Isolationsbeweis (echte Appwrite, activities.tena
     const row = await tablesDB.getRow({ databaseId: databaseId!, tableId: 'activities', rowId: idA })
     // Ohne diese Permission bekäme JEDES eingeloggte Pool-Mitglied den Stream
     // aller Communities zugestellt (Realtime hängt an den Row-Rechten).
-    expect(row.$permissions).toContain(`read("label:${TENANT_A.siteId}")`)
+    expect(row.$permissions).toContain(`read("label:${TENANT_A.communityId}")`)
     expect(row.$permissions).not.toContain('read("users")')
   })
 

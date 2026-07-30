@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { SITE_ROLES } from '../../../../../control/shared/types/siteMember'
+import { SITE_ROLES } from '../../../../../control/shared/types/communityMember'
 import { callControlPlane } from '../../../utils/controlPlane'
 import { requireSiteTeamGate } from '../../../utils/siteTeamGate'
 
@@ -11,7 +11,7 @@ import { requireSiteTeamGate } from '../../../utils/siteTeamGate'
 const bodySchema = z.object({ role: z.enum(SITE_ROLES) }).strict()
 
 export default defineEventHandler(async (event) => {
-  const { siteId, jwt } = await requireSiteTeamGate(event, 'team.manage')
+  const { communityId, jwt } = await requireSiteTeamGate(event, 'team.manage')
   const memberId = getRouterParam(event, 'id')
   if (!memberId) {
     throw createError({ status: 400, statusText: 'Missing member id' })
@@ -21,6 +21,6 @@ export default defineEventHandler(async (event) => {
   return await callControlPlane<{ ok: boolean, memberId: string, role: string }>(
     event,
     '/api/control/site/members/role',
-    { jwt, siteId, memberId, role: body.role },
+    { jwt, communityId, memberId, role: body.role },
   )
 })

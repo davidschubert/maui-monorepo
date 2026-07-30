@@ -19,7 +19,7 @@ type CommentRow = Models.Row & { content: string, authorId: string, authorName: 
  *    Zeilen DIESES Mandanten.
  *  - Nutzer entfallen im Pool: `users.list({search})` durchsucht den geteilten
  *    Projekt-Bestand, also die Konten aller Communities (mit `users.manage`
- *    inklusive E-Mail). Wer Mitglied DIESER Site ist, steht in `site_members`
+ *    inklusive E-Mail). Wer Mitglied DIESER Site ist, steht in `community_members`
  *    im Control Plane — ein Cross-Projekt-Vertrag, den die Palette nicht
  *    rechtfertigt. Kein Treffer ist besser als ein fremder; die Palette blendet
  *    die leere Gruppe ohnehin aus. Silo/Einzelbetrieb unverändert.
