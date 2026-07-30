@@ -44,7 +44,10 @@ export default defineAppConfig({
     // Bildmarke je Community (K2): jeder Mandanten-Host bekommt ein eigenes
     // Favicon (Kreis in seiner Theme-Farbe + Initial) aus /favicon.svg statt
     // des Nitro-Platzhalters, dazu theme-color in derselben Farbe.
-    seo: { originFromRequest: true, tenantFavicon: true },
+    // Vorschaubild je Community (B2, Davids Entscheidung 2026-07-29): geteilte
+    // Links kamen ohne Bild an. /og/<key>.png erzeugt es aus Theme-Farbe +
+    // Community-Name — kein Handgriff für den Kunden, ab dem ersten Tag da.
+    seo: { originFromRequest: true, tenantFavicon: true, tenantOgImage: true },
     // DIE Multi-Tenant-App (Horizont 3): das Tenant-Gate ist hier AN — die
     // Middleware 00.tenant.ts (core) löst jeden Request-Host über den in
     // server/plugins/tenant-resolver.ts registrierten Resolver auf.
