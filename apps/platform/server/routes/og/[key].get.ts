@@ -39,13 +39,20 @@ export default defineEventHandler(async (event) => {
 
   const mark = await resolveTenantBrandMark(event)
   const appConfig = useAppConfig() as { maui?: { brand?: { name?: string } } }
+  // Die Wortmarke ist BEWUSST der Betreiber-Name und nicht der Host: sie ist
+  // die eine kleine Stelle, an der Pukalani auf einer Kunden-Karte steht.
+  //
+  // AUSSER auf unseren eigenen Karten: dort IST der Betreiber-Name schon der
+  // Titel (`useBrandName()` fällt darauf zurück, wenn keine Community
+  // dahintersteht — Kontroll-Hosts, und jede Community ohne eigenen Namen).
+  // Dieselbe Zeile zweimal übereinander sieht nicht nach Absender aus, sondern
+  // nach Fehler.
+  const wordmark = appConfig.maui?.brand?.name ?? ''
   const key = brandCardKey(mark.color, mark.name)
   const png = await brandCardPng(key, {
     color: mark.color,
     name: mark.name,
-    // Die Wortmarke ist BEWUSST der Betreiber-Name und nicht der Host: sie ist
-    // die eine kleine Stelle, an der Pukalani auf einer Kunden-Karte steht.
-    wordmark: appConfig.maui?.brand?.name ?? '',
+    wordmark: wordmark === mark.name ? '' : wordmark,
   })
 
   setHeader(event, 'content-type', 'image/png')

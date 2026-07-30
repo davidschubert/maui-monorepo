@@ -310,10 +310,13 @@ export async function renderBrandCardPng(input: BrandCardInput, font: BrandCardF
     drawText(surface, cache, font, line.text, pad, line.baseline, { size: title.size, color: ink })
   }
 
-  fillRect(surface, pad, ruleY, ruleWidth, ruleHeight, ink, 0.55)
-
+  /**
+   * Der Strich gehört zur Wortmarke, nicht zum Titel: ohne sie wäre er eine
+   * Linie, die auf nichts zeigt. Deshalb beide zusammen — oder keins.
+   */
   const wordmark = sanitizeBrandCardText(input.wordmark, font)
   if (wordmark) {
+    fillRect(surface, pad, ruleY, ruleWidth, ruleHeight, ink, 0.55)
     drawText(surface, cache, font, wordmark, pad, wordmarkBaseline, {
       size: wordmarkSize,
       color: ink,
