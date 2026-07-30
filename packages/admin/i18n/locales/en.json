@@ -456,7 +456,10 @@
         "pickerTitle": "Community colours",
         "inherited": "Nothing chosen yet (default)",
         "propagation": "A new colour reaches every page within half a minute.",
-        "saved": "Appearance saved."
+        "saved": "Appearance saved.",
+        "neutral": "Base tone",
+        "neutralDesc": "The muted tint of surfaces, borders and text — like the colour world, it applies to every visitor.",
+        "neutralInherited": "Default"
       }
     },
     "sidebar": {

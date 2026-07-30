@@ -16,13 +16,14 @@
  *     (server/middleware/site-role.ts); Gäste bekommen null. Die Capabilities
  *     werden clientseitig aus der geteilten Matrix (shared/tenantAuthz)
  *     abgeleitet — es reist kein fremdes Datum mit.
- *   - `theme`/`variant` → useTenantBranding() (Entscheidung 12, 2026-07-28):
+ *   - `theme`/`variant`/`neutral` → useTenantBranding() (Entscheidung 12, 2026-07-28;
+ *     `neutral` seit 2026-07-29, Rest von B5):
  *     der Erscheinungsbild-Abschnitt in /dashboard/settings/community zeigt
  *     die GESETZTE Wahl der Community. Bis dahin gab es dafür keinen
  *     Client-Leser (die Werte reisten nur als <html>-Attribute) — mit dem
- *     Kunden-Picker gibt es einen, und das Inventar wächst mit. Beide Werte
- *     sind ohnehin öffentlich sichtbar: sie STEHEN als data-theme/data-variant
- *     im HTML jeder Seite.
+ *     Kunden-Picker gibt es einen, und das Inventar wächst mit. Alle drei Werte
+ *     sind ohnehin öffentlich sichtbar: sie STEHEN als
+ *     data-theme/data-variant/data-neutral im HTML jeder Seite.
  *   - `tenantId` → useTenantId(), gelesen von usePresence() und dem
  *     Activity-Realtime-Stream (useActivityFeed, C1b): der Client-
  *     Presence-Leser holt die Presencen DIREKT von Appwrite (Cookie-GET +
@@ -82,11 +83,13 @@ export default defineNuxtPlugin(() => {
   useState<boolean | null>('maui-tenant-open-registration', () => (
     tenant ? tenant.openRegistration !== false : null
   ))
-  // Erscheinungsbild der Community (Entscheidung 12): die GESETZTE Wahl, nicht
-  // die aufgelöste — '' heißt „nichts gewählt, Instanz-Einstellung gilt" und
-  // muss im Dashboard als solches erkennbar bleiben. null = kein Tenant-Host.
-  useState<{ theme: string, variant: string } | null>('maui-tenant-branding', () => (
-    tenant ? { theme: tenant.theme ?? '', variant: tenant.variant ?? '' } : null
+  // Erscheinungsbild der Community (Entscheidung 12; `neutral` seit dem
+  // 2026-07-29, Rest von B5): die GESETZTE Wahl, nicht die aufgelöste — '' heißt
+  // „nichts gewählt, Instanz-Einstellung gilt" und muss im Dashboard als solches
+  // erkennbar bleiben. `?? ''` fängt zugleich Bestands-Rows, die die Spalte noch
+  // nicht tragen (Appwrite backfillt Defaults nicht). null = kein Tenant-Host.
+  useState<{ theme: string, variant: string, neutral: string } | null>('maui-tenant-branding', () => (
+    tenant ? { theme: tenant.theme ?? '', variant: tenant.variant ?? '', neutral: tenant.neutral ?? '' } : null
   ))
   // Site-Rolle des eingeloggten Users (N1): EXPLIZITE Zuweisung statt
   // Init-Funktion — der Auth-Store (läuft früher) initialisiert denselben

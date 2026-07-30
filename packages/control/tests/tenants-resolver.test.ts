@@ -50,6 +50,23 @@ describe('mapTenantRowToContext (pure)', () => {
     expect(mapTenantRowToContext({ mode: 'silo', projectId: 'p1', tenantId: '', status: 'active', plan: '', openRegistration: false }))
       .toMatchObject({ openRegistration: false })
   })
+  it('B5: die Neutral-Palette reist als Branding mit — attribut-geprüft', () => {
+    // `neutral` (control-020) landet als data-neutral im <html> jeder Seite
+    // dieser Community, deshalb dieselbe isSafeThemeToken-Linie wie theme/variant.
+    expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: '', theme: 'lagoon', variant: 'deep', neutral: 'taupe' }))
+      .toMatchObject({ theme: 'lagoon', variant: 'deep', neutral: 'taupe' })
+    // Eigene Achse: Palette ohne Theme ist ein gültiger Zustand.
+    expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: '', neutral: 'stone' }))
+      .toMatchObject({ neutral: 'stone' })
+  })
+  it('B5: leere/fehlende/unsichere Palette lässt das Feld weg', () => {
+    // Kein Feld = „die Community hat nichts gewählt" (Bestands-Rows von vor
+    // control-020 lesen sich als undefined — Appwrite backfillt nicht).
+    for (const neutral of ['', null, undefined, 'mist" onload=x', 'MIST']) {
+      expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: '', neutral }))
+        .not.toHaveProperty('neutral')
+    }
+  })
   it('S1: Bestands-Row ohne die Spalte (null/undefined) bleibt OFFEN', () => {
     // Appwrite backfillt Spalten-Defaults nicht — Rows von vor control-018
     // lesen sich als null. Fail-OPEN ist hier Absicht: eine Community, die nie

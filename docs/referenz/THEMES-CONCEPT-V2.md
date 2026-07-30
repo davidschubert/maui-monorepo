@@ -34,8 +34,18 @@ Referenzen (Leitplanken, nicht Kopiervorlagen):
   eigene Wahl die Instanz-Einstellung → Core-Default; das Theme-Cookie des
   Besuchers wird dort NICHT gelesen und der Theme-Wähler ist ausgeblendet.
   **Sonst** (Silo, Kontroll-Host, Playground) ⇒ Cookie → Instanz-Einstellung →
-  Core-Default, wie gehabt. Hell/Dunkel und Neutral-Palette bleiben in JEDEM
-  Fall Besucher-Wahl.
+  Core-Default, wie gehabt.
+  Die **Neutral-Palette** (`data-neutral`) folgt seit demselben Tag derselben
+  Regel auf ihrer EIGENEN Achse (`resolveNeutralSelection`, `tenants.neutral`
+  aus Migration control-020): Mandanten-Host ⇒ Wahl der Community → ohne eigene
+  Wahl die Voreinstellung (getönte Ramp des aktiven Themes, sonst
+  `DEFAULT_NEUTRAL_ID`); sonst ⇒ Cookie → Voreinstellung. Eine
+  Instanz-Einstellung für die Palette gibt es bewusst NICHT (kein
+  `themeSettings.defaultNeutralId`) — ein Regler mehr, der keine Frage
+  beantwortet. Gesetzt wird sie dort, wo Theme und Variante stehen: EINE Zeile
+  „Grundton" in `/dashboard/settings/community`.
+  Hell/Dunkel (`useColorMode`) und die Sprache bleiben in JEDEM Fall
+  Besucher-Wahl.
 - **Server-API + RBAC**: CRUD über `system.manage`, öffentlicher
   `GET /api/themes`, defensive JSON-Parses. Bleibt; wird nur um neue
   Config-Felder erweitert.

@@ -456,7 +456,10 @@
         "pickerTitle": "Farbwelt der Community",
         "inherited": "Noch nichts gewählt (Voreinstellung)",
         "propagation": "Neue Farbe erscheint binnen einer halben Minute auf allen Seiten.",
-        "saved": "Erscheinungsbild gespeichert."
+        "saved": "Erscheinungsbild gespeichert.",
+        "neutral": "Grundton",
+        "neutralDesc": "Die gedeckte Tönung von Flächen, Rahmen und Text — gilt wie die Farbwelt für alle Besucher.",
+        "neutralInherited": "Voreinstellung"
       }
     },
     "sidebar": {

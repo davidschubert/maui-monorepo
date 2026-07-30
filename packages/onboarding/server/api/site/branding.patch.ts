@@ -1,10 +1,11 @@
 import { z } from 'zod'
-import { isBuiltinThemeSelection } from '../../../../themes/shared/builtinThemes'
+import { isBuiltinNeutralSelection, isBuiltinThemeSelection } from '../../../../themes/shared/builtinThemes'
 import { callControlPlane, mintRuntimeJwt } from '../../utils/controlPlane'
 
 /**
  * Erscheinungsbild DIESER Community wählen (Davids Entscheidung 12 vom
- * 2026-07-28: Site-Owner bestimmen Theme + Variante selbst). Aufrufer ist das
+ * 2026-07-28: Site-Owner bestimmen Theme + Variante selbst; seit dem 2026-07-29
+ * zusätzlich die NEUTRAL-PALETTE, Rest von OPEN-ITEMS B5). Aufrufer ist das
  * Kunden-Dashboard auf dem Mandanten-Host (Abschnitt „Erscheinungsbild" in
  * /dashboard/settings/community).
  *
@@ -31,9 +32,24 @@ const bodySchema = z.object({
   theme: z.string().max(32),
   /** Tonale Variante DIESES Themes oder '' = Basisfarbe. */
   variant: z.string().max(32),
+  /**
+   * Neutral-Palette (`NEUTRAL_REGISTRY`-Id) oder '' = Voreinstellung der
+   * Instanz. Davids Entscheidung vom 2026-07-29 (Rest von B5): die Palette
+   * folgt der Community.
+   *
+   * OPTIONAL, und zwar aus einem Betriebsgrund: `platform` und `control` sind
+   * ZWEI Deployments. Wäre das Feld Pflicht, ginge in dem Fenster, in dem eine
+   * neue `control`-Version neben einer alten `platform` läuft, jedes Umfärben
+   * auf 400. Fehlt es, bleibt die gespeicherte Palette unangetastet (kein
+   * stilles Zurücksetzen auf '').
+   */
+  neutral: z.string().max(32).optional(),
 }).strict().refine(
   value => isBuiltinThemeSelection(value.theme, value.variant),
   { message: 'Unknown theme or variant' },
+).refine(
+  value => value.neutral === undefined || isBuiltinNeutralSelection(value.neutral),
+  { message: 'Unknown neutral palette' },
 )
 
 export default defineEventHandler(async (event) => {
@@ -52,9 +68,18 @@ export default defineEventHandler(async (event) => {
 
   // siteId kommt aus dem SERVER-Kontext (Host-Auflösung), nie aus dem Body —
   // sonst könnte ein durchgereichter Wert eine fremde Community umfärben.
-  return await callControlPlane<{ siteId: string, theme: string, variant: string }>(
+  return await callControlPlane<{ siteId: string, theme: string, variant: string, neutral: string }>(
     event,
     '/api/control/site/branding',
-    { jwt, siteId: tenant.siteId, theme: body.theme, variant: body.variant },
+    {
+      jwt,
+      siteId: tenant.siteId,
+      theme: body.theme,
+      variant: body.variant,
+      // Nur weiterreichen, wenn der Aufrufer das Feld überhaupt geschickt hat —
+      // `undefined` würde `.strict()` am Control Plane nicht stören, aber ein
+      // explizites '' wäre dort ein Zurücksetzen.
+      ...(body.neutral !== undefined ? { neutral: body.neutral } : {}),
+    },
   )
 })

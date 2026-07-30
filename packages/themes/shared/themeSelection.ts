@@ -19,9 +19,20 @@
  *                                            der Besucher darf weiter wählen.
  * (Die drei Zustände kommen unverändert aus `useTenantBranding()`, core.)
  *
+ * DIE NEUTRAL-PALETTE FOLGT SEIT DEM 2026-07-29 DERSELBEN REGEL (Davids
+ * Entscheidung, Rest von B5): `data-neutral` ist eine EIGENE Achse (die gedeckte
+ * Grau-Tönung, `NEUTRAL_REGISTRY`), sie blieb aber nur deshalb Besucher-Wahl,
+ * weil es dafür keine Community-Einstellung gab. Es gibt sie jetzt
+ * (`tenants.neutral`, Migration control-020) — also gilt hier dasselbe:
+ * Mandanten-Host ⇒ die Community, sonst ⇒ der Besucher. Bewusst eine EIGENE
+ * Funktion (`resolveNeutralSelection`) und kein viertes Feld im Theme-Ergebnis:
+ * die Herkunft kann auseinanderlaufen (auf einem Instanz-Host darf der Besucher
+ * die Palette gewählt haben, während das Theme aus der Instanz-Einstellung
+ * kommt) — ein gemeinsames `source` wäre dann eine Lüge.
+ *
  * NICHT betroffen ist Hell/Dunkel: das Farbschema bleibt in JEDEM Fall die
  * Wahl des Besuchers (`useColorMode`, eigener Cookie) — hier geht es nur um
- * `data-theme`/`data-variant`.
+ * `data-theme`/`data-variant`/`data-neutral`. Die Sprache ebenso.
  *
  * WARUM PUR UND IN `shared/`: die Vorrangregel ist die Antwort auf „warum ist
  * diese Seite blau", und sie muss an EINER Stelle stehen und prüfbar sein
@@ -35,6 +46,15 @@ export interface CommunityBranding {
   theme: string
   /** Tonale Variante oder '' = Basisfarbe. */
   variant: string
+  /**
+   * Neutral-Palette (`NEUTRAL_REGISTRY`-Id) oder '' = keine eigene Wahl.
+   *
+   * OPTIONAL, und das ist Absicht: die Theme-Rechnung liest dieses Feld nie
+   * (getrennte Achse), und „Feld fehlt" bedeutet genau dasselbe wie '' — keine
+   * Wahl. So bleibt jede Fixture/jeder Aufrufer gültig, der nur über Theme und
+   * Variante redet.
+   */
+  neutral?: string
 }
 
 /** Wessen Wahl hat gewonnen — für Tests, UI-Entscheidungen und Debugging. */
@@ -72,6 +92,17 @@ export function visitorMayChooseTheme(branding: CommunityBranding | null): boole
   return branding === null
 }
 
+/**
+ * Darf der BESUCHER die Neutral-Palette umstellen? Dieselbe Frage, dieselbe
+ * Antwort — bewusst als eigener Name, weil sie an anderen Stellen im UI
+ * gestellt wird (Untermenü „Neutral", Schnell-Umschalter im Theme-Studio) und
+ * weil beide Achsen auseinanderlaufen könnten, ohne dass jemand zwei
+ * Aufrufstellen suchen muss. EIN Regelkörper, zwei Fragen.
+ */
+export function visitorMayChooseNeutral(branding: CommunityBranding | null): boolean {
+  return visitorMayChooseTheme(branding)
+}
+
 export function resolveThemeSelection(input: ThemeSelectionInput): ThemeSelectionResult {
   const instanceTheme = input.instanceTheme ?? ''
   const instanceVariant = input.instanceVariant ?? ''
@@ -95,4 +126,49 @@ export function resolveThemeSelection(input: ThemeSelectionInput): ThemeSelectio
     return { theme: instanceTheme, variant: input.cookieVariant, source: 'visitor' }
   }
   return { theme: instanceTheme, variant: instanceVariant, source: 'instance' }
+}
+
+export interface NeutralSelectionInput {
+  /** Neutral-Cookie des Besuchers (null = keins). */
+  cookieNeutral: string | null
+  /** Wahl der Community; null = kein Mandanten-Host. */
+  branding: CommunityBranding | null
+}
+
+export interface NeutralSelectionResult {
+  /**
+   * Gewünschte Palette-Id; '' = keine Vorgabe → der Aufrufer nimmt seine eigene
+   * Fallback-Kette (getönte Ramp des aktiven Themes, sonst
+   * `DEFAULT_NEUTRAL_ID`). Genau wie `theme: ''` oben.
+   */
+  neutral: string
+  source: ThemeSource
+}
+
+/**
+ * Wessen Neutral-Palette gilt? Dieselbe Vorrangregel wie beim Theme, auf der
+ * eigenen Achse:
+ *   - Mandanten-Host MIT Wahl   → die Community (`tenants.neutral`).
+ *   - Mandanten-Host OHNE Wahl  → '' = die Instanz zeigt, was sie zeigt; das
+ *                                 Neutral-Cookie wird auch hier NICHT gelesen
+ *                                 (sonst sähen zwei Besucher dieselbe Community
+ *                                 verschieden — der ganze Punkt von B5).
+ *   - kein Mandanten-Host       → Cookie des Besuchers, sonst ''.
+ *
+ * Es gibt für die Palette bewusst KEINE Instanz-Einstellung (kein
+ * `themeSettings.defaultNeutralId`): der Betreiber-Default IST die Registry-
+ * Voreinstellung bzw. die getönte Ramp des aktiven Themes. Ein weiterer Regler
+ * wäre ein Regler mehr, ohne eine Frage zu beantworten, die jemand hat
+ * (docs/referenz/THEMES-CONCEPT-V2.md, „Einfachheit ist Leitprinzip").
+ */
+export function resolveNeutralSelection(input: NeutralSelectionInput): NeutralSelectionResult {
+  if (input.branding !== null) {
+    const chosen = input.branding.neutral ?? ''
+    return chosen
+      ? { neutral: chosen, source: 'community' }
+      : { neutral: '', source: 'instance' }
+  }
+  return input.cookieNeutral
+    ? { neutral: input.cookieNeutral, source: 'visitor' }
+    : { neutral: '', source: 'instance' }
 }

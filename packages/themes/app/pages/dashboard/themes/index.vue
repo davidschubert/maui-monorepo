@@ -16,7 +16,7 @@ const { t } = useI18n()
 const toast = useToast()
 const colorMode = useColorMode()
 const localePath = useLocalePath()
-const { theme, variant, setTheme, setVariant, neutrals, neutral, setNeutral, canChooseTheme } = useTheme()
+const { theme, variant, setTheme, setVariant, neutrals, neutral, setNeutral, canChooseTheme, canChooseNeutral } = useTheme()
 const customThemes = useCustomThemesState()
 const settings = useThemeSettingsState()
 
@@ -387,7 +387,12 @@ async function importTheme(event: Event) {
                 @click="() => { colorMode.preference = mode }"
               />
             </div>
-            <div class="flex min-w-0 items-center gap-2">
+            <!-- Neutral-Palette: derselbe Grund wie beim Theme-Cookie oben —
+                 auf einem Mandanten-Host bestimmt sie die Community
+                 (`tenants.neutral`, Rest von B5), ein Klick färbte nichts um.
+                 Der Hinweis-Alert darüber erklärt es; hier verschwindet nur der
+                 wirkungslose Umschalter. Hell/Dunkel bleibt daneben stehen. -->
+            <div v-if="canChooseNeutral" class="flex min-w-0 items-center gap-2">
               <span class="text-sm text-muted">{{ t('themes.neutralLabel') }}</span>
               <div class="flex flex-wrap items-center gap-1">
                 <button

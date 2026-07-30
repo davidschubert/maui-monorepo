@@ -1,4 +1,4 @@
-import { THEME_REGISTRY, DEFAULT_THEME_ID } from '../app/utils/themeRegistry'
+import { THEME_REGISTRY, DEFAULT_THEME_ID, NEUTRAL_REGISTRY } from '../app/utils/themeRegistry'
 
 /**
  * Validierungs-Quelle für die Theme-Wahl EINES MANDANTEN (Davids Entscheidung
@@ -61,6 +61,25 @@ export function isBuiltinThemeSelection(theme: string, variant: string): boolean
   if (theme === INHERIT_THEME) return variant === ''
   if (!isBuiltinTheme(theme)) return false
   return variant === '' || builtinVariantIds(theme).includes(variant)
+}
+
+/**
+ * Wählbare Neutral-Paletten EINES MANDANTEN (Davids Entscheidung vom
+ * 2026-07-29, Rest von B5: die Palette folgt der Community).
+ *
+ * Quelle ist `NEUTRAL_REGISTRY` — dieselbe Liste, die das Anzeige-Menü zeigt.
+ * Die GETÖNTE Ramp eines Custom Themes ('c-<rowId>') ist hier bewusst NICHT
+ * gültig, aus genau dem Grund, aus dem Custom Themes es nicht sind: sie hängt
+ * an einer Row der `custom_themes`-Tabelle, die PRO APPWRITE-PROJEKT existiert
+ * und die der Betreiber jederzeit löscht.
+ */
+export function builtinNeutralIds(): string[] {
+  return NEUTRAL_REGISTRY.map(entry => entry.id)
+}
+
+/** `''` = „keine eigene Wahl" (Instanz-Voreinstellung) und immer gültig. */
+export function isBuiltinNeutralSelection(neutral: string): boolean {
+  return neutral === '' || NEUTRAL_REGISTRY.some(entry => entry.id === neutral)
 }
 
 /** Anzeigename eines Built-ins (für Dashboard-Texte); '' → unbekannt. */

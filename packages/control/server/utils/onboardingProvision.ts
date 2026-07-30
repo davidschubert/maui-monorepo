@@ -222,6 +222,11 @@ export async function provisionCommunity(
       workspaceId: workspace.$id,
       theme: vibe.theme,
       variant: vibe.variant,
+      // Neutral-Palette (control-020, Rest von B5): der Wizard fragt sie NICHT
+      // ab — die 6 Vibes sind Farbwelten, kein Grundton-Katalog. '' heißt
+      // „keine eigene Wahl", die Owner-Rolle kann sie später unter
+      // /dashboard/settings/community setzen.
+      neutral: '',
       // Privat als Default (G0-Entscheidung 7) — „öffentlich lesbar" ist ein
       // bewusster Schalter in den Einstellungen, keine Voreinstellung.
       audience: 'members',

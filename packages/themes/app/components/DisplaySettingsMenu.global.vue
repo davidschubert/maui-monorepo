@@ -8,7 +8,7 @@ type SwatchItem = DropdownMenuItem & { swatchIcon?: string, swatchColor?: string
 
 const { t, locale, setLocale } = useI18n()
 const colorMode = useColorMode()
-const { theme, variant, neutrals, neutral, setNeutral, canChooseTheme } = useTheme()
+const { theme, variant, neutrals, neutral, setNeutral, canChooseTheme, canChooseNeutral } = useTheme()
 const localeOptions = useLocaleOptions()
 
 const capitalize = (value: string) => value.charAt(0).toUpperCase() + value.slice(1)
@@ -80,7 +80,13 @@ const items = computed<SwatchItem[][]>(() => {
     ...(canChooseTheme.value
       ? [{ label: t('themes.label'), icon: 'i-ph-palette', children: themeChildren }]
       : []),
-    { label: t('themes.neutralLabel'), icon: 'i-ph-circle-half', children: neutralChildren },
+    // Neutral-Palette: seit dem 2026-07-29 dieselbe Regel wie die Farbwelt
+    // (Davids Entscheidung, Rest von B5) — auf einem Mandanten-Host bestimmt sie
+    // die Community (`tenants.neutral`), also verschwindet auch dieser Eintrag.
+    // Hell/Dunkel und Sprache bleiben BEWUSST stehen: die gehören dem Besucher.
+    ...(canChooseNeutral.value
+      ? [{ label: t('themes.neutralLabel'), icon: 'i-ph-circle-half', children: neutralChildren }]
+      : []),
     { label: t('themes.modeLabel'), icon: 'i-ph-sun-horizon', children: appearanceChildren },
     { label: t('ui.language'), icon: 'i-ph-globe', children: languageChildren },
   ]]

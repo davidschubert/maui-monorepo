@@ -24,6 +24,13 @@
 export interface TenantBranding {
   theme?: string
   variant?: string
+  /**
+   * Neutral-Palette der Community (`data-neutral`, control-020) — eigene Achse
+   * neben Theme/Variante. Davids Entscheidung vom 2026-07-29 (Rest von B5): sie
+   * folgt der Community, nicht dem Besucher. Fehlend/'' = keine eigene Wahl,
+   * dann gilt die Voreinstellung der Instanz (heutiges Verhalten).
+   */
+  neutral?: string
   /** Anzeigename des Mandanten (tenants.name) — trägt den öffentlichen
    *  Header der Community-Hosts („Morgenlicht" statt App-Brand). Reiner
    *  Text, wird NIE als Attribut/HTML interpoliert. */
