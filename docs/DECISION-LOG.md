@@ -447,3 +447,68 @@ verworfener Alternative, mit Verweis auf Commit/Doc.
 16. **Entscheidung: Das Standard-Theme heißt „Aloha" (B3).** „Sunrise" (aus N6) stand im Picker direkt neben der Katalog-Farbwelt „Sunset" — zwei verwandt klingende Namen für Unverwandtes. Verworfen: die Id mit umbenennen — `default` steckt in `tenants.theme`, `data-theme`, CSS-Dateinamen und gespeicherten Kunden-Configs, ein Rename dort wäre eine Datenmigration ohne Nutzen. Geändert ist nur das Label in `packages/themes/app/utils/themeRegistry.ts` (kein i18n: Theme-Namen sind Eigennamen).
 
 17. **Entscheidung: Auf Community-Hosts gewinnen die Farben der Community (B5).** Bis dahin gewann immer das Theme-Cookie des Besuchers — wer sich irgendwann eins ausgesucht hatte, sah JEDE Community in seinen Farben, und zwei Besucher sahen dieselbe Community verschieden. Das bricht das Produktversprechen („unter deinem Namen und deinem Design"), für das der Kunde zahlt. Der Theme-Wähler VERSCHWINDET dort, statt als „nur für dich, nur hier" beschriftet zu werden (verworfene Alternative): die Wahl hätte nach der Umkehr auch für den Wählenden selbst keine Wirkung mehr, ein Wähler wäre also entweder wirkungslos oder falsch beschriftet. Hell/Dunkel bleibt ausdrücklich Besucher-Sache. Silo-Apps, Kontroll-Hosts und Playground unverändert.
+
+## 2026-07-29/30 — Das Geschäftsmodell wird sortiert (David, in mehreren Runden)
+
+18. **Entscheidung: Die COMMUNITY ist das zahlende Objekt, `workspaces` fällt weg
+    (A6).** Befund davor: alle vier Checkout-Routen hingen an `workspaces`, das Wort
+    `tenant` kam im Geldpfad nicht vor, und `tenants.plan` — das Quota und
+    Produkt-Sichtbarkeit steuert — wurde nur vom Wizard, vom Testphasen-Sweep und
+    vom Betreiber-Auswahlfeld geschrieben. Ein Pool-Kunde hätte also bezahlen und
+    auf `basic` bleiben können. Verworfen: die fehlende Verbindung nachrüsten und
+    `workspaces` behalten — das hätte zwei Plan-Felder, zwei Mitglieder-Tabellen und
+    zwei Vokabulare dauerhaft festgeschrieben. Die Agentur-Idee (ein Kunde, mehrere
+    Sites unter einem Vertrag) war Horizont 2 und ist heute niemandes Bedarf.
+    Stripe-Kunde und Abo stehen künftig an der Community; eine **Besitz-Übergabe ist
+    gesperrt**, solange ein Abo läuft und der neue Owner keine Zahlungsmethode hat —
+    sonst reist die Karte des Vorbesitzers mit. Blockiert A2 (Stripe-Live).
+
+19. **Entscheidung: Gekauft wird im Dashboard der Community.** Dort ist der Owner,
+    wenn er an ein Limit stößt — Schranke und Ausweg an derselben Stelle.
+    `my.pukalani.app` zeigt Rechnungen und Zahlungsmethode.
+
+20. **Entscheidung: Bezahlte Communities (Owner nimmt Geld von seinen Mitgliedern)
+    kommen NACH dem Go-Live** — in der Navigation bleibt der Platz („Payments"), das
+    Produkt nicht. Das ist ein zweiter Geldfluss mit eigener Mechanik (Stripe
+    Connect) und rechtlichen Folgen (wer ist Verkäufer, wer schuldet Umsatzsteuer,
+    Auszahlungen, Widerruf). Erst muss Geldfluss 1 überhaupt ankommen.
+
+21. **Entscheidung: Sichtbarkeit wird PRO COMMUNITY wählbar, Default öffentlich.**
+    Heute sind Inhalte öffentlich (die posts-API antwortet Gästen mit 200), und die
+    gesamte SEO-Arbeit pro Community-Host (canonical, hreflang, sitemap, robots,
+    og:image) setzt das voraus. Verworfen: durchgehend geschlossen — das hätte die
+    SEO-Arbeit gegenstandslos gemacht und dem Embed-Einsatz widersprochen.
+    Der Preis der Wählbarkeit ist eine echte Grenze: bei „geschlossen" müssen
+    Row-Permissions, SEO-Tags, sitemap UND og:image mitziehen, sonst steht der
+    Inhalt in Googles Index und nicht auf der Seite.
+
+22. **Entscheidung: Die zwei Betriebsmodelle heißen `Plattform` und `Studio`**
+    (Kundensprache); `pool`/`silo` bleiben im Code. Folge: der Alias
+    `studio.pukalani.app` muss weg, sobald „Studio" der Kundenname ist — er zeigt
+    heute die Betreiber-Konsole. Und die Seite „Theme-Studio" heißt künftig nur
+    „Themes", damit neben der Menügruppe „Studio" nichts Gleichnamiges steht.
+
+23. **Entscheidung: Die Umbenennung geht auf `community`, nicht auf `site` (E8).**
+    Zuerst hatte David „`site` gewinnt, vollständig" gewählt; seine eigene
+    Dashboard-Navigation hat die Frage Stunden später besser beantwortet — dort
+    heißen die Kunden-Objekte „Communities" und das Register „Websites". Damit heißt
+    jede Sache im Code wie in der Oberfläche, und die Kollision (`sites` war schon
+    belegt) entfällt, weil `sites` gar nicht mehr gebraucht wird.
+
+24. **Entscheidung: EINE Dashboard-Struktur mit drei Ebenen (E9)** — Betreiber nur
+    auf Kontroll-Hosts, Community auf ihrem Host für ihr Team, Konto überall.
+    Verworfen: alles in control bauen und den Kunden später bedienen — das hätte die
+    Community-Einstellungen ein zweites Mal entstehen lassen, mit zwei Wahrheiten,
+    genau wie bei Workspaces/Tenants. Folge für David: die Einstellungen seiner
+    eigenen Community sieht er auf ihrem Host, nicht in control.
+
+25. **Entscheidung: `UTable` ist der Standard für alle Datenlisten (B6).** Heute 2
+    von ~20; die übrigen 18 ziehen nach. Danach braucht keine neue Liste eine
+    Gestaltungsentscheidung.
+
+26. **Claudes Entscheidung (angekündigt, nicht widersprochen): die
+    `entitlements`-Mechanik bleibt stehen und verschwindet nur aus dem Menü.** Es ist
+    die Lizenz-Mechanik der Studio-Seite (eine signierte Datei sagt einer FREMDEN
+    Installation, welche Produkte sie betreiben darf) und nicht Teil der Abrechnung —
+    `workspaces` war nur ihr Rechnungs-Behälter. Heute unbenutzt und damit kostenlos;
+    beim ersten Studio-Kunden wäre der Neubau ein Projekt.

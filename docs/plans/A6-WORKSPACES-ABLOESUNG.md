@@ -119,13 +119,36 @@ Wird jetzt billig, weil das Objekt weg ist, das in keine Gruppe passte.
   Zeile. Wer „der Owner kauft" baut, muss vorher entscheiden, woher die
   Owner-Eigenschaft kommt (heute: Betreiber-Label, nicht Site-Rolle).
 
-## Vor dem Start zu klären
+## Entschieden (2026-07-30, David)
 
-1. **Abo an der Community oder am Owner?** (Empfehlung: Community, mit Sperre
-   bei Besitz-Übergabe.)
-2. **`entitlements` + Dokument-Kette: parken oder löschen?** (Empfehlung:
-   parken — sie ist die Lizenz-Mechanik der Studio-Seite, kostet nichts und
-   fehlt sonst beim ersten Studio-Kunden.)
-3. **Wo kauft der Kunde?** Im Dashboard seiner Community oder im Kundenbereich
-   auf `my.pukalani.app`? (Empfehlung: im Dashboard — dort ist er, wenn er an
-   ein Limit stößt; `my.pukalani.app` zeigt die Rechnungen.)
+1. **Das Abo hängt an der COMMUNITY** (`communities.stripeCustomerId/
+   stripeSubscriptionId/billingStatus`), mit **gesperrter Besitz-Übergabe**,
+   solange ein Abo läuft und der neue Owner keine Zahlungsmethode hat. Ein Owner
+   mit zwei Communities hat zwei Abos — das passt zur Preisgestaltung pro
+   Community.
+2. **Gekauft wird im Dashboard der Community.** Dort steht der Owner, wenn er an
+   ein Limit stößt; `my.pukalani.app` zeigt Rechnungen und Zahlungsmethode.
+3. **Die `entitlements`-Mechanik bleibt stehen** und verschwindet nur aus dem
+   Menü (Claudes Entscheidung, angekündigt): sie ist die Lizenz-Mechanik der
+   Studio-Seite, nicht Teil der Abrechnung, und heute kostenlos.
+
+## Ein zweiter Geldfluss ist benannt, aber nicht Teil von A6
+
+David will mittelfristig, dass ein Community-Owner **von seinen Mitgliedern**
+Geld nehmen kann (monatliche Beiträge). Das ist Geldfluss 2, ein eigenes Produkt
+mit eigener Mechanik (Stripe Connect) und eigenen rechtlichen Fragen — geparkt
+als OPEN-ITEMS **F7**, nach dem Go-Live.
+
+**Was das für A6 heißt:** die Spalten dieses Plans beschreiben ausdrücklich
+Geldfluss 1 (Community zahlt an Pukalani). Namen entsprechend eindeutig halten
+(`billingStatus`, nicht `paymentStatus`), damit Geldfluss 2 später daneben passt
+statt hineingemischt zu werden. Eine eigene Tabelle für Mitgliedsbeiträge, nicht
+dieselbe.
+
+## Schritt 0 ohne Stripe-Klick
+
+Der Befund lässt sich ohne echten Kauf belegen und wird dabei zum Test, der ihn
+künftig verhindert: die Fulfillment-Funktion direkt mit einem erfundenen
+Abo-Ereignis aufrufen und prüfen, was sie schreibt — heute `workspaces.plan`,
+nichts an der Community. Das ist ehrlicher als ein Klick-Durchlauf (der beweist
+nur diesen einen Fall) und kostet keine Kartendaten.

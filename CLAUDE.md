@@ -434,6 +434,10 @@ Vollständiges Konzept: docs/CONCEPT.md
   Kontroll-Hosts und Silo-Apps (comments) bleiben unberührt.
 
 ## Coding Rules
+- DATENLISTEN im Dashboard: `UTable` ist der Standard (Davids Entscheidung B6,
+  2026-07-30) — Sortierung, Auswahl und Paginierung kommen mitgeliefert und
+  verhalten sich überall gleich. Handgebaute Listen nur mit Grund, und der
+  gehört an die Stelle geschrieben. Leerer Zustand über `CoreEmptyState`.
 - <script setup lang="ts">, Nuxt UI Komponenten bevorzugen. Auth-Formulare:
   UAuthForm ist die VORLAGE (Optik/Struktur) — Login/Register/OTP sind bewusst
   eigene UForm-Implementierungen (2-Schritt-OTP, Security-Phrase, geteilter
