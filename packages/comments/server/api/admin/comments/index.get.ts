@@ -47,6 +47,37 @@ export default defineEventHandler(async (event): Promise<AdminCommentListRespons
   // sonst gar nicht erst ein (core-Gate maui.ai + NUXT_AI_KEY)
   const aiAssist = isAiAvailable(event)
 
+  /**
+   * DEEPLINK auf EINEN Kommentar (`?comment=<id>`, Befund B7 2026-07-29): das
+   * Ziel der Command-Palette. Der Fokus steht ÜBER Status, Suche, Sortierung
+   * und Seite — sonst müsste der Aufrufer erst raten, in welcher Ansicht und
+   * auf welcher Seite „sein" Eintrag liegt (bei `reported` hängt die
+   * Reihenfolge zusätzlich an den Meldungen). Es ist bewusst KEIN weiterer
+   * Filter, sondern eine eigene, sichtbar aufhebbare Ansicht mit genau einer
+   * Zeile; die Oberfläche verlässt sie beim ersten Filter-/Suchklick.
+   *
+   * Die Zeile kommt durch die Datentür (`list` scopet immer) — ein fremder oder
+   * gelöschter Kommentar ergibt einfach keinen Treffer, nie einen Fremdinhalt
+   * und nie einen Hinweis darauf, dass die ID existiert.
+   */
+  const focusId = String(query.comment ?? '').trim()
+  if (focusId) {
+    const focused = await ops.list<CommentRow>('comments', [
+      Query.equal('$id', [focusId]),
+      Query.limit(1),
+    ])
+    const row = focused.rows[0]
+    if (!row) return { total: 0, comments: [], aiAssist }
+    // Meldungen über den moderation-Vertrag, nicht über die reports-Tabelle
+    // (Layer-Grenze A14) — dieselbe Quelle wie der KI-Assist.
+    const reports = await openReportsForTarget(event, 'comment', row.$id)
+    return {
+      total: 1,
+      comments: [{ ...toModerated(row), reportCount: reports.length }],
+      aiAssist,
+    }
+  }
+
   // 'reported' kommt jetzt aus dem Moderation-Layer (reports-Tabelle), nicht mehr
   // aus comment.status — über den expliziten Vertrag, nicht direkt (Layer-Grenze A14).
   if (status === 'reported') {

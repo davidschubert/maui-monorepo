@@ -322,6 +322,12 @@
       },
       "empty": "Keine Kommentare in dieser Ansicht.",
       "emptyTitle": "Nichts zu moderieren",
+      "focus": {
+        "title": "Ein Kommentar aus der Suche",
+        "description": "Die Liste zeigt nur diesen Eintrag — Filter und Suche sind pausiert.",
+        "missing": "Dieser Kommentar existiert nicht mehr oder gehört nicht zu dieser Community.",
+        "clear": "Alle Kommentare zeigen"
+      },
       "search": "Suchen",
       "searchPlaceholder": "Kommentare durchsuchen …",
       "rowActions": "Aktionen für diesen Kommentar",

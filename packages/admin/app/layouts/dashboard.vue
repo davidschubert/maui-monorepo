@@ -54,6 +54,9 @@ const can = (capability: Capability) =>
   userHasCapability(auth.user, capability) || siteCaps.value.has(capability)
 
 const canManageUsers = computed(() => can('users.manage'))
+// Kommentar-Treffer der Palette springen in die Moderations-Warteschlange
+// (Davids Entscheidung, Befund B7) — die verlangt `comments.moderate`.
+const canModerateComments = computed(() => can('comments.moderate'))
 
 // Hauptnavigation oben — je Eintrag nach Capability gefiltert (RBAC). Overview
 // sieht jeder mit dashboard.access; der Rest nur mit der jeweiligen Capability.
@@ -142,7 +145,11 @@ async function runSearch(term: string) {
     const res = await $fetch<SearchResponse>('/api/admin/search', { query: { q: term.trim() } })
     if (seq !== searchSeq) return // veraltete Antwort verwerfen
     const groups: PaletteGroup[] = []
-    if (res.users.length) {
+    // Nutzer-Treffer führen auf /dashboard/users/:id — die Seite verlangt
+    // `users.manage`. Ohne die Capability wäre der Treffer ein Knopf in ein
+    // 403, deshalb erscheint die Gruppe nur mit ihr (im Pool ist sie ohnehin
+    // leer, Audit B2 — das trifft den Silo/Einzelbetrieb).
+    if (res.users.length && canManageUsers.value) {
       groups.push({
         id: 'users',
         label: t('dashboard.search.users'),
@@ -150,12 +157,18 @@ async function runSearch(term: string) {
         items: res.users.map(u => ({ label: u.name, suffix: u.email, icon: 'i-ph-user', to: localePath(`/dashboard/users/${u.$id}`), onSelect: () => { open.value = false } })),
       })
     }
-    if (res.comments.length) {
+    // Kommentar-Treffer führen per Deeplink in die Moderations-Warteschlange
+    // auf genau diesen Eintrag (Befund B7, Davids Entscheidung) — NICHT mehr
+    // auf die Nutzer-Detailseite des Autors, die `users.manage` verlangt und
+    // dieselben Aufrufer mit 403 abwies. Query hinter den lokalisierten Pfad
+    // gehängt: localePath bekommt reine Pfade, sonst geht der Prefix verloren.
+    if (res.comments.length && canModerateComments.value) {
+      const queue = localePath('/dashboard/comments')
       groups.push({
         id: 'comments',
         label: t('dashboard.search.comments'),
         ignoreFilter: true,
-        items: res.comments.map(c => ({ label: c.content, suffix: c.authorName, icon: 'i-ph-chat-circle', to: localePath(`/dashboard/users/${c.authorId}`), onSelect: () => { open.value = false } })),
+        items: res.comments.map(c => ({ label: c.content, suffix: c.authorName, icon: 'i-ph-chat-circle', to: `${queue}?comment=${encodeURIComponent(c.$id)}`, onSelect: () => { open.value = false } })),
       })
     }
     searchResults.value = groups

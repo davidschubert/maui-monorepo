@@ -322,6 +322,12 @@
       },
       "empty": "No comments in this view.",
       "emptyTitle": "Nothing to moderate",
+      "focus": {
+        "title": "One comment from search",
+        "description": "The list shows only this entry — filters and search are paused.",
+        "missing": "This comment no longer exists or does not belong to this community.",
+        "clear": "Show all comments"
+      },
       "search": "Search",
       "searchPlaceholder": "Search comments …",
       "rowActions": "Actions for this comment",
