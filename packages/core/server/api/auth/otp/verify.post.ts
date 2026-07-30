@@ -21,6 +21,20 @@ export default defineEventHandler(async (event) => {
     await logAuthEvent(event, 'user.login', { userId: session.userId, method: 'otp' })
 
     if (isFirstJoin) {
+      /**
+       * BEITRITT (A5, Davids Entscheidung 1 vom 2026-07-29) — derselbe Auslöser
+       * wie im Signup, an derselben Stelle wie der Feed-Eintrag: die
+       * VERIFIZIERTE Code-Anmeldung ist der Moment, in dem aus einem
+       * Auto-Signup ein Mensch mit Absicht wird. `isFirstJoin` grenzt es exakt
+       * ab — wer sein Konto schon hatte und nur heute per Code hereinkommt,
+       * tritt nicht erneut bei (er ist entweder Mitglied oder wird es beim
+       * ersten Schreiben).
+       *
+       * `sessionSecret` + `userId` explizit: die Session steckt noch nicht im
+       * Request-Cookie. No-Op auf Kontroll-Hosts und in Silo-Apps.
+       */
+      await joinSite(event, 'registration', { sessionSecret: session.secret, userId: session.userId })
+
       // Activity-Feed: der verifizierte OTP-Beitritt ist der Beitritts-Moment
       // (das Anlegen beim Token-Versand wäre verfrüht — unverifizierte E-Mail).
       await recordActivity(event, {
