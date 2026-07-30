@@ -12,7 +12,36 @@
       "start": "Start free",
       "toGerman": "Deutsch",
       "toEnglish": "English",
-      "menu": "Open menu"
+      "menu": "Open menu",
+      "products": {
+        "overview": "All products at a glance",
+        "items": {
+          "diskussionen": {
+            "title": "Discussions",
+            "text": "Threads, votes, mentions and live presence – under any content."
+          },
+          "moderation": {
+            "title": "Moderation",
+            "text": "Reports, two-phase hiding, an AI second opinion – a human decides."
+          },
+          "branding": {
+            "title": "Pages & branding",
+            "text": "26 colour worlds, custom fonts, your own pages – your community looks like you."
+          },
+          "beitraege": {
+            "title": "Posts & feed",
+            "text": "Member posts in markdown, polls and a chronological feed."
+          },
+          "kurse": {
+            "title": "Courses",
+            "text": "Lessons with progress and paid access – right where the discussion happens."
+          },
+          "events": {
+            "title": "Events",
+            "text": "Online or in person, with RSVPs and tickets – even embeddable."
+          }
+        }
+      }
     },
     "hero": {
       "eyebrow": "Your community platform, privacy-first",
@@ -183,6 +212,22 @@
             "Moderation included: reporting, two-phase hiding, AI second opinion"
           ]
         },
+        "moderation": {
+          "name": "Moderation",
+          "metaTitle": "Community moderation – tools instead of gut feeling",
+          "metaDescription": "Reports, two-phase hiding and AI assistance as a second opinion – a human decides. Hosted in Germany.",
+          "title": "Moderation that has your back",
+          "sub": "Reports, two-phase hiding and an AI second opinion – a human decides.",
+          "intro": "A community only stays a good place if someone can keep an eye on it without burning out. Pukalani gives you tools instead of extra work: reports come in structured, hiding is two-phase instead of final, and AI offers a second opinion on request – the decision is always made by a human.",
+          "highlights": [
+            "Reports for comments and posts – with a status instead of email chaos",
+            "Two-phase hiding: out of sight first, decided second – nothing is instantly gone",
+            "Auto-hide after a configurable number of open reports – the community helps",
+            "AI assistance as a second opinion – advisory, never deciding",
+            "Escalation to you when reports pile up",
+            "Roles with clear rights – moderating doesn't mean full access"
+          ]
+        },
         "branding": {
           "name": "Branding",
           "metaTitle": "White-label community – your design, your fonts, your domain",
@@ -197,6 +242,22 @@
             "Light and dark without extra work",
             "Your own pages (home, about, rules) in the editor",
             "Custom domain for silo customers – without migrating your content"
+          ]
+        },
+        "beitraege": {
+          "name": "Posts & feed",
+          "metaTitle": "Posts & feed – your community writes, too",
+          "metaDescription": "Member posts in markdown, polls and questions, plus a chronological activity feed – with discussions underneath. Early access.",
+          "title": "A feed that belongs to your community",
+          "sub": "Member posts in markdown, polls and a chronological feed.",
+          "intro": "You're not the only one publishing – your members are, too. Posts are written in markdown, polls and questions gather opinions, and the activity feed shows chronologically what's happening in your community. Underneath run the same discussions as everywhere on Pukalani.",
+          "highlights": [
+            "Posts in markdown – writing without detours",
+            "Polls and questions for quick opinions",
+            "A chronological activity feed: what happens is on top",
+            "Discussions under every post – threads, votes, mentions",
+            "Moderation included: reporting and hiding just like comments",
+            "One place instead of five tools: posts, replies and reactions stay together"
           ]
         },
         "kurse": {
