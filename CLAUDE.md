@@ -297,6 +297,22 @@ Vollständiges Konzept: docs/CONCEPT.md
   Autorisierung läuft über requireSitePermission/Site-Rollen, `hasCapability`
   kennt nur 'admin'/'moderator' (grantSiteLabel verweigert solche Labels).
   Kommen geschlossene Communities, wandert der Aufruf an die Beitrittsstelle.
+- BENACHRICHTIGUNGEN sind ABLAGE, nicht Zugriff (C15, seit 2026-07-29):
+  `notifications.tenantId` (system-022) entscheidet, in WELCHER Glocke eine
+  Meldung erscheint — wer sie lesen darf, bleiben die Row-Permissions (nur
+  `recipientId`). `notify()` verlangt daher ein PFLICHTFELD
+  `scope: 'tenant' | 'account'`: 'account' = bewusst mandantenlos (Stripe-
+  Zahlungsproblem, Control-Anfragen — die betreffen den Vertrag, nicht die
+  Community). Kein Default, weil ein geratener Stempel eine Zahlungswarnung in
+  fremde Glocken legt; der Typfehler ersetzt hier den ESLint-Backstop, der in
+  `server/utils/**` nicht greift. EINE pure Regel für Schreiben, Leseroute UND
+  Realtime-`where`: `core/shared/notificationScope.ts`. Drei Spaltenwerte:
+  `<tenantId>` · `_account` (kollisionsfrei — Row-Ids beginnen nie mit `_`) ·
+  `''` = unbekannt. `''` ist hier FAIL-OPEN und damit die BEGRÜNDETE AUSNAHME
+  von `rowBelongsToTenant` — ohne Backfill würde fail-closed jedem Nutzer im
+  Deploy-Moment die Glocke leeren. Nicht „korrigieren". Der Digest-Sweep bleibt
+  mandantenübergreifend (eine Mail/Tag, nicht eine je Community); Mail-LINKS
+  sind noch nicht mandantenrichtig (OPEN-ITEMS D5).
 - BETREIBER-Inhalt gehört nicht auf Mandanten-Hosts (N7, seit 2026-07-28):
   der öffentliche Changelog (admin-Layer) antwortet dort 404 — Seite via
   `useIsTenantHost()` (core, pure Ausschluss-Rechnung in shared/controlCenter.ts:
