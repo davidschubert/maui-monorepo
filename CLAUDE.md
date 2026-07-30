@@ -139,8 +139,32 @@ Vollständiges Konzept: docs/CONCEPT.md
   useTheme() — öffentliches DisplaySettingsMenu, Dashboard-Kontomenü, Hinweis
   im Theme-Studio): ein Wähler ohne Wirkung wäre eine Lüge, und die
   Community-Farbe setzt der Owner unter /dashboard/settings/community.
-  NICHT betroffen: Hell/Dunkel (useColorMode) und die Neutral-Palette bleiben
-  Besucher-Wahl — es geht nur um data-theme/data-variant.
+  DIE NEUTRAL-PALETTE FOLGT MIT (B5-Rest, 2026-07-29 — Davids Entscheidung):
+  `data-neutral` ist eine EIGENE Achse und blieb nur Besucher-Wahl, weil es
+  dafür keine Community-Einstellung gab. Jetzt: `tenants.neutral` (Migration
+  **control-020**, additiv, '' = keine eigene Wahl). Zweite pure Funktion
+  `resolveNeutralSelection` + `visitorMayChooseNeutral` NEBEN
+  resolveThemeSelection — kein viertes Feld im Theme-Ergebnis, weil die Herkunft
+  abweichen DARF (Kontroll-Host: Theme aus der Instanz, Palette vom Besucher).
+  Eine Instanz-Einstellung für die Palette gibt es BEWUSST NICHT; Default ist die
+  Registry-Voreinstellung. Gesetzt als EINE Zeile „Grundton" unter
+  /dashboard/settings/community (Chips, weil '' nicht in ein USelectItem darf),
+  geprüft gegen NEUTRAL_REGISTRY. `neutral` im PATCH-Body ist OPTIONAL, und das
+  ist Betrieb statt Geschmack: platform und control sind zwei Deployments —
+  Pflichtfeld hieße 400 auf jedes Umfärben, solange eine neue control neben
+  einer alten platform läuft; fehlendes Feld heißt „nicht angefasst", nie ''.
+  Der Wähler verschwindet auf Mandanten-Hosts überall (`canChooseNeutral`).
+  NICHT betroffen und Besucher-Wahl bleibend: Hell/Dunkel (useColorMode),
+  Seitenleiste, Sprache. Beweis: verify-site-branding.mjs (40/40).
+- KEINE LIVE-PROPAGATION für Branding aus `tenants` (theme/variant/neutral,
+  OPEN-ITEMS D6): die Row liegt im Control-Plane-PROJEKT, dort hat der Browser
+  weder Session noch Leserecht — offene Fenster übernehmen erst beim nächsten
+  Seitenaufbau (≤30 s Resolver-Cache). NUR custom_themes/custom_fonts/app_config
+  morphen live, weil sie im Runtime-Projekt liegen und read(any) sind.
+- `createRow<TenantRow>` verlangt ALLE Spalten explizit (bewusst) — eine neue
+  tenants-Spalte erzwingt eine Entscheidung an BEIDEN Anlegestellen
+  (tenants/index.post.ts + onboardingProvision.ts). Folge: die Migration MUSS
+  vor dem Code-Deploy laufen, sonst bricht das Anlegen einer Community.
 - Schriften, 2 Rollen (Text + Überschriften, + fixe Mono — nie mehr als 3):
   Registry-Einzelfamilien in app/assets/css/fonts.css (build-prozessiert →
   @nuxt/fonts self-hostet; NIE nach public/) + WOFF2-Uploads (Bucket 'fonts',
@@ -387,6 +411,20 @@ Vollständiges Konzept: docs/CONCEPT.md
   Deploy-Moment die Glocke leeren. Nicht „korrigieren". Der Digest-Sweep bleibt
   mandantenübergreifend (eine Mail/Tag, nicht eine je Community); Mail-LINKS
   sind noch nicht mandantenrichtig (OPEN-ITEMS D5).
+- WO HÄNGT DIE GLOCKE? (C17, seit 2026-07-29): sie wird NUR aus
+  `maui.chrome.utilities` gerendert, und dessen einziger Konsument ist das
+  blueprint-Layout — eine App OHNE blueprint hat also keine. Genau das traf
+  `apps/control`, wo BEIDE `scope:'account'`-Absender leben (Stripe-Webhook,
+  Early-Access-Anfragen) und wo auch ihre Empfänger Konten sind: Absender,
+  Empfänger und Leser liegen alle im control-Projekt — `my.pukalani.app` (Pool)
+  war nie der Leser, dort entsteht heute keine `_account`-Zeile. Schalter
+  `maui.chrome.accountBell` (Core-Default AUS, apps/control an) hängt sie ins
+  core-default-Layout und in die Dashboard-Shell, dort in die SEITENLEISTE neben
+  die Suche (oben rechts sitzen die Aktionen der Seiten-Kopfzeilen — eine
+  schwebende Glocke verdeckte sie). Der Schalter sagt nur, OB sie hängt; WAS sie
+  zeigt, bleibt das Publikum ihres Hosts. Jeder neue notify()-TYP braucht einen
+  Zweig in messageKey() + Text in de/en — der Rückfall auf 'replied' macht ein
+  Loch unsichtbar; Netz: `packages/core/tests/notificationBellTexts.test.ts`.
 - BETREIBER-Inhalt gehört nicht auf Mandanten-Hosts (N7, seit 2026-07-28):
   der öffentliche Changelog (admin-Layer) antwortet dort 404 — Seite via
   `useIsTenantHost()` (core, pure Ausschluss-Rechnung in shared/controlCenter.ts:
@@ -454,6 +492,13 @@ Docs-Site: 4000 (docs/, `pnpm dev:docs` — eigenständige Nuxt-Content-App,
 KEIN Layer/keine apps/*-App, Inhalte in docs/content/)
 
 ## Tests
+WORKTREE-BEWEISE (2026-07-29 live erwischt, gleich zweimal): ein Dev-Server aus
+`.claude/launch.json` startet mit cwd = HAUPT-Repo, nicht im Worktree — ein
+„Beweis" misst dann unveränderten Code und sieht wie ein Fehlschlag der neuen
+Arbeit aus. Ebenso belegen fremde Worktrees Ports und der eigene Server fällt
+still auf einen anderen zurück. Vor jedem Beweis: `lsof -nP -iTCP -sTCP:LISTEN`
+und den Pfad in der ersten Dev-Log-Zeile prüfen.
+
 pnpm -r test (Unit) · Playwright-E2E in apps/comments (Base-URL per
 PW_BASE_URL überschreibbar — parallele Dev-Sessions) · themes-visual zielt
 auf die deterministische /visual-Seite (NIE Live-Daten screenshotten) ·
