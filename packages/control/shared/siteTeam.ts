@@ -1,6 +1,6 @@
 import { SITE_JOIN_ROLE, type SiteJoinOutcome, type SiteJoinTrigger } from '../../core/shared/siteJoin'
-import { SITE_ROLES, type SiteMemberStatus, type SiteRole } from './types/siteMember'
-import type { SiteInviteStatus } from './types/siteInvite'
+import { SITE_ROLES, type CommunityMemberStatus, type SiteRole } from './types/communityMember'
+import type { CommunityInviteStatus } from './types/communityInvite'
 
 /**
  * Die Schutzregeln der Mitglieder-Verwaltung — PURE (unit-getestet, ohne h3/
@@ -37,7 +37,7 @@ export interface SiteTeamMemberFacts {
   /** Appwrite-User IM Runtime-Projekt. */
   runtimeUserId: string
   role: SiteRole
-  status: SiteMemberStatus
+  status: CommunityMemberStatus
 }
 
 export type SiteTeamDenyReason =
@@ -71,7 +71,7 @@ export function countActiveOwners(members: readonly SiteTeamMemberFacts[]): numb
 }
 
 /** Hat diese Mitgliedschaft Zugang? (nur 'active' — genau wie der Resolver) */
-export function hasSiteAccess(status: SiteMemberStatus): boolean {
+export function hasSiteAccess(status: CommunityMemberStatus): boolean {
   return status === 'active'
 }
 
@@ -239,7 +239,7 @@ export interface SiteMemberView {
   email: string
   name: string
   role: SiteRole
-  status: SiteMemberStatus
+  status: CommunityMemberStatus
   /** Beitrittsdatum = Entstehung der Mitgliedschaft. */
   joinedAt: string
   /** Zeitpunkt des Zugangs-Entzugs; null = hat Zugang. */
@@ -253,7 +253,7 @@ export interface SiteInviteView {
   id: string
   email: string
   role: SiteRole
-  status: SiteInviteStatus
+  status: CommunityInviteStatus
   expiresAt: string
   createdAt: string
 }

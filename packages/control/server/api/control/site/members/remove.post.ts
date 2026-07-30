@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { decideRemoval } from '../../../../../shared/siteTeam'
-import { SITE_MEMBERS_TABLE, type SiteMemberRow } from '../../../../../shared/types/siteMember'
+import { COMMUNITY_MEMBERS_TABLE, type CommunityMemberRow } from '../../../../../shared/types/communityMember'
 import { memberFacts, requireSiteTeamContext, throwOnDenied } from '../../../../utils/siteTeam'
 
 /**
@@ -34,7 +34,7 @@ import { memberFacts, requireSiteTeamContext, throwOnDenied } from '../../../../
  */
 const bodySchema = z.object({
   jwt: z.string().min(1).max(4096),
-  siteId: z.string().min(1).max(36),
+  communityId: z.string().min(1).max(36),
   memberId: z.string().min(1).max(36),
 }).strict()
 
@@ -55,19 +55,19 @@ export default defineEventHandler(async (event) => {
       target: memberFacts(target),
       members: context.members.map(memberFacts),
     }),
-    { siteId: body.siteId, actor: context.identity.userId, target: target.$id },
+    { communityId: body.communityId, actor: context.identity.userId, target: target.$id },
   )
 
   const admin = createAdminClient(event)
-  const row = await admin.tablesDB.updateRow<SiteMemberRow>({
+  const row = await admin.tablesDB.updateRow<CommunityMemberRow>({
     databaseId: context.databaseId,
-    tableId: SITE_MEMBERS_TABLE,
+    tableId: COMMUNITY_MEMBERS_TABLE,
     rowId: target.$id,
     data: { status: 'removed', removedAt: new Date().toISOString() },
   }).catch((error) => { throw toH3Error(error, 'Could not remove member') })
 
   logEvent('info', 'site.member_removed', {
-    siteId: body.siteId,
+    communityId: body.communityId,
     memberId: row.$id,
     role: target.role,
     actor: context.identity.userId,

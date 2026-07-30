@@ -59,21 +59,21 @@ export default defineEventHandler(async (event) => {
   // wählen könnte (Silo-App, Kontroll-Host, Single-Tenant). 404 wie eine
   // fehlende Route — dort gehört die Optik der Instanz, nicht einer Site.
   const tenant = useTenant(event)
-  if (!tenant?.siteId) {
+  if (!tenant?.communityId) {
     throw createError({ status: 404, statusText: 'Not found' })
   }
 
   const body = await readValidatedBody(event, bodySchema.parse)
   const jwt = await mintRuntimeJwt(event)
 
-  // siteId kommt aus dem SERVER-Kontext (Host-Auflösung), nie aus dem Body —
+  // communityId kommt aus dem SERVER-Kontext (Host-Auflösung), nie aus dem Body —
   // sonst könnte ein durchgereichter Wert eine fremde Community umfärben.
-  return await callControlPlane<{ siteId: string, theme: string, variant: string, neutral: string }>(
+  return await callControlPlane<{ communityId: string, theme: string, variant: string, neutral: string }>(
     event,
     '/api/control/site/branding',
     {
       jwt,
-      siteId: tenant.siteId,
+      communityId: tenant.communityId,
       theme: body.theme,
       variant: body.variant,
       // Nur weiterreichen, wenn der Aufrufer das Feld überhaupt geschickt hat —

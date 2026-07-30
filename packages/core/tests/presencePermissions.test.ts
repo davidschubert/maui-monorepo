@@ -12,9 +12,9 @@ import type { TenantContext } from '../shared/types/tenant'
  * Permissions; wichen die beiden Bauer voneinander ab, stünde die Grenze
  * zwischen zwei Heartbeats offen — deshalb sind sie hier aneinander genagelt.
  */
-const pool: TenantContext = { mode: 'pool', projectId: 'pool', tenantId: 't-1', siteId: 'siteAAA' }
+const pool: TenantContext = { mode: 'pool', projectId: 'pool', tenantId: 't-1', communityId: 'siteAAA' }
 const poolNoSite: TenantContext = { mode: 'pool', projectId: 'pool', tenantId: 't-1' }
-const silo: TenantContext = { mode: 'silo', projectId: 'kunde-x', siteId: 'siteBBB' }
+const silo: TenantContext = { mode: 'silo', projectId: 'kunde-x', communityId: 'siteBBB' }
 
 const USER = 'u-42'
 const server = (tenant: TenantContext | null) =>
@@ -25,29 +25,29 @@ describe('presenceReadRoles', () => {
     expect(presenceReadRoles(true, 'siteAAA')).toEqual([Permission.read(Role.label('siteAAA'))])
   })
 
-  it('Pool ohne siteId: KEIN read — fail-closed statt pool-weit offen', () => {
+  it('Pool ohne communityId: KEIN read — fail-closed statt pool-weit offen', () => {
     expect(presenceReadRoles(true, null)).toEqual([])
     expect(presenceReadRoles(true, undefined)).toEqual([])
   })
 
   it('Silo/Single-Tenant: read("users") wie bisher (Projekt = Grenze)', () => {
     expect(presenceReadRoles(false, null)).toEqual([Permission.read(Role.users())])
-    // siteId im Silo vorhanden, aber irrelevant — kein Label-Scoping
+    // communityId im Silo vorhanden, aber irrelevant — kein Label-Scoping
     expect(presenceReadRoles(false, 'siteBBB')).toEqual([Permission.read(Role.users())])
   })
 })
 
 describe('presencePermissions == tenantRowPermissionsFor (Client == Server)', () => {
   it('Pool', () => {
-    expect(presencePermissions(true, pool.siteId, USER)).toEqual(server(pool))
+    expect(presencePermissions(true, pool.communityId, USER)).toEqual(server(pool))
   })
 
-  it('Pool ohne siteId', () => {
+  it('Pool ohne communityId', () => {
     expect(presencePermissions(true, undefined, USER)).toEqual(server(poolNoSite))
   })
 
   it('Silo', () => {
-    expect(presencePermissions(false, silo.siteId, USER)).toEqual(server(silo))
+    expect(presencePermissions(false, silo.communityId, USER)).toEqual(server(silo))
   })
 
   it('kein Mandanten-Kontext (Playground/Single-Tenant)', () => {

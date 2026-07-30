@@ -24,14 +24,14 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 401, statusText: 'Unauthorized' })
   }
   const tenant = useTenant(event)
-  if (!tenant?.siteId) {
+  if (!tenant?.communityId) {
     throw createError({ status: 404, statusText: 'Not found' })
   }
 
   const body = await readValidatedBody(event, bodySchema.parse)
   const jwt = await mintRuntimeJwt(event)
 
-  const result = await callControlPlane<{ ok: boolean, siteId: string, host: string, role: string }>(
+  const result = await callControlPlane<{ ok: boolean, communityId: string, host: string, role: string }>(
     event,
     '/api/control/site/members/accept',
     { jwt, ...(body.token ? { token: body.token } : { inviteId: body.inviteId }) },
@@ -46,17 +46,17 @@ export default defineEventHandler(async (event) => {
    * wäre das eine halbe Minute, in der sie drin ist und trotzdem niemanden sieht:
    * kein Anwesender, kein Activity-Feed. Ein Klick, der wirkt, muss wirken.
    *
-   * Nur wenn die Einladung zu DIESER Community gehört: `siteId` kommt aus der
+   * Nur wenn die Einladung zu DIESER Community gehört: `communityId` kommt aus der
    * Einladung (nie aus dem Body), ein Link für eine andere Community darf hier
    * kein Label setzen.
    */
-  if (result.siteId === tenant.siteId) {
+  if (result.communityId === tenant.communityId) {
     // Rückkehr nach einem Entzug: die „gerade entzogen"-Notiz muss weg, sonst
     // zieht die Label-Middleware das Publikum bis zu einer Minute lang wieder ab
     // (siehe rememberSiteAccessRevoked).
     const userId = event.context.user?.$id
-    if (userId) forgetSiteAccessDecision(result.siteId, userId)
-    await grantSiteLabel(event, result.siteId)
+    if (userId) forgetSiteAccessDecision(result.communityId, userId)
+    await grantSiteLabel(event, result.communityId)
   }
 
   return result

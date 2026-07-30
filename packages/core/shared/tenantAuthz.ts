@@ -8,7 +8,7 @@ import type { Capability } from './types/authz'
  *  - authz.ts (Role = admin|moderator) = Betreiber/Operator (globale Appwrite-
  *    Labels auf DEINER Instanz; über die GANZE Plattform gültig).
  *  - tenantAuthz.ts (TenantRole) = die 5 Rollen INNERHALB einer Kunden-Site.
- *    Verankert an `site_members {siteId = tenants.$id, runtimeProjectId,
+ *    Verankert an `community_members {communityId = tenants.$id, runtimeProjectId,
  *    runtimeUserId}` — die Runtime-Identität (Pool-/Silo-Projekt-User), NICHT
  *    die Control-Plane-userId.
  *

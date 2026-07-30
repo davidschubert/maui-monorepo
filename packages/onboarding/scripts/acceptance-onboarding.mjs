@@ -138,7 +138,7 @@ async function runOnce(index, code) {
   })
   if (createRes.status !== 200) throw new Error(`Anlage ${createRes.status}: ${createRes.text.slice(0, 120)}`)
   const site = createRes.json
-  cleanup.tenants.push(site.siteId)
+  cleanup.tenants.push(site.communityId)
 
   // 4. Warten, bis die Site wirklich antwortet (Host-Auflösung inklusive).
   let reachable = false
@@ -198,7 +198,7 @@ try {
       category: 'other', goal: 'discussion', vibe: 'calm', inviteCode: code, locale: 'de',
     },
   })
-  check('gibt dieselbe Community zurück', retry.json?.siteId === last.site.siteId && retry.json?.reused === true, JSON.stringify(retry.json))
+  check('gibt dieselbe Community zurück', retry.json?.communityId === last.site.communityId && retry.json?.reused === true, JSON.stringify(retry.json))
   // Seiten sind Teil der Idempotenz: ein Doppelklick darf keine zweite
   // Startseite und keine zweiten Rechtsseiten-Vorlagen erzeugen (Befund S7).
   const pagesAfterRetry = await pool.listRows({
@@ -225,8 +225,8 @@ try {
 
   console.log('\n4. Was jeder Durchlauf hinterlassen hat')
   const members = await control.listRows({
-    databaseId, tableId: 'site_members',
-    queries: [Query.equal('siteId', cleanup.tenants), Query.limit(100)],
+    databaseId, tableId: 'community_members',
+    queries: [Query.equal('communityId', cleanup.tenants), Query.limit(100)],
   })
   cleanup.members.push(...members.rows.map(row => row.$id))
   check(`genau ${RUNS} Owner-Mitgliedschaften`, members.rows.length === RUNS && members.rows.every(row => row.role === 'owner'), `${members.rows.length}`)
@@ -281,7 +281,7 @@ finally {
       cleanup.pages.push(page.$id)
     }
   }
-  for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'site_members', rowId: id }).catch(() => {})
+  for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'community_members', rowId: id }).catch(() => {})
   for (const id of cleanup.tenants) await control.deleteRow({ databaseId, tableId: 'tenants', rowId: id }).catch(() => {})
   for (const id of cleanup.workspaces) await control.deleteRow({ databaseId, tableId: 'workspaces', rowId: id }).catch(() => {})
   for (const id of cleanup.codes) await control.deleteRow({ databaseId, tableId: 'invite_codes', rowId: id }).catch(() => {})

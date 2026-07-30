@@ -85,7 +85,7 @@ afterEach(() => {
   registerEventTicketGuard(async () => false)
 })
 
-const poolEvent = { context: { tenant: { mode: 'pool', projectId: 'p', tenantId: 'kunde-a', siteId: 's-a' } } } as unknown as H3Event
+const poolEvent = { context: { tenant: { mode: 'pool', projectId: 'p', tenantId: 'kunde-a', communityId: 's-a' } } } as unknown as H3Event
 const siloEvent = { context: {} } as unknown as H3Event
 
 const paidRow = { $id: 'ev-1', access: 'paid' } as EventRow

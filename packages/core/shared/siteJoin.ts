@@ -15,7 +15,7 @@ import type { TenantRole } from './tenantAuthz'
  * als das Modell hielt.
  *
  * ── DIE NEUE REGEL ──────────────────────────────────────────────────────────
- * Mitglied ist, wer eine `site_members`-Zeile mit Zugang hat. Das Label FOLGT
+ * Mitglied ist, wer eine `community_members`-Zeile mit Zugang hat. Das Label FOLGT
  * dieser Zeile (es wird nicht mehr selbst zur Quelle). Entstehen kann sie auf
  * drei Wegen — mehr gibt es nicht:
  *

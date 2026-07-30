@@ -1,6 +1,6 @@
 import { Query } from 'node-appwrite'
 import { z } from 'zod'
-import { SITE_ROLES } from '../../../../../control/shared/types/siteMember'
+import { SITE_ROLES } from '../../../../../control/shared/types/communityMember'
 import { callControlPlane } from '../../../utils/controlPlane'
 import { requireSiteTeamGate } from '../../../utils/siteTeamGate'
 
@@ -35,7 +35,7 @@ interface InviteResult {
 }
 
 export default defineEventHandler(async (event) => {
-  const { siteId, jwt } = await requireSiteTeamGate(event, 'team.manage')
+  const { communityId, jwt } = await requireSiteTeamGate(event, 'team.manage')
   const body = await readValidatedBody(event, bodySchema.parse)
   const email = body.email.trim().toLowerCase()
 
@@ -46,7 +46,7 @@ export default defineEventHandler(async (event) => {
   const result = await callControlPlane<InviteResult>(
     event,
     '/api/control/site/members/invite',
-    { jwt, siteId, email, role: body.role, locale },
+    { jwt, communityId, email, role: body.role, locale },
   )
 
   // Existiert ein Konto? Dann zusätzlich in-app benachrichtigen — best-effort,

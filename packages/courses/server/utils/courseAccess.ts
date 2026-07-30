@@ -8,7 +8,7 @@ import { COURSES_TABLE, ENROLLMENTS_TABLE, LESSONS_TABLE, type CourseRow, type E
  * BEWUSST unverändert `Role.users()` — auch im Pool (Muster events
  * EVENT_READ_ANY). Zwei Gründe, beide praktisch:
  *  1. Das Publikum-Helferlein `tenantRowPermissions(event, {read:'members'})`
- *     würde im Pool `Role.label(siteId)` setzen — und dieses Label trägt seit A5
+ *     würde im Pool `Role.label(communityId)` setzen — und dieses Label trägt seit A5
  *     (2026-07-29) genau wer eine Mitgliedschaft MIT ZUGANG hat. Für einen
  *     Kurs-Katalog ist das die falsche Grenze: er soll für alle eingeloggten
  *     Nutzer dieser Community sichtbar sein, auch bevor jemand beigetreten ist

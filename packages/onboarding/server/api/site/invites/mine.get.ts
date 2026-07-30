@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 401, statusText: 'Unauthorized' })
   }
   const tenant = useTenant(event)
-  if (!tenant?.siteId) {
+  if (!tenant?.communityId) {
     throw createError({ status: 404, statusText: 'Not found' })
   }
 
@@ -21,6 +21,6 @@ export default defineEventHandler(async (event) => {
   return await callControlPlane<{ invites: { id: string, role: string, expiresAt: string }[], siteName: string }>(
     event,
     '/api/control/site/invites/mine',
-    { jwt, siteId: tenant.siteId },
+    { jwt, communityId: tenant.communityId },
   )
 })

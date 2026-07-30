@@ -7,19 +7,19 @@ import { requireSiteTeamGate } from '../../../utils/siteTeamGate'
  * Das Team DIESER Community lesen — die Datenquelle von /dashboard/members.
  *
  * Zwei Welten, zwei Beiträge, und keine kann die andere ersetzen:
- *  - Das CONTROL PLANE besitzt `site_members`/`site_invites` und liefert Rollen,
+ *  - Das CONTROL PLANE besitzt `community_members`/`community_invites` und liefert Rollen,
  *    Status, Beitrittsdatum, offene Einladungen.
  *  - Nur die RUNTIME kennt die Nutzer ihres Appwrite-Projekts und ergänzt die
  *    NAMEN. Gebündelt (ein users.list für alle IDs), nicht pro Zeile — dieselbe
  *    Regel wie bei resolveAvatars.
  */
 export default defineEventHandler(async (event): Promise<SiteTeamResponse> => {
-  const { siteId, jwt } = await requireSiteTeamGate(event, 'team.manage')
+  const { communityId, jwt } = await requireSiteTeamGate(event, 'team.manage')
 
   const team = await callControlPlane<SiteTeamResponse>(
     event,
     '/api/control/site/members/list',
-    { jwt, siteId },
+    { jwt, communityId },
   )
 
   const ids = [...new Set(team.members.map(member => member.runtimeUserId).filter(Boolean))]

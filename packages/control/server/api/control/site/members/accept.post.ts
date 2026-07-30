@@ -1,7 +1,7 @@
 import { ID, Query } from 'node-appwrite'
 import { z } from 'zod'
-import { SITE_INVITES_TABLE, type SiteInviteRow } from '../../../../../shared/types/siteInvite'
-import { SITE_MEMBERS_TABLE, type SiteMemberRow } from '../../../../../shared/types/siteMember'
+import { COMMUNITY_INVITES_TABLE, type CommunityInviteRow } from '../../../../../shared/types/communityInvite'
+import { COMMUNITY_MEMBERS_TABLE, type CommunityMemberRow } from '../../../../../shared/types/communityMember'
 import { TENANTS_TABLE, type TenantRow } from '../../../../../shared/types/tenantRecord'
 import { verifyRuntimeIdentity } from '../../../../utils/onboardingService'
 import { hashInviteToken } from '../../../../utils/workspaceMembers'
@@ -16,7 +16,7 @@ import { hashInviteToken } from '../../../../utils/workspaceMembers'
  *  3. Token-Hash + E-Mail-Gleichheit (ein weitergeleiteter Link bindet nicht den
  *     falschen Account — dieselbe Regel wie bei den Workspace-Einladungen).
  *
- * `siteId` kommt aus der EINLADUNG, nie aus dem Body: sonst könnte ein gültiges
+ * `communityId` kommt aus der EINLADUNG, nie aus dem Body: sonst könnte ein gültiges
  * Token für eine fremde Community eingelöst werden.
  *
  * Idempotent und rückkehrfähig: existiert die Mitgliedschaft schon (Unique-Index
@@ -48,18 +48,18 @@ export default defineEventHandler(async (event) => {
   const databaseId = config.public.appwriteDatabaseId
   const admin = createAdminClient(event)
 
-  let invite: SiteInviteRow | null = null
+  let invite: CommunityInviteRow | null = null
   if (body.token) {
-    const { rows } = await admin.tablesDB.listRows<SiteInviteRow>({
+    const { rows } = await admin.tablesDB.listRows<CommunityInviteRow>({
       databaseId,
-      tableId: SITE_INVITES_TABLE,
+      tableId: COMMUNITY_INVITES_TABLE,
       queries: [Query.equal('tokenHash', hashInviteToken(body.token)), Query.limit(1)],
     }).catch((error) => { throw toH3Error(error, 'Could not read invitation') })
     invite = rows[0] ?? null
   }
   else if (body.inviteId) {
-    invite = await admin.tablesDB.getRow<SiteInviteRow>({
-      databaseId, tableId: SITE_INVITES_TABLE, rowId: body.inviteId,
+    invite = await admin.tablesDB.getRow<CommunityInviteRow>({
+      databaseId, tableId: COMMUNITY_INVITES_TABLE, rowId: body.inviteId,
     }).catch(() => null)
   }
 
@@ -74,17 +74,17 @@ export default defineEventHandler(async (event) => {
   // Die Community muss zu dem Projekt gehören, gegen das das JWT geprüft wurde —
   // sonst entstünde eine Mitgliedschaft mit fremder Runtime-Identität.
   const tenant = await admin.tablesDB.getRow<TenantRow>({
-    databaseId, tableId: TENANTS_TABLE, rowId: invite.siteId,
+    databaseId, tableId: TENANTS_TABLE, rowId: invite.communityId,
   }).catch(() => null)
   if (!tenant || tenant.projectId !== identity.projectId) {
     throw createError({ status: 400, statusText: 'Invalid or expired invitation' })
   }
 
-  const { rows: existing } = await admin.tablesDB.listRows<SiteMemberRow>({
+  const { rows: existing } = await admin.tablesDB.listRows<CommunityMemberRow>({
     databaseId,
-    tableId: SITE_MEMBERS_TABLE,
+    tableId: COMMUNITY_MEMBERS_TABLE,
     queries: [
-      Query.equal('siteId', invite.siteId),
+      Query.equal('communityId', invite.communityId),
       Query.equal('runtimeProjectId', identity.projectId),
       Query.equal('runtimeUserId', identity.userId),
       Query.limit(1),
@@ -96,8 +96,8 @@ export default defineEventHandler(async (event) => {
     // Rückkehr oder Rollen-Wechsel per Einladung. Einen OWNER stuft eine
     // Einladung nie zurück — sonst könnte ein Admin den Inhaber per Mail
     // degradieren.
-    await admin.tablesDB.updateRow<SiteMemberRow>({
-      databaseId, tableId: SITE_MEMBERS_TABLE, rowId: current.$id,
+    await admin.tablesDB.updateRow<CommunityMemberRow>({
+      databaseId, tableId: COMMUNITY_MEMBERS_TABLE, rowId: current.$id,
       data: {
         status: 'active',
         removedAt: null,
@@ -107,10 +107,10 @@ export default defineEventHandler(async (event) => {
     }).catch((error) => { throw toH3Error(error, 'Could not activate membership') })
   }
   else {
-    await admin.tablesDB.createRow<SiteMemberRow>({
-      databaseId, tableId: SITE_MEMBERS_TABLE, rowId: ID.unique(),
+    await admin.tablesDB.createRow<CommunityMemberRow>({
+      databaseId, tableId: COMMUNITY_MEMBERS_TABLE, rowId: ID.unique(),
       data: {
-        siteId: invite.siteId,
+        communityId: invite.communityId,
         runtimeProjectId: identity.projectId,
         runtimeUserId: identity.userId,
         role: invite.role,
@@ -122,16 +122,16 @@ export default defineEventHandler(async (event) => {
   }
 
   await admin.tablesDB.updateRow({
-    databaseId, tableId: SITE_INVITES_TABLE, rowId: invite.$id,
+    databaseId, tableId: COMMUNITY_INVITES_TABLE, rowId: invite.$id,
     data: { status: 'accepted', acceptedBy: identity.userId },
   }).catch(() => {})
 
   logEvent('info', 'site.invite_accepted', {
-    siteId: invite.siteId,
+    communityId: invite.communityId,
     inviteId: invite.$id,
     runtimeUserId: identity.userId,
     role: invite.role,
   })
 
-  return { ok: true, siteId: invite.siteId, host: tenant.host, role: invite.role }
+  return { ok: true, communityId: invite.communityId, host: tenant.host, role: invite.role }
 })

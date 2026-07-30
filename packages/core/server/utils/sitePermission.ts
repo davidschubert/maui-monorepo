@@ -47,7 +47,7 @@ export async function requireSitePermission(
     // niemals unsichtbar — die Zeile ist der Audit-Trail.
     logEvent('warn', 'site.operator_access', {
       capability,
-      siteId: tenant?.siteId ?? '',
+      communityId: tenant?.communityId ?? '',
       userId: user.$id,
       hasSiteRole: Boolean(role),
     })

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
-import { SITE_ROLES, type SiteRole } from '../../../../../control/shared/types/siteMember'
+import { SITE_ROLES, type SiteRole } from '../../../../../control/shared/types/communityMember'
 import type { SiteInviteView, SiteMemberView, SiteTeamResponse } from '../../../../../control/shared/siteTeam'
 
 /**

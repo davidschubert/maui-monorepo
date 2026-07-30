@@ -8,7 +8,7 @@ import { tenantRoleHasCapability, type TenantRole } from './tenantAuthz'
  * Zwei Wege führen durch, und die Reihenfolge ist Absicht:
  *
  *  1. **Site-Rolle** (Normalfall) — der Runtime-User ist Mitglied DIESER
- *     Community mit ausreichender Rolle (site_members, G1).
+ *     Community mit ausreichender Rolle (community_members, G1).
  *  2. **Operator-Break-Glass** — jemand mit globalem Label auf der Instanz
  *     (Betreiber-Support). Kommt NACH der Rolle, damit das Protokoll nur dann
  *     einen Break-Glass meldet, wenn wirklich einer stattfand, und nicht bei

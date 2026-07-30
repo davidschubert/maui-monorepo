@@ -16,7 +16,7 @@ import { listSiteInvites, requireSiteTeamContext } from '../../../../utils/siteT
  */
 const bodySchema = z.object({
   jwt: z.string().min(1).max(4096),
-  siteId: z.string().min(1).max(36),
+  communityId: z.string().min(1).max(36),
 }).strict()
 
 export default defineEventHandler(async (event): Promise<SiteTeamResponse> => {
@@ -40,7 +40,7 @@ export default defineEventHandler(async (event): Promise<SiteTeamResponse> => {
   // auch nicht aufgeräumt: ein Widerruf-Knopf für etwas, das nichts mehr kann,
   // wäre nur Beschäftigung. Die Row bleibt als Spur.
   const now = Date.now()
-  const invites: SiteInviteView[] = (await listSiteInvites(event, body.siteId))
+  const invites: SiteInviteView[] = (await listSiteInvites(event, body.communityId))
     .filter(row => Date.parse(row.expiresAt) > now)
     .map(row => ({
       id: row.$id,

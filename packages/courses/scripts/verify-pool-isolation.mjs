@@ -10,7 +10,7 @@
  *   1. Produkt-Gate: courses ist ab Plan pro — auf Plan basic antwortet die
  *      Galerie 404 (Katalog maui.tenancy.products), auf pro 401 (das Produkt
  *      existiert, es fehlt nur die Anmeldung).
- *   2. Ein site_members-OWNER auf kunde-a OHNE jedes Operator-Label legt Kurs
+ *   2. Ein community_members-OWNER auf kunde-a OHNE jedes Operator-Label legt Kurs
  *      + Lektion an (Datentür stempelt tenantId — per Admin-SDK nachgeprüft).
  *   3. Galerie/Detail/Enroll/Lektions-Content bei B sehen davon NICHTS
  *      (404), bei A alles (200/201).
@@ -161,9 +161,9 @@ try {
   console.log('\n2. Site-Owner OHNE Operator-Label legt auf A an')
   const owner = await createUser('owner')
   const member = await control.createRow({
-    databaseId: controlDb, tableId: 'site_members', rowId: ID.unique(),
+    databaseId: controlDb, tableId: 'community_members', rowId: ID.unique(),
     data: {
-      siteId: tenantA.$id,
+      communityId: tenantA.$id,
       runtimeProjectId: tenantA.projectId,
       runtimeUserId: owner.userId,
       role: 'owner',
@@ -185,7 +185,7 @@ try {
   if (courseId) cleanup.courses.push(courseId)
 
   // TenantContext.tenantId = tenants.tenantId (Scope-Wert der Datenzeilen);
-  // tenants.$id ist die siteId (Label-Schlüssel) — zwei Schlüssel, ein Tenant.
+  // tenants.$id ist die communityId (Label-Schlüssel) — zwei Schlüssel, ein Tenant.
   const rawCourse = courseId ? await pool.getRow({ databaseId, tableId: 'courses', rowId: courseId }).catch(() => null) : null
   check('Tür hat tenantId von A gestempelt (nie vom Aufrufer)', rawCourse?.tenantId === tenantA.tenantId, `tenantId=${rawCourse?.tenantId}, erwartet ${tenantA.tenantId}`)
 
@@ -279,7 +279,7 @@ finally {
     await pool.deleteRow({ databaseId, tableId: 'courses', rowId: courseId }).catch(() => {})
   }
   for (const id of cleanup.lessons) await pool.deleteRow({ databaseId, tableId: 'lessons', rowId: id }).catch(() => {})
-  for (const id of cleanup.members) await control.deleteRow({ databaseId: controlDb, tableId: 'site_members', rowId: id }).catch(() => {})
+  for (const id of cleanup.members) await control.deleteRow({ databaseId: controlDb, tableId: 'community_members', rowId: id }).catch(() => {})
   for (const id of cleanup.users) await poolUsers.delete({ userId: id }).catch(() => {})
   for (const { id, plan } of cleanup.planRestore) {
     await control.updateRow({ databaseId: controlDb, tableId: 'tenants', rowId: id, data: { plan } }).catch(() => {})

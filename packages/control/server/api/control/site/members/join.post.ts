@@ -2,7 +2,7 @@ import { ID, Query } from 'node-appwrite'
 import { z } from 'zod'
 import { SITE_JOIN_ROLE, type SiteJoinOutcome } from '../../../../../../core/shared/siteJoin'
 import { decideJoin } from '../../../../../shared/siteTeam'
-import { SITE_MEMBERS_TABLE, type SiteMemberRow } from '../../../../../shared/types/siteMember'
+import { COMMUNITY_MEMBERS_TABLE, type CommunityMemberRow } from '../../../../../shared/types/communityMember'
 import { TENANTS_TABLE, resolveTenantOpenRegistration, type TenantRow } from '../../../../../shared/types/tenantRecord'
 import { verifyRuntimeIdentity } from '../../../../utils/onboardingService'
 
@@ -10,7 +10,7 @@ import { verifyRuntimeIdentity } from '../../../../utils/onboardingService'
  * BEITRETEN — die Stelle, an der Mitgliedschaft entsteht, wenn niemand einlädt
  * (A5, Davids Entscheidung 1 vom 2026-07-29).
  *
- * Warum sie hierher gehört und nicht in die Runtime: `site_members` ist eine
+ * Warum sie hierher gehört und nicht in die Runtime: `community_members` ist eine
  * Tabelle des CONTROL PLANE, und die Platform-App hat dorthin nur einen
  * READ-ONLY-Key. Der Schreibkanal steht seit C16 (Service-Secret + Appwrite-JWT,
  * utils/onboardingService.ts) — es gibt genau einen, und dieser Endpunkt benutzt
@@ -43,7 +43,7 @@ import { verifyRuntimeIdentity } from '../../../../utils/onboardingService'
 const bodySchema = z.object({
   jwt: z.string().min(1).max(4096),
   /** = tenants.$id. Wird gegen das JWT-Projekt geprüft, nicht geglaubt. */
-  siteId: z.string().min(1).max(36),
+  communityId: z.string().min(1).max(36),
   trigger: z.enum(['registration', 'contribution', 'legacy']),
 }).strict()
 
@@ -62,7 +62,7 @@ export default defineEventHandler(async (event): Promise<JoinResponse> => {
   const admin = createAdminClient(event)
 
   const tenant = await admin.tablesDB.getRow<TenantRow>({
-    databaseId, tableId: TENANTS_TABLE, rowId: body.siteId,
+    databaseId, tableId: TENANTS_TABLE, rowId: body.communityId,
   }).catch(() => null)
   if (!tenant || tenant.projectId !== identity.projectId) {
     throw createError({ status: 404, statusText: 'Site not found' })
@@ -70,11 +70,11 @@ export default defineEventHandler(async (event): Promise<JoinResponse> => {
 
   // JEDEN Status lesen, nicht nur 'active': eine entzogene Zeile ist die
   // wichtigste Antwort dieses Endpunkts.
-  const { rows: existing } = await admin.tablesDB.listRows<SiteMemberRow>({
+  const { rows: existing } = await admin.tablesDB.listRows<CommunityMemberRow>({
     databaseId,
-    tableId: SITE_MEMBERS_TABLE,
+    tableId: COMMUNITY_MEMBERS_TABLE,
     queries: [
-      Query.equal('siteId', body.siteId),
+      Query.equal('communityId', body.communityId),
       Query.equal('runtimeProjectId', identity.projectId),
       Query.equal('runtimeUserId', identity.userId),
       Query.limit(1),
@@ -95,7 +95,7 @@ export default defineEventHandler(async (event): Promise<JoinResponse> => {
     // würde das Log mit jedem Kommentar zumüllen.
     if (decision.outcome !== 'member') {
       logEvent('info', 'site.join_denied', {
-        siteId: body.siteId,
+        communityId: body.communityId,
         runtimeUserId: identity.userId,
         trigger: body.trigger,
         outcome: decision.outcome,
@@ -106,12 +106,12 @@ export default defineEventHandler(async (event): Promise<JoinResponse> => {
 
   const role = decision.role ?? SITE_JOIN_ROLE
   try {
-    await admin.tablesDB.createRow<SiteMemberRow>({
+    await admin.tablesDB.createRow<CommunityMemberRow>({
       databaseId,
-      tableId: SITE_MEMBERS_TABLE,
+      tableId: COMMUNITY_MEMBERS_TABLE,
       rowId: ID.unique(),
       data: {
-        siteId: body.siteId,
+        communityId: body.communityId,
         runtimeProjectId: identity.projectId,
         runtimeUserId: identity.userId,
         role,
@@ -130,11 +130,11 @@ export default defineEventHandler(async (event): Promise<JoinResponse> => {
     if ((error as { code?: number })?.code !== 409) {
       throw toH3Error(error, 'Could not create membership')
     }
-    const raced = await admin.tablesDB.listRows<SiteMemberRow>({
+    const raced = await admin.tablesDB.listRows<CommunityMemberRow>({
       databaseId,
-      tableId: SITE_MEMBERS_TABLE,
+      tableId: COMMUNITY_MEMBERS_TABLE,
       queries: [
-        Query.equal('siteId', body.siteId),
+        Query.equal('communityId', body.communityId),
         Query.equal('runtimeProjectId', identity.projectId),
         Query.equal('runtimeUserId', identity.userId),
         Query.limit(1),
@@ -146,7 +146,7 @@ export default defineEventHandler(async (event): Promise<JoinResponse> => {
   }
 
   logEvent('info', 'site.joined', {
-    siteId: body.siteId,
+    communityId: body.communityId,
     runtimeUserId: identity.userId,
     trigger: body.trigger,
     role,

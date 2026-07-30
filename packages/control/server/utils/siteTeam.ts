@@ -3,8 +3,8 @@ import { Query } from 'node-appwrite'
 import type { H3Event } from 'h3'
 import type { Capability } from '../../../core/shared/types/authz'
 import { isTenantRole, tenantRoleHasCapability } from '../../../core/shared/tenantAuthz'
-import { SITE_MEMBERS_TABLE, type SiteMemberRow, type SiteRole } from '../../shared/types/siteMember'
-import { SITE_INVITES_TABLE, type SiteInviteRow } from '../../shared/types/siteInvite'
+import { COMMUNITY_MEMBERS_TABLE, type CommunityMemberRow, type SiteRole } from '../../shared/types/communityMember'
+import { COMMUNITY_INVITES_TABLE, type CommunityInviteRow } from '../../shared/types/communityInvite'
 import { TENANTS_TABLE, type TenantRow } from '../../shared/types/tenantRecord'
 import type { SiteTeamDecision, SiteTeamMemberFacts } from '../../shared/siteTeam'
 import { verifyRuntimeIdentity, type RuntimeIdentity } from './onboardingService'
@@ -23,11 +23,11 @@ import { hashInviteToken } from './workspaceMembers'
  *  2. **JWT** — WER handelt. Das Control Plane prüft es SELBST gegen das
  *     Pool-Projekt; die Behauptung der Platform-App zählt nicht.
  *  3. **Site-Rolle** — der JWT-Inhaber hat die verlangte Capability GENAU auf
- *     dieser Site (site_members, status 'active'). Eine mitgeschickte fremde
- *     `siteId` ist damit harmlos: ohne Mitgliedschaft endet sie in 403.
+ *     dieser Site (community_members, status 'active'). Eine mitgeschickte fremde
+ *     `communityId` ist damit harmlos: ohne Mitgliedschaft endet sie in 403.
  *  4. **Tenant ⇄ Projekt** — die Site gehört zu dem Projekt, gegen das das JWT
  *     geprüft wurde. Ohne diese Zeile könnte eine Mitgliedschafts-Row mit
- *     richtigem Projekt, aber fremder siteId auf einen anderen Tenant zeigen
+ *     richtigem Projekt, aber fremder communityId auf einen anderen Tenant zeigen
  *     (404, damit sich eine fremde Id nicht bestätigt).
  *
  * Zurück kommt alles, was die Regeln danach brauchen: die eigene Mitgliedschaft
@@ -37,9 +37,9 @@ import { hashInviteToken } from './workspaceMembers'
 export interface SiteTeamContext {
   identity: RuntimeIdentity
   tenant: TenantRow
-  actor: SiteMemberRow
+  actor: CommunityMemberRow
   actorRole: SiteRole
-  members: SiteMemberRow[]
+  members: CommunityMemberRow[]
   databaseId: string
 }
 
@@ -47,7 +47,7 @@ export interface SiteTeamContext {
  * Mitgliedschaften einer Site — ALLE, seitenweise.
  *
  * War bis A5 eine Abfrage mit `limit(200)`, und das war richtig, solange
- * `site_members` nur das Team trug (Gründer + Eingeladene). Seit Mitgliedschaft
+ * `community_members` nur das Team trug (Gründer + Eingeladene). Seit Mitgliedschaft
  * ein Ereignis ist (jeder Beitritt legt eine Zeile an), ist 200 eine Grenze, die
  * eine wachsende Community erreicht — und ein abgeschnittenes Ende hätte hier
  * zwei hässliche Folgen: die Owner-Zählung („nicht der letzte Owner") stimmte
@@ -60,23 +60,23 @@ export interface SiteTeamContext {
 const MEMBER_PAGE = 500
 const MEMBER_CEILING = 10_000
 
-export async function listSiteMembers(event: H3Event, siteId: string, projectId: string): Promise<SiteMemberRow[]> {
+export async function listSiteMembers(event: H3Event, communityId: string, projectId: string): Promise<CommunityMemberRow[]> {
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
   const databaseId = config.public.appwriteDatabaseId
 
-  const all: SiteMemberRow[] = []
+  const all: CommunityMemberRow[] = []
   let cursor = ''
   while (all.length < MEMBER_CEILING) {
     const queries = [
-      Query.equal('siteId', siteId),
+      Query.equal('communityId', communityId),
       Query.equal('runtimeProjectId', projectId),
       Query.orderAsc('$createdAt'),
       Query.limit(MEMBER_PAGE),
       ...(cursor ? [Query.cursorAfter(cursor)] : []),
     ]
-    const page: SiteMemberRow[] = await admin.tablesDB.listRows<SiteMemberRow>({
-      databaseId, tableId: SITE_MEMBERS_TABLE, queries,
+    const page: CommunityMemberRow[] = await admin.tablesDB.listRows<CommunityMemberRow>({
+      databaseId, tableId: COMMUNITY_MEMBERS_TABLE, queries,
     }).then(res => res.rows).catch((error) => { throw toH3Error(error, 'Could not read site members') })
 
     all.push(...page)
@@ -85,7 +85,7 @@ export async function listSiteMembers(event: H3Event, siteId: string, projectId:
     if (!cursor) return all
   }
 
-  logEvent('warn', 'site.members_truncated', { siteId, ceiling: MEMBER_CEILING })
+  logEvent('warn', 'site.members_truncated', { communityId, ceiling: MEMBER_CEILING })
   return all
 }
 
@@ -102,17 +102,17 @@ export async function listSiteMembers(event: H3Event, siteId: string, projectId:
  */
 export async function findSiteMember(
   event: H3Event,
-  siteId: string,
+  communityId: string,
   projectId: string,
   runtimeUserId: string,
-): Promise<SiteMemberRow | null> {
+): Promise<CommunityMemberRow | null> {
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
-  const { rows } = await admin.tablesDB.listRows<SiteMemberRow>({
+  const { rows } = await admin.tablesDB.listRows<CommunityMemberRow>({
     databaseId: config.public.appwriteDatabaseId,
-    tableId: SITE_MEMBERS_TABLE,
+    tableId: COMMUNITY_MEMBERS_TABLE,
     queries: [
-      Query.equal('siteId', siteId),
+      Query.equal('communityId', communityId),
       Query.equal('runtimeProjectId', projectId),
       Query.equal('runtimeUserId', runtimeUserId),
       Query.limit(1),
@@ -122,14 +122,14 @@ export async function findSiteMember(
 }
 
 /** Offene Einladungen einer Site (pending; abgelaufene filtert der Aufrufer). */
-export async function listSiteInvites(event: H3Event, siteId: string): Promise<SiteInviteRow[]> {
+export async function listSiteInvites(event: H3Event, communityId: string): Promise<CommunityInviteRow[]> {
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
-  const { rows } = await admin.tablesDB.listRows<SiteInviteRow>({
+  const { rows } = await admin.tablesDB.listRows<CommunityInviteRow>({
     databaseId: config.public.appwriteDatabaseId,
-    tableId: SITE_INVITES_TABLE,
+    tableId: COMMUNITY_INVITES_TABLE,
     queries: [
-      Query.equal('siteId', siteId),
+      Query.equal('communityId', communityId),
       Query.equal('status', 'pending'),
       Query.orderDesc('$createdAt'),
       Query.limit(100),
@@ -140,7 +140,7 @@ export async function listSiteInvites(event: H3Event, siteId: string): Promise<S
 
 export async function requireSiteTeamContext(
   event: H3Event,
-  body: { jwt: string, siteId: string },
+  body: { jwt: string, communityId: string },
   capability: Capability,
 ): Promise<SiteTeamContext> {
   const identity = await verifyRuntimeIdentity(event, body.jwt)
@@ -149,13 +149,13 @@ export async function requireSiteTeamContext(
 
   // GEZIELT, nicht aus der Liste: die Autorisierung darf nicht daran hängen, wie
   // viele Mitglieder eine Community hat (siehe findSiteMember).
-  const own = await findSiteMember(event, body.siteId, identity.projectId, identity.userId)
+  const own = await findSiteMember(event, body.communityId, identity.projectId, identity.userId)
   const actor = own?.status === 'active' ? own : null
   const role = actor?.role
 
   if (!actor || !role || !isTenantRole(role) || !tenantRoleHasCapability(role, capability)) {
     logEvent('warn', 'site.team_denied', {
-      siteId: body.siteId,
+      communityId: body.communityId,
       runtimeUserId: identity.userId,
       capability,
       role: role ?? '',
@@ -165,7 +165,7 @@ export async function requireSiteTeamContext(
 
   const admin = createAdminClient(event)
   const tenant = await admin.tablesDB.getRow<TenantRow>({
-    databaseId, tableId: TENANTS_TABLE, rowId: body.siteId,
+    databaseId, tableId: TENANTS_TABLE, rowId: body.communityId,
   }).catch(() => null)
   if (!tenant || tenant.projectId !== identity.projectId) {
     throw createError({ status: 404, statusText: 'Site not found' })
@@ -174,13 +174,13 @@ export async function requireSiteTeamContext(
   // ALLE Mitgliedschaften — die Regeln brauchen sie (Owner-Zählung) und die
   // Liste zeigt sie. Erst NACH der Autorisierung: wer nichts darf, soll auch
   // nichts lesen lassen.
-  const members = await listSiteMembers(event, body.siteId, identity.projectId)
+  const members = await listSiteMembers(event, body.communityId, identity.projectId)
 
   return { identity, tenant, actor, actorRole: role, members, databaseId }
 }
 
 /** Row → die Fakten, mit denen die PUREN Regeln arbeiten. */
-export function memberFacts(row: SiteMemberRow): SiteTeamMemberFacts {
+export function memberFacts(row: CommunityMemberRow): SiteTeamMemberFacts {
   return { id: row.$id, runtimeUserId: row.runtimeUserId, role: row.role, status: row.status }
 }
 

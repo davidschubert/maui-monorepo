@@ -5,7 +5,7 @@ import type { SiteJoinOutcome } from '../../../core/shared/siteJoin'
  * A5 — der core-Vertrag „diese Person macht jetzt mit" wird hier mit der
  * Service-Naht zum Control Plane verdrahtet.
  *
- * Warum in DIESEM Layer: `site_members` gehört dem Control Plane, und der
+ * Warum in DIESEM Layer: `community_members` gehört dem Control Plane, und der
  * einzige Schreibkanal dorthin ist die Naht dieses Layers (Secret + JWT,
  * utils/controlPlane.ts). Core darf sie nicht kennen (A14: ein Fundament-Layer
  * hängt nie an einem Feature), also registriert der Layer den Handler — dasselbe
@@ -26,7 +26,7 @@ export default defineNitroPlugin(() => {
     const result = await callControlPlane<{ outcome: SiteJoinOutcome, role: string | null }>(
       event,
       '/api/control/site/members/join',
-      { jwt, siteId: request.siteId, trigger: request.trigger },
+      { jwt, communityId: request.communityId, trigger: request.trigger },
     )
     return result.outcome
   })

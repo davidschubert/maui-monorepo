@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { SITE_INVITES_TABLE, type SiteInviteRow } from '../../../../../shared/types/siteInvite'
+import { COMMUNITY_INVITES_TABLE, type CommunityInviteRow } from '../../../../../shared/types/communityInvite'
 import { listSiteInvites, requireSiteTeamContext } from '../../../../utils/siteTeam'
 
 /**
@@ -15,7 +15,7 @@ import { listSiteInvites, requireSiteTeamContext } from '../../../../utils/siteT
  */
 const bodySchema = z.object({
   jwt: z.string().min(1).max(4096),
-  siteId: z.string().min(1).max(36),
+  communityId: z.string().min(1).max(36),
   inviteId: z.string().min(1).max(36),
 }).strict()
 
@@ -24,22 +24,22 @@ export default defineEventHandler(async (event) => {
   const body = await readValidatedBody(event, bodySchema.parse)
   const context = await requireSiteTeamContext(event, body, 'team.manage')
 
-  const invites = await listSiteInvites(event, body.siteId)
+  const invites = await listSiteInvites(event, body.communityId)
   const invite = invites.find(row => row.$id === body.inviteId)
   if (!invite) {
     throw createError({ status: 404, statusText: 'Invitation not found' })
   }
 
   const admin = createAdminClient(event)
-  const row = await admin.tablesDB.updateRow<SiteInviteRow>({
+  const row = await admin.tablesDB.updateRow<CommunityInviteRow>({
     databaseId: context.databaseId,
-    tableId: SITE_INVITES_TABLE,
+    tableId: COMMUNITY_INVITES_TABLE,
     rowId: invite.$id,
     data: { status: 'revoked' },
   }).catch((error) => { throw toH3Error(error, 'Could not revoke invitation') })
 
   logEvent('info', 'site.invite_revoked', {
-    siteId: body.siteId,
+    communityId: body.communityId,
     inviteId: row.$id,
     actor: context.identity.userId,
   })

@@ -32,7 +32,7 @@ function fakeEvent(ctx: { user?: unknown, tenant?: unknown }): H3Event {
 }
 
 const user = { $id: 'runtime-user-1', labels: [] }
-const tenant = { mode: 'pool' as const, projectId: 'pool-proj', tenantId: 't-1', siteId: 'site-1' }
+const tenant = { mode: 'pool' as const, projectId: 'pool-proj', tenantId: 't-1', communityId: 'site-1' }
 
 async function status(fn: () => Promise<unknown>): Promise<number> {
   try {
@@ -50,7 +50,7 @@ describe('resolveTenantRole (fail-closed)', () => {
     registerSiteRoleResolver(() => 'owner')
     expect(await resolveTenantRole(fakeEvent({ tenant }))).toBeNull()
   })
-  it('ohne Tenant/siteId → null', async () => {
+  it('ohne Tenant/communityId → null', async () => {
     registerSiteRoleResolver(() => 'owner')
     expect(await resolveTenantRole(fakeEvent({ user }))).toBeNull()
     expect(await resolveTenantRole(fakeEvent({ user, tenant: { mode: 'pool', projectId: 'p', tenantId: 't' } }))).toBeNull()
@@ -70,7 +70,7 @@ describe('resolveTenantRole (fail-closed)', () => {
     const spy = vi.fn<SiteRoleResolver>(() => 'admin')
     registerSiteRoleResolver(spy)
     await resolveTenantRole(fakeEvent({ user, tenant }))
-    expect(spy).toHaveBeenCalledWith({ siteId: 'site-1', runtimeProjectId: 'pool-proj', runtimeUserId: 'runtime-user-1' })
+    expect(spy).toHaveBeenCalledWith({ communityId: 'site-1', runtimeProjectId: 'pool-proj', runtimeUserId: 'runtime-user-1' })
   })
 })
 

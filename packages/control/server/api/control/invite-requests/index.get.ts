@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
   // Codes und Sites in EINEM Rutsch nachladen statt pro Zeile — sonst wird die
   // Liste bei 50 Anfragen zu 100 Einzelabfragen.
   const codeIds = [...new Set(rows.map(row => row.inviteCodeId).filter(Boolean))]
-  const siteIds = [...new Set(rows.map(row => row.siteId).filter(Boolean))]
+  const communityIds = [...new Set(rows.map(row => row.communityId).filter(Boolean))]
 
   const [codes, sites] = await Promise.all([
     codeIds.length
@@ -42,10 +42,10 @@ export default defineEventHandler(async (event) => {
           queries: [Query.equal('$id', codeIds), Query.limit(100)],
         }).then(res => res.rows).catch(() => [])
       : Promise.resolve([] as InviteCodeRow[]),
-    siteIds.length
+    communityIds.length
       ? admin.tablesDB.listRows<TenantRow>({
           databaseId, tableId: TENANTS_TABLE,
-          queries: [Query.equal('$id', siteIds), Query.limit(100)],
+          queries: [Query.equal('$id', communityIds), Query.limit(100)],
         }).then(res => res.rows).catch(() => [])
       : Promise.resolve([] as TenantRow[]),
   ])
@@ -67,7 +67,7 @@ export default defineEventHandler(async (event) => {
         createdAt: row.$createdAt,
         assignedAt: row.assignedAt,
         redeemedAt: row.redeemedAt,
-        host: row.siteId ? hostById.get(row.siteId) ?? '' : '',
+        host: row.communityId ? hostById.get(row.communityId) ?? '' : '',
         reminders: row.reminders ?? 0,
         lastReminderAt: row.lastReminderAt,
         codeExpiresAt: code?.expiresAt ?? null,

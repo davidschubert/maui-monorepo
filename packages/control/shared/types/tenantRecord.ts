@@ -46,7 +46,7 @@ export function normalizeTenantPlan(value: string | null | undefined): TenantPla
 /**
  * Lese-Publikum der Site (control-016). G0-Entscheidung 7 (David, 2026-07-24):
  * **privat als Default, öffentlich opt-in**. 'members' = Rows tragen
- * `read(Role.label(siteId))` (harte Appwrite-Grenze, H3-Naht 4); 'public' =
+ * `read(Role.label(communityId))` (harte Appwrite-Grenze, H3-Naht 4); 'public' =
  * `read(Role.any())` als bewusster Schalter pro Site.
  */
 export const TENANT_AUDIENCES = ['members', 'public'] as const
@@ -103,7 +103,7 @@ export interface TenantRow extends Models.Row {
   /** Quota-Plan (control-013); '' = Bestand → free. */
   plan: TenantPlan | ''
   /** G1 (control-015): Billing-/Owner-Anker. Der Tenant IST die kanonische
-   *  Kunden-Site → `$id` = siteId; hier hängt das abrechnende Workspace.
+   *  Kunden-Site → `$id` = communityId; hier hängt das abrechnende Workspace.
    *  '' = noch keinem Workspace zugeordnet (Billing-Verdrahtung folgt G2/G3). */
   workspaceId: string
   /** Onboarding (control-016): Built-in-Theme-Id des gewählten Vibes;

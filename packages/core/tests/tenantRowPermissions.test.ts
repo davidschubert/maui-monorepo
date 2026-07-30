@@ -3,13 +3,13 @@ import { Permission, Role } from 'node-appwrite'
 import { tenantReadRolesFor, tenantRowPermissionsFor } from '../server/utils/tenantRowPermissions'
 import type { TenantContext } from '../shared/types/tenant'
 
-const pool: TenantContext = { mode: 'pool', projectId: 'shared', tenantId: 't-1', siteId: 'siteAAA' }
-const poolOther: TenantContext = { mode: 'pool', projectId: 'shared', tenantId: 't-2', siteId: 'siteBBB' }
+const pool: TenantContext = { mode: 'pool', projectId: 'shared', tenantId: 't-1', communityId: 'siteAAA' }
+const poolOther: TenantContext = { mode: 'pool', projectId: 'shared', tenantId: 't-2', communityId: 'siteBBB' }
 const poolNoSite: TenantContext = { mode: 'pool', projectId: 'shared', tenantId: 't-x' }
-const silo: TenantContext = { mode: 'silo', projectId: 'p-silo', siteId: 'siteCCC' }
+const silo: TenantContext = { mode: 'silo', projectId: 'p-silo', communityId: 'siteCCC' }
 
 describe('tenantReadRolesFor', () => {
-  it('pool + members → read(label(siteId)) — die harte Grenze', () => {
+  it('pool + members → read(label(communityId)) — die harte Grenze', () => {
     expect(tenantReadRolesFor(pool, 'members')).toEqual([Permission.read(Role.label('siteAAA'))])
   })
   it('zwei Pool-Sites bekommen VERSCHIEDENE Read-Labels (Isolation)', () => {
@@ -17,7 +17,7 @@ describe('tenantReadRolesFor', () => {
     const b = tenantReadRolesFor(poolOther, 'members')
     expect(a).not.toEqual(b)
   })
-  it('pool ohne siteId → fail-closed: KEIN Read (nie versehentlich öffentlich)', () => {
+  it('pool ohne communityId → fail-closed: KEIN Read (nie versehentlich öffentlich)', () => {
     expect(tenantReadRolesFor(poolNoSite, 'members')).toEqual([])
   })
   it('public → read(any), egal welcher Modus', () => {

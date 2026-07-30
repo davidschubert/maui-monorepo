@@ -15,14 +15,14 @@ import { sessionCookieName } from '../../../../core/server/lib/appwrite'
  */
 const bodySchema = z.object({
   /** Nur zur Protokollierung: welche Community geöffnet wird. */
-  siteId: z.string().trim().max(36).optional(),
+  communityId: z.string().trim().max(36).optional(),
 }).strict()
 
 export default defineEventHandler(async (event) => {
   if (!event.context.user) {
     throw createError({ status: 401, statusText: 'Unauthorized' })
   }
-  const body = await readValidatedBody(event, bodySchema.parse).catch(() => ({ siteId: undefined }))
+  const body = await readValidatedBody(event, bodySchema.parse).catch(() => ({ communityId: undefined }))
 
   const secret = getCookie(event, sessionCookieName(event))
   if (!secret) {
@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
 
   const config = useRuntimeConfig(event)
   logEvent('info', 'onboarding.handoff_issued', {
-    siteId: body.siteId ?? '',
+    communityId: body.communityId ?? '',
     userId: event.context.user.$id,
   })
   return { token: sealHandoffToken(secret, deriveHandoffKey(config.appwriteKey)) }

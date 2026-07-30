@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { decideTransfer } from '../../../../../shared/siteTeam'
-import { SITE_MEMBERS_TABLE, type SiteMemberRow } from '../../../../../shared/types/siteMember'
+import { COMMUNITY_MEMBERS_TABLE, type CommunityMemberRow } from '../../../../../shared/types/communityMember'
 import { memberFacts, requireSiteTeamContext, throwOnDenied } from '../../../../utils/siteTeam'
 
 /**
@@ -21,7 +21,7 @@ import { memberFacts, requireSiteTeamContext, throwOnDenied } from '../../../../
  */
 const bodySchema = z.object({
   jwt: z.string().min(1).max(4096),
-  siteId: z.string().min(1).max(36),
+  communityId: z.string().min(1).max(36),
   memberId: z.string().min(1).max(36),
 }).strict()
 
@@ -41,26 +41,26 @@ export default defineEventHandler(async (event) => {
       actorRole: context.actorRole,
       target: memberFacts(target),
     }),
-    { siteId: body.siteId, actor: context.identity.userId, target: target.$id },
+    { communityId: body.communityId, actor: context.identity.userId, target: target.$id },
   )
 
   const admin = createAdminClient(event)
-  await admin.tablesDB.updateRow<SiteMemberRow>({
+  await admin.tablesDB.updateRow<CommunityMemberRow>({
     databaseId: context.databaseId,
-    tableId: SITE_MEMBERS_TABLE,
+    tableId: COMMUNITY_MEMBERS_TABLE,
     rowId: target.$id,
     data: { role: 'owner' },
   }).catch((error) => { throw toH3Error(error, 'Could not transfer ownership') })
 
-  await admin.tablesDB.updateRow<SiteMemberRow>({
+  await admin.tablesDB.updateRow<CommunityMemberRow>({
     databaseId: context.databaseId,
-    tableId: SITE_MEMBERS_TABLE,
+    tableId: COMMUNITY_MEMBERS_TABLE,
     rowId: context.actor.$id,
     data: { role: 'admin' },
   }).catch((error) => { throw toH3Error(error, 'Ownership transferred, but demotion failed') })
 
   logEvent('warn', 'site.ownership_transferred', {
-    siteId: body.siteId,
+    communityId: body.communityId,
     from: context.identity.userId,
     to: target.runtimeUserId,
     memberId: target.$id,

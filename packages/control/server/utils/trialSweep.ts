@@ -80,10 +80,10 @@ export async function runTrialSweep(now: number = Date.now()): Promise<TrialSwee
       data: { plan: TRIAL_FALLBACK_PLAN },
     }).then(() => {
       downgraded.push(tenant.host)
-      logEvent('info', 'trial.ended', { siteId: tenant.$id, host: tenant.host })
+      logEvent('info', 'trial.ended', { communityId: tenant.$id, host: tenant.host })
     }).catch((error) => {
       logEvent('error', 'trial.end_failed', {
-        siteId: tenant.$id,
+        communityId: tenant.$id,
         message: error instanceof Error ? error.message : String(error),
       })
     })

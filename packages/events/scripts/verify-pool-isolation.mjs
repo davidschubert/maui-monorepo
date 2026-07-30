@@ -164,7 +164,7 @@ try {
   if (eventId) cleanup.events.push(eventId)
 
   // TenantContext.tenantId = tenants.tenantId (Scope-Wert der Datenzeilen);
-  // tenants.$id ist die siteId (Label-Schlüssel) — zwei Schlüssel, ein Tenant.
+  // tenants.$id ist die communityId (Label-Schlüssel) — zwei Schlüssel, ein Tenant.
   const rawRow = eventId ? await pool.getRow({ databaseId, tableId: 'events', rowId: eventId }).catch(() => null) : null
   check('Tür hat tenantId von A gestempelt (nie vom Aufrufer)', rawRow?.tenantId === tenantA.tenantId, `tenantId=${rawRow?.tenantId}, erwartet ${tenantA.tenantId}`)
 

@@ -29,18 +29,18 @@ export default defineEventHandler(async (event) => {
   // (Silo-App, Kontroll-Host, Single-Tenant). 404 wie eine fehlende Route —
   // dort ist der Schalter kein Feature, das „gerade nicht geht".
   const tenant = useTenant(event)
-  if (!tenant?.siteId) {
+  if (!tenant?.communityId) {
     throw createError({ status: 404, statusText: 'Not found' })
   }
 
   const body = await readValidatedBody(event, bodySchema.parse)
   const jwt = await mintRuntimeJwt(event)
 
-  // siteId kommt aus dem SERVER-Kontext (Host-Auflösung), nie aus dem Body —
+  // communityId kommt aus dem SERVER-Kontext (Host-Auflösung), nie aus dem Body —
   // sonst könnte ein durchgereichter Wert eine fremde Community schalten.
-  return await callControlPlane<{ siteId: string, openRegistration: boolean }>(
+  return await callControlPlane<{ communityId: string, openRegistration: boolean }>(
     event,
     '/api/control/site/registration',
-    { jwt, siteId: tenant.siteId, openRegistration: body.openRegistration },
+    { jwt, communityId: tenant.communityId, openRegistration: body.openRegistration },
   )
 })

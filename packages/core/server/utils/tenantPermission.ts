@@ -10,8 +10,8 @@ import { isTenantRole, tenantRoleHasCapability, type TenantRole } from '../../sh
  *
  * Zwei bewusst getrennte Identitätswelten (docs/referenz/G0-PRODUKTVERTRAG.md §2):
  *  - Operator: globale Appwrite-Labels auf DEINER Instanz → requirePermission.
- *  - Site-Mitglied: eine Rolle in site_members, verankert an der Runtime-
- *    Identität {siteId = tenants.$id, runtimeProjectId, runtimeUserId}.
+ *  - Site-Mitglied: eine Rolle in community_members, verankert an der Runtime-
+ *    Identität {communityId = tenants.$id, runtimeProjectId, runtimeUserId}.
  *
  * Die Site-Rollen-Mitgliedschaft lebt im Control Plane (studio), der prüfende
  * Request aber in einem ANDEREN Projekt (Pool/Silo). Deshalb liest ein von der
@@ -22,7 +22,7 @@ import { isTenantRole, tenantRoleHasCapability, type TenantRole } from '../../sh
 
 export interface SiteMemberLookup {
   /** = tenants.$id (die kanonische Kunden-Site). */
-  siteId: string
+  communityId: string
   /** Appwrite-Projekt, in dem der Runtime-User existiert (Pool: geteilt). */
   runtimeProjectId: string
   /** Der Appwrite-User IM Runtime-Projekt (event.context.user.$id). */
@@ -59,20 +59,20 @@ export function __resetSiteRoleResolver(): void {
 
 /**
  * Die Site-Rolle des aktuellen Requests (oder null). Fail-closed: ohne
- * eingeloggten Runtime-User, ohne Tenant-Kontext, ohne siteId oder ohne
+ * eingeloggten Runtime-User, ohne Tenant-Kontext, ohne communityId oder ohne
  * registrierten Resolver gibt es KEINE Rolle. Eine unbekannte gespeicherte
  * Rolle wird verworfen (Cross-Check gegen den core-Rollenkatalog).
  */
 export async function resolveTenantRole(event: H3Event): Promise<TenantRole | null> {
   const user = event.context.user
   const tenant = event.context.tenant
-  if (!user?.$id || !tenant?.siteId) return null
+  if (!user?.$id || !tenant?.communityId) return null
 
   const resolver = getSiteRoleResolver()
   if (!resolver) return null
 
   const role = await resolver({
-    siteId: tenant.siteId,
+    communityId: tenant.communityId,
     runtimeProjectId: tenant.projectId,
     runtimeUserId: user.$id,
   })

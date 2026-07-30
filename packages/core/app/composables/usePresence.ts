@@ -101,7 +101,7 @@ export function usePresenceState() {
   // Label-Schlüssel der Community (A4): der WS-Upsert ERSETZT die Permissions
   // der server geschriebenen Presence — ohne ihn wäre sie bis zum nächsten
   // HTTP-Heartbeat wieder pool-weit lesbar.
-  const siteId = useSiteId()
+  const communityId = useSiteId()
 
   // Zwei Schreibwege — bewusst kombiniert:
   // 1) HTTP-Heartbeat (Admin-Client, server-seitig): ZUVERLÄSSIG (Cookie-Auth,
@@ -136,10 +136,10 @@ export function usePresenceState() {
         return realtime.upsertPresence({
           presenceId: user.$id,
           status: 'online',
-          // DIESELBE Grenze wie der Server (A4) — Pool: read("label:<siteId>"),
+          // DIESELBE Grenze wie der Server (A4) — Pool: read("label:<communityId>"),
           // Silo/Single-Tenant: read("users"). Der Bauer ist geteilt und per
           // Test an tenantRowPermissionsFor genagelt (tests/presencePermissions).
-          permissions: presencePermissions(!!tenantId.value, siteId.value, user.$id),
+          permissions: presencePermissions(!!tenantId.value, communityId.value, user.$id),
           metadata,
         })
       })

@@ -209,16 +209,16 @@ try {
       goal: 'relationships', vibe: 'warm', inviteCode: code, locale: 'de',
     },
   })
-  check('Community angelegt', created.status === 200 && !!created.json?.siteId, `${created.status} ${created.text.slice(0, 160)}`)
-  if (created.json?.siteId) cleanup.tenants.push(created.json.siteId)
+  check('Community angelegt', created.status === 200 && !!created.json?.communityId, `${created.status} ${created.text.slice(0, 160)}`)
+  if (created.json?.communityId) cleanup.tenants.push(created.json.communityId)
 
   const afterRequest = await control.getRow({ databaseId, tableId: 'invite_requests', rowId: requestId })
   check('Anfrage steht auf „eingelöst"', afterRequest.status === 'redeemed', afterRequest.status)
   check('Einlöse-Zeitpunkt vermerkt', !!afterRequest.redeemedAt)
-  check('Community verknüpft', afterRequest.siteId === created.json?.siteId, afterRequest.siteId)
+  check('Community verknüpft', afterRequest.communityId === created.json?.communityId, afterRequest.communityId)
 
   const afterCode = await control.getRow({ databaseId, tableId: 'invite_codes', rowId: codeRow.$id })
-  check('Code als eingelöst markiert', !!afterCode.redeemedAt && afterCode.redeemedSiteId === created.json?.siteId)
+  check('Code als eingelöst markiert', !!afterCode.redeemedAt && afterCode.redeemedSiteId === created.json?.communityId)
   check('Code verbraucht (uses 1)', afterCode.uses === 1, `uses=${afterCode.uses}`)
 
   const reuse = await callPlatform(CONTROL_HOST, '/api/onboarding/precheck', {
@@ -227,10 +227,10 @@ try {
   check('derselbe Code ein zweites Mal: ungültig', reuse.json?.codeValid === false)
 
   const members = await control.listRows({
-    databaseId, tableId: 'site_members', queries: [Query.equal('siteId', created.json?.siteId ?? 'x'), Query.limit(5)],
+    databaseId, tableId: 'community_members', queries: [Query.equal('communityId', created.json?.communityId ?? 'x'), Query.limit(5)],
   })
   cleanup.members.push(...members.rows.map(row => row.$id))
-  const tenantRow = created.json?.siteId ? await control.getRow({ databaseId, tableId: 'tenants', rowId: created.json.siteId }) : null
+  const tenantRow = created.json?.communityId ? await control.getRow({ databaseId, tableId: 'tenants', rowId: created.json.communityId }) : null
   if (tenantRow?.workspaceId) cleanup.workspaces.push(tenantRow.workspaceId)
 }
 catch (error) {
@@ -239,7 +239,7 @@ catch (error) {
 }
 finally {
   console.log('\n5. Aufräumen')
-  for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'site_members', rowId: id }).catch(() => {})
+  for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'community_members', rowId: id }).catch(() => {})
   for (const id of cleanup.tenants) await control.deleteRow({ databaseId, tableId: 'tenants', rowId: id }).catch(() => {})
   for (const id of cleanup.workspaces) await control.deleteRow({ databaseId, tableId: 'workspaces', rowId: id }).catch(() => {})
   for (const id of cleanup.codes) await control.deleteRow({ databaseId, tableId: 'invite_codes', rowId: id }).catch(() => {})

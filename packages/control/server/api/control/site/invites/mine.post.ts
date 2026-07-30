@@ -1,6 +1,6 @@
 import { Query } from 'node-appwrite'
 import { z } from 'zod'
-import { SITE_INVITES_TABLE, type SiteInviteRow } from '../../../../../shared/types/siteInvite'
+import { COMMUNITY_INVITES_TABLE, type CommunityInviteRow } from '../../../../../shared/types/communityInvite'
 import { TENANTS_TABLE, type TenantRow } from '../../../../../shared/types/tenantRecord'
 import { verifyRuntimeIdentity } from '../../../../utils/onboardingService'
 
@@ -21,7 +21,7 @@ import { verifyRuntimeIdentity } from '../../../../utils/onboardingService'
  */
 const bodySchema = z.object({
   jwt: z.string().min(1).max(4096),
-  siteId: z.string().min(1).max(36),
+  communityId: z.string().min(1).max(36),
 }).strict()
 
 export default defineEventHandler(async (event) => {
@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
   const admin = createAdminClient(event)
 
   const tenant = await admin.tablesDB.getRow<TenantRow>({
-    databaseId, tableId: TENANTS_TABLE, rowId: body.siteId,
+    databaseId, tableId: TENANTS_TABLE, rowId: body.communityId,
   }).catch(() => null)
   if (!tenant || tenant.projectId !== identity.projectId) {
     throw createError({ status: 404, statusText: 'Site not found' })
@@ -43,11 +43,11 @@ export default defineEventHandler(async (event) => {
   const email = (identity.email ?? '').trim().toLowerCase()
   if (!email) return { invites: [], siteName: tenant.name }
 
-  const { rows } = await admin.tablesDB.listRows<SiteInviteRow>({
+  const { rows } = await admin.tablesDB.listRows<CommunityInviteRow>({
     databaseId,
-    tableId: SITE_INVITES_TABLE,
+    tableId: COMMUNITY_INVITES_TABLE,
     queries: [
-      Query.equal('siteId', body.siteId),
+      Query.equal('communityId', body.communityId),
       Query.equal('email', email),
       Query.equal('status', 'pending'),
       Query.orderDesc('$createdAt'),

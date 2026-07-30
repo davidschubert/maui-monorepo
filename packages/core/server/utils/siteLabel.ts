@@ -6,7 +6,7 @@ import { isRole } from '../../shared/authz'
  * die Mandanten-Grenze SELBST zieht.
  *
  * Warum es das braucht: eine Community trägt ihre Zeilen mit
- * `read(Role.label(siteId))` (tenantRowPermissionsFor) — seit A4 auch die
+ * `read(Role.label(communityId))` (tenantRowPermissionsFor) — seit A4 auch die
  * Presence jedes Anwesenden. Appwrite gewährt diesen Lesezugriff nur, wer das
  * Label AUCH HAT; ohne Label wäre ein Mitglied in seiner eigenen Community
  * blind.
@@ -24,7 +24,7 @@ import { isRole } from '../../shared/authz'
  * anfassen, es hat keinen Pool-Schlüssel.
  *
  * WAS DAS LABEL SEIT A5 BEDEUTET (2026-07-29): „ist Mitglied dieser Community",
- * abgeleitet aus einer `site_members`-Zeile mit Zugang — NICHT mehr „hat den
+ * abgeleitet aus einer `community_members`-Zeile mit Zugang — NICHT mehr „hat den
  * Host benutzt" (A4). Vergeben wird es deshalb nur noch dort, wo Mitgliedschaft
  * feststeht: joinSite() (Beitritt/Bestand), die Label-Middleware (bestehende
  * Mitgliedschaft) und der Wizard (Gründung). Der Unterschied ist nicht
@@ -50,13 +50,13 @@ const SAFE_LABEL = /^[a-zA-Z0-9]{1,36}$/
  * Fail-loud im Log statt Appwrite-400 im Gesicht des Kunden: die Community
  * existiert schon, nur das Lesen wäre kaputt — das muss sichtbar sein.
  */
-function labelUsable(siteId: string): boolean {
-  if (isRole(siteId)) {
-    logEvent('error', 'site_label.reserved', { siteId })
+function labelUsable(communityId: string): boolean {
+  if (isRole(communityId)) {
+    logEvent('error', 'site_label.reserved', { communityId })
     return false
   }
-  if (!SAFE_LABEL.test(siteId)) {
-    logEvent('error', 'site_label.invalid', { siteId })
+  if (!SAFE_LABEL.test(communityId)) {
+    logEvent('error', 'site_label.invalid', { communityId })
     return false
   }
   return true
@@ -66,17 +66,17 @@ function labelUsable(siteId: string): boolean {
  * Site-Label vergeben. `userId` nur angeben, wenn es NICHT der Nutzer des
  * Requests ist (Anmeldung: der Kontext-User existiert noch nicht).
  */
-export async function grantSiteLabel(event: H3Event, siteId: string, userId?: string): Promise<void> {
+export async function grantSiteLabel(event: H3Event, communityId: string, userId?: string): Promise<void> {
   const user = event.context.user
   const targetId = userId ?? user?.$id
   const isRequestUser = !!targetId && targetId === user?.$id
-  if (!targetId || !siteId) return
+  if (!targetId || !communityId) return
 
   // Billiger Vorab-Ausschluss aus dem Request-Kontext: nach dem ersten Kontakt
   // ist das der Normalfall und kostet KEINEN Appwrite-Roundtrip.
-  if (isRequestUser && (user?.labels ?? []).includes(siteId)) return
+  if (isRequestUser && (user?.labels ?? []).includes(communityId)) return
 
-  if (!labelUsable(siteId)) return
+  if (!labelUsable(communityId)) return
 
   try {
     const { users } = createAdminClient(event)
@@ -88,17 +88,17 @@ export async function grantSiteLabel(event: H3Event, siteId: string, userId?: st
     // nächste Request auf jenem Host es wieder (die Vergabe ist idempotent).
     const fresh = await users.get({ userId: targetId })
     const labels = fresh.labels ?? []
-    if (labels.includes(siteId)) return
-    const next = [...labels, siteId]
+    if (labels.includes(communityId)) return
+    const next = [...labels, communityId]
     await users.updateLabels({ userId: targetId, labels: next })
     // Der laufende Request sieht sein neues Label sofort (nachgelagerte
     // Autorisierung/Permission-Bauer lesen aus dem Kontext, nicht aus Appwrite).
     if (isRequestUser && user) user.labels = next
-    logEvent('info', 'site_label.granted', { siteId, userId: targetId })
+    logEvent('info', 'site_label.granted', { communityId, userId: targetId })
   }
   catch (error) {
     logEvent('error', 'site_label.failed', {
-      siteId,
+      communityId,
       userId: targetId,
       message: error instanceof Error ? error.message : String(error),
     })
@@ -110,7 +110,7 @@ export async function grantSiteLabel(event: H3Event, siteId: string, userId?: st
  *
  * Der Gegenzug zu grantSiteLabel und der Grund, warum „Zugang entziehen" jetzt
  * hält, was die Seite verspricht: ohne diesen Schritt bliebe der Lesezugriff auf
- * alle `read(label:<siteId>)`-Zeilen bestehen (Presence, Activity-Feed,
+ * alle `read(label:<communityId>)`-Zeilen bestehen (Presence, Activity-Feed,
  * mitglieder-sichtbare Inhalte) — die Rolle war weg, das Publikum nicht.
  *
  * CHIRURGISCH: nur dieses eine Label fällt weg. Andere Communities und die
@@ -122,25 +122,25 @@ export async function grantSiteLabel(event: H3Event, siteId: string, userId?: st
  * zwei Stellen — sofort in der Entfernen-Route und als Selbstheilung in der
  * Label-Middleware, falls der erste Versuch danebenging.
  */
-export async function revokeSiteLabel(event: H3Event, siteId: string, userId?: string): Promise<void> {
+export async function revokeSiteLabel(event: H3Event, communityId: string, userId?: string): Promise<void> {
   const user = event.context.user
   const targetId = userId ?? user?.$id
-  if (!targetId || !siteId) return
-  if (!labelUsable(siteId)) return
+  if (!targetId || !communityId) return
+  if (!labelUsable(communityId)) return
 
   try {
     const { users } = createAdminClient(event)
     const fresh = await users.get({ userId: targetId })
     const labels = fresh.labels ?? []
-    if (!labels.includes(siteId)) return
-    const next = labels.filter(label => label !== siteId)
+    if (!labels.includes(communityId)) return
+    const next = labels.filter(label => label !== communityId)
     await users.updateLabels({ userId: targetId, labels: next })
     if (targetId === user?.$id && user) user.labels = next
-    logEvent('info', 'site_label.revoked', { siteId, userId: targetId })
+    logEvent('info', 'site_label.revoked', { communityId, userId: targetId })
   }
   catch (error) {
     logEvent('error', 'site_label.revoke_failed', {
-      siteId,
+      communityId,
       userId: targetId,
       message: error instanceof Error ? error.message : String(error),
     })

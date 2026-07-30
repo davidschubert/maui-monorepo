@@ -50,13 +50,13 @@ if (clean) {
   if (user) {
     // Communities dieses Testers mitnehmen, sonst bleiben Rows liegen.
     const { rows: members } = await control.listRows({
-      databaseId, tableId: 'site_members',
+      databaseId, tableId: 'community_members',
       queries: [Query.equal('runtimeUserId', user.$id), Query.limit(25)],
     })
     for (const member of members) {
-      await control.deleteRow({ databaseId, tableId: 'tenants', rowId: member.siteId }).catch(() => {})
-      await control.deleteRow({ databaseId, tableId: 'site_members', rowId: member.$id }).catch(() => {})
-      console.log(`✔ Community ${member.siteId} entfernt`)
+      await control.deleteRow({ databaseId, tableId: 'tenants', rowId: member.communityId }).catch(() => {})
+      await control.deleteRow({ databaseId, tableId: 'community_members', rowId: member.$id }).catch(() => {})
+      console.log(`✔ Community ${member.communityId} entfernt`)
     }
     const { rows: workspaces } = await control.listRows({
       databaseId, tableId: 'workspaces',

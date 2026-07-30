@@ -1,5 +1,5 @@
 // Cross-Layer als EXPLIZITER Vertrag (A14): der Onboarding-Vertrag gehört dem
-// Control Plane (es besitzt tenants/site_members) — dieser Layer konsumiert ihn,
+// Control Plane (es besitzt tenants/community_members) — dieser Layer konsumiert ihn,
 // definiert ihn aber nicht. Reine Zod-/Daten-Module, kein Laufzeit-Coupling.
 import { onboardingSiteSchema } from '../../../../control/schemas/onboarding'
 import { callControlPlane, mintRuntimeJwt } from '../../utils/controlPlane'
@@ -15,7 +15,7 @@ import { seedLegalPages } from '../../../../pages/server/utils/seedLegalPages'
  * Stelle im System schreibberechtigt auf das Mandanten-Register.
  */
 export interface CreatedSite {
-  siteId: string
+  communityId: string
   host: string
   url: string
   plan: string
@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
   // wird ab jetzt zusätzlich von server/middleware/site-label.ts an JEDES
   // Mitglied vergeben — hier bleibt er, weil dieser Request auf dem
   // KONTROLL-Host läuft, wo es noch keinen Mandanten-Kontext gibt.
-  await grantSiteLabel(event, result.siteId)
+  await grantSiteLabel(event, result.communityId)
 
   // Erste Startseite (Schritt 8). BEST EFFORT und bewusst nach der Anlage: die
   // Community existiert schon: an einer fehlgeschlagenen Seite darf sie nicht
@@ -57,7 +57,7 @@ export default defineEventHandler(async (event) => {
         : `Willkommen bei ${site.name}. Diese Seite gehört dir — du kannst sie im Dashboard jederzeit ändern.`,
     }).catch((error) => {
       logEvent('error', 'onboarding.home_page_failed', {
-        siteId: result.siteId,
+        communityId: result.communityId,
         message: error instanceof Error ? error.message : String(error),
       })
       return null
@@ -73,7 +73,7 @@ export default defineEventHandler(async (event) => {
       locale: site.locale ?? 'de',
     }).catch((error) => {
       logEvent('error', 'onboarding.legal_pages_failed', {
-        siteId: result.siteId,
+        communityId: result.communityId,
         message: error instanceof Error ? error.message : String(error),
       })
       return null
@@ -81,7 +81,7 @@ export default defineEventHandler(async (event) => {
   }
 
   logEvent('info', 'onboarding.site_requested', {
-    siteId: result.siteId,
+    communityId: result.communityId,
     host: result.host,
     reused: result.reused,
   })

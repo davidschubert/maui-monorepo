@@ -21,7 +21,7 @@ import { isSafeThemeToken } from '../../shared/onboarding'
  */
 
 /** Pure (unit-getestet): tenants-Row (+ optionaler Plan-Katalog) → TenantContext.
- *  siteId = row.$id (G1: der Tenant IST die kanonische Kunden-Site) — additiv
+ *  communityId = row.$id (G1: der Tenant IST die kanonische Kunden-Site) — additiv
  *  gesetzt, wenn die Row eine $id trägt (der reale Read immer; Test-Fixtures
  *  optional). Trägt die Site-Rollen-Auflösung (requireTenantPermission). */
 export function mapTenantRowToContext(
@@ -29,7 +29,7 @@ export function mapTenantRowToContext(
   planCatalog?: Record<string, Record<string, TenantPlanLimits>>,
 ): TenantContext | null {
   if (!row || row.status !== 'active') return null
-  const siteId = row.$id ? { siteId: row.$id } : {}
+  const communityId = row.$id ? { communityId: row.$id } : {}
   // Zugangsregel des Mandanten (S1, control-018). IMMER explizit gesetzt —
   // der Resolver ist die einzige Stelle, an der die fail-OPEN-Auflösung von
   // `null` (Bestand vor der Migration) stattfindet.
@@ -48,7 +48,7 @@ export function mapTenantRowToContext(
     ...(row.neutral && isSafeThemeToken(row.neutral) ? { neutral: row.neutral } : {}),
     ...(row.name ? { name: row.name } : {}),
   }
-  if (row.mode === 'silo') return { mode: 'silo', projectId: row.projectId, ...siteId, ...branding, ...policy }
+  if (row.mode === 'silo') return { mode: 'silo', projectId: row.projectId, ...communityId, ...branding, ...policy }
   // Pool ohne tenantId wäre ein Datenfehler — NIE ungescoped durchlassen
   if (row.mode === 'pool' && row.tenantId) {
     // normalizeTenantPlan: ''/'free'-Bestand → basic, 'business' → pro
@@ -57,7 +57,7 @@ export function mapTenantRowToContext(
     // (Vorrang vor app.config).
     const plan = normalizeTenantPlan(row.plan)
     const limits = planCatalog?.[plan] ?? planCatalog?.[DEFAULT_TENANT_PLAN]
-    return { mode: 'pool', projectId: row.projectId, tenantId: row.tenantId, plan, ...(limits ? { limits } : {}), ...siteId, ...branding, ...policy }
+    return { mode: 'pool', projectId: row.projectId, tenantId: row.tenantId, plan, ...(limits ? { limits } : {}), ...communityId, ...branding, ...policy }
   }
   return null
 }

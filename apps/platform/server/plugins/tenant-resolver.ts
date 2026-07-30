@@ -7,8 +7,8 @@ import { createFormerSiteMembersResolver, createSiteMembersResolver } from '../.
  * Reads mit demselben read-only-Key (Scope rows.read auf das Control-Plane-
  * Projekt) — bewusst getrennt vom Pool-Runtime-Key der App.
  *
- *  - tenants-Resolver: Host → TenantContext (inkl. siteId = tenants.$id).
- *  - site_members-Resolver: {siteId, runtimeProjectId, runtimeUserId} → Rolle
+ *  - tenants-Resolver: Host → TenantContext (inkl. communityId = tenants.$id).
+ *  - community_members-Resolver: {communityId, runtimeProjectId, runtimeUserId} → Rolle
  *    (G1, requireTenantPermission). Dieselbe Verbindung, eigener Cache.
  *  - GEBÜNDELTER Ehemaligen-Resolver (N9): viele runtimeUserIds → wer von ihnen
  *    aus DIESER Community entfernt wurde. Eigener Vertrag, weil eine

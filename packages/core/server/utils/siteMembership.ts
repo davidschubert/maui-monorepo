@@ -13,9 +13,9 @@ import type { H3Event } from 'h3'
  * Die Frage ist mit Absicht negativ formuliert („welche dieser Nutzer sind
  * EHEMALIG?") und nicht positiv („wer ist Mitglied?"). Der Grund ist Produkt, kein
  * Geschmack: eine fehlende Row heißt nicht „ehemalig". Seit A5 (2026-07-29) trägt
- * `site_members` zwar jedes beigetretene Mitglied und nicht mehr nur das Team —
+ * `community_members` zwar jedes beigetretene Mitglied und nicht mehr nur das Team —
  * aber Gast-Kommentare, Autoren von vor A5 und Konten, die hier nie beigetreten
- * sind, haben trotzdem keine Zeile. Wer „nicht in site_members" als „ehemalig"
+ * sind, haben trotzdem keine Zeile. Wer „nicht in community_members" als „ehemalig"
  * läse, würde sie alle falsch kennzeichnen. Ehemalig ist deshalb eine POSITIVE
  * Tatsache: es gibt eine Mitgliedschafts-Row, und ihr Zugang wurde entzogen
  * (status 'removed').
@@ -27,7 +27,7 @@ import type { H3Event } from 'h3'
 
 export interface FormerSiteMembersLookup {
   /** = tenants.$id (die kanonische Kunden-Site). */
-  siteId: string
+  communityId: string
   /** Appwrite-Projekt, in dem die Runtime-User existieren. */
   runtimeProjectId: string
   /** Die zu prüfenden Runtime-User (dedupliziert, ohne Leerwerte). */
@@ -65,12 +65,12 @@ export function __resetFormerSiteMembersResolver(): void {
  * Welche dieser Autoren sind ehemalige Mitglieder dieser Community?
  *
  * Leeres Set, wenn es nichts zu entscheiden gibt: kein Mandanten-Kontext (Silo,
- * Kontroll-Host, Einzelbetrieb), keine siteId, kein registrierter Resolver, keine
+ * Kontroll-Host, Einzelbetrieb), keine communityId, kein registrierter Resolver, keine
  * IDs — oder ein Fehler beim Lesen. Die Antwort ist ein Hinweis, keine Grenze.
  */
 export async function resolveFormerMembers(event: H3Event, userIds: string[]): Promise<Set<string>> {
   const tenant = event.context.tenant
-  if (!tenant?.siteId) return new Set()
+  if (!tenant?.communityId) return new Set()
 
   const resolver = getFormerSiteMembersResolver()
   if (!resolver) return new Set()
@@ -80,7 +80,7 @@ export async function resolveFormerMembers(event: H3Event, userIds: string[]): P
 
   try {
     const former = await resolver({
-      siteId: tenant.siteId,
+      communityId: tenant.communityId,
       runtimeProjectId: tenant.projectId,
       runtimeUserIds: ids,
     })

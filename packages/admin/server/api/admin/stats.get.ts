@@ -23,7 +23,7 @@ import { decideSiteAccess } from '../../../../core/shared/siteAccess'
  * NUTZERZAHL IM POOL (Audit-Befund B2, 2026-07-27): `users.list()` zählt alle
  * Konten des geteilten Appwrite-PROJEKTS — im Pool ist das die Summe aller
  * Communities, nicht „Nutzer dieser Site". Mandantengenau wäre nur ein Count
- * über `site_members` im Control Plane; das ist ein neuer Cross-Projekt-Vertrag
+ * über `community_members` im Control Plane; das ist ein neuer Cross-Projekt-Vertrag
  * (heute gibt es dort nur den Einzel-Lookup des SiteRoleResolvers) und für eine
  * Übersichtszahl nicht angemessen. Deshalb: im Pool KEINE Zahl (`null`) statt
  * einer fremden — die Karte entfällt im Dashboard. Silo/Einzelbetrieb bleibt

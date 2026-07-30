@@ -5,7 +5,7 @@
  * WAS SIE ENTSCHEIDET: wer das Lese-Publikum einer Community trägt. Seit A5
  * (2026-07-29) ist das keine eigene Regel mehr, sondern eine ABLEITUNG:
  *
- *   **Label = es gibt eine `site_members`-Zeile mit Zugang.**
+ *   **Label = es gibt eine `community_members`-Zeile mit Zugang.**
  *
  * VORHER (A4) stand hier „wer eingeloggt einen Mandanten-Host benutzt, ist
  * Mitglied". Das war ehrlich, solange es keinen Beitritt gab — mit
@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
   if (!user?.$id) return
 
   const tenant = event.context.tenant
-  if (tenant?.mode !== 'pool' || !tenant.siteId) return
+  if (tenant?.mode !== 'pool' || !tenant.communityId) return
 
   // Interne Nuxt-Pfade (/_nuxt, /_i18n, …) tragen zwar das Cookie, sind aber
   // kein „Benutzen der Community" — und der erste echte Request (Seite oder
@@ -49,15 +49,15 @@ export default defineEventHandler(async (event) => {
   // Gerade selbst entzogen? Dann NICHT der Rolle glauben. Der Rollen-Resolver
   // cacht 30 s — ohne diese Frage hätte „Zugang entziehen" ein halbminütiges
   // Loch, in dem dieselbe Middleware das Publikum wieder vergibt.
-  if (siteAccessRecentlyDenied(tenant.siteId, user.$id)) {
-    await revokeSiteLabel(event, tenant.siteId)
+  if (siteAccessRecentlyDenied(tenant.communityId, user.$id)) {
+    await revokeSiteLabel(event, tenant.communityId)
     return
   }
 
   if (role) {
     // Mitglied. Wirft NIE: grantSiteLabel protokolliert und schluckt. Ein
     // Fehlschlag heißt „noch nicht sichtbar", nie „Seite kaputt".
-    await grantSiteLabel(event, tenant.siteId)
+    await grantSiteLabel(event, tenant.communityId)
     return
   }
 
@@ -86,7 +86,7 @@ export default defineEventHandler(async (event) => {
    * also auf null. `unavailable` (Naht gestört) lässt das Label bewusst stehen —
    * lieber eine Minute alter Zustand als ein echtes Mitglied ausgesperrt.
    */
-  if ((user.labels ?? []).includes(tenant.siteId)) {
+  if ((user.labels ?? []).includes(tenant.communityId)) {
     await joinSite(event, 'legacy')
   }
 })

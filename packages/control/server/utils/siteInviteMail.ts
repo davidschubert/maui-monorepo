@@ -1,5 +1,5 @@
 import type { H3Event } from 'h3'
-import type { SiteRole } from '../../shared/types/siteMember'
+import type { SiteRole } from '../../shared/types/communityMember'
 
 /**
  * Die Einladungs-Mail in EINE Kunden-Community (control-019).

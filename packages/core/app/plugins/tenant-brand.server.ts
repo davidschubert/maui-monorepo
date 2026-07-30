@@ -44,10 +44,10 @@
  *     Leseroute filtert serverseitig). Die Regel bleibt eng: NUR Leser, die
  *     ohne Server-Route direkt gegen Appwrite lesen, dürfen dazukommen — kein
  *     allgemeiner „aktueller Mandant"-Getter für UI-Logik.
- *   - `siteId` → useSiteId(), gelesen AUSSCHLIESSLICH vom WS-Presence-Upsert
+ *   - `communityId` → useSiteId(), gelesen AUSSCHLIESSLICH vom WS-Presence-Upsert
  *     in usePresenceState() (A4, Presence-Grenze): der Browser schreibt seine
  *     eigene Presence per WebSocket und ERSETZT dabei deren Permissions — er
- *     muss also dieselbe Grenze setzen wie der Server (`read("label:<siteId>")`
+ *     muss also dieselbe Grenze setzen wie der Server (`read("label:<communityId>")`
  *     statt des früheren, pool-weiten `read("users")`). Ohne diesen Wert
  *     schriebe der Client zwischen zwei Heartbeats wieder offene Rechte.
  *     Kein Geheimnis: der eingeloggte Nutzer trägt exakt diese Id als Label in
@@ -75,7 +75,7 @@ export default defineNuxtPlugin(() => {
   useState<string | null>('maui-tenant-id', () => (tenant?.mode === 'pool' ? tenant.tenantId : null))
   // Site-Id (A4): der Label-Schlüssel für die Permissions des WS-Presence-
   // Upserts. NUR im Pool — im Silo schreibt der Client weiter read("users").
-  useState<string | null>('maui-site-id', () => (tenant?.mode === 'pool' ? tenant.siteId ?? null : null))
+  useState<string | null>('maui-site-id', () => (tenant?.mode === 'pool' ? tenant.communityId ?? null : null))
   // Zugangsregel der Community (S1): schließt die Register-Seite und zeigt
   // stattdessen den „nur auf Einladung"-Hinweis. Auch hier ist die AUTORITÄT
   // serverseitig (assertTenantRegistrationOpen an den Auth-Routen) — dieser

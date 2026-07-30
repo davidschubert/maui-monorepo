@@ -10,7 +10,7 @@ import {
 } from '../../shared/onboarding'
 import { slugToHost } from '../../schemas/tenant'
 import { TENANTS_TABLE, normalizeTenantPlan, type TenantRow } from '../../shared/types/tenantRecord'
-import { SITE_MEMBERS_TABLE, type SiteMemberRow } from '../../shared/types/siteMember'
+import { COMMUNITY_MEMBERS_TABLE, type CommunityMemberRow } from '../../shared/types/communityMember'
 import { WORKSPACES_TABLE, type WorkspaceRow } from '../../shared/types/workspace'
 import type { InviteCodeRow } from '../../shared/types/inviteCode'
 import type { RuntimeIdentity } from './onboardingService'
@@ -44,7 +44,7 @@ export interface ProvisionInput {
 }
 
 export interface ProvisionResult {
-  siteId: string
+  communityId: string
   host: string
   url: string
   plan: string
@@ -78,11 +78,11 @@ async function ownedSites(event: H3Event, identity: RuntimeIdentity): Promise<Te
   const admin = createAdminClient(event)
   const databaseId = config.public.appwriteDatabaseId
 
-  const memberships: SiteMemberRow[] = []
+  const memberships: CommunityMemberRow[] = []
   for (let offset = 0; ; offset += 100) {
-    const page = await admin.tablesDB.listRows<SiteMemberRow>({
+    const page = await admin.tablesDB.listRows<CommunityMemberRow>({
       databaseId,
-      tableId: SITE_MEMBERS_TABLE,
+      tableId: COMMUNITY_MEMBERS_TABLE,
       queries: [
         Query.equal('runtimeProjectId', identity.projectId),
         Query.equal('runtimeUserId', identity.userId),
@@ -102,7 +102,7 @@ async function ownedSites(event: H3Event, identity: RuntimeIdentity): Promise<Te
   const { rows } = await admin.tablesDB.listRows<TenantRow>({
     databaseId,
     tableId: TENANTS_TABLE,
-    queries: [Query.equal('$id', memberships.map(row => row.siteId)), Query.limit(100)],
+    queries: [Query.equal('$id', memberships.map(row => row.communityId)), Query.limit(100)],
   })
   return rows
 }
@@ -138,14 +138,14 @@ async function findOrCreateWorkspace(event: H3Event, identity: RuntimeIdentity, 
   })
 }
 
-async function isOwner(event: H3Event, siteId: string, identity: RuntimeIdentity): Promise<boolean> {
+async function isOwner(event: H3Event, communityId: string, identity: RuntimeIdentity): Promise<boolean> {
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
-  const { rows } = await admin.tablesDB.listRows<SiteMemberRow>({
+  const { rows } = await admin.tablesDB.listRows<CommunityMemberRow>({
     databaseId: config.public.appwriteDatabaseId,
-    tableId: SITE_MEMBERS_TABLE,
+    tableId: COMMUNITY_MEMBERS_TABLE,
     queries: [
-      Query.equal('siteId', siteId),
+      Query.equal('communityId', communityId),
       Query.equal('runtimeProjectId', identity.projectId),
       Query.equal('runtimeUserId', identity.userId),
       Query.limit(1),
@@ -170,7 +170,7 @@ export async function provisionCommunity(
   if (existing) {
     if (await isOwner(event, existing.$id, identity)) {
       return {
-        siteId: existing.$id,
+        communityId: existing.$id,
         host: existing.host,
         url: siteUrl(existing.host),
         plan: normalizeTenantPlan(existing.plan),
@@ -242,12 +242,12 @@ export async function provisionCommunity(
 
   // ── Owner-Mitgliedschaft — mit Kompensation ───────────────────────────────
   try {
-    await admin.tablesDB.createRow<SiteMemberRow>({
+    await admin.tablesDB.createRow<CommunityMemberRow>({
       databaseId,
-      tableId: SITE_MEMBERS_TABLE,
+      tableId: COMMUNITY_MEMBERS_TABLE,
       rowId: ID.unique(),
       data: {
-        siteId: tenant.$id,
+        communityId: tenant.$id,
         runtimeProjectId: identity.projectId,
         runtimeUserId: identity.userId,
         role: 'owner',
@@ -261,7 +261,7 @@ export async function provisionCommunity(
     // → zurückrollen, damit der Retry sauber neu anlegen kann.
     await admin.tablesDB.deleteRow({ databaseId, tableId: TENANTS_TABLE, rowId: tenant.$id })
       .catch(cleanup => logEvent('error', 'onboarding.rollback_failed', {
-        siteId: tenant.$id,
+        communityId: tenant.$id,
         host,
         message: cleanup instanceof Error ? cleanup.message : String(cleanup),
       }))
@@ -269,7 +269,7 @@ export async function provisionCommunity(
   }
 
   logEvent('info', 'onboarding.site_created', {
-    siteId: tenant.$id,
+    communityId: tenant.$id,
     host,
     workspaceId: workspace.$id,
     runtimeUserId: identity.userId,
@@ -278,7 +278,7 @@ export async function provisionCommunity(
   })
 
   return {
-    siteId: tenant.$id,
+    communityId: tenant.$id,
     host,
     url: siteUrl(host),
     plan: TRIAL_PLAN,

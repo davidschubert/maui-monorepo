@@ -23,13 +23,13 @@ export function useTenantId() {
  * `maui-site-id`. null = Silo, Kontroll-Host, Playground.
  *
  * WARUM ES SIE ZUSÄTZLICH ZU useTenantId() GIBT: sie sind NICHT dasselbe.
- * `tenantId` ist der Zeilen-Scope (Spalte in jeder Tabelle), `siteId` der
+ * `tenantId` ist der Zeilen-Scope (Spalte in jeder Tabelle), `communityId` der
  * Appwrite-LABEL-Schlüssel — nur die Row-$id garantiert Alphanumerik, und
  * Appwrite erlaubt in Labels nichts anderes.
  *
  * DER EINZIGE ERLAUBTE LESER ist der WS-Presence-Upsert in usePresenceState()
  * (A4): er ersetzt die Permissions der eigenen Presence und muss deshalb
- * dieselbe Grenze schreiben wie der Server (`read("label:<siteId>")`, siehe
+ * dieselbe Grenze schreiben wie der Server (`read("label:<communityId>")`, siehe
  * shared/presencePermissions.ts). Kein Geheimnis — der Nutzer trägt dieselbe Id
  * als Label in seinem eigenen Account-Objekt. Trotzdem eng halten: alles, was
  * über eine server/api-Route geht, hat hier nichts zu suchen.
@@ -43,7 +43,7 @@ export function useSiteId() {
  * BEIDE Richtungen (spiegelt rowBelongsToTenant auf dem Server): ohne tenantId
  * gehört sie nicht auf einen Mandanten-Host, mit tenantId nicht auf einen
  * Kontroll-/Silo-Host. Gedacht als `where`-Sicherheitsnetz für useRealtimeRows
- * — die harte Grenze bleiben die Row-Permissions (Role.label(siteId) im Pool),
+ * — die harte Grenze bleiben die Row-Permissions (Role.label(communityId) im Pool),
  * dieser Filter fängt den Fall, dass jemand in ZWEI Communities Mitglied ist
  * und deshalb beide Streams zugestellt bekommt.
  */
