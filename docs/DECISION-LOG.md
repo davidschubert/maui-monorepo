@@ -441,3 +441,7 @@ verworfener Alternative, mit Verweis auf Commit/Doc.
 13. **N4:** Die Demo bleibt bei Google indexierbar (Schaufenster).
 14. **help.pukalani.app** bestätigt; Deploy-Kette wird gebaut (Prod-Port 3006).
 15. **Nächstes Produkt:** Kurse durch die Datentür (letzter Silo-Gefangene der Produkt-Bilanz).
+
+## 2026-07-29 — Theme-Entscheidungen (David)
+
+16. **Entscheidung: Das Standard-Theme heißt „Aloha" (B3).** „Sunrise" (aus N6) stand im Picker direkt neben der Katalog-Farbwelt „Sunset" — zwei verwandt klingende Namen für Unverwandtes. Verworfen: die Id mit umbenennen — `default` steckt in `tenants.theme`, `data-theme`, CSS-Dateinamen und gespeicherten Kunden-Configs, ein Rename dort wäre eine Datenmigration ohne Nutzen. Geändert ist nur das Label in `packages/themes/app/utils/themeRegistry.ts` (kein i18n: Theme-Namen sind Eigennamen).

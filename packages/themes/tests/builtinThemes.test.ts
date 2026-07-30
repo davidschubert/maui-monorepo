@@ -26,6 +26,22 @@ describe('Built-in-Katalog als Validierungsquelle', () => {
     expect(builtinThemeName('crimson')).toBe('Crimson')
     expect(builtinThemeName('gibt-es-nicht')).toBe('')
   })
+
+  it('nennt das Standard-Theme „Aloha" — Label, nicht Id', () => {
+    // Davids Entscheidung 2026-07-29 (B3): „Sunrise" stand im Picker neben der
+    // Katalog-Farbwelt „Sunset". Die ID darf dabei NIE mitwandern — sie steckt
+    // in tenants.theme, data-theme, CSS-Dateinamen und gespeicherten Configs.
+    expect(builtinThemeName('default')).toBe('Aloha')
+    expect(isBuiltinTheme('default')).toBe(true)
+    expect(isBuiltinTheme('aloha')).toBe(false)
+  })
+
+  it('hat keine zwei gleichen Anzeigenamen', () => {
+    // Der Grund für die Umbenennung: zwei verwandt klingende Namen für
+    // Unverwandtes. Doppelte Namen wären im 27er-Grid gar nicht zu trennen.
+    const names = builtinThemeIds().map(id => builtinThemeName(id))
+    expect(new Set(names).size).toBe(names.length)
+  })
 })
 
 describe('Auswahl {theme, variant} prüfen — fail-closed', () => {

@@ -94,10 +94,17 @@ export const NEUTRAL_REGISTRY: MauiNeutral[] = [
 // bleiben hier nur der default-Eintrag (Core-Zustand ohne CSS-Datei) und die
 // NEUTRAL_REGISTRY (separate Achse, E3a).
 export const THEME_REGISTRY: MauiTheme[] = [
-  // ANZEIGE-Label 'Sunrise' (N6, Davids Entscheidung 2026-07-28): im Picker
-  // stand hier der interne Produktname „Maui" — der gehört nicht vor Kunden.
-  // Umbenannt wurde AUSSCHLIESSLICH das Label; die Id bleibt `default`
-  // (tenants.theme, data-theme, CSS-Dateinamen, gespeicherte Configs).
-  { id: DEFAULT_THEME_ID, name: 'Sunrise', file: null, color: '#737373', variants: [] },
+  // ANZEIGE-Label 'Aloha' (Davids Entscheidung 2026-07-29, OPEN-ITEMS B3).
+  // Zwei Umbenennungen, beide nur am LABEL: „Maui" war der interne
+  // Produktname (N6, 2026-07-28) und gehört nicht vor Kunden; der Ersatz
+  // „Sunrise" stand im Picker direkt neben der Katalog-Farbwelt „Sunset" —
+  // zwei verwandt klingende Namen für Unverwandtes. „Aloha" kollidiert mit
+  // keinem der 26 Katalog-Namen (Test: tests/builtinThemes.test.ts).
+  // Die Id bleibt `default` und wird NIE über einen Namen umbenannt: sie
+  // steckt in tenants.theme, data-theme, den CSS-Dateinamen und in
+  // gespeicherten Kunden-Configs.
+  // Kein i18n: Theme-Namen sind Eigennamen und lauten in de und en gleich
+  // (wie die 26 Katalog-Namen, die aus theme.catalog.ts kommen).
+  { id: DEFAULT_THEME_ID, name: 'Aloha', file: null, color: '#737373', variants: [] },
   ...GENERATED_THEMES,
 ]
