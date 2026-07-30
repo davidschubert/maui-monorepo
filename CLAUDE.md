@@ -5,7 +5,7 @@ Nuxt 4 Monorepo (maui-monorepo) mit zentralem Core Layer + Feature Layers.
 Vollständiges Konzept: docs/CONCEPT.md
 
 ## Stack
-- Nuxt 4.4.x (Composition API, SSR), Nuxt UI 4.8.x, Pinia, Tailwind CSS 4
+- Nuxt 4.5.x (Composition API, SSR), Nuxt UI 4.10.x, Pinia 4, Tailwind CSS 4
 - node-appwrite (Server SDK) + appwrite (Web SDK, NUR Realtime) — Appwrite self-hosted 1.9.6
 - Zod, @nuxtjs/i18n (de+en), TypeScript strict, pnpm Workspaces, Node 22
 
@@ -486,6 +486,30 @@ Vollständiges Konzept: docs/CONCEPT.md
   setzten `data.code`, es kam NIE an (der `last_admin`-Zweig der
   Nutzerverwaltung war deshalb toter Code).
 - useToast kommt aus Nuxt UI — nicht im Core re-exportieren (schattet Auto-Import)
+- EINE Version je Kernabhängigkeit — `pnpm check:single-copy` (CI-Gate) ist der
+  Wächter. Zwei Kopien brechen Typen oder Build, und WELCHE gewinnt, entscheidet
+  pnpms HOISTING, nicht das Lockfile: derselbe Lockfile ist damit auf einer
+  Maschine grün und auf der anderen rot. `nuxi prepare` schreibt die gehoistete
+  Version in die `paths` der generierten tsconfigs — passt sie nicht zu Nitros
+  Typen, ist jedes an einen Helfer weitergereichte H3Event ein Fehler. Zweimal
+  live erwischt (2026-07-30): vue doppelt ⇒ Prod-Build stirbt an ENAMETOOLONG,
+  h3 doppelt ⇒ 1102/944/1261 Typfehler. Doppelungen werden BESEITIGT, nicht
+  durch Kür eines Gewinners kaschiert; begründete Ausnahmen stehen im Skript.
+- Eine Caret-Range im Katalog PINNT NICHTS (`^4.4.8` erlaubt 4.5.1) — ein
+  „Rückbau" per Range-Bearbeitung wirkt nicht. Beweis ist immer
+  `node -p "require('./apps/<app>/node_modules/<pkg>/package.json').version"`;
+  Zurücksetzen nur per `git checkout -- pnpm-lock.yaml pnpm-workspace.yaml` +
+  `pnpm install --frozen-lockfile`. Nach jedem Bump `git diff --stat
+  pnpm-lock.yaml` lesen: steht dort viel mehr als erwartet, gehört es nicht so
+  in den Commit.
+- `@nuxtjs/i18n` gehört zur NUXT-GENERATION und wird mit Nuxt zusammen gezogen
+  (10.4↔4.4, 10.6↔4.5). Ein Nuxt-Bump ohne i18n-Bump lässt unhead, vue-router
+  und pinia doppelt im Baum stehen. `pinia` und `@pinia/nuxt` sind ebenso fest
+  gekoppelt (0.11.x↔pinia 3, 1.0.x↔pinia 4) — nur gemeinsam bumpen.
+- KOPF-EINTRÄGE sind seit unhead 3 über `rel` bzw. `name`/`property`
+  DISKRIMINIERTE Unions — ein `rel: string` wird zu `never`. In `useHead`-Aufrufen
+  `rel` literal halten (`as const`); bedingte Spreads nehmen dem Array-Literal
+  sonst den Kontext-Typ.
 - pnpm, TypeScript strict (kein any), vollständige Dateien, keine Spekulation
 - Dependencies via pnpm Catalog: Versionen zentral in pnpm-workspace.yaml,
   package.json referenziert "catalog:" — geteilte Deps auch in App-package.json
