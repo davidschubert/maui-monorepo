@@ -19,6 +19,16 @@ export default defineNuxtConfig({
     pageTransition: { name: 'page', mode: 'out-in' },
   },
 
+  // Die Produkt-Unterseiten lagen bis 2026-07-30 unter /features/* bzw.
+  // /de/features/* und waren in dieser Form schon veröffentlicht (Links,
+  // Index). Kundensprache ist „Produkte" — das Segment heißt jetzt
+  // /products/* (EN) bzw. /de/produkte/* (DE). 301 statt 302, damit
+  // Suchmaschinen die Adresse dauerhaft übernehmen.
+  routeRules: {
+    '/features/**': { redirect: { to: '/products/**', statusCode: 301 } },
+    '/de/features/**': { redirect: { to: '/de/produkte/**', statusCode: 301 } },
+  },
+
   // App-Keys mergen mit den Core-Locales (gleicher code).
   i18n: {
     locales: [

@@ -47,8 +47,8 @@ const CARDS = [
   ...['coaches', 'kurse', 'creator', 'vereine'].map(slug => ({
     name: `for-${slug}`, title: `audiencePages.items.${slug}.title`, sub: `audiencePages.items.${slug}.name`,
   })),
-  ...['diskussionen', 'branding', 'kurse', 'events'].map(slug => ({
-    name: `features-${slug}`, title: `features.items.${slug}.title`, sub: `features.items.${slug}.name`,
+  ...['diskussionen', 'moderation', 'branding', 'beitraege', 'kurse', 'events'].map(slug => ({
+    name: `products-${slug}`, title: `features.items.${slug}.title`, sub: `features.items.${slug}.name`,
   })),
 ]
 

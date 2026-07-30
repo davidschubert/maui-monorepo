@@ -21,10 +21,14 @@ const year = 2026 // statisch: Date.now() steht im Build nicht zur Verfügung
         <h3>{{ t('marketing.footer.colProduct') }}</h3>
         <a :href="start">{{ t('marketing.footer.start') }}</a>
         <a :href="demo">{{ t('marketing.footer.demo') }}</a>
-        <NuxtLink :to="localePath('/features/diskussionen')">{{ t('marketing.footer.featDiscussions') }}</NuxtLink>
-        <NuxtLink :to="localePath('/features/kurse')">{{ t('marketing.footer.featCourses') }}</NuxtLink>
-        <NuxtLink :to="localePath('/features/events')">{{ t('marketing.footer.featEvents') }}</NuxtLink>
-        <NuxtLink :to="localePath('/features/branding')">{{ t('marketing.footer.featBranding') }}</NuxtLink>
+        <!-- Route-NAME statt Pfad-String: /produkte/* und /fuer/* tragen
+             lokalisierte Pfade (defineI18nRoute). Ein roher Pfad wird nur mit
+             dem Locale-Präfix versehen, das Segment bleibt deutsch — auf EN
+             stünde dann /produkte/… im HTML. -->
+        <NuxtLink :to="localePath({ name: 'produkte-slug', params: { slug: 'diskussionen' } })">{{ t('marketing.footer.featDiscussions') }}</NuxtLink>
+        <NuxtLink :to="localePath({ name: 'produkte-slug', params: { slug: 'kurse' } })">{{ t('marketing.footer.featCourses') }}</NuxtLink>
+        <NuxtLink :to="localePath({ name: 'produkte-slug', params: { slug: 'events' } })">{{ t('marketing.footer.featEvents') }}</NuxtLink>
+        <NuxtLink :to="localePath({ name: 'produkte-slug', params: { slug: 'branding' } })">{{ t('marketing.footer.featBranding') }}</NuxtLink>
         <NuxtLink :to="localePath('/faq')">{{ t('marketing.footer.faq') }}</NuxtLink>
         <NuxtLink :to="localePath('/glossar')">{{ t('marketing.footer.glossary') }}</NuxtLink>
       </nav>
@@ -39,10 +43,10 @@ const year = 2026 // statisch: Date.now() steht im Build nicht zur Verfügung
 
       <nav class="foot-col" aria-label="Anwendungsfälle">
         <h3>{{ t('marketing.footer.colUseCases') }}</h3>
-        <NuxtLink :to="localePath('/fuer/coaches')">{{ t('marketing.footer.forCoaches') }}</NuxtLink>
-        <NuxtLink :to="localePath('/fuer/kurse')">{{ t('marketing.footer.forCourses') }}</NuxtLink>
-        <NuxtLink :to="localePath('/fuer/creator')">{{ t('marketing.footer.forCreator') }}</NuxtLink>
-        <NuxtLink :to="localePath('/fuer/vereine')">{{ t('marketing.footer.forClubs') }}</NuxtLink>
+        <NuxtLink :to="localePath({ name: 'fuer-slug', params: { slug: 'coaches' } })">{{ t('marketing.footer.forCoaches') }}</NuxtLink>
+        <NuxtLink :to="localePath({ name: 'fuer-slug', params: { slug: 'kurse' } })">{{ t('marketing.footer.forCourses') }}</NuxtLink>
+        <NuxtLink :to="localePath({ name: 'fuer-slug', params: { slug: 'creator' } })">{{ t('marketing.footer.forCreator') }}</NuxtLink>
+        <NuxtLink :to="localePath({ name: 'fuer-slug', params: { slug: 'vereine' } })">{{ t('marketing.footer.forClubs') }}</NuxtLink>
       </nav>
 
       <nav class="foot-col" aria-label="Über">

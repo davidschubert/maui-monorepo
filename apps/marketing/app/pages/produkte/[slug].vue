@@ -1,5 +1,6 @@
 <script setup lang="ts">
-// Feature-Cluster-Seiten (§3.1): diskussionen · branding · kurse · events.
+// Feature-Cluster-Seiten (§3.1): diskussionen · moderation · branding ·
+// beitraege · kurse · events.
 //
 // Claim-Gate-Umsetzung (§2.4, Entscheidung David 2026-07-24): Kurse und Events
 // SIND Early Access. Ihre Seiten existieren, aber sie dürfen nicht wie ein
@@ -7,11 +8,17 @@
 //   1. ein prominenter Early-Access-Banner GANZ OBEN (nicht kleingedruckt),
 //   2. KEIN Kauf-/„Kostenlos starten"-CTA — nur „Early Access anfragen",
 //   3. die Highlights beschreiben ausschließlich, was tatsächlich existiert.
+//
+// Locale-Pfade: EN /products/* · DE /de/produkte/* — Kundensprache ist
+// „Produkte" (im CODE bleibt das Vokabular `features`). Die Slugs bleiben
+// deutsch, nur das Segment ist lokalisiert — wie bei /for/* ↔ /fuer/*.
+// Die alten /features/*-URLs waren schon veröffentlicht: 301 in nuxt.config.ts.
 definePageMeta({ layout: 'site' })
+defineI18nRoute({ paths: { en: '/products/[slug]', de: '/produkte/[slug]' } })
 
-const SLUGS = ['diskussionen', 'branding', 'kurse', 'events'] as const
+const SLUGS = ['diskussionen', 'moderation', 'branding', 'beitraege', 'kurse', 'events'] as const
 /** Bausteine, die noch NICHT im offenen Angebot sind (§2.4). */
-const EARLY_ACCESS_SLUGS: readonly string[] = ['kurse', 'events']
+const EARLY_ACCESS_SLUGS: readonly string[] = ['beitraege', 'kurse', 'events']
 const route = useRoute()
 const slug = String(route.params.slug)
 if (!SLUGS.includes(slug as (typeof SLUGS)[number])) {
@@ -31,7 +38,7 @@ const highlights = computed(() =>
   Array.from({ length: HIGHLIGHT_COUNT }, (_, i) => t(`${base}.highlights.${i}`)),
 )
 
-const ogImage = useOgImage(`features-${slug}`)
+const ogImage = useOgImage(`products-${slug}`)
 
 useSeoMeta({
   title: () => t(`${base}.metaTitle`),

@@ -12,7 +12,36 @@
       "start": "Kostenlos starten",
       "toGerman": "Deutsch",
       "toEnglish": "English",
-      "menu": "Menü öffnen"
+      "menu": "Menü öffnen",
+      "products": {
+        "overview": "Alle Produkte im Überblick",
+        "items": {
+          "diskussionen": {
+            "title": "Diskussionen",
+            "text": "Threads, Votes, Erwähnungen und Live-Präsenz – unter jedem Inhalt."
+          },
+          "moderation": {
+            "title": "Moderation",
+            "text": "Melde-System, zweiphasiges Ausblenden, KI-Zweitmeinung – der Mensch entscheidet."
+          },
+          "branding": {
+            "title": "Seiten & Branding",
+            "text": "26 Farbwelten, eigene Schriften, eigene Seiten – deine Community sieht aus wie du."
+          },
+          "beitraege": {
+            "title": "Beiträge & Feed",
+            "text": "Nutzer-Beiträge in Markdown, Umfragen und ein chronologischer Feed."
+          },
+          "kurse": {
+            "title": "Kurse",
+            "text": "Lektionen mit Fortschritt und Bezahl-Zugang – direkt neben der Diskussion."
+          },
+          "events": {
+            "title": "Events",
+            "text": "Online oder vor Ort, mit Zusagen und Tickets – sogar einbettbar."
+          }
+        }
+      }
     },
     "hero": {
       "eyebrow": "Deine Community-Plattform, DSGVO-nativ",
@@ -183,6 +212,22 @@
             "Moderation inklusive: Melden, zweiphasiges Ausblenden, KI-Zweitmeinung"
           ]
         },
+        "moderation": {
+          "name": "Moderation",
+          "metaTitle": "Community-Moderation – Werkzeuge statt Bauchgefühl",
+          "metaDescription": "Melde-System, zweiphasiges Ausblenden und KI-Assistenz als Zweitmeinung – der Mensch entscheidet. In Deutschland gehostet.",
+          "title": "Moderation, die den Rücken freihält",
+          "sub": "Melde-System, zweiphasiges Ausblenden, KI-Zweitmeinung – der Mensch entscheidet.",
+          "intro": "Eine Community bleibt nur dann ein guter Ort, wenn jemand hinschauen kann, ohne daran zu zerbrechen. Pukalani gibt dir dafür Werkzeuge statt Mehrarbeit: Meldungen laufen strukturiert ein, Ausblenden ist zweistufig statt endgültig, und die KI liefert auf Wunsch eine Zweitmeinung – entscheiden tut immer ein Mensch.",
+          "highlights": [
+            "Melde-System für Kommentare und Beiträge – mit Status statt E-Mail-Chaos",
+            "Zweiphasiges Ausblenden: erst aus dem Blick, dann entschieden – nichts ist sofort weg",
+            "Auto-Ausblenden ab einer einstellbaren Zahl offener Meldungen – die Community wirkt mit",
+            "KI-Assistenz als Zweitmeinung – beratend, nie entscheidend",
+            "Eskalation an dich, wenn Meldungen sich häufen",
+            "Rollen mit klaren Rechten – Moderation heißt nicht Vollzugriff"
+          ]
+        },
         "branding": {
           "name": "Branding",
           "metaTitle": "White-Label-Community – dein Design, deine Schriften, deine Domain",
@@ -197,6 +242,22 @@
             "Hell und dunkel ohne Extra-Arbeit",
             "Eigene Seiten (Start, Über, Regeln) im Editor",
             "Eigene Domain für Silo-Kunden – ohne Umzug deiner Inhalte"
+          ]
+        },
+        "beitraege": {
+          "name": "Beiträge & Feed",
+          "metaTitle": "Beiträge & Feed – deine Community schreibt selbst",
+          "metaDescription": "Nutzer-Beiträge in Markdown, Umfragen und Fragen, dazu ein chronologischer Activity-Feed – mit Diskussionen darunter. Early Access.",
+          "title": "Ein Feed, der deiner Community gehört",
+          "sub": "Nutzer-Beiträge in Markdown, Umfragen und ein chronologischer Feed.",
+          "intro": "Nicht nur du veröffentlichst – deine Mitglieder auch. Beiträge entstehen in Markdown, Umfragen und Fragen holen Meinungen ein, und der Activity-Feed zeigt chronologisch, was in deiner Community passiert. Darunter laufen dieselben Diskussionen wie überall bei Pukalani.",
+          "highlights": [
+            "Beiträge in Markdown – schreiben ohne Umwege",
+            "Umfragen und Fragen für schnelle Meinungsbilder",
+            "Chronologischer Activity-Feed: was passiert, steht oben",
+            "Diskussionen unter jedem Beitrag – Threads, Votes, Erwähnungen",
+            "Moderation inklusive: Melden und Ausblenden wie bei Kommentaren",
+            "Ein Ort statt fünf Tools: Beiträge, Antworten und Reaktionen bleiben zusammen"
           ]
         },
         "kurse": {
