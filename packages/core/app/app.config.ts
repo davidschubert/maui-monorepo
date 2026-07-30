@@ -124,6 +124,23 @@ export default defineAppConfig({
        * (apps/platform/server/routes/favicon.svg.get.ts).
        */
       tenantFavicon: false,
+      /**
+       * Vorschaubild pro Mandant für geteilte Links (og:image, OPEN-ITEMS B2):
+       * `/og/<key>.png` — 1200×630, Basisfarbe des Community-Themes,
+       * Community-Name, dezente Wortmarke. Core-Default AUS.
+       *
+       * WARUM PNG und nicht das vorhandene SVG der Bildmarke: Facebook,
+       * WhatsApp und LinkedIn ignorieren ein SVG als og:image vollständig.
+       * Gerastert wird ohne Renderer im Betrieb — Chrome hat die Zeichen
+       * EINMAL gebacken (packages/themes/scripts/generate-brand-card-font.mjs),
+       * der Server setzt sie nur zusammen und legt das Bild auf Platte.
+       *
+       * AN gehört das Gate in Mehr-Host-Apps, die eine Route `/og/[key]`
+       * mitbringen (apps/platform/server/routes/og/[key].get.ts). Silo-Apps
+       * bleiben aus: die haben EIN Erscheinungsbild und können sich ein
+       * gestaltetes Bild leisten.
+       */
+      tenantOgImage: false,
     },
     tenancy: {
       /** Horizont-3 Mandanten-Auflösung (Naht 1): Host → TenantContext via

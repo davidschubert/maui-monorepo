@@ -8,13 +8,15 @@
     "lint": "eslint .",
     "test": "vitest run",
     "generate": "jiti scripts/generate-themes.ts",
-    "check:themes": "jiti scripts/generate-themes.ts --check"
+    "check:themes": "jiti scripts/generate-themes.ts --check",
+    "generate:brand-card-font": "node scripts/generate-brand-card-font.mjs"
   },
   "dependencies": {
     "@nuxt/ui": "catalog:"
   },
   "devDependencies": {
     "@nuxt/eslint-config": "catalog:",
+    "@playwright/test": "catalog:",
     "eslint": "catalog:",
     "jiti": "catalog:",
     "typescript": "catalog:",

@@ -1,6 +1,7 @@
 import { customThemeCss } from '../../shared/ramp'
 import { customFontCss } from '../../shared/fonts'
 import { resolveBrandColor } from '../../shared/brandMark'
+import { BRAND_CARD_HEIGHT, BRAND_CARD_WIDTH, brandCardKey, brandCardPath } from '../../shared/brandCard'
 
 /**
  * Universal (nicht .client): data-theme/data-variant und der Stylesheet-Link
@@ -50,13 +51,41 @@ export default defineNuxtPlugin(async () => {
    * seit dem 2026-07-29 (B5) ohnehin zusammen — dort ist die Community-Farbe
    * auch das, was die Seite zeigt.
    */
-  const appConfig = useAppConfig() as { maui?: { seo?: { tenantFavicon?: boolean } } }
+  const appConfig = useAppConfig() as { maui?: { seo?: { tenantFavicon?: boolean, tenantOgImage?: boolean } } }
   const brandFavicon = appConfig.maui?.seo?.tenantFavicon === true
   const brandColor = computed(() => resolveBrandColor(
     themes.value,
     themeSettings.value.defaultThemeId,
     themeSettings.value.defaultVariantId,
   ))
+
+  /**
+   * Vorschaubild für geteilte Links (og:image, Gate `maui.seo.tenantOgImage`,
+   * OPEN-ITEMS B2). Dieser Layer sagt nur, WELCHES Bild gilt — geschrieben wird
+   * der Tag zentral in `useLocaleSeoHead()` (core), damit die absolute URL
+   * dieselbe Host-Rechnung nimmt wie canonical und og:url.
+   *
+   * Der Schlüssel im Pfad ist der Cache-Brecher: er hängt an Farbe UND Namen,
+   * also holt WhatsApp nach einem Theme-Wechsel ein neues Bild — und bei
+   * unverändertem Erscheinungsbild bleibt jeder geteilte Link ein Treffer.
+   * Farbe = VOREINGESTELLTES Theme der Community (wie Favicon/theme-color),
+   * nicht die Cookie-Wahl des Besuchers: sonst bekäme jeder Besucher eine
+   * andere Bild-URL und der Cache wäre wertlos.
+   *
+   * EINE Zuweisung, bewusst kein watchEffect: og:image liest ausschließlich ein
+   * Vorschau-Dienst, und der liest das SSR-HTML — zu diesem Zeitpunkt sind
+   * Themes und Einstellungen oben schon geladen. Ein Watcher hier hinter dem
+   * `await` wäre außerdem nicht mehr im Effekt-Scope des Plugins und würde auf
+   * dem Server je Request hängen bleiben.
+   */
+  if (appConfig.maui?.seo?.tenantOgImage === true) {
+    useBrandOgImage().value = {
+      path: brandCardPath(brandCardKey(brandColor.value, useBrandName().value)),
+      width: BRAND_CARD_WIDTH,
+      height: BRAND_CARD_HEIGHT,
+      type: 'image/png',
+    }
+  }
 
   useHead({
     meta: () => (brandFavicon ? [{ name: 'theme-color', content: brandColor.value }] : []),

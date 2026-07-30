@@ -21,8 +21,10 @@ export interface BrandTitleOptions {
  * Reaktiv gedacht: `page`/`description` werden als Getter übergeben, damit ein
  * Sprachwechsel oder ein nachgeladener Inhalt den Kopf mitzieht.
  *
- * og:image ist BEWUSST nicht dabei — dafür braucht es eine Design-Entscheidung
- * (Tenant-Logo/Generator), kein Platzhalterbild.
+ * og:image gehört bewusst NICHT hierher, sondern in `useLocaleSeoHead()`: das
+ * Vorschaubild einer Community ist pro HOST gleich, nicht pro Seite, und seine
+ * URL muss dieselbe Origin-Rechnung nehmen wie canonical (B1/B2). Der
+ * Bildmarken-Layer meldet es über `useBrandOgImage()` an.
  */
 export function useBrandTitle(page: MaybeRefOrGetter<string>, options: BrandTitleOptions = {}): void {
   const { t } = useI18n()
