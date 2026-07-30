@@ -416,7 +416,19 @@ Vollständiges Konzept: docs/CONCEPT.md
   (Pool) setzen zusätzlich maui.seo.originFromRequest: dann kommt Host+Port aus
   dem Request und nur das SCHEMA aus der Env (core/shared/seoOrigin.ts) — mit
   der einen Env-Basis zeigten canonical/hreflang/og:url auf ALLEN Mandanten-
-  Hosts auf platform.pukalani.app (Audit-Befund B1)
+  Hosts auf platform.pukalani.app (Audit-Befund B1). og:image gehört EBENFALLS
+  dorthin (nie in eine Seite): Feature-Layer tragen den Pfad in
+  useBrandOgImage() ein, useLocaleSeoHead() macht die absolute URL + Maße/Typ/
+  twitter:card. Je Community `/og/<key>.png` (1200×630, Gate
+  maui.seo.tenantOgImage) — **PNG, nicht SVG**: Facebook/WhatsApp/LinkedIn
+  zeigen SVG als og:image nicht. Gerastert OHNE Laufzeit-Renderer: Chrome hat
+  die Zeichen EINMAL in ein Atlas gebacken (packages/themes/scripts/
+  generate-brand-card-font.mjs → shared/brandCardFont.gen.ts, committet,
+  server-only, BEWUSST NICHT im check:themes-Gate — das Ergebnis hängt an den
+  Schriften der backenden Maschine). Der Schlüssel in der URL ist NIE Eingabe
+  (sonst füllt ein Bot mit erfundenen Schlüsseln die Platte), sondern nur
+  Cache-Brecher; Ablage in tmpdir(), nie in .output (Release-Slots wechseln
+  den Pfad)
 - createError mit status/statusText (nicht statusCode/statusMessage),
   keine Appwrite-Fehlerdetails an Clients leaken. FACHLICHE Ablehnungsgründe
   reisen als `data: { code: 'last_owner' }` → der zentrale Handler
