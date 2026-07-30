@@ -1,3 +1,4 @@
+import { Account, Client } from 'node-appwrite'
 import type { H3Event } from 'h3'
 
 /**
@@ -35,8 +36,28 @@ export function controlPlaneConfig(event: H3Event): ControlPlaneConfig {
   return { url, secret }
 }
 
-/** Kurzlebiges JWT des eingeloggten Nutzers (wie beim Realtime-Token). */
-export async function mintRuntimeJwt(event: H3Event): Promise<string> {
+/**
+ * Kurzlebiges JWT des eingeloggten Nutzers (wie beim Realtime-Token).
+ *
+ * `sessionSecret` ist die Ausnahme für den Beitritt BEI DER ANMELDUNG (A5): dort
+ * ist die Session eine Millisekunde alt und steckt noch nicht im Request-Cookie
+ * (setSessionCookie schreibt in die ANTWORT), also gibt es weder
+ * `event.context.user` noch einen brauchbaren Session-Client. Derselbe Trick,
+ * den signup.post.ts für die Verifizierungs-Mail schon benutzt — mit einem
+ * eigenen Client auf dem frischen Secret.
+ */
+export async function mintRuntimeJwt(event: H3Event, sessionSecret?: string): Promise<string> {
+  if (sessionSecret) {
+    const config = useRuntimeConfig(event)
+    const client = new Client()
+      .setEndpoint(config.public.appwriteEndpoint)
+      .setProject(config.public.appwriteProjectId)
+      .setSession(sessionSecret)
+    const { jwt } = await new Account(client).createJWT({ duration: 120 })
+      .catch(() => { throw createError({ status: 401, statusText: 'Unauthorized' }) })
+    return jwt
+  }
+
   if (!event.context.user) {
     throw createError({ status: 401, statusText: 'Unauthorized' })
   }

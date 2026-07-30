@@ -44,6 +44,24 @@ export default defineEventHandler(async (event) => {
   setSessionCookie(event, session.secret, session.expire)
   await logAuthEvent(event, 'user.login', { userId: session.userId, name, method: 'signup' })
 
+  /**
+   * BEITRITT (A5, Davids Entscheidung 1 vom 2026-07-29). Wer sich AUF DEM
+   * MANDANTEN-HOST ein Konto anlegt, tritt dieser Community bei — deutlicher
+   * wird eine Absicht nicht, und der Feed sagt drei Zeilen weiter unten
+   * ohnehin schon „ist der Community beigetreten". Jetzt steht es auch in
+   * `site_members`, also in etwas, das man entziehen kann.
+   *
+   * Hier ist der beste Moment, den es gibt: das Label steht damit VOR dem
+   * ersten Seitenaufruf und lange vor dem Realtime-Socket.
+   *
+   * `sessionSecret` + `userId` explizit — die Session ist eine Millisekunde alt
+   * und steckt noch nicht im Request-Cookie (dasselbe Problem wie bei der
+   * Verifizierungs-Mail unten). No-Op auf Kontroll-Hosts und in Silo-Apps.
+   * Der Registrierungs-Schalter der Community ist oben schon geprüft
+   * (assertTenantRegistrationOpen); das Control Plane prüft ihn erneut selbst.
+   */
+  await joinSite(event, 'registration', { sessionSecret: session.secret, userId: session.userId })
+
   // Nicht-blockierende E-Mail-Verifizierung (maui.auth.verification): die
   // Bestätigungs-Mail geht über die Instanz-SMTP raus, der User ist trotzdem
   // sofort eingeloggt. Best-effort — ein Mail-Fehler darf den Signup nie

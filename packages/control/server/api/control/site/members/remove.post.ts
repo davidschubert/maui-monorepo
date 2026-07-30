@@ -12,15 +12,25 @@ import { memberFacts, requireSiteTeamContext, throwOnDenied } from '../../../../
  *  1. Inhalte bleiben erhalten UND behalten den Namen — ein Rauswurf soll keine
  *     Löcher in Threads reißen, in denen andere geantwortet haben.
  *  2. „Ehemaliges Mitglied" braucht eine POSITIVE Tatsache. Aus einer gelöschten
- *     Row ließe sich das nicht ableiten: in einer Pool-Community steht in
- *     site_members nur das Team, nicht jede mitlesende Person — „keine Row" heißt
- *     also „normaler Nutzer", nicht „rausgeworfen".
+ *     Row ließe sich das nicht ableiten: Gäste, Autoren von vor A5 und Konten,
+ *     die hier nie mitgemacht haben, haben ebenfalls keine Row — „keine Row"
+ *     heißt also „normaler Nutzer", nicht „rausgeworfen".
+ *  3. Und seit A5 der wichtigste Grund: `members/join` braucht die Zeile, um
+ *     einen ENTZOGENEN Zugang von einem Erst-Beitritt zu unterscheiden. Ohne sie
+ *     würde der nächste Kommentar der entfernten Person sie wieder hereinlassen.
  *
- * Echtes Löschen bleibt der getrennte DSGVO-Weg (Konto löschen). Der Zugang ist
- * spätestens nach dem Resolver-Cache (≤30 s) weg; der Site-LABEL-Leseumfang
- * bleibt bestehen (A4: das Label bedeutet „hat diesen Host benutzt" und wird bei
- * jedem eingeloggten Besuch neu vergeben) — das ist bewusst nicht Teil dieser
- * Aktion.
+ * Echtes Löschen bleibt der getrennte DSGVO-Weg (Konto löschen). Die ROLLE ist
+ * spätestens nach dem Resolver-Cache (≤30 s) weg.
+ *
+ * DAS LESE-PUBLIKUM NIMMT DIE RUNTIME (A5, 2026-07-29): das Site-Label lebt im
+ * Pool-Projekt, und das Control Plane hat dafür keinen Schlüssel — es kann
+ * Labels nicht anfassen. Deshalb gibt diese Route die `runtimeUserId` zurück:
+ * die aufrufende Runtime-Route (onboarding .../members/[id].delete.ts) zieht
+ * damit `revokeSiteLabel`. Bis A5 fehlte dieser Schritt ganz, und „Zugang
+ * entziehen" nahm nur die Rolle — die entfernte Person las weiter mit, weil die
+ * Label-Middleware das Publikum beim nächsten Besuch neu vergab. Der zweite
+ * Riegel dagegen steckt in `members/join`: ein entzogener Zugang schlägt jeden
+ * Beitritts-Auslöser.
  */
 const bodySchema = z.object({
   jwt: z.string().min(1).max(4096),
@@ -63,5 +73,5 @@ export default defineEventHandler(async (event) => {
     actor: context.identity.userId,
   })
 
-  return { ok: true, memberId: row.$id, status: row.status }
+  return { ok: true, memberId: row.$id, status: row.status, runtimeUserId: target.runtimeUserId }
 })

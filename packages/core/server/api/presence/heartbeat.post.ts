@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
       //
       // `tenantRowPermissionsFor` ist bewusst DERSELBE Bauer wie für alle
       // anderen Zeilen (tenantDb.create) — keine Presence-Sonderregel. Das
-      // Label trägt, wer den Host benutzt (server/middleware/site-label.ts).
+      // Label trägt, wer MITGLIED ist (A5: server/middleware/site-label.ts).
       // Pool ohne siteId (Datenfehler) → kein read: fail-closed.
       //
       // update/delete für den Owner: Appwrites Realtime-Presence-Handler

@@ -1,3 +1,4 @@
+import { SITE_JOIN_ROLE, type SiteJoinOutcome, type SiteJoinTrigger } from '../../core/shared/siteJoin'
 import { SITE_ROLES, type SiteMemberStatus, type SiteRole } from './types/siteMember'
 import type { SiteInviteStatus } from './types/siteInvite'
 
@@ -172,6 +173,57 @@ export function decideInvite(input: InviteInput): SiteTeamDecision {
   }
 
   return ALLOW
+}
+
+export interface JoinInput {
+  /** Warum jemand beitreten möchte (core/shared/siteJoin.ts). */
+  trigger: SiteJoinTrigger
+  /** `tenants.openRegistration` DIESER Community — der bestehende Schalter. */
+  openRegistration: boolean
+  /** Bestehende Mitgliedschaft (jeden Status) oder null. */
+  existing: SiteTeamMemberFacts | null
+}
+
+export interface JoinDecision {
+  outcome: SiteJoinOutcome
+  /** Rolle, die danach gilt (bei 'closed'/'removed' null). */
+  role: SiteRole | null
+}
+
+/**
+ * Darf diese Person JETZT Mitglied dieser Community werden? (A5, Davids
+ * Entscheidung 1 vom 2026-07-29)
+ *
+ * Die Reihenfolge der drei Fragen ist die ganze Regel, und sie ist mit Absicht so:
+ *
+ *  1. **Gibt es schon eine Zeile?** Dann entscheidet SIE, nicht der Schalter.
+ *     Eine aktive heißt „ist schon dabei" (idempotent — jeder Auslöser darf
+ *     beliebig oft feuern). Eine entzogene heißt **draußen**, und zwar
+ *     endgültig: das ist der Kern des ganzen Vorgangs. Ohne diesen Zweig würde
+ *     der Auslöser genau das wieder aufheben, was „Zugang entziehen" gerade
+ *     getan hat — die entfernte Person schreibt einen Kommentar und ist zurück.
+ *     Zurück kommt man nur über eine neue EINLADUNG (accept.post.ts hebt den
+ *     Status wieder auf 'active').
+ *  2. **Bestand?** `legacy` überspringt den Schalter — und nur dieser Auslöser.
+ *     Wer das Site-Label aus der A4-Zeit trägt, hat diese Community bisher als
+ *     Mitglied benutzt; ihn jetzt auszusperren, weil seine Community inzwischen
+ *     geschlossen ist, wäre ein Rückschritt für einen echten Nutzer, kein
+ *     Sicherheitsgewinn. Die Zeile, die dabei entsteht, macht den Zustand zum
+ *     ersten Mal sichtbar UND entziehbar.
+ *  3. **Ist die Registrierung offen?** Sonst: kein Auto-Beitritt. Geschlossen
+ *     heißt geschlossen — Mitglied wird man dort ausschließlich per Einladung.
+ */
+export function decideJoin(input: JoinInput): JoinDecision {
+  const { trigger, openRegistration, existing } = input
+
+  if (existing) {
+    if (hasSiteAccess(existing.status)) return { outcome: 'member', role: existing.role }
+    return { outcome: 'removed', role: null }
+  }
+
+  if (trigger !== 'legacy' && !openRegistration) return { outcome: 'closed', role: null }
+
+  return { outcome: 'joined', role: SITE_JOIN_ROLE }
 }
 
 // ── Anzeige-Verträge (Control Plane ⇄ Kunden-App ⇄ UI) ──────────────────────

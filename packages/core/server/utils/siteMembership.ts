@@ -12,11 +12,13 @@ import type { H3Event } from 'h3'
  *
  * Die Frage ist mit Absicht negativ formuliert („welche dieser Nutzer sind
  * EHEMALIG?") und nicht positiv („wer ist Mitglied?"). Der Grund ist Produkt, kein
- * Geschmack: in einer Pool-Community trägt `site_members` heute nur das TEAM
- * (Gründer + Eingeladene), nicht jede mitlesende Person (CLAUDE.md, A4). Wer
- * „nicht in site_members" als „ehemalig" läse, würde fast jeden Kommentar-Autor
- * falsch kennzeichnen. Ehemalig ist deshalb eine POSITIVE Tatsache: es gibt eine
- * Mitgliedschafts-Row, und ihr Zugang wurde entzogen (status 'removed').
+ * Geschmack: eine fehlende Row heißt nicht „ehemalig". Seit A5 (2026-07-29) trägt
+ * `site_members` zwar jedes beigetretene Mitglied und nicht mehr nur das Team —
+ * aber Gast-Kommentare, Autoren von vor A5 und Konten, die hier nie beigetreten
+ * sind, haben trotzdem keine Zeile. Wer „nicht in site_members" als „ehemalig"
+ * läse, würde sie alle falsch kennzeichnen. Ehemalig ist deshalb eine POSITIVE
+ * Tatsache: es gibt eine Mitgliedschafts-Row, und ihr Zugang wurde entzogen
+ * (status 'removed').
  *
  * FAIL-SOFT, anders als bei der Autorisierung: fällt die Auflösung aus, fehlt ein
  * Hinweis-Zeichen — das darf niemals eine Liste kaputt machen. (Beim

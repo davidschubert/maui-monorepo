@@ -12,15 +12,24 @@ import { isRole } from '../../shared/authz'
  * blind.
  *
  * Warum in CORE (seit 2026-07-29, vorher packages/onboarding): der einzige
- * Aufrufer war die Wizard-Route — also bekam nur der GRÜNDER das Label. Mit A4
- * vergibt es die Middleware `site-label.ts` an jedes Mitglied, und die ist ein
- * Fundament-Baustein. Der Helfer benutzt nur die Users-API und den
- * Tenant-Kontext, hängt also an keinem Feature (A14 erfüllt).
+ * Aufrufer war die Wizard-Route — also bekam nur der GRÜNDER das Label. Der
+ * Helfer benutzt nur die Users-API und den Tenant-Kontext, hängt also an keinem
+ * Feature (A14 erfüllt).
  *
  * Warum HIER und nicht im Control Plane: Labels gehören dem RUNTIME-Projekt
  * (Pool), und nur diese App hat dafür einen Schlüssel. Das Control Plane
  * besitzt die Mitgliedschaft, die Runtime das Label — dieselbe Trennung wie
- * überall sonst in H3.
+ * überall sonst in H3. Deshalb muss auch der ENTZUG hier passieren
+ * (revokeSiteLabel): `members/remove` im Control Plane kann Labels nicht
+ * anfassen, es hat keinen Pool-Schlüssel.
+ *
+ * WAS DAS LABEL SEIT A5 BEDEUTET (2026-07-29): „ist Mitglied dieser Community",
+ * abgeleitet aus einer `site_members`-Zeile mit Zugang — NICHT mehr „hat den
+ * Host benutzt" (A4). Vergeben wird es deshalb nur noch dort, wo Mitgliedschaft
+ * feststeht: joinSite() (Beitritt/Bestand), die Label-Middleware (bestehende
+ * Mitgliedschaft) und der Wizard (Gründung). Der Unterschied ist nicht
+ * akademisch: unter der A4-Regel bekam eine entfernte Person ihr Leserecht beim
+ * nächsten eingeloggten Besuch zurück.
  *
  * ADDITIV: bestehende Labels bleiben (ein Mitglied kann in mehreren Communities
  * sein, und `admin`/`moderator` des Betreibers dürfen nicht verloren gehen).
@@ -29,30 +38,45 @@ import { isRole } from '../../shared/authz'
 /** Appwrite akzeptiert für Labels nur Alphanumerik — ID.unique() liefert genau das. */
 const SAFE_LABEL = /^[a-zA-Z0-9]{1,36}$/
 
-export async function grantSiteLabel(event: H3Event, siteId: string): Promise<void> {
+/**
+ * Ist dieser Wert als Site-Label überhaupt zulässig?
+ *
+ * Ein Site-Label darf NIE eine Operator-Rolle sein. Labels sind bei uns zwei
+ * Dinge in einem Feld: Betreiber-RBAC ('admin'/'moderator', hasCapability) und
+ * Site-Zugehörigkeit (die $id). Seit die Vergabe an JEDES Mitglied geht, wäre
+ * eine Site mit der $id 'admin' eine Rechteausweitung per Tippfehler. Kostet
+ * einen String-Vergleich.
+ *
+ * Fail-loud im Log statt Appwrite-400 im Gesicht des Kunden: die Community
+ * existiert schon, nur das Lesen wäre kaputt — das muss sichtbar sein.
+ */
+function labelUsable(siteId: string): boolean {
+  if (isRole(siteId)) {
+    logEvent('error', 'site_label.reserved', { siteId })
+    return false
+  }
+  if (!SAFE_LABEL.test(siteId)) {
+    logEvent('error', 'site_label.invalid', { siteId })
+    return false
+  }
+  return true
+}
+
+/**
+ * Site-Label vergeben. `userId` nur angeben, wenn es NICHT der Nutzer des
+ * Requests ist (Anmeldung: der Kontext-User existiert noch nicht).
+ */
+export async function grantSiteLabel(event: H3Event, siteId: string, userId?: string): Promise<void> {
   const user = event.context.user
-  if (!user?.$id || !siteId) return
+  const targetId = userId ?? user?.$id
+  const isRequestUser = !!targetId && targetId === user?.$id
+  if (!targetId || !siteId) return
 
   // Billiger Vorab-Ausschluss aus dem Request-Kontext: nach dem ersten Kontakt
   // ist das der Normalfall und kostet KEINEN Appwrite-Roundtrip.
-  if ((user.labels ?? []).includes(siteId)) return
+  if (isRequestUser && (user?.labels ?? []).includes(siteId)) return
 
-  // Ein Site-Label darf NIE eine Operator-Rolle sein. Labels sind bei uns zwei
-  // Dinge in einem Feld: Betreiber-RBAC ('admin'/'moderator', hasCapability)
-  // und Site-Zugehörigkeit (die $id). Seit die Vergabe an JEDES Mitglied geht
-  // (site-label.ts), wäre eine Site mit der $id 'admin' eine Rechteausweitung
-  // per Tippfehler. Kostet einen String-Vergleich.
-  if (isRole(siteId)) {
-    logEvent('error', 'site_label.reserved', { siteId })
-    return
-  }
-
-  if (!SAFE_LABEL.test(siteId)) {
-    // Fail-loud im Log statt Appwrite-400 im Gesicht des Kunden: die Community
-    // existiert schon, nur das Lesen wäre kaputt — das muss sichtbar sein.
-    logEvent('error', 'site_label.invalid', { siteId })
-    return
-  }
+  if (!labelUsable(siteId)) return
 
   try {
     const { users } = createAdminClient(event)
@@ -62,20 +86,62 @@ export async function grantSiteLabel(event: H3Event, siteId: string): Promise<vo
     // zweite überschriebe das Label des ersten. Das Fenster wird damit auf
     // wenige Millisekunden klein; ginge es trotzdem verloren, heilt der
     // nächste Request auf jenem Host es wieder (die Vergabe ist idempotent).
-    const fresh = await users.get({ userId: user.$id })
+    const fresh = await users.get({ userId: targetId })
     const labels = fresh.labels ?? []
     if (labels.includes(siteId)) return
     const next = [...labels, siteId]
-    await users.updateLabels({ userId: user.$id, labels: next })
+    await users.updateLabels({ userId: targetId, labels: next })
     // Der laufende Request sieht sein neues Label sofort (nachgelagerte
     // Autorisierung/Permission-Bauer lesen aus dem Kontext, nicht aus Appwrite).
-    user.labels = next
-    logEvent('info', 'site_label.granted', { siteId, userId: user.$id })
+    if (isRequestUser && user) user.labels = next
+    logEvent('info', 'site_label.granted', { siteId, userId: targetId })
   }
   catch (error) {
     logEvent('error', 'site_label.failed', {
       siteId,
-      userId: user.$id,
+      userId: targetId,
+      message: error instanceof Error ? error.message : String(error),
+    })
+  }
+}
+
+/**
+ * Site-Label EINZIEHEN — „draußen" heißt draußen (A5, Davids Entscheidung 1).
+ *
+ * Der Gegenzug zu grantSiteLabel und der Grund, warum „Zugang entziehen" jetzt
+ * hält, was die Seite verspricht: ohne diesen Schritt bliebe der Lesezugriff auf
+ * alle `read(label:<siteId>)`-Zeilen bestehen (Presence, Activity-Feed,
+ * mitglieder-sichtbare Inhalte) — die Rolle war weg, das Publikum nicht.
+ *
+ * CHIRURGISCH: nur dieses eine Label fällt weg. Andere Communities und die
+ * Operator-Rollen ('admin'/'moderator') bleiben unangetastet — ein `labels: []`
+ * hätte einen Betreiber, der zufällig Mitglied einer Kunden-Community ist, aus
+ * seiner eigenen Instanz ausgesperrt.
+ *
+ * Kein Fehler, wenn nichts wegzunehmen ist (idempotent): der Entzug läuft an
+ * zwei Stellen — sofort in der Entfernen-Route und als Selbstheilung in der
+ * Label-Middleware, falls der erste Versuch danebenging.
+ */
+export async function revokeSiteLabel(event: H3Event, siteId: string, userId?: string): Promise<void> {
+  const user = event.context.user
+  const targetId = userId ?? user?.$id
+  if (!targetId || !siteId) return
+  if (!labelUsable(siteId)) return
+
+  try {
+    const { users } = createAdminClient(event)
+    const fresh = await users.get({ userId: targetId })
+    const labels = fresh.labels ?? []
+    if (!labels.includes(siteId)) return
+    const next = labels.filter(label => label !== siteId)
+    await users.updateLabels({ userId: targetId, labels: next })
+    if (targetId === user?.$id && user) user.labels = next
+    logEvent('info', 'site_label.revoked', { siteId, userId: targetId })
+  }
+  catch (error) {
+    logEvent('error', 'site_label.revoke_failed', {
+      siteId,
+      userId: targetId,
       message: error instanceof Error ? error.message : String(error),
     })
   }

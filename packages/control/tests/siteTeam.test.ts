@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   countActiveOwners,
   decideInvite,
+  decideJoin,
   decideRemoval,
   decideRoleChange,
   decideTransfer,
@@ -161,5 +162,57 @@ describe('decideInvite', () => {
   it('weist unbekannte Rollen ab', () => {
     expect(decideInvite({ email: 'neu@example.test', role: 'superuser', members: team, activeEmails }))
       .toEqual({ ok: false, reason: 'invalid_role' })
+  })
+})
+
+/**
+ * A5 — „Beitritt" als Regel (Davids Entscheidung 1 vom 2026-07-29).
+ *
+ * Die drei Aussagen, an denen alles hängt und die man nicht per Hand nachprüfen
+ * will: entzogener Zugang schlägt jeden Auslöser, geschlossene Community lässt
+ * niemanden herein, und der Bestand kommt trotzdem durch.
+ */
+describe('decideJoin', () => {
+  it('offene Community: der Auslöser macht Mitglied — mit der Rolle viewer', () => {
+    for (const trigger of ['registration', 'contribution'] as const) {
+      expect(decideJoin({ trigger, openRegistration: true, existing: null }))
+        .toEqual({ outcome: 'joined', role: 'viewer' })
+    }
+  })
+
+  it('geschlossene Community: KEIN Auto-Beitritt (nur Einladung)', () => {
+    for (const trigger of ['registration', 'contribution'] as const) {
+      expect(decideJoin({ trigger, openRegistration: false, existing: null }))
+        .toEqual({ outcome: 'closed', role: null })
+    }
+  })
+
+  it('entzogener Zugang schlägt JEDEN Auslöser — auch die Bestands-Übernahme', () => {
+    for (const trigger of ['registration', 'contribution', 'legacy'] as const) {
+      for (const openRegistration of [true, false]) {
+        expect(decideJoin({ trigger, openRegistration, existing: removed }))
+          .toEqual({ outcome: 'removed', role: null })
+      }
+    }
+  })
+
+  it('bestehendes Mitglied bleibt, was es ist (idempotent, Rolle unberührt)', () => {
+    expect(decideJoin({ trigger: 'contribution', openRegistration: true, existing: admin }))
+      .toEqual({ outcome: 'member', role: 'admin' })
+    expect(decideJoin({ trigger: 'legacy', openRegistration: false, existing: owner }))
+      .toEqual({ outcome: 'member', role: 'owner' })
+  })
+
+  it('Bestand („legacy") umgeht den Registrierungs-Schalter — und nur er', () => {
+    expect(decideJoin({ trigger: 'legacy', openRegistration: false, existing: null }))
+      .toEqual({ outcome: 'joined', role: 'viewer' })
+  })
+
+  it('ein suspendierter Zugang ist auch kein Zugang', () => {
+    expect(decideJoin({
+      trigger: 'contribution',
+      openRegistration: true,
+      existing: { ...viewer, status: 'suspended' },
+    })).toEqual({ outcome: 'removed', role: null })
   })
 })

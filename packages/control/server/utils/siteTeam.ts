@@ -43,8 +43,69 @@ export interface SiteTeamContext {
   databaseId: string
 }
 
-/** Mitgliedschaften einer Site — eine Abfrage, bewusst mit hartem Limit. */
+/**
+ * Mitgliedschaften einer Site — ALLE, seitenweise.
+ *
+ * War bis A5 eine Abfrage mit `limit(200)`, und das war richtig, solange
+ * `site_members` nur das Team trug (Gründer + Eingeladene). Seit Mitgliedschaft
+ * ein Ereignis ist (jeder Beitritt legt eine Zeile an), ist 200 eine Grenze, die
+ * eine wachsende Community erreicht — und ein abgeschnittenes Ende hätte hier
+ * zwei hässliche Folgen: die Owner-Zählung („nicht der letzte Owner") stimmte
+ * nicht mehr, und die Mitgliederliste zeigte still weniger als sie behauptet.
+ *
+ * Der Deckel bleibt, aber weit oben und SICHTBAR: Pool-Communities sind
+ * Vereins-/Redaktionsgröße, nicht Twitter. Wer ihn erreicht, findet den Grund im
+ * Log statt in einem stummen Fehlverhalten.
+ */
+const MEMBER_PAGE = 500
+const MEMBER_CEILING = 10_000
+
 export async function listSiteMembers(event: H3Event, siteId: string, projectId: string): Promise<SiteMemberRow[]> {
+  const config = useRuntimeConfig(event)
+  const admin = createAdminClient(event)
+  const databaseId = config.public.appwriteDatabaseId
+
+  const all: SiteMemberRow[] = []
+  let cursor = ''
+  while (all.length < MEMBER_CEILING) {
+    const queries = [
+      Query.equal('siteId', siteId),
+      Query.equal('runtimeProjectId', projectId),
+      Query.orderAsc('$createdAt'),
+      Query.limit(MEMBER_PAGE),
+      ...(cursor ? [Query.cursorAfter(cursor)] : []),
+    ]
+    const page: SiteMemberRow[] = await admin.tablesDB.listRows<SiteMemberRow>({
+      databaseId, tableId: SITE_MEMBERS_TABLE, queries,
+    }).then(res => res.rows).catch((error) => { throw toH3Error(error, 'Could not read site members') })
+
+    all.push(...page)
+    if (page.length < MEMBER_PAGE) return all
+    cursor = page[page.length - 1]?.$id ?? ''
+    if (!cursor) return all
+  }
+
+  logEvent('warn', 'site.members_truncated', { siteId, ceiling: MEMBER_CEILING })
+  return all
+}
+
+/**
+ * Die Mitgliedschaft EINES Runtime-Users auf EINER Site — gezielt, nicht aus der
+ * Liste gefischt.
+ *
+ * Warum getrennt von listSiteMembers: die Autorisierung darf nicht davon
+ * abhängen, wie viele Mitglieder eine Community hat. Vor A5 war der Handelnde
+ * immer unter den ersten 200 Zeilen (nur das Team stand drin) — mit
+ * beitretenden Mitgliedern hätte ein Admin einer großen Community irgendwann 403
+ * bekommen, weil seine eigene Zeile hinter dem Seitenrand lag. Das ist die Sorte
+ * Fehler, die erst beim erfolgreichen Kunden auftritt.
+ */
+export async function findSiteMember(
+  event: H3Event,
+  siteId: string,
+  projectId: string,
+  runtimeUserId: string,
+): Promise<SiteMemberRow | null> {
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
   const { rows } = await admin.tablesDB.listRows<SiteMemberRow>({
@@ -53,11 +114,11 @@ export async function listSiteMembers(event: H3Event, siteId: string, projectId:
     queries: [
       Query.equal('siteId', siteId),
       Query.equal('runtimeProjectId', projectId),
-      Query.orderAsc('$createdAt'),
-      Query.limit(200),
+      Query.equal('runtimeUserId', runtimeUserId),
+      Query.limit(1),
     ],
-  }).catch((error) => { throw toH3Error(error, 'Could not read site members') })
-  return rows
+  }).catch((error) => { throw toH3Error(error, 'Could not read site membership') })
+  return rows[0] ?? null
 }
 
 /** Offene Einladungen einer Site (pending; abgelaufene filtert der Aufrufer). */
@@ -86,8 +147,10 @@ export async function requireSiteTeamContext(
   const config = useRuntimeConfig(event)
   const databaseId = config.public.appwriteDatabaseId
 
-  const members = await listSiteMembers(event, body.siteId, identity.projectId)
-  const actor = members.find(row => row.runtimeUserId === identity.userId && row.status === 'active')
+  // GEZIELT, nicht aus der Liste: die Autorisierung darf nicht daran hängen, wie
+  // viele Mitglieder eine Community hat (siehe findSiteMember).
+  const own = await findSiteMember(event, body.siteId, identity.projectId, identity.userId)
+  const actor = own?.status === 'active' ? own : null
   const role = actor?.role
 
   if (!actor || !role || !isTenantRole(role) || !tenantRoleHasCapability(role, capability)) {
@@ -107,6 +170,11 @@ export async function requireSiteTeamContext(
   if (!tenant || tenant.projectId !== identity.projectId) {
     throw createError({ status: 404, statusText: 'Site not found' })
   }
+
+  // ALLE Mitgliedschaften — die Regeln brauchen sie (Owner-Zählung) und die
+  // Liste zeigt sie. Erst NACH der Autorisierung: wer nichts darf, soll auch
+  // nichts lesen lassen.
+  const members = await listSiteMembers(event, body.siteId, identity.projectId)
 
   return { identity, tenant, actor, actorRole: role, members, databaseId }
 }

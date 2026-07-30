@@ -22,10 +22,14 @@
  *           beweist, worauf alles ruht: dass die Presences-API die Leserechte
  *           wirklich erzwingt (die eine Annahme aus Abschnitt 7.3 der Analyse).
  *   Akt 2 — der ECHTE PFAD durch unseren Code, wenn ein Platform-Dev-Server
- *           läuft: anmelden auf zwei Mandanten-Hosts → bekommt jeder nur SEIN
- *           Site-Label (server/middleware/site-label.ts)? → Heartbeat schreiben
- *           → sieht der Nachbar-Mandant die Presence? Ohne laufenden Server
- *           wird Akt 2 übersprungen (mit Hinweis), nicht als Fehler gewertet.
+ *           läuft: auf zwei Mandanten-Hosts BEITRETEN (Anmeldung bzw. erster
+ *           Beitrag — seit A5 die einzigen Auslöser, ein Besuch genügt
+ *           ausdrücklich nicht) → bekommt jeder nur SEIN Site-Label
+ *           (server/middleware/site-label.ts)? → Heartbeat schreiben → sieht
+ *           der Nachbar-Mandant die Presence? Ohne laufenden Server wird Akt 2
+ *           übersprungen (mit Hinweis), nicht als Fehler gewertet.
+ *           Die Hosts brauchen OFFENE Registrierung (tenants.openRegistration),
+ *           sonst gibt es dort keinen Beitritt und Akt 2 meldet zu Recht Fehler.
  *
  * Läuft gegen die Instanz aus der Env — nie hartkodiert Prod. Legt Wegwerf-
  * Nutzer an und räumt sie (auch im Fehlerfall) wieder weg.
@@ -35,7 +39,7 @@
  *   # (Hosts aus der lokalen tenants-Tabelle, Default kunde-a/kunde-b.localhost)
  */
 import { request } from 'node:http'
-import { Client, ID, Presences, Query, Users } from 'node-appwrite'
+import { Client, ID, Presences, Query, TablesDB, Users } from 'node-appwrite'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -55,7 +59,7 @@ const stamp = Date.now().toString(36)
 const SITE_A = `a4siteA${stamp}`
 const SITE_B = `a4siteB${stamp}`
 
-const created = { users: [], presences: [] }
+const created = { users: [], presences: [], comments: [] }
 let pass = 0
 let fail = 0
 
@@ -141,6 +145,42 @@ async function plainUser(tag) {
   return { id: user.$id, name: `A4 ${tag}`, email, password }
 }
 
+/**
+ * Konto AUF EINEM MANDANTEN-HOST anlegen — seit A5 (2026-07-29) ist das einer der
+ * beiden Beitritts-Auslöser (packages/core/shared/siteJoin.ts). Vorher genügte
+ * für das Label ein eingeloggter Besuch; jetzt braucht es eine Mitgliedschaft,
+ * und die entsteht hier.
+ */
+async function signupOn(host, tag) {
+  const email = `a4-${tag}-${stamp}@example.test`
+  const password = `Pw-${ID.unique()}`
+  const res = await call(host, '/api/auth/signup', {
+    method: 'POST', body: { email, password, name: `A4 ${tag}` },
+  })
+  if (res.status !== 200) throw new Error(`Signup auf ${host} fehlgeschlagen (${res.status}): ${res.text.slice(0, 200)}`)
+  const found = await adminUsers.list({ queries: [Query.equal('email', email), Query.limit(1)] })
+  const user = found.users[0]
+  if (!user) throw new Error('Signup ohne Nutzer?')
+  created.users.push(user.$id)
+  const raw = res.setCookie.find(c => c.startsWith('a_session_'))
+  return { id: user.$id, name: `A4 ${tag}`, email, password, cookie: raw ? raw.split(';')[0] : null }
+}
+
+/** Der zweite Auslöser: der erste eigene Schreibvorgang in dieser Community. */
+async function contributeOn(host, cookie) {
+  const res = await call(host, '/api/comments', {
+    method: 'POST',
+    cookie,
+    body: { targetId: `a4-join-${stamp}`, targetType: 'verify', content: 'Ich mache mit.' },
+  })
+  if (res.status !== 200 && res.status !== 201) {
+    throw new Error(`Kommentar auf ${host} fehlgeschlagen (${res.status}): ${res.text.slice(0, 200)}`)
+  }
+  const id = res.json?.$id ?? res.json?.comment?.$id
+  if (id) created.comments.push(id)
+  return res
+}
+
 async function loginOn(host, account) {
   const res = await call(host, '/api/auth/login', {
     method: 'POST', body: { email: account.email, password: account.password },
@@ -213,30 +253,40 @@ try {
       throw new Error(`Mandanten-Hosts antworten nicht (${HOST_A}: ${aHost.status}, ${HOST_B}: ${bHost.status})`)
     }
 
-    console.log(`\n6. Label-Vergabe: „hat den Host benutzt" (${HOST_A} / ${HOST_B})`)
-    const ann = await plainUser('ann') // wird Kunde A benutzen
-    const ben = await plainUser('ben') // wird Kunde B benutzen
-    const nick = await plainUser('nick') // benutzt gar nichts
+    console.log(`\n6. Label-Vergabe: MITGLIEDSCHAFT, nicht Besuch (${HOST_A} / ${HOST_B})`)
+    // SEIT A5 (2026-07-29) folgt das Label einer site_members-Zeile MIT ZUGANG.
+    // Vorher genügte ein eingeloggter Besuch (A4) — und genau daran scheiterte
+    // „Zugang entziehen": das Publikum kam beim nächsten Aufruf zurück. Die
+    // Prüfungen hier fahren deshalb die ECHTEN Beitritts-Auslöser
+    // (Anmeldung auf dem Host, erster Schreibvorgang) statt eines Besuchs.
+    const ann = await plainUser('ann') // hat ihr Konto schon → tritt per Beitrag bei
+    const nick = await plainUser('nick') // macht nirgends mit
     check('frisch angelegt: noch kein Label', (await labelsOf(ann.id)).length === 0)
 
     const annCookie = await loginOn(HOST_A, ann)
-    const benCookie = await loginOn(HOST_B, ben)
-    // Der Login selbst trägt noch keine Session (das Cookie entsteht erst in
-    // der Antwort) — die Vergabe passiert beim ERSTEN Request DANACH.
+    // Der BESUCH allein darf nichts vergeben — das ist die Umkehrung von A4.
     await call(HOST_A, '/api/auth/me', { cookie: annCookie })
-    await call(HOST_B, '/api/auth/me', { cookie: benCookie })
+    await call(HOST_A, '/', { cookie: annCookie })
+    check('eingeloggter BESUCH vergibt kein Label mehr (A5)',
+      (await labelsOf(ann.id)).length === 0, JSON.stringify(await labelsOf(ann.id)))
+
+    await contributeOn(HOST_A, annCookie)
+    const ben = await signupOn(HOST_B, 'ben') // Anmeldung AUF dem Host = Beitritt
+    const benCookie = ben.cookie ?? await loginOn(HOST_B, ben)
 
     const annLabels = await labelsOf(ann.id)
     const benLabels = await labelsOf(ben.id)
-    check('Ann trägt GENAU ein Label (ihr Host)', annLabels.length === 1, JSON.stringify(annLabels))
-    check('Ben trägt GENAU ein Label (sein Host)', benLabels.length === 1, JSON.stringify(benLabels))
+    check('Ann trägt nach ihrem ersten Beitrag GENAU ein Label (ihr Host)',
+      annLabels.length === 1, JSON.stringify(annLabels))
+    check('Ben trägt nach der Anmeldung auf seinem Host GENAU ein Label',
+      benLabels.length === 1, JSON.stringify(benLabels))
     check('die beiden Labels sind VERSCHIEDEN (zwei Communities)',
       annLabels[0] !== benLabels[0], `${annLabels[0]} / ${benLabels[0]}`)
-    check('Nick (nie auf einem Mandanten-Host) trägt keines',
+    check('Nick (macht nirgends mit) trägt keines',
       (await labelsOf(nick.id)).length === 0)
 
     console.log('\n7. Mehrfach-Mitgliedschaft + Idempotenz')
-    await call(HOST_B, '/api/auth/me', { cookie: await loginOn(HOST_B, ann) })
+    await contributeOn(HOST_B, await loginOn(HOST_B, ann))
     const annBoth = await labelsOf(ann.id)
     check('Ann in ZWEI Communities → zwei Labels (additiv, nichts geht verloren)',
       annBoth.length === 2 && annBoth.includes(annLabels[0]) && annBoth.includes(benLabels[0]),
@@ -246,9 +296,9 @@ try {
       (await labelsOf(ann.id)).length === 2, JSON.stringify(await labelsOf(ann.id)))
 
     console.log('\n8. Heartbeat schreibt die Grenze — Gegenprobe zwischen zwei Mandanten')
-    const carl = await plainUser('carl') // zweites Mitglied von Kunde B
-    const carlCookie = await loginOn(HOST_B, carl)
-    await call(HOST_B, '/api/auth/me', { cookie: carlCookie })
+    // Zweites Mitglied von Kunde B. Die Anmeldung IST der Beitritt (A5) — es
+    // braucht keinen zusätzlichen Besuch mehr, damit Carl das Label trägt.
+    const carl = await signupOn(HOST_B, 'carl')
     const hb = await call(HOST_B, '/api/presence/heartbeat', {
       method: 'POST', cookie: benCookie, body: { scope: 'post:demo' },
     })
@@ -281,8 +331,20 @@ catch (error) {
 finally {
   console.log('\n9. Aufräumen')
   for (const id of created.presences) await adminPresences.delete({ presenceId: id }).catch(() => {})
+  // Die Beitritts-Auslöser hinterlassen echte Kommentare (Akt 2) — und im
+  // Control Plane je Beitritt eine site_members-Zeile. Die Zeilen bleiben
+  // bewusst stehen: dieses Skript hat keinen Control-Plane-Schlüssel, und mit
+  // dem gelöschten Nutzer zeigen sie auf niemanden mehr. Wer aufräumen will,
+  // nimmt packages/onboarding/scripts/verify-site-authz.mjs — das hat beide.
+  if (created.comments.length > 0) {
+    const poolDb = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+    const dbId = process.env.NUXT_PUBLIC_APPWRITE_DATABASE_ID || 'main'
+    for (const id of created.comments) {
+      await poolDb.deleteRow({ databaseId: dbId, tableId: 'comments', rowId: id }).catch(() => {})
+    }
+  }
   for (const id of created.users) await adminUsers.delete({ userId: id }).catch(() => {})
-  console.log(`  ✔ ${created.users.length} Nutzer + ${created.presences.length} Presences entfernt`)
+  console.log(`  ✔ ${created.users.length} Nutzer + ${created.presences.length} Presences + ${created.comments.length} Kommentare entfernt`)
   console.log(`\n${fail === 0 ? '✔' : '✗'} ${pass} bestanden, ${fail} fehlgeschlagen\n`)
   process.exit(fail === 0 ? 0 : 1)
 }

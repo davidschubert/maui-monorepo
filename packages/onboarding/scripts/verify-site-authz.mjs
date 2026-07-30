@@ -17,6 +17,12 @@
  *     Schluss der Kern von Davids Entscheidung 1: nach dem Entfernen steht der
  *     Kommentar des Entfernten weiter da, mit Namen und mit dem Zeichen
  *     „Ehemaliges Mitglied".
+ *   - ist MITGLIEDSCHAFT ein Ereignis (Abschnitt 10, A5)? Offene Community:
+ *     Beitritt beim ersten Schreibvorgang und bei der Anmeldung auf dem Host —
+ *     ein bloßer BESUCH macht niemanden zum Mitglied. Entfernen: Label weg,
+ *     read('members')-Inhalt (die Presence der anderen) nicht mehr lesbar, und
+ *     beim nächsten Besuch kommt es NICHT zurück. Geschlossene Community: kein
+ *     Auto-Beitritt, nur die Einladung führt hinein.
  *
  * Räumt am Ende alles weg, was es angelegt hat.
  *
@@ -25,7 +31,7 @@
  */
 import { request } from 'node:http'
 import { createHash } from 'node:crypto'
-import { Client, ID, Query, TablesDB, Users } from 'node-appwrite'
+import { Client, ID, Presences, Query, TablesDB, Users } from 'node-appwrite'
 
 const PORT = Number(process.env.PLATFORM_PORT || 3006)
 const CONTROL_HOST = process.env.CONTROL_HOST || 'app.localhost'
@@ -48,7 +54,7 @@ const poolUsers = new Users(new Client().setEndpoint(endpoint).setProject(poolPr
 
 let pass = 0
 let fail = 0
-const cleanup = { users: [], codes: [], tenants: [], members: [], workspaces: [], invites: [], comments: [] }
+const cleanup = { users: [], codes: [], tenants: [], members: [], workspaces: [], invites: [], comments: [], presences: [] }
 
 function check(label, ok, detail = '') {
   if (ok) {
@@ -198,21 +204,24 @@ try {
   check('Fremder darf fremde Meldungen NICHT sehen', strangerReports.status === 403, `Status ${strangerReports.status}`)
 
   console.log('\n4. Site-Label (Naht 4: privates Lesen)')
-  // SEIT A4 (2026-07-29) bedeutet das Label „hat diesen Host eingeloggt
-  // benutzt" — server/middleware/site-label.ts vergibt es an JEDES Mitglied,
-  // nicht mehr nur an den Gründer. Ohne diese Ausweitung sähe niemand außer
-  // dem Owner Anwesende oder den Activity-Feed (beide hängen an
+  // SEIT A5 (2026-07-29) bedeutet das Label „ist Mitglied dieser Community" —
+  // abgeleitet aus einer site_members-Zeile MIT ZUGANG, nicht mehr aus „hat den
+  // Host benutzt" (das war A4, und daran scheiterte „Zugang entziehen": das
+  // Publikum kam beim nächsten Besuch zurück). Vergeben wird es von
+  // server/middleware/site-label.ts an jedes Mitglied — ohne das sähe niemand
+  // außer dem Owner Anwesende oder den Activity-Feed (beide hängen an
   // read(label(siteId))). Das Label ist ein LESE-PUBLIKUM, KEINE Rolle: es
   // gewährt keine einzige Capability (hasCapability kennt nur
   // 'admin'/'moderator') — die 403er aus Schritt 3 beweisen das direkt.
   const ownerAfter = await poolUsers.get({ userId: owner.userId })
-  check('Owner hat das Site-Label', (ownerAfter.labels ?? []).includes(siteId), JSON.stringify(ownerAfter.labels))
+  check('Owner hat das Site-Label (Gründung = Mitgliedschaft)',
+    (ownerAfter.labels ?? []).includes(siteId), JSON.stringify(ownerAfter.labels))
   const strangerAfter = await poolUsers.get({ userId: stranger.userId })
-  check('Fremder trägt es ebenfalls — er hat den Host benutzt (A4)',
-    (strangerAfter.labels ?? []).includes(siteId), JSON.stringify(strangerAfter.labels))
-  check('…und bleibt trotzdem draußen: Label ≠ Rolle (Schritt 3: 403)',
+  check('Fremder (eingeloggt, kein Mitglied) trägt es NICHT — Besuchen ist kein Beitritt',
+    !(strangerAfter.labels ?? []).includes(siteId), JSON.stringify(strangerAfter.labels))
+  check('…und bleibt auch sonst draußen: Label ≠ Rolle (Schritt 3: 403)',
     strangerPages.status === 403, `Status ${strangerPages.status}`)
-  // Der Gegenbeweis: wer den Host NIE berührt hat, bekommt auch nichts.
+  // Der Gegenbeweis: wer den Host NIE berührt hat, bekommt erst recht nichts.
   const outsider = await createPoolUser('outsider')
   await login(outsider) // nur auf dem KONTROLL-Host — dort gibt es keinen Mandanten
   const outsiderAfter = await poolUsers.get({ userId: outsider.userId })
@@ -427,13 +436,241 @@ try {
   const oldOwner = ownerMemberId ? await control.getRow({ databaseId, tableId: 'site_members', rowId: ownerMemberId }) : null
   check('das Ziel ist jetzt Owner', newOwner.role === 'owner', `role=${newOwner.role}`)
   check('der Übertragende ist Admin — nicht draußen', oldOwner?.role === 'admin', `role=${oldOwner?.role}`)
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // 10. MITGLIEDSCHAFT IST EIN EREIGNIS (A5, Davids Entscheidung 1, 2026-07-29)
+  //
+  // Der Befund davor: das Site-Label bedeutete „hat den Host eingeloggt
+  // benutzt" (A4). Damit war „Zugang entziehen" ein Versprechen ohne Wirkung —
+  // die Rolle war weg, das Lese-Publikum kam beim nächsten Besuch zurück.
+  // Dieser Abschnitt prüft die drei Sätze, aus denen die Behebung besteht:
+  //   a) OFFEN   → der Auslöser macht Mitglied (Zeile UND Label), ein BESUCH nicht.
+  //   b) ENTZUG  → Label weg, read('members')-Inhalt nicht mehr lesbar,
+  //                und beim nächsten Besuch kommt es NICHT zurück.
+  //   c) GESCHLOSSEN → kein Auto-Beitritt; Mitglied wird man nur per Einladung.
+  // ══════════════════════════════════════════════════════════════════════════
+  console.log('\n10. Beitritt als Ereignis (A5)')
+
+  /** Mitgliedschafts-Zeile eines Runtime-Users auf dieser Site (jeden Status). */
+  const memberRowOf = async (userId) => {
+    const res = await control.listRows({
+      databaseId,
+      tableId: 'site_members',
+      queries: [Query.equal('siteId', siteId ?? 'x'), Query.equal('runtimeUserId', userId), Query.limit(1)],
+    })
+    const row = res.rows[0] ?? null
+    if (row && !cleanup.members.includes(row.$id)) cleanup.members.push(row.$id)
+    return row
+  }
+  const labelsOf = async userId => (await poolUsers.get({ userId })).labels ?? []
+  const hasLabel = async userId => (await labelsOf(userId)).includes(siteId)
+
+  /** Presences-Client mit ECHTER Session — liest an unserem Code vorbei. */
+  const presencesAs = async (userId) => {
+    const session = await poolUsers.createSession({ userId })
+    return new Presences(new Client().setEndpoint(endpoint).setProject(poolProject).setSession(session.secret))
+  }
+  const seesPresence = async (client, targetUserId) => {
+    const res = await client.list({ queries: [Query.limit(200)], ttl: 0 }).catch(() => null)
+    return (res?.presences ?? []).some(p => p.userId === targetUserId)
+  }
+
+  console.log('  a) offene Community: mitmachen macht Mitglied — zusehen nicht')
+  const joiner = await createPoolUser('joiner')
+  const joinerCookie = await login(joiner)
+  const visited = await call(host, '/api/auth/me', { cookie: joinerCookie })
+  check('eingeloggter Besuch der Community → 200', visited.status === 200, `Status ${visited.status}`)
+  check('…aber KEINE Mitgliedschaft (ein Besuch ist kein Beitritt)',
+    (await memberRowOf(joiner.userId)) === null)
+  check('…und KEIN Site-Label (das war der A4-Fehler)', !(await hasLabel(joiner.userId)),
+    JSON.stringify(await labelsOf(joiner.userId)))
+
+  const contributed = await call(host, '/api/comments', {
+    method: 'POST',
+    cookie: joinerCookie,
+    body: { targetId: `a5-join-${Date.now()}`, targetType: 'verify', content: 'Ich mache jetzt mit.' },
+  })
+  check('erster Kommentar → 200', contributed.status === 200 || contributed.status === 201,
+    `Status ${contributed.status} ${contributed.text.slice(0, 200)}`)
+  const joinerComment = contributed.json?.$id ?? contributed.json?.comment?.$id
+  if (joinerComment) cleanup.comments.push(joinerComment)
+
+  const joinerRow = await memberRowOf(joiner.userId)
+  check('der Schreibvorgang hat eine Mitgliedschaft angelegt', !!joinerRow, JSON.stringify(joinerRow ?? {}))
+  check('…mit der einfachen Rolle „viewer" und Zugang',
+    joinerRow?.role === 'viewer' && joinerRow?.status === 'active',
+    JSON.stringify({ role: joinerRow?.role, status: joinerRow?.status }))
+  check('…und das Site-Label ist da (Presence/Members-Inhalte sichtbar)',
+    await hasLabel(joiner.userId), JSON.stringify(await labelsOf(joiner.userId)))
+
+  // Zweiter Auslöser: die ANMELDUNG auf dem Mandanten-Host. Hier steht das Label
+  // schon VOR dem ersten Seitenaufruf — der Fall ohne Realtime-Nachlauf.
+  const signupEmail = `a5-signup-${Date.now()}@example.test`
+  const signedUp = await call(host, '/api/auth/signup', {
+    method: 'POST',
+    body: { email: signupEmail, password: `Pw-${ID.unique()}`, name: 'A5 Signup' },
+  })
+  if (signedUp.status === 200) {
+    const found = await poolUsers.list({ queries: [Query.equal('email', signupEmail), Query.limit(1)] })
+    const fresh = found.users[0]
+    if (fresh) cleanup.users.push(fresh.$id)
+    const freshRow = fresh ? await memberRowOf(fresh.$id) : null
+    check('Anmeldung AUF dem Community-Host → sofort Mitglied', freshRow?.status === 'active',
+      JSON.stringify(freshRow ?? {}))
+    check('…und das Label steht vor dem ersten Seitenaufruf',
+      fresh ? await hasLabel(fresh.$id) : false, JSON.stringify(fresh ? await labelsOf(fresh.$id) : []))
+  }
+  else {
+    // Instanz-Registrierung aus (app_config) — kein Autorisierungsfehler, nur
+    // eine Umgebung, in der dieser Auslöser nicht prüfbar ist.
+    console.log(`    ℹ Signup-Auslöser übersprungen (Status ${signedUp.status} — Instanz-Registrierung aus)`)
+  }
+
+  console.log('  b) Entfernen nimmt das Lese-Publikum wirklich weg')
+  // Gegenprobe VOR dem Entzug: der Beigetretene sieht die Presence eines anderen
+  // Mitglieds. Geschrieben wird sie über unsere echte Route (read("label:<siteId>")).
+  const beat = await call(host, '/api/presence/heartbeat', {
+    method: 'POST', cookie: staff.moderator.cookie, body: { scope: `a5:${Date.now()}` },
+  })
+  check('Heartbeat eines Mitglieds → 200', beat.status === 200, `Status ${beat.status}`)
+  cleanup.presences.push(staff.moderator.userId)
+  const joinerPresences = await presencesAs(joiner.userId)
+  check('vor dem Entzug SIEHT das Mitglied die Anwesenheit der anderen',
+    await seesPresence(joinerPresences, staff.moderator.userId), 'Grenze sperrt eigene Leute aus!')
+
+  const removeJoiner = await call(host, `/api/site/members/${joinerRow?.$id}`, {
+    method: 'DELETE', cookie: ownerCookie,
+  })
+  check('Zugang entziehen → 200', removeJoiner.status === 200,
+    `Status ${removeJoiner.status} ${removeJoiner.text.slice(0, 160)}`)
+  check('die Zeile ist auf „removed" (nicht gelöscht)',
+    (await memberRowOf(joiner.userId))?.status === 'removed')
+  check('das Site-Label ist WEG', !(await hasLabel(joiner.userId)),
+    JSON.stringify(await labelsOf(joiner.userId)))
+  const joinerAfterRemoval = await presencesAs(joiner.userId)
+  check('read("members")-Inhalt ist nicht mehr lesbar (Presence unsichtbar)',
+    !(await seesPresence(joinerAfterRemoval, staff.moderator.userId)), 'Leseumfang blieb bestehen!')
+  const stillMember = await presencesAs(staff.viewer.userId)
+  check('…während ein Mitglied sie WEITERHIN sieht (keine kollektive Sperre)',
+    await seesPresence(stillMember, staff.moderator.userId))
+
+  // Der Kern von Davids Auftrag: „beim nächsten Besuch kommt es NICHT zurück."
+  await call(host, '/api/auth/me', { cookie: joinerCookie })
+  await call(host, '/', { cookie: joinerCookie })
+  check('nächster eingeloggter Besuch holt das Label NICHT zurück',
+    !(await hasLabel(joiner.userId)), JSON.stringify(await labelsOf(joiner.userId)))
+  const writeAfterRemoval = await call(host, '/api/comments', {
+    method: 'POST',
+    cookie: joinerCookie,
+    body: { targetId: `a5-back-${Date.now()}`, targetType: 'verify', content: 'Und jetzt?' },
+  })
+  if (writeAfterRemoval.json?.$id) cleanup.comments.push(writeAfterRemoval.json.$id)
+  check('auch ein neuer Schreibvorgang macht den Entzug NICHT rückgängig',
+    (await memberRowOf(joiner.userId))?.status === 'removed' && !(await hasLabel(joiner.userId)),
+    JSON.stringify(await labelsOf(joiner.userId)))
+
+  console.log('  c) geschlossene Community: nur per Einladung')
+  const closing = await call(host, '/api/site/registration', {
+    method: 'PATCH', cookie: ownerCookie, body: { openRegistration: false },
+  })
+  check('Registrierung schließen → 200', closing.status === 200 && closing.json?.openRegistration === false,
+    `Status ${closing.status} ${closing.text.slice(0, 160)}`)
+
+  const outsider2 = await createPoolUser('closed')
+  const outsider2Cookie = await login(outsider2)
+  const closedWrite = await call(host, '/api/comments', {
+    method: 'POST',
+    cookie: outsider2Cookie,
+    body: { targetId: `a5-closed-${Date.now()}`, targetType: 'verify', content: 'Darf ich rein?' },
+  })
+  if (closedWrite.json?.$id) cleanup.comments.push(closedWrite.json.$id)
+  check('geschlossene Community: KEINE Mitgliedschaft durch Mitmachen',
+    (await memberRowOf(outsider2.userId)) === null)
+  check('…und kein Site-Label', !(await hasLabel(outsider2.userId)),
+    JSON.stringify(await labelsOf(outsider2.userId)))
+
+  // Die Einladung ist der einzige Weg hinein — und sie funktioniert auch
+  // geschlossen. Die Row wird direkt angelegt (wie die Team-Rows oben), weil der
+  // Mail-Versand in dieser Umgebung nicht garantiert ist.
+  const inviteRow = await control.createRow({
+    databaseId,
+    tableId: 'site_invites',
+    rowId: ID.unique(),
+    data: {
+      siteId,
+      email: outsider2.email,
+      role: 'viewer',
+      status: 'pending',
+      tokenHash: createHash('sha256').update(`a5-${ID.unique()}`, 'utf8').digest('hex'),
+      expiresAt: new Date(Date.now() + 7 * 86400_000).toISOString(),
+      invitedBy: owner.userId,
+    },
+  })
+  cleanup.invites.push(inviteRow.$id)
+  const accepted = await call(host, '/api/site/members/accept', {
+    method: 'POST', cookie: outsider2Cookie, body: { inviteId: inviteRow.$id },
+  })
+  check('Einladung annehmen → 200 (auch bei geschlossener Registrierung)',
+    accepted.status === 200, `Status ${accepted.status} ${accepted.text.slice(0, 200)}`)
+  check('…jetzt gibt es eine Mitgliedschaft mit Zugang',
+    (await memberRowOf(outsider2.userId))?.status === 'active')
+  check('…und das Label ist sofort da (kein 30-s-Blindflug)',
+    await hasLabel(outsider2.userId), JSON.stringify(await labelsOf(outsider2.userId)))
+
+  console.log('  d) Bestand aus der A4-Zeit: Label ohne Zeile wird zur Mitgliedschaft')
+  // Der Zustand VOR A5, künstlich hergestellt: Label da (die alte Middleware hat
+  // es beim Besuch vergeben), Mitgliedschaft nie entstanden. Diese Menschen
+  // lesen, kommentieren und werden gesehen — sie dürfen den Zugang nicht
+  // verlieren, nur weil die Regel sich geändert hat. Bewusst JETZT geprüft, wo
+  // die Community GESCHLOSSEN ist: die Übernahme umgeht den Schalter, denn wer
+  // schon drin war, wird nicht durch eine inzwischen geschlossene Tür ausgesperrt.
+  const legacy = await createPoolUser('legacy')
+  const legacyCookie = await login(legacy)
+  await poolUsers.updateLabels({ userId: legacy.userId, labels: [siteId] })
+  check('Ausgangslage: Label da, aber KEINE Mitgliedschaft',
+    (await hasLabel(legacy.userId)) && (await memberRowOf(legacy.userId)) === null)
+
+  const legacyVisit = await call(host, '/api/auth/me', { cookie: legacyCookie })
+  check('ein Besuch genügt für die Übernahme → 200', legacyVisit.status === 200, `Status ${legacyVisit.status}`)
+  const legacyRow = await memberRowOf(legacy.userId)
+  check('jetzt gibt es eine Mitgliedschaft (viewer, aktiv) — auch geschlossen',
+    legacyRow?.role === 'viewer' && legacyRow?.status === 'active', JSON.stringify(legacyRow ?? {}))
+  check('…und das Label bleibt (kein Rückschritt für echte Nutzer)',
+    await hasLabel(legacy.userId), JSON.stringify(await labelsOf(legacy.userId)))
+
+  // Die Gegenprobe, die diesen Weg unmissbrauchbar macht: ein ENTZOGENER Zugang
+  // wird NICHT übernommen — das hängengebliebene Label wird eingezogen. Bewusst
+  // ein FRISCHER Nutzer: so ist auch der Rollen-Cache leer, und geprüft wird der
+  // Selbstheilungs-Pfad (das Control Plane sagt 'removed'), nicht die
+  // Kurzzeit-Notiz aus der Entfernen-Route.
+  const ghost = await createPoolUser('ghost')
+  const ghostCookie = await login(ghost)
+  const ghostRow = await control.createRow({
+    databaseId, tableId: 'site_members', rowId: ID.unique(),
+    data: {
+      siteId,
+      runtimeProjectId: poolProject,
+      runtimeUserId: ghost.userId,
+      role: 'viewer',
+      status: 'removed',
+      email: ghost.email,
+      removedAt: new Date().toISOString(),
+    },
+  })
+  cleanup.members.push(ghostRow.$id)
+  await poolUsers.updateLabels({ userId: ghost.userId, labels: [siteId] })
+  const ghostVisit = await call(host, '/api/auth/me', { cookie: ghostCookie })
+  check('entzogener Zugang + hängendes Label → 200', ghostVisit.status === 200, `Status ${ghostVisit.status}`)
+  check('…das Label wird eingezogen, die Zeile NICHT wiederbelebt',
+    !(await hasLabel(ghost.userId)) && (await memberRowOf(ghost.userId))?.status === 'removed',
+    JSON.stringify(await labelsOf(ghost.userId)))
 }
 catch (error) {
   fail++
   console.error('\n✗ Abbruch:', error?.message || error)
 }
 finally {
-  console.log('\n9. Aufräumen')
+  console.log('\n11. Aufräumen')
   // Kommentare liegen im POOL-Projekt, nicht im Control Plane — eigene
   // Verbindung, eigene Datenbank-Id (in der Praxis dieselbe; Override per Env).
   if (cleanup.comments.length > 0) {
@@ -442,6 +679,10 @@ finally {
     for (const id of cleanup.comments) {
       await poolDb.deleteRow({ databaseId: poolDatabaseId, tableId: 'comments', rowId: id }).catch(() => {})
     }
+  }
+  if (cleanup.presences.length > 0) {
+    const poolPresences = new Presences(new Client().setEndpoint(endpoint).setProject(poolProject).setKey(poolKey))
+    for (const id of cleanup.presences) await poolPresences.delete({ presenceId: id }).catch(() => {})
   }
   for (const id of cleanup.invites) await control.deleteRow({ databaseId, tableId: 'site_invites', rowId: id }).catch(() => {})
   for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'site_members', rowId: id }).catch(() => {})

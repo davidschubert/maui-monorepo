@@ -6,6 +6,12 @@
  *  1. „Offene Registrierung" (Audit-Befund S1, Davids Entscheidung 4 vom
  *     2026-07-27) — der Einladungs-Code gilt nur fürs GRÜNDEN einer
  *     Community, wer beitreten darf, entscheidet die Community.
+ *     Seit A5 (2026-07-29) steuert DIESER Schalter auch die MITGLIEDSCHAFT, nicht
+ *     mehr nur die Kontoanlage: an heißt „wer sich hier anmeldet oder das erste
+ *     Mal mitschreibt, wird Mitglied", aus heißt „nur per Einladung"
+ *     (packages/core/shared/siteJoin.ts). Deshalb ist die Beschreibung im
+ *     Schalter ausführlicher als bei einem gewöhnlichen Ja/Nein — sie muss beide
+ *     Folgen benennen.
  *  2. „Erscheinungsbild" (Davids Entscheidung 12 vom 2026-07-28) — Theme +
  *     Variante der Community. „Nur Erscheinung ist variabel" gehört damit in
  *     Kundenhand; der Custom-Theme-EDITOR bleibt Betreiber-Werkzeug

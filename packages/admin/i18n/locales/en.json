@@ -444,7 +444,7 @@
       "title": "Community",
       "description": "Settings that belong to this community.",
       "openRegistration": "Open registration",
-      "openRegistrationDesc": "When this is on, anyone can create an account. When it's off, new members join by invitation only.",
+      "openRegistrationDesc": "When this is on, anyone can create an account and thereby becomes a member of your community — and so does anyone who already has an account and writes their first post or comment here. When it's off, people become members by invitation only. Either way, someone whose access you revoked never comes back on their own.",
       "saved": "Saved.",
       "saveFailed": "Could not be saved.",
       "noTenantTitle": "No community on this host",

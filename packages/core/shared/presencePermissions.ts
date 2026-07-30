@@ -15,8 +15,9 @@
  * Die Grenze selbst (Analyse: docs/archiv/PRESENCE-GRENZE.md):
  *  - Pool  → `read("label:<siteId>")`. Im geteilten Projekt hieß `read("users")`
  *    „jeder eingeloggte Nutzer ALLER Communities": wer `presences.list()` von
- *    Hand ruft, sah Name/Avatar/Aktivität aller Kunden. Das Label trägt nur,
- *    wer den Mandanten-Host benutzt (server/middleware/site-label.ts).
+ *    Hand ruft, sah Name/Avatar/Aktivität aller Kunden. Das Label trägt nur, wer
+ *    MITGLIED dieser Community ist — eine site_members-Zeile mit Zugang, seit A5
+ *    (server/middleware/site-label.ts, shared/siteJoin.ts).
  *  - Pool OHNE siteId (Datenfehler) → gar kein read. Fail-CLOSED: lieber
  *    niemand sieht jemanden, als dass alle alle sehen.
  *  - Silo / kein Mandant → `read("users")` wie bisher; dort IST das Projekt die

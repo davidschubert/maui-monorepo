@@ -130,6 +130,31 @@ export function tenantDb(event: H3Event, options: TenantDbOptions = {}) {
       createOptions: TenantCreateOptions = {},
     ): Promise<T> {
       const { rowId, permissions, ...permissionOptions } = createOptions
+
+      /**
+       * MITMACHEN IST BEITRETEN (A5, Davids Entscheidung 1 vom 2026-07-29).
+       *
+       * Warum der Auslöser HIER steht und nicht in den zwanzig Schreib-Routen:
+       * genau das ist der Grund, aus dem diese Tür existiert. „Jede Route muss
+       * daran denken" hat sich am 2026-07-26 schon einmal als keine Regel
+       * erwiesen; eine vergessene Aufrufstelle wäre hier kein Leck, aber ein
+       * Mensch, der schreibt und trotzdem kein Mitglied wird — unsichtbar, bis
+       * es jemandem auffällt. Durch diese Tür geht JEDER eigene Schreibvorgang
+       * eines Mandanten-Layers, also ist sie die vollständige Liste.
+       *
+       * NUR die Türklinke 'member': `as: 'operator'` ist Moderation und
+       * Betreiber-Sicht (auch recordActivity läuft so) — dort handelt nicht die
+       * Person, um deren Mitgliedschaft es geht.
+       *
+       * VOR dem Anlegen, nicht danach: das frische Label soll schon gelten, wenn
+       * Appwrite die Row-Permissions dieser Zeile auswertet — sonst könnte der
+       * Autor seinen eigenen Beitrag im nächsten Listenaufruf nicht lesen.
+       *
+       * Wirft nie und blockiert nie: joinSite() schluckt jeden Fehler
+       * ('unavailable'). Ein Beitritt darf keinen Kommentar kosten.
+       */
+      if (actor === 'member') await joinSite(event, 'contribution')
+
       return tablesDB.createRow<T>({
         databaseId,
         tableId,
