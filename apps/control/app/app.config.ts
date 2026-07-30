@@ -32,6 +32,14 @@ export default defineAppConfig({
         },
       ],
     },
+    // C17: DIESE App ist der Leser der kontobezogenen Meldungen. Beide
+    // `scope: 'account'`-Absender leben hier (Stripe-Webhook im billing-Layer,
+    // Early-Access-Anfragen im control-Layer) und schreiben in DIESES
+    // Appwrite-Projekt — die Empfänger sind Konten dieses Projekts (Workspace-
+    // Owner unter /workspace, Betreiber unter /dashboard). Ohne blueprint gibt
+    // es hier kein Community-Chrome, das die Glocke registriert; der Schalter
+    // hängt sie in beide Shells (core-default-Layout + Dashboard).
+    chrome: { accountBell: true },
     // Footer-Rechtslinks → die editierbaren pages-Seiten (Layer pages).
     legalLinks: [
       { to: '/imprint', labelKey: 'legal.imprint' },

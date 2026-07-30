@@ -6,6 +6,12 @@ const appConfig = useAppConfig()
 // Footer-Rechtslinks aus der App-Config (Core-Default leer) — config-gated,
 // damit interne Apps ohne öffentliche Seiten keinen Footer-Ballast tragen.
 const legalLinks = computed(() => appConfig.maui?.legalLinks ?? [])
+// Glocke im Kundenbereich (C17): dieses Layout trägt den Header von
+// /workspace und /account/billing in der control-App — der Shell, in der die
+// kontobezogenen Meldungen (`scope: 'account'`) tatsächlich gelesen werden.
+// Config-gated (Core-Default aus), weil blueprint-Apps ihre Glocke schon aus
+// maui.chrome.utilities beziehen und interne Apps keine brauchen.
+const accountBell = computed(() => appConfig.maui?.chrome?.accountBell === true)
 // Brand: Tenant-Name (Pool-Host, z. B. „Morgenlicht") vor App-Brand vor
 // dem historischen „Maui"-Fallback — Kette in useBrandName().
 const brand = useBrandName()
@@ -19,6 +25,7 @@ const brand = useBrandName()
         <NuxtLink :to="localePath('/')" class="font-bold tracking-tight">{{ brand }}</NuxtLink>
         <div class="flex items-center gap-2">
           <CoreLocaleSwitcher />
+          <NotificationBell v-if="isLoggedIn && accountBell" />
           <UserMenu v-if="isLoggedIn" />
           <UButton v-else :to="localePath('/login')" color="neutral" variant="ghost">{{ t('auth.login.title') }}</UButton>
         </div>

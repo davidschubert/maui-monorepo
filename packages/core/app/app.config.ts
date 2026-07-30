@@ -45,6 +45,24 @@ export default defineAppConfig({
       /** CMS-Seiten als Nav-/Footer-Quelle — registriert der pages-Layer;
        *  ohne ihn macht das Layout keinen /api/pages/public-Fetch. */
       pagesNav: false,
+      /**
+       * Die Glocke in den EIGENEN Shells: core-default-Layout (Kundenbereich)
+       * + Dashboard-Shell (Betreiber). BEWUSST ein eigener Schalter und nicht
+       * `utilities.notifications` — den liest nur das blueprint-Layout, also
+       * die öffentlichen Community-Seiten (C17, 2026-07-29).
+       *
+       * WARUM ES DEN SCHALTER BRAUCHT: eine App ohne blueprint (apps/control)
+       * hat gar kein Community-Chrome; dort schreibt der Stripe-Webhook und
+       * das Control Plane kontobezogene Meldungen (`scope: 'account'`), und
+       * niemand konnte sie lesen — geschrieben, zugestellt, unsichtbar. Der
+       * Core-Default bleibt AUS, damit die blueprint-Apps nicht zwei Glocken
+       * bekommen und interne Apps (marketing, help) keine ohne Zweck.
+       *
+       * Was die Glocke ZEIGT, entscheidet sie selbst über das Publikum
+       * ihres Hosts (shared/notificationScope.ts) — dieser Schalter sagt nur,
+       * OB sie hängt, nie WAS sie zeigt.
+       */
+      accountBell: false,
     },
     /**
      * Demo-Host-Gate (CoreDemoBanner + CorePlanBadge): auf diesen Hosts ist

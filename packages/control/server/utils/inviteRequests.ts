@@ -252,8 +252,12 @@ export async function notifyOperators(event: H3Event, request: InviteRequestRow)
       await notify(event, {
         recipientId: operator.$id,
         type: 'invite.request',
-        title: 'Neue Early-Access-Anfrage',
-        body: `${request.email}${request.note ? ` — ${request.note.slice(0, 120)}` : ''}`,
+        // title = die anfragende ADRESSE, nicht ein Satz (C17): die Glocke
+        // setzt den Titel als {name} in ihren lokalisierten Text ein
+        // (notifications.inviteRequest). Vorher stand hier ein hartcodierter
+        // deutscher Satz, der im englischen Text doppelt gesprochen hätte.
+        title: request.email,
+        body: request.note ? request.note.slice(0, 120) : '',
         link,
         // MANDANTENLOS (C15, Davids Entscheidung 3): eine Anfrage ans Control
         // Plane gehört keiner Community — sie will erst eine werden. Der Link

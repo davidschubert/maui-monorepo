@@ -18,6 +18,15 @@ const runtimeFlags = useRuntimeFlags()
 const featureOn = (featureKey?: string) =>
   !featureKey || isFeatureStateEnabled(runtimeFlags.value.features[featureKey])
 
+// Glocke in der Betreiber-Shell (C17): dieselbe Config-Naht wie im
+// core-default-Layout. Betrifft heute apps/control — dort liegen die
+// kontobezogenen Meldungen (Early-Access-Anfragen an die Betreiber,
+// Zahlungsprobleme der Workspace-Kunden), und /dashboard ist die Shell, in
+// der ein Betreiber sie liest. Core-Default aus: eine Community-Shell soll
+// nicht ungefragt eine zweite Glocke bekommen.
+const accountBell = computed(() =>
+  (appConfig.maui as { chrome?: { accountBell?: boolean } }).chrome?.accountBell === true)
+
 const open = ref(false)
 
 // Sidebar-Optik umschaltbar: sidebar | floating | inset. Nuxt UI hat diese
@@ -212,8 +221,16 @@ const searchGroups = computed(() => {
       </template>
 
       <template #default="{ collapsed }">
-        <!-- label explizit — der Nuxt-UI-Default ist englisch ("Search...") -->
-        <UDashboardSearchButton :collapsed="collapsed" :label="t('dashboard.search.button')" class="bg-transparent ring-default" />
+        <!-- Suche + Glocke in EINER Reihe (C17). Die Glocke gehört bewusst in
+             die Sidebar und nicht in eine schwebende Ecke: oben rechts sitzen
+             die Aktionen der Seiten-Kopfzeilen („Neuer Code", „Nachfüllen"),
+             dort verdeckt ein fixes Widget echte Knöpfe. Eingeklappt stapelt
+             die Reihe (flex-col), damit die schmale Leiste nicht überläuft. -->
+        <div class="flex items-center gap-1.5" :class="collapsed ? 'flex-col' : ''">
+          <!-- label explizit — der Nuxt-UI-Default ist englisch ("Search...") -->
+          <UDashboardSearchButton :collapsed="collapsed" :label="t('dashboard.search.button')" class="grow bg-transparent ring-default" />
+          <NotificationBell v-if="accountBell && auth.user" />
+        </div>
         <UNavigationMenu :collapsed="collapsed" :items="links" orientation="vertical" tooltip popover :ui="{ label: 'mt-4' }" />
         <div class="flex-1" />
         <UNavigationMenu :collapsed="collapsed" :items="bottomLinks" orientation="vertical" tooltip popover />
