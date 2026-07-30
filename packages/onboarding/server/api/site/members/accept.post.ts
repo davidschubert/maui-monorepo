@@ -31,9 +31,33 @@ export default defineEventHandler(async (event) => {
   const body = await readValidatedBody(event, bodySchema.parse)
   const jwt = await mintRuntimeJwt(event)
 
-  return await callControlPlane<{ ok: boolean, siteId: string, host: string, role: string }>(
+  const result = await callControlPlane<{ ok: boolean, siteId: string, host: string, role: string }>(
     event,
     '/api/control/site/members/accept',
     { jwt, ...(body.token ? { token: body.token } : { inviteId: body.inviteId }) },
   )
+
+  /**
+   * Das Lese-Publikum SOFORT, nicht erst in 30 Sekunden (A5).
+   *
+   * Die Label-Middleware würde es beim nächsten Request auch vergeben — aber
+   * erst, wenn der Rollen-Resolver die neue Mitgliedschaft sieht, und der hat für
+   * diesen Nutzer gerade „keine Rolle" gecacht (30 s). Für die annehmende Person
+   * wäre das eine halbe Minute, in der sie drin ist und trotzdem niemanden sieht:
+   * kein Anwesender, kein Activity-Feed. Ein Klick, der wirkt, muss wirken.
+   *
+   * Nur wenn die Einladung zu DIESER Community gehört: `siteId` kommt aus der
+   * Einladung (nie aus dem Body), ein Link für eine andere Community darf hier
+   * kein Label setzen.
+   */
+  if (result.siteId === tenant.siteId) {
+    // Rückkehr nach einem Entzug: die „gerade entzogen"-Notiz muss weg, sonst
+    // zieht die Label-Middleware das Publikum bis zu einer Minute lang wieder ab
+    // (siehe rememberSiteAccessRevoked).
+    const userId = event.context.user?.$id
+    if (userId) forgetSiteAccessDecision(result.siteId, userId)
+    await grantSiteLabel(event, result.siteId)
+  }
+
+  return result
 })

@@ -7,8 +7,11 @@
  *  1. `site_members.status` um **'removed'** erweitern — „Entfernen" entzieht nur
  *     den ZUGANG und löscht nichts (Entscheidung 1). Der Status ist zugleich die
  *     positive Tatsache, aus der eine Ansicht „Ehemaliges Mitglied" ableiten
- *     kann; die ABWESENHEIT einer Row bedeutet das ausdrücklich nicht (in einer
- *     Pool-Community steht dort nur das Team, nicht jede mitlesende Person).
+ *     kann; die ABWESENHEIT einer Row bedeutet das ausdrücklich nicht (Gäste und
+ *     Konten, die hier nie beigetreten sind, haben ebenfalls keine). Seit A5
+ *     (2026-07-29) ist 'removed' zusätzlich die Sperre gegen Wiederbeitritt:
+ *     `members/join` liest jeden Status und lässt eine entzogene Zeile nicht
+ *     durch einen Beitritts-Auslöser überschreiben.
  *  2. `site_members.removedAt` — wann der Zugang entzogen wurde (Anzeige/Spur).
  *  3. `site_invites` — offene Einladungen, dem M9-Muster (`workspace_invites`,
  *     studio-008) nachgebaut: die DB kennt nur den SHA-256-Hash des Tokens.

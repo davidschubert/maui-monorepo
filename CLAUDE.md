@@ -195,12 +195,19 @@ Vollständiges Konzept: docs/CONCEPT.md
   M9-Muster aus `workspace_invites`; Mail zuerst, Row danach — keine Einladung
   ohne Zustellung), Annahme über `/join?token=…` ODER ohne Token über die eigene
   geprüfte Adresse. ENTFERNEN LÖSCHT NICHT: `site_members.status='removed'`
-  (Migration studio-019), Inhalte + Namen bleiben. Besitz übertragen läuft über
-  `site.transfer` (Owner), NIE über die Rollen-Route — sonst wäre eine
+  (Migration studio-019), Inhalte + Namen bleiben. Es nimmt aber BEIDES —
+  Rolle UND Lese-Publikum: die Runtime-Route zieht danach `revokeSiteLabel`
+  (Labels gehören dem Pool-Projekt, das Control Plane hat dafür keinen
+  Schlüssel) und merkt den Entzug kurz (`rememberSiteAccessRevoked`), damit der
+  30-s-Rollen-Cache das Label nicht sofort wieder vergibt. Besitz übertragen
+  läuft über `site.transfer` (Owner), NIE über die Rollen-Route — sonst wäre eine
   Owner-Capability per Admin-Capability erreichbar. `site.delete` ist bewusst
   NICHT gebaut (Davids Entscheidung 3). Schutzregeln PURE + unit-getestet in
   `packages/control/shared/siteTeam.ts` (kein Selbst-Degradieren, nie der letzte
-  Owner) — die UI kennt sie, das Control Plane setzt sie durch.
+  Owner, `decideJoin`) — die UI kennt sie, das Control Plane setzt sie durch.
+  Die Mitgliederliste zeigt ALLE (Standardansicht filtert aufs Team
+  owner/admin/moderator/editor, ein Klick zeigt alle) — seit A5 steht dort jedes
+  beigetretene Mitglied, nicht mehr nur das Team.
 - „Ehemaliges Mitglied": GEBÜNDELTER Vertrag `core/server/utils/siteMembership.ts`
   (`registerFormerSiteMembersResolver`, Implementierung
   `createFormerSiteMembersResolver` im control-Layer) — viele userIds, EINE
@@ -208,9 +215,10 @@ Vollständiges Konzept: docs/CONCEPT.md
   (`SiteRoleResolver`) darf dafür NIE in einer Schleife laufen: eine
   Kommentarliste hat 25 Autoren. Die Frage ist bewusst NEGATIV gestellt —
   „ehemalig" ist eine POSITIVE Tatsache (Row mit status 'removed'); die
-  ABWESENHEIT einer Row heißt „gewöhnlicher Nutzer", weil `site_members` im Pool
-  nur das Team trägt (A4). Zeichen erscheint heute in der Kommentarliste
-  (Gäste eingeschlossen).
+  ABWESENHEIT einer Row heißt „gewöhnlicher Nutzer" — seit A5 trägt
+  `site_members` zwar jedes BEIGETRETENE Mitglied, aber Gäste, Autoren von vor
+  A5 und Konten, die hier nie mitgemacht haben, haben trotzdem keine Zeile.
+  Zeichen erscheint heute in der Kommentarliste (Gäste eingeschlossen).
 - Beweise: `packages/onboarding/scripts/{verify-control-host,verify-site-authz,
   acceptance-onboarding}.mjs` + `packages/control/scripts/verify-onboarding.mjs`.
   Lokal testen: `seed-local-tester.mjs` (Konto+Code, `--clean` räumt auf).
@@ -310,17 +318,36 @@ Vollständiges Konzept: docs/CONCEPT.md
   tenantId (comments-015 uq_tenant_host, pages-004, courses-002 uq_tenant_slug),
   Row-Id-basierte NICHT (events/courses (courseId,userId) — eine Row-Id ist
   global eindeutig, da kann kein Mandant kollidieren).
-- SITE-LABEL = „hat den Host eingeloggt benutzt" (A4, seit 2026-07-29):
-  `core/server/middleware/site-label.ts` vergibt `Role.label(siteId)` an JEDEN
-  eingeloggten Nutzer eines Pool-Mandanten (idempotent, additiv — mehrere
-  Communities = mehrere Labels; `grantSiteLabel` in core/server/utils). Das ist
-  die Mitgliedschaftsdefinition, die zum heutigen Produkt passt: `site_members`
-  liegt im Control Plane und trägt produktiv NUR den Gründer. Ohne diese
-  Vergabe wäre jede `read('members')`-Zeile faktisch owner-only (genau das war
-  der Activity-Feed bis dahin). Ein Label ist ein LESE-Publikum, KEINE Rolle —
+- SITE-LABEL = „ist Mitglied dieser Community" (A5, seit 2026-07-29 — ersetzt
+  die A4-Regel „hat den Host eingeloggt benutzt", die noch am selben Tag zur
+  Lüge wurde: „Zugang entziehen" nahm nur die Rolle, das Label kam beim nächsten
+  Besuch zurück, die entfernte Person las weiter mit).
+  `core/server/middleware/site-label.ts` vergibt `Role.label(siteId)` genau dem,
+  der eine `site_members`-Zeile MIT ZUGANG hat (idempotent, additiv — mehrere
+  Communities = mehrere Labels; `grantSiteLabel`/`revokeSiteLabel` in
+  core/server/utils/siteLabel.ts). Ein Label ist ein LESE-Publikum, KEINE Rolle —
   Autorisierung läuft über requireSitePermission/Site-Rollen, `hasCapability`
   kennt nur 'admin'/'moderator' (grantSiteLabel verweigert solche Labels).
-  Kommen geschlossene Communities, wandert der Aufruf an die Beitrittsstelle.
+- MITGLIEDSCHAFT IST EIN EREIGNIS (A5): Vertrag `core/shared/siteJoin.ts` +
+  Registry `core/server/utils/siteJoin.ts` (`registerSiteJoinHandler` — die
+  Naht zum Control Plane besitzt der onboarding-Layer, A14), Regel `decideJoin`
+  in `packages/control/shared/siteTeam.ts`, Route
+  `POST /api/control/site/members/join`. Gesteuert vom BESTEHENDEN Schalter
+  `tenants.openRegistration`: OFFEN ⇒ Beitritt (Rolle `viewer`), GESCHLOSSEN ⇒
+  nur per Einladung. ZWEI Auslöser, mehr nicht: (1) `registration` — Kontoanlage
+  auf dem Mandanten-Host (signup.post.ts + otp/verify.post.ts, dort wo der Feed
+  schon „user.joined" sagt); (2) `contribution` — der erste eigene
+  Schreibvorgang, abgefangen in der DATENTÜR (`tenantDb().create`, nur Türklinke
+  'member') statt in zwanzig Routen. Ein SEITENAUFRUF löst bewusst NICHTS aus
+  (sonst wäre jeder Vorbeisurfer Mitglied und „Zugang entziehen" wieder
+  wirkungslos). Preis: bei `contribution` steht das Label erst mitten in der
+  Sitzung — der offene Realtime-WS behält seine Rollen, die Anwesenheit kommt
+  über Heartbeat + den 20-s-Leser-Poll (usePresence POLL_MS) an. ENTZOGEN
+  schlägt jeden Auslöser (Rückkehr nur per Einladung); BESTAND aus der A4-Zeit
+  (Label ohne Zeile) übernimmt sich beim nächsten Besuch selbst
+  (`trigger: 'legacy'`, umgeht den Schalter — kein Backfill-Skript, weil die
+  Wahrheit im Runtime-Projekt und die Zeile im Control Plane liegt). Beweis:
+  Abschnitt 10 in `packages/onboarding/scripts/verify-site-authz.mjs`.
 - BENACHRICHTIGUNGEN sind ABLAGE, nicht Zugriff (C15, seit 2026-07-29):
   `notifications.tenantId` (system-022) entscheidet, in WELCHER Glocke eine
   Meldung erscheint — wer sie lesen darf, bleiben die Row-Permissions (nur

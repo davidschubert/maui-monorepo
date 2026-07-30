@@ -648,3 +648,36 @@ Ein Reconnect nach erfolgreicher Vergabe wäre möglich, wurde aber bewusst
 eintritt, kostet dafür eine Verbindungsunterbrechung auf jedem Pfad und eine
 Kopplung zwischen Server-Middleware und Realtime-Client, die es heute nicht
 gibt.
+
+---
+
+## Nachtrag 2026-07-29 (A5): die Label-REGEL ist ersetzt, der Mechanismus bleibt
+
+Alles oben Beschriebene gilt weiter — **eine Zeile ausgenommen**: das Label
+bedeutet nicht mehr „hat diesen Host eingeloggt benutzt", sondern **„hat eine
+`site_members`-Zeile mit Zugang"**. Die A4-Regel war eine ehrliche Abbildung
+eines Produkts ohne Beitritt, wurde aber am selben Tag zur Lüge: mit
+`/dashboard/members` (C16) gibt es „Zugang entziehen", und das nahm nur die
+ROLLE — das Label vergab die Middleware beim nächsten eingeloggten Besuch neu,
+die entfernte Person las weiter mit.
+
+Was sich dadurch ändert:
+
+- Mitgliedschaft ist ein EREIGNIS (`packages/core/shared/siteJoin.ts`),
+  gesteuert vom bestehenden Schalter `tenants.openRegistration`. Zwei Auslöser:
+  Kontoanlage auf dem Mandanten-Host und der erste eigene Schreibvorgang. Ein
+  SEITENAUFRUF löst bewusst nichts aus.
+- Der „Rest-Fall" aus Abschnitt 8 wird damit zum Normalfall des zweiten
+  Auslösers: wer mitten in der Sitzung beitritt, hat eine offene WS mit alten
+  Rollen. Die Antwort ist dieselbe und war schon hier notiert — der 20-s-Poll
+  (`POLL_MS` in `usePresence.ts`) trägt die Anwesenheit, der Heartbeat schreibt
+  sie server-seitig mit dem neuen Label. Beim Auslöser „Anmeldung" steht das
+  Label wie bisher vor der Hydration.
+- Neu dazu: `revokeSiteLabel` (der Entzug — Labels leben im Runtime-Projekt,
+  das Control Plane kann sie nicht anfassen) und die Bestands-Übernahme
+  (`trigger: 'legacy'`): wer das Label aus der A4-Zeit trägt, bekommt beim
+  nächsten Besuch die fehlende Zeile, statt ausgesperrt zu werden.
+
+Beweise: `packages/core/scripts/verify-presence-boundary.mjs` (Akt 2 fährt jetzt
+die echten Beitritts-Auslöser) und Abschnitt 10 von
+`packages/onboarding/scripts/verify-site-authz.mjs`.

@@ -444,7 +444,7 @@
       "title": "Community",
       "description": "Einstellungen, die dieser Community gehören.",
       "openRegistration": "Offene Registrierung",
-      "openRegistrationDesc": "Ist der Schalter an, kann sich jeder ein Konto anlegen. Aus heißt: neue Mitglieder kommen nur auf Einladung dazu.",
+      "openRegistrationDesc": "Ist der Schalter an, kann sich jeder ein Konto anlegen und wird damit Mitglied deiner Community — ebenso, wer schon ein Konto hat und hier den ersten Beitrag oder Kommentar schreibt. Aus heißt: Mitglied wird man nur auf Einladung. Wem du den Zugang entzogen hast, kommt in beiden Fällen nicht von selbst zurück.",
       "saved": "Gespeichert.",
       "saveFailed": "Konnte nicht gespeichert werden.",
       "noTenantTitle": "Keine Community auf diesem Host",

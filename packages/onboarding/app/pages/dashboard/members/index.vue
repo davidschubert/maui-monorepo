@@ -13,6 +13,14 @@ import type { SiteInviteView, SiteMemberView, SiteTeamResponse } from '../../../
  * unumkehrbares Löschen ohne Wiederherstellungs-Frist wäre Datenverlust, und ein
  * ausgegrauter Knopf verspricht etwas, das es nicht gibt.
  *
+ * ZWEI ANSICHTEN (Davids Entscheidung 2 vom 2026-07-29): seit Mitgliedschaft ein
+ * Ereignis ist (A5), steht hier JEDES Mitglied — auch die vielen, die nur
+ * mitlesen und kommentieren. Damit die Seite trotzdem das beantwortet, weswegen
+ * man sie öffnet („wer darf hier was?"), zeigt sie zuerst das TEAM
+ * (owner/admin/moderator/editor) und auf einen Klick alle. Die Zahl im Titel
+ * bleibt die WAHRE Gesamtzahl — eine gefilterte Ansicht darf nicht aussehen wie
+ * eine kleine Community.
+ *
  * Die AUTORITÄT liegt in den Routen (`await requireSitePermission`) und im
  * Control Plane, das jede Regel noch einmal selbst prüft. Was hier ausgegraut
  * ist, ist Freundlichkeit — keine Grenze.
@@ -38,12 +46,31 @@ const invites = computed<SiteInviteView[]>(() => data.value?.invites ?? [])
 const search = ref('')
 const { sortField, sortDir, toggle } = useTableSort('joinedAt', 'asc')
 
+/**
+ * Team = alle Rollen MIT Verwaltungs-/Redaktionsauftrag. `viewer` ist bewusst
+ * nicht dabei: das ist die Rolle, mit der man beitritt (SITE_JOIN_ROLE), und
+ * genau die macht die Liste lang.
+ */
+const TEAM_ROLES: SiteRole[] = ['owner', 'admin', 'moderator', 'editor']
+const scope = ref<'team' | 'all'>('team')
+const teamCount = computed(() => members.value.filter(member => TEAM_ROLES.includes(member.role)).length)
+
+const scopeItems = computed(() => [
+  { value: 'team' as const, label: t('members.scope.team', { n: teamCount.value }) },
+  { value: 'all' as const, label: t('members.scope.all', { n: members.value.length }) },
+])
+
 const filtered = computed(() => {
   const needle = search.value.trim().toLowerCase()
+  // Die Suche geht IMMER über alle: wer einen Namen eintippt, will ihn finden und
+  // nicht erst begreifen, dass er in der falschen Ansicht steht.
+  const base = needle || scope.value === 'all'
+    ? members.value
+    : members.value.filter(member => TEAM_ROLES.includes(member.role))
   const rows = needle
-    ? members.value.filter(member =>
+    ? base.filter(member =>
         member.email.toLowerCase().includes(needle) || member.name.toLowerCase().includes(needle))
-    : [...members.value]
+    : [...base]
 
   const factor = sortDir.value === 'asc' ? 1 : -1
   return rows.sort((a, b) => {
@@ -303,15 +330,33 @@ function rowActions(member: SiteMemberView): DropdownMenuItem[][] {
         </UTable>
       </UPageCard>
 
-      <form class="mb-4 flex max-w-md gap-2" @submit.prevent>
-        <UInput
-          v-model="search"
-          icon="i-ph-magnifying-glass"
-          :placeholder="t('members.searchPlaceholder')"
-          class="flex-1"
-          data-members-search
-        />
-      </form>
+      <div class="mb-4 flex flex-wrap items-center gap-3">
+        <form class="flex min-w-64 flex-1 gap-2" @submit.prevent>
+          <UInput
+            v-model="search"
+            icon="i-ph-magnifying-glass"
+            :placeholder="t('members.searchPlaceholder')"
+            class="flex-1"
+            data-members-search
+          />
+        </form>
+
+        <!-- Team zuerst, alle auf einen Klick. Kein Dropdown: es sind zwei
+             Zustände, und beide sollen sichtbar sein — samt Anzahl, damit man
+             weiß, was der andere Klick bringt. -->
+        <UButtonGroup size="sm" data-members-scope>
+          <UButton
+            v-for="item in scopeItems"
+            :key="item.value"
+            :color="scope === item.value ? 'primary' : 'neutral'"
+            :variant="scope === item.value ? 'solid' : 'outline'"
+            :data-members-scope-option="item.value"
+            @click="scope = item.value"
+          >
+            {{ item.label }}
+          </UButton>
+        </UButtonGroup>
+      </div>
 
       <UTable :data="filtered" :columns="columns" :loading="status === 'pending'" data-members-table>
         <template #name-header>

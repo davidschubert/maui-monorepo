@@ -173,7 +173,11 @@
   },
   "members": {
     "title": "Mitglieder",
-    "description": "Wer gehört zu deiner Community und was darf er? Einladen, Rollen vergeben, Zugang entziehen.",
+    "description": "Alle, die zu deiner Community gehören. Mitglied wird man durch Beitritt (bei offener Registrierung) oder durch eine Einladung. „Zugang entziehen\" nimmt die Zugehörigkeit wirklich weg — die Person sieht danach keine Mitglieder-Inhalte mehr und kommt nur über eine neue Einladung zurück.",
+    "scope": {
+      "team": "Team ({n})",
+      "all": "Alle Mitglieder ({n})"
+    },
     "name": "Name",
     "role": "Rolle",
     "joined": "Dabei seit",
@@ -181,7 +185,7 @@
     "you": "du",
     "searchPlaceholder": "Name oder E-Mail suchen",
     "emptyTitle": "Nur du bist dabei",
-    "emptyText": "Lade die ersten Mitglieder ein — sie bekommen eine E-Mail mit einem Link und sind mit einem Klick da.",
+    "emptyText": "Lade die ersten Mitglieder ein — sie bekommen eine E-Mail mit einem Link und sind mit einem Klick da. Bei offener Registrierung kommen Mitglieder auch von selbst dazu, sobald sie sich anmelden oder ihren ersten Beitrag schreiben.",
     "statusValues": {
       "active": "Aktiv",
       "removed": "Ehemaliges Mitglied"
@@ -236,7 +240,7 @@
     },
     "remove": {
       "title": "{name} den Zugang entziehen?",
-      "text": "Die Person kann sich danach nicht mehr in dieser Community anmelden. Ihre Beiträge, Kommentare und Kursfortschritte BLEIBEN erhalten und behalten ihren Namen — hinter dem Namen steht künftig „Ehemaliges Mitglied\". Ein Konto löschen ist ein anderer Vorgang.",
+      "text": "Die Person gehört danach nicht mehr zu dieser Community: sie sieht keine Mitglieder-Inhalte mehr und erscheint nicht mehr unter den Anwesenden. Zurück kommt sie nur über eine neue Einladung — auch dann nicht, wenn die Registrierung offen ist. Ihre Beiträge, Kommentare und Kursfortschritte BLEIBEN erhalten und behalten ihren Namen; hinter dem Namen steht künftig „Ehemaliges Mitglied\". Ein Konto löschen ist ein anderer Vorgang.",
       "confirm": "Zugang entziehen",
       "done": "Zugang entzogen."
     },
@@ -251,8 +255,8 @@
       "self_remove": "Du kannst dir selbst nicht den Zugang entziehen.",
       "last_owner": "Es muss immer eine Inhaberin oder ein Inhaber bleiben. Übertrage zuerst den Besitz.",
       "owner_protected": "Inhaberschaft ändert man nur über „Besitz übertragen\".",
-      "already_member": "Diese Adresse gehört schon zum Team.",
-      "not_a_member": "Diese Person gehört nicht (mehr) zum Team.",
+      "already_member": "Diese Adresse gehört schon zu dieser Community. Die Rolle änderst du direkt in der Liste.",
+      "not_a_member": "Diese Person gehört nicht (mehr) zu dieser Community.",
       "invalid_role": "Diese Rolle gibt es nicht.",
       "unchanged": "Diese Rolle hat die Person bereits.",
       "failed": "Das hat gerade nicht geklappt. Versuch es noch einmal."

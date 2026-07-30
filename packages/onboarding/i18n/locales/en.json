@@ -173,7 +173,11 @@
   },
   "members": {
     "title": "Members",
-    "description": "Who belongs to your community, and what may they do? Invite people, assign roles, revoke access.",
+    "description": "Everyone who belongs to your community. People become members by joining (when registration is open) or by invitation. \"Revoke access\" really does take that membership away — they no longer see members-only content and can only come back through a new invitation.",
+    "scope": {
+      "team": "Team ({n})",
+      "all": "All members ({n})"
+    },
     "name": "Name",
     "role": "Role",
     "joined": "Member since",
@@ -181,7 +185,7 @@
     "you": "you",
     "searchPlaceholder": "Search name or email",
     "emptyTitle": "Only you so far",
-    "emptyText": "Invite your first members — they get an email with a link and are in with one click.",
+    "emptyText": "Invite your first members — they get an email with a link and are in with one click. With open registration, members also arrive on their own as soon as they sign up or write their first post.",
     "statusValues": {
       "active": "Active",
       "removed": "Former member"
@@ -236,7 +240,7 @@
     },
     "remove": {
       "title": "Revoke access for {name}?",
-      "text": "They will no longer be able to sign in to this community. Their posts, comments and course progress REMAIN and keep their name — from now on it shows \"Former member\" next to it. Deleting an account is a different matter.",
+      "text": "They no longer belong to this community: no more members-only content, and they stop showing up among the people present. They can only come back through a new invitation — not even when registration is open. Their posts, comments and course progress REMAIN and keep their name; from now on it shows \"Former member\" next to it. Deleting an account is a different matter.",
       "confirm": "Revoke access",
       "done": "Access revoked."
     },
@@ -251,8 +255,8 @@
       "self_remove": "You cannot revoke your own access.",
       "last_owner": "There always has to be an owner. Transfer ownership first.",
       "owner_protected": "Ownership only changes via \"Transfer ownership\".",
-      "already_member": "That address is already on the team.",
-      "not_a_member": "This person is not (or no longer) on the team.",
+      "already_member": "That address already belongs to this community. Change their role right in the list.",
+      "not_a_member": "This person is not (or no longer) part of this community.",
       "invalid_role": "That role does not exist.",
       "unchanged": "This person already has that role.",
       "failed": "That didn't work just now. Please try again."

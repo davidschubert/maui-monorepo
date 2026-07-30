@@ -27,13 +27,17 @@ export type SiteRole = (typeof SITE_ROLES)[number]
  * `removed` kam mit der Mitglieder-Verwaltung (studio-019, Davids Entscheidung 1
  * vom 2026-07-29) dazu und ist der wichtigste Wert dieser Liste: „Entfernen"
  * LÖSCHT die Row NICHT, es entzieht nur den Zugang (der Resolver lässt allein
- * `active` durch). Die Row bleibt als POSITIVE Tatsache stehen — nur so kann
- * eine Ansicht später „Ehemaliges Mitglied" hinter einen Autorennamen setzen.
+ * `active` durch, und die Runtime zieht zusätzlich das Site-Label — A5). Die Row
+ * bleibt als POSITIVE Tatsache stehen: nur so kann eine Ansicht „Ehemaliges
+ * Mitglied" hinter einen Autorennamen setzen, und nur so kann `members/join`
+ * einen entzogenen Zugang vom nächsten Beitritts-Auslöser unterscheiden.
  *
- * Die Abwesenheit einer Row bedeutet ausdrücklich NICHT „ehemalig": in einer
- * Pool-Community trägt `site_members` heute nur das TEAM (Gründer + Eingeladene),
- * nicht jede mitlesende Person (CLAUDE.md, A4). Wer „nicht in site_members" als
- * „ehemalig" läse, würde fast jeden Kommentar-Autor falsch kennzeichnen.
+ * Die Abwesenheit einer Row bedeutet ausdrücklich NICHT „ehemalig". Seit A5
+ * (2026-07-29) trägt `site_members` JEDES Mitglied — Gründer, Eingeladene UND
+ * Beigetretene —, aber eben nur, wer je beigetreten ist: Gast-Kommentare, Konten
+ * aus einer anderen Community und alles vor A5 haben keine Zeile. „Ehemalig"
+ * bleibt deshalb eine positive Tatsache (Row vorhanden + Zugang entzogen), keine
+ * Schlussfolgerung aus einer Lücke.
  *
  * `invited` bleibt aus studio-015 erhalten (Enum-Werte lassen sich nicht
  * entfernen), wird aber nicht mehr geschrieben: offene Einladungen leben in

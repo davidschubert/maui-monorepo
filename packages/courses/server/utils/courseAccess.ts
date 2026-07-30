@@ -8,10 +8,13 @@ import { COURSES_TABLE, ENROLLMENTS_TABLE, LESSONS_TABLE, type CourseRow, type E
  * BEWUSST unverändert `Role.users()` — auch im Pool (Muster events
  * EVENT_READ_ANY). Zwei Gründe, beide praktisch:
  *  1. Das Publikum-Helferlein `tenantRowPermissions(event, {read:'members'})`
- *     würde im Pool `Role.label(siteId)` setzen — dieses Label bekommt heute
- *     NUR der Site-Owner (onboarding grantSiteLabel). Gewöhnliche Mitglieder
- *     einer Community sähen dann einen leeren Kurs-Katalog: aus „members only"
- *     würde faktisch „owner only".
+ *     würde im Pool `Role.label(siteId)` setzen — und dieses Label trägt seit A5
+ *     (2026-07-29) genau wer eine Mitgliedschaft MIT ZUGANG hat. Für einen
+ *     Kurs-Katalog ist das die falsche Grenze: er soll für alle eingeloggten
+ *     Nutzer dieser Community sichtbar sein, auch bevor jemand beigetreten ist
+ *     (der Beitritt entsteht ja erst beim ersten eigenen Schreibvorgang). Mit
+ *     `label` sähe ein Neuankömmling einen leeren Katalog und hätte keinen
+ *     Anlass, jemals etwas zu tun.
  *  2. Die Mandanten-Grenze ist ohnehin die Datentür: `list` filtert auf
  *     tenantId, `get` belegt die Zugehörigkeit VOR der Ausgabe. Die
  *     Row-Permission trennt hier Publikum (eingeloggt vs. Gast), nicht
