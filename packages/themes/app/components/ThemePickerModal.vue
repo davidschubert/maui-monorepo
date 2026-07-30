@@ -83,7 +83,7 @@ const capitalize = (value: string) => value.charAt(0).toUpperCase() + value.slic
   <UModal v-model:open="open" :title="title || t('themes.picker.title')" :ui="{ content: 'max-w-2xl' }">
     <template #body>
       <div class="space-y-6">
-        <!-- Theme-Grid: 27 Kacheln (`default`/„Sunrise" + 26 Farbwelten + Customs) -->
+        <!-- Theme-Grid: 27 Kacheln (`default`/„Aloha" + 26 Farbwelten + Customs) -->
         <div class="grid grid-cols-3 gap-2 sm:grid-cols-4" data-theme-grid>
           <button
             v-for="entry in visibleThemes"

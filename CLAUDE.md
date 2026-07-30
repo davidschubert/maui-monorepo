@@ -101,10 +101,12 @@ Vollständiges Konzept: docs/CONCEPT.md
   --ui-primary-Stufen selbst. Öffentlicher Picker = ThemePickerModal
   (Grid + sticky Varianten-Reihe), NIE CSS/Registry von Hand editieren.
   AUSNAHME `default`: steht bewusst NICHT im Katalog, sondern handgepflegt in
-  app/utils/themeRegistry.ts. Sein Anzeige-Label ist seit 2026-07-28
-  „**Sunrise**" (vorher „Maui" — interner Produktname vor Kunden, N6). Label
+  app/utils/themeRegistry.ts. Sein Anzeige-Label ist seit 2026-07-29
+  „**Aloha**" (davor „Sunrise" — klang neben der Katalog-Welt „Sunset"
+  verwandt, B3; davor „Maui" — interner Produktname vor Kunden, N6). Label
   ≠ Key: die Id bleibt `default` (tenants.theme, data-theme, CSS-Dateinamen,
-  gespeicherte Configs) — Theme-Namen nie über die Id umbenennen.
+  gespeicherte Configs) — Theme-Namen nie über die Id umbenennen. Theme-Namen
+  sind Eigennamen und laufen NICHT über i18n (de = en).
 - Theme-Studio: /dashboard/themes (Galerie, Zweispalten), Editor als Vollseite
   (/new, /:id — Dock: Boxen „Farben"+„Schriften", je EIN „Erweitert"),
   Schriften-Verwaltung /dashboard/themes/fonts. Konzept + bewusste
@@ -118,6 +120,21 @@ Vollständiges Konzept: docs/CONCEPT.md
   im Editor setzt sie direkt und stellt beim Verlassen den LIVE-Zustand aus
   useTheme() wieder her): data-theme ('c-<rowId>'), data-variant,
   data-neutral, data-font, data-font-heading
+- WESSEN FARBWELT GILT? (B5, seit 2026-07-29 — Davids Entscheidung): auf einem
+  MANDANTEN-Host gewinnt die Community, nicht der Besucher. EINE pure Regel in
+  `themes/shared/themeSelection.ts` (`resolveThemeSelection`, 11 Fälle
+  getestet), `useTheme()` legt nur Cookies + Registry-Validierung darum:
+  Mandanten-Host ⇒ `tenants.theme/variant` (useTenantBranding), ohne eigene
+  Wahl ('') die Instanz-Einstellung — das Theme-Cookie wird dort GAR NICHT
+  gelesen; sonst (Silo, Kontroll-Host, Playground) weiter Cookie ⇒ Instanz ⇒
+  Core-Default. Flash-frei, weil `branding` aus dem SSR-Payload kommt und der
+  Server schon das richtige data-theme + die richtige CSS-Datei stempelt.
+  Der Theme-WÄHLER verschwindet auf Mandanten-Hosts (`canChooseTheme` aus
+  useTheme() — öffentliches DisplaySettingsMenu, Dashboard-Kontomenü, Hinweis
+  im Theme-Studio): ein Wähler ohne Wirkung wäre eine Lüge, und die
+  Community-Farbe setzt der Owner unter /dashboard/settings/community.
+  NICHT betroffen: Hell/Dunkel (useColorMode) und die Neutral-Palette bleiben
+  Besucher-Wahl — es geht nur um data-theme/data-variant.
 - Schriften, 2 Rollen (Text + Überschriften, + fixe Mono — nie mehr als 3):
   Registry-Einzelfamilien in app/assets/css/fonts.css (build-prozessiert →
   @nuxt/fonts self-hostet; NIE nach public/) + WOFF2-Uploads (Bucket 'fonts',

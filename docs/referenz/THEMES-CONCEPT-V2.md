@@ -27,8 +27,15 @@ Referenzen (Leitplanken, nicht Kopiervorlagen):
   L/C-Kurven auf Tailwind v4 kalibriert, Hue-Drift, Gamut-Clipping,
   30+ Tests. Die Mathematik ist fertig.
 - **Runtime-Architektur**: SSR-Head-Rendering ohne Flash, Cookie-Persistenz,
-  Fallback-Kette (Cookie → Instanz-Default → Core-Default), Built-in-Overrides,
-  Varianten. Bleibt unverändert.
+  Fallback-Kette, Built-in-Overrides, Varianten. Bleibt unverändert.
+  Die Fallback-Kette hängt seit dem 2026-07-29 (Davids Entscheidung B5) am
+  HOST-TYP und steht pur in `shared/themeSelection.ts`:
+  **Mandanten-Host** ⇒ Wahl der Community (`tenants.theme/variant`) → ohne
+  eigene Wahl die Instanz-Einstellung → Core-Default; das Theme-Cookie des
+  Besuchers wird dort NICHT gelesen und der Theme-Wähler ist ausgeblendet.
+  **Sonst** (Silo, Kontroll-Host, Playground) ⇒ Cookie → Instanz-Einstellung →
+  Core-Default, wie gehabt. Hell/Dunkel und Neutral-Palette bleiben in JEDEM
+  Fall Besucher-Wahl.
 - **Server-API + RBAC**: CRUD über `system.manage`, öffentlicher
   `GET /api/themes`, defensive JSON-Parses. Bleibt; wird nur um neue
   Config-Felder erweitert.

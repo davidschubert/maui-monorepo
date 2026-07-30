@@ -46,7 +46,9 @@ export default defineNuxtPlugin(async () => {
    * Die Farbe kommt aus dem VOREINGESTELLTEN Theme (settings.defaultThemeId —
    * `/api/themes` hat die Mandanten-Wahl dort schon eingesetzt), NICHT aus dem
    * Theme-Cookie des Besuchers: Marke und Tab-Farbe gehören der Community und
-   * müssen zum öffentlich gecachten SVG passen.
+   * müssen zum öffentlich gecachten SVG passen. Auf Mandanten-Hosts fällt das
+   * seit dem 2026-07-29 (B5) ohnehin zusammen — dort ist die Community-Farbe
+   * auch das, was die Seite zeigt.
    */
   const appConfig = useAppConfig() as { maui?: { seo?: { tenantFavicon?: boolean } } }
   const brandFavicon = appConfig.maui?.seo?.tenantFavicon === true

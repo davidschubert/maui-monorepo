@@ -8,7 +8,7 @@ type SwatchItem = DropdownMenuItem & { swatchIcon?: string, swatchColor?: string
 
 const { t, locale, setLocale } = useI18n()
 const colorMode = useColorMode()
-const { theme, variant, neutrals, neutral, setNeutral } = useTheme()
+const { theme, variant, neutrals, neutral, setNeutral, canChooseTheme } = useTheme()
 const localeOptions = useLocaleOptions()
 
 const capitalize = (value: string) => value.charAt(0).toUpperCase() + value.slice(1)
@@ -72,7 +72,14 @@ const items = computed<SwatchItem[][]>(() => {
   }))
 
   return [[
-    { label: t('themes.label'), icon: 'i-ph-palette', children: themeChildren },
+    // Farbwelt: nur wo die Wahl dem BESUCHER gehört (kein Mandanten-Host,
+    // Entscheidung 2026-07-29/B5). Auf `name.pukalani.app` gewinnt die Farbe
+    // der Community — ein Eintrag, der nichts mehr bewirkt, wäre eine Lüge,
+    // und „nur für dich" wäre die falsche Beschriftung: die Wahl hätte auch
+    // für den Wählenden selbst keine Wirkung.
+    ...(canChooseTheme.value
+      ? [{ label: t('themes.label'), icon: 'i-ph-palette', children: themeChildren }]
+      : []),
     { label: t('themes.neutralLabel'), icon: 'i-ph-circle-half', children: neutralChildren },
     { label: t('themes.modeLabel'), icon: 'i-ph-sun-horizon', children: appearanceChildren },
     { label: t('ui.language'), icon: 'i-ph-globe', children: languageChildren },
