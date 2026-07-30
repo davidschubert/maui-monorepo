@@ -50,14 +50,13 @@ const items = computed(() =>
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.1rem;
-  margin: 2.5rem 0 0;
+  margin-top: 2.5rem;
   padding: 0;
   list-style: none;
 }
 .proof-card {
   padding: 1.4rem;
-  border-radius: 1rem
-;
+  border-radius: 1rem;
   background: hsl(0 0% 100% / 0.65);
   border: 1px solid hsl(var(--puka-ink) / 0.08);
   display: flex;
