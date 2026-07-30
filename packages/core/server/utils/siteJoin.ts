@@ -191,7 +191,12 @@ export async function joinSite(
   // Bestehende Mitglieder gar nicht erst fragen. Nur möglich, wenn der Nutzer
   // AUCH der des Requests ist — bei der Anmeldung (options.userId) hat der
   // Resolver keinen Kontext-User zum Auflösen.
-  if (!options.userId && await resolveTenantRole(event)) return 'member'
+  // `.catch` ist kein Zierrat: „joinSite wirft nie" darf nicht davon abhängen,
+  // dass der registrierte Rollen-Resolver brav ist. Der heutige (siteMembersResolver)
+  // fängt intern ab — aber die Registry ist ein offener Vertrag, und ein
+  // werfender Resolver würde hier über die Datentür einen Kommentar zum 500
+  // machen. Fail-closed wie in site-label.ts: kein Wissen heißt keine Rolle.
+  if (!options.userId && await resolveTenantRole(event).catch(() => null)) return 'member'
 
   const remembered = rememberedDecision(siteId, userId)
   if (remembered) return remembered
