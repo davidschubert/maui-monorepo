@@ -1,5 +1,6 @@
 import { Query } from 'node-appwrite'
 import type { Models } from 'node-appwrite'
+import { decideSiteAccess } from '../../../../core/shared/siteAccess'
 
 interface SearchResult {
   users: { $id: string, name: string, email: string }[]
@@ -22,18 +23,44 @@ type CommentRow = Models.Row & { content: string, authorId: string, authorName: 
  *    im Control Plane — ein Cross-Projekt-Vertrag, den die Palette nicht
  *    rechtfertigt. Kein Treffer ist besser als ein fremder; die Palette blendet
  *    die leere Gruppe ohnehin aus. Silo/Einzelbetrieb unverändert.
+ *
+ * AUTORISIERUNG (Befund B7, 2026-07-29 — Davids Entscheidung): der Gate ist
+ * `await requireSitePermission(event, 'dashboard.access')` statt des
+ * label-only `requirePermission`. Vorher kam ein Kunden-Owner ohne globales
+ * Label hier gar nicht durch — die Palette lief für JEDES Site-Mitglied ins
+ * 403 und blieb stumm (dieselbe Klasse wie C1 bei stats/analytics).
+ *
+ * KOMMENTAR-TREFFER NUR MIT `comments.moderate` (Site-Rolle ODER
+ * Operator-Label, über `decideSiteAccess` — genau das Muster, mit dem
+ * stats.get.ts `commentsReported` schützt): sobald der Gate die MITGLIEDSCHAFT
+ * belegt, tragen ihn ALLE fünf Site-Rollen, also auch `viewer` und `editor`.
+ * Ein Treffer führt per Deeplink in die Moderations-Warteschlange
+ * (`/dashboard/comments?comment=<id>`, dort `comments.moderate`) — wer suchen
+ * darf, soll danach auch handeln können, und der Volltext eines Kommentars ist
+ * Moderations-Wissen wie die Zahl der offenen Meldungen. Ohne die Capability
+ * liefert die Route keine Kommentare; die Palette blendet die Gruppe zusätzlich
+ * aus (Doppelquelle wie in der Nav), damit keine Überschrift ohne Inhalt
+ * erscheint.
  */
 export default defineEventHandler(async (event): Promise<SearchResult> => {
-  const requester = requirePermission(event, 'dashboard.access')
+  const { user, role } = await requireSitePermission(event, 'dashboard.access')
+  const labels = user.labels ?? []
   // E-Mail ist PII: nur mit users.manage in der Antwort (RBAC-CONCEPT —
   // dashboard.access-Gate gilt nur ohne PII). Moderatoren sehen nur Namen.
-  const includeEmail = hasCapability(requester.labels, 'users.manage')
+  const includeEmail = hasCapability(labels, 'users.manage')
 
   const q = String(getQuery(event).q ?? '').trim()
   if (q.length < 2) return { users: [], comments: [] }
 
+  const tenant = useTenant(event)
   const db = tenantDb(event, { as: 'operator' })
-  const poolTenant = db.tenant?.mode === 'pool'
+  const poolTenant = tenant?.mode === 'pool'
+  const canModerate = decideSiteAccess({
+    capability: 'comments.moderate',
+    labels,
+    tenantScoped: Boolean(tenant),
+    role,
+  }).allowed
   const admin = createAdminClient(event)
 
   const [users, comments] = await Promise.all([
@@ -41,8 +68,10 @@ export default defineEventHandler(async (event): Promise<SearchResult> => {
       ? Promise.resolve({ users: [] as Models.User<Models.Preferences>[] })
       : admin.users.list({ search: q, queries: [Query.limit(5)] })
           .catch(() => ({ users: [] as Models.User<Models.Preferences>[] })),
-    db.list<CommentRow>('comments', [Query.search('content', q), Query.limit(5)])
-      .catch(() => ({ rows: [] as CommentRow[] })),
+    canModerate
+      ? db.list<CommentRow>('comments', [Query.search('content', q), Query.limit(5)])
+          .catch(() => ({ rows: [] as CommentRow[] }))
+      : Promise.resolve({ rows: [] as CommentRow[] }),
   ])
 
   return {

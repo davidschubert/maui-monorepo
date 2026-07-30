@@ -10,6 +10,7 @@ const { formatDate } = useFormatDate()
 const toast = useToast()
 const confirm = useConfirm()
 const route = useRoute()
+const router = useRouter()
 const localePath = useLocalePath()
 const { user: me } = useCurrentUser()
 
@@ -46,12 +47,37 @@ const filter = ref<ModerationFilter>(filterFromQuery())
 const { page, setPage } = usePagination()
 const { sortField, sortDir, toggle } = useTableSort('$createdAt', 'desc')
 
+/**
+ * Deeplink auf EINEN Kommentar (`?comment=<id>`) — das Ziel der
+ * Command-Palette (Befund B7). Er folgt demselben Muster wie `?status=`: die
+ * URL ist die Quelle, ein watch übernimmt Änderungen an der offenen Seite.
+ *
+ * Er steht ÜBER Filter, Suche, Sortierung und Seite (die Route liefert dann
+ * genau diese eine Zeile) und ist deshalb sichtbar aufhebbar — ein stiller
+ * Fokus, der jeden Filterklick verschluckt, wäre die nächste Lüge. Umgekehrt
+ * verlässt jeder Filter-/Suchklick den Fokus, damit die Bedienung tut, was sie
+ * anzeigt.
+ */
+const focusId = ref(String(route.query.comment ?? '').trim())
+function clearFocus() {
+  const { comment: _dropped, ...rest } = route.query
+  focusId.value = ''
+  void router.replace({ query: rest })
+}
+watch(() => route.query.comment, (value) => {
+  const next = String(value ?? '').trim()
+  if (focusId.value === next) return
+  focusId.value = next
+  setPage(1)
+})
+
 // Suche über den Fulltext-Index auf comments.content — erst auf Absenden,
 // damit nicht jeder Tastendruck eine Abfrage auslöst.
 const search = ref('')
 const activeSearch = ref('')
 function runSearch() {
   activeSearch.value = search.value.trim()
+  if (focusId.value) clearFocus()
   setPage(1)
 }
 
@@ -78,6 +104,8 @@ const { data, refresh } = await useFetch<AdminCommentListResponse>('/api/admin/c
     search: activeSearch.value,
     sort: sortField.value,
     dir: sortDir.value,
+    // leer ⇒ Parameter entfällt; die Route entscheidet den Fokus, nicht die Seite
+    comment: focusId.value || undefined,
   })),
 })
 
@@ -100,12 +128,16 @@ onScopeDispose(() => clearTimeout(liveTimer))
 
 function setFilter(value: ModerationFilter) {
   filter.value = value
+  // Ein Filterklick verlässt den Deeplink-Fokus — sonst bliebe die Liste bei
+  // der einen Zeile und der Klick wirkte kaputt.
+  if (focusId.value) clearFocus()
   setPage(1)
 }
 
 // „Filter/Suche ohne Treffer" ist ein anderer Leerzustand als „nichts da":
 // hier ist der eine nächste Schritt das Zurücksetzen.
-const hasActiveFilter = computed(() => filter.value !== 'all' || activeSearch.value !== '')
+const hasActiveFilter = computed(() =>
+  filter.value !== 'all' || activeSearch.value !== '' || focusId.value !== '')
 function resetFilters() {
   search.value = ''
   activeSearch.value = ''
@@ -264,6 +296,16 @@ const columns = computed<TableColumn<ModeratedComment>[]>(() => [
   { id: 'actions', header: () => '' },
 ])
 
+// Die per Deeplink angesprungene Zeile hervorheben — dieselbe Mechanik wie in
+// der Theme-Galerie (UTable meta.class.tr, pro Zeile). Der Fokus zeigt genau
+// eine Zeile; die Hervorhebung sagt „das ist der Eintrag aus der Suche".
+const tableMeta = computed(() => ({
+  class: {
+    tr: (row: { original: ModeratedComment }) =>
+      row.original.$id === focusId.value ? 'bg-primary/10 ring-1 ring-primary/40' : '',
+  },
+}))
+
 /**
  * Zeilen-Aktionen im Menü — dieselben Aufrufe wie zuvor als Knopfleiste,
  * inklusive der Gates: „Autor sperren" nur mit `users.manage` (S5), der
@@ -312,6 +354,19 @@ function rowActions(comment: ModeratedComment): DropdownMenuItem[][] {
     </template>
 
     <template #body>
+      <!-- Deeplink-Fokus (Command-Palette): eine Zeile, sichtbar aufhebbar -->
+      <UAlert
+        v-if="focusId"
+        class="mb-4"
+        color="primary"
+        variant="subtle"
+        icon="i-ph-crosshair"
+        :title="t('admin.moderation.focus.title')"
+        :description="(data?.comments.length ?? 0) > 0 ? t('admin.moderation.focus.description') : t('admin.moderation.focus.missing')"
+        :actions="[{ label: t('admin.moderation.focus.clear'), color: 'neutral', variant: 'subtle', onClick: () => clearFocus() }]"
+        data-moderation-focus
+      />
+
       <form class="mb-4 flex max-w-md gap-2" @submit.prevent="runSearch">
         <UInput
           v-model="search"
@@ -336,7 +391,7 @@ function rowActions(comment: ModeratedComment): DropdownMenuItem[][] {
         </UButton>
       </div>
 
-      <UTable :data="data?.comments ?? []" :columns="columns" data-moderation-list>
+      <UTable :data="data?.comments ?? []" :columns="columns" :meta="tableMeta" data-moderation-list>
         <template #select-header>
           <UCheckbox
             :model-value="allSelected"
