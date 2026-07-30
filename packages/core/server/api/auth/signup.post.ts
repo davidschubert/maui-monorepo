@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
    * MANDANTEN-HOST ein Konto anlegt, tritt dieser Community bei — deutlicher
    * wird eine Absicht nicht, und der Feed sagt drei Zeilen weiter unten
    * ohnehin schon „ist der Community beigetreten". Jetzt steht es auch in
-   * `site_members`, also in etwas, das man entziehen kann.
+   * `community_members`, also in etwas, das man entziehen kann.
    *
    * Hier ist der beste Moment, den es gibt: das Label steht damit VOR dem
    * ersten Seitenaufruf und lange vor dem Realtime-Socket.

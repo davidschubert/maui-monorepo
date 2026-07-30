@@ -13,12 +13,12 @@
  * dieselbe, bewiesen gleich.
  *
  * Die Grenze selbst (Analyse: docs/archiv/PRESENCE-GRENZE.md):
- *  - Pool  → `read("label:<siteId>")`. Im geteilten Projekt hieß `read("users")`
+ *  - Pool  → `read("label:<communityId>")`. Im geteilten Projekt hieß `read("users")`
  *    „jeder eingeloggte Nutzer ALLER Communities": wer `presences.list()` von
  *    Hand ruft, sah Name/Avatar/Aktivität aller Kunden. Das Label trägt nur, wer
- *    MITGLIED dieser Community ist — eine site_members-Zeile mit Zugang, seit A5
+ *    MITGLIED dieser Community ist — eine community_members-Zeile mit Zugang, seit A5
  *    (server/middleware/site-label.ts, shared/siteJoin.ts).
- *  - Pool OHNE siteId (Datenfehler) → gar kein read. Fail-CLOSED: lieber
+ *  - Pool OHNE communityId (Datenfehler) → gar kein read. Fail-CLOSED: lieber
  *    niemand sieht jemanden, als dass alle alle sehen.
  *  - Silo / kein Mandant → `read("users")` wie bisher; dort IST das Projekt die
  *    Grenze, ein Label wäre reine Zeremonie.
@@ -29,15 +29,15 @@
  */
 
 /** Read-Rollen einer Presence. `pool` = geteiltes Projekt (Mandanten-Host). */
-export function presenceReadRoles(pool: boolean, siteId?: string | null): string[] {
+export function presenceReadRoles(pool: boolean, communityId?: string | null): string[] {
   if (!pool) return ['read("users")']
-  return siteId ? [`read("label:${siteId}")`] : []
+  return communityId ? [`read("label:${communityId}")`] : []
 }
 
 /** Vollständiges Permission-Array einer Presence (Read-Publikum + Owner). */
-export function presencePermissions(pool: boolean, siteId: string | null | undefined, userId: string): string[] {
+export function presencePermissions(pool: boolean, communityId: string | null | undefined, userId: string): string[] {
   return [
-    ...presenceReadRoles(pool, siteId),
+    ...presenceReadRoles(pool, communityId),
     `update("user:${userId}")`,
     `delete("user:${userId}")`,
   ]

@@ -11,7 +11,7 @@ import { useTenant } from './tenant'
  * nicht erst heraus — der Session-Client eines fremden Tenants trägt das Label
  * nicht.
  *
- * Label-Schlüssel = die `siteId` (= tenants.$id): garantiert alphanumerisch
+ * Label-Schlüssel = die `communityId` (= tenants.$id): garantiert alphanumerisch
  * ≤36 Zeichen (Appwrite-Row-IDs), also ein GÜLTIGES Appwrite-Label ohne
  * Sanitisierung — und kollisionsfrei je Site. (Der Zeilen-Scope-Wert bleibt die
  * `tenantId`-Spalte; Label und Filter identifizieren denselben Tenant über
@@ -21,7 +21,7 @@ import { useTenant } from './tenant'
  */
 
 /** Read-Publikum einer Zeile.
- *  - 'members': nur Mitglieder DIESER Site (Pool: Role.label(siteId); Silo:
+ *  - 'members': nur Mitglieder DIESER Site (Pool: Role.label(communityId); Silo:
  *    Role.users, da das Projekt schon isoliert). Community-Standard.
  *  - 'public': jede/r (Role.any) — bewusst öffentliche Inhalte (z. B. ein
  *    öffentlicher Kommentar-Thread, ein öffentlich sichtbarer Beitrag). */
@@ -42,10 +42,10 @@ export function tenantReadRolesFor(tenant: TenantContext | null, read: RowReadAu
   if (read === 'public') return [Permission.read(Role.any())]
   // 'members'
   if (tenant?.mode === 'pool') {
-    // Harte Grenze: nur wer das Site-Label trägt. Ohne siteId (Datenfehler /
+    // Harte Grenze: nur wer das Site-Label trägt. Ohne communityId (Datenfehler /
     // Bestand ohne Migration) fällt es auf 'no read' zurück statt any —
     // fail-CLOSED, nie versehentlich öffentlich.
-    return tenant.siteId ? [Permission.read(Role.label(tenant.siteId))] : []
+    return tenant.communityId ? [Permission.read(Role.label(tenant.communityId))] : []
   }
   // Silo: eigenes Projekt → jede/r eingeloggte Projekt-User. Single-Tenant
   // (kein Kontext): ebenfalls Role.users (heutiges Verhalten der Member-Reads).

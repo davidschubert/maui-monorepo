@@ -4,7 +4,7 @@
  *
  * Warum diese Middleware existiert: das Kunden-Dashboard hängt client- UND
  * SSR-seitig an Capabilities. Operator-Labels reisen mit dem User in den
- * Client — die Site-Rolle (site_members, G1) lebt aber nur im Control Plane.
+ * Client — die Site-Rolle (community_members, G1) lebt aber nur im Control Plane.
  * Diese Middleware löst sie einmal pro Seiten-Request auf (derselbe Resolver
  * wie requireTenantPermission, gleicher 30-s-Cache → Rollen-Entzug greift im
  * UI nach ≤30 s, dokumentiert akzeptiert) und legt sie in event.context.
@@ -22,7 +22,7 @@
 export default defineEventHandler(async (event) => {
   const user = event.context.user
   const tenant = event.context.tenant
-  if (!user?.$id || !tenant?.siteId) return
+  if (!user?.$id || !tenant?.communityId) return
 
   const path = event.path.split('?')[0] ?? ''
   if (path.startsWith('/api/') || path.startsWith('/_')) return

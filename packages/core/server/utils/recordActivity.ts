@@ -45,7 +45,7 @@ export interface ActivityInput {
  * vorgesehen, wird aber bewusst NICHT verdrahtet (v2).
  *
  * DATENTÜR (C1b): `create` stempelt tenantId (system-021) und setzt die
- * Row-Permissions über tenantRowPermissions — im Pool Role.label(siteId) statt
+ * Row-Permissions über tenantRowPermissions — im Pool Role.label(communityId) statt
  * Role.users(), sonst bekäme jedes eingeloggte Pool-Mitglied die Feed-Einträge
  * ALLER Communities (auch über Realtime, das genau an diesen Row-Rechten
  * hängt). `as:'operator'` ist fachlich nötig: `activities` trägt keine
@@ -68,7 +68,7 @@ export async function recordActivity(event: H3Event, input: ActivityInput): Prom
       metadata: safeMetadata,
       visibility: 'members',
     }, {
-      // 'members' = Role.users() im Silo, Role.label(siteId) im Pool.
+      // 'members' = Role.users() im Silo, Role.label(communityId) im Pool.
       // Verwaltet (gelöscht) wird server-seitig via Admin-Client
       // (activity.manage-Route bzw. GDPR) — deshalb kein ownerUserId.
       read: 'members',

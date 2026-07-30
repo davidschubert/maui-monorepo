@@ -12,7 +12,7 @@
  * Sessions, kein API-Key) und liest die Presences-API direkt an unserem Code
  * vorbei. Es zeigt beides:
  *   VORHER — mit `read("users")` SIEHT Kunde A die Presence von Kunde B.
- *   NACHHER — mit `read("label:<siteId>")` sieht er sie NICHT MEHR,
+ *   NACHHER — mit `read("label:<communityId>")` sieht er sie NICHT MEHR,
  *             während ein MITGLIED derselben Community sie weiterhin sieht.
  * Die zweite Hälfte ist der eigentliche Punkt: eine Grenze, die auch die
  * eigenen Leute aussperrt, ist keine Lösung, sondern ein Ausfall.
@@ -69,20 +69,20 @@ function check(label, ok, detail = '') {
 }
 
 /** Ein Nutzer + sein Site-Label + eine echte Session (= „der Browser"). */
-async function member(tag, siteId) {
+async function member(tag, communityId) {
   const email = `a4-${tag}-${stamp}@example.test`
   const user = await adminUsers.create({
     userId: ID.unique(), email, password: `Pw-${ID.unique()}`, name: `A4 ${tag}`,
   })
   created.users.push(user.$id)
-  await adminUsers.updateLabels({ userId: user.$id, labels: [siteId] })
+  await adminUsers.updateLabels({ userId: user.$id, labels: [communityId] })
   const session = await adminUsers.createSession({ userId: user.$id })
   // Session statt API-Key: nur so gelten die Row-Permissions überhaupt — ein
   // Key umgeht sie absichtlich und würde jede Grenze „bestehen".
   const asUser = new Presences(
     new Client().setEndpoint(endpoint).setProject(projectId).setSession(session.secret),
   )
-  return { id: user.$id, name: `A4 ${tag}`, siteId, presences: asUser }
+  return { id: user.$id, name: `A4 ${tag}`, communityId, presences: asUser }
 }
 
 /** Presence von `who` schreiben — mit genau den Rechten, die geprüft werden. */
@@ -93,7 +93,7 @@ async function writePresence(who, permissions) {
     status: 'online',
     permissions: [...permissions, `update("user:${who.id}")`, `delete("user:${who.id}")`],
     expiresAt: new Date(Date.now() + 120_000).toISOString(),
-    metadata: { userName: who.name, tenantId: `tenant-of-${who.siteId}` },
+    metadata: { userName: who.name, tenantId: `tenant-of-${who.communityId}` },
   })
   if (!created.presences.includes(who.id)) created.presences.push(who.id)
 }
@@ -208,7 +208,7 @@ try {
   check('Bea (Bobs Community) sieht sie auch', await sees(bea, bob))
   check('Bob sieht seine eigene', await sees(bob, bob))
 
-  console.log('\n2. NACHHER — read("label:<siteId>"): die Grenze zieht Appwrite')
+  console.log('\n2. NACHHER — read("label:<communityId>"): die Grenze zieht Appwrite')
   await writePresence(bob, [`read("label:${SITE_B}")`])
   check('Alice (FREMDE Community) sieht Bobs Presence NICHT MEHR',
     !(await sees(alice, bob)), 'Leck offen!')
@@ -222,7 +222,7 @@ try {
   check('Alice sieht ihre eigene', await sees(alice, alice))
 
   console.log('\n4. Fail-closed: Pool-Zeile ohne Site-Label (Datenfehler)')
-  // tenantReadRolesFor gibt ohne siteId ein LEERES Read-Set zurück. Das muss
+  // tenantReadRolesFor gibt ohne communityId ein LEERES Read-Set zurück. Das muss
   // heißen „niemand", nicht „alle" — sonst wäre der Datenfehler ein Leck.
   await writePresence(bob, [])
   check('niemand sieht sie — auch nicht das eigene Mitglied',
@@ -254,7 +254,7 @@ try {
     }
 
     console.log(`\n6. Label-Vergabe: MITGLIEDSCHAFT, nicht Besuch (${HOST_A} / ${HOST_B})`)
-    // SEIT A5 (2026-07-29) folgt das Label einer site_members-Zeile MIT ZUGANG.
+    // SEIT A5 (2026-07-29) folgt das Label einer community_members-Zeile MIT ZUGANG.
     // Vorher genügte ein eingeloggter Besuch (A4) — und genau daran scheiterte
     // „Zugang entziehen": das Publikum kam beim nächsten Aufruf zurück. Die
     // Prüfungen hier fahren deshalb die ECHTEN Beitritts-Auslöser
@@ -332,7 +332,7 @@ finally {
   console.log('\n9. Aufräumen')
   for (const id of created.presences) await adminPresences.delete({ presenceId: id }).catch(() => {})
   // Die Beitritts-Auslöser hinterlassen echte Kommentare (Akt 2) — und im
-  // Control Plane je Beitritt eine site_members-Zeile. Die Zeilen bleiben
+  // Control Plane je Beitritt eine community_members-Zeile. Die Zeilen bleiben
   // bewusst stehen: dieses Skript hat keinen Control-Plane-Schlüssel, und mit
   // dem gelöschten Nutzer zeigen sie auf niemanden mehr. Wer aufräumen will,
   // nimmt packages/onboarding/scripts/verify-site-authz.mjs — das hat beide.

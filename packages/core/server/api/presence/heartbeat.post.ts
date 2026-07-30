@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
       status: 'online',
       // DIE GRENZE (A4, seit 2026-07-29 — Weg (c) aus
       // docs/archiv/PRESENCE-GRENZE.md, David entschieden):
-      // Pool → read("label:<siteId>"), Silo/Single-Tenant → read("users") wie
+      // Pool → read("label:<communityId>"), Silo/Single-Tenant → read("users") wie
       // bisher. Vorher stand hier im Pool `read("users")` — im geteilten
       // Projekt also JEDER eingeloggte User ALLER Communities: wer
       // presences.list() von Hand gegen Appwrite rief, sah userId + userName +
@@ -61,7 +61,7 @@ export default defineEventHandler(async (event) => {
       // `tenantRowPermissionsFor` ist bewusst DERSELBE Bauer wie für alle
       // anderen Zeilen (tenantDb.create) — keine Presence-Sonderregel. Das
       // Label trägt, wer MITGLIED ist (A5: server/middleware/site-label.ts).
-      // Pool ohne siteId (Datenfehler) → kein read: fail-closed.
+      // Pool ohne communityId (Datenfehler) → kein read: fail-closed.
       //
       // update/delete für den Owner: Appwrites Realtime-Presence-Handler
       // (Presences/State.php) UPDATEt die Presence beim WS-Verarbeiten — ohne

@@ -12,7 +12,7 @@ import {
  * (packages/control/.../members/join.post.ts, decideJoin); hier steht nur, WANN
  * gefragt wird und was danach mit dem Site-Label passiert.
  *
- * WARUM EINE REGISTRY (A14): `site_members` gehört dem Control Plane, und die
+ * WARUM EINE REGISTRY (A14): `community_members` gehört dem Control Plane, und die
  * Service-Naht dorthin (Secret + JWT) besitzt der onboarding-Layer. Core darf
  * von einem Feature-Layer nicht abhängen — also derselbe Vertrag wie beim
  * Rollen-Resolver und bei registerReportEscalationHandler: core erklärt die
@@ -27,7 +27,7 @@ import {
 
 export interface SiteJoinRequest {
   /** = tenants.$id. */
-  siteId: string
+  communityId: string
   trigger: SiteJoinTrigger
   /**
    * Frischer Appwrite-Session-Secret. Nur der Auslöser `registration` braucht
@@ -80,23 +80,23 @@ export function __resetSiteJoinHandler(): void {
 const DECIDED_TTL_MS = 60_000
 const decided = new Map<string, { outcome: SiteJoinOutcome, until: number }>()
 
-function decisionKey(siteId: string, userId: string): string {
-  return `${siteId} ${userId}`
+function decisionKey(communityId: string, userId: string): string {
+  return `${communityId} ${userId}`
 }
 
-function rememberedDecision(siteId: string, userId: string): SiteJoinOutcome | null {
-  const hit = decided.get(decisionKey(siteId, userId))
+function rememberedDecision(communityId: string, userId: string): SiteJoinOutcome | null {
+  const hit = decided.get(decisionKey(communityId, userId))
   if (!hit) return null
   if (hit.until < Date.now()) {
-    decided.delete(decisionKey(siteId, userId))
+    decided.delete(decisionKey(communityId, userId))
     return null
   }
   return hit.outcome
 }
 
-function rememberDecision(siteId: string, userId: string, outcome: SiteJoinOutcome): void {
+function rememberDecision(communityId: string, userId: string, outcome: SiteJoinOutcome): void {
   if (outcome !== 'closed' && outcome !== 'removed') return
-  decided.set(decisionKey(siteId, userId), { outcome, until: Date.now() + DECIDED_TTL_MS })
+  decided.set(decisionKey(communityId, userId), { outcome, until: Date.now() + DECIDED_TTL_MS })
   // Der Karten-Deckel ist kein Cache-Feature, sondern Speicherhygiene: ein
   // Deployment sieht über Wochen viele Nutzer, und ein unbegrenztes Map wächst
   // still mit. Beim Überlauf wird der älteste Eintrag geopfert (Insertion-Order
@@ -125,17 +125,17 @@ export function __resetSiteJoinMemory(): void {
  * anderen die dokumentierte Revoke-Latenz von ≤30 s (dieselbe wie bei der
  * Rolle) — danach greift der Selbstheilungs-Zweig der Middleware.
  */
-export function rememberSiteAccessRevoked(siteId: string, userId: string): void {
-  if (!siteId || !userId) return
-  rememberDecision(siteId, userId, 'removed')
+export function rememberSiteAccessRevoked(communityId: string, userId: string): void {
+  if (!communityId || !userId) return
+  rememberDecision(communityId, userId, 'removed')
 }
 
 /**
  * Steht für dieses Paar eine frische Ablehnung? Die Label-Middleware fragt das,
  * BEVOR sie einer (womöglich gecachten) Rolle glaubt.
  */
-export function siteAccessRecentlyDenied(siteId: string, userId: string): boolean {
-  return rememberedDecision(siteId, userId) !== null
+export function siteAccessRecentlyDenied(communityId: string, userId: string): boolean {
+  return rememberedDecision(communityId, userId) !== null
 }
 
 /**
@@ -146,9 +146,9 @@ export function siteAccessRecentlyDenied(siteId: string, userId: string): boolea
  * gewonnene Publikum bis zu einer Minute lang wieder abziehen — die Einladung
  * wäre angenommen und trotzdem wirkungslos.
  */
-export function forgetSiteAccessDecision(siteId: string, userId: string): void {
-  if (!siteId || !userId) return
-  decided.delete(decisionKey(siteId, userId))
+export function forgetSiteAccessDecision(communityId: string, userId: string): void {
+  if (!communityId || !userId) return
+  decided.delete(decisionKey(communityId, userId))
 }
 
 export interface JoinSiteOptions {
@@ -181,12 +181,12 @@ export async function joinSite(
 ): Promise<SiteJoinOutcome> {
   const userId = options.userId ?? event.context.user?.$id
   const tenant = event.context.tenant
-  if (!userId || tenant?.mode !== 'pool' || !tenant.siteId) return 'unavailable'
+  if (!userId || tenant?.mode !== 'pool' || !tenant.communityId) return 'unavailable'
 
   const handler = getSiteJoinHandler()
   if (!handler) return 'unavailable'
 
-  const siteId = tenant.siteId
+  const communityId = tenant.communityId
 
   // Bestehende Mitglieder gar nicht erst fragen. Nur möglich, wenn der Nutzer
   // AUCH der des Requests ist — bei der Anmeldung (options.userId) hat der
@@ -198,16 +198,16 @@ export async function joinSite(
   // machen. Fail-closed wie in site-label.ts: kein Wissen heißt keine Rolle.
   if (!options.userId && await resolveTenantRole(event).catch(() => null)) return 'member'
 
-  const remembered = rememberedDecision(siteId, userId)
+  const remembered = rememberedDecision(communityId, userId)
   if (remembered) return remembered
 
   let outcome: SiteJoinOutcome
   try {
-    outcome = await handler(event, { siteId, trigger, sessionSecret: options.sessionSecret })
+    outcome = await handler(event, { communityId, trigger, sessionSecret: options.sessionSecret })
   }
   catch (error) {
     logEvent('warn', 'site.join_failed', {
-      siteId,
+      communityId,
       userId,
       trigger,
       message: error instanceof Error ? error.message : String(error),
@@ -215,17 +215,17 @@ export async function joinSite(
     return 'unavailable'
   }
 
-  rememberDecision(siteId, userId, outcome)
+  rememberDecision(communityId, userId, outcome)
 
   // Das Label FOLGT der Mitgliedschaft — beide Richtungen, an einer Stelle.
   if (joinOutcomeGrantsAccess(outcome)) {
-    await grantSiteLabel(event, siteId, userId)
+    await grantSiteLabel(event, communityId, userId)
   }
   else if (joinOutcomeRevokesAccess(outcome)) {
     // Wer nicht (mehr) dazugehört, verliert das Lese-Publikum sofort — auch
     // wenn `remove` es schon getan hat (idempotent). Das ist die zweite Sperre
     // dafür, dass „draußen" nicht beim nächsten Besuch zurückgenommen wird.
-    await revokeSiteLabel(event, siteId, userId)
+    await revokeSiteLabel(event, communityId, userId)
   }
 
   return outcome
