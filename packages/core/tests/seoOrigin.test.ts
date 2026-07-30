@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { rebaseSeoLinks, rebaseSeoMeta, rebaseSeoUrl, resolveSeoOrigin, toSeoHeadLinks, toSeoHeadMeta } from '../shared/seoOrigin'
+import { rebaseSeoLinks, rebaseSeoMeta, rebaseSeoUrl, resolveSeoOrigin } from '../shared/seoOrigin'
 
 const POOL_BASE = 'https://platform.pukalani.app'
 
@@ -97,37 +97,33 @@ describe('useLocaleHead-Kopf auf den Request-Host ziehen (Befund B1)', () => {
 })
 
 /**
- * Die Naht zu unhead 3 (Nuxt 4.5): dort ist ein link-/meta-Eintrag eine über
- * `rel` bzw. `name`/`property` DISKRIMINIERTE Union, und `Record<string, string>`
- * — wie @nuxtjs/i18n seine Einträge typisiert — passt in kein Mitglied.
- * Diese Tests nageln fest, dass die Umformung nichts am INHALT ändert.
+ * Die Einträge müssen den Kopf UNVERÄNDERT verlassen, wenn nichts umzuschreiben
+ * ist — inklusive Attributen, die diese Funktionen gar nicht kennen. Das ist
+ * die Bedingung dafür, dass das Ergebnis direkt an `useHead` gehen kann:
+ * @nuxtjs/i18n liefert seit 10.6 präzise unhead-Typen, und die Durchreiche
+ * über `T` erhält sie (früher verengte `Record<string, string>` sie und der
+ * Kopf brauchte eine eigene Umform-Naht).
  */
-describe('Kopf-Einträge in die unhead-Form bringen', () => {
-  it('behält canonical und jeden Alternate mit Ziel, hreflang und Dedupe-Id', () => {
-    expect(toSeoHeadLinks(poolHead().link)).toEqual([
-      { id: 'i18n-xd', rel: 'alternate', href: `${POOL_BASE}/feed`, hreflang: 'x-default' },
-      { id: 'i18n-alt-en', rel: 'alternate', href: `${POOL_BASE}/feed`, hreflang: 'en' },
-      { id: 'i18n-alt-de', rel: 'alternate', href: `${POOL_BASE}/de/feed`, hreflang: 'de' },
-      { id: 'i18n-can', rel: 'canonical', href: `${POOL_BASE}/de/feed` },
-    ])
+describe('Kopf-Einträge unverändert durchreichen', () => {
+  it('gibt bei jedem Eintrag dasselbe Objekt zurück, wenn nichts passt', () => {
+    const head = poolHead()
+    // rel ohne Umschreib-Regel: identisch, nicht nur gleich
+    const fremd = head.link.at(-1)!
+    expect(rebaseSeoLinks(head.link, 'https://demo.pukalani.app').at(-1)).toBe(fremd)
+    // og:locale wird nicht angefasst
+    expect(rebaseSeoMeta(head.meta, 'https://demo.pukalani.app')[1]).toBe(head.meta[1])
   })
 
-  it('nimmt NUR die zwei Formen, die useLocaleHead erzeugt', () => {
-    // Das favicon im Fixture ist Absicht: useLocaleHead liefert so etwas nicht
-    // (nur canonical + alternate, s. i18n dist/runtime/kit/head.js). Im Kopf
-    // steht es trotzdem — der themes-Layer setzt es mit einem EIGENEN useHead.
-    expect(toSeoHeadLinks(poolHead().link).some(l => l.rel === 'icon')).toBe(false)
-    expect(toSeoHeadLinks([{ rel: 'stylesheet', href: '/x.css' }])).toEqual([])
+  it('lässt unbekannte Attribute an umgeschriebenen Einträgen stehen', () => {
+    const links = [{ id: 'i18n-can', rel: 'canonical', href: `${POOL_BASE}/x`, fetchpriority: 'high' }]
+    expect(rebaseSeoLinks(links, 'https://demo.pukalani.app')[0]).toEqual({
+      id: 'i18n-can', rel: 'canonical', href: 'https://demo.pukalani.app/x', fetchpriority: 'high',
+    })
   })
 
-  it('ein Alternate ohne Ziel behält sein leeres href (x-default ohne Gegenstück)', () => {
-    expect(toSeoHeadLinks([{ id: 'i18n-xd', rel: 'alternate', hreflang: 'x-default' } as Record<string, string>]))
-      .toEqual([{ id: 'i18n-xd', rel: 'alternate', href: '', hreflang: 'x-default' }])
-  })
-
-  it('trägt property- und name-Metas mit Inhalt und Id durch', () => {
-    expect(toSeoHeadMeta(poolHead().meta)).toEqual(poolHead().meta)
-    expect(toSeoHeadMeta([{ name: 'twitter:card', content: 'summary_large_image' }]))
-      .toEqual([{ name: 'twitter:card', content: 'summary_large_image', id: undefined }])
+  it('fasst content nur an, wenn dort wirklich ein String steht', () => {
+    // unhead erlaubt an meta auch Zahlen — ein rebaseSeoUrl darauf wäre Unsinn
+    const meta = [{ id: 'x', property: 'og:url', content: 42 }]
+    expect(rebaseSeoMeta(meta, 'https://demo.pukalani.app')[0]).toBe(meta[0])
   })
 })

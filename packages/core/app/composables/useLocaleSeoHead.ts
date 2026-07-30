@@ -1,4 +1,4 @@
-import { rebaseSeoLinks, rebaseSeoMeta, rebaseSeoUrl, resolveSeoOrigin, toSeoHeadLinks, toSeoHeadMeta, type SeoHeadMeta } from '../../shared/seoOrigin'
+import { rebaseSeoLinks, rebaseSeoMeta, rebaseSeoUrl, resolveSeoOrigin, type SeoHeadMeta } from '../../shared/seoOrigin'
 
 /**
  * Der SEO-Kopf jeder App: lang/dir am <html>, hreflang-Alternates, canonical,
@@ -67,9 +67,7 @@ export function useLocaleSeoHead(): void {
 
   useHead(() => ({
     htmlAttrs: localeHead.value.htmlAttrs,
-    // toSeoHeadLinks = Naht zu unhead 3 (diskriminierte link-Union, s. dort);
-    // rebaseSeoLinks bleibt die reine Host-Rechnung davor.
-    link: toSeoHeadLinks(rebaseSeoLinks(localeHead.value.link, origin)),
-    meta: [...toSeoHeadMeta(rebaseSeoMeta(localeHead.value.meta, origin)), ...imageMeta.value],
+    link: rebaseSeoLinks(localeHead.value.link, origin),
+    meta: [...rebaseSeoMeta(localeHead.value.meta, origin), ...imageMeta.value],
   }))
 }

@@ -8,13 +8,42 @@ onlyBuiltDependencies:
   - esbuild
   - vue-demi
 
+# EINE h3-Version im Baum. Nicht Kosmetik, sondern die Bedingung dafür, dass
+# der Typecheck überhaupt reproduzierbar ist:
+# nitropack 2.13.4 bringt h3 1.15.11, und über Vite 8 kommt
+# `@vitejs/devtools` → devtools-kit → devframe → h3 2.0.1-rc dazu. Bei ZWEI
+# Kopien entscheidet pnpms Hoisting, welche unter `.pnpm/node_modules/h3`
+# landet; `nuxi prepare` schreibt GENAU DIE in die `paths` der generierten
+# tsconfigs, während nitros eigene Typen bei h3 1 bleiben. Gewinnt h3 2, ist
+# jedes Event, das eine Route an einen geteilten Helfer weiterreicht, ein
+# Typfehler — gemessen platform 1102, control 944, comments 1261. Das Hoisting
+# steht NICHT im Lockfile: dieselbe Lockfile war auf einer Maschine grün und
+# auf der anderen rot (nachgestellt, indem nur der Hoist-Symlink umgehängt
+# wurde). Ein Override auf `vite: ^7` beseitigt das NICHT — Vite 8 hängt als
+# auto-installierter Peer (`autoInstallPeers`) mit drin und der Baum wird
+# dadurch nur noch gemischter (zwei @nuxt/vite-builder-Varianten).
+# Deshalb direkt an h3. Preis, bewusst bezahlt: devframe importiert `H3`,
+# `defineHandler` und `toNodeHandler` — h3-2-APIs, die h3 1 nicht hat. devframe
+# ist Vite-DEVTOOLS-Zubehör (über @unhead/bundler → @vitejs/devtools-kit); der
+# Einstiegspunkt `@vitejs/devtools` ist gar nicht installiert, es wird also nie
+# geladen — Dev-Server, alle vier Prod-Builds und der Browser bleiben sauber.
+# Sollte Vite-Devtools je wirklich gebraucht werden, ist das der Moment, den
+# Vite-8-Sprung als EIGENE Entscheidung anzugehen (Vite 7 kennt devframe nicht).
+# Wächter: `pnpm check:single-copy`.
+overrides:
+  h3: ^1.15.11
+
 catalog:
   '@iconify-json/ph': ^1.2.2
   '@iconify-json/circle-flags': ^1.2.5
   '@iconify-json/lucide': ^1.2.118
   '@nuxt/content': ^3.15.1
   '@nuxt/eslint-config': ^1.15.2
-  '@nuxtjs/i18n': ^10.4.0
+  # MUSS zur Nuxt-Generation passen: 10.4 gehört zu Nuxt 4.4 und zieht
+  # @unhead/vue 2 + vue-router 5.1 (und darüber pinia 3) in den Baum, während
+  # Nuxt 4.5 auf unhead 3 + vue-router 5.2 steht. 10.6 verlangt @nuxt/kit
+  # ^4.5.1, unhead ^3.2.3, vue-router ^5.2.0, h3 ^1.15.11 — dieselbe Linie.
+  '@nuxtjs/i18n': ^10.6.0
   eslint: ^10.8.0
   appwrite: ^26.2.0
   node-appwrite: ^26.2.0
