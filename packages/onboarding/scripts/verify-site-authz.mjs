@@ -10,6 +10,13 @@
  *   - reist eine Owner-Rolle NICHT auf eine andere Community mit?
  *   - hat der Owner das Site-Label bekommen (Naht 4, privates Lesen)?
  *   - sieht er die Kennzahlen SEINER Übersicht (C1) — und ein Fremder nicht?
+ *   - kann er sein TEAM verwalten (Abschnitt 8, Audit-Befund S9): einladen,
+ *     Rollen ändern, Zugang entziehen, Besitz übertragen — Admin ebenfalls,
+ *     Moderator/Editor/Viewer NICHT, Fremder 403, Gast 401? Und halten die
+ *     Schutzregeln (kein Selbst-Degradieren, Owner nur per Übergabe)? Zum
+ *     Schluss der Kern von Davids Entscheidung 1: nach dem Entfernen steht der
+ *     Kommentar des Entfernten weiter da, mit Namen und mit dem Zeichen
+ *     „Ehemaliges Mitglied".
  *
  * Räumt am Ende alles weg, was es angelegt hat.
  *
@@ -41,7 +48,7 @@ const poolUsers = new Users(new Client().setEndpoint(endpoint).setProject(poolPr
 
 let pass = 0
 let fail = 0
-const cleanup = { users: [], codes: [], tenants: [], members: [], workspaces: [] }
+const cleanup = { users: [], codes: [], tenants: [], members: [], workspaces: [], invites: [], comments: [] }
 
 function check(label, ok, detail = '') {
   if (ok) {
@@ -260,13 +267,183 @@ try {
   check('Fremder (eingeloggt, kein Mitglied) → 403', strangerStats.status === 403, `Status ${strangerStats.status}`)
   const guestStats = await call(host, '/api/admin/stats')
   check('Gast ohne Session → 401', guestStats.status === 401, `Status ${guestStats.status}`)
+
+  // ──────────────────────────────────────────────────────────────────────────
+  console.log('\n8. Mitglieder-Verwaltung (S9: team.manage ist keine tote Capability mehr)')
+  // Vier Testpersonen mit echten Mitgliedschaften. Bewusst FRISCHE Nutzer: der
+  // Rollen-Resolver cacht 30 s, und für `stranger` steht schon ein „keine
+  // Rolle" im Cache — ein neu angelegtes Mitglied wurde noch nie gefragt und
+  // wird deshalb sofort gesehen.
+  const staff = {}
+  for (const role of ['admin', 'moderator', 'editor', 'viewer']) {
+    const account = await createPoolUser(role)
+    const row = await control.createRow({
+      databaseId,
+      tableId: 'site_members',
+      rowId: ID.unique(),
+      data: {
+        siteId,
+        runtimeProjectId: poolProject,
+        runtimeUserId: account.userId,
+        role,
+        status: 'active',
+        email: account.email,
+      },
+    })
+    cleanup.members.push(row.$id)
+    staff[role] = { ...account, memberId: row.$id, cookie: await login(account) }
+  }
+
+  console.log('  Lesen: wer darf die Mitgliederliste sehen?')
+  const ownerList = await call(host, '/api/site/members', { cookie: ownerCookie })
+  check('Owner → 200', ownerList.status === 200, `Status ${ownerList.status} ${ownerList.text.slice(0, 160)}`)
+  check('…und findet sich selbst als Owner darin',
+    (ownerList.json?.members ?? []).some(m => m.role === 'owner' && m.self === true),
+    JSON.stringify(ownerList.json?.members ?? []).slice(0, 200))
+  const adminList = await call(host, '/api/site/members', { cookie: staff.admin.cookie })
+  check('Admin → 200', adminList.status === 200, `Status ${adminList.status}`)
+  for (const role of ['moderator', 'editor', 'viewer']) {
+    const res = await call(host, '/api/site/members', { cookie: staff[role].cookie })
+    check(`${role} → 403 (team.manage fehlt ihm)`, res.status === 403, `Status ${res.status}`)
+  }
+  const strangerList = await call(host, '/api/site/members', { cookie: strangerCookie })
+  check('Fremder (eingeloggt, kein Mitglied) → 403', strangerList.status === 403, `Status ${strangerList.status}`)
+  const guestList = await call(host, '/api/site/members')
+  check('Gast ohne Session → 401', guestList.status === 401, `Status ${guestList.status}`)
+
+  console.log('  Einladen: gleiche Grenze, eigener Endpunkt')
+  const inviteBody = { email: `o5-invitee-${Date.now()}@example.test`, role: 'viewer' }
+  const ownerInvite = await call(host, '/api/site/members', { method: 'POST', cookie: ownerCookie, body: inviteBody })
+  // 503 = kein SMTP in dieser Umgebung. Das ist KEIN Autorisierungsfehler und
+  // der Punkt dieses Abschnitts: 401/403 wären der Fehler.
+  check('Owner darf einladen (200; 503 = Mailer aus)',
+    ownerInvite.status === 200 || ownerInvite.status === 503, `Status ${ownerInvite.status} ${ownerInvite.text.slice(0, 160)}`)
+  if (ownerInvite.status === 503) console.log('    ℹ Mailer aus (503) — Einladung wurde bewusst NICHT angelegt')
+  if (ownerInvite.json?.inviteId) cleanup.invites.push(ownerInvite.json.inviteId)
+  const adminInvite = await call(host, '/api/site/members', {
+    method: 'POST', cookie: staff.admin.cookie, body: { email: `o5-invitee2-${Date.now()}@example.test`, role: 'editor' },
+  })
+  check('Admin darf einladen (200; 503 = Mailer aus)',
+    adminInvite.status === 200 || adminInvite.status === 503, `Status ${adminInvite.status}`)
+  if (adminInvite.json?.inviteId) cleanup.invites.push(adminInvite.json.inviteId)
+  for (const role of ['moderator', 'editor', 'viewer']) {
+    const res = await call(host, '/api/site/members', {
+      method: 'POST', cookie: staff[role].cookie, body: { email: 'nope@example.test', role: 'viewer' },
+    })
+    check(`${role} darf NICHT einladen → 403`, res.status === 403, `Status ${res.status}`)
+  }
+  const guestInvite = await call(host, '/api/site/members', { method: 'POST', body: { email: 'nope@example.test', role: 'viewer' } })
+  check('Gast darf nicht einladen → 401', guestInvite.status === 401, `Status ${guestInvite.status}`)
+  const inviteAsOwnerRole = await call(host, '/api/site/members', {
+    method: 'POST', cookie: ownerCookie, body: { email: 'nope@example.test', role: 'owner' },
+  })
+  check('als „owner" einladen ist verboten (Besitz nur per Übergabe)',
+    inviteAsOwnerRole.status === 409 || inviteAsOwnerRole.status === 400,
+    `Status ${inviteAsOwnerRole.status} ${inviteAsOwnerRole.text.slice(0, 120)}`)
+
+  console.log('  Rolle ändern: Regeln greifen serverseitig')
+  const promote = await call(host, `/api/site/members/${staff.viewer.memberId}`, {
+    method: 'PATCH', cookie: staff.admin.cookie, body: { role: 'moderator' },
+  })
+  check('Admin darf eine Rolle ändern → 200', promote.status === 200, `Status ${promote.status} ${promote.text.slice(0, 160)}`)
+  const viewerRow = await control.getRow({ databaseId, tableId: 'site_members', rowId: staff.viewer.memberId })
+  check('…und die Zeile trägt die neue Rolle', viewerRow.role === 'moderator', `role=${viewerRow.role}`)
+  const selfDemote = await call(host, `/api/site/members/${staff.admin.memberId}`, {
+    method: 'PATCH', cookie: staff.admin.cookie, body: { role: 'viewer' },
+  })
+  check('Selbst-Degradierung → 409 self_demote',
+    selfDemote.status === 409 && selfDemote.json?.reason === 'self_demote',
+    `Status ${selfDemote.status} ${selfDemote.text.slice(0, 200)}`)
+  const ownerMemberId = members.rows.find(row => row.role === 'owner')?.$id
+  const touchOwner = await call(host, `/api/site/members/${ownerMemberId}`, {
+    method: 'PATCH', cookie: staff.admin.cookie, body: { role: 'viewer' },
+  })
+  check('Admin kann den Owner nicht degradieren → 409 owner_protected',
+    touchOwner.status === 409 && touchOwner.json?.reason === 'owner_protected',
+    `Status ${touchOwner.status} ${touchOwner.text.slice(0, 200)}`)
+  const makeOwner = await call(host, `/api/site/members/${staff.editor.memberId}`, {
+    method: 'PATCH', cookie: ownerCookie, body: { role: 'owner' },
+  })
+  check('niemand wird per Rollen-Änderung Owner → 409 owner_protected',
+    makeOwner.status === 409 && makeOwner.json?.reason === 'owner_protected',
+    `Status ${makeOwner.status}`)
+  const selfRemove = await call(host, `/api/site/members/${ownerMemberId}`, { method: 'DELETE', cookie: ownerCookie })
+  check('Owner kann sich nicht selbst entfernen → 409 self_remove',
+    selfRemove.status === 409 && selfRemove.json?.reason === 'self_remove',
+    `Status ${selfRemove.status} ${selfRemove.text.slice(0, 200)}`)
+  for (const role of ['moderator', 'editor']) {
+    const res = await call(host, `/api/site/members/${staff.viewer.memberId}`, {
+      method: 'PATCH', cookie: staff[role].cookie, body: { role: 'viewer' },
+    })
+    check(`${role} darf keine Rollen ändern → 403`, res.status === 403, `Status ${res.status}`)
+  }
+
+  console.log('  Entfernen entzieht den ZUGANG — Inhalte bleiben (Entscheidung 1)')
+  // Der Editor schreibt einen Kommentar, BEVOR er entfernt wird. Danach muss der
+  // Kommentar mit seinem Namen stehen und das Zeichen „Ehemaliges Mitglied"
+  // tragen. Der Kommentar wird vorher NICHT gelesen — der Ehemaligen-Cache
+  // (60 s, pro Autor) darf kein „ist kein Ehemaliger" gespeichert haben.
+  const targetId = `o5-members-${Date.now()}`
+  const posted = await call(host, '/api/comments', {
+    method: 'POST',
+    cookie: staff.editor.cookie,
+    body: { targetId, targetType: 'verify', content: 'Ich war hier — und bleibe im Thread stehen.' },
+  })
+  check('Editor kann einen Kommentar schreiben', posted.status === 200 || posted.status === 201, `Status ${posted.status} ${posted.text.slice(0, 200)}`)
+  const commentId = posted.json?.$id ?? posted.json?.comment?.$id
+  if (commentId) cleanup.comments.push(commentId)
+
+  const removeEditor = await call(host, `/api/site/members/${staff.editor.memberId}`, {
+    method: 'DELETE', cookie: staff.admin.cookie,
+  })
+  check('Admin darf entfernen → 200', removeEditor.status === 200, `Status ${removeEditor.status} ${removeEditor.text.slice(0, 160)}`)
+  const editorRow = await control.getRow({ databaseId, tableId: 'site_members', rowId: staff.editor.memberId })
+  check('die Mitgliedschaft ist NICHT gelöscht, sondern status=removed',
+    editorRow.status === 'removed' && !!editorRow.removedAt, JSON.stringify({ status: editorRow.status, removedAt: editorRow.removedAt }))
+
+  const listAfter = await call(host, `/api/comments?targetId=${targetId}&targetType=verify`)
+  const authorRow = (listAfter.json?.rows ?? []).find(row => row.$id === commentId)
+  check('der Kommentar steht weiter da — mit Namen', !!authorRow?.authorName, JSON.stringify(authorRow ?? {}).slice(0, 200))
+  check('…und trägt das Zeichen „Ehemaliges Mitglied" (gebündelter Lookup)',
+    authorRow?.authorFormerMember === true, JSON.stringify(authorRow ?? {}).slice(0, 200))
+
+  for (const role of ['moderator', 'viewer']) {
+    const res = await call(host, `/api/site/members/${staff.admin.memberId}`, { method: 'DELETE', cookie: staff[role].cookie })
+    check(`${role} darf niemanden entfernen → 403`, res.status === 403, `Status ${res.status}`)
+  }
+  const guestRemove = await call(host, `/api/site/members/${staff.admin.memberId}`, { method: 'DELETE' })
+  check('Gast darf niemanden entfernen → 401', guestRemove.status === 401, `Status ${guestRemove.status}`)
+
+  console.log('  Besitz übertragen: OWNER-Sache (site.transfer), nicht team.manage')
+  const adminTransfer = await call(host, `/api/site/members/${staff.moderator.memberId}/transfer`, {
+    method: 'POST', cookie: staff.admin.cookie,
+  })
+  check('Admin darf NICHT übertragen → 403', adminTransfer.status === 403, `Status ${adminTransfer.status}`)
+  const ownerTransfer = await call(host, `/api/site/members/${staff.admin.memberId}/transfer`, {
+    method: 'POST', cookie: ownerCookie,
+  })
+  check('Owner darf übertragen → 200', ownerTransfer.status === 200, `Status ${ownerTransfer.status} ${ownerTransfer.text.slice(0, 160)}`)
+  const newOwner = await control.getRow({ databaseId, tableId: 'site_members', rowId: staff.admin.memberId })
+  const oldOwner = ownerMemberId ? await control.getRow({ databaseId, tableId: 'site_members', rowId: ownerMemberId }) : null
+  check('das Ziel ist jetzt Owner', newOwner.role === 'owner', `role=${newOwner.role}`)
+  check('der Übertragende ist Admin — nicht draußen', oldOwner?.role === 'admin', `role=${oldOwner?.role}`)
 }
 catch (error) {
   fail++
   console.error('\n✗ Abbruch:', error?.message || error)
 }
 finally {
-  console.log('\n7. Aufräumen')
+  console.log('\n9. Aufräumen')
+  // Kommentare liegen im POOL-Projekt, nicht im Control Plane — eigene
+  // Verbindung, eigene Datenbank-Id (in der Praxis dieselbe; Override per Env).
+  if (cleanup.comments.length > 0) {
+    const poolDb = new TablesDB(new Client().setEndpoint(endpoint).setProject(poolProject).setKey(poolKey))
+    const poolDatabaseId = process.env.POOL_DATABASE_ID || databaseId
+    for (const id of cleanup.comments) {
+      await poolDb.deleteRow({ databaseId: poolDatabaseId, tableId: 'comments', rowId: id }).catch(() => {})
+    }
+  }
+  for (const id of cleanup.invites) await control.deleteRow({ databaseId, tableId: 'site_invites', rowId: id }).catch(() => {})
   for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'site_members', rowId: id }).catch(() => {})
   for (const id of cleanup.tenants) await control.deleteRow({ databaseId, tableId: 'tenants', rowId: id }).catch(() => {})
   for (const id of cleanup.workspaces) await control.deleteRow({ databaseId, tableId: 'workspaces', rowId: id }).catch(() => {})

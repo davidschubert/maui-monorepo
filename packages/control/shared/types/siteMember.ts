@@ -21,7 +21,25 @@ import type { Models } from 'node-appwrite'
 export const SITE_ROLES = ['owner', 'admin', 'moderator', 'editor', 'viewer'] as const
 export type SiteRole = (typeof SITE_ROLES)[number]
 
-export const SITE_MEMBER_STATUSES = ['active', 'invited', 'suspended'] as const
+/**
+ * Status einer Mitgliedschaft.
+ *
+ * `removed` kam mit der Mitglieder-Verwaltung (studio-019, Davids Entscheidung 1
+ * vom 2026-07-29) dazu und ist der wichtigste Wert dieser Liste: „Entfernen"
+ * LÖSCHT die Row NICHT, es entzieht nur den Zugang (der Resolver lässt allein
+ * `active` durch). Die Row bleibt als POSITIVE Tatsache stehen — nur so kann
+ * eine Ansicht später „Ehemaliges Mitglied" hinter einen Autorennamen setzen.
+ *
+ * Die Abwesenheit einer Row bedeutet ausdrücklich NICHT „ehemalig": in einer
+ * Pool-Community trägt `site_members` heute nur das TEAM (Gründer + Eingeladene),
+ * nicht jede mitlesende Person (CLAUDE.md, A4). Wer „nicht in site_members" als
+ * „ehemalig" läse, würde fast jeden Kommentar-Autor falsch kennzeichnen.
+ *
+ * `invited` bleibt aus studio-015 erhalten (Enum-Werte lassen sich nicht
+ * entfernen), wird aber nicht mehr geschrieben: offene Einladungen leben in
+ * `site_invites`, weil zur Einladungszeit noch keine runtimeUserId existiert.
+ */
+export const SITE_MEMBER_STATUSES = ['active', 'invited', 'suspended', 'removed'] as const
 export type SiteMemberStatus = (typeof SITE_MEMBER_STATUSES)[number]
 
 export interface SiteMemberRow extends Models.Row {
@@ -35,6 +53,13 @@ export interface SiteMemberRow extends Models.Row {
   status: SiteMemberStatus
   /** Nur für Einladung/Anzeige — NIE Autorisierungsschlüssel. */
   email: string
+  /** Zeitpunkt des Zugangs-Entzugs (studio-019); null = nie entfernt. */
+  removedAt?: string | null
 }
 
 export const SITE_MEMBERS_TABLE = 'site_members'
+
+/** Type-Guard: bekannter Mitglieds-Status? (fremde/verfälschte Werte fallen weg) */
+export function isSiteMemberStatus(value: string): value is SiteMemberStatus {
+  return (SITE_MEMBER_STATUSES as readonly string[]).includes(value)
+}

@@ -109,7 +109,8 @@
       "upvote": "Upvote",
       "downvote": "Downvote",
       "voteError": "Vote fehlgeschlagen — bitte erneut versuchen.",
-      "error": "Aktion fehlgeschlagen — bitte erneut versuchen."
+      "error": "Aktion fehlgeschlagen — bitte erneut versuchen.",
+      "formerMember": "Ehemaliges Mitglied"
     },
     "report": {
       "reasons": {

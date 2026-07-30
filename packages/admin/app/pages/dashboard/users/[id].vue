@@ -61,7 +61,11 @@ async function saveRoles() {
     await refresh()
   }
   catch (error) {
-    const code = (error as { data?: { data?: { code?: string } } })?.data?.data?.code
+    // `data.reason` (Fehler-Envelope, core shared/types/error.ts). Vorher stand
+    // hier `data.data.code` — das kam NIE an: der zentrale Handler verwirft die
+    // rohe `data` eines Fehlers, seit 2026-07-29 reist ein geprüfter Grund als
+    // `reason` mit. Der last_admin-Hinweis war bis dahin toter Code.
+    const code = (error as { data?: { reason?: string } })?.data?.reason
     toast.add({ title: code === 'last_admin' ? t('admin.users.lastAdmin') : t('admin.users.actionFailed'), color: 'error' })
   }
   finally {
@@ -162,7 +166,11 @@ async function runUserAction(type: UserAction) {
     await refresh()
   }
   catch (error) {
-    const code = (error as { data?: { data?: { code?: string } } })?.data?.data?.code
+    // `data.reason` (Fehler-Envelope, core shared/types/error.ts). Vorher stand
+    // hier `data.data.code` — das kam NIE an: der zentrale Handler verwirft die
+    // rohe `data` eines Fehlers, seit 2026-07-29 reist ein geprüfter Grund als
+    // `reason` mit. Der last_admin-Hinweis war bis dahin toter Code.
+    const code = (error as { data?: { reason?: string } })?.data?.reason
     toast.add({ title: code === 'last_admin' ? t('admin.users.lastAdmin') : t('admin.users.actionFailed'), color: 'error' })
   }
 }

@@ -165,5 +165,109 @@
       "slugInvalid": "Lowercase letters, numbers and hyphens only.",
       "slugReserved": "That address is reserved. Please pick another one."
     }
+  },
+  "admin": {
+    "nav": {
+      "members": "Members"
+    }
+  },
+  "members": {
+    "title": "Members",
+    "description": "Who belongs to your community, and what may they do? Invite people, assign roles, revoke access.",
+    "name": "Name",
+    "role": "Role",
+    "joined": "Member since",
+    "status": "Status",
+    "you": "you",
+    "searchPlaceholder": "Search name or email",
+    "emptyTitle": "Only you so far",
+    "emptyText": "Invite your first members — they get an email with a link and are in with one click.",
+    "statusValues": {
+      "active": "Active",
+      "removed": "Former member"
+    },
+    "roles": {
+      "owner": "Owner",
+      "admin": "Administrator",
+      "moderator": "Moderator",
+      "editor": "Editor",
+      "viewer": "Member"
+    },
+    "roleHelp": {
+      "owner": "Full rights, including transferring ownership.",
+      "admin": "Manages everything: content, moderation, appearance, members.",
+      "moderator": "Moderates reports and posts — does not write content.",
+      "editor": "Maintains posts, pages, events and media — does not moderate.",
+      "viewer": "Reads along and writes comments. No access to management."
+    },
+    "actions": {
+      "changeRole": "Change role",
+      "transfer": "Transfer ownership",
+      "remove": "Revoke access",
+      "reinvite": "Invite again"
+    },
+    "invite": {
+      "cta": "Invite",
+      "title": "Invite a member",
+      "description": "Enter an email address, pick a role — done.",
+      "emailLabel": "Email address",
+      "emailHelp": "If the person already has a Pukalani account, one click after signing in is enough. Otherwise they create one via the link.",
+      "roleLabel": "Role",
+      "submit": "Send invitation",
+      "sent": "Invitation sent to {email}.",
+      "sentExisting": "{email} has an account — invitation sent, one click is enough.",
+      "failed": "The invitation could not be sent."
+    },
+    "invites": {
+      "title": "Open invitations",
+      "description": "Sent, but not accepted yet. Revoking makes the link invalid immediately.",
+      "email": "Email address",
+      "role": "Role",
+      "expires": "Expires"
+    },
+    "revoke": {
+      "title": "Revoke invitation?",
+      "text": "The link sent to {email} will stop working. You can invite again at any time.",
+      "confirm": "Revoke",
+      "done": "Invitation revoked."
+    },
+    "role": {
+      "done": "Role changed: {role}."
+    },
+    "remove": {
+      "title": "Revoke access for {name}?",
+      "text": "They will no longer be able to sign in to this community. Their posts, comments and course progress REMAIN and keep their name — from now on it shows \"Former member\" next to it. Deleting an account is a different matter.",
+      "confirm": "Revoke access",
+      "done": "Access revoked."
+    },
+    "transfer": {
+      "title": "Transfer ownership to {name}?",
+      "text": "This person becomes the owner of the community. You stay on as administrator — you keep management, but hand over transfer and billing.",
+      "confirm": "Transfer ownership",
+      "done": "Ownership transferred."
+    },
+    "errors": {
+      "self_demote": "You cannot take rights away from yourself. Ask another administrator to do it.",
+      "self_remove": "You cannot revoke your own access.",
+      "last_owner": "There always has to be an owner. Transfer ownership first.",
+      "owner_protected": "Ownership only changes via \"Transfer ownership\".",
+      "already_member": "That address is already on the team.",
+      "not_a_member": "This person is not (or no longer) on the team.",
+      "invalid_role": "That role does not exist.",
+      "unchanged": "This person already has that role.",
+      "failed": "That didn't work just now. Please try again."
+    }
+  },
+  "join": {
+    "title": "Accept invitation",
+    "titleNamed": "Invitation to {name}",
+    "description": "One click and you're in.",
+    "roleNote": "You are joining as {role}.",
+    "accept": "Accept invitation",
+    "done": "Welcome! You're in.",
+    "invalid": "This invitation is no longer valid. Please ask for a new one.",
+    "wrongAccount": "This invitation was issued for a different email address. Sign in with the invited address.",
+    "noneTitle": "No open invitation",
+    "noneText": "There is no invitation here for this account. Check the link from your email — or ask the community team for a new one."
   }
 }

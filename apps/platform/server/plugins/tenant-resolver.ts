@@ -1,5 +1,5 @@
 import { createTenantsTableResolver } from '../../../../packages/control/server/utils/tenantsResolver'
-import { createSiteMembersResolver } from '../../../../packages/control/server/utils/siteMembersResolver'
+import { createFormerSiteMembersResolver, createSiteMembersResolver } from '../../../../packages/control/server/utils/siteMembersResolver'
 
 /**
  * A14-Komposition: die APP verdrahtet die core-Resolver-Verträge mit den
@@ -10,6 +10,10 @@ import { createSiteMembersResolver } from '../../../../packages/control/server/u
  *  - tenants-Resolver: Host → TenantContext (inkl. siteId = tenants.$id).
  *  - site_members-Resolver: {siteId, runtimeProjectId, runtimeUserId} → Rolle
  *    (G1, requireTenantPermission). Dieselbe Verbindung, eigener Cache.
+ *  - GEBÜNDELTER Ehemaligen-Resolver (N9): viele runtimeUserIds → wer von ihnen
+ *    aus DIESER Community entfernt wurde. Eigener Vertrag, weil eine
+ *    Kommentarliste 25 Autoren hat und der Einzel-Lookup daraus 25
+ *    Cross-Projekt-Abfragen machen würde; Cache pro Nutzer, 60 s, fail-soft.
  *
  * Ohne NUXT_PLATFORM_CONTROL_*-Env (z. B. CI-Build) wird KEIN Resolver
  * registriert → die Tenant-Middleware ist dokumentiert fail-open (No-Op) und
@@ -27,4 +31,5 @@ export default defineNitroPlugin(() => {
   }
   registerTenantResolver(createTenantsTableResolver({ endpoint, projectId, apiKey, databaseId }))
   registerSiteRoleResolver(createSiteMembersResolver({ endpoint, projectId, apiKey, databaseId }))
+  registerFormerSiteMembersResolver(createFormerSiteMembersResolver({ endpoint, projectId, apiKey, databaseId }))
 })
