@@ -25,7 +25,7 @@ const items = computed(() =>
     <div class="aud-grid mkt-inner" data-reveal>
       <NuxtLink
         v-for="item in items" :key="item.slug"
-        :to="localePath({ name: 'fuer-slug', params: { slug: item.slug } })" class="aud-card"
+        :to="localePath({ name: 'use-cases-slug', params: { slug: item.slug } })" class="aud-card"
       >
         <UIcon :name="item.icon" class="aud-icon" />
         <h3 class="aud-title">{{ item.title }}</h3>

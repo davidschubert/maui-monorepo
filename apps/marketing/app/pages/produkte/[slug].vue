@@ -11,7 +11,7 @@
 //
 // Locale-Pfade: EN /products/* · DE /de/produkte/* — Kundensprache ist
 // „Produkte" (im CODE bleibt das Vokabular `features`). Die Slugs bleiben
-// deutsch, nur das Segment ist lokalisiert — wie bei /for/* ↔ /fuer/*.
+// deutsch, nur das Segment ist lokalisiert.
 // Die alten /features/*-URLs waren schon veröffentlicht: 301 in nuxt.config.ts.
 definePageMeta({ layout: 'site' })
 defineI18nRoute({ paths: { en: '/products/[slug]', de: '/produkte/[slug]' } })
