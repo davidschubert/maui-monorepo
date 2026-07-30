@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { rebaseSeoLinks, rebaseSeoMeta, rebaseSeoUrl, resolveSeoOrigin } from '../shared/seoOrigin'
+import { rebaseSeoLinks, rebaseSeoMeta, rebaseSeoUrl, resolveSeoOrigin, toSeoHeadLinks, toSeoHeadMeta } from '../shared/seoOrigin'
 
 const POOL_BASE = 'https://platform.pukalani.app'
 
@@ -93,5 +93,41 @@ describe('useLocaleHead-Kopf auf den Request-Host ziehen (Befund B1)', () => {
     const head = poolHead()
     expect(rebaseSeoLinks(head.link, '')).toEqual(head.link)
     expect(rebaseSeoMeta(head.meta, '')).toEqual(head.meta)
+  })
+})
+
+/**
+ * Die Naht zu unhead 3 (Nuxt 4.5): dort ist ein link-/meta-Eintrag eine über
+ * `rel` bzw. `name`/`property` DISKRIMINIERTE Union, und `Record<string, string>`
+ * — wie @nuxtjs/i18n seine Einträge typisiert — passt in kein Mitglied.
+ * Diese Tests nageln fest, dass die Umformung nichts am INHALT ändert.
+ */
+describe('Kopf-Einträge in die unhead-Form bringen', () => {
+  it('behält canonical und jeden Alternate mit Ziel, hreflang und Dedupe-Id', () => {
+    expect(toSeoHeadLinks(poolHead().link)).toEqual([
+      { id: 'i18n-xd', rel: 'alternate', href: `${POOL_BASE}/feed`, hreflang: 'x-default' },
+      { id: 'i18n-alt-en', rel: 'alternate', href: `${POOL_BASE}/feed`, hreflang: 'en' },
+      { id: 'i18n-alt-de', rel: 'alternate', href: `${POOL_BASE}/de/feed`, hreflang: 'de' },
+      { id: 'i18n-can', rel: 'canonical', href: `${POOL_BASE}/de/feed` },
+    ])
+  })
+
+  it('nimmt NUR die zwei Formen, die useLocaleHead erzeugt', () => {
+    // Das favicon im Fixture ist Absicht: useLocaleHead liefert so etwas nicht
+    // (nur canonical + alternate, s. i18n dist/runtime/kit/head.js). Im Kopf
+    // steht es trotzdem — der themes-Layer setzt es mit einem EIGENEN useHead.
+    expect(toSeoHeadLinks(poolHead().link).some(l => l.rel === 'icon')).toBe(false)
+    expect(toSeoHeadLinks([{ rel: 'stylesheet', href: '/x.css' }])).toEqual([])
+  })
+
+  it('ein Alternate ohne Ziel behält sein leeres href (x-default ohne Gegenstück)', () => {
+    expect(toSeoHeadLinks([{ id: 'i18n-xd', rel: 'alternate', hreflang: 'x-default' } as Record<string, string>]))
+      .toEqual([{ id: 'i18n-xd', rel: 'alternate', href: '', hreflang: 'x-default' }])
+  })
+
+  it('trägt property- und name-Metas mit Inhalt und Id durch', () => {
+    expect(toSeoHeadMeta(poolHead().meta)).toEqual(poolHead().meta)
+    expect(toSeoHeadMeta([{ name: 'twitter:card', content: 'summary_large_image' }]))
+      .toEqual([{ name: 'twitter:card', content: 'summary_large_image', id: undefined }])
   })
 })

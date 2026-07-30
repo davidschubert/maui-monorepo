@@ -20,11 +20,59 @@
  * Requests.
  */
 
-/** Ein link-/meta-Eintrag, wie useLocaleHead ihn liefert (MetaAttrs). */
+/**
+ * Ein link-/meta-Eintrag, wie `useLocaleHead` ihn LIEFERT: @nuxtjs/i18n
+ * typisiert seine Kopf-Einträge selbst nur als `Record<string, string>`
+ * (`MetaAttrs`). Das ist die EINGANGS-Form — was hier herauskommt, ist präziser
+ * (`SeoHeadLink`/`SeoHeadMeta`).
+ */
 export type SeoHeadAttrs = Record<string, string>
 
-/** Rels, deren href zum Request-Host gehört: canonical + hreflang-Alternates. */
-const REBASED_RELS = ['canonical', 'alternate']
+/**
+ * Ein rel, dessen href zum Request-Host gehört: canonical + hreflang-Alternates.
+ * Es sind genau die zwei rels, die `useLocaleHead` überhaupt erzeugt.
+ */
+export type RebasedRel = 'canonical' | 'alternate'
+
+/**
+ * Ein link-Eintrag des SEO-Kopfs — in der Form, die `useHead` VERLANGT.
+ *
+ * Warum es diesen Typ überhaupt gibt (Nuxt 4.5 bringt unhead 3, vorher 2.1):
+ * unhead typisiert link-Einträge seit v3 als über `rel` DISKRIMINIERTE Union
+ * (`CanonicalLink | AlternateLanguageLink | StylesheetLink | …`) und hat für
+ * unbekannte rels bewusst KEIN Mitglied in der Union. Ein zu `string`
+ * verbreitertes `rel` wählt darin nichts aus und wird zu `never` — der frühere
+ * `Record<string, string>` war damit nicht mehr an `useHead` übergebbar.
+ * `Record<string, string>` hat auch nie ausgedrückt, was ein link-Tag IST; dass
+ * es trotzdem dastand, liegt an @nuxtjs/i18n, das seine eigenen Kopf-Einträge
+ * bis heute (10.6.0 geprüft) nur so typisiert.
+ *
+ * Es sind GENAU zwei Formen, nicht „unter anderem diese zwei":
+ * `@nuxtjs/i18n/dist/runtime/kit/head.js` erzeugt ausschließlich
+ * `{ id?, rel: 'canonical', href }` und `{ id?, rel: 'alternate', href,
+ * hreflang }` (im `strictSeo`-Modus dieselben ohne `id`).
+ */
+export type SeoHeadLink =
+  | { rel: 'canonical', href: string, id?: string }
+  | { rel: 'alternate', href: string, hreflang: string, id?: string }
+
+/**
+ * Ein meta-Eintrag des SEO-Kopfs (og:url, og:locale, og:image, twitter:card …).
+ *
+ * Ebenfalls diskriminiert, aus demselben Grund wie `SeoHeadLink`: unhead 3
+ * unterscheidet `NameMeta | PropertyMeta | HttpEquivMeta | CharsetMeta`. Ein
+ * Eintrag mit Index-Signatur passt in keines davon (er müsste dann auch
+ * `charset` mitbringen), deshalb stehen hier die zwei Formen, die im SEO-Kopf
+ * wirklich vorkommen: `name=…` und `property=…`.
+ */
+export type SeoHeadMeta =
+  | { name: string, content: string, id?: string }
+  | { property: string, content: string, id?: string }
+
+/** Laufzeit-Prüfung, die `rel` auf den Literal-Typ verengt (kein Cast). */
+function isRebasedRel(rel: string | undefined): rel is RebasedRel {
+  return rel === 'canonical' || rel === 'alternate'
+}
 
 function protocolOf(url: string | undefined | null): string {
   const raw = (url || '').trim()
@@ -84,10 +132,43 @@ export function rebaseSeoUrl(value: string, origin: string): string {
 export function rebaseSeoLinks(links: readonly SeoHeadAttrs[], origin: string): SeoHeadAttrs[] {
   if (!origin) return [...links]
   return links.map((link) => {
-    const rel = link.rel
-    if (!link.href || !rel || !REBASED_RELS.includes(rel)) return link
+    if (!link.href || !isRebasedRel(link.rel)) return link
     return { ...link, href: rebaseSeoUrl(link.href, origin) }
   })
+}
+
+/**
+ * Die losen i18n-Einträge in die von unhead 3 geforderte, über `rel`
+ * diskriminierte Form bringen — die Naht zwischen @nuxtjs/i18n und `useHead`.
+ *
+ * Bewusst FELDWEISE aufgebaut statt per Spread: ein `{ ...link }` schleppt die
+ * Index-Signatur `Record<string, string>` mit, und die macht aus jedem
+ * Attribut, das unhead eng typisiert (`fetchpriority`, `crossorigin`, …), ein
+ * `string` — der Typfehler wäre nur verschoben. Feldweise ist es zugleich
+ * vollständig: `head.js` setzt an einem canonical/alternate genau diese
+ * Attribute, mehr gibt es dort nicht zu verlieren.
+ *
+ * Ein unerwartetes `rel` kann hier nicht durchfallen, weil `useLocaleHead`
+ * keines erzeugt; käme je eines dazu, fiele es im Kopf-Vergleich der Tests auf
+ * (und nicht still im Betrieb).
+ */
+export function toSeoHeadLinks(links: readonly SeoHeadAttrs[]): SeoHeadLink[] {
+  const out: SeoHeadLink[] = []
+  for (const link of links) {
+    // `?? ''` ändert die AUSGABE nicht: den einen Eintrag ohne Ziel (x-default
+    // auf einer Seite ohne Gegenstück) rendert unhead sowohl für '' als auch
+    // für undefined als attributloses `href` — genau wie vor Nuxt 4.5.
+    // Schlüssel-REIHENFOLGE wie bei i18n (`id` zuerst): unhead serialisiert die
+    // Attribute in Objekt-Reihenfolge, und so bleibt das gerenderte Tag
+    // BYTE-gleich statt nur bedeutungsgleich.
+    if (link.rel === 'canonical') {
+      out.push({ id: link.id, rel: 'canonical', href: link.href ?? '' })
+    }
+    else if (link.rel === 'alternate') {
+      out.push({ id: link.id, rel: 'alternate', href: link.href ?? '', hreflang: link.hreflang ?? '' })
+    }
+  }
+  return out
 }
 
 /** og:url auf den Ziel-Origin umschreiben (og:locale & Co. bleiben unberührt). */
@@ -97,4 +178,24 @@ export function rebaseSeoMeta(meta: readonly SeoHeadAttrs[], origin: string): Se
     if (entry.property !== 'og:url' || !entry.content) return entry
     return { ...entry, content: rebaseSeoUrl(entry.content, origin) }
   })
+}
+
+/**
+ * Pendant zu `toSeoHeadLinks` für die meta-Einträge: `property=…` (og:*, was
+ * useLocaleHead liefert) und `name=…`. Ohne `content` gibt es nichts zu
+ * rendern — solche Einträge erzeugt useLocaleHead nicht.
+ */
+export function toSeoHeadMeta(meta: readonly SeoHeadAttrs[]): SeoHeadMeta[] {
+  const out: SeoHeadMeta[] = []
+  for (const entry of meta) {
+    const content = entry.content ?? ''
+    // `id` zuerst — wie bei toSeoHeadLinks, damit das Tag byte-gleich bleibt.
+    if (entry.property !== undefined) {
+      out.push({ id: entry.id, property: entry.property, content })
+    }
+    else if (entry.name !== undefined) {
+      out.push({ id: entry.id, name: entry.name, content })
+    }
+  }
+  return out
 }
