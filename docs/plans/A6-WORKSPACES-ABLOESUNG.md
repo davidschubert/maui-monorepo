@@ -1,7 +1,7 @@
 # A6 — die Community wird das zahlende Objekt, `workspaces` fällt weg
 
 **Status:** geplant, nicht ausgeführt · **Entschieden:** 2026-07-29 (David) ·
-**Blockiert:** A2 (Stripe-Live) · **Blockiert teilweise:** E8 (tenant → site)
+**Blockiert:** A2 (Stripe-Live) · **Blockiert teilweise:** E8 ([Umbenennung auf `community`](UMBENENNUNG-AUF-COMMUNITY.md))
 
 > Liegt in `docs/plans/`, weil es NOCH NICHT gebaut ist. Nach der Ausführung:
 > Datei nach `docs/archiv/`, Reste nach `docs/OPEN-ITEMS.md`.
@@ -20,8 +20,8 @@ Antworten ziehen — wird nur an drei Stellen geschrieben:
 | `tenants/[id].patch.ts` (Betreiber-Auswahlfeld) | was David wählt |
 
 **Ein Pool-Kunde könnte bezahlen und bliebe auf `basic`.** Aus den Codepfaden
-abgeleitet, nicht am lebenden System durchgespielt — der Beweis (Testmodus-Kauf,
-danach `tenants.plan` lesen) ist Schritt 0 unten und dauert eine Runde.
+abgeleitet, nicht am lebenden System durchgespielt — der Beweis ist Schritt 0
+unten und braucht keinen echten Kauf.
 
 ## Korrektur zu meiner ersten Einschätzung
 
@@ -43,27 +43,9 @@ kein ausgestelltes Dokument — deshalb greift `featureGates` überall den Zweig
 Studio-Seite aber ihren einzigen Hebel nehmen, einem Kunden mit eigener
 Installation Produkte freizugeben oder zu entziehen.
 
-**Vorschlag: stehen lassen und parken.** Aus dem Menü nimmt sie der
+**Entschieden: stehen lassen und parken.** Aus dem Menü nimmt sie der
 Dashboard-Umbau ohnehin heraus; sie kostet nichts, solange niemand ein Dokument
-ausstellt. Wenn der erste Studio-Kunde kommt, ist sie da. → Entscheidung für
-David, unten.
-
-## Die offene Produktfrage
-
-**Gehört das Abo der Community oder ihrem Owner?** Beides ist baubar, und die
-Antwort steht VOR dem ersten Schritt, weil sie die Spalten bestimmt:
-
-- **Der Community** (`tenants.stripeCustomerId/stripeSubscriptionId/status`):
-  Besitz-Übergabe (`site.transfer`) gibt den Vertrag mit weiter — der neue Owner
-  zahlt. Klar bei „ein Kunde, eine Community". Unsauber, wenn jemand seine
-  Community verkauft und die Zahlungsmethode des Vorbesitzers mitreist.
-- **Dem Owner** (`billing_subscriptions.userId` bleibt der Schlüssel, dazu eine
-  Spalte `siteId`): der Vertrag folgt der Person, die Übergabe verlangt einen
-  neuen Kauf. Sauberer rechtlich, aber ein Übergang mit Zahlungslücke.
-
-Ich empfehle **der Community** mit einer ausdrücklichen Sperre: eine Übergabe
-wird abgelehnt, solange ein laufendes Abo daran hängt, bis der neue Owner eine
-Zahlungsmethode hinterlegt hat. Das ist eine Regel, kein Sonderfall im Code.
+ausstellt. Wenn der erste Studio-Kunde kommt, ist sie da.
 
 ## Reihenfolge — erweitern, umschalten, verengen
 
@@ -71,9 +53,11 @@ Stripe ist ein EXTERNES System mit eigenem Zustand. Es gibt keinen Weg, das in
 einem Commit zu drehen. Jeder Schritt ist für sich deploybar und rückwärts
 verträglich.
 
-**Schritt 0 — den Befund beweisen.** Testmodus-Kauf für die Demo-Community
-durchspielen, danach `tenants.plan` lesen. Ergebnis dokumentieren, damit die
-Entscheidung auf einer Messung steht und nicht auf meiner Codelesung.
+**Schritt 0 — den Befund beweisen, ohne Stripe zu klicken.** Die
+Fulfillment-Funktion direkt mit einem erfundenen Abo-Ereignis aufrufen und
+prüfen, was sie schreibt: heute `workspaces.plan`, nichts an der Community. Das
+ist ehrlicher als ein Klick-Durchlauf (der belegt nur diesen einen Fall), kostet
+keine Kartendaten — und der Test bleibt danach als Netz liegen.
 
 **Schritt 1 — Spalten anlegen (additiv, ruhend).** `tenants` bekommt die
 Vertragsfelder (control-021: `stripeCustomerId`, `stripeSubscriptionId`,
@@ -145,10 +129,3 @@ Geldfluss 1 (Community zahlt an Pukalani). Namen entsprechend eindeutig halten
 statt hineingemischt zu werden. Eine eigene Tabelle für Mitgliedsbeiträge, nicht
 dieselbe.
 
-## Schritt 0 ohne Stripe-Klick
-
-Der Befund lässt sich ohne echten Kauf belegen und wird dabei zum Test, der ihn
-künftig verhindert: die Fulfillment-Funktion direkt mit einem erfundenen
-Abo-Ereignis aufrufen und prüfen, was sie schreibt — heute `workspaces.plan`,
-nichts an der Community. Das ist ehrlicher als ein Klick-Durchlauf (der beweist
-nur diesen einen Fall) und kostet keine Kartendaten.
