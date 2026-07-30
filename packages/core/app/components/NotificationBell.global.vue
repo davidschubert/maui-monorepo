@@ -90,6 +90,10 @@ function messageKey(type: string): string {
   if (type === 'reminder') return 'notifications.reminder'
   if (type === 'ticket') return 'notifications.ticket'
   if (type === 'billing') return 'notifications.billing'
+  // 'siteInvite' = Einladung in eine Community ({name} = deren Anzeigename);
+  // der Link führt auf /join, wo die offene Einladung mit EINEM Klick
+  // angenommen wird (Davids Entscheidung 2 vom 2026-07-29).
+  if (type === 'siteInvite') return 'notifications.siteInvite'
   return 'notifications.replied'
 }
 </script>

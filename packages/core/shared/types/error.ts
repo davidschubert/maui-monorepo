@@ -16,6 +16,36 @@ export interface MauiErrorResponse {
   ok: false
   code: MauiErrorCode
   message: string
+  /**
+   * FACHLICHER Grund der Ablehnung, wenn die Route einen mitgibt
+   * (`createError({ status: 409, data: { code: 'last_owner' } })`).
+   *
+   * Warum das Feld nötig ist (2026-07-29): `code` oben ist aus dem HTTP-Status
+   * abgeleitet — 'CONFLICT' sagt „ging nicht", aber nicht „es muss ein Inhaber
+   * bleiben". Die `data` eines Fehlers wirft der zentrale Handler bewusst weg
+   * (keine Appwrite-Details, keine Stacktraces nach draußen), und damit kam
+   * bisher KEIN fachlicher Grund beim Client an — auch der
+   * `last_admin`-Zweig der Nutzerverwaltung lief deshalb ins Leere. Statt die
+   * ganze `data` durchzulassen, reist genau EIN geprüftes Feld mit.
+   *
+   * Nur für 4xx (bei 5xx gibt es nichts zu erklären, nur zu verschweigen).
+   */
+  reason?: string
+}
+
+/**
+ * PURE (unit-getestet): den fachlichen Grund aus der `data` eines Fehlers holen.
+ *
+ * Streng absichtlich: nur ein kurzer, maschinenlesbarer Schlüssel
+ * (`^[a-z][a-z0-9_]{0,63}$`) kommt durch. Damit kann keine Nachricht, kein
+ * Objekt und kein Appwrite-Detail versehentlich in eine Antwort rutschen, wenn
+ * irgendwo `data` mit fremdem Inhalt gefüllt ist.
+ */
+export function domainReasonFrom(data: unknown): string | null {
+  if (typeof data !== 'object' || data === null) return null
+  const code = (data as { code?: unknown }).code
+  if (typeof code !== 'string') return null
+  return /^[a-z][a-z0-9_]{0,63}$/.test(code) ? code : null
 }
 
 /** HTTP-Status → stabiler Fehler-Code. */
