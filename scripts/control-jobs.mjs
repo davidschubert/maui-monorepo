@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 /**
- * control-jobs (M6-T2): führt Provisionierungs-Jobs aus dem Studio-Control-
- * Plane aus — „create-site als Job hinter der UI", Vorstufe des
- * Provisioner-Workers (M7, Strategie § 8). Der Runner ist der REPO-seitige
- * Akteur: Er hält Console-Credentials, synct den Feature-Katalog aus den
- * feature.manifest.ts der Layer in die Studio-DB und arbeitet die
+ * control-jobs (M6-T2): führt Provisionierungs-Jobs aus dem Control Plane aus
+ * — „create-site als Job hinter der UI", Vorstufe des Provisioner-Workers
+ * (M7, Strategie § 8). Der Runner ist der REPO-seitige Akteur: Er hält
+ * Console-Credentials, synct den Feature-Katalog aus den feature.manifest.ts
+ * der Layer in die Control-Plane-DB und arbeitet die
  * `provisioning_jobs`-Queue ab (queued → running → done/error).
  *
  *   APPWRITE_CONSOLE_EMAIL=… APPWRITE_CONSOLE_PASSWORD=… pnpm control:jobs [--watch]
  *
  * Ohne --watch: ein Durchlauf (Katalog-Sync + Queue leeren), dann Exit.
  * Mit --watch: pollt alle 5 s weiter (Dev-Betrieb neben der Control-UI).
- * Verbindung zur Studio-DB kommt aus apps/control/.env (Runtime-Key reicht —
- * Jobs/Katalog/Sites sind Rows).
+ * Verbindung kommt aus apps/control/.env (Runtime-Key reicht — Jobs/Katalog/
+ * Sites sind Rows).
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
@@ -23,16 +23,20 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const watch = process.argv.includes('--watch')
 const RUNNER_ID = `${hostname()}#${process.pid}`
-const LOG_LIMIT = 7500 // Spalte log: 8000 (studio-002) — Tail gewinnt
+const LOG_LIMIT = 7500 // Spalte log: 8000 (control-002) — Tail gewinnt
 
 function fail(message) {
   console.error(`✗ ${message}`)
   process.exit(1)
 }
 
-// ── Studio-Verbindung aus apps/control/.env ──────────────────────────────────
-const envPath = join(ROOT, 'apps', 'studio', '.env')
-if (!existsSync(envPath)) fail('apps/control/.env fehlt — Studio erst provisionieren')
+// ── Control-Plane-Verbindung aus apps/control/.env ───────────────────────────
+// Der Pfad zeigte bis 2026-07-29 auf `apps/studio` — die App heißt seit dem
+// Cutover `control`. Die Fehlermeldung war beim Umbenennen mitgezogen worden,
+// der Pfad nicht: der Runner behauptete „apps/control/.env fehlt", während die
+// Datei danebenlag.
+const envPath = join(ROOT, 'apps', 'control', '.env')
+if (!existsSync(envPath)) fail('apps/control/.env fehlt — Control Plane erst provisionieren')
 const env = Object.fromEntries(
   readFileSync(envPath, 'utf8').split('\n')
     .filter(line => line.includes('=') && !line.trimStart().startsWith('#'))

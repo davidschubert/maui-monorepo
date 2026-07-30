@@ -2,7 +2,7 @@ import type { H3Event } from 'h3'
 import type { SiteRole } from '../../shared/types/siteMember'
 
 /**
- * Die Einladungs-Mail in EINE Kunden-Community (studio-019).
+ * Die Einladungs-Mail in EINE Kunden-Community (control-019).
  *
  * Der Link zeigt auf den HOST DER COMMUNITY, nicht auf den Kundenbereich: die
  * Mitgliedschaft entsteht dort, und Session-Cookies sind host-gebunden (wer sich

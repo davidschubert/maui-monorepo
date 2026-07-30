@@ -8,7 +8,7 @@ import {
   type WorkspaceRow,
 } from '../../shared/types/workspace'
 
-/** SHA-256-Hex eines Invite-Tokens — die DB kennt nur den Hash (studio-008). */
+/** SHA-256-Hex eines Invite-Tokens — die DB kennt nur den Hash (control-008). */
 export function hashInviteToken(token: string): string {
   return createHash('sha256').update(token, 'utf8').digest('hex')
 }

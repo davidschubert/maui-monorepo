@@ -1,5 +1,5 @@
 /**
- * Migration studio-002: Tables `provisioning_jobs` + `feature_catalog`
+ * Migration control-002: Tables `provisioning_jobs` + `feature_catalog`
  * (M6-T2, Vorstufe Provisioner-Vertrag § 8). Beide ohne Client-Permissions —
  * gelesen/geschrieben wird server-seitig (sites.manage-Routen) bzw. vom
  * Job-Runner (Admin-Key). Additiv + idempotent (409 → skip).
@@ -59,7 +59,7 @@ async function waitForColumns(tableId: string) {
   throw new Error(`Columns von "${tableId}" wurden nicht verfügbar`)
 }
 
-console.log(`Migration studio-002 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration control-002 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 // ── provisioning_jobs ───────────────────────────────────────────────────────
 await step('Table provisioning_jobs', () => tablesDB.createTable({
@@ -158,4 +158,4 @@ await step('Column feature_catalog.syncedAt', () => tablesDB.createDatetimeColum
 
 await waitForColumns('feature_catalog')
 
-console.log('✔ Migration studio-002 fertig')
+console.log('✔ Migration control-002 fertig')

@@ -4,7 +4,7 @@ import type { H3Event } from 'h3'
 import { INVITE_CODES_TABLE, evaluateInviteCode, type InviteCodeRow, type InviteCodeVerdict } from '../../shared/types/inviteCode'
 
 /**
- * Einladungs-Codes: Suche + Einlösung (studio-016).
+ * Einladungs-Codes: Suche + Einlösung (control-016).
  *
  * Gespeichert wird nur der sha256-Hash. Codes werden vor dem Hashen
  * normalisiert (trim + Großschreibung), damit „maui-2026-abcd" und
@@ -47,7 +47,7 @@ export interface InviteCheck extends InviteCodeVerdict {
 }
 
 /** Nicht-verbrauchende Prüfung (Wizard-Eintritt). `email` entscheidet über
- *  gebundene Codes (studio-017) — ohne sie gilt ein gebundener Code als
+ *  gebundene Codes (control-017) — ohne sie gilt ein gebundener Code als
  *  ungültig, nie als frei. */
 export async function checkInviteCode(
   event: H3Event,

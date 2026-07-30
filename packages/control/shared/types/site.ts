@@ -13,7 +13,7 @@ export type SiteStatus = (typeof SITE_STATUSES)[number]
 export const HEALTH_STATUSES = ['ok', 'degraded', 'down', 'unknown'] as const
 export type HealthStatus = (typeof HEALTH_STATUSES)[number]
 
-/** Row-Typ zur `sites`-Table (Schema: Migration studio-001). */
+/** Row-Typ zur `sites`-Table (Schema: Migration control-001). */
 export interface SiteRow extends Models.Row {
   name: string
   /** Anzeige-Slug (veränderlich) — die Projekt-ID ist die unveränderliche Identität (F6). */
@@ -28,7 +28,7 @@ export interface SiteRow extends Models.Row {
   /** JSON-Array der wirksam aktiven Feature-Keys der Site — Snapshot vom
    *  Health-Sweep (GET /api/platform/features der Site, M6-T4). */
   features: string
-  /** Workspace-Zuordnung (M8, Migration studio-006); '' = impliziter
+  /** Workspace-Zuordnung (M8, Migration control-006); '' = impliziter
    *  Betreiber-Workspace (volle manuelle Grants, Verhalten wie vor M8). */
   workspaceId: string
 }

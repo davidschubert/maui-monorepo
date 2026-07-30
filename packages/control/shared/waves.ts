@@ -10,7 +10,7 @@ import type { TenantRow, TenantWave } from './types/tenantRecord'
  * Regeln:
  * - Nur SILO-Tenants zählen — Pool-Tenants teilen EIN Projekt, das der
  *   Runner separat genau einmal migriert (ihre wave-Spalte ist wirkungslos).
- * - '' (Bestand vor studio-012) gilt als 'stable' (konservativste Welle).
+ * - '' (Bestand vor control-012) gilt als 'stable' (konservativste Welle).
  * - disabled-Tenants migrieren MIT: ein abgeschalteter Host kommt wieder —
  *   dann muss sein Schema aktuell sein.
  * - projectIds werden dedupliziert (mehrere Hosts können auf ein Projekt

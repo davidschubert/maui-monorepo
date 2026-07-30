@@ -1,5 +1,5 @@
 /**
- * Migration studio-005: Table `workspaces` — ein Workspace = ein zahlender
+ * Migration control-005: Table `workspaces` — ein Workspace = ein zahlender
  * Kunde des Control Plane (M8). Keine Client-Permissions: gelesen/geschrieben
  * über sites.manage-Routen bzw. den Fulfillment-Handler.
  * Additiv + idempotent (409 → skip).
@@ -50,7 +50,7 @@ async function waitForColumns(tableId: string) {
   throw new Error(`Columns von "${tableId}" wurden nicht verfügbar`)
 }
 
-console.log(`Migration studio-005 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration control-005 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 await step('Table workspaces', () => tablesDB.createTable({
   databaseId, tableId: 'workspaces', name: 'Workspaces',
@@ -80,4 +80,4 @@ await step('Index workspaces.idx_stripe_customer', () => tablesDB.createIndex({
   databaseId, tableId: 'workspaces', key: 'idx_stripe_customer', type: TablesDBIndexType.Key, columns: ['stripeCustomerId'],
 }))
 
-console.log('✔ Migration studio-005 fertig')
+console.log('✔ Migration control-005 fertig')

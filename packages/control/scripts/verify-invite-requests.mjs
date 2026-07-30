@@ -1,5 +1,5 @@
 /**
- * Beweis für die Einladungs-Warteschlange (studio-017).
+ * Beweis für die Einladungs-Warteschlange (control-017).
  *
  * Fährt den GANZEN Weg gegen die laufenden Dev-Server:
  *   anfragen (öffentlich, ohne Konto) → Betreiber-Mail landet in Mailpit →

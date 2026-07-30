@@ -23,7 +23,7 @@ const bodySchema = z.object({
   code: inviteCodeSchema.optional(),
   slug: createSlugSchema().optional(),
   /** Adresse des eingeloggten Nutzers — nötig, seit Codes an eine Adresse
-   *  gebunden sein können (studio-017). Ohne sie gilt ein gebundener Code als
+   *  gebunden sein können (control-017). Ohne sie gilt ein gebundener Code als
    *  ungültig, und der eingeladene Kunde käme nicht durch sein eigenes Tor. */
   email: z.string().trim().toLowerCase().email().max(254).optional(),
 }).strict().refine(body => body.code !== undefined || body.slug !== undefined, 'empty precheck')

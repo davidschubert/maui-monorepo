@@ -154,7 +154,7 @@ describe('Lese-Publikum (fail-closed)', () => {
   })
 
   it('hält alles andere privat — insbesondere Bestands-Rows mit null', () => {
-    // Appwrite backfillt Spalten-Defaults nicht: Rows von vor studio-016
+    // Appwrite backfillt Spalten-Defaults nicht: Rows von vor control-016
     // liefern null. Auf Dev + Prod nachgemessen.
     for (const value of [null, undefined, '', 'members', 'PUBLIC', 'öffentlich', 'any']) {
       expect(resolveTenantAudience(value), String(value)).toBe('members')

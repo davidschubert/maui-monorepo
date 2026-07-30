@@ -1,5 +1,5 @@
 /**
- * Beweis für Vorrat + Zuweisung MIT echter Betreiber-Session (studio-017).
+ * Beweis für Vorrat + Zuweisung MIT echter Betreiber-Session (control-017).
  *
  * Der Schwester-Beweis (verify-invite-requests.mjs) muss die Zuweisung über
  * die Datenschicht nachstellen, weil er keine Betreiber-Sitzung hat. Hier

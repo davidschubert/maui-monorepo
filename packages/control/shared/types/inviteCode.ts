@@ -1,7 +1,7 @@
 import type { Models } from 'node-appwrite'
 
 /**
- * Einladungs-Codes fürs Early Access (studio-016).
+ * Einladungs-Codes fürs Early Access (control-016).
  *
  * Entscheidung David (2026-07-24): der Setup-Flow ist gebaut, aber ein Code
  * steht davor — Öffnen ist später ein Schalter, kein Umbau.
@@ -32,7 +32,7 @@ export interface InviteCodeRow extends Models.Row {
   /** Ablauf (ISO); '' = ohne Ablauf. */
   expiresAt: string
   status: InviteCodeStatus | ''
-  /** studio-017: nur DIESE Adresse darf einlösen; '' = Inhaberpapier
+  /** control-017: nur DIESE Adresse darf einlösen; '' = Inhaberpapier
    *  (Betreiber-Weg, wie bisher). Macht einen weitergeleiteten Code wertlos. */
   boundEmail?: string
   /** Die Anfrage, aus der die Zuweisung entstand; '' = ohne Anfrage. */

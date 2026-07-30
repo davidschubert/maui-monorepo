@@ -2,9 +2,9 @@ import type { Models } from 'node-appwrite'
 import type { SiteRole } from './siteMember'
 
 /**
- * Offene Einladung in EINE Kunden-Community (studio-019).
+ * Offene Einladung in EINE Kunden-Community (control-019).
  *
- * Bewusst dem M9-Muster nachgebaut (`workspace_invites`, Migration studio-008)
+ * Bewusst dem M9-Muster nachgebaut (`workspace_invites`, Migration control-008)
  * statt ein zweites Verfahren zu erfinden: die DB kennt nur den SHA-256-HASH
  * des Tokens, der Klartext steht ausschließlich im Mail-Link. Ein DB-Leak
  * liefert damit keine einlösbaren Einladungen.

@@ -135,7 +135,7 @@ Abarbeitung der offenen Analyse-Funde (unten), soweit ohne Live-Billing-Risiko
 autonom machbar:
 
 - **HOCH Cross-Sub-Kannibalisierung — TEILWEISE gehärtet, Restrisiko OFFEN.**
-  Migration studio-009 gibt `workspaces.stripeSubscriptionId`; der Handler
+  Migration control-009 gibt `workspaces.stripeSubscriptionId`; der Handler
   speichert bei `apply-plan` die maßgebliche Sub und degradiert bei
   `subscription.deleted` nur, wenn die gekündigte Sub die hinterlegte ist
   (pure `shouldApplyFreeFallback`, unit-getestet, + fail-CLOSED bei Lesefehler).

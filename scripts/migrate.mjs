@@ -166,7 +166,7 @@ function runWave(args, layers) {
     process.exit(1)
   }
   if (!args.controlEnv) {
-    console.error('✗ --control-env fehlt (Env-Datei der Control-Plane-/studio-Instanz) — nie raten, gegen welches Register aufgelöst wird.')
+    console.error('✗ --control-env fehlt (Env-Datei der Control-Plane-Instanz) — nie raten, gegen welches Register aufgelöst wird.')
     process.exit(1)
   }
   const controlEnv = resolve(process.cwd(), args.controlEnv)
@@ -178,10 +178,21 @@ function runWave(args, layers) {
   const list = spawnSync(
     process.execPath,
     ['--experimental-strip-types', `--env-file=${controlEnv}`, join(ROOT, 'packages', 'control', 'scripts', 'list-silo-tenants.ts'), args.wave],
-    { cwd: join(ROOT, 'packages', 'studio'), encoding: 'utf8' },
+    // cwd war bis 2026-07-29 `packages/studio` — der Layer heißt seit dem
+    // Cutover `control`, das Verzeichnis existierte nicht mehr, und spawnSync
+    // kam über ENOENT nicht hinaus: JEDE Wellen-Migration brach ab, bevor sie
+    // etwas tat. Der Layer trägt seine Abhängigkeiten selbst.
+    { cwd: join(ROOT, 'packages', 'control'), encoding: 'utf8' },
   )
+  // `error` VOR `status` prüfen: ein fehlgeschlagener SPAWN hat weder Status
+  // noch stderr — genau daran war der Fehler oben unsichtbar („✗ Silo-Tenants
+  // konnten nicht gelistet werden." ohne Grund, drei Wochen lang).
+  if (list.error) {
+    console.error(`✗ Silo-Tenants konnten nicht gelistet werden: ${list.error.message}`)
+    process.exit(1)
+  }
   if (list.status !== 0) {
-    console.error(list.stderr || '✗ Silo-Tenants konnten nicht gelistet werden.')
+    console.error(list.stderr || '✗ Silo-Tenants konnten nicht gelistet werden (kein stderr).')
     process.exit(list.status ?? 1)
   }
   const projects = JSON.parse(list.stdout.trim().split('\n').at(-1))

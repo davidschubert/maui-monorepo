@@ -15,7 +15,7 @@ describe('siloProjectsForWave (H3-4.2 Wellen-Runner)', () => {
     expect(siloProjectsForWave(tenants, 'stable')).toEqual(['kunde-b'])
     expect(siloProjectsForWave(tenants, 'internal')).toEqual([])
   })
-  it('Bestand ohne Welle (\'\', vor studio-012) gilt als stable', () => {
+  it('Bestand ohne Welle (\'\', vor control-012) gilt als stable', () => {
     expect(siloProjectsForWave([t('silo', 'alt', '')], 'stable')).toEqual(['alt'])
     expect(siloProjectsForWave([t('silo', 'alt', '')], 'canary')).toEqual([])
   })

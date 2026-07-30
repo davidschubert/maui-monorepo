@@ -7,7 +7,7 @@ import { isSafeThemeToken } from '../../shared/onboarding'
 
 /**
  * Horizont-3 Naht 1 — Resolver-Implementierung über die tenants-Table des
- * Control Plane (Migration studio-010). Eine Platform-App registriert das
+ * Control Plane (Migration control-010). Eine Platform-App registriert das
  * Ergebnis per Nitro-Plugin:
  *
  *   registerTenantResolver(createTenantsTableResolver({ endpoint, projectId,
@@ -30,7 +30,7 @@ export function mapTenantRowToContext(
 ): TenantContext | null {
   if (!row || row.status !== 'active') return null
   const siteId = row.$id ? { siteId: row.$id } : {}
-  // Zugangsregel des Mandanten (S1, studio-018). IMMER explizit gesetzt —
+  // Zugangsregel des Mandanten (S1, control-018). IMMER explizit gesetzt —
   // der Resolver ist die einzige Stelle, an der die fail-OPEN-Auflösung von
   // `null` (Bestand vor der Migration) stattfindet.
   const policy = { openRegistration: resolveTenantOpenRegistration(row.openRegistration) }
@@ -49,7 +49,7 @@ export function mapTenantRowToContext(
   if (row.mode === 'pool' && row.tenantId) {
     // normalizeTenantPlan: ''/'free'-Bestand → basic, 'business' → pro
     // (Rename 2026-07-26). Limits aus dem EDITIERBAREN Katalog (tenant_plans,
-    // studio-014) — wenn vorhanden, reisen sie aufgelöst im Context
+    // control-014) — wenn vorhanden, reisen sie aufgelöst im Context
     // (Vorrang vor app.config).
     const plan = normalizeTenantPlan(row.plan)
     const limits = planCatalog?.[plan] ?? planCatalog?.[DEFAULT_TENANT_PLAN]
@@ -72,7 +72,7 @@ export function createTenantsTableResolver(options: TenantsTableResolverOptions)
     new Client().setEndpoint(options.endpoint).setProject(options.projectId).setKey(options.apiKey),
   )
   const cache = createMicrocache<TenantContext | null>(options.cacheTtlMs ?? 30_000)
-  // Editierbarer Quota-Katalog (tenant_plans, studio-014): EIN Eintrag für
+  // Editierbarer Quota-Katalog (tenant_plans, control-014): EIN Eintrag für
   // alle Hosts, eigener 60-s-Cache. Fehlt die Tabelle (Bestand vor der
   // Migration) oder wirft der Read: leerer Katalog → app.config-Fallback
   // in assertPoolWriteQuota greift (fail-open, nie Request-blockierend).

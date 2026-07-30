@@ -60,7 +60,13 @@ Vollständiges Konzept: docs/CONCEPT.md
 - Migrations: idempotent (409 → skip), IMMER über den zentralen Runner
   `pnpm migrate --app <app>` (scripts/migrate.mjs; bei mehreren Apps ist
   --app Pflicht — nie die falsche Instanz), nach Column-Anlage auf
-  'available' pollen bevor Indizes
+  'available' pollen bevor Indizes. Es gibt KEIN Migrations-Register in der
+  DB — die Labels (`control-019`, `system-021`, …) sind reine Anzeige, die
+  Idempotenz kommt vom 409. Die Migrationen des Control Plane heißen seit
+  2026-07-29 `control-NNN`; Dokumente von VOR dem Cutover (docs/archiv/**,
+  CHANGELOG) nennen dieselben Migrationen `studio-NNN` — bewusst nicht
+  umgeschrieben, das ist ein Protokoll und kein Nachschlagewerk. Die
+  DATEINAMEN bleiben immer (`019-site-team.ts`).
 - Presences API (self-hostbar seit 1.9.5): GESAMTE Presence vereinheitlicht auf
   EINE Presence pro User (presenceId=userId; metadata trägt scope/action/typing).
   WICHTIG (SSR-Cookie-Architektur): der Browser kann seine Presence NICHT selbst
@@ -212,7 +218,7 @@ Vollständiges Konzept: docs/CONCEPT.md
   M9-Muster aus `workspace_invites`; Mail zuerst, Row danach — keine Einladung
   ohne Zustellung), Annahme über `/join?token=…` ODER ohne Token über die eigene
   geprüfte Adresse. ENTFERNEN LÖSCHT NICHT: `site_members.status='removed'`
-  (Migration studio-019), Inhalte + Namen bleiben. Es nimmt aber BEIDES —
+  (Migration control-019), Inhalte + Namen bleiben. Es nimmt aber BEIDES —
   Rolle UND Lese-Publikum: die Runtime-Route zieht danach `revokeSiteLabel`
   (Labels gehören dem Pool-Projekt, das Control Plane hat dafür keinen
   Schlüssel) und merkt den Entzug kurz (`rememberSiteAccessRevoked`), damit der

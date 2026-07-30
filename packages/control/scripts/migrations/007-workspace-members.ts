@@ -1,5 +1,5 @@
 /**
- * Migration studio-007: Table `workspace_members` — M9-T1: bindet Control-User
+ * Migration control-007: Table `workspace_members` — M9-T1: bindet Control-User
  * an Workspaces (v1 nur role 'owner'). Membership IST die Berechtigung des
  * Kundenbereichs (/workspace) — keine Labels/Capabilities. Keine
  * Client-Permissions: gelesen/geschrieben über Server-Routen (Guard
@@ -52,7 +52,7 @@ async function waitForColumns(tableId: string) {
   throw new Error(`Columns von "${tableId}" wurden nicht verfügbar`)
 }
 
-console.log(`Migration studio-007 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration control-007 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 await step('Table workspace_members', () => tablesDB.createTable({
   databaseId, tableId: 'workspace_members', name: 'Workspace Members',
@@ -81,4 +81,4 @@ await step('Index idx_user', () => tablesDB.createIndex({
   type: TablesDBIndexType.Key, columns: ['userId'],
 }))
 
-console.log('✔ Migration studio-007 fertig')
+console.log('✔ Migration control-007 fertig')

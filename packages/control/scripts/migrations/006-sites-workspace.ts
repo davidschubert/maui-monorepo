@@ -1,5 +1,5 @@
 /**
- * Migration studio-006: `sites.workspaceId` (nullable) — Zuordnung Site →
+ * Migration control-006: `sites.workspaceId` (nullable) — Zuordnung Site →
  * Workspace (M8). `''`/fehlend = impliziter Betreiber-Workspace: verhält
  * sich exakt wie vor M8 (manuelle Grants, kein Billing).
  * Additiv + idempotent (409 → skip).
@@ -51,7 +51,7 @@ async function waitForColumn(tableId: string, key: string) {
   throw new Error(`Column "${tableId}.${key}" wurde nicht verfügbar`)
 }
 
-console.log(`Migration studio-006 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration control-006 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 await step('Column sites.workspaceId', () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'sites', key: 'workspaceId', size: 36, required: false, xdefault: '',
@@ -63,4 +63,4 @@ await step('Index sites.idx_workspace', () => tablesDB.createIndex({
   databaseId, tableId: 'sites', key: 'idx_workspace', type: TablesDBIndexType.Key, columns: ['workspaceId'],
 }))
 
-console.log('✔ Migration studio-006 fertig')
+console.log('✔ Migration control-006 fertig')

@@ -10,7 +10,7 @@ import {
 } from '../shared/siteTeam'
 
 /**
- * Die Schutzregeln der Mitglieder-Verwaltung (studio-019).
+ * Die Schutzregeln der Mitglieder-Verwaltung (control-019).
  *
  * Sie sind PURE, damit genau das hier möglich ist: die zwei Regeln, die eine
  * Community unbrauchbar machen könnten — „letzter Owner" und

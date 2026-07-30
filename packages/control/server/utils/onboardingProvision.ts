@@ -227,7 +227,7 @@ export async function provisionCommunity(
       audience: 'members',
       profile: serializeSiteProfile(input.profile),
       inviteCodeId: input.inviteCode?.$id ?? '',
-      // Mitglieder-Registrierung offen (studio-018, S1/Entscheidung 4): eine
+      // Mitglieder-Registrierung offen (control-018, S1/Entscheidung 4): eine
       // frische Community soll wachsen können. Der Einladungs-Code, mit dem sie
       // entstand, gilt fürs GRÜNDEN — nicht fürs Beitreten. Umschalten kann die
       // Owner-Rolle jederzeit unter /dashboard/settings/community.

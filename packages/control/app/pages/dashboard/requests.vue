@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * Early-Access-Warteschlange (studio-017).
+ * Early-Access-Warteschlange (control-017).
  *
  * Die Seite beantwortet in dieser Reihenfolge: Wer wartet? · Wem habe ich
  * schon einen Code geschickt, und wurde er eingelöst? · Wo muss ich nachfassen?

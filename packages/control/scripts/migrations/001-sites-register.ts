@@ -1,5 +1,5 @@
 /**
- * Migration studio-001: Table `sites` — das Sites-Register des Control Plane
+ * Migration control-001: Table `sites` — das Sites-Register des Control Plane
  * (M6/L2/L5). Bewusst KEINE Table-/Row-Permissions für Clients: gelesen und
  * geschrieben wird ausschließlich server-seitig über die sites.manage-Routen
  * (Admin-Client) — das Register führt Endpoints/Status aller Sites und ist
@@ -51,7 +51,7 @@ async function waitForColumns(tableId: string) {
   throw new Error(`Columns von "${tableId}" wurden nicht verfügbar`)
 }
 
-console.log(`Migration studio-001 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration control-001 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 await step('Table sites', () => tablesDB.createTable({
   databaseId, tableId: 'sites', name: 'Sites',
@@ -96,4 +96,4 @@ await step('Index sites.idx_status', () => tablesDB.createIndex({
   databaseId, tableId: 'sites', key: 'idx_status', type: TablesDBIndexType.Key, columns: ['status'],
 }))
 
-console.log('✔ Migration studio-001 fertig')
+console.log('✔ Migration control-001 fertig')

@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
   // zu, dürfen sich nur BESTEHENDE User per Code einloggen — für unbekannte
   // E-Mails keine Neuanlage. „Zu" hat ZWEI Ebenen, und eine genügt: die
   // Instanz-Sperre (app_config/Wartungsmodus, EINE Row pro Projekt) und — seit
-  // S1 — die Mandanten-Sperre (tenants.openRegistration, studio-018), die im
+  // S1 — die Mandanten-Sperre (tenants.openRegistration, control-018), die im
   // Pool pro Community stehen kann, wo app_config es nicht kann.
   const appConfig = await getAppConfig(event)
   if (!appConfig.registrationEnabled || appConfig.maintenanceMode || !tenantRegistrationOpen(event)) {

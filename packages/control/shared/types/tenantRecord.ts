@@ -20,7 +20,7 @@ export const TENANT_WAVES = ['internal', 'canary', 'stable'] as const
 export type TenantWave = (typeof TENANT_WAVES)[number]
 
 /**
- * Plan des Pool-Tenants (studio-013); staffelt Quota-Limits UND Produkt-
+ * Plan des Pool-Tenants (control-013); staffelt Quota-Limits UND Produkt-
  * Zugriff (maui.tenancy.quota.plans / maui.tenancy.products).
  *
  * Rename 2026-07-26 (Davids Pricing-Entscheid „Basic/Personal/Pro"):
@@ -44,7 +44,7 @@ export function normalizeTenantPlan(value: string | null | undefined): TenantPla
 }
 
 /**
- * Lese-Publikum der Site (studio-016). G0-Entscheidung 7 (David, 2026-07-24):
+ * Lese-Publikum der Site (control-016). G0-Entscheidung 7 (David, 2026-07-24):
  * **privat als Default, öffentlich opt-in**. 'members' = Rows tragen
  * `read(Role.label(siteId))` (harte Appwrite-Grenze, H3-Naht 4); 'public' =
  * `read(Role.any())` als bewusster Schalter pro Site.
@@ -54,10 +54,10 @@ export type TenantAudience = (typeof TENANT_AUDIENCES)[number]
 
 /**
  * PURE (unit-getestet): darf sich jeder auf dieser Community-Site ein Konto
- * anlegen? (studio-018) — FAIL-OPEN, und das ist hier Absicht.
+ * anlegen? (control-018) — FAIL-OPEN, und das ist hier Absicht.
  *
  * Nur der exakte Wert `false` schließt die Registrierung. `null` (Rows von vor
- * studio-018 — Appwrite backfillt Spalten-Defaults nicht) und `undefined`
+ * control-018 — Appwrite backfillt Spalten-Defaults nicht) und `undefined`
  * bedeuten „nie etwas entschieden" und behalten das bisherige Verhalten:
  * offen. Default AN ist Davids Entscheidung 4 (2026-07-27, Audit-Befund S1).
  *
@@ -74,7 +74,7 @@ export function resolveTenantOpenRegistration(value: boolean | null | undefined)
  * PURE (unit-getestet): das Lese-Publikum einer Row auflösen — FAIL-CLOSED.
  *
  * Nur der exakte Wert `'public'` öffnet eine Site. Alles andere (`null` bei
- * Rows von vor studio-016, `''`, ein Tippfehler, ein fremder Wert) ist
+ * Rows von vor control-016, `''`, ein Tippfehler, ein fremder Wert) ist
  * `'members'`. Warum das eine eigene Funktion ist und kein `|| 'members'`:
  * hier hängt eine Datenschutz-Grenze dran, und ein direkter Vergleich
  * (`audience !== 'members'` → öffentlich) hätte JEDE Bestands-Row öffentlich
@@ -85,9 +85,9 @@ export function resolveTenantAudience(value: string | null | undefined): TenantA
   return value === 'public' ? 'public' : 'members'
 }
 
-/** Row-Typ zur `tenants`-Table (Schema: Migrationen studio-010/011). */
+/** Row-Typ zur `tenants`-Table (Schema: Migrationen control-010/011). */
 export interface TenantRow extends Models.Row {
-  /** Anzeigename des Kunden (studio-011); '' = Bestand vor der Migration. */
+  /** Anzeigename des Kunden (control-011); '' = Bestand vor der Migration. */
   name: string
   /** Kanonischer Host (klein, ohne Port) — Unique-Index uq_host. */
   host: string
@@ -98,22 +98,22 @@ export interface TenantRow extends Models.Row {
   tenantId: string
   /** disabled = Host bewusst offline (Resolver liefert null → 404). */
   status: TenantStatus
-  /** Update-Welle des BACKING-Projekts (studio-012); '' = Bestand → stable. */
+  /** Update-Welle des BACKING-Projekts (control-012); '' = Bestand → stable. */
   wave: TenantWave | ''
-  /** Quota-Plan (studio-013); '' = Bestand → free. */
+  /** Quota-Plan (control-013); '' = Bestand → free. */
   plan: TenantPlan | ''
-  /** G1 (studio-015): Billing-/Owner-Anker. Der Tenant IST die kanonische
+  /** G1 (control-015): Billing-/Owner-Anker. Der Tenant IST die kanonische
    *  Kunden-Site → `$id` = siteId; hier hängt das abrechnende Workspace.
    *  '' = noch keinem Workspace zugeordnet (Billing-Verdrahtung folgt G2/G3). */
   workspaceId: string
-  /** Onboarding (studio-016): Built-in-Theme-Id des gewählten Vibes;
+  /** Onboarding (control-016): Built-in-Theme-Id des gewählten Vibes;
    *  '' = Instanz-Default aus app_config.themeSettings. */
   theme: string
   /** Tonale Variante des Themes; '' = Basisfarbe der Welt. */
   variant: string
-  /** Lese-Publikum. `null` bei Rows, die VOR studio-016 entstanden sind:
+  /** Lese-Publikum. `null` bei Rows, die VOR control-016 entstanden sind:
    *  Appwrite backfillt Spalten-Defaults nicht (verifiziert auf Dev + Prod,
-   *  gleiches Verhalten wie bei `plan` aus studio-013). IMMER über
+   *  gleiches Verhalten wie bei `plan` aus control-013). IMMER über
    *  resolveTenantAudience() lesen — nie direkt vergleichen. */
   audience: TenantAudience | '' | null
   /** Ende der 14-Tage-Pro-Testphase (Appwrite-Datetime → ISO-String, `null`
@@ -126,7 +126,7 @@ export interface TenantRow extends Models.Row {
   /** Einladungs-Code, mit dem diese Community entstanden ist (Abuse-Spur);
    *  '' = ohne Code angelegt (Betreiber-Weg im Control). */
   inviteCodeId: string
-  /** Mitglieder-Registrierung offen? (studio-018, S1/Entscheidung 4). `null`
+  /** Mitglieder-Registrierung offen? (control-018, S1/Entscheidung 4). `null`
    *  bei Rows von VOR der Migration — IMMER über
    *  resolveTenantOpenRegistration() lesen, nie direkt vergleichen. */
   openRegistration: boolean | null
@@ -140,7 +140,7 @@ export interface TenantPlanLimits {
   total?: number
 }
 
-/** Row-Typ zur `tenant_plans`-Table (studio-014): der im Control EDITIERBARE
+/** Row-Typ zur `tenant_plans`-Table (control-014): der im Control EDITIERBARE
  *  Quota-Katalog. `limits` = JSON { [kind]: { perDay, total } } (z. B.
  *  kind 'comments'); 0/fehlend = unbegrenzt. rowId = key. */
 export interface TenantPlanRow extends Models.Row {

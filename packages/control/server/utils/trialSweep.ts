@@ -47,7 +47,7 @@ export async function runTrialSweep(now: number = Date.now()): Promise<TrialSwee
   const admin = createAdminClient()
   const databaseId = config.public.appwriteDatabaseId
 
-  // Range-Query über die echte Datetime-Spalte (studio-016 legt idx_trial an) —
+  // Range-Query über die echte Datetime-Spalte (control-016 legt idx_trial an) —
   // kein Full-Scan über alle Tenants.
   const { rows } = await admin.tablesDB.listRows<TenantRow>({
     databaseId,

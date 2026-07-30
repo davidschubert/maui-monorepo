@@ -1,5 +1,5 @@
 /**
- * Migration studio-017: Einladungs-Anfragen (Early-Access-Warteschlange).
+ * Migration control-017: Einladungs-Anfragen (Early-Access-Warteschlange).
  *
  * Der Ablauf, den David beschrieben hat: jemand fragt Early Access an → die
  * Anfrage landet in einer Warteschlange (plus Mail + Benachrichtigung an den
@@ -66,7 +66,7 @@ async function waitForColumn(tableId: string, key: string) {
   throw new Error(`Column ${tableId}.${key} wurde nicht 'available'`)
 }
 
-console.log(`Migration studio-017 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration control-017 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 // ── 1. invite_requests (die Warteschlange) ──────────────────────────────────
 await step('Table invite_requests', () => tablesDB.createTable({
@@ -146,4 +146,4 @@ await step('Index invite_codes.idx_stock', () => tablesDB.createIndex({
   columns: ['status', 'boundEmail'],
 }))
 
-console.log('✔ Migration studio-017 fertig')
+console.log('✔ Migration control-017 fertig')

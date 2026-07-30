@@ -5,7 +5,7 @@ import { INVITE_REQUESTS_TABLE, evaluateReminder, type InviteRequestRow } from '
 import { hashInviteCode, issueCodeValue } from './inviteCodes'
 
 /**
- * Die Warteschlange: Anfrage annehmen, Code zuweisen, erinnern (studio-017).
+ * Die Warteschlange: Anfrage annehmen, Code zuweisen, erinnern (control-017).
  *
  * Der Kern-Kniff steht in `assignCode`: **der Betreiber sieht den Klartext
  * nie**. Er klickt „zuweisen", das System nimmt den nächsten freien Code aus

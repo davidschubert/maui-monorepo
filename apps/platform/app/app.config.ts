@@ -73,7 +73,7 @@ export default defineAppConfig({
       controlHosts: ['my.pukalani.app', 'start.pukalani.app'],
       // H3-4.3 Quota (Blueprint S4): Pool-Kunden erschöpfen den geteilten
       // Server nicht. PRO PLAN gestaffelt (David-Freigabe 2026-07-23) — der
-      // Tenant trägt seinen Plan (tenants.plan, studio-013, Default free).
+      // Tenant trägt seinen Plan (tenants.plan, control-013, Default free).
       // Silo-Tenants: kein Limit (eigenes Projekt). perDay = rollierende 24 h.
       // Plan-Rename 2026-07-26 (Davids Pricing: Basic/Personal/Pro) —
       // Zahlen unverändert, nur die Keys sind umgezogen.

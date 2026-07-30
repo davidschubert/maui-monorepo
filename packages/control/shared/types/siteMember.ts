@@ -1,7 +1,7 @@
 import type { Models } from 'node-appwrite'
 
 /**
- * G1 site_members-Register (studio-015): die Rollen-Mitgliedschaft EINER
+ * G1 site_members-Register (control-015): die Rollen-Mitgliedschaft EINER
  * Kunden-Community-Site. Lebt im Control Plane (studio), wird aber von der
  * Runtime (Platform-/Silo-App) über den read-only-Cross-Projekt-Key gelesen
  * (requireTenantPermission) — analog zum tenants-Resolver.
@@ -24,7 +24,7 @@ export type SiteRole = (typeof SITE_ROLES)[number]
 /**
  * Status einer Mitgliedschaft.
  *
- * `removed` kam mit der Mitglieder-Verwaltung (studio-019, Davids Entscheidung 1
+ * `removed` kam mit der Mitglieder-Verwaltung (control-019, Davids Entscheidung 1
  * vom 2026-07-29) dazu und ist der wichtigste Wert dieser Liste: „Entfernen"
  * LÖSCHT die Row NICHT, es entzieht nur den Zugang (der Resolver lässt allein
  * `active` durch, und die Runtime zieht zusätzlich das Site-Label — A5). Die Row
@@ -39,7 +39,7 @@ export type SiteRole = (typeof SITE_ROLES)[number]
  * bleibt deshalb eine positive Tatsache (Row vorhanden + Zugang entzogen), keine
  * Schlussfolgerung aus einer Lücke.
  *
- * `invited` bleibt aus studio-015 erhalten (Enum-Werte lassen sich nicht
+ * `invited` bleibt aus control-015 erhalten (Enum-Werte lassen sich nicht
  * entfernen), wird aber nicht mehr geschrieben: offene Einladungen leben in
  * `site_invites`, weil zur Einladungszeit noch keine runtimeUserId existiert.
  */
@@ -57,7 +57,7 @@ export interface SiteMemberRow extends Models.Row {
   status: SiteMemberStatus
   /** Nur für Einladung/Anzeige — NIE Autorisierungsschlüssel. */
   email: string
-  /** Zeitpunkt des Zugangs-Entzugs (studio-019); null = nie entfernt. */
+  /** Zeitpunkt des Zugangs-Entzugs (control-019); null = nie entfernt. */
   removedAt?: string | null
 }
 

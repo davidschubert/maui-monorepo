@@ -1,7 +1,7 @@
 import type { H3Event } from 'h3'
 
 /**
- * Die Einladungs-Mail (studio-017).
+ * Die Einladungs-Mail (control-017).
  *
  * Enthält BEIDES: den Direktlink (Feld vorbefüllt) und den Code zum Abtippen.
  * Tippen ist die häufigste Abbruchstelle bei Codes, und ein Link allein

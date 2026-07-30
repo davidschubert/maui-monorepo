@@ -1,5 +1,5 @@
 /**
- * Migration studio-016: Self-Service-Onboarding („Community in 60 Sekunden",
+ * Migration control-016: Self-Service-Onboarding („Community in 60 Sekunden",
  * SAAS-ROADMAP #1). Zwei Teile:
  *
  *  1. `tenants` bekommt, was der Setup-Wizard entscheidet:
@@ -65,7 +65,7 @@ async function waitForColumn(tableId: string, key: string) {
   throw new Error(`Column ${tableId}.${key} wurde nicht 'available'`)
 }
 
-console.log(`Migration studio-016 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration control-016 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 // ── 1. tenants: Vibe, Publikum, Testphase, Profil, Code-Spur ────────────────
 await step('Column tenants.theme', () => tablesDB.createVarcharColumn({
@@ -150,4 +150,4 @@ await step('Index invite_codes.idx_status', () => tablesDB.createIndex({
   columns: ['status'],
 }))
 
-console.log('✔ Migration studio-016 fertig')
+console.log('✔ Migration control-016 fertig')

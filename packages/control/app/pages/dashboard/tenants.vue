@@ -161,7 +161,7 @@ async function removeTenant(tenant: TenantDto) {
   }
 }
 
-// ── Editierbarer Quota-Katalog (tenant_plans, studio-014) ────────────────────
+// ── Editierbarer Quota-Katalog (tenant_plans, control-014) ────────────────────
 // Zahlen wirken im Pool nach ≤ 90 s (Katalog-Cache 60 s + Host-Cache 30 s im
 // platform-Resolver) — kein Deploy nötig. 0 = unbegrenzt.
 interface PlanLimitsDto { key: string, limits: Record<string, { perDay?: number, total?: number }> }

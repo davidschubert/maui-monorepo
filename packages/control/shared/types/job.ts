@@ -34,7 +34,7 @@ export interface SiteCreateJobResult {
   siteRowId: string
 }
 
-/** Row-Typ zur `provisioning_jobs`-Table (Schema: Migration studio-002). */
+/** Row-Typ zur `provisioning_jobs`-Table (Schema: Migration control-002). */
 export interface JobRow extends Models.Row {
   type: JobType
   /** JSON-kodierter Payload (typisiert je JobType, z. B. SiteCreateJobPayload). */

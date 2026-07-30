@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
   const limits = await readValidatedBody(event, limitsSchema.parse)
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
-  // rowId = key (studio-014-Seed) — upsert-artig: fehlt die Row (z. B. neuer
+  // rowId = key (control-014-Seed) — upsert-artig: fehlt die Row (z. B. neuer
   // Plan-Key nach Migration), wird sie angelegt
   const row = await admin.tablesDB.upsertRow<TenantPlanRow>({
     databaseId: config.public.appwriteDatabaseId,

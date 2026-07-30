@@ -14,13 +14,13 @@ import type { Models } from 'node-appwrite'
 export const WORKSPACE_STATUSES = ['active', 'past_due', 'canceled'] as const
 export type WorkspaceStatus = (typeof WORKSPACE_STATUSES)[number]
 
-/** Row-Typ zur `workspaces`-Table (Schema: Migration studio-005). */
+/** Row-Typ zur `workspaces`-Table (Schema: Migration control-005). */
 export interface WorkspaceRow extends Models.Row {
   name: string
   ownerEmail: string
   /** Stripe-Customer, sobald der erste Checkout lief; bis dahin ''. */
   stripeCustomerId: string
-  /** AKTUELL gültige Stripe-Subscription (Migration studio-009). Basis des
+  /** AKTUELL gültige Stripe-Subscription (Migration control-009). Basis des
    *  Cross-Sub-Guards: nur ihre Kündigung darf den Workspace auf free
    *  zurückstufen. '' = kein Abo / Legacy-Row. */
   stripeSubscriptionId: string
@@ -31,7 +31,7 @@ export interface WorkspaceRow extends Models.Row {
 
 export const WORKSPACES_TABLE = 'workspaces'
 
-/** Mitgliedschaft User↔Workspace (M9, Migration studio-007) — Membership
+/** Mitgliedschaft User↔Workspace (M9, Migration control-007) — Membership
  *  IST die Berechtigung des Kundenbereichs (/workspace); v1 nur 'owner'. */
 export const WORKSPACE_MEMBER_ROLES = ['owner'] as const
 export type WorkspaceMemberRole = (typeof WORKSPACE_MEMBER_ROLES)[number]
@@ -44,7 +44,7 @@ export interface WorkspaceMemberRow extends Models.Row {
 
 export const WORKSPACE_MEMBERS_TABLE = 'workspace_members'
 
-/** Einmalige Owner-Einladung (M9, Migration studio-008) — DB hält nur den
+/** Einmalige Owner-Einladung (M9, Migration control-008) — DB hält nur den
  *  SHA-256-Hash des Tokens; der Klartext steht allein im Mail-Link. */
 export const WORKSPACE_INVITE_STATUSES = ['pending', 'accepted'] as const
 export type WorkspaceInviteStatus = (typeof WORKSPACE_INVITE_STATUSES)[number]

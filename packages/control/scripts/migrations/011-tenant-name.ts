@@ -1,5 +1,5 @@
 /**
- * Migration studio-011: `tenants.name` — Anzeigename des Kunden (UX 2026-07-23:
+ * Migration control-011: `tenants.name` — Anzeigename des Kunden (UX 2026-07-23:
  * der Betreiber tippt einen NAMEN, die Subdomain wird daraus generiert; die
  * Liste zeigt „Bäckerei Müller" statt nur den Host). Additiv, '' = Bestand.
  * Idempotent (409 → skip). Aufruf über den Runner:
@@ -40,10 +40,10 @@ async function step(label: string, run: () => Promise<unknown>) {
   }
 }
 
-console.log(`Migration studio-011 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration control-011 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 await step('Column tenants.name', () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'tenants', key: 'name', size: 120, required: false, xdefault: '',
 }))
 
-console.log('✔ Migration studio-011 fertig')
+console.log('✔ Migration control-011 fertig')

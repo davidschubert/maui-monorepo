@@ -1,7 +1,7 @@
 import { Query } from 'node-appwrite'
 import { TENANT_PLANS_TABLE, parseTenantPlanLimits, type TenantPlanRow } from '../../../../shared/types/tenantRecord'
 
-/** Betreiber: editierbarer Quota-Katalog (tenant_plans, studio-014) auflisten. */
+/** Betreiber: editierbarer Quota-Katalog (tenant_plans, control-014) auflisten. */
 export default defineEventHandler(async (event) => {
   requirePermission(event, 'sites.manage')
   const config = useRuntimeConfig(event)

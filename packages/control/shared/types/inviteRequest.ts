@@ -1,7 +1,7 @@
 import type { Models } from 'node-appwrite'
 
 /**
- * Early-Access-Anfragen (studio-017) — die Warteschlange zwischen „jemand will"
+ * Early-Access-Anfragen (control-017) — die Warteschlange zwischen „jemand will"
  * und „jemand hat".
  *
  * Lebenslauf:

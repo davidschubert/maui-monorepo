@@ -126,7 +126,7 @@ describe('shouldApplyFreeFallback (Cross-Sub-Guard #6)', () => {
   it('degradiert, wenn die gekündigte Sub die hinterlegte ist', () => {
     expect(shouldApplyFreeFallback('sub_A', 'sub_A')).toBe(true)
   })
-  it('degradiert bei leerem gespeicherten Wert (Legacy-Row / vor studio-009)', () => {
+  it('degradiert bei leerem gespeicherten Wert (Legacy-Row / vor control-009)', () => {
     expect(shouldApplyFreeFallback('', 'sub_A')).toBe(true)
   })
   it('degradiert NICHT, wenn eine ANDERE (neuere) Sub hinterlegt ist', () => {

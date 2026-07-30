@@ -3,7 +3,7 @@ import { notifyOperators, upsertRequest } from '../../../utils/inviteRequests'
 import { requireOnboardingCaller } from '../../../utils/onboardingService'
 
 /**
- * Early-Access-Anfrage annehmen (studio-017) — gerufen von der Platform-App,
+ * Early-Access-Anfrage annehmen (control-017) — gerufen von der Platform-App,
  * die das öffentliche Formular hält.
  *
  * Session-los mit Absicht: hier fragt jemand an, der noch KEIN Konto hat. Die

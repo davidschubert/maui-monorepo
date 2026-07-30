@@ -146,7 +146,7 @@ pnpm migrate --wave stable   --control-env apps/control/.env.production
   Projekt migriert wird (keine halbe Welle).
 - **Disziplin:** Migrationen sind ADDITIV (Code n-1 verträgt Schema n) —
   erst die Spalte überall, dann der Code-Deploy, Aufräumen später. Beispiel
-  2026-07-23: `tenants.wave` (studio-012) lief auf Prod, BEVOR der Code
+  2026-07-23: `tenants.wave` (control-012) lief auf Prod, BEVOR der Code
   deployt wurde, der das Feld schreibt.
 - disabled-Tenants migrieren mit (ein reaktivierter Host braucht aktuelles
   Schema); mehrere Hosts pro Projekt werden dedupliziert.

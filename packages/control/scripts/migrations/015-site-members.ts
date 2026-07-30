@@ -1,5 +1,5 @@
 /**
- * Migration studio-015 (G1): Kunden-Site-Autorisierung.
+ * Migration control-015 (G1): Kunden-Site-Autorisierung.
  *
  * Zwei Teile:
  *  1. `tenants.workspaceId` — Billing-/Owner-Anker. Entscheidung G0: die
@@ -59,7 +59,7 @@ async function waitForColumn(tableId: string, key: string) {
   throw new Error(`Column ${tableId}.${key} wurde nicht 'available'`)
 }
 
-console.log(`Migration studio-015 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration control-015 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 // ── 1. tenants.workspaceId (Billing-Anker; siteId = tenants.$id) ─────────────
 await step('Column tenants.workspaceId', () => tablesDB.createVarcharColumn({
@@ -111,4 +111,4 @@ await step('Index site_members.idx_site', () => tablesDB.createIndex({
   databaseId, tableId: 'site_members', key: 'idx_site', type: TablesDBIndexType.Key, columns: ['siteId'],
 }))
 
-console.log('✔ Migration studio-015 fertig')
+console.log('✔ Migration control-015 fertig')

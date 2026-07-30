@@ -122,7 +122,7 @@ export default defineEventHandler(async (event): Promise<JoinResponse> => {
     })
   }
   catch (error) {
-    // Der Unique-Index über das Tripel (uq_member, studio-015) ist das
+    // Der Unique-Index über das Tripel (uq_member, control-015) ist das
     // Rennen-Netz: zwei Auslöser im selben Moment (Kommentar UND Stimme) würden
     // sonst zwei Mitgliedschaften anlegen. Der Verlierer fragt den Bestand
     // erneut, statt zu raten — sonst meldete er „beigetreten", während in

@@ -1,5 +1,5 @@
 /**
- * Migration studio-003: Table `entitlements` — Row pro Site×Feature
+ * Migration control-003: Table `entitlements` — Row pro Site×Feature
  * (M6-T3, F3-Vorstufe ohne Signatur/Stripe). Keine Client-Permissions:
  * gelesen/geschrieben über die sites.manage-Routen bzw. den Job-Runner.
  * Additiv + idempotent (409 → skip).
@@ -50,7 +50,7 @@ async function waitForColumns(tableId: string) {
   throw new Error(`Columns von "${tableId}" wurden nicht verfügbar`)
 }
 
-console.log(`Migration studio-003 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration control-003 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 await step('Table entitlements', () => tablesDB.createTable({
   databaseId, tableId: 'entitlements', name: 'Entitlements',
@@ -80,4 +80,4 @@ await step('Index entitlements.idx_site', () => tablesDB.createIndex({
   databaseId, tableId: 'entitlements', key: 'idx_site', type: TablesDBIndexType.Key, columns: ['siteProjectId'],
 }))
 
-console.log('✔ Migration studio-003 fertig')
+console.log('✔ Migration control-003 fertig')

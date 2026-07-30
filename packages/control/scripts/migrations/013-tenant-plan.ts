@@ -1,5 +1,5 @@
 /**
- * Migration studio-013: `tenants.plan` — Quota-Plan des Pool-Tenants
+ * Migration control-013: `tenants.plan` — Quota-Plan des Pool-Tenants
  * (H3-4.3): staffelt die Quota-Limits (maui.tenancy.quota.plans, free/pro/
  * business). Additiv, Bestand = 'free'. Für Silo ohne Wirkung.
  * Idempotent (409 → skip). Aufruf über den Runner:
@@ -40,10 +40,10 @@ async function step(label: string, run: () => Promise<unknown>) {
   }
 }
 
-console.log(`Migration studio-013 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration control-013 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 await step('Column tenants.plan', () => tablesDB.createEnumColumn({
   databaseId, tableId: 'tenants', key: 'plan', elements: ['free', 'pro', 'business'], required: false, xdefault: 'free',
 }))
 
-console.log('✔ Migration studio-013 fertig')
+console.log('✔ Migration control-013 fertig')

@@ -1,5 +1,5 @@
 /**
- * Migration studio-009: Spalte `workspaces.stripeSubscriptionId` — hält die
+ * Migration control-009: Spalte `workspaces.stripeSubscriptionId` — hält die
  * AKTUELL für den Workspace gültige Stripe-Subscription. Grundlage des
  * Cross-Sub-Guards (#6): ein `customer.subscription.deleted` degradiert den
  * Workspace nur dann auf `free`, wenn die gekündigte Sub die hinterlegte ist —
@@ -43,11 +43,11 @@ async function step(label: string, run: () => Promise<unknown>) {
   }
 }
 
-console.log(`Migration studio-009 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration control-009 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 // Stripe-Subscription-Ids sind kurz (sub_… ~28 Zeichen); 64 mit Reserve.
 await step('Column workspaces.stripeSubscriptionId', () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'workspaces', key: 'stripeSubscriptionId', size: 64, required: false, xdefault: '',
 }))
 
-console.log('✔ Migration studio-009 fertig')
+console.log('✔ Migration control-009 fertig')

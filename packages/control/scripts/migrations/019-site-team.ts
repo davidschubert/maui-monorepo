@@ -1,5 +1,5 @@
 /**
- * Migration studio-019: Mitglieder-Verwaltung für Community-Betreiber
+ * Migration control-019: Mitglieder-Verwaltung für Community-Betreiber
  * (Audit-Befund S9 „tote Capability team.manage", Davids Entscheidungen vom
  * 2026-07-29).
  *
@@ -14,7 +14,7 @@
  *     durch einen Beitritts-Auslöser überschreiben.
  *  2. `site_members.removedAt` — wann der Zugang entzogen wurde (Anzeige/Spur).
  *  3. `site_invites` — offene Einladungen, dem M9-Muster (`workspace_invites`,
- *     studio-008) nachgebaut: die DB kennt nur den SHA-256-Hash des Tokens.
+ *     control-008) nachgebaut: die DB kennt nur den SHA-256-Hash des Tokens.
  *
  * Idempotent (409 → skip; die Enum-Erweiterung prüft vorher die Elemente).
  * Aufruf über den Runner:
@@ -65,7 +65,7 @@ async function waitForColumn(tableId: string, key: string) {
   throw new Error(`Column ${tableId}.${key} wurde nicht 'available'`)
 }
 
-console.log(`Migration studio-019 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration control-019 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 // ── 1. site_members.status += 'removed' ─────────────────────────────────────
 // destruktiv-ok: `updateEnumColumn` ist der EINZIGE Weg, einen Wert zu einem
@@ -82,7 +82,7 @@ const REQUIRED_STATUSES = ['active', 'invited', 'suspended', 'removed']
   const column = columns.find(c => (c as { key?: string }).key === 'status') as
     { elements?: string[], required?: boolean, default?: string } | undefined
   if (!column) {
-    throw new Error('site_members.status fehlt — Migration studio-015 zuerst laufen lassen')
+    throw new Error('site_members.status fehlt — Migration control-015 zuerst laufen lassen')
   }
   const existing = column.elements ?? []
   const missing = REQUIRED_STATUSES.filter(value => !existing.includes(value))
@@ -166,4 +166,4 @@ await step('Index site_invites.idx_site_email', () => tablesDB.createIndex({
   columns: ['siteId', 'email'],
 }))
 
-console.log('✔ Migration studio-019 fertig')
+console.log('✔ Migration control-019 fertig')

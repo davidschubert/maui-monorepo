@@ -1,6 +1,6 @@
 /**
  * Feature Layer: Control — das Control Plane der Multi-Site-Plattform (M6):
- * Sites-Register (Table `sites`, Migration studio-001; eigener Schema-Owner
+ * Sites-Register (Table `sites`, Migration control-001; eigener Schema-Owner
  * nach A14), Health-Übersicht, später Site-Erstellungs-Flow + Entitlements.
  * Läuft NUR in apps/control (hawaii.studio) — besitzt bewusst KEINE
  * Site-Inhalte und keine Site-Sessions (Vertrauensgrenze, Strategie § 8).

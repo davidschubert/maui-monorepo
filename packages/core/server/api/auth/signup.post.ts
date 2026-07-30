@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
   }
   // Zweite, MANDANTEN-Ebene (S1): app_config ist EINE Row pro Projekt — im Pool
   // teilen sich alle Communities sie, der Schalter oben kann also nicht pro
-  // Community stehen. tenants.openRegistration kann es (studio-018).
+  // Community stehen. tenants.openRegistration kann es (control-018).
   assertTenantRegistrationOpen(event)
 
   const { email, password, name } = await readValidatedBody(event, registerSchema.parse)

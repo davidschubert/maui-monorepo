@@ -1,5 +1,5 @@
 /**
- * Migration studio-004: Spalte `sites.features` — Feature-Snapshot je Site
+ * Migration control-004: Spalte `sites.features` — Feature-Snapshot je Site
  * (M6-T4): JSON-Array der wirksam aktiven Feature-Keys, geliefert von der
  * Site selbst (GET /api/platform/features) und vom Health-Sweep persistiert.
  * Additiv + idempotent (409 → skip; sites-Table hat Budget-Headroom).
@@ -41,10 +41,10 @@ async function step(label: string, run: () => Promise<unknown>) {
   }
 }
 
-console.log(`Migration studio-004 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration control-004 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 await step('Column sites.features', () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'sites', key: 'features', size: 1000, required: false, xdefault: '[]',
 }))
 
-console.log('✔ Migration studio-004 fertig')
+console.log('✔ Migration control-004 fertig')

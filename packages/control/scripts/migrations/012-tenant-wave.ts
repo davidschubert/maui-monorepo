@@ -1,5 +1,5 @@
 /**
- * Migration studio-012: `tenants.wave` — Wellen-Zuordnung für Silo-Updates
+ * Migration control-012: `tenants.wave` — Wellen-Zuordnung für Silo-Updates
  * (H3-4.2, Blueprint L5): Schema-Änderungen rollen über Silo-Projekte in
  * DREI Wellen aus (internal → canary → stable), abwärtskompatibel (Code n-1
  * ⇆ Schema n). Pool-Tenants teilen EIN Projekt — ihre Welle ist wirkungslos,
@@ -42,10 +42,10 @@ async function step(label: string, run: () => Promise<unknown>) {
   }
 }
 
-console.log(`Migration studio-012 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration control-012 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 await step('Column tenants.wave', () => tablesDB.createEnumColumn({
   databaseId, tableId: 'tenants', key: 'wave', elements: ['internal', 'canary', 'stable'], required: false, xdefault: 'stable',
 }))
 
-console.log('✔ Migration studio-012 fertig')
+console.log('✔ Migration control-012 fertig')

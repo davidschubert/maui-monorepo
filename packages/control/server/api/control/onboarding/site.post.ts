@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
 
   // Early-Access-Tor. Nach außen bleibt jede Ablehnung dieselbe Antwort
   // (kein Code-Ratespiel), der Grund steht nur im Log. Die Adresse geht mit:
-  // ein an jemanden vergebener Code (studio-017) gilt NUR für dessen Konto —
+  // ein an jemanden vergebener Code (control-017) gilt NUR für dessen Konto —
   // weiterleiten bringt nichts.
   const invite = await checkInviteCode(event, body.site.inviteCode, Date.now(), identity.email)
   if (!invite.valid) {

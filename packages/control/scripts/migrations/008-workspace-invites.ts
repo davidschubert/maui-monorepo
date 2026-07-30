@@ -1,5 +1,5 @@
 /**
- * Migration studio-008: Table `workspace_invites` — M9-T2: einmalige
+ * Migration control-008: Table `workspace_invites` — M9-T2: einmalige
  * Owner-Einladungen (7 Tage gültig). Es wird NUR der SHA-256-Hash des
  * Tokens gespeichert (DB-Leak ≠ gültige Einladungen); der Klartext-Token
  * steht ausschließlich im Mail-Link. Keine Client-Permissions.
@@ -51,7 +51,7 @@ async function waitForColumns(tableId: string) {
   throw new Error(`Columns von "${tableId}" wurden nicht verfügbar`)
 }
 
-console.log(`Migration studio-008 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration control-008 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 await step('Table workspace_invites', () => tablesDB.createTable({
   databaseId, tableId: 'workspace_invites', name: 'Workspace Invites',
@@ -89,4 +89,4 @@ await step('Index idx_workspace', () => tablesDB.createIndex({
   type: TablesDBIndexType.Key, columns: ['workspaceId'],
 }))
 
-console.log('✔ Migration studio-008 fertig')
+console.log('✔ Migration control-008 fertig')

@@ -1,5 +1,5 @@
 /**
- * Migration studio-014: `tenant_plans` — der EDITIERBARE Quota-Katalog des
+ * Migration control-014: `tenant_plans` — der EDITIERBARE Quota-Katalog des
  * Control Plane (Control-Dashboard statt app.config-Deploy). Eine Row je
  * Plan-Key (free/pro/business), `limits` als JSON: { [kind]: { perDay, total } }.
  * Der platform-Resolver liest den Katalog CROSS-Projekt (rows.read-Key) und
@@ -53,7 +53,7 @@ async function waitForColumn(key: string) {
   throw new Error(`Column tenant_plans.${key} wurde nicht 'available'`)
 }
 
-console.log(`Migration studio-014 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration control-014 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 // Zugriff NUR über Control-Admin-Routen (sites.manage) + den read-only
 // Cross-Projekt-Key der platform — keine Table-Permissions.
@@ -93,4 +93,4 @@ for (const [key, limits] of Object.entries(SEED)) {
   console.log(`✔ Seed '${key}'`)
 }
 
-console.log('✔ Migration studio-014 fertig')
+console.log('✔ Migration control-014 fertig')

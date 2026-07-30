@@ -12,7 +12,7 @@ import type { Models } from 'node-appwrite'
 export const ENTITLEMENT_STATUSES = ['active', 'suspended'] as const
 export type EntitlementStatus = (typeof ENTITLEMENT_STATUSES)[number]
 
-/** Row-Typ zur `entitlements`-Table (Schema: Migration studio-003). */
+/** Row-Typ zur `entitlements`-Table (Schema: Migration control-003). */
 export interface EntitlementRow extends Models.Row {
   /** Appwrite-Projekt-ID der Site — die unveränderliche Identität (F6). */
   siteProjectId: string

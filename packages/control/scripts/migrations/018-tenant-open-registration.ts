@@ -1,5 +1,5 @@
 /**
- * Migration studio-018: `tenants.openRegistration` — darf sich JEDER auf
+ * Migration control-018: `tenants.openRegistration` — darf sich JEDER auf
  * dieser Community-Site ein Konto anlegen?
  *
  * Hintergrund (Audit-Befund S1, Davids Entscheidung 4 vom 2026-07-27): der
@@ -12,7 +12,7 @@
  * (verifiziert bei `plan`/`audience`), Bestands-Rows lesen sich also als
  * `null`. Für dieses Feld ist das genau richtig — `null` heißt „nie etwas
  * entschieden", und wer nie etwas entschieden hat, betreibt weiter das
- * bisherige Verhalten (offen). Bewusster Gegensatz zu `audience` (studio-016),
+ * bisherige Verhalten (offen). Bewusster Gegensatz zu `audience` (control-016),
  * das fail-CLOSED liest: dort hängt eine Datenschutzgrenze dran, hier eine
  * Produktentscheidung. Gelesen wird ausschließlich über
  * resolveTenantOpenRegistration() (shared/types/tenantRecord.ts).
@@ -65,7 +65,7 @@ async function waitForColumn(tableId: string, key: string) {
   throw new Error(`Column ${tableId}.${key} wurde nicht 'available'`)
 }
 
-console.log(`Migration studio-018 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration control-018 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 // Kein Index: das Feld wird IMMER zusammen mit der Host-Auflösung gelesen
 // (eine Row, uq_host) und nie gefiltert — ein Index wäre toter Ballast.
@@ -74,4 +74,4 @@ await step('Column tenants.openRegistration', () => tablesDB.createBooleanColumn
 }))
 await waitForColumn('tenants', 'openRegistration')
 
-console.log('✔ Migration studio-018 fertig')
+console.log('✔ Migration control-018 fertig')

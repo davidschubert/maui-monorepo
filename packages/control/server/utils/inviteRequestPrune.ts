@@ -2,7 +2,7 @@ import { Query } from 'node-appwrite'
 import { INVITE_REQUESTS_TABLE, type InviteRequestRow } from '../../shared/types/inviteRequest'
 
 /**
- * Aufräumen erledigter Anfragen (studio-017).
+ * Aufräumen erledigter Anfragen (control-017).
  *
  * Eine Anfrage ist eine E-Mail-Adresse von jemandem, der etwas wollte — also
  * ein personenbezogenes Datum ohne Vertrag. Es darf nicht liegen bleiben, „bis

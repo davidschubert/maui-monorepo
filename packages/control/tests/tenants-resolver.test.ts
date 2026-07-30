@@ -51,7 +51,7 @@ describe('mapTenantRowToContext (pure)', () => {
       .toMatchObject({ openRegistration: false })
   })
   it('S1: Bestands-Row ohne die Spalte (null/undefined) bleibt OFFEN', () => {
-    // Appwrite backfillt Spalten-Defaults nicht — Rows von vor studio-018
+    // Appwrite backfillt Spalten-Defaults nicht — Rows von vor control-018
     // lesen sich als null. Fail-OPEN ist hier Absicht: eine Community, die nie
     // etwas entschieden hat, darf nicht stillschweigend zugemacht werden.
     expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: '', openRegistration: null }))
@@ -80,7 +80,7 @@ describe('parseTenantPlanLimits (pure, defensiv)', () => {
 })
 
 /**
- * Integration gegen eine ECHTE Appwrite (tenants-Table, Migration studio-010).
+ * Integration gegen eine ECHTE Appwrite (tenants-Table, Migration control-010).
  * Env-gated wie die anderen Live-Tests: Env der studio-App exportieren.
  */
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
@@ -119,7 +119,7 @@ describe.skipIf(!hasEnv)('createTenantsTableResolver (echte Appwrite)', () => {
       endpoint: endpoint!, projectId: projectId!, apiKey: apiKey!, databaseId: databaseId!, cacheTtlMs: 60_000,
     })
 
-    // Seit studio-014 reisen die Katalog-Limits (tenant_plans) im Context mit —
+    // Seit control-014 reisen die Katalog-Limits (tenant_plans) im Context mit —
     // Plan-Default basic, Limits aus dem Seed/aktuellen Katalog (Zahlen variabel,
     // Control-editierbar: nur Struktur prüfen, nicht die konkreten Werte).
     const resolved = await resolve(HOST_POOL)

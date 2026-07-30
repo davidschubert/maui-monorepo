@@ -1,5 +1,5 @@
 /**
- * Migration studio-010: Table `tenants` — das Host→Mandant-Register des
+ * Migration control-010: Table `tenants` — das Host→Mandant-Register des
  * Control Plane (Horizont-3 Naht 1, Blueprint). Gelesen von Platform-Apps
  * über createTenantsTableResolver (Cross-Projekt, read-only); geschrieben
  * über sites.manage-Routen bzw. den Onboarding-Flow (Etappe 4.4).
@@ -49,7 +49,7 @@ async function waitForColumns(tableId: string) {
   throw new Error(`Columns von "${tableId}" wurden nicht verfügbar`)
 }
 
-console.log(`Migration studio-010 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
+console.log(`Migration control-010 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 await step('Table tenants', () => tablesDB.createTable({
   databaseId, tableId: 'tenants', name: 'Tenants',
@@ -84,4 +84,4 @@ await step('Index tenants.idx_status', () => tablesDB.createIndex({
   databaseId, tableId: 'tenants', key: 'idx_status', type: TablesDBIndexType.Key, columns: ['status'],
 }))
 
-console.log('✔ Migration studio-010 fertig')
+console.log('✔ Migration control-010 fertig')

@@ -124,7 +124,7 @@ export function subscriptionUpdateToAction(
 /**
  * Cross-Sub-Guard (#6): darf die gekündigte Subscription den Workspace auf
  * `free` zurückstufen? NUR, wenn sie die aktuell hinterlegte ist — oder gar
- * keine hinterlegt ist (Legacy-Row / vor studio-009). Ist eine ANDERE,
+ * keine hinterlegt ist (Legacy-Row / vor control-009). Ist eine ANDERE,
  * neuere Sub hinterlegt, ist das Kündigen der alten stale und darf ein
  * frisch gekauftes Abo nicht kannibalisieren. Pure → unit-testbar.
  */
