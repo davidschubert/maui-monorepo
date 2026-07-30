@@ -28,7 +28,6 @@ import {
   BRAND_CARD_LAYOUT,
   BRAND_CARD_WIDTH,
   layoutBrandCardTitle,
-  measureBrandCardText,
   sanitizeBrandCardText,
   type BrandCardFont,
   type BrandCardGlyph,
@@ -324,9 +323,4 @@ export async function renderBrandCardPng(input: BrandCardInput, font: BrandCardF
   }
 
   return encodePngRgb(surface.width, surface.height, surface.data)
-}
-
-/** Breite der Wortmarke — nur für Tests/Layout-Prüfungen. */
-export function brandCardWordmarkWidth(text: string, font: BrandCardFont = BRAND_CARD_FONT): number {
-  return measureBrandCardText(text, font, BRAND_CARD_LAYOUT.wordmarkSize, BRAND_CARD_LAYOUT.wordmarkTracking)
 }
