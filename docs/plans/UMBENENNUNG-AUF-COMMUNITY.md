@@ -1,63 +1,61 @@
-# `tenant` → `site`: die vollständige Umbenennung
+# `tenant`/`site` → `community`: die vollständige Umbenennung
 
-**Status:** geplant, nicht ausgeführt · **Entschieden:** 2026-07-29 (David) ·
-**Autor des Plans:** Claude
+**Status:** geplant, nicht ausgeführt · **Entschieden:** 2026-07-29 (David,
+in zwei Runden) · **Wartet auf:** A6 (workspaces fällt weg — sonst würden
+Tabellen umbenannt, die gleich gelöscht werden)
 
-> Dieses Dokument liegt in `docs/plans/`, weil es NOCH NICHT gebaut ist. Sobald
-> es ausgeführt ist: Datei nach `docs/archiv/`, Reste nach `docs/OPEN-ITEMS.md`
-> (Doku-Ordnung, CLAUDE.md).
+> Liegt in `docs/plans/`, weil es NOCH NICHT gebaut ist. Nach der Ausführung:
+> Datei nach `docs/archiv/`, Reste nach `docs/OPEN-ITEMS.md`.
 
-## Die Entscheidung und ihr Preis
+## Die Entscheidung — und warum sie sich unterwegs verbessert hat
 
-Das Projekt hat zwei Wörter für dieselbe Sache: `tenant` (Tabelle `tenants`,
-Spalte `tenantId` in 19 Tabellen, `tenantDb`, `tenantContext`,
-`requireTenantPermission`) und `site` (`site_members.siteId`, das den Wert von
-`tenants.$id` trägt, `requireSitePermission`, Site-Label). **Beide bezeichnen
-die Kunden-Community.**
+Das Projekt hatte zwei Wörter für dieselbe Sache: `tenant` (Tabelle `tenants`,
+Spalte `tenantId` in 19 Tabellen, `tenantDb`, `requireTenantPermission`) und
+`site` (`site_members.siteId` = der Wert von `tenants.$id`,
+`requireSitePermission`, Site-Label). Gemessen am 2026-07-29: 614 gegen 632
+Code-Vorkommen, aber grob asymmetrische Datenkosten (19 Spalten auf bis zu vier
+Instanzen gegen 2 Tabellen in einem Projekt).
 
-Gemessen am 2026-07-29:
+David entschied zuerst „`site` gewinnt, vollständig" — im Wissen um die Kosten,
+gegen meine Empfehlung. **Wenige Stunden später hat seine eigene
+Dashboard-Navigation die Frage besser beantwortet:** dort heißen die
+Kunden-Objekte **Communities** und das Betreiber-Register **Websites**. Damit ist
+das richtige Wort keines der beiden ursprünglichen:
 
-| | Richtung `site` gewinnt | Richtung `tenant` gewinnt |
+| heute | künftig | Label in der Oberfläche |
 |---|---|---|
-| Code-Vorkommen | 614 | 632 |
-| Tabellen umbenennen | 2 (`tenants`, `tenant_plans`) + Kollision | 2 (`site_members`, `site_invites`) |
-| **Spalten auf lebenden Kundenzeilen** | **19 Tabellen × bis zu 4 Instanzen** | 2 Tabellen in 1 Projekt |
+| `tenants` | **`communities`** | Communities |
+| `tenantId` (19 Tabellen) | **`communityId`** | — |
+| `site_members` / `site_invites` | **`community_members` / `community_invites`** | Mitglieder |
+| `siteId` | **`communityId`** | — |
+| `tenant_plans` | **`community_plans`** | Pläne und Limits |
+| `sites` (Operator-Register) | **`websites`** | Websites |
 
-**David hat `site` gewählt** — im Wissen um die Kosten. Meine Empfehlung war die
-andere Richtung (oder gar keine); das ist dokumentiert, nicht relitigiert. Der
-Grund für die Entscheidung ist gut: `site` ist das Wort, das der Kunde benutzt,
-und die Kunden-Site ist das zentrale Objekt des Produkts. `tenant` beschreibt
-eine Eigenschaft der Infrastruktur, nicht das Ding selbst.
+Der Gewinn ist größer als bei beiden früheren Varianten: **jede Sache heißt im
+Code so wie in der Oberfläche und im Verkaufsgespräch.** `communityId` sagt einem
+neuen Leser, was drinsteht; `tenantId` und `siteId` taten das nie. Und die
+Namenskollision, an der die `site`-Variante hing (`sites` war schon belegt),
+verschwindet vollständig — `sites` wird gar nicht mehr gebraucht.
 
-**Das ist die riskanteste Operation, die dieses Projekt bisher gemacht hat** —
-riskanter als der Control-Cutover, weil dort ein Projekt neben dem alten
-aufgebaut und dann umgeschaltet wurde. Hier werden Spalten auf Zeilen bewegt,
-die Kunden gehören.
+Auch die Autorisierungs-Zwillinge lösen sich auf: `requireTenantPermission`
+(synchron) und `requireSitePermission` (async, ohne `await` fail-open) werden
+EINE Funktion. Das war der eigentliche Grund, die Umbenennung überhaupt zu
+machen — zwei fast gleich heißende Wächter mit verschiedenem Fehlverhalten sind
+einen Tippfehler von einem Sicherheitsloch entfernt.
 
-## Der zweite Name, den es dafür braucht
-
-`tenants` → `sites` **kollidiert**: es gibt schon eine Tabelle `sites` im
-Control Plane (Operator-Register der Deploy-Ziele mit Health-Check, aus M6-T1).
-Sie muss zuerst weichen.
-
-**Entschieden (Claude, aus dem Vokabular des Projekts):** `sites` → **`instances`**.
-CLAUDE.md nennt sie ohnehin so — „Jede App: EIGENE Appwrite-Instanz". Das
-Register beschreibt Deployments, nicht Kunden-Sites. Damit ist `sites` frei und
-der Name sagt endlich, was drinsteht.
-
-Mit umzubenennen: `tenant_plans` → `site_plans`, `sites.manage` →
-`instances.manage` (Capability-String), Route `/api/control/sites` →
-`/api/control/instances`.
+**Das bleibt die riskanteste Operation, die dieses Projekt gemacht hat** —
+riskanter als der Control-Cutover, weil dort neben dem Alten aufgebaut und dann
+umgeschaltet wurde. Hier werden Spalten auf Zeilen bewegt, die Kunden gehören.
 
 ## Was NICHT umbenannt wird — und warum
 
 Diese Liste ist der wichtigste Teil des Plans. Jede Zeile hier ist eine Falle,
 in die eine Umbenennung sonst läuft.
 
-1. **Werte, nicht Namen.** Das Site-Label ist `Role.label(<tenants.$id>)` — der
+1. **Werte, nicht Namen.** Das Site-Label ist `Role.label(<communities.$id>)` (heute `tenants.$id`) — der
    VALUE ist eine Row-Id und ändert sich nie. Wird eine Zeile kopiert statt
    umbenannt, **muss die Row-Id explizit mitgegeben werden** (`rowId: alt.$id`).
-   Sonst zeigt jede `tenantId` in jedem gepoolten Projekt und jedes vergebene
+   Sonst zeigt jede `communityId` in jedem gepoolten Projekt und jedes vergebene
    Label ins Leere. Das ist der Punkt, an dem diese Migration Kundendaten
    verlieren kann.
 2. **Appwrite-Projekt-Ids** (`pool`, `control`, `comments`, `portfolio`) — eine
@@ -110,14 +108,19 @@ pages-002, siehe Memory „MariaDB/utf8mb4-Zeilenbudget"). Also je Tabelle:
 5. **Aufräumen** — alte Indizes und Spalte `tenantId` löschen. **Erst hier ist
    der Weg zurück versperrt**, und erst nach einer Nacht ohne Auffälligkeiten.
 
-Für `tenants` → `sites` und `sites` → `instances` gilt dasselbe eine Ebene
+Für `tenants` → `communities` und `sites` → `websites` gilt dasselbe eine Ebene
 höher: neue Tabelle, Zeilen **mit ihrer Row-Id** kopieren, Code umstellen, alte
 Tabelle löschen.
 
 **Reihenfolge über das Ganze:**
-`sites` → `instances` zuerst (macht den Namen frei), dann `tenants` → `sites`,
-dann die 19 Spalten Layer für Layer. Die gepoolten Layer zuletzt, weil dort
-Kundenzeilen liegen; `system` als letztes, weil es alle vier Instanzen berührt.
+`sites` → `websites` zuerst (2 Zeilen, harmlos, gute Probe für das Muster),
+dann `tenants` → `communities` (1 Zeile produktiv — der gefährliche Teil ist
+nicht die Menge, sondern die Row-Id), dann die 19 `communityId`-Spalten Layer
+für Layer. Die gepoolten Layer zuletzt, weil dort Kundenzeilen liegen; `system`
+als letztes, weil es alle vier Instanzen berührt.
+
+Kein Zwischenschritt braucht den Namen `sites` — er entfällt einfach. Das war
+bei der ursprünglichen `site`-Variante der Knoten und ist mit `community` weg.
 
 ## Vor dem ersten Schritt
 
