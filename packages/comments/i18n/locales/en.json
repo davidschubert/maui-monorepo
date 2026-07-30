@@ -109,7 +109,8 @@
       "upvote": "Upvote",
       "downvote": "Downvote",
       "voteError": "Vote failed — please try again.",
-      "error": "Action failed — please try again."
+      "error": "Action failed — please try again.",
+      "formerMember": "Former member"
     },
     "report": {
       "reasons": {

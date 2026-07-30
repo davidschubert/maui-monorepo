@@ -36,6 +36,15 @@ export interface Comment extends Models.Row {
    * User fehlt sie → UserAvatar fällt auf Initialen zurück, bis neu geladen wird.
    */
   authorAvatarUrl?: string
+  /**
+   * „Ehemaliges Mitglied" (N9, Davids Entscheidung 1 vom 2026-07-29) — KEINE
+   * DB-Spalte, sondern beim Lesen gebündelt angereichert (resolveFormerMembers,
+   * core): der Autor hat diese Community verlassen bzw. wurde entfernt, sein
+   * Beitrag bleibt mit Namen stehen. Wie authorAvatarUrl fehlt das Feld bei
+   * Realtime-Events, bis neu geladen wird — das Zeichen erscheint dann später,
+   * es verschwindet nie falsch.
+   */
+  authorFormerMember?: boolean
   parentId: string | null
   /** Interner Pfad der Seite, auf der der Kommentar lebt — für die Reply-Notification (null = unbekannt → '/') */
   targetUrl: string | null

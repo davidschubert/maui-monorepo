@@ -229,6 +229,7 @@
     "reminder": "Reminder: {name} starts soon",
     "ticket": "Ticket update: {name}",
     "billing": "Payment issue: {name}",
+    "siteInvite": "Invitation to {name}",
     "email": {
       "title": "Email notifications",
       "description": "Also receive bell notifications (replies, mentions, reminders) by email.",

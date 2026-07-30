@@ -63,9 +63,27 @@ export async function callControlPlane<T>(event: H3Event, path: string, body: Re
       ?? (error as { statusCode?: number }).statusCode
     const statusText = (error as { statusText?: string, statusMessage?: string }).statusText
       ?? (error as { statusMessage?: string }).statusMessage
-    // 4xx = Aussage über die Eingabe → unverändert weitergeben.
+    // 4xx = Aussage über die Eingabe → unverändert weitergeben. MIT `data`:
+    // die Mitglieder-Regeln des Control Plane antworten 409 und legen ihren
+    // Grund als `data.code` bei (last_owner, self_demote, …). Ohne diese Zeile
+    // käme in der Oberfläche nur „Fehler" an, und der Nutzer wüsste nicht, was
+    // ihn aufgehalten hat. Weitergegeben wird ausschließlich dieses Feld —
+    // keine Appwrite-Details, keine fremden Nutzlasten.
     if (typeof status === 'number' && status >= 400 && status < 500) {
-      throw createError({ status, statusText: statusText || 'Request rejected' })
+      // ZWEI Envelopes hintereinander, und das ist die Stelle, an der man sich
+      // vertut: das Control Plane ist selbst eine maui-App, seine Antwort ist
+      // also schon das fertige Envelope `{ ok, code, message, reason }`. Bei
+      // $fetch steckt dieser Body in `error.data`. Der Grund muss hier deshalb
+      // aus `data.reason` gelesen und als `data.code` NEU gesetzt werden —
+      // dann macht unser eigener Error-Handler daraus wieder ein `reason` für
+      // den Browser. Weitergegeben wird ausschließlich dieser Schlüssel.
+      const body = (error as { data?: { reason?: unknown } }).data
+      const reason = typeof body?.reason === 'string' ? body.reason : null
+      throw createError({
+        status,
+        statusText: statusText || 'Request rejected',
+        ...(reason ? { data: { code: reason } } : {}),
+      })
     }
     logEvent('error', 'onboarding.control_plane_unreachable', {
       path,

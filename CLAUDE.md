@@ -187,6 +187,30 @@ Vollständiges Konzept: docs/CONCEPT.md
 - Site-Routen autorisieren über `requireSitePermission` (Site-Rolle, dann
   protokollierter Operator-Break-Glass) — NIE `requirePermission` erweitern:
   die ist synchron und wird ohne await gerufen.
+- MITGLIEDER-VERWALTUNG (seit 2026-07-29, Audit-Befund S9 „tote Capability"):
+  `/dashboard/members` liegt im ONBOARDING-Layer, nicht in admin — die Seite kann
+  nur so weit reichen wie ihre Routen (`/api/site/members/*`), und die brauchen
+  die Service-Naht. Silo-Apps ohne onboarding bekommen so keinen Menüpunkt ins
+  Leere. Einladen = EIN Feld + Rolle → `site_invites` (Token-HASH, 7 Tage,
+  M9-Muster aus `workspace_invites`; Mail zuerst, Row danach — keine Einladung
+  ohne Zustellung), Annahme über `/join?token=…` ODER ohne Token über die eigene
+  geprüfte Adresse. ENTFERNEN LÖSCHT NICHT: `site_members.status='removed'`
+  (Migration studio-019), Inhalte + Namen bleiben. Besitz übertragen läuft über
+  `site.transfer` (Owner), NIE über die Rollen-Route — sonst wäre eine
+  Owner-Capability per Admin-Capability erreichbar. `site.delete` ist bewusst
+  NICHT gebaut (Davids Entscheidung 3). Schutzregeln PURE + unit-getestet in
+  `packages/control/shared/siteTeam.ts` (kein Selbst-Degradieren, nie der letzte
+  Owner) — die UI kennt sie, das Control Plane setzt sie durch.
+- „Ehemaliges Mitglied": GEBÜNDELTER Vertrag `core/server/utils/siteMembership.ts`
+  (`registerFormerSiteMembersResolver`, Implementierung
+  `createFormerSiteMembersResolver` im control-Layer) — viele userIds, EINE
+  Abfrage, Cache pro NUTZER 60 s, fail-soft. Der Einzel-Lookup
+  (`SiteRoleResolver`) darf dafür NIE in einer Schleife laufen: eine
+  Kommentarliste hat 25 Autoren. Die Frage ist bewusst NEGATIV gestellt —
+  „ehemalig" ist eine POSITIVE Tatsache (Row mit status 'removed'); die
+  ABWESENHEIT einer Row heißt „gewöhnlicher Nutzer", weil `site_members` im Pool
+  nur das Team trägt (A4). Zeichen erscheint heute in der Kommentarliste
+  (Gäste eingeschlossen).
 - Beweise: `packages/onboarding/scripts/{verify-control-host,verify-site-authz,
   acceptance-onboarding}.mjs` + `packages/control/scripts/verify-onboarding.mjs`.
   Lokal testen: `seed-local-tester.mjs` (Konto+Code, `--clean` räumt auf).
@@ -350,7 +374,13 @@ Vollständiges Konzept: docs/CONCEPT.md
   der einen Env-Basis zeigten canonical/hreflang/og:url auf ALLEN Mandanten-
   Hosts auf platform.pukalani.app (Audit-Befund B1)
 - createError mit status/statusText (nicht statusCode/statusMessage),
-  keine Appwrite-Fehlerdetails an Clients leaken
+  keine Appwrite-Fehlerdetails an Clients leaken. FACHLICHE Ablehnungsgründe
+  reisen als `data: { code: 'last_owner' }` → der zentrale Handler
+  (core/server/error.ts) hebt genau diesen Schlüssel als `reason` ins Envelope
+  (`{ok,code,message,reason}`), der Client liest `error.data.reason`. Die rohe
+  `data` bleibt draußen. Vor dem 2026-07-29 gab es das Feld nicht — Routen
+  setzten `data.code`, es kam NIE an (der `last_admin`-Zweig der
+  Nutzerverwaltung war deshalb toter Code).
 - useToast kommt aus Nuxt UI — nicht im Core re-exportieren (schattet Auto-Import)
 - pnpm, TypeScript strict (kein any), vollständige Dateien, keine Spekulation
 - Dependencies via pnpm Catalog: Versionen zentral in pnpm-workspace.yaml,

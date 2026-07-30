@@ -1,0 +1,425 @@
+<script setup lang="ts">
+import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
+import { SITE_ROLES, type SiteRole } from '../../../../../control/shared/types/siteMember'
+import type { SiteInviteView, SiteMemberView, SiteTeamResponse } from '../../../../../control/shared/siteTeam'
+
+/**
+ * Mitglieder-Verwaltung EINER Community (Audit-Befund S9: `team.manage` war eine
+ * tote Capability — Rolle vorhanden, Einstieg nirgends). Hier ist der Einstieg.
+ *
+ * Vier Handgriffe, alle auf dieser Seite: einladen, Rolle ändern, Zugang
+ * entziehen, Besitz übertragen. Community LÖSCHEN gibt es bewusst nicht — auch
+ * nicht als gesperrten Knopf (Davids Entscheidung 3 vom 2026-07-29): ein
+ * unumkehrbares Löschen ohne Wiederherstellungs-Frist wäre Datenverlust, und ein
+ * ausgegrauter Knopf verspricht etwas, das es nicht gibt.
+ *
+ * Die AUTORITÄT liegt in den Routen (`await requireSitePermission`) und im
+ * Control Plane, das jede Regel noch einmal selbst prüft. Was hier ausgegraut
+ * ist, ist Freundlichkeit — keine Grenze.
+ */
+definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'team.manage' })
+
+const { t } = useI18n()
+const { formatDate } = useFormatDate()
+const { formatRelativeTime } = useFormatRelativeTime()
+const toast = useToast()
+const confirm = useConfirm()
+
+/** Besitz übertragen ist eine OWNER-Sache (site.transfer), nicht team.manage. */
+const canTransfer = useSiteCapability('site.transfer')
+
+const { data, refresh, status } = await useFetch<SiteTeamResponse>('/api/site/members')
+
+const members = computed<SiteMemberView[]>(() => data.value?.members ?? [])
+const invites = computed<SiteInviteView[]>(() => data.value?.invites ?? [])
+
+// ── Suche + Sortierung (im Browser: ein Team hat Dutzende Zeilen, keine
+// Tausende — eine Server-Pagination wäre hier Zeremonie ohne Nutzen) ─────────
+const search = ref('')
+const { sortField, sortDir, toggle } = useTableSort('joinedAt', 'asc')
+
+const filtered = computed(() => {
+  const needle = search.value.trim().toLowerCase()
+  const rows = needle
+    ? members.value.filter(member =>
+        member.email.toLowerCase().includes(needle) || member.name.toLowerCase().includes(needle))
+    : [...members.value]
+
+  const factor = sortDir.value === 'asc' ? 1 : -1
+  return rows.sort((a, b) => {
+    if (sortField.value === 'role') return factor * a.role.localeCompare(b.role)
+    if (sortField.value === 'status') return factor * a.status.localeCompare(b.status)
+    if (sortField.value === 'name') return factor * (a.name || a.email).localeCompare(b.name || b.email)
+    return factor * (Date.parse(a.joinedAt) - Date.parse(b.joinedAt))
+  })
+})
+
+const hasActiveFilter = computed(() => search.value.trim() !== '')
+function resetFilters() {
+  search.value = ''
+}
+
+// Spalten als computed-freie Konstante mit i18n-Kopfzeilen; die #…-header-Slots
+// überschreiben sie mit SortableHeader (Muster der Nutzerliste).
+const columns: TableColumn<SiteMemberView>[] = [
+  { accessorKey: 'name', header: () => t('members.name') },
+  { accessorKey: 'role', header: () => t('members.role') },
+  { accessorKey: 'joinedAt', header: () => t('members.joined'), id: 'joinedAt' },
+  { accessorKey: 'status', header: () => t('members.status') },
+  { id: 'actions', header: () => '' },
+]
+
+const inviteColumns: TableColumn<SiteInviteView>[] = [
+  { accessorKey: 'email', header: () => t('members.invites.email') },
+  { accessorKey: 'role', header: () => t('members.invites.role') },
+  { accessorKey: 'expiresAt', header: () => t('members.invites.expires') },
+  { id: 'actions', header: () => '' },
+]
+
+const roleLabel = (role: SiteRole) => t(`members.roles.${role}`)
+const ROLE_COLOR: Record<SiteRole, 'primary' | 'info' | 'warning' | 'neutral'> = {
+  owner: 'primary',
+  admin: 'info',
+  moderator: 'warning',
+  editor: 'neutral',
+  viewer: 'neutral',
+}
+
+/**
+ * Die Regel-Codes des Control Plane in Sätze übersetzen. Ohne diese Zuordnung
+ * stünde bei jeder abgelehnten Regel „Aktion fehlgeschlagen" — und niemand
+ * wüsste, dass er gerade den letzten Owner retten wollte.
+ */
+function ruleMessage(error: unknown): string {
+  // `data.reason` ist das Feld des stabilen Fehler-Envelopes (core
+  // shared/types/error.ts) — die rohe `data` eines Fehlers wirft der zentrale
+  // Handler bewusst weg, genau EIN geprüfter Grund reist mit.
+  const reason = (error as { data?: { reason?: string } })?.data?.reason
+  const known = ['self_demote', 'self_remove', 'last_owner', 'owner_protected', 'already_member', 'not_a_member', 'invalid_role', 'unchanged']
+  if (reason && known.includes(reason)) return t(`members.errors.${reason}`)
+  return t('members.errors.failed')
+}
+
+// ── Einladen ────────────────────────────────────────────────────────────────
+const inviteOpen = ref(false)
+const inviteBusy = ref(false)
+const inviteForm = reactive({ email: '', role: 'viewer' as SiteRole })
+
+/** 'owner' wird nie eingeladen — Besitz entsteht durch Gründung oder Übergabe. */
+const invitableRoles: SiteRole[] = SITE_ROLES.filter(role => role !== 'owner')
+// Der Typ steht ABSICHTLICH dran: ohne ihn leitet USelect sein Model aus den
+// Items ab (also ohne 'owner') und passt dann nicht mehr zu `inviteForm.role`.
+const roleItems = computed<{ label: string, value: SiteRole }[]>(
+  () => invitableRoles.map(role => ({ label: roleLabel(role), value: role })),
+)
+
+function openInvite() {
+  inviteForm.email = ''
+  inviteForm.role = 'viewer'
+  inviteOpen.value = true
+}
+
+async function sendInvite() {
+  inviteBusy.value = true
+  try {
+    const result = await $fetch<{ email: string, existingAccount: boolean }>('/api/site/members', {
+      method: 'POST',
+      body: { email: inviteForm.email.trim(), role: inviteForm.role },
+    })
+    toast.add({
+      title: result.existingAccount
+        ? t('members.invite.sentExisting', { email: result.email })
+        : t('members.invite.sent', { email: result.email }),
+      color: 'success',
+    })
+    inviteOpen.value = false
+    await refresh()
+  }
+  catch (error) {
+    toast.add({ title: ruleMessage(error), color: 'error' })
+  }
+  finally {
+    inviteBusy.value = false
+  }
+}
+
+async function revokeInvite(invite: SiteInviteView) {
+  try {
+    const ok = await confirm({
+      title: t('members.revoke.title'),
+      description: t('members.revoke.text', { email: invite.email }),
+      confirmLabel: t('members.revoke.confirm'),
+      action: () => $fetch(`/api/site/invites/${invite.id}`, { method: 'DELETE' }),
+    })
+    if (!ok) return
+    toast.add({ title: t('members.revoke.done'), color: 'success' })
+    await refresh()
+  }
+  catch (error) {
+    toast.add({ title: ruleMessage(error), color: 'error' })
+  }
+}
+
+// ── Rolle ändern / entfernen / übertragen ───────────────────────────────────
+async function changeRole(member: SiteMemberView, role: SiteRole) {
+  try {
+    await $fetch(`/api/site/members/${member.id}`, { method: 'PATCH', body: { role } })
+    toast.add({ title: t('members.role.done', { role: roleLabel(role) }), color: 'success' })
+    await refresh()
+  }
+  catch (error) {
+    toast.add({ title: ruleMessage(error), color: 'error' })
+  }
+}
+
+async function removeMember(member: SiteMemberView) {
+  try {
+    const ok = await confirm({
+      title: t('members.remove.title', { name: member.name || member.email }),
+      // Der Satz sagt AUSDRÜCKLICH, was bleibt. „Entfernen" liest sich sonst wie
+      // „löschen", und niemand traut sich, den Knopf zu drücken.
+      description: t('members.remove.text'),
+      confirmLabel: t('members.remove.confirm'),
+      action: () => $fetch(`/api/site/members/${member.id}`, { method: 'DELETE' }),
+    })
+    if (!ok) return
+    toast.add({ title: t('members.remove.done'), color: 'success' })
+    await refresh()
+  }
+  catch (error) {
+    toast.add({ title: ruleMessage(error), color: 'error' })
+  }
+}
+
+async function transferOwnership(member: SiteMemberView) {
+  try {
+    const ok = await confirm({
+      title: t('members.transfer.title', { name: member.name || member.email }),
+      description: t('members.transfer.text'),
+      confirmLabel: t('members.transfer.confirm'),
+      color: 'warning',
+      action: () => $fetch(`/api/site/members/${member.id}/transfer`, { method: 'POST' }),
+    })
+    if (!ok) return
+    toast.add({ title: t('members.transfer.done'), color: 'success' })
+    await refresh()
+  }
+  catch (error) {
+    toast.add({ title: ruleMessage(error), color: 'error' })
+  }
+}
+
+function rowActions(member: SiteMemberView): DropdownMenuItem[][] {
+  // Ehemalige haben keine Aktionen: sie kommen über eine neue Einladung zurück,
+  // nicht über ein Rollen-Menü (die Row trägt bewusst keinen Zugang mehr).
+  if (member.status !== 'active') {
+    return [[{ label: t('members.actions.reinvite'), icon: 'i-ph-envelope-simple', onSelect: () => {
+      inviteForm.email = member.email
+      inviteForm.role = 'viewer'
+      inviteOpen.value = true
+    } }]]
+  }
+
+  const groups: DropdownMenuItem[][] = [[
+    {
+      label: t('members.actions.changeRole'),
+      icon: 'i-ph-shield-star',
+      // Selbst-Degradieren und Owner-Antasten lehnt der Server ab; hier gar
+      // nicht anzubieten erspart den Fehlversuch.
+      disabled: member.self || (member.role === 'owner' && !canTransfer.value),
+      children: invitableRoles
+        .filter(role => role !== member.role)
+        .map(role => ({ label: roleLabel(role), onSelect: () => { void changeRole(member, role) } })),
+    },
+  ]]
+
+  if (canTransfer.value && !member.self && member.role !== 'owner') {
+    groups.push([{
+      label: t('members.actions.transfer'),
+      icon: 'i-ph-crown-simple',
+      onSelect: () => { void transferOwnership(member) },
+    }])
+  }
+
+  groups.push([{
+    label: t('members.actions.remove'),
+    icon: 'i-ph-user-minus',
+    color: 'error',
+    disabled: member.self,
+    onSelect: () => { void removeMember(member) },
+  }])
+
+  return groups
+}
+</script>
+
+<template>
+  <UDashboardPanel id="members">
+    <template #header>
+      <UDashboardNavbar :title="`${t('members.title')} (${members.length})`">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+        <template #right>
+          <UButton icon="i-ph-user-plus" size="sm" data-invite-open @click="openInvite">
+            {{ t('members.invite.cta') }}
+          </UButton>
+        </template>
+      </UDashboardNavbar>
+    </template>
+
+    <template #body>
+      <p class="mb-4 max-w-2xl text-sm text-muted">{{ t('members.description') }}</p>
+
+      <!-- Offene Einladungen zuerst: sie sind der Zustand, der auf eine Antwort
+           wartet — und der einzige, den man widerrufen kann. -->
+      <UPageCard
+        v-if="invites.length > 0"
+        :title="t('members.invites.title')"
+        :description="t('members.invites.description')"
+        variant="subtle"
+        class="mb-6"
+      >
+        <UTable :data="invites" :columns="inviteColumns" data-invites-table>
+          <template #role-cell="{ row }">
+            <UBadge :color="ROLE_COLOR[row.original.role]" variant="subtle">{{ roleLabel(row.original.role) }}</UBadge>
+          </template>
+          <template #expiresAt-cell="{ row }">
+            <span :title="formatDate(row.original.expiresAt)">{{ formatRelativeTime(row.original.expiresAt) }}</span>
+          </template>
+          <template #actions-cell="{ row }">
+            <div class="flex justify-end">
+              <UButton
+                size="xs"
+                color="neutral"
+                variant="ghost"
+                icon="i-ph-x"
+                :aria-label="t('members.revoke.confirm')"
+                :data-invite-revoke="row.original.id"
+                @click="revokeInvite(row.original)"
+              />
+            </div>
+          </template>
+        </UTable>
+      </UPageCard>
+
+      <form class="mb-4 flex max-w-md gap-2" @submit.prevent>
+        <UInput
+          v-model="search"
+          icon="i-ph-magnifying-glass"
+          :placeholder="t('members.searchPlaceholder')"
+          class="flex-1"
+          data-members-search
+        />
+      </form>
+
+      <UTable :data="filtered" :columns="columns" :loading="status === 'pending'" data-members-table>
+        <template #name-header>
+          <SortableHeader :label="t('members.name')" field="name" :active="sortField" :dir="sortDir" @toggle="toggle" />
+        </template>
+        <template #role-header>
+          <SortableHeader :label="t('members.role')" field="role" :active="sortField" :dir="sortDir" @toggle="toggle" />
+        </template>
+        <template #joinedAt-header>
+          <SortableHeader :label="t('members.joined')" field="joinedAt" :active="sortField" :dir="sortDir" @toggle="toggle" />
+        </template>
+        <template #status-header>
+          <SortableHeader :label="t('members.status')" field="status" :active="sortField" :dir="sortDir" @toggle="toggle" />
+        </template>
+
+        <template #name-cell="{ row }">
+          <div class="flex items-center gap-2">
+            <UserAvatar :user="{ name: row.original.name || row.original.email, email: row.original.email }" size="xs" />
+            <div class="min-w-0">
+              <p class="truncate font-medium text-default">
+                {{ row.original.name || row.original.email }}
+                <span v-if="row.original.self" class="text-muted">· {{ t('members.you') }}</span>
+              </p>
+              <p v-if="row.original.name" class="truncate text-xs text-muted">{{ row.original.email }}</p>
+            </div>
+          </div>
+        </template>
+        <template #role-cell="{ row }">
+          <UBadge :color="ROLE_COLOR[row.original.role]" variant="subtle">{{ roleLabel(row.original.role) }}</UBadge>
+        </template>
+        <template #joinedAt-cell="{ row }">
+          <span :title="formatDate(row.original.joinedAt)">{{ formatRelativeTime(row.original.joinedAt) }}</span>
+        </template>
+        <template #status-cell="{ row }">
+          <UBadge v-if="row.original.status === 'active'" color="success" variant="subtle">
+            {{ t('members.statusValues.active') }}
+          </UBadge>
+          <UBadge
+            v-else
+            color="neutral"
+            variant="subtle"
+            icon="i-ph-user-minus"
+            :title="row.original.removedAt ? formatDate(row.original.removedAt) : undefined"
+          >
+            {{ t('members.statusValues.removed') }}
+          </UBadge>
+        </template>
+        <template #actions-cell="{ row }">
+          <div class="flex justify-end">
+            <UDropdownMenu :items="rowActions(row.original)" :content="{ align: 'end' }">
+              <UButton
+                icon="i-ph-dots-three-vertical"
+                color="neutral"
+                variant="ghost"
+                size="xs"
+                :data-member-actions="row.original.id"
+              />
+            </UDropdownMenu>
+          </div>
+        </template>
+
+        <!--
+          Zwei Leerzustände (Muster der Nutzerliste, Audit-Befund C11): „Suche
+          ohne Treffer" verlangt Zurücksetzen, „noch niemand da" verlangt eine
+          Einladung. Die Mitgliederliste ist nie WIRKLICH leer — man selbst steht
+          drin —, deshalb heißt der zweite Zustand „nur du".
+        -->
+        <template #empty>
+          <CoreEmptyState
+            v-if="hasActiveFilter"
+            icon="i-ph-funnel"
+            :title="t('ui.empty.noResultsTitle')"
+            :description="t('ui.empty.noResultsText')"
+            :action-label="t('ui.empty.resetFilters')"
+            action-icon="i-ph-arrow-counter-clockwise"
+            @action="resetFilters"
+          />
+          <CoreEmptyState
+            v-else
+            icon="i-ph-users-three"
+            :title="t('members.emptyTitle')"
+            :description="t('members.emptyText')"
+            :action-label="t('members.invite.cta')"
+            action-icon="i-ph-user-plus"
+            @action="openInvite"
+          />
+        </template>
+      </UTable>
+
+      <UModal v-model:open="inviteOpen" :title="t('members.invite.title')" :description="t('members.invite.description')">
+        <template #body>
+          <form class="space-y-4" data-invite-form @submit.prevent="sendInvite">
+            <UFormField :label="t('members.invite.emailLabel')" :help="t('members.invite.emailHelp')" required>
+              <UInput v-model="inviteForm.email" type="email" class="w-full" :maxlength="254" data-invite-email />
+            </UFormField>
+            <UFormField :label="t('members.invite.roleLabel')" :help="t(`members.roleHelp.${inviteForm.role}`)" required>
+              <USelect v-model="inviteForm.role" :items="roleItems" class="w-full" data-invite-role />
+            </UFormField>
+
+            <div class="flex justify-end gap-2 pt-2">
+              <UButton color="neutral" variant="ghost" @click="() => { inviteOpen = false }">{{ t('ui.cancel') }}</UButton>
+              <UButton type="submit" :loading="inviteBusy" :disabled="!inviteForm.email.trim()" data-invite-submit>
+                {{ t('members.invite.submit') }}
+              </UButton>
+            </div>
+          </form>
+        </template>
+      </UModal>
+    </template>
+  </UDashboardPanel>
+</template>

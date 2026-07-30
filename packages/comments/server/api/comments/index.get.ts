@@ -175,8 +175,30 @@ export default defineEventHandler(async (event): Promise<CommentListResponse> =>
     : row)
 
   // Avatar-URLs der Autoren aus den Account-prefs anreichern (gebündelt, immer aktuell)
-  const avatars = await resolveAvatars(event, combined.filter(row => row.authorId).map(row => row.authorId))
-  const rows = combined.map(row => ({ ...row, authorAvatarUrl: avatars.get(row.authorId) }))
+  const authorIds = combined.filter(row => row.authorId).map(row => row.authorId)
+  const avatars = await resolveAvatars(event, authorIds)
+
+  /**
+   * „Ehemaliges Mitglied" (N9): welche dieser Autoren wurden aus DIESER
+   * Community entfernt? EINE gebündelte Abfrage über den Ehemaligen-Vertrag
+   * (core), pro Nutzer 60 s gecacht — und fail-soft: ohne Mandanten-Kontext,
+   * ohne Resolver oder bei einem Lesefehler kommt ein leeres Set zurück und die
+   * Liste sieht aus wie vorher.
+   *
+   * WARUM AUCH FÜR GÄSTE (bewusst, nicht aus Versehen): Davids Begründung für
+   * das Zeichen ist der LESER — er soll verstehen, warum diese Person nicht mehr
+   * antwortet. Ein Zeichen, das nur Angemeldete sehen, erklärt genau dem
+   * niemandem etwas. Bezahlbar ist das, weil (a) die Frage negativ gestellt ist
+   * und Entfernungen selten sind, (b) der Cache pro AUTOR greift (ein Thread
+   * fragt seine Autoren einmal pro Minute, nicht pro Aufruf), und (c) Seite 1
+   * für Gäste ohnehin im Microcache liegt.
+   */
+  const formerMembers = await resolveFormerMembers(event, authorIds)
+  const rows = combined.map(row => ({
+    ...row,
+    authorAvatarUrl: avatars.get(row.authorId),
+    ...(formerMembers.has(row.authorId) ? { authorFormerMember: true } : {}),
+  }))
 
   const myVotes: Record<string, VoteValue> = {}
   let myReports: string[] = []

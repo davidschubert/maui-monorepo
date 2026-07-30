@@ -239,7 +239,8 @@ async function runUserAction(type: UserAction, user: AdminUserRow) {
     await refresh()
   }
   catch (error) {
-    const code = (error as { data?: { data?: { code?: string } } })?.data?.data?.code
+    // `data.reason` (Fehler-Envelope): `data.data.code` kam nie an — s. [id].vue.
+    const code = (error as { data?: { reason?: string } })?.data?.reason
     toast.add({ title: code === 'last_admin' ? t('admin.users.lastAdmin') : t('admin.users.actionFailed'), color: 'error' })
   }
 }

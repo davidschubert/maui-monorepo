@@ -165,5 +165,109 @@
       "slugInvalid": "Nur Kleinbuchstaben, Zahlen und Bindestriche.",
       "slugReserved": "Diese Adresse ist reserviert. Wähle bitte eine andere."
     }
+  },
+  "admin": {
+    "nav": {
+      "members": "Mitglieder"
+    }
+  },
+  "members": {
+    "title": "Mitglieder",
+    "description": "Wer gehört zu deiner Community und was darf er? Einladen, Rollen vergeben, Zugang entziehen.",
+    "name": "Name",
+    "role": "Rolle",
+    "joined": "Dabei seit",
+    "status": "Status",
+    "you": "du",
+    "searchPlaceholder": "Name oder E-Mail suchen",
+    "emptyTitle": "Nur du bist dabei",
+    "emptyText": "Lade die ersten Mitglieder ein — sie bekommen eine E-Mail mit einem Link und sind mit einem Klick da.",
+    "statusValues": {
+      "active": "Aktiv",
+      "removed": "Ehemaliges Mitglied"
+    },
+    "roles": {
+      "owner": "Inhaber/in",
+      "admin": "Administrator/in",
+      "moderator": "Moderator/in",
+      "editor": "Redakteur/in",
+      "viewer": "Mitglied"
+    },
+    "roleHelp": {
+      "owner": "Volle Rechte inklusive Übergabe des Besitzes.",
+      "admin": "Darf alles verwalten: Inhalte, Moderation, Gestaltung, Mitglieder.",
+      "moderator": "Darf Meldungen und Beiträge moderieren — schreibt selbst keine Inhalte.",
+      "editor": "Darf Beiträge, Seiten, Termine und Medien pflegen — moderiert nicht.",
+      "viewer": "Liest mit und schreibt Kommentare. Kein Zugriff auf die Verwaltung."
+    },
+    "actions": {
+      "changeRole": "Rolle ändern",
+      "transfer": "Besitz übertragen",
+      "remove": "Zugang entziehen",
+      "reinvite": "Erneut einladen"
+    },
+    "invite": {
+      "cta": "Einladen",
+      "title": "Mitglied einladen",
+      "description": "E-Mail-Adresse eintragen, Rolle wählen — fertig.",
+      "emailLabel": "E-Mail-Adresse",
+      "emailHelp": "Hat die Person schon ein Pukalani-Konto, ist sie nach dem Anmelden mit einem Klick dabei. Sonst legt sie über den Link eins an.",
+      "roleLabel": "Rolle",
+      "submit": "Einladung senden",
+      "sent": "Einladung an {email} verschickt.",
+      "sentExisting": "{email} hat ein Konto — Einladung verschickt, ein Klick genügt.",
+      "failed": "Die Einladung konnte nicht verschickt werden."
+    },
+    "invites": {
+      "title": "Offene Einladungen",
+      "description": "Verschickt, aber noch nicht angenommen. Widerrufen macht den Link sofort ungültig.",
+      "email": "E-Mail-Adresse",
+      "role": "Rolle",
+      "expires": "Läuft ab"
+    },
+    "revoke": {
+      "title": "Einladung widerrufen?",
+      "text": "Der Link an {email} funktioniert danach nicht mehr. Du kannst jederzeit neu einladen.",
+      "confirm": "Widerrufen",
+      "done": "Einladung widerrufen."
+    },
+    "role": {
+      "done": "Rolle geändert: {role}."
+    },
+    "remove": {
+      "title": "{name} den Zugang entziehen?",
+      "text": "Die Person kann sich danach nicht mehr in dieser Community anmelden. Ihre Beiträge, Kommentare und Kursfortschritte BLEIBEN erhalten und behalten ihren Namen — hinter dem Namen steht künftig „Ehemaliges Mitglied\". Ein Konto löschen ist ein anderer Vorgang.",
+      "confirm": "Zugang entziehen",
+      "done": "Zugang entzogen."
+    },
+    "transfer": {
+      "title": "Besitz an {name} übertragen?",
+      "text": "Diese Person wird Inhaber/in der Community. Du selbst bleibst Administrator/in — du behältst also die Verwaltung, gibst aber Übergabe und Abrechnung ab.",
+      "confirm": "Besitz übertragen",
+      "done": "Besitz übertragen."
+    },
+    "errors": {
+      "self_demote": "Du kannst dir selbst keine Rechte entziehen. Bitte jemand anderen mit der Rolle „Administrator/in\" darum.",
+      "self_remove": "Du kannst dir selbst nicht den Zugang entziehen.",
+      "last_owner": "Es muss immer eine Inhaberin oder ein Inhaber bleiben. Übertrage zuerst den Besitz.",
+      "owner_protected": "Inhaberschaft ändert man nur über „Besitz übertragen\".",
+      "already_member": "Diese Adresse gehört schon zum Team.",
+      "not_a_member": "Diese Person gehört nicht (mehr) zum Team.",
+      "invalid_role": "Diese Rolle gibt es nicht.",
+      "unchanged": "Diese Rolle hat die Person bereits.",
+      "failed": "Das hat gerade nicht geklappt. Versuch es noch einmal."
+    }
+  },
+  "join": {
+    "title": "Einladung annehmen",
+    "titleNamed": "Einladung zu {name}",
+    "description": "Ein Klick, und du bist dabei.",
+    "roleNote": "Du kommst als {role} dazu.",
+    "accept": "Einladung annehmen",
+    "done": "Willkommen! Du bist dabei.",
+    "invalid": "Diese Einladung gilt nicht mehr. Bitte um eine neue.",
+    "wrongAccount": "Diese Einladung gilt für eine andere E-Mail-Adresse. Melde dich mit der eingeladenen Adresse an.",
+    "noneTitle": "Keine offene Einladung",
+    "noneText": "Für dieses Konto liegt hier keine Einladung. Prüfe den Link aus deiner E-Mail — oder frag die Community-Leitung nach einer neuen."
   }
 }

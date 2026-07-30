@@ -229,6 +229,7 @@
     "reminder": "Erinnerung: {name} beginnt bald",
     "ticket": "Ticket-Update: {name}",
     "billing": "Zahlungsproblem: {name}",
+    "siteInvite": "Einladung zu {name}",
     "email": {
       "title": "E-Mail-Benachrichtigungen",
       "description": "Bell-Benachrichtigungen (Antworten, Erwähnungen, Erinnerungen) zusätzlich per E-Mail erhalten.",

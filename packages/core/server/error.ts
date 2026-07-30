@@ -1,4 +1,4 @@
-import { statusToErrorCode, type MauiErrorResponse } from '../shared/types/error'
+import { domainReasonFrom, statusToErrorCode, type MauiErrorResponse } from '../shared/types/error'
 import { logEvent, shapeErrorLog } from './utils/logEvent'
 
 /**
@@ -60,6 +60,16 @@ export default defineNitroErrorHandler((error, event) => {
   setResponseStatus(event, status, error.statusMessage)
   setResponseHeader(event, 'content-type', 'application/json; charset=utf-8')
   const message = status >= 500 ? 'Internal server error' : (error.statusMessage || 'Error')
-  const body: MauiErrorResponse = { ok: false, code: statusToErrorCode(status), message }
+  // Fachlicher Grund (4xx): EIN geprüfter Schlüssel aus error.data.code, sonst
+  // nichts. Ohne ihn kann eine Oberfläche „es muss ein Inhaber bleiben" nicht von
+  // „irgendwas ging schief" unterscheiden — die restliche `data` bleibt bewusst
+  // draußen (keine Appwrite-Details).
+  const reason = status < 500 ? domainReasonFrom((error as { data?: unknown }).data) : null
+  const body: MauiErrorResponse = {
+    ok: false,
+    code: statusToErrorCode(status),
+    message,
+    ...(reason ? { reason } : {}),
+  }
   return send(event, JSON.stringify(body))
 })

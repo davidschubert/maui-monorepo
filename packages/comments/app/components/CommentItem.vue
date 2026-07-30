@@ -102,6 +102,20 @@ const reportReasons = computed(() => [
     <div class="flex items-center gap-2 text-xs text-muted">
       <UserAvatar :user="{ name: comment.authorName, prefs: { avatarUrl: comment.authorAvatarUrl } }" size="xs" />
       <span class="font-medium text-default">{{ comment.authorName }}</span>
+      <!--
+        „Ehemaliges Mitglied" (Davids Zusatz vom 2026-07-29): ein ICON mit
+        Tooltip, kein Badge — der Name bleibt die Hauptsache, das Zeichen
+        erklärt nur, warum diese Person nicht mehr antwortet. Es steht direkt
+        hinter dem Namen, weil es zu IHM gehört, nicht zum Beitrag.
+      -->
+      <UTooltip v-if="comment.authorFormerMember" :text="t('comments.item.formerMember')">
+        <UIcon
+          name="i-ph-user-minus"
+          class="size-4 text-muted"
+          :aria-label="t('comments.item.formerMember')"
+          data-former-member
+        />
+      </UTooltip>
       <!-- Gast-Kennzeichnung (Embed E4): kein Account, frei gewählter Name -->
       <UBadge v-if="comment.authorKind === 'guest'" color="neutral" variant="subtle" size="sm">
         {{ t('comments.guest.badge') }}
