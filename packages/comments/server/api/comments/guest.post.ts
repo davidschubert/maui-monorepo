@@ -100,7 +100,8 @@ export default defineEventHandler(async (event) => {
   // userId, senderId bleibt leer). Gast-Eltern können nicht benachrichtigt
   // werden (kein Konto) — kein Mail-Relay-Missbrauch über fremde Adressen.
   if (parent && parent.authorId && parent.authorKind !== 'guest') {
-    await notify(event, { recipientId: parent.authorId, type: 'reply', title: body.guestName, body: snippet, link })
+    // scope 'tenant' (C15): gehört in die Community des Threads.
+    await notify(event, { recipientId: parent.authorId, type: 'reply', title: body.guestName, body: snippet, link, scope: 'tenant' })
   }
 
   setResponseStatus(event, 201)

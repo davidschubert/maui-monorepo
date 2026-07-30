@@ -85,8 +85,10 @@ export default defineEventHandler(async (event) => {
   // Antwort auf einen Kommentar → den Autor des Eltern-Kommentars benachrichtigen.
   // Core stellt den notify()-Vertrag bereit (best-effort, wirft nicht) — kein
   // direkter Cross-Layer-Zugriff auf die notifications-Tabelle (CONCEPT A14).
+  // scope 'tenant' (C15): die Meldung gehört in die Community, in der der
+  // Kommentar steht — ihr Link (targetUrl) gilt auch nur dort.
   if (parent && parent.authorId && parent.authorId !== user.$id) {
-    await notify(event, { recipientId: parent.authorId, type: 'reply', title: user.name, body: snippet, link, senderId: user.$id })
+    await notify(event, { recipientId: parent.authorId, type: 'reply', title: user.name, body: snippet, link, senderId: user.$id, scope: 'tenant' })
   }
 
   // @Name-Erwähnungen (aufgelöst gegen die Thread-Teilnehmer) benachrichtigen —
@@ -98,7 +100,7 @@ export default defineEventHandler(async (event) => {
     excludeUserIds: [user.$id, ...(parent?.authorId ? [parent.authorId] : [])],
   })
   for (const mention of mentions) {
-    await notify(event, { recipientId: mention.userId, type: 'mention', title: user.name, body: snippet, link, senderId: user.$id })
+    await notify(event, { recipientId: mention.userId, type: 'mention', title: user.name, body: snippet, link, senderId: user.$id, scope: 'tenant' })
   }
 
   // Activity-Feed (Core-Vertrag recordActivity, best-effort wie notify) —

@@ -38,6 +38,10 @@ export async function notifyTicketPeople(event: H3Event, ticket: TicketRow, inpu
         body: input.body,
         link: `/dashboard/tickets?ticket=${ticket.$id}`,
         ...(input.excludeUserId ? { senderId: input.excludeUserId } : {}),
+        // scope 'tenant' (C15): Tickets sind Arbeit AN einer Site — heute nur
+        // im Silo (apps/comments), dort läuft 'tenant' auf den leeren Stempel.
+        // Sobald der Layer in den Pool geht, ist die Ablage schon richtig.
+        scope: 'tenant',
       })
     }
   }

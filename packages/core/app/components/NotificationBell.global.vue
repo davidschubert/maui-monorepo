@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Models } from 'node-appwrite'
+import { notificationAudienceFor, notificationVisibleFor } from '../../shared/notificationScope'
 import type { NotificationListResponse, UserNotification } from '../../shared/types/notification'
 
 const { t } = useI18n()
@@ -7,6 +8,18 @@ const localePath = useLocalePath()
 const auth = useAuthStore()
 const config = useRuntimeConfig()
 const { formatRelativeTime } = useFormatRelativeTime()
+
+/**
+ * In WELCHER Welt hängt diese Glocke (C15/Audit S6)? Dieselbe pure Rechnung wie
+ * die Leseroute — sonst blendet Realtime etwas ein, das der nächste Reload
+ * wieder wegnimmt. `useTenantId()` ist hier legitim (Spiegel-Inventar in
+ * app/plugins/tenant-brand.server.ts): der Realtime-Strom kommt DIREKT von
+ * Appwrite, ohne Server-Route, und muss deshalb selbst aussortieren. Wer in
+ * zwei Communities Mitglied ist, bekommt beide Ströme zugestellt.
+ */
+const tenantId = useTenantId()
+const isControlCenter = useIsControlCenter()
+const audience = computed(() => notificationAudienceFor(tenantId.value, isControlCenter))
 
 const notifications = ref<UserNotification[]>([])
 const unread = ref(0)
@@ -28,7 +41,10 @@ async function load() {
 // greift (uid beim Subscribe zu fixieren würde sonst leer bleiben).
 let stop: (() => void) | undefined
 onMounted(() => {
-  stop = useRealtimeRows<Models.Row & UserNotification>(
+  // tenantId liegt an der ROW (system-022), aber nicht im ausgelieferten DTO —
+  // die Leseroute filtert ja schon serverseitig. Der Realtime-Strom bringt die
+  // rohe Zeile, deshalb hier explizit dazugetypt statt das DTO aufzuweiten.
+  stop = useRealtimeRows<Models.Row & UserNotification & { tenantId?: string }>(
     config.public.appwriteDatabaseId,
     'notifications',
     (ev) => {
@@ -39,7 +55,10 @@ onMounted(() => {
       notifications.value = [ev.payload, ...notifications.value]
       unread.value++
     },
-    { where: payload => payload.recipientId === auth.user?.$id },
+    {
+      where: payload => payload.recipientId === auth.user?.$id
+        && notificationVisibleFor(audience.value, payload),
+    },
   )
 })
 onBeforeUnmount(() => stop?.())

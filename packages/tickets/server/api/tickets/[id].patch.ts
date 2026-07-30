@@ -83,6 +83,8 @@ export default defineEventHandler(async (event): Promise<TicketRow> => {
             body: 'Dir wurde dieses Ticket zugewiesen',
             link: `/dashboard/tickets?ticket=${updated.$id}`,
             senderId: user.$id,
+            // scope 'tenant' (C15) — wie notifyTicketPeople()
+            scope: 'tenant',
           })
         }
       }

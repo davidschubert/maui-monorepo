@@ -10,6 +10,20 @@ import { Query, type Models } from 'node-appwrite'
  * Läuft ohne Request-Kontext (createAdminClient(undefined)) — Aufrufer sind
  * der Intervall-Plugin (server/plugins/email-digest.ts) und die manuelle
  * Ops-Route (POST /api/notifications/run-digest).
+ *
+ * MANDANTENÜBERGREIFEND, BEWUSST (C15): der Sweep liest `read=false` ohne
+ * tenantId-Filter. Das ist die dokumentierte Sweep-Ausnahme (CLAUDE.md) und
+ * hier auch fachlich richtig — ein Nutzer bekommt EINE Sammel-Mail pro Tag,
+ * nicht eine pro Community. Der Stempel aus system-022 stört ihn nicht: er
+ * gruppiert nach `recipientId` und liest die Spalte gar nicht.
+ *
+ * OFFEN, NICHT hier zu lösen (Davids Entscheidung 4, 2026-07-29): die Links in
+ * der Mail bauen auf EINER Env-Basis (`absoluteLink` in notificationEmail.ts).
+ * Eine Meldung aus Community A verlinkt damit auf den App-Host, nicht auf
+ * `a.pukalani.app`. Mandantenrichtige Mail-Links brauchen die Tenant→Host-
+ * Auflösung aus dem Control Plane (cross-projekt) — und dieser Sweep hat nicht
+ * einmal einen Request, aus dem er einen Host ableiten könnte. Steht als
+ * eigenes Paket in OPEN-ITEMS.
  */
 
 // Täglicher Rhythmus mit Toleranz: 20h statt 24h, damit der Digest nicht

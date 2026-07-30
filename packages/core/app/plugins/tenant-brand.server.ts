@@ -35,8 +35,13 @@
  *     (C1b) ist der ZWEITE Leser derselben Sorte: sein Realtime-Stream
  *     abonniert die `activities`-Rows direkt, und wer in zwei Communities
  *     Mitglied ist, trägt beide Site-Labels — ohne Filter erschienen fremde
- *     Ereignisse im Feed. Die Regel bleibt eng: NUR Leser, die ohne
- *     Server-Route direkt gegen Appwrite lesen, dürfen dazukommen — kein
+ *     Ereignisse im Feed. Die NotificationBell (C15) ist der DRITTE: ihr
+ *     Realtime-Strom abonniert `notifications` direkt, und eine Zeile kommt
+ *     dort an, weil sie dem EMPFÄNGER gehört — nicht weil sie zu diesem Host
+ *     gehört. Ohne Filter blendete sie live eine Meldung aus Community B in
+ *     der Glocke von A ein, die der nächste Reload wieder entfernt (die
+ *     Leseroute filtert serverseitig). Die Regel bleibt eng: NUR Leser, die
+ *     ohne Server-Route direkt gegen Appwrite lesen, dürfen dazukommen — kein
  *     allgemeiner „aktueller Mandant"-Getter für UI-Logik.
  *   - `siteId` → useSiteId(), gelesen AUSSCHLIESSLICH vom WS-Presence-Upsert
  *     in usePresenceState() (A4, Presence-Grenze): der Browser schreibt seine
@@ -61,9 +66,10 @@ export default defineNuxtPlugin(() => {
   // enthält (Nav/Badges) — die AUTORITÄT bleibt requirePlanProduct auf den
   // Server-Routen. null = kein Pool-Tenant → UI zeigt alles.
   useState<string | null>('maui-tenant-plan', () => (tenant?.mode === 'pool' ? tenant.plan ?? null : null))
-  // Mandanten-Id (B1, C1b): AUSSCHLIESSLICH für die Client-Leser, die DIREKT
-  // (ohne Server-Route) gegen Appwrite lesen und deshalb selbst scopen müssen —
-  // usePresence() und der Activity-Realtime-Stream, beide über useTenantId().
+  // Mandanten-Id (B1, C1b, C15): AUSSCHLIESSLICH für die Client-Leser, die
+  // DIREKT (ohne Server-Route) gegen Appwrite lesen und deshalb selbst scopen
+  // müssen — usePresence(), der Activity-Realtime-Stream und der
+  // Realtime-Filter der NotificationBell, alle über useTenantId().
   // null = kein Pool-Tenant.
   useState<string | null>('maui-tenant-id', () => (tenant?.mode === 'pool' ? tenant.tenantId : null))
   // Site-Id (A4): der Label-Schlüssel für die Permissions des WS-Presence-
