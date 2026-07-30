@@ -25,7 +25,7 @@ export const SITE_MEMBER_RANGES = ['none', 'to100', 'to500', 'to1000', 'to5000',
 export type SiteMemberRange = (typeof SITE_MEMBER_RANGES)[number]
 
 /** Schritt 3 „Welche Kategorie passt am besten?" — deckungsgleich mit den
- *  Zielgruppen-Seiten der Landingpage (/fuer/*), plus Auffangkategorie. */
+ *  Zielgruppen-Seiten der Landingpage (/use-cases/*), plus Auffangkategorie. */
 export const SITE_CATEGORIES = [
   'coaching', 'education', 'creator', 'club', 'business', 'health', 'craft', 'other',
 ] as const

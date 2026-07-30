@@ -4,11 +4,14 @@
 // zurück (Silo-SEO). Claim-Gates (§2.4) respektiert: noch nicht ausgelieferte
 // Bausteine stehen als „später" in der Bausteine-Zeile, nie als Zusage.
 //
-// Locale-Pfade: EN /for/* · DE /de/fuer/* — ein deutsches Pfad-Segment auf der
-// englischen Seite wäre für EN-SEO verschenkt. Umgestellt, solange die Site
-// noch nicht live ist (keine Redirect-Altlast).
+// EIN Segment für beide Sprachen: /use-cases/* (EN) · /de/use-cases/* (DE) —
+// Davids Entscheidung 2026-07-30. Vorher trug jede Sprache ihr eigenes Segment
+// (EN /for/* · DE /de/fuer/*); zwei Segmente für dieselbe Seite bedeuten zwei
+// Adressen zu pflegen, und „use case" ist auch im Deutschen der geläufige
+// Begriff. Ohne defineI18nRoute-Pfade nimmt i18n den Dateipfad in beiden
+// Sprachen (DE mit /de-Präfix). Die alten Adressen leiten per routeRules 301
+// weiter (apps/marketing/nuxt.config.ts).
 definePageMeta({ layout: 'site' })
-defineI18nRoute({ paths: { en: '/for/[slug]', de: '/fuer/[slug]' } })
 
 const SLUGS = ['coaches', 'kurse', 'creator', 'vereine'] as const
 const route = useRoute()
@@ -24,7 +27,7 @@ useReveal()
 
 const base = `marketing.audiencePages.items.${slug}`
 
-const ogImage = useOgImage(`for-${slug}`)
+const ogImage = useOgImage(`use-cases-${slug}`)
 
 useSeoMeta({
   title: () => t(`${base}.metaTitle`),

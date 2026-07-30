@@ -14,7 +14,7 @@ const yearly = ref(false)
 //
 // BRUTTO (Davids Entscheid 2026-07-29, OPEN-ITEMS A3): die Beträge sind
 // Endpreise inkl. 19 % MwSt. Das Publikum ist gemischt (Zielgruppenseite
-// /fuer/vereine — Vereine sind oft keine Unternehmer), und gegenüber
+// /use-cases/vereine — Vereine sind oft keine Unternehmer), und gegenüber
 // Verbrauchern verlangt die PAngV den Gesamtpreis inklusive Umsatzsteuer.
 // Der Hinweis steht deshalb AM Preis (vatNote), nicht im Fußzeilen-Kleingedruckten,
 // und gilt für beide Intervalle (monatlich wie jährlich).

@@ -21,9 +21,12 @@ export interface MarketingRoute {
 
 const VS_SLUGS = ['circle', 'skool', 'mighty-networks']
 const AUDIENCE_SLUGS = ['coaches', 'kurse', 'creator', 'vereine']
-// Alle vier Bausteine. kurse/events sind Early Access — ihre Seiten tragen den
-// EA-Banner und KEINEN Kauf-CTA (§2.4), dürfen aber indexiert werden.
-const FEATURE_SLUGS = ['diskussionen', 'branding', 'kurse', 'events']
+// ALLE sechs Produkt-Seiten — deckungsgleich mit SLUGS in
+// app/pages/produkte/[slug].vue. beitraege/kurse/events sind Early Access: ihre
+// Seiten tragen den EA-Banner und KEINEN Kauf-CTA (§2.4), dürfen aber
+// indexiert werden. moderation + beitraege fehlten hier bis 2026-07-30 —
+// zwei existierende, verlinkte Seiten standen in keiner Sitemap.
+const FEATURE_SLUGS = ['diskussionen', 'moderation', 'branding', 'beitraege', 'kurse', 'events']
 
 export const MARKETING_ROUTES: MarketingRoute[] = [
   { en: '/', de: '/de', priority: 1.0 },
@@ -32,9 +35,15 @@ export const MARKETING_ROUTES: MarketingRoute[] = [
   { en: '/faq', de: '/de/faq', priority: 0.6 },
   { en: '/glossary', de: '/de/glossar', priority: 0.5 },
   ...VS_SLUGS.map(slug => ({ en: `/vs/${slug}`, de: `/de/vs/${slug}`, priority: 0.8 })),
-  // EN nutzt /for/*, DE /fuer/* (locale-eigene Pfade via defineI18nRoute).
-  ...AUDIENCE_SLUGS.map(slug => ({ en: `/for/${slug}`, de: `/de/fuer/${slug}`, priority: 0.7 })),
-  ...FEATURE_SLUGS.map(slug => ({ en: `/features/${slug}`, de: `/de/features/${slug}`, priority: 0.7 })),
+  // EIN Segment für beide Sprachen (Davids Entscheidung 2026-07-30): die alten
+  // /for/* bzw. /de/fuer/* leiten per routeRules 301 weiter und gehören
+  // deshalb NICHT mehr in die Sitemap — dort steht nur die Zieladresse.
+  ...AUDIENCE_SLUGS.map(slug => ({ en: `/use-cases/${slug}`, de: `/de/use-cases/${slug}`, priority: 0.7 })),
+  // Anders als die Anwendungsfälle bleiben die Produkt-Seiten locale-eigen
+  // (defineI18nRoute in produkte/[slug].vue: en /products, de /produkte). Die
+  // alten /features/* leiten 301 weiter und standen bis 2026-07-30 hier — eine
+  // Sitemap darf nur Zieladressen anbieten, keine Weiterleitungen.
+  ...FEATURE_SLUGS.map(slug => ({ en: `/products/${slug}`, de: `/de/produkte/${slug}`, priority: 0.7 })),
 ]
 // Rechtsseiten (/imprint, /privacy, /terms) fehlen ABSICHTLICH: sie sind bis zu
 // den verbindlichen Texten noindex — eine noindex-Seite in der Sitemap wäre ein

@@ -24,9 +24,15 @@ export default defineNuxtConfig({
   // Index). Kundensprache ist „Produkte" — das Segment heißt jetzt
   // /products/* (EN) bzw. /de/produkte/* (DE). 301 statt 302, damit
   // Suchmaschinen die Adresse dauerhaft übernehmen.
+  //
+  // Ebenso die Anwendungsfall-Seiten (Davids Entscheidung 2026-07-30): sie
+  // trugen je Sprache ein eigenes Segment (/for/* · /de/fuer/*) und liegen
+  // jetzt für beide Sprachen unter /use-cases/* bzw. /de/use-cases/*.
   routeRules: {
     '/features/**': { redirect: { to: '/products/**', statusCode: 301 } },
     '/de/features/**': { redirect: { to: '/de/produkte/**', statusCode: 301 } },
+    '/for/**': { redirect: { to: '/use-cases/**', statusCode: 301 } },
+    '/de/fuer/**': { redirect: { to: '/de/use-cases/**', statusCode: 301 } },
   },
 
   // App-Keys mergen mit den Core-Locales (gleicher code).
