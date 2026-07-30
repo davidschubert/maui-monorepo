@@ -16,7 +16,7 @@ const { t } = useI18n()
 const toast = useToast()
 const colorMode = useColorMode()
 const localePath = useLocalePath()
-const { theme, variant, setTheme, setVariant, neutrals, neutral, setNeutral } = useTheme()
+const { theme, variant, setTheme, setVariant, neutrals, neutral, setNeutral, canChooseTheme } = useTheme()
 const customThemes = useCustomThemesState()
 const settings = useThemeSettingsState()
 
@@ -357,6 +357,20 @@ async function importTheme(event: Event) {
       <!-- Zweispalten-Layout wie im Control-Editor: Galerie links, Szenen rechts -->
       <div class="mx-auto grid w-full max-w-6xl min-w-0 gap-4 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)] lg:items-start">
         <div class="flex min-w-0 flex-col gap-4">
+        <!-- Der Live-Umschalter der Galerie ist das THEME-COOKIE des Betrachters.
+             Auf einem Mandanten-Host gewinnt seit dem 2026-07-29 die Farbwelt
+             der Community (B5) — das Cookie wird dort nicht mehr gelesen, ein
+             Klick färbt also nichts um. Statt still nichts zu tun, sagt die
+             Seite das: Anlegen, Bearbeiten, Voreinstellung und Reihenfolge
+             wirken hier weiter, nur die Vorschau gehört den Instanz-Hosts. -->
+        <UAlert
+          v-if="!canChooseTheme"
+          color="info"
+          variant="subtle"
+          icon="i-ph-info"
+          :title="t('themes.studio.previewLockedTitle')"
+          :description="t('themes.studio.previewLockedText')"
+        />
         <!-- Schnell-Umschalter: Erscheinungsbild + Neutral -->
         <UPageCard variant="subtle" :ui="{ container: 'min-w-0' }">
           <div class="flex flex-wrap items-center gap-x-6 gap-y-3">

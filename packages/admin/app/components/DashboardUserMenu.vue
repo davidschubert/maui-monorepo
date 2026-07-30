@@ -15,7 +15,7 @@ const colorMode = useColorMode()
 const auth = useAuthStore()
 const appConfig = useAppConfig()
 const runtimeFlags = useRuntimeFlags()
-const { themes, theme, variant, setTheme, setVariant, neutrals, neutral, setNeutral } = useTheme()
+const { themes, theme, variant, setTheme, setVariant, neutrals, neutral, setNeutral, canChooseTheme } = useTheme()
 const localeOptions = useLocaleOptions()
 const { capabilities: siteCaps } = useSiteRole()
 
@@ -135,7 +135,14 @@ const items = computed<SwatchItem[][]>(() => {
       { label: t('dashboard.settings.title'), icon: 'i-ph-gear', to: localePath('/dashboard/settings') },
     ],
     [
-      { label: t('themes.label'), icon: 'i-ph-palette', children: themeChildren },
+      // Farbwelt nur, wo die Wahl dem Betrachter gehört (kein Mandanten-Host,
+      // Entscheidung 2026-07-29/B5): auf `name.pukalani.app` gewinnt die Farbe
+      // der Community, das Cookie wird dort nicht gelesen — ein Umschalter
+      // ohne Wirkung gehört nicht ins Menü. Die Community-Farbe setzt der
+      // Owner unter /dashboard/settings/community („Erscheinungsbild").
+      ...(canChooseTheme.value
+        ? [{ label: t('themes.label'), icon: 'i-ph-palette', children: themeChildren }]
+        : []),
       { label: t('themes.neutralLabel'), icon: 'i-ph-circle-half', children: neutralChildren },
       { label: t('themes.modeLabel'), icon: 'i-ph-sun-horizon', children: appearanceChildren },
       { label: t('dashboard.sidebar.label'), icon: 'i-ph-sidebar-simple', children: sidebarChildren },

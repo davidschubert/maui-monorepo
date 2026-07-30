@@ -1,9 +1,10 @@
 import { THEME_REGISTRY, DEFAULT_THEME_ID, NEUTRAL_REGISTRY, DEFAULT_NEUTRAL_ID, FONT_FAMILY_REGISTRY, resolveThemeFonts, type MauiNeutral, type MauiTheme } from '../utils/themeRegistry'
 import { customThemeAttr } from '../../shared/ramp'
 import { customFontAttr } from '../../shared/fonts'
+import { resolveThemeSelection, visitorMayChooseTheme } from '../../shared/themeSelection'
 
 /**
- * Theme-State mit Cookie-Persistenz (SSR-liest den Cookie → data-theme
+ * Theme-State mit Cookie-Persistenz (SSR liest den Cookie → data-theme
  * und der CSS-Link stehen bereits im SSR-HTML, kein Flash).
  * Ungültige Cookie-Werte fallen still auf den Default zurück.
  *
@@ -11,6 +12,15 @@ import { customFontAttr } from '../../shared/fonts'
  * im Theme-Studio angelegte Custom Themes (useCustomThemesState, id 'c-…',
  * Ramps als Inline-Style vom theme-Plugin). Wird ein gewähltes Custom Theme
  * gelöscht, fällt der Cookie-Wert still auf den Default zurück.
+ *
+ * VORRANG (Davids Entscheidung 2026-07-29, B5): auf einem MANDANTEN-Host
+ * gewinnt die Farbwelt der Community, nicht das Cookie des Besuchers — die
+ * Regel selbst steht pur und getestet in shared/themeSelection.ts. Hier bleibt
+ * nur, was Nuxt braucht: Cookies, Registry-Validierung, Fallback-Kette.
+ * FLASH-FREI bleibt das, weil `branding` aus dem SSR-Payload kommt
+ * (tenant-brand.server.ts läuft vor dem theme-Plugin und die Head-Getter
+ * werden erst beim Rendern ausgewertet): der Server stempelt schon das
+ * richtige data-theme, der Client rechnet dasselbe Ergebnis nach.
  */
 export function useTheme() {
   const themeCookie = useCookie<string | null>('maui-theme', {
@@ -31,6 +41,8 @@ export function useTheme() {
 
   const customThemes = useCustomThemesState()
   const settings = useThemeSettingsState()
+  // Wahl DIESER Community (core, SSR-gespiegelt): null = kein Mandanten-Host.
+  const { branding } = useTenantBranding()
 
   const themes = computed<MauiTheme[]>(() => {
     // Built-ins mit Instanz-Overrides (umbenennen/ausblenden/umsortieren)
@@ -52,38 +64,50 @@ export function useTheme() {
     return [...builtins, ...customs]
   })
 
-  // Instanz-Default (Besucher ohne/mit ungültigem Cookie) → Fallback-Kette:
-  // Cookie → settings.defaultThemeId → Core-Default → erster Eintrag.
+  /**
+   * Wer bestimmt hier die Farbwelt? Pure Vorrangregel (shared/themeSelection):
+   * Mandanten-Host ⇒ Community bzw. Instanz-Einstellung, sonst Cookie des
+   * Besuchers ⇒ Instanz-Einstellung.
+   */
+  const selection = computed(() => resolveThemeSelection({
+    cookieTheme: themeCookie.value,
+    cookieVariant: variantCookie.value,
+    branding: branding.value,
+    instanceTheme: settings.value.defaultThemeId,
+    instanceVariant: settings.value.defaultVariantId,
+  }))
+
+  /** true = der Besucher darf das Theme umstellen (kein Mandanten-Host). */
+  const canChooseTheme = computed(() => visitorMayChooseTheme(branding.value))
+
+  // Fallback-Kette hinter der Vorrangregel: gewünschtes Theme → Core-Default →
+  // erster Eintrag. Fängt gelöschte Custom Themes, ausgeblendete Built-ins und
+  // alte Cookie-/Branding-Werte still ab.
   const theme = computed<MauiTheme>(() =>
-    themes.value.find(entry => entry.id === themeCookie.value)
-    ?? themes.value.find(entry => entry.id === settings.value.defaultThemeId)
+    themes.value.find(entry => entry.id === selection.value.theme)
     ?? themes.value.find(entry => entry.id === DEFAULT_THEME_ID)
     ?? themes.value[0]!,
   )
 
+  // Die Variante gehört zum Theme: eine, die es dort nicht gibt, fällt auf die
+  // Basisfarbe zurück (die CSS-Regel [data-theme=x][data-variant=y] existiert
+  // sonst nicht — ein Fehler ohne Symptom).
   const variant = computed<string | null>(() => {
-    if (variantCookie.value && theme.value.variants.some(v => v.id === variantCookie.value)) {
-      return variantCookie.value
-    }
-    // Instanz-Default-Variante NUR für Besucher ohne eigene Theme-Wahl —
-    // wer selbst wählt (auch die Basisfarbe), behält seine Wahl.
-    if (
-      !themeCookie.value
-      && theme.value.id === settings.value.defaultThemeId
-      && settings.value.defaultVariantId
-      && theme.value.variants.some(v => v.id === settings.value.defaultVariantId)
-    ) {
-      return settings.value.defaultVariantId
-    }
-    return null
+    const wanted = selection.value.variant
+    return wanted && theme.value.variants.some(v => v.id === wanted) ? wanted : null
   })
 
   function setTheme(id: string) {
+    // Auf einem Mandanten-Host bewirkt das Cookie nichts mehr — dann wird auch
+    // keins geschrieben (der Picker ist dort gar nicht sichtbar; das hier ist
+    // das Netz für jeden anderen Aufrufer).
+    if (!canChooseTheme.value) return
     themeCookie.value = themes.value.some(entry => entry.id === id) ? id : null
     variantCookie.value = null
   }
 
   function setVariant(value: string | null) {
+    if (!canChooseTheme.value) return
     variantCookie.value = value && theme.value.variants.some(v => v.id === value) ? value : null
   }
 
@@ -142,6 +166,8 @@ export function useTheme() {
     themes,
     theme,
     variant,
+    themeSource: computed(() => selection.value.source),
+    canChooseTheme,
     setTheme,
     setVariant,
     neutrals,

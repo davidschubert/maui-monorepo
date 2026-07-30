@@ -13,9 +13,14 @@
  *                                           gehört die Optik der Instanz
  *
  * Bewusst NICHT der aufgelöste Zustand: was der Besucher gerade SIEHT, sagt
- * useTheme() (Cookie schlägt Community-Wahl schlägt Instanz-Default). Hier
- * geht es um das, was die Community EINGESTELLT hat — sonst zeigt das
- * Dashboard dem Owner seine eigene Cookie-Wahl als Community-Farbe.
+ * useTheme() — hier geht es um das, was die Community EINGESTELLT hat, sonst
+ * zeigte das Dashboard dem Owner eine andere Farbe als die eigene Wahl.
+ * Seit dem 2026-07-29 (Davids Entscheidung B5) ist dieser State auch die
+ * QUELLE der Auflösung: auf einem Mandanten-Host gewinnt die Community, das
+ * Theme-Cookie des Besuchers wird dort nicht gelesen (Regel:
+ * packages/themes/shared/themeSelection.ts). Vorher gewann immer das Cookie —
+ * damit sah jeder Besucher mit eigener Theme-Wahl JEDE Community in seinen
+ * Farben.
  *
  * Die AUTORITÄT ist das Control Plane (tenants.theme/variant); geschrieben
  * wird über PATCH /api/site/branding (onboarding-Layer → Control Plane).
