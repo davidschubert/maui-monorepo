@@ -1,6 +1,9 @@
 /**
  * Beweis für Entscheidung 12 (David, 2026-07-28) — SITE-OWNER wählen Theme +
- * Variante ihrer Community selbst.
+ * Variante ihrer Community selbst. Seit dem 2026-07-29 (Davids Entscheidung,
+ * Rest von OPEN-ITEMS B5) gehört die NEUTRAL-PALETTE (`data-neutral`,
+ * control-020) dazu: Abschnitt 12 unten prüft sie auf derselben Kette und
+ * belegt, dass ein gesetztes Besucher-Cookie auf dem Mandanten-Host VERLIERT.
  *
  * Fährt den ECHTEN Kundenpfad gegen den laufenden Platform-Server + das
  * laufende Control Plane: zwei Communities anlegen, dann auf dem
@@ -210,6 +213,20 @@ async function waitForSsrTheme(host, theme, timeoutMs = 45_000) {
   return { ok: false, ms: Date.now() - started, html: last.text }
 }
 
+/** Dasselbe für die Neutral-Palette (data-neutral, Rest von B5). */
+async function waitForSsrNeutral(host, neutral, timeoutMs = 45_000) {
+  const started = Date.now()
+  while (Date.now() - started < timeoutMs) {
+    const res = await page(host, '/')
+    if (htmlAttr(res.text, 'data-neutral') === neutral) {
+      return { ok: true, ms: Date.now() - started, html: res.text }
+    }
+    await new Promise(resolve => setTimeout(resolve, 2000))
+  }
+  const last = await page(host, '/')
+  return { ok: false, ms: Date.now() - started, html: last.text }
+}
+
 try {
   console.log(`\nE12-Beweis gegen http://localhost:${PORT} (Pool ${poolProject})\n`)
 
@@ -244,6 +261,7 @@ try {
   const communityPage = await page(siteA.host, '/dashboard/settings/community', ownerCookieA)
   check('Settings → Community SSR 200', communityPage.status === 200, `Status ${communityPage.status}`)
   check('Abschnitt im Markup (data-community-branding)', communityPage.text.includes('data-community-branding'))
+  check('Grundton-Zeile im Markup (data-community-neutral, Rest von B5)', communityPage.text.includes('data-community-neutral'))
   check('Registrierungs-Schalter steht weiterhin daneben (S1)', communityPage.text.includes('data-community-registration'))
 
   console.log('\n4. Wahl treffen: crimson / deep')
@@ -317,13 +335,66 @@ try {
     method: 'PATCH', cookie: ownerCookieA, body: { theme: 'spring', variant: 'bright' },
   })
   check('PATCH zurück → 200', reset.status === 200 && reset.json?.theme === 'spring', `Status ${reset.status}`)
+  // Das Feld war in diesem PATCH nicht dabei — die Palette darf sich davon
+  // nicht ändern (Deploy-Fenster platform/control, siehe Route-Kommentar).
+  const afterPartial = await control.getRow({ databaseId, tableId: 'tenants', rowId: siteA.siteId })
+  check('PATCH ohne `neutral` lässt die Palette unangetastet', (afterPartial.neutral ?? '') === '',
+    JSON.stringify(afterPartial.neutral))
+
+  console.log('\n11. Neutral-Palette folgt der Community (Rest von B5, 2026-07-29)')
+  const neutralPatch = await call(siteA.host, '/api/site/branding', {
+    method: 'PATCH', cookie: ownerCookieA, body: { theme: 'spring', variant: 'bright', neutral: 'taupe' },
+  })
+  check('PATCH neutral=taupe → 200 und Antwort trägt den Wert',
+    neutralPatch.status === 200 && neutralPatch.json?.neutral === 'taupe',
+    `Status ${neutralPatch.status} ${neutralPatch.text.slice(0, 160)}`)
+  const tenantNeutral = await control.getRow({ databaseId, tableId: 'tenants', rowId: siteA.siteId })
+  check('Control Plane trägt tenants.neutral=taupe', tenantNeutral.neutral === 'taupe', String(tenantNeutral.neutral))
+
+  for (const [label, body] of [
+    ['unbekannte Palette', { theme: 'spring', variant: 'bright', neutral: 'gibt-es-nicht' }],
+    ['getönte Custom-Ramp (gehört dem Projekt)', { theme: 'spring', variant: 'bright', neutral: 'c-abc123' }],
+    ['Attribut-Einschmuggeln', { theme: 'spring', variant: 'bright', neutral: 'mist" onload=x' }],
+  ]) {
+    const res = await call(siteA.host, '/api/site/branding', { method: 'PATCH', cookie: ownerCookieA, body })
+    check(`${label} → 400`, res.status === 400, `Status ${res.status}`)
+  }
+
+  // DER KERN: ein Besucher MIT eigener Neutral-Wahl sieht trotzdem die der
+  // Community. Vorher gewann hier das Cookie (es gab keine Community-Wahl).
+  const liveNeutral = await waitForSsrNeutral(siteA.host, 'taupe')
+  check(`kunde-a: data-neutral="taupe" ohne Cookie (nach ${Math.round(liveNeutral.ms / 1000)} s)`,
+    liveNeutral.ok, `data-neutral=${htmlAttr(liveNeutral.html, 'data-neutral')}`)
+  const withCookie = await page(siteA.host, '/', 'maui-neutral=olive')
+  check('kunde-a: Besucher-Cookie `olive` VERLIERT (data-neutral bleibt taupe)',
+    htmlAttr(withCookie.text, 'data-neutral') === 'taupe',
+    `data-neutral=${htmlAttr(withCookie.text, 'data-neutral')}`)
+
+  // Und der Gegenbeweis: auf dem Kontroll-Host (kein Mandant) gewinnt es weiter.
+  // `/login` und nicht `/`: die Wurzel des Kontroll-Hosts leitet in den Wizard
+  // (302 auf /login?redirect=/start) und hat gar kein <html> zum Prüfen.
+  const onControlHost = await page(CONTROL_HOST, '/login', 'maui-neutral=olive')
+  check('Kontroll-Host: dasselbe Cookie GEWINNT (data-neutral=olive)',
+    htmlAttr(onControlHost.text, 'data-neutral') === 'olive',
+    `data-neutral=${htmlAttr(onControlHost.text, 'data-neutral')}`)
+
+  const otherNeutral = await page(siteB.host, '/')
+  check('kunde-b behält seine Palette (kein Projekt-weites Umfärben)',
+    htmlAttr(otherNeutral.text, 'data-neutral') === 'mist',
+    `data-neutral=${htmlAttr(otherNeutral.text, 'data-neutral')}`)
+
+  const neutralReset = await call(siteA.host, '/api/site/branding', {
+    method: 'PATCH', cookie: ownerCookieA, body: { theme: 'spring', variant: 'bright', neutral: '' },
+  })
+  check('Zurücksetzen auf die Voreinstellung → 200, neutral=\'\'',
+    neutralReset.status === 200 && neutralReset.json?.neutral === '', `Status ${neutralReset.status}`)
 }
 catch (error) {
   fail++
   console.error('\n✗ Abbruch:', error?.message || error)
 }
 finally {
-  console.log('\n11. Aufräumen')
+  console.log('\n12. Aufräumen')
   for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'site_members', rowId: id }).catch(() => {})
   for (const id of cleanup.tenants) await control.deleteRow({ databaseId, tableId: 'tenants', rowId: id }).catch(() => {})
   for (const id of cleanup.workspaces) await control.deleteRow({ databaseId, tableId: 'workspaces', rowId: id }).catch(() => {})

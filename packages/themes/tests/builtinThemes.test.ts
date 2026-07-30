@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { builtinThemeIds, builtinThemeName, builtinVariantIds, isBuiltinTheme, isBuiltinThemeSelection } from '../shared/builtinThemes'
+import { builtinNeutralIds, builtinThemeIds, builtinThemeName, builtinVariantIds, isBuiltinNeutralSelection, isBuiltinTheme, isBuiltinThemeSelection } from '../shared/builtinThemes'
 
 /**
  * Diese Funktionen sind die EINZIGE Validierungsquelle für die Theme-Wahl
@@ -87,5 +87,40 @@ describe('Auswahl {theme, variant} prüfen — fail-closed', () => {
     expect(builtinVariantIds('default')).toEqual([])
     expect(isBuiltinThemeSelection('default', '')).toBe(true)
     expect(isBuiltinThemeSelection('default', 'deep')).toBe(false)
+  })
+})
+
+/**
+ * Die Neutral-Palette eines Mandanten (`tenants.neutral`, control-020, Rest von
+ * B5) — dieselbe fail-closed-Prüfung, dieselbe einzige Quelle
+ * (`NEUTRAL_REGISTRY`). Der Wert landet als data-neutral im <html>.
+ */
+describe('Neutral-Palette als Mandanten-Wahl prüfen', () => {
+  it('kennt die 9 Registry-Paletten', () => {
+    const ids = builtinNeutralIds()
+    expect(ids).toContain('mist')
+    expect(ids.length).toBe(9)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('nimmt jede Registry-Palette', () => {
+    for (const id of builtinNeutralIds()) expect(isBuiltinNeutralSelection(id), id).toBe(true)
+  })
+
+  it('lässt das Zurücksetzen zu (\'\' = Voreinstellung der Instanz)', () => {
+    expect(isBuiltinNeutralSelection('')).toBe(true)
+  })
+
+  it('weist die getönte Ramp eines Custom Themes ab', () => {
+    // Sie hängt an einer custom_themes-Row, die dem PROJEKT gehört (im Pool
+    // allen Communities gemeinsam) und die der Betreiber jederzeit löscht —
+    // dieselbe Begründung wie bei Custom Themes selbst.
+    expect(isBuiltinNeutralSelection('c-abc123')).toBe(false)
+  })
+
+  it('weist Unbekanntes und Attribut-Einschmuggeln ab', () => {
+    for (const evil of ['gibt-es-nicht', 'MIST', 'mist\' onload=x', 'mist"]', '../../etc']) {
+      expect(isBuiltinNeutralSelection(evil), evil).toBe(false)
+    }
   })
 })

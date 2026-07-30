@@ -1,7 +1,7 @@
 import { THEME_REGISTRY, DEFAULT_THEME_ID, NEUTRAL_REGISTRY, DEFAULT_NEUTRAL_ID, FONT_FAMILY_REGISTRY, resolveThemeFonts, type MauiNeutral, type MauiTheme } from '../utils/themeRegistry'
 import { customThemeAttr } from '../../shared/ramp'
 import { customFontAttr } from '../../shared/fonts'
-import { resolveThemeSelection, visitorMayChooseTheme } from '../../shared/themeSelection'
+import { resolveNeutralSelection, resolveThemeSelection, visitorMayChooseNeutral, visitorMayChooseTheme } from '../../shared/themeSelection'
 
 /**
  * Theme-State mit Cookie-Persistenz (SSR liest den Cookie → data-theme
@@ -15,7 +15,10 @@ import { resolveThemeSelection, visitorMayChooseTheme } from '../../shared/theme
  *
  * VORRANG (Davids Entscheidung 2026-07-29, B5): auf einem MANDANTEN-Host
  * gewinnt die Farbwelt der Community, nicht das Cookie des Besuchers — die
- * Regel selbst steht pur und getestet in shared/themeSelection.ts. Hier bleibt
+ * Regel selbst steht pur und getestet in shared/themeSelection.ts. Das gilt für
+ * BEIDE Achsen: Theme/Variante (`resolveThemeSelection`) und die Neutral-Palette
+ * (`resolveNeutralSelection`, seit dem 2026-07-29 — vorher folgte sie weiter dem
+ * Besucher, weil es dafür keine Community-Einstellung gab). Hier bleibt
  * nur, was Nuxt braucht: Cookies, Registry-Validierung, Fallback-Kette.
  * FLASH-FREI bleibt das, weil `branding` aus dem SSR-Payload kommt
  * (tenant-brand.server.ts läuft vor dem theme-Plugin und die Head-Getter
@@ -79,6 +82,8 @@ export function useTheme() {
 
   /** true = der Besucher darf das Theme umstellen (kein Mandanten-Host). */
   const canChooseTheme = computed(() => visitorMayChooseTheme(branding.value))
+  /** true = der Besucher darf die Neutral-Palette umstellen (dito). */
+  const canChooseNeutral = computed(() => visitorMayChooseNeutral(branding.value))
 
   // Fallback-Kette hinter der Vorrangregel: gewünschtes Theme → Core-Default →
   // erster Eintrag. Fängt gelöschte Custom Themes, ausgeblendete Built-ins und
@@ -125,15 +130,32 @@ export function useTheme() {
     activeTinted.value ? [activeTinted.value, ...NEUTRAL_REGISTRY] : NEUTRAL_REGISTRY,
   )
 
-  // Neutral-Palette: data-neutral überschreibt die Ramp. Fallback-Kette:
-  // Cookie (gültig) → Tinted des aktiven Themes → Registry-Default.
-  const neutral = computed<string>(() =>
-    neutrals.value.some(n => n.id === neutralCookie.value)
-      ? neutralCookie.value!
-      : (activeTinted.value?.id ?? DEFAULT_NEUTRAL_ID),
-  )
+  /**
+   * Wessen Neutral-Palette gilt? Dieselbe pure Vorrangregel, eigene Achse
+   * (shared/themeSelection): Mandanten-Host ⇒ `tenants.neutral`, sonst das
+   * Cookie des Besuchers. Ergebnis '' = keine Vorgabe.
+   */
+  const neutralSelection = computed(() => resolveNeutralSelection({
+    cookieNeutral: neutralCookie.value,
+    branding: branding.value,
+  }))
+
+  // Neutral-Palette: data-neutral überschreibt die Ramp. Fallback-Kette hinter
+  // der Vorrangregel: gewünschte Palette (gültig) → Tinted des aktiven Themes →
+  // Registry-Default. Fängt gelöschte/umbenannte Paletten und alte Cookie-/
+  // Branding-Werte still ab.
+  const neutral = computed<string>(() => {
+    const wanted = neutralSelection.value.neutral
+    return wanted && neutrals.value.some(n => n.id === wanted)
+      ? wanted
+      : (activeTinted.value?.id ?? DEFAULT_NEUTRAL_ID)
+  })
 
   function setNeutral(id: string) {
+    // Auf einem Mandanten-Host bewirkt der Cookie nichts mehr — dann wird auch
+    // keiner geschrieben (das Untermenü ist dort gar nicht sichtbar; das hier
+    // ist das Netz für jeden anderen Aufrufer). Muster wie setTheme().
+    if (!canChooseNeutral.value) return
     neutralCookie.value = neutrals.value.some(n => n.id === id) ? id : null
   }
 
@@ -172,6 +194,8 @@ export function useTheme() {
     setVariant,
     neutrals,
     neutral,
+    neutralSource: computed(() => neutralSelection.value.source),
+    canChooseNeutral,
     setNeutral,
   }
 }

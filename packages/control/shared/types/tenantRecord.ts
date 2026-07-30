@@ -111,6 +111,11 @@ export interface TenantRow extends Models.Row {
   theme: string
   /** Tonale Variante des Themes; '' = Basisfarbe der Welt. */
   variant: string
+  /** Neutral-Palette der Community (control-020, `NEUTRAL_REGISTRY`-Id);
+   *  '' = keine eigene Wahl → Voreinstellung der Instanz. `null`/fehlend bei
+   *  Rows von VOR der Migration (Appwrite backfillt Defaults nicht) — bedeutet
+   *  dasselbe wie ''. */
+  neutral: string | null
   /** Lese-Publikum. `null` bei Rows, die VOR control-016 entstanden sind:
    *  Appwrite backfillt Spalten-Defaults nicht (verifiziert auf Dev + Prod,
    *  gleiches Verhalten wie bei `plan` aus control-013). IMMER über

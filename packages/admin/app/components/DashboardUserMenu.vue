@@ -15,7 +15,7 @@ const colorMode = useColorMode()
 const auth = useAuthStore()
 const appConfig = useAppConfig()
 const runtimeFlags = useRuntimeFlags()
-const { themes, theme, variant, setTheme, setVariant, neutrals, neutral, setNeutral, canChooseTheme } = useTheme()
+const { themes, theme, variant, setTheme, setVariant, neutrals, neutral, setNeutral, canChooseTheme, canChooseNeutral } = useTheme()
 const localeOptions = useLocaleOptions()
 const { capabilities: siteCaps } = useSiteRole()
 
@@ -143,7 +143,13 @@ const items = computed<SwatchItem[][]>(() => {
       ...(canChooseTheme.value
         ? [{ label: t('themes.label'), icon: 'i-ph-palette', children: themeChildren }]
         : []),
-      { label: t('themes.neutralLabel'), icon: 'i-ph-circle-half', children: neutralChildren },
+      // Neutral-Palette: seit dem 2026-07-29 dieselbe Regel (Rest von B5) — auf
+      // einem Mandanten-Host gehört sie der Community, also verschwindet der
+      // Umschalter hier ebenfalls. Hell/Dunkel, Seitenleiste und Sprache
+      // bleiben stehen: das sind Wahlmöglichkeiten DES BETRACHTERS.
+      ...(canChooseNeutral.value
+        ? [{ label: t('themes.neutralLabel'), icon: 'i-ph-circle-half', children: neutralChildren }]
+        : []),
       { label: t('themes.modeLabel'), icon: 'i-ph-sun-horizon', children: appearanceChildren },
       { label: t('dashboard.sidebar.label'), icon: 'i-ph-sidebar-simple', children: sidebarChildren },
       { label: t('ui.language'), icon: 'i-ph-globe', children: languageChildren },

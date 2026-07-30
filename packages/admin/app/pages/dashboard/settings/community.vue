@@ -17,6 +17,14 @@
  *     Kundenhand; der Custom-Theme-EDITOR bleibt Betreiber-Werkzeug
  *     (/dashboard/themes, system.manage), hier wird aus dem BUILT-IN-Katalog
  *     gewählt (26 Welten × Varianten, derselbe öffentliche Grid-Picker).
+ *     Seit dem 2026-07-29 (Davids Entscheidung, Rest von OPEN-ITEMS B5) steht
+ *     darunter EIN Feld mehr: die NEUTRAL-PALETTE (`data-neutral`, die gedeckte
+ *     Grau-Tönung). Sie folgte bis dahin dem Besucher — nicht aus Überzeugung,
+ *     sondern weil es dafür keine Community-Einstellung gab. Bewusst als eigene
+ *     Zeile und NICHT im Grid-Picker: es ist eine eigene Achse (jede Farbwelt
+ *     lässt sich mit jeder Palette kombinieren), und ein zweites Raster im
+ *     selben Modal wäre die Art Regler-Zoo, die THEMES-CONCEPT-V2 ablehnt.
+ *     NICHT hier und bewusst Besucher-Wahl: Hell/Dunkel und die Sprache.
  *
  * Nur auf MANDANTEN-Hosts sinnvoll: eine Silo-App oder ein Kontroll-Host hat
  * keine Community-Grenze, dort regeln Registrierung und Optik weiterhin die
@@ -80,9 +88,13 @@ const { branding } = useTenantBranding()
 
 // Namen + Farbe der Auswahl kommen aus der Theme-Registry des themes-Layers
 // (Auto-Import wie im DashboardUserMenu) — nicht aus einer zweiten Liste hier.
-const { themes } = useTheme()
+// `neutrals` ist dieselbe Liste, die das öffentliche Anzeige-Menü zeigt; die
+// GETÖNTE Ramp eines Custom Themes ist darin nur auf Instanz-Hosts enthalten und
+// wird hier ausgefiltert (sie hängt an einer Row, die dem Projekt gehört, nicht
+// dem Mandanten — dieselbe Begründung wie `builtin-only` beim Theme-Picker).
+const { themes, neutrals } = useTheme()
 
-const selection = computed(() => branding.value ?? { theme: '', variant: '' })
+const selection = computed(() => branding.value ?? { theme: '', variant: '', neutral: '' })
 const selectedTheme = computed(() => themes.value.find(entry => entry.id === selection.value.theme) ?? null)
 const selectedVariantColor = computed(() =>
   selectedTheme.value?.variants.find(v => v.id === selection.value.variant)?.color
@@ -98,6 +110,15 @@ const selectionLabel = computed(() => {
     : selectedTheme.value.name
 })
 
+/**
+ * Neutral-Palette: die 9 Registry-Grautöne + „Voreinstellung" ('' = nichts
+ * gewählt). Custom-getönte Ramps ('c-<rowId>') fliegen raus — siehe oben.
+ * Die Namen (Mist, Taupe, …) sind Eigennamen und laufen wie die Theme-Namen
+ * NICHT über i18n.
+ */
+const neutralOptions = computed(() => neutrals.value.filter(entry => !entry.tinted))
+const selectedNeutral = computed(() => neutralOptions.value.find(entry => entry.id === selection.value.neutral) ?? null)
+
 const pickerOpen = ref(false)
 // Erst beim ersten Öffnen mounten (Audit-Befund K4) und nie wieder unmounten —
 // ein offenes Modal per v-if zu entfernen ist die bekannte Reka-Falle.
@@ -105,11 +126,17 @@ const pickerMounted = ref(false)
 watch(pickerOpen, (open) => { if (open) pickerMounted.value = true })
 
 const savingBranding = ref(false)
-async function saveBranding(next: { theme: string, variant: string }) {
+/**
+ * IMMER alle drei Achsen schicken (Theme, Variante, Palette): die Route nimmt
+ * `neutral` optional an, damit ein Deploy-Fenster zwischen platform und control
+ * nichts bricht — aber diese Seite kennt den vollen Zustand und behauptet ihn
+ * auch. Wer nur eine Achse ändert, ruft mit `{ ...selection, <achse> }`.
+ */
+async function saveBranding(next: { theme: string, variant: string, neutral: string }) {
   if (savingBranding.value) return
   savingBranding.value = true
   try {
-    const result = await $fetch<{ theme: string, variant: string }>('/api/site/branding', {
+    const result = await $fetch<{ theme: string, variant: string, neutral: string }>('/api/site/branding', {
       method: 'PATCH',
       body: next,
     })
@@ -117,7 +144,7 @@ async function saveBranding(next: { theme: string, variant: string }) {
     // ANTWORT. Der Resolver-Cache der Platform-App hält den alten Stand noch
     // bis zu 30 s — die öffentliche Community färbt sich also gleich um, aber
     // nicht in derselben Sekunde. Genau das sagt der Hinweis unten.
-    branding.value = { theme: result.theme, variant: result.variant }
+    branding.value = { theme: result.theme, variant: result.variant, neutral: result.neutral }
     toast.add({ title: t('dashboard.community.appearance.saved'), color: 'success' })
   }
   catch {
@@ -197,18 +224,59 @@ async function saveBranding(next: { theme: string, variant: string }) {
       </UButton>
     </div>
 
+    <!-- Neutral-Palette (Rest von B5): eigene Achse, eigene Zeile. Chips statt
+         Auswahlliste, weil die Grautöne nur als Farbpunkt unterscheidbar sind
+         und ein Klick reicht — dieselbe Optik wie die Varianten-Reihe im
+         Picker. „Voreinstellung" ist der ehrliche Name für '' (nichts
+         gewählt), und der leere Wert kann so gar nicht in ein USelectItem
+         geraten. -->
+    <div class="flex flex-col gap-2 border-t border-default pt-4" data-community-neutral>
+      <div>
+        <p class="text-sm font-medium">{{ t('dashboard.community.appearance.neutral') }}</p>
+        <p class="text-sm text-muted">{{ t('dashboard.community.appearance.neutralDesc') }}</p>
+      </div>
+      <div class="flex flex-wrap gap-1.5">
+        <UButton
+          size="xs"
+          color="neutral"
+          :variant="selectedNeutral ? 'soft' : 'solid'"
+          :disabled="savingBranding"
+          @click="saveBranding({ theme: selection.theme, variant: selection.variant, neutral: '' })"
+        >
+          {{ t('dashboard.community.appearance.neutralInherited') }}
+        </UButton>
+        <UButton
+          v-for="entry in neutralOptions"
+          :key="entry.id"
+          size="xs"
+          color="neutral"
+          :variant="selection.neutral === entry.id ? 'solid' : 'soft'"
+          :disabled="savingBranding"
+          @click="saveBranding({ theme: selection.theme, variant: selection.variant, neutral: entry.id })"
+        >
+          <span
+            class="size-3 rounded-full ring-1 ring-black/10"
+            :style="{ backgroundColor: entry.color }"
+            aria-hidden="true"
+          />
+          {{ capitalize(entry.id) }}
+        </UButton>
+      </div>
+    </div>
+
     <!-- DERSELBE öffentliche Grid-Picker (themes-Layer), nur kontrolliert:
          `selection` macht ihn zum Formularfeld dieser Community, statt das
          Theme-Cookie des Owners umzustellen. `builtin-only`, weil Custom
          Themes pro Appwrite-PROJEKT liegen und im Pool nicht einem einzelnen
-         Mandanten gehören. -->
+         Mandanten gehören. Der Picker kennt nur Theme+Variante — die Palette
+         reicht diese Seite unverändert mit durch. -->
     <ThemePickerModal
       v-if="pickerMounted"
       v-model:open="pickerOpen"
       :selection="selection"
       builtin-only
       :title="t('dashboard.community.appearance.pickerTitle')"
-      @select="saveBranding"
+      @select="(next: { theme: string, variant: string }) => saveBranding({ ...next, neutral: selection.neutral })"
     />
   </UPageCard>
 </template>

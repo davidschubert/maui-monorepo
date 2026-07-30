@@ -25,7 +25,7 @@ import { isSafeThemeToken } from '../../shared/onboarding'
  *  gesetzt, wenn die Row eine $id trägt (der reale Read immer; Test-Fixtures
  *  optional). Trägt die Site-Rollen-Auflösung (requireTenantPermission). */
 export function mapTenantRowToContext(
-  row: (Pick<TenantRow, 'mode' | 'projectId' | 'tenantId' | 'status' | 'plan'> & { $id?: string, theme?: string | null, variant?: string | null, name?: string | null, openRegistration?: boolean | null }) | null,
+  row: (Pick<TenantRow, 'mode' | 'projectId' | 'tenantId' | 'status' | 'plan'> & { $id?: string, theme?: string | null, variant?: string | null, neutral?: string | null, name?: string | null, openRegistration?: boolean | null }) | null,
   planCatalog?: Record<string, Record<string, TenantPlanLimits>>,
 ): TenantContext | null {
   if (!row || row.status !== 'active') return null
@@ -35,13 +35,17 @@ export function mapTenantRowToContext(
   // `null` (Bestand vor der Migration) stattfindet.
   const policy = { openRegistration: resolveTenantOpenRegistration(row.openRegistration) }
   // Branding des Mandanten (O5). Nur attribut-sichere Tokens reisen mit: die
-  // Werte landen als data-theme/data-variant im <html>, und der Wächter hier ist
-  // die erste von zwei Linien (die zweite ist SAFE_ATTR im themes-Layer).
+  // Werte landen als data-theme/data-variant/data-neutral im <html>, und der
+  // Wächter hier ist die erste von zwei Linien (die zweite ist SAFE_ATTR im
+  // themes-Layer). `neutral` (control-020) läuft durch dieselbe Prüfung wie die
+  // anderen zwei — fehlender/leerer Wert lässt das Feld weg und heißt damit
+  // „keine Wahl der Community" (Besucher-Verhalten wie bisher).
   // `name` ist bewusst UNGEFILTERT dabei — reiner Anzeigetext (Header), wird
   // nur interpoliert gerendert, nie als Attribut/HTML.
   const branding = {
     ...(row.theme && isSafeThemeToken(row.theme) ? { theme: row.theme } : {}),
     ...(row.variant && isSafeThemeToken(row.variant) ? { variant: row.variant } : {}),
+    ...(row.neutral && isSafeThemeToken(row.neutral) ? { neutral: row.neutral } : {}),
     ...(row.name ? { name: row.name } : {}),
   }
   if (row.mode === 'silo') return { mode: 'silo', projectId: row.projectId, ...siteId, ...branding, ...policy }

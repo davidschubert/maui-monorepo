@@ -1,7 +1,7 @@
 import { Query } from 'node-appwrite'
 import { z } from 'zod'
 import { tenantRoleHasCapability, isTenantRole } from '../../../../../core/shared/tenantAuthz'
-import { isBuiltinThemeSelection } from '../../../../../themes/shared/builtinThemes'
+import { isBuiltinNeutralSelection, isBuiltinThemeSelection } from '../../../../../themes/shared/builtinThemes'
 import { SITE_MEMBERS_TABLE, type SiteMemberRow } from '../../../../shared/types/siteMember'
 import { TENANTS_TABLE, type TenantRow } from '../../../../shared/types/tenantRecord'
 import { isSafeThemeToken } from '../../../../shared/onboarding'
@@ -9,7 +9,8 @@ import { requireOnboardingCaller, verifyRuntimeIdentity } from '../../../utils/o
 
 /**
  * Self-Service: das Erscheinungsbild EINER Community setzen (Davids
- * Entscheidung 12 vom 2026-07-28 — Theme + Variante gehören der Kundin).
+ * Entscheidung 12 vom 2026-07-28 — Theme + Variante gehören der Kundin; seit
+ * dem 2026-07-29 auch die Neutral-Palette, Rest von OPEN-ITEMS B5).
  *
  * Der Schreibweg ist DERSELBE wie beim Registrierungs-Schalter (S1), und aus
  * demselben Grund: `tenants` gehört dem CONTROL PLANE, der Picker steht aber
@@ -36,9 +37,9 @@ import { requireOnboardingCaller, verifyRuntimeIdentity } from '../../../utils/o
  * gewollt: das Control Plane glaubt dem Aufrufer nichts, auch nicht seine
  * Betreiber-Eigenschaft.
  *
- * GESCHRIEBEN WIRD AUSSCHLIESSLICH `theme` + `variant` — kein durchgereichtes
- * Body-Objekt. Wirksam wird die Änderung, sobald der Resolver-Cache der
- * Platform-App abgelaufen ist (≤30 s).
+ * GESCHRIEBEN WIRD AUSSCHLIESSLICH `theme` + `variant` (+ `neutral`, wenn das
+ * Feld mitkommt) — kein durchgereichtes Body-Objekt. Wirksam wird die Änderung,
+ * sobald der Resolver-Cache der Platform-App abgelaufen ist (≤30 s).
  */
 const bodySchema = z.object({
   jwt: z.string().min(1).max(4096),
@@ -48,6 +49,13 @@ const bodySchema = z.object({
   theme: z.string().max(32),
   /** Tonale Variante DIESES Themes oder '' = Basisfarbe. */
   variant: z.string().max(32),
+  /**
+   * Neutral-Palette (`NEUTRAL_REGISTRY`-Id) oder '' = Voreinstellung der
+   * Instanz (control-020, Rest von B5). OPTIONAL: eine `platform` von vor
+   * diesem Deploy schickt das Feld nicht, und dann darf sich der gespeicherte
+   * Wert nicht ändern — ein fehlendes Feld heißt „nicht angefasst", nicht ''.
+   */
+  neutral: z.string().max(32).optional(),
 }).strict().refine(
   // Katalog-Prüfung gegen die EINZIGE Wahrheit (themeRegistry.gen.ts, aus
   // theme.catalog.ts generiert). Die Platform-App prüft dasselbe schon —
@@ -55,12 +63,19 @@ const bodySchema = z.object({
   value => isBuiltinThemeSelection(value.theme, value.variant),
   { message: 'Unknown theme or variant' },
 ).refine(
+  // Die Palette wird gegen dieselbe EINZIGE Wahrheit geprüft (NEUTRAL_REGISTRY
+  // im themes-Layer) — kein zweiter, handgepflegter Grauton-Katalog hier.
+  value => value.neutral === undefined || isBuiltinNeutralSelection(value.neutral),
+  { message: 'Unknown neutral palette' },
+).refine(
   // Zweiter, KATALOG-UNABHÄNGIGER Wächter: die Werte landen später als
-  // data-theme/data-variant im <html> jeder Seite dieser Community. Sollte der
-  // Katalog je einen Key mit Sonderzeichen bekommen, fängt ihn diese Zeile —
-  // dieselbe Funktion, die auch der Resolver benutzt (mapTenantRowToContext).
+  // data-theme/data-variant/data-neutral im <html> jeder Seite dieser Community.
+  // Sollte der Katalog je einen Key mit Sonderzeichen bekommen, fängt ihn diese
+  // Zeile — dieselbe Funktion, die auch der Resolver benutzt
+  // (mapTenantRowToContext).
   value => (value.theme === '' || isSafeThemeToken(value.theme))
-    && (value.variant === '' || isSafeThemeToken(value.variant)),
+    && (value.variant === '' || isSafeThemeToken(value.variant))
+    && (value.neutral === undefined || value.neutral === '' || isSafeThemeToken(value.neutral)),
   { message: 'Unsafe theme token' },
 )
 
@@ -112,7 +127,11 @@ export default defineEventHandler(async (event) => {
     databaseId,
     tableId: TENANTS_TABLE,
     rowId: body.siteId,
-    data: { theme: body.theme, variant: body.variant },
+    data: {
+      theme: body.theme,
+      variant: body.variant,
+      ...(body.neutral !== undefined ? { neutral: body.neutral } : {}),
+    },
   }).catch((error) => { throw toH3Error(error, 'Could not update site') })
 
   logEvent('info', 'site.branding_changed', {
@@ -120,7 +139,8 @@ export default defineEventHandler(async (event) => {
     runtimeUserId: identity.userId,
     theme: body.theme,
     variant: body.variant,
+    neutral: body.neutral ?? '(unverändert)',
   })
 
-  return { siteId: row.$id, theme: row.theme ?? '', variant: row.variant ?? '' }
+  return { siteId: row.$id, theme: row.theme ?? '', variant: row.variant ?? '', neutral: row.neutral ?? '' }
 })

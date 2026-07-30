@@ -43,6 +43,9 @@ export default defineEventHandler(async (event) => {
       workspaceId: '',
       theme: '',
       variant: '',
+      // Neutral-Palette (control-020, Rest von B5): '' = keine eigene Wahl, es
+      // gilt die Voreinstellung der Instanz. Wie theme/variant.
+      neutral: '',
       audience: 'members',
       trialEndsAt: null,
       profile: '',
