@@ -1,6 +1,6 @@
 # Offene Punkte
 
-Stand: **2026-07-28 (Master-To-do, gewichtet)**. Vollständige, eigenständige
+Stand: **2026-07-30 (Master-To-do, gewichtet)**. Vollständige, eigenständige
 Liste offener Themen (für eine frische Session als Startpunkt nutzbar).
 
 > **⚠️ DIES IST DIE EINE LISTE.** Am 2026-07-28 stand kurzzeitig eine zweite
