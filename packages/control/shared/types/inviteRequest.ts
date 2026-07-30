@@ -30,7 +30,7 @@ export interface InviteRequestRow extends Models.Row {
   assignedAt: string | null
   redeemedAt: string | null
   /** Die Community, die daraus entstanden ist. */
-  siteId: string
+  communityId: string
   reminders: number
   lastReminderAt: string | null
 }

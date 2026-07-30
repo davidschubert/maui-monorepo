@@ -147,7 +147,7 @@ export async function remindCode(
 export async function markCodeRedeemed(
   event: H3Event,
   code: InviteCodeRow,
-  siteId: string,
+  communityId: string,
   now: number = Date.now(),
 ): Promise<void> {
   const admin = createAdminClient(event)
@@ -156,7 +156,7 @@ export async function markCodeRedeemed(
 
   await admin.tablesDB.updateRow<InviteCodeRow>({
     databaseId: db, tableId: INVITE_CODES_TABLE, rowId: code.$id,
-    data: { redeemedAt, redeemedSiteId: siteId },
+    data: { redeemedAt, redeemedSiteId: communityId },
   }).catch(error => logEvent('warn', 'invite.redeem_mark_failed', {
     codeId: code.$id, message: error instanceof Error ? error.message : String(error),
   }))
@@ -164,7 +164,7 @@ export async function markCodeRedeemed(
   if (!code.requestId) return
   await admin.tablesDB.updateRow<InviteRequestRow>({
     databaseId: db, tableId: INVITE_REQUESTS_TABLE, rowId: code.requestId,
-    data: { status: 'redeemed', redeemedAt, siteId },
+    data: { status: 'redeemed', redeemedAt, communityId },
   }).catch(error => logEvent('warn', 'invite.request_mark_failed', {
     requestId: code.requestId, message: error instanceof Error ? error.message : String(error),
   }))
@@ -217,7 +217,7 @@ export async function upsertRequest(
       inviteCodeId: '',
       assignedAt: null,
       redeemedAt: null,
-      siteId: '',
+      communityId: '',
       reminders: 0,
       lastReminderAt: null,
     },

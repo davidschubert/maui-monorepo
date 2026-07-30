@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
     // Rückschreibung: aus „zugewiesen" wird die TATSACHE „eingelöst am … →
     // diese Community". Ohne sie wüsste der Betreiber nie, ob seine Einladung
     // angekommen ist — und genau das ist die Frage, die er stellt.
-    await markCodeRedeemed(event, invite.row, result.siteId)
+    await markCodeRedeemed(event, invite.row, result.communityId)
   }
 
   return result

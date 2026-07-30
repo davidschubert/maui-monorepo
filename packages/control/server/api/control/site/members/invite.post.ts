@@ -1,8 +1,8 @@
 import { ID } from 'node-appwrite'
 import { z } from 'zod'
 import { decideInvite } from '../../../../../shared/siteTeam'
-import { SITE_INVITES_TABLE, SITE_INVITE_TTL_MS, type SiteInviteRow } from '../../../../../shared/types/siteInvite'
-import { SITE_ROLES } from '../../../../../shared/types/siteMember'
+import { COMMUNITY_INVITES_TABLE, COMMUNITY_INVITE_TTL_MS, type CommunityInviteRow } from '../../../../../shared/types/communityInvite'
+import { SITE_ROLES } from '../../../../../shared/types/communityMember'
 import { listSiteInvites, requireSiteTeamContext, createSiteInviteToken, memberFacts, throwOnDenied } from '../../../../utils/siteTeam'
 import { sendSiteInviteMail } from '../../../../utils/siteInviteMail'
 
@@ -23,7 +23,7 @@ import { sendSiteInviteMail } from '../../../../utils/siteInviteMail'
  */
 const bodySchema = z.object({
   jwt: z.string().min(1).max(4096),
-  siteId: z.string().min(1).max(36),
+  communityId: z.string().min(1).max(36),
   email: z.string().email().max(254),
   role: z.enum(SITE_ROLES),
   locale: z.enum(['de', 'en']).default('de'),
@@ -41,7 +41,7 @@ export default defineEventHandler(async (event) => {
 
   throwOnDenied(
     decideInvite({ email, role: body.role, members: context.members.map(memberFacts), activeEmails }),
-    { siteId: body.siteId, actor: context.identity.userId, role: body.role },
+    { communityId: body.communityId, actor: context.identity.userId, role: body.role },
   )
 
   const { token, tokenHash } = createSiteInviteToken()
@@ -61,33 +61,33 @@ export default defineEventHandler(async (event) => {
   const admin = createAdminClient(event)
   // Vorherige offene Einladung derselben Adresse zurückziehen (nicht löschen —
   // die Spur bleibt, aber der alte Link ist tot).
-  const previous = (await listSiteInvites(event, body.siteId))
+  const previous = (await listSiteInvites(event, body.communityId))
     .filter(row => row.email.trim().toLowerCase() === email)
   for (const invite of previous) {
     await admin.tablesDB.updateRow({
-      databaseId: context.databaseId, tableId: SITE_INVITES_TABLE, rowId: invite.$id,
+      databaseId: context.databaseId, tableId: COMMUNITY_INVITES_TABLE, rowId: invite.$id,
       data: { status: 'revoked' },
     }).catch(() => {})
   }
 
-  const row = await admin.tablesDB.createRow<SiteInviteRow>({
+  const row = await admin.tablesDB.createRow<CommunityInviteRow>({
     databaseId: context.databaseId,
-    tableId: SITE_INVITES_TABLE,
+    tableId: COMMUNITY_INVITES_TABLE,
     rowId: ID.unique(),
     data: {
-      siteId: body.siteId,
+      communityId: body.communityId,
       email,
       role: body.role,
       tokenHash,
       status: 'pending',
-      expiresAt: new Date(Date.now() + SITE_INVITE_TTL_MS).toISOString(),
+      expiresAt: new Date(Date.now() + COMMUNITY_INVITE_TTL_MS).toISOString(),
       invitedBy: context.identity.userId,
       acceptedBy: '',
     },
   }).catch((error) => { throw toH3Error(error, 'Could not create invitation') })
 
   logEvent('info', 'site.member_invited', {
-    siteId: body.siteId,
+    communityId: body.communityId,
     inviteId: row.$id,
     role: body.role,
     actor: context.identity.userId,

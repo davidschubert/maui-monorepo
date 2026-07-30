@@ -1,7 +1,7 @@
 import { Query } from 'node-appwrite'
 import { z } from 'zod'
 import { tenantRoleHasCapability, isTenantRole } from '../../../../../core/shared/tenantAuthz'
-import { SITE_MEMBERS_TABLE, type SiteMemberRow } from '../../../../shared/types/siteMember'
+import { COMMUNITY_MEMBERS_TABLE, type CommunityMemberRow } from '../../../../shared/types/communityMember'
 import { TENANTS_TABLE, resolveTenantOpenRegistration, type TenantRow } from '../../../../shared/types/tenantRecord'
 import { requireOnboardingCaller, verifyRuntimeIdentity } from '../../../utils/onboardingService'
 
@@ -24,8 +24,8 @@ import { requireOnboardingCaller, verifyRuntimeIdentity } from '../../../utils/o
  *  2. JWT — WER schaltet. Vom Control Plane SELBST gegen das Pool-Projekt
  *     geprüft; eine Identitätsbehauptung des Aufrufers gilt nicht.
  *  3. Site-Rolle — der JWT-Inhaber ist owner/admin GENAU DIESER Site
- *     (site_members, `team.manage`). Deshalb ist eine mitgeschickte fremde
- *     `siteId` harmlos: ohne Mitgliedschaft endet sie in 403. Die Platform-App
+ *     (community_members, `team.manage`). Deshalb ist eine mitgeschickte fremde
+ *     `communityId` harmlos: ohne Mitgliedschaft endet sie in 403. Die Platform-App
  *     prüft dieselbe Rolle schon (requireSitePermission) — dass es hier NOCH
  *     einmal passiert, ist der Punkt: das Control Plane glaubt dem Aufrufer
  *     nichts.
@@ -37,7 +37,7 @@ import { requireOnboardingCaller, verifyRuntimeIdentity } from '../../../utils/o
 const bodySchema = z.object({
   jwt: z.string().min(1).max(4096),
   /** = tenants.$id. Wird NICHT geglaubt, sondern gegen die Mitgliedschaft geprüft. */
-  siteId: z.string().min(1).max(36),
+  communityId: z.string().min(1).max(36),
   openRegistration: z.boolean(),
 }).strict()
 
@@ -52,11 +52,11 @@ export default defineEventHandler(async (event) => {
 
   // Rolle DIESES Runtime-Users auf DIESER Site. Fail-closed: keine aktive
   // Mitgliedschaft, unbekannte Rolle oder zu schwache Rolle → 403.
-  const { rows: memberships } = await admin.tablesDB.listRows<SiteMemberRow>({
+  const { rows: memberships } = await admin.tablesDB.listRows<CommunityMemberRow>({
     databaseId,
-    tableId: SITE_MEMBERS_TABLE,
+    tableId: COMMUNITY_MEMBERS_TABLE,
     queries: [
-      Query.equal('siteId', body.siteId),
+      Query.equal('communityId', body.communityId),
       Query.equal('runtimeProjectId', identity.projectId),
       Query.equal('runtimeUserId', identity.userId),
       Query.equal('status', 'active'),
@@ -67,7 +67,7 @@ export default defineEventHandler(async (event) => {
   const role = memberships[0]?.role
   if (!role || !isTenantRole(role) || !tenantRoleHasCapability(role, 'team.manage')) {
     logEvent('warn', 'site.registration_toggle_denied', {
-      siteId: body.siteId,
+      communityId: body.communityId,
       runtimeUserId: identity.userId,
       role: role ?? '',
     })
@@ -76,10 +76,10 @@ export default defineEventHandler(async (event) => {
 
   // Gehört die Site überhaupt zu dem Projekt, gegen das wir das JWT geprüft
   // haben? Ohne diese Zeile könnte eine Mitgliedschafts-Row mit dem richtigen
-  // Projekt, aber einer siteId aus einer ANDEREN Runtime auf einen fremden
+  // Projekt, aber einer communityId aus einer ANDEREN Runtime auf einen fremden
   // Tenant zeigen. 404 statt 403 — eine fremde Id soll sich nicht bestätigen.
   const tenant = await admin.tablesDB.getRow<TenantRow>({
-    databaseId, tableId: TENANTS_TABLE, rowId: body.siteId,
+    databaseId, tableId: TENANTS_TABLE, rowId: body.communityId,
   }).catch(() => null)
   if (!tenant || tenant.projectId !== identity.projectId) {
     throw createError({ status: 404, statusText: 'Site not found' })
@@ -88,15 +88,15 @@ export default defineEventHandler(async (event) => {
   const row = await admin.tablesDB.updateRow<TenantRow>({
     databaseId,
     tableId: TENANTS_TABLE,
-    rowId: body.siteId,
+    rowId: body.communityId,
     data: { openRegistration: body.openRegistration },
   }).catch((error) => { throw toH3Error(error, 'Could not update site') })
 
   logEvent('info', 'site.registration_toggled', {
-    siteId: row.$id,
+    communityId: row.$id,
     runtimeUserId: identity.userId,
     openRegistration: body.openRegistration,
   })
 
-  return { siteId: row.$id, openRegistration: resolveTenantOpenRegistration(row.openRegistration) }
+  return { communityId: row.$id, openRegistration: resolveTenantOpenRegistration(row.openRegistration) }
 })

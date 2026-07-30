@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { decideRoleChange } from '../../../../../shared/siteTeam'
-import { SITE_MEMBERS_TABLE, SITE_ROLES, type SiteMemberRow } from '../../../../../shared/types/siteMember'
+import { COMMUNITY_MEMBERS_TABLE, SITE_ROLES, type CommunityMemberRow } from '../../../../../shared/types/communityMember'
 import { memberFacts, requireSiteTeamContext, throwOnDenied } from '../../../../utils/siteTeam'
 
 /**
@@ -16,7 +16,7 @@ import { memberFacts, requireSiteTeamContext, throwOnDenied } from '../../../../
  */
 const bodySchema = z.object({
   jwt: z.string().min(1).max(4096),
-  siteId: z.string().min(1).max(36),
+  communityId: z.string().min(1).max(36),
   memberId: z.string().min(1).max(36),
   role: z.enum(SITE_ROLES),
 }).strict()
@@ -41,19 +41,19 @@ export default defineEventHandler(async (event) => {
       nextRole: body.role,
       members: context.members.map(memberFacts),
     }),
-    { siteId: body.siteId, actor: context.identity.userId, target: target.$id, role: body.role },
+    { communityId: body.communityId, actor: context.identity.userId, target: target.$id, role: body.role },
   )
 
   const admin = createAdminClient(event)
-  const row = await admin.tablesDB.updateRow<SiteMemberRow>({
+  const row = await admin.tablesDB.updateRow<CommunityMemberRow>({
     databaseId: context.databaseId,
-    tableId: SITE_MEMBERS_TABLE,
+    tableId: COMMUNITY_MEMBERS_TABLE,
     rowId: target.$id,
     data: { role: body.role },
   }).catch((error) => { throw toH3Error(error, 'Could not update member') })
 
   logEvent('info', 'site.member_role_changed', {
-    siteId: body.siteId,
+    communityId: body.communityId,
     memberId: row.$id,
     role: body.role,
     previousRole: target.role,

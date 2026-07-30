@@ -1,5 +1,5 @@
 import type { Models } from 'node-appwrite'
-import type { SiteRole } from './siteMember'
+import type { SiteRole } from './communityMember'
 
 /**
  * Offene Einladung in EINE Kunden-Community (control-019).
@@ -9,24 +9,24 @@ import type { SiteRole } from './siteMember'
  * des Tokens, der Klartext steht ausschließlich im Mail-Link. Ein DB-Leak
  * liefert damit keine einlösbaren Einladungen.
  *
- * WARUM eine eigene Table und nicht `site_members` mit status='invited':
- * eine Mitgliedschaft ist am Tripel {siteId, runtimeProjectId, runtimeUserId}
+ * WARUM eine eigene Table und nicht `community_members` mit status='invited':
+ * eine Mitgliedschaft ist am Tripel {communityId, runtimeProjectId, runtimeUserId}
  * verankert, und zur Einladungszeit gibt es die runtimeUserId noch nicht (die
  * eingeladene Person hat vielleicht gar kein Konto). Erst die Annahme kennt
  * die Identität — dann entsteht die Mitgliedschaft.
  */
-export const SITE_INVITE_STATUSES = ['pending', 'accepted', 'revoked'] as const
-export type SiteInviteStatus = (typeof SITE_INVITE_STATUSES)[number]
+export const COMMUNITY_INVITE_STATUSES = ['pending', 'accepted', 'revoked'] as const
+export type CommunityInviteStatus = (typeof COMMUNITY_INVITE_STATUSES)[number]
 
-export interface SiteInviteRow extends Models.Row {
+export interface CommunityInviteRow extends Models.Row {
   /** = tenants.$id (die Community, in die eingeladen wird). */
-  siteId: string
+  communityId: string
   /** Adresse der Eingeladenen — bindet die Einladung (weitergeleiteter Link greift nicht). */
   email: string
   /** Rolle, die die Annahme vergibt. NIE 'owner' (Übergabe ist ein eigener Vorgang). */
   role: SiteRole
   tokenHash: string
-  status: SiteInviteStatus
+  status: CommunityInviteStatus
   expiresAt: string
   /** runtimeUserId der einladenden Person (Spur, wer wen geholt hat). */
   invitedBy: string
@@ -34,7 +34,7 @@ export interface SiteInviteRow extends Models.Row {
   acceptedBy: string
 }
 
-export const SITE_INVITES_TABLE = 'site_invites'
+export const COMMUNITY_INVITES_TABLE = 'community_invites'
 
 /** Gültigkeit einer Einladung — wie bei den Workspace-Einladungen: 7 Tage. */
-export const SITE_INVITE_TTL_MS = 7 * 24 * 3_600_000
+export const COMMUNITY_INVITE_TTL_MS = 7 * 24 * 3_600_000

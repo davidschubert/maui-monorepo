@@ -138,8 +138,8 @@ try {
 
   console.log('\n2. Anlage')
   const created = await post('/api/control/onboarding/site', payload, withSecret)
-  check('201/200 mit siteId', created.status === 200 && !!created.json?.siteId, `${created.status} ${created.text.slice(0, 160)}`)
-  if (created.json?.siteId) cleanup.tenants.push(created.json.siteId)
+  check('201/200 mit communityId', created.status === 200 && !!created.json?.communityId, `${created.status} ${created.text.slice(0, 160)}`)
+  if (created.json?.communityId) cleanup.tenants.push(created.json.communityId)
   check('Host = <slug>.pukalani.app', created.json?.host === `${slug}.pukalani.app`, created.json?.host)
   check('Plan pro (Testphase)', created.json?.plan === 'pro', created.json?.plan)
   const daysLeft = created.json?.trialEndsAt
@@ -148,8 +148,8 @@ try {
   check('Testphase endet in 14 Tagen', daysLeft === 14, `${daysLeft}`)
   check('reused = false', created.json?.reused === false)
 
-  const tenant = created.json?.siteId
-    ? await control.getRow({ databaseId, tableId: 'tenants', rowId: created.json.siteId })
+  const tenant = created.json?.communityId
+    ? await control.getRow({ databaseId, tableId: 'tenants', rowId: created.json.communityId })
     : null
   check('Row: mode pool + Projekt des Nutzers', tenant?.mode === 'pool' && tenant?.projectId === poolProject, `${tenant?.mode}/${tenant?.projectId}`)
   check('Row: audience members (privat als Default)', tenant?.audience === 'members', String(tenant?.audience))
@@ -165,8 +165,8 @@ try {
   check('Row: Code-Spur gesetzt', tenant?.inviteCodeId === invite.id)
   if (tenant?.workspaceId) cleanup.workspaces.push(tenant.workspaceId)
 
-  const members = await control.listRows({ databaseId, tableId: 'site_members' })
-  const ownerRow = members.rows.find(row => row.siteId === created.json?.siteId)
+  const members = await control.listRows({ databaseId, tableId: 'community_members' })
+  const ownerRow = members.rows.find(row => row.communityId === created.json?.communityId)
   check('Owner-Mitgliedschaft angelegt', ownerRow?.role === 'owner' && ownerRow?.runtimeUserId === owner.userId, ownerRow?.role)
   if (ownerRow) cleanup.members.push(ownerRow.$id)
 
@@ -175,13 +175,13 @@ try {
 
   console.log('\n3. Idempotenz + Grenzen')
   const retry = await post('/api/control/onboarding/site', payload, withSecret)
-  check('Retry gibt dieselbe Site zurück', retry.json?.siteId === created.json?.siteId && retry.json?.reused === true, JSON.stringify(retry.json))
+  check('Retry gibt dieselbe Site zurück', retry.json?.communityId === created.json?.communityId && retry.json?.reused === true, JSON.stringify(retry.json))
   const codeAfterRetry = await control.getRow({ databaseId, tableId: 'invite_codes', rowId: invite.id })
   check('Retry kostet den Code NICHT erneut', codeAfterRetry.uses === 1, `uses=${codeAfterRetry.uses}`)
 
   const second = await post('/api/control/onboarding/site', { ...payload, site: { ...payload.site, slug: `${slug}-zwei` } }, withSecret)
   check('zweite Community in der Testphase → 403', second.status === 403, `war ${second.status}`)
-  if (second.json?.siteId) cleanup.tenants.push(second.json.siteId)
+  if (second.json?.communityId) cleanup.tenants.push(second.json.communityId)
 
   const takeover = await post('/api/control/onboarding/site', { ...payload, jwt: stranger.jwt }, withSecret)
   check('fremder Nutzer auf belegtem Host → 409 (keine Übernahme)', takeover.status === 409, `war ${takeover.status}`)
@@ -200,7 +200,7 @@ catch (error) {
 }
 finally {
   console.log('\n5. Aufräumen')
-  for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'site_members', rowId: id }).catch(() => {})
+  for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'community_members', rowId: id }).catch(() => {})
   for (const id of cleanup.tenants) await control.deleteRow({ databaseId, tableId: 'tenants', rowId: id }).catch(() => {})
   for (const id of cleanup.workspaces) await control.deleteRow({ databaseId, tableId: 'workspaces', rowId: id }).catch(() => {})
   for (const id of cleanup.codes) await control.deleteRow({ databaseId, tableId: 'invite_codes', rowId: id }).catch(() => {})

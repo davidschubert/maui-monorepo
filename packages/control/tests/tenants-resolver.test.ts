@@ -38,11 +38,11 @@ describe('mapTenantRowToContext (pure)', () => {
     expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: 'pro' }, {}))
       .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'pro', openRegistration: true })
   })
-  it('G1: $id reist als siteId in den Context (pool + silo)', () => {
+  it('G1: $id reist als communityId in den Context (pool + silo)', () => {
     expect(mapTenantRowToContext({ $id: 'site-abc', mode: 'silo', projectId: 'p1', tenantId: '', status: 'active', plan: '' }))
-      .toEqual({ mode: 'silo', projectId: 'p1', siteId: 'site-abc', openRegistration: true })
+      .toEqual({ mode: 'silo', projectId: 'p1', communityId: 'site-abc', openRegistration: true })
     expect(mapTenantRowToContext({ $id: 'site-xyz', mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: '' }))
-      .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'basic', siteId: 'site-xyz', openRegistration: true })
+      .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'basic', communityId: 'site-xyz', openRegistration: true })
   })
   it('S1: openRegistration=false reist in den Context (pool + silo)', () => {
     expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: '', openRegistration: false }))
