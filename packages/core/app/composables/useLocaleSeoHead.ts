@@ -1,4 +1,4 @@
-import { rebaseSeoLinks, rebaseSeoMeta, rebaseSeoUrl, resolveSeoOrigin, type SeoHeadAttrs } from '../../shared/seoOrigin'
+import { rebaseSeoLinks, rebaseSeoMeta, rebaseSeoUrl, resolveSeoOrigin, type SeoHeadMeta } from '../../shared/seoOrigin'
 
 /**
  * Der SEO-Kopf jeder App: lang/dir am <html>, hreflang-Alternates, canonical,
@@ -49,10 +49,10 @@ export function useLocaleSeoHead(): void {
    * platform.pukalani.app. Basis ist deshalb dieselbe wie für canonical —
    * ohne aktives Gate der Origin des Requests.
    */
-  const imageMeta = computed<SeoHeadAttrs[]>(() => {
+  const imageMeta = computed<SeoHeadMeta[]>(() => {
     const image = ogImage.value
     if (!image?.path) return []
-    const tags: SeoHeadAttrs[] = [
+    const tags: SeoHeadMeta[] = [
       { property: 'og:image', content: rebaseSeoUrl(image.path, origin || requestUrl.origin) },
       { property: 'og:image:type', content: image.type },
       { property: 'og:image:width', content: String(image.width) },

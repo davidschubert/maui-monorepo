@@ -20,11 +20,51 @@
  * Requests.
  */
 
-/** Ein link-/meta-Eintrag, wie useLocaleHead ihn liefert (MetaAttrs). */
-export type SeoHeadAttrs = Record<string, string>
+/**
+ * Ein rel, dessen href zum Request-Host gehört: canonical + hreflang-Alternates.
+ * Es sind genau die zwei rels, die `useLocaleHead` überhaupt erzeugt.
+ */
+export type RebasedRel = 'canonical' | 'alternate'
 
-/** Rels, deren href zum Request-Host gehört: canonical + hreflang-Alternates. */
-const REBASED_RELS = ['canonical', 'alternate']
+/**
+ * Das MINDESTE, was ein link-Eintrag mitbringen muss, damit hier ein href
+ * umgeschrieben werden kann. Bewusst eine Schranke und kein fertiger Typ:
+ * die Funktionen unten sind generisch und geben GENAU den Typ zurück, den sie
+ * bekommen haben.
+ *
+ * Warum das wichtig ist (Nuxt 4.5 bringt unhead 3): unhead typisiert
+ * link-Einträge seit v3 als über `rel` DISKRIMINIERTE Union (`CanonicalLink |
+ * AlternateLanguageLink | …`) und hat für unbekannte rels bewusst KEIN
+ * Mitglied. Ein zu `string` verbreitertes `rel` wählt darin nichts aus und
+ * wird zu `never`. Würde hier auf `Record<string, string>` verengt, wäre das
+ * Ergebnis nicht mehr an `useHead` übergebbar — die Durchreiche über `T`
+ * erhält die Präzision, die @nuxtjs/i18n seit 10.6 selbst liefert
+ * (`I18nHeadMetaInfo.link` ist dort `(AlternateLanguageLink | CanonicalLink)[]`).
+ */
+export interface SeoHeadLinkLike {
+  rel?: string
+  href?: string
+}
+
+/** Pendant für meta-Einträge (og:url & Co.) — nur was hier gelesen wird. */
+export interface SeoHeadMetaLike {
+  property?: string
+  content?: unknown
+}
+
+/**
+ * Ein meta-Eintrag, den DIESER Layer selbst baut (og:image, twitter:card).
+ * `name`/`property` bleiben getrennt, weil unhead auch die meta-Seite
+ * diskriminiert (`NameMeta | PropertyMeta | …`).
+ */
+export type SeoHeadMeta =
+  | { name: string, content: string }
+  | { property: string, content: string }
+
+/** Laufzeit-Prüfung, die `rel` auf den Literal-Typ verengt (kein Cast). */
+function isRebasedRel(rel: string | undefined): rel is RebasedRel {
+  return rel === 'canonical' || rel === 'alternate'
+}
 
 function protocolOf(url: string | undefined | null): string {
   const raw = (url || '').trim()
@@ -80,21 +120,32 @@ export function rebaseSeoUrl(value: string, origin: string): string {
   }
 }
 
-/** canonical- und alternate-Links auf den Ziel-Origin umschreiben (Rest unberührt). */
-export function rebaseSeoLinks(links: readonly SeoHeadAttrs[], origin: string): SeoHeadAttrs[] {
+/**
+ * canonical- und alternate-Links auf den Ziel-Origin umschreiben
+ * (Rest unberührt).
+ *
+ * Generisch mit Durchreiche: heraus kommt GENAU der Eintrags-Typ, der
+ * hineinging. Nur so bleibt das Ergebnis an `useHead` übergebbar — siehe
+ * `SeoHeadLinkLike`. Der Spread ist hier unbedenklich, weil `T` keine
+ * Index-Signatur mitbringt (i18n liefert seit 10.6 präzise unhead-Typen).
+ */
+export function rebaseSeoLinks<T extends SeoHeadLinkLike>(links: readonly T[], origin: string): T[] {
   if (!origin) return [...links]
   return links.map((link) => {
-    const rel = link.rel
-    if (!link.href || !rel || !REBASED_RELS.includes(rel)) return link
+    if (!link.href || !isRebasedRel(link.rel)) return link
     return { ...link, href: rebaseSeoUrl(link.href, origin) }
   })
 }
 
-/** og:url auf den Ziel-Origin umschreiben (og:locale & Co. bleiben unberührt). */
-export function rebaseSeoMeta(meta: readonly SeoHeadAttrs[], origin: string): SeoHeadAttrs[] {
+/**
+ * og:url auf den Ziel-Origin umschreiben (og:locale & Co. bleiben unberührt).
+ * Ebenfalls Durchreiche — `content` wird nur angefasst, wenn dort wirklich ein
+ * String steht (unhead erlaubt auch Zahlen und Arrays).
+ */
+export function rebaseSeoMeta<T extends SeoHeadMetaLike>(meta: readonly T[], origin: string): T[] {
   if (!origin) return [...meta]
   return meta.map((entry) => {
-    if (entry.property !== 'og:url' || !entry.content) return entry
+    if (entry.property !== 'og:url' || typeof entry.content !== 'string' || !entry.content) return entry
     return { ...entry, content: rebaseSeoUrl(entry.content, origin) }
   })
 }

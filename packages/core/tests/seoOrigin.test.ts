@@ -95,3 +95,35 @@ describe('useLocaleHead-Kopf auf den Request-Host ziehen (Befund B1)', () => {
     expect(rebaseSeoMeta(head.meta, '')).toEqual(head.meta)
   })
 })
+
+/**
+ * Die Einträge müssen den Kopf UNVERÄNDERT verlassen, wenn nichts umzuschreiben
+ * ist — inklusive Attributen, die diese Funktionen gar nicht kennen. Das ist
+ * die Bedingung dafür, dass das Ergebnis direkt an `useHead` gehen kann:
+ * @nuxtjs/i18n liefert seit 10.6 präzise unhead-Typen, und die Durchreiche
+ * über `T` erhält sie (früher verengte `Record<string, string>` sie und der
+ * Kopf brauchte eine eigene Umform-Naht).
+ */
+describe('Kopf-Einträge unverändert durchreichen', () => {
+  it('gibt bei jedem Eintrag dasselbe Objekt zurück, wenn nichts passt', () => {
+    const head = poolHead()
+    // rel ohne Umschreib-Regel: identisch, nicht nur gleich
+    const fremd = head.link.at(-1)!
+    expect(rebaseSeoLinks(head.link, 'https://demo.pukalani.app').at(-1)).toBe(fremd)
+    // og:locale wird nicht angefasst
+    expect(rebaseSeoMeta(head.meta, 'https://demo.pukalani.app')[1]).toBe(head.meta[1])
+  })
+
+  it('lässt unbekannte Attribute an umgeschriebenen Einträgen stehen', () => {
+    const links = [{ id: 'i18n-can', rel: 'canonical', href: `${POOL_BASE}/x`, fetchpriority: 'high' }]
+    expect(rebaseSeoLinks(links, 'https://demo.pukalani.app')[0]).toEqual({
+      id: 'i18n-can', rel: 'canonical', href: 'https://demo.pukalani.app/x', fetchpriority: 'high',
+    })
+  })
+
+  it('fasst content nur an, wenn dort wirklich ein String steht', () => {
+    // unhead erlaubt an meta auch Zahlen — ein rebaseSeoUrl darauf wäre Unsinn
+    const meta = [{ id: 'x', property: 'og:url', content: 42 }]
+    expect(rebaseSeoMeta(meta, 'https://demo.pukalani.app')[0]).toBe(meta[0])
+  })
+})

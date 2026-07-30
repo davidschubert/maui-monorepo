@@ -17,7 +17,8 @@
     "create-site": "node --experimental-strip-types scripts/create-site.mjs",
     "control:jobs": "node --experimental-strip-types scripts/control-jobs.mjs",
     "entitlements:keygen": "node scripts/entitlements-keygen.mjs",
-    "check:manifests": "node --experimental-strip-types scripts/check-manifests.mjs"
+    "check:manifests": "node --experimental-strip-types scripts/check-manifests.mjs",
+    "check:single-copy": "node scripts/check-single-copy.mjs"
   },
   "devDependencies": {
     "@nuxt/eslint-config": "catalog:",

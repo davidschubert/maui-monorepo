@@ -101,11 +101,17 @@ export default defineNuxtPlugin(async () => {
       'data-font': () => font.value,
       'data-font-heading': () => fontHeading.value,
     },
+    // `rel` MUSS literal bleiben (`as const`): unhead 3 typisiert einen
+    // link-Eintrag als über `rel` DISKRIMINIERTE Union — ein zu `string`
+    // verbreitertes `rel` wählt kein Union-Mitglied mehr und wird zu `never`.
+    // Verbreitert wird es hier durch die bedingten Spreads, die dem
+    // Array-Literal den Kontext-Typ nehmen. Das ist reine Typ-Verengung auf
+    // den Wert, der ohnehin dasteht — am gerenderten Head ändert sich nichts.
     link: () => [
-      ...(brandFavicon ? [{ rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }] : []),
-      { rel: 'stylesheet', href: '/themes/neutral.css', id: 'pk-neutral-css' },
+      ...(brandFavicon ? [{ rel: 'icon' as const, type: 'image/svg+xml', href: '/favicon.svg' }] : []),
+      { rel: 'stylesheet' as const, href: '/themes/neutral.css', id: 'pk-neutral-css' },
       ...(theme.value.file
-        ? [{ rel: 'stylesheet', href: theme.value.file, id: 'pk-theme-css' }]
+        ? [{ rel: 'stylesheet' as const, href: theme.value.file, id: 'pk-theme-css' }]
         : []),
     ],
     style: () => [

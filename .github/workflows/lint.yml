@@ -29,6 +29,13 @@ jobs:
 
       - run: pnpm check:manifests
 
+      # Zwei Kopien einer Kernabhängigkeit brechen Typen oder Build, und WELCHE
+      # gewinnt, entscheidet pnpms Hoisting statt des Lockfiles — derselbe
+      # Lockfile ist damit auf einer Maschine grün und auf der anderen rot
+      # (2026-07-30 genau so passiert: vue → ENAMETOOLONG im Build,
+      # h3 → 1102/944/1261 Typfehler).
+      - run: pnpm check:single-copy
+
       # 26×11-Theme-Katalog (E6a): committeter Generator-Output muss zum
       # Katalog passen — Regenerieren darf kein Diff erzeugen.
       - run: pnpm --filter @maui/themes check:themes

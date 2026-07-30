@@ -42,7 +42,12 @@ const paramsSchema = z.object({
   theme: z.enum(['light', 'dark', 'auto']).optional(),
   primary: z.enum(PRIMARY_COLORS).optional(),
 })
-const parsed = paramsSchema.safeParse(useRoute().query)
+// EIN route-Objekt für Query-Parsing UND target-url: `$route` im Template
+// existiert im strengeren Template-Typing von Nuxt 4.5 nicht mehr (der
+// Setup-Kontext kennt nur noch `$router`) — die Route gehört ohnehin ins
+// Setup, wo sie schon für die Query gebraucht wird.
+const route = useRoute()
+const parsed = paramsSchema.safeParse(route.query)
 if (!parsed.success) {
   // Wie oben: statusText = technischer Vertrag, Anzeige kommt lokalisiert aus
   // CoreErrorPage. Keine Zod-Details nach außen (kein Schema-Leak).
@@ -136,6 +141,6 @@ onMounted(() => {
     v-else
     :target-id="params.targetId"
     :target-type="params.targetType"
-    :target-url="$route.fullPath"
+    :target-url="route.fullPath"
   />
 </template>
