@@ -113,6 +113,11 @@ function messageKey(type: string): string {
   // der Link führt auf /join, wo die offene Einladung mit EINEM Klick
   // angenommen wird (Davids Entscheidung 2 vom 2026-07-29).
   if (type === 'siteInvite') return 'notifications.siteInvite'
+  // 'invite.request' = Early-Access-Anfrage ans Control Plane ({name} = die
+  // anfragende Adresse). Ohne diesen Zweig fiel der Typ auf 'replied' zurück
+  // und die Betreiber-Glocke behauptete „hat auf deinen Kommentar geantwortet"
+  // (C17) — der Absender existiert seit control-017, der Lesetext nicht.
+  if (type === 'invite.request') return 'notifications.inviteRequest'
   return 'notifications.replied'
 }
 </script>
@@ -120,7 +125,13 @@ function messageKey(type: string): string {
 <template>
   <UPopover :open="open" @update:open="onToggle">
     <UChip :show="unread > 0" :text="unread > 9 ? '9+' : unread" color="error" size="3xl">
-      <UButton icon="i-ph-bell" color="neutral" variant="ghost" :aria-label="t('notifications.title')" />
+      <UButton
+        icon="i-ph-bell"
+        color="neutral"
+        variant="ghost"
+        data-testid="notification-bell"
+        :aria-label="t('notifications.title')"
+      />
     </UChip>
 
     <template #content>

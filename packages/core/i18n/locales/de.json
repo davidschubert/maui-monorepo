@@ -231,6 +231,7 @@
     "ticket": "Ticket-Update: {name}",
     "billing": "Zahlungsproblem: {name}",
     "siteInvite": "Einladung zu {name}",
+    "inviteRequest": "Early-Access-Anfrage von {name}",
     "email": {
       "title": "E-Mail-Benachrichtigungen",
       "description": "Bell-Benachrichtigungen (Antworten, Erwähnungen, Erinnerungen) zusätzlich per E-Mail erhalten.",
