@@ -1,4 +1,4 @@
-import { rebaseSeoLinks, rebaseSeoMeta, resolveSeoOrigin } from '../../shared/seoOrigin'
+import { rebaseSeoLinks, rebaseSeoMeta, rebaseSeoUrl, resolveSeoOrigin, type SeoHeadAttrs } from '../../shared/seoOrigin'
 
 /**
  * Der SEO-Kopf jeder App: lang/dir am <html>, hreflang-Alternates, canonical,
@@ -21,6 +21,11 @@ import { rebaseSeoLinks, rebaseSeoMeta, resolveSeoOrigin } from '../../shared/se
  * diese Form deprecated (Entfernung in v11) und wertet sie nur im Vue-Kontext
  * aus, während sie durch die runtimeConfig-Serialisierung des Prod-Builds
  * nicht überlebt.
+ *
+ * og:image (OPEN-ITEMS B2, seit 2026-07-29): das Vorschaubild kommt aus
+ * `useBrandOgImage()` — ein Feature-Layer trägt dort den PFAD ein, hier
+ * entsteht die absolute URL auf dem RICHTIGEN Host plus Maße, Typ und
+ * `twitter:card`. Ohne Eintrag (Core-Default) bleibt der Kopf wie zuvor.
  */
 export function useLocaleSeoHead(): void {
   const localeHead = useLocaleHead({ seo: true, lang: true, dir: true })
@@ -28,15 +33,41 @@ export function useLocaleSeoHead(): void {
   const requestUrl = useRequestURL()
   const publicConfig = useRuntimeConfig().public as { i18n?: { baseUrl?: unknown } }
   const configuredBaseUrl = typeof publicConfig.i18n?.baseUrl === 'string' ? publicConfig.i18n.baseUrl : ''
+  const ogImage = useBrandOgImage()
+  const brand = useBrandName()
+  const { t } = useI18n()
 
   // '' = kein Umschreiben (Silo-Apps + jeder Fall, in dem kein Origin steht)
   const origin = appConfig.maui?.seo?.originFromRequest === true
     ? resolveSeoOrigin(requestUrl.origin, configuredBaseUrl)
     : ''
 
+  /**
+   * Die Social-Tags des Vorschaubilds. Absolut MUSS die URL sein: ein
+   * relativer Pfad wird von mehreren Vorschau-Diensten gar nicht aufgelöst,
+   * und mit der Env-Basis allein zeigte sie auf JEDEM Mandanten-Host auf
+   * platform.pukalani.app. Basis ist deshalb dieselbe wie für canonical —
+   * ohne aktives Gate der Origin des Requests.
+   */
+  const imageMeta = computed<SeoHeadAttrs[]>(() => {
+    const image = ogImage.value
+    if (!image?.path) return []
+    const tags: SeoHeadAttrs[] = [
+      { property: 'og:image', content: rebaseSeoUrl(image.path, origin || requestUrl.origin) },
+      { property: 'og:image:type', content: image.type },
+      { property: 'og:image:width', content: String(image.width) },
+      { property: 'og:image:height', content: String(image.height) },
+      { property: 'og:image:alt', content: t('ui.ogImageAlt', { brand: brand.value }) },
+      // Ohne diese Zeile zeigt X/Twitter eine kleine quadratische Kachel statt
+      // der breiten Karte — dasselbe Bild, halbe Wirkung.
+      { name: 'twitter:card', content: 'summary_large_image' },
+    ]
+    return tags
+  })
+
   useHead(() => ({
     htmlAttrs: localeHead.value.htmlAttrs,
     link: rebaseSeoLinks(localeHead.value.link, origin),
-    meta: rebaseSeoMeta(localeHead.value.meta, origin),
+    meta: [...rebaseSeoMeta(localeHead.value.meta, origin), ...imageMeta.value],
   }))
 }

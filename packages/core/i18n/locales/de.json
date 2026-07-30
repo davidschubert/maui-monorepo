@@ -146,7 +146,8 @@
     "showMore": "Mehr erfahren",
     "showLess": "Weniger anzeigen",
     "more": "Mehr",
-    "metaTitle": "{page} · {brand}"
+    "metaTitle": "{page} · {brand}",
+    "ogImageAlt": "Vorschaubild von {brand}"
   },
   "profile": {
     "saved": "Profil gespeichert",

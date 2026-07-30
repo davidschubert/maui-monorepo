@@ -146,7 +146,8 @@
     "showMore": "Show more",
     "showLess": "Show less",
     "more": "More",
-    "metaTitle": "{page} · {brand}"
+    "metaTitle": "{page} · {brand}",
+    "ogImageAlt": "Preview image for {brand}"
   },
   "profile": {
     "saved": "Profile saved",
