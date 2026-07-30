@@ -4,13 +4,17 @@
  * tenant-brand-Plugin, reist im Payload.
  *
  * Drei Zustände, und der dritte ist der wichtige:
- *   { theme: 'crimson', variant: 'deep' } = die Community hat gewählt
- *   { theme: '', variant: '' }            = Tenant-Host OHNE eigene Wahl —
- *                                           die Instanz-Einstellung
- *                                           (app_config.themeSettings) gilt
- *   null                                  = KEIN Tenant-Host (Silo-App,
- *                                           Kontroll-Host, Playground); dort
- *                                           gehört die Optik der Instanz
+ *   { theme: 'crimson', … } = die Community hat gewählt
+ *   { theme: '', … }        = Tenant-Host OHNE eigene Wahl — die
+ *                             Instanz-Einstellung (app_config.themeSettings)
+ *                             gilt
+ *   null                    = KEIN Tenant-Host (Silo-App, Kontroll-Host,
+ *                             Playground); dort gehört die Optik der Instanz
+ *
+ * DREI FELDER, JEDES MIT DEMSELBEN LEER-ZUSTAND: `theme`, `variant` und — seit
+ * dem 2026-07-29 (Davids Entscheidung, Rest von OPEN-ITEMS B5) — `neutral`, die
+ * gedeckte Grau-Tönung (`data-neutral`, control-020). Sie ist eine EIGENE
+ * Achse: eine Community kann die Palette wählen, ohne ein Theme zu wählen.
  *
  * Bewusst NICHT der aufgelöste Zustand: was der Besucher gerade SIEHT, sagt
  * useTheme() — hier geht es um das, was die Community EINGESTELLT hat, sonst
@@ -32,6 +36,8 @@ export interface TenantBrandingSelection {
   theme: string
   /** Tonale Variante oder '' = Basisfarbe. */
   variant: string
+  /** Neutral-Palette (NEUTRAL_REGISTRY-Id) oder '' = Instanz-Voreinstellung. */
+  neutral: string
 }
 
 export function useTenantBranding() {
