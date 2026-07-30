@@ -104,6 +104,13 @@ export default defineEventHandler(async (event) => {
                 ? 'Zahlung fehlgeschlagen — bitte Zahlungsmethode aktualisieren.'
                 : 'Payment failed — please update your payment method.',
               link: '/account/billing',
+              // MANDANTENLOS (C15, Davids Entscheidung 3): das ist eine Sache
+              // des VERTRAGS, nicht einer Community. Ein Community-Stempel
+              // (den der Webhook ohnehin nicht hat — er kommt von Stripe, ohne
+              // Mandanten-Host) würde die Zahlungswarnung in die Glocke von
+              // Mitgliedern legen, die sie nichts angeht. Sie gehört in den
+              // Kundenbereich, und der Link zeigt bereits dorthin.
+              scope: 'account',
             })
           }
         }

@@ -62,6 +62,10 @@ async function doSweep(event: H3Event): Promise<void> {
           hour: '2-digit', minute: '2-digit',
         }).format(new Date(row.startAt)),
         link: `/events/${row.$id}`,
+        // scope 'tenant' (C15): der Sweep läuft im Request eines Mandanten-
+        // Hosts (Muster publishDuePosts) — die Erinnerung gehört in DESSEN
+        // Glocke, ihr Link (/events/:id) gilt auch nur dort.
+        scope: 'tenant',
       })
     }
   }

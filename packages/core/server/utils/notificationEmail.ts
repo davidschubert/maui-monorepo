@@ -61,7 +61,16 @@ function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' }[c]!))
 }
 
-/** Interner Link → absolute URL (NUXT_PUBLIC_APP_URL); Guard wie NotificationBell. */
+/**
+ * Interner Link → absolute URL (NUXT_PUBLIC_APP_URL); Guard wie NotificationBell.
+ *
+ * BEWUSSTE LÜCKE im Pool (C15, Davids Entscheidung 4 vom 2026-07-29): die Basis
+ * ist EINE Env-Variable, also zeigt der Link einer Community-Meldung auf den
+ * App-Host statt auf `<community>.pukalani.app`. Die In-App-Glocke ist seit
+ * system-022 mandantenrichtig, die MAIL noch nicht — dafür bräuchte es die
+ * Tenant→Host-Auflösung aus dem Control Plane (cross-projekt), und der
+ * Digest-Sweep läuft ganz ohne Request. Eigenes Paket, siehe OPEN-ITEMS.
+ */
 function absoluteLink(event: H3Event | undefined, link: string): string {
   const appUrl = (useRuntimeConfig(event).public.appUrl || '').replace(/\/$/, '')
   const safe = /^\/(?![/\\%])[^\s\\]*$/.test(link) ? link : '/'

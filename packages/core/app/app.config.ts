@@ -150,7 +150,19 @@ export default defineAppConfig({
        * dort quer über ALLE Communities des Pool-Projekts. Diese Liste ist
        * die Grenze, die das verhindert; jeder Eintrag ist eine Entscheidung.
        */
-      controlApiPrefixes: ['/api/auth/', '/api/onboarding/', '/api/health', '/api/telemetry/'] as string[],
+      /**
+       * `/api/notifications` ist seit C15 dabei — die EINE Entscheidung, die
+       * dieser Eintrag verlangt: kontobezogene Meldungen (Zahlung, Anfragen)
+       * gehören in den Kundenbereich (Davids Entscheidung 3, 2026-07-29), also
+       * muss die Glocke dort ihre Liste holen dürfen. Sicher, weil die Route
+       * doppelt eingegrenzt ist: Row-Security gibt nur die Zeilen DES
+       * Empfängers heraus, und der Kontroll-Host filtert zusätzlich auf den
+       * Kundenbereich-Sentinel (`_account`) plus ungestempelten Bestand — es
+       * kann also keine Community-Meldung eines fremden Mandanten kommen.
+       * Deckt auch `/api/notifications/read` und `/api/notifications/
+       * run-digest` ab (letztere ist system.manage-gated).
+       */
+      controlApiPrefixes: ['/api/auth/', '/api/onboarding/', '/api/health', '/api/telemetry/', '/api/notifications'] as string[],
     },
     security: {
       /** CSRF-Origin-Check für unsichere Methoden auf /api/* (server/middleware/

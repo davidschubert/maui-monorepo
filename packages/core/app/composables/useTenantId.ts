@@ -4,7 +4,8 @@
  *
  * WOFÜR ES DA IST — und wofür NICHT: ausschließlich als Mandanten-Filter für
  * die wenigen Client-Leser, die DIREKT gegen Appwrite lesen (Presence-API,
- * Realtime-Row-Streams) und deshalb selbst scopen müssen. Alles, was über eine
+ * Realtime-Row-Streams: Activity-Feed und NotificationBell) und deshalb selbst
+ * scopen müssen. Alles, was über eine
  * server/api-Route geht, ist schon durch die Datentür gescopt und darf diese Id
  * NICHT anfassen — sie ist kein allgemeiner „aktueller Mandant"-Getter für UI-
  * Logik. Das Spiegel-Inventar in app/plugins/tenant-brand.server.ts führt die

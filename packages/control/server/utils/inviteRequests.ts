@@ -255,6 +255,10 @@ export async function notifyOperators(event: H3Event, request: InviteRequestRow)
         title: 'Neue Early-Access-Anfrage',
         body: `${request.email}${request.note ? ` — ${request.note.slice(0, 120)}` : ''}`,
         link,
+        // MANDANTENLOS (C15, Davids Entscheidung 3): eine Anfrage ans Control
+        // Plane gehört keiner Community — sie will erst eine werden. Der Link
+        // zeigt auf die Betreiber-Oberfläche.
+        scope: 'account',
       })
     }
   }
