@@ -1,7 +1,7 @@
 {
   "admin": {
     "nav": {
-      "sites": "Sites",
+      "websites": "Websites",
       "workspaces": "Workspaces",
       "tenants": "Tenants",
       "inviteRequests": "Anfragen",
@@ -124,11 +124,11 @@
         "expires": "Gültig bis"
       }
     },
-    "sites": {
-      "title": "Sites",
-      "empty": "Noch keine Sites registriert.",
-      "register": "Site registrieren",
-      "registerTitle": "Bestehende Site registrieren",
+    "websites": {
+      "title": "Websites",
+      "empty": "Noch keine Websites registriert.",
+      "register": "Website registrieren",
+      "registerTitle": "Bestehende Website registrieren",
       "registered": "{name} registriert",
       "registerFailed": "Registrierung fehlgeschlagen",
       "fieldName": "Name",
@@ -141,17 +141,17 @@
       "lastCheck": "Zuletzt geprüft: {at}",
       "healthFailed": "Health-Check fehlgeschlagen",
       "deregister": "Aus dem Register entfernen",
-      "deregisterTitle": "Site aus dem Register entfernen?",
+      "deregisterTitle": "Website aus dem Register entfernen?",
       "deregisterConfirm": "„{name}\" aus dem Register entfernen? Das Appwrite-Projekt und seine Daten bleiben unberührt.",
       "deregisterFailed": "Entfernen fehlgeschlagen",
       "save": "Registrieren",
       "cancel": "Abbrechen",
       "running": "Läuft:",
       "runningUnentitled": "Läuft ohne zugeteiltes Feature",
-      "emptyTitle": "Noch keine Sites",
-      "rowActions": "Aktionen für diese Site",
+      "emptyTitle": "Noch keine Websites",
+      "rowActions": "Aktionen für diese Website",
       "col": {
-        "site": "Site",
+        "site": "Website",
         "state": "Status",
         "features": "Produkte",
         "workspace": "Workspace"

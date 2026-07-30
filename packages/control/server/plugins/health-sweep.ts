@@ -1,11 +1,11 @@
-import { runHealthSweep } from '../utils/siteHealth'
+import { runHealthSweep } from '../utils/websiteHealth'
 
 /**
  * Health-Automatik (M6-T4, L6-Grundstein): prüft alle registrierten Sites
  * im Intervall — gleiches Muster wie der core-Digest-Sweep (setInterval
  * statt experimenteller Nitro-scheduledTasks, Single-Instanz-Annahme).
  * Erst-Lauf kurz nach dem Boot, damit das Register nicht bis zum ersten
- * Intervall auf „unknown" steht; manuell bleibt POST /api/control/sites/:id/
+ * Intervall auf „unknown" steht; manuell bleibt POST /api/control/websites/:id/
  * health. Geloggt wird nur, wenn sich etwas ändert oder etwas nicht ok ist.
  *
  * L6-Alerting (Beschluss 2026-07-17): Statuswechsel gehen als Mail an
@@ -35,7 +35,7 @@ export default defineNitroPlugin(() => {
             `Aktuell nicht ok: ${result.notOk.join(', ') || 'alles ok'}`,
             `Geprüfte Sites: ${result.checked}`,
             '',
-            'Details im Control: /dashboard/sites',
+            'Details im Control: /dashboard/websites',
           ].join('\n'),
         }).catch(() => false)
         if (!sent) {

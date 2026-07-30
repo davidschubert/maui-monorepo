@@ -175,7 +175,7 @@ const healthColor = (s: string) => (s === 'ok' ? 'success' : s === 'degraded' ? 
       </template>
       <template #footer>
         <div class="flex w-full justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="() => { planTarget = null }">{{ t('control.sites.cancel') }}</UButton>
+          <UButton color="neutral" variant="ghost" @click="() => { planTarget = null }">{{ t('control.websites.cancel') }}</UButton>
           <UButton :disabled="!chosenPlan || chosenPlan === planTarget?.plan" :loading="startingCheckout" data-customer-plan-checkout @click="startCheckout">
             {{ t('control.workspaces.toCheckout') }}
           </UButton>

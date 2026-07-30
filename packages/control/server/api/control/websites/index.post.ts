@@ -1,6 +1,6 @@
 import { ID } from 'node-appwrite'
 import { z } from 'zod'
-import { SITES_TABLE } from '../../../../shared/types/site'
+import { WEBSITES_TABLE } from '../../../../shared/types/website'
 
 const registerSchema = z.object({
   name: z.string().trim().min(1).max(100),
@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
 
   const row = await admin.tablesDB.createRow({
     databaseId: config.public.appwriteDatabaseId,
-    tableId: SITES_TABLE,
+    tableId: WEBSITES_TABLE,
     rowId: ID.unique(),
     data: { ...body, status: 'active', healthStatus: 'unknown', healthCheckedAt: null },
   }).catch((error) => {

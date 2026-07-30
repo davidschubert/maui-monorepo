@@ -1,5 +1,5 @@
-import { SITES_TABLE, type SiteRow } from '../../../../../shared/types/site'
-import { checkSiteHealth } from '../../../../utils/siteHealth'
+import { WEBSITES_TABLE, type WebsiteRow } from '../../../../../shared/types/website'
+import { checkSiteHealth } from '../../../../utils/websiteHealth'
 
 /**
  * Manueller Health-Check einer registrierten Site (sites.manage) — nutzt
@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
   const admin = createAdminClient(event)
   const databaseId = config.public.appwriteDatabaseId
 
-  const site = await admin.tablesDB.getRow<SiteRow>({ databaseId, tableId: SITES_TABLE, rowId: id })
+  const site = await admin.tablesDB.getRow<WebsiteRow>({ databaseId, tableId: WEBSITES_TABLE, rowId: id })
     .catch((error) => { throw toH3Error(error, 'Site not found') })
 
   const result = await checkSiteHealth(admin, databaseId, site)

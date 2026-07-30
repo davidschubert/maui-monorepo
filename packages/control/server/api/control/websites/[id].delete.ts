@@ -1,5 +1,5 @@
 import { Query } from 'node-appwrite'
-import { SITES_TABLE, type SiteRow } from '../../../../shared/types/site'
+import { WEBSITES_TABLE, type WebsiteRow } from '../../../../shared/types/website'
 import { ENTITLEMENTS_TABLE, type EntitlementRow } from '../../../../shared/types/entitlement'
 
 /**
@@ -20,10 +20,10 @@ export default defineEventHandler(async (event) => {
   const admin = createAdminClient(event)
   const databaseId = config.public.appwriteDatabaseId
 
-  const row = await admin.tablesDB.getRow<SiteRow>({ databaseId, tableId: SITES_TABLE, rowId: id })
+  const row = await admin.tablesDB.getRow<WebsiteRow>({ databaseId, tableId: WEBSITES_TABLE, rowId: id })
     .catch((error) => { throw toH3Error(error, 'Site not found') })
 
-  await admin.tablesDB.deleteRow({ databaseId, tableId: SITES_TABLE, rowId: id })
+  await admin.tablesDB.deleteRow({ databaseId, tableId: WEBSITES_TABLE, rowId: id })
     .catch((error) => { throw toH3Error(error, 'Could not deregister site') })
 
   const { rows: entitlements } = await admin.tablesDB.listRows<EntitlementRow>({

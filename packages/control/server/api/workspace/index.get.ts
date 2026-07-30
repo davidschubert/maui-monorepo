@@ -4,7 +4,7 @@ import {
   type ControlPlanCatalog,
   type WorkspaceRow,
 } from '../../../shared/types/workspace'
-import { SITES_TABLE, type SiteRow } from '../../../shared/types/site'
+import { WEBSITES_TABLE, type WebsiteRow } from '../../../shared/types/website'
 import { normalizeTenantPlan } from '../../../shared/types/tenantRecord'
 import { listOwnMemberships } from '../../utils/workspaceMembers'
 
@@ -36,10 +36,10 @@ export default defineEventHandler(async (event) => {
     }).catch(() => null)
     if (!workspace) return null
 
-    const { rows: sites } = await admin.tablesDB.listRows<SiteRow>({
-      databaseId, tableId: SITES_TABLE,
+    const { rows: sites } = await admin.tablesDB.listRows<WebsiteRow>({
+      databaseId, tableId: WEBSITES_TABLE,
       queries: [Query.equal('workspaceId', workspace.$id), Query.limit(100)],
-    }).catch(() => ({ rows: [] as SiteRow[] }))
+    }).catch(() => ({ rows: [] as WebsiteRow[] }))
 
     return {
       id: workspace.$id,

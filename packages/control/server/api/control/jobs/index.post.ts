@@ -1,7 +1,7 @@
 import { ID, Query } from 'node-appwrite'
 import { z } from 'zod'
 import { FEATURE_CATALOG_TABLE, JOBS_TABLE, type FeatureCatalogRow, type SiteCreateJobPayload } from '../../../../shared/types/job'
-import { SITES_TABLE } from '../../../../shared/types/site'
+import { WEBSITES_TABLE } from '../../../../shared/types/website'
 
 const createJobSchema = z.object({
   type: z.literal('site.create'),
@@ -53,7 +53,7 @@ export default defineEventHandler(async (event) => {
   // Duplikate: bereits registrierte Site (Slug) oder offener Job gleichen Namens
   const [{ total: slugTaken }, { rows: openJobs }] = await Promise.all([
     admin.tablesDB.listRows({
-      databaseId, tableId: SITES_TABLE,
+      databaseId, tableId: WEBSITES_TABLE,
       queries: [Query.equal('slug', body.name), Query.limit(1)],
     }),
     admin.tablesDB.listRows({

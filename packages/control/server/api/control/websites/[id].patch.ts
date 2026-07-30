@@ -1,12 +1,12 @@
 import { z } from 'zod'
-import { SITES_TABLE, SITE_STATUSES, type SiteRow } from '../../../../shared/types/site'
+import { WEBSITES_TABLE, WEBSITE_STATUSES, type WebsiteRow } from '../../../../shared/types/website'
 import { WORKSPACES_TABLE } from '../../../../shared/types/workspace'
 
 const patchSchema = z.object({
   name: z.string().trim().min(1).max(100).optional(),
   slug: z.string().regex(/^[a-z][a-z0-9-]*$/).max(64).optional(),
   appUrl: z.string().url().max(256).or(z.literal('')).optional(),
-  status: z.enum(SITE_STATUSES).optional(),
+  status: z.enum(WEBSITE_STATUSES).optional(),
   notes: z.string().max(1000).optional(),
   /** Workspace-Zuordnung (M8-T2); '' = Betreiber-Workspace (Zuordnung lösen). */
   workspaceId: z.string().max(36).optional(),
@@ -43,9 +43,9 @@ export default defineEventHandler(async (event) => {
     }).catch((error) => { throw toH3Error(error, 'Workspace not found') })
   }
 
-  const row = await admin.tablesDB.updateRow<SiteRow>({
+  const row = await admin.tablesDB.updateRow<WebsiteRow>({
     databaseId: config.public.appwriteDatabaseId,
-    tableId: SITES_TABLE,
+    tableId: WEBSITES_TABLE,
     rowId: id,
     data: body,
   }).catch((error) => { throw toH3Error(error, 'Site not found') })

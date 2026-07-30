@@ -1,7 +1,7 @@
 import { ID, Query } from 'node-appwrite'
 import type { H3Event } from 'h3'
 import { closeOverRequires, shouldApplyFreeFallback, subscriptionUpdateToAction } from '../../shared/workspaceBilling'
-import { SITES_TABLE, type SiteRow } from '../../shared/types/site'
+import { WEBSITES_TABLE, type WebsiteRow } from '../../shared/types/website'
 import { ENTITLEMENTS_TABLE, type EntitlementRow } from '../../shared/types/entitlement'
 import { FEATURE_CATALOG_TABLE, type FeatureCatalogRow } from '../../shared/types/job'
 import { WORKSPACES_TABLE, type ControlPlanCatalog, type WorkspaceRow, type WorkspaceStatus } from '../../shared/types/workspace'
@@ -89,10 +89,10 @@ export async function applyWorkspacePlan(event: H3Event, input: {
 
   // ALLE Sites des Workspace paginieren — ein Abo-Update darf NIE still nur
   // die ersten 100 Sites syncen und den Rest ungrantet lassen (No-silent-caps).
-  const sites: SiteRow[] = []
+  const sites: WebsiteRow[] = []
   for (let offset = 0; ; offset += 100) {
-    const page = await admin.tablesDB.listRows<SiteRow>({
-      databaseId, tableId: SITES_TABLE,
+    const page = await admin.tablesDB.listRows<WebsiteRow>({
+      databaseId, tableId: WEBSITES_TABLE,
       queries: [Query.equal('workspaceId', input.workspaceId), Query.limit(100), Query.offset(offset)],
     })
     sites.push(...page.rows)

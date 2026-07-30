@@ -1,7 +1,7 @@
 {
   "admin": {
     "nav": {
-      "sites": "Sites",
+      "websites": "Websites",
       "workspaces": "Workspaces",
       "tenants": "Tenants",
       "inviteRequests": "Requests",
@@ -124,11 +124,11 @@
         "expires": "Valid until"
       }
     },
-    "sites": {
-      "title": "Sites",
-      "empty": "No sites registered yet.",
-      "register": "Register site",
-      "registerTitle": "Register an existing site",
+    "websites": {
+      "title": "Websites",
+      "empty": "No Websites registered yet.",
+      "register": "Register Website",
+      "registerTitle": "Register an existing Website",
       "registered": "{name} registered",
       "registerFailed": "Registration failed",
       "fieldName": "Name",
@@ -141,17 +141,17 @@
       "lastCheck": "Last checked: {at}",
       "healthFailed": "Health check failed",
       "deregister": "Remove from register",
-      "deregisterTitle": "Remove site from the register?",
+      "deregisterTitle": "Remove Website from the register?",
       "deregisterConfirm": "Remove \"{name}\" from the register? The Appwrite project and its data stay untouched.",
       "deregisterFailed": "Removal failed",
       "save": "Register",
       "cancel": "Cancel",
       "running": "Running:",
       "runningUnentitled": "Running without a granted feature",
-      "emptyTitle": "No sites yet",
-      "rowActions": "Actions for this site",
+      "emptyTitle": "No Websites yet",
+      "rowActions": "Actions for this Website",
       "col": {
-        "site": "Site",
+        "site": "Website",
         "state": "Status",
         "features": "Products",
         "workspace": "Workspace"

@@ -25,11 +25,11 @@ export default defineAppConfig({
     admin: {
       modules: [
         {
-          id: 'sites',
+          id: 'websites',
           featureKey: 'control',
-          labelKey: 'admin.nav.sites',
+          labelKey: 'admin.nav.websites',
           icon: 'i-ph-globe-hemisphere-west',
-          to: '/dashboard/sites',
+          to: '/dashboard/websites',
           requiredCapability: 'sites.manage',
           group: 'management',
           order: 1,

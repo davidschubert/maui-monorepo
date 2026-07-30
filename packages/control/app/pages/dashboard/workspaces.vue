@@ -309,7 +309,7 @@ function rowActions(workspace: WorkspaceWithSites): DropdownMenuItem[][] {
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="() => { showCreate = false }">{{ t('control.sites.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { showCreate = false }">{{ t('control.websites.cancel') }}</UButton>
             <UButton :disabled="!form.name.trim() || !form.ownerEmail.trim()" :loading="creating" data-workspace-save @click="createWorkspace">
               {{ t('control.workspaces.create') }}
             </UButton>
@@ -336,7 +336,7 @@ function rowActions(workspace: WorkspaceWithSites): DropdownMenuItem[][] {
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="() => { planTarget = null }">{{ t('control.sites.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { planTarget = null }">{{ t('control.websites.cancel') }}</UButton>
             <UButton :disabled="!chosenPlan || chosenPlan === planTarget?.plan" :loading="startingCheckout" data-plan-checkout @click="startCheckout">
               {{ t('control.workspaces.toCheckout') }}
             </UButton>
@@ -353,8 +353,8 @@ function rowActions(workspace: WorkspaceWithSites): DropdownMenuItem[][] {
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="() => { editing = null }">{{ t('control.sites.cancel') }}</UButton>
-            <UButton :loading="savingEdit" @click="saveEdit">{{ t('control.sites.save') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { editing = null }">{{ t('control.websites.cancel') }}</UButton>
+            <UButton :loading="savingEdit" @click="saveEdit">{{ t('control.websites.save') }}</UButton>
           </div>
         </template>
       </UModal>

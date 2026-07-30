@@ -121,10 +121,10 @@ async function runSiteCreate(job, payload) {
   const sitePort = Number(sitePkg.scripts?.dev?.match(/--port (\d+)/)?.[1] ?? 0)
   const appUrl = sitePort ? `http://localhost:${sitePort}` : ''
 
-  // Site im Register eintragen (gleicher Vertrag wie POST /api/control/sites)
+  // Website im Register eintragen (gleicher Vertrag wie POST /api/control/websites)
   let siteRowId = ''
   if (siteProjectId) {
-    const { status, json } = await api(rowsPath('sites'), 'POST', {
+    const { status, json } = await api(rowsPath('websites'), 'POST', {
       rowId: 'unique()',
       data: {
         name, slug: name, projectId: siteProjectId, endpoint, appUrl,

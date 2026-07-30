@@ -1,6 +1,6 @@
 import { Query } from 'node-appwrite'
 import { z } from 'zod'
-import { SITES_TABLE, type SiteRow } from '../../../../../shared/types/site'
+import { WEBSITES_TABLE, type WebsiteRow } from '../../../../../shared/types/website'
 import { FEATURE_CATALOG_TABLE, type FeatureCatalogRow } from '../../../../../shared/types/job'
 import { replaceSiteGrants } from '../../../../utils/workspaceGrants'
 
@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
   const admin = createAdminClient(event)
   const databaseId = config.public.appwriteDatabaseId
 
-  const site = await admin.tablesDB.getRow<SiteRow>({ databaseId, tableId: SITES_TABLE, rowId: id })
+  const site = await admin.tablesDB.getRow<WebsiteRow>({ databaseId, tableId: WEBSITES_TABLE, rowId: id })
     .catch((error) => { throw toH3Error(error, 'Site not found') })
 
   const { rows: catalog } = await admin.tablesDB.listRows<FeatureCatalogRow>({

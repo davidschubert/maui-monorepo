@@ -1,10 +1,10 @@
 import { Query } from 'node-appwrite'
-import { SITES_TABLE, type HealthStatus, type SiteRow } from '../../shared/types/site'
+import { WEBSITES_TABLE, type HealthStatus, type WebsiteRow } from '../../shared/types/website'
 
 /**
  * Health-Check + Feature-Snapshot einer registrierten Site (M6-T1/T4,
  * L6-Grundstein) — geteilt zwischen der manuellen Route
- * (POST /api/control/sites/:id/health) und dem Intervall-Sweep
+ * (POST /api/control/websites/:id/health) und dem Intervall-Sweep
  * (server/plugins/health-sweep.ts). Probt den Appwrite-Endpoint
  * (/health/version) und — falls hinterlegt — die App-URL; von einer
  * erreichbaren App wird zusätzlich GET /api/platform/features gelesen
@@ -55,7 +55,7 @@ export interface SiteHealthResult {
 type AdminClient = ReturnType<typeof createAdminClient>
 
 /** Prüft EINE Site und persistiert healthStatus/healthCheckedAt/features. */
-export async function checkSiteHealth(admin: AdminClient, databaseId: string, site: SiteRow): Promise<SiteHealthResult> {
+export async function checkSiteHealth(admin: AdminClient, databaseId: string, site: WebsiteRow): Promise<SiteHealthResult> {
   const apiOk = await probe(`${site.endpoint.replace(/\/$/, '')}/health/version`)
   const appOk = site.appUrl ? await probe(site.appUrl) : null
   const features = site.appUrl && appOk ? await fetchFeatureSnapshot(site.appUrl) : null
@@ -66,7 +66,7 @@ export async function checkSiteHealth(admin: AdminClient, databaseId: string, si
   const healthCheckedAt = new Date().toISOString()
 
   await admin.tablesDB.updateRow({
-    databaseId, tableId: SITES_TABLE, rowId: site.$id,
+    databaseId, tableId: WEBSITES_TABLE, rowId: site.$id,
     data: {
       healthStatus,
       healthCheckedAt,
@@ -91,8 +91,8 @@ export async function runHealthSweep(): Promise<HealthSweepResult> {
   const admin = createAdminClient()
   const databaseId = config.public.appwriteDatabaseId
 
-  const { rows } = await admin.tablesDB.listRows<SiteRow>({
-    databaseId, tableId: SITES_TABLE, queries: [Query.limit(100)],
+  const { rows } = await admin.tablesDB.listRows<WebsiteRow>({
+    databaseId, tableId: WEBSITES_TABLE, queries: [Query.limit(100)],
   })
 
   const result: HealthSweepResult = { checked: 0, notOk: [], changed: [] }

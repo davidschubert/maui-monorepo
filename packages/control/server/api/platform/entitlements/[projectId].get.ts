@@ -1,6 +1,6 @@
 import { createPrivateKey, sign as cryptoSign } from 'node:crypto'
 import { Query } from 'node-appwrite'
-import { SITES_TABLE, type SiteRow } from '../../../../shared/types/site'
+import { WEBSITES_TABLE, type WebsiteRow } from '../../../../shared/types/website'
 import { ENTITLEMENTS_TABLE, type EntitlementRow } from '../../../../shared/types/entitlement'
 
 /**
@@ -38,8 +38,8 @@ export default defineEventHandler(async (event) => {
   const admin = createAdminClient(event)
   const databaseId = config.public.appwriteDatabaseId
 
-  const { rows: sites } = await admin.tablesDB.listRows<SiteRow>({
-    databaseId, tableId: SITES_TABLE,
+  const { rows: sites } = await admin.tablesDB.listRows<WebsiteRow>({
+    databaseId, tableId: WEBSITES_TABLE,
     queries: [Query.equal('projectId', projectId), Query.limit(1)],
   }).catch((error) => { throw toH3Error(error, 'Could not load site') })
   const site = sites[0]

@@ -4,7 +4,7 @@
 // bestehender Sites und „Neue Site" als Provisionierungs-Job — ausgeführt
 // repo-seitig von `pnpm control:jobs` (§ 8: der Web-Prozess beschreibt nur).
 import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
-import type { SiteRow } from '../../../shared/types/site'
+import type { WebsiteRow } from '../../../shared/types/website'
 import type { FeatureCatalogEntry, JobRow, SiteCreateJobPayload, SiteCreateJobResult } from '../../../shared/types/job'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'sites.manage' })
@@ -13,8 +13,8 @@ const { t, locale } = useI18n()
 const toast = useToast()
 const confirm = useConfirm()
 
-type SiteWithEntitlements = SiteRow & { entitlements: string[] }
-const { data, refresh } = await useFetch<{ sites: SiteWithEntitlements[] }>('/api/control/sites')
+type WebsiteWithEntitlements = WebsiteRow & { entitlements: string[] }
+const { data, refresh } = await useFetch<{ websites: WebsiteWithEntitlements[] }>('/api/control/websites')
 const { data: jobsData, refresh: refreshJobs } = await useFetch<{ jobs: JobRow[] }>('/api/control/jobs')
 const { data: catalogData } = await useFetch<{ features: FeatureCatalogEntry[] }>('/api/control/features')
 const { data: workspacesData } = await useFetch<{ workspaces: { $id: string, name: string }[] }>('/api/control/workspaces')
@@ -27,11 +27,11 @@ const workspaceOptions = computed(() => [
   ...(workspacesData.value?.workspaces ?? []).map(w => ({ label: w.name, value: w.$id })),
 ])
 
-async function assignWorkspace(site: SiteRow, value: string) {
+async function assignWorkspace(site: WebsiteRow, value: string) {
   const workspaceId = value === NO_WORKSPACE ? '' : value
   if (workspaceId === (site.workspaceId ?? '')) return
   try {
-    await $fetch(`/api/control/sites/${site.$id}`, { method: 'PATCH', body: { workspaceId } })
+    await $fetch(`/api/control/websites/${site.$id}`, { method: 'PATCH', body: { workspaceId } })
     toast.add({ title: t('control.workspaces.assigned', { name: site.name }), color: 'success' })
   }
   catch (error) {
@@ -46,25 +46,25 @@ const form = reactive({ name: '', slug: '', projectId: '', endpoint: 'http://loc
 
 async function register() {
   try {
-    await $fetch('/api/control/sites', { method: 'POST', body: { ...form, appUrl: form.appUrl || undefined } })
-    toast.add({ title: t('control.sites.registered', { name: form.name }), color: 'success' })
+    await $fetch('/api/control/websites', { method: 'POST', body: { ...form, appUrl: form.appUrl || undefined } })
+    toast.add({ title: t('control.websites.registered', { name: form.name }), color: 'success' })
     showRegister.value = false
     Object.assign(form, { name: '', slug: '', projectId: '', endpoint: 'http://localhost/v1', appUrl: '' })
   }
   catch (error) {
-    toast.add({ title: t('control.sites.registerFailed'), description: (error as { statusMessage?: string })?.statusMessage, color: 'error' })
+    toast.add({ title: t('control.websites.registerFailed'), description: (error as { statusMessage?: string })?.statusMessage, color: 'error' })
   }
   await refresh()
 }
 
 const checking = ref<string | null>(null)
-async function checkHealth(site: SiteRow) {
+async function checkHealth(site: WebsiteRow) {
   checking.value = site.$id
   try {
-    await $fetch(`/api/control/sites/${site.$id}/health`, { method: 'POST' })
+    await $fetch(`/api/control/websites/${site.$id}/health`, { method: 'POST' })
   }
   catch {
-    toast.add({ title: t('control.sites.healthFailed'), color: 'error' })
+    toast.add({ title: t('control.websites.healthFailed'), color: 'error' })
   }
   finally {
     checking.value = null
@@ -72,18 +72,18 @@ async function checkHealth(site: SiteRow) {
   }
 }
 
-async function deregister(site: SiteRow) {
+async function deregister(site: WebsiteRow) {
   try {
     const ok = await confirm({
-      title: t('control.sites.deregisterTitle'),
-      description: t('control.sites.deregisterConfirm', { name: site.name }),
-      confirmLabel: t('control.sites.deregister'),
-      action: () => $fetch(`/api/control/sites/${site.$id}`, { method: 'DELETE' }),
+      title: t('control.websites.deregisterTitle'),
+      description: t('control.websites.deregisterConfirm', { name: site.name }),
+      confirmLabel: t('control.websites.deregister'),
+      action: () => $fetch(`/api/control/websites/${site.$id}`, { method: 'DELETE' }),
     })
     if (!ok) return
   }
   catch {
-    toast.add({ title: t('control.sites.deregisterFailed'), color: 'error' })
+    toast.add({ title: t('control.websites.deregisterFailed'), color: 'error' })
   }
   await refresh()
 }
@@ -143,11 +143,11 @@ async function createSite() {
 }
 
 // ── Entitlements (T3): Grant-Set je Site verwalten ──────────────────────────
-const entitlementSite = ref<SiteWithEntitlements | null>(null)
+const entitlementSite = ref<WebsiteWithEntitlements | null>(null)
 const grantSelection = ref<string[]>([])
 const savingGrants = ref(false)
 
-function openEntitlements(site: SiteWithEntitlements) {
+function openEntitlements(site: WebsiteWithEntitlements) {
   entitlementSite.value = site
   grantSelection.value = [...site.entitlements]
 }
@@ -157,7 +157,7 @@ async function saveEntitlements() {
   if (!entitlementSite.value) return
   savingGrants.value = true
   try {
-    await $fetch(`/api/control/sites/${entitlementSite.value.$id}/entitlements`, {
+    await $fetch(`/api/control/websites/${entitlementSite.value.$id}/entitlements`, {
       method: 'PUT',
       body: { features: grantSelection.value },
     })
@@ -192,7 +192,7 @@ onUnmounted(() => { if (pollTimer) clearInterval(pollTimer) })
 /** Feature-Snapshot der Site (vom Health-Sweep, T4) — implizite Keys werden
  *  nicht angezeigt; läuft etwas ohne Entitlement, warnt der Chip. */
 const IMPLICIT_FEATURES = ['core', 'system', 'control']
-function runningFeatures(site: SiteWithEntitlements): string[] {
+function runningFeatures(site: WebsiteWithEntitlements): string[] {
   try {
     return (JSON.parse(site.features || '[]') as string[]).filter(key => !IMPLICIT_FEATURES.includes(key))
   }
@@ -208,11 +208,11 @@ const jobColor = (s: string) => (s === 'done' ? 'success' : s === 'running' ? 'i
 const HIDE_MD = { td: 'hidden md:table-cell', th: 'hidden md:table-cell' }
 const HIDE_LG = { td: 'hidden lg:table-cell', th: 'hidden lg:table-cell' }
 
-const siteColumns = computed<TableColumn<SiteWithEntitlements>[]>(() => [
-  { accessorKey: 'name', header: () => t('control.sites.col.site') },
-  { id: 'state', header: () => t('control.sites.col.state') },
-  { id: 'features', header: () => t('control.sites.col.features'), meta: { class: HIDE_LG } },
-  { id: 'workspace', header: () => t('control.sites.col.workspace'), meta: { class: HIDE_MD } },
+const websiteColumns = computed<TableColumn<WebsiteWithEntitlements>[]>(() => [
+  { accessorKey: 'name', header: () => t('control.websites.col.site') },
+  { id: 'state', header: () => t('control.websites.col.state') },
+  { id: 'features', header: () => t('control.websites.col.features'), meta: { class: HIDE_LG } },
+  { id: 'workspace', header: () => t('control.websites.col.workspace'), meta: { class: HIDE_MD } },
   { id: 'actions', header: () => '' },
 ])
 
@@ -223,13 +223,13 @@ const jobColumns = computed<TableColumn<JobRow>[]>(() => [
   { id: 'jobActions', header: () => '' },
 ])
 
-function siteActions(site: SiteWithEntitlements): DropdownMenuItem[][] {
+function siteActions(site: WebsiteWithEntitlements): DropdownMenuItem[][] {
   return [
     [
       { label: t('control.entitlements.manage'), icon: 'i-ph-stack', onSelect: () => openEntitlements(site) },
-      { label: t('control.sites.check'), icon: 'i-ph-heartbeat', onSelect: () => { void checkHealth(site) } },
+      { label: t('control.websites.check'), icon: 'i-ph-heartbeat', onSelect: () => { void checkHealth(site) } },
     ],
-    [{ label: t('control.sites.deregister'), icon: 'i-ph-trash', color: 'error', onSelect: () => { void deregister(site) } }],
+    [{ label: t('control.websites.deregister'), icon: 'i-ph-trash', color: 'error', onSelect: () => { void deregister(site) } }],
   ]
 }
 </script>
@@ -237,13 +237,13 @@ function siteActions(site: SiteWithEntitlements): DropdownMenuItem[][] {
 <template>
   <UDashboardPanel id="sites">
     <template #header>
-      <UDashboardNavbar :title="t('control.sites.title')">
+      <UDashboardNavbar :title="t('control.websites.title')">
         <template #leading>
           <UDashboardSidebarCollapse />
         </template>
         <template #right>
           <UButton icon="i-ph-plus" color="neutral" variant="outline" data-sites-register @click="() => { showRegister = true }">
-            {{ t('control.sites.register') }}
+            {{ t('control.websites.register') }}
           </UButton>
           <UButton icon="i-ph-rocket-launch" data-sites-create @click="() => { showCreate = true }">
             {{ t('control.jobs.newSite') }}
@@ -253,7 +253,7 @@ function siteActions(site: SiteWithEntitlements): DropdownMenuItem[][] {
     </template>
 
     <template #body>
-      <UTable :data="data?.sites ?? []" :columns="siteColumns" data-sites-list>
+      <UTable :data="data?.websites ?? []" :columns="websiteColumns" data-websites-list>
         <template #name-cell="{ row }">
           <div class="min-w-0" :data-site="row.original.slug">
             <p class="font-medium">{{ row.original.name }}</p>
@@ -272,7 +272,7 @@ function siteActions(site: SiteWithEntitlements): DropdownMenuItem[][] {
             <!-- ClientOnly: toLocaleString weicht zwischen Node-SSR und Browser ab (Hydration) -->
             <ClientOnly>
               <p v-if="row.original.healthCheckedAt" class="w-full text-xs text-muted">
-                {{ t('control.sites.lastCheck', { at: new Date(row.original.healthCheckedAt).toLocaleString() }) }}
+                {{ t('control.websites.lastCheck', { at: new Date(row.original.healthCheckedAt).toLocaleString() }) }}
               </p>
             </ClientOnly>
           </div>
@@ -286,14 +286,14 @@ function siteActions(site: SiteWithEntitlements): DropdownMenuItem[][] {
               <span v-else class="text-xs text-muted">{{ t('control.entitlements.none') }}</span>
             </div>
             <div v-if="runningFeatures(row.original).length" class="flex flex-wrap items-center gap-1" :data-site-running="runningFeatures(row.original).join(',')">
-              <span class="text-xs text-muted">{{ t('control.sites.running') }}</span>
+              <span class="text-xs text-muted">{{ t('control.websites.running') }}</span>
               <UBadge
                 v-for="feature in runningFeatures(row.original)"
                 :key="feature"
                 :color="row.original.entitlements.includes(feature) ? 'neutral' : 'warning'"
                 variant="subtle"
                 size="sm"
-                :title="row.original.entitlements.includes(feature) ? undefined : t('control.sites.runningUnentitled')"
+                :title="row.original.entitlements.includes(feature) ? undefined : t('control.websites.runningUnentitled')"
               >
                 {{ feature }}
               </UBadge>
@@ -320,7 +320,7 @@ function siteActions(site: SiteWithEntitlements): DropdownMenuItem[][] {
                 color="neutral"
                 variant="ghost"
                 size="xs"
-                :aria-label="t('control.sites.rowActions')"
+                :aria-label="t('control.websites.rowActions')"
                 :loading="checking === row.original.$id"
                 :data-site-check="row.original.slug"
               />
@@ -331,8 +331,8 @@ function siteActions(site: SiteWithEntitlements): DropdownMenuItem[][] {
         <template #empty>
           <CoreEmptyState
             icon="i-ph-globe"
-            :title="t('control.sites.emptyTitle')"
-            :description="t('control.sites.empty')"
+            :title="t('control.websites.emptyTitle')"
+            :description="t('control.websites.empty')"
             :action-label="t('control.jobs.newSite')"
             action-icon="i-ph-rocket-launch"
             data-sites-empty
@@ -380,20 +380,20 @@ function siteActions(site: SiteWithEntitlements): DropdownMenuItem[][] {
       </template>
 
       <!-- T1: bestehende Site manuell registrieren -->
-      <UModal :open="showRegister" :title="t('control.sites.registerTitle')" @update:open="() => { showRegister = false }">
+      <UModal :open="showRegister" :title="t('control.websites.registerTitle')" @update:open="() => { showRegister = false }">
         <template #body>
           <div class="space-y-4">
-            <UFormField :label="t('control.sites.fieldName')"><UInput v-model="form.name" class="w-full" /></UFormField>
-            <UFormField :label="t('control.sites.fieldSlug')"><UInput v-model="form.slug" class="w-full" placeholder="photos" /></UFormField>
-            <UFormField :label="t('control.sites.fieldProjectId')" :hint="t('control.sites.fieldProjectIdHint')"><UInput v-model="form.projectId" class="w-full" placeholder="photos-qgry" /></UFormField>
-            <UFormField :label="t('control.sites.fieldEndpoint')"><UInput v-model="form.endpoint" class="w-full" /></UFormField>
-            <UFormField :label="t('control.sites.fieldAppUrl')"><UInput v-model="form.appUrl" class="w-full" placeholder="http://localhost:3003" /></UFormField>
+            <UFormField :label="t('control.websites.fieldName')"><UInput v-model="form.name" class="w-full" /></UFormField>
+            <UFormField :label="t('control.websites.fieldSlug')"><UInput v-model="form.slug" class="w-full" placeholder="photos" /></UFormField>
+            <UFormField :label="t('control.websites.fieldProjectId')" :hint="t('control.websites.fieldProjectIdHint')"><UInput v-model="form.projectId" class="w-full" placeholder="photos-qgry" /></UFormField>
+            <UFormField :label="t('control.websites.fieldEndpoint')"><UInput v-model="form.endpoint" class="w-full" /></UFormField>
+            <UFormField :label="t('control.websites.fieldAppUrl')"><UInput v-model="form.appUrl" class="w-full" placeholder="http://localhost:3003" /></UFormField>
           </div>
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="() => { showRegister = false }">{{ t('control.sites.cancel') }}</UButton>
-            <UButton data-sites-save @click="register">{{ t('control.sites.save') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { showRegister = false }">{{ t('control.websites.cancel') }}</UButton>
+            <UButton data-sites-save @click="register">{{ t('control.websites.save') }}</UButton>
           </div>
         </template>
       </UModal>
@@ -418,7 +418,7 @@ function siteActions(site: SiteWithEntitlements): DropdownMenuItem[][] {
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="() => { entitlementSite = null }">{{ t('control.sites.cancel') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { entitlementSite = null }">{{ t('control.websites.cancel') }}</UButton>
             <UButton :loading="savingGrants" :disabled="!selectableFeatures.length" data-grant-save @click="saveEntitlements">
               {{ t('control.entitlements.save') }}
             </UButton>
@@ -453,7 +453,7 @@ function siteActions(site: SiteWithEntitlements): DropdownMenuItem[][] {
           <div class="flex w-full items-center justify-between gap-2">
             <p class="text-xs text-muted">{{ t('control.jobs.runnerHint') }}</p>
             <div class="flex gap-2">
-              <UButton color="neutral" variant="ghost" @click="() => { showCreate = false }">{{ t('control.sites.cancel') }}</UButton>
+              <UButton color="neutral" variant="ghost" @click="() => { showCreate = false }">{{ t('control.websites.cancel') }}</UButton>
               <UButton :disabled="!createName.trim() || !selectableFeatures.length" :loading="creating" data-create-save @click="createSite">
                 {{ t('control.jobs.create') }}
               </UButton>

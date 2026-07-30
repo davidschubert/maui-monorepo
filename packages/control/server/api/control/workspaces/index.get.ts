@@ -7,7 +7,7 @@ import {
   type WorkspaceMemberRow,
   type WorkspaceRow,
 } from '../../../../shared/types/workspace'
-import { SITES_TABLE, type SiteRow } from '../../../../shared/types/site'
+import { WEBSITES_TABLE, type WebsiteRow } from '../../../../shared/types/website'
 
 /**
  * Workspace-Register (sites.manage) — M8-T2: Liste aller Workspaces samt
@@ -26,8 +26,8 @@ export default defineEventHandler(async (event): Promise<{ workspaces: (Workspac
       databaseId, tableId: WORKSPACES_TABLE,
       queries: [Query.orderAsc('name'), Query.limit(100)],
     }),
-    admin.tablesDB.listRows<SiteRow>({
-      databaseId, tableId: SITES_TABLE,
+    admin.tablesDB.listRows<WebsiteRow>({
+      databaseId, tableId: WEBSITES_TABLE,
       queries: [Query.limit(100)],
     }),
     admin.tablesDB.listRows<WorkspaceMemberRow>({
