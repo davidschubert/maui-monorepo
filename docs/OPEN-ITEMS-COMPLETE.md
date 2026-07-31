@@ -469,3 +469,24 @@ Hosts live, Nachweis per Ancestor-Check des Live-Builds.
 **Gelernt:** Ein „im Code behoben"-Punkt ist erst zu, wenn der Fix nachweislich
 im LIVE-Build steckt — der Ancestor-Check (`git merge-base --is-ancestor
 <fix> <live-build>`) ist dafür der billigste Beweis, kein erneutes Deployen.
+
+### E8-3 — tenants→communities + 19 communityId-Spalten ✅ 2026-07-31
+
+Komplett in einem Tag, in drei Phasen je Instanz (4 Prod + 4 lokal):
+(1) control-029 kopierte `tenants`→`communities` und `tenant_plans`→
+`community_plans` GENERISCH (Spalten+Indizes aus der Quelle gespiegelt,
+Zeilen MIT Row-Id, upsert-fähig); (2) acht Layer-Migrationen legten
+`communityId` neben `tenantId` in alle 19 Pool-Tabellen (Backfill +
+Index-Zwillinge, Unique erst nach vollständiger Kopie), Code-Umschaltung am
+Engpass (Datentür: Filter neu, Stempel doppelt); (3) Aufräumer mit finalem
+Drift-Backfill + Gegenprobe VOR jedem Löschen, control-030 ließ die
+Alt-Tabellen fallen. Beweise: comments 13/13 · presence 10/10 · posts 7/7 ·
+events 14/14 · courses 28/28; alle Instanzen paginiert nachverifiziert.
+**Gelernt:** `listColumns` paginiert bei 25 — die spaltenreiche
+events-Tabelle wurde vom generischen Skip STILL übersprungen und flog erst
+im Isolationsbeweis auf (Query.limit(200) gehört in JEDEN Spalten-Scan;
+Beweise nach jedem Schritt sind der Grund, warum so ein Umbau verantwortbar
+ist). **Gelernt:** Tabellen liegen auf MEHR Instanzen als die Manifeste
+sagen (events-Altbestand auf comments, pages auf control, media auf photos)
+— Schema-Verifikation immer über ALLE Instanzen, nie über die Layer-Liste.
+
