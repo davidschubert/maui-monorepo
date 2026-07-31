@@ -531,3 +531,19 @@ docs/plans/DASHBOARD-IA.md). **Gelernt:** die Silo-Ausnahme muss an
 tenancy.enabled hängen, nicht an isTenantHost — sonst erscheinen
 Community-Einträge auf Kontroll-Hosts, wo ihre APIs 404en.
 
+### E10 — Customer Feedback zentral ✅ 2026-07-31
+
+Nach Davids acht Vorab-Entscheidungen: feedback+tickets zogen von comments
+nach control (Silo-Bestand vorher gesichert: 10 lokal/1 Prod), vier neue
+Control-Tabellen (control-032, lokal+Prod gefahren), Feedback-Widget auf
+jeder Community-Seite, /dashboard/feedback (Trending/Top/New) +
+/dashboard/roadmap (vier Spalten), Naht „jedes Dashboard fragt seinen
+eigenen Server" (controlService in core, in-process auf control,
+fail-soft), origin nur für den Betreiber, eine Stimme pro Person,
+Rate-Limits, GDPR-Contributor. Roadmap = Sicht auf Feedback, NICHT das
+Ticket-Board (bleibt Betreiber-intern). Bewusst offen im Plan: Auto-
+Changelog bei Complete, Owner-Sicht, Verfasser-Benachrichtigung (D5-Wand).
+**Gelernt:** Wenn zwei Layer denselben Naht-Transport brauchen, gehört er
+in core hochgezogen — nicht kopiert (controlService, Config-Schlüssel
+unverändert, onboarding delegiert nur noch).
+
