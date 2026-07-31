@@ -20,10 +20,19 @@ import { isNewPaymentFailure, isStale, subscriptionToPatch, subscriptionToVerifi
 export default defineEventHandler(async (event) => {
   await requireBillingEnabled(event)
 
+  // Ohne Signatur-Secret kann diese Installation keinen Webhook ANNEHMEN —
+  // also hostet sie auch keinen. 404, dieselbe Antwort wie das Gate zwei
+  // Zeilen darüber und wie die Datentür.
+  //
+  // Vorher stand hier 500. Das war falsch klassifiziert: 5xx heißt „der Server
+  // ist kaputt" und landet als Vorfall in der Fehler-Ablage — an einer
+  // öffentlichen URL, die jeder Fremde unsigniert anstoßen kann. Eine bewusst
+  // nicht eingerichtete Route ist aber kein Ausfall, sondern eine Abwesenheit.
+  // Live erwischt am 2026-07-30: `comments` antwortete 500, `control` 400.
   const secret = useRuntimeConfig(event).stripeWebhookSecret
   if (!secret) {
-    console.error('[billing] NUXT_STRIPE_WEBHOOK_SECRET fehlt — Webhook kann Signaturen nicht prüfen.')
-    throw createError({ status: 500, statusText: 'Payment provider not configured' })
+    warnMisconfiguredOnce('webhookSecret', '[billing] NUXT_STRIPE_WEBHOOK_SECRET fehlt — Webhook nimmt nichts an (404). Nur relevant, wenn diese Installation Stripe-Events empfangen SOLL.')
+    throw createError({ status: 404, statusText: 'Not found' })
   }
 
   const raw = await readRawBody(event)

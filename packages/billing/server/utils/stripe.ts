@@ -3,6 +3,30 @@ import type { H3Event } from 'h3'
 import type { MauiBillingConfig } from '../../shared/types/billing'
 
 /**
+ * „Fehlt dauerhaft" nur EINMAL pro Prozess melden.
+ *
+ * Warum das nötig ist: die betroffenen Meldungen hängen an ÖFFENTLICHEN,
+ * unauthentifizierten Routen (`/api/billing/prices`, `/api/stripe/webhook`).
+ * Eine fehlende Konfiguration ändert sich innerhalb eines Prozesses nicht —
+ * jede weitere Zeile trägt also null Information, aber jeder Fremde im Netz
+ * kann sie auslösen. Am 2026-07-30 auf `comments` gemessen: 16 Zeilen im
+ * laufenden Log. Kein Vorfall, aber ein Hebel, den man nicht liegen lässt.
+ * Beim Neustart ist der Merker wieder leer — eine echte Fehlkonfiguration
+ * bleibt also nach jedem Deploy sichtbar.
+ */
+const warned = new Set<string>()
+export function warnMisconfiguredOnce(key: string, message: string): void {
+  if (warned.has(key)) return
+  warned.add(key)
+  console.error(message)
+}
+
+/** Nur für Tests: Merker leeren. */
+export function __resetMisconfigurationWarnings(): void {
+  warned.clear()
+}
+
+/**
  * Stripe-Server-Fundament (B8/B10): lazy Singleton, Key aus runtimeConfig
  * (NUXT_STRIPE_SECRET_KEY, server-only). Fehlender Key → generischer 500 +
  * Server-Log (kein Boot-Crash, keine Details an Clients).
@@ -13,7 +37,7 @@ export function useStripe(event: H3Event): Stripe {
   if (stripeSingleton) return stripeSingleton
   const key = useRuntimeConfig(event).stripeSecretKey
   if (!key) {
-    console.error('[billing] NUXT_STRIPE_SECRET_KEY fehlt — Billing ist enabled, aber ohne Key nicht funktionsfähig.')
+    warnMisconfiguredOnce('secretKey', '[billing] NUXT_STRIPE_SECRET_KEY fehlt — Billing ist enabled, aber ohne Key nicht funktionsfähig.')
     throw createError({ status: 500, statusText: 'Payment provider not configured' })
   }
   stripeSingleton = new Stripe(key)
