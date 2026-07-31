@@ -59,7 +59,6 @@ export async function seedHomePage(event: H3Event, input: SeedHomePageInput): Pr
     data: {
       slug: 'home',
       locale: input.locale,
-      tenantId: input.tenantId,
       communityId: input.tenantId,
       title: input.title,
       body,

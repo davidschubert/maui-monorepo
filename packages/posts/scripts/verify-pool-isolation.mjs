@@ -50,25 +50,25 @@ try {
   const postA = await seed('community_posts', {
     type: 'text', title: 'A-Post', body: `iso-${RUN} A`, authorId: 'u-a', authorName: 'A',
     status: 'published', scheduledAt: null, publishedAt: now, pollOptions: null, pollEndsAt: null,
-    upvotes: 0, downvotes: 0, score: 0, tenantId: TA,
+    upvotes: 0, downvotes: 0, score: 0, communityId: TA,
   })
   const postB = await seed('community_posts', {
     type: 'poll', title: 'B-Poll', body: `iso-${RUN} B`, authorId: 'u-b', authorName: 'B',
     status: 'published', scheduledAt: null, publishedAt: now,
     pollOptions: JSON.stringify(['ja', 'nein']), pollEndsAt: null,
-    upvotes: 0, downvotes: 0, score: 0, tenantId: TB,
+    upvotes: 0, downvotes: 0, score: 0, communityId: TB,
   })
 
   const feedFor = tid => tablesDB.listRows({
     databaseId, tableId: 'community_posts',
-    queries: [Query.equal('status', 'published'), Query.contains('body', `iso-${RUN}`), Query.equal('tenantId', tid), Query.limit(25)],
+    queries: [Query.equal('status', 'published'), Query.contains('body', `iso-${RUN}`), Query.equal('communityId', tid), Query.limit(25)],
   }).then(r => r.rows)
   const fA = await feedFor(TA)
   const fB = await feedFor(TB)
   check('feed: A sieht genau 1 Post', fA.length === 1, `(${fA.length})`)
-  check('feed: A sieht NUR eigene', fA.every(r => r.tenantId === TA && r.title === 'A-Post'))
+  check('feed: A sieht NUR eigene', fA.every(r => r.communityId === TA && r.title === 'A-Post'))
   check('feed: B sieht genau 1 Post', fB.length === 1, `(${fB.length})`)
-  check('feed: B sieht NUR eigene', fB.every(r => r.tenantId === TB && r.title === 'B-Poll'))
+  check('feed: B sieht NUR eigene', fB.every(r => r.communityId === TB && r.title === 'B-Poll'))
 
   // Korrektheits-Kern: OHNE tenantId-Filter mischt der Feed beide Tenants
   const mixed = await tablesDB.listRows({
@@ -79,20 +79,20 @@ try {
 
   // ── post_votes: GLEICHER User stimmt in beiden Communities ab (Härtefall:
   //    userId allein trennt nicht — erst tenantId macht die Stimme eindeutig) ─
-  await seed('post_votes', { postId: postA.$id, userId: 'u-x', value: 1, tenantId: TA })
-  await seed('post_votes', { postId: postB.$id, userId: 'u-x', value: -1, tenantId: TB })
+  await seed('post_votes', { postId: postA.$id, userId: 'u-x', value: 1, communityId: TA })
+  await seed('post_votes', { postId: postB.$id, userId: 'u-x', value: -1, communityId: TB })
   const vA = await tablesDB.listRows({
     databaseId, tableId: 'post_votes',
-    queries: [Query.equal('userId', 'u-x'), Query.equal('tenantId', TA), Query.limit(25)],
+    queries: [Query.equal('userId', 'u-x'), Query.equal('communityId', TA), Query.limit(25)],
   })
   check('post_votes: u-x hat in A genau 1 Stimme (upvote)', vA.rows.length === 1 && vA.rows[0].value === 1, `(${vA.rows.length})`)
 
   // ── poll_votes: Zählung bleibt im Mandanten ───────────────────────────────
-  await seed('poll_votes', { postId: postB.$id, userId: 'u-b2', optionIndex: 0, tenantId: TB })
-  await seed('poll_votes', { postId: postB.$id, userId: 'u-fremd', optionIndex: 0, tenantId: TA }) // absichtlich falsch gestempelt
+  await seed('poll_votes', { postId: postB.$id, userId: 'u-b2', optionIndex: 0, communityId: TB })
+  await seed('poll_votes', { postId: postB.$id, userId: 'u-fremd', optionIndex: 0, communityId: TA }) // absichtlich falsch gestempelt
   const countB = await tablesDB.listRows({
     databaseId, tableId: 'poll_votes',
-    queries: [Query.equal('postId', postB.$id), Query.equal('optionIndex', 0), Query.equal('tenantId', TB), Query.limit(1)],
+    queries: [Query.equal('postId', postB.$id), Query.equal('optionIndex', 0), Query.equal('communityId', TB), Query.limit(1)],
   }).then(r => r.total)
   check('poll_votes: B zählt nur eigene Stimmen (1, nicht 2)', countB === 1, `(${countB})`)
 }

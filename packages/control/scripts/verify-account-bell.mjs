@@ -195,8 +195,8 @@ try {
   })
   check('Meldung liegt im CONTROL-Projekt beim Betreiber', !!inviteRow, 'keine Zeile gefunden')
   if (inviteRow) cleanup.controlRows.push(inviteRow.$id)
-  check(`Ablage ist '${ACCOUNT}' (mandantenlos, nicht in einer Community)`, inviteRow?.tenantId === ACCOUNT,
-    `tenantId='${inviteRow?.tenantId}'`)
+  check(`Ablage ist '${ACCOUNT}' (mandantenlos, nicht in einer Community)`, inviteRow?.communityId === ACCOUNT,
+    `communityId='${inviteRow?.communityId}'`)
   check('Titel trägt die anfragende Adresse (die Glocke setzt ihn als {name})',
     inviteRow?.title === requestEmail, `title='${inviteRow?.title}'`)
   check('Link zeigt auf die Betreiber-Oberfläche', inviteRow?.link === '/dashboard/invites', `link='${inviteRow?.link}'`)
@@ -223,10 +223,10 @@ try {
 
   // Eine so gestempelte Zeile — von hier ab läuft der echte Leseweg.
   const billingRow = await seedNotification(controlDb, operator.id, {
-    type: 'billing', title: `c17-plan-${stamp}`, tenantId: ACCOUNT,
+    type: 'billing', title: `c17-plan-${stamp}`, communityId: ACCOUNT,
   })
   cleanup.controlRows.push(billingRow.$id)
-  check('Zahlungs-Meldung liegt mandantenlos beim Kunden', billingRow.tenantId === ACCOUNT)
+  check('Zahlungs-Meldung liegt mandantenlos beim Kunden', billingRow.communityId === ACCOUNT)
 
   // ──────────────────────────────────────────────────────────────────────────
   console.log('\n3. Lesen über die echte Route')
@@ -293,7 +293,7 @@ try {
   const accountTitle = `c17-konto-${stamp}`
   if (tenantId) {
     cleanup.poolRows.push((await seedNotification(poolDb, member.id, { type: 'reply', title: communityTitle, tenantId })).$id)
-    cleanup.poolRows.push((await seedNotification(poolDb, member.id, { type: 'billing', title: accountTitle, tenantId: ACCOUNT })).$id)
+    cleanup.poolRows.push((await seedNotification(poolDb, member.id, { type: 'billing', title: accountTitle, communityId: ACCOUNT })).$id)
   }
 
   // EINE Anmeldung, ZWEI Hosts — dieselbe Person, zwei Welten. Das Cookie

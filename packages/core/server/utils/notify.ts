@@ -90,12 +90,12 @@ export async function notify(event: H3Event, input: NotifyInput): Promise<void> 
     // eine Zeile ohne Ablage-Merkmal (die zählt als Bestandszeile und bleibt
     // sichtbar). LAUT geloggt, damit es kein Dauerzustand wird; dieselbe
     // Begründung wie der Lese-Rückfall in server/utils/notificationScope.ts.
-    // E8-3-Übergang: BEIDE Stempel (communityId = neue Spalte, system-025).
-    // Der LESE-Pfad bleibt bewusst auf tenantId, bis die Aufräum-Migration die
-    // Null-Frage der Bestandszeilen klärt (Appwrite backfillt Defaults nicht —
-    // ein Lese-Switch jetzt würde alte Zeilen aus der Glocke werfen).
-    await create({ ...data, tenantId, communityId: tenantId }).catch(async (error: unknown) => {
-      console.warn('[core] Notification mit Stempeln fehlgeschlagen — Rückfall ohne (system-022/025 fehlt?):', error)
+    // E8-3: die Ablage-Spalte heißt communityId (system-025; tenantId ist mit
+    // system-026 gefallen). Semantik unverändert: '' = unbekannt (fail-open),
+    // '_account' = mandantenlos — der Backfill hat jede gestempelte Zeile
+    // kopiert, Null-Bestand verhält sich auf beiden Spalten identisch.
+    await create({ ...data, communityId: tenantId }).catch(async (error: unknown) => {
+      console.warn('[core] Notification mit Stempel fehlgeschlagen — Rückfall ohne (system-025 fehlt?):', error)
       return await create(data)
     })
 

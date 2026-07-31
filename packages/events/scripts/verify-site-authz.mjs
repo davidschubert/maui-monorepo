@@ -224,7 +224,7 @@ try {
     check('DELETE /api/events/:id/series → 409 statt 403 (autorisiert, nur kein Serien-Master)', a.series?.status === 409, `Status ${a.series?.status}`)
     check('DELETE /api/events/:id → 200 (Soft-Cancel)', a.cancel?.status === 200, `Status ${a.cancel?.status}`)
     const raw = a.id ? await pool.getRow({ databaseId, tableId: 'events', rowId: a.id }).catch(() => null) : null
-    check('Datentür hat tenantId von A gestempelt', raw?.tenantId === tenantA.tenantId, `tenantId=${raw?.tenantId}`)
+    check('Datentür hat communityId von A gestempelt', raw?.communityId === tenantA.tenantId, `communityId=${raw?.communityId}`)
 
     console.log('\n2. Dieselbe Person auf der NACHBAR-Community')
     const bManage = await call(HOST_B, '/api/events/manage', { cookie: ownerCookie })

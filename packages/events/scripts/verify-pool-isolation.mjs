@@ -166,7 +166,7 @@ try {
   // TenantContext.tenantId = tenants.tenantId (Scope-Wert der Datenzeilen);
   // tenants.$id ist die communityId (Label-Schlüssel) — zwei Schlüssel, ein Tenant.
   const rawRow = eventId ? await pool.getRow({ databaseId, tableId: 'events', rowId: eventId }).catch(() => null) : null
-  check('Tür hat tenantId von A gestempelt (nie vom Aufrufer)', rawRow?.tenantId === tenantA.tenantId, `tenantId=${rawRow?.tenantId}, erwartet ${tenantA.tenantId}`)
+  check('Tür hat communityId von A gestempelt (nie vom Aufrufer)', rawRow?.communityId === tenantA.tenantId, `communityId=${rawRow?.communityId}, erwartet ${tenantA.tenantId}`)
 
   console.log('\n3. Listen-Isolation (Gast-Sicht)')
   const listA = await call(HOST_A, '/api/events')

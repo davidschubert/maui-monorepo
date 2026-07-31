@@ -36,7 +36,8 @@ export function notificationScopeQueries(event: H3Event): string[] {
   const allowed = visibleNotificationScopes(notificationAudience(event))
   // Query.equal mit Array = IN — eine Abfrage für „eigene Community ODER
   // ungestempelter Bestand" bzw. „Kundenbereich ODER Bestand".
-  return allowed ? [Query.equal('tenantId', allowed)] : []
+  // E8-3: die Spalte heißt communityId (system-025/026).
+  return allowed ? [Query.equal('communityId', allowed)] : []
 }
 
 /**

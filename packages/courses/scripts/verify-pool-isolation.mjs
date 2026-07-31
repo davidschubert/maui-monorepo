@@ -187,7 +187,7 @@ try {
   // TenantContext.tenantId = tenants.tenantId (Scope-Wert der Datenzeilen);
   // tenants.$id ist die communityId (Label-Schlüssel) — zwei Schlüssel, ein Tenant.
   const rawCourse = courseId ? await pool.getRow({ databaseId, tableId: 'courses', rowId: courseId }).catch(() => null) : null
-  check('Tür hat tenantId von A gestempelt (nie vom Aufrufer)', rawCourse?.tenantId === tenantA.tenantId, `tenantId=${rawCourse?.tenantId}, erwartet ${tenantA.tenantId}`)
+  check('Tür hat communityId von A gestempelt (nie vom Aufrufer)', rawCourse?.communityId === tenantA.tenantId, `communityId=${rawCourse?.communityId}, erwartet ${tenantA.tenantId}`)
 
   const lessonRes = await call(HOST_A, `/api/courses/${courseId}/lessons`, {
     method: 'POST', cookie: ownerCookie,
@@ -197,7 +197,7 @@ try {
   check('POST Lektion auf A → 201', lessonRes.status === 201 && !!lessonId, `Status ${lessonRes.status} ${lessonRes.text.slice(0, 160)}`)
   if (lessonId) cleanup.lessons.push(lessonId)
   const rawLesson = lessonId ? await pool.getRow({ databaseId, tableId: 'lessons', rowId: lessonId }).catch(() => null) : null
-  check('Tür hat tenantId auch auf die Lektion gestempelt', rawLesson?.tenantId === tenantA.tenantId, `tenantId=${rawLesson?.tenantId}`)
+  check('Tür hat communityId auch auf die Lektion gestempelt', rawLesson?.communityId === tenantA.tenantId, `communityId=${rawLesson?.communityId}`)
 
   console.log('\n3. Mitglieder-Sicht: der Nachbar sieht nichts')
   const stranger = await createUser('stranger')

@@ -24,8 +24,8 @@ describe('scopeQueriesFor', () => {
 })
 
 describe('scopeRowFor', () => {
-  it('pool: stempelt BEIDE Spalten (E8-3-Übergang bis zur Aufräum-Migration)', () => {
-    expect(scopeRowFor(pool, { text: 'hi' })).toEqual({ text: 'hi', tenantId: 'acme', communityId: 'acme' })
+  it('pool: stempelt communityId (E8-3-Aufräumen: tenantId ist gefallen)', () => {
+    expect(scopeRowFor(pool, { text: 'hi' })).toEqual({ text: 'hi', communityId: 'acme' })
   })
   it('silo: kein tenantId (Projekt-isoliert)', () => {
     expect(scopeRowFor(silo, { text: 'hi' }).tenantId).toBeUndefined()
@@ -51,11 +51,11 @@ describe('tenantCacheScopeFor (Cross-Tenant-Cache-Regel)', () => {
 
 describe('rowBelongsToTenant — die Grenze beim Zugriff PER ID', () => {
   it('pool: nur die eigene Zeile', () => {
-    expect(rowBelongsToTenant(pool, { tenantId: 'acme' })).toBe(true)
-    expect(rowBelongsToTenant(pool, { tenantId: 'fremd' })).toBe(false)
+    expect(rowBelongsToTenant(pool, { communityId: 'acme' })).toBe(true)
+    expect(rowBelongsToTenant(pool, { communityId: 'fremd' })).toBe(false)
   })
 
-  it('pool: Zeile OHNE tenantId gilt als fremd (fail-closed)', () => {
+  it('pool: Zeile OHNE communityId gilt als fremd (fail-closed)', () => {
     // Bestand vor der Migration. Lieber ein 404 auf eine eigene Altzeile als
     // ein Treffer auf eine fremde.
     expect(rowBelongsToTenant(pool, { tenantId: '' })).toBe(false)

@@ -3,7 +3,7 @@
  * H3-Pool-Isolation — LIVE-DB-Beweis (repeatable). Ergänzt den pure-logic-
  * Beweis (spikes/s5-pool-silo/test.mjs) um einen echten Appwrite-Roundtrip:
  * seedet Rows für ZWEI Tenants (ta/tb) in den gepoolten Tabellen und prüft,
- * dass die scopeQuery-Filterung (Query.equal('tenantId', …)) auf DB-Ebene
+ * dass die scopeQuery-Filterung (Query.equal('communityId', …)) auf DB-Ebene
  * wirklich isoliert — für comments UND reports (die Tabellen, die die
  * platform-App ausliefert). Fängt reale Fehler, die pure Logik nicht sieht:
  * fehlende Spalte, nicht-verfügbarer Index, Tippfehler im Feldnamen.
@@ -48,7 +48,7 @@ async function countFor(table, tenantId) {
   const res = await tablesDB.listRows({
     databaseId,
     tableId: table,
-    queries: [Query.equal('targetId', TARGET), Query.equal('tenantId', tenantId), Query.limit(25)],
+    queries: [Query.equal('targetId', TARGET), Query.equal('communityId', tenantId), Query.limit(25)],
   })
   return res.rows
 }
@@ -60,35 +60,35 @@ try {
   await seed('comments', {
     targetId: TARGET, targetType: 'page', content: 'A-Kommentar', parentId: null, rootId: null,
     depth: 0, editedAt: null, authorId: 'u-a', authorName: 'A', upvotes: 0, downvotes: 0, score: 0,
-    status: 'active', tenantId: TA,
+    status: 'active', communityId: TA,
   })
   await seed('comments', {
     targetId: TARGET, targetType: 'page', content: 'B-Kommentar', parentId: null, rootId: null,
     depth: 0, editedAt: null, authorId: 'u-b', authorName: 'B', upvotes: 0, downvotes: 0, score: 0,
-    status: 'active', tenantId: TB,
+    status: 'active', communityId: TB,
   })
   const cA = await countFor('comments', TA)
   const cB = await countFor('comments', TB)
   check('comments: A sieht genau 1 Zeile', cA.length === 1, `(${cA.length})`)
-  check('comments: A sieht NUR eigene', cA.every(r => r.tenantId === TA && r.content === 'A-Kommentar'))
+  check('comments: A sieht NUR eigene', cA.every(r => r.communityId === TA && r.content === 'A-Kommentar'))
   check('comments: B sieht genau 1 Zeile', cB.length === 1, `(${cB.length})`)
-  check('comments: B sieht NUR eigene', cB.every(r => r.tenantId === TB && r.content === 'B-Kommentar'))
+  check('comments: B sieht NUR eigene', cB.every(r => r.communityId === TB && r.content === 'B-Kommentar'))
 
   // ── reports (H3-Fläche 2) ───────────────────────────────────────────────────
   await seed('reports', {
     reporterId: 'u-a', targetType: 'comment', targetId: TARGET, reason: 'spam', note: null,
-    status: 'open', resolvedBy: null, resolution: null, tenantId: TA,
+    status: 'open', resolvedBy: null, resolution: null, communityId: TA,
   })
   await seed('reports', {
     reporterId: 'u-b', targetType: 'comment', targetId: TARGET, reason: 'spam', note: null,
-    status: 'open', resolvedBy: null, resolution: null, tenantId: TB,
+    status: 'open', resolvedBy: null, resolution: null, communityId: TB,
   })
   const rA = await countFor('reports', TA)
   const rB = await countFor('reports', TB)
   check('reports: A sieht genau 1 Meldung', rA.length === 1, `(${rA.length})`)
-  check('reports: A sieht NUR eigene', rA.every(r => r.tenantId === TA && r.reporterId === 'u-a'))
+  check('reports: A sieht NUR eigene', rA.every(r => r.communityId === TA && r.reporterId === 'u-a'))
   check('reports: B sieht genau 1 Meldung', rB.length === 1, `(${rB.length})`)
-  check('reports: B sieht NUR eigene', rB.every(r => r.tenantId === TB && r.reporterId === 'u-b'))
+  check('reports: B sieht NUR eigene', rB.every(r => r.communityId === TB && r.reporterId === 'u-b'))
 
   // Korrektheits-Kern: OHNE tenantId-Filter mischt derselbe targetId beide Tenants
   const mixed = await tablesDB.listRows({
@@ -105,16 +105,16 @@ try {
     for (const [tid, title] of [[TA, 'A-Home'], [TB, 'B-Home']]) {
       const row = await tablesDB.createRow({
         databaseId, tableId: 'pages', rowId: ID.unique(),
-        data: { slug: SLUG, locale: 'en', title, body: `# ${title}`, status: 'published', sortOrder: 0, tenantId: tid },
+        data: { slug: SLUG, locale: 'en', title, body: `# ${title}`, status: 'published', sortOrder: 0, communityId: tid },
       })
       created.push({ table: 'pages', id: row.$id })
     }
-    const pA = await tablesDB.listRows({ databaseId, tableId: 'pages', queries: [Query.equal('slug', SLUG), Query.equal('tenantId', TA), Query.limit(5)] })
-    const pB = await tablesDB.listRows({ databaseId, tableId: 'pages', queries: [Query.equal('slug', SLUG), Query.equal('tenantId', TB), Query.limit(5)] })
+    const pA = await tablesDB.listRows({ databaseId, tableId: 'pages', queries: [Query.equal('slug', SLUG), Query.equal('communityId', TA), Query.limit(5)] })
+    const pB = await tablesDB.listRows({ databaseId, tableId: 'pages', queries: [Query.equal('slug', SLUG), Query.equal('communityId', TB), Query.limit(5)] })
     check('pages: A sieht genau 1 Seite (eigener slug-home)', pA.rows.length === 1, `(${pA.rows.length})`)
-    check('pages: A sieht NUR eigene', pA.rows.every(r => r.tenantId === TA && r.title === 'A-Home'))
+    check('pages: A sieht NUR eigene', pA.rows.every(r => r.communityId === TA && r.title === 'A-Home'))
     check('pages: B sieht genau 1 Seite', pB.rows.length === 1, `(${pB.rows.length})`)
-    check('pages: B sieht NUR eigene', pB.rows.every(r => r.tenantId === TB && r.title === 'B-Home'))
+    check('pages: B sieht NUR eigene', pB.rows.every(r => r.communityId === TB && r.title === 'B-Home'))
   }
   else {
     console.log('↷ pages-Tabelle nicht vorhanden — übersprungen (kein platform/control-Projekt)')

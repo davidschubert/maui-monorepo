@@ -166,10 +166,10 @@ try {
 
   console.log('\n5. Zeilen tragen keinen Mandanten')
   const rawCourse = await db.getRow({ databaseId, tableId: 'courses', rowId: courseId })
-  check('courses.tenantId ist leer (Silo stempelt nicht)', (rawCourse.tenantId ?? '') === '', `tenantId='${rawCourse.tenantId}'`)
+  check('courses.communityId ist leer (Silo stempelt nicht)', (rawCourse.communityId ?? rawCourse.tenantId ?? '') === '', `communityId='${rawCourse.communityId}'`)
   check('published trägt read("users")', (rawCourse.$permissions ?? []).includes('read("users")'), JSON.stringify(rawCourse.$permissions))
   const rawLesson = await db.getRow({ databaseId, tableId: 'lessons', rowId: lessonId })
-  check('lessons.tenantId ist leer und die Lektion trägt keine Read-Permission', (rawLesson.tenantId ?? '') === '' && (rawLesson.$permissions ?? []).length === 0, JSON.stringify(rawLesson.$permissions))
+  check('lessons.communityId ist leer und die Lektion trägt keine Read-Permission', (rawLesson.communityId ?? rawLesson.tenantId ?? '') === '' && (rawLesson.$permissions ?? []).length === 0, JSON.stringify(rawLesson.$permissions))
   const unpublish = await call(`/api/courses/${courseId}`, { method: 'PATCH', cookie: adminCookie, body: { status: 'draft' } })
   const rawAfter = await db.getRow({ databaseId, tableId: 'courses', rowId: courseId })
   check('Unpublish entzieht read("users") wieder', unpublish.status === 200 && !(rawAfter.$permissions ?? []).includes('read("users")'), JSON.stringify(rawAfter.$permissions))

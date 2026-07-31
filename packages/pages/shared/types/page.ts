@@ -15,8 +15,7 @@ export interface PageRow extends Models.Row {
   slug: string
   locale: string
   /** H3-Pool-Datenpfad (pages-003); '' = Silo/Einzelbetrieb. */
-  tenantId?: string
-  /** E8-3: neue Scope-Spalte (pages-005); tenantId fällt mit der Aufräum-Migration. */
+  /** E8-3: Scope-Spalte (pages-005); tenantId ist mit pages-006 gefallen. */
   communityId?: string
   title: string
   body: string

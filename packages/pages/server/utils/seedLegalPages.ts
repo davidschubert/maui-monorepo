@@ -73,7 +73,6 @@ export async function seedLegalPages(event: H3Event, input: SeedLegalPagesInput)
         data: {
           slug: template.slug,
           locale,
-          tenantId: input.tenantId,
           communityId: input.tenantId,
           title: template.title,
           body: template.body,

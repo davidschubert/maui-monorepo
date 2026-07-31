@@ -29,14 +29,13 @@ export function scopeQueriesFor(tenant: TenantContext | null, queries: string[] 
   return [...queries]
 }
 
-/** Row-Daten mandanten-scopen: Pool stempelt, sonst unverändert.
- *  ÜBERGANG (E8-3): BEIDE Spalten, bis die Aufräum-Migration tenantId löscht —
- *  so bleibt jede im Deploy-Fenster entstandene Zeile für beide Welten sichtbar. */
+/** Row-Daten mandanten-scopen: Pool stempelt communityId, sonst unverändert.
+ *  (E8-3-Aufräumen: tenantId-Spalte ist gefallen — nur noch EIN Stempel.) */
 export function scopeRowFor<T extends Record<string, unknown>>(
   tenant: TenantContext | null,
   data: T,
-): T & { tenantId?: string, communityId?: string } {
-  if (tenant?.mode === 'pool') return { ...data, tenantId: tenant.tenantId, communityId: tenant.tenantId }
+): T & { communityId?: string } {
+  if (tenant?.mode === 'pool') return { ...data, communityId: tenant.tenantId }
   return { ...data }
 }
 
@@ -75,13 +74,8 @@ export function rowBelongsToTenant(tenant: TenantContext | null, row: unknown): 
   // tragen je Layer andere Typen. Ein enger Parameter-Typ hätte an jeder
   // Aufrufstelle einen Cast erzwungen — und ein Cast ist genau die Stelle, an
   // der so eine Prüfung später versehentlich weggeräumt wird.
-  // E8-3-Übergang: communityId ist die Spalte, tenantId der Rückfall für
-  // Zeilen, die ALTER Code im Deploy-Fenster nur mit tenantId gestempelt hat
-  // (der Drift-Nachlauf der Migration zieht sie nach). Fail-closed bleibt:
-  // ohne BEIDE Werte ist die Zeile fremd.
-  const { communityId, tenantId } = row as { communityId?: unknown, tenantId?: unknown }
-  const scope = typeof communityId === 'string' && communityId !== '' ? communityId : tenantId
-  return typeof scope === 'string' && scope !== '' && scope === tenant.tenantId
+  const communityId = (row as { communityId?: unknown }).communityId
+  return typeof communityId === 'string' && communityId !== '' && communityId === tenant.tenantId
 }
 
 /**
@@ -107,7 +101,7 @@ export function tenantCacheScope(event: H3Event): string {
   return tenantCacheScopeFor(useTenant(event))
 }
 
-export function scopeRow<T extends Record<string, unknown>>(event: H3Event, data: T): T & { tenantId?: string } {
+export function scopeRow<T extends Record<string, unknown>>(event: H3Event, data: T): T & { communityId?: string } {
   return scopeRowFor(useTenant(event), data)
 }
 

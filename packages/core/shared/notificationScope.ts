@@ -108,9 +108,9 @@ export function visibleNotificationScopes(audience: NotificationAudience): strin
  */
 export function notificationVisibleFor(
   audience: NotificationAudience,
-  row: { tenantId?: string | null },
+  row: { communityId?: string | null },
 ): boolean {
   const allowed = visibleNotificationScopes(audience)
   if (!allowed) return true
-  return allowed.includes(row.tenantId ?? NOTIFICATION_SCOPE_UNKNOWN)
+  return allowed.includes(row.communityId ?? NOTIFICATION_SCOPE_UNKNOWN)
 }

@@ -41,10 +41,10 @@ async function load() {
 // greift (uid beim Subscribe zu fixieren würde sonst leer bleiben).
 let stop: (() => void) | undefined
 onMounted(() => {
-  // tenantId liegt an der ROW (system-022), aber nicht im ausgelieferten DTO —
+  // communityId liegt an der ROW (system-025), aber nicht im ausgelieferten DTO —
   // die Leseroute filtert ja schon serverseitig. Der Realtime-Strom bringt die
   // rohe Zeile, deshalb hier explizit dazugetypt statt das DTO aufzuweiten.
-  stop = useRealtimeRows<Models.Row & UserNotification & { tenantId?: string }>(
+  stop = useRealtimeRows<Models.Row & UserNotification & { communityId?: string }>(
     config.public.appwriteDatabaseId,
     'notifications',
     (ev) => {

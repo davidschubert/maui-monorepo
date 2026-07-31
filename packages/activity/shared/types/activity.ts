@@ -20,7 +20,8 @@ export interface Activity extends Models.Row {
   visibility: string
   /** Mandant der Row (Migration system-021, Datentür C1b).
    *  '' / fehlend = Silo-/Einzelbetrieb. */
-  tenantId?: string
+  /** E8-3: Scope-Spalte (system-025); tenantId ist mit system-026 gefallen. */
+  communityId?: string
 }
 
 /** Listen-Eintrag, um den Actor-Avatar angereichert (wie comments) */

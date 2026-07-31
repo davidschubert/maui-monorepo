@@ -76,20 +76,20 @@ describe('notificationVisibleFor — die Isolation, Zeile für Zeile', () => {
   const communityB = { kind: 'tenant', tenantId: 'tenant-b' } as const
 
   it('Community A zeigt A, nicht B', () => {
-    expect(notificationVisibleFor(communityA, { tenantId: 'tenant-a' })).toBe(true)
-    expect(notificationVisibleFor(communityA, { tenantId: 'tenant-b' })).toBe(false)
-    expect(notificationVisibleFor(communityB, { tenantId: 'tenant-a' })).toBe(false)
+    expect(notificationVisibleFor(communityA, { communityId: 'tenant-a' })).toBe(true)
+    expect(notificationVisibleFor(communityA, { communityId: 'tenant-b' })).toBe(false)
+    expect(notificationVisibleFor(communityB, { communityId: 'tenant-a' })).toBe(false)
   })
 
   it('kontobezogene Meldungen erscheinen NICHT in einer Community-Glocke', () => {
     // Davids Entscheidung 3: ein Mitglied darf keine Zahlungswarnung sehen,
     // die den Betreiber-Vertrag betrifft.
-    expect(notificationVisibleFor(communityA, { tenantId: NOTIFICATION_SCOPE_ACCOUNT })).toBe(false)
-    expect(notificationVisibleFor({ kind: 'account' }, { tenantId: NOTIFICATION_SCOPE_ACCOUNT })).toBe(true)
+    expect(notificationVisibleFor(communityA, { communityId: NOTIFICATION_SCOPE_ACCOUNT })).toBe(false)
+    expect(notificationVisibleFor({ kind: 'account' }, { communityId: NOTIFICATION_SCOPE_ACCOUNT })).toBe(true)
   })
 
   it('Community-Meldungen erscheinen NICHT im Kundenbereich', () => {
-    expect(notificationVisibleFor({ kind: 'account' }, { tenantId: 'tenant-a' })).toBe(false)
+    expect(notificationVisibleFor({ kind: 'account' }, { communityId: 'tenant-a' })).toBe(false)
   })
 
   it('BESTANDSZEILEN ohne Stempel bleiben überall sichtbar — fail-OPEN', () => {

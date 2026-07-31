@@ -47,9 +47,6 @@ export function useSiteId() {
  * dieser Filter fängt den Fall, dass jemand in ZWEI Communities Mitglied ist
  * und deshalb beide Streams zugestellt bekommt.
  */
-export function rowBelongsToHost(row: { tenantId?: string, communityId?: string }, tenantId: string | null): boolean {
-  // E8-3-Übergang: communityId ist die Spalte, tenantId der Rückfall für
-  // Zeilen aus dem Deploy-Fenster (Drift-Nachlauf zieht sie nach).
-  const scope = row.communityId || row.tenantId || ''
-  return scope === (tenantId ?? '')
+export function rowBelongsToHost(row: { communityId?: string }, tenantId: string | null): boolean {
+  return (row.communityId ?? '') === (tenantId ?? '')
 }
