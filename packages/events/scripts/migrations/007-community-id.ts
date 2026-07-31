@@ -58,7 +58,7 @@ async function step(label: string, run: () => Promise<unknown>) {
 
 async function waitAvailable(tableId: string) {
   for (let i = 0; i < 60; i++) {
-    const { columns } = await tablesDB.listColumns({ databaseId: db, tableId })
+    const { columns } = await tablesDB.listColumns({ databaseId: db, tableId, queries: [Query.limit(200)] })
     const { indexes } = await tablesDB.listIndexes({ databaseId: db, tableId })
     if (columns.every(c => c.status === 'available') && indexes.every(x => x.status === 'available')) return
     await new Promise(resolve => setTimeout(resolve, 1000))
@@ -70,7 +70,7 @@ console.log(`Migration events-007 gegen ${endpoint} / Projekt ${projectId} / DB 
 
 for (const table of TABLES) {
   console.log(`— ${table} —`)
-  const src = await tablesDB.listColumns({ databaseId: db, tableId: table }).catch((error) => {
+  const src = await tablesDB.listColumns({ databaseId: db, tableId: table, queries: [Query.limit(200)] }).catch((error) => {
     if (hasCode(error, 404)) return null
     throw error
   })

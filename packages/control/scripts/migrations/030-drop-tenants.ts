@@ -35,7 +35,7 @@ function hasCode(error: unknown, code: number): boolean {
 console.log(`Migration control-030 gegen ${endpoint} / Projekt ${projectId} / DB ${db}`)
 
 for (const [source, target] of [['tenants', 'communities'], ['tenant_plans', 'community_plans']] as const) {
-  const src = await tablesDB.listColumns({ databaseId: db, tableId: source }).catch((error) => {
+  const src = await tablesDB.listColumns({ databaseId: db, tableId: source, queries: [Query.limit(200)] }).catch((error) => {
     if (hasCode(error, 404)) return null
     throw error
   })

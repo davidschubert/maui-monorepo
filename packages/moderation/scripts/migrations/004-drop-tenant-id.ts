@@ -54,7 +54,7 @@ console.log(`Migration moderation-004 gegen ${endpoint} / Projekt ${projectId} /
 
 for (const table of TABLES) {
   console.log(`— ${table} —`)
-  const src = await tablesDB.listColumns({ databaseId: db, tableId: table }).catch((error) => {
+  const src = await tablesDB.listColumns({ databaseId: db, tableId: table, queries: [Query.limit(200)] }).catch((error) => {
     if (hasCode(error, 404)) return null
     throw error
   })

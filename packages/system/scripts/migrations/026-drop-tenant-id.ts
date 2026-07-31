@@ -54,7 +54,7 @@ console.log(`Migration system-026 gegen ${endpoint} / Projekt ${projectId} / DB 
 
 for (const table of TABLES) {
   console.log(`— ${table} —`)
-  const src = await tablesDB.listColumns({ databaseId: db, tableId: table }).catch((error) => {
+  const src = await tablesDB.listColumns({ databaseId: db, tableId: table, queries: [Query.limit(200)] }).catch((error) => {
     if (hasCode(error, 404)) return null
     throw error
   })
