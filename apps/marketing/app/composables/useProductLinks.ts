@@ -1,14 +1,14 @@
 /**
  * Ziel-Links der Marketing-CTAs. Der Kundenbereich lebt auf my.pukalani.app
  * (Umbenennung 2026-07-25, vorher app.pukalani.app), die Live-Demo auf
- * demo.pukalani.app. Lokal per NUXT_PUBLIC_* überschreibbar; sonst die
- * Prod-Hosts.
+ * demo.pukalani.app.
+ *
+ * Die Werte stehen als Skeleton in nuxt.config.ts (runtimeConfig.public) —
+ * dort auch die Prod-Defaults. Lokal/Staging per NUXT_PUBLIC_MARKETING_*_URL
+ * überschreibbar; ohne den Skeleton-Key mappt die Env-Var ins Leere, deshalb
+ * gehören Default UND Key in die Config, nicht hierher.
  */
 export function useProductLinks() {
-  const config = useRuntimeConfig()
-  const pub = config.public as Record<string, unknown>
-  const start = (pub.marketingStartUrl as string) || 'https://my.pukalani.app/register'
-  const signIn = (pub.marketingSignInUrl as string) || 'https://my.pukalani.app/login'
-  const demo = (pub.marketingDemoUrl as string) || 'https://demo.pukalani.app'
-  return { start, signIn, demo }
+  const { marketingStartUrl, marketingSignInUrl, marketingDemoUrl } = useRuntimeConfig().public
+  return { start: marketingStartUrl, signIn: marketingSignInUrl, demo: marketingDemoUrl }
 }

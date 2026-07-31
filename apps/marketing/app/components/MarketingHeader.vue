@@ -17,8 +17,19 @@ const PRODUCTS = [
   { slug: 'events', icon: 'i-ph-calendar-check-bold', ea: true },
 ] as const
 
-/** Die Produkt-Sektion liegt auf der Startseite — auch von Unterseiten aus. */
-const blocksTarget = computed(() => ({ path: localePath('/'), hash: '#bausteine' }))
+/**
+ * Alle Anker-Ziele der Navigation liegen auf der STARTSEITE — der Header hängt
+ * über layouts/site.vue aber an jeder Seite. Ein rohes href="#preise" zeigt auf
+ * /faq oder /produkte/* deshalb ins Leere; als { path, hash } navigiert der Link
+ * erst nach Hause und springt dort zum Abschnitt. localePath, damit der
+ * Locale-Präfix (/de/…) nicht verloren geht.
+ */
+function homeSection(hash: string) {
+  return computed(() => ({ path: localePath('/'), hash }))
+}
+const blocksTarget = homeSection('#bausteine')
+const pricingTarget = homeSection('#preise')
+const storyTarget = homeSection('#geschichte')
 </script>
 
 <template>
@@ -29,7 +40,7 @@ const blocksTarget = computed(() => ({ path: localePath('/'), hash: '#bausteine'
         <span class="brand-word">Pukalani</span>
       </NuxtLink>
 
-      <nav class="mkt-nav" aria-label="Hauptnavigation">
+      <nav class="mkt-nav" :aria-label="t('marketing.nav.aria.main')">
         <!-- Produkte-Ausklapper: bewusst rein per CSS (:hover / :focus-within),
              wie der <details>-Ausklapper unten — kein JS-State, funktioniert
              also auch, solange Hydration noch läuft. -->
@@ -66,8 +77,8 @@ const blocksTarget = computed(() => ({ path: localePath('/'), hash: '#bausteine'
             </div>
           </div>
         </div>
-        <a href="#preise" class="nav-link">{{ t('marketing.nav.pricing') }}</a>
-        <a href="#geschichte" class="nav-link">{{ t('marketing.nav.story') }}</a>
+        <NuxtLink :to="pricingTarget" class="nav-link">{{ t('marketing.nav.pricing') }}</NuxtLink>
+        <NuxtLink :to="storyTarget" class="nav-link">{{ t('marketing.nav.story') }}</NuxtLink>
       </nav>
 
       <!-- Mobil: die Desktop-Nav ist ausgeblendet — ohne diesen Ausklapper wären
@@ -88,10 +99,13 @@ const blocksTarget = computed(() => ({ path: localePath('/'), hash: '#bausteine'
             <UIcon :name="product.icon" />
             {{ t(`marketing.nav.products.items.${product.slug}.title`) }}
           </NuxtLink>
-          <a href="#bausteine" class="mkt-nav-mobile-divide">{{ t('marketing.nav.features') }}</a>
-          <a href="#preise">{{ t('marketing.nav.pricing') }}</a>
-          <a href="#geschichte">{{ t('marketing.nav.story') }}</a>
-          <a href="#faq">{{ t('marketing.faq.kicker') }}</a>
+          <NuxtLink :to="blocksTarget" class="mkt-nav-mobile-divide">{{ t('marketing.nav.features') }}</NuxtLink>
+          <NuxtLink :to="pricingTarget">{{ t('marketing.nav.pricing') }}</NuxtLink>
+          <NuxtLink :to="storyTarget">{{ t('marketing.nav.story') }}</NuxtLink>
+          <!-- FAQ hat eine EIGENE Seite (mit eigenem JSON-LD/OG) — die gewinnt
+               gegen den Anker auf der Startseite, so wie im Footer. Route-NAME
+               statt Pfad-String: die Regel steht in MarketingFooter.vue. -->
+          <NuxtLink :to="localePath({ name: 'faq' })">{{ t('marketing.faq.kicker') }}</NuxtLink>
         </div>
       </details>
 

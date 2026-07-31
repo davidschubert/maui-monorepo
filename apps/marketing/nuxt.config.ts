@@ -1,3 +1,17 @@
+import type { NuxtPage } from '@nuxt/schema'
+
+/**
+ * Route-Meta `colorMode` (color-mode 4 → `forced`) auf JEDER Seite. Warum nicht
+ * `definePageMeta` je Datei: die nächste neue Seite würde das Loch wieder
+ * aufreißen — hier gilt es zentral und ausnahmslos.
+ */
+function forceLightColorMode(pages: NuxtPage[]): void {
+  for (const page of pages) {
+    page.meta = { ...page.meta, colorMode: 'light' }
+    if (page.children?.length) forceLightColorMode(page.children)
+  }
+}
+
 export default defineNuxtConfig({
   // Marketing-Startseite von pukalani.app (Wurzel). Bewusst NUR das Fundament
   // (core + system) — kein admin/themes/comments: die Seite ist öffentlich +
@@ -33,6 +47,40 @@ export default defineNuxtConfig({
     '/de/features/**': { redirect: { to: '/de/produkte/**', statusCode: 301 } },
     '/for/**': { redirect: { to: '/use-cases/**', statusCode: 301 } },
     '/de/fuer/**': { redirect: { to: '/de/use-cases/**', statusCode: 301 } },
+  },
+
+  // Ziel-Links der Marketing-CTAs (useProductLinks). Die Werte sind die
+  // PROD-Hosts; lokal/Staging per Env überschreibbar — ohne Skeleton-Key
+  // mappt die Env-Var ins Leere (gleiches Muster wie appUrl im Core).
+  // Env: NUXT_PUBLIC_MARKETING_START_URL / _SIGN_IN_URL / _DEMO_URL
+  runtimeConfig: {
+    public: {
+      // Kundenbereich (Umbenennung 2026-07-25, vorher app.pukalani.app)
+      marketingStartUrl: 'https://my.pukalani.app/register',
+      marketingSignInUrl: 'https://my.pukalani.app/login',
+      marketingDemoUrl: 'https://demo.pukalani.app',
+    },
+  },
+
+  // Diese App ist bewusst HELL — die Licht-Dramaturgie (§6.3, Kopf-Kommentar in
+  // app/assets/css/marketing.css) nagelt ihre Licht-Töne fest und hat
+  // keinen .dark-Zweig. color-mode kommt über Nuxt UI mit und stand auf
+  // 'system': OS-Dark-Besucher bekamen dunkle Nuxt-UI-Elemente auf heller
+  // Fläche + dunklen <html>-Overscroll. Eine Dark-Variante kann später mit der
+  // Nuxt-UI-Migration kommen; bis dahin ist Hell die einzige Wahrheit.
+  colorMode: {
+    preference: 'light',
+    fallback: 'light',
+  },
+
+  hooks: {
+    // preference/fallback allein reichen NICHT: das Inline-Skript von
+    // color-mode liest zuerst den gespeicherten Wert (localStorage
+    // 'nuxt-color-mode'), und wer die Seite vorher besucht hat, hat dort
+    // 'system' stehen. Die Route-Meta setzt data-color-mode-forced ins
+    // SSR-HTML, und GENAU das schlägt im Skript den Storage-Wert — also
+    // flash-frei statt „erst dunkel, dann hell".
+    'pages:extend': forceLightColorMode,
   },
 
   // App-Keys mergen mit den Core-Locales (gleicher code).

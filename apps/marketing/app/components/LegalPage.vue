@@ -49,9 +49,10 @@ useSeoMeta({
         </aside>
 
         <!-- Von der verbindlichen Datenschutzerklärung zur technischen
-             Erklärseite verlinken (und nur dort). -->
+             Erklärseite verlinken (und nur dort). Route-NAME statt Pfad-String
+             (Regel in MarketingFooter.vue): EN liegt sie unter /gdpr. -->
         <p v-if="scope === 'privacy'" class="legal-seealso">
-          <NuxtLink :to="localePath('/dsgvo')">
+          <NuxtLink :to="localePath({ name: 'dsgvo' })">
             {{ t('marketing.legal.privacy.seeAlso') }} <UIcon name="i-ph-arrow-right-bold" />
           </NuxtLink>
         </p>

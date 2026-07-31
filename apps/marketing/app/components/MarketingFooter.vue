@@ -14,34 +14,43 @@ const year = 2026 // statisch: Date.now() steht im Build nicht zur Verfügung
           <span class="foot-word">Pukalani</span>
         </div>
         <p class="foot-tagline">{{ t('marketing.footer.tagline') }}</p>
-        <p class="foot-refrain">„{{ t('marketing.footer.refrain') }}"</p>
+        <!-- Die Anführungszeichen stehen IM i18n-Text: „…" ist deutsche
+             Typografie, EN setzt “…”. -->
+        <p class="foot-refrain">{{ t('marketing.footer.refrain') }}</p>
       </div>
 
-      <nav class="foot-col" aria-label="Produkt">
+      <nav class="foot-col" :aria-label="t('marketing.footer.aria.product')">
         <h3>{{ t('marketing.footer.colProduct') }}</h3>
         <a :href="start">{{ t('marketing.footer.start') }}</a>
         <a :href="demo">{{ t('marketing.footer.demo') }}</a>
-        <!-- Route-NAME statt Pfad-String: /produkte/* trägt lokalisierte Pfade
-             (defineI18nRoute). Ein roher Pfad wird nur mit dem Locale-Präfix
-             versehen, das Segment bleibt deutsch — auf EN stünde dann
-             /produkte/… im HTML. -->
+        <!-- ══ REGEL FÜR ALLE INTERNEN LINKS DIESER APP ══════════════════════
+             localePath IMMER mit dem Route-NAMEN aufrufen, nie mit einem rohen
+             Pfad-String. Fast jede Seite trägt je Sprache einen eigenen Pfad
+             (defineI18nRoute: /agb↔/terms, /dsgvo↔/gdpr, /produkte/*↔/products/*
+             …). Ein roher Pfad bekommt nur den Locale-Präfix davor, das Segment
+             bleibt deutsch — auf EN stünde dann /datenschutz im HTML, und das
+             ist dort ein 404 (der Dev-Server meldet es als „No match found for
+             location"). Auch bei Seiten OHNE eigene Pfade (faq, vs/*,
+             use-cases/*) den Namen nehmen: sonst reißt die nächste
+             defineI18nRoute-Ergänzung das Loch wieder auf.
+             EINZIGE Ausnahme: localePath('/') für die Startseite. ═══════════ -->
         <NuxtLink :to="localePath({ name: 'produkte-slug', params: { slug: 'diskussionen' } })">{{ t('marketing.footer.featDiscussions') }}</NuxtLink>
         <NuxtLink :to="localePath({ name: 'produkte-slug', params: { slug: 'kurse' } })">{{ t('marketing.footer.featCourses') }}</NuxtLink>
         <NuxtLink :to="localePath({ name: 'produkte-slug', params: { slug: 'events' } })">{{ t('marketing.footer.featEvents') }}</NuxtLink>
         <NuxtLink :to="localePath({ name: 'produkte-slug', params: { slug: 'branding' } })">{{ t('marketing.footer.featBranding') }}</NuxtLink>
-        <NuxtLink :to="localePath('/faq')">{{ t('marketing.footer.faq') }}</NuxtLink>
-        <NuxtLink :to="localePath('/glossar')">{{ t('marketing.footer.glossary') }}</NuxtLink>
+        <NuxtLink :to="localePath({ name: 'faq' })">{{ t('marketing.footer.faq') }}</NuxtLink>
+        <NuxtLink :to="localePath({ name: 'glossar' })">{{ t('marketing.footer.glossary') }}</NuxtLink>
       </nav>
 
-      <nav class="foot-col" aria-label="Vergleich">
+      <nav class="foot-col" :aria-label="t('marketing.footer.aria.compare')">
         <h3>{{ t('marketing.footer.colCompare') }}</h3>
-        <NuxtLink :to="localePath('/vs/circle')">{{ t('marketing.footer.vsCircle') }}</NuxtLink>
-        <NuxtLink :to="localePath('/vs/skool')">{{ t('marketing.footer.vsSkool') }}</NuxtLink>
-        <NuxtLink :to="localePath('/vs/mighty-networks')">{{ t('marketing.footer.vsMighty') }}</NuxtLink>
-        <NuxtLink :to="localePath('/wechseln')">{{ t('marketing.footer.switchPage') }}</NuxtLink>
+        <NuxtLink :to="localePath({ name: 'vs-slug', params: { slug: 'circle' } })">{{ t('marketing.footer.vsCircle') }}</NuxtLink>
+        <NuxtLink :to="localePath({ name: 'vs-slug', params: { slug: 'skool' } })">{{ t('marketing.footer.vsSkool') }}</NuxtLink>
+        <NuxtLink :to="localePath({ name: 'vs-slug', params: { slug: 'mighty-networks' } })">{{ t('marketing.footer.vsMighty') }}</NuxtLink>
+        <NuxtLink :to="localePath({ name: 'wechseln' })">{{ t('marketing.footer.switchPage') }}</NuxtLink>
       </nav>
 
-      <nav class="foot-col" aria-label="Anwendungsfälle">
+      <nav class="foot-col" :aria-label="t('marketing.footer.aria.useCases')">
         <h3>{{ t('marketing.footer.colUseCases') }}</h3>
         <NuxtLink :to="localePath({ name: 'use-cases-slug', params: { slug: 'coaches' } })">{{ t('marketing.footer.forCoaches') }}</NuxtLink>
         <NuxtLink :to="localePath({ name: 'use-cases-slug', params: { slug: 'kurse' } })">{{ t('marketing.footer.forCourses') }}</NuxtLink>
@@ -49,10 +58,10 @@ const year = 2026 // statisch: Date.now() steht im Build nicht zur Verfügung
         <NuxtLink :to="localePath({ name: 'use-cases-slug', params: { slug: 'vereine' } })">{{ t('marketing.footer.forClubs') }}</NuxtLink>
       </nav>
 
-      <nav class="foot-col" aria-label="Über">
+      <nav class="foot-col" :aria-label="t('marketing.footer.aria.company')">
         <h3>{{ t('marketing.footer.colCompany') }}</h3>
         <NuxtLink :to="localePath('/')">{{ t('marketing.footer.story') }}</NuxtLink>
-        <NuxtLink :to="localePath('/dsgvo')">{{ t('marketing.footer.privacyHow') }}</NuxtLink>
+        <NuxtLink :to="localePath({ name: 'dsgvo' })">{{ t('marketing.footer.privacyHow') }}</NuxtLink>
         <a href="https://changelog.pukalani.app">{{ t('marketing.footer.changelog') }}</a>
         <!-- Die Statusseite liegt bewusst NICHT bei uns: sie muss antworten,
              wenn unser Server es nicht tut. -->
@@ -61,11 +70,11 @@ const year = 2026 // statisch: Date.now() steht im Build nicht zur Verfügung
 
       <!-- Rechtstexte liegen auf DIESER Domain (Impressumspflicht), nicht als
            Link auf app.pukalani.app. -->
-      <nav class="foot-col" aria-label="Rechtliches">
+      <nav class="foot-col" :aria-label="t('marketing.footer.aria.legal')">
         <h3>{{ t('marketing.footer.colLegal') }}</h3>
-        <NuxtLink :to="localePath('/datenschutz')">{{ t('marketing.footer.privacy') }}</NuxtLink>
-        <NuxtLink :to="localePath('/impressum')">{{ t('marketing.footer.imprint') }}</NuxtLink>
-        <NuxtLink :to="localePath('/agb')">{{ t('marketing.footer.terms') }}</NuxtLink>
+        <NuxtLink :to="localePath({ name: 'datenschutz' })">{{ t('marketing.footer.privacy') }}</NuxtLink>
+        <NuxtLink :to="localePath({ name: 'impressum' })">{{ t('marketing.footer.imprint') }}</NuxtLink>
+        <NuxtLink :to="localePath({ name: 'agb' })">{{ t('marketing.footer.terms') }}</NuxtLink>
       </nav>
     </div>
 

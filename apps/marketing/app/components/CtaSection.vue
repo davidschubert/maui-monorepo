@@ -18,7 +18,8 @@ const { start, demo } = useProductLinks()
           {{ t('marketing.cta.secondary') }}
         </UButton>
       </div>
-      <p class="cta-refrain">„{{ t('marketing.cta.refrain') }}"</p>
+      <!-- Anführungszeichen im i18n-Text (DE „…" · EN “…”), nicht im Markup. -->
+      <p class="cta-refrain">{{ t('marketing.cta.refrain') }}</p>
     </div>
   </section>
 </template>

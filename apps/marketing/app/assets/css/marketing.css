@@ -4,6 +4,11 @@
  * wie wenn man durch die *puka* aus den Wolken tritt. Bewusst neben der
  * Theme-Engine: die Dramaturgie braucht feste Licht-Töne, unabhängig vom
  * aktiven Instanz-Theme. Alles unter body.marketing-site gescopet.
+ *
+ * KEIN .dark-Zweig, und das ist Absicht: die App klemmt color-mode auf 'light'
+ * (nuxt.config.ts — colorMode + pages:extend). Sonst mischten sich dunkle
+ * Nuxt-UI-Elemente in diese hellen Flächen. Eine echte Dark-Fassung kann mit
+ * der Nuxt-UI-Migration kommen — dann hier UND in nuxt.config.ts.
  */
 
 .marketing-site {
