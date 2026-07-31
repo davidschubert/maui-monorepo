@@ -909,28 +909,24 @@
       "title": "No testimonial theatre. Just sites you can click.",
       "lead": "We don't have customer quotes (yet) — so we don't invent any. Instead Pukalani runs where it hurts: on our own sites, in real operation.",
       "visit": "Visit",
-      "items": [
-        {
+      "items": {
+        "comments": {
           "name": "comments.pukalani.app",
-          "what": "Discussions, moderation and the embed widget in daily use — including guest comments and live presence.",
-          "url": "https://comments.pukalani.app"
+          "what": "Discussions, moderation and the embed widget in daily use — including guest comments and live presence."
         },
-        {
+        "demo": {
           "name": "demo.pukalani.app",
-          "what": "A real pool community: created with one click in the studio, own host, own data space — exactly the path you take.",
-          "url": "https://demo.pukalani.app"
+          "what": "A real pool community: created with one click in the studio, own host, own data space — exactly the path you take."
         },
-        {
+        "portfolio": {
           "name": "portfolio.pukalani.app",
-          "what": "The same platform in a completely different design — proof that branding doesn't stop at an accent colour.",
-          "url": "https://portfolio.pukalani.app"
+          "what": "The same platform in a completely different design — proof that branding doesn't stop at an accent colour."
         },
-        {
+        "changelog": {
           "name": "changelog.pukalani.app",
-          "what": "What we changed and when, publicly readable. Including the weeks where little happened.",
-          "url": "https://changelog.pukalani.app"
+          "what": "What we changed and when, publicly readable. Including the weeks where little happened."
         }
-      ],
+      },
       "honest": "If real customer quotes ever appear here, they will come with a name, a community and consent — and not before."
     }
   }

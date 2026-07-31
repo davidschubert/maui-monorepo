@@ -6,14 +6,33 @@
 // Dogfooding: vier Sites, die tatsächlich live laufen und die man anklicken
 // kann. Der Schluss-Satz sagt ausdrücklich, was passiert, wenn es echte
 // Stimmen gibt — damit die Lücke eine Haltung ist und kein Versehen.
-const PROOF_COUNT = 4
+//
+// DIE VIER ADRESSEN STEHEN IM CODE, NICHT IN DEN SPRACHDATEIEN. Eine URL ist
+// keine Übersetzung: sie stand bis 2026-07-30 zweimal identisch in de.json und
+// en.json — zwei Stellen, die beim nächsten Umzug einer Site auseinanderlaufen
+// können, ohne dass es jemandem auffällt. Namen und Beschreibungen bleiben
+// i18n (marketing.proof.items.<slug>.name/.what).
+//
+// Die Demo kommt aus `useProductLinks()` und NICHT als feste Zeichenkette:
+// dieselbe Adresse steckt in jedem Demo-CTA der Seite und ist per
+// NUXT_PUBLIC_MARKETING_DEMO_URL überschreibbar (lokal/Staging). Eine
+// zweite, hart notierte Kopie hätte den Schalter genau hier ins Leere laufen
+// lassen.
 const { t } = useI18n()
+const { demo } = useProductLinks()
+
+const PROOF_ITEMS = [
+  { slug: 'comments', url: 'https://comments.pukalani.app' },
+  { slug: 'demo', url: demo },
+  { slug: 'portfolio', url: 'https://portfolio.pukalani.app' },
+  { slug: 'changelog', url: 'https://changelog.pukalani.app' },
+] as const
 
 const items = computed(() =>
-  Array.from({ length: PROOF_COUNT }, (_, i) => ({
-    name: t(`marketing.proof.items.${i}.name`),
-    what: t(`marketing.proof.items.${i}.what`),
-    url: t(`marketing.proof.items.${i}.url`),
+  PROOF_ITEMS.map(item => ({
+    name: t(`marketing.proof.items.${item.slug}.name`),
+    what: t(`marketing.proof.items.${item.slug}.what`),
+    url: item.url,
   })),
 )
 </script>

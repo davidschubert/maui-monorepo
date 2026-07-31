@@ -34,17 +34,10 @@ const ctaLinks = computed(() => [
   { to: start, color: 'primary' as const, size: 'xl' as const, label: t('marketing.hero.ctaPrimary') },
 ])
 
-const ogImage = useOgImage('gdpr')
-
-useSeoMeta({
-  title: () => t('marketing.gdpr.metaTitle'),
-  description: () => t('marketing.gdpr.metaDescription'),
-  ogTitle: () => t('marketing.gdpr.metaTitle'),
-  ogDescription: () => t('marketing.gdpr.metaDescription'),
-  ogType: 'article',
-  ogSiteName: 'Pukalani',
-  ogImage: () => ogImage.value,
-  twitterImage: () => ogImage.value,
+useMarketingSeo({
+  titleKey: 'marketing.gdpr.metaTitle',
+  descriptionKey: 'marketing.gdpr.metaDescription',
+  image: 'gdpr',
 })
 </script>
 

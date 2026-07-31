@@ -11,12 +11,14 @@
 // Begriff. Ohne defineI18nRoute-Pfade nimmt i18n den Dateipfad in beiden
 // Sprachen (DE mit /de-Präfix). Die alten Adressen leiten per routeRules 301
 // weiter (apps/marketing/nuxt.config.ts).
+import { AUDIENCE_SLUGS } from '#shared/marketing'
+
 definePageMeta({ layout: 'site' })
 
-const SLUGS = ['coaches', 'kurse', 'creator', 'vereine'] as const
+// Slug-Katalog aus shared/ — dieselbe Liste baut die Sitemap.
 const route = useRoute()
 const slug = String(route.params.slug)
-if (!SLUGS.includes(slug as (typeof SLUGS)[number])) {
+if (!AUDIENCE_SLUGS.includes(slug as (typeof AUDIENCE_SLUGS)[number])) {
   throw createError({ status: 404, statusText: 'Page not found' })
 }
 
@@ -39,18 +41,10 @@ const ctaLinks = computed(() => [
   },
 ])
 
-const ogImage = useOgImage(`use-cases-${slug}`)
-
-useSeoMeta({
-  title: () => t(`${base}.metaTitle`),
-  description: () => t(`${base}.metaDescription`),
-  ogTitle: () => t(`${base}.metaTitle`),
-  ogDescription: () => t(`${base}.metaDescription`),
-  ogType: 'article',
-  ogSiteName: 'Pukalani',
-  ogImage: () => ogImage.value,
-  twitterImage: () => ogImage.value,
-  twitterCard: 'summary_large_image',
+useMarketingSeo({
+  titleKey: `${base}.metaTitle`,
+  descriptionKey: `${base}.metaDescription`,
+  image: `use-cases-${slug}`,
 })
 </script>
 

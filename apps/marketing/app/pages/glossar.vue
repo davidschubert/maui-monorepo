@@ -24,17 +24,10 @@ const ctaLinks = computed(() => [
   { to: start, color: 'primary' as const, size: 'xl' as const, label: t('marketing.hero.ctaPrimary') },
 ])
 
-const ogImage = useOgImage('glossary')
-
-useSeoMeta({
-  title: () => t('marketing.glossary.metaTitle'),
-  description: () => t('marketing.glossary.metaDescription'),
-  ogTitle: () => t('marketing.glossary.metaTitle'),
-  ogDescription: () => t('marketing.glossary.metaDescription'),
-  ogType: 'article',
-  ogSiteName: 'Pukalani',
-  ogImage: () => ogImage.value,
-  twitterImage: () => ogImage.value,
+useMarketingSeo({
+  titleKey: 'marketing.glossary.metaTitle',
+  descriptionKey: 'marketing.glossary.metaDescription',
+  image: 'glossary',
 })
 
 // Strukturierte Daten passend zum Inhaltstyp (keine erfundenen Werte).
