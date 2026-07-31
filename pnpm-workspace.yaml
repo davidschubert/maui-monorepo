@@ -50,6 +50,16 @@ catalog:
   '@types/node': ^22.18.0
   nuxt: ^4.5.1
   '@nuxt/ui': ^4.10.0
+  # MUSS zur Range von @nuxt/ui passen (4.10.0 verlangt ^4.3.2), sonst liegen
+  # zwei Tailwind-Kopien im Baum. Steht hier, weil `tailwindcss` DIREKT gebraucht
+  # wird: packages/core/app/assets/css/main.css und docs/app/assets/css/main.css
+  # machen `@import "tailwindcss"`, und ein CSS-Import löst relativ zur DATEI auf
+  # — also gegen packages/core/node_modules bzw. docs/node_modules. Nur transitiv
+  # über @nuxt/ui reicht dafür nicht: je nach Hoisting landet tailwindcss allein
+  # unter `.pnpm/node_modules/`, und dann wirft JEDER lokale Dev-Server auf JEDER
+  # SSR-Seite 500 „Can't resolve 'tailwindcss'". Prod-Builds trifft es nicht —
+  # der Defekt ist also nur lokal sichtbar und deshalb doppelt tückisch.
+  tailwindcss: ^4.3.2
   '@nuxtjs/mdc': ^0.22.2
   # Fest gekoppelt: @pinia/nuxt 0.11.x verlangt pinia ^3, 1.0.x verlangt ^4 —
   # einzeln bewegt sich keines von beiden ohne unerfuellten Peer.

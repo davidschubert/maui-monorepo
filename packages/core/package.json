@@ -22,6 +22,7 @@
     "node-appwrite": "catalog:",
     "nodemailer": "catalog:",
     "pinia": "catalog:",
+    "tailwindcss": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

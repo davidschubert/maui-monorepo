@@ -49,15 +49,24 @@ useHead(() => ({
 
 <template>
   <div class="glos-page">
+    <!--
+      Schlanker Kopf im Muster von /faq: Kicker, Titel, Lead — und dann sofort
+      die Liste. Dieselben drei abweichenden Maße wie dort, und aus demselben
+      Grund KEINE Glow-Bühne: der Lichtkreis ist die Inszenierung der
+      Einstiegsseiten (Produkte, Zielgruppen, /wechseln, /dsgvo — dort trägt
+      der Kopf eine farbige Unterzeile bzw. einen Hinweiskasten und darf eine
+      Bühne sein). Ein Nachschlagewerk hat kein Versprechen zu machen; der
+      Besucher kommt wegen EINES Begriffs und will die Liste sehen.
+      Nebenwirkung, die es zusätzlich verbietet: der Kreis misst 32rem und die
+      Hero-Sektion trägt `overflow-clip` — in einem kürzeren Kopf bliebe von
+      ihm ein angeschnittener Bogen statt eines Lichts.
+    -->
     <UPageHero
       as="section"
-      class="tone-mist"
+      class="tone-mist [--mkt-hero-pb:clamp(1.5rem,3vw,2.5rem)] [--mkt-hero-pt:clamp(3rem,7vw,5rem)] [--mkt-hero-title:clamp(1.8rem,4.2vw,2.6rem)]"
       :title="t('marketing.glossary.title')"
       :description="t('marketing.glossary.lead')"
     >
-      <template #top>
-        <div class="glos-puka puka-glow" data-parallax="0.1" aria-hidden="true" />
-      </template>
       <template #headline>
         <UButton
           :to="localePath('/')" variant="link" color="neutral" size="sm"
@@ -93,10 +102,9 @@ useHead(() => ({
 </template>
 
 <style scoped>
-/* Nur noch das Bildmotiv — Rhythmus und Typografie des Kopfes kommen aus dem
-   `pageHero`-Vertrag in app/app.config.ts. */
-.glos-puka { top: -16rem; right: -12rem; width: 32rem; height: 32rem; opacity: 0.5; }
-
+/* Nur noch die Liste — Rhythmus und Typografie des Kopfes kommen aus dem
+   `pageHero`-Vertrag in app/app.config.ts, das Bildmotiv ist mit der
+   Glow-Bühne entfallen (Begründung an der Hero-Sektion). */
 .glos-list {
   display: grid;
   grid-template-columns: 1fr;
