@@ -16,7 +16,8 @@
     "@iconify-json/simple-icons": "^1.2.91",
     "@nuxt/content": "catalog:",
     "@nuxt/ui": "catalog:",
-    "nuxt": "catalog:"
+    "nuxt": "catalog:",
+    "tailwindcss": "catalog:"
   },
   "devDependencies": {
     "typescript": "catalog:",
