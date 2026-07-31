@@ -48,13 +48,23 @@ useSeoMeta({
         <h1 class="switch-title">{{ t('marketing.switch.title') }}</h1>
         <p class="mkt-lead">{{ t('marketing.switch.lead') }}</p>
 
-        <!-- Ehrlichkeit zuerst: der Import ist geplant, nicht geliefert. -->
-        <aside class="switch-honest">
-          <h2 class="switch-honest-title">
-            <UIcon name="i-ph-info-bold" /> {{ t('marketing.switch.honestTitle') }}
-          </h2>
-          <p>{{ t('marketing.switch.honest') }}</p>
-        </aside>
+        <!-- Ehrlichkeit zuerst: der Import ist geplant, nicht geliefert.
+             Dieser Hinweis steht VOR den Vorteilen und bleibt dort.
+             `primary` (die Sonne), NICHT `warning`: der Bestand malte den
+             Kasten in --puka-sun — Markenton, keine Warnung. -->
+        <UAlert
+          color="primary" variant="subtle" icon="i-ph-info-bold"
+          :description="t('marketing.switch.honest')"
+          class="mt-8"
+          :ui="{
+            title: 'text-base font-extrabold text-highlighted',
+            description: 'text-base/relaxed opacity-100',
+          }"
+        >
+          <template #title>
+            <h2>{{ t('marketing.switch.honestTitle') }}</h2>
+          </template>
+        </UAlert>
       </div>
     </section>
 
@@ -74,10 +84,15 @@ useSeoMeta({
     <section class="mkt-section tone-dawn">
       <div class="mkt-inner mkt-narrow" data-reveal>
         <h2 class="mkt-h2">{{ t('marketing.switch.keepTitle') }}</h2>
-        <ul class="switch-keep">
-          <li v-for="item in keep" :key="item">
-            <UIcon name="i-ph-check-circle-fill" /> <span>{{ item }}</span>
-          </li>
+        <!-- Häkchen-Liste = dieselbe Bauform wie in PrivacySection und auf den
+             Produktseiten: UPageFeature (Icon + Zeile). Die Marketing-Seite
+             hatte davon drei handgebaute Varianten. -->
+        <ul class="mt-7 flex flex-col gap-2.5">
+          <UPageFeature
+            v-for="item in keep" :key="item"
+            as="li" icon="i-ph-check-circle-fill" :title="item"
+            :ui="{ leadingIcon: 'size-5 text-primary-600', title: 'font-semibold' }"
+          />
         </ul>
       </div>
     </section>
@@ -114,26 +129,6 @@ useSeoMeta({
   margin: 0.5rem 0 1rem;
   text-wrap: balance;
 }
-.switch-honest {
-  margin-top: 2rem;
-  padding: 1.25rem 1.4rem;
-  background: hsl(0 0% 100% / 0.7);
-  border-left: 3px solid hsl(var(--puka-sun));
-  border-radius: 0.7rem;
-  color: hsl(var(--puka-ink-soft));
-  line-height: 1.6;
-}
-.switch-honest-title {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 1rem;
-  font-weight: 800;
-  color: hsl(var(--puka-ink));
-  margin-bottom: 0.4rem;
-}
-.switch-honest-title :deep(svg) { width: 1.1rem; height: 1.1rem; color: hsl(var(--puka-sun-deep)); }
-
 .switch-steps {
   display: grid;
   grid-template-columns: 1fr;
@@ -162,30 +157,6 @@ useSeoMeta({
 }
 .switch-step-title { font-size: 1.08rem; font-weight: 800; margin-bottom: 0.3rem; }
 .switch-step-text { color: hsl(var(--puka-ink-soft)); line-height: 1.55; }
-
-.switch-keep {
-  margin: 1.75rem 0 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-}
-.switch-keep li {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.6rem;
-  font-weight: 600;
-  color: hsl(var(--puka-ink));
-  line-height: 1.5;
-}
-.switch-keep :deep(svg) {
-  width: 1.2rem;
-  height: 1.2rem;
-  flex: none;
-  margin-top: 0.1rem;
-  color: hsl(var(--puka-sun-deep));
-}
 
 @media (min-width: 700px) { .switch-steps { grid-template-columns: repeat(2, 1fr); } }
 @media (min-width: 1060px) { .switch-steps { grid-template-columns: repeat(4, 1fr); } }

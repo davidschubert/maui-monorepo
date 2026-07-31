@@ -41,7 +41,9 @@ useSeoMeta({
     <section class="vs-hero tone-mist">
       <div class="vs-puka puka-glow" data-parallax="0.1" aria-hidden="true" />
       <div class="mkt-inner mkt-narrow vs-hero-inner" data-reveal>
-        <NuxtLink :to="localePath('/')" class="vs-back">
+        <!-- Zurück-Link über die geteilte .mkt-back-Klasse; die frühere
+             eigene .vs-back-Kopie war Zeile für Zeile dieselbe Regel. -->
+        <NuxtLink :to="localePath('/')" class="mkt-back">
           <UIcon name="i-ph-arrow-left-bold" /> {{ t('marketing.vs.backHome') }}
         </NuxtLink>
         <h1 class="vs-title">{{ t(`${base}.title`) }}</h1>
@@ -54,16 +56,20 @@ useSeoMeta({
     <ComparisonSection />
 
     <section class="mkt-section tone-dawn-hold">
-      <div class="mkt-inner mkt-narrow vs-when" data-reveal>
-        <article class="when-card when-them">
-          <h2 class="when-title">{{ t('marketing.vs.whenThemTitle', { name }) }}</h2>
-          <p>{{ t(`${base}.whenThem`) }}</p>
-        </article>
-        <article class="when-card when-us">
-          <h2 class="when-title">{{ t('marketing.vs.whenUsTitle') }}</h2>
-          <p>{{ t(`${base}.whenUs`) }}</p>
-        </article>
-      </div>
+      <UPageGrid as="div" class="mkt-inner mkt-narrow gap-5 sm:grid-cols-1 lg:grid-cols-2" data-reveal>
+        <UPageCard as="article" :description="t(`${base}.whenThem`)">
+          <template #title>
+            <h2>{{ t('marketing.vs.whenThemTitle', { name }) }}</h2>
+          </template>
+        </UPageCard>
+        <!-- „Wann wir" war schon vorher die betonte Karte (Akzentkante
+             links) — in Nuxt UI ist das `highlight`. -->
+        <UPageCard as="article" highlight :description="t(`${base}.whenUs`)">
+          <template #title>
+            <h2>{{ t('marketing.vs.whenUsTitle') }}</h2>
+          </template>
+        </UPageCard>
+      </UPageGrid>
     </section>
 
     <section class="vs-cta tone-ink">
@@ -96,17 +102,6 @@ useSeoMeta({
   opacity: 0.6;
 }
 .vs-hero-inner { position: relative; }
-.vs-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: hsl(var(--puka-ink-soft));
-  text-decoration: none;
-  margin-bottom: 1.25rem;
-}
-.vs-back:hover { color: hsl(var(--puka-sun-deep)); }
 .vs-title {
   font-size: clamp(2rem, 5vw, 3.2rem);
   font-weight: 850;
@@ -121,27 +116,6 @@ useSeoMeta({
   color: hsl(var(--puka-sun-deep));
 }
 .vs-intro { max-width: 44rem; }
-
-.vs-when {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.25rem;
-}
-.when-card {
-  padding: 1.5rem;
-  border-radius: 1rem;
-  background: hsl(0 0% 100% / 0.6);
-  border: 1px solid hsl(var(--puka-ink) / 0.08);
-  line-height: 1.6;
-  color: hsl(var(--puka-ink-soft));
-}
-.when-us { border-left: 3px solid hsl(var(--puka-sun)); }
-.when-title {
-  font-size: 1.15rem;
-  font-weight: 800;
-  margin-bottom: 0.5rem;
-  color: hsl(var(--puka-ink));
-}
 
 .vs-cta {
   padding: clamp(3rem, 7vw, 5rem) 1.5rem;
@@ -167,8 +141,4 @@ useSeoMeta({
   margin-top: 1.75rem;
 }
 .vs-ghost { color: hsl(var(--puka-cloud)); }
-
-@media (min-width: 820px) {
-  .vs-when { grid-template-columns: 1fr 1fr; }
-}
 </style>

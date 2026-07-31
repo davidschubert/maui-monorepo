@@ -37,13 +37,21 @@ const activeSet = computed(() => new Set(PRESET_DEFS[active.value]?.on ?? []))
             @click="active = i"
           >{{ p.label }}</button>
         </div>
+        <!-- An/aus als Badge-VARIANTE: `subtle` (Fläche + Kante) für an,
+             `outline` (nur Kante) für aus. Die beiden Klassen halten die
+             Flächen des Bestands — an = deckendes Weiß, aus = halb
+             durchscheinend, damit der getönte Sektions-Grund durchkommt. -->
         <ul class="mod-chips">
-          <li
-            v-for="block in allBlocks" :key="block.id"
-            class="mod-chip" :class="{ 'mod-chip-on': activeSet.has(block.id) }"
-          >
-            <UIcon :name="activeSet.has(block.id) ? 'i-ph-check-circle-fill' : 'i-ph-circle-dashed'" />
-            {{ block.label }}
+          <li v-for="block in allBlocks" :key="block.id">
+            <UBadge
+              as="span" color="neutral" size="lg"
+              :variant="activeSet.has(block.id) ? 'subtle' : 'outline'"
+              :icon="activeSet.has(block.id) ? 'i-ph-check-circle-fill' : 'i-ph-circle-dashed'"
+              :label="block.label"
+              class="px-3.5 py-2 font-semibold transition-colors"
+              :class="activeSet.has(block.id) ? 'bg-white text-highlighted' : 'bg-white/50 text-muted'"
+              :ui="{ leadingIcon: activeSet.has(block.id) ? 'size-4 text-primary-600' : 'size-4' }"
+            />
           </li>
         </ul>
       </div>
@@ -87,22 +95,6 @@ const activeSet = computed(() => new Set(PRESET_DEFS[active.value]?.on ?? []))
   margin: 0;
   list-style: none;
 }
-.mod-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.5rem 0.9rem;
-  border-radius: 0.7rem;
-  font-weight: 600;
-  font-size: 0.92rem;
-  background: hsl(0 0% 100% / 0.5);
-  color: hsl(var(--puka-ink-soft) / 0.6);
-  border: 1px solid hsl(var(--puka-ink) / 0.06);
-  transition: color 0.25s, background 0.25s, opacity 0.25s;
-}
-.mod-chip-on { color: hsl(var(--puka-ink)); background: hsl(0 0% 100%); }
-.mod-chip :deep(svg) { width: 1.05rem; height: 1.05rem; }
-.mod-chip-on :deep(svg) { color: hsl(var(--puka-sun-deep)); }
 
 @media (min-width: 860px) { .mod-grid { grid-template-columns: 1fr 1fr; } }
 </style>

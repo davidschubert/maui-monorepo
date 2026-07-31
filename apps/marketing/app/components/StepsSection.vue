@@ -16,9 +16,12 @@ const items = computed(() =>
     <div class="mkt-inner mkt-narrow steps-head" data-reveal>
       <p class="mkt-kicker">{{ t('marketing.steps.kicker') }}</p>
       <h2 class="mkt-h2">{{ t('marketing.steps.title') }}</h2>
-      <span class="steps-badge">
-        <UIcon name="i-ph-timer-bold" /> {{ t('marketing.steps.badge') }}
-      </span>
+      <UBadge
+        color="primary" variant="subtle" size="lg"
+        icon="i-ph-timer-bold"
+        class="mt-2 rounded-full px-3.5 py-1.5 font-bold"
+        :label="t('marketing.steps.badge')"
+      />
     </div>
 
     <ol class="steps-grid mkt-inner" data-reveal>
@@ -34,18 +37,6 @@ const items = computed(() =>
 <style scoped>
 .steps-head { text-align: center; }
 .steps-head .mkt-lead { margin-inline: auto; }
-.steps-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-top: 0.5rem;
-  padding: 0.35rem 0.85rem;
-  border-radius: 999px;
-  background: hsl(var(--puka-sun) / 0.2);
-  color: hsl(var(--puka-sun-deep));
-  font-weight: 700;
-  font-size: 0.85rem;
-}
 .steps-grid {
   display: grid;
   grid-template-columns: 1fr;

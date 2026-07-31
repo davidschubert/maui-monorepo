@@ -47,7 +47,9 @@ useSeoMeta({
     <section class="fuer-hero tone-mist">
       <div class="fuer-puka puka-glow" data-parallax="0.1" aria-hidden="true" />
       <div class="mkt-inner mkt-narrow fuer-hero-inner" data-reveal>
-        <NuxtLink :to="localePath('/')" class="fuer-back">
+        <!-- Zurück-Link über die geteilte .mkt-back-Klasse; die frühere
+             eigene .fuer-back-Kopie war Zeile für Zeile dieselbe Regel. -->
+        <NuxtLink :to="localePath('/')" class="mkt-back">
           <UIcon name="i-ph-arrow-left-bold" /> {{ t('marketing.audiencePages.backHome') }}
         </NuxtLink>
         <p class="mkt-kicker">{{ t(`${base}.name`) }}</p>
@@ -58,16 +60,20 @@ useSeoMeta({
     </section>
 
     <section class="mkt-section tone-dawn">
-      <div class="mkt-inner mkt-narrow fuer-body" data-reveal>
-        <article class="fuer-card">
-          <h2 class="fuer-h2">{{ t('marketing.audiencePages.fitTitle') }}</h2>
-          <p>{{ t(`${base}.fit`) }}</p>
-        </article>
-        <article class="fuer-card fuer-blocks">
-          <h2 class="fuer-h2">{{ t('marketing.audiencePages.blocksTitle') }}</h2>
-          <p>{{ t(`${base}.blocks`) }}</p>
-        </article>
-      </div>
+      <UPageGrid as="div" class="mkt-inner mkt-narrow gap-5 sm:grid-cols-1 lg:grid-cols-2" data-reveal>
+        <UPageCard as="article" :description="t(`${base}.fit`)">
+          <template #title>
+            <h2>{{ t('marketing.audiencePages.fitTitle') }}</h2>
+          </template>
+        </UPageCard>
+        <!-- Die Bausteine-Karte war schon vorher die betonte der beiden
+             (Akzentkante links); in Nuxt UI ist das `highlight`. -->
+        <UPageCard as="article" highlight :description="t(`${base}.blocks`)">
+          <template #title>
+            <h2>{{ t('marketing.audiencePages.blocksTitle') }}</h2>
+          </template>
+        </UPageCard>
+      </UPageGrid>
     </section>
 
     <!-- Bausteine + Preise sind auf jeder Anwendungsfall-Seite dieselbe
@@ -105,17 +111,6 @@ useSeoMeta({
   opacity: 0.55;
 }
 .fuer-hero-inner { position: relative; }
-.fuer-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: hsl(var(--puka-ink-soft));
-  text-decoration: none;
-  margin-bottom: 1.25rem;
-}
-.fuer-back:hover { color: hsl(var(--puka-sun-deep)); }
 .fuer-title {
   font-size: clamp(1.9rem, 4.6vw, 3rem);
   font-weight: 850;
@@ -129,27 +124,6 @@ useSeoMeta({
   font-size: clamp(1.05rem, 1.6vw, 1.25rem);
   font-weight: 600;
   color: hsl(var(--puka-sun-deep));
-}
-
-.fuer-body {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.25rem;
-}
-.fuer-card {
-  padding: 1.5rem;
-  border-radius: 1rem;
-  background: hsl(0 0% 100% / 0.6);
-  border: 1px solid hsl(var(--puka-ink) / 0.08);
-  line-height: 1.6;
-  color: hsl(var(--puka-ink-soft));
-}
-.fuer-blocks { border-left: 3px solid hsl(var(--puka-sun)); }
-.fuer-h2 {
-  font-size: 1.15rem;
-  font-weight: 800;
-  margin-bottom: 0.5rem;
-  color: hsl(var(--puka-ink));
 }
 
 .fuer-cta {
@@ -172,6 +146,4 @@ useSeoMeta({
   margin-top: 1.75rem;
 }
 .fuer-ghost { color: hsl(var(--puka-cloud)); }
-
-@media (min-width: 820px) { .fuer-body { grid-template-columns: 1fr 1fr; } }
 </style>

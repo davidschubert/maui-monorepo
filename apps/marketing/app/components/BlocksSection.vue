@@ -21,20 +21,32 @@ const items = computed(() =>
       <p class="mkt-lead">{{ t('marketing.blocks.lead') }}</p>
     </div>
 
-    <div class="blocks-grid mkt-inner" data-reveal>
-      <article v-for="block in items" :key="block.title" class="block-card">
-        <div class="block-top">
-          <UIcon :name="block.icon" class="block-icon" />
-          <span
-            class="block-badge"
-            :class="block.status === 'available' ? 'badge-available' : 'badge-ea'"
-          >
-            {{ block.status === 'available' ? t('marketing.blocks.available') : t('marketing.blocks.earlyAccess') }}
-          </span>
-        </div>
-        <h3 class="block-title">{{ block.title }}</h3>
-        <p class="block-text">{{ block.text }}</p>
-      </article>
+    <!-- `mkt-inner` (Breiten-Container) und das Raster sind BEWUSST zwei
+         Elemente: `.mkt-inner` setzt in marketing.css `margin: 0 auto` als
+         Kurzform, und diese ungeschichtete Regel schlägt jede Tailwind-
+         Utility aus @layer — ein `mt-10` an derselben Stelle wäre wirkungslos
+         (live gemessen: 0px). -->
+    <div class="mkt-inner" data-reveal>
+      <UPageGrid class="mt-10">
+        <UPageCard
+          v-for="block in items" :key="block.title"
+          :title="block.title" :description="block.text"
+          :ui="{ leading: 'flex w-full items-center justify-between' }"
+        >
+          <!-- Icon und Statuspille teilen sich EINE Zeile (Bestand). Der
+               leading-Slot ist dafür da; er wird nur von `inline-flex` auf
+               `flex w-full justify-between` gestellt. -->
+          <template #leading>
+            <UIcon :name="block.icon" class="size-8 text-primary-600" />
+            <UBadge
+              :color="block.status === 'available' ? 'success' : 'primary'"
+              variant="subtle" size="sm"
+              class="rounded-full uppercase tracking-wider"
+              :label="block.status === 'available' ? t('marketing.blocks.available') : t('marketing.blocks.earlyAccess')"
+            />
+          </template>
+        </UPageCard>
+      </UPageGrid>
     </div>
   </section>
 </template>
@@ -42,38 +54,4 @@ const items = computed(() =>
 <style scoped>
 .blocks-head { text-align: center; }
 .blocks-head .mkt-lead { margin-inline: auto; }
-.blocks-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.1rem;
-  margin-top: 2.5rem;
-}
-.block-card {
-  background: hsl(0 0% 100% / 0.65);
-  border: 1px solid hsl(var(--puka-ink) / 0.07);
-  border-radius: 1rem;
-  padding: 1.4rem;
-}
-.block-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.8rem;
-}
-.block-icon { width: 1.9rem; height: 1.9rem; color: hsl(var(--puka-sun-deep)); }
-.block-badge {
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: 0.2rem 0.55rem;
-  border-radius: 999px;
-}
-.badge-available { background: hsl(145 60% 90%); color: hsl(150 70% 26%); }
-.badge-ea { background: hsl(var(--puka-sun) / 0.22); color: hsl(var(--puka-sun-deep)); }
-.block-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.35rem; }
-.block-text { color: hsl(var(--puka-ink-soft)); line-height: 1.55; }
-
-@media (min-width: 700px) { .blocks-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1000px) { .blocks-grid { grid-template-columns: repeat(3, 1fr); } }
 </style>

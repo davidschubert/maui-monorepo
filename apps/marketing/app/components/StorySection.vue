@@ -36,6 +36,7 @@ const strands = computed(() =>
         </li>
       </ol>
 
+      <USeparator class="mt-11" :ui="{ border: 'border-[color:var(--puka-card-edge)]' }" />
       <p class="story-outro" data-reveal>{{ t('marketing.story.outro') }}</p>
     </div>
   </section>
@@ -105,10 +106,10 @@ const strands = computed(() =>
   line-height: 1.65;
   color: hsl(var(--puka-ink) / 0.78);
 }
+/* Der Trennstrich darüber ist ein USeparator (Paket 2) — hier bleibt nur der
+   Abstand zu ihm. */
 .story-outro {
-  margin-top: 2.75rem;
-  padding-top: 1.75rem;
-  border-top: 1px solid hsl(var(--puka-ink) / 0.12);
+  margin-top: 1.75rem;
   font-size: 1.05rem;
   line-height: 1.65;
   font-style: italic;

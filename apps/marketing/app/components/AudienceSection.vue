@@ -22,16 +22,25 @@ const items = computed(() =>
       <p class="mkt-lead">{{ t('marketing.audience.lead') }}</p>
     </div>
 
-    <div class="aud-grid mkt-inner" data-reveal>
-      <NuxtLink
-        v-for="item in items" :key="item.slug"
-        :to="localePath({ name: 'use-cases-slug', params: { slug: item.slug } })" class="aud-card"
-      >
-        <UIcon :name="item.icon" class="aud-icon" />
-        <h3 class="aud-title">{{ item.title }}</h3>
-        <p class="aud-text">{{ item.text }}</p>
-        <span class="aud-more">{{ t('marketing.audience.more') }} <UIcon name="i-ph-arrow-right-bold" /></span>
-      </NuxtLink>
+    <!-- Container und Raster getrennt — Begründung in BlocksSection.vue. -->
+    <div class="mkt-inner" data-reveal>
+      <UPageGrid class="mt-10 lg:grid-cols-4">
+        <!-- `to` macht die GANZE Karte klickbar (Nuxt UI legt dafür einen
+             Overlay-Link) — deshalb ist der „Mehr"-Pfeil unten ein span und
+             kein zweiter Link im Link. Hover/Focus kommen von Nuxt UI. -->
+        <UPageCard
+          v-for="item in items" :key="item.slug"
+          :to="localePath({ name: 'use-cases-slug', params: { slug: item.slug } })"
+          :icon="item.icon" :title="item.title" :description="item.text"
+        >
+          <template #footer>
+            <span class="inline-flex items-center gap-1.5 text-sm font-bold text-primary-600">
+              {{ t('marketing.audience.more') }}
+              <UIcon name="i-ph-arrow-right-bold" class="size-4" />
+            </span>
+          </template>
+        </UPageCard>
+      </UPageGrid>
     </div>
   </section>
 </template>
@@ -39,43 +48,4 @@ const items = computed(() =>
 <style scoped>
 .aud-head { text-align: center; }
 .aud-head .mkt-lead { margin-inline: auto; }
-.aud-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.1rem;
-  margin-top: 2.5rem;
-}
-.aud-card {
-  display: block;
-  padding: 1.5rem;
-  border-radius: 1rem;
-  background: hsl(0 0% 100% / 0.65);
-  border: 1px solid hsl(var(--puka-ink) / 0.08);
-  text-decoration: none;
-  color: inherit;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-.aud-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 18px 40px -22px hsl(var(--puka-ink) / 0.45);
-}
-.aud-icon { width: 2rem; height: 2rem; color: hsl(var(--puka-sun-deep)); }
-.aud-title { font-size: 1.15rem; font-weight: 800; margin: 0.75rem 0 0.35rem; }
-.aud-text { color: hsl(var(--puka-ink-soft)); line-height: 1.55; }
-.aud-more {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin-top: 0.9rem;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: hsl(var(--puka-sun-deep));
-}
-.aud-more :deep(svg) { width: 0.95rem; height: 0.95rem; }
-
-@media (prefers-reduced-motion: reduce) {
-  .aud-card, .aud-card:hover { transition: none; transform: none; }
-}
-@media (min-width: 640px) { .aud-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1060px) { .aud-grid { grid-template-columns: repeat(4, 1fr); } }
 </style>

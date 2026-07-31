@@ -35,26 +35,43 @@ useSeoMeta({
   <div class="legal-page">
     <section class="legal-hero tone-mist">
       <div class="mkt-inner mkt-narrow" data-reveal>
-        <NuxtLink :to="localePath('/')" class="mkt-back">
-          <UIcon name="i-ph-arrow-left-bold" /> {{ t('marketing.legal.backHome') }}
-        </NuxtLink>
+        <UButton
+          :to="localePath('/')" variant="link" color="neutral" size="sm"
+          icon="i-ph-arrow-left-bold"
+          class="mb-5 px-0 font-semibold text-toned hover:text-primary-600"
+          :label="t('marketing.legal.backHome')"
+        />
         <h1 class="legal-title">{{ t(`${base}.title`) }}</h1>
         <p class="mkt-lead">{{ t(`${base}.lead`) }}</p>
 
-        <aside class="legal-draft">
-          <span class="legal-draft-badge">
-            <UIcon name="i-ph-warning-bold" /> {{ t('marketing.legal.draftBadge') }}
-          </span>
-          <p>{{ t('marketing.legal.draftNote') }}</p>
-        </aside>
+        <!-- Der Entwurfs-Hinweis ist der erste Block der Seite, nicht das
+             Kleingedruckte: Titel (das frühere Badge) + Text.
+             `primary` (die Sonne), NICHT `warning`: der Bestand malte diesen
+             Kasten in --puka-sun; es ist ein Ehrlichkeits-Hinweis der Marke,
+             keine Fehlermeldung — und `warning` wirkt auf den kühlen
+             tone-*-Flächen oliv statt warm. -->
+        <UAlert
+          color="primary" variant="subtle" icon="i-ph-warning-bold"
+          :title="t('marketing.legal.draftBadge')"
+          :description="t('marketing.legal.draftNote')"
+          class="mt-7"
+          :ui="{
+            title: 'text-sm font-extrabold uppercase tracking-wide',
+            description: 'text-base/relaxed opacity-100',
+          }"
+        />
 
         <!-- Von der verbindlichen Datenschutzerklärung zur technischen
              Erklärseite verlinken (und nur dort). Route-NAME statt Pfad-String
              (Regel in MarketingFooter.vue): EN liegt sie unter /gdpr. -->
-        <p v-if="scope === 'privacy'" class="legal-seealso">
-          <NuxtLink :to="localePath({ name: 'dsgvo' })">
-            {{ t('marketing.legal.privacy.seeAlso') }} <UIcon name="i-ph-arrow-right-bold" />
-          </NuxtLink>
+        <p v-if="scope === 'privacy'" class="mt-5">
+          <ULink
+            :to="localePath({ name: 'dsgvo' })"
+            class="inline-flex items-center gap-1.5 font-bold text-primary-600"
+          >
+            {{ t('marketing.legal.privacy.seeAlso') }}
+            <UIcon name="i-ph-arrow-right-bold" class="size-4" />
+          </ULink>
         </p>
       </div>
     </section>
@@ -81,37 +98,6 @@ useSeoMeta({
   letter-spacing: -0.02em;
   margin: 0.25rem 0 0.85rem;
 }
-.legal-draft {
-  margin-top: 1.75rem;
-  padding: 1.2rem 1.35rem;
-  background: hsl(var(--puka-sun) / 0.14);
-  border-left: 3px solid hsl(var(--puka-sun-deep));
-  border-radius: 0.7rem;
-  color: hsl(var(--puka-ink) / 0.85);
-  line-height: 1.6;
-}
-.legal-draft-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-weight: 800;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: hsl(var(--puka-sun-deep));
-  margin-bottom: 0.5rem;
-}
-.legal-draft-badge :deep(svg) { width: 1.05rem; height: 1.05rem; }
-.legal-seealso { margin-top: 1.25rem; }
-.legal-seealso a {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-weight: 700;
-  color: hsl(var(--puka-sun-deep));
-}
-.legal-seealso :deep(svg) { width: 0.9rem; height: 0.9rem; }
-
 .legal-body {
   display: flex;
   flex-direction: column;
