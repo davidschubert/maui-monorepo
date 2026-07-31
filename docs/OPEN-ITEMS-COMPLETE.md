@@ -490,3 +490,19 @@ ist). **Gelernt:** Tabellen liegen auf MEHR Instanzen als die Manifeste
 sagen (events-Altbestand auf comments, pages auf control, media auf photos)
 — Schema-Verifikation immer über ALLE Instanzen, nie über die Layer-Liste.
 
+### E8-4 — der EINE Wächter + Community-Vokabular ✅ 2026-07-31
+
+requireTenantPermission war bereits toter Code (null Aufrufer — organisch
+gestorben); requireSitePermission/resolveTenantRole heißen jetzt
+requireCommunityPermission/resolveCommunityRole in EINER Datei. 908
+Ersetzungen in 129 Dateien, 51 Umbenennungen; EINE CommunityRole-Definition
+(die Zweitkopie mit „muss identisch bleiben"-Kommentar ist weg), Capability-
+Keys community.*, Routen /api/community/**. Beweise: alle Tests, Typecheck,
+comments 13/13 · presence 23/23 · site-authz 97/97. E8 ist damit KOMPLETT
+(Plan → docs/archiv/UMBENENNUNG-AUF-COMMUNITY.md).
+**Gelernt:** Nitro sortiert Middleware lexikografisch — ein RENAME kann die
+Ausführungs-Reihenfolge verschieben (community-label wäre vor csrf/rate-limit
+gerutscht). Reihenfolge gehört EXPLIZIT in Nummern-Präfixe, nie an den Zufall
+eines Dateinamens. **Gelernt:** „muss identisch bleiben"-Kommentare markieren
+eine Kopie, die man zusammenführen sollte, nicht pflegen.
+

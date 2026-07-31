@@ -259,10 +259,10 @@ Vollständiges Konzept: docs/CONCEPT.md
   `/dashboard/members` liegt im ONBOARDING-Layer, nicht in admin — die Seite kann
   nur so weit reichen wie ihre Routen (`/api/community/members/*`), und die brauchen
   die Service-Naht. Silo-Apps ohne onboarding bekommen so keinen Menüpunkt ins
-  Leere. Einladen = EIN Feld + Rolle → `site_invites` (Token-HASH, 7 Tage,
+  Leere. Einladen = EIN Feld + Rolle → `community_invites` (Token-HASH, 7 Tage,
   M9-Muster aus `workspace_invites`; Mail zuerst, Row danach — keine Einladung
   ohne Zustellung), Annahme über `/join?token=…` ODER ohne Token über die eigene
-  geprüfte Adresse. ENTFERNEN LÖSCHT NICHT: `site_members.status='removed'`
+  geprüfte Adresse. ENTFERNEN LÖSCHT NICHT: `community_members.status='removed'`
   (Migration control-019), Inhalte + Namen bleiben. Es nimmt aber BEIDES —
   Rolle UND Lese-Publikum: die Runtime-Route zieht danach `revokeCommunityLabel`
   (Labels gehören dem Pool-Projekt, das Control Plane hat dafür keinen
@@ -284,7 +284,7 @@ Vollständiges Konzept: docs/CONCEPT.md
   Kommentarliste hat 25 Autoren. Die Frage ist bewusst NEGATIV gestellt —
   „ehemalig" ist eine POSITIVE Tatsache (Row mit status 'removed'); die
   ABWESENHEIT einer Row heißt „gewöhnlicher Nutzer" — seit A5 trägt
-  `site_members` zwar jedes BEIGETRETENE Mitglied, aber Gäste, Autoren von vor
+  `community_members` zwar jedes BEIGETRETENE Mitglied, aber Gäste, Autoren von vor
   A5 und Konten, die hier nie mitgemacht haben, haben trotzdem keine Zeile.
   Zeichen erscheint heute in der Kommentarliste (Gäste eingeschlossen).
 - Beweise: `packages/onboarding/scripts/{verify-control-host,verify-site-authz,
@@ -398,7 +398,7 @@ Vollständiges Konzept: docs/CONCEPT.md
   Lüge wurde: „Zugang entziehen" nahm nur die Rolle, das Label kam beim nächsten
   Besuch zurück, die entfernte Person las weiter mit).
   `core/server/middleware/06.community-label.ts` vergibt `Role.label(siteId)` genau dem,
-  der eine `site_members`-Zeile MIT ZUGANG hat (idempotent, additiv — mehrere
+  der eine `community_members`-Zeile MIT ZUGANG hat (idempotent, additiv — mehrere
   Communities = mehrere Labels; `grantCommunityLabel`/`revokeCommunityLabel` in
   core/server/utils/communityLabel.ts). Ein Label ist ein LESE-Publikum, KEINE Rolle —
   Autorisierung läuft über requireCommunityPermission/Site-Rollen, `hasCapability`
