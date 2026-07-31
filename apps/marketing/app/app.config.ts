@@ -335,6 +335,122 @@ export default defineAppConfig({
     },
 
     /**
+     * OPTIK-VERTRAG DER PREIS-KARTEN (Paket 4) — EINE Stelle für vier Karten.
+     *
+     * Der Bestand war `.plan-card`: dieselbe Fläche und Kante wie die
+     * `pageCard`-Karten (weiß/0.7 · 1px ink/0.08 · Radius ~1rem), nur mit
+     * eigener Polsterung (1,75rem) und eigenem Innenaufbau. Ab jetzt ist das
+     * `UPricingPlan` (vier Stück in einem `UPricingPlans`).
+     *
+     * WARUM ÜBERHAUPT ZENTRAL, wo die Karte nur EINMAL vorkommt: sie kommt
+     * viermal vor und sie ist dieselbe Fläche wie `pageCard`. Stünde ihre
+     * Fläche im Bauteil, hätte die Seite zwei Orte für dieselbe Aussage
+     * „so sieht eine Karte hier aus" — genau die Doppelpflege, die Paket 2
+     * abgebaut hat. Die SPALTENZAHL des Rasters bleibt dagegen am Einsatzort
+     * (gleiche Trennung wie bei `pageGrid` unten): sie ist Layout dieser einen
+     * Sektion, keine Aussage über Karten.
+     *
+     * WARUM `compoundVariants` UND NICHT `slots` (Lehre aus Paket 2/3):
+     * `slots` landen in der Klassenkette VOR den Varianten. Alles, was eine
+     * Variante ebenfalls setzt — die Fläche (`variant: outline` = `bg-default
+     * ring ring-default`), der Preis-Abstand und die Fußzeile
+     * (`orientation: vertical` = `priceWrapper: mt-6`, `footer: justify-end`) —
+     * muss deshalb hierher, sonst entscheidet die Reihenfolge und damit der
+     * Zufall. Nur was KEINE Variante anfasst (Typografie, Kopfzeile), steht
+     * unten als `slots`.
+     */
+    pricingPlan: {
+      slots: {
+        // `.plan-tag` — die Ordnungszeile über dem Namen („02 · Beliebt").
+        // Sie steht im `#header`-Slot, nicht als `badge`: der Bestand ist eine
+        // gesperrte Versalzeile, ein `UBadge` wäre eine gefüllte Pille NEBEN
+        // dem Namen. `text-primary-600` ist --puka-sun-deep (siehe
+        // „Marken-Ton auf hellem Grund" oben). `min-h-4` hält den Platz frei,
+        // damit die Namen auch dann auf einer Höhe stehen, wenn ein Plan
+        // später ohne Zeichen auskommt (Bestand: `min-height: 1rem`).
+        header: 'min-h-4 text-[0.75rem] font-bold uppercase tracking-[0.06em] text-primary-600',
+        // `.plan-name` 1,3rem/800 (Vorgabe wäre 1,5→1,875rem/600). Die
+        // `sm:`-Stufe muss mit — tailwind-merge räumt nur innerhalb einer
+        // Stufe auf (gleiche Falle wie bei pageHero/pageCTA oben).
+        title: 'text-[1.3rem] sm:text-[1.3rem] font-extrabold',
+        // `.plan-price` 1,6rem/800 (Vorgabe: 1,875→2,25rem/600).
+        price: 'text-[1.6rem] sm:text-[1.6rem] font-extrabold',
+        billing: 'gap-0',
+        // DIE ZWEI ZEILEN UNTER DEM PREIS. `billingPeriod` = das Intervall
+        // („pro Monat, jährlich abgerechnet"), `billingCycle` = die
+        // PAngV-Pflichtangabe. Beide brauchen `whitespace-normal`: die Vorgabe
+        // setzt `truncate` und schnitte die lange Intervall-Zeile mit „…" ab.
+        // Die Gewichtung ist gegenüber der Vorgabe VERTAUSCHT (dort ist die
+        // zweite Zeile die leisere) — der Bestand macht die Pflichtangabe
+        // bewusst kräftiger als die Zeile darüber, damit sie nicht als
+        // Kleingedrucktes wirkt.
+        billingPeriod: 'whitespace-normal text-[0.78rem] font-medium text-toned/70',
+        billingCycle: 'whitespace-normal text-[0.78rem] font-semibold text-toned',
+        // `.plan-desc` — siehe Begründung am `footer` unten.
+        tagline: 'text-base/[1.55] font-normal text-toned',
+      },
+      compoundVariants: [
+        {
+          // Fläche + Schnitt der Karte. `p-7` = 1,75rem (Vorgabe: 1,5rem, ab
+          // 1024px 2rem, ab 1280px 2,5rem — deshalb auch hier jede Stufe).
+          //
+          // `grid-rows-[auto_auto_1fr]` ist keine Kosmetik: die Wurzel ist ein
+          // Grid aus Kopf (Zeichen), Körper (Name + Preis) und Fuß
+          // (Beschreibung + Knopf). Ohne feste Zeilen wären alle drei `auto`,
+          // und `align-content: stretch` verteilte den Überschuß GLEICHMÄSSIG
+          // auf alle drei — der Preis rutschte je nach Textlänge der Nachbarn
+          // auf eine andere Höhe. Mit `1fr` am Fuß nimmt genau er den
+          // Überschuß auf: die Preise stehen auf einer Linie, die Knöpfe auch.
+          //
+          // `gap-1` (0,25rem) ist der Abstand zwischen Preis und Beschreibung
+          // (Bestand: `.plan-price { margin-bottom: 0.25rem }`).
+          variant: 'outline',
+          class: {
+            root: 'bg-white/70 p-7 lg:p-7 xl:p-7 gap-1 grid-rows-[auto_auto_1fr]',
+          },
+        },
+        {
+          // Die Haarlinie NUR für die gewöhnliche Karte — gleiche Falle wie
+          // bei `pageCard`: der Ring ist auch der Träger der Hervorhebung.
+          variant: 'outline',
+          highlight: false,
+          class: { root: 'ring-[color:var(--puka-card-edge)]' },
+        },
+        {
+          // `.plan-featured`: 1px in der Markenfarbe (Vorgabe: `ring-2`) plus
+          // der warme Schein darunter. Der Farbwert kommt als fertiges Token
+          // aus puka-theme.css (Tailwind kann für diese App keine eigenen
+          // Farb-Utilities bauen — Begründung dort).
+          highlight: true,
+          class: { root: 'ring-1 ring-primary shadow-[0_20px_50px_-24px_var(--puka-plan-glow)]' },
+        },
+        {
+          orientation: 'vertical',
+          class: {
+            // Der Preis steht im Bestand UNTER dem Namen und die zwei
+            // Kleinzeilen unter ihm — die Vorgabe stellt sie NEBEN den Preis
+            // (`flex items-center gap-1`) und hält 1,5rem Abstand nach oben
+            // (Bestand: 0,5rem).
+            priceWrapper: 'mt-2 flex-col items-start gap-0',
+            // DIE BESCHREIBUNG STEHT IM FUSS, NICHT ALS `description`.
+            // Grund ist die Reihenfolge: `description` rendert VOR dem Preis,
+            // der Bestand hat sie DANACH — und das ist kein Geschmack, sondern
+            // die Lesbarkeit der Preisspalte (die Preise stehen dann nicht
+            // mehr auf einer Höhe, weil die Beschreibungen verschieden lang
+            // sind). Der Fuß ist die einzige Stelle nach dem Preis, die freien
+            // Text nimmt: `features` wäre eine <ul> und dürfte nur <li>
+            // enthalten. `justify-between` setzt die Beschreibung an den
+            // Anfang des Fußes und den Knopf ans Ende (Bestand: `.plan-desc
+            // { flex: 1 }`); `items-stretch` nimmt die Zentrierung der
+            // Vorgabe zurück, `gap-5` ist der Mindestabstand zum Knopf
+            // (Bestand: 1,25rem).
+            footer: 'justify-between items-stretch gap-5 text-left',
+          },
+        },
+      ],
+    },
+
+    /**
      * Raster-Rhythmus der Seite. Nuxt-UI-Default ist `gap-8` (2rem) — die
      * Marketing-Raster standen durchweg auf 1,1rem. Die SPALTENZAHL bleibt
      * bewusst am Einsatzort (die Raster sind 2-, 3- und 4-spaltig), der
