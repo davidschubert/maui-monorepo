@@ -105,6 +105,29 @@ const mobileItems = computed(() => [
  */
 const openMenu = ref('')
 
+/**
+ * DAS ZIEL DES SPRACHUMSCHALTERS — zwei Dinge, beide bewusst.
+ *
+ * (1) OHNE HASH. `switchLocalePath()` hängt den Hash der aktuellen Adresse an
+ * das Ergebnis — im Browser. Der SERVER kennt den Hash gar nicht (er wird nie
+ * mitgeschickt), also stand auf `/de#preise` serverseitig ein anderes `href`
+ * im HTML als der Client danach berechnete: „Hydration attribute mismatch",
+ * und Vue verwirft in der Entwicklung die ganze Übereinstimmungsprüfung des
+ * Baums. Ein Hash lässt sich hier nicht ehrlich nachliefern, also fällt er auf
+ * BEIDEN Seiten weg: ein Sprachwechsel landet oben auf der Seite. Der Preis
+ * ist eine Zeile Scrollen, der Gegenwert ein Kopf, der überall gleich ist.
+ *
+ * (2) `locale: false` AM KNOPF (siehe LINK_DEFAULTS). Ohne diese Eigenschaft
+ * schiebt `ULink` den schon aufgelösten Pfad ein ZWEITES Mal durch
+ * `localePath()` — auf einer deutschen Seite wurde aus dem englischen Ziel `/`
+ * wieder `/de`, der EN-Knopf zeigte also auf die deutsche Seite und tat
+ * nichts. Er war damit nicht nur ungenau, sondern wirkungslos.
+ */
+const switchTarget = computed(() => {
+  const target = switchLocalePath(locale.value === 'de' ? 'en' : 'de')
+  return (target || '/').split('#')[0]
+})
+
 // Mobil-Menü: `UHeader` schließt es beim Routenwechsel selbst (`autoClose`).
 const mobileOpen = ref(false)
 
@@ -286,7 +309,7 @@ const MOBILE_NAV_UI = {
 
     <template #right>
       <UButton
-        :to="switchLocalePath(locale === 'de' ? 'en' : 'de')"
+        :to="switchTarget" v-bind="LINK_DEFAULTS"
         :aria-label="locale === 'de' ? t('marketing.nav.toEnglish') : t('marketing.nav.toGerman')"
         color="neutral" variant="link" size="sm"
         class="px-1.5 font-bold tracking-[0.04em] text-toned hover:bg-elevated/70 hover:text-highlighted"

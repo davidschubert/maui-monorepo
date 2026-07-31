@@ -12,9 +12,13 @@
 //   FAQPage-JSON-LD auf /faq und der Startseite; Google verlangt, dass die
 //   ausgezeichnete Antwort auch im Seiteninhalt vorkommt. Mit der Vorgabe
 //   (true) rendert Reka geschlossene Inhalte GAR NICHT.
+import { FAQ_COUNT } from '#shared/marketing'
+
 const { t } = useI18n()
+// Anzahl aus shared/marketing.ts — die sichtbare Liste und das JSON-LD auf
+// /faq bzw. der Startseite MÜSSEN dieselben Fragen beschreiben.
 const items = computed(() =>
-  [0, 1, 2, 3, 4, 5].map(i => ({
+  Array.from({ length: FAQ_COUNT }, (_, i) => ({
     label: t(`marketing.faq.items.${i}.q`),
     content: t(`marketing.faq.items.${i}.a`),
   })),

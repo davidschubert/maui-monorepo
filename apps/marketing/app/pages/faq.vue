@@ -3,10 +3,11 @@
 // dieselbe FaqSection wie die Startseite — eine Quelle, eine Wahrheit — und
 // liefert das FAQPage-JSON-LD hier eigenständig (auf der Startseite steckt es
 // im Seiten-Graph).
+import { FAQ_COUNT } from '#shared/marketing'
+
 definePageMeta({ layout: 'site' })
 defineI18nRoute({ paths: { en: '/faq', de: '/faq' } })
 
-const FAQ_COUNT = 6
 const { t } = useI18n()
 const localePath = useLocalePath()
 const { start } = useProductLinks()
@@ -16,17 +17,10 @@ const ctaLinks = computed(() => [
   { to: start, color: 'primary' as const, size: 'xl' as const, label: t('marketing.cta.primary') },
 ])
 
-const ogImage = useOgImage('faq')
-
-useSeoMeta({
-  title: () => t('marketing.faq.metaTitle'),
-  description: () => t('marketing.faq.metaDescription'),
-  ogTitle: () => t('marketing.faq.metaTitle'),
-  ogDescription: () => t('marketing.faq.metaDescription'),
-  ogType: 'article',
-  ogSiteName: 'Pukalani',
-  ogImage: () => ogImage.value,
-  twitterImage: () => ogImage.value,
+useMarketingSeo({
+  titleKey: 'marketing.faq.metaTitle',
+  descriptionKey: 'marketing.faq.metaDescription',
+  image: 'faq',
 })
 
 const jsonLd = computed(() => ({

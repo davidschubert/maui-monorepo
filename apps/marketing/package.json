@@ -9,7 +9,6 @@
     "lint": "eslint .",
     "preview": "nuxi preview",
     "typecheck": "nuxi typecheck",
-    "e2e": "playwright test",
     "og:images": "node scripts/og-images.mjs"
   },
   "dependencies": {

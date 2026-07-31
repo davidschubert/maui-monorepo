@@ -13,15 +13,17 @@
 // „Produkte" (im CODE bleibt das Vokabular `features`). Die Slugs bleiben
 // deutsch, nur das Segment ist lokalisiert.
 // Die alten /features/*-URLs waren schon veröffentlicht: 301 in nuxt.config.ts.
+import { EARLY_ACCESS_SLUGS, FEATURE_SLUGS } from '#shared/marketing'
+
 definePageMeta({ layout: 'site' })
 defineI18nRoute({ paths: { en: '/products/[slug]', de: '/produkte/[slug]' } })
 
-const SLUGS = ['diskussionen', 'moderation', 'branding', 'beitraege', 'kurse', 'events'] as const
-/** Bausteine, die noch NICHT im offenen Angebot sind (§2.4). */
-const EARLY_ACCESS_SLUGS: readonly string[] = ['beitraege', 'kurse', 'events']
+// Beide Kataloge stehen in shared/marketing.ts: dieselbe Slug-Liste baut die
+// Sitemap (server/utils/marketingRoutes.ts), und die Early-Access-Liste ist
+// ein Claim-Gate (§2.4) — sie darf nicht in zwei Fassungen existieren.
 const route = useRoute()
 const slug = String(route.params.slug)
-if (!SLUGS.includes(slug as (typeof SLUGS)[number])) {
+if (!FEATURE_SLUGS.includes(slug as (typeof FEATURE_SLUGS)[number])) {
   throw createError({ status: 404, statusText: 'Page not found' })
 }
 
@@ -59,18 +61,10 @@ const ctaLinks = computed(() => [
   },
 ])
 
-const ogImage = useOgImage(`products-${slug}`)
-
-useSeoMeta({
-  title: () => t(`${base}.metaTitle`),
-  description: () => t(`${base}.metaDescription`),
-  ogTitle: () => t(`${base}.metaTitle`),
-  ogDescription: () => t(`${base}.metaDescription`),
-  ogType: 'article',
-  ogSiteName: 'Pukalani',
-  ogImage: () => ogImage.value,
-  twitterImage: () => ogImage.value,
-  twitterCard: 'summary_large_image',
+useMarketingSeo({
+  titleKey: `${base}.metaTitle`,
+  descriptionKey: `${base}.metaDescription`,
+  image: `products-${slug}`,
 })
 </script>
 

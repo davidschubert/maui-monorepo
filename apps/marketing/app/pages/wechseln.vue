@@ -26,17 +26,10 @@ const ctaLinks = computed(() => [
   { to: start, color: 'primary' as const, size: 'xl' as const, label: t('marketing.hero.ctaPrimary') },
 ])
 
-const ogImage = useOgImage('switch')
-
-useSeoMeta({
-  title: () => t('marketing.switch.metaTitle'),
-  description: () => t('marketing.switch.metaDescription'),
-  ogTitle: () => t('marketing.switch.metaTitle'),
-  ogDescription: () => t('marketing.switch.metaDescription'),
-  ogType: 'article',
-  ogSiteName: 'Pukalani',
-  ogImage: () => ogImage.value,
-  twitterImage: () => ogImage.value,
+useMarketingSeo({
+  titleKey: 'marketing.switch.metaTitle',
+  descriptionKey: 'marketing.switch.metaDescription',
+  image: 'switch',
 })
 </script>
 

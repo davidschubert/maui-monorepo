@@ -11,7 +11,7 @@ export default defineEventHandler((event) => {
     'Allow: /',
     'Disallow: /api/',
     '',
-    `Sitemap: ${marketingBaseUrl()}/sitemap.xml`,
+    `Sitemap: ${marketingBaseUrl(event)}/sitemap.xml`,
     '',
   ].join('\n')
 

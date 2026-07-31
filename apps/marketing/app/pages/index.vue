@@ -1,6 +1,8 @@
 <script setup lang="ts">
 // Die kinematische Startseite (Konzept §3.2 / §6.4). Szenen-Reihenfolge im DOM
 // = Reihenfolge der Beats.
+import { FAQ_COUNT } from '#shared/marketing'
+
 definePageMeta({ layout: 'site' })
 useReveal()
 
@@ -9,22 +11,18 @@ const baseUrl = useSiteBaseUrl()
 
 // Meta (Title/Description je Locale) — Canonical/Hreflang liefert useLocaleHead
 // (app.vue). og:image = seiteneigenes Bild aus public/og (scripts/og-images.mjs).
-const ogImage = useOgImage('home')
-
-useSeoMeta({
-  title: () => t('marketing.meta.title'),
-  description: () => t('marketing.meta.description'),
-  ogTitle: () => t('marketing.meta.title'),
-  ogDescription: () => t('marketing.meta.description'),
-  ogType: 'website',
-  ogSiteName: 'Pukalani',
-  ogImage: () => ogImage.value,
-  twitterImage: () => ogImage.value,
-  twitterCard: 'summary_large_image',
+// Die einzige Seite mit `website`; alle Unterseiten sind `article`.
+useMarketingSeo({
+  titleKey: 'marketing.meta.title',
+  descriptionKey: 'marketing.meta.description',
+  image: 'home',
+  type: 'website',
 })
 
 // Strukturierte Daten — ehrlich (keine erfundenen Bewertungen/Preise, §5).
-const faqIndices = [0, 1, 2, 3, 4, 5]
+// Die Anzahl der Fragen steht in shared/marketing.ts: dieses JSON-LD, das der
+// /faq-Seite und die sichtbare FaqSection müssen dieselbe Liste beschreiben.
+const faqIndices = Array.from({ length: FAQ_COUNT }, (_, i) => i)
 const jsonLd = computed(() => ({
   '@context': 'https://schema.org',
   '@graph': [

@@ -10,7 +10,7 @@ import { MARKETING_ROUTES, marketingBaseUrl } from '../utils/marketingRoutes'
  * `lastmod` bleibt bewusst WEG: ein erfundenes Datum ist schlechter als keins.
  */
 export default defineEventHandler((event) => {
-  const base = marketingBaseUrl()
+  const base = marketingBaseUrl(event)
 
   const urls = MARKETING_ROUTES.flatMap((route) => {
     const enUrl = `${base}${route.en === '/' ? '' : route.en}`

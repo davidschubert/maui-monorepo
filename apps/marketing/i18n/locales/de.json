@@ -909,28 +909,24 @@
       "title": "Kein Testimonial-Theater. Sondern Sites, die du anklicken kannst.",
       "lead": "Wir haben (noch) keine Kundenstimmen — also erfinden wir keine. Stattdessen läuft Pukalani da, wo es weh tut: bei uns selbst, im echten Betrieb.",
       "visit": "Ansehen",
-      "items": [
-        {
+      "items": {
+        "comments": {
           "name": "comments.pukalani.app",
-          "what": "Diskussionen, Moderation und das Embed-Widget im täglichen Einsatz — inklusive Gast-Kommentaren und Live-Präsenz.",
-          "url": "https://comments.pukalani.app"
+          "what": "Diskussionen, Moderation und das Embed-Widget im täglichen Einsatz — inklusive Gast-Kommentaren und Live-Präsenz."
         },
-        {
+        "demo": {
           "name": "demo.pukalani.app",
-          "what": "Eine echte Pool-Community: per Klick im Control angelegt, eigener Host, eigener Datenraum — genau der Weg, den auch du gehst.",
-          "url": "https://demo.pukalani.app"
+          "what": "Eine echte Pool-Community: per Klick im Control angelegt, eigener Host, eigener Datenraum — genau der Weg, den auch du gehst."
         },
-        {
+        "portfolio": {
           "name": "portfolio.pukalani.app",
-          "what": "Dieselbe Plattform in einem völlig anderen Design — der Beweis, dass Branding nicht bei einer Akzentfarbe endet.",
-          "url": "https://portfolio.pukalani.app"
+          "what": "Dieselbe Plattform in einem völlig anderen Design — der Beweis, dass Branding nicht bei einer Akzentfarbe endet."
         },
-        {
+        "changelog": {
           "name": "changelog.pukalani.app",
-          "what": "Was wir wann geändert haben, öffentlich nachlesbar. Auch die Wochen, in denen wenig passiert ist.",
-          "url": "https://changelog.pukalani.app"
+          "what": "Was wir wann geändert haben, öffentlich nachlesbar. Auch die Wochen, in denen wenig passiert ist."
         }
-      ],
+      },
       "honest": "Wenn hier irgendwann echte Kundenstimmen stehen, dann mit Namen, Community und Einwilligung — und nicht vorher."
     }
   }

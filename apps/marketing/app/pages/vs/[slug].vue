@@ -4,12 +4,16 @@
 // Abwerbe-Keywords, ehrlich: jede Seite sagt AUCH, wann der Wettbewerber die
 // bessere Wahl ist. Die Vergleichstabelle ist bewusst dieselbe Komponente wie
 // auf der Startseite (eine Quelle, ein Stand-Datum, dieselben Quellen-Links).
+import { VS_SLUGS } from '#shared/marketing'
+
 definePageMeta({ layout: 'site' })
 
-const SLUGS = ['circle', 'skool', 'mighty-networks'] as const
+// Slug-Katalog aus shared/: dieselbe Liste baut die Sitemap
+// (server/utils/marketingRoutes.ts) — eine eigene Kopie hier hieße, eine neue
+// Vergleichsseite existiert, steht aber in keiner Sitemap (oder umgekehrt).
 const route = useRoute()
 const slug = String(route.params.slug)
-if (!SLUGS.includes(slug as (typeof SLUGS)[number])) {
+if (!VS_SLUGS.includes(slug as (typeof VS_SLUGS)[number])) {
   throw createError({ status: 404, statusText: 'Page not found' })
 }
 
@@ -33,18 +37,10 @@ const ctaLinks = computed(() => [
   },
 ])
 
-const ogImage = useOgImage(`vs-${slug}`)
-
-useSeoMeta({
-  title: () => t(`${base}.metaTitle`),
-  description: () => t(`${base}.metaDescription`),
-  ogTitle: () => t(`${base}.metaTitle`),
-  ogDescription: () => t(`${base}.metaDescription`),
-  ogType: 'article',
-  ogSiteName: 'Pukalani',
-  ogImage: () => ogImage.value,
-  twitterImage: () => ogImage.value,
-  twitterCard: 'summary_large_image',
+useMarketingSeo({
+  titleKey: `${base}.metaTitle`,
+  descriptionKey: `${base}.metaDescription`,
+  image: `vs-${slug}`,
 })
 </script>
 

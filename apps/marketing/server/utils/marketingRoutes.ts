@@ -10,6 +10,9 @@
  * Regel beim Erweitern: neue Seite → hier eintragen (en + de). Der Sitemap-Test
  * (Route-Vergleich) fällt sonst auf.
  */
+import type { H3Event } from 'h3'
+import { AUDIENCE_SLUGS, FEATURE_SLUGS, VS_SLUGS } from '#shared/marketing'
+
 export interface MarketingRoute {
   /** Pfad in der EN-Default-Locale (ohne Prefix). */
   en: string
@@ -19,14 +22,13 @@ export interface MarketingRoute {
   priority: number
 }
 
-const VS_SLUGS = ['circle', 'skool', 'mighty-networks']
-const AUDIENCE_SLUGS = ['coaches', 'kurse', 'creator', 'vereine']
-// ALLE sechs Produkt-Seiten — deckungsgleich mit SLUGS in
-// app/pages/produkte/[slug].vue. beitraege/kurse/events sind Early Access: ihre
-// Seiten tragen den EA-Banner und KEINEN Kauf-CTA (§2.4), dürfen aber
-// indexiert werden. moderation + beitraege fehlten hier bis 2026-07-30 —
-// zwei existierende, verlinkte Seiten standen in keiner Sitemap.
-const FEATURE_SLUGS = ['diskussionen', 'moderation', 'branding', 'beitraege', 'kurse', 'events']
+// Die drei Slug-Kataloge stehen in shared/marketing.ts — dieselbe Liste, die
+// auch die [slug]-Seiten gegen die URL prüfen. Sie standen bis 2026-07-30
+// doppelt (hier UND in den Seiten), und genau dadurch fehlten `moderation` und
+// `beitraege` in dieser Sitemap: zwei existierende, verlinkte Seiten, die kein
+// Crawler angeboten bekam. Early Access (beitraege/kurse/events) ändert daran
+// nichts — die Seiten tragen den EA-Banner und keinen Kauf-CTA (§2.4), dürfen
+// aber indexiert werden.
 
 export const MARKETING_ROUTES: MarketingRoute[] = [
   { en: '/', de: '/de', priority: 1.0 },
@@ -49,8 +51,22 @@ export const MARKETING_ROUTES: MarketingRoute[] = [
 // den verbindlichen Texten noindex — eine noindex-Seite in der Sitemap wäre ein
 // Widerspruch, den Google zu Recht meldet.
 
-/** Basis-URL ohne trailing slash (aus NUXT_PUBLIC_I18N_BASE_URL). */
-export function marketingBaseUrl(): string {
-  const raw = process.env.NUXT_PUBLIC_I18N_BASE_URL || 'https://pukalani.app'
-  return raw.replace(/\/+$/, '')
+/**
+ * Basis-URL ohne trailing slash — DIESELBE KETTE WIE IM BROWSER
+ * (app/composables/useSiteBaseUrl.ts): erst die konfigurierte i18n-Basis
+ * (`NUXT_PUBLIC_I18N_BASE_URL` → `runtimeConfig.public.i18n.baseUrl`), sonst
+ * der Origin des laufenden Requests.
+ *
+ * Bis 2026-07-30 stand hier `process.env.NUXT_PUBLIC_I18N_BASE_URL` mit dem
+ * harten Fallback 'https://pukalani.app'. Zwei Dinge waren daran falsch: die
+ * rohe Env umgeht die runtimeConfig (ein Wert, den ein Deploy dort setzt,
+ * käme nie an), und der harte Fallback ließ eine lokale oder Staging-Instanz
+ * eine Sitemap voller PROD-Adressen ausliefern — ein Crawler, der sie findet,
+ * bekommt Adressen, die mit dieser Instanz nichts zu tun haben.
+ */
+export function marketingBaseUrl(event: H3Event): string {
+  const publicConfig = useRuntimeConfig(event).public as { i18n?: { baseUrl?: unknown } }
+  const configured = typeof publicConfig.i18n?.baseUrl === 'string' ? publicConfig.i18n.baseUrl.trim() : ''
+  const fallback = getRequestURL(event).origin
+  return (configured || fallback).replace(/\/+$/, '')
 }
