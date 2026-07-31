@@ -1,5 +1,154 @@
 # Changelog
 
+## [4.0.0](https://github.com/davidschubert/pukalani.app/compare/v3.0.0...v4.0.0) (2026-07-31)
+
+
+### ⚠ BREAKING CHANGES
+
+* **e10:** Customer Feedback zentral — Widget, Board, Roadmap, eine Naht
+* **e9:** EINE Dashboard-Navigation, drei Ebenen — scope als Pflichtfeld
+* **a6:** Schritt 5 — workspaces fällt, die Community ist das zahlende Objekt
+* **e8-4:** der EINE Wächter — requireCommunityPermission, Community-Vokabular komplett
+* E8-3 Aufräumen — tenantId fällt, communityId steht allein
+* E8-3 Phase 2 — communityId neben tenantId in allen 19 Pool-Tabellen
+* **control:** E8-3 Phase 1 — tenants→communities, tenant_plans→community_plans
+* **core:** eigene Site-Capability site.billing statt billing.manage für den Owner
+* **control:** A6 Schritt 3a — Community-Checkout + Portal als Service-Naht
+* **control:** A6 Schritte 0–2 — die Zahlung erreicht die Community
+* **e11:** feature→product ZUSAMMENZIEHEN — Übergänge raus, Drop-Migrationen
+* feature → product — E11 Etappe B (Code, 964 Ersetzungen, 43 Umbenennungen)
+* maui → pukalani (Etappe A, nur Code — keine Appwrite-Daten)
+* **onboarding:** `communityId` in der Naht zum Control Plane (E8)
+* **control:** `community_members`/`community_invites` + `communityId` (E8)
+* **control:** `sites` → `websites` — erster Schritt der Umbenennung (E8)
+* **scripts:** zwei Pfade, die seit dem Cutover ins Leere zeigten
+* **core:** Mitgliedschaft wird ein Ereignis — das Site-Label folgt der Zeile (A5)
+* **core,system:** Benachrichtigungen nach Community trennen (C15, Audit S6)
+* **core:** Presence-Grenze im Pool scharf — read(label:siteId) statt read(users)
+* **media:** unveröffentlichte Medien sind nicht mehr welt-lesbar (B3)
+
+### Features
+
+* **a6:** Schritt 5 — workspaces fällt, die Community ist das zahlende Objekt ([8b11edb](https://github.com/davidschubert/pukalani.app/commit/8b11edbc7aee7cabd5178119dbe953b2f9f1a47a))
+* **admin:** Aktivitätsprotokoll der Nutzer-Detailseite als UTable (B6) ([85d1fc8](https://github.com/davidschubert/pukalani.app/commit/85d1fc8e53585b089c287502f0d9e69c9109a188))
+* **admin:** Speicher, GDPR-Exporte und Changelog als UTable (B6) ([9fd0292](https://github.com/davidschubert/pukalani.app/commit/9fd0292ef892b5710cd2347b144bdd2756b003c6))
+* **billing:** Abo-Übersicht als UTable + Nachschlagen (B6) ([80186e8](https://github.com/davidschubert/pukalani.app/commit/80186e84b169b8eb43559d6d89827d91749ebb12))
+* **comments:** Embed-Domainliste als UTable (B6) ([2c6364e](https://github.com/davidschubert/pukalani.app/commit/2c6364e71d66b21b60604c04867f1364ecf2bd6b))
+* **comments:** Moderations-Liste als UTable (B6) + Suche und Sortierung ([db26e1d](https://github.com/davidschubert/pukalani.app/commit/db26e1d0e9cce23463a64a2c0fc18afdb666b141))
+* **control,onboarding,admin:** Beitritt, echter Entzug und vollständige Mitgliederliste (A5) ([2f27cbf](https://github.com/davidschubert/pukalani.app/commit/2f27cbfb3237c7f4550162830f7a0421429dae1a))
+* **control:** A6 Schritt 3a — Community-Checkout + Portal als Service-Naht ([a814490](https://github.com/davidschubert/pukalani.app/commit/a8144904d857b2049042ea0db5439b445a6d08ae))
+* **control:** A6 Schritte 0–2 — die Zahlung erreicht die Community ([1d58b5c](https://github.com/davidschubert/pukalani.app/commit/1d58b5c9df0f696b7aeb2b7cb36d22080c85f835))
+* **control:** control-023 — `community_members`/`community_invites` + Spalte `communityId` ([e75fdbf](https://github.com/davidschubert/pukalani.app/commit/e75fdbffb2e3d262d0b9e28d630513a9ac0f1a3c))
+* **control:** der Kundenbereich liest seine kontobezogenen Meldungen (C17) ([bfa57e0](https://github.com/davidschubert/pukalani.app/commit/bfa57e0226b62d33c8d50f9d43da84d307544fb6))
+* **control:** E8-3 Phase 1 — tenants→communities, tenant_plans→community_plans ([c484ecc](https://github.com/davidschubert/pukalani.app/commit/c484ecca5f45cc67474d2330e6a7cbafe33ceec2))
+* **control:** Gesperrte Namen — Betreiber-Übersicht + editierbare Zusatzliste ([3ddfc46](https://github.com/davidschubert/pukalani.app/commit/3ddfc46d21e58b1a63ff6cbc8bbc7a9e56b1bd84))
+* **control:** Mandanten, Anfragen, Codes, Workspaces und Sites als UTable (B6) ([a2be6ca](https://github.com/davidschubert/pukalani.app/commit/a2be6caec2e00f660087476ff29b0a16a7b22831))
+* **control:** Migration 024 — product_catalog additiv angelegt ([e2f5576](https://github.com/davidschubert/pukalani.app/commit/e2f557637402e2afb81d7d284d5a55af1aac3da0))
+* **control:** Migration 026 — E8-Altbestand fällt (site_members, site_invites, sites, invite_requests.siteId) ([908aab0](https://github.com/davidschubert/pukalani.app/commit/908aab07d29a4b515fdafb35e8a29e90d9d63951))
+* **core:** Contributor-Fehler serverseitig halten, Client-Sicht anbieten (S8) ([921fb0b](https://github.com/davidschubert/pukalani.app/commit/921fb0b5cabde5d273b0aa91d723f71cdf4bae35))
+* **core:** EIN Vertrag für destruktive Aktionen (useConfirm, C10) ([658afb1](https://github.com/davidschubert/pukalani.app/commit/658afb1a270d969f2c07dde11d952bfaf33f0775))
+* **core:** gebündelter Mitglieds-Vertrag + fachlicher Grund im Fehler-Envelope ([8e97ea5](https://github.com/davidschubert/pukalani.app/commit/8e97ea5f1bfec5c7bfa93da94d0abc943cede08f))
+* **core:** Glocke für kontobezogene Meldungen außerhalb des Community-Chrome ([f8441dd](https://github.com/davidschubert/pukalani.app/commit/f8441ddc24101f30a2281607ec8d97149c7d70a4))
+* **core:** Leerzustand als Muster (CoreEmptyState, C11) — 3 Seiten ([0593b13](https://github.com/davidschubert/pukalani.app/commit/0593b13ed3f91b38951ed423462870a34f31aa11))
+* **core:** Mandanten-Branding trägt die Neutral-Palette ([e6dbe74](https://github.com/davidschubert/pukalani.app/commit/e6dbe741faed495f0bf4e6c882f775908f1d3427))
+* **core:** Mitgliedschaft wird ein Ereignis — das Site-Label folgt der Zeile (A5) ([10089b0](https://github.com/davidschubert/pukalani.app/commit/10089b0fd3df37bf8c267800938ac5e11cf052ca))
+* **core:** og:image im SEO-Kopf über einen Layer-Vertrag ([7b889ac](https://github.com/davidschubert/pukalani.app/commit/7b889ac6c1cfb70b93519072c397aabe19c2dc05))
+* **courses:** Kursliste als UTable (B6) ([42ff18f](https://github.com/davidschubert/pukalani.app/commit/42ff18ff5b728ecf707bea2c2bbb1ff474a21b8d))
+* **courses:** Lektionsliste im Kurs-Editor als UTable (B6) ([848946f](https://github.com/davidschubert/pukalani.app/commit/848946fdb1b0b178070dc5f5fecd1753381bbcea))
+* **e10:** Customer Feedback zentral — Widget, Board, Roadmap, eine Naht ([0380eb9](https://github.com/davidschubert/pukalani.app/commit/0380eb96d0524b5a768e093541ac6e6d05be2189))
+* E8-3 Aufräumen — tenantId fällt, communityId steht allein ([34334cf](https://github.com/davidschubert/pukalani.app/commit/34334cff4f23afc782005645a09780cdb9b5e4ff))
+* E8-3 Phase 2 — communityId neben tenantId in allen 19 Pool-Tabellen ([cf7c725](https://github.com/davidschubert/pukalani.app/commit/cf7c72585d762becd330228cce1680c68a997f92))
+* **e9:** EINE Dashboard-Navigation, drei Ebenen — scope als Pflichtfeld ([83d4a1b](https://github.com/davidschubert/pukalani.app/commit/83d4a1bc018643cbf9be0d55750f20ad41c101eb))
+* **events:** Terminliste als UTable (B6) ([5e54be0](https://github.com/davidschubert/pukalani.app/commit/5e54be0d408808d8f3cb3ee5938b269cc7fd5c41))
+* **feedback:** Feedback-Liste als UTable + Suche (B6) ([cc48cc5](https://github.com/davidschubert/pukalani.app/commit/cc48cc52a7e35ab5bbb9ab810805a57b65018838))
+* **marketing:** lokalisierte Produkt-Slugs + Sprachwechsler in den Footer ([2fb5d1b](https://github.com/davidschubert/pukalani.app/commit/2fb5d1bec83e5acb22bad4e9dd51ec5171a705cc))
+* **marketing:** Nuxt-UI-Migration P1 — Theme-Brücke (puka-Palette als primary) ([e1713fe](https://github.com/davidschubert/pukalani.app/commit/e1713fee272e8cdaca1dddefa417d8c94fd2da42))
+* **marketing:** Nuxt-UI-Migration P2 — Karten, Badges, Callouts, Grids ([a3f46cf](https://github.com/davidschubert/pukalani.app/commit/a3f46cfce38ffc71cf9adebc892f03c6ef6220a0))
+* **marketing:** Nuxt-UI-Migration P3 — Heros und CTA-Blöcke ([191263c](https://github.com/davidschubert/pukalani.app/commit/191263cf52753ad8ccb6a43665714b303aa8c1f9))
+* **marketing:** Nuxt-UI-Migration P4 — Pricing auf UPricingPlans, Toggle auf UTabs ([350facd](https://github.com/davidschubert/pukalani.app/commit/350facd4d0fcf872d14dc73ff499bddd8a8baaf3))
+* **marketing:** Nuxt-UI-Migration P5 — Header, Footer, FAQ, Tabs, Steps ([a90f40b](https://github.com/davidschubert/pukalani.app/commit/a90f40beea186c8a40ff607f8446cb1a6601b5f2))
+* **marketing:** Produkte-Dropdown in der Hauptnavigation + Unterseiten unter /products bzw. /produkte ([80cbc96](https://github.com/davidschubert/pukalani.app/commit/80cbc96add8c3cfe30b242ae88a818e12d64ca1e))
+* **marketing:** Zielgruppen-Seiten unter EINEM Segment /use-cases (statt /for ↔ /de/fuer) ([d1fd187](https://github.com/davidschubert/pukalani.app/commit/d1fd1879b814e84f087323832d5ed60cef653040))
+* **marketing:** Zielgruppen-Slugs lokalisiert (use-cases) — Muster der Produkt-Slugs ([189d226](https://github.com/davidschubert/pukalani.app/commit/189d22615252df2fd52c37f51852c246fa6bbe52))
+* **media:** Mediathek als UTable mit Vorschau-Spalte (B6) ([173c2ba](https://github.com/davidschubert/pukalani.app/commit/173c2bad3e25695e2dfe0db7391b5b4066fbc873))
+* **members:** Mitglieder-Verwaltung für Community-Betreiber (S9) ([331719f](https://github.com/davidschubert/pukalani.app/commit/331719fc7ca936717d8bc7d13a3a2b4cce5d1e88))
+* **onboarding:** A6 Schritt 3b — Abo-Seite im Community-Dashboard ([41c57fa](https://github.com/davidschubert/pukalani.app/commit/41c57fa7663ce5a003ef59d5b89fc9fa7b21f48a))
+* **pages:** Seitenliste als UTable + Suche (B6) ([e108757](https://github.com/davidschubert/pukalani.app/commit/e108757ab75f49a9b5f9e1db99baaf9b68756352))
+* **platform:** og:image je Community unter /og/&lt;key&gt;.png ([eeca462](https://github.com/davidschubert/pukalani.app/commit/eeca4624344ad6f7312f4d26dec5ffe39bc26b4f))
+* **posts:** Beitrags-Moderation als UTable (B6) ([7dcf451](https://github.com/davidschubert/pukalani.app/commit/7dcf4515a7ca912e8f321b5a2dfc697399c7c9ae))
+* **pricing:** Preise als Bruttopreise mit MwSt.-Hinweis ausweisen (A3) ([30b2fe9](https://github.com/davidschubert/pukalani.app/commit/30b2fe95ab0900a971b05b7841521a7dcecea5e8))
+* **system,courses:** Migrationen 023/003 — products-Spalten additiv neben features ([9990b06](https://github.com/davidschubert/pukalani.app/commit/9990b061e9929e84df8a166199b7c41691c7d91e))
+* **themes:** auf Mandanten-Hosts gewinnt die Farbwelt der Community (B5) ([6e6bf5c](https://github.com/davidschubert/pukalani.app/commit/6e6bf5ca36b663e65ccfa09079220b81c8e6c125))
+* **themes:** Bildmarken-Karte je Community als PNG (1200x630) ([785abf8](https://github.com/davidschubert/pukalani.app/commit/785abf88f74a724452174d99aabc58cd98129760))
+* **themes:** Galerie und Schriften-Liste als UTable (B6) ([ee27641](https://github.com/davidschubert/pukalani.app/commit/ee2764150a5f696813cdfbd1ec33487bc5960982))
+* **themes:** Neutral-Palette folgt der Community (B5-Rest) ([1545810](https://github.com/davidschubert/pukalani.app/commit/1545810ac8ae54ebef9a8d8c919b630ca4aefd4f))
+* **themes:** Standard-Theme heißt im Picker „Aloha" (B3) ([1da9147](https://github.com/davidschubert/pukalani.app/commit/1da914785f916d32bda1cd77e89dafbd9b2622af))
+
+
+### Bug Fixes
+
+* **activity,system:** Activity-Feed durch die Mandanten-Datentür (C1b) ([b54cc69](https://github.com/davidschubert/pukalani.app/commit/b54cc6914777cbbc48f6cad7a40fef4db519628b))
+* **admin,comments:** Dashboard-Kennzahlen mandantendicht (Audit B2) ([f12c5fe](https://github.com/davidschubert/pukalani.app/commit/f12c5fe09499c9d18ea253fce66db8042e3a7a96))
+* **admin:** Command-Palette verspricht nur noch Erreichbares (B7) ([b57fbc7](https://github.com/davidschubert/pukalani.app/commit/b57fbc7c1371f670e5b47202c3ed5ba34d1a0179))
+* **admin:** keine Appwrite-Fehlertexte im Antwort-Body der Nutzerlöschung (S8) ([a11d7a2](https://github.com/davidschubert/pukalani.app/commit/a11d7a255f2ec6208da5adf2528fbd70de7cb7a2))
+* **admin:** Owner sieht seine Kennzahlen — Site-Gate statt Operator-Label (C1, S2) ([fb2d30f](https://github.com/davidschubert/pukalani.app/commit/fb2d30fa76a7c7e240412661c010f3adce07f7b5))
+* **billing:** nicht eingerichteter Stripe-Webhook antwortet 404 statt 500 ([a02e38d](https://github.com/davidschubert/pukalani.app/commit/a02e38d15023ac580fabfbf9771520db435f6240))
+* **comments,admin:** Nutzer-Aktionen im Moderations-Dashboard gaten (S5) ([440fd23](https://github.com/davidschubert/pukalani.app/commit/440fd23ecc66ef6eb25dc2dd7fdbb2899ded159c))
+* **control:** D7 — Betreiber-Benachrichtigung verlor still Empfänger ([d0c39b4](https://github.com/davidschubert/pukalani.app/commit/d0c39b4dc6bc4ac0abfc837a7bc857348c7c4a6d))
+* **core,system:** Benachrichtigungen nach Community trennen (C15, Audit S6) ([f95ed74](https://github.com/davidschubert/pukalani.app/commit/f95ed74f2ae1ceb89a932789749402328c636052))
+* **core:** C19 — 3xx mit leerem Location-Header auf die App-Wurzel normalisieren ([5528d01](https://github.com/davidschubert/pukalani.app/commit/5528d0144a17f19662937bf0186acaecbe36307d))
+* **core:** eigene Site-Capability site.billing statt billing.manage für den Owner ([6b7e3b3](https://github.com/davidschubert/pukalani.app/commit/6b7e3b35fe35b1bfd35e82a1b61bf9c2223a6de0))
+* **core:** joinSite hält sein „wirft nie" strukturell, nicht per Zufall ([4a3651f](https://github.com/davidschubert/pukalani.app/commit/4a3651fd826b25629b9c71d76039436ed944b1fc))
+* **core:** Presence mandantendicht — tenantId in metadata + Filter (Audit B1) ([4616c6d](https://github.com/davidschubert/pukalani.app/commit/4616c6dc0d2f5879e4d53f66eebd8832c79b81ff))
+* **core:** Presence-Grenze im Pool scharf — read(label:siteId) statt read(users) ([3bee538](https://github.com/davidschubert/pukalani.app/commit/3bee538111a140f5d0689c3e88a7fa081684fd35))
+* **core:** Realtime ohne Datenebene ist ein No-Op — help zeigte eine 500-Seite ([924de16](https://github.com/davidschubert/pukalani.app/commit/924de169e2522072aae81a016d89c30a4a019d88))
+* **core:** recordActivity stempelt Mandant + Site-Rechte (C1b) ([92fc773](https://github.com/davidschubert/pukalani.app/commit/92fc773cc13e5fe0f7fb164a1582f1fcd59b2e36))
+* **courses:** Migration 002 gegen Appwrite-Index-Race härten (CI-Flake) ([998c75f](https://github.com/davidschubert/pukalani.app/commit/998c75f83828f0ceeb93824b7995449b405f1765))
+* **deps,marketing:** tailwindcss als echte Dependency + Glossar-Hero kompakt ([542079b](https://github.com/davidschubert/pukalani.app/commit/542079b7457cc18ca24403caa4a6615eb1bfa18a))
+* **deps:** EINE h3-Version im Baum + @nuxtjs/i18n auf die Nuxt-4.5-Generation ([940bf10](https://github.com/davidschubert/pukalani.app/commit/940bf1052eb25367067ff1a9f0495ad21f6b2195))
+* **embed:** Endungs-Lücke der Umbenennung + Rückfall für bestehende Einbetter ([5f7a186](https://github.com/davidschubert/pukalani.app/commit/5f7a1866a02779c29b220e64ed60b27659af9f6f))
+* **events:** grantEventTicket stempelt den Mandanten seines Events (S7) ([6f4b86f](https://github.com/davidschubert/pukalani.app/commit/6f4b86fcc5d8954024c03b0141d688fc5e0434a3))
+* **events:** tenantId im EventTicketRow-Typ nachziehen ([2fd4fa0](https://github.com/davidschubert/pukalani.app/commit/2fd4fa0f92861004410a20480e84d0e60c011c9a))
+* **marketing:** Audit-Bugfixes — tote Links, localePath-Namen, runtimeConfig-Skeleton, Licht-Klemme, aria-i18n ([ce75064](https://github.com/davidschubert/pukalani.app/commit/ce7506466a1a7ec0867b21f063b850bd4fbe195c))
+* **marketing:** Audit-Restpunkte — SEO-Composable, Sprachumschalter, Proof-URLs, eine Basis-URL, shared-Kataloge ([cc4c329](https://github.com/davidschubert/pukalani.app/commit/cc4c3292f7ff7d059f21a6b0b8737f6d50fa0f97))
+* **marketing:** Beweis-Grid wieder zentrieren (Margin-Kurzform schlug mkt-inner) ([052cc8a](https://github.com/davidschubert/pukalani.app/commit/052cc8a4403d7122f8b7f8812b26e6e91600dba7))
+* **marketing:** doppelter nav.products-Schlüssel verschluckte das „Produkte"-Label ([27fe837](https://github.com/davidschubert/pukalani.app/commit/27fe83760dbc80625e92d3c72ecd09c337bf921c))
+* **marketing:** Glossar-Liste zentrieren — margin-Kurzform-Falle endgültig tot ([d761d98](https://github.com/davidschubert/pukalani.app/commit/d761d98ac2bbac8cbc9457adc201658271f51761))
+* **marketing:** Redirect-Quellen sind historische URLs — Sweep-Regression behoben (prod war betroffen) ([49442b7](https://github.com/davidschubert/pukalani.app/commit/49442b7b8acaf3d9fc1afce02f6ea03288833522))
+* **marketing:** Zielgruppen-Links namensbasiert auflösen (EN zeigte /fuer/* statt /for/*) ([6300806](https://github.com/davidschubert/pukalani.app/commit/6300806cd4706ef053d38cb97414771cbb7ae9df))
+* **media,activity:** Routen über requireSitePermission gaten (S3) ([e153f93](https://github.com/davidschubert/pukalani.app/commit/e153f937670b8578a8c59319f89e1eb89688911b))
+* **media:** Medien-Galerie durch die Mandanten-Datentür (C1b) ([7d3cc0e](https://github.com/davidschubert/pukalani.app/commit/7d3cc0e981dbef58dd7076e688138c3e08813bc9))
+* **media:** unveröffentlichte Medien sind nicht mehr welt-lesbar (B3) ([4e6f823](https://github.com/davidschubert/pukalani.app/commit/4e6f82326922ee768cec2fa8fc955c99cff6f34b))
+* **migrations:** Appwrite-Index-Race systemisch härten — geteilter Retry-Helfer für alle 58 Migrationen ([9ff4d8c](https://github.com/davidschubert/pukalani.app/commit/9ff4d8ca05833124b06643c83e85460a28fb9fa7))
+* **migrations:** listColumns paginiert — Query.limit(200) in allen E8-3-Generika ([b1b5c96](https://github.com/davidschubert/pukalani.app/commit/b1b5c96b8ee4161c2313f2214009ab5add995a22))
+* **platform:** keine doppelte Wortmarke auf der Bildmarken-Karte ([8dc84cd](https://github.com/davidschubert/pukalani.app/commit/8dc84cda7cfb15af4f5327743022de2d0af33f52))
+* **posts:** Moderations-Routen über requireSitePermission gaten (S1) ([61da29d](https://github.com/davidschubert/pukalani.app/commit/61da29d8c8f3c99e166440f35b7f60652cd35112))
+* **posts:** Produkt-Gate auf ALLE posts-Routen (S10a) ([49a17b5](https://github.com/davidschubert/pukalani.app/commit/49a17b51068ae68b73c84f25bcec1e4363324893))
+* **posts:** Wartungsmodus friert auch Bearbeiten, Löschen und Poll-Stimmen ein (S10b) ([05f21e7](https://github.com/davidschubert/pukalani.app/commit/05f21e70b60cac3938fd5112aa90c5a3cb5cf8e2))
+* **scripts:** zwei Pfade, die seit dem Cutover ins Leere zeigten ([31ef679](https://github.com/davidschubert/pukalani.app/commit/31ef6792a1d42471059bbf2c30c744e43bef0046))
+* **system,courses:** Migrations-Interfaces erfüllen den Models.Row-Constraint ([631a7f6](https://github.com/davidschubert/pukalani.app/commit/631a7f6649acf136eabc02803afe7796f1513458))
+* **tickets:** Triage-Gate in die Route ziehen (S10c) ([142386e](https://github.com/davidschubert/pukalani.app/commit/142386e93ed10466600d3e4467bd80723922d015))
+
+
+### Performance
+
+* **core,media,events:** Bild-Naht — /preview statt Originaldatei ([ad9550c](https://github.com/davidschubert/pukalani.app/commit/ad9550c53618b33bd1f228f60e8412c0a260709a))
+
+
+### Refactoring
+
+* **control:** `community_members`/`community_invites` + `communityId` (E8) ([af417bd](https://github.com/davidschubert/pukalani.app/commit/af417bd3411936777111781deb2eedaf4ffe763c))
+* **control:** `sites` → `websites` — erster Schritt der Umbenennung (E8) ([f1fcf5c](https://github.com/davidschubert/pukalani.app/commit/f1fcf5ce9c9ae8560d2d9df39810544b95a3ec51))
+* **control:** pukalani.studio.* → pukalani.control.* — letzte Cutover-Altlast ([0b8c1c0](https://github.com/davidschubert/pukalani.app/commit/0b8c1c030a5cbdaebcd268a8688274ab82a227bf))
+* **control:** studioUserData.ts → controlUserData.ts (Datei zum Funktionsnamen) ([8eb9d19](https://github.com/davidschubert/pukalani.app/commit/8eb9d197dbc106542f56ed25f93a4909963738a4))
+* **e11:** feature→product ZUSAMMENZIEHEN — Übergänge raus, Drop-Migrationen ([3be742b](https://github.com/davidschubert/pukalani.app/commit/3be742b0434298bf9983c2b05b0264ccf60894f4))
+* **e8-4:** der EINE Wächter — requireCommunityPermission, Community-Vokabular komplett ([73cd355](https://github.com/davidschubert/pukalani.app/commit/73cd355ccade4ac9279bc054aba1a91cc5acd4c5))
+* feature → product — E11 Etappe B (Code, 964 Ersetzungen, 43 Umbenennungen) ([f99c872](https://github.com/davidschubert/pukalani.app/commit/f99c8722e443e84ff17312615516ecc92a01ab57))
+* maui → pukalani (Etappe A, nur Code — keine Appwrite-Daten) ([5f890b8](https://github.com/davidschubert/pukalani.app/commit/5f890b84eb74bf67f1aa79deff83f94ee35cc665))
+* **onboarding:** `communityId` in der Naht zum Control Plane (E8) ([5536366](https://github.com/davidschubert/pukalani.app/commit/553636651aa6e8776f95ad24228b665351da5f7c))
+* **themes:** Theme-Studio → „Customize theme" / „Theme anpassen" ([6c00824](https://github.com/davidschubert/pukalani.app/commit/6c008244392aae21dcc82bd30216464ce9e532f4))
+* **themes:** unbenutzte Hilfsfunktion der Bildmarken-Karte entfernt ([29af66e](https://github.com/davidschubert/pukalani.app/commit/29af66eb39dd094d907f362df97da206a1df0071))
+
 ## [3.0.0](https://github.com/davidschubert/maui-monorepo/compare/v2.3.0...v3.0.0) (2026-07-28)
 
 
