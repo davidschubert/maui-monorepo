@@ -20,7 +20,8 @@ niemand weiß, ob ein Häkchen noch Arbeit bedeutet.
 
 | Datei | Inhalt |
 | --- | --- |
-| **[OPEN-ITEMS.md](OPEN-ITEMS.md)** | **DIE EINE offene-Punkte-Liste.** Oben der gewichtete Master (Produkt-Brocken mit Prozent-Stand), darunter die feinkörnige Arbeitsliste A–F. Neue offene Punkte kommen HIERHER — nie in ein Plan-Dokument. |
+| **[OPEN-ITEMS.md](OPEN-ITEMS.md)** | **DIE EINE offene-Punkte-Liste — und zwar NUR Offenes** (Regel von David, 2026-07-30). Eine Tabelle „Jetzt dran — in dieser Reihenfolge" mit Prio, Aufwand und „Braucht David?", darunter „Geparkt / wartet". Max. 3 Zeilen je Eintrag; Einzelheiten leben im verlinkten Plan. Neue offene Punkte kommen HIERHER — nie in ein Plan-Dokument. |
+| **[OPEN-ITEMS-COMPLETE.md](OPEN-ITEMS-COMPLETE.md)** | **Finales Archiv der erledigten Punkte = unser Lern-Gedächtnis.** Jeder Eintrag vollständig, mit Datum und einer Zeile **Gelernt:**, wo etwas nicht auf Anhieb ging. Ausdrücklich KEINE Arbeitsliste — hier wird nachgelesen, nicht abgearbeitet. |
 | [GOALS.md](GOALS.md) | Phasen-Ziele des Projekts (Chronik der Ausbaustufen) |
 | [DECISION-LOG.md](DECISION-LOG.md) | Beschluss-Protokoll: welche Entscheidung wann, mit Begründung |
 | [CONCEPT.md](CONCEPT.md) | Architektur-Bibel A1–A14 (Layer-Grenzen, Verträge, Invarianten) |
