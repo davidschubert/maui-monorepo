@@ -22,7 +22,7 @@
  *
  *   pnpm migrate --app <app> --layer system
  */
-import { Client, Query, TablesDB } from 'node-appwrite'
+import { Client, Query, TablesDB, type Models } from 'node-appwrite'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -74,7 +74,7 @@ await waitForColumn('app_config', 'products')
 
 // Backfill: features → products, nur wo das Ziel leer ist. app_config hat in
 // der Praxis genau eine Zeile ('global') — das Limit ist nur ein Netz.
-interface AppConfigLike { $id: string, features?: string, products?: string }
+type AppConfigLike = Models.Row & { features?: string, products?: string }
 const rows = await tablesDB.listRows<AppConfigLike>({
   databaseId, tableId: 'app_config', queries: [Query.limit(100)],
 })

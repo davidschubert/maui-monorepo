@@ -15,7 +15,7 @@
  *
  *   pnpm migrate --app <app> --layer courses
  */
-import { Client, Query, TablesDB } from 'node-appwrite'
+import { Client, Query, TablesDB, type Models } from 'node-appwrite'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -61,7 +61,7 @@ catch (error) {
 await waitForColumn('courses', 'entitlementProduct')
 
 // Backfill: entitlementFeature → entitlementProduct, nur wo das Ziel leer ist.
-interface CourseLike { $id: string, entitlementFeature?: string | null, entitlementProduct?: string | null }
+type CourseLike = Models.Row & { entitlementFeature?: string | null, entitlementProduct?: string | null }
 const rows = await tablesDB.listRows<CourseLike>({
   databaseId, tableId: 'courses', queries: [Query.limit(1000)],
 })
