@@ -112,7 +112,7 @@ async function login(host, account) {
 
 async function tenantRowByHost(host) {
   const res = await control.listRows({
-    databaseId: controlDb, tableId: 'tenants',
+    databaseId: controlDb, tableId: 'communities',
     queries: [Query.equal('host', host), Query.limit(1)],
   })
   return res.rows[0] ?? null
@@ -150,8 +150,8 @@ try {
   check('Plan basic → /api/courses antwortet 404 (Produkt existiert nicht)', gatedClosed)
 
   cleanup.planRestore.push({ id: tenantA.$id, plan: tenantA.plan ?? null }, { id: tenantB.$id, plan: tenantB.plan ?? null })
-  await control.updateRow({ databaseId: controlDb, tableId: 'tenants', rowId: tenantA.$id, data: { plan: 'pro' } })
-  await control.updateRow({ databaseId: controlDb, tableId: 'tenants', rowId: tenantB.$id, data: { plan: 'pro' } })
+  await control.updateRow({ databaseId: controlDb, tableId: 'communities', rowId: tenantA.$id, data: { plan: 'pro' } })
+  await control.updateRow({ databaseId: controlDb, tableId: 'communities', rowId: tenantB.$id, data: { plan: 'pro' } })
   const planLive = await waitFor('Plan-Upgrade sichtbar (Resolver-Cache 30 s)', async () => {
     const [a, b] = await Promise.all([call(HOST_A, '/api/courses'), call(HOST_B, '/api/courses')])
     return a.status === 401 && b.status === 401
@@ -282,7 +282,7 @@ finally {
   for (const id of cleanup.members) await control.deleteRow({ databaseId: controlDb, tableId: 'community_members', rowId: id }).catch(() => {})
   for (const id of cleanup.users) await poolUsers.delete({ userId: id }).catch(() => {})
   for (const { id, plan } of cleanup.planRestore) {
-    await control.updateRow({ databaseId: controlDb, tableId: 'tenants', rowId: id, data: { plan } }).catch(() => {})
+    await control.updateRow({ databaseId: controlDb, tableId: 'communities', rowId: id, data: { plan } }).catch(() => {})
   }
   console.log(`  ✔ aufgeräumt (${cleanup.courses.length} Kurs(e), ${cleanup.members.length} Mitgliedschaft(en), ${cleanup.users.length} User, Pläne zurückgesetzt)`)
   console.log(`\n${fail === 0 ? '✔' : '✗'} ${pass} bestanden, ${fail} fehlgeschlagen\n`)

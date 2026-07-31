@@ -148,7 +148,7 @@ async function createCommunity(account, cookie, slug, name) {
     throw new Error(`Community ${slug} nicht angelegt (${created.status}): ${created.text.slice(0, 200)}`)
   }
   cleanup.tenants.push(created.json.communityId)
-  const tenantRow = await control.getRow({ databaseId, tableId: 'tenants', rowId: created.json.communityId }).catch(() => null)
+  const tenantRow = await control.getRow({ databaseId, tableId: 'communities', rowId: created.json.communityId }).catch(() => null)
   if (tenantRow?.workspaceId) cleanup.workspaces.push(tenantRow.workspaceId)
   const members = await control.listRows({
     databaseId, tableId: 'community_members', queries: [Query.equal('communityId', created.json.communityId), Query.limit(10)],
@@ -241,7 +241,7 @@ try {
   })
   check('PATCH openRegistration=false → 200', closeIt.status === 200 && closeIt.json?.openRegistration === false,
     `Status ${closeIt.status} ${closeIt.text.slice(0, 160)}`)
-  const tenantAfter = await control.getRow({ databaseId, tableId: 'tenants', rowId: siteA.communityId })
+  const tenantAfter = await control.getRow({ databaseId, tableId: 'communities', rowId: siteA.communityId })
   check('Control Plane trägt den Wert (tenants.openRegistration=false)', tenantAfter.openRegistration === false,
     JSON.stringify(tenantAfter.openRegistration))
   const reopen = await call(siteA.host, '/api/site/registration', {
@@ -273,11 +273,11 @@ catch (error) {
 finally {
   console.log('\n10. Aufräumen')
   for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'community_members', rowId: id }).catch(() => {})
-  for (const id of cleanup.tenants) await control.deleteRow({ databaseId, tableId: 'tenants', rowId: id }).catch(() => {})
+  for (const id of cleanup.tenants) await control.deleteRow({ databaseId, tableId: 'communities', rowId: id }).catch(() => {})
   for (const id of cleanup.workspaces) await control.deleteRow({ databaseId, tableId: 'workspaces', rowId: id }).catch(() => {})
   for (const id of cleanup.codes) await control.deleteRow({ databaseId, tableId: 'invite_codes', rowId: id }).catch(() => {})
   for (const id of cleanup.users) await poolUsers.delete({ userId: id }).catch(() => {})
-  const rest = await control.listRows({ databaseId, tableId: 'tenants', queries: [Query.limit(25)] })
+  const rest = await control.listRows({ databaseId, tableId: 'communities', queries: [Query.limit(25)] })
   console.log(`  ✔ aufgeräumt — verbleibende Tenants: ${rest.rows.map(r => r.host).join(', ') || '(keine)'}`)
   console.log(`\n${fail === 0 ? '✔' : '✗'} ${pass} bestanden, ${fail} fehlgeschlagen\n`)
   process.exit(fail === 0 ? 0 : 1)

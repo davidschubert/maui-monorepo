@@ -1,5 +1,5 @@
 import { tenantStatusSchema } from '../../../../schemas/tenant'
-import { TENANTS_TABLE, resolveTenantOpenRegistration, type TenantRow } from '../../../../shared/types/tenantRecord'
+import { COMMUNITIES_TABLE, resolveTenantOpenRegistration, type TenantRow } from '../../../../shared/types/tenantRecord'
 
 /** Betreiber: Tenant an/aus (disabled → Resolver liefert null → Host 404;
  *  greift durch den Resolver-Cache spätestens nach 30 s) und/oder
@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
   const admin = createAdminClient(event)
   const row = await admin.tablesDB.updateRow<TenantRow>({
     databaseId: config.public.appwriteDatabaseId,
-    tableId: TENANTS_TABLE,
+    tableId: COMMUNITIES_TABLE,
     rowId: id,
     data: {
       ...(body.status !== undefined ? { status: body.status } : {}),

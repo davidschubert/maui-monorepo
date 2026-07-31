@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { tenantRoleHasCapability, isTenantRole } from '../../../../../core/shared/tenantAuthz'
 import { isBuiltinNeutralSelection, isBuiltinThemeSelection } from '../../../../../themes/shared/builtinThemes'
 import { COMMUNITY_MEMBERS_TABLE, type CommunityMemberRow } from '../../../../shared/types/communityMember'
-import { TENANTS_TABLE, type TenantRow } from '../../../../shared/types/tenantRecord'
+import { COMMUNITIES_TABLE, type TenantRow } from '../../../../shared/types/tenantRecord'
 import { isSafeThemeToken } from '../../../../shared/onboarding'
 import { requireOnboardingCaller, verifyRuntimeIdentity } from '../../../utils/onboardingService'
 
@@ -117,7 +117,7 @@ export default defineEventHandler(async (event) => {
   // Projekt, aber einer communityId aus einer ANDEREN Runtime auf einen fremden
   // Tenant zeigen. 404 statt 403 — eine fremde Id soll sich nicht bestätigen.
   const tenant = await admin.tablesDB.getRow<TenantRow>({
-    databaseId, tableId: TENANTS_TABLE, rowId: body.communityId,
+    databaseId, tableId: COMMUNITIES_TABLE, rowId: body.communityId,
   }).catch(() => null)
   if (!tenant || tenant.projectId !== identity.projectId) {
     throw createError({ status: 404, statusText: 'Site not found' })
@@ -125,7 +125,7 @@ export default defineEventHandler(async (event) => {
 
   const row = await admin.tablesDB.updateRow<TenantRow>({
     databaseId,
-    tableId: TENANTS_TABLE,
+    tableId: COMMUNITIES_TABLE,
     rowId: body.communityId,
     data: {
       theme: body.theme,

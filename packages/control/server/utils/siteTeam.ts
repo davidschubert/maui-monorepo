@@ -5,7 +5,7 @@ import type { Capability } from '../../../core/shared/types/authz'
 import { isTenantRole, tenantRoleHasCapability } from '../../../core/shared/tenantAuthz'
 import { COMMUNITY_MEMBERS_TABLE, type CommunityMemberRow, type SiteRole } from '../../shared/types/communityMember'
 import { COMMUNITY_INVITES_TABLE, type CommunityInviteRow } from '../../shared/types/communityInvite'
-import { TENANTS_TABLE, type TenantRow } from '../../shared/types/tenantRecord'
+import { COMMUNITIES_TABLE, type TenantRow } from '../../shared/types/tenantRecord'
 import type { SiteTeamDecision, SiteTeamMemberFacts } from '../../shared/siteTeam'
 import { verifyRuntimeIdentity, type RuntimeIdentity } from './onboardingService'
 import { hashInviteToken } from './workspaceMembers'
@@ -165,7 +165,7 @@ export async function requireSiteTeamContext(
 
   const admin = createAdminClient(event)
   const tenant = await admin.tablesDB.getRow<TenantRow>({
-    databaseId, tableId: TENANTS_TABLE, rowId: body.communityId,
+    databaseId, tableId: COMMUNITIES_TABLE, rowId: body.communityId,
   }).catch(() => null)
   if (!tenant || tenant.projectId !== identity.projectId) {
     throw createError({ status: 404, statusText: 'Site not found' })

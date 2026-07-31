@@ -1,5 +1,5 @@
 import { Query } from 'node-appwrite'
-import { TENANT_PLANS_TABLE, parseTenantPlanLimits, type TenantPlanRow } from '../../../../shared/types/tenantRecord'
+import { COMMUNITY_PLANS_TABLE, parseTenantPlanLimits, type TenantPlanRow } from '../../../../shared/types/tenantRecord'
 
 /** Betreiber: editierbarer Quota-Katalog (tenant_plans, control-014) auflisten. */
 export default defineEventHandler(async (event) => {
@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   const admin = createAdminClient(event)
   const { rows } = await admin.tablesDB.listRows<TenantPlanRow>({
     databaseId: config.public.appwriteDatabaseId,
-    tableId: TENANT_PLANS_TABLE,
+    tableId: COMMUNITY_PLANS_TABLE,
     queries: [Query.orderAsc('key'), Query.limit(25)],
   }).catch((error) => { throw toH3Error(error, 'Could not list tenant plans') })
   return { plans: rows.map(row => ({ key: row.key, limits: parseTenantPlanLimits(row.limits) })) }

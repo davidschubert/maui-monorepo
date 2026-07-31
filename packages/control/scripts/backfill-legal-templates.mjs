@@ -64,7 +64,7 @@ async function allTenants() {
   for (let offset = 0; ; offset += 100) {
     const page = await control.listRows({
       databaseId: controlDatabaseId,
-      tableId: 'tenants',
+      tableId: 'communities',
       queries: [Query.limit(100), Query.offset(offset)],
     })
     rows.push(...page.rows)

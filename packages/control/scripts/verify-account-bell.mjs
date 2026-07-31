@@ -275,7 +275,7 @@ try {
   // Definition „alles" (notificationAudienceFor → kind: 'all').
 
   const tenants = await controlDb.listRows({
-    databaseId, tableId: 'tenants', queries: [Query.equal('host', TENANT_HOST), Query.limit(1)],
+    databaseId, tableId: 'communities', queries: [Query.equal('host', TENANT_HOST), Query.limit(1)],
   })
   // Die Mandanten-Id ist die SPALTE `tenantId` (z. B. 't-kunde-a'), nicht die
   // Row-Id des Tenants — genau diese Verwechslung hat der Beweis beim ersten

@@ -54,7 +54,7 @@ if (clean) {
       queries: [Query.equal('runtimeUserId', user.$id), Query.limit(25)],
     })
     for (const member of members) {
-      await control.deleteRow({ databaseId, tableId: 'tenants', rowId: member.communityId }).catch(() => {})
+      await control.deleteRow({ databaseId, tableId: 'communities', rowId: member.communityId }).catch(() => {})
       await control.deleteRow({ databaseId, tableId: 'community_members', rowId: member.$id }).catch(() => {})
       console.log(`✔ Community ${member.communityId} entfernt`)
     }

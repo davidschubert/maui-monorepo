@@ -2,7 +2,7 @@ import { Query } from 'node-appwrite'
 import { z } from 'zod'
 import { inviteCodeSchema } from '../../../../schemas/onboarding'
 import { createSlugSchema, slugToHost } from '../../../../schemas/tenant'
-import { TENANTS_TABLE, type TenantRow } from '../../../../shared/types/tenantRecord'
+import { COMMUNITIES_TABLE, type TenantRow } from '../../../../shared/types/tenantRecord'
 import { checkInviteCode } from '../../../utils/inviteCodes'
 import { requireOnboardingCaller } from '../../../utils/onboardingService'
 import { isNameReservedInDb } from '../../../utils/reservedNames'
@@ -48,7 +48,7 @@ export default defineEventHandler(async (event) => {
     const admin = createAdminClient(event)
     const { total } = await admin.tablesDB.listRows<TenantRow>({
       databaseId: config.public.appwriteDatabaseId,
-      tableId: TENANTS_TABLE,
+      tableId: COMMUNITIES_TABLE,
       queries: [Query.equal('host', slugToHost(body.slug)), Query.limit(1)],
     })
     // Dieselbe Antwort für „schon vergeben" und „gesperrt" (control-027) —

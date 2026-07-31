@@ -85,7 +85,7 @@ function call(host, path, { method = 'GET', body, cookie } = {}) {
 }
 
 async function countTenants() {
-  const { total } = await control.listRows({ databaseId, tableId: 'tenants', queries: [Query.limit(1)] })
+  const { total } = await control.listRows({ databaseId, tableId: 'communities', queries: [Query.limit(1)] })
   return total
 }
 
@@ -232,7 +232,7 @@ try {
   check(`genau ${RUNS} Owner-Mitgliedschaften`, members.rows.length === RUNS && members.rows.every(row => row.role === 'owner'), `${members.rows.length}`)
 
   const tenantRows = await control.listRows({
-    databaseId, tableId: 'tenants', queries: [Query.equal('$id', cleanup.tenants), Query.limit(100)],
+    databaseId, tableId: 'communities', queries: [Query.equal('$id', cleanup.tenants), Query.limit(100)],
   })
   cleanup.workspaces.push(...new Set(tenantRows.rows.map(row => row.workspaceId).filter(Boolean)))
   check('alle im Trial-Plan (pro) mit 14 Tagen', tenantRows.rows.every(row =>
@@ -273,7 +273,7 @@ finally {
   console.log('\n5. Aufräumen')
   // Seiten der Testläufe (tenant-gescopt, im RUNTIME-Projekt) mitnehmen.
   for (const tenantRow of cleanup.tenants) {
-    const t = await control.getRow({ databaseId, tableId: 'tenants', rowId: tenantRow }).catch(() => null)
+    const t = await control.getRow({ databaseId, tableId: 'communities', rowId: tenantRow }).catch(() => null)
     if (!t?.tenantId) continue
     const pages = await pool.listRows({ databaseId: poolDatabaseId, tableId: 'pages', queries: [Query.equal('tenantId', t.tenantId), Query.limit(25)] }).catch(() => null)
     for (const page of pages?.rows ?? []) {
@@ -282,11 +282,11 @@ finally {
     }
   }
   for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'community_members', rowId: id }).catch(() => {})
-  for (const id of cleanup.tenants) await control.deleteRow({ databaseId, tableId: 'tenants', rowId: id }).catch(() => {})
+  for (const id of cleanup.tenants) await control.deleteRow({ databaseId, tableId: 'communities', rowId: id }).catch(() => {})
   for (const id of cleanup.workspaces) await control.deleteRow({ databaseId, tableId: 'workspaces', rowId: id }).catch(() => {})
   for (const id of cleanup.codes) await control.deleteRow({ databaseId, tableId: 'invite_codes', rowId: id }).catch(() => {})
   for (const id of cleanup.users) await poolUsers.delete({ userId: id }).catch(() => {})
-  const rest = await control.listRows({ databaseId, tableId: 'tenants', queries: [Query.limit(25)] })
+  const rest = await control.listRows({ databaseId, tableId: 'communities', queries: [Query.limit(25)] })
   console.log(`  ✔ aufgeräumt — verbleibende Tenants: ${rest.rows.map(r => r.host).join(', ') || '(keine)'}`)
   if (cleanup.pages.length) console.log(`  ✔ ${cleanup.pages.length} erzeugte Startseiten entfernt`)
   console.log(`\n${fail === 0 ? '✔' : '✗'} ${pass} bestanden, ${fail} fehlgeschlagen\n`)

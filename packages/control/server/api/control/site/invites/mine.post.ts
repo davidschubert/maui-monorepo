@@ -1,7 +1,7 @@
 import { Query } from 'node-appwrite'
 import { z } from 'zod'
 import { COMMUNITY_INVITES_TABLE, type CommunityInviteRow } from '../../../../../shared/types/communityInvite'
-import { TENANTS_TABLE, type TenantRow } from '../../../../../shared/types/tenantRecord'
+import { COMMUNITIES_TABLE, type TenantRow } from '../../../../../shared/types/tenantRecord'
 import { verifyRuntimeIdentity } from '../../../../utils/onboardingService'
 
 /**
@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
   const admin = createAdminClient(event)
 
   const tenant = await admin.tablesDB.getRow<TenantRow>({
-    databaseId, tableId: TENANTS_TABLE, rowId: body.communityId,
+    databaseId, tableId: COMMUNITIES_TABLE, rowId: body.communityId,
   }).catch(() => null)
   if (!tenant || tenant.projectId !== identity.projectId) {
     throw createError({ status: 404, statusText: 'Site not found' })

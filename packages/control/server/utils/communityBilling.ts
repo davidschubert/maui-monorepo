@@ -1,7 +1,7 @@
 import type { H3Event } from 'h3'
 import { subscriptionUpdateToCommunityAction, type CommunitySubscriptionUpdate } from '../../shared/communityBilling'
 import { shouldApplyFreeFallback } from '../../shared/workspaceBilling'
-import { TENANTS_TABLE, type TenantPlan, type TenantRow } from '../../shared/types/tenantRecord'
+import { COMMUNITIES_TABLE, type TenantPlan, type TenantRow } from '../../shared/types/tenantRecord'
 import type { ControlPlanCatalog } from '../../shared/types/workspace'
 
 /**
@@ -40,7 +40,7 @@ export async function handleCommunitySubscriptionUpdate(event: H3Event, update: 
       return
     case 'apply-plan': {
       await admin.tablesDB.updateRow<TenantRow>({
-        databaseId, tableId: TENANTS_TABLE, rowId: action.communityId,
+        databaseId, tableId: COMMUNITIES_TABLE, rowId: action.communityId,
         data: {
           plan: action.plan as TenantPlan,
           billingStatus: 'active',
@@ -58,14 +58,14 @@ export async function handleCommunitySubscriptionUpdate(event: H3Event, update: 
     }
     case 'past-due':
       await admin.tablesDB.updateRow<TenantRow>({
-        databaseId, tableId: TENANTS_TABLE, rowId: action.communityId,
+        databaseId, tableId: COMMUNITIES_TABLE, rowId: action.communityId,
         data: { billingStatus: 'past_due' },
       })
       console.warn(`[control] Community ${action.communityId} → past_due (Plan bleibt, Stripe-Dunning läuft)`)
       return
     case 'free-fallback': {
       const tenant = await admin.tablesDB.getRow<TenantRow>({
-        databaseId, tableId: TENANTS_TABLE, rowId: action.communityId,
+        databaseId, tableId: COMMUNITIES_TABLE, rowId: action.communityId,
       }).catch((error) => {
         // 404 = Community gelöscht → legitim nichts zu tun. Alles andere ist
         // transient → rethrow (Webhook 500 → Stripe retryt; nur so kommt das
@@ -107,7 +107,7 @@ export async function handleCommunitySubscriptionUpdate(event: H3Event, update: 
       }
 
       await admin.tablesDB.updateRow<TenantRow>({
-        databaseId, tableId: TENANTS_TABLE, rowId: action.communityId,
+        databaseId, tableId: COMMUNITIES_TABLE, rowId: action.communityId,
         data: {
           // Rückfall auf den kostenlosen Tarif — NIE auf nichts (ein
           // gekündigter Kunde ist nie schlechter gestellt als einer, der nie

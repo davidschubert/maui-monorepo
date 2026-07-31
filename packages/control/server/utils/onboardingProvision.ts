@@ -9,7 +9,7 @@ import {
   type SiteProfile,
 } from '../../shared/onboarding'
 import { slugToHost } from '../../schemas/tenant'
-import { TENANTS_TABLE, normalizeTenantPlan, type TenantRow } from '../../shared/types/tenantRecord'
+import { COMMUNITIES_TABLE, normalizeTenantPlan, type TenantRow } from '../../shared/types/tenantRecord'
 import { COMMUNITY_MEMBERS_TABLE, type CommunityMemberRow } from '../../shared/types/communityMember'
 import { WORKSPACES_TABLE, type WorkspaceRow } from '../../shared/types/workspace'
 import type { InviteCodeRow } from '../../shared/types/inviteCode'
@@ -66,7 +66,7 @@ async function findTenantByHost(event: H3Event, host: string): Promise<TenantRow
   const admin = createAdminClient(event)
   const { rows } = await admin.tablesDB.listRows<TenantRow>({
     databaseId: config.public.appwriteDatabaseId,
-    tableId: TENANTS_TABLE,
+    tableId: COMMUNITIES_TABLE,
     queries: [Query.equal('host', host), Query.limit(1)],
   })
   return rows[0] ?? null
@@ -101,7 +101,7 @@ async function ownedSites(event: H3Event, identity: RuntimeIdentity): Promise<Te
   // fallen einfach weg und blockieren das Kontingent damit nicht.
   const { rows } = await admin.tablesDB.listRows<TenantRow>({
     databaseId,
-    tableId: TENANTS_TABLE,
+    tableId: COMMUNITIES_TABLE,
     queries: [Query.equal('$id', memberships.map(row => row.communityId)), Query.limit(100)],
   })
   return rows
@@ -204,7 +204,7 @@ export async function provisionCommunity(
   const tenantId = `t-${ID.unique()}`
   const tenant = await admin.tablesDB.createRow<TenantRow>({
     databaseId,
-    tableId: TENANTS_TABLE,
+    tableId: COMMUNITIES_TABLE,
     rowId: ID.unique(),
     data: {
       name: input.name,
@@ -264,7 +264,7 @@ export async function provisionCommunity(
   catch (error) {
     // Ohne Owner ist die Community unerreichbar UND unlöschbar für den Kunden
     // → zurückrollen, damit der Retry sauber neu anlegen kann.
-    await admin.tablesDB.deleteRow({ databaseId, tableId: TENANTS_TABLE, rowId: tenant.$id })
+    await admin.tablesDB.deleteRow({ databaseId, tableId: COMMUNITIES_TABLE, rowId: tenant.$id })
       .catch(cleanup => logEvent('error', 'onboarding.rollback_failed', {
         communityId: tenant.$id,
         host,

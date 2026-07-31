@@ -15,7 +15,7 @@
 import { Client, Query, TablesDB } from 'node-appwrite'
 // Explizite .ts-Endungen: das Script läuft direkt unter Node
 // --experimental-strip-types, das relative Imports nicht auflöst.
-import { TENANT_WAVES, TENANTS_TABLE, type TenantRow, type TenantWave } from '../shared/types/tenantRecord.ts'
+import { TENANT_WAVES, COMMUNITIES_TABLE, type TenantRow, type TenantWave } from '../shared/types/tenantRecord.ts'
 import { siloProjectsForWave } from '../shared/waves.ts'
 
 const wave = process.argv[2] as TenantWave
@@ -35,7 +35,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
 const { rows, total } = await tablesDB.listRows<TenantRow>({
-  databaseId, tableId: TENANTS_TABLE, queries: [Query.limit(500)],
+  databaseId, tableId: COMMUNITIES_TABLE, queries: [Query.limit(500)],
 })
 if (total > rows.length) {
   console.error(`✗ tenants-Table größer als das Lesefenster (${rows.length}/${total}) — Pagination im Helfer nachrüsten.`)

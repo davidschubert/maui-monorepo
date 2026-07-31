@@ -178,7 +178,7 @@ try {
     console.log(`\nN5a Site-Autorisierung gegen http://[::1]:${PORT} (Pool ${poolProject})\n`)
 
     const tenants = await control.listRows({
-      databaseId: controlDb, tableId: 'tenants',
+      databaseId: controlDb, tableId: 'communities',
       queries: [Query.equal('host', [HOST_A, HOST_B]), Query.limit(5)],
     })
     const tenantA = tenants.rows.find(r => r.host === HOST_A)
@@ -190,8 +190,8 @@ try {
 
     console.log('0. Vorbereitung (events ist ab Plan pro — Pläne temporär heben)')
     cleanup.planRestore.push({ id: tenantA.$id, plan: tenantA.plan ?? null }, { id: tenantB.$id, plan: tenantB.plan ?? null })
-    await control.updateRow({ databaseId: controlDb, tableId: 'tenants', rowId: tenantA.$id, data: { plan: 'pro' } })
-    await control.updateRow({ databaseId: controlDb, tableId: 'tenants', rowId: tenantB.$id, data: { plan: 'pro' } })
+    await control.updateRow({ databaseId: controlDb, tableId: 'communities', rowId: tenantA.$id, data: { plan: 'pro' } })
+    await control.updateRow({ databaseId: controlDb, tableId: 'communities', rowId: tenantB.$id, data: { plan: 'pro' } })
     check('Plan pro auf beiden Tenants sichtbar (Resolver-Cache 30 s)', await waitFor('Plan-Upgrade', async () => {
       const [a, b] = await Promise.all([call(HOST_A, '/api/events'), call(HOST_B, '/api/events')])
       return a.status === 200 && b.status === 200
@@ -275,7 +275,7 @@ finally {
   for (const id of cleanup.members) await control?.deleteRow({ databaseId: controlDb, tableId: 'community_members', rowId: id }).catch(() => {})
   for (const id of cleanup.users) await poolUsers.delete({ userId: id }).catch(() => {})
   for (const { id, plan } of cleanup.planRestore) {
-    await control?.updateRow({ databaseId: controlDb, tableId: 'tenants', rowId: id, data: { plan } }).catch(() => {})
+    await control?.updateRow({ databaseId: controlDb, tableId: 'communities', rowId: id, data: { plan } }).catch(() => {})
   }
   console.log(`  ✔ aufgeräumt (${cleanup.events.length} Event(s), ${cleanup.members.length} Mitgliedschaft(en), ${cleanup.users.length} User, Pläne zurückgesetzt)`)
   console.log(`\n${fail === 0 ? '✔' : '✗'} ${pass} bestanden, ${fail} fehlgeschlagen\n`)

@@ -1,6 +1,6 @@
 import { ID } from 'node-appwrite'
 import { tenantCreateSchema } from '../../../../schemas/tenant'
-import { TENANTS_TABLE, type TenantRow } from '../../../../shared/types/tenantRecord'
+import { COMMUNITIES_TABLE, type TenantRow } from '../../../../shared/types/tenantRecord'
 import { isNameReservedInDb, reservedFirstLabel } from '../../../utils/reservedNames'
 
 /**
@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
   const admin = createAdminClient(event)
   const row = await admin.tablesDB.createRow<TenantRow>({
     databaseId: config.public.appwriteDatabaseId,
-    tableId: TENANTS_TABLE,
+    tableId: COMMUNITIES_TABLE,
     rowId: ID.unique(),
     // Bewusst ALLE Spalten explizit: so erzwingt der Compiler bei jeder neuen
     // tenants-Spalte eine Entscheidung, was eine per Hand angelegte Site dort

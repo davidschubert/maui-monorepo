@@ -172,7 +172,7 @@ try {
   const host = created.json?.host
   if (communityId) cleanup.tenants.push(communityId)
 
-  const tenantRow = communityId ? await control.getRow({ databaseId, tableId: 'tenants', rowId: communityId }) : null
+  const tenantRow = communityId ? await control.getRow({ databaseId, tableId: 'communities', rowId: communityId }) : null
   if (tenantRow?.workspaceId) cleanup.workspaces.push(tenantRow.workspaceId)
   const members = await control.listRows({
     databaseId, tableId: 'community_members', queries: [Query.equal('communityId', communityId ?? 'x'), Query.limit(10)],
@@ -686,11 +686,11 @@ finally {
   }
   for (const id of cleanup.invites) await control.deleteRow({ databaseId, tableId: 'community_invites', rowId: id }).catch(() => {})
   for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'community_members', rowId: id }).catch(() => {})
-  for (const id of cleanup.tenants) await control.deleteRow({ databaseId, tableId: 'tenants', rowId: id }).catch(() => {})
+  for (const id of cleanup.tenants) await control.deleteRow({ databaseId, tableId: 'communities', rowId: id }).catch(() => {})
   for (const id of cleanup.workspaces) await control.deleteRow({ databaseId, tableId: 'workspaces', rowId: id }).catch(() => {})
   for (const id of cleanup.codes) await control.deleteRow({ databaseId, tableId: 'invite_codes', rowId: id }).catch(() => {})
   for (const id of cleanup.users) await poolUsers.delete({ userId: id }).catch(() => {})
-  const rest = await control.listRows({ databaseId, tableId: 'tenants', queries: [Query.limit(25)] })
+  const rest = await control.listRows({ databaseId, tableId: 'communities', queries: [Query.limit(25)] })
   console.log(`  ✔ aufgeräumt — verbleibende Tenants: ${rest.rows.map(r => r.host).join(', ') || '(keine)'}`)
   console.log(`\n${fail === 0 ? '✔' : '✗'} ${pass} bestanden, ${fail} fehlgeschlagen\n`)
   process.exit(fail === 0 ? 0 : 1)

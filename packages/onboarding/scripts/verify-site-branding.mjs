@@ -173,7 +173,7 @@ async function createCommunity(cookie, slug, name) {
     throw new Error(`Community ${slug} nicht angelegt (${created.status}): ${created.text.slice(0, 200)}`)
   }
   cleanup.tenants.push(created.json.communityId)
-  const tenantRow = await control.getRow({ databaseId, tableId: 'tenants', rowId: created.json.communityId }).catch(() => null)
+  const tenantRow = await control.getRow({ databaseId, tableId: 'communities', rowId: created.json.communityId }).catch(() => null)
   if (tenantRow?.workspaceId) cleanup.workspaces.push(tenantRow.workspaceId)
   const members = await control.listRows({
     databaseId, tableId: 'community_members', queries: [Query.equal('communityId', created.json.communityId), Query.limit(10)],
@@ -272,7 +272,7 @@ try {
     patched.status === 200 && patched.json?.theme === 'crimson' && patched.json?.variant === 'deep',
     `Status ${patched.status} ${patched.text.slice(0, 160)}`)
 
-  const tenantAfter = await control.getRow({ databaseId, tableId: 'tenants', rowId: siteA.communityId })
+  const tenantAfter = await control.getRow({ databaseId, tableId: 'communities', rowId: siteA.communityId })
   check('Control Plane trägt den Wert (tenants.theme=crimson)', tenantAfter.theme === 'crimson', String(tenantAfter.theme))
   check('Control Plane trägt die Variante (tenants.variant=deep)', tenantAfter.variant === 'deep', String(tenantAfter.variant))
 
@@ -300,7 +300,7 @@ try {
     const res = await call(siteA.host, '/api/site/branding', { method: 'PATCH', cookie: ownerCookieA, body })
     check(`${label} → 400`, res.status === 400, `Status ${res.status}`)
   }
-  const stillCrimson = await control.getRow({ databaseId, tableId: 'tenants', rowId: siteA.communityId })
+  const stillCrimson = await control.getRow({ databaseId, tableId: 'communities', rowId: siteA.communityId })
   check('nach allen Ablehnungen steht der gute Wert unverändert', stillCrimson.theme === 'crimson' && stillCrimson.variant === 'deep',
     `${stillCrimson.theme}/${stillCrimson.variant}`)
 
@@ -310,7 +310,7 @@ try {
     method: 'PATCH', cookie: ownerCookieB, body: { theme: 'crimson', variant: 'deep' },
   })
   check('Owner von kunde-a darf kunde-b NICHT umfärben → 403', cross.status === 403, `Status ${cross.status}`)
-  const tenantB = await control.getRow({ databaseId, tableId: 'tenants', rowId: siteB.communityId })
+  const tenantB = await control.getRow({ databaseId, tableId: 'communities', rowId: siteB.communityId })
   check('kunde-b unverändert in der Datenbank', tenantB.theme === 'spring', String(tenantB.theme))
 
   console.log('\n8. Naht-Regel: der Operator-Break-Glass reicht am Control Plane NICHT durch')
@@ -321,7 +321,7 @@ try {
   // Die Platform-App lässt ihn passieren (protokollierter Break-Glass), das
   // Control Plane verlangt eine echte community_members-Row → 403 durchgereicht.
   check('Operator mit admin-Label, ohne Mitgliedschaft → 403', operatorPatch.status === 403, `Status ${operatorPatch.status}`)
-  const afterOperator = await control.getRow({ databaseId, tableId: 'tenants', rowId: siteA.communityId })
+  const afterOperator = await control.getRow({ databaseId, tableId: 'communities', rowId: siteA.communityId })
   check('nichts geschrieben', afterOperator.theme === 'crimson', String(afterOperator.theme))
 
   console.log('\n9. Kontroll-Host hat keine Community → die Route existiert dort nicht')
@@ -337,7 +337,7 @@ try {
   check('PATCH zurück → 200', reset.status === 200 && reset.json?.theme === 'spring', `Status ${reset.status}`)
   // Das Feld war in diesem PATCH nicht dabei — die Palette darf sich davon
   // nicht ändern (Deploy-Fenster platform/control, siehe Route-Kommentar).
-  const afterPartial = await control.getRow({ databaseId, tableId: 'tenants', rowId: siteA.communityId })
+  const afterPartial = await control.getRow({ databaseId, tableId: 'communities', rowId: siteA.communityId })
   check('PATCH ohne `neutral` lässt die Palette unangetastet', (afterPartial.neutral ?? '') === '',
     JSON.stringify(afterPartial.neutral))
 
@@ -348,7 +348,7 @@ try {
   check('PATCH neutral=taupe → 200 und Antwort trägt den Wert',
     neutralPatch.status === 200 && neutralPatch.json?.neutral === 'taupe',
     `Status ${neutralPatch.status} ${neutralPatch.text.slice(0, 160)}`)
-  const tenantNeutral = await control.getRow({ databaseId, tableId: 'tenants', rowId: siteA.communityId })
+  const tenantNeutral = await control.getRow({ databaseId, tableId: 'communities', rowId: siteA.communityId })
   check('Control Plane trägt tenants.neutral=taupe', tenantNeutral.neutral === 'taupe', String(tenantNeutral.neutral))
 
   for (const [label, body] of [
@@ -396,11 +396,11 @@ catch (error) {
 finally {
   console.log('\n12. Aufräumen')
   for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'community_members', rowId: id }).catch(() => {})
-  for (const id of cleanup.tenants) await control.deleteRow({ databaseId, tableId: 'tenants', rowId: id }).catch(() => {})
+  for (const id of cleanup.tenants) await control.deleteRow({ databaseId, tableId: 'communities', rowId: id }).catch(() => {})
   for (const id of cleanup.workspaces) await control.deleteRow({ databaseId, tableId: 'workspaces', rowId: id }).catch(() => {})
   for (const id of cleanup.codes) await control.deleteRow({ databaseId, tableId: 'invite_codes', rowId: id }).catch(() => {})
   for (const id of cleanup.users) await poolUsers.delete({ userId: id }).catch(() => {})
-  const rest = await control.listRows({ databaseId, tableId: 'tenants', queries: [Query.limit(25)] })
+  const rest = await control.listRows({ databaseId, tableId: 'communities', queries: [Query.limit(25)] })
   console.log(`  ✔ aufgeräumt — verbleibende Tenants: ${rest.rows.map(r => r.host).join(', ') || '(keine)'}`)
   console.log(`\n${fail === 0 ? '✔' : '✗'} ${pass} bestanden, ${fail} fehlgeschlagen\n`)
   process.exit(fail === 0 ? 0 : 1)

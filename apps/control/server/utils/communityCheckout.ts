@@ -1,6 +1,6 @@
 import type { H3Event } from 'h3'
 import type { TenantRow } from '../../../../packages/control/shared/types/tenantRecord'
-import { TENANTS_TABLE } from '../../../../packages/control/shared/types/tenantRecord'
+import { COMMUNITIES_TABLE } from '../../../../packages/control/shared/types/tenantRecord'
 import { pickLookupKey } from '../../../../packages/control/shared/workspaceBilling'
 import type { ControlPlanCatalog, WorkspaceBillingInterval } from '../../../../packages/control/shared/types/workspace'
 
@@ -47,7 +47,7 @@ export async function ensureCommunityCustomer(event: H3Event, tenant: TenantRow,
   const admin = createAdminClient(event)
   await admin.tablesDB.updateRow<TenantRow>({
     databaseId: config.public.appwriteDatabaseId,
-    tableId: TENANTS_TABLE,
+    tableId: COMMUNITIES_TABLE,
     rowId: tenant.$id,
     data: { stripeCustomerId: customer.id },
   })

@@ -6,7 +6,7 @@ import {
   summarizeRequests,
   type InviteRequestRow,
 } from '../../../../shared/types/inviteRequest'
-import { TENANTS_TABLE, type TenantRow } from '../../../../shared/types/tenantRecord'
+import { COMMUNITIES_TABLE, type TenantRow } from '../../../../shared/types/tenantRecord'
 
 /**
  * Betreiber: die Warteschlange (sites.manage).
@@ -44,7 +44,7 @@ export default defineEventHandler(async (event) => {
       : Promise.resolve([] as InviteCodeRow[]),
     communityIds.length
       ? admin.tablesDB.listRows<TenantRow>({
-          databaseId, tableId: TENANTS_TABLE,
+          databaseId, tableId: COMMUNITIES_TABLE,
           queries: [Query.equal('$id', communityIds), Query.limit(100)],
         }).then(res => res.rows).catch(() => [])
       : Promise.resolve([] as TenantRow[]),

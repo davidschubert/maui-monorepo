@@ -1,5 +1,5 @@
 import { Query } from 'node-appwrite'
-import { TENANTS_TABLE, normalizeTenantPlan, resolveTenantOpenRegistration, type TenantRow } from '../../../../shared/types/tenantRecord'
+import { COMMUNITIES_TABLE, normalizeTenantPlan, resolveTenantOpenRegistration, type TenantRow } from '../../../../shared/types/tenantRecord'
 
 /** Betreiber: Tenants (Host→Mandant-Register) auflisten. */
 export default defineEventHandler(async (event) => {
@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   const admin = createAdminClient(event)
   const { rows, total } = await admin.tablesDB.listRows<TenantRow>({
     databaseId: config.public.appwriteDatabaseId,
-    tableId: TENANTS_TABLE,
+    tableId: COMMUNITIES_TABLE,
     queries: [Query.orderAsc('host'), Query.limit(100)],
   }).catch((error) => { throw toH3Error(error, 'Could not list tenants') })
   if (total > rows.length) {

@@ -1,4 +1,4 @@
-import { TENANTS_TABLE } from '../../../../shared/types/tenantRecord'
+import { COMMUNITIES_TABLE } from '../../../../shared/types/tenantRecord'
 
 /** Betreiber: Tenant-Row löschen (Host offline; Kundendaten im Pool bleiben —
  *  deren Lebenszyklus gehört zum künftigen Offboarding, nicht hierher). */
@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
   const admin = createAdminClient(event)
   await admin.tablesDB.deleteRow({
     databaseId: config.public.appwriteDatabaseId,
-    tableId: TENANTS_TABLE,
+    tableId: COMMUNITIES_TABLE,
     rowId: id,
   }).catch((error) => { throw toH3Error(error, 'Could not delete tenant') })
   return { ok: true }

@@ -1,6 +1,6 @@
 import { Query } from 'node-appwrite'
 import { INVITE_CODES_TABLE, inviteCodeState, summarizeStock, type InviteCodeRow } from '../../../../shared/types/inviteCode'
-import { TENANTS_TABLE } from '../../../../shared/types/tenantRecord'
+import { COMMUNITIES_TABLE } from '../../../../shared/types/tenantRecord'
 
 /**
  * Betreiber: ausgestellte Einladungs-Codes (sites.manage).
@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
   // einzige, die nicht geschätzt ist.
   const communities = await admin.tablesDB.listRows({
     databaseId: config.public.appwriteDatabaseId,
-    tableId: TENANTS_TABLE,
+    tableId: COMMUNITIES_TABLE,
     queries: [Query.limit(1)],
   }).then(res => res.total).catch(() => 0)
 

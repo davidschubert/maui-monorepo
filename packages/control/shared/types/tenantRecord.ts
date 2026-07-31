@@ -148,7 +148,7 @@ export interface TenantRow extends Models.Row {
   billingStatus: string | null
 }
 
-export const TENANTS_TABLE = 'tenants'
+export const COMMUNITIES_TABLE = 'communities'
 
 /** Quota-Limits eines Plans je Schreib-Art (Spiegel von core TenantQuotaLimits). */
 export interface TenantPlanLimits {
@@ -165,7 +165,7 @@ export interface TenantPlanRow extends Models.Row {
   limits: string
 }
 
-export const TENANT_PLANS_TABLE = 'tenant_plans'
+export const COMMUNITY_PLANS_TABLE = 'community_plans'
 
 /** PURE (unit-getestet): limits-JSON defensiv parsen — kaputte/fremde Werte
  *  fallen auf {} zurück (Quota greift dann via app.config-Fallback). */

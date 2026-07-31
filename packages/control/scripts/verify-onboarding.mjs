@@ -149,7 +149,7 @@ try {
   check('reused = false', created.json?.reused === false)
 
   const tenant = created.json?.communityId
-    ? await control.getRow({ databaseId, tableId: 'tenants', rowId: created.json.communityId })
+    ? await control.getRow({ databaseId, tableId: 'communities', rowId: created.json.communityId })
     : null
   check('Row: mode pool + Projekt des Nutzers', tenant?.mode === 'pool' && tenant?.projectId === poolProject, `${tenant?.mode}/${tenant?.projectId}`)
   check('Row: audience members (privat als Default)', tenant?.audience === 'members', String(tenant?.audience))
@@ -201,11 +201,11 @@ catch (error) {
 finally {
   console.log('\n5. Aufräumen')
   for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'community_members', rowId: id }).catch(() => {})
-  for (const id of cleanup.tenants) await control.deleteRow({ databaseId, tableId: 'tenants', rowId: id }).catch(() => {})
+  for (const id of cleanup.tenants) await control.deleteRow({ databaseId, tableId: 'communities', rowId: id }).catch(() => {})
   for (const id of cleanup.workspaces) await control.deleteRow({ databaseId, tableId: 'workspaces', rowId: id }).catch(() => {})
   for (const id of cleanup.codes) await control.deleteRow({ databaseId, tableId: 'invite_codes', rowId: id }).catch(() => {})
   for (const id of cleanup.users) await poolUsers.delete({ userId: id }).catch(() => {})
-  const rest = await control.listRows({ databaseId, tableId: 'tenants' })
+  const rest = await control.listRows({ databaseId, tableId: 'communities' })
   console.log(`  ✔ aufgeräumt — verbleibende Tenants: ${rest.rows.map(r => r.host).join(', ') || '(keine)'}`)
 
   console.log(`\n${fail === 0 ? '✔' : '✗'} ${pass} bestanden, ${fail} fehlgeschlagen\n`)

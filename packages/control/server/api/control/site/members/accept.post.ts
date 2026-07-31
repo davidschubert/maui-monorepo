@@ -2,7 +2,7 @@ import { ID, Query } from 'node-appwrite'
 import { z } from 'zod'
 import { COMMUNITY_INVITES_TABLE, type CommunityInviteRow } from '../../../../../shared/types/communityInvite'
 import { COMMUNITY_MEMBERS_TABLE, type CommunityMemberRow } from '../../../../../shared/types/communityMember'
-import { TENANTS_TABLE, type TenantRow } from '../../../../../shared/types/tenantRecord'
+import { COMMUNITIES_TABLE, type TenantRow } from '../../../../../shared/types/tenantRecord'
 import { verifyRuntimeIdentity } from '../../../../utils/onboardingService'
 import { hashInviteToken } from '../../../../utils/workspaceMembers'
 
@@ -74,7 +74,7 @@ export default defineEventHandler(async (event) => {
   // Die Community muss zu dem Projekt gehören, gegen das das JWT geprüft wurde —
   // sonst entstünde eine Mitgliedschaft mit fremder Runtime-Identität.
   const tenant = await admin.tablesDB.getRow<TenantRow>({
-    databaseId, tableId: TENANTS_TABLE, rowId: invite.communityId,
+    databaseId, tableId: COMMUNITIES_TABLE, rowId: invite.communityId,
   }).catch(() => null)
   if (!tenant || tenant.projectId !== identity.projectId) {
     throw createError({ status: 400, statusText: 'Invalid or expired invitation' })

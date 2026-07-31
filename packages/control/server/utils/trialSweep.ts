@@ -1,6 +1,6 @@
 import { Query } from 'node-appwrite'
 import { TRIAL_FALLBACK_PLAN, TRIAL_PLAN } from '../../shared/onboarding'
-import { TENANTS_TABLE, normalizeTenantPlan, type TenantRow } from '../../shared/types/tenantRecord'
+import { COMMUNITIES_TABLE, normalizeTenantPlan, type TenantRow } from '../../shared/types/tenantRecord'
 import { WORKSPACES_TABLE, type WorkspaceRow } from '../../shared/types/workspace'
 
 /**
@@ -57,7 +57,7 @@ export async function runTrialSweep(now: number = Date.now()): Promise<TrialSwee
   // kein Full-Scan über alle Tenants.
   const { rows } = await admin.tablesDB.listRows<TenantRow>({
     databaseId,
-    tableId: TENANTS_TABLE,
+    tableId: COMMUNITIES_TABLE,
     queries: [
       Query.equal('plan', TRIAL_PLAN),
       Query.lessThanEqual('trialEndsAt', new Date(now).toISOString()),
@@ -82,7 +82,7 @@ export async function runTrialSweep(now: number = Date.now()): Promise<TrialSwee
     if (!shouldEndTrial(tenant, workspacePlan, now)) continue
 
     await admin.tablesDB.updateRow<TenantRow>({
-      databaseId, tableId: TENANTS_TABLE, rowId: tenant.$id,
+      databaseId, tableId: COMMUNITIES_TABLE, rowId: tenant.$id,
       data: { plan: TRIAL_FALLBACK_PLAN },
     }).then(() => {
       downgraded.push(tenant.host)

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { TENANT_PLANS, TENANT_PLANS_TABLE, parseTenantPlanLimits, type TenantPlanRow } from '../../../../shared/types/tenantRecord'
+import { TENANT_PLANS, COMMUNITY_PLANS_TABLE, parseTenantPlanLimits, type TenantPlanRow } from '../../../../shared/types/tenantRecord'
 
 // Limits je kind: ganze Zahlen ≥ 0 (0 = unbegrenzt), Obergrenze als
 // Tippfehler-Schutz. Kinds bewusst offen (heute 'comments', später mehr) —
@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
   // Plan-Key nach Migration), wird sie angelegt
   const row = await admin.tablesDB.upsertRow<TenantPlanRow>({
     databaseId: config.public.appwriteDatabaseId,
-    tableId: TENANT_PLANS_TABLE,
+    tableId: COMMUNITY_PLANS_TABLE,
     rowId: key,
     data: { key, limits: JSON.stringify(limits) },
   }).catch((error) => { throw toH3Error(error, 'Could not update tenant plan') })

@@ -2,7 +2,7 @@ import { Client, Query, TablesDB } from 'node-appwrite'
 import { createMicrocache } from '../../../core/server/utils/microcache'
 import type { TenantResolver } from '../../../core/server/utils/tenantResolver'
 import type { TenantContext } from '../../../core/shared/types/tenant'
-import { DEFAULT_TENANT_PLAN, TENANT_PLANS_TABLE, TENANTS_TABLE, normalizeTenantPlan, parseTenantPlanLimits, resolveTenantOpenRegistration, type TenantPlanLimits, type TenantPlanRow, type TenantRow } from '../../shared/types/tenantRecord'
+import { DEFAULT_TENANT_PLAN, COMMUNITY_PLANS_TABLE, COMMUNITIES_TABLE, normalizeTenantPlan, parseTenantPlanLimits, resolveTenantOpenRegistration, type TenantPlanLimits, type TenantPlanRow, type TenantRow } from '../../shared/types/tenantRecord'
 import { isSafeThemeToken } from '../../shared/onboarding'
 
 /**
@@ -88,7 +88,7 @@ export function createTenantsTableResolver(options: TenantsTableResolverOptions)
     try {
       const { rows } = await tablesDB.listRows<TenantPlanRow>({
         databaseId: options.databaseId,
-        tableId: TENANT_PLANS_TABLE,
+        tableId: COMMUNITY_PLANS_TABLE,
         queries: [Query.limit(25)],
       })
       for (const row of rows) catalog[row.key] = parseTenantPlanLimits(row.limits)
@@ -108,7 +108,7 @@ export function createTenantsTableResolver(options: TenantsTableResolverOptions)
     const [{ rows }, planCatalog] = await Promise.all([
       tablesDB.listRows<TenantRow>({
         databaseId: options.databaseId,
-        tableId: TENANTS_TABLE,
+        tableId: COMMUNITIES_TABLE,
         queries: [Query.equal('host', host), Query.limit(1)],
       }),
       loadPlanCatalog(),

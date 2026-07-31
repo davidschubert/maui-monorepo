@@ -92,7 +92,7 @@ function call(host, path, { method = 'GET', body, cookie } = {}) {
 
 async function tenantRowByHost(host) {
   const res = await control.listRows({
-    databaseId: controlDb, tableId: 'tenants',
+    databaseId: controlDb, tableId: 'communities',
     queries: [Query.equal('host', host), Query.limit(1)],
   })
   return res.rows[0] ?? null
@@ -100,7 +100,7 @@ async function tenantRowByHost(host) {
 
 /** Plan setzen und auf den Resolver-Cache (30 s) warten, bis die API ihn sieht. */
 async function setPlan(row, plan) {
-  await control.updateRow({ databaseId: controlDb, tableId: 'tenants', rowId: row.$id, data: { plan } })
+  await control.updateRow({ databaseId: controlDb, tableId: 'communities', rowId: row.$id, data: { plan } })
 }
 
 async function waitFor(label, fn, timeoutMs = 45_000) {
@@ -207,7 +207,7 @@ finally {
   }
   for (const id of cleanup.users) await poolUsers.delete({ userId: id }).catch(() => {})
   for (const { id, plan } of cleanup.planRestore) {
-    await control.updateRow({ databaseId: controlDb, tableId: 'tenants', rowId: id, data: { plan } }).catch(() => {})
+    await control.updateRow({ databaseId: controlDb, tableId: 'communities', rowId: id, data: { plan } }).catch(() => {})
   }
   console.log(`  ✔ aufgeräumt (${cleanup.events.length} Event(s), ${cleanup.users.length} User, Pläne zurückgesetzt)`)
   console.log(`\n${fail === 0 ? '✔' : '✗'} ${pass} bestanden, ${fail} fehlgeschlagen\n`)
