@@ -1,5 +1,7 @@
 # Offene Punkte
 
+**Stand: 26 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+
 Stand: **2026-07-30**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
 Beweis und den gelernten Lektionen) steht final in
