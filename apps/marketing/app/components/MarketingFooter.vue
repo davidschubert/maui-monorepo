@@ -13,8 +13,11 @@
  * reißt die nächste defineI18nRoute-Ergänzung das Loch wieder auf.
  * EINZIGE Ausnahme: localePath('/') für die Startseite. ════════════════════
  */
-const { t } = useI18n()
+import { type MarketingLocale, type ProductKey, slugForLocale } from '#shared/marketing'
+
+const { t, locale } = useI18n()
 const localePath = useLocalePath()
+const switchLocalePath = useSwitchLocalePath()
 const { start, demo } = useProductLinks()
 const year = 2026 // statisch: Date.now() steht im Build nicht zur Verfügung
 
@@ -27,9 +30,77 @@ const LINK_DEFAULTS = { active: false, locale: false } as const
 function page(name: string, label: string) {
   return { ...LINK_DEFAULTS, label, to: localePath({ name }) }
 }
-function product(slug: string, label: string) {
-  return { ...LINK_DEFAULTS, label, to: localePath({ name: 'produkte-slug', params: { slug } }) }
+/**
+ * Produkt-Link am KANONISCHEN Schlüssel — der Slug in der Adresse ist seit
+ * 2026-07-31 übersetzt (`kurse` ↔ `courses`) und kommt deshalb aus
+ * shared/marketing.ts, nicht aus dem Schlüssel. Steht in einem `computed`, das
+ * an `locale` hängt: der Fuß rechnet die Ziele beim Sprachwechsel neu.
+ */
+function product(key: ProductKey, label: string) {
+  return {
+    ...LINK_DEFAULTS,
+    label,
+    to: localePath({ name: 'produkte-slug', params: { slug: slugForLocale(key, locale.value) } }),
+  }
 }
+
+/**
+ * DER SPRACHWECHSLER (Davids Entscheidung 2026-07-31): er stand im Kopf und
+ * steht jetzt HIER, unten rechts in der Basiszeile. Der Kopf gehört der einen
+ * Handlung („Kostenlos starten"); die Sprache ist eine Einstellung, und
+ * Einstellungen sucht man im Fuß.
+ *
+ * ER FÜHRT AUF DIE ÜBERSETZTE SEITE, nicht nach Hause. Auf
+ * `/de/produkte/kurse` zeigt EN auf `/products/courses` — das kann
+ * `switchLocalePath()` nur, weil die Produkt-Seite ihre Slugs vorher über
+ * `useSetI18nParams()` hinterlegt (siehe pages/produkte/[slug].vue). Deshalb
+ * ist das hier ein `computed` und keine Berechnung im Setup: der Fuß steht im
+ * Layout, sein SETUP läuft also VOR dem der Seite — erst zur RENDER-Zeit (und
+ * im Layout steht der Fuß hinter dem <slot/>) sind die Slugs gesetzt.
+ *
+ * OHNE HASH — dieselbe Begründung wie früher im Kopf: `switchLocalePath()`
+ * hängt den Hash der aktuellen Adresse an, den der SERVER nie zu sehen bekommt
+ * (er wird nicht mitgeschickt). Auf `/de#preise` stand serverseitig damit ein
+ * anderes `href` im HTML als der Client danach berechnete — „Hydration
+ * attribute mismatch", und Vue verwirft in der Entwicklung die ganze
+ * Übereinstimmungsprüfung des Baums. Also fällt der Hash auf BEIDEN Seiten
+ * weg: ein Sprachwechsel landet oben auf der Seite.
+ *
+ * `locale: false` aus LINK_DEFAULTS ist auch hier Pflicht — der Pfad ist schon
+ * aufgelöst; ein zweiter Durchlauf durch `localePath()` machte aus dem
+ * englischen Ziel `/` auf einer deutschen Seite wieder `/de`, der Eintrag wäre
+ * also wirkungslos.
+ *
+ * „Deutsch" und „English" stehen BEWUSST im Code und nicht in i18n: es sind
+ * Eigennamen in der jeweils EIGENEN Sprache (Endonyme), also in de.json und
+ * en.json identisch. Genau dafür gilt im Projekt schon die Ausnahme der
+ * Theme-Namen — ein Sprachwähler, der auf der englischen Seite „German" sagt,
+ * hilft niemandem, der Deutsch sucht. Beschriftet ist der Auslöser trotzdem
+ * übersetzt: sein `aria-label` kommt aus `marketing.footer.aria.language`.
+ */
+const LANGUAGES = [
+  { code: 'de', flag: '🇩🇪', label: 'Deutsch' },
+  { code: 'en', flag: '🇬🇧', label: 'English' },
+] as const satisfies readonly { code: MarketingLocale, flag: string, label: string }[]
+
+const currentLanguage = computed(() => LANGUAGES.find(l => l.code === locale.value) ?? LANGUAGES[1])
+
+/**
+ * BEWUSST GEWÖHNLICHE LINK-EINTRÄGE, kein `type: 'checkbox'`. Die
+ * Checkbox-Bauform von Nuxt UI sieht nach „einer aus dieser Liste ist der
+ * aktuelle" aus, rendert aber `DropdownMenu.CheckboxItem` STATT eines Links —
+ * `to` wird dort nicht ausgewertet, das Menü wäre also hübsch und tot. Die
+ * aktuelle Sprache wird deshalb über `current` markiert (Häkchen im
+ * `#item-trailing`-Slot); gesagt wird sie ohnehin schon vom Auslöser, der die
+ * aktuelle Sprache als Beschriftung trägt.
+ */
+const languageItems = computed(() => LANGUAGES.map(language => ({
+  ...LINK_DEFAULTS,
+  label: language.label,
+  flag: language.flag,
+  current: language.code === locale.value,
+  to: (switchLocalePath(language.code) || '/').split('#')[0],
+})))
 
 /**
  * FÜNF EIGENE `UFooterColumns` STATT EINER MIT FÜNF SPALTEN — wegen der
@@ -150,7 +221,9 @@ const FOOTER_UI = {
   // zum Bestand.
   left: 'order-1 mt-0 justify-start lg:flex-none',
   center: 'hidden',
-  right: 'order-3 mt-0 justify-end lg:flex-none',
+  // `gap-3` ist neu (Paket „Sprachwechsler in den Fuß", 2026-07-31): rechts
+  // stehen jetzt ZWEI Dinge nebeneinander — der Aloha-Satz und das Sprachmenü.
+  right: 'order-3 mt-0 items-center gap-3 justify-end lg:flex-none',
 }
 </script>
 
@@ -201,8 +274,38 @@ const FOOTER_UI = {
     <template #left>
       <span>© {{ year }} Pukalani. {{ t('marketing.footer.rights') }}</span>
     </template>
+
+    <!-- Basiszeile rechts: der Aloha-Satz und ganz außen der Sprachwechsler.
+         `side: 'top'` ist hier keine Geschmacksfrage — unter dem Fuß ist die
+         Seite zu Ende, ein nach unten aufklappendes Menü fiele aus dem Bild
+         und schöbe die Seite länger. -->
     <template #right>
       <span>{{ t('marketing.footer.madeIn') }}</span>
+      <UDropdownMenu
+        :items="languageItems"
+        :content="{ side: 'top', align: 'end', sideOffset: 8 }"
+        :ui="{ itemLeadingIcon: 'hidden' }"
+      >
+        <UButton
+          color="neutral" variant="ghost" size="sm"
+          trailing-icon="i-ph-caret-down-bold"
+          :aria-label="t('marketing.footer.aria.language')"
+          class="gap-1.5 px-2 text-[0.85rem] font-semibold"
+        >
+          <!-- Die Flagge ist Zierde, kein Inhalt: sie wiederholt nur, was
+               direkt daneben steht. Ein Screenreader soll „Deutsch" sagen und
+               nicht „Flagge Deutschland Deutsch". -->
+          <span class="text-[1.05rem] leading-none" aria-hidden="true">{{ currentLanguage.flag }}</span>
+          {{ currentLanguage.label }}
+        </UButton>
+
+        <template #item-leading="{ item }">
+          <span class="text-[1.05rem] leading-none" aria-hidden="true">{{ item.flag }}</span>
+        </template>
+        <template #item-trailing="{ item }">
+          <UIcon v-if="item.current" name="i-ph-check-bold" class="size-3.5 text-primary-600" />
+        </template>
+      </UDropdownMenu>
     </template>
   </UFooter>
 </template>

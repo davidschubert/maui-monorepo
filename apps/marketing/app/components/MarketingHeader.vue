@@ -11,22 +11,25 @@
  * Fokus-Rückgabe) statt eines Ausklappers, den ein Screenreader als
  * Verschachtelung von Links liest — und EIN Vokabular für die ganze Seite.
  */
+import { type ProductKey, slugForLocale } from '#shared/marketing'
+
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
-const switchLocalePath = useSwitchLocalePath()
 const { start } = useProductLinks()
 
-// Die sechs Produkte der Hauptnavigation. Reihenfolge = Reihenfolge im
-// Bausteine-Abschnitt; Texte kommen aus i18n (marketing.nav.products.items.*),
-// nur Icon und Early-Access-Flagge stehen im Code.
+// Die sechs Produkte der Hauptnavigation, am KANONISCHEN Schlüssel. Reihenfolge
+// = Reihenfolge im Bausteine-Abschnitt; Texte kommen aus i18n
+// (marketing.nav.products.items.<key>), nur Icon und Early-Access-Flagge stehen
+// im Code. Der Slug in der Adresse ist übersetzt und kommt aus
+// shared/marketing.ts — NIE aus dem Schlüssel hier.
 const PRODUCTS = [
-  { slug: 'diskussionen', icon: 'i-ph-chats-circle-bold', ea: false },
-  { slug: 'moderation', icon: 'i-ph-shield-check-bold', ea: false },
-  { slug: 'branding', icon: 'i-ph-note-bold', ea: false },
-  { slug: 'beitraege', icon: 'i-ph-broadcast-bold', ea: true },
-  { slug: 'kurse', icon: 'i-ph-graduation-cap-bold', ea: true },
-  { slug: 'events', icon: 'i-ph-calendar-check-bold', ea: true },
-] as const
+  { key: 'diskussionen', icon: 'i-ph-chats-circle-bold', ea: false },
+  { key: 'moderation', icon: 'i-ph-shield-check-bold', ea: false },
+  { key: 'branding', icon: 'i-ph-note-bold', ea: false },
+  { key: 'beitraege', icon: 'i-ph-broadcast-bold', ea: true },
+  { key: 'kurse', icon: 'i-ph-graduation-cap-bold', ea: true },
+  { key: 'events', icon: 'i-ph-calendar-check-bold', ea: true },
+] as const satisfies readonly { key: ProductKey, icon: string, ea: boolean }[]
 
 /**
  * Alle Anker-Ziele der Navigation liegen auf der STARTSEITE — der Header hängt
@@ -42,8 +45,16 @@ const blocksTarget = homeSection('#bausteine')
 const pricingTarget = homeSection('#preise')
 const storyTarget = homeSection('#geschichte')
 
-function productTo(slug: string) {
-  return localePath({ name: 'produkte-slug', params: { slug } })
+/**
+ * Ziel einer Produkt-Seite. ZWEI Übersetzungen stecken darin, und beide sind
+ * Pflicht: `localePath` setzt das Segment (`/produkte` ↔ `/products`),
+ * `slugForLocale` den Slug (`kurse` ↔ `courses`). Ohne die zweite stünde auf
+ * der englischen Seite `/products/kurse` — seit 2026-07-31 eine 301.
+ * Bewusst nicht memoisiert: der Aufruf steht in `computed`s, die ohnehin an
+ * `locale` hängen.
+ */
+function productTo(key: ProductKey) {
+  return localePath({ name: 'produkte-slug', params: { slug: slugForLocale(key, locale.value) } })
 }
 
 /**
@@ -70,7 +81,13 @@ const desktopItems = computed(() => [
   // auch so einen Auslöser — die Bedingung im Bauteil ist „children ODER
   // Content-Slot". `to` fehlt deshalb bewusst: ein Auslöser mit Untermenü ist
   // kein Link mehr, den Weg zur Übersicht übernimmt der Fuß des Ausklappers.
-  { label: t('marketing.nav.products'), value: 'products', slot: 'products' as const },
+  // `marketing.nav.products.label`, NICHT `marketing.nav.products`: der flache
+  // Schlüssel stand in de.json/en.json ein zweites Mal ALS OBJEKT (mit
+  // `overview` + `items`), und JSON.parse behält bei doppelten Schlüsseln den
+  // LETZTEN. Der Auslöser der Hauptnavigation zeigte deshalb live die
+  // Zeichenkette „marketing.nav.products" statt „Produkte"/„Products" (nur eine
+  // intlify-WARNUNG in der Konsole, kein Fehler — deshalb monatelang unbemerkt).
+  { label: t('marketing.nav.products.label'), value: 'products', slot: 'products' as const },
   { ...LINK_DEFAULTS, label: t('marketing.nav.pricing'), to: pricingTarget.value },
   { ...LINK_DEFAULTS, label: t('marketing.nav.story'), to: storyTarget.value },
 ])
@@ -81,12 +98,12 @@ const desktopItems = computed(() => [
 const mobileItems = computed(() => [
   PRODUCTS.map(product => ({
     ...LINK_DEFAULTS,
-    label: t(`marketing.nav.products.items.${product.slug}.title`),
+    label: t(`marketing.nav.products.items.${product.key}.title`),
     icon: product.icon,
-    to: productTo(product.slug),
+    to: productTo(product.key),
   })),
   [
-    { ...LINK_DEFAULTS, label: t('marketing.nav.products'), to: blocksTarget.value },
+    { ...LINK_DEFAULTS, label: t('marketing.nav.products.label'), to: blocksTarget.value },
     { ...LINK_DEFAULTS, label: t('marketing.nav.pricing'), to: pricingTarget.value },
     { ...LINK_DEFAULTS, label: t('marketing.nav.story'), to: storyTarget.value },
     // FAQ hat eine EIGENE Seite (mit eigenem JSON-LD/OG) — die gewinnt gegen
@@ -106,27 +123,13 @@ const mobileItems = computed(() => [
 const openMenu = ref('')
 
 /**
- * DAS ZIEL DES SPRACHUMSCHALTERS — zwei Dinge, beide bewusst.
- *
- * (1) OHNE HASH. `switchLocalePath()` hängt den Hash der aktuellen Adresse an
- * das Ergebnis — im Browser. Der SERVER kennt den Hash gar nicht (er wird nie
- * mitgeschickt), also stand auf `/de#preise` serverseitig ein anderes `href`
- * im HTML als der Client danach berechnete: „Hydration attribute mismatch",
- * und Vue verwirft in der Entwicklung die ganze Übereinstimmungsprüfung des
- * Baums. Ein Hash lässt sich hier nicht ehrlich nachliefern, also fällt er auf
- * BEIDEN Seiten weg: ein Sprachwechsel landet oben auf der Seite. Der Preis
- * ist eine Zeile Scrollen, der Gegenwert ein Kopf, der überall gleich ist.
- *
- * (2) `locale: false` AM KNOPF (siehe LINK_DEFAULTS). Ohne diese Eigenschaft
- * schiebt `ULink` den schon aufgelösten Pfad ein ZWEITES Mal durch
- * `localePath()` — auf einer deutschen Seite wurde aus dem englischen Ziel `/`
- * wieder `/de`, der EN-Knopf zeigte also auf die deutsche Seite und tat
- * nichts. Er war damit nicht nur ungenau, sondern wirkungslos.
+ * DER SPRACHWECHSLER STEHT NICHT MEHR HIER (Davids Entscheidung 2026-07-31):
+ * er ist in den Fuß gewandert, unten rechts als Auswahlmenü mit Flagge
+ * (MarketingFooter.vue — dort auch die Begründung des Hash-Strips). Der Kopf
+ * trägt nur noch Navigation und den einen CTA: „Kostenlos starten" ist das
+ * Ziel dieser Seite, und ein zweiter Knopf daneben nimmt ihm Aufmerksamkeit
+ * für eine Entscheidung, die die meisten Besucher nie treffen.
  */
-const switchTarget = computed(() => {
-  const target = switchLocalePath(locale.value === 'de' ? 'en' : 'de')
-  return (target || '/').split('#')[0]
-})
 
 // Mobil-Menü: `UHeader` schließt es beim Routenwechsel selbst (`autoClose`).
 const mobileOpen = ref(false)
@@ -268,9 +271,9 @@ const MOBILE_NAV_UI = {
       -->
       <template #products-content="{ ui }">
         <ul :class="ui.childList()">
-          <li v-for="product in PRODUCTS" :key="product.slug" :class="ui.childItem()">
+          <li v-for="product in PRODUCTS" :key="product.key" :class="ui.childItem()">
             <NuxtLink
-              :to="productTo(product.slug)"
+              :to="productTo(product.key)"
               :class="ui.childLink({ active: false, class: 'gap-3 rounded-[0.6rem]' })"
               @click="openMenu = ''"
             >
@@ -279,7 +282,7 @@ const MOBILE_NAV_UI = {
               </span>
               <span :class="ui.childLinkWrapper()">
                 <span :class="ui.childLinkLabel({ active: false, class: 'flex items-center gap-1.5 whitespace-normal font-bold text-[0.92rem] text-highlighted' })">
-                  {{ t(`marketing.nav.products.items.${product.slug}.title`) }}
+                  {{ t(`marketing.nav.products.items.${product.key}.title`) }}
                   <UBadge
                     v-if="product.ea"
                     color="primary" variant="subtle" size="sm"
@@ -288,7 +291,7 @@ const MOBILE_NAV_UI = {
                   />
                 </span>
                 <span :class="ui.childLinkDescription({ active: false, class: 'block text-[0.8rem]/[1.4] text-toned' })">
-                  {{ t(`marketing.nav.products.items.${product.slug}.text`) }}
+                  {{ t(`marketing.nav.products.items.${product.key}.text`) }}
                 </span>
               </span>
             </NuxtLink>
@@ -308,13 +311,6 @@ const MOBILE_NAV_UI = {
     </UNavigationMenu>
 
     <template #right>
-      <UButton
-        :to="switchTarget" v-bind="LINK_DEFAULTS"
-        :aria-label="locale === 'de' ? t('marketing.nav.toEnglish') : t('marketing.nav.toGerman')"
-        color="neutral" variant="link" size="sm"
-        class="px-1.5 font-bold tracking-[0.04em] text-toned hover:bg-elevated/70 hover:text-highlighted"
-        :label="locale === 'de' ? 'EN' : 'DE'"
-      />
       <UButton :to="start" color="primary" size="sm">
         {{ t('marketing.nav.start') }}
       </UButton>

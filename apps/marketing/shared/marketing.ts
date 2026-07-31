@@ -17,18 +17,87 @@
  * `server/utils/marketingRoutes.ts` ergänzen (dort steht die Priorität).
  */
 
-/** Produkt-Seiten: EN /products/<slug> · DE /de/produkte/<slug>. */
-export const PRODUCT_SLUGS = ['diskussionen', 'moderation', 'branding', 'beitraege', 'kurse', 'events'] as const
+/** Die zwei Sprachen dieser Site (i18n-Strategie `prefix_except_default`, EN Default). */
+export type MarketingLocale = 'de' | 'en'
+
+/**
+ * KANONISCHE Produkt-Schlüssel — die Identität eines Produkts, NICHT seine URL.
+ * Reihenfolge = Reihenfolge in Navigation, Fuß und Sitemap.
+ *
+ * Der Schlüssel ist zufällig auch der deutsche Slug, und das ist Geschichte,
+ * kein Prinzip: die Seiten wurden auf Deutsch gebaut. Alles, was an einem
+ * Produkt hängt, hängt am SCHLÜSSEL und wird nie mit umbenannt —
+ * i18n-Texte (`marketing.products.items.<key>`, `marketing.nav.products.items.
+ * <key>`), die OG-Bilder (`public/og/products-<key>-<locale>.jpg`) und die
+ * Early-Access-Liste unten. Nur die URL ist übersetzt.
+ */
+export const PRODUCT_KEYS = ['diskussionen', 'moderation', 'branding', 'beitraege', 'kurse', 'events'] as const
+
+export type ProductKey = (typeof PRODUCT_KEYS)[number]
+
+/**
+ * Produkt-Seiten, LOKALISIERTE Slugs (Davids Entscheidung 2026-07-31):
+ * EN `/products/<en>` · DE `/de/produkte/<de>`.
+ *
+ * Bis dahin war nur das SEGMENT übersetzt (`/products` ↔ `/produkte`) und der
+ * Slug blieb in beiden Sprachen deutsch — ein englischer Besucher bekam
+ * `/products/beitraege` und `/products/kurse`. Das ist keine Kosmetik: der
+ * Slug ist der Teil der Adresse, den ein Mensch liest und den eine Suchmaschine
+ * als Wort wertet.
+ *
+ * Drei Produkte heißen in beiden Sprachen gleich (moderation, branding,
+ * events) — sie stehen trotzdem ausgeschrieben da, weil ein Eintrag mit nur
+ * einer Sprache stillschweigend die andere erfände.
+ *
+ * `Record<ProductKey, …>` statt `as const`: so ERZWINGT der Typ einen Eintrag
+ * je Schlüssel — ein neues Produkt ohne Übersetzung ist ein Typfehler und
+ * keine 404-Überraschung.
+ */
+export const PRODUCT_SLUGS: Readonly<Record<ProductKey, Readonly<Record<MarketingLocale, string>>>> = {
+  diskussionen: { de: 'diskussionen', en: 'discussions' },
+  moderation: { de: 'moderation', en: 'moderation' },
+  branding: { de: 'branding', en: 'branding' },
+  beitraege: { de: 'beitraege', en: 'posts' },
+  kurse: { de: 'kurse', en: 'courses' },
+  events: { de: 'events', en: 'events' },
+}
+
+/**
+ * Die Locale von @nuxtjs/i18n kommt als `string` (der Typ kennt beliebige
+ * Codes). Diese Site hat genau zwei, und EN ist die Default-Locale — alles,
+ * was nicht 'de' ist, ist hier also 'en'.
+ */
+export function marketingLocale(locale: string): MarketingLocale {
+  return locale === 'de' ? 'de' : 'en'
+}
+
+/** Schlüssel → Slug DIESER Sprache (Link-Ziele, Sitemap). */
+export function slugForLocale(key: ProductKey, locale: string): string {
+  return PRODUCT_SLUGS[key][marketingLocale(locale)]
+}
+
+/**
+ * Slug DIESER Sprache → Schlüssel; `undefined` heißt 404.
+ *
+ * Bewusst streng je Sprache: `/products/kurse` (deutscher Slug auf der
+ * englischen Seite) ist KEIN Treffer, sondern eine alte Adresse — sie wird in
+ * `nuxt.config.ts` per 301 auf `/products/courses` geschickt. Würde hier
+ * beides gelten, gäbe es dieselbe Seite unter zwei URLs (Duplicate Content),
+ * und die Weiterleitung käme nie zum Zug.
+ */
+export function keyFromSlug(slug: string, locale: string): ProductKey | undefined {
+  const wanted = marketingLocale(locale)
+  return PRODUCT_KEYS.find(key => PRODUCT_SLUGS[key][wanted] === slug)
+}
 
 /**
  * Bausteine, die noch NICHT im offenen Angebot sind (§2.4). Ihre Seiten
  * tragen den Early-Access-Banner und KEINEN Kauf-CTA.
  *
- * Bewusst `readonly string[]` und nicht `as const`: die Liste wird gegen einen
- * beliebigen Slug aus der URL geprüft (`includes(slug)`), und ein Literal-Typ
- * verlangte dort einen Cast, der die Prüfung gerade aushebelte.
+ * Am kanonischen SCHLÜSSEL, nicht am Slug: ein Claim-Gate darf nicht davon
+ * abhängen, in welcher Sprache die Seite gerade aufgerufen wurde.
  */
-export const EARLY_ACCESS_SLUGS: readonly string[] = ['beitraege', 'kurse', 'events']
+export const EARLY_ACCESS_KEYS: readonly ProductKey[] = ['beitraege', 'kurse', 'events']
 
 /** Vergleichsseiten: /vs/<slug> · /de/vs/<slug>. */
 export const VS_SLUGS = ['circle', 'skool', 'mighty-networks'] as const
@@ -45,6 +114,5 @@ export const AUDIENCE_SLUGS = ['coaches', 'kurse', 'creator', 'vereine'] as cons
  */
 export const FAQ_COUNT = 6
 
-export type ProductSlug = (typeof PRODUCT_SLUGS)[number]
 export type VsSlug = (typeof VS_SLUGS)[number]
 export type AudienceSlug = (typeof AUDIENCE_SLUGS)[number]

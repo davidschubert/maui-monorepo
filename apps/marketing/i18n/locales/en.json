@@ -5,19 +5,17 @@
       "description": "Posts, courses, events and discussions under your own brand and domain. Privacy-first, hosted in Germany, no ad tracking. The lean alternative to Circle & Skool. Start free."
     },
     "nav": {
-      "products": "Products",
       "pricing": "Pricing",
       "story": "Story",
       "signIn": "Sign in",
       "start": "Start free",
-      "toGerman": "Deutsch",
-      "toEnglish": "English",
       "menu": "Open menu",
       "menuClose": "Close menu",
       "aria": {
         "main": "Main navigation"
       },
       "products": {
+        "label": "Products",
         "overview": "All products at a glance",
         "items": {
           "diskussionen": {
@@ -755,7 +753,8 @@
         "compare": "Compare",
         "useCases": "Use cases",
         "company": "About",
-        "legal": "Legal"
+        "legal": "Legal",
+        "language": "Choose language"
       },
       "colProduct": "Product",
       "colCompany": "About",
