@@ -24,52 +24,54 @@ const items = computed(() =>
       />
     </div>
 
-    <ol class="steps-grid mkt-inner" data-reveal>
-      <li v-for="step in items" :key="step.n" class="step-card">
-        <span class="step-num">{{ step.n }}</span>
-        <h3 class="step-title">{{ step.title }}</h3>
-        <p class="step-text">{{ step.text }}</p>
-      </li>
-    </ol>
+    <!--
+      SCHRITT-KARTEN = `UPageGrid` + `UPageCard`, NICHT `UStepper`/`UTimeline`
+      (Paket 5, beide geprüft und begründet abgelehnt):
+      · `UStepper` ist ein BEDIEN-Element. Reka baut daraus Knöpfe mit
+        wanderndem Fokus, `aria-current` und genau EINEM sichtbaren Inhalt.
+        Diese drei Schritte sind ein Text, kein Assistent — anklickbare Knöpfe,
+        die nichts tun, sind schlechter als die schlichte <ol> davor.
+      · `UTimeline` (waagerecht) zeigt zwar alle Punkte, rendert aber nur
+        `div`s (die Reihenfolge-Semantik von <ol>/<li> ginge verloren), zieht
+        eine Verbindungslinie, die dieses Bild nicht hat, und lässt die
+        KARTENFLÄCHE weg — und die ist seit Paket 2 die Sprache jeder
+        Aufzählung dieser Seite; ohne sie stünde der Text nackt auf dem Verlauf.
+      Geblieben ist nur die Nummern-Scheibe als Eigenteil im `#leading`-Slot;
+      ihr Verlauf steht als --puka-step-fill in app/assets/css/puka-theme.css.
+
+      `mkt-inner` und das Raster sind BEWUSST zwei Elemente — `.mkt-inner`
+      setzt `margin: 0 auto` als ungeschichtete Kurzform und schlägt damit jede
+      Tailwind-Utility aus @layer (ein `mt-10` hier wäre wirkungslos).
+    -->
+    <div class="mkt-inner" data-reveal>
+      <!-- NUR BENANNTE STUFEN, und das ist eine bewusste Abweichung: der
+           Bestand schaltete bei 820px auf drei Spalten. `UPageGrid` bringt
+           `sm:grid-cols-2 lg:grid-cols-3` mit, und die lassen sich NUR mit
+           derselben Stufe wegräumen (tailwind-merge arbeitet je Stufe). Eine
+           arbiträre `min-[820px]`-Regel stünde in Tailwinds Ausgabe VOR jeder
+           benannten und verlöre gegen das nötige `sm:` — live gemessen: bei
+           1000px stand eine Spalte statt drei.
+           Ergebnis: der Umbruch liegt bei 768 statt 820 (52px früher). Die
+           Absicht des Bestands bleibt erhalten — ein iPad im Hochformat (820px)
+           zeigt weiterhin drei Karten. -->
+      <UPageGrid as="ol" class="mt-10 grid-cols-1 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-3">
+        <UPageCard
+          v-for="step in items" :key="step.n"
+          as="li"
+          :title="step.title" :description="step.text"
+          :ui="{ leading: 'mb-[0.9rem]' }"
+        >
+          <template #leading>
+            <span class="inline-flex size-[2.4rem] items-center justify-center rounded-full bg-[image:var(--puka-step-fill)] text-[1.1rem] font-extrabold text-inverted">
+              {{ step.n }}
+            </span>
+          </template>
+        </UPageCard>
+      </UPageGrid>
+    </div>
   </section>
 </template>
 
 <style scoped>
 .steps-head { text-align: center; }
-.steps-head .mkt-lead { margin-inline: auto; }
-.steps-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.25rem;
-  margin-top: 2.5rem;
-  padding: 0;
-  list-style: none;
-  counter-reset: none;
-}
-.step-card {
-  position: relative;
-  background: hsl(0 0% 100% / 0.6);
-  border: 1px solid hsl(var(--puka-ink) / 0.07);
-  border-radius: 1rem;
-  padding: 1.5rem;
-}
-.step-num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.4rem;
-  height: 2.4rem;
-  border-radius: 50%;
-  font-weight: 800;
-  font-size: 1.1rem;
-  color: hsl(0 0% 100%);
-  background: linear-gradient(135deg, hsl(var(--puka-sun)), hsl(var(--puka-sun-deep)));
-  margin-bottom: 0.9rem;
-}
-.step-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.35rem; }
-.step-text { color: hsl(var(--puka-ink-soft)); line-height: 1.55; }
-
-@media (min-width: 820px) {
-  .steps-grid { grid-template-columns: repeat(3, 1fr); }
-}
 </style>

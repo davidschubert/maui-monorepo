@@ -13,6 +13,7 @@
       "toGerman": "Deutsch",
       "toEnglish": "English",
       "menu": "Menü öffnen",
+      "menuClose": "Menü schließen",
       "aria": {
         "main": "Hauptnavigation"
       },

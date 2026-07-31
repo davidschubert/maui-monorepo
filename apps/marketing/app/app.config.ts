@@ -15,6 +15,19 @@ export default defineAppConfig({
       // ganzen Seite — die gehört in ein eigenes Paket, nicht in die
       // Theme-Brücke.
     },
+    /**
+     * DAS BURGER-ZEICHEN (Paket 5). `UHeader` nimmt sein Umschalt-Zeichen aus
+     * `ui.icons.menu`/`.close` und wechselt es je nach Zustand — es lässt sich
+     * deshalb NICHT als Eigenschaft am Knopf setzen, ohne den Wechsel zu
+     * verlieren. Der Core stellt `i-ph-list`, der Bestand dieser Seite die
+     * fette Schnittvariante; die eine Zeile hier hält sie.
+     * `close` bleibt bewusst der Core-Wert: das Kreuz kommt im Bestand gar
+     * nicht vor (der <details>-Ausklapper hatte keinen Schließ-Zustand).
+     */
+    icons: {
+      menu: 'i-ph-list-bold',
+    },
+
     button: {
       compoundVariants: [
         {

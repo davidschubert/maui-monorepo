@@ -1,12 +1,22 @@
 <script setup lang="ts">
-// Szene 14 — Denouement (§6.4): letzte Fäden, Ruhe. Native <details> =
-// tastatur-/screenreader-freundlich, kein JS, funktioniert mit reduced-motion.
-// Ton bleibt warm (dawn): das Licht-Motiv (§6.3) hellt monoton zum CTA-Peak auf.
+// Szene 14 — Denouement (§6.4): letzte Fäden, Ruhe. Ton bleibt warm (dawn):
+// das Licht-Motiv (§6.3) hellt monoton zum CTA-Peak auf.
+//
+// `UAccordion` statt der nativen <details> (Paket 5, Davids Entscheidung
+// 2026-07-31 — Nuxt UI schlägt „kein JS"). Zwei Eigenschaften halten das
+// Verhalten des Bestands:
+//   `type="multiple"` — <details> lässt beliebig viele Antworten offen; die
+//   Vorgabe `single` schlösse beim Öffnen der nächsten Frage die vorige.
+//   `:unmount-on-hide="false"` — PFLICHT und kein Geschmack: die Antworten
+//   müssen im SSR-HTML stehen. Diese Sektion ist der sichtbare Zwilling des
+//   FAQPage-JSON-LD auf /faq und der Startseite; Google verlangt, dass die
+//   ausgezeichnete Antwort auch im Seiteninhalt vorkommt. Mit der Vorgabe
+//   (true) rendert Reka geschlossene Inhalte GAR NICHT.
 const { t } = useI18n()
 const items = computed(() =>
   [0, 1, 2, 3, 4, 5].map(i => ({
-    q: t(`marketing.faq.items.${i}.q`),
-    a: t(`marketing.faq.items.${i}.a`),
+    label: t(`marketing.faq.items.${i}.q`),
+    content: t(`marketing.faq.items.${i}.a`),
   })),
 )
 </script>
@@ -18,52 +28,33 @@ const items = computed(() =>
       <h2 class="mkt-h2">{{ t('marketing.faq.title') }}</h2>
     </div>
 
-    <div class="faq-list mkt-inner mkt-narrow" data-reveal>
-      <details v-for="item in items" :key="item.q" class="faq-item">
-        <summary class="faq-q">
-          <span>{{ item.q }}</span>
-          <UIcon name="i-ph-plus-bold" class="faq-plus" />
-        </summary>
-        <p class="faq-a">{{ item.a }}</p>
-      </details>
+    <!-- `mkt-inner` (Breiten-Container) und die Liste sind BEWUSST zwei
+         Elemente: `.mkt-inner` setzt in marketing.css `margin: 0 auto` als
+         Kurzform, und diese ungeschichtete Regel schlägt jede Tailwind-Utility
+         aus @layer — ein `mt-8` an derselben Stelle wäre wirkungslos. -->
+    <div class="mkt-inner mkt-narrow" data-reveal>
+      <UAccordion
+        :items="items"
+        type="multiple"
+        :unmount-on-hide="false"
+        trailing-icon="i-ph-plus-bold"
+        :ui="{
+          root: 'mt-8 flex w-full flex-col gap-3',
+          // Jede Frage ist im Bestand eine eigene KARTE (dieselbe Fläche wie
+          // die `pageCard`-Karten aus Paket 2), nicht eine Zeile in einer
+          // Liste — deshalb die Kante rundum statt der Vorgabe `border-b`.
+          item: 'rounded-[0.9rem] border-b-0 bg-white/60 px-5 ring-1 ring-[color:var(--puka-card-edge)]',
+          trigger: 'py-[1.15rem] gap-4 text-[1.05rem] font-bold text-highlighted',
+          // Aus dem Plus wird ein Kreuz: 45° statt der 180° der Vorgabe
+          // (dieselbe Bedingungskette, damit tailwind-merge die Vorgabe wirft).
+          trailingIcon: 'size-[1.2rem] text-primary-600 group-data-[state=open]:rotate-45',
+          body: 'max-w-[42rem] pb-[1.2rem] pt-0 text-base/[1.6] text-toned',
+        }"
+      />
     </div>
   </section>
 </template>
 
 <style scoped>
 .faq-head { text-align: center; }
-.faq-list { margin-top: 2rem; display: flex; flex-direction: column; gap: 0.75rem; }
-.faq-item {
-  background: hsl(0 0% 100% / 0.6);
-  border: 1px solid hsl(var(--puka-ink) / 0.07);
-  border-radius: 0.9rem;
-  padding: 0 1.25rem;
-}
-.faq-q {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1.15rem 0;
-  font-weight: 700;
-  font-size: 1.05rem;
-  cursor: pointer;
-  list-style: none;
-}
-.faq-q::-webkit-details-marker { display: none; }
-.faq-plus {
-  flex: none;
-  width: 1.2rem;
-  height: 1.2rem;
-  color: hsl(var(--puka-sun-deep));
-  transition: transform 0.2s ease;
-}
-.faq-item[open] .faq-plus { transform: rotate(45deg); }
-.faq-a {
-  padding: 0 0 1.2rem;
-  color: hsl(var(--puka-ink-soft));
-  line-height: 1.6;
-  max-width: 42rem;
-}
-@media (prefers-reduced-motion: reduce) { .faq-plus { transition: none; } }
 </style>

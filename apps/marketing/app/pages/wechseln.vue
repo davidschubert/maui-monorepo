@@ -86,13 +86,32 @@ useSeoMeta({
       <div class="mkt-inner mkt-narrow" data-reveal>
         <h2 class="mkt-h2">{{ t('marketing.switch.stepsTitle') }}</h2>
       </div>
-      <ol class="switch-steps mkt-inner" data-reveal>
-        <li v-for="step in steps" :key="step.n" class="switch-step">
-          <span class="switch-num">{{ step.n }}</span>
-          <h3 class="switch-step-title">{{ step.title }}</h3>
-          <p class="switch-step-text">{{ step.text }}</p>
-        </li>
-      </ol>
+      <!-- Dasselbe Bauteil wie die drei Schritte auf der Startseite:
+           `UPageGrid` + `UPageCard` mit der Nummern-Scheibe im `#leading`-Slot
+           (Begründung gegen `UStepper`/`UTimeline` steht in StepsSection.vue).
+           `mkt-inner` und das Raster bleiben zwei Elemente — `.mkt-inner`
+           setzt `margin: 0 auto` als ungeschichtete Kurzform und schlägt jede
+           Tailwind-Utility. Nur BENANNTE Stufen, aus demselben Grund wie in
+           StepsSection.vue (arbiträre `min-[…]`-Regeln stehen in Tailwinds
+           Ausgabe vor den benannten und verlieren gegen das nötige `sm:`).
+           Bewusste Abweichung: der Bestand schaltete bei 700px auf zwei und bei
+           1060px auf vier Spalten, hier tut er es bei 768 und 1024. -->
+      <div class="mkt-inner" data-reveal>
+        <UPageGrid as="ol" class="mt-8 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+          <UPageCard
+            v-for="step in steps" :key="step.n"
+            as="li"
+            :title="step.title" :description="step.text"
+            :ui="{ leading: 'mb-[0.8rem]' }"
+          >
+            <template #leading>
+              <span class="inline-flex size-[2.2rem] items-center justify-center rounded-full bg-[image:var(--puka-step-fill)] font-extrabold text-inverted">
+                {{ step.n }}
+              </span>
+            </template>
+          </UPageCard>
+        </UPageGrid>
+      </div>
     </section>
 
     <section class="mkt-section tone-dawn">
@@ -132,36 +151,4 @@ useSeoMeta({
 /* Nur noch das Bildmotiv — Rhythmus und Typografie des Kopfes kommen aus dem
    `pageHero`-Vertrag in app/app.config.ts. */
 .switch-puka { top: -16rem; left: -12rem; width: 34rem; height: 34rem; opacity: 0.55; }
-
-.switch-steps {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.1rem;
-  margin: 2rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-.switch-step {
-  padding: 1.4rem;
-  border-radius: 1rem;
-  background: hsl(0 0% 100% / 0.6);
-  border: 1px solid hsl(var(--puka-ink) / 0.08);
-}
-.switch-num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.2rem;
-  height: 2.2rem;
-  border-radius: 50%;
-  font-weight: 800;
-  color: hsl(0 0% 100%);
-  background: linear-gradient(135deg, hsl(var(--puka-sun)), hsl(var(--puka-sun-deep)));
-  margin-bottom: 0.8rem;
-}
-.switch-step-title { font-size: 1.08rem; font-weight: 800; margin-bottom: 0.3rem; }
-.switch-step-text { color: hsl(var(--puka-ink-soft)); line-height: 1.55; }
-
-@media (min-width: 700px) { .switch-steps { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1060px) { .switch-steps { grid-template-columns: repeat(4, 1fr); } }
 </style>

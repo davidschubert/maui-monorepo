@@ -12,11 +12,44 @@ const PRESET_DEFS = [
 ] as const
 
 const presets = computed(() =>
-  PRESET_DEFS.map(p => ({ key: p.key, label: t(`marketing.modular.presets.${p.key}`), on: p.on as readonly string[] })),
+  PRESET_DEFS.map(p => ({
+    value: p.key,
+    label: t(`marketing.modular.presets.${p.key}`),
+    on: new Set<string>(p.on),
+  })),
 )
 const allBlocks = computed(() => ALL_BLOCK_IDS.map(id => ({ id, label: t(`marketing.modular.blocks.${id}`) })))
-const active = ref(0)
-const activeSet = computed(() => new Set(PRESET_DEFS[active.value]?.on ?? []))
+const active = ref<string | number>('only')
+
+/**
+ * DIE PILLE IST JETZT EIN ECHTES REITER-PAAR (Paket 5). Der Bestand war
+ * `role="tablist"` mit drei `role="tab"` — UND OHNE EIN EINZIGES `tabpanel`.
+ * Das ist kaputte Semantik: `aria-selected` verspricht einen Bereich, den es
+ * nicht gibt, und die Chip-Fläche darunter war für Hilfstechnik nur eine
+ * beliebige Liste ohne Bezug zum gewählten Reiter.
+ * `UTabs` MIT Inhalt (`content` bleibt an) räumt beides auf: Reka verknüpft
+ * Reiter und Fläche über `aria-controls`/`aria-labelledby` und liefert
+ * Pfeiltasten-Navigation. Die Chip-Fläche bleibt dabei genau da, wo sie war —
+ * als eigene Fläche UNTER der Leiste; sie ist jetzt nur der Inhalt des
+ * Reiters statt eines Nachbarn ohne Verbindung.
+ *
+ * Die drei `in-[…]`-Zeilen sind dieselbe Falle wie beim Intervall-Umschalter
+ * der Preise (Paket 4): der Indicator misst seine Breite im Browser und wird
+ * serverseitig GAR NICHT gerendert, die Vorgabe malt die aktive Fläche dann
+ * über ein ::before am Reiter. Ohne die Zeilen zeigt der erste Bildaufbau eine
+ * voll orange Pille mit weißer Schrift und springt bei der Hydration auf die
+ * weiße Fläche des Bestands um. Die lange Bedingungskette ist NICHT
+ * schmückend — nur mit ihr erkennt tailwind-merge die Dopplung und wirft die
+ * Vorgabe raus; jede Klasse steht ausgeschrieben da, weil Tailwinds Scanner
+ * zusammengesetzte Strings nicht findet.
+ */
+const TRIGGER_CLASS = [
+  'grow-0 rounded-full px-4 py-[0.45rem] text-[0.9rem] font-semibold',
+  'data-[state=inactive]:text-toned data-[state=active]:text-primary-600',
+  'in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:bg-white',
+  'in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:rounded-full',
+  'in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:shadow-[0_2px_8px_-3px_var(--puka-tab-shadow)]',
+].join(' ')
 </script>
 
 <template>
@@ -28,32 +61,38 @@ const activeSet = computed(() => new Set(PRESET_DEFS[active.value]?.on ?? []))
         <p class="mkt-lead">{{ t('marketing.modular.lead') }}</p>
       </div>
 
-      <div class="mod-demo" data-reveal style="--reveal-delay: 120ms">
-        <div class="mod-tabs" role="tablist">
-          <button
-            v-for="(p, i) in presets" :key="p.label" type="button"
-            class="mod-tab" :class="{ 'mod-tab-active': i === active }"
-            role="tab" :aria-selected="i === active"
-            @click="active = i"
-          >{{ p.label }}</button>
-        </div>
-        <!-- An/aus als Badge-VARIANTE: `subtle` (Fläche + Kante) für an,
-             `outline` (nur Kante) für aus. Die beiden Klassen halten die
-             Flächen des Bestands — an = deckendes Weiß, aus = halb
-             durchscheinend, damit der getönte Sektions-Grund durchkommt. -->
-        <ul class="mod-chips">
-          <li v-for="block in allBlocks" :key="block.id">
-            <UBadge
-              as="span" color="neutral" size="lg"
-              :variant="activeSet.has(block.id) ? 'subtle' : 'outline'"
-              :icon="activeSet.has(block.id) ? 'i-ph-check-circle-fill' : 'i-ph-circle-dashed'"
-              :label="block.label"
-              class="px-3.5 py-2 font-semibold transition-colors"
-              :class="activeSet.has(block.id) ? 'bg-white text-highlighted' : 'bg-white/50 text-muted'"
-              :ui="{ leadingIcon: activeSet.has(block.id) ? 'size-4 text-primary-600' : 'size-4' }"
-            />
-          </li>
-        </ul>
+      <div data-reveal style="--reveal-delay: 120ms">
+        <UTabs
+          v-model="active"
+          :items="presets"
+          :ui="{
+            root: 'items-start gap-5',
+            list: 'w-auto flex-wrap gap-[0.3rem] rounded-full bg-[color:var(--puka-tab-surface)] p-[0.3rem]',
+            indicator: 'rounded-full bg-white shadow-[0_2px_8px_-3px_var(--puka-tab-shadow)]',
+            trigger: TRIGGER_CLASS,
+            content: 'w-auto',
+          }"
+        >
+          <!-- An/aus als Badge-VARIANTE: `subtle` (Fläche + Kante) für an,
+               `outline` (nur Kante) für aus. Die beiden Klassen halten die
+               Flächen des Bestands — an = deckendes Weiß, aus = halb
+               durchscheinend, damit der getönte Sektions-Grund durchkommt. -->
+          <template #content="{ item }">
+            <ul class="flex list-none flex-wrap gap-2.5 p-0">
+              <li v-for="block in allBlocks" :key="block.id">
+                <UBadge
+                  as="span" color="neutral" size="lg"
+                  :variant="item.on.has(block.id) ? 'subtle' : 'outline'"
+                  :icon="item.on.has(block.id) ? 'i-ph-check-circle-fill' : 'i-ph-circle-dashed'"
+                  :label="block.label"
+                  class="px-3.5 py-2 font-semibold transition-colors"
+                  :class="item.on.has(block.id) ? 'bg-white text-highlighted' : 'bg-white/50 text-muted'"
+                  :ui="{ leadingIcon: item.on.has(block.id) ? 'size-4 text-primary-600' : 'size-4' }"
+                />
+              </li>
+            </ul>
+          </template>
+        </UTabs>
       </div>
     </div>
   </section>
@@ -65,35 +104,6 @@ const activeSet = computed(() => new Set(PRESET_DEFS[active.value]?.on ?? []))
   grid-template-columns: 1fr;
   gap: 2.5rem;
   align-items: center;
-}
-.mod-tabs {
-  display: inline-flex;
-  gap: 0.3rem;
-  padding: 0.3rem;
-  background: hsl(var(--puka-ink) / 0.06);
-  border-radius: 999px;
-  margin-bottom: 1.25rem;
-  flex-wrap: wrap;
-}
-.mod-tab {
-  border: 0;
-  background: transparent;
-  padding: 0.45rem 1rem;
-  border-radius: 999px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: hsl(var(--puka-ink-soft));
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-.mod-tab-active { background: hsl(0 0% 100%); color: hsl(var(--puka-sun-deep)); box-shadow: 0 2px 8px -3px hsl(var(--puka-ink) / 0.3); }
-.mod-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  padding: 0;
-  margin: 0;
-  list-style: none;
 }
 
 @media (min-width: 860px) { .mod-grid { grid-template-columns: 1fr 1fr; } }
