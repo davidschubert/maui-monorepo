@@ -66,7 +66,10 @@ const OWNER: readonly Capability[] = [
     'site.delete',
     // A6 (Davids Entscheidung 2, 2026-07-30): gekauft wird im Dashboard der
     // Community, und zwar NUR vom Owner — das Abo hängt an der Community.
-    'billing.manage',
+    // BEWUSST eine EIGENE Site-Capability: billing.manage ist Instanz-weit
+    // (Operator-Payment-Logs) — sie dem Owner zu geben, wäre das Leck, das
+    // der Rollen-Trennungs-Test (tenantAuthz.test.ts) verbietet.
+    'site.billing',
   ]),
 ]
 

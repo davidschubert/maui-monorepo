@@ -39,7 +39,7 @@
  * tenants — CLAUDE.md/D6). Der Erfolgs-Toast sagt deshalb „in Kürze" statt
  * einen neuen Plan zu behaupten.
  */
-definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'billing.manage' })
+definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'site.billing' })
 
 const { t } = useI18n()
 const toast = useToast()

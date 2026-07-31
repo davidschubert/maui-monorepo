@@ -20,7 +20,7 @@ import { requireSiteTeamGate } from '../../../utils/siteTeamGate'
  * Oberfläche macht daraus einen Satz, keinen Fehler.
  */
 export default defineEventHandler(async (event) => {
-  const { communityId, jwt } = await requireSiteTeamGate(event, 'billing.manage')
+  const { communityId, jwt } = await requireSiteTeamGate(event, 'site.billing')
 
   const { url } = await callControlPlane<{ url: string }>(
     event,

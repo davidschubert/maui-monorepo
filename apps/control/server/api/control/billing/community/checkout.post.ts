@@ -23,7 +23,7 @@ const bodySchema = z.object({
 export default defineEventHandler(async (event) => {
   requireOnboardingCaller(event)
   const body = await readValidatedBody(event, bodySchema.parse)
-  const context = await requireSiteTeamContext(event, body, 'billing.manage')
+  const context = await requireSiteTeamContext(event, body, 'site.billing')
 
   if (communityHasLiveSubscription(context.tenant)) {
     throw createError({

@@ -34,7 +34,7 @@ const bodySchema = z.object({
 }).strict()
 
 export default defineEventHandler(async (event) => {
-  const { communityId, jwt } = await requireSiteTeamGate(event, 'billing.manage')
+  const { communityId, jwt } = await requireSiteTeamGate(event, 'site.billing')
   const body = await readValidatedBody(event, bodySchema.parse)
 
   const { url } = await callControlPlane<{ url: string }>(

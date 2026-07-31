@@ -30,6 +30,7 @@ export type Capability =
   | 'branding.manage' // Themes/Schriften der Site (Admin) — nicht Editor
   | 'team.manage' // Site-Mitglieder + Rollen (Owner/Admin) — nicht Moderator/Editor
   | 'site.transfer' // Owner-Übergabe (nur Owner)
+  | 'site.billing' // Abo der Community: Kauf + Stripe-Portal (nur Owner, A6)
   | 'site.delete' // Site löschen (nur Owner)
 
 export type Role = 'admin' | 'moderator'
