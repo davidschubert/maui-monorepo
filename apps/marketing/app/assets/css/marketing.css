@@ -105,6 +105,16 @@
  * `UButton variant="link"` (ein Muster für alle acht Unterseiten, vorher war
  * er auf den Rechtsseiten schon ein Knopf und sonst ein NuxtLink), der
  * Schlussblock ist `UPageCTA` mit dem `pageCTA`-Vertrag in app/app.config.ts.
+ *
+ * WAS HIER BLEIBT — und warum es nicht weniger wird (Stand Paket 5, dem
+ * letzten der Nuxt-UI-Umstellung): dieses Blatt beschreibt nur noch die
+ * LICHT-DRAMATURGIE (tone-*, puka-glow, data-reveal) und den geteilten
+ * SEKTIONS-RHYTHMUS (mkt-section/-inner/-narrow/-kicker/-h2/-lead). Beides ist
+ * kein UI-Baustein: die Töne sind das Bildmotiv der Seite, und die zehn
+ * Sektionsköpfe teilen sich ihre Typografie — sie auf `UPageSection`
+ * umzustellen wäre ein eigenes Paket (Begründung in PricingSection.vue).
+ * Die --puka-*-Tripel oben tragen davon noch tone-*, puka-glow und die drei
+ * Textfarben; alles andere zeigt inzwischen auf die Theme-Ramp.
  */
 
 /* ── Die puka: eine wiederkehrende kreisförmige Lichtöffnung ───────────────── */

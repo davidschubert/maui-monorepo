@@ -144,6 +144,57 @@
   --puka-pill-edge: color-mix(in oklab, var(--ui-color-neutral-900) 12%, transparent);
 
   /*
+   * DIE HÖHE DES KOPFES (Paket 5). `UHeader` liest sie als `h-(--ui-header-
+   * height)`, `UMain` rechnet damit die Mindesthöhe des Inhalts
+   * (`min-h-[calc(100vh-var(--ui-header-height))]`) — beide brauchen denselben
+   * Wert, sonst steht der Fuß auf kurzen Seiten zu hoch oder es entsteht eine
+   * Scroll-Leiste ohne Inhalt. 53px = der gemessene Bestand (12px Polsterung
+   * oben und unten + 26px Marken-Zeile + 1px Trennlinie).
+   *
+   * WICHTIG: der Kopf setzt daraus `min-h`, NICHT `h` (Nuxt-UI-Vorgabe). Auf
+   * 375px bricht der CTA „Kostenlos starten" auf zwei Zeilen und der Bestand
+   * wächst auf 69px — mit der festen Höhe der Vorgabe liefe der Knopf aus dem
+   * Kopf heraus.
+   */
+  --ui-header-height: 3.3125rem;
+
+  /*
+   * KOPF UND AUSKLAPPER (Paket 5). Die Kopf-FLÄCHE gehört zur Licht-
+   * Dramaturgie, nicht zum Theme: sie ist derselbe „Wolken"-Ton wie der
+   * Seitenanfang (`tone-cloud`), nur halbdurchsichtig über dem scrollenden
+   * Inhalt. Deshalb zeigt sie bewusst weiter auf --puka-cloud.
+   * Die drei KANTEN-/SCHATTEN-Werte rechnen dagegen wie --puka-card-edge aus
+   * der Neutral-Ramp des Themes und nehmen einen Palettenwechsel mit
+   * (Bestand: hsl(--puka-ink / 0.06 · 0.1 · 0.45)).
+   */
+  --puka-header-surface: hsl(var(--puka-cloud) / 0.72);
+  --puka-header-edge: color-mix(in oklab, var(--ui-color-neutral-900) 6%, transparent);
+  --puka-menu-edge: color-mix(in oklab, var(--ui-color-neutral-900) 10%, transparent);
+  --puka-menu-shadow: color-mix(in oklab, var(--ui-color-neutral-900) 45%, transparent);
+
+  /*
+   * DIE NUMMERN-SCHEIBE DER SCHRITT-KARTEN (Paket 5). Sie steht an ZWEI
+   * Stellen (StepsSection „so geht's" und das Schritt-Raster auf /wechseln) und
+   * ist der einzige Teil dieser Karten, den Nuxt UI nicht mitbringt. Als
+   * fertiger Verlauf hier, damit beide Stellen dieselbe Scheibe malen und
+   * keine von beiden handgeschriebenes CSS braucht.
+   * Der Bestand mischte hsl(--puka-sun) → hsl(--puka-sun-deep); das SIND
+   * primary-500 → primary-600.
+   */
+  --puka-step-fill: linear-gradient(135deg, var(--ui-color-primary-500), var(--ui-color-primary-600));
+
+  /*
+   * DIE PILLE DES PRODUKT-UMSCHALTERS in ModularSection (Paket 5). Anders als
+   * die Intervall-Pille der Preise (--puka-pill-edge, Kante auf weißer Fläche)
+   * ist das eine FLÄCHE ohne Kante: der Bestand tönte sie mit
+   * hsl(--puka-ink / 0.06), damit der Verlauf der Sektion durchscheint —
+   * Nuxt UIs `bg-elevated` (neutral-100) wäre deckend und läge als kühler
+   * Block auf dem warmen Morgenlicht.
+   */
+  --puka-tab-surface: color-mix(in oklab, var(--ui-color-neutral-900) 6%, transparent);
+  --puka-tab-shadow: color-mix(in oklab, var(--ui-color-neutral-900) 30%, transparent);
+
+  /*
    * Der warme Schein unter der hervorgehobenen Preis-Karte (Paket 4, benutzt
    * vom `pricingPlan`-Vertrag in app/app.config.ts). Der Bestand malte ihn als
    * `hsl(var(--puka-sun-deep) / 0.6)` — das IST puka-600 bei 60 %.
