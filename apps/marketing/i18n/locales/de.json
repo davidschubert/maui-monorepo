@@ -466,25 +466,21 @@
       "more": "Mehr dazu",
       "items": [
         {
-          "slug": "coaches",
           "icon": "i-ph-users-three-bold",
           "title": "Coaches & Trainer",
           "text": "Kurse, Diskussion und Treffen an einem geschützten Ort, den du steuerst."
         },
         {
-          "slug": "kurse",
           "icon": "i-ph-graduation-cap-bold",
           "title": "Kurs-Ersteller",
           "text": "Verkaufe Kurse mit Community drumherum – zu einem planbaren Preis."
         },
         {
-          "slug": "creator",
           "icon": "i-ph-pen-nib-bold",
           "title": "Creator & Autoren",
           "text": "Deine Community unter deiner Marke, ohne fremde Werbung."
         },
         {
-          "slug": "vereine",
           "icon": "i-ph-buildings-bold",
           "title": "Vereine & Organisationen",
           "text": "Mitglieder, Events und Austausch – in Deutschland gehostet."

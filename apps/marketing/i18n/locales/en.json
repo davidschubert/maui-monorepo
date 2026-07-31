@@ -466,25 +466,21 @@
       "more": "Learn more",
       "items": [
         {
-          "slug": "coaches",
           "icon": "i-ph-users-three-bold",
           "title": "Coaches & trainers",
           "text": "Courses, discussion and meetups in one protected place that you steer."
         },
         {
-          "slug": "kurse",
           "icon": "i-ph-graduation-cap-bold",
           "title": "Course creators",
           "text": "Sell courses with a community around them – at a predictable price."
         },
         {
-          "slug": "creator",
           "icon": "i-ph-pen-nib-bold",
           "title": "Creators & writers",
           "text": "Your community under your brand, without someone else's ads."
         },
         {
-          "slug": "vereine",
           "icon": "i-ph-buildings-bold",
           "title": "Clubs & organisations",
           "text": "Members, events and exchange – hosted in Germany."

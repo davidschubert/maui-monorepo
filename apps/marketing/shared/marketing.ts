@@ -49,17 +49,51 @@ export type ProductKey = (typeof PRODUCT_KEYS)[number]
  * events) — sie stehen trotzdem ausgeschrieben da, weil ein Eintrag mit nur
  * einer Sprache stillschweigend die andere erfände.
  *
- * `Record<ProductKey, …>` statt `as const`: so ERZWINGT der Typ einen Eintrag
- * je Schlüssel — ein neues Produkt ohne Übersetzung ist ein Typfehler und
- * keine 404-Überraschung.
+ * `SlugTable<ProductKey>` (ein `Record`) statt `as const`: so ERZWINGT der Typ
+ * einen Eintrag je Schlüssel — ein neues Produkt ohne Übersetzung ist ein
+ * Typfehler und keine 404-Überraschung.
  */
-export const PRODUCT_SLUGS: Readonly<Record<ProductKey, Readonly<Record<MarketingLocale, string>>>> = {
+export const PRODUCT_SLUGS: SlugTable<ProductKey> = {
   diskussionen: { de: 'diskussionen', en: 'discussions' },
   moderation: { de: 'moderation', en: 'moderation' },
   branding: { de: 'branding', en: 'branding' },
   beitraege: { de: 'beitraege', en: 'posts' },
   kurse: { de: 'kurse', en: 'courses' },
   events: { de: 'events', en: 'events' },
+}
+
+/**
+ * KANONISCHE Anwendungsfall-Schlüssel — dieselbe Bauart wie die Produkte:
+ * Identität, nicht URL. Reihenfolge = Reihenfolge im Abschnitt „Für wen"
+ * (AudienceSection), im Fuß und in der Sitemap.
+ *
+ * Auch hier ist der Schlüssel zufällig der deutsche Slug (die Seiten wurden auf
+ * Deutsch gebaut) und bleibt es: an ihm hängen die i18n-Texte
+ * (`marketing.audiencePages.items.<key>`) und die OG-Bilder
+ * (`public/og/use-cases-<key>-<locale>.jpg`).
+ */
+export const AUDIENCE_KEYS = ['coaches', 'kurse', 'creator', 'vereine'] as const
+
+export type AudienceKey = (typeof AUDIENCE_KEYS)[number]
+
+/**
+ * Anwendungsfall-Seiten, LOKALISIERTE Slugs (Davids Entscheidung 2026-07-31):
+ * EN `/use-cases/<en>` · DE `/de/use-cases/<de>`.
+ *
+ * Das SEGMENT ist hier bewusst für beide Sprachen dasselbe (`/use-cases`,
+ * Entscheidung 2026-07-30 — „use case" ist auch im Deutschen geläufig); nur der
+ * Slug ist jetzt übersetzt. Ein englischer Besucher bekam bis dahin
+ * `/use-cases/kurse` und `/use-cases/vereine` — deutsche Wörter im Teil der
+ * Adresse, den ein Mensch liest und eine Suchmaschine als Wort wertet.
+ *
+ * `coaches` heißt in beiden Sprachen gleich und steht trotzdem ausgeschrieben
+ * da: ein Eintrag mit nur einer Sprache erfände stillschweigend die andere.
+ */
+export const AUDIENCE_SLUGS: SlugTable<AudienceKey> = {
+  coaches: { de: 'coaches', en: 'coaches' },
+  kurse: { de: 'kurse', en: 'course-creators' },
+  creator: { de: 'creator', en: 'creators' },
+  vereine: { de: 'vereine', en: 'clubs' },
 }
 
 /**
@@ -71,9 +105,18 @@ export function marketingLocale(locale: string): MarketingLocale {
   return locale === 'de' ? 'de' : 'en'
 }
 
-/** Schlüssel → Slug DIESER Sprache (Link-Ziele, Sitemap). */
-export function slugForLocale(key: ProductKey, locale: string): string {
-  return PRODUCT_SLUGS[key][marketingLocale(locale)]
+/**
+ * DIE ÜBERSETZUNG STEHT EINMAL, die Kataloge sind austauschbar: Produkte und
+ * Anwendungsfälle rechnen identisch (Schlüssel ⇄ Slug je Sprache), sie
+ * unterscheiden sich nur in der Tabelle. Die beiden Helfer darunter sind
+ * deshalb generisch, und was je Katalog exportiert wird, sind nur benannte
+ * Einstiege mit dem richtigen Schlüssel-TYP — eine zweite Kopie der Logik hätte
+ * sonst irgendwann eine dritte, die sich anders verhält.
+ */
+type SlugTable<Key extends string> = Readonly<Record<Key, Readonly<Record<MarketingLocale, string>>>>
+
+function localizedSlug<Key extends string>(table: SlugTable<Key>, key: Key, locale: string): string {
+  return table[key][marketingLocale(locale)]
 }
 
 /**
@@ -84,10 +127,39 @@ export function slugForLocale(key: ProductKey, locale: string): string {
  * `nuxt.config.ts` per 301 auf `/products/courses` geschickt. Würde hier
  * beides gelten, gäbe es dieselbe Seite unter zwei URLs (Duplicate Content),
  * und die Weiterleitung käme nie zum Zug.
+ *
+ * Die Schlüssel-Liste kommt als Argument dazu (statt `Object.keys(table)`):
+ * so bleibt die deklarierte Reihenfolge der Katalog-Wahrheit erhalten und der
+ * Rückgabetyp ist der Schlüssel-Typ, nicht `string`.
  */
-export function keyFromSlug(slug: string, locale: string): ProductKey | undefined {
+function keyForSlug<Key extends string>(
+  table: SlugTable<Key>,
+  keys: readonly Key[],
+  slug: string,
+  locale: string,
+): Key | undefined {
   const wanted = marketingLocale(locale)
-  return PRODUCT_KEYS.find(key => PRODUCT_SLUGS[key][wanted] === slug)
+  return keys.find(key => table[key][wanted] === slug)
+}
+
+/** Produkt-Schlüssel → Slug DIESER Sprache (Link-Ziele, Sitemap). */
+export function slugForLocale(key: ProductKey, locale: string): string {
+  return localizedSlug(PRODUCT_SLUGS, key, locale)
+}
+
+/** Produkt-Slug DIESER Sprache → Schlüssel; `undefined` heißt 404. */
+export function keyFromSlug(slug: string, locale: string): ProductKey | undefined {
+  return keyForSlug(PRODUCT_SLUGS, PRODUCT_KEYS, slug, locale)
+}
+
+/** Anwendungsfall-Schlüssel → Slug DIESER Sprache (Link-Ziele, Sitemap). */
+export function audienceSlugForLocale(key: AudienceKey, locale: string): string {
+  return localizedSlug(AUDIENCE_SLUGS, key, locale)
+}
+
+/** Anwendungsfall-Slug DIESER Sprache → Schlüssel; `undefined` heißt 404. */
+export function audienceKeyFromSlug(slug: string, locale: string): AudienceKey | undefined {
+  return keyForSlug(AUDIENCE_SLUGS, AUDIENCE_KEYS, slug, locale)
 }
 
 /**
@@ -102,9 +174,6 @@ export const EARLY_ACCESS_KEYS: readonly ProductKey[] = ['beitraege', 'kurse', '
 /** Vergleichsseiten: /vs/<slug> · /de/vs/<slug>. */
 export const VS_SLUGS = ['circle', 'skool', 'mighty-networks'] as const
 
-/** Anwendungsfall-Seiten: EIN Segment für beide Sprachen (/use-cases/<slug>). */
-export const AUDIENCE_SLUGS = ['coaches', 'kurse', 'creator', 'vereine'] as const
-
 /**
  * Anzahl der FAQ-Einträge (`marketing.faq.items.0…n-1` in beiden Locales).
  * Gelesen von `FaqSection.vue` (sichtbare Liste), `/faq` und der Startseite
@@ -115,4 +184,3 @@ export const AUDIENCE_SLUGS = ['coaches', 'kurse', 'creator', 'vereine'] as cons
 export const FAQ_COUNT = 6
 
 export type VsSlug = (typeof VS_SLUGS)[number]
-export type AudienceSlug = (typeof AUDIENCE_SLUGS)[number]

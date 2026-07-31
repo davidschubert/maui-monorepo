@@ -11,7 +11,7 @@
  * (Route-Vergleich) fällt sonst auf.
  */
 import type { H3Event } from 'h3'
-import { AUDIENCE_SLUGS, PRODUCT_KEYS, slugForLocale, VS_SLUGS } from '#shared/marketing'
+import { AUDIENCE_KEYS, audienceSlugForLocale, PRODUCT_KEYS, slugForLocale, VS_SLUGS } from '#shared/marketing'
 
 export interface MarketingRoute {
   /** Pfad in der EN-Default-Locale (ohne Prefix). */
@@ -40,7 +40,15 @@ export const MARKETING_ROUTES: MarketingRoute[] = [
   // EIN Segment für beide Sprachen (Davids Entscheidung 2026-07-30): die alten
   // /for/* bzw. /de/fuer/* leiten per routeRules 301 weiter und gehören
   // deshalb NICHT mehr in die Sitemap — dort steht nur die Zieladresse.
-  ...AUDIENCE_SLUGS.map(slug => ({ en: `/use-cases/${slug}`, de: `/de/use-cases/${slug}`, priority: 0.7 })),
+  // Der SLUG ist seit 2026-07-31 übersetzt und kommt deshalb aus
+  // `audienceSlugForLocale()`, nicht aus dem Schlüssel: mit dem Schlüssel böte
+  // die Sitemap für EN drei Adressen an, die per 301 weiterleiten — und eine
+  // Sitemap darf nur Zieladressen anbieten (dieselbe Regel wie unten).
+  ...AUDIENCE_KEYS.map(key => ({
+    en: `/use-cases/${audienceSlugForLocale(key, 'en')}`,
+    de: `/de/use-cases/${audienceSlugForLocale(key, 'de')}`,
+    priority: 0.7,
+  })),
   // Anders als die Anwendungsfälle sind die Produkt-Seiten locale-eigen — und
   // zwar VOLLSTÄNDIG: Segment UND Slug (defineI18nRoute + PRODUCT_SLUGS, seit
   // Davids Entscheidung 2026-07-31). Der Slug kommt deshalb aus

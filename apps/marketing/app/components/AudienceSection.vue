@@ -1,12 +1,26 @@
 <script setup lang="ts">
 // Szene 8 — der soziale Spiegel (§6.4): „Menschen wie du". Identifikation statt
 // Produkt-Liste; jede Karte führt auf ihre Anwendungsfall-Seite (Silo-SEO).
-const { t } = useI18n()
+//
+// DIE VIER SCHLÜSSEL KOMMEN AUS shared/, NICHT MEHR AUS i18n: bis 2026-07-31
+// trug jeder i18n-Eintrag ein Feld `slug`, das in de.json und en.json denselben
+// Wert hatte — es war also nie eine Übersetzung, sondern der kanonische
+// Schlüssel an der falschen Stelle. Seit der Slug in der Adresse ÜBERSETZT ist
+// (`kurse` ↔ `course-creators`), wäre es sogar eine Falle: ein dort gepflegter
+// Wert würde entweder auf der einen Sprache ins Leere zeigen oder still die
+// Weiterleitung auslösen. Reihenfolge der Karten = AUDIENCE_KEYS, die Texte
+// liegen weiter als Liste in i18n (Index = Position im Katalog).
+import { AUDIENCE_KEYS, audienceSlugForLocale } from '#shared/marketing'
+
+const { t, locale } = useI18n()
 const localePath = useLocalePath()
 
+// An `locale` hängend (t und audienceSlugForLocale lesen beide die Sprache):
+// beim Sprachwechsel rechnet der Abschnitt Texte UND Ziele neu.
 const items = computed(() =>
-  [0, 1, 2, 3].map(i => ({
-    slug: t(`marketing.audience.items.${i}.slug`),
+  AUDIENCE_KEYS.map((key, i) => ({
+    key,
+    to: localePath({ name: 'use-cases-slug', params: { slug: audienceSlugForLocale(key, locale.value) } }),
     icon: t(`marketing.audience.items.${i}.icon`),
     title: t(`marketing.audience.items.${i}.title`),
     text: t(`marketing.audience.items.${i}.text`),
@@ -29,8 +43,8 @@ const items = computed(() =>
              Overlay-Link) — deshalb ist der „Mehr"-Pfeil unten ein span und
              kein zweiter Link im Link. Hover/Focus kommen von Nuxt UI. -->
         <UPageCard
-          v-for="item in items" :key="item.slug"
-          :to="localePath({ name: 'use-cases-slug', params: { slug: item.slug } })"
+          v-for="item in items" :key="item.key"
+          :to="item.to"
           :icon="item.icon" :title="item.title" :description="item.text"
         >
           <template #footer>

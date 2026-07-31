@@ -13,7 +13,7 @@
  * reißt die nächste defineI18nRoute-Ergänzung das Loch wieder auf.
  * EINZIGE Ausnahme: localePath('/') für die Startseite. ════════════════════
  */
-import { type MarketingLocale, type ProductKey, slugForLocale } from '#shared/marketing'
+import { type AudienceKey, audienceSlugForLocale, type MarketingLocale, type ProductKey, slugForLocale } from '#shared/marketing'
 
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
@@ -41,6 +41,19 @@ function product(key: ProductKey, label: string) {
     ...LINK_DEFAULTS,
     label,
     to: localePath({ name: 'produkte-slug', params: { slug: slugForLocale(key, locale.value) } }),
+  }
+}
+/**
+ * Anwendungsfall-Link, gleiche Bauart wie `product()`: der Slug ist seit
+ * 2026-07-31 übersetzt (`vereine` ↔ `clubs`) und kommt aus shared/marketing.ts.
+ * Anders als bei den Produkten ist hier NUR der Slug locale-eigen — das Segment
+ * `/use-cases` gilt für beide Sprachen.
+ */
+function audience(key: AudienceKey, label: string) {
+  return {
+    ...LINK_DEFAULTS,
+    label,
+    to: localePath({ name: 'use-cases-slug', params: { slug: audienceSlugForLocale(key, locale.value) } }),
   }
 }
 
@@ -141,10 +154,10 @@ const columns = computed(() => [
     aria: t('marketing.footer.aria.useCases'),
     label: t('marketing.footer.colUseCases'),
     children: [
-      { ...LINK_DEFAULTS, label: t('marketing.footer.forCoaches'), to: localePath({ name: 'use-cases-slug', params: { slug: 'coaches' } }) },
-      { ...LINK_DEFAULTS, label: t('marketing.footer.forCourses'), to: localePath({ name: 'use-cases-slug', params: { slug: 'kurse' } }) },
-      { ...LINK_DEFAULTS, label: t('marketing.footer.forCreator'), to: localePath({ name: 'use-cases-slug', params: { slug: 'creator' } }) },
-      { ...LINK_DEFAULTS, label: t('marketing.footer.forClubs'), to: localePath({ name: 'use-cases-slug', params: { slug: 'vereine' } }) },
+      audience('coaches', t('marketing.footer.forCoaches')),
+      audience('kurse', t('marketing.footer.forCourses')),
+      audience('creator', t('marketing.footer.forCreator')),
+      audience('vereine', t('marketing.footer.forClubs')),
     ],
   },
   {
