@@ -3,34 +3,69 @@
 // dunkler, warmer Peak mit der puka als Lichtquelle, direkt vor dem Footer.
 const { t } = useI18n()
 const { start, demo } = useProductLinks()
+
+const links = computed(() => [
+  { to: start, color: 'primary' as const, size: 'xl' as const, label: t('marketing.cta.primary') },
+  {
+    to: demo,
+    color: 'neutral' as const,
+    variant: 'ghost' as const,
+    size: 'xl' as const,
+    icon: 'i-ph-play-circle',
+    label: t('marketing.cta.secondary'),
+  },
+])
 </script>
 
 <template>
-  <section id="los-gehts" class="cta-section tone-ink">
-    <div class="cta-puka puka-glow" data-parallax="0.08" aria-hidden="true" />
-    <div class="mkt-inner cta-inner" data-reveal>
-      <PukaMark :size="44" />
-      <h2 class="cta-title">{{ t('marketing.cta.title') }}</h2>
-      <p class="cta-lead">{{ t('marketing.cta.lead') }}</p>
-      <div class="cta-buttons">
-        <UButton :to="start" color="primary" size="xl">{{ t('marketing.cta.primary') }}</UButton>
-        <UButton :to="demo" variant="ghost" color="neutral" size="xl" icon="i-ph-play-circle" class="cta-ghost">
-          {{ t('marketing.cta.secondary') }}
-        </UButton>
-      </div>
+  <!--
+    Abschluss-CTA der Startseite. Gleicher Bauklotz wie die sieben CTA-Blöcke
+    der Unterseiten (`pageCTA`-Vertrag in app/app.config.ts), nur größer: die
+    zwei Maß-Abweichungen stehen als Variablen an der Wurzel. Die Polsterung
+    UNTEN übernimmt die Refrain-Zeile im `#bottom`-Slot, deshalb bleibt am
+    Container nur der Rest-Abstand zu den Knöpfen (Bestand: 1,25rem).
+  -->
+  <UPageCTA
+    id="los-gehts"
+    as="section"
+    class="cta-section tone-ink [--mkt-cta-py:clamp(4rem,9vw,7rem)] [--mkt-cta-title:clamp(1.9rem,4.5vw,3rem)]"
+    :description="t('marketing.cta.lead')"
+    :links="links"
+    :ui="{
+      container: 'pb-0 sm:pb-0 lg:pb-0',
+      wrapper: 'max-w-[42rem]',
+      title: 'tracking-[-0.02em]',
+      description: 'mx-auto max-w-[34rem] text-lg/[1.55] sm:text-lg/[1.55]',
+      footer: 'mt-8',
+    }"
+  >
+    <template #top>
+      <div class="cta-puka puka-glow" data-parallax="0.08" aria-hidden="true" />
+    </template>
+
+    <!--
+      Das Markenzeichen steht über der Überschrift und ist rein dekorativ
+      (`aria-hidden`, es rendert ein <svg>). Es sitzt deshalb IM `#title`-Slot:
+      ein <svg> ist Phrasing-Content und in einer <h2> erlaubt, und zwischen
+      `#top` (außerhalb des Breiten-Containers) und der Überschrift gibt es
+      keinen weiteren Slot.
+    -->
+    <template #title>
+      <PukaMark :size="44" class="mx-auto mb-4 block" />
+      {{ t('marketing.cta.title') }}
+    </template>
+
+    <template #bottom>
       <!-- Anführungszeichen im i18n-Text (DE „…" · EN “…”), nicht im Markup. -->
-      <p class="cta-refrain">{{ t('marketing.cta.refrain') }}</p>
-    </div>
-  </section>
+      <p class="relative pb-(--mkt-cta-py) pt-5 text-center italic text-primary">
+        {{ t('marketing.cta.refrain') }}
+      </p>
+    </template>
+  </UPageCTA>
 </template>
 
 <style scoped>
-.cta-section {
-  position: relative;
-  padding: clamp(4rem, 9vw, 7rem) 1.5rem;
-  overflow: clip;
-  text-align: center;
-}
+/* Nur noch das Bildmotiv: der Lichtkreis hinter dem Zeichen. */
 .cta-puka {
   top: -16rem;
   left: 50%;
@@ -39,34 +74,4 @@ const { start, demo } = useProductLinks()
   height: 40rem;
   opacity: 0.5;
 }
-.cta-inner {
-  position: relative;
-  max-width: 42rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.cta-title {
-  font-size: clamp(1.9rem, 4.5vw, 3rem);
-  font-weight: 850;
-  letter-spacing: -0.02em;
-  margin: 1rem 0 0.75rem;
-  color: hsl(var(--puka-cloud));
-  text-wrap: balance;
-}
-.cta-lead {
-  font-size: 1.15rem;
-  color: hsl(var(--puka-mist) / 0.85);
-  line-height: 1.55;
-  max-width: 34rem;
-}
-.cta-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.85rem;
-  justify-content: center;
-  margin: 2rem 0 1.25rem;
-}
-.cta-ghost { color: hsl(var(--puka-cloud)); }
-.cta-refrain { color: hsl(var(--puka-sun)); font-style: italic; }
 </style>

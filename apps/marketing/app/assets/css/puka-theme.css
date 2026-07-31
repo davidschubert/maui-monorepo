@@ -72,6 +72,50 @@
 .marketing-site {
   --ui-primary: var(--ui-color-primary-500);
 
+  /*
+   * DIE BREITE DER SEITE (Paket 3). `--ui-container` ist die Schranke, die
+   * jeder `UContainer` liest — und damit die Schranke jedes Page*-Bausteins.
+   * Nuxt UI liefert 80rem; der Bestand dieser Seite ist `.mkt-inner` = 68rem.
+   * Als Variable (statt als Klasse im app.config-Vertrag), weil sie damit auch
+   * für handgeschriebene Blöcke erreichbar ist und exakt so weit gilt wie die
+   * Licht-Dramaturgie: `.marketing-site`.
+   *
+   * WARUM 71rem UND NICHT 68rem: die beiden Maße messen NICHT dasselbe. Im
+   * Bestand saß die Polsterung von 1,5rem an der SEKTION und `.mkt-inner`
+   * begrenzte den INHALT darin auf 68rem. `--ui-container` begrenzt dagegen
+   * die Kiste INKLUSIVE ihrer eigenen Polsterung. 68rem hätte den Inhalt also
+   * auf 65rem geschnitten — gemessen: der Textblock rückte um 24px nach innen.
+   * 68rem + 2 × 1,5rem = 71rem stellt den Bestand exakt wieder her, und der
+   * 1,5rem-Rand bleibt auf schmalen Fenstern erhalten.
+   */
+  --ui-container: 71rem;
+
+  /*
+   * DER SCHNITT-RHYTHMUS DER KOPF- UND SCHLUSSBLÖCKE (Paket 3).
+   * Diese sechs Maße waren im Bestand achtmal als `clamp()` in scoped CSS
+   * abgeschrieben; jetzt stehen sie einmal hier und werden von den
+   * `pageHero`-/`pageCTA`-Verträgen in app/app.config.ts gelesen
+   * (`pt-(--mkt-hero-pt)`, `text-(length:--mkt-hero-title)` …).
+   *
+   * WARUM VARIABLEN UND NICHT DIE `clamp()` DIREKT IN DEN KLASSEN: die
+   * Nuxt-UI-Vorgaben sind an Breakpoints gebunden (`py-24 sm:py-32 lg:py-40`,
+   * `text-5xl sm:text-7xl`). Eine Überschreibung muss deshalb an JEDEM dieser
+   * Breakpoints wiederholt werden — tailwind-merge räumt nur innerhalb
+   * derselben Stufe auf, und eine unpräfixierte Klasse verliert gegen eine
+   * `sm:`-Klasse (die steht in Tailwinds Ausgabe später). Mit der Variablen
+   * steht der WERT einmal und die Wiederholung ist nur noch Mechanik.
+   * Nebeneffekt, der die Ausnahmen trägt: eine einzelne Sektion setzt ihr
+   * eigenes Maß mit EINER Klasse an ihrer Wurzel
+   * (`[--mkt-hero-pt:clamp(4rem,8vw,7rem)]` am Startseiten-Hero) — ganz ohne
+   * `:ui`-Überschreibung.
+   */
+  --mkt-hero-pt: clamp(3rem, 7vw, 5.5rem);
+  --mkt-hero-pb: clamp(2.5rem, 5vw, 4rem);
+  --mkt-hero-title: clamp(1.9rem, 4.6vw, 3rem);
+  --mkt-lead: clamp(1.05rem, 1.6vw, 1.25rem);
+  --mkt-cta-py: clamp(3rem, 7vw, 5rem);
+  --mkt-cta-title: clamp(1.6rem, 3.6vw, 2.4rem);
+
   --puka-cta-ink: hsl(var(--puka-ink));
   --puka-cta-surface: hsl(0 0% 100% / 0.55);
   --puka-cta-surface-hover: hsl(0 0% 100% / 0.9);

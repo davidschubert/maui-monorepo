@@ -20,6 +20,10 @@ const terms = computed(() =>
   })),
 )
 
+const ctaLinks = computed(() => [
+  { to: start, color: 'primary' as const, size: 'xl' as const, label: t('marketing.hero.ctaPrimary') },
+])
+
 const ogImage = useOgImage('glossary')
 
 useSeoMeta({
@@ -52,17 +56,25 @@ useHead(() => ({
 
 <template>
   <div class="glos-page">
-    <section class="glos-hero tone-mist">
-      <div class="glos-puka puka-glow" data-parallax="0.1" aria-hidden="true" />
-      <div class="mkt-inner mkt-narrow glos-hero-inner" data-reveal>
-        <NuxtLink :to="localePath('/')" class="mkt-back">
-          <UIcon name="i-ph-arrow-left-bold" /> {{ t('marketing.audiencePages.backHome') }}
-        </NuxtLink>
+    <UPageHero
+      as="section"
+      class="tone-mist"
+      :title="t('marketing.glossary.title')"
+      :description="t('marketing.glossary.lead')"
+    >
+      <template #top>
+        <div class="glos-puka puka-glow" data-parallax="0.1" aria-hidden="true" />
+      </template>
+      <template #headline>
+        <UButton
+          :to="localePath('/')" variant="link" color="neutral" size="sm"
+          icon="i-ph-arrow-left-bold"
+          class="mb-5 px-0 font-semibold text-toned hover:text-primary-600"
+          :label="t('marketing.audiencePages.backHome')"
+        />
         <p class="mkt-kicker">{{ t('marketing.glossary.kicker') }}</p>
-        <h1 class="glos-title">{{ t('marketing.glossary.title') }}</h1>
-        <p class="mkt-lead">{{ t('marketing.glossary.lead') }}</p>
-      </div>
-    </section>
+      </template>
+    </UPageHero>
 
     <section class="mkt-section tone-sky">
       <dl class="glos-list mkt-inner" data-reveal>
@@ -73,35 +85,24 @@ useHead(() => ({
       </dl>
     </section>
 
-    <section class="mkt-cta-block tone-ink">
-      <div class="mkt-inner mkt-narrow mkt-cta-inner" data-reveal>
-        <PukaMark :size="38" />
-        <h2 class="mkt-cta-title">{{ t('marketing.glossary.ctaTitle') }}</h2>
-        <p class="mkt-cta-lead">{{ t('marketing.glossary.ctaLead') }}</p>
-        <UButton :to="start" color="primary" size="xl" class="mkt-cta-btn">
-          {{ t('marketing.hero.ctaPrimary') }}
-        </UButton>
-      </div>
-    </section>
+    <UPageCTA
+      as="section"
+      class="tone-ink"
+      :description="t('marketing.glossary.ctaLead')"
+      :links="ctaLinks"
+    >
+      <template #title>
+        <PukaMark :size="38" class="mx-auto mb-3.5 block" />
+        {{ t('marketing.glossary.ctaTitle') }}
+      </template>
+    </UPageCTA>
   </div>
 </template>
 
 <style scoped>
-.glos-hero {
-  position: relative;
-  padding: clamp(3rem, 7vw, 5.5rem) 1.5rem clamp(2.5rem, 5vw, 4rem);
-  overflow: clip;
-}
+/* Nur noch das Bildmotiv — Rhythmus und Typografie des Kopfes kommen aus dem
+   `pageHero`-Vertrag in app/app.config.ts. */
 .glos-puka { top: -16rem; right: -12rem; width: 32rem; height: 32rem; opacity: 0.5; }
-.glos-hero-inner { position: relative; }
-.glos-title {
-  font-size: clamp(1.9rem, 4.6vw, 3rem);
-  font-weight: 850;
-  letter-spacing: -0.02em;
-  line-height: 1.06;
-  margin: 0.5rem 0 1rem;
-  text-wrap: balance;
-}
 
 .glos-list {
   display: grid;

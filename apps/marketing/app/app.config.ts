@@ -61,7 +61,223 @@ export default defineAppConfig({
           variant: 'link',
           class: 'text-primary-600 hover:text-primary-700 active:text-primary-700',
         },
+        {
+          // SEKUNDÄRER CTA auf DUNKLEM Grund (Paket 3). Gegenstück zum
+          // outline-Block ganz oben: die Abschluss-CTAs stehen auf `tone-ink`,
+          // und dort ist `ghost`+`neutral` in der Voreinstellung `text-muted`
+          // (neutral-500) — auf dem dunklen Grund praktisch unlesbar. Der
+          // Bestand malte diesen Knopf in --puka-cloud, also nahezu Weiß;
+          // `text-inverted` IST im Hellmodus reines Weiß und nimmt einen
+          // späteren Palettenwechsel mit.
+          // Die Hover-FLÄCHE muss ebenfalls gedreht werden: `hover:bg-elevated`
+          // (neutral-100) wäre auf Dunkel ein greller weißer Block.
+          color: 'neutral',
+          variant: 'ghost',
+          class: 'text-inverted hover:bg-inverted/10 hover:text-inverted active:bg-inverted/10',
+        },
       ],
+    },
+
+    /**
+     * BREITE UND RAND DER SEITE (Paket 3) — der eine Container.
+     *
+     * Jeder Page*-Baustein (PageHero, PageCTA, PageSection) setzt seinen Inhalt
+     * in einen `UContainer`. Dessen Voreinstellung (80rem, px-4 sm:px-6 lg:px-8)
+     * ist breiter und am Rand unruhiger als der Bestand dieser Seite:
+     * `.mkt-inner` = 68rem, Sektionsrand konstant 1,5rem auf allen Breiten.
+     * Hier steht der RAND; die BREITE steht als `--ui-container` in
+     * puka-theme.css (dort gehört sie hin, weil sie eine Farb-/Maß-Variable des
+     * Seiten-Themes ist und nicht eine Klassenkette).
+     *
+     * WARUM app-weit UND NICHT je Baustein: `UContainer` wird in dieser App
+     * ausschließlich von den Marketing-Sektionen benutzt (Kopf, Fuß und
+     * CoreErrorPage bauen ihre Breite selbst). Ein `px-6` je Aufrufstelle
+     * bekäme das ohnehin nicht sauber hin — `px-6` allein löscht nur `px-4` und
+     * ließe `sm:px-6 lg:px-8` stehen (tailwind-merge räumt nur innerhalb
+     * derselben Breakpoint-Stufe auf).
+     */
+    container: {
+      // `lg:px-6` muss dabeistehen: die Vorgabe hebt den Rand ab 1024px auf
+      // 2rem, und eine unpräfixierte Klasse kommt in Tailwinds Ausgabe VOR den
+      // Breakpoint-Klassen — sie könnte `lg:px-8` gar nicht schlagen.
+      // (`sm:px-6` der Vorgabe ist zufällig schon der richtige Wert.)
+      base: 'w-full max-w-(--ui-container) mx-auto px-6 lg:px-6',
+    },
+
+    /**
+     * OPTIK-VERTRAG DER HEROS (Paket 3) — EINE Stelle für acht Kopfbereiche.
+     *
+     * Der Bestand war achtmal derselbe handgeschriebene Kopf: Sektion mit
+     * `tone-*`-Grund und `clamp()`-Polsterung, darin ein 46rem-Textblock aus
+     * Kicker · H1 · Lead. Ab jetzt ist das `UPageHero`.
+     *
+     * WARUM DIE MASSE AN JEDEM BREAKPOINT WIEDERHOLT WERDEN (`sm:`, `lg:`):
+     * die Vorgaben sind selbst gestuft (`py-24 sm:py-32 lg:py-40`,
+     * `text-5xl sm:text-7xl`). tailwind-merge räumt nur INNERHALB einer Stufe
+     * auf, und eine unpräfixierte Klasse steht in Tailwinds Ausgabe VOR den
+     * Breakpoint-Klassen — sie könnte `sm:text-7xl` also selbst dann nicht
+     * schlagen, wenn sie überlebt. Der WERT steht deshalb einmal als
+     * `--mkt-*`-Variable in puka-theme.css; hier wiederholt sich nur die Stufe.
+     *
+     * WARUM `compoundVariants` UND NICHT NUR `slots` (Lehre aus Paket 2):
+     * `slots` landen VOR den Varianten in der Klassenkette. Alles, was eine
+     * Variante ebenfalls setzt — Ausrichtung (`orientation`), Beschreibungs-
+     * Abstand (`title`) — muss deshalb hierher, sonst entscheidet die
+     * Reihenfolge und damit der Zufall.
+     */
+    pageHero: {
+      slots: {
+        // Die puka-Lichtkreise sind absolut positioniert und dürfen über den
+        // Sektionsrand hinaus gerechnet, aber nicht gezeichnet werden
+        // (Bestand: `overflow: clip` an jeder Hero-Sektion).
+        root: 'overflow-clip',
+        // `relative` ist PFLICHT, nicht Kosmetik: der Lichtkreis liegt als
+        // absolut positioniertes Geschwister VOR dem Container im DOM.
+        // Positionierte Elemente malen über nicht-positionierte Blöcke — ohne
+        // `relative` läge der Glow ÜBER der Überschrift.
+        container: [
+          'relative',
+          'pt-(--mkt-hero-pt) sm:pt-(--mkt-hero-pt) lg:pt-(--mkt-hero-pt)',
+          'pb-(--mkt-hero-pb) sm:pb-(--mkt-hero-pb) lg:pb-(--mkt-hero-pb)',
+          // Bestand `.hero-inner`: 3rem, ab 900px 3,5rem.
+          'gap-12 sm:gap-y-12 lg:gap-14',
+        ].join(' '),
+        // `.mkt-inner.mkt-narrow` = 46rem, mittig — der Textblock der
+        // Unterseiten-Heros. Der zweispaltige Startseiten-Hero hebt die
+        // Schranke auf (`max-w-none`), weil seine Spalte selbst schon misst.
+        //
+        // `w-full` ist PFLICHT neben `mx-auto`: der Container ist ab 1024px ein
+        // Grid, und ein Grid-Element mit `margin-inline: auto` verliert sein
+        // `justify-self: stretch` — es misst sich dann am INHALT. Auf /faq war
+        // der Textblock dadurch 656px statt 736px breit und saß 40px zu weit
+        // rechts; Seiten mit längerem Text fielen nicht auf, weil sie ohnehin
+        // an die Schranke stießen. Mit `w-full` misst er die Spur und wird
+        // erst danach von `max-w` beschnitten.
+        wrapper: 'mx-auto w-full max-w-[46rem]',
+        title: 'text-(length:--mkt-hero-title) sm:text-(length:--mkt-hero-title) font-[850] leading-[1.06] tracking-[-0.02em] text-balance',
+        // `.mkt-lead`: 1,05–1,25rem / 1.6 / --puka-ink-soft ≈ `text-toned`
+        // (neutral-600, in Paket 2 als Treffer belegt).
+        description: 'text-(length:--mkt-lead) sm:text-(length:--mkt-lead) leading-[1.6] text-toned max-w-[42rem]',
+        // Der „Augenbrauen"-Bereich über der H1. Er trägt hier NUR den Abstand
+        // (Bestand: Kicker, dann H1 mit `margin-top: 0.5rem`) — die Typografie
+        // des Kickers steht als `.mkt-kicker` in marketing.css und wird von
+        // acht weiteren Sektionen geteilt; eine zweite Definition hier wäre
+        // genau die Doppelpflege, die Paket 1/2 abgebaut haben.
+        // Jeder Hero füllt den Bereich per `#headline`-SLOT statt per
+        // Eigenschaft: die Unterseiten stellen den Zurück-Link über den
+        // Kicker, und einen eigenen Slot dafür gibt es nicht (`#top` läge
+        // außerhalb des Breiten-Containers).
+        headline: 'mb-2',
+        // Bestand `.hero-cta`: `margin: 2rem 0 1.75rem`, `gap: 0.85rem`.
+        footer: 'mt-8',
+        links: 'gap-x-3.5 gap-y-3.5',
+      },
+      compoundVariants: [
+        {
+          // Die Heros dieser Seite sind LINKSBÜNDIG. Nuxt UI zentriert die
+          // senkrechte Bauform (`wrapper: text-center`, `links: justify-center`,
+          // `description: text-balance`) — das ist der Vorgabe-Geschmack für
+          // eine Produkt-Landingpage, nicht der dieser Seite: hier steht links
+          // der Text und rechts (auf der Startseite) das Produktbild, und die
+          // Unterseiten führen mit einem linksbündigen Zurück-Link.
+          orientation: 'vertical',
+          class: {
+            // `lg:grid-cols-1` ist keine Kosmetik: der Container ist ab 1024px
+            // ein Grid, und die senkrechte Bauform legt KEINE Spalten fest.
+            // Eine implizite Spalte misst sich am Inhalt — der Textblock wurde
+            // dadurch so breit wie seine längste Zeile (gemessen: 656px statt
+            // 736px) und der Umbruch stand woanders als im Bestand.
+            container: 'lg:grid-cols-1',
+            wrapper: 'text-left',
+            links: 'justify-start',
+            description: 'text-pretty',
+          },
+        },
+        {
+          // Nuxt UI setzt zwischen Titel und Lead `mt-6` (1,5rem); der Bestand
+          // hat dort 1rem (`margin: 0.5rem 0 1rem` an jedem Hero-Titel).
+          title: true,
+          class: { description: 'mt-4' },
+        },
+      ],
+    },
+
+    /**
+     * OPTIK-VERTRAG DER ABSCHLUSS-CTAs (Paket 3) — EINE Stelle für acht Blöcke.
+     *
+     * Der Bestand war achtmal derselbe dunkle Schlussblock: `tone-ink`,
+     * mittig, Zeichen · H2 · Lead · Knopf. Sieben davon teilten sich schon die
+     * `.mkt-cta-*`-Klassen in marketing.css, die Startseite hatte ihre eigene
+     * Kopie. Ab jetzt ist das `UPageCTA`.
+     *
+     * `defaultVariants.variant = 'naked'`: die Vorgabe `outline` malt eine
+     * eigene Fläche samt Ring — hier malt die `tone-ink`-Klasse (das Bildmotiv
+     * der Licht-Dramaturgie, kein UI-Baustein). „naked" heißt auf dieser Seite
+     * also: der Grund kommt von der Dramaturgie, die Schrift von hier. Weil
+     * ALLE acht Blöcke dunkel sind, sind die hellen Schriftfarben unten an
+     * genau diese Variante gebunden und nicht an `slots` — ein späterer heller
+     * CTA (`variant="soft"` o. ä.) bekäme dann wieder die Vorgabe-Farben.
+     */
+    pageCTA: {
+      slots: {
+        // Der Bestand ist ein randloses Band über die volle Breite; die
+        // Vorgabe `rounded-xl` wäre eine schwebende Karte.
+        root: 'rounded-none overflow-clip',
+        // `relative` aus demselben Grund wie beim Hero (Lichtkreis im
+        // `#top`-Slot). Polsterung = `.mkt-cta-block` (senkrecht) bzw. der
+        // konstante 1,5rem-Seitenrand der Seite — die Vorgabe zieht ihn ab
+        // 640px auf 3rem und ab 1024px auf 4rem hoch.
+        container: [
+          'relative',
+          'py-(--mkt-cta-py) sm:py-(--mkt-cta-py) lg:py-(--mkt-cta-py)',
+          'px-6 sm:px-6 lg:px-6',
+          'gap-8 sm:gap-8',
+        ].join(' '),
+        // `.mkt-cta-inner` war `.mkt-inner.mkt-narrow` — 46rem, mittig.
+        // `w-full` aus demselben Grund wie beim Hero (siehe dort).
+        wrapper: 'mx-auto w-full max-w-[46rem]',
+        // `tracking-normal` muss explizit dabeistehen: die Vorgabe zieht die
+        // Überschrift mit `tracking-tight` (−0,025em) zusammen, die sieben
+        // Unterseiten-CTAs standen im Bestand aber auf normaler Laufweite
+        // (gemessen: die Zeile war dadurch 32px schmaler). Der Startseiten-CTA
+        // setzt seine eigenen −0,02em wieder darüber.
+        title: 'text-(length:--mkt-cta-title) sm:text-(length:--mkt-cta-title) font-[850] tracking-normal text-inverted text-balance',
+        // `.mkt-cta-lead` erbt die Grundschriftgröße (1rem); die Vorgabe hebt
+        // sie ab 640px auf 1,125rem.
+        description: 'text-base sm:text-base',
+        // `.mkt-cta-btn { margin-top: 1.75rem }`
+        footer: 'mt-7',
+        links: 'gap-x-3.5 gap-y-3.5',
+      },
+      compoundVariants: [
+        {
+          // Auf dunklem Grund kehren sich die Textfarben um: die Vorgabe
+          // `text-muted` (neutral-500) ist dort ein Grau, das kaum vom Grund
+          // abhebt. Der Bestand malte den Lead in --puka-mist / 0.85 — reines
+          // Weiß bei 80 % trifft denselben Wert und bleibt an der Theme-Achse.
+          variant: 'naked',
+          class: { description: 'text-inverted/80' },
+        },
+        {
+          // Gleiche Falle wie beim Hero: ohne feste Spaltenzahl misst sich die
+          // implizite Grid-Spalte am Inhalt statt an der verfügbaren Breite.
+          // `text-pretty` statt `text-balance` am Lead: der Bestand ließ ihn
+          // normal umbrechen. `balance` verteilt die Zeilen gleichmäßig und
+          // brach den Startseiten-Lead sichtbar früher um („… in 60 Sekunden
+          // steht | deine Community" statt „… deine Community. | Kostenlos").
+          // Am TITEL bleibt `balance` — dort hatte ihn auch der Bestand.
+          orientation: 'vertical',
+          class: { container: 'lg:grid-cols-1', description: 'text-pretty' },
+        },
+        {
+          // Bestand: Titel mit `margin-bottom: 0.6rem` zum Lead (Vorgabe: 1,5rem).
+          title: true,
+          class: { description: 'mt-2.5' },
+        },
+      ],
+      defaultVariants: {
+        variant: 'naked',
+      },
     },
 
     /**

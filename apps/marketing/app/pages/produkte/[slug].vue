@@ -38,6 +38,27 @@ const highlights = computed(() =>
   Array.from({ length: HIGHLIGHT_COUNT }, (_, i) => t(`${base}.highlights.${i}`)),
 )
 
+/**
+ * Claim-Gate im Abschluss-CTA (§2.4): auf einer Early-Access-Seite gibt es
+ * KEINEN Kauf-/Gratis-Knopf, sondern nur „Early Access anfragen". Die
+ * Verzweigung ist deshalb hier — eine Liste, zwei mögliche erste Einträge —
+ * und nicht ein `v-if` an einem Knopf im Markup: so kann kein späterer
+ * Umbau den Gratis-Knopf versehentlich wieder danebenstellen.
+ */
+const ctaLinks = computed(() => [
+  isEarlyAccess.value
+    ? { to: signIn, color: 'primary' as const, size: 'xl' as const, label: t('marketing.features.eaCta') }
+    : { to: start, color: 'primary' as const, size: 'xl' as const, label: t('marketing.hero.ctaPrimary') },
+  {
+    to: demo,
+    color: 'neutral' as const,
+    variant: 'ghost' as const,
+    size: 'xl' as const,
+    icon: 'i-ph-play-circle',
+    label: t('marketing.hero.ctaSecondary'),
+  },
+])
+
 const ogImage = useOgImage(`products-${slug}`)
 
 useSeoMeta({
@@ -55,24 +76,42 @@ useSeoMeta({
 
 <template>
   <div class="feat-page">
-    <section class="feat-hero tone-mist">
-      <div class="feat-puka puka-glow" data-parallax="0.1" aria-hidden="true" />
-      <div class="mkt-inner mkt-narrow feat-hero-inner" data-reveal>
-        <NuxtLink :to="localePath('/')" class="mkt-back">
-          <UIcon name="i-ph-arrow-left-bold" /> {{ t('marketing.features.backHome') }}
-        </NuxtLink>
+    <UPageHero
+      as="section"
+      class="tone-mist"
+      :title="t(`${base}.title`)"
+      :ui="{ body: 'mt-8', description: 'max-w-none' }"
+    >
+      <template #top>
+        <div class="feat-puka puka-glow" data-parallax="0.1" aria-hidden="true" />
+      </template>
+      <template #headline>
+        <UButton
+          :to="localePath('/')" variant="link" color="neutral" size="sm"
+          icon="i-ph-arrow-left-bold"
+          class="mb-5 px-0 font-semibold text-toned hover:text-primary-600"
+          :label="t('marketing.features.backHome')"
+        />
         <p class="mkt-kicker">{{ t(`${base}.name`) }}</p>
-        <h1 class="feat-title">{{ t(`${base}.title`) }}</h1>
-        <p class="feat-sub">{{ t(`${base}.sub`) }}</p>
-        <p class="mkt-lead">{{ t(`${base}.intro`) }}</p>
+      </template>
 
-        <!-- Early Access: der Hinweis steht VOR den Vorteilen, nicht danach —
-             prominent GANZ OBEN, mit Titel und Text, nicht kleingedruckt. -->
+      <!-- Diese Seite hat ZWEI Zeilen unter der Überschrift: eine farbige
+           Unterzeile (`sub`) und den eigentlichen Lead (`intro`). Zwischen
+           Titel und Beschreibung gibt es keinen Slot, also stehen beide IM
+           `#description`-Slot: Schriftgröße, Zeilenhöhe und Breite kommen
+           dann für beide aus dem `pageHero`-Vertrag, die Unterzeile dreht nur
+           Gewicht und Farbe. -->
+      <template #description>
+        <p class="mb-5 font-semibold text-primary-600">{{ t(`${base}.sub`) }}</p>
+        <p class="max-w-[42rem]">{{ t(`${base}.intro`) }}</p>
+      </template>
+
+      <!-- Early Access: der Hinweis steht VOR den Vorteilen, nicht danach —
+           prominent GANZ OBEN, mit Titel und Text, nicht kleingedruckt. -->
+      <template v-if="isEarlyAccess" #body>
         <UAlert
-          v-if="isEarlyAccess"
           color="primary" variant="subtle" icon="i-ph-seal-warning-bold"
           :description="t('marketing.features.eaBannerText')"
-          class="mt-8"
           :ui="{
             title: 'text-[0.95rem] font-extrabold uppercase tracking-wide',
             description: 'text-base/relaxed opacity-100',
@@ -82,8 +121,8 @@ useSeoMeta({
             <h2>{{ t('marketing.features.eaBannerTitle') }}</h2>
           </template>
         </UAlert>
-      </div>
-    </section>
+      </template>
+    </UPageHero>
 
     <section class="mkt-section tone-sky">
       <div class="mkt-inner mkt-narrow" data-reveal>
@@ -103,58 +142,22 @@ useSeoMeta({
     <!-- Bausteine-Übersicht: gleiche Claim-Gates wie überall -->
     <BlocksSection />
 
-    <section class="mkt-cta-block tone-ink">
-      <div class="mkt-inner mkt-narrow mkt-cta-inner" data-reveal>
-        <PukaMark :size="38" />
-        <h2 class="mkt-cta-title">
-          {{ isEarlyAccess ? t('marketing.features.eaBannerTitle') : t('marketing.features.ctaTitle') }}
-        </h2>
-        <p class="mkt-cta-lead">
-          {{ isEarlyAccess ? t('marketing.features.eaBannerText') : t('marketing.features.ctaLead') }}
-        </p>
-        <div class="feat-cta-buttons">
-          <!-- Early Access: KEIN Kauf-/Gratis-CTA — nur anfragen. -->
-          <UButton v-if="isEarlyAccess" :to="signIn" color="primary" size="xl">
-            {{ t('marketing.features.eaCta') }}
-          </UButton>
-          <UButton v-else :to="start" color="primary" size="xl">{{ t('marketing.hero.ctaPrimary') }}</UButton>
-          <UButton :to="demo" variant="ghost" color="neutral" size="xl" icon="i-ph-play-circle" class="feat-ghost">
-            {{ t('marketing.hero.ctaSecondary') }}
-          </UButton>
-        </div>
-      </div>
-    </section>
+    <UPageCTA
+      as="section"
+      class="tone-ink"
+      :description="isEarlyAccess ? t('marketing.features.eaBannerText') : t('marketing.features.ctaLead')"
+      :links="ctaLinks"
+    >
+      <template #title>
+        <PukaMark :size="38" class="mx-auto mb-3.5 block" />
+        {{ isEarlyAccess ? t('marketing.features.eaBannerTitle') : t('marketing.features.ctaTitle') }}
+      </template>
+    </UPageCTA>
   </div>
 </template>
 
 <style scoped>
-.feat-hero {
-  position: relative;
-  padding: clamp(3rem, 7vw, 5.5rem) 1.5rem clamp(2.5rem, 5vw, 4rem);
-  overflow: clip;
-}
+/* Nur noch das Bildmotiv — Rhythmus und Typografie des Kopfes kommen aus dem
+   `pageHero`-Vertrag in app/app.config.ts. */
 .feat-puka { top: -16rem; right: -12rem; width: 34rem; height: 34rem; opacity: 0.55; }
-.feat-hero-inner { position: relative; }
-.feat-title {
-  font-size: clamp(1.9rem, 4.6vw, 3rem);
-  font-weight: 850;
-  letter-spacing: -0.02em;
-  line-height: 1.06;
-  margin: 0.5rem 0 0;
-  text-wrap: balance;
-}
-.feat-sub {
-  margin: 0.75rem 0 1.25rem;
-  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
-  font-weight: 600;
-  color: hsl(var(--puka-sun-deep));
-}
-.feat-cta-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.85rem;
-  justify-content: center;
-  margin-top: 1.75rem;
-}
-.feat-ghost { color: hsl(var(--puka-cloud)); }
 </style>

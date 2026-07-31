@@ -27,6 +27,18 @@ useReveal()
 
 const base = `marketing.audiencePages.items.${slug}`
 
+const ctaLinks = computed(() => [
+  { to: start, color: 'primary' as const, size: 'xl' as const, label: t('marketing.hero.ctaPrimary') },
+  {
+    to: demo,
+    color: 'neutral' as const,
+    variant: 'ghost' as const,
+    size: 'xl' as const,
+    icon: 'i-ph-play-circle',
+    label: t('marketing.hero.ctaSecondary'),
+  },
+])
+
 const ogImage = useOgImage(`use-cases-${slug}`)
 
 useSeoMeta({
@@ -44,20 +56,30 @@ useSeoMeta({
 
 <template>
   <div class="fuer-page">
-    <section class="fuer-hero tone-mist">
-      <div class="fuer-puka puka-glow" data-parallax="0.1" aria-hidden="true" />
-      <div class="mkt-inner mkt-narrow fuer-hero-inner" data-reveal>
-        <!-- Zurück-Link über die geteilte .mkt-back-Klasse; die frühere
-             eigene .fuer-back-Kopie war Zeile für Zeile dieselbe Regel. -->
-        <NuxtLink :to="localePath('/')" class="mkt-back">
-          <UIcon name="i-ph-arrow-left-bold" /> {{ t('marketing.audiencePages.backHome') }}
-        </NuxtLink>
+    <UPageHero as="section" class="tone-mist" :title="t(`${base}.title`)" :ui="{ description: 'max-w-none' }">
+      <template #top>
+        <div class="fuer-puka puka-glow" data-parallax="0.1" aria-hidden="true" />
+      </template>
+      <template #headline>
+        <!-- Zurück-Link im selben Muster wie auf allen Unterseiten: ein
+             `UButton variant="link"` (der Bestand hatte hier einen
+             NuxtLink mit .mkt-back-Klasse, auf den Rechtsseiten aber schon
+             diesen Knopf — jetzt EIN Muster). -->
+        <UButton
+          :to="localePath('/')" variant="link" color="neutral" size="sm"
+          icon="i-ph-arrow-left-bold"
+          class="mb-5 px-0 font-semibold text-toned hover:text-primary-600"
+          :label="t('marketing.audiencePages.backHome')"
+        />
         <p class="mkt-kicker">{{ t(`${base}.name`) }}</p>
-        <h1 class="fuer-title">{{ t(`${base}.title`) }}</h1>
-        <p class="fuer-sub">{{ t(`${base}.sub`) }}</p>
-        <p class="mkt-lead">{{ t(`${base}.intro`) }}</p>
-      </div>
-    </section>
+      </template>
+      <!-- Farbige Unterzeile + Lead in EINEM Slot (Begründung wie auf den
+           Produktseiten: zwischen Titel und Beschreibung gibt es keinen Slot). -->
+      <template #description>
+        <p class="mb-5 font-semibold text-primary-600">{{ t(`${base}.sub`) }}</p>
+        <p class="max-w-[42rem]">{{ t(`${base}.intro`) }}</p>
+      </template>
+    </UPageHero>
 
     <section class="mkt-section tone-dawn">
       <UPageGrid as="div" class="mkt-inner mkt-narrow gap-5 sm:grid-cols-1 lg:grid-cols-2" data-reveal>
@@ -81,28 +103,23 @@ useSeoMeta({
     <BlocksSection />
     <PricingSection />
 
-    <section class="fuer-cta tone-ink">
-      <div class="mkt-inner mkt-narrow fuer-cta-inner" data-reveal>
-        <PukaMark :size="38" />
-        <h2 class="fuer-cta-title">{{ t('marketing.audiencePages.ctaTitle') }}</h2>
-        <p class="fuer-cta-lead">{{ t('marketing.audiencePages.ctaLead') }}</p>
-        <div class="fuer-cta-buttons">
-          <UButton :to="start" color="primary" size="xl">{{ t('marketing.hero.ctaPrimary') }}</UButton>
-          <UButton :to="demo" variant="ghost" color="neutral" size="xl" icon="i-ph-play-circle" class="fuer-ghost">
-            {{ t('marketing.hero.ctaSecondary') }}
-          </UButton>
-        </div>
-      </div>
-    </section>
+    <UPageCTA
+      as="section"
+      class="tone-ink"
+      :description="t('marketing.audiencePages.ctaLead')"
+      :links="ctaLinks"
+    >
+      <template #title>
+        <PukaMark :size="38" class="mx-auto mb-3.5 block" />
+        {{ t('marketing.audiencePages.ctaTitle') }}
+      </template>
+    </UPageCTA>
   </div>
 </template>
 
 <style scoped>
-.fuer-hero {
-  position: relative;
-  padding: clamp(3rem, 7vw, 5.5rem) 1.5rem clamp(2.5rem, 5vw, 4rem);
-  overflow: clip;
-}
+/* Nur noch das Bildmotiv — Rhythmus und Typografie von Kopf und Schluss
+   kommen aus den `pageHero`-/`pageCTA`-Verträgen in app/app.config.ts. */
 .fuer-puka {
   top: -16rem;
   left: -12rem;
@@ -110,40 +127,4 @@ useSeoMeta({
   height: 34rem;
   opacity: 0.55;
 }
-.fuer-hero-inner { position: relative; }
-.fuer-title {
-  font-size: clamp(1.9rem, 4.6vw, 3rem);
-  font-weight: 850;
-  letter-spacing: -0.02em;
-  line-height: 1.06;
-  margin-top: 0.5rem;
-  text-wrap: balance;
-}
-.fuer-sub {
-  margin: 0.75rem 0 1.25rem;
-  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
-  font-weight: 600;
-  color: hsl(var(--puka-sun-deep));
-}
-
-.fuer-cta {
-  padding: clamp(3rem, 7vw, 5rem) 1.5rem;
-  text-align: center;
-}
-.fuer-cta-inner { display: flex; flex-direction: column; align-items: center; }
-.fuer-cta-title {
-  font-size: clamp(1.6rem, 3.6vw, 2.4rem);
-  font-weight: 850;
-  margin: 0.9rem 0 0.6rem;
-  color: hsl(var(--puka-cloud));
-}
-.fuer-cta-lead { color: hsl(var(--puka-mist) / 0.85); }
-.fuer-cta-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.85rem;
-  justify-content: center;
-  margin-top: 1.75rem;
-}
-.fuer-ghost { color: hsl(var(--puka-cloud)); }
 </style>
