@@ -40,14 +40,22 @@
 name: Deploy
 
 on:
+  # Feuert, wenn Test ODER E2E fertig ist — deployt aber erst, wenn BEIDE für
+  # denselben Commit grün sind (Vorprüfung im Job `gate`). Vorher hing der
+  # Deploy nur an `Test`: am 2026-07-30 ging Etappe A der Umbenennung damit
+  # live, obwohl der E2E zwei Läufe lang rot war (das Embed-Widget fand sein
+  # iframe nicht). Ein Sicherheitsnetz, das man umgehen kann, ist keins.
   workflow_run:
-    workflows: [Test]
+    workflows: [Test, 'E2E (Appwrite)']
     types: [completed]
     branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
+  # Für die Vorprüfung: den Ausgang der ANDEREN Workflows desselben Commits
+  # nachschlagen.
+  actions: read
 
 concurrency:
   group: deploy-sites
@@ -58,9 +66,51 @@ env:
   SERVER_HOSTKEY: '49.13.211.173 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAVud82T4BSPvg5wH84jnRuP+JdG2hP52FAf+h9ckcCe'
 
 jobs:
-  deploy:
+  # ── Vorprüfung: BEIDE Prüf-Workflows müssen für DIESEN Commit grün sein ────
+  # Der Auslöser feuert zweimal (einmal je Workflow). Wer zuerst fertig ist,
+  # findet den anderen noch laufend und bricht still ab; der zweite findet
+  # beide grün und lässt den Deploy los. Deshalb ist das hier idempotent und
+  # deployt trotzdem nur EINMAL — zusätzlich abgesichert durch die bestehende
+  # concurrency-Gruppe.
+  gate:
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    outputs:
+      go: ${{ steps.check.outputs.go }}
+    steps:
+      - name: Sind Test UND E2E grün?
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          MANUAL: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          set -euo pipefail
+          # Der manuelle Hebel bleibt bewusst ohne Vorprüfung — er ist der
+          # Notausgang, wenn die CI selbst klemmt.
+          if [ "$MANUAL" = "true" ]; then
+            echo "Manueller Start — Vorprüfung übersprungen."
+            echo "go=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          go=true
+          for wf in "Test" "E2E (Appwrite)"; do
+            concl=$(gh api "repos/$REPO/actions/runs?head_sha=$SHA&per_page=100" \
+              --jq "[.workflow_runs[] | select(.name==\"$wf\")] | sort_by(.created_at) | last | .conclusion // \"läuft-noch\"")
+            echo "  $wf: $concl"
+            [ "$concl" = "success" ] || go=false
+          done
+          if [ "$go" = "true" ]; then
+            echo "✔ Beide grün für $SHA — Deploy startet."
+          else
+            echo "⏸ Noch nicht beide grün für $SHA — kein Deploy."
+          fi
+          echo "go=$go" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: gate
+    if: needs.gate.outputs.go == 'true'
     env:
       EXPECTED_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
       COREPACK_ENABLE_DOWNLOAD_PROMPT: '0'
