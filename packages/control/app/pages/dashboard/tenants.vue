@@ -64,7 +64,7 @@ async function createTenant() {
         name: form.name,
         host: form.host,
         mode: form.mode,
-        // leer = Server nimmt den Pool-Default (pukalani.studio.defaultPoolProject)
+        // leer = Server nimmt den Pool-Default (pukalani.control.defaultPoolProject)
         ...(form.projectId ? { projectId: form.projectId } : {}),
         ...(form.wave !== 'stable' ? { wave: form.wave } : {}),
         ...(form.plan !== 'basic' ? { plan: form.plan } : {}),

@@ -24,8 +24,8 @@ export default defineEventHandler(async (event) => {
 
   const body = await readValidatedBody(event, schema.parse)
 
-  const appConfig = useAppConfig() as { pukalani?: { studio?: { plans?: ControlPlanCatalog } } }
-  const plan = (appConfig.pukalani?.studio?.plans ?? {})[body.plan]
+  const appConfig = useAppConfig() as { pukalani?: { control?: { plans?: ControlPlanCatalog } } }
+  const plan = (appConfig.pukalani?.control?.plans ?? {})[body.plan]
   if (!plan) throw createError({ status: 400, statusText: 'Unknown plan' })
   const lookupKey = pickLookupKey(plan, body.interval)
   if (!lookupKey) throw createError({ status: 400, statusText: 'Plan has no price (free)' })

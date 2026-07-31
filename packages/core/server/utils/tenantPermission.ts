@@ -13,7 +13,7 @@ import { isTenantRole, tenantRoleHasCapability, type TenantRole } from '../../sh
  *  - Site-Mitglied: eine Rolle in community_members, verankert an der Runtime-
  *    Identität {communityId = tenants.$id, runtimeProjectId, runtimeUserId}.
  *
- * Die Site-Rollen-Mitgliedschaft lebt im Control Plane (studio), der prüfende
+ * Die Site-Rollen-Mitgliedschaft lebt im Control Plane (control), der prüfende
  * Request aber in einem ANDEREN Projekt (Pool/Silo). Deshalb liest ein von der
  * App registrierter Resolver sie cross-Projekt (read-only-Key) — analog zum
  * tenants-Resolver (A14: core kennt die Tabelle nicht). Der Resolver cacht

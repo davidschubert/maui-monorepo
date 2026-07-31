@@ -5,7 +5,7 @@
  * (Admin-Client) — das Register führt Endpoints/Status aller Sites und ist
  * nicht öffentlich. Additiv + idempotent (409 → skip).
  *
- *   pnpm migrate --app <app> --layer studio
+ *   pnpm migrate --app <app> --layer control
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
 

@@ -77,8 +77,8 @@ export function requireOnboardingCaller(event: H3Event): void {
  */
 export function onboardingRuntimeProject(event?: H3Event): string {
   const config = useRuntimeConfig(event) as { public?: { controlPoolProject?: string } }
-  const appConfig = useAppConfig() as { pukalani?: { studio?: { defaultPoolProject?: string } } }
-  const projectId = (config.public?.controlPoolProject || appConfig.pukalani?.studio?.defaultPoolProject || '').trim()
+  const appConfig = useAppConfig() as { pukalani?: { control?: { defaultPoolProject?: string } } }
+  const projectId = (config.public?.controlPoolProject || appConfig.pukalani?.control?.defaultPoolProject || '').trim()
   if (!projectId) {
     throw createError({ status: 500, statusText: 'Pool project not configured' })
   }

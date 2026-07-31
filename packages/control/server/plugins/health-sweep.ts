@@ -20,7 +20,7 @@ export default defineNitroPlugin(() => {
   const sweep = () => {
     void runHealthSweep().then(async (result) => {
       if (result.notOk.length || result.changed.length) {
-        console.info(`[studio] Health-Sweep: ${result.checked} geprüft · nicht ok: ${result.notOk.join(', ') || '—'} · geändert: ${result.changed.join(', ') || '—'}`)
+        console.info(`[control] Health-Sweep: ${result.checked} geprüft · nicht ok: ${result.notOk.join(', ') || '—'} · geändert: ${result.changed.join(', ') || '—'}`)
       }
 
       const config = useRuntimeConfig()
@@ -39,11 +39,11 @@ export default defineNitroPlugin(() => {
           ].join('\n'),
         }).catch(() => false)
         if (!sent) {
-          console.warn('[studio] Health-Alert konnte nicht gemailt werden (SMTP konfiguriert?)')
+          console.warn('[control] Health-Alert konnte nicht gemailt werden (SMTP konfiguriert?)')
         }
       }
     }).catch((error) => {
-      console.error('[studio] Health-Sweep fehlgeschlagen:', (error as Error).message)
+      console.error('[control] Health-Sweep fehlgeschlagen:', (error as Error).message)
     })
   }
 

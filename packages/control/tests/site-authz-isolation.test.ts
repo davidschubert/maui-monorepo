@@ -6,7 +6,7 @@ import { tenantRoleHasCapability, isTenantRole } from '../../core/shared/tenantA
 
 /**
  * G1-5 — automatisierter ISOLATIONSBEWEIS der Kunden-Site-Rollen gegen eine
- * ECHTE Appwrite-Instanz (das Control Plane / studio). Beweist die harten
+ * ECHTE Appwrite-Instanz (das Control Plane (control)). Beweist die harten
  * Zusagen aus G0/G1:
  *   - DERSELBE Runtime-User hat in zwei Pool-Sites VERSCHIEDENE Rollen.
  *   - Alle 5 Rollen lösen korrekt auf (+ ihre Capability-Grenzen).

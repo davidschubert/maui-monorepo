@@ -1,11 +1,11 @@
 /**
  * A14-Komposition (Vorbild apps/comments für Event-Tickets): verbindet den
  * Abo-Lifecycle-Vertrag des billing-Layers mit dem Workspace-Billing des
- * studio-Layers — die Layer kennen sich nicht, die APP schon. Policy +
- * Ausführung liegen im studio-Layer (handleWorkspaceSubscriptionUpdate,
+ * control-Layers — die Layer kennen sich nicht, die APP schon. Policy +
+ * Ausführung liegen im control-Layer (handleWorkspaceSubscriptionUpdate,
  * idempotent); billing liefert nur verifizierte, nicht-stale Updates.
  *
- * Cross-Sub-Autorität (#6b): die App reicht dem studio-Handler einen Check
+ * Cross-Sub-Autorität (#6b): die App reicht dem control-Handler einen Check
  * durch, der DIREKT bei Stripe nachsieht, ob für den Workspace noch ein
  * anderes lebendes Abo existiert — der lokale stripeSubscriptionId-Speicher
  * kann durch out-of-order-Webhooks stale sein, Stripe selbst nicht. Nur so

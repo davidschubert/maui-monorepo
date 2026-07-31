@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 409, statusText: 'Produkt catalog empty — run the job runner once (pnpm control:jobs)' })
   }
 
-  // Wählbar: alles außer core/system (implizit immer dabei) und studio
+  // Wählbar: alles außer core/system (implizit immer dabei) und control
   // (läuft nur auf der Control-Site) — foundation-Tier wie themes/admin ist
   // pro Site wählbar, nur nicht zubuchbar (F7).
   const NOT_SELECTABLE = ['core', 'system', 'control']

@@ -21,7 +21,7 @@
  *       Vermutung: das Dashboard zeigt „eingelöst am … → host", nicht ein Häkchen.
  *
  * Rein ADDITIV. Idempotent (409 → skip). Aufruf über den Runner:
- *   pnpm migrate --app studio --layer studio
+ *   pnpm migrate --app control --layer control
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
 

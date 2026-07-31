@@ -9,7 +9,7 @@ const checkoutSchema = z.object({
 }).strict()
 
 /**
- * Owner-Checkout (M9-T3) — APP-Route (A14: studio-Guard + billing-Utility).
+ * Owner-Checkout (M9-T3) — APP-Route (A14: control-Guard + billing-Utility).
  * Anders als die Betreiber-Route (/api/control/...): der Guard ist die
  * MEMBERSHIP des eingeloggten Users, und der Stripe-Customer ist der
  * Owner selbst (ensureCustomer in der billing-Utility) — der Betreiber
@@ -24,8 +24,8 @@ export default defineEventHandler(async (event) => {
 
   const { workspace } = await requireWorkspaceMember(event, id)
 
-  const appConfig = useAppConfig() as { pukalani?: { studio?: { plans?: ControlPlanCatalog } } }
-  const plans = appConfig.pukalani?.studio?.plans ?? {}
+  const appConfig = useAppConfig() as { pukalani?: { control?: { plans?: ControlPlanCatalog } } }
+  const plans = appConfig.pukalani?.control?.plans ?? {}
   // Doppelabo-Schutz: ein bereits bezahlter Workspace darf keinen ZWEITEN Checkout
   // starten (das legte ein zweites Stripe-Abo an → Doppelabrechnung). Plan-/
   // Intervall-Wechsel läuft übers Stripe-Portal (Proration). free → bezahlt bleibt ok.

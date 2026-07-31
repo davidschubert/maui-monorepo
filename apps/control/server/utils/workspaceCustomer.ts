@@ -3,7 +3,7 @@ import { WORKSPACES_TABLE, type WorkspaceRow } from '../../../../packages/contro
 
 /**
  * Workspace-eigener Stripe-Customer (#7a) — APP-Utility (A14: komponiert
- * studio-Datenmodell mit der billing-Stripe-Utility). Der Customer hängt am
+ * control-Datenmodell mit der billing-Stripe-Utility). Der Customer hängt am
  * WORKSPACE (nicht am eingeloggten User): so verwaltet der Owner sein Abo im
  * Portal, egal ob er selbst oder der Betreiber den Checkout ausgelöst hat.
  * Lazy beim ersten Checkout; Race-Dedupe nach dem B11-Muster (Re-Read nach

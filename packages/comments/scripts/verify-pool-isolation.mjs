@@ -97,7 +97,7 @@ try {
   })
   check('ohne Scope mischen sich beide Tenants (Beweis, dass der Filter nötig ist)', mixed.rows.length === 2, `(${mixed.rows.length})`)
 
-  // ── pages (Tenant-Homepage) — nur wenn die Tabelle existiert (platform/studio) ──
+  // ── pages (Tenant-Homepage) — nur wenn die Tabelle existiert (platform/control) ──
   const hasPages = await tablesDB.listRows({ databaseId, tableId: 'pages', queries: [Query.limit(1)] })
     .then(() => true).catch(() => false)
   if (hasPages) {
@@ -117,7 +117,7 @@ try {
     check('pages: B sieht NUR eigene', pB.rows.every(r => r.tenantId === TB && r.title === 'B-Home'))
   }
   else {
-    console.log('↷ pages-Tabelle nicht vorhanden — übersprungen (kein platform/studio-Projekt)')
+    console.log('↷ pages-Tabelle nicht vorhanden — übersprungen (kein platform/control-Projekt)')
   }
 }
 finally {

@@ -24,7 +24,7 @@ Stripe-Keys sind Runtime-Config → `pm2 reload` genügt, analog appwriteProject
 
 | App | Webhook-Endpoint (Live) | Plan-Quelle | lookup_keys |
 |---|---|---|---|
-| **control** | `https://control.pukalani.app/api/stripe/webhook` | `pukalani.studio.plans` | `workspace_pro_monthly`, `workspace_business_monthly` (free = `null`, kein Stripe-Objekt) |
+| **control** | `https://control.pukalani.app/api/stripe/webhook` | `pukalani.control.plans` (bis 2026-07-30: pukalani.studio.plans) | `workspace_pro_monthly`, `workspace_business_monthly` (free = `null`, kein Stripe-Objekt) |
 | **comments** | `https://comments.pukalani.app/api/stripe/webhook` | `pukalani.billing.plans` | (siehe `apps/comments/app/app.config.ts` — analog anlegen, falls Live-Billing gewünscht) |
 
 Jede App = eigene Appwrite-Instanz **und eigener Stripe-Account** (A1/B1). Der

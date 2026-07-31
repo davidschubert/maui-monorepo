@@ -11,7 +11,7 @@ const putSchema = z.object({
 /**
  * Grant-Set einer Site ersetzen (sites.manage) — M6-T3, F3-Vorstufe:
  * fehlende Rows anlegen, nicht mehr gelistete löschen. Zuteilbar ist, was
- * der Produkt-Katalog kennt — außer core/system (implizit immer) und studio
+ * der Produkt-Katalog kennt — außer core/system (implizit immer) und control
  * (läuft nur auf der Control-Site). Signatur/Zustellung an die Site folgt
  * in M8; bis dahin ist diese Table die manuell gepflegte Wahrheit.
  */

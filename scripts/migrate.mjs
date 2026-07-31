@@ -15,9 +15,9 @@
  * WELLEN-MODUS (H3-4.2, Blueprint L5) — Silo-Schema-Updates in drei Wellen
  * (internal → canary → stable), Pool migriert separat genau einmal:
  *
- *   pnpm migrate --wave internal --control-env /pfad/studio.env [--layer …]
+ *   pnpm migrate --wave internal --control-env /pfad/control.env [--layer …]
  *
- * --control-env zeigt auf die CONTROL-PLANE-Instanz (studio); daraus kommen
+ * --control-env zeigt auf die CONTROL-PLANE-Instanz (control); daraus kommen
  * die Silo-Projekte der Welle (tenants.wave, '' = stable). Je Projekt braucht
  * es eine Migrations-Env-Datei ~/.appwrite-secrets/migrations/<projectId>.env
  * (Format wie jede App-.env: NUXT_PUBLIC_APPWRITE_* + Migrations-Key;

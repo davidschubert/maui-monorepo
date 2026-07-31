@@ -70,7 +70,7 @@ export function planToGrants(
 
 /** Vom billing-Layer bereits VERIFIZIERTES Abo-Update (nie rohes
  *  Stripe-JSON — Signatur/Idempotenz gehören dem billing-Layer). Bewusst
- *  strukturell statt Import des billing-Typs: studio kennt billing nicht
+ *  strukturell statt Import des billing-Typs: control kennt billing nicht
  *  (A14) — die APP komponiert beide (Fulfillment-Plugin). */
 export interface WorkspaceSubscriptionUpdate {
   /** Stripe-Statusraum (billing B3): active/trialing/past_due/canceled/… */

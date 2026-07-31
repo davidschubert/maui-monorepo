@@ -13,7 +13,7 @@
  * auf 8000 geschrumpft (Job-Logs sind gekürzte Tails, kein Datenverlust
  * über die Kürzung hinaus).
  *
- *   pnpm migrate --app <app> --layer studio
+ *   pnpm migrate --app <app> --layer control
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
 

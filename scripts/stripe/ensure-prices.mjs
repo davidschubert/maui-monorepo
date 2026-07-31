@@ -2,7 +2,7 @@
 /**
  * Stripe Products/Prices idempotent anlegen — für den Go-Live-Runbook
  * (docs/runbooks/STRIPE-GO-LIVE-RUNBOOK.md §3). Legt genau die `lookup_key`s an,
- * die der Code erwartet (pukalani.studio.plans, Monats- + Jahres-Intervall).
+ * die der Code erwartet (pukalani.control.plans, Monats- + Jahres-Intervall).
  *
  * NUTZUNG (David, mit dem eigenen Key — Test ODER Live):
  *   STRIPE_KEY=sk_test_…  node scripts/stripe/ensure-prices.mjs          # Vorschau
@@ -18,13 +18,13 @@
  * Der Key bleibt in DEINER Shell — dieses Skript liest nur STRIPE_KEY.
  *
  * WICHTIG: Die lookup_key-Liste MUSS zu packages/control/app/app.config.ts
- * (pukalani.studio.plans) passen. Ändert sich der Katalog, hier nachziehen.
+ * (pukalani.control.plans) passen. Ändert sich der Katalog, hier nachziehen.
  */
 import Stripe from 'stripe'
 
 const CURRENCY = 'eur'
 
-// Muss pukalani.studio.plans spiegeln. amount = Cent. Davids Pricing 2026-07-26:
+// Muss pukalani.control.plans spiegeln. amount = Cent. Davids Pricing 2026-07-26:
 // Personal 29 €/Monat, Pro (Teams) 149 €/Monat, jährlich exakt −25 %
 // (29·12·0,75 = 261 €; 149·12·0,75 = 1341 €). Basic ist kostenlos (kein
 // Price), Enterprise ist das Studio-Angebot (kein Self-Service-Checkout).

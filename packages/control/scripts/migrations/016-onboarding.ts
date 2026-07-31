@@ -20,7 +20,7 @@
  * Rein ADDITIV (keine Spalte wird umgebaut, keine Row angefasst) — damit auf
  * der befüllten Prod-Instanz gefahrlos fahrbar. Idempotent (409 → skip).
  * Aufruf über den Runner:
- *   pnpm migrate --app studio --layer studio
+ *   pnpm migrate --app control --layer control
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
 

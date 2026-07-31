@@ -95,7 +95,7 @@ const createName = ref('')
 const selected = ref<string[]>([...DEFAULT_PRODUCTS])
 const creating = ref(false)
 
-/** Wählbar: alles außer core/system (implizit) und studio (nur Control-Site). */
+/** Wählbar: alles außer core/system (implizit) und control (nur Control-Site). */
 const selectableProducts = computed(() =>
   (catalogData.value?.products ?? [])
     .filter(f => !['core', 'system', 'control'].includes(f.key))

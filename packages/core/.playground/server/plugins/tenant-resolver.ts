@@ -1,7 +1,7 @@
 /**
  * Playground-Resolver (Horizont-3 Scharf-Dogfood) — In-Memory statt
  * tenants-Table: der Playground hat kein Control Plane; die Table-Variante
- * (createTenantsTableResolver, studio-Layer) ist separat integrationsgetestet.
+ * (createTenantsTableResolver, control-Layer) ist separat integrationsgetestet.
  *
  *  localhost / 127.0.0.1  → silo aufs eigene Projekt (Dev-Betrieb wie immer)
  *  pool-demo.localhost    → pool, tenantId 't-demo' (Naht-3-Scope greifbar)

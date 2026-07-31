@@ -1,7 +1,7 @@
 import type { Models } from 'node-appwrite'
 
 /**
- * Horizont-3 tenants-Register (Blueprint Naht 1): das Control Plane (studio)
+ * Horizont-3 tenants-Register (Blueprint Naht 1): das Control Plane (control)
  * BESITZT die Zuordnung Host → Mandant. Gelesen wird sie von Platform-Apps
  * über createTenantsTableResolver (server/utils/tenantsResolver.ts) — mit
  * expliziten Verbindungsdaten, weil der Leser in einem ANDEREN Projekt läuft

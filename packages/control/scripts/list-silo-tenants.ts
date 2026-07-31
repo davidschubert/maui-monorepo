@@ -3,7 +3,7 @@
  * aus der tenants-Table des Control Plane und druckt sie als JSON-Array auf
  * stdout (eine Zeile — maschinenlesbar für scripts/migrate.mjs --wave).
  *
- * Läuft mit den CONTROL-PLANE-Credentials (studio-Instanz), Aufruf durch den
+ * Läuft mit den CONTROL-PLANE-Credentials (control-Instanz), Aufruf durch den
  * Runner:
  *
  *   node --experimental-strip-types --env-file=<control-env> \

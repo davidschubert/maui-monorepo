@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
 /**
- * E2E-Smoke-Tests für studio (Port 3004) — Muster von apps/comments.
+ * E2E-Smoke-Tests für control (Port 3004) — Muster von apps/comments.
  *
  * Nutzt das systeminstallierte Google Chrome (channel: 'chrome') — kein
  * Playwright-Browser-Download nötig. Läuft gegen einen bereits laufenden Dev-

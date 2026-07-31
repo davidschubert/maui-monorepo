@@ -19,10 +19,10 @@ export default defineNitroPlugin(() => {
       // Nur melden, wenn wirklich etwas passiert ist — ein stündliches „0
       // Änderungen" macht das Log unlesbar.
       if (result.downgraded.length) {
-        console.info(`[studio] Testphasen beendet: ${result.downgraded.join(', ')}`)
+        console.info(`[control] Testphasen beendet: ${result.downgraded.join(', ')}`)
       }
     }).catch((error) => {
-      console.error('[studio] Testphasen-Sweep fehlgeschlagen:', error instanceof Error ? error.message : error)
+      console.error('[control] Testphasen-Sweep fehlgeschlagen:', error instanceof Error ? error.message : error)
     })
 
     // Teilt sich bewusst den Takt: beides sind stündliche Aufräumarbeiten am
@@ -30,10 +30,10 @@ export default defineNitroPlugin(() => {
     // man nach dem Grund für ein verschwundenes Datum sucht.
     void pruneInviteRequests().then((result) => {
       if (result.deleted) {
-        console.info(`[studio] Erledigte Anfragen gelöscht: ${result.deleted}`)
+        console.info(`[control] Erledigte Anfragen gelöscht: ${result.deleted}`)
       }
     }).catch((error) => {
-      console.error('[studio] Anfragen-Aufräumen fehlgeschlagen:', error instanceof Error ? error.message : error)
+      console.error('[control] Anfragen-Aufräumen fehlgeschlagen:', error instanceof Error ? error.message : error)
     })
   }
 

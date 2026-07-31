@@ -7,15 +7,15 @@ import { TENANTS_TABLE, type TenantRow } from '../../../../shared/types/tenantRe
  * diese eine Row; die Platform-App löst den Host beim nächsten Request auf,
  * Resolver-Cache max. 30 s). UX 2026-07-23: der Betreiber liefert NAME + Host
  * (aus dem Namen vorgeschlagen); projectId ist im Pool-Modus der konfigurierte
- * Default (pukalani.studio.defaultPoolProject), nur Silo MUSS eins nennen.
+ * Default (pukalani.control.defaultPoolProject), nur Silo MUSS eins nennen.
  * pool ohne tenantId → frische Id (t-…); doppelter Host → 409 via uq_host.
  */
 export default defineEventHandler(async (event) => {
   requirePermission(event, 'sites.manage')
   const body = await readValidatedBody(event, tenantCreateSchema.parse)
 
-  const appConfig = useAppConfig() as { pukalani?: { studio?: { defaultPoolProject?: string } } }
-  const projectId = body.projectId ?? (body.mode === 'pool' ? appConfig.pukalani?.studio?.defaultPoolProject : undefined)
+  const appConfig = useAppConfig() as { pukalani?: { control?: { defaultPoolProject?: string } } }
+  const projectId = body.projectId ?? (body.mode === 'pool' ? appConfig.pukalani?.control?.defaultPoolProject : undefined)
   if (!projectId) {
     throw createError({ status: 400, statusText: 'Silo tenants need an explicit project id' })
   }

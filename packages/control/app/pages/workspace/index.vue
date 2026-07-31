@@ -45,7 +45,7 @@ onMounted(async () => {
 })
 
 const paidPlans = computed(() =>
-  Object.entries((appConfig.pukalani as { studio?: { plans?: ControlPlanCatalog } }).studio?.plans ?? {})
+  Object.entries((appConfig.pukalani as { control?: { plans?: ControlPlanCatalog } }).control?.plans ?? {})
     .filter(([, plan]) => plan.lookupKey)
     .map(([key, plan]) => ({ key, products: plan.products })))
 

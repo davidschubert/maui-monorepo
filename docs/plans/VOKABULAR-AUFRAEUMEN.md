@@ -149,7 +149,14 @@ Typecheck 0 Fehler (control/comments/platform), 790 Unit-Tests grün, alle vier
 CI-Gates grün. **Kein Appwrite-Anteil** — `maui` kam dort in keiner Tabelle und
 keiner Spalte vor.
 
-## 2. `pukalani.studio.*` — Altlast des Control-Cutovers
+## 2. `pukalani.studio.*` — Altlast des Control-Cutovers — ✅ ERLEDIGT 2026-07-30
+
+> Umbenannt auf `pukalani.control.*` (Definition, alle Konsumenten und
+> Typ-Casts, `[studio]`-Log-Präfixe → `[control]`, `studioUserData` →
+> `controlUserData`, stale Prosa und Kommando-Beispiele `--layer studio`).
+> BEWUSST geblieben: RESERVED_SUBDOMAINS `studio` (Phishing-Sperre),
+> `themes.studio.*` (das Theme-Studio ist ein Produkt, keine Altlast) und
+> historische Notizen („zeigte bis 2026-07-29 auf apps/studio").
 
 Der Layer heißt `control`, die App heißt `control`, der Host heißt `control`
 — aber der **Config-Namespace heißt weiter `pukalani.studio.*`**
@@ -197,7 +204,7 @@ Die Umbenennungen fassen dieselben Dateien an. Nacheinander, nie parallel:
 2. **E8 Etappe 3** — `tenants` → `communities` (Daten, vier Instanzen)
 3. **E8 Etappe 4** — `site*`-Vokabular im Code zusammenführen
 4. **`feature` → `product`** — inklusive `feature_catalog`-Migration
-5. **`pukalani.studio.*` → `pukalani.control.*`** — kann jederzeit mitlaufen, klein
+5. ~~**`pukalani.studio.*` → `pukalani.control.*`**~~ ✅ erledigt 2026-07-30
 6. **E9/E10** — Menü und Roadmap-Benennung
 7. *(offen)* `maui` → `pukalani`, falls entschieden
 

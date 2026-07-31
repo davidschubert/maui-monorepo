@@ -98,7 +98,7 @@ describe('parseTenantPlanLimits (pure, defensiv)', () => {
 
 /**
  * Integration gegen eine ECHTE Appwrite (tenants-Table, Migration control-010).
- * Env-gated wie die anderen Live-Tests: Env der studio-App exportieren.
+ * Env-gated wie die anderen Live-Tests: Env der control-App exportieren.
  */
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID

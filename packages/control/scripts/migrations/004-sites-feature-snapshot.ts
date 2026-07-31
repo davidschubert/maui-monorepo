@@ -4,7 +4,7 @@
  * Site selbst (GET /api/platform/features) und vom Health-Sweep persistiert.
  * Additiv + idempotent (409 → skip; sites-Table hat Budget-Headroom).
  *
- *   pnpm migrate --app <app> --layer studio
+ *   pnpm migrate --app <app> --layer control
  */
 import { Client, TablesDB } from 'node-appwrite'
 

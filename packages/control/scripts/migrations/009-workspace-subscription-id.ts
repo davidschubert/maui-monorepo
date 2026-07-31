@@ -6,7 +6,7 @@
  * so kann das Kündigen eines ALTEN Abos ein neueres nicht kannibalisieren.
  * Additiv + idempotent (409 → skip). Leerer Default = Legacy-Row/kein Abo.
  *
- *   pnpm migrate --app <app> --layer studio
+ *   pnpm migrate --app <app> --layer control
  */
 import { Client, TablesDB } from 'node-appwrite'
 

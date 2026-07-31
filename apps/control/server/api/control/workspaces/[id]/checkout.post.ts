@@ -9,7 +9,7 @@ const checkoutSchema = z.object({
 }).strict()
 
 /**
- * Workspace-Checkout (M8-T3) — APP-Route (A14: komponiert studio-Validierung
+ * Workspace-Checkout (M8-T3) — APP-Route (A14: komponiert control-Validierung
  * mit der billing-Checkout-Utility, die Layer kennen sich nicht). Erzeugt
  * eine Stripe-hosted Subscription-Checkout-Session mit workspaceId+plan als
  * Subscription-Metadata — der Webhook ordnet spätere Lifecycle-Events darüber
@@ -25,8 +25,8 @@ export default defineEventHandler(async (event) => {
   }
   const body = await readValidatedBody(event, checkoutSchema.parse)
 
-  const appConfig = useAppConfig() as { pukalani?: { studio?: { plans?: ControlPlanCatalog } } }
-  const plans = appConfig.pukalani?.studio?.plans ?? {}
+  const appConfig = useAppConfig() as { pukalani?: { control?: { plans?: ControlPlanCatalog } } }
+  const plans = appConfig.pukalani?.control?.plans ?? {}
   const plan = plans[body.plan]
   if (!plan) {
     throw createError({ status: 400, statusText: 'Unknown plan' })

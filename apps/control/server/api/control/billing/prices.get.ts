@@ -4,15 +4,15 @@ import type { ControlPlanCatalog } from '../../../../../../packages/control/shar
 /**
  * Betreiber: aktuelle Stripe-Preise des Workspace-Plan-Katalogs (per
  * lookup_key, Test- wie Live-Mode). APP-Route (A14: komponiert den
- * studio-Plan-Katalog mit der billing-Stripe-Utility — die Layer kennen
+ * control-Plan-Katalog mit der billing-Stripe-Utility — die Layer kennen
  * sich nicht). Read-only; die Änderung läuft über prices.post.ts.
  */
 export default defineEventHandler(async (event) => {
   requirePermission(event, 'sites.manage')
   await requireBillingEnabled(event)
 
-  const appConfig = useAppConfig() as { pukalani?: { studio?: { plans?: ControlPlanCatalog } } }
-  const plans = appConfig.pukalani?.studio?.plans ?? {}
+  const appConfig = useAppConfig() as { pukalani?: { control?: { plans?: ControlPlanCatalog } } }
+  const plans = appConfig.pukalani?.control?.plans ?? {}
   const lookupKeys: { plan: string, interval: 'monthly' | 'yearly', lookupKey: string }[] = []
   for (const [plan, def] of Object.entries(plans)) {
     if (def?.lookupKey) lookupKeys.push({ plan, interval: 'monthly', lookupKey: def.lookupKey })

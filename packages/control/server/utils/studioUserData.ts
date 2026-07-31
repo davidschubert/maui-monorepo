@@ -10,7 +10,7 @@ import {
 } from '../../shared/types/workspace'
 
 /**
- * GDPR-Contributor des studio-Layers (M9-T1 — löst den M8-Aufschub ein:
+ * GDPR-Contributor des control-Layers (M9-T1 — löst den M8-Aufschub ein:
  * mit workspace_members sind Workspace-Daten jetzt userId-keyed).
  * Export: Mitgliedschaften + zugehörige Workspace-Namen + angenommene
  * Einladungen. Löschung: Membership-Rows + Invite-Bindung entfernen —
@@ -18,7 +18,7 @@ import {
  * ownerEmail-Löschung ist ein manueller Betreiber-Vorgang, s. Typ-Doku).
  * Idempotent (Re-Run findet nichts mehr).
  */
-export async function studioExportUserData(event: H3Event, userId: string) {
+export async function controlExportUserData(event: H3Event, userId: string) {
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
   const databaseId = config.public.appwriteDatabaseId
@@ -45,7 +45,7 @@ export async function studioExportUserData(event: H3Event, userId: string) {
   }
 }
 
-export async function studioDeleteUserData(event: H3Event, userId: string) {
+export async function controlDeleteUserData(event: H3Event, userId: string) {
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
   const databaseId = config.public.appwriteDatabaseId

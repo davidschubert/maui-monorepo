@@ -1,10 +1,10 @@
 /**
- * studio meldet seine Dashboard-Sektion bei der Admin-Modul-Registry an
+ * control meldet seine Dashboard-Sektion bei der Admin-Modul-Registry an
  * (pukalani.admin.modules, deep-merged) — Layer-Grenze A14.
  */
 export default defineAppConfig({
   pukalani: {
-    studio: {
+    control: {
       /** Das geteilte Pool-Appwrite-Projekt neuer Tenants (Onboarding-Default —
        *  der Betreiber tippt nur noch Name/Host, das Projekt füllt der Server). */
       defaultPoolProject: 'pool',

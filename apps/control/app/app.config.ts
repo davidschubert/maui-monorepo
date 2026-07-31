@@ -14,7 +14,7 @@ export default defineAppConfig({
     auth: { otp: true, termsUrl: '/terms' },
     // M8: Stripe-Transport des billing-Layers für WORKSPACE-Billing aktivieren.
     // plans bleibt leer — das Control verkauft keine Site-Abos an Endnutzer;
-    // die Workspace-Pläne leben in pukalani.studio.plans (lookup_keys).
+    // die Workspace-Pläne leben in pukalani.control.plans (lookup_keys).
     billing: { enabled: true },
     // Interne Projekt-Doku (/docs) in der Betreiber-Nav. Kein productKey —
     // die Doku gehört keinem Produkt-Layer, sie ist Teil DIESER App; die

@@ -2,7 +2,7 @@
  * Produkt Layer: Control — das Control Plane der Multi-Site-Plattform (M6):
  * Sites-Register (Table `sites`, Migration control-001; eigener Schema-Owner
  * nach A14), Health-Übersicht, später Site-Erstellungs-Flow + Entitlements.
- * Läuft NUR in apps/control (hawaii.studio) — besitzt bewusst KEINE
+ * Läuft NUR in apps/control (control.pukalani.app) — besitzt bewusst KEINE
  * Site-Inhalte und keine Site-Sessions (Vertrauensgrenze, Strategie § 8).
  */
 export default defineNuxtConfig({

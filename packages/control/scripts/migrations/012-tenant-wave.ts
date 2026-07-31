@@ -6,7 +6,7 @@
  * der Pool migriert immer genau einmal. Additiv, Bestand = 'stable'.
  * Idempotent (409 → skip). Aufruf über den Runner:
  *
- *   pnpm migrate --app <app> --layer studio
+ *   pnpm migrate --app <app> --layer control
  */
 import { Client, TablesDB } from 'node-appwrite'
 

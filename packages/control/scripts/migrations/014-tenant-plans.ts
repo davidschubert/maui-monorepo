@@ -8,7 +8,7 @@
  * Zahlen (nur wenn die Row fehlt — bestehende Werte werden NIE überschrieben).
  * Idempotent (409 → skip). Aufruf über den Runner:
  *
- *   pnpm migrate --app studio --layer studio
+ *   pnpm migrate --app control --layer control
  */
 import { Client, Query, TablesDB, TablesDBIndexType } from 'node-appwrite'
 

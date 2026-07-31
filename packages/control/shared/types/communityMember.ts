@@ -2,7 +2,7 @@ import type { Models } from 'node-appwrite'
 
 /**
  * G1 community_members-Register (control-015): die Rollen-Mitgliedschaft EINER
- * Kunden-Community-Site. Lebt im Control Plane (studio), wird aber von der
+ * Kunden-Community-Site. Lebt im Control Plane (control), wird aber von der
  * Runtime (Platform-/Silo-App) über den read-only-Cross-Projekt-Key gelesen
  * (requireTenantPermission) — analog zum tenants-Resolver.
  *

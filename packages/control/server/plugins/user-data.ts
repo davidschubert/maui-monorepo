@@ -1,12 +1,12 @@
 /**
- * Registriert den GDPR-Contributor des studio-Layers beim core-Vertrag
+ * Registriert den GDPR-Contributor des control-Layers beim core-Vertrag
  * (UserDataContributor, CONCEPT A14) — läuft einmal beim Serverstart.
  * M9-T1: Workspace-Mitgliedschaften + angenommene Einladungen.
  */
 export default defineNitroPlugin(() => {
   registerUserDataContributor({
     id: 'control',
-    exportUserData: studioExportUserData,
-    deleteUserData: studioDeleteUserData,
+    exportUserData: controlExportUserData,
+    deleteUserData: controlDeleteUserData,
   })
 })

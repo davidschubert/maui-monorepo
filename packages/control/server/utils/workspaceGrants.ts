@@ -53,7 +53,7 @@ export async function replaceSiteGrants(event: H3Event, siteProjectId: string, p
 /**
  * Workspace auf einen Plan setzen (M8-T3): Workspace-Row patchen und die
  * Grant-Sets ALLER zugeordneten Sites auf das requires-geschlossene
- * Plan-Set ersetzen. Nicht-grantbare Katalog-Keys (core/system/studio)
+ * Plan-Set ersetzen. Nicht-grantbare Katalog-Keys (core/system/control)
  * kommen im Plan-Katalog nicht vor; unbekannte Keys lassen closeOverRequires
  * werfen (Katalog = Autorität, F7). Idempotent (Webhook-Retry-sicher).
  */
@@ -83,7 +83,7 @@ export async function applyWorkspacePlan(event: H3Event, input: {
       return { key: row.$id, requires: JSON.parse(row.requires || '[]') as string[] }
     }
     catch {
-      console.error(`[studio] product_catalog "${row.$id}": ungültiges requires-JSON — als [] behandelt`)
+      console.error(`[control] product_catalog "${row.$id}": ungültiges requires-JSON — als [] behandelt`)
       return { key: row.$id, requires: [] as string[] }
     }
   })
@@ -133,13 +133,13 @@ export async function setWorkspaceStatus(event: H3Event, workspaceId: string, st
 
 /**
  * Verifiziertes Abo-Update → Workspace-Wirkung (M8-T3). Wird vom App-Plugin
- * (A14: die App verdrahtet billing↔studio) an registerSubscriptionFulfillment
+ * (A14: die App verdrahtet billing↔control) an registerSubscriptionFulfillment
  * gehängt. Policy pure + getestet (subscriptionUpdateToAction); Ausführung
  * deklarativ/idempotent — Webhook-Retries sind gefahrlos. Kündigungs-Timing
  * macht Stripe (cancel_at_period_end → 'canceled' erst zum echten Ende);
  * danach fällt der Workspace aufs free-Set zurück, NIE auf null Produkte.
  */
-/** Autoritäts-Check (#6b), von der APP verdrahtet (A14: studio kennt billing/
+/** Autoritäts-Check (#6b), von der APP verdrahtet (A14: control kennt billing/
  *  Stripe nicht): existiert für den Workspace ein ANDERES lebendes Abo? */
 export type OtherActiveSubscriptionCheck = (event: H3Event, input: {
   stripeCustomerId: string
@@ -155,8 +155,8 @@ export async function handleWorkspaceSubscriptionUpdate(event: H3Event, update: 
 }, options?: {
   hasOtherActiveSubscription?: OtherActiveSubscriptionCheck
 }): Promise<void> {
-  const appConfig = useAppConfig() as { pukalani?: { studio?: { plans?: ControlPlanCatalog } } }
-  const plans = appConfig.pukalani?.studio?.plans ?? {}
+  const appConfig = useAppConfig() as { pukalani?: { control?: { plans?: ControlPlanCatalog } } }
+  const plans = appConfig.pukalani?.control?.plans ?? {}
   const action = subscriptionUpdateToAction(update, plans)
 
   switch (action.kind) {
@@ -172,17 +172,17 @@ export async function handleWorkspaceSubscriptionUpdate(event: H3Event, update: 
         // Diese Sub wird die maßgebliche für den Workspace (Cross-Sub-Guard #6).
         stripeSubscriptionId: action.stripeSubscriptionId,
       })
-      console.info(`[studio] Workspace ${action.workspaceId} → Plan ${action.plan} (${result.sites} Sites, Produkte: ${result.products.join(', ')})`)
+      console.info(`[control] Workspace ${action.workspaceId} → Plan ${action.plan} (${result.sites} Sites, Produkte: ${result.products.join(', ')})`)
       return
     }
     case 'past-due':
       await setWorkspaceStatus(event, action.workspaceId, 'past_due')
-      console.warn(`[studio] Workspace ${action.workspaceId} → past_due (Grants bleiben, Stripe-Dunning läuft)`)
+      console.warn(`[control] Workspace ${action.workspaceId} → past_due (Grants bleiben, Stripe-Dunning läuft)`)
       return
     case 'free-fallback': {
       const free = plans.basic
       if (!free) {
-        console.error('[studio] basic-Plan fehlt im Katalog — Fallback übersprungen')
+        console.error('[control] basic-Plan fehlt im Katalog — Fallback übersprungen')
         return
       }
       // Cross-Sub-Guard (#6): nur wenn die gekündigte Sub die aktuell
@@ -199,13 +199,13 @@ export async function handleWorkspaceSubscriptionUpdate(event: H3Event, update: 
         // transient → rethrow (Webhook 500 → Stripe retryt; nur so kommt das
         // Event wieder — ein stilles 200 würde den Fallback verschlucken).
         if (typeof error === 'object' && error !== null && 'code' in error && error.code === 404) return null
-        console.error(`[studio] Workspace ${action.workspaceId}: Lesefehler im free-Fallback — abgebrochen (fail-closed)`, error)
+        console.error(`[control] Workspace ${action.workspaceId}: Lesefehler im free-Fallback — abgebrochen (fail-closed)`, error)
         throw error
       })
       if (!workspace) return
       const storedSub = workspace.stripeSubscriptionId ?? ''
       if (!shouldApplyFreeFallback(storedSub, action.stripeSubscriptionId)) {
-        console.warn(`[studio] Workspace ${action.workspaceId}: Kündigung von ${action.stripeSubscriptionId} ignoriert — aktuell gilt ${storedSub} (Cross-Sub-Guard)`)
+        console.warn(`[control] Workspace ${action.workspaceId}: Kündigung von ${action.stripeSubscriptionId} ignoriert — aktuell gilt ${storedSub} (Cross-Sub-Guard)`)
         return
       }
       // Autoritäts-Check bei STRIPE (#6b): der lokale stripeSubscriptionId-
@@ -221,14 +221,14 @@ export async function handleWorkspaceSubscriptionUpdate(event: H3Event, update: 
             exceptSubscriptionId: action.stripeSubscriptionId,
           })
           if (other) {
-            console.warn(`[studio] Workspace ${action.workspaceId}: free-Fallback übersprungen — ein anderes Abo lebt noch bei Stripe (Cross-Sub-Autorität)`)
+            console.warn(`[control] Workspace ${action.workspaceId}: free-Fallback übersprungen — ein anderes Abo lebt noch bei Stripe (Cross-Sub-Autorität)`)
             return
           }
         }
         catch (error) {
           // Rethrow → Webhook 500 → Stripe stellt das Event erneut zu und der
           // Check läuft später gegen eine gesunde API (nur so retryt Stripe).
-          console.error(`[studio] Workspace ${action.workspaceId}: Cross-Sub-Autoritäts-Check fehlgeschlagen — Downgrade abgebrochen (fail-closed)`, error)
+          console.error(`[control] Workspace ${action.workspaceId}: Cross-Sub-Autoritäts-Check fehlgeschlagen — Downgrade abgebrochen (fail-closed)`, error)
           throw error
         }
       }
@@ -240,7 +240,7 @@ export async function handleWorkspaceSubscriptionUpdate(event: H3Event, update: 
         // Abo-Bezug lösen: der Workspace hat kein aktives Abo mehr.
         stripeSubscriptionId: '',
       })
-      console.info(`[studio] Workspace ${action.workspaceId} → free-Fallback nach Kündigung (${result.sites} Sites)`)
+      console.info(`[control] Workspace ${action.workspaceId} → free-Fallback nach Kündigung (${result.sites} Sites)`)
     }
   }
 }
