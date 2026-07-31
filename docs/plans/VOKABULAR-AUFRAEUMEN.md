@@ -171,3 +171,25 @@ denselben Dateien. Zwei gleichzeitig heißt: Konflikte, ein unlesbarer Diff und
 keine Möglichkeit, einen einzelnen Schritt zurückzunehmen. Die Etappen 1 und 2
 haben gezeigt, dass die Scheibchen-Taktik trägt — je Etappe eine Migration,
 ein Deploy, ein Beweis.
+
+### ⚠️ control-024 war UNVOLLSTÄNDIG — `app_config.features` fehlt
+
+Beim Trockenlauf von Etappe B am 2026-07-30 aufgefallen, bevor geschrieben
+wurde: `features` in `AppConfigRow` (`packages/core/shared/types/config.ts:39`)
+ist **die Appwrite-Spalte `app_config.features`** (angelegt in system-018),
+nicht bloß ein TypeScript-Feld. `control-024` hat nur `entitlements.productKey`
+und `websites.products` vorbereitet.
+
+Hätte man die Umbenennung jetzt geschrieben, läse und schriebe der Code auf
+**allen vier Instanzen** (control, pool, comments, portfolio) gegen eine Spalte
+`app_config.products`, die es nirgends gibt — und `app_config` steuert die
+Produkt-Gates. Dasselbe Muster wie beim ersten Fund, nur eine Ebene tiefer.
+
+**Vor Etappe B fehlt also noch:** eine `system`-Migration, die
+`app_config.products` NEBEN `features` anlegt und befüllt, gefahren auf allen
+vier Instanzen (`--wave`-Regel beachten: photos/portfolio fahren `system` mit).
+Erst danach darf der Code umgestellt werden.
+
+Zwischenstand Etappe B (gemessen, noch nicht geschrieben): 1.662 Ersetzungen
+in 299 Dateien, dazu 40 Dateiumbenennungen — Migrations-DATEINAMEN bewusst
+ausgenommen (Protokoll, CLAUDE.md).
