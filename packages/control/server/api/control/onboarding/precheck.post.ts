@@ -5,6 +5,7 @@ import { createSlugSchema, slugToHost } from '../../../../schemas/tenant'
 import { TENANTS_TABLE, type TenantRow } from '../../../../shared/types/tenantRecord'
 import { checkInviteCode } from '../../../utils/inviteCodes'
 import { requireOnboardingCaller } from '../../../utils/onboardingService'
+import { isNameReservedInDb } from '../../../utils/reservedNames'
 
 /**
  * Vorprüfung für den Wizard — NICHT verbrauchend.
@@ -50,7 +51,11 @@ export default defineEventHandler(async (event) => {
       tableId: TENANTS_TABLE,
       queries: [Query.equal('host', slugToHost(body.slug)), Query.limit(1)],
     })
-    result.slugAvailable = total === 0
+    // Dieselbe Antwort für „schon vergeben" und „gesperrt" (control-027) —
+    // genau wie beim Anlegen: der Nutzer soll einen anderen Namen wählen. Ohne
+    // diese Prüfung sähe das Formular „frei" und der letzte Wizard-Schritt
+    // antwortete 409; die Enttäuschung gehört ins Namensfeld, nicht ans Ende.
+    result.slugAvailable = total === 0 && !(await isNameReservedInDb(event, body.slug))
   }
 
   return result

@@ -5,10 +5,36 @@
       "workspaces": "Workspaces",
       "tenants": "Tenants",
       "inviteRequests": "Anfragen",
-      "invites": "Einladungen"
+      "invites": "Einladungen",
+      "reservedNames": "Gesperrte Namen"
     }
   },
   "control": {
+    "reservedNames": {
+      "title": "Gesperrte Namen",
+      "help": "Diese Subdomains von pukalani.app werden nie an eine Community vergeben — die Namen der Plattform stehen fest im Code, eigene Einträge kannst du hier jederzeit ergänzen und wieder freigeben.",
+      "formName": "Name",
+      "formNamePlaceholder": "presse",
+      "formNote": "Notiz",
+      "formNotePlaceholder": "Wofür ist der Name vorgesehen?",
+      "formSubmit": "Sperren",
+      "colName": "Name",
+      "colSource": "Herkunft",
+      "colNote": "Notiz",
+      "sourceSystem": "System",
+      "sourceCustom": "Eigene",
+      "delete": "Freigeben",
+      "deleteConfirmTitle": "Namen freigeben?",
+      "deleteConfirmText": "„{name}.pukalani.app“ kann danach von einer Kundin beantragt werden.",
+      "deleteFailed": "Der Name konnte nicht freigegeben werden.",
+      "toastAdded": "„{name}“ ist jetzt gesperrt.",
+      "toastDeleted": "„{name}“ ist wieder frei.",
+      "errorInvalid": "Nur Kleinbuchstaben, Ziffern und Bindestriche (nicht am Anfang oder Ende), höchstens 36 Zeichen.",
+      "errorSystem": "Dieser Name gehört der Plattform und ist bereits dauerhaft gesperrt.",
+      "errorExists": "Dieser Name ist schon in deiner Liste.",
+      "emptyTitle": "Nichts gesperrt",
+      "empty": "Sobald ein Name gesperrt ist, steht er hier."
+    },
     "requests": {
       "title": "Early-Access-Anfragen",
       "subtitle": "Wer möchte eine Community starten? Zuweisen schickt sofort eine Mail mit Code und Direktlink — den Code siehst du nie, er existiert nur zwischen Erzeugung und Versand.",

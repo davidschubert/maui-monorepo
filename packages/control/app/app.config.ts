@@ -80,6 +80,20 @@ export default defineAppConfig({
           group: 'management',
           order: 5,
         },
+        {
+          // Gesperrte Namen: die Code-Basisliste (RESERVED_SUBDOMAINS) zum
+          // Nachsehen plus die eigenen Einträge zum Ergänzen (control-027).
+          // Steht am Ende der Verwaltung — man schaut selten hin, aber wenn,
+          // dann dringend.
+          id: 'reserved-names',
+          productKey: 'control',
+          labelKey: 'admin.nav.reservedNames',
+          icon: 'i-ph-prohibit',
+          to: '/dashboard/reserved-names',
+          requiredCapability: 'sites.manage',
+          group: 'management',
+          order: 6,
+        },
       ],
     },
   },

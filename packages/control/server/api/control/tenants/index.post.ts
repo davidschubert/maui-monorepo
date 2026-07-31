@@ -1,6 +1,7 @@
 import { ID } from 'node-appwrite'
 import { tenantCreateSchema } from '../../../../schemas/tenant'
 import { TENANTS_TABLE, type TenantRow } from '../../../../shared/types/tenantRecord'
+import { isNameReservedInDb, reservedFirstLabel } from '../../../utils/reservedNames'
 
 /**
  * Betreiber: neuen Tenant anlegen — DER Onboarding-Kern („neue Pool-Site" =
@@ -13,6 +14,15 @@ import { TENANTS_TABLE, type TenantRow } from '../../../../shared/types/tenantRe
 export default defineEventHandler(async (event) => {
   requirePermission(event, 'sites.manage')
   const body = await readValidatedBody(event, tenantCreateSchema.parse)
+
+  // Zwei Sperrlisten, eine Wirkung: Zod hat gerade die Code-Basisliste geprüft
+  // (RESERVED_SUBDOMAINS, synchron) — hier kommt die Betreiber-Zusatzliste aus
+  // `reserved_names` dazu (control-027), die kein Deploy kostet. Nur unterhalb
+  // der Betreiber-Domain; fremde Kundendomains sind frei.
+  const reservedLabel = reservedFirstLabel(body.host)
+  if (reservedLabel && await isNameReservedInDb(event, reservedLabel)) {
+    throw createError({ status: 400, statusText: 'Host name is reserved' })
+  }
 
   const appConfig = useAppConfig() as { pukalani?: { control?: { defaultPoolProject?: string } } }
   const projectId = body.projectId ?? (body.mode === 'pool' ? appConfig.pukalani?.control?.defaultPoolProject : undefined)
@@ -54,6 +64,11 @@ export default defineEventHandler(async (event) => {
       // geschrieben statt auf den Spalten-Default vertraut — dann trägt die Row
       // die Entscheidung selbst und der Resolver braucht keinen Fallback.
       openRegistration: true,
+      // A6 (control-028): Betreiber-Weg legt nie mit Abo an — der Community-
+      // Checkout (Geldfluss 1) füllt die Felder beim ersten Kauf.
+      stripeCustomerId: '',
+      stripeSubscriptionId: '',
+      billingStatus: '',
     },
   }).catch((error) => { throw toH3Error(error, 'Could not create tenant') })
 

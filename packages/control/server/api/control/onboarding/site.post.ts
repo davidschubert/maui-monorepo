@@ -4,6 +4,7 @@ import { checkInviteCode, consumeInviteCode } from '../../../utils/inviteCodes'
 import { markCodeRedeemed } from '../../../utils/inviteRequests'
 import { provisionCommunity } from '../../../utils/onboardingProvision'
 import { requireOnboardingCaller, verifyRuntimeIdentity } from '../../../utils/onboardingService'
+import { isNameReservedInDb } from '../../../utils/reservedNames'
 
 /**
  * Self-Service: neue Community anlegen (SAAS-ROADMAP #1, Schritt 7 des Wizards).
@@ -25,6 +26,22 @@ export default defineEventHandler(async (event) => {
   requireOnboardingCaller(event)
   const body = await readValidatedBody(event, bodySchema.parse)
   const identity = await verifyRuntimeIdentity(event, body.jwt)
+
+  // Gesperrte Namen, Teil 2: das Zod-Schema hat die Code-Basisliste geprüft,
+  // hier kommt die Betreiber-Zusatzliste dazu (control-027). VOR dem
+  // Einladungs-Code, damit ein reservierter Name keinen Code kostet.
+  //
+  // 409 „nicht verfügbar", nicht 403 „verboten": für den Nutzer ist das
+  // dieselbe Tatsache wie ein schon vergebener Name — er soll einen anderen
+  // wählen, nicht überlegen, was er falsch gemacht hat. Der wahre Grund steht
+  // im Log, nicht in der Antwort.
+  if (await isNameReservedInDb(event, body.site.slug)) {
+    logEvent('warn', 'onboarding.slug_reserved', {
+      slug: body.site.slug,
+      runtimeUserId: identity.userId,
+    })
+    throw createError({ status: 409, statusText: 'Slug not available' })
+  }
 
   // Early-Access-Tor. Nach außen bleibt jede Ablehnung dieselbe Antwort
   // (kein Code-Ratespiel), der Grund steht nur im Log. Die Adresse geht mit:

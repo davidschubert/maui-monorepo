@@ -5,10 +5,36 @@
       "workspaces": "Workspaces",
       "tenants": "Tenants",
       "inviteRequests": "Requests",
-      "invites": "Invites"
+      "invites": "Invites",
+      "reservedNames": "Reserved names"
     }
   },
   "control": {
+    "reservedNames": {
+      "title": "Reserved names",
+      "help": "These pukalani.app subdomains are never handed out to a community — the platform's own names are fixed in code, your own entries can be added and released here at any time.",
+      "formName": "Name",
+      "formNamePlaceholder": "press",
+      "formNote": "Note",
+      "formNotePlaceholder": "What is this name meant for?",
+      "formSubmit": "Reserve",
+      "colName": "Name",
+      "colSource": "Origin",
+      "colNote": "Note",
+      "sourceSystem": "System",
+      "sourceCustom": "Yours",
+      "delete": "Release",
+      "deleteConfirmTitle": "Release this name?",
+      "deleteConfirmText": "“{name}.pukalani.app” can be claimed by a customer afterwards.",
+      "deleteFailed": "Could not release the name.",
+      "toastAdded": "“{name}” is now reserved.",
+      "toastDeleted": "“{name}” is available again.",
+      "errorInvalid": "Lowercase letters, digits and hyphens only (not at the start or end), 36 characters at most.",
+      "errorSystem": "This name belongs to the platform and is already reserved permanently.",
+      "errorExists": "This name is already on your list.",
+      "emptyTitle": "Nothing reserved",
+      "empty": "Reserved names show up here."
+    },
     "requests": {
       "title": "Early access requests",
       "subtitle": "Who wants to start a community? Assigning sends an email with code and direct link right away — you never see the code, it only exists between generation and sending.",
