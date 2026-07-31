@@ -76,6 +76,34 @@ per `sed`. Bewährte Vorgehensweise von dort: Trockenlauf mit Zählung je Regel,
 dann schreiben, dann `grep` auf Reste, dann Typecheck — der die Lücken zeigt,
 die die Regeln übersehen haben.
 
+### ⚠️ Die Reihenfolge ist umgekehrt — Appwrite ZUERST
+
+Wir hatten geplant: erst Code (Etappe B), dann Appwrite (Etappe C). **Das
+würde die Produktion brechen.** Grund, am Code nachgeprüft am 2026-07-30:
+
+`featureKey` ist nicht nur ein TypeScript-Bezeichner, sondern **zugleich der
+Appwrite-Spaltenschlüssel**. In `scripts/control-jobs.mjs:142` steht
+`data: { siteProjectId, featureKey, status: 'active', … }` — die
+Objekt-Eigenschaft IST der Spaltenname im Schreibvorgang. Benennt man sie im
+Code um, schreibt der Code gegen eine Spalte `productKey`, die es in Appwrite
+nicht gibt. Dasselbe gilt für `features` (`app_config.features`,
+`websites.features`) und `entitlementFeature` (`courses.entitlementFeature`).
+
+Richtige Reihenfolge — dasselbe Ausdehnen-Umziehen-Zusammenziehen wie bei
+control-022/023:
+
+1. **Migration (additiv):** `product_catalog` anlegen und Zeilen **mit
+   `rowId: row.$id`** kopieren (die Row-Id IST hier der Produkt-Schlüssel und
+   steckt in `entitlements.featureKey`); neue Spalten `productKey`,
+   `products`, `entitlementProduct` **neben** den alten anlegen und befüllen.
+   Danach existiert beides — alter Code läuft unverändert weiter.
+2. **Code umstellen** (Etappe B) — schreibt und liest ab jetzt die neuen Namen.
+3. **Deploy**, eine Nacht beobachten.
+4. **Zusammenziehen:** alte Spalten und `feature_catalog` löschen.
+
+Wer 1 und 2 vertauscht, hat zwischen Migration und Deploy ein Fenster, in dem
+der Geld- und Produkt-Pfad ins Leere schreibt.
+
 ### Etappe A ist erledigt (2026-07-30)
 
 `maui` → `pukalani` ist durch: 884 Ersetzungen in 327 Dateien, Paket-Scope
