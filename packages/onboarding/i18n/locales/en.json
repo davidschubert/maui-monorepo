@@ -164,6 +164,75 @@
       "slugLong": "At most 40 characters.",
       "slugInvalid": "Lowercase letters, numbers and hyphens only.",
       "slugReserved": "That address is reserved. Please pick another one."
+    },
+    "nav": {
+      "subscription": "Subscription"
+    },
+    "subscription": {
+      "title": "Subscription & billing",
+      "help": "Which plan applies to your community, what it costs, and where to find invoices and payment details.",
+      "noTenantTitle": "No subscription here",
+      "noTenantText": "This page belongs to a community. On a dedicated instance the operator handles billing, not an individual community.",
+      "currentPlan": "Current plan",
+      "currentPlanNote": "Your current plan.",
+      "priceNote": "The binding amount is the one shown in the Stripe checkout — that is also where tax is calculated from your billing address.",
+      "choosePlan": "Choose a plan",
+      "chooseHelp": "After you buy we hand you over to Stripe. You come back to this page; the new plan appears once the payment is confirmed.",
+      "intervalMonthly": "Monthly",
+      "intervalYearly": "Yearly",
+      "yearlyDiscount": "Save 25%",
+      "perMonth": "per month",
+      "perMonthYearly": "per month, billed yearly",
+      "vatNote": "Final price incl. 19% VAT.",
+      "buy": "Get {plan}",
+      "downgradeHint": "Basic applies automatically whenever no paid subscription is running. Downgrading and cancelling go through \"Invoices & payment method\".",
+      "portalTitle": "Invoices & payment method",
+      "portalHint": "The Stripe portal holds every invoice and lets you change the payment method, switch plans or cancel.",
+      "portalNote": "You briefly leave Pukalani and land at Stripe.",
+      "portal": "Open portal",
+      "noSubscription": "No subscription yet — so there is nothing to bill.",
+      "alreadySubscribed": "A subscription already exists. Changes go through \"Invoices & payment method\".",
+      "checkoutSuccess": "Thank you! The payment is being processed — your plan will update shortly.",
+      "checkoutCanceled": "Cancelled. Nothing was charged.",
+      "errorGeneric": "That didn't work just now. Please try again in a minute.",
+      "plans": {
+        "basic": {
+          "name": "Basic",
+          "price": "€0",
+          "priceYearly": "€0",
+          "bullets": [
+            "One community with its own address and its own look",
+            "Discussions and comments",
+            "Your own pages such as imprint, about or house rules",
+            "Reports and basic moderation",
+            "200 comments per day"
+          ]
+        },
+        "personal": {
+          "name": "Personal",
+          "price": "€29",
+          "priceYearly": "€21.75",
+          "bullets": [
+            "Everything in Basic",
+            "Post feed with polls",
+            "Activity stream and feedback channel",
+            "Email notifications for your members",
+            "1,000 comments per day"
+          ]
+        },
+        "pro": {
+          "name": "Pro",
+          "price": "€149",
+          "priceYearly": "€111.75",
+          "bullets": [
+            "Everything in Personal",
+            "Events with RSVPs",
+            "Courses with lessons and progress",
+            "AI assistant for moderation",
+            "5,000 comments per day"
+          ]
+        }
+      }
     }
   },
   "admin": {

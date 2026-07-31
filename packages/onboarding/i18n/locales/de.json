@@ -164,6 +164,75 @@
       "slugLong": "Höchstens 40 Zeichen.",
       "slugInvalid": "Nur Kleinbuchstaben, Zahlen und Bindestriche.",
       "slugReserved": "Diese Adresse ist reserviert. Wähle bitte eine andere."
+    },
+    "nav": {
+      "subscription": "Abo & Rechnung"
+    },
+    "subscription": {
+      "title": "Abo & Rechnung",
+      "help": "Welcher Plan für deine Community gilt, was er kostet und wo du Rechnungen und Zahlungsmethode findest.",
+      "noTenantTitle": "Hier gibt es kein Abo",
+      "noTenantText": "Diese Seite gehört zu einer Community. Auf einer eigenen Instanz rechnet der Betreiber ab, nicht die einzelne Community.",
+      "currentPlan": "Aktueller Plan",
+      "currentPlanNote": "Dein aktueller Plan.",
+      "priceNote": "Verbindlich ist der Betrag, den der Stripe-Checkout zeigt — dort wird auch die Steuer nach deiner Rechnungsadresse berechnet.",
+      "choosePlan": "Plan wählen",
+      "chooseHelp": "Nach dem Kauf leiten wir dich zu Stripe. Zurück kommst du auf diese Seite; der neue Plan erscheint, sobald die Zahlung bestätigt ist.",
+      "intervalMonthly": "Monatlich",
+      "intervalYearly": "Jährlich",
+      "yearlyDiscount": "25 % sparen",
+      "perMonth": "pro Monat",
+      "perMonthYearly": "pro Monat, jährlich abgerechnet",
+      "vatNote": "Endpreis inkl. 19 % MwSt.",
+      "buy": "{plan} holen",
+      "downgradeHint": "Basic gilt automatisch, wenn kein bezahltes Abo läuft. Herunterstufen oder kündigen läuft über „Rechnungen & Zahlungsmethode\".",
+      "portalTitle": "Rechnungen & Zahlungsmethode",
+      "portalHint": "Im Stripe-Portal siehst du alle Rechnungen, änderst die Zahlungsmethode, wechselst den Plan oder kündigst.",
+      "portalNote": "Du verlässt dabei kurz Pukalani und landest bei Stripe.",
+      "portal": "Portal öffnen",
+      "noSubscription": "Noch kein Abo vorhanden — es gibt also nichts abzurechnen.",
+      "alreadySubscribed": "Es besteht bereits ein Abo. Änderungen laufen über „Rechnungen & Zahlungsmethode\".",
+      "checkoutSuccess": "Danke! Die Zahlung wird verarbeitet — dein Plan aktualisiert sich in Kürze.",
+      "checkoutCanceled": "Abgebrochen. Es wurde nichts berechnet.",
+      "errorGeneric": "Das hat gerade nicht geklappt. Versuch es in einer Minute noch einmal.",
+      "plans": {
+        "basic": {
+          "name": "Basic",
+          "price": "0 €",
+          "priceYearly": "0 €",
+          "bullets": [
+            "Eine Community mit eigener Adresse und eigenem Erscheinungsbild",
+            "Diskussionen und Kommentare",
+            "Eigene Seiten wie Impressum, Über uns oder Regeln",
+            "Meldungen und Basis-Moderation",
+            "200 Kommentare pro Tag"
+          ]
+        },
+        "personal": {
+          "name": "Personal",
+          "price": "29 €",
+          "priceYearly": "21,75 €",
+          "bullets": [
+            "Alles aus Basic",
+            "Beiträge-Feed mit Umfragen",
+            "Aktivitäts-Verlauf und Feedback-Kanal",
+            "E-Mail-Benachrichtigungen für deine Mitglieder",
+            "1.000 Kommentare pro Tag"
+          ]
+        },
+        "pro": {
+          "name": "Pro",
+          "price": "149 €",
+          "priceYearly": "111,75 €",
+          "bullets": [
+            "Alles aus Personal",
+            "Events mit Anmeldung",
+            "Kurse mit Lektionen und Fortschritt",
+            "KI-Assistent für die Moderation",
+            "5.000 Kommentare pro Tag"
+          ]
+        }
+      }
     }
   },
   "admin": {
