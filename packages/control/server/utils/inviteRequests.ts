@@ -225,6 +225,45 @@ export async function upsertRequest(
   return { request: created, created: true }
 }
 
+/**
+ * Alle Betreiber-Konten (Label `admin`) — GEZIELT abgefragt statt nachträglich
+ * gefiltert.
+ *
+ * Vorher stand hier `Query.limit(25)` und DANACH der Label-Filter (D7): ab dem
+ * 26. Konto im Projekt bekamen Betreiber still keine Early-Access-Anfrage mehr.
+ * „Still" ist der eigentliche Schaden — es gibt keinen Fehler, nur ausbleibende
+ * Meldungen, und niemand vermisst eine Anfrage, von der er nie erfahren hat.
+ * Am 2026-07-30 gegen eine echte Instanz gemessen: 42 Konten, davon 4 mit
+ * `admin` — die Grenze ist also schon heute überschritten.
+ *
+ * Appwrite kann das Label selbst filtern (`Query.contains` auf `labels`, gegen
+ * eine laufende 1.9.6 verifiziert). Der `includes`-Nachcheck bleibt trotzdem:
+ * `contains` arbeitet auf Strings substring-artig, und ein Konto mit dem Label
+ * `administrator` darf hier nicht mitgemeint sein. Die Seitenschleife deckt
+ * mehr als 100 Betreiber ab; wird der Deckel erreicht, ist das eine LAUTE
+ * Meldung und keine stille Kürzung.
+ */
+async function listOperatorIds(event: H3Event): Promise<string[]> {
+  const { users } = createAdminClient(event)
+  const ids: string[] = []
+  let cursor = ''
+
+  for (let page = 0; page < 20; page++) {
+    const queries = [Query.contains('labels', ['admin']), Query.limit(100)]
+    if (cursor) queries.push(Query.cursorAfter(cursor))
+    const { users: batch } = await users.list({ queries })
+
+    for (const operator of batch) {
+      if ((operator.labels ?? []).includes('admin')) ids.push(operator.$id)
+    }
+    if (batch.length < 100) return ids
+    cursor = batch[batch.length - 1]!.$id
+  }
+
+  logEvent('warn', 'invite.operators_truncated', { found: ids.length })
+  return ids
+}
+
 /** Betreiber-Benachrichtigung: Mail + In-App für alle Operator-Konten. */
 export async function notifyOperators(event: H3Event, request: InviteRequestRow): Promise<void> {
   const config = useRuntimeConfig(event)
@@ -245,12 +284,9 @@ export async function notifyOperators(event: H3Event, request: InviteRequestRow)
 
   // In-App für jeden Betreiber (Label admin) — notify() wirft nie.
   try {
-    const { users } = createAdminClient(event)
-    const { users: operators } = await users.list({ queries: [Query.limit(25)] })
-    for (const operator of operators) {
-      if (!(operator.labels ?? []).includes('admin')) continue
+    for (const operatorId of await listOperatorIds(event)) {
       await notify(event, {
-        recipientId: operator.$id,
+        recipientId: operatorId,
         type: 'invite.request',
         // title = die anfragende ADRESSE, nicht ein Satz (C17): die Glocke
         // setzt den Titel als {name} in ihren lokalisierten Text ein
