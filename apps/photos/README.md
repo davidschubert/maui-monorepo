@@ -1,4 +1,4 @@
-# apps/_template — Kopiervorlage für neue Maui-Apps
+# apps/_template — Kopiervorlage für neue Pukalani-Apps
 
 Dünne App-Hülle, die alle Layer komponiert (`themes`, `admin`, `comments`,
 `moderation`, `core`, `system`). Der Unterstrich-Prefix hält sie aus dem
@@ -35,7 +35,7 @@ Migrations-Runner heraus (`scripts/migrate.mjs` ignoriert `_*`).
    ```
 
 5. **Anpassen**
-   - `app/app.config.ts`: Config-Gates (`maui.analytics`, `maui.auth.*`, …)
+   - `app/app.config.ts`: Config-Gates (`pukalani.analytics`, `pukalani.auth.*`, …)
    - `i18n/locales/*.json`: App-Texte (Core-Keys werden gemergt)
    - `app/pages/`: eigene Seiten; Layout-Overrides optional unter `app/layouts/`
      (Core bringt `default` + `auth` mit)

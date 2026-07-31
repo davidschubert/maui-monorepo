@@ -8,7 +8,7 @@ damit das Konzept beim Baustart fertig auf dem Tisch liegt.
 
 Ein Mittelding zwischen geführtem Forum und Reddit:
 
-- Der **Admin legt Kategorien fest** (z. B. „maui", „gsap") — Struktur ist
+- Der **Admin legt Kategorien fest** (z. B. „pukalani", „gsap") — Struktur ist
   Admin-Sache, Mitglieder können KEINE Kategorien anlegen.
 - **Mitglieder eröffnen Threads** innerhalb einer Kategorie.
 - **Threads werden kommentiert** — über den normalen comments-Andockpunkt
@@ -28,8 +28,8 @@ Discussions = Admin-Struktur + Threads. Beide nutzen comments darunter.
 ## URL-Schema (entschieden)
 
 ```
-/discussions/<kategorie>                      z. B. /discussions/maui
-/discussions/<kategorie>/<id>/<slug>          z. B. /discussions/maui/1v7ornq/polipoli-open-yet
+/discussions/<kategorie>                      z. B. /discussions/pukalani
+/discussions/<kategorie>/<id>/<slug>          z. B. /discussions/pukalani/1v7ornq/polipoli-open-yet
 ```
 
 - **Die ID ist die Wahrheit** (kurz, unveränderlich). Der Slug ist Deko für

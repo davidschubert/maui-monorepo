@@ -1,6 +1,6 @@
 # Horizont 3 — Pool + Silo: Zwei-Tier-Mandantentrennung (Blueprint)
 
-Stand: 2026-07-20. **Entscheidung getroffen (David):** Maui fährt Horizont 3 als
+Stand: 2026-07-20. **Entscheidung getroffen (David):** Pukalani fährt Horizont 3 als
 **zweistufiges Mandanten-Modell** — nicht „entweder/oder", sondern beides:
 
 - **Pool** (Standard-SaaS): die Masse der Kunden lebt gepoolt in *einer*
@@ -86,7 +86,7 @@ Appwrite-Row-Permissions. Muster wie bereits im comments-Layer
 `read(Role.label(tenantId))` / `write(...)`, und der User-Session-Client trägt
 das Tenant-Label. Ein vergessener `scopeQuery` leakt dann *trotzdem* nichts,
 weil Appwrite die Zeile gar nicht erst herausgibt. Genau das ist das
-Argument, warum Maui bei Row-Permissions bleibt statt shared-DB „nackt".
+Argument, warum Pukalani bei Row-Permissions bleibt statt shared-DB „nackt".
 
 ## 3. Was das für die bestehenden M1–M9 bedeutet
 

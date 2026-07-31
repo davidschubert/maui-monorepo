@@ -1,4 +1,4 @@
-# 🏗️ Maui Core Layer – Nuxt Monorepo
+# 🏗️ Pukalani Core Layer – Nuxt Monorepo
 
 > **Stand:** Juni 2026 · Konzept v2.1 — SSR-Architektur, TablesDB, Feature-Layer-Ebene.
 > v2.1 gleicht das Dokument mit der Realität nach Phasen 1–10 ab (Realtime-Korrektur,
@@ -6,7 +6,7 @@
 
 ## Projektbeschreibung
 
-Das `maui-monorepo` ist die gemeinsame Basis für alle Maui-Projekte. Ein zentraler Nuxt Layer (`packages/core`) liefert Auth, Appwrite-Integration, Design-Fundament, Typen und Utilities — einmal implementiert, per `extends` in beliebig viele Apps eingebunden. Darüber liegt eine **Feature-Layer-Ebene** (Themes, Comments, Admin, Billing, …), aus der sich Apps ihre Funktionalität zusammenstellen.
+Das Pukalani-Monorepo (Ordner und GitHub-Repo heißen weiterhin `maui-monorepo`) ist die gemeinsame Basis für alle Pukalani-Projekte. Ein zentraler Nuxt Layer (`packages/core`) liefert Auth, Appwrite-Integration, Design-Fundament, Typen und Utilities — einmal implementiert, per `extends` in beliebig viele Apps eingebunden. Darüber liegt eine **Feature-Layer-Ebene** (Themes, Comments, Admin, Billing, …), aus der sich Apps ihre Funktionalität zusammenstellen.
 
 ---
 
@@ -231,7 +231,7 @@ maui-monorepo/
 │   │   │   │                              # Gate: enabled UND Consent
 │   │   │   ├── utils/
 │   │   │   │   └── appwrite.client.ts     # Web SDK Client (nur Realtime)
-│   │   │   └── app.config.ts              # Maui Theme + pukalani.* Defaults — MUSS in
+│   │   │   └── app.config.ts              # Pukalani Theme + pukalani.* Defaults — MUSS in
 │   │   │                                  # app/ liegen (Package-Root wird ignoriert!)
 │   │   │
 │   │   ├── server/
@@ -565,7 +565,7 @@ Immer explizites `Query.limit(...)` setzen (Default 25 → stille Trunkierung).
 
 ### Design-Fundament
 
-- `app.config.ts` — Maui Default Theme (Nuxt UI: primary, neutral, radius, fonts)
+- `app.config.ts` — Pukalani Default Theme (Nuxt UI: primary, neutral, radius, fonts)
 - `main.css` — Tailwind 4 `@import` + `@source` + CSS Custom Properties
 - Color Tokens: primary / secondary / neutral / success / warning / error / info
 - Das Multi-Theme-System lebt in `packages/themes` (9 Built-ins + Custom Themes aus einer Basisfarbe, Schrift-Rollen, `useTheme`) — Konzept: docs/referenz/THEMES-CONCEPT-V2.md
@@ -604,7 +604,7 @@ Immer explizites `Query.limit(...)` setzen (Default 25 → stille Trunkierung).
 
 ### Phase 2 – Design-Fundament
 - Nuxt UI 4 in Core installieren + konfigurieren
-- Maui Default Theme in `app.config.ts`
+- Pukalani Default Theme in `app.config.ts`
 - `main.css` mit Tailwind 4 + `@source` für Layer-Pfad
 - Override-Test: App-`app.config.ts` überschreibt Core Theme
 

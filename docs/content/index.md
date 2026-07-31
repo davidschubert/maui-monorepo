@@ -1,7 +1,7 @@
 ---
 seo:
-  title: Maui Docs
-  description: Die Dokumentation des Maui Monorepos — Nuxt 4 Layer-Architektur mit Appwrite, von der Architektur bis zum Guide für neue Apps.
+  title: Pukalani Docs
+  description: Die Dokumentation des Pukalani Monorepos — Nuxt 4 Layer-Architektur mit Appwrite, von der Architektur bis zum Guide für neue Apps.
 ---
 
 ::u-page-hero{class="dark:bg-gradient-to-b from-neutral-900 to-neutral-950"}
@@ -9,7 +9,7 @@ seo:
 orientation: horizontal
 ---
 #title
-Das [Maui]{.text-primary} Monorepo, dokumentiert.
+Das [Pukalani]{.text-primary} Monorepo, dokumentiert.
 
 #description
 Nuxt 4 Monorepo mit zentralem Core Layer und komponierbaren Feature Layers auf Appwrite-Basis. Auth, Design-Fundament, Realtime und Utilities werden einmal gebaut — und per `extends` in beliebig viele Apps eingebunden.
@@ -76,7 +76,7 @@ Was dich hier erwartet
   Erste Schritte
 
   #description
-  Was Maui ist, wie du das Monorepo lokal aufsetzt und wie die Verzeichnisstruktur aufgebaut ist.
+  Was Pukalani ist, wie du das Monorepo lokal aufsetzt und wie die Verzeichnisstruktur aufgebaut ist.
   :::
 
   :::u-page-feature

@@ -13,7 +13,7 @@ const legalLinks = computed(() => appConfig.pukalani?.legalLinks ?? [])
 // pukalani.chrome.utilities beziehen und interne Apps keine brauchen.
 const accountBell = computed(() => appConfig.pukalani?.chrome?.accountBell === true)
 // Brand: Tenant-Name (Pool-Host, z. B. „Morgenlicht") vor App-Brand vor
-// dem historischen „Maui"-Fallback — Kette in useBrandName().
+// dem Fallback „Pukalani" — Kette in useBrandName().
 const brand = useBrandName()
 </script>
 

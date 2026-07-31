@@ -13,7 +13,7 @@ import { BRAND_CARD_HEIGHT, BRAND_CARD_WIDTH, brandCardKey, brandCardPath } from
  * ebenfalls flash-frei. Apps ohne system-Layer/Table: Route fehlt/leer → [].
  *
  * DOM-Ids (Audit-Befund K3): die Head-Elemente heißen `pk-*`, nicht mehr
- * `pukalani-*` — `maui` ist der interne Monorepo-/Layer-Name und hatte im Markup
+ * `maui-*` — `maui` war der interne Monorepo-/Layer-Name und hatte im Markup
  * einer Kunden-Community nichts zu suchen. Die Ids sind reine Anker für
  * useHead-Dedupe (kein Code liest sie); wer neue setzt, bleibt beim `pk-`-Präfix.
  */

@@ -8,7 +8,7 @@ import { builtinNeutralIds, builtinThemeIds, builtinThemeName, builtinVariantIds
  * <html> jeder Community-Seite landet. Fail-closed ist hier kein Detail.
  */
 describe('Built-in-Katalog als Validierungsquelle', () => {
-  it('kennt den Vollausbau (Maui-Default + 26 Farbwelten)', () => {
+  it('kennt den Vollausbau (Pukalani-Default + 26 Farbwelten)', () => {
     const ids = builtinThemeIds()
     expect(ids[0]).toBe('default')
     expect(ids.length).toBe(27)
@@ -83,7 +83,7 @@ describe('Auswahl {theme, variant} prüfen — fail-closed', () => {
     expect(isBuiltinThemeSelection('', 'deep')).toBe(false)
   })
 
-  it('der Maui-Default hat keine Varianten', () => {
+  it('der Pukalani-Default hat keine Varianten', () => {
     expect(builtinVariantIds('default')).toEqual([])
     expect(isBuiltinThemeSelection('default', '')).toBe(true)
     expect(isBuiltinThemeSelection('default', 'deep')).toBe(false)

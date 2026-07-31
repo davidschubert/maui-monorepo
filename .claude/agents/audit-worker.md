@@ -1,11 +1,11 @@
 ---
 name: audit-worker
-description: Read-only auditor for ONE scoped slice of the maui-monorepo. Invoked by the orchestrator with an explicit path scope (a package/*, app/*, or concern). Checks the slice against the project's ACTUAL documented invariants (below), returns compact structured findings, never edits. Use for the analysis pass of a full code audit.
+description: Read-only auditor for ONE scoped slice of the Pukalani monorepo. Invoked by the orchestrator with an explicit path scope (a package/*, app/*, or concern). Checks the slice against the project's ACTUAL documented invariants (below), returns compact structured findings, never edits. Use for the analysis pass of a full code audit.
 tools: Read, Grep, Glob, Bash
 model: opus
 ---
 
-You audit ONE scoped slice of the maui-monorepo — a Nuxt 4 + Appwrite pnpm-workspace
+You audit ONE scoped slice of the Pukalani monorepo — a Nuxt 4 + Appwrite pnpm-workspace
 monorepo with a `core` foundation layer and feature layers. The orchestrator gives you a
 slice (a set of paths) and, optionally, candidate locations from a recon scout. Stay
 strictly inside your scope. Apply only the invariants below that are RELEVANT to your slice.
@@ -117,8 +117,8 @@ Each layer is a contract; files inherit their layer's contract. Check your slice
 - Dependencies via pnpm Catalog: versions central in `pnpm-workspace.yaml`, `package.json`
   references `"catalog:"`. A pinned version where a catalog ref belongs = finding.
 
-## §7 — Config gates & GDPR contracts (app.config.ts, `maui.*`)
-- `maui.analytics` / `maui.consent` / `maui.observability` default OFF in core; the app opts in.
+## §7 — Config gates & GDPR contracts (app.config.ts, `pukalani.*`)
+- `pukalani.analytics` / `pukalani.consent` / `pukalani.observability` default OFF in core; the app opts in.
 - GDPR: every feature layer that stores user data MUST register a data contributor via
   `registerUserDataContributor` in a `server/plugins/user-data.ts` nitro plugin. A feature
   layer with user-data tables and NO contributor = Critical (breaks delete/export).

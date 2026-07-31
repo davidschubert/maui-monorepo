@@ -1,4 +1,4 @@
-// Docs-App (eigenständig, KEIN Maui-Layer): rendert docs/content/* als
+// Docs-App (eigenständig, KEIN Pukalani-Layer): rendert docs/content/* als
 // durchsuchbare Doku-Site nach dem Vorbild des Nuxt-UI-Docs-Templates.
 // Bewusst außerhalb von apps/* — sie braucht weder Appwrite noch
 // Site-Manifest (check-manifests scannt nur apps/ + packages/).

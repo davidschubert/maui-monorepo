@@ -1,4 +1,4 @@
-# apps/_template — Kopiervorlage für neue Maui-Apps
+# apps/_template — Kopiervorlage für neue Pukalani-Apps
 
 Dünne App-Hülle, die alle Layer komponiert (`themes`, `admin`, `comments`,
 `moderation`, `core`, `system`). Der Unterstrich-Prefix hält sie aus dem

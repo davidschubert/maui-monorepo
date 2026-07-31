@@ -137,7 +137,7 @@ async function login(host, account) {
 }
 
 async function issueCode(tag) {
-  const code = `MAUI-E12${tag}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
+  const code = `PUKA-E12${tag}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
   const row = await control.createRow({
     databaseId, tableId: 'invite_codes', rowId: ID.unique(),
     data: {

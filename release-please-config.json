@@ -5,7 +5,7 @@
   "bootstrap-sha": "466be65e041876505043972ebc04319c37f1ee5b",
   "packages": {
     ".": {
-      "package-name": "maui-monorepo",
+      "package-name": "pukalani-monorepo",
       "changelog-sections": [
         { "type": "feat", "section": "Features" },
         { "type": "fix", "section": "Bug Fixes" },

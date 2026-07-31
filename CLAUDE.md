@@ -1,7 +1,8 @@
-# Maui Monorepo – Claude Code Context
+# Pukalani Monorepo – Claude Code Context
 
 ## Projekt
-Nuxt 4 Monorepo (maui-monorepo) mit zentralem Core Layer + Produkt-Layern.
+Nuxt 4 Monorepo — Marke **Pukalani** (der lokale Ordner heißt weiterhin
+`maui-monorepo`, ebenso das GitHub-Repo) — mit zentralem Core Layer + Produkt-Layern.
 Vollständiges Konzept: docs/CONCEPT.md
 
 ## Stack

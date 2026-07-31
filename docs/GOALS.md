@@ -1,4 +1,4 @@
-# 🎯 Maui Monorepo – /goal Texte pro Phase
+# 🎯 Pukalani Monorepo – /goal Texte pro Phase
 
 > Ein Goal = eine Phase. Jeder Text folgt dem Schema: **Endzustand → Nachweis → Constraints → Turn-Limit.**
 > Der Evaluator sieht nur das Transcript — jede Bedingung muss prüfbaren Terminal-Output erzeugen.

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Account-Menü unten links in der Sidebar (Vorbild: UserMenu des Nuxt-UI-Templates),
-// angepasst an unser Theme-System (Maui-Themes + Varianten), Appearance, Sprache, Logout.
+// angepasst an unser Theme-System (Pukalani-Themes + Varianten), Appearance, Sprache, Logout.
 import type { DropdownMenuItem } from '@nuxt/ui'
 import { isProductStateEnabled } from '../../../core/shared/types/config'
 import { filterDashboardModules, resolveDashboardPlace } from '../../../core/shared/dashboardNav'

@@ -8,7 +8,7 @@ import { createConfigForNuxt } from '@nuxt/eslint-config/flat'
 // Jeweils Paketname + Subpfade (`/**`) abdecken.
 const pkg = name => [`@pukalani/${name}`, `@pukalani/${name}/**`]
 const featureLayers = [...pkg('comments'), ...pkg('admin'), ...pkg('themes'), ...pkg('feed'), ...pkg('posts'), ...pkg('events'), ...pkg('feedback'), ...pkg('billing'), ...pkg('courses'), ...pkg('tickets')]
-const allMauiFeatures = [...featureLayers, ...pkg('moderation')]
+const allPukalaniFeatures = [...featureLayers, ...pkg('moderation')]
 
 export default createConfigForNuxt({
   features: {
@@ -36,7 +36,7 @@ export default createConfigForNuxt({
   rules: {
     'no-restricted-imports': ['error', {
       patterns: [
-        { group: ['appwrite', 'node-appwrite', ...allMauiFeatures, ...pkg('core')],
+        { group: ['appwrite', 'node-appwrite', ...allPukalaniFeatures, ...pkg('core')],
           message: 'themes ist rein visuell — keine Appwrite-/Layer-Imports (CONCEPT.md A14).' },
       ],
     }],

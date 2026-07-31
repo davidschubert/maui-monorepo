@@ -177,10 +177,10 @@ if (!skipAppwrite && consoleEmail && consolePassword) {
       console.log(`↷ Organisation ${teamId} (eigene) wird genutzt`)
     }
     else {
-      let { status, json } = await consoleApi('/teams', 'POST', { teamId, name: 'Maui Sites' })
+      let { status, json } = await consoleApi('/teams', 'POST', { teamId, name: 'Pukalani Sites' })
       if (status === 409) {
         teamId = `pukalani-sites-${Math.random().toString(36).slice(2, 6)}`
-        ;({ status, json } = await consoleApi('/teams', 'POST', { teamId, name: 'Maui Sites' }))
+        ;({ status, json } = await consoleApi('/teams', 'POST', { teamId, name: 'Pukalani Sites' }))
       }
       if (status !== 201) fail(`Organisation (${status}): ${json?.message ?? ''}`)
       console.log(`✔ Organisation ${teamId} angelegt`)

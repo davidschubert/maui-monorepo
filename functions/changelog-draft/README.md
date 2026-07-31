@@ -54,5 +54,5 @@ Repo → **Settings → Webhooks → Add webhook**:
 ## Lokaler Selbsttest (ohne Deploy)
 
 Die reine Logik ist unit-getestet: `packages/admin/tests/changelog-parse.test.ts`
-(`pnpm --filter @maui/admin test`). Der End-to-End-Pfad (Webhook → Draft) lässt
+(`pnpm --filter @pukalani/admin test`). Der End-to-End-Pfad (Webhook → Draft) lässt
 sich sinnvoll erst gegen die Prod-Instanz testen.

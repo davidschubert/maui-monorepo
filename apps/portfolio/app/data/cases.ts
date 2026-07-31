@@ -26,7 +26,7 @@ export interface PortfolioCase {
 export const CASES: PortfolioCase[] = [
   {
     slug: 'pukalani-platform',
-    title: 'Maui Platform',
+    title: 'Pukalani Platform',
     year: '2026',
     role: { de: 'Konzept, Architektur & Entwicklung', en: 'Concept, architecture & development' },
     stack: ['Nuxt 4', 'Appwrite', 'TypeScript', 'pnpm Workspaces', 'Stripe'],
@@ -36,8 +36,8 @@ export const CASES: PortfolioCase[] = [
     },
     paragraphs: [
       {
-        de: 'Die Maui Platform ist ein Nuxt-4-Monorepo mit einem Fundament-Layer und komponierbaren Produkt-Layern (Kommentare, Medien, Events, Tickets, Billing …). Jede Site wählt ihre Produkte per Manifest; ein CI-Check erzwingt die Konsistenz von Verträgen, Abhängigkeiten und Migrationen.',
-        en: 'Maui Platform is a Nuxt 4 monorepo with a foundation layer and composable product layers (comments, media, events, tickets, billing …). Every site picks its products via manifest; a CI check enforces consistency of contracts, dependencies and migrations.',
+        de: 'Die Pukalani Platform ist ein Nuxt-4-Monorepo mit einem Fundament-Layer und komponierbaren Produkt-Layern (Kommentare, Medien, Events, Tickets, Billing …). Jede Site wählt ihre Produkte per Manifest; ein CI-Check erzwingt die Konsistenz von Verträgen, Abhängigkeiten und Migrationen.',
+        en: 'Pukalani Platform is a Nuxt 4 monorepo with a foundation layer and composable product layers (comments, media, events, tickets, billing …). Every site picks its products via manifest; a CI check enforces consistency of contracts, dependencies and migrations.',
       },
       {
         de: 'Das Control Plane (Studio) provisioniert neue Sites als Job — Appwrite-Projekt, Schema-Migrationen, Register-Eintrag und Produkt-Zuteilung entstehen aus einem Klick. Entitlements werden als signierte Ed25519-Dokumente zugestellt und serverseitig durchgesetzt.',

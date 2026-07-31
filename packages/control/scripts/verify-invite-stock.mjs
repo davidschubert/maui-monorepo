@@ -154,7 +154,7 @@ try {
     !(afterFill.json?.codes ?? []).some(c => c.state === 'free'))
   check('freie Plätze in der Statistik gestiegen', afterFill.json?.stock?.free === (before?.free ?? 0) + 3,
     `${before?.free} → ${afterFill.json?.stock?.free}`)
-  check('kein Klartext in der Antwort', !/MAUI-[A-Z0-9]{4}-[A-Z0-9]{4}/.test(afterFill.text) && !/codeHash/.test(afterFill.text))
+  check('kein Klartext in der Antwort', !/PUKA-[A-Z0-9]{4}-[A-Z0-9]{4}/.test(afterFill.text) && !/codeHash/.test(afterFill.text))
 
   console.log('\n3. Ein freier Platz ist NICHT einlösbar')
   // Der Hash eines Vorrats-Platzes ist ein Zufallswert, den niemand kennt —
@@ -180,11 +180,11 @@ try {
 
   const assign = await callStudio(`/api/control/invite-requests/${requestId}/assign`, { method: 'POST', cookie })
   check('Zuweisung erfolgreich', assign.status === 200, `${assign.status} ${assign.text.slice(0, 200)}`)
-  check('Betreiber bekommt den Klartext NICHT zu sehen', !/MAUI-[A-Z0-9]{4}-[A-Z0-9]{4}/.test(assign.text), assign.text.slice(0, 120))
+  check('Betreiber bekommt den Klartext NICHT zu sehen', !/PUKA-[A-Z0-9]{4}-[A-Z0-9]{4}/.test(assign.text), assign.text.slice(0, 120))
 
   const mail = await mailTo(applicant)
   if (!mail.available) console.log('   ⊘ Mailpit nicht erreichbar — Kunden-Mail ungeprüft')
-  else check('Kunde hat den Code per Mail', !!mail.text && /MAUI-[A-Z0-9]{4}-[A-Z0-9]{4}/.test(mail.text))
+  else check('Kunde hat den Code per Mail', !!mail.text && /PUKA-[A-Z0-9]{4}-[A-Z0-9]{4}/.test(mail.text))
 
   const afterAssign = await callStudio('/api/control/invites', { cookie })
   const usedSlot = (afterAssign.json?.codes ?? []).find(c => c.boundEmail === applicant)

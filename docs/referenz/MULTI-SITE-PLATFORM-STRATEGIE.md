@@ -1,4 +1,4 @@
-# Multi-Site-Platform-Strategie — „Maui Platform"
+# Multi-Site-Platform-Strategie — „Pukalani Platform"
 
 Stand: 2026-07-14 (7. Runde: finale Nachbesserungen — vom Review als
 Umsetzungsstrategie freigegeben, Start mit S0) · Status:
@@ -207,7 +207,7 @@ gleichzeitig → Single Point of Failure bewusst akzeptieren + überwachen.
   Cookie-Modells; (b) Sites bleiben funktionsfähig, auch wenn das Control
   Plane down ist; (c) das gesamte bestehende Admin-Paket wird unverändert
   weiterverwendet.
-- **hawaii.studio = Control Plane** („Mission Control", eigene Maui-App
+- **hawaii.studio = Control Plane** („Mission Control", eigene Pukalani-App
   `apps/control` mit eigenem Appwrite-Projekt): Workspace-/Site-Register,
   Provisionierung, Feature-Entitlements + Plan/Abo je Site, Health/Status
   aller Sites, Abrechnungen. Linear-artiger Workspace-Switcher, der zu den

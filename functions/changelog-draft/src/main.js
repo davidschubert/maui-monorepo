@@ -143,7 +143,7 @@ function safeJson(raw) {
 
 /** GitHub-API-Header (optionales Token für private Repos / Rate-Limit). */
 function githubHeaders() {
-  const headers = { 'Accept': 'application/vnd.github+json', 'User-Agent': 'maui-changelog-draft' }
+  const headers = { 'Accept': 'application/vnd.github+json', 'User-Agent': 'pukalani-changelog-draft' }
   if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`
   return headers
 }

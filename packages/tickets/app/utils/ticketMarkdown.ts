@@ -55,7 +55,7 @@ export function composeTicketMarkdown(options: {
   lines.push(
     `## ${labels.context}`,
     '',
-    '- Projekt: maui-monorepo (Nuxt 4 Layer-Architektur, Appwrite self-hosted, TablesDB)',
+    '- Projekt: Pukalani (Nuxt 4 Layer-Architektur, Appwrite self-hosted, TablesDB)',
     '- Konventionen: CLAUDE.md · Architektur: docs/CONCEPT.md',
     '- Erst grün (lint/typecheck), dann fertig melden; paketweise mit Check-in.',
   )

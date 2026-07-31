@@ -16,7 +16,7 @@ export interface BrandTitleOptions {
  * waren markenlos und in EN wie DE identisch („Feed", „About me" — Audit-Befund
  * S8), geteilte Links kamen ohne description/og:* an (S5). Beides hängt an
  * derselben Brand-Kette wie Header/Footer/404 (useBrandName: Tenant vor
- * App-Brand vor „Maui"), also gehört es an EINE Stelle.
+ * App-Brand vor „Pukalani"), also gehört es an EINE Stelle.
  *
  * Reaktiv gedacht: `page`/`description` werden als Getter übergeben, damit ein
  * Sprachwechsel oder ein nachgeladener Inhalt den Kopf mitzieht.

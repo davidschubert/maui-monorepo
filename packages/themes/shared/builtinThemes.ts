@@ -30,7 +30,7 @@ import { THEME_REGISTRY, DEFAULT_THEME_ID, NEUTRAL_REGISTRY } from '../app/utils
  *  gültiges Ziel, damit eine Community die eigene Wahl wieder aufgeben kann. */
 export const INHERIT_THEME = ''
 
-/** Alle wählbaren Built-in-Theme-Ids (inkl. `default` = Maui-Grundzustand). */
+/** Alle wählbaren Built-in-Theme-Ids (inkl. `default` = Pukalani-Grundzustand). */
 export function builtinThemeIds(): string[] {
   return THEME_REGISTRY.map(entry => entry.id)
 }

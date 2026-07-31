@@ -186,22 +186,46 @@ darauf verweist der Kommentar in `control/nuxt.config.ts` ausdrücklich. Das
 ist Entwicklungsumgebung, kein Produktivsystem, und ein Projekt-Rename in
 Appwrite ist teuer. Bewusst stehen lassen, aber wissen, dass es so ist.
 
-## 4. Offen: `maui` vs. `pukalani` — die größte Frage
+## 4. `maui` vs. `pukalani` — ✅ ERLEDIGT 2026-07-31 (E11b, Etappe C)
 
-Der Paket-Scope ist `@pukalani/*`, der Config-Namespace ist `pukalani.*`, das Repo
-heißt `maui-monorepo` — in **567 Dateien**. Die Marke ist **Pukalani**
-(92 Dateien). CLAUDE.md notiert zum Theme-Namen bereits, dass „Maui" ein
-**interner Produktname vor Kunden** war (Befund N6) und deshalb aus der
-Oberfläche verschwunden ist.
+Davids Entscheidung: **Inhalt jetzt, Ordner später.** Das Wort verschwindet
+aus dem Repo-INHALT; der lokale Ordner und das GitHub-Repo heißen weiter
+`maui-monorepo`, und die Domain `maui.photos` bleibt überall unverändert.
 
-Im Code ist er geblieben. Das ist **nicht automatisch falsch**: ein interner
-Scope darf anders heißen als die Marke, und `pukalani.*` taucht in keiner
-Kundenoberfläche auf. Aber „ein sauberer Stand" heißt womöglich auch hier ein
-Wort.
+Die Zahl **567 Dateien** oben stammt von VOR Etappe A. Etappe A hatte Scope
+(`@pukalani/*`), Namensraum (`pukalani.*`), Cookies und Code-Präfix (`PUKA-`)
+schon gezogen; gemessen blieben am 2026-07-31 nur noch **180 Treffer in
+84 Dateien** (ohne `docs/archiv/**`, `CHANGELOG.md`, `pnpm-lock.yaml`).
+Davon **88 Ersetzungen in 50 Dateien** geschrieben (11 Regeln), dazu
+1 `git mv`; **92 Treffer bleiben bewusst stehen.**
 
-**Das ist eine Entscheidung, keine Aufgabe** — und die teuerste von allen:
-Paket-Scope, Config-Namespace, Repo-Name, jede `app.config.ts`, jeder Import.
-Sie sollte **nicht** nebenbei mitlaufen.
+Die Regeln waren nicht nur Kosmetik — fünf Gruppen waren **tote Bezeichner**,
+die Etappe A übersehen hatte und die deshalb ins Leere zeigten:
+`maui.*`-Config-Gates (der Namensraum heißt `pukalani.*`), `@maui/*`-Importe
+(der Scope heißt `@pukalani/*`), das Einladungscode-Präfix `MAUI-` (Codes
+heißen `PUKA-`, ein Beweis-Skript prüfte deshalb positiv auf einen Code, den
+es nicht mehr gibt), die Brand-Fallback-Kommentare (der Fallback ist längst
+`'Pukalani'`) und die Web-Component-Datei `public/maui-comments.js`, deren
+eigene Integrationsanleitung schon `/pukalani-comments.js` nannte — die
+dokumentierte URL lieferte 404. Umgekehrt hatte Etappe A **einen
+historischen Satz verfälscht** (`themes/app/plugins/theme.ts`: die Head-Ids
+hießen `maui-*`, nie `pukalani-*`) — das wurde zurückgestellt.
+
+**Bewusst geblieben**, je Gruppe mit Grund:
+
+| Gruppe | Wo | Warum |
+| --- | --- | --- |
+| `maui.photos` | `apps/photos/**`, `cases.ts`, MULTI-SITE, README | echte Domain + E-Mail (Davids Vorgabe 2026-07-31) |
+| Insel Maui | photos-Inhalte, Landing-Story, Demo-Seed | geografischer Ort, kein Produktname |
+| Stripe-Datenschlüssel | `maui_pro_monthly`/`_yearly`, `metadata['maui_key']` | liegen als Daten in Test- UND Live-Stripe; Umbenennen ohne Stripe-Migration zerreißt die Zuordnung (Lehre aus `feature_catalog`) |
+| Embed-Rückwärtskompatibilität | `data-maui-count`, `getElementById('maui-comments')` | steht im HTML FREMDER Seiten, die wir nicht mitmigrieren können |
+| Echter Repo-/Ordnername | GitHub-URLs, `git clone`, Verzeichnisbäume | der Ordner heißt so — ein umbenannter Pfad wäre eine Lüge |
+| Historische Sätze | CLAUDE.md N6, themeRegistry, CONCEPT-Changelog, GOALS-`/goal`-Blöcke, README-Phasentabelle | Protokoll im Satz |
+| `spikes/**` | `acme.maui.app` im s5-Spike | Protokoll, nicht in CI (deploy.yml ignoriert `spikes/`) |
+
+Beweis: `pnpm -r test`, `check:manifests`, `check:single-copy`, `pnpm -r
+typecheck` grün; `pnpm-lock.yaml` unverändert (der Root-Paketname ist
+`private`).
 
 ## Reihenfolge
 
@@ -214,7 +238,7 @@ Die Umbenennungen fassen dieselben Dateien an. Nacheinander, nie parallel:
 4. **`feature` → `product`** — inklusive `feature_catalog`-Migration
 5. ~~**`pukalani.studio.*` → `pukalani.control.*`**~~ ✅ erledigt 2026-07-30
 6. **E9/E10** — Menü und Roadmap-Benennung
-7. *(offen)* `maui` → `pukalani`, falls entschieden
+7. ~~`maui` → `pukalani` (Inhalt)~~ ✅ erledigt 2026-07-31 — s. Abschnitt 4
 
 ## Warum nicht alles auf einmal
 

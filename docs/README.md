@@ -88,7 +88,7 @@ Doku-Site (Nuxt UI + Nuxt Content nach dem Vorbild des
 [Nuxt-Docs-Templates](https://docs-template.nuxt.dev/)), live hinter
 Operator-Login auf `control.pukalani.app/docs`.
 
-Bewusst **kein** Maui-Layer und keine App unter `apps/` — der Manifest-Check
+Bewusst **kein** Pukalani-Layer und keine App unter `apps/` — der Manifest-Check
 verlangt dort Site-Manifest + Appwrite-Setup, und die Docs brauchen beides
 nicht.
 

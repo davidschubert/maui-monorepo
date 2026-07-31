@@ -101,7 +101,7 @@ export async function latestAppwriteVersion(): Promise<string | null> {
     // GitHub verlangt einen User-Agent; releases/latest = neuestes Nicht-Prerelease.
     const res = await $fetch<{ tag_name?: string }>('https://api.github.com/repos/appwrite/appwrite/releases/latest', {
       timeout: 4000,
-      headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'maui-monorepo' },
+      headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'pukalani-monorepo' },
     })
     const value = res.tag_name?.replace(/^v/, '') ?? null
     if (value) appwriteCache.set('appwrite', { value, at: Date.now() })

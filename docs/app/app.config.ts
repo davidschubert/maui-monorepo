@@ -12,10 +12,10 @@ export default defineAppConfig({
     },
   },
   seo: {
-    siteName: 'Maui Docs',
+    siteName: 'Pukalani Docs',
   },
   header: {
-    title: '🏝️ Maui Docs',
+    title: '🏝️ Pukalani Docs',
     to: '/',
     search: true,
     colorMode: true,
@@ -27,13 +27,13 @@ export default defineAppConfig({
     }],
   },
   footer: {
-    credits: `Maui Monorepo · © ${new Date().getFullYear()}`,
+    credits: `Pukalani Monorepo · © ${new Date().getFullYear()}`,
     colorMode: false,
     links: [{
       'icon': 'i-simple-icons-github',
       'to': 'https://github.com/davidschubert/maui-monorepo',
       'target': '_blank',
-      'aria-label': 'Maui Monorepo auf GitHub',
+      'aria-label': 'Pukalani Monorepo auf GitHub',
     }],
   },
   toc: {

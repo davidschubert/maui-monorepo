@@ -1,5 +1,5 @@
 /**
- * Maui Comments — Web-Component-Variante (Embed-Plan E4 #19).
+ * Pukalani Comments — Web-Component-Variante (Embed-Plan E4 #19).
  * Dependency-frei, kein Build-Schritt, versionslos stabil — wie embed.js.
  *
  * Registriert das Custom-Element <pukalani-comments>. Statt eines Script-Tags mit
