@@ -1,18 +1,18 @@
 import { beforeAll, describe, expect, it } from 'vitest'
-import { decideSiteAccess } from '../../core/shared/siteAccess'
-import { TENANT_ROLES, type TenantRole } from '../../core/shared/tenantAuthz'
+import { decideCommunityAccess } from '../../core/shared/communityAccess'
+import { COMMUNITY_ROLES, type CommunityRole } from '../../core/shared/communityAuthz'
 
 /**
  * N5a — die Events-Verwaltung hängt nicht mehr an globalen Operator-Labels.
  *
  * Die Verwaltungs-Routen (index.post, manage.get, [id].patch/.delete,
  * [id]/series.delete, [id]/cover.post/.delete) gaten über
- * `requireSitePermission(event, 'events.manage')`. Diese Suite hält die
+ * `requireCommunityPermission(event, 'events.manage')`. Diese Suite hält die
  * ENTSCHEIDUNG fest, die dahinter steht — welche Site-Rolle Events verwalten
  * darf und dass der Silo unverändert bleibt.
  *
  * `events.manage` ist bewusst KEINE neue Capability: sie steht seit der
- * 5-Rollen-Matrix im EDITOR-Bündel (tenantAuthz.ts) — „Inhalte verfassen"
+ * 5-Rollen-Matrix im EDITOR-Bündel (communityAuthz.ts) — „Inhalte verfassen"
  * umfasst Beiträge, Seiten, Medien UND Events.
  */
 
@@ -25,8 +25,8 @@ beforeAll(() => {
     }
 })
 
-const allow = (role: TenantRole | null, labels: string[] = []) =>
-  decideSiteAccess({ capability: 'events.manage', tenantScoped: true, role, labels })
+const allow = (role: CommunityRole | null, labels: string[] = []) =>
+  decideCommunityAccess({ capability: 'events.manage', tenantScoped: true, role, labels })
 
 describe('Events verwalten im Pool: die Site-Rolle entscheidet', () => {
   it('lässt Owner, Admin und Editor Events verwalten — ganz ohne globales Label', () => {
@@ -47,7 +47,7 @@ describe('Events verwalten im Pool: die Site-Rolle entscheidet', () => {
   })
 
   it('deckt die ganze Rollen-Matrix ab (neue Rolle ⇒ dieser Test bricht)', () => {
-    const verdicts = Object.fromEntries(TENANT_ROLES.map(role => [role, allow(role).allowed]))
+    const verdicts = Object.fromEntries(COMMUNITY_ROLES.map(role => [role, allow(role).allowed]))
     expect(verdicts).toEqual({ owner: true, admin: true, editor: true, moderator: false, viewer: false })
   })
 })
@@ -68,14 +68,14 @@ describe('Operator-Break-Glass bleibt der zweite Weg', () => {
 
 describe('Silo (comments-App): Verhalten unverändert', () => {
   it('verlangt ohne Mandanten-Kontext weiterhin das globale Operator-Label', () => {
-    expect(decideSiteAccess({ capability: 'events.manage', tenantScoped: false, role: null, labels: ['admin'] }))
+    expect(decideCommunityAccess({ capability: 'events.manage', tenantScoped: false, role: null, labels: ['admin'] }))
       .toEqual({ allowed: true, via: 'single-tenant' })
-    expect(decideSiteAccess({ capability: 'events.manage', tenantScoped: false, role: null, labels: [] }))
+    expect(decideCommunityAccess({ capability: 'events.manage', tenantScoped: false, role: null, labels: [] }))
       .toEqual({ allowed: false, reason: 'forbidden' })
   })
 
   it('öffnet ohne Mandanten NICHTS über eine mitgegebene Site-Rolle', () => {
-    expect(decideSiteAccess({ capability: 'events.manage', tenantScoped: false, role: 'owner', labels: [] }).allowed)
+    expect(decideCommunityAccess({ capability: 'events.manage', tenantScoped: false, role: 'owner', labels: [] }).allowed)
       .toBe(false)
   })
 })

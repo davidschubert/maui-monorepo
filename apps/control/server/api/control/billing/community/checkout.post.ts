@@ -1,13 +1,13 @@
 import { z } from 'zod'
 import { TENANT_PLANS } from '../../../../../../../packages/control/shared/types/tenantRecord'
-import { requireSiteTeamContext } from '../../../../../../../packages/control/server/utils/siteTeam'
+import { requireCommunityTeamContext } from '../../../../../../../packages/control/server/utils/communityTeam'
 import { communityHasLiveSubscription, createCommunityCheckoutUrl } from '../../../../utils/communityCheckout'
 
 /**
  * A6 Schritt 3 — Community-Checkout (Geldfluss 1): SERVICE-Route, Aufrufer ist
  * die Platform-App (Service-Secret) im Namen des OWNERS (JWT). Dieselbe Naht
- * wie die Mitglieder-Verwaltung: requireSiteTeamContext verifiziert das JWT,
- * prüft die Capability (billing.manage = nur Owner, tenantAuthz) und liefert
+ * wie die Mitglieder-Verwaltung: requireCommunityTeamContext verifiziert das JWT,
+ * prüft die Capability (billing.manage = nur Owner, communityAuthz) und liefert
  * die tenants-Row des richtigen Projekts.
  *
  * Doppelabo-Schutz: eine Community mit lebendem Abo bekommt kein zweites —
@@ -23,7 +23,7 @@ const bodySchema = z.object({
 export default defineEventHandler(async (event) => {
   requireOnboardingCaller(event)
   const body = await readValidatedBody(event, bodySchema.parse)
-  const context = await requireSiteTeamContext(event, body, 'site.billing')
+  const context = await requireCommunityTeamContext(event, body, 'community.billing')
 
   if (communityHasLiveSubscription(context.tenant)) {
     throw createError({

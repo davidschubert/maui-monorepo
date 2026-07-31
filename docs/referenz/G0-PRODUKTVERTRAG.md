@@ -133,7 +133,7 @@ dann Schnellaktionen. Kein Feature-Wühltisch.
 ### 2.2 Zwei getrennte Sicherheitsaufgaben (nicht verwechseln!)
 
 1. **Route-Autorisierung** (dieses ADR / #2): darf dieser Request diese
-   Aktion auf DIESER Site? → neuer `requireTenantPermission`.
+   Aktion auf DIESER Site? → neuer `requireCommunityPermission`.
 2. **Daten-Isolation / Row-Permissions** (H3-Naht 4, separates Paket): selbst
    wenn eine Route falsch autorisiert, dürfen Appwrite-Rows fremder Tenants
    nicht lesbar/schreibbar sein → tenant-namespaced Row-Permissions.
@@ -141,7 +141,7 @@ dann Schnellaktionen. Kein Feature-Wühltisch.
 **Beide müssen vor offenem Self-Service grün sein.** Ein Route-Guard ersetzt
 keine Daten-Isolation und umgekehrt.
 
-### 2.3 Entscheidung: `site_members` (Control Plane) + `requireTenantPermission`
+### 2.3 Entscheidung: `site_members` (Control Plane) + `requireCommunityPermission`
 
 > **✅ Kanonische Site = der Tenant (David, 2026-07-24).** Die `sites`-Tabelle
 > bleibt das **Operator-/Infra-Register** (deployte Plattform-Apps: comments,
@@ -167,9 +167,9 @@ keine Daten-Isolation und umgekehrt.
   ersetzt die Rolle, die früher `sites.workspaceId` spielen sollte. Billing-
   Verdrahtung an den Tenant kommt in G2/G3; in G1 wird nur die Spalte angelegt.
 - **Keine E-Mail als Autorisierungsschlüssel** — E-Mail ist nur fürs Einladen.
-- **`requireTenantPermission(event, capability)`** autorisiert Site-Routen über
+- **`requireCommunityPermission(event, capability)`** autorisiert Site-Routen über
   `{siteId, runtimeProjectId, runtimeUserId}` → Rolle aus `site_members` →
-  Capability aus `TENANT_ROLE_CAPABILITIES`. Die globale `requirePermission`
+  Capability aus `COMMUNITY_ROLE_CAPABILITIES`. Die globale `requirePermission`
   bleibt für Operator-/Single-Tenant-Routen; ein dünner Adapter verhindert
   doppelte Fachlogik.
 - **Lookup-Pfad:** `site_members` liegt im Control Plane, die Site-Route läuft
@@ -179,7 +179,7 @@ keine Daten-Isolation und umgekehrt.
 
 ### 2.4 Site-Rollen → Capabilities (✅ 5 Rollen, David 2026-07-24)
 
-`TENANT_ROLES = ['owner','admin','moderator','editor','viewer']` — eigener
+`COMMUNITY_ROLES = ['owner','admin','moderator','editor','viewer']` — eigener
 Tenant-Map (getrennt von der Operator-`ROLE_CAPABILITIES`), wiederverwendet aber
 das bestehende `Capability`-Vokabular. **Monoton gestuft** (jede Rolle ⊇ der
 schwächeren, außer wo bewusst getrennt):
@@ -337,9 +337,9 @@ letzterer läuft als erster G1-Migrationsschritt) **entschieden**. Damit ist G0
 im Kern abgeschlossen und **G1 kann starten**:
 
 1. `tenants` → kanonische **`siteId`**-Referenz (Migration).
-2. **`site_members`** (Control Plane) + 5-Rollen-`TENANT_ROLE_CAPABILITIES`
+2. **`site_members`** (Control Plane) + 5-Rollen-`COMMUNITY_ROLE_CAPABILITIES`
    (inkl. neuer Autoren-Caps für Editor).
-3. **`requireTenantPermission(event, capability)`** über
+3. **`requireCommunityPermission(event, capability)`** über
    `{siteId, runtimeProjectId, runtimeUserId}`, gecacht (Revoke ≤ 60 s);
    `requirePermission` bleibt für Operator-/Single-Tenant-Routen.
 4. **Row-Permissions (Naht 4)** tenant-namespaced — unabhängig getestet.

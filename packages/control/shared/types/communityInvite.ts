@@ -1,5 +1,5 @@
 import type { Models } from 'node-appwrite'
-import type { SiteRole } from './communityMember'
+import type { CommunityRole } from '../../../core/shared/communityAuthz'
 
 /**
  * Offene Einladung in EINE Kunden-Community (control-019).
@@ -24,7 +24,7 @@ export interface CommunityInviteRow extends Models.Row {
   /** Adresse der Eingeladenen — bindet die Einladung (weitergeleiteter Link greift nicht). */
   email: string
   /** Rolle, die die Annahme vergibt. NIE 'owner' (Übergabe ist ein eigener Vorgang). */
-  role: SiteRole
+  role: CommunityRole
   tokenHash: string
   status: CommunityInviteStatus
   expiresAt: string

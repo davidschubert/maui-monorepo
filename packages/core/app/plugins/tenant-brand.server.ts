@@ -11,10 +11,10 @@
  * Es wird deshalb GENAU gespiegelt, was clientseitig gelesen wird:
  *   - `name` → useTenantBrand() → useBrandName() (öffentlicher Header)
  *   - `plan` → useTenantPlan().planAllows() (Produkt-Sichtbarkeit in Nav/Badges)
- *   - `siteRole` → useSiteRole()/useSiteCapability() (Dashboard-Zugang + Nav,
+ *   - `communityRole` → useCommunityRole()/useCommunityCapability() (Dashboard-Zugang + Nav,
  *     N1) — NUR der Rollen-String des EINGELOGGTEN Users auf DIESEM Mandanten
- *     (server/middleware/site-role.ts); Gäste bekommen null. Die Capabilities
- *     werden clientseitig aus der geteilten Matrix (shared/tenantAuthz)
+ *     (server/middleware/07.community-role.ts); Gäste bekommen null. Die Capabilities
+ *     werden clientseitig aus der geteilten Matrix (shared/communityAuthz)
  *     abgeleitet — es reist kein fremdes Datum mit.
  *   - `theme`/`variant`/`neutral` → useTenantBranding() (Entscheidung 12, 2026-07-28;
  *     `neutral` seit 2026-07-29, Rest von B5):
@@ -57,7 +57,7 @@
  * NICHT gespiegelt (kein Client-Leser): projectId, limits, mode.
  * Neues Feld hier hinein nur MIT nachgewiesenem Client-Leser.
  */
-import type { TenantRole } from '../../shared/tenantAuthz'
+import type { CommunityRole } from '../../shared/communityAuthz'
 
 export default defineNuxtPlugin(() => {
   const event = useRequestEvent()
@@ -94,6 +94,6 @@ export default defineNuxtPlugin(() => {
   // Site-Rolle des eingeloggten Users (N1): EXPLIZITE Zuweisung statt
   // Init-Funktion — der Auth-Store (läuft früher) initialisiert denselben
   // Key bereits mit null; eine Init-Funktion würde hier still verpuffen.
-  const siteRole = useState<TenantRole | null>('pukalani-site-role', () => null)
-  siteRole.value = event?.context.siteRole ?? null
+  const communityRole = useState<CommunityRole | null>('pukalani-community-role', () => null)
+  communityRole.value = event?.context.communityRole ?? null
 })

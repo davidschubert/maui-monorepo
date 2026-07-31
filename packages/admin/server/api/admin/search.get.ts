@@ -1,6 +1,6 @@
 import { Query } from 'node-appwrite'
 import type { Models } from 'node-appwrite'
-import { decideSiteAccess } from '../../../../core/shared/siteAccess'
+import { decideCommunityAccess } from '../../../../core/shared/communityAccess'
 
 interface SearchResult {
   users: { $id: string, name: string, email: string }[]
@@ -25,13 +25,13 @@ type CommentRow = Models.Row & { content: string, authorId: string, authorName: 
  *    die leere Gruppe ohnehin aus. Silo/Einzelbetrieb unverändert.
  *
  * AUTORISIERUNG (Befund B7, 2026-07-29 — Davids Entscheidung): der Gate ist
- * `await requireSitePermission(event, 'dashboard.access')` statt des
+ * `await requireCommunityPermission(event, 'dashboard.access')` statt des
  * label-only `requirePermission`. Vorher kam ein Kunden-Owner ohne globales
  * Label hier gar nicht durch — die Palette lief für JEDES Site-Mitglied ins
  * 403 und blieb stumm (dieselbe Klasse wie C1 bei stats/analytics).
  *
  * KOMMENTAR-TREFFER NUR MIT `comments.moderate` (Site-Rolle ODER
- * Operator-Label, über `decideSiteAccess` — genau das Muster, mit dem
+ * Operator-Label, über `decideCommunityAccess` — genau das Muster, mit dem
  * stats.get.ts `commentsReported` schützt): sobald der Gate die MITGLIEDSCHAFT
  * belegt, tragen ihn ALLE fünf Site-Rollen, also auch `viewer` und `editor`.
  * Ein Treffer führt per Deeplink in die Moderations-Warteschlange
@@ -43,7 +43,7 @@ type CommentRow = Models.Row & { content: string, authorId: string, authorName: 
  * erscheint.
  */
 export default defineEventHandler(async (event): Promise<SearchResult> => {
-  const { user, role } = await requireSitePermission(event, 'dashboard.access')
+  const { user, role } = await requireCommunityPermission(event, 'dashboard.access')
   const labels = user.labels ?? []
   // E-Mail ist PII: nur mit users.manage in der Antwort (RBAC-CONCEPT —
   // dashboard.access-Gate gilt nur ohne PII). Moderatoren sehen nur Namen.
@@ -55,7 +55,7 @@ export default defineEventHandler(async (event): Promise<SearchResult> => {
   const tenant = useTenant(event)
   const db = tenantDb(event, { as: 'operator' })
   const poolTenant = tenant?.mode === 'pool'
-  const canModerate = decideSiteAccess({
+  const canModerate = decideCommunityAccess({
     capability: 'comments.moderate',
     labels,
     tenantScoped: Boolean(tenant),

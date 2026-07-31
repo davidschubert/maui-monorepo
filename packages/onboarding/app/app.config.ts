@@ -3,7 +3,7 @@
  * (pukalani.admin.modules, deep-merged) — capability-gefiltert über `team.manage`.
  *
  * WARUM DIESER LAYER: die Seite kann nur so weit reichen wie ihre Routen, und die
- * liegen hier (`/api/site/members/*`) — dieser Layer besitzt die Service-Naht zum
+ * liegen hier (`/api/community/members/*`) — dieser Layer besitzt die Service-Naht zum
  * Control Plane, dem `community_members`/`community_invites` gehören. Läge der Eintrag im
  * admin-Layer, hätte die Silo-App (apps/comments, ohne onboarding) einen
  * Menüpunkt, dessen Seite ins Leere greift. Eine Silo-Instanz hat auch keine
@@ -29,8 +29,8 @@ export default defineAppConfig({
           /**
            * Abo & Rechnung der Community (A6 Schritt 3). Aus DEMSELBEN Grund in
            * diesem Layer wie die Mitglieder: die Seite lebt von
-           * `/api/site/billing/*`, und die brauchen die Service-Naht zum Control
-           * Plane. `site.billing` trägt nur der Owner — ein Admin sieht den
+           * `/api/community/billing/*`, und die brauchen die Service-Naht zum Control
+           * Plane. `community.billing` trägt nur der Owner — ein Admin sieht den
            * Punkt gar nicht erst.
            *
            * Der Pfad liegt unter /dashboard/settings, weil der Stripe-Checkout
@@ -40,7 +40,7 @@ export default defineAppConfig({
           labelKey: 'onboarding.nav.subscription',
           icon: 'i-ph-credit-card',
           to: '/dashboard/settings/subscription',
-          requiredCapability: 'site.billing',
+          requiredCapability: 'community.billing',
           group: 'management',
           order: 3,
         },

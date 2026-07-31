@@ -1,0 +1,85 @@
+import { z } from 'zod'
+import { isBuiltinNeutralSelection, isBuiltinThemeSelection } from '../../../../themes/shared/builtinThemes'
+import { callControlPlane, mintRuntimeJwt } from '../../utils/controlPlane'
+
+/**
+ * Erscheinungsbild DIESER Community wählen (Davids Entscheidung 12 vom
+ * 2026-07-28: Site-Owner bestimmen Theme + Variante selbst; seit dem 2026-07-29
+ * zusätzlich die NEUTRAL-PALETTE, Rest von OPEN-ITEMS B5). Aufrufer ist das
+ * Kunden-Dashboard auf dem Mandanten-Host (Abschnitt „Erscheinungsbild" in
+ * /dashboard/settings/community).
+ *
+ * GLEICHE KETTE WIE DER REGISTRIERUNGS-SCHALTER (S1), und aus demselben Grund:
+ * `tenants` gehört dem Control Plane, die Platform-App hat dorthin nur einen
+ * READ-ONLY-Key. Der einzige vorgesehene Schreibkanal ist die Service-Naht
+ * dieses Layers (utils/controlPlane.ts: Secret + JWT). Siehe den
+ * Gegenkommentar in packages/control/server/api/control/community/branding.post.ts.
+ *
+ * AUTORISIERUNG: `requireCommunityPermission(event, 'branding.manage')` — die
+ * Capability steht seit G1 in der Site-Rollen-Matrix (owner + admin,
+ * core/shared/communityAuthz.ts) und hatte bis heute kein Ziel. Das hier ist ihr
+ * Ziel. NIE `requirePermission`: die ist synchron und für Betreiber-Routen.
+ *
+ * WIRKSAMKEIT: der Tenant-Resolver der Platform-App cacht die Host-Auflösung
+ * 30 s (createTenantsTableResolver, Microcache — positiv wie negativ). Die
+ * gerenderte Community trägt die neue Farbe deshalb erst nach ≤30 s. Damit das
+ * DASHBOARD nicht 30 s lang das Alte behauptet, gibt diese Route den
+ * geschriebenen Wert zurück und die Seite übernimmt ihn aus der ANTWORT
+ * (Muster registration.patch.ts).
+ */
+const bodySchema = z.object({
+  /** Built-in-Katalog-Key (themeRegistry) oder '' = Instanz-Einstellung. */
+  theme: z.string().max(32),
+  /** Tonale Variante DIESES Themes oder '' = Basisfarbe. */
+  variant: z.string().max(32),
+  /**
+   * Neutral-Palette (`NEUTRAL_REGISTRY`-Id) oder '' = Voreinstellung der
+   * Instanz. Davids Entscheidung vom 2026-07-29 (Rest von B5): die Palette
+   * folgt der Community.
+   *
+   * OPTIONAL, und zwar aus einem Betriebsgrund: `platform` und `control` sind
+   * ZWEI Deployments. Wäre das Feld Pflicht, ginge in dem Fenster, in dem eine
+   * neue `control`-Version neben einer alten `platform` läuft, jedes Umfärben
+   * auf 400. Fehlt es, bleibt die gespeicherte Palette unangetastet (kein
+   * stilles Zurücksetzen auf '').
+   */
+  neutral: z.string().max(32).optional(),
+}).strict().refine(
+  value => isBuiltinThemeSelection(value.theme, value.variant),
+  { message: 'Unknown theme or variant' },
+).refine(
+  value => value.neutral === undefined || isBuiltinNeutralSelection(value.neutral),
+  { message: 'Unknown neutral palette' },
+)
+
+export default defineEventHandler(async (event) => {
+  await requireCommunityPermission(event, 'branding.manage')
+
+  // Ohne Mandanten-Kontext gibt es keine Community, deren Erscheinung man
+  // wählen könnte (Silo-App, Kontroll-Host, Single-Tenant). 404 wie eine
+  // fehlende Route — dort gehört die Optik der Instanz, nicht einer Site.
+  const tenant = useTenant(event)
+  if (!tenant?.communityId) {
+    throw createError({ status: 404, statusText: 'Not found' })
+  }
+
+  const body = await readValidatedBody(event, bodySchema.parse)
+  const jwt = await mintRuntimeJwt(event)
+
+  // communityId kommt aus dem SERVER-Kontext (Host-Auflösung), nie aus dem Body —
+  // sonst könnte ein durchgereichter Wert eine fremde Community umfärben.
+  return await callControlPlane<{ communityId: string, theme: string, variant: string, neutral: string }>(
+    event,
+    '/api/control/community/branding',
+    {
+      jwt,
+      communityId: tenant.communityId,
+      theme: body.theme,
+      variant: body.variant,
+      // Nur weiterreichen, wenn der Aufrufer das Feld überhaupt geschickt hat —
+      // `undefined` würde `.strict()` am Control Plane nicht stören, aber ein
+      // explizites '' wäre dort ein Zurücksetzen.
+      ...(body.neutral !== undefined ? { neutral: body.neutral } : {}),
+    },
+  )
+})

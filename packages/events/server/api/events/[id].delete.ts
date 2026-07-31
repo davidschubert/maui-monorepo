@@ -6,13 +6,13 @@ import { EVENTS_TABLE, type EventRow } from '../../../shared/types/event'
  * Kein Hard-Delete im API-Vertrag (v1). Idempotent. Datentür als Operator:
  * get/update belegen die Zugehörigkeit — ein fremder Mandant bekommt 404.
  *
- * AUTORISIERUNG (N5): `requireSitePermission` — Site-Rolle vor protokolliertem
+ * AUTORISIERUNG (N5): `requireCommunityPermission` — Site-Rolle vor protokolliertem
  * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
  */
 export default defineEventHandler(async (event) => {
   // Produkt-Gate (P4): Events sind ab Plan pro enthalten.
   requirePlanProduct(event, 'events')
-  await requireSitePermission(event, 'events.manage')
+  await requireCommunityPermission(event, 'events.manage')
 
   const id = getRouterParam(event, 'id')
   if (!id) {

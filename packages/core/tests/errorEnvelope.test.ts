@@ -29,7 +29,7 @@ describe('domainReasonFrom', () => {
   it('weist Werte ab, die keine Schlüssel sind (Nachrichten, Pfade, Großschreibung)', () => {
     expect(domainReasonFrom({ code: 'Es muss ein Inhaber bleiben' })).toBeNull()
     expect(domainReasonFrom({ code: 'LAST_OWNER' })).toBeNull()
-    expect(domainReasonFrom({ code: '/api/site/members' })).toBeNull()
+    expect(domainReasonFrom({ code: '/api/community/members' })).toBeNull()
     expect(domainReasonFrom({ code: '' })).toBeNull()
     expect(domainReasonFrom({ code: '1_first' })).toBeNull()
     expect(domainReasonFrom({ code: `a${'b'.repeat(70)}` })).toBeNull()

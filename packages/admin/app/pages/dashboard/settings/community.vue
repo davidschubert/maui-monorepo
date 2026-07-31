@@ -9,7 +9,7 @@
  *     Seit A5 (2026-07-29) steuert DIESER Schalter auch die MITGLIEDSCHAFT, nicht
  *     mehr nur die Kontoanlage: an heißt „wer sich hier anmeldet oder das erste
  *     Mal mitschreibt, wird Mitglied", aus heißt „nur per Einladung"
- *     (packages/core/shared/siteJoin.ts). Deshalb ist die Beschreibung im
+ *     (packages/core/shared/communityJoin.ts). Deshalb ist die Beschreibung im
  *     Schalter ausführlicher als bei einem gewöhnlichen Ja/Nein — sie muss beide
  *     Folgen benennen.
  *  2. „Erscheinungsbild" (Davids Entscheidung 12 vom 2026-07-28) — Theme +
@@ -32,11 +32,11 @@
  * /dashboard/themes). Ohne Tenant steht hier deshalb ein Hinweis statt der
  * Schalter — und der Reiter ist in der Settings-Navigation ausgeblendet.
  *
- * VERTRAG ZUM SERVER: beide Routen (`/api/site/registration`,
- * `/api/site/branding`) liegen im onboarding-Layer, weil DIESER die
+ * VERTRAG ZUM SERVER: beide Routen (`/api/community/registration`,
+ * `/api/community/branding`) liegen im onboarding-Layer, weil DIESER die
  * Service-Naht zum Control Plane besitzt (`tenants` gehört dorthin, die
  * Platform-App hat nur einen Read-only-Key). Siehe
- * packages/onboarding/server/api/site/{registration.patch,branding.patch}.ts.
+ * packages/onboarding/server/api/community/{registration.patch,branding.patch}.ts.
  */
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'team.manage' })
 
@@ -54,7 +54,7 @@ const saving = ref(false)
 async function save(next: boolean) {
   saving.value = true
   try {
-    const result = await $fetch<{ openRegistration: boolean }>('/api/site/registration', {
+    const result = await $fetch<{ openRegistration: boolean }>('/api/community/registration', {
       method: 'PATCH',
       body: { openRegistration: next },
     })
@@ -81,9 +81,9 @@ async function save(next: boolean) {
  * Site-Rollen-Matrix getrennte Rechte. Heute tragen beide dieselben Rollen
  * (owner + admin) — geprüft wird trotzdem das RICHTIGE, damit eine spätere
  * Rolle „nur Gestaltung" oder „nur Team" hier nicht falsch landet. Die
- * AUTORITÄT bleibt requireSitePermission auf der Route.
+ * AUTORITÄT bleibt requireCommunityPermission auf der Route.
  */
-const canBranding = useSiteCapability('branding.manage')
+const canBranding = useCommunityCapability('branding.manage')
 const { branding } = useTenantBranding()
 
 // Namen + Farbe der Auswahl kommen aus der Theme-Registry des themes-Layers
@@ -136,7 +136,7 @@ async function saveBranding(next: { theme: string, variant: string, neutral: str
   if (savingBranding.value) return
   savingBranding.value = true
   try {
-    const result = await $fetch<{ theme: string, variant: string, neutral: string }>('/api/site/branding', {
+    const result = await $fetch<{ theme: string, variant: string, neutral: string }>('/api/community/branding', {
       method: 'PATCH',
       body: next,
     })

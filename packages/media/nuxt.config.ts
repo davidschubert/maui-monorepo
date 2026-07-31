@@ -8,7 +8,7 @@
  * (Migration media-003), ALLE server/api-Routen und applyMediaVisibility gehen
  * über die Datentür `tenantDb(event)`; der ESLint-Backstop verbietet rohes
  * `.tablesDB` in server/api und server/plugins. Autorisierung: S3
- * (`requireSitePermission`), Sichtbarkeit: media-002 (Row + Datei).
+ * (`requireCommunityPermission`), Sichtbarkeit: media-002 (Row + Datei).
  *
  * OFFEN vor dem ersten Einsatz in apps/platform (kein Leck, aber eine Lücke):
  * Entwurfs-DATEIEN im Bucket `media` tragen nur den GLOBALEN Operator-Read

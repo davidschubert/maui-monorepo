@@ -174,13 +174,13 @@ vom 2026-07-29 (B3/B5) kommen NICHT dazu: `themes-visual` läuft gegen
 gewinnt dort weiter), und das Label „Aloha" steht nur im geschlossenen
 Picker/Dropdown, nicht auf der `/visual`-Seite.
 
-**C16 — Tote Capabilities, Rest.** `team.manage` und `site.transfer` sind seit
+**C16 — Tote Capabilities, Rest.** `team.manage` und `community.transfer` sind seit
 2026-07-29 gebaut (Mitglieder-Seite mit Einladungen, Rollenwechsel, Entfernen,
 Besitzübergabe) — und seit A5 hält „Entfernen" auch, was es verspricht. Offen
 bleiben: `branding.manage` (Branding läuft heute nur über
 /dashboard/settings/community, das Theme-Studio verlangt `system.manage`),
 `posts.write` (das posts-Modul verlangt `posts.moderate` — ein **Editor** kommt
-an seine eigenen Beiträge nicht heran), und `site.delete` — bewusst später,
+an seine eigenen Beiträge nicht heran), und `community.delete` — bewusst später,
 unumkehrbares Löschen braucht erst eine Wiederherstellungs-Frist (Davids
 Entscheidung 2026-07-29).
 

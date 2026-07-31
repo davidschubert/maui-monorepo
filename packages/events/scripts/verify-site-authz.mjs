@@ -11,7 +11,7 @@
  *      an ihrer Community und reist nicht mit.
  *   3. Ein eingeloggter Fremder ohne Rolle → 403, ein Gast → 401.
  *   4. Ein Operator mit globalem admin-Label kommt weiter überall durch
- *      (Break-Glass) — und das Protokoll meldet es (site.operator_access).
+ *      (Break-Glass) — und das Protokoll meldet es (community.operator_access).
  *
  * Der Silo-Gegenbeweis (apps/comments, kein Mandanten-Kontext) läuft mit
  * --silo: dort MUSS weiterhin das globale Label gelten.
@@ -262,7 +262,7 @@ try {
     check('DELETE auf kunde-a → 200', opA.cancel?.status === 200, `Status ${opA.cancel?.status}`)
     const opB = await call(HOST_B, '/api/events/manage', { cookie: opCookie })
     check('manage auf kunde-b → 200 (Support-Zugang bleibt)', opB.status === 200, `Status ${opB.status}`)
-    console.log('  ℹ Break-Glass-Protokoll: im Dev-Server-Log muss "site.operator_access" mit capability=events.manage stehen')
+    console.log('  ℹ Break-Glass-Protokoll: im Dev-Server-Log muss "community.operator_access" mit capability=events.manage stehen')
   }
 }
 catch (error) {

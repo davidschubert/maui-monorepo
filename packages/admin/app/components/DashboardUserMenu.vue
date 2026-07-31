@@ -17,7 +17,7 @@ const appConfig = useAppConfig()
 const runtimeFlags = useRuntimeFlags()
 const { themes, theme, variant, setTheme, setVariant, neutrals, neutral, setNeutral, canChooseTheme, canChooseNeutral } = useTheme()
 const localeOptions = useLocaleOptions()
-const { capabilities: siteCaps } = useSiteRole()
+const { capabilities: siteCaps } = useCommunityRole()
 
 // Sidebar-Optik (sidebar | floating | inset) — geteilt mit dem Dashboard-Layout via Cookie
 const sidebarVariant = useCookie<'sidebar' | 'floating' | 'inset'>('pukalani-sidebar-variant', { default: () => 'floating' })

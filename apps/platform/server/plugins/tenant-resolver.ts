@@ -1,5 +1,5 @@
 import { createTenantsTableResolver } from '../../../../packages/control/server/utils/tenantsResolver'
-import { createFormerSiteMembersResolver, createSiteMembersResolver } from '../../../../packages/control/server/utils/siteMembersResolver'
+import { createFormerCommunityMembersResolver, createCommunityMembersResolver } from '../../../../packages/control/server/utils/communityMembersResolver'
 
 /**
  * A14-Komposition: die APP verdrahtet die core-Resolver-Verträge mit den
@@ -9,7 +9,7 @@ import { createFormerSiteMembersResolver, createSiteMembersResolver } from '../.
  *
  *  - tenants-Resolver: Host → TenantContext (inkl. communityId = tenants.$id).
  *  - community_members-Resolver: {communityId, runtimeProjectId, runtimeUserId} → Rolle
- *    (G1, requireTenantPermission). Dieselbe Verbindung, eigener Cache.
+ *    (G1, requireCommunityPermission). Dieselbe Verbindung, eigener Cache.
  *  - GEBÜNDELTER Ehemaligen-Resolver (N9): viele runtimeUserIds → wer von ihnen
  *    aus DIESER Community entfernt wurde. Eigener Vertrag, weil eine
  *    Kommentarliste 25 Autoren hat und der Einzel-Lookup daraus 25
@@ -17,7 +17,7 @@ import { createFormerSiteMembersResolver, createSiteMembersResolver } from '../.
  *
  * Ohne NUXT_PLATFORM_CONTROL_*-Env (z. B. CI-Build) wird KEIN Resolver
  * registriert → die Tenant-Middleware ist dokumentiert fail-open (No-Op) und
- * requireTenantPermission fail-closed (kein Resolver → 403); die Warnung macht
+ * requireCommunityPermission fail-closed (kein Resolver → 403); die Warnung macht
  * die Fehlkonfiguration im Log sichtbar.
  */
 export default defineNitroPlugin(() => {
@@ -30,6 +30,6 @@ export default defineNitroPlugin(() => {
     return
   }
   registerTenantResolver(createTenantsTableResolver({ endpoint, projectId, apiKey, databaseId }))
-  registerSiteRoleResolver(createSiteMembersResolver({ endpoint, projectId, apiKey, databaseId }))
-  registerFormerSiteMembersResolver(createFormerSiteMembersResolver({ endpoint, projectId, apiKey, databaseId }))
+  registerCommunityRoleResolver(createCommunityMembersResolver({ endpoint, projectId, apiKey, databaseId }))
+  registerFormerCommunityMembersResolver(createFormerCommunityMembersResolver({ endpoint, projectId, apiKey, databaseId }))
 })

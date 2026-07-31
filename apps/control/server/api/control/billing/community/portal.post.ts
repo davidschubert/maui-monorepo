@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { requireSiteTeamContext } from '../../../../../../../packages/control/server/utils/siteTeam'
+import { requireCommunityTeamContext } from '../../../../../../../packages/control/server/utils/communityTeam'
 import { createCommunityPortalUrl } from '../../../../utils/communityCheckout'
 
 /**
@@ -16,7 +16,7 @@ const bodySchema = z.object({
 export default defineEventHandler(async (event) => {
   requireOnboardingCaller(event)
   const body = await readValidatedBody(event, bodySchema.parse)
-  const context = await requireSiteTeamContext(event, body, 'site.billing')
+  const context = await requireCommunityTeamContext(event, body, 'community.billing')
 
   const url = await createCommunityPortalUrl(event, context.tenant)
   return { url }

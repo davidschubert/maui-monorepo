@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
    * Der Registrierungs-Schalter der Community ist oben schon geprüft
    * (assertTenantRegistrationOpen); das Control Plane prüft ihn erneut selbst.
    */
-  await joinSite(event, 'registration', { sessionSecret: session.secret, userId: session.userId })
+  await joinCommunity(event, 'registration', { sessionSecret: session.secret, userId: session.userId })
 
   // Nicht-blockierende E-Mail-Verifizierung (pukalani.auth.verification): die
   // Bestätigungs-Mail geht über die Instanz-SMTP raus, der User ist trotzdem

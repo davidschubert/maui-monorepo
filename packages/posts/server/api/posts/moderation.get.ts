@@ -6,8 +6,8 @@ import { POSTS_TABLE, type CommunityPost, type PostModerationResponse } from '..
  * deleted bleibt draußen, Soft-Delete gehört dem Autor) + offene Reports
  * über den generischen moderation-Vertrag (targetType 'post').
  *
- * AUTORISIERUNG (S1): `requireSitePermission` — `posts.moderate` IST eine
- * Site-Capability (moderator/admin/owner, tenantAuthz.ts), und die Seite
+ * AUTORISIERUNG (S1): `requireCommunityPermission` — `posts.moderate` IST eine
+ * Site-Capability (moderator/admin/owner, communityAuthz.ts), und die Seite
  * /dashboard/posts verlangt genau sie. Mit `requirePermission` (label-only)
  * kam ein Site-Moderator bis auf die Seite und lief hier in ein 403; und ein
  * Operator-Zugriff hätte den protokollierten Break-Glass umgangen.
@@ -18,7 +18,7 @@ export default defineEventHandler(async (event): Promise<PostModerationResponse>
   // nicht, existiert es für diesen Mandanten gar nicht — 404 wie die Datentür,
   // statt erst zu prüfen, wer etwas moderieren darf, das es hier nicht gibt.
   requirePlanProduct(event, 'posts')
-  await requireSitePermission(event, 'posts.moderate')
+  await requireCommunityPermission(event, 'posts.moderate')
 
   // Datentür als Operator: Moderation sieht alle Status — aber nur die
   // Posts des EIGENEN Mandanten (der Admin-Client umgeht Row-Permissions,

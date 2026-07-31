@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { hasCapability } from '../../core/shared/authz'
-import { decideSiteAccess } from '../../core/shared/siteAccess'
-import { TENANT_ROLES, type TenantRole } from '../../core/shared/tenantAuthz'
+import { decideCommunityAccess } from '../../core/shared/communityAccess'
+import { COMMUNITY_ROLES, type CommunityRole } from '../../core/shared/communityAuthz'
 
 /**
  * B7 — die Command-Palette (⌘K) verspricht nichts mehr, was die Zielroute
@@ -13,7 +13,7 @@ import { TENANT_ROLES, type TenantRole } from '../../core/shared/tenantAuthz'
  *  1. `/api/admin/search` gatete label-only mit `requirePermission
  *     (dashboard.access)`. Ein Kunden-Owner hat kein globales Label — die
  *     Palette lief für JEDES Site-Mitglied ins 403 (Klasse C1). Sobald der
- *     Gate die Mitgliedschaft belegt (`requireSitePermission`), tragen ihn
+ *     Gate die Mitgliedschaft belegt (`requireCommunityPermission`), tragen ihn
  *     ALLE fünf Site-Rollen, also auch `viewer` und `editor`.
  *  2. Jeder Kommentar-Treffer verlinkte auf `/dashboard/users/:autorId` —
  *     `users.manage`, das KEINE Site-Rolle trägt. Der Knopf führte ins 403.
@@ -52,7 +52,7 @@ interface RouteRun {
  * Handler-Funktion. Damit prüft der Test die Route, nicht eine Nachbildung.
  */
 async function runRoute(options: {
-  role: TenantRole | null
+  role: CommunityRole | null
   labels?: string[]
   tenant?: FakeTenant | null
   q?: string
@@ -66,7 +66,7 @@ async function runRoute(options: {
   vi.stubGlobal('getQuery', () => ({ q }))
   vi.stubGlobal('hasCapability', hasCapability)
   vi.stubGlobal('useTenant', () => tenant)
-  vi.stubGlobal('requireSitePermission', async () => ({
+  vi.stubGlobal('requireCommunityPermission', async () => ({
     user: { $id: 'user-1', labels },
     role,
   }))
@@ -103,8 +103,8 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-const moderate = (role: TenantRole | null, labels: string[] = []) =>
-  decideSiteAccess({ capability: 'comments.moderate', tenantScoped: true, role, labels })
+const moderate = (role: CommunityRole | null, labels: string[] = []) =>
+  decideCommunityAccess({ capability: 'comments.moderate', tenantScoped: true, role, labels })
 
 describe('Die Entscheidung: Kommentar-Treffer sind Moderations-Wissen', () => {
   it('gibt Owner, Admin und Moderator die Capability', () => {
@@ -115,13 +115,13 @@ describe('Die Entscheidung: Kommentar-Treffer sind Moderations-Wissen', () => {
 
   it('hält Editor und Viewer davon fern — obwohl sie dashboard.access tragen', () => {
     for (const role of ['editor', 'viewer'] as const) {
-      expect(decideSiteAccess({ capability: 'dashboard.access', tenantScoped: true, role, labels: [] }).allowed, role).toBe(true)
+      expect(decideCommunityAccess({ capability: 'dashboard.access', tenantScoped: true, role, labels: [] }).allowed, role).toBe(true)
       expect(moderate(role)).toEqual({ allowed: false, reason: 'insufficient-role' })
     }
   })
 
   it('deckt die ganze Rollen-Matrix ab (neue Rolle ⇒ dieser Test bricht)', () => {
-    const verdicts = Object.fromEntries(TENANT_ROLES.map(role => [role, moderate(role).allowed]))
+    const verdicts = Object.fromEntries(COMMUNITY_ROLES.map(role => [role, moderate(role).allowed]))
     expect(verdicts).toEqual({ owner: true, admin: true, moderator: true, editor: false, viewer: false })
   })
 })
@@ -180,20 +180,20 @@ describe('Die Route: mit comments.moderate kommen Treffer, ohne nicht', () => {
 describe('Die Route selbst: awaited Site-Gate statt label-only', () => {
   const routeSource = source('server/api/admin/search.get.ts')
 
-  it('gatet mit await requireSitePermission(..., \'dashboard.access\')', () => {
-    expect(routeSource).toContain(`await requireSitePermission(event, 'dashboard.access')`)
+  it('gatet mit await requireCommunityPermission(..., \'dashboard.access\')', () => {
+    expect(routeSource).toContain(`await requireCommunityPermission(event, 'dashboard.access')`)
     // Das label-only `requirePermission` war der halbe Befund — es darf nicht
-    // zurückkommen. `requireSitePermission` ist bewusst async: ein vergessenes
+    // zurückkommen. `requireCommunityPermission` ist bewusst async: ein vergessenes
     // `await` wäre ein nicht abgewartetes Promise, also KEINE Prüfung.
     expect(routeSource).not.toMatch(/(?<!Site)requirePermission\(/)
-    const calls = [...routeSource.matchAll(/(\w+\s+)?requireSitePermission\(/g)]
+    const calls = [...routeSource.matchAll(/(\w+\s+)?requireCommunityPermission\(/g)]
     expect(calls.length).toBeGreaterThan(0)
     for (const call of calls) expect(call[1]?.trim()).toBe('await')
   })
 
-  it('entscheidet die Kommentar-Treffer über decideSiteAccess(comments.moderate)', () => {
+  it('entscheidet die Kommentar-Treffer über decideCommunityAccess(comments.moderate)', () => {
     expect(routeSource).toContain(`capability: 'comments.moderate'`)
-    expect(routeSource).toContain('decideSiteAccess(')
+    expect(routeSource).toContain('decideCommunityAccess(')
   })
 })
 

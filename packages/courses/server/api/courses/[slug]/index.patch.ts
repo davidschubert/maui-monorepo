@@ -11,7 +11,7 @@ import { COURSES_TABLE, type CourseRow } from '../../../../shared/types/course'
 export default defineEventHandler(async (event) => {
   // Produkt-Gate (P4): Kurse sind ab Plan pro enthalten.
   requirePlanProduct(event, 'courses')
-  const { user } = await requireSitePermission(event, 'courses.manage')
+  const { user } = await requireCommunityPermission(event, 'courses.manage')
 
   const id = getRouterParam(event, 'slug')
   if (!id) {

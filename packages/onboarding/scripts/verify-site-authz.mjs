@@ -208,7 +208,7 @@ try {
   // abgeleitet aus einer community_members-Zeile MIT ZUGANG, nicht mehr aus „hat den
   // Host benutzt" (das war A4, und daran scheiterte „Zugang entziehen": das
   // Publikum kam beim nächsten Besuch zurück). Vergeben wird es von
-  // server/middleware/site-label.ts an jedes Mitglied — ohne das sähe niemand
+  // server/middleware/06.community-label.ts an jedes Mitglied — ohne das sähe niemand
   // außer dem Owner Anwesende oder den Activity-Feed (beide hängen an
   // read(label(communityId))). Das Label ist ein LESE-PUBLIKUM, KEINE Rolle: es
   // gewährt keine einzige Capability (hasCapability kennt nur
@@ -304,46 +304,46 @@ try {
   }
 
   console.log('  Lesen: wer darf die Mitgliederliste sehen?')
-  const ownerList = await call(host, '/api/site/members', { cookie: ownerCookie })
+  const ownerList = await call(host, '/api/community/members', { cookie: ownerCookie })
   check('Owner → 200', ownerList.status === 200, `Status ${ownerList.status} ${ownerList.text.slice(0, 160)}`)
   check('…und findet sich selbst als Owner darin',
     (ownerList.json?.members ?? []).some(m => m.role === 'owner' && m.self === true),
     JSON.stringify(ownerList.json?.members ?? []).slice(0, 200))
-  const adminList = await call(host, '/api/site/members', { cookie: staff.admin.cookie })
+  const adminList = await call(host, '/api/community/members', { cookie: staff.admin.cookie })
   check('Admin → 200', adminList.status === 200, `Status ${adminList.status}`)
   for (const role of ['moderator', 'editor', 'viewer']) {
-    const res = await call(host, '/api/site/members', { cookie: staff[role].cookie })
+    const res = await call(host, '/api/community/members', { cookie: staff[role].cookie })
     check(`${role} → 403 (team.manage fehlt ihm)`, res.status === 403, `Status ${res.status}`)
   }
-  const strangerList = await call(host, '/api/site/members', { cookie: strangerCookie })
+  const strangerList = await call(host, '/api/community/members', { cookie: strangerCookie })
   check('Fremder (eingeloggt, kein Mitglied) → 403', strangerList.status === 403, `Status ${strangerList.status}`)
-  const guestList = await call(host, '/api/site/members')
+  const guestList = await call(host, '/api/community/members')
   check('Gast ohne Session → 401', guestList.status === 401, `Status ${guestList.status}`)
 
   console.log('  Einladen: gleiche Grenze, eigener Endpunkt')
   const inviteBody = { email: `o5-invitee-${Date.now()}@example.test`, role: 'viewer' }
-  const ownerInvite = await call(host, '/api/site/members', { method: 'POST', cookie: ownerCookie, body: inviteBody })
+  const ownerInvite = await call(host, '/api/community/members', { method: 'POST', cookie: ownerCookie, body: inviteBody })
   // 503 = kein SMTP in dieser Umgebung. Das ist KEIN Autorisierungsfehler und
   // der Punkt dieses Abschnitts: 401/403 wären der Fehler.
   check('Owner darf einladen (200; 503 = Mailer aus)',
     ownerInvite.status === 200 || ownerInvite.status === 503, `Status ${ownerInvite.status} ${ownerInvite.text.slice(0, 160)}`)
   if (ownerInvite.status === 503) console.log('    ℹ Mailer aus (503) — Einladung wurde bewusst NICHT angelegt')
   if (ownerInvite.json?.inviteId) cleanup.invites.push(ownerInvite.json.inviteId)
-  const adminInvite = await call(host, '/api/site/members', {
+  const adminInvite = await call(host, '/api/community/members', {
     method: 'POST', cookie: staff.admin.cookie, body: { email: `o5-invitee2-${Date.now()}@example.test`, role: 'editor' },
   })
   check('Admin darf einladen (200; 503 = Mailer aus)',
     adminInvite.status === 200 || adminInvite.status === 503, `Status ${adminInvite.status}`)
   if (adminInvite.json?.inviteId) cleanup.invites.push(adminInvite.json.inviteId)
   for (const role of ['moderator', 'editor', 'viewer']) {
-    const res = await call(host, '/api/site/members', {
+    const res = await call(host, '/api/community/members', {
       method: 'POST', cookie: staff[role].cookie, body: { email: 'nope@example.test', role: 'viewer' },
     })
     check(`${role} darf NICHT einladen → 403`, res.status === 403, `Status ${res.status}`)
   }
-  const guestInvite = await call(host, '/api/site/members', { method: 'POST', body: { email: 'nope@example.test', role: 'viewer' } })
+  const guestInvite = await call(host, '/api/community/members', { method: 'POST', body: { email: 'nope@example.test', role: 'viewer' } })
   check('Gast darf nicht einladen → 401', guestInvite.status === 401, `Status ${guestInvite.status}`)
-  const inviteAsOwnerRole = await call(host, '/api/site/members', {
+  const inviteAsOwnerRole = await call(host, '/api/community/members', {
     method: 'POST', cookie: ownerCookie, body: { email: 'nope@example.test', role: 'owner' },
   })
   check('als „owner" einladen ist verboten (Besitz nur per Übergabe)',
@@ -351,37 +351,37 @@ try {
     `Status ${inviteAsOwnerRole.status} ${inviteAsOwnerRole.text.slice(0, 120)}`)
 
   console.log('  Rolle ändern: Regeln greifen serverseitig')
-  const promote = await call(host, `/api/site/members/${staff.viewer.memberId}`, {
+  const promote = await call(host, `/api/community/members/${staff.viewer.memberId}`, {
     method: 'PATCH', cookie: staff.admin.cookie, body: { role: 'moderator' },
   })
   check('Admin darf eine Rolle ändern → 200', promote.status === 200, `Status ${promote.status} ${promote.text.slice(0, 160)}`)
   const viewerRow = await control.getRow({ databaseId, tableId: 'community_members', rowId: staff.viewer.memberId })
   check('…und die Zeile trägt die neue Rolle', viewerRow.role === 'moderator', `role=${viewerRow.role}`)
-  const selfDemote = await call(host, `/api/site/members/${staff.admin.memberId}`, {
+  const selfDemote = await call(host, `/api/community/members/${staff.admin.memberId}`, {
     method: 'PATCH', cookie: staff.admin.cookie, body: { role: 'viewer' },
   })
   check('Selbst-Degradierung → 409 self_demote',
     selfDemote.status === 409 && selfDemote.json?.reason === 'self_demote',
     `Status ${selfDemote.status} ${selfDemote.text.slice(0, 200)}`)
   const ownerMemberId = members.rows.find(row => row.role === 'owner')?.$id
-  const touchOwner = await call(host, `/api/site/members/${ownerMemberId}`, {
+  const touchOwner = await call(host, `/api/community/members/${ownerMemberId}`, {
     method: 'PATCH', cookie: staff.admin.cookie, body: { role: 'viewer' },
   })
   check('Admin kann den Owner nicht degradieren → 409 owner_protected',
     touchOwner.status === 409 && touchOwner.json?.reason === 'owner_protected',
     `Status ${touchOwner.status} ${touchOwner.text.slice(0, 200)}`)
-  const makeOwner = await call(host, `/api/site/members/${staff.editor.memberId}`, {
+  const makeOwner = await call(host, `/api/community/members/${staff.editor.memberId}`, {
     method: 'PATCH', cookie: ownerCookie, body: { role: 'owner' },
   })
   check('niemand wird per Rollen-Änderung Owner → 409 owner_protected',
     makeOwner.status === 409 && makeOwner.json?.reason === 'owner_protected',
     `Status ${makeOwner.status}`)
-  const selfRemove = await call(host, `/api/site/members/${ownerMemberId}`, { method: 'DELETE', cookie: ownerCookie })
+  const selfRemove = await call(host, `/api/community/members/${ownerMemberId}`, { method: 'DELETE', cookie: ownerCookie })
   check('Owner kann sich nicht selbst entfernen → 409 self_remove',
     selfRemove.status === 409 && selfRemove.json?.reason === 'self_remove',
     `Status ${selfRemove.status} ${selfRemove.text.slice(0, 200)}`)
   for (const role of ['moderator', 'editor']) {
-    const res = await call(host, `/api/site/members/${staff.viewer.memberId}`, {
+    const res = await call(host, `/api/community/members/${staff.viewer.memberId}`, {
       method: 'PATCH', cookie: staff[role].cookie, body: { role: 'viewer' },
     })
     check(`${role} darf keine Rollen ändern → 403`, res.status === 403, `Status ${res.status}`)
@@ -402,7 +402,7 @@ try {
   const commentId = posted.json?.$id ?? posted.json?.comment?.$id
   if (commentId) cleanup.comments.push(commentId)
 
-  const removeEditor = await call(host, `/api/site/members/${staff.editor.memberId}`, {
+  const removeEditor = await call(host, `/api/community/members/${staff.editor.memberId}`, {
     method: 'DELETE', cookie: staff.admin.cookie,
   })
   check('Admin darf entfernen → 200', removeEditor.status === 200, `Status ${removeEditor.status} ${removeEditor.text.slice(0, 160)}`)
@@ -417,18 +417,18 @@ try {
     authorRow?.authorFormerMember === true, JSON.stringify(authorRow ?? {}).slice(0, 200))
 
   for (const role of ['moderator', 'viewer']) {
-    const res = await call(host, `/api/site/members/${staff.admin.memberId}`, { method: 'DELETE', cookie: staff[role].cookie })
+    const res = await call(host, `/api/community/members/${staff.admin.memberId}`, { method: 'DELETE', cookie: staff[role].cookie })
     check(`${role} darf niemanden entfernen → 403`, res.status === 403, `Status ${res.status}`)
   }
-  const guestRemove = await call(host, `/api/site/members/${staff.admin.memberId}`, { method: 'DELETE' })
+  const guestRemove = await call(host, `/api/community/members/${staff.admin.memberId}`, { method: 'DELETE' })
   check('Gast darf niemanden entfernen → 401', guestRemove.status === 401, `Status ${guestRemove.status}`)
 
-  console.log('  Besitz übertragen: OWNER-Sache (site.transfer), nicht team.manage')
-  const adminTransfer = await call(host, `/api/site/members/${staff.moderator.memberId}/transfer`, {
+  console.log('  Besitz übertragen: OWNER-Sache (community.transfer), nicht team.manage')
+  const adminTransfer = await call(host, `/api/community/members/${staff.moderator.memberId}/transfer`, {
     method: 'POST', cookie: staff.admin.cookie,
   })
   check('Admin darf NICHT übertragen → 403', adminTransfer.status === 403, `Status ${adminTransfer.status}`)
-  const ownerTransfer = await call(host, `/api/site/members/${staff.admin.memberId}/transfer`, {
+  const ownerTransfer = await call(host, `/api/community/members/${staff.admin.memberId}/transfer`, {
     method: 'POST', cookie: ownerCookie,
   })
   check('Owner darf übertragen → 200', ownerTransfer.status === 200, `Status ${ownerTransfer.status} ${ownerTransfer.text.slice(0, 160)}`)
@@ -538,7 +538,7 @@ try {
   check('vor dem Entzug SIEHT das Mitglied die Anwesenheit der anderen',
     await seesPresence(joinerPresences, staff.moderator.userId), 'Grenze sperrt eigene Leute aus!')
 
-  const removeJoiner = await call(host, `/api/site/members/${joinerRow?.$id}`, {
+  const removeJoiner = await call(host, `/api/community/members/${joinerRow?.$id}`, {
     method: 'DELETE', cookie: ownerCookie,
   })
   check('Zugang entziehen → 200', removeJoiner.status === 200,
@@ -570,7 +570,7 @@ try {
     JSON.stringify(await labelsOf(joiner.userId)))
 
   console.log('  c) geschlossene Community: nur per Einladung')
-  const closing = await call(host, '/api/site/registration', {
+  const closing = await call(host, '/api/community/registration', {
     method: 'PATCH', cookie: ownerCookie, body: { openRegistration: false },
   })
   check('Registrierung schließen → 200', closing.status === 200 && closing.json?.openRegistration === false,
@@ -607,7 +607,7 @@ try {
     },
   })
   cleanup.invites.push(inviteRow.$id)
-  const accepted = await call(host, '/api/site/members/accept', {
+  const accepted = await call(host, '/api/community/members/accept', {
     method: 'POST', cookie: outsider2Cookie, body: { inviteId: inviteRow.$id },
   })
   check('Einladung annehmen → 200 (auch bei geschlossener Registrierung)',

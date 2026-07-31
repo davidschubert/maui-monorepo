@@ -17,7 +17,7 @@ const bulkSchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const { user } = await requireSitePermission(event, 'comments.moderate')
+  const { user } = await requireCommunityPermission(event, 'comments.moderate')
   const { action, ids } = await readValidatedBody(event, bulkSchema.parse)
 
   const ops = tenantDb(event, { as: 'operator' })

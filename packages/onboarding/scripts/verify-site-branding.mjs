@@ -265,7 +265,7 @@ try {
   check('Registrierungs-Schalter steht weiterhin daneben (S1)', communityPage.text.includes('data-community-registration'))
 
   console.log('\n4. Wahl treffen: crimson / deep')
-  const patched = await call(siteA.host, '/api/site/branding', {
+  const patched = await call(siteA.host, '/api/community/branding', {
     method: 'PATCH', cookie: ownerCookieA, body: { theme: 'crimson', variant: 'deep' },
   })
   check('PATCH → 200 und Antwort trägt den neuen Wert',
@@ -297,7 +297,7 @@ try {
     ['Attribut-Einschmuggeln', { theme: 'crimson" onload=x', variant: '' }],
     ['unbekanntes Feld im Body', { theme: 'crimson', variant: 'deep', tenantId: 'fremd' }],
   ]) {
-    const res = await call(siteA.host, '/api/site/branding', { method: 'PATCH', cookie: ownerCookieA, body })
+    const res = await call(siteA.host, '/api/community/branding', { method: 'PATCH', cookie: ownerCookieA, body })
     check(`${label} → 400`, res.status === 400, `Status ${res.status}`)
   }
   const stillCrimson = await control.getRow({ databaseId, tableId: 'communities', rowId: siteA.communityId })
@@ -306,7 +306,7 @@ try {
 
   console.log('\n7. Fremde Community: die Owner-Rolle reist nicht mit')
   const ownerCookieB = await login(siteB.host, owner)
-  const cross = await call(siteB.host, '/api/site/branding', {
+  const cross = await call(siteB.host, '/api/community/branding', {
     method: 'PATCH', cookie: ownerCookieB, body: { theme: 'crimson', variant: 'deep' },
   })
   check('Owner von kunde-a darf kunde-b NICHT umfärben → 403', cross.status === 403, `Status ${cross.status}`)
@@ -315,7 +315,7 @@ try {
 
   console.log('\n8. Naht-Regel: der Operator-Break-Glass reicht am Control Plane NICHT durch')
   const operatorCookie = await login(siteA.host, operator)
-  const operatorPatch = await call(siteA.host, '/api/site/branding', {
+  const operatorPatch = await call(siteA.host, '/api/community/branding', {
     method: 'PATCH', cookie: operatorCookie, body: { theme: 'lagoon', variant: '' },
   })
   // Die Platform-App lässt ihn passieren (protokollierter Break-Glass), das
@@ -325,13 +325,13 @@ try {
   check('nichts geschrieben', afterOperator.theme === 'crimson', String(afterOperator.theme))
 
   console.log('\n9. Kontroll-Host hat keine Community → die Route existiert dort nicht')
-  const onControl = await call(CONTROL_HOST, '/api/site/branding', {
+  const onControl = await call(CONTROL_HOST, '/api/community/branding', {
     method: 'PATCH', cookie: ownerControlCookie, body: { theme: 'crimson', variant: 'deep' },
   })
   check('PATCH auf dem Kontroll-Host → 404', onControl.status === 404, `Status ${onControl.status}`)
 
   console.log('\n10. Zurücksetzen auf den Ausgangszustand (spring/bright)')
-  const reset = await call(siteA.host, '/api/site/branding', {
+  const reset = await call(siteA.host, '/api/community/branding', {
     method: 'PATCH', cookie: ownerCookieA, body: { theme: 'spring', variant: 'bright' },
   })
   check('PATCH zurück → 200', reset.status === 200 && reset.json?.theme === 'spring', `Status ${reset.status}`)
@@ -342,7 +342,7 @@ try {
     JSON.stringify(afterPartial.neutral))
 
   console.log('\n11. Neutral-Palette folgt der Community (Rest von B5, 2026-07-29)')
-  const neutralPatch = await call(siteA.host, '/api/site/branding', {
+  const neutralPatch = await call(siteA.host, '/api/community/branding', {
     method: 'PATCH', cookie: ownerCookieA, body: { theme: 'spring', variant: 'bright', neutral: 'taupe' },
   })
   check('PATCH neutral=taupe → 200 und Antwort trägt den Wert',
@@ -356,7 +356,7 @@ try {
     ['getönte Custom-Ramp (gehört dem Projekt)', { theme: 'spring', variant: 'bright', neutral: 'c-abc123' }],
     ['Attribut-Einschmuggeln', { theme: 'spring', variant: 'bright', neutral: 'mist" onload=x' }],
   ]) {
-    const res = await call(siteA.host, '/api/site/branding', { method: 'PATCH', cookie: ownerCookieA, body })
+    const res = await call(siteA.host, '/api/community/branding', { method: 'PATCH', cookie: ownerCookieA, body })
     check(`${label} → 400`, res.status === 400, `Status ${res.status}`)
   }
 
@@ -383,7 +383,7 @@ try {
     htmlAttr(otherNeutral.text, 'data-neutral') === 'mist',
     `data-neutral=${htmlAttr(otherNeutral.text, 'data-neutral')}`)
 
-  const neutralReset = await call(siteA.host, '/api/site/branding', {
+  const neutralReset = await call(siteA.host, '/api/community/branding', {
     method: 'PATCH', cookie: ownerCookieA, body: { theme: 'spring', variant: 'bright', neutral: '' },
   })
   check('Zurücksetzen auf die Voreinstellung → 200, neutral=\'\'',

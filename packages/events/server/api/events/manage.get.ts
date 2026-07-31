@@ -7,13 +7,13 @@ import { EVENTS_TABLE, type EventRow } from '../../../shared/types/event'
  * Admin-Client umgeht Row-Permissions, die Tür ist hier die einzige Grenze)
  * hinter events.manage.
  *
- * AUTORISIERUNG (N5): `requireSitePermission` — Site-Rolle vor protokolliertem
+ * AUTORISIERUNG (N5): `requireCommunityPermission` — Site-Rolle vor protokolliertem
  * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
  */
 export default defineEventHandler(async (event): Promise<{ rows: EventRow[] }> => {
   // Produkt-Gate (P4): Events sind ab Plan pro enthalten.
   requirePlanProduct(event, 'events')
-  await requireSitePermission(event, 'events.manage')
+  await requireCommunityPermission(event, 'events.manage')
 
   const res = await tenantDb(event, { as: 'operator' }).list<EventRow>(EVENTS_TABLE, [
     Query.orderDesc('startAt'), Query.limit(100),

@@ -33,7 +33,7 @@ const token = computed(() => {
 
 /** Ohne Token: gibt es eine offene Einladung an MEINE Adresse? */
 const { data: mine } = await useFetch<{ invites: { id: string, role: string, expiresAt: string }[], siteName: string }>(
-  '/api/site/invites/mine',
+  '/api/community/invites/mine',
   { default: () => ({ invites: [], siteName: '' }) },
 )
 
@@ -48,7 +48,7 @@ const done = ref(false)
 async function accept() {
   busy.value = true
   try {
-    await $fetch('/api/site/members/accept', {
+    await $fetch('/api/community/members/accept', {
       method: 'POST',
       body: token.value ? { token: token.value } : { inviteId: pending.value?.id },
     })

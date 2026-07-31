@@ -10,7 +10,7 @@
  * stempelt Mandant + tenant-genamete Row-Permissions. Der Realtime-Stream
  * filtert zusätzlich clientseitig (useTenantId) — er liest direkt gegen
  * Appwrite, an ihm greift keine Server-Tür. Autorisierung: S3
- * (`requireSitePermission`).
+ * (`requireCommunityPermission`).
  *
  * BESTAND auf der Pool-Instanz (platform) trägt keine tenantId und ist im Pool
  * daher unsichtbar (fail-closed) — folgenlos, solange `activity` nicht in

@@ -27,7 +27,7 @@
  * Farben.
  *
  * Die AUTORITÄT ist das Control Plane (tenants.theme/variant); geschrieben
- * wird über PATCH /api/site/branding (onboarding-Layer → Control Plane).
+ * wird über PATCH /api/community/branding (onboarding-Layer → Control Plane).
  * Nach dem Schreiben ist dieser Wert bis zum Ablauf des Resolver-Caches
  * (≤30 s) veraltet — die Seite übernimmt deshalb den Wert aus der ANTWORT.
  */

@@ -1,7 +1,7 @@
 /**
  * „Gesperrte Namen": die Entscheidungsregel fürs Anlegen eines
  * Betreiber-Eintrags — PURE (unit-getestet, ohne h3/Appwrite), nach demselben
- * Muster wie siteTeam.ts: die Schutzregeln stehen an EINER Stelle, die
+ * Muster wie communityTeam.ts: die Schutzregeln stehen an EINER Stelle, die
  * Oberfläche darf sie kennen (Knopf ausgrauen, Fehlertext wählen), das Control
  * Plane SETZT SIE DURCH. Wären sie nur in der Route, wären sie beim nächsten
  * Endpunkt vergessen.

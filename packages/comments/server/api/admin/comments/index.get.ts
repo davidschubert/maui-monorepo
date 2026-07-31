@@ -25,7 +25,7 @@ function toModerated(row: CommentRow): ModeratedComment {
 }
 
 export default defineEventHandler(async (event): Promise<AdminCommentListResponse> => {
-  await requireSitePermission(event, 'comments.moderate')
+  await requireCommunityPermission(event, 'comments.moderate')
 
   const query = getQuery(event)
   const status = FILTERS.includes(query.status as ModerationFilter)

@@ -6,13 +6,13 @@ import { COURSES_TABLE, type CourseRow } from '../../../shared/types/course'
  * als Operator (drafts tragen bewusst keine Read-Permission; der Admin-Client
  * umgeht Row-Permissions, die Tür ist hier die einzige Grenze).
  *
- * AUTORISIERUNG: `requireSitePermission` — Site-Rolle vor protokolliertem
+ * AUTORISIERUNG: `requireCommunityPermission` — Site-Rolle vor protokolliertem
  * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
  */
 export default defineEventHandler(async (event): Promise<{ rows: CourseRow[] }> => {
   // Produkt-Gate (P4): Kurse sind ab Plan pro enthalten.
   requirePlanProduct(event, 'courses')
-  await requireSitePermission(event, 'courses.manage')
+  await requireCommunityPermission(event, 'courses.manage')
 
   const res = await tenantDb(event, { as: 'operator' }).list<CourseRow>(COURSES_TABLE, [
     Query.orderDesc('$createdAt'), Query.limit(100),

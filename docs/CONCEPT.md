@@ -340,7 +340,7 @@ Cross-Package-Pfade — der Core re-exportiert sie in `server/utils/appwrite.ts`
 Nitro auto-importiert `server/utils` aller Layer in alle Server Routes.
 
 **✅ Rate Limiting (Phase 12):** Die Login-Route nutzt den AdminClient und umgeht
-damit Appwrites Rate Limits — `server/middleware/rate-limit.ts` im Core drosselt
+damit Appwrites Rate Limits — `server/middleware/05.rate-limit.ts` im Core drosselt
 deshalb POST `/api/auth/login` auf 5 Versuche/Minute/IP (429 + Retry-After,
 in-memory). ⚠️ Multi-Instanz-Produktion braucht einen geteilten Store (z.B. Redis
 via Nitro Storage).
@@ -536,7 +536,7 @@ in ihrer Datei eine Regel steht, sondern weil sie im Themes-Layer liegt.
 
 **Server (`server/`):**
 - `lib/appwrite.ts` — `createAdminClient()` + `createSessionClient(event)`, lazy `get`-Accessors für Services
-- `middleware/auth.ts` — setzt `event.context.user` pro Request (try/catch, undefined wenn keine Session)
+- `middleware/02.auth.ts` — setzt `event.context.user` pro Request (try/catch, undefined wenn keine Session)
 - `api/auth/signup.post.ts` — Account erstellen (AdminClient) + Session + Cookie in einem Request
 - `api/auth/login.post.ts` / `logout.post.ts` / `oauth/*` — `createOAuth2Token` → Callback → `createSession`
 
@@ -612,7 +612,7 @@ Immer explizites `Query.limit(...)` setzen (Default 25 → stille Trunkierung).
 - `node-appwrite` (Server) + `appwrite` (Web, Realtime) installieren
 - `server/lib/appwrite.ts` — AdminClient + SessionClient
 - `runtimeConfig` Skeleton (`appwriteKey` privat + `public.*`)
-- `server/middleware/auth.ts` + `shared/types/h3.d.ts`
+- `server/middleware/02.auth.ts` + `shared/types/h3.d.ts`
 - `app/utils/appwrite.client.ts` (Web SDK, nur Realtime)
 - `useRealtimeRows()` mit SSR-Guard
 - Custom Domain für Appwrite-Endpoint einrichten (A3), CORS-Plattformen registrieren

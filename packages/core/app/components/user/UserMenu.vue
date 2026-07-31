@@ -5,7 +5,7 @@ const { t } = useI18n()
 const localePath = useLocalePath()
 const auth = useAuthStore()
 const { logout } = useLogout()
-const canSiteDashboard = useSiteCapability('dashboard.access')
+const canSiteDashboard = useCommunityCapability('dashboard.access')
 
 const items = computed<DropdownMenuItem[]>(() => [
   {

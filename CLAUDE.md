@@ -252,35 +252,35 @@ Vollständiges Konzept: docs/CONCEPT.md
   `packages/control/shared/onboarding.ts` — der Wizard-Layer konsumiert ihn.
 - Branding gehört dem MANDANTEN (`tenants.theme/variant`), nicht dem Projekt:
   `app_config.themeSettings` ist EINE Row pro Projekt.
-- Site-Routen autorisieren über `requireSitePermission` (Site-Rolle, dann
+- Site-Routen autorisieren über `requireCommunityPermission` (Site-Rolle, dann
   protokollierter Operator-Break-Glass) — NIE `requirePermission` erweitern:
   die ist synchron und wird ohne await gerufen.
 - MITGLIEDER-VERWALTUNG (seit 2026-07-29, Audit-Befund S9 „tote Capability"):
   `/dashboard/members` liegt im ONBOARDING-Layer, nicht in admin — die Seite kann
-  nur so weit reichen wie ihre Routen (`/api/site/members/*`), und die brauchen
+  nur so weit reichen wie ihre Routen (`/api/community/members/*`), und die brauchen
   die Service-Naht. Silo-Apps ohne onboarding bekommen so keinen Menüpunkt ins
   Leere. Einladen = EIN Feld + Rolle → `site_invites` (Token-HASH, 7 Tage,
   M9-Muster aus `workspace_invites`; Mail zuerst, Row danach — keine Einladung
   ohne Zustellung), Annahme über `/join?token=…` ODER ohne Token über die eigene
   geprüfte Adresse. ENTFERNEN LÖSCHT NICHT: `site_members.status='removed'`
   (Migration control-019), Inhalte + Namen bleiben. Es nimmt aber BEIDES —
-  Rolle UND Lese-Publikum: die Runtime-Route zieht danach `revokeSiteLabel`
+  Rolle UND Lese-Publikum: die Runtime-Route zieht danach `revokeCommunityLabel`
   (Labels gehören dem Pool-Projekt, das Control Plane hat dafür keinen
-  Schlüssel) und merkt den Entzug kurz (`rememberSiteAccessRevoked`), damit der
+  Schlüssel) und merkt den Entzug kurz (`rememberCommunityAccessRevoked`), damit der
   30-s-Rollen-Cache das Label nicht sofort wieder vergibt. Besitz übertragen
-  läuft über `site.transfer` (Owner), NIE über die Rollen-Route — sonst wäre eine
-  Owner-Capability per Admin-Capability erreichbar. `site.delete` ist bewusst
+  läuft über `community.transfer` (Owner), NIE über die Rollen-Route — sonst wäre eine
+  Owner-Capability per Admin-Capability erreichbar. `community.delete` ist bewusst
   NICHT gebaut (Davids Entscheidung 3). Schutzregeln PURE + unit-getestet in
-  `packages/control/shared/siteTeam.ts` (kein Selbst-Degradieren, nie der letzte
+  `packages/control/shared/communityTeam.ts` (kein Selbst-Degradieren, nie der letzte
   Owner, `decideJoin`) — die UI kennt sie, das Control Plane setzt sie durch.
   Die Mitgliederliste zeigt ALLE (Standardansicht filtert aufs Team
   owner/admin/moderator/editor, ein Klick zeigt alle) — seit A5 steht dort jedes
   beigetretene Mitglied, nicht mehr nur das Team.
-- „Ehemaliges Mitglied": GEBÜNDELTER Vertrag `core/server/utils/siteMembership.ts`
-  (`registerFormerSiteMembersResolver`, Implementierung
-  `createFormerSiteMembersResolver` im control-Layer) — viele userIds, EINE
+- „Ehemaliges Mitglied": GEBÜNDELTER Vertrag `core/server/utils/communityMembership.ts`
+  (`registerFormerCommunityMembersResolver`, Implementierung
+  `createFormerCommunityMembersResolver` im control-Layer) — viele userIds, EINE
   Abfrage, Cache pro NUTZER 60 s, fail-soft. Der Einzel-Lookup
-  (`SiteRoleResolver`) darf dafür NIE in einer Schleife laufen: eine
+  (`CommunityRoleResolver`) darf dafür NIE in einer Schleife laufen: eine
   Kommentarliste hat 25 Autoren. Die Frage ist bewusst NEGATIV gestellt —
   „ehemalig" ist eine POSITIVE Tatsache (Row mit status 'removed'); die
   ABWESENHEIT einer Row heißt „gewöhnlicher Nutzer" — seit A5 trägt
@@ -397,17 +397,17 @@ Vollständiges Konzept: docs/CONCEPT.md
   die A4-Regel „hat den Host eingeloggt benutzt", die noch am selben Tag zur
   Lüge wurde: „Zugang entziehen" nahm nur die Rolle, das Label kam beim nächsten
   Besuch zurück, die entfernte Person las weiter mit).
-  `core/server/middleware/site-label.ts` vergibt `Role.label(siteId)` genau dem,
+  `core/server/middleware/06.community-label.ts` vergibt `Role.label(siteId)` genau dem,
   der eine `site_members`-Zeile MIT ZUGANG hat (idempotent, additiv — mehrere
-  Communities = mehrere Labels; `grantSiteLabel`/`revokeSiteLabel` in
-  core/server/utils/siteLabel.ts). Ein Label ist ein LESE-Publikum, KEINE Rolle —
-  Autorisierung läuft über requireSitePermission/Site-Rollen, `hasCapability`
-  kennt nur 'admin'/'moderator' (grantSiteLabel verweigert solche Labels).
-- MITGLIEDSCHAFT IST EIN EREIGNIS (A5): Vertrag `core/shared/siteJoin.ts` +
-  Registry `core/server/utils/siteJoin.ts` (`registerSiteJoinHandler` — die
+  Communities = mehrere Labels; `grantCommunityLabel`/`revokeCommunityLabel` in
+  core/server/utils/communityLabel.ts). Ein Label ist ein LESE-Publikum, KEINE Rolle —
+  Autorisierung läuft über requireCommunityPermission/Site-Rollen, `hasCapability`
+  kennt nur 'admin'/'moderator' (grantCommunityLabel verweigert solche Labels).
+- MITGLIEDSCHAFT IST EIN EREIGNIS (A5): Vertrag `core/shared/communityJoin.ts` +
+  Registry `core/server/utils/communityJoin.ts` (`registerCommunityJoinHandler` — die
   Naht zum Control Plane besitzt der onboarding-Layer, A14), Regel `decideJoin`
-  in `packages/control/shared/siteTeam.ts`, Route
-  `POST /api/control/site/members/join`. Gesteuert vom BESTEHENDEN Schalter
+  in `packages/control/shared/communityTeam.ts`, Route
+  `POST /api/control/community/members/join`. Gesteuert vom BESTEHENDEN Schalter
   `tenants.openRegistration`: OFFEN ⇒ Beitritt (Rolle `viewer`), GESCHLOSSEN ⇒
   nur per Einladung. ZWEI Auslöser, mehr nicht: (1) `registration` — Kontoanlage
   auf dem Mandanten-Host (signup.post.ts + otp/verify.post.ts, dort wo der Feed

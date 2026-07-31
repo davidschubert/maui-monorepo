@@ -39,7 +39,7 @@ function buildPrompt(comment: CommentRow, reports: { reason: string, note: strin
 export default defineEventHandler(async (event): Promise<ModerationAssist> => {
   // Produkt-Gate (P4): KI-Assist ist ein Pro-Produkt (kostet pro Aufruf).
   requirePlanProduct(event, 'ai')
-  await requireSitePermission(event, 'comments.moderate')
+  await requireCommunityPermission(event, 'comments.moderate')
 
   if (!isAiAvailable(event)) {
     throw createError({ status: 503, statusText: 'AI assist not configured' })

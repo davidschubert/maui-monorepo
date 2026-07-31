@@ -37,14 +37,14 @@ const PAGE_LIMIT = 100
  *    gar nicht zu sehen. Der Admin-Client umgeht Row-Permissions, damit ist die
  *    Tür in diesem Zweig die EINZIGE Mandanten-Grenze.
  *
- * AUTORISIERUNG (S3): `requireSitePermission` — `media.manage` IST eine
- * Site-Capability (EDITOR-Bündel, tenantAuthz.ts), und /dashboard/media
+ * AUTORISIERUNG (S3): `requireCommunityPermission` — `media.manage` IST eine
+ * Site-Capability (EDITOR-Bündel, communityAuthz.ts), und /dashboard/media
  * verlangt genau sie. Das `await` ist Pflicht — ohne wäre der Gate fail-open.
  */
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event)
   const withDrafts = getQuery(event).all !== undefined
-  if (withDrafts) await requireSitePermission(event, 'media.manage')
+  if (withDrafts) await requireCommunityPermission(event, 'media.manage')
 
   const db = tenantDb(event, withDrafts ? { as: 'operator' } : {})
   const res = await db.list<MediaItem>(MEDIA_TABLE, [

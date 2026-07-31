@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { decideSiteAccess } from '../../core/shared/siteAccess'
-import { TENANT_ROLES, type TenantRole } from '../../core/shared/tenantAuthz'
+import { decideCommunityAccess } from '../../core/shared/communityAccess'
+import { COMMUNITY_ROLES, type CommunityRole } from '../../core/shared/communityAuthz'
 
 /**
  * C1 — die Kennzahlen der Dashboard-Übersicht hängen nicht mehr an globalen
@@ -26,15 +26,15 @@ import { TENANT_ROLES, type TenantRole } from '../../core/shared/tenantAuthz'
 const routeSource = (name: string) =>
   readFileSync(fileURLToPath(new URL(`../server/api/admin/${name}`, import.meta.url)), 'utf8')
 
-const access = (role: TenantRole | null, labels: string[] = []) =>
-  decideSiteAccess({ capability: 'dashboard.access', tenantScoped: true, role, labels })
+const access = (role: CommunityRole | null, labels: string[] = []) =>
+  decideCommunityAccess({ capability: 'dashboard.access', tenantScoped: true, role, labels })
 
-const moderate = (role: TenantRole | null, labels: string[] = []) =>
-  decideSiteAccess({ capability: 'comments.moderate', tenantScoped: true, role, labels })
+const moderate = (role: CommunityRole | null, labels: string[] = []) =>
+  decideCommunityAccess({ capability: 'comments.moderate', tenantScoped: true, role, labels })
 
 describe('Kennzahlen-Routen im Pool: jede Site-Rolle erreicht ihre eigene Übersicht', () => {
   it('lässt ALLE fünf Site-Rollen durch — der Owner sieht keine Nullen mehr', () => {
-    for (const role of TENANT_ROLES) {
+    for (const role of COMMUNITY_ROLES) {
       expect(access(role), role).toEqual({ allowed: true, via: 'role', role })
     }
   })
@@ -44,7 +44,7 @@ describe('Kennzahlen-Routen im Pool: jede Site-Rolle erreicht ihre eigene Übers
   })
 
   it('deckt die ganze Rollen-Matrix ab (neue Rolle ⇒ dieser Test bricht)', () => {
-    const verdicts = Object.fromEntries(TENANT_ROLES.map(role => [role, access(role).allowed]))
+    const verdicts = Object.fromEntries(COMMUNITY_ROLES.map(role => [role, access(role).allowed]))
     expect(verdicts).toEqual({ owner: true, admin: true, moderator: true, editor: true, viewer: true })
   })
 
@@ -77,30 +77,30 @@ describe('Gemeldete Kommentare: nur für die, die auch moderieren dürfen', () =
 
 describe('Silo (comments-App): Verhalten unverändert', () => {
   it('verlangt ohne Mandanten-Kontext weiterhin ein globales Label', () => {
-    expect(decideSiteAccess({ capability: 'dashboard.access', tenantScoped: false, role: null, labels: ['admin'] }))
+    expect(decideCommunityAccess({ capability: 'dashboard.access', tenantScoped: false, role: null, labels: ['admin'] }))
       .toEqual({ allowed: true, via: 'single-tenant' })
-    expect(decideSiteAccess({ capability: 'dashboard.access', tenantScoped: false, role: null, labels: [] }))
+    expect(decideCommunityAccess({ capability: 'dashboard.access', tenantScoped: false, role: null, labels: [] }))
       .toEqual({ allowed: false, reason: 'forbidden' })
   })
 
   it('öffnet ohne Mandanten NICHTS über eine mitgegebene Site-Rolle', () => {
-    expect(decideSiteAccess({ capability: 'dashboard.access', tenantScoped: false, role: 'owner', labels: [] }).allowed)
+    expect(decideCommunityAccess({ capability: 'dashboard.access', tenantScoped: false, role: 'owner', labels: [] }).allowed)
       .toBe(false)
   })
 })
 
 describe('Die Routen selbst: awaited Site-Gate statt label-only', () => {
   for (const file of ['stats.get.ts', 'analytics.get.ts']) {
-    it(`${file} gatet mit await requireSitePermission(..., 'dashboard.access')`, () => {
+    it(`${file} gatet mit await requireCommunityPermission(..., 'dashboard.access')`, () => {
       const source = routeSource(file)
-      expect(source).toContain(`await requireSitePermission(event, 'dashboard.access')`)
+      expect(source).toContain(`await requireCommunityPermission(event, 'dashboard.access')`)
       // Das label-only `requirePermission` war der Befund — es darf nicht
       // zurückkommen.
       expect(source).not.toMatch(/(?<!Site)requirePermission\(/)
-      // `requireSitePermission` ist bewusst async (siteAccess.ts): ein
+      // `requireCommunityPermission` ist bewusst async (communityAccess.ts): ein
       // vergessenes `await` wäre ein nicht abgewartetes Promise — also gar
       // keine Prüfung. JEDER Aufruf muss awaited sein.
-      const calls = [...source.matchAll(/(\w+\s+)?requireSitePermission\(/g)]
+      const calls = [...source.matchAll(/(\w+\s+)?requireCommunityPermission\(/g)]
       expect(calls.length).toBeGreaterThan(0)
       for (const call of calls) expect(call[1]?.trim()).toBe('await')
     })

@@ -3,7 +3,7 @@ import { PAGES_TABLE, type PageRow } from '../../../shared/types/page'
 
 /** Admin: eine Seite (alle Sprachversionen) löschen. */
 export default defineEventHandler(async (event) => {
-  await requireSitePermission(event, 'pages.manage')
+  await requireCommunityPermission(event, 'pages.manage')
   const slug = getRouterParam(event, 'slug')
   if (!slug) {
     throw createError({ status: 400, statusText: 'Missing slug' })

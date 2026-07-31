@@ -1,25 +1,26 @@
 import type { Models } from 'node-appwrite'
+import type { CommunityRole } from '../../../core/shared/communityAuthz'
 
 /**
  * G1 community_members-Register (control-015): die Rollen-Mitgliedschaft EINER
- * Kunden-Community-Site. Lebt im Control Plane (control), wird aber von der
+ * Kunden-Community. Lebt im Control Plane (control), wird aber von der
  * Runtime (Platform-/Silo-App) über den read-only-Cross-Projekt-Key gelesen
- * (requireTenantPermission) — analog zum tenants-Resolver.
+ * (requireCommunityPermission) — analog zum tenants-Resolver.
  *
  * Anker-Tripel: {communityId = tenants.$id, runtimeProjectId, runtimeUserId}. Die
  * Runtime-Identität (der Appwrite-User IM Pool-/Silo-Projekt) ist bewusst NICHT
- * die Control-Plane-userId — derselbe Mensch kann in mehreren Sites verschiedene
- * Runtime-User + verschiedene Rollen haben. Unique-Index uq_member erzwingt
- * genau EINE Rolle je Tripel.
+ * die Control-Plane-userId — derselbe Mensch kann in mehreren Communities
+ * verschiedene Runtime-User + verschiedene Rollen haben. Unique-Index uq_member
+ * erzwingt genau EINE Rolle je Tripel.
  *
- * Die 5 Rollen sind hier eigenständig (self-contained Layer-Typ, wie im Repo
- * üblich). Die AUTORITÄT über Rolle→Capabilities liegt in
- * packages/core/shared/tenantAuthz.ts (TENANT_ROLE_CAPABILITIES); dessen
- * TENANT_ROLES muss identisch bleiben. Der Cross-Check dagegen läuft in
- * requireTenantPermission (G1-3) + Unit-Tests.
+ * DIE ROLLEN STEHEN NICHT MEHR HIER (E8 Etappe 4, 2026-07-30). Bis dahin trug
+ * dieser Layer eine EIGENE Kopie der 5 Rollen (`SITE_ROLES`) und der Kommentar
+ * daneben sagte, sie „muss identisch bleiben" — eine Regel, die niemand
+ * durchsetzt, ist eine Bitte. Jetzt gibt es genau eine Liste, in
+ * `packages/core/shared/communityAuthz.ts` (COMMUNITY_ROLES neben der
+ * Capability-Matrix), und dieser Layer importiert sie. Ein Wort je Sache: eine
+ * neue Rolle kann gar nicht mehr nur auf einer Seite entstehen.
  */
-export const SITE_ROLES = ['owner', 'admin', 'moderator', 'editor', 'viewer'] as const
-export type SiteRole = (typeof SITE_ROLES)[number]
 
 /**
  * Status einer Mitgliedschaft.
@@ -53,7 +54,7 @@ export interface CommunityMemberRow extends Models.Row {
   runtimeProjectId: string
   /** Der Appwrite-User IM Runtime-Projekt — NICHT die Control-Plane-userId. */
   runtimeUserId: string
-  role: SiteRole
+  role: CommunityRole
   status: CommunityMemberStatus
   /** Nur für Einladung/Anzeige — NIE Autorisierungsschlüssel. */
   email: string

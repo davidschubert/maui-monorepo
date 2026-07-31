@@ -2,13 +2,13 @@ import type { Capability } from '../../../core/shared/types/authz'
 
 /**
  * Route-Middleware für Dashboard-Pages (UX-Schicht — die Autorität sind die
- * requirePermission()/requireSitePermission()-Gates in den Server Routes).
+ * requirePermission()/requireCommunityPermission()-Gates in den Server Routes).
  *
- * ZWEI Wege hinein (N1, analog decideSiteAccess auf dem Server):
+ * ZWEI Wege hinein (N1, analog decideCommunityAccess auf dem Server):
  *  1. Operator-Label (admin/moderator) mit dashboard.access — unverändert,
  *     inkl. Break-Glass auf Kunden-Sites.
- *  2. SITE-Rolle mit dashboard.access (useSiteRole, SSR-gespiegelt): laut
- *     Rechte-Matrix in shared/tenantAuthz.ts tragen ALLE fünf Site-Rollen
+ *  2. SITE-Rolle mit dashboard.access (useCommunityRole, SSR-gespiegelt): laut
+ *     Rechte-Matrix in shared/communityAuthz.ts tragen ALLE fünf Site-Rollen
  *     (owner/admin/moderator/editor/viewer) dashboard.access — die Matrix ist
  *     die Quelle, hier wird nichts neu erfunden. Was jemand DRIN sieht,
  *     filtern Nav (dashboard-Layout) und `requiredCapability` je Page.
@@ -24,7 +24,7 @@ export default defineNuxtRouteMiddleware((to) => {
     return navigateTo(useLocalePath()('/login'))
   }
 
-  const { capabilities: siteCaps } = useSiteRole()
+  const { capabilities: siteCaps } = useCommunityRole()
   const can = (capability: Capability) =>
     userHasCapability(auth.user, capability) || siteCaps.value.has(capability)
 

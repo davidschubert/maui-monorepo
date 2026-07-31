@@ -18,7 +18,7 @@ const { user: me } = useCurrentUser()
 // Diese Seite verlangt `comments.moderate` — eine SITE-Capability, die jeder
 // Moderator einer Kunden-Site trägt. Zwei Elemente hier greifen aber in die
 // NUTZER-Verwaltung, und die ist operator-only (`users.manage`, das KEINE der
-// fünf Site-Rollen hält, tenantAuthz.ts):
+// fünf Site-Rollen hält, communityAuthz.ts):
 //   - „Autor sperren" PATCHt /api/admin/users/:id/status (requirePermission
 //     'users.manage') — für einen Site-Moderator war der Knopf eine Lüge: er
 //     sah ihn, klickte, und bekam 403.
@@ -26,7 +26,7 @@ const { user: me } = useCurrentUser()
 //     Capability als requiredCapability führt — der Klick lief ins Leere.
 // Zwei Quellen wie in der Nav (N1) und in der Übersicht (S2): Operator-Label
 // ODER Site-Rolle. Nur UX-Schicht — die Autorität bleibt der Gate der Route.
-const { capabilities: siteCaps } = useSiteRole()
+const { capabilities: siteCaps } = useCommunityRole()
 const canManageUsers = computed(() =>
   userHasCapability(me.value, 'users.manage') || siteCaps.value.has('users.manage'))
 

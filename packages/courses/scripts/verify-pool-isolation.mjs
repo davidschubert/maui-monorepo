@@ -252,7 +252,7 @@ try {
   check('A-Lektion von B aus löschen → 404', opLessonDelB.status === 404, `Status ${opLessonDelB.status}`)
   const stillThere = lessonId ? await pool.getRow({ databaseId, tableId: 'lessons', rowId: lessonId }).catch(() => null) : null
   check('… die A-Lektion existiert unverändert weiter', !!stillThere && stillThere.title === 'Lektion 1', `title=${stillThere?.title}`)
-  console.log('  ℹ Break-Glass-Protokoll: im Dev-Server-Log muss "site.operator_access" mit capability=courses.manage stehen')
+  console.log('  ℹ Break-Glass-Protokoll: im Dev-Server-Log muss "community.operator_access" mit capability=courses.manage stehen')
 
   console.log('\n6. Slug gehört dem Mandanten (courses-002: uq_tenant_slug)')
   const sameSlugOnB = await call(HOST_B, '/api/courses', {

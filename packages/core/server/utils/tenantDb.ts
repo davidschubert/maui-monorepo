@@ -152,10 +152,10 @@ export function tenantDb(event: H3Event, options: TenantDbOptions = {}) {
        * Appwrite die Row-Permissions dieser Zeile auswertet — sonst könnte der
        * Autor seinen eigenen Beitrag im nächsten Listenaufruf nicht lesen.
        *
-       * Wirft nie und blockiert nie: joinSite() schluckt jeden Fehler
+       * Wirft nie und blockiert nie: joinCommunity() schluckt jeden Fehler
        * ('unavailable'). Ein Beitritt darf keinen Kommentar kosten.
        */
-      if (actor === 'member') await joinSite(event, 'contribution')
+      if (actor === 'member') await joinCommunity(event, 'contribution')
 
       return tablesDB.createRow<T>({
         databaseId,

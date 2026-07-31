@@ -17,7 +17,7 @@
  *    „jeder eingeloggte Nutzer ALLER Communities": wer `presences.list()` von
  *    Hand ruft, sah Name/Avatar/Aktivität aller Kunden. Das Label trägt nur, wer
  *    MITGLIED dieser Community ist — eine community_members-Zeile mit Zugang, seit A5
- *    (server/middleware/site-label.ts, shared/siteJoin.ts).
+ *    (server/middleware/06.community-label.ts, shared/communityJoin.ts).
  *  - Pool OHNE communityId (Datenfehler) → gar kein read. Fail-CLOSED: lieber
  *    niemand sieht jemanden, als dass alle alle sehen.
  *  - Silo / kein Mandant → `read("users")` wie bisher; dort IST das Projekt die

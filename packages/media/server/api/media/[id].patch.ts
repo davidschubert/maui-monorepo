@@ -25,12 +25,12 @@ const patchSchema = z.object({
  * Der Admin-Client umgeht Row-Permissions, damit ist die Tür hier die EINZIGE
  * Mandanten-Grenze.
  *
- * AUTORISIERUNG (S3): `requireSitePermission` — Site-Rolle vor protokolliertem
+ * AUTORISIERUNG (S3): `requireCommunityPermission` — Site-Rolle vor protokolliertem
  * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
  * Das `await` ist Pflicht — ohne wäre der Gate fail-open.
  */
 export default defineEventHandler(async (event) => {
-  await requireSitePermission(event, 'media.manage')
+  await requireCommunityPermission(event, 'media.manage')
 
   const id = getRouterParam(event, 'id')
   if (!id) {

@@ -16,7 +16,7 @@ import { describe, expect, it } from 'vitest'
  * server/api/tickets prüft `tickets.manage` in ihrer eigenen Datei. Eine neue
  * Route, die sich auf einen Guard „weiter unten" verlässt, bricht den Test.
  *
- * Warum `requirePermission` und nicht `requireSitePermission`: das Ticket-Board
+ * Warum `requirePermission` und nicht `requireCommunityPermission`: das Ticket-Board
  * ist BETREIBER-Werkzeug (Entwicklungs-Board), keine Kunden-Site-Fläche —
  * `tickets.manage` ist eine Operator-Capability (authz.ts), keine der fünf
  * Site-Rollen trägt sie. Bewusst label-only.

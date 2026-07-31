@@ -6,7 +6,7 @@ import { POSTS_TABLE, type CommunityPost, type PostModerationAssist } from '../.
  * NUXT_AI_KEY), Meldegründe über den moderation-Vertrag openReportsForTarget,
  * die KI ändert NICHTS — der Moderator entscheidet.
  *
- * AUTORISIERUNG (S1): `requireSitePermission` — Site-Rolle vor protokolliertem
+ * AUTORISIERUNG (S1): `requireCommunityPermission` — Site-Rolle vor protokolliertem
  * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
  * Das `await` ist Pflicht — ohne wäre der Gate fail-open.
  */
@@ -55,7 +55,7 @@ export default defineEventHandler(async (event): Promise<PostModerationAssist> =
   // umstellt, soll nicht versehentlich eine posts-Route öffnen.
   requirePlanProduct(event, 'posts')
   requirePlanProduct(event, 'ai')
-  await requireSitePermission(event, 'posts.moderate')
+  await requireCommunityPermission(event, 'posts.moderate')
 
   if (!isAiAvailable(event)) {
     throw createError({ status: 503, statusText: 'AI assist not configured' })

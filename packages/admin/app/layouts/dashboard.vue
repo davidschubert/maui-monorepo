@@ -45,9 +45,9 @@ const close = () => { open.value = false }
 const route = useRoute()
 
 // Capability-Prüfung mit ZWEI Quellen (N1): Operator-Labels ODER die Site-
-// Rolle dieses Mandanten (useSiteRole, SSR-gespiegelt). Die Zuordnung ist
+// Rolle dieses Mandanten (useCommunityRole, SSR-gespiegelt). Die Zuordnung ist
 // KONSERVATIV, weil sie sich vollständig aus den vorhandenen Capabilities der
-// Module × der Rollen-Matrix (core/shared/tenantAuthz.ts) ergibt — hier wird
+// Module × der Rollen-Matrix (core/shared/communityAuthz.ts) ergibt — hier wird
 // keine neue Rechte-Liste gepflegt. Für einen Site-OWNER heißt das:
 //   sichtbar: Overview (dashboard.access), Kommentare (comments.moderate),
 //     Beiträge (posts.moderate), Events/Kurse/Activity (events/courses/
@@ -58,7 +58,7 @@ const route = useRoute()
 //     (storage.manage), System/Themes/Config/Produkte/Embed (system.manage),
 //     Sites/Control (sites.manage), Billing (billing.manage), Feedback/
 //     Tickets (feedback/tickets.manage)
-const { capabilities: siteCaps } = useSiteRole()
+const { capabilities: siteCaps } = useCommunityRole()
 const can = (capability: Capability) =>
   userHasCapability(auth.user, capability) || siteCaps.value.has(capability)
 

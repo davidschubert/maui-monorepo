@@ -7,7 +7,7 @@ import { COURSES_TABLE, type CourseRow } from '../../../shared/types/course'
  * seit courses-002 PRO MANDANT eindeutig (uq_tenant_slug) — zwei Communities
  * dürfen denselben Kurs-Slug haben.
  *
- * AUTORISIERUNG: `requireSitePermission` — im Pool entscheidet die Site-Rolle
+ * AUTORISIERUNG: `requireCommunityPermission` — im Pool entscheidet die Site-Rolle
  * (admin/owner tragen courses.manage), erst danach greift der protokollierte
  * Operator-Break-Glass. Ohne Mandanten-Kontext (Silo/Playground) fällt der
  * Gate auf das globale Operator-Label zurück: Verhalten unverändert.
@@ -15,7 +15,7 @@ import { COURSES_TABLE, type CourseRow } from '../../../shared/types/course'
 export default defineEventHandler(async (event) => {
   // Produkt-Gate (P4): Kurse sind ab Plan pro enthalten.
   requirePlanProduct(event, 'courses')
-  const { user } = await requireSitePermission(event, 'courses.manage')
+  const { user } = await requireCommunityPermission(event, 'courses.manage')
 
   // Pool-Quota (No-Op, bis der Plan-Katalog courses-Limits trägt — der Hook
   // steht, damit die Zahlen nur noch Konfiguration sind, kein Code)

@@ -3,7 +3,7 @@ import { PAGES_TABLE, type PageRow } from '../../../shared/types/page'
 
 /** Admin: alle Sprachversionen einer Seite (inkl. body) zum Bearbeiten. */
 export default defineEventHandler(async (event): Promise<{ rows: PageRow[] }> => {
-  await requireSitePermission(event, 'pages.manage')
+  await requireCommunityPermission(event, 'pages.manage')
   const slug = getRouterParam(event, 'slug')
   if (!slug) {
     throw createError({ status: 400, statusText: 'Missing slug' })

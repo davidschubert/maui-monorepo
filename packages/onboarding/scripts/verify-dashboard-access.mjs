@@ -12,7 +12,7 @@
  *   - Gast ohne Session → Redirect auf /login (wie heute)
  *   - Operator mit admin-Label → unverändert VOLLER Zugang (inkl. System-Nav)
  *   - der S1-Registrierungs-Schalter ist für den Owner erreichbar
- *     (/dashboard/settings/community SSR 200) und PATCH /api/site/registration
+ *     (/dashboard/settings/community SSR 200) und PATCH /api/community/registration
  *     funktioniert end-to-end (Control Plane schreibt, Wert kommt zurück)
  *
  * Räumt am Ende alles weg, was es angelegt hat.
@@ -197,7 +197,7 @@ try {
   const ownerCookieA = await login(siteA.host, owner)
   const dashA = await page(siteA.host, '/dashboard', ownerCookieA)
   check('/dashboard → 200', dashA.status === 200, `Status ${dashA.status}`)
-  check('Payload spiegelt die Rolle (pukalani-site-role → owner)', dashA.text.includes('pukalani-site-role') && dashA.text.includes('owner'))
+  check('Payload spiegelt die Rolle (pukalani-community-role → owner)', dashA.text.includes('pukalani-community-role') && dashA.text.includes('owner'))
   // Nav-Filterung auf einer Seite OHNE Operator-Links im Body (die Overview-
   // Karten verlinken selbst /dashboard/users) — die Sidebar rendert im Layout.
   const settingsA = await page(siteA.host, '/dashboard/settings', ownerCookieA)
@@ -236,7 +236,7 @@ try {
   check('Settings → Community SSR 200', communityPage.status === 200, `Status ${communityPage.status}`)
   check('Schalter im Markup (data-community-registration)', communityPage.text.includes('data-community-registration'))
 
-  const closeIt = await call(siteA.host, '/api/site/registration', {
+  const closeIt = await call(siteA.host, '/api/community/registration', {
     method: 'PATCH', cookie: ownerCookieA, body: { openRegistration: false },
   })
   check('PATCH openRegistration=false → 200', closeIt.status === 200 && closeIt.json?.openRegistration === false,
@@ -244,12 +244,12 @@ try {
   const tenantAfter = await control.getRow({ databaseId, tableId: 'communities', rowId: siteA.communityId })
   check('Control Plane trägt den Wert (tenants.openRegistration=false)', tenantAfter.openRegistration === false,
     JSON.stringify(tenantAfter.openRegistration))
-  const reopen = await call(siteA.host, '/api/site/registration', {
+  const reopen = await call(siteA.host, '/api/community/registration', {
     method: 'PATCH', cookie: ownerCookieA, body: { openRegistration: true },
   })
   check('PATCH zurück auf true → 200', reopen.status === 200 && reopen.json?.openRegistration === true, `Status ${reopen.status}`)
 
-  const nobodyPatch = await call(siteA.host, '/api/site/registration', {
+  const nobodyPatch = await call(siteA.host, '/api/community/registration', {
     method: 'PATCH', cookie: nobodyCookieA, body: { openRegistration: false },
   })
   check('User ohne Rolle darf NICHT schalten → 403', nobodyPatch.status === 403, `Status ${nobodyPatch.status}`)
@@ -261,10 +261,10 @@ try {
   }
 
   console.log('\n9. Eigene Rolle per API (Client-Refresh-Pfad nach Login)')
-  const roleRes = await call(siteA.host, '/api/site/role', { cookie: ownerCookieA })
-  check('GET /api/site/role → owner', roleRes.status === 200 && roleRes.json?.role === 'owner', JSON.stringify(roleRes.json))
-  const roleNobody = await call(siteA.host, '/api/site/role', { cookie: nobodyCookieA })
-  check('GET /api/site/role ohne Mitgliedschaft → null', roleNobody.status === 200 && roleNobody.json?.role === null, JSON.stringify(roleNobody.json))
+  const roleRes = await call(siteA.host, '/api/community/role', { cookie: ownerCookieA })
+  check('GET /api/community/role → owner', roleRes.status === 200 && roleRes.json?.role === 'owner', JSON.stringify(roleRes.json))
+  const roleNobody = await call(siteA.host, '/api/community/role', { cookie: nobodyCookieA })
+  check('GET /api/community/role ohne Mitgliedschaft → null', roleNobody.status === 200 && roleNobody.json?.role === null, JSON.stringify(roleNobody.json))
 }
 catch (error) {
   fail++

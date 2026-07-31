@@ -23,7 +23,7 @@ import { isSafeThemeToken } from '../../shared/onboarding'
 /** Pure (unit-getestet): tenants-Row (+ optionaler Plan-Katalog) → TenantContext.
  *  communityId = row.$id (G1: der Tenant IST die kanonische Kunden-Site) — additiv
  *  gesetzt, wenn die Row eine $id trägt (der reale Read immer; Test-Fixtures
- *  optional). Trägt die Site-Rollen-Auflösung (requireTenantPermission). */
+ *  optional). Trägt die Site-Rollen-Auflösung (requireCommunityPermission). */
 export function mapTenantRowToContext(
   row: (Pick<TenantRow, 'mode' | 'projectId' | 'tenantId' | 'status' | 'plan'> & { $id?: string, theme?: string | null, variant?: string | null, neutral?: string | null, name?: string | null, openRegistration?: boolean | null }) | null,
   planCatalog?: Record<string, Record<string, TenantPlanLimits>>,

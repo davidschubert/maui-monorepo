@@ -3,14 +3,14 @@ import { POSTS_TABLE, type CommunityPost } from '../../../../shared/types/post'
 /**
  * Moderation: ausgeblendeten Post wiederherstellen (Status + read(any) zurück).
  *
- * AUTORISIERUNG (S1): `requireSitePermission` — Site-Rolle vor protokolliertem
+ * AUTORISIERUNG (S1): `requireCommunityPermission` — Site-Rolle vor protokolliertem
  * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
  * Das `await` ist Pflicht — ohne wäre der Gate fail-open.
  */
 export default defineEventHandler(async (event) => {
   // Produkt-Gate (P4) VOR der Autorisierung — wie moderation.get.ts.
   requirePlanProduct(event, 'posts')
-  await requireSitePermission(event, 'posts.moderate')
+  await requireCommunityPermission(event, 'posts.moderate')
 
   const id = getRouterParam(event, 'id')
   if (!id) {

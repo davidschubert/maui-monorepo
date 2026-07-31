@@ -25,7 +25,7 @@ import { MEDIA_TABLE, MEDIA_BUCKET, MAX_MEDIA_BYTES, type MediaItem } from '../.
  * tragen nur den Verwaltungs-Read. Die DATEI im Bucket trägt keinen Mandanten;
  * die Referenz (fileId) auf der gestempelten Row tut es (Muster events-Cover).
  *
- * AUTORISIERUNG (S3): `requireSitePermission` — Site-Rolle vor protokolliertem
+ * AUTORISIERUNG (S3): `requireCommunityPermission` — Site-Rolle vor protokolliertem
  * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
  * Das `await` ist Pflicht — ohne wäre der Gate fail-open.
  */
@@ -38,7 +38,7 @@ function isImage(data: Buffer): boolean {
 }
 
 export default defineEventHandler(async (event) => {
-  await requireSitePermission(event, 'media.manage')
+  await requireCommunityPermission(event, 'media.manage')
 
   const form = await readMultipartFormData(event)
   const filePart = form?.find(part => part.name === 'file' && part.filename)

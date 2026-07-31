@@ -11,7 +11,7 @@
  * `communityId` (G1): die kanonische Kunden-Site = tenants.$id (G0-Entscheidung
  * „der Tenant IST die Site"). Additiv/optional, weil Bestands-Fixtures +
  * Playground den Kontext ohne bauen; der reale tenants-Resolver setzt ihn aus
- * row.$id. requireTenantPermission verlangt ihn (fehlt er → fail-closed).
+ * row.$id. requireCommunityPermission verlangt ihn (fehlt er → fail-closed).
  */
 /**
  * Branding des Mandanten (O5): das im Onboarding gewählte Built-in-Theme-Paar.

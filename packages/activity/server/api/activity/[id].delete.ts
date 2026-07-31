@@ -10,14 +10,14 @@ import { ACTIVITIES_TABLE } from '../../../shared/types/activity'
  * Row-Permission. Der Admin-Client umgeht Row-Permissions, damit ist die Tür
  * hier die EINZIGE Mandanten-Grenze.
  *
- * AUTORISIERUNG (S3): `requireSitePermission` — `activity.manage` IST eine
- * Site-Capability (ADMIN-Bündel, tenantAuthz.ts), und /dashboard/activity
+ * AUTORISIERUNG (S3): `requireCommunityPermission` — `activity.manage` IST eine
+ * Site-Capability (ADMIN-Bündel, communityAuthz.ts), und /dashboard/activity
  * verlangt genau sie. Site-Rolle vor protokolliertem Operator-Break-Glass;
  * ohne Mandanten-Kontext (Silo) weiterhin globales Label. Das `await` ist
  * Pflicht — ohne wäre der Gate fail-open.
  */
 export default defineEventHandler(async (event) => {
-  await requireSitePermission(event, 'activity.manage')
+  await requireCommunityPermission(event, 'activity.manage')
 
   const id = getRouterParam(event, 'id')
   if (!id) {

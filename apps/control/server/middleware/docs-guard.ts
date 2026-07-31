@@ -16,7 +16,7 @@ import { hasCapability } from '../../../../packages/core/shared/authz'
  *     lesbar, obwohl die Seite umleitet.
  *
  * Der Guard verlässt sich BEWUSST nicht auf die Reihenfolge der Server-
- * Middleware: liegt `event.context.user` (core/server/middleware/auth.ts) noch
+ * Middleware: liegt `event.context.user` (core/server/middleware/02.auth.ts) noch
  * nicht vor, löst er die Session selbst auf. Autorität ist dieselbe wie beim
  * Dashboard: eine gültige Session MIT `dashboard.access`.
  *
@@ -29,7 +29,7 @@ const DOCS_PAGE_RE = /^(\/[a-z]{2})?\/docs(?:\/|$)/
 const CONTENT_API_PREFIX = '/__nuxt_content/'
 
 /**
- * Session-Auflösung wie core/server/middleware/auth.ts — wirft nie. Nur nötig,
+ * Session-Auflösung wie core/server/middleware/02.auth.ts — wirft nie. Nur nötig,
  * wenn diese Middleware VOR der Core-Auth einsortiert wurde (Layer-Scan-
  * Reihenfolge ist nichts, worauf ein Sicherheits-Gate wetten sollte).
  */

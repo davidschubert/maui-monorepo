@@ -10,7 +10,7 @@ import { COURSES_TABLE, LESSONS_TABLE, type CourseRow, type LessonRow } from '..
 export default defineEventHandler(async (event): Promise<CourseRow & { lessons: LessonRow[] }> => {
   // Produkt-Gate (P4): Kurse sind ab Plan pro enthalten.
   requirePlanProduct(event, 'courses')
-  await requireSitePermission(event, 'courses.manage')
+  await requireCommunityPermission(event, 'courses.manage')
 
   // [slug]-Segment trägt hier die Row-ID (Builder navigiert per Id)
   const id = getRouterParam(event, 'slug')

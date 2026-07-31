@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
-import { SITE_ROLES, type SiteRole } from '../../../../../control/shared/types/communityMember'
-import type { SiteInviteView, SiteMemberView, SiteTeamResponse } from '../../../../../control/shared/siteTeam'
+import { COMMUNITY_ROLES, type CommunityRole } from '../../../../../core/shared/communityAuthz'
+import type { CommunityInviteView, CommunityMemberView, CommunityTeamResponse } from '../../../../../control/shared/communityTeam'
 
 /**
  * Mitglieder-Verwaltung EINER Community (Audit-Befund S9: `team.manage` war eine
@@ -21,7 +21,7 @@ import type { SiteInviteView, SiteMemberView, SiteTeamResponse } from '../../../
  * bleibt die WAHRE Gesamtzahl — eine gefilterte Ansicht darf nicht aussehen wie
  * eine kleine Community.
  *
- * Die AUTORITÄT liegt in den Routen (`await requireSitePermission`) und im
+ * Die AUTORITÄT liegt in den Routen (`await requireCommunityPermission`) und im
  * Control Plane, das jede Regel noch einmal selbst prüft. Was hier ausgegraut
  * ist, ist Freundlichkeit — keine Grenze.
  */
@@ -33,13 +33,13 @@ const { formatRelativeTime } = useFormatRelativeTime()
 const toast = useToast()
 const confirm = useConfirm()
 
-/** Besitz übertragen ist eine OWNER-Sache (site.transfer), nicht team.manage. */
-const canTransfer = useSiteCapability('site.transfer')
+/** Besitz übertragen ist eine OWNER-Sache (community.transfer), nicht team.manage. */
+const canTransfer = useCommunityCapability('community.transfer')
 
-const { data, refresh, status } = await useFetch<SiteTeamResponse>('/api/site/members')
+const { data, refresh, status } = await useFetch<CommunityTeamResponse>('/api/community/members')
 
-const members = computed<SiteMemberView[]>(() => data.value?.members ?? [])
-const invites = computed<SiteInviteView[]>(() => data.value?.invites ?? [])
+const members = computed<CommunityMemberView[]>(() => data.value?.members ?? [])
+const invites = computed<CommunityInviteView[]>(() => data.value?.invites ?? [])
 
 // ── Suche + Sortierung (im Browser: ein Team hat Dutzende Zeilen, keine
 // Tausende — eine Server-Pagination wäre hier Zeremonie ohne Nutzen) ─────────
@@ -48,10 +48,10 @@ const { sortField, sortDir, toggle } = useTableSort('joinedAt', 'asc')
 
 /**
  * Team = alle Rollen MIT Verwaltungs-/Redaktionsauftrag. `viewer` ist bewusst
- * nicht dabei: das ist die Rolle, mit der man beitritt (SITE_JOIN_ROLE), und
+ * nicht dabei: das ist die Rolle, mit der man beitritt (COMMUNITY_JOIN_ROLE), und
  * genau die macht die Liste lang.
  */
-const TEAM_ROLES: SiteRole[] = ['owner', 'admin', 'moderator', 'editor']
+const TEAM_ROLES: CommunityRole[] = ['owner', 'admin', 'moderator', 'editor']
 const scope = ref<'team' | 'all'>('team')
 const teamCount = computed(() => members.value.filter(member => TEAM_ROLES.includes(member.role)).length)
 
@@ -88,7 +88,7 @@ function resetFilters() {
 
 // Spalten als computed-freie Konstante mit i18n-Kopfzeilen; die #…-header-Slots
 // überschreiben sie mit SortableHeader (Muster der Nutzerliste).
-const columns: TableColumn<SiteMemberView>[] = [
+const columns: TableColumn<CommunityMemberView>[] = [
   { accessorKey: 'name', header: () => t('members.name') },
   { accessorKey: 'role', header: () => t('members.role') },
   { accessorKey: 'joinedAt', header: () => t('members.joined'), id: 'joinedAt' },
@@ -96,15 +96,15 @@ const columns: TableColumn<SiteMemberView>[] = [
   { id: 'actions', header: () => '' },
 ]
 
-const inviteColumns: TableColumn<SiteInviteView>[] = [
+const inviteColumns: TableColumn<CommunityInviteView>[] = [
   { accessorKey: 'email', header: () => t('members.invites.email') },
   { accessorKey: 'role', header: () => t('members.invites.role') },
   { accessorKey: 'expiresAt', header: () => t('members.invites.expires') },
   { id: 'actions', header: () => '' },
 ]
 
-const roleLabel = (role: SiteRole) => t(`members.roles.${role}`)
-const ROLE_COLOR: Record<SiteRole, 'primary' | 'info' | 'warning' | 'neutral'> = {
+const roleLabel = (role: CommunityRole) => t(`members.roles.${role}`)
+const ROLE_COLOR: Record<CommunityRole, 'primary' | 'info' | 'warning' | 'neutral'> = {
   owner: 'primary',
   admin: 'info',
   moderator: 'warning',
@@ -130,13 +130,13 @@ function ruleMessage(error: unknown): string {
 // ── Einladen ────────────────────────────────────────────────────────────────
 const inviteOpen = ref(false)
 const inviteBusy = ref(false)
-const inviteForm = reactive({ email: '', role: 'viewer' as SiteRole })
+const inviteForm = reactive({ email: '', role: 'viewer' as CommunityRole })
 
 /** 'owner' wird nie eingeladen — Besitz entsteht durch Gründung oder Übergabe. */
-const invitableRoles: SiteRole[] = SITE_ROLES.filter(role => role !== 'owner')
+const invitableRoles: CommunityRole[] = COMMUNITY_ROLES.filter(role => role !== 'owner')
 // Der Typ steht ABSICHTLICH dran: ohne ihn leitet USelect sein Model aus den
 // Items ab (also ohne 'owner') und passt dann nicht mehr zu `inviteForm.role`.
-const roleItems = computed<{ label: string, value: SiteRole }[]>(
+const roleItems = computed<{ label: string, value: CommunityRole }[]>(
   () => invitableRoles.map(role => ({ label: roleLabel(role), value: role })),
 )
 
@@ -149,7 +149,7 @@ function openInvite() {
 async function sendInvite() {
   inviteBusy.value = true
   try {
-    const result = await $fetch<{ email: string, existingAccount: boolean }>('/api/site/members', {
+    const result = await $fetch<{ email: string, existingAccount: boolean }>('/api/community/members', {
       method: 'POST',
       body: { email: inviteForm.email.trim(), role: inviteForm.role },
     })
@@ -170,13 +170,13 @@ async function sendInvite() {
   }
 }
 
-async function revokeInvite(invite: SiteInviteView) {
+async function revokeInvite(invite: CommunityInviteView) {
   try {
     const ok = await confirm({
       title: t('members.revoke.title'),
       description: t('members.revoke.text', { email: invite.email }),
       confirmLabel: t('members.revoke.confirm'),
-      action: () => $fetch(`/api/site/invites/${invite.id}`, { method: 'DELETE' }),
+      action: () => $fetch(`/api/community/invites/${invite.id}`, { method: 'DELETE' }),
     })
     if (!ok) return
     toast.add({ title: t('members.revoke.done'), color: 'success' })
@@ -188,9 +188,9 @@ async function revokeInvite(invite: SiteInviteView) {
 }
 
 // ── Rolle ändern / entfernen / übertragen ───────────────────────────────────
-async function changeRole(member: SiteMemberView, role: SiteRole) {
+async function changeRole(member: CommunityMemberView, role: CommunityRole) {
   try {
-    await $fetch(`/api/site/members/${member.id}`, { method: 'PATCH', body: { role } })
+    await $fetch(`/api/community/members/${member.id}`, { method: 'PATCH', body: { role } })
     toast.add({ title: t('members.role.done', { role: roleLabel(role) }), color: 'success' })
     await refresh()
   }
@@ -199,7 +199,7 @@ async function changeRole(member: SiteMemberView, role: SiteRole) {
   }
 }
 
-async function removeMember(member: SiteMemberView) {
+async function removeMember(member: CommunityMemberView) {
   try {
     const ok = await confirm({
       title: t('members.remove.title', { name: member.name || member.email }),
@@ -207,7 +207,7 @@ async function removeMember(member: SiteMemberView) {
       // „löschen", und niemand traut sich, den Knopf zu drücken.
       description: t('members.remove.text'),
       confirmLabel: t('members.remove.confirm'),
-      action: () => $fetch(`/api/site/members/${member.id}`, { method: 'DELETE' }),
+      action: () => $fetch(`/api/community/members/${member.id}`, { method: 'DELETE' }),
     })
     if (!ok) return
     toast.add({ title: t('members.remove.done'), color: 'success' })
@@ -218,14 +218,14 @@ async function removeMember(member: SiteMemberView) {
   }
 }
 
-async function transferOwnership(member: SiteMemberView) {
+async function transferOwnership(member: CommunityMemberView) {
   try {
     const ok = await confirm({
       title: t('members.transfer.title', { name: member.name || member.email }),
       description: t('members.transfer.text'),
       confirmLabel: t('members.transfer.confirm'),
       color: 'warning',
-      action: () => $fetch(`/api/site/members/${member.id}/transfer`, { method: 'POST' }),
+      action: () => $fetch(`/api/community/members/${member.id}/transfer`, { method: 'POST' }),
     })
     if (!ok) return
     toast.add({ title: t('members.transfer.done'), color: 'success' })
@@ -236,7 +236,7 @@ async function transferOwnership(member: SiteMemberView) {
   }
 }
 
-function rowActions(member: SiteMemberView): DropdownMenuItem[][] {
+function rowActions(member: CommunityMemberView): DropdownMenuItem[][] {
   // Ehemalige haben keine Aktionen: sie kommen über eine neue Einladung zurück,
   // nicht über ein Rollen-Menü (die Row trägt bewusst keinen Zugang mehr).
   if (member.status !== 'active') {

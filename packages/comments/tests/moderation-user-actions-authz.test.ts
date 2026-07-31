@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { capabilitiesFor } from '../../core/shared/authz'
-import { TENANT_ROLES, tenantCapabilitiesFor, tenantRoleHasCapability } from '../../core/shared/tenantAuthz'
+import { COMMUNITY_ROLES, communityCapabilitiesFor, communityRoleHasCapability } from '../../core/shared/communityAuthz'
 
 /**
  * S5 — die Kommentar-Moderation darf keine Nutzer-Verwaltung versprechen.
@@ -21,20 +21,20 @@ import { TENANT_ROLES, tenantCapabilitiesFor, tenantRoleHasCapability } from '..
 describe('Eintritt und Nutzer-Aktion sind nicht dieselbe Erlaubnis', () => {
   it('lässt Owner, Admin und Moderator moderieren', () => {
     for (const role of ['owner', 'admin', 'moderator'] as const) {
-      expect(tenantRoleHasCapability(role, 'comments.moderate'), role).toBe(true)
+      expect(communityRoleHasCapability(role, 'comments.moderate'), role).toBe(true)
     }
   })
 
   it('gibt KEINER Site-Rolle users.manage — auch dem Owner nicht', () => {
     const verdicts = Object.fromEntries(
-      TENANT_ROLES.map(role => [role, tenantCapabilitiesFor(role).has('users.manage')]),
+      COMMUNITY_ROLES.map(role => [role, communityCapabilitiesFor(role).has('users.manage')]),
     )
     expect(verdicts).toEqual({ owner: false, admin: false, moderator: false, editor: false, viewer: false })
   })
 
   it('nennt damit mindestens eine Rolle, die auf die Seite darf und nicht sperren darf', () => {
-    const gap = TENANT_ROLES.filter(role =>
-      tenantRoleHasCapability(role, 'comments.moderate') && !tenantCapabilitiesFor(role).has('users.manage'))
+    const gap = COMMUNITY_ROLES.filter(role =>
+      communityRoleHasCapability(role, 'comments.moderate') && !communityCapabilitiesFor(role).has('users.manage'))
     expect(gap).toEqual(['owner', 'admin', 'moderator'])
   })
 })

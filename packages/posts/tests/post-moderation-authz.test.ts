@@ -1,23 +1,23 @@
 import { describe, expect, it } from 'vitest'
-import { decideSiteAccess } from '../../core/shared/siteAccess'
-import { TENANT_ROLES, type TenantRole } from '../../core/shared/tenantAuthz'
+import { decideCommunityAccess } from '../../core/shared/communityAccess'
+import { COMMUNITY_ROLES, type CommunityRole } from '../../core/shared/communityAuthz'
 
 /**
  * S1 — die Posts-Moderation hängt nicht mehr an globalen Operator-Labels.
  *
  * `posts.moderate` steht seit der 5-Rollen-Matrix im MODERATOR-Bündel
- * (tenantAuthz.ts) und die Seite /dashboard/posts verlangt genau diese
+ * (communityAuthz.ts) und die Seite /dashboard/posts verlangt genau diese
  * Capability. Die vier Routen (moderation.get, [id]/hide, [id]/restore,
  * [id]/assist) prüften sie trotzdem label-only mit `requirePermission` —
  * ein Site-Moderator kam auf die Seite und lief bei jedem Klick in ein 403,
- * und ein Operator-Zugriff erzeugte keinen `site.operator_access`-Eintrag.
+ * und ein Operator-Zugriff erzeugte keinen `community.operator_access`-Eintrag.
  *
  * Diese Suite hält die ENTSCHEIDUNG fest, die hinter der Umstellung auf
- * `await requireSitePermission(event, 'posts.moderate')` steht.
+ * `await requireCommunityPermission(event, 'posts.moderate')` steht.
  */
 
-const allow = (role: TenantRole | null, labels: string[] = []) =>
-  decideSiteAccess({ capability: 'posts.moderate', tenantScoped: true, role, labels })
+const allow = (role: CommunityRole | null, labels: string[] = []) =>
+  decideCommunityAccess({ capability: 'posts.moderate', tenantScoped: true, role, labels })
 
 describe('Posts moderieren im Pool: die Site-Rolle entscheidet', () => {
   it('lässt Owner, Admin und Moderator moderieren — ganz ohne globales Label', () => {
@@ -36,7 +36,7 @@ describe('Posts moderieren im Pool: die Site-Rolle entscheidet', () => {
   })
 
   it('deckt die ganze Rollen-Matrix ab (neue Rolle ⇒ dieser Test bricht)', () => {
-    const verdicts = Object.fromEntries(TENANT_ROLES.map(role => [role, allow(role).allowed]))
+    const verdicts = Object.fromEntries(COMMUNITY_ROLES.map(role => [role, allow(role).allowed]))
     expect(verdicts).toEqual({ owner: true, admin: true, moderator: true, editor: false, viewer: false })
   })
 })
@@ -49,7 +49,7 @@ describe('Operator-Break-Glass bleibt der zweite Weg — und wird protokolliert'
   it('hilft dem globalen moderator-Label NICHT über posts.moderate', () => {
     // Bewusste Asymmetrie im Bestand: die SITE-Rolle `moderator` hält
     // posts.moderate, das OPERATOR-Label `moderator` nicht (authz.ts kennt dort
-    // nur comments/reports/tickets). Die Umstellung auf requireSitePermission
+    // nur comments/reports/tickets). Die Umstellung auf requireCommunityPermission
     // ändert daran nichts — sie hält den Zustand nur fest.
     expect(allow(null, ['moderator'])).toEqual({ allowed: false, reason: 'no-role' })
   })
@@ -61,16 +61,16 @@ describe('Operator-Break-Glass bleibt der zweite Weg — und wird protokolliert'
 
 describe('Silo (comments-App): Verhalten unverändert', () => {
   it('verlangt ohne Mandanten-Kontext weiterhin das globale admin-Label', () => {
-    expect(decideSiteAccess({ capability: 'posts.moderate', tenantScoped: false, role: null, labels: ['admin'] }))
+    expect(decideCommunityAccess({ capability: 'posts.moderate', tenantScoped: false, role: null, labels: ['admin'] }))
       .toEqual({ allowed: true, via: 'single-tenant' })
-    expect(decideSiteAccess({ capability: 'posts.moderate', tenantScoped: false, role: null, labels: ['moderator'] }))
+    expect(decideCommunityAccess({ capability: 'posts.moderate', tenantScoped: false, role: null, labels: ['moderator'] }))
       .toEqual({ allowed: false, reason: 'forbidden' })
-    expect(decideSiteAccess({ capability: 'posts.moderate', tenantScoped: false, role: null, labels: [] }))
+    expect(decideCommunityAccess({ capability: 'posts.moderate', tenantScoped: false, role: null, labels: [] }))
       .toEqual({ allowed: false, reason: 'forbidden' })
   })
 
   it('öffnet ohne Mandanten NICHTS über eine mitgegebene Site-Rolle', () => {
-    expect(decideSiteAccess({ capability: 'posts.moderate', tenantScoped: false, role: 'owner', labels: [] }).allowed)
+    expect(decideCommunityAccess({ capability: 'posts.moderate', tenantScoped: false, role: 'owner', labels: [] }).allowed)
       .toBe(false)
   })
 })

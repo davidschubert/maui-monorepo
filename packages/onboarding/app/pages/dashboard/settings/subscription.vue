@@ -3,7 +3,7 @@
  * Abo & Rechnung EINER Community (A6 Schritt 3, Platform-Seite).
  *
  * WARUM HIER IM ONBOARDING-LAYER: die Seite kann nur so weit reichen wie ihre
- * Routen, und die liegen hier (`/api/site/billing/*`) — dieser Layer besitzt die
+ * Routen, und die liegen hier (`/api/community/billing/*`) — dieser Layer besitzt die
  * Service-Naht zum Control Plane, dem `tenants` und die Stripe-Schlüssel
  * gehören. Läge sie im admin- oder billing-Layer, hätte eine Silo-App einen
  * Menüpunkt, dessen Seite ins Leere greift (Muster: /dashboard/members).
@@ -16,7 +16,7 @@
  * wie ihre Geschwister Karten, kein eigenes UDashboardPanel.
  *
  * `billing.manage` trägt nur der OWNER (Davids Entscheidung 2 vom 2026-07-30,
- * tenantAuthz.ts). Die AUTORITÄT ist `requireSiteTeamGate` auf den Routen und
+ * communityAuthz.ts). Die AUTORITÄT ist `requireCommunityTeamGate` auf den Routen und
  * das Control Plane dahinter; `requiredCapability` hier erspart nur den Weg zu
  * einer Seite, auf der jeder Knopf 403 gäbe.
  *
@@ -39,7 +39,7 @@
  * tenants — CLAUDE.md/D6). Der Erfolgs-Toast sagt deshalb „in Kürze" statt
  * einen neuen Plan zu behaupten.
  */
-definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'site.billing' })
+definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'community.billing' })
 
 const { t } = useI18n()
 const toast = useToast()
@@ -88,7 +88,7 @@ async function buy(key: PlanKey) {
   if (key === 'basic' || busy.value) return
   busy.value = key
   try {
-    const { url } = await $fetch<{ url: string }>('/api/site/billing/checkout', {
+    const { url } = await $fetch<{ url: string }>('/api/community/billing/checkout', {
       method: 'POST',
       body: { plan: key, interval: interval.value },
     })
@@ -115,7 +115,7 @@ async function openPortal() {
   if (busy.value) return
   busy.value = 'portal'
   try {
-    const { url } = await $fetch<{ url: string }>('/api/site/billing/portal', { method: 'POST' })
+    const { url } = await $fetch<{ url: string }>('/api/community/billing/portal', { method: 'POST' })
     window.location.href = url
   }
   catch (error) {

@@ -11,7 +11,7 @@ import type {
 import type { Capability } from '../../../../core/shared/types/authz'
 
 // BEWUSST ohne `requiredCapability`: die Übersicht ist die Landeseite JEDER
-// Site-Rolle (alle fünf tragen `dashboard.access`, tenantAuthz.ts). Gegated
+// Site-Rolle (alle fünf tragen `dashboard.access`, communityAuthz.ts). Gegated
 // wird deshalb Widget für Widget (Audit-Befund S2, s. `can()` unten).
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
 
@@ -41,7 +41,7 @@ onMounted(() => {
 // bei jedem Seitenaufruf zwei Fetches ab, die für Site-Rollen nur 403 liefern
 // können: `audit.read` und `storage.manage` trägt KEINE der fünf Rollen.
 // Nur UX-Schicht — die Autorität sind die Gates in den Server-Routen.
-const { capabilities: siteCaps } = useSiteRole()
+const { capabilities: siteCaps } = useCommunityRole()
 const can = (capability: Capability) =>
   userHasCapability(auth.user, capability) || siteCaps.value.has(capability)
 const canModerateComments = computed(() => can('comments.moderate'))

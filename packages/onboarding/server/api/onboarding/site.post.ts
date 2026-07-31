@@ -37,10 +37,10 @@ export default defineEventHandler(async (event) => {
   // Das Site-Label sofort, nicht erst beim ersten Besuch: der Wizard leitet
   // direkt auf den frischen Community-Host weiter, und dort soll der Gründer
   // ohne Umweg lesen können. Der Helfer lebt seit A4 in core (auto-import) und
-  // wird ab jetzt zusätzlich von server/middleware/site-label.ts an JEDES
+  // wird ab jetzt zusätzlich von server/middleware/06.community-label.ts an JEDES
   // Mitglied vergeben — hier bleibt er, weil dieser Request auf dem
   // KONTROLL-Host läuft, wo es noch keinen Mandanten-Kontext gibt.
-  await grantSiteLabel(event, result.communityId)
+  await grantCommunityLabel(event, result.communityId)
 
   // Erste Startseite (Schritt 8). BEST EFFORT und bewusst nach der Anlage: die
   // Community existiert schon: an einer fehlgeschlagenen Seite darf sie nicht

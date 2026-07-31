@@ -25,7 +25,7 @@
  *           läuft: auf zwei Mandanten-Hosts BEITRETEN (Anmeldung bzw. erster
  *           Beitrag — seit A5 die einzigen Auslöser, ein Besuch genügt
  *           ausdrücklich nicht) → bekommt jeder nur SEIN Site-Label
- *           (server/middleware/site-label.ts)? → Heartbeat schreiben → sieht
+ *           (server/middleware/06.community-label.ts)? → Heartbeat schreiben → sieht
  *           der Nachbar-Mandant die Presence? Ohne laufenden Server wird Akt 2
  *           übersprungen (mit Hinweis), nicht als Fehler gewertet.
  *           Die Hosts brauchen OFFENE Registrierung (tenants.openRegistration),
@@ -147,7 +147,7 @@ async function plainUser(tag) {
 
 /**
  * Konto AUF EINEM MANDANTEN-HOST anlegen — seit A5 (2026-07-29) ist das einer der
- * beiden Beitritts-Auslöser (packages/core/shared/siteJoin.ts). Vorher genügte
+ * beiden Beitritts-Auslöser (packages/core/shared/communityJoin.ts). Vorher genügte
  * für das Label ein eingeloggter Besuch; jetzt braucht es eine Mitgliedschaft,
  * und die entsteht hier.
  */

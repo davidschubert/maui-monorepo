@@ -1,5 +1,5 @@
 /**
- * Hydratisiert den Auth-Store aus dem h3-Context (server/middleware/auth.ts) —
+ * Hydratisiert den Auth-Store aus dem h3-Context (server/middleware/02.auth.ts) —
  * kein zusätzlicher Client-Fetch beim App-Start, der State kommt im Payload mit.
  */
 export default defineNuxtPlugin(() => {

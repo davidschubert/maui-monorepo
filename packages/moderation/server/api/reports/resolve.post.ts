@@ -8,7 +8,7 @@ import { resolveReportsForTarget } from '../../utils/reportQueries'
  * (reportQueries.ts) — auch von den admin-Bulk-Aktionen genutzt.
  */
 export default defineEventHandler(async (event) => {
-  const { user } = await requireSitePermission(event, 'reports.moderate')
+  const { user } = await requireCommunityPermission(event, 'reports.moderate')
 
   const parsed = resolveReportSchema.safeParse(await readBody(event))
   if (!parsed.success) {

@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
        * `sessionSecret` + `userId` explizit: die Session steckt noch nicht im
        * Request-Cookie. No-Op auf Kontroll-Hosts und in Silo-Apps.
        */
-      await joinSite(event, 'registration', { sessionSecret: session.secret, userId: session.userId })
+      await joinCommunity(event, 'registration', { sessionSecret: session.secret, userId: session.userId })
 
       // Activity-Feed: der verifizierte OTP-Beitritt ist der Beitritts-Moment
       // (das Anlegen beim Token-Versand wäre verfrüht — unverifizierte E-Mail).

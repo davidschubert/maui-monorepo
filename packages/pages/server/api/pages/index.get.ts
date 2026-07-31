@@ -3,7 +3,7 @@ import { PAGES_TABLE, type PageGroup, type PageRow } from '../../../shared/types
 
 /** Admin: alle Seiten, nach slug gruppiert (das aufklappbare Menü). */
 export default defineEventHandler(async (event): Promise<{ groups: PageGroup[] }> => {
-  await requireSitePermission(event, 'pages.manage')
+  await requireCommunityPermission(event, 'pages.manage')
 
   // Datentür statt Hand-Scope (scopeQuery) — gleicher Filter, eine Autorität.
   const res = await tenantDb(event, { as: 'operator' }).list<PageRow>(PAGES_TABLE, [

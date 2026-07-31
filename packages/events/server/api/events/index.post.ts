@@ -7,7 +7,7 @@ import { EVENTS_TABLE, type EventRow } from '../../../shared/types/event'
  * Verwaltung liest via Admin-Client); direktes Publish setzt read(any) und
  * meldet den Feed-Eintrag. Datentür als Operator: create stempelt den Mandanten.
  *
- * AUTORISIERUNG (N5): `requireSitePermission` — im Pool entscheidet die
+ * AUTORISIERUNG (N5): `requireCommunityPermission` — im Pool entscheidet die
  * Site-Rolle (editor/admin/owner tragen events.manage), erst danach greift der
  * protokollierte Operator-Break-Glass. Ohne Mandanten-Kontext (Silo/Playground)
  * fällt der Gate auf das globale Operator-Label zurück: Verhalten unverändert.
@@ -15,7 +15,7 @@ import { EVENTS_TABLE, type EventRow } from '../../../shared/types/event'
 export default defineEventHandler(async (event) => {
   // Produkt-Gate (P4): Events sind ab Plan pro enthalten.
   requirePlanProduct(event, 'events')
-  const { user } = await requireSitePermission(event, 'events.manage')
+  const { user } = await requireCommunityPermission(event, 'events.manage')
 
   // Pool-Quota (No-Op, bis der Plan-Katalog events-Limits trägt — der Hook
   // steht, damit die Zahlen nur noch Konfiguration sind, kein Code)

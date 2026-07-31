@@ -1,6 +1,6 @@
 import { Query } from 'node-appwrite'
 import type { AdminStats } from '../../../shared/types/admin'
-import { decideSiteAccess } from '../../../../core/shared/siteAccess'
+import { decideCommunityAccess } from '../../../../core/shared/communityAccess'
 
 /**
  * Übersichts-Zahlen: Users-API total + Kennzahlen der registrierten
@@ -8,12 +8,12 @@ import { decideSiteAccess } from '../../../../core/shared/siteAccess'
  * A14) — admin kennt keine Produkt-Tabellen mehr; fehlende Layer liefern
  * schlicht keine Kennzahl (0-Default).
  *
- * AUTORISIERUNG (C1): `await requireSitePermission(event, 'dashboard.access')`.
+ * AUTORISIERUNG (C1): `await requireCommunityPermission(event, 'dashboard.access')`.
  * Vorher stand hier das label-only `requirePermission` — ein Kunden-Owner hat
  * kein globales Label, bekam 403 und sah eine Übersicht aus lauter Nullen.
  *
  * WARUM `dashboard.access` und nicht enger: das sind die Zahlen DER
- * Dashboard-Startseite, und laut Rollen-Matrix (tenantAuthz.ts) tragen ALLE
+ * Dashboard-Startseite, und laut Rollen-Matrix (communityAuthz.ts) tragen ALLE
  * fünf Site-Rollen `dashboard.access` — sie landen also alle auf dieser Seite.
  * Eine engere Capability (z. B. `comments.moderate`) würde die leeren Kacheln
  * für Editor UND Viewer exakt reproduzieren, also den Befund nur verschieben.
@@ -24,7 +24,7 @@ import { decideSiteAccess } from '../../../../core/shared/siteAccess'
  * Konten des geteilten Appwrite-PROJEKTS — im Pool ist das die Summe aller
  * Communities, nicht „Nutzer dieser Site". Mandantengenau wäre nur ein Count
  * über `community_members` im Control Plane; das ist ein neuer Cross-Projekt-Vertrag
- * (heute gibt es dort nur den Einzel-Lookup des SiteRoleResolvers) und für eine
+ * (heute gibt es dort nur den Einzel-Lookup des CommunityRoleResolvers) und für eine
  * Übersichtszahl nicht angemessen. Deshalb: im Pool KEINE Zahl (`null`) statt
  * einer fremden — die Karte entfällt im Dashboard. Silo/Einzelbetrieb bleibt
  * unverändert, dort IST das Projekt die Site.
@@ -37,11 +37,11 @@ import { decideSiteAccess } from '../../../../core/shared/siteAccess'
  * dass die Schnellmoderation auf der Seite ebenfalls verschwindet.
  */
 export default defineEventHandler(async (event): Promise<AdminStats> => {
-  const { user, role } = await requireSitePermission(event, 'dashboard.access')
+  const { user, role } = await requireCommunityPermission(event, 'dashboard.access')
 
   const tenant = useTenant(event)
   const poolTenant = tenant?.mode === 'pool'
-  const canModerate = decideSiteAccess({
+  const canModerate = decideCommunityAccess({
     capability: 'comments.moderate',
     labels: user.labels ?? [],
     tenantScoped: Boolean(tenant),
