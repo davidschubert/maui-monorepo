@@ -58,12 +58,15 @@ const ADMIN: readonly Capability[] = [
   ]),
 ]
 
-/** Owner: Admin + Owner-Übergabe + Site-Löschung. */
+/** Owner: Admin + Owner-Übergabe + Site-Löschung + Abo (A6: der Owner kauft). */
 const OWNER: readonly Capability[] = [
   ...new Set<Capability>([
     ...ADMIN,
     'site.transfer',
     'site.delete',
+    // A6 (Davids Entscheidung 2, 2026-07-30): gekauft wird im Dashboard der
+    // Community, und zwar NUR vom Owner — das Abo hängt an der Community.
+    'billing.manage',
   ]),
 ]
 
