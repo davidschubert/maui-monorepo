@@ -66,8 +66,10 @@ export interface TenantCreateOptions extends TenantRowPermissionOptions {
  * wie ein Tippfehler aussieht.
  */
 export function stripTenantKey<T extends Record<string, unknown>>(data: T): T {
-  if (!('tenantId' in data)) return data
-  const { tenantId: _ignored, ...rest } = data
+  if (!('tenantId' in data) && !('communityId' in data)) return data
+  // E8-3: BEIDE Schlüssel entfernen — communityId ist die neue Spalte,
+  // tenantId der Übergangs-Stempel; keiner darf vom Aufrufer kommen.
+  const { tenantId: _ignored, communityId: _ignored2, ...rest } = data
   return rest as unknown as T
 }
 

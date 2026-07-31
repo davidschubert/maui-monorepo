@@ -6,10 +6,10 @@ const pool: TenantContext = { mode: 'pool', projectId: 'shared-1', tenantId: 'ac
 const silo: TenantContext = { mode: 'silo', projectId: 'silo-bigcorp' }
 
 describe('scopeQueriesFor', () => {
-  it('pool: hängt einen tenantId-Filter an', () => {
+  it('pool: hängt einen communityId-Filter an (E8-3: die Spalte heißt communityId)', () => {
     const q = scopeQueriesFor(pool, [])
     expect(q).toHaveLength(1)
-    expect(q[0]).toContain('tenantId')
+    expect(q[0]).toContain('communityId')
     expect(q[0]).toContain('acme')
   })
   it('pool: bestehende Queries bleiben erhalten', () => {
@@ -24,8 +24,8 @@ describe('scopeQueriesFor', () => {
 })
 
 describe('scopeRowFor', () => {
-  it('pool: setzt tenantId auf der Zeile', () => {
-    expect(scopeRowFor(pool, { text: 'hi' })).toEqual({ text: 'hi', tenantId: 'acme' })
+  it('pool: stempelt BEIDE Spalten (E8-3-Übergang bis zur Aufräum-Migration)', () => {
+    expect(scopeRowFor(pool, { text: 'hi' })).toEqual({ text: 'hi', tenantId: 'acme', communityId: 'acme' })
   })
   it('silo: kein tenantId (Projekt-isoliert)', () => {
     expect(scopeRowFor(silo, { text: 'hi' }).tenantId).toBeUndefined()

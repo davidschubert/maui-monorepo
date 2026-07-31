@@ -80,7 +80,8 @@ export async function assertPoolWriteQuota(event: H3Event, options: { kind: stri
 
   const config = useRuntimeConfig(event)
   const { tablesDB } = createAdminClient(event)
-  const tenantFilter = Query.equal('tenantId', tenant.tenantId)
+  // E8-3: die Spalte heißt communityId (Backfill lief vor diesem Code).
+  const tenantFilter = Query.equal('communityId', tenant.tenantId)
   const countQuery = (extra: string[] = []) => tablesDB.listRows({
     databaseId: config.public.appwriteDatabaseId,
     tableId: options.tableId,

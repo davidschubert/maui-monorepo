@@ -54,7 +54,7 @@ export async function seedLegalPages(event: H3Event, input: SeedLegalPagesInput)
       databaseId,
       tableId: PAGES_TABLE,
       queries: [
-        Query.equal('tenantId', input.tenantId),
+        Query.equal('communityId', input.tenantId),
         Query.equal('slug', template.slug),
         Query.equal('locale', locale),
         Query.limit(1),
@@ -74,6 +74,7 @@ export async function seedLegalPages(event: H3Event, input: SeedLegalPagesInput)
           slug: template.slug,
           locale,
           tenantId: input.tenantId,
+          communityId: input.tenantId,
           title: template.title,
           body: template.body,
           status: 'draft',

@@ -42,7 +42,7 @@ export async function seedHomePage(event: H3Event, input: SeedHomePageInput): Pr
     databaseId,
     tableId: PAGES_TABLE,
     queries: [
-      Query.equal('tenantId', input.tenantId),
+      Query.equal('communityId', input.tenantId),
       Query.equal('slug', 'home'),
       Query.equal('locale', input.locale),
       Query.limit(1),
@@ -60,6 +60,7 @@ export async function seedHomePage(event: H3Event, input: SeedHomePageInput): Pr
       slug: 'home',
       locale: input.locale,
       tenantId: input.tenantId,
+      communityId: input.tenantId,
       title: input.title,
       body,
       // Veröffentlicht: die Community soll ab der ersten Sekunde etwas zeigen.

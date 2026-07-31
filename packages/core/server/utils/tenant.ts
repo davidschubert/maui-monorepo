@@ -21,18 +21,22 @@ export function useTenant(event: H3Event): TenantContext | null {
 
 // ── PURE Kern (unit-testbar, ohne h3) ───────────────────────────────────────
 
-/** Queries mandanten-scopen: Pool hängt den tenantId-Filter an, sonst unverändert. */
+/** Queries mandanten-scopen: Pool hängt den Filter an, sonst unverändert.
+ *  E8-3: die SPALTE heißt communityId (Backfill + Index-Zwillinge liefen auf
+ *  allen Instanzen VOR diesem Code); der Kontext-WERT bleibt tenant.tenantId. */
 export function scopeQueriesFor(tenant: TenantContext | null, queries: string[] = []): string[] {
-  if (tenant?.mode === 'pool') return [...queries, Query.equal('tenantId', tenant.tenantId)]
+  if (tenant?.mode === 'pool') return [...queries, Query.equal('communityId', tenant.tenantId)]
   return [...queries]
 }
 
-/** Row-Daten mandanten-scopen: Pool setzt tenantId, sonst unverändert. */
+/** Row-Daten mandanten-scopen: Pool stempelt, sonst unverändert.
+ *  ÜBERGANG (E8-3): BEIDE Spalten, bis die Aufräum-Migration tenantId löscht —
+ *  so bleibt jede im Deploy-Fenster entstandene Zeile für beide Welten sichtbar. */
 export function scopeRowFor<T extends Record<string, unknown>>(
   tenant: TenantContext | null,
   data: T,
-): T & { tenantId?: string } {
-  if (tenant?.mode === 'pool') return { ...data, tenantId: tenant.tenantId }
+): T & { tenantId?: string, communityId?: string } {
+  if (tenant?.mode === 'pool') return { ...data, tenantId: tenant.tenantId, communityId: tenant.tenantId }
   return { ...data }
 }
 
@@ -71,8 +75,13 @@ export function rowBelongsToTenant(tenant: TenantContext | null, row: unknown): 
   // tragen je Layer andere Typen. Ein enger Parameter-Typ hätte an jeder
   // Aufrufstelle einen Cast erzwungen — und ein Cast ist genau die Stelle, an
   // der so eine Prüfung später versehentlich weggeräumt wird.
-  const tenantId = (row as { tenantId?: unknown }).tenantId
-  return typeof tenantId === 'string' && tenantId !== '' && tenantId === tenant.tenantId
+  // E8-3-Übergang: communityId ist die Spalte, tenantId der Rückfall für
+  // Zeilen, die ALTER Code im Deploy-Fenster nur mit tenantId gestempelt hat
+  // (der Drift-Nachlauf der Migration zieht sie nach). Fail-closed bleibt:
+  // ohne BEIDE Werte ist die Zeile fremd.
+  const { communityId, tenantId } = row as { communityId?: unknown, tenantId?: unknown }
+  const scope = typeof communityId === 'string' && communityId !== '' ? communityId : tenantId
+  return typeof scope === 'string' && scope !== '' && scope === tenant.tenantId
 }
 
 /**
