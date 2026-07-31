@@ -34,7 +34,7 @@
   // E3: „N Kommentare"-Zähler auf der Hostseite befüllen (unabhängig vom
   // Widget — funktioniert auch ohne data-target-id am Script-Tag)
   function fillCounts() {
-    var nodes = document.querySelectorAll('[data-pukalani-count]')
+    var nodes = document.querySelectorAll('[data-pukalani-count],[data-maui-count]')
     Array.prototype.forEach.call(nodes, function (node) {
       var id = node.getAttribute('data-target-id')
       if (!id) return
@@ -69,6 +69,15 @@
   // ein frisches <div> direkt vor dem Script-Tag.
   var containerId = script.getAttribute('data-container') || 'pukalani-comments'
   var container = document.getElementById(containerId)
+  // RÜCKWÄRTSKOMPATIBEL (2026-07-30, maui → pukalani): Einbetter aus der Zeit
+  // davor haben `<div id="maui-comments">` in IHREM HTML stehen — fremde
+  // Seiten, die wir nicht mitmigrieren können. Ohne diesen Rückfall würde
+  // embed.js den Container nicht finden, ein leeres <div> daneben erzeugen und
+  // das Widget stünde an der falschen Stelle. Nur greifen, wenn der Einbetter
+  // KEIN eigenes data-container gesetzt hat.
+  if (!container && !script.getAttribute('data-container')) {
+    container = document.getElementById('maui-comments')
+  }
   if (!container) {
     container = document.createElement('div')
     script.parentNode.insertBefore(container, script)
