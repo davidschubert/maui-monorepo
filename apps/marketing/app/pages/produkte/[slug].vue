@@ -9,33 +9,66 @@
 //   2. KEIN Kauf-/„Kostenlos starten"-CTA — nur „Early Access anfragen",
 //   3. die Highlights beschreiben ausschließlich, was tatsächlich existiert.
 //
-// Locale-Pfade: EN /products/* · DE /de/produkte/* — Kundensprache ist
-// „Produkte" (im CODE bleibt das Vokabular `products`). Die Slugs bleiben
-// deutsch, nur das Segment ist lokalisiert.
-// Die alten /features/*-URLs waren schon veröffentlicht: 301 in nuxt.config.ts.
-import { EARLY_ACCESS_SLUGS, PRODUCT_SLUGS } from '#shared/marketing'
+// Locale-Pfade: EN /products/<en-slug> · DE /de/produkte/<de-slug> —
+// Kundensprache ist „Produkte" (im CODE bleibt das Vokabular `products`).
+// Seit Davids Entscheidung 2026-07-31 ist NICHT NUR das Segment übersetzt,
+// sondern auch der Slug (/de/produkte/kurse ↔ /products/courses).
+// Die alten /features/*-URLs und die drei EN-Adressen mit deutschem Slug waren
+// schon veröffentlicht: 301 in nuxt.config.ts.
+import { EARLY_ACCESS_KEYS, keyFromSlug, slugForLocale } from '#shared/marketing'
 
 definePageMeta({ layout: 'site' })
 defineI18nRoute({ paths: { en: '/products/[slug]', de: '/produkte/[slug]' } })
 
-// Beide Kataloge stehen in shared/marketing.ts: dieselbe Slug-Liste baut die
-// Sitemap (server/utils/marketingRoutes.ts), und die Early-Access-Liste ist
-// ein Claim-Gate (§2.4) — sie darf nicht in zwei Fassungen existieren.
+// Beide Kataloge stehen in shared/marketing.ts: dieselbe Quelle baut die
+// Sitemap (server/utils/marketingRoutes.ts) und die Link-Ziele in Kopf und Fuß,
+// und die Early-Access-Liste ist ein Claim-Gate (§2.4) — sie darf nicht in
+// zwei Fassungen existieren.
 const route = useRoute()
-const slug = String(route.params.slug)
-if (!PRODUCT_SLUGS.includes(slug as (typeof PRODUCT_SLUGS)[number])) {
+const { t, locale } = useI18n()
+
+/**
+ * Der Slug in der Adresse gehört der AKTUELLEN Sprache; gearbeitet wird ab
+ * hier nur noch mit dem kanonischen Schlüssel (i18n-Texte, OG-Bild,
+ * Claim-Gate). Ein Slug der ANDEREN Sprache ist kein Treffer — `keyFromSlug`
+ * prüft je Sprache, sonst gäbe es dieselbe Seite unter zwei URLs.
+ */
+const productKey = keyFromSlug(String(route.params.slug), locale.value)
+if (!productKey) {
   throw createError({ status: 404, statusText: 'Page not found' })
 }
 
+/**
+ * DIE ÜBERSETZTE ADRESSE DIESER SEITE — für `switchLocalePath()` (Sprach-
+ * wechsler im Fuß) UND für die hreflang-Alternates aus `useLocaleSeoHead()`.
+ *
+ * Ohne diesen Aufruf kennt @nuxtjs/i18n nur den Routen-NAMEN und reicht die
+ * Parameter unverändert weiter: aus `/de/produkte/kurse` würde `/products/
+ * kurse` — eine Adresse, die es nicht mehr gibt (301 → `/products/courses`).
+ * Der Sprachwechsel liefe also über eine Weiterleitung, und die
+ * `alternate`-Links wiesen Google auf Weiterleitungen statt auf Seiten.
+ *
+ * `useSetI18nParams()` GIBT die Setz-Funktion ZURÜCK (die Argumente des
+ * Composables selbst sind SEO-Optionen) — der zweite Aufruf ist Absicht.
+ * Er patcht zugleich den Kopf: weil diese Seite TIEFER im Baum sitzt als die
+ * `app.vue` mit `useLocaleSeoHead()`, gewinnen seine `alternate`/`canonical`-
+ * Einträge beim Zusammenführen in unhead (gleicher Dedupe-Schlüssel, spätere
+ * Registrierung).
+ */
+const setI18nParams = useSetI18nParams()
+setI18nParams({
+  de: { slug: slugForLocale(productKey, 'de') },
+  en: { slug: slugForLocale(productKey, 'en') },
+})
+
 const HIGHLIGHT_COUNT = 6
-const { t } = useI18n()
 const localePath = useLocalePath()
 const { start, demo, signIn } = useProductLinks()
 useReveal()
 
-const isEarlyAccess = computed(() => EARLY_ACCESS_SLUGS.includes(slug))
+const isEarlyAccess = computed(() => EARLY_ACCESS_KEYS.includes(productKey))
 
-const base = `marketing.products.items.${slug}`
+const base = `marketing.products.items.${productKey}`
 const highlights = computed(() =>
   Array.from({ length: HIGHLIGHT_COUNT }, (_, i) => t(`${base}.highlights.${i}`)),
 )
@@ -61,10 +94,15 @@ const ctaLinks = computed(() => [
   },
 ])
 
+// Das OG-Bild trägt den KANONISCHEN Schlüssel (`products-beitraege-en.jpg`,
+// nicht `products-posts-en.jpg`) — bewusst kein Datei-Rename: eine Bild-URL ist
+// keine Navigations-URL. Sie steht nur im <head>, niemand liest oder verlinkt
+// sie, und ein Rename hieße neue Dateien, eine angepasste scripts/og-images.mjs
+// und tote Adressen in schon geteilten Vorschauen — für null Wirkung.
 useMarketingSeo({
   titleKey: `${base}.metaTitle`,
   descriptionKey: `${base}.metaDescription`,
-  image: `products-${slug}`,
+  image: `products-${productKey}`,
 })
 </script>
 

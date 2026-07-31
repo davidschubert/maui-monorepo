@@ -5,19 +5,17 @@
       "description": "Beiträge, Kurse, Events und Diskussionen unter deinem Namen und Design. Datenschutz-nativ, in Deutschland gehostet, ohne Werbe-Tracking. Die schlanke Alternative zu Circle & Skool. Kostenlos starten."
     },
     "nav": {
-      "products": "Produkte",
       "pricing": "Preise",
       "story": "Geschichte",
       "signIn": "Anmelden",
       "start": "Kostenlos starten",
-      "toGerman": "Deutsch",
-      "toEnglish": "English",
       "menu": "Menü öffnen",
       "menuClose": "Menü schließen",
       "aria": {
         "main": "Hauptnavigation"
       },
       "products": {
+        "label": "Produkte",
         "overview": "Alle Produkte im Überblick",
         "items": {
           "diskussionen": {
@@ -755,7 +753,8 @@
         "compare": "Vergleich",
         "useCases": "Anwendungsfälle",
         "company": "Über",
-        "legal": "Rechtliches"
+        "legal": "Rechtliches",
+        "language": "Sprache wählen"
       },
       "colProduct": "Produkt",
       "colCompany": "Über",

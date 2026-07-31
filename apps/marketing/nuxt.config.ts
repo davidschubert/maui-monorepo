@@ -53,11 +53,25 @@ export default defineNuxtConfig({
   // Self-Redirect '/products/**' → '/products/**' — alle EN-Produktseiten
   // waren tot (Weiterleitungsschleife), und '/de/products/**' bewachte eine
   // Quell-URL, die es nie gegeben hat.
+  // Dritte Welle (Davids Entscheidung 2026-07-31): auf der ENGLISCHEN Seite
+  // ist jetzt auch der SLUG übersetzt (`/products/courses` statt
+  // `/products/kurse`). Betroffen sind genau die drei Produkte, deren Wort
+  // sich unterscheidet — moderation, branding und events heißen in beiden
+  // Sprachen gleich und brauchen nichts. Exakte Pfade genügen: es sind sechs
+  // feste Seiten, kein Muster (`/products/**` würde ins Ziel selbst greifen).
+  // Die DEUTSCHEN Adressen ändern sich NICHT.
   routeRules: {
     '/features/**': { redirect: { to: '/products/**', statusCode: 301 } },
     '/de/features/**': { redirect: { to: '/de/produkte/**', statusCode: 301 } },
     '/for/**': { redirect: { to: '/use-cases/**', statusCode: 301 } },
     '/de/fuer/**': { redirect: { to: '/de/use-cases/**', statusCode: 301 } },
+    // Zwei Sprünge für die ältesten Adressen (`/features/kurse` → `/products/
+    // kurse` → `/products/courses`) sind bewusst in Kauf genommen: eine Kette
+    // aus zwei 301 wertet Google wie eine, und je Produkt eine zweite
+    // Sonderregel zu führen kostet mehr Klarheit als sie einbringt.
+    '/products/diskussionen': { redirect: { to: '/products/discussions', statusCode: 301 } },
+    '/products/beitraege': { redirect: { to: '/products/posts', statusCode: 301 } },
+    '/products/kurse': { redirect: { to: '/products/courses', statusCode: 301 } },
   },
 
   // Ziel-Links der Marketing-CTAs (useProductLinks). Die Werte sind die
