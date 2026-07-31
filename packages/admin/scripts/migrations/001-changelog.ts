@@ -11,6 +11,7 @@
  * Benötigte Key-Scopes: tables.*, columns.*, rows.* (Migrations-Key).
  */
 import { Client, TablesDB, Permission, Role } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -77,7 +78,7 @@ await step('Column changelog.published', () => tablesDB.createBooleanColumn({
 
 await waitForColumns('changelog')
 
-await step('Index changelog.published', () => tablesDB.createIndex({
+await indexStep('Index changelog.published', () => tablesDB.createIndex({
   databaseId, tableId: 'changelog', key: 'published', type: 'key', columns: ['published'],
 }))
 

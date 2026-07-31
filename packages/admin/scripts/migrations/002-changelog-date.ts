@@ -8,6 +8,7 @@
  *     packages/admin/scripts/migrations/009-changelog-date.ts
  */
 import { Client, TablesDB } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -44,7 +45,7 @@ for (let i = 0; i < 30; i++) {
 }
 if (!dateAvailable) throw new Error('Column changelog.date wurde nicht verfügbar (Timeout)')
 
-await step('Index changelog.date', () => tablesDB.createIndex({
+await indexStep('Index changelog.date', () => tablesDB.createIndex({
   databaseId, tableId: 'changelog', key: 'date', type: 'key', columns: ['date'],
 }))
 

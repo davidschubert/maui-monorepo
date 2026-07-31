@@ -9,6 +9,7 @@
  *   pnpm migrate --app <app> --layer feedback
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -94,11 +95,11 @@ await columnStep('Column feedback.status', 'status', cols, () => tablesDB.create
 
 await waitForColumns('feedback')
 
-await step('Index feedback.idx_status', () => tablesDB.createIndex({
+await indexStep('Index feedback.idx_status', () => tablesDB.createIndex({
   databaseId, tableId: 'feedback', key: 'idx_status', type: TablesDBIndexType.Key, columns: ['status'],
 }))
 // GDPR-Lookup (Export/Löschung per userId)
-await step('Index feedback.idx_user', () => tablesDB.createIndex({
+await indexStep('Index feedback.idx_user', () => tablesDB.createIndex({
   databaseId, tableId: 'feedback', key: 'idx_user', type: TablesDBIndexType.Key, columns: ['userId'],
 }))
 

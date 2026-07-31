@@ -8,6 +8,7 @@
  *   pnpm migrate --app <app> --layer comments
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -69,7 +70,7 @@ await step('Column embed_sites.active', () => tablesDB.createBooleanColumn({
   databaseId, tableId: 'embed_sites', key: 'active', required: false, xdefault: true,
 }))
 await waitForColumn('host')
-await step('Unique-Index embed_sites.uq_host', () => tablesDB.createIndex({
+await indexStep('Unique-Index embed_sites.uq_host', () => tablesDB.createIndex({
   databaseId, tableId: 'embed_sites', key: 'uq_host', type: TablesDBIndexType.Unique, columns: ['host'],
 }))
 

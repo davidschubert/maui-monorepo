@@ -16,6 +16,7 @@
  *   pnpm migrate --app <app> --layer control
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -123,7 +124,7 @@ if (logColumn && (logColumn.size ?? 0) > 8000) {
 
 await waitForColumns('provisioning_jobs')
 
-await step('Index provisioning_jobs.idx_status', () => tablesDB.createIndex({
+await indexStep('Index provisioning_jobs.idx_status', () => tablesDB.createIndex({
   databaseId, tableId: 'provisioning_jobs', key: 'idx_status', type: TablesDBIndexType.Key, columns: ['status'],
 }))
 

@@ -9,6 +9,7 @@
  *   pnpm migrate --app <app> --layer pages
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { withIndexRetry } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -51,10 +52,10 @@ if (await indexExists('uq_slug_locale_tenant')) {
   console.log('↷ Unique-Index uq_slug_locale_tenant (existiert bereits)')
 }
 else {
-  await tablesDB.createIndex({
+  await withIndexRetry(() => tablesDB.createIndex({
     databaseId, tableId: 'pages', key: 'uq_slug_locale_tenant',
     type: TablesDBIndexType.Unique, columns: ['slug', 'locale', 'tenantId'],
-  })
+  }))
   await waitForIndex('uq_slug_locale_tenant')
   console.log('✔ Unique-Index uq_slug_locale_tenant')
 }

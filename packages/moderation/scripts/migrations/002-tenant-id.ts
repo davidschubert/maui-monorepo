@@ -10,6 +10,7 @@
  *   pnpm migrate --app <app> --layer moderation
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -58,7 +59,7 @@ await step('Column reports.tenantId', () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'reports', key: 'tenantId', size: 36, required: false, xdefault: '',
 }))
 await waitForColumn('tenantId')
-await step('Index reports.idx_tenant', () => tablesDB.createIndex({
+await indexStep('Index reports.idx_tenant', () => tablesDB.createIndex({
   databaseId, tableId: 'reports', key: 'idx_tenant', type: TablesDBIndexType.Key, columns: ['tenantId'],
 }))
 

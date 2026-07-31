@@ -60,6 +60,7 @@
  * marketing und help haben keine Appwrite-Instanz.
  */
 import { Client, Query, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -126,7 +127,7 @@ await step(`Column ${TABLE_ID}.tenantId`, () => tablesDB.createVarcharColumn({
 }))
 await waitForColumn(TABLE_ID, 'tenantId')
 
-await step(`Index ${TABLE_ID}.idx_recipient_tenant`, () => tablesDB.createIndex({
+await indexStep(`Index ${TABLE_ID}.idx_recipient_tenant`, () => tablesDB.createIndex({
   databaseId, tableId: TABLE_ID, key: 'idx_recipient_tenant',
   type: TablesDBIndexType.Key, columns: ['recipientId', 'tenantId'],
 }))

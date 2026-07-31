@@ -10,6 +10,7 @@
  *   pnpm migrate --app <app> --layer tickets
  */
 import { Client, ID, Permission, Role, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -142,13 +143,13 @@ await columnStep('Column tickets.createdByName', 'createdByName', ticketCols, ()
 await waitForColumns('ticket_lists')
 await waitForColumns('tickets')
 
-await step('Index ticket_lists.idx_position', () => tablesDB.createIndex({
+await indexStep('Index ticket_lists.idx_position', () => tablesDB.createIndex({
   databaseId, tableId: 'ticket_lists', key: 'idx_position', type: TablesDBIndexType.Key, columns: ['position'],
 }))
-await step('Index tickets.idx_list', () => tablesDB.createIndex({
+await indexStep('Index tickets.idx_list', () => tablesDB.createIndex({
   databaseId, tableId: 'tickets', key: 'idx_list', type: TablesDBIndexType.Key, columns: ['listId', 'position'],
 }))
-await step('Index tickets.idx_status', () => tablesDB.createIndex({
+await indexStep('Index tickets.idx_status', () => tablesDB.createIndex({
   databaseId, tableId: 'tickets', key: 'idx_status', type: TablesDBIndexType.Key, columns: ['status'],
 }))
 

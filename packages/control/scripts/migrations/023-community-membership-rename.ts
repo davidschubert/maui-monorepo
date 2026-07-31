@@ -35,6 +35,7 @@
  *   pnpm migrate --app control --layer control
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -218,28 +219,28 @@ await step(`Column ${NEW_MEMBERS}.removedAt`, () => tablesDB.createDatetimeColum
 await waitForColumns(NEW_MEMBERS)
 
 // Autorisierung fragt „welche Rolle hat DIESER Runtime-User in DIESER Community?"
-await step(`Index ${NEW_MEMBERS}.idx_lookup`, () => tablesDB.createIndex({
+await indexStep(`Index ${NEW_MEMBERS}.idx_lookup`, () => tablesDB.createIndex({
   databaseId: db, tableId: NEW_MEMBERS, key: 'idx_lookup', type: TablesDBIndexType.Key,
   columns: ['communityId', 'runtimeProjectId', 'runtimeUserId'],
 }))
 // Ein User hat je Community GENAU EINE Rolle.
-await step(`Index ${NEW_MEMBERS}.uq_member (unique)`, () => tablesDB.createIndex({
+await indexStep(`Index ${NEW_MEMBERS}.uq_member (unique)`, () => tablesDB.createIndex({
   databaseId: db, tableId: NEW_MEMBERS, key: 'uq_member', type: TablesDBIndexType.Unique,
   columns: ['communityId', 'runtimeProjectId', 'runtimeUserId'],
 }))
 // „Alle Mitglieder dieser Community" (Team-Liste im Kundenbereich).
 // Index-NAMEN wandern mit: `idx_site` hieße sonst weiter nach der alten Sache.
-await step(`Index ${NEW_MEMBERS}.idx_community`, () => tablesDB.createIndex({
+await indexStep(`Index ${NEW_MEMBERS}.idx_community`, () => tablesDB.createIndex({
   databaseId: db, tableId: NEW_MEMBERS, key: 'idx_community', type: TablesDBIndexType.Key,
   columns: ['communityId'],
 }))
 // „Welche Communities gehören diesem Runtime-User?" (control-016).
-await step(`Index ${NEW_MEMBERS}.idx_owner`, () => tablesDB.createIndex({
+await indexStep(`Index ${NEW_MEMBERS}.idx_owner`, () => tablesDB.createIndex({
   databaseId: db, tableId: NEW_MEMBERS, key: 'idx_owner', type: TablesDBIndexType.Key,
   columns: ['runtimeProjectId', 'runtimeUserId'],
 }))
 // Ehemalige Mitglieder gebündelt finden (control-019).
-await step(`Index ${NEW_MEMBERS}.idx_community_status`, () => tablesDB.createIndex({
+await indexStep(`Index ${NEW_MEMBERS}.idx_community_status`, () => tablesDB.createIndex({
   databaseId: db, tableId: NEW_MEMBERS, key: 'idx_community_status', type: TablesDBIndexType.Key,
   columns: ['communityId', 'status'],
 }))
@@ -289,16 +290,16 @@ await step(`Column ${NEW_INVITES}.acceptedBy`, () => tablesDB.createVarcharColum
 await waitForColumns(NEW_INVITES)
 
 // Einlösen sucht über den Hash — und zwar genau EINE Einladung.
-await step(`Index ${NEW_INVITES}.uq_token (unique)`, () => tablesDB.createIndex({
+await indexStep(`Index ${NEW_INVITES}.uq_token (unique)`, () => tablesDB.createIndex({
   databaseId: db, tableId: NEW_INVITES, key: 'uq_token', type: TablesDBIndexType.Unique,
   columns: ['tokenHash'],
 }))
-await step(`Index ${NEW_INVITES}.idx_community_status`, () => tablesDB.createIndex({
+await indexStep(`Index ${NEW_INVITES}.idx_community_status`, () => tablesDB.createIndex({
   databaseId: db, tableId: NEW_INVITES, key: 'idx_community_status', type: TablesDBIndexType.Key,
   columns: ['communityId', 'status'],
 }))
 // Zweite Einladung an dieselbe Adresse ERSETZT die erste — dafür muss man sie finden.
-await step(`Index ${NEW_INVITES}.idx_community_email`, () => tablesDB.createIndex({
+await indexStep(`Index ${NEW_INVITES}.idx_community_email`, () => tablesDB.createIndex({
   databaseId: db, tableId: NEW_INVITES, key: 'idx_community_email', type: TablesDBIndexType.Key,
   columns: ['communityId', 'email'],
 }))

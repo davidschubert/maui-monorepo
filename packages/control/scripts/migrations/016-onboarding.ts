@@ -23,6 +23,7 @@
  *   pnpm migrate --app control --layer control
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -96,7 +97,7 @@ await waitForColumn('tenants', 'trialEndsAt')
 
 // Der Downgrade-Sweep fragt „welche Testphasen sind fällig?" — ohne Index
 // wäre das ein Full-Scan über alle Tenants.
-await step('Index tenants.idx_trial', () => tablesDB.createIndex({
+await indexStep('Index tenants.idx_trial', () => tablesDB.createIndex({
   databaseId, tableId: 'tenants', key: 'idx_trial', type: TablesDBIndexType.Key,
   columns: ['trialEndsAt'],
 }))
@@ -105,7 +106,7 @@ await step('Index tenants.idx_trial', () => tablesDB.createIndex({
 // Der Onboarding-Pfad muss das Konto-Kontingent prüfen (eine Community in der
 // Testphase) — das ist eine Abfrage über den Runtime-User, nicht über die
 // Site. idx_lookup (siteId, projectId, userId) trägt sie nicht.
-await step('Index site_members.idx_owner', () => tablesDB.createIndex({
+await indexStep('Index site_members.idx_owner', () => tablesDB.createIndex({
   databaseId, tableId: 'site_members', key: 'idx_owner', type: TablesDBIndexType.Key,
   columns: ['runtimeProjectId', 'runtimeUserId'],
 }))
@@ -141,11 +142,11 @@ await waitForColumn('invite_codes', 'status')
 
 // Der Einlöse-Pfad sucht AUSSCHLIESSLICH über den Hash — Unique verhindert
 // zwei Rows zum selben Code (und damit doppelte Kontingente).
-await step('Unique-Index invite_codes.uq_code', () => tablesDB.createIndex({
+await indexStep('Unique-Index invite_codes.uq_code', () => tablesDB.createIndex({
   databaseId, tableId: 'invite_codes', key: 'uq_code', type: TablesDBIndexType.Unique,
   columns: ['codeHash'],
 }))
-await step('Index invite_codes.idx_status', () => tablesDB.createIndex({
+await indexStep('Index invite_codes.idx_status', () => tablesDB.createIndex({
   databaseId, tableId: 'invite_codes', key: 'idx_status', type: TablesDBIndexType.Key,
   columns: ['status'],
 }))

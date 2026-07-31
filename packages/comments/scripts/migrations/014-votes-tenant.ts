@@ -20,6 +20,7 @@
  *   pnpm migrate --app <app> --layer comments
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -71,7 +72,7 @@ await step(`Column ${TABLE}.tenantId`, () => tablesDB.createVarcharColumn({
 await waitForColumn('tenantId')
 // Die Stimmen-Abfrage filtert userId + commentId + (neu) tenantId — der Index
 // trägt genau diese Kombination, führend der Mandant.
-await step(`Index ${TABLE}.idx_tenant_user`, () => tablesDB.createIndex({
+await indexStep(`Index ${TABLE}.idx_tenant_user`, () => tablesDB.createIndex({
   databaseId, tableId: TABLE, key: 'idx_tenant_user', type: TablesDBIndexType.Key,
   columns: ['tenantId', 'userId'],
 }))

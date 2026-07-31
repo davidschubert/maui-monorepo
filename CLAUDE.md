@@ -60,7 +60,14 @@ Vollständiges Konzept: docs/CONCEPT.md
 - Migrations: idempotent (409 → skip), IMMER über den zentralen Runner
   `pnpm migrate --app <app>` (scripts/migrate.mjs; bei mehreren Apps ist
   --app Pflicht — nie die falsche Instanz), nach Column-Anlage auf
-  'available' pollen bevor Indizes. Es gibt KEIN Migrations-Register in der
+  'available' pollen bevor Indizes. Das Pollen allein reicht NICHT:
+  der Index-Endpunkt liest die Spaltenliste aus Appwrites Metadaten-Cache
+  (Collection-Dokument), der dem Spalten-Status hinterherhinkt — CI-E2E
+  zweimal live erwischt (400/column_not_available trotz 'available').
+  Index-Anlage deshalb immer über `indexStep`/`withIndexRetry` aus
+  `scripts/migrations-lib/indexRetry.mts` (Retry genau für diesen 400er;
+  Seeds/createRow sind NICHT betroffen — die physische Spalte existiert
+  vor dem Status). Es gibt KEIN Migrations-Register in der
   DB — die Labels (`control-019`, `system-021`, …) sind reine Anzeige, die
   Idempotenz kommt vom 409. Die Migrationen des Control Plane heißen seit
   2026-07-29 `control-NNN`; Dokumente von VOR dem Cutover (docs/archiv/**,

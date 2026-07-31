@@ -11,6 +11,7 @@
  * Benötigte Key-Scopes: tables.*, columns.*, indexes.* (Migrations-Key).
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -87,10 +88,10 @@ await step('Column activities.visibility', () => tablesDB.createVarcharColumn({
 
 await waitForColumns('activities')
 
-await step('Index activities.idx_actor', () => tablesDB.createIndex({
+await indexStep('Index activities.idx_actor', () => tablesDB.createIndex({
   databaseId, tableId: 'activities', key: 'idx_actor', type: TablesDBIndexType.Key, columns: ['actorId'],
 }))
-await step('Index activities.idx_type', () => tablesDB.createIndex({
+await indexStep('Index activities.idx_type', () => tablesDB.createIndex({
   databaseId, tableId: 'activities', key: 'idx_type', type: TablesDBIndexType.Key, columns: ['type'],
 }))
 

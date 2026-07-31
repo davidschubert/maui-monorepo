@@ -10,6 +10,7 @@
  * Benötigte Key-Scopes: tables.*, columns.*, indexes.* (Migrations-Key).
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -78,7 +79,7 @@ await step('Column notifications.read', () => tablesDB.createBooleanColumn({
 
 await waitForColumns('notifications')
 
-await step('Index notifications.recipient', () => tablesDB.createIndex({
+await indexStep('Index notifications.recipient', () => tablesDB.createIndex({
   databaseId, tableId: 'notifications', key: 'recipient', type: TablesDBIndexType.Key, columns: ['recipientId'],
 }))
 

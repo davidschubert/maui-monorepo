@@ -13,6 +13,7 @@
  *   pnpm migrate --app <app> --layer events
  */
 import { Client, Permission, Role, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -111,13 +112,13 @@ await waitForColumns('events')
 await waitForColumns('event_votes')
 
 // Suche (?q): Query.search braucht einen Fulltext-Index
-await step('Index events.idx_title_search', () => tablesDB.createIndex({
+await indexStep('Index events.idx_title_search', () => tablesDB.createIndex({
   databaseId, tableId: 'events', key: 'idx_title_search', type: TablesDBIndexType.Fulltext, columns: ['title'],
 }))
-await step('Index event_votes.uq_event_user', () => tablesDB.createIndex({
+await indexStep('Index event_votes.uq_event_user', () => tablesDB.createIndex({
   databaseId, tableId: 'event_votes', key: 'uq_event_user', type: TablesDBIndexType.Unique, columns: ['eventId', 'userId'],
 }))
-await step('Index event_votes.idx_user', () => tablesDB.createIndex({
+await indexStep('Index event_votes.idx_user', () => tablesDB.createIndex({
   databaseId, tableId: 'event_votes', key: 'idx_user', type: TablesDBIndexType.Key, columns: ['userId'],
 }))
 

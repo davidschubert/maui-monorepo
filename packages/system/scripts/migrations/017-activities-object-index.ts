@@ -7,6 +7,7 @@
  *   pnpm migrate --app <app> --layer system
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { withIndexRetry } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -30,10 +31,10 @@ function hasCode(error: unknown, code: number): boolean {
 console.log(`Migration system-017 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 try {
-  await tablesDB.createIndex({
+  await withIndexRetry(() => tablesDB.createIndex({
     databaseId, tableId: 'activities', key: 'idx_object',
     type: TablesDBIndexType.Key, columns: ['objectType', 'objectId'],
-  })
+  }))
   console.log('✔ Index activities.idx_object')
 }
 catch (error) {
