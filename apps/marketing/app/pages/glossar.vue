@@ -109,7 +109,12 @@ useHead(() => ({
   display: grid;
   grid-template-columns: 1fr;
   gap: 1rem;
-  margin: 0;
+  /* NUR die Block-Ränder des <dl>-UA-Defaults nehmen. Eine margin-KURZFORM
+     (`margin: 0`) löschte hier auch die SEITENränder — und damit das
+     `margin: 0 auto`, mit dem `.mkt-inner` in marketing.css zentriert (dieselbe
+     Falle wie in BlocksSection.vue beschrieben: die Regel ist ungeschichtet und
+     kommt aus derselben Klasse, es gewinnt schlicht die spätere Deklaration). */
+  margin-block: 0;
 }
 .glos-item {
   padding: 1.3rem 1.4rem;
