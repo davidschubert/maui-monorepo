@@ -22,7 +22,7 @@ function parseFiles(raw: string | null | undefined): FontFile[] {
 }
 
 /**
- * Öffentliche Font-Daten (Theme-Studio) — beim App-Start (themes-Plugin)
+ * Öffentliche Font-Daten (Customize theme) — beim App-Start (themes-Plugin)
  * geladen: individuelle Schriften, deren @font-face-Regeln SSR in den Head
  * gerendert werden. Namen/Datei-IDs sind nicht schutzwürdig → kein Auth;
  * degradiert vollständig (Apps ohne Table → leere Liste).

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * Szenen-Vorschau (Tabs Komponenten/Dashboard/Inhalt + Rahmen) — geteilt
- * zwischen Studio-Editor und Galerie. Hell/Dunkel folgt dem App-Modus;
+ * zwischen Theme-Editor und Galerie. Hell/Dunkel folgt dem App-Modus;
  * gefärbt wird über das jeweils aktive Theme (bzw. c-draft im Editor).
  */
 const { t } = useI18n()
@@ -21,16 +21,16 @@ const scene = ref<typeof SCENES[number]>('branding')
         :variant="scene === s ? 'subtle' : 'ghost'"
         @click="() => { scene = s }"
       >
-        {{ t(`themes.studio.scenes.${s}`) }}
+        {{ t(`themes.customize.scenes.${s}`) }}
       </UButton>
     </div>
 
     <div class="min-w-0 rounded-lg bg-default p-4 ring-1 ring-default">
-      <StudioSceneBranding v-if="scene === 'branding'" />
-      <StudioSceneComponents v-else-if="scene === 'components'" />
-      <StudioSceneDashboard v-else-if="scene === 'dashboard'" />
-      <StudioSceneContent v-else-if="scene === 'content'" />
-      <StudioSceneCharts v-else />
+      <CustomizeSceneBranding v-if="scene === 'branding'" />
+      <CustomizeSceneComponents v-else-if="scene === 'components'" />
+      <CustomizeSceneDashboard v-else-if="scene === 'dashboard'" />
+      <CustomizeSceneContent v-else-if="scene === 'content'" />
+      <CustomizeSceneCharts v-else />
     </div>
   </div>
 </template>

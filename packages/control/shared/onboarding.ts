@@ -64,7 +64,7 @@ export function isEarlyAccessGoal(id: string): boolean {
  * (packages/themes/theme.catalog.ts). Bewusst KEINE eigene Farb-Definition und
  * kein `custom_themes`-Row beim Onboarding: die Built-ins liegen als statisches
  * CSS bereit (flash-frei, kein Ramp zur Laufzeit), und derselbe gespeicherte
- * Wert öffnet später den vollen Picker im Theme-Studio.
+ * Wert öffnet später den vollen Picker im Customize theme.
  *
  * `variant: ''` = die Basisfarbe der Welt (keine tonale Variante).
  */
@@ -96,7 +96,7 @@ export function resolveVibe(id: string): ResolvedVibe {
 
 /**
  * Format-Wächter für die gespeicherten Theme-Werte. Der Onboarding-Pfad
- * schreibt nur aufgelöste Vibes, aber das Theme-Studio darf die Spalte später
+ * schreibt nur aufgelöste Vibes, aber das Customize theme darf die Spalte später
  * frei setzen — und `data-theme`/`data-variant` landen als Attribute im
  * <html>. Alles außer [a-z0-9-] wird deshalb hier abgewiesen (der themes-Layer
  * hat mit SAFE_ATTR einen zweiten, unabhängigen Wächter am Ausgang).

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * Szene „Komponenten": kompakter Nuxt-UI-Showcase (Buttons/Badges/Formular) —
- * geteilt zwischen Galerie und Studio-Editor (eine Quelle, kein Duplikat).
+ * geteilt zwischen Galerie und Theme-Editor (eine Quelle, kein Duplikat).
  */
 const { t } = useI18n()
 
@@ -30,15 +30,15 @@ const demoRange = ref(60)
     </UPageCard>
     <UPageCard variant="subtle" :ui="{ container: 'min-w-0' }">
       <div class="space-y-3">
-        <UInput v-model="demoText" :placeholder="t('themes.studio.demo.placeholder')" icon="i-ph-magnifying-glass" class="w-full" />
+        <UInput v-model="demoText" :placeholder="t('themes.customize.demo.placeholder')" icon="i-ph-magnifying-glass" class="w-full" />
         <USelect v-model="demoSelect" :items="[{ label: 'Option A', value: 'a' }, { label: 'Option B', value: 'b' }]" class="w-full" />
         <div class="flex flex-wrap items-center gap-4">
-          <UCheckbox v-model="demoCheck" :label="t('themes.studio.demo.checkbox')" />
-          <USwitch v-model="demoSwitch" :label="t('themes.studio.demo.switch')" />
+          <UCheckbox v-model="demoCheck" :label="t('themes.customize.demo.checkbox')" />
+          <USwitch v-model="demoSwitch" :label="t('themes.customize.demo.switch')" />
         </div>
         <USlider v-model="demoRange" />
         <UProgress :model-value="demoRange" />
-        <UAlert icon="i-ph-info" color="primary" variant="subtle" :title="t('themes.studio.demo.alertTitle')" :description="t('themes.studio.demo.alertText')" />
+        <UAlert icon="i-ph-info" color="primary" variant="subtle" :title="t('themes.customize.demo.alertTitle')" :description="t('themes.customize.demo.alertText')" />
       </div>
     </UPageCard>
   </div>

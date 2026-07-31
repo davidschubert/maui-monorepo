@@ -1,8 +1,8 @@
 <script setup lang="ts">
 /**
- * Theme-Studio (Admin): Galerie aller Themes (Built-ins + eigene) mit
+ * Customize theme (Admin): Galerie aller Themes (Built-ins + eigene) mit
  * Live-Wechsel, Nuxt-UI-Showcase darunter. Anlegen/Bearbeiten auf der
- * Studio-Editor-Seite (/dashboard/themes/new bzw. /:id).
+ * Theme-Editor-Seite (/dashboard/themes/new bzw. /:id).
  * Registriert via pukalani.admin.modules (Layer-Vertrag, A14).
  */
 import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
@@ -69,10 +69,10 @@ async function saveSettings(next: ThemeSettings) {
   try {
     await $fetch('/api/admin/themes/settings', { method: 'PATCH', body: next })
     settings.value = next
-    toast.add({ title: t('themes.studio.saved'), color: 'success' })
+    toast.add({ title: t('themes.customize.saved'), color: 'success' })
   }
   catch {
-    toast.add({ title: t('themes.studio.error'), color: 'error' })
+    toast.add({ title: t('themes.customize.error'), color: 'error' })
   }
   finally {
     busy.value = false
@@ -128,8 +128,8 @@ function isActive(id: string): boolean {
  * Kreis-Klick zusätzlich die Variante).
  */
 const galleryColumns = computed<TableColumn<GalleryEntry>[]>(() => [
-  { id: 'swatches', header: () => t('themes.studio.col.preview') },
-  { accessorKey: 'name', header: () => t('themes.studio.col.theme') },
+  { id: 'swatches', header: () => t('themes.customize.col.preview') },
+  { accessorKey: 'name', header: () => t('themes.customize.col.theme') },
   { id: 'actions', header: () => '' },
 ])
 
@@ -151,7 +151,7 @@ function cardMenu(entry: GalleryEntry): DropdownMenuItem[][] {
   // Mit Varianten: Untermenü — auch eine Variante kann Instanz-Default sein
   const setDefaultItem: DropdownMenuItem = entry.variants.length
     ? {
-        label: t('themes.studio.setDefault'),
+        label: t('themes.customize.setDefault'),
         icon: effectiveDefaultId.value === entry.id ? 'i-ph-star-fill' : 'i-ph-star',
         children: [
           {
@@ -171,7 +171,7 @@ function cardMenu(entry: GalleryEntry): DropdownMenuItem[][] {
         ],
       }
     : {
-        label: t('themes.studio.setDefault'),
+        label: t('themes.customize.setDefault'),
         icon: effectiveDefaultId.value === entry.id ? 'i-ph-star-fill' : 'i-ph-star',
         disabled: busy.value || isDefault(undefined),
         onSelect: () => setDefaultTheme(entry.id),
@@ -180,30 +180,30 @@ function cardMenu(entry: GalleryEntry): DropdownMenuItem[][] {
     const custom = customById.value.get(entry.id)!
     return [
       [
-        { label: t('themes.studio.edit'), icon: 'i-ph-pencil-simple', onSelect: () => { void navigateTo(localePath(`/dashboard/themes/${custom.id}`)) } },
-        { label: t('themes.studio.moveUp'), icon: 'i-ph-arrow-up', disabled: busy.value, onSelect: () => { void move(custom, -1) } },
-        { label: t('themes.studio.moveDown'), icon: 'i-ph-arrow-down', disabled: busy.value, onSelect: () => { void move(custom, 1) } },
+        { label: t('themes.customize.edit'), icon: 'i-ph-pencil-simple', onSelect: () => { void navigateTo(localePath(`/dashboard/themes/${custom.id}`)) } },
+        { label: t('themes.customize.moveUp'), icon: 'i-ph-arrow-up', disabled: busy.value, onSelect: () => { void move(custom, -1) } },
+        { label: t('themes.customize.moveDown'), icon: 'i-ph-arrow-down', disabled: busy.value, onSelect: () => { void move(custom, 1) } },
       ],
       [
         setDefaultItem,
-        { label: t('themes.studio.export'), icon: 'i-ph-code', onSelect: () => { void copyCss(custom) } },
-        { label: t('themes.studio.exportJson'), icon: 'i-ph-download-simple', onSelect: () => downloadJson(custom) },
+        { label: t('themes.customize.export'), icon: 'i-ph-code', onSelect: () => { void copyCss(custom) } },
+        { label: t('themes.customize.exportJson'), icon: 'i-ph-download-simple', onSelect: () => downloadJson(custom) },
       ],
       [
-        { label: t('themes.studio.delete'), icon: 'i-ph-trash', color: 'error', onSelect: () => { void remove(custom) } },
+        { label: t('themes.customize.delete'), icon: 'i-ph-trash', color: 'error', onSelect: () => { void remove(custom) } },
       ],
     ]
   }
   return [
     [
-      { label: t('themes.studio.rename'), icon: 'i-ph-pencil-simple', onSelect: () => { builtinRename.value = { id: entry.id, name: entry.name } } },
-      { label: t('themes.studio.moveUp'), icon: 'i-ph-arrow-up', disabled: busy.value, onSelect: () => moveBuiltin(entry.id, -1) },
-      { label: t('themes.studio.moveDown'), icon: 'i-ph-arrow-down', disabled: busy.value, onSelect: () => moveBuiltin(entry.id, 1) },
+      { label: t('themes.customize.rename'), icon: 'i-ph-pencil-simple', onSelect: () => { builtinRename.value = { id: entry.id, name: entry.name } } },
+      { label: t('themes.customize.moveUp'), icon: 'i-ph-arrow-up', disabled: busy.value, onSelect: () => moveBuiltin(entry.id, -1) },
+      { label: t('themes.customize.moveDown'), icon: 'i-ph-arrow-down', disabled: busy.value, onSelect: () => moveBuiltin(entry.id, 1) },
     ],
     [
       setDefaultItem,
       {
-        label: entry.hidden ? t('themes.studio.show') : t('themes.studio.hide'),
+        label: entry.hidden ? t('themes.customize.show') : t('themes.customize.hide'),
         icon: entry.hidden ? 'i-ph-eye' : 'i-ph-eye-slash',
         disabled: busy.value,
         onSelect: () => toggleBuiltinHidden(entry.id),
@@ -220,9 +220,9 @@ const confirm = useConfirm()
 async function remove(custom: CustomThemeDto) {
   try {
     const ok = await confirm({
-      title: t('themes.studio.deleteConfirmTitle'),
-      description: t('themes.studio.deleteConfirmText', { name: custom.name }),
-      confirmLabel: t('themes.studio.delete'),
+      title: t('themes.customize.deleteConfirmTitle'),
+      description: t('themes.customize.deleteConfirmText', { name: custom.name }),
+      confirmLabel: t('themes.customize.delete'),
       // `as string`: die typisierte Route bietet an diesem Literal nur PATCH an
       // (Nitro-Typegen-Kante mit settings.patch im selben Segment)
       action: () => $fetch(`/api/admin/themes/${custom.id}` as string, { method: 'DELETE' }),
@@ -231,10 +231,10 @@ async function remove(custom: CustomThemeDto) {
     // War das gelöschte Theme aktiv, zurück auf den Default
     if (theme.value.id === customThemeAttr(custom.id)) setTheme('default')
     await refreshCustomThemes()
-    toast.add({ title: t('themes.studio.deleted'), color: 'success' })
+    toast.add({ title: t('themes.customize.deleted'), color: 'success' })
   }
   catch {
-    toast.add({ title: t('themes.studio.error'), color: 'error' })
+    toast.add({ title: t('themes.customize.error'), color: 'error' })
   }
 }
 
@@ -254,7 +254,7 @@ async function move(custom: CustomThemeDto, direction: -1 | 1) {
     await refreshCustomThemes()
   }
   catch {
-    toast.add({ title: t('themes.studio.error'), color: 'error' })
+    toast.add({ title: t('themes.customize.error'), color: 'error' })
   }
   finally {
     busy.value = false
@@ -265,7 +265,7 @@ async function move(custom: CustomThemeDto, direction: -1 | 1) {
 async function copyCss(custom: CustomThemeDto) {
   try {
     await navigator.clipboard.writeText(customThemeCss(custom))
-    toast.add({ title: t('themes.studio.exportCopied'), color: 'success' })
+    toast.add({ title: t('themes.customize.exportCopied'), color: 'success' })
   }
   catch { /* Clipboard nicht verfügbar */ }
 }
@@ -321,11 +321,11 @@ async function importTheme(event: Event) {
       },
     })
     await refreshCustomThemes()
-    toast.add({ title: t('themes.studio.saved'), color: 'success' })
+    toast.add({ title: t('themes.customize.saved'), color: 'success' })
   }
   catch (error) {
     const status = (error as { statusCode?: number })?.statusCode
-    toast.add({ title: status === 422 ? t('themes.studio.limit') : t('themes.studio.importError'), color: 'error' })
+    toast.add({ title: status === 422 ? t('themes.customize.limit') : t('themes.customize.importError'), color: 'error' })
   }
   finally {
     busy.value = false
@@ -337,17 +337,17 @@ async function importTheme(event: Event) {
 <template>
   <UDashboardPanel id="theme-studio" :ui="{ body: 'lg:py-8' }">
     <template #header>
-      <UDashboardNavbar :title="t('themes.studio.title')">
+      <UDashboardNavbar :title="t('themes.customize.title')">
         <template #leading>
           <UDashboardSidebarCollapse />
         </template>
         <template #right>
           <UButton icon="i-ph-tray-arrow-down" color="neutral" variant="ghost" :disabled="busy" @click="importInput?.click()">
-            {{ t('themes.studio.importJson') }}
+            {{ t('themes.customize.importJson') }}
           </UButton>
           <input ref="importInput" type="file" accept=".json,application/json" class="sr-only" @change="importTheme">
           <UButton icon="i-ph-plus" color="primary" :to="localePath('/dashboard/themes/new')">
-            {{ t('themes.studio.create') }}
+            {{ t('themes.customize.create') }}
           </UButton>
         </template>
       </UDashboardNavbar>
@@ -368,8 +368,8 @@ async function importTheme(event: Event) {
           color="info"
           variant="subtle"
           icon="i-ph-info"
-          :title="t('themes.studio.previewLockedTitle')"
-          :description="t('themes.studio.previewLockedText')"
+          :title="t('themes.customize.previewLockedTitle')"
+          :description="t('themes.customize.previewLockedText')"
         />
         <!-- Schnell-Umschalter: Erscheinungsbild + Neutral -->
         <UPageCard variant="subtle" :ui="{ container: 'min-w-0' }">
@@ -413,7 +413,7 @@ async function importTheme(event: Event) {
 
         <!-- Galerie -->
         <section>
-          <h2 class="mb-3 font-semibold">{{ t('themes.studio.gallery') }}</h2>
+          <h2 class="mb-3 font-semibold">{{ t('themes.customize.gallery') }}</h2>
           <UTable
             :data="galleryThemes"
             :columns="galleryColumns"
@@ -449,9 +449,9 @@ async function importTheme(event: Event) {
             <template #name-cell="{ row }">
               <div class="flex min-w-0 flex-wrap items-center gap-2">
                 <span class="truncate font-medium">{{ row.original.name }}</span>
-                <UBadge v-if="row.original.isCustom" color="neutral" variant="subtle" size="sm">{{ t('themes.studio.customBadge') }}</UBadge>
+                <UBadge v-if="row.original.isCustom" color="neutral" variant="subtle" size="sm">{{ t('themes.customize.customBadge') }}</UBadge>
                 <UBadge v-if="effectiveDefaultId === row.original.id" color="info" variant="subtle" size="sm">
-                  {{ settings.defaultVariantId ? `${t('themes.studio.defaultBadge')} · ${capitalize(settings.defaultVariantId)}` : t('themes.studio.defaultBadge') }}
+                  {{ settings.defaultVariantId ? `${t('themes.customize.defaultBadge')} · ${capitalize(settings.defaultVariantId)}` : t('themes.customize.defaultBadge') }}
                 </UBadge>
                 <UIcon v-if="row.original.hidden" name="i-ph-eye-slash" class="size-4 shrink-0 text-muted" />
               </div>
@@ -462,32 +462,32 @@ async function importTheme(event: Event) {
                 <UDropdownMenu :items="cardMenu(row.original)" :content="{ align: 'end' }">
                   <UButton
                     icon="i-ph-dots-three-vertical" size="xs" color="neutral" variant="ghost"
-                    :aria-label="t('themes.studio.cardActions')"
+                    :aria-label="t('themes.customize.cardActions')"
                   />
                 </UDropdownMenu>
               </div>
             </template>
           </UTable>
-          <p class="mt-2 text-xs text-muted">{{ t('themes.studio.galleryHint') }}</p>
+          <p class="mt-2 text-xs text-muted">{{ t('themes.customize.galleryHint') }}</p>
         </section>
         </div>
 
         <!-- Live-Vorschau: dieselben Szenen wie im Control-Editor, bleibt beim
              Scrollen durch die Galerie sichtbar -->
         <section class="min-w-0 lg:sticky lg:top-4">
-          <h2 class="mb-3 font-semibold">{{ t('themes.studio.showcase') }}</h2>
-          <StudioScenePreview />
+          <h2 class="mb-3 font-semibold">{{ t('themes.customize.showcase') }}</h2>
+          <CustomizeScenePreview />
         </section>
       </div>
 
       <!-- Built-in umbenennen (Instanz-Override) -->
       <UModal
         :open="builtinRename !== null"
-        :title="t('themes.studio.rename')"
+        :title="t('themes.customize.rename')"
         @update:open="(value: boolean) => { if (!value) builtinRename = null }"
       >
         <template #body>
-          <UFormField v-if="builtinRename" :label="t('themes.studio.name')">
+          <UFormField v-if="builtinRename" :label="t('themes.customize.name')">
             <UInput v-model="builtinRename.name" :maxlength="64" class="w-full" />
           </UFormField>
         </template>

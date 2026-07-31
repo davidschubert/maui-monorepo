@@ -64,7 +64,7 @@ Site-Dashboard  (RBAC- + Feature-gefiltert; Feature-Registry bleibt Quelle)
 │   └── Medien           ← Galerie/Storage
 ├── Insights            ← Analytics + Activity (#5); Tariflimits → Kundenbereich
 └── Einstellungen
-    ├── Branding/Themes  ← Theme-Studio
+    ├── Branding/Themes  ← Customize theme
     ├── Import & Export  ← (#6)
     ├── Integrationen    ← Webhooks/API (#7)
     └── Benachrichtigungen

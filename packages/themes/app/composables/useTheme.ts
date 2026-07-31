@@ -9,7 +9,7 @@ import { resolveNeutralSelection, resolveThemeSelection, visitorMayChooseNeutral
  * Ungültige Cookie-Werte fallen still auf den Default zurück.
  *
  * Die Registry ist zusammengesetzt: statische Built-ins (THEME_REGISTRY) +
- * im Theme-Studio angelegte Custom Themes (useCustomThemesState, id 'c-…',
+ * im Customize theme angelegte Custom Themes (useCustomThemesState, id 'c-…',
  * Ramps als Inline-Style vom theme-Plugin). Wird ein gewähltes Custom Theme
  * gelöscht, fällt der Cookie-Wert still auf den Default zurück.
  *

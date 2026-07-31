@@ -34,7 +34,7 @@ const LINE_POINTS = '0,34 18,26 36,29 54,18 72,22 90,10 108,14 126,6'
     <div class="grid min-w-0 gap-3 sm:grid-cols-2">
       <!-- Balken (Ramp-Stufen als Datenfarben) -->
       <UPageCard variant="subtle" :ui="{ container: 'min-w-0 p-4 sm:p-4' }">
-        <p class="mb-3 text-xs text-muted">{{ t('themes.studio.scenes.chartBars') }}</p>
+        <p class="mb-3 text-xs text-muted">{{ t('themes.customize.scenes.chartBars') }}</p>
         <div class="flex h-36 items-end gap-2">
           <div
             v-for="(bar, i) in bars"
@@ -47,7 +47,7 @@ const LINE_POINTS = '0,34 18,26 36,29 54,18 72,22 90,10 108,14 126,6'
 
       <!-- Linie in --ui-primary -->
       <UPageCard variant="subtle" :ui="{ container: 'min-w-0 p-4 sm:p-4' }">
-        <p class="mb-3 text-xs text-muted">{{ t('themes.studio.scenes.chartLine') }}</p>
+        <p class="mb-3 text-xs text-muted">{{ t('themes.customize.scenes.chartLine') }}</p>
         <svg viewBox="0 0 126 40" class="h-36 w-full" aria-hidden="true" preserveAspectRatio="none">
           <polygon
             :points="`0,40 ${LINE_POINTS} 126,40`"
@@ -69,7 +69,7 @@ const LINE_POINTS = '0,34 18,26 36,29 54,18 72,22 90,10 108,14 126,6'
 
     <!-- Verteilung über die Ramp -->
     <UPageCard variant="subtle" :ui="{ container: 'min-w-0 p-4 sm:p-4' }">
-      <p class="mb-3 text-xs text-muted">{{ t('themes.studio.scenes.chartDistribution') }}</p>
+      <p class="mb-3 text-xs text-muted">{{ t('themes.customize.scenes.chartDistribution') }}</p>
       <div class="flex h-5 w-full overflow-hidden rounded-md">
         <div
           v-for="seg in distribution"
@@ -86,6 +86,6 @@ const LINE_POINTS = '0,34 18,26 36,29 54,18 72,22 90,10 108,14 126,6'
       </div>
     </UPageCard>
 
-    <p class="text-xs text-dimmed">{{ t('themes.studio.scenes.chartsHint') }}</p>
+    <p class="text-xs text-dimmed">{{ t('themes.customize.scenes.chartsHint') }}</p>
   </div>
 </template>

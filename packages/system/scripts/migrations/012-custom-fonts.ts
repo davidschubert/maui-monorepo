@@ -1,6 +1,6 @@
 /**
  * Migration system-012: Table `custom_fonts` + Storage-Bucket `fonts`
- * (Theme-Studio: individuelle Schriftarten).
+ * (Customize theme: individuelle Schriftarten).
  *
  * Im Admin hochgeladene Schriften (nur WOFF2): Name + Datei-Zuordnung je
  * Gewicht (JSON) + Reihenfolge. Die @font-face-Regeln werden zur Laufzeit

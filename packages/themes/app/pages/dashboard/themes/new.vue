@@ -1,8 +1,8 @@
 <script setup lang="ts">
-/** Studio-Editor: neues Theme anlegen (dünner Wrapper um StudioEditor). */
+/** Theme-Editor: neues Theme anlegen (dünner Wrapper um CustomizeEditor). */
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'system.manage' })
 </script>
 
 <template>
-  <StudioEditor />
+  <CustomizeEditor />
 </template>

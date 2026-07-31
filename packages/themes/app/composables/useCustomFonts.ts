@@ -1,7 +1,7 @@
 import type { CustomFontDto } from '../../shared/fonts'
 
 /**
- * Individuelle Schriften (Theme-Studio) — beim App-Start SSR-geladen
+ * Individuelle Schriften (Customize theme) — beim App-Start SSR-geladen
  * (theme-Plugin), via useState zum Client serialisiert. Die Verwaltungsseite
  * refresht nach CRUD.
  */

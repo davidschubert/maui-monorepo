@@ -127,7 +127,7 @@ async function saveEditor() {
   }
   catch (error) {
     const status = (error as { statusCode?: number })?.statusCode
-    toast.add({ title: status === 422 ? t('themes.fonts.limit') : t('themes.studio.error'), color: 'error' })
+    toast.add({ title: status === 422 ? t('themes.fonts.limit') : t('themes.customize.error'), color: 'error' })
   }
   finally {
     busy.value = false
@@ -147,7 +147,7 @@ async function move(font: CustomFontDto, direction: -1 | 1) {
     await refreshCustomFonts()
   }
   catch {
-    toast.add({ title: t('themes.studio.error'), color: 'error' })
+    toast.add({ title: t('themes.customize.error'), color: 'error' })
   }
   finally {
     busy.value = false
@@ -161,7 +161,7 @@ async function remove(font: CustomFontDto) {
     const ok = await confirm({
       title: t('themes.fonts.deleteConfirmTitle'),
       description: t('themes.fonts.deleteConfirmText', { name: font.name }),
-      confirmLabel: t('themes.studio.delete'),
+      confirmLabel: t('themes.customize.delete'),
       action: () => $fetch(`/api/admin/fonts/${font.id}`, { method: 'DELETE' }),
     })
     if (!ok) return
@@ -169,7 +169,7 @@ async function remove(font: CustomFontDto) {
     toast.add({ title: t('themes.fonts.deleted'), color: 'success' })
   }
   catch {
-    toast.add({ title: t('themes.studio.error'), color: 'error' })
+    toast.add({ title: t('themes.customize.error'), color: 'error' })
   }
 }
 
@@ -177,11 +177,11 @@ function fontMenu(font: CustomFontDto): DropdownMenuItem[][] {
   return [
     [
       { label: t('themes.fonts.edit'), icon: 'i-ph-pencil-simple', onSelect: () => openEdit(font) },
-      { label: t('themes.studio.moveUp'), icon: 'i-ph-arrow-up', disabled: busy.value, onSelect: () => { void move(font, -1) } },
-      { label: t('themes.studio.moveDown'), icon: 'i-ph-arrow-down', disabled: busy.value, onSelect: () => { void move(font, 1) } },
+      { label: t('themes.customize.moveUp'), icon: 'i-ph-arrow-up', disabled: busy.value, onSelect: () => { void move(font, -1) } },
+      { label: t('themes.customize.moveDown'), icon: 'i-ph-arrow-down', disabled: busy.value, onSelect: () => { void move(font, 1) } },
     ],
     [
-      { label: t('themes.studio.delete'), icon: 'i-ph-trash', color: 'error', onSelect: () => { void remove(font) } },
+      { label: t('themes.customize.delete'), icon: 'i-ph-trash', color: 'error', onSelect: () => { void remove(font) } },
     ],
   ]
 }
@@ -198,7 +198,7 @@ function weightLabel(weight: number): string {
     <template #header>
       <UDashboardNavbar :title="t('themes.fonts.title')">
         <template #leading>
-          <UButton icon="i-ph-arrow-left" color="neutral" variant="ghost" :to="localePath('/dashboard/themes')" :aria-label="t('themes.studio.back')" />
+          <UButton icon="i-ph-arrow-left" color="neutral" variant="ghost" :to="localePath('/dashboard/themes')" :aria-label="t('themes.customize.back')" />
         </template>
         <template #right>
           <UButton icon="i-ph-plus" color="primary" @click="openCreate">
@@ -237,7 +237,7 @@ function weightLabel(weight: number): string {
               <UDropdownMenu :items="fontMenu(row.original)" :content="{ align: 'end' }">
                 <UButton
                   icon="i-ph-dots-three-vertical" size="xs" color="neutral" variant="ghost"
-                  :aria-label="t('themes.studio.cardActions')"
+                  :aria-label="t('themes.customize.cardActions')"
                 />
               </UDropdownMenu>
             </div>
@@ -295,7 +295,7 @@ function weightLabel(weight: number): string {
                 <UButton
                   v-if="!editor.variable && editor.rows.length > 1"
                   icon="i-ph-x" size="xs" color="neutral" variant="ghost"
-                  :aria-label="t('themes.studio.delete')"
+                  :aria-label="t('themes.customize.delete')"
                   @click="removeRow(index)"
                 />
               </div>

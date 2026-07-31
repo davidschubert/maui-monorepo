@@ -43,7 +43,7 @@ const createThemeSchema = z.object({
 
 const MAX_CUSTOM_THEMES = 20
 
-/** Theme-Studio: eigenes Theme anlegen (system-Table custom_themes). */
+/** Customize theme: eigenes Theme anlegen (system-Table custom_themes). */
 export default defineEventHandler(async (event) => {
   requirePermission(event, 'system.manage')
 

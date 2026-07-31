@@ -4,7 +4,7 @@ import { oklchToHex } from '../../shared/oklch'
 import { resolveThemeFonts } from '../utils/themeRegistry'
 
 /**
- * Draft-Zustand des Studio-Editors: config immer vollständig (die Regler
+ * Draft-Zustand des Theme-Editors: config immer vollständig (die Regler
  * brauchen konkrete Werte), radius null = Theme-Default.
  */
 export interface ThemeDraftState {
@@ -47,7 +47,7 @@ export interface ContrastCheck {
 }
 
 /**
- * Kapselt den Theme-Entwurf des Studio-Editors: Zustand, generierte Ramp,
+ * Kapselt den Theme-Entwurf des Theme-Editors: Zustand, generierte Ramp,
  * Live-Vorschau (Draft-CSS auf der ganzen Seite via data-theme='c-draft'),
  * Kontrast-Checks, Dirty-Tracking und Speichern (POST/PATCH).
  * UI-frei: Toasts/Navigation/i18n bleiben in der aufrufenden Komponente.

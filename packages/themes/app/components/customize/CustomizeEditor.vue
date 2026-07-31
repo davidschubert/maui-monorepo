@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * Studio-Editor (Vollseite): Dock links (Standard: Name, Farbe, Presets,
+ * Theme-Editor (Vollseite): Dock links (Standard: Name, Farbe, Presets,
  * Zufall — alles Tiefere in EINEM „Erweitert"-Accordion), Vorschau rechts.
  * Live-Draft-Vorschau färbt zusätzlich die ganze Seite (c-draft).
  */
@@ -49,27 +49,27 @@ function buildFontItems(defaultLabel: string): SelectItem[] {
   }
   return items
 }
-const fontItems = computed<SelectItem[]>(() => buildFontItems(t('themes.studio.fontDefault')))
-const fontHeadingItems = computed<SelectItem[]>(() => buildFontItems(t('themes.studio.fontHeadingDefault')))
+const fontItems = computed<SelectItem[]>(() => buildFontItems(t('themes.customize.fontDefault')))
+const fontHeadingItems = computed<SelectItem[]>(() => buildFontItems(t('themes.customize.fontHeadingDefault')))
 
 const contrastLabel: Record<string, string> = {
-  white500: 'themes.studio.contrastWhite500',
-  white600: 'themes.studio.contrastWhite600',
-  white400: 'themes.studio.contrastWhite400',
-  black200: 'themes.studio.contrastBlack200',
+  white500: 'themes.customize.contrastWhite500',
+  white600: 'themes.customize.contrastWhite600',
+  white400: 'themes.customize.contrastWhite400',
+  black200: 'themes.customize.contrastBlack200',
 }
 
 async function saveDraft() {
   try {
     const { created } = await save()
-    toast.add({ title: t('themes.studio.saved'), color: 'success' })
+    toast.add({ title: t('themes.customize.saved'), color: 'success' })
     // Neu angelegt: direkt aktivieren — der Admin sieht sein Theme sofort
     if (created) setTheme(customThemeAttr(created.id))
     await navigateTo(galleryPath.value)
   }
   catch (error) {
     const status = (error as { statusCode?: number })?.statusCode
-    toast.add({ title: status === 422 ? t('themes.studio.limit') : t('themes.studio.error'), color: 'error' })
+    toast.add({ title: status === 422 ? t('themes.customize.limit') : t('themes.customize.error'), color: 'error' })
   }
 }
 
@@ -93,9 +93,9 @@ function confirmLeave() {
 <template>
   <UDashboardPanel id="theme-studio-editor" :ui="{ body: 'lg:py-8' }">
     <template #header>
-      <UDashboardNavbar :title="isEdit ? t('themes.studio.edit') : t('themes.studio.create')">
+      <UDashboardNavbar :title="isEdit ? t('themes.customize.edit') : t('themes.customize.create')">
         <template #leading>
-          <UButton icon="i-ph-arrow-left" color="neutral" variant="ghost" :to="galleryPath" :aria-label="t('themes.studio.back')" />
+          <UButton icon="i-ph-arrow-left" color="neutral" variant="ghost" :to="galleryPath" :aria-label="t('themes.customize.back')" />
         </template>
         <template #right>
           <UButton color="primary" :disabled="!valid" :loading="busy" @click="saveDraft">
@@ -112,23 +112,23 @@ function confirmLeave() {
           <div class="flex min-w-0 flex-col gap-4">
           <UPageCard variant="subtle" :ui="{ container: 'min-w-0' }">
             <div class="space-y-4">
-              <h3 class="text-sm font-semibold">{{ t('themes.studio.sectionColors') }}</h3>
-              <UFormField :label="t('themes.studio.name')" required>
+              <h3 class="text-sm font-semibold">{{ t('themes.customize.sectionColors') }}</h3>
+              <UFormField :label="t('themes.customize.name')" required>
                 <UInput v-model="draft.name" :maxlength="64" class="w-full" />
               </UFormField>
 
-              <UFormField :label="t('themes.studio.color')" required>
+              <UFormField :label="t('themes.customize.color')" required>
                 <div class="flex items-center gap-2">
                   <input
                     v-model="draft.primary"
                     type="color"
                     class="size-9 cursor-pointer rounded-md border border-default bg-transparent p-0.5"
-                    :aria-label="t('themes.studio.color')"
+                    :aria-label="t('themes.customize.color')"
                   >
                   <UInput v-model="draft.primary" placeholder="#2f7fee" class="w-28 font-mono" :maxlength="7" />
                   <UButton
                     icon="i-ph-dice-five" color="neutral" variant="subtle"
-                    :aria-label="t('themes.studio.random')" :title="t('themes.studio.random')"
+                    :aria-label="t('themes.customize.random')" :title="t('themes.customize.random')"
                     @click="randomizePrimary"
                   />
                 </div>
@@ -138,7 +138,7 @@ function confirmLeave() {
               <div class="space-y-1.5">
                 <USwitch
                   :model-value="draft.config.neutral === 'tinted'"
-                  :label="t('themes.studio.tintedNeutral')"
+                  :label="t('themes.customize.tintedNeutral')"
                   @update:model-value="(on: boolean) => { draft!.config.neutral = on ? 'tinted' : null }"
                 />
                 <div v-if="neutralRamp" class="flex h-4 w-full overflow-hidden rounded ring-1 ring-default">
@@ -147,7 +147,7 @@ function confirmLeave() {
               </div>
 
               <div v-if="!draft.id" class="flex flex-wrap items-center gap-1.5">
-                <span class="text-sm text-muted">{{ t('themes.studio.presets') }}</span>
+                <span class="text-sm text-muted">{{ t('themes.customize.presets') }}</span>
                 <UButton
                   v-for="preset in THEME_PRESETS"
                   :key="preset.name"
@@ -168,39 +168,39 @@ function confirmLeave() {
                   :trailing-icon="advancedOpen ? 'i-ph-caret-up' : 'i-ph-caret-down'"
                   :ui="{ base: 'justify-between px-0' }"
                 >
-                  {{ t('themes.studio.advanced') }}
+                  {{ t('themes.customize.advanced') }}
                 </UButton>
                 <template #content>
                   <div class="space-y-4 pt-3">
                     <div class="grid grid-cols-2 gap-3">
-                      <UFormField :label="t('themes.studio.mode')">
+                      <UFormField :label="t('themes.customize.mode')">
                         <USwitch
                           :model-value="draft.config.mode === 'perceived'"
-                          :label="draft.config.mode === 'perceived' ? t('themes.studio.modePerceived') : t('themes.studio.modeLinear')"
+                          :label="draft.config.mode === 'perceived' ? t('themes.customize.modePerceived') : t('themes.customize.modeLinear')"
                           @update:model-value="(on: boolean) => { draft!.config.mode = on ? 'perceived' : 'linear' }"
                         />
                       </UFormField>
-                      <UFormField :label="t('themes.studio.anchor')">
+                      <UFormField :label="t('themes.customize.anchor')">
                         <USelect
                           v-model="draft.config.anchor"
                           :disabled="draft.config.mode === 'linear'"
-                          :items="[{ label: t('themes.studio.anchorAuto'), value: 'auto' }, ...SHADES.map(s => ({ label: String(s), value: s }))]"
+                          :items="[{ label: t('themes.customize.anchorAuto'), value: 'auto' }, ...SHADES.map(s => ({ label: String(s), value: s }))]"
                           class="w-full"
                         />
                       </UFormField>
-                      <UFormField :label="`${t('themes.studio.hueShift')} (${draft.config.hueShift}°)`" class="col-span-2">
+                      <UFormField :label="`${t('themes.customize.hueShift')} (${draft.config.hueShift}°)`" class="col-span-2">
                         <USlider v-model="draft.config.hueShift" :min="-180" :max="180" :step="5" :disabled="draft.config.mode === 'linear'" />
                       </UFormField>
-                      <UFormField :label="`${t('themes.studio.saturation')} (${draft.config.saturation.toFixed(2)})`" class="col-span-2">
+                      <UFormField :label="`${t('themes.customize.saturation')} (${draft.config.saturation.toFixed(2)})`" class="col-span-2">
                         <USlider v-model="draft.config.saturation" :min="0" :max="2" :step="0.05" :disabled="draft.config.mode === 'linear'" />
                       </UFormField>
-                      <UFormField :label="`${t('themes.studio.lightnessMax')} (${draft.config.lightnessMax}%)`">
+                      <UFormField :label="`${t('themes.customize.lightnessMax')} (${draft.config.lightnessMax}%)`">
                         <USlider v-model="draft.config.lightnessMax" :min="80" :max="100" :step="1" :disabled="draft.config.mode === 'linear'" />
                       </UFormField>
-                      <UFormField :label="`${t('themes.studio.lightnessMin')} (${draft.config.lightnessMin}%)`">
+                      <UFormField :label="`${t('themes.customize.lightnessMin')} (${draft.config.lightnessMin}%)`">
                         <USlider v-model="draft.config.lightnessMin" :min="0" :max="40" :step="1" :disabled="draft.config.mode === 'linear'" />
                       </UFormField>
-                      <UFormField :label="t('themes.studio.darkAlias')" class="col-span-2">
+                      <UFormField :label="t('themes.customize.darkAlias')" class="col-span-2">
                         <div class="flex items-center gap-1.5">
                           <UButton
                             v-for="stufe in ([300, 400, 500] as const)"
@@ -210,11 +210,11 @@ function confirmLeave() {
                             :variant="draft.config.darkAlias === stufe ? 'subtle' : 'ghost'"
                             @click="() => { draft!.config.darkAlias = stufe }"
                           >
-                            {{ stufe }}{{ stufe === 400 ? ` · ${t('themes.studio.defaultOption')}` : '' }}
+                            {{ stufe }}{{ stufe === 400 ? ` · ${t('themes.customize.defaultOption')}` : '' }}
                           </UButton>
                         </div>
                       </UFormField>
-                      <UFormField :label="t('themes.studio.radius')" class="col-span-2">
+                      <UFormField :label="t('themes.customize.radius')" class="col-span-2">
                         <div class="flex items-center gap-1.5">
                           <UButton
                             size="xs"
@@ -222,7 +222,7 @@ function confirmLeave() {
                             :variant="draft.config.radius === null ? 'subtle' : 'ghost'"
                             @click="() => { draft!.config.radius = null }"
                           >
-                            {{ t('themes.studio.radiusDefault') }}
+                            {{ t('themes.customize.radiusDefault') }}
                           </UButton>
                           <UButton
                             v-for="r in [0, 0.125, 0.25, 0.375, 0.5]"
@@ -240,26 +240,26 @@ function confirmLeave() {
 
                     <!-- Kurvenverlauf der generierten Ramp (L/C/H, Anker markiert) -->
                     <div v-if="ramp && draft.config.mode === 'perceived'" class="space-y-1.5">
-                      <p class="text-sm text-muted">{{ t('themes.studio.curves') }}</p>
-                      <StudioCurves :ramp="ramp" :primary="draft.primary" />
+                      <p class="text-sm text-muted">{{ t('themes.customize.curves') }}</p>
+                      <CustomizeCurves :ramp="ramp" :primary="draft.primary" />
                     </div>
 
                     <!-- Farbvarianten (wie Ocean/Teal) -->
-                    <UFormField :label="t('themes.studio.variants')">
+                    <UFormField :label="t('themes.customize.variants')">
                       <div class="space-y-2">
                         <div v-for="(v, index) in draft.variants" :key="index" class="flex items-center gap-2">
                           <input
                             v-model="v.color"
                             type="color"
                             class="size-8 cursor-pointer rounded-md border border-default bg-transparent p-0.5"
-                            :aria-label="`${t('themes.studio.variants')} ${v.id}`"
+                            :aria-label="`${t('themes.customize.variants')} ${v.id}`"
                           >
                           <UInput v-model="v.color" class="w-28 font-mono" :maxlength="7" />
                           <span class="text-xs text-muted">{{ v.id }}</span>
-                          <UButton icon="i-ph-x" size="xs" color="neutral" variant="ghost" :aria-label="t('themes.studio.delete')" @click="removeVariant(index)" />
+                          <UButton icon="i-ph-x" size="xs" color="neutral" variant="ghost" :aria-label="t('themes.customize.delete')" @click="removeVariant(index)" />
                         </div>
                         <UButton icon="i-ph-plus" size="xs" color="neutral" variant="subtle" :disabled="draft.variants.length >= 6" @click="addVariant">
-                          {{ t('themes.studio.addVariant') }}
+                          {{ t('themes.customize.addVariant') }}
                         </UButton>
                       </div>
                     </UFormField>
@@ -272,12 +272,12 @@ function confirmLeave() {
           <!-- Schriften: Rollen (Text/Überschriften) + Feintuning -->
           <UPageCard variant="subtle" :ui="{ container: 'min-w-0' }">
             <div class="space-y-4">
-              <h3 class="text-sm font-semibold">{{ t('themes.studio.sectionFonts') }}</h3>
+              <h3 class="text-sm font-semibold">{{ t('themes.customize.sectionFonts') }}</h3>
               <div class="grid grid-cols-2 gap-3">
-                <UFormField :label="t('themes.studio.fontText')">
+                <UFormField :label="t('themes.customize.fontText')">
                   <USelect v-model="draft.config.font" :items="fontItems" class="w-full" />
                 </UFormField>
-                <UFormField :label="t('themes.studio.fontHeading')">
+                <UFormField :label="t('themes.customize.fontHeading')">
                   <USelect v-model="draft.config.fontHeading" :items="fontHeadingItems" class="w-full" />
                 </UFormField>
               </div>
@@ -290,12 +290,12 @@ function confirmLeave() {
                   :trailing-icon="fontsAdvancedOpen ? 'i-ph-caret-up' : 'i-ph-caret-down'"
                   :ui="{ base: 'justify-between px-0' }"
                 >
-                  {{ t('themes.studio.advanced') }}
+                  {{ t('themes.customize.advanced') }}
                 </UButton>
                 <template #content>
                   <div class="space-y-4 pt-3">
                     <!-- Überschriften-Feintuning (Gewicht/Laufweite/Großbuchstaben) -->
-                    <UFormField :label="t('themes.studio.headingWeight')">
+                    <UFormField :label="t('themes.customize.headingWeight')">
                       <div class="flex flex-wrap items-center gap-1.5">
                         <UButton
                           size="xs"
@@ -303,7 +303,7 @@ function confirmLeave() {
                           :variant="draft.config.headingWeight === null ? 'subtle' : 'ghost'"
                           @click="() => { draft!.config.headingWeight = null }"
                         >
-                          {{ t('themes.studio.defaultOption') }}
+                          {{ t('themes.customize.defaultOption') }}
                         </UButton>
                         <UButton
                           v-for="w in ([400, 500, 600, 700, 800] as const)"
@@ -317,11 +317,11 @@ function confirmLeave() {
                         </UButton>
                       </div>
                     </UFormField>
-                    <UFormField :label="`${t('themes.studio.headingTracking')} (${draft.config.headingTracking}px)`">
+                    <UFormField :label="`${t('themes.customize.headingTracking')} (${draft.config.headingTracking}px)`">
                       <USlider v-model="draft.config.headingTracking" :min="-3" :max="6" :step="0.5" />
                     </UFormField>
                     <UFormField>
-                      <USwitch v-model="draft.config.headingUppercase" :label="t('themes.studio.headingUppercase')" />
+                      <USwitch v-model="draft.config.headingUppercase" :label="t('themes.customize.headingUppercase')" />
                     </UFormField>
                   </div>
                 </template>
@@ -332,13 +332,13 @@ function confirmLeave() {
 
           <!-- Vorschau: geteilte Szenen-Tabs, darunter Ramp + Kontrast -->
           <div class="min-w-0 space-y-4">
-            <StudioScenePreview />
+            <CustomizeScenePreview />
 
-            <UAlert icon="i-ph-eye" color="primary" variant="subtle" :description="t('themes.studio.draftHint')" />
+            <UAlert icon="i-ph-eye" color="primary" variant="subtle" :description="t('themes.customize.draftHint')" />
 
             <UPageCard v-if="ramp" variant="subtle" :ui="{ container: 'min-w-0' }">
               <div class="space-y-2">
-                <p class="text-sm text-muted">{{ t('themes.studio.rampPreview') }}</p>
+                <p class="text-sm text-muted">{{ t('themes.customize.rampPreview') }}</p>
                 <div class="flex h-8 w-full overflow-hidden rounded-md ring-1 ring-default">
                   <span v-for="shade in SHADES" :key="shade" class="flex-1" :style="{ backgroundColor: ramp[shade] }" :title="`${shade}`" />
                 </div>
@@ -349,9 +349,9 @@ function confirmLeave() {
                     :color="check.level === 'fail' ? 'error' : check.level === 'AA18' ? 'warning' : 'success'"
                     variant="subtle"
                     size="sm"
-                    :title="t('themes.studio.contrastHint')"
+                    :title="t('themes.customize.contrastHint')"
                   >
-                    {{ t(contrastLabel[check.key]!) }}: {{ check.ratio.toFixed(1) }} · {{ check.level === 'fail' ? t('themes.studio.contrastFail') : check.level }}
+                    {{ t(contrastLabel[check.key]!) }}: {{ check.ratio.toFixed(1) }} · {{ check.level === 'fail' ? t('themes.customize.contrastFail') : check.level }}
                   </UBadge>
                 </div>
               </div>
@@ -363,16 +363,16 @@ function confirmLeave() {
       <!-- Guard: ungespeicherte Änderungen -->
       <UModal
         :open="pendingLeave !== null"
-        :title="t('themes.studio.unsavedTitle')"
+        :title="t('themes.customize.unsavedTitle')"
         @update:open="(value: boolean) => { if (!value) pendingLeave = null }"
       >
         <template #body>
-          <p class="text-sm">{{ t('themes.studio.unsavedText') }}</p>
+          <p class="text-sm">{{ t('themes.customize.unsavedText') }}</p>
         </template>
         <template #footer>
           <div class="flex w-full justify-end gap-2">
-            <UButton color="neutral" variant="ghost" @click="() => { pendingLeave = null }">{{ t('themes.studio.keepEditing') }}</UButton>
-            <UButton color="error" @click="confirmLeave">{{ t('themes.studio.discard') }}</UButton>
+            <UButton color="neutral" variant="ghost" @click="() => { pendingLeave = null }">{{ t('themes.customize.keepEditing') }}</UButton>
+            <UButton color="error" @click="confirmLeave">{{ t('themes.customize.discard') }}</UButton>
           </div>
         </template>
       </UModal>

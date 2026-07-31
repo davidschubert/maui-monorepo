@@ -1,7 +1,7 @@
 # Themes v2 — Konzept
 
 Status: Entwurf (2026-07-02) · Baut auf der bestehenden Themes-Umsetzung auf
-(Theme-Studio, OKLCH-Ramp-Generator, Built-in-Verwaltung — Commits a244b8d…546755b).
+(Customize theme, OKLCH-Ramp-Generator, Built-in-Verwaltung — Commits a244b8d…546755b).
 
 Referenzen (Leitplanken, nicht Kopiervorlagen):
 

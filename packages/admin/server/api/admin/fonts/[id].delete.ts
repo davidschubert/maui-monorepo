@@ -1,7 +1,7 @@
 import type { Models } from 'node-appwrite'
 
 /**
- * Theme-Studio: eigene Schrift löschen — inkl. der Storage-Dateien
+ * Customize theme: eigene Schrift löschen — inkl. der Storage-Dateien
  * (best effort: verwaiste Dateien blockieren das Löschen der Row nicht).
  */
 export default defineEventHandler(async (event) => {

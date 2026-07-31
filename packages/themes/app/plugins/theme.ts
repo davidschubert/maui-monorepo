@@ -8,7 +8,7 @@ import { BRAND_CARD_HEIGHT, BRAND_CARD_WIDTH, brandCardKey, brandCardPath } from
  * des AKTIVEN Themes landen im SSR-Head — kein Theme-Flash, dynamisch
  * geladen wird nur die eine CSS-Datei (statische Assets aus public/themes/).
  *
- * Custom Themes (Theme-Studio): werden hier einmalig geladen (SSR → useState-
+ * Custom Themes (Customize theme): werden hier einmalig geladen (SSR → useState-
  * Payload) und ihre generierten Ramps als <style> in den Head gerendert —
  * ebenfalls flash-frei. Apps ohne system-Layer/Table: Route fehlt/leer → [].
  *

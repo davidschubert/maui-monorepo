@@ -9,7 +9,7 @@ function isWoff2(data: Buffer): boolean {
 }
 
 /**
- * Theme-Studio: einzelne Schriftdatei hochladen (nur WOFF2) — liefert die
+ * Customize theme: einzelne Schriftdatei hochladen (nur WOFF2) — liefert die
  * fileId, die der Client anschließend beim Anlegen/Bearbeiten der Schrift
  * einem Gewicht zuordnet. Bucket 'fonts' (Migration system-012): öffentlich
  * lesbar, geschrieben wird nur hier (Server-Key).

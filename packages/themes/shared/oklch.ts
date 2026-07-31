@@ -1,6 +1,6 @@
 /**
  * Minimale OKLCH-Farbmathematik (Björn Ottosson, OKLab) — Grundlage des
- * „Perceived"-Ramp-Modus im Theme-Studio: gleichmäßige WAHRGENOMMENE
+ * „Perceived"-Ramp-Modus im Customize theme: gleichmäßige WAHRGENOMMENE
  * Helligkeitsstufen statt sRGB-Mischung (die helle Stufen auswäscht).
  * Pure Funktionen, ohne Dependency; Gamut-Clipping über Chroma-Reduktion.
  */

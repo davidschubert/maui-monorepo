@@ -1,7 +1,7 @@
 import { oklchToHex, rgbToOklch } from './oklch'
 
 /**
- * Runtime-Ramp-Generator für CUSTOM Themes (Theme-Studio).
+ * Runtime-Ramp-Generator für CUSTOM Themes (Customize theme).
  *
  * Die 9 mitgelieferten Themes bleiben statisch generierte CSS-Dateien
  * (public/themes/*, kein Runtime-Anteil). Eigene, im Admin angelegte Themes

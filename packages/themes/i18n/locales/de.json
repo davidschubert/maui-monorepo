@@ -44,9 +44,9 @@
       "deleteConfirmText": "„{name}\" endgültig löschen? Themes mit dieser Schrift fallen auf die App-Schrift zurück.",
       "customGroup": "Eigene"
     },
-    "studio": {
+    "customize": {
       "navLabel": "Branding",
-      "title": "Theme-Studio",
+      "title": "Theme anpassen",
       "gallery": "Theme-Galerie",
       "galleryHint": "Klick auf eine Zeile wechselt das Theme live — Varianten über die Farbpunkte. Die Auswahl gilt für DEINEN Browser (Cookie), wie im Anzeige-Menü.",
       "previewLockedTitle": "Live-Vorschau hier nicht möglich",

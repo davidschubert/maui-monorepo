@@ -15,7 +15,7 @@ const updateFontSchema = z.object({
   files: z.array(fontFileSchema).min(1).max(9).optional(),
 })
 
-/** Theme-Studio: eigene Schrift bearbeiten (Name/Reihenfolge/Dateien). */
+/** Customize theme: eigene Schrift bearbeiten (Name/Reihenfolge/Dateien). */
 export default defineEventHandler(async (event) => {
   requirePermission(event, 'system.manage')
 

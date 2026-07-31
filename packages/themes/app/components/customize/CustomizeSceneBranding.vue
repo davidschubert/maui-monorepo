@@ -60,9 +60,9 @@ const headings = [
   <div class="min-w-0 space-y-6">
     <!-- Farben -->
     <section class="space-y-4">
-      <h3 class="text-sm font-semibold">{{ t('themes.studio.scenes.colors') }}</h3>
+      <h3 class="text-sm font-semibold">{{ t('themes.customize.scenes.colors') }}</h3>
       <div>
-        <p class="mb-1.5 text-xs text-muted">Primary · {{ t('themes.studio.scenes.radiusLabel') }} {{ radius }}</p>
+        <p class="mb-1.5 text-xs text-muted">Primary · {{ t('themes.customize.scenes.radiusLabel') }} {{ radius }}</p>
         <div class="flex overflow-hidden rounded-lg ring-1 ring-default">
           <div
             v-for="c in primaryRamp" :key="c.shade"
@@ -88,7 +88,7 @@ const headings = [
         </div>
       </div>
       <div>
-        <p class="mb-1.5 text-xs text-muted">{{ t('themes.studio.scenes.semantic') }}</p>
+        <p class="mb-1.5 text-xs text-muted">{{ t('themes.customize.scenes.semantic') }}</p>
         <div class="flex flex-wrap gap-2">
           <span
             v-for="color in semanticColors" :key="color"
@@ -106,7 +106,7 @@ const headings = [
     <!-- Typografie -->
     <section class="space-y-3">
       <div class="flex items-center justify-between gap-2">
-        <h3 class="text-sm font-semibold">{{ t('themes.studio.scenes.typography') }}</h3>
+        <h3 class="text-sm font-semibold">{{ t('themes.customize.scenes.typography') }}</h3>
         <UBadge color="neutral" variant="subtle" size="sm">{{ fontName }}</UBadge>
       </div>
       <component
@@ -115,10 +115,10 @@ const headings = [
         :key="h.tag"
         :class="h.class"
       >
-        {{ h.tag.toUpperCase() }} · {{ t('themes.studio.scenes.headingSample') }}
+        {{ h.tag.toUpperCase() }} · {{ t('themes.customize.scenes.headingSample') }}
       </component>
-      <p class="max-w-prose text-base">{{ t('themes.studio.scenes.bodySample') }}</p>
-      <p class="max-w-prose text-sm text-muted">{{ t('themes.studio.scenes.mutedSample') }}</p>
+      <p class="max-w-prose text-base">{{ t('themes.customize.scenes.bodySample') }}</p>
+      <p class="max-w-prose text-sm text-muted">{{ t('themes.customize.scenes.mutedSample') }}</p>
     </section>
   </div>
 </template>

@@ -1,5 +1,5 @@
 /**
- * Individuelle Schriftarten (Theme-Studio): Typen + Runtime-CSS-Generator.
+ * Individuelle Schriftarten (Customize theme): Typen + Runtime-CSS-Generator.
  *
  * Hochgeladene Fonts (nur WOFF2, Storage-Bucket 'fonts') können nicht über
  * @nuxt/fonts laufen (das self-hostet nur BUILD-bekannte Familien) — ihre

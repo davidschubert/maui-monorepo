@@ -6,7 +6,7 @@ interface ThemeDataResponse {
 }
 
 /**
- * Theme-Daten (Theme-Studio) — beim App-Start SSR-geladen (theme-Plugin),
+ * Theme-Daten (Customize theme) — beim App-Start SSR-geladen (theme-Plugin),
  * via useState zum Client serialisiert: Custom Themes (Ramps → Head-Style)
  * und Instanz-Einstellungen (Default-Theme, Built-in-Overrides). useTheme
  * mischt beides in die Registry.

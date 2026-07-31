@@ -1,6 +1,6 @@
 import type { Models } from 'node-appwrite'
 
-/** Theme-Studio: eigenes Theme löschen. */
+/** Customize theme: eigenes Theme löschen. */
 export default defineEventHandler(async (event) => {
   requirePermission(event, 'system.manage')
 

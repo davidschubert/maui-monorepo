@@ -1,6 +1,6 @@
 /**
  * Migration system-010: `custom_themes.config` — Generator-Parameter des
- * Theme-Studios als JSON (mode/anchor/hueShift/saturation/lightnessMax/
+ * Customize themes als JSON (mode/anchor/hueShift/saturation/lightnessMax/
  * lightnessMin/radius). Optional: fehlende Config = Perceived-Defaults.
  *
  *   node --experimental-strip-types --env-file=apps/<app>/.env \

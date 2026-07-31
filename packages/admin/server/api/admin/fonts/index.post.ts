@@ -17,7 +17,7 @@ const createFontSchema = z.object({
 
 const MAX_CUSTOM_FONTS = 12
 
-/** Theme-Studio: eigene Schrift anlegen (system-Table custom_fonts). */
+/** Customize theme: eigene Schrift anlegen (system-Table custom_fonts). */
 export default defineEventHandler(async (event) => {
   requirePermission(event, 'system.manage')
 

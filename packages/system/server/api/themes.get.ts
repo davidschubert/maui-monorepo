@@ -16,7 +16,7 @@ function parseJson<T>(raw: string | null | undefined): T | undefined {
 }
 
 /**
- * Öffentliche Theme-Daten (Theme-Studio) — beim App-Start (themes-Plugin)
+ * Öffentliche Theme-Daten (Customize theme) — beim App-Start (themes-Plugin)
  * geladen: Custom Themes (generierte Ramps landen SSR im Head) + Instanz-
  * Einstellungen (Default-Theme, Built-in-Overrides). Farben/Namen sind nicht
  * schutzwürdig → kein Auth; degradiert vollständig (Apps ohne Tables).

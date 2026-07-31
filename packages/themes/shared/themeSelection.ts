@@ -95,7 +95,7 @@ export function visitorMayChooseTheme(branding: CommunityBranding | null): boole
 /**
  * Darf der BESUCHER die Neutral-Palette umstellen? Dieselbe Frage, dieselbe
  * Antwort — bewusst als eigener Name, weil sie an anderen Stellen im UI
- * gestellt wird (Untermenü „Neutral", Schnell-Umschalter im Theme-Studio) und
+ * gestellt wird (Untermenü „Neutral", Schnell-Umschalter im Customize theme) und
  * weil beide Achsen auseinanderlaufen könnten, ohne dass jemand zwei
  * Aufrufstellen suchen muss. EIN Regelkörper, zwei Fragen.
  */

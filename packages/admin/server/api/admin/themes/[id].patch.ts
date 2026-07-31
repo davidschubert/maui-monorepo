@@ -41,7 +41,7 @@ const updateThemeSchema = z.object({
   variants: z.array(variantSchema).max(6).optional(),
 })
 
-/** Theme-Studio: eigenes Theme bearbeiten (Name/Farbe/Reihenfolge). */
+/** Customize theme: eigenes Theme bearbeiten (Name/Farbe/Reihenfolge). */
 export default defineEventHandler(async (event) => {
   requirePermission(event, 'system.manage')
 

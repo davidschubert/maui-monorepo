@@ -90,7 +90,7 @@ function buildPrompt(ticket: TicketRow): string {
   return [
     'Du triagierst ein Ticket für das Entwicklungs-Board einer Community-Plattform',
     '(Nuxt 4 Monorepo mit Layer-Architektur, Appwrite-Backend; Produkte: Kommentare,',
-    'Posts/Umfragen, Events, Kurse/LMS, Stripe-Abos, Theme-Studio, Admin-Dashboard).',
+    'Posts/Umfragen, Events, Kurse/LMS, Stripe-Abos, Customize theme, Admin-Dashboard).',
     '',
     `Titel: ${ticket.title}`,
     ticket.label ? `Label: ${ticket.label}` : '',

@@ -9,23 +9,23 @@ const { t } = useI18n()
 const search = ref('')
 
 const stats = computed(() => [
-  { label: t('themes.studio.scenes.statVisitors'), value: '2418', highlight: false },
-  { label: t('themes.studio.scenes.statComments'), value: '312', highlight: false },
-  { label: t('themes.studio.scenes.statOnline'), value: '37', highlight: true },
+  { label: t('themes.customize.scenes.statVisitors'), value: '2418', highlight: false },
+  { label: t('themes.customize.scenes.statComments'), value: '312', highlight: false },
+  { label: t('themes.customize.scenes.statOnline'), value: '37', highlight: true },
 ])
 
 const rows = computed(() => [
-  { title: t('themes.studio.scenes.rowReport'), status: t('themes.studio.scenes.statusOpen'), color: 'primary' as const },
-  { title: t('themes.studio.scenes.rowFlagged'), status: t('themes.studio.scenes.statusReviewed'), color: 'warning' as const },
-  { title: t('themes.studio.scenes.rowTheme'), status: t('themes.studio.scenes.statusDone'), color: 'success' as const },
+  { title: t('themes.customize.scenes.rowReport'), status: t('themes.customize.scenes.statusOpen'), color: 'primary' as const },
+  { title: t('themes.customize.scenes.rowFlagged'), status: t('themes.customize.scenes.statusReviewed'), color: 'warning' as const },
+  { title: t('themes.customize.scenes.rowTheme'), status: t('themes.customize.scenes.statusDone'), color: 'success' as const },
 ])
 </script>
 
 <template>
   <div class="min-w-0 space-y-4">
     <div class="flex flex-wrap items-center gap-2">
-      <UInput v-model="search" :placeholder="t('themes.studio.demo.placeholder')" icon="i-ph-magnifying-glass" class="min-w-0 flex-1" />
-      <UButton icon="i-ph-plus" color="primary">{{ t('themes.studio.scenes.newEntry') }}</UButton>
+      <UInput v-model="search" :placeholder="t('themes.customize.demo.placeholder')" icon="i-ph-magnifying-glass" class="min-w-0 flex-1" />
+      <UButton icon="i-ph-plus" color="primary">{{ t('themes.customize.scenes.newEntry') }}</UButton>
     </div>
 
     <div class="grid min-w-0 gap-3 sm:grid-cols-3">
@@ -37,8 +37,8 @@ const rows = computed(() => [
 
     <UPageCard variant="subtle" :ui="{ container: 'min-w-0 p-4 sm:p-4' }">
       <div class="mb-2 flex items-center justify-between gap-2">
-        <span class="text-sm font-medium">{{ t('themes.studio.scenes.listTitle') }}</span>
-        <UBadge color="primary" variant="solid" size="sm">{{ t('themes.studio.scenes.badgeNew') }}</UBadge>
+        <span class="text-sm font-medium">{{ t('themes.customize.scenes.listTitle') }}</span>
+        <UBadge color="primary" variant="solid" size="sm">{{ t('themes.customize.scenes.badgeNew') }}</UBadge>
       </div>
       <ul class="divide-y divide-default">
         <li v-for="row in rows" :key="row.title" class="flex items-center justify-between gap-2 py-2 text-sm">

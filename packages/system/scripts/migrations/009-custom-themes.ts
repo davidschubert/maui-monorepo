@@ -1,5 +1,5 @@
 /**
- * Migration system-009: Table `custom_themes` (Theme-Studio).
+ * Migration system-009: Table `custom_themes` (Customize theme).
  *
  * Im Admin angelegte eigene Themes (Name + Basisfarbe + Reihenfolge). Die
  * Ramp wird zur Laufzeit generiert (themes/shared/ramp.ts) — hier liegt nur

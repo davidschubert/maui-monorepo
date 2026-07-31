@@ -1,5 +1,5 @@
 /**
- * Migration system-011: Theme-Studio-Ausbau.
+ * Migration system-011: Customize theme-Ausbau.
  *
  * - `app_config.themeSettings` (JSON): Instanz-weite Theme-Einstellungen —
  *   Default-Theme für Besucher ohne Cookie, Built-ins umbenennen/ausblenden/

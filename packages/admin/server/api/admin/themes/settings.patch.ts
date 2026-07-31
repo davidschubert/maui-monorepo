@@ -15,7 +15,7 @@ const settingsSchema = z.object({
 }).strict()
 
 /**
- * Theme-Studio: Instanz-weite Einstellungen (Default-Theme für Besucher ohne
+ * Customize theme: Instanz-weite Einstellungen (Default-Theme für Besucher ohne
  * Cookie, Built-ins umbenennen/ausblenden/umsortieren) — als JSON in
  * app_config.themeSettings (Migration system-011).
  */

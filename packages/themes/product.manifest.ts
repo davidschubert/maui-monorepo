@@ -5,7 +5,7 @@ export default {
   tier: 'foundation',
   // Tables (custom_themes/custom_fonts) besitzt der system-Layer (A14).
   hasMigrations: false,
-  title: { en: 'Theme Studio', de: 'Theme-Studio' },
+  title: { en: 'Customize theme', de: 'Customize theme' },
   description: {
     en: 'Custom themes and fonts: gallery, editor with live preview, runtime color ramps and self-hosted font uploads.',
     de: 'Custom Themes und Schriften: Galerie, Editor mit Live-Vorschau, Laufzeit-Farbrampen und selbst gehostete Font-Uploads.',
