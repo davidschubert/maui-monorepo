@@ -75,7 +75,13 @@ muss dabei mitwandern, sonst kann ein zweites Abo ein erstes überschreiben.
 `packages/billing` kommt dafür in die extends von platform. Die alten
 Workspace-Routen bleiben zunächst und antworten weiter.
 
-**Schritt 4 — Bestand übernehmen.** Produktiv ist es eine Zeile
+**Schritt 4 — Bestand übernehmen.** *(Befund 2026-07-31: das Pool-Projekt hat
+NULL Nutzer — die Demo-Community hat kein Runtime-Konto, das Owner sein
+könnte. Es gibt nichts zu übernehmen; die Owner-Zeile entsteht, sobald sich
+David auf demo.pukalani.app registriert (A5-Beitritt) und die Rolle gesetzt
+wird. Der Einzelvorgang entfällt damit ersatzlos.)*
+
+**Schritt 4 (ursprünglicher Wortlaut) — Bestand übernehmen.** Produktiv ist es eine Zeile
 (`workspaces: 1 = „test"`, `workspace_members: 0`), lokal ein Testkonto. Also
 kein Migrationsskript, sondern ein protokollierter Einzelvorgang.
 
