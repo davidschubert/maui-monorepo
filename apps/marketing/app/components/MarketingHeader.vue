@@ -70,7 +70,7 @@ const desktopItems = computed(() => [
   // auch so einen Auslöser — die Bedingung im Bauteil ist „children ODER
   // Content-Slot". `to` fehlt deshalb bewusst: ein Auslöser mit Untermenü ist
   // kein Link mehr, den Weg zur Übersicht übernimmt der Fuß des Ausklappers.
-  { label: t('marketing.nav.products'), value: 'products', slot: 'products' as const },
+  { label: t('marketing.nav.products.label'), value: 'products', slot: 'products' as const },
   { ...LINK_DEFAULTS, label: t('marketing.nav.pricing'), to: pricingTarget.value },
   { ...LINK_DEFAULTS, label: t('marketing.nav.story'), to: storyTarget.value },
 ])
@@ -86,7 +86,7 @@ const mobileItems = computed(() => [
     to: productTo(product.slug),
   })),
   [
-    { ...LINK_DEFAULTS, label: t('marketing.nav.products'), to: blocksTarget.value },
+    { ...LINK_DEFAULTS, label: t('marketing.nav.products.label'), to: blocksTarget.value },
     { ...LINK_DEFAULTS, label: t('marketing.nav.pricing'), to: pricingTarget.value },
     { ...LINK_DEFAULTS, label: t('marketing.nav.story'), to: storyTarget.value },
     // FAQ hat eine EIGENE Seite (mit eigenem JSON-LD/OG) — die gewinnt gegen
