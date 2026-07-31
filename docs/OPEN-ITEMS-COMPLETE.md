@@ -547,3 +547,19 @@ Changelog bei Complete, Owner-Sicht, Verfasser-Benachrichtigung (D5-Wand).
 in core hochgezogen — nicht kopiert (controlService, Config-Schlüssel
 unverändert, onboarding delegiert nur noch).
 
+### C18 — Sichtbarkeit pro Community ✅ 2026-07-31
+
+Wählbar unter Settings→Community (team.manage), neue Communities entstehen
+öffentlich (dokumentierte Kehrtwende zu G0-7). Permissions-Flip in beide
+Richtungen über pure Regel repermissionRow() (liest „veröffentlicht" am
+BESTEHENDEN Array ab — öffnet nie, was zu war) + Registry/Cursor/Zeitbudget;
+SEO zieht mit (noindex, robots, sitemap-404 VOR dem Datenlesen, og zu);
+pages ohne Row-Permissions bekam die eigene Wache. Beweise:
+verify-audience-flip 19/19, pool-isolation 13/13 unverändert; Demo nach dem
+Deploy explizit public gestempelt (Status quo). **Gelernt:** Ein Feld, das
+bisher nichts steuerte, macht beim Scharfschalten den BESTAND fail-closed
+„halb zu" — der Betriebsschritt (Stempel-Einzelvorgang) gehört in denselben
+Plan wie der Code. **Gelernt:** Mandantenübergreifende Schreiber (GDPR-
+Tombstone) dürfen nie hart read(any) stempeln — sie öffnen sonst Inhalte
+geschlossener Communities.
+

@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 24 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 23 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-07-31**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -20,7 +20,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | --- | --- | --- | --- | --- | --- |
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
-| 10 · C18 | **Bestands-Communities stempeln, bevor C18 live geht.** Der Schalter ist gebaut (2026-07-30). Offen ist nur der Einzelvorgang: jede Community von VOR C18 trägt `audience = null` und wird mit dem Deploy als „nur für Mitglieder" behandelt (noindex, sitemap/og 404, Startseite für Gäste zu) — obwohl ihre Inhalte öffentlich sind. `demo.pukalani.app` zuerst. | Hoch | S — ein Skript je Host, mit Trockenlauf | Ja: David entscheidet je Community | [Notizen](#notizen) |
 | 11 · B1 | **Neun visuelle Referenzbilder sichten**, dann neu aufnehmen — der Header-Umbau hat sie erwartungsgemäß gebrochen. | Mittel | S — ansehen + ein Befehl | Ja: David sichtet zuerst | [Notizen](#notizen) |
 | 12 · C16 | **Drei Berechtigungen ohne Funktion nachbauen:** Branding-Rechte, Schreibrecht für Redakteure (ein Editor kommt an seine eigenen Beiträge nicht heran), Community löschen. | Mittel | M — drei kleine Baustellen | Nein | [Notizen](#notizen) |
 | 13 · C12 | **Dashboard-Kleinteile** — fehlende Blätterfunktion, leere Zustände, interne IDs und Fachjargon im Kundenblick, handgebaute Listen, 238 Toasts ohne Erklärtext. Läuft am besten mit 7. | Mittel | M — viele kleine Stellen | Nein | [Notizen](#notizen) |
