@@ -5,7 +5,7 @@
 // repo-seitig von `pnpm control:jobs` (§ 8: der Web-Prozess beschreibt nur).
 import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
 import type { WebsiteRow } from '../../../shared/types/website'
-import type { FeatureCatalogEntry, JobRow, SiteCreateJobPayload, SiteCreateJobResult } from '../../../shared/types/job'
+import type { ProductCatalogEntry, JobRow, SiteCreateJobPayload, SiteCreateJobResult } from '../../../shared/types/job'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'sites.manage' })
 
@@ -16,7 +16,7 @@ const confirm = useConfirm()
 type WebsiteWithEntitlements = WebsiteRow & { entitlements: string[] }
 const { data, refresh } = await useFetch<{ websites: WebsiteWithEntitlements[] }>('/api/control/websites')
 const { data: jobsData, refresh: refreshJobs } = await useFetch<{ jobs: JobRow[] }>('/api/control/jobs')
-const { data: catalogData } = await useFetch<{ features: FeatureCatalogEntry[] }>('/api/control/features')
+const { data: catalogData } = await useFetch<{ products: ProductCatalogEntry[] }>('/api/control/products')
 const { data: workspacesData } = await useFetch<{ workspaces: { $id: string, name: string }[] }>('/api/control/workspaces')
 
 // ── Workspace-Zuordnung (M8-T2) ─────────────────────────────────────────────
@@ -89,21 +89,21 @@ async function deregister(site: WebsiteRow) {
 }
 
 // ── Neue Site (T2): create-site als Job ─────────────────────────────────────
-const DEFAULT_FEATURES = ['themes', 'admin', 'comments', 'moderation']
+const DEFAULT_PRODUCTS = ['themes', 'admin', 'comments', 'moderation']
 const showCreate = ref(false)
 const createName = ref('')
-const selected = ref<string[]>([...DEFAULT_FEATURES])
+const selected = ref<string[]>([...DEFAULT_PRODUCTS])
 const creating = ref(false)
 
 /** Wählbar: alles außer core/system (implizit) und studio (nur Control-Site). */
-const selectableFeatures = computed(() =>
-  (catalogData.value?.features ?? [])
+const selectableProducts = computed(() =>
+  (catalogData.value?.products ?? [])
     .filter(f => !['core', 'system', 'control'].includes(f.key))
     .sort((a, b) => (a.tier === b.tier ? a.key.localeCompare(b.key) : a.tier === 'foundation' ? -1 : 1)))
 const text = (value: { en: string, de: string }) => (locale.value.startsWith('de') ? value.de : value.en)
 
 function toggleIn(list: Ref<string[]>, key: string, on: boolean) {
-  const catalog = selectableFeatures.value
+  const catalog = selectableProducts.value
   if (on) {
     // requires-Schluss: Abhängigkeiten automatisch mit auswählen
     const add = (k: string) => {
@@ -114,24 +114,24 @@ function toggleIn(list: Ref<string[]>, key: string, on: boolean) {
     add(key)
   }
   else {
-    // Abwahl nimmt Features mit, die dieses voraussetzen
+    // Abwahl nimmt Produkte mit, die dieses voraussetzen
     list.value = list.value.filter(k =>
       k !== key && !(catalog.find(f => f.key === k)?.requires ?? []).includes(key))
   }
 }
-const toggleFeature = (key: string, on: boolean) => toggleIn(selected, key, on)
+const toggleProduct = (key: string, on: boolean) => toggleIn(selected, key, on)
 
 async function createSite() {
   creating.value = true
   try {
     await $fetch('/api/control/jobs', {
       method: 'POST',
-      body: { type: 'site.create', name: createName.value.trim(), features: selected.value },
+      body: { type: 'site.create', name: createName.value.trim(), products: selected.value },
     })
     toast.add({ title: t('control.jobs.created', { name: createName.value.trim() }), color: 'success' })
     showCreate.value = false
     createName.value = ''
-    selected.value = [...DEFAULT_FEATURES]
+    selected.value = [...DEFAULT_PRODUCTS]
   }
   catch (error) {
     toast.add({ title: t('control.jobs.createFailed'), description: (error as { statusMessage?: string })?.statusMessage, color: 'error' })
@@ -159,7 +159,7 @@ async function saveEntitlements() {
   try {
     await $fetch(`/api/control/websites/${entitlementSite.value.$id}/entitlements`, {
       method: 'PUT',
-      body: { features: grantSelection.value },
+      body: { products: grantSelection.value },
     })
     toast.add({ title: t('control.entitlements.saved', { name: entitlementSite.value.name }), color: 'success' })
     entitlementSite.value = null
@@ -189,12 +189,12 @@ onMounted(() => {
 })
 onUnmounted(() => { if (pollTimer) clearInterval(pollTimer) })
 
-/** Feature-Snapshot der Site (vom Health-Sweep, T4) — implizite Keys werden
+/** Produkt-Snapshot der Site (vom Health-Sweep, T4) — implizite Keys werden
  *  nicht angezeigt; läuft etwas ohne Entitlement, warnt der Chip. */
-const IMPLICIT_FEATURES = ['core', 'system', 'control']
-function runningFeatures(site: WebsiteWithEntitlements): string[] {
+const IMPLICIT_PRODUCTS = ['core', 'system', 'control']
+function runningProducts(site: WebsiteWithEntitlements): string[] {
   try {
-    return (JSON.parse(site.features || '[]') as string[]).filter(key => !IMPLICIT_FEATURES.includes(key))
+    return (JSON.parse(site.products || '[]') as string[]).filter(key => !IMPLICIT_PRODUCTS.includes(key))
   }
   catch {
     return []
@@ -211,14 +211,14 @@ const HIDE_LG = { td: 'hidden lg:table-cell', th: 'hidden lg:table-cell' }
 const websiteColumns = computed<TableColumn<WebsiteWithEntitlements>[]>(() => [
   { accessorKey: 'name', header: () => t('control.websites.col.site') },
   { id: 'state', header: () => t('control.websites.col.state') },
-  { id: 'features', header: () => t('control.websites.col.features'), meta: { class: HIDE_LG } },
+  { id: 'products', header: () => t('control.websites.col.products'), meta: { class: HIDE_LG } },
   { id: 'workspace', header: () => t('control.websites.col.workspace'), meta: { class: HIDE_MD } },
   { id: 'actions', header: () => '' },
 ])
 
 const jobColumns = computed<TableColumn<JobRow>[]>(() => [
   { id: 'job', header: () => t('control.jobs.col.job') },
-  { id: 'jobFeatures', header: () => t('control.jobs.col.features'), meta: { class: HIDE_MD } },
+  { id: 'jobProducts', header: () => t('control.jobs.col.products'), meta: { class: HIDE_MD } },
   { accessorKey: 'status', header: () => t('control.jobs.col.status') },
   { id: 'jobActions', header: () => '' },
 ])
@@ -277,25 +277,25 @@ function siteActions(site: WebsiteWithEntitlements): DropdownMenuItem[][] {
             </ClientOnly>
           </div>
         </template>
-        <template #features-cell="{ row }">
+        <template #products-cell="{ row }">
           <div class="space-y-1">
             <div class="flex flex-wrap items-center gap-1" :data-site-entitlements="row.original.entitlements.join(',')">
               <template v-if="row.original.entitlements.length">
-                <UBadge v-for="feature in row.original.entitlements" :key="feature" color="neutral" variant="outline" size="sm">{{ feature }}</UBadge>
+                <UBadge v-for="product in row.original.entitlements" :key="product" color="neutral" variant="outline" size="sm">{{ product }}</UBadge>
               </template>
               <span v-else class="text-xs text-muted">{{ t('control.entitlements.none') }}</span>
             </div>
-            <div v-if="runningFeatures(row.original).length" class="flex flex-wrap items-center gap-1" :data-site-running="runningFeatures(row.original).join(',')">
+            <div v-if="runningProducts(row.original).length" class="flex flex-wrap items-center gap-1" :data-site-running="runningProducts(row.original).join(',')">
               <span class="text-xs text-muted">{{ t('control.websites.running') }}</span>
               <UBadge
-                v-for="feature in runningFeatures(row.original)"
-                :key="feature"
-                :color="row.original.entitlements.includes(feature) ? 'neutral' : 'warning'"
+                v-for="product in runningProducts(row.original)"
+                :key="product"
+                :color="row.original.entitlements.includes(product) ? 'neutral' : 'warning'"
                 variant="subtle"
                 size="sm"
-                :title="row.original.entitlements.includes(feature) ? undefined : t('control.websites.runningUnentitled')"
+                :title="row.original.entitlements.includes(product) ? undefined : t('control.websites.runningUnentitled')"
               >
-                {{ feature }}
+                {{ product }}
               </UBadge>
             </div>
           </div>
@@ -356,8 +356,8 @@ function siteActions(site: WebsiteWithEntitlements): DropdownMenuItem[][] {
               <pre v-if="expandedLog === row.original.$id" class="mt-2 max-h-64 overflow-auto rounded bg-elevated p-3 text-xs whitespace-pre-wrap" data-job-log>{{ row.original.log }}</pre>
             </div>
           </template>
-          <template #jobFeatures-cell="{ row }">
-            <span class="text-xs text-muted">{{ (jobPayload(row.original).features ?? []).join(', ') }}</span>
+          <template #jobProducts-cell="{ row }">
+            <span class="text-xs text-muted">{{ (jobPayload(row.original).products ?? []).join(', ') }}</span>
           </template>
           <template #status-cell="{ row }">
             <UBadge :color="jobColor(row.original.status)" variant="subtle" size="sm" :data-job-status="row.original.status">{{ row.original.status }}</UBadge>
@@ -401,17 +401,17 @@ function siteActions(site: WebsiteWithEntitlements): DropdownMenuItem[][] {
       <!-- T3: Entitlements einer Site verwalten -->
       <UModal :open="!!entitlementSite" :title="t('control.entitlements.title', { name: entitlementSite?.name ?? '' })" @update:open="() => { entitlementSite = null }">
         <template #body>
-          <UFormField :label="t('control.jobs.fieldFeatures')" :help="t('control.entitlements.help')">
-            <p v-if="!selectableFeatures.length" class="text-sm text-muted">{{ t('control.jobs.catalogEmpty') }}</p>
+          <UFormField :label="t('control.jobs.fieldProducts')" :help="t('control.entitlements.help')">
+            <p v-if="!selectableProducts.length" class="text-sm text-muted">{{ t('control.jobs.catalogEmpty') }}</p>
             <div v-else class="max-h-72 space-y-2 overflow-y-auto pr-1">
               <UCheckbox
-                v-for="feature in selectableFeatures"
-                :key="feature.key"
-                :model-value="grantSelection.includes(feature.key)"
-                :label="text(feature.title)"
-                :description="text(feature.description)"
-                :data-grant-feature="feature.key"
-                @update:model-value="toggleGrant(feature.key, $event === true)"
+                v-for="product in selectableProducts"
+                :key="product.key"
+                :model-value="grantSelection.includes(product.key)"
+                :label="text(product.title)"
+                :description="text(product.description)"
+                :data-grant-product="product.key"
+                @update:model-value="toggleGrant(product.key, $event === true)"
               />
             </div>
           </UFormField>
@@ -419,7 +419,7 @@ function siteActions(site: WebsiteWithEntitlements): DropdownMenuItem[][] {
         <template #footer>
           <div class="flex w-full justify-end gap-2">
             <UButton color="neutral" variant="ghost" @click="() => { entitlementSite = null }">{{ t('control.websites.cancel') }}</UButton>
-            <UButton :loading="savingGrants" :disabled="!selectableFeatures.length" data-grant-save @click="saveEntitlements">
+            <UButton :loading="savingGrants" :disabled="!selectableProducts.length" data-grant-save @click="saveEntitlements">
               {{ t('control.entitlements.save') }}
             </UButton>
           </div>
@@ -433,17 +433,17 @@ function siteActions(site: WebsiteWithEntitlements): DropdownMenuItem[][] {
             <UFormField :label="t('control.jobs.fieldName')" :hint="t('control.jobs.fieldNameHint')">
               <UInput v-model="createName" class="w-full" placeholder="portfolio" data-create-name />
             </UFormField>
-            <UFormField :label="t('control.jobs.fieldFeatures')" :help="t('control.jobs.fieldFeaturesHelp')">
-              <p v-if="!selectableFeatures.length" class="text-sm text-muted">{{ t('control.jobs.catalogEmpty') }}</p>
+            <UFormField :label="t('control.jobs.fieldProducts')" :help="t('control.jobs.fieldProductsHelp')">
+              <p v-if="!selectableProducts.length" class="text-sm text-muted">{{ t('control.jobs.catalogEmpty') }}</p>
               <div v-else class="max-h-72 space-y-2 overflow-y-auto pr-1">
                 <UCheckbox
-                  v-for="feature in selectableFeatures"
-                  :key="feature.key"
-                  :model-value="selected.includes(feature.key)"
-                  :label="text(feature.title)"
-                  :description="text(feature.description)"
-                  :data-create-feature="feature.key"
-                  @update:model-value="toggleFeature(feature.key, $event === true)"
+                  v-for="product in selectableProducts"
+                  :key="product.key"
+                  :model-value="selected.includes(product.key)"
+                  :label="text(product.title)"
+                  :description="text(product.description)"
+                  :data-create-product="product.key"
+                  @update:model-value="toggleProduct(product.key, $event === true)"
                 />
               </div>
             </UFormField>
@@ -454,7 +454,7 @@ function siteActions(site: WebsiteWithEntitlements): DropdownMenuItem[][] {
             <p class="text-xs text-muted">{{ t('control.jobs.runnerHint') }}</p>
             <div class="flex gap-2">
               <UButton color="neutral" variant="ghost" @click="() => { showCreate = false }">{{ t('control.websites.cancel') }}</UButton>
-              <UButton :disabled="!createName.trim() || !selectableFeatures.length" :loading="creating" data-create-save @click="createSite">
+              <UButton :disabled="!createName.trim() || !selectableProducts.length" :loading="creating" data-create-save @click="createSite">
                 {{ t('control.jobs.create') }}
               </UButton>
             </div>

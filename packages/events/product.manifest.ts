@@ -1,4 +1,4 @@
-import type { FeatureManifest } from '../core/shared/types/manifest'
+import type { ProductManifest } from '../core/shared/types/manifest'
 
 export default {
   key: 'events',
@@ -11,4 +11,4 @@ export default {
     de: 'Events mit Serien, Zusagen und Tickets — inklusive einbettbarer Event-Ansicht.',
   },
   icon: 'i-ph-calendar',
-} satisfies FeatureManifest
+} satisfies ProductManifest

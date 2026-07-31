@@ -32,8 +32,8 @@ async function inviteOwner(workspace: WorkspaceWithSites) {
   await refresh()
 }
 
-const planFeatures = (plan: string): string[] =>
-  (appConfig.pukalani as { studio?: { plans?: Record<string, { features: string[] }> } }).studio?.plans?.[plan]?.features ?? []
+const planProducts = (plan: string): string[] =>
+  (appConfig.pukalani as { studio?: { plans?: Record<string, { products: string[] }> } }).studio?.plans?.[plan]?.products ?? []
 
 // ── Anlegen ────────────────────────────────────────────────────────────────
 const showCreate = ref(false)
@@ -212,7 +212,7 @@ function rowActions(workspace: WorkspaceWithSites): DropdownMenuItem[][] {
           <div class="min-w-0" :data-workspace="row.original.name">
             <p class="font-medium">{{ row.original.name }}</p>
             <p class="text-xs text-muted">
-              {{ t('control.workspaces.planFeatures') }}: {{ planFeatures(row.original.plan).join(', ') || '—' }}
+              {{ t('control.workspaces.planProducts') }}: {{ planProducts(row.original.plan).join(', ') || '—' }}
             </p>
           </div>
         </template>
@@ -327,7 +327,7 @@ function rowActions(workspace: WorkspaceWithSites): DropdownMenuItem[][] {
             <UFormField :label="t('control.workspaces.targetPlan')" :help="t('control.workspaces.changePlanHelp')">
               <URadioGroup
                 v-model="chosenPlan"
-                :items="paidPlans.map(key => ({ label: `${key} — ${planFeatures(key).join(', ')}`, value: key }))"
+                :items="paidPlans.map(key => ({ label: `${key} — ${planProducts(key).join(', ')}`, value: key }))"
                 data-plan-choice
               />
             </UFormField>

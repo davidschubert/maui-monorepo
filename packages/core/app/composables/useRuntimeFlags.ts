@@ -1,8 +1,8 @@
 import { DEFAULT_PUBLIC_APP_CONFIG, type PublicAppConfig } from '../../shared/types/config'
 
 /**
- * Öffentliche Laufzeit-Feature-Flags (registrationEnabled, commentsEnabled,
- * maintenanceMode, features) als geteilter, reaktiver State.
+ * Öffentliche Laufzeit-Produkt-Flags (registrationEnabled, commentsEnabled,
+ * maintenanceMode, products) als geteilter, reaktiver State.
  *
  * Befüllt wird er einmal serverseitig vom Plugin `runtime-flags` (SSR → über
  * useState in den Client hydratisiert) und danach live vom Plugin

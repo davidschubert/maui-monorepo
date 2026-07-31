@@ -1,4 +1,4 @@
-import type { FeatureManifest } from '../core/shared/types/manifest'
+import type { ProductManifest } from '../core/shared/types/manifest'
 
 export default {
   key: 'control',
@@ -11,4 +11,4 @@ export default {
     de: 'Das Control Plane der Plattform: Sites-Register, Health-Übersicht, Provisionierung und Entitlements. Läuft nur auf der Control-Site.',
   },
   icon: 'i-ph-globe-hemisphere-west',
-} satisfies FeatureManifest
+} satisfies ProductManifest

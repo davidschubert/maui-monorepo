@@ -6,7 +6,7 @@
  * Die Klassifizierung selbst gehört dem CORE, nicht diesem Layer: pages
  * rendert seine Inhalte über den geteilten Core-Sink `MarkdownContent`
  * (kein MDC/Prose im pages-Layer), und ein Fundament-Layer darf nie von
- * einem Feature-Layer abhängen (CONCEPT.md A14). Dieser Test hält die für
+ * einem Produkt-Layer abhängen (CONCEPT.md A14). Dieser Test hält die für
  * CMS-Seiten relevanten Fälle dort fest, wo der Befund aufgeschlagen ist —
  * relativer Import, weil im Vitest-Node-Kontext kein Auto-Import existiert.
  */

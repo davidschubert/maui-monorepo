@@ -1,4 +1,4 @@
-import type { FeatureManifest } from '../core/shared/types/manifest'
+import type { ProductManifest } from '../core/shared/types/manifest'
 
 export default {
   key: 'system',
@@ -10,4 +10,4 @@ export default {
     de: 'Infra-Tabellen: App-Config, Audit-Log, Benachrichtigungen, Activities, Changelog sowie Custom-Themes/-Fonts-Speicher.',
   },
   icon: 'i-ph-gear',
-} satisfies FeatureManifest
+} satisfies ProductManifest

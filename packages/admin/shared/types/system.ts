@@ -16,7 +16,7 @@ export interface DependencyEntry {
   outdated?: boolean | null
 }
 
-/** Inhalts-Kategorie eines Feature-Layers (key wird im UI via i18n übersetzt). */
+/** Inhalts-Kategorie eines Produkt-Layers (key wird im UI via i18n übersetzt). */
 export interface LayerCategory {
   key: string
   count: number
@@ -24,7 +24,7 @@ export interface LayerCategory {
   items: string[]
 }
 
-/** Aufgeschlüsselter Inhalt eines Feature-Layers. */
+/** Aufgeschlüsselter Inhalt eines Produkt-Layers. */
 export interface LayerInfo {
   name: string
   version: string

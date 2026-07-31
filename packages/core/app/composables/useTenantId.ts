@@ -11,7 +11,7 @@
  * Logik. Das Spiegel-Inventar in app/plugins/tenant-brand.server.ts führt die
  * erlaubten Leser namentlich; ein neuer Leser gehört dort hinein.
  *
- * Der EXPLIZITE Vertrag existiert, damit Feature-Layer nicht den State-Key als
+ * Der EXPLIZITE Vertrag existiert, damit Produkt-Layer nicht den State-Key als
  * String nachbauen (impliziter Auto-Import/String-Coupling, CONCEPT A14).
  */
 export function useTenantId() {

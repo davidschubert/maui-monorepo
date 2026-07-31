@@ -1,4 +1,4 @@
-import type { FeatureManifest } from './shared/types/manifest'
+import type { ProductManifest } from './shared/types/manifest'
 
 export default {
   key: 'core',
@@ -10,4 +10,4 @@ export default {
     de: 'Fundament-Layer: Auth, Profile, Benachrichtigungen, Realtime, Design-Fundament und geteilte Utilities. Besitzt keine Tables.',
   },
   icon: 'i-ph-cube',
-} satisfies FeatureManifest
+} satisfies ProductManifest

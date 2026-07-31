@@ -1,8 +1,8 @@
 import type { SiteManifest } from '../../packages/core/shared/types/manifest'
 
 /**
- * Feature-Wahl dieser Site — Single Source of Truth. Beim Ableiten einer
- * neuen App zuerst HIER die Features wählen, dann `extends` (nuxt.config.ts)
+ * Produkt-Wahl dieser Site — Single Source of Truth. Beim Ableiten einer
+ * neuen App zuerst HIER die Produkte wählen, dann `extends` (nuxt.config.ts)
  * und die @pukalani/*-Dependencies (package.json) anpassen —
  * `pnpm check:manifests` meldet jede Abweichung. core + system sind
  * implizit immer dabei; comments zieht moderation zwingend mit (requires).
@@ -13,7 +13,7 @@ import type { SiteManifest } from '../../packages/core/shared/types/manifest'
  */
 export default {
   siteId: 'template',
-  features: [
+  products: [
     'themes',
     'admin',
     'comments',

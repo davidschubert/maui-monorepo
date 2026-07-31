@@ -104,6 +104,43 @@ control-022/023:
 Wer 1 und 2 vertauscht, hat zwischen Migration und Deploy ein Fenster, in dem
 der Geld- und Produkt-Pfad ins Leere schreibt.
 
+### Etappe B ist erledigt (2026-07-30) — offen bleibt NUR das Zusammenziehen
+
+Regelbasiert wie Etappe A: 964 Ersetzungen in 226 Dateien + 22 handgepflegte
+Locale-Werte, 43 Dateiumbenennungen (git mv). Camel-/Pascal-Komposita wurden
+englisch (`productKey`), alleinstehende Prosa deutsch („Produkt-Layer",
+inkl. Genitiv-Sonderregel „des Produkts"). Vorab liefen **system-023**
+(`app_config.products`, MEDIUMTEXT — app_config ist am utf8mb4-Zeilenbudget,
+N2) und **courses-003** (`courses.entitlementProduct` — DRITTE Lücke, beim
+Bauen gefunden: die Spalte liegt in den Runtime-Projekten, control-024 deckte
+nur das Control-Projekt) auf allen vier Instanzen, lokal und Prod.
+
+Zwei beim Schreiben gefundene Zusatz-Fallen, jetzt Ausnahmen:
+- **Changelog-Kategorie `feature`** heißt „Neuerung" und steht als WERT in
+  Changelog-Rows — die ganze Changelog-Domäne (Seiten, Routen, Seeds, Tests,
+  i18n-Schlüssel `admin.changelog.category.feature`) bleibt unangetastet.
+- **Locale-WERTE** sind Anzeigetexte je Sprache: das Skript benennt in
+  i18n/locales/*.json NUR Schlüssel um; die control-Werte wurden von Hand auf
+  „Produkte"/“Products" gezogen, generisches Englisch („old features" über
+  Wettbewerber) und „Neue Funktionen zuerst" bleiben.
+
+ÜBERGANGS-KANTEN (alle mit Kommentar „Übergang bis zum Zusammenziehen"):
+`entitlements.featureKey` ist required + Unique-Index ⇒ Inserts SPIEGELN die
+alte Spalte (workspaceGrants.ts, control-jobs.mjs); ebenso app_config.features
+(Admin-PATCH), websites.features (Health-Sweep), courses.entitlementFeature
+(beide Schreib-Routen). `/api/platform/features` bleibt als Alias (alter
+Health-Sweep + Fallback für Wellen-Nachzügler), das signierte
+Entitlement-Dokument trägt `products` UND `features` (alte Verifizierer
+verlangen das Feld; gespeicherte last-known-good-Dokumente bleiben lesbar),
+der Job-Payload-Leser nimmt `products ?? features` (alte Queue-Einträge).
+
+**Zusammenziehen (nach einer Nacht Beobachtung, eigene Migration + Commit):**
+alte Spalten (`entitlements.featureKey` + Index `idx_site_feature` ⇒ vorher
+`idx_site_product` anlegen!, `websites.features`, `app_config.features`,
+`courses.entitlementFeature`, Alt-Tabellen `feature_catalog`/`sites`) löschen,
+Dual-Writes/Aliasse/Doppelfeld entfernen. Verwaiste `courses`-Tabelle auf
+portfolio-Prod (Altlast vor dem Manifest-Filter) bewusst NICHT angefasst.
+
 ### Etappe A ist erledigt (2026-07-30)
 
 `maui` → `pukalani` ist durch: 884 Ersetzungen in 327 Dateien, Paket-Scope

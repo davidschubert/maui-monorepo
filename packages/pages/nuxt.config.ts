@@ -1,5 +1,5 @@
 /**
- * Feature Layer: Pages — editierbare Inhaltsseiten (Impressum/AGB/Datenschutz).
+ * Produkt Layer: Pages — editierbare Inhaltsseiten (Impressum/AGB/Datenschutz).
  * Betreiber pflegt sie im Dashboard (WYSIWYG via UEditor, Markdown) mit
  * Sprachversionen (EN Standard + weitere Reiter); öffentlich unter sprechenden
  * Pfaden (/imprint …) gerendert. Eigenes Datenmodell (Table pages), A14.

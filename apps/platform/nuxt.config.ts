@@ -1,5 +1,5 @@
 export default defineNuxtConfig({
-  // früher gelistet = höhere Priorität — Feature Layer vor dem Core.
+  // früher gelistet = höhere Priorität — Produkt Layer vor dem Core.
   // Nicht benötigte Layer einfach entfernen (und aus package.json streichen);
   // core + system bilden das Fundament und bleiben immer.
   extends: ['../../packages/themes', '../../packages/admin', '../../packages/blueprint', '../../packages/comments', '../../packages/posts', '../../packages/events', '../../packages/courses', '../../packages/moderation', '../../packages/pages', '../../packages/onboarding', '../../packages/core', '../../packages/system'],

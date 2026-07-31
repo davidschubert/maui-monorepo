@@ -73,7 +73,7 @@ const toUser = (p: RawPresence): PresenceUser => ({
 
 // ════════════ MEINE Presence — EINE Upsert-Autorität pro Tab ════════════
 // Eine Presence pro User (presenceId = userId); metadata trägt scope/action/
-// typing. Verschiedene Features (Thread, Moderation, Edit) SETZEN Teile davon,
+// typing. Verschiedene Produkte (Thread, Moderation, Edit) SETZEN Teile davon,
 // statt jeweils eigene (kollidierende) Presences zu upserten.
 interface Meta { scope?: string, action?: string, typing?: boolean, page?: string, replyingTo?: string, near?: string, away?: boolean }
 let stateStarted = false

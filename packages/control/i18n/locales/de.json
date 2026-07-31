@@ -147,13 +147,13 @@
       "save": "Registrieren",
       "cancel": "Abbrechen",
       "running": "Läuft:",
-      "runningUnentitled": "Läuft ohne zugeteiltes Feature",
+      "runningUnentitled": "Läuft ohne zugeteiltes Produkt",
       "emptyTitle": "Noch keine Websites",
       "rowActions": "Aktionen für diese Website",
       "col": {
         "site": "Website",
         "state": "Status",
-        "features": "Produkte",
+        "products": "Produkte",
         "workspace": "Workspace"
       }
     },
@@ -163,9 +163,9 @@
       "title": "Provisionierung",
       "fieldName": "Name",
       "fieldNameHint": "kleinbuchstaben, ziffern, bindestriche",
-      "fieldFeatures": "Features",
-      "fieldFeaturesHelp": "core + system sind immer dabei; Abhängigkeiten werden automatisch mitgewählt.",
-      "catalogEmpty": "Feature-Katalog leer — einmal pnpm control:jobs laufen lassen.",
+      "fieldProducts": "Produkte",
+      "fieldProductsHelp": "core + system sind immer dabei; Abhängigkeiten werden automatisch mitgewählt.",
+      "catalogEmpty": "Produkt-Katalog leer — einmal pnpm control:jobs laufen lassen.",
       "runnerHint": "Ausführung: pnpm control:jobs (repo-seitig)",
       "create": "Job anlegen",
       "created": "Job für {name} angelegt — der Runner übernimmt.",
@@ -173,17 +173,17 @@
       "log": "Log",
       "col": {
         "job": "Job",
-        "features": "Produkte",
+        "products": "Produkte",
         "status": "Status"
       }
     },
     "entitlements": {
-      "manage": "Features",
-      "title": "Features für {name}",
-      "help": "Zugeteilte Features (F3-Vorstufe) — Signatur und Zustellung an die Site folgen mit dem Billing-Ausbau.",
-      "saved": "Features für {name} gespeichert",
-      "saveFailed": "Features konnten nicht gespeichert werden",
-      "none": "Keine Features zugeteilt",
+      "manage": "Produkte",
+      "title": "Produkte für {name}",
+      "help": "Zugeteilte Produkte (F3-Vorstufe) — Signatur und Zustellung an die Site folgen mit dem Billing-Ausbau.",
+      "saved": "Produkte für {name} gespeichert",
+      "saveFailed": "Produkte konnten nicht gespeichert werden",
+      "none": "Keine Produkte zugeteilt",
       "save": "Speichern"
     },
     "workspaces": {
@@ -198,7 +198,7 @@
       "saveFailed": "Speichern fehlgeschlagen",
       "empty": "Noch keine Workspaces — lege den ersten an.",
       "noSites": "Keine Sites zugeordnet",
-      "planFeatures": "Plan-Features",
+      "planProducts": "Plan-Produkte",
       "fieldName": "Name",
       "fieldOwnerEmail": "Inhaber-E-Mail",
       "fieldOwnerEmailHint": "Rechnungs-/Kontaktadresse des Kunden",
@@ -210,7 +210,7 @@
       "changePlanTitle": "Plan für „{name}“ ändern",
       "currentPlan": "Aktueller Plan",
       "targetPlan": "Neuer Plan",
-      "changePlanHelp": "Bezahlpläne laufen über den Stripe-Checkout; die Features aller zugeordneten Sites werden nach Zahlungseingang automatisch synchronisiert.",
+      "changePlanHelp": "Bezahlpläne laufen über den Stripe-Checkout; die Produkte aller zugeordneten Sites werden nach Zahlungseingang automatisch synchronisiert.",
       "interval": "Abrechnung",
       "intervalMonthly": "Monatlich",
       "intervalYearly": "Jährlich",

@@ -1,6 +1,6 @@
 /**
  * Chrome-Registry (Header/Footer der öffentlichen Community-Seiten):
- * Feature-Layer registrieren ihre Nav-Einträge und Header-Utilities in
+ * Produkt-Layer registrieren ihre Nav-Einträge und Header-Utilities in
  * app.config (`pukalani.chrome.nav` / `pukalani.chrome.utilities`), das
  * blueprint-default-Layout rendert daraus — genau wie die Dashboard-Nav
  * über `pukalani.admin.modules` (A14: expliziter Vertrag statt Hardcode).
@@ -25,8 +25,8 @@ export interface PukalaniChromeNavEntry {
   icon?: string
   /** Sortierung (aufsteigend, Default 50) */
   order?: number
-  /** Laufzeit-Feature-Gate (F2): Eintrag verschwindet, wenn das Feature aus ist */
-  featureKey?: string
+  /** Laufzeit-Produkt-Gate (F2): Eintrag verschwindet, wenn das Produkt aus ist */
+  productKey?: string
   /**
    * Produkt-Gate im Pool (P4): sichtbar nur, wenn der Tenant-Plan das
    * Produkt enthält (useTenantPlan().planAllows); auf Demo-Hosts hängt
@@ -47,8 +47,8 @@ export interface PukalaniChromeUtility {
   component: string
   /** Sortierung (aufsteigend, Default 50) */
   order?: number
-  /** Laufzeit-Feature-Gate (F2) */
-  featureKey?: string
+  /** Laufzeit-Produkt-Gate (F2) */
+  productKey?: string
   /** Nur für eingeloggte Besucher rendern */
   requiresAuth?: boolean
   /**

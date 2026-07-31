@@ -16,7 +16,7 @@ export default defineAppConfig({
       modules: [
         {
           id: 'feedback',
-          featureKey: 'feedback',
+          productKey: 'feedback',
           labelKey: 'admin.nav.feedback',
           icon: 'i-ph-megaphone-simple',
           to: '/dashboard/feedback',

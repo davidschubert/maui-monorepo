@@ -141,13 +141,13 @@ async function openPortal() {
         <p class="mt-3 text-muted">{{ t(`${plan.labelKey}Description`) }}</p>
 
         <ul class="mt-6 flex-1 space-y-2.5 text-sm">
-          <li v-for="feature in plan.highlights ?? plan.features" :key="feature" class="flex items-start gap-2.5">
+          <li v-for="product in plan.highlights ?? plan.products" :key="product" class="flex items-start gap-2.5">
             <UIcon name="i-ph-check" class="mt-0.5 size-4 shrink-0 text-success" />
-            {{ t(`billing.features.${feature}`) }}
+            {{ t(`billing.products.${product}`) }}
           </li>
-          <li v-if="(plan.highlights ?? plan.features).length === 0" class="flex items-center gap-2.5 text-muted">
+          <li v-if="(plan.highlights ?? plan.products).length === 0" class="flex items-center gap-2.5 text-muted">
             <UIcon name="i-ph-check" class="size-4 shrink-0" />
-            {{ t('billing.pricing.freeFeatures') }}
+            {{ t('billing.pricing.freeProducts') }}
           </li>
         </ul>
 

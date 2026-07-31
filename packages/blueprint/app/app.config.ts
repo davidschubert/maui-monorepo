@@ -11,7 +11,7 @@ export default defineAppConfig({
       nav: {
         // Label/Text gehört dem posts-Layer (blueprint hat keine Locales);
         // planProduct: im Pool erst ab Personal sichtbar (P4) + Demo-Badge.
-        feed: { labelKey: 'posts.feed.title', to: '/feed', icon: 'i-ph-users-three', order: 10, featureKey: 'posts', planProduct: 'posts' },
+        feed: { labelKey: 'posts.feed.title', to: '/feed', icon: 'i-ph-users-three', order: 10, productKey: 'posts', planProduct: 'posts' },
       },
     },
   },

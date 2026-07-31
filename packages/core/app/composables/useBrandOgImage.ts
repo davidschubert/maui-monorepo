@@ -8,7 +8,7 @@
  * und die absoluten URLs laufen wieder auseinander (Audit-Befund B1). Der Kopf
  * liegt aber im CORE, und wie das Bild einer Community aussieht, weiß der
  * themes-Layer (Farbe, Name, Bildmarke). Fundament-Layer dürfen NIE von
- * Features abhängen (CONCEPT.md A14) — also sagt der Feature-Layer dem Kern
+ * Produkte abhängen (CONCEPT.md A14) — also sagt der Produkt-Layer dem Kern
  * über diesen State, WAS zu verlinken ist, und der Kern entscheidet, WIE
  * (absolute URL auf dem richtigen Host, Maße, twitter:card).
  *

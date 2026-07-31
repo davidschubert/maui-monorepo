@@ -1,55 +1,55 @@
 /**
- * Laufzeit-Feature-Flags (app_config Table, Zeile 'global'). Die Table gehört
+ * Laufzeit-Produkt-Flags (app_config Table, Zeile 'global'). Die Table gehört
  * dem system-Layer; der Core liest sie nur und fällt auf Defaults zurück.
  */
 
 /**
- * Laufzeit-Zustand eines Features (Statusmaschine F2). M2 nutzt
+ * Laufzeit-Zustand eines Produkts (Statusmaschine F2). M2 nutzt
  * active/inactive; provisioning/error kommen mit dem Provisioner (M3/M7) —
  * das Schema trägt sie schon, damit kein Umbau nötig wird.
  */
-export type FeatureStatus = 'active' | 'inactive' | 'provisioning' | 'error'
+export type ProductStatus = 'active' | 'inactive' | 'provisioning' | 'error'
 
-export interface FeatureRuntimeState {
+export interface ProductRuntimeState {
   enabled: boolean
-  status: FeatureStatus
+  status: ProductStatus
 }
 
 /**
  * Das EINE Laufzeit-Gate-Prädikat (F2): fehlender Eintrag = AN (kompiliert =
- * von der Site gewollt). Geteilt von useFeature (Client), featureGates
+ * von der Site gewollt). Geteilt von useProduct (Client), productGates
  * (Server) und der Dashboard-Nav — damit die Regel nie auseinanderläuft.
  */
-export function isFeatureStateEnabled(state: FeatureRuntimeState | undefined): boolean {
+export function isProductStateEnabled(state: ProductRuntimeState | undefined): boolean {
   return state ? state.enabled && state.status === 'active' : true
 }
 
 export interface AppConfig {
   /** Neuregistrierungen erlaubt */
   registrationEnabled: boolean
-  /** Neue Kommentare erlaubt (Schreib-Erlaubnis — NICHT „Feature an/aus") */
+  /** Neue Kommentare erlaubt (Schreib-Erlaubnis — NICHT „Produkt an/aus") */
   commentsEnabled: boolean
   /** Wartungsmodus — friert Schreibvorgänge (Registrierung + Kommentare) ein */
   maintenanceMode: boolean
   /**
-   * Laufzeit-Feature-Gates (F2): Overrides pro Feature-Key. Fehlender
-   * Eintrag = Feature AN (kompiliert = von der Site gewollt, Site-Manifest).
-   * Persistiert als JSON-String in app_config.features (system-018).
+   * Laufzeit-Produkt-Gates (F2): Overrides pro Produkt-Key. Fehlender
+   * Eintrag = Produkt AN (kompiliert = von der Site gewollt, Site-Manifest).
+   * Persistiert als JSON-String in app_config.products (system-018).
    */
-  features: Record<string, FeatureRuntimeState>
+  products: Record<string, ProductRuntimeState>
 }
 
 export const DEFAULT_APP_CONFIG: AppConfig = {
   registrationEnabled: true,
   commentsEnabled: true,
   maintenanceMode: false,
-  features: {},
+  products: {},
 }
 
 /**
  * Die Teilmenge der Laufzeit-Flags, die den Client SEHEN DARF (Audit-Befund
  * K5). Historie: `entitlementsDoc` (signiertes kaufmännisches Dokument —
- * siteProjectId, Feature-Zuteilung, `suspended`, Gültigkeitsfenster, `kid`)
+ * siteProjectId, Produkt-Zuteilung, `suspended`, Gültigkeitsfenster, `kid`)
  * war Teil dieses Typs und reiste über useState(`pukalani-runtime-flags`) im
  * Klartext in den __NUXT__-Payload JEDER Seite (auch unauthentifiziert, z. B.
  * /login) sowie über die öffentliche Route GET /api/config. K5 hat es aus der
@@ -65,14 +65,14 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
  */
 export type PublicAppConfig = Pick<
   AppConfig,
-  'registrationEnabled' | 'commentsEnabled' | 'maintenanceMode' | 'features'
+  'registrationEnabled' | 'commentsEnabled' | 'maintenanceMode' | 'products'
 >
 
 export const DEFAULT_PUBLIC_APP_CONFIG: PublicAppConfig = {
   registrationEnabled: DEFAULT_APP_CONFIG.registrationEnabled,
   commentsEnabled: DEFAULT_APP_CONFIG.commentsEnabled,
   maintenanceMode: DEFAULT_APP_CONFIG.maintenanceMode,
-  features: {},
+  products: {},
 }
 
 /**
@@ -85,26 +85,26 @@ export function toPublicAppConfig(config: AppConfig): PublicAppConfig {
     registrationEnabled: config.registrationEnabled,
     commentsEnabled: config.commentsEnabled,
     maintenanceMode: config.maintenanceMode,
-    features: config.features,
+    products: config.products,
   }
 }
 
 /**
- * Parst die features-Spalte (JSON-String) fehlertolerant — kaputtes JSON
+ * Parst die products-Spalte (JSON-String) fehlertolerant — kaputtes JSON
  * oder falsche Formen fallen auf {} zurück (= alles an), damit ein
  * Config-Schaden nie die Site lahmlegt.
  */
-export function parseFeaturesColumn(raw: unknown): Record<string, FeatureRuntimeState> {
+export function parseProductsColumn(raw: unknown): Record<string, ProductRuntimeState> {
   if (typeof raw !== 'string' || raw.trim() === '') return {}
   try {
     const parsed: unknown = JSON.parse(raw)
     if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {}
-    const result: Record<string, FeatureRuntimeState> = {}
+    const result: Record<string, ProductRuntimeState> = {}
     for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
       if (typeof value !== 'object' || value === null) continue
       const v = value as { enabled?: unknown, status?: unknown }
       const enabled = v.enabled !== false
-      const status: FeatureStatus
+      const status: ProductStatus
         = v.status === 'inactive' || v.status === 'provisioning' || v.status === 'error'
           ? v.status
           : 'active'

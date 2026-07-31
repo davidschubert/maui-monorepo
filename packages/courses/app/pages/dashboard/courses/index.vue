@@ -18,7 +18,7 @@ const { data, status } = await useFetch<{ rows: CourseRow[] }>('/api/courses/man
 
 const modalOpen = ref(false)
 const saving = ref(false)
-const form = reactive({ title: '', slug: '', description: '', access: 'free' as 'free' | 'members' | 'paid', entitlementFeature: '' })
+const form = reactive({ title: '', slug: '', description: '', access: 'free' as 'free' | 'members' | 'paid', entitlementProduct: '' })
 
 /** Slug-Vorschlag aus dem Titel (editierbar) */
 watch(() => form.title, (title) => {
@@ -36,7 +36,7 @@ async function save() {
     slug: form.slug,
     description: form.description,
     access: form.access,
-    entitlementFeature: form.access === 'paid' ? (form.entitlementFeature.trim() || null) : null,
+    entitlementProduct: form.access === 'paid' ? (form.entitlementProduct.trim() || null) : null,
   }
   const parsed = createCourseSchema(t).safeParse(payload)
   if (!parsed.success) {
@@ -180,7 +180,7 @@ const columns = computed<TableColumn<CourseRow>[]>(() => [
               :help="t('courses.admin.form.entitlementHelp')"
               required
             >
-              <UInput v-model="form.entitlementFeature" class="w-full" :maxlength="64" placeholder="paidCourses" />
+              <UInput v-model="form.entitlementProduct" class="w-full" :maxlength="64" placeholder="paidCourses" />
             </UFormField>
 
             <div class="flex justify-end gap-2 pt-2">

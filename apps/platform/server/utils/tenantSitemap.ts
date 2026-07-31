@@ -3,7 +3,7 @@
  *
  * Warum hier und nicht in einem Layer (A14): die Route-Menge einer Kunden-Site
  * ist die KOMPOSITION dieser App (Startseite + CMS-Seiten des pages-Layers +
- * Feed des posts-Layers, gestaffelt nach Plan). Kein einzelner Feature-Layer
+ * Feed des posts-Layers, gestaffelt nach Plan). Kein einzelner Produkt-Layer
  * kennt sie; die App darf alle Layer kennen. Vorbild ist
  * apps/marketing/server/utils/marketingRoutes.ts — der Unterschied: dort ist
  * die Liste handgeführt und für die ganze Site gleich, hier wird sie PRO

@@ -1,5 +1,5 @@
 /**
- * Feature Layer: Async Course Builder / LMS v1 (Phase 24). Markdown-Lektionen
+ * Produkt Layer: Async Course Builder / LMS v1 (Phase 24). Markdown-Lektionen
  * + optionale externe Video-URL (KEIN Video-Hosting), Enrollment + Fortschritt.
  * A14-Knackpunkt: courses importiert NICHTS aus billing — der Access-Guard
  * für 'paid'-Kurse wird von der APP registriert (registerCourseAccessGuard,

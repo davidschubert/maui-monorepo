@@ -1,7 +1,7 @@
 /**
  * Cases der Portfolio-Landing — bewusst als typisierte Daten im App-Code
  * (kein CMS/Layer: Inhalte ändern sich selten, Deploy = Contentpflege).
- * Ein Journal/Blog wird später ein EIGENER Feature-Layer (Beschluss
+ * Ein Journal/Blog wird später ein EIGENER Produkt-Layer (Beschluss
  * 2026-07-17), genau wie pages — die Site hier bleibt dünn.
  */
 
@@ -31,17 +31,17 @@ export const CASES: PortfolioCase[] = [
     role: { de: 'Konzept, Architektur & Entwicklung', en: 'Concept, architecture & development' },
     stack: ['Nuxt 4', 'Appwrite', 'TypeScript', 'pnpm Workspaces', 'Stripe'],
     teaser: {
-      de: 'Multi-Site-Plattform: ein Monorepo, aus dem beliebig viele Sites entstehen — mit Control Plane, Feature-Katalog und signierten Entitlements.',
-      en: 'Multi-site platform: one monorepo that spawns any number of sites — with a control plane, feature catalog and signed entitlements.',
+      de: 'Multi-Site-Plattform: ein Monorepo, aus dem beliebig viele Sites entstehen — mit Control Plane, Produkt-Katalog und signierten Entitlements.',
+      en: 'Multi-site platform: one monorepo that spawns any number of sites — with a control plane, product catalog and signed entitlements.',
     },
     paragraphs: [
       {
-        de: 'Die Maui Platform ist ein Nuxt-4-Monorepo mit einem Fundament-Layer und komponierbaren Feature-Layern (Kommentare, Medien, Events, Tickets, Billing …). Jede Site wählt ihre Features per Manifest; ein CI-Check erzwingt die Konsistenz von Verträgen, Abhängigkeiten und Migrationen.',
-        en: 'Maui Platform is a Nuxt 4 monorepo with a foundation layer and composable feature layers (comments, media, events, tickets, billing …). Every site picks its features via manifest; a CI check enforces consistency of contracts, dependencies and migrations.',
+        de: 'Die Maui Platform ist ein Nuxt-4-Monorepo mit einem Fundament-Layer und komponierbaren Produkt-Layern (Kommentare, Medien, Events, Tickets, Billing …). Jede Site wählt ihre Produkte per Manifest; ein CI-Check erzwingt die Konsistenz von Verträgen, Abhängigkeiten und Migrationen.',
+        en: 'Maui Platform is a Nuxt 4 monorepo with a foundation layer and composable product layers (comments, media, events, tickets, billing …). Every site picks its products via manifest; a CI check enforces consistency of contracts, dependencies and migrations.',
       },
       {
-        de: 'Das Control Plane (Studio) provisioniert neue Sites als Job — Appwrite-Projekt, Schema-Migrationen, Register-Eintrag und Feature-Zuteilung entstehen aus einem Klick. Entitlements werden als signierte Ed25519-Dokumente zugestellt und serverseitig durchgesetzt.',
-        en: 'The control plane (Studio) provisions new sites as a job — Appwrite project, schema migrations, registry entry and feature grants spring from a single click. Entitlements are delivered as signed Ed25519 documents and enforced server-side.',
+        de: 'Das Control Plane (Studio) provisioniert neue Sites als Job — Appwrite-Projekt, Schema-Migrationen, Register-Eintrag und Produkt-Zuteilung entstehen aus einem Klick. Entitlements werden als signierte Ed25519-Dokumente zugestellt und serverseitig durchgesetzt.',
+        en: 'The control plane (Studio) provisions new sites as a job — Appwrite project, schema migrations, registry entry and product grants spring from a single click. Entitlements are delivered as signed Ed25519 documents and enforced server-side.',
       },
     ],
   },

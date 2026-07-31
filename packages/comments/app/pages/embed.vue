@@ -20,7 +20,7 @@ const appConfig = useAppConfig() as {
   pukalani?: { comments?: { embed?: { enabled?: boolean } } }
   ui: { colors: { primary: string } }
 }
-// Gate: Feature aus → 404 (kein Hinweis, dass die Route existiert)
+// Gate: Produkt aus → 404 (kein Hinweis, dass die Route existiert)
 //
 // statusText bleibt bewusst knappes technisches Englisch: er ist HTTP-/Server-
 // Vertrag (Logs, API-Clients), NICHT die Anzeige. Was ein Mensch liest, rendert

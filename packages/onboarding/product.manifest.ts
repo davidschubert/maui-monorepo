@@ -1,8 +1,8 @@
-import type { FeatureManifest } from '../core/shared/types/manifest'
+import type { ProductManifest } from '../core/shared/types/manifest'
 
 export default {
   key: 'onboarding',
-  // foundation: kein zubuchbares Kunden-Feature, sondern der Trichter der
+  // foundation: kein zubuchbares Kunden-Produkt, sondern der Trichter der
   // Plattform selbst — er wird nie pro Site an- oder abgeschaltet.
   tier: 'foundation',
   hasMigrations: false,
@@ -13,4 +13,4 @@ export default {
     de: 'Öffentlicher Selbstbedienungs-Trichter: registrieren, Community in sieben Schritten einrichten, drin sein.',
   },
   icon: 'i-ph-rocket-launch',
-} satisfies FeatureManifest
+} satisfies ProductManifest

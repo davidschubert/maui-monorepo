@@ -147,13 +147,13 @@
       "save": "Register",
       "cancel": "Cancel",
       "running": "Running:",
-      "runningUnentitled": "Running without a granted feature",
+      "runningUnentitled": "Running without a granted product",
       "emptyTitle": "No Websites yet",
       "rowActions": "Actions for this Website",
       "col": {
         "site": "Website",
         "state": "Status",
-        "features": "Products",
+        "products": "Products",
         "workspace": "Workspace"
       }
     },
@@ -163,9 +163,9 @@
       "title": "Provisioning",
       "fieldName": "Name",
       "fieldNameHint": "lowercase, digits, hyphens",
-      "fieldFeatures": "Features",
-      "fieldFeaturesHelp": "core + system are always included; dependencies are selected automatically.",
-      "catalogEmpty": "Feature catalog is empty — run pnpm control:jobs once.",
+      "fieldProducts": "Products",
+      "fieldProductsHelp": "core + system are always included; dependencies are selected automatically.",
+      "catalogEmpty": "Product catalog is empty — run pnpm control:jobs once.",
       "runnerHint": "Execution: pnpm control:jobs (repo-side)",
       "create": "Create job",
       "created": "Job for {name} created — the runner takes over.",
@@ -173,17 +173,17 @@
       "log": "Log",
       "col": {
         "job": "Job",
-        "features": "Products",
+        "products": "Products",
         "status": "Status"
       }
     },
     "entitlements": {
-      "manage": "Features",
-      "title": "Features for {name}",
-      "help": "Granted features (F3 precursor) — signing and delivery to the site follow with the billing rollout.",
-      "saved": "Features for {name} saved",
-      "saveFailed": "Could not save features",
-      "none": "No features granted",
+      "manage": "Products",
+      "title": "Products for {name}",
+      "help": "Granted products (F3 precursor) — signing and delivery to the site follow with the billing rollout.",
+      "saved": "Products for {name} saved",
+      "saveFailed": "Could not save products",
+      "none": "No products granted",
       "save": "Save"
     },
     "workspaces": {
@@ -198,7 +198,7 @@
       "saveFailed": "Saving failed",
       "empty": "No workspaces yet — create the first one.",
       "noSites": "No sites assigned",
-      "planFeatures": "Plan features",
+      "planProducts": "Plan products",
       "fieldName": "Name",
       "fieldOwnerEmail": "Owner email",
       "fieldOwnerEmailHint": "Billing/contact address of the customer",
@@ -210,7 +210,7 @@
       "changePlanTitle": "Change plan for “{name}”",
       "currentPlan": "Current plan",
       "targetPlan": "New plan",
-      "changePlanHelp": "Paid plans go through Stripe checkout; the features of all assigned sites are synced automatically after payment.",
+      "changePlanHelp": "Paid plans go through Stripe checkout; the products of all assigned sites are synced automatically after payment.",
       "interval": "Billing",
       "intervalMonthly": "Monthly",
       "intervalYearly": "Yearly",

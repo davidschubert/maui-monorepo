@@ -2,12 +2,12 @@ import { Query } from 'node-appwrite'
 import { WEBSITES_TABLE, type HealthStatus, type WebsiteRow } from '../../shared/types/website'
 
 /**
- * Health-Check + Feature-Snapshot einer registrierten Site (M6-T1/T4,
+ * Health-Check + Produkt-Snapshot einer registrierten Site (M6-T1/T4,
  * L6-Grundstein) — geteilt zwischen der manuellen Route
  * (POST /api/control/websites/:id/health) und dem Intervall-Sweep
  * (server/plugins/health-sweep.ts). Probt den Appwrite-Endpoint
  * (/health/version) und — falls hinterlegt — die App-URL; von einer
- * erreichbaren App wird zusätzlich GET /api/platform/features gelesen
+ * erreichbaren App wird zusätzlich GET /api/platform/products gelesen
  * (öffentliche Core-Route; § 8: Studio hält keine Site-Keys).
  * ok = beides erreichbar · degraded = eines · down = nichts.
  */
@@ -25,20 +25,30 @@ async function probe(url: string): Promise<boolean> {
   }
 }
 
-async function fetchFeatureSnapshot(appUrl: string): Promise<string[] | null> {
+async function fetchSnapshotRoute(url: string, field: 'products' | 'features'): Promise<string[] | null> {
   try {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), 5000)
-    const res = await fetch(`${appUrl.replace(/\/$/, '')}/api/platform/features`, { signal: controller.signal })
+    const res = await fetch(url, { signal: controller.signal })
     clearTimeout(timer)
     if (!res.ok) return null
-    const json = await res.json() as { features?: unknown }
-    if (!Array.isArray(json.features)) return null
-    return json.features.filter((key): key is string => typeof key === 'string').slice(0, 30)
+    const json = await res.json() as Record<string, unknown>
+    const list = json[field]
+    if (!Array.isArray(list)) return null
+    return list.filter((key): key is string => typeof key === 'string').slice(0, 30)
   }
   catch {
     return null
   }
+}
+
+async function fetchProductSnapshot(appUrl: string): Promise<string[] | null> {
+  const base = appUrl.replace(/\/$/, '')
+  // Übergang bis zum Zusammenziehen (E11): Silo-Apps ziehen per Update-Welle
+  // nach — solange eine Site die neue Route nicht kennt, antwortet die alte
+  // mit { features }. Der Fallback fällt mit dem Zusammenziehen weg.
+  return await fetchSnapshotRoute(`${base}/api/platform/products`, 'products')
+    ?? await fetchSnapshotRoute(`${base}/api/platform/features`, 'features')
 }
 
 export interface SiteHealthResult {
@@ -47,18 +57,18 @@ export interface SiteHealthResult {
   healthCheckedAt: string
   apiOk: boolean
   appOk: boolean | null
-  /** Aktive Feature-Keys der Site — null, wenn nicht abrufbar (Snapshot bleibt dann stehen). */
-  features: string[] | null
+  /** Aktive Produkt-Keys der Site — null, wenn nicht abrufbar (Snapshot bleibt dann stehen). */
+  products: string[] | null
   changed: boolean
 }
 
 type AdminClient = ReturnType<typeof createAdminClient>
 
-/** Prüft EINE Site und persistiert healthStatus/healthCheckedAt/features. */
+/** Prüft EINE Site und persistiert healthStatus/healthCheckedAt/products. */
 export async function checkSiteHealth(admin: AdminClient, databaseId: string, site: WebsiteRow): Promise<SiteHealthResult> {
   const apiOk = await probe(`${site.endpoint.replace(/\/$/, '')}/health/version`)
   const appOk = site.appUrl ? await probe(site.appUrl) : null
-  const features = site.appUrl && appOk ? await fetchFeatureSnapshot(site.appUrl) : null
+  const products = site.appUrl && appOk ? await fetchProductSnapshot(site.appUrl) : null
 
   const healthStatus: HealthStatus = apiOk && appOk !== false
     ? 'ok'
@@ -71,12 +81,16 @@ export async function checkSiteHealth(admin: AdminClient, databaseId: string, si
       healthStatus,
       healthCheckedAt,
       // Snapshot nur bei erfolgreichem Abruf überschreiben — eine kurz nicht
-      // erreichbare App löscht nicht das letzte bekannte Feature-Set
-      ...(features !== null ? { features: JSON.stringify(features.sort()) } : {}),
+      // erreichbare App löscht nicht das letzte bekannte Produkt-Set.
+      // Übergang bis zum Zusammenziehen (E11): alte Spalte `features` wird
+      // mitgeschrieben (Rollback-Pfad), fällt mit der Aufräum-Migration weg.
+      ...(products !== null
+        ? (() => { const snapshot = JSON.stringify(products.sort()); return { products: snapshot, features: snapshot } })()
+        : {}),
     },
   })
 
-  return { id: site.$id, healthStatus, healthCheckedAt, apiOk, appOk, features, changed: healthStatus !== site.healthStatus }
+  return { id: site.$id, healthStatus, healthCheckedAt, apiOk, appOk, products, changed: healthStatus !== site.healthStatus }
 }
 
 export interface HealthSweepResult {

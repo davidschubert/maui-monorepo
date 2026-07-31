@@ -40,8 +40,8 @@ Diese Seite ist das Handbuch zu Pukalani. Links findest du die **Anleitung** fü
 #title
 Wo willst du hin?
 
-#features
-  :::u-page-feature
+#products
+  :::u-page-product
   ---
   icon: i-ph-rocket-launch
   to: /anleitung/erste-schritte
@@ -53,7 +53,7 @@ Wo willst du hin?
   Vom Einladungs-Code bis zur fertigen Community: was der Einrichtungs-Assistent von dir wissen will und was danach passiert.
   :::
 
-  :::u-page-feature
+  :::u-page-product
   ---
   icon: i-ph-squares-four
   to: /anleitung/produkte
@@ -65,7 +65,7 @@ Wo willst du hin?
   Diskussionen, Beiträge, Seiten, Design und Moderation — was jedes Produkt kann und ab welchem Plan es verfügbar ist.
   :::
 
-  :::u-page-feature
+  :::u-page-product
   ---
   icon: i-ph-users-three
   to: /anleitung/mitglieder-und-rollen
@@ -77,7 +77,7 @@ Wo willst du hin?
   Fünf Rollen von Viewer bis Owner — wer darf lesen, schreiben, moderieren und das Team verwalten.
   :::
 
-  :::u-page-feature
+  :::u-page-product
   ---
   icon: i-ph-credit-card
   to: /anleitung/abrechnung
@@ -89,7 +89,7 @@ Wo willst du hin?
   Basic, Personal, Pro und Enterprise: Preise, Testphase, Kontingente und wie du den Plan wechselst.
   :::
 
-  :::u-page-feature
+  :::u-page-product
   ---
   icon: i-ph-plug
   to: /entwickler/embed-widget
@@ -101,7 +101,7 @@ Wo willst du hin?
   Diskussionen in eine fremde Website einbetten — Script-Tag oder Web-Component, ohne CORS und ohne Tracking.
   :::
 
-  :::u-page-feature
+  :::u-page-product
   ---
   icon: i-ph-brackets-curly
   to: /entwickler/api-grundlagen

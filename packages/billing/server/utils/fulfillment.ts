@@ -4,7 +4,7 @@ import type { SubscriptionStatus } from '../../shared/types/billing'
 
 /**
  * Erfüllungs-Vertrag für One-time-Checkouts (mode 'payment', §5b):
- * billing kennt KEINE anderen Feature-Layer (A14) — die APP registriert
+ * billing kennt KEINE anderen Produkt-Layer (A14) — die APP registriert
  * hier, was nach checkout.session.completed passieren soll (z. B.
  * grantEventTicket aus dem events-Layer). Best-effort im Webhook:
  * ein werfender Fulfiller lässt den Webhook 500en → Stripe retryt

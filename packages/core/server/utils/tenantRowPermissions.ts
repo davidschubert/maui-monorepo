@@ -70,7 +70,7 @@ export function tenantRowPermissionsFor(
   return [...perms]
 }
 
-/** event-Wrapper (das, was Feature-Routen aufrufen). */
+/** event-Wrapper (das, was Produkt-Routen aufrufen). */
 export function tenantRowPermissions(event: H3Event, options: TenantRowPermissionOptions = {}): string[] {
   return tenantRowPermissionsFor(useTenant(event), options)
 }

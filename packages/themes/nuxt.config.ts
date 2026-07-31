@@ -1,5 +1,5 @@
 /**
- * Feature Layer: Multi-Theme-System (siehe design-system Notiz).
+ * Produkt Layer: Multi-Theme-System (siehe design-system Notiz).
  * Core liefert EIN Default-Theme — dieses Layer ergänzt umschaltbare
  * Themes als statische CSS-Dateien (public/themes/*) mit Cookie-
  * Persistenz. Keine eigenen Tables, keine Runtime-CSS-Generierung.

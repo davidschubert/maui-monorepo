@@ -1,10 +1,10 @@
 /**
- * Feature Layer: Stripe-Billing (Phase 23, Plan docs/archiv/BILLING-STRIPE.md).
+ * Produkt Layer: Stripe-Billing (Phase 23, Plan docs/archiv/BILLING-STRIPE.md).
  * Stripe-hosted Checkout + Customer Portal (Redirect-Flow, kein Stripe-JS im
  * Client); Webhook als Nitro-Route (B1); eigene Projektion billing_customers/
  * billing_subscriptions (Stripe bleibt Source of Truth). Config-Gate
  * pukalani.billing (Core-Default enabled: false — der Layer ist tot, bis die App
- * ihn aktiviert). Extended den Core NICHT selbst; Feature-Gating anderer
+ * ihn aktiviert). Extended den Core NICHT selbst; Produkt-Gating anderer
  * Layer passiert in der APP (A14).
  */
 export default defineNuxtConfig({

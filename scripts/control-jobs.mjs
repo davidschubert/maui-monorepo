@@ -3,7 +3,7 @@
  * control-jobs (M6-T2): führt Provisionierungs-Jobs aus dem Control Plane aus
  * — „create-site als Job hinter der UI", Vorstufe des Provisioner-Workers
  * (M7, Strategie § 8). Der Runner ist der REPO-seitige Akteur: Er hält
- * Console-Credentials, synct den Feature-Katalog aus den feature.manifest.ts
+ * Console-Credentials, synct den Produkt-Katalog aus den product.manifest.ts
  * der Layer in die Control-Plane-DB und arbeitet die
  * `provisioning_jobs`-Queue ab (queued → running → done/error).
  *
@@ -61,12 +61,12 @@ async function api(path, method = 'GET', body) {
 const rowsPath = table => `/tablesdb/${databaseId}/tables/${table}/rows`
 const query = q => `queries[]=${encodeURIComponent(JSON.stringify(q))}`
 
-// ── Feature-Katalog: Repo-Manifeste → feature_catalog (rowId = key) ────────
+// ── Produkt-Katalog: Repo-Manifeste → product_catalog (rowId = key) ────────
 async function syncCatalog() {
   const keys = []
   for (const dir of readdirSync(join(ROOT, 'packages'), { withFileTypes: true })) {
     if (!dir.isDirectory()) continue
-    const manifestPath = join(ROOT, 'packages', dir.name, 'feature.manifest.ts')
+    const manifestPath = join(ROOT, 'packages', dir.name, 'product.manifest.ts')
     if (!existsSync(manifestPath)) continue
     const manifest = (await import(pathToFileURL(manifestPath).href)).default
     keys.push(manifest.key)
@@ -79,16 +79,16 @@ async function syncCatalog() {
       icon: manifest.icon ?? '',
       syncedAt: new Date().toISOString(),
     }
-    const update = await api(`${rowsPath('feature_catalog')}/${manifest.key}`, 'PATCH', { data })
+    const update = await api(`${rowsPath('product_catalog')}/${manifest.key}`, 'PATCH', { data })
     if (update.status === 404) {
-      const create = await api(rowsPath('feature_catalog'), 'POST', { rowId: manifest.key, data })
+      const create = await api(rowsPath('product_catalog'), 'POST', { rowId: manifest.key, data })
       if (create.status !== 201) fail(`Katalog-Sync ${manifest.key} (${create.status}): ${create.json?.message ?? ''}`)
     }
     else if (update.status !== 200) {
       fail(`Katalog-Sync ${manifest.key} (${update.status}): ${update.json?.message ?? ''}`)
     }
   }
-  console.log(`✔ Feature-Katalog gesynct (${keys.length}): ${keys.sort().join(', ')}`)
+  console.log(`✔ Produkt-Katalog gesynct (${keys.length}): ${keys.sort().join(', ')}`)
 }
 
 // ── Job-Ausführung ──────────────────────────────────────────────────────────
@@ -98,11 +98,14 @@ async function updateJob(id, data) {
 }
 
 async function runSiteCreate(job, payload) {
-  const { name, features, port } = payload
-  const args = ['--experimental-strip-types', join(ROOT, 'scripts', 'create-site.mjs'), name, '--features', features.join(',')]
+  // payload.features: Übergang bis zum Zusammenziehen (E11) — Jobs, die VOR
+  // dem Rename in die Queue kamen, tragen noch den alten Schlüssel.
+  const { name, port } = payload
+  const products = payload.products ?? payload.features ?? []
+  const args = ['--experimental-strip-types', join(ROOT, 'scripts', 'create-site.mjs'), name, '--products', products.join(',')]
   if (port) args.push('--port', String(port))
 
-  console.log(`▸ Job ${job.$id}: create-site ${name} (Features: ${features.join(', ') || '—'})`)
+  console.log(`▸ Job ${job.$id}: create-site ${name} (Produkte: ${products.join(', ') || '—'})`)
   const result = spawnSync(process.execPath, args, { cwd: ROOT, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 })
   const output = `${result.stdout ?? ''}${result.stderr ?? ''}`
   const log = output.length > LOG_LIMIT ? `… (gekürzt)\n${output.slice(-LOG_LIMIT)}` : output
@@ -135,14 +138,16 @@ async function runSiteCreate(job, payload) {
     if (status === 201) siteRowId = json.$id
     else console.error(`⚠ Register-Eintrag (${status}): ${json?.message ?? ''}`)
 
-    // Auto-Grant (M6-T3): die gewählten Features sind der Site zugeteilt
-    for (const featureKey of features) {
+    // Auto-Grant (M6-T3): die gewählten Produkte sind der Site zugeteilt
+    for (const productKey of products) {
       const grant = await api(rowsPath('entitlements'), 'POST', {
         rowId: 'unique()',
-        data: { siteProjectId, featureKey, status: 'active', notes: `create-site via Job ${job.$id}` },
+        // featureKey: Übergang bis zum Zusammenziehen (E11) — die alte Spalte
+        // ist required (control-003), ohne sie schlägt jeder Insert fehl.
+        data: { siteProjectId, productKey, featureKey: productKey, status: 'active', notes: `create-site via Job ${job.$id}` },
       })
       if (grant.status !== 201 && grant.status !== 409) {
-        console.error(`⚠ Entitlement ${featureKey} (${grant.status}): ${grant.json?.message ?? ''}`)
+        console.error(`⚠ Entitlement ${productKey} (${grant.status}): ${grant.json?.message ?? ''}`)
       }
     }
   }

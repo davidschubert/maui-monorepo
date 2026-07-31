@@ -1,7 +1,7 @@
 /**
  * Zod-Schemas zu den Manifest-Typen (shared/types/manifest.ts) — genutzt vom
  * CI-Check (scripts/check-manifests.mjs) und ab M2 von der Laufzeit
- * (Feature-Gates/Katalog). Schema und Typ zusammenhalten!
+ * (Produkt-Gates/Katalog). Schema und Typ zusammenhalten!
  */
 import { z } from 'zod'
 
@@ -12,7 +12,7 @@ const manifestTextSchema = z.object({
   de: z.string().min(1),
 }).strict()
 
-export const featureManifestSchema = z.object({
+export const productManifestSchema = z.object({
   key: z.string().regex(keyPattern),
   tier: z.enum(['foundation', 'optional']),
   requires: z.array(z.string().regex(keyPattern)).optional(),
@@ -26,5 +26,5 @@ export const featureManifestSchema = z.object({
 
 export const siteManifestSchema = z.object({
   siteId: z.string().regex(keyPattern),
-  features: z.array(z.string().regex(keyPattern)),
+  products: z.array(z.string().regex(keyPattern)),
 }).strict()

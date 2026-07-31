@@ -2,7 +2,7 @@
 // Account-Menü unten links in der Sidebar (Vorbild: UserMenu des Nuxt-UI-Templates),
 // angepasst an unser Theme-System (Maui-Themes + Varianten), Appearance, Sprache, Logout.
 import type { DropdownMenuItem } from '@nuxt/ui'
-import { isFeatureStateEnabled } from '../../../core/shared/types/config'
+import { isProductStateEnabled } from '../../../core/shared/types/config'
 
 defineProps<{ collapsed?: boolean }>()
 
@@ -119,13 +119,13 @@ const items = computed<SwatchItem[][]>(() => {
 
   // Registry-Module mit placement 'userMenu' (z.B. Abos aus dem billing-Layer)
   // sitzen ÜBER den Einstellungen — Konto-nahe Bereiche gehören hierher (A14).
-  // Feature-Gate wie in der Sidebar: deaktivierte Features verschwinden (F2).
+  // Produkt-Gate wie in der Sidebar: deaktivierte Produkte verschwinden (F2).
   // Capability aus Label ODER Site-Rolle (N1, wie Sidebar) — für Site-Rollen
   // ändert sich praktisch nichts (billing.manage & Co. tragen sie nicht).
   const userMenuModules: DropdownMenuItem[] = ((appConfig.pukalani?.admin?.modules ?? []) as PukalaniAdminModule[])
     .filter(m => m.placement === 'userMenu'
       && (userHasCapability(auth.user, m.requiredCapability) || siteCaps.value.has(m.requiredCapability))
-      && (!m.featureKey || isFeatureStateEnabled(runtimeFlags.value.features[m.featureKey])))
+      && (!m.productKey || isProductStateEnabled(runtimeFlags.value.products[m.productKey])))
     .map(m => ({ label: t(m.labelKey), icon: m.icon, to: localePath(m.to) }))
 
   return [

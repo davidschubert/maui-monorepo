@@ -3,7 +3,7 @@
 // UDashboardGroup + collapsible/resizable Sidebar (Brand oben, UserMenu unten),
 // Command-Palette-Suche (⌘K). Die Seiten rendern in <slot/> als UDashboardPanel.
 import type { CommandPaletteGroup, CommandPaletteItem, NavigationMenuItem } from '@nuxt/ui'
-import { isFeatureStateEnabled } from '../../../core/shared/types/config'
+import { isProductStateEnabled } from '../../../core/shared/types/config'
 import type { Capability } from '../../../core/shared/types/authz'
 
 const { t } = useI18n()
@@ -11,12 +11,12 @@ const localePath = useLocalePath()
 const auth = useAuthStore()
 const appConfig = useAppConfig()
 
-// Laufzeit-Feature-Gates (F2): Module deaktivierter Features verschwinden
+// Laufzeit-Produkt-Gates (F2): Module deaktivierter Produkte verschwinden
 // aus der Nav — live über den Realtime-Config-Kanal (useRuntimeFlags).
 // Nur UX; die Autorität bleibt die Server-Middleware (Routen 404en).
 const runtimeFlags = useRuntimeFlags()
-const featureOn = (featureKey?: string) =>
-  !featureKey || isFeatureStateEnabled(runtimeFlags.value.features[featureKey])
+const productOn = (productKey?: string) =>
+  !productKey || isProductStateEnabled(runtimeFlags.value.products[productKey])
 
 // Glocke in der Betreiber-Shell (C17): dieselbe Config-Naht wie im
 // core-default-Layout. Betrifft heute apps/control — dort liegen die
@@ -55,7 +55,7 @@ const route = useRoute()
 //     Einstellungen inkl. Community-Registrierung (team.manage via Page-Meta)
 //   unsichtbar (Operator-only, Site-Rollen tragen die Caps nicht):
 //     People (users.manage), Admin/Audit (audit.read), Storage
-//     (storage.manage), System/Themes/Config/Features/Embed (system.manage),
+//     (storage.manage), System/Themes/Config/Produkte/Embed (system.manage),
 //     Sites/Control (sites.manage), Billing (billing.manage), Feedback/
 //     Tickets (feedback/tickets.manage)
 const { capabilities: siteCaps } = useSiteRole()
@@ -76,7 +76,7 @@ const links = computed<NavigationMenuItem[]>(() => {
   if (canManageUsers.value) {
     items.push({ label: t('admin.nav.people'), icon: 'i-ph-users', to: localePath('/dashboard/users'), onSelect: close })
   }
-  // Von Feature-Layern registrierte Dashboard-Module (z.B. comments-Moderation),
+  // Von Produkt-Layern registrierte Dashboard-Module (z.B. comments-Moderation),
   // capability-gefiltert — admin kennt sie nicht hart (Modul-Registry, A14).
   // Mit children wird der Eintrag zum aufklappbaren Abschnitt (Unterpunkte
   // erben die Capability des Moduls, sofern keine eigene gesetzt ist).
@@ -91,7 +91,7 @@ const links = computed<NavigationMenuItem[]>(() => {
       : { label: t(m.labelKey), icon: m.icon, to: localePath(m.to), onSelect: close }
   }
   const modules = ((appConfig.pukalani?.admin?.modules ?? []) as PukalaniAdminModule[])
-    .filter(m => (m.placement ?? 'nav') === 'nav' && can(m.requiredCapability) && featureOn(m.featureKey))
+    .filter(m => (m.placement ?? 'nav') === 'nav' && can(m.requiredCapability) && productOn(m.productKey))
   for (const m of modules.filter(m => !m.group)) items.push(toItem(m))
   // Gruppen in fester Reihenfolge; innerhalb sortiert 'order' (sonst Registry-
   // Reihenfolge). Label-Abstand kommt einheitlich über :ui der UNavigationMenu.

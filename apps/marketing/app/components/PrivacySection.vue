@@ -28,7 +28,7 @@ const points = computed(() =>
         <!-- Ein Listenpunkt ist eine Zeile aus getönter Icon-Kachel + Text —
              genau die Bauform von UPageFeature. Kachel und Fläche kommen als
              ui-Override, weil sie die Marketing-Optik sind und nicht die
-             Nuxt-UI-Voreinstellung (dort hat ein Feature gar keine Fläche). -->
+             Nuxt-UI-Voreinstellung (dort hat ein Produkt gar keine Fläche). -->
         <UPageFeature
           v-for="point in points" :key="point.text"
           as="li" :icon="point.icon" :title="point.text"

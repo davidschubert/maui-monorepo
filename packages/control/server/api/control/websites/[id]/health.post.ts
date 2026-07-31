@@ -4,7 +4,7 @@ import { checkSiteHealth } from '../../../../utils/websiteHealth'
 /**
  * Manueller Health-Check einer registrierten Site (sites.manage) — nutzt
  * dieselbe Logik wie der Intervall-Sweep (siteHealth.ts): Appwrite-Endpoint
- * + App-URL proben, Feature-Snapshot der Site mitnehmen, persistieren.
+ * + App-URL proben, Produkt-Snapshot der Site mitnehmen, persistieren.
  */
 export default defineEventHandler(async (event) => {
   requirePermission(event, 'sites.manage')

@@ -9,7 +9,7 @@ export default defineAppConfig({
       modules: [
         {
           id: 'events',
-          featureKey: 'events',
+          productKey: 'events',
           labelKey: 'admin.nav.events',
           icon: 'i-ph-calendar-dots',
           to: '/dashboard/events',

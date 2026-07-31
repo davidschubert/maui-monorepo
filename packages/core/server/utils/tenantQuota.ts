@@ -4,8 +4,8 @@ import type { H3Event } from 'h3'
 /**
  * H3-4.3 Quota-Enforcement (Blueprint S4): ein Pool-Kunde darf den geteilten
  * Server nicht erschöpfen. Core stellt den GENERISCHEN Baustein — welche
- * Tabelle ein Feature drosselt, sagt der FEATURE-Layer selbst beim Aufruf
- * (kein core→Feature-Coupling, A14):
+ * Tabelle ein Produkt drosselt, sagt der PRODUKT-Layer selbst beim Aufruf
+ * (kein core→Produkt-Coupling, A14):
  *
  *   await assertPoolWriteQuota(event, { kind: 'comments', tableId: COMMENTS_TABLE })
  *

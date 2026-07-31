@@ -38,7 +38,7 @@ export interface NotifyInput {
  * Erzeugt eine In-App-Benachrichtigung in der `notifications`-Tabelle (Core-
  * Eigentum). Best-effort: wirft NIE — eine fehlgeschlagene Notification darf den
  * auslösenden Request (z. B. das Erstellen eines Kommentars) nicht scheitern
- * lassen. Feature-Layer rufen diesen Vertrag auf, statt selbst auf die Tabelle
+ * lassen. Produkt-Layer rufen diesen Vertrag auf, statt selbst auf die Tabelle
  * zuzugreifen (kein Cross-Layer-String-Coupling, CONCEPT A14).
  *
  * MANDANT (C15, Audit S6): `tenantId` (system-022) ist hier ein ABLAGE-Merkmal,

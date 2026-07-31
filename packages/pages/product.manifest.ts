@@ -1,4 +1,4 @@
-import type { FeatureManifest } from '../core/shared/types/manifest'
+import type { ProductManifest } from '../core/shared/types/manifest'
 
 export default {
   key: 'pages',
@@ -11,4 +11,4 @@ export default {
     de: 'Editierbare Inhaltsseiten (Impressum, AGB, Datenschutz) mit WYSIWYG-Editor und Sprachversionen.',
   },
   icon: 'i-ph-file-text',
-} satisfies FeatureManifest
+} satisfies ProductManifest

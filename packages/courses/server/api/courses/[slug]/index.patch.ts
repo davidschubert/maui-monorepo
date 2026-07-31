@@ -23,11 +23,11 @@ export default defineEventHandler(async (event) => {
 
   const row = await db.get<CourseRow>(COURSES_TABLE, id, 'Course not found')
 
-  // paid braucht das Entitlement-Feature — gegen den MERGED Zustand
+  // paid braucht das Entitlement-Produkt — gegen den MERGED Zustand
   const mergedAccess = body.access ?? row.access
-  const mergedFeature = body.entitlementFeature === undefined ? row.entitlementFeature : body.entitlementFeature
-  if (mergedAccess === 'paid' && !mergedFeature) {
-    throw createError({ status: 422, statusText: 'Paid courses need an entitlement feature' })
+  const mergedProduct = body.entitlementProduct === undefined ? row.entitlementProduct : body.entitlementProduct
+  if (mergedAccess === 'paid' && !mergedProduct) {
+    throw createError({ status: 422, statusText: 'Paid courses need an entitlement product' })
   }
 
   const publishing = body.status === 'published' && row.status !== 'published'
@@ -38,7 +38,12 @@ export default defineEventHandler(async (event) => {
   if (body.slug !== undefined) data.slug = body.slug
   if (body.description !== undefined) data.description = body.description
   if (body.access !== undefined) data.access = body.access
-  if (body.entitlementFeature !== undefined) data.entitlementFeature = mergedAccess === 'paid' ? body.entitlementFeature : null
+  if (body.entitlementProduct !== undefined) {
+    data.entitlementProduct = mergedAccess === 'paid' ? body.entitlementProduct : null
+    // entitlementFeature: Übergang bis zum Zusammenziehen (E11) — Spiegel der
+    // alten Spalte für den Rollback-Pfad.
+    data.entitlementFeature = data.entitlementProduct
+  }
   if (body.status !== undefined) data.status = body.status
 
   const updated = await db.update<CourseRow>(COURSES_TABLE, id, data, 'Course not found').catch((error) => {

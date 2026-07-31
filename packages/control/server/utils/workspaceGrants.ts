@@ -3,7 +3,7 @@ import type { H3Event } from 'h3'
 import { closeOverRequires, shouldApplyFreeFallback, subscriptionUpdateToAction } from '../../shared/workspaceBilling'
 import { WEBSITES_TABLE, type WebsiteRow } from '../../shared/types/website'
 import { ENTITLEMENTS_TABLE, type EntitlementRow } from '../../shared/types/entitlement'
-import { FEATURE_CATALOG_TABLE, type FeatureCatalogRow } from '../../shared/types/job'
+import { PRODUCT_CATALOG_TABLE, type ProductCatalogRow } from '../../shared/types/job'
 import { WORKSPACES_TABLE, type ControlPlanCatalog, type WorkspaceRow, type WorkspaceStatus } from '../../shared/types/workspace'
 
 /**
@@ -11,7 +11,7 @@ import { WORKSPACES_TABLE, type ControlPlanCatalog, type WorkspaceRow, type Work
  * mehr gewollte löschen) — gemeinsame Logik von manueller Pflege
  * (entitlements.put) und Workspace-Billing-Sync (M8-T3). Idempotent.
  */
-export async function replaceSiteGrants(event: H3Event, siteProjectId: string, features: readonly string[]): Promise<void> {
+export async function replaceSiteGrants(event: H3Event, siteProjectId: string, products: readonly string[]): Promise<void> {
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
   const databaseId = config.public.appwriteDatabaseId
@@ -28,20 +28,22 @@ export async function replaceSiteGrants(event: H3Event, siteProjectId: string, f
     if (page.rows.length < 100) break
   }
 
-  const wanted = new Set(features)
-  const have = new Set(existing.map(row => row.featureKey))
+  const wanted = new Set(products)
+  const have = new Set(existing.map(row => row.productKey))
 
   const operations: Promise<unknown>[] = []
-  for (const feature of wanted) {
-    if (!have.has(feature)) {
+  for (const product of wanted) {
+    if (!have.has(product)) {
       operations.push(admin.tablesDB.createRow<EntitlementRow>({
         databaseId, tableId: ENTITLEMENTS_TABLE, rowId: ID.unique(),
-        data: { siteProjectId, featureKey: feature, status: 'active', notes: '' },
+        // featureKey: Übergang bis zum Zusammenziehen (E11) — die alte Spalte
+        // ist required (control-003), ohne sie schlägt jeder Insert fehl.
+        data: { siteProjectId, productKey: product, featureKey: product, status: 'active', notes: '' },
       }))
     }
   }
   for (const row of existing) {
-    if (!wanted.has(row.featureKey)) {
+    if (!wanted.has(row.productKey)) {
       operations.push(admin.tablesDB.deleteRow({ databaseId, tableId: ENTITLEMENTS_TABLE, rowId: row.$id }))
     }
   }
@@ -58,20 +60,20 @@ export async function replaceSiteGrants(event: H3Event, siteProjectId: string, f
 export async function applyWorkspacePlan(event: H3Event, input: {
   workspaceId: string
   plan: string
-  planFeatures: readonly string[]
+  planProducts: readonly string[]
   status: WorkspaceStatus
   stripeCustomerId?: string
   /** Aktuelle Stripe-Subscription auf der Row hinterlegen (Cross-Sub-Guard #6).
    *  '' löscht den Bezug (nach free-Fallback), undefined lässt ihn unberührt
    *  (z. B. manuelle Plan-Pflege). */
   stripeSubscriptionId?: string
-}): Promise<{ sites: number, features: string[] }> {
+}): Promise<{ sites: number, products: string[] }> {
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
   const databaseId = config.public.appwriteDatabaseId
 
-  const { rows: catalog } = await admin.tablesDB.listRows<FeatureCatalogRow>({
-    databaseId, tableId: FEATURE_CATALOG_TABLE, queries: [Query.limit(100)],
+  const { rows: catalog } = await admin.tablesDB.listRows<ProductCatalogRow>({
+    databaseId, tableId: PRODUCT_CATALOG_TABLE, queries: [Query.limit(100)],
   })
   // requires DEFENSIV parsen: ungültiges JSON in EINER Katalog-Row darf nicht
   // den ganzen Abo-Lifecycle blockieren (sonst Webhook-500 → Stripe-Retry-Schleife).
@@ -81,11 +83,11 @@ export async function applyWorkspacePlan(event: H3Event, input: {
       return { key: row.$id, requires: JSON.parse(row.requires || '[]') as string[] }
     }
     catch {
-      console.error(`[studio] feature_catalog "${row.$id}": ungültiges requires-JSON — als [] behandelt`)
+      console.error(`[studio] product_catalog "${row.$id}": ungültiges requires-JSON — als [] behandelt`)
       return { key: row.$id, requires: [] as string[] }
     }
   })
-  const features = closeOverRequires(input.planFeatures, catalogEntries)
+  const products = closeOverRequires(input.planProducts, catalogEntries)
 
   // ALLE Sites des Workspace paginieren — ein Abo-Update darf NIE still nur
   // die ersten 100 Sites syncen und den Rest ungrantet lassen (No-silent-caps).
@@ -100,7 +102,7 @@ export async function applyWorkspacePlan(event: H3Event, input: {
   }
 
   for (const site of sites) {
-    await replaceSiteGrants(event, site.projectId, features)
+    await replaceSiteGrants(event, site.projectId, products)
   }
 
   await admin.tablesDB.updateRow<WorkspaceRow>({
@@ -114,7 +116,7 @@ export async function applyWorkspacePlan(event: H3Event, input: {
     },
   })
 
-  return { sites: sites.length, features }
+  return { sites: sites.length, products }
 }
 
 /** Nur den Workspace-Status setzen (past_due) — Grants bleiben unberührt. */
@@ -135,7 +137,7 @@ export async function setWorkspaceStatus(event: H3Event, workspaceId: string, st
  * gehängt. Policy pure + getestet (subscriptionUpdateToAction); Ausführung
  * deklarativ/idempotent — Webhook-Retries sind gefahrlos. Kündigungs-Timing
  * macht Stripe (cancel_at_period_end → 'canceled' erst zum echten Ende);
- * danach fällt der Workspace aufs free-Set zurück, NIE auf null Features.
+ * danach fällt der Workspace aufs free-Set zurück, NIE auf null Produkte.
  */
 /** Autoritäts-Check (#6b), von der APP verdrahtet (A14: studio kennt billing/
  *  Stripe nicht): existiert für den Workspace ein ANDERES lebendes Abo? */
@@ -164,13 +166,13 @@ export async function handleWorkspaceSubscriptionUpdate(event: H3Event, update: 
       const result = await applyWorkspacePlan(event, {
         workspaceId: action.workspaceId,
         plan: action.plan,
-        planFeatures: plans[action.plan]!.features,
+        planProducts: plans[action.plan]!.products,
         status: 'active',
         stripeCustomerId: update.stripeCustomerId,
         // Diese Sub wird die maßgebliche für den Workspace (Cross-Sub-Guard #6).
         stripeSubscriptionId: action.stripeSubscriptionId,
       })
-      console.info(`[studio] Workspace ${action.workspaceId} → Plan ${action.plan} (${result.sites} Sites, Features: ${result.features.join(', ')})`)
+      console.info(`[studio] Workspace ${action.workspaceId} → Plan ${action.plan} (${result.sites} Sites, Produkte: ${result.products.join(', ')})`)
       return
     }
     case 'past-due':
@@ -233,7 +235,7 @@ export async function handleWorkspaceSubscriptionUpdate(event: H3Event, update: 
       const result = await applyWorkspacePlan(event, {
         workspaceId: action.workspaceId,
         plan: 'basic',
-        planFeatures: free.features,
+        planProducts: free.products,
         status: 'active',
         // Abo-Bezug lösen: der Workspace hat kein aktives Abo mehr.
         stripeSubscriptionId: '',

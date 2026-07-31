@@ -38,7 +38,7 @@ export interface RuntimeIdentity {
 
 const SERVICE_HEADER = 'x-pukalani-onboarding-secret'
 
-/** Konfiguriertes Secret; '' = Feature aus. */
+/** Konfiguriertes Secret; '' = Produkt aus. */
 function configuredSecret(event: H3Event): string {
   const config = useRuntimeConfig(event) as { controlOnboardingSecret?: string }
   return (config.controlOnboardingSecret || '').trim()
@@ -56,7 +56,7 @@ function secretsMatch(a: string, b: string): boolean {
 }
 
 /**
- * Gate + Aufrufer-Prüfung. 404 wenn das Feature aus ist (die Route soll für
+ * Gate + Aufrufer-Prüfung. 404 wenn das Produkt aus ist (die Route soll für
  * Fremde nicht einmal existieren), 401 bei falschem Secret.
  */
 export function requireOnboardingCaller(event: H3Event): void {

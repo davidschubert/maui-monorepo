@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
 
   // Ohne Mandanten-Kontext gibt es keine Community, die man schalten könnte
   // (Silo-App, Kontroll-Host, Single-Tenant). 404 wie eine fehlende Route —
-  // dort ist der Schalter kein Feature, das „gerade nicht geht".
+  // dort ist der Schalter kein Produkt, das „gerade nicht geht".
   const tenant = useTenant(event)
   if (!tenant?.communityId) {
     throw createError({ status: 404, statusText: 'Not found' })

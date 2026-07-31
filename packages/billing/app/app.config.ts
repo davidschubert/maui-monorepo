@@ -22,7 +22,7 @@ export default defineAppConfig({
       modules: [
         {
           id: 'billing',
-          featureKey: 'billing',
+          productKey: 'billing',
           labelKey: 'admin.nav.billing',
           icon: 'i-ph-credit-card',
           to: '/dashboard/billing',

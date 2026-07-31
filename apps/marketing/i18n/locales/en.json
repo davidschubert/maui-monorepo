@@ -5,7 +5,7 @@
       "description": "Posts, courses, events and discussions under your own brand and domain. Privacy-first, hosted in Germany, no ad tracking. The lean alternative to Circle & Skool. Start free."
     },
     "nav": {
-      "features": "Products",
+      "products": "Products",
       "pricing": "Pricing",
       "story": "Story",
       "signIn": "Sign in",
@@ -194,7 +194,7 @@
       ],
       "note": "What matters in the end is your site's actual configuration and your legal texts – we deliberately avoid blanket promises."
     },
-    "features": {
+    "products": {
       "backHome": "Back to home",
       "highlightsTitle": "What's inside",
       "ctaTitle": "Try it – free",

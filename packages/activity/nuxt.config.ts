@@ -1,5 +1,5 @@
 /**
- * Feature Layer: Activity Feed — die UI-Welt zum Core-Vertrag recordActivity()
+ * Produkt Layer: Activity Feed — die UI-Welt zum Core-Vertrag recordActivity()
  * (Table `activities` gehört system, Migration 014; A14-Matrix wie bei themes).
  * Extended den Core NICHT selbst — die App komponiert beide:
  * extends: [activity, …, core].

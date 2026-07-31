@@ -5,7 +5,7 @@
  * Platform per Console-REST (Gate G1/S1), .env, Install, Bootstrap
  * (DB/Buckets + manifest-gefilterte Migrationen).
  *
- *   pnpm create-site <name> [--features comments,posts,…]
+ *   pnpm create-site <name> [--products comments,posts,…]
  *                           [--endpoint http://localhost/v1] [--port 30xx]
  *                           [--skip-appwrite]
  *
@@ -30,7 +30,7 @@ const EXTENDS_ORDER = [
   'themes', 'admin', 'control', 'comments', 'posts', 'events', 'media', 'feedback',
   'billing', 'courses', 'tickets', 'activity', 'moderation',
 ]
-const DEFAULT_FEATURES = ['themes', 'admin', 'comments', 'moderation']
+const DEFAULT_PRODUCTS = ['themes', 'admin', 'comments', 'moderation']
 
 // ── Args ────────────────────────────────────────────────────────────────────
 const argv = process.argv.slice(2)
@@ -47,21 +47,21 @@ function fail(message) {
   process.exit(1)
 }
 
-if (!name) fail('Nutzung: pnpm create-site <name> [--features a,b,c] [--endpoint URL] [--port 30xx] [--skip-appwrite]')
+if (!name) fail('Nutzung: pnpm create-site <name> [--products a,b,c] [--endpoint URL] [--port 30xx] [--skip-appwrite]')
 if (!/^[a-z][a-z0-9-]*$/.test(name)) fail(`Ungültiger Name „${name}" — erlaubt: kleinbuchstaben, ziffern, bindestriche`)
 const appDir = join(ROOT, 'apps', name)
 if (existsSync(appDir)) fail(`apps/${name} existiert bereits`)
 
-// ── Features validieren (Manifeste + requires-Schluss) ─────────────────────
-const features = (arg('features', DEFAULT_FEATURES.join(','))).split(',').map(f => f.trim()).filter(Boolean)
-for (const f of features) {
+// ── Produkte validieren (Manifeste + requires-Schluss) ─────────────────────
+const products = (arg('products', DEFAULT_PRODUCTS.join(','))).split(',').map(f => f.trim()).filter(Boolean)
+for (const f of products) {
   if (FOUNDATION_ALWAYS.includes(f)) fail(`„${f}" ist implizit immer dabei — nicht listen`)
-  if (!existsSync(join(ROOT, 'packages', f, 'feature.manifest.ts'))) fail(`Feature „${f}" existiert nicht (packages/${f}/feature.manifest.ts fehlt)`)
+  if (!existsSync(join(ROOT, 'packages', f, 'product.manifest.ts'))) fail(`Produkt „${f}" existiert nicht (packages/${f}/product.manifest.ts fehlt)`)
 }
-for (const f of features) {
-  const manifest = (await import(pathToFileURL(join(ROOT, 'packages', f, 'feature.manifest.ts')).href)).default
+for (const f of products) {
+  const manifest = (await import(pathToFileURL(join(ROOT, 'packages', f, 'product.manifest.ts')).href)).default
   for (const req of manifest.requires ?? []) {
-    if (!features.includes(req)) fail(`Feature „${f}" braucht „${req}" — mit in --features aufnehmen`)
+    if (!products.includes(req)) fail(`Produkt „${f}" braucht „${req}" — mit in --products aufnehmen`)
   }
 }
 
@@ -79,7 +79,7 @@ if (!port) {
   port = max + 1
 }
 
-console.log(`\n▸ Neue Site: apps/${name} · Port ${port} · Features: ${features.join(', ')} (+ core, system)\n`)
+console.log(`\n▸ Neue Site: apps/${name} · Port ${port} · Produkte: ${products.join(', ')} (+ core, system)\n`)
 
 // ── 1) Scaffold aus _template ───────────────────────────────────────────────
 cpSync(join(ROOT, 'apps', '_template'), appDir, {
@@ -87,7 +87,7 @@ cpSync(join(ROOT, 'apps', '_template'), appDir, {
   filter: src => !/node_modules|\.nuxt|\.output|\.env$/.test(src),
 })
 
-// package.json: Name, Port, @pukalani-Dependencies = Feature-Wahl
+// package.json: Name, Port, @pukalani-Dependencies = Produkt-Wahl
 {
   const p = join(appDir, 'package.json')
   const pkg = JSON.parse(readFileSync(p, 'utf8'))
@@ -96,7 +96,7 @@ cpSync(join(ROOT, 'apps', '_template'), appDir, {
   for (const dep of Object.keys(pkg.dependencies)) {
     if (dep.startsWith('@pukalani/')) delete pkg.dependencies[dep]
   }
-  for (const f of [...features, ...FOUNDATION_ALWAYS].sort()) {
+  for (const f of [...products, ...FOUNDATION_ALWAYS].sort()) {
     pkg.dependencies[`@pukalani/${f}`] = 'workspace:*'
   }
   pkg.dependencies = Object.fromEntries(Object.entries(pkg.dependencies).sort(([a], [b]) => a.localeCompare(b)))
@@ -108,7 +108,7 @@ cpSync(join(ROOT, 'apps', '_template'), appDir, {
 {
   const p = join(appDir, 'nuxt.config.ts')
   const extendsList = [
-    ...EXTENDS_ORDER.filter(l => features.includes(l)),
+    ...EXTENDS_ORDER.filter(l => products.includes(l)),
     ...FOUNDATION_ALWAYS,
   ].map(l => `'../../packages/${l}'`).join(', ')
   let src = readFileSync(p, 'utf8')
@@ -118,19 +118,19 @@ cpSync(join(ROOT, 'apps', '_template'), appDir, {
   console.log('✔ nuxt.config.ts (extends, Port)')
 }
 
-// site.manifest.ts: Single Source der Feature-Wahl
+// site.manifest.ts: Single Source der Produkt-Wahl
 {
-  const body = features.map(f => `    '${f}',`).join('\n')
+  const body = products.map(f => `    '${f}',`).join('\n')
   writeFileSync(join(appDir, 'site.manifest.ts'), `import type { SiteManifest } from '../../packages/core/shared/types/manifest'
 
 /**
- * Feature-Wahl dieser Site (generiert von create-site) — Single Source of
+ * Produkt-Wahl dieser Site (generiert von create-site) — Single Source of
  * Truth; \`pnpm check:manifests\` hält extends + package.json konsistent.
  * core + system sind implizit immer dabei; Reihenfolge hier egal (Menge).
  */
 export default {
   siteId: '${name}',
-  features: [
+  products: [
 ${body}
   ],
 } satisfies SiteManifest
@@ -289,7 +289,7 @@ console.log('\n— pnpm install (Workspace-Link) —')
 }
 
 if (runtimeKey) {
-  console.log('\n— Bootstrap (DB, Buckets, Platform, Migrationen der gewählten Features) —')
+  console.log('\n— Bootstrap (DB, Buckets, Platform, Migrationen der gewählten Produkte) —')
   const result = spawnSync(
     process.execPath,
     ['--experimental-strip-types', `--env-file=${join(appDir, '.env')}`, join(appDir, 'scripts', 'bootstrap.ts')],
@@ -308,7 +308,7 @@ console.log(`
 ✔ Site apps/${name} ist bereit.
 
   Starten:   pnpm --filter ${name} dev        → http://localhost:${port}
-  Features:  ${features.join(', ')} (+ core, system implizit)
+  Produkte:  ${products.join(', ')} (+ core, system implizit)
 ${runtimeKey ? `  Appwrite:  Projekt ${projectId} auf ${endpoint}` : `
   ⚠ Appwrite fehlt noch (manuell):
     1. Console öffnen → Projekt anlegen (ID-Vorschlag: ${name}-xxxx)

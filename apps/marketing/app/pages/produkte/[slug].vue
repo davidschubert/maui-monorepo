@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// Feature-Cluster-Seiten (§3.1): diskussionen · moderation · branding ·
+// Produkt-Cluster-Seiten (§3.1): diskussionen · moderation · branding ·
 // beitraege · kurse · events.
 //
 // Claim-Gate-Umsetzung (§2.4, Entscheidung David 2026-07-24): Kurse und Events
@@ -10,10 +10,10 @@
 //   3. die Highlights beschreiben ausschließlich, was tatsächlich existiert.
 //
 // Locale-Pfade: EN /products/* · DE /de/produkte/* — Kundensprache ist
-// „Produkte" (im CODE bleibt das Vokabular `features`). Die Slugs bleiben
+// „Produkte" (im CODE bleibt das Vokabular `products`). Die Slugs bleiben
 // deutsch, nur das Segment ist lokalisiert.
-// Die alten /features/*-URLs waren schon veröffentlicht: 301 in nuxt.config.ts.
-import { EARLY_ACCESS_SLUGS, FEATURE_SLUGS } from '#shared/marketing'
+// Die alten /products/*-URLs waren schon veröffentlicht: 301 in nuxt.config.ts.
+import { EARLY_ACCESS_SLUGS, PRODUCT_SLUGS } from '#shared/marketing'
 
 definePageMeta({ layout: 'site' })
 defineI18nRoute({ paths: { en: '/products/[slug]', de: '/produkte/[slug]' } })
@@ -23,7 +23,7 @@ defineI18nRoute({ paths: { en: '/products/[slug]', de: '/produkte/[slug]' } })
 // ein Claim-Gate (§2.4) — sie darf nicht in zwei Fassungen existieren.
 const route = useRoute()
 const slug = String(route.params.slug)
-if (!FEATURE_SLUGS.includes(slug as (typeof FEATURE_SLUGS)[number])) {
+if (!PRODUCT_SLUGS.includes(slug as (typeof PRODUCT_SLUGS)[number])) {
   throw createError({ status: 404, statusText: 'Page not found' })
 }
 
@@ -35,7 +35,7 @@ useReveal()
 
 const isEarlyAccess = computed(() => EARLY_ACCESS_SLUGS.includes(slug))
 
-const base = `marketing.features.items.${slug}`
+const base = `marketing.products.items.${slug}`
 const highlights = computed(() =>
   Array.from({ length: HIGHLIGHT_COUNT }, (_, i) => t(`${base}.highlights.${i}`)),
 )
@@ -49,7 +49,7 @@ const highlights = computed(() =>
  */
 const ctaLinks = computed(() => [
   isEarlyAccess.value
-    ? { to: signIn, color: 'primary' as const, size: 'xl' as const, label: t('marketing.features.eaCta') }
+    ? { to: signIn, color: 'primary' as const, size: 'xl' as const, label: t('marketing.products.eaCta') }
     : { to: start, color: 'primary' as const, size: 'xl' as const, label: t('marketing.hero.ctaPrimary') },
   {
     to: demo,
@@ -84,7 +84,7 @@ useMarketingSeo({
           :to="localePath('/')" variant="link" color="neutral" size="sm"
           icon="i-ph-arrow-left-bold"
           class="mb-5 px-0 font-semibold text-toned hover:text-primary-600"
-          :label="t('marketing.features.backHome')"
+          :label="t('marketing.products.backHome')"
         />
         <p class="mkt-kicker">{{ t(`${base}.name`) }}</p>
       </template>
@@ -105,14 +105,14 @@ useMarketingSeo({
       <template v-if="isEarlyAccess" #body>
         <UAlert
           color="primary" variant="subtle" icon="i-ph-seal-warning-bold"
-          :description="t('marketing.features.eaBannerText')"
+          :description="t('marketing.products.eaBannerText')"
           :ui="{
             title: 'text-[0.95rem] font-extrabold uppercase tracking-wide',
             description: 'text-base/relaxed opacity-100',
           }"
         >
           <template #title>
-            <h2>{{ t('marketing.features.eaBannerTitle') }}</h2>
+            <h2>{{ t('marketing.products.eaBannerTitle') }}</h2>
           </template>
         </UAlert>
       </template>
@@ -120,7 +120,7 @@ useMarketingSeo({
 
     <section class="mkt-section tone-sky">
       <div class="mkt-inner mkt-narrow" data-reveal>
-        <h2 class="mkt-h2">{{ t('marketing.features.highlightsTitle') }}</h2>
+        <h2 class="mkt-h2">{{ t('marketing.products.highlightsTitle') }}</h2>
         <!-- Häkchen-Liste = dieselbe Bauform wie auf /wechseln und in
              PrivacySection: UPageFeature (Icon + Zeile). -->
         <ul class="mt-7 flex flex-col gap-2.5">
@@ -139,12 +139,12 @@ useMarketingSeo({
     <UPageCTA
       as="section"
       class="tone-ink"
-      :description="isEarlyAccess ? t('marketing.features.eaBannerText') : t('marketing.features.ctaLead')"
+      :description="isEarlyAccess ? t('marketing.products.eaBannerText') : t('marketing.products.ctaLead')"
       :links="ctaLinks"
     >
       <template #title>
         <PukaMark :size="38" class="mx-auto mb-3.5 block" />
-        {{ isEarlyAccess ? t('marketing.features.eaBannerTitle') : t('marketing.features.ctaTitle') }}
+        {{ isEarlyAccess ? t('marketing.products.eaBannerTitle') : t('marketing.products.ctaTitle') }}
       </template>
     </UPageCTA>
   </div>

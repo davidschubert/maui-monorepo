@@ -19,14 +19,14 @@ export default defineAppConfig({
       name: 'Pukalani',
     },
     admin: {
-      /** Modul-Registry: Feature-Layer tragen hier ihre Dashboard-Sektionen ein
+      /** Modul-Registry: Produkt-Layer tragen hier ihre Dashboard-Sektionen ein
        *  (deep-merged/konkateniert über alle Layer). Das Dashboard-Layout rendert
        *  die Nav daraus, capability-gefiltert. */
       modules: [] as PukalaniAdminModule[],
     },
     /**
      * Chrome-Registry (Audit S9): Header-Nav + Header-Utilities der
-     * öffentlichen Community-Seiten. Feature-Layer registrieren sich selbst
+     * öffentlichen Community-Seiten. Produkt-Layer registrieren sich selbst
      * (Objekt-Map, Key = stabile ID; `false` schaltet einen Eintrag ab —
      * s. shared/types/chrome.ts). Konsument ist das blueprint-default-Layout;
      * das core-default-Layout bleibt bewusst registry-frei (marketing & Co.).
@@ -36,7 +36,7 @@ export default defineAppConfig({
       utilities: {
         // Benachrichtigungen sind Core-Funktionalität — core registriert
         // seine eigene Glocke (nur eingeloggt), alle anderen Utilities
-        // kommen aus den Feature-Layern.
+        // kommen aus den Produkt-Layern.
         notifications: { component: 'NotificationBell', order: 40, requiresAuth: true },
       } as PukalaniChromeUtilityConfig,
       /** Footer-Link auf /changelog — der admin-Layer (Besitzer der Seite)
@@ -76,7 +76,7 @@ export default defineAppConfig({
       ctaUrl: '',
     },
     ai: {
-      /** Server-seitige KI-Features (aiComplete: Moderations-Assist, Layer-
+      /** Server-seitige KI-Produkte (aiComplete: Moderations-Assist, Layer-
        *  Defaults). Core-Default aus; Key server-only via NUXT_AI_KEY. */
       enabled: false,
       /** Model-Id der OpenAI-kompatiblen Chat-Completions-API (Default: OpenRouter) */

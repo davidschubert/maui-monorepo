@@ -31,7 +31,7 @@ watch(() => demoStore.activeTotal, (next, prev) => {
   if (prev > 0 && stats.value) stats.value = { ...stats.value, comments: stats.value.comments + (next - prev) }
 })
 
-const features = computed(() => [
+const products = computed(() => [
   { icon: 'i-ph-lightning', key: 'realtime' },
   { icon: 'i-ph-palette', key: 'themes' },
   { icon: 'i-ph-globe', key: 'i18n' },
@@ -77,12 +77,12 @@ const fmt = (n: number | undefined) => (n ?? 0).toLocaleString()
       </div>
     </section>
 
-    <!-- Feature-Karten -->
+    <!-- Produkt-Karten -->
     <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <UCard v-for="f in features" :key="f.key" :ui="{ body: 'sm:p-5' }">
+      <UCard v-for="f in products" :key="f.key" :ui="{ body: 'sm:p-5' }">
         <UIcon :name="f.icon" class="size-7 text-primary" />
-        <h3 class="mt-3 font-semibold">{{ t(`home.features.${f.key}.title`) }}</h3>
-        <p class="mt-1 text-sm text-muted">{{ t(`home.features.${f.key}.desc`) }}</p>
+        <h3 class="mt-3 font-semibold">{{ t(`home.products.${f.key}.title`) }}</h3>
+        <p class="mt-1 text-sm text-muted">{{ t(`home.products.${f.key}.desc`) }}</p>
       </UCard>
     </section>
 

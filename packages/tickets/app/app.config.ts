@@ -9,7 +9,7 @@ export default defineAppConfig({
       modules: [
         {
           id: 'tickets',
-          featureKey: 'tickets',
+          productKey: 'tickets',
           labelKey: 'admin.nav.tickets',
           icon: 'i-ph-kanban',
           to: '/dashboard/tickets',

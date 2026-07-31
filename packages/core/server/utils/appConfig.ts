@@ -1,9 +1,9 @@
 import type { H3Event } from 'h3'
 import type { Models } from 'node-appwrite'
-import { DEFAULT_APP_CONFIG, parseFeaturesColumn, type AppConfig } from '../../shared/types/config'
+import { DEFAULT_APP_CONFIG, parseProductsColumn, type AppConfig } from '../../shared/types/config'
 
 /**
- * Liest die Laufzeit-Feature-Flags (app_config/global). Fällt bei fehlender
+ * Liest die Laufzeit-Produkt-Flags (app_config/global). Fällt bei fehlender
  * Zeile/Table oder Fehler auf permissive Defaults zurück, damit ein Config-
  * Problem die App nie blockiert. Die Table gehört dem system-Layer.
  * event optional: Intervall-Plugins rufen ohne Request-Kontext auf —
@@ -18,7 +18,7 @@ export async function getAppConfig(event?: H3Event): Promise<AppConfig> {
   try {
     const config = useRuntimeConfig(event)
     const admin = createAdminClient(event)
-    const row = await admin.tablesDB.getRow<Models.Row & { features?: string } & Partial<Omit<AppConfig, 'features'>>>({
+    const row = await admin.tablesDB.getRow<Models.Row & { products?: string } & Partial<Omit<AppConfig, 'products'>>>({
       databaseId: config.public.appwriteDatabaseId,
       tableId: 'app_config',
       rowId: 'global',
@@ -28,7 +28,7 @@ export async function getAppConfig(event?: H3Event): Promise<AppConfig> {
       commentsEnabled: row.commentsEnabled ?? DEFAULT_APP_CONFIG.commentsEnabled,
       maintenanceMode: row.maintenanceMode ?? DEFAULT_APP_CONFIG.maintenanceMode,
       // Spalte ist ein JSON-String (system-018) — fehlertolerant geparst
-      features: parseFeaturesColumn(row.features),
+      products: parseProductsColumn(row.products),
     }
   }
   catch {

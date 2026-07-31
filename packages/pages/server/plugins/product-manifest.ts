@@ -1,6 +1,6 @@
-import manifest from '../../feature.manifest'
+import manifest from '../../product.manifest'
 
-/** Registriert das Feature-Manifest beim Core (Laufzeit-Registry, F2/F7). */
+/** Registriert das Produkt-Manifest beim Core (Laufzeit-Registry, F2/F7). */
 export default defineNitroPlugin(() => {
-  registerFeatureManifest(manifest)
+  registerProductManifest(manifest)
 })

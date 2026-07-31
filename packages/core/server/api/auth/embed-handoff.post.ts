@@ -5,7 +5,7 @@ import { sessionCookieName } from '../../lib/appwrite'
  * E2 Embed-Login, Schritt 1 (läuft im POPUP, Top-Level = first-party Cookie):
  * siegelt die aktuelle Session in ein kurzlebiges Handoff-Token, das das
  * Popup per postMessage (targetOrigin = eigene Origin) ans iframe reicht.
- * Gate pukalani.auth.embedSession (Core-Default aus — nur Apps mit Embed-Feature
+ * Gate pukalani.auth.embedSession (Core-Default aus — nur Apps mit Embed-Produkt
  * schalten es an). Details: server/utils/embedHandoff.ts + Embed-Plan § 3a.
  */
 export default defineEventHandler(async (event) => {

@@ -1,5 +1,5 @@
 /**
- * Re-Export für Nitros server/utils Auto-Import: Feature Layer (comments,
+ * Re-Export für Nitros server/utils Auto-Import: Produkt Layer (comments,
  * admin, …) nutzen createSessionClient & Co. in ihren Server Routes OHNE
  * Cross-Package-Importpfade — Nitro scannt server/utils aller Layer.
  */

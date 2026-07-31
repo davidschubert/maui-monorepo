@@ -15,7 +15,7 @@ export default defineAppConfig({
       modules: [
         {
           id: 'pages',
-          featureKey: 'pages',
+          productKey: 'pages',
           labelKey: 'admin.nav.pages',
           icon: 'i-ph-file-text',
           to: '/dashboard/pages',

@@ -8,9 +8,9 @@ describe('createCourseSchema', () => {
     expect(schema.safeParse({ title: 'Theming 101', slug: 'theming-101', description: 'Grundlagen.', access: 'free' }).success).toBe(true)
   })
 
-  it('paid verlangt entitlementFeature', () => {
+  it('paid verlangt entitlementProduct', () => {
     expect(schema.safeParse({ title: 'Pro-Kurs', slug: 'pro-kurs', description: 'x', access: 'paid' }).success).toBe(false)
-    expect(schema.safeParse({ title: 'Pro-Kurs', slug: 'pro-kurs', description: 'x', access: 'paid', entitlementFeature: 'paidCourses' }).success).toBe(true)
+    expect(schema.safeParse({ title: 'Pro-Kurs', slug: 'pro-kurs', description: 'x', access: 'paid', entitlementProduct: 'paidCourses' }).success).toBe(true)
   })
 
   it('validiert den Slug (url-sicher)', () => {

@@ -2,7 +2,7 @@ import type { H3Event } from 'h3'
 
 /**
  * Generischer KI-Completion-Client (Core): EIN Transport für alle Server-
- * seitigen KI-Features (Ticket-Triage, Moderations-Assist, …) über eine
+ * seitigen KI-Produkte (Ticket-Triage, Moderations-Assist, …) über eine
  * OpenAI-kompatible Chat-Completions-API (Default: OpenRouter).
  *
  * Policy bleibt beim Konsumenten: aiComplete() prüft nur, ob ein Key da ist —

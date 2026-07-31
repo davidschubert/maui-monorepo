@@ -1,7 +1,7 @@
 # Maui Monorepo – Claude Code Context
 
 ## Projekt
-Nuxt 4 Monorepo (maui-monorepo) mit zentralem Core Layer + Feature Layers.
+Nuxt 4 Monorepo (maui-monorepo) mit zentralem Core Layer + Produkt-Layern.
 Vollständiges Konzept: docs/CONCEPT.md
 
 ## Stack
@@ -11,13 +11,13 @@ Vollständiges Konzept: docs/CONCEPT.md
 
 ## Architektur (3 Ebenen)
 - packages/core → Fundament-Layer. Besitzt KEINE Appwrite Tables.
-- packages/* → Feature Layers (themes, comments, admin, billing) — eigenes
+- packages/* → Produkt-Layer (themes, comments, admin, billing) — eigenes
   Datenmodell und/oder eigene UI-Welt
-- apps/* → dünne Apps, komponieren via extends: [features..., core]
+- apps/* → dünne Apps, komponieren via extends: [produkt-layer..., core]
   (früher gelistet = höhere Priorität; App überschreibt alles)
-- Feature-Manifeste (Plattform-Strategie F1): JEDER Layer hat
-  feature.manifest.ts (key/tier/requires/Katalog-Texte, nur `import type`!),
-  JEDE App site.manifest.ts = Single Source der Feature-Wahl.
+- Produkt-Manifeste (Plattform-Strategie F1): JEDER Layer hat
+  product.manifest.ts (key/tier/requires/Katalog-Texte, nur `import type`!),
+  JEDE App site.manifest.ts = Single Source der Produkt-Wahl.
   `pnpm check:manifests` (CI/lint) erzwingt Konsistenz mit extends +
   package.json + migrate.mjs-LAYER_ORDER — neue Layer/Apps immer mit
   Manifest anlegen. Strategie: docs/referenz/MULTI-SITE-PLATFORM-STRATEGIE.md
@@ -30,12 +30,12 @@ Vollständiges Konzept: docs/CONCEPT.md
 - Layer-Grenzen-Matrix (wer darf was besitzen) + Durchsetzung: CONCEPT.md A14.
   Neue Cross-Layer-Abhängigkeiten als EXPLIZITE Verträge (kein impliziter
   Auto-Import/String-Coupling); ESLint no-restricted-imports als Backstop.
-  Fundament-Layer (core, geplant: moderation/system) hängen NIE von Features ab.
+  Fundament-Layer (core, geplant: moderation/system) hängen NIE von Produkten ab.
 
 ## Appwrite (SSR-first, TablesDB)
 - Terminologie: TablesDB / Tables / Rows (NICHT Databases/Collections/Documents)
 - Zwei Server-Clients: createAdminClient (API Key) + createSessionClient
-  (pro Request, NIE teilen!) in server/lib/appwrite.ts; Feature Layer nutzen
+  (pro Request, NIE teilen!) in server/lib/appwrite.ts; Produkt-Layer nutzen
   sie via Auto-Import (Core re-exportiert in server/utils/appwrite.ts)
 - Zwei Keys pro Instanz: Runtime-Key (sessions/users/rows/health, in .env) +
   Migrations-Key (databases/tables/columns/indexes, nur für Scripts)
@@ -327,9 +327,9 @@ Vollständiges Konzept: docs/CONCEPT.md
   + Client-Error-Inbox (POST /api/telemetry/error, rate-limited); Core-Default
   aus, Sentry-Andockpunkt in core/server/utils/logEvent.ts
 - pukalani.auth.*: providers (OAuth-Buttons), termsUrl (AGB-Pflicht), otp
-- pukalani.admin.modules: Modul-Registry der Dashboard-Nav — Feature-Layer
+- pukalani.admin.modules: Modul-Registry der Dashboard-Nav — Produkt-Layer
   registrieren ihre Admin-Seiten hier (expliziter Vertrag statt Kopplung)
-- GDPR: registerUserDataContributor (core/server/utils/userData.ts) — Feature-
+- GDPR: registerUserDataContributor (core/server/utils/userData.ts) — Produkt-
   Layer registrieren Export/Löschung ihrer User-Daten per Nitro-Plugin
   (server/plugins/user-data.ts); core orchestriert (deleteUserCompletely:
   Snapshot → Sperren → Contributors → users.delete nur bei Voll-Erfolg).
@@ -342,8 +342,16 @@ Vollständiges Konzept: docs/CONCEPT.md
   KEIN Plan-Key: das ist das Silo-/Pukalani-Studio-Angebot. Preise: Personal
   29 €, Pro 149 €, jährlich −25 % (scripts/stripe/ensure-prices.mjs — zieht
   lookup_keys bei Betragsänderung auf neue Prices um).
-- Kundensprache: „**Produkte**" statt Features/Bausteine (Landing, UI,
-  Pricing). Im CODE bleibt das Vokabular `features` (Manifeste, Gates).
+- EIN Wort: „**Produkte**"/`products` — Kundensprache UND Code (E11 Etappe B,
+  2026-07-30; hebt die P4-Zeile „im CODE bleibt features" bewusst auf).
+  product.manifest.ts, productKey, productGates, app_config.products,
+  product_catalog, /api/platform/products. ÜBERGANG bis zum Zusammenziehen:
+  alte Spalten (featureKey/features/entitlementFeature) werden an den
+  Schreibstellen GESPIEGELT, /api/platform/features + Dokument-Feld `features`
+  bleiben als Alias — erst nach Beobachtung fällt beides mit einer Aufräum-
+  Migration. AUSNAHMEN (bleiben `feature`): `featured` („hervorgehoben"),
+  UPageFeature (Nuxt UI), Changelog-Kategorie `feature` (= „Neuerung",
+  Daten-Wert), Migrations-Dateien (Protokoll).
 - Produkt-Gating im Pool: pukalani.tenancy.products (Produkt-Key → Mindest-Plan,
   Plan-Ordnung = Reihenfolge der quota.plans-Keys) + requirePlanProduct(event,
   key) an den API-Einstiegen (posts = personal, ai = pro; 404 wie Datentür).
@@ -479,7 +487,7 @@ Vollständiges Konzept: docs/CONCEPT.md
   dem Request und nur das SCHEMA aus der Env (core/shared/seoOrigin.ts) — mit
   der einen Env-Basis zeigten canonical/hreflang/og:url auf ALLEN Mandanten-
   Hosts auf platform.pukalani.app (Audit-Befund B1). og:image gehört EBENFALLS
-  dorthin (nie in eine Seite): Feature-Layer tragen den Pfad in
+  dorthin (nie in eine Seite): Produkt-Layer tragen den Pfad in
   useBrandOgImage() ein, useLocaleSeoHead() macht die absolute URL + Maße/Typ/
   twitter:card. Je Community `/og/<key>.png` (1200×630, Gate
   pukalani.seo.tenantOgImage) — **PNG, nicht SVG**: Facebook/WhatsApp/LinkedIn

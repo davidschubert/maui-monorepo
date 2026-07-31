@@ -14,7 +14,7 @@ import {
  *
  * WARUM EINE REGISTRY (A14): `community_members` gehört dem Control Plane, und die
  * Service-Naht dorthin (Secret + JWT) besitzt der onboarding-Layer. Core darf
- * von einem Feature-Layer nicht abhängen — also derselbe Vertrag wie beim
+ * von einem Produkt-Layer nicht abhängen — also derselbe Vertrag wie beim
  * Rollen-Resolver und bei registerReportEscalationHandler: core erklärt die
  * Frage, die App/der Layer verdrahtet die Antwort. Ohne registrierten Handler
  * ist alles hier ein No-Op (Silo-Apps, Playground, CI-Builds).
@@ -97,7 +97,7 @@ function rememberedDecision(communityId: string, userId: string): SiteJoinOutcom
 function rememberDecision(communityId: string, userId: string, outcome: SiteJoinOutcome): void {
   if (outcome !== 'closed' && outcome !== 'removed') return
   decided.set(decisionKey(communityId, userId), { outcome, until: Date.now() + DECIDED_TTL_MS })
-  // Der Karten-Deckel ist kein Cache-Feature, sondern Speicherhygiene: ein
+  // Der Karten-Deckel ist kein Cache-Produkt, sondern Speicherhygiene: ein
   // Deployment sieht über Wochen viele Nutzer, und ein unbegrenztes Map wächst
   // still mit. Beim Überlauf wird der älteste Eintrag geopfert (Insertion-Order
   // von Map) — schlimmster Fall ist eine Frage zu viel.

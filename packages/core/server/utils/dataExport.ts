@@ -32,4 +32,4 @@ export function mapExportSessions(sessions: Models.Session[]) {
 }
 
 // mapExportComments ist in den comments-UserDataContributor umgezogen —
-// core kennt kein Feature-Schema mehr (CONCEPT A14).
+// core kennt kein Produkt-Schema mehr (CONCEPT A14).

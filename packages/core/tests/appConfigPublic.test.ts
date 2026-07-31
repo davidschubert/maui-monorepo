@@ -23,7 +23,7 @@ const full: AppConfig = {
   registrationEnabled: false,
   commentsEnabled: false,
   maintenanceMode: true,
-  features: { posts: { enabled: false, status: 'inactive' } },
+  products: { posts: { enabled: false, status: 'inactive' } },
 }
 
 describe('toPublicAppConfig', () => {
@@ -44,13 +44,13 @@ describe('toPublicAppConfig', () => {
 
   it('reicht JEDES vom Client gelesene Flag unverändert durch', () => {
     // Leser: register-Seiten (registrationEnabled/maintenanceMode),
-    // useCommentPolicy (commentsEnabled/maintenanceMode), useFeature +
-    // Dashboard-Nav (features)
+    // useCommentPolicy (commentsEnabled/maintenanceMode), useProduct +
+    // Dashboard-Nav (products)
     expect(toPublicAppConfig(full)).toEqual({
       registrationEnabled: false,
       commentsEnabled: false,
       maintenanceMode: true,
-      features: { posts: { enabled: false, status: 'inactive' } },
+      products: { posts: { enabled: false, status: 'inactive' } },
     })
   })
 

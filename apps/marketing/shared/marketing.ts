@@ -18,7 +18,7 @@
  */
 
 /** Produkt-Seiten: EN /products/<slug> · DE /de/produkte/<slug>. */
-export const FEATURE_SLUGS = ['diskussionen', 'moderation', 'branding', 'beitraege', 'kurse', 'events'] as const
+export const PRODUCT_SLUGS = ['diskussionen', 'moderation', 'branding', 'beitraege', 'kurse', 'events'] as const
 
 /**
  * Bausteine, die noch NICHT im offenen Angebot sind (§2.4). Ihre Seiten
@@ -45,6 +45,6 @@ export const AUDIENCE_SLUGS = ['coaches', 'kurse', 'creator', 'vereine'] as cons
  */
 export const FAQ_COUNT = 6
 
-export type FeatureSlug = (typeof FEATURE_SLUGS)[number]
+export type ProductSlug = (typeof PRODUCT_SLUGS)[number]
 export type VsSlug = (typeof VS_SLUGS)[number]
 export type AudienceSlug = (typeof AUDIENCE_SLUGS)[number]

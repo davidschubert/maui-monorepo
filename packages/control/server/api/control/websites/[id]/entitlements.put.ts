@@ -1,17 +1,17 @@
 import { Query } from 'node-appwrite'
 import { z } from 'zod'
 import { WEBSITES_TABLE, type WebsiteRow } from '../../../../../shared/types/website'
-import { FEATURE_CATALOG_TABLE, type FeatureCatalogRow } from '../../../../../shared/types/job'
+import { PRODUCT_CATALOG_TABLE, type ProductCatalogRow } from '../../../../../shared/types/job'
 import { replaceSiteGrants } from '../../../../utils/workspaceGrants'
 
 const putSchema = z.object({
-  features: z.array(z.string().regex(/^[a-z][a-z0-9-]*$/)).max(20),
+  products: z.array(z.string().regex(/^[a-z][a-z0-9-]*$/)).max(20),
 }).strict()
 
 /**
  * Grant-Set einer Site ersetzen (sites.manage) — M6-T3, F3-Vorstufe:
  * fehlende Rows anlegen, nicht mehr gelistete löschen. Zuteilbar ist, was
- * der Feature-Katalog kennt — außer core/system (implizit immer) und studio
+ * der Produkt-Katalog kennt — außer core/system (implizit immer) und studio
  * (läuft nur auf der Control-Site). Signatur/Zustellung an die Site folgt
  * in M8; bis dahin ist diese Table die manuell gepflegte Wahrheit.
  */
@@ -31,21 +31,21 @@ export default defineEventHandler(async (event) => {
   const site = await admin.tablesDB.getRow<WebsiteRow>({ databaseId, tableId: WEBSITES_TABLE, rowId: id })
     .catch((error) => { throw toH3Error(error, 'Site not found') })
 
-  const { rows: catalog } = await admin.tablesDB.listRows<FeatureCatalogRow>({
-    databaseId, tableId: FEATURE_CATALOG_TABLE, queries: [Query.limit(100)],
-  }).catch((error) => { throw toH3Error(error, 'Could not load feature catalog') })
+  const { rows: catalog } = await admin.tablesDB.listRows<ProductCatalogRow>({
+    databaseId, tableId: PRODUCT_CATALOG_TABLE, queries: [Query.limit(100)],
+  }).catch((error) => { throw toH3Error(error, 'Could not load product catalog') })
 
   const NOT_GRANTABLE = ['core', 'system', 'control']
   const known = new Set(catalog.map(row => row.$id))
-  for (const feature of body.features) {
-    if (!known.has(feature) || NOT_GRANTABLE.includes(feature)) {
-      throw createError({ status: 400, statusText: `Unknown or non-grantable feature: ${feature}` })
+  for (const product of body.products) {
+    if (!known.has(product) || NOT_GRANTABLE.includes(product)) {
+      throw createError({ status: 400, statusText: `Unknown or non-grantable product: ${product}` })
     }
   }
 
   // Gemeinsame Ersetzen-Logik mit dem Workspace-Billing-Sync (M8-T3)
-  await replaceSiteGrants(event, site.projectId, body.features)
+  await replaceSiteGrants(event, site.projectId, body.products)
     .catch((error) => { throw toH3Error(error, 'Could not update entitlements') })
 
-  return { id, projectId: site.projectId, features: [...new Set(body.features)].sort() }
+  return { id, projectId: site.projectId, products: [...new Set(body.products)].sort() }
 })

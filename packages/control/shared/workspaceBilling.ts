@@ -1,4 +1,4 @@
-import type { FeatureCatalogEntry } from './types/job'
+import type { ProductCatalogEntry } from './types/job'
 import type { ControlPlan, ControlPlanCatalog, WorkspaceBillingInterval } from './types/workspace'
 
 /**
@@ -9,22 +9,22 @@ import type { ControlPlan, ControlPlanCatalog, WorkspaceBillingInterval } from '
  * Grant-/Zustell-Wegen (entitlements.put-Logik + F3-Signatur-Pull).
  */
 
-/** Requires-Schluss über den Feature-Katalog: gewählte Features plus alles,
+/** Requires-Schluss über den Produkt-Katalog: gewählte Produkte plus alles,
  *  was sie transitiv voraussetzen. Unbekannte Keys sind ein Fehler — der
  *  Katalog ist die Autorität (F7), ein Tippfehler darf nie still ein
  *  leeres Grant-Set produzieren. */
 export function closeOverRequires(
-  features: readonly string[],
-  catalog: readonly Pick<FeatureCatalogEntry, 'key' | 'requires'>[],
+  products: readonly string[],
+  catalog: readonly Pick<ProductCatalogEntry, 'key' | 'requires'>[],
 ): string[] {
   const byKey = new Map(catalog.map(entry => [entry.key, entry]))
   const result = new Set<string>()
-  const queue = [...features]
+  const queue = [...products]
   while (queue.length > 0) {
     const key = queue.pop()!
     if (result.has(key)) continue
     const entry = byKey.get(key)
-    if (!entry) throw new Error(`Unbekanntes Feature "${key}" (nicht im Katalog)`)
+    if (!entry) throw new Error(`Unbekanntes Produkt "${key}" (nicht im Katalog)`)
     result.add(key)
     queue.push(...entry.requires)
   }
@@ -50,7 +50,7 @@ export function isPaidPlanKey(planKey: string | undefined | null, plans: Control
 export interface PlanGrantSet {
   siteProjectId: string
   /** Gewünschtes Entitlement-Set (requires-geschlossen, sortiert). */
-  features: string[]
+  products: string[]
 }
 
 /** Plan-Key → gewünschte Grant-Sets für alle Sites eines Workspace.
@@ -59,13 +59,13 @@ export interface PlanGrantSet {
 export function planToGrants(
   planKey: string,
   plans: ControlPlanCatalog,
-  catalog: readonly Pick<FeatureCatalogEntry, 'key' | 'requires'>[],
+  catalog: readonly Pick<ProductCatalogEntry, 'key' | 'requires'>[],
   siteProjectIds: readonly string[],
 ): PlanGrantSet[] {
   const plan = plans[planKey]
   if (!plan) throw new Error(`Unbekannter Plan "${planKey}"`)
-  const features = closeOverRequires(plan.features, catalog)
-  return siteProjectIds.map(siteProjectId => ({ siteProjectId, features }))
+  const products = closeOverRequires(plan.products, catalog)
+  return siteProjectIds.map(siteProjectId => ({ siteProjectId, products }))
 }
 
 /** Vom billing-Layer bereits VERIFIZIERTES Abo-Update (nie rohes
@@ -86,7 +86,7 @@ export interface WorkspaceSubscriptionUpdate {
  *  Stripe/Appwrite testbar ist. Kündigungs-Timing macht STRIPE selbst:
  *  cancel_at_period_end hält den Status bis zum Periodenende auf 'active',
  *  erst das echte Ende liefert 'canceled' → dann fällt der Workspace aufs
- *  free-Set zurück (NIE auf null Features — ein gekündigter Kunde ist nie
+ *  free-Set zurück (NIE auf null Produkte — ein gekündigter Kunde ist nie
  *  schlechter gestellt als einer, der nie gezahlt hat). */
 export type WorkspaceBillingAction =
   | { kind: 'ignore', reason: string }

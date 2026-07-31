@@ -110,7 +110,7 @@ if (cookie) {
   // Die Abschnitte sind auf der Startseite zugeklappt (nur der aktive Zweig
   // rendert Links), deshalb auf die Abschnitts-TITEL prüfen, nicht auf hrefs.
   check('Betreiber: Seitenleiste zeigt die Content-Navigation',
-    ['Architektur', 'Features', 'Guides'].every(section => homeHtml.includes(section)))
+    ['Architektur', 'Produkte', 'Guides'].every(section => homeHtml.includes(section)))
 
   const sub = await authed('/docs/architektur/hosts-und-ports')
   const subHtml = await sub.text()

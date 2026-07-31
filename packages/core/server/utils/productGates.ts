@@ -1,15 +1,15 @@
 import type { H3Event } from 'h3'
-import { isFeatureStateEnabled, type FeatureRuntimeState } from '../../shared/types/config'
+import { isProductStateEnabled, type ProductRuntimeState } from '../../shared/types/config'
 import { evaluateEntitlement, parseEntitlementPublicKeys, verifyEntitlementDocument, type EntitlementPayload } from './entitlementDocument'
 import { getEntitlementsDocument } from './entitlementsStore'
 
 /**
- * Effektive Feature-Gates (F2 + F3): enabled(key) = einkompiliert (Registry)
- * ∧ app_config.features[key] nicht abgeschaltet ∧ Entitlement lässt es zu
+ * Effektive Produkt-Gates (F2 + F3): enabled(key) = einkompiliert (Registry)
+ * ∧ app_config.products[key] nicht abgeschaltet ∧ Entitlement lässt es zu
  * (dritte UND-Bedingung, M8-Vorbereitung). Fehlender DB-Eintrag = AN
  * (kompiliert = von der Site gewollt, Site-Manifest); fehlendes Entitlement-
  * Dokument = neutral AN (Enforcement beginnt mit dem ersten Pull). Ein
- * GESPEICHERTES, aber ungültiges Dokument schaltet optionale Features AUS —
+ * GESPEICHERTES, aber ungültiges Dokument schaltet optionale Produkte AUS —
  * ein gefälschtes Dokument wird nie toleriert (§ F3, 6. Runde).
  *
  * Kleiner TTL-Cache (5 s): die Middleware fragt pro API-Request — ein
@@ -21,7 +21,7 @@ import { getEntitlementsDocument } from './entitlementsStore'
 const CACHE_TTL_MS = 5_000
 
 interface GateState {
-  features: Record<string, FeatureRuntimeState>
+  products: Record<string, ProductRuntimeState>
   /** null = kein Dokument (neutral AN) · 'invalid' = gespeichert, aber nicht verifizierbar. */
   entitlement: EntitlementPayload | null | 'invalid'
 }
@@ -29,7 +29,7 @@ interface GateState {
 let cache: { at: number, state: GateState } | null = null
 
 /** Test-/Admin-Hook: Cache verwerfen (z. B. direkt nach einem Toggle/Pull). */
-export function invalidateFeatureGateCache(): void {
+export function invalidateProductGateCache(): void {
   cache = null
 }
 
@@ -57,48 +57,48 @@ async function getGateState(event: H3Event): Promise<GateState> {
     }
     else {
       entitlement = 'invalid'
-      console.error(`[core] Entitlement-Dokument ungültig (${result.reason}) — optionale Features sind AUS`)
+      console.error(`[core] Entitlement-Dokument ungültig (${result.reason}) — optionale Produkte sind AUS`)
     }
   }
 
-  const state: GateState = { features: appConfig.features, entitlement }
+  const state: GateState = { products: appConfig.products, entitlement }
   cache = { at: Date.now(), state }
   return state
 }
 
 function entitlementAllows(state: GateState, key: string): boolean {
-  const tier = getFeatureRegistry().get(key)?.tier ?? 'optional'
+  const tier = getProductRegistry().get(key)?.tier ?? 'optional'
   if (state.entitlement === 'invalid') return tier === 'foundation'
   return evaluateEntitlement(state.entitlement, key, tier)
 }
 
-/** Effektiver Zustand EINES Features (nur einkompilierte kommen vor). */
-export async function isFeatureEnabled(event: H3Event, key: string): Promise<boolean> {
-  if (!getFeatureRegistry().has(key)) return false
+/** Effektiver Zustand EINES Produkte (nur einkompilierte kommen vor). */
+export async function isProductEnabled(event: H3Event, key: string): Promise<boolean> {
+  if (!getProductRegistry().has(key)) return false
   const state = await getGateState(event)
-  return isFeatureStateEnabled(state.features[key]) && entitlementAllows(state, key)
+  return isProductStateEnabled(state.products[key]) && entitlementAllows(state, key)
 }
 
 /**
- * Route-Guard: Feature aus ⇒ 404 (bewusst kein 403 — ob ein deaktiviertes
- * Feature existiert, geht Anonyme nichts an).
+ * Route-Guard: Produkt aus ⇒ 404 (bewusst kein 403 — ob ein deaktiviertes
+ * Produkt existiert, geht Anonyme nichts an).
  */
-export async function requireFeature(event: H3Event, key: string): Promise<void> {
-  if (!(await isFeatureEnabled(event, key))) {
+export async function requireProduct(event: H3Event, key: string): Promise<void> {
+  if (!(await isProductEnabled(event, key))) {
     throw createError({ status: 404, statusText: 'Not found' })
   }
 }
 
 /**
- * Effektive Zustände ALLER einkompilierten Features (Katalog/Admin-Seite):
+ * Effektive Zustände ALLER einkompilierten Produkte (Katalog/Admin-Seite):
  * Registry-Reihenfolge, DB-Override UND Entitlement angewendet — blockt das
- * Entitlement, erscheint das Feature als disabled (wahrheitsgemäß wirksam).
+ * Entitlement, erscheint das Produkt als disabled (wahrheitsgemäß wirksam).
  */
-export async function getEffectiveFeatures(event: H3Event): Promise<Record<string, FeatureRuntimeState>> {
+export async function getEffectiveProducts(event: H3Event): Promise<Record<string, ProductRuntimeState>> {
   const state = await getGateState(event)
-  const result: Record<string, FeatureRuntimeState> = {}
-  for (const key of getFeatureRegistry().keys()) {
-    const runtimeState = state.features[key] ?? { enabled: true, status: 'active' as const }
+  const result: Record<string, ProductRuntimeState> = {}
+  for (const key of getProductRegistry().keys()) {
+    const runtimeState = state.products[key] ?? { enabled: true, status: 'active' as const }
     result[key] = entitlementAllows(state, key)
       ? runtimeState
       : { enabled: false, status: runtimeState.status }

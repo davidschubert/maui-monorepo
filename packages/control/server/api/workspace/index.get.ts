@@ -11,7 +11,7 @@ import { listOwnMemberships } from '../../utils/workspaceMembers'
 /**
  * Kundenbereich (M9-T3): eigene Workspaces des eingeloggten Users —
  * Membership IST die Berechtigung (kein sites.manage). Sites bewusst
- * read-only-schlank (Name/URL/Health/Features-Snapshot); Betreiber-Details
+ * read-only-schlank (Name/URL/Health/Produkte-Snapshot); Betreiber-Details
  * (projectId, Endpoint, Entitlement-Pflege) bleiben im /dashboard.
  */
 export default defineEventHandler(async (event) => {
@@ -45,7 +45,7 @@ export default defineEventHandler(async (event) => {
       id: workspace.$id,
       name: workspace.name,
       plan: workspace.plan,
-      planFeatures: plans[normalizeTenantPlan(workspace.plan)]?.features ?? [],
+      planProducts: plans[normalizeTenantPlan(workspace.plan)]?.products ?? [],
       status: workspace.status,
       role: member.role,
       sites: sites.map(site => ({

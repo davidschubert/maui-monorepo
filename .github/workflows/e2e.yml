@@ -91,7 +91,7 @@ jobs:
         env:
           APPWRITE_CONSOLE_EMAIL: ci@example.com
           APPWRITE_CONSOLE_PASSWORD: ci-console-password-2026
-        run: pnpm create-site g1-probe --endpoint http://localhost:8080/v1 --features themes,admin,comments,moderation,activity
+        run: pnpm create-site g1-probe --endpoint http://localhost:8080/v1 --products themes,admin,comments,moderation,activity
 
       - name: Stack-Logs bei Fehler
         if: failure()

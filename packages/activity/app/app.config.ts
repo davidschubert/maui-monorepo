@@ -6,13 +6,13 @@
 export default defineAppConfig({
   pukalani: {
     // Chrome-Registry (S9): Aktivitäts-Slideover im Header + Nav-Link —
-    // beides nur eingeloggt und nur solange das Feature an ist (F2).
+    // beides nur eingeloggt und nur solange das Produkt an ist (F2).
     chrome: {
       nav: {
-        activity: { labelKey: 'activity.title', to: '/activity', icon: 'i-ph-pulse', order: 40, featureKey: 'activity', requiresAuth: true },
+        activity: { labelKey: 'activity.title', to: '/activity', icon: 'i-ph-pulse', order: 40, productKey: 'activity', requiresAuth: true },
       },
       utilities: {
-        activity: { component: 'ActivitySlideover', order: 10, featureKey: 'activity', requiresAuth: true },
+        activity: { component: 'ActivitySlideover', order: 10, productKey: 'activity', requiresAuth: true },
       },
     },
     admin: {
@@ -21,7 +21,7 @@ export default defineAppConfig({
       modules: [
         {
           id: 'activity',
-          featureKey: 'activity',
+          productKey: 'activity',
           labelKey: 'admin.nav.activity',
           icon: 'i-ph-pulse',
           to: '/dashboard/activity',

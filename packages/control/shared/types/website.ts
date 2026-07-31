@@ -25,9 +25,9 @@ export interface WebsiteRow extends Models.Row {
   healthStatus: HealthStatus
   healthCheckedAt: string | null
   notes: string
-  /** JSON-Array der wirksam aktiven Feature-Keys der Site — Snapshot vom
-   *  Health-Sweep (GET /api/platform/features der Site, M6-T4). */
-  features: string
+  /** JSON-Array der wirksam aktiven Produkt-Keys der Site — Snapshot vom
+   *  Health-Sweep (GET /api/platform/products der Site, M6-T4). */
+  products: string
   /** Workspace-Zuordnung (M8, Migration control-006); '' = impliziter
    *  Betreiber-Workspace (volle manuelle Grants, Verhalten wie vor M8). */
   workspaceId: string

@@ -24,7 +24,7 @@
       "runtimeExecutable": "zsh",
       "runtimeArgs": [
         "-c",
-        "source ~/.nvm/nvm.sh && nvm use 22 >/dev/null && exec pnpm --filter @maui/docs dev"
+        "source ~/.nvm/nvm.sh && nvm use 22 >/dev/null && exec pnpm --filter @pukalani/docs dev"
       ],
       "port": 4000
     },
@@ -69,7 +69,7 @@
       "runtimeExecutable": "zsh",
       "runtimeArgs": [
         "-c",
-        "source ~/.nvm/nvm.sh && nvm use 22 >/dev/null && exec pnpm --filter @maui/core exec nuxi dev .playground --port 3010"
+        "source ~/.nvm/nvm.sh && nvm use 22 >/dev/null && exec pnpm --filter @pukalani/core exec nuxi dev .playground --port 3010"
       ],
       "port": 3010
     },

@@ -11,8 +11,8 @@ const CATALOG = [
 ]
 
 const PLANS: ControlPlanCatalog = {
-  free: { lookupKey: null, features: ['comments'] },
-  pro: { lookupKey: 'workspace_pro_monthly', lookupKeyYearly: 'workspace_pro_yearly', features: ['comments', 'posts', 'events'] },
+  free: { lookupKey: null, products: ['comments'] },
+  pro: { lookupKey: 'workspace_pro_monthly', lookupKeyYearly: 'workspace_pro_yearly', products: ['comments', 'posts', 'events'] },
 }
 
 describe('closeOverRequires', () => {
@@ -21,12 +21,12 @@ describe('closeOverRequires', () => {
     expect(closeOverRequires(['posts', 'events'], CATALOG)).toEqual(['events', 'moderation', 'posts'])
   })
 
-  it('dedupliziert bei mehrfachen requires auf dasselbe Feature', () => {
+  it('dedupliziert bei mehrfachen requires auf dasselbe Produkt', () => {
     expect(closeOverRequires(['comments', 'posts'], CATALOG)).toEqual(['comments', 'moderation', 'posts'])
   })
 
-  it('wirft bei unbekanntem Feature statt still zu verschlucken', () => {
-    expect(() => closeOverRequires(['tippfehler'], CATALOG)).toThrow(/Unbekanntes Feature "tippfehler"/)
+  it('wirft bei unbekanntem Produkt statt still zu verschlucken', () => {
+    expect(() => closeOverRequires(['tippfehler'], CATALOG)).toThrow(/Unbekanntes Produkt "tippfehler"/)
   })
 
   it('leeres Set bleibt leer', () => {
@@ -66,8 +66,8 @@ describe('planToGrants', () => {
   it('liefert das requires-geschlossene Set für jede Site', () => {
     const grants = planToGrants('pro', PLANS, CATALOG, ['site-a', 'site-b'])
     expect(grants).toEqual([
-      { siteProjectId: 'site-a', features: ['comments', 'events', 'moderation', 'posts'] },
-      { siteProjectId: 'site-b', features: ['comments', 'events', 'moderation', 'posts'] },
+      { siteProjectId: 'site-a', products: ['comments', 'events', 'moderation', 'posts'] },
+      { siteProjectId: 'site-b', products: ['comments', 'events', 'moderation', 'posts'] },
     ])
   })
 

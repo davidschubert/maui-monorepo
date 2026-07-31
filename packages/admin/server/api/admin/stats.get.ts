@@ -5,7 +5,7 @@ import { decideSiteAccess } from '../../../../core/shared/siteAccess'
 /**
  * Übersichts-Zahlen: Users-API total + Kennzahlen der registrierten
  * DashboardStatsContributors (comments/moderation via Nitro-Plugin, CONCEPT
- * A14) — admin kennt keine Feature-Tabellen mehr; fehlende Layer liefern
+ * A14) — admin kennt keine Produkt-Tabellen mehr; fehlende Layer liefern
  * schlicht keine Kennzahl (0-Default).
  *
  * AUTORISIERUNG (C1): `await requireSitePermission(event, 'dashboard.access')`.

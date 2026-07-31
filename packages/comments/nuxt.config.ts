@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path'
 const currentDir = dirname(fileURLToPath(import.meta.url))
 
 /**
- * Feature Layer: Reddit-artiges Kommentarsystem (eigenes Datenmodell —
+ * Produkt Layer: Reddit-artiges Kommentarsystem (eigenes Datenmodell —
  * Regel 3: eigene Tables, deshalb niemals Core). Extended den Core NICHT
  * selbst — die App komponiert beide: extends: [comments, core].
  * Spec: reddit-comment-system-setup (targetId/targetType-Architektur).

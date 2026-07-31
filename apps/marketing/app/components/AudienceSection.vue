@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Szene 8 — der soziale Spiegel (§6.4): „Menschen wie du". Identifikation statt
-// Feature-Liste; jede Karte führt auf ihre Anwendungsfall-Seite (Silo-SEO).
+// Produkt-Liste; jede Karte führt auf ihre Anwendungsfall-Seite (Silo-SEO).
 const { t } = useI18n()
 const localePath = useLocalePath()
 

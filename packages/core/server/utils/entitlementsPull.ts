@@ -13,7 +13,7 @@ import {
  * verifizierte Dokumente in app_secrets.entitlements (system-020, server-only
  * — Audit-Befund N2). Ein fehlgeschlagener Pull lässt das gespeicherte
  * Dokument stehen — last-known-good trägt bis graceUntil (Grace-Semantik in
- * featureGates). Geteilt zwischen Intervall-Plugin und POST
+ * productGates). Geteilt zwischen Intervall-Plugin und POST
  * /api/platform/entitlements/refresh (system.manage).
  *
  * Jeder Lauf räumt zusätzlich die Altspalte app_config.entitlements
@@ -71,9 +71,9 @@ export async function runEntitlementsPull(event?: H3Event): Promise<Entitlements
   }
   if (legacy) await clearLegacyEntitlementsDocument(event)
 
-  invalidateFeatureGateCache()
+  invalidateProductGateCache()
   return {
     status: 'updated',
-    detail: `features: ${verified.payload.features.join(', ') || '—'}${verified.payload.suspended ? ' · SUSPENDED' : ''}`,
+    detail: `products: ${verified.payload.products.join(', ') || '—'}${verified.payload.suspended ? ' · SUSPENDED' : ''}`,
   }
 }

@@ -1,5 +1,5 @@
 export default defineNuxtConfig({
-  // früher gelistet = höhere Priorität — Feature Layer vor dem Core
+  // früher gelistet = höhere Priorität — Produkt Layer vor dem Core
   extends: ['../../packages/themes', '../../packages/admin', '../../packages/blueprint', '../../packages/comments', '../../packages/posts', '../../packages/events', '../../packages/media', '../../packages/feedback', '../../packages/billing', '../../packages/courses', '../../packages/tickets', '../../packages/activity', '../../packages/moderation', '../../packages/core', '../../packages/system'],
 
   // MDC-Modul + ProseMirror-Prebundling bringt der admin-Layer selbst mit.

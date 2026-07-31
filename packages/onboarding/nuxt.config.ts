@@ -1,5 +1,5 @@
 /**
- * Feature Layer: Onboarding — der öffentliche Trichter „Community in 60
+ * Produkt Layer: Onboarding — der öffentliche Trichter „Community in 60
  * Sekunden" (SAAS-ROADMAP #1). Lebt NUR in apps/platform und dort nur auf den
  * KONTROLL-Hosts (pukalani.tenancy.controlHosts, z. B. my.pukalani.app): dort gibt
  * es bewusst keinen Mandanten, weil hier erst einer entsteht.

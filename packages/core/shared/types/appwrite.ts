@@ -1,7 +1,7 @@
 import type { Models } from 'node-appwrite'
 
 /**
- * Basis für Domain-Types in Feature Layern und Apps:
+ * Basis für Domain-Types in Produkt Layern und Apps:
  *   interface Comment extends AppwriteRow { text: string; … }
  * Liegt in shared/ — sichtbar für app/ UND server/.
  */

@@ -66,9 +66,9 @@ const guestPoolEvent = {
   context: { tenant: { mode: 'pool', projectId: 'p', tenantId: 'kunde-a', communityId: 's-a' } },
 } as unknown as H3Event
 
-const paidCourse = { $id: 'c-1', access: 'paid', entitlementFeature: 'paidCourses' } as CourseRow
-const freeCourse = { $id: 'c-2', access: 'free', entitlementFeature: null } as CourseRow
-const membersCourse = { $id: 'c-3', access: 'members', entitlementFeature: null } as CourseRow
+const paidCourse = { $id: 'c-1', access: 'paid', entitlementProduct: 'paidCourses' } as CourseRow
+const freeCourse = { $id: 'c-2', access: 'free', entitlementProduct: null } as CourseRow
+const membersCourse = { $id: 'c-3', access: 'members', entitlementProduct: null } as CourseRow
 
 describe('Ohne registrierten Guard sind paid-Kurse zu (Pool-Zustand heute)', () => {
   it('wirft 403 — „not configured", nicht etwa ein stilles Ja', async () => {

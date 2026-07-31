@@ -7,14 +7,14 @@ import type { Models } from 'node-appwrite'
  * Bis system-019 lag es in `app_config.entitlements`. Diese Tabelle ist seit
  * system-005 Table-read(any) — bewusst, weil Config-Flags und Themes live an
  * Gäste propagieren müssen. Table-Permissions vererben aber auf ALLE Rows:
- * jeder Client konnte das Dokument (siteProjectId, Feature-Zuteilung,
+ * jeder Client konnte das Dokument (siteProjectId, Produkt-Zuteilung,
  * `suspended`, Gültigkeitsfenster, `kid`) per Row-GET oder Realtime direkt bei
  * Appwrite abholen — an den Nuxt-Wegen vorbei, die K5 dicht gemacht hat.
  *
  * Seit system-020 lebt es in `app_secrets/global.entitlements`: eigene Tabelle
  * mit LEEREN Permissions, erreichbar nur über den Admin-Client (API-Key).
  * Kein Realtime — das Dokument hat keinen Client-Leser (K5-Analyse), bewertet
- * wird es ausschließlich in featureGates.
+ * wird es ausschließlich in productGates.
  *
  * 2-WEGE-READ: gelesen wird zuerst die neue Stelle, Fallback ist die
  * Altspalte. Damit ist die Rollout-Reihenfolge (Migration vs. Code-Deploy)
@@ -52,7 +52,7 @@ export async function getLegacyEntitlementsDocument(event?: H3Event): Promise<st
 
 /**
  * Das gespeicherte Dokument (roh, ungeprüft — die Signaturprüfung macht
- * featureGates). Leer = kein Dokument = Entitlement-Bedingung neutral AN.
+ * productGates). Leer = kein Dokument = Entitlement-Bedingung neutral AN.
  */
 export async function getEntitlementsDocument(event?: H3Event): Promise<string> {
   try {

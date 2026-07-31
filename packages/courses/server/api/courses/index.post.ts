@@ -30,7 +30,10 @@ export default defineEventHandler(async (event) => {
     description: body.description,
     status,
     access: body.access,
-    entitlementFeature: body.access === 'paid' ? (body.entitlementFeature ?? null) : null,
+    entitlementProduct: body.access === 'paid' ? (body.entitlementProduct ?? null) : null,
+    // entitlementFeature: Übergang bis zum Zusammenziehen (E11) — Spiegel der
+    // alten Spalte für den Rollback-Pfad.
+    entitlementFeature: body.access === 'paid' ? (body.entitlementProduct ?? null) : null,
     authorId: user.$id,
     authorName: user.name,
     lessonCount: 0,

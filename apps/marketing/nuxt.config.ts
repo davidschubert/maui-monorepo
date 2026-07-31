@@ -35,8 +35,8 @@ export default defineNuxtConfig({
     pageTransition: { name: 'page', mode: 'out-in' },
   },
 
-  // Die Produkt-Unterseiten lagen bis 2026-07-30 unter /features/* bzw.
-  // /de/features/* und waren in dieser Form schon veröffentlicht (Links,
+  // Die Produkt-Unterseiten lagen bis 2026-07-30 unter /products/* bzw.
+  // /de/products/* und waren in dieser Form schon veröffentlicht (Links,
   // Index). Kundensprache ist „Produkte" — das Segment heißt jetzt
   // /products/* (EN) bzw. /de/produkte/* (DE). 301 statt 302, damit
   // Suchmaschinen die Adresse dauerhaft übernehmen.
@@ -45,8 +45,8 @@ export default defineNuxtConfig({
   // trugen je Sprache ein eigenes Segment (/for/* · /de/fuer/*) und liegen
   // jetzt für beide Sprachen unter /use-cases/* bzw. /de/use-cases/*.
   routeRules: {
-    '/features/**': { redirect: { to: '/products/**', statusCode: 301 } },
-    '/de/features/**': { redirect: { to: '/de/produkte/**', statusCode: 301 } },
+    '/products/**': { redirect: { to: '/products/**', statusCode: 301 } },
+    '/de/products/**': { redirect: { to: '/de/produkte/**', statusCode: 301 } },
     '/for/**': { redirect: { to: '/use-cases/**', statusCode: 301 } },
     '/de/fuer/**': { redirect: { to: '/de/use-cases/**', statusCode: 301 } },
   },

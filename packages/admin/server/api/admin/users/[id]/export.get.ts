@@ -1,7 +1,7 @@
 /**
  * DSGVO: Daten eines Users als JSON exportieren (Admin) + Audit.
  * Zusammensetzung (Account + Sessions + alle UserDataContributors) macht
- * exportUserCompletely — vollständig paginiert, kein Feature-Wissen hier.
+ * exportUserCompletely — vollständig paginiert, kein Produkt-Wissen hier.
  */
 export default defineEventHandler(async (event) => {
   requirePermission(event, 'users.manage')

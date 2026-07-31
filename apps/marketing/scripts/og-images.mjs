@@ -48,7 +48,7 @@ const CARDS = [
     name: `use-cases-${slug}`, title: `audiencePages.items.${slug}.title`, sub: `audiencePages.items.${slug}.name`,
   })),
   ...['diskussionen', 'moderation', 'branding', 'beitraege', 'kurse', 'events'].map(slug => ({
-    name: `products-${slug}`, title: `features.items.${slug}.title`, sub: `features.items.${slug}.name`,
+    name: `products-${slug}`, title: `products.items.${slug}.title`, sub: `products.items.${slug}.name`,
   })),
 ]
 

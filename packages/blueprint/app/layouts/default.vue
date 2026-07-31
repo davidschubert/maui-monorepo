@@ -25,7 +25,7 @@
  * blueprint (control/photos/portfolio/marketing/_template).
  */
 import type { DropdownMenuItem } from '@nuxt/ui'
-import { isFeatureStateEnabled } from '../../../core/shared/types/config'
+import { isProductStateEnabled } from '../../../core/shared/types/config'
 import type { PukalaniChromeNavEntry, PukalaniChromeUtility } from '../../../core/shared/types/chrome'
 import type { PublicPageNavItem } from '../../../pages/server/api/pages/public/index.get'
 
@@ -36,11 +36,11 @@ const appConfig = useAppConfig()
 const brand = useBrandName()
 const { planAllows } = useTenantPlan()
 
-// Laufzeit-Feature-Gates (F2): nur Ausblenden — die Autorität ist die
-// core feature-gate-Middleware (gleicher Mechanismus wie die Dashboard-Nav).
+// Laufzeit-Produkt-Gates (F2): nur Ausblenden — die Autorität ist die
+// core product-gate-Middleware (gleicher Mechanismus wie die Dashboard-Nav).
 const runtimeFlags = useRuntimeFlags()
-const featureOn = (featureKey?: string) =>
-  !featureKey || isFeatureStateEnabled(runtimeFlags.value.features[featureKey])
+const productOn = (productKey?: string) =>
+  !productKey || isProductStateEnabled(runtimeFlags.value.products[productKey])
 
 type ChromeConfig = {
   nav?: Record<string, PukalaniChromeNavEntry | false>
@@ -80,12 +80,12 @@ interface NavItem {
   planProduct?: string
 }
 
-// Registry-Einträge (gefiltert: abgeschaltet/Feature/Auth/Plan) + CMS-Seiten
+// Registry-Einträge (gefiltert: abgeschaltet/Produkt/Auth/Plan) + CMS-Seiten
 // (order 60 — nach den Produkten, vor „Pricing" bei order 90), sortiert.
 const navItems = computed<NavItem[]>(() => {
   const entries = Object.entries(chrome.value.nav ?? {})
     .filter((pair): pair is [string, PukalaniChromeNavEntry] => pair[1] !== false && !!pair[1])
-    .filter(([, entry]) => featureOn(entry.featureKey))
+    .filter(([, entry]) => productOn(entry.productKey))
     .filter(([, entry]) => !entry.requiresAuth || isLoggedIn.value)
     .filter(([, entry]) => !entry.planProduct || planAllows(entry.planProduct))
     .map(([id, entry]) => ({
@@ -120,7 +120,7 @@ const overflowNav = computed<DropdownMenuItem[]>(() =>
 const utilities = computed(() =>
   Object.entries(chrome.value.utilities ?? {})
     .filter((pair): pair is [string, PukalaniChromeUtility] => pair[1] !== false && !!pair[1])
-    .filter(([, u]) => featureOn(u.featureKey))
+    .filter(([, u]) => productOn(u.productKey))
     .filter(([, u]) => !u.requiresAuth || isLoggedIn.value)
     .map(([id, u]) => ({ id, component: u.component, order: u.order ?? 50, zone: u.zone ?? 'menu' }))
     .sort((a, b) => a.order - b.order))

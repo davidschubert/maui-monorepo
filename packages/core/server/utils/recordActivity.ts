@@ -36,7 +36,7 @@ export interface ActivityInput {
  * Schreibt einen Eintrag in den Activity-Feed (`activities`, system-Eigentum).
  * Best-effort: wirft NIE — ein fehlgeschlagener Feed-Eintrag darf den
  * auslösenden Request (z. B. das Erstellen eines Kommentars) nicht scheitern
- * lassen. Feature-Layer rufen diesen Vertrag auf, statt selbst auf die Tabelle
+ * lassen. Produkt-Layer rufen diesen Vertrag auf, statt selbst auf die Tabelle
  * zuzugreifen (kein Cross-Layer-String-Coupling, CONCEPT A14) — die UI-Welt
  * dazu liefert packages/activity.
  *

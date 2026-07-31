@@ -4,7 +4,7 @@
  * comments-Layer — die Typen dazu jetzt auch (vorher admin/shared; comments
  * griff dafür quer in einen Layer, von dem es nicht abhängt). admin rendert
  * sein Dashboard-Widget über eigene MINIMALE lokale Shapes (strukturell
- * kompatibel, kein Import) — Fundament-Layer hängen nie von Features ab.
+ * kompatibel, kein Import) — Fundament-Layer hängen nie von Produkte ab.
  */
 
 export type ModerationFilter = 'reported' | 'hidden' | 'all'

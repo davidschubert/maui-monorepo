@@ -1,24 +1,24 @@
-import type { FeatureManifest } from '../../shared/types/manifest'
+import type { ProductManifest } from '../../shared/types/manifest'
 
 /**
- * Laufzeit-Registry der Feature-Manifeste (F2/F7): Jeder Feature-Layer
+ * Laufzeit-Registry der Produkt-Manifeste (F2/F7): Jeder Produkt-Layer
  * registriert sein Manifest per Nitro-Plugin (server/plugins/
- * feature-manifest.ts) — gleiches Vertragsmuster wie
+ * product-manifest.ts) — gleiches Vertragsmuster wie
  * registerUserDataContributor. Der Core kennt so zur Laufzeit alle
- * EINKOMPILIERTEN Features (Katalog-Quelle + Enforcement-Grundlage),
+ * EINKOMPILIERTEN Produkte (Katalog-Quelle + Enforcement-Grundlage),
  * ohne die Layer zu kennen.
  *
  * Das Manifest-FILE bleibt `import type`-only (check:manifests erzwingt
  * das) — den Wert-Import macht das Plugin.
  */
 
-const registry = new Map<string, FeatureManifest>()
+const registry = new Map<string, ProductManifest>()
 
-export function registerFeatureManifest(manifest: FeatureManifest): void {
+export function registerProductManifest(manifest: ProductManifest): void {
   registry.set(manifest.key, manifest)
 }
 
-/** Alle einkompilierten Feature-Manifeste (Key → Manifest). */
-export function getFeatureRegistry(): ReadonlyMap<string, FeatureManifest> {
+/** Alle einkompilierten Produkt-Manifeste (Key → Manifest). */
+export function getProductRegistry(): ReadonlyMap<string, ProductManifest> {
   return registry
 }

@@ -3,9 +3,9 @@ import type { H3Event } from 'h3'
 /**
  * Frame-Ancestors-Registry (Embed-Vorarbeit E0): Standardmäßig bekommt JEDE
  * SSR-Seite `Content-Security-Policy: frame-ancestors 'self'` (Clickjacking-
- * Schutz für Login/Dashboard). Feature-Layer mit framebaren Routen (z. B.
+ * Schutz für Login/Dashboard). Produkt-Layer mit framebaren Routen (z. B.
  * comments `/embed`) registrieren ihre Pfade hier per Nitro-Plugin — expliziter
- * Vertrag wie registerUserDataContributor, keine core→Feature-Kopplung.
+ * Vertrag wie registerUserDataContributor, keine core→Produkt-Kopplung.
  * `X-Frame-Options` bleibt bewusst weg (CSP reicht; XFO kann frame-ancestors
  * nicht abbilden).
  */

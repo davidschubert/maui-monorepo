@@ -6,7 +6,7 @@ import type { TenantContext } from '../../shared/types/tenant'
  * Horizont-3 Naht 3 — mandanten-agnostischer Datenzugriff (RUHEND).
  * docs/referenz/HORIZONT-3-POOL-SILO-BLUEPRINT.md, validiert in spikes/s5-pool-silo.
  *
- * Feature-Code ruft `listRows({ queries: scopeQuery(event, [...]) })` und
+ * Produkt-Code ruft `listRows({ queries: scopeQuery(event, [...]) })` und
  * `createRow({ data: scopeRow(event, {...}) })`. Ohne Tenant-Kontext (heute)
  * und im Silo-Modus sind beide No-Ops → Verhalten unverändert. Im Pool-Modus
  * erzwingen sie den `tenantId`-Filter/-Wert (das Sicherheitsnetz zusätzlich zu
@@ -88,7 +88,7 @@ export function registrationOpenFor(tenant: TenantContext | null): boolean {
   return tenant?.openRegistration !== false
 }
 
-// ── event-Wrapper (das, was Feature-Code aufruft) ───────────────────────────
+// ── event-Wrapper (das, was Produkt-Code aufruft) ───────────────────────────
 
 export function scopeQuery(event: H3Event, queries: string[] = []): string[] {
   return scopeQueriesFor(useTenant(event), queries)

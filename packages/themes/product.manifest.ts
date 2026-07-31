@@ -1,4 +1,4 @@
-import type { FeatureManifest } from '../core/shared/types/manifest'
+import type { ProductManifest } from '../core/shared/types/manifest'
 
 export default {
   key: 'themes',
@@ -11,4 +11,4 @@ export default {
     de: 'Custom Themes und Schriften: Galerie, Editor mit Live-Vorschau, Laufzeit-Farbrampen und selbst gehostete Font-Uploads.',
   },
   icon: 'i-ph-palette',
-} satisfies FeatureManifest
+} satisfies ProductManifest

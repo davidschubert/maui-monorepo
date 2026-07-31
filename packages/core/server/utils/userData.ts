@@ -3,11 +3,11 @@ import type { H3Event } from 'h3'
 /**
  * UserDataContributor-Vertrag (GDPR-Export/-Löschung, CONCEPT A14).
  *
- * Feature-Layer BESITZEN ihre Daten — core darf ihre Schemas nicht kennen.
+ * Produkt-Layer BESITZEN ihre Daten — core darf ihre Schemas nicht kennen.
  * Stattdessen registriert jeder Layer beim Serverstart (Nitro-Plugin
  * `server/plugins/user-data.ts`) einen Contributor; core orchestriert Export
  * und Löschung über diese Registry (userDataOrchestration.ts), ohne ein
- * einziges Feature-Schema zu importieren. Gleiches Kompositionsprinzip wie
+ * einziges Produkt-Schema zu importieren. Gleiches Kompositionsprinzip wie
  * `pukalani.admin.modules`: Apps ohne einen Layer haben dessen Plugin nicht →
  * die Registry ist automatisch korrekt besetzt.
  */

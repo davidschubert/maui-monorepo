@@ -1,5 +1,5 @@
 /**
- * Feature Layer: Event Calendar (Phase 22) — Liste + Detailseite, RSVP mit
+ * Produkt Layer: Event Calendar (Phase 22) — Liste + Detailseite, RSVP mit
  * server-autoritativem Teilnehmerzähler, ICS-Export. Eigenes Datenmodell
  * (events, event_rsvps — Regel 3: eigene Tables, niemals Core). Bewusst
  * schlicht: keine Recurring Events, keine Reminder-Mails, kein Monats-Grid.

@@ -1,7 +1,7 @@
 /**
- * Feature-/Site-Manifeste (Plattform-Strategie F1) — Single Source of Truth,
- * WELCHE Feature-Layer existieren und WELCHE eine Site nutzt. Layer
- * deklarieren `packages/<key>/feature.manifest.ts`, Apps
+ * Produkt-/Site-Manifeste (Plattform-Strategie F1) — Single Source of Truth,
+ * WELCHE Produkt-Layer existieren und WELCHE eine Site nutzt. Layer
+ * deklarieren `packages/<key>/product.manifest.ts`, Apps
  * `apps/<app>/site.manifest.ts`; `pnpm check:manifests` hält `extends` und
  * `package.json` dagegen konsistent (CI).
  *
@@ -16,15 +16,15 @@ export interface ManifestText {
   de: string
 }
 
-export interface FeatureManifest {
-  /** Feature-Key — MUSS dem Ordnernamen unter packages/ entsprechen. */
+export interface ProductManifest {
+  /** Produkt-Key — MUSS dem Ordnernamen unter packages/ entsprechen. */
   key: string
   /**
    * foundation = Grundgerüst (bei Platform-Sites immer aktiv);
-   * optional = zubuchbares Feature. Baupflicht in Apps haben nur core+system.
+   * optional = zubuchbares Produkt. Baupflicht in Apps haben nur core+system.
    */
   tier: 'foundation' | 'optional'
-  /** Harte Layer-Abhängigkeiten (Build bricht ohne sie) — Feature-Keys. */
+  /** Harte Layer-Abhängigkeiten (Build bricht ohne sie) — Produkt-Keys. */
   requires?: string[]
   /** Hat der Layer eigene Appwrite-Migrationen (scripts/migrations/)? */
   hasMigrations: boolean
@@ -34,12 +34,12 @@ export interface FeatureManifest {
    *  das Control Plane liest Manifeste später ohne Nuxt-/i18n-Kontext. */
   title: ManifestText
   description: ManifestText
-  /** Icon für den Feature-Katalog, z. B. 'i-ph-chat-circle'. */
+  /** Icon für den Produkt-Katalog, z. B. 'i-ph-chat-circle'. */
   icon?: string
   /**
-   * API-Pfad-Präfixe des Features (z. B. ['/api/comments']) — Grundlage
-   * fürs zentrale Laufzeit-Enforcement (core feature-gate-Middleware):
-   * Feature aus ⇒ 404 für alle Routen darunter. Nur für optional-Tier
+   * API-Pfad-Präfixe des Produkts (z. B. ['/api/comments']) — Grundlage
+   * fürs zentrale Laufzeit-Enforcement (core product-gate-Middleware):
+   * Produkt aus ⇒ 404 für alle Routen darunter. Nur für optional-Tier
    * relevant (foundation ist nicht schaltbar).
    */
   apiPrefixes?: string[]
@@ -49,8 +49,8 @@ export interface SiteManifest {
   /** Site-Kennung — App-Ordnername unter apps/ (ohne führenden Unterstrich). */
   siteId: string
   /**
-   * Gewählte Features (Feature-Keys). core + system sind IMMER dabei und
+   * Gewählte Produkte (Produkt-Keys). core + system sind IMMER dabei und
    * werden nicht gelistet.
    */
-  features: string[]
+  products: string[]
 }

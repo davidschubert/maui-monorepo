@@ -1,5 +1,5 @@
 /**
- * Feature Layer: Feedback-Widget — schwebender Button (die APP platziert
+ * Produkt Layer: Feedback-Widget — schwebender Button (die APP platziert
  * <FeedbackButton /> in ihrem Layout, A14-Komposition), kleines Popup,
  * eigenes Datenmodell (Table feedback) + Admin-Sichtung. Auch Gäste dürfen
  * senden (Rate-Limit-Bucket feedback:create im Core). Extended den Core

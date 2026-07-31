@@ -1,4 +1,4 @@
-import type { FeatureManifest } from '../core/shared/types/manifest'
+import type { ProductManifest } from '../core/shared/types/manifest'
 
 /**
  * KOMPOSITIONS-LAYER (Davids „Bauplan", 2026-07-27 — docs/referenz/PRODUKT-BILANZ.md).
@@ -28,4 +28,4 @@ export default {
     de: 'Kompositions-Layer: verdrahtet die Produkte genau einmal (Feed + Kommentare, …), damit Pool- und Silo-Sites identisch funktionieren.',
   },
   icon: 'i-ph-blueprint',
-} satisfies FeatureManifest
+} satisfies ProductManifest

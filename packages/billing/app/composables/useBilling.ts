@@ -26,13 +26,13 @@ export function useBilling() {
     immediate: billingConfig.value.enabled,
     // 404 (Gate aus) still schlucken — Zustand bleibt free
     ignoreResponseError: true,
-    default: () => ({ subscription: null, planId: null, features: [], entitled: false }),
+    default: () => ({ subscription: null, planId: null, products: [], entitled: false }),
   })
 
   const subscription = computed(() => data.value?.subscription ?? null)
   const planId = computed(() => data.value?.planId ?? null)
   const entitled = computed(() => data.value?.entitled ?? false)
-  const hasFeature = (feature: string) => (data.value?.features ?? []).includes(feature)
+  const hasProduct = (product: string) => (data.value?.products ?? []).includes(product)
 
   // Realtime auf die EIGENE Row (sofern vorhanden) — Muster PostFeed:
   // Stop-Funktion selbst halten, onMounted hat keinen Effect-Scope
@@ -47,5 +47,5 @@ export function useBilling() {
   })
   onBeforeUnmount(() => stopRealtime?.())
 
-  return { config: billingConfig, subscription, planId, entitled, hasFeature, refresh }
+  return { config: billingConfig, subscription, planId, entitled, hasProduct, refresh }
 }

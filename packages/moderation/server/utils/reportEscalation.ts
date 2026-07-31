@@ -3,7 +3,7 @@ import { openReportsForTarget } from './reportQueries'
 
 /**
  * Report-Eskalations-Vertrag (A14): moderation zählt Meldungen, die
- * KONSEQUENZ (z. B. Auto-Hide) gehört dem Target-Owner. Feature-Layer
+ * KONSEQUENZ (z. B. Auto-Hide) gehört dem Target-Owner. Produkt-Layer
  * registrieren pro targetType einen Handler (Nitro-Plugin, Muster wie
  * registerUserDataContributor); nach jeder NEUEN Meldung ruft moderation
  * die Handler mit der aktuellen Anzahl offener Meldungen — best-effort,

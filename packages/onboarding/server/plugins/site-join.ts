@@ -8,7 +8,7 @@ import type { SiteJoinOutcome } from '../../../core/shared/siteJoin'
  * Warum in DIESEM Layer: `community_members` gehört dem Control Plane, und der
  * einzige Schreibkanal dorthin ist die Naht dieses Layers (Secret + JWT,
  * utils/controlPlane.ts). Core darf sie nicht kennen (A14: ein Fundament-Layer
- * hängt nie an einem Feature), also registriert der Layer den Handler — dasselbe
+ * hängt nie an einem Produkt), also registriert der Layer den Handler — dasselbe
  * Muster wie der Rollen-Resolver in apps/platform/server/plugins.
  *
  * Ohne diesen Layer (Silo-App comments, Playground) ist kein Handler registriert

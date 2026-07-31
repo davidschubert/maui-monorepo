@@ -1,12 +1,12 @@
 import type { Capability } from './authz'
 
 /**
- * Admin-Modul, das ein Feature-Layer im Dashboard registriert
+ * Admin-Modul, das ein Produkt-Layer im Dashboard registriert
  * (app.config: `pukalani.admin.modules`, deep-merged über alle Layer). Das
- * Admin-Layout baut die Navigation daraus — so muss `admin` die Feature-
- * Sektionen NICHT hart kennen; ein neues Feature steckt sich nur „ein".
+ * Admin-Layout baut die Navigation daraus — so muss `admin` die Produkt-
+ * Sektionen NICHT hart kennen; ein neues Produkt steckt sich nur „ein".
  *
- * Liegt in core (Fundament), damit Feature-Layer (comments, …) UND admin den
+ * Liegt in core (Fundament), damit Produkt-Layer (comments, …) UND admin den
  * Vertrag nutzen, ohne sich gegenseitig zu importieren (Layer-Grenze A14).
  */
 export interface PukalaniAdminModuleChild {
@@ -28,12 +28,12 @@ export interface PukalaniAdminModule {
   /** Stabile ID (key/Dedup) */
   id: string
   /**
-   * Feature-Key des besitzenden Layers (F2): ist das Feature per Laufzeit-
+   * Produkt-Key des besitzenden Layers (F2): ist das Produkt per Laufzeit-
    * Gate deaktiviert, blendet die Dashboard-Nav den Eintrag aus (live über
    * den Realtime-Config-Kanal). Ohne Angabe immer sichtbar — die AUTORITÄT
    * bleibt die Server-Middleware (Routen 404en), die Nav ist nur UX.
    */
-  featureKey?: string
+  productKey?: string
   /** i18n-Key des Nav-Labels */
   labelKey: string
   /** Icon (i-ph-…) */

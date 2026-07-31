@@ -205,7 +205,7 @@ export interface ChangelogListResponse {
  * — bewusst lokal definiert statt Cross-Package-Import (Typen-Entwirrung
  * nach A14): Der VOLLE Moderations-Vertrag (ModeratedComment & Co.) gehört
  * seit dem Routen-Umzug dem comments-Layer (comments/shared/types/
- * moderation.ts); admin als Fundament-Layer hängt nie von Features ab und
+ * moderation.ts); admin als Fundament-Layer hängt nie von Produkte ab und
  * kennt nur die Felder, die es rendert (strukturell kompatibel).
  */
 export interface AdminUserComment {

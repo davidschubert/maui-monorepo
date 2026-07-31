@@ -395,7 +395,7 @@
       "confirmTitle": "Snapshot löschen?",
       "confirmText": "{name} endgültig löschen? Der Snapshot kann danach nicht mehr abgerufen werden."
     },
-    "features": {
+    "products": {
       "title": "Produkte",
       "description": "Einkompilierte Produkte dieser Site — optionale lassen sich zur Laufzeit schalten, ohne Deploy. Daten bleiben beim Abschalten erhalten.",
       "foundation": "Grundgerüst",

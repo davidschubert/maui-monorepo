@@ -11,7 +11,7 @@
       "currentPlan": "Dein aktueller Stand",
       "included": "Im Abo enthalten",
       "loginCta": "Anmelden und upgraden",
-      "freeFeatures": "Alle Community-Grundfunktionen",
+      "freeProducts": "Alle Community-Grundfunktionen",
       "alreadyActive": "Du hast schon ein aktives Abo — verwalte es über das Portal.",
       "checkoutFailed": "Checkout konnte nicht gestartet werden.",
       "disabled": "Abos sind hier noch nicht aktiviert.",
@@ -69,7 +69,7 @@
       "proDescription": "Für alle, die mehr wollen.",
       "freeDescription": "Der kostenlose Einstieg."
     },
-    "features": {},
+    "products": {},
     "validation": {
       "planUnknown": "Unbekannter Plan."
     }

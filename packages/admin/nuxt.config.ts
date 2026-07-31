@@ -1,5 +1,5 @@
 /**
- * Feature Layer: Admin-Dashboard (Grundgerüst + User-Verwaltung).
+ * Produkt Layer: Admin-Dashboard (Grundgerüst + User-Verwaltung).
  * Eigene Table: `changelog` (A14). Administriert außerdem Appwrite-User und
  * die Daten anderer Layer (Moderation). Extended den Core nicht selbst —
  * die App komponiert: extends: [admin, comments, core].

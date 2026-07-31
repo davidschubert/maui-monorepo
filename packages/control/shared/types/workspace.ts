@@ -70,8 +70,8 @@ export interface ControlPlan {
   /** Optionaler lookup_key des JAHRES-Preises (gleicher Plan, anderes Intervall).
    *  Fehlt er, gibt es für diesen Plan nur das Monats-Abo. */
   lookupKeyYearly?: string | null
-  /** Feature-Keys, die der Plan gewährt (VOR requires-Schluss). */
-  features: string[]
+  /** Produkt-Keys, die der Plan gewährt (VOR requires-Schluss). */
+  products: string[]
 }
 
 /** Abrechnungsintervall eines Workspace-Abos. Bewusst studio-eigen (A14:

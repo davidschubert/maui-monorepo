@@ -1,4 +1,4 @@
-import type { FeatureManifest } from '../core/shared/types/manifest'
+import type { ProductManifest } from '../core/shared/types/manifest'
 
 export default {
   key: 'media',
@@ -11,4 +11,4 @@ export default {
     de: 'Verwaltete Bild-Galerie: Upload, Bildunterschriften, Sortierung und Publish-Status — die Inhalts-Quelle für Foto- und Portfolio-Seiten.',
   },
   icon: 'i-ph-images',
-} satisfies FeatureManifest
+} satisfies ProductManifest

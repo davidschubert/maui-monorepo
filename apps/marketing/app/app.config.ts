@@ -451,7 +451,7 @@ export default defineAppConfig({
             // die Lesbarkeit der Preisspalte (die Preise stehen dann nicht
             // mehr auf einer Höhe, weil die Beschreibungen verschieden lang
             // sind). Der Fuß ist die einzige Stelle nach dem Preis, die freien
-            // Text nimmt: `features` wäre eine <ul> und dürfte nur <li>
+            // Text nimmt: `products` wäre eine <ul> und dürfte nur <li>
             // enthalten. `justify-between` setzt die Beschreibung an den
             // Anfang des Fußes und den Knopf ans Ende (Bestand: `.plan-desc
             // { flex: 1 }`); `items-stretch` nimmt die Zentrierung der

@@ -1,4 +1,4 @@
-import type { FeatureManifest } from '../core/shared/types/manifest'
+import type { ProductManifest } from '../core/shared/types/manifest'
 
 export default {
   key: 'feedback',
@@ -11,4 +11,4 @@ export default {
     de: 'Nutzer-Feedback einsammeln, mit Status-Workflow und Admin-Triage.',
   },
   icon: 'i-ph-megaphone',
-} satisfies FeatureManifest
+} satisfies ProductManifest

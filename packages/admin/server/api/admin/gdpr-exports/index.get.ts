@@ -3,7 +3,7 @@ import { Query } from 'node-appwrite'
 /**
  * GDPR-Snapshots listen (Admin). Ruft dabei den Lazy-Cleanup: Dateien älter
  * als die Aufbewahrungsfrist (30 Tage) werden bei jedem Aufruf entfernt —
- * jeder Admin-Kontakt mit dem Feature garantiert so die Frist (Plan §4.8).
+ * jeder Admin-Kontakt mit dem Produkt garantiert so die Frist (Plan §4.8).
  */
 export default defineEventHandler(async (event) => {
   requirePermission(event, 'users.manage')

@@ -1,5 +1,5 @@
 /**
- * Kompositions-Layer „Bauplan" (blueprint) — s. feature.manifest.ts.
+ * Kompositions-Layer „Bauplan" (blueprint) — s. product.manifest.ts.
  *
  * Hier liegt das ZUSAMMENSTECKEN der Produkte genau einmal: Seiten, die
  * Produkt-Slots füllen (z. B. Feed + CommentSection), damit Pool- und

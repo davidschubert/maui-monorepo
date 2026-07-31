@@ -9,7 +9,7 @@ export default defineAppConfig({
       modules: [
         {
           id: 'posts',
-          featureKey: 'posts',
+          productKey: 'posts',
           labelKey: 'admin.nav.posts',
           icon: 'i-ph-users-three',
           to: '/dashboard/posts',

@@ -21,7 +21,7 @@ function makePayload(overrides: Partial<EntitlementPayload> = {}): EntitlementPa
     v: ENTITLEMENT_DOC_VERSION,
     kid: 'k1',
     siteProjectId: 'photos-qgry',
-    features: ['media', 'comments', 'moderation'],
+    products: ['media', 'comments', 'moderation'],
     suspended: false,
     issuedAt: new Date(NOW - HOUR).toISOString(),
     validUntil: new Date(NOW + 24 * HOUR).toISOString(),
@@ -40,13 +40,13 @@ describe('verifyEntitlementDocument', () => {
   it('akzeptiert ein korrekt signiertes Dokument', () => {
     const result = verifyEntitlementDocument(signDocument(makePayload()), KEYS, 'photos-qgry', NOW)
     expect(result.ok).toBe(true)
-    if (result.ok) expect(result.payload.features).toContain('media')
+    if (result.ok) expect(result.payload.products).toContain('media')
   })
 
   it('lehnt manipulierte Payloads ab (Signatur)', () => {
     const doc = signDocument(makePayload())
     const [, signature] = doc.split('.')
-    const forged = Buffer.from(JSON.stringify(makePayload({ features: ['media', 'billing'] })), 'utf8').toString('base64url')
+    const forged = Buffer.from(JSON.stringify(makePayload({ products: ['media', 'billing'] })), 'utf8').toString('base64url')
     const result = verifyEntitlementDocument(`${forged}.${signature}`, KEYS, 'photos-qgry', NOW)
     expect(result).toEqual({ ok: false, reason: 'signature' })
   })
@@ -109,7 +109,7 @@ describe('evaluateEntitlement', () => {
   })
 
   it('foundation-Tier ist nie entitlement-geschaltet', () => {
-    expect(evaluateEntitlement(makePayload({ features: [] }), 'themes', 'foundation', NOW)).toBe(true)
+    expect(evaluateEntitlement(makePayload({ products: [] }), 'themes', 'foundation', NOW)).toBe(true)
     expect(evaluateEntitlement(makePayload({ suspended: true }), 'admin', 'foundation', NOW)).toBe(true)
   })
 
@@ -118,7 +118,7 @@ describe('evaluateEntitlement', () => {
     expect(evaluateEntitlement(payload, 'tickets', 'optional', NOW)).toBe(false)
   })
 
-  it('suspended schaltet optionale Features ab', () => {
+  it('suspended schaltet optionale Produkte ab', () => {
     expect(evaluateEntitlement(makePayload({ suspended: true }), 'media', 'optional', NOW)).toBe(false)
   })
 

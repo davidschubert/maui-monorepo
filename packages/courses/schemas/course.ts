@@ -15,19 +15,19 @@ const courseFields = (t: TranslateFn) => ({
   slug: slugSchema(t),
   description: z.string().trim().min(1, t('courses.validation.descriptionRequired')).max(MAX_COURSE_DESCRIPTION, t('courses.validation.descriptionMax')),
   access: z.enum(COURSE_ACCESS),
-  entitlementFeature: z.string().trim().max(64).nullish(),
+  entitlementProduct: z.string().trim().max(64).nullish(),
 })
 
-/** access 'paid' verlangt das Entitlement-Feature (Guard-Ziel) */
-function paidNeedsFeature(data: { access?: string, entitlementFeature?: string | null }): boolean {
-  return data.access !== 'paid' || !!data.entitlementFeature
+/** access 'paid' verlangt das Entitlement-Produkt (Guard-Ziel) */
+function paidNeedsProduct(data: { access?: string, entitlementProduct?: string | null }): boolean {
+  return data.access !== 'paid' || !!data.entitlementProduct
 }
 
 export function createCourseSchema(t: TranslateFn = identity) {
   return z.object({
     ...courseFields(t),
     status: z.enum(['draft', 'published']).optional(),
-  }).refine(paidNeedsFeature, { message: t('courses.validation.paidNeedsFeature'), path: ['entitlementFeature'] })
+  }).refine(paidNeedsProduct, { message: t('courses.validation.paidNeedsProduct'), path: ['entitlementProduct'] })
 }
 
 export function createCourseEditSchema(t: TranslateFn = identity) {
@@ -37,9 +37,9 @@ export function createCourseEditSchema(t: TranslateFn = identity) {
     slug: f.slug.optional(),
     description: f.description.optional(),
     access: f.access.optional(),
-    entitlementFeature: f.entitlementFeature,
+    entitlementProduct: f.entitlementProduct,
     status: z.enum(['draft', 'published', 'archived']).optional(),
-    // paid-braucht-Feature prüft die Route gegen den MERGED Zustand
+    // paid-braucht-Produkt prüft die Route gegen den MERGED Zustand
   })
 }
 

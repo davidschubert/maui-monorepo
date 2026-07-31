@@ -1,4 +1,4 @@
-import type { FeatureManifest } from '../core/shared/types/manifest'
+import type { ProductManifest } from '../core/shared/types/manifest'
 
 export default {
   key: 'posts',
@@ -12,4 +12,4 @@ export default {
     de: 'Nutzer-Beiträge mit Markdown, Moderations-Assist und Anbindung an den Activity-Feed.',
   },
   icon: 'i-ph-note-pencil',
-} satisfies FeatureManifest
+} satisfies ProductManifest

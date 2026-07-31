@@ -1,4 +1,4 @@
-import type { FeatureManifest } from '../core/shared/types/manifest'
+import type { ProductManifest } from '../core/shared/types/manifest'
 
 export default {
   key: 'tickets',
@@ -11,4 +11,4 @@ export default {
     de: 'Support-Ticket-Board mit Zuweisung, Benachrichtigungen und optionaler KI-Triage.',
   },
   icon: 'i-ph-lifebuoy',
-} satisfies FeatureManifest
+} satisfies ProductManifest

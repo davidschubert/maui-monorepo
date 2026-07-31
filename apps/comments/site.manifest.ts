@@ -1,7 +1,7 @@
 import type { SiteManifest } from '../../packages/core/shared/types/manifest'
 
 /**
- * Feature-Wahl dieser Site — Single Source of Truth. `extends` in
+ * Produkt-Wahl dieser Site — Single Source of Truth. `extends` in
  * nuxt.config.ts und die @pukalani/*-Dependencies in package.json müssen dazu
  * passen; `pnpm check:manifests` erzwingt das (CI). core + system sind
  * implizit immer dabei. Die Reihenfolge HIER ist egal (Menge) — die
@@ -9,7 +9,7 @@ import type { SiteManifest } from '../../packages/core/shared/types/manifest'
  */
 export default {
   siteId: 'comments',
-  features: [
+  products: [
     'themes',
     'admin',
     'blueprint',

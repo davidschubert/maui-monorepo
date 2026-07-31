@@ -7,13 +7,13 @@ export default defineAppConfig({
     // Chrome-Registry (S9): Nav-Einträge für events/courses stehen BEWUSST
     // hier statt in den Layern — deren Kompositionen bleiben App-Sache, bis
     // die Produkte durch die Datentür gegangen und im Pool montiert sind
-    // (blueprint/feature.manifest.ts, Bilanz-Reihenfolge Schritt 3). Dann
+    // (blueprint/product.manifest.ts, Bilanz-Reihenfolge Schritt 3). Dann
     // ziehen die Einträge in die Layer-app.configs um. Gates wie im alten
     // Layout: Events öffentlich, Kurse nur eingeloggt.
     chrome: {
       nav: {
-        events: { labelKey: 'events.list.title', to: '/events', icon: 'i-ph-calendar-dots', order: 20, featureKey: 'events' },
-        courses: { labelKey: 'courses.list.title', to: '/courses', icon: 'i-ph-graduation-cap', order: 30, featureKey: 'courses', requiresAuth: true },
+        events: { labelKey: 'events.list.title', to: '/events', icon: 'i-ph-calendar-dots', order: 20, productKey: 'events' },
+        courses: { labelKey: 'courses.list.title', to: '/courses', icon: 'i-ph-graduation-cap', order: 30, productKey: 'courses', requiresAuth: true },
       },
     },
     ai: {
@@ -69,7 +69,7 @@ export default defineAppConfig({
       ai: { enabled: true },
     },
     // Stripe-Billing (Phase 23) — TEST-Mode; Products/Prices legt David im
-    // Dashboard an (lookup_keys wie hier deklariert). Feature-Strings sind
+    // Dashboard an (lookup_keys wie hier deklariert). Produkt-Strings sind
     // App-Konvention (courses konsumiert 'paidCourses' über den Access-Guard).
     billing: {
       enabled: true,
@@ -82,15 +82,15 @@ export default defineAppConfig({
           // billing.plans.free heißt seit dem P4-Rename „Basic" (Audit S10).
           id: 'free',
           labelKey: 'billing.plans.free',
-          features: [],
-          // highlights = reine Anzeige (billing.features.*); features bleiben Entitlements
+          products: [],
+          // highlights = reine Anzeige (billing.products.*); products bleiben Entitlements
           highlights: ['freeCommunity', 'freeVotes', 'freeEvents', 'freeCourses', 'freeFeed', 'freeThemes', 'freePrivacy'],
           lookupKeys: null,
         },
         {
           id: 'pro',
           labelKey: 'billing.plans.pro',
-          features: ['paidCourses'],
+          products: ['paidCourses'],
           highlights: ['proEverything', 'paidCourses', 'proNewCourses', 'proSupport', 'proEarlyAccess', 'proSupportsProject'],
           highlight: true,
           lookupKeys: { monthly: 'maui_pro_monthly', yearly: 'maui_pro_yearly' },

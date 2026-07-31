@@ -1,12 +1,12 @@
 import { ID, Query } from 'node-appwrite'
 import { z } from 'zod'
-import { FEATURE_CATALOG_TABLE, JOBS_TABLE, type FeatureCatalogRow, type SiteCreateJobPayload } from '../../../../shared/types/job'
+import { PRODUCT_CATALOG_TABLE, JOBS_TABLE, type ProductCatalogRow, type SiteCreateJobPayload } from '../../../../shared/types/job'
 import { WEBSITES_TABLE } from '../../../../shared/types/website'
 
 const createJobSchema = z.object({
   type: z.literal('site.create'),
   name: z.string().regex(/^[a-z][a-z0-9-]*$/).min(2).max(30),
-  features: z.array(z.string().regex(/^[a-z][a-z0-9-]*$/)).min(0).max(20),
+  products: z.array(z.string().regex(/^[a-z][a-z0-9-]*$/)).min(0).max(20),
   port: z.number().int().min(3002).max(3999).optional(),
 }).strict()
 
@@ -14,7 +14,7 @@ const createJobSchema = z.object({
  * Provisionierungs-Job anlegen (sites.manage) — M6-T2: „create-site als Job
  * hinter der UI". Der Web-Prozess validiert und BESCHREIBT nur (§ 8);
  * ausgeführt wird repo-seitig durch `pnpm control:jobs` (der die
- * Console-Credentials hält). Die finale Autorität über Features/requires
+ * Console-Credentials hält). Die finale Autorität über Produkte/requires
  * bleibt create-site selbst — hier nur Frühvalidierung fürs UI-Feedback.
  */
 export default defineEventHandler(async (event) => {
@@ -26,11 +26,11 @@ export default defineEventHandler(async (event) => {
   const databaseId = config.public.appwriteDatabaseId
 
   // Frühvalidierung gegen den gesyncten Katalog (leer = Runner lief noch nie)
-  const { rows: catalog } = await admin.tablesDB.listRows<FeatureCatalogRow>({
-    databaseId, tableId: FEATURE_CATALOG_TABLE, queries: [Query.limit(100)],
-  }).catch((error) => { throw toH3Error(error, 'Could not load feature catalog') })
+  const { rows: catalog } = await admin.tablesDB.listRows<ProductCatalogRow>({
+    databaseId, tableId: PRODUCT_CATALOG_TABLE, queries: [Query.limit(100)],
+  }).catch((error) => { throw toH3Error(error, 'Could not load product catalog') })
   if (!catalog.length) {
-    throw createError({ status: 409, statusText: 'Feature catalog empty — run the job runner once (pnpm control:jobs)' })
+    throw createError({ status: 409, statusText: 'Produkt catalog empty — run the job runner once (pnpm control:jobs)' })
   }
 
   // Wählbar: alles außer core/system (implizit immer dabei) und studio
@@ -38,14 +38,14 @@ export default defineEventHandler(async (event) => {
   // pro Site wählbar, nur nicht zubuchbar (F7).
   const NOT_SELECTABLE = ['core', 'system', 'control']
   const byKey = new Map(catalog.map(row => [row.$id, row]))
-  for (const feature of body.features) {
-    const entry = byKey.get(feature)
-    if (!entry || NOT_SELECTABLE.includes(feature)) {
-      throw createError({ status: 400, statusText: `Unknown or non-selectable feature: ${feature}` })
+  for (const product of body.products) {
+    const entry = byKey.get(product)
+    if (!entry || NOT_SELECTABLE.includes(product)) {
+      throw createError({ status: 400, statusText: `Unknown or non-selectable product: ${product}` })
     }
     for (const required of JSON.parse(entry.requires || '[]') as string[]) {
-      if (!body.features.includes(required)) {
-        throw createError({ status: 400, statusText: `Feature "${feature}" requires "${required}"` })
+      if (!body.products.includes(required)) {
+        throw createError({ status: 400, statusText: `Product "${product}" requires "${required}"` })
       }
     }
   }
@@ -69,7 +69,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 409, statusText: 'A job for this name is already queued or running' })
   }
 
-  const payload: SiteCreateJobPayload = { name: body.name, features: body.features, ...(body.port ? { port: body.port } : {}) }
+  const payload: SiteCreateJobPayload = { name: body.name, products: body.products, ...(body.port ? { port: body.port } : {}) }
   const row = await admin.tablesDB.createRow({
     databaseId, tableId: JOBS_TABLE, rowId: ID.unique(),
     data: {

@@ -1,4 +1,4 @@
-import type { FeatureManifest } from '../core/shared/types/manifest'
+import type { ProductManifest } from '../core/shared/types/manifest'
 
 export default {
   key: 'comments',
@@ -12,4 +12,4 @@ export default {
     de: 'Verschachtelte Kommentare mit Realtime, Votes, @-Mentions, Markdown, Gast-Lesezugriff und Embed-Widget.',
   },
   icon: 'i-ph-chat-circle',
-} satisfies FeatureManifest
+} satisfies ProductManifest

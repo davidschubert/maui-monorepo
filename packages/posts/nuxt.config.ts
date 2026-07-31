@@ -1,5 +1,5 @@
 /**
- * Feature Layer: Community-Feed (Posts, Polls, Questions) — Member-Content,
+ * Produkt Layer: Community-Feed (Posts, Polls, Questions) — Member-Content,
  * Plan: docs/archiv/COMMUNITY-POSTS.md. Eigenes Datenmodell (community_posts,
  * poll_votes — Regel 3: eigene Tables, niemals Core). Antworten liefert der
  * comments-Layer via targetType 'post' — komponiert in der APP (A14), hier

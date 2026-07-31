@@ -13,8 +13,8 @@ import { createPublicKey, verify as cryptoVerify } from 'node:crypto'
  *  - Die SIGNATUR wird IMMER geprüft — toleriert wird nur der fachliche
  *    Ablauf (validUntil), nie ein ungültiges/gefälschtes Dokument.
  *  - validUntil < now ≤ graceUntil: last-known-good gilt weiter (Grace).
- *  - now > graceUntil: optionale Features degradieren auf AUS.
- *  - suspended: expliziter kaufmännischer Aus-Schalter (optionale Features).
+ *  - now > graceUntil: optionale Produkte degradieren auf AUS.
+ *  - suspended: expliziter kaufmännischer Aus-Schalter (optionale Produkte).
  *  - foundation-Tier ist nie entitlement-geschaltet (core/system/themes/…).
  *  - Clock-Skew ±5 min auf issuedAt/graceUntil.
  *
@@ -28,8 +28,8 @@ export interface EntitlementPayload {
   v: number
   kid: string
   siteProjectId: string
-  /** Zugeteilte Feature-Keys (nur optional-Tier ist enforcement-relevant). */
-  features: string[]
+  /** Zugeteilte Produkt-Keys (nur optional-Tier ist enforcement-relevant). */
+  products: string[]
   suspended: boolean
   issuedAt: string
   validUntil: string
@@ -75,12 +75,16 @@ function parsePayload(raw: unknown): EntitlementPayload | null {
   const p = raw as Record<string, unknown>
   if (p.v !== ENTITLEMENT_DOC_VERSION) return null
   if (typeof p.kid !== 'string' || typeof p.siteProjectId !== 'string') return null
-  if (!Array.isArray(p.features) || !p.features.every(f => typeof f === 'string')) return null
+  // `features`: Übergang bis zum Zusammenziehen (E11) — Dokumente von VOR dem
+  // Rename tragen den alten Schlüssel; das gespeicherte last-known-good in
+  // app_secrets bleibt so über den Deploy hinweg gültig.
+  const products = Array.isArray(p.products) ? p.products : p.features
+  if (!Array.isArray(products) || !products.every(f => typeof f === 'string')) return null
   if (typeof p.suspended !== 'boolean') return null
   for (const field of ['issuedAt', 'validUntil', 'graceUntil']) {
     if (typeof p[field] !== 'string' || Number.isNaN(Date.parse(p[field] as string))) return null
   }
-  return p as unknown as EntitlementPayload
+  return { ...(p as unknown as EntitlementPayload), products: products as string[] }
 }
 
 /**
@@ -134,7 +138,7 @@ export function verifyEntitlementDocument(
 }
 
 /**
- * Entscheidet für EIN Feature, ob das Entitlement es zulässt.
+ * Entscheidet für EIN Produkt, ob das Entitlement es zulässt.
  *  - payload null (kein/nie ein Dokument) → neutral AN (Einführungs-
  *    sicherheit: Enforcement beginnt erst mit dem ersten gültigen Dokument).
  *  - foundation-Tier → immer AN (nicht entitlement-geschaltet).
@@ -143,7 +147,7 @@ export function verifyEntitlementDocument(
  */
 export function evaluateEntitlement(
   payload: EntitlementPayload | null,
-  featureKey: string,
+  productKey: string,
   tier: 'foundation' | 'optional',
   now: number = Date.now(),
 ): boolean {
@@ -151,5 +155,5 @@ export function evaluateEntitlement(
   if (!payload) return true
   if (payload.suspended) return false
   if (now > Date.parse(payload.graceUntil) + CLOCK_SKEW_MS) return false
-  return payload.features.includes(featureKey)
+  return payload.products.includes(productKey)
 }

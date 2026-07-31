@@ -17,7 +17,7 @@ export default defineAppConfig({
       modules: [
         {
           id: 'themes',
-          featureKey: 'themes',
+          productKey: 'themes',
           labelKey: 'themes.studio.navLabel',
           icon: 'i-ph-palette',
           to: '/dashboard/themes',

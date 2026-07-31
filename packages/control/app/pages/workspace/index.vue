@@ -18,7 +18,7 @@ interface OwnWorkspace {
   id: string
   name: string
   plan: string
-  planFeatures: string[]
+  planProducts: string[]
   status: string
   role: string
   sites: { name: string, appUrl: string, healthStatus: string }[]
@@ -47,7 +47,7 @@ onMounted(async () => {
 const paidPlans = computed(() =>
   Object.entries((appConfig.pukalani as { studio?: { plans?: ControlPlanCatalog } }).studio?.plans ?? {})
     .filter(([, plan]) => plan.lookupKey)
-    .map(([key, plan]) => ({ key, features: plan.features })))
+    .map(([key, plan]) => ({ key, products: plan.products })))
 
 // ── Plan ändern (Owner-Checkout) ───────────────────────────────────────────
 const planTarget = ref<OwnWorkspace | null>(null)
@@ -129,7 +129,7 @@ const healthColor = (s: string) => (s === 'ok' ? 'success' : s === 'degraded' ? 
         </div>
 
         <p class="mt-2 text-xs text-muted">
-          {{ t('control.workspaces.planFeatures') }}: {{ workspace.planFeatures.join(', ') || '—' }}
+          {{ t('control.workspaces.planProducts') }}: {{ workspace.planProducts.join(', ') || '—' }}
         </p>
 
         <div class="mt-4 space-y-2">
@@ -155,7 +155,7 @@ const healthColor = (s: string) => (s === 'ok' ? 'success' : s === 'degraded' ? 
           <UFormField :label="t('control.workspaces.targetPlan')" :help="t('control.workspaces.changePlanHelp')">
             <URadioGroup
               v-model="chosenPlan"
-              :items="paidPlans.map(plan => ({ label: `${plan.key} — ${plan.features.join(', ')}`, value: plan.key }))"
+              :items="paidPlans.map(plan => ({ label: `${plan.key} — ${plan.products.join(', ')}`, value: plan.key }))"
               data-customer-plan-choice
             />
           </UFormField>

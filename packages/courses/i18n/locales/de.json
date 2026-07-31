@@ -101,7 +101,7 @@
       "contentRequired": "Inhalt angeben.",
       "contentMax": "Inhalt ist zu lang (max. 15.000 Zeichen).",
       "urlInvalid": "Keine gültige URL.",
-      "paidNeedsFeature": "Pro-Kurse brauchen einen Freischalt-Schlüssel.",
+      "paidNeedsProduct": "Pro-Kurse brauchen einen Freischalt-Schlüssel.",
       "orderRequired": "Reihenfolge fehlt."
     }
   },

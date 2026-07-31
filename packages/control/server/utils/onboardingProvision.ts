@@ -214,7 +214,7 @@ export async function provisionCommunity(
       tenantId,
       status: 'active',
       wave: 'stable',
-      // Testphase: Pro-QUOTA für 14 Tage. Die Pro-FEATURES (Feed, Events)
+      // Testphase: Pro-QUOTA für 14 Tage. Die Pro-PRODUKTE (Feed, Events)
       // sind Early Access und damit ohnehin nicht Teil des Versprechens —
       // was hier gestaffelt wird, sind die Mengen-Limits.
       plan: TRIAL_PLAN,

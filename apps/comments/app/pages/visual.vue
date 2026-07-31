@@ -13,7 +13,7 @@ const { t } = useI18n()
 
 useSeoMeta({ title: 'Visual Regression', robots: 'noindex, nofollow' })
 
-const features = [
+const products = [
   { icon: 'i-ph-lightning', key: 'realtime' },
   { icon: 'i-ph-palette', key: 'themes' },
   { icon: 'i-ph-globe', key: 'i18n' },
@@ -69,12 +69,12 @@ const stats = [
       </div>
     </section>
 
-    <!-- Feature-Karten (wie Startseite) -->
+    <!-- Produkt-Karten (wie Startseite) -->
     <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <UCard v-for="feature in features" :key="feature.key">
-        <UIcon :name="feature.icon" class="mb-2 size-6 text-primary" />
-        <h2 class="font-semibold">{{ t(`home.features.${feature.key}.title`) }}</h2>
-        <p class="mt-1 text-sm text-muted">{{ t(`home.features.${feature.key}.text`) }}</p>
+      <UCard v-for="product in products" :key="product.key">
+        <UIcon :name="product.icon" class="mb-2 size-6 text-primary" />
+        <h2 class="font-semibold">{{ t(`home.products.${product.key}.title`) }}</h2>
+        <p class="mt-1 text-sm text-muted">{{ t(`home.products.${product.key}.text`) }}</p>
       </UCard>
     </section>
 

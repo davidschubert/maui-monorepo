@@ -5,7 +5,7 @@ import { hasCapability } from '../../shared/authz'
 /**
  * Serverseitiger Capability-Gate für JEDE geschützte Route — die Autorität liegt
  * hier (User-Labels → Rollen → Capabilities, siehe docs/referenz/RBAC-CONCEPT.md). Die
- * Route-/Client-Middleware ist nur UX. Auto-Import in allen Feature-Layern.
+ * Route-/Client-Middleware ist nur UX. Auto-Import in allen Produkt-Layern.
  */
 export function requirePermission(event: H3Event, capability: Capability) {
   const user = event.context.user

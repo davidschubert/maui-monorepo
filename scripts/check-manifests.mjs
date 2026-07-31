@@ -7,17 +7,17 @@
  *   pnpm check:manifests
  *
  * Prüfungen:
- *  1. Jeder Layer unter packages/ hat ein Zod-valides feature.manifest.ts;
+ *  1. Jeder Layer unter packages/ hat ein Zod-valides product.manifest.ts;
  *     key === Ordnername; Manifeste nutzen nur `import type` (Erasability
  *     für --experimental-strip-types).
  *  2. hasMigrations ⇔ scripts/migrations/ existiert; jeder Layer mit
  *     Migrationen steht in der LAYER_ORDER von scripts/migrate.mjs (Drift!).
  *  3. Jede App unter apps/ hat ein Zod-valides site.manifest.ts; siteId ===
- *     Ordnername (ohne führenden Unterstrich); Features existieren;
+ *     Ordnername (ohne führenden Unterstrich); Produkte existieren;
  *     requires-Schluss erfüllt (transitiv).
- *  4. extends in nuxt.config.ts = Features in kanonischer EXTENDS_ORDER
+ *  4. extends in nuxt.config.ts = Produkte in kanonischer EXTENDS_ORDER
  *     + core + system am Ende (früher gelistet = höhere Priorität).
- *  5. @pukalani/*-Dependencies in package.json = exakt Features + core + system.
+ *  5. @pukalani/*-Dependencies in package.json = exakt Produkte + core + system.
  *
  * Ausgabe pro Verstoß eine Zeile (Datei · erwartet/ist), Exit 1 bei Fehlern.
  */
@@ -27,7 +27,7 @@ import { pathToFileURL, fileURLToPath } from 'node:url'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
-// Kanonische extends-Reihenfolge (IST der comments-App): UI-/Feature-
+// Kanonische extends-Reihenfolge (IST der comments-App): UI-/Produkt-
 // Layer zuerst (höchste Priorität), Fundament core → system am Ende.
 // blueprint (Kompositions-Layer) steht VOR den Produkt-Layern — seine
 // Seiten-Kompositionen (Feed+Kommentare, …) müssen die „nackten"
@@ -41,7 +41,7 @@ const FOUNDATION_ALWAYS = ['core', 'system']
 const errors = []
 const err = (msg) => errors.push(msg)
 
-const { featureManifestSchema, siteManifestSchema } = await import(
+const { productManifestSchema, siteManifestSchema } = await import(
   pathToFileURL(join(ROOT, 'packages/core/shared/utils/manifestSchema.ts')).href
 )
 
@@ -58,15 +58,15 @@ function checkTypeOnlyImports(file, rel) {
   if (valueImport) err(`${rel}: Wert-Import gefunden („${valueImport[0].trim()}") — Manifeste dürfen nur \`import type\` nutzen`)
 }
 
-// ── 1+2: Feature-Manifeste ────────────────────────────────────────────────
+// ── 1+2: Produkt-Manifeste ────────────────────────────────────────────────
 const layers = listDirs('packages')
 const manifests = new Map()
 
 for (const layer of layers) {
-  const rel = `packages/${layer}/feature.manifest.ts`
+  const rel = `packages/${layer}/product.manifest.ts`
   const file = join(ROOT, rel)
   if (!existsSync(file)) {
-    err(`${rel}: fehlt — jeder Layer braucht ein Feature-Manifest`)
+    err(`${rel}: fehlt — jeder Layer braucht ein Produkt-Manifest`)
     continue
   }
   checkTypeOnlyImports(file, rel)
@@ -79,7 +79,7 @@ for (const layer of layers) {
     err(`${rel}: nicht ladbar — ${e.message}`)
     continue
   }
-  const parsed = featureManifestSchema.safeParse(manifest)
+  const parsed = productManifestSchema.safeParse(manifest)
   if (!parsed.success) {
     for (const issue of parsed.error.issues) err(`${rel}: ${issue.path.join('.') || '(root)'} — ${issue.message}`)
     continue
@@ -96,7 +96,7 @@ for (const layer of layers) {
 // requires müssen existieren
 for (const [layer, m] of manifests) {
   for (const req of m.requires ?? []) {
-    if (!manifests.has(req)) err(`packages/${layer}/feature.manifest.ts: requires „${req}" — Layer existiert nicht`)
+    if (!manifests.has(req)) err(`packages/${layer}/product.manifest.ts: requires „${req}" — Layer existiert nicht`)
   }
 }
 
@@ -161,13 +161,13 @@ for (const app of listDirs('apps')) {
     for (const issue of parsed.error.issues) err(`${rel}: ${issue.path.join('.') || '(root)'} — ${issue.message}`)
     continue
   }
-  const { siteId, features } = parsed.data
+  const { siteId, products } = parsed.data
 
   if (siteId !== app.replace(/^_/, '')) err(`${rel}: siteId „${siteId}" ≠ App-Ordner „${app}" (ohne führenden Unterstrich)`)
-  if (new Set(features).size !== features.length) err(`${rel}: doppelte Feature-Einträge`)
+  if (new Set(products).size !== products.length) err(`${rel}: doppelte Produkt-Einträge`)
 
-  for (const f of features) {
-    if (!manifests.has(f)) err(`${rel}: Feature „${f}" existiert nicht unter packages/`)
+  for (const f of products) {
+    if (!manifests.has(f)) err(`${rel}: Produkt „${f}" existiert nicht unter packages/`)
     if (FOUNDATION_ALWAYS.includes(f)) err(`${rel}: „${f}" ist implizit immer dabei — nicht listen`)
   }
 
@@ -175,17 +175,17 @@ for (const app of listDirs('apps')) {
   const missing = new Set()
   const visit = (key) => {
     for (const req of manifests.get(key)?.requires ?? []) {
-      if (!features.includes(req)) missing.add(`${key} → ${req}`)
+      if (!products.includes(req)) missing.add(`${key} → ${req}`)
       else visit(req)
     }
   }
-  for (const f of features) visit(f)
-  for (const m of missing) err(`${rel}: requires verletzt — ${m} fehlt in features`)
+  for (const f of products) visit(f)
+  for (const m of missing) err(`${rel}: requires verletzt — ${m} fehlt in products`)
 
   // extends-Konsistenz (Menge + kanonische Reihenfolge)
   const expected = [
-    ...EXTENDS_ORDER.filter(l => features.includes(l)),
-    ...features.filter(f => !EXTENDS_ORDER.includes(f)), // neue Layer: ans Ende der Features
+    ...EXTENDS_ORDER.filter(l => products.includes(l)),
+    ...products.filter(f => !EXTENDS_ORDER.includes(f)), // neue Layer: ans Ende der Produkte
     ...FOUNDATION_ALWAYS,
   ].map(l => `../../packages/${l}`)
   const nuxtSrc = readFileSync(join(ROOT, 'apps', app, 'nuxt.config.ts'), 'utf8')
@@ -204,7 +204,7 @@ for (const app of listDirs('apps')) {
   const pkg = JSON.parse(readFileSync(join(ROOT, 'apps', app, 'package.json'), 'utf8'))
   const actualDeps = Object.keys({ ...pkg.dependencies, ...pkg.devDependencies })
     .filter(d => d.startsWith('@pukalani/')).map(d => d.slice('@pukalani/'.length)).sort()
-  const expectedDeps = [...features, ...FOUNDATION_ALWAYS].sort()
+  const expectedDeps = [...products, ...FOUNDATION_ALWAYS].sort()
   const missingDeps = expectedDeps.filter(d => !actualDeps.includes(d))
   const extraDeps = actualDeps.filter(d => !expectedDeps.includes(d))
   for (const d of missingDeps) err(`apps/${app}/package.json: @pukalani/${d} fehlt (im Site-Manifest gewählt)`)

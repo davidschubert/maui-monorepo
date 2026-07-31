@@ -20,8 +20,8 @@ export type JobStatus = (typeof JOB_STATUSES)[number]
 export interface SiteCreateJobPayload {
   /** App-/Site-Name (= Ordner apps/<name>, Slug, Projekt-ID-Präfix). */
   name: string
-  /** Gewählte optionale Features (core + system sind implizit). */
-  features: string[]
+  /** Gewählte optionale Produkte (core + system sind implizit). */
+  products: string[]
   /** Optionaler fester Port (sonst nächster freier 30xx). */
   port?: number
 }
@@ -55,13 +55,13 @@ export interface JobRow extends Models.Row {
 export const JOBS_TABLE = 'provisioning_jobs'
 
 /**
- * Feature-Katalog (F7-Vorstufe): repo-seitige Wahrheit (feature.manifest.ts
- * aller Layer), vom Runner in die Table `feature_catalog` gesynct — der
- * Web-Prozess introspiziert das Repo NIE selbst (§ 8). rowId = Feature-Key.
+ * Produkt-Katalog (F7-Vorstufe): repo-seitige Wahrheit (product.manifest.ts
+ * aller Layer), vom Runner in die Table `product_catalog` gesynct — der
+ * Web-Prozess introspiziert das Repo NIE selbst (§ 8). rowId = Produkt-Key.
  */
-export interface FeatureCatalogRow extends Models.Row {
+export interface ProductCatalogRow extends Models.Row {
   tier: 'foundation' | 'optional'
-  /** JSON-Array der Feature-Keys, die dieses Feature voraussetzt. */
+  /** JSON-Array der Produkt-Keys, die dieses Produkt voraussetzt. */
   requires: string
   hasMigrations: boolean
   /** JSON-kodierte ManifestText ({en, de}). */
@@ -71,8 +71,8 @@ export interface FeatureCatalogRow extends Models.Row {
   syncedAt: string
 }
 
-/** Client-seitig entpackte Katalog-Zeile (GET /api/control/features). */
-export interface FeatureCatalogEntry {
+/** Client-seitig entpackte Katalog-Zeile (GET /api/control/products). */
+export interface ProductCatalogEntry {
   key: string
   tier: 'foundation' | 'optional'
   requires: string[]
@@ -82,4 +82,4 @@ export interface FeatureCatalogEntry {
   icon: string
 }
 
-export const FEATURE_CATALOG_TABLE = 'feature_catalog'
+export const PRODUCT_CATALOG_TABLE = 'product_catalog'

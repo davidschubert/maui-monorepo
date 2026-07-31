@@ -27,21 +27,21 @@ export async function getActiveSubscription(event: H3Event): Promise<BillingSubs
   return active
 }
 
-/** Features des aktiven Plans (aus pukalani.billing.plans aufgelöst) */
-export async function getEntitledFeatures(event: H3Event): Promise<string[]> {
+/** Produkte des aktiven Plans (aus pukalani.billing.plans aufgelöst) */
+export async function getEntitledProducts(event: H3Event): Promise<string[]> {
   const subscription = await getActiveSubscription(event)
   if (!subscription) return []
   const config = await getBillingConfig(event)
-  return config.plans.find(plan => plan.id === subscription.planId)?.features ?? []
+  return config.plans.find(plan => plan.id === subscription.planId)?.products ?? []
 }
 
-/** Gate für zahlungspflichtige Features — 401 ohne Session, 402 ohne Plan-Feature */
-export async function requireEntitlement(event: H3Event, feature: string): Promise<void> {
+/** Gate für zahlungspflichtige Produkte — 401 ohne Session, 402 ohne Plan-Produkt */
+export async function requireEntitlement(event: H3Event, product: string): Promise<void> {
   if (!event.context.user) {
     throw createError({ status: 401, statusText: 'Unauthorized' })
   }
-  const features = await getEntitledFeatures(event)
-  if (!features.includes(feature)) {
+  const products = await getEntitledProducts(event)
+  if (!products.includes(product)) {
     throw createError({ status: 402, statusText: 'Upgrade required' })
   }
 }

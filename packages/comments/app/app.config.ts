@@ -11,7 +11,7 @@ export default defineAppConfig({
       modules: [
         {
           id: 'comments',
-          featureKey: 'comments',
+          productKey: 'comments',
           labelKey: 'admin.nav.comments',
           icon: 'i-ph-chat-circle',
           to: '/dashboard/comments',
@@ -22,7 +22,7 @@ export default defineAppConfig({
         {
           // E3 Site-Registry: registrierte Einbetter-Domains des Widgets
           id: 'embed-sites',
-          featureKey: 'comments',
+          productKey: 'comments',
           labelKey: 'admin.nav.embedSites',
           icon: 'i-ph-plug',
           to: '/dashboard/embed',

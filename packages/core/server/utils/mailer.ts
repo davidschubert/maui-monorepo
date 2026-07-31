@@ -2,10 +2,10 @@ import { createTransport, type Transporter } from 'nodemailer'
 import type { H3Event } from 'h3'
 
 /**
- * SMTP-Mailer (Core): EIN Versandweg für alle E-Mail-Features (Notification-
+ * SMTP-Mailer (Core): EIN Versandweg für alle E-Mail-Produkte (Notification-
  * Mails, Digest). Bewusst direktes SMTP statt Appwrite Messaging — kein
  * zusätzlicher Console-Setup/Key-Scope, lokal Mailpit (localhost:1025),
- * in Produktion jeder SMTP-Anbieter. Leerer NUXT_SMTP_HOST = Feature aus;
+ * in Produktion jeder SMTP-Anbieter. Leerer NUXT_SMTP_HOST = Produkt aus;
  * Konsumenten prüfen isMailerConfigured() und senden best-effort.
  */
 

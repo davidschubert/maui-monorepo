@@ -97,17 +97,17 @@ function resolveEnvFile({ app, envFile }) {
 }
 
 /**
- * Feature-Wahl der App (site.manifest.ts, M4): Ohne explizite --layer-Angabe
+ * Produkt-Wahl der App (site.manifest.ts, M4): Ohne explizite --layer-Angabe
  * migriert der Runner nur die Layer, die die Site laut Manifest nutzt
  * (+ system als implizites Fundament) — eine Site ohne courses bekommt keine
  * courses-Tables. Braucht --experimental-strip-types (root-Script setzt es).
  */
-async function manifestFeaturesOf(app) {
+async function manifestProductsOf(app) {
   const file = join(ROOT, 'apps', app, 'site.manifest.ts')
   if (!existsSync(file)) return null
   try {
     const manifest = (await import(pathToFileURL(file).href)).default
-    return Array.isArray(manifest?.features) ? manifest.features : null
+    return Array.isArray(manifest?.products) ? manifest.products : null
   }
   catch (error) {
     console.warn(`⚠ site.manifest.ts nicht ladbar (${error.message}) — migriere ALLE Layer.`)
@@ -230,10 +230,10 @@ else {
 
   // Manifest-Filter (M4): nur bei App-Kontext und ohne explizite --layer-Wahl
   if (args.layers.length === 0 && app) {
-    const features = await manifestFeaturesOf(app)
-    if (features) {
-      const skipped = LAYER_ORDER.filter(l => l !== 'system' && !features.includes(l))
-      layers = LAYER_ORDER.filter(l => l === 'system' || features.includes(l))
+    const products = await manifestProductsOf(app)
+    if (products) {
+      const skipped = LAYER_ORDER.filter(l => l !== 'system' && !products.includes(l))
+      layers = LAYER_ORDER.filter(l => l === 'system' || products.includes(l))
       if (skipped.length > 0) console.log(`↷ Nicht im Site-Manifest — übersprungen: ${skipped.join(', ')}\n`)
     }
   }

@@ -23,7 +23,7 @@ import { rebaseSeoLinks, rebaseSeoMeta, rebaseSeoUrl, resolveSeoOrigin, type Seo
  * nicht überlebt.
  *
  * og:image (OPEN-ITEMS B2, seit 2026-07-29): das Vorschaubild kommt aus
- * `useBrandOgImage()` — ein Feature-Layer trägt dort den PFAD ein, hier
+ * `useBrandOgImage()` — ein Produkt-Layer trägt dort den PFAD ein, hier
  * entsteht die absolute URL auf dem RICHTIGEN Host plus Maße, Typ und
  * `twitter:card`. Ohne Eintrag (Core-Default) bleibt der Kopf wie zuvor.
  */

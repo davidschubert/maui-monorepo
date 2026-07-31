@@ -13,7 +13,7 @@ const configSchema = z.object({
     .optional(),
 })
 
-/** Feature-Flags setzen (Upsert der app_config/global-Zeile) + Audit. */
+/** Produkt-Flags setzen (Upsert der app_config/global-Zeile) + Audit. */
 export default defineEventHandler(async (event) => {
   requirePermission(event, 'system.manage')
 

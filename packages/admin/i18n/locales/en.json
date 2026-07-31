@@ -395,7 +395,7 @@
       "confirmTitle": "Delete snapshot?",
       "confirmText": "Permanently delete {name}? The snapshot can no longer be retrieved afterwards."
     },
-    "features": {
+    "products": {
       "title": "Products",
       "description": "Products compiled into this site — optional ones can be toggled at runtime, no deploy needed. Your data is kept when disabling.",
       "foundation": "Foundation",

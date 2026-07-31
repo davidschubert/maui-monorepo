@@ -1,7 +1,7 @@
 /**
  * DSGVO-Datenexport: alle eigenen Daten als JSON — Account + Sessions (Core)
  * plus die Daten aller registrierten UserDataContributors (comments,
- * moderation, system, …), vollständig paginiert. Kein Feature-Wissen mehr
+ * moderation, system, …), vollständig paginiert. Kein Produkt-Wissen mehr
  * in core (A14): die Zusammensetzung übernimmt exportUserCompletely.
  */
 export default defineEventHandler(async (event) => {

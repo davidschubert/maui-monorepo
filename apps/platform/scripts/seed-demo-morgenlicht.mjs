@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Demo-Content „Morgenlicht" (Tagesliste 2026-07-26, Davids Freigabe „alle
- * Features, auch Pro"): befüllt den Demo-Tenant `t-demo` im Pool mit einer
+ * Produkte, auch Pro"): befüllt den Demo-Tenant `t-demo` im Pool mit einer
  * glaubwürdigen Community — Yoga-Coachin Lena auf Maui, Mitglieder mit echten
  * Anliegen. Zeigt: CMS-Seiten (de+en), Homepage mit [[comments]], Feed (Post +
  * Frage + Poll + geplanter Post), Kommentar-Threads mit Votes, zweiphasig

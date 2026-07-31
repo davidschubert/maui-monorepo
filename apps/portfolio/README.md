@@ -13,7 +13,7 @@ Migrations-Runner heraus (`scripts/migrate.mjs` ignoriert `_*`).
    - `package.json`: `"name": "<name>"` setzen
    - `nuxt.config.ts`: `devServer.port` eindeutig vergeben (3002+, siehe CLAUDE.md)
    - `.env.example` → `NUXT_PUBLIC_APP_URL` an den Port anpassen
-   - Nicht benötigte Feature-Layer aus `extends` UND `package.json` entfernen
+   - Nicht benötigte Produkt-Layer aus `extends` UND `package.json` entfernen
      (`core` + `system` bleiben immer)
 
 2. **Appwrite-Instanz vorbereiten** (jede App hat ihre EIGENE Instanz)
@@ -39,7 +39,7 @@ Migrations-Runner heraus (`scripts/migrate.mjs` ignoriert `_*`).
    - `i18n/locales/*.json`: App-Texte (Core-Keys werden gemergt)
    - `app/pages/`: eigene Seiten; Layout-Overrides optional unter `app/layouts/`
      (Core bringt `default` + `auth` mit)
-| 78 | **M5/P3: apps/portfolio → M5 KOMPLETT** — Landing + Cases (Scope-Beschluss: Journal/pages werden eigene Feature-Layer), **provisioniert als Dogfooding über den Studio-Job-Flow** (Projekt `portfolio-g4ml`, Port 3005, Register + Grants automatisch). Design-DNA der alten davidschubert.com: Syne self-hosted, Uppercase-Hero mit Original-de/en-Texten, Glibbergreen; CSS gescopet auf `body.portfolio-site`. Cases = typisierte Daten (Maui Platform, Comments, maui.photos) mit Detailseiten; browser-verifiziert (Landing, Case, Login im Standard-Look, 0 Konsolen-Fehler) | ✅ 2026-07-17 |
+| 78 | **M5/P3: apps/portfolio → M5 KOMPLETT** — Landing + Cases (Scope-Beschluss: Journal/pages werden eigene Produkt-Layer), **provisioniert als Dogfooding über den Studio-Job-Flow** (Projekt `portfolio-g4ml`, Port 3005, Register + Grants automatisch). Design-DNA der alten davidschubert.com: Syne self-hosted, Uppercase-Hero mit Original-de/en-Texten, Glibbergreen; CSS gescopet auf `body.portfolio-site`. Cases = typisierte Daten (Maui Platform, Comments, maui.photos) mit Detailseiten; browser-verifiziert (Landing, Case, Login im Standard-Look, 0 Konsolen-Fehler) | ✅ 2026-07-17 |
 
 ## Konventionen (Kurzfassung)
 

@@ -101,7 +101,7 @@
       "contentRequired": "Please add content.",
       "contentMax": "Content is too long (max. 15,000 characters).",
       "urlInvalid": "Not a valid URL.",
-      "paidNeedsFeature": "Paid courses need an unlock key.",
+      "paidNeedsProduct": "Paid courses need an unlock key.",
       "orderRequired": "Missing order."
     }
   },

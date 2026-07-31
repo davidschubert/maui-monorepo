@@ -34,7 +34,7 @@ export default defineEventHandler(async (event): Promise<{ websites: (WebsiteRow
   const byProject = new Map<string, string[]>()
   for (const row of entitlements.rows) {
     const list = byProject.get(row.siteProjectId) ?? []
-    list.push(row.featureKey)
+    list.push(row.productKey)
     byProject.set(row.siteProjectId, list)
   }
 

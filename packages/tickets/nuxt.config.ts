@@ -1,5 +1,5 @@
 /**
- * Feature Layer: Ticket-Board (Trello-artiges Kanban für Betreiber) —
+ * Produkt Layer: Ticket-Board (Trello-artiges Kanban für Betreiber) —
  * Plan: docs/archiv/TICKETS-BOARD.md. Eigenes Datenmodell (ticket_lists,
  * tickets — Regel 3: eigene Tables, niemals Core). Operator-only
  * (Capability tickets.manage, Admins + Mods). Extended den Core NICHT

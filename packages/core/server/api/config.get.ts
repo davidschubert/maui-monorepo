@@ -1,8 +1,8 @@
 import { toPublicAppConfig, type PublicAppConfig } from '../../shared/types/config'
 
 /**
- * Öffentliche Laufzeit-Feature-Flags für den Client (z.B. Register-Gate).
- * Bewusst ohne Auth — die Flags sind nicht sensibel (Feature an/aus), und der
+ * Öffentliche Laufzeit-Produkt-Flags für den Client (z.B. Register-Gate).
+ * Bewusst ohne Auth — die Flags sind nicht sensibel (Produkt an/aus), und der
  * Server bleibt für jede Schreibaktion die eigentliche Autorität.
  *
  * Gibt NUR die client-sichtbare Teilmenge zurück (toPublicAppConfig,

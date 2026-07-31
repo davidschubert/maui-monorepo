@@ -16,7 +16,7 @@
       "members": "Members",
       "online": "Online"
     },
-    "features": {
+    "products": {
       "realtime": {
         "title": "Real-time",
         "desc": "Comments, votes & presence live — no reload at all."
@@ -36,7 +36,7 @@
     }
   },
   "billing": {
-    "features": {
+    "products": {
       "paidCourses": "Access to all Pro courses",
       "freeCommunity": "Community: posts, polls, questions & comments",
       "freeVotes": "Up-/downvotes and live real-time updates",

@@ -16,7 +16,7 @@ import { tenantRowPermissions, type TenantRowPermissionOptions } from './tenantR
  * DIE EIGENSCHAFT, DIE ZÄHLT: durch diese Tür gibt es keinen ungescopten Weg.
  * `list` hängt den Filter immer an, `get`/`update`/`remove` prüfen die
  * Zugehörigkeit VOR der Aktion, `create` stempelt Mandant und Row-Permissions
- * immer. Feature-Code kann die Grenze nicht mehr vergessen, weil er sie nicht
+ * immer. Produkt-Code kann die Grenze nicht mehr vergessen, weil er sie nicht
  * mehr selbst zieht.
  *
  * ZWEI TÜRKLINKEN, EINE TÜR:

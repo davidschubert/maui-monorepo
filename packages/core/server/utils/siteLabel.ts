@@ -14,7 +14,7 @@ import { isRole } from '../../shared/authz'
  * Warum in CORE (seit 2026-07-29, vorher packages/onboarding): der einzige
  * Aufrufer war die Wizard-Route — also bekam nur der GRÜNDER das Label. Der
  * Helfer benutzt nur die Users-API und den Tenant-Kontext, hängt also an keinem
- * Feature (A14 erfüllt).
+ * Produkt (A14 erfüllt).
  *
  * Warum HIER und nicht im Control Plane: Labels gehören dem RUNTIME-Projekt
  * (Pool), und nur diese App hat dafür einen Schlüssel. Das Control Plane

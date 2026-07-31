@@ -11,7 +11,7 @@
       "currentPlan": "Your current plan",
       "included": "Included in your plan",
       "loginCta": "Sign in to upgrade",
-      "freeFeatures": "All the community basics",
+      "freeProducts": "All the community basics",
       "alreadyActive": "You already have an active subscription — manage it via the portal.",
       "checkoutFailed": "Could not start the checkout.",
       "disabled": "Subscriptions are not enabled here yet.",
@@ -69,7 +69,7 @@
       "proDescription": "For everyone who wants more.",
       "freeDescription": "The free starting point."
     },
-    "features": {},
+    "products": {},
     "validation": {
       "planUnknown": "Unknown plan."
     }

@@ -1,4 +1,4 @@
-import type { FeatureManifest } from '../core/shared/types/manifest'
+import type { ProductManifest } from '../core/shared/types/manifest'
 
 export default {
   key: 'courses',
@@ -13,4 +13,4 @@ export default {
     de: 'Kurse mit Lektionen und Fortschritt; Bezahl-Zugang dockt über den App-seitigen Access-Guard an.',
   },
   icon: 'i-ph-graduation-cap',
-} satisfies FeatureManifest
+} satisfies ProductManifest

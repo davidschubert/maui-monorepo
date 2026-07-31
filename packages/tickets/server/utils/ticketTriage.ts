@@ -89,7 +89,7 @@ function buildPrompt(ticket: TicketRow): string {
   const checklist = parseChecklist(ticket.checklist)
   return [
     'Du triagierst ein Ticket für das Entwicklungs-Board einer Community-Plattform',
-    '(Nuxt 4 Monorepo mit Layer-Architektur, Appwrite-Backend; Features: Kommentare,',
+    '(Nuxt 4 Monorepo mit Layer-Architektur, Appwrite-Backend; Produkte: Kommentare,',
     'Posts/Umfragen, Events, Kurse/LMS, Stripe-Abos, Theme-Studio, Admin-Dashboard).',
     '',
     `Titel: ${ticket.title}`,

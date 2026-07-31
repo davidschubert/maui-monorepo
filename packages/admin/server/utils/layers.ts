@@ -94,7 +94,7 @@ function computeLayerBreakdown(name: string, version: string): LayerInfo {
 }
 
 /**
- * Inhaltsaufschlüsselung eines Feature-Layers (@pukalani/<short> → packages/<short>):
+ * Inhaltsaufschlüsselung eines Produkt-Layers (@pukalani/<short> → packages/<short>):
  * Datei-Anzahl je Kategorie. Best effort aus dem Dateisystem — fehlt das
  * Quellverzeichnis (z.B. exotisches Prod-Layout), bleibt categories leer.
  * Ergebnis ~60 s im Modul-Scope gecacht (Cache-Key inkl. version, damit ein

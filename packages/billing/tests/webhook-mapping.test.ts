@@ -4,8 +4,8 @@ import { isNewPaymentFailure, isStale, planIdForPrice, subscriptionToPatch, toSu
 import type { PukalaniBillingPlan } from '../shared/types/billing'
 
 const PLANS: PukalaniBillingPlan[] = [
-  { id: 'free', labelKey: 'billing.plans.free', features: [], lookupKeys: null },
-  { id: 'pro', labelKey: 'billing.plans.pro', features: ['courses.paid'], lookupKeys: { monthly: 'maui_pro_monthly', yearly: 'maui_pro_yearly' } },
+  { id: 'free', labelKey: 'billing.plans.free', products: [], lookupKeys: null },
+  { id: 'pro', labelKey: 'billing.plans.pro', products: ['courses.paid'], lookupKeys: { monthly: 'maui_pro_monthly', yearly: 'maui_pro_yearly' } },
 ]
 
 function fakeSubscription(overrides: Partial<Record<string, unknown>> = {}): Stripe.Subscription {

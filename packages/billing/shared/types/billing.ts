@@ -45,12 +45,12 @@ export interface BillingSubscriptionRow extends Models.Row {
 export interface PukalaniBillingPlan {
   id: string
   labelKey: string
-  /** Entitlement-Features, z. B. 'courses.paid' — App-/Layer-Konvention */
-  features: string[]
+  /** Entitlement-Produkte, z. B. 'courses.paid' — App-/Layer-Konvention */
+  products: string[]
   /**
-   * Anzeige-Stichpunkte der Pricing-Karte (i18n-Keys unter billing.features.*).
-   * Reines Marketing — getrennt von den Entitlement-features; fehlt das Feld,
-   * zeigt die Karte die features an.
+   * Anzeige-Stichpunkte der Pricing-Karte (i18n-Keys unter billing.products.*).
+   * Reines Marketing — getrennt von den Entitlement-products; fehlt das Feld,
+   * zeigt die Karte die products an.
    */
   highlights?: string[]
   highlight?: boolean
@@ -95,6 +95,6 @@ export interface BillingSubscriptionResponse {
   subscription: BillingSubscriptionRow | null
   /** aufgelöster Plan aus der Config (null = free/kein Abo) */
   planId: string | null
-  features: string[]
+  products: string[]
   entitled: boolean
 }

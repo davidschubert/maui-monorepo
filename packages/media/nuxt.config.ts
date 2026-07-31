@@ -1,5 +1,5 @@
 /**
- * Feature Layer: Media — generische Bild-Galerie (Table `media_items` +
+ * Produkt Layer: Media — generische Bild-Galerie (Table `media_items` +
  * Bucket `media`, Migration media-001; eigener Schema-Owner nach A14).
  * Erster komplett Manifest-geborener Layer (M5/P1). Extended den Core NICHT
  * selbst — die App komponiert beide: extends: [media, …, core].

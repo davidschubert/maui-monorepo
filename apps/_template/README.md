@@ -13,7 +13,7 @@ Migrations-Runner heraus (`scripts/migrate.mjs` ignoriert `_*`).
    - `package.json`: `"name": "<name>"` setzen
    - `nuxt.config.ts`: `devServer.port` eindeutig vergeben (3002+, siehe CLAUDE.md)
    - `.env.example` → `NUXT_PUBLIC_APP_URL` an den Port anpassen
-   - Nicht benötigte Feature-Layer aus `extends` UND `package.json` entfernen
+   - Nicht benötigte Produkt-Layer aus `extends` UND `package.json` entfernen
      (`core` + `system` bleiben immer)
 
 2. **Appwrite-Instanz vorbereiten** (jede App hat ihre EIGENE Instanz)

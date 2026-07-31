@@ -1,4 +1,4 @@
-import type { FeatureManifest } from '../core/shared/types/manifest'
+import type { ProductManifest } from '../core/shared/types/manifest'
 
 export default {
   key: 'admin',
@@ -10,4 +10,4 @@ export default {
     de: 'Dashboard-Gerüst mit Modul-Registry, Nutzerverwaltung, Moderations-UI, globaler Suche und Laufzeit-Konfiguration.',
   },
   icon: 'i-ph-squares-four',
-} satisfies FeatureManifest
+} satisfies ProductManifest

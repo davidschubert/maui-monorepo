@@ -8,7 +8,7 @@ export default defineAppConfig({
       modules: [
         {
           id: 'courses',
-          featureKey: 'courses',
+          productKey: 'courses',
           labelKey: 'admin.nav.courses',
           icon: 'i-ph-graduation-cap',
           to: '/dashboard/courses',

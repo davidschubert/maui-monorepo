@@ -1,10 +1,10 @@
-import type { FeatureManifest } from '../core/shared/types/manifest'
+import type { ProductManifest } from '../core/shared/types/manifest'
 
 export default {
   key: 'activity',
   tier: 'optional',
   // Liest nur die system-eigene activities-Table (recordActivity im Core) —
-  // keine harten Layer-Abhängigkeiten, ohne Content-Features nur leerer.
+  // keine harten Layer-Abhängigkeiten, ohne Content-Produkte nur leerer.
   hasMigrations: false,
   apiPrefixes: ['/api/activity'],
   title: { en: 'Activity Feed', de: 'Activity-Feed' },
@@ -13,4 +13,4 @@ export default {
     de: 'Chronologischer Activity-Feed der Site-Ereignisse (Beiträge, Kommentare, Anmeldungen).',
   },
   icon: 'i-ph-pulse',
-} satisfies FeatureManifest
+} satisfies ProductManifest
