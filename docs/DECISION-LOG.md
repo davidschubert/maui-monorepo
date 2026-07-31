@@ -512,3 +512,15 @@ verworfener Alternative, mit Verweis auf Commit/Doc.
     Installation, welche Produkte sie betreiben darf) und nicht Teil der Abrechnung —
     `workspaces` war nur ihr Rechnungs-Behälter. Heute unbenutzt und damit kostenlos;
     beim ersten Studio-Kunden wäre der Neubau ein Projekt.
+
+27. **Entscheidung (David, 2026-07-31): die Marketing-Landingpage läuft VOLLSTÄNDIG
+    auf Nuxt UI** — keine individuellen UI-Eigenbauten, wo eine Komponente existiert.
+    Bewusst aufgegeben: die „kein JS / funktioniert vor Hydration"-Eigenschaften von
+    Header-Dropdown, Mobil-`<details>` und FAQ-`<details>`; die Scroll-Inszenierung
+    (`data-reveal`/Parallax) ist verzichtbar, wo sie der Struktur im Weg steht.
+    Umgesetzt in fünf Paketen (P1 Theme-Brücke: eigene `puka`-Palette als `primary`
+    statt der zweckentfremdeten Statusfarbe `warning` · P2 Karten/Badges/Grids ·
+    P3 Heros/CTAs · P4 Pricing · P5 Header/Footer/FAQ/Tabs). Dokumentierte Ausnahmen
+    ohne Äquivalent: Vergleichstabelle (Semantik), PukaMark, Glow, Produkt-Mock,
+    `tone-*`-Hintergründe. SEO-Netz dabei: FAQ-Antworten und alle Produkt-Links
+    bleiben per `unmount-on-hide=false` im SSR-HTML.
