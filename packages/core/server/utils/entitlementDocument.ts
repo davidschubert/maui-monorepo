@@ -75,16 +75,12 @@ function parsePayload(raw: unknown): EntitlementPayload | null {
   const p = raw as Record<string, unknown>
   if (p.v !== ENTITLEMENT_DOC_VERSION) return null
   if (typeof p.kid !== 'string' || typeof p.siteProjectId !== 'string') return null
-  // `features`: Übergang bis zum Zusammenziehen (E11) — Dokumente von VOR dem
-  // Rename tragen den alten Schlüssel; das gespeicherte last-known-good in
-  // app_secrets bleibt so über den Deploy hinweg gültig.
-  const products = Array.isArray(p.products) ? p.products : p.features
-  if (!Array.isArray(products) || !products.every(f => typeof f === 'string')) return null
+  if (!Array.isArray(p.products) || !p.products.every(f => typeof f === 'string')) return null
   if (typeof p.suspended !== 'boolean') return null
   for (const field of ['issuedAt', 'validUntil', 'graceUntil']) {
     if (typeof p[field] !== 'string' || Number.isNaN(Date.parse(p[field] as string))) return null
   }
-  return { ...(p as unknown as EntitlementPayload), products: products as string[] }
+  return p as unknown as EntitlementPayload
 }
 
 /**

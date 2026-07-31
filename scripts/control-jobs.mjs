@@ -98,10 +98,7 @@ async function updateJob(id, data) {
 }
 
 async function runSiteCreate(job, payload) {
-  // payload.features: Übergang bis zum Zusammenziehen (E11) — Jobs, die VOR
-  // dem Rename in die Queue kamen, tragen noch den alten Schlüssel.
-  const { name, port } = payload
-  const products = payload.products ?? payload.features ?? []
+  const { name, products, port } = payload
   const args = ['--experimental-strip-types', join(ROOT, 'scripts', 'create-site.mjs'), name, '--products', products.join(',')]
   if (port) args.push('--port', String(port))
 
@@ -142,9 +139,7 @@ async function runSiteCreate(job, payload) {
     for (const productKey of products) {
       const grant = await api(rowsPath('entitlements'), 'POST', {
         rowId: 'unique()',
-        // featureKey: Übergang bis zum Zusammenziehen (E11) — die alte Spalte
-        // ist required (control-003), ohne sie schlägt jeder Insert fehl.
-        data: { siteProjectId, productKey, featureKey: productKey, status: 'active', notes: `create-site via Job ${job.$id}` },
+        data: { siteProjectId, productKey, status: 'active', notes: `create-site via Job ${job.$id}` },
       })
       if (grant.status !== 201 && grant.status !== 409) {
         console.error(`⚠ Entitlement ${productKey} (${grant.status}): ${grant.json?.message ?? ''}`)

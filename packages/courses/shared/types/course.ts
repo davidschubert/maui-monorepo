@@ -27,10 +27,6 @@ export interface CourseRow extends Models.Row {
   access: CourseAccess
   /** Pflicht bei access 'paid' — Produkt-String, den der App-Guard prüft */
   entitlementProduct: string | null
-  /** Übergang bis zum Zusammenziehen (E11): alte Spalte (courses-001), wird
-   *  von den Schreib-Routen gespiegelt — Rollback-Pfad. Fällt mit der
-   *  Aufräum-Migration weg. */
-  entitlementFeature?: string | null
   authorId: string
   authorName: string
   /** denormalisiert: Anzahl PUBLISHED Lektionen (Server-Recount) */

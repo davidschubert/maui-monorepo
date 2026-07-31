@@ -52,11 +52,7 @@ export default defineEventHandler(async (event) => {
   const overrides = Object.fromEntries(
     Object.entries(next).filter(([, state]) => !(state.enabled && state.status === 'active')),
   )
-  // Übergang bis zum Zusammenziehen (E11): die alte Spalte `features` wird
-  // MITgeschrieben, damit ein Rollback auf den Vor-Rename-Stand dieselben
-  // Gates sieht. Fällt mit der Aufräum-Migration weg.
-  const serialized = JSON.stringify(overrides)
-  const data = { products: serialized, features: serialized }
+  const data = { products: JSON.stringify(overrides) }
 
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)

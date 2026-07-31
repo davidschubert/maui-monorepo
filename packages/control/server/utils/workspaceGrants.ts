@@ -36,9 +36,7 @@ export async function replaceSiteGrants(event: H3Event, siteProjectId: string, p
     if (!have.has(product)) {
       operations.push(admin.tablesDB.createRow<EntitlementRow>({
         databaseId, tableId: ENTITLEMENTS_TABLE, rowId: ID.unique(),
-        // featureKey: Übergang bis zum Zusammenziehen (E11) — die alte Spalte
-        // ist required (control-003), ohne sie schlägt jeder Insert fehl.
-        data: { siteProjectId, productKey: product, featureKey: product, status: 'active', notes: '' },
+        data: { siteProjectId, productKey: product, status: 'active', notes: '' },
       }))
     }
   }

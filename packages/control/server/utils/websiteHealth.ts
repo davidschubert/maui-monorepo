@@ -25,30 +25,20 @@ async function probe(url: string): Promise<boolean> {
   }
 }
 
-async function fetchSnapshotRoute(url: string, field: 'products' | 'features'): Promise<string[] | null> {
+async function fetchProductSnapshot(appUrl: string): Promise<string[] | null> {
   try {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), 5000)
-    const res = await fetch(url, { signal: controller.signal })
+    const res = await fetch(`${appUrl.replace(/\/$/, '')}/api/platform/products`, { signal: controller.signal })
     clearTimeout(timer)
     if (!res.ok) return null
-    const json = await res.json() as Record<string, unknown>
-    const list = json[field]
-    if (!Array.isArray(list)) return null
-    return list.filter((key): key is string => typeof key === 'string').slice(0, 30)
+    const json = await res.json() as { products?: unknown }
+    if (!Array.isArray(json.products)) return null
+    return json.products.filter((key): key is string => typeof key === 'string').slice(0, 30)
   }
   catch {
     return null
   }
-}
-
-async function fetchProductSnapshot(appUrl: string): Promise<string[] | null> {
-  const base = appUrl.replace(/\/$/, '')
-  // Übergang bis zum Zusammenziehen (E11): Silo-Apps ziehen per Update-Welle
-  // nach — solange eine Site die neue Route nicht kennt, antwortet die alte
-  // mit { features }. Der Fallback fällt mit dem Zusammenziehen weg.
-  return await fetchSnapshotRoute(`${base}/api/platform/products`, 'products')
-    ?? await fetchSnapshotRoute(`${base}/api/platform/features`, 'features')
 }
 
 export interface SiteHealthResult {
@@ -81,12 +71,8 @@ export async function checkSiteHealth(admin: AdminClient, databaseId: string, si
       healthStatus,
       healthCheckedAt,
       // Snapshot nur bei erfolgreichem Abruf überschreiben — eine kurz nicht
-      // erreichbare App löscht nicht das letzte bekannte Produkt-Set.
-      // Übergang bis zum Zusammenziehen (E11): alte Spalte `features` wird
-      // mitgeschrieben (Rollback-Pfad), fällt mit der Aufräum-Migration weg.
-      ...(products !== null
-        ? (() => { const snapshot = JSON.stringify(products.sort()); return { products: snapshot, features: snapshot } })()
-        : {}),
+      // erreichbare App löscht nicht das letzte bekannte Produkt-Set
+      ...(products !== null ? { products: JSON.stringify(products.sort()) } : {}),
     },
   })
 

@@ -113,7 +113,7 @@ Vollständiges Konzept: docs/CONCEPT.md
   ≠ Key: die Id bleibt `default` (tenants.theme, data-theme, CSS-Dateinamen,
   gespeicherte Configs) — Theme-Namen nie über die Id umbenennen. Theme-Namen
   sind Eigennamen und laufen NICHT über i18n (de = en).
-- Theme-Studio: /dashboard/themes (Galerie, Zweispalten), Editor als Vollseite
+- Customize theme: /dashboard/themes (Galerie, Zweispalten), Editor als Vollseite
   (/new, /:id — Dock: Boxen „Farben"+„Schriften", je EIN „Erweitert"),
   Schriften-Verwaltung /dashboard/themes/fonts. Konzept + bewusste
   Ablehnungen: docs/referenz/THEMES-CONCEPT-V2.md — Einfachheit ist Leitprinzip
@@ -137,7 +137,7 @@ Vollständiges Konzept: docs/CONCEPT.md
   Server schon das richtige data-theme + die richtige CSS-Datei stempelt.
   Der Theme-WÄHLER verschwindet auf Mandanten-Hosts (`canChooseTheme` aus
   useTheme() — öffentliches DisplaySettingsMenu, Dashboard-Kontomenü, Hinweis
-  im Theme-Studio): ein Wähler ohne Wirkung wäre eine Lüge, und die
+  im Customize theme): ein Wähler ohne Wirkung wäre eine Lüge, und die
   Community-Farbe setzt der Owner unter /dashboard/settings/community.
   DIE NEUTRAL-PALETTE FOLGT MIT (B5-Rest, 2026-07-29 — Davids Entscheidung):
   `data-neutral` ist eine EIGENE Achse und blieb nur Besucher-Wahl, weil es
@@ -342,14 +342,13 @@ Vollständiges Konzept: docs/CONCEPT.md
   KEIN Plan-Key: das ist das Silo-/Pukalani-Studio-Angebot. Preise: Personal
   29 €, Pro 149 €, jährlich −25 % (scripts/stripe/ensure-prices.mjs — zieht
   lookup_keys bei Betragsänderung auf neue Prices um).
-- EIN Wort: „**Produkte**"/`products` — Kundensprache UND Code (E11 Etappe B,
-  2026-07-30; hebt die P4-Zeile „im CODE bleibt features" bewusst auf).
-  product.manifest.ts, productKey, productGates, app_config.products,
-  product_catalog, /api/platform/products. ÜBERGANG bis zum Zusammenziehen:
-  alte Spalten (featureKey/features/entitlementFeature) werden an den
-  Schreibstellen GESPIEGELT, /api/platform/features + Dokument-Feld `features`
-  bleiben als Alias — erst nach Beobachtung fällt beides mit einer Aufräum-
-  Migration. AUSNAHMEN (bleiben `feature`): `featured` („hervorgehoben"),
+- EIN Wort: „**Produkte**"/`products` — Kundensprache UND Code (E11, 2026-07-30;
+  hebt die P4-Zeile „im CODE bleibt features" bewusst auf). product.manifest.ts,
+  productKey, productGates, app_config.products, product_catalog,
+  /api/platform/products. Das ZUSAMMENZIEHEN ist DURCH (control-025 inkl.
+  idx_site_product, system-024, courses-004): alte Spalten/Tabellen und alle
+  Übergangs-Spiegel/Aliasse sind entfernt — es gibt nur noch die
+  product-Namen. AUSNAHMEN (bleiben `feature`): `featured` („hervorgehoben"),
   UPageFeature (Nuxt UI), Changelog-Kategorie `feature` (= „Neuerung",
   Daten-Wert), Migrations-Dateien (Protokoll).
 - Produkt-Gating im Pool: pukalani.tenancy.products (Produkt-Key → Mindest-Plan,

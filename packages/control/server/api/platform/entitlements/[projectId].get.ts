@@ -53,16 +53,11 @@ export default defineEventHandler(async (event) => {
   }).catch((error) => { throw toH3Error(error, 'Could not load entitlements') })
 
   const now = Date.now()
-  const productKeys = grants.map(grant => grant.productKey).sort()
   const payload = {
     v: 1,
     kid: config.entitlementsKid,
     siteProjectId: projectId,
-    products: productKeys,
-    // features: Übergang bis zum Zusammenziehen (E11) — Verifizierer von VOR
-    // dem Rename (Silo-Apps ziehen per Update-Welle nach) verlangen das Feld
-    // und lehnen Dokumente ohne es ab. Fällt mit der Aufräum-Migration weg.
-    features: productKeys,
+    products: grants.map(grant => grant.productKey).sort(),
     suspended: site.status === 'suspended',
     issuedAt: new Date(now).toISOString(),
     validUntil: new Date(now + VALID_MS).toISOString(),
