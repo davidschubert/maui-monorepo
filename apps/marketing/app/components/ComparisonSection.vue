@@ -63,7 +63,12 @@ const sources = [
         <span>{{ t('marketing.compare.sources') }}</span>
         <a v-for="src in sources" :key="src.name" :href="src.href" rel="nofollow noopener" target="_blank">{{ src.name }}</a>
       </p>
-      <p class="cmp-honest">{{ t('marketing.compare.honest') }}</p>
+      <UAlert
+        variant="subtle" color="primary"
+        :description="t('marketing.compare.honest')"
+        class="mt-6"
+        :ui="{ description: 'text-base/relaxed opacity-100' }"
+      />
     </div>
   </section>
 </template>
@@ -131,13 +136,4 @@ const sources = [
   margin-top: 0.5rem;
 }
 .cmp-sources a { color: hsl(var(--puka-sun-deep)); text-decoration: underline; }
-.cmp-honest {
-  margin-top: 1.5rem;
-  padding: 1.1rem 1.25rem;
-  background: hsl(0 0% 100% / 0.55);
-  border-left: 3px solid hsl(var(--puka-sun));
-  border-radius: 0.6rem;
-  line-height: 1.6;
-  color: hsl(var(--puka-ink) / 0.85);
-}
 </style>

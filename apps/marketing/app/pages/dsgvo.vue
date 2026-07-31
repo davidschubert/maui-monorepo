@@ -56,31 +56,57 @@ useSeoMeta({
         <h1 class="gdpr-title">{{ t('marketing.gdpr.title') }}</h1>
         <p class="mkt-lead">{{ t('marketing.gdpr.lead') }}</p>
 
-        <aside class="gdpr-disclaimer">
-          <h2 class="gdpr-disclaimer-title">{{ t('marketing.gdpr.disclaimerTitle') }}</h2>
-          <p>{{ t('marketing.gdpr.disclaimer') }}</p>
-          <!-- Die verbindliche Datenschutzerklärung liegt auf DIESER Domain
-               (gleiche Begründung wie im Footer: Impressumspflicht). Der frühere
-               Link auf app.pukalani.app war seit der Host-Entfernung 2026-07-27
-               ein 404.
-               Route-NAME statt Pfad-String: /datenschutz trägt je Locale einen
-               eigenen Pfad (defineI18nRoute, EN /privacy) — ein roher Pfad
-               bliebe auf EN deutsch und wäre wieder ein 404. -->
-          <NuxtLink :to="localePath({ name: 'datenschutz' })" class="gdpr-legal-link">
-            {{ t('marketing.gdpr.legalLink') }} <UIcon name="i-ph-arrow-right-bold" />
-          </NuxtLink>
-        </aside>
+        <UAlert
+          color="primary" variant="subtle"
+          class="mt-8"
+          :ui="{
+            title: 'text-base font-extrabold text-highlighted',
+            description: 'text-base/relaxed opacity-100',
+          }"
+        >
+          <template #title>
+            <h2>{{ t('marketing.gdpr.disclaimerTitle') }}</h2>
+          </template>
+          <template #description>
+            <p>{{ t('marketing.gdpr.disclaimer') }}</p>
+            <!-- Die verbindliche Datenschutzerklärung liegt auf DIESER Domain
+                 (gleiche Begründung wie im Footer: Impressumspflicht). Der frühere
+                 Link auf app.pukalani.app war seit der Host-Entfernung 2026-07-27
+                 ein 404.
+                 Route-NAME statt Pfad-String: /datenschutz trägt je Locale einen
+                 eigenen Pfad (defineI18nRoute, EN /privacy) — ein roher Pfad
+                 bliebe auf EN deutsch und wäre wieder ein 404. -->
+            <ULink
+              :to="localePath({ name: 'datenschutz' })"
+              class="mt-3 inline-flex items-center gap-1.5 text-[0.92rem] font-bold text-primary-600"
+            >
+              {{ t('marketing.gdpr.legalLink') }}
+              <UIcon name="i-ph-arrow-right-bold" class="size-4" />
+            </ULink>
+          </template>
+        </UAlert>
       </div>
     </section>
 
     <section class="mkt-section tone-sky">
-      <ul class="gdpr-grid mkt-inner" data-reveal>
-        <li v-for="section in sections" :key="section.title" class="gdpr-card">
-          <span class="gdpr-ic"><UIcon :name="section.icon" /></span>
-          <h2 class="gdpr-card-title">{{ section.title }}</h2>
-          <p class="gdpr-card-text">{{ section.text }}</p>
-        </li>
-      </ul>
+      <div class="mkt-inner" data-reveal>
+        <UPageGrid as="ul">
+          <UPageCard
+            v-for="section in sections" :key="section.title"
+            as="li" :icon="section.icon" :description="section.text"
+            :ui="{
+              leading: 'size-[2.3rem] shrink-0 justify-center rounded-[0.65rem] bg-primary/20 mb-3.5',
+              leadingIcon: 'size-5 text-primary-600',
+            }"
+          >
+            <!-- Die Abschnitts-Überschrift bleibt eine echte h2 (SEO/Struktur)
+                 — der title-Slot trägt nur die Optik. -->
+            <template #title>
+              <h2>{{ section.title }}</h2>
+            </template>
+          </UPageCard>
+        </UPageGrid>
+      </div>
     </section>
 
     <section class="mkt-section tone-dawn">
@@ -125,56 +151,9 @@ useSeoMeta({
   margin: 0.5rem 0 1rem;
   text-wrap: balance;
 }
-.gdpr-disclaimer {
-  margin-top: 2rem;
-  padding: 1.25rem 1.4rem;
-  background: hsl(0 0% 100% / 0.7);
-  border-left: 3px solid hsl(var(--puka-sun));
-  border-radius: 0.7rem;
-  color: hsl(var(--puka-ink-soft));
-  line-height: 1.6;
-}
-.gdpr-disclaimer-title { font-size: 1rem; font-weight: 800; color: hsl(var(--puka-ink)); margin-bottom: 0.4rem; }
-.gdpr-legal-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  margin-top: 0.75rem;
-  font-weight: 700;
-  font-size: 0.92rem;
-  color: hsl(var(--puka-sun-deep));
-}
-.gdpr-legal-link :deep(svg) { width: 0.9rem; height: 0.9rem; }
-
-.gdpr-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.1rem;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.gdpr-card {
-  padding: 1.5rem;
-  border-radius: 1rem;
-  background: hsl(0 0% 100% / 0.62);
-  border: 1px solid hsl(var(--puka-ink) / 0.08);
-}
-.gdpr-ic {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.3rem;
-  height: 2.3rem;
-  border-radius: 0.65rem;
-  background: hsl(var(--puka-sun) / 0.18);
-  color: hsl(var(--puka-sun-deep));
-  margin-bottom: 0.85rem;
-}
-.gdpr-ic :deep(svg) { width: 1.25rem; height: 1.25rem; }
-.gdpr-card-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 0.35rem; }
-.gdpr-card-text { color: hsl(var(--puka-ink-soft)); line-height: 1.6; }
-
+/* Die „Was wir bewusst nicht versprechen"-Liste bleibt BEWUSST handgebaut:
+   sie ist eine Definitionsliste (dl/dt/dd), und ein UPageCard schöbe zwischen
+   <dl> und <dt> zwei weitere <div> — das ist im dl-Modell nicht erlaubt. */
 .np-list { margin: 2rem 0 0; display: flex; flex-direction: column; gap: 1rem; }
 .np-item {
   padding: 1.25rem 1.4rem;
@@ -192,7 +171,4 @@ useSeoMeta({
 }
 .np-claim :deep(svg) { width: 1.1rem; height: 1.1rem; color: hsl(var(--puka-ink-soft) / 0.6); flex: none; }
 .np-why { color: hsl(var(--puka-ink-soft)); line-height: 1.6; margin: 0; }
-
-@media (min-width: 700px) { .gdpr-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1060px) { .gdpr-grid { grid-template-columns: repeat(3, 1fr); } }
 </style>

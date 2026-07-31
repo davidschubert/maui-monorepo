@@ -66,23 +66,36 @@ useSeoMeta({
         <p class="feat-sub">{{ t(`${base}.sub`) }}</p>
         <p class="mkt-lead">{{ t(`${base}.intro`) }}</p>
 
-        <!-- Early Access: der Hinweis steht VOR den Vorteilen, nicht danach. -->
-        <aside v-if="isEarlyAccess" class="feat-ea">
-          <h2 class="feat-ea-title">
-            <UIcon name="i-ph-seal-warning-bold" /> {{ t('marketing.features.eaBannerTitle') }}
-          </h2>
-          <p>{{ t('marketing.features.eaBannerText') }}</p>
-        </aside>
+        <!-- Early Access: der Hinweis steht VOR den Vorteilen, nicht danach —
+             prominent GANZ OBEN, mit Titel und Text, nicht kleingedruckt. -->
+        <UAlert
+          v-if="isEarlyAccess"
+          color="primary" variant="subtle" icon="i-ph-seal-warning-bold"
+          :description="t('marketing.features.eaBannerText')"
+          class="mt-8"
+          :ui="{
+            title: 'text-[0.95rem] font-extrabold uppercase tracking-wide',
+            description: 'text-base/relaxed opacity-100',
+          }"
+        >
+          <template #title>
+            <h2>{{ t('marketing.features.eaBannerTitle') }}</h2>
+          </template>
+        </UAlert>
       </div>
     </section>
 
     <section class="mkt-section tone-sky">
       <div class="mkt-inner mkt-narrow" data-reveal>
         <h2 class="mkt-h2">{{ t('marketing.features.highlightsTitle') }}</h2>
-        <ul class="feat-list">
-          <li v-for="item in highlights" :key="item">
-            <UIcon name="i-ph-check-circle-fill" /> <span>{{ item }}</span>
-          </li>
+        <!-- Häkchen-Liste = dieselbe Bauform wie auf /wechseln und in
+             PrivacySection: UPageFeature (Icon + Zeile). -->
+        <ul class="mt-7 flex flex-col gap-2.5">
+          <UPageFeature
+            v-for="item in highlights" :key="item"
+            as="li" icon="i-ph-check-circle-fill" :title="item"
+            :ui="{ leadingIcon: 'size-5 text-primary-600', title: 'font-medium' }"
+          />
         </ul>
       </div>
     </section>
@@ -136,51 +149,6 @@ useSeoMeta({
   font-weight: 600;
   color: hsl(var(--puka-sun-deep));
 }
-.feat-list {
-  margin: 1.75rem 0 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-.feat-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.6rem;
-  line-height: 1.55;
-  color: hsl(var(--puka-ink));
-  font-weight: 500;
-}
-.feat-list :deep(svg) {
-  width: 1.2rem;
-  height: 1.2rem;
-  flex: none;
-  margin-top: 0.15rem;
-  color: hsl(var(--puka-sun-deep));
-}
-.feat-ea {
-  margin-top: 2rem;
-  padding: 1.25rem 1.4rem;
-  background: hsl(var(--puka-sun) / 0.16);
-  border-left: 3px solid hsl(var(--puka-sun-deep));
-  border-radius: 0.7rem;
-  color: hsl(var(--puka-ink) / 0.85);
-  line-height: 1.6;
-}
-.feat-ea-title {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-size: 0.95rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: hsl(var(--puka-sun-deep));
-  margin-bottom: 0.45rem;
-}
-.feat-ea-title :deep(svg) { width: 1.1rem; height: 1.1rem; flex: none; }
-
 .feat-cta-buttons {
   display: flex;
   flex-wrap: wrap;

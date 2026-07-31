@@ -26,80 +26,43 @@ const items = computed(() =>
       <p class="mkt-lead">{{ t('marketing.proof.lead') }}</p>
     </div>
 
-    <ul class="proof-grid mkt-inner" data-reveal>
-      <li v-for="item in items" :key="item.name" class="proof-card">
-        <div class="proof-top">
-          <PukaMark :size="20" />
-          <span class="proof-name">{{ item.name }}</span>
-        </div>
-        <p class="proof-what">{{ item.what }}</p>
-        <a :href="item.url" class="proof-link" target="_blank" rel="noopener">
-          {{ t('marketing.proof.visit') }} <UIcon name="i-ph-arrow-up-right-bold" />
-        </a>
-      </li>
-    </ul>
+    <!-- Container und Raster getrennt — Begründung in BlocksSection.vue. -->
+    <div class="mkt-inner" data-reveal>
+      <UPageGrid as="ul" class="mt-10 lg:grid-cols-4">
+        <UPageCard
+          v-for="item in items" :key="item.name"
+          as="li" :description="item.what"
+          :ui="{ leading: 'gap-2' }"
+        >
+          <template #leading>
+            <PukaMark :size="20" />
+            <span class="font-extrabold break-words text-highlighted">{{ item.name }}</span>
+          </template>
+          <template #footer>
+            <UButton
+              :to="item.url" target="_blank" rel="noopener"
+              variant="link" color="primary" size="sm"
+              trailing-icon="i-ph-arrow-up-right-bold"
+              class="px-0 font-bold hover:underline"
+              :label="t('marketing.proof.visit')"
+            />
+          </template>
+        </UPageCard>
+      </UPageGrid>
+    </div>
 
-    <p class="proof-honest mkt-inner mkt-narrow" data-reveal>{{ t('marketing.proof.honest') }}</p>
+    <div class="mkt-inner mkt-narrow" data-reveal>
+      <UAlert
+        variant="subtle" color="neutral"
+        :description="t('marketing.proof.honest')"
+        class="mt-7"
+        :ui="{ description: 'italic text-toned text-base/relaxed opacity-100' }"
+      />
+    </div>
   </section>
 </template>
 
 <style scoped>
 .proof-head { text-align: center; }
 .proof-head .mkt-lead { margin-inline: auto; }
-.proof-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.1rem;
-  margin-top: 2.5rem;
-  padding: 0;
-  list-style: none;
-}
-.proof-card {
-  padding: 1.4rem;
-  border-radius: 1rem;
-  background: hsl(0 0% 100% / 0.65);
-  border: 1px solid hsl(var(--puka-ink) / 0.08);
-  display: flex;
-  flex-direction: column;
-}
-.proof-top {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.65rem;
-}
-.proof-name {
-  font-weight: 800;
-  font-size: 0.98rem;
-  color: hsl(var(--puka-ink));
-  word-break: break-word;
-}
-.proof-what {
-  color: hsl(var(--puka-ink-soft));
-  line-height: 1.55;
-  flex: 1;
-}
-.proof-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  margin-top: 0.9rem;
-  font-weight: 700;
-  font-size: 0.9rem;
-  color: hsl(var(--puka-sun-deep));
-  text-decoration: none;
-}
-.proof-link:hover { text-decoration: underline; }
-.proof-link :deep(svg) { width: 0.9rem; height: 0.9rem; }
-.proof-honest {
-  margin-top: 1.75rem;
-  padding-left: 0.9rem;
-  border-left: 3px solid hsl(var(--puka-sun) / 0.6);
-  color: hsl(var(--puka-ink-soft));
-  line-height: 1.6;
-  font-style: italic;
-}
-
-@media (min-width: 640px) { .proof-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1060px) { .proof-grid { grid-template-columns: repeat(4, 1fr); } }
 </style>

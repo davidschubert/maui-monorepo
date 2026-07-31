@@ -77,4 +77,16 @@
   --puka-cta-surface-hover: hsl(0 0% 100% / 0.9);
   --puka-cta-edge: hsl(var(--puka-ink) / 0.22);
   --puka-cta-edge-hover: hsl(var(--puka-ink) / 0.4);
+
+  /*
+   * Die Haarlinie der Karten (Paket 2, benutzt vom `pageCard`-Vertrag in
+   * app/app.config.ts). Der Bestand zeichnete sie als `hsl(var(--puka-ink) /
+   * 0.08)` — ein leichtes Abdunkeln der Fläche, nicht eine graue Linie.
+   * Nuxt UIs `ring-default` wäre neutral-200 DECKEND und läge auf den warmen
+   * tone-*-Flächen sichtbar kühl darüber.
+   * Die Farbe kommt hier BEWUSST aus der Neutral-Ramp des Themes
+   * (neutral-900 ≈ --puka-ink, oklch 21,8 % vs. 23 %) und nicht mehr aus dem
+   * Alt-Token: die Kante nimmt damit einen späteren Palettenwechsel mit.
+   */
+  --puka-card-edge: color-mix(in oklab, var(--ui-color-neutral-900) 8%, transparent);
 }
