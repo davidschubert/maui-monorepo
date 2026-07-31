@@ -16,7 +16,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 
 | # | Was (einfach erklärt) | Prio | Aufwand | Braucht David? | Details |
 | --- | --- | --- | --- | --- | --- |
-| 1 · C19 | **Den `/de`-Endlosschleifen-Fix ausliefern.** Der Fehler ist im Code behoben, läuft aber noch auf keinem Server. Er steckt im Core, betrifft also alle Apps. | Hoch | S — nur Deploy + Nachmessen | Nein | [Notizen](#notizen) |
 | 2 · A6 | **Dafür sorgen, dass eine Bezahlung bei der Community ankommt** (Schritte 3–6). Heute hängt der Geldpfad an `workspaces` — ein zahlender Kunde bliebe auf dem Basis-Tarif. Schritte 0–2 sind fertig. | Hoch | L — Geldpfad, vier Schritte | Nein (alle 3 Fragen entschieden, Owner = Site-Rolle) | [A6-WORKSPACES-ABLOESUNG.md](plans/A6-WORKSPACES-ABLOESUNG.md) |
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
@@ -63,6 +62,7 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | F1 | **Discussions als eigenes Produkt** — Konzept fertig (Kategorien vom Admin, Threads von Mitgliedern). | Mittel | XL | Ja: Go | dass die Kundenselbstverwaltung rund läuft |
 | F2 | **Block-Editor-Worktree** (`worktree-agent-a762b1bc42bba74d7`) — nie durchgesehen, Feature-Stopp. | Niedrig | M | Ja: Go | Ende des Feature-Stopps |
 | F3 | **Silo → Pool:** `comments` und `portfolio` laufen als eigene Instanzen. Langfristig ist der Pool das Produkt, Silo bleibt das Enterprise-Angebot. | Niedrig | XL | Ja: strategisch | eine strategische Entscheidung |
+| P12 · OPS | **Drei Cutover-Krümel wegklicken:** in der Appwrite-Console (Projekt control → Settings → Platforms) prüfen, ob `studio.pukalani.app` noch als Web-Platform hängt · `/home/ploi/releases/studio/` auf dem Server löschen · totes GitHub-Secret `PLOI_DEPLOY_WEBHOOK_STUDIO` entfernen. | Niedrig | S — drei Klicks | Ja: nur David (Console/Server/GitHub) | — |
 
 ---
 

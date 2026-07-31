@@ -460,3 +460,12 @@ _Alle erledigt (2026-06-24) — siehe „Bereits erledigt"._
 - **Code-Review Batches A–G**: locale-gebundene Daten; OTP exakter Existenzcheck; Appwrite-Fehler gekapselt (signup/profile/report); Presence-PII zu; Rate-Limit zählt nur Fehlversuche (Mail-Routen weiter pro Request); Storage-Bucket-Allowlist + MIME; GDPR-Self-Delete-Audit; A11y (Consent-Banner, SortableHeader); NotificationBell `<i18n-t>`; Vote-Flicker behoben (Single-Write, autoritative Counts) inkl. Flip-Race/Score-Drift/409; Controversial-Sort über Fenster; Pagination-Tiebreaker; Store-Count-Drift (Phantom-Reply, Hard-Delete-Nachfahren); `assertNotLastAdmin` paginiert; `config.patch` 404-only; `seed-changelog` Limit; Changelog-Patch leerer-Body-Schutz; WhatsNewButton-Sortierung; admin-Middleware `status/statusText`; CI `permissions`+`concurrency`; Dependabot; `@nuxtjs/i18n` als echte Dep; `changelog-draft` `execFileSync`.
 - **Kommentar-UI (Reddit-Stil)**: borderless, kompakte Aktionszeile, Edit/Delete/Report hinter ⋯, Antworten ein-/ausklappen, „Alle {x} laden"-Button (löst die verborgenen Kommentare + verwaiste Replies), **unreport** (Melden ⇄ zurückziehen).
 - **False Positives (geprüft, kein Fix)**: System-Update-Toast liest Fehler korrekt; Audit-Sort `actorName` / User-Sort `labels` laufen auf 1.9.0 fehlerfrei; keine Prod-Fehler-Leaks (Nitro maskiert ungefangene Fehler).
+
+### C19 — /de-Endlosschleifen-Fix ✅ 2026-07-31
+
+3xx-Antworten mit leerem Location-Header werden im Core auf die App-Wurzel
+normalisiert (Commit 5528d01); mit dem Deploy von Build 49442b7 auf allen
+Hosts live, Nachweis per Ancestor-Check des Live-Builds.
+**Gelernt:** Ein „im Code behoben"-Punkt ist erst zu, wenn der Fix nachweislich
+im LIVE-Build steckt — der Ancestor-Check (`git merge-base --is-ancestor
+<fix> <live-build>`) ist dafür der billigste Beweis, kein erneutes Deployen.
