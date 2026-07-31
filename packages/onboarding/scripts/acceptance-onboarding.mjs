@@ -3,7 +3,7 @@
  *
  *   „Zehn unbeaufsichtigte Testläufe ohne Operator-Eingriff; Median vom Signup
  *    bis zur live erreichbaren Site ≤ 60 Sekunden, keine verwaiste Tenant-/
- *    Workspace-Row bei Abbruch, Retry ist idempotent."
+ *    Community-Row bei Abbruch, Retry ist idempotent."
  *
  * Gemessen wird der GANZE Weg: Konto anlegen → anmelden → Community anlegen →
  * warten, bis der Community-Host wirklich antwortet. Der letzte Schritt gehört
@@ -42,7 +42,7 @@ const poolDatabaseId = process.env.POOL_DATABASE_ID || 'main'
 
 let pass = 0
 let fail = 0
-const cleanup = { users: [], codes: [], tenants: [], members: [], workspaces: [], pages: [] }
+const cleanup = { users: [], codes: [], tenants: [], members: [], pages: [] }
 
 function check(label, ok, detail = '') {
   if (ok) {
@@ -234,7 +234,6 @@ try {
   const tenantRows = await control.listRows({
     databaseId, tableId: 'communities', queries: [Query.equal('$id', cleanup.tenants), Query.limit(100)],
   })
-  cleanup.workspaces.push(...new Set(tenantRows.rows.map(row => row.workspaceId).filter(Boolean)))
   check('alle im Trial-Plan (pro) mit 14 Tagen', tenantRows.rows.every(row =>
     row.plan === 'pro' && Math.round((Date.parse(row.trialEndsAt) - Date.now()) / 86_400_000) === 14))
   check('alle privat (audience members)', tenantRows.rows.every(row => row.audience === 'members'))
@@ -283,7 +282,6 @@ finally {
   }
   for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'community_members', rowId: id }).catch(() => {})
   for (const id of cleanup.tenants) await control.deleteRow({ databaseId, tableId: 'communities', rowId: id }).catch(() => {})
-  for (const id of cleanup.workspaces) await control.deleteRow({ databaseId, tableId: 'workspaces', rowId: id }).catch(() => {})
   for (const id of cleanup.codes) await control.deleteRow({ databaseId, tableId: 'invite_codes', rowId: id }).catch(() => {})
   for (const id of cleanup.users) await poolUsers.delete({ userId: id }).catch(() => {})
   const rest = await control.listRows({ databaseId, tableId: 'communities', queries: [Query.limit(25)] })

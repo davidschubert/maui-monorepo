@@ -2,7 +2,6 @@
   "admin": {
     "nav": {
       "websites": "Websites",
-      "workspaces": "Workspaces",
       "tenants": "Tenants",
       "inviteRequests": "Anfragen",
       "invites": "Einladungen",
@@ -179,8 +178,7 @@
       "col": {
         "site": "Website",
         "state": "Status",
-        "products": "Produkte",
-        "workspace": "Workspace"
+        "products": "Produkte"
       }
     },
     "jobs": {
@@ -211,73 +209,6 @@
       "saveFailed": "Produkte konnten nicht gespeichert werden",
       "none": "Keine Produkte zugeteilt",
       "save": "Speichern"
-    },
-    "workspaces": {
-      "title": "Workspaces",
-      "create": "Workspace anlegen",
-      "createTitle": "Neuen Workspace anlegen",
-      "created": "Workspace „{name}“ angelegt",
-      "createFailed": "Anlegen fehlgeschlagen",
-      "edit": "Bearbeiten",
-      "editTitle": "Workspace „{name}“ bearbeiten",
-      "saved": "Workspace „{name}“ gespeichert",
-      "saveFailed": "Speichern fehlgeschlagen",
-      "empty": "Noch keine Workspaces — lege den ersten an.",
-      "noSites": "Keine Sites zugeordnet",
-      "planProducts": "Plan-Produkte",
-      "fieldName": "Name",
-      "fieldOwnerEmail": "Inhaber-E-Mail",
-      "fieldOwnerEmailHint": "Rechnungs-/Kontaktadresse des Kunden",
-      "operator": "Betreiber",
-      "assignLabel": "Workspace zuordnen",
-      "assigned": "Workspace-Zuordnung von „{name}“ gespeichert",
-      "assignFailed": "Zuordnung fehlgeschlagen",
-      "changePlan": "Plan ändern",
-      "changePlanTitle": "Plan für „{name}“ ändern",
-      "currentPlan": "Aktueller Plan",
-      "targetPlan": "Neuer Plan",
-      "changePlanHelp": "Bezahlpläne laufen über den Stripe-Checkout; die Produkte aller zugeordneten Sites werden nach Zahlungseingang automatisch synchronisiert.",
-      "interval": "Abrechnung",
-      "intervalMonthly": "Monatlich",
-      "intervalYearly": "Jährlich",
-      "downgradeHint": "Downgrade: Abo in Stripe kündigen — zum Periodenende fällt der Workspace automatisch auf den kostenlosen Basic-Plan zurück.",
-      "toCheckout": "Zum Checkout",
-      "checkoutFailed": "Checkout konnte nicht gestartet werden",
-      "emptyTitle": "Noch keine Workspaces",
-      "rowActions": "Aktionen für diesen Workspace",
-      "col": {
-        "workspace": "Workspace",
-        "owner": "Inhaber",
-        "plan": "Plan",
-        "status": "Status",
-        "sites": "Sites"
-      }
-    },
-    "invite": {
-      "send": "Owner einladen",
-      "resend": "Einladung erneut senden",
-      "sent": "Einladung an {email} verschickt",
-      "sendFailed": "Einladung fehlgeschlagen",
-      "pending": "Einladung offen",
-      "ownerActive": "Owner aktiv",
-      "working": "Einladung wird geprüft …",
-      "successTitle": "Willkommen im Workspace!",
-      "successMessage": "Deine Einladung wurde angenommen — du kannst deinen Workspace jetzt verwalten.",
-      "needsLoginTitle": "Bitte zuerst anmelden",
-      "needsLoginMessage": "Melde dich mit deiner eingeladenen E-Mail-Adresse an (Code per E-Mail) — die Einladung wird danach automatisch übernommen.",
-      "invalidTitle": "Einladung ungültig oder abgelaufen",
-      "invalidMessage": "Bitte eine neue Einladung anfordern.",
-      "toWorkspace": "Zum Workspace"
-    },
-    "customer": {
-      "title": "Mein Workspace",
-      "subtitle": "Plan, Abrechnung und Sites deines Workspace.",
-      "empty": "Deinem Konto ist noch kein Workspace zugeordnet — folge dem Einladungslink aus deiner E-Mail.",
-      "sites": "Sites",
-      "portal": "Abrechnung verwalten",
-      "portalFailed": "Portal konnte nicht geöffnet werden",
-      "noBillingYet": "Noch keine Abrechnung vorhanden — starte zuerst einen Checkout.",
-      "downgradeHint": "Kündigung und Zahlungsmethode verwaltest du unter „Abrechnung verwalten“ — nach einer Kündigung fällt der Workspace zum Periodenende automatisch auf den kostenlosen Basic-Plan zurück."
     },
     "tenants": {
       "title": "Tenants",
@@ -360,7 +291,7 @@
     },
     "prices": {
       "title": "Preise (Stripe)",
-      "subtitle": "Preise der Workspace-Pläne — Änderungen legen in Stripe einen neuen Preis an und archivieren den alten. Beträge sind BRUTTO: Landing und Hilfe weisen sie als Endpreise inkl. 19 % MwSt. aus.",
+      "subtitle": "Preise der Community-Pläne — Änderungen legen in Stripe einen neuen Preis an und archivieren den alten. Beträge sind BRUTTO: Landing und Hilfe weisen sie als Endpreise inkl. 19 % MwSt. aus.",
       "newAmount": "Neuer Preis (€, brutto inkl. MwSt.)",
       "save": "Preis ändern",
       "saved": "Preis aktualisiert.",

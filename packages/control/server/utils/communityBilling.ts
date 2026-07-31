@@ -1,15 +1,13 @@
 import type { H3Event } from 'h3'
-import { subscriptionUpdateToCommunityAction, type CommunitySubscriptionUpdate } from '../../shared/communityBilling'
-import { shouldApplyFreeFallback } from '../../shared/workspaceBilling'
+import { shouldApplyFreeFallback, subscriptionUpdateToCommunityAction, type CommunitySubscriptionUpdate } from '../../shared/communityBilling'
 import { COMMUNITIES_TABLE, type TenantPlan, type TenantRow } from '../../shared/types/tenantRecord'
-import type { ControlPlanCatalog } from '../../shared/types/workspace'
+import type { ControlPlanCatalog } from '../../shared/types/planCatalog'
 
 /**
- * A6 Schritt 2 — verifiziertes Abo-Update → COMMUNITY-Wirkung: ab hier kommt
- * eine Zahlung beim Kunden an (`tenants.plan` steuert Quota + Produkt-
- * Sichtbarkeit). Spiegelbild von handleWorkspaceSubscriptionUpdate, das mit
- * A6 Schritt 5 verschwindet; bis dahin laufen BEIDE Handler nebeneinander
- * (alte Abos tragen workspaceId-Metadata, neue communityId).
+ * A6 — verifiziertes Abo-Update → COMMUNITY-Wirkung: hier kommt eine Zahlung
+ * beim Kunden an (`tenants.plan` steuert Quota + Produkt-Sichtbarkeit). Seit
+ * A6 Schritt 5 der EINZIGE Fulfillment-Handler; der Workspace-Zwilling
+ * (handleWorkspaceSubscriptionUpdate) ist mit seinem Behälter gefallen.
  *
  * Idempotent und Webhook-Retry-sicher; transiente Fehler WERFEN (billing
  * antwortet 500 → Stripe stellt erneut zu — ein verschluckter Webhook ist

@@ -23,7 +23,7 @@
  *
  *   pnpm migrate --app control --layer control
  */
-import { Client, Query, TablesDB, TablesDBIndexType, type Models } from 'node-appwrite'
+import { Client, Query, TablesDB, type TablesDBIndexType, type Models } from 'node-appwrite'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID

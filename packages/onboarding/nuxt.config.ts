@@ -5,7 +5,7 @@
  * es bewusst keinen Mandanten, weil hier erst einer entsteht.
  *
  * BESITZT KEINE Appwrite-Tables. Alles, was entsteht, gehört dem Control Plane
- * (tenants/workspaces/community_members) und wird über die auditierte Service-Naht
+ * (communities/community_members) und wird über die auditierte Service-Naht
  * dort angelegt (POST /api/control/onboarding/site) — dieser Layer hält
  * ausschließlich die Oberfläche und den Aufruf.
  */

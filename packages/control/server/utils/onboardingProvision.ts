@@ -11,7 +11,6 @@ import {
 import { slugToHost } from '../../schemas/tenant'
 import { COMMUNITIES_TABLE, normalizeTenantPlan, type TenantRow } from '../../shared/types/tenantRecord'
 import { COMMUNITY_MEMBERS_TABLE, type CommunityMemberRow } from '../../shared/types/communityMember'
-import { WORKSPACES_TABLE, type WorkspaceRow } from '../../shared/types/workspace'
 import type { InviteCodeRow } from '../../shared/types/inviteCode'
 import type { RuntimeIdentity } from './onboardingService'
 
@@ -30,9 +29,9 @@ import type { RuntimeIdentity } from './onboardingService'
  *    aber die Owner-Mitgliedschaft, wird der Tenant wieder gelöscht. Sonst
  *    stünde eine Community da, die niemandem gehört und die niemand
  *    aufräumen kann — genau die „verwaiste Row", die die Roadmap-DoD verbietet.
- *  - **Reihenfolge:** Workspace (wiederverwendet) → Tenant → Mitgliedschaft.
- *    Der Workspace kommt zuerst, weil ein übrig gebliebener leerer Workspace
- *    harmlos ist; eine Community ohne Owner ist es nicht.
+ *  - **Reihenfolge:** Tenant → Mitgliedschaft. Bis A6 Schritt 5 stand davor
+ *    noch ein Abrechnungs-Workspace; die Community IST jetzt das zahlende
+ *    Objekt (Davids Entscheidung 2026-07-30), es gibt nichts mehr davor.
  */
 
 export interface ProvisionInput {
@@ -49,7 +48,6 @@ export interface ProvisionResult {
   url: string
   plan: string
   trialEndsAt: string | null
-  workspaceId: string
   /** Zeilen-Scope im Pool — die Runtime braucht ihn, um die erste Seite der
    *  Community anzulegen (sie läuft dabei OHNE Mandanten-Kontext). */
   tenantId: string
@@ -107,37 +105,6 @@ async function ownedSites(event: H3Event, identity: RuntimeIdentity): Promise<Te
   return rows
 }
 
-async function findOrCreateWorkspace(event: H3Event, identity: RuntimeIdentity, fallbackName: string): Promise<WorkspaceRow> {
-  const config = useRuntimeConfig(event)
-  const admin = createAdminClient(event)
-  const databaseId = config.public.appwriteDatabaseId
-
-  const { rows } = await admin.tablesDB.listRows<WorkspaceRow>({
-    databaseId,
-    tableId: WORKSPACES_TABLE,
-    queries: [Query.equal('ownerEmail', identity.email), Query.limit(1)],
-  })
-  if (rows[0]) return rows[0]
-
-  return admin.tablesDB.createRow<WorkspaceRow>({
-    databaseId,
-    tableId: WORKSPACES_TABLE,
-    rowId: ID.unique(),
-    // Start immer im free-Plan: die Testphase ist eine Eigenschaft der SITE
-    // (tenants.plan + trialEndsAt), nicht des Abrechnungs-Workspace. Sonst
-    // müsste der Stripe-Sync später einen Plan zurückdrehen, den nie jemand
-    // gekauft hat.
-    data: {
-      name: identity.name?.trim() || fallbackName,
-      ownerEmail: identity.email,
-      stripeCustomerId: '',
-      stripeSubscriptionId: '',
-      plan: 'basic',
-      status: 'active',
-    },
-  })
-}
-
 async function isOwner(event: H3Event, communityId: string, identity: RuntimeIdentity): Promise<boolean> {
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
@@ -175,7 +142,6 @@ export async function provisionCommunity(
         url: siteUrl(existing.host),
         plan: normalizeTenantPlan(existing.plan),
         trialEndsAt: existing.trialEndsAt,
-        workspaceId: existing.workspaceId || '',
         tenantId: existing.tenantId,
         reused: true,
       }
@@ -195,7 +161,6 @@ export async function provisionCommunity(
     })
   }
 
-  const workspace = await findOrCreateWorkspace(event, identity, input.name)
   const vibe = resolveVibe(input.vibe)
   // Dasselbe Projekt, gegen das die Identität geprüft wurde — der Tenant muss
   // im Projekt des Nutzers entstehen, sonst gehört ihm seine Site nicht.
@@ -219,7 +184,10 @@ export async function provisionCommunity(
       // was hier gestaffelt wird, sind die Mengen-Limits.
       plan: TRIAL_PLAN,
       trialEndsAt: trialEndsAt(now),
-      workspaceId: workspace.$id,
+      // TOTE SPALTE — fällt mit control-031. createRow<TenantRow> verlangt
+      // ALLE Spalten explizit (bewusst, CLAUDE.md), also steht sie hier noch
+      // einmal ausdrücklich leer da, bis die Migration sie entfernt.
+      workspaceId: '',
       theme: vibe.theme,
       variant: vibe.variant,
       // Neutral-Palette (control-020, Rest von B5): der Wizard fragt sie NICHT
@@ -276,7 +244,6 @@ export async function provisionCommunity(
   logEvent('info', 'onboarding.site_created', {
     communityId: tenant.$id,
     host,
-    workspaceId: workspace.$id,
     runtimeUserId: identity.userId,
     inviteCodeId: input.inviteCode?.$id ?? '',
     emailVerified: identity.emailVerified,
@@ -288,7 +255,6 @@ export async function provisionCommunity(
     url: siteUrl(host),
     plan: TRIAL_PLAN,
     trialEndsAt: tenant.trialEndsAt,
-    workspaceId: workspace.$id,
     tenantId,
     reused: false,
   }

@@ -1,8 +1,8 @@
 import type Stripe from 'stripe'
-import type { ControlPlanCatalog } from '../../../../../../packages/control/shared/types/workspace'
+import type { ControlPlanCatalog } from '../../../../../../packages/control/shared/types/planCatalog'
 
 /**
- * Betreiber: aktuelle Stripe-Preise des Workspace-Plan-Katalogs (per
+ * Betreiber: aktuelle Stripe-Preise des Plan-Katalogs (per
  * lookup_key, Test- wie Live-Mode). APP-Route (A14: komponiert den
  * control-Plan-Katalog mit der billing-Stripe-Utility — die Layer kennen
  * sich nicht). Read-only; die Änderung läuft über prices.post.ts.

@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { subscriptionUpdateToCommunityAction, transferBlockedBySubscription } from '../shared/communityBilling'
-import type { ControlPlanCatalog } from '../shared/types/workspace'
+import { pickLookupKey, shouldApplyFreeFallback, subscriptionUpdateToCommunityAction, transferBlockedBySubscription } from '../shared/communityBilling'
+import type { ControlPlanCatalog } from '../shared/types/planCatalog'
 
 /**
- * A6 — Community-Geldpfad-Policy (Gegenstück zu workspace-billing.test.ts).
- * Diese Tests sind das Netz, das a6-money-path.test.ts versprochen hat: ab
- * jetzt HAT ein communityId-Ereignis eine Wirkung — auf die Community.
+ * A6 — die Policy des Geldpfads. Seit Schritt 5 ist es der EINZIGE: die Fälle
+ * zu `pickLookupKey` und `shouldApplyFreeFallback` sind aus dem gelöschten
+ * workspace-billing.test.ts hierher gezogen, weil beide Funktionen mitgezogen
+ * sind — sie beschrieben nie den Behälter, immer nur das Abo.
  */
 
 const plans: ControlPlanCatalog = {
@@ -28,8 +29,8 @@ describe('subscriptionUpdateToCommunityAction', () => {
     expect(subscriptionUpdateToCommunityAction({ status: 'trialing', metadata: { communityId: 't-1', plan: 'pro' }, ...base }, plans).kind).toBe('apply-plan')
   })
 
-  it('ohne communityId-Metadata: ignorieren (fremdes oder Workspace-Ereignis)', () => {
-    expect(subscriptionUpdateToCommunityAction({ status: 'active', metadata: { workspaceId: 'ws-1', plan: 'personal' }, ...base }, plans))
+  it('ohne communityId-Metadata: ignorieren (fremdes Ereignis)', () => {
+    expect(subscriptionUpdateToCommunityAction({ status: 'active', metadata: { plan: 'personal' }, ...base }, plans))
       .toEqual({ kind: 'ignore', reason: 'no-community-metadata' })
   })
 
@@ -56,6 +57,39 @@ describe('subscriptionUpdateToCommunityAction', () => {
     for (const status of ['incomplete', 'paused', 'somethingnew']) {
       expect(subscriptionUpdateToCommunityAction({ status, metadata: { communityId: 't-1' }, ...base }, plans).kind).toBe('ignore')
     }
+  })
+})
+
+describe('pickLookupKey (Monats-/Jahres-Intervall)', () => {
+  const paid = { lookupKey: 'workspace_pro_monthly', lookupKeyYearly: 'workspace_pro_yearly' }
+
+  it('wählt den Monats- bzw. Jahres-lookup_key', () => {
+    expect(pickLookupKey(paid, 'monthly')).toBe('workspace_pro_monthly')
+    expect(pickLookupKey(paid, 'yearly')).toBe('workspace_pro_yearly')
+  })
+
+  it('basic (kein Preis) bleibt null in beiden Intervallen', () => {
+    expect(pickLookupKey(plans.basic!, 'monthly')).toBeNull()
+    expect(pickLookupKey(plans.basic!, 'yearly')).toBeNull()
+  })
+
+  it('fehlt der Jahrespreis, fällt yearly bewusst auf den Monatspreis zurück', () => {
+    expect(pickLookupKey({ lookupKey: 'only_monthly' }, 'yearly')).toBe('only_monthly')
+  })
+})
+
+describe('shouldApplyFreeFallback (Cross-Sub-Guard #6)', () => {
+  it('degradiert, wenn die gekündigte Sub die hinterlegte ist', () => {
+    expect(shouldApplyFreeFallback('sub_A', 'sub_A')).toBe(true)
+  })
+
+  it('degradiert bei leerem gespeicherten Wert (Community ohne Abo-Bezug)', () => {
+    expect(shouldApplyFreeFallback('', 'sub_A')).toBe(true)
+  })
+
+  it('degradiert NICHT, wenn eine ANDERE (neuere) Sub hinterlegt ist', () => {
+    // Kern des Bugs: altes Abo sub_A wird gekündigt, aber sub_B stuft schon hoch.
+    expect(shouldApplyFreeFallback('sub_B', 'sub_A')).toBe(false)
   })
 })
 

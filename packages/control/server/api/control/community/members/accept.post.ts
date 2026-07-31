@@ -4,7 +4,7 @@ import { COMMUNITY_INVITES_TABLE, type CommunityInviteRow } from '../../../../..
 import { COMMUNITY_MEMBERS_TABLE, type CommunityMemberRow } from '../../../../../shared/types/communityMember'
 import { COMMUNITIES_TABLE, type TenantRow } from '../../../../../shared/types/tenantRecord'
 import { verifyRuntimeIdentity } from '../../../../utils/onboardingService'
-import { hashInviteToken } from '../../../../utils/workspaceMembers'
+import { hashInviteToken } from '../../../../utils/communityTeam'
 
 /**
  * Einladung annehmen — der EINE Klick aus Davids Entscheidung 2.
@@ -14,7 +14,7 @@ import { hashInviteToken } from '../../../../utils/workspaceMembers'
  *  1. Service-Secret (der Aufrufer ist unser Deployment),
  *  2. JWT (WER annimmt — vom Control Plane selbst geprüft),
  *  3. Token-Hash + E-Mail-Gleichheit (ein weitergeleiteter Link bindet nicht den
- *     falschen Account — dieselbe Regel wie bei den Workspace-Einladungen).
+ *     falschen Account).
  *
  * `communityId` kommt aus der EINLADUNG, nie aus dem Body: sonst könnte ein gültiges
  * Token für eine fremde Community eingelöst werden.

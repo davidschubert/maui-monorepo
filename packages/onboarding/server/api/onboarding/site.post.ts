@@ -20,7 +20,6 @@ export interface CreatedSite {
   url: string
   plan: string
   trialEndsAt: string | null
-  workspaceId: string
   tenantId: string
   reused: boolean
 }

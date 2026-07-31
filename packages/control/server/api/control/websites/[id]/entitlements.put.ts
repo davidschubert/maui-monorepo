@@ -2,7 +2,7 @@ import { Query } from 'node-appwrite'
 import { z } from 'zod'
 import { WEBSITES_TABLE, type WebsiteRow } from '../../../../../shared/types/website'
 import { PRODUCT_CATALOG_TABLE, type ProductCatalogRow } from '../../../../../shared/types/job'
-import { replaceSiteGrants } from '../../../../utils/workspaceGrants'
+import { replaceSiteGrants } from '../../../../utils/entitlementGrants'
 
 const putSchema = z.object({
   products: z.array(z.string().regex(/^[a-z][a-z0-9-]*$/)).max(20),
@@ -43,7 +43,8 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // Gemeinsame Ersetzen-Logik mit dem Workspace-Billing-Sync (M8-T3)
+  // Seit A6 Schritt 5 der EINZIGE Aufrufer der Grant-Mechanik (der
+  // automatische Plan-Sync fiel mit dem Workspace) — entitlementGrants.ts.
   await replaceSiteGrants(event, site.projectId, body.products)
     .catch((error) => { throw toH3Error(error, 'Could not update entitlements') })
 

@@ -35,7 +35,7 @@ export const inviteCheckSchema = z.object({ code: inviteCodeSchema }).strict()
  * Bewusst EIN Aufruf mit allen Antworten statt sieben Teil-Schreibvorgängen:
  * so entsteht die Community entweder ganz oder gar nicht — kein halb
  * angelegter Mandant, wenn der Browser zwischen Schritt 4 und 5 zugeht
- * (DoD der Roadmap: „keine verwaiste Tenant-/Workspace-Row bei Abbruch").
+ * (DoD der Roadmap: „keine verwaiste Community-Row bei Abbruch").
  *
  * `slug` statt `host`: der Server baut den Hostnamen (s. createSlugSchema).
  * Es gibt bewusst KEINEN `plan`/`projectId`/`mode`-Parameter — Selbst-

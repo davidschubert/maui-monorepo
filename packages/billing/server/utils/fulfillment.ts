@@ -27,7 +27,7 @@ export async function runCheckoutFulfillments(event: H3Event, session: Stripe.Ch
 /**
  * Abo-Lifecycle-Vertrag (M8): billing verifiziert Signatur + Idempotenz und
  * reicht dann ein bereits geprüftes Subscription-Update an App-registrierte
- * Handler weiter (z. B. Workspace-Billing des Studio) — nie rohes Stripe-JSON,
+ * Handler weiter (z. B. Community-Billing des Control Plane) — nie rohes Stripe-JSON,
  * A14 wie beim Checkout-Vertrag. Läuft NUR für nicht-stale, tatsächlich
  * angewandte Upserts. Handler MÜSSEN idempotent sein (Webhook-Retry → 500
  * lässt Stripe wiederholen).
@@ -40,7 +40,7 @@ export interface VerifiedSubscriptionUpdate {
   status: SubscriptionStatus
   currentPeriodEnd: string
   cancelAtPeriodEnd: boolean
-  /** subscription_data.metadata aus dem Checkout (z. B. workspaceId, plan). */
+  /** subscription_data.metadata aus dem Checkout (z. B. communityId, plan). */
   metadata: Record<string, string>
   eventCreated: number
 }
@@ -69,7 +69,7 @@ export interface CustomerSubscriptionSummary {
 
 /**
  * Alle Abos eines Stripe-Customers, direkt von Stripe (#6b): Autorität für
- * Fulfillment-Entscheidungen wie „hat der Workspace noch ein anderes aktives
+ * Fulfillment-Entscheidungen wie „hat die Community noch ein anderes aktives
  * Abo?" — die lokale Abbild-Row kann durch out-of-order-Webhooks stale sein,
  * Stripe selbst nicht. Wirft bei API-Fehlern (Aufrufer entscheidet fail-closed).
  */
@@ -88,19 +88,19 @@ export async function listCustomerSubscriptionSummaries(event: H3Event, stripeCu
 }
 
 /**
- * Generische Abo-Checkout-Session für App-Kompositionen (M8 Workspace-
- * Billing): wie createPaymentCheckoutSession, aber mode 'subscription' und
- * metadata AUCH auf der Subscription (subscription_data) — nur so tragen
- * spätere customer.subscription.*-Events die Zuordnung (workspaceId).
- * BEWUSST ohne den 409-„bereits aktiv"-Check der App-Abo-Route: ein
- * Operator darf mehrere Workspace-Abos halten.
+ * Generische Abo-Checkout-Session für App-Kompositionen: wie
+ * createPaymentCheckoutSession, aber mode 'subscription' und metadata AUCH auf
+ * der Subscription (subscription_data) — nur so tragen spätere
+ * customer.subscription.*-Events die Zuordnung (z. B. communityId).
+ * BEWUSST ohne den 409-„bereits aktiv"-Check der App-Abo-Route: ein Konto
+ * darf mehrere Abos halten (ein Owner mit zwei Communities hat zwei).
  */
 export async function createSubscriptionCheckoutSession(event: H3Event, input: {
   lookupKey: string
   metadata: Record<string, string>
   successUrl: string
   cancelUrl: string
-  /** Expliziter Stripe-Customer (#7a, z. B. der Workspace-Customer der App-
+  /** Expliziter Stripe-Customer (#7a, z. B. der Community-Customer der App-
    *  Komposition). Ohne Angabe wie bisher: der Customer des eingeloggten
    *  Users (ensureCustomer). */
   stripeCustomerId?: string
@@ -129,7 +129,7 @@ export async function createSubscriptionCheckoutSession(event: H3Event, input: {
     customer_update: { address: 'auto', name: 'auto' },
     success_url: input.successUrl,
     cancel_url: input.cancelUrl,
-  }).catch(error => toStripeSafeError(error, 'checkout.sessions.create (workspace subscription) fehlgeschlagen'))
+  }).catch(error => toStripeSafeError(error, 'checkout.sessions.create (subscription) fehlgeschlagen'))
 
   if (!session.url) {
     throw createError({ status: 502, statusText: 'Payment provider unavailable' })

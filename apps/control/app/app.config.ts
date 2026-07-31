@@ -12,9 +12,9 @@ export default defineAppConfig({
     // Betreiber-Login per OTP-Code (H2-Live): der Control-Admin braucht kein
     // Passwort — Prod-Konto wurde server-seitig ohne Passwort angelegt.
     auth: { otp: true, termsUrl: '/terms' },
-    // M8: Stripe-Transport des billing-Layers für WORKSPACE-Billing aktivieren.
+    // Stripe-Transport des billing-Layers aktivieren (A6: Community-Billing).
     // plans bleibt leer — das Control verkauft keine Site-Abos an Endnutzer;
-    // die Workspace-Pläne leben in pukalani.control.plans (lookup_keys).
+    // die Pläne leben in pukalani.control.plans (lookup_keys).
     billing: { enabled: true },
     // Interne Projekt-Doku (/docs) in der Betreiber-Nav. Kein productKey —
     // die Doku gehört keinem Produkt-Layer, sie ist Teil DIESER App; die
@@ -35,8 +35,8 @@ export default defineAppConfig({
     // C17: DIESE App ist der Leser der kontobezogenen Meldungen. Beide
     // `scope: 'account'`-Absender leben hier (Stripe-Webhook im billing-Layer,
     // Early-Access-Anfragen im control-Layer) und schreiben in DIESES
-    // Appwrite-Projekt — die Empfänger sind Konten dieses Projekts (Workspace-
-    // Owner unter /workspace, Betreiber unter /dashboard). Ohne blueprint gibt
+    // Appwrite-Projekt — die Empfänger sind Konten dieses Projekts (der
+    // Betreiber unter /dashboard). Ohne blueprint gibt
     // es hier kein Community-Chrome, das die Glocke registriert; der Schalter
     // hängt sie in beide Shells (core-default-Layout + Dashboard).
     chrome: { accountBell: true },

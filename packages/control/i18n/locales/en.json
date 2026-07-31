@@ -2,7 +2,6 @@
   "admin": {
     "nav": {
       "websites": "Websites",
-      "workspaces": "Workspaces",
       "tenants": "Tenants",
       "inviteRequests": "Requests",
       "invites": "Invites",
@@ -179,8 +178,7 @@
       "col": {
         "site": "Website",
         "state": "Status",
-        "products": "Products",
-        "workspace": "Workspace"
+        "products": "Products"
       }
     },
     "jobs": {
@@ -211,73 +209,6 @@
       "saveFailed": "Could not save products",
       "none": "No products granted",
       "save": "Save"
-    },
-    "workspaces": {
-      "title": "Workspaces",
-      "create": "Create workspace",
-      "createTitle": "Create a new workspace",
-      "created": "Workspace “{name}” created",
-      "createFailed": "Creation failed",
-      "edit": "Edit",
-      "editTitle": "Edit workspace “{name}”",
-      "saved": "Workspace “{name}” saved",
-      "saveFailed": "Saving failed",
-      "empty": "No workspaces yet — create the first one.",
-      "noSites": "No sites assigned",
-      "planProducts": "Plan products",
-      "fieldName": "Name",
-      "fieldOwnerEmail": "Owner email",
-      "fieldOwnerEmailHint": "Billing/contact address of the customer",
-      "operator": "Operator",
-      "assignLabel": "Assign workspace",
-      "assigned": "Workspace assignment of “{name}” saved",
-      "assignFailed": "Assignment failed",
-      "changePlan": "Change plan",
-      "changePlanTitle": "Change plan for “{name}”",
-      "currentPlan": "Current plan",
-      "targetPlan": "New plan",
-      "changePlanHelp": "Paid plans go through Stripe checkout; the products of all assigned sites are synced automatically after payment.",
-      "interval": "Billing",
-      "intervalMonthly": "Monthly",
-      "intervalYearly": "Yearly",
-      "downgradeHint": "Downgrade: cancel the subscription in Stripe — at period end the workspace falls back to the free Basic plan automatically.",
-      "toCheckout": "Go to checkout",
-      "checkoutFailed": "Could not start checkout",
-      "emptyTitle": "No workspaces yet",
-      "rowActions": "Actions for this workspace",
-      "col": {
-        "workspace": "Workspace",
-        "owner": "Owner",
-        "plan": "Plan",
-        "status": "Status",
-        "sites": "Sites"
-      }
-    },
-    "invite": {
-      "send": "Invite owner",
-      "resend": "Resend invitation",
-      "sent": "Invitation sent to {email}",
-      "sendFailed": "Invitation failed",
-      "pending": "Invitation pending",
-      "ownerActive": "Owner active",
-      "working": "Checking invitation …",
-      "successTitle": "Welcome to your workspace!",
-      "successMessage": "Your invitation has been accepted — you can now manage your workspace.",
-      "needsLoginTitle": "Please sign in first",
-      "needsLoginMessage": "Sign in with your invited email address (code via email) — the invitation is applied automatically afterwards.",
-      "invalidTitle": "Invitation invalid or expired",
-      "invalidMessage": "Please request a new invitation.",
-      "toWorkspace": "Go to workspace"
-    },
-    "customer": {
-      "title": "My workspace",
-      "subtitle": "Plan, billing and sites of your workspace.",
-      "empty": "No workspace is linked to your account yet — follow the invitation link from your email.",
-      "sites": "Sites",
-      "portal": "Manage billing",
-      "portalFailed": "Could not open the portal",
-      "noBillingYet": "No billing account yet — start a checkout first.",
-      "downgradeHint": "Manage cancellation and payment method via “Manage billing” — after cancelling, the workspace falls back to the free Basic plan at period end."
     },
     "tenants": {
       "title": "Tenants",
@@ -360,7 +291,7 @@
     },
     "prices": {
       "title": "Prices (Stripe)",
-      "subtitle": "Workspace plan prices — changes create a new price in Stripe and archive the old one. Amounts are GROSS: the landing page and help site show them as final prices incl. 19 % VAT.",
+      "subtitle": "Community plan prices — changes create a new price in Stripe and archive the old one. Amounts are GROSS: the landing page and help site show them as final prices incl. 19 % VAT.",
       "newAmount": "New price (€, gross incl. VAT)",
       "save": "Change price",
       "saved": "Price updated.",

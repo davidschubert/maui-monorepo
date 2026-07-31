@@ -58,13 +58,6 @@ if (clean) {
       await control.deleteRow({ databaseId, tableId: 'community_members', rowId: member.$id }).catch(() => {})
       console.log(`✔ Community ${member.communityId} entfernt`)
     }
-    const { rows: workspaces } = await control.listRows({
-      databaseId, tableId: 'workspaces',
-      queries: [Query.equal('ownerEmail', EMAIL), Query.limit(25)],
-    })
-    for (const workspace of workspaces) {
-      await control.deleteRow({ databaseId, tableId: 'workspaces', rowId: workspace.$id }).catch(() => {})
-    }
     await users.delete({ userId: user.$id })
     console.log('✔ Testkonto entfernt')
   }

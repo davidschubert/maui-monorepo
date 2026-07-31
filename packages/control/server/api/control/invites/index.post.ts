@@ -8,7 +8,7 @@ import { hashInviteCode } from '../../../utils/inviteCodes'
  * Betreiber: Einladungs-Code ausstellen (Early-Access-Tor, sites.manage).
  *
  * Der Klartext steht EINMAL in der Antwort und danach nirgends mehr — in der
- * Tabelle liegt nur sha256 (gleiches Muster wie die Workspace-Einladungen).
+ * Tabelle liegt nur sha256 (gleiches Muster wie die Community-Einladungen).
  * Verliert man ihn, stellt man einen neuen aus; das ist die richtige
  * Asymmetrie, denn ein wiederauffindbarer Code wäre ein dauerhaftes
  * Zugangsgeheimnis in der Datenbank.

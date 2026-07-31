@@ -7,7 +7,7 @@ const appConfig = useAppConfig()
 // damit interne Apps ohne öffentliche Seiten keinen Footer-Ballast tragen.
 const legalLinks = computed(() => appConfig.pukalani?.legalLinks ?? [])
 // Glocke im Kundenbereich (C17): dieses Layout trägt den Header von
-// /workspace und /account/billing in der control-App — der Shell, in der die
+// z. B. /account/billing in der control-App — der Shell, in der die
 // kontobezogenen Meldungen (`scope: 'account'`) tatsächlich gelesen werden.
 // Config-gated (Core-Default aus), weil blueprint-Apps ihre Glocke schon aus
 // pukalani.chrome.utilities beziehen und interne Apps keine brauchen.

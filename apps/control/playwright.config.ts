@@ -9,7 +9,7 @@ import { defineConfig, devices } from '@playwright/test'
  *
  * Bewusst auth-frei: Routing, SSR-Render, i18n, Auth-Guards und die
  * öffentlichen Rechtsseiten (pages-Layer) — ohne Appwrite-Credentials.
- * Eingeloggte Flows (Dashboard, Workspaces) werden manuell verifiziert.
+ * Eingeloggte Flows (Dashboard) werden manuell verifiziert.
  */
 const baseURL = process.env.PW_BASE_URL ?? 'http://localhost:3004'
 

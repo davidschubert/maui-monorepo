@@ -21,7 +21,7 @@ const productOn = (productKey?: string) =>
 // Glocke in der Betreiber-Shell (C17): dieselbe Config-Naht wie im
 // core-default-Layout. Betrifft heute apps/control — dort liegen die
 // kontobezogenen Meldungen (Early-Access-Anfragen an die Betreiber,
-// Zahlungsprobleme der Workspace-Kunden), und /dashboard ist die Shell, in
+// Zahlungsprobleme des Betreiber-Kontos), und /dashboard ist die Shell, in
 // der ein Betreiber sie liest. Core-Default aus: eine Community-Shell soll
 // nicht ungefragt eine zweite Glocke bekommen.
 const accountBell = computed(() =>

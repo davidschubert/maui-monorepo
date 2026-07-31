@@ -58,7 +58,7 @@ const poolUsers = new Users(new Client().setEndpoint(endpoint).setProject(poolPr
 
 let pass = 0
 let fail = 0
-const cleanup = { users: [], codes: [], tenants: [], members: [], workspaces: [] }
+const cleanup = { users: [], codes: [], tenants: [], members: [] }
 
 function check(label, ok, detail = '') {
   if (ok) {
@@ -173,8 +173,6 @@ async function createCommunity(cookie, slug, name) {
     throw new Error(`Community ${slug} nicht angelegt (${created.status}): ${created.text.slice(0, 200)}`)
   }
   cleanup.tenants.push(created.json.communityId)
-  const tenantRow = await control.getRow({ databaseId, tableId: 'communities', rowId: created.json.communityId }).catch(() => null)
-  if (tenantRow?.workspaceId) cleanup.workspaces.push(tenantRow.workspaceId)
   const members = await control.listRows({
     databaseId, tableId: 'community_members', queries: [Query.equal('communityId', created.json.communityId), Query.limit(10)],
   })
@@ -397,7 +395,6 @@ finally {
   console.log('\n12. Aufräumen')
   for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'community_members', rowId: id }).catch(() => {})
   for (const id of cleanup.tenants) await control.deleteRow({ databaseId, tableId: 'communities', rowId: id }).catch(() => {})
-  for (const id of cleanup.workspaces) await control.deleteRow({ databaseId, tableId: 'workspaces', rowId: id }).catch(() => {})
   for (const id of cleanup.codes) await control.deleteRow({ databaseId, tableId: 'invite_codes', rowId: id }).catch(() => {})
   for (const id of cleanup.users) await poolUsers.delete({ userId: id }).catch(() => {})
   const rest = await control.listRows({ databaseId, tableId: 'communities', queries: [Query.limit(25)] })

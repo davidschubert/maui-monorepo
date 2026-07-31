@@ -1,7 +1,6 @@
 import { Query } from 'node-appwrite'
 import { TRIAL_FALLBACK_PLAN, TRIAL_PLAN } from '../../shared/onboarding'
-import { COMMUNITIES_TABLE, normalizeTenantPlan, type TenantRow } from '../../shared/types/tenantRecord'
-import { WORKSPACES_TABLE, type WorkspaceRow } from '../../shared/types/workspace'
+import { COMMUNITIES_TABLE, type TenantRow } from '../../shared/types/tenantRecord'
 
 /**
  * Ende der Testphase (O6): abgelaufene Trials fallen auf den kostenlosen Tarif.
@@ -18,29 +17,29 @@ import { WORKSPACES_TABLE, type WorkspaceRow } from '../../shared/types/workspac
 /**
  * PURE (unit-getestet): Ist diese Testphase fällig?
  *
- * Der Workspace-Plan ist das Veto: er spiegelt Stripe. Wer inzwischen wirklich
- * Pro gekauft hat, darf NICHT herabgestuft werden, nur weil sein Trial-Datum
- * in der Vergangenheit liegt — das wäre ein bezahlter Kunde, dem wir Limits
- * kürzen.
+ * Das Veto ist der `billingStatus` der COMMUNITY selbst: wer inzwischen
+ * wirklich bezahlt hat, darf NICHT herabgestuft werden, nur weil sein
+ * Trial-Datum in der Vergangenheit liegt — das wäre ein bezahlter Kunde, dem
+ * wir Limits kürzen. Bis A6 Schritt 5 stand hier ein ZWEITES Veto (der Plan
+ * des abrechnenden Workspace); es ist mit dem Workspace gefallen, und das ist
+ * kein Verlust: das Abo hängt seither an der Community, also steht die
+ * Wahrheit in derselben Row.
  */
 export function shouldEndTrial(
   tenant: Pick<TenantRow, 'plan' | 'trialEndsAt' | 'status'> & Partial<Pick<TenantRow, 'billingStatus'>>,
-  workspacePlan: string | null,
   now: number,
 ): boolean {
   if (tenant.status !== 'active') return false
-  // A6: ein eigenes lebendes Community-Abo ist das erste Veto — wer bezahlt
-  // hat, wird nie herabgestuft, auch nicht bei Pro-kauft-Pro (der Kauf löscht
-  // trialEndsAt, aber dieses Netz hält auch ohne). past_due zählt als lebend:
-  // Dunning ist die Grace-Periode, kein Downgrade-Grund.
+  // A6: ein lebendes Community-Abo ist das Veto — wer bezahlt hat, wird nie
+  // herabgestuft, auch nicht bei Pro-kauft-Pro (der Kauf löscht trialEndsAt,
+  // aber dieses Netz hält auch ohne). past_due zählt als lebend: Dunning ist
+  // die Grace-Periode, kein Downgrade-Grund.
   if (tenant.billingStatus === 'active' || tenant.billingStatus === 'past_due') return false
   if (tenant.plan !== TRIAL_PLAN) return false
   if (!tenant.trialEndsAt) return false
   const end = Date.parse(tenant.trialEndsAt)
   if (!Number.isFinite(end) || end > now) return false
-  // Bezahlt = Hände weg. normalizeTenantPlan: Alt-Bestand 'free' zählt als basic.
-  // (Workspace-Veto — fällt mit A6 Schritt 5, bis dahin gilt es weiter.)
-  return !workspacePlan || normalizeTenantPlan(workspacePlan) === 'basic'
+  return true
 }
 
 export interface TrialSweepResult {
@@ -67,19 +66,7 @@ export async function runTrialSweep(now: number = Date.now()): Promise<TrialSwee
 
   const downgraded: string[] = []
   for (const tenant of rows) {
-    let workspacePlan: string | null = null
-    if (tenant.workspaceId) {
-      const workspace = await admin.tablesDB.getRow<WorkspaceRow>({
-        databaseId, tableId: WORKSPACES_TABLE, rowId: tenant.workspaceId,
-      }).catch(() => null)
-      // Workspace nicht lesbar → als „nicht bezahlt" behandeln wäre riskant
-      // (könnte einen zahlenden Kunden treffen). Also überspringen und beim
-      // nächsten Lauf erneut versuchen.
-      if (!workspace) continue
-      workspacePlan = workspace.plan
-    }
-
-    if (!shouldEndTrial(tenant, workspacePlan, now)) continue
+    if (!shouldEndTrial(tenant, now)) continue
 
     await admin.tablesDB.updateRow<TenantRow>({
       databaseId, tableId: COMMUNITIES_TABLE, rowId: tenant.$id,

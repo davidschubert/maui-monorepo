@@ -7,7 +7,7 @@
  * fremder Host, zweite Community in der Testphase, Retry-Idempotenz).
  *
  * Räumt am Ende ALLES weg, was es angelegt hat (Tenants, Mitgliedschaften,
- * Workspace, Codes, Pool-User) — auch wenn ein Test fehlschlägt.
+ * Codes, Pool-User) — auch wenn ein Test fehlschlägt.
  *
  * Aufruf (Studio-Dev-Server muss laufen):
  *   node --env-file=apps/control/.env packages/control/scripts/verify-onboarding.mjs
@@ -37,7 +37,7 @@ const poolUsers = new Users(new Client().setEndpoint(endpoint).setProject(poolPr
 
 let pass = 0
 let fail = 0
-const cleanup = { tenants: [], members: [], workspaces: [], codes: [], users: [] }
+const cleanup = { tenants: [], members: [], codes: [], users: [] }
 
 function check(label, condition, detail = '') {
   if (condition) {
@@ -161,9 +161,7 @@ try {
     }
     catch { return false }
   })())
-  check('Row: Workspace verknüpft', !!tenant?.workspaceId)
   check('Row: Code-Spur gesetzt', tenant?.inviteCodeId === invite.id)
-  if (tenant?.workspaceId) cleanup.workspaces.push(tenant.workspaceId)
 
   const members = await control.listRows({ databaseId, tableId: 'community_members' })
   const ownerRow = members.rows.find(row => row.communityId === created.json?.communityId)
@@ -202,7 +200,6 @@ finally {
   console.log('\n5. Aufräumen')
   for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'community_members', rowId: id }).catch(() => {})
   for (const id of cleanup.tenants) await control.deleteRow({ databaseId, tableId: 'communities', rowId: id }).catch(() => {})
-  for (const id of cleanup.workspaces) await control.deleteRow({ databaseId, tableId: 'workspaces', rowId: id }).catch(() => {})
   for (const id of cleanup.codes) await control.deleteRow({ databaseId, tableId: 'invite_codes', rowId: id }).catch(() => {})
   for (const id of cleanup.users) await poolUsers.delete({ userId: id }).catch(() => {})
   const rest = await control.listRows({ databaseId, tableId: 'communities' })

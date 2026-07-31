@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 /**
  * Auth-freie Smoke-Tests fürs Studio: Routing, SSR-Render, i18n, Auth-Guards
  * und die öffentlichen Rechtsseiten (pages-Layer). Kein Appwrite-Login —
- * eingeloggte Flows (Dashboard, Workspaces) werden manuell verifiziert.
+ * eingeloggte Flows (Dashboard) werden manuell verifiziert.
  */
 
 test.describe('Login & Auth-Guards', () => {

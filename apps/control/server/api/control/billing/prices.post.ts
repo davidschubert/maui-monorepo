@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import type { ControlPlanCatalog } from '../../../../../../packages/control/shared/types/workspace'
-import { pickLookupKey } from '../../../../../../packages/control/shared/workspaceBilling'
+import type { ControlPlanCatalog } from '../../../../../../packages/control/shared/types/planCatalog'
+import { pickLookupKey } from '../../../../../../packages/control/shared/communityBilling'
 
 const schema = z.object({
   plan: z.string().regex(/^[a-z][a-z0-9-]*$/),
@@ -10,7 +10,7 @@ const schema = z.object({
 }).strict()
 
 /**
- * Betreiber: Preis eines Workspace-Plans ändern. Stripe-Preise sind
+ * Betreiber: Preis eines Plans ändern. Stripe-Preise sind
  * UNVERÄNDERLICH — „ändern" heißt: neuen Price am selben Product anlegen,
  * den lookup_key mit `transfer_lookup_key` übertragen und den alten Price
  * archivieren. Neue Checkouts bekommen sofort den neuen Preis (Checkout löst

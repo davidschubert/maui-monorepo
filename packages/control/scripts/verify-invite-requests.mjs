@@ -42,7 +42,7 @@ const poolUsers = new Users(new Client().setEndpoint(endpoint).setProject(poolPr
 
 let pass = 0
 let fail = 0
-const cleanup = { users: [], requests: [], codes: [], tenants: [], members: [], workspaces: [] }
+const cleanup = { users: [], requests: [], codes: [], tenants: [], members: [] }
 
 function check(label, ok, detail = '') {
   if (ok) {
@@ -230,8 +230,6 @@ try {
     databaseId, tableId: 'community_members', queries: [Query.equal('communityId', created.json?.communityId ?? 'x'), Query.limit(5)],
   })
   cleanup.members.push(...members.rows.map(row => row.$id))
-  const tenantRow = created.json?.communityId ? await control.getRow({ databaseId, tableId: 'communities', rowId: created.json.communityId }) : null
-  if (tenantRow?.workspaceId) cleanup.workspaces.push(tenantRow.workspaceId)
 }
 catch (error) {
   fail++
@@ -241,7 +239,6 @@ finally {
   console.log('\n5. Aufräumen')
   for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'community_members', rowId: id }).catch(() => {})
   for (const id of cleanup.tenants) await control.deleteRow({ databaseId, tableId: 'communities', rowId: id }).catch(() => {})
-  for (const id of cleanup.workspaces) await control.deleteRow({ databaseId, tableId: 'workspaces', rowId: id }).catch(() => {})
   for (const id of cleanup.codes) await control.deleteRow({ databaseId, tableId: 'invite_codes', rowId: id }).catch(() => {})
   for (const id of cleanup.requests) await control.deleteRow({ databaseId, tableId: 'invite_requests', rowId: id }).catch(() => {})
   for (const id of cleanup.users) await poolUsers.delete({ userId: id }).catch(() => {})

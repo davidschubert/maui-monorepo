@@ -17,28 +17,11 @@ type WebsiteWithEntitlements = WebsiteRow & { entitlements: string[] }
 const { data, refresh } = await useFetch<{ websites: WebsiteWithEntitlements[] }>('/api/control/websites')
 const { data: jobsData, refresh: refreshJobs } = await useFetch<{ jobs: JobRow[] }>('/api/control/jobs')
 const { data: catalogData } = await useFetch<{ products: ProductCatalogEntry[] }>('/api/control/products')
-const { data: workspacesData } = await useFetch<{ workspaces: { $id: string, name: string }[] }>('/api/control/workspaces')
 
-// ── Workspace-Zuordnung (M8-T2) ─────────────────────────────────────────────
-// Sentinel statt '': Reka-SelectItem verbietet Leerstrings als value
-const NO_WORKSPACE = 'operator'
-const workspaceOptions = computed(() => [
-  { label: t('control.workspaces.operator'), value: NO_WORKSPACE },
-  ...(workspacesData.value?.workspaces ?? []).map(w => ({ label: w.name, value: w.$id })),
-])
-
-async function assignWorkspace(site: WebsiteRow, value: string) {
-  const workspaceId = value === NO_WORKSPACE ? '' : value
-  if (workspaceId === (site.workspaceId ?? '')) return
-  try {
-    await $fetch(`/api/control/websites/${site.$id}`, { method: 'PATCH', body: { workspaceId } })
-    toast.add({ title: t('control.workspaces.assigned', { name: site.name }), color: 'success' })
-  }
-  catch (error) {
-    toast.add({ title: t('control.workspaces.assignFailed'), description: (error as { statusMessage?: string })?.statusMessage, color: 'error' })
-  }
-  await refresh()
-}
+// Die Spalte „Workspace" (Zuordnung Site → abrechnender Workspace, M8-T2) ist
+// mit A6 Schritt 5 gefallen: es gibt kein Workspace-Objekt mehr, dem man eine
+// Site zuordnen könnte. Die Produkt-Zuteilung einer Site läuft unverändert
+// über „Produkte" (entitlements.put) — die Lizenz-Mechanik bleibt geparkt.
 
 // ── Manuelle Registrierung (T1) ─────────────────────────────────────────────
 const showRegister = ref(false)
@@ -212,7 +195,6 @@ const websiteColumns = computed<TableColumn<WebsiteWithEntitlements>[]>(() => [
   { accessorKey: 'name', header: () => t('control.websites.col.site') },
   { id: 'state', header: () => t('control.websites.col.state') },
   { id: 'products', header: () => t('control.websites.col.products'), meta: { class: HIDE_LG } },
-  { id: 'workspace', header: () => t('control.websites.col.workspace'), meta: { class: HIDE_MD } },
   { id: 'actions', header: () => '' },
 ])
 
@@ -299,18 +281,6 @@ function siteActions(site: WebsiteWithEntitlements): DropdownMenuItem[][] {
               </UBadge>
             </div>
           </div>
-        </template>
-        <template #workspace-cell="{ row }">
-          <USelect
-            :model-value="row.original.workspaceId || NO_WORKSPACE"
-            :items="workspaceOptions"
-            size="sm"
-            class="w-40"
-            :ui="{ content: 'min-w-fit' }"
-            :aria-label="t('control.workspaces.assignLabel')"
-            :data-site-workspace="row.original.slug"
-            @update:model-value="assignWorkspace(row.original, $event as string)"
-          />
         </template>
         <template #actions-cell="{ row }">
           <div class="flex justify-end">

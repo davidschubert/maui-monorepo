@@ -1,11 +1,11 @@
 import type { H3Event } from 'h3'
 import type { TenantRow } from '../../../../packages/control/shared/types/tenantRecord'
 import { COMMUNITIES_TABLE } from '../../../../packages/control/shared/types/tenantRecord'
-import { pickLookupKey } from '../../../../packages/control/shared/workspaceBilling'
-import type { ControlPlanCatalog, WorkspaceBillingInterval } from '../../../../packages/control/shared/types/workspace'
+import { pickLookupKey } from '../../../../packages/control/shared/communityBilling'
+import type { ControlPlanCatalog, PlanBillingInterval } from '../../../../packages/control/shared/types/planCatalog'
 
 /**
- * A6 Schritt 3 — APP-Komposition (A14, Vorbild workspaceCustomer.ts): der
+ * A6 Schritt 3 — APP-Komposition (A14): der
  * Community-Checkout verbindet das control-Datenmodell (tenants) mit der
  * billing-Stripe-Utility. Läuft als SERVICE-Route ohne Browser-Session —
  * deshalb NICHT createSubscriptionCheckoutSession (die verlangt
@@ -59,7 +59,7 @@ export async function createCommunityCheckoutUrl(event: H3Event, input: {
   ownerEmail: string
   ownerUserId: string
   plan: string
-  interval: WorkspaceBillingInterval
+  interval: PlanBillingInterval
 }): Promise<string> {
   const plans = communityPlans()
   const plan = plans[input.plan]

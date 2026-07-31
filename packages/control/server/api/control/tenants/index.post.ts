@@ -50,6 +50,7 @@ export default defineEventHandler(async (event) => {
       status: 'active',
       wave: body.wave ?? 'stable',
       plan: body.plan ?? 'basic',
+      // TOTE SPALTE — fällt mit control-031 (A6 Schritt 5).
       workspaceId: '',
       theme: '',
       variant: '',

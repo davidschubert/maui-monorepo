@@ -1,10 +1,13 @@
-import type { ControlPlanCatalog } from './types/workspace'
+import type { ControlPlan, ControlPlanCatalog, PlanBillingInterval } from './types/planCatalog'
 
 /**
  * A6 — die Community ist das zahlende Objekt (Davids Entscheidung 2026-07-30):
- * die PUREN Bausteine des Community-Geldpfads, Gegenstück zu
- * workspaceBilling.ts (das mit A6 Schritt 5 verschwindet). Kein Stripe, kein
- * I/O — nur verifiziertes Abo-Ereignis → Wirkung auf die Community-Row.
+ * die PUREN Bausteine des Geldpfads. Kein Stripe, kein I/O — nur
+ * verifiziertes Abo-Ereignis → Wirkung auf die Community-Row.
+ *
+ * Seit A6 Schritt 5 ist das der EINZIGE Geldpfad: `workspaceBilling.ts` ist
+ * weg, `pickLookupKey` und `shouldApplyFreeFallback` sind von dort hierher
+ * gezogen (sie hatten nie etwas mit dem Behälter zu tun, nur mit dem Abo).
  *
  * Der Plan-Katalog ist DERSELBE wie bisher (pukalani.control.plans,
  * basic/personal/pro mit Stripe-lookup_keys) — er beschrieb schon immer die
@@ -37,8 +40,7 @@ export type CommunityBillingAction =
 
 /** Entscheidung des Fulfillment-Handlers — pure, damit die Policy ohne
  *  Stripe/Appwrite testbar ist. Schlüssel ist `metadata.communityId`
- *  (= tenants.$id); Events ohne sie gehören dem alten Workspace-Pfad bzw.
- *  sind fremd und werden ignoriert. */
+ *  (= tenants.$id); Events ohne sie sind fremd und werden ignoriert. */
 export function subscriptionUpdateToCommunityAction(
   update: CommunitySubscriptionUpdate,
   plans: ControlPlanCatalog,
@@ -71,6 +73,25 @@ export function subscriptionUpdateToCommunityAction(
       // incomplete (Checkout offen), paused, Unbekanntes → nichts anfassen
       return { kind: 'ignore', reason: `status-${update.status}` }
   }
+}
+
+/** Den passenden Stripe-lookup_key für Plan + Intervall wählen. Jahres-Preis
+ *  optional: fehlt er, fällt 'yearly' bewusst auf den Monatspreis zurück (statt
+ *  zu brechen). null = Plan ohne Checkout (basic). Pure → unit-testbar. */
+export function pickLookupKey(plan: Pick<ControlPlan, 'lookupKey' | 'lookupKeyYearly'>, interval: PlanBillingInterval): string | null {
+  if (interval === 'yearly') return plan.lookupKeyYearly ?? plan.lookupKey
+  return plan.lookupKey
+}
+
+/**
+ * Cross-Sub-Guard (#6): darf die gekündigte Subscription die Community auf
+ * `basic` zurückstufen? NUR, wenn sie die aktuell hinterlegte ist — oder gar
+ * keine hinterlegt ist. Ist eine ANDERE, neuere Sub hinterlegt, ist das
+ * Kündigen der alten stale und darf ein frisch gekauftes Abo nicht
+ * kannibalisieren. Pure → unit-testbar.
+ */
+export function shouldApplyFreeFallback(storedSubscriptionId: string, canceledSubscriptionId: string): boolean {
+  return storedSubscriptionId === '' || storedSubscriptionId === canceledSubscriptionId
 }
 
 /** Besitz-Übergabe gesperrt, solange ein Abo läuft und der NEUE Owner keine

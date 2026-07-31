@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto'
+import { createHash, randomBytes } from 'node:crypto'
 import { Query } from 'node-appwrite'
 import type { H3Event } from 'h3'
 import type { Capability } from '../../../core/shared/types/authz'
@@ -8,7 +8,6 @@ import { COMMUNITY_INVITES_TABLE, type CommunityInviteRow } from '../../shared/t
 import { COMMUNITIES_TABLE, type TenantRow } from '../../shared/types/tenantRecord'
 import type { CommunityTeamDecision, CommunityTeamMemberFacts } from '../../shared/communityTeam'
 import { verifyRuntimeIdentity, type RuntimeIdentity } from './onboardingService'
-import { hashInviteToken } from './workspaceMembers'
 
 /**
  * Der gemeinsame Vorraum ALLER Mitglieder-Routen des Control Plane.
@@ -201,11 +200,18 @@ export function throwOnDenied(decision: CommunityTeamDecision, context: Record<s
 }
 
 /**
- * Ein Einladungs-Token: Klartext NUR für den Mail-Link, Hash für die DB.
- * Gehasht wird mit demselben Helfer wie die Workspace-Einladungen
- * (`hashInviteToken`, workspaceMembers.ts) — ein zweites Hash-Verfahren wäre
- * eine zweite Stelle, an der man sich vertun kann.
+ * SHA-256-Hex eines Einladungs-Tokens — die DB kennt nur den Hash (M9-Muster,
+ * ursprünglich control-008 für die Workspace-Einladungen). Der Helfer wohnte
+ * bis A6 Schritt 5 in `workspaceMembers.ts` und ist mit dessen Löschung
+ * hierher gezogen: die Community-Einladungen sind seither seine einzigen
+ * Nutzer. EIN Verfahren, eine Stelle — ein zweites wäre eine zweite Stelle,
+ * an der man sich vertun kann.
  */
+export function hashInviteToken(token: string): string {
+  return createHash('sha256').update(token, 'utf8').digest('hex')
+}
+
+/** Ein Einladungs-Token: Klartext NUR für den Mail-Link, Hash für die DB. */
 export function createCommunityInviteToken(): { token: string, tokenHash: string } {
   const token = randomBytes(32).toString('hex')
   return { token, tokenHash: hashInviteToken(token) }

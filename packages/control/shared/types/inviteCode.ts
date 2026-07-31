@@ -14,8 +14,7 @@ import type { Models } from 'node-appwrite'
  * verbraucht beim Anlegen.
  *
  * Der Klartext-Code wird NIE gespeichert (nur sha256), genau wie die
- * Workspace-Einladungs-Tokens — er erscheint einmal im Control und danach nie
- * wieder.
+ * Einladungs-Tokens — er erscheint einmal im Control und danach nie wieder.
  */
 
 export const INVITE_CODE_STATUSES = ['active', 'revoked'] as const

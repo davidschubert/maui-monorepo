@@ -7,8 +7,8 @@ import { ENTITLEMENTS_TABLE, type EntitlementRow } from '../../../../shared/type
  * („Studio"-Seite des Dashboards), inkl. der zugeteilten Produkte je Website
  * (Entitlements, M6-T3).
  *
- * Die Capability heißt weiter `sites.manage`: sie deckt auch Communities und
- * Workspaces ab, ist also breiter als diese Tabelle — sie wird mit dem
+ * Die Capability heißt weiter `sites.manage`: sie deckt auch Communities ab,
+ * ist also breiter als diese Tabelle — sie wird mit dem
  * Menü-Umbau (E9) neu geschnitten, nicht hier nebenbei.
  */
 export default defineEventHandler(async (event): Promise<{ websites: (WebsiteRow & { entitlements: string[] })[] }> => {

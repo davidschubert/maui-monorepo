@@ -28,8 +28,11 @@ export interface WebsiteRow extends Models.Row {
   /** JSON-Array der wirksam aktiven Produkt-Keys der Site — Snapshot vom
    *  Health-Sweep (GET /api/platform/products der Site, M6-T4). */
   products: string
-  /** Workspace-Zuordnung (M8, Migration control-006); '' = impliziter
-   *  Betreiber-Workspace (volle manuelle Grants, Verhalten wie vor M8). */
+  /** TOTE SPALTE (Migration control-006). Sie zeigte auf `workspaces`, und die
+   *  Tabelle ist mit A6 Schritt 5 gefallen; niemand liest oder schreibt sie
+   *  noch. Sie steht hier nur, weil die Spalte in der DB noch existiert —
+   *  control-031 räumt `communities.workspaceId` ab, diese hier bewusst nicht
+   *  im selben Zug (websites ist das Studio-Register, eigener Schritt). */
   workspaceId: string
 }
 

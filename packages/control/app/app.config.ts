@@ -8,7 +8,7 @@ export default defineAppConfig({
       /** Das geteilte Pool-Appwrite-Projekt neuer Tenants (Onboarding-Default —
        *  der Betreiber tippt nur noch Name/Host, das Projekt füllt der Server). */
       defaultPoolProject: 'pool',
-      // Plan-Katalog (P4-Rename 2026-07-26, Davids Pricing-Entscheid:
+      // Plan-Katalog der COMMUNITY (P4-Rename 2026-07-26, Davids Pricing-Entscheid:
       // Basic 0 € / Personal 29 € / Pro 149 €, jährlich −25 %; Enterprise =
       // Studio-Angebot, KEIN Self-Service-Plan) — bewusst Code statt Table
       // (versioniert wie theme.catalog). products = VOR requires-Schluss
@@ -16,6 +16,9 @@ export default defineAppConfig({
       // Produkte (foundation ist nie entitlement-gated). lookupKey =
       // Stripe-Price-lookup_key (scripts/stripe/ensure-prices.mjs legt die
       // Preise an und zieht Keys bei Betragsänderung auf neue Prices um).
+      // Die Keys heißen weiterhin `workspace_*` — das sind IDENTITÄTEN bei
+      // Stripe (Test- und Live-Mode), kein Wort: umbenennen hieße, die
+      // angelegten Preise nicht mehr zu finden.
       plans: {
         basic: { lookupKey: null, products: ['comments', 'pages'] },
         personal: { lookupKey: 'workspace_personal_monthly', lookupKeyYearly: 'workspace_personal_yearly', products: ['comments', 'pages', 'posts', 'activity', 'feedback'] },
@@ -33,16 +36,6 @@ export default defineAppConfig({
           requiredCapability: 'sites.manage',
           group: 'management',
           order: 1,
-        },
-        {
-          id: 'workspaces',
-          productKey: 'control',
-          labelKey: 'admin.nav.workspaces',
-          icon: 'i-ph-briefcase',
-          to: '/dashboard/workspaces',
-          requiredCapability: 'sites.manage',
-          group: 'management',
-          order: 2,
         },
         {
           id: 'tenants',

@@ -11,7 +11,7 @@ import { sendCommunityInviteMail } from '../../../../utils/communityInviteMail'
  * Entscheidung 2 vom 2026-07-29).
  *
  * Reihenfolge mit Absicht: erst Regeln, dann MAIL, dann Row. Wie bei den
- * Workspace-Einladungen (M9-T2) gilt „keine Einladung ohne Zustellung": lässt
+ * Einladungen (M9-T2-Muster) gilt „keine Einladung ohne Zustellung": lässt
  * sich die Mail nicht senden, entsteht auch kein pending-Eintrag, der im
  * Dashboard läge und niemanden erreicht (503, nichts angelegt).
  *

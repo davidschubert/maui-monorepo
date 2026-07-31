@@ -13,7 +13,7 @@
  *   öffentliches Anfrage-Formular (Platform, Kontroll-Host)
  *     → Control Plane schreibt die Meldung (`_account`)
  *     → Betreiber liest sie über /api/notifications
- *     → die Glocke steht im HTML von /workspace UND /dashboard
+ *     → die Glocke steht im HTML von / (Default-Layout) UND /dashboard
  *   und die Gegenprobe: ein FREMDER liest sie nicht, ein Gast sieht keine
  *   Glocke, und im POOL bleiben Community- und Konto-Ablage getrennt (die
  *   eigentliche Grenze — dort, wo es beide Welten gibt).
@@ -257,9 +257,13 @@ try {
    *  Kennzeichen prüfen. */
   const isErrorPage = html => /statusCode":5\d\d/.test(html) || html.includes('data-testid="error-page"')
 
-  const workspace = await callControl('/workspace', { cookie: operator.cookie })
-  check('/workspace lädt ohne Fehlerseite', workspace.status === 200 && !isErrorPage(workspace.text), `Status ${workspace.status}`)
-  check('/workspace zeigt die Glocke', workspace.text.includes(BELL))
+  // Die zweite Shell ist das core-Default-Layout. Bis A6 Schritt 5 wurde sie
+  // über `/workspace` geprüft; die Seite ist mit dem Workspace gefallen, also
+  // steht hier die Startseite — dasselbe Layout, derselbe Schalter
+  // (pukalani.chrome.accountBell), nur eingeloggt statt als Gast.
+  const home = await callControl('/', { cookie: operator.cookie })
+  check('/ lädt ohne Fehlerseite', home.status === 200 && !isErrorPage(home.text), `Status ${home.status}`)
+  check('/ zeigt die Glocke (Default-Layout, eingeloggt)', home.text.includes(BELL))
 
   const dashboard = await callControl('/dashboard', { cookie: operator.cookie })
   check('/dashboard lädt ohne Fehlerseite', dashboard.status === 200 && !isErrorPage(dashboard.text), `Status ${dashboard.status}`)

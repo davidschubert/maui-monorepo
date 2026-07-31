@@ -7,7 +7,7 @@ import type { H3Event } from 'h3'
  *
  * Ausgangslage: der Trichter läuft in der PLATFORM-App (eigenes Appwrite-
  * Projekt, read-only-Key aufs Control Plane), das Anlegen einer Community
- * gehört aber dem CONTROL PLANE (es besitzt `tenants`, `workspaces`,
+ * gehört aber dem CONTROL PLANE (es besitzt `communities`,
  * `community_members`). Es braucht also einen schreibenden Kanal — und der ist die
  * gefährlichste Stelle des ganzen Blocks: wer ihn hat, kann Communities
  * anlegen.
