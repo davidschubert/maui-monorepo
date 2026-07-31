@@ -1,5 +1,5 @@
 /**
- * Client-Error-Reporting (maui.observability.clientErrors): meldet Browser-
+ * Client-Error-Reporting (pukalani.observability.clientErrors): meldet Browser-
  * Fehler (Vue-Render/Setup, unbehandelte Promise-Rejections, window.onerror)
  * an POST /api/telemetry/error — dort landen sie als strukturierte JSON-Zeile
  * im Server-Log. Dedupliziert pro Message, hart auf 10 Meldungen/Session
@@ -7,7 +7,7 @@
  * auslösen); die Route ist zusätzlich rate-limited.
  */
 export default defineNuxtPlugin((nuxtApp) => {
-  const gate = useAppConfig().maui?.observability
+  const gate = useAppConfig().pukalani?.observability
   if (!gate?.enabled || !gate?.clientErrors) return
 
   const MAX_PER_SESSION = 10

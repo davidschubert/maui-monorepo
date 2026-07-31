@@ -39,7 +39,7 @@
     "admin": {
       "title": "Subscriptions",
       "empty": "No subscriptions yet.",
-      "disabled": "maui.billing is not enabled — subscriptions appear here once the app turns the gate on.",
+      "disabled": "pukalani.billing is not enabled — subscriptions appear here once the app turns the gate on.",
       "cancelling": "ending",
       "user": "User",
       "emptyTitle": "No subscriptions yet",

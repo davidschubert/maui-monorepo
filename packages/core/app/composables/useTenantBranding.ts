@@ -41,7 +41,7 @@ export interface TenantBrandingSelection {
 }
 
 export function useTenantBranding() {
-  const branding = useState<TenantBrandingSelection | null>('maui-tenant-branding', () => null)
+  const branding = useState<TenantBrandingSelection | null>('pukalani-tenant-branding', () => null)
   /** true = dieser Host gehört einer Community (nur dann ist die Wahl sinnvoll). */
   const isTenantHost = computed(() => branding.value !== null)
   return { branding, isTenantHost }

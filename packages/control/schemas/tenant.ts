@@ -106,7 +106,7 @@ export function nameToSubdomain(name: string): string {
 
 /** Neuen Tenant anlegen (Betreiber, sites.manage). tenantId ist optional
  *  (Server vergibt für pool eine frische Id); projectId ist optional — im
- *  Pool-Modus greift der konfigurierte Default (maui.studio.defaultPoolProject),
+ *  Pool-Modus greift der konfigurierte Default (pukalani.studio.defaultPoolProject),
  *  nur Silo MUSS ein eigenes Projekt nennen (Route erzwingt das). */
 export function createTenantCreateSchema(t: TranslateFn = identity) {
   return z.object({

@@ -10,16 +10,16 @@ export default defineEventHandler(async (event) => {
 
   await assertCommentsWritable(event)
   // H3-4.3: Pool-Tenants dürfen den geteilten Server nicht erschöpfen —
-  // Limits aus maui.tenancy.quota (Core-Default aus), Silo/Single-Tenant no-op.
+  // Limits aus pukalani.tenancy.quota (Core-Default aus), Silo/Single-Tenant no-op.
   await assertPoolWriteQuota(event, { kind: 'comments', tableId: COMMENTS_TABLE })
 
   const body = await readValidatedBody(event, commentSchema.parse)
 
-  // Operator-Targets (maui.comments.operatorTargets, z. B. 'ticket'): nur
+  // Operator-Targets (pukalani.comments.operatorTargets, z. B. 'ticket'): nur
   // Operatoren dürfen schreiben, und die Rows sind NICHT read(any), sondern
   // nur für admin/moderator lesbar — interne Diskussionen bleiben intern.
-  const appConfig = useAppConfig() as { maui?: { comments?: { operatorTargets?: string[] } } }
-  const operatorTarget = (appConfig.maui?.comments?.operatorTargets ?? []).includes(body.targetType)
+  const appConfig = useAppConfig() as { pukalani?: { comments?: { operatorTargets?: string[] } } }
+  const operatorTarget = (appConfig.pukalani?.comments?.operatorTargets ?? []).includes(body.targetType)
   if (operatorTarget) requirePermission(event, 'dashboard.access')
 
   // Operator-Rows tragen Role.label-Permissions — die kann nur der Admin-Client

@@ -6,7 +6,7 @@ import { rgbToOklch, type Oklch } from './shared/oklch'
  * Design-Spezifikation des Theme-Katalogs (Vollausbau-Plan § 4.2; dort als
  * theme.spec.ts angedacht — umbenannt, weil *.spec.ts mit dem Vitest-Include-
  * Pattern kollidiert) — der EINZIGE Input für
- * `pnpm --filter @maui/themes generate`.
+ * `pnpm --filter @pukalani/themes generate`.
  *
  * KURATIERTER 26×11-KATALOG (Entscheidungen E1–E7, 2026-07-23):
  *  - E1(b): `default` (Label „Aloha", monochrom — steht handgepflegt in

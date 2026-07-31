@@ -6,7 +6,7 @@ import type { H3Event } from 'h3'
  * OpenAI-kompatible Chat-Completions-API (Default: OpenRouter).
  *
  * Policy bleibt beim Konsumenten: aiComplete() prüft nur, ob ein Key da ist —
- * Gates (maui.ai.enabled bzw. Layer-eigene wie maui.tickets.ai) und die
+ * Gates (pukalani.ai.enabled bzw. Layer-eigene wie pukalani.tickets.ai) und die
  * Validierung der Antwort gehören in den aufrufenden Layer. Key-Auflösung:
  * options.apiKey (Layer-eigener Key) sonst NUXT_AI_KEY (Core).
  */
@@ -20,9 +20,9 @@ export interface AiConfig {
 }
 
 export interface AiCompleteOptions {
-  /** Model-Override — Default: maui.ai.model */
+  /** Model-Override — Default: pukalani.ai.model */
   model?: string
-  /** Endpoint-Override (ohne trailing Slash nötig) — Default: maui.ai.baseUrl */
+  /** Endpoint-Override (ohne trailing Slash nötig) — Default: pukalani.ai.baseUrl */
   baseUrl?: string
   /** Layer-eigener Key — Default: runtimeConfig.aiKey (NUXT_AI_KEY) */
   apiKey?: string
@@ -34,10 +34,10 @@ export interface AiCompleteOptions {
   label?: string
 }
 
-/** Core-KI-Gate (maui.ai) — Konsumenten prüfen enabled, Transport nicht. */
+/** Core-KI-Gate (pukalani.ai) — Konsumenten prüfen enabled, Transport nicht. */
 export function getAiConfig(): AiConfig {
-  const appConfig = useAppConfig() as { maui?: { ai?: Partial<AiConfig> } }
-  const ai = appConfig.maui?.ai
+  const appConfig = useAppConfig() as { pukalani?: { ai?: Partial<AiConfig> } }
+  const ai = appConfig.pukalani?.ai
   return {
     enabled: ai?.enabled ?? false,
     model: ai?.model ?? 'anthropic/claude-haiku-4.5',
@@ -51,7 +51,7 @@ export function isAiAvailable(event: H3Event): boolean {
 }
 
 export interface EffectiveAiConfig extends AiConfig {
-  /** Build-Default aus maui.ai.model (ohne Laufzeit-Override) — für UI-Placeholder */
+  /** Build-Default aus pukalani.ai.model (ohne Laufzeit-Override) — für UI-Placeholder */
   defaultModel: string
 }
 

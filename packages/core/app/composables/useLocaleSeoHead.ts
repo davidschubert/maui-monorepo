@@ -5,7 +5,7 @@ import { rebaseSeoLinks, rebaseSeoMeta, rebaseSeoUrl, resolveSeoOrigin, type Seo
  * og:url + og:locale — EIN Aufruf in der `app.vue` (früher stand dieselbe
  * useLocaleHead/useHead-Kopie in jeder App).
  *
- * Mehr-Host-Betrieb (Gate `maui.seo.originFromRequest`, Core-Default AUS):
+ * Mehr-Host-Betrieb (Gate `pukalani.seo.originFromRequest`, Core-Default AUS):
  * nuxt-i18n kennt nur EINE Basis-URL (`NUXT_PUBLIC_I18N_BASE_URL`) — im Pool
  * bedient derselbe Prozess viele Hosts, und alle Kopf-URLs zeigten deshalb auf
  * den Betreiber-Host (Audit-Befund B1). Mit aktivem Gate liefert der
@@ -29,7 +29,7 @@ import { rebaseSeoLinks, rebaseSeoMeta, rebaseSeoUrl, resolveSeoOrigin, type Seo
  */
 export function useLocaleSeoHead(): void {
   const localeHead = useLocaleHead({ seo: true, lang: true, dir: true })
-  const appConfig = useAppConfig() as { maui?: { seo?: { originFromRequest?: boolean } } }
+  const appConfig = useAppConfig() as { pukalani?: { seo?: { originFromRequest?: boolean } } }
   const requestUrl = useRequestURL()
   const publicConfig = useRuntimeConfig().public as { i18n?: { baseUrl?: unknown } }
   const configuredBaseUrl = typeof publicConfig.i18n?.baseUrl === 'string' ? publicConfig.i18n.baseUrl : ''
@@ -38,7 +38,7 @@ export function useLocaleSeoHead(): void {
   const { t } = useI18n()
 
   // '' = kein Umschreiben (Silo-Apps + jeder Fall, in dem kein Origin steht)
-  const origin = appConfig.maui?.seo?.originFromRequest === true
+  const origin = appConfig.pukalani?.seo?.originFromRequest === true
     ? resolveSeoOrigin(requestUrl.origin, configuredBaseUrl)
     : ''
 

@@ -11,8 +11,8 @@ export default defineEventHandler(async (event) => {
   requirePermission(event, 'sites.manage')
   await requireBillingEnabled(event)
 
-  const appConfig = useAppConfig() as { maui?: { studio?: { plans?: ControlPlanCatalog } } }
-  const plans = appConfig.maui?.studio?.plans ?? {}
+  const appConfig = useAppConfig() as { pukalani?: { studio?: { plans?: ControlPlanCatalog } } }
+  const plans = appConfig.pukalani?.studio?.plans ?? {}
   const lookupKeys: { plan: string, interval: 'monthly' | 'yearly', lookupKey: string }[] = []
   for (const [plan, def] of Object.entries(plans)) {
     if (def?.lookupKey) lookupKeys.push({ plan, interval: 'monthly', lookupKey: def.lookupKey })

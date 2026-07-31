@@ -8,7 +8,7 @@
  * kunde-a.localhost / kunde-b.localhost:
  *
  *   1. Produkt-Gate: events ist ab Plan pro — auf Plan basic antwortet
- *      die Liste 404 (Katalog maui.tenancy.products).
+ *      die Liste 404 (Katalog pukalani.tenancy.products).
  *   2. Event bei A über POST /api/events anlegen (Datentür stempelt
  *      tenantId — per Admin-SDK nachgeprüft).
  *   3. Liste bei B → das A-Event fehlt; Liste bei A → enthält es (Gast).

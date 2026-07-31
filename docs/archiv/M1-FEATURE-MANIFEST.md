@@ -88,7 +88,7 @@ Workflow). Prüfungen:
    Reihenfolge folgt der kanonischen `EXTENDS_ORDER` (eine Konstante im
    Script, abgeleitet aus der heutigen comments-Reihenfolge;
    früher = höhere Priorität, core/system am Ende).
-4. **Konsistenz `package.json`:** `@maui/*`-Dependencies = exakt dieselbe
+4. **Konsistenz `package.json`:** `@pukalani/*`-Dependencies = exakt dieselbe
    Menge (fehlend ODER überzählig → rot).
 5. `hasMigrations` ⇔ `scripts/migrations/` existiert, und **Drift-Check
    gegen `LAYER_ORDER` in migrate.mjs**: jeder Layer mit Migrationen muss
@@ -107,7 +107,7 @@ App ⇒ site.manifest.ts, check:manifests hält extends/package.json ehrlich")
 
 1. `pnpm check:manifests` grün auf main.
 2. **Negativproben rot** (je einmal demonstriert): Feature aus `extends`
-   entfernt · `@maui/comments` aus package.json entfernt · moderation aus
+   entfernt · `@pukalani/comments` aus package.json entfernt · moderation aus
    site.manifest gestrichen während comments drin ist · Layer ohne Manifest.
 3. `pnpm typecheck` grün; `pnpm -r test` grün; comments bootet lokal
    (Smoke) — Verhalten unverändert.

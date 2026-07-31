@@ -3,7 +3,7 @@
  * Konsumenten, die gegen feste Codes statt HTTP-Status-Raterei programmieren.
  * Greift NUR für `/api/`-Fehler-Responses (siehe server/plugins/error-envelope).
  */
-export type MauiErrorCode =
+export type PukalaniErrorCode =
   | 'UNAUTHORIZED'
   | 'FORBIDDEN'
   | 'NOT_FOUND'
@@ -12,9 +12,9 @@ export type MauiErrorCode =
   | 'RATE_LIMITED'
   | 'INTERNAL_ERROR'
 
-export interface MauiErrorResponse {
+export interface PukalaniErrorResponse {
   ok: false
-  code: MauiErrorCode
+  code: PukalaniErrorCode
   message: string
   /**
    * FACHLICHER Grund der Ablehnung, wenn die Route einen mitgibt
@@ -49,7 +49,7 @@ export function domainReasonFrom(data: unknown): string | null {
 }
 
 /** HTTP-Status → stabiler Fehler-Code. */
-export function statusToErrorCode(status: number): MauiErrorCode {
+export function statusToErrorCode(status: number): PukalaniErrorCode {
   switch (status) {
     case 400:
     case 422:

@@ -223,7 +223,7 @@ describe('Einladungs-Codes', () => {
   })
 
   it('prüft das Code-Format', () => {
-    expect(inviteCodeSchema.safeParse('MAUI-2026-ABCD').success).toBe(true)
+    expect(inviteCodeSchema.safeParse('PUKA-2026-ABCD').success).toBe(true)
     for (const bad of ['kurz', 'mit leerzeichen', 'sonder!zeichen', 'a'.repeat(65)]) {
       expect(inviteCodeSchema.safeParse(bad).success).toBe(false)
     }
@@ -271,7 +271,7 @@ describe('Wizard-Nutzlast', () => {
     category: 'creator',
     goal: 'relationships',
     vibe: 'calm',
-    inviteCode: 'MAUI-2026-ABCD',
+    inviteCode: 'PUKA-2026-ABCD',
   }
 
   it('nimmt eine vollständige Antwortliste an', () => {

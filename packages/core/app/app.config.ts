@@ -1,10 +1,10 @@
-import type { MauiAdminModule } from '../shared/types/admin-module'
-import type { MauiChromeNavConfig, MauiChromeUtilityConfig } from '../shared/types/chrome'
+import type { PukalaniAdminModule } from '../shared/types/admin-module'
+import type { PukalaniChromeNavConfig, PukalaniChromeUtilityConfig } from '../shared/types/chrome'
 
 export default defineAppConfig({
-  // maui.* Config-Gates: Core-Default ist IMMER aus — Apps aktivieren explizit.
+  // pukalani.* Config-Gates: Core-Default ist IMMER aus — Apps aktivieren explizit.
   // Interne Tools bleiben komplett clean, öffentliche Seiten brauchen 3 Zeilen.
-  maui: {
+  pukalani: {
     /**
      * Name im Dashboard-Kopf. War bis 2026-07-26 als „Hawaii Studio" im
      * admin-Layer festverdrahtet — und damit stand der Firmenname des
@@ -22,7 +22,7 @@ export default defineAppConfig({
       /** Modul-Registry: Feature-Layer tragen hier ihre Dashboard-Sektionen ein
        *  (deep-merged/konkateniert über alle Layer). Das Dashboard-Layout rendert
        *  die Nav daraus, capability-gefiltert. */
-      modules: [] as MauiAdminModule[],
+      modules: [] as PukalaniAdminModule[],
     },
     /**
      * Chrome-Registry (Audit S9): Header-Nav + Header-Utilities der
@@ -32,13 +32,13 @@ export default defineAppConfig({
      * das core-default-Layout bleibt bewusst registry-frei (marketing & Co.).
      */
     chrome: {
-      nav: {} as MauiChromeNavConfig,
+      nav: {} as PukalaniChromeNavConfig,
       utilities: {
         // Benachrichtigungen sind Core-Funktionalität — core registriert
         // seine eigene Glocke (nur eingeloggt), alle anderen Utilities
         // kommen aus den Feature-Layern.
         notifications: { component: 'NotificationBell', order: 40, requiresAuth: true },
-      } as MauiChromeUtilityConfig,
+      } as PukalaniChromeUtilityConfig,
       /** Footer-Link auf /changelog — der admin-Layer (Besitzer der Seite)
        *  schaltet ihn an; Apps können ihn wieder abschalten (platform). */
       changelogLink: false,

@@ -27,8 +27,8 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
   const databaseId = config.public.appwriteDatabaseId
-  const appConfig = useAppConfig() as { maui?: { studio?: { plans?: ControlPlanCatalog } } }
-  const plans = appConfig.maui?.studio?.plans ?? {}
+  const appConfig = useAppConfig() as { pukalani?: { studio?: { plans?: ControlPlanCatalog } } }
+  const plans = appConfig.pukalani?.studio?.plans ?? {}
 
   const workspaces = await Promise.all(memberships.map(async (member) => {
     const workspace = await admin.tablesDB.getRow<WorkspaceRow>({

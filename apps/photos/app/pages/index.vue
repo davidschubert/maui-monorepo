@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// Startseite (Design-Port aus nuxt-maui-photos): Hero + Selected Work.
+// Startseite (Design-Port aus nuxt-pukalani-photos): Hero + Selected Work.
 // Bilder kommen aus dem media-Layer; ohne Uploads greift das Platzhalter-
 // Hero-Bild aus public/ (Erst-Eindruck bleibt intakt).
 definePageMeta({ layout: 'site' })

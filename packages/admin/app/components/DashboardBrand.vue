@@ -1,13 +1,13 @@
 <script setup lang="ts">
 // Sidebar-Header — ersetzt den TeamsMenu/Org-Switcher des Templates durch das
-// Branding der App. Der Name kommt aus maui.brand.name (core), NICHT mehr fest
+// Branding der App. Der Name kommt aus pukalani.brand.name (core), NICHT mehr fest
 // verdrahtet: dieser Layer läuft auch im Dashboard jeder Kunden-Community, und
 // dort stand bis 2026-07-26 der Firmenname des Betreibers.
 defineProps<{ collapsed?: boolean }>()
 
 const localePath = useLocalePath()
-const appConfig = useAppConfig() as { maui?: { brand?: { name?: string } } }
-const brandName = computed(() => appConfig.maui?.brand?.name || 'Pukalani')
+const appConfig = useAppConfig() as { pukalani?: { brand?: { name?: string } } }
+const brandName = computed(() => appConfig.pukalani?.brand?.name || 'Pukalani')
 </script>
 
 <template>

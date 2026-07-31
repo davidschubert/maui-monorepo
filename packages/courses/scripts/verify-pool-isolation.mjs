@@ -8,7 +8,7 @@
  * kunde-a.localhost / kunde-b.localhost:
  *
  *   1. Produkt-Gate: courses ist ab Plan pro — auf Plan basic antwortet die
- *      Galerie 404 (Katalog maui.tenancy.products), auf pro 401 (das Produkt
+ *      Galerie 404 (Katalog pukalani.tenancy.products), auf pro 401 (das Produkt
  *      existiert, es fehlt nur die Anmeldung).
  *   2. Ein community_members-OWNER auf kunde-a OHNE jedes Operator-Label legt Kurs
  *      + Lektion an (Datentür stempelt tenantId — per Admin-SDK nachgeprüft).

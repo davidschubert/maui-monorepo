@@ -75,12 +75,12 @@ _Keine._
 
 **Die A14-Matrix hält in der Praxis.** Verifiziert pro Layer:
 
-- **core**: besitzt null Tables (`dataExport.ts:34` bestätigt den Auszug des comments-Wissens); Verträge (`registerUserDataContributor`, `registerDashboardStatsContributor`, `notify`, `maui.admin.modules`) sind typisierte Exporte, kein String-Coupling. Zwei-Client-Disziplin, Cookie-Flags, JWT-Socket-Trennung (`useRealtimeClient.ts:56` — Cookie-Client nie mit JWT gemischt), `useRealtimeAccount` bewusst cookie-nativ belassen. ✓
+- **core**: besitzt null Tables (`dataExport.ts:34` bestätigt den Auszug des comments-Wissens); Verträge (`registerUserDataContributor`, `registerDashboardStatsContributor`, `notify`, `pukalani.admin.modules`) sind typisierte Exporte, kein String-Coupling. Zwei-Client-Disziplin, Cookie-Flags, JWT-Socket-Trennung (`useRealtimeClient.ts:56` — Cookie-Client nie mit JWT gemischt), `useRealtimeAccount` bewusst cookie-nativ belassen. ✓
 - **system**: reiner Schema-Owner + GDPR/Stats-Anbieter, kein UI, keine Feature-Imports; keine `presence`-Tabelle mehr (grep-verifiziert). Die öffentlichen `GET /api/themes` + `/api/fonts` in system sind vertretbares Schema-Owner-Verhalten (Owner serviert eigene read(any)-Rows für den SSR-Head), aber **nicht in der A14-Matrix abgebildet** → Doku-Drift D2. ✓ mit Doku-Lücke
 - **moderation**: vollständig target-agnostisch bis auf L7; Verträge `myOpenReportTargetIds` (chunked à 100 — nachverifiziert, kein Query-Cap-Problem) / `openReportsByTarget` generisch. ✓
 - **themes**: kein `server/`, kein Appwrite-Import, Writes gehen an `/api/admin/themes*`, Realtime über den geteilten Core-Socket. Genau wie CLAUDE.md („Tables besitzt system, Admin-Routen admin"). ✓
 - **comments**: besitzt nur eigene Tables; Report-UI über den moderation-Vertrag; notify/mentions über Core-Verträge. ✓
-- **admin**: besitzt nur `changelog`; kein Feature-Code-Import (`@maui/comments` in `system.get.ts:8` ist ein Versions-Label-String); Moderation läuft über den Vertrag, nicht daran vorbei. Rest-String-Kopplung = bekannte Drift (s. o.). ✓
+- **admin**: besitzt nur `changelog`; kein Feature-Code-Import (`@pukalani/comments` in `system.get.ts:8` ist ein Versions-Label-String); Moderation läuft über den Vertrag, nicht daran vorbei. Rest-String-Kopplung = bekannte Drift (s. o.). ✓
 - **apps**: dünn, extends-Reihenfolge korrekt (`themes, admin, comments, moderation, core, system`), error.vue-Wrapper, Gates explizit. ✓
 - **ESLint-Backstop** (`eslint.config.mjs:35-68`): themes verbietet appwrite/node-appwrite + alle Features + core; Feature-Block (comments/admin) verbietet Feature-Querimporte; Fundament-Block **enthält system**. Vollständig. ✓
 

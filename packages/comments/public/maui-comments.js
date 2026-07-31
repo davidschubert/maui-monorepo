@@ -2,20 +2,20 @@
  * Maui Comments — Web-Component-Variante (Embed-Plan E4 #19).
  * Dependency-frei, kein Build-Schritt, versionslos stabil — wie embed.js.
  *
- * Registriert das Custom-Element <maui-comments>. Statt eines Script-Tags mit
+ * Registriert das Custom-Element <pukalani-comments>. Statt eines Script-Tags mit
  * data-*-Attributen bindet man das Widget deklarativ als HTML-Element ein —
  * bequemer in CMS/Frameworks, die Custom Elements sauberer handhaben als
  * eingefügte <script>-Tags. Attribute reagieren live (z. B. theme umstellen).
  *
  * Integration:
- *   <script async src="https://<widget-domain>/maui-comments.js"></script>
- *   <maui-comments
+ *   <script async src="https://<widget-domain>/pukalani-comments.js"></script>
+ *   <pukalani-comments
  *     target-id="mein-blogpost-42"
  *     target-type="blog"            <!-- Default: page -->
  *     theme="auto"                  <!-- light | dark | auto (Default) -->
  *     locale="de"                   <!-- de | en (Default) -->
  *     primary="sky"                 <!-- optionale Akzentfarbe (Whitelist) -->
- *   ></maui-comments>
+ *   ></pukalani-comments>
  *
  * Sicherheit: das Element rendert das Widget bewusst in einem SANDBOXED
  * <iframe> (Shadow-DOM-gekapselt) — identisch zu embed.js. Damit bleibt der
@@ -41,24 +41,24 @@
 
   var PRIMARY = ['red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose']
 
-  if (typeof window.customElements === 'undefined' || window.customElements.get('maui-comments')) return
+  if (typeof window.customElements === 'undefined' || window.customElements.get('pukalani-comments')) return
 
-  function MauiComments() {
-    return Reflect.construct(HTMLElement, [], MauiComments)
+  function PukalaniComments() {
+    return Reflect.construct(HTMLElement, [], PukalaniComments)
   }
-  MauiComments.prototype = Object.create(HTMLElement.prototype)
-  MauiComments.prototype.constructor = MauiComments
+  PukalaniComments.prototype = Object.create(HTMLElement.prototype)
+  PukalaniComments.prototype.constructor = PukalaniComments
 
-  MauiComments.observedAttributes = ['target-id', 'target-type', 'theme', 'locale', 'primary', 'base']
-  Object.defineProperty(MauiComments, 'observedAttributes', {
+  PukalaniComments.observedAttributes = ['target-id', 'target-type', 'theme', 'locale', 'primary', 'base']
+  Object.defineProperty(PukalaniComments, 'observedAttributes', {
     get: function () { return ['target-id', 'target-type', 'theme', 'locale', 'primary', 'base'] },
   })
 
-  MauiComments.prototype.widgetOrigin = function () {
+  PukalaniComments.prototype.widgetOrigin = function () {
     return this.getAttribute('base') || loaderOrigin || window.location.origin
   }
 
-  MauiComments.prototype.buildSrc = function () {
+  PukalaniComments.prototype.buildSrc = function () {
     var origin = this.widgetOrigin()
     var targetId = this.getAttribute('target-id')
     if (!targetId) return null
@@ -76,7 +76,7 @@
     return origin + path
   }
 
-  MauiComments.prototype.connectedCallback = function () {
+  PukalaniComments.prototype.connectedCallback = function () {
     if (this._root) return
     var root = this.attachShadow ? this.attachShadow({ mode: 'open' }) : this
     this._root = root
@@ -104,7 +104,7 @@
       if (event.origin !== self.widgetOrigin()) return
       if (event.source !== iframe.contentWindow) return
       var data = event.data || {}
-      if (data.type === 'maui:resize' && typeof data.height === 'number' && isFinite(data.height)) {
+      if (data.type === 'pukalani:resize' && typeof data.height === 'number' && isFinite(data.height)) {
         self._gotResize = true
         iframe.style.height = Math.max(120, Math.ceil(data.height)) + 'px'
       }
@@ -123,17 +123,17 @@
     }, 10000)
   }
 
-  MauiComments.prototype.disconnectedCallback = function () {
+  PukalaniComments.prototype.disconnectedCallback = function () {
     if (this._onMessage) window.removeEventListener('message', this._onMessage)
     clearTimeout(this._fallbackTimer)
   }
 
-  MauiComments.prototype.attributeChangedCallback = function (name, oldValue, newValue) {
+  PukalaniComments.prototype.attributeChangedCallback = function (name, oldValue, newValue) {
     if (!this._iframe || oldValue === newValue) return
     // theme live nachsteuern (ohne iframe-Reload) — nutzt die dokumentierte
     // postMessage-Schnittstelle des Widgets.
     if (name === 'theme' && newValue) {
-      try { this._iframe.contentWindow.postMessage({ type: 'maui:set-theme', theme: newValue }, this.widgetOrigin()) }
+      try { this._iframe.contentWindow.postMessage({ type: 'pukalani:set-theme', theme: newValue }, this.widgetOrigin()) }
       catch (e) { /* iframe evtl. noch nicht bereit — nächster Attribut-Set greift */ }
       return
     }
@@ -142,5 +142,5 @@
     if (src) this._iframe.src = src
   }
 
-  window.customElements.define('maui-comments', MauiComments)
+  window.customElements.define('pukalani-comments', PukalaniComments)
 })()

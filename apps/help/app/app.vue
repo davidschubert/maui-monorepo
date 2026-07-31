@@ -31,7 +31,7 @@ provide(docsNavigationKey, navigation)
 
 // SEO-Kopf: EIN Core-Aufruf (lang/dir, canonical, og:url/og:locale) statt der
 // handgebauten useLocaleHead/useHead-Kopie — Audit-Befund B1. Single-Host-App,
-// also bleibt das Gate `maui.seo.originFromRequest` aus und die absolute Basis
+// also bleibt das Gate `pukalani.seo.originFromRequest` aus und die absolute Basis
 // kommt aus NUXT_PUBLIC_I18N_BASE_URL. Wegen der i18n-Strategie `no_prefix`
 // (Begründung in nuxt.config.ts) entfallen hier hreflang-Alternates.
 useLocaleSeoHead()

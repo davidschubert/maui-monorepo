@@ -5,7 +5,7 @@ import { resolveSeoOrigin } from '../../../../packages/core/shared/seoOrigin'
 
 /**
  * Die Origin, unter der DIESER Request beantwortet wird — Server-Gegenstück zu
- * `useLocaleSeoHead()` (Gate maui.seo.originFromRequest, Audit-Befund B1).
+ * `useLocaleSeoHead()` (Gate pukalani.seo.originFromRequest, Audit-Befund B1).
  *
  * Dieselbe Regel wie im Kopf der Seiten, damit robots.txt/sitemap.xml und
  * canonical/hreflang nie auseinanderlaufen: HOST+PORT kommen aus dem Request

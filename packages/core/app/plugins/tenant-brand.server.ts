@@ -4,7 +4,7 @@
  * aber den Anzeigenamen des Mandanten („Morgenlicht" statt App-Brand) —
  * dieser Server-Plugin spiegelt ihn einmalig in einen useState, der über den
  * Nuxt-Payload zum Client reist. Kein Tenant (Silo/Control-Host) → null,
- * der Header fällt auf maui.brand.name zurück.
+ * der Header fällt auf pukalani.brand.name zurück.
  *
  * SPIEGEL-INVENTAR (Audit-Befund K5 — beim Erweitern mitpflegen!): dieser
  * State reist im __NUXT__-Payload JEDER Seite mit, auch unauthentifiziert.
@@ -62,25 +62,25 @@ import type { TenantRole } from '../../shared/tenantAuthz'
 export default defineNuxtPlugin(() => {
   const event = useRequestEvent()
   const tenant = event?.context.tenant
-  useState<string | null>('maui-tenant-brand', () => tenant?.name ?? null)
+  useState<string | null>('pukalani-tenant-brand', () => tenant?.name ?? null)
   // Plan zusätzlich (P4): das UI blendet Produkte aus, die der Plan nicht
   // enthält (Nav/Badges) — die AUTORITÄT bleibt requirePlanProduct auf den
   // Server-Routen. null = kein Pool-Tenant → UI zeigt alles.
-  useState<string | null>('maui-tenant-plan', () => (tenant?.mode === 'pool' ? tenant.plan ?? null : null))
+  useState<string | null>('pukalani-tenant-plan', () => (tenant?.mode === 'pool' ? tenant.plan ?? null : null))
   // Mandanten-Id (B1, C1b, C15): AUSSCHLIESSLICH für die Client-Leser, die
   // DIREKT (ohne Server-Route) gegen Appwrite lesen und deshalb selbst scopen
   // müssen — usePresence(), der Activity-Realtime-Stream und der
   // Realtime-Filter der NotificationBell, alle über useTenantId().
   // null = kein Pool-Tenant.
-  useState<string | null>('maui-tenant-id', () => (tenant?.mode === 'pool' ? tenant.tenantId : null))
+  useState<string | null>('pukalani-tenant-id', () => (tenant?.mode === 'pool' ? tenant.tenantId : null))
   // Site-Id (A4): der Label-Schlüssel für die Permissions des WS-Presence-
   // Upserts. NUR im Pool — im Silo schreibt der Client weiter read("users").
-  useState<string | null>('maui-site-id', () => (tenant?.mode === 'pool' ? tenant.communityId ?? null : null))
+  useState<string | null>('pukalani-site-id', () => (tenant?.mode === 'pool' ? tenant.communityId ?? null : null))
   // Zugangsregel der Community (S1): schließt die Register-Seite und zeigt
   // stattdessen den „nur auf Einladung"-Hinweis. Auch hier ist die AUTORITÄT
   // serverseitig (assertTenantRegistrationOpen an den Auth-Routen) — dieser
   // Wert ist nur die Ansage an den Besucher. null = kein Tenant-Host.
-  useState<boolean | null>('maui-tenant-open-registration', () => (
+  useState<boolean | null>('pukalani-tenant-open-registration', () => (
     tenant ? tenant.openRegistration !== false : null
   ))
   // Erscheinungsbild der Community (Entscheidung 12; `neutral` seit dem
@@ -88,12 +88,12 @@ export default defineNuxtPlugin(() => {
   // „nichts gewählt, Instanz-Einstellung gilt" und muss im Dashboard als solches
   // erkennbar bleiben. `?? ''` fängt zugleich Bestands-Rows, die die Spalte noch
   // nicht tragen (Appwrite backfillt Defaults nicht). null = kein Tenant-Host.
-  useState<{ theme: string, variant: string, neutral: string } | null>('maui-tenant-branding', () => (
+  useState<{ theme: string, variant: string, neutral: string } | null>('pukalani-tenant-branding', () => (
     tenant ? { theme: tenant.theme ?? '', variant: tenant.variant ?? '', neutral: tenant.neutral ?? '' } : null
   ))
   // Site-Rolle des eingeloggten Users (N1): EXPLIZITE Zuweisung statt
   // Init-Funktion — der Auth-Store (läuft früher) initialisiert denselben
   // Key bereits mit null; eine Init-Funktion würde hier still verpuffen.
-  const siteRole = useState<TenantRole | null>('maui-site-role', () => null)
+  const siteRole = useState<TenantRole | null>('pukalani-site-role', () => null)
   siteRole.value = event?.context.siteRole ?? null
 })

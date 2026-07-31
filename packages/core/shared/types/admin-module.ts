@@ -2,14 +2,14 @@ import type { Capability } from './authz'
 
 /**
  * Admin-Modul, das ein Feature-Layer im Dashboard registriert
- * (app.config: `maui.admin.modules`, deep-merged über alle Layer). Das
+ * (app.config: `pukalani.admin.modules`, deep-merged über alle Layer). Das
  * Admin-Layout baut die Navigation daraus — so muss `admin` die Feature-
  * Sektionen NICHT hart kennen; ein neues Feature steckt sich nur „ein".
  *
  * Liegt in core (Fundament), damit Feature-Layer (comments, …) UND admin den
  * Vertrag nutzen, ohne sich gegenseitig zu importieren (Layer-Grenze A14).
  */
-export interface MauiAdminModuleChild {
+export interface PukalaniAdminModuleChild {
   /** Stabile ID (key/Dedup) */
   id: string
   /** i18n-Key des Nav-Labels */
@@ -24,7 +24,7 @@ export interface MauiAdminModuleChild {
   exact?: boolean
 }
 
-export interface MauiAdminModule {
+export interface PukalaniAdminModule {
   /** Stabile ID (key/Dedup) */
   id: string
   /**
@@ -46,7 +46,7 @@ export interface MauiAdminModule {
    * Unterpunkte: macht den Eintrag zum aufklappbaren Abschnitt (die
    * Modul-Seite selbst dann als ersten Unterpunkt mit aufnehmen).
    */
-  children?: MauiAdminModuleChild[]
+  children?: PukalaniAdminModuleChild[]
   /**
    * Nav-Gruppe: Module mit gleicher Gruppe rendert das Layout unter einem
    * gemeinsamen Abschnitts-Label (i18n-Key admin.nav.groups.<group>);

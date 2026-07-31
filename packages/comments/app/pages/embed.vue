@@ -14,10 +14,10 @@ definePageMeta({ layout: 'embed' })
 // E2: CommentSection (und Kinder) wissen, dass sie eingebettet laufen —
 // der Gast-CTA wird zum Popup-Login statt einer Navigation (das iframe
 // selbst darf nie auf /login navigieren, der User säße im Widget fest).
-provide('mauiEmbed', true)
+provide('pukalaniEmbed', true)
 
 const appConfig = useAppConfig() as {
-  maui?: { comments?: { embed?: { enabled?: boolean } } }
+  pukalani?: { comments?: { embed?: { enabled?: boolean } } }
   ui: { colors: { primary: string } }
 }
 // Gate: Feature aus → 404 (kein Hinweis, dass die Route existiert)
@@ -26,7 +26,7 @@ const appConfig = useAppConfig() as {
 // Vertrag (Logs, API-Clients), NICHT die Anzeige. Was ein Mensch liest, rendert
 // CoreErrorPage aus i18n (error.notFound / error.generic) — deshalb steht hier
 // kein deutscher Satz und wir übergeben auch keine message (Audit-Befund K8).
-if (!appConfig.maui?.comments?.embed?.enabled) {
+if (!appConfig.pukalani?.comments?.embed?.enabled) {
   throw createError({ status: 404, statusText: 'Not Found' })
 }
 
@@ -102,7 +102,7 @@ const hostOrigin = (() => {
 onMounted(() => {
   const post = () => {
     window.parent?.postMessage(
-      { type: 'maui:resize', height: document.documentElement.scrollHeight },
+      { type: 'pukalani:resize', height: document.documentElement.scrollHeight },
       hostOrigin,
     )
   }
@@ -110,11 +110,11 @@ onMounted(() => {
   observer.observe(document.body)
   post()
 
-  // Loader-API: Hostseite kann das Theme nachsteuern (maui:set-theme)
+  // Loader-API: Hostseite kann das Theme nachsteuern (pukalani:set-theme)
   const onMessage = (event: MessageEvent) => {
     if (hostOrigin !== '*' && event.origin !== hostOrigin) return
     const data = event.data as { type?: string, theme?: string } | null
-    if (data?.type === 'maui:set-theme' && (data.theme === 'light' || data.theme === 'dark' || data.theme === 'system')) {
+    if (data?.type === 'pukalani:set-theme' && (data.theme === 'light' || data.theme === 'dark' || data.theme === 'system')) {
       colorMode.preference = data.theme
     }
   }

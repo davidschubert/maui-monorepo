@@ -1,4 +1,4 @@
-import { THEME_REGISTRY, DEFAULT_THEME_ID, NEUTRAL_REGISTRY, DEFAULT_NEUTRAL_ID, FONT_FAMILY_REGISTRY, resolveThemeFonts, type MauiNeutral, type MauiTheme } from '../utils/themeRegistry'
+import { THEME_REGISTRY, DEFAULT_THEME_ID, NEUTRAL_REGISTRY, DEFAULT_NEUTRAL_ID, FONT_FAMILY_REGISTRY, resolveThemeFonts, type PukalaniNeutral, type PukalaniTheme } from '../utils/themeRegistry'
 import { customThemeAttr } from '../../shared/ramp'
 import { customFontAttr } from '../../shared/fonts'
 import { resolveNeutralSelection, resolveThemeSelection, visitorMayChooseNeutral, visitorMayChooseTheme } from '../../shared/themeSelection'
@@ -26,17 +26,17 @@ import { resolveNeutralSelection, resolveThemeSelection, visitorMayChooseNeutral
  * richtige data-theme, der Client rechnet dasselbe Ergebnis nach.
  */
 export function useTheme() {
-  const themeCookie = useCookie<string | null>('maui-theme', {
+  const themeCookie = useCookie<string | null>('pukalani-theme', {
     default: () => null,
     maxAge: 60 * 60 * 24 * 365,
     sameSite: 'lax',
   })
-  const variantCookie = useCookie<string | null>('maui-theme-variant', {
+  const variantCookie = useCookie<string | null>('pukalani-theme-variant', {
     default: () => null,
     maxAge: 60 * 60 * 24 * 365,
     sameSite: 'lax',
   })
-  const neutralCookie = useCookie<string | null>('maui-neutral', {
+  const neutralCookie = useCookie<string | null>('pukalani-neutral', {
     default: () => null,
     maxAge: 60 * 60 * 24 * 365,
     sameSite: 'lax',
@@ -47,7 +47,7 @@ export function useTheme() {
   // Wahl DIESER Community (core, SSR-gespiegelt): null = kein Mandanten-Host.
   const { branding } = useTenantBranding()
 
-  const themes = computed<MauiTheme[]>(() => {
+  const themes = computed<PukalaniTheme[]>(() => {
     // Built-ins mit Instanz-Overrides (umbenennen/ausblenden/umsortieren)
     const overrides = settings.value.builtins ?? {}
     const builtins = THEME_REGISTRY
@@ -88,7 +88,7 @@ export function useTheme() {
   // Fallback-Kette hinter der Vorrangregel: gewünschtes Theme → Core-Default →
   // erster Eintrag. Fängt gelöschte Custom Themes, ausgeblendete Built-ins und
   // alte Cookie-/Branding-Werte still ab.
-  const theme = computed<MauiTheme>(() =>
+  const theme = computed<PukalaniTheme>(() =>
     themes.value.find(entry => entry.id === selection.value.theme)
     ?? themes.value.find(entry => entry.id === DEFAULT_THEME_ID)
     ?? themes.value[0]!,
@@ -120,13 +120,13 @@ export function useTheme() {
   // Neutral-Ramp an (config.neutral 'tinted'), erscheint sie als zusätzlicher
   // Eintrag (id = Theme-Attribut) und wird zum Neutral-DEFAULT dieses Themes —
   // der Cookie darf weiterhin eine Registry-Palette übersteuern.
-  const activeTinted = computed<MauiNeutral | null>(() => {
+  const activeTinted = computed<PukalaniNeutral | null>(() => {
     const custom = customThemes.value.find(c => customThemeAttr(c.id) === theme.value.id)
     if (custom?.config?.neutral !== 'tinted') return null
     return { id: theme.value.id, color: custom.primary, tinted: true }
   })
 
-  const neutrals = computed<MauiNeutral[]>(() =>
+  const neutrals = computed<PukalaniNeutral[]>(() =>
     activeTinted.value ? [activeTinted.value, ...NEUTRAL_REGISTRY] : NEUTRAL_REGISTRY,
   )
 

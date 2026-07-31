@@ -24,7 +24,7 @@ export interface OnboardingDraft {
   vibe?: SiteVibeId
 }
 
-const STORAGE_KEY = 'maui-onboarding-draft'
+const STORAGE_KEY = 'pukalani-onboarding-draft'
 
 export function useOnboardingDraft() {
   const draft = useState<OnboardingDraft>('onboarding-draft', () => ({}))

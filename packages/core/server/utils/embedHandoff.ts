@@ -22,7 +22,7 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:
 export const HANDOFF_TTL_MS = 60_000
 
 export function deriveHandoffKey(serverSecret: string): Buffer {
-  return createHash('sha256').update(`${serverSecret}:maui-embed-handoff`).digest()
+  return createHash('sha256').update(`${serverSecret}:pukalani-embed-handoff`).digest()
 }
 
 /** Session-Secret in ein kurzlebiges Token einsiegeln (base64url iv.tag.cipher). */

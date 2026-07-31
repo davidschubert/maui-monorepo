@@ -1,8 +1,8 @@
 /**
  * Anzeigename des aktuellen Mandanten (SSR-gespiegelt via tenant-brand-
  * Plugin, reist im Payload). null = kein Tenant-Host (Silo-App, Control-
- * Host) — Konsumenten fallen auf maui.brand.name zurück.
+ * Host) — Konsumenten fallen auf pukalani.brand.name zurück.
  */
 export function useTenantBrand() {
-  return useState<string | null>('maui-tenant-brand', () => null)
+  return useState<string | null>('pukalani-tenant-brand', () => null)
 }

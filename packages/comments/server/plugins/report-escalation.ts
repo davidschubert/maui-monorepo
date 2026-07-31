@@ -4,7 +4,7 @@ import { COMMENTS_TABLE } from '../../shared/types/comment'
 /**
  * Auto-Hide-Threshold (OPEN-ITEMS Idee 5, Embed-Plan § 3f): erreichen die
  * OFFENEN Meldungen zu einem Kommentar den Schwellwert
- * maui.comments.autoHideReports (0 = aus, Default), wird er automatisch
+ * pukalani.comments.autoHideReports (0 = aus, Default), wird er automatisch
  * zweiphasig ausgeblendet — inkl. Cascade (Antworten), wie beim manuellen
  * Hide. Die Meldungen bleiben OFFEN: der Moderator sieht den Fall weiter in
  * der Queue („Gemeldet" + Badge „Ausgeblendet") und entscheidet final
@@ -12,8 +12,8 @@ import { COMMENTS_TABLE } from '../../shared/types/comment'
  */
 export default defineNitroPlugin(() => {
   registerReportEscalationHandler('comment', async (event, { targetId, openCount }) => {
-    const appConfig = useAppConfig(event) as { maui?: { comments?: { autoHideReports?: number } } }
-    const threshold = appConfig.maui?.comments?.autoHideReports ?? 0
+    const appConfig = useAppConfig(event) as { pukalani?: { comments?: { autoHideReports?: number } } }
+    const threshold = appConfig.pukalani?.comments?.autoHideReports ?? 0
     if (threshold <= 0 || openCount < threshold) return
 
     // Nur aktive Kommentare — hidden (schon moderiert/auto-versteckt),

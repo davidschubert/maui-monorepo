@@ -1,8 +1,8 @@
 // GENERIERT von scripts/generate-themes.ts aus theme.catalog.ts — nicht von Hand editieren.
 // Handgepflegt bleiben: default-Eintrag, NEUTRAL_REGISTRY, Typen (themeRegistry.ts).
-import type { MauiTheme } from './themeRegistry'
+import type { PukalaniTheme } from './themeRegistry'
 
-export const GENERATED_THEMES: MauiTheme[] = [
+export const GENERATED_THEMES: PukalaniTheme[] = [
   { id: 'crimson', name: 'Crimson', file: '/themes/crimson.css', color: '#ff2357', variants: [
     { id: 'soft', color: '#d36871' },
     { id: 'muted', color: '#b97a7d' },

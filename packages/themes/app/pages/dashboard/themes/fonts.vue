@@ -16,7 +16,7 @@ const toast = useToast()
 const localePath = useLocalePath()
 const fonts = useCustomFontsState()
 
-await useAsyncData('maui-fonts-admin', async () => {
+await useAsyncData('pukalani-fonts-admin', async () => {
   await refreshCustomFonts()
   return true
 })

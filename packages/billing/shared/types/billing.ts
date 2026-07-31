@@ -30,7 +30,7 @@ export interface BillingSubscriptionRow extends Models.Row {
   stripeCustomerId: string
   stripeSubscriptionId: string
   status: SubscriptionStatus
-  /** interner Plan-Key aus maui.billing.plans */
+  /** interner Plan-Key aus pukalani.billing.plans */
   planId: string
   /** konkreter Stripe-Price (Audit/Debug) */
   priceId: string
@@ -41,8 +41,8 @@ export interface BillingSubscriptionRow extends Models.Row {
   lastStripeEventAt: number
 }
 
-/** Plan-Deklaration (maui.billing.plans) — free hat lookupKeys: null */
-export interface MauiBillingPlan {
+/** Plan-Deklaration (pukalani.billing.plans) — free hat lookupKeys: null */
+export interface PukalaniBillingPlan {
   id: string
   labelKey: string
   /** Entitlement-Features, z. B. 'courses.paid' — App-/Layer-Konvention */
@@ -64,24 +64,24 @@ export interface MauiBillingPlan {
  */
 export type BillingCompareValue = boolean | string
 
-export interface MauiBillingCompareRow {
+export interface PukalaniBillingCompareRow {
   labelKey: string
   /** Wert je Plan-Id (fehlender Eintrag = false) */
   plans: Record<string, BillingCompareValue>
 }
 
-export interface MauiBillingCompareSection {
+export interface PukalaniBillingCompareSection {
   labelKey: string
-  rows: MauiBillingCompareRow[]
+  rows: PukalaniBillingCompareRow[]
 }
 
-export interface MauiBillingConfig {
+export interface PukalaniBillingConfig {
   enabled: boolean
   currency: string
   trialDays: number
-  plans: MauiBillingPlan[]
+  plans: PukalaniBillingPlan[]
   /** Optionale „Alle Funktionen im Vergleich"-Tabelle der Pricing-Seite */
-  compare?: { sections: MauiBillingCompareSection[] }
+  compare?: { sections: PukalaniBillingCompareSection[] }
 }
 
 /** Antwort von GET /api/billing/prices (öffentlich, für die Pricing-Seite) */

@@ -18,7 +18,7 @@ export function useEmbedPopup() {
     if (!isEmbedPopup.value || !import.meta.client) return false
     try {
       const { token } = await $fetch<{ token: string }>('/api/auth/embed-handoff', { method: 'POST' })
-      window.opener?.postMessage({ type: 'maui:embed-login', token }, window.location.origin)
+      window.opener?.postMessage({ type: 'pukalani:embed-login', token }, window.location.origin)
     }
     catch {
       // Handoff scheiterte (Gate aus / Session weg) — Popup schließt trotzdem,

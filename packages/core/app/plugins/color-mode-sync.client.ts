@@ -11,7 +11,7 @@
  */
 export default defineNuxtPlugin(() => {
   const colorMode = useColorMode()
-  const cookie = useCookie<string>('maui-color-mode', {
+  const cookie = useCookie<string>('pukalani-color-mode', {
     default: () => colorMode.preference,
     maxAge: 60 * 60 * 24 * 365,
     sameSite: 'lax',

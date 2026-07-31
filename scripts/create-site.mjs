@@ -87,21 +87,21 @@ cpSync(join(ROOT, 'apps', '_template'), appDir, {
   filter: src => !/node_modules|\.nuxt|\.output|\.env$/.test(src),
 })
 
-// package.json: Name, Port, @maui-Dependencies = Feature-Wahl
+// package.json: Name, Port, @pukalani-Dependencies = Feature-Wahl
 {
   const p = join(appDir, 'package.json')
   const pkg = JSON.parse(readFileSync(p, 'utf8'))
   pkg.name = name
   pkg.scripts.dev = `nuxi dev --port ${port}`
   for (const dep of Object.keys(pkg.dependencies)) {
-    if (dep.startsWith('@maui/')) delete pkg.dependencies[dep]
+    if (dep.startsWith('@pukalani/')) delete pkg.dependencies[dep]
   }
   for (const f of [...features, ...FOUNDATION_ALWAYS].sort()) {
-    pkg.dependencies[`@maui/${f}`] = 'workspace:*'
+    pkg.dependencies[`@pukalani/${f}`] = 'workspace:*'
   }
   pkg.dependencies = Object.fromEntries(Object.entries(pkg.dependencies).sort(([a], [b]) => a.localeCompare(b)))
   writeFileSync(p, `${JSON.stringify(pkg, null, 2)}\n`)
-  console.log('✔ package.json (Name, Port, @maui-Dependencies)')
+  console.log('✔ package.json (Name, Port, @pukalani-Dependencies)')
 }
 
 // nuxt.config.ts: extends in kanonischer Reihenfolge + Port
@@ -165,13 +165,13 @@ if (!skipAppwrite && consoleEmail && consolePassword) {
     console.log('✔ Console-Session')
   }
 
-  // Organisation: eigene Teams bevorzugen — eine FREMDE maui-sites-Org
+  // Organisation: eigene Teams bevorzugen — eine FREMDE pukalani-sites-Org
   // (anderer Console-User) macht Projekt-Anlagen 401; dann eindeutige
   // Ausweich-Org unter eigener Mitgliedschaft anlegen.
-  let teamId = 'maui-sites'
+  let teamId = 'pukalani-sites'
   {
     const own = await consoleApi('/teams')
-    const existing = (own.json?.teams ?? []).find(t => String(t.$id).startsWith('maui-sites'))
+    const existing = (own.json?.teams ?? []).find(t => String(t.$id).startsWith('pukalani-sites'))
     if (existing) {
       teamId = existing.$id
       console.log(`↷ Organisation ${teamId} (eigene) wird genutzt`)
@@ -179,7 +179,7 @@ if (!skipAppwrite && consoleEmail && consolePassword) {
     else {
       let { status, json } = await consoleApi('/teams', 'POST', { teamId, name: 'Maui Sites' })
       if (status === 409) {
-        teamId = `maui-sites-${Math.random().toString(36).slice(2, 6)}`
+        teamId = `pukalani-sites-${Math.random().toString(36).slice(2, 6)}`
         ;({ status, json } = await consoleApi('/teams', 'POST', { teamId, name: 'Maui Sites' }))
       }
       if (status !== 201) fail(`Organisation (${status}): ${json?.message ?? ''}`)

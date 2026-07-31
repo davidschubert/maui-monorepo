@@ -2,7 +2,7 @@ import { POSTS_TABLE, type CommunityPost, type PostModerationAssist } from '../.
 
 /**
  * KI-Moderations-Assist für gemeldete Posts (advisory) — gleiches Prinzip wie
- * der Kommentar-Assist im admin-Layer: core aiComplete (Gate maui.ai +
+ * der Kommentar-Assist im admin-Layer: core aiComplete (Gate pukalani.ai +
  * NUXT_AI_KEY), Meldegründe über den moderation-Vertrag openReportsForTarget,
  * die KI ändert NICHTS — der Moderator entscheidet.
  *
@@ -51,7 +51,7 @@ function buildPrompt(post: CommunityPost, reports: { reason: string, note: strin
 export default defineEventHandler(async (event): Promise<PostModerationAssist> => {
   // Produkt-Gates (P4) VOR der Autorisierung — beide, nicht nur 'ai': dass
   // 'ai' heute den höheren Mindest-Plan hat (pro > personal), ist eine
-  // KONFIGURATION der App (maui.tenancy.products), keine Garantie. Wer sie
+  // KONFIGURATION der App (pukalani.tenancy.products), keine Garantie. Wer sie
   // umstellt, soll nicht versehentlich eine posts-Route öffnen.
   requirePlanProduct(event, 'posts')
   requirePlanProduct(event, 'ai')

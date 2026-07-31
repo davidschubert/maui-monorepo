@@ -5,13 +5,13 @@ const { isLoggedIn } = useCurrentUser()
 const appConfig = useAppConfig()
 // Footer-Rechtslinks aus der App-Config (Core-Default leer) — config-gated,
 // damit interne Apps ohne öffentliche Seiten keinen Footer-Ballast tragen.
-const legalLinks = computed(() => appConfig.maui?.legalLinks ?? [])
+const legalLinks = computed(() => appConfig.pukalani?.legalLinks ?? [])
 // Glocke im Kundenbereich (C17): dieses Layout trägt den Header von
 // /workspace und /account/billing in der control-App — der Shell, in der die
 // kontobezogenen Meldungen (`scope: 'account'`) tatsächlich gelesen werden.
 // Config-gated (Core-Default aus), weil blueprint-Apps ihre Glocke schon aus
-// maui.chrome.utilities beziehen und interne Apps keine brauchen.
-const accountBell = computed(() => appConfig.maui?.chrome?.accountBell === true)
+// pukalani.chrome.utilities beziehen und interne Apps keine brauchen.
+const accountBell = computed(() => appConfig.pukalani?.chrome?.accountBell === true)
 // Brand: Tenant-Name (Pool-Host, z. B. „Morgenlicht") vor App-Brand vor
 // dem historischen „Maui"-Fallback — Kette in useBrandName().
 const brand = useBrandName()

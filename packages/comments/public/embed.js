@@ -3,23 +3,23 @@
  * Dependency-frei, kein Build-Schritt, versionslos stabil.
  *
  * Integration:
- *   <div id="maui-comments"></div>
+ *   <div id="pukalani-comments"></div>
  *   <script async src="https://<widget-domain>/embed.js"
  *     data-target-id="mein-blogpost-42"
  *     data-target-type="blog"
  *     data-theme="auto"            <!-- light | dark | auto (Default) -->
  *     data-locale="de"             <!-- de | en (Default) -->
  *     data-primary="sky"           <!-- optionale Akzentfarbe (Whitelist) -->
- *     data-container="maui-comments"><\/script>
+ *     data-container="pukalani-comments"><\/script>
  *
  * Mehrere Widgets pro Seite: je ein Script-Tag mit eigenem data-container.
  * Theme nachsteuern: iframe.contentWindow.postMessage(
- *   { type: 'maui:set-theme', theme: 'dark' }, widgetOrigin)
+ *   { type: 'pukalani:set-theme', theme: 'dark' }, widgetOrigin)
  *
- * Kommentar-Zähler (E3): Elemente mit data-maui-count werden mit der Anzahl
+ * Kommentar-Zähler (E3): Elemente mit data-pukalani-count werden mit der Anzahl
  * befüllt (CORS-read-only, keine Cookies) — z. B. für Artikel-Listen:
  *   <a href="/post-42#kommentare">
- *     <span data-maui-count data-target-id="post-42" data-target-type="blog">…</span>
+ *     <span data-pukalani-count data-target-id="post-42" data-target-type="blog">…</span>
  *   </a>
  * data-target-type ist optional (Default wie beim Widget: 'page').
  */
@@ -34,7 +34,7 @@
   // E3: „N Kommentare"-Zähler auf der Hostseite befüllen (unabhängig vom
   // Widget — funktioniert auch ohne data-target-id am Script-Tag)
   function fillCounts() {
-    var nodes = document.querySelectorAll('[data-maui-count]')
+    var nodes = document.querySelectorAll('[data-pukalani-count]')
     Array.prototype.forEach.call(nodes, function (node) {
       var id = node.getAttribute('data-target-id')
       if (!id) return
@@ -57,7 +57,7 @@
 
   var targetId = script.getAttribute('data-target-id')
   if (!targetId) {
-    // Nur Zähler-Modus (data-maui-count) — ohne target kein Widget-iframe
+    // Nur Zähler-Modus (data-pukalani-count) — ohne target kein Widget-iframe
     return
   }
   var targetType = script.getAttribute('data-target-type') || 'page'
@@ -65,9 +65,9 @@
   var locale = script.getAttribute('data-locale') || ''
   var primary = script.getAttribute('data-primary') || ''
 
-  // Container: per data-container benannt, sonst #maui-comments, sonst
+  // Container: per data-container benannt, sonst #pukalani-comments, sonst
   // ein frisches <div> direkt vor dem Script-Tag.
-  var containerId = script.getAttribute('data-container') || 'maui-comments'
+  var containerId = script.getAttribute('data-container') || 'pukalani-comments'
   var container = document.getElementById(containerId)
   if (!container) {
     container = document.createElement('div')
@@ -104,7 +104,7 @@
     if (event.origin !== widgetOrigin) return
     if (event.source !== iframe.contentWindow) return
     var data = event.data || {}
-    if (data.type === 'maui:resize' && typeof data.height === 'number' && isFinite(data.height)) {
+    if (data.type === 'pukalani:resize' && typeof data.height === 'number' && isFinite(data.height)) {
       gotResize = true
       iframe.style.height = Math.max(120, Math.ceil(data.height)) + 'px'
     }

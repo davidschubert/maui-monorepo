@@ -44,6 +44,6 @@ Discussions = Admin-Struktur + Threads. Beide nutzen comments darunter.
 - Konzept existiert EINMAL (eigener Layer), Komposition im site-Layer.
 - Von Tag 1 durch die Datentür (`tenantDb`, tenantId, ESLint-Liste,
   Pool-Unique-Indizes mit tenantId) — kein Silo-Umweg wie bei events/courses.
-- Produkt-Gate über `maui.tenancy.products` (Tarif-Zuordnung entscheidet David
+- Produkt-Gate über `pukalani.tenancy.products` (Tarif-Zuordnung entscheidet David
   beim Baustart); An/Aus-Schalter im Dashboard als **USwitch** (nicht Checkbox).
 - Nur Erscheinung ist mandanten-variabel (Theme/Schrift), Verhalten nie.

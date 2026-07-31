@@ -5,7 +5,7 @@ import type { H3Event } from 'h3'
  *
  * Konfiguration in der App (app.config.ts):
  *
- *   maui: { tenancy: {
+ *   pukalani: { tenancy: {
  *     // aufsteigend — Position = Rang. Quota-Katalog nutzt dieselben Keys.
  *     quota: { plans: { basic: …, personal: …, pro: … } },
  *     // Produkt-Key → Mindest-Plan. Nicht gelistete Produkte sind frei.
@@ -48,8 +48,8 @@ export function requirePlanProduct(event: H3Event, product: string): void {
   const tenant = useTenant(event)
   if (tenant?.mode !== 'pool') return
 
-  const appConfig = useAppConfig() as { maui?: { tenancy?: TenancyProductsConfig } }
-  const tenancy = appConfig.maui?.tenancy
+  const appConfig = useAppConfig() as { pukalani?: { tenancy?: TenancyProductsConfig } }
+  const tenancy = appConfig.pukalani?.tenancy
   const planOrder = Object.keys(tenancy?.quota?.plans ?? {})
   if (!planAllowsProduct(planOrder, tenancy?.products, tenant.plan, product)) {
     throw createError({ status: 404, statusText: 'Not found' })

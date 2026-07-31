@@ -7,8 +7,8 @@ import { INVITE_CODES_TABLE, evaluateInviteCode, type InviteCodeRow, type Invite
  * Einladungs-Codes: Suche + Einlösung (control-016).
  *
  * Gespeichert wird nur der sha256-Hash. Codes werden vor dem Hashen
- * normalisiert (trim + Großschreibung), damit „maui-2026-abcd" und
- * „MAUI-2026-ABCD" derselbe Code sind — abgetippte Codes verschluckt man
+ * normalisiert (trim + Großschreibung), damit „pukalani-2026-abcd" und
+ * „PUKA-2026-ABCD" derselbe Code sind — abgetippte Codes verschluckt man
  * sonst an der Groß-/Kleinschreibung.
  */
 
@@ -28,7 +28,7 @@ const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
 
 export function issueCodeValue(): string {
   const block = (length: number) => Array.from({ length }, () => ALPHABET[randomInt(ALPHABET.length)]).join('')
-  return `MAUI-${block(4)}-${block(4)}`
+  return `PUKA-${block(4)}-${block(4)}`
 }
 
 export async function findInviteCode(event: H3Event, code: string): Promise<InviteCodeRow | null> {

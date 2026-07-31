@@ -36,7 +36,7 @@ export interface RuntimeIdentity {
   emailVerified: boolean
 }
 
-const SERVICE_HEADER = 'x-maui-onboarding-secret'
+const SERVICE_HEADER = 'x-pukalani-onboarding-secret'
 
 /** Konfiguriertes Secret; '' = Feature aus. */
 function configuredSecret(event: H3Event): string {
@@ -77,8 +77,8 @@ export function requireOnboardingCaller(event: H3Event): void {
  */
 export function onboardingRuntimeProject(event?: H3Event): string {
   const config = useRuntimeConfig(event) as { public?: { controlPoolProject?: string } }
-  const appConfig = useAppConfig() as { maui?: { studio?: { defaultPoolProject?: string } } }
-  const projectId = (config.public?.controlPoolProject || appConfig.maui?.studio?.defaultPoolProject || '').trim()
+  const appConfig = useAppConfig() as { pukalani?: { studio?: { defaultPoolProject?: string } } }
+  const projectId = (config.public?.controlPoolProject || appConfig.pukalani?.studio?.defaultPoolProject || '').trim()
   if (!projectId) {
     throw createError({ status: 500, statusText: 'Pool project not configured' })
   }

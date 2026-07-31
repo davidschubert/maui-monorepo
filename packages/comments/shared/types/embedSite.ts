@@ -3,7 +3,7 @@ import type { Models } from 'node-appwrite'
 /**
  * E3 Site-Registry (Embed-Plan Task 14): registrierte Einbetter-Domains des
  * Widgets. Die Registry speist die frame-ancestors-CSP von /embed (statt der
- * statischen Allowlist; `maui.comments.embed.allowedOrigins` bleibt als
+ * statischen Allowlist; `pukalani.comments.embed.allowedOrigins` bleibt als
  * Betreiber-Option — '*' = offen wie Disqus, Einträge wie
  * 'http://localhost:*' fürs Dev-/E2E-Umfeld). Verwaltet unter
  * /dashboard/embed (system.manage), Table gehört dem comments-Layer (A14).

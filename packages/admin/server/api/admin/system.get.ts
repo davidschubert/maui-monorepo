@@ -5,7 +5,7 @@ import type { DependencyEntry, HealthEntry, LayerInfo, SystemInfo } from '../../
 import { DEP_GROUPS, isOutdated, latestAppwriteVersion, latestVersion, pkgVersion } from '../../utils/dependencies'
 import { layerBreakdown } from '../../utils/layers'
 
-const LAYER_PKGS = ['@maui/core', '@maui/comments', '@maui/admin', '@maui/themes']
+const LAYER_PKGS = ['@pukalani/core', '@pukalani/comments', '@pukalani/admin', '@pukalani/themes']
 const MODULES = ['@nuxt/ui', '@pinia/nuxt', '@nuxtjs/i18n']
 
 /** Nicht-interne IPv4-Adressen des Servers */

@@ -33,7 +33,7 @@ Fallback ist dieses Runbook plus ein manueller rsync/pm2-Lauf.
 
 ## Voraussetzungen
 
-- ploi-API-Token: `~/.maui-secrets/ploi-api.token` — Server `app-prod` =
+- ploi-API-Token: `~/.pukalani-secrets/ploi-api.token` — Server `app-prod` =
   **118713**. Die nginx-Config **per API** setzen, nicht im Panel-Editor: der
   Monaco-Editor lässt sich nicht zuverlässig automatisiert befüllen
   (Learning 2026-07-23, `docs/runbooks/DEPLOYMENT.md` §3).
@@ -66,7 +66,7 @@ liefert nginx statisches `/public` (403/404). Den bestehenden Vhost einer
 laufenden Site als Vorlage nehmen und nur Host + Port tauschen:
 
 ```bash
-TOKEN=$(cat ~/.maui-secrets/ploi-api.token)
+TOKEN=$(cat ~/.pukalani-secrets/ploi-api.token)
 SRV=118713
 SITE=<neue Site-ID>
 

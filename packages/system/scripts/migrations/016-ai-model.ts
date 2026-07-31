@@ -1,7 +1,7 @@
 /**
  * Migration system-016: app_config.aiModel — globales Laufzeit-Override fürs
- * Core-KI-Modell (aiComplete, Gate maui.ai). Leer = Build-Default aus
- * maui.ai.model. Gelesen von core getEffectiveAiConfig(); geschrieben über
+ * Core-KI-Modell (aiComplete, Gate pukalani.ai). Leer = Build-Default aus
+ * pukalani.ai.model. Gelesen von core getEffectiveAiConfig(); geschrieben über
  * die Admin-Config-Seite (system.manage). Layer-spezifische Overrides
  * (app_config.ticketsAiModel, system-015) schlagen das globale.
  * Idempotent (409 → skip).

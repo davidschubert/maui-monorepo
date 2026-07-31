@@ -1,6 +1,6 @@
 /**
  * onboarding meldet die MITGLIEDER-Verwaltung bei der Admin-Modul-Registry an
- * (maui.admin.modules, deep-merged) — capability-gefiltert über `team.manage`.
+ * (pukalani.admin.modules, deep-merged) — capability-gefiltert über `team.manage`.
  *
  * WARUM DIESER LAYER: die Seite kann nur so weit reichen wie ihre Routen, und die
  * liegen hier (`/api/site/members/*`) — dieser Layer besitzt die Service-Naht zum
@@ -13,7 +13,7 @@
  * Matrix vorhanden, im Dashboard ohne Einstieg. Dieser Eintrag ist der Einstieg.
  */
 export default defineAppConfig({
-  maui: {
+  pukalani: {
     admin: {
       modules: [
         {

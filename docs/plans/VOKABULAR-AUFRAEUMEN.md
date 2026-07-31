@@ -41,7 +41,7 @@ hier als solche vermerkt, damit später niemand die alte Zeile für gültig häl
 - **18 Manifest-Dateien** `feature.manifest.ts` → `product.manifest.ts`
 - `featureKey` in **56 Dateien**
 - `featureGates` in **18 Dateien**
-- `maui.features` / `features:` in **105 Dateien**
+- `pukalani.features` / `features:` in **105 Dateien**
 - `check:manifests` (CI-Gate) in **13 Dateien**
 - **Tabelle `feature_catalog`** im Control Plane (6 Dateien) — echte Daten
 - **Öffentliche Route** `/api/platform/features` — externe Schnittstelle
@@ -60,10 +60,10 @@ hier als solche vermerkt, damit später niemand die alte Zeile für gültig häl
 Alles Übrige ist mechanisch (Bezeichner, Dateinamen, i18n-Schlüssel) und
 durch `pnpm check:manifests` + Typecheck abgesichert.
 
-## 2. `maui.studio.*` — Altlast des Control-Cutovers
+## 2. `pukalani.studio.*` — Altlast des Control-Cutovers
 
 Der Layer heißt `control`, die App heißt `control`, der Host heißt `control`
-— aber der **Config-Namespace heißt weiter `maui.studio.*`**
+— aber der **Config-Namespace heißt weiter `pukalani.studio.*`**
 (`defaultPoolProject`, `plans`). Genau das Muster aus der Erfahrung
 „Umbenennung lässt Pfade zurück": die Meldungen zogen mit, die Bezeichner
 nicht. Klein, mechanisch, ohne Datenrisiko — und heute schon irreführend,
@@ -84,14 +84,14 @@ Appwrite ist teuer. Bewusst stehen lassen, aber wissen, dass es so ist.
 
 ## 4. Offen: `maui` vs. `pukalani` — die größte Frage
 
-Der Paket-Scope ist `@maui/*`, der Config-Namespace ist `maui.*`, das Repo
+Der Paket-Scope ist `@pukalani/*`, der Config-Namespace ist `pukalani.*`, das Repo
 heißt `maui-monorepo` — in **567 Dateien**. Die Marke ist **Pukalani**
 (92 Dateien). CLAUDE.md notiert zum Theme-Namen bereits, dass „Maui" ein
 **interner Produktname vor Kunden** war (Befund N6) und deshalb aus der
 Oberfläche verschwunden ist.
 
 Im Code ist er geblieben. Das ist **nicht automatisch falsch**: ein interner
-Scope darf anders heißen als die Marke, und `maui.*` taucht in keiner
+Scope darf anders heißen als die Marke, und `pukalani.*` taucht in keiner
 Kundenoberfläche auf. Aber „ein sauberer Stand" heißt womöglich auch hier ein
 Wort.
 
@@ -108,7 +108,7 @@ Die Umbenennungen fassen dieselben Dateien an. Nacheinander, nie parallel:
 2. **E8 Etappe 3** — `tenants` → `communities` (Daten, vier Instanzen)
 3. **E8 Etappe 4** — `site*`-Vokabular im Code zusammenführen
 4. **`feature` → `product`** — inklusive `feature_catalog`-Migration
-5. **`maui.studio.*` → `maui.control.*`** — kann jederzeit mitlaufen, klein
+5. **`pukalani.studio.*` → `pukalani.control.*`** — kann jederzeit mitlaufen, klein
 6. **E9/E10** — Menü und Roadmap-Benennung
 7. *(offen)* `maui` → `pukalani`, falls entschieden
 

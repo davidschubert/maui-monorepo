@@ -1,6 +1,6 @@
 /**
  * Mandant DIESES Hosts, clientseitig — vom tenant-brand-Plugin in den Payload
- * gespiegelt (`maui-tenant-id`). null = Silo, Kontroll-Host, Playground.
+ * gespiegelt (`pukalani-tenant-id`). null = Silo, Kontroll-Host, Playground.
  *
  * WOFÜR ES DA IST — und wofür NICHT: ausschließlich als Mandanten-Filter für
  * die wenigen Client-Leser, die DIREKT gegen Appwrite lesen (Presence-API,
@@ -15,12 +15,12 @@
  * String nachbauen (impliziter Auto-Import/String-Coupling, CONCEPT A14).
  */
 export function useTenantId() {
-  return useState<string | null>('maui-tenant-id', () => null)
+  return useState<string | null>('pukalani-tenant-id', () => null)
 }
 
 /**
  * Die Site-Id DIESES Hosts (= tenants.$id), clientseitig — gespiegelt als
- * `maui-site-id`. null = Silo, Kontroll-Host, Playground.
+ * `pukalani-site-id`. null = Silo, Kontroll-Host, Playground.
  *
  * WARUM ES SIE ZUSÄTZLICH ZU useTenantId() GIBT: sie sind NICHT dasselbe.
  * `tenantId` ist der Zeilen-Scope (Spalte in jeder Tabelle), `communityId` der
@@ -35,7 +35,7 @@ export function useTenantId() {
  * über eine server/api-Route geht, hat hier nichts zu suchen.
  */
 export function useSiteId() {
-  return useState<string | null>('maui-site-id', () => null)
+  return useState<string | null>('pukalani-site-id', () => null)
 }
 
 /**

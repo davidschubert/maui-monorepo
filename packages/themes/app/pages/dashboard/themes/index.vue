@@ -3,7 +3,7 @@
  * Theme-Studio (Admin): Galerie aller Themes (Built-ins + eigene) mit
  * Live-Wechsel, Nuxt-UI-Showcase darunter. Anlegen/Bearbeiten auf der
  * Studio-Editor-Seite (/dashboard/themes/new bzw. /:id).
- * Registriert via maui.admin.modules (Layer-Vertrag, A14).
+ * Registriert via pukalani.admin.modules (Layer-Vertrag, A14).
  */
 import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
 import type { CustomThemeDto, ThemeSettings } from '../../../../shared/ramp'
@@ -273,7 +273,7 @@ async function copyCss(custom: CustomThemeDto) {
 // ── JSON-Export/-Import (Theme auf andere Instanz mitnehmen) ───────────────
 function downloadJson(custom: CustomThemeDto) {
   const payload = {
-    format: 'maui-theme',
+    format: 'pukalani-theme',
     version: 1,
     theme: { name: custom.name, primary: custom.primary, config: custom.config, variants: custom.variants },
   }
@@ -307,7 +307,7 @@ async function importTheme(event: Event) {
   try {
     const parsed = JSON.parse(await file.text()) as { format?: string, theme?: Record<string, unknown> }
     // Export-Hülle ODER nacktes Theme-Objekt akzeptieren
-    const theme = (parsed.format === 'maui-theme' ? parsed.theme : parsed) as Record<string, unknown> | undefined
+    const theme = (parsed.format === 'pukalani-theme' ? parsed.theme : parsed) as Record<string, unknown> | undefined
     if (!theme || typeof theme.name !== 'string' || typeof theme.primary !== 'string') {
       throw new Error('invalid')
     }

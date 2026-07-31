@@ -4,29 +4,29 @@
  * 2026-07-27): ersetzt die App-Overrides von comments und platform — beide
  * Apps extenden blueprint und bekommen exakt dieselbe Hülle. Aufbau:
  *
- *  - core-Hülle (max-w-5xl) + CoreDemoBanner (config-gated, maui.demo) +
+ *  - core-Hülle (max-w-5xl) + CoreDemoBanner (config-gated, pukalani.demo) +
  *    AuthEmailVerifyBanner
  *  - Header: Brand (useBrandName-Kette: Tenant vor App-Brand) · Inline-Nav
  *    mit Überlauf (ab >5 Einträgen wandert der Rest in ein „Mehr"-Dropdown,
  *    Entscheidung 1) · Utilities rechts · DisplaySettingsMenu statt
  *    CoreLocaleSwitcher (K7, Entscheidung 2 — kommt als themes-Utility)
- *  - Nav + Utilities kommen aus der Chrome-Registry (maui.chrome.nav /
- *    maui.chrome.utilities, core/shared/types/chrome.ts): ein Eintrag
+ *  - Nav + Utilities kommen aus der Chrome-Registry (pukalani.chrome.nav /
+ *    pukalani.chrome.utilities, core/shared/types/chrome.ts): ein Eintrag
  *    existiert genau dann, wenn sein Layer extended ist — der frühere
  *    „fehlt-in-platform"-Bruch ist damit strukturell weg. Zusätzliche
  *    Nav-Quelle: veröffentlichte CMS-Seiten des Mandanten (pages-Layer
- *    registriert maui.chrome.pagesNav).
+ *    registriert pukalani.chrome.pagesNav).
  *  - Footer: Brand + Rechtslinks + optionaler Changelog-Link (Entscheidung 3).
  *    Rechtslinks: CMS-Seiten mit Legal-Slugs des Tenants zuerst (Entscheidung
  *    5 — der Kunde pflegt Impressum/Datenschutz selbst), sonst der
- *    maui.legalLinks-Fallback aus der App-Config (Demo → pukalani.app).
+ *    pukalani.legalLinks-Fallback aus der App-Config (Demo → pukalani.app).
  *
  * Das core-default-Layout bleibt unverändert die Basis für Apps OHNE
  * blueprint (control/photos/portfolio/marketing/_template).
  */
 import type { DropdownMenuItem } from '@nuxt/ui'
 import { isFeatureStateEnabled } from '../../../core/shared/types/config'
-import type { MauiChromeNavEntry, MauiChromeUtility } from '../../../core/shared/types/chrome'
+import type { PukalaniChromeNavEntry, PukalaniChromeUtility } from '../../../core/shared/types/chrome'
 import type { PublicPageNavItem } from '../../../pages/server/api/pages/public/index.get'
 
 const { t, locale } = useI18n()
@@ -43,16 +43,16 @@ const featureOn = (featureKey?: string) =>
   !featureKey || isFeatureStateEnabled(runtimeFlags.value.features[featureKey])
 
 type ChromeConfig = {
-  nav?: Record<string, MauiChromeNavEntry | false>
-  utilities?: Record<string, MauiChromeUtility | false>
+  nav?: Record<string, PukalaniChromeNavEntry | false>
+  utilities?: Record<string, PukalaniChromeUtility | false>
   pagesNav?: boolean
   changelogLink?: boolean
 }
-const chrome = computed<ChromeConfig>(() => (appConfig.maui as { chrome?: ChromeConfig }).chrome ?? {})
-const legalLinks = computed(() => appConfig.maui?.legalLinks ?? [])
+const chrome = computed<ChromeConfig>(() => (appConfig.pukalani as { chrome?: ChromeConfig }).chrome ?? {})
+const legalLinks = computed(() => appConfig.pukalani?.legalLinks ?? [])
 
 // CMS-Seiten des Mandanten als Nav-/Footer-Quelle — nur wenn der pages-Layer
-// extended ist (er registriert maui.chrome.pagesNav; ohne ihn: kein Fetch).
+// extended ist (er registriert pukalani.chrome.pagesNav; ohne ihn: kein Fetch).
 // useRequestFetch: der SSR-interne Aufruf MUSS den Host-Header (= Tenant)
 // weiterreichen — dieselbe Falle wie pages/[slug].vue.
 const pagesNavEnabled = chrome.value.pagesNav === true
@@ -84,7 +84,7 @@ interface NavItem {
 // (order 60 — nach den Produkten, vor „Pricing" bei order 90), sortiert.
 const navItems = computed<NavItem[]>(() => {
   const entries = Object.entries(chrome.value.nav ?? {})
-    .filter((pair): pair is [string, MauiChromeNavEntry] => pair[1] !== false && !!pair[1])
+    .filter((pair): pair is [string, PukalaniChromeNavEntry] => pair[1] !== false && !!pair[1])
     .filter(([, entry]) => featureOn(entry.featureKey))
     .filter(([, entry]) => !entry.requiresAuth || isLoggedIn.value)
     .filter(([, entry]) => !entry.planProduct || planAllows(entry.planProduct))
@@ -119,7 +119,7 @@ const overflowNav = computed<DropdownMenuItem[]>(() =>
 // rechts im Header, Zone 'overlay' (schwebende Widgets) außerhalb.
 const utilities = computed(() =>
   Object.entries(chrome.value.utilities ?? {})
-    .filter((pair): pair is [string, MauiChromeUtility] => pair[1] !== false && !!pair[1])
+    .filter((pair): pair is [string, PukalaniChromeUtility] => pair[1] !== false && !!pair[1])
     .filter(([, u]) => featureOn(u.featureKey))
     .filter(([, u]) => !u.requiresAuth || isLoggedIn.value)
     .map(([id, u]) => ({ id, component: u.component, order: u.order ?? 50, zone: u.zone ?? 'menu' }))

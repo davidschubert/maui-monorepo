@@ -22,7 +22,7 @@ import { setSessionCookie } from '../../lib/appwrite'
  * Prüfung gegen Appwrite VOR jedem Cookie, Rate-Limit auf Fehlversuche und ein
  * Weiterleitungsziel, das nur ein relativer Pfad sein darf (kein Open Redirect).
  *
- * Gate: nur in Multi-Tenant-Deployments (maui.tenancy.enabled) — Single-Tenant-
+ * Gate: nur in Multi-Tenant-Deployments (pukalani.tenancy.enabled) — Single-Tenant-
  * Apps brauchen keinen Host-Wechsel und bekommen die Route nicht.
  */
 const querySchema = z.object({
@@ -32,8 +32,8 @@ const querySchema = z.object({
 }).strict()
 
 export default defineEventHandler(async (event) => {
-  const appConfig = useAppConfig() as { maui?: { tenancy?: { enabled?: boolean } } }
-  if (appConfig.maui?.tenancy?.enabled !== true) {
+  const appConfig = useAppConfig() as { pukalani?: { tenancy?: { enabled?: boolean } } }
+  if (appConfig.pukalani?.tenancy?.enabled !== true) {
     throw createError({ status: 404, statusText: 'Not found' })
   }
 

@@ -6,7 +6,7 @@ import type { ChangelogEntry, ChangelogListResponse } from '../../shared/types/a
 // N7 (Davids Entscheidung 2026-07-28): Das hier ist der Changelog des
 // BETREIBERS, kein Inhalt eines Mandanten. Auf den Kunden-Hosts der Pool-App
 // war er trotz abgeschaltetem Footer-Link und WhatsNew-Button
-// (maui.chrome.changelogLink/whatsNew: false) direkt aufrufbar — die
+// (pukalani.chrome.changelogLink/whatsNew: false) direkt aufrufbar — die
 // Chrome-Registry versteckt nur, sie sperrt nicht. Auf einem Mandanten-Host
 // gibt es diese Seite deshalb schlicht nicht: 404 wie jeder unbekannte Inhalt.
 // UNVERÄNDERT bleiben Kontroll-Hosts (my./start., dort kein Mandant) und die

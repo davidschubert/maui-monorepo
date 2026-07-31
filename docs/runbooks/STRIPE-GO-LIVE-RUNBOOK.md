@@ -24,8 +24,8 @@ Stripe-Keys sind Runtime-Config → `pm2 reload` genügt, analog appwriteProject
 
 | App | Webhook-Endpoint (Live) | Plan-Quelle | lookup_keys |
 |---|---|---|---|
-| **control** | `https://control.pukalani.app/api/stripe/webhook` | `maui.studio.plans` | `workspace_pro_monthly`, `workspace_business_monthly` (free = `null`, kein Stripe-Objekt) |
-| **comments** | `https://comments.pukalani.app/api/stripe/webhook` | `maui.billing.plans` | (siehe `apps/comments/app/app.config.ts` — analog anlegen, falls Live-Billing gewünscht) |
+| **control** | `https://control.pukalani.app/api/stripe/webhook` | `pukalani.studio.plans` | `workspace_pro_monthly`, `workspace_business_monthly` (free = `null`, kein Stripe-Objekt) |
+| **comments** | `https://comments.pukalani.app/api/stripe/webhook` | `pukalani.billing.plans` | (siehe `apps/comments/app/app.config.ts` — analog anlegen, falls Live-Billing gewünscht) |
 
 Jede App = eigene Appwrite-Instanz **und eigener Stripe-Account** (A1/B1). Der
 Runbook gilt **pro App**; studio ist die primäre SaaS-Abrechnung (Workspace-Pläne).

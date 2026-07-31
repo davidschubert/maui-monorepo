@@ -36,7 +36,7 @@ Webhook-Security, doppelte Idempotenz, zwei Stellen für Key-Rotation.
 
 ## Plan-Katalog (Code, kein Table)
 
-`maui.studio.plans` in der Studio-`app.config.ts` — bewusst Code statt
+`pukalani.studio.plans` in der Studio-`app.config.ts` — bewusst Code statt
 Datenbank (Katalog ändert sich mit Releases, gehört unter Versionskontrolle,
 gleiche Logik wie `theme.catalog.ts`):
 
@@ -85,7 +85,7 @@ Mode einen Preis mit diesem lookup_key anlegen, fertig.
   `handleWorkspaceSubscriptionUpdate` (Policy pure:
   `subscriptionUpdateToAction`, 13 Unit-Tests).
 - **apps/control**: extends billing (Manifest/Deps/checks grün),
-  `maui.billing.enabled` an (plans leer — kein Site-Abo-Verkauf),
+  `pukalani.billing.enabled` an (plans leer — kein Site-Abo-Verkauf),
   Fulfillment-Plugin (A14 wie apps/comments↔events), Checkout-Route
   `POST /api/control/workspaces/:id/checkout`, billing-Migration gegen
   studio-1xsl gelaufen. UI: „Plan ändern"-Modal (Radio pro/business →

@@ -25,7 +25,7 @@ export interface PortfolioCase {
 
 export const CASES: PortfolioCase[] = [
   {
-    slug: 'maui-platform',
+    slug: 'pukalani-platform',
     title: 'Maui Platform',
     year: '2026',
     role: { de: 'Konzept, Architektur & Entwicklung', en: 'Concept, architecture & development' },
@@ -67,7 +67,7 @@ export const CASES: PortfolioCase[] = [
     ],
   },
   {
-    slug: 'maui-photos',
+    slug: 'pukalani-photos',
     title: 'maui.photos',
     year: '2026',
     role: { de: 'Editorial Design & Entwicklung', en: 'Editorial design & development' },

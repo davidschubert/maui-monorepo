@@ -20,14 +20,14 @@ const { isLoggedIn } = useCurrentUser()
 
 // E2: im iframe-Embed (provide in pages/embed.vue) wird der Gast-CTA zum
 // Popup-Login — Navigation auf /login würde den User im Widget einsperren.
-const isEmbed = inject('mauiEmbed', false)
+const isEmbed = inject('pukalaniEmbed', false)
 const embedLogin = isEmbed ? useEmbedLogin() : null
 
 // Gast-Kommentare (E4): nur im Embed und nur wenn der Betreiber sie freigibt
-// (maui.comments.embed.guests). Dann darf man ohne Account mit Name+E-Mail
+// (pukalani.comments.embed.guests). Dann darf man ohne Account mit Name+E-Mail
 // schreiben — der Login-Popup bleibt als Zusatzoption.
-const appConfig = useAppConfig() as { maui?: { comments?: { embed?: { guests?: boolean } } } }
-const guestsEnabled = computed(() => isEmbed && !!appConfig.maui?.comments?.embed?.guests)
+const appConfig = useAppConfig() as { pukalani?: { comments?: { embed?: { guests?: boolean } } } }
+const guestsEnabled = computed(() => isEmbed && !!appConfig.pukalani?.comments?.embed?.guests)
 
 // Kommentar-Policy aus den Laufzeit-Flags bereitstellen (synchron, vor await).
 // Refs auf Top-Level holen — verschachtelte Refs (policy.canWrite) unwrappen im
@@ -173,7 +173,7 @@ function presenceLabel(u: PresenceUser): string {
     <!-- Gast-Kommentar (Embed E4): Name+E-Mail ohne Account. Login-Popup als
          Zusatzoption darunter (Konto = Voten/Bearbeiten/Benachrichtigungen).
          ACHTUNG: dieser Zweig steht VOR data-embed-login und verdrängt ihn,
-         sobald maui.comments.embed.guests an ist. Der Popup-Login-Knopf trägt
+         sobald pukalani.comments.embed.guests an ist. Der Popup-Login-Knopf trägt
          deshalb in BEIDEN Zweigen denselben Haken data-embed-login-cta — die
          E2E-Spec hing am Container-Haken und war ab E4 dauerhaft rot. -->
     <div v-else-if="guestsEnabled" class="rounded-lg bg-elevated/40 p-3 ring ring-default" data-guest-composer>

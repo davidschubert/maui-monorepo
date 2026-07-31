@@ -41,7 +41,7 @@ auf Layer-Ebene, nicht pro Component (sonst veralten sie beim Verschieben).
 
 ### A.2 Durchsetzung — zweistufig, ehrlich
 
-**Befund:** Die Layer importieren sich heute **nicht** explizit (kein `@maui/*`-Import, kein
+**Befund:** Die Layer importieren sich heute **nicht** explizit (kein `@pukalani/*`-Import, kein
 `../../`-Pfad). Cross-Layer-Code läuft über **Nuxt-Auto-Import** über die `extends`-Kette.
 Die reale admin→comments-Kopplung ist **String-basiert** (`tableId: 'comments'`, 9×).
 → Eine `no-restricted-imports`-Regel allein wäre **Theater**: sie verbietet Importe, die
@@ -65,20 +65,20 @@ pro Layer:
 .append({
   files: ['packages/themes/**'],
   rules: { 'no-restricted-imports': ['error', { patterns: [
-    { group: ['*appwrite*', '@maui/*'], message: 'themes ist rein visuell — keine Appwrite/Feature-Imports.' },
+    { group: ['*appwrite*', '@pukalani/*'], message: 'themes ist rein visuell — keine Appwrite/Feature-Imports.' },
   ] }] },
 })
 .append({
   files: ['packages/admin/**', 'packages/comments/**'],
   rules: { 'no-restricted-imports': ['error', { patterns: [
-    { group: ['@maui/comments', '@maui/admin', '@maui/themes'],
+    { group: ['@pukalani/comments', '@pukalani/admin', '@pukalani/themes'],
       message: 'Feature-Layer importieren keine anderen Feature-Layer. Nur core/moderation als Fundament.' },
   ] }] },
 })
 .append({
   files: ['packages/moderation/**', 'packages/core/**'],
   rules: { 'no-restricted-imports': ['error', { patterns: [
-    { group: ['@maui/comments', '@maui/admin', '@maui/themes', '@maui/moderation'],
+    { group: ['@pukalani/comments', '@pukalani/admin', '@pukalani/themes', '@pukalani/moderation'],
       message: 'Fundament-Layer dürfen nicht von Features abhängen.' },
   ] }] },
 })

@@ -28,7 +28,7 @@ braucht **jeder** in **jeder** App.
 | **Community** | auf dem Host einer Community, für ihr Team | Seiten, Themes, Moderation, Embed, Pläne, Domain, SEO |
 | **Konto** | überall, für jeden Angemeldeten | Profil, Benachrichtigungen, Sitzungen, Datenexport, Löschung |
 
-Das Fundament steht: `maui.admin.modules` filtert schon nach Capability
+Das Fundament steht: `pukalani.admin.modules` filtert schon nach Capability
 (`requiredCapability`), Layer registrieren ihre Seiten selbst (A14). Es kommt
 eine Dimension dazu — „gilt auf welcher Ebene" —, kein neues System.
 

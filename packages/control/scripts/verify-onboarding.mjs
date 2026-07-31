@@ -69,7 +69,7 @@ async function createPoolUserWithJwt(tag) {
 async function issueCode(maxUses = 5) {
   // Direkt in die Tabelle: die Betreiber-Route braucht eine Admin-SESSION,
   // die dieses Skript nicht hat. Der Hash-Weg ist identisch (sha256 upper).
-  const code = `MAUI-O2TEST-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
+  const code = `PUKA-O2TEST-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
   const { createHash } = await import('node:crypto')
   const row = await control.createRow({
     databaseId,
@@ -97,7 +97,7 @@ async function post(path, body, headers = {}) {
   return { status: response.status, json, text }
 }
 
-const withSecret = { 'x-maui-onboarding-secret': secret }
+const withSecret = { 'x-pukalani-onboarding-secret': secret }
 
 try {
   console.log(`\nO2-Beweis gegen ${STUDIO_URL} (Control ${controlProject}, Pool ${poolProject})\n`)
@@ -125,11 +125,11 @@ try {
 
   console.log('1. Abwehr')
   check('ohne Secret → 401', (await post('/api/control/onboarding/site', payload)).status === 401)
-  const wrongSecret = await post('/api/control/onboarding/site', payload, { 'x-maui-onboarding-secret': 'falsch' })
+  const wrongSecret = await post('/api/control/onboarding/site', payload, { 'x-pukalani-onboarding-secret': 'falsch' })
   check('falsches Secret → 401', wrongSecret.status === 401, `war ${wrongSecret.status}`)
   const badJwt = await post('/api/control/onboarding/site', { ...payload, jwt: 'kaputt' }, withSecret)
   check('kaputtes JWT → 401', badJwt.status === 401, `war ${badJwt.status}`)
-  const badCode = await post('/api/control/onboarding/site', { ...payload, site: { ...payload.site, inviteCode: 'MAUI-XXXX-XXXX' } }, withSecret)
+  const badCode = await post('/api/control/onboarding/site', { ...payload, site: { ...payload.site, inviteCode: 'PUKA-XXXX-XXXX' } }, withSecret)
   check('unbekannter Code → 403', badCode.status === 403, `war ${badCode.status}`)
   const reserved = await post('/api/control/onboarding/site', { ...payload, site: { ...payload.site, slug: 'login' } }, withSecret)
   check('reservierter Slug (login) → 400', reserved.status === 400, `war ${reserved.status}`)
@@ -191,7 +191,7 @@ try {
   check('gültiger Code + freier Slug', precheck.json?.codeValid === true && precheck.json?.slugAvailable === true, JSON.stringify(precheck.json))
   const precheck2 = await post('/api/control/onboarding/precheck', { slug }, withSecret)
   check('belegter Slug wird als belegt gemeldet', precheck2.json?.slugAvailable === false, JSON.stringify(precheck2.json))
-  const precheck3 = await post('/api/control/onboarding/precheck', { code: 'MAUI-NOPE-NOPE' }, withSecret)
+  const precheck3 = await post('/api/control/onboarding/precheck', { code: 'PUKA-NOPE-NOPE' }, withSecret)
   check('unbekannter Code → codeValid false, KEIN Grund nach außen', precheck3.json?.codeValid === false && precheck3.json?.reason === undefined, JSON.stringify(precheck3.json))
 }
 catch (error) {

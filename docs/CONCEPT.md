@@ -231,7 +231,7 @@ maui-monorepo/
 │   │   │   │                              # Gate: enabled UND Consent
 │   │   │   ├── utils/
 │   │   │   │   └── appwrite.client.ts     # Web SDK Client (nur Realtime)
-│   │   │   └── app.config.ts              # Maui Theme + maui.* Defaults — MUSS in
+│   │   │   └── app.config.ts              # Maui Theme + pukalani.* Defaults — MUSS in
 │   │   │                                  # app/ liegen (Package-Root wird ignoriert!)
 │   │   │
 │   │   ├── server/
@@ -285,7 +285,7 @@ maui-monorepo/
 │   ├── comments/                   # dünn: Komposition + Branding
 │   │   ├── app/                           # nur Overrides + app-spezifische Pages
 │   │   ├── scripts/migrations/
-│   │   ├── app.config.ts                  # Theme-Override + maui.* Gates
+│   │   ├── app.config.ts                  # Theme-Override + pukalani.* Gates
 │   │   ├── nuxt.config.ts                 # extends: [comments, core]
 │   │   ├── .env                           # eigene Appwrite-Instanz!
 │   │   └── package.json
@@ -393,7 +393,7 @@ Code liegt einmal im Core, ist aber tot bis die App ihn aktiviert:
 ```ts
 // apps/<app>/app.config.ts
 export default defineAppConfig({
-  maui: {
+  pukalani: {
     analytics: { enabled: true, provider: 'plausible' },
     consent: { enabled: true },
   },
@@ -492,7 +492,7 @@ in ihrer Datei eine Regel steht, sondern weil sie im Themes-Layer liegt.
    bzw. String (`tableId: 'comments'`). Neue Abhängigkeiten werden als **explizite, typisierte
    Verträge** gebaut (Konsument importiert sichtbar aus dem Eigentümer-Layer) — sichtbar,
    typsicher, lint-bar. Bestehende Verträge: `notify()` (Feature → core-Notification),
-   `maui.admin.modules` (Feature → admin-Dashboard-Nav), `myOpenReportTargetIds()`
+   `pukalani.admin.modules` (Feature → admin-Dashboard-Nav), `myOpenReportTargetIds()`
    (comments → moderation) und `registerUserDataContributor` (Feature-Layer registrieren
    GDPR-Export/-Löschung ihrer Daten bei core — core orchestriert `exportUserCompletely`/
    `deleteUserCompletely` ohne Feature-Schema-Wissen; seit 2026-07-02) sowie
@@ -501,20 +501,20 @@ in ihrer Datei eine Regel steht, sondern weil sie im Themes-Layer liegt.
    Seit 2026-07-09/10 dazu: `openReportsForTarget()`/`resolveReportsForTarget()`
    (moderation-Verträge für Assist/Resolve/Bulk), `registerReportEscalationHandler`
    (moderation zählt Meldungen, der Target-Owner zieht die Konsequenz — comments
-   nutzt ihn für den Auto-Hide-Threshold `maui.comments.autoHideReports`),
+   nutzt ihn für den Auto-Hide-Threshold `pukalani.comments.autoHideReports`),
    `registerEmbeddableRoute` (core setzt `frame-ancestors 'self'` auf alle SSR-
    Seiten; framebare Routen wie comments `/embed` registrieren sich mit ihrer
    Origin-Allowlist), `hideCommentRow`/`hideCommentDescendants` (comments-Owner-
    Vertrag fürs Zweiphasen-Hide + Cascade — admin-Routen und Auto-Hide teilen ihn)
    sowie die Core-Bausteine `aiComplete()`/`aiCompleteJson()` (KI-Transport, Gate
-   `maui.ai` + `NUXT_AI_KEY`; Policy beim Konsumenten), `sendMail()`/`notify()`-
+   `pukalani.ai` + `NUXT_AI_KEY`; Policy beim Konsumenten), `sendMail()`/`notify()`-
    E-Mail-Zweig (SMTP via `NUXT_SMTP_*`, Opt-in-Prefs, Digest-Sweep) und
    `createMicrocache()` (user-agnostische GET-Antworten, Single-Instanz).
    Dokumentierte Matrix-Ausnahme: core SCHREIBT die system-Tabellen `audit_logs`
    (authAudit) und `notifications` (notify) sowie liest `app_config` — bewusste
    Fundament→Fundament-Nutzung, system bleibt reiner Schema-Owner + GDPR/Stats-Anbieter.
 2. **ESLint `no-restricted-imports` (Backstop):** pro `files`-Scope in `eslint.config.mjs` —
-   themes verbietet `*appwrite*`/`@maui/*`, Feature-Layer verbieten andere `@maui/`-Feature-Layer,
+   themes verbietet `*appwrite*`/`@pukalani/*`, Feature-Layer verbieten andere `@pukalani/`-Feature-Layer,
    Fundament-Layer (core/moderation) verbieten jeden Feature-Import. Fängt *künftige* explizite
    Kopplung; die implizite löst Stufe 1.
 
@@ -634,7 +634,7 @@ Immer explizites `Query.limit(...)` setzen (Default 25 → stille Trunkierung).
 
 ### Phase 6 – Utilities, SEO, Analytics-Gate
 - `useSeo`, `usePagination`, `useToast`, `useFormatDate`, `useFormatCurrency`, `useStorage`
-- `maui.*` Defaults in Core `app.config.ts` (analytics/consent: false)
+- `pukalani.*` Defaults in Core `app.config.ts` (analytics/consent: false)
 - `analytics.client.ts` Plugin mit Config-Gate + `useAnalytics` + `CookieBanner` + `useCookieConsent`
 - Test: App ohne Gate lädt kein Script
 

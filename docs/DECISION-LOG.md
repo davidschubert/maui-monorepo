@@ -45,7 +45,7 @@ Quota → Homepage → E4**, danach Themes-Vollausbau.
 ## 2026-07-22 (3) — apps/platform: der Multi-Tenant-Beweis end-to-end
 
 Die erste echte Multi-Tenant-App (aus apps/_template, Features themes/admin/
-comments/moderation): `maui.tenancy` AN, Resolver = createTenantsTableResolver
+comments/moderation): `pukalani.tenancy` AN, Resolver = createTenantsTableResolver
 gegen das Control Plane (NUXT_PLATFORM_CONTROL_*, eigener read-only-Key;
 ohne Env → dokumentiert fail-open + Warnung, CI-Build-sicher). Port 3006.
 
@@ -72,7 +72,7 @@ Control-Plane-read-only-Key. Bis dahin lebt die App nur lokal/CI.
 Nach Etappe 4.1 (Pool-Datenpfad) die Auflösungs-Schicht, exakt nach Blueprint:
 
 - **Naht 1:** `core/server/middleware/00.tenant.ts` (läuft vor auth.ts) —
-  Config-Gate `maui.tenancy.enabled` (Core-Default AUS → No-Op, heutiger
+  Config-Gate `pukalani.tenancy.enabled` (Core-Default AUS → No-Op, heutiger
   Betrieb ungeändert). Aktiv gilt die Spike-Semantik: bekannter Host →
   `event.context.tenant`; unbekannter Host → 404 (keine Default-Site);
   Resolver-Fehler → 500 (fail-loud, NIE still ins Default-Projekt).
@@ -237,7 +237,7 @@ erzwingen); `sites.manage` global statt workspace-scoped → erst bei mehreren
 Agentur-Operatoren (H2) relevant.
 
 ### NEUER wichtiger Fund: Rechts-Seiten fehlen (Impressum/AGB/Datenschutz)
-studio hat KEINE Legal-Pages und `maui.auth.termsUrl` ist leer. Doppelt kritisch:
+studio hat KEINE Legal-Pages und `pukalani.auth.termsUrl` ist leer. Doppelt kritisch:
 (1) für eine deutsche SaaS **gesetzliche Pflicht** (Impressum, AGB, DSGVO-
 Datenschutzerklärung); (2) Stripe **verlangt** AGB-/Datenschutz-URLs für die
 Live-Billing-Portal-Konfiguration → der „Plan-Wechsel via Portal"-Teil des

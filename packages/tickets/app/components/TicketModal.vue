@@ -27,7 +27,7 @@ const appConfig = useAppConfig()
 
 // KI-Triage (P3) — nur sichtbar, wenn die App das Gate aktiviert hat
 const aiEnabled = computed(() =>
-  (appConfig.maui as { tickets?: { ai?: { enabled?: boolean } } } | undefined)?.tickets?.ai?.enabled === true)
+  (appConfig.pukalani as { tickets?: { ai?: { enabled?: boolean } } } | undefined)?.tickets?.ai?.enabled === true)
 
 const form = reactive({
   title: '',

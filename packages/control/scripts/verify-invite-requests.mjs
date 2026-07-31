@@ -163,7 +163,7 @@ try {
   const { createHash, randomInt } = await import('node:crypto')
   const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
   const block = n => Array.from({ length: n }, () => ALPHABET[randomInt(ALPHABET.length)]).join('')
-  const code = `MAUI-${block(4)}-${block(4)}`
+  const code = `PUKA-${block(4)}-${block(4)}`
   const codeRow = await control.createRow({
     databaseId, tableId: 'invite_codes', rowId: ID.unique(),
     data: {

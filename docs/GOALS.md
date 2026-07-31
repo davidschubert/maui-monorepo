@@ -13,7 +13,7 @@
 > `packages/core` als Nuxt Layer mit `.playground` (Port 3000),
 > `apps/comments` extended Core relativ (Port 3001). Nachweis: `pnpm install`
 > fehlerfrei, `nuxi typecheck` grün in Core + App, beide Server gestartet,
-> `curl http://localhost:3001` enthält "MAUI-CORE-SMOKE" aus `packages/core`.
+> `curl http://localhost:3001` enthält "PUKA-CORE-SMOKE" aus `packages/core`.
 
 ```
 /goal Phase 1 des maui-monorepo laut docs/CONCEPT.md ist abgeschlossen.
@@ -24,7 +24,7 @@ initialisiert, apps/comments extended den Core via relative Pfade.
 Nachweis: `pnpm install` läuft fehlerfrei durch, `nuxi typecheck` ist in
 core und app grün, der Core-Playground startet auf Port 3000, die App
 startet auf Port 3001 und `curl http://localhost:3001` enthält den Text
-"MAUI-CORE-SMOKE" aus einer Komponente, die in packages/core liegt.
+"PUKA-CORE-SMOKE" aus einer Komponente, die in packages/core liegt.
 Abschluss-Schritt: der Abschnitt "Phase 1" in docs/GOALS.md ist mit ✅
 und Datum markiert — Teil des Nachweises.
 Constraints: keine Appwrite-Integration, kein Auth, keine Module außer
@@ -154,11 +154,11 @@ Table — User-Daten via Account prefs. Maximal 35 Turns.
 > (Initialen-Fallback via UAvatar alt, avatarUrl aus prefs), UserMenu
 > (UDropdownMenu + Logout), UserProfileForm (name via updateName, bio/avatarUrl
 > via updatePrefs — Route PUT /api/auth/profile, SessionClient); typisierte
-> MauiUserPrefs in shared/types/appwrite.ts. Fehlerseite: Nuxt löst error.vue
+> PukalaniUserPrefs in shared/types/appwrite.ts. Fehlerseite: Nuxt löst error.vue
 > NICHT aus Layern auf → Markup lebt in CoreErrorPage (Core-Komponente),
 > App + Playground haben eine dünne app/error.vue als Wrapper. Nachweis:
 > typecheck grün; curl / → Nav-Markup vorhanden, curl /login → kein Nav;
-> nicht existente Route mit Accept: text/html → 404 + "MAUI-ERROR"
+> nicht existente Route mit Accept: text/html → 404 + "PUKA-ERROR"
 > (curl-Default Accept */* bekommt Nitros JSON-Error — Browser sind ok).
 > Kein dashboard.vue (→ packages/admin).
 
@@ -170,7 +170,7 @@ pages/error.vue.
 Nachweis: `nuxi typecheck` grün; `curl http://localhost:3001/login`
 zeigt das auth-Layout (kein Nav-Markup); `curl http://localhost:3001`
 zeigt das default-Layout (Nav-Markup vorhanden); eine nicht existente
-Route liefert die Core-Fehlerseite mit "MAUI-ERROR" Marker.
+Route liefert die Core-Fehlerseite mit "PUKA-ERROR" Marker.
 Abschluss-Schritt: der Abschnitt "Phase 5" in docs/GOALS.md ist mit ✅
 und Datum markiert — Teil des Nachweises.
 Constraints: KEIN dashboard.vue (gehört zu packages/admin, später).
@@ -187,16 +187,16 @@ Maximal 20 Turns.
 > Date-only-Strings werden als LOKALES Datum geparst, sonst Timezone-Kipper),
 > useStorage (Upload/View/Delete via Server Routes + SessionClient,
 > Buckets gehören der App); useToast kommt aus Nuxt UI selbst (eigener
-> Re-Export würde die Auto-Import-Auflösung schatten). maui.*-Defaults in
+> Re-Export würde die Auto-Import-Auflösung schatten). pukalani.*-Defaults in
 > Core app.config.ts (analytics+consent enabled:false, provider
 > plausible|umami); plugins/analytics.ts UNIVERSAL statt .client, damit der
 > Script-Tag bei vorhandenem Consent im SSR-HTML steht (curl-nachweisbar);
 > doppeltes Gate: enabled UND (kein Consent-Gate ODER Zustimmung) — sonst
 > client-seitiger watch auf hasConsent. CookieBanner (data-marker
-> MAUI-CONSENT) + useCookieConsent (Cookie maui-consent) + useAnalytics
+> PUKA-CONSENT) + useCookieConsent (Cookie pukalani-consent) + useAnalytics
 > (track, typisierte window-Globals). Nachweis: typecheck grün; curl-Matrix:
 > Default → 0× Script/0× Banner; Gates an ohne Cookie → Banner ja, Script
-> NEIN (Constraint!); Gates an mit maui-consent=accepted → plausible-Script-
+> NEIN (Constraint!); Gates an mit pukalani-consent=accepted → plausible-Script-
 > Tag mit data-domain im SSR-HTML, kein Banner; node-Snippet:
 > formatDate('2026-01-01') → 01.01.2026, formatCurrency(1234.56) → 1.234,56 €.
 > Demo-Override in der App danach zurückgesetzt (Gates wieder aus).
@@ -204,14 +204,14 @@ Maximal 20 Turns.
 ```
 /goal Phase 6 laut docs/CONCEPT.md ist abgeschlossen.
 Endzustand: useSeo, usePagination, useToast, useFormatDate (dd.MM.yyyy),
-useFormatCurrency (1.234,56 €), useStorage; maui.*-Defaults in Core
+useFormatCurrency (1.234,56 €), useStorage; pukalani.*-Defaults in Core
 app.config.ts (analytics/consent enabled:false); analytics.client.ts
 Plugin mit Config-Gate; CookieBanner.vue + useCookieConsent.
 Nachweis: `nuxi typecheck` grün; Gate-Test als curl-Vergleich:
 mit Default (false) enthält `curl http://localhost:3001` weder
 plausible- noch umami-Script-Tag und keinen CookieBanner-Marker;
-nach Setzen von maui.analytics.enabled:true + consent.enabled:true in
-der App enthält derselbe curl den Script-Tag und "MAUI-CONSENT" Marker;
+nach Setzen von pukalani.analytics.enabled:true + consent.enabled:true in
+der App enthält derselbe curl den Script-Tag und "PUKA-CONSENT" Marker;
 ein kurzes node/vitest-Snippet zeigt formatDate('2026-01-01') →
 "01.01.2026" und formatCurrency(1234.56) → "1.234,56 €" im Output.
 Abschluss-Schritt: der Abschnitt "Phase 6" in docs/GOALS.md ist mit ✅
@@ -262,7 +262,7 @@ Maximal 20 Turns.
 > ✅ **Erledigt am 2026-06-10.** Vitest ^4.1.8 via Catalog im Core
 > (vitest.config.ts, tests/ am Layer-Root, explizite vitest-Imports statt
 > globals — hält die Playground-tsconfig sauber). 20 Tests in 2 Dateien,
-> alle grün via `pnpm --filter @maui/core test`: formatDate (Date-only-
+> alle grün via `pnpm --filter @pukalani/core test`: formatDate (Date-only-
 > Strings, Monatswechsel timezone-sicher, Date-Objekte, Timestamps,
 > Locales), formatCurrency (1.234,56 €, 0-Beträge, negative Beträge,
 > Rundung, Fremdwährung — Intl-NBSP via normalize() behandelt),
@@ -277,7 +277,7 @@ Maximal 20 Turns.
 Endzustand: Vitest im Core eingerichtet; Unit Tests für useFormatDate,
 useFormatCurrency und usePagination (inkl. Edge Cases: Monatswechsel,
 0-Beträge, negative Beträge, leere Page).
-Nachweis: `pnpm --filter @maui/core test` läuft grün durch mit
+Nachweis: `pnpm --filter @pukalani/core test` läuft grün durch mit
 mindestens 12 Tests, Output im Terminal sichtbar; `nuxi typecheck` grün.
 Abschluss-Schritt: der Abschnitt "Phase 8" in docs/GOALS.md ist mit ✅
 und Datum markiert — Teil des Nachweises.
@@ -649,7 +649,7 @@ sichtbar, aber nicht moderierbar. Maximal 25 Turns.
 > Generierung); Entscheidung Farbvariation: CSS-VARIABLEN —
 > [data-theme][data-variant]-Blöcke überschreiben die Primary-Ramp
 > (je 2 Varianten pro Theme), useTheme verwaltet beide Cookies
-> (maui-theme, maui-theme-variant) mit Validierung gegen die Registry;
+> (pukalani-theme, pukalani-theme-variant) mit Validierung gegen die Registry;
 > universelles Plugin setzt data-theme/data-variant + den EINEN
 > Stylesheet-Link reaktiv via useHead → alles im SSR-Head, kein Flash;
 > ThemeSwitcher (USelect + Varianten-Select) hängt via app.vue global
@@ -677,12 +677,12 @@ eigene CSS-Dateien (CSS Custom Properties im Nuxt-UI-Token-Schema)
 mit je funktionierender Farbvariations-Mechanik (primary-Variation
 via ui.colors-Override oder CSS-Variablen — Entscheidung im Goal
 dokumentieren); useTheme Composable: aktuelles Theme, setTheme,
-Cookie-Persistenz (maui-theme), SSR-sicher — das gewählte Theme
+Cookie-Persistenz (pukalani-theme), SSR-sicher — das gewählte Theme
 steht als data-theme-Attribut im SSR-HTML (kein Flash); dynamischer
 CSS-Import nur des aktiven Themes; ThemeSwitcher-Komponente
 (USelect/UDropdownMenu); App komponiert extends: [themes, comments,
 core] und der Switcher hängt im default-Layout-Slot oder UserMenu.
-Nachweis: curl / mit Cookie maui-theme=<id> → SSR-HTML trägt
+Nachweis: curl / mit Cookie pukalani-theme=<id> → SSR-HTML trägt
 data-theme="<id>" und lädt die Theme-CSS (Link/Style im Head
 sichtbar); ohne Cookie → Default-Theme; ungültige Cookie-Werte
 fallen sauber auf den Default zurück (curl-Beweis); typecheck/lint/
@@ -704,8 +704,8 @@ Maximal 30 Turns.
 > (createRecovery ist Account-Endpoint — bewusst kein Key-Scope; Antwort
 > immer ok gegen Account-Enumeration); Rate-Limit-Middleware deckt recovery
 > mit ab, jetzt mit EIGENEM Budget pro Route (Key ip:pathname). Register:
-> Confirm-Password (refine) + AGB-Checkbox config-gated (maui.auth.termsUrl);
-> Provider-Buttons config-gated (maui.auth.providers, Phosphor-Icons,
+> Confirm-Password (refine) + AGB-Checkbox config-gated (pukalani.auth.termsUrl);
+> Provider-Buttons config-gated (pukalani.auth.providers, Phosphor-Icons,
 > external auf /api/auth/oauth) — Default leer; Icon + size lg (44px);
 > E-Mail überlebt den Flow-Wechsel (useState + UAuthForm-Template-Ref).
 > Nachweise: Gate-Matrix per curl (aus: 0 Buttons/0 Checkbox; an: github+
@@ -740,8 +740,8 @@ account.updateRecovery, Erfolg → /login mit Toast); die Rate-Limit-
 Middleware deckt /api/auth/recovery mit ab (AdminClient umgeht
 Appwrites Limits). (2) Register nach Guide: Confirm-Password-Feld
 (Zod-refine auf Übereinstimmung) und AGB-Checkbox — config-gated über
-maui.auth.termsUrl (Checkbox+Link nur wenn gesetzt, dann required).
-(3) Social-Login-Buttons config-gated über maui.auth.providers
+pukalani.auth.termsUrl (Checkbox+Link nur wenn gesetzt, dann required).
+(3) Social-Login-Buttons config-gated über pukalani.auth.providers
 (z.B. ['github','google']): UAuthForm providers-Prop + OR-Separator,
 Buttons linken auf /api/auth/oauth?provider=… — Default LEER, keine
 Deko-Buttons. (4) Icon über dem Titel (UAuthForm icon-Prop) und
@@ -840,7 +840,7 @@ Maximal 25 Turns.
 
 ## Phase 19 – Email-OTP-Login (passwortlos, OrbStack-Stil) ✅ (abgeschlossen 2026-06-11)
 
-> ✅ **Erledigt am 2026-06-11.** Config-Gate maui.auth.otp (Core false,
+> ✅ **Erledigt am 2026-06-11.** Config-Gate pukalani.auth.otp (Core false,
 > comments true); login.vue schaltet zwischen AuthLoginForm und
 > neuem AuthOtpLoginForm um (data-otp-toggle); OTP-Form zweistufig:
 > E-Mail → POST /api/auth/otp (Guest, createEmailToken mit phrase:true,
@@ -871,7 +871,7 @@ Maximal 25 Turns.
 
 ```
 /goal Phase 19 (Email-OTP-Login) ist abgeschlossen.
-Endzustand: Config-Gate maui.auth.otp (Core-Default false). Wenn aktiv:
+Endzustand: Config-Gate pukalani.auth.otp (Core-Default false). Wenn aktiv:
 /login zeigt zusätzlich den Tab/Switch "Mit Code anmelden" (bzw. die
 OTP-Variante als eigene Page /login-code) mit Schritt 1 E-Mail-Eingabe
 und Schritt 2 sechsstelligem Code-Feld (UAuthForm otp-Fieldtype oder
@@ -891,7 +891,7 @@ POST /api/auth/otp/verify → 200 + Set-Cookie (HttpOnly sichtbar);
 GET /api/auth/me mit Cookie → User-JSON der neuen E-Mail (beweist
 Auto-Registrierung); falscher Code → 401 ohne Set-Cookie; 6. OTP-
 Request → 429; Browser-Durchlauf: kompletter Flow inkl. Code-Eingabe
-und Erfolgs-Toast; Gate-Gegenprobe: ohne maui.auth.otp keine
+und Erfolgs-Toast; Gate-Gegenprobe: ohne pukalani.auth.otp keine
 OTP-UI im SSR-HTML. pnpm -r typecheck, lint und test grün.
 Abschluss-Schritt: GOALS.md Phase 19 ✅ + Datum, README-Status.
 Constraints: Passwort-Login bleibt parallel bestehen (OTP ist
@@ -923,11 +923,11 @@ Console aktiv sein (David prüft auf Zuruf); kein Magic-URL-Login
 
 ```
 /goal Phase 20 (OTP-Registrierung komplettieren) ist abgeschlossen.
-Endzustand: /register zeigt mit aktivem maui.auth.otp denselben
+Endzustand: /register zeigt mit aktivem pukalani.auth.otp denselben
 OTP-Umschalter wie /login ("Ohne Passwort registrieren — Code per
 E-Mail"); das OTP-Formular kennt einen register-Modus (eigener Titel/
 Beschreibung) und bekommt im E-Mail-Schritt ein optionales Name-Feld
-sowie — im register-Modus bei gesetztem maui.auth.termsUrl — die
+sowie — im register-Modus bei gesetztem pukalani.auth.termsUrl — die
 Pflicht-AGB-Checkbox (Parität zum Passwort-Register); nach
 erfolgreichem Verify wird ein angegebener Name über die BESTEHENDE
 Route PUT /api/auth/profile gesetzt, aber NUR wenn der Account-Name
@@ -961,7 +961,7 @@ Auto-Signup-Verhalten unverändert; AGB-Pflicht nur im register-Modus
 > Jede Stufe ist einzeln shipbar; nach jeder Phase ist das Produkt fertig
 > nutzbar. Integrationsregel überall: Feature↔Feature-Imports bleiben
 > verboten (A14) — Verzahnung läuft ausschließlich über Core-Verträge
-> (recordActivity nach notify()-Vorbild, maui.admin.modules,
+> (recordActivity nach notify()-Vorbild, pukalani.admin.modules,
 > registerUserDataContributor) oder über Komposition in der App.
 
 ---
@@ -1018,7 +1018,7 @@ Query.limit 25 + Cursor-Pagination), DELETE /api/feed/:id
 Realtime-Insert via useRealtimeRows auf activities, „Mehr laden"),
 ActivityItem (UserAvatar, i18n-Text aus feed.types.<type> + metadata,
 relative Zeit, interner Link); pages/feed.vue (auth-Middleware);
-Admin-Modul 'feed' via maui.admin.modules (requiredCapability
+Admin-Modul 'feed' via pukalani.admin.modules (requiredCapability
 feed.manage, Seite dashboard/feed mit Liste + Löschen einzelner
 Einträge); i18n de+en, alle Strings als Keys.
 (4) ERSTE QUELLE: packages/comments ruft recordActivity() beim
@@ -1111,7 +1111,7 @@ eigenem Status, Teilnehmerzahl live via useRealtimeRows,
 ICS-Download, useViewingPresence „N sehen dieses Event"),
 RsvpButtons; pages /events und /events/:id im Layer;
 Admin-Seite dashboard/events (Anlegen/Bearbeiten/Absagen) via
-maui.admin.modules (requiredCapability events.manage).
+pukalani.admin.modules (requiredCapability events.manage).
 Integrationen: recordActivity 'event.published' beim Publish und
 'event.rsvp' bei going-RSVP (Core-Vertrag aus Phase 21);
 apps/comments extended events und bindet auf der Detailseite
@@ -1191,7 +1191,7 @@ erstellt Events" ist bewusst v2. Maximal 45 Turns.
 /goal Phase 23 (packages/billing laut docs/archiv/BILLING-STRIPE.md)
 ist abgeschlossen.
 Endzustand: alle Plan-Phasen B-0 bis B-8 umgesetzt — packages/billing
-als Layer mit Config-Gate maui.billing (Core-Default enabled: false),
+als Layer mit Config-Gate pukalani.billing (Core-Default enabled: false),
 Tables billing_customers + billing_subscriptions (Migration idempotent,
 Row-Security read(user:<userId>), Writes nur Admin-Client), Checkout
 Sessions + Customer Portal (hosted, planId→lookup_key, B5-Tampering-
@@ -1300,7 +1300,7 @@ gerendert — kein Raw-HTML, Lehre aus dem Themes-CSS-Sink-Audit;
 optionales Video-Embed; „Lektion abschließen"; Fortschrittsbalken;
 Prev/Next). UI Builder: dashboard/courses (Liste) +
 dashboard/courses/:id (Lektionen anlegen/sortieren/publishen,
-useEditAwareness-Anzeige) via maui.admin.modules mit children.
+useEditAwareness-Anzeige) via pukalani.admin.modules mit children.
 Integrationen: recordActivity 'course.published' und
 'course.completed'; apps/comments (Pilot) extended courses,
 bindet in LessonView <CommentSection :target-id="lesson.$id"
@@ -1403,7 +1403,7 @@ Poll-Balken mit Prozenten NACH eigener Stimme oder nach pollEndsAt;
 Realtime-Pille „Neue Beiträge anzeigen" statt Auto-Prepend;
 Kommentare je Karte aufklappbar — die APP bindet CommentSection
 target-type='post' ein, kein comments-Import im Layer);
-dashboard/posts via maui.admin.modules (posts.moderate): Moderation
+dashboard/posts via pukalani.admin.modules (posts.moderate): Moderation
 (Hide/Restore, gemeldete Posts via moderation-Layer targetType
 'post') + globale Scheduled-Queue. Markdown-Rendering ohne
 Raw-HTML (CommentMarkdown-Muster). recordActivity
@@ -1487,7 +1487,7 @@ mehrtägig = Pill je Tag, published only, Monats-Navigation);
 locationType venue/online mit Ableitung für Bestandsrows, „Join
 live"-Button T-15min bis Ende NUR für Zusager, Provider-Icons aus
 der URL (Meet/Zoom/Teams/Jitsi/YouTube/Twitch/Vimeo/OwnCast/generisch),
-Embed NUR hinter app.config-Gate maui.events.embed (Core-Default
+Embed NUR hinter app.config-Gate pukalani.events.embed (Core-Default
 false); replayUrl im Admin-Formular, Archiv zeigt „Replay ansehen",
 recordActivity event.replay_published (+ i18n feed.types).
 Nachweis gegen die lokale Instanz: Migration 2x (Idempotenz);
@@ -1607,4 +1607,4 @@ idempotent sein. Maximal 50 Turns.
 - **Ein Goal pro Phase, nicht alles auf einmal** — kleinere, verifizierbare Einheiten = weniger Evaluator-Fehlschlüsse, weniger Token-Verschwendung.
 - Wenn ein Goal hängt: `/goal pause`, Zwischenstand anschauen, Bedingung präzisieren, neu setzen.
 - Vor jedem neuen Goal: kurzer Blick auf `git log` — Fable committed unterwegs; saubere Conventional Commits sind in der CLAUDE.md verankert.
-- Marker-Strings ("MAUI-CORE-SMOKE" etc.) nach bestandener Phase wieder entfernen lassen — oder als dauerhafte Smoke-Tests in Vitest überführen.
+- Marker-Strings ("PUKA-CORE-SMOKE" etc.) nach bestandener Phase wieder entfernen lassen — oder als dauerhafte Smoke-Tests in Vitest überführen.

@@ -66,7 +66,7 @@ const cache = new Map<string, { at: number, info: LayerInfo }>()
 
 function computeLayerBreakdown(name: string, version: string): LayerInfo {
   const root = workspaceRoot()
-  const short = name.replace('@maui/', '')
+  const short = name.replace('@pukalani/', '')
   const dir = root ? join(root, 'packages', short) : null
 
   let description: string | null = null
@@ -94,7 +94,7 @@ function computeLayerBreakdown(name: string, version: string): LayerInfo {
 }
 
 /**
- * Inhaltsaufschlüsselung eines Feature-Layers (@maui/<short> → packages/<short>):
+ * Inhaltsaufschlüsselung eines Feature-Layers (@pukalani/<short> → packages/<short>):
  * Datei-Anzahl je Kategorie. Best effort aus dem Dateisystem — fehlt das
  * Quellverzeichnis (z.B. exotisches Prod-Layout), bleibt categories leer.
  * Ergebnis ~60 s im Modul-Scope gecacht (Cache-Key inkl. version, damit ein

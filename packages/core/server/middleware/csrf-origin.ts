@@ -2,7 +2,7 @@
  * CSRF-Origin-Check (Embed-Vorarbeit E0, § 3b des Embed-Plans): Sobald eine
  * App das partitionierte Embed-Session-Cookie (SameSite=None) einführt,
  * schützt sameSite nicht mehr vor cross-site Form-POSTs — dann MUSS dieser
- * Check aktiv sein (maui.security.csrfOriginCheck: true).
+ * Check aktiv sein (pukalani.security.csrfOriginCheck: true).
  *
  * Prüft unsichere Methoden auf /api/*: `Sec-Fetch-Site: cross-site` → 403;
  * ohne Sec-Fetch-Site entscheidet der Origin-Header gegen den Request-Host.
@@ -14,8 +14,8 @@ export default defineEventHandler((event) => {
   const method = event.method
   if (method !== 'POST' && method !== 'PUT' && method !== 'PATCH' && method !== 'DELETE') return
 
-  const appConfig = useAppConfig(event) as { maui?: { security?: { csrfOriginCheck?: boolean } } }
-  if (!appConfig.maui?.security?.csrfOriginCheck) return
+  const appConfig = useAppConfig(event) as { pukalani?: { security?: { csrfOriginCheck?: boolean } } }
+  if (!appConfig.pukalani?.security?.csrfOriginCheck) return
 
   const url = getRequestURL(event)
   if (!url.pathname.startsWith('/api/')) return

@@ -20,7 +20,7 @@ const localeOptions = useLocaleOptions()
 const { capabilities: siteCaps } = useSiteRole()
 
 // Sidebar-Optik (sidebar | floating | inset) — geteilt mit dem Dashboard-Layout via Cookie
-const sidebarVariant = useCookie<'sidebar' | 'floating' | 'inset'>('maui-sidebar-variant', { default: () => 'floating' })
+const sidebarVariant = useCookie<'sidebar' | 'floating' | 'inset'>('pukalani-sidebar-variant', { default: () => 'floating' })
 
 const displayName = computed(() => auth.user?.name || t('ui.account'))
 const avatar = computed(() => {
@@ -122,7 +122,7 @@ const items = computed<SwatchItem[][]>(() => {
   // Feature-Gate wie in der Sidebar: deaktivierte Features verschwinden (F2).
   // Capability aus Label ODER Site-Rolle (N1, wie Sidebar) — für Site-Rollen
   // ändert sich praktisch nichts (billing.manage & Co. tragen sie nicht).
-  const userMenuModules: DropdownMenuItem[] = ((appConfig.maui?.admin?.modules ?? []) as MauiAdminModule[])
+  const userMenuModules: DropdownMenuItem[] = ((appConfig.pukalani?.admin?.modules ?? []) as PukalaniAdminModule[])
     .filter(m => m.placement === 'userMenu'
       && (userHasCapability(auth.user, m.requiredCapability) || siteCaps.value.has(m.requiredCapability))
       && (!m.featureKey || isFeatureStateEnabled(runtimeFlags.value.features[m.featureKey])))

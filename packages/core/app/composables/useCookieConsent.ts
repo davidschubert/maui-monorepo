@@ -2,10 +2,10 @@ export type ConsentValue = 'accepted' | 'declined'
 
 /**
  * DSGVO-Consent-State, cookie-persistiert (SSR-lesbar).
- * Config-gated über maui.consent.enabled — ohne Gate kein Banner.
+ * Config-gated über pukalani.consent.enabled — ohne Gate kein Banner.
  */
 export function useCookieConsent() {
-  const consent = useCookie<ConsentValue | null>('maui-consent', {
+  const consent = useCookie<ConsentValue | null>('pukalani-consent', {
     default: () => null,
     maxAge: 60 * 60 * 24 * 180,
     sameSite: 'lax',

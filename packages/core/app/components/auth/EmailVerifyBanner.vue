@@ -12,7 +12,7 @@ const dismissed = ref(false)
 const sending = ref(false)
 
 const visible = computed(() =>
-  appConfig.maui?.auth?.verification === true
+  appConfig.pukalani?.auth?.verification === true
   && isLoggedIn.value
   && user.value?.emailVerification === false
   && !dismissed.value,

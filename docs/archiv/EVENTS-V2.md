@@ -5,7 +5,7 @@
 > Referenzen: [CONCEPT.md](../CONCEPT.md) (A14), [BILLING-STRIPE.md](BILLING-STRIPE.md)
 > (Phase 23 — der Paid-Andockpunkt), `packages/posts` (Storage-/Moderations-Muster),
 > Vorbild-Idee: Circle.so Events (5 Referenz-Screenshots, §1) — bewusst auf die
-> maui-Architektur umgeformt (Leitplanke, keine Kopie).
+> pukalani-Architektur umgeformt (Leitplanke, keine Kopie).
 
 ## 1. Referenz-Analyse (Circle.so-Screenshots)
 
@@ -64,7 +64,7 @@ kurz vor dem Event an Zusager) übernehmen wir über den bestehenden
 | Monats-Gruppierung der Liste | **(a) E1** | reine Anzeige-Logik |
 | Ortstyp „Live Video" vs. Adresse | **(a) E2** | `locationType 'venue'/'online'` (additiv); `url` wird der Join-Link |
 | „Join live"-Button | **(a) E2** | erscheint T−15 min bis Ende für Zusager (client-seitig aus `startAt`/`endAt`) |
-| Live-Embed (YouTube/Twitch/Vimeo) | **(a) E2, Gate** | Provider-Erkennung aus URL; Embed nur für Embed-fähige Provider, sonst externer Link. app.config-Gate `maui.events.embed` (Default aus — CSP/Consent!) |
+| Live-Embed (YouTube/Twitch/Vimeo) | **(a) E2, Gate** | Provider-Erkennung aus URL; Embed nur für Embed-fähige Provider, sonst externer Link. app.config-Gate `pukalani.events.embed` (Default aus — CSP/Consent!) |
 | Replays („Events that live on") | **(a) E2** | `replayUrl` (additiv), Archiv zeigt „Replay ansehen" — die Event-Seite selbst IST der bleibende Content (SSR, verlinkbar, kommentierbar) |
 | RSVP-Reminder | **(b) E3** | Kein Cron: **on-read Reminder-Sweep** (Muster `publishDuePosts`) + `notify()` an Zusager; Appwrite-Messaging/E-Mail als dokumentierter Andockpunkt (scheduled Function, Scaffold aus Track 2B) |
 | Reminder als Bot-DM + AI-Audience-Filter | **(d)** | kein DM-System, kein Automation-Builder — `notify()` deckt das Bedürfnis |
@@ -149,7 +149,7 @@ Join-Link (`url`) ist bewusst provider-agnostisch. Erkennung nur für Icon/Embed
 | Kategorie | Provider | Verhalten |
 |---|---|---|
 | Meeting | Google Meet, Zoom, MS Teams, **Jitsi (self-hosted!)**, Whereby, Discord-Voice/Stage | externer Link („Join live" öffnet neuen Tab) |
-| Stream (embedbar) | YouTube Live, Twitch, Vimeo, **OwnCast (self-hosted!)**, Kick | optional Inline-Embed im Live-Fenster (Gate `maui.events.embed`) |
+| Stream (embedbar) | YouTube Live, Twitch, Vimeo, **OwnCast (self-hosted!)**, Kick | optional Inline-Embed im Live-Fenster (Gate `pukalani.events.embed`) |
 | Sonstiges | **LinkedIn Live**, Restream, StreamYard, beliebige URL | externer Link, generisches Icon |
 
 **Erstklassige Provider (Entscheidung David, 2026-07-07):** Google Meet, Twitch,
@@ -239,7 +239,7 @@ RSVP/Kapazität/Kommentare/Votes/Reminder/ICS/Tickets unverändert PRO Termin.
 ## 8. Offene Entscheidungen (David)
 
 1. **Embed-Gate**: ✅ **Entschieden (2026-07-07): erstmal AUS** — v1 nur externe
-   Links, das Gate `maui.events.embed` bleibt Core-Default false und wird auch
+   Links, das Gate `pukalani.events.embed` bleibt Core-Default false und wird auch
    in der App nicht aktiviert. Erstklassige Provider s. §6.
 2. **Reminder-Vorlauf**: ✅ **Entschieden (2026-07-07): 24 h vor Start** —
    ein Sweep, ein Idempotenz-Flag (`remindersSentAt`).

@@ -7,7 +7,7 @@ declare module 'h3' {
     /** Eingeloggter Appwrite-User — gesetzt von server/middleware/auth.ts, undefined ohne Session */
     user?: CurrentUser
     /** Horizont-3 Mandant — gesetzt von server/middleware/00.tenant.ts (nur bei
-     *  aktivem maui.tenancy-Gate + registriertem Resolver), sonst undefined. */
+     *  aktivem pukalani.tenancy-Gate + registriertem Resolver), sonst undefined. */
     tenant?: TenantContext
     /**
      * Site-Rolle des eingeloggten Users auf DIESEM Mandanten (N1) — gesetzt von

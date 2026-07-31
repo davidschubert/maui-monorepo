@@ -11,10 +11,10 @@ import { isControlHost, resolveControlHosts } from '../../shared/controlCenter'
 export function useIsControlCenter(): boolean {
   const url = useRequestURL()
   const config = useRuntimeConfig()
-  const appConfig = useAppConfig() as { maui?: { tenancy?: { controlHosts?: string[] } } }
+  const appConfig = useAppConfig() as { pukalani?: { tenancy?: { controlHosts?: string[] } } }
   const hosts = resolveControlHosts(
     (config.public as { tenancy?: { controlHosts?: string } }).tenancy?.controlHosts,
-    appConfig.maui?.tenancy?.controlHosts,
+    appConfig.pukalani?.tenancy?.controlHosts,
   )
   return isControlHost(url.hostname, hosts)
 }

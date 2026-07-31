@@ -2,7 +2,7 @@
 import type { BillingInterval, BillingPricesResponse } from '../../shared/types/billing'
 
 /**
- * Pricing-Karten aus maui.billing.plans (§6: monatlich/jährlich-Umschalter).
+ * Pricing-Karten aus pukalani.billing.plans (§6: monatlich/jährlich-Umschalter).
  * Bei zwei Plänen bewusst groß und zentriert (50/50); ab drei Plänen dreispaltig.
  * Beträge kommen live aus Stripe (GET /api/billing/prices, gecacht) — ohne
  * konfiguriertes Stripe rendert die Karte ohne Betrag statt kaputt.

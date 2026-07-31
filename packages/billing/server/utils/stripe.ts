@@ -1,6 +1,6 @@
 import Stripe from 'stripe'
 import type { H3Event } from 'h3'
-import type { MauiBillingConfig } from '../../shared/types/billing'
+import type { PukalaniBillingConfig } from '../../shared/types/billing'
 
 /**
  * „Fehlt dauerhaft" nur EINMAL pro Prozess melden.
@@ -50,8 +50,8 @@ export function toStripeSafeError(error: unknown, log: string): never {
   throw createError({ status: 502, statusText: 'Payment provider unavailable' })
 }
 
-/** Config-Gate: maui.billing (deep-merged) — 404 solange nicht aktiviert */
-export async function requireBillingEnabled(event: H3Event): Promise<MauiBillingConfig> {
+/** Config-Gate: pukalani.billing (deep-merged) — 404 solange nicht aktiviert */
+export async function requireBillingEnabled(event: H3Event): Promise<PukalaniBillingConfig> {
   const config = await getBillingConfig(event)
   if (!config.enabled) {
     throw createError({ status: 404, statusText: 'Not found' })
@@ -59,10 +59,10 @@ export async function requireBillingEnabled(event: H3Event): Promise<MauiBilling
   return config
 }
 
-export async function getBillingConfig(_event: H3Event): Promise<MauiBillingConfig> {
+export async function getBillingConfig(_event: H3Event): Promise<PukalaniBillingConfig> {
   // app.config ist build-time gemergt — im Nitro-Kontext ohne Event abrufbar
-  const appConfig = useAppConfig() as { maui?: { billing?: Partial<MauiBillingConfig> } }
-  const billing = appConfig.maui?.billing
+  const appConfig = useAppConfig() as { pukalani?: { billing?: Partial<PukalaniBillingConfig> } }
+  const billing = appConfig.pukalani?.billing
   return {
     enabled: billing?.enabled ?? false,
     currency: billing?.currency ?? 'eur',

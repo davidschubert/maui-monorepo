@@ -1,9 +1,9 @@
 /**
  * Chrome-Registry (Header/Footer der öffentlichen Community-Seiten):
  * Feature-Layer registrieren ihre Nav-Einträge und Header-Utilities in
- * app.config (`maui.chrome.nav` / `maui.chrome.utilities`), das
+ * app.config (`pukalani.chrome.nav` / `pukalani.chrome.utilities`), das
  * blueprint-default-Layout rendert daraus — genau wie die Dashboard-Nav
- * über `maui.admin.modules` (A14: expliziter Vertrag statt Hardcode).
+ * über `pukalani.admin.modules` (A14: expliziter Vertrag statt Hardcode).
  *
  * Form: OBJEKT-MAP statt Array (bewusst, Audit S9). Beides merged defu
  * additiv über Layer, aber nur die Map erlaubt zusätzlich, dass eine App
@@ -16,7 +16,7 @@
  */
 
 /** Eintrag der Haupt-Navigation (Inline-Reihe mit Überlauf-Dropdown). */
-export interface MauiChromeNavEntry {
+export interface PukalaniChromeNavEntry {
   /** i18n-Key des Labels (der Text gehört dem registrierenden Layer) */
   labelKey: string
   /** Ziel-Pfad OHNE Locale-Prefix — das Layout wendet localePath() an */
@@ -38,7 +38,7 @@ export interface MauiChromeNavEntry {
 }
 
 /** Header-Utility rechts (Buttons/Menüs — DisplaySettingsMenu, Bell, …). */
-export interface MauiChromeUtility {
+export interface PukalaniChromeUtility {
   /**
    * Komponenten-Name. Die Komponente MUSS global registriert sein
    * (Datei-Suffix `.global.vue` im besitzenden Layer), sonst kann
@@ -60,5 +60,5 @@ export interface MauiChromeUtility {
 }
 
 /** `false` = Eintrag von einer App/einem späteren Layer bewusst abgeschaltet. */
-export type MauiChromeNavConfig = Record<string, MauiChromeNavEntry | false>
-export type MauiChromeUtilityConfig = Record<string, MauiChromeUtility | false>
+export type PukalaniChromeNavConfig = Record<string, PukalaniChromeNavEntry | false>
+export type PukalaniChromeUtilityConfig = Record<string, PukalaniChromeUtility | false>

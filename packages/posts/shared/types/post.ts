@@ -99,6 +99,6 @@ export interface PostModerationAssist {
 export interface PostModerationResponse {
   rows: CommunityPost[]
   reportCounts: Record<string, number>
-  /** true = KI-Assist nutzbar (maui.ai an + NUXT_AI_KEY gesetzt) → UI zeigt den Button */
+  /** true = KI-Assist nutzbar (pukalani.ai an + NUXT_AI_KEY gesetzt) → UI zeigt den Button */
   aiAssist: boolean
 }

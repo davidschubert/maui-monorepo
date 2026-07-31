@@ -1,13 +1,13 @@
 /**
  * themes meldet sein Theme-Studio bei der Admin-Modul-Registry an
- * (maui.admin.modules, deep-merged) — das Dashboard rendert die Nav
+ * (pukalani.admin.modules, deep-merged) — das Dashboard rendert die Nav
  * capability-gefiltert, admin kennt den Eintrag nicht hart (A14).
  * Zusätzlich Chrome-Registry (S9/K7): das DisplaySettingsMenu (Theme/
  * Variante/Appearance/SPRACHE) ist überall dort das Sprach-UI, wo themes
  * extended ist — es ersetzt den CoreLocaleSwitcher im Community-Layout.
  */
 export default defineAppConfig({
-  maui: {
+  pukalani: {
     chrome: {
       utilities: {
         displaySettings: { component: 'DisplaySettingsMenu', order: 30 },

@@ -21,7 +21,7 @@ alle Go-Live-Learnings im Detail).
 > Projekt-pro-Site, je eigene nuxt-ssr-prod/migrations-prod-Keys +
 > Web-Platform) **plus** dem geteilten Pool-Projekt `pool` (H3: eine
 > Appwrite-Instanz/DB für alle Pool-Tenants, Zeilen-Scope per tenantId). Cloudflare DNS „DNS only" · Resend-SMTP (nur comments +
-> studio) · UptimeRobot · Storage Box `maui-backup` (Offsite-Backups; die
+> studio) · UptimeRobot · Storage Box `pukalani-backup` (Offsite-Backups; die
 > MariaDB-Dumps decken alle Projekte ab).
 > Bewährte Abweichungen vom ursprünglichen Plan: **pm2 Cluster-Mode über
 > `ops/ecosystem-<app>.config.cjs`** (seit A.10 Stufe 2 — parst die
@@ -199,7 +199,7 @@ NUXT_REDIS_URL=redis://127.0.0.1:6379               # geteilter Rate-Limit-Store
   Health-Verify je App. **Der App-Server baut damit NICHTS mehr** — die
   RAM-Regel oben gilt nur noch für den Fallback. Zugang: dedizierter
   SSH-Deploy-Key (Repo-Secret `PLOI_SSH_KEY`, gepinnter Host-Key im
-  Workflow; Schlüsselpaar lokal in `~/.maui-secrets/gh-deploy-key`).
+  Workflow; Schlüsselpaar lokal in `~/.pukalani-secrets/gh-deploy-key`).
   Das `git pull` im Site-Checkout hält nur noch ops-Configs aktuell.
 - **Fallback (Server baut selbst):** die ploi-Deploy-Scripts der 4 Sites
   sind unverändert funktionsfähig — bei Actions-Ausfall in ploi den
@@ -230,7 +230,7 @@ NUXT_REDIS_URL=redis://127.0.0.1:6379               # geteilter Rate-Limit-Store
 
 - [ ] `GET https://<app-domain>/api/health` → ok
 - [ ] Registrierung + Login (Session-Cookie `a_session_<PROJECT_ID>`, httpOnly+secure)
-- [ ] **E-Mail-Verifizierung** (seit 2026-07-19, `maui.auth.verification`):
+- [ ] **E-Mail-Verifizierung** (seit 2026-07-19, `pukalani.auth.verification`):
       Signup verschickt die Bestätigungs-Mail (Instanz-SMTP), Banner erscheint
       eingeloggt, `/verify`-Link bestätigt. Mails an Notifications
       (instant/digest) gehen NUR an verifizierte Adressen.

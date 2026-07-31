@@ -5,7 +5,7 @@ Stand: 2026-07-15 · Status: **in Umsetzung** (Go David) · Pakete mit Check-in.
 ## P1 — packages/media (der erste Manifest-geborene Feature-Layer)
 
 Generische Medien-Galerie (Schema folgt dem realen Bedarf von
-nuxt-maui-photos: title, location→subtitle, span→featured):
+nuxt-pukalani-photos: title, location→subtitle, span→featured):
 
 - **Table `media_items`** (media-001): title, subtitle, alt, fileId,
   featured, published, sortOrder · Bucket `media` (read(any); geschrieben
@@ -25,7 +25,7 @@ nuxt-maui-photos: title, location→subtitle, span→featured):
 - Kein GDPR-Contributor nötig: Rows tragen bewusst KEINE User-Referenz
   (Attribution läuft übers Audit-Log der manage-Routen)
 
-## P2 — apps/photos (Klasse-A-Site, Design aus nuxt-maui-photos)
+## P2 — apps/photos (Klasse-A-Site, Design aus nuxt-pukalani-photos)
 
 - Scaffold via `pnpm create-site photos --skip-appwrite --features
   themes,admin,media` (Appwrite-Projekt auf der LOKALEN Haupt-Instanz legt
@@ -50,7 +50,7 @@ live bewiesen (Upload/RBAC/Entwürfe/Feature-Gate/Admin-UI) — Details im
 Commit `453dda5`.
 
 **P2 ✅ (2026-07-15):** apps/photos läuft auf Port 3003 — komplett autonom
-provisioniert (Console-Provisioner-Account `provisioner@maui.local`,
+provisioniert (Console-Provisioner-Account `provisioner@pukalani.local`,
 Projekt `photos-qgry` auf der lokalen Haupt-Instanz, create-site
 end-to-end = G1 auch lokal bestanden). Editorial-Design 1:1 portiert
 (Layout `site`, Header/Footer/GalleryGrid, Seiten index/gallery/about/

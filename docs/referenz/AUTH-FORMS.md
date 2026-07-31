@@ -19,14 +19,14 @@ Workarounds) vorgesehen sind:
 | Security-Phrase (Phishing-Schutz: Phrase aus Mail wird in der UI angezeigt) | `OtpLoginForm` | Kein Slot an der passenden Stelle im Code-Schritt |
 | Resend mit 30s-Cooldown-Countdown | `OtpLoginForm` | Kein Resend-Konzept |
 | Register-Variante per Prop (`register`): Name-Feld + AGB-Pflicht im selben Flow | `OtpLoginForm` | Feld-Zusammensetzung ist statisch |
-| Flow-übergreifend geteilte Eingaben (`useState('maui-auth-email'/'-name')`) — E-Mail/Name überleben den Wechsel Login ⇄ Registrieren ⇄ OTP | alle drei | Kein geteilter State zwischen Instanzen |
-| AGB-Checkbox config-gated (`maui.auth.termsUrl`), UI-only-Felder (terms, passwordConfirm) vor dem Submit gestrippt | `RegisterForm`, `OtpLoginForm` | Bedingte Felder + Payload-Trennung |
+| Flow-übergreifend geteilte Eingaben (`useState('pukalani-auth-email'/'-name')`) — E-Mail/Name überleben den Wechsel Login ⇄ Registrieren ⇄ OTP | alle drei | Kein geteilter State zwischen Instanzen |
+| AGB-Checkbox config-gated (`pukalani.auth.termsUrl`), UI-only-Felder (terms, passwordConfirm) vor dem Submit gestrippt | `RegisterForm`, `OtpLoginForm` | Bedingte Felder + Payload-Trennung |
 | Live-Passwortstärke (`AuthPasswordStrengthMeter`) unter dem Passwortfeld | `RegisterForm` | Kein Feld-Suffix-Slot pro Feld |
 | E-Mail-Policy-UX (Appwrite 422 → freundliche i18n-Meldung) + generisches Fehler-Mapping ohne Appwrite-Leaks | alle drei | Fehlerbehandlung liegt beim Aufrufer, aber Feld-nahe Darstellung braucht Zugriff auf die Feld-Slots |
 | `:validate-on="[]"` (Validierung erst beim Submit, nicht beim Tippen) | alle drei | Prop existiert, aber zusammen mit obigen Punkten irrelevant |
 
 **Übernommen aus der UAuthForm-Vorlage** (und beibehalten):
-Provider-Buttons config-gated aus `maui.auth.providers` mit
+Provider-Buttons config-gated aus `pukalani.auth.providers` mit
 `USeparator :label="or"` (LoginForm), Card-artiges zentriertes Layout im
 auth-Layout, Titel/Untertitel/Footer-Link-Struktur, Zod-Schema-Validierung
 (`createLoginSchema(t)` u. a. als Factories mit i18n-Meldungen).

@@ -85,7 +85,7 @@ test.describe('Embed-Login (E2, Popup-Handoff)', () => {
 
     await page.goto(`http://localhost:${hostPort}/?widget=${baseURL}&target=${targetId}`)
 
-    const frame = page.frameLocator('#maui-comments iframe')
+    const frame = page.frameLocator('#pukalani-comments iframe')
     await expect(frame.locator('[data-comment-section]')).toBeVisible({ timeout: 30_000 })
 
     // Hydration im IFRAME abwarten — vorher wäre der Klick ein toter SSR-Klick
@@ -96,7 +96,7 @@ test.describe('Embed-Login (E2, Popup-Handoff)', () => {
 
     // Gast-Zustand: Embed-CTA (Button, kein Login-Link — keine Navigation im
     // Widget). Der Haken sitzt am KNOPF (data-embed-login-cta), nicht am
-    // Container: mit maui.comments.embed.guests (E4) rendert statt
+    // Container: mit pukalani.comments.embed.guests (E4) rendert statt
     // [data-embed-login] der Gast-Composer, der den Popup-Login als Zusatz
     // trägt. Beide Zweige sind hier gleich gültig — der Test prüft den
     // Handoff, nicht welcher Gast-Zweig konfiguriert ist.

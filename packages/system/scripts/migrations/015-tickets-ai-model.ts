@@ -1,6 +1,6 @@
 /**
  * Migration system-015: app_config.ticketsAiModel — Laufzeit-Override fürs
- * KI-Triage-Modell des Ticket-Boards (leer = Default aus maui.tickets.ai).
+ * KI-Triage-Modell des Ticket-Boards (leer = Default aus pukalani.tickets.ai).
  * Der tickets-Layer liest/schreibt die Spalte über eigene Routen
  * (Board-Einstellungen-Modal). Idempotent (409 → skip).
  *

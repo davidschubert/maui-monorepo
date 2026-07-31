@@ -100,7 +100,7 @@ Vollständiges Konzept: docs/CONCEPT.md
 
 ## Themes (Layer themes; Tables besitzt system, Admin-Routen admin — A14)
 - Built-in-Katalog 26×11 (seit 2026-07-24): theme.catalog.ts ist der EINZIGE
-  Input — `pnpm --filter @maui/themes generate -- --write` erzeugt
+  Input — `pnpm --filter @pukalani/themes generate -- --write` erzeugt
   public/themes/*.css + themeRegistry.gen.ts (committet; CI-Gate
   `check:themes` in lint.yml: Regenerieren darf kein Diff erzeugen). Ramps
   ankern die Basisfarbe fest auf Stufe 500; Kontrast-Gate verschiebt
@@ -175,7 +175,7 @@ Vollständiges Konzept: docs/CONCEPT.md
   (auch Gäste) morphen ohne Reload
 - Injizierte Theme-Styles sind unlayered und schlagen Tailwind-@layer-
   Utilities BEWUSST (z. B. headingWeight vs. font-bold)
-- Admin-Nav-Registry (maui.admin.modules) kann children (Unterpunkte,
+- Admin-Nav-Registry (pukalani.admin.modules) kann children (Unterpunkte,
   RBAC-gefiltert, exact für Index-Einträge)
 
 ## Hosts (Umbenennung 2026-07-25, Cutover 2026-07-26 — Davids Entscheidung)
@@ -228,9 +228,9 @@ Vollständiges Konzept: docs/CONCEPT.md
 
 ## Self-Service-Onboarding (Layer onboarding, seit 2026-07-25)
 - Trichter auf den Kontroll-Hosts der Platform-App: bewusst KEIN Mandant
-  (`maui.tenancy.controlHosts`, Env-Override
+  (`pukalani.tenancy.controlHosts`, Env-Override
   NUXT_PUBLIC_TENANCY_CONTROL_HOSTS). Weil dort NICHTS gescopt ist, lässt
-  `01.control-center.ts` nur `maui.tenancy.controlApiPrefixes` zu — alles
+  `01.control-center.ts` nur `pukalani.tenancy.controlApiPrefixes` zu — alles
   andere 404. Neuer Endpunkt im Kundenbereich ⇒ Präfix bewusst eintragen.
 - Einladungs-Link: `start.pukalani.app?code=…` → Auth-Guard hängt das Ziel als
   `?redirect=` an (safeRedirectTarget, core/shared — NUR Pfade auf diesem
@@ -288,12 +288,12 @@ Vollständiges Konzept: docs/CONCEPT.md
 
 ## KI, E-Mail, Embed, Moderation (Core-Bausteine seit 2026-07-09/10)
 - KI: aiComplete()/aiCompleteJson() (core/server/utils/aiComplete.ts) = EIN
-  Transport für OpenAI-kompatible APIs (Default OpenRouter). Gate maui.ai
+  Transport für OpenAI-kompatible APIs (Default OpenRouter). Gate pukalani.ai
   (enabled/model/baseUrl, Core-Default aus) + server-only NUXT_AI_KEY;
   Transport ist policy-frei — Gates + Antwort-Klemmung beim Konsumenten.
   Laufzeit-Override-Kette: app_config.ticketsAiModel > app_config.aiModel
-  (system-016, Admin-Config-Seite, getEffectiveAiConfig) > maui.tickets.ai >
-  maui.ai. Konsumenten: Ticket-Triage, Moderations-Assist (Kommentare
+  (system-016, Admin-Config-Seite, getEffectiveAiConfig) > pukalani.tickets.ai >
+  pukalani.ai. Konsumenten: Ticket-Triage, Moderations-Assist (Kommentare
   /api/admin/comments/:id/assist + Posts /api/posts/:id/assist — advisory,
   Mensch entscheidet; UI-Flag isAiAvailable()).
 - E-Mail: sendMail() (core mailer.ts, nodemailer, NUXT_SMTP_* — leerer Host =
@@ -303,17 +303,17 @@ Vollständiges Konzept: docs/CONCEPT.md
   Kandidaten aus UNGELESENEN notifications-Rows (kein User-Scan), max 1
   Mail/Tag (prefs.emailDigestLastAt, merge!), Intervall-Plugin 30 min +
   POST /api/notifications/run-digest (system.manage).
-- Embed (Read-only-MVP, docs/referenz/EMBED.md): Gate maui.comments.embed
+- Embed (Read-only-MVP, docs/referenz/EMBED.md): Gate pukalani.comments.embed
   (enabled/allowedOrigins, Default aus) → /embed-Seite + public/embed.js.
   frame-ancestors via core-Registry registerEmbeddableRoute (Default 'self'
-  auf ALLEN SSR-Seiten); csrf-origin.ts-Middleware (maui.security.
+  auf ALLEN SSR-Seiten); csrf-origin.ts-Middleware (pukalani.security.
   csrfOriginCheck) wird PFLICHT, sobald E2-Partitioned-Cookies kommen.
   Transparenter Hintergrund NUR bei theme=auto. localhost:PORT↔PORT ist
   same-SITE — echtes Cross-Site-Gastverhalten braucht echte Domains.
 - Moderation: Zweiphasen-Hide + Cascade gehören dem comments-Layer
   (commentModeration.ts) — admin-Routen + Auto-Hide teilen sie. Eskalation:
   registerReportEscalationHandler (moderation zählt, Owner reagiert);
-  comments blendet ab maui.comments.autoHideReports offenen Meldungen aus
+  comments blendet ab pukalani.comments.autoHideReports offenen Meldungen aus
   (0 = aus; Meldungen bleiben offen). resolveReportsForTarget/
   openReportsForTarget sind die moderation-Verträge für Resolve/Assist/Bulk.
 - Microcache: createMicrocache() (core) NUR für user-agnostische GETs —
@@ -321,13 +321,13 @@ Vollständiges Konzept: docs/CONCEPT.md
   App-/api/stats (60s). NIE Antworten mit Session-Daten cachen; kein
   SSR-Seiten-SWR (Session-State steckt im HTML).
 
-## Config-Gates (app.config.ts, Namespace maui.*)
-- maui.analytics / maui.consent: Core-Default false, App aktiviert explizit
-- maui.observability: strukturierte JSON-5xx-Logs am zentralen server/error.ts
+## Config-Gates (app.config.ts, Namespace pukalani.*)
+- pukalani.analytics / pukalani.consent: Core-Default false, App aktiviert explizit
+- pukalani.observability: strukturierte JSON-5xx-Logs am zentralen server/error.ts
   + Client-Error-Inbox (POST /api/telemetry/error, rate-limited); Core-Default
   aus, Sentry-Andockpunkt in core/server/utils/logEvent.ts
-- maui.auth.*: providers (OAuth-Buttons), termsUrl (AGB-Pflicht), otp
-- maui.admin.modules: Modul-Registry der Dashboard-Nav — Feature-Layer
+- pukalani.auth.*: providers (OAuth-Buttons), termsUrl (AGB-Pflicht), otp
+- pukalani.admin.modules: Modul-Registry der Dashboard-Nav — Feature-Layer
   registrieren ihre Admin-Seiten hier (expliziter Vertrag statt Kopplung)
 - GDPR: registerUserDataContributor (core/server/utils/userData.ts) — Feature-
   Layer registrieren Export/Löschung ihrer User-Daten per Nitro-Plugin
@@ -344,7 +344,7 @@ Vollständiges Konzept: docs/CONCEPT.md
   lookup_keys bei Betragsänderung auf neue Prices um).
 - Kundensprache: „**Produkte**" statt Features/Bausteine (Landing, UI,
   Pricing). Im CODE bleibt das Vokabular `features` (Manifeste, Gates).
-- Produkt-Gating im Pool: maui.tenancy.products (Produkt-Key → Mindest-Plan,
+- Produkt-Gating im Pool: pukalani.tenancy.products (Produkt-Key → Mindest-Plan,
   Plan-Ordnung = Reihenfolge der quota.plans-Keys) + requirePlanProduct(event,
   key) an den API-Einstiegen (posts = personal, ai = pro; 404 wie Datentür).
   UI-Sichtbarkeit via useTenantPlan().planAllows(); Demo-Hosts zeigen
@@ -426,13 +426,13 @@ Vollständiges Konzept: docs/CONCEPT.md
   mandantenübergreifend (eine Mail/Tag, nicht eine je Community); Mail-LINKS
   sind noch nicht mandantenrichtig (OPEN-ITEMS D5).
 - WO HÄNGT DIE GLOCKE? (C17, seit 2026-07-29): sie wird NUR aus
-  `maui.chrome.utilities` gerendert, und dessen einziger Konsument ist das
+  `pukalani.chrome.utilities` gerendert, und dessen einziger Konsument ist das
   blueprint-Layout — eine App OHNE blueprint hat also keine. Genau das traf
   `apps/control`, wo BEIDE `scope:'account'`-Absender leben (Stripe-Webhook,
   Early-Access-Anfragen) und wo auch ihre Empfänger Konten sind: Absender,
   Empfänger und Leser liegen alle im control-Projekt — `my.pukalani.app` (Pool)
   war nie der Leser, dort entsteht heute keine `_account`-Zeile. Schalter
-  `maui.chrome.accountBell` (Core-Default AUS, apps/control an) hängt sie ins
+  `pukalani.chrome.accountBell` (Core-Default AUS, apps/control an) hängt sie ins
   core-default-Layout und in die Dashboard-Shell, dort in die SEITENLEISTE neben
   die Suche (oben rechts sitzen die Aktionen der Seiten-Kopfzeilen — eine
   schwebende Glocke verdeckte sie). Der Schalter sagt nur, OB sie hängt; WAS sie
@@ -443,7 +443,7 @@ Vollständiges Konzept: docs/CONCEPT.md
   der öffentliche Changelog (admin-Layer) antwortet dort 404 — Seite via
   `useIsTenantHost()` (core, pure Ausschluss-Rechnung in shared/controlCenter.ts:
   Tenant-Gate an UND kein Kontroll-Host ⇒ Mandant), API via `useTenant(event)`.
-  Die Chrome-Registry (`maui.chrome.changelogLink/whatsNew: false`) versteckt
+  Die Chrome-Registry (`pukalani.chrome.changelogLink/whatsNew: false`) versteckt
   nur — jede neue Betreiber-Seite braucht BEIDE Sperren, Seite und Route.
   Kontroll-Hosts und Silo-Apps (comments) bleiben unberührt.
 
@@ -475,14 +475,14 @@ Vollständiges Konzept: docs/CONCEPT.md
   useLocaleSeoHead() (core) ist der EINZIGE Aufruf in jeder app.vue und liefert
   hreflang/canonical/og:url/og:locale + lang/dir; absolute URLs via
   NUXT_PUBLIC_I18N_BASE_URL (i18n.baseUrl-Skeleton in core). MEHR-HOST-Apps
-  (Pool) setzen zusätzlich maui.seo.originFromRequest: dann kommt Host+Port aus
+  (Pool) setzen zusätzlich pukalani.seo.originFromRequest: dann kommt Host+Port aus
   dem Request und nur das SCHEMA aus der Env (core/shared/seoOrigin.ts) — mit
   der einen Env-Basis zeigten canonical/hreflang/og:url auf ALLEN Mandanten-
   Hosts auf platform.pukalani.app (Audit-Befund B1). og:image gehört EBENFALLS
   dorthin (nie in eine Seite): Feature-Layer tragen den Pfad in
   useBrandOgImage() ein, useLocaleSeoHead() macht die absolute URL + Maße/Typ/
   twitter:card. Je Community `/og/<key>.png` (1200×630, Gate
-  maui.seo.tenantOgImage) — **PNG, nicht SVG**: Facebook/WhatsApp/LinkedIn
+  pukalani.seo.tenantOgImage) — **PNG, nicht SVG**: Facebook/WhatsApp/LinkedIn
   zeigen SVG als og:image nicht. Gerastert OHNE Laufzeit-Renderer: Chrome hat
   die Zeichen EINMAL in ein Atlas gebacken (packages/themes/scripts/
   generate-brand-card-font.mjs → shared/brandCardFont.gen.ts, committet,
@@ -549,7 +549,7 @@ scripts/ci/appwrite-setup.mjs → bootstrap --seed → volle Suite inkl. Realtim
 E2E läuft gegen den DEV-Server (auch in CI) — drei Fallen, alle 2026-07-28
 live erwischt: (1) Ein Test darf nicht an einem CONTAINER-Haken hängen, wenn
 ein Config-Gate den Zweig austauscht (`data-embed-login` vs. Gast-Composer bei
-`maui.comments.embed.guests`) — Haken ans handelnde Element. (2) KALTSTART:
+`pukalani.comments.embed.guests`) — Haken ans handelnde Element. (2) KALTSTART:
 der Dev-Server kompiliert jede Route beim ersten Zugriff (`/` ~25 s, `/embed`
 mit Client-Bundle >30 s, dazu jede /api/auth-Route beim ersten Aufruf).
 Deshalb Test-Budget 90 s statt der 30 s Standard, Lebendigkeits-Wartezeiten

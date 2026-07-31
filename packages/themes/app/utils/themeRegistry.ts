@@ -1,13 +1,13 @@
 import { GENERATED_THEMES } from './themeRegistry.gen'
 
-export interface MauiVariant {
+export interface PukalaniVariant {
   /** data-variant Wert (überschreibt die Primary-Ramp) */
   id: string
   /** Echte Variant-Farbe (primary-500 aus der Theme-CSS) — für den Chip-Punkt */
   color: string
 }
 
-export interface MauiTheme {
+export interface PukalaniTheme {
   id: string
   name: string
   /** null = Core-Default (keine zusätzliche CSS-Datei) */
@@ -15,13 +15,13 @@ export interface MauiTheme {
   /** Basis-Farbe des Themes (primary-500) — für den Chip-Punkt im Theme-Select */
   color: string
   /** Farbvariationen — überschreiben die Primary-Ramp via data-variant */
-  variants: MauiVariant[]
+  variants: PukalaniVariant[]
 }
 
 export const DEFAULT_THEME_ID = 'default'
 
 /** Eine wählbare Neutral-Palette (überschreibt die --ui-color-neutral-Ramp via data-neutral) */
-export interface MauiNeutral {
+export interface PukalaniNeutral {
   /** data-neutral Wert + Nuxt-UI-Palettenname (Tinted: 'c-<rowId>' des Themes) */
   id: string
   /** neutral-500 der Palette — für den Swatch-Punkt */
@@ -35,7 +35,7 @@ export const DEFAULT_NEUTRAL_ID = 'mist'
 /** Kuratierte Schriftfamilie (data-font / data-font-heading) — Familien sind
  *  in fonts.css deklariert, @nuxt/fonts self-hostet sie automatisch
  *  (build-bekannt, kein Runtime-CDN). */
-export interface MauiFontFamily {
+export interface PukalaniFontFamily {
   /** data-font-/data-font-heading-Wert */
   id: string
   /** Anzeigename (Font-Name, kein i18n nötig) */
@@ -46,7 +46,7 @@ export interface MauiFontFamily {
 // fester Paare — maximal 2 wählbare Schriften pro Theme (+ fixe Mono), mehr
 // als 3 Schriften pro Seite sind strukturell ausgeschlossen.
 // Kein Eintrag 'default': ohne data-font gilt der App-Font (Core: Geist).
-export const FONT_FAMILY_REGISTRY: MauiFontFamily[] = [
+export const FONT_FAMILY_REGISTRY: PukalaniFontFamily[] = [
   { id: 'inter', label: 'Inter' },
   { id: 'source-sans', label: 'Source Sans' },
   { id: 'source-serif', label: 'Source Serif' },
@@ -76,7 +76,7 @@ export function resolveThemeFonts(config?: { font?: string, fontHeading?: string
 
 // Reihenfolge: erst die achromatischen/Tailwind-Grautöne, dann die getönten
 // Nuxt-UI-v4-Paletten. color = neutral-500 (siehe public/themes/neutral.css).
-export const NEUTRAL_REGISTRY: MauiNeutral[] = [
+export const NEUTRAL_REGISTRY: PukalaniNeutral[] = [
   { id: 'neutral', color: 'oklch(55.6% 0 0)' },
   { id: 'slate', color: 'oklch(55.4% 0.046 257.417)' },
   { id: 'gray', color: 'oklch(55.1% 0.027 264.364)' },
@@ -93,7 +93,7 @@ export const NEUTRAL_REGISTRY: MauiNeutral[] = [
 // (committet, CI prüft „Regenerieren erzeugt kein Diff" — E6a). Handgepflegt
 // bleiben hier nur der default-Eintrag (Core-Zustand ohne CSS-Datei) und die
 // NEUTRAL_REGISTRY (separate Achse, E3a).
-export const THEME_REGISTRY: MauiTheme[] = [
+export const THEME_REGISTRY: PukalaniTheme[] = [
   // ANZEIGE-Label 'Aloha' (Davids Entscheidung 2026-07-29, OPEN-ITEMS B3).
   // Zwei Umbenennungen, beide nur am LABEL: „Maui" war der interne
   // Produktname (N6, 2026-07-28) und gehört nicht vor Kunden; der Ersatz

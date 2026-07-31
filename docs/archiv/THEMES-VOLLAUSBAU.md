@@ -17,7 +17,7 @@ Stand: 2026-07-24 · Status: **✅ UMGESETZT** · Backlog-Referenz:
 > Bestands-500er byte-gleich und `--ui-primary` überall 600/400. Kontrast-Gate
 > verschiebt selbst (citrus/bright 600→700, plum/deep 400→300 u. a.).
 > Registry: `themeRegistry.gen.ts` committet, `THEME_REGISTRY` = default +
-> GENERATED_THEMES (E6a); CI-Gate `pnpm --filter @maui/themes check:themes`
+> GENERATED_THEMES (E6a); CI-Gate `pnpm --filter @pukalani/themes check:themes`
 > in lint.yml (Regenerieren darf kein Diff erzeugen; byte-genau verifiziert).
 > Picker: `ThemePickerModal` (E7b) — Swatch-Grid + sticky Varianten-Reihe,
 > DisplaySettingsMenu zeigt die aktive Wahl und öffnet das Modal. Bewiesen:
@@ -101,11 +101,11 @@ Nuxt-UI-Tokens (`--ui-bg`, `--ui-text-muted`, `--ui-border`, …) hängen per
 
 ### 2.3 Infrastruktur (Registry, Auswahl, Persistenz)
 
-- **Registry**: typisierte `THEME_REGISTRY: MauiTheme[]` (`id`, `name`,
+- **Registry**: typisierte `THEME_REGISTRY: PukalaniTheme[]` (`id`, `name`,
   `file`, `color` = primary-500 für den Swatch-Punkt, `variants[]`) —
   aktuell **handgepflegt**, muss zu jeder CSS-Datei passen.
 - **Auswahl/Persistenz**: `useTheme()` (`app/composables/useTheme.ts`) —
-  drei Cookies (`maui-theme`, `maui-theme-variant`, `maui-neutral`, 1 Jahr,
+  drei Cookies (`pukalani-theme`, `pukalani-theme-variant`, `pukalani-neutral`, 1 Jahr,
   `sameSite: lax`), Werte werden gegen die Registry validiert, ungültige
   fallen still auf den Default zurück. Theme-Wechsel resettet die Variante.
 - **Anwendung**: universelles Plugin (`app/plugins/theme.ts`) schreibt
@@ -230,7 +230,7 @@ Schätzung: **S** ≤ ½ Tag · **M** ≈ 1 Tag · **L** ≈ 2–3 Tage.
    Logik pure/testbar in `shared/themeGen.ts` (Ramps via bestehendem
    `generateRamp`, Kontrast-Gate ≥3:1 aus Schritt 4 integriert, Stufen-Shift
    statt schlechtem Theme), CLI `scripts/generate-themes.ts` (Runner jiti,
-   `pnpm --filter @maui/themes generate`), Input `theme.catalog.ts` (statt
+   `pnpm --filter @pukalani/themes generate`), Input `theme.catalog.ts` (statt
    theme.spec.ts — *.spec.ts kollidiert mit Vitest) mit den 9 Bestands-Themes
    als PLATZHALTER, Output nach `.generated/` (Vorschau; `--write` erst nach
    visueller Abnahme — die vereinheitlichte Anker-Kurve verschiebt z. B.
@@ -241,7 +241,7 @@ Schätzung: **S** ≤ ½ Tag · **M** ≈ 1 Tag · **L** ≈ 2–3 Tage.
    Node 22, keine neuen Runtime-Deps; ggf. `culori` als devDependency für
    oklch-Konvertierung): Spec → Ramps → CSS-Dateien + `themeRegistry.gen.ts`.
    Idempotent/deterministisch (gleicher Input = byte-gleicher Output),
-   `pnpm --filter @maui/themes generate` als Script-Eintrag. Abnahme:
+   `pnpm --filter @pukalani/themes generate` als Script-Eintrag. Abnahme:
    Regeneration der 9 Bestands-Themes ist visuell äquivalent (ocean/forest/
    sunset dürfen minimal abweichen, wenn die Ramp-Kurve vereinheitlicht wird
    — bewusst abnehmen).
@@ -252,8 +252,8 @@ Schätzung: **S** ≤ ½ Tag · **M** ≈ 1 Tag · **L** ≈ 2–3 Tage.
    Fehler mit Vorschlag (nächste Stufe wählen, z.B. `-700` statt `-600`).
    Der Generator darf pro Theme/Mode die `--ui-primary`-Stufe verschieben.
 5. **[M] Registry-Umbau**: `themeRegistry.ts` importiert/re-exportiert die
-   generierten Daten (`THEME_REGISTRY` aus `.gen.ts`), Typen (`MauiTheme`,
-   `MauiVariant`) und `NEUTRAL_REGISTRY` bleiben handgepflegt.
+   generierten Daten (`THEME_REGISTRY` aus `.gen.ts`), Typen (`PukalaniTheme`,
+   `PukalaniVariant`) und `NEUTRAL_REGISTRY` bleiben handgepflegt.
    `useTheme`/Plugin unverändert lassen (API-stabil); Guard-Unit-Test:
    26 Themes, je 11 Variationen, IDs unique, jede `file`-Referenz existiert.
 6. **[M] Picker-UX skalieren**: `DisplaySettingsMenu` bei 26 Einträgen mit
@@ -301,7 +301,7 @@ Gesamtaufwand grob **7–10 Personentage**; gut in 2–3 Goals schneidbar
   ignoriert Cookies; ungültige/veraltete Cookie-Werte (z.B. entferntes
   Theme) fallen still auf Default (bestehende Validierung deckt das ab —
   Test ergänzen).
-- **Toolchain**: `nvm use 22`; `pnpm --filter @maui/themes lint`, App-
+- **Toolchain**: `nvm use 22`; `pnpm --filter @pukalani/themes lint`, App-
   `nuxi typecheck` (prüft transitiv), `pnpm --filter comments e2e`.
   Erst grün, dann nächster Schritt.
 
@@ -332,4 +332,4 @@ Gesamtaufwand grob **7–10 Personentage**; gut in 2–3 Goals schneidbar
 - `packages/core/app/app.config.ts` — Maui-Default (`ui.colors`: sky/mist)
 - `apps/comments/nuxt.config.ts` — Layer-Einbindung via `extends`
 - `docs/CONCEPT.md` (Z. 98/109/465/522–525), `docs/GOALS.md` (Phase 15,
-  Backlog), Obsidian: `02 - Projects/maui-design-system/design-system.md`
+  Backlog), Obsidian: `02 - Projects/pukalani-design-system/design-system.md`

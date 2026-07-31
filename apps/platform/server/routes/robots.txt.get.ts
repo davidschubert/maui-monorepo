@@ -6,7 +6,7 @@ import { tenantRequestOrigin } from '../utils/tenantRequestOrigin'
  *
  *  - Mandanten-Host (kunde.pukalani.app): Allow + Sitemap-Zeile auf die EIGENE
  *    Origin. Die Community soll gefunden werden.
- *  - KONTROLL-Host (my./start. — maui.tenancy.controlHosts): Disallow: /.
+ *  - KONTROLL-Host (my./start. — pukalani.tenancy.controlHosts): Disallow: /.
  *    Kundenbereich und Wizard sind kein SEO-Ziel.
  *  - unbekannter Host: 404 — das entscheidet aber nicht diese Route, sondern
  *    schon `00.tenant.ts` (kein Mandant → 404, KEINE Default-Site). Deshalb

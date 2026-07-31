@@ -7,14 +7,14 @@ Handschritten; Gate G1 = Spike S1 (Projekt-Anlage per Console-API) bestanden.
 ## Was `pnpm create-site <name>` tut
 
 1. **Scaffold** aus `apps/_template` (ohne node_modules/.nuxt/.env):
-   package.json (Name, Port, @maui-Dependencies = Feature-Wahl),
+   package.json (Name, Port, @pukalani-Dependencies = Feature-Wahl),
    nuxt.config.ts (extends in kanonischer EXTENDS_ORDER, Port),
    site.manifest.ts (generiert). Port = nächster freier 30xx.
 2. **Feature-Validierung** vor dem Scaffold: Manifest existiert,
    requires-Schluss erfüllt (comments ohne moderation → Abbruch mit Hinweis).
 3. **Appwrite-Provisionierung** (Console-REST; Zugang über
    `APPWRITE_CONSOLE_EMAIL`/`-PASSWORD`, sonst Skip + manuelle Checkliste):
-   Organisation `maui-sites` (idempotent) → Projekt **`<name>-<shortid>`**
+   Organisation `pukalani-sites` (idempotent) → Projekt **`<name>-<shortid>`**
    (F6: unveränderliche ID, Slug getrennt) → zwei Keys
    (`runtime-<name>`/`migrations-<name>` — Key-IDs GLOBAL eindeutig,
    S0-Learning) → Web-Platform localhost → `.env` komplett geschrieben.
@@ -44,7 +44,7 @@ App bootet auf ihrem Port, check:manifests bleibt grün.
 - **Scaffold-Pfad lokal bewiesen:** `pnpm create-site s1-probe
   --skip-appwrite` erzeugt eine App, die `check:manifests` besteht
   („13 Layer, 3 Apps — konsistent"), inkl. korrekter extends-Reihenfolge,
-  @maui-Dependencies und Port-Vergabe.
+  @pukalani-Dependencies und Port-Vergabe.
 - **Gate G1/S1 läuft dauerhaft in der CI** (e2e.yml, Schritt „Gate G1"):
   create-site provisioniert bei jedem Push ein frisches Projekt auf der
   echten CI-Wegwerf-Appwrite (Console-REST: Org → Projekt → 2 Keys →

@@ -2,7 +2,7 @@ import { toPublicAppConfig } from '../../../../core/shared/types/config'
 
 /**
  * Aktuelle Feature-Flags (Admin-Ansicht) + Core-KI-Zustand: aiEnabled
- * (Gate maui.ai), aiModel (Laufzeit-Override aus app_config, leer = Default),
+ * (Gate pukalani.ai), aiModel (Laufzeit-Override aus app_config, leer = Default),
  * aiDefaultModel (Build-Default als UI-Placeholder).
  *
  * Auch hier nur die client-sichtbare Teilmenge (Audit-Befund K5): die Antwort

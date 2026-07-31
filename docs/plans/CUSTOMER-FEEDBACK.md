@@ -86,7 +86,7 @@ anders entschieden — das ist unten so vermerkt.
 Cross-Projekt-**Schreiben** war ohnehin klar: dieselbe erprobte Naht wie beim
 Onboarding (Service-Secret + Appwrite-JWT, das das Control Plane selbst prüft,
 `packages/control/server/utils/onboardingService.ts`) — der Feedback-Endpunkt
-braucht dafür einen Eintrag in `maui.tenancy.controlApiPrefixes`.
+braucht dafür einen Eintrag in `pukalani.tenancy.controlApiPrefixes`.
 
 Cross-Projekt-**Lesen** war die eigentliche Wand: ein Nutzer auf
 `a.pukalani.app` soll Zeilen sehen und bewerten, die im control-Projekt

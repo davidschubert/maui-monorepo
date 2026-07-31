@@ -9,7 +9,7 @@ import { COMMENTS_TABLE, MAX_COMMENT_DEPTH, type Comment } from '../../../shared
  * der reguläre POST /api/comments eine Session verlangt.
  *
  * Sicherheits-Leitplanken (unauth. Write in die geteilte, gepoolte Tabelle):
- *  - Doppel-Gate: maui.comments.embed.enabled UND .guests müssen an sein,
+ *  - Doppel-Gate: pukalani.comments.embed.enabled UND .guests müssen an sein,
  *    sonst 404 (keine Existenz-Preisgabe). Core-Default: beide aus.
  *  - Rate-Limit: eigener enger Bucket `comments:guest` (rate-limit.ts).
  *  - Quota: zählt gegen das Tenant-Budget (assertPoolWriteQuota).
@@ -21,9 +21,9 @@ import { COMMENTS_TABLE, MAX_COMMENT_DEPTH, type Comment } from '../../../shared
  */
 export default defineEventHandler(async (event) => {
   const appConfig = useAppConfig() as {
-    maui?: { comments?: { embed?: { enabled?: boolean, guests?: boolean }, operatorTargets?: string[] } }
+    pukalani?: { comments?: { embed?: { enabled?: boolean, guests?: boolean }, operatorTargets?: string[] } }
   }
-  const embed = appConfig.maui?.comments?.embed
+  const embed = appConfig.pukalani?.comments?.embed
   if (!embed?.enabled || !embed?.guests) {
     throw createError({ status: 404, statusText: 'Not Found' })
   }
@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
   const body = await readValidatedBody(event, guestCommentSchema.parse)
 
   // Interne/Operator-Threads sind für Gäste tabu.
-  const operatorTarget = (appConfig.maui?.comments?.operatorTargets ?? []).includes(body.targetType)
+  const operatorTarget = (appConfig.pukalani?.comments?.operatorTargets ?? []).includes(body.targetType)
   if (operatorTarget) {
     throw createError({ status: 403, statusText: 'Guests cannot comment on this target' })
   }

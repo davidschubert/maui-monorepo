@@ -24,8 +24,8 @@ export default defineEventHandler(async (event) => {
 
   const { workspace } = await requireWorkspaceMember(event, id)
 
-  const appConfig = useAppConfig() as { maui?: { studio?: { plans?: ControlPlanCatalog } } }
-  const plans = appConfig.maui?.studio?.plans ?? {}
+  const appConfig = useAppConfig() as { pukalani?: { studio?: { plans?: ControlPlanCatalog } } }
+  const plans = appConfig.pukalani?.studio?.plans ?? {}
   // Doppelabo-Schutz: ein bereits bezahlter Workspace darf keinen ZWEITEN Checkout
   // starten (das legte ein zweites Stripe-Abo an → Doppelabrechnung). Plan-/
   // Intervall-Wechsel läuft übers Stripe-Portal (Proration). free → bezahlt bleibt ok.

@@ -19,7 +19,7 @@ import { tenantRoleHasCapability, isTenantRole } from '../../core/shared/tenantA
  *
  * Env-gated wie der comments-Isolationsbeweis: ohne Appwrite-Env skippt die
  * Suite. Lokal: `set -a; source apps/control/.env` vor `pnpm --filter
- * @maui/control test`. CI: e2e.yml liefert die Wegwerf-Instanz.
+ * @pukalani/control test`. CI: e2e.yml liefert die Wegwerf-Instanz.
  */
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID

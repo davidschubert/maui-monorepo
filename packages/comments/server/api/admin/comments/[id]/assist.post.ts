@@ -3,7 +3,7 @@ import type { ModerationAssist } from '../../../../../shared/types/moderation'
 
 /**
  * KI-Moderations-Assist (advisory): Zweitmeinung zu einem gemeldeten Kommentar
- * über core aiComplete (Gate maui.ai + NUXT_AI_KEY). Die KI ändert NICHTS —
+ * über core aiComplete (Gate pukalani.ai + NUXT_AI_KEY). Die KI ändert NICHTS —
  * wie bei der Ticket-Triage entscheidet der Mensch; die Antwort ist nur eine
  * Empfehlung fürs Queue-UI. Kommentar-Inhalt lädt admin selbst (darf beides
  * kennen), die Meldegründe kommen über den moderation-Vertrag

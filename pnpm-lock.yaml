@@ -107,24 +107,6 @@ importers:
       '@iconify-json/ph':
         specifier: 'catalog:'
         version: 1.2.2
-      '@maui/admin':
-        specifier: workspace:*
-        version: link:../../packages/admin
-      '@maui/comments':
-        specifier: workspace:*
-        version: link:../../packages/comments
-      '@maui/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@maui/moderation':
-        specifier: workspace:*
-        version: link:../../packages/moderation
-      '@maui/system':
-        specifier: workspace:*
-        version: link:../../packages/system
-      '@maui/themes':
-        specifier: workspace:*
-        version: link:../../packages/themes
       '@nuxt/ui':
         specifier: 'catalog:'
         version: 4.10.0(b458b8deebe9f96108d6189f0d90e4cd)
@@ -137,6 +119,24 @@ importers:
       '@pinia/nuxt':
         specifier: 'catalog:'
         version: 1.0.1(magic-string@1.1.0)(magicast@0.5.3)(oxc-parser@0.140.0)(pinia@4.0.2(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3)))(rolldown@1.2.1)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.1)(rollup@4.62.2)(vite@8.2.0(@types/node@22.20.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0)))
+      '@pukalani/admin':
+        specifier: workspace:*
+        version: link:../../packages/admin
+      '@pukalani/comments':
+        specifier: workspace:*
+        version: link:../../packages/comments
+      '@pukalani/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@pukalani/moderation':
+        specifier: workspace:*
+        version: link:../../packages/moderation
+      '@pukalani/system':
+        specifier: workspace:*
+        version: link:../../packages/system
+      '@pukalani/themes':
+        specifier: workspace:*
+        version: link:../../packages/themes
       appwrite:
         specifier: 'catalog:'
         version: 26.2.0
@@ -189,51 +189,6 @@ importers:
       '@iconify-json/ph':
         specifier: 'catalog:'
         version: 1.2.2
-      '@maui/activity':
-        specifier: workspace:*
-        version: link:../../packages/activity
-      '@maui/admin':
-        specifier: workspace:*
-        version: link:../../packages/admin
-      '@maui/billing':
-        specifier: workspace:*
-        version: link:../../packages/billing
-      '@maui/blueprint':
-        specifier: workspace:*
-        version: link:../../packages/blueprint
-      '@maui/comments':
-        specifier: workspace:*
-        version: link:../../packages/comments
-      '@maui/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@maui/courses':
-        specifier: workspace:*
-        version: link:../../packages/courses
-      '@maui/events':
-        specifier: workspace:*
-        version: link:../../packages/events
-      '@maui/feedback':
-        specifier: workspace:*
-        version: link:../../packages/feedback
-      '@maui/media':
-        specifier: workspace:*
-        version: link:../../packages/media
-      '@maui/moderation':
-        specifier: workspace:*
-        version: link:../../packages/moderation
-      '@maui/posts':
-        specifier: workspace:*
-        version: link:../../packages/posts
-      '@maui/system':
-        specifier: workspace:*
-        version: link:../../packages/system
-      '@maui/themes':
-        specifier: workspace:*
-        version: link:../../packages/themes
-      '@maui/tickets':
-        specifier: workspace:*
-        version: link:../../packages/tickets
       '@nuxt/ui':
         specifier: 'catalog:'
         version: 4.10.0(690c140b22809abc9ce722549b6a56d1)
@@ -246,6 +201,51 @@ importers:
       '@pinia/nuxt':
         specifier: 'catalog:'
         version: 1.0.1(magic-string@1.1.0)(magicast@0.5.3)(oxc-parser@0.141.0)(pinia@4.0.2(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3)))(rolldown@1.2.1)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.1)(rollup@4.62.2)(vite@8.2.0(@types/node@22.20.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0)))
+      '@pukalani/activity':
+        specifier: workspace:*
+        version: link:../../packages/activity
+      '@pukalani/admin':
+        specifier: workspace:*
+        version: link:../../packages/admin
+      '@pukalani/billing':
+        specifier: workspace:*
+        version: link:../../packages/billing
+      '@pukalani/blueprint':
+        specifier: workspace:*
+        version: link:../../packages/blueprint
+      '@pukalani/comments':
+        specifier: workspace:*
+        version: link:../../packages/comments
+      '@pukalani/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@pukalani/courses':
+        specifier: workspace:*
+        version: link:../../packages/courses
+      '@pukalani/events':
+        specifier: workspace:*
+        version: link:../../packages/events
+      '@pukalani/feedback':
+        specifier: workspace:*
+        version: link:../../packages/feedback
+      '@pukalani/media':
+        specifier: workspace:*
+        version: link:../../packages/media
+      '@pukalani/moderation':
+        specifier: workspace:*
+        version: link:../../packages/moderation
+      '@pukalani/posts':
+        specifier: workspace:*
+        version: link:../../packages/posts
+      '@pukalani/system':
+        specifier: workspace:*
+        version: link:../../packages/system
+      '@pukalani/themes':
+        specifier: workspace:*
+        version: link:../../packages/themes
+      '@pukalani/tickets':
+        specifier: workspace:*
+        version: link:../../packages/tickets
       appwrite:
         specifier: 'catalog:'
         version: 26.2.0
@@ -304,33 +304,12 @@ importers:
       '@iconify-json/ph':
         specifier: 'catalog:'
         version: 1.2.2
-      '@maui/admin':
-        specifier: workspace:*
-        version: link:../../packages/admin
-      '@maui/billing':
-        specifier: workspace:*
-        version: link:../../packages/billing
-      '@maui/control':
-        specifier: workspace:*
-        version: link:../../packages/control
-      '@maui/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@maui/pages':
-        specifier: workspace:*
-        version: link:../../packages/pages
-      '@maui/system':
-        specifier: workspace:*
-        version: link:../../packages/system
-      '@maui/themes':
-        specifier: workspace:*
-        version: link:../../packages/themes
       '@nuxt/content':
         specifier: 'catalog:'
-        version: 3.15.2(@valibot/to-json-schema@1.7.1(valibot@1.4.2(typescript@5.9.3)))(esbuild@0.28.1)(magic-string@1.1.0)(magicast@0.5.3)(oxc-parser@0.139.0)(rolldown@1.2.1)(rollup@4.62.2)(valibot@1.4.2(typescript@5.9.3))(vite@8.2.0(@types/node@22.20.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0))
+        version: 3.15.2(@valibot/to-json-schema@1.7.1(valibot@1.4.2(typescript@5.9.3)))(esbuild@0.28.1)(magic-string@1.1.0)(magicast@0.5.3)(oxc-parser@0.141.0)(rolldown@1.2.1)(rollup@4.62.2)(valibot@1.4.2(typescript@5.9.3))(vite@8.2.0(@types/node@22.20.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0))
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(5dc06e9761da93164b41f3ce1a3c3c82)
+        version: 4.10.0(690c140b22809abc9ce722549b6a56d1)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.6.0(@vue/compiler-dom@3.5.40)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.8.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@4.0.2(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3)))(rolldown@1.2.1)(rollup@4.62.2)(typescript@5.9.3)(vite@8.2.0(@types/node@22.20.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.40(typescript@5.9.3))
@@ -339,7 +318,28 @@ importers:
         version: 0.22.2(magicast@0.5.3)
       '@pinia/nuxt':
         specifier: 'catalog:'
-        version: 1.0.1(magic-string@1.1.0)(magicast@0.5.3)(oxc-parser@0.139.0)(pinia@4.0.2(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3)))(rolldown@1.2.1)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.1)(rollup@4.62.2)(vite@8.2.0(@types/node@22.20.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0)))
+        version: 1.0.1(magic-string@1.1.0)(magicast@0.5.3)(oxc-parser@0.141.0)(pinia@4.0.2(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3)))(rolldown@1.2.1)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.1)(rollup@4.62.2)(vite@8.2.0(@types/node@22.20.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0)))
+      '@pukalani/admin':
+        specifier: workspace:*
+        version: link:../../packages/admin
+      '@pukalani/billing':
+        specifier: workspace:*
+        version: link:../../packages/billing
+      '@pukalani/control':
+        specifier: workspace:*
+        version: link:../../packages/control
+      '@pukalani/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@pukalani/pages':
+        specifier: workspace:*
+        version: link:../../packages/pages
+      '@pukalani/system':
+        specifier: workspace:*
+        version: link:../../packages/system
+      '@pukalani/themes':
+        specifier: workspace:*
+        version: link:../../packages/themes
       appwrite:
         specifier: 'catalog:'
         version: 26.2.0
@@ -354,7 +354,7 @@ importers:
         version: 7.0.13
       nuxt:
         specifier: 'catalog:'
-        version: 4.5.1(@babel/plugin-syntax-jsx@7.29.7(@babel/core@7.29.7))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.7))(@parcel/watcher@2.5.6)(@types/node@22.20.0)(@vue/compiler-sfc@3.5.40)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.8.0(jiti@2.7.0))(ioredis@5.11.1)(lightningcss@1.33.0)(magicast@0.5.3)(optionator@0.9.4)(oxc-parser@0.139.0)(pinia@4.0.2(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3)))(rollup-plugin-visualizer@7.0.1(rolldown@1.2.1)(rollup@4.62.2))(rollup@4.62.2)(srvx@0.12.5)(terser@5.48.0)(typescript@5.9.3)(vite@8.2.0(@types/node@22.20.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0))(vue-tsc@3.3.8(typescript@5.9.3))(yaml@2.9.0)
+        version: 4.5.1(@babel/plugin-syntax-jsx@7.29.7(@babel/core@7.29.7))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.7))(@parcel/watcher@2.5.6)(@types/node@22.20.0)(@vue/compiler-sfc@3.5.40)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.8.0(jiti@2.7.0))(ioredis@5.11.1)(lightningcss@1.33.0)(magicast@0.5.3)(optionator@0.9.4)(oxc-parser@0.141.0)(pinia@4.0.2(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3)))(rollup-plugin-visualizer@7.0.1(rolldown@1.2.1)(rollup@4.62.2))(rollup@4.62.2)(srvx@0.12.5)(terser@5.48.0)(typescript@5.9.3)(vite@8.2.0(@types/node@22.20.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0))(vue-tsc@3.3.8(typescript@5.9.3))(yaml@2.9.0)
       pinia:
         specifier: 'catalog:'
         version: 4.0.2(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3))
@@ -395,24 +395,24 @@ importers:
       '@iconify-json/ph':
         specifier: 'catalog:'
         version: 1.2.2
-      '@maui/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@maui/system':
-        specifier: workspace:*
-        version: link:../../packages/system
       '@nuxt/content':
         specifier: 'catalog:'
-        version: 3.15.2(@valibot/to-json-schema@1.7.1(valibot@1.4.2(typescript@5.9.3)))(esbuild@0.28.1)(magic-string@1.1.0)(magicast@0.5.3)(oxc-parser@0.141.0)(rolldown@1.2.1)(rollup@4.62.2)(valibot@1.4.2(typescript@5.9.3))(vite@8.2.0(@types/node@22.20.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0))
+        version: 3.15.2(@valibot/to-json-schema@1.7.1(valibot@1.4.2(typescript@5.9.3)))(esbuild@0.28.1)(magic-string@1.1.0)(magicast@0.5.3)(oxc-parser@0.139.0)(rolldown@1.2.1)(rollup@4.62.2)(valibot@1.4.2(typescript@5.9.3))(vite@8.2.0(@types/node@22.20.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0))
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.10.0(690c140b22809abc9ce722549b6a56d1)
+        version: 4.10.0(5dc06e9761da93164b41f3ce1a3c3c82)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
         version: 10.6.0(@vue/compiler-dom@3.5.40)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.8.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@4.0.2(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3)))(rolldown@1.2.1)(rollup@4.62.2)(typescript@5.9.3)(vite@8.2.0(@types/node@22.20.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.40(typescript@5.9.3))
       '@pinia/nuxt':
         specifier: 'catalog:'
-        version: 1.0.1(magic-string@1.1.0)(magicast@0.5.3)(oxc-parser@0.141.0)(pinia@4.0.2(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3)))(rolldown@1.2.1)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.1)(rollup@4.62.2)(vite@8.2.0(@types/node@22.20.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0)))
+        version: 1.0.1(magic-string@1.1.0)(magicast@0.5.3)(oxc-parser@0.139.0)(pinia@4.0.2(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3)))(rolldown@1.2.1)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.1)(rollup@4.62.2)(vite@8.2.0(@types/node@22.20.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0)))
+      '@pukalani/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@pukalani/system':
+        specifier: workspace:*
+        version: link:../../packages/system
       appwrite:
         specifier: 'catalog:'
         version: 26.2.0
@@ -427,7 +427,7 @@ importers:
         version: 7.0.13
       nuxt:
         specifier: 'catalog:'
-        version: 4.5.1(@babel/plugin-syntax-jsx@7.29.7(@babel/core@7.29.7))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.7))(@parcel/watcher@2.5.6)(@types/node@22.20.0)(@vue/compiler-sfc@3.5.40)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.8.0(jiti@2.7.0))(ioredis@5.11.1)(lightningcss@1.33.0)(magicast@0.5.3)(optionator@0.9.4)(oxc-parser@0.141.0)(pinia@4.0.2(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3)))(rollup-plugin-visualizer@7.0.1(rolldown@1.2.1)(rollup@4.62.2))(rollup@4.62.2)(srvx@0.12.5)(terser@5.48.0)(typescript@5.9.3)(vite@8.2.0(@types/node@22.20.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0))(vue-tsc@3.3.8(typescript@5.9.3))(yaml@2.9.0)
+        version: 4.5.1(@babel/plugin-syntax-jsx@7.29.7(@babel/core@7.29.7))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.7))(@parcel/watcher@2.5.6)(@types/node@22.20.0)(@vue/compiler-sfc@3.5.40)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.8.0(jiti@2.7.0))(ioredis@5.11.1)(lightningcss@1.33.0)(magicast@0.5.3)(optionator@0.9.4)(oxc-parser@0.139.0)(pinia@4.0.2(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3)))(rollup-plugin-visualizer@7.0.1(rolldown@1.2.1)(rollup@4.62.2))(rollup@4.62.2)(srvx@0.12.5)(terser@5.48.0)(typescript@5.9.3)(vite@8.2.0(@types/node@22.20.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0))(vue-tsc@3.3.8(typescript@5.9.3))(yaml@2.9.0)
       pinia:
         specifier: 'catalog:'
         version: 4.0.2(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3))
@@ -462,12 +462,6 @@ importers:
       '@iconify-json/ph':
         specifier: 'catalog:'
         version: 1.2.2
-      '@maui/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@maui/system':
-        specifier: workspace:*
-        version: link:../../packages/system
       '@nuxt/ui':
         specifier: 'catalog:'
         version: 4.10.0(690c140b22809abc9ce722549b6a56d1)
@@ -477,6 +471,12 @@ importers:
       '@pinia/nuxt':
         specifier: 'catalog:'
         version: 1.0.1(magic-string@1.1.0)(magicast@0.5.3)(oxc-parser@0.141.0)(pinia@4.0.2(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3)))(rolldown@1.2.1)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.1)(rollup@4.62.2)(vite@8.2.0(@types/node@22.20.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0)))
+      '@pukalani/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@pukalani/system':
+        specifier: workspace:*
+        version: link:../../packages/system
       appwrite:
         specifier: 'catalog:'
         version: 26.2.0
@@ -532,21 +532,6 @@ importers:
       '@iconify-json/ph':
         specifier: 'catalog:'
         version: 1.2.2
-      '@maui/admin':
-        specifier: workspace:*
-        version: link:../../packages/admin
-      '@maui/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@maui/media':
-        specifier: workspace:*
-        version: link:../../packages/media
-      '@maui/system':
-        specifier: workspace:*
-        version: link:../../packages/system
-      '@maui/themes':
-        specifier: workspace:*
-        version: link:../../packages/themes
       '@nuxt/ui':
         specifier: 'catalog:'
         version: 4.10.0(690c140b22809abc9ce722549b6a56d1)
@@ -559,6 +544,21 @@ importers:
       '@pinia/nuxt':
         specifier: 'catalog:'
         version: 1.0.1(magic-string@1.1.0)(magicast@0.5.3)(oxc-parser@0.141.0)(pinia@4.0.2(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3)))(rolldown@1.2.1)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.1)(rollup@4.62.2)(vite@8.2.0(@types/node@22.20.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0)))
+      '@pukalani/admin':
+        specifier: workspace:*
+        version: link:../../packages/admin
+      '@pukalani/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@pukalani/media':
+        specifier: workspace:*
+        version: link:../../packages/media
+      '@pukalani/system':
+        specifier: workspace:*
+        version: link:../../packages/system
+      '@pukalani/themes':
+        specifier: workspace:*
+        version: link:../../packages/themes
       appwrite:
         specifier: 'catalog:'
         version: 26.2.0
@@ -611,42 +611,6 @@ importers:
       '@iconify-json/ph':
         specifier: 'catalog:'
         version: 1.2.2
-      '@maui/admin':
-        specifier: workspace:*
-        version: link:../../packages/admin
-      '@maui/blueprint':
-        specifier: workspace:*
-        version: link:../../packages/blueprint
-      '@maui/comments':
-        specifier: workspace:*
-        version: link:../../packages/comments
-      '@maui/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@maui/courses':
-        specifier: workspace:*
-        version: link:../../packages/courses
-      '@maui/events':
-        specifier: workspace:*
-        version: link:../../packages/events
-      '@maui/moderation':
-        specifier: workspace:*
-        version: link:../../packages/moderation
-      '@maui/onboarding':
-        specifier: workspace:*
-        version: link:../../packages/onboarding
-      '@maui/pages':
-        specifier: workspace:*
-        version: link:../../packages/pages
-      '@maui/posts':
-        specifier: workspace:*
-        version: link:../../packages/posts
-      '@maui/system':
-        specifier: workspace:*
-        version: link:../../packages/system
-      '@maui/themes':
-        specifier: workspace:*
-        version: link:../../packages/themes
       '@nuxt/ui':
         specifier: 'catalog:'
         version: 4.10.0(690c140b22809abc9ce722549b6a56d1)
@@ -659,6 +623,42 @@ importers:
       '@pinia/nuxt':
         specifier: 'catalog:'
         version: 1.0.1(magic-string@1.1.0)(magicast@0.5.3)(oxc-parser@0.141.0)(pinia@4.0.2(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3)))(rolldown@1.2.1)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.1)(rollup@4.62.2)(vite@8.2.0(@types/node@22.20.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0)))
+      '@pukalani/admin':
+        specifier: workspace:*
+        version: link:../../packages/admin
+      '@pukalani/blueprint':
+        specifier: workspace:*
+        version: link:../../packages/blueprint
+      '@pukalani/comments':
+        specifier: workspace:*
+        version: link:../../packages/comments
+      '@pukalani/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@pukalani/courses':
+        specifier: workspace:*
+        version: link:../../packages/courses
+      '@pukalani/events':
+        specifier: workspace:*
+        version: link:../../packages/events
+      '@pukalani/moderation':
+        specifier: workspace:*
+        version: link:../../packages/moderation
+      '@pukalani/onboarding':
+        specifier: workspace:*
+        version: link:../../packages/onboarding
+      '@pukalani/pages':
+        specifier: workspace:*
+        version: link:../../packages/pages
+      '@pukalani/posts':
+        specifier: workspace:*
+        version: link:../../packages/posts
+      '@pukalani/system':
+        specifier: workspace:*
+        version: link:../../packages/system
+      '@pukalani/themes':
+        specifier: workspace:*
+        version: link:../../packages/themes
       appwrite:
         specifier: 'catalog:'
         version: 26.2.0
@@ -711,18 +711,6 @@ importers:
       '@iconify-json/ph':
         specifier: 'catalog:'
         version: 1.2.2
-      '@maui/admin':
-        specifier: workspace:*
-        version: link:../../packages/admin
-      '@maui/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@maui/system':
-        specifier: workspace:*
-        version: link:../../packages/system
-      '@maui/themes':
-        specifier: workspace:*
-        version: link:../../packages/themes
       '@nuxt/ui':
         specifier: 'catalog:'
         version: 4.10.0(690c140b22809abc9ce722549b6a56d1)
@@ -735,6 +723,18 @@ importers:
       '@pinia/nuxt':
         specifier: 'catalog:'
         version: 1.0.1(magic-string@1.1.0)(magicast@0.5.3)(oxc-parser@0.141.0)(pinia@4.0.2(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3)))(rolldown@1.2.1)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.1)(rollup@4.62.2)(vite@8.2.0(@types/node@22.20.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(yaml@2.9.0)))
+      '@pukalani/admin':
+        specifier: workspace:*
+        version: link:../../packages/admin
+      '@pukalani/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@pukalani/system':
+        specifier: workspace:*
+        version: link:../../packages/system
+      '@pukalani/themes':
+        specifier: workspace:*
+        version: link:../../packages/themes
       appwrite:
         specifier: 'catalog:'
         version: 26.2.0

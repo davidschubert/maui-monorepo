@@ -26,5 +26,5 @@ export interface BrandOgImage {
 }
 
 export function useBrandOgImage() {
-  return useState<BrandOgImage | null>('maui-brand-og-image', () => null)
+  return useState<BrandOgImage | null>('pukalani-brand-og-image', () => null)
 }

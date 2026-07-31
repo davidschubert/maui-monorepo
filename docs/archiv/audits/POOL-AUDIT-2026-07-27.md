@@ -60,7 +60,7 @@ bekommt bewusst JSON (Nuxt-Heuristik für API-Clients — Browser/Crawler HTML).
 | --- | --- |
 | ✅ K1 | Demo-Banner ist handgebautes div statt `UBanner` (Nuxt UI 4.10) — Davids Regel: offizielle Komponenten |
 | ✅ K2 | favicon 78-Byte-Platzhalter, kein apple-touch-icon/theme-color je Tenant |
-| ✅ K3 | interne Produktnamen im DOM (id="maui-theme-css") |
+| ✅ K3 | interne Produktnamen im DOM (id="pukalani-theme-css") |
 | ✅¹ K4 | Login lädt changelog.css + ~68 Chunks (Bundling unaufgeräumt) |
 | ✅ K5 | __NUXT__-Payload der Login-Seite enthält Plan/entitlementsDoc im Klartext |
 | ✅ K6 | Markdown mit Unterstrich-Betonung wird nicht gerendert (_…_ sichtbar) |

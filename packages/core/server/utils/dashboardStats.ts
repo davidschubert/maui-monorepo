@@ -1,7 +1,7 @@
 import type { H3Event } from 'h3'
 
 /**
- * Dashboard-Stats-Vertrag (analog UserDataContributor/maui.admin.modules):
+ * Dashboard-Stats-Vertrag (analog UserDataContributor/pukalani.admin.modules):
  * Feature-Layer registrieren ihre Kennzahlen per Nitro-Plugin — die admin-
  * Übersicht sammelt sie ein, ohne Feature-Tabellen hart zu kennen. Apps ohne
  * einen Layer haben dessen Plugin nicht → Kennzahl fehlt einfach (0-Default

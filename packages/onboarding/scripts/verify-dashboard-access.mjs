@@ -197,7 +197,7 @@ try {
   const ownerCookieA = await login(siteA.host, owner)
   const dashA = await page(siteA.host, '/dashboard', ownerCookieA)
   check('/dashboard → 200', dashA.status === 200, `Status ${dashA.status}`)
-  check('Payload spiegelt die Rolle (maui-site-role → owner)', dashA.text.includes('maui-site-role') && dashA.text.includes('owner'))
+  check('Payload spiegelt die Rolle (pukalani-site-role → owner)', dashA.text.includes('pukalani-site-role') && dashA.text.includes('owner'))
   // Nav-Filterung auf einer Seite OHNE Operator-Links im Body (die Overview-
   // Karten verlinken selbst /dashboard/users) — die Sidebar rendert im Layout.
   const settingsA = await page(siteA.host, '/dashboard/settings', ownerCookieA)

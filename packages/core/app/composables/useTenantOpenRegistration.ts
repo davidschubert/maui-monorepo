@@ -13,7 +13,7 @@
  * /api/auth/signup + /api/auth/otp) — hier geht es nur um die Ansage.
  */
 export function useTenantOpenRegistration() {
-  const state = useState<boolean | null>('maui-tenant-open-registration', () => null)
+  const state = useState<boolean | null>('pukalani-tenant-open-registration', () => null)
   /** Explizit geschlossen — nur `false` zählt, `null` ist kein Tenant. */
   const closed = computed(() => state.value === false)
   return { openRegistration: state, closed }

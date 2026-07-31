@@ -39,7 +39,7 @@
     "admin": {
       "title": "Abos",
       "empty": "Noch keine Abonnements.",
-      "disabled": "maui.billing ist nicht aktiviert — Abos erscheinen hier, sobald die App das Gate einschaltet.",
+      "disabled": "pukalani.billing ist nicht aktiviert — Abos erscheinen hier, sobald die App das Gate einschaltet.",
       "cancelling": "endet",
       "user": "User",
       "emptyTitle": "Noch keine Abos",

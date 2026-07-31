@@ -19,7 +19,7 @@ const loading = ref(false)
 const errorMessage = ref<string | null>(null)
 
 // AGB nur im register-Modus erzwingen — Login bestehender User bleibt friktionsfrei
-const termsUrl = computed(() => appConfig.maui?.auth?.termsUrl ?? '')
+const termsUrl = computed(() => appConfig.pukalani?.auth?.termsUrl ?? '')
 const requireTerms = computed(() => props.register === true && termsUrl.value.length > 0)
 
 const schema = computed(() => createOtpRequestSchema(t, {
@@ -28,8 +28,8 @@ const schema = computed(() => createOtpRequestSchema(t, {
 }))
 
 // E-Mail + Name teilen sich den State mit Login/Register (Flow-Wechsel)
-const sharedEmail = useState('maui-auth-email', () => '')
-const sharedName = useState('maui-auth-name', () => '')
+const sharedEmail = useState('pukalani-auth-email', () => '')
+const sharedName = useState('pukalani-auth-name', () => '')
 const state = reactive<OtpRequestInput>({
   email: sharedEmail.value,
   name: props.register ? sharedName.value : '',

@@ -6,9 +6,9 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev:core": "pnpm --filter @maui/core dev",
+    "dev:core": "pnpm --filter @pukalani/core dev",
     "dev:app": "pnpm --filter comments dev",
-    "dev:docs": "pnpm --filter @maui/docs dev",
+    "dev:docs": "pnpm --filter @pukalani/docs dev",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",

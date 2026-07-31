@@ -37,7 +37,7 @@ describe('buildEventIcs', () => {
     expect(ics).toContain('BEGIN:VEVENT')
     expect(ics).toContain('DTSTART:20260801T180000Z')
     expect(ics).toContain('DTEND:20260801T213000Z')
-    expect(ics).toContain('UID:evt1@maui-events')
+    expect(ics).toContain('UID:evt1@pukalani-events')
   })
 
   it('escapet Textfelder', () => {

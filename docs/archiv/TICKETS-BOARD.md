@@ -5,7 +5,7 @@ Trello (Screenshots David), bewusst am realen Projekt umgeformt.
 
 ## 1. Einordnung & Motivation
 
-Die Dashboard-„Roadmap" (Anzeige-Kopie in `maui.roadmap`, Seite im admin-Layer)
+Die Dashboard-„Roadmap" (Anzeige-Kopie in `pukalani.roadmap`, Seite im admin-Layer)
 wird durch ein echtes, interaktives **Ticket-Board** ersetzt — ein
 eigenständiger Feature-Layer `packages/tickets`. Das Board ist das
 Arbeits-Werkzeug für den Betreiber (Admins + Moderatoren): Feedback sichten,
@@ -23,13 +23,13 @@ Architektur-Roadmap.
   die App komponiert.
 - **Core (additiv):** Capability `tickets.manage` — admin UND moderator
   (Mitglieder auf Karten sind per Anforderung nur Admins/Mods).
-- **Dashboard-Nav:** via `maui.admin.modules`-Registry (expliziter Vertrag),
+- **Dashboard-Nav:** via `pukalani.admin.modules`-Registry (expliziter Vertrag),
   Route `/dashboard/tickets`, Icon `i-ph-kanban`.
 - **Kein** Import von feedback/comments im tickets-Layer — Integration läuft
   später über die APP (Komposition, wie `#comments`-Slot bei posts/events).
 - **GDPR:** eigener UserDataContributor (createdBy/Members exportieren,
   bei Löschung pseudonymisieren/entfernen).
-- Admin-Roadmap-Seite + `maui.roadmap`-Config werden entfernt (Board ersetzt
+- Admin-Roadmap-Seite + `pukalani.roadmap`-Config werden entfernt (Board ersetzt
   sie; die Inhalte waren Anzeige-Kopie).
 
 ## 3. Datenmodell
@@ -151,7 +151,7 @@ würden divergieren); Export wird on demand generiert:
   i18n de/en), App-Komposition, Admin-Roadmap-Ablösung, Runner-Registrierung.
 - **P2 — Feedback-Ingestion ✅ (2026-07-08):** Die APP verdrahtet (A14, Muster
   events/checkout): feedback rendert den „Als Ticket übernehmen"-Button, wenn
-  `maui.feedback.ticketEndpoint` gesetzt ist UND der User `tickets.manage` hat;
+  `pukalani.feedback.ticketEndpoint` gesetzt ist UND der User `tickets.manage` hat;
   die App-Route `/api/app/feedback-ticket` liest die Feedback-Row und ruft
   `createTicketFromFeedback()` (tickets-Server-Util) — Ticket landet in der
   ERSTEN Board-Liste (Inbox-Semantik), Titel = erste Zeile, Beschreibung =
@@ -161,7 +161,7 @@ würden divergieren); Export wird on demand generiert:
 - **P3 — KI-Triage ✅ (2026-07-08, LIVE VERIFIZIERT 2026-07-09):** Server-Util
   `triageTicket()` gegen eine OpenAI-KOMPATIBLE Chat-Completions-API —
   Entscheidung: **OpenRouter** statt Vendor-SDK (David hat dort Guthaben;
-  Model frei wählbar über `maui.tickets.ai.model`, Default
+  Model frei wählbar über `pukalani.tickets.ai.model`, Default
   `anthropic/claude-haiku-4.5`, `baseUrl` austauschbar). Key server-only
   `NUXT_TICKETS_AI_KEY`. Bewertet Relevanz (1–5 Sterne), schlägt Priorität/
   Aufwand vor, formuliert offene Rückfragen — schreibt den Abschnitt
@@ -172,7 +172,7 @@ würden divergieren); Export wird on demand generiert:
 - **P4 — Komfort ✅ (2026-07-09):** Alles live verifiziert.
   - **Kommentare im Modal** (rechte Spalte, Trello-Muster): comments-Layer
     mit `targetType 'ticket'` — NEUER additiver Vertrag
-    `maui.comments.operatorTargets`: solche Kommentare schreiben nur
+    `pukalani.comments.operatorTargets`: solche Kommentare schreiben nur
     Operatoren (Gate dashboard.access) und die Rows tragen
     `read(label:admin/moderator)` statt `read(any)` (Admin-Client setzt die
     Label-Permissions) — Member sehen per Row-Security NICHTS (bewiesen:

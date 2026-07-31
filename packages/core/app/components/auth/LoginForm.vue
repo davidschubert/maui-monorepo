@@ -15,22 +15,22 @@ const errorMessage = ref<string | null>(null)
 const showPassword = ref(false)
 
 // Code-Login-Link nur, wenn Email-OTP aktiviert ist (config-gated)
-const otpEnabled = computed(() => appConfig.maui?.auth?.otp === true)
+const otpEnabled = computed(() => appConfig.pukalani?.auth?.otp === true)
 
-// Social-Login config-gated (maui.auth.providers) — Default leer, keine Deko-Buttons
+// Social-Login config-gated (pukalani.auth.providers) — Default leer, keine Deko-Buttons
 const PROVIDER_META: Record<string, { label: string, icon: string }> = {
   github: { label: 'GitHub', icon: 'i-ph-github-logo' },
   google: { label: 'Google', icon: 'i-ph-google-logo' },
 }
 const providers = computed(() =>
-  (appConfig.maui?.auth?.providers ?? []).flatMap((id) => {
+  (appConfig.pukalani?.auth?.providers ?? []).flatMap((id) => {
     const meta = PROVIDER_META[id]
     return meta ? [{ id, ...meta }] : []
   }),
 )
 
 // Eingegebene E-Mail überlebt den Wechsel Login ↔ Register ↔ Code
-const sharedEmail = useState('maui-auth-email', () => '')
+const sharedEmail = useState('pukalani-auth-email', () => '')
 const state = reactive<LoginInput>({ email: sharedEmail.value, password: '' })
 watch(() => state.email, (value) => { sharedEmail.value = value })
 

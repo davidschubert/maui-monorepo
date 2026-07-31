@@ -10,9 +10,9 @@ import { listEmbedSites } from '../../utils/embedSites'
  */
 export default defineEventHandler(async (event): Promise<{ verdict: string }> => {
   const appConfig = useAppConfig() as {
-    maui?: { comments?: { embed?: { enabled?: boolean, allowedOrigins?: string[] } } }
+    pukalani?: { comments?: { embed?: { enabled?: boolean, allowedOrigins?: string[] } } }
   }
-  const embed = appConfig.maui?.comments?.embed
+  const embed = appConfig.pukalani?.comments?.embed
   if (!embed?.enabled) {
     throw createError({ status: 404, statusText: 'Not Found' })
   }

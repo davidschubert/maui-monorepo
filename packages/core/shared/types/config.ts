@@ -50,7 +50,7 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
  * Die Teilmenge der Laufzeit-Flags, die den Client SEHEN DARF (Audit-Befund
  * K5). Historie: `entitlementsDoc` (signiertes kaufmännisches Dokument —
  * siteProjectId, Feature-Zuteilung, `suspended`, Gültigkeitsfenster, `kid`)
- * war Teil dieses Typs und reiste über useState(`maui-runtime-flags`) im
+ * war Teil dieses Typs und reiste über useState(`pukalani-runtime-flags`) im
  * Klartext in den __NUXT__-Payload JEDER Seite (auch unauthentifiziert, z. B.
  * /login) sowie über die öffentliche Route GET /api/config. K5 hat es aus der
  * Projektion genommen; N2 hat es ganz aus `app_config` herausgezogen — es

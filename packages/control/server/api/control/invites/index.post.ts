@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
   requirePermission(event, 'sites.manage')
   const body = await readValidatedBody(event, inviteCodeCreateSchema.parse)
 
-  const code = `MAUI-${block(4)}-${block(4)}`
+  const code = `PUKA-${block(4)}-${block(4)}`
   const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
 

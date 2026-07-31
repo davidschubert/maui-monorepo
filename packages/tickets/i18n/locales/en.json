@@ -135,7 +135,7 @@
       "reset": "Reset to default",
       "saved": "AI model saved: {model}",
       "invalid": "Saving failed — model id in vendor/model format?",
-      "aiDisabled": "AI triage is not enabled in this app (maui.tickets.ai)."
+      "aiDisabled": "AI triage is not enabled in this app (pukalani.tickets.ai)."
     }
   }
 }

@@ -23,7 +23,7 @@ test.describe('Themes: visuelle Regression (Startseite)', () => {
 
   for (const theme of THEMES) {
     test(`/visual rendert Theme '${theme}' unverändert`, async ({ page, context, baseURL }) => {
-      await context.addCookies([{ name: 'maui-theme', value: theme, url: baseURL! }])
+      await context.addCookies([{ name: 'pukalani-theme', value: theme, url: baseURL! }])
       await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' })
       await page.addInitScript(() => localStorage.setItem('nuxt-color-mode', 'light'))
 

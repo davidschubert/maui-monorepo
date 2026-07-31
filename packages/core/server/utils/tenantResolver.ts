@@ -7,7 +7,7 @@ import type { TenantContext } from '../../shared/types/tenant'
  * Platform-App). Stattdessen registriert die App per Nitro-Plugin einen
  * Resolver (Host → TenantContext), typischerweise tabellen-basiert + gecacht
  * (createMicrocache existiert dafür). Die Middleware 00.tenant.ts ruft ihn
- * nur bei aktivem maui.tenancy-Gate.
+ * nur bei aktivem pukalani.tenancy-Gate.
  */
 export type TenantResolver = (host: string) => Promise<TenantContext | null> | TenantContext | null
 

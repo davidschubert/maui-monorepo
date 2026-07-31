@@ -2,7 +2,7 @@
 import type { BillingCompareValue } from '../../shared/types/billing'
 
 /**
- * „Alle Funktionen im Vergleich" — rendert maui.billing.compare (Sektionen →
+ * „Alle Funktionen im Vergleich" — rendert pukalani.billing.compare (Sektionen →
  * Zeilen → Wert je Plan). Werte: true = Haken, false/fehlt = nicht enthalten,
  * String = i18n-Key für einen Text-Zustand (z. B. „Eingeschränkt").
  * Die Inhalte sind bewusst App-Sache (Config + i18n) — der Layer stellt nur

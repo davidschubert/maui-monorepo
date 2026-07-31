@@ -27,7 +27,7 @@ export async function getActiveSubscription(event: H3Event): Promise<BillingSubs
   return active
 }
 
-/** Features des aktiven Plans (aus maui.billing.plans aufgelöst) */
+/** Features des aktiven Plans (aus pukalani.billing.plans aufgelöst) */
 export async function getEntitledFeatures(event: H3Event): Promise<string[]> {
   const subscription = await getActiveSubscription(event)
   if (!subscription) return []

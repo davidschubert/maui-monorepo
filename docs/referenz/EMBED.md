@@ -4,7 +4,7 @@
 > Architektur: [plans/EMBED-WIDGET.md](../archiv/EMBED-WIDGET.md). Schreiben im
 > Embed läuft für eingeloggte User (Login-Popup + CHIPS-Session, E2) UND für
 > Gäste ohne Account (Name+E-Mail, ohne Verifikation, E4 — Gate
-> `maui.comments.embed.guests`, Default aus; die E-Mail landet nur in der
+> `pukalani.comments.embed.guests`, Default aus; die E-Mail landet nur in der
 > operator-lesbaren Tabelle `guest_authors`, nie auf der öffentlichen Row).
 
 Beliebige Drittseiten (Blog, Docs, statisches HTML — Stack egal) binden das
@@ -15,7 +15,7 @@ selbst gehosteten Widget — DSGVO-freundlich by design.
 ## Integration
 
 ```html
-<div id="maui-comments"></div>
+<div id="pukalani-comments"></div>
 <script async src="https://<widget-domain>/embed.js"
   data-target-id="mein-blogpost-42"
   data-target-type="blog"></script>
@@ -24,13 +24,13 @@ selbst gehosteten Widget — DSGVO-freundlich by design.
 ### Alternative: Web-Component (E4)
 
 Statt Script-Tag mit `data-*` bindet man das Widget deklarativ als
-Custom-Element `<maui-comments>` ein — bequemer in CMS/Frameworks, die
+Custom-Element `<pukalani-comments>` ein — bequemer in CMS/Frameworks, die
 Custom Elements sauberer handhaben als eingefügte `<script>`-Tags:
 
 ```html
-<script async src="https://<widget-domain>/maui-comments.js"></script>
-<maui-comments target-id="mein-blogpost-42" target-type="blog"
-  theme="auto" locale="de" primary="sky"></maui-comments>
+<script async src="https://<widget-domain>/pukalani-comments.js"></script>
+<pukalani-comments target-id="mein-blogpost-42" target-type="blog"
+  theme="auto" locale="de" primary="sky"></pukalani-comments>
 ```
 
 Attribute reagieren live: `theme` umstellen steuert das Widget ohne Reload
@@ -51,20 +51,20 @@ sensibles Stück; s. `plans/EMBED-WIDGET.md` § 6).
 | `data-theme` | nein | `auto` | `light` · `dark` · `auto` (= `prefers-color-scheme`; nur bei `auto` ist der Widget-Hintergrund transparent). |
 | `data-locale` | nein | `en` | `de` · `en` — Sprache der Widget-UI. |
 | `data-primary` | nein | App-Default | Akzentfarbe aus der Whitelist (`red`, `orange`, `amber`, `yellow`, `lime`, `green`, `emerald`, `teal`, `cyan`, `sky`, `blue`, `indigo`, `violet`, `purple`, `fuchsia`, `pink`, `rose`). |
-| `data-container` | nein | `maui-comments` | ID des Ziel-Elements; fehlt es, erzeugt der Loader ein `<div>` vor dem Script-Tag. Mehrere Widgets pro Seite: je Script-Tag ein eigener Container. |
+| `data-container` | nein | `pukalani-comments` | ID des Ziel-Elements; fehlt es, erzeugt der Loader ein `<div>` vor dem Script-Tag. Mehrere Widgets pro Seite: je Script-Tag ein eigener Container. |
 
 ### Theme zur Laufzeit nachsteuern
 
 ```js
-document.querySelector('#maui-comments iframe').contentWindow
-  .postMessage({ type: 'maui:set-theme', theme: 'dark' }, 'https://<widget-domain>')
+document.querySelector('#pukalani-comments iframe').contentWindow
+  .postMessage({ type: 'pukalani:set-theme', theme: 'dark' }, 'https://<widget-domain>')
 ```
 
 ## Betreiber-Seite (App-Konfiguration)
 
 ```ts
 // app/app.config.ts der servierenden App
-maui: {
+pukalani: {
   comments: {
     embed: {
       enabled: true,
@@ -108,12 +108,12 @@ maui: {
 
 ### Kommentar-Zähler auf der Hostseite
 
-`embed.js` befüllt jedes Element mit `data-maui-count` (CORS-read-only,
+`embed.js` befüllt jedes Element mit `data-pukalani-count` (CORS-read-only,
 keine Cookies) — z. B. für „N Kommentare"-Links in einer Artikelliste:
 
 ```html
 <a href="/blog/post-42#kommentare">
-  <span data-maui-count data-target-id="post-42" data-target-type="blog">…</span>
+  <span data-pukalani-count data-target-id="post-42" data-target-type="blog">…</span>
 </a>
 <script async src="https://<widget-domain>/embed.js"></script>
 ```
@@ -135,8 +135,8 @@ auch ohne Widget-iframe auf der Seite (das Script allein genügt).
   Browser, die das partitionierte Cookie verwerfen, bleiben read-only und
   zeigen einen Hinweis mit Deep-Link zur Widget-Domain.
   Sicherheit: die Schreib-Routen sind zusätzlich durch den
-  CSRF-Origin-Check geschützt (`maui.security.csrfOriginCheck` — PFLICHT,
-  sobald `maui.auth.embedSession` an ist); das Handoff-Token ist
+  CSRF-Origin-Check geschützt (`pukalani.security.csrfOriginCheck` — PFLICHT,
+  sobald `pukalani.auth.embedSession` an ist); das Handoff-Token ist
   verschlüsselt, 60 s gültig und wird vor dem Cookie-Setzen gegen Appwrite
   validiert.
 - **SEO**: Kommentare leben im iframe unter der Widget-Origin — Crawler der

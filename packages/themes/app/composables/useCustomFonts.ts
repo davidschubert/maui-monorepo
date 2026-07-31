@@ -6,7 +6,7 @@ import type { CustomFontDto } from '../../shared/fonts'
  * refresht nach CRUD.
  */
 export function useCustomFontsState() {
-  return useState<CustomFontDto[]>('maui-custom-fonts', () => [])
+  return useState<CustomFontDto[]>('pukalani-custom-fonts', () => [])
 }
 
 /** Fonts vom Server holen (App-Start + nach CRUD) — best effort. */

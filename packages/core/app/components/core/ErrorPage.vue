@@ -12,7 +12,7 @@ const props = defineProps<{ error: NuxtError }>()
 const { t } = useI18n()
 const localePath = useLocalePath()
 // EINE Brand-Kette für alle (useBrandName: Tenant vor App-Brand vor
-// „Maui"-Fallback) — vorher stand hier hart „MAUI-ERROR" (Audit B2/K3).
+// „Maui"-Fallback) — vorher stand hier hart „PUKA-ERROR" (Audit B2/K3).
 const brand = useBrandName()
 
 const status = computed(() => props.error?.statusCode ?? 500)

@@ -3,7 +3,7 @@ import type { SiteManifest } from '../../packages/core/shared/types/manifest'
 /**
  * Feature-Wahl dieser Site — Single Source of Truth. Beim Ableiten einer
  * neuen App zuerst HIER die Features wählen, dann `extends` (nuxt.config.ts)
- * und die @maui/*-Dependencies (package.json) anpassen —
+ * und die @pukalani/*-Dependencies (package.json) anpassen —
  * `pnpm check:manifests` meldet jede Abweichung. core + system sind
  * implizit immer dabei; comments zieht moderation zwingend mit (requires).
  *
@@ -22,15 +22,15 @@ export default {
     'comments',
     'posts',
     // Events im Pool (Entscheidung 8, 2026-07-27) — Produkt-Gate: ab Plan pro
-    // (maui.tenancy.products), Datenzugriff durch die Datentür (events-006)
+    // (pukalani.tenancy.products), Datenzugriff durch die Datentür (events-006)
     'events',
     // Kurse im Pool (Entscheidung 15, 2026-07-27) — Produkt-Gate: ab Plan pro
-    // (maui.tenancy.products), Datenzugriff durch die Datentür (courses-002)
+    // (pukalani.tenancy.products), Datenzugriff durch die Datentür (courses-002)
     'courses',
     'moderation',
     'pages',
     // Der öffentliche Trichter — läuft nur auf den Kontroll-Hosts dieser App
-    // (maui.tenancy.controlHosts), nicht auf den Community-Hosts.
+    // (pukalani.tenancy.controlHosts), nicht auf den Community-Hosts.
     'onboarding',
   ],
 } satisfies SiteManifest

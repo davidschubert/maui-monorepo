@@ -14,7 +14,7 @@ function parseChecklist(raw: string): TicketChecklistItem[] {
 
 /**
  * KI-Triage (Plan P3): bewertet ein Ticket über eine OpenAI-kompatible
- * Chat-Completions-API (Default: OpenRouter — Model per maui.tickets.ai
+ * Chat-Completions-API (Default: OpenRouter — Model per pukalani.tickets.ai
  * konfigurierbar, Key server-only NUXT_TICKETS_AI_KEY). Das Ergebnis wird
  * als „🤖 KI-Triage"-Abschnitt in die BESCHREIBUNG geschrieben — Felder
  * (Priorität/Aufwand) ändert die KI bewusst NICHT still (Plan-Entscheidung);
@@ -27,19 +27,19 @@ interface TicketsAiConfig {
   enabled: boolean
   model: string
   baseUrl: string
-  /** Build-Default aus maui.tickets.ai (ohne Laufzeit-Override) */
+  /** Build-Default aus pukalani.tickets.ai (ohne Laufzeit-Override) */
   defaultModel: string
 }
 
 /**
- * Build-Konfiguration (maui.tickets.ai) — synchron, ohne Laufzeit-Override.
- * Fällt feldweise auf das Core-Gate maui.ai zurück (aiComplete): eine App,
- * die KI zentral aktiviert, bekommt die Triage mit — maui.tickets.ai bleibt
+ * Build-Konfiguration (pukalani.tickets.ai) — synchron, ohne Laufzeit-Override.
+ * Fällt feldweise auf das Core-Gate pukalani.ai zurück (aiComplete): eine App,
+ * die KI zentral aktiviert, bekommt die Triage mit — pukalani.tickets.ai bleibt
  * der spezifischere Override.
  */
 export function getTicketsAiConfig(): TicketsAiConfig {
-  const appConfig = useAppConfig() as { maui?: { tickets?: { ai?: Partial<TicketsAiConfig> } } }
-  const ai = appConfig.maui?.tickets?.ai
+  const appConfig = useAppConfig() as { pukalani?: { tickets?: { ai?: Partial<TicketsAiConfig> } } }
+  const ai = appConfig.pukalani?.tickets?.ai
   const core = getAiConfig()
   const model = ai?.model ?? core.model
   return {
@@ -54,7 +54,7 @@ export function getTicketsAiConfig(): TicketsAiConfig {
  * Effektive Konfiguration inkl. Laufzeit-Overrides — Regel: Laufzeit schlägt
  * Build, spezifisch schlägt global. app_config.ticketsAiModel (system-015,
  * Board-Einstellungen-Modal) > app_config.aiModel (system-016, global) >
- * maui.tickets.ai.model > maui.ai.model. Best-effort, bei Lesefehler gilt
+ * pukalani.tickets.ai.model > pukalani.ai.model. Best-effort, bei Lesefehler gilt
  * der Build-Default.
  */
 export async function getEffectiveTicketsAiConfig(event: H3Event): Promise<TicketsAiConfig> {

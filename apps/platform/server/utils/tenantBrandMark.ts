@@ -62,8 +62,8 @@ export async function resolveTenantBrandMark(event: H3Event): Promise<TenantBran
   if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.mark
 
   const tenant = event.context.tenant
-  const appConfig = useAppConfig() as { maui?: { brand?: { name?: string } } }
-  const name = tenant?.name || appConfig.maui?.brand?.name || ''
+  const appConfig = useAppConfig() as { pukalani?: { brand?: { name?: string } } }
+  const name = tenant?.name || appConfig.pukalani?.brand?.name || ''
 
   const data = await $fetch<ThemesResponse>('/api/themes', { headers: { host } }).catch(() => null)
   const customs: BrandThemeEntry[] = (data?.themes ?? []).map(entry => ({

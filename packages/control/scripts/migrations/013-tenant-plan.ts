@@ -1,6 +1,6 @@
 /**
  * Migration control-013: `tenants.plan` — Quota-Plan des Pool-Tenants
- * (H3-4.3): staffelt die Quota-Limits (maui.tenancy.quota.plans, free/pro/
+ * (H3-4.3): staffelt die Quota-Limits (pukalani.tenancy.quota.plans, free/pro/
  * business). Additiv, Bestand = 'free'. Für Silo ohne Wirkung.
  * Idempotent (409 → skip). Aufruf über den Runner:
  *

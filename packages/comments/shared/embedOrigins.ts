@@ -2,7 +2,7 @@
  * E3 Site-Registry — PURE Allowlist-Logik (unit-getestet, vom
  * embed-frame-Plugin und der /embed-Seite geteilt):
  *
- * - Statische Origins (`maui.comments.embed.allowedOrigins`) und Registry-
+ * - Statische Origins (`pukalani.comments.embed.allowedOrigins`) und Registry-
  *   Hosts werden VEREINT; '*' in der statischen Liste = alles offen
  *   (bewusste Betreiber-Option, Plan § 6.7) — die Registry ist dann nur
  *   noch dokumentarisch.

@@ -24,10 +24,10 @@ export function buildEventIcs(row: Pick<EventRow, '$id' | '$updatedAt' | 'title'
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//maui//events//EN',
+    'PRODID:-//pukalani//events//EN',
     'CALSCALE:GREGORIAN',
     'BEGIN:VEVENT',
-    `UID:${row.$id}@maui-events`,
+    `UID:${row.$id}@pukalani-events`,
     `DTSTAMP:${toIcsDate(row.$updatedAt)}`,
     `DTSTART:${toIcsDate(row.startAt)}`,
     ...(row.endAt ? [`DTEND:${toIcsDate(row.endAt)}`] : []),

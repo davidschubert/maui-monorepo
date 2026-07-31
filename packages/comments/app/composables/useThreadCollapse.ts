@@ -9,7 +9,7 @@ export interface ThreadCollapse {
 
 export const threadCollapseKey: InjectionKey<ThreadCollapse> = Symbol('thread-collapse')
 
-const COOKIE_NAME = 'maui-comments-collapsed'
+const COOKIE_NAME = 'pukalani-comments-collapsed'
 // Wie viele Threads wir merken — begrenzt die Cookie-Größe (älteste fliegen raus).
 const MAX_TARGETS = 10
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 180 // 180 Tage

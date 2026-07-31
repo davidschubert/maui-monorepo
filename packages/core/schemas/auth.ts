@@ -43,7 +43,7 @@ export function createRegisterSchema(t: TranslateFn = identity) {
 }
 
 export interface RegisterFormOptions {
-  /** true = AGB-Checkbox ist Pflicht (maui.auth.termsUrl gesetzt) */
+  /** true = AGB-Checkbox ist Pflicht (pukalani.auth.termsUrl gesetzt) */
   requireTerms?: boolean
 }
 
@@ -97,7 +97,7 @@ export const otpVerifySchema = z.object({
 })
 
 export interface OtpRequestOptions {
-  /** true = AGB-Checkbox ist Pflicht (register-Modus + maui.auth.termsUrl) */
+  /** true = AGB-Checkbox ist Pflicht (register-Modus + pukalani.auth.termsUrl) */
   requireTerms?: boolean
   /** true = Name ist Pflicht (register-Modus, analog zur Passwort-Registrierung) */
   requireName?: boolean

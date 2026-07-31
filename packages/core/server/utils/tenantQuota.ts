@@ -9,10 +9,10 @@ import type { H3Event } from 'h3'
  *
  *   await assertPoolWriteQuota(event, { kind: 'comments', tableId: COMMENTS_TABLE })
  *
- * Limits kommen aus app.config maui.tenancy.quota (Core-Default AUS; die
+ * Limits kommen aus app.config pukalani.tenancy.quota (Core-Default AUS; die
  * Platform-App aktiviert und staffelt sie PRO PLAN):
  *
- *   maui: { tenancy: { quota: { enabled: true, plans: {
+ *   pukalani: { tenancy: { quota: { enabled: true, plans: {
  *     free:     { comments: { perDay: 200,  total: 5_000 } },
  *     pro:      { comments: { perDay: 1000, total: 50_000 } },
  *     business: { comments: { perDay: 5000, total: 250_000 } },
@@ -70,8 +70,8 @@ export async function assertPoolWriteQuota(event: H3Event, options: { kind: stri
   const tenant = useTenant(event)
   if (tenant?.mode !== 'pool') return
 
-  const appConfig = useAppConfig() as { maui?: { tenancy?: { quota?: TenancyQuotaConfig } } }
-  const quota = appConfig.maui?.tenancy?.quota
+  const appConfig = useAppConfig() as { pukalani?: { tenancy?: { quota?: TenancyQuotaConfig } } }
+  const quota = appConfig.pukalani?.tenancy?.quota
   if (quota?.enabled !== true) return
   // Fallback-Kette: vom Resolver aufgelöste Katalog-Limits (tenant_plans,
   // Control-editierbar) schlagen den statischen app.config-Katalog.

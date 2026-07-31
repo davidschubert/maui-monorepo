@@ -1,7 +1,7 @@
 export default defineAppConfig({
   // App-spezifische Overrides (tiefer Merge, App > Core). Die Hilfe-Site ist
   // öffentlich, kontenlos und datensparsam — keine Analytics, kein Consent.
-  maui: {
+  pukalani: {
     // Der Brand-Name ist die EINE Quelle für Seitentitel („… · Pukalani Hilfe",
     // useBrandTitle) UND die Fehlerseite/404 (CoreErrorPage über useBrandName).
     // Deshalb steht hier „Pukalani Hilfe" und nicht bloß „Pukalani": sonst

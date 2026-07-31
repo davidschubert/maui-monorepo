@@ -15,11 +15,11 @@ export function useIsTenantHost(): boolean {
   const url = useRequestURL()
   const config = useRuntimeConfig()
   const appConfig = useAppConfig() as {
-    maui?: { tenancy?: { enabled?: boolean, controlHosts?: string[] } }
+    pukalani?: { tenancy?: { enabled?: boolean, controlHosts?: string[] } }
   }
   const hosts = resolveControlHosts(
     (config.public as { tenancy?: { controlHosts?: string } }).tenancy?.controlHosts,
-    appConfig.maui?.tenancy?.controlHosts,
+    appConfig.pukalani?.tenancy?.controlHosts,
   )
-  return isTenantHost(appConfig.maui?.tenancy?.enabled === true, url.hostname, hosts)
+  return isTenantHost(appConfig.pukalani?.tenancy?.enabled === true, url.hostname, hosts)
 }

@@ -15,5 +15,5 @@ import { DEFAULT_PUBLIC_APP_CONFIG, type PublicAppConfig } from '../../shared/ty
  * nichts zu suchen, und der Typ macht das Hineinschreiben unmöglich.
  */
 export function useRuntimeFlags() {
-  return useState<PublicAppConfig>('maui-runtime-flags', () => ({ ...DEFAULT_PUBLIC_APP_CONFIG }))
+  return useState<PublicAppConfig>('pukalani-runtime-flags', () => ({ ...DEFAULT_PUBLIC_APP_CONFIG }))
 }

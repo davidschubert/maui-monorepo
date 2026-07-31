@@ -1,9 +1,9 @@
 /**
  * studio meldet seine Dashboard-Sektion bei der Admin-Modul-Registry an
- * (maui.admin.modules, deep-merged) — Layer-Grenze A14.
+ * (pukalani.admin.modules, deep-merged) — Layer-Grenze A14.
  */
 export default defineAppConfig({
-  maui: {
+  pukalani: {
     studio: {
       /** Das geteilte Pool-Appwrite-Projekt neuer Tenants (Onboarding-Default —
        *  der Betreiber tippt nur noch Name/Host, das Projekt füllt der Server). */

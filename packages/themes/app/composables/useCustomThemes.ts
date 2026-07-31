@@ -12,11 +12,11 @@ interface ThemeDataResponse {
  * mischt beides in die Registry.
  */
 export function useCustomThemesState() {
-  return useState<CustomThemeDto[]>('maui-custom-themes', () => [])
+  return useState<CustomThemeDto[]>('pukalani-custom-themes', () => [])
 }
 
 export function useThemeSettingsState() {
-  return useState<ThemeSettings>('maui-theme-settings', () => ({}))
+  return useState<ThemeSettings>('pukalani-theme-settings', () => ({}))
 }
 
 /** Beide States vom Server holen (App-Start + nach CRUD im Control) — best effort. */

@@ -11,12 +11,12 @@ const bodySchema = z.object({ token: z.string().min(1).max(2048) }).strict()
  * Session-Cookie im CHIPS-Modus (SameSite=None; Secure; Partitioned). Das
  * Secret wird VOR dem Setzen gegen Appwrite validiert (getSession liefert
  * auch das echte Ablaufdatum) — ein manipuliertes/abgelaufenes Token setzt
- * nie ein Cookie. Gate maui.auth.embedSession; Rate-Limit: FAILURE_LIMITED
+ * nie ein Cookie. Gate pukalani.auth.embedSession; Rate-Limit: FAILURE_LIMITED
  * (Token-Raten drosseln, erfolgreiche Handoffs kosten kein Budget).
  */
 export default defineEventHandler(async (event) => {
-  const appConfig = useAppConfig() as { maui?: { auth?: { embedSession?: boolean } } }
-  if (appConfig.maui?.auth?.embedSession !== true) {
+  const appConfig = useAppConfig() as { pukalani?: { auth?: { embedSession?: boolean } } }
+  if (appConfig.pukalani?.auth?.embedSession !== true) {
     throw createError({ status: 404, statusText: 'Not found' })
   }
   const body = await readValidatedBody(event, bodySchema.parse)

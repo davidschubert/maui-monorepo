@@ -63,7 +63,7 @@ Ausprägungen.
 1. **Kompositions-Layer `packages/community`** — Pool = Silo, eine Wahrheit.
 2. **Pool-Vier polieren** (posts, comments, pages, moderation) — Nutzersicht-
    Rundgang demo.pukalani.app, Kanten fixen statt Neues bauen.
-3. **events/courses:** ENTWEDER aus `maui.tenancy.products` nehmen (ehrlich:
+3. **events/courses:** ENTWEDER aus `pukalani.tenancy.products` nehmen (ehrlich:
    noch kein Pool-Produkt) ODER als nächstes einzeln durch die Datentür +
    ESLint-Liste + Migration tenantId. NICHT beides parallel.
 4. tickets/feedback/media/activity: **eingefroren** — keine Arbeit, bis die

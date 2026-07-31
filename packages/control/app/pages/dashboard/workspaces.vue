@@ -33,7 +33,7 @@ async function inviteOwner(workspace: WorkspaceWithSites) {
 }
 
 const planFeatures = (plan: string): string[] =>
-  (appConfig.maui as { studio?: { plans?: Record<string, { features: string[] }> } }).studio?.plans?.[plan]?.features ?? []
+  (appConfig.pukalani as { studio?: { plans?: Record<string, { features: string[] }> } }).studio?.plans?.[plan]?.features ?? []
 
 // ── Anlegen ────────────────────────────────────────────────────────────────
 const showCreate = ref(false)
@@ -91,7 +91,7 @@ const startingCheckout = ref(false)
 const { locale } = useI18n()
 
 const paidPlans = computed(() =>
-  Object.entries((appConfig.maui as { studio?: { plans?: Record<string, { lookupKey: string | null }> } }).studio?.plans ?? {})
+  Object.entries((appConfig.pukalani as { studio?: { plans?: Record<string, { lookupKey: string | null }> } }).studio?.plans ?? {})
     .filter(([, plan]) => plan.lookupKey)
     .map(([key]) => key))
 

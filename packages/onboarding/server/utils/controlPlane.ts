@@ -74,7 +74,7 @@ export async function callControlPlane<T>(event: H3Event, path: string, body: Re
     // in einer ANDEREN App, also gibt es hier keine abgeleiteten Route-Typen).
     return await $fetch<T>(`${url}${path}`, {
       method: 'POST',
-      headers: { 'x-maui-onboarding-secret': secret },
+      headers: { 'x-pukalani-onboarding-secret': secret },
       body,
       timeout: 15_000,
     }) as T
@@ -92,7 +92,7 @@ export async function callControlPlane<T>(event: H3Event, path: string, body: Re
     // keine Appwrite-Details, keine fremden Nutzlasten.
     if (typeof status === 'number' && status >= 400 && status < 500) {
       // ZWEI Envelopes hintereinander, und das ist die Stelle, an der man sich
-      // vertut: das Control Plane ist selbst eine maui-App, seine Antwort ist
+      // vertut: das Control Plane ist selbst eine pukalani-App, seine Antwort ist
       // also schon das fertige Envelope `{ ok, code, message, reason }`. Bei
       // $fetch steckt dieser Body in `error.data`. Der Grund muss hier deshalb
       // aus `data.reason` gelesen und als `data.code` NEU gesetzt werden —

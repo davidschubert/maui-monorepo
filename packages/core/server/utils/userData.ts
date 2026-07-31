@@ -8,7 +8,7 @@ import type { H3Event } from 'h3'
  * `server/plugins/user-data.ts`) einen Contributor; core orchestriert Export
  * und Löschung über diese Registry (userDataOrchestration.ts), ohne ein
  * einziges Feature-Schema zu importieren. Gleiches Kompositionsprinzip wie
- * `maui.admin.modules`: Apps ohne einen Layer haben dessen Plugin nicht →
+ * `pukalani.admin.modules`: Apps ohne einen Layer haben dessen Plugin nicht →
  * die Registry ist automatisch korrekt besetzt.
  */
 

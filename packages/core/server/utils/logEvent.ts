@@ -1,6 +1,6 @@
 /**
  * Strukturierte Logs (eine JSON-Zeile pro Ereignis auf stdout/stderr) — das
- * Fundament des Observability-Gates (maui.observability). In Produktion
+ * Fundament des Observability-Gates (pukalani.observability). In Produktion
  * sammelt der Prozess-Manager (ploi/systemd/Docker) stdout ein; die Zeilen
  * sind maschinenlesbar (Log-Shipper, grep -F '"event":"server.error"').
  *

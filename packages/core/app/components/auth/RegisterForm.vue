@@ -12,13 +12,13 @@ const showPassword = ref(false)
 const showPasswordConfirm = ref(false)
 
 // AGB-Checkbox nur, wenn die App eine termsUrl konfiguriert (config-gated)
-const termsUrl = computed(() => appConfig.maui?.auth?.termsUrl ?? '')
+const termsUrl = computed(() => appConfig.pukalani?.auth?.termsUrl ?? '')
 const requireTerms = computed(() => !!termsUrl.value)
 const schema = computed(() => createRegisterFormSchema(t, { requireTerms: requireTerms.value }))
 
 // Eingegebene E-Mail + Name überleben den Wechsel Login ↔ Register ↔ Code
-const sharedEmail = useState('maui-auth-email', () => '')
-const sharedName = useState('maui-auth-name', () => '')
+const sharedEmail = useState('pukalani-auth-email', () => '')
+const sharedName = useState('pukalani-auth-name', () => '')
 const state = reactive<RegisterFormInput>({
   name: sharedName.value,
   email: sharedEmail.value,

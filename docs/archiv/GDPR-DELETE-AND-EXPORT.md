@@ -162,7 +162,7 @@ beim Serverstart, kein Request-State. Der Vertrag ist explizit und typisiert
 (Feature importiert das Interface sichtbar über den Auto-Import des
 Fundament-Layers — erlaubte Richtung Feature→core, A14-konform). Apps ohne
 einen Layer haben dessen Plugin schlicht nicht → Registry ist automatisch
-korrekt komponiert (dasselbe Kompositionsprinzip wie `maui.admin.modules`).
+korrekt komponiert (dasselbe Kompositionsprinzip wie `pukalani.admin.modules`).
 
 ### 4.2 Pagination-Helfer (core)
 
@@ -387,7 +387,7 @@ Der URL→fileId-Parser aus `profile.put.ts` Z. 5–9 wird nach
 - Feature→core-Import des Interfaces ist die erlaubte Richtung; ESLint-
   Backstop unverändert gültig. CONCEPT §A14 um den neuen Vertrag ergänzen
   (Zeile in der „Durchsetzung"-Liste: `registerUserDataContributor` als
-  Beispiel expliziter Verträge neben `notify()` und `maui.admin.modules`).
+  Beispiel expliziter Verträge neben `notify()` und `pukalani.admin.modules`).
 
 ---
 
@@ -471,9 +471,9 @@ Geschätzter Gesamtumfang: ~2–3 fokussierte Arbeitstage.
 
 | # | Frage | Default im Plan | Alternative |
 |---|-------|-----------------|-------------|
-| E1 | Kommentar-`content` bei Erasure leeren? | Ja (Tombstone, Art.-17-sicher) | Reddit-Style: Inhalt behalten, nur Autor anonymisieren — dann Config-Gate `maui.gdpr.keepContentOnErasure` (Default false) |
+| E1 | Kommentar-`content` bei Erasure leeren? | Ja (Tombstone, Art.-17-sicher) | Reddit-Style: Inhalt behalten, nur Autor anonymisieren — dann Config-Gate `pukalani.gdpr.keepContentOnErasure` (Default false) |
 | E2 | Vote-Zähler nach Vote-Row-Löschung neu berechnen? | Nein (Aggregate bleiben; Selbstheilung beim nächsten Vote) | Re-Count pro betroffenem Kommentar im Contributor (teuer: ein Query pro Kommentar) |
-| E3 | Snapshot-Pflicht auch bei **Selbst**-Löschung? | Ja (Missbrauchs-/Support-Fälle; 30-Tage-Frist begrenzt das Risiko) | Datenschutzfreundlicher: nur bei Admin-Löschung snapshotten bzw. Gate `maui.gdpr.snapshotOnSelfDelete` |
+| E3 | Snapshot-Pflicht auch bei **Selbst**-Löschung? | Ja (Missbrauchs-/Support-Fälle; 30-Tage-Frist begrenzt das Risiko) | Datenschutzfreundlicher: nur bei Admin-Löschung snapshotten bzw. Gate `pukalani.gdpr.snapshotOnSelfDelete` |
 | E4 | Snapshot-fileId deterministisch (`gdpr-<userId>`) statt `ID.unique()`? | `ID.unique()` + Timestamp im Namen (Re-Runs erzeugen Zweitdatei, Cleanup räumt) | deterministisch = idempotenter, aber Re-Run überschreibt den Erst-Snapshot (delete+create nötig) |
 | E5 | Cleanup-Garantie über Lazy-Cleanup hinaus? | Lazy in der List-Route + beim Snapshot | Appwrite Scheduled Function (Function-Scaffold existiert laut OPEN-ITEMS-Ideen) — täglicher Sweep |
 | E6 | `resolvedBy`-Query per Index oder Full-Scan? | Full-Scan via listAllRows (Reports-Volumen klein) | Migration `moderation/002-resolvedby-index.ts` |

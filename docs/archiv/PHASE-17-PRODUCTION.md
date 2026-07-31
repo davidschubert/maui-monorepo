@@ -286,7 +286,7 @@ Hetzner-Backups optional.
   „server only" ohne Sites in ploi hängen) oder simplem Cron+Mail.
 - **Appwrite-eigene Health-Endpoints** (`/v1/health/*`, Key-pflichtig) sind die
   Diagnose-Ebene bei Incidents, nicht das Dauer-Monitoring.
-- **Später (OPEN-ITEMS Idee 5, „fast Pflicht"):** `maui.observability`-Gate
+- **Später (OPEN-ITEMS Idee 5, „fast Pflicht"):** `pukalani.observability`-Gate
   (Sentry/strukturierte Logs am zentralen error.ts) — bewusst NACH dem
   Go-Live als eigener Schritt.
 
@@ -375,7 +375,7 @@ DEPLOYMENT.md §5 hat den Schritt schon).
 | 5 | **Monitoring-Dienst** | **UptimeRobot free** + ploi-Server-Monitoring |
 | 6 | **`/console`-IP-Restriktion** | **Whitelist reicht** (`_APP_CONSOLE_WHITELIST_EMAILS=mail@davidschubert.com`); IP-Allowlist = Stufe 2 bei Bedarf |
 | 7 | **Appwrite Function `changelog-draft`** | **Follow-up Woche 2** nach Go-Live |
-| 8 | **Observability-Gate** | **Direkt nach Go-Live** (Woche 1: Sentry am maui.observability-Gate andocken) |
+| 8 | **Observability-Gate** | **Direkt nach Go-Live** (Woche 1: Sentry am pukalani.observability-Gate andocken) |
 | 9 | **CI-Gate-Umfang** | **Nur „Test" grün gated den Deploy**; Typecheck/Lint bleiben Warnlampen |
 | 10 | **www/Root-Redirect** | **Vorerst Redirect auf die App**, Plattform-Landingpage später |
 
@@ -412,7 +412,7 @@ Reihenfolge einhalten — jeder Block baut auf dem vorherigen auf.
       verifizieren (SPF/DKIM-Records notieren — kommen in Block 2 mit ins DNS) 💶 (Free-Tier reicht oft)
 - ploi.io-Account bereit (Plan mit 2 Servern) 💶 (~8–10 €/Monat)
 - Hetzner-Cloud-Account bereit, SSH-Key hinterlegt
-- Passwort-Manager-Eintrag „maui-prod" anlegen (sammelt gleich: Keys, IDs, Webhook-URL)
+- Passwort-Manager-Eintrag „pukalani-prod" anlegen (sammelt gleich: Keys, IDs, Webhook-URL)
 
 ### Block 1 — Server bestellen 💶
 
@@ -558,7 +558,7 @@ Monitor 2 (Keyword `"ok":true`) wieder aktiviert, Health liefert `ok:true`.
 
 **Nachtrag E-Mail-Verifizierung + Appwrite-SMTP-Bug (2026-07-19):** Seit
 `17c8ae3` verschickt der Signup eine nicht-blockierende Verification-Mail
-(`maui.auth.verification`). Auf Prod kam sie zunächst NICHT an, obwohl der
+(`pukalani.auth.verification`). Auf Prod kam sie zunächst NICHT an, obwohl der
 mails-Worker `mail.status success` loggte — Ursache ist ein **Appwrite-
 1.9.5-Bug**: der Instanz-SMTP-Adapter läuft mit `keepAlive: true`
 (hartkodiert in `app/init/registers.php`); stirbt die Verbindung im
@@ -636,7 +636,7 @@ Appwrite-Keys eingesetzt sind und der Smoke-Test grün ist (sonst
 Dauer-Alarm). E-Mail-Alerts an mail@davidschubert.com, Test-Mail verschickt.
 Öffentliche Status-Page bewusst DEAKTIVIERT (kann später aktiviert werden).
 
-**Storage Box ✅ bestellt (2026-07-18):** `maui-backup` BX11 (1 TB,
+**Storage Box ✅ bestellt (2026-07-18):** `pukalani-backup` BX11 (1 TB,
 3,81 €/Monat, Falkenstein, #617130) über die Hetzner Console. SSH-Support
 aktiviert, SSH-Key des ploi-Users von appwrite-prod hinterlegt
 (`ploi-appwrite-prod-backup`); Passwort NICHT gesetzt (SSH-Key-Auth; bei

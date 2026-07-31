@@ -19,10 +19,10 @@ einer Zeile `extends` Abo-Billing mit Stripe gibt:
   eine Read-Projektion.
 - **Eigenes Datenmodell** (Regel 3 aus CONCEPT: eigene Tables → niemals Core):
   `billing_customers` (userId ↔ stripeCustomerId) + `billing_subscriptions`.
-- **Deklarative Pläne** über Config-Gate `maui.billing` (Pläne, Features, Trial) —
+- **Deklarative Pläne** über Config-Gate `pukalani.billing` (Pläne, Features, Trial) —
   Core-Default `enabled: false`, App aktiviert explizit.
 - **RBAC-Anbindung**: neue Capability `billing.manage` in der Core-Matrix; Admin-Modul
-  registriert sich via `maui.admin.modules` (expliziter Vertrag, A14).
+  registriert sich via `pukalani.admin.modules` (expliziter Vertrag, A14).
 - **i18n de+en**, Zod-Factories, idempotente Migrations, keine Fehler-Leaks.
 
 Nicht-Ziele (v1): Stripe Connect/Marktplatz, Usage-based Billing, Multi-Currency-UI,
@@ -44,7 +44,7 @@ Begründung:
 
 1. **Gleiche Codebasis, gleiche Verträge.** Der Webhook-Handler braucht genau das, was
    der Layer schon hat: `createAdminClient(event)` (Auto-Import aus core), die
-   `shared/types/billing.ts`, die Plan-Auflösung aus `maui.billing`, `toH3Error`-Hygiene.
+   `shared/types/billing.ts`, die Plan-Auflösung aus `pukalani.billing`, `toH3Error`-Hygiene.
    Eine Appwrite Function wäre ein zweites Deployment-Artefakt mit eigenem Env-Satz,
    eigenem Stripe-SDK-Bundle, ohne Auto-Imports, ohne die Layer-Typen — exakt das
    String-/Copy-Coupling, das A14 verbietet.
@@ -115,7 +115,7 @@ nach Checkout via `useRealtimeRows`), (c) Admin-Übersicht.
 
 ### B5 — Preis-Tampering ausgeschlossen: Client sendet `planId`, nie `priceId`
 
-Der Checkout-Endpoint akzeptiert nur eine `planId` aus `maui.billing.plans` (Zod-Enum
+Der Checkout-Endpoint akzeptiert nur eine `planId` aus `pukalani.billing.plans` (Zod-Enum
 gegen die konfigurierten Pläne). Der Server mappt `planId → lookup_key → Stripe Price`.
 Ein manipulierter Request kann keinen fremden/rabattierten Preis buchen.
 `client_reference_id = userId` + `metadata.userId` auf der Checkout Session, damit der
@@ -129,7 +129,7 @@ Webhook die Zuordnung auch ohne Customer-Lookup verifizieren kann.
   Admin-Routen/Seiten des Layers via `requirePermission(event, 'billing.manage')`.
   Reiner additiver Core-Change → eigener Commit (A6).
 - **Entitlements (Plan-Features, billing)** = *was darf der zahlende User*. Deklarativ
-  in `maui.billing.plans[].features` (z. B. `'comments.unlimited'`, `'export'`).
+  in `pukalani.billing.plans[].features` (z. B. `'comments.unlimited'`, `'export'`).
   Der Layer stellt bereit:
   - Server: `getActiveSubscription(event)` (eine indizierte Query nach `userId`,
     Admin-Client, per-Request-memoized am `event.context`) und
@@ -140,20 +140,20 @@ Webhook die Zuordnung auch ohne Customer-Lookup verifizieren kann.
   Stripe-Wahrheit und Label; die eine indizierte Query ist billig).
 - **A14-Grenze**: andere Feature-Layer importieren NICHTS aus billing (Feature↔Feature
   verboten). Feature-Gating anderer Layer passiert in der **App** (die darf beide
-  komponieren) oder später über einen Core-Vertrag (`maui.flags`-Registry ist in
+  komponieren) oder später über einen Core-Vertrag (`pukalani.flags`-Registry ist in
   OPEN-ITEMS ohnehin angedacht) — bewusst v2, nicht jetzt.
 
-### B7 — Config-Gate `maui.billing` (deklarativ, deep-merged)
+### B7 — Config-Gate `pukalani.billing` (deklarativ, deep-merged)
 
 ```ts
 // packages/billing/app/app.config.ts — Defaults (Layer ist tot bis App aktiviert)
-maui: {
+pukalani: {
   billing: {
     enabled: false,
     currency: 'eur',
     trialDays: 0,                    // 0 = kein Trial
     plans: [
-      // Form entspricht MauiBillingPlan (billing/shared) — analog MauiAdminModule
+      // Form entspricht PukalaniBillingPlan (billing/shared) — analog PukalaniAdminModule
       // { id: 'free', lookupKey: null,        labelKey: 'billing.plans.free', features: [] },
       // { id: 'pro',  lookupKey: 'maui_pro_monthly', labelKey: 'billing.plans.pro',
       //   features: ['export'], highlight: true },
@@ -176,8 +176,8 @@ maui: {
 - `enabled: false` ⇒ Routen antworten 404, Komponenten rendern nichts, Admin-Modul
   wird zwar registriert, die Seite zeigt aber den „nicht aktiviert"-Zustand
   (gleiches Muster wie analytics/consent-Gates).
-- Typ `MauiBillingConfig` in `billing/shared/types/billing.ts`; die Registry-Erweiterung
-  von `maui.admin.modules` folgt exakt dem comments-Muster (expliziter Vertrag, kein
+- Typ `PukalaniBillingConfig` in `billing/shared/types/billing.ts`; die Registry-Erweiterung
+  von `pukalani.admin.modules` folgt exakt dem comments-Muster (expliziter Vertrag, kein
   Import in admin).
 
 ### B8 — Env-Handling (A11-konform)
@@ -204,7 +204,7 @@ NUXT_STRIPE_WEBHOOK_SECRET=      # server-only! whsec_… (pro Endpoint/CLI-Sess
 ```
 packages/billing/
 ├── app/
-│   ├── app.config.ts                    # B7: maui.billing-Defaults + Admin-Modul
+│   ├── app.config.ts                    # B7: pukalani.billing-Defaults + Admin-Modul
 │   ├── components/
 │   │   ├── BillingPricingTable.vue      # Pläne aus Config, CTA → Checkout
 │   │   ├── BillingSubscriptionCard.vue  # Status, Periodenende, Portal-Button
@@ -226,7 +226,7 @@ packages/billing/
 │       ├── stripe.ts                    # useStripe(event), Price-Cache
 │       ├── billingCustomer.ts           # ensureCustomer(event, user) — Mapping
 │       └── entitlements.ts              # getActiveSubscription, requireEntitlement
-├── shared/types/billing.ts              # Rows, MauiBillingConfig, Status-Union
+├── shared/types/billing.ts              # Rows, PukalaniBillingConfig, Status-Union
 ├── schemas/billing.ts                   # createCheckoutSchema(t) etc. (Factories)
 ├── i18n/locales/{de,en}.json
 ├── scripts/migrations/001-billing-tables.ts
@@ -266,7 +266,7 @@ in der `package.json` jeder nutzenden App (shamefully-hoist=false).
 | `stripeCustomerId` | string(64), required | Index |
 | `stripeSubscriptionId` | string(64), required | Unique-Index `uq_stripe_sub` |
 | `status` | string(20), required | `active` `trialing` `past_due` `canceled` `incomplete` `incomplete_expired` `unpaid` `paused` (Stripe-Statusraum 1:1) |
-| `planId` | string(50), required | interner Plan-Key aus `maui.billing.plans` |
+| `planId` | string(50), required | interner Plan-Key aus `pukalani.billing.plans` |
 | `priceId` | string(64), required | konkreter Stripe-Price (Audit/Debug) |
 | `currentPeriodEnd` | datetime, required | für „verlängert sich am / läuft aus am" |
 | `cancelAtPeriodEnd` | boolean, required, default false | Kündigungs-Anzeige |
@@ -301,7 +301,7 @@ Browser                Nuxt Server (billing)                 Stripe             
   │  klick „Pro wählen"        │                                │                      │
   ├─ POST /api/billing/checkout {planId:'pro'} ─▶               │                      │
   │                            │ 401 ohne event.context.user    │                      │
-  │                            │ 404 wenn maui.billing.enabled=false                   │
+  │                            │ 404 wenn pukalani.billing.enabled=false                   │
   │                            │ Zod: planId ∈ konfigurierte Pläne (B5)                │
   │                            ├─ ensureCustomer(user) ────────────────────────────────▶ Row-Lookup userId
   │                            │      (fehlt) ──▶ customers.create{metadata.userId} ─▶ │
@@ -378,8 +378,8 @@ Kein eigener Cancel-Endpoint in v1 — das Portal ist die einzige Mutations-UI
 
 ### Phase B-1 — Layer-Gerüst & Config-Gate
 4. (M) `packages/billing` scaffolden nach comments-Vorbild: `package.json` (catalog:-Deps inkl. `stripe`), `nuxt.config.ts` (runtimeConfig-Skeleton B8, i18n-Locales, ggf. `imports.dirs`), leere Struktur aus B9, ESLint-Scope in `eslint.config.mjs` (Feature-Layer-Regeln: kein Import anderer Feature-Layer).
-5. (S) `shared/types/billing.ts`: `BillingCustomerRow`/`BillingSubscriptionRow` (extends `Models.Row`), `SubscriptionStatus`-Union, `MauiBillingPlan`/`MauiBillingConfig`.
-6. (S) `app/app.config.ts`: `maui.billing`-Defaults (`enabled: false`) + Admin-Modul-Registrierung (B7).
+5. (S) `shared/types/billing.ts`: `BillingCustomerRow`/`BillingSubscriptionRow` (extends `Models.Row`), `SubscriptionStatus`-Union, `PukalaniBillingPlan`/`PukalaniBillingConfig`.
+6. (S) `app/app.config.ts`: `pukalani.billing`-Defaults (`enabled: false`) + Admin-Modul-Registrierung (B7).
 7. (S) `.env.example` der Pilot-App um `NUXT_STRIPE_SECRET_KEY` + `NUXT_STRIPE_WEBHOOK_SECRET` ergänzen; `apps/<pilot>/nuxt.config.ts` extends um billing erweitern; App bootet unverändert (Gate aus) → lint/typecheck grün.
 
 ### Phase B-2 — Datenmodell & Migration
@@ -389,7 +389,7 @@ Kein eigener Cancel-Endpoint in v1 — das Portal ist die einzige Mutations-UI
 ### Phase B-3 — Stripe-Server-Fundament
 10. (M) `server/utils/stripe.ts`: lazy `useStripe(event)` (Key-Check → generischer 500 + Log), Price-Resolver `lookup_key → Price` mit TTL-Cache, `toStripeSafeError`-Helper (Mapping auf generische h3-Fehler, keine Leaks).
 11. (M) `server/utils/billingCustomer.ts`: `ensureCustomer(event, user)` mit Unique-Index-Race-Behandlung (409 → Gewinner-Row lesen, Doppel-Customer bei Stripe löschen).
-12. (S) `schemas/billing.ts`: `createCheckoutSchema(t)`-Factory (planId validiert gegen `maui.billing.plans`-IDs zur Laufzeit), i18n-Fehlerkeys.
+12. (S) `schemas/billing.ts`: `createCheckoutSchema(t)`-Factory (planId validiert gegen `pukalani.billing.plans`-IDs zur Laufzeit), i18n-Fehlerkeys.
 
 ### Phase B-4 — Checkout & Portal (Ablauf 4.1/4.3)
 13. (M) `POST /api/billing/checkout`: Gates (401/404/409-bereits-aktiv), Zod, ensureCustomer, Session-Create mit `client_reference_id`/`metadata.userId`, locale-aware success/cancel-URLs (`config.public.appUrl` + Locale-Prefix — Redirects über localePath-Logik, CLAUDE.md-Regel).

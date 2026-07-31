@@ -1,10 +1,10 @@
 /**
  * tickets meldet seine Dashboard-Sektion bei der Admin-Modul-Registry an
- * (maui.admin.modules, deep-merged) — das Layout rendert sie
+ * (pukalani.admin.modules, deep-merged) — das Layout rendert sie
  * capability-gefiltert (Layer-Grenze A14).
  */
 export default defineAppConfig({
-  maui: {
+  pukalani: {
     admin: {
       modules: [
         {

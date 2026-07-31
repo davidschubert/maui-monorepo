@@ -4,7 +4,7 @@
 > (A14 Layer-Grenzen), `packages/comments` als Referenz-Feature-Layer,
 > `packages/feed` (Activity-Stream), moderation-Layer (generische Reports),
 > GOALS.md Phase 25. Vorbild-Idee: Circle.so „Feed / Polls & Questions" —
-> hier bewusst auf die maui-Architektur umgeformt (Leitplanke, keine Kopie).
+> hier bewusst auf die pukalani-Architektur umgeformt (Leitplanke, keine Kopie).
 
 ## 1. Ziel & Abgrenzung
 
@@ -107,7 +107,7 @@ Unique-Index postId+userId, Index postId+optionIndex (Zählung).
   „Planen"-Datumsfeld), `PostCard`/`PollCard` (Balken, Countdown)/
   `QuestionCard` (Frage-Stil prominent), Kommentare aufklappbar (App bindet
   CommentSection), „Neue Beiträge"-Pille; Dashboard `dashboard/posts`
-  (Moderation + globale Scheduled-Queue) via `maui.admin.modules`.
+  (Moderation + globale Scheduled-Queue) via `pukalani.admin.modules`.
 - i18n de+en; alle Strings Keys; Zod als `create*Schema(t)`-Factories.
 
 ## 5. Offene Entscheidungen (vor dem Goal fixieren oder im Goal annehmen)

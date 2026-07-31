@@ -272,7 +272,7 @@ export interface BrandCardInput {
   color: string
   /** Anzeigename der Community (tenants.name) */
   name: string
-  /** Dezente Wortmarke unten (maui.brand.name) */
+  /** Dezente Wortmarke unten (pukalani.brand.name) */
   wordmark: string
 }
 

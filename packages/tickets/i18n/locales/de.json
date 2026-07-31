@@ -135,7 +135,7 @@
       "reset": "Auf Standard zurücksetzen",
       "saved": "KI-Modell gespeichert: {model}",
       "invalid": "Speichern fehlgeschlagen — Modell-Id im Format vendor/model?",
-      "aiDisabled": "Die KI-Triage ist in dieser App nicht aktiviert (maui.tickets.ai)."
+      "aiDisabled": "Die KI-Triage ist in dieser App nicht aktiviert (pukalani.tickets.ai)."
     }
   }
 }

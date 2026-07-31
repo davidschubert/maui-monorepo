@@ -26,7 +26,7 @@ export interface ModeratedComment {
 export interface AdminCommentListResponse {
   total: number
   comments: ModeratedComment[]
-  /** true = KI-Assist nutzbar (maui.ai an + NUXT_AI_KEY gesetzt) → UI zeigt den Button */
+  /** true = KI-Assist nutzbar (pukalani.ai an + NUXT_AI_KEY gesetzt) → UI zeigt den Button */
   aiAssist: boolean
 }
 

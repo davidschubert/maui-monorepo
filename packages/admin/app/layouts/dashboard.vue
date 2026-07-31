@@ -25,13 +25,13 @@ const featureOn = (featureKey?: string) =>
 // der ein Betreiber sie liest. Core-Default aus: eine Community-Shell soll
 // nicht ungefragt eine zweite Glocke bekommen.
 const accountBell = computed(() =>
-  (appConfig.maui as { chrome?: { accountBell?: boolean } }).chrome?.accountBell === true)
+  (appConfig.pukalani as { chrome?: { accountBell?: boolean } }).chrome?.accountBell === true)
 
 const open = ref(false)
 
 // Sidebar-Optik umschaltbar: sidebar | floating | inset. Nuxt UI hat diese
 // Varianten nicht nativ — floating/inset bilden wir per CSS nach. Default floating.
-const sidebarVariant = useCookie<'sidebar' | 'floating' | 'inset'>('maui-sidebar-variant', { default: () => 'floating' })
+const sidebarVariant = useCookie<'sidebar' | 'floating' | 'inset'>('pukalani-sidebar-variant', { default: () => 'floating' })
 
 const sidebarClass = computed(() => {
   switch (sidebarVariant.value) {
@@ -82,7 +82,7 @@ const links = computed<NavigationMenuItem[]>(() => {
   // erben die Capability des Moduls, sofern keine eigene gesetzt ist).
   // group 'products' rendert unter einem Abschnitts-Label; placement
   // 'userMenu' gehört ins Account-Menü (DashboardUserMenu), nicht hierher.
-  const toItem = (m: MauiAdminModule): NavigationMenuItem => {
+  const toItem = (m: PukalaniAdminModule): NavigationMenuItem => {
     const children = (m.children ?? [])
       .filter(child => can(child.requiredCapability ?? m.requiredCapability))
       .map(child => ({ label: t(child.labelKey), icon: child.icon, to: localePath(child.to), exact: child.exact, onSelect: close }))
@@ -90,7 +90,7 @@ const links = computed<NavigationMenuItem[]>(() => {
       ? { label: t(m.labelKey), icon: m.icon, defaultOpen: route.path.startsWith(localePath(m.to)), children }
       : { label: t(m.labelKey), icon: m.icon, to: localePath(m.to), onSelect: close }
   }
-  const modules = ((appConfig.maui?.admin?.modules ?? []) as MauiAdminModule[])
+  const modules = ((appConfig.pukalani?.admin?.modules ?? []) as PukalaniAdminModule[])
     .filter(m => (m.placement ?? 'nav') === 'nav' && can(m.requiredCapability) && featureOn(m.featureKey))
   for (const m of modules.filter(m => !m.group)) items.push(toItem(m))
   // Gruppen in fester Reihenfolge; innerhalb sortiert 'order' (sonst Registry-

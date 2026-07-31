@@ -5,10 +5,10 @@
  * (requirePlanProduct) — hier geht es nur um Sichtbarkeit.
  */
 export function useTenantPlan() {
-  const plan = useState<string | null>('maui-tenant-plan', () => null)
+  const plan = useState<string | null>('pukalani-tenant-plan', () => null)
   const appConfig = useAppConfig()
 
-  const tenancy = computed(() => (appConfig.maui as {
+  const tenancy = computed(() => (appConfig.pukalani as {
     tenancy?: { quota?: { plans?: Record<string, unknown> }, products?: Record<string, string | undefined> }
   }).tenancy)
   const planOrder = computed(() => Object.keys(tenancy.value?.quota?.plans ?? {}))

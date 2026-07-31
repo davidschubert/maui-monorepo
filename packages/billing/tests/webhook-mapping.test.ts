@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import type Stripe from 'stripe'
 import { isNewPaymentFailure, isStale, planIdForPrice, subscriptionToPatch, toSubscriptionStatus, WEBHOOK_ALLOWLIST } from '../server/utils/webhookMapping'
-import type { MauiBillingPlan } from '../shared/types/billing'
+import type { PukalaniBillingPlan } from '../shared/types/billing'
 
-const PLANS: MauiBillingPlan[] = [
+const PLANS: PukalaniBillingPlan[] = [
   { id: 'free', labelKey: 'billing.plans.free', features: [], lookupKeys: null },
   { id: 'pro', labelKey: 'billing.plans.pro', features: ['courses.paid'], lookupKeys: { monthly: 'maui_pro_monthly', yearly: 'maui_pro_yearly' } },
 ]

@@ -316,7 +316,7 @@ export default defineFeatureManifest({
   requires: ['moderation'],      // Layer-Abhängigkeiten
   migrations: 'scripts/migrations',
   adminModules: [...],           // wandert aus app.config hierher (Referenz)
-  runtimeGate: 'maui.comments.enabled',
+  runtimeGate: 'pukalani.comments.enabled',
 })
 ```
 
@@ -363,12 +363,12 @@ export default defineFeatureManifest({
 
 ### F2 — Laufzeit-Gates verallgemeinern (`getEffectiveConfig`)
 
-Das AI-Override-Muster (`app_config.aiModel > maui.ai`) wird generalisiert:
+Das AI-Override-Muster (`app_config.aiModel > pukalani.ai`) wird generalisiert:
 
 - `app_config` bekommt ein `features`-JSON (system-Migration): pro
   Feature-Key `enabled` + optionale Settings-Overrides.
 - `getEffectiveFeature(key)` (server) = Entitlement (§ F3) ∧
-  `app_config.features[key]` ∧ `maui.<key>`-Build-Default.
+  `app_config.features[key]` ∧ `pukalani.<key>`-Build-Default.
 - Client: `useFeature(key)` — reaktiv über den EXISTIERENDEN
   realtime-config-Kanal (Toggle im Dashboard wirkt live, ohne Reload).
 - Enforcement bleibt server-seitig an den Routen (wie heute
@@ -503,7 +503,7 @@ was Ordnung hält. Verbindliche Konventionen (bestehende fortgeschrieben):
 - **Keys:** pro Projekt exakt zwei (Runtime + Migrations, bestehende Regel);
   Benennung `<projectId>-runtime` / `<projectId>-migrations`.
 - **Feature-Keys** (Manifest F1) = Layer-Name = Entitlement-Key = Changelog-
-  Tag = `maui.<key>`-Gate — EIN Begriff pro Feature durch alle Ebenen.
+  Tag = `pukalani.<key>`-Gate — EIN Begriff pro Feature durch alle Ebenen.
 - **Drift-Check:** ein Script vergleicht Ist-Schema einer Instanz gegen die
   Migrations-Definitionen (Teil der Health-Checks im Control Plane) — Sites
   dürfen strukturell nie voneinander abweichen, nur im Feature-SET.
@@ -648,7 +648,7 @@ und E-Mail-Links auf beiden Domains.
    `nuxt3-davidschubert.com` als `apps/portfolio` neu aufsetzen statt
    migrieren — **ohne Strapi** (entschieden 2026-07-14): Content kommt
    vollständig aus den eigenen Feature-Layern (pages/posts/media auf
-   Appwrite); `nuxt-maui-photos` Design behalten, als `apps/photos`
+   Appwrite); `nuxt-pukalani-photos` Design behalten, als `apps/photos`
    einziehen sobald media-Layer existiert; `hawaiistudio` (Prismic) ist
    KEINE Basis fürs Control Plane — frisch als `apps/control` bauen.
 
@@ -776,7 +776,7 @@ definierter Rollback (Code zurück ist einfach, Schema nur vorwärts —
 deshalb Migrationen abwärtskompatibel, s. o.).
 
 ### L6 — Zentrales Monitoring & Alerting (H2)
-`maui.observability` existiert pro App; es fehlt die Plattform-Sicht: Uptime-
+`pukalani.observability` existiert pro App; es fehlt die Plattform-Sicht: Uptime-
 Checks pro Site, Error-Raten, Realtime-Container-Watchdog (bekannter
 Swoole-Crash trifft künftig ALLE Sites), Quota-Verbrauch, Cert-Abläufe.
 Gehört ins Control Plane (M6-Health-Teil), Alerting an David (E-Mail reicht
@@ -786,7 +786,7 @@ anfangs). Der geteilte Server ist ein akzeptierter SPOF — akzeptiert heißt:
 **Site-Analytics** (Besucherstatistiken fürs eigene Dashboard des Kunden)
 ein eigenes, KOSTENPFLICHTIGES Feature (Layer-Kandidat `analytics`, läuft
 über das normale Manifest-/Entitlement-System; datenschutzfreundlich,
-cookielos — passt zu maui.consent).
+cookielos — passt zu pukalani.consent).
 
 ### L7 — Rechtsrahmen der Plattform (H2 vor erstem Kunden)
 Sobald Kunden-Sites laufen, ist David im **Standardmodell
@@ -800,7 +800,7 @@ zahlender Kunde. Impressum/Datenschutz PRO SITE liefert der pages-Layer
 Punkt „Impressum, Datenschutz, Kontakt gibt es fast immer").
 
 ### L8 — OAuth auf Custom Domains (Fußnote, H3)
-Social-Login (`maui.auth.providers`) braucht pro OAuth-App registrierte
+Social-Login (`pukalani.auth.providers`) braucht pro OAuth-App registrierte
 Redirect-Domains. Für hunderte Platform-Sites mit Custom Domains ist „ein
 Google-Client pro Site" nicht wartbar. Pragmatik: OAuth-Buttons auf
 Platform-Sites zunächst nur unter `*.hawaii.studio` (eine registrierte

@@ -62,14 +62,14 @@ export default defineEventHandler(async (event) => {
    */
   await joinSite(event, 'registration', { sessionSecret: session.secret, userId: session.userId })
 
-  // Nicht-blockierende E-Mail-Verifizierung (maui.auth.verification): die
+  // Nicht-blockierende E-Mail-Verifizierung (pukalani.auth.verification): die
   // Bestätigungs-Mail geht über die Instanz-SMTP raus, der User ist trotzdem
   // sofort eingeloggt. Best-effort — ein Mail-Fehler darf den Signup nie
   // kippen. Der frische Session-Secret ist noch nicht im Request-Cookie,
   // daher ein eigener Client statt createSessionClient(event).
   const config = useRuntimeConfig(event)
-  const appConfig2 = useAppConfig() as { maui?: { auth?: { verification?: boolean } } }
-  if (appConfig2.maui?.auth?.verification && config.public.appUrl) {
+  const appConfig2 = useAppConfig() as { pukalani?: { auth?: { verification?: boolean } } }
+  if (appConfig2.pukalani?.auth?.verification && config.public.appUrl) {
     try {
       const client = new Client()
         .setEndpoint(config.public.appwriteEndpoint)

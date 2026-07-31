@@ -5,7 +5,7 @@ import { createGuestCommentSchema } from '../../schemas/comment'
 
 /**
  * Gast-Kommentar-Formular (Embed E4): Kommentieren ohne Account — Name, E-Mail
- * und Text. Nur im iframe-Embed sichtbar, wenn maui.comments.embed.guests an
+ * und Text. Nur im iframe-Embed sichtbar, wenn pukalani.comments.embed.guests an
  * ist und niemand eingeloggt ist. Postet an /api/comments/guest (store.
  * addGuestComment); die E-Mail wird nur gesendet, nie im Client gehalten.
  */

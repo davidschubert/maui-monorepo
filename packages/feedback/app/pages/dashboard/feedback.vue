@@ -88,10 +88,10 @@ async function setDone(row: FeedbackRow, done: boolean) {
   }
 }
 
-// Feedback → Ticket (A14: die App setzt maui.feedback.ticketEndpoint und
+// Feedback → Ticket (A14: die App setzt pukalani.feedback.ticketEndpoint und
 // verdrahtet dahinter ihren Board-Layer; ohne Endpoint kein Button)
 const ticketEndpoint = computed(() =>
-  (appConfig.maui as { feedback?: { ticketEndpoint?: string } } | undefined)?.feedback?.ticketEndpoint ?? '')
+  (appConfig.pukalani as { feedback?: { ticketEndpoint?: string } } | undefined)?.feedback?.ticketEndpoint ?? '')
 const canConvert = computed(() =>
   ticketEndpoint.value !== '' && userHasCapability(auth.user, 'tickets.manage'))
 

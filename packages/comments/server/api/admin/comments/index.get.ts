@@ -44,7 +44,7 @@ export default defineEventHandler(async (event): Promise<AdminCommentListRespons
   // wir nicht mehr pflegen müssen.
   const ops = tenantDb(event, { as: 'operator' })
   // KI-Assist-Verfügbarkeit einmal pro Liste — das UI blendet den Button
-  // sonst gar nicht erst ein (core-Gate maui.ai + NUXT_AI_KEY)
+  // sonst gar nicht erst ein (core-Gate pukalani.ai + NUXT_AI_KEY)
   const aiAssist = isAiAvailable(event)
 
   /**

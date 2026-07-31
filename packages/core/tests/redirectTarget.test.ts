@@ -3,7 +3,7 @@ import { safeRedirectTarget } from '../shared/redirectTarget'
 
 describe('Ziel nach der Anmeldung (?redirect=)', () => {
   it('nimmt einen Pfad auf diesem Host — mit Query', () => {
-    expect(safeRedirectTarget('/start?code=MAUI-ABCD-2345')).toBe('/start?code=MAUI-ABCD-2345')
+    expect(safeRedirectTarget('/start?code=PUKA-ABCD-2345')).toBe('/start?code=PUKA-ABCD-2345')
     expect(safeRedirectTarget('/de/start?code=X')).toBe('/de/start?code=X')
     expect(safeRedirectTarget('/dashboard/invites')).toBe('/dashboard/invites')
   })

@@ -5,7 +5,7 @@ import type { TicketRow } from '../../../../packages/tickets/shared/types/ticket
  * App-Override des Ticket-Modal-Kommentarbereichs (A14: die App komponiert
  * tickets + comments): CommentSection mit targetType 'ticket' — der
  * comments-Layer behandelt das als Operator-Target (Rows nur für
- * admin/moderator lesbar, siehe maui.comments.operatorTargets).
+ * admin/moderator lesbar, siehe pukalani.comments.operatorTargets).
  */
 const props = defineProps<{ ticket: TicketRow }>()
 

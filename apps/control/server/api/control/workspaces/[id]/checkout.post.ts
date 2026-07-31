@@ -25,8 +25,8 @@ export default defineEventHandler(async (event) => {
   }
   const body = await readValidatedBody(event, checkoutSchema.parse)
 
-  const appConfig = useAppConfig() as { maui?: { studio?: { plans?: ControlPlanCatalog } } }
-  const plans = appConfig.maui?.studio?.plans ?? {}
+  const appConfig = useAppConfig() as { pukalani?: { studio?: { plans?: ControlPlanCatalog } } }
+  const plans = appConfig.pukalani?.studio?.plans ?? {}
   const plan = plans[body.plan]
   if (!plan) {
     throw createError({ status: 400, statusText: 'Unknown plan' })

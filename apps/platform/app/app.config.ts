@@ -1,5 +1,5 @@
 export default defineAppConfig({
-  maui: {
+  pukalani: {
     brand: { name: 'Pukalani' },
     // Demo-Community „Morgenlicht" (Tagesliste 2026-07-26): der Banner macht
     // auf diesen Hosts sichtbar, dass Inhalte Beispiel-Material sind; der CTA

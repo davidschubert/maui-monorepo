@@ -18,7 +18,7 @@ function localized(entry: ChangelogEntry, field: 'title' | 'body') {
 const entries = ref<ChangelogEntry[]>([])
 const open = ref(false)
 // "Zuletzt gesehen" pro Gerät — Einträge neuer als dieser Zeitstempel sind ungelesen
-const seen = useCookie<string>('maui-changelog-seen', {
+const seen = useCookie<string>('pukalani-changelog-seen', {
   default: () => '',
   maxAge: 60 * 60 * 24 * 365,
   sameSite: 'lax',

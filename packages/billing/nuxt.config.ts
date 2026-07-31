@@ -3,7 +3,7 @@
  * Stripe-hosted Checkout + Customer Portal (Redirect-Flow, kein Stripe-JS im
  * Client); Webhook als Nitro-Route (B1); eigene Projektion billing_customers/
  * billing_subscriptions (Stripe bleibt Source of Truth). Config-Gate
- * maui.billing (Core-Default enabled: false — der Layer ist tot, bis die App
+ * pukalani.billing (Core-Default enabled: false — der Layer ist tot, bis die App
  * ihn aktiviert). Extended den Core NICHT selbst; Feature-Gating anderer
  * Layer passiert in der APP (A14).
  */

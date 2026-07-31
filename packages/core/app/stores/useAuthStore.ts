@@ -11,7 +11,7 @@ export const useAuthStore = defineStore('auth', () => {
   // Site-Rolle (N1) folgt der Identität: SSR setzt sie via tenant-brand-Plugin
   // (expliziter Assign — s. dort), nach Client-Login holt refresh() sie nach,
   // Logout/Session-Ende nullt sie. Gleicher useState-Key wie useSiteRole().
-  const siteRole = useState<TenantRole | null>('maui-site-role', () => null)
+  const siteRole = useState<TenantRole | null>('pukalani-site-role', () => null)
 
   function setUser(value: CurrentUser | null) {
     user.value = value

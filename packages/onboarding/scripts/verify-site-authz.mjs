@@ -118,7 +118,7 @@ async function login(account) {
 }
 
 async function issueCode() {
-  const code = `MAUI-O5TEST-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
+  const code = `PUKA-O5TEST-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
   const row = await control.createRow({
     databaseId, tableId: 'invite_codes', rowId: ID.unique(),
     data: {

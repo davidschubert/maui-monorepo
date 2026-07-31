@@ -3,7 +3,7 @@ import { z } from 'zod'
 /**
  * KI-Modell zur Laufzeit wechseln — schreibt app_config.ticketsAiModel
  * (system-015). Leerer String = zurück auf den Build-Default aus
- * maui.tickets.ai. Erlaubt sind OpenRouter-artige Ids (vendor/model).
+ * pukalani.tickets.ai. Erlaubt sind OpenRouter-artige Ids (vendor/model).
  */
 const bodySchema = z.object({
   model: z.string().trim().max(100)

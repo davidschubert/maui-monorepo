@@ -1,9 +1,9 @@
 /**
  * pages meldet seine Dashboard-Sektion bei der Admin-Modul-Registry an
- * (maui.admin.modules, deep-merged) — capability-gefiltert (A14).
+ * (pukalani.admin.modules, deep-merged) — capability-gefiltert (A14).
  */
 export default defineAppConfig({
-  maui: {
+  pukalani: {
     // Chrome-Registry (S9): pages ist die CMS-Nav-Quelle — das blueprint-
     // Layout holt /api/pages/public NUR, wenn dieses Flag (= dieser Layer)
     // da ist. Veröffentlichte Seiten erscheinen in der Haupt-Nav, Seiten mit

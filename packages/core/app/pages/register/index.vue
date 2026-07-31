@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Out-of-the-box Register-Page aus dem Core — Apps können sie überschreiben.
-// Passwort-Registrierung; mit maui.auth.otp zusätzlich ein Link zur Code-Registrierung
+// Passwort-Registrierung; mit pukalani.auth.otp zusätzlich ein Link zur Code-Registrierung
 // (eigene Page /register/code).
 definePageMeta({ layout: 'auth', middleware: 'guest' })
 
@@ -9,7 +9,7 @@ const localePath = useLocalePath()
 const appConfig = useAppConfig()
 const flags = useRuntimeFlags()
 
-const otpEnabled = computed(() => appConfig.maui?.auth?.otp === true)
+const otpEnabled = computed(() => appConfig.pukalani?.auth?.otp === true)
 // Seitentitel „Registrieren · <Brand>" — gleiche Kette wie /login (B3-Rest).
 useBrandTitle(() => t('auth.register.title'))
 // S1 (Davids Entscheidung 4): diese Community nimmt neue Mitglieder nur auf

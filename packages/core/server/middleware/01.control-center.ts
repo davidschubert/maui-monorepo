@@ -8,7 +8,7 @@
  * Pool-Projekt lesen. `app.pukalani.app/api/comments` wäre damit ein Leck über
  * alle Kunden hinweg.
  *
- * Deshalb: nur ausdrücklich erlaubte API-Präfixe (maui.tenancy.controlApiPrefixes),
+ * Deshalb: nur ausdrücklich erlaubte API-Präfixe (pukalani.tenancy.controlApiPrefixes),
  * alles andere 404 — dieselbe Antwort wie ein unbekannter Host, es verrät also
  * nicht einmal, dass es die Route gibt.
  *
@@ -20,9 +20,9 @@ export default defineEventHandler((event) => {
   if (!event.context.controlCenter) return
 
   const appConfig = useAppConfig() as {
-    maui?: { tenancy?: { controlApiPrefixes?: string[] } }
+    pukalani?: { tenancy?: { controlApiPrefixes?: string[] } }
   }
-  const prefixes = appConfig.maui?.tenancy?.controlApiPrefixes ?? []
+  const prefixes = appConfig.pukalani?.tenancy?.controlApiPrefixes ?? []
   const path = event.path.split('?')[0] ?? ''
 
   if (!isAllowedControlPath(path, prefixes)) {

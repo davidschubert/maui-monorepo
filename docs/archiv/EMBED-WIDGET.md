@@ -3,7 +3,7 @@
 > **Status:** E0 ✅ + E1 ✅ (Read-only-MVP live, 2026-07-09) · **E2 ✅
 > (2026-07-23: Schreiben via Login-Popup + CHIPS — Tasks 9–12 umgesetzt,
 > Playwright-E2E `embed-write.spec.ts` grün; Cross-Site-Testseite:
-> https://davidschubert.com/maui-embed-test.html)** · E3 teilweise (Task 16
+> https://davidschubert.com/pukalani-embed-test.html)** · E3 teilweise (Task 16
 > Redis-Rate-Limit ✅ 2026-07-23) · Integrations-Doku: [docs/referenz/EMBED.md](../referenz/EMBED.md)
 > **Herkunft:** OPEN-ITEMS.md, Idee 9 — „targetId/targetType-Architektur ist dafür
 > gebaut (Disqus-Nische, self-hosted)". Aufwand-Gesamtschätzung: L.
@@ -34,7 +34,7 @@ anzeigt. Self-hosted, DSGVO-freundlich, ohne Tracking — die Lücke, die Disqus
   verbindet ohne JWT als Gast-WS und empfängt `read(any)`-Row-Events.
 - Moderation (moderation-Layer + Admin-Queue), Rate-Limiting
   ([rate-limit.ts](../../packages/core/server/middleware/rate-limit.ts)),
-  Config-Gates (`maui.*`) und der Wartungs-/Disable-Schalter
+  Config-Gates (`pukalani.*`) und der Wartungs-/Disable-Schalter
   ([commentPolicy.ts](../../packages/comments/server/utils/commentPolicy.ts)) existieren.
 
 **Das Delta ist also nicht „Kommentarsystem bauen", sondern: Auslieferung auf
@@ -54,7 +54,7 @@ Layout rendert.
 
 ```html
 <!-- Integration auf der Drittseite -->
-<div id="maui-comments"></div>
+<div id="pukalani-comments"></div>
 <script async src="https://comments.example.com/embed.js"
   data-target-id="mein-blogpost-42"
   data-target-type="blog"></script>
@@ -93,8 +93,8 @@ schlankes Vite-Build ohne Nuxt UI.
   (z. B. Security-Header-Helper). Keine neue Kopplung core→comments.
 - **Konsumierende App** (comments bzw. später eine dedizierte
   Embed-App auf Port 3002+) aktiviert das Feature per Config-Gate
-  `maui.comments.embed` (Core-Default-Muster: aus; App schaltet explizit an —
-  analog `maui.analytics`).
+  `pukalani.comments.embed` (Core-Default-Muster: aus; App schaltet explizit an —
+  analog `pukalani.analytics`).
 
 ---
 
@@ -243,7 +243,7 @@ Presence (Thread-Presence, Typing, JWT-Pflicht) bleibt im Embed **deaktiviert**
   Ein separates Micro-Bundle (Preact/vanilla) wäre eine spätere Optimierung,
   kein MVP-Kriterium.
 - **Welche App serviert?** MVP: die bestehende comments-App (Feature
-  per `maui.comments.embed` angeschaltet). Der saubere Endzustand ist eine
+  per `pukalani.comments.embed` angeschaltet). Der saubere Endzustand ist eine
   dedizierte dünne App `apps/embed-comments` (Port 3002+, eigene
   Appwrite-Instanz) — die hängt aber am offenen Punkt „Migrations auf
   comments gepinnt"/App-Template (OPEN-ITEMS, Idee 1) und ist deshalb
@@ -259,7 +259,7 @@ Presence (Thread-Presence, Typing, JWT-Pflicht) bleibt im Embed **deaktiviert**
   forcieren; (2) `auto`: `prefers-color-scheme` gilt **im iframe identisch
   zur Hostseite** (gleiches OS-Setting) — funktioniert ohne Kommunikation;
   (3) dynamischer Wechsel: Hostseite kann per `postMessage`
-  (`maui:set-theme`) nachsteuern (dokumentierte Loader-API).
+  (`pukalani:set-theme`) nachsteuern (dokumentierte Loader-API).
 - **Branding:** Query-Params für die Nuxt-UI-Token, die `app.config`
   überschreibt (`primary`-Farbe, `radius`, Font optional). Whitelist statt
   freiem CSS (kein CSS-Injection-Vektor). Transparenter iframe-Hintergrund
@@ -290,7 +290,7 @@ Maßnahmen:
    total, avatars) → billiger DoS-Hebel.
 2. **Site-Registry als zentrales Gate:** neue Table `embed_sites`
    (comments-Layer): registrierte Einbetter-Domain(s) je `targetType`,
-   verwaltet im Admin-Dashboard (Modul-Registry `maui.admin.modules` — Muster
+   verwaltet im Admin-Dashboard (Modul-Registry `pukalani.admin.modules` — Muster
    existiert, siehe [comments/app.config.ts](../../packages/comments/app/app.config.ts)).
    `/embed` prüft `Referer`/`Origin` bzw. den `url`-Param gegen die Registry
    und setzt daraus die `frame-ancestors`-CSP (→ b). Verhindert (best effort),
@@ -335,7 +335,7 @@ Doku, eigener Abschnitt „SEO-Verhalten"):
 ### MVP („einbettbar + sicher lesbar, schreiben nach Login im Popup")
 
 - iframe-Embed via `embed.js` + `/embed`-Seite in comments,
-  Config-Gate `maui.comments.embed` (Default aus)
+  Config-Gate `pukalani.comments.embed` (Default aus)
 - Gäste: lesen + live (Realtime als Invalidierungs-Signal, § 3c Option 1 —
   schließt zugleich den offenen `hidden`-REST-Punkt)
 - Schreiben: Login/Registrierung im Popup (Top-Level, bestehender Auth-Stack),
@@ -385,15 +385,15 @@ IE/Legacy-Browser.
    Nitro-Plugin `security-headers.ts` (render:response, alle SSR-Seiten
    `frame-ancestors 'self'`); comments registriert `/embed` per
    [embed-frame.ts](../../packages/comments/server/plugins/embed-frame.ts)
-   aus `maui.comments.embed.allowedOrigins`. XFO bewusst weggelassen.
+   aus `pukalani.comments.embed.allowedOrigins`. XFO bewusst weggelassen.
 4. ✅ **(2026-07-09)** [csrf-origin.ts](../../packages/core/server/middleware/csrf-origin.ts)
-   — Gate `maui.security.csrfOriginCheck` (Core-Default aus; PFLICHT sobald
+   — Gate `pukalani.security.csrfOriginCheck` (Core-Default aus; PFLICHT sobald
    E2-Partitioned-Cookies aktiv werden): `Sec-Fetch-Site: cross-site` → 403,
    sonst Origin-vs-Host; Requests ohne Origin (Webhooks, curl) passieren.
 
 ### Phase E1 — MVP: Read-only-Embed
 
-5. ✅ **(2026-07-09)** Gate `maui.comments.embed` (enabled + allowedOrigins,
+5. ✅ **(2026-07-09)** Gate `pukalani.comments.embed` (enabled + allowedOrigins,
    Default aus) in [comments/app.config.ts](../../packages/comments/app/app.config.ts);
    `/embed` wirft 404 wenn deaktiviert. comments aktiviert mit
    `allowedOrigins: ['*']` (bewusste Demo-App-Entscheidung, E7).
@@ -408,7 +408,7 @@ IE/Legacy-Browser.
    dependency-frei, currentScript-basiert (mehrere Widgets via data-container),
    sandbox `allow-scripts allow-same-origin allow-forms allow-popups
    allow-popups-to-escape-sandbox`, Resize mit Origin+Source-Check,
-   maui:set-theme-Protokoll dokumentiert.
+   pukalani:set-theme-Protokoll dokumentiert.
 8. ✅ **(2026-07-09)** Test-Hostseite
    [.embed-test/index.html](../../packages/comments/.embed-test/index.html)
    (Widget-Origin/Theme per Query steuerbar) + Playwright-Smoke
@@ -449,12 +449,12 @@ IE/Legacy-Browser.
     SEO-Grenze (§ 3g), DSGVO-Argumentation (self-hosted, keine Third-Party-
     Requests, partitionierte Cookies), Browser-Matrix (CHIPS).
 14. **(M)** Site-Registry: Migration `embed_sites` (domain, targetTypes,
-    aktiv), Admin-Modul (Registry-Eintrag in `maui.admin.modules` nach
+    aktiv), Admin-Modul (Registry-Eintrag in `pukalani.admin.modules` nach
     bestehendem Muster), `/embed` + CSP + optional Loader gegen Registry
     prüfen; unregistrierte Domain → freundliche Fehlerseite im iframe.
 15. **(S)** `GET /api/comments/count` mit CORS `*` (read-only, ohne
     Credentials, eigener Rate-Bucket) + Loader-Helfer
-    `data-maui-count`-Elemente zu befüllen.
+    `data-pukalani-count`-Elemente zu befüllen.
 16. **(M)** Rate-Limit-Store auf Nitro Storage/Redis umstellbar machen
     (Multi-Instanz-Betrieb, bestehendes TODO aus A2 — hier Voraussetzung).
 17. **(L)** Dedizierte `apps/embed-comments` (Port 3002+, eigene Instanz)
@@ -473,7 +473,7 @@ IE/Legacy-Browser.
     Session-Prinzipal) — die Traffic-Abwägung entschärft sich damit von
     selbst.
 19. **(L)** ✅ TEILWEISE UMGESETZT (2026-07-23, safe subset) — Web-Component
-    `<maui-comments>` (`public/maui-comments.js`, dependency-frei, kein Build-
+    `<pukalani-comments>` (`public/pukalani-comments.js`, dependency-frei, kein Build-
     Schritt, Shadow DOM). Rendert bewusst das SANDBOXED iframe (nicht inline),
     behält so die iframe-XSS-Sandbox und braucht KEINE CORS-Öffnung. Attribute
     reagieren live (theme via postMessage, sonst iframe-Reload). Live
@@ -504,7 +504,7 @@ IE/Legacy-Browser.
    sichtbarer „Auf comments.example.com kommentieren"-Deep-Link statt
    Inline-Schreiben. **Vorschlag:** CHIPS-Weg, Deep-Link als Zusatz-Button.
 3. **Registry im MVP oder statische Allowlist?** Plan sagt: statische
-   Allowlist (`maui.comments.embed.allowedOrigins`) im MVP, Registry-Table in
+   Allowlist (`pukalani.comments.embed.allowedOrigins`) im MVP, Registry-Table in
    E3. Bestätigen, sobald klar ist, ob der erste Einsatz eigene oder fremde
    Seiten sind (eigene Seiten → Allowlist reicht lange).
 4. **Wo läuft das erste produktive Embed?** comments-App mitbenutzen

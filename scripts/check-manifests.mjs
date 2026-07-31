@@ -17,7 +17,7 @@
  *     requires-Schluss erfüllt (transitiv).
  *  4. extends in nuxt.config.ts = Features in kanonischer EXTENDS_ORDER
  *     + core + system am Ende (früher gelistet = höhere Priorität).
- *  5. @maui/*-Dependencies in package.json = exakt Features + core + system.
+ *  5. @pukalani/*-Dependencies in package.json = exakt Features + core + system.
  *
  * Ausgabe pro Verstoß eine Zeile (Datei · erwartet/ist), Exit 1 bei Fehlern.
  */
@@ -200,15 +200,15 @@ for (const app of listDirs('apps')) {
     }
   }
 
-  // package.json-Konsistenz (@maui/*-Menge)
+  // package.json-Konsistenz (@pukalani/*-Menge)
   const pkg = JSON.parse(readFileSync(join(ROOT, 'apps', app, 'package.json'), 'utf8'))
   const actualDeps = Object.keys({ ...pkg.dependencies, ...pkg.devDependencies })
-    .filter(d => d.startsWith('@maui/')).map(d => d.slice('@maui/'.length)).sort()
+    .filter(d => d.startsWith('@pukalani/')).map(d => d.slice('@pukalani/'.length)).sort()
   const expectedDeps = [...features, ...FOUNDATION_ALWAYS].sort()
   const missingDeps = expectedDeps.filter(d => !actualDeps.includes(d))
   const extraDeps = actualDeps.filter(d => !expectedDeps.includes(d))
-  for (const d of missingDeps) err(`apps/${app}/package.json: @maui/${d} fehlt (im Site-Manifest gewählt)`)
-  for (const d of extraDeps) err(`apps/${app}/package.json: @maui/${d} überzählig (nicht im Site-Manifest)`)
+  for (const d of missingDeps) err(`apps/${app}/package.json: @pukalani/${d} fehlt (im Site-Manifest gewählt)`)
+  for (const d of extraDeps) err(`apps/${app}/package.json: @pukalani/${d} überzählig (nicht im Site-Manifest)`)
 }
 
 // ── Ergebnis ──────────────────────────────────────────────────────────────

@@ -88,7 +88,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     appwriteKey: '',
     // server-only! Env-Mapping: NUXT_AI_KEY — API-Key für aiComplete()
-    // (OpenRouter- oder anderer OpenAI-kompatibler Anbieter, Gate: maui.ai)
+    // (OpenRouter- oder anderer OpenAI-kompatibler Anbieter, Gate: pukalani.ai)
     aiKey: '',
     // server-only! SMTP für E-Mail-Notifications (server/utils/mailer.ts) —
     // leerer Host = Mail-Versand aus. Env: NUXT_SMTP_HOST/PORT/USER/PASS/FROM
@@ -134,7 +134,7 @@ export default defineNuxtConfig({
       tenancy: {
         // Kontroll-Hosts der Multi-Tenant-App (Kundenbereich/Onboarding),
         // kommagetrennt: NUXT_PUBLIC_TENANCY_CONTROL_HOSTS. Laufzeit-Override
-        // von maui.tenancy.controlHosts — die Hosts unterscheiden sich je
+        // von pukalani.tenancy.controlHosts — die Hosts unterscheiden sich je
         // Umgebung (lokal app.localhost, Prod app.pukalani.app).
         controlHosts: '',
       },

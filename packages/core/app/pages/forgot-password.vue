@@ -13,7 +13,7 @@ const sent = ref(false)
 useBrandTitle(() => t('auth.forgot.title'))
 
 const schema = computed(() => createRecoverySchema(t))
-const sharedEmail = useState('maui-auth-email', () => '')
+const sharedEmail = useState('pukalani-auth-email', () => '')
 const state = reactive<RecoveryInput>({ email: sharedEmail.value })
 
 async function onSubmit(event: FormSubmitEvent<RecoveryInput>) {

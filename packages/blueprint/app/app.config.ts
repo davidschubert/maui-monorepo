@@ -1,12 +1,12 @@
 /**
  * blueprint registriert die Produkt-Kompositions-Einträge in der
- * Chrome-Registry (maui.chrome.nav, Objekt-Map — s. core/shared/types/
+ * Chrome-Registry (pukalani.chrome.nav, Objekt-Map — s. core/shared/types/
  * chrome.ts): der Feed-Link gehört zur Feed+Kommentare-Komposition und
  * existiert damit überall, wo blueprint extended ist (Pool UND Silo) —
  * vorher stand er nur im platform-Layout (Audit S9).
  */
 export default defineAppConfig({
-  maui: {
+  pukalani: {
     chrome: {
       nav: {
         // Label/Text gehört dem posts-Layer (blueprint hat keine Locales);

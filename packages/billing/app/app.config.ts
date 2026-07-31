@@ -1,9 +1,9 @@
 /**
- * Config-Gate maui.billing (B7): Layer-Defaults — TOT, bis die App enabled
+ * Config-Gate pukalani.billing (B7): Layer-Defaults — TOT, bis die App enabled
  * setzt und Pläne deklariert. Admin-Modul via Registry (A14-Vertrag).
  */
 export default defineAppConfig({
-  maui: {
+  pukalani: {
     // Chrome-Registry (S9): öffentlicher Pricing-Link — bewusst hohe Order,
     // Preise stehen am Ende der Nav (nach Produkten und CMS-Seiten).
     chrome: {

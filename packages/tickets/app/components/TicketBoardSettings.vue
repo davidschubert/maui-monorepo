@@ -2,7 +2,7 @@
 /**
  * Board-Einstellungen (Modal): KI-Modell für die Triage zur Laufzeit
  * wechseln — kuratierte OpenRouter-Auswahl + frei eintippbare Modell-Id
- * (create-item). Leeren/Zurücksetzen = Build-Default aus maui.tickets.ai.
+ * (create-item). Leeren/Zurücksetzen = Build-Default aus pukalani.tickets.ai.
  * Persistenz: app_config.ticketsAiModel (system-015) über die
  * tickets-Settings-Routen (Capability tickets.manage).
  */

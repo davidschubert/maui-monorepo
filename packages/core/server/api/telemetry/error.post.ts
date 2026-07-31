@@ -10,12 +10,12 @@ const clientErrorSchema = z.object({
 /**
  * Client-Error-Inbox (Observability-Gate): nimmt Browser-Fehler entgegen und
  * schreibt sie als strukturierte JSON-Zeile ins Server-Log (logEvent). Nur
- * aktiv, wenn die App maui.observability.enabled + clientErrors gesetzt hat —
+ * aktiv, wenn die App pukalani.observability.enabled + clientErrors gesetzt hat —
  * sonst 404. Rate-limited (rate-limit.ts, Bucket telemetry:error). Es wird
  * bewusst NUR das validierte Payload geloggt (keine Header/Cookies — PII).
  */
 export default defineEventHandler(async (event) => {
-  const gate = useAppConfig().maui?.observability
+  const gate = useAppConfig().pukalani?.observability
   if (!gate?.enabled || !gate?.clientErrors) {
     throw createError({ status: 404, statusText: 'Not found' })
   }

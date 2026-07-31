@@ -1,4 +1,4 @@
-import { domainReasonFrom, statusToErrorCode, type MauiErrorResponse } from '../shared/types/error'
+import { domainReasonFrom, statusToErrorCode, type PukalaniErrorResponse } from '../shared/types/error'
 import { logEvent, shapeErrorLog } from './utils/logEvent'
 
 /**
@@ -35,14 +35,14 @@ import { logEvent, shapeErrorLog } from './utils/logEvent'
  * `Accept: text/html` bekommen die HTML-Seite. Das ist Nitro/Nuxt-
  * Standardverhalten (Content-Negotiation), keine Regression.
  *
- * Observability-Gate (maui.observability): unbehandelte 5xx werden HIER — der
+ * Observability-Gate (pukalani.observability): unbehandelte 5xx werden HIER — der
  * zentralen Fehlerstelle — als strukturierte JSON-Zeile geloggt (logEvent).
  * 4xx sind erwartetes Client-Verhalten und bleiben still. Sentry-Andockpunkt:
  * server/utils/logEvent.ts.
  */
 export default defineNitroErrorHandler((error, event) => {
   try {
-    const gate = useAppConfig().maui?.observability
+    const gate = useAppConfig().pukalani?.observability
     if (gate?.enabled) {
       const shaped = shapeErrorLog(error, { path: event.path, method: event.method })
       if (typeof shaped.status === 'number' && shaped.status >= 500) {
@@ -65,7 +65,7 @@ export default defineNitroErrorHandler((error, event) => {
   // „irgendwas ging schief" unterscheiden — die restliche `data` bleibt bewusst
   // draußen (keine Appwrite-Details).
   const reason = status < 500 ? domainReasonFrom((error as { data?: unknown }).data) : null
-  const body: MauiErrorResponse = {
+  const body: PukalaniErrorResponse = {
     ok: false,
     code: statusToErrorCode(status),
     message,

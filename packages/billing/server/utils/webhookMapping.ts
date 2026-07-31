@@ -1,5 +1,5 @@
 import type Stripe from 'stripe'
-import type { BillingSubscriptionRow, MauiBillingPlan, SubscriptionStatus } from '../../shared/types/billing'
+import type { BillingSubscriptionRow, PukalaniBillingPlan, SubscriptionStatus } from '../../shared/types/billing'
 import { SUBSCRIPTION_STATUSES } from '../../shared/types/billing'
 
 /**
@@ -28,7 +28,7 @@ export function toSubscriptionStatus(value: string): SubscriptionStatus {
 }
 
 /** Price-Id → interner Plan (lookup_key-Vergleich über beide Intervalle) */
-export function planIdForPrice(plans: readonly MauiBillingPlan[], lookupKey: string | null | undefined): string {
+export function planIdForPrice(plans: readonly PukalaniBillingPlan[], lookupKey: string | null | undefined): string {
   if (!lookupKey) return 'unknown'
   const plan = plans.find(p => p.lookupKeys && (p.lookupKeys.monthly === lookupKey || p.lookupKeys.yearly === lookupKey))
   return plan?.id ?? 'unknown'
@@ -41,7 +41,7 @@ export function planIdForPrice(plans: readonly MauiBillingPlan[], lookupKey: str
  */
 export function subscriptionToPatch(
   subscription: Stripe.Subscription,
-  plans: readonly MauiBillingPlan[],
+  plans: readonly PukalaniBillingPlan[],
   eventCreated: number,
 ): SubscriptionPatch {
   const item = subscription.items.data[0]

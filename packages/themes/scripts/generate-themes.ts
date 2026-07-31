@@ -4,9 +4,9 @@
  * die Logik (Ramps, Kontrast-Gate, CSS-Format) lebt testbar in
  * shared/themeGen.ts. Deterministisch: gleicher Spec = byte-gleicher Output.
  *
- *   pnpm --filter @maui/themes generate            # Vorschau nach .generated/
- *   pnpm --filter @maui/themes generate -- --write # nach public/themes/ + app/utils/
- *   pnpm --filter @maui/themes check:themes        # CI: Output aktuell? (E6a)
+ *   pnpm --filter @pukalani/themes generate            # Vorschau nach .generated/
+ *   pnpm --filter @pukalani/themes generate -- --write # nach public/themes/ + app/utils/
+ *   pnpm --filter @pukalani/themes check:themes        # CI: Output aktuell? (E6a)
  *
  * --check vergleicht den frisch generierten Output byte-genau mit den
  * committeten Dateien — Katalog-Änderung ohne Regeneration bricht CI/lint,
@@ -39,7 +39,7 @@ for (const spec of THEME_CATALOG) {
 let drift = 0
 function checkFile(path: string, expected: string, label: string) {
   if (!existsSync(path) || readFileSync(path, 'utf8') !== expected) {
-    console.error(`✗ ${label} ist nicht aktuell — \`pnpm --filter @maui/themes generate -- --write\` ausführen und committen.`)
+    console.error(`✗ ${label} ist nicht aktuell — \`pnpm --filter @pukalani/themes generate -- --write\` ausführen und committen.`)
     drift++
   }
 }

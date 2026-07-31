@@ -153,8 +153,8 @@ export async function handleWorkspaceSubscriptionUpdate(event: H3Event, update: 
 }, options?: {
   hasOtherActiveSubscription?: OtherActiveSubscriptionCheck
 }): Promise<void> {
-  const appConfig = useAppConfig() as { maui?: { studio?: { plans?: ControlPlanCatalog } } }
-  const plans = appConfig.maui?.studio?.plans ?? {}
+  const appConfig = useAppConfig() as { pukalani?: { studio?: { plans?: ControlPlanCatalog } } }
+  const plans = appConfig.pukalani?.studio?.plans ?? {}
   const action = subscriptionUpdateToAction(update, plans)
 
   switch (action.kind) {

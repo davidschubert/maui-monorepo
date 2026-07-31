@@ -21,7 +21,7 @@ export type TenantWave = (typeof TENANT_WAVES)[number]
 
 /**
  * Plan des Pool-Tenants (control-013); staffelt Quota-Limits UND Produkt-
- * Zugriff (maui.tenancy.quota.plans / maui.tenancy.products).
+ * Zugriff (pukalani.tenancy.quota.plans / pukalani.tenancy.products).
  *
  * Rename 2026-07-26 (Davids Pricing-Entscheid „Basic/Personal/Pro"):
  * free→basic · pro→personal · business→pro. Bestandsdaten wurden im selben

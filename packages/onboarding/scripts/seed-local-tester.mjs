@@ -26,7 +26,7 @@ if (!endpoint || !controlProject || !databaseId || !controlKey || !poolKey) {
 
 const EMAIL = 'wizard-tester@example.test'
 const PASSWORD = 'WizardTester-2026!'
-const CODE = 'MAUI-LOCAL-TEST'
+const CODE = 'PUKA-LOCAL-TEST'
 
 const control = new TablesDB(new Client().setEndpoint(endpoint).setProject(controlProject).setKey(controlKey))
 const users = new Users(new Client().setEndpoint(endpoint).setProject(poolProject).setKey(poolKey))

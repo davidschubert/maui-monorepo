@@ -9,7 +9,7 @@ export default defineNuxtConfig({
     port: 3003,
   },
 
-  // Editorial-Design der Site (Port aus nuxt-maui-photos): eigene CSS-Tokens,
+  // Editorial-Design der Site (Port aus nuxt-pukalani-photos): eigene CSS-Tokens,
   // gescopet auf body.photos-site (site-Layout) — Login/Dashboard behalten
   // den Standard-Look. Cormorant Garamond self-hostet @nuxt/fonts über die
   // font-family-Deklaration in photos.css (Registry-Muster, kein Google-Link).

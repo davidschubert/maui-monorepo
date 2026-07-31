@@ -13,7 +13,7 @@ import { BRAND_CARD_HEIGHT, BRAND_CARD_WIDTH, brandCardKey, brandCardPath } from
  * ebenfalls flash-frei. Apps ohne system-Layer/Table: Route fehlt/leer → [].
  *
  * DOM-Ids (Audit-Befund K3): die Head-Elemente heißen `pk-*`, nicht mehr
- * `maui-*` — `maui` ist der interne Monorepo-/Layer-Name und hatte im Markup
+ * `pukalani-*` — `maui` ist der interne Monorepo-/Layer-Name und hatte im Markup
  * einer Kunden-Community nichts zu suchen. Die Ids sind reine Anker für
  * useHead-Dedupe (kein Code liest sie); wer neue setzt, bleibt beim `pk-`-Präfix.
  */
@@ -21,7 +21,7 @@ export default defineNuxtPlugin(async () => {
   const customThemes = useCustomThemesState()
   const themeSettings = useThemeSettingsState()
   const customFonts = useCustomFontsState()
-  await callOnce('maui-custom-themes', async () => {
+  await callOnce('pukalani-custom-themes', async () => {
     const [themeData, fontData] = await Promise.all([
       (useRequestFetch()('/api/themes') as Promise<{ themes: typeof customThemes.value, settings: typeof themeSettings.value }>).catch(() => null),
       (useRequestFetch()('/api/fonts') as Promise<{ fonts: typeof customFonts.value }>).catch(() => null),
@@ -39,7 +39,7 @@ export default defineNuxtPlugin(async () => {
   const { themes, theme, variant, neutral, font, fontHeading } = useTheme()
 
   /**
-   * Bildmarke der Community (Audit-Befund K2, Gate `maui.seo.tenantFavicon`,
+   * Bildmarke der Community (Audit-Befund K2, Gate `pukalani.seo.tenantFavicon`,
    * Core-Default AUS): Mehr-Host-Apps verlinken das serverseitig generierte
    * `/favicon.svg` und färben die Browser-Oberfläche in derselben Farbe.
    * Silo-Apps lassen das Gate aus und behalten ihr eigenes Favicon.
@@ -51,8 +51,8 @@ export default defineNuxtPlugin(async () => {
    * seit dem 2026-07-29 (B5) ohnehin zusammen — dort ist die Community-Farbe
    * auch das, was die Seite zeigt.
    */
-  const appConfig = useAppConfig() as { maui?: { seo?: { tenantFavicon?: boolean, tenantOgImage?: boolean } } }
-  const brandFavicon = appConfig.maui?.seo?.tenantFavicon === true
+  const appConfig = useAppConfig() as { pukalani?: { seo?: { tenantFavicon?: boolean, tenantOgImage?: boolean } } }
+  const brandFavicon = appConfig.pukalani?.seo?.tenantFavicon === true
   const brandColor = computed(() => resolveBrandColor(
     themes.value,
     themeSettings.value.defaultThemeId,
@@ -60,7 +60,7 @@ export default defineNuxtPlugin(async () => {
   ))
 
   /**
-   * Vorschaubild für geteilte Links (og:image, Gate `maui.seo.tenantOgImage`,
+   * Vorschaubild für geteilte Links (og:image, Gate `pukalani.seo.tenantOgImage`,
    * OPEN-ITEMS B2). Dieser Layer sagt nur, WELCHES Bild gilt — geschrieben wird
    * der Tag zentral in `useLocaleSeoHead()` (core), damit die absolute URL
    * dieselbe Host-Rechnung nimmt wie canonical und og:url.
@@ -78,7 +78,7 @@ export default defineNuxtPlugin(async () => {
    * `await` wäre außerdem nicht mehr im Effekt-Scope des Plugins und würde auf
    * dem Server je Request hängen bleiben.
    */
-  if (appConfig.maui?.seo?.tenantOgImage === true) {
+  if (appConfig.pukalani?.seo?.tenantOgImage === true) {
     useBrandOgImage().value = {
       path: brandCardPath(brandCardKey(brandColor.value, useBrandName().value)),
       width: BRAND_CARD_WIDTH,

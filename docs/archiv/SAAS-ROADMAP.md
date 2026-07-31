@@ -352,7 +352,7 @@ Beispiel ist super."
   Kommentare („erhöhtes Spam-Risiko" + kurze Gründe) als **Badge**, kein
   Auto-Block. Prozentwerte gibt es erst nach Kalibrierung gegen einen
   repräsentativen, versionierten Testdatensatz.
-  Nutzt den bestehenden `aiComplete()`-Transport + `maui.ai`-Gate. Genau der
+  Nutzt den bestehenden `aiComplete()`-Transport + `pukalani.ai`-Gate. Genau der
   Punkt, an dem Gast-Kommentare (ohne Verifikation) sonst irgendwann wehtun —
   proaktiv statt reaktiv.
 - **Muster-Erkennung light:** „dieser Gast-Absender (E-Mail/IP-Hash aus

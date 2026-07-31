@@ -24,7 +24,7 @@ export interface WorkspaceRow extends Models.Row {
    *  Cross-Sub-Guards: nur ihre Kündigung darf den Workspace auf free
    *  zurückstufen. '' = kein Abo / Legacy-Row. */
   stripeSubscriptionId: string
-  /** Plan-Key aus `maui.studio.plans` (Code-Katalog, kein Table). */
+  /** Plan-Key aus `pukalani.studio.plans` (Code-Katalog, kein Table). */
   plan: string
   status: WorkspaceStatus
 }
@@ -61,7 +61,7 @@ export interface WorkspaceInviteRow extends Models.Row {
 
 export const WORKSPACE_INVITES_TABLE = 'workspace_invites'
 
-/** Ein Plan im Code-Katalog `maui.studio.plans`. */
+/** Ein Plan im Code-Katalog `pukalani.studio.plans`. */
 export interface ControlPlan {
   /** Stripe-lookup_key des MONATS-Preises (Muster des billing-Layers: Test-/
    *  Live-Mode wechseln ohne Codeänderung, Auflösung via resolvePriceByLookupKey);

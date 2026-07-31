@@ -1,7 +1,7 @@
 /**
  * Horizont-3 Naht 1 — Mandanten-Auflösung pro Request (Blueprint 00.tenant.ts).
  *
- * RUHEND per Config-Gate: maui.tenancy.enabled ist Core-Default AUS — dann ist
+ * RUHEND per Config-Gate: pukalani.tenancy.enabled ist Core-Default AUS — dann ist
  * diese Middleware ein sofortiger No-Op (heutiger Single-Tenant-Betrieb).
  * Aktiv (Platform-App) gilt die Spike-Semantik (s5-pool-silo):
  *  - bekannter Host  → event.context.tenant = TenantContext (pool | silo)
@@ -17,9 +17,9 @@ import { isControlHost } from '../../shared/controlCenter'
 
 export default defineEventHandler(async (event) => {
   const appConfig = useAppConfig() as {
-    maui?: { tenancy?: { enabled?: boolean, controlHosts?: string[] } }
+    pukalani?: { tenancy?: { enabled?: boolean, controlHosts?: string[] } }
   }
-  if (appConfig.maui?.tenancy?.enabled !== true) return
+  if (appConfig.pukalani?.tenancy?.enabled !== true) return
 
   const resolver = getTenantResolver()
   // Gate an, aber (noch) kein Resolver registriert → dokumentiertes fail-open

@@ -3,7 +3,7 @@ import { listEmbedSites } from '../utils/embedSites'
 
 /**
  * Registriert /embed bei der core Frame-Ancestors-Registry (expliziter
- * Vertrag, Embed-Plan E0-3): Ist das Gate maui.comments.embed aktiv, dürfen
+ * Vertrag, Embed-Plan E0-3): Ist das Gate pukalani.comments.embed aktiv, dürfen
  * die statisch konfigurierten Origins PLUS die aktiven Sites der Registry
  * (embed_sites, E3) die Seite framen — alle anderen Routen behalten den
  * 'self'-Default (Clickjacking-Schutz). '*' in allowedOrigins bleibt die
@@ -14,9 +14,9 @@ export default defineNitroPlugin(() => {
     prefix: '/embed',
     origins: async (event) => {
       const appConfig = useAppConfig(event) as {
-        maui?: { comments?: { embed?: { enabled?: boolean, allowedOrigins?: string[] } } }
+        pukalani?: { comments?: { embed?: { enabled?: boolean, allowedOrigins?: string[] } } }
       }
-      const embed = appConfig.maui?.comments?.embed
+      const embed = appConfig.pukalani?.comments?.embed
       if (!embed?.enabled) return []
       const staticOrigins = embed.allowedOrigins ?? []
       if (staticOrigins.includes('*')) return ['*']

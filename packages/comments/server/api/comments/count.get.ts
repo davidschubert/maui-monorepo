@@ -5,7 +5,7 @@ import { COMMENTS_TABLE } from '../../../shared/types/comment'
  * E3 (Embed-Plan Task 15): öffentliche Kommentar-Anzahl EINES Targets für
  * „N Kommentare"-Links auf HOSTSEITEN — der einzige bewusst cross-origin
  * konsumierbare Read-Endpoint (CORS '*', ohne Credentials; embed.js füllt
- * damit data-maui-count-Elemente). Zählt wie der Listen-Header: alle
+ * damit data-pukalani-count-Elemente). Zählt wie der Listen-Header: alle
  * nicht-hidden Kommentare (deleted-Platzhalter inklusive). Microcache 30 s
  * (user-agnostisch, tenant-scoped) + Read-Rate-Bucket (rate-limit.ts).
  */

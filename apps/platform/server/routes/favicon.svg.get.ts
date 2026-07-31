@@ -11,7 +11,7 @@ import { resolveTenantBrandMark } from '../utils/tenantBrandMark'
  *
  * Warum in der Platform-App und nicht im Core: nur hier bedient ein Prozess
  * viele Mandanten-Hosts, und nur hier steht `event.context.tenant`. Silo-Apps
- * behalten ihr eigenes Favicon (das Gate `maui.seo.tenantFavicon` ist
+ * behalten ihr eigenes Favicon (das Gate `pukalani.seo.tenantFavicon` ist
  * Core-Default AUS — ohne Gate verlinkt niemand auf diese Route).
  *
  * Farbe und Name kommen seit 2026-07-29 aus `resolveTenantBrandMark()` —

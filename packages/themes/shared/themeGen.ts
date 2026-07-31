@@ -94,7 +94,7 @@ export function generateTheme(spec: ThemeSpec): GeneratedTheme {
   if (darkShade !== 400) adjustments.push(`${spec.id}: dark 400→${darkShade}`)
 
   const parts: string[] = [
-    `/* Maui Theme: ${spec.id} — GENERIERT von scripts/generate-themes.ts, nicht von Hand editieren */`,
+    `/* Pukalani Theme: ${spec.id} — GENERIERT von scripts/generate-themes.ts, nicht von Hand editieren */`,
     '',
     `:root[data-theme='${spec.id}'] {`,
     rampBlock(baseRamp),
@@ -162,9 +162,9 @@ export function buildRegistryModule(themes: GeneratedTheme[], specs: ThemeSpec[]
   return [
     `// GENERIERT von scripts/generate-themes.ts aus theme.catalog.ts — nicht von Hand editieren.`,
     `// Handgepflegt bleiben: default-Eintrag, NEUTRAL_REGISTRY, Typen (themeRegistry.ts).`,
-    `import type { MauiTheme } from './themeRegistry'`,
+    `import type { PukalaniTheme } from './themeRegistry'`,
     ``,
-    `export const GENERATED_THEMES: MauiTheme[] = [`,
+    `export const GENERATED_THEMES: PukalaniTheme[] = [`,
     entries,
     `]`,
     ``,

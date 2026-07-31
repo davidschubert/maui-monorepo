@@ -54,11 +54,11 @@ test.describe('Embed-Widget (cross-origin iframe)', () => {
 
     await page.goto(`http://localhost:${hostPort}/?widget=${baseURL}&target=e2e-embed-smoke`)
 
-    const iframe = page.locator('#maui-comments iframe')
+    const iframe = page.locator('#pukalani-comments iframe')
     await expect(iframe).toBeVisible()
 
     // Widget-Inhalt rendert im iframe (CommentSection SSR + Hydration)
-    const frame = page.frameLocator('#maui-comments iframe')
+    const frame = page.frameLocator('#pukalani-comments iframe')
     await expect(frame.locator('[data-comment-section]')).toBeVisible({ timeout: 15_000 })
 
     // Resize-Protokoll: das Widget meldet seine Höhe, der Loader setzt Pixel

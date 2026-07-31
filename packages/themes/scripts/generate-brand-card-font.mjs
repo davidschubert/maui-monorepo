@@ -26,7 +26,7 @@
  * Darum liegt das Atlas als committete .gen.ts vor und ist — anders als
  * public/themes/*.css (`check:themes`) — ABSICHTLICH nicht CI-geprüft.
  *
- * Aufruf:  pnpm --filter @maui/themes generate:brand-card-font
+ * Aufruf:  pnpm --filter @pukalani/themes generate:brand-card-font
  * Danach:  shared/brandCardFont.gen.ts committen.
  */
 import { chromium } from '@playwright/test'

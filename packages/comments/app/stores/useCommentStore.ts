@@ -514,4 +514,4 @@ export type CommentStore = ReturnType<typeof useCommentStoreFor>
  * CommentSection erzeugt den Store und PROVIDED ihn — Kinder (Form/Item/
  * VoteButtons) injecten, statt selbst einen (dann falschen) zu holen.
  */
-export const commentStoreKey: InjectionKey<CommentStore> = Symbol('maui-comment-store')
+export const commentStoreKey: InjectionKey<CommentStore> = Symbol('pukalani-comment-store')

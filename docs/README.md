@@ -99,7 +99,7 @@ pnpm dev:docs      # → http://localhost:4000
   (`title`, `description`, `navigation.icon`) — Navigation und Suche entstehen
   automatisch.
 - Neues Kapitel: Ordner mit `.navigation.yml` (`title`, `icon: false`).
-- Statischer Export: `pnpm --filter @maui/docs generate`.
+- Statischer Export: `pnpm --filter @pukalani/docs generate`.
 - Änderungen unter `content/` lösen einen Deploy aus (der control-Build bettet
   sie ein).
 

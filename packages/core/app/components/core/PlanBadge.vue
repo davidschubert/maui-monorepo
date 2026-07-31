@@ -10,7 +10,7 @@ const props = defineProps<{ product: string }>()
 const appConfig = useAppConfig()
 const host = useRequestURL().host
 const isDemo = computed(() => {
-  const hosts = (appConfig.maui as { demo?: { hosts?: string[] } }).demo?.hosts ?? []
+  const hosts = (appConfig.pukalani as { demo?: { hosts?: string[] } }).demo?.hosts ?? []
   return hosts.includes(host)
 })
 

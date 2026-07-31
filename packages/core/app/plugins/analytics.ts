@@ -1,18 +1,18 @@
 /**
  * Analytics mit doppeltem Gate (Konzept A5):
- *   1. maui.analytics.enabled — App muss explizit aktivieren
- *   2. maui.consent.enabled  — wenn an, lädt das Script NUR nach Zustimmung
+ *   1. pukalani.analytics.enabled — App muss explizit aktivieren
+ *   2. pukalani.consent.enabled  — wenn an, lädt das Script NUR nach Zustimmung
  *
  * Universal (nicht .client), damit der Script-Tag bei vorhandenem Consent
  * schon im SSR-HTML steht. Ohne Gate wird KEIN Byte Analytics geladen.
  */
 export default defineNuxtPlugin(() => {
   const appConfig = useAppConfig()
-  const analytics = appConfig.maui?.analytics
+  const analytics = appConfig.pukalani?.analytics
 
   if (analytics?.enabled !== true) return
 
-  const consentRequired = appConfig.maui?.consent?.enabled === true
+  const consentRequired = appConfig.pukalani?.consent?.enabled === true
   const { hasConsent } = useCookieConsent()
 
   function loadScript() {

@@ -14,8 +14,8 @@
   },
   "dependencies": {
     "@iconify-json/ph": "catalog:",
-    "@maui/core": "workspace:*",
-    "@maui/system": "workspace:*",
+    "@pukalani/core": "workspace:*",
+    "@pukalani/system": "workspace:*",
     "@nuxt/ui": "catalog:",
     "@nuxtjs/i18n": "catalog:",
     "@pinia/nuxt": "catalog:",

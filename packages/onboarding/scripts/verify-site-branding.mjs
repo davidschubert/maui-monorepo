@@ -202,7 +202,7 @@ async function waitForSsrTheme(host, theme, timeoutMs = 45_000) {
   const started = Date.now()
   while (Date.now() - started < timeoutMs) {
     // BEWUSST OHNE Cookie: useTheme() lässt die eigene Besucher-Wahl (Cookie
-    // maui-theme) vorgehen — die Community-Farbe sieht man als frischer Gast.
+    // pukalani-theme) vorgehen — die Community-Farbe sieht man als frischer Gast.
     const res = await page(host, '/')
     if (htmlAttr(res.text, 'data-theme') === theme) {
       return { ok: true, ms: Date.now() - started, html: res.text }
@@ -365,7 +365,7 @@ try {
   const liveNeutral = await waitForSsrNeutral(siteA.host, 'taupe')
   check(`kunde-a: data-neutral="taupe" ohne Cookie (nach ${Math.round(liveNeutral.ms / 1000)} s)`,
     liveNeutral.ok, `data-neutral=${htmlAttr(liveNeutral.html, 'data-neutral')}`)
-  const withCookie = await page(siteA.host, '/', 'maui-neutral=olive')
+  const withCookie = await page(siteA.host, '/', 'pukalani-neutral=olive')
   check('kunde-a: Besucher-Cookie `olive` VERLIERT (data-neutral bleibt taupe)',
     htmlAttr(withCookie.text, 'data-neutral') === 'taupe',
     `data-neutral=${htmlAttr(withCookie.text, 'data-neutral')}`)
@@ -373,7 +373,7 @@ try {
   // Und der Gegenbeweis: auf dem Kontroll-Host (kein Mandant) gewinnt es weiter.
   // `/login` und nicht `/`: die Wurzel des Kontroll-Hosts leitet in den Wizard
   // (302 auf /login?redirect=/start) und hat gar kein <html> zum Prüfen.
-  const onControlHost = await page(CONTROL_HOST, '/login', 'maui-neutral=olive')
+  const onControlHost = await page(CONTROL_HOST, '/login', 'pukalani-neutral=olive')
   check('Kontroll-Host: dasselbe Cookie GEWINNT (data-neutral=olive)',
     htmlAttr(onControlHost.text, 'data-neutral') === 'olive',
     `data-neutral=${htmlAttr(onControlHost.text, 'data-neutral')}`)

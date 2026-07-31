@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Demo-Hinweis (umgezogen aus apps/platform, Layout-Konsolidierung S9):
 // Besucher einer Demo-Site sollen jederzeit sehen, dass Inhalte Beispiel-
-// Material sind. Host-basiert über das Config-Gate maui.demo.hosts (leer =
+// Material sind. Host-basiert über das Config-Gate pukalani.demo.hosts (leer =
 // Banner existiert nicht) — bewusst KEIN Tenant-Feld: der Demo-Status ist
 // eine Deployment-Aussage der App, kein Datenmodell des Control Plane.
 //
@@ -11,7 +11,7 @@
 const { t } = useI18n()
 const appConfig = useAppConfig()
 const host = useRequestURL().host
-const demo = computed(() => (appConfig.maui as { demo?: { hosts?: string[], ctaUrl?: string } }).demo)
+const demo = computed(() => (appConfig.pukalani as { demo?: { hosts?: string[], ctaUrl?: string } }).demo)
 const isDemo = computed(() => (demo.value?.hosts ?? []).includes(host))
 
 // CTA in den Self-Service-Trichter (absolute URL → ULink rendert ein

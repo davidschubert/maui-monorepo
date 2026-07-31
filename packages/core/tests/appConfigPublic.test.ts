@@ -8,7 +8,7 @@ import {
 
 /**
  * Audit-Befund K5: `entitlementsDoc` (signiertes kaufmännisches Dokument) reiste
- * über GET /api/config und den useState `maui-runtime-flags` im Klartext in den
+ * über GET /api/config und den useState `pukalani-runtime-flags` im Klartext in den
  * __NUXT__-Payload JEDER Seite — auch unauthentifiziert (/login). Es hat keinen
  * Client-Leser.
  *

@@ -22,7 +22,7 @@ export function useFormatRelativeTime() {
     return entries.find(entry => entry.code === locale.value)?.language ?? locale.value
   })
 
-  const now = useState('maui:rel-now', () => Date.now())
+  const now = useState('pukalani:rel-now', () => Date.now())
   onMounted(() => {
     if (tickerStarted) return
     tickerStarted = true

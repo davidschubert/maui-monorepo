@@ -5,11 +5,11 @@ interface AppConfig {
   registrationEnabled: boolean
   commentsEnabled: boolean
   maintenanceMode: boolean
-  /** Core-KI-Gate (maui.ai) aktiv? → Model-Override-Feld einblenden */
+  /** Core-KI-Gate (pukalani.ai) aktiv? → Model-Override-Feld einblenden */
   aiEnabled?: boolean
   /** Laufzeit-Override fürs KI-Modell (app_config.aiModel) — leer = Build-Default */
   aiModel?: string
-  /** Build-Default (maui.ai.model) als Placeholder */
+  /** Build-Default (pukalani.ai.model) als Placeholder */
   aiDefaultModel?: string
 }
 

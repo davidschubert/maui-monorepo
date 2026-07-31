@@ -33,9 +33,9 @@ import { tenantSitemapEntries, tenantSitemapXml } from '../utils/tenantSitemap'
 function planAllowsFeed(tenant: TenantContext | null): boolean {
   if (tenant?.mode !== 'pool') return true
   const appConfig = useAppConfig() as {
-    maui?: { tenancy?: { quota?: { plans?: Record<string, unknown> }, products?: Record<string, string | undefined> } }
+    pukalani?: { tenancy?: { quota?: { plans?: Record<string, unknown> }, products?: Record<string, string | undefined> } }
   }
-  const tenancy = appConfig.maui?.tenancy
+  const tenancy = appConfig.pukalani?.tenancy
   return planAllowsProduct(Object.keys(tenancy?.quota?.plans ?? {}), tenancy?.products, tenant.plan, 'posts')
 }
 

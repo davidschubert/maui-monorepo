@@ -16,7 +16,7 @@ import { tenantCapabilitiesFor, type TenantRole } from '../../shared/tenantAuthz
  * Sichtbarkeit (Nav, Guards), nie Daten.
  */
 export function useSiteRole() {
-  const role = useState<TenantRole | null>('maui-site-role', () => null)
+  const role = useState<TenantRole | null>('pukalani-site-role', () => null)
   /** Capabilities der Rolle, abgeleitet aus der geteilten Matrix (tenantAuthz). */
   const capabilities = computed<Set<Capability>>(() => tenantCapabilitiesFor(role.value))
   return { role, capabilities }

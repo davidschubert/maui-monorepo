@@ -13,7 +13,7 @@ const { closed: inviteOnly } = useTenantOpenRegistration()
 
 // OTP deaktiviert ODER Registrierung geschlossen → zurück zu /register
 // (dort liegen ALLE „geschlossen"-Hinweise zentral, inkl. des S1-Texts)
-if (appConfig.maui?.auth?.otp !== true || !flags.value.registrationEnabled || flags.value.maintenanceMode || inviteOnly.value) {
+if (appConfig.pukalani?.auth?.otp !== true || !flags.value.registrationEnabled || flags.value.maintenanceMode || inviteOnly.value) {
   await navigateTo(localePath('/register'))
 }
 

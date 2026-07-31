@@ -1,8 +1,8 @@
 export default defineAppConfig({
   // App-spezifische Overrides (tiefer Merge, App > Core).
   // OAuth-Provider/AGB bleiben aus, bis Console-Config bzw. AGB-Seite existiert:
-  // maui: { auth: { providers: ['github'], termsUrl: '/agb' } }
-  maui: {
+  // pukalani: { auth: { providers: ['github'], termsUrl: '/agb' } }
+  pukalani: {
     brand: { name: 'Hawaii Studio' },
     // Chrome-Registry (S9): Nav-Einträge für events/courses stehen BEWUSST
     // hier statt in den Layern — deren Kompositionen bleiben App-Sache, bis
@@ -18,7 +18,7 @@ export default defineAppConfig({
     },
     ai: {
       // Core-KI (aiComplete): Moderations-Assist in der Queue; Key server-only
-      // via NUXT_AI_KEY. Die Ticket-Triage läuft weiter über maui.tickets.ai.
+      // via NUXT_AI_KEY. Die Ticket-Triage läuft weiter über pukalani.tickets.ai.
       enabled: true,
     },
     auth: {
@@ -186,7 +186,7 @@ export default defineAppConfig({
         ],
       },
     },
-    // Die frühere maui.roadmap (Anzeige-Kopie) ist durch das Ticket-Board
+    // Die frühere pukalani.roadmap (Anzeige-Kopie) ist durch das Ticket-Board
     // ersetzt (tickets-Layer, /dashboard/tickets) — Planungs-Wahrheit bleibt
     // docs/GOALS.md + docs/plans/*.
   },

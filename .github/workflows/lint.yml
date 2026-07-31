@@ -38,6 +38,6 @@ jobs:
 
       # 26×11-Theme-Katalog (E6a): committeter Generator-Output muss zum
       # Katalog passen — Regenerieren darf kein Diff erzeugen.
-      - run: pnpm --filter @maui/themes check:themes
+      - run: pnpm --filter @pukalani/themes check:themes
 
       - run: pnpm -r lint

@@ -66,7 +66,7 @@ describe('buildRegistryModule', () => {
   it('erzeugt einen typisierten Registry-Export mit file-Referenzen', () => {
     const theme = generateTheme(OCEAN)
     const module_ = buildRegistryModule([theme], [OCEAN])
-    expect(module_).toContain(`import type { MauiTheme } from './themeRegistry'`)
+    expect(module_).toContain(`import type { PukalaniTheme } from './themeRegistry'`)
     expect(module_).toContain(`{ id: 'ocean', name: 'Ocean', file: '/themes/ocean.css', color: '${theme.color}'`)
     expect(module_).toContain(`{ id: 'teal', color: '`)
   })

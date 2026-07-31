@@ -359,7 +359,7 @@ mitverwendet (eine Quelle für visuelle Regression, kein Duplikat).
 
 **Phase C — Kür** ✅ umgesetzt 2026-07-04
 8. JSON-Import/Export (4.5): Export im Karten-Menü (Datei mit
-   `format: 'maui-theme'`-Hülle), Import-Button in der Galerie-Navbar
+   `format: 'pukalani-theme'`-Hülle), Import-Button in der Galerie-Navbar
    (client-seitig auf bekannte Config-Felder reduziert, Server validiert)
 9. Charts-Szene als fünfter Tab (Balken/Linie/Verteilung, Farben rein aus
    CSS-Variablen — live mit Theme/Draft). Weitere Farb-Slots weiterhin nur

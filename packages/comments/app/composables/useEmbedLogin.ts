@@ -28,13 +28,13 @@ export function useEmbedLogin() {
     // Token kommt NUR vom Popup unserer eigenen Origin — alles andere ignorieren
     if (event.origin !== window.location.origin) return
     const data = event.data as { type?: string, token?: string } | null
-    if (data?.type !== 'maui:embed-login' || typeof data.token !== 'string') return
+    if (data?.type !== 'pukalani:embed-login' || typeof data.token !== 'string') return
     void redeem(data.token)
   }
 
   function openLoginPopup() {
     status.value = 'waiting'
-    window.open(`${localePath('/login')}?embed=1`, 'maui-embed-login', 'popup,width=480,height=680')
+    window.open(`${localePath('/login')}?embed=1`, 'pukalani-embed-login', 'popup,width=480,height=680')
   }
 
   onMounted(() => { window.addEventListener('message', onMessage) })

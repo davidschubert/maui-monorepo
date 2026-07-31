@@ -1,4 +1,4 @@
-import { BILLING_SUBSCRIPTIONS_TABLE, type BillingSubscriptionResponse, type MauiBillingConfig } from '../../shared/types/billing'
+import { BILLING_SUBSCRIPTIONS_TABLE, type BillingSubscriptionResponse, type PukalaniBillingConfig } from '../../shared/types/billing'
 
 /**
  * Billing-Zustand des eingeloggten Users (B22): SSR-hydriert über
@@ -10,8 +10,8 @@ export function useBilling() {
   const appConfig = useAppConfig()
   const config = useRuntimeConfig()
 
-  const billingConfig = computed<MauiBillingConfig>(() => {
-    const billing = (appConfig.maui as { billing?: Partial<MauiBillingConfig> } | undefined)?.billing
+  const billingConfig = computed<PukalaniBillingConfig>(() => {
+    const billing = (appConfig.pukalani as { billing?: Partial<PukalaniBillingConfig> } | undefined)?.billing
     return {
       enabled: billing?.enabled ?? false,
       currency: billing?.currency ?? 'eur',

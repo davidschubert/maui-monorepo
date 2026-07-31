@@ -90,7 +90,7 @@ async function countTenants() {
 }
 
 async function issueCode(maxUses = 0) {
-  const code = `MAUI-ABNAHME-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
+  const code = `PUKA-ABNAHME-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
   const row = await control.createRow({
     databaseId, tableId: 'invite_codes', rowId: ID.unique(),
     data: {
