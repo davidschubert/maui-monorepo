@@ -13,6 +13,7 @@
  *   pnpm migrate --app <app> --layer events
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -113,11 +114,11 @@ await columnStep('Column event_tickets.amount', 'amount', ticketCols, () => tabl
 await waitForColumns('events')
 await waitForColumns('event_tickets')
 
-await step('Index event_tickets.uq_event_user', () => tablesDB.createIndex({
+await indexStep('Index event_tickets.uq_event_user', () => tablesDB.createIndex({
   databaseId, tableId: 'event_tickets', key: 'uq_event_user', type: TablesDBIndexType.Unique, columns: ['eventId', 'userId'],
 }))
 // GDPR-Lookup (Export/Löschung per userId)
-await step('Index event_tickets.idx_user', () => tablesDB.createIndex({
+await indexStep('Index event_tickets.idx_user', () => tablesDB.createIndex({
   databaseId, tableId: 'event_tickets', key: 'idx_user', type: TablesDBIndexType.Key, columns: ['userId'],
 }))
 // Reminder-Sweep-Query (status + startAt steht schon als idx_status_start;

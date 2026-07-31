@@ -21,6 +21,7 @@
  *   pnpm migrate --app control --layer control
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -110,7 +111,7 @@ await waitForColumn('site_members', 'removedAt')
 
 // Ehemalige Mitglieder einer Site gebündelt finden (die Kennzeichnung im
 // Kommentar-Strom fragt genau so: „welche dieser Autoren sind hier raus?").
-await step('Index site_members.idx_site_status', () => tablesDB.createIndex({
+await indexStep('Index site_members.idx_site_status', () => tablesDB.createIndex({
   databaseId, tableId: 'site_members', key: 'idx_site_status', type: TablesDBIndexType.Key,
   columns: ['siteId', 'status'],
 }))
@@ -151,17 +152,17 @@ await waitForColumn('site_invites', 'siteId')
 await waitForColumn('site_invites', 'status')
 
 // Einlösen sucht über den Hash — und zwar genau EINE Einladung.
-await step('Unique-Index site_invites.uq_token', () => tablesDB.createIndex({
+await indexStep('Unique-Index site_invites.uq_token', () => tablesDB.createIndex({
   databaseId, tableId: 'site_invites', key: 'uq_token', type: TablesDBIndexType.Unique,
   columns: ['tokenHash'],
 }))
 // „Offene Einladungen dieser Community" (die Liste im Dashboard).
-await step('Index site_invites.idx_site_status', () => tablesDB.createIndex({
+await indexStep('Index site_invites.idx_site_status', () => tablesDB.createIndex({
   databaseId, tableId: 'site_invites', key: 'idx_site_status', type: TablesDBIndexType.Key,
   columns: ['siteId', 'status'],
 }))
 // Zweite Einladung an dieselbe Adresse ERSETZT die erste — dafür muss man sie finden.
-await step('Index site_invites.idx_site_email', () => tablesDB.createIndex({
+await indexStep('Index site_invites.idx_site_email', () => tablesDB.createIndex({
   databaseId, tableId: 'site_invites', key: 'idx_site_email', type: TablesDBIndexType.Key,
   columns: ['siteId', 'email'],
 }))

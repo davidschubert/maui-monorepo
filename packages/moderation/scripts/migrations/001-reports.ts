@@ -10,6 +10,7 @@
  * Benötigte Key-Scopes: tables.*, columns.*, indexes.* (Migrations-Key, A2).
  */
 import { Client, TablesDB, Permission, Role, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -95,13 +96,13 @@ await step('Column reports.resolution', () => tablesDB.createVarcharColumn({
 
 await waitForColumns('reports')
 
-await step('Index reports.target', () => tablesDB.createIndex({
+await indexStep('Index reports.target', () => tablesDB.createIndex({
   databaseId, tableId: 'reports', key: 'target', type: TablesDBIndexType.Key, columns: ['targetType', 'targetId'],
 }))
-await step('Unique-Index reports.reporter_target', () => tablesDB.createIndex({
+await indexStep('Unique-Index reports.reporter_target', () => tablesDB.createIndex({
   databaseId, tableId: 'reports', key: 'reporter_target', type: TablesDBIndexType.Unique, columns: ['reporterId', 'targetType', 'targetId'],
 }))
-await step('Index reports.status', () => tablesDB.createIndex({
+await indexStep('Index reports.status', () => tablesDB.createIndex({
   databaseId, tableId: 'reports', key: 'status', type: TablesDBIndexType.Key, columns: ['status'],
 }))
 

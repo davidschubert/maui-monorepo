@@ -26,6 +26,7 @@
  *   pnpm migrate --app control --layer control
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -133,13 +134,13 @@ await step(`Column ${NEW}.workspaceId`, () => tablesDB.createVarcharColumn({
 
 await waitForColumns(NEW)
 
-await step(`Index ${NEW}.idx_slug (unique)`, () => tablesDB.createIndex({
+await indexStep(`Index ${NEW}.idx_slug (unique)`, () => tablesDB.createIndex({
   databaseId: db, tableId: NEW, key: 'idx_slug', type: TablesDBIndexType.Unique, columns: ['slug'],
 }))
-await step(`Index ${NEW}.idx_status`, () => tablesDB.createIndex({
+await indexStep(`Index ${NEW}.idx_status`, () => tablesDB.createIndex({
   databaseId: db, tableId: NEW, key: 'idx_status', type: TablesDBIndexType.Key, columns: ['status'],
 }))
-await step(`Index ${NEW}.idx_workspace`, () => tablesDB.createIndex({
+await indexStep(`Index ${NEW}.idx_workspace`, () => tablesDB.createIndex({
   databaseId: db, tableId: NEW, key: 'idx_workspace', type: TablesDBIndexType.Key, columns: ['workspaceId'],
 }))
 

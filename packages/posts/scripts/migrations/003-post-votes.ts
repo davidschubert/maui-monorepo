@@ -9,6 +9,7 @@
  *   pnpm migrate --app <app> --layer posts
  */
 import { Client, Permission, Role, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -98,10 +99,10 @@ await columnStep('Column community_posts.score', 'score', postCols, () => tables
 await waitForColumns('post_votes')
 await waitForColumns('community_posts')
 
-await step('Index post_votes.uq_post_user', () => tablesDB.createIndex({
+await indexStep('Index post_votes.uq_post_user', () => tablesDB.createIndex({
   databaseId, tableId: 'post_votes', key: 'uq_post_user', type: TablesDBIndexType.Unique, columns: ['postId', 'userId'],
 }))
-await step('Index post_votes.idx_post_value', () => tablesDB.createIndex({
+await indexStep('Index post_votes.idx_post_value', () => tablesDB.createIndex({
   databaseId, tableId: 'post_votes', key: 'idx_post_value', type: TablesDBIndexType.Key, columns: ['postId', 'value'],
 }))
 

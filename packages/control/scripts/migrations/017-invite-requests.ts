@@ -24,6 +24,7 @@
  *   pnpm migrate --app control --layer control
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -113,11 +114,11 @@ await waitForColumn('invite_requests', 'status')
 
 // Eine Adresse = EINE Anfrage. Wer zweimal fragt, aktualisiert seine eigene —
 // sonst füllt sich die Warteschlange mit Dubletten.
-await step('Unique-Index invite_requests.uq_email', () => tablesDB.createIndex({
+await indexStep('Unique-Index invite_requests.uq_email', () => tablesDB.createIndex({
   databaseId, tableId: 'invite_requests', key: 'uq_email', type: TablesDBIndexType.Unique,
   columns: ['email'],
 }))
-await step('Index invite_requests.idx_status', () => tablesDB.createIndex({
+await indexStep('Index invite_requests.idx_status', () => tablesDB.createIndex({
   databaseId, tableId: 'invite_requests', key: 'idx_status', type: TablesDBIndexType.Key,
   columns: ['status'],
 }))
@@ -141,7 +142,7 @@ await step('Column invite_codes.redeemedSiteId', () => tablesDB.createVarcharCol
 await waitForColumn('invite_codes', 'boundEmail')
 
 // „Nächster freier Code aus dem Vorrat" = aktiv, an niemanden gebunden.
-await step('Index invite_codes.idx_stock', () => tablesDB.createIndex({
+await indexStep('Index invite_codes.idx_stock', () => tablesDB.createIndex({
   databaseId, tableId: 'invite_codes', key: 'idx_stock', type: TablesDBIndexType.Key,
   columns: ['status', 'boundEmail'],
 }))

@@ -10,6 +10,7 @@
  * Benötigte Key-Scopes: indexes.* (Migrations-Key, siehe A2).
  */
 import { Client, TablesDB } from 'node-appwrite'
+import { withIndexRetry } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -32,13 +33,13 @@ function hasCode(error: unknown, code: number): boolean {
 }
 
 try {
-  await tablesDB.createIndex({
+  await withIndexRetry(() => tablesDB.createIndex({
     databaseId,
     tableId: 'comments',
     key: 'author',
     type: 'key',
     columns: ['authorId'],
-  })
+  }))
   console.log('✔ Index comments.author (authorId)')
 }
 catch (error) {

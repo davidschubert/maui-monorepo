@@ -14,6 +14,7 @@
  *     packages/comments/scripts/migrations/005-thread-fields.ts
  */
 import { Client, TablesDB, TablesDBIndexType, Query, type Models } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -74,7 +75,7 @@ await step('Column comments.editedAt', () => mig.createDatetimeColumn({
 
 await waitForColumns('comments')
 
-await step('Index comments.root', () => mig.createIndex({
+await indexStep('Index comments.root', () => mig.createIndex({
   databaseId, tableId: 'comments', key: 'root', type: TablesDBIndexType.Key, columns: ['rootId'],
 }))
 

@@ -10,6 +10,7 @@
  *   pnpm migrate --app <app> --layer tickets
  */
 import { Client, Permission, Role, Storage, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -125,19 +126,19 @@ await waitForColumns('ticket_watchers')
 await waitForColumns('ticket_files')
 await waitForColumns('tickets')
 
-await step('Index ticket_watchers.uq_ticket_user', () => tablesDB.createIndex({
+await indexStep('Index ticket_watchers.uq_ticket_user', () => tablesDB.createIndex({
   databaseId, tableId: 'ticket_watchers', key: 'uq_ticket_user', type: TablesDBIndexType.Unique, columns: ['ticketId', 'userId'],
 }))
-await step('Index ticket_watchers.idx_user', () => tablesDB.createIndex({
+await indexStep('Index ticket_watchers.idx_user', () => tablesDB.createIndex({
   databaseId, tableId: 'ticket_watchers', key: 'idx_user', type: TablesDBIndexType.Key, columns: ['userId'],
 }))
-await step('Index ticket_files.idx_ticket', () => tablesDB.createIndex({
+await indexStep('Index ticket_files.idx_ticket', () => tablesDB.createIndex({
   databaseId, tableId: 'ticket_files', key: 'idx_ticket', type: TablesDBIndexType.Key, columns: ['ticketId'],
 }))
-await step('Index ticket_files.idx_file', () => tablesDB.createIndex({
+await indexStep('Index ticket_files.idx_file', () => tablesDB.createIndex({
   databaseId, tableId: 'ticket_files', key: 'idx_file', type: TablesDBIndexType.Key, columns: ['fileId'],
 }))
-await step('Index tickets.idx_due', () => tablesDB.createIndex({
+await indexStep('Index tickets.idx_due', () => tablesDB.createIndex({
   databaseId, tableId: 'tickets', key: 'idx_due', type: TablesDBIndexType.Key, columns: ['status', 'dueAt'],
 }))
 

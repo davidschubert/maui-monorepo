@@ -16,6 +16,7 @@
  * (409 → skip); Column wird vor der Index-Anlage auf 'available' gepollt.
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -65,11 +66,11 @@ await step('Column notifications.senderId', () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'notifications', key: 'senderId', size: 255, required: false,
 }))
 await waitForColumns('notifications')
-await step('Index notifications.sender', () => tablesDB.createIndex({
+await indexStep('Index notifications.sender', () => tablesDB.createIndex({
   databaseId, tableId: 'notifications', key: 'sender', type: TablesDBIndexType.Key, columns: ['senderId'],
 }))
 
-await step('Index audit_logs.target', () => tablesDB.createIndex({
+await indexStep('Index audit_logs.target', () => tablesDB.createIndex({
   databaseId, tableId: 'audit_logs', key: 'target', type: TablesDBIndexType.Key, columns: ['targetId'],
 }))
 

@@ -7,6 +7,7 @@
  *   pnpm migrate --app <app> --layer events
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -88,7 +89,7 @@ await columnStep('Column events.seriesGeneratedUntil', 'seriesGeneratedUntil', c
 
 await waitForColumns('events')
 
-await step('Index events.idx_series', () => tablesDB.createIndex({
+await indexStep('Index events.idx_series', () => tablesDB.createIndex({
   databaseId, tableId: 'events', key: 'idx_series', type: TablesDBIndexType.Key, columns: ['seriesId', 'startAt'],
 }))
 

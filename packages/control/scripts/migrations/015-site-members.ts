@@ -17,6 +17,7 @@
  *   pnpm migrate --app control --layer control
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -97,17 +98,17 @@ await waitForColumn('site_members', 'role')
 
 // Lookup-Index: Autorisierung fragt „welche Rolle hat DIESER Runtime-User auf
 // DIESER Site?" → (siteId, runtimeProjectId, runtimeUserId).
-await step('Index site_members.idx_lookup', () => tablesDB.createIndex({
+await indexStep('Index site_members.idx_lookup', () => tablesDB.createIndex({
   databaseId, tableId: 'site_members', key: 'idx_lookup', type: TablesDBIndexType.Key,
   columns: ['siteId', 'runtimeProjectId', 'runtimeUserId'],
 }))
 // Ein User hat je Site GENAU EINE Rolle — Unique verhindert Doppel-Rows.
-await step('Unique-Index site_members.uq_member', () => tablesDB.createIndex({
+await indexStep('Unique-Index site_members.uq_member', () => tablesDB.createIndex({
   databaseId, tableId: 'site_members', key: 'uq_member', type: TablesDBIndexType.Unique,
   columns: ['siteId', 'runtimeProjectId', 'runtimeUserId'],
 }))
 // „Alle Mitglieder dieser Site" (Team-Liste im Kundenbereich).
-await step('Index site_members.idx_site', () => tablesDB.createIndex({
+await indexStep('Index site_members.idx_site', () => tablesDB.createIndex({
   databaseId, tableId: 'site_members', key: 'idx_site', type: TablesDBIndexType.Key, columns: ['siteId'],
 }))
 

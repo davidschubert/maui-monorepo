@@ -44,6 +44,10 @@
  *   pnpm migrate --app <app> --layer courses
  */
 import { Client, Query, TablesDB, TablesDBIndexType } from 'node-appwrite'
+// Der Retry-Helfer lebt seit dem Sammel-Hardening zentral (EINE Wahrheit für
+// alle Migrationen): scripts/migrations-lib/indexRetry.mts. Die Begründung des
+// Races steht dort im Kopf.
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -76,58 +80,6 @@ async function step(label: string, run: () => Promise<unknown>) {
     throw error
   }
 }
-/**
- * `createIndex` mit Wiederholung bei 400/'column_not_available'.
- *
- * WARUM: `waitForColumn` pollt `listColumns` bis status==='available' — das ist
- * die bekannte Falle aus CLAUDE.md und sie ist adressiert. Trotzdem kann der
- * Index-Aufruf danach 400 `column_not_available` werfen: 'available' aus
- * listColumns heißt nur, dass die Metadaten-Zeile so weit ist — es heißt NICHT,
- * dass der Index-Worker die Spalte auf seiner Verbindung schon sieht. Zwischen
- * beiden liegt ein Rennen in Appwrite selbst, kein Fehler dieser Migration.
- *
- * CI 2026-07-31 live erwischt (frische Wegwerf-Appwrite, Referenz 1.9.5):
- * „The requested column 'tenantId' is not yet available" flog aus `step()`
- * weiter und färbte die E2E-Suite rot; frühere Läufe waren grün — ein Flake,
- * kein Bruch. Deshalb wird GENAU dieser Fall wiederholt (und nur er): jeder
- * andere 400er ist ein echter Fehler und muss weiterhin sofort auffallen.
- *
- * 409 bleibt wie überall „existiert bereits" (Idempotenz).
- */
-const INDEX_RETRIES = 10
-const INDEX_RETRY_DELAY_MS = 1500
-
-function isColumnNotAvailable(error: unknown): boolean {
-  if (!hasCode(error, 400)) return false
-  const details = error as { type?: unknown, message?: unknown }
-  if (details.type === 'column_not_available') return true
-  // Ältere/abweichende Appwrite-Stände liefern den Typ nicht immer mit —
-  // der Wortlaut ist dann das einzige Merkmal.
-  return typeof details.message === 'string' && details.message.includes('is not yet available')
-}
-
-async function indexStep(label: string, run: () => Promise<unknown>) {
-  for (let attempt = 1; attempt <= INDEX_RETRIES; attempt++) {
-    try {
-      await run()
-      console.log(`✔ ${label}`)
-      return
-    }
-    catch (error) {
-      if (hasCode(error, 409)) {
-        console.log(`↷ ${label} (existiert bereits)`)
-        return
-      }
-      if (isColumnNotAvailable(error) && attempt < INDEX_RETRIES) {
-        console.log(`… ${label}: Spalte für den Index-Worker noch nicht sichtbar (Versuch ${attempt}/${INDEX_RETRIES}) — neuer Versuch in ${INDEX_RETRY_DELAY_MS} ms`)
-        await new Promise(resolve => setTimeout(resolve, INDEX_RETRY_DELAY_MS))
-        continue
-      }
-      throw error
-    }
-  }
-}
-
 async function waitForColumn(tableId: string, key: string) {
   for (let i = 0; i < 30; i++) {
     // Query.limit ist hier PFLICHT (Falle aus events-006): sobald eine Tabelle

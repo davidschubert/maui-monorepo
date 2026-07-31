@@ -9,6 +9,7 @@
  *   pnpm migrate --app <app> --layer billing
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -121,19 +122,19 @@ await columnStep('Column billing_subscriptions.lastStripeEventAt', 'lastStripeEv
 await waitForColumns('billing_customers')
 await waitForColumns('billing_subscriptions')
 
-await step('Index billing_customers.uq_user', () => tablesDB.createIndex({
+await indexStep('Index billing_customers.uq_user', () => tablesDB.createIndex({
   databaseId, tableId: 'billing_customers', key: 'uq_user', type: TablesDBIndexType.Unique, columns: ['userId'],
 }))
-await step('Index billing_customers.uq_stripe_customer', () => tablesDB.createIndex({
+await indexStep('Index billing_customers.uq_stripe_customer', () => tablesDB.createIndex({
   databaseId, tableId: 'billing_customers', key: 'uq_stripe_customer', type: TablesDBIndexType.Unique, columns: ['stripeCustomerId'],
 }))
-await step('Index billing_subscriptions.idx_user', () => tablesDB.createIndex({
+await indexStep('Index billing_subscriptions.idx_user', () => tablesDB.createIndex({
   databaseId, tableId: 'billing_subscriptions', key: 'idx_user', type: TablesDBIndexType.Key, columns: ['userId'],
 }))
-await step('Index billing_subscriptions.idx_customer', () => tablesDB.createIndex({
+await indexStep('Index billing_subscriptions.idx_customer', () => tablesDB.createIndex({
   databaseId, tableId: 'billing_subscriptions', key: 'idx_customer', type: TablesDBIndexType.Key, columns: ['stripeCustomerId'],
 }))
-await step('Index billing_subscriptions.uq_stripe_sub', () => tablesDB.createIndex({
+await indexStep('Index billing_subscriptions.uq_stripe_sub', () => tablesDB.createIndex({
   databaseId, tableId: 'billing_subscriptions', key: 'uq_stripe_sub', type: TablesDBIndexType.Unique, columns: ['stripeSubscriptionId'],
 }))
 

@@ -9,6 +9,7 @@
  *   pnpm migrate --app <app> --layer posts
  */
 import { Client, Permission, Role, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -129,19 +130,19 @@ await columnStep('Column poll_votes.optionIndex', 'optionIndex', voteCols, () =>
 await waitForColumns('community_posts')
 await waitForColumns('poll_votes')
 
-await step('Index community_posts.idx_feed', () => tablesDB.createIndex({
+await indexStep('Index community_posts.idx_feed', () => tablesDB.createIndex({
   databaseId, tableId: 'community_posts', key: 'idx_feed', type: TablesDBIndexType.Key, columns: ['status', 'publishedAt'],
 }))
-await step('Index community_posts.idx_author', () => tablesDB.createIndex({
+await indexStep('Index community_posts.idx_author', () => tablesDB.createIndex({
   databaseId, tableId: 'community_posts', key: 'idx_author', type: TablesDBIndexType.Key, columns: ['authorId'],
 }))
-await step('Index community_posts.idx_scheduled', () => tablesDB.createIndex({
+await indexStep('Index community_posts.idx_scheduled', () => tablesDB.createIndex({
   databaseId, tableId: 'community_posts', key: 'idx_scheduled', type: TablesDBIndexType.Key, columns: ['status', 'scheduledAt'],
 }))
-await step('Index poll_votes.uq_post_user', () => tablesDB.createIndex({
+await indexStep('Index poll_votes.uq_post_user', () => tablesDB.createIndex({
   databaseId, tableId: 'poll_votes', key: 'uq_post_user', type: TablesDBIndexType.Unique, columns: ['postId', 'userId'],
 }))
-await step('Index poll_votes.idx_post_option', () => tablesDB.createIndex({
+await indexStep('Index poll_votes.idx_post_option', () => tablesDB.createIndex({
   databaseId, tableId: 'poll_votes', key: 'idx_post_option', type: TablesDBIndexType.Key, columns: ['postId', 'optionIndex'],
 }))
 

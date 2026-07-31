@@ -8,6 +8,7 @@
  *   pnpm migrate --app <app> --layer courses
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -115,13 +116,13 @@ await waitForColumns('lessons')
 await waitForColumns('enrollments')
 await waitForColumns('lesson_progress')
 
-await step('Index courses.uq_slug', () => tablesDB.createIndex({ databaseId, tableId: 'courses', key: 'uq_slug', type: TablesDBIndexType.Unique, columns: ['slug'] }))
-await step('Index courses.idx_status', () => tablesDB.createIndex({ databaseId, tableId: 'courses', key: 'idx_status', type: TablesDBIndexType.Key, columns: ['status'] }))
-await step('Index lessons.idx_course_order', () => tablesDB.createIndex({ databaseId, tableId: 'lessons', key: 'idx_course_order', type: TablesDBIndexType.Key, columns: ['courseId', 'order'] }))
-await step('Index enrollments.uq_course_user', () => tablesDB.createIndex({ databaseId, tableId: 'enrollments', key: 'uq_course_user', type: TablesDBIndexType.Unique, columns: ['courseId', 'userId'] }))
-await step('Index enrollments.idx_user', () => tablesDB.createIndex({ databaseId, tableId: 'enrollments', key: 'idx_user', type: TablesDBIndexType.Key, columns: ['userId'] }))
-await step('Index lesson_progress.uq_lesson_user', () => tablesDB.createIndex({ databaseId, tableId: 'lesson_progress', key: 'uq_lesson_user', type: TablesDBIndexType.Unique, columns: ['lessonId', 'userId'] }))
-await step('Index lesson_progress.idx_user', () => tablesDB.createIndex({ databaseId, tableId: 'lesson_progress', key: 'idx_user', type: TablesDBIndexType.Key, columns: ['userId'] }))
-await step('Index lesson_progress.idx_course_user', () => tablesDB.createIndex({ databaseId, tableId: 'lesson_progress', key: 'idx_course_user', type: TablesDBIndexType.Key, columns: ['courseId', 'userId'] }))
+await indexStep('Index courses.uq_slug', () => tablesDB.createIndex({ databaseId, tableId: 'courses', key: 'uq_slug', type: TablesDBIndexType.Unique, columns: ['slug'] }))
+await indexStep('Index courses.idx_status', () => tablesDB.createIndex({ databaseId, tableId: 'courses', key: 'idx_status', type: TablesDBIndexType.Key, columns: ['status'] }))
+await indexStep('Index lessons.idx_course_order', () => tablesDB.createIndex({ databaseId, tableId: 'lessons', key: 'idx_course_order', type: TablesDBIndexType.Key, columns: ['courseId', 'order'] }))
+await indexStep('Index enrollments.uq_course_user', () => tablesDB.createIndex({ databaseId, tableId: 'enrollments', key: 'uq_course_user', type: TablesDBIndexType.Unique, columns: ['courseId', 'userId'] }))
+await indexStep('Index enrollments.idx_user', () => tablesDB.createIndex({ databaseId, tableId: 'enrollments', key: 'idx_user', type: TablesDBIndexType.Key, columns: ['userId'] }))
+await indexStep('Index lesson_progress.uq_lesson_user', () => tablesDB.createIndex({ databaseId, tableId: 'lesson_progress', key: 'uq_lesson_user', type: TablesDBIndexType.Unique, columns: ['lessonId', 'userId'] }))
+await indexStep('Index lesson_progress.idx_user', () => tablesDB.createIndex({ databaseId, tableId: 'lesson_progress', key: 'idx_user', type: TablesDBIndexType.Key, columns: ['userId'] }))
+await indexStep('Index lesson_progress.idx_course_user', () => tablesDB.createIndex({ databaseId, tableId: 'lesson_progress', key: 'idx_course_user', type: TablesDBIndexType.Key, columns: ['courseId', 'userId'] }))
 
 console.log('✔ Migration courses-001 fertig')
