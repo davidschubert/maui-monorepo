@@ -104,7 +104,15 @@ control-022/023:
 Wer 1 und 2 vertauscht, hat zwischen Migration und Deploy ein Fenster, in dem
 der Geld- und Produkt-Pfad ins Leere schreibt.
 
-### Etappe B ist erledigt (2026-07-30) — offen bleibt NUR das Zusammenziehen
+### Etappe B ist erledigt (2026-07-30) — und das ZUSAMMENZIEHEN auch
+
+> Zusammenziehen 2026-07-30 spätabends (Davids Go, Beobachtungsnacht
+> erlassen): control-025 (idx_site_product zuerst, dann idx_site_feature +
+> featureKey; websites.features; feature_catalog), system-024, courses-004 —
+> lokal + Prod gefahren; alle Dual-Writes/Aliasse/Doppelfelder entfernt.
+> feature→product ist damit KOMPLETT. Gleichzeitig E8-Aufräumen: control-026
+> (site_members, site_invites, sites, invite_requests.siteId) mit
+> Zeilen-Gegenprobe vor jedem Löschen.
 
 Regelbasiert wie Etappe A: 964 Ersetzungen in 226 Dateien + 22 handgepflegte
 Locale-Werte, 43 Dateiumbenennungen (git mv). Camel-/Pascal-Komposita wurden
