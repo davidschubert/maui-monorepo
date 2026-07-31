@@ -8,7 +8,8 @@
  * Heuristik, die bei einem neuen Slug still das Falsche ausliefert.
  *
  * Regel beim Erweitern: neue Seite → hier eintragen (en + de). Der Sitemap-Test
- * (Route-Vergleich) fällt sonst auf.
+ * (tests/marketingRoutes.test.ts, Route-Vergleich gegen app/pages/ +
+ * shared/marketing.ts + die routeRules-Redirects) fällt sonst auf.
  */
 import type { H3Event } from 'h3'
 import { AUDIENCE_KEYS, audienceSlugForLocale, PRODUCT_KEYS, slugForLocale, VS_SLUGS } from '#shared/marketing'
