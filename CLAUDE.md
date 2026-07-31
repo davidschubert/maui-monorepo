@@ -182,17 +182,18 @@ Vollständiges Konzept: docs/CONCEPT.md
 - `control.pukalani.app` = Betreiber-Oberfläche, seit dem Cutover VOLLSTÄNDIG:
   eigene ploi-Site 392163 (nginx → Port 3003, eigenes LE-Zertifikat für
   control+studio), Release-Slot `releases/control`, Appwrite-Projekt
-  `control` (Session-Cookie a_session_control). `studio.pukalani.app` ist
-  nur noch ALIAS dieser Site. Der Stripe-Webhook zeigt seit 2026-07-30 auf
-  `control` (im Testmodus geprüft: POST auf beide Hosts → 400, also
-  Signaturprüfung aktiv). Der Alias hat damit KEINE Aufgabe mehr und soll weg,
-  weil „Studio" seit Davids Namensentscheidung das Kundenangebot meint — ein
-  Kunde, der den Namen eintippt, landet sonst in der Betreiber-Konsole. ZWEI
-  Fallen beim Entfernen: (1) ploi darf dabei KEIN Zertifikat neu anfordern —
-  control hat ein eigenes über control+studio, ein überzähliger SAN schadet
-  nicht, eine Neuanforderung in dieser Zone hat schon zwei Hosts lahmgelegt;
-  (2) vorher `pm2 jlist` auf ein cwd unter `/home/ploi/studio.pukalani.app`
-  prüfen — genau daran starb portfolio beim Cutover-Aufräumen (ops/pm2-heal.sh).
+  `control` (Session-Cookie a_session_control). Der Alias
+  `studio.pukalani.app` ist am 2026-07-30 ENTFERNT (ploi → Site → Verwalte →
+  Domain aliases; ploi pflegt `server_name` selbst und lädt nginx neu). Grund:
+  der Stripe-Webhook zeigt seither auf `control`, damit hatte der Alias keine
+  Aufgabe mehr — und „Studio" meint seit Davids Namensentscheidung das
+  KUNDENANGEBOT, ein Kunde hätte sonst die Betreiber-Konsole vor sich. Der Host
+  fällt jetzt in die Wildcard-Site `platform` und antwortet 404, wie
+  `app.pukalani.app`. Zwei Dinge zum Nachlesen: control behält den
+  überzähligen SAN `studio` bis zur nächsten Erneuerung (harmlos, es wurde
+  BEWUSST kein Zertifikat neu angefordert), und `pm2 jlist` war vorher auf ein
+  cwd unter `/home/ploi/studio.pukalani.app` zu prüfen — genau daran starb
+  portfolio beim Cutover-Aufräumen (ops/pm2-heal.sh); hier hing nichts.
   Die control-Site hat BEWUSST kein Repository: die CI rsynct .output UND
   ops/-Configs; ploi-Fallback-Deploy gibt es für control nicht (Fallback =
   Runbook docs/runbooks/CONTROL-CUTOVER.md).
@@ -204,10 +205,15 @@ Vollständiges Konzept: docs/CONCEPT.md
   in RESERVED_SUBDOMAINS gesperrt (Phishing).
 - TLS-Fallen (beide live erwischt): (1) Port 80 antwortet nur für explizit
   konfigurierte Hosts — die HTTP-Prüfung von Let's Encrypt scheitert für
-  Aliase/Wildcards, deshalb IMMER DNS-01 über Cloudflare. (2) ploi leitet den
-  certbot-Lineage-Namen aus der BASIS-Domain ab: die ganze Zone teilt
-  `/etc/letsencrypt/live/pukalani.app/`, jede Anforderung ÜBERSCHREIBT sie.
-  Ein gemeinsames Apex+Wildcard-Zertifikat ist über ploi NICHT herstellbar
+  Aliase/Wildcards, deshalb IMMER DNS-01 über Cloudflare. (2) ploi benennt die
+  certbot-Lineage nach der Root-Domain DER SITE — es gibt also mehrere
+  (am 2026-07-30 nachgemessen: `comments.pukalani.app`, `control.pukalani.app`,
+  `portfolio.pukalani.app` je eigen). GETEILT ist nur `pukalani.app`, und darin
+  liegt das **Wildcard** `*.pukalani.app`: die Sites `pukalani.app` UND
+  `platform.pukalani.app` binden dieselbe Lineage ein, und daran hängen platform,
+  demo, help und JEDER Mandanten-Host. Eine Anforderung dort überschreibt sie
+  für alle — das ist der Vorfall, der platform+demo 40 min lahmlegte, nicht eine
+  zonenweite Regel. Ein gemeinsames Apex+Wildcard-Zertifikat ist über ploi NICHT herstellbar
   (ploi fordert nur die Domains DER SITE an und filtert Fremdnamen raus).
   Deshalb seit 2026-07-27: `pukalani.app` läuft als EINZIGER Host der Zone
   **proxied** über Cloudflare (Zonen-Modus fest „Full", Automatik AUS) und

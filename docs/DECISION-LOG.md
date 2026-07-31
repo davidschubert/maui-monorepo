@@ -484,8 +484,9 @@ verworfener Alternative, mit Verweis auf Commit/Doc.
 
 22. **Entscheidung: Die zwei Betriebsmodelle heißen `Plattform` und `Studio`**
     (Kundensprache); `pool`/`silo` bleiben im Code. Folge: der Alias
-    `studio.pukalani.app` muss weg, sobald „Studio" der Kundenname ist — er zeigt
-    heute die Betreiber-Konsole. Und die Seite „Theme-Studio" heißt künftig nur
+    `studio.pukalani.app` musste weg, sobald „Studio" der Kundenname ist — er zeigte
+    die Betreiber-Konsole. **Erledigt am 2026-07-30** (ploi → Domain aliases;
+    antwortet jetzt 404). Und die Seite „Theme-Studio" heißt künftig nur
     „Themes", damit neben der Menügruppe „Studio" nichts Gleichnamiges steht.
 
 23. **Entscheidung: Die Umbenennung geht auf `community`, nicht auf `site` (E8).**

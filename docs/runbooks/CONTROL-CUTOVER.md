@@ -89,7 +89,7 @@ Kopier-Knopf, lokal `pbpaste > datei`.
 - `https://control.pukalani.app/api/health` meldet den erwarteten Commit
 - Anmeldung per OTP funktioniert, Sites-Register und Health-Uebersicht sind
   vollstaendig
-- `https://studio.pukalani.app` antwortet weiter (Alias; der Stripe-Webhook hängt seit 2026-07-30 an `control` — der Alias kann weg)
+- `https://studio.pukalani.app` antwortet 404 — der Alias ist am 2026-07-30 entfernt (Stripe-Webhook hängt seither an `control`); der Host fällt in die Wildcard-Site `platform`
 - ein Stripe-Test-Event kommt an
 - `packages/onboarding/scripts/verify-control-host.mjs` und
   `verify-site-authz.mjs` laufen gruen gegen den neuen Host

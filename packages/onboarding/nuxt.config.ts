@@ -15,7 +15,7 @@ export default defineNuxtConfig({
     // Control Plane. Leer = der Trichter antwortet 503 (Fehlkonfiguration
     // sichtbar machen, statt still eine kaputte Seite zu zeigen).
     onboardingServiceSecret: '',
-    // Basis-URL des Control Plane (z. B. https://studio.pukalani.app).
+    // Basis-URL des Control Plane (z. B. https://control.pukalani.app).
     // Leer = 503. Env: NUXT_ONBOARDING_CONTROL_URL
     onboardingControlUrl: '',
   },
