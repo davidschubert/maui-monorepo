@@ -1,0 +1,80 @@
+/*
+ * THEME-BRÜCKE der Marketing-Seite (Paket 1 der Nuxt-UI-Umstellung).
+ *
+ * Warum: Die Seite hatte ihre Markenfarbe nur als HSL-Tripel in marketing.css
+ * (--puka-sun & Co.) und benutzte für CTAs die Nuxt-UI-STATUS-Farbe `warning`
+ * als Markenfarbe. Eine Statusfarbe ist keine Marke — und ohne eigene Palette
+ * kann die Seite am Nuxt-UI-Theme gar nicht teilnehmen. Deshalb hier EINE
+ * 11-stufige `puka`-Palette; app/app.config.ts hebt sie mit
+ * `ui.colors.primary: 'puka'` zur Primärfarbe der App.
+ *
+ * WARUM `:root` UND NICHT `@theme` (Tailwind 4): Tailwind kompiliert JEDE
+ * CSS-Datei einzeln. Die Theme-Schicht dieser App hängt an der Datei, die
+ * `@import "tailwindcss"` macht — das ist packages/core/app/assets/css/main.css
+ * (Core-Layer, gehört dieser App nicht). Ein `@theme`-Block HIER wäre tot: die
+ * Datei wird unverändert durchgereicht, der Browser wirft die unbekannte
+ * At-Regel weg (live verifiziert, 2026-07-30).
+ * Ein einfacher `:root`-Block ist deshalb richtig UND ausreichend: Nuxt UI
+ * baut aus `ui.colors.primary` zur Laufzeit
+ *   `--ui-color-primary-<n>: var(--color-puka-<n>, <fallback>)`
+ * (runtime/plugins/colors.js) — es braucht die Variablen, keinen Theme-Eintrag.
+ * FOLGE, die man wissen muss: Tailwind-Utilities `bg-puka-500` o. ä. gibt es
+ * NICHT. Die Ramp ist über die Nuxt-UI-Aliase erreichbar — `bg-primary`,
+ * `text-primary-600`, `ring-primary/50` … (aus #build/ui.css) zeigen alle
+ * hierher. Genau die gehören in neue Styles.
+ *
+ * Format = oklch, wie in den Nuxt-UI-/Tailwind-Paletten und wie die
+ * `mist`-Ramp im Core.
+ *
+ * Anker (exakt, hex-genau round-trippend — nicht „nachgemischt"):
+ *   500 = --puka-sun      hsl(38 96% 60%) = #fbb337  → die Sonne / CTA
+ *   600 = --puka-sun-deep hsl(26 90% 48%) = #e96c0c  → Hover-/Textakzent
+ * Die übrigen Stufen sind um diese Anker interpoliert; der Verlauf von
+ * Helligkeit, Chroma und Farbwinkel folgt der Form von Tailwinds `amber`-Ramp
+ * (Farbton wandert von hellem Gelb oben nach Orange unten), auf den puka-Ton
+ * gezogen.
+ */
+:root {
+  --color-puka-50: oklch(98.6% 0.018 93.7); /* #fefbed */
+  --color-puka-100: oklch(96.64% 0.049 94); /* #fff4cf */
+  --color-puka-200: oklch(93.67% 0.099 94); /* #ffea9d */
+  --color-puka-300: oklch(90.14% 0.139 91.1); /* #ffdb68 */
+  --color-puka-400: oklch(86.15% 0.157 86.1); /* #ffc940 */
+  --color-puka-500: oklch(81.53% 0.1546 76.054); /* #fbb337 = --puka-sun */
+  --color-puka-600: oklch(67.1% 0.178 48.598); /* #e96c0c = --puka-sun-deep */
+  --color-puka-700: oklch(55.75% 0.162 42.1); /* #be4a0d */
+  --color-puka-800: oklch(47.36% 0.136 40.1); /* #983912 */
+  --color-puka-900: oklch(41.32% 0.111 39.9); /* #7b3115 */
+  --color-puka-950: oklch(27.5% 0.077 39.7); /* #461705 */
+}
+
+/*
+ * `--ui-primary` ist die Farbe, die `color="primary"` tatsächlich malt. Der
+ * Core setzt sie bewusst auf `black` (bzw. `white` im Dark Mode) und lässt die
+ * Primär-RAMP daneben stehen — für Dashboard/Login richtig, für eine
+ * Marketing-Seite falsch: dort IST die Sonne die Primärfarbe. Ohne diese Zeile
+ * wäre jeder CTA schwarz.
+ *
+ * Gesetzt auf `.marketing-site` (die Klasse hängt am <body>, gesetzt in
+ * layouts/site.vue), nicht auf `:root`: so gilt die Regel exakt so weit wie die
+ * Licht-Dramaturgie in marketing.css und kann nicht in ein Layer-Layout bluten.
+ * Nebeneffekt, der hier erwünscht ist: <body> ist ein ANDERES Element als
+ * <html>, damit gewinnt diese Deklaration gegen `:root { --ui-primary: black }`
+ * unabhängig von der Reihenfolge der CSS-Dateien.
+ *
+ * Die vier --puka-cta-*-Tokens sind die Farbwerte des SEKUNDÄREN CTA
+ * (heller Grund, siehe Kontrast-Begründung am compoundVariant in
+ * app/app.config.ts). Sie stehen hier, weil Tailwind für diese App keine
+ * eigenen Farb-Utilities bauen kann (siehe oben) — als fertige Farbwerte lassen
+ * sie sich per `text-(--token)` / `bg-(--token)` aus dem Theme heraus benutzen,
+ * ohne handgeschriebenes CSS gegen die Komponente.
+ */
+.marketing-site {
+  --ui-primary: var(--ui-color-primary-500);
+
+  --puka-cta-ink: hsl(var(--puka-ink));
+  --puka-cta-surface: hsl(0 0% 100% / 0.55);
+  --puka-cta-surface-hover: hsl(0 0% 100% / 0.9);
+  --puka-cta-edge: hsl(var(--puka-ink) / 0.22);
+  --puka-cta-edge-hover: hsl(var(--puka-ink) / 0.4);
+}

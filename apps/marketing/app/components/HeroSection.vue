@@ -25,7 +25,7 @@ const trust = computed(() => [
         <p class="hero-sub mkt-lead">{{ t('marketing.hero.sub') }}</p>
 
         <div class="hero-cta">
-          <UButton :to="start" color="warning" size="xl" class="cta-primary">
+          <UButton :to="start" color="primary" size="xl" class="cta-primary">
             {{ t('marketing.hero.ctaPrimary') }}
           </UButton>
           <UButton :to="demo" color="neutral" variant="outline" size="xl" class="cta-secondary" icon="i-ph-play-circle">
@@ -111,20 +111,12 @@ const trust = computed(() => [
    dort doppelt schwach: viel zu helle Schrift (unlesbar) UND ohne Kante nicht als
    Button erkennbar. Jetzt: sichtbare Kante + Ink-Text (hoher Kontrast); beim
    Hover wechselt NUR die Fläche, nicht die Textfarbe — ein Farbwechsel nach
-   Orange lag mit 2,8:1 unter der Lesbarkeitsschwelle. */
-.cta-secondary {
-  color: hsl(var(--puka-ink)) !important;
-  font-weight: 600;
-  /* Nuxt UI zeichnet die outline-Variante per Ring — die Kante hier explizit,
-     sonst bleibt border-width 0 und der Button hat sichtbar keinen Rahmen. */
-  border: 1px solid hsl(var(--puka-ink) / 0.22) !important;
-  background: hsl(0 0% 100% / 0.55) !important;
-}
-.cta-secondary:hover {
-  color: hsl(var(--puka-ink)) !important;
-  border-color: hsl(var(--puka-ink) / 0.4) !important;
-  background: hsl(0 0% 100% / 0.9) !important;
-}
+   Orange lag mit 2,8:1 unter der Lesbarkeitsschwelle.
+   Das steht seit der Theme-Brücke (Paket 1) NICHT mehr hier: es ist ein
+   compoundVariant für color="neutral" + variant="outline" in app/app.config.ts.
+   Dort gilt es für die Variante statt für diese eine Instanz — und braucht kein
+   `!important` mehr, weil es aus derselben Quelle kommt wie die Variante selbst
+   (vorher kämpften sechs !important gegen die Utility-Klassen von Nuxt UI). */
 .hero-trust {
   display: flex;
   flex-wrap: wrap;

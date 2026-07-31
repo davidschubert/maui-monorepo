@@ -9,6 +9,19 @@
  * (nuxt.config.ts — colorMode + pages:extend). Sonst mischten sich dunkle
  * Nuxt-UI-Elemente in diese hellen Flächen. Eine echte Dark-Fassung kann mit
  * der Nuxt-UI-Migration kommen — dann hier UND in nuxt.config.ts.
+ *
+ * ── THEME-BRÜCKE (seit Paket 1 der Nuxt-UI-Umstellung) ────────────────────
+ * Die --puka-*-HSL-Tripel unten sind BESTAND für dieses Alt-CSS, keine
+ * Zielarchitektur. Die Markenfarbe lebt jetzt zusätzlich als echte Nuxt-UI-
+ * Palette in app/assets/css/puka-theme.css (`puka`, 11 Stufen, oklch;
+ * app.config.ts hebt sie zu `ui.colors.primary`). Beide beschreiben denselben
+ * Ton: --puka-sun == puka-500, --puka-sun-deep == puka-600.
+ * REGEL: NEUE Styles nehmen Theme-Tokens (`bg-primary`, `text-primary-600`,
+ * `ring-primary/50`, `text-default`, `border-accented`, --ui-*), nicht
+ * hsl(var(--puka-*)). Die 200+ bestehenden Verwendungen werden paketweise
+ * abgelöst; wer eine Sektion migriert, nimmt die --puka-*-Aufrufe DIESER
+ * Sektion gleich mit. Erst wenn keiner mehr übrig ist, verschwinden die
+ * Tripel hier.
  */
 
 .marketing-site {

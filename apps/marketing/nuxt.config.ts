@@ -25,9 +25,11 @@ export default defineNuxtConfig({
     port: 3007,
   },
 
-  // Licht-Dramaturgie (§6.3 des Konzepts) — gescopet auf body.marketing-site,
-  // damit sie nicht in Login/Dashboard-Layouts der Layer blutet.
-  css: ['~/assets/css/marketing.css'],
+  // puka-theme.css = Theme-Brücke (eigene `puka`-Palette + --ui-primary), MUSS
+  // vor marketing.css stehen; marketing.css = Licht-Dramaturgie (§6.3 des
+  // Konzepts), gescopet auf body.marketing-site, damit sie nicht in
+  // Login/Dashboard-Layouts der Layer blutet.
+  css: ['~/assets/css/puka-theme.css', '~/assets/css/marketing.css'],
 
   app: {
     pageTransition: { name: 'page', mode: 'out-in' },

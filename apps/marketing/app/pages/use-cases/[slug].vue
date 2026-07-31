@@ -81,7 +81,7 @@ useSeoMeta({
         <h2 class="fuer-cta-title">{{ t('marketing.audiencePages.ctaTitle') }}</h2>
         <p class="fuer-cta-lead">{{ t('marketing.audiencePages.ctaLead') }}</p>
         <div class="fuer-cta-buttons">
-          <UButton :to="start" color="warning" size="xl">{{ t('marketing.hero.ctaPrimary') }}</UButton>
+          <UButton :to="start" color="primary" size="xl">{{ t('marketing.hero.ctaPrimary') }}</UButton>
           <UButton :to="demo" variant="ghost" color="neutral" size="xl" icon="i-ph-play-circle" class="fuer-ghost">
             {{ t('marketing.hero.ctaSecondary') }}
           </UButton>

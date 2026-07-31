@@ -101,7 +101,7 @@ useSeoMeta({
         <PukaMark :size="38" />
         <h2 class="mkt-cta-title">{{ t('marketing.gdpr.ctaTitle') }}</h2>
         <p class="mkt-cta-lead">{{ t('marketing.gdpr.ctaLead') }}</p>
-        <UButton :to="start" color="warning" size="xl" class="mkt-cta-btn">
+        <UButton :to="start" color="primary" size="xl" class="mkt-cta-btn">
           {{ t('marketing.hero.ctaPrimary') }}
         </UButton>
       </div>
