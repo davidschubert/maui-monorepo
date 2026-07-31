@@ -11,23 +11,54 @@
 // Begriff. Ohne defineI18nRoute-Pfade nimmt i18n den Dateipfad in beiden
 // Sprachen (DE mit /de-Präfix). Die alten Adressen leiten per routeRules 301
 // weiter (apps/marketing/nuxt.config.ts).
-import { AUDIENCE_SLUGS } from '#shared/marketing'
+//
+// Der SLUG ist seit Davids Entscheidung 2026-07-31 übersetzt (wie bei den
+// Produkten): /de/use-cases/kurse ↔ /use-cases/course-creators. Das Segment
+// bleibt dabei in beiden Sprachen gleich — übersetzt ist nur das Wort, das die
+// Zielgruppe benennt. Die drei schon veröffentlichten EN-Adressen mit
+// deutschem Slug: 301 in nuxt.config.ts.
+import { audienceKeyFromSlug, audienceSlugForLocale } from '#shared/marketing'
 
 definePageMeta({ layout: 'site' })
 
-// Slug-Katalog aus shared/ — dieselbe Liste baut die Sitemap.
+// Slug-Katalog aus shared/ — dieselbe Quelle baut die Sitemap und die
+// Link-Ziele in Abschnitt und Fuß.
 const route = useRoute()
-const slug = String(route.params.slug)
-if (!AUDIENCE_SLUGS.includes(slug as (typeof AUDIENCE_SLUGS)[number])) {
+const { t, locale } = useI18n()
+
+/**
+ * Der Slug in der Adresse gehört der AKTUELLEN Sprache; gearbeitet wird ab hier
+ * nur noch mit dem kanonischen Schlüssel (i18n-Texte, OG-Bild). Ein Slug der
+ * ANDEREN Sprache ist kein Treffer — `audienceKeyFromSlug` prüft je Sprache,
+ * sonst gäbe es dieselbe Seite unter zwei URLs (`/de/use-cases/clubs` wäre
+ * dann eine zweite deutsche Adresse für dieselbe Seite).
+ */
+const audienceKey = audienceKeyFromSlug(String(route.params.slug), locale.value)
+if (!audienceKey) {
   throw createError({ status: 404, statusText: 'Page not found' })
 }
 
-const { t } = useI18n()
+/**
+ * DIE ÜBERSETZTE ADRESSE DIESER SEITE — für `switchLocalePath()` (Sprach-
+ * wechsler im Fuß) UND für die hreflang-Alternates aus `useLocaleSeoHead()`.
+ * Begründung ausführlich in pages/produkte/[slug].vue: ohne diesen Aufruf
+ * reicht i18n den Parameter unverändert weiter, aus `/de/use-cases/kurse`
+ * würde `/use-cases/kurse` — eine Adresse, die es nicht mehr gibt (301).
+ *
+ * `useSetI18nParams()` GIBT die Setz-Funktion ZURÜCK (die Argumente des
+ * Composables selbst sind SEO-Optionen) — der zweite Aufruf ist Absicht.
+ */
+const setI18nParams = useSetI18nParams()
+setI18nParams({
+  de: { slug: audienceSlugForLocale(audienceKey, 'de') },
+  en: { slug: audienceSlugForLocale(audienceKey, 'en') },
+})
+
 const localePath = useLocalePath()
 const { start, demo } = useProductLinks()
 useReveal()
 
-const base = `marketing.audiencePages.items.${slug}`
+const base = `marketing.audiencePages.items.${audienceKey}`
 
 const ctaLinks = computed(() => [
   { to: start, color: 'primary' as const, size: 'xl' as const, label: t('marketing.hero.ctaPrimary') },
@@ -41,10 +72,16 @@ const ctaLinks = computed(() => [
   },
 ])
 
+// Das OG-Bild trägt den KANONISCHEN Schlüssel (`use-cases-vereine-en.jpg`,
+// nicht `use-cases-clubs-en.jpg`) — bewusst kein Datei-Rename, gleiche
+// Begründung wie bei den Produkten: eine Bild-URL ist keine Navigations-URL.
+// Sie steht nur im <head>, niemand liest oder verlinkt sie, und ein Rename
+// hieße neue Dateien, eine angepasste scripts/og-images.mjs und tote Adressen
+// in schon geteilten Vorschauen — für null Wirkung.
 useMarketingSeo({
   titleKey: `${base}.metaTitle`,
   descriptionKey: `${base}.metaDescription`,
-  image: `use-cases-${slug}`,
+  image: `use-cases-${audienceKey}`,
 })
 </script>
 

@@ -72,6 +72,18 @@ export default defineNuxtConfig({
     '/products/diskussionen': { redirect: { to: '/products/discussions', statusCode: 301 } },
     '/products/beitraege': { redirect: { to: '/products/posts', statusCode: 301 } },
     '/products/kurse': { redirect: { to: '/products/courses', statusCode: 301 } },
+    // Vierte Welle, dieselbe Entscheidung für die Anwendungsfälle: auf der
+    // ENGLISCHEN Seite ist auch dort der Slug übersetzt. Betroffen sind genau
+    // die drei, deren Wort sich unterscheidet — `coaches` heißt in beiden
+    // Sprachen gleich und braucht KEINE Regel (sie wäre ein Self-Redirect).
+    // Die DEUTSCHEN Adressen (/de/use-cases/kurse …) ändern sich NICHT und
+    // dürfen deshalb NICHT mit umgeleitet werden: die Muster hier sind exakte
+    // Pfade OHNE /de-Präfix und treffen sie nicht. `/for/kurse` springt
+    // entsprechend zweimal (→ /use-cases/kurse → /use-cases/course-creators),
+    // aus demselben Grund wie oben bei den Produkten.
+    '/use-cases/kurse': { redirect: { to: '/use-cases/course-creators', statusCode: 301 } },
+    '/use-cases/creator': { redirect: { to: '/use-cases/creators', statusCode: 301 } },
+    '/use-cases/vereine': { redirect: { to: '/use-cases/clubs', statusCode: 301 } },
   },
 
   // Ziel-Links der Marketing-CTAs (useProductLinks). Die Werte sind die
