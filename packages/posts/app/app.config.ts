@@ -8,7 +8,10 @@ export default defineAppConfig({
     admin: {
       modules: [
         {
+          // E9: Inhalte einer Community (Gruppe „Produkte"). Im Silo dieselbe
+          // Seite für den Betreiber — die Ausnahme ohne Mandanten trägt das.
           id: 'posts',
+          scope: 'community',
           productKey: 'posts',
           labelKey: 'admin.nav.posts',
           icon: 'i-ph-users-three',

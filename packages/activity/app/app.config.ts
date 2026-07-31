@@ -20,13 +20,16 @@ export default defineAppConfig({
       // nicht auto-importiert; das Layout liest die Registry typisiert (core-Default).
       modules: [
         {
+          // E9: „Settings · Audience → Activity logs" (Davids Struktur) — das
+          // Protokoll gehört der Community, deren Publikum es beschreibt.
           id: 'activity',
+          scope: 'community',
           productKey: 'activity',
           labelKey: 'admin.nav.activity',
           icon: 'i-ph-pulse',
           to: '/dashboard/activity',
           requiredCapability: 'activity.manage',
-          group: 'products',
+          group: 'settings',
           order: 4,
         },
       ],

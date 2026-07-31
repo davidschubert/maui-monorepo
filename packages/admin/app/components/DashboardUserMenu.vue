@@ -3,6 +3,7 @@
 // angepasst an unser Theme-System (Maui-Themes + Varianten), Appearance, Sprache, Logout.
 import type { DropdownMenuItem } from '@nuxt/ui'
 import { isProductStateEnabled } from '../../../core/shared/types/config'
+import { filterDashboardModules, resolveDashboardPlace } from '../../../core/shared/dashboardNav'
 
 defineProps<{ collapsed?: boolean }>()
 
@@ -18,6 +19,15 @@ const runtimeFlags = useRuntimeFlags()
 const { themes, theme, variant, setTheme, setVariant, neutrals, neutral, setNeutral, canChooseTheme, canChooseNeutral } = useTheme()
 const localeOptions = useLocaleOptions()
 const { capabilities: siteCaps } = useCommunityRole()
+
+// Dieselbe Ebenen-Regel wie in der Sidebar (E9, core/shared/dashboardNav.ts):
+// das Account-Menü ist ein zweiter Ausgang der GLEICHEN Registry — ohne den
+// Filter stünde ein Betreiber-Eintrag (Zahlungs-Protokolle) auf einem
+// Mandanten-Host bloß woanders.
+const place = resolveDashboardPlace(
+  (appConfig.pukalani as { tenancy?: { enabled?: boolean } }).tenancy?.enabled === true,
+  useIsTenantHost(),
+)
 
 // Sidebar-Optik (sidebar | floating | inset) — geteilt mit dem Dashboard-Layout via Cookie
 const sidebarVariant = useCookie<'sidebar' | 'floating' | 'inset'>('pukalani-sidebar-variant', { default: () => 'floating' })
@@ -122,11 +132,16 @@ const items = computed<SwatchItem[][]>(() => {
   // Produkt-Gate wie in der Sidebar: deaktivierte Produkte verschwinden (F2).
   // Capability aus Label ODER Site-Rolle (N1, wie Sidebar) — für Site-Rollen
   // ändert sich praktisch nichts (billing.manage & Co. tragen sie nicht).
-  const userMenuModules: DropdownMenuItem[] = ((appConfig.pukalani?.admin?.modules ?? []) as PukalaniAdminModule[])
-    .filter(m => m.placement === 'userMenu'
-      && (userHasCapability(auth.user, m.requiredCapability) || siteCaps.value.has(m.requiredCapability))
-      && (!m.productKey || isProductStateEnabled(runtimeFlags.value.products[m.productKey])))
-    .map(m => ({ label: t(m.labelKey), icon: m.icon, to: localePath(m.to) }))
+  const userMenuModules: DropdownMenuItem[] = filterDashboardModules(
+    (appConfig.pukalani?.admin?.modules ?? []) as PukalaniAdminModule[],
+    {
+      place,
+      placement: 'userMenu',
+      canAsOperator: cap => userHasCapability(auth.user, cap),
+      canAsMember: cap => siteCaps.value.has(cap),
+      productOn: key => !key || isProductStateEnabled(runtimeFlags.value.products[key]),
+    },
+  ).map(m => ({ label: t(m.labelKey), icon: m.icon, to: localePath(m.to) }))
 
   return [
     [{ type: 'label', label: displayName.value, avatar: avatar.value }],

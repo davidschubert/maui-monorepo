@@ -21,7 +21,12 @@ export default defineAppConfig({
     admin: {
       modules: [
         {
+          // E9 'operator': `billing.manage` ist INSTANZ-weit (die Zahlungs-
+          // Protokolle des Betreibers) — bewusst NICHT `community.billing`,
+          // das ist das Abo EINER Community und hängt im onboarding-Layer.
+          // Auf einem Mandanten-Host verschwindet dieser Eintrag deshalb.
           id: 'billing',
+          scope: 'operator',
           productKey: 'billing',
           labelKey: 'admin.nav.billing',
           icon: 'i-ph-credit-card',

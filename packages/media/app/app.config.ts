@@ -8,14 +8,18 @@ export default defineAppConfig({
     admin: {
       modules: [
         {
+          // E9: die Mediathek ist INHALT einer Community, kein Branding —
+          // sie zieht aus dem entfallenen 'design' zu den Produkten (hinter
+          // Beiträge/Events/Kurse).
           id: 'media',
+          scope: 'community',
           productKey: 'media',
           labelKey: 'admin.nav.media',
           icon: 'i-ph-images',
           to: '/dashboard/media',
           requiredCapability: 'media.manage',
-          group: 'design',
-          order: 2,
+          group: 'products',
+          order: 4,
         },
       ],
     },

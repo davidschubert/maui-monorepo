@@ -16,9 +16,13 @@
       "homepage": "Zur Website",
       "people": "Personen",
       "groups": {
-        "products": "Produkte",
+        "platform": "Plattform",
+        "studio": "Studio",
         "management": "Management",
-        "design": "Design"
+        "website": "Website",
+        "products": "Produkte",
+        "branding": "Branding",
+        "settings": "Einstellungen"
       }
     },
     "config": {

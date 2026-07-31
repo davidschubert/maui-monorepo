@@ -10,25 +10,35 @@ export default defineAppConfig({
       // nicht auto-importiert; das Layout liest die Registry typisiert (core-Default).
       modules: [
         {
+          // E9: die Moderations-Warteschlange gehört in Davids Struktur unter
+          // „Settings · Community" — sie regelt, was in DIESER Community
+          // stehen bleibt. scope 'community'; im Silo (apps/comments) ist es
+          // dieselbe Seite für den Betreiber, dort greift die Ausnahme
+          // „ohne Mandanten sichtbar per Operator-Capability".
           id: 'comments',
+          scope: 'community',
           productKey: 'comments',
           labelKey: 'admin.nav.comments',
           icon: 'i-ph-chat-circle',
           to: '/dashboard/comments',
           requiredCapability: 'comments.moderate',
-          group: 'products',
-          order: 5,
+          group: 'settings',
+          order: 2,
         },
         {
-          // E3 Site-Registry: registrierte Einbetter-Domains des Widgets
+          // E3 Site-Registry: registrierte Einbetter-Domains des Widgets.
+          // Steht bei „Settings · Community", verlangt aber weiterhin
+          // `system.manage` (so wie die Seite selbst) — auf einem
+          // Mandanten-Host sieht ihn also nur der Betreiber.
           id: 'embed-sites',
+          scope: 'community',
           productKey: 'comments',
           labelKey: 'admin.nav.embedSites',
           icon: 'i-ph-plug',
           to: '/dashboard/embed',
           requiredCapability: 'system.manage',
-          group: 'products',
-          order: 6,
+          group: 'settings',
+          order: 3,
         },
       ],
     },

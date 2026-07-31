@@ -1,10 +1,9 @@
 # Dashboard-Informationsarchitektur
 
-**Status:** Struktur entschieden, Umbau nicht ausgeführt · **Entschieden:**
-2026-07-29/30 (David) · **Wartet auf:** A6 (workspaces) +
-[Umbenennung auf `community`](UMBENENNUNG-AUF-COMMUNITY.md)
+**Status:** Menü-Umbau (Schritt 3) GEBAUT am 2026-07-31 (E9) — die neuen Seiten
+(Schritt 4) fehlen noch · **Entschieden:** 2026-07-29/30 (David)
 
-> Liegt in `docs/plans/`, weil der Umbau NOCH NICHT gebaut ist. Erledigte Teile
+> Liegt weiter in `docs/plans/`, weil Schritt 4 offen ist. Erledigte Teile
 > wandern nach `docs/OPEN-ITEMS.md` bzw. beim Abschluss nach `docs/archiv/`.
 
 ## Das Prinzip: EINE Struktur, drei Ebenen
@@ -120,11 +119,20 @@ bezahlt. Bis dahin nicht bauen.
 
 ## Reihenfolge
 
-1. **A6** — `workspaces` weg, die Community zahlt. Blockiert Stripe-Live.
-2. **Umbenennung auf `community`** — danach heißt alles im Code wie im Menü.
-3. **Menü-Umbau nach dieser Struktur** — reine Registry-Arbeit, sobald 1+2
-   stehen: die Objekte heißen richtig und das, was in keine Gruppe passte, ist
-   weg.
+1. ~~**A6** — `workspaces` weg, die Community zahlt.~~ erledigt
+2. ~~**Umbenennung auf `community`**~~ erledigt (E8)
+3. ~~**Menü-Umbau nach dieser Struktur**~~ erledigt am 2026-07-31 (E9): jede
+   Registrierung trägt jetzt eine EBENE (`scope: 'operator' | 'community' |
+   'account'`, Pflichtfeld), die Regel ist pur in
+   `packages/core/shared/dashboardNav.ts` und getestet
+   (`packages/core/tests/dashboardNav.test.ts`). Drei Punkte aus dieser Liste
+   sind bewusst NICHT im Menü gelandet, weil ihre Seite fehlt oder schon
+   woanders verlinkt ist: „Pläne und Limits" (keine eigene Seite),
+   „General"/`settings/community.vue` (steht als Reiter unter
+   `/dashboard/settings`), „Changelog" (Reiter unter `/dashboard/admin`).
+   Offen geblieben: `Branding · Themes` verlangt weiterhin `system.manage`,
+   ist für einen Community-Owner also noch unerreichbar — das ist ein Umbau
+   von Seite und Routen, kein Umhängen.
 4. **Die neuen Seiten** einzeln, nach Bedarf priorisiert. Keine davon ist ein
    Go-Live-Blocker; „Navigation" und „SEO" wären die ersten, weil sie einer
    Community sofort etwas geben.

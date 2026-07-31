@@ -16,13 +16,28 @@ export default defineAppConfig({
     admin: {
       modules: [
         {
+          /**
+           * E9: „Branding" ist Community-Sache (Davids Struktur: Branding =
+           * Themes · Schriften) — deshalb scope 'community' und eine eigene
+           * Gruppe statt des entfallenen 'design'.
+           *
+           * OFFEN und bewusst NICHT hier gelöst: die Seiten verlangen
+           * `system.manage` (definePageMeta in themes/index|new|[id]|fonts),
+           * und die trägt keine Community-Rolle — auf einem Mandanten-Host
+           * sieht den Eintrag also nur der Betreiber. Die Capability auf
+           * `branding.manage` zu ziehen ist ein Umbau von Seite UND Routen,
+           * kein Umhängen; E9 verspricht im Menü nichts, was die Seite nicht
+           * hält.
+           */
           id: 'themes',
+          scope: 'community',
           productKey: 'themes',
           labelKey: 'themes.customize.navLabel',
           icon: 'i-ph-palette',
           to: '/dashboard/themes',
           requiredCapability: 'system.manage',
-          group: 'design',
+          group: 'branding',
+          order: 1,
           children: [
             { id: 'themes-gallery', labelKey: 'themes.customize.gallery', to: '/dashboard/themes', exact: true },
             { id: 'themes-fonts', labelKey: 'themes.fonts.navLabel', to: '/dashboard/themes/fonts' },

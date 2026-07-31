@@ -26,66 +26,83 @@ export default defineAppConfig({
       },
     },
     admin: {
+      /**
+       * E9: ALLE Einträge dieses Layers sind `scope: 'operator'` — das Control
+       * Plane verwaltet die Plattform, nicht eine Community. Auf einem
+       * Mandanten-Host verschwinden sie deshalb vollständig (der Layer wird
+       * dort ohnehin nicht extended, die Ebene ist trotzdem die richtige
+       * Aussage). Gruppen nach Davids Struktur: „Plattform" = die Communities
+       * und ihr Zugang, „Studio" = die Websites des Betreibers.
+       */
       modules: [
         {
-          id: 'websites',
-          productKey: 'control',
-          labelKey: 'admin.nav.websites',
-          icon: 'i-ph-globe-hemisphere-west',
-          to: '/dashboard/websites',
-          requiredCapability: 'sites.manage',
-          group: 'management',
-          order: 1,
-        },
-        {
+          // Communities · Overview — steht an erster Stelle der Plattform:
+          // das ist der Bestand, alles andere führt hierher.
           id: 'tenants',
+          scope: 'operator',
           productKey: 'control',
           labelKey: 'admin.nav.tenants',
           icon: 'i-ph-users-three',
           to: '/dashboard/tenants',
           requiredCapability: 'sites.manage',
-          group: 'management',
-          order: 3,
+          group: 'platform',
+          order: 1,
         },
         {
           // Die Warteschlange: wer hat Early Access angefragt, wem wurde ein
           // Code geschickt, wer hat ihn eingelöst. Steht VOR den Codes, weil
           // hier die tägliche Arbeit passiert.
           id: 'invite-requests',
+          scope: 'operator',
           productKey: 'control',
           labelKey: 'admin.nav.inviteRequests',
           icon: 'i-ph-envelope-simple',
           to: '/dashboard/requests',
           requiredCapability: 'sites.manage',
-          group: 'management',
-          order: 4,
+          group: 'platform',
+          order: 2,
         },
         {
           // Early-Access-Tor des Self-Service-Onboardings: hier stellt der
           // Betreiber die Codes aus, mit denen Fremde eine Community anlegen
           // dürfen. Ohne gültigen Code kommt niemand in den Wizard.
           id: 'invites',
+          scope: 'operator',
           productKey: 'control',
           labelKey: 'admin.nav.invites',
           icon: 'i-ph-key',
           to: '/dashboard/invites',
           requiredCapability: 'sites.manage',
-          group: 'management',
-          order: 5,
+          group: 'platform',
+          order: 3,
         },
         {
           // Gesperrte Namen: die Code-Basisliste (RESERVED_SUBDOMAINS) zum
           // Nachsehen plus die eigenen Einträge zum Ergänzen (control-027).
-          // Steht am Ende der Verwaltung — man schaut selten hin, aber wenn,
-          // dann dringend.
+          // Steht am Ende der Plattform-Gruppe — man schaut selten hin, aber
+          // wenn, dann dringend.
           id: 'reserved-names',
+          scope: 'operator',
           productKey: 'control',
           labelKey: 'admin.nav.reservedNames',
           icon: 'i-ph-prohibit',
           to: '/dashboard/reserved-names',
           requiredCapability: 'sites.manage',
-          group: 'management',
-          order: 6,
+          group: 'platform',
+          order: 4,
+        },
+        {
+          // Studio = das Kundenangebot des Betreibers (Davids Wort, nicht
+          // „Instanzen"). Eigene Gruppe, weil eine Website kein Mandant ist.
+          id: 'websites',
+          scope: 'operator',
+          productKey: 'control',
+          labelKey: 'admin.nav.websites',
+          icon: 'i-ph-globe-hemisphere-west',
+          to: '/dashboard/websites',
+          requiredCapability: 'sites.manage',
+          group: 'studio',
+          order: 1,
         },
       ],
     },

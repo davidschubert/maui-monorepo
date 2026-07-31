@@ -17,13 +17,17 @@ export default defineAppConfig({
     admin: {
       modules: [
         {
+          // E9: Mitglieder sind Community-Sache (Davids Struktur: Settings →
+          // Mitglieder). Auf einem Kontroll-Host verschwindet der Eintrag —
+          // dort gibt es keine Community, deren Team man verwalten könnte.
           id: 'members',
+          scope: 'community',
           labelKey: 'admin.nav.members',
           icon: 'i-ph-users-three',
           to: '/dashboard/members',
           requiredCapability: 'team.manage',
-          group: 'management',
-          order: 2,
+          group: 'settings',
+          order: 5,
         },
         {
           /**
@@ -37,12 +41,13 @@ export default defineAppConfig({
            * genau dorthin zurückführt (Erfolgs-/Abbruch-URL aus tenants.host).
            */
           id: 'site-subscription',
+          scope: 'community',
           labelKey: 'onboarding.nav.subscription',
           icon: 'i-ph-credit-card',
           to: '/dashboard/settings/subscription',
           requiredCapability: 'community.billing',
-          group: 'management',
-          order: 3,
+          group: 'settings',
+          order: 1,
         },
       ],
     },

@@ -8,7 +8,10 @@ export default defineAppConfig({
     admin: {
       modules: [
         {
+          // E9 'operator': das Board ist das interne Werkzeug des Betreibers
+          // (`tickets.manage` trägt keine Community-Rolle, N1).
           id: 'tickets',
+          scope: 'operator',
           productKey: 'tickets',
           labelKey: 'admin.nav.tickets',
           icon: 'i-ph-kanban',

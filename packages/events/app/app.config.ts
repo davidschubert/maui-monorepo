@@ -8,7 +8,9 @@ export default defineAppConfig({
     admin: {
       modules: [
         {
+          // E9: Inhalte einer Community (Gruppe „Produkte")
           id: 'events',
+          scope: 'community',
           productKey: 'events',
           labelKey: 'admin.nav.events',
           icon: 'i-ph-calendar-dots',

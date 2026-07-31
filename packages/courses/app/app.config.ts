@@ -7,7 +7,9 @@ export default defineAppConfig({
     admin: {
       modules: [
         {
+          // E9: Inhalte einer Community (Gruppe „Produkte")
           id: 'courses',
+          scope: 'community',
           productKey: 'courses',
           labelKey: 'admin.nav.courses',
           icon: 'i-ph-graduation-cap',

@@ -14,14 +14,20 @@ export default defineAppConfig({
     admin: {
       modules: [
         {
+          // E9: die Seiten SIND die Website einer Community (eigene Gruppe
+          // „Website"; „Navigation" kommt später als zweiter Eintrag dazu).
+          // scope 'community', weil sie einer Community gehören — im
+          // Einzelbetrieb (apps/control pflegt hier seine Rechtstexte) bleibt
+          // der Eintrag über das Operator-Label sichtbar.
           id: 'pages',
+          scope: 'community',
           productKey: 'pages',
           labelKey: 'admin.nav.pages',
           icon: 'i-ph-file-text',
           to: '/dashboard/pages',
           requiredCapability: 'pages.manage',
-          group: 'management',
-          order: 5,
+          group: 'website',
+          order: 1,
         },
       ],
     },

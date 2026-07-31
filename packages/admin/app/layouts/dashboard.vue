@@ -5,6 +5,7 @@
 import type { CommandPaletteGroup, CommandPaletteItem, NavigationMenuItem } from '@nuxt/ui'
 import { isProductStateEnabled } from '../../../core/shared/types/config'
 import type { Capability } from '../../../core/shared/types/authz'
+import { filterDashboardModules, resolveDashboardPlace, scopeVisibleAt } from '../../../core/shared/dashboardNav'
 
 const { t } = useI18n()
 const localePath = useLocalePath()
@@ -44,23 +45,49 @@ const sidebarClass = computed(() => {
 const close = () => { open.value = false }
 const route = useRoute()
 
-// Capability-Prüfung mit ZWEI Quellen (N1): Operator-Labels ODER die Site-
-// Rolle dieses Mandanten (useCommunityRole, SSR-gespiegelt). Die Zuordnung ist
-// KONSERVATIV, weil sie sich vollständig aus den vorhandenen Capabilities der
-// Module × der Rollen-Matrix (core/shared/communityAuthz.ts) ergibt — hier wird
-// keine neue Rechte-Liste gepflegt. Für einen Site-OWNER heißt das:
+// Capability-Prüfung mit ZWEI Quellen (N1): Operator-Labels und die Community-
+// Rolle dieses Mandanten (useCommunityRole, SSR-gespiegelt). Sie bleiben seit
+// E9 GETRENNT, weil die Ebene eines Moduls entscheidet, welche zählt
+// (moduleAllowedFor in core/shared/dashboardNav.ts): Betreiber-Module nur per
+// Label, Community-Module per Rolle ODER Label (Support-Break-Glass). Die
+// Zuordnung ist KONSERVATIV — sie ergibt sich vollständig aus den vorhandenen
+// Capabilities der Module × der Rollen-Matrix (core/shared/communityAuthz.ts),
+// hier wird keine neue Rechte-Liste gepflegt. Für einen Community-OWNER auf
+// seinem Host heißt das:
 //   sichtbar: Overview (dashboard.access), Kommentare (comments.moderate),
 //     Beiträge (posts.moderate), Events/Kurse/Activity (events/courses/
 //     activity.manage), Seiten (pages.manage), Medien (media.manage),
-//     Einstellungen inkl. Community-Registrierung (team.manage via Page-Meta)
-//   unsichtbar (Operator-only, Site-Rollen tragen die Caps nicht):
-//     People (users.manage), Admin/Audit (audit.read), Storage
-//     (storage.manage), System/Themes/Config/Produkte/Embed (system.manage),
-//     Sites/Control (sites.manage), Billing (billing.manage), Feedback/
-//     Tickets (feedback/tickets.manage)
+//     Mitglieder (team.manage), Abo (community.billing)
+//   unsichtbar (Operator-only, Community-Rollen tragen die Caps nicht):
+//     Themes/Embed (system.manage) — deshalb ist „Branding" für ihn heute noch
+//     leer, s. Kommentar in packages/themes/app/app.config.ts
+//   gar nicht am Ort (scope 'operator'): Nutzer, Admin/Audit, Speicher, System,
+//     Plattform/Studio, Feedback, Board, Zahlungs-Protokolle
 const { capabilities: siteCaps } = useCommunityRole()
-const can = (capability: Capability) =>
-  userHasCapability(auth.user, capability) || siteCaps.value.has(capability)
+/** Globales Operator-Label (authz.ts) — die INSTANZ-weite Rechte-Quelle. */
+const canAsOperator = (capability: Capability) => userHasCapability(auth.user, capability)
+/** Rolle in DIESER Community (communityAuthz.ts) — die zweite Quelle. */
+const canAsMember = (capability: Capability) => siteCaps.value.has(capability)
+/** Beide zusammen — für die hart verdrahteten Links und die Suche. */
+const can = (capability: Capability) => canAsOperator(capability) || canAsMember(capability)
+
+/**
+ * DER ORT (E9, docs/plans/DASHBOARD-IA.md): Betreiber-Einträge verschwinden
+ * auf einem Mandanten-Host, Community-Einträge erscheinen nur dort — und im
+ * Silo-/Einzelbetrieb bleibt alles wie vorher, weil es dort keine zweite Ebene
+ * gibt. Die Regel selbst ist pur und getestet (core/shared/dashboardNav.ts);
+ * hier steht nur, woher ihre zwei Eingaben kommen.
+ *
+ * Beides ist eine Tatsache des REQUESTS (Config + Host), keine reaktive
+ * Größe — SSR und Client kommen zwangsläufig zum selben Ergebnis, also gibt
+ * es keinen Hydration-Bruch.
+ */
+const place = resolveDashboardPlace(
+  (appConfig.pukalani as { tenancy?: { enabled?: boolean } }).tenancy?.enabled === true,
+  useIsTenantHost(),
+)
+/** Nur für die HART verdrahteten Links unten (Nutzer, Admin, Speicher, System). */
+const operatorHere = scopeVisibleAt('operator', place)
 
 const canManageUsers = computed(() => can('users.manage'))
 // Kommentar-Treffer der Palette springen in die Moderations-Warteschlange
@@ -73,15 +100,12 @@ const links = computed<NavigationMenuItem[]>(() => {
   const items: NavigationMenuItem[] = [
     { label: t('admin.nav.overview'), icon: 'i-ph-gauge', to: localePath('/dashboard'), exact: true, onSelect: close },
   ]
-  if (canManageUsers.value) {
-    items.push({ label: t('admin.nav.people'), icon: 'i-ph-users', to: localePath('/dashboard/users'), onSelect: close })
-  }
   // Von Produkt-Layern registrierte Dashboard-Module (z.B. comments-Moderation),
-  // capability-gefiltert — admin kennt sie nicht hart (Modul-Registry, A14).
-  // Mit children wird der Eintrag zum aufklappbaren Abschnitt (Unterpunkte
-  // erben die Capability des Moduls, sofern keine eigene gesetzt ist).
-  // group 'products' rendert unter einem Abschnitts-Label; placement
-  // 'userMenu' gehört ins Account-Menü (DashboardUserMenu), nicht hierher.
+  // nach EBENE und Capability gefiltert — admin kennt sie nicht hart
+  // (Modul-Registry, A14). Mit children wird der Eintrag zum aufklappbaren
+  // Abschnitt (Unterpunkte erben die Capability des Moduls, sofern keine
+  // eigene gesetzt ist). placement 'bottom' rendert unten, 'userMenu' im
+  // Account-Menü (DashboardUserMenu) — beides nicht hier.
   const toItem = (m: PukalaniAdminModule): NavigationMenuItem => {
     const children = (m.children ?? [])
       .filter(child => can(child.requiredCapability ?? m.requiredCapability))
@@ -90,12 +114,18 @@ const links = computed<NavigationMenuItem[]>(() => {
       ? { label: t(m.labelKey), icon: m.icon, defaultOpen: route.path.startsWith(localePath(m.to)), children }
       : { label: t(m.labelKey), icon: m.icon, to: localePath(m.to), onSelect: close }
   }
-  const modules = ((appConfig.pukalani?.admin?.modules ?? []) as PukalaniAdminModule[])
-    .filter(m => (m.placement ?? 'nav') === 'nav' && can(m.requiredCapability) && productOn(m.productKey))
+  const modules = filterDashboardModules(
+    (appConfig.pukalani?.admin?.modules ?? []) as PukalaniAdminModule[],
+    { place, placement: 'nav', canAsOperator, canAsMember, productOn },
+  )
   for (const m of modules.filter(m => !m.group)) items.push(toItem(m))
-  // Gruppen in fester Reihenfolge; innerhalb sortiert 'order' (sonst Registry-
-  // Reihenfolge). Label-Abstand kommt einheitlich über :ui der UNavigationMenu.
-  for (const group of ['products', 'management', 'design'] as const) {
+  // Gruppen in fester Reihenfolge (Davids Struktur, E9): erst die Betreiber-
+  // Ebene (Plattform · Studio · Management), dann die Community-Ebene
+  // (Website · Produkte · Branding · Einstellungen). Am Ort schließt sich
+  // ohnehin immer eine der beiden Hälften aus — die eine Liste genügt.
+  // Innerhalb sortiert 'order' (sonst Registry-Reihenfolge); Label-Abstand
+  // kommt einheitlich über :ui der UNavigationMenu.
+  for (const group of ['platform', 'studio', 'management', 'website', 'products', 'branding', 'settings'] as const) {
     const grouped = modules
       .filter(m => m.group === group)
       .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
@@ -107,15 +137,33 @@ const links = computed<NavigationMenuItem[]>(() => {
   return items
 })
 
-// Admin/System unten — knapp über dem User-Menü, ebenfalls capability-gefiltert
+/**
+ * Der INSTANZ-Unterbau, knapp über dem User-Menü: Nutzer · (registrierte
+ * 'bottom'-Module, z. B. die interne Doku) · Admin · Speicher · System.
+ * Davids Struktur (E9) stellt genau diese selten gebrauchten Betreiber-
+ * Einträge nach unten.
+ *
+ * ZWEI Filter, und beide sind nötig: die Capabilities hier trägt zwar keine
+ * Community-Rolle (N1-Vertrag, communityAuthz.test.ts) — aber der BETREIBER
+ * trägt sie überall, auch wenn er den Host einer Kundencommunity aufruft.
+ * `operatorHere` ist das, was ihn dort davor bewahrt, die Instanz-Verwaltung
+ * im Kunden-Dashboard vor sich zu haben.
+ */
 const bottomLinks = computed<NavigationMenuItem[]>(() => {
   const items: NavigationMenuItem[] = []
-  // Operator-Infrastruktur: Site-Rollen tragen diese Caps nicht — can() fällt
-  // für reine Site-Mitglieder automatisch auf „unsichtbar" zurück.
-  if (can('audit.read')) items.push({ label: t('admin.nav.admin'), icon: 'i-ph-shield-check', to: localePath('/dashboard/admin'), onSelect: close })
+  if (operatorHere && canManageUsers.value) {
+    items.push({ label: t('admin.nav.people'), icon: 'i-ph-users', to: localePath('/dashboard/users'), onSelect: close })
+  }
+  for (const m of filterDashboardModules(
+    (appConfig.pukalani?.admin?.modules ?? []) as PukalaniAdminModule[],
+    { place, placement: 'bottom', canAsOperator, canAsMember, productOn },
+  ).sort((a, b) => (a.order ?? 999) - (b.order ?? 999))) {
+    items.push({ label: t(m.labelKey), icon: m.icon, to: localePath(m.to), onSelect: close })
+  }
+  if (operatorHere && can('audit.read')) items.push({ label: t('admin.nav.admin'), icon: 'i-ph-shield-check', to: localePath('/dashboard/admin'), onSelect: close })
   // Storage sitzt bei der Infrastruktur (selten gebraucht), nicht bei den Produkten
-  if (can('storage.manage')) items.push({ label: t('admin.nav.storage'), icon: 'i-ph-folder', to: localePath('/dashboard/storage'), onSelect: close })
-  if (can('system.manage')) items.push({ label: t('admin.nav.system'), icon: 'i-ph-cpu', to: localePath('/dashboard/system'), onSelect: close })
+  if (operatorHere && can('storage.manage')) items.push({ label: t('admin.nav.storage'), icon: 'i-ph-folder', to: localePath('/dashboard/storage'), onSelect: close })
+  if (operatorHere && can('system.manage')) items.push({ label: t('admin.nav.system'), icon: 'i-ph-cpu', to: localePath('/dashboard/system'), onSelect: close })
   // Raus aus dem Dashboard: zurück zur Startseite (ohne Capability — jeder)
   items.push({ label: t('admin.nav.homepage'), icon: 'i-ph-house', to: localePath('/'), onSelect: close })
   return items

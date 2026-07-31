@@ -16,9 +16,13 @@
       "homepage": "View site",
       "people": "People",
       "groups": {
-        "products": "Products",
+        "platform": "Platform",
+        "studio": "Studio",
         "management": "Management",
-        "design": "Design"
+        "website": "Website",
+        "products": "Products",
+        "branding": "Branding",
+        "settings": "Settings"
       }
     },
     "config": {

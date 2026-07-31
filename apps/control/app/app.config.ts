@@ -22,13 +22,17 @@ export default defineAppConfig({
     admin: {
       modules: [
         {
+          // E9: Betreiber-Ebene, und laut Davids Struktur gehört die
+          // Dokumentation nach UNTEN zum Instanz-Unterbau (Nutzer · Admin ·
+          // Speicher · System) — daher placement 'bottom' statt einer Gruppe.
           id: 'internal-docs',
+          scope: 'operator',
           labelKey: 'control.docs.nav',
           icon: 'i-ph-book-open-text',
           to: '/docs',
           requiredCapability: 'dashboard.access',
-          group: 'management',
-          order: 9,
+          placement: 'bottom',
+          order: 1,
         },
       ],
     },

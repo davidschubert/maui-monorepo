@@ -15,7 +15,10 @@ export default defineAppConfig({
     admin: {
       modules: [
         {
+          // E9 'operator': `feedback.manage` trägt keine Community-Rolle (N1) —
+          // die Rückmeldungen laufen beim BETREIBER auf, nicht beim Kunden.
           id: 'feedback',
+          scope: 'operator',
           productKey: 'feedback',
           labelKey: 'admin.nav.feedback',
           icon: 'i-ph-megaphone-simple',
