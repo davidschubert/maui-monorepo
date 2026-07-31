@@ -506,3 +506,27 @@ gerutscht). Reihenfolge gehört EXPLIZIT in Nummern-Präfixe, nie an den Zufall
 eines Dateinamens. **Gelernt:** „muss identisch bleiben"-Kommentare markieren
 eine Kopie, die man zusammenführen sollte, nicht pflegen.
 
+### A6 — die Community ist das zahlende Objekt ✅ 2026-07-31
+
+Alle Schritte: Beweis-Test → control-028 → Community-Fulfillment (Cross-Sub-
+Guards) → Checkout/Portal über die Service-Naht (Stripe-Testmodus Ende-zu-
+Ende bewiesen: cs_test-URL + Portal) → Abo-Seite im Community-Dashboard →
+Workspace-Rückbau (69 Dateien, −2364 Zeilen; Lizenz-Mechanik geparkt in
+entitlementGrants/entitlementPlan) → control-031 (Bremse: keine lebende
+Subscription, sonst Abbruch). Schritt 4 war leer (Pool hat null Nutzer).
+**Gelernt:** Instanz-weite Capabilities (billing.manage) nie an Site-Rollen
+vergeben — der Rollen-Trennungs-Test hat genau das gefangen; Site-Belange
+brauchen EIGENE community.*-Capabilities. **Gelernt:** GDPR-Contributor nur
+dort, wo die userId-Verankerung wirklich liegt — ein Contributor, der
+strukturell nichts findet, täuscht Vollständigkeit vor.
+
+### E9 — Menü-Umbau: eine Navigation, drei Ebenen ✅ 2026-07-31
+
+scope 'operator'|'community'|'account' als Pflichtfeld je Registry-Modul,
+PURE Filter-Regel (dashboardNav.ts, 20 Tests): dreiwertiger Ort, getrennte
+Rechte-Quellen, fail-closed ohne scope. Gruppen nach Davids Entwurf; keine
+Menüpunkte ins Leere — die 14 fehlenden Seiten kommen einzeln (Plan bleibt in
+docs/plans/DASHBOARD-IA.md). **Gelernt:** die Silo-Ausnahme muss an
+tenancy.enabled hängen, nicht an isTenantHost — sonst erscheinen
+Community-Einträge auf Kontroll-Hosts, wo ihre APIs 404en.
+
