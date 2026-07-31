@@ -1,65 +1,99 @@
 {
   "feedback": {
     "cta": "Feedback",
-    "categories": {
-      "idea": "Idea",
-      "bug": "Issue",
-      "other": "Other"
+    "nav": {
+      "section": "Customer Feedback",
+      "feedback": "Feedback",
+      "roadmap": "Roadmap",
+      "changelog": "Changelog"
+    },
+    "areas": {
+      "core": "Core product",
+      "product": "A product",
+      "billing": "Billing",
+      "other": "Something else"
+    },
+    "states": {
+      "under_review": "Under review",
+      "planned": "Planned",
+      "in_progress": "In progress",
+      "complete": "Complete"
+    },
+    "sorts": {
+      "trending": "Trending",
+      "top": "Top",
+      "new": "New"
     },
     "form": {
-      "title": "What can we do better?",
-      "placeholder": "Your idea, your issue, your thought …",
+      "title": "What could we do better?",
+      "placeholder": "Your idea, your problem, your thought …",
+      "productPlaceholder": "Which product?",
       "send": "Send",
       "cancel": "Cancel",
       "close": "Close",
       "thanksTitle": "Thank you!",
-      "thanksText": "Your feedback landed — we will take a look.",
-      "guestHint": "You are sending as a guest — sign in if we may follow up.",
-      "failed": "Could not send your feedback.",
-      "tooMany": "Too many messages — please wait a moment."
+      "thanksTracked": "We got your feedback — you'll find it in your dashboard and can follow what happens to it.",
+      "thanksAnonymous": "We got your feedback. You sent it anonymously: we can't follow up, and you can't track it.",
+      "thanksLink": "Go to feedback",
+      "guestHint": "You're sending anonymously — no address, no tracking. Sign in if you'd like us to be able to follow up.",
+      "failed": "Feedback could not be sent.",
+      "tooMany": "Too many messages — please wait a moment.",
+      "muted": "Feedback from this community is currently muted."
     },
     "validation": {
-      "categoryInvalid": "Invalid category.",
+      "areaInvalid": "Invalid area.",
+      "productInvalid": "Invalid product.",
+      "productRequired": "Please pick a product.",
       "messageRequired": "Please write a few words.",
-      "messageMax": "Message is too long (max. 2,000 characters)."
+      "messageMax": "Message is too long (max. 2,000 characters).",
+      "commentRequired": "Please write a few words.",
+      "commentMax": "Comment is too long (max. 1,000 characters)."
+    },
+    "list": {
+      "title": "Customer Feedback",
+      "refresh": "Reload",
+      "vote": "Vote for this",
+      "fromCommunities": "from {count} communities",
+      "allStates": "All",
+      "hidden": "Hidden",
+      "mine": "Yours",
+      "detailTitle": "Feedback",
+      "comments": "Comments ({count})",
+      "noComments": "No comments yet — be the first to say something.",
+      "commentPlaceholder": "What do you think?",
+      "commentSend": "Comment",
+      "someone": "Member",
+      "loginRequired": "You need to be signed in for that.",
+      "actionFailed": "Action failed.",
+      "emptyTitle": "No feedback yet",
+      "emptyText": "Whatever people wish for lands here via the feedback button in the bottom left.",
+      "unavailableTitle": "Feedback is unreachable right now",
+      "unavailableText": "The central feedback service isn't responding. The rest of the dashboard works normally — please try again later.",
+      "col": {
+        "entry": "Entry",
+        "state": "State",
+        "comments": "Comments",
+        "date": "Received",
+        "origin": "Origin"
+      }
+    },
+    "roadmap": {
+      "title": "Roadmap",
+      "subtitle": "What we're working on — from your wishes.",
+      "emptyColumn": "Nothing here."
     },
     "admin": {
-      "title": "Feedback",
-      "open": "Open",
-      "resolved": "Resolved",
-      "empty": "Nothing here — either all done or no feedback yet.",
-      "emptyTitle": "No feedback",
-      "guest": "Guest",
-      "search": "Search",
-      "searchPlaceholder": "Search feedback …",
-      "rowActions": "Actions for this feedback",
-      "col": {
-        "category": "Category",
-        "message": "Message",
-        "from": "From",
-        "page": "Page",
-        "date": "Date"
-      },
-      "markResolved": "Resolve",
-      "reopen": "Reopen",
-      "deleted": "Feedback deleted.",
-      "actionFailed": "Action failed.",
-      "delete": "Delete feedback",
-      "confirmDeleteTitle": "Delete feedback?",
-      "confirmDeleteText": "This message is removed for good and cannot be restored.",
-      "toTicket": "Convert to ticket",
-      "toTicketSuccess": "Ticket created — the feedback is marked as resolved.",
-      "toTicketOpen": "Open ticket",
-      "toTicketExists": "A ticket already exists for this feedback.",
-      "filter": {
-        "open": "Open",
-        "resolved": "Resolved"
-      }
-    }
-  },
-  "admin": {
-    "nav": {
-      "feedback": "Feedback"
+      "origin": "Origin",
+      "originCommunity": "Community",
+      "originAuthor": "From",
+      "originEmail": "Email",
+      "originPage": "Page",
+      "anonymous": "Anonymous",
+      "hide": "Hide",
+      "show": "Show again",
+      "mute": "Mute community",
+      "muted": "Community muted.",
+      "unmuted": "Community unmuted."
     }
   }
 }

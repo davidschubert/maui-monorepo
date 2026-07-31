@@ -17,10 +17,10 @@ export default {
     'posts',
     'events',
     'media',
-    'feedback',
+    // 'feedback' + 'tickets' sind mit E10 nach apps/control gezogen
+    // (Davids Entscheidung 7) — hier bewusst NICHT mehr gewählt.
     'billing',
     'courses',
-    'tickets',
     'activity',
     'moderation',
   ],

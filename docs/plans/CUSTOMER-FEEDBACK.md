@@ -1,10 +1,16 @@
 # Customer Feedback — zentrale Rückmeldung aus allen Communities
 
-> **Status:** Konzept, noch nicht gebaut. Davids Auftrag vom 2026-07-30.
-> **Bestand:** `packages/feedback` (Tabelle `feedback` + Volltext) und
-> `packages/tickets` (Board mit Watchers/Dateien/Erinnerungen) existieren —
-> aber sie hängen **nur in `apps/comments`**. `apps/control` extendet keinen
-> von beiden. Genau das ist der Befund.
+> **Status: gebaut am 2026-07-31, NOCH NICHT migriert und nicht deployt.**
+> Migration `control-032` ist geschrieben, aber bewusst nicht gefahren. Die
+> Umsetzung samt der drei Auslegungs-Entscheidungen steht unten unter
+> „Umsetzung". Solange die Migration aussteht, bleibt diese Datei in
+> `docs/plans/`; danach zieht sie nach `docs/archiv/`.
+>
+> Davids Auftrag vom 2026-07-30.
+> **Bestand (vor dem Umbau):** `packages/feedback` (Tabelle `feedback` +
+> Volltext) und `packages/tickets` (Board mit Watchers/Dateien/Erinnerungen)
+> existierten — aber sie hingen **nur in `apps/comments`**. `apps/control`
+> extendete keinen von beiden. Genau das war der Befund.
 
 ## Die Idee in einem Satz
 
@@ -193,3 +199,74 @@ umbenannt werden.
 - Sieht ein Community-Owner die Wünsche SEINER Mitglieder gesondert?
   Entscheidung 2 sagt heute nein (Herkunft nur Betreiber) — falls doch, ist
   das eine eigene Ansicht mit eigener Rechtefrage.
+
+---
+
+## Umsetzung (2026-07-31)
+
+Gebaut in der Reihenfolge des Plans: erst der vorgezogene Layer-Umzug
+(Entscheidung 7), dann alles Übrige. Drei Stellen mussten ausgelegt werden —
+sie stehen hier, damit sie später nicht als Versehen gelesen werden.
+
+### A · Was „Roadmap" ist
+
+Der Navigations-Entwurf sagt „Roadmap (heute „Board")", die Abschnitte
+darüber beschreiben aber Zustände MIT Stimmen, Kommentaren und Sichtbarkeit in
+allen Dashboards. Ein Ticket hat davon nichts und ist `tickets.manage`-gated.
+
+**Entschieden:** `Under Review → Planned → In Progress → Complete` ist ein Feld
+AM FEEDBACK-EINTRAG; `/dashboard/roadmap` ist die Spaltenansicht derselben
+Einträge. Das Ticket-Board bleibt unverändert das interne Werkzeug des
+Betreibers und behält seinen eigenen Menüpunkt — es ist mit Entscheidung 7
+nach `apps/control` gezogen, mehr nicht. Damit ist „Feedback → Feature Request"
+ein Zustandswechsel statt einer Ticket-Übernahme; die alte App-Verdrahtung
+`pukalani.feedback.ticketEndpoint` ist ersatzlos entfallen.
+
+### B · Ebene und Gruppe des Menüeintrags
+
+Davids Entwurf setzt „Customer Feedback" unter **Management** — eine
+Betreiber-Gruppe. Der Bereich soll aber „Bestandteil aller Dashboards" sein.
+
+**Entschieden:** Ebene `account` (überall, für jeden Angemeldeten), Gruppe
+bleibt `management`. Das ist die einzige Stelle, an der eine Gruppe zwei Ebenen
+mischt; die Begründung steht im Code (`packages/feedback/app/app.config.ts`).
+Kein Leck: die anderen Einträge der Gruppe tragen weiter `operator` und
+verschwinden auf Mandanten-Hosts.
+
+### C · Der Changelog-Tab
+
+„Menüeintrag zieht hierher um" ist umgesetzt: der Changelog steht jetzt als
+Unterpunkt unter Customer Feedback (nur mit `changelog.manage` sichtbar). Der
+**Tab** in der Admin-Shell bleibt zusätzlich stehen — ohne ihn stünde man auf
+`/dashboard/admin/changelog` vor einer Tab-Reihe ohne aktiven Tab, und Apps
+ohne den feedback-Layer (`apps/comments`) hätten gar keinen Weg mehr zu ihrem
+eigenen Changelog.
+
+### Wo was liegt
+
+- **Daten + Regeln:** `packages/control` — Migration `032-customer-feedback.ts`
+  (vier Tabellen), Vertrag `shared/customerFeedback.ts`, Zod-Fabriken
+  `schemas/customerFeedback.ts`, Datenzugriff `server/utils/customerFeedback.ts`,
+  Service-Routen `server/api/control/feedback/*`.
+- **Oberfläche + Naht:** `packages/feedback` — Widget, `/dashboard/feedback`,
+  `/dashboard/roadmap`, Proxy-Routen `server/api/feedback/*`,
+  `server/utils/feedbackGateway.ts`.
+- **Transport:** `packages/core/server/utils/controlService.ts` (aus dem
+  onboarding-Layer hochgezogen, weil ihn jetzt zwei Layer brauchen; onboarding
+  delegiert nur noch).
+- **In-Process-Gegenseite:** `packages/control/server/plugins/feedback-backend.ts`
+  — `apps/control` IST das Control Plane und ruft sich nicht selbst über HTTP.
+
+### Vom Plan bewusst offen geblieben
+
+- „Complete" erzeugt **keinen** Changelog-Entwurf (im Plan schon als eigene
+  Entscheidung markiert).
+- Ein Community-Owner sieht die Wünsche seiner Mitglieder **nicht** gesondert
+  (Entscheidung 2 sagt heute nein).
+- **Benachrichtigung an den Verfasser bei Zustandswechsel** gibt es nicht: die
+  Meldung müsste über die Projektgrenze in die Glocke des Runtime-Projekts,
+  und genau diese Auflösung fehlt auch D5 noch. Nachverfolgen heißt heute:
+  der eigene Eintrag steht mit Zustand im Feedback-Bereich.
+- **Vor dem Ausrollen:** `node --env-file=apps/comments/.env
+  packages/feedback/scripts/backup-feedback.mjs` laufen lassen (Entscheidung 6),
+  dann `pnpm migrate --app control --layer control`.

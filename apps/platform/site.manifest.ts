@@ -24,6 +24,9 @@ export default {
     // Events im Pool (Entscheidung 8, 2026-07-27) — Produkt-Gate: ab Plan pro
     // (pukalani.tenancy.products), Datenzugriff durch die Datentür (events-006)
     'events',
+    // E10: zentrales Kunden-Feedback — Knopf auf jeder Seite, Bereich in
+    // jedem Dashboard. Ohne eigene Tabellen (Naht ins Control Plane).
+    'feedback',
     // Kurse im Pool (Entscheidung 15, 2026-07-27) — Produkt-Gate: ab Plan pro
     // (pukalani.tenancy.products), Datenzugriff durch die Datentür (courses-002)
     'courses',

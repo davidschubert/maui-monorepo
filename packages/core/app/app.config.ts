@@ -197,7 +197,17 @@ export default defineAppConfig({
        * Deckt auch `/api/notifications/read` und `/api/notifications/
        * run-digest` ab (letztere ist system.manage-gated).
        */
-      controlApiPrefixes: ['/api/auth/', '/api/onboarding/', '/api/health', '/api/telemetry/', '/api/notifications'] as string[],
+      /**
+       * `/api/feedback` ist seit E10 dabei (Davids Entscheidung 1). Der
+       * Feedback-Bereich ist Bestandteil ALLER Dashboards — auch des
+       * Kundenbereichs auf einem Kontroll-Host, wo es keinen Mandanten gibt.
+       * Sicher OHNE Mandanten-Scope, weil hier nichts gescopt werden MUSS:
+       * die Routen berühren keine Tabelle dieses Projekts, sie reichen an das
+       * Control Plane weiter, und DORT entscheidet die Projektion, was ein
+       * Betrachter sieht (Text für alle, Herkunft nur für den Betreiber). Die
+       * `communityId` im Umschlag ist auf einem Kontroll-Host schlicht leer.
+       */
+      controlApiPrefixes: ['/api/auth/', '/api/onboarding/', '/api/health', '/api/telemetry/', '/api/notifications', '/api/feedback'] as string[],
     },
     security: {
       /** CSRF-Origin-Check für unsichere Methoden auf /api/* (server/middleware/

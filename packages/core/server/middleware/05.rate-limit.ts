@@ -80,6 +80,12 @@ const WRITE_LIMITED: { re: RegExp, bucket: string, max?: number }[] = [
   { re: /^POST \/api\/telemetry\/error$/, bucket: 'telemetry:error', max: 30 },
   // Feedback-Widget: auch Gäste dürfen senden → enges Budget gegen Spam
   { re: /^POST \/api\/feedback$/, bucket: 'feedback:create', max: 5 },
+  // E10, Davids Entscheidung 8 („volle Notbremse in Fassung 1"): Wählen und
+  // Kommentieren sind session-gated, aber sie schreiben ins BETREIBER-System
+  // eines anderen Projekts — ein Skript soll daraus keinen Hebel machen.
+  // Wählen ist legitim frequent (durch eine Liste klicken), Kommentieren nicht.
+  { re: /^POST \/api\/feedback\/[^/]+\/vote$/, bucket: 'feedback:vote' },
+  { re: /^POST \/api\/feedback\/[^/]+\/comments$/, bucket: 'feedback:comment', max: 10 },
   // Self-Service-Onboarding (SAAS-ROADMAP #1): das Anlegen ist teuer (Rows im
   // Control Plane, eine Subdomain wird belegt) → enges Budget. Die Vorprüfung
   // ist billiger, aber ein Rate-Limit gehört trotzdem davor: sie beantwortet

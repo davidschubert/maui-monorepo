@@ -2,7 +2,10 @@ export default defineNuxtConfig({
   // früher gelistet = höhere Priorität — Produkt Layer vor dem Core.
   // Nicht benötigte Layer einfach entfernen (und aus package.json streichen);
   // core + system bilden das Fundament und bleiben immer.
-  extends: ['../../packages/themes', '../../packages/admin', '../../packages/control', '../../packages/billing', '../../packages/pages', '../../packages/core', '../../packages/system'],
+  // feedback + tickets sind mit E10 (Davids Entscheidung 7, 2026-07-30) HIER
+  // eingezogen und in apps/comments ausgezogen: die Rückmeldungen aller
+  // Communities laufen beim Betreiber auf, nicht in einer Kunden-Silo-App.
+  extends: ['../../packages/themes', '../../packages/admin', '../../packages/control', '../../packages/feedback', '../../packages/billing', '../../packages/tickets', '../../packages/pages', '../../packages/core', '../../packages/system'],
 
   modules: [
     // Interne Projekt-Doku (/docs) — Quelle ist docs/content/** (content.config.ts).

@@ -2,7 +2,11 @@ export default defineNuxtConfig({
   // früher gelistet = höhere Priorität — Produkt Layer vor dem Core.
   // Nicht benötigte Layer einfach entfernen (und aus package.json streichen);
   // core + system bilden das Fundament und bleiben immer.
-  extends: ['../../packages/themes', '../../packages/admin', '../../packages/blueprint', '../../packages/comments', '../../packages/posts', '../../packages/events', '../../packages/courses', '../../packages/moderation', '../../packages/pages', '../../packages/onboarding', '../../packages/core', '../../packages/system'],
+  // feedback (E10): der Feedback-Knopf gehört laut Plan auf JEDE Community-
+  // und Website-Seite, und der Feedback-Bereich ist Bestandteil ALLER
+  // Dashboards. Der Layer besitzt hier keine Tabellen — er ruft das Control
+  // Plane über die Service-Naht (Davids Entscheidung 1).
+  extends: ['../../packages/themes', '../../packages/admin', '../../packages/blueprint', '../../packages/comments', '../../packages/posts', '../../packages/events', '../../packages/feedback', '../../packages/courses', '../../packages/moderation', '../../packages/pages', '../../packages/onboarding', '../../packages/core', '../../packages/system'],
 
   // Port pro App eindeutig vergeben (Konvention: 3001 comments, 3002+ weitere)
   devServer: {

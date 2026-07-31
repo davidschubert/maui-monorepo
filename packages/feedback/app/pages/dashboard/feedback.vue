@@ -1,190 +1,140 @@
 <script setup lang="ts">
-import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
-import type { FeedbackListResponse, FeedbackRow } from '../../../shared/types/feedback'
+import type { TableColumn } from '@nuxt/ui'
+import {
+  FEEDBACK_PAGE_SIZE,
+  FEEDBACK_SORTS,
+  FEEDBACK_STATES,
+  type FeedbackEntry,
+  type FeedbackSort,
+  type FeedbackState,
+} from '../../../../control/shared/customerFeedback'
+import type { FeedbackListResponse } from '../../composables/useCustomerFeedback'
 
-definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'feedback.manage' })
+/**
+ * Der Feedback-Bereich — Bestandteil ALLER Dashboards (Plan § Mitreden), nicht
+ * nur des Betreiber-Dashboards: hier wird gewählt und kommentiert, das Gewicht
+ * entsteht also bei den Nutzern.
+ *
+ * SORTIEREN (Trending · Top · New) und FILTERN (nach Board-Zustand) stehen als
+ * getrennte Reihen im Werkzeugband — sie beantworten zwei verschiedene Fragen
+ * („was ist gerade laut?" vs. „was ist geplant?") und sollen deshalb nicht in
+ * ein gemeinsames Menü.
+ *
+ * `UTable` ist der Standard für Datenlisten (Davids Entscheidung B6) — mit
+ * einer Wähl-Zelle links; Sortierung und Paginierung kommen mitgeliefert. Die
+ * Sortier-KÖPFE fehlen bewusst: die Reihenfolge bestimmt hier die Trending/
+ * Top/New-Wahl, zwei konkurrierende Sortierungen wären eine Falle.
+ *
+ * SAUBER DEGRADIEREN (Entscheidung 1): antwortet control nicht, kommt
+ * `available: false` — dann steht hier ein Hinweis statt einer Fehlerseite.
+ * Der Feedback-Bereich darf das Dashboard nicht mitreißen.
+ */
+definePageMeta({ layout: 'dashboard', middleware: ['auth'], requiredCapability: 'dashboard.access' })
 
 const { t } = useI18n()
-const toast = useToast()
-const confirm = useConfirm()
 const { formatRelativeTime } = useFormatRelativeTime()
-const { page, setPage } = usePagination()
-const appConfig = useAppConfig()
-const auth = useAuthStore()
-const localePath = useLocalePath()
+const { page, setPage } = usePagination({ pageSize: FEEDBACK_PAGE_SIZE })
+const { toggleVote } = useCustomerFeedback()
 
-useHead({ title: () => t('feedback.admin.title') })
+useHead({ title: () => t('feedback.list.title') })
 
-// Filter-Tabs im Toolbar-Muster der Kommentar-Moderation (Offen/Erledigt —
-// „Alle" bewusst weggelassen, die Mischung beider Zustände hilft beim
-// Sichten nicht)
-type FeedbackFilter = 'open' | 'resolved'
-const FILTERS: FeedbackFilter[] = ['open', 'resolved']
-const FILTER_ICON: Record<FeedbackFilter, string> = {
-  open: 'i-ph-tray',
-  resolved: 'i-ph-check-circle',
+const sort = ref<FeedbackSort>('trending')
+const state = ref<FeedbackState | ''>('')
+watch([sort, state], () => setPage(1))
+
+const SORT_ICON: Record<FeedbackSort, string> = {
+  trending: 'i-ph-trend-up',
+  top: 'i-ph-crown-simple',
+  new: 'i-ph-sparkle',
 }
-const filter = ref<FeedbackFilter>('open')
-watch(filter, () => setPage(1))
 
-const filterLinks = computed(() => FILTERS.map(value => ({
-  label: t(`feedback.admin.filter.${value}`),
-  icon: FILTER_ICON[value],
-  active: filter.value === value,
-  onSelect: () => { filter.value = value },
+const sortLinks = computed(() => FEEDBACK_SORTS.map(value => ({
+  label: t(`feedback.sorts.${value}`),
+  icon: SORT_ICON[value],
+  active: sort.value === value,
+  onSelect: () => { sort.value = value },
 })))
 
-// Suche über den Fulltext-Index auf feedback.message (Migration 002) —
-// erst auf Absenden, damit nicht jeder Tastendruck eine Abfrage auslöst.
-const search = ref('')
-const activeSearch = ref('')
-const { sortField, sortDir, toggle } = useTableSort('$createdAt', 'desc')
-
-function runSearch() {
-  activeSearch.value = search.value.trim()
-  setPage(1)
-}
+const stateLinks = computed(() => [
+  { label: t('feedback.list.allStates'), active: state.value === '', onSelect: () => { state.value = '' } },
+  ...FEEDBACK_STATES.map(value => ({
+    label: t(`feedback.states.${value}`),
+    active: state.value === value,
+    onSelect: () => { state.value = value },
+  })),
+])
 
 const { data, status: fetchStatus, refresh } = await useFetch<FeedbackListResponse>('/api/feedback', {
-  query: computed(() => ({
-    status: filter.value,
-    page: page.value,
-    search: activeSearch.value,
-    dir: sortDir.value,
-  })),
+  query: computed(() => ({ sort: sort.value, state: state.value, page: page.value })),
   lazy: true,
   server: false,
 })
 
-watch(sortDir, () => setPage(1))
+const entries = computed(() => data.value?.entries ?? [])
+const isOperator = computed(() => data.value?.operator === true)
+const unavailable = computed(() => data.value?.available === false)
 
-// „Filter/Suche ohne Treffer" ist ein eigener Leerzustand — hier ist der eine
-// nächste Schritt das Zurücksetzen, nicht das Anlegen.
-const hasActiveFilter = computed(() => activeSearch.value !== '' || filter.value !== 'open')
+const hasActiveFilter = computed(() => state.value !== '')
 function resetFilters() {
-  search.value = ''
-  activeSearch.value = ''
-  filter.value = 'open'
+  state.value = ''
+  sort.value = 'trending'
 }
 
-const CATEGORY_ICON: Record<string, string> = {
-  idea: 'i-ph-lightbulb',
-  bug: 'i-ph-bug',
-  other: 'i-ph-chat-circle-dots',
+// Detail als Slideover: die Liste bleibt stehen, während man einen Eintrag
+// liest, wählt und kommentiert — ein Seitenwechsel würde die Sortierung, die
+// man gerade untersucht, jedes Mal neu holen.
+const selected = ref<FeedbackEntry | null>(null)
+const detailOpen = computed({
+  get: () => selected.value !== null,
+  set: (value: boolean) => { if (!value) selected.value = null },
+})
+
+const votingId = ref('')
+async function onVote(entry: FeedbackEntry) {
+  votingId.value = entry.id
+  await toggleVote(entry)
+  votingId.value = ''
 }
 
-const busyId = ref('')
-async function setDone(row: FeedbackRow, done: boolean) {
-  busyId.value = row.$id
-  try {
-    await $fetch(`/api/feedback/${row.$id}`, { method: 'PATCH', body: { status: done ? 'resolved' : 'open' } })
-    await refresh()
-  }
-  catch {
-    toast.add({ title: t('feedback.admin.actionFailed'), color: 'error' })
-  }
-  finally {
-    busyId.value = ''
-  }
-}
-
-// Feedback → Ticket (A14: die App setzt pukalani.feedback.ticketEndpoint und
-// verdrahtet dahinter ihren Board-Layer; ohne Endpoint kein Button)
-const ticketEndpoint = computed(() =>
-  (appConfig.pukalani as { feedback?: { ticketEndpoint?: string } } | undefined)?.feedback?.ticketEndpoint ?? '')
-const canConvert = computed(() =>
-  ticketEndpoint.value !== '' && userHasCapability(auth.user, 'tickets.manage'))
-
-async function toTicket(row: FeedbackRow) {
-  busyId.value = row.$id
-  try {
-    const res = await $fetch<{ ticketId: string }>(ticketEndpoint.value, {
-      method: 'POST',
-      body: { feedbackId: row.$id },
-    })
-    toast.add({
-      title: t('feedback.admin.toTicketSuccess'),
-      color: 'success',
-      icon: 'i-ph-kanban',
-      actions: [{
-        label: t('feedback.admin.toTicketOpen'),
-        onClick: () => { void navigateTo(`${localePath('/dashboard/tickets')}?ticket=${res.ticketId}`) },
-      }],
-    })
-    await refresh()
-  }
-  catch (error) {
-    const statusCode = (error as { statusCode?: number }).statusCode
-    toast.add({
-      title: statusCode === 409 ? t('feedback.admin.toTicketExists') : t('feedback.admin.actionFailed'),
-      color: statusCode === 409 ? 'warning' : 'error',
-    })
-  }
-  finally {
-    busyId.value = ''
-  }
-}
-
-async function remove(row: FeedbackRow) {
-  try {
-    const ok = await confirm({
-      title: t('feedback.admin.confirmDeleteTitle'),
-      description: t('feedback.admin.confirmDeleteText'),
-      confirmLabel: t('feedback.admin.delete'),
-      action: () => $fetch(`/api/feedback/${row.$id}`, { method: 'DELETE' }),
-    })
-    if (!ok) return
-    toast.add({ title: t('feedback.admin.deleted'), color: 'success' })
-    await refresh()
-  }
-  catch {
-    toast.add({ title: t('feedback.admin.actionFailed'), color: 'error' })
-  }
-}
-
-// Seite und Absender sind Kontext — auf schmalen Schirmen fallen sie weg.
 const HIDE_MD = { td: 'hidden md:table-cell', th: 'hidden md:table-cell' }
 const HIDE_LG = { td: 'hidden lg:table-cell', th: 'hidden lg:table-cell' }
 
-const columns = computed<TableColumn<FeedbackRow>[]>(() => [
-  { accessorKey: 'category', header: () => t('feedback.admin.col.category') },
-  { accessorKey: 'message', header: () => t('feedback.admin.col.message') },
-  { accessorKey: 'userName', header: () => t('feedback.admin.col.from'), meta: { class: HIDE_MD } },
-  { accessorKey: 'page', header: () => t('feedback.admin.col.page'), meta: { class: HIDE_LG } },
-  { accessorKey: '$createdAt', header: () => t('feedback.admin.col.date'), id: 'createdAt' },
-  { id: 'actions', header: () => '' },
+const columns = computed<TableColumn<FeedbackEntry>[]>(() => [
+  { id: 'vote', header: () => '' },
+  { accessorKey: 'title', header: () => t('feedback.list.col.entry') },
+  { accessorKey: 'state', header: () => t('feedback.list.col.state'), meta: { class: HIDE_MD } },
+  { accessorKey: 'commentCount', header: () => t('feedback.list.col.comments'), meta: { class: HIDE_LG } },
+  { accessorKey: 'createdAt', header: () => t('feedback.list.col.date'), meta: { class: HIDE_LG } },
+  // Herkunft steht NUR beim Betreiber in der Tabelle — bei allen anderen
+  // kommt sie gar nicht erst über die Leitung (Entscheidung 2).
+  ...(isOperator.value ? [{ accessorKey: 'origin', header: () => t('feedback.list.col.origin'), meta: { class: HIDE_MD } }] : []),
 ])
-
-/**
- * Zeilen-Aktionen. `canConvert` bleibt das Gate für „Ticket daraus machen"
- * (Endpoint gesetzt UND tickets.manage) — der Umbau darf es nicht verlieren.
- */
-function rowActions(row: FeedbackRow): DropdownMenuItem[][] {
-  const items: DropdownMenuItem[] = []
-  if (canConvert.value) {
-    items.push({ label: t('feedback.admin.toTicket'), icon: 'i-ph-kanban', onSelect: () => { void toTicket(row) } })
-  }
-  items.push(row.status === 'open'
-    ? { label: t('feedback.admin.markResolved'), icon: 'i-ph-check', onSelect: () => { void setDone(row, true) } }
-    : { label: t('feedback.admin.reopen'), icon: 'i-ph-arrow-counter-clockwise', onSelect: () => { void setDone(row, false) } })
-  return [
-    items,
-    [{ label: t('feedback.admin.delete'), icon: 'i-ph-trash', color: 'error', onSelect: () => { void remove(row) } }],
-  ]
-}
 </script>
 
 <template>
-  <UDashboardPanel id="feedback-admin">
+  <UDashboardPanel id="customer-feedback">
     <template #header>
-      <UDashboardNavbar :title="`${t('feedback.admin.title')} (${data?.total ?? 0})`">
+      <UDashboardNavbar :title="t('feedback.list.title')">
         <template #leading>
           <UDashboardSidebarCollapse />
+        </template>
+        <template #right>
+          <UButton
+            color="neutral"
+            variant="ghost"
+            icon="i-ph-arrow-clockwise"
+            :aria-label="t('feedback.list.refresh')"
+            :loading="fetchStatus === 'pending'"
+            @click="refresh()"
+          />
         </template>
       </UDashboardNavbar>
 
       <UDashboardToolbar>
-        <UNavigationMenu :items="filterLinks" highlight class="-mx-1 flex-1" data-feedback-filter />
+        <UNavigationMenu :items="sortLinks" highlight class="-mx-1 flex-1" data-feedback-sort />
+      </UDashboardToolbar>
+      <UDashboardToolbar>
+        <UNavigationMenu :items="stateLinks" highlight class="-mx-1 flex-1" data-feedback-state-filter />
       </UDashboardToolbar>
     </template>
 
@@ -194,61 +144,60 @@ function rowActions(row: FeedbackRow): DropdownMenuItem[][] {
           <div class="flex justify-center py-16"><UIcon name="i-ph-spinner" class="size-6 animate-spin text-muted" /></div>
         </template>
 
-        <div v-if="fetchStatus === 'pending' && !data" class="flex justify-center py-16">
+        <CoreEmptyState
+          v-if="unavailable"
+          icon="i-ph-plugs"
+          :title="t('feedback.list.unavailableTitle')"
+          :description="t('feedback.list.unavailableText')"
+          data-testid="feedback-unavailable"
+        />
+
+        <div v-else-if="fetchStatus === 'pending' && !data" class="flex justify-center py-16">
           <UIcon name="i-ph-spinner" class="size-6 animate-spin text-muted" />
         </div>
 
         <template v-else>
-          <form class="mb-4 flex max-w-md gap-2" @submit.prevent="runSearch">
-            <UInput
-              v-model="search"
-              icon="i-ph-magnifying-glass"
-              :placeholder="t('feedback.admin.searchPlaceholder')"
-              class="flex-1"
-              data-feedback-search
-            />
-            <UButton type="submit" color="neutral" variant="subtle">{{ t('feedback.admin.search') }}</UButton>
-          </form>
-
-          <UTable :data="data?.rows ?? []" :columns="columns" data-testid="feedback-list">
-            <template #createdAt-header>
-              <SortableHeader :label="t('feedback.admin.col.date')" field="$createdAt" :active="sortField" :dir="sortDir" @toggle="toggle" />
+          <UTable :data="entries" :columns="columns" data-testid="feedback-list">
+            <template #vote-cell="{ row }">
+              <FeedbackVoteButton :entry="row.original" :busy="votingId === row.original.id" @toggle="onVote(row.original)" />
             </template>
 
-            <template #category-cell="{ row }">
-              <span class="flex items-center gap-1.5 whitespace-nowrap">
-                <UIcon :name="CATEGORY_ICON[row.original.category] ?? 'i-ph-chat-circle-dots'" class="size-4 shrink-0 text-muted" />
-                {{ t(`feedback.categories.${row.original.category}`) }}
+            <template #title-cell="{ row }">
+              <button type="button" class="min-w-0 max-w-md cursor-pointer text-left" @click="() => { selected = row.original }">
+                <span class="block font-medium">{{ row.original.title }}</span>
+                <span class="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted">
+                  <UBadge color="neutral" variant="outline" size="sm">{{ t(`feedback.areas.${row.original.area}`) }}</UBadge>
+                  <span v-if="row.original.productKey" class="font-mono">{{ row.original.productKey }}</span>
+                  <UBadge v-if="row.original.status === 'hidden'" color="warning" variant="subtle" size="sm">
+                    {{ t('feedback.list.hidden') }}
+                  </UBadge>
+                  <UBadge v-if="row.original.mine" color="primary" variant="subtle" size="sm">
+                    {{ t('feedback.list.mine') }}
+                  </UBadge>
+                </span>
+              </button>
+            </template>
+
+            <template #state-cell="{ row }">
+              <UBadge color="neutral" variant="subtle" size="sm" class="whitespace-nowrap">
+                {{ t(`feedback.states.${row.original.state}`) }}
+              </UBadge>
+            </template>
+
+            <template #commentCount-cell="{ row }">
+              <span class="flex items-center gap-1 text-sm text-muted">
+                <UIcon name="i-ph-chat-circle" class="size-4" />{{ row.original.commentCount }}
               </span>
             </template>
-            <template #message-cell="{ row }">
-              <p class="line-clamp-3 max-w-md min-w-0 whitespace-pre-line text-sm" :title="row.original.message">
-                {{ row.original.message }}
-              </p>
-            </template>
-            <template #userName-cell="{ row }">
-              <span class="text-sm">{{ row.original.userName || t('feedback.admin.guest') }}</span>
-            </template>
-            <template #page-cell="{ row }">
-              <span class="font-mono text-xs text-muted">{{ row.original.page || '—' }}</span>
-            </template>
+
             <template #createdAt-cell="{ row }">
-              <span class="whitespace-nowrap text-sm text-muted">{{ formatRelativeTime(row.original.$createdAt) }}</span>
+              <span class="whitespace-nowrap text-sm text-muted">{{ formatRelativeTime(row.original.createdAt) }}</span>
             </template>
-            <template #actions-cell="{ row }">
-              <div class="flex justify-end">
-                <UDropdownMenu :items="rowActions(row.original)" :content="{ align: 'end' }">
-                  <UButton
-                    icon="i-ph-dots-three-vertical"
-                    color="neutral"
-                    variant="ghost"
-                    size="xs"
-                    :aria-label="t('feedback.admin.rowActions')"
-                    :loading="busyId === row.original.$id"
-                    :data-feedback-actions="row.original.$id"
-                  />
-                </UDropdownMenu>
-              </div>
+
+            <template #origin-cell="{ row }">
+              <span class="text-sm text-muted">
+                {{ row.original.origin?.communityName || row.original.origin?.authorName || t('feedback.admin.anonymous') }}
+              </span>
             </template>
 
             <template #empty>
@@ -263,24 +212,30 @@ function rowActions(row: FeedbackRow): DropdownMenuItem[][] {
               />
               <CoreEmptyState
                 v-else
-                icon="i-ph-tray"
-                :title="t('feedback.admin.emptyTitle')"
-                :description="t('feedback.admin.empty')"
+                icon="i-ph-megaphone-simple"
+                :title="t('feedback.list.emptyTitle')"
+                :description="t('feedback.list.emptyText')"
                 data-testid="feedback-empty"
               />
             </template>
           </UTable>
-        </template>
 
-        <UPagination
-          v-if="(data?.total ?? 0) > 50"
-          class="mt-4"
-          :page="page"
-          :total="data?.total ?? 0"
-          :items-per-page="50"
-          @update:page="setPage"
-        />
+          <UPagination
+            v-if="(data?.total ?? 0) > FEEDBACK_PAGE_SIZE"
+            class="mt-4"
+            :page="page"
+            :total="data?.total ?? 0"
+            :items-per-page="FEEDBACK_PAGE_SIZE"
+            @update:page="setPage"
+          />
+        </template>
       </ClientOnly>
+
+      <USlideover v-model:open="detailOpen" :title="t('feedback.list.detailTitle')">
+        <template #body>
+          <FeedbackDetail v-if="selected" :entry="selected" :operator="isOperator" />
+        </template>
+      </USlideover>
     </template>
   </UDashboardPanel>
 </template>

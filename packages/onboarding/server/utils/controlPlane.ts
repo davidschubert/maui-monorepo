@@ -1,8 +1,8 @@
-import { Account, Client } from 'node-appwrite'
 import type { H3Event } from 'h3'
+import type { ControlServiceConfig } from '../../../core/server/utils/controlService'
 
 /**
- * Der Ruf ins Control Plane.
+ * Der Ruf ins Control Plane — aus Sicht des ONBOARDING-Layers.
  *
  * Die Platform-App darf das Control Plane nur LESEN (read-only-Key, H3). Das
  * Anlegen einer Community gehört dorthin, also ruft der Trichter die
@@ -10,107 +10,34 @@ import type { H3Event } from 'h3'
  * Deployment) und dem Appwrite-JWT des Nutzers im Body (beweist: dieser
  * Nutzer). Details der Naht: packages/control/server/utils/onboardingService.ts
  *
- * Fehler werden bewusst DURCHGELASSEN, nicht geglättet: 403 (Code/Kontingent)
- * und 409 (Adresse belegt) sind Aussagen für den Nutzer. Nur was gar nicht
- * antwortet, wird zu 503 — dann ist die Plattform gestört, nicht die Eingabe.
+ * SEIT E10 IST DER TRANSPORT SELBST IM CORE (`server/utils/controlService.ts`):
+ * mit dem zentralen Kunden-Feedback braucht ihn ein ZWEITER Layer (feedback),
+ * und der lebt in Apps ohne onboarding (apps/control). Zwei Kopien derselben
+ * Vertrauensnaht wären genau die Sorte Doppelpflege, bei der eines Tages nur
+ * eine der beiden einen Fehlerfall richtig behandelt.
+ *
+ * Hier bleiben nur die Namen stehen, unter denen die Onboarding-Routen ihn
+ * kennen — Verhalten, Header, Fehler-Übersetzung und Config-Schlüssel
+ * (`onboardingControlUrl` / `onboardingServiceSecret`) sind unverändert.
  */
 
-export interface ControlPlaneConfig {
-  url: string
-  secret: string
-}
+export type ControlPlaneConfig = ControlServiceConfig
 
 export function controlPlaneConfig(event: H3Event): ControlPlaneConfig {
-  const config = useRuntimeConfig(event) as {
-    onboardingControlUrl?: string
-    onboardingServiceSecret?: string
-  }
-  const url = (config.onboardingControlUrl || '').replace(/\/+$/, '')
-  const secret = config.onboardingServiceSecret || ''
-  if (!url || !secret) {
-    // 503 statt 404: hier ist etwas FALSCH KONFIGURIERT, nicht abwesend — der
-    // Unterschied entscheidet, ob jemand danach sucht.
-    logEvent('error', 'onboarding.not_configured', { hasUrl: !!url, hasSecret: !!secret })
-    throw createError({ status: 503, statusText: 'Onboarding is not configured' })
-  }
-  return { url, secret }
+  return controlServiceConfig(event)
 }
 
 /**
  * Kurzlebiges JWT des eingeloggten Nutzers (wie beim Realtime-Token).
  *
- * `sessionSecret` ist die Ausnahme für den Beitritt BEI DER ANMELDUNG (A5): dort
- * ist die Session eine Millisekunde alt und steckt noch nicht im Request-Cookie
- * (setSessionCookie schreibt in die ANTWORT), also gibt es weder
- * `event.context.user` noch einen brauchbaren Session-Client. Derselbe Trick,
- * den signup.post.ts für die Verifizierungs-Mail schon benutzt — mit einem
- * eigenen Client auf dem frischen Secret.
+ * `sessionSecret` ist die Ausnahme für den Beitritt BEI DER ANMELDUNG (A5):
+ * dort ist die Session eine Millisekunde alt und steckt noch nicht im
+ * Request-Cookie (setSessionCookie schreibt in die ANTWORT).
  */
 export async function mintRuntimeJwt(event: H3Event, sessionSecret?: string): Promise<string> {
-  if (sessionSecret) {
-    const config = useRuntimeConfig(event)
-    const client = new Client()
-      .setEndpoint(config.public.appwriteEndpoint)
-      .setProject(config.public.appwriteProjectId)
-      .setSession(sessionSecret)
-    const { jwt } = await new Account(client).createJWT({ duration: 120 })
-      .catch(() => { throw createError({ status: 401, statusText: 'Unauthorized' }) })
-    return jwt
-  }
-
-  if (!event.context.user) {
-    throw createError({ status: 401, statusText: 'Unauthorized' })
-  }
-  const { account } = createSessionClient(event)
-  const { jwt } = await account.createJWT({ duration: 120 })
-    .catch(() => { throw createError({ status: 401, statusText: 'Unauthorized' }) })
-  return jwt
+  return await mintServiceJwt(event, sessionSecret)
 }
 
 export async function callControlPlane<T>(event: H3Event, path: string, body: Record<string, unknown>): Promise<T> {
-  const { url, secret } = controlPlaneConfig(event)
-  try {
-    // Cast: $fetch typisiert die Antwort über NitroFetchRequest (die Route liegt
-    // in einer ANDEREN App, also gibt es hier keine abgeleiteten Route-Typen).
-    return await $fetch<T>(`${url}${path}`, {
-      method: 'POST',
-      headers: { 'x-pukalani-onboarding-secret': secret },
-      body,
-      timeout: 15_000,
-    }) as T
-  }
-  catch (error) {
-    const status = (error as { status?: number, statusCode?: number }).status
-      ?? (error as { statusCode?: number }).statusCode
-    const statusText = (error as { statusText?: string, statusMessage?: string }).statusText
-      ?? (error as { statusMessage?: string }).statusMessage
-    // 4xx = Aussage über die Eingabe → unverändert weitergeben. MIT `data`:
-    // die Mitglieder-Regeln des Control Plane antworten 409 und legen ihren
-    // Grund als `data.code` bei (last_owner, self_demote, …). Ohne diese Zeile
-    // käme in der Oberfläche nur „Fehler" an, und der Nutzer wüsste nicht, was
-    // ihn aufgehalten hat. Weitergegeben wird ausschließlich dieses Feld —
-    // keine Appwrite-Details, keine fremden Nutzlasten.
-    if (typeof status === 'number' && status >= 400 && status < 500) {
-      // ZWEI Envelopes hintereinander, und das ist die Stelle, an der man sich
-      // vertut: das Control Plane ist selbst eine pukalani-App, seine Antwort ist
-      // also schon das fertige Envelope `{ ok, code, message, reason }`. Bei
-      // $fetch steckt dieser Body in `error.data`. Der Grund muss hier deshalb
-      // aus `data.reason` gelesen und als `data.code` NEU gesetzt werden —
-      // dann macht unser eigener Error-Handler daraus wieder ein `reason` für
-      // den Browser. Weitergegeben wird ausschließlich dieser Schlüssel.
-      const body = (error as { data?: { reason?: unknown } }).data
-      const reason = typeof body?.reason === 'string' ? body.reason : null
-      throw createError({
-        status,
-        statusText: statusText || 'Request rejected',
-        ...(reason ? { data: { code: reason } } : {}),
-      })
-    }
-    logEvent('error', 'onboarding.control_plane_unreachable', {
-      path,
-      status: status ?? 0,
-      message: error instanceof Error ? error.message : String(error),
-    })
-    throw createError({ status: 503, statusText: 'Onboarding is temporarily unavailable' })
-  }
+  return await callControlService<T>(event, path, body)
 }

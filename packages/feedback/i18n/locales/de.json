@@ -1,65 +1,99 @@
 {
   "feedback": {
     "cta": "Feedback",
-    "categories": {
-      "idea": "Idee",
-      "bug": "Problem",
+    "nav": {
+      "section": "Customer Feedback",
+      "feedback": "Feedback",
+      "roadmap": "Roadmap",
+      "changelog": "Changelog"
+    },
+    "areas": {
+      "core": "Kernprodukt",
+      "product": "Ein Produkt",
+      "billing": "Abrechnung",
       "other": "Sonstiges"
+    },
+    "states": {
+      "under_review": "In Prüfung",
+      "planned": "Geplant",
+      "in_progress": "In Arbeit",
+      "complete": "Fertig"
+    },
+    "sorts": {
+      "trending": "Im Trend",
+      "top": "Top",
+      "new": "Neu"
     },
     "form": {
       "title": "Was können wir besser machen?",
       "placeholder": "Deine Idee, dein Problem, dein Gedanke …",
+      "productPlaceholder": "Welches Produkt?",
       "send": "Senden",
       "cancel": "Abbrechen",
       "close": "Schließen",
       "thanksTitle": "Danke dir!",
-      "thanksText": "Dein Feedback ist angekommen — wir schauen es uns an.",
-      "guestHint": "Du sendest als Gast — melde dich an, wenn wir rückfragen dürfen sollen.",
+      "thanksTracked": "Dein Feedback ist angekommen — du findest es im Dashboard und siehst dort, was daraus wird.",
+      "thanksAnonymous": "Dein Feedback ist angekommen. Du hast anonym gesendet: wir können nicht nachfragen, und du kannst es nicht verfolgen.",
+      "thanksLink": "Zum Feedback-Bereich",
+      "guestHint": "Du sendest anonym — ohne Adresse, ohne Nachverfolgung. Melde dich an, wenn wir rückfragen dürfen sollen.",
       "failed": "Feedback konnte nicht gesendet werden.",
-      "tooMany": "Zu viele Nachrichten — bitte kurz warten."
+      "tooMany": "Zu viele Nachrichten — bitte kurz warten.",
+      "muted": "Für diese Community ist der Feedback-Kanal gerade stummgeschaltet."
     },
     "validation": {
-      "categoryInvalid": "Ungültige Kategorie.",
+      "areaInvalid": "Ungültiger Bereich.",
+      "productInvalid": "Ungültiges Produkt.",
+      "productRequired": "Bitte wähl ein Produkt.",
       "messageRequired": "Bitte schreib ein paar Worte.",
-      "messageMax": "Nachricht ist zu lang (max. 2.000 Zeichen)."
+      "messageMax": "Nachricht ist zu lang (max. 2.000 Zeichen).",
+      "commentRequired": "Bitte schreib ein paar Worte.",
+      "commentMax": "Kommentar ist zu lang (max. 1.000 Zeichen)."
+    },
+    "list": {
+      "title": "Customer Feedback",
+      "refresh": "Neu laden",
+      "vote": "Dafür stimmen",
+      "fromCommunities": "aus {count} Communities",
+      "allStates": "Alle",
+      "hidden": "Versteckt",
+      "mine": "Von dir",
+      "detailTitle": "Feedback",
+      "comments": "Kommentare ({count})",
+      "noComments": "Noch keine Kommentare — sag als Erste:r etwas dazu.",
+      "commentPlaceholder": "Was denkst du dazu?",
+      "commentSend": "Kommentieren",
+      "someone": "Mitglied",
+      "loginRequired": "Dafür musst du angemeldet sein.",
+      "actionFailed": "Aktion fehlgeschlagen.",
+      "emptyTitle": "Noch kein Feedback",
+      "emptyText": "Über den Feedback-Knopf unten links landet hier, was Nutzer sich wünschen.",
+      "unavailableTitle": "Feedback ist gerade nicht erreichbar",
+      "unavailableText": "Der zentrale Feedback-Dienst antwortet nicht. Der Rest des Dashboards funktioniert normal — versuch es später noch einmal.",
+      "col": {
+        "entry": "Eintrag",
+        "state": "Zustand",
+        "comments": "Kommentare",
+        "date": "Eingegangen",
+        "origin": "Herkunft"
+      }
+    },
+    "roadmap": {
+      "title": "Roadmap",
+      "subtitle": "Woran wir arbeiten — aus euren Wünschen.",
+      "emptyColumn": "Nichts hier."
     },
     "admin": {
-      "title": "Feedback",
-      "open": "Offen",
-      "resolved": "Erledigt",
-      "empty": "Nichts da — entweder alles erledigt oder noch kein Feedback.",
-      "emptyTitle": "Kein Feedback",
-      "guest": "Gast",
-      "search": "Suchen",
-      "searchPlaceholder": "Feedback durchsuchen …",
-      "rowActions": "Aktionen für diese Rückmeldung",
-      "col": {
-        "category": "Kategorie",
-        "message": "Nachricht",
-        "from": "Von",
-        "page": "Seite",
-        "date": "Datum"
-      },
-      "markResolved": "Erledigt",
-      "reopen": "Wieder öffnen",
-      "deleted": "Feedback gelöscht.",
-      "actionFailed": "Aktion fehlgeschlagen.",
-      "delete": "Feedback löschen",
-      "confirmDeleteTitle": "Feedback löschen?",
-      "confirmDeleteText": "Die Rückmeldung wird endgültig entfernt und lässt sich nicht wiederherstellen.",
-      "toTicket": "Als Ticket übernehmen",
-      "toTicketSuccess": "Ticket angelegt — das Feedback ist als erledigt markiert.",
-      "toTicketOpen": "Ticket öffnen",
-      "toTicketExists": "Zu diesem Feedback gibt es schon ein Ticket.",
-      "filter": {
-        "open": "Offen",
-        "resolved": "Erledigt"
-      }
-    }
-  },
-  "admin": {
-    "nav": {
-      "feedback": "Feedback"
+      "origin": "Herkunft",
+      "originCommunity": "Community",
+      "originAuthor": "Von",
+      "originEmail": "E-Mail",
+      "originPage": "Seite",
+      "anonymous": "Anonym",
+      "hide": "Verstecken",
+      "show": "Wieder zeigen",
+      "mute": "Community stummschalten",
+      "muted": "Community stummgeschaltet.",
+      "unmuted": "Stummschaltung aufgehoben."
     }
   }
 }

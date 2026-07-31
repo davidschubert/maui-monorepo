@@ -57,17 +57,10 @@ export default defineAppConfig({
         guests: true,
       },
     },
-    feedback: {
-      // Feedback → Ticket (P2): die App verdrahtet feedback mit dem
-      // tickets-Board über diese Route (A14) — Ticket landet in der
-      // ersten Board-Liste, Feedback wird als erledigt markiert
-      ticketEndpoint: '/api/app/feedback-ticket',
-    },
-    tickets: {
-      // KI-Triage (P3) via OpenRouter — Key: NUXT_TICKETS_AI_KEY in .env
-      // (server-only). Model/baseUrl-Defaults kommen aus dem Layer.
-      ai: { enabled: true },
-    },
+    // feedback + tickets sind mit E10 nach apps/control gezogen (Davids
+    // Entscheidung 7) — mit ihnen fiel die App-Verdrahtung „Feedback → Ticket"
+    // (pukalani.feedback.ticketEndpoint) und die Ticket-KI-Triage
+    // (pukalani.tickets.ai) weg. Beides steht jetzt in apps/control.
     // Stripe-Billing (Phase 23) — TEST-Mode; Products/Prices legt David im
     // Dashboard an (lookup_keys wie hier deklariert). Produkt-Strings sind
     // App-Konvention (courses konsumiert 'paidCourses' über den Access-Guard).
