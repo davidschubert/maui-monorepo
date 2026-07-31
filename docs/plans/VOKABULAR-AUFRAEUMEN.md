@@ -60,6 +60,30 @@ hier als solche vermerkt, damit später niemand die alte Zeile für gültig häl
 Alles Übrige ist mechanisch (Bezeichner, Dateinamen, i18n-Schlüssel) und
 durch `pnpm check:manifests` + Typecheck abgesichert.
 
+### NICHT ANFASSEN — die Fallen (gemessen 2026-07-30)
+
+Ein pauschales `feature` → `product` richtet hier Schaden an. Drei Gruppen
+sehen aus wie Treffer und sind keine:
+
+| Bezeichner | Vorkommen | Warum es bleiben MUSS |
+| --- | ---: | --- |
+| `featured` / `Featured` | 106 | heißt **„hervorgehoben"**, nicht „Feature" — u. a. die Appwrite-Spalte `media_items.featured`. Ersetzt man blind, steht dort `productd`. |
+| `UPageFeature` / `PageFeature` | 137 | **Nuxt-UI-Komponente** (in `apps/marketing` benutzt) — fremde API. Umbenennen zerlegt die Marketing-Seiten. |
+| `FeatureCtor` | — | stammt aus `node_modules`, gehört uns gar nicht. Frühere Zählungen hatten es fälschlich mitgezählt. |
+
+Die Ersetzung muss also regelbasiert laufen wie bei `maui` (Etappe A), nicht
+per `sed`. Bewährte Vorgehensweise von dort: Trockenlauf mit Zählung je Regel,
+dann schreiben, dann `grep` auf Reste, dann Typecheck — der die Lücken zeigt,
+die die Regeln übersehen haben.
+
+### Etappe A ist erledigt (2026-07-30)
+
+`maui` → `pukalani` ist durch: 884 Ersetzungen in 327 Dateien, Paket-Scope
+`@pukalani/*`, Namespace `pukalani.*`, Cookies, Code-Präfix `PUKA-`.
+Typecheck 0 Fehler (control/comments/platform), 790 Unit-Tests grün, alle vier
+CI-Gates grün. **Kein Appwrite-Anteil** — `maui` kam dort in keiner Tabelle und
+keiner Spalte vor.
+
 ## 2. `pukalani.studio.*` — Altlast des Control-Cutovers
 
 Der Layer heißt `control`, die App heißt `control`, der Host heißt `control`
