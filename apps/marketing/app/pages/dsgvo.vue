@@ -59,9 +59,16 @@ useSeoMeta({
         <aside class="gdpr-disclaimer">
           <h2 class="gdpr-disclaimer-title">{{ t('marketing.gdpr.disclaimerTitle') }}</h2>
           <p>{{ t('marketing.gdpr.disclaimer') }}</p>
-          <a href="https://app.pukalani.app/datenschutz" class="gdpr-legal-link">
-            {{ t('marketing.gdpr.legalLink') }} <UIcon name="i-ph-arrow-up-right-bold" />
-          </a>
+          <!-- Die verbindliche Datenschutzerklärung liegt auf DIESER Domain
+               (gleiche Begründung wie im Footer: Impressumspflicht). Der frühere
+               Link auf app.pukalani.app war seit der Host-Entfernung 2026-07-27
+               ein 404.
+               Route-NAME statt Pfad-String: /datenschutz trägt je Locale einen
+               eigenen Pfad (defineI18nRoute, EN /privacy) — ein roher Pfad
+               bliebe auf EN deutsch und wäre wieder ein 404. -->
+          <NuxtLink :to="localePath({ name: 'datenschutz' })" class="gdpr-legal-link">
+            {{ t('marketing.gdpr.legalLink') }} <UIcon name="i-ph-arrow-right-bold" />
+          </NuxtLink>
         </aside>
       </div>
     </section>

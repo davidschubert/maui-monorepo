@@ -13,6 +13,9 @@
       "toGerman": "Deutsch",
       "toEnglish": "English",
       "menu": "Open menu",
+      "aria": {
+        "main": "Main navigation"
+      },
       "products": {
         "overview": "All products at a glance",
         "items": {
@@ -741,11 +744,18 @@
       "lead": "Step through the door – your community stands in 60 seconds. Free, no risk.",
       "primary": "Start free",
       "secondary": "See the live demo",
-      "refrain": "Where the sun breaks through."
+      "refrain": "“Where the sun breaks through.”"
     },
     "footer": {
       "tagline": "Your own community platform — lean, privacy-first, hosted in Germany.",
-      "refrain": "Where the sun breaks through.",
+      "refrain": "“Where the sun breaks through.”",
+      "aria": {
+        "product": "Product",
+        "compare": "Compare",
+        "useCases": "Use cases",
+        "company": "About",
+        "legal": "Legal"
+      },
       "colProduct": "Product",
       "colCompany": "About",
       "colLegal": "Legal",

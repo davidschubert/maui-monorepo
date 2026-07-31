@@ -13,6 +13,9 @@
       "toGerman": "Deutsch",
       "toEnglish": "English",
       "menu": "Menü öffnen",
+      "aria": {
+        "main": "Hauptnavigation"
+      },
       "products": {
         "overview": "Alle Produkte im Überblick",
         "items": {
@@ -741,11 +744,18 @@
       "lead": "Tritt durch das Tor – in 60 Sekunden steht deine Community. Kostenlos, ohne Risiko.",
       "primary": "Kostenlos starten",
       "secondary": "Live-Demo ansehen",
-      "refrain": "Wo die Sonne durchbricht."
+      "refrain": "„Wo die Sonne durchbricht.“"
     },
     "footer": {
       "tagline": "Deine eigene Community-Plattform — schlank, DSGVO-nativ, in Deutschland gehostet.",
-      "refrain": "Wo die Sonne durchbricht.",
+      "refrain": "„Wo die Sonne durchbricht.“",
+      "aria": {
+        "product": "Produkt",
+        "compare": "Vergleich",
+        "useCases": "Anwendungsfälle",
+        "company": "Über",
+        "legal": "Rechtliches"
+      },
       "colProduct": "Produkt",
       "colCompany": "Über",
       "colLegal": "Rechtliches",
