@@ -43,7 +43,7 @@ export const MARKETING_ROUTES: MarketingRoute[] = [
   ...AUDIENCE_SLUGS.map(slug => ({ en: `/use-cases/${slug}`, de: `/de/use-cases/${slug}`, priority: 0.7 })),
   // Anders als die Anwendungsfälle bleiben die Produkt-Seiten locale-eigen
   // (defineI18nRoute in produkte/[slug].vue: en /products, de /produkte). Die
-  // alten /products/* leiten 301 weiter und standen bis 2026-07-30 hier — eine
+  // alten /features/* leiten 301 weiter und standen bis 2026-07-30 hier — eine
   // Sitemap darf nur Zieladressen anbieten, keine Weiterleitungen.
   ...PRODUCT_SLUGS.map(slug => ({ en: `/products/${slug}`, de: `/de/produkte/${slug}`, priority: 0.7 })),
 ]

@@ -12,7 +12,7 @@
 // Locale-Pfade: EN /products/* · DE /de/produkte/* — Kundensprache ist
 // „Produkte" (im CODE bleibt das Vokabular `products`). Die Slugs bleiben
 // deutsch, nur das Segment ist lokalisiert.
-// Die alten /products/*-URLs waren schon veröffentlicht: 301 in nuxt.config.ts.
+// Die alten /features/*-URLs waren schon veröffentlicht: 301 in nuxt.config.ts.
 import { EARLY_ACCESS_SLUGS, PRODUCT_SLUGS } from '#shared/marketing'
 
 definePageMeta({ layout: 'site' })
