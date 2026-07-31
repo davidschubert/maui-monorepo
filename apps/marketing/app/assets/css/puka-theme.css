@@ -133,4 +133,26 @@
    * Alt-Token: die Kante nimmt damit einen späteren Palettenwechsel mit.
    */
   --puka-card-edge: color-mix(in oklab, var(--ui-color-neutral-900) 8%, transparent);
+
+  /*
+   * Die Kante des Intervall-Umschalters (Paket 4, benutzt vom `UTabs`-Aufruf
+   * in PricingSection.vue). Dieselbe Rechnung wie --puka-card-edge, nur
+   * kräftiger: der Bestand zeichnete die Pille mit `hsl(var(--puka-ink) /
+   * 0.12)` — sie steht frei auf der hellen Sektionsfläche und braucht deshalb
+   * mehr Kante als eine Karte, die schon durch ihre eigene Fläche absetzt.
+   */
+  --puka-pill-edge: color-mix(in oklab, var(--ui-color-neutral-900) 12%, transparent);
+
+  /*
+   * Der warme Schein unter der hervorgehobenen Preis-Karte (Paket 4, benutzt
+   * vom `pricingPlan`-Vertrag in app/app.config.ts). Der Bestand malte ihn als
+   * `hsl(var(--puka-sun-deep) / 0.6)` — das IST puka-600 bei 60 %.
+   *
+   * Hier steht bewusst NUR DIE FARBE, nicht der ganze Schatten: `shadow-[…]`
+   * entscheidet an der Form des Wertes, ob Tailwind eine Schattenfarbe oder
+   * einen Schatten meint. Ein nacktes `var(--token)` ist an dieser Stelle
+   * mehrdeutig; `shadow-[0_20px_50px_-24px_var(--puka-plan-glow)]` beginnt mit
+   * einer Länge und ist es nicht.
+   */
+  --puka-plan-glow: color-mix(in oklab, var(--ui-color-primary-600) 60%, transparent);
 }
