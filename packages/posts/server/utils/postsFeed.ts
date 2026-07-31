@@ -1,9 +1,15 @@
-import { Permission, Query, Role } from 'node-appwrite'
+import { Query } from 'node-appwrite'
 import type { H3Event } from 'h3'
 import { POLL_VOTES_TABLE, POSTS_TABLE, POST_VOTES_TABLE, type CommunityPost, type PollState, type PollVote, type PostVote, type PostVoteValue } from '../../shared/types/post'
 
-/** read("any") — published-Posts tragen sie; hidden/deleted/scheduled nicht */
-export const POST_READ_ANY = Permission.read(Role.any())
+/**
+ * Die Veröffentlichungs-Permission eines Posts steht seit C18 (2026-07-30)
+ * NICHT mehr als Konstante hier: was „veröffentlicht" heißt, entscheidet die
+ * Community (`read("any")` öffentlich, `read("label:<communityId>")`
+ * geschlossen). Alle Stellen rufen `withPublishedRead()` /
+ * `withoutPublishedRead()` (core) — die kennen beide Schreibweisen und räumen
+ * nach einem Umschalten auch die alte weg.
+ */
 
 /** pollOptions-JSON defensiv parsen (kein Vertrauen in die Row) */
 export function parsePollOptions(row: Pick<CommunityPost, 'pollOptions'>): string[] {
@@ -43,7 +49,7 @@ export async function publishDuePosts(event: H3Event): Promise<void> {
       })
       // Autor-Rechte bleiben, Leserecht für alle kommt dazu (zweiter Schritt:
       // die Tür trennt Daten- und Permission-Writes bewusst)
-      await db.updatePermissions(POSTS_TABLE, row.$id, [...new Set([...row.$permissions, POST_READ_ANY])])
+      await db.updatePermissions(POSTS_TABLE, row.$id, withPublishedRead(row.$permissions, event))
       await recordActivity(event, {
         actorId: updated.authorId,
         actorName: updated.authorName,

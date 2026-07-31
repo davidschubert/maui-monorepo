@@ -1,5 +1,6 @@
 // Layer-Code explizit relativ (wie favicon.svg.get.ts): die APP verdrahtet
 // Themes-Bildmarke und Mandanten-Kontext zu einer Antwort.
+import { communityContentIsPublic } from '../../../../../packages/core/shared/communityAudience'
 import { BRAND_CARD_KEY_PATTERN, brandCardKey } from '../../../../../packages/themes/shared/brandCard'
 import { resolveTenantBrandMark } from '../../utils/tenantBrandMark'
 import { brandCardPng } from '../../utils/brandCardStore'
@@ -34,6 +35,15 @@ export default defineEventHandler(async (event) => {
   const param = getRouterParam(event, 'key') ?? ''
   const requested = param.endsWith('.png') ? param.slice(0, -4) : ''
   if (!BRAND_CARD_KEY_PATTERN.test(requested)) {
+    throw createError({ status: 404, statusText: 'Not found' })
+  }
+
+  // C18: eine GESCHLOSSENE Community hat kein Vorschaubild. Es trägt ihren
+  // Namen und ihre Farbe in fremde Chats und Timelines — das ist genau die
+  // Sichtbarkeit, die sie abbestellt hat. `useLocaleSeoHead` lässt das Tag
+  // konsequenterweise weg; diese Zeile ist die Grenze dahinter, denn eine
+  // einmal geteilte URL bleibt in Vorschau-Diensten stehen.
+  if (!communityContentIsPublic(useTenant(event))) {
     throw createError({ status: 404, statusText: 'Not found' })
   }
 

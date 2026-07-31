@@ -152,7 +152,10 @@ try {
     ? await control.getRow({ databaseId, tableId: 'communities', rowId: created.json.communityId })
     : null
   check('Row: mode pool + Projekt des Nutzers', tenant?.mode === 'pool' && tenant?.projectId === poolProject, `${tenant?.mode}/${tenant?.projectId}`)
-  check('Row: audience members (privat als Default)', tenant?.audience === 'members', String(tenant?.audience))
+  // C18 (Davids Entscheidung 2026-07-30): NEUE Communities entstehen ÖFFENTLICH.
+  // Kehrtwende zur G0-Entscheidung 7 — „nur für Mitglieder" ist seither ein
+  // Schalter unter /dashboard/settings/community, keine Voreinstellung.
+  check('Row: audience public (öffentlich als Default)', tenant?.audience === 'public', String(tenant?.audience))
   check('Row: Vibe fresh → spring/bright', tenant?.theme === 'spring' && tenant?.variant === 'bright', `${tenant?.theme}/${tenant?.variant}`)
   check('Row: Profil enthält die Antworten', (() => {
     try {

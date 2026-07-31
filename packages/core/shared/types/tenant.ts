@@ -52,7 +52,34 @@ export interface TenantPolicy {
   /** false = neue Mitglieder nur auf Einladung (Register-Seite zeigt Hinweis,
    *  Auth-Routen antworten 403). undefined/true = offen wie bisher. */
   openRegistration?: boolean
+  /**
+   * Lese-Publikum der Community (C18, Davids Entscheidung vom 2026-07-30:
+   * WÄHLBAR, Default öffentlich). 'members' = Inhalte nur für Mitglieder
+   * (Row-Permissions `read(label:<communityId>)`, noindex, leere sitemap,
+   * kein og:image); 'public' = wie bisher öffentlich lesbar.
+   *
+   * OPTIONAL, und `undefined` heißt 'public' — dieselbe Bauart wie
+   * `openRegistration`: Silo-Apps, Kontroll-Hosts, Playground und
+   * Bestands-Fixtures bauen den Kontext ohne das Feld, und die haben gar keine
+   * Community-Grenze. Sie stillschweigend zuzumachen wäre der Schaden (die
+   * comments-Silo-App wäre über Nacht noindex).
+   *
+   * ACHTUNG, ZWEI VERSCHIEDENE FRAGEN: das FAIL-CLOSED-Lesen der DB-Spalte
+   * (`resolveTenantAudience`, control) passiert im Resolver — der setzt das
+   * Feld für jeden echten Mandanten IMMER explizit. Hier geht es nur um
+   * „es gibt gar keinen Mandanten".
+   */
+  audience?: CommunityAudience
 }
+
+/**
+ * Das Lese-Publikum einer Community (C18). Bewusst hier in core und nicht nur
+ * im control-Layer: core zieht daraus die Row-Permissions und die SEO-Regel,
+ * und ein Fundament-Layer darf nicht von einem Feature-Layer abhängen (A14).
+ * `resolveTenantAudience()` (control) ist der fail-closed LESER der Spalte und
+ * liefert genau diese zwei Werte.
+ */
+export type CommunityAudience = 'members' | 'public'
 
 export type TenantContext =
   /** Eigenes Appwrite-Projekt (Isolation am Projekt) — Spezial-/Enterprise-Kunde. */

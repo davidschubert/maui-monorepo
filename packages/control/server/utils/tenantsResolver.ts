@@ -2,7 +2,7 @@ import { Client, Query, TablesDB } from 'node-appwrite'
 import { createMicrocache } from '../../../core/server/utils/microcache'
 import type { TenantResolver } from '../../../core/server/utils/tenantResolver'
 import type { TenantContext } from '../../../core/shared/types/tenant'
-import { DEFAULT_TENANT_PLAN, COMMUNITY_PLANS_TABLE, COMMUNITIES_TABLE, normalizeTenantPlan, parseTenantPlanLimits, resolveTenantOpenRegistration, type TenantPlanLimits, type TenantPlanRow, type TenantRow } from '../../shared/types/tenantRecord'
+import { DEFAULT_TENANT_PLAN, COMMUNITY_PLANS_TABLE, COMMUNITIES_TABLE, normalizeTenantPlan, parseTenantPlanLimits, resolveTenantAudience, resolveTenantOpenRegistration, type TenantPlanLimits, type TenantPlanRow, type TenantRow } from '../../shared/types/tenantRecord'
 import { isSafeThemeToken } from '../../shared/onboarding'
 
 /**
@@ -25,7 +25,7 @@ import { isSafeThemeToken } from '../../shared/onboarding'
  *  gesetzt, wenn die Row eine $id trägt (der reale Read immer; Test-Fixtures
  *  optional). Trägt die Site-Rollen-Auflösung (requireCommunityPermission). */
 export function mapTenantRowToContext(
-  row: (Pick<TenantRow, 'mode' | 'projectId' | 'tenantId' | 'status' | 'plan'> & { $id?: string, theme?: string | null, variant?: string | null, neutral?: string | null, name?: string | null, openRegistration?: boolean | null }) | null,
+  row: (Pick<TenantRow, 'mode' | 'projectId' | 'tenantId' | 'status' | 'plan'> & { $id?: string, theme?: string | null, variant?: string | null, neutral?: string | null, name?: string | null, openRegistration?: boolean | null, audience?: string | null }) | null,
   planCatalog?: Record<string, Record<string, TenantPlanLimits>>,
 ): TenantContext | null {
   if (!row || row.status !== 'active') return null
@@ -33,7 +33,16 @@ export function mapTenantRowToContext(
   // Zugangsregel des Mandanten (S1, control-018). IMMER explizit gesetzt —
   // der Resolver ist die einzige Stelle, an der die fail-OPEN-Auflösung von
   // `null` (Bestand vor der Migration) stattfindet.
-  const policy = { openRegistration: resolveTenantOpenRegistration(row.openRegistration) }
+  //
+  // `audience` (C18, control-016) kommt daneben und wird GENAU ANDERSHERUM
+  // gelesen: fail-CLOSED. Der Resolver ist auch dafür die einzige Stelle — ab
+  // hier trägt der Kontext den aufgelösten Wert, und niemand vergleicht die
+  // rohe Spalte noch einmal selbst (das war die Falle, wegen der
+  // resolveTenantAudience() überhaupt eine Funktion ist).
+  const policy = {
+    openRegistration: resolveTenantOpenRegistration(row.openRegistration),
+    audience: resolveTenantAudience(row.audience),
+  }
   // Branding des Mandanten (O5). Nur attribut-sichere Tokens reisen mit: die
   // Werte landen als data-theme/data-variant/data-neutral im <html>, und der
   // Wächter hier ist die erste von zwei Linien (die zweite ist SAFE_ATTR im

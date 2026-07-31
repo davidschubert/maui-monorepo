@@ -30,9 +30,9 @@ export default defineEventHandler(async (event) => {
 
   const updated = await db.update<CommunityPost>(POSTS_TABLE, id, { status: 'hidden' })
 
-  if (updated.$permissions.includes(POST_READ_ANY)) {
-    const withdraw = () => db.updatePermissions(POSTS_TABLE, id,
-      updated.$permissions.filter(p => p !== POST_READ_ANY))
+  const withdrawn = withoutPublishedRead(updated.$permissions, event)
+  if (withdrawn.length !== updated.$permissions.length) {
+    const withdraw = () => db.updatePermissions(POSTS_TABLE, id, withdrawn)
     // Phase 2 muss halten — Retry für transiente Fehler, persistente laut loggen
     await withdraw()
       .catch(() => withdraw())

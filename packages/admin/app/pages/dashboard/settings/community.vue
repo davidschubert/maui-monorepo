@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * Einstellungen → Community: die Schalter, die der KUNDIN gehören (nicht dem
- * Betreiber). Zwei Bewohner:
+ * Betreiber). Drei Bewohner:
  *
  *  1. „Offene Registrierung" (Audit-Befund S1, Davids Entscheidung 4 vom
  *     2026-07-27) — der Einladungs-Code gilt nur fürs GRÜNDEN einer
@@ -12,7 +12,17 @@
  *     (packages/core/shared/communityJoin.ts). Deshalb ist die Beschreibung im
  *     Schalter ausführlicher als bei einem gewöhnlichen Ja/Nein — sie muss beide
  *     Folgen benennen.
- *  2. „Erscheinungsbild" (Davids Entscheidung 12 vom 2026-07-28) — Theme +
+ *  2. „Sichtbarkeit" (C18, Davids Entscheidung vom 2026-07-30) — öffentlich
+ *     lesbar oder nur für Mitglieder. Steht BEWUSST in derselben Karte wie die
+ *     Registrierung: beides sind Zugangsregeln, keine Optik. Als URadioGroup
+ *     und nicht als Schalter, weil die zwei Zustände beide einen NAMEN
+ *     verdienen — ein Schalter „Sichtbarkeit: an" sagt nicht, was aus ist.
+ *     Was daran hängt, sagt der Hinweistext, und er sagt auch das
+ *     Unangenehme: Suchmaschinen brauchen Tage, bis Bekanntes verschwindet.
+ *     Der Schreibvorgang zieht den BESTAND mit um (Row-Permissions) — deshalb
+ *     kann er ein paar Sekunden dauern und meldet Zahlen zurück; bleibt etwas
+ *     offen, sagt der Toast es und ein erneuter Klick setzt fort.
+ *  3. „Erscheinungsbild" (Davids Entscheidung 12 vom 2026-07-28) — Theme +
  *     Variante der Community. „Nur Erscheinung ist variabel" gehört damit in
  *     Kundenhand; der Custom-Theme-EDITOR bleibt Betreiber-Werkzeug
  *     (/dashboard/themes, system.manage), hier wird aus dem BUILT-IN-Katalog
@@ -32,11 +42,12 @@
  * /dashboard/themes). Ohne Tenant steht hier deshalb ein Hinweis statt der
  * Schalter — und der Reiter ist in der Settings-Navigation ausgeblendet.
  *
- * VERTRAG ZUM SERVER: beide Routen (`/api/community/registration`,
- * `/api/community/branding`) liegen im onboarding-Layer, weil DIESER die
- * Service-Naht zum Control Plane besitzt (`tenants` gehört dorthin, die
- * Platform-App hat nur einen Read-only-Key). Siehe
- * packages/onboarding/server/api/community/{registration.patch,branding.patch}.ts.
+ * VERTRAG ZUM SERVER: alle drei Routen (`/api/community/registration`,
+ * `/api/community/audience`, `/api/community/branding`) liegen im
+ * onboarding-Layer, weil DIESER die Service-Naht zum Control Plane besitzt
+ * (`communities` gehört dorthin, die Platform-App hat nur einen
+ * Read-only-Key). Siehe packages/onboarding/server/api/community/
+ * {registration.patch,audience.patch,branding.patch}.ts.
  */
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'team.manage' })
 
@@ -71,6 +82,70 @@ async function save(next: boolean) {
   }
   finally {
     saving.value = false
+  }
+}
+
+// ── Sichtbarkeit (C18) ──────────────────────────────────────────────────────
+
+/** Ergebnis des Bestands-Umzugs, wie ihn die Route zurückmeldet. */
+interface AudienceResult {
+  audience: 'members' | 'public'
+  repermission: { complete: boolean, changed: number, failed: number }
+}
+
+const { audience } = useTenantAudience()
+const audienceValue = ref<'members' | 'public'>(audience.value ?? 'public')
+watch(audience, (next) => { audienceValue.value = next ?? 'public' })
+
+const audienceOptions = computed(() => [
+  {
+    value: 'public',
+    label: t('dashboard.community.audience.public'),
+    description: t('dashboard.community.audience.publicDesc'),
+  },
+  {
+    value: 'members',
+    label: t('dashboard.community.audience.members'),
+    description: t('dashboard.community.audience.membersDesc'),
+  },
+])
+
+const savingAudience = ref(false)
+async function saveAudience(next: 'members' | 'public') {
+  if (savingAudience.value || next === audience.value) return
+  savingAudience.value = true
+  try {
+    const result = await $fetch<AudienceResult>('/api/community/audience', {
+      method: 'PATCH',
+      body: { audience: next },
+    })
+    // Wie bei den anderen Schaltern: der gültige Wert kommt aus der ANTWORT.
+    audience.value = result.audience
+    audienceValue.value = result.audience
+    // Der Umzug des Bestands kann an einem Zeitbudget enden oder an einzelnen
+    // Zeilen scheitern. Das zu verschweigen wäre das Schlimmste, was diese
+    // Seite tun könnte — „geschlossen" muss geschlossen heißen.
+    if (result.repermission.complete) {
+      toast.add({
+        title: t('dashboard.community.audience.saved'),
+        description: t('dashboard.community.audience.savedDesc', { n: result.repermission.changed }),
+        color: 'success',
+      })
+    }
+    else {
+      toast.add({
+        title: t('dashboard.community.audience.partialTitle'),
+        description: t('dashboard.community.audience.partialDesc', { n: result.repermission.changed }),
+        color: 'warning',
+      })
+    }
+  }
+  catch {
+    audienceValue.value = audience.value ?? 'public'
+    toast.add({ title: t('dashboard.community.saveFailed'), color: 'error' })
+  }
+  finally {
+    savingAudience.value = false
   }
 }
 
@@ -188,6 +263,28 @@ async function saveBranding(next: { theme: string, variant: string, neutral: str
         :aria-label="t('dashboard.community.openRegistration')"
         @update:model-value="(next: boolean) => save(next)"
       />
+    </div>
+
+    <!-- Sichtbarkeit (C18): zweite Zugangsregel derselben Karte. Zwei benannte
+         Zustände statt eines Schalters — und darunter der Satz, der die
+         unbequeme Wahrheit sagt (Suchmaschinen brauchen Zeit). -->
+    <div v-if="isTenantHost" class="flex flex-col gap-3 border-t border-default pt-4" data-community-audience>
+      <div class="flex items-start gap-3">
+        <UIcon name="i-ph-globe-hemisphere-west" class="mt-0.5 size-5 shrink-0 text-muted" />
+        <div>
+          <p class="text-sm font-medium">{{ t('dashboard.community.audience.title') }}</p>
+          <p class="text-sm text-muted">{{ t('dashboard.community.audience.description') }}</p>
+        </div>
+      </div>
+      <URadioGroup
+        v-model="audienceValue"
+        :items="audienceOptions"
+        :disabled="savingAudience"
+        variant="card"
+        :aria-label="t('dashboard.community.audience.title')"
+        @update:model-value="(next) => saveAudience(next as 'members' | 'public')"
+      />
+      <p class="text-sm text-muted">{{ t('dashboard.community.audience.searchNote') }}</p>
     </div>
   </UPageCard>
 

@@ -1,3 +1,4 @@
+import { ROBOTS_NOINDEX } from '../../shared/communityAudience'
 import { rebaseSeoLinks, rebaseSeoMeta, rebaseSeoUrl, resolveSeoOrigin, type SeoHeadMeta } from '../../shared/seoOrigin'
 
 /**
@@ -26,6 +27,16 @@ import { rebaseSeoLinks, rebaseSeoMeta, rebaseSeoUrl, resolveSeoOrigin, type Seo
  * `useBrandOgImage()` — ein Produkt-Layer trägt dort den PFAD ein, hier
  * entsteht die absolute URL auf dem RICHTIGEN Host plus Maße, Typ und
  * `twitter:card`. Ohne Eintrag (Core-Default) bleibt der Kopf wie zuvor.
+ *
+ * SICHTBARKEIT (C18, seit 2026-07-30): steht die Community auf „nur für
+ * Mitglieder", stempelt dieser Kopf `noindex, nofollow` und LÄSST DAS
+ * VORSCHAUBILD WEG. Beides gehört hierher und nicht in eine Seite: es ist der
+ * EINE Kopf-Aufruf jeder App, und eine vergessene Seite wäre genau das Loch,
+ * das C18 beschreibt — Inhalt im Google-Index, der auf der Seite nicht mehr
+ * steht. Das og:image fällt mit, weil die Route `/og/<key>.png` auf solchen
+ * Hosts 404 antwortet: ein Tag auf ein 404 wäre eine Lüge im Kopf.
+ * Suchmaschinen sehen das SSR-HTML — deshalb kommt der Wert aus dem
+ * SSR-Payload (useTenantAudience), nicht aus einem Client-Nachtrag.
  */
 export function useLocaleSeoHead(): void {
   const localeHead = useLocaleHead({ seo: true, lang: true, dir: true })
@@ -36,6 +47,7 @@ export function useLocaleSeoHead(): void {
   const ogImage = useBrandOgImage()
   const brand = useBrandName()
   const { t } = useI18n()
+  const { membersOnly } = useTenantAudience()
 
   // '' = kein Umschreiben (Silo-Apps + jeder Fall, in dem kein Origin steht)
   const origin = appConfig.pukalani?.seo?.originFromRequest === true
@@ -51,7 +63,8 @@ export function useLocaleSeoHead(): void {
    */
   const imageMeta = computed<SeoHeadMeta[]>(() => {
     const image = ogImage.value
-    if (!image?.path) return []
+    // C18: geschlossene Community ⇒ kein Vorschaubild (die Route ist zu).
+    if (!image?.path || membersOnly.value) return []
     const tags: SeoHeadMeta[] = [
       { property: 'og:image', content: rebaseSeoUrl(image.path, origin || requestUrl.origin) },
       { property: 'og:image:type', content: image.type },
@@ -65,9 +78,19 @@ export function useLocaleSeoHead(): void {
     return tags
   })
 
+  /**
+   * Die Ansage an Suchmaschinen. Leer, solange die Community öffentlich ist —
+   * ein `index, follow` zu stempeln wäre überflüssig (das ist die Voreinstellung
+   * jedes Crawlers) und würde ein `noindex` einer einzelnen Seite (z. B.
+   * /embed, Rechtstexte) überschreiben können.
+   */
+  const robotsMeta = computed<SeoHeadMeta[]>(() => (
+    membersOnly.value ? [{ name: 'robots', content: ROBOTS_NOINDEX }] : []
+  ))
+
   useHead(() => ({
     htmlAttrs: localeHead.value.htmlAttrs,
     link: rebaseSeoLinks(localeHead.value.link, origin),
-    meta: [...rebaseSeoMeta(localeHead.value.meta, origin), ...imageMeta.value],
+    meta: [...rebaseSeoMeta(localeHead.value.meta, origin), ...imageMeta.value, ...robotsMeta.value],
   }))
 }

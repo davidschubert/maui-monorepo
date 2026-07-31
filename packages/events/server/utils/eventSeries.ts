@@ -100,8 +100,9 @@ export async function expandSeries(event: H3Event, master: EventRow): Promise<nu
     index++
     const endAt = durationMs !== null ? new Date(startMs + durationMs).toISOString() : null
     await db.create(EVENTS_TABLE, instanceData(master, cursorStart, endAt, index), {
-      // Leserechte wie beim Master (published → read any; draft → nur Verwaltung)
-      permissions: master.status === 'published' ? [EVENT_READ_ANY] : [],
+      // Leserechte wie beim Master (published → Publikum der Community, C18;
+      // draft → nur Verwaltung)
+      permissions: master.status === 'published' ? withPublishedRead([], event) : [],
     }).catch((error) => {
       throw toH3Error(error, 'Could not expand event series')
     })

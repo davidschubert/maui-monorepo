@@ -3,14 +3,21 @@ import { afterAll, describe, expect, it } from 'vitest'
 import { createTenantsTableResolver, mapTenantRowToContext } from '../server/utils/tenantsResolver'
 import { COMMUNITIES_TABLE, parseTenantPlanLimits } from '../shared/types/tenantRecord'
 
+/**
+ * HINWEIS ZU `audience: 'members'` IN JEDER ERWARTUNG (C18): der Resolver ist
+ * die EINZIGE Stelle, an der die Spalte fail-closed gelesen wird
+ * (resolveTenantAudience). Eine Fixture ohne das Feld ist eine Bestands-Row —
+ * und die ist per Definition „nur für Mitglieder". Der neue ÖFFENTLICH-Default
+ * gilt beim ANLEGEN (onboardingProvision), nicht beim Lesen.
+ */
 describe('mapTenantRowToContext (pure)', () => {
   it('active silo → silo-Context', () => {
     expect(mapTenantRowToContext({ mode: 'silo', projectId: 'p1', tenantId: '', status: 'active', plan: '' }))
-      .toEqual({ mode: 'silo', projectId: 'p1', openRegistration: true })
+      .toEqual({ mode: 'silo', projectId: 'p1', openRegistration: true, audience: 'members' })
   })
   it('active pool → pool-Context mit tenantId + Plan-Default basic', () => {
     expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: '' }))
-      .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'basic', openRegistration: true })
+      .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'basic', openRegistration: true, audience: 'members' })
   })
   it('disabled → null (Host bewusst offline)', () => {
     expect(mapTenantRowToContext({ mode: 'silo', projectId: 'p1', tenantId: '', status: 'disabled', plan: '' })).toBeNull()
@@ -27,28 +34,42 @@ describe('mapTenantRowToContext (pure)', () => {
       personal: { comments: { perDay: 1000, total: 50000 } },
     }
     expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: 'personal' }, catalog))
-      .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'personal', limits: { comments: { perDay: 1000, total: 50000 } }, openRegistration: true })
+      .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'personal', limits: { comments: { perDay: 1000, total: 50000 } }, openRegistration: true, audience: 'members' })
   })
   it('Plan-Katalog: unbekannter Plan wird auf basic normalisiert', () => {
     const catalog = { basic: { comments: { perDay: 200 } } }
     expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: 'enterprise' as never }, catalog))
-      .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'basic', limits: { comments: { perDay: 200 } }, openRegistration: true })
+      .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'basic', limits: { comments: { perDay: 200 } }, openRegistration: true, audience: 'members' })
   })
   it('leerer Katalog: Context ohne limits (app.config-Fallback greift)', () => {
     expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: 'pro' }, {}))
-      .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'pro', openRegistration: true })
+      .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'pro', openRegistration: true, audience: 'members' })
   })
   it('G1: $id reist als communityId in den Context (pool + silo)', () => {
     expect(mapTenantRowToContext({ $id: 'site-abc', mode: 'silo', projectId: 'p1', tenantId: '', status: 'active', plan: '' }))
-      .toEqual({ mode: 'silo', projectId: 'p1', communityId: 'site-abc', openRegistration: true })
+      .toEqual({ mode: 'silo', projectId: 'p1', communityId: 'site-abc', openRegistration: true, audience: 'members' })
     expect(mapTenantRowToContext({ $id: 'site-xyz', mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: '' }))
-      .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'basic', communityId: 'site-xyz', openRegistration: true })
+      .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'basic', communityId: 'site-xyz', openRegistration: true, audience: 'members' })
   })
   it('S1: openRegistration=false reist in den Context (pool + silo)', () => {
     expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: '', openRegistration: false }))
       .toMatchObject({ openRegistration: false })
     expect(mapTenantRowToContext({ mode: 'silo', projectId: 'p1', tenantId: '', status: 'active', plan: '', openRegistration: false }))
       .toMatchObject({ openRegistration: false })
+  })
+  it('C18: audience reist in den Context — fail-CLOSED gelesen', () => {
+    // Bewusster Gegensatz zu openRegistration eine Zeile darüber: dort
+    // fail-OPEN (Produktentscheidung), hier fail-CLOSED (Datenschutzgrenze).
+    expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: '', audience: 'public' }))
+      .toMatchObject({ audience: 'public' })
+    for (const audience of [null, undefined, '', 'members', 'PUBLIC', 'any']) {
+      expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: '', audience }), String(audience))
+        .toMatchObject({ audience: 'members' })
+    }
+    // Silo genauso — eine Community mit eigenem Projekt darf sich ebenso
+    // zumachen; die Row-Permission ist dort Role.users() statt eines Labels.
+    expect(mapTenantRowToContext({ mode: 'silo', projectId: 'p1', tenantId: '', status: 'active', plan: '', audience: 'public' }))
+      .toMatchObject({ audience: 'public' })
   })
   it('B5: die Neutral-Palette reist als Branding mit — attribut-geprüft', () => {
     // `neutral` (control-020) landet als data-neutral im <html> jeder Seite
@@ -72,9 +93,9 @@ describe('mapTenantRowToContext (pure)', () => {
     // lesen sich als null. Fail-OPEN ist hier Absicht: eine Community, die nie
     // etwas entschieden hat, darf nicht stillschweigend zugemacht werden.
     expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: '', openRegistration: null }))
-      .toMatchObject({ openRegistration: true })
+      .toMatchObject({ openRegistration: true, audience: 'members' })
     expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: '' }))
-      .toMatchObject({ openRegistration: true })
+      .toMatchObject({ openRegistration: true, audience: 'members' })
   })
 })
 

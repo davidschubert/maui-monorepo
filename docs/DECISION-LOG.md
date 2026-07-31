@@ -7,6 +7,60 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-07-30 — C18: Sichtbarkeit je Community, und die Kehrtwende zu G0-7
+
+**Davids Entscheidung:** die Sichtbarkeit einer Community ist **wählbar**, und
+**neue Communities entstehen ÖFFENTLICH**. Das dreht die G0-Entscheidung 7 vom
+2026-07-24 („privat als Default, öffentlich opt-in") um. Grund: eine frische
+Community, die niemand finden kann, wächst nicht — der Wizard verspricht
+Wachstum, und der Startzustand hat dagegen gearbeitet. „Nur für Mitglieder"
+bleibt vollwertig, ist aber die bewusste Ausnahme.
+
+**Was daran NICHT gedreht wurde**, und das ist der Teil, der die Entscheidung
+tragfähig macht:
+
+- Die Spalte wird weiter **fail-closed** gelesen (`resolveTenantAudience`):
+  eine Row ohne Eintrag gilt als privat. Der neue Default gilt beim ANLEGEN,
+  nicht beim Lesen — Bestand wird nicht stillschweigend aufgemacht.
+- `read(Role.label(communityId))` bleibt die harte Grenze (Naht 4). Neu ist,
+  dass `tenantReadRolesFor` die WAHL DER COMMUNITY über die ABSICHT DER ZEILE
+  stellt: aus `read: 'public'` wird auf einer geschlossenen Community das
+  Mitglieder-Publikum. Umgekehrt NIE — eine offene Community macht
+  mitglieder-interne Zeilen (Activity, Presence, Benachrichtigungen) nicht auf.
+
+**Der Schalter ist nicht nur ein Feld** — die vier Dinge, die mitziehen, sind
+der eigentliche Umfang von C18:
+
+1. **Der Bestand.** `audienceRepermission.ts` (core) zieht die schon
+   geschriebenen Zeilen um, `read(any)` ⇄ `read(label:<id>)`, seitenweise,
+   idempotent, protokolliert und damit wiederaufnehmbar. Die pure Regel liest
+   „veröffentlicht" am BESTEHENDEN Permission-Array ab statt den Status neu
+   auszuwerten — deshalb kann sie nichts aufmachen, was zu war (Entwürfe,
+   ausgeblendete Kommentare). Welche Tabellen mitziehen, melden die Layer per
+   Nitro-Plugin an (Muster `registerUserDataContributor`).
+2. **Die Suchmaschinen.** `noindex, nofollow` im zentralen Kopf-Aufruf,
+   `Disallow: /` in robots.txt, 404 auf sitemap.xml und auf `/og/<key>.png`.
+   Der Hinweistext im Dashboard sagt ausdrücklich, dass Google Tage bis Wochen
+   braucht — ein Versprechen, das wir nicht halten können, wird nicht gegeben.
+3. **`pages`.** Deren Zeilen tragen bewusst KEINE Permissions; öffentlich macht
+   sie eine Route mit der Operator-Türklinke. Dort gibt es nichts umzuziehen,
+   also steht da eine eigene Wache (`assertCommunityContentReadable`). Ohne sie
+   wäre die Startseite einer geschlossenen Community weiter für jeden lesbar.
+4. **Der Bestand VOR C18.** Bis heute hat die Spalte NICHTS gesteuert: die
+   Zeilen der Alt-Communities tragen `read(any)`, ihre Seiten sind im Index —
+   sie sind de facto öffentlich, und nur ihr Eintrag (`null`) sagt etwas
+   anderes. Mit dem Deploy fängt der Eintrag an zu wirken. **Wer öffentlich
+   bleiben soll, braucht einmal den Stempel**
+   (`packages/control/scripts/stamp-audience.mjs`, Einzelvorgang mit
+   Trockenlauf) — allen voran `demo.pukalani.app`. Bewusst KEIN Backfill-Sweep:
+   „alle auf öffentlich" wäre genau die stillschweigende Entscheidung über
+   fremde Communities, die die fail-closed-Regel verhindern soll.
+
+Beweis: `packages/control/scripts/verify-audience-flip.mjs` (Gast-Client ohne
+Key gegen die echte Instanz, beide Richtungen, Bestand eingeschlossen).
+
+---
+
 ## 2026-07-23 (Fragerunde) — Entscheidungen für die offenen Blöcke
 
 David hat per Fragerunde alle offenen Design-/Freigabe-Punkte beantwortet

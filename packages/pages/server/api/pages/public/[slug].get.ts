@@ -5,8 +5,17 @@ import { PAGES_TABLE, type PageRow, type PublicPage } from '../../../../shared/t
  * Öffentlich: die VERÖFFENTLICHTE Seite für slug + locale (Fallback en).
  * Server-seitig über den Admin-Client gelesen + auf status='published'
  * gefiltert → Entwürfe werden nie ausgeliefert (Rows tragen keine Permissions).
+ *
+ * C18 — WARUM HIER EINE EIGENE WACHE STEHT: `pages`-Rows tragen bewusst KEINE
+ * Row-Permissions, und diese Route liest mit der OPERATOR-Türklinke. Bei
+ * comments/posts/events/media zieht das Umschalten der Sichtbarkeit die
+ * Row-Permissions um und Appwrite hält Gäste selbst zurück — hier gibt es
+ * nichts umzuziehen, also ist diese Zeile die EINZIGE Grenze. Ohne sie bliebe
+ * die Startseite einer geschlossenen Community für jeden Gast lesbar.
  */
 export default defineEventHandler(async (event): Promise<PublicPage> => {
+  assertCommunityContentReadable(event, 'Page not found')
+
   const slug = getRouterParam(event, 'slug')
   if (!slug) {
     throw createError({ status: 400, statusText: 'Missing slug' })

@@ -149,11 +149,11 @@
     "done": {
       "title": "Your community is live",
       "heading": "{name} is live.",
-      "intro": "You're the owner. The community is private — only invited members can see the content.",
+      "intro": "You're the owner. The community is publicly readable — anyone can see and find your content.",
       "addressLabel": "Your address",
       "open": "Open community",
       "hints": {
-        "private": "Private by default: content is members-only. \"Publicly readable\" is a switch in the settings.",
+        "private": "Public by default: your content is readable by anyone and found by search engines. \"Members only\" is a switch in the settings — it also takes everything published so far out of public view.",
         "trial": "The trial runs for 14 days. After that the free plan applies automatically — smaller limits, nothing for you to do.",
         "settings": "Name, address, colours and home page can be changed any time in your community's dashboard."
       }

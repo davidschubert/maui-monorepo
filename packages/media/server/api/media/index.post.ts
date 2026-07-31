@@ -65,7 +65,7 @@ export default defineEventHandler(async (event) => {
   const db = tenantDb(event, { as: 'operator' })
 
   const published = true
-  const permissions = mediaPermissionsFor(published)
+  const permissions = mediaPermissionsFor(event, published)
 
   const file = await admin.storage.createFile({
     bucketId: MEDIA_BUCKET,

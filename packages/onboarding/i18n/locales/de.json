@@ -149,11 +149,11 @@
     "done": {
       "title": "Deine Community steht",
       "heading": "{name} steht.",
-      "intro": "Du bist Owner. Die Community ist privat — nur eingeladene Mitglieder sehen die Inhalte.",
+      "intro": "Du bist Owner. Die Community ist öffentlich lesbar — jeder kann eure Inhalte sehen und finden.",
       "addressLabel": "Deine Adresse",
       "open": "Community öffnen",
       "hints": {
-        "private": "Privat gestartet: Inhalte sind nur für Mitglieder sichtbar. „Öffentlich lesbar\" ist ein Schalter in den Einstellungen.",
+        "private": "Öffentlich gestartet: eure Inhalte sind für alle lesbar und werden von Suchmaschinen gefunden. „Nur für Mitglieder\" ist ein Schalter in den Einstellungen — er nimmt auch alles Bisherige aus der Öffentlichkeit.",
         "trial": "Die Testphase läuft 14 Tage. Danach gilt automatisch der kostenlose Tarif — mit kleineren Limits, ohne dass du etwas tun musst.",
         "settings": "Name, Adresse, Farben und Startseite änderst du jederzeit im Dashboard deiner Community."
       }

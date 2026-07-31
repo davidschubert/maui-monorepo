@@ -61,14 +61,20 @@ export default defineEventHandler(async (event) => {
     status: 'active',
   }, {
     // Eigene Permissions statt des Standard-Publikums: Kommentare sind
-    // BEWUSST read(any) — der Embed-Fall zeigt Threads auf fremden Seiten,
-    // auch Gästen. Ausblenden entzieht die Row-Permission (Migration 008),
-    // damit ist ein hidden-Kommentar auch per Roh-REST unlesbar. Ändern und
-    // löschen darf nur der Autor. Operator-Targets sehen NUR admin/moderator.
+    // VERÖFFENTLICHT — der Embed-Fall zeigt Threads auf fremden Seiten, auch
+    // Gästen. Ausblenden entzieht die Row-Permission (Migration 008), damit ist
+    // ein hidden-Kommentar auch per Roh-REST unlesbar. Ändern und löschen darf
+    // nur der Autor. Operator-Targets sehen NUR admin/moderator.
+    //
+    // C18: was „veröffentlicht" bedeutet, entscheidet die Community —
+    // `read(any)` auf einer öffentlichen, `read(label:<communityId>)` auf einer
+    // geschlossenen. Deshalb hier `withPublishedRead([], event)` statt einer
+    // festen read(any)-Zeile: der Schalter wirkt auf JEDEN neuen Kommentar,
+    // ohne dass diese Route ihn kennt.
     permissions: [
       ...(operatorTarget
         ? [Permission.read(Role.label('admin')), Permission.read(Role.label('moderator'))]
-        : [Permission.read(Role.any())]),
+        : withPublishedRead([], event)),
       Permission.update(Role.user(user.$id)),
       Permission.delete(Role.user(user.$id)),
     ],

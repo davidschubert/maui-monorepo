@@ -195,9 +195,19 @@ export async function provisionCommunity(
       // „keine eigene Wahl", die Owner-Rolle kann sie später unter
       // /dashboard/settings/community setzen.
       neutral: '',
-      // Privat als Default (G0-Entscheidung 7) — „öffentlich lesbar" ist ein
-      // bewusster Schalter in den Einstellungen, keine Voreinstellung.
-      audience: 'members',
+      // ÖFFENTLICH als Default (C18, Davids Entscheidung vom 2026-07-30) — die
+      // bewusste KEHRTWENDE zur G0-Entscheidung 7 („privat als Default",
+      // 2026-07-24). Begründung: eine frische Community, die niemand finden
+      // kann, wächst nicht; „nur für Mitglieder" ist die Ausnahme, die man
+      // trifft, wenn man sie braucht, und sie steht als Schalter unter
+      // /dashboard/settings/community. Der Schalter zieht den BESTAND mit um
+      // (audienceRepermission.ts) — zumachen ist also jederzeit vollständig
+      // möglich, aufmachen ebenso.
+      //
+      // BESTAND BLEIBT UNANGETASTET: Communities, die vor diesem Deploy
+      // entstanden sind, tragen 'members' in der Zeile und behalten es —
+      // resolveTenantAudience() liest fail-closed, es gibt keinen Backfill.
+      audience: 'public',
       profile: serializeSiteProfile(input.profile),
       inviteCodeId: input.inviteCode?.$id ?? '',
       // Mitglieder-Registrierung offen (control-018, S1/Entscheidung 4): eine

@@ -57,8 +57,9 @@ export default defineEventHandler(async (event) => {
     seriesGeneratedUntil: null,
   }, {
     // Schreiben bleibt Server-Sache — Rows tragen nur Leserechte (published =
-    // BEWUSST read(any) wie posts: öffentliche Liste, auch für Gäste)
-    permissions: status === 'published' ? [EVENT_READ_ANY] : [],
+    // veröffentlicht wie posts). C18: was das für Rechte sind, entscheidet die
+    // Community — auf einer geschlossenen `read(label:<communityId>)`.
+    permissions: status === 'published' ? withPublishedRead([], event) : [],
   }).catch((error) => {
     throw toH3Error(error, 'Could not create event')
   })

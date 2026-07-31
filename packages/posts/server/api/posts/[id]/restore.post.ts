@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
 
   // Erst das Leserecht zurück, dann der Status — so ist die Row beim
   // Status-Realtime-Event bereits wieder lesbar.
-  await db.updatePermissions(POSTS_TABLE, id, [...new Set([...row.$permissions, POST_READ_ANY])])
+  await db.updatePermissions(POSTS_TABLE, id, withPublishedRead(row.$permissions, event))
     .catch((error) => { throw toH3Error(error, 'Could not restore post') })
   await db.update(POSTS_TABLE, id, { status: 'published' })
     .catch((error) => { throw toH3Error(error, 'Could not restore post') })

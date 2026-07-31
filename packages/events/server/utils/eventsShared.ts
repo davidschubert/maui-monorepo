@@ -1,9 +1,15 @@
-import { Permission, Query, Role } from 'node-appwrite'
+import { Query } from 'node-appwrite'
 import type { H3Event } from 'h3'
 import { EVENT_RSVPS_TABLE, EVENT_VOTES_TABLE, type EventAttendee, type EventRsvpRow, type EventVote, type EventVoteValue, type RsvpStatus } from '../../shared/types/event'
 
-/** read("any") — published/cancelled-Events tragen sie; drafts nicht */
-export const EVENT_READ_ANY = Permission.read(Role.any())
+/**
+ * Die Veröffentlichungs-Permission eines Events steht seit C18 (2026-07-30)
+ * nicht mehr als Konstante hier: was „veröffentlicht" heißt, entscheidet die
+ * Community (`read("any")` öffentlich, `read("label:<communityId>")`
+ * geschlossen). Alle Stellen rufen `withPublishedRead()` /
+ * `withoutPublishedRead()` (core). Unverändert gilt: published UND cancelled
+ * tragen sie, drafts nicht.
+ */
 
 /**
  * Eigene RSVPs des Users zu einer Event-Seite — EIN Query (kein N+1,

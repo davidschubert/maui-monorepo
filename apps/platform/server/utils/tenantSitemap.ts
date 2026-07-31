@@ -144,3 +144,27 @@ export function controlHostRobotsTxt(): string {
     '',
   ].join('\n')
 }
+
+/**
+ * robots.txt einer GESCHLOSSENEN Community (C18, `audience === 'members'`).
+ *
+ * Dieselben zwei Zeilen wie beim Kontroll-Host, aber aus einem anderen Grund —
+ * und deshalb eine eigene Funktion statt eines geteilten Aufrufs: dort gibt es
+ * nichts zu indexieren, hier gibt es sehr wohl Inhalt, er ist nur nicht für
+ * Gäste. Fiele die eine Entscheidung später weg, soll die andere stehen bleiben.
+ *
+ * OHNE Sitemap-Zeile: die sitemap.xml einer geschlossenen Community ist leer,
+ * und ein Verweis auf ein leeres Dokument lädt Crawler nur ein.
+ *
+ * Ehrlichkeit dazu: robots.txt ist eine BITTE, keine Grenze. Die Grenze sind
+ * die Row-Permissions (`read(label:<communityId>)`) — ohne sie wäre das hier
+ * Kosmetik. Und was schon im Index steht, verschwindet nicht sofort: Google
+ * braucht Tage bis Wochen, genau das sagt der Hinweis im Dashboard.
+ */
+export function membersOnlyRobotsTxt(): string {
+  return [
+    'User-agent: *',
+    'Disallow: /',
+    '',
+  ].join('\n')
+}

@@ -1,5 +1,4 @@
 import { createHash } from 'node:crypto'
-import { Permission, Role } from 'node-appwrite'
 import { guestCommentSchema } from '../../../schemas/comment'
 import { COMMENTS_TABLE, MAX_COMMENT_DEPTH, type Comment } from '../../../shared/types/comment'
 
@@ -79,7 +78,14 @@ export default defineEventHandler(async (event) => {
   }, {
     // Nur lesbar (Gast-Realtime wie bei Nutzer-Rows). KEINE update/delete-
     // Permission — es gibt keinen Prinzipal, der sie je einlösen könnte.
-    permissions: [Permission.read(Role.any())],
+    //
+    // C18: auf einer geschlossenen Community wird daraus
+    // `read(label:<communityId>)` — der Gast, der gerade geschrieben hat, sieht
+    // seinen eigenen Kommentar dann nicht. Das ist die ehrliche Folge und kein
+    // Fehler: Gast-Kommentare und „nur für Mitglieder" widersprechen sich.
+    // Wer das nicht will, schaltet den Gast-Composer ab
+    // (pukalani.comments.embed.guests) — siehe OPEN-ITEMS C18.
+    permissions: withPublishedRead([], event),
   }).catch((error) => {
     throw toH3Error(error, 'Could not create comment')
   })

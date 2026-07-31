@@ -3,16 +3,22 @@ import type { H3Event } from 'h3'
 import { MEDIA_BUCKET, MEDIA_TABLE } from '../../shared/types/media'
 
 /**
- * Sichtbarkeit der Medien-Galerie — EIN Muster mit events (EVENT_READ_ANY):
- * die Table trägt keine breite Read-Permission mehr, das Leserecht hängt an
- * der ROW und folgt `published`.
+ * Sichtbarkeit der Medien-Galerie — EIN Muster mit events: die Table trägt
+ * keine breite Read-Permission mehr, das Leserecht hängt an der ROW und folgt
+ * `published`.
  *
  * Zwei Seiten, ein Schutz: die Row UND die Datei im Bucket. Ein Entwurf,
  * dessen Bild man mit der fileId trotzdem abrufen kann, ist nicht geschützt —
  * deshalb ist `media` seit Migration media-002 ein fileSecurity-Bucket ohne
  * Bucket-weites read(any).
+ *
+ * C18 (2026-07-30): die Veröffentlichungs-Permission ist keine Konstante mehr —
+ * was „veröffentlicht" heißt, entscheidet die Community (`read("any")`
+ * öffentlich, `read("label:<communityId>")` geschlossen). `mediaPermissionsFor()`
+ * braucht deshalb den Request. Beide Seiten (Row und Datei) folgen weiterhin
+ * DEMSELBEN Array — ein Bild, dessen Row zu ist, dessen Datei aber offen, wäre
+ * kein Schutz.
  */
-export const MEDIA_READ_ANY = Permission.read(Role.any())
 
 /**
  * Entwürfe bleiben für die VERWALTENDEN lesbar — sonst zeigt die
@@ -33,8 +39,8 @@ export const MEDIA_READ_ANY = Permission.read(Role.any())
 export const MEDIA_MANAGER_READ = [Permission.read(Role.label('admin'))]
 
 /** Leserechte für einen Eintrag in genau EINEM Status — Row wie Datei. */
-export function mediaPermissionsFor(published: boolean): string[] {
-  return published ? [MEDIA_READ_ANY, ...MEDIA_MANAGER_READ] : [...MEDIA_MANAGER_READ]
+export function mediaPermissionsFor(event: H3Event, published: boolean): string[] {
+  return published ? withPublishedRead(MEDIA_MANAGER_READ, event) : [...MEDIA_MANAGER_READ]
 }
 
 /**
@@ -63,7 +69,7 @@ export async function applyMediaVisibility(
 ): Promise<void> {
   const admin = createAdminClient(event)
   const db = tenantDb(event, { as: 'operator' })
-  const permissions = mediaPermissionsFor(published)
+  const permissions = mediaPermissionsFor(event, published)
 
   const setRow = () => db.updatePermissions(MEDIA_TABLE, row.$id, permissions, 'Media item not found')
   const setFile = () => admin.storage.updateFile({

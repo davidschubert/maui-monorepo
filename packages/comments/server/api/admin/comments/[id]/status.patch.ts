@@ -35,17 +35,21 @@ export default defineEventHandler(async (event) => {
   }
 
   // Hide zweiphasig (Status-Event, dann Permission-Entzug); Restore in EINEM
-  // Write: Status zurück + read(any) wieder anhängen (Event folgt den neuen
-  // Permissions → erreicht Leser wieder).
+  // Write: Status zurück + Veröffentlichungs-Permission wieder anhängen (Event
+  // folgt den neuen Permissions → erreicht Leser wieder).
+  //
+  // C18: „Veröffentlichungs-Permission" ist das, was DIESE Community heute
+  // bedeutet — `read(any)` oder `read(label:<communityId>)`. `withPublishedRead`
+  // räumt dabei die jeweils andere Schreibweise weg, damit ein nach dem
+  // Ausblenden umgeschalteter Mandant beim Wiederherstellen nicht beide trägt.
+  const restored = withPublishedRead(row.$permissions, event)
   const updated = await (status === 'hidden'
     ? hideCommentRow(event, row)
     : ops.update<Models.Row & { status: string }>('comments', commentId, { status }, 'Comment not found')
-        .then(updatedRow => row.$permissions.includes(COMMENT_READ_ANY)
+        .then(updatedRow => restored.join(' ') === row.$permissions.join(' ')
           ? updatedRow
-          // Restore gibt read(any) zurück — Event folgt den neuen Permissions
-          // und erreicht Leser wieder.
           : ops.updatePermissions<Models.Row & { status: string }>(
-              'comments', commentId, [...row.$permissions, COMMENT_READ_ANY], 'Comment not found',
+              'comments', commentId, restored, 'Comment not found',
             ))
   ).catch((error) => { throw toH3Error(error, 'Could not update comment') })
 

@@ -16,6 +16,13 @@
  *     (server/middleware/07.community-role.ts); Gäste bekommen null. Die Capabilities
  *     werden clientseitig aus der geteilten Matrix (shared/communityAuthz)
  *     abgeleitet — es reist kein fremdes Datum mit.
+ *   - `audience` → useTenantAudience() (C18, 2026-07-30): zwei Leser, und beide
+ *     brauchen ihn SSR-fest. (1) useLocaleSeoHead() stempelt auf
+ *     'members'-Communities `noindex, nofollow` — ein Crawler liest das
+ *     SSR-HTML, ein Client-Nachtrag käme zu spät. (2) der Schalter in
+ *     /dashboard/settings/community zeigt den gesetzten Zustand. Kein
+ *     Geheimnis: ob eine Community öffentlich lesbar ist, beantwortet jeder
+ *     Gast-Abruf ihrer Startseite ohnehin.
  *   - `theme`/`variant`/`neutral` → useTenantBranding() (Entscheidung 12, 2026-07-28;
  *     `neutral` seit 2026-07-29, Rest von B5):
  *     der Erscheinungsbild-Abschnitt in /dashboard/settings/community zeigt
@@ -58,6 +65,8 @@
  * Neues Feld hier hinein nur MIT nachgewiesenem Client-Leser.
  */
 import type { CommunityRole } from '../../shared/communityAuthz'
+import { communityAudienceFor } from '../../shared/communityAudience'
+import type { CommunityAudience } from '../../shared/types/tenant'
 
 export default defineNuxtPlugin(() => {
   const event = useRequestEvent()
@@ -82,6 +91,13 @@ export default defineNuxtPlugin(() => {
   // Wert ist nur die Ansage an den Besucher. null = kein Tenant-Host.
   useState<boolean | null>('pukalani-tenant-open-registration', () => (
     tenant ? tenant.openRegistration !== false : null
+  ))
+  // Lese-Publikum der Community (C18): 'members' schaltet die Suchmaschinen-
+  // Ansage auf noindex und blendet im Dashboard den gesetzten Zustand ein.
+  // null = kein Tenant-Host (Silo, Kontroll-Host, Playground) — dort gibt es
+  // keine Community-Grenze, es bleibt bei „öffentlich wie bisher".
+  useState<CommunityAudience | null>('pukalani-tenant-audience', () => (
+    tenant ? communityAudienceFor(tenant) : null
   ))
   // Erscheinungsbild der Community (Entscheidung 12; `neutral` seit dem
   // 2026-07-29, Rest von B5): die GESETZTE Wahl, nicht die aufgelöste — '' heißt

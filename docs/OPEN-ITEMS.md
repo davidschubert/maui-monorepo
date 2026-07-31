@@ -20,7 +20,7 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | --- | --- | --- | --- | --- | --- |
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
-| 10 · C18 | **Sichtbarkeit je Community wählbar machen** (Default öffentlich). Bei „geschlossen" müssen Leserechte, SEO-Tags, sitemap, robots.txt und das Vorschaubild mitziehen. Nach 2/5/6 — dieselben Tabellen. | Mittel | M — mehrere Stellen, beide Richtungen prüfen | Nein (entschieden) | [Notizen](#notizen) |
+| 10 · C18 | **Bestands-Communities stempeln, bevor C18 live geht.** Der Schalter ist gebaut (2026-07-30). Offen ist nur der Einzelvorgang: jede Community von VOR C18 trägt `audience = null` und wird mit dem Deploy als „nur für Mitglieder" behandelt (noindex, sitemap/og 404, Startseite für Gäste zu) — obwohl ihre Inhalte öffentlich sind. `demo.pukalani.app` zuerst. | Hoch | S — ein Skript je Host, mit Trockenlauf | Ja: David entscheidet je Community | [Notizen](#notizen) |
 | 11 · B1 | **Neun visuelle Referenzbilder sichten**, dann neu aufnehmen — der Header-Umbau hat sie erwartungsgemäß gebrochen. | Mittel | S — ansehen + ein Befehl | Ja: David sichtet zuerst | [Notizen](#notizen) |
 | 12 · C16 | **Drei Berechtigungen ohne Funktion nachbauen:** Branding-Rechte, Schreibrecht für Redakteure (ein Editor kommt an seine eigenen Beiträge nicht heran), Community löschen. | Mittel | M — drei kleine Baustellen | Nein | [Notizen](#notizen) |
 | 13 · C12 | **Dashboard-Kleinteile** — fehlende Blätterfunktion, leere Zustände, interne IDs und Fachjargon im Kundenblick, handgebaute Listen, 238 Toasts ohne Erklärtext. Läuft am besten mit 7. | Mittel | M — viele kleine Stellen | Nein | [Notizen](#notizen) |
@@ -170,14 +170,40 @@ der Landing. Prüfung vor dem Live-Gang: Runbook §2.4. Der Klammer-Hinweis „z
 noch auf den `studio`-Alias" ist seit 2026-07-30 gegenstandslos: der
 Test-Webhook zeigt auf `control`, der Alias ist entfernt.
 
-**C18 — Sichtbarkeit pro Community.** Davids Entscheidung 2026-07-30:
-wählbar, Default öffentlich. Heute sind Inhalte öffentlich — die posts-API
-antwortet Gästen mit 200. Der Schalter ist NICHT nur ein Feld: bei
-„geschlossen" müssen Row-Permissions (`read(any)` → `read(label:<communityId>)`),
-die SEO-Tags, `sitemap.xml`, `robots.txt` UND das og:image mitziehen — sonst
-steht der Inhalt in Googles Index und nicht auf der Seite. Die Gegenprobe muss
-beide Richtungen prüfen (öffentlich→geschlossen und zurück) und den Bestand
-mitnehmen. Nach A6/E8, weil es dieselben Tabellen anfasst.
+**C18 — Sichtbarkeit pro Community. GEBAUT am 2026-07-30**, ein Rest ist offen.
+
+Gebaut ist der ganze Umfang: der Schalter unter /dashboard/settings/community
+(`team.manage`, weil es eine Zugangsregel ist und keine Optik), der
+Bestands-Umzug der Row-Permissions in BEIDE Richtungen
+(`core/server/utils/audienceRepermission.ts` — seitenweise, idempotent,
+protokolliert; die Layer melden ihre Tabellen per Nitro-Plugin an), `noindex`
+im zentralen Kopf-Aufruf, `Disallow: /` in der robots.txt, 404 auf
+sitemap.xml und `/og/<key>.png`, und eine eigene Wache für die
+permission-losen `pages`-Zeilen. Neue Communities entstehen ÖFFENTLICH — die
+bewusste Kehrtwende zur G0-Entscheidung 7, protokolliert im DECISION-LOG.
+Beweis: `packages/control/scripts/verify-audience-flip.mjs` (Gast ohne Key
+gegen die echte Instanz, 19/19).
+
+**OFFEN — und das ist ein Betriebs-, kein Bau-Punkt:** bis C18 hat die Spalte
+NICHTS gesteuert. Jede Community von vor diesem Deploy trägt `audience = null`,
+und `resolveTenantAudience` liest das fail-closed als „nur für Mitglieder".
+Ihre Zeilen bleiben zwar lesbar (niemand fasst fremde Permissions ungefragt
+an), aber robots, sitemap, Vorschaubild und die öffentliche Startseite gehen
+zu — eine Community, die halb geschlossen ist, ohne dass jemand es entschieden
+hat. Wer öffentlich bleiben soll, braucht einmal
+`packages/control/scripts/stamp-audience.mjs --host <host> --audience public`
+(ohne `--yes` ein Trockenlauf). `demo.pukalani.app` ist der klare Fall.
+Bewusst KEIN Sammel-Backfill: „alle auf öffentlich" wäre genau die
+stillschweigende Entscheidung über fremde Communities, die die
+fail-closed-Regel verhindern soll.
+
+**Kleine bekannte Kante:** ein GAST-Kommentar in einer geschlossenen Community
+bekommt `read(label:…)` und ist damit für seinen eigenen Verfasser unsichtbar.
+Das ist die ehrliche Folge (Gast-Kommentare und „nur für Mitglieder"
+widersprechen sich) — wer es sauber will, schaltet
+`pukalani.comments.embed.guests` ab. Ebenfalls unangetastet: `courses` tragen
+`read("users")` statt `read("any")` und waren nie öffentlich; sie ziehen
+deshalb nicht mit.
 
 **B1 — Visual-Baselines.** Neun Stück sichten, dann
 `pnpm --filter comments e2e -- --update-snapshots themes-visual` — der

@@ -318,13 +318,19 @@ klar markierte Roadmap-Sektion, nie als Tarifbestandteil getarnt.
 6. **Kanonische `siteId`:** ✅ **= `tenants.$id`** (der Tenant IST die
    Kunden-Site; `sites` bleibt Infra-Register). `tenants` bekommt in G1 nur
    `workspaceId` (Billing-Anker); keine `sites`-Doppelzeilen.
-7. **Lese-Publikum je Site (Naht 4):** ✅ **privat als Default, öffentlich
-   opt-in** (David, 2026-07-24). Jede Community-Site startet mitglieder-only
-   (`read(Role.label(siteId))` — harte Appwrite-Grenze); „öffentlich lesbar"
-   ist ein bewusster Schalter pro Site (`read(any)`). Der Naht-4-Mechanismus
-   (`tenantRowPermissionsFor`, Default `'members'`) setzt das bereits um; das
-   Live-Wiring in den Schreibpfad + die Session-Label-Vergabe je Site folgen
-   mit dem Onboarding (G3-Nähe).
+7. **Lese-Publikum je Site (Naht 4):** ⚠️ **ÜBERHOLT am 2026-07-30 (C18)** —
+   die Entscheidung lautete „privat als Default, öffentlich opt-in" (David,
+   2026-07-24). Sie ist **umgedreht**: die Sichtbarkeit ist WÄHLBAR, und
+   **neue Communities entstehen öffentlich**. Begründung: eine frische
+   Community, die niemand finden kann, wächst nicht — „nur für Mitglieder" ist
+   die bewusste Ausnahme, nicht der Startzustand. Was BLEIBT: der Mechanismus.
+   `read(Role.label(communityId))` ist weiterhin die harte Grenze, die Spalte
+   wird weiterhin fail-closed gelesen (`resolveTenantAudience` — eine Row ohne
+   Eintrag gilt als privat), und der BESTAND zieht beim Umschalten mit um
+   (`audienceRepermission.ts`). Dazu kommen seit C18 die drei Dinge, ohne die
+   der Schalter eine Lüge wäre: `noindex`, 404 auf sitemap/og:image und eine
+   eigene Wache für die permission-losen `pages`-Zeilen. Details: OPEN-ITEMS
+   C18 + DECISION-LOG 2026-07-30.
 
 **Damit ist G0 vollständig abgeschlossen.**
 

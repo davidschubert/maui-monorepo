@@ -60,9 +60,19 @@ export async function commentsDeleteUserData(event: H3Event, userId: string): Pr
       tableId: COMMENTS_TABLE,
       rowId: row.$id,
       data: { authorId: '', authorName: '', content: '', status: 'deleted', editedAt: null },
-      // Owner-Permissions (update/delete des Ex-Users) abräumen; read(any)
-      // bleibt — der Tombstone ist öffentlich sichtbar, enthält aber keine PII.
-      permissions: [Permission.read(Role.any())],
+      // Owner-Permissions (update/delete des Ex-Users) abräumen; das
+      // LESERECHT der Zeile bleibt unangetastet — der Tombstone ist so sichtbar
+      // wie der Kommentar vorher war, enthält aber keine PII.
+      //
+      // C18: bewusst FILTERN statt read(any) zu setzen. Diese Löschung läuft
+      // mandantenübergreifend (GDPR-Orchestrierung, außerhalb der Datentür) und
+      // fasst Zeilen aus MEHREREN Communities an — ein festes read(any) hätte
+      // die Tombstones einer geschlossenen Community öffentlich gemacht, und
+      // ausgeblendete Kommentare (ohne Leserecht) wieder lesbar.
+      permissions: row.$permissions.filter(permission => (
+        permission !== Permission.update(Role.user(userId))
+        && permission !== Permission.delete(Role.user(userId))
+      )),
     })
   }
 

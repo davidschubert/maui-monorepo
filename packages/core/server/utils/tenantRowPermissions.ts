@@ -1,6 +1,7 @@
 import { Permission, Role } from 'node-appwrite'
 import type { H3Event } from 'h3'
 import type { TenantContext } from '../../shared/types/tenant'
+import { communityContentIsPublic } from '../../shared/communityAudience'
 import { useTenant } from './tenant'
 
 /**
@@ -24,7 +25,13 @@ import { useTenant } from './tenant'
  *  - 'members': nur Mitglieder DIESER Site (Pool: Role.label(communityId); Silo:
  *    Role.users, da das Projekt schon isoliert). Community-Standard.
  *  - 'public': jede/r (Role.any) — bewusst öffentliche Inhalte (z. B. ein
- *    öffentlicher Kommentar-Thread, ein öffentlich sichtbarer Beitrag). */
+ *    öffentlicher Kommentar-Thread, ein öffentlich sichtbarer Beitrag).
+ *
+ *  ACHTUNG (C18): 'public' ist die ABSICHT DER ZEILE („dieser Beitrag ist
+ *  veröffentlicht"), nicht die Entscheidung der Community. Ist die Community
+ *  auf 'members' gestellt, wird daraus hier ein Mitglieder-Read — siehe
+ *  tenantReadRolesFor(). Eine Zeile ohne Veröffentlichungs-Absicht (Entwurf,
+ *  ausgeblendeter Kommentar) bleibt in BEIDEN Fällen zu. */
 export type RowReadAudience = 'members' | 'public'
 
 export interface TenantRowPermissionOptions {
@@ -37,10 +44,18 @@ export interface TenantRowPermissionOptions {
   extraRead?: string[]
 }
 
-/** Das Read-Permission-Set für das gewählte Publikum im gegebenen Tenant. */
+/** Das Read-Permission-Set für das gewählte Publikum im gegebenen Tenant.
+ *
+ *  C18 (2026-07-30): die WAHL DER COMMUNITY schlägt die ABSICHT DER ZEILE.
+ *  Steht `audience` auf 'members', wird aus jedem 'public' hier ein
+ *  Mitglieder-Read — DIESE Zeile ist der Grund, warum der Schalter überhaupt
+ *  wirkt, ohne dass zwanzig Schreib-Routen ihn kennen müssten (dieselbe
+ *  Begründung wie bei der Datentür). Der umgekehrte Weg gilt NICHT: eine
+ *  bewusst mitglieder-interne Zeile (Activity-Feed, Presence) wird durch eine
+ *  öffentliche Community nie öffentlich. */
 export function tenantReadRolesFor(tenant: TenantContext | null, read: RowReadAudience): string[] {
-  if (read === 'public') return [Permission.read(Role.any())]
-  // 'members'
+  if (read === 'public' && communityContentIsPublic(tenant)) return [Permission.read(Role.any())]
+  // 'members' — und jedes 'public' einer geschlossenen Community
   if (tenant?.mode === 'pool') {
     // Harte Grenze: nur wer das Site-Label trägt. Ohne communityId (Datenfehler /
     // Bestand ohne Migration) fällt es auf 'no read' zurück statt any —

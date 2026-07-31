@@ -14,9 +14,15 @@ export interface PublicPageNavItem {
  * Fallback en, sonst erste. `home` wird mitgeliefert — der Konsument
  * entscheidet, ob er sie zeigt (der Header verlinkt home über das Logo).
  * Gleiches Lese-Muster wie [slug].get: operator-Tür + published-Filter,
- * Entwürfe verlassen den Server nie.
+ * Entwürfe verlassen den Server nie — und dieselbe C18-Wache: `pages`-Rows
+ * tragen keine Row-Permissions, also hält hier nur diese Zeile Gäste von den
+ * Seiten einer geschlossenen Community fern. Leere Liste statt 404 wäre die
+ * falsche Antwort: die Navigation eines Mandanten ohne Seiten sieht genauso
+ * aus, und ein Fehler soll ein Fehler bleiben.
  */
 export default defineEventHandler(async (event): Promise<PublicPageNavItem[]> => {
+  assertCommunityContentReadable(event, 'Pages not found')
+
   const requested = String(getQuery(event).locale || 'en').slice(0, 8)
 
   const res = await tenantDb(event, { as: 'operator' }).list<PageRow>(PAGES_TABLE, [

@@ -71,13 +71,14 @@ export default defineEventHandler(async (event) => {
   const updated = await db.update<EventRow>(EVENTS_TABLE, id, data, 'Event not found').catch((error) => {
     throw toH3Error(error, 'Could not update event')
   })
-  // Leserecht folgt dem Status: published = alle, draft = niemand
+  // Leserecht folgt dem Status: published = das Publikum der Community
+  // (C18: alle bzw. alle Mitglieder), draft = niemand.
   if (publishing) {
-    await db.updatePermissions(EVENTS_TABLE, id, [...new Set([...row.$permissions, EVENT_READ_ANY])])
+    await db.updatePermissions(EVENTS_TABLE, id, withPublishedRead(row.$permissions, event))
       .catch((error) => { throw toH3Error(error, 'Could not update event') })
   }
   if (unpublishing) {
-    await db.updatePermissions(EVENTS_TABLE, id, row.$permissions.filter(p => p !== EVENT_READ_ANY))
+    await db.updatePermissions(EVENTS_TABLE, id, withoutPublishedRead(row.$permissions, event))
       .catch((error) => { throw toH3Error(error, 'Could not update event') })
   }
 
@@ -92,8 +93,8 @@ export default defineEventHandler(async (event) => {
       if (instance.status === 'cancelled') continue
       await db.update(EVENTS_TABLE, instance.$id, { status: publishing ? 'published' : 'draft' })
         .then(() => db.updatePermissions(EVENTS_TABLE, instance.$id, publishing
-          ? [...new Set([...instance.$permissions, EVENT_READ_ANY])]
-          : instance.$permissions.filter(p => p !== EVENT_READ_ANY)))
+          ? withPublishedRead(instance.$permissions, event)
+          : withoutPublishedRead(instance.$permissions, event)))
         .catch(error => console.warn('[events] Serien-Publish-Propagation fehlgeschlagen:', error))
     }
   }

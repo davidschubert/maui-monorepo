@@ -236,7 +236,8 @@ try {
   })
   check('alle im Trial-Plan (pro) mit 14 Tagen', tenantRows.rows.every(row =>
     row.plan === 'pro' && Math.round((Date.parse(row.trialEndsAt) - Date.now()) / 86_400_000) === 14))
-  check('alle privat (audience members)', tenantRows.rows.every(row => row.audience === 'members'))
+  // C18 (2026-07-30): öffentlich als Default — siehe onboardingProvision.ts.
+  check('alle öffentlich (audience public)', tenantRows.rows.every(row => row.audience === 'public'))
 
   const homeRes = await call(last.site.host, '/api/pages/public/home?locale=de')
   check('Startseite aus der Beschreibung erzeugt', homeRes.status === 200 && /Abnahmelauf/.test(homeRes.json?.body ?? ''), `Status ${homeRes.status}`)

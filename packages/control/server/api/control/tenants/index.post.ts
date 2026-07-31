@@ -57,7 +57,11 @@ export default defineEventHandler(async (event) => {
       // Neutral-Palette (control-020, Rest von B5): '' = keine eigene Wahl, es
       // gilt die Voreinstellung der Instanz. Wie theme/variant.
       neutral: '',
-      audience: 'members',
+      // ÖFFENTLICH als Default (C18, 2026-07-30) — gleiche Entscheidung wie im
+      // Self-Service-Weg (onboardingProvision.ts), dieselbe Begründung. Der
+      // Betreiber-Weg legt sonst Communities an, die sich anders verhalten als
+      // die des Wizards, und niemand fände den Unterschied.
+      audience: 'public',
       trialEndsAt: null,
       profile: '',
       inviteCodeId: '',

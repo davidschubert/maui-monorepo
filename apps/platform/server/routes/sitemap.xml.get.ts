@@ -1,6 +1,7 @@
 import { Query } from 'node-appwrite'
 import type { H3Event } from 'h3'
 import type { TenantContext } from '../../../../packages/core/shared/types/tenant'
+import { communityContentIsPublic } from '../../../../packages/core/shared/communityAudience'
 import { PAGES_TABLE, type PageRow } from '../../../../packages/pages/shared/types/page'
 import { tenantRequestOrigin } from '../utils/tenantRequestOrigin'
 import { tenantSitemapEntries, tenantSitemapXml } from '../utils/tenantSitemap'
@@ -24,6 +25,13 @@ import { tenantSitemapEntries, tenantSitemapXml } from '../utils/tenantSitemap'
  * `<urlset>` ohne URLs ist eine Aussage über nichts — und sie stünde in einer
  * robots.txt, die gar keine Sitemap nennt. Unbekannte Hosts erledigt schon
  * `00.tenant.ts` (404, keine Default-Site).
+ *
+ * GESCHLOSSENE Communities (C18, `audience === 'members'`) antworten aus
+ * demselben Grund 404, und zwar VOR dem Datenlesen: eine Sitemap ist eine
+ * Einladung an Crawler, und die Seiten, die sie nennen würde, sind für Gäste
+ * ohnehin zu. Dass die URLs selbst kein Geheimnis sind, ändert daran nichts —
+ * eine Liste aller Seiten einer geschlossenen Community auszuliefern wäre
+ * genau die Art Rest, die C18 meint.
  */
 
 /** Darf der Plan dieses Mandanten den Feed (Produkt `posts`)? Serverseitige
@@ -63,6 +71,9 @@ async function publishedSlugs(event: H3Event): Promise<string[]> {
 
 export default defineEventHandler(async (event) => {
   if (event.context.controlCenter === true) {
+    throw createError({ status: 404, statusText: 'Not found' })
+  }
+  if (!communityContentIsPublic(useTenant(event))) {
     throw createError({ status: 404, statusText: 'Not found' })
   }
 

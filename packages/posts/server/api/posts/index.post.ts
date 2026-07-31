@@ -48,11 +48,14 @@ export default defineEventHandler(async (event) => {
     score: 0,
   }, {
     // Eigene Permissions statt des Standard-Publikums: published-Posts sind
-    // BEWUSST read(any) wie Kommentare (öffentlicher Community-Feed, auch für
-    // Gäste); hidden/deleted entziehen das wieder. scheduled: nur der Autor
-    // liest — Publish-on-read fügt read(any) beim Fälligwerden hinzu.
+    // VERÖFFENTLICHT wie Kommentare (Community-Feed); hidden/deleted entziehen
+    // das wieder. scheduled: nur der Autor liest — Publish-on-read setzt die
+    // Veröffentlichungs-Permission beim Fälligwerden.
+    //
+    // C18: `withPublishedRead([], event)` statt einer festen read(any)-Zeile —
+    // auf einer geschlossenen Community entsteht `read(label:<communityId>)`.
     permissions: [
-      ...(scheduled ? [Permission.read(Role.user(user.$id))] : [POST_READ_ANY]),
+      ...(scheduled ? [Permission.read(Role.user(user.$id))] : withPublishedRead([], event)),
       Permission.update(Role.user(user.$id)),
       Permission.delete(Role.user(user.$id)),
     ],

@@ -65,3 +65,32 @@ describe('tenantRowPermissionsFor', () => {
     ])
   })
 })
+
+/**
+ * C18 — die WAHL DER COMMUNITY schlägt die ABSICHT DER ZEILE. Das ist die
+ * Zeile, wegen der der Schalter überhaupt wirkt, ohne dass die Schreib-Routen
+ * ihn kennen müssen.
+ */
+describe('tenantReadRolesFor + audience (C18)', () => {
+  const poolClosed: TenantContext = { ...pool, audience: 'members' }
+  const poolOpen: TenantContext = { ...pool, audience: 'public' }
+  const siloClosed: TenantContext = { ...silo, audience: 'members' }
+
+  it("geschlossene Community: aus 'public' wird das Mitglieder-Publikum", () => {
+    expect(tenantReadRolesFor(poolClosed, 'public')).toEqual([Permission.read(Role.label('siteAAA'))])
+    expect(tenantReadRolesFor(siloClosed, 'public')).toEqual([Permission.read(Role.users())])
+  })
+  it("offene Community: 'public' bleibt read(any)", () => {
+    expect(tenantReadRolesFor(poolOpen, 'public')).toEqual([Permission.read(Role.any())])
+  })
+  it('ohne audience-Feld (Silo, Playground, Bestands-Fixture) bleibt alles wie bisher', () => {
+    expect(tenantReadRolesFor(pool, 'public')).toEqual([Permission.read(Role.any())])
+    expect(tenantReadRolesFor(null, 'public')).toEqual([Permission.read(Role.any())])
+  })
+  it('umgekehrt NIE: eine offene Community macht mitglieder-interne Zeilen nicht öffentlich', () => {
+    expect(tenantReadRolesFor(poolOpen, 'members')).toEqual([Permission.read(Role.label('siteAAA'))])
+  })
+  it('geschlossene Community ohne communityId → fail-closed, KEIN Read', () => {
+    expect(tenantReadRolesFor({ ...poolNoSite, audience: 'members' }, 'public')).toEqual([])
+  })
+})

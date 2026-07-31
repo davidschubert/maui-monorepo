@@ -20,7 +20,8 @@ import {
   trialEndsAt,
 } from '../shared/onboarding'
 import { evaluateInviteCode } from '../shared/types/inviteCode'
-import { resolveTenantAudience, resolveTenantOpenRegistration } from '../shared/types/tenantRecord'
+import { TENANT_AUDIENCES, resolveTenantAudience, resolveTenantOpenRegistration } from '../shared/types/tenantRecord'
+import { COMMUNITY_AUDIENCES } from '../../core/shared/communityAudience'
 import { createOnboardingSiteSchema, inviteCodeSchema } from '../schemas/onboarding'
 import { createSlugSchema, isReservedSlug, slugToHost } from '../schemas/tenant'
 
@@ -158,6 +159,22 @@ describe('Lese-Publikum (fail-closed)', () => {
     // liefern null. Auf Dev + Prod nachgemessen.
     for (const value of [null, undefined, '', 'members', 'PUBLIC', 'öffentlich', 'any']) {
       expect(resolveTenantAudience(value), String(value)).toBe('members')
+    }
+  })
+})
+
+describe('Lese-Publikum: Spalte ⇔ Kontext (C18)', () => {
+  // core kennt den control-Layer nicht (A14) und führt deshalb eine EIGENE
+  // Werteliste (COMMUNITY_AUDIENCES). Dieser Test steht hier, weil die
+  // Abhängigkeit nur in diese Richtung erlaubt ist — und er ist der Grund,
+  // warum die zweite Liste keine Doppelpflege wird.
+  it('TENANT_AUDIENCES (Spalte) == COMMUNITY_AUDIENCES (Kontext)', () => {
+    expect([...TENANT_AUDIENCES]).toEqual([...COMMUNITY_AUDIENCES])
+  })
+
+  it('jeder Spaltenwert löst auf denselben Kontext-Wert auf', () => {
+    for (const value of TENANT_AUDIENCES) {
+      expect(resolveTenantAudience(value)).toBe(value)
     }
   })
 })

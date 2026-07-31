@@ -1,4 +1,4 @@
-import { Permission, Query, Role, type Models } from 'node-appwrite'
+import { Query, type Models } from 'node-appwrite'
 import type { H3Event } from 'h3'
 import { COMMENTS_TABLE } from '../../shared/types/comment'
 
@@ -8,11 +8,18 @@ import { COMMENTS_TABLE } from '../../shared/types/comment'
  * die admin-Moderations-Route (status.patch) und der Auto-Hide-Handler
  * (Report-Eskalation). Vorher lebte der Code in admin/status.patch.
  *
- * Row-Level-Sichtbarkeit (Migration comments-008): nicht-hidden Rows tragen
- * read("any"); Ausblenden ENTZIEHT die Permission (Roh-REST-Leak zu),
+ * Row-Level-Sichtbarkeit (Migration comments-008): sichtbare Rows tragen die
+ * Veröffentlichungs-Permission; Ausblenden ENTZIEHT sie (Roh-REST-Leak zu),
  * Wiederherstellen gibt sie zurück.
+ *
+ * C18 (2026-07-30): „die Veröffentlichungs-Permission" ist seither NICHT mehr
+ * fest `read("any")` — in einer Community, die auf „nur für Mitglieder" steht,
+ * ist es `read("label:<communityId>")`. Deshalb steht hier keine Konstante mehr,
+ * sondern der Aufruf von `withoutPublishedRead()` (core): der kennt BEIDE
+ * Schreibweisen und räumt auch die alte weg, wenn eine Community kürzlich
+ * umgeschaltet wurde. Eine Konstante hätte nach jedem Umschalten die falsche
+ * Zeichenkette gesucht — und ein ausgeblendeter Kommentar wäre lesbar geblieben.
  */
-export const COMMENT_READ_ANY = Permission.read(Role.any())
 
 // Thread wird per Cursor VOLLSTÄNDIG geladen (Batch-Größe THREAD_PAGE); die
 // harte Grenze ist nur ein Notanker gegen entgleisende Pagination (mit Log).
@@ -46,12 +53,11 @@ export async function hideCommentRow(
   // Zweite Phase getrennt: würde die Permission im selben Write fallen, käme
   // das hidden-Event bei Gästen/Lesern nie an (Auslieferung folgt den Row-
   // Permissions) und der Kommentar bliebe bis zum Reload stehen.
-  if (updated.$permissions.includes(COMMENT_READ_ANY)) {
+  const withdrawn = withoutPublishedRead(updated.$permissions, event)
+  if (withdrawn.length !== updated.$permissions.length) {
     // Reiner Permission-Write ohne Datenfelder — die Zugehörigkeit ist eine
     // Zeile darüber schon belegt.
-    const withdraw = () => ops.updatePermissions(
-      COMMENTS_TABLE, row.$id, updated.$permissions.filter(p => p !== COMMENT_READ_ANY),
-    )
+    const withdraw = () => ops.updatePermissions(COMMENTS_TABLE, row.$id, withdrawn)
     // Phase 2 muss halten — sonst bleibt der hidden-Kommentar per Roh-REST
     // gast-lesbar. Ein Retry deckt transiente Fehler; ein persistenter wird
     // laut geloggt statt geschluckt (Re-Hide über die UI ist idempotent und
