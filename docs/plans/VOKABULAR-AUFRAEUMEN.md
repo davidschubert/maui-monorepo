@@ -1,0 +1,121 @@
+# Vokabular aufräumen — ein Wort je Sache
+
+> **Status:** Bestandsaufnahme + Plan, teilweise noch nicht entschieden.
+> Davids Auftrag vom 2026-07-30: „will, dass alles einen sauberen Stand
+> bekommt."
+> **Keine Doppelpflege:** Der Community-Teil (`tenants` → `communities`,
+> Etappen 3 und 4) steht vollständig in
+> [UMBENENNUNG-AUF-COMMUNITY.md](UMBENENNUNG-AUF-COMMUNITY.md) und wird hier
+> nur eingeordnet, nicht wiederholt.
+
+## Gemessen am 2026-07-30
+
+Zeilen bzw. Dateien in `packages/`, `apps/`, `scripts/` (ohne
+`node_modules`, ohne Worktrees, ohne `.output`):
+
+| Vokabel | Zeilen | Dateien | Zustand |
+| --- | ---: | ---: | --- |
+| `tenant*` | 3.924 | 547 | wird `community` — E8 Etappe 3/4 |
+| `site*` | 2.899 | 451 | teils erledigt (Etappe 1/2), Rest Etappe 4 |
+| `community*` | 1.590 | 197 | das Ziel-Wort, schon breit da |
+| `workspace*` | 1.157 | 98 | **verschwindet** mit A6 |
+| `feature*` | 2.626 | 413 | soll `product` werden (siehe unten) |
+| `product*` | 427 | 109 | heute nur Kundensprache |
+| `maui*` | 1.964 | 567 | interner Name; Marke ist Pukalani |
+| `pukalani*` | 292 | 92 | die Marke |
+| `ticket*` | 2.134 | 201 | Board/Roadmap-Frage (E10) |
+| `Board` (als Wort) | 66 | — | wird „Roadmap" (E10) |
+
+## 1. `feature` → `product` (Davids Auftrag 2026-07-30)
+
+### Das ist eine bewusste Kehrtwende
+
+CLAUDE.md hält heute fest: „Kundensprache: **Produkte** statt
+Features/Bausteine (Landing, UI, Pricing). Im CODE bleibt das Vokabular
+`features` (Manifeste, Gates)." Das war die P4-Entscheidung. David will jetzt
+**ein** Wort überall. Legitim und sauberer — aber es ist eine Umkehr und wird
+hier als solche vermerkt, damit später niemand die alte Zeile für gültig hält.
+
+### Fläche
+
+- **18 Manifest-Dateien** `feature.manifest.ts` → `product.manifest.ts`
+- `featureKey` in **56 Dateien**
+- `featureGates` in **18 Dateien**
+- `maui.features` / `features:` in **105 Dateien**
+- `check:manifests` (CI-Gate) in **13 Dateien**
+- **Tabelle `feature_catalog`** im Control Plane (6 Dateien) — echte Daten
+- **Öffentliche Route** `/api/platform/features` — externe Schnittstelle
+- Der Katalog wird von `scripts/control-jobs.mjs` aus den Manifesten gesynct
+
+### Die zwei Stellen mit echtem Risiko
+
+1. **`feature_catalog` ist eine Appwrite-Tabelle.** Appwrite kann nicht
+   umbenennen ⇒ dasselbe Muster wie control-022/023: neue Tabelle anlegen,
+   Zeilen **mit `rowId: row.$id`** kopieren, Code umstellen, alte Tabelle
+   separat löschen. Die Row-Id ist hier der Feature-Key selbst
+   (`rowId: manifest.key`) — sie steckt in `entitlements.featureKey`.
+2. **`/api/platform/features` ist öffentlich.** Wer sie konsumiert, muss
+   mitziehen oder eine Übergangszeit bekommen.
+
+Alles Übrige ist mechanisch (Bezeichner, Dateinamen, i18n-Schlüssel) und
+durch `pnpm check:manifests` + Typecheck abgesichert.
+
+## 2. `maui.studio.*` — Altlast des Control-Cutovers
+
+Der Layer heißt `control`, die App heißt `control`, der Host heißt `control`
+— aber der **Config-Namespace heißt weiter `maui.studio.*`**
+(`defaultPoolProject`, `plans`). Genau das Muster aus der Erfahrung
+„Umbenennung lässt Pfade zurück": die Meldungen zogen mit, die Bezeichner
+nicht. Klein, mechanisch, ohne Datenrisiko — und heute schon irreführend,
+weil „Studio" inzwischen das **Kundenangebot** meint und nicht die
+Betreiber-Konsole.
+
+## 3. `reddit`-Reste
+
+Im Quelltext nur noch **drei** Stellen, alle in Kommentaren/Docstrings
+(`packages/comments/nuxt.config.ts`, dessen Migration 002, und ein Hinweis in
+`packages/control/nuxt.config.ts`). Die Treffer in `apps/*/.output/` sind
+Build-Artefakte (Icon-Namen `reddit-logo`) und irrelevant.
+
+**Aber:** das LOKALE Appwrite-Projekt heißt weiterhin `reddit-comments` —
+darauf verweist der Kommentar in `control/nuxt.config.ts` ausdrücklich. Das
+ist Entwicklungsumgebung, kein Produktivsystem, und ein Projekt-Rename in
+Appwrite ist teuer. Bewusst stehen lassen, aber wissen, dass es so ist.
+
+## 4. Offen: `maui` vs. `pukalani` — die größte Frage
+
+Der Paket-Scope ist `@maui/*`, der Config-Namespace ist `maui.*`, das Repo
+heißt `maui-monorepo` — in **567 Dateien**. Die Marke ist **Pukalani**
+(92 Dateien). CLAUDE.md notiert zum Theme-Namen bereits, dass „Maui" ein
+**interner Produktname vor Kunden** war (Befund N6) und deshalb aus der
+Oberfläche verschwunden ist.
+
+Im Code ist er geblieben. Das ist **nicht automatisch falsch**: ein interner
+Scope darf anders heißen als die Marke, und `maui.*` taucht in keiner
+Kundenoberfläche auf. Aber „ein sauberer Stand" heißt womöglich auch hier ein
+Wort.
+
+**Das ist eine Entscheidung, keine Aufgabe** — und die teuerste von allen:
+Paket-Scope, Config-Namespace, Repo-Name, jede `app.config.ts`, jeder Import.
+Sie sollte **nicht** nebenbei mitlaufen.
+
+## Reihenfolge
+
+Die Umbenennungen fassen dieselben Dateien an. Nacheinander, nie parallel:
+
+1. **A6** — `workspaces` verschwinden (1.157 Zeilen fallen ersatzlos weg;
+   alles, was man vorher umbenennt, wäre verschwendet)
+2. **E8 Etappe 3** — `tenants` → `communities` (Daten, vier Instanzen)
+3. **E8 Etappe 4** — `site*`-Vokabular im Code zusammenführen
+4. **`feature` → `product`** — inklusive `feature_catalog`-Migration
+5. **`maui.studio.*` → `maui.control.*`** — kann jederzeit mitlaufen, klein
+6. **E9/E10** — Menü und Roadmap-Benennung
+7. *(offen)* `maui` → `pukalani`, falls entschieden
+
+## Warum nicht alles auf einmal
+
+Jede dieser Umbenennungen ist für sich mechanisch, aber sie überlappen in
+denselben Dateien. Zwei gleichzeitig heißt: Konflikte, ein unlesbarer Diff und
+keine Möglichkeit, einen einzelnen Schritt zurückzunehmen. Die Etappen 1 und 2
+haben gezeigt, dass die Scheibchen-Taktik trägt — je Etappe eine Migration,
+ein Deploy, ein Beweis.
