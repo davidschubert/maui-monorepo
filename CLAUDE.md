@@ -525,7 +525,13 @@ WORKTREE-BEWEISE (2026-07-29 live erwischt, gleich zweimal): ein Dev-Server aus
 „Beweis" misst dann unveränderten Code und sieht wie ein Fehlschlag der neuen
 Arbeit aus. Ebenso belegen fremde Worktrees Ports und der eigene Server fällt
 still auf einen anderen zurück. Vor jedem Beweis: `lsof -nP -iTCP -sTCP:LISTEN`
-und den Pfad in der ersten Dev-Log-Zeile prüfen.
+und den Pfad in der ersten Dev-Log-Zeile prüfen. Dev-Server IMMER über
+`pnpm --filter <app> dev` starten — ein direkter
+`node ./node_modules/nuxt/bin/nuxt.mjs dev` findet `tailwindcss` nicht
+(liegt nur in `node_modules/.pnpm/node_modules/`, das pnpm erst beim
+Script-Lauf in den NODE_PATH legt) und liefert auf JEDER SSR-Seite 500 —
+sieht aus wie ein Regressionsschaden, ist aber nur der falsche Start
+(2026-07-31 live erwischt).
 
 pnpm -r test (Unit) · Playwright-E2E in apps/comments (Base-URL per
 PW_BASE_URL überschreibbar — parallele Dev-Sessions) · themes-visual zielt
