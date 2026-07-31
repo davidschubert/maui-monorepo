@@ -34,13 +34,13 @@ Erwartung: 4 lookup_keys `workspace_{pro,business}_{monthly,yearly}` existieren
 (monatliche evtl. schon aus M8 → werden übersprungen, die jährlichen neu).
 
 **Stripe-Test-Webhook prüfen** (Dashboard → Developers → Webhooks, Test-Modus):
-Endpoint `https://studio.pukalani.app/api/stripe/webhook` mit genau diesen Events:
+Endpoint `https://control.pukalani.app/api/stripe/webhook` mit genau diesen Events:
 `checkout.session.completed`, `customer.subscription.{created,updated,deleted}`,
 `invoice.paid`, `invoice.payment_failed`. (Aus M8 vorhanden — nur gegenchecken.)
 
 ## Schritt 2 🔑 — Als Workspace-Owner einloggen
 
-`https://studio.pukalani.app` → „Code per Mail" (OTP). Du brauchst einen
+`https://control.pukalani.app` → „Code per Mail" (OTP). Du brauchst einen
 Workspace, dem du als Owner zugeordnet bist — im Betreiber-Dashboard unter
 `/dashboard/workspaces` anlegen/zuordnen, falls noch keiner da ist. Der
 Kundenbereich ist dann unter `/workspace`.

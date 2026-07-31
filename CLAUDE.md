@@ -183,8 +183,16 @@ Vollständiges Konzept: docs/CONCEPT.md
   eigene ploi-Site 392163 (nginx → Port 3003, eigenes LE-Zertifikat für
   control+studio), Release-Slot `releases/control`, Appwrite-Projekt
   `control` (Session-Cookie a_session_control). `studio.pukalani.app` ist
-  nur noch ALIAS dieser Site — der Stripe-Webhook zeigt weiter auf ihn
-  (bei Stripe-Live auf control umstellen, dann kann der Alias weg).
+  nur noch ALIAS dieser Site. Der Stripe-Webhook zeigt seit 2026-07-30 auf
+  `control` (im Testmodus geprüft: POST auf beide Hosts → 400, also
+  Signaturprüfung aktiv). Der Alias hat damit KEINE Aufgabe mehr und soll weg,
+  weil „Studio" seit Davids Namensentscheidung das Kundenangebot meint — ein
+  Kunde, der den Namen eintippt, landet sonst in der Betreiber-Konsole. ZWEI
+  Fallen beim Entfernen: (1) ploi darf dabei KEIN Zertifikat neu anfordern —
+  control hat ein eigenes über control+studio, ein überzähliger SAN schadet
+  nicht, eine Neuanforderung in dieser Zone hat schon zwei Hosts lahmgelegt;
+  (2) vorher `pm2 jlist` auf ein cwd unter `/home/ploi/studio.pukalani.app`
+  prüfen — genau daran starb portfolio beim Cutover-Aufräumen (ops/pm2-heal.sh).
   Die control-Site hat BEWUSST kein Repository: die CI rsynct .output UND
   ops/-Configs; ploi-Fallback-Deploy gibt es für control nicht (Fallback =
   Runbook docs/runbooks/CONTROL-CUTOVER.md).

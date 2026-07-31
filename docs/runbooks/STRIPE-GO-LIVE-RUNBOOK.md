@@ -24,7 +24,7 @@ Stripe-Keys sind Runtime-Config → `pm2 reload` genügt, analog appwriteProject
 
 | App | Webhook-Endpoint (Live) | Plan-Quelle | lookup_keys |
 |---|---|---|---|
-| **studio** | `https://studio.pukalani.app/api/stripe/webhook` | `maui.studio.plans` | `workspace_pro_monthly`, `workspace_business_monthly` (free = `null`, kein Stripe-Objekt) |
+| **control** | `https://control.pukalani.app/api/stripe/webhook` | `maui.studio.plans` | `workspace_pro_monthly`, `workspace_business_monthly` (free = `null`, kein Stripe-Objekt) |
 | **comments** | `https://comments.pukalani.app/api/stripe/webhook` | `maui.billing.plans` | (siehe `apps/comments/app/app.config.ts` — analog anlegen, falls Live-Billing gewünscht) |
 
 Jede App = eigene Appwrite-Instanz **und eigener Stripe-Account** (A1/B1). Der
@@ -91,7 +91,7 @@ Test-Mode-Katalog anlegen und Checkouts durchspielen — ganz ohne Bank/Aktivier
 ## 4. Live-Webhook-Endpoint einrichten [David]
 
 Pro App im Stripe-Dashboard (Live) → Developers → Webhooks → „Add endpoint":
-- **URL**: `https://studio.pukalani.app/api/stripe/webhook` (bzw. comments)
+- **URL**: `https://control.pukalani.app/api/stripe/webhook` (bzw. comments) — NICHT der alte `studio`-Alias
 - **Events** (exakt die Allowlist aus `webhook.post.ts`, sonst retryt Stripe sinnlos):
   - `checkout.session.completed`
   - `customer.subscription.created`
@@ -120,7 +120,7 @@ Verifizieren, dass der Prozess die neuen Keys sieht (kein sk_test mehr):
 ## 6. Verifikation (Live, minimal-invasiv)
 
 1. **Signatur greift**: unsignierter POST auf den Live-Webhook → **400**
-   (`curl -X POST https://studio.pukalani.app/api/stripe/webhook -d '{}'`).
+   (`curl -X POST https://control.pukalani.app/api/stripe/webhook -d '{}'`).
 2. **Echter Mini-Kauf**: mit echter Karte den günstigsten Plan buchen →
    Checkout-Redirect → `billing_subscriptions`-Row wird `active` (live via
    Realtime auf der Billing-Seite) → **danach im Stripe-Dashboard refunden +
