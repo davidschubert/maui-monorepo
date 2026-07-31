@@ -135,6 +135,17 @@ export interface TenantRow extends Models.Row {
    *  bei Rows von VOR der Migration — IMMER über
    *  resolveTenantOpenRegistration() lesen, nie direkt vergleichen. */
   openRegistration: boolean | null
+  /** A6 (control-028): das Abo hängt an der COMMUNITY — Stripe-Kunde dieses
+   *  Vertrags (Geldfluss 1: Community zahlt an Pukalani). '' / `null` (Rows
+   *  von vor der Migration) = nie ein Abo gehabt. */
+  stripeCustomerId: string | null
+  /** Aktuell maßgebliche Stripe-Subscription (Cross-Sub-Guard #6);
+   *  '' / `null` = keine. */
+  stripeSubscriptionId: string | null
+  /** '' / `null` = nie ein Abo; sonst Stripe-Statusraum
+   *  (active/past_due/canceled). Bewusst billingStatus, nicht paymentStatus —
+   *  Geldfluss 2 (F7) kommt später DANEBEN, nie hinein. */
+  billingStatus: string | null
 }
 
 export const TENANTS_TABLE = 'tenants'

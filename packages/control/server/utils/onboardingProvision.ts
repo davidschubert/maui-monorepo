@@ -237,6 +237,11 @@ export async function provisionCommunity(
       // entstand, gilt fürs GRÜNDEN — nicht fürs Beitreten. Umschalten kann die
       // Owner-Rolle jederzeit unter /dashboard/settings/community.
       openRegistration: true,
+      // A6 (control-028): frisch angelegt = nie ein Abo — der Community-
+      // Checkout (Geldfluss 1) füllt die Felder beim ersten Kauf.
+      stripeCustomerId: '',
+      stripeSubscriptionId: '',
+      billingStatus: '',
     },
   }).catch((error) => { throw toH3Error(error, 'Could not create community') })
 

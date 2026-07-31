@@ -35,6 +35,14 @@ describe('Testphase beenden', () => {
     expect(shouldEndTrial({ ...base, status: 'disabled' }, 'basic', NOW)).toBe(false)
   })
 
+  it('A6: ein lebendes COMMUNITY-Abo ist ein Veto — auch past_due (Dunning = Grace)', () => {
+    expect(shouldEndTrial({ ...base, billingStatus: 'active' }, 'basic', NOW)).toBe(false)
+    expect(shouldEndTrial({ ...base, billingStatus: 'past_due' }, 'basic', NOW)).toBe(false)
+    // gekündigt oder nie ein Abo → Testphase endet normal
+    expect(shouldEndTrial({ ...base, billingStatus: 'canceled' }, 'basic', NOW)).toBe(true)
+    expect(shouldEndTrial({ ...base, billingStatus: '' }, 'basic', NOW)).toBe(true)
+  })
+
   it('verträgt fehlende und kaputte Datumswerte, ohne herabzustufen', () => {
     for (const value of [null, '', 'bald', '2026-13-45'] as unknown as string[]) {
       expect(shouldEndTrial({ ...base, trialEndsAt: value }, 'free', NOW), String(value)).toBe(false)

@@ -18,6 +18,10 @@ const LIVE_SUBSCRIPTION_STATUSES = new Set(['active', 'trialing', 'past_due', 'u
 
 export default defineNitroPlugin(() => {
   registerSubscriptionFulfillment(async (event, update) => {
+    // A6-Übergang: BEIDE Pfade nebeneinander. Alte Abos tragen
+    // workspaceId-Metadata, neue (Community-Checkout, Geldfluss 1)
+    // communityId — jeder Handler ignoriert fremde Events selbst. Der
+    // Workspace-Pfad fällt mit A6 Schritt 5.
     await handleWorkspaceSubscriptionUpdate(event, update, {
       hasOtherActiveSubscription: async (event, input) => {
         const subscriptions = await listCustomerSubscriptionSummaries(event, input.stripeCustomerId)
@@ -25,6 +29,16 @@ export default defineNitroPlugin(() => {
           subscription.id !== input.exceptSubscriptionId
           && LIVE_SUBSCRIPTION_STATUSES.has(subscription.status)
           && subscription.metadata.workspaceId === input.workspaceId,
+        )
+      },
+    })
+    await handleCommunitySubscriptionUpdate(event, update, {
+      hasOtherActiveSubscription: async (event, input) => {
+        const subscriptions = await listCustomerSubscriptionSummaries(event, input.stripeCustomerId)
+        return subscriptions.some(subscription =>
+          subscription.id !== input.exceptSubscriptionId
+          && LIVE_SUBSCRIPTION_STATUSES.has(subscription.status)
+          && subscription.metadata.communityId === input.communityId,
         )
       },
     })

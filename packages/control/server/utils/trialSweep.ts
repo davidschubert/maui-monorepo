@@ -24,16 +24,22 @@ import { WORKSPACES_TABLE, type WorkspaceRow } from '../../shared/types/workspac
  * kürzen.
  */
 export function shouldEndTrial(
-  tenant: Pick<TenantRow, 'plan' | 'trialEndsAt' | 'status'>,
+  tenant: Pick<TenantRow, 'plan' | 'trialEndsAt' | 'status'> & Partial<Pick<TenantRow, 'billingStatus'>>,
   workspacePlan: string | null,
   now: number,
 ): boolean {
   if (tenant.status !== 'active') return false
+  // A6: ein eigenes lebendes Community-Abo ist das erste Veto — wer bezahlt
+  // hat, wird nie herabgestuft, auch nicht bei Pro-kauft-Pro (der Kauf löscht
+  // trialEndsAt, aber dieses Netz hält auch ohne). past_due zählt als lebend:
+  // Dunning ist die Grace-Periode, kein Downgrade-Grund.
+  if (tenant.billingStatus === 'active' || tenant.billingStatus === 'past_due') return false
   if (tenant.plan !== TRIAL_PLAN) return false
   if (!tenant.trialEndsAt) return false
   const end = Date.parse(tenant.trialEndsAt)
   if (!Number.isFinite(end) || end > now) return false
   // Bezahlt = Hände weg. normalizeTenantPlan: Alt-Bestand 'free' zählt als basic.
+  // (Workspace-Veto — fällt mit A6 Schritt 5, bis dahin gilt es weiter.)
   return !workspacePlan || normalizeTenantPlan(workspacePlan) === 'basic'
 }
 
