@@ -13,7 +13,7 @@ const { start, demo } = useProductLinks()
       <h2 class="cta-title">{{ t('marketing.cta.title') }}</h2>
       <p class="cta-lead">{{ t('marketing.cta.lead') }}</p>
       <div class="cta-buttons">
-        <UButton :to="start" color="warning" size="xl">{{ t('marketing.cta.primary') }}</UButton>
+        <UButton :to="start" color="primary" size="xl">{{ t('marketing.cta.primary') }}</UButton>
         <UButton :to="demo" variant="ghost" color="neutral" size="xl" icon="i-ph-play-circle" class="cta-ghost">
           {{ t('marketing.cta.secondary') }}
         </UButton>

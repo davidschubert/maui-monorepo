@@ -72,7 +72,7 @@ useSeoMeta({
         <h2 class="vs-cta-title">{{ t('marketing.vs.ctaTitle') }}</h2>
         <p class="vs-cta-lead">{{ t('marketing.vs.ctaLead') }}</p>
         <div class="vs-cta-buttons">
-          <UButton :to="start" color="warning" size="xl">{{ t('marketing.hero.ctaPrimary') }}</UButton>
+          <UButton :to="start" color="primary" size="xl">{{ t('marketing.hero.ctaPrimary') }}</UButton>
           <UButton :to="demo" variant="ghost" color="neutral" size="xl" icon="i-ph-play-circle" class="vs-ghost">
             {{ t('marketing.hero.ctaSecondary') }}
           </UButton>

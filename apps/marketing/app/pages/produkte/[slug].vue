@@ -101,10 +101,10 @@ useSeoMeta({
         </p>
         <div class="feat-cta-buttons">
           <!-- Early Access: KEIN Kauf-/Gratis-CTA — nur anfragen. -->
-          <UButton v-if="isEarlyAccess" :to="signIn" color="warning" size="xl">
+          <UButton v-if="isEarlyAccess" :to="signIn" color="primary" size="xl">
             {{ t('marketing.features.eaCta') }}
           </UButton>
-          <UButton v-else :to="start" color="warning" size="xl">{{ t('marketing.hero.ctaPrimary') }}</UButton>
+          <UButton v-else :to="start" color="primary" size="xl">{{ t('marketing.hero.ctaPrimary') }}</UButton>
           <UButton :to="demo" variant="ghost" color="neutral" size="xl" icon="i-ph-play-circle" class="feat-ghost">
             {{ t('marketing.hero.ctaSecondary') }}
           </UButton>

@@ -114,7 +114,7 @@ const storyTarget = homeSection('#geschichte')
           :to="switchLocalePath(locale === 'de' ? 'en' : 'de')"
           class="lang-switch"
         >{{ locale === 'de' ? 'EN' : 'DE' }}</NuxtLink>
-        <UButton :to="start" class="header-cta" color="warning" size="sm">
+        <UButton :to="start" class="header-cta" color="primary" size="sm">
           {{ t('marketing.nav.start') }}
         </UButton>
       </div>
