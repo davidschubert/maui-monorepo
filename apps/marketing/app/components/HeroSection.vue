@@ -5,6 +5,17 @@
 const { t } = useI18n()
 const { start, demo } = useProductLinks()
 
+const links = computed(() => [
+  { to: start, color: 'primary' as const, label: t('marketing.hero.ctaPrimary') },
+  {
+    to: demo,
+    color: 'neutral' as const,
+    variant: 'outline' as const,
+    icon: 'i-ph-play-circle',
+    label: t('marketing.hero.ctaSecondary'),
+  },
+])
+
 const trust = computed(() => [
   { icon: 'i-ph-flag-bold', label: t('marketing.hero.trust.hosting') },
   { icon: 'i-ph-shield-check-bold', label: t('marketing.hero.trust.tracking') },
@@ -14,137 +25,117 @@ const trust = computed(() => [
 </script>
 
 <template>
-  <section class="hero tone-cloud">
-    <!-- die puka: warmes Licht bricht durch die Wolken (leichter Parallax) -->
-    <div class="hero-puka puka-glow" data-parallax="0.12" aria-hidden="true" />
+  <!--
+    Der Startseiten-Hero ist der einzige ZWEISPALTIGE (`horizontal`): links die
+    Botschaft, rechts das Produktbild. Alle Maße kommen aus dem `pageHero`-
+    Vertrag in app/app.config.ts; die drei Abweichungen dieses einen Heros
+    stehen als Variablen-Überschreibung direkt an der Wurzel — größere
+    Polsterung oben, KEINE unten (die Refrain-Zeile im `#bottom`-Slot trägt sie)
+    und die große Display-Schrift der Startseite.
+    `data-reveal` ist hier entfallen: die Hülle IST jetzt die Sektion, und eine
+    ausgeblendete Sektion nähme den `tone-cloud`-Grund mit — der Bestand hängte
+    das Attribut an einen inneren Textblock, den es nicht mehr gibt.
+  -->
+  <UPageHero
+    as="section"
+    orientation="horizontal"
+    class="hero tone-cloud [--mkt-hero-pb:0px] [--mkt-hero-pt:clamp(4rem,8vw,7rem)] [--mkt-hero-title:clamp(2.4rem,6vw,4.2rem)] [--mkt-lead:clamp(1.1rem,1.7vw,1.35rem)]"
+    :title="t('marketing.hero.title')"
+    :description="t('marketing.hero.sub')"
+    :ui="{
+      // Bestand `.hero-inner`: `1.05fr 0.95fr` — die Botschaft bekommt etwas
+      // mehr Raum als das Bild. Mit den gleichen Hälften der Vorgabe brach
+      // der Lead eine Zeile früher um (gemessen: Spalte 496px statt 542px).
+      container: 'lg:grid-cols-[1.05fr_0.95fr]',
+      wrapper: 'max-w-none',
+      title: 'leading-[1.03] tracking-[-0.025em]',
+    }"
+  >
+    <template #top>
+      <!-- die puka: warmes Licht bricht durch die Wolken (leichter Parallax) -->
+      <div class="hero-puka puka-glow" data-parallax="0.12" aria-hidden="true" />
+    </template>
 
-    <div class="hero-inner mkt-inner">
-      <div class="hero-copy" data-reveal>
-        <p class="mkt-kicker">{{ t('marketing.hero.eyebrow') }}</p>
-        <h1 class="hero-title">{{ t('marketing.hero.title') }}</h1>
-        <p class="hero-sub mkt-lead">{{ t('marketing.hero.sub') }}</p>
+    <template #headline>
+      <p class="mkt-kicker">{{ t('marketing.hero.eyebrow') }}</p>
+    </template>
 
-        <div class="hero-cta">
-          <UButton :to="start" color="primary" size="xl" class="cta-primary">
-            {{ t('marketing.hero.ctaPrimary') }}
-          </UButton>
-          <UButton :to="demo" color="neutral" variant="outline" size="xl" class="cta-secondary" icon="i-ph-play-circle">
-            {{ t('marketing.hero.ctaSecondary') }}
-          </UButton>
-        </div>
-
-        <ul class="hero-trust">
-          <li v-for="item in trust" :key="item.label">
-            <UIcon :name="item.icon" class="trust-icon" />
-            <span>{{ item.label }}</span>
-          </li>
-        </ul>
+    <!--
+      Der `#footer`-Slot statt der `links`-Eigenschaft, weil die Vertrauens-
+      Zeile UNTER den Knöpfen steht: zwischen `footer` und dem Ende des
+      Textblocks gibt es keinen weiteren Slot, und `#body` läge davor. Die
+      Knopf-Liste bleibt trotzdem Daten (`links`), nicht handgeschriebenes
+      Markup.
+    -->
+    <template #footer>
+      <div class="flex flex-wrap gap-3.5">
+        <UButton v-for="link in links" :key="link.label" size="xl" v-bind="link" />
       </div>
 
-      <!-- Produkt-Visual: eine abstrahierte Community-Heimat (Feed · Kurs ·
-           Event) — bewusst KEIN erfundener Screenshot, sondern eine ruhige
-           Andeutung der Bausteine. -->
-      <div class="hero-visual" data-reveal style="--reveal-delay: 160ms" aria-hidden="true">
-        <div class="mock">
-          <div class="mock-bar">
-            <PukaMark :size="18" />
-            <span class="mock-name">deine-community</span>
+      <!--
+        Vertrauens-Zeile = dieselbe Bauform wie die Häkchen-Listen der
+        Unterseiten (UPageFeature: Icon + Zeile), nur waagerecht umbrechend
+        statt gestapelt. Ein eigener Bauklotz war sie im Bestand nur, weil es
+        die Bauform noch nicht gab; `title` ist ein <div>, die vier Zeilen
+        stören die Überschriften-Gliederung also nicht.
+      -->
+      <ul class="mt-7 flex flex-wrap gap-x-6 gap-y-2.5">
+        <UPageFeature
+          v-for="item in trust" :key="item.label"
+          as="li" :icon="item.icon" :title="item.label"
+          :ui="{
+            root: 'items-center gap-1.5',
+            leading: 'p-0',
+            leadingIcon: 'size-[1.05rem] text-primary-600',
+            title: 'text-[0.9rem] font-medium text-toned',
+          }"
+        />
+      </ul>
+    </template>
+
+    <!-- Produkt-Visual: eine abstrahierte Community-Heimat (Feed · Kurs ·
+         Event) — bewusst KEIN erfundener Screenshot, sondern eine ruhige
+         Andeutung der Bausteine. Zweite Rasterspalte = Standard-Slot. -->
+    <div class="hero-visual" aria-hidden="true">
+      <div class="mock">
+        <div class="mock-bar">
+          <PukaMark :size="18" />
+          <span class="mock-name">deine-community</span>
+        </div>
+        <div class="mock-body">
+          <div class="mock-card mock-post">
+            <div class="mock-avatar" />
+            <div class="mock-lines"><span /><span class="short" /></div>
           </div>
-          <div class="mock-body">
-            <div class="mock-card mock-post">
-              <div class="mock-avatar" />
-              <div class="mock-lines"><span /><span class="short" /></div>
-            </div>
-            <div class="mock-card mock-course">
-              <div class="mock-thumb" />
-              <div class="mock-lines"><span class="mid" /><span class="short" /></div>
-            </div>
-            <div class="mock-card mock-event">
-              <div class="mock-date"><b>24</b><small>JUL</small></div>
-              <div class="mock-lines"><span class="mid" /><span class="short" /></div>
-            </div>
+          <div class="mock-card mock-course">
+            <div class="mock-thumb" />
+            <div class="mock-lines"><span class="mid" /><span class="short" /></div>
+          </div>
+          <div class="mock-card mock-event">
+            <div class="mock-date"><b>24</b><small>JUL</small></div>
+            <div class="mock-lines"><span class="mid" /><span class="short" /></div>
           </div>
         </div>
       </div>
     </div>
 
-    <p class="hero-refrain" data-reveal>{{ t('marketing.hero.refrain') }}</p>
-  </section>
+    <template #bottom>
+      <p class="relative pb-[clamp(3rem,6vw,5rem)] pt-14 text-center text-[1.05rem] italic text-primary-600">
+        {{ t('marketing.hero.refrain') }}
+      </p>
+    </template>
+  </UPageHero>
 </template>
 
 <style scoped>
-.hero {
-  position: relative;
-  padding: clamp(4rem, 8vw, 7rem) 1.5rem clamp(3rem, 6vw, 5rem);
-  overflow: clip;
-}
+/* Nur noch das BILDMOTIV: der Lichtkreis und das Produkt-Mock. Rhythmus,
+   Breite und Typografie des Heros kommen aus dem `pageHero`-Vertrag. */
 .hero-puka {
   top: -14rem;
   right: -10rem;
   width: 38rem;
   height: 38rem;
   opacity: 0.75;
-}
-.hero-inner {
-  position: relative;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 3rem;
-  align-items: center;
-}
-.hero-title {
-  font-size: clamp(2.4rem, 6vw, 4.2rem);
-  font-weight: 850;
-  line-height: 1.03;
-  letter-spacing: -0.025em;
-  margin: 0.6rem 0 1.1rem;
-  text-wrap: balance;
-}
-.hero-sub { font-size: clamp(1.1rem, 1.7vw, 1.35rem); }
-.hero-cta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.85rem;
-  margin: 2rem 0 1.75rem;
-}
-/* Der sekundäre CTA steht auf HELLEM Grund (tone-cloud). Die Ghost-Variante war
-   dort doppelt schwach: viel zu helle Schrift (unlesbar) UND ohne Kante nicht als
-   Button erkennbar. Jetzt: sichtbare Kante + Ink-Text (hoher Kontrast); beim
-   Hover wechselt NUR die Fläche, nicht die Textfarbe — ein Farbwechsel nach
-   Orange lag mit 2,8:1 unter der Lesbarkeitsschwelle.
-   Das steht seit der Theme-Brücke (Paket 1) NICHT mehr hier: es ist ein
-   compoundVariant für color="neutral" + variant="outline" in app/app.config.ts.
-   Dort gilt es für die Variante statt für diese eine Instanz — und braucht kein
-   `!important` mehr, weil es aus derselben Quelle kommt wie die Variante selbst
-   (vorher kämpften sechs !important gegen die Utility-Klassen von Nuxt UI). */
-.hero-trust {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem 1.4rem;
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-.hero-trust li {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: hsl(var(--puka-ink-soft));
-}
-.trust-icon {
-  color: hsl(var(--puka-sun-deep));
-  width: 1.05rem;
-  height: 1.05rem;
-}
-.hero-refrain {
-  position: relative;
-  text-align: center;
-  margin: 3.5rem auto 0;
-  font-style: italic;
-  color: hsl(var(--puka-sun-deep));
-  font-size: 1.05rem;
 }
 
 /* Produkt-Mock (abstrakt, on-brand) */
@@ -201,8 +192,4 @@ const trust = computed(() => [
 }
 .mock-lines span.mid { width: 80%; }
 .mock-lines span.short { width: 52%; }
-
-@media (min-width: 900px) {
-  .hero-inner { grid-template-columns: 1.05fr 0.95fr; gap: 3.5rem; }
-}
 </style>

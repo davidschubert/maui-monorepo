@@ -33,17 +33,30 @@ useSeoMeta({
 
 <template>
   <div class="legal-page">
-    <section class="legal-hero tone-mist">
-      <div class="mkt-inner mkt-narrow" data-reveal>
+    <!--
+      Auch der Rechtsseiten-Kopf ist ein `UPageHero`, kein `UPageHeader`:
+      dessen Trennlinie und feste `py-8` gehören zu einer Dashboard-Kopfzeile,
+      hier steht ein randloses `tone-mist`-Band mit dem Rhythmus aller anderen
+      Köpfe. Die zwei Maße dieses etwas gedrängteren Kopfes stehen als
+      Variablen an der Wurzel.
+    -->
+    <UPageHero
+      as="section"
+      class="tone-mist [--mkt-hero-pb:clamp(2rem,4vw,3rem)] [--mkt-hero-pt:clamp(3rem,7vw,5rem)] [--mkt-hero-title:clamp(1.8rem,4.2vw,2.6rem)]"
+      :title="t(`${base}.title`)"
+      :description="t(`${base}.lead`)"
+      :ui="{ body: 'mt-7' }"
+    >
+      <template #headline>
         <UButton
           :to="localePath('/')" variant="link" color="neutral" size="sm"
           icon="i-ph-arrow-left-bold"
-          class="mb-5 px-0 font-semibold text-toned hover:text-primary-600"
+          class="mb-3 px-0 font-semibold text-toned hover:text-primary-600"
           :label="t('marketing.legal.backHome')"
         />
-        <h1 class="legal-title">{{ t(`${base}.title`) }}</h1>
-        <p class="mkt-lead">{{ t(`${base}.lead`) }}</p>
+      </template>
 
+      <template #body>
         <!-- Der Entwurfs-Hinweis ist der erste Block der Seite, nicht das
              Kleingedruckte: Titel (das frühere Badge) + Text.
              `primary` (die Sonne), NICHT `warning`: der Bestand malte diesen
@@ -54,7 +67,6 @@ useSeoMeta({
           color="primary" variant="subtle" icon="i-ph-warning-bold"
           :title="t('marketing.legal.draftBadge')"
           :description="t('marketing.legal.draftNote')"
-          class="mt-7"
           :ui="{
             title: 'text-sm font-extrabold uppercase tracking-wide',
             description: 'text-base/relaxed opacity-100',
@@ -73,8 +85,8 @@ useSeoMeta({
             <UIcon name="i-ph-arrow-right-bold" class="size-4" />
           </ULink>
         </p>
-      </div>
-    </section>
+      </template>
+    </UPageHero>
 
     <section class="mkt-section tone-cloud">
       <div class="mkt-inner mkt-narrow legal-body" data-reveal>
@@ -89,15 +101,6 @@ useSeoMeta({
 </template>
 
 <style scoped>
-.legal-hero {
-  padding: clamp(3rem, 7vw, 5rem) 1.5rem clamp(2rem, 4vw, 3rem);
-}
-.legal-title {
-  font-size: clamp(1.8rem, 4.2vw, 2.6rem);
-  font-weight: 850;
-  letter-spacing: -0.02em;
-  margin: 0.25rem 0 0.85rem;
-}
 .legal-body {
   display: flex;
   flex-direction: column;

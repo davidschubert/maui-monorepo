@@ -100,37 +100,12 @@
 }
 .marketing-site .tone-ink .mkt-lead { color: hsl(var(--puka-mist) / 0.85); }
 
-/* ── Geteilte Bausteine der Unterseiten (Zurück-Link + Abschluss-CTA) ─────── */
-.marketing-site .mkt-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: hsl(var(--puka-ink-soft));
-  text-decoration: none;
-  margin-bottom: 1.25rem;
-}
-.marketing-site .mkt-back:hover { color: hsl(var(--puka-sun-deep)); }
-
-.marketing-site .mkt-cta-block {
-  padding: clamp(3rem, 7vw, 5rem) 1.5rem;
-  text-align: center;
-}
-.marketing-site .mkt-cta-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.marketing-site .mkt-cta-title {
-  font-size: clamp(1.6rem, 3.6vw, 2.4rem);
-  font-weight: 850;
-  margin: 0.9rem 0 0.6rem;
-  color: hsl(var(--puka-cloud));
-  text-wrap: balance;
-}
-.marketing-site .mkt-cta-lead { color: hsl(var(--puka-mist) / 0.85); }
-.marketing-site .mkt-cta-btn { margin-top: 1.75rem; }
+/* Der Zurück-Link (`.mkt-back`) und der Abschluss-CTA (`.mkt-cta-*`) standen
+ * hier bis Paket 3. Beide sind jetzt Nuxt-UI-Bausteine: der Link ist ein
+ * `UButton variant="link"` (ein Muster für alle acht Unterseiten, vorher war
+ * er auf den Rechtsseiten schon ein Knopf und sonst ein NuxtLink), der
+ * Schlussblock ist `UPageCTA` mit dem `pageCTA`-Vertrag in app/app.config.ts.
+ */
 
 /* ── Die puka: eine wiederkehrende kreisförmige Lichtöffnung ───────────────── */
 .marketing-site .puka-glow {

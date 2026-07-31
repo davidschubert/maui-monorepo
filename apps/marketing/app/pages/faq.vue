@@ -12,6 +12,10 @@ const localePath = useLocalePath()
 const { start } = useProductLinks()
 useReveal()
 
+const ctaLinks = computed(() => [
+  { to: start, color: 'primary' as const, size: 'xl' as const, label: t('marketing.cta.primary') },
+])
+
 const ogImage = useOgImage('faq')
 
 useSeoMeta({
@@ -41,38 +45,44 @@ useHead(() => ({
 
 <template>
   <div class="faq-page">
-    <section class="faq-page-hero tone-mist">
-      <div class="mkt-inner mkt-narrow" data-reveal>
-        <NuxtLink :to="localePath('/')" class="mkt-back">
-          <UIcon name="i-ph-arrow-left-bold" /> {{ t('marketing.legal.backHome') }}
-        </NuxtLink>
+    <!--
+      Auch dieser schlanke Kopf ist ein `UPageHero` und KEIN `UPageHeader`:
+      `UPageHeader` bringt eine untere Trennlinie und eine feste `py-8` mit —
+      die Optik einer Dashboard-Seitenkopfzeile. Die Marketing-Köpfe sind
+      randlose `tone-*`-Bänder mit stufenlosem Rhythmus, und das ist die
+      Bauform von `UPageHero`. „Schlank" heißt hier nur: weniger gefüllte
+      Eigenschaften (kein Lead), nicht ein anderer Bauklotz — zwei Verträge für
+      dieselbe Optik wären eine Doppelpflege.
+      Die drei abweichenden Maße stehen als Variablen an der Wurzel.
+    -->
+    <UPageHero
+      as="section"
+      class="tone-mist [--mkt-hero-pb:clamp(1.5rem,3vw,2.5rem)] [--mkt-hero-pt:clamp(3rem,7vw,5rem)] [--mkt-hero-title:clamp(1.8rem,4.2vw,2.6rem)]"
+      :title="t('marketing.faq.title')"
+    >
+      <template #headline>
+        <UButton
+          :to="localePath('/')" variant="link" color="neutral" size="sm"
+          icon="i-ph-arrow-left-bold"
+          class="mb-5 px-0 font-semibold text-toned hover:text-primary-600"
+          :label="t('marketing.legal.backHome')"
+        />
         <p class="mkt-kicker">{{ t('marketing.faq.kicker') }}</p>
-        <h1 class="faq-page-title">{{ t('marketing.faq.title') }}</h1>
-      </div>
-    </section>
+      </template>
+    </UPageHero>
 
     <FaqSection />
 
-    <section class="mkt-cta-block tone-ink">
-      <div class="mkt-inner mkt-narrow mkt-cta-inner" data-reveal>
-        <PukaMark :size="38" />
-        <h2 class="mkt-cta-title">{{ t('marketing.cta.title') }}</h2>
-        <p class="mkt-cta-lead">{{ t('marketing.cta.lead') }}</p>
-        <UButton :to="start" color="primary" size="xl" class="mkt-cta-btn">
-          {{ t('marketing.cta.primary') }}
-        </UButton>
-      </div>
-    </section>
+    <UPageCTA
+      as="section"
+      class="tone-ink"
+      :description="t('marketing.cta.lead')"
+      :links="ctaLinks"
+    >
+      <template #title>
+        <PukaMark :size="38" class="mx-auto mb-3.5 block" />
+        {{ t('marketing.cta.title') }}
+      </template>
+    </UPageCTA>
   </div>
 </template>
-
-<style scoped>
-.faq-page-hero { padding: clamp(3rem, 7vw, 5rem) 1.5rem clamp(1.5rem, 3vw, 2.5rem); }
-.faq-page-title {
-  font-size: clamp(1.8rem, 4.2vw, 2.6rem);
-  font-weight: 850;
-  letter-spacing: -0.02em;
-  margin-top: 0.4rem;
-  text-wrap: balance;
-}
-</style>
