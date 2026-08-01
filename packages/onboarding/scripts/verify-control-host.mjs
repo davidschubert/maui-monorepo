@@ -44,9 +44,9 @@ function check(label, ok, detail = '') {
   }
 }
 
-function get(host, path) {
+function get(host, path, headers = {}) {
   return new Promise((resolve, reject) => {
-    const req = request({ host: '::1', port: PORT, path, method: 'GET', headers: { host } }, (res) => {
+    const req = request({ host: '::1', port: PORT, path, method: 'GET', headers: { host, ...headers } }, (res) => {
       let body = ''
       res.on('data', chunk => body += chunk)
       res.on('end', () => resolve({ status: res.statusCode, location: res.headers.location, body }))
@@ -82,6 +82,14 @@ const unknown = await get('fremd.localhost', '/')
 check('unbekannter Host → 404', unknown.status === 404, `Status ${unknown.status}`)
 const unknownApi = await get('fremd.localhost', '/api/comments?targetType=page&targetId=home')
 check('unbekannter Host, API → 404', unknownApi.status === 404, `Status ${unknownApi.status}`)
+// C12b: Der 404 muss die GEBRANDETE Fehlerseite tragen — vor dem Fix rannte
+// der /__nuxt_error-Render in denselben Host-404 und Nuxt fiel auf sein
+// eingebautes Template zurück („500 - Unknown host" bei Status 404).
+const unknownHtml = await get('fremd.localhost', '/', { accept: 'text/html' })
+const unknownTitle = (unknownHtml.body.match(/<title>([^<]*)<\/title>/) || [])[1] ?? ''
+check('unbekannter Host → gebrandete 404-Seite (kein „500 - Unknown host")',
+  unknownHtml.status === 404 && unknownTitle.includes('404') && !unknownTitle.includes('500'),
+  `Status ${unknownHtml.status}, <title> „${unknownTitle}"`)
 
 console.log(`\n${fail === 0 ? '✔' : '✗'} ${pass} bestanden, ${fail} fehlgeschlagen\n`)
 process.exit(fail === 0 ? 0 : 1)
