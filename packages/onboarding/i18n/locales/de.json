@@ -3,6 +3,16 @@
     "layout": {
       "footer": "Pukalani · Community-Software aus Deutschland, gehostet in Deutschland"
     },
+    "communities": {
+      "title": "Deine Communities",
+      "heading": "Deine Communities",
+      "intro": "Wähle eine Community, um in ihr Dashboard zu gehen.",
+      "create": "Neue Community anlegen",
+      "emptyTitle": "Noch keine Community",
+      "emptyText": "Sobald du eine Community anlegst oder in eine eingeladen wirst, steht sie hier.",
+      "trialEnding": "Noch 1 Tag Testphase | Noch {n} Tage Testphase",
+      "trialEnded": "Testphase beendet — läuft im Tarif Basic"
+    },
     "gate": {
       "title": "Community einrichten",
       "heading": "Willkommen, {name}.",

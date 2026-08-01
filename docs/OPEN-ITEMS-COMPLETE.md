@@ -1200,7 +1200,8 @@ Sprachen inkl. Singular/Plural.
 control.pukalani.app, nie auf my.* — es gab weder ein Ziel für einen Redirect
 noch Code-/Mail-/Stripe-Verweise (Inventar geprüft; nur zwei Doku-Stellen,
 beide mit datierten Hinweisen markiert statt blind umgeschrieben). Dabei die
-ECHTE Lücke gefunden: my.* hat keine Landeseite für Bestandskunden → F12.
+ECHTE Lücke gefunden: my.* hat keine Landeseite für Bestandskunden → F12
+(am selben Tag gebaut, Eintrag unten).
 
 **Gelernt:** (1) Ein Listen-Eintrag altert wie eine Diagnose — „Umzug
 /workspace→my.*" beschrieb einen Zustand von vor A6; erst Bestandsaufnahme,
@@ -1209,6 +1210,86 @@ Appwrite gibt Datetimes als `…+00:00` zurück, `toISOString()` schreibt `…Z`
 — String-Vergleiche auf Datetime-Spalten sind ewig falsch, immer als
 Zeitpunkt vergleichen. (3) Vertragszustands-Daten gehören nicht in den
 SSR-Payload öffentlicher Seiten, auch wenn es bequem wäre.
+
+### F12 — `my.pukalani.app` ist jetzt der Kundenbereich ✅ 2026-08-01
+
+**Befund (aus M13):** `my.*` hatte keine Landeseite. `/` leitete auf JEDEM
+Kontroll-Host hart nach `/start`, und weil `useAuthRedirect()` mangels
+`?redirect=` auf `/` zurückfällt, landete auch der Post-Login-Redirect dort —
+ein Bestandskunde wurde in seinem eigenen Kundenbereich mit „Neue Community
+anlegen" begrüßt.
+
+**Gebaut (Davids Entscheidung: Kunden-Übersicht mit Plan-Badge +
+Testphase-Status).** `my./` zeigt „Deine Communities": Name, Adresse, eigene
+Rolle, Plan-Badge, Testphasen-Hinweis; Klick → Handoff-Token → `https://<host>/
+dashboard`, eingeloggt (dasselbe 60-s-Siegel wie am Wizard-Ende). Wer 0
+Communities hat, wird weiter in den Wizard geschickt — für den Neukunden war
+das alte Verhalten immer richtig. Ausgeloggt greift der bestehende Auth-Guard
+und bringt danach auf die Übersicht zurück (`?redirect=`).
+
+**Vier Entscheidungen, die den Bau tragen:**
+
+1. **Zwei Kontroll-Hosts, zwei Aufgaben.** Neue Achse
+   `pukalani.tenancy.wizardHosts` (Env `NUXT_PUBLIC_TENANCY_WIZARD_HOSTS`,
+   Prod `['start.pukalani.app']`) statt „der erste `controlHost` ist der
+   Kundenbereich" — eine Reihenfolge-Regel kippt beim nächsten Env-Override
+   unbemerkt. Pure, unit-getestete Funktion `controlHomeTarget()` in
+   `core/shared/controlCenter.ts`; ein `?code=` schlägt beides (weitergeleitete
+   Einladungs-Mail auf `my.*` darf den Code nicht verlieren).
+2. **Post-Login blieb unangetastet.** Der Redirect zeigt weiter auf `/`; dass
+   `/` jetzt woanders hinführt, erledigt dieselbe eine Middleware. Kein
+   zweiter Ort, an dem ein Ziel gepflegt werden muss.
+3. **Kein neuer API-Präfix — bewusst geprüft, nicht übersehen.**
+   `GET /api/onboarding/communities` fällt unter den schon eingetragenen
+   Präfix `/api/onboarding/`, und der Grund der Allowlist (auf einem Host ohne
+   Mandant scopt nichts) trifft hier nicht zu: die Route berührt keine Tabelle
+   des Runtime-Projekts, sie mintet ein JWT und lässt das Control Plane
+   antworten (`POST /api/control/community/mine`), das nur nach der Identität
+   AUS diesem JWT sucht. Auf einem Mandanten-Host antwortet sie 404 — Route
+   UND Seite, denn eine versteckte Seite sperrt keine Route.
+4. **Karten statt `UTable`** (bewusste Abweichung von Davids Regel B6, im Kopf
+   der Seite begründet): die Liste ist per Konstruktion kurz (eigene
+   Communities auf 3 gedeckelt), jeder Eintrag ist ein SPRUNG AUF EINEN
+   ANDEREN HOST statt ein Datensatz zum Vergleichen, und es ist das Erste, was
+   ein Kunde nach der Anmeldung sieht — oft auf dem Telefon. Wo dieselben
+   Daten zum VERWALTEN stehen (`/dashboard/members`), bleibt UTable.
+
+**Die Testphase reist nur zum Zahlenden.** `trialEndsAt` steht in der Antwort
+nur für Mitgliedschaften, deren Rolle `community.billing` trägt (heute:
+owner) — dieselbe Grenze, die M13 für `/api/community/billing/trial` gezogen
+hat. Der **Plan** dagegen steht für alle: er liegt ohnehin im SSR-Payload
+jeder Community-Seite (`tenant-brand.server.ts` spiegelt ihn für
+`planAllows()`), ihn hier zu verschweigen wäre eine Geheimhaltung, die einen
+Klick weiter nicht existiert. Der Umschlag trägt exakt sechs Felder — kein
+`stripeCustomerId`, kein `projectId`, kein `tenantId`.
+
+**Beweis:** `packages/onboarding/scripts/verify-my-overview.mjs` **25/25** —
+zwei echte Wizard-Communities, Alice sieht genau ihre beiden (Bobs nicht),
+Bob nur seine, ein Konto ohne Mitgliedschaft nichts, ein **entferntes**
+Mitglied (`status='removed'`) die Community NICHT; Owner mit Testphasen-Datum
+vs. Viewer derselben Zeile mit `null`; Feld-Liste des Umschlags; Gast 401,
+Mandanten-Host 404 (Route + Seite); alle sechs Wege von `/` (my./ →
+Übersicht · 0 Communities → Wizard · ausgeloggt → Login mit `?redirect=` ·
+start./ → Wizard · `?code=` auf beiden Hosts → Wizard mit Code). Dazu 6+4
+Unit-Tests (`myCommunities.test.ts`, `controlCenter.test.ts`) und der
+Browser-Beweis in beiden Sprachen. `pnpm -r test` grün, typecheck grün, lint
+mit den 6 bekannten Warnungen, `check:manifests` konsistent.
+
+**Gelernt:** (1) **Ein „Redirect-Ziel ändern" ist selten eine Zeile.** Die
+ehrliche Frage war nicht „wohin zeigt `/`?", sondern „welcher Host ist das
+hier?" — ohne die neue Achse hätte `start.pukalani.app` still seinen Zweck
+verloren, und genau das wäre erst dem ersten Kunden aufgefallen, der den
+Kurz-Link aus einer Bio anklickt. (2) **Eine Liste eigener Dinge ist trotzdem
+eine Datengrenze.** Der erste Entwurf hätte Plan und Testphase pauschal
+mitgeliefert; erst der Blick auf M13 zeigte, dass „diese Community testet
+noch" eine Aussage über den Vertrag ist — und dass der Plan es NICHT ist. Wer
+Felder aus einer Zeile in einen Payload hebt, muss jedes einzeln begründen.
+(3) **Nuxt fasst verkettete Middleware-Weiterleitungen zu EINEM 302
+zusammen** — `my./` ausgeloggt antwortet direkt `/login?redirect=/communities`,
+nicht erst `/communities`. Ein Beweis, der auf die Zwischenstufe wartet, misst
+etwas, das es nie gibt. (4) Ein Wegwerf-Skript im Scratchpad findet
+`node-appwrite` nicht (pnpm-Store) — es muss im Paket-Verzeichnis liegen, das
+die Abhängigkeit hat.
 
 ### F11 — Gäste holen keinen Realtime-Token mehr ✅ 2026-08-01
 

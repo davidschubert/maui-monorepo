@@ -177,6 +177,11 @@ export default defineNuxtConfig({
         // von pukalani.tenancy.controlHosts — die Hosts unterscheiden sich je
         // Umgebung (lokal app.localhost, Prod app.pukalani.app).
         controlHosts: '',
+        // Die Kontroll-Hosts, auf denen `/` direkt in den Anlege-Wizard führt
+        // (F12), kommagetrennt: NUXT_PUBLIC_TENANCY_WIZARD_HOSTS. Laufzeit-
+        // Override von pukalani.tenancy.wizardHosts — lokal heißen sie anders
+        // als in Produktion (start.localhost vs. start.pukalani.app).
+        wizardHosts: '',
       },
     },
   },

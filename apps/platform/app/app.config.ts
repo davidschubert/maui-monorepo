@@ -76,6 +76,12 @@ export default defineAppConfig({
       // jeder unbekannte Host. `app` bleibt in RESERVED_SUBDOMAINS gesperrt —
       // ein Selbstbedienungs-Kunde darf den Namen NIE bekommen (Phishing).
       controlHosts: ['my.pukalani.app', 'start.pukalani.app'],
+      // F12: `start.*` ist der Kurz-Link in den Wizard — dort bleibt `/` der
+      // Trichter. `my.*` ist der KUNDENBEREICH und zeigt seit F12 die
+      // Übersicht „Deine Communities"; wer dort keine hat, wird von der
+      // Übersicht selbst in den Wizard weitergeschickt. Lokal per
+      // NUXT_PUBLIC_TENANCY_WIZARD_HOSTS überschreiben.
+      wizardHosts: ['start.pukalani.app'],
       // H3-4.3 Quota (Blueprint S4): Pool-Kunden erschöpfen den geteilten
       // Server nicht. PRO PLAN gestaffelt (David-Freigabe 2026-07-23) — der
       // Tenant trägt seinen Plan (tenants.plan, control-013, Default free).

@@ -61,6 +61,40 @@ export function isTenantHost(
 }
 
 /**
+ * Wohin führt `/` auf einem KONTROLL-Host? PURE (unit-getestet).
+ *
+ * Bis F12 gab es darauf nur eine Antwort: der Wizard. Das war richtig, solange
+ * es nur Neukunden gab, und wurde zur Zumutung, sobald jemand eine Community
+ * HAT — `my.pukalani.app` begrüßte den Bestandskunden mit „Neue Community
+ * anlegen" statt mit seiner eigenen.
+ *
+ * Zwei Kontroll-Hosts, zwei Aufgaben (Davids Namensentscheidung 2026-07-25):
+ *  - `my.*`    = Kundenbereich  → die ÜBERSICHT ist das Zuhause.
+ *  - `start.*` = Kurz-Link in den Wizard (Visitenkarte, Bio, Einladungs-Mail)
+ *                → dort bleibt `/` der Trichter. Wer diesen Namen abtippt, will
+ *                anlegen; ihn auf eine Liste zu werfen, wäre ein Bruch des
+ *                Versprechens, das im Hostnamen steht.
+ *
+ * `hasInviteCode` schlägt beides: `?code=…` ist eine unmissverständliche
+ * Absicht und kommt auch auf `my.*` vor (weitergeleitete Mail, kopierter Link).
+ * Ein Code, der auf einer Übersicht landet, wäre still verloren.
+ *
+ * Die Liste der Wizard-Hosts ist eine EIGENE Achse, keine Reihenfolge in
+ * controlHosts: „der erste Eintrag ist der Kundenbereich" wäre eine Regel, die
+ * beim nächsten Env-Override unbemerkt kippt.
+ */
+export type ControlHomeTarget = 'wizard' | 'overview'
+
+export function controlHomeTarget(
+  host: string | undefined | null,
+  wizardHosts: readonly string[],
+  hasInviteCode: boolean,
+): ControlHomeTarget {
+  if (hasInviteCode) return 'wizard'
+  return isControlHost(host, wizardHosts) ? 'wizard' : 'overview'
+}
+
+/**
  * Darf dieser API-Pfad auf einem Kontroll-Host laufen?
  *
  * FAIL-CLOSED — nur ausdrücklich erlaubte Präfixe kommen durch. Der Grund ist

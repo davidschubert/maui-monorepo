@@ -3,6 +3,16 @@
     "layout": {
       "footer": "Pukalani · Community software made and hosted in Germany"
     },
+    "communities": {
+      "title": "Your communities",
+      "heading": "Your communities",
+      "intro": "Pick a community to open its dashboard.",
+      "create": "Create a new community",
+      "emptyTitle": "No community yet",
+      "emptyText": "Once you create a community or get invited to one, it shows up here.",
+      "trialEnding": "1 day left in your trial | {n} days left in your trial",
+      "trialEnded": "Trial ended — running on the Basic plan"
+    },
     "gate": {
       "title": "Set up your community",
       "heading": "Welcome, {name}.",

@@ -218,6 +218,19 @@ export default defineAppConfig({
        */
       controlHosts: [] as string[],
       /**
+       * WIZARD-Hosts: die Teilmenge der Kontroll-Hosts, auf denen `/` direkt in
+       * den Anlege-Trichter führt (F12). Alle übrigen Kontroll-Hosts zeigen
+       * dort die Kunden-Übersicht („Deine Communities").
+       *
+       * Eigene Achse statt „der erste controlHost ist der Kundenbereich": eine
+       * Reihenfolge-Regel kippt beim nächsten Env-Override unbemerkt. Leer =
+       * kein Wizard-Host → jeder Kontroll-Host beginnt bei der Übersicht (und
+       * die schickt Konten OHNE Community von selbst weiter).
+       *
+       * Laufzeit-Override: NUXT_PUBLIC_TENANCY_WIZARD_HOSTS (kommagetrennt).
+       */
+      wizardHosts: [] as string[],
+      /**
        * Was auf einem Kontroll-Host überhaupt aufgerufen werden darf (Präfix-
        * Vergleich, fail-closed: alles andere → 404).
        *

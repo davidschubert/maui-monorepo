@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 10 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 9 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-01**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -22,7 +22,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
 | 11 · B1 | **Neun visuelle Referenzbilder sichten** — sie sind jetzt FINAL: erst beim E7-Browserwechsel neu aufgenommen, dann am 2026-08-01 noch einmal, weil `/visual` drei rohe Übersetzungs-Schlüssel anzeigte (jetzt echter Text, Seite dadurch etwas kürzer). Zu prüfen bleibt nur der Inhalt: `git show HEAD:<pfad>` gegen die Arbeitskopie halten. | Mittel | S — ansehen | Ja: David sichtet | [Notizen](#notizen) |
 | 25 · M13 | **Selbstbedienungs-Rest, noch zwei Stücke:** Sperr-/Missbrauchspfad (braucht Davids Regeln: wann sperren?) und Statusseite bei UptimeRobot (Klick, mit E2 bündeln). Testphase-Hinweis ✅ gebaut; `/workspace`-Umzug war gegenstandslos (mit A6 abgeschafft, kein Ziel für einen Redirect). | Mittel | S — Regeln + Klicks | Ja: Regeln + Klicks | [SAAS-ROADMAP #1](archiv/SAAS-ROADMAP.md) |
-| 36 · F12 | **`my.pukalani.app` hat keine Landeseite** (M13-Fund): `/` leitet hart in den Anlege-Wizard, und der Post-Login-Redirect schickt Bestandskunden dorthin — sie sehen „Neue Community anlegen" statt ihrer Communities. Die Roadmap-Zusage „my.* = Kundenbereich" ist nur halb eingelöst. | Mittel | M | Nein — Vorschlag kommt | M13 in COMPLETE |
 | 27 · E1 | **Tote Schlüsseldatei löschen** (`apps/control/.env.production` zeigt auf ein gelöschtes Projekt). Liegt nur auf Davids Rechner, nicht im Repo. | Niedrig | S — eine Datei | Ja: enthält Schlüsselmaterial | [Notizen](#notizen) |
 | 28 · E2 | **UptimeRobot nachziehen:** Monitor für `help.pukalani.app` anlegen, einen alten Monitor umbenennen. | Niedrig | S — zwei Klicks | Nein | [Notizen](#notizen) |
 | 29 · E3 | **Server-Größe prüfen** — der CX33 wird mit sechs Apps plus Builds knapp. | Mittel | S — prüfen, ggf. Rescale | Ja: kostet Geld | [Notizen](#notizen) |

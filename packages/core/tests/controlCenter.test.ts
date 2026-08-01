@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isAllowedControlPath, isControlHost, isTenantHost, parseControlHosts, resolveControlHosts } from '../shared/controlCenter'
+import { controlHomeTarget, isAllowedControlPath, isControlHost, isTenantHost, parseControlHosts, resolveControlHosts } from '../shared/controlCenter'
 
 const PREFIXES = ['/api/auth/', '/api/onboarding/', '/api/health', '/api/telemetry/']
 
@@ -66,6 +66,33 @@ describe('Mandanten-Host erkennen (Betreiber-Inhalt sperren, N7)', () => {
     // darf auch dann nicht durchrutschen, wenn hier etwas Unerwartetes ankommt.
     for (const host of ['', undefined, null, 'irgendwas.example.com']) {
       expect(isTenantHost(true, host, CONTROL), String(host)).toBe(true)
+    }
+  })
+})
+
+describe('Wohin führt `/` auf einem Kontroll-Host? (F12)', () => {
+  const WIZARD = ['start.pukalani.app']
+
+  it('schickt den Kurz-Link-Host in den Wizard', () => {
+    expect(controlHomeTarget('start.pukalani.app', WIZARD, false)).toBe('wizard')
+    expect(controlHomeTarget('START.Pukalani.app', WIZARD, false)).toBe('wizard')
+  })
+
+  it('zeigt auf dem Kundenbereich die Übersicht', () => {
+    expect(controlHomeTarget('my.pukalani.app', WIZARD, false)).toBe('overview')
+  })
+
+  it('lässt ein `?code=` immer in den Wizard — auch auf dem Kundenbereich', () => {
+    // Weitergeleitete Mail, kopierter Link: die Absicht steht in der Query.
+    expect(controlHomeTarget('my.pukalani.app', WIZARD, true)).toBe('wizard')
+    expect(controlHomeTarget('start.pukalani.app', WIZARD, true)).toBe('wizard')
+  })
+
+  it('ist ohne konfigurierte Wizard-Hosts überall die Übersicht', () => {
+    // Die Übersicht schickt Konten OHNE Community selbst weiter — der
+    // Neukunde landet also auch dann im Trichter, nur einen Schritt später.
+    for (const host of ['my.pukalani.app', 'start.pukalani.app', '', undefined, null]) {
+      expect(controlHomeTarget(host, [], false), String(host)).toBe('overview')
     }
   })
 })

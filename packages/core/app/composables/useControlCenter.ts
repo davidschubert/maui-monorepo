@@ -1,4 +1,4 @@
-import { isControlHost, resolveControlHosts } from '../../shared/controlCenter'
+import { controlHomeTarget, isControlHost, resolveControlHosts, type ControlHomeTarget } from '../../shared/controlCenter'
 
 /**
  * Läuft diese Seite auf einem KONTROLL-Host (Kundenbereich/Onboarding)?
@@ -17,4 +17,26 @@ export function useIsControlCenter(): boolean {
     appConfig.pukalani?.tenancy?.controlHosts,
   )
   return isControlHost(url.hostname, hosts)
+}
+
+/**
+ * Wohin gehört `/` auf DIESEM Kontroll-Host — Trichter oder Übersicht? (F12)
+ *
+ * Dieselbe Auflösungs-Reihenfolge wie oben (Env vor app.config) und dieselbe
+ * pure Regel für SSR und Client, damit die Navigations-Entscheidung nicht
+ * zwischen Server und Browser auseinanderläuft.
+ *
+ * `hasInviteCode` bleibt Sache des Aufrufers: nur die Middleware kennt die
+ * Query der Ziel-Route, und ein Composable, das `useRoute()` liest, wäre in
+ * genau dieser Middleware die falsche Quelle.
+ */
+export function useControlHomeTarget(hasInviteCode: boolean): ControlHomeTarget {
+  const url = useRequestURL()
+  const config = useRuntimeConfig()
+  const appConfig = useAppConfig() as { pukalani?: { tenancy?: { wizardHosts?: string[] } } }
+  const hosts = resolveControlHosts(
+    (config.public as { tenancy?: { wizardHosts?: string } }).tenancy?.wizardHosts,
+    appConfig.pukalani?.tenancy?.wizardHosts,
+  )
+  return controlHomeTarget(url.hostname, hosts, hasInviteCode)
 }
