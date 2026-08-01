@@ -28,7 +28,7 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 28 · E2 | **UptimeRobot nachziehen:** Monitor für `help.pukalani.app` anlegen, einen alten Monitor umbenennen. | Niedrig | S — zwei Klicks | Nein | [Notizen](#notizen) |
 | 29 · E3 | **Server-Größe prüfen** — der CX33 wird mit sechs Apps plus Builds knapp. | Mittel | S — prüfen, ggf. Rescale | Ja: kostet Geld | [Notizen](#notizen) |
 | 30 · E4 | **Nur-Lese-Schlüssel im Projekt `control`** erzeugen (letzter Cutover-Krümel). | Niedrig | S — ein Klick in der Console | Ja: David, Console | [CONTROL-CUTOVER.md](runbooks/CONTROL-CUTOVER.md) |
-| 31 · E7 | **Playwright-Prozesse beenden sich lokal nicht** (nur macOS, in CI sauber). Kostet jeden lokalen Lauf eine Viertelstunde. Nächster Verdacht: System-Chrome statt gebündeltem Chromium. | Niedrig | S — eine Gegenprobe | Nein | [Notizen](#notizen) |
+| 31 · E7 | **Playwright-Prozesse beenden sich lokal nicht** (nur macOS, in CI sauber). Ursache belegt: Chromes `GoogleUpdater` erbt die Browser-Pipes und hält sie offen. Heilen hiesse weg von System-Chrome — das erneuert 9 Theme-Baselines. | Niedrig | M — Browser-Wechsel + Baselines | Ja — Entscheidung | [Notizen](#notizen) |
 
 ## ⏸️ Geparkt / wartet
 
@@ -271,16 +271,36 @@ gegen ein nicht existierendes Projekt laufen. Der richtige Pfad ist
 „Doppel-Zertifikat" ist bewusst KEIN Aufräum-Punkt — Einzelheiten in
 [OPEN-ITEMS-COMPLETE.md](OPEN-ITEMS-COMPLETE.md).
 
-**E7 — Playwright-Worker beenden sich lokal nicht** (macOS): nach grüner Suite
-meldet jeder Worker „did not exit within 300000ms after stop, force-killed it"
-— fünf Fehler ausserhalb der Tests, Exit-Code 1 trotz 15/15 grün, und ein
-Voll-Lauf dauert 17 statt 2 Minuten. **In CI tritt es nicht auf** (Ubuntu,
-~1,6 min sauber), deshalb kein Blocker — aber lokal kostet es jeden Lauf eine
-Viertelstunde und macht „grün" von Hand nachzählbar statt ablesbar.
-Ausgeschlossen: die Test-eigenen `node:http`-Server (Keep-alive-Sockets werden
-jetzt getrennt, Hang bleibt und trifft auch Worker ohne Server). Nächster
-Verdacht: `channel: 'chrome'` (System-Chrome statt gebündeltem Chromium) —
-einmal mit dem Playwright-Chromium gegenprüfen.
+**E7 — Playwright-Worker beenden sich lokal nicht** (macOS): **Ursache am
+2026-07-31 gefunden und belegt** — der alte Verdacht `channel: 'chrome'` war
+richtig, aber der Grund ist ein anderer als vermutet. Der Worker ist fertig
+(Event-Loop leer, Stack steht in `kevent`), hängt aber an zwei offenen
+`net.Socket`-Handles: es sind **stdout/stderr des Browsers**, die Playwright
+beim Start anlegt. Ein Chrome-Start weckt auf macOS `GoogleUpdater`
+(`--wake-all`), und dessen `--crash-handler`-Prozesse **erben diese beiden
+Deskriptoren**. Sie hängen danach an launchd (PPID 1) und leben weiter — der
+Worker bekommt nie EOF, die Handles bleiben aktiv, der Prozess endet nie.
+Beweis: `lsof` zeigt den Peer der Worker-Sockets in `GoogleUpdater` bzw.
+`chrome_crashpad_handler`; in einem Lauf OHNE Hang steht dort nur `/dev/null`.
+
+Damit sind auch die zwei Rätsel erklärt. **Warum CI nie:** Ubuntu hat keinen
+GoogleUpdater. **Warum sprunghaft:** der Updater erbt die Pipes nur, wenn Chrome
+ihn selbst startet — sonst nicht. Dazu ein Befund, der über „Exit 1 nach grün"
+hinausgeht: Playwright startet einen Worker nach jedem FEHLGESCHLAGENEN Test
+neu, und der Neustart wartet auf den alten Worker. Ein Lauf mit roten
+Theme-Baselines stand deshalb bei 21 von 24 Tests **539 s still und kam gar
+nicht mehr weiter** (kein Force-Kill, kein Bericht).
+
+**Über Startflags gibt es keinen Fix:** Playwright übergibt
+`--disable-background-networking`, `--disable-component-update`,
+`--disable-breakpad` und `--no-service-autorun` bereits — der Updater kommt
+trotzdem (nachgemessen an der echten Kommandozeile). Es bleibt die Wahl,
+`channel: 'chrome'` aufzugeben. Das ist BEWUSST nicht nebenbei gemacht: es zieht
+einen Chromium-Download (~120 MB, hier noch nicht vorhanden) nach sich, erneuert
+die 9 eingecheckten `-darwin`-Baselines der Theme-Screenshots und lässt CI einen
+anderen Browser testen als bisher. Sofortmassnahme ohne Code: Chrome neu
+starten — hier lief 149, installiert war 150, und ein offenes Update hält den
+Updater vermutlich (nicht bewiesen) besonders oft wach.
 
 ### Bewusst zurückgestellt (kein Aufgabenpunkt)
 
