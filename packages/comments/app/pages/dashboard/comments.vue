@@ -5,7 +5,7 @@ import type { AdminCommentListResponse, ModeratedComment, ModerationAssist, Mode
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'comments.moderate' })
 
-const { t } = useI18n()
+const { t, te } = useI18n()
 const { formatDate } = useFormatDate()
 const toast = useToast()
 const confirm = useConfirm()
@@ -29,6 +29,16 @@ const { user: me } = useCurrentUser()
 const { capabilities: siteCaps } = useCommunityRole()
 const canManageUsers = computed(() =>
   userHasCapability(me.value, 'users.manage') || siteCaps.value.has('users.manage'))
+
+/**
+ * Inhaltstyp in Klartext (Audit-Befund C12). Die bekannten Typen kommen aus
+ * den eigenen Layern (post, page, event, lesson, comment); alles andere kann
+ * ein Einbetter frei mitgeben — dafür bleibt der Rohwert stehen.
+ */
+function targetTypeLabel(targetType: string): string {
+  const key = `admin.moderation.targetType.${targetType}`
+  return te(key) ? t(key) : targetType
+}
 
 const FILTERS: ModerationFilter[] = ['all', 'reported', 'hidden']
 const FILTER_ICON: Record<ModerationFilter, string> = {
@@ -188,13 +198,16 @@ async function runBulk(action: BulkAction) {
       title: failed.length
         ? t('admin.moderation.bulk.partial', { done: done.length, failed: failed.length })
         : t('admin.moderation.bulk.done', { count: done.length }),
+      // Die Auswahl wird gleich geleert — wo die fehlgeschlagenen Kommentare
+      // danach zu finden sind, muss die Meldung sagen.
+      description: failed.length ? t('comments.moderation.bulkPartialHint') : undefined,
       color: failed.length ? 'warning' : 'success',
     })
     selected.value = new Set()
     await refresh()
   }
   catch {
-    toast.add({ title: t('admin.users.actionFailed'), color: 'error' })
+    toast.add({ title: t('admin.users.actionFailed'), description: t('comments.moderation.bulkFailedHint'), color: 'error' })
   }
 }
 
@@ -226,7 +239,7 @@ async function requestAssist(comment: ModeratedComment) {
     assists.value.set(comment.$id, result)
   }
   catch {
-    toast.add({ title: t('admin.moderation.assist.failed'), color: 'error' })
+    toast.add({ title: t('admin.moderation.assist.failed'), description: t('comments.moderation.assistFailedHint'), color: 'error' })
   }
   finally {
     assistBusy.value = null
@@ -266,13 +279,16 @@ async function moderate(action: PendingAction, comment: ModeratedComment) {
       },
     })
     if (!ok) return
-    if (action === 'block') toast.add({ title: t('admin.users.blocked'), color: 'success' })
+    // Beide Erfolge greifen weiter, als der Titel sagt: Sperren lässt die
+    // Kommentare stehen, Ausblenden schließt zugleich die offenen Meldungen.
+    if (action === 'block') toast.add({ title: t('admin.users.blocked'), description: t('comments.moderation.blockedHint'), color: 'success' })
     else if (action === 'dismiss') toast.add({ title: t('admin.moderation.dismissed'), color: 'success' })
-    else toast.add({ title: t(action === 'hidden' ? 'admin.moderation.hidden' : 'admin.moderation.restored'), color: 'success' })
+    else if (action === 'hidden') toast.add({ title: t('admin.moderation.hidden'), description: t('comments.moderation.hiddenHint'), color: 'success' })
+    else toast.add({ title: t('admin.moderation.restored'), color: 'success' })
     await refresh()
   }
   catch {
-    toast.add({ title: t('admin.users.actionFailed'), color: 'error' })
+    toast.add({ title: t('admin.users.actionFailed'), description: t('comments.moderation.actionFailedHint'), color: 'error' })
   }
   finally {
     release()
@@ -448,8 +464,22 @@ function rowActions(comment: ModeratedComment): DropdownMenuItem[][] {
           </div>
         </template>
 
+        <!--
+          „Ziel" war eine rohe `targetType/targetId`-Zeile (Audit-Befund C12,
+          interne Ids im Kundenblick). Der TYP ist jetzt Klartext, die ID bleibt
+          darunter — sie ist der einzige Weg, den Ort eines Kommentars
+          nachzuschlagen, gehört aber nach hinten und nicht in die erste Zeile.
+
+          Bewusst mit Rückfall auf den Rohwert: `targetType` ist ein OFFENER
+          Raum (die Einbettung erlaubt beliebige Typen, s. embed.vue), ein
+          erfundener Text für einen unbekannten Typ wäre schlimmer als der
+          echte Schlüssel.
+        -->
         <template #target-cell="{ row }">
-          <span class="font-mono text-xs text-muted">{{ row.original.targetType }}/{{ row.original.targetId }}</span>
+          <div class="flex min-w-0 flex-col">
+            <span class="truncate text-sm">{{ targetTypeLabel(row.original.targetType) }}</span>
+            <span class="truncate font-mono text-xs text-dimmed" :title="row.original.targetId">{{ row.original.targetId }}</span>
+          </div>
         </template>
 
         <template #status-cell="{ row }">

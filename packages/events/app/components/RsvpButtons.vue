@@ -43,10 +43,16 @@ async function setRsvp(status: RsvpStatus) {
   }
   catch (error) {
     const statusCode = (error as { statusCode?: number }).statusCode
-    const title = statusCode === 403 && status === 'going'
-      ? t('events.rsvp.ticketRequired')
-      : statusCode === 409 && status === 'going' ? t('events.rsvp.full') : t('events.rsvp.failed')
-    toast.add({ title, color: 'error' })
+    // EIN Grund entscheidet über BEIDE Zeilen: unter „ausgebucht" darf kein
+    // Netzwerk-Rat stehen (Audit-Befund C12 — Fehler ohne nächsten Schritt).
+    const reason = statusCode === 403 && status === 'going'
+      ? 'ticketRequired'
+      : statusCode === 409 && status === 'going' ? 'full' : 'failed'
+    toast.add({
+      title: t(`events.rsvp.${reason}`),
+      description: t(`events.rsvp.${reason}Hint`),
+      color: 'error',
+    })
   }
   finally {
     busy.value = ''

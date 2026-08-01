@@ -170,7 +170,7 @@ async function saveRename() {
     emit('refresh')
   }
   catch {
-    toast.add({ title: t('tickets.errors.action'), color: 'error' })
+    toast.add({ title: t('tickets.errors.action'), description: t('tickets.errors.listRename'), color: 'error' })
   }
 }
 
@@ -189,7 +189,7 @@ async function addCard() {
     emit('refresh')
   }
   catch {
-    toast.add({ title: t('tickets.errors.action'), color: 'error' })
+    toast.add({ title: t('tickets.errors.action'), description: t('tickets.errors.cardAdd'), color: 'error' })
   }
 }
 
@@ -209,7 +209,7 @@ async function deleteList() {
     emit('refresh')
   }
   catch {
-    toast.add({ title: t('tickets.errors.action'), color: 'error' })
+    toast.add({ title: t('tickets.errors.action'), description: t('tickets.errors.listDelete'), color: 'error' })
   }
 }
 
@@ -217,6 +217,14 @@ async function listAction(action: 'duplicate' | TicketSort) {
   try {
     if (action === 'duplicate') {
       await $fetch(`/api/tickets/lists/${props.list.$id}/duplicate`, { method: 'POST' })
+      // Sortieren sieht man sofort, die Kopie kann am rechten Rand
+      // außerhalb des Sichtfensters landen — deshalb nur hier eine Meldung.
+      toast.add({
+        title: t('tickets.list.duplicated'),
+        description: t('tickets.list.duplicatedHint'),
+        color: 'success',
+        icon: 'i-ph-copy',
+      })
     }
     else {
       await $fetch(`/api/tickets/lists/${props.list.$id}/sort`, { method: 'POST', body: { by: action } })
@@ -224,7 +232,11 @@ async function listAction(action: 'duplicate' | TicketSort) {
     emit('refresh')
   }
   catch {
-    toast.add({ title: t('tickets.errors.action'), color: 'error' })
+    toast.add({
+      title: t('tickets.errors.action'),
+      description: action === 'duplicate' ? t('tickets.errors.listDuplicate') : t('tickets.errors.listSort'),
+      color: 'error',
+    })
   }
 }
 

@@ -38,7 +38,7 @@ watch(open, async (value) => {
     if (model.value && !items.value.includes(model.value)) items.value.unshift(model.value)
   }
   catch {
-    toast.add({ title: t('tickets.errors.action'), color: 'error' })
+    toast.add({ title: t('tickets.errors.action'), description: t('tickets.settings.loadFailed'), color: 'error' })
     open.value = false
   }
 })
@@ -58,11 +58,16 @@ async function save(resetToDefault = false) {
       body: { model: resetToDefault ? '' : model.value },
     })
     model.value = res.model
-    toast.add({ title: t('tickets.settings.saved', { model: res.model }), color: 'success', icon: 'i-ph-sparkle' })
+    toast.add({
+      title: t('tickets.settings.saved', { model: res.model }),
+      description: t('tickets.settings.savedHint'),
+      color: 'success',
+      icon: 'i-ph-sparkle',
+    })
     open.value = false
   }
   catch {
-    toast.add({ title: t('tickets.settings.invalid'), color: 'error' })
+    toast.add({ title: t('tickets.settings.invalid'), description: t('tickets.settings.invalidHint'), color: 'error' })
   }
   finally {
     saving.value = false

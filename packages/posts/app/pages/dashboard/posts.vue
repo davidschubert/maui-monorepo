@@ -41,11 +41,18 @@ async function setHidden(post: CommunityPost, hide: boolean) {
   busyId.value = post.$id
   try {
     await $fetch(`/api/posts/${post.$id}/${hide ? 'hide' : 'restore'}`, { method: 'POST' })
-    toast.add({ title: t(hide ? 'posts.moderation.hidden' : 'posts.moderation.restored'), color: 'success' })
+    // Beim Ausblenden passiert MEHR als der Titel sagt: die Route schließt
+    // zugleich die offenen Meldungen (hide.post.ts). Wiederherstellen erklärt
+    // sich dagegen selbst und bleibt einzeilig.
+    toast.add({
+      title: t(hide ? 'posts.moderation.hidden' : 'posts.moderation.restored'),
+      description: hide ? t('posts.moderation.hiddenHint') : undefined,
+      color: 'success',
+    })
     await refresh()
   }
   catch {
-    toast.add({ title: t('posts.moderation.actionFailed'), color: 'error' })
+    toast.add({ title: t('posts.moderation.actionFailed'), description: t('posts.moderation.actionFailedHint'), color: 'error' })
   }
   finally {
     busyId.value = ''
@@ -65,7 +72,7 @@ async function requestAssist(post: CommunityPost) {
     assists.value.set(post.$id, result)
   }
   catch {
-    toast.add({ title: t('posts.moderation.assist.failed'), color: 'error' })
+    toast.add({ title: t('posts.moderation.assist.failed'), description: t('posts.moderation.assist.failedHint'), color: 'error' })
   }
   finally {
     assistBusy.value = ''

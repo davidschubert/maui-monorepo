@@ -10,6 +10,8 @@
       "subtitle": "Triage feedback, plan tickets, track delivery",
       "addList": "Add another list",
       "listTitlePlaceholder": "List title …",
+      "listAdded": "List created.",
+      "listAddedHint": "It sits at the far right of the board.",
       "loadFailed": "The board could not be loaded — your session may have expired.",
       "retry": "Retry"
     },
@@ -18,6 +20,8 @@
       "addCard": "Add card",
       "rename": "Rename",
       "duplicate": "Copy list",
+      "duplicated": "List copied.",
+      "duplicatedHint": "The copy sits right next to the original, with all its cards.",
       "delete": "Delete list",
       "sortNewest": "Sort: newest first",
       "sortOldest": "Sort: oldest first",
@@ -79,8 +83,10 @@
       "markOpen": "Reopen ticket",
       "duplicate": "Duplicate ticket",
       "duplicated": "Ticket copied.",
+      "duplicatedHint": "The copy sits right below the original in the same list.",
       "share": "Copy ticket link",
       "linkCopied": "Ticket link copied.",
+      "linkCopiedHint": "The link opens this very card — only for people with access to the board.",
       "delete": "Delete ticket",
       "deleteConfirmTitle": "Delete ticket?",
       "deleteConfirmText": "The ticket is deleted for good — including its checklist, attachments and history.",
@@ -95,13 +101,23 @@
       "context": "Context"
     },
     "errors": {
-      "action": "Action failed — please try again."
+      "action": "Action failed — please try again.",
+      "listAdd": "The list was not created. Your title is still in the field — press Enter again.",
+      "listRename": "The new title was not saved — the list keeps its previous name.",
+      "listDelete": "The list was not deleted — it is still on the board with all its cards.",
+      "listDuplicate": "The copy was not created — nothing on the board has changed.",
+      "listSort": "The list was not re-sorted — the card order is unchanged.",
+      "cardAdd": "The card was not created. Your title is still in the field — press Enter again.",
+      "save": "Your change only exists in this form. Change a field again to save it — don't close the card before that.",
+      "ticketDuplicate": "The copy was not created — the ticket is unchanged.",
+      "ticketDelete": "The ticket was not deleted and is still on the board."
     },
     "triage": {
       "run": "Run AI triage",
       "running": "AI triage running …",
       "done": "AI triage added — the assessment is in the description.",
-      "failed": "AI triage failed — is NUXT_TICKETS_AI_KEY set?"
+      "failed": "AI triage failed — is NUXT_TICKETS_AI_KEY set?",
+      "failedHint": "The ticket is unchanged. Check the model id in the board settings and try again."
     },
     "watch": {
       "start": "Watch ticket",
@@ -109,6 +125,7 @@
       "toggle": "Toggle watching",
       "added": "You are now watching this ticket.",
       "removed": "Stopped watching.",
+      "toggleFailed": "Watching was not changed — the previous state still applies.",
       "listTitle": "Watching",
       "listDescription": "All tickets you follow — unwatch them right here.",
       "empty": "You are not watching any tickets yet."
@@ -118,6 +135,8 @@
       "upload": "Upload",
       "uploaded": "Attachment uploaded.",
       "unsupported": "File type not supported — allowed: images, PDF, md/txt/csv/json (max 10 MB).",
+      "uploadFailed": "The file was not attached. Size is the most common cause (max 10 MB) — otherwise a second attempt usually works.",
+      "removeFailed": "The attachment was not removed — it is still on this card.",
       "remove": "Remove attachment",
       "empty": "No attachments yet — images, PDF or text files (max 10 MB)."
     },
@@ -134,7 +153,10 @@
       "defaultHint": "App-config default: {model} — \"Reset\" restores it.",
       "reset": "Reset to default",
       "saved": "AI model saved: {model}",
+      "savedHint": "Every new AI triage will use this model from now on.",
       "invalid": "Saving failed — model id in vendor/model format?",
+      "invalidHint": "Vendor and model, separated by a slash — e.g. anthropic/claude-haiku-4.5. Until then the previous model stays active.",
+      "loadFailed": "The board settings could not be loaded. Open them again — if that doesn't help, reload the page (your session may have expired).",
       "aiDisabled": "AI triage is not enabled in this app (pukalani.tickets.ai)."
     }
   }

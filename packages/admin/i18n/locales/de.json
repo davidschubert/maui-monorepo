@@ -41,13 +41,14 @@
     },
     "storage": {
       "title": "Speicher",
-      "bucket": "Bucket",
+      "bucket": "Speicherbereich",
+      "bucketHint": "Fachwort: „Bucket“ — die Ablage, in der Appwrite diese Dateien führt.",
       "files": "Dateien",
       "size": "Gesamtgröße",
       "orphans": "Nicht verknüpft",
       "orphan": "Nicht verknüpft",
-      "empty": "Keine Dateien in diesem Bucket.",
-      "emptyTitle": "Bucket ist leer",
+      "empty": "In diesem Speicherbereich liegen keine Dateien.",
+      "emptyTitle": "Speicherbereich ist leer",
       "searchPlaceholder": "Dateien durchsuchen …",
       "deleteFile": "Datei löschen",
       "col": {
@@ -58,6 +59,7 @@
         "state": "Status"
       },
       "deleted": "Datei(en) gelöscht.",
+      "deleteFailedDesc": "Die Datei liegt noch im Speicherbereich. Lade die Seite neu und versuch es noch einmal — zum Löschen braucht der Runtime-Key files.write.",
       "deleteOrphans": "Nicht verknüpfte löschen ({count})",
       "confirmTitle": "Datei löschen",
       "confirmOne": "Diese Datei endgültig löschen?",
@@ -143,7 +145,11 @@
       "editTitle": "Eintrag bearbeiten",
       "save": "Speichern",
       "saved": "Changelog-Eintrag gespeichert.",
+      "savedLiveDesc": "Der Eintrag steht ab sofort unter „Was ist neu“ und im öffentlichen Changelog.",
+      "savedDraftDesc": "Als Entwurf gespeichert — sichtbar wird er erst, wenn du „Veröffentlicht“ einschaltest.",
+      "saveFailedDesc": "Der Eintrag wurde nicht gespeichert. Dein Text steht noch im Formular — versuch es noch einmal.",
       "deleted": "Eintrag gelöscht.",
+      "deleteFailedDesc": "Der Eintrag steht noch in der Liste. Lade die Seite neu und versuch es noch einmal.",
       "edit": "Bearbeiten",
       "delete": "Löschen",
       "draft": "Entwurf",
@@ -208,9 +214,15 @@
       "unblock": "Entsperren",
       "clearSessions": "Sessions beenden",
       "export": "Daten exportieren",
+      "exportDone": "Daten exportiert.",
+      "exportDoneDesc": "Die JSON-Datei liegt in deinem Download-Ordner.",
+      "exportFailed": "Export fehlgeschlagen.",
+      "exportFailedDesc": "Es wurde nichts heruntergeladen. Versuch es noch einmal — am Konto selbst hat sich nichts geändert.",
       "deleteUser": "Account löschen",
       "deleted": "Benutzer gelöscht.",
+      "deletedDesc": "Der Daten-Snapshot liegt noch 30 Tage unter „GDPR-Exporte“.",
       "lastAdmin": "Es muss immer mindestens ein Admin übrig bleiben.",
+      "lastAdminDesc": "Mach zuerst eine andere Person zum Admin — danach lässt sich diese Rolle abgeben.",
       "confirmTitle": "Aktion bestätigen",
       "confirmAction": "Bestätigen",
       "confirm": {
@@ -222,8 +234,11 @@
       "blocked": "Benutzer blockiert.",
       "unblocked": "Benutzer entsperrt.",
       "rolesSaved": "Rollen aktualisiert.",
+      "rolesSavedDesc": "Die neuen Rechte greifen, sobald die Person die Seite das nächste Mal lädt.",
       "sessionsCleared": "Alle Sessions beendet.",
+      "sessionsClearedDesc": "Die Person ist auf allen Geräten abgemeldet und muss sich neu anmelden.",
       "actionFailed": "Aktion fehlgeschlagen — bitte erneut versuchen.",
+      "actionFailedDesc": "Die Änderung wurde nicht übernommen — es gilt weiter der Stand, den du hier siehst. Lade die Seite neu und versuch es noch einmal.",
       "joined": "Beigetreten",
       "lastActivity": "Letzte Aktivität",
       "activeNow": "Jetzt aktiv",
@@ -265,6 +280,39 @@
           "title": "Aktivitätsprotokoll (Appwrite)",
           "empty": "Keine Aktivitäts-Einträge.",
           "emptyTitle": "Keine Aktivität",
+          "event": {
+            "accountCreate": "Konto angelegt",
+            "accountDelete": "Konto gelöscht",
+            "emailChanged": "E-Mail-Adresse geändert",
+            "nameChanged": "Name geändert",
+            "passwordChanged": "Passwort geändert",
+            "phoneChanged": "Telefonnummer geändert",
+            "prefsChanged": "Einstellungen geändert",
+            "accountDeactivated": "Konto deaktiviert",
+            "signIn": "Angemeldet",
+            "sessionRefreshed": "Sitzung verlängert",
+            "signOut": "Abgemeldet",
+            "recoveryRequested": "Passwort-Zurücksetzen angefordert",
+            "recoveryCompleted": "Passwort zurückgesetzt",
+            "verificationRequested": "Bestätigungs-Mail angefordert",
+            "verificationCompleted": "E-Mail-Adresse bestätigt",
+            "codeRequested": "Anmelde-Code angefordert",
+            "codeSignIn": "Mit Anmelde-Code angemeldet",
+            "targetAdded": "Benachrichtigungs-Kanal hinzugefügt",
+            "targetChanged": "Benachrichtigungs-Kanal geändert",
+            "targetRemoved": "Benachrichtigungs-Kanal entfernt",
+            "createdByOperator": "Vom Betreiber angelegt",
+            "deletedByOperator": "Vom Betreiber gelöscht",
+            "emailChangedByOperator": "E-Mail-Adresse vom Betreiber geändert",
+            "nameChangedByOperator": "Name vom Betreiber geändert",
+            "passwordChangedByOperator": "Passwort vom Betreiber gesetzt",
+            "rolesChangedByOperator": "Rollen vom Betreiber geändert",
+            "prefsChangedByOperator": "Einstellungen vom Betreiber geändert",
+            "statusChangedByOperator": "Konto vom Betreiber gesperrt oder entsperrt",
+            "membershipCreated": "Zu einem Team hinzugefügt",
+            "membershipChanged": "Team-Rolle geändert",
+            "membershipRemoved": "Aus einem Team entfernt"
+          },
           "col": {
             "event": "Ereignis",
             "client": "Gerät",
@@ -289,10 +337,15 @@
         "password": "Start-Passwort",
         "passwordHelp": "Mindestens 8 Zeichen — der Benutzer kann es per „Passwort vergessen“ ändern.",
         "roles": "Rollen (optional)",
+        "rolesHelp": "Ohne Rolle ist das Konto ein gewöhnlicher Nutzer — Rollen lassen sich jederzeit auf der Profilseite ändern.",
+        "rolesPlaceholder": "Keine Rolle",
         "save": "Anlegen",
         "done": "Benutzer angelegt.",
+        "doneDesc": "Gib das Start-Passwort weiter — ändern kann die Person es selbst über „Passwort vergessen“.",
         "duplicate": "Diese E-Mail existiert bereits.",
-        "failed": "Benutzer konnte nicht angelegt werden."
+        "duplicateDesc": "Such das bestehende Konto in der Liste, statt ein zweites anzulegen.",
+        "failed": "Benutzer konnte nicht angelegt werden.",
+        "failedDesc": "Es wurde nichts angelegt. Prüf Name, E-Mail und Passwort (mindestens 8 Zeichen) und versuch es noch einmal."
       },
       "filter": {
         "all": "Alle Benutzer",
@@ -306,12 +359,15 @@
         "count": "{count} ausgewählt",
         "done": "{count} Benutzer bearbeitet.",
         "partial": "{done} bearbeitet, {failed} fehlgeschlagen.",
+        "partialDesc": "{failed} Konten sind unverändert geblieben — meist, weil sie geschützt sind (eigener Account, letzter Admin). Wähl sie erneut aus und versuch es einzeln.",
+        "failedDesc": "Es wurde kein Konto geändert. Lade die Seite neu und versuch es noch einmal.",
         "confirm": {
           "block": "{count} Benutzer blockieren? Sie können sich nicht mehr anmelden.",
           "unblock": "{count} Benutzer wieder entsperren?"
         }
       },
-      "exportCsv": "CSV-Export"
+      "exportCsv": "CSV-Export",
+      "rowActions": "Aktionen für dieses Konto"
     },
     "moderation": {
       "filter": {
@@ -341,6 +397,15 @@
         "target": "Ziel",
         "status": "Status",
         "date": "Datum"
+      },
+      "targetType": {
+        "post": "Beitrag",
+        "page": "Seite",
+        "event": "Veranstaltung",
+        "lesson": "Lektion",
+        "course": "Kurs",
+        "comment": "Kommentar",
+        "blog": "Blog-Artikel"
       },
       "hide": "Ausblenden",
       "restore": "Wiederherstellen",
@@ -392,10 +457,14 @@
         "created": "Erstellt"
       },
       "download": "Download",
+      "downloadDone": "Snapshot heruntergeladen.",
+      "downloadDoneDesc": "Die Datei liegt in deinem Download-Ordner.",
       "delete": "Löschen",
       "deleted": "Snapshot gelöscht.",
       "deleteError": "Löschen fehlgeschlagen.",
+      "deleteErrorDesc": "Der Snapshot steht noch in der Liste. Lade die Seite neu und versuch es noch einmal.",
       "downloadError": "Download fehlgeschlagen.",
+      "downloadErrorDesc": "Es wurde nichts heruntergeladen. Möglicherweise ist der Snapshot bereits abgelaufen — nach dem Neuladen zeigt die Liste den aktuellen Stand.",
       "confirmTitle": "Snapshot löschen?",
       "confirmText": "{name} endgültig löschen? Der Snapshot kann danach nicht mehr abgerufen werden."
     },
@@ -407,9 +476,16 @@
       "requires": "Benötigt: {list}",
       "dataKept": "Deine Daten bleiben erhalten.",
       "enabled": "{name} aktiviert",
+      "enabledDesc": "Das Produkt steht allen Besucherinnen und Besuchern sofort zur Verfügung — ohne Deploy.",
       "disabled": "{name} deaktiviert",
+      "disabledDesc": "Die Oberfläche verschwindet sofort für alle. Die Daten bleiben erhalten und sind nach dem Wiedereinschalten wieder da.",
       "toggleFailed": "Produkt konnte nicht umgeschaltet werden",
-      "alwaysOn": "Immer aktiv"
+      "toggleFailedDesc": "Der Schalter steht wieder so, wie er gespeichert ist. Lade die Seite neu und versuch es noch einmal.",
+      "toggleBlocked": "Produkte hängen voneinander ab",
+      "toggleBlockedDesc": "Ein Produkt lässt sich nicht abschalten, solange ein anderes es braucht — und nicht anschalten, solange seine Voraussetzungen fehlen. Die Zeile „Benötigt: …“ an den Karten zeigt, was womit zusammenhängt.",
+      "alwaysOn": "Immer aktiv",
+      "emptyTitle": "Keine Produkte gefunden",
+      "empty": "Diese Site meldet gerade keine Produkte. Lade die Seite neu — bleibt es dabei, fehlen die Produkt-Layer im Deploy."
     }
   },
   "whatsNew": {
@@ -464,6 +540,7 @@
       },
       "saved": "Gespeichert.",
       "saveFailed": "Konnte nicht gespeichert werden.",
+      "saveFailedDesc": "Nichts wurde geändert — es gilt weiter der zuletzt gespeicherte Stand. Versuch es in einem Moment noch einmal.",
       "noTenantTitle": "Keine Community auf diesem Host",
       "noTenantText": "Diese Einstellungen gelten für eine einzelne Community. Auf dieser Instanz regelt die Registrierung die Betreiber-Konfiguration.",
       "appearance": {
@@ -474,6 +551,7 @@
         "inherited": "Noch nichts gewählt (Voreinstellung)",
         "propagation": "Neue Farbe erscheint binnen einer halben Minute auf allen Seiten.",
         "saved": "Erscheinungsbild gespeichert.",
+        "savedDesc": "Die neue Farbwelt erscheint binnen einer halben Minute auf allen Seiten eurer Community.",
         "neutral": "Grundton",
         "neutralDesc": "Die gedeckte Tönung von Flächen, Rahmen und Text — gilt wie die Farbwelt für alle Besucher.",
         "neutralInherited": "Voreinstellung"
@@ -552,6 +630,7 @@
         "updateConfirmBtn": "Jetzt aktualisieren",
         "updateStarted": "Update von {name} auf {version} gestartet — läuft im Hintergrund. Danach Dev-Server neu starten.",
         "updateFailed": "Update fehlgeschlagen.",
+        "updateFailedDesc": "Nichts wurde geändert: der pnpm-Catalog ist unverändert und es lief kein Install. Updates gehen nur in der Entwicklung — Details stehen in der Server-Konsole.",
         "restartNeeded": "Neustart nötig",
         "restartTitle": "Update läuft — Neustart nötig",
         "restartHint": "Der Install läuft im Hintergrund. Warte kurz und starte dann den Dev-Server neu, damit die aktualisierten Versionen geladen werden."

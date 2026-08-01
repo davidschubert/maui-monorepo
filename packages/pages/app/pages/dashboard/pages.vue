@@ -97,7 +97,7 @@ async function selectPage(slug: string) {
     }
   }
   catch {
-    toast.add({ title: t('pages.admin.loadFailed'), color: 'error' })
+    toast.add({ title: t('pages.admin.loadFailed'), description: t('pages.admin.loadFailedHint'), color: 'error' })
   }
 }
 
@@ -118,12 +118,14 @@ async function saveActiveLocale() {
   }
   const form = forms[locale]
   if (!form.title.trim()) {
-    toast.add({ title: t('pages.admin.titleRequired'), color: 'error' })
+    // Dass der Titel PRO Sprachversion gilt, sieht man dem Reiter nicht an
+    toast.add({ title: t('pages.admin.titleRequired'), description: t('pages.admin.titleRequiredHint'), color: 'error' })
     return
   }
   if (form.body.length > MAX_PAGE_BODY) {
     toast.add({
       title: t('pages.admin.bodyTooLong', { count: form.body.length.toLocaleString(), max: MAX_PAGE_BODY.toLocaleString() }),
+      description: t('pages.admin.bodyTooLongHint'),
       color: 'error',
     })
     return
@@ -134,13 +136,25 @@ async function saveActiveLocale() {
       method: 'PUT',
       body: { slug, locale, title: form.title, body: form.body, status: form.published ? 'published' : 'draft' },
     })
-    toast.add({ title: t('pages.admin.saved'), color: 'success' })
+    // Gespeichert wird IMMER nur der aktive Reiter — ohne den Hinweis hält
+    // man die anderen Sprachversionen für miterledigt.
+    toast.add({
+      title: t('pages.admin.saved'),
+      description: t('pages.admin.savedHint', { language: t(`pages.admin.locale.${locale}`) }),
+      color: 'success',
+    })
     isNew.value = false
     selectedSlug.value = slug
     await refreshList()
   }
-  catch (error) {
-    toast.add({ title: t('pages.admin.saveFailed'), description: (error as { statusMessage?: string })?.statusMessage, color: 'error' })
+  catch {
+    // Übersetzter Text statt rohem `statusMessage` (Audit-Befund C12) — s. die
+    // gleichlautende Stelle in comments/dashboard/embed.vue.
+    toast.add({
+      title: t('pages.admin.saveFailed'),
+      description: t('pages.admin.saveFailedHint'),
+      color: 'error',
+    })
   }
   finally {
     saving.value = false
@@ -167,7 +181,7 @@ async function deletePage() {
     await refreshList()
   }
   catch {
-    toast.add({ title: t('pages.admin.deleteFailed'), color: 'error' })
+    toast.add({ title: t('pages.admin.deleteFailed'), description: t('pages.admin.deleteFailedHint'), color: 'error' })
   }
 }
 </script>

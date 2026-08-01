@@ -29,14 +29,17 @@
       "submitScheduled": "Einplanen",
       "publishedToast": "Beitrag veröffentlicht.",
       "scheduledToast": "Beitrag eingeplant.",
-      "failed": "Beitrag konnte nicht erstellt werden."
+      "scheduledHint": "Er erscheint automatisch zum gewählten Termin im Feed — bis dahin siehst nur du ihn, unter „Geplante Beiträge“.",
+      "failed": "Beitrag konnte nicht erstellt werden.",
+      "failedHint": "Dein Text steht noch im Feld. Prüf die Verbindung und versuch es noch einmal."
     },
     "poll": {
       "votes": "{count} Stimmen",
       "hiddenResults": "Stimm ab, um die Ergebnisse zu sehen.",
       "ended": "Umfrage beendet",
       "loginToVote": "Zum Abstimmen anmelden",
-      "voteFailed": "Stimme konnte nicht gespeichert werden."
+      "voteFailed": "Stimme konnte nicht gespeichert werden.",
+      "voteFailedHint": "Deine Stimme kam nicht an. Klick noch einmal auf deine Option."
     },
     "card": {
       "someone": "Jemand",
@@ -46,12 +49,16 @@
       "edit": "Bearbeiten",
       "save": "Speichern",
       "editFailed": "Änderung konnte nicht gespeichert werden.",
+      "editFailedHint": "Dein Text steht noch im Feld. Versuch es noch einmal; bleibt es dabei, lade die Seite neu.",
       "delete": "Löschen",
       "deleted": "Beitrag gelöscht.",
       "deleteFailed": "Beitrag konnte nicht gelöscht werden.",
+      "deleteFailedHint": "Der Beitrag ist noch da. Lade die Seite neu und versuch es noch einmal.",
       "report": "Melden",
       "reported": "Beitrag gemeldet — danke!",
+      "reportedHint": "Die Moderation sieht sich die Meldung an. Eine Rückmeldung zu einzelnen Meldungen gibt es nicht.",
       "reportFailed": "Meldung fehlgeschlagen.",
+      "reportFailedHint": "Die Meldung kam nicht an. Versuch es noch einmal — bleibt es dabei, wende dich direkt an die Moderation.",
       "reasons": {
         "spam": "Spam",
         "harassment": "Belästigung",
@@ -62,7 +69,8 @@
       "answerCta": "Antworten",
       "upvote": "Hochvoten",
       "downvote": "Runtervoten",
-      "voteFailed": "Vote konnte nicht gespeichert werden."
+      "voteFailed": "Vote konnte nicht gespeichert werden.",
+      "voteFailedHint": "Deine Stimme kam nicht an. Klick noch einmal."
     },
     "moderation": {
       "title": "Feed-Beiträge",
@@ -84,8 +92,10 @@
       "hide": "Ausblenden",
       "restore": "Wiederherstellen",
       "hidden": "Beitrag ausgeblendet.",
+      "hiddenHint": "Die Community sieht ihn nicht mehr, und die offenen Meldungen dazu sind erledigt. „Wiederherstellen“ macht beides rückgängig.",
       "restored": "Beitrag wiederhergestellt.",
       "actionFailed": "Aktion fehlgeschlagen.",
+      "actionFailedHint": "Am Beitrag hat sich nichts geändert. Lade die Seite neu und versuch es noch einmal.",
       "filter": {
         "all": "Alle",
         "post": "Beiträge",
@@ -95,6 +105,7 @@
       "assist": {
         "button": "KI-Einschätzung",
         "failed": "KI-Einschätzung fehlgeschlagen.",
+        "failedHint": "Vielleicht ist der KI-Zugang nicht eingerichtet oder der Dienst gerade nicht erreichbar. Die Einschätzung ist nur ein Hinweis — entscheiden musst du ohnehin selbst.",
         "action": {
           "hide": "KI-Empfehlung: Ausblenden — Schwere {severity}/5",
           "dismiss": "KI-Empfehlung: Meldungen verwerfen — Schwere {severity}/5"

@@ -1,5 +1,5 @@
 import { Query } from 'node-appwrite'
-import { BILLING_SUBSCRIPTIONS_TABLE, type BillingSubscriptionRow } from '../../../../shared/types/billing'
+import { BILLING_SUBSCRIPTIONS_TABLE, type BillingAdminSubscriptionRow, type BillingSubscriptionRow } from '../../../../shared/types/billing'
 
 const PAGE_SIZE = 50
 
@@ -8,7 +8,7 @@ const PAGE_SIZE = 50
  * UI — Aktionen passieren im Stripe-Dashboard, weniger sicherheitskritische
  * Fläche).
  */
-export default defineEventHandler(async (event): Promise<{ total: number, rows: BillingSubscriptionRow[] }> => {
+export default defineEventHandler(async (event): Promise<{ total: number, rows: BillingAdminSubscriptionRow[] }> => {
   requirePermission(event, 'billing.manage')
   await requireBillingEnabled(event)
 
@@ -42,5 +42,26 @@ export default defineEventHandler(async (event): Promise<{ total: number, rows: 
     throw toH3Error(error, 'Could not load subscriptions')
   })
 
-  return { total: res.total, rows: res.rows }
+  // Namen in EINEM gebündelten users.list (Muster resolveAvatars) statt einem
+  // Abruf je Zeile — eine Seite hat bis zu 50 Abos. Fail-soft: ohne
+  // users-Scope bleibt die Karte leer und die UI zeigt weiter die Id.
+  const names = new Map<string, { name: string, email: string }>()
+  const ids = [...new Set(res.rows.map(row => row.userId).filter(Boolean))]
+  if (ids.length > 0) {
+    try {
+      const list = await admin.users.list({ queries: [Query.equal('$id', ids), Query.limit(ids.length)] })
+      for (const user of list.users) names.set(user.$id, { name: user.name, email: user.email })
+    }
+    catch {
+      // bewusst still — die Übersicht funktioniert auch ohne Namen
+    }
+  }
+
+  const rows: BillingAdminSubscriptionRow[] = res.rows.map(row => ({
+    ...row,
+    userName: names.get(row.userId)?.name ?? '',
+    userEmail: names.get(row.userId)?.email ?? '',
+  }))
+
+  return { total: res.total, rows }
 })

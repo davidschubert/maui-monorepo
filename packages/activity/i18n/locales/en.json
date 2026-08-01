@@ -15,6 +15,7 @@
     "delete": "Delete entry",
     "deleted": "Entry deleted.",
     "deleteFailed": "Could not delete entry.",
+    "deleteFailedDescription": "The entry is still in the feed. Reload the page and try again.",
     "moderation": {
       "title": "Activity feed",
       "description": "All activity entries — individual entries can be removed."

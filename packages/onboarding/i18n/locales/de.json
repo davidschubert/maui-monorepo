@@ -195,6 +195,8 @@
       "checkoutSuccess": "Danke! Die Zahlung wird verarbeitet — dein Plan aktualisiert sich in Kürze.",
       "checkoutCanceled": "Abgebrochen. Es wurde nichts berechnet.",
       "errorGeneric": "Das hat gerade nicht geklappt. Versuch es in einer Minute noch einmal.",
+      "checkoutErrorHint": "Der Bezahlvorgang wurde nicht geöffnet — berechnet wurde nichts, und dein Plan bleibt unverändert.",
+      "portalErrorHint": "Das Rechnungs-Portal ließ sich nicht öffnen. An deinem Abo ändert das nichts.",
       "plans": {
         "basic": {
           "name": "Basic",
@@ -253,6 +255,7 @@
     "status": "Status",
     "you": "du",
     "searchPlaceholder": "Name oder E-Mail suchen",
+    "rowActions": "Aktionen für dieses Mitglied",
     "emptyTitle": "Nur du bist dabei",
     "emptyText": "Lade die ersten Mitglieder ein — sie bekommen eine E-Mail mit einem Link und sind mit einem Klick da. Bei offener Registrierung kommen Mitglieder auch von selbst dazu, sobald sie sich anmelden oder ihren ersten Beitrag schreiben.",
     "statusValues": {
@@ -289,6 +292,7 @@
       "submit": "Einladung senden",
       "sent": "Einladung an {email} verschickt.",
       "sentExisting": "{email} hat ein Konto — Einladung verschickt, ein Klick genügt.",
+      "sentHint": "Der Link gilt 7 Tage. Bis dahin steht die Einladung unten unter „Offene Einladungen\" und lässt sich widerrufen.",
       "failed": "Die Einladung konnte nicht verschickt werden."
     },
     "invites": {
@@ -328,7 +332,8 @@
       "not_a_member": "Diese Person gehört nicht (mehr) zu dieser Community.",
       "invalid_role": "Diese Rolle gibt es nicht.",
       "unchanged": "Diese Rolle hat die Person bereits.",
-      "failed": "Das hat gerade nicht geklappt. Versuch es noch einmal."
+      "failed": "Das hat gerade nicht geklappt. Versuch es noch einmal.",
+      "failedHint": "An der Mitgliederliste hat sich nichts geändert. Lade die Seite neu und versuch es noch einmal."
     }
   },
   "join": {

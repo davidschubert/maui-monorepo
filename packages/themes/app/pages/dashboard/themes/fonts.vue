@@ -127,7 +127,11 @@ async function saveEditor() {
   }
   catch (error) {
     const status = (error as { statusCode?: number })?.statusCode
-    toast.add({ title: status === 422 ? t('themes.fonts.limit') : t('themes.customize.error'), color: 'error' })
+    toast.add({
+      title: status === 422 ? t('themes.fonts.limit') : t('themes.customize.error'),
+      description: status === 422 ? t('themes.fonts.limitHint') : t('themes.customize.saveErrorHint'),
+      color: 'error',
+    })
   }
   finally {
     busy.value = false
@@ -147,7 +151,7 @@ async function move(font: CustomFontDto, direction: -1 | 1) {
     await refreshCustomFonts()
   }
   catch {
-    toast.add({ title: t('themes.customize.error'), color: 'error' })
+    toast.add({ title: t('themes.customize.error'), description: t('themes.customize.orderErrorHint'), color: 'error' })
   }
   finally {
     busy.value = false
@@ -169,7 +173,7 @@ async function remove(font: CustomFontDto) {
     toast.add({ title: t('themes.fonts.deleted'), color: 'success' })
   }
   catch {
-    toast.add({ title: t('themes.customize.error'), color: 'error' })
+    toast.add({ title: t('themes.customize.error'), description: t('themes.fonts.deleteErrorHint'), color: 'error' })
   }
 }
 
@@ -265,7 +269,10 @@ function weightLabel(weight: number): string {
         <template #body>
           <div v-if="editor" class="space-y-4">
             <UFormField :label="t('themes.fonts.name')" required :help="t('themes.fonts.nameHint')">
-              <UInput v-model="editor.name" :maxlength="64" class="w-full" placeholder="Meine Hausschrift" />
+              <!-- Der EINE hartcodierte Prosa-String des Dashboards
+                   (Audit-Befund C12) — auf Englisch stand hier trotzdem
+                   „Meine Hausschrift". -->
+              <UInput v-model="editor.name" :maxlength="64" class="w-full" :placeholder="t('themes.fonts.namePlaceholder')" />
             </UFormField>
 
             <USwitch

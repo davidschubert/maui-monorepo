@@ -41,6 +41,19 @@ export interface BillingSubscriptionRow extends Models.Row {
   lastStripeEventAt: number
 }
 
+/**
+ * Eine Abo-Zeile für die BETREIBER-Übersicht (Audit-Befund C12): dieselbe Row,
+ * zusätzlich mit dem Anzeigenamen des Kontos. Die rohe `userId` war dort die
+ * einzige Auskunft über „wer" — eine 20-stellige Appwrite-Id sagt niemandem
+ * etwas. Beide Felder sind BEST EFFORT: fehlt dem Runtime-Key der users-Scope
+ * oder ist das Konto gelöscht, bleiben sie leer und die UI fällt auf die Id
+ * zurück (die bleibt als Nachschlage-Schlüssel sichtbar).
+ */
+export interface BillingAdminSubscriptionRow extends BillingSubscriptionRow {
+  userName: string
+  userEmail: string
+}
+
 /** Plan-Deklaration (pukalani.billing.plans) — free hat lookupKeys: null */
 export interface PukalaniBillingPlan {
   id: string

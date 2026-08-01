@@ -30,7 +30,7 @@ async function vote(value: EventVoteValue) {
     emit('updated', res)
   }
   catch {
-    toast.add({ title: t('events.vote.failed'), color: 'error' })
+    toast.add({ title: t('events.vote.failed'), description: t('events.vote.failedHint'), color: 'error' })
   }
   finally {
     busy.value = false

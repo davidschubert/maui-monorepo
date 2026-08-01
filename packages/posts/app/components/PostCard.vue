@@ -50,7 +50,7 @@ async function saveEdit() {
     editing.value = false
   }
   catch {
-    toast.add({ title: t('posts.card.editFailed'), color: 'error' })
+    toast.add({ title: t('posts.card.editFailed'), description: t('posts.card.editFailedHint'), color: 'error' })
   }
   finally {
     busy.value = false
@@ -66,7 +66,7 @@ async function removePost() {
     emit('deleted', props.post.$id)
   }
   catch {
-    toast.add({ title: t('posts.card.deleteFailed'), color: 'error' })
+    toast.add({ title: t('posts.card.deleteFailed'), description: t('posts.card.deleteFailedHint'), color: 'error' })
   }
   finally {
     busy.value = false
@@ -79,10 +79,10 @@ async function reportPost(reason: string) {
       method: 'POST',
       body: { targetType: 'post', targetId: props.post.$id, reason },
     })
-    toast.add({ title: t('posts.card.reported'), color: 'success' })
+    toast.add({ title: t('posts.card.reported'), description: t('posts.card.reportedHint'), color: 'success' })
   }
   catch {
-    toast.add({ title: t('posts.card.reportFailed'), color: 'error' })
+    toast.add({ title: t('posts.card.reportFailed'), description: t('posts.card.reportFailedHint'), color: 'error' })
   }
 }
 

@@ -62,14 +62,23 @@ const contrastLabel: Record<string, string> = {
 async function saveDraft() {
   try {
     const { created } = await save()
-    toast.add({ title: t('themes.customize.saved'), color: 'success' })
+    toast.add({
+      title: t('themes.customize.saved'),
+      // Ein neues Theme wird unten gleich aktiviert — das gehört in die Meldung
+      description: created ? t('themes.customize.savedCreatedHint') : undefined,
+      color: 'success',
+    })
     // Neu angelegt: direkt aktivieren — der Admin sieht sein Theme sofort
     if (created) setTheme(customThemeAttr(created.id))
     await navigateTo(galleryPath.value)
   }
   catch (error) {
     const status = (error as { statusCode?: number })?.statusCode
-    toast.add({ title: status === 422 ? t('themes.customize.limit') : t('themes.customize.error'), color: 'error' })
+    toast.add({
+      title: status === 422 ? t('themes.customize.limit') : t('themes.customize.error'),
+      description: status === 422 ? t('themes.customize.limitHint') : t('themes.customize.saveErrorHint'),
+      color: 'error',
+    })
   }
 }
 

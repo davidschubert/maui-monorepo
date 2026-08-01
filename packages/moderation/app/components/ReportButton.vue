@@ -38,10 +38,21 @@ async function onSubmit() {
     open.value = false
     reason.value = undefined
     note.value = ''
-    toast.add({ title: t('moderation.report.success'), color: 'success', icon: 'i-ph-flag' })
+    toast.add({
+      title: t('moderation.report.success'),
+      description: t('moderation.report.successDescription'),
+      color: 'success',
+      icon: 'i-ph-flag',
+    })
   }
   catch {
-    toast.add({ title: t('moderation.report.error'), color: 'error' })
+    // Derselbe Titel wie beim Zurückziehen — was jetzt gilt, sagt erst die
+    // Beschreibung: die Meldung ist NICHT angekommen.
+    toast.add({
+      title: t('moderation.report.error'),
+      description: t('moderation.report.submitFailedDescription'),
+      color: 'error',
+    })
   }
 }
 
@@ -52,7 +63,11 @@ async function onRetract() {
     toast.add({ title: t('moderation.report.retracted'), color: 'success', icon: 'i-ph-flag-banner-fold' })
   }
   catch {
-    toast.add({ title: t('moderation.report.error'), color: 'error' })
+    toast.add({
+      title: t('moderation.report.error'),
+      description: t('moderation.report.retractFailedDescription'),
+      color: 'error',
+    })
   }
 }
 </script>

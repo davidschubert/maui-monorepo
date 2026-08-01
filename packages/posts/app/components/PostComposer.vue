@@ -55,7 +55,13 @@ async function submit() {
     }
     const row = await $fetch<FeedPost>('/api/posts', { method: 'POST', body: payload })
     const scheduled = row.status === 'scheduled'
-    toast.add({ title: scheduled ? t('posts.composer.scheduledToast') : t('posts.composer.publishedToast'), color: 'success' })
+    // Nur der GEPLANTE Beitrag braucht eine Erklärung: er erscheint nicht im
+    // Feed, der veröffentlichte steht direkt darunter und erklärt sich selbst.
+    toast.add({
+      title: scheduled ? t('posts.composer.scheduledToast') : t('posts.composer.publishedToast'),
+      description: scheduled ? t('posts.composer.scheduledHint') : undefined,
+      color: 'success',
+    })
     emit('created', row, scheduled)
     title.value = ''
     body.value = ''
@@ -65,7 +71,7 @@ async function submit() {
     showSchedule.value = false
   }
   catch {
-    toast.add({ title: t('posts.composer.failed'), color: 'error' })
+    toast.add({ title: t('posts.composer.failed'), description: t('posts.composer.failedHint'), color: 'error' })
   }
   finally {
     busy.value = false

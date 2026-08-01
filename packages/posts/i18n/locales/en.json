@@ -29,14 +29,17 @@
       "submitScheduled": "Schedule",
       "publishedToast": "Post published.",
       "scheduledToast": "Post scheduled.",
-      "failed": "Could not create post."
+      "scheduledHint": "It goes into the feed automatically at the time you picked — until then only you see it, under “Scheduled posts”.",
+      "failed": "Could not create post.",
+      "failedHint": "Your text is still in the field. Check your connection and try again."
     },
     "poll": {
       "votes": "{count} votes",
       "hiddenResults": "Vote to see the results.",
       "ended": "Poll ended",
       "loginToVote": "Sign in to vote",
-      "voteFailed": "Could not save your vote."
+      "voteFailed": "Could not save your vote.",
+      "voteFailedHint": "Your vote never arrived. Click your option again."
     },
     "card": {
       "someone": "Someone",
@@ -46,12 +49,16 @@
       "edit": "Edit",
       "save": "Save",
       "editFailed": "Could not save changes.",
+      "editFailedHint": "Your text is still in the field. Try again; if it keeps failing, reload the page.",
       "delete": "Delete",
       "deleted": "Post deleted.",
       "deleteFailed": "Could not delete post.",
+      "deleteFailedHint": "The post is still there. Reload the page and try again.",
       "report": "Report",
       "reported": "Post reported — thank you!",
+      "reportedHint": "Moderation will take a look. There is no individual reply to single reports.",
       "reportFailed": "Report failed.",
+      "reportFailedHint": "The report never arrived. Try again — if it keeps failing, contact moderation directly.",
       "reasons": {
         "spam": "Spam",
         "harassment": "Harassment",
@@ -62,7 +69,8 @@
       "answerCta": "Answer",
       "upvote": "Upvote",
       "downvote": "Downvote",
-      "voteFailed": "Could not save your vote."
+      "voteFailed": "Could not save your vote.",
+      "voteFailedHint": "Your vote never arrived. Click again."
     },
     "moderation": {
       "title": "Feed posts",
@@ -84,8 +92,10 @@
       "hide": "Hide",
       "restore": "Restore",
       "hidden": "Post hidden.",
+      "hiddenHint": "The community can no longer see it, and the open reports about it are settled. “Restore” undoes both.",
       "restored": "Post restored.",
       "actionFailed": "Action failed.",
+      "actionFailedHint": "Nothing about the post changed. Reload the page and try again.",
       "filter": {
         "all": "All",
         "post": "Posts",
@@ -95,6 +105,7 @@
       "assist": {
         "button": "AI assessment",
         "failed": "AI assessment failed.",
+        "failedHint": "The AI access may not be set up, or the service is unreachable right now. The assessment is only a hint — the decision is yours either way.",
         "action": {
           "hide": "AI recommendation: hide — severity {severity}/5",
           "dismiss": "AI recommendation: resolve reports — severity {severity}/5"

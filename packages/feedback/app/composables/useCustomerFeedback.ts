@@ -34,10 +34,10 @@ export function useCustomerFeedback() {
   function fail(error: unknown) {
     const reason = (error as { data?: { reason?: string } }).data?.reason
     const status = (error as { statusCode?: number }).statusCode
+    const needsLogin = reason === 'anonymous' || status === 401
     toast.add({
-      title: reason === 'anonymous' || status === 401
-        ? t('feedback.list.loginRequired')
-        : t('feedback.list.actionFailed'),
+      title: needsLogin ? t('feedback.list.loginRequired') : t('feedback.list.actionFailed'),
+      description: needsLogin ? t('feedback.list.loginRequiredDescription') : t('feedback.list.actionFailedDescription'),
       color: 'error',
     })
   }
@@ -89,6 +89,21 @@ export function useCustomerFeedback() {
     try {
       await $fetch(`/api/feedback/${entry.id}`, { method: 'PATCH', body: patch })
       Object.assign(entry, patch)
+      // Rückmeldung wie beim Stummschalten: die Wirkung steckt sonst nur in
+      // einem kleinen Abzeichen, das beim Klicken niemand ansieht.
+      toast.add({
+        title: patch.status === 'hidden'
+          ? t('feedback.admin.hiddenDone')
+          : patch.status === 'visible'
+            ? t('feedback.admin.shownDone')
+            : t('feedback.admin.saved'),
+        description: patch.status === 'hidden'
+          ? t('feedback.admin.hiddenDescription')
+          : patch.state
+            ? t('feedback.admin.movedTo', { state: t(`feedback.states.${patch.state}`) })
+            : undefined,
+        color: 'success',
+      })
       return true
     }
     catch (error) {
@@ -103,6 +118,7 @@ export function useCustomerFeedback() {
       await $fetch('/api/feedback/mute', { method: 'POST', body: { communityId, communityName, muted } })
       toast.add({
         title: muted ? t('feedback.admin.muted') : t('feedback.admin.unmuted'),
+        description: muted ? t('feedback.admin.mutedDescription') : t('feedback.admin.unmutedDescription'),
         color: 'success',
       })
       return true

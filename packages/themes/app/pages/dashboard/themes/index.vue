@@ -72,7 +72,7 @@ async function saveSettings(next: ThemeSettings) {
     toast.add({ title: t('themes.customize.saved'), color: 'success' })
   }
   catch {
-    toast.add({ title: t('themes.customize.error'), color: 'error' })
+    toast.add({ title: t('themes.customize.error'), description: t('themes.customize.settingsErrorHint'), color: 'error' })
   }
   finally {
     busy.value = false
@@ -234,7 +234,7 @@ async function remove(custom: CustomThemeDto) {
     toast.add({ title: t('themes.customize.deleted'), color: 'success' })
   }
   catch {
-    toast.add({ title: t('themes.customize.error'), color: 'error' })
+    toast.add({ title: t('themes.customize.error'), description: t('themes.customize.deleteErrorHint'), color: 'error' })
   }
 }
 
@@ -254,7 +254,7 @@ async function move(custom: CustomThemeDto, direction: -1 | 1) {
     await refreshCustomThemes()
   }
   catch {
-    toast.add({ title: t('themes.customize.error'), color: 'error' })
+    toast.add({ title: t('themes.customize.error'), description: t('themes.customize.orderErrorHint'), color: 'error' })
   }
   finally {
     busy.value = false
@@ -267,7 +267,11 @@ async function copyCss(custom: CustomThemeDto) {
     await navigator.clipboard.writeText(customThemeCss(custom))
     toast.add({ title: t('themes.customize.exportCopied'), color: 'success' })
   }
-  catch { /* Clipboard nicht verfügbar */ }
+  catch {
+    // Vorher still: der Klick tat sichtbar nichts. Die Zwischenablage gibt der
+    // Browser nur im sicheren Kontext frei — der JSON-Export geht immer.
+    toast.add({ title: t('themes.customize.copyFailed'), description: t('themes.customize.copyFailedHint'), color: 'error' })
+  }
 }
 
 // ── JSON-Export/-Import (Theme auf andere Instanz mitnehmen) ───────────────
@@ -321,11 +325,16 @@ async function importTheme(event: Event) {
       },
     })
     await refreshCustomThemes()
-    toast.add({ title: t('themes.customize.saved'), color: 'success' })
+    // Das importierte Theme wird NICHT aktiviert — sonst sucht man es in der Liste
+    toast.add({ title: t('themes.customize.saved'), description: t('themes.customize.importedHint'), color: 'success' })
   }
   catch (error) {
     const status = (error as { statusCode?: number })?.statusCode
-    toast.add({ title: status === 422 ? t('themes.customize.limit') : t('themes.customize.importError'), color: 'error' })
+    toast.add({
+      title: status === 422 ? t('themes.customize.limit') : t('themes.customize.importError'),
+      description: status === 422 ? t('themes.customize.limitHint') : t('themes.customize.importErrorHint'),
+      color: 'error',
+    })
   }
   finally {
     busy.value = false

@@ -39,12 +39,17 @@
       "new": "New site",
       "empty": "No embedder domains registered yet.",
       "created": "Site registered",
+      "createdHint": "The domain is live right away — the widget can be embedded there from now on.",
       "createFailed": "Could not register site",
+      "createFailedHint": "Most likely causes: the domain is already registered, or it was not given as a plain hostname (no https://, no path).",
       "enabled": "Site enabled",
       "disabled": "Site disabled",
+      "disabledHint": "Existing embeds on this domain stop showing comments immediately.",
       "updateFailed": "Could not update site",
+      "updateFailedHint": "The switch is back where it was. Reload the page and try again.",
       "deleted": "Site deleted",
       "deleteFailed": "Could not delete site",
+      "deleteFailedHint": "The domain is still registered. Reload the page and try again.",
       "confirmDeleteTitle": "Delete embedder domain?",
       "confirmDeleteText": "{host} will no longer be allowed to embed the widget. This takes effect immediately.",
       "host": "Domain (host)",
@@ -77,7 +82,16 @@
       "toast": "Comments are currently disabled.",
       "maintenanceTitle": "Maintenance mode",
       "maintenanceText": "New comments are paused during maintenance. Existing comments stay visible.",
-      "maintenanceToast": "Maintenance mode — commenting is temporarily locked."
+      "maintenanceToast": "Maintenance mode — commenting is temporarily locked.",
+      "draftKeptHint": "Your text stays in the box — you can send it later."
+    },
+    "moderation": {
+      "bulkPartialHint": "The remaining comments are unchanged. The selection was cleared — find them in the refreshed list and try again there.",
+      "bulkFailedHint": "No comment was changed. Check your connection and try again.",
+      "actionFailedHint": "Nothing was changed. Reload the list and try again.",
+      "assistFailedHint": "The assessment is advisory only — you can hide or keep the comment without it.",
+      "hiddenHint": "The open reports for this comment are resolved along with it.",
+      "blockedHint": "Existing comments stay visible — hide them individually if needed."
     },
     "sort": {
       "label": "Sort",
@@ -92,6 +106,7 @@
       "submit": "Comment",
       "replySubmit": "Reply",
       "error": "The comment could not be saved.",
+      "errorHint": "Your text is still in the box. Check your connection and send it again.",
       "mentionSuggestions": "Mention suggestions",
       "markdownHint": "Markdown: **bold** *italic* `code` [link](https://…)"
     },
@@ -109,7 +124,10 @@
       "upvote": "Upvote",
       "downvote": "Downvote",
       "voteError": "Vote failed — please try again.",
+      "voteErrorHint": "That is why the count jumped back. Check your connection and vote again.",
       "error": "Action failed — please try again.",
+      "editErrorHint": "Your change is still in the box, the comment is unchanged.",
+      "deleteErrorHint": "The comment is still there. Check your connection and try again.",
       "formerMember": "Former member"
     },
     "report": {

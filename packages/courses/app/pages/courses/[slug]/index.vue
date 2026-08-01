@@ -33,7 +33,7 @@ async function enroll() {
   upgradeNeeded.value = false
   try {
     await $fetch(`/api/courses/${route.params.slug}/enroll`, { method: 'POST' })
-    toast.add({ title: t('courses.detail.enrolled'), color: 'success' })
+    toast.add({ title: t('courses.detail.enrolled'), description: t('courses.detail.enrolledHint'), color: 'success' })
     await refresh()
   }
   catch (err) {
@@ -42,7 +42,7 @@ async function enroll() {
       upgradeNeeded.value = true
     }
     else {
-      toast.add({ title: t('courses.detail.enrollFailed'), color: 'error' })
+      toast.add({ title: t('courses.detail.enrollFailed'), description: t('courses.detail.enrollFailedHint'), color: 'error' })
     }
   }
   finally {

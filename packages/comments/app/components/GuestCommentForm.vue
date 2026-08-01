@@ -43,7 +43,12 @@ async function onSubmit(event: FormSubmitEvent<FormInput>) {
       : code === 'comments_disabled'
         ? 'comments.disabled.toast'
         : status === 429 ? 'comments.guest.rateLimited' : 'comments.form.error'
-    toast.add({ title: t(key), color: 'error' })
+    // Wie im angemeldeten Formular: der Text bleibt stehen, das gehört gesagt
+    toast.add({
+      title: t(key),
+      description: t(key === 'comments.form.error' ? 'comments.form.errorHint' : 'comments.disabled.draftKeptHint'),
+      color: 'error',
+    })
   }
   finally {
     loading.value = false

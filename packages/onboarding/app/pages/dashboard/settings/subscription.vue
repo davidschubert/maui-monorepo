@@ -103,6 +103,9 @@ async function buy(key: PlanKey) {
       title: reason === 'already_subscribed'
         ? t('onboarding.subscription.alreadySubscribed')
         : t('onboarding.subscription.errorGeneric'),
+      // Beim Bezahlen ist „es wurde nichts berechnet" die eigentliche Auskunft;
+      // beim schon bestehenden Abo steht der nächste Schritt im Titel.
+      description: reason === 'already_subscribed' ? undefined : t('onboarding.subscription.checkoutErrorHint'),
       color: reason === 'already_subscribed' ? 'warning' : 'error',
     })
   }
@@ -126,6 +129,7 @@ async function openPortal() {
       title: statusCode === 409
         ? t('onboarding.subscription.noSubscription')
         : t('onboarding.subscription.errorGeneric'),
+      description: statusCode === 409 ? undefined : t('onboarding.subscription.portalErrorHint'),
       color: statusCode === 409 ? 'neutral' : 'error',
     })
   }

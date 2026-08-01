@@ -19,7 +19,11 @@ const objectUrl = ref<string>()
 
 watch(file, (selected) => {
   if (selected && selected.size > MAX_BYTES) {
-    toast.add({ title: t('profile.photoTooLarge'), color: 'error' })
+    toast.add({
+      title: t('profile.photoTooLarge'),
+      description: t('profile.photoTooLargeDescription'),
+      color: 'error',
+    })
     file.value = null
     return
   }

@@ -35,7 +35,7 @@ async function unwatch(ticketId: string) {
     await toggleWatch(ticketId)
   }
   catch {
-    toast.add({ title: t('tickets.errors.action'), color: 'error' })
+    toast.add({ title: t('tickets.errors.action'), description: t('tickets.watch.toggleFailed'), color: 'error' })
   }
   finally {
     unwatchBusy.value = ''
@@ -127,9 +127,17 @@ async function addList() {
     newListTitle.value = ''
     addingList.value = false
     await refresh()
+    // Die neue Liste hängt ganz rechts und liegt bei vollem Board außerhalb
+    // des Sichtfensters — ohne Meldung sah das Anlegen wie ein Fehlschlag aus.
+    toast.add({
+      title: t('tickets.board.listAdded'),
+      description: t('tickets.board.listAddedHint'),
+      color: 'success',
+      icon: 'i-ph-plus',
+    })
   }
   catch {
-    toast.add({ title: t('tickets.errors.action'), color: 'error' })
+    toast.add({ title: t('tickets.errors.action'), description: t('tickets.errors.listAdd'), color: 'error' })
   }
   finally {
     addingListBusy.value = false
@@ -267,9 +275,15 @@ async function addList() {
             <li v-for="ticket in watchedTickets" :key="ticket.$id" class="flex items-center gap-2 py-3">
               <button type="button" class="min-w-0 flex-1 cursor-pointer text-start" @click="openWatched(ticket.$id)">
                 <p class="truncate text-sm font-medium hover:text-primary">{{ ticket.title }}</p>
-                <p class="text-xs text-muted">
-                  {{ ticket.listTitle }}
-                  <template v-if="ticket.status === 'done'"> · ✅</template>
+                <!-- Ein Emoji ist kein Status (Audit-Befund C12): „✅" liest
+                     kein Screenreader sinnvoll vor und lässt sich nicht
+                     übersetzen. UBadge sagt dasselbe in Worten — Text gab es
+                     mit `tickets.card.done` längst. -->
+                <p class="flex items-center gap-1.5 text-xs text-muted">
+                  <span class="truncate">{{ ticket.listTitle }}</span>
+                  <UBadge v-if="ticket.status === 'done'" color="success" variant="subtle" size="sm" icon="i-ph-check-circle">
+                    {{ t('tickets.card.done') }}
+                  </UBadge>
                 </p>
               </button>
               <UTooltip :text="t('tickets.watch.stop')">
@@ -278,6 +292,7 @@ async function addList() {
                   color="neutral"
                   variant="ghost"
                   size="xs"
+                  :aria-label="t('tickets.watch.stop')"
                   :loading="unwatchBusy === ticket.$id"
                   :data-unwatch="ticket.$id"
                   @click="unwatch(ticket.$id)"

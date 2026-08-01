@@ -32,7 +32,11 @@ async function resend() {
     dismissed.value = true
   }
   catch {
-    toast.add({ title: t('auth.verification.sendFailed'), color: 'error' })
+    toast.add({
+      title: t('auth.verification.sendFailed'),
+      description: t('auth.verification.sendFailedDescription'),
+      color: 'error',
+    })
   }
   finally {
     sending.value = false

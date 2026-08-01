@@ -10,6 +10,8 @@
       "subtitle": "Feedback sichten, Tickets planen, Umsetzung verfolgen",
       "addList": "Eine weitere Liste hinzufügen",
       "listTitlePlaceholder": "Listen-Titel …",
+      "listAdded": "Liste angelegt.",
+      "listAddedHint": "Sie steht am rechten Ende des Boards.",
       "loadFailed": "Das Board konnte nicht geladen werden — möglicherweise ist deine Sitzung abgelaufen.",
       "retry": "Erneut versuchen"
     },
@@ -18,6 +20,8 @@
       "addCard": "Karte hinzufügen",
       "rename": "Umbenennen",
       "duplicate": "Liste kopieren",
+      "duplicated": "Liste kopiert.",
+      "duplicatedHint": "Die Kopie steht mit allen Karten direkt rechts neben dem Original.",
       "delete": "Liste löschen",
       "sortNewest": "Sortieren: Neueste zuerst",
       "sortOldest": "Sortieren: Älteste zuerst",
@@ -79,8 +83,10 @@
       "markOpen": "Ticket wieder öffnen",
       "duplicate": "Ticket duplizieren",
       "duplicated": "Ticket kopiert.",
+      "duplicatedHint": "Die Kopie liegt direkt unter dem Original in derselben Liste.",
       "share": "Ticket-Link kopieren",
       "linkCopied": "Ticket-Link kopiert.",
+      "linkCopiedHint": "Der Link öffnet direkt diese Karte — nur für Leute mit Zugriff auf das Board.",
       "delete": "Ticket löschen",
       "deleteConfirmTitle": "Ticket löschen?",
       "deleteConfirmText": "Das Ticket wird endgültig gelöscht — mit Checkliste, Anhängen und Verlauf.",
@@ -95,13 +101,23 @@
       "context": "Kontext"
     },
     "errors": {
-      "action": "Aktion fehlgeschlagen — bitte erneut versuchen."
+      "action": "Aktion fehlgeschlagen — bitte erneut versuchen.",
+      "listAdd": "Die Liste wurde nicht angelegt. Dein Titel steht noch im Feld — drück noch einmal Enter.",
+      "listRename": "Der neue Titel wurde nicht gespeichert — die Liste behält ihren bisherigen Namen.",
+      "listDelete": "Die Liste wurde nicht gelöscht — sie steht mit allen Karten unverändert auf dem Board.",
+      "listDuplicate": "Die Kopie wurde nicht angelegt — auf dem Board hat sich nichts geändert.",
+      "listSort": "Die Liste wurde nicht neu sortiert — die Reihenfolge der Karten ist unverändert.",
+      "cardAdd": "Die Karte wurde nicht angelegt. Dein Titel steht noch im Feld — drück noch einmal Enter.",
+      "save": "Deine Änderung steht nur in diesem Formular. Ändere ein Feld erneut, damit sie gespeichert wird — schließ die Karte vorher nicht.",
+      "ticketDuplicate": "Die Kopie wurde nicht angelegt — das Ticket ist unverändert.",
+      "ticketDelete": "Das Ticket wurde nicht gelöscht und steht weiter auf dem Board."
     },
     "triage": {
       "run": "KI-Triage ausführen",
       "running": "KI-Triage läuft …",
       "done": "KI-Triage ergänzt — Einschätzung steht in der Beschreibung.",
-      "failed": "KI-Triage fehlgeschlagen — ist NUXT_TICKETS_AI_KEY gesetzt?"
+      "failed": "KI-Triage fehlgeschlagen — ist NUXT_TICKETS_AI_KEY gesetzt?",
+      "failedHint": "Das Ticket ist unverändert. Prüf in den Board-Einstellungen die Modell-Id und versuch es noch einmal."
     },
     "watch": {
       "start": "Ticket beobachten",
@@ -109,6 +125,7 @@
       "toggle": "Beobachten umschalten",
       "added": "Du beobachtest dieses Ticket jetzt.",
       "removed": "Beobachtung beendet.",
+      "toggleFailed": "Die Beobachtung wurde nicht geändert — es gilt weiter der bisherige Stand.",
       "listTitle": "Beobachtet",
       "listDescription": "Alle Tickets, denen du folgst — hier auch wieder ausschaltbar.",
       "empty": "Du beobachtest noch keine Tickets."
@@ -118,6 +135,8 @@
       "upload": "Hochladen",
       "uploaded": "Anhang hochgeladen.",
       "unsupported": "Dateityp nicht unterstützt — erlaubt: Bilder, PDF, md/txt/csv/json (max 10 MB).",
+      "uploadFailed": "Die Datei wurde nicht angehängt. Häufigste Ursache ist die Größe (max 10 MB) — sonst hilft ein zweiter Versuch.",
+      "removeFailed": "Der Anhang wurde nicht entfernt — er hängt weiter an dieser Karte.",
       "remove": "Anhang entfernen",
       "empty": "Noch keine Anhänge — Bilder, PDF oder Text-Dateien (max 10 MB)."
     },
@@ -134,7 +153,10 @@
       "defaultHint": "Standard aus der App-Config: {model} — „Zurücksetzen\" stellt ihn wieder her.",
       "reset": "Auf Standard zurücksetzen",
       "saved": "KI-Modell gespeichert: {model}",
+      "savedHint": "Jede neue KI-Triage läuft ab sofort über dieses Modell.",
       "invalid": "Speichern fehlgeschlagen — Modell-Id im Format vendor/model?",
+      "invalidHint": "Anbieter und Modell, getrennt durch einen Schrägstrich — z. B. anthropic/claude-haiku-4.5. Bis dahin bleibt das bisherige Modell aktiv.",
+      "loadFailed": "Die Board-Einstellungen konnten nicht geladen werden. Öffne sie noch einmal — hilft das nicht, lade die Seite neu (deine Sitzung könnte abgelaufen sein).",
       "aiDisabled": "Die KI-Triage ist in dieser App nicht aktiviert (pukalani.tickets.ai)."
     }
   }

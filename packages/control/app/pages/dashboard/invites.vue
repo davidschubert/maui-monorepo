@@ -75,7 +75,13 @@ async function createStock() {
     await refresh()
   }
   catch (error) {
-    toast.add({ title: t('control.invites.createFailed'), description: (error as { statusMessage?: string })?.statusMessage, color: 'error' })
+    // Eigener Titel: hier entstehen Vorrats-PLÄTZE, kein Code — und der
+    // Statustext fällt unter HTTP/2 weg, deshalb der Ersatztext.
+    toast.add({
+      title: t('control.invites.stock.createFailed'),
+      description: (error as { statusMessage?: string })?.statusMessage || t('control.invites.stock.createFailedHint'),
+      color: 'error',
+    })
   }
   finally {
     bulking.value = false
@@ -111,7 +117,11 @@ async function createCode() {
     await refresh()
   }
   catch (error) {
-    toast.add({ title: t('control.invites.createFailed'), description: (error as { statusMessage?: string })?.statusMessage, color: 'error' })
+    toast.add({
+      title: t('control.invites.createFailed'),
+      description: (error as { statusMessage?: string })?.statusMessage || t('control.invites.createFailedHint'),
+      color: 'error',
+    })
   }
   finally {
     saving.value = false
@@ -134,11 +144,15 @@ async function copyCode() {
 async function setStatus(code: InviteDto, status: 'active' | 'revoked') {
   try {
     await $fetch(`/api/control/invites/${code.id}`, { method: 'PATCH', body: { status } })
-    toast.add({ title: t(status === 'revoked' ? 'control.invites.revoked' : 'control.invites.reactivated'), color: 'success' })
+    toast.add({
+      title: t(status === 'revoked' ? 'control.invites.revoked' : 'control.invites.reactivated'),
+      description: t(status === 'revoked' ? 'control.invites.revokedHint' : 'control.invites.reactivatedHint'),
+      color: 'success',
+    })
     await refresh()
   }
   catch {
-    toast.add({ title: t('control.invites.updateFailed'), color: 'error' })
+    toast.add({ title: t('control.invites.updateFailed'), description: t('control.invites.updateFailedHint'), color: 'error' })
   }
 }
 

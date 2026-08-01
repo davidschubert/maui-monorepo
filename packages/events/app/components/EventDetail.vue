@@ -53,6 +53,8 @@ async function buyTicket() {
     const statusCode = (error as { statusCode?: number }).statusCode
     toast.add({
       title: statusCode === 409 ? t('events.ticket.alreadyOwned') : t('events.ticket.failed'),
+      // 409 ist kein Fehler, sondern eine Auskunft — dort gibt es nichts zu tun.
+      description: statusCode === 409 ? undefined : t('events.ticket.failedHint'),
       color: statusCode === 409 ? 'info' : 'error',
     })
   }
@@ -144,7 +146,7 @@ async function share() {
       toast.add({ title: t('events.detail.linkCopied'), color: 'success' })
     }
     catch {
-      toast.add({ title: t('events.detail.shareFailed'), color: 'error' })
+      toast.add({ title: t('events.detail.shareFailed'), description: t('events.detail.shareFailedHint'), color: 'error' })
     }
   }
 }
@@ -161,12 +163,13 @@ async function report(reason: string) {
       method: 'POST',
       body: { targetType: 'event', targetId: event.value.$id, reason },
     })
-    toast.add({ title: t('events.report.done'), color: 'success' })
+    toast.add({ title: t('events.report.done'), description: t('events.report.doneHint'), color: 'success' })
   }
   catch (error) {
     const statusCode = (error as { statusCode?: number }).statusCode
     toast.add({
       title: statusCode === 409 ? t('events.report.already') : t('events.report.failed'),
+      description: statusCode === 409 ? undefined : t('events.report.failedHint'),
       color: statusCode === 409 ? 'info' : 'error',
     })
   }

@@ -50,7 +50,11 @@ async function assign(request: RequestDto) {
   busy.value = request.id
   try {
     const result = await $fetch<{ reminder: boolean }>(`/api/control/invite-requests/${request.id}/assign`, { method: 'POST' })
-    toast.add({ title: t(result.reminder ? 'control.requests.reminded' : 'control.requests.assigned', { email: request.email }), color: 'success' })
+    toast.add({
+      title: t(result.reminder ? 'control.requests.reminded' : 'control.requests.assigned', { email: request.email }),
+      description: t(result.reminder ? 'control.requests.remindedHint' : 'control.requests.assignedHint'),
+      color: 'success',
+    })
     await refresh()
   }
   catch (error) {
@@ -59,7 +63,10 @@ async function assign(request: RequestDto) {
       // 502 = Code steht, aber die Mail ging nicht raus. Das ist ein anderer
       // Zustand als „hat nicht geklappt" und muss anders klingen.
       title: t(status === 502 ? 'control.requests.mailFailed' : 'control.requests.assignFailed'),
-      description: (error as { statusMessage?: string })?.statusMessage,
+      // 502 sagt im Titel schon, was zu tun ist; der Rest braucht die
+      // Ursachen-Zeile, weil der Statustext unter HTTP/2 wegfällt.
+      description: (error as { statusMessage?: string })?.statusMessage
+        || (status === 502 ? undefined : t('control.requests.assignFailedHint')),
       color: status === 502 ? 'warning' : 'error',
     })
     await refresh()
@@ -76,7 +83,7 @@ async function setStatus(request: RequestDto, next: 'declined' | 'deferred' | 'n
     await refresh()
   }
   catch {
-    toast.add({ title: t('control.requests.updateFailed'), color: 'error' })
+    toast.add({ title: t('control.requests.updateFailed'), description: t('control.requests.updateFailedHint'), color: 'error' })
   }
   finally {
     busy.value = null

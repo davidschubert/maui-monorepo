@@ -37,7 +37,13 @@ async function onSubmit(event: FormSubmitEvent<ProfileInput>) {
         avatarUrl = fileUrl(uploaded.$id, { width: 256, height: 256, quality: 85 })
       }
       catch {
-        toast.add({ title: t('profile.photoUploadFailed'), color: 'error' })
+        toast.add({
+          title: t('profile.photoUploadFailed'),
+          // Hier wird abgebrochen, BEVOR das Profil gespeichert ist — das muss
+          // dranstehen, sonst hält der Nutzer nur das Foto für gescheitert.
+          description: t('profile.photoUploadFailedDescription'),
+          color: 'error',
+        })
         return
       }
     }
@@ -53,6 +59,7 @@ async function onSubmit(event: FormSubmitEvent<ProfileInput>) {
     const code = (error as { data?: { data?: { code?: string } } })?.data?.data?.code
     toast.add({
       title: code === 'phone_taken' ? t('profile.phoneTaken') : t('profile.saveFailed'),
+      description: code === 'phone_taken' ? t('profile.phoneTakenDescription') : t('profile.saveFailedDescription'),
       color: 'error',
     })
   }

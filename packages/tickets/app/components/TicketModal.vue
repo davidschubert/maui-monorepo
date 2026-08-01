@@ -109,7 +109,7 @@ async function onToggleWatch() {
     })
   }
   catch {
-    toast.add({ title: t('tickets.errors.action'), color: 'error' })
+    toast.add({ title: t('tickets.errors.action'), description: t('tickets.watch.toggleFailed'), color: 'error' })
   }
   finally {
     watchBusy.value = false
@@ -146,8 +146,11 @@ async function onFileSelected(event: Event) {
   }
   catch (error) {
     const statusCode = (error as { statusCode?: number }).statusCode
+    // 415 nennt die erlaubten Typen schon im Titel — nur der unklare Rest
+    // braucht die Ursachen-Zeile.
     toast.add({
       title: statusCode === 415 ? t('tickets.files.unsupported') : t('tickets.errors.action'),
+      ...(statusCode === 415 ? {} : { description: t('tickets.files.uploadFailed') }),
       color: 'error',
     })
   }
@@ -161,7 +164,7 @@ async function removeFile(file: TicketFileRow) {
     await loadFiles()
   }
   catch {
-    toast.add({ title: t('tickets.errors.action'), color: 'error' })
+    toast.add({ title: t('tickets.errors.action'), description: t('tickets.files.removeFailed'), color: 'error' })
   }
 }
 function fileIcon(mime: string): string {
@@ -301,7 +304,9 @@ async function patch(body: Record<string, unknown>) {
     return true
   }
   catch {
-    toast.add({ title: t('tickets.errors.action'), color: 'error' })
+    // Diese Route trägt auch den Autosave: ohne Hinweis merkt niemand, dass
+    // die Eingabe nur noch im Formular steht.
+    toast.add({ title: t('tickets.errors.action'), description: t('tickets.errors.save'), color: 'error' })
     return false
   }
   finally {
@@ -349,12 +354,12 @@ async function duplicate() {
   busy.value = true
   try {
     await $fetch(`/api/tickets/${props.ticket.$id}/duplicate`, { method: 'POST' })
-    toast.add({ title: t('tickets.modal.duplicated'), color: 'success' })
+    toast.add({ title: t('tickets.modal.duplicated'), description: t('tickets.modal.duplicatedHint'), color: 'success' })
     emit('refresh')
     open.value = false
   }
   catch {
-    toast.add({ title: t('tickets.errors.action'), color: 'error' })
+    toast.add({ title: t('tickets.errors.action'), description: t('tickets.errors.ticketDuplicate'), color: 'error' })
   }
   finally {
     busy.value = false
@@ -377,7 +382,7 @@ async function remove() {
     open.value = false
   }
   catch {
-    toast.add({ title: t('tickets.errors.action'), color: 'error' })
+    toast.add({ title: t('tickets.errors.action'), description: t('tickets.errors.ticketDelete'), color: 'error' })
   }
 }
 
@@ -425,7 +430,12 @@ function downloadMarkdown() {
 }
 async function shareLink() {
   await navigator.clipboard.writeText(ticketUrl())
-  toast.add({ title: t('tickets.modal.linkCopied'), color: 'success', icon: 'i-ph-link' })
+  toast.add({
+    title: t('tickets.modal.linkCopied'),
+    description: t('tickets.modal.linkCopiedHint'),
+    color: 'success',
+    icon: 'i-ph-link',
+  })
 }
 
 // KI-Triage on demand — Ergebnis landet als Abschnitt in der Beschreibung
@@ -442,7 +452,7 @@ async function runTriage() {
     toast.add({ id: 'ticket-triage', title: t('tickets.triage.done'), color: 'success', icon: 'i-ph-sparkle' })
   }
   catch {
-    toast.add({ id: 'ticket-triage', title: t('tickets.triage.failed'), color: 'error' })
+    toast.add({ id: 'ticket-triage', title: t('tickets.triage.failed'), description: t('tickets.triage.failedHint'), color: 'error' })
   }
   finally {
     triaging.value = false

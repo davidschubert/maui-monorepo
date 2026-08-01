@@ -32,11 +32,17 @@ async function setCourseStatus(target: 'draft' | 'published' | 'archived') {
   busy.value = true
   try {
     await $fetch(`/api/courses/${courseId}` as string, { method: 'PATCH', body: { status: target } })
-    toast.add({ title: t('courses.admin.saved'), color: 'success' })
+    // „Gespeichert." sagt nicht, was der neue Status für Teilnehmende bedeutet —
+    // genau das ist die Frage beim Zurückziehen und beim Archivieren.
+    toast.add({
+      title: t('courses.admin.saved'),
+      description: t(`courses.admin.statusHint.${target}`),
+      color: 'success',
+    })
     await refresh()
   }
   catch {
-    toast.add({ title: t('courses.admin.saveFailed'), color: 'error' })
+    toast.add({ title: t('courses.admin.saveFailed'), description: t('courses.admin.statusFailedHint'), color: 'error' })
   }
   finally {
     busy.value = false
@@ -69,6 +75,7 @@ async function saveLesson() {
     return
   }
   lessonSaving.value = true
+  const isNew = !editingLessonId.value
   try {
     if (editingLessonId.value) {
       await $fetch(`/api/lessons/${editingLessonId.value}` as string, { method: 'PATCH', body: parsed.data })
@@ -76,12 +83,18 @@ async function saveLesson() {
     else {
       await $fetch(`/api/courses/${courseId}/lessons`, { method: 'POST', body: parsed.data })
     }
-    toast.add({ title: t('courses.admin.saved'), color: 'success' })
+    // Eine NEUE Lektion ist ein Entwurf (lessons.post.ts: status ?? 'draft') —
+    // ohne diesen Hinweis wartet man vergeblich darauf, dass sie im Kurs auftaucht.
+    toast.add({
+      title: t('courses.admin.saved'),
+      description: isNew ? t('courses.admin.lessonCreatedHint') : undefined,
+      color: 'success',
+    })
     lessonModal.value = false
     await refresh()
   }
   catch {
-    toast.add({ title: t('courses.admin.saveFailed'), color: 'error' })
+    toast.add({ title: t('courses.admin.saveFailed'), description: t('courses.admin.lessonSaveFailedHint'), color: 'error' })
   }
   finally {
     lessonSaving.value = false
@@ -91,15 +104,23 @@ async function saveLesson() {
 const lessonBusyId = ref('')
 async function toggleLessonStatus(lesson: LessonRow) {
   lessonBusyId.value = lesson.$id
+  const publishing = lesson.status !== 'published'
   try {
     await $fetch(`/api/lessons/${lesson.$id}` as string, {
       method: 'PATCH',
-      body: { status: lesson.status === 'published' ? 'draft' : 'published' },
+      body: { status: publishing ? 'published' : 'draft' },
+    })
+    // Bis zum Audit-Befund C12 meldete sich diese Aktion NUR im Fehlerfall — der
+    // Erfolg blieb stumm, obwohl er für Teilnehmende der sichtbarste Schritt ist.
+    toast.add({
+      title: t(publishing ? 'courses.admin.lessonPublished' : 'courses.admin.lessonUnpublished'),
+      description: t(publishing ? 'courses.admin.lessonPublishedHint' : 'courses.admin.lessonUnpublishedHint'),
+      color: 'success',
     })
     await refresh()
   }
   catch {
-    toast.add({ title: t('courses.admin.saveFailed'), color: 'error' })
+    toast.add({ title: t('courses.admin.saveFailed'), description: t('courses.admin.lessonStatusFailedHint'), color: 'error' })
   }
   finally {
     lessonBusyId.value = ''
@@ -115,10 +136,11 @@ async function removeLesson(lesson: LessonRow) {
       action: () => $fetch(`/api/lessons/${lesson.$id}` as string, { method: 'DELETE' }),
     })
     if (!ok) return
+    toast.add({ title: t('courses.admin.lessonDeleted'), color: 'success' })
     await refresh()
   }
   catch {
-    toast.add({ title: t('courses.admin.saveFailed'), color: 'error' })
+    toast.add({ title: t('courses.admin.saveFailed'), description: t('courses.admin.lessonDeleteFailedHint'), color: 'error' })
   }
 }
 
@@ -131,10 +153,13 @@ async function moveLesson(index: number, delta: number) {
   lessons.splice(target, 0, moved!)
   try {
     await $fetch(`/api/courses/${courseId}/reorder`, { method: 'POST', body: { lessonIds: lessons.map(l => l.$id) } })
+    // Ohne Rückmeldung war unklar, ob die neue Reihenfolge schon gespeichert ist:
+    // die Tabelle springt erst nach dem refresh() um (keine optimistische Anzeige).
+    toast.add({ title: t('courses.admin.reordered'), color: 'success' })
     await refresh()
   }
   catch {
-    toast.add({ title: t('courses.admin.saveFailed'), color: 'error' })
+    toast.add({ title: t('courses.admin.saveFailed'), description: t('courses.admin.reorderFailedHint'), color: 'error' })
   }
 }
 

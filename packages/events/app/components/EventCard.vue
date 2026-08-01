@@ -66,7 +66,7 @@ async function share() {
       toast.add({ title: t('events.detail.linkCopied'), color: 'success' })
     }
     catch {
-      toast.add({ title: t('events.detail.shareFailed'), color: 'error' })
+      toast.add({ title: t('events.detail.shareFailed'), description: t('events.detail.shareFailedHint'), color: 'error' })
     }
   }
 }

@@ -49,12 +49,23 @@ async function createSite() {
         ...(form.targetTypes ? { targetTypes: parseTargetTypes(form.targetTypes) } : {}),
       },
     })
-    toast.add({ title: t('comments.embedAdmin.created'), color: 'success' })
+    // Neue Sites entstehen aktiv (index.post.ts) — sonst wartet man auf einen
+    // Schalter, den man gar nicht umlegen muss.
+    toast.add({ title: t('comments.embedAdmin.created'), description: t('comments.embedAdmin.createdHint'), color: 'success' })
     showCreate.value = false
     await refresh()
   }
-  catch (error) {
-    toast.add({ title: t('comments.embedAdmin.createFailed'), description: (error as { statusMessage?: string })?.statusMessage, color: 'error' })
+  catch {
+    // Hier stand der rohe `statusMessage` der Route zuerst und der übersetzte
+    // Text nur als Rückfall (Audit-Befund C12): das ist ein KUNDEN-Dashboard —
+    // ein englischer Entwickler-Satz in einer deutschen Oberfläche sagt dem
+    // Betreiber der Site nichts. Der Statustext fällt unter HTTP/2 ohnehin weg.
+    // Im Betreiber-Werkzeug (packages/control) bleibt er bewusst vorne.
+    toast.add({
+      title: t('comments.embedAdmin.createFailed'),
+      description: t('comments.embedAdmin.createFailedHint'),
+      color: 'error',
+    })
   }
   finally {
     saving.value = false
@@ -70,13 +81,19 @@ const pending = ref<string | null>(null)
 
 async function toggleActive(site: EmbedSiteDto) {
   pending.value = site.id
+  const nowActive = !site.active
   try {
-    await $fetch(`/api/admin/embed-sites/${site.id}`, { method: 'PATCH', body: { active: !site.active } })
-    toast.add({ title: t(site.active ? 'comments.embedAdmin.disabled' : 'comments.embedAdmin.enabled'), color: 'success' })
+    await $fetch(`/api/admin/embed-sites/${site.id}`, { method: 'PATCH', body: { active: nowActive } })
+    toast.add({
+      title: t(nowActive ? 'comments.embedAdmin.enabled' : 'comments.embedAdmin.disabled'),
+      // Abschalten wirkt sofort auf fremden Seiten — das sagt der Titel nicht
+      description: nowActive ? undefined : t('comments.embedAdmin.disabledHint'),
+      color: 'success',
+    })
     await refresh()
   }
   catch {
-    toast.add({ title: t('comments.embedAdmin.updateFailed'), color: 'error' })
+    toast.add({ title: t('comments.embedAdmin.updateFailed'), description: t('comments.embedAdmin.updateFailedHint'), color: 'error' })
   }
   finally {
     pending.value = null
@@ -96,7 +113,7 @@ async function removeSite(site: EmbedSiteDto) {
     await refresh()
   }
   catch {
-    toast.add({ title: t('comments.embedAdmin.deleteFailed'), color: 'error' })
+    toast.add({ title: t('comments.embedAdmin.deleteFailed'), description: t('comments.embedAdmin.deleteFailedHint'), color: 'error' })
   }
 }
 </script>

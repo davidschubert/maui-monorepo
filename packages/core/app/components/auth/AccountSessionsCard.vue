@@ -40,7 +40,11 @@ async function signOut(session: UserSession) {
     await refresh()
   }
   catch {
-    toast.add({ title: t('account.sessions.signOutFailed'), color: 'error' })
+    toast.add({
+      title: t('account.sessions.signOutFailed'),
+      description: t('account.sessions.signOutFailedDescription'),
+      color: 'error',
+    })
   }
   finally {
     busyId.value = null
@@ -56,11 +60,21 @@ async function signOutAll() {
       action: () => $fetch('/api/auth/sessions', { method: 'DELETE' }),
     })
     if (!ok) return
-    toast.add({ title: t('account.sessions.signedOut'), color: 'success' })
+    // „Alle abmelden" trifft auch dieses Gerät — das gehört in die Meldung,
+    // sonst wirkt die gleich folgende eigene Abmeldung wie ein Fehler.
+    toast.add({
+      title: t('account.sessions.signedOut'),
+      description: t('account.sessions.signedOutAllDescription'),
+      color: 'success',
+    })
     await signOutSelf()
   }
   catch {
-    toast.add({ title: t('account.sessions.signOutFailed'), color: 'error' })
+    toast.add({
+      title: t('account.sessions.signOutFailed'),
+      description: t('account.sessions.signOutFailedDescription'),
+      color: 'error',
+    })
   }
 }
 </script>

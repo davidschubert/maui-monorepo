@@ -58,12 +58,18 @@ const groupedDependencies = computed(() => {
   return [...groups.entries()].map(([category, items]) => ({ category, items }))
 })
 
-// Aufgeklappte Layer (Namen statt nur Counts)
+/**
+ * Aufgeklappte Layer (Namen statt nur Counts). Das Auf- und Zuklappen macht
+ * seit C12 `UCollapsible` — vorher war es ein handgebautes `<button>` mit
+ * `aria-expanded` und zwei `v-if`-Zweigen. Der offene Zustand bleibt hier
+ * (mehrere Layer dürfen gleichzeitig offen sein), `UCollapsible` bekommt ihn
+ * je Karte gesetzt.
+ */
 const expandedLayers = ref(new Set<string>())
-function toggleLayer(name: string) {
+function setLayerOpen(name: string, open: boolean) {
   const next = new Set(expandedLayers.value)
-  if (next.has(name)) next.delete(name)
-  else next.add(name)
+  if (open) next.add(name)
+  else next.delete(name)
   expandedLayers.value = next
 }
 
@@ -91,11 +97,13 @@ async function updateDep(dep: Dep) {
     justUpdated.value = new Set(justUpdated.value).add(dep.name)
     toast.add({ title: t('dashboard.system.stack.updateStarted', { name: dep.name, version: to }), color: 'success', duration: 8000 })
   }
-  catch (error) {
-    const detail = (error as { statusMessage?: string, data?: { statusMessage?: string } })
+  catch {
+    // Vorher stand hier der rohe `statusMessage` der Route — Entwickler-Text,
+    // unübersetzt, und seit dem Fehler-Envelope ohnehin meist `undefined`
+    // (also eine Fehlermeldung ganz ohne Beschreibung).
     toast.add({
       title: t('dashboard.system.stack.updateFailed'),
-      description: detail.data?.statusMessage ?? detail.statusMessage,
+      description: t('dashboard.system.stack.updateFailedDesc'),
       color: 'error',
     })
   }
@@ -263,49 +271,62 @@ async function updateDep(dep: Dep) {
               <div>
                 <p class="mb-2 text-sm font-medium">{{ t('dashboard.system.stack.layers') }}</p>
                 <div class="space-y-2">
-                  <div v-for="layer in data.layers" :key="layer.name" class="rounded-lg border border-default/60 p-3">
-                    <button
-                      type="button"
-                      class="flex w-full items-center justify-between gap-2 text-left"
-                      :aria-expanded="expandedLayers.has(layer.name)"
-                      @click="toggleLayer(layer.name)"
-                    >
-                      <div class="flex min-w-0 items-center gap-2">
-                        <UIcon name="i-ph-stack" class="size-4 shrink-0 text-primary" />
-                        <span class="truncate font-mono text-sm font-medium">{{ layer.name }}</span>
-                        <UBadge color="neutral" variant="subtle" size="sm" class="font-mono">{{ layer.version }}</UBadge>
-                      </div>
-                      <div class="flex shrink-0 items-center gap-1.5 text-xs text-dimmed">
-                        <span>{{ layer.total }} {{ t('dashboard.system.stack.files') }}</span>
-                        <UIcon :name="expandedLayers.has(layer.name) ? 'i-ph-caret-up' : 'i-ph-caret-down'" class="size-3.5" />
-                      </div>
-                    </button>
-                    <p v-if="layer.description" class="mt-1 text-xs text-muted">{{ layer.description }}</p>
+                  <!--
+                    UCollapsible statt handgebauter Aufklapp-Karte (Audit-Befund
+                    C12). Kopfzeile, Beschreibung und die Anzahl-Chips liegen
+                    bewusst ALLE im Auslöser: die ganze Karte klappt auf, nicht
+                    nur die eine Zeile — und die Reihenfolge bleibt exakt die
+                    von vorher. Deshalb sind es hier `span`-Elemente: in einem
+                    Knopf ist `div`/`p` kein erlaubter Inhalt.
+                  -->
+                  <UCollapsible
+                    v-for="layer in data.layers"
+                    :key="layer.name"
+                    :open="expandedLayers.has(layer.name)"
+                    class="rounded-lg border border-default/60 p-3"
+                    @update:open="(value: boolean) => setLayerOpen(layer.name, value)"
+                  >
+                    <UButton color="neutral" variant="ghost" block :ui="{ base: 'block w-full px-0 py-0 text-left' }">
+                      <span class="flex w-full items-center justify-between gap-2">
+                        <span class="flex min-w-0 items-center gap-2">
+                          <UIcon name="i-ph-stack" class="size-4 shrink-0 text-primary" />
+                          <span class="truncate font-mono text-sm font-medium">{{ layer.name }}</span>
+                          <UBadge color="neutral" variant="subtle" size="sm" class="font-mono">{{ layer.version }}</UBadge>
+                        </span>
+                        <span class="flex shrink-0 items-center gap-1.5 text-xs text-dimmed">
+                          <span>{{ layer.total }} {{ t('dashboard.system.stack.files') }}</span>
+                          <UIcon :name="expandedLayers.has(layer.name) ? 'i-ph-caret-up' : 'i-ph-caret-down'" class="size-3.5" />
+                        </span>
+                      </span>
+                      <span v-if="layer.description" class="mt-1 block text-xs font-normal text-muted">{{ layer.description }}</span>
 
-                    <!-- Eingeklappt: Anzahl-Chips je Kategorie -->
-                    <div v-if="!expandedLayers.has(layer.name) && layer.categories.length" class="mt-2 flex flex-wrap gap-1.5">
-                      <UBadge v-for="c in layer.categories" :key="c.key" color="neutral" variant="outline" size="sm">
-                        <span class="font-mono font-semibold">{{ c.count }}</span>&nbsp;{{ t(`dashboard.system.stack.layerCat.${c.key}`) }}
-                      </UBadge>
-                    </div>
+                      <!-- Eingeklappt: Anzahl-Chips je Kategorie -->
+                      <span v-if="!expandedLayers.has(layer.name) && layer.categories.length" class="mt-2 flex flex-wrap gap-1.5">
+                        <UBadge v-for="c in layer.categories" :key="c.key" color="neutral" variant="outline" size="sm">
+                          <span class="font-mono font-semibold">{{ c.count }}</span>&nbsp;{{ t(`dashboard.system.stack.layerCat.${c.key}`) }}
+                        </UBadge>
+                      </span>
+                    </UButton>
 
                     <!-- Aufgeklappt: konkrete Namen je Kategorie -->
-                    <div v-else-if="expandedLayers.has(layer.name)" class="mt-3 space-y-3">
-                      <div v-for="c in layer.categories" :key="c.key">
-                        <p class="mb-1.5 flex items-center gap-1.5 text-xs font-medium">
-                          {{ t(`dashboard.system.stack.layerCat.${c.key}`) }}
-                          <span class="rounded bg-elevated px-1.5 font-mono text-dimmed">{{ c.count }}</span>
-                        </p>
-                        <div class="flex flex-wrap gap-1">
-                          <span
-                            v-for="name in c.items"
-                            :key="name"
-                            class="rounded bg-elevated px-1.5 py-0.5 font-mono text-xs text-muted"
-                          >{{ name }}</span>
+                    <template #content>
+                      <div class="mt-3 space-y-3">
+                        <div v-for="c in layer.categories" :key="c.key">
+                          <p class="mb-1.5 flex items-center gap-1.5 text-xs font-medium">
+                            {{ t(`dashboard.system.stack.layerCat.${c.key}`) }}
+                            <span class="rounded bg-elevated px-1.5 font-mono text-dimmed">{{ c.count }}</span>
+                          </p>
+                          <div class="flex flex-wrap gap-1">
+                            <span
+                              v-for="name in c.items"
+                              :key="name"
+                              class="rounded bg-elevated px-1.5 py-0.5 font-mono text-xs text-muted"
+                            >{{ name }}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
+                    </template>
+                  </UCollapsible>
                 </div>
               </div>
 

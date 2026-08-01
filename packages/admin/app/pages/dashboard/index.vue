@@ -138,7 +138,11 @@ async function moderate(comment: { $id: string, authorName: string }, status: 'h
     await Promise.all([refreshReported(), refreshStats()])
   }
   catch {
-    toast.add({ title: t('admin.users.actionFailed'), color: 'error' })
+    toast.add({
+      title: t('admin.users.actionFailed'),
+      description: t('admin.users.actionFailedDesc'),
+      color: 'error',
+    })
   }
 }
 

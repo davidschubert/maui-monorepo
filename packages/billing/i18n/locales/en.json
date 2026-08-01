@@ -13,7 +13,9 @@
       "loginCta": "Sign in to upgrade",
       "freeProducts": "All the community basics",
       "alreadyActive": "You already have an active subscription — manage it via the portal.",
+      "alreadyActiveDesc": "Use \"Manage subscription\" to switch your plan instead of taking out a second one.",
       "checkoutFailed": "Could not start the checkout.",
+      "checkoutFailedDesc": "Nothing was charged and no subscription was changed. Please try again in a moment.",
       "disabled": "Subscriptions are not enabled here yet.",
       "perMonth": "/month",
       "perYear": "/year",
@@ -34,7 +36,8 @@
       "pastDueHint": "Your last payment failed — please update your payment method.",
       "confirmingTitle": "Confirming your payment …",
       "confirmingText": "This only takes a moment — the page updates automatically.",
-      "portalFailed": "Could not open the portal."
+      "portalFailed": "Could not open the portal.",
+      "portalFailedDesc": "Nothing about your subscription has changed. Try again in a moment — if it keeps failing, get in touch."
     },
     "admin": {
       "title": "Subscriptions",
@@ -45,6 +48,7 @@
       "emptyTitle": "No subscriptions yet",
       "lookup": "Look up",
       "lookupPlaceholder": "Enter a user ID or cus_…",
+      "unknownUser": "Account not found",
       "col": {
         "plan": "Plan",
         "status": "Status",

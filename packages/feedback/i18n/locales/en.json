@@ -64,7 +64,9 @@
       "commentSend": "Comment",
       "someone": "Member",
       "loginRequired": "You need to be signed in for that.",
+      "loginRequiredDescription": "Sign in and try again.",
       "actionFailed": "Action failed.",
+      "actionFailedDescription": "Check your connection and try again.",
       "emptyTitle": "No feedback yet",
       "emptyText": "Whatever people wish for lands here via the feedback button in the bottom left.",
       "unavailableTitle": "Feedback is unreachable right now",
@@ -93,7 +95,14 @@
       "show": "Show again",
       "mute": "Mute community",
       "muted": "Community muted.",
-      "unmuted": "Community unmuted."
+      "mutedDescription": "No new feedback will arrive from there for now. Existing entries stay.",
+      "unmuted": "Community unmuted.",
+      "unmutedDescription": "This community can send feedback again.",
+      "saved": "Entry updated.",
+      "movedTo": "New state: {state}.",
+      "hiddenDone": "Entry hidden.",
+      "hiddenDescription": "It is gone from the list for others — you and its author still see it.",
+      "shownDone": "Entry visible again."
     }
   }
 }

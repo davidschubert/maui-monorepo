@@ -30,12 +30,22 @@ const form = reactive({ name: '', slug: '', projectId: '', endpoint: 'http://loc
 async function register() {
   try {
     await $fetch('/api/control/websites', { method: 'POST', body: { ...form, appUrl: form.appUrl || undefined } })
-    toast.add({ title: t('control.websites.registered', { name: form.name }), color: 'success' })
+    toast.add({
+      title: t('control.websites.registered', { name: form.name }),
+      description: t('control.websites.registeredHint'),
+      color: 'success',
+    })
     showRegister.value = false
     Object.assign(form, { name: '', slug: '', projectId: '', endpoint: 'http://localhost/v1', appUrl: '' })
   }
   catch (error) {
-    toast.add({ title: t('control.websites.registerFailed'), description: (error as { statusMessage?: string })?.statusMessage, color: 'error' })
+    // Der Statustext fällt unter HTTP/2 weg — ohne Ersatz stünde hier eine
+    // leere Beschreibung.
+    toast.add({
+      title: t('control.websites.registerFailed'),
+      description: (error as { statusMessage?: string })?.statusMessage || t('control.websites.registerFailedHint'),
+      color: 'error',
+    })
   }
   await refresh()
 }
@@ -44,10 +54,20 @@ const checking = ref<string | null>(null)
 async function checkHealth(site: WebsiteRow) {
   checking.value = site.$id
   try {
-    await $fetch(`/api/control/websites/${site.$id}/health`, { method: 'POST' })
+    const result = await $fetch<{ healthStatus: 'ok' | 'degraded' | 'down' }>(
+      `/api/control/websites/${site.$id}/health`,
+      { method: 'POST' },
+    )
+    // Ein Check ohne Statuswechsel änderte vorher NICHTS Sichtbares — der
+    // Betreiber wusste nicht, ob überhaupt geprüft wurde.
+    toast.add({
+      title: t('control.websites.healthChecked', { name: site.name, status: result.healthStatus }),
+      description: t(`control.websites.healthHint.${result.healthStatus}`),
+      color: result.healthStatus === 'ok' ? 'success' : result.healthStatus === 'degraded' ? 'warning' : 'error',
+    })
   }
   catch {
-    toast.add({ title: t('control.websites.healthFailed'), color: 'error' })
+    toast.add({ title: t('control.websites.healthFailed'), description: t('control.websites.healthFailedHint'), color: 'error' })
   }
   finally {
     checking.value = null
@@ -64,9 +84,10 @@ async function deregister(site: WebsiteRow) {
       action: () => $fetch(`/api/control/websites/${site.$id}`, { method: 'DELETE' }),
     })
     if (!ok) return
+    toast.add({ title: t('control.websites.deregistered', { name: site.name }), color: 'success' })
   }
   catch {
-    toast.add({ title: t('control.websites.deregisterFailed'), color: 'error' })
+    toast.add({ title: t('control.websites.deregisterFailed'), description: t('control.websites.deregisterFailedHint'), color: 'error' })
   }
   await refresh()
 }
@@ -111,13 +132,21 @@ async function createSite() {
       method: 'POST',
       body: { type: 'site.create', name: createName.value.trim(), products: selected.value },
     })
-    toast.add({ title: t('control.jobs.created', { name: createName.value.trim() }), color: 'success' })
+    toast.add({
+      title: t('control.jobs.created', { name: createName.value.trim() }),
+      description: t('control.jobs.createdHint'),
+      color: 'success',
+    })
     showCreate.value = false
     createName.value = ''
     selected.value = [...DEFAULT_PRODUCTS]
   }
   catch (error) {
-    toast.add({ title: t('control.jobs.createFailed'), description: (error as { statusMessage?: string })?.statusMessage, color: 'error' })
+    toast.add({
+      title: t('control.jobs.createFailed'),
+      description: (error as { statusMessage?: string })?.statusMessage || t('control.jobs.createFailedHint'),
+      color: 'error',
+    })
   }
   finally {
     creating.value = false
@@ -148,7 +177,11 @@ async function saveEntitlements() {
     entitlementSite.value = null
   }
   catch (error) {
-    toast.add({ title: t('control.entitlements.saveFailed'), description: (error as { statusMessage?: string })?.statusMessage, color: 'error' })
+    toast.add({
+      title: t('control.entitlements.saveFailed'),
+      description: (error as { statusMessage?: string })?.statusMessage || t('control.entitlements.saveFailedHint'),
+      color: 'error',
+    })
   }
   finally {
     savingGrants.value = false

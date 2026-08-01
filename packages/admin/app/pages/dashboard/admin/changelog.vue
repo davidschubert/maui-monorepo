@@ -88,12 +88,23 @@ async function onSubmit(event: FormSubmitEvent<FormInput>) {
     else {
       await $fetch('/api/admin/changelog', { method: 'POST', body })
     }
-    toast.add({ title: t('admin.changelog.saved'), color: 'success' })
+    // „Gespeichert" allein verrät nicht, ob der Eintrag schon draußen ist —
+    // genau das ist hier der Unterschied zwischen Entwurf und Veröffentlichung.
+    toast.add({
+      title: t('admin.changelog.saved'),
+      description: t(event.data.published ? 'admin.changelog.savedLiveDesc' : 'admin.changelog.savedDraftDesc'),
+      color: 'success',
+    })
     open.value = false
     await refresh()
   }
   catch {
-    toast.add({ title: t('admin.users.actionFailed'), color: 'error' })
+    // Das Modal bleibt bei einem Fehler offen — der Text ist also nicht weg.
+    toast.add({
+      title: t('admin.users.actionFailed'),
+      description: t('admin.changelog.saveFailedDesc'),
+      color: 'error',
+    })
   }
   finally {
     busy.value = false
@@ -113,7 +124,11 @@ async function remove(entry: ChangelogEntry) {
     await refresh()
   }
   catch {
-    toast.add({ title: t('admin.users.actionFailed'), color: 'error' })
+    toast.add({
+      title: t('admin.users.actionFailed'),
+      description: t('admin.changelog.deleteFailedDesc'),
+      color: 'error',
+    })
   }
 }
 

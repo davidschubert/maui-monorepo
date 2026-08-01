@@ -89,7 +89,7 @@ async function removeName(entry: ReservedEntry) {
     await refresh()
   }
   catch {
-    toast.add({ title: t('control.reservedNames.deleteFailed'), color: 'error' })
+    toast.add({ title: t('control.reservedNames.deleteFailed'), description: t('control.reservedNames.deleteFailedHint'), color: 'error' })
   }
 }
 

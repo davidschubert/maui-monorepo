@@ -78,7 +78,11 @@ async function save(next: boolean) {
   }
   catch {
     value.value = openRegistration.value !== false
-    toast.add({ title: t('dashboard.community.saveFailed'), color: 'error' })
+    toast.add({
+      title: t('dashboard.community.saveFailed'),
+      description: t('dashboard.community.saveFailedDesc'),
+      color: 'error',
+    })
   }
   finally {
     saving.value = false
@@ -142,7 +146,11 @@ async function saveAudience(next: 'members' | 'public') {
   }
   catch {
     audienceValue.value = audience.value ?? 'public'
-    toast.add({ title: t('dashboard.community.saveFailed'), color: 'error' })
+    toast.add({
+      title: t('dashboard.community.saveFailed'),
+      description: t('dashboard.community.saveFailedDesc'),
+      color: 'error',
+    })
   }
   finally {
     savingAudience.value = false
@@ -220,10 +228,20 @@ async function saveBranding(next: { theme: string, variant: string, neutral: str
     // bis zu 30 s — die öffentliche Community färbt sich also gleich um, aber
     // nicht in derselben Sekunde. Genau das sagt der Hinweis unten.
     branding.value = { theme: result.theme, variant: result.variant, neutral: result.neutral }
-    toast.add({ title: t('dashboard.community.appearance.saved'), color: 'success' })
+    // Der Hinweis auf die halbe Minute steht zwar auf der Karte — nach dem
+    // Speichern aus dem Modal heraus ist der Toast aber das, was man ansieht.
+    toast.add({
+      title: t('dashboard.community.appearance.saved'),
+      description: t('dashboard.community.appearance.savedDesc'),
+      color: 'success',
+    })
   }
   catch {
-    toast.add({ title: t('dashboard.community.saveFailed'), color: 'error' })
+    toast.add({
+      title: t('dashboard.community.saveFailed'),
+      description: t('dashboard.community.saveFailedDesc'),
+      color: 'error',
+    })
   }
   finally {
     savingBranding.value = false

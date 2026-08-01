@@ -3,6 +3,7 @@
 // Metadaten-Bearbeitung (Titel/Untertitel/Alt/featured) und Löschen.
 // Öffentliche Konsumenten lesen /api/media (nur published).
 import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
+import { MAX_MEDIA_BYTES } from '../../../shared/types/media'
 import type { AdminMediaItem, MediaItem } from '../../../shared/types/media'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'media.manage' })
@@ -53,8 +54,16 @@ async function upload(files: FileList | null) {
     }
     toast.add({ title: t('media.admin.uploaded', { count: files.length }), color: 'success' })
   }
-  catch (error) {
-    toast.add({ title: t('media.admin.uploadFailed'), description: (error as { statusMessage?: string })?.statusMessage, color: 'error' })
+  catch {
+    // Der Hinweis nennt die einzige Regel, an der ein Upload hier praktisch
+    // scheitert: Format und Größe. Der rohe `statusMessage` der Route stand
+    // davor (Audit-Befund C12) — englischer Entwickler-Text in einem
+    // Kunden-Dashboard, und unter HTTP/2 meist ohnehin leer.
+    toast.add({
+      title: t('media.admin.uploadFailed'),
+      description: t('media.admin.uploadFailedHint', { max: Math.round(MAX_MEDIA_BYTES / (1024 * 1024)) }),
+      color: 'error',
+    })
   }
   finally {
     uploading.value = false
@@ -84,7 +93,7 @@ async function saveEdit() {
     await refresh()
   }
   catch {
-    toast.add({ title: t('media.admin.saveFailed'), color: 'error' })
+    toast.add({ title: t('media.admin.saveFailed'), description: t('media.admin.saveFailedHint'), color: 'error' })
   }
   finally {
     saving.value = false
@@ -92,9 +101,20 @@ async function saveEdit() {
 }
 
 async function togglePublished(item: MediaItem) {
-  await $fetch(`/api/media/${item.$id}`, { method: 'PATCH', body: { published: !item.published } }).catch(() => {
-    toast.add({ title: t('media.admin.saveFailed'), color: 'error' })
-  })
+  const next = !item.published
+  try {
+    await $fetch(`/api/media/${item.$id}`, { method: 'PATCH', body: { published: next } })
+    // Der Schalter allein sagt nicht, WER das Bild danach sieht — das gehört
+    // in die Meldung, weil genau daran die Sichtbarkeit der Galerie hängt.
+    toast.add({
+      title: t(next ? 'media.admin.publishedToast' : 'media.admin.unpublishedToast'),
+      description: t(next ? 'media.admin.publishedHint' : 'media.admin.unpublishedHint'),
+      color: 'success',
+    })
+  }
+  catch {
+    toast.add({ title: t('media.admin.saveFailed'), description: t('media.admin.publishFailedHint'), color: 'error' })
+  }
   await refresh()
 }
 
@@ -107,9 +127,10 @@ async function remove(item: MediaItem) {
       action: () => $fetch(`/api/media/${item.$id}`, { method: 'DELETE' }),
     })
     if (!ok) return
+    toast.add({ title: t('media.admin.deleted'), color: 'success' })
   }
   catch {
-    toast.add({ title: t('media.admin.deleteFailed'), color: 'error' })
+    toast.add({ title: t('media.admin.deleteFailed'), description: t('media.admin.deleteFailedHint'), color: 'error' })
   }
   await refresh()
 }

@@ -20,7 +20,13 @@ async function deleteAccount() {
     await navigateTo(localePath('/login'))
   }
   catch (error) {
-    toast.add({ title: isNetworkError(error) ? t('auth.networkError') : t('account.delete.failed'), color: 'error' })
+    toast.add({
+      title: isNetworkError(error) ? t('auth.networkError') : t('account.delete.failed'),
+      // Der Titel nennt nur den Fehlschlag — die für den Nutzer entscheidende
+      // Frage ist, ob sein Account jetzt weg ist. Er ist es nicht.
+      description: t('account.delete.failedDescription'),
+      color: 'error',
+    })
   }
 }
 </script>

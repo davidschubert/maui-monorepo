@@ -35,7 +35,7 @@ async function vote(index: number) {
     if (res.poll) emit('updated', res.poll)
   }
   catch {
-    toast.add({ title: t('posts.poll.voteFailed'), color: 'error' })
+    toast.add({ title: t('posts.poll.voteFailed'), description: t('posts.poll.voteFailedHint'), color: 'error' })
   }
   finally {
     busy.value = false

@@ -28,7 +28,11 @@ async function openPortal() {
     window.location.href = res.url
   }
   catch {
-    toast.add({ title: t('billing.account.portalFailed'), color: 'error' })
+    toast.add({
+      title: t('billing.account.portalFailed'),
+      description: t('billing.account.portalFailedDesc'),
+      color: 'error',
+    })
   }
   finally {
     busy.value = false

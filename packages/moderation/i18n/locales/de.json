@@ -9,8 +9,11 @@
       "submit": "Melden",
       "cancel": "Abbrechen",
       "success": "Danke, deine Meldung ist eingegangen.",
+      "successDescription": "Ein Moderator sieht sie sich an. Du kannst sie jederzeit wieder zurückziehen.",
       "retracted": "Meldung zurückgezogen.",
-      "error": "Meldung fehlgeschlagen."
+      "error": "Meldung fehlgeschlagen.",
+      "submitFailedDescription": "Deine Meldung wurde nicht gespeichert. Prüfe deine Verbindung und versuche es erneut.",
+      "retractFailedDescription": "Deine Meldung ist weiterhin aktiv. Prüfe deine Verbindung und versuche es erneut."
     }
   }
 }

@@ -46,6 +46,7 @@
       "share": "Teilen",
       "linkCopied": "Link kopiert.",
       "shareFailed": "Teilen fehlgeschlagen.",
+      "shareFailedHint": "Dein Browser lässt weder Teilen noch Kopieren zu. Öffne das Event und kopiere den Link aus der Adresszeile.",
       "spotsLeft": "Nur noch {count} Plätze!",
       "joinLive": "Jetzt teilnehmen",
       "replay": "Replay ansehen",
@@ -64,13 +65,16 @@
       "declined": "Absagen",
       "loginCta": "Zum Zusagen anmelden",
       "full": "Das Event ist ausgebucht.",
+      "fullHint": "Alle Plätze sind vergeben. Schau später noch einmal vorbei — manchmal werden Zusagen zurückgezogen.",
       "failed": "RSVP konnte nicht gespeichert werden.",
+      "failedHint": "Deine Antwort ist nicht beim Server angekommen. Klick noch einmal; bleibt es dabei, lade die Seite neu.",
       "status": {
         "going": "Zugesagt",
         "maybe": "Vielleicht",
         "declined": "Abgesagt"
       },
-      "ticketRequired": "Für dieses Event brauchst du ein Ticket."
+      "ticketRequired": "Für dieses Event brauchst du ein Ticket.",
+      "ticketRequiredHint": "Öffne das Event und kauf dort ein Ticket — danach kannst du zusagen."
     },
     "admin": {
       "title": "Events",
@@ -92,13 +96,19 @@
         "status": "Status"
       },
       "saved": "Event gespeichert.",
+      "savedDraftHint": "Es steht als Entwurf in der Liste und ist für niemanden sichtbar. Veröffentlichen kannst du es über das Menü der Zeile.",
       "saveFailed": "Event konnte nicht gespeichert werden.",
+      "saveFailedHint": "Deine Eingaben sind nicht verloren — das Formular bleibt offen. Prüf die Verbindung und speichere noch einmal.",
       "published": "Event veröffentlicht.",
+      "publishedHint": "Es steht ab sofort in der öffentlichen Event-Liste, und Gäste können zusagen.",
       "unpublished": "Event zurückgezogen.",
+      "unpublishedHint": "Nur noch du siehst es hier im Dashboard. Bereits abgegebene Zusagen bleiben erhalten.",
       "cancelled": "Event abgesagt.",
+      "cancelledHint": "Der Termin bleibt in der Liste stehen — so sehen Zusagende die Absage.",
       "confirmCancelTitle": "Event absagen?",
       "confirmCancelText": "„{title}“ wird für alle als abgesagt angezeigt. Angemeldete Gäste sehen die Absage sofort.",
       "actionFailed": "Aktion fehlgeschlagen.",
+      "actionFailedHint": "Am Termin hat sich nichts geändert. Lade die Seite neu und versuch es noch einmal.",
       "status": {
         "draft": "Entwurf",
         "published": "Veröffentlicht",
@@ -134,8 +144,9 @@
         "access": "Zugang",
         "accessHelp": "Kostenpflichtige Events brauchen ein Ticket — Kauf kommt mit der Stripe-Integration (Phase 23).",
         "priceEur": "Preis (EUR, Anzeige)",
-        "priceLookupKey": "Stripe lookup_key",
-        "priceLookupKeyHelp": "Referenz auf den Stripe-Price — der Betrag dort ist die Wahrheit.",
+        "priceLookupKey": "Preis-Schlüssel bei Stripe",
+        "priceLookupKeyHelp": "Verweist auf den Preis in Stripe (dort „lookup_key“ genannt) — der Betrag DORT gilt, nicht der hier eingetragene.",
+        "priceLookupKeyPlaceholder": "Schlüssel aus deinem Stripe-Konto",
         "recurrence": "Wiederholung",
         "recurrenceNone": "Einmalig",
         "recurrenceHelp": "Erzeugt echte Einzeltermine (rollierend ~4 Monate voraus) — jeder Termin ist danach eigenständig.",
@@ -144,6 +155,10 @@
       },
       "coverSaved": "Cover gespeichert.",
       "coverFailed": "Cover konnte nicht gespeichert werden.",
+      "coverFailedHint": "Erlaubt sind JPEG, PNG oder WebP bis 2 MB. Passt das Bild, versuch es gleich noch einmal.",
+      "coverRemoved": "Cover entfernt.",
+      "coverRemoveFailed": "Cover konnte nicht entfernt werden.",
+      "coverRemoveFailedHint": "Das Bild ist noch da. Lade die Seite neu und versuch es noch einmal.",
       "filter": {
         "all": "Beliebiger Typ",
         "online": "Online",
@@ -179,13 +194,16 @@
     "vote": {
       "up": "Hochvoten",
       "down": "Runtervoten",
-      "failed": "Stimme konnte nicht gespeichert werden."
+      "failed": "Stimme konnte nicht gespeichert werden.",
+      "failedHint": "Deine Stimme kam nicht an. Klick noch einmal."
     },
     "report": {
       "cta": "Melden",
       "done": "Event gemeldet — danke!",
+      "doneHint": "Die Moderation sieht sich die Meldung an. Eine Rückmeldung zu einzelnen Meldungen gibt es nicht.",
       "already": "Du hast dieses Event bereits gemeldet.",
       "failed": "Meldung fehlgeschlagen.",
+      "failedHint": "Die Meldung kam nicht an. Versuch es noch einmal — bleibt es dabei, wende dich direkt an die Moderation.",
       "reasons": {
         "spam": "Spam",
         "harassment": "Belästigung",
@@ -197,7 +215,8 @@
       "buy": "Ticket kaufen",
       "soon": "Bald verfügbar",
       "alreadyOwned": "Du hast schon ein Ticket für dieses Event.",
-      "failed": "Ticket-Kauf konnte nicht gestartet werden."
+      "failed": "Ticket-Kauf konnte nicht gestartet werden.",
+      "failedHint": "Der Bezahlvorgang ließ sich nicht öffnen — berechnet wurde nichts. Versuch es gleich noch einmal."
     },
     "series": {
       "badge": "Serie",

@@ -70,12 +70,22 @@ async function createTenant() {
         ...(form.plan !== 'basic' ? { plan: form.plan } : {}),
       },
     })
-    toast.add({ title: t('control.tenants.created'), color: 'success' })
+    toast.add({
+      title: t('control.tenants.created'),
+      description: t('control.tenants.createdHint', { host: form.host }),
+      color: 'success',
+    })
     showCreate.value = false
     await refresh()
   }
   catch (error) {
-    toast.add({ title: t('control.tenants.createFailed'), description: (error as { statusMessage?: string })?.statusMessage, color: 'error' })
+    // Der Statustext fällt unter HTTP/2 weg — ohne Ersatz stünde hier eine
+    // leere Beschreibung.
+    toast.add({
+      title: t('control.tenants.createFailed'),
+      description: (error as { statusMessage?: string })?.statusMessage || t('control.tenants.createFailedHint'),
+      color: 'error',
+    })
   }
   finally {
     saving.value = false
@@ -86,11 +96,11 @@ async function changeWave(tenant: TenantDto, wave: TenantWave) {
   if (wave === tenant.wave) return
   try {
     await $fetch(`/api/control/tenants/${tenant.id}`, { method: 'PATCH', body: { wave } })
-    toast.add({ title: t('control.tenants.waveChanged'), color: 'success' })
+    toast.add({ title: t('control.tenants.waveChanged'), description: t('control.tenants.waveChangedHint'), color: 'success' })
     await refresh()
   }
   catch {
-    toast.add({ title: t('control.tenants.updateFailed'), color: 'error' })
+    toast.add({ title: t('control.tenants.updateFailed'), description: t('control.tenants.updateFailedHint'), color: 'error' })
   }
 }
 
@@ -98,11 +108,11 @@ async function changePlan(tenant: TenantDto, plan: TenantPlan) {
   if (plan === tenant.plan) return
   try {
     await $fetch(`/api/control/tenants/${tenant.id}`, { method: 'PATCH', body: { plan } })
-    toast.add({ title: t('control.tenants.planChanged'), color: 'success' })
+    toast.add({ title: t('control.tenants.planChanged'), description: t('control.tenants.planChangedHint'), color: 'success' })
     await refresh()
   }
   catch {
-    toast.add({ title: t('control.tenants.updateFailed'), color: 'error' })
+    toast.add({ title: t('control.tenants.updateFailed'), description: t('control.tenants.updateFailedHint'), color: 'error' })
   }
 }
 
@@ -110,11 +120,15 @@ async function toggleStatus(tenant: TenantDto) {
   const status = tenant.status === 'active' ? 'disabled' : 'active'
   try {
     await $fetch(`/api/control/tenants/${tenant.id}`, { method: 'PATCH', body: { status } })
-    toast.add({ title: t(status === 'active' ? 'control.tenants.enabled' : 'control.tenants.disabled'), color: 'success' })
+    toast.add({
+      title: t(status === 'active' ? 'control.tenants.enabled' : 'control.tenants.disabled'),
+      description: t(status === 'active' ? 'control.tenants.enabledHint' : 'control.tenants.disabledHint'),
+      color: 'success',
+    })
     await refresh()
   }
   catch {
-    toast.add({ title: t('control.tenants.updateFailed'), color: 'error' })
+    toast.add({ title: t('control.tenants.updateFailed'), description: t('control.tenants.updateFailedHint'), color: 'error' })
   }
 }
 
@@ -127,11 +141,17 @@ async function toggleStatus(tenant: TenantDto) {
 async function toggleOpenRegistration(tenant: TenantDto, openRegistration: boolean) {
   try {
     await $fetch(`/api/control/tenants/${tenant.id}`, { method: 'PATCH', body: { openRegistration } })
-    toast.add({ title: t('control.tenants.updated'), color: 'success' })
+    // „Tenant aktualisiert" allein verrät nicht, in welche Richtung der
+    // Schalter gekippt ist — genau das ist hier die Auskunft.
+    toast.add({
+      title: t('control.tenants.updated'),
+      description: t(openRegistration ? 'control.tenants.registrationOpenHint' : 'control.tenants.registrationClosedHint'),
+      color: 'success',
+    })
     await refresh()
   }
   catch {
-    toast.add({ title: t('control.tenants.updateFailed'), color: 'error' })
+    toast.add({ title: t('control.tenants.updateFailed'), description: t('control.tenants.updateFailedHint'), color: 'error' })
     await refresh()
   }
 }
@@ -153,11 +173,15 @@ async function removeTenant(tenant: TenantDto) {
       action: () => $fetch(`/api/control/tenants/${tenant.id}`, { method: 'DELETE' }),
     })
     if (!ok) return
-    toast.add({ title: t('control.tenants.deleted'), color: 'success' })
+    toast.add({
+      title: t('control.tenants.deleted'),
+      description: t('control.tenants.deletedHint', { host: tenant.host }),
+      color: 'success',
+    })
     await refresh()
   }
   catch {
-    toast.add({ title: t('control.tenants.deleteFailed'), color: 'error' })
+    toast.add({ title: t('control.tenants.deleteFailed'), description: t('control.tenants.deleteFailedHint'), color: 'error' })
   }
 }
 
@@ -190,7 +214,7 @@ async function savePlanLimits(key: string) {
     await refreshPlans()
   }
   catch {
-    toast.add({ title: t('control.plans.saveFailed'), color: 'error' })
+    toast.add({ title: t('control.plans.saveFailed'), description: t('control.plans.saveFailedHint'), color: 'error' })
   }
   finally {
     planSaving.value = null

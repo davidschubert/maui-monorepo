@@ -13,7 +13,9 @@
       "loginCta": "Anmelden und upgraden",
       "freeProducts": "Alle Community-Grundfunktionen",
       "alreadyActive": "Du hast schon ein aktives Abo — verwalte es über das Portal.",
+      "alreadyActiveDesc": "Über „Abo verwalten“ wechselst du deinen Plan, statt ein zweites Abo abzuschließen.",
       "checkoutFailed": "Checkout konnte nicht gestartet werden.",
+      "checkoutFailedDesc": "Es wurde nichts abgebucht und kein Abo geändert. Versuch es in einem Moment noch einmal.",
       "disabled": "Abos sind hier noch nicht aktiviert.",
       "perMonth": "/ Monat",
       "perYear": "/ Jahr",
@@ -34,7 +36,8 @@
       "pastDueHint": "Deine letzte Zahlung ist fehlgeschlagen — bitte Zahlungsmethode aktualisieren.",
       "confirmingTitle": "Zahlung wird bestätigt …",
       "confirmingText": "Das dauert nur einen Moment — die Seite aktualisiert sich von selbst.",
-      "portalFailed": "Portal konnte nicht geöffnet werden."
+      "portalFailed": "Portal konnte nicht geöffnet werden.",
+      "portalFailedDesc": "An deinem Abo hat sich nichts geändert. Versuch es in einem Moment noch einmal — bleibt es dabei, schreib uns."
     },
     "admin": {
       "title": "Abos",
@@ -45,6 +48,7 @@
       "emptyTitle": "Noch keine Abos",
       "lookup": "Nachschlagen",
       "lookupPlaceholder": "Nutzer-ID oder cus_… eingeben",
+      "unknownUser": "Konto nicht gefunden",
       "col": {
         "plan": "Plan",
         "status": "Status",

@@ -29,7 +29,12 @@ export function useLogout() {
       await navigateTo(localePath('/login'))
     }
     catch {
-      toast.add({ title: t('auth.logoutError'), color: 'error', icon: 'i-ph-warning' })
+      toast.add({
+        title: t('auth.logoutError'),
+        description: t('auth.logoutErrorDescription'),
+        color: 'error',
+        icon: 'i-ph-warning',
+      })
     }
     finally {
       loading.value = false

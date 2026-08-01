@@ -76,6 +76,7 @@
       "sentTitle": "Bestätigungslink verschickt",
       "sentDescription": "Schau in dein Postfach (auch im Spam-Ordner).",
       "sendFailed": "Senden fehlgeschlagen — bitte später erneut versuchen.",
+      "sendFailedDescription": "Prüfe deine Verbindung und versuche es in ein paar Minuten erneut.",
       "working": "Bestätige deine E-Mail-Adresse …",
       "successTitle": "E-Mail bestätigt",
       "successMessage": "Danke! Deine Adresse ist jetzt verifiziert.",
@@ -103,7 +104,9 @@
     },
     "logoutSuccess": "Abgemeldet — bis bald!",
     "logoutError": "Abmelden fehlgeschlagen — bitte erneut versuchen.",
-    "sessionRevoked": "Deine Sitzung wurde beendet — bitte melde dich erneut an."
+    "logoutErrorDescription": "Deine Sitzung könnte noch aktiv sein. Prüfe deine Verbindung und versuche es erneut.",
+    "sessionRevoked": "Deine Sitzung wurde beendet — bitte melde dich erneut an.",
+    "sessionRevokedDescription": "Das passiert, wenn du dich auf einem anderen Gerät abgemeldet hast oder ein Administrator die Sitzung beendet hat."
   },
   "validation": {
     "required": "Dieses Feld ist erforderlich",
@@ -152,17 +155,21 @@
   "profile": {
     "saved": "Profil gespeichert",
     "saveFailed": "Speichern fehlgeschlagen",
+    "saveFailedDescription": "Deine Änderungen wurden nicht übernommen. Prüfe deine Verbindung und versuche es erneut.",
     "bioLabel": "Bio",
     "bioDescription": "Wird in deinen Account-prefs gespeichert.",
     "phoneLabel": "Telefonnummer",
     "phonePlaceholder": "+491701234567",
     "phoneDescription": "Optional. Internationales Format (z.B. +491701234567). Wird in deinem Account gespeichert.",
     "phoneTaken": "Diese Telefonnummer wird bereits von einem anderen Account verwendet.",
+    "phoneTakenDescription": "Trage eine andere Nummer ein oder lass das Feld leer — auch deine übrigen Änderungen wurden nicht gespeichert.",
     "photoLabel": "Profilfoto",
     "photoRemove": "Foto entfernen",
     "photoHint": "Ziehen & ablegen oder klicken. JPG, PNG, WebP oder GIF, bis zu 5 MB.",
     "photoTooLarge": "Bild ist zu groß — max. 5 MB.",
+    "photoTooLargeDescription": "Die Auswahl wurde zurückgesetzt. Wähle ein kleineres Bild.",
     "photoUploadFailed": "Foto-Upload fehlgeschlagen — bitte erneut versuchen.",
+    "photoUploadFailedDescription": "Dein Profil wurde nicht gespeichert. Versuche es erneut oder speichere zunächst ohne neues Foto.",
     "avatarLabel": "Avatar-URL",
     "avatarPlaceholder": "https://…"
   },
@@ -184,7 +191,9 @@
       "signOut": "Abmelden",
       "signOutAll": "Alle Sitzungen abmelden",
       "signedOut": "Sitzung beendet.",
+      "signedOutAllDescription": "Alle Geräte wurden abgemeldet — auch dieses.",
       "signOutFailed": "Abmelden fehlgeschlagen — bitte erneut versuchen.",
+      "signOutFailedDescription": "Die Sitzung ist weiterhin aktiv. Lade die Seite neu und versuche es erneut.",
       "confirmAllTitle": "Alle Sitzungen abmelden?",
       "confirmAllText": "Das beendet alle Sitzungen, auch diese — du wirst abgemeldet.",
       "confirmAll": "Alle abmelden",
@@ -202,13 +211,18 @@
       "confirm": "Neues Passwort bestätigen",
       "submit": "Passwort aktualisieren",
       "success": "Passwort aktualisiert.",
-      "failed": "Passwort-Änderung fehlgeschlagen — stimmt das aktuelle Passwort?"
+      "successDescription": "Andere Geräte wurden abgemeldet; hier bleibst du angemeldet.",
+      "failed": "Passwort-Änderung fehlgeschlagen — stimmt das aktuelle Passwort?",
+      "failedDescription": "Dein bisheriges Passwort gilt weiter."
     },
     "export": {
       "title": "Deine Daten exportieren",
       "description": "Lade eine JSON-Kopie deines Accounts, deiner Sitzungen und Kommentare herunter.",
       "button": "Daten exportieren",
-      "failed": "Export fehlgeschlagen — bitte erneut versuchen."
+      "success": "Export heruntergeladen.",
+      "successDescription": "Die Datei my-data.json liegt jetzt in deinem Download-Ordner.",
+      "failed": "Export fehlgeschlagen — bitte erneut versuchen.",
+      "failedDescription": "Es wurde keine Datei heruntergeladen. Prüfe deine Verbindung und versuche es erneut."
     },
     "delete": {
       "title": "Account löschen",
@@ -219,7 +233,8 @@
       "confirm": "Endgültig löschen",
       "cancel": "Abbrechen",
       "success": "Account gelöscht.",
-      "failed": "Löschen fehlgeschlagen — bitte erneut versuchen."
+      "failed": "Löschen fehlgeschlagen — bitte erneut versuchen.",
+      "failedDescription": "Dein Account ist unverändert — es wurde nichts gelöscht. Versuche es gleich noch einmal."
     }
   },
   "notifications": {
@@ -244,6 +259,7 @@
       "save": "Speichern",
       "saved": "Benachrichtigungs-Einstellungen gespeichert.",
       "saveFailed": "Speichern fehlgeschlagen.",
+      "saveFailedDescription": "Deine bisherige Einstellung gilt weiter. Prüfe deine Verbindung und versuche es erneut.",
       "noSmtp": "Auf diesem Server ist kein E-Mail-Versand konfiguriert — die Auswahl wird gespeichert und greift, sobald SMTP eingerichtet ist."
     }
   },

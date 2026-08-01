@@ -15,6 +15,7 @@
     "delete": "Eintrag löschen",
     "deleted": "Eintrag gelöscht.",
     "deleteFailed": "Eintrag konnte nicht gelöscht werden.",
+    "deleteFailedDescription": "Der Eintrag steht weiterhin im Feed. Lade die Seite neu und versuche es erneut.",
     "moderation": {
       "title": "Activity-Feed",
       "description": "Alle Feed-Einträge — einzelne Einträge lassen sich entfernen."

@@ -110,7 +110,11 @@ async function confirmDelete(options: {
     await refresh()
   }
   catch {
-    toast.add({ title: t('admin.users.actionFailed'), color: 'error' })
+    toast.add({
+      title: t('admin.users.actionFailed'),
+      description: t('admin.storage.deleteFailedDesc'),
+      color: 'error',
+    })
   }
 }
 
@@ -193,9 +197,24 @@ function removeOrphans() {
 
         <div v-else-if="current" class="space-y-4">
           <div class="flex flex-wrap items-center gap-4 text-sm text-muted">
+            <!-- „Bucket" ist Appwrite-Vokabular (Audit-Befund C12): die
+                 Beschriftung sagt jetzt Speicherbereich, das Fachwort steht im
+                 Tooltip. Die Auswahl selbst zeigt weiter die echten Ids —
+                 die sind der Schlüssel, unter dem der Bereich in Appwrite und
+                 in der .env auftaucht. -->
             <div class="flex items-center gap-2">
-              <span>{{ t('admin.storage.bucket') }}:</span>
-              <USelectMenu v-model="selectedBucket" :items="bucketItems" :search-input="false" size="sm" class="min-w-40 font-mono" data-testid="bucket-select" />
+              <UTooltip :text="t('admin.storage.bucketHint')">
+                <span>{{ t('admin.storage.bucket') }}:</span>
+              </UTooltip>
+              <USelectMenu
+                v-model="selectedBucket"
+                :items="bucketItems"
+                :search-input="false"
+                size="sm"
+                class="min-w-40 font-mono"
+                :aria-label="t('admin.storage.bucket')"
+                data-testid="bucket-select"
+              />
             </div>
             <span>{{ t('admin.storage.files') }}: <span class="font-bold text-default">{{ current.files.length }}</span></span>
             <span>{{ t('admin.storage.size') }}: <span class="font-bold text-default">{{ formatBytes(current.totalBytes) }}</span></span>

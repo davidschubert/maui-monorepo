@@ -5,7 +5,7 @@ import type { AdminUserActivity, AdminUserDetailResponse } from '../../../../sha
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'users.manage' })
 
 const route = useRoute()
-const { t, locale } = useI18n()
+const { t, te, locale } = useI18n()
 const localePath = useLocalePath()
 const toast = useToast()
 const confirm = useConfirm()
@@ -57,7 +57,13 @@ async function saveRoles() {
   savingRoles.value = true
   try {
     await $fetch(`/api/admin/users/${user.value.$id}/role`, { method: 'PATCH', body: { roles: selectedRoles.value } })
-    toast.add({ title: t('admin.users.rolesSaved'), color: 'success' })
+    // Rollen sind Appwrite-Labels: eine laufende Sitzung trägt sie erst nach
+    // dem nächsten Seitenaufbau — das gehört gesagt, sonst wirkt es kaputt.
+    toast.add({
+      title: t('admin.users.rolesSaved'),
+      description: t('admin.users.rolesSavedDesc'),
+      color: 'success',
+    })
     await refresh()
   }
   catch (error) {
@@ -65,8 +71,12 @@ async function saveRoles() {
     // hier `data.data.code` — das kam NIE an: der zentrale Handler verwirft die
     // rohe `data` eines Fehlers, seit 2026-07-29 reist ein geprüfter Grund als
     // `reason` mit. Der last_admin-Hinweis war bis dahin toter Code.
-    const code = (error as { data?: { reason?: string } })?.data?.reason
-    toast.add({ title: code === 'last_admin' ? t('admin.users.lastAdmin') : t('admin.users.actionFailed'), color: 'error' })
+    const lastAdmin = (error as { data?: { reason?: string } })?.data?.reason === 'last_admin'
+    toast.add({
+      title: lastAdmin ? t('admin.users.lastAdmin') : t('admin.users.actionFailed'),
+      description: lastAdmin ? t('admin.users.lastAdminDesc') : t('admin.users.actionFailedDesc'),
+      color: 'error',
+    })
   }
   finally {
     savingRoles.value = false
@@ -77,6 +87,59 @@ function exactDateTime(iso: string): string {
   return new Date(iso).toLocaleString(locale.value, {
     day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false,
   })
+}
+
+/**
+ * Appwrite-Event-Namen in Klartext (Audit-Befund C12).
+ *
+ * `users.listLogs` liefert rohe API-Ereignisnamen (`account.sessions.create`,
+ * `account.update.password`, …). Die standen hier als Monospace-Badge in der
+ * Oberfläche — ein Betreiber liest daraus nicht, dass sich jemand angemeldet
+ * hat. Die Zuordnung ist eine EXPLIZITE Liste, kein Zerlegen des Punktpfades:
+ * ein geratener Text ist schlimmer als der rohe Name.
+ *
+ * Die Namen sind ein offener Raum (jede Appwrite-Version kann welche
+ * hinzufügen) — WAS NICHT IN DER LISTE STEHT, BLEIBT SICHTBAR, roh und
+ * monospace. Kein Rückfall auf „Unbekannt", der ein Loch unsichtbar macht.
+ */
+const ACTIVITY_EVENT_KEYS: Record<string, string> = {
+  'account.create': 'accountCreate',
+  'account.delete': 'accountDelete',
+  'account.update.email': 'emailChanged',
+  'account.update.name': 'nameChanged',
+  'account.update.password': 'passwordChanged',
+  'account.update.phone': 'phoneChanged',
+  'account.update.prefs': 'prefsChanged',
+  'account.update.status': 'accountDeactivated',
+  'account.sessions.create': 'signIn',
+  'account.sessions.update': 'sessionRefreshed',
+  'account.sessions.delete': 'signOut',
+  'account.recovery.create': 'recoveryRequested',
+  'account.recovery.update': 'recoveryCompleted',
+  'account.verification.create': 'verificationRequested',
+  'account.verification.update': 'verificationCompleted',
+  'account.tokens.create': 'codeRequested',
+  'account.tokens.update': 'codeSignIn',
+  'account.targets.create': 'targetAdded',
+  'account.targets.update': 'targetChanged',
+  'account.targets.delete': 'targetRemoved',
+  'users.create': 'createdByOperator',
+  'users.delete': 'deletedByOperator',
+  'users.update.email': 'emailChangedByOperator',
+  'users.update.name': 'nameChangedByOperator',
+  'users.update.password': 'passwordChangedByOperator',
+  'users.update.labels': 'rolesChangedByOperator',
+  'users.update.prefs': 'prefsChangedByOperator',
+  'users.update.status': 'statusChangedByOperator',
+  'teams.memberships.create': 'membershipCreated',
+  'teams.memberships.update': 'membershipChanged',
+  'teams.memberships.delete': 'membershipRemoved',
+}
+function activityEventKey(event: string): string | null {
+  const suffix = ACTIVITY_EVENT_KEYS[event]
+  if (!suffix) return null
+  const key = `admin.users.detail.activity.event.${suffix}`
+  return te(key) ? key : null
 }
 
 // Aktivitätsprotokoll als Tabelle — dieselben vier kompakten Spalten wie in
@@ -112,9 +175,20 @@ async function exportData() {
     link.download = `user-${user.value.$id}.json`
     link.click()
     URL.revokeObjectURL(url)
+    // Stummer Erfolg (Audit-Befund C12): der Download verlässt die Seite, ohne
+    // dass hier irgendetwas sichtbar passiert.
+    toast.add({
+      title: t('admin.users.exportDone'),
+      description: t('admin.users.exportDoneDesc'),
+      color: 'success',
+    })
   }
   catch {
-    toast.add({ title: t('admin.users.actionFailed'), color: 'error' })
+    toast.add({
+      title: t('admin.users.exportFailed'),
+      description: t('admin.users.exportFailedDesc'),
+      color: 'error',
+    })
   }
   finally {
     exporting.value = false
@@ -148,7 +222,11 @@ async function runUserAction(type: UserAction) {
     })
     if (!ok) return
     if (type === 'sessions') {
-      toast.add({ title: t('admin.users.sessionsCleared'), color: 'success' })
+      toast.add({
+        title: t('admin.users.sessionsCleared'),
+        description: t('admin.users.sessionsClearedDesc'),
+        color: 'success',
+      })
       if (selfLogout) {
         auth.setUser(null)
         await navigateTo(localePath('/'))
@@ -156,7 +234,13 @@ async function runUserAction(type: UserAction) {
       }
     }
     else if (type === 'delete') {
-      toast.add({ title: t('admin.users.deleted'), color: 'success' })
+      // Die Seite ist gleich weg — der Toast ist der einzige Ort, an dem der
+      // Verbleib des Daten-Snapshots noch auftauchen kann.
+      toast.add({
+        title: t('admin.users.deleted'),
+        description: t('admin.users.deletedDesc'),
+        color: 'success',
+      })
       await navigateTo(localePath('/dashboard/users'))
       return
     }
@@ -170,8 +254,12 @@ async function runUserAction(type: UserAction) {
     // hier `data.data.code` — das kam NIE an: der zentrale Handler verwirft die
     // rohe `data` eines Fehlers, seit 2026-07-29 reist ein geprüfter Grund als
     // `reason` mit. Der last_admin-Hinweis war bis dahin toter Code.
-    const code = (error as { data?: { reason?: string } })?.data?.reason
-    toast.add({ title: code === 'last_admin' ? t('admin.users.lastAdmin') : t('admin.users.actionFailed'), color: 'error' })
+    const lastAdmin = (error as { data?: { reason?: string } })?.data?.reason === 'last_admin'
+    toast.add({
+      title: lastAdmin ? t('admin.users.lastAdmin') : t('admin.users.actionFailed'),
+      description: lastAdmin ? t('admin.users.lastAdminDesc') : t('admin.users.actionFailedDesc'),
+      color: 'error',
+    })
   }
 }
 </script>
@@ -339,7 +427,12 @@ async function runUserAction(type: UserAction) {
               </div>
               <UTable :data="data?.activity ?? []" :columns="activityColumns" data-user-activity>
                 <template #event-cell="{ row }">
-                  <UBadge color="neutral" variant="subtle" size="sm" class="font-mono">{{ row.original.event }}</UBadge>
+                  <span
+                    v-if="activityEventKey(row.original.event)"
+                    class="text-sm font-medium"
+                    :title="row.original.event"
+                  >{{ t(activityEventKey(row.original.event)!) }}</span>
+                  <UBadge v-else color="neutral" variant="subtle" size="sm" class="font-mono">{{ row.original.event }}</UBadge>
                 </template>
                 <template #client-cell="{ row }">
                   <div class="flex min-w-0 flex-col gap-1 text-xs text-muted">

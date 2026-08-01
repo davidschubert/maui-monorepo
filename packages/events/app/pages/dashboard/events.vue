@@ -91,7 +91,9 @@ async function uploadCover(input: HTMLInputElement) {
     await refresh()
   }
   catch {
-    toast.add({ title: t('events.admin.coverFailed'), color: 'error' })
+    // Der wahrscheinlichste Grund steht in der Regel, die der Server prüft —
+    // Format und Größe. Deshalb hier und nicht beim Entfernen (andere Ursache).
+    toast.add({ title: t('events.admin.coverFailed'), description: t('events.admin.coverFailedHint'), color: 'error' })
   }
   finally {
     coverBusy.value = false
@@ -105,10 +107,11 @@ async function removeCover() {
   try {
     await $fetch(`/api/events/${editingId.value}/cover`, { method: 'DELETE' })
     editingCoverFileId.value = null
+    toast.add({ title: t('events.admin.coverRemoved'), color: 'success' })
     await refresh()
   }
   catch {
-    toast.add({ title: t('events.admin.coverFailed'), color: 'error' })
+    toast.add({ title: t('events.admin.coverRemoveFailed'), description: t('events.admin.coverRemoveFailedHint'), color: 'error' })
   }
   finally {
     coverBusy.value = false
@@ -194,17 +197,39 @@ async function save() {
     else {
       await $fetch('/api/events', { method: 'POST', body: parsed.data })
     }
-    toast.add({ title: t('events.admin.saved'), color: 'success' })
+    // Nur beim ANLEGEN gibt es etwas zu erklären: ein neues Event ist ein
+    // Entwurf und für niemanden sichtbar (index.post.ts: status ?? 'draft').
+    toast.add({
+      title: t('events.admin.saved'),
+      description: editingId.value ? undefined : t('events.admin.savedDraftHint'),
+      color: 'success',
+    })
     modalOpen.value = false
     await refresh()
   }
   catch {
-    toast.add({ title: t('events.admin.saveFailed'), color: 'error' })
+    toast.add({ title: t('events.admin.saveFailed'), description: t('events.admin.saveFailedHint'), color: 'error' })
   }
   finally {
     saving.value = false
   }
 }
+
+/**
+ * Zwei echte Auswahlfelder (Audit-Befund C12): Ortstyp und Zugang waren
+ * handgebaute Knopf-Paare — ein Paar Knöpfe, dessen „ausgewählt" nur eine
+ * Farbe ist. `URadioGroup` ist genau dafür da: eine Auswahl, ein Wert, mit
+ * Tastatur (Pfeiltasten) und Vorlesbarkeit ohne Zutun. Die Icons wandern in
+ * die Items, damit die Erkennbarkeit bleibt.
+ */
+const locationTypeItems = computed(() => [
+  { label: t('events.admin.form.venue'), value: 'venue', icon: 'i-ph-map-pin' },
+  { label: t('events.admin.form.online'), value: 'online', icon: 'i-ph-video-camera' },
+])
+const accessItems = computed(() => [
+  { label: t('events.card.free'), value: 'free', icon: 'i-ph-gift' },
+  { label: t('events.card.paid'), value: 'paid', icon: 'i-ph-ticket' },
+])
 
 // ---- Serie (§7e) ----
 
@@ -232,7 +257,7 @@ async function stopSeries(master: EventRow) {
     await refresh()
   }
   catch {
-    toast.add({ title: t('events.admin.actionFailed'), color: 'error' })
+    toast.add({ title: t('events.admin.actionFailed'), description: t('events.admin.actionFailedHint'), color: 'error' })
   }
 }
 
@@ -244,11 +269,17 @@ async function setStatus(row: EventRow, target: 'published' | 'draft') {
   busyId.value = row.$id
   try {
     await $fetch(`/api/events/${row.$id}` as string, { method: 'PATCH', body: { status: target } })
-    toast.add({ title: t(target === 'published' ? 'events.admin.published' : 'events.admin.unpublished'), color: 'success' })
+    // Was „veröffentlicht"/„zurückgezogen" für die Gäste bedeutet, steht nicht
+    // im Titel — und genau das ist die Frage, die man beim Zurückziehen hat.
+    toast.add({
+      title: t(target === 'published' ? 'events.admin.published' : 'events.admin.unpublished'),
+      description: t(target === 'published' ? 'events.admin.publishedHint' : 'events.admin.unpublishedHint'),
+      color: 'success',
+    })
     await refresh()
   }
   catch {
-    toast.add({ title: t('events.admin.actionFailed'), color: 'error' })
+    toast.add({ title: t('events.admin.actionFailed'), description: t('events.admin.actionFailedHint'), color: 'error' })
   }
   finally {
     busyId.value = ''
@@ -264,11 +295,11 @@ async function cancelEvent(row: EventRow) {
       action: () => $fetch(`/api/events/${row.$id}` as string, { method: 'DELETE' }),
     })
     if (!ok) return
-    toast.add({ title: t('events.admin.cancelled'), color: 'success' })
+    toast.add({ title: t('events.admin.cancelled'), description: t('events.admin.cancelledHint'), color: 'success' })
     await refresh()
   }
   catch {
-    toast.add({ title: t('events.admin.actionFailed'), color: 'error' })
+    toast.add({ title: t('events.admin.actionFailed'), description: t('events.admin.actionFailedHint'), color: 'error' })
   }
 }
 
@@ -439,24 +470,14 @@ function rowActions(row: EventRow): DropdownMenuItem[][] {
               </UFormField>
             </div>
             <UFormField :label="t('events.admin.form.locationType')">
-              <div class="flex gap-1" data-testid="event-form-location-type">
-                <UButton
-                  :color="form.locationType === 'venue' ? 'primary' : 'neutral'"
-                  :variant="form.locationType === 'venue' ? 'soft' : 'ghost'"
-                  size="sm" icon="i-ph-map-pin"
-                  @click="() => { form.locationType = 'venue' }"
-                >
-                  {{ t('events.admin.form.venue') }}
-                </UButton>
-                <UButton
-                  :color="form.locationType === 'online' ? 'primary' : 'neutral'"
-                  :variant="form.locationType === 'online' ? 'soft' : 'ghost'"
-                  size="sm" icon="i-ph-video-camera"
-                  @click="() => { form.locationType = 'online' }"
-                >
-                  {{ t('events.admin.form.online') }}
-                </UButton>
-              </div>
+              <URadioGroup
+                v-model="form.locationType"
+                :items="locationTypeItems"
+                value-key="value"
+                orientation="horizontal"
+                :ui="{ fieldset: 'gap-x-6 gap-y-2 flex-wrap' }"
+                data-testid="event-form-location-type"
+              />
             </UFormField>
             <UFormField v-if="form.locationType === 'venue'" :label="t('events.admin.form.location')">
               <UInput v-model="form.location" class="w-full" :maxlength="255" />
@@ -489,36 +510,37 @@ function rowActions(row: EventRow): DropdownMenuItem[][] {
             </UFormField>
 
             <UFormField :label="t('events.admin.form.access')" :help="t('events.admin.form.accessHelp')">
-              <div class="flex gap-1" data-testid="event-form-access">
-                <UButton
-                  :color="form.access === 'free' ? 'primary' : 'neutral'"
-                  :variant="form.access === 'free' ? 'soft' : 'ghost'"
-                  size="sm"
-                  @click="() => { form.access = 'free' }"
-                >
-                  {{ t('events.card.free') }}
-                </UButton>
-                <UButton
-                  :color="form.access === 'paid' ? 'primary' : 'neutral'"
-                  :variant="form.access === 'paid' ? 'soft' : 'ghost'"
-                  size="sm" icon="i-ph-ticket"
-                  @click="() => { form.access = 'paid' }"
-                >
-                  {{ t('events.card.paid') }}
-                </UButton>
-              </div>
+              <URadioGroup
+                v-model="form.access"
+                :items="accessItems"
+                value-key="value"
+                orientation="horizontal"
+                :ui="{ fieldset: 'gap-x-6 gap-y-2 flex-wrap' }"
+                data-testid="event-form-access"
+              />
             </UFormField>
             <div v-if="form.access === 'paid'" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <UFormField :label="t('events.admin.form.priceEur')">
                 <UInputNumber v-model="form.priceEur" :min="0" :step="0.5" class="w-full" data-testid="event-form-price" />
               </UFormField>
               <UFormField :label="t('events.admin.form.priceLookupKey')" :help="t('events.admin.form.priceLookupKeyHelp')" required>
-                <UInput v-model="form.priceLookupKey" class="w-full" :maxlength="64" placeholder="event_sommerfest" />
+                <UInput
+                  v-model="form.priceLookupKey"
+                  class="w-full"
+                  :maxlength="64"
+                  :placeholder="t('events.admin.form.priceLookupKeyPlaceholder')"
+                />
               </UFormField>
             </div>
 
             <UFormField v-if="editingId" :label="t('events.admin.form.cover')" :help="t('events.admin.form.coverHelp')">
-              <div class="flex items-center gap-3" data-testid="event-form-cover">
+              <!-- flex-wrap (Audit-Befund C12, „Mobil"): Vorschaubild + zwei
+                   Knöpfe passen auf 375 px nicht in eine Zeile und schoben den
+                   Dialog vorher seitlich auf. Der ursprünglich gemeldete Ort
+                   (die handgebaute Ereignis-Liste) existiert nicht mehr — sie
+                   ist mit B6 eine UTable geworden; das hier ist die letzte
+                   nicht umbrechende Zeile der Seite. -->
+              <div class="flex flex-wrap items-center gap-3" data-testid="event-form-cover">
                 <img
                   v-if="editingCoverFileId"
                   :src="coverUrl(editingCoverFileId)"

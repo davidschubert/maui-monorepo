@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import type { BillingSubscriptionRow } from '../../../shared/types/billing'
+import type { BillingAdminSubscriptionRow } from '../../../shared/types/billing'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'billing.manage' })
 
@@ -26,7 +26,7 @@ function runLookup() {
   setPage(1)
 }
 
-const { data, status } = await useFetch<{ total: number, rows: BillingSubscriptionRow[] }>('/api/billing/admin/subscriptions', {
+const { data, status } = await useFetch<{ total: number, rows: BillingAdminSubscriptionRow[] }>('/api/billing/admin/subscriptions', {
   query: computed(() => ({ page: page.value, lookup: activeLookup.value, dir: sortDir.value })),
   lazy: true,
   server: false,
@@ -43,13 +43,30 @@ function resetFilters() {
 
 const stripeCustomerUrl = (id: string) => `https://dashboard.stripe.com/test/customers/${id}`
 
+/**
+ * Interne Schlüssel raus aus dem Blick (Audit-Befund C12). Hier standen zwei
+ * rohe Ids in der Tabelle:
+ *
+ *  - `planId` ist ein interner Key ('personal', 'pro', …). Die Plan-Deklaration
+ *    trägt bereits einen `labelKey` — genau dafür ist er da. Fällt ein Plan aus
+ *    der Konfiguration (Altbestand, umbenannter Key), zeigen wir den Key
+ *    weiter, statt eine leere Zelle zu liefern.
+ *  - `userId` ist eine 20-stellige Appwrite-Id. Sie bleibt sichtbar, weil sie
+ *    der Schlüssel für die Nachschlage-Suche darüber ist — aber SEKUNDÄR, unter
+ *    dem Namen und klein.
+ */
+function planLabel(planId: string): string {
+  const plan = config.value.plans.find(p => p.id === planId)
+  return plan ? t(plan.labelKey) : planId
+}
+
 const HIDE_MD = { td: 'hidden md:table-cell', th: 'hidden md:table-cell' }
 const HIDE_LG = { td: 'hidden lg:table-cell', th: 'hidden lg:table-cell' }
 
 // Sortiert wird nach $updatedAt — deshalb trägt genau DIESE Spalte die
 // Pfeile, nicht „Verlängert am". Ein Pfeil an einer Spalte, die nicht die
 // sortierte ist, wäre eine Lüge.
-const columns = computed<TableColumn<BillingSubscriptionRow>[]>(() => [
+const columns = computed<TableColumn<BillingAdminSubscriptionRow>[]>(() => [
   { accessorKey: 'planId', header: () => t('billing.admin.col.plan') },
   { id: 'state', header: () => t('billing.admin.col.status') },
   { accessorKey: 'userId', header: () => t('billing.admin.col.user'), meta: { class: HIDE_MD } },
@@ -104,7 +121,7 @@ const columns = computed<TableColumn<BillingSubscriptionRow>[]>(() => [
             </template>
 
             <template #planId-cell="{ row }">
-              <span class="font-medium">{{ row.original.planId }}</span>
+              <span class="font-medium">{{ planLabel(row.original.planId) }}</span>
             </template>
             <template #state-cell="{ row }">
               <div class="flex flex-wrap items-center gap-1">
@@ -115,7 +132,11 @@ const columns = computed<TableColumn<BillingSubscriptionRow>[]>(() => [
               </div>
             </template>
             <template #userId-cell="{ row }">
-              <span class="font-mono text-xs text-muted">{{ row.original.userId }}</span>
+              <div class="flex min-w-0 flex-col">
+                <span class="truncate text-sm font-medium">{{ row.original.userName || t('billing.admin.unknownUser') }}</span>
+                <span v-if="row.original.userEmail" class="truncate text-xs text-muted">{{ row.original.userEmail }}</span>
+                <span class="truncate font-mono text-xs text-dimmed" :title="row.original.userId">{{ row.original.userId }}</span>
+              </div>
             </template>
             <template #renews-cell="{ row }">
               <span class="whitespace-nowrap text-sm text-muted">{{ formatDate(row.original.currentPeriodEnd) }}</span>

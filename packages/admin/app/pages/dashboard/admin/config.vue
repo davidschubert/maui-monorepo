@@ -49,7 +49,11 @@ async function save() {
     toast.add({ title: t('admin.config.saved'), color: 'success' })
   }
   catch {
-    toast.add({ title: t('admin.users.actionFailed'), color: 'error' })
+    toast.add({
+      title: t('admin.users.actionFailed'),
+      description: t('admin.users.actionFailedDesc'),
+      color: 'error',
+    })
   }
   finally {
     loading.value = false

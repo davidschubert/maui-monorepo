@@ -130,7 +130,13 @@ async function onSubmit(event: FormSubmitEvent<FormInput>) {
     const key = code === 'maintenance'
       ? 'comments.disabled.maintenanceToast'
       : code === 'comments_disabled' ? 'comments.disabled.toast' : 'comments.form.error'
-    toast.add({ title: t(key), color: 'error' })
+    // Erste Frage nach einem Fehlschlag ist immer „ist mein Text weg?" —
+    // er steht noch im Feld (geleert wird nur im Erfolgsfall).
+    toast.add({
+      title: t(key),
+      description: t(key === 'comments.form.error' ? 'comments.form.errorHint' : 'comments.disabled.draftKeptHint'),
+      color: 'error',
+    })
   }
   finally {
     loading.value = false

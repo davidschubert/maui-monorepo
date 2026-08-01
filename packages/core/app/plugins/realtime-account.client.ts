@@ -26,7 +26,12 @@ export default defineNuxtPlugin((nuxtApp) => {
         if (!auth.user) return
         await auth.refresh()
         if (auth.user) return // eigene Session lebt weiter (z.B. nur Netz-Blip)
-        toast.add({ title: i18n.t('auth.sessionRevoked'), color: 'warning', icon: 'i-ph-sign-out' })
+        toast.add({
+          title: i18n.t('auth.sessionRevoked'),
+          description: i18n.t('auth.sessionRevokedDescription'),
+          color: 'warning',
+          icon: 'i-ph-sign-out',
+        })
         await navigateTo(localePath('/login'))
       })
     }, 400)

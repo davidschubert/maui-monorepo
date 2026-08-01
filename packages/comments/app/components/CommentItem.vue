@@ -51,7 +51,7 @@ async function saveEdit() {
     editing.value = false
   }
   catch {
-    toast.add({ title: t('comments.item.error'), color: 'error' })
+    toast.add({ title: t('comments.item.error'), description: t('comments.item.editErrorHint'), color: 'error' })
   }
   finally {
     busy.value = false
@@ -64,7 +64,7 @@ async function remove() {
     await store.deleteComment(props.comment.$id)
   }
   catch {
-    toast.add({ title: t('comments.item.error'), color: 'error' })
+    toast.add({ title: t('comments.item.error'), description: t('comments.item.deleteErrorHint'), color: 'error' })
   }
   finally {
     busy.value = false

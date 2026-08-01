@@ -4,7 +4,7 @@ import type { AdminUserListResponse, AdminUserRow } from '../../../../shared/typ
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'users.manage' })
 
-const { t } = useI18n()
+const { t, te } = useI18n()
 const { formatRelativeTime } = useFormatRelativeTime()
 const { formatDate } = useFormatDate()
 const localePath = useLocalePath()
@@ -85,6 +85,26 @@ function resetFilters() {
   setPage(1)
 }
 
+/**
+ * Rollen-Keys lesbar machen (Audit-Befund C12) — die Schwesterseite
+ * (`users/[id].vue`) übersetzt sie längst, hier stand der rohe Key.
+ *
+ * Die Label-Spalte zeigt ALLE Appwrite-Labels eines Kontos, und das sind seit
+ * A5 nicht nur Rollen: ein `label:<siteId>` ist ein LESE-Publikum
+ * („ist Mitglied dieser Community"). Für solche Labels gibt es bewusst keine
+ * Übersetzung — sie behalten ihren Wert, bekommen aber die neutrale,
+ * monospacige Darstellung, die einem internen Schlüssel zusteht.
+ */
+function roleLabel(label: string): string {
+  return te(`admin.roles.${label}`) ? t(`admin.roles.${label}`) : label
+}
+const isKnownRole = (label: string) => te(`admin.roles.${label}`)
+
+// `value: string` (nicht der engere Role-Union): `createForm.roles` ist
+// `string[]`, weil der Server die Liste prüft — sonst verlangt USelectMenu
+// hier ein `Role[]` und der Typ der Route und der der Auswahl driften.
+const roleItems = computed(() => ASSIGNABLE_ROLES.map(role => ({ label: roleLabel(role), value: role as string })))
+
 const columns: TableColumn<AdminUserRow>[] = [
   { id: 'select', header: () => '' },
   { accessorKey: 'name', header: () => t('admin.users.name') },
@@ -139,17 +159,24 @@ async function runBulk(action: 'block' | 'unblock') {
     })
     if (!ok || !result) return
     const { done, failed } = result as { done: string[], failed: string[] }
+    // Bei Teilerfolg nennt die Beschreibung den häufigsten Grund — sonst bleibt
+    // „3 fehlgeschlagen" eine Zahl ohne nächsten Schritt.
     toast.add({
       title: failed.length
         ? t('admin.users.bulk.partial', { done: done.length, failed: failed.length })
         : t('admin.users.bulk.done', { count: done.length }),
+      description: failed.length ? t('admin.users.bulk.partialDesc', { failed: failed.length }) : undefined,
       color: failed.length ? 'warning' : 'success',
     })
     selected.value = new Set()
     await refresh()
   }
   catch {
-    toast.add({ title: t('admin.users.actionFailed'), color: 'error' })
+    toast.add({
+      title: t('admin.users.actionFailed'),
+      description: t('admin.users.bulk.failedDesc'),
+      color: 'error',
+    })
   }
 }
 
@@ -169,9 +196,20 @@ async function exportUser(user: AdminUserRow) {
     link.download = `user-${user.$id}.json`
     link.click()
     URL.revokeObjectURL(url)
+    // Der Download passiert außerhalb der Seite — ohne Meldung sieht der
+    // Klick aus, als sei nichts geschehen (Audit-Befund C12, stummer Erfolg).
+    toast.add({
+      title: t('admin.users.exportDone'),
+      description: t('admin.users.exportDoneDesc'),
+      color: 'success',
+    })
   }
   catch {
-    toast.add({ title: t('admin.users.actionFailed'), color: 'error' })
+    toast.add({
+      title: t('admin.users.exportFailed'),
+      description: t('admin.users.exportFailedDesc'),
+      color: 'error',
+    })
   }
   finally {
     exportingId.value = null
@@ -223,7 +261,11 @@ async function runUserAction(type: UserAction, user: AdminUserRow) {
     })
     if (!ok) return
     if (type === 'sessions') {
-      toast.add({ title: t('admin.users.sessionsCleared'), color: 'success' })
+      toast.add({
+        title: t('admin.users.sessionsCleared'),
+        description: t('admin.users.sessionsClearedDesc'),
+        color: 'success',
+      })
       if (selfLogout) {
         auth.setUser(null)
         await navigateTo(localePath('/'))
@@ -231,7 +273,12 @@ async function runUserAction(type: UserAction, user: AdminUserRow) {
       }
     }
     else if (type === 'delete') {
-      toast.add({ title: t('admin.users.deleted'), color: 'success' })
+      // Wo die Daten der gelöschten Person geblieben sind, weiß sonst niemand.
+      toast.add({
+        title: t('admin.users.deleted'),
+        description: t('admin.users.deletedDesc'),
+        color: 'success',
+      })
     }
     else {
       toast.add({ title: t(type === 'block' ? 'admin.users.blocked' : 'admin.users.unblocked'), color: 'success' })
@@ -240,8 +287,12 @@ async function runUserAction(type: UserAction, user: AdminUserRow) {
   }
   catch (error) {
     // `data.reason` (Fehler-Envelope): `data.data.code` kam nie an — s. [id].vue.
-    const code = (error as { data?: { reason?: string } })?.data?.reason
-    toast.add({ title: code === 'last_admin' ? t('admin.users.lastAdmin') : t('admin.users.actionFailed'), color: 'error' })
+    const lastAdmin = (error as { data?: { reason?: string } })?.data?.reason === 'last_admin'
+    toast.add({
+      title: lastAdmin ? t('admin.users.lastAdmin') : t('admin.users.actionFailed'),
+      description: lastAdmin ? t('admin.users.lastAdminDesc') : t('admin.users.actionFailedDesc'),
+      color: 'error',
+    })
   }
 }
 
@@ -251,10 +302,10 @@ const createOpen = ref(false)
 const createBusy = ref(false)
 const createForm = reactive({ name: '', email: '', password: '', roles: [] as string[] })
 
-// Rollen-Auswahl wie auf der Detailseite (ASSIGNABLE_ROLES, Core-UI-Quelle);
-// den Eskalations-Schutz erzwingt der Server (Muster role.patch)
-const assignableRoles = ASSIGNABLE_ROLES
-
+// Rollen-Auswahl aus ASSIGNABLE_ROLES (Core-UI-Quelle); den Eskalations-Schutz
+// erzwingt der Server (Muster role.patch). Die Liste selbst ist seit C12 ein
+// USelectMenu multiple statt eines handgebauten Knopf-Paars — dieselbe
+// Bedienung wie überall sonst, mit Übersetzung statt Key.
 function openCreate() {
   Object.assign(createForm, { name: '', email: '', password: '', roles: [] })
   createOpen.value = true
@@ -267,14 +318,21 @@ async function createUser() {
       method: 'POST',
       body: { ...createForm, name: createForm.name.trim(), email: createForm.email.trim() },
     })
-    toast.add({ title: t('admin.users.add.done'), color: 'success' })
+    // Das Start-Passwort steht nur in DIESEM Formular — der Hinweis, es
+    // weiterzugeben, gehört genau hierhin, bevor das Modal schließt.
+    toast.add({
+      title: t('admin.users.add.done'),
+      description: t('admin.users.add.doneDesc'),
+      color: 'success',
+    })
     createOpen.value = false
     await refresh()
   }
   catch (error) {
-    const statusCode = (error as { statusCode?: number }).statusCode
+    const duplicate = (error as { statusCode?: number }).statusCode === 409
     toast.add({
-      title: statusCode === 409 ? t('admin.users.add.duplicate') : t('admin.users.add.failed'),
+      title: duplicate ? t('admin.users.add.duplicate') : t('admin.users.add.failed'),
+      description: duplicate ? t('admin.users.add.duplicateDesc') : t('admin.users.add.failedDesc'),
       color: 'error',
     })
   }
@@ -367,14 +425,19 @@ async function createUser() {
         </template>
         <template #name-cell="{ row }">
           <ULink :to="localePath(`/dashboard/users/${row.original.$id}`)" class="flex items-center gap-2 font-medium text-default hover:text-primary">
-            <span class="relative inline-flex shrink-0">
+            <!-- UChip statt handgebautem Punkt (Audit-Befund C12) — genau wie
+                 auf der Detailseite users/[id].vue -->
+            <UChip
+              :show="isOnline(row.original)"
+              color="success"
+              position="bottom-right"
+              inset
+              size="sm"
+              class="shrink-0"
+              :title="isOnline(row.original) ? t('admin.users.online') : undefined"
+            >
               <UserAvatar :user="{ name: row.original.name, email: row.original.email, prefs: { avatarUrl: row.original.avatarUrl } }" size="xs" />
-              <span
-                v-if="isOnline(row.original)"
-                class="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-success ring-2 ring-default"
-                :title="t('admin.users.online')"
-              />
-            </span>
+            </UChip>
             <span class="hover:underline">{{ row.original.name }}</span>
           </ULink>
         </template>
@@ -409,14 +472,31 @@ async function createUser() {
           </UBadge>
         </template>
         <template #labels-cell="{ row }">
-          <div class="flex gap-1">
-            <UBadge v-for="label in row.original.labels" :key="label" color="primary" variant="subtle">{{ label }}</UBadge>
+          <div class="flex flex-wrap gap-1">
+            <UBadge
+              v-for="label in row.original.labels"
+              :key="label"
+              :color="isKnownRole(label) ? 'primary' : 'neutral'"
+              variant="subtle"
+              :class="isKnownRole(label) ? undefined : 'font-mono text-xs'"
+              :title="isKnownRole(label) ? undefined : label"
+            >
+              {{ roleLabel(label) }}
+            </UBadge>
+            <span v-if="!row.original.labels.length" class="text-muted">—</span>
           </div>
         </template>
         <template #actions-cell="{ row }">
           <div class="flex justify-end">
             <UDropdownMenu :items="rowActions(row.original)" :content="{ align: 'end' }">
-              <UButton icon="i-ph-dots-three-vertical" color="neutral" variant="ghost" size="xs" :loading="exportingId === row.original.$id" />
+              <UButton
+                icon="i-ph-dots-three-vertical"
+                color="neutral"
+                variant="ghost"
+                size="xs"
+                :aria-label="t('admin.users.rowActions')"
+                :loading="exportingId === row.original.$id"
+              />
             </UDropdownMenu>
           </div>
         </template>
@@ -471,21 +551,17 @@ async function createUser() {
             <UFormField :label="t('admin.users.add.password')" :help="t('admin.users.add.passwordHelp')" required>
               <UInput v-model="createForm.password" type="text" class="w-full" :minlength="8" data-testid="add-users-password" />
             </UFormField>
-            <UFormField :label="t('admin.users.add.roles')">
-              <div class="flex flex-wrap gap-1">
-                <UButton
-                  v-for="role in assignableRoles"
-                  :key="role"
-                  size="sm"
-                  :color="createForm.roles.includes(role) ? 'primary' : 'neutral'"
-                  :variant="createForm.roles.includes(role) ? 'soft' : 'ghost'"
-                  @click="() => { createForm.roles = createForm.roles.includes(role)
-                    ? createForm.roles.filter(r => r !== role)
-                    : [...createForm.roles, role] }"
-                >
-                  {{ role }}
-                </UButton>
-              </div>
+            <UFormField :label="t('admin.users.add.roles')" :help="t('admin.users.add.rolesHelp')">
+              <USelectMenu
+                v-model="createForm.roles"
+                multiple
+                value-key="value"
+                :items="roleItems"
+                :placeholder="t('admin.users.add.rolesPlaceholder')"
+                :search-input="false"
+                class="w-full"
+                data-testid="add-users-roles"
+              />
             </UFormField>
 
             <div class="flex justify-end gap-2 pt-2">

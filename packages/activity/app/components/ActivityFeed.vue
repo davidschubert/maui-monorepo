@@ -61,7 +61,11 @@ async function onRemove(id: string) {
     toast.add({ title: t('activity.deleted'), color: 'success' })
   }
   catch {
-    toast.add({ title: t('activity.deleteFailed'), color: 'error' })
+    toast.add({
+      title: t('activity.deleteFailed'),
+      description: t('activity.deleteFailedDescription'),
+      color: 'error',
+    })
   }
 }
 </script>

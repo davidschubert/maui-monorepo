@@ -76,6 +76,7 @@
       "sentTitle": "Confirmation link sent",
       "sentDescription": "Check your inbox (and your spam folder).",
       "sendFailed": "Sending failed — please try again later.",
+      "sendFailedDescription": "Check your connection and try again in a few minutes.",
       "working": "Confirming your email address …",
       "successTitle": "Email confirmed",
       "successMessage": "Thanks! Your address is now verified.",
@@ -103,7 +104,9 @@
     },
     "logoutSuccess": "Signed out — see you soon!",
     "logoutError": "Sign-out failed — please try again.",
-    "sessionRevoked": "Your session was ended — please sign in again."
+    "logoutErrorDescription": "Your session may still be active. Check your connection and try again.",
+    "sessionRevoked": "Your session was ended — please sign in again.",
+    "sessionRevokedDescription": "This happens when you signed out on another device or an administrator ended the session."
   },
   "validation": {
     "required": "This field is required",
@@ -152,17 +155,21 @@
   "profile": {
     "saved": "Profile saved",
     "saveFailed": "Saving failed",
+    "saveFailedDescription": "Your changes were not applied. Check your connection and try again.",
     "bioLabel": "Bio",
     "bioDescription": "Stored in your account prefs.",
     "phoneLabel": "Phone number",
     "phonePlaceholder": "+14155552671",
     "phoneDescription": "Optional. International format (e.g. +14155552671). Saved to your account.",
     "phoneTaken": "This phone number is already in use by another account.",
+    "phoneTakenDescription": "Enter a different number or leave the field empty — your other changes were not saved either.",
     "photoLabel": "Profile photo",
     "photoRemove": "Remove photo",
     "photoHint": "Drag & drop or click. JPG, PNG, WebP or GIF, up to 5 MB.",
     "photoTooLarge": "Image is too large — max 5 MB.",
+    "photoTooLargeDescription": "The selection was cleared. Pick a smaller image.",
     "photoUploadFailed": "Photo upload failed — please try again.",
+    "photoUploadFailedDescription": "Your profile was not saved. Try again, or save without a new photo for now.",
     "avatarLabel": "Avatar URL",
     "avatarPlaceholder": "https://…"
   },
@@ -184,7 +191,9 @@
       "signOut": "Sign out",
       "signOutAll": "Sign out all sessions",
       "signedOut": "Session ended.",
+      "signedOutAllDescription": "Every device was signed out — including this one.",
       "signOutFailed": "Could not sign out — please try again.",
+      "signOutFailedDescription": "The session is still active. Reload the page and try again.",
       "confirmAllTitle": "Sign out all sessions?",
       "confirmAllText": "This ends every session, including this one — you will be signed out.",
       "confirmAll": "Sign out all",
@@ -202,13 +211,18 @@
       "confirm": "Confirm new password",
       "submit": "Update password",
       "success": "Password updated.",
-      "failed": "Password change failed — is the current password correct?"
+      "successDescription": "Other devices were signed out; you stay signed in here.",
+      "failed": "Password change failed — is the current password correct?",
+      "failedDescription": "Your previous password still applies."
     },
     "export": {
       "title": "Export your data",
       "description": "Download a JSON copy of your account, sessions and comments.",
       "button": "Export data",
-      "failed": "Export failed — please try again."
+      "success": "Export downloaded.",
+      "successDescription": "The file my-data.json is now in your downloads folder.",
+      "failed": "Export failed — please try again.",
+      "failedDescription": "No file was downloaded. Check your connection and try again."
     },
     "delete": {
       "title": "Delete account",
@@ -219,7 +233,8 @@
       "confirm": "Delete permanently",
       "cancel": "Cancel",
       "success": "Account deleted.",
-      "failed": "Deletion failed — please try again."
+      "failed": "Deletion failed — please try again.",
+      "failedDescription": "Your account is unchanged — nothing was deleted. Try again in a moment."
     }
   },
   "notifications": {
@@ -244,6 +259,7 @@
       "save": "Save",
       "saved": "Notification settings saved.",
       "saveFailed": "Could not save settings.",
+      "saveFailedDescription": "Your previous setting still applies. Check your connection and try again.",
       "noSmtp": "Email delivery is not configured on this server — your choice is saved and takes effect once SMTP is set up."
     }
   },

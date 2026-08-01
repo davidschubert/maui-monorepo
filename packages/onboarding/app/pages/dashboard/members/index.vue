@@ -117,14 +117,16 @@ const ROLE_COLOR: Record<CommunityRole, 'primary' | 'info' | 'warning' | 'neutra
  * stünde bei jeder abgelehnten Regel „Aktion fehlgeschlagen" — und niemand
  * wüsste, dass er gerade den letzten Owner retten wollte.
  */
-function ruleMessage(error: unknown): string {
+function ruleMessage(error: unknown): { title: string, description?: string } {
   // `data.reason` ist das Feld des stabilen Fehler-Envelopes (core
   // shared/types/error.ts) — die rohe `data` eines Fehlers wirft der zentrale
   // Handler bewusst weg, genau EIN geprüfter Grund reist mit.
   const reason = (error as { data?: { reason?: string } })?.data?.reason
   const known = ['self_demote', 'self_remove', 'last_owner', 'owner_protected', 'already_member', 'not_a_member', 'invalid_role', 'unchanged']
-  if (reason && known.includes(reason)) return t(`members.errors.${reason}`)
-  return t('members.errors.failed')
+  // Die benannten Regeln sagen den nächsten Schritt schon im Satz. Nur der
+  // Rückfall stand nackt da — der bekommt eine zweite Zeile (Audit-Befund C12).
+  if (reason && known.includes(reason)) return { title: t(`members.errors.${reason}`) }
+  return { title: t('members.errors.failed'), description: t('members.errors.failedHint') }
 }
 
 // ── Einladen ────────────────────────────────────────────────────────────────
@@ -157,13 +159,16 @@ async function sendInvite() {
       title: result.existingAccount
         ? t('members.invite.sentExisting', { email: result.email })
         : t('members.invite.sent', { email: result.email }),
+      // Die Frist steht sonst nirgends im Blickfeld — und sie ist der Grund,
+      // warum eine Einladung später „nicht mehr gilt".
+      description: t('members.invite.sentHint'),
       color: 'success',
     })
     inviteOpen.value = false
     await refresh()
   }
   catch (error) {
-    toast.add({ title: ruleMessage(error), color: 'error' })
+    toast.add({ ...ruleMessage(error), color: 'error' })
   }
   finally {
     inviteBusy.value = false
@@ -183,7 +188,7 @@ async function revokeInvite(invite: CommunityInviteView) {
     await refresh()
   }
   catch (error) {
-    toast.add({ title: ruleMessage(error), color: 'error' })
+    toast.add({ ...ruleMessage(error), color: 'error' })
   }
 }
 
@@ -195,7 +200,7 @@ async function changeRole(member: CommunityMemberView, role: CommunityRole) {
     await refresh()
   }
   catch (error) {
-    toast.add({ title: ruleMessage(error), color: 'error' })
+    toast.add({ ...ruleMessage(error), color: 'error' })
   }
 }
 
@@ -214,7 +219,7 @@ async function removeMember(member: CommunityMemberView) {
     await refresh()
   }
   catch (error) {
-    toast.add({ title: ruleMessage(error), color: 'error' })
+    toast.add({ ...ruleMessage(error), color: 'error' })
   }
 }
 
@@ -232,7 +237,7 @@ async function transferOwnership(member: CommunityMemberView) {
     await refresh()
   }
   catch (error) {
-    toast.add({ title: ruleMessage(error), color: 'error' })
+    toast.add({ ...ruleMessage(error), color: 'error' })
   }
 }
 
@@ -412,6 +417,7 @@ function rowActions(member: CommunityMemberView): DropdownMenuItem[][] {
                 color="neutral"
                 variant="ghost"
                 size="xs"
+                :aria-label="t('members.rowActions')"
                 :data-member-actions="row.original.id"
               />
             </UDropdownMenu>

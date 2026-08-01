@@ -41,13 +41,14 @@
     },
     "storage": {
       "title": "Storage",
-      "bucket": "Bucket",
+      "bucket": "Storage area",
+      "bucketHint": "Technical term: “bucket” — the store Appwrite keeps these files in.",
       "files": "Files",
       "size": "Total size",
       "orphans": "Unlinked",
       "orphan": "Unlinked",
-      "empty": "No files in this bucket.",
-      "emptyTitle": "Bucket is empty",
+      "empty": "There are no files in this storage area.",
+      "emptyTitle": "Storage area is empty",
       "searchPlaceholder": "Search files …",
       "deleteFile": "Delete file",
       "col": {
@@ -58,6 +59,7 @@
         "state": "Status"
       },
       "deleted": "File(s) deleted.",
+      "deleteFailedDesc": "The file is still in this storage area. Reload the page and try again — deleting requires files.write on the runtime key.",
       "deleteOrphans": "Delete unlinked ({count})",
       "confirmTitle": "Delete file",
       "confirmOne": "Delete this file permanently?",
@@ -143,7 +145,11 @@
       "editTitle": "Edit entry",
       "save": "Save",
       "saved": "Changelog entry saved.",
+      "savedLiveDesc": "The entry is now live under \"What's new\" and in the public changelog.",
+      "savedDraftDesc": "Saved as a draft — it only becomes visible once you turn \"Published\" on.",
+      "saveFailedDesc": "The entry was not saved. Your text is still in the form — please try again.",
       "deleted": "Entry deleted.",
+      "deleteFailedDesc": "The entry is still in the list. Reload the page and try again.",
       "edit": "Edit",
       "delete": "Delete",
       "draft": "Draft",
@@ -208,9 +214,15 @@
       "unblock": "Unblock",
       "clearSessions": "End sessions",
       "export": "Export data",
+      "exportDone": "Data exported.",
+      "exportDoneDesc": "The JSON file is in your downloads folder.",
+      "exportFailed": "Export failed.",
+      "exportFailedDesc": "Nothing was downloaded. Please try again — the account itself is unchanged.",
       "deleteUser": "Delete account",
       "deleted": "User deleted.",
+      "deletedDesc": "The data snapshot stays available for 30 days under \"GDPR exports\".",
       "lastAdmin": "At least one admin must remain.",
+      "lastAdminDesc": "Make someone else an admin first — then this role can be given up.",
       "confirmTitle": "Confirm action",
       "confirmAction": "Confirm",
       "confirm": {
@@ -222,8 +234,11 @@
       "blocked": "User blocked.",
       "unblocked": "User unblocked.",
       "rolesSaved": "Roles updated.",
+      "rolesSavedDesc": "The new permissions take effect the next time that person loads the page.",
       "sessionsCleared": "All sessions ended.",
+      "sessionsClearedDesc": "The person is signed out on every device and has to sign in again.",
       "actionFailed": "Action failed — please try again.",
+      "actionFailedDesc": "The change was not applied — what you see here is still the current state. Reload the page and try again.",
       "joined": "Joined",
       "lastActivity": "Last activity",
       "activeNow": "Active now",
@@ -265,6 +280,39 @@
           "title": "Activity log (Appwrite)",
           "empty": "No activity entries.",
           "emptyTitle": "No activity",
+          "event": {
+            "accountCreate": "Account created",
+            "accountDelete": "Account deleted",
+            "emailChanged": "Email address changed",
+            "nameChanged": "Name changed",
+            "passwordChanged": "Password changed",
+            "phoneChanged": "Phone number changed",
+            "prefsChanged": "Preferences changed",
+            "accountDeactivated": "Account deactivated",
+            "signIn": "Signed in",
+            "sessionRefreshed": "Session refreshed",
+            "signOut": "Signed out",
+            "recoveryRequested": "Password reset requested",
+            "recoveryCompleted": "Password reset",
+            "verificationRequested": "Verification email requested",
+            "verificationCompleted": "Email address verified",
+            "codeRequested": "Sign-in code requested",
+            "codeSignIn": "Signed in with a code",
+            "targetAdded": "Notification channel added",
+            "targetChanged": "Notification channel changed",
+            "targetRemoved": "Notification channel removed",
+            "createdByOperator": "Created by the operator",
+            "deletedByOperator": "Deleted by the operator",
+            "emailChangedByOperator": "Email address changed by the operator",
+            "nameChangedByOperator": "Name changed by the operator",
+            "passwordChangedByOperator": "Password set by the operator",
+            "rolesChangedByOperator": "Roles changed by the operator",
+            "prefsChangedByOperator": "Preferences changed by the operator",
+            "statusChangedByOperator": "Account blocked or unblocked by the operator",
+            "membershipCreated": "Added to a team",
+            "membershipChanged": "Team role changed",
+            "membershipRemoved": "Removed from a team"
+          },
           "col": {
             "event": "Event",
             "client": "Device",
@@ -289,10 +337,15 @@
         "password": "Initial password",
         "passwordHelp": "At least 8 characters — the user can change it via password reset.",
         "roles": "Roles (optional)",
+        "rolesHelp": "Without a role the account is an ordinary user — roles can be changed any time on the profile page.",
+        "rolesPlaceholder": "No role",
         "save": "Create",
         "done": "User created.",
+        "doneDesc": "Pass on the starter password — the person can change it themselves via \"Forgot password\".",
         "duplicate": "This email already exists.",
-        "failed": "Could not create the user."
+        "duplicateDesc": "Look for the existing account in the list instead of creating a second one.",
+        "failed": "Could not create the user.",
+        "failedDesc": "Nothing was created. Check name, email and password (at least 8 characters) and try again."
       },
       "filter": {
         "all": "All users",
@@ -306,12 +359,15 @@
         "count": "{count} selected",
         "done": "{count} users processed.",
         "partial": "{done} processed, {failed} failed.",
+        "partialDesc": "{failed} accounts are unchanged — usually because they are protected (your own account, the last admin). Select them again and try them one by one.",
+        "failedDesc": "No account was changed. Reload the page and try again.",
         "confirm": {
           "block": "Block {count} users? They will no longer be able to sign in.",
           "unblock": "Unblock {count} users?"
         }
       },
-      "exportCsv": "Export CSV"
+      "exportCsv": "Export CSV",
+      "rowActions": "Actions for this account"
     },
     "moderation": {
       "filter": {
@@ -341,6 +397,15 @@
         "target": "Target",
         "status": "Status",
         "date": "Date"
+      },
+      "targetType": {
+        "post": "Post",
+        "page": "Page",
+        "event": "Event",
+        "lesson": "Lesson",
+        "course": "Course",
+        "comment": "Comment",
+        "blog": "Blog article"
       },
       "hide": "Hide",
       "restore": "Restore",
@@ -392,10 +457,14 @@
         "created": "Created"
       },
       "download": "Download",
+      "downloadDone": "Snapshot downloaded.",
+      "downloadDoneDesc": "The file is in your downloads folder.",
       "delete": "Delete",
       "deleted": "Snapshot deleted.",
       "deleteError": "Delete failed.",
+      "deleteErrorDesc": "The snapshot is still in the list. Reload the page and try again.",
       "downloadError": "Download failed.",
+      "downloadErrorDesc": "Nothing was downloaded. The snapshot may already have expired — reloading the list shows the current state.",
       "confirmTitle": "Delete snapshot?",
       "confirmText": "Permanently delete {name}? The snapshot can no longer be retrieved afterwards."
     },
@@ -407,9 +476,16 @@
       "requires": "Requires: {list}",
       "dataKept": "Your data is kept.",
       "enabled": "{name} enabled",
+      "enabledDesc": "The product is available to every visitor right away — no deploy needed.",
       "disabled": "{name} disabled",
+      "disabledDesc": "The interface disappears for everyone right away. Your data is kept and returns as soon as you switch it back on.",
       "toggleFailed": "Could not toggle product",
-      "alwaysOn": "Always on"
+      "toggleFailedDesc": "The switch is back to its saved position. Reload the page and try again.",
+      "toggleBlocked": "Products depend on each other",
+      "toggleBlockedDesc": "A product cannot be switched off while another one needs it — and cannot be switched on while its prerequisites are missing. The \"Requires: …\" line on the cards shows what belongs together.",
+      "alwaysOn": "Always on",
+      "emptyTitle": "No products found",
+      "empty": "This site is not reporting any products right now. Reload the page — if it stays empty, the product layers are missing from the deploy."
     }
   },
   "whatsNew": {
@@ -464,6 +540,7 @@
       },
       "saved": "Saved.",
       "saveFailed": "Could not be saved.",
+      "saveFailedDesc": "Nothing was changed — the last saved state still applies. Try again in a moment.",
       "noTenantTitle": "No community on this host",
       "noTenantText": "These settings apply to a single community. On this instance, registration is governed by the operator configuration.",
       "appearance": {
@@ -474,6 +551,7 @@
         "inherited": "Nothing chosen yet (default)",
         "propagation": "A new colour reaches every page within half a minute.",
         "saved": "Appearance saved.",
+        "savedDesc": "The new colour world reaches every page of your community within half a minute.",
         "neutral": "Base tone",
         "neutralDesc": "The muted tint of surfaces, borders and text — like the colour world, it applies to every visitor.",
         "neutralInherited": "Default"
@@ -552,6 +630,7 @@
         "updateConfirmBtn": "Update now",
         "updateStarted": "Update of {name} to {version} started — running in the background. Restart the dev server afterwards.",
         "updateFailed": "Update failed.",
+        "updateFailedDesc": "Nothing was changed: the pnpm catalog is untouched and no install ran. Updates only work in development — details are in the server console.",
         "restartNeeded": "Restart needed",
         "restartTitle": "Update running — restart needed",
         "restartHint": "The install runs in the background. Wait a moment, then restart the dev server to load the updated versions."

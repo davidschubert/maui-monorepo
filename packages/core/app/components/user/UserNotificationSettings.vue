@@ -36,7 +36,11 @@ async function save() {
     toast.add({ title: t('notifications.email.saved'), color: 'success' })
   }
   catch {
-    toast.add({ title: t('notifications.email.saveFailed'), color: 'error' })
+    toast.add({
+      title: t('notifications.email.saveFailed'),
+      description: t('notifications.email.saveFailedDescription'),
+      color: 'error',
+    })
   }
   finally {
     loading.value = false

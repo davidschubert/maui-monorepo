@@ -14,9 +14,21 @@ async function exportData() {
     link.download = 'my-data.json'
     link.click()
     URL.revokeObjectURL(url)
+    // Ein programmatischer Download meldet sich in manchen Browsern gar nicht —
+    // ohne diese Rückmeldung sieht der Klick wie ein Fehlschlag aus.
+    toast.add({
+      title: t('account.export.success'),
+      description: t('account.export.successDescription'),
+      color: 'success',
+      icon: 'i-ph-download-simple',
+    })
   }
   catch {
-    toast.add({ title: t('account.export.failed'), color: 'error' })
+    toast.add({
+      title: t('account.export.failed'),
+      description: t('account.export.failedDescription'),
+      color: 'error',
+    })
   }
   finally {
     loading.value = false

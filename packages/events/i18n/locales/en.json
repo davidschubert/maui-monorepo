@@ -46,6 +46,7 @@
       "share": "Share",
       "linkCopied": "Link copied.",
       "shareFailed": "Could not share.",
+      "shareFailedHint": "Your browser allows neither sharing nor copying. Open the event and copy the link from the address bar.",
       "spotsLeft": "Only {count} spots left!",
       "joinLive": "Join live",
       "replay": "Watch replay",
@@ -64,13 +65,16 @@
       "declined": "Decline",
       "loginCta": "Sign in to RSVP",
       "full": "This event is full.",
+      "fullHint": "All spots are taken. Check back later — people do withdraw their RSVP sometimes.",
       "failed": "Could not save your RSVP.",
+      "failedHint": "Your answer never reached the server. Click again; if it keeps failing, reload the page.",
       "status": {
         "going": "Going",
         "maybe": "Maybe",
         "declined": "Declined"
       },
-      "ticketRequired": "This event requires a ticket."
+      "ticketRequired": "This event requires a ticket.",
+      "ticketRequiredHint": "Open the event and buy a ticket there — then you can RSVP."
     },
     "admin": {
       "title": "Events",
@@ -92,13 +96,19 @@
         "status": "Status"
       },
       "saved": "Event saved.",
+      "savedDraftHint": "It sits in the list as a draft and nobody can see it yet. Publish it from the row menu.",
       "saveFailed": "Could not save the event.",
+      "saveFailedHint": "Nothing you typed is lost — the form stays open. Check your connection and save again.",
       "published": "Event published.",
+      "publishedHint": "It is now in the public event list and guests can RSVP.",
       "unpublished": "Event unpublished.",
+      "unpublishedHint": "Only you still see it here in the dashboard. RSVPs given so far are kept.",
       "cancelled": "Event cancelled.",
+      "cancelledHint": "The event stays in the list — that is how attendees get to see the cancellation.",
       "confirmCancelTitle": "Cancel event?",
       "confirmCancelText": "“{title}” will show as cancelled for everyone. Registered guests see the cancellation right away.",
       "actionFailed": "Action failed.",
+      "actionFailedHint": "Nothing about the event changed. Reload the page and try again.",
       "status": {
         "draft": "Draft",
         "published": "Published",
@@ -134,8 +144,9 @@
         "access": "Access",
         "accessHelp": "Paid events require a ticket — checkout arrives with the Stripe integration (phase 23).",
         "priceEur": "Price (EUR, display)",
-        "priceLookupKey": "Stripe lookup_key",
-        "priceLookupKeyHelp": "Reference to the Stripe price — the amount there is the source of truth.",
+        "priceLookupKey": "Price key in Stripe",
+        "priceLookupKeyHelp": "Points at the price in Stripe (called “lookup_key” there) — the amount THERE is what counts, not the one entered here.",
+        "priceLookupKeyPlaceholder": "Key from your Stripe account",
         "recurrence": "Repeat",
         "recurrenceNone": "One-time",
         "recurrenceHelp": "Creates real individual dates (rolling ~4 months ahead) — each date is independent afterwards.",
@@ -144,6 +155,10 @@
       },
       "coverSaved": "Cover saved.",
       "coverFailed": "Could not save the cover.",
+      "coverFailedHint": "JPEG, PNG or WebP up to 2 MB are allowed. If the image fits, just try again.",
+      "coverRemoved": "Cover removed.",
+      "coverRemoveFailed": "Could not remove the cover.",
+      "coverRemoveFailedHint": "The image is still there. Reload the page and try again.",
       "filter": {
         "all": "Any type",
         "online": "Online",
@@ -179,13 +194,16 @@
     "vote": {
       "up": "Upvote",
       "down": "Downvote",
-      "failed": "Could not save your vote."
+      "failed": "Could not save your vote.",
+      "failedHint": "Your vote never arrived. Click again."
     },
     "report": {
       "cta": "Report",
       "done": "Event reported — thank you!",
+      "doneHint": "Moderation will take a look. There is no individual reply to single reports.",
       "already": "You already reported this event.",
       "failed": "Could not report the event.",
+      "failedHint": "The report never arrived. Try again — if it keeps failing, contact moderation directly.",
       "reasons": {
         "spam": "Spam",
         "harassment": "Harassment",
@@ -197,7 +215,8 @@
       "buy": "Purchase ticket",
       "soon": "Coming soon",
       "alreadyOwned": "You already own a ticket for this event.",
-      "failed": "Could not start the ticket checkout."
+      "failed": "Could not start the ticket checkout.",
+      "failedHint": "The checkout did not open — nothing was charged. Please try again in a moment."
     },
     "series": {
       "badge": "Series",

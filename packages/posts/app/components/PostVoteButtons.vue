@@ -28,7 +28,7 @@ async function vote(value: PostVoteValue) {
     emit('updated', { ...props.post, ...res.post, myPostVote: res.myVote })
   }
   catch {
-    toast.add({ title: t('posts.card.voteFailed'), color: 'error' })
+    toast.add({ title: t('posts.card.voteFailed'), description: t('posts.card.voteFailedHint'), color: 'error' })
   }
   finally {
     busy.value = false

@@ -9,8 +9,11 @@
       "submit": "Report",
       "cancel": "Cancel",
       "success": "Thanks, your report was submitted.",
+      "successDescription": "A moderator will look into it. You can retract it at any time.",
       "retracted": "Report retracted.",
-      "error": "Report failed."
+      "error": "Report failed.",
+      "submitFailedDescription": "Your report was not saved. Check your connection and try again.",
+      "retractFailedDescription": "Your report is still active. Check your connection and try again."
     }
   }
 }

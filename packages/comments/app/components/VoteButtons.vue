@@ -20,7 +20,9 @@ async function vote(value: 1 | -1) {
     await store.vote(props.comment.$id, value)
   }
   catch {
-    toast.add({ title: t('comments.item.voteError'), color: 'error' })
+    // Der Zähler springt durch den Rollback sichtbar zurück — ohne Erklärung
+    // sieht das nach einem zweiten Fehler aus.
+    toast.add({ title: t('comments.item.voteError'), description: t('comments.item.voteErrorHint'), color: 'error' })
   }
 }
 </script>

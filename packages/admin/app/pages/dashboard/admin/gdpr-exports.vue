@@ -40,9 +40,20 @@ async function download(file: GdprExportFile) {
     a.download = file.name
     a.click()
     URL.revokeObjectURL(url)
+    // Stummer Erfolg (Audit-Befund C12): auf der Seite selbst ändert sich
+    // nichts, der Snapshot landet unsichtbar im Download-Ordner.
+    toast.add({
+      title: t('admin.gdprExports.downloadDone'),
+      description: t('admin.gdprExports.downloadDoneDesc'),
+      color: 'success',
+    })
   }
   catch {
-    toast.add({ title: t('admin.gdprExports.downloadError'), color: 'error' })
+    toast.add({
+      title: t('admin.gdprExports.downloadError'),
+      description: t('admin.gdprExports.downloadErrorDesc'),
+      color: 'error',
+    })
   }
   finally {
     downloading.value = ''
@@ -62,7 +73,11 @@ async function remove(file: GdprExportFile) {
     await refresh()
   }
   catch {
-    toast.add({ title: t('admin.gdprExports.deleteError'), color: 'error' })
+    toast.add({
+      title: t('admin.gdprExports.deleteError'),
+      description: t('admin.gdprExports.deleteErrorDesc'),
+      color: 'error',
+    })
   }
 }
 

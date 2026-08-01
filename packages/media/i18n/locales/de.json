@@ -10,6 +10,7 @@
       "upload": "Hochladen",
       "uploaded": "{count} Bild(er) hochgeladen",
       "uploadFailed": "Upload fehlgeschlagen",
+      "uploadFailedHint": "Erlaubt sind JPEG, PNG und WebP bis {max} MB — größere Bilder vorher verkleinern.",
       "emptyTitle": "Noch keine Bilder",
       "empty": "Noch keine Medien — lade dein erstes Bild hoch.",
       "featured": "Hervorgehoben",
@@ -17,6 +18,11 @@
       "published": "Sichtbar",
       "publish": "Veröffentlichen",
       "unpublish": "Zurückziehen",
+      "publishedToast": "Bild veröffentlicht",
+      "publishedHint": "Es erscheint jetzt in der öffentlichen Galerie.",
+      "unpublishedToast": "Bild zurückgezogen",
+      "unpublishedHint": "Es ist nur noch hier im Dashboard zu sehen.",
+      "publishFailedHint": "Die Sichtbarkeit blieb unverändert. Lade die Seite neu und versuch es noch einmal.",
       "searchPlaceholder": "Medien durchsuchen …",
       "rowActions": "Aktionen für dieses Bild",
       "col": {
@@ -37,10 +43,13 @@
       "delete": "Löschen",
       "deleteConfirmTitle": "Bild löschen?",
       "deleteConfirm": "„{title}\" wird endgültig gelöscht — die Datei wird mit entfernt.",
+      "deleted": "Bild gelöscht",
       "deleteFailed": "Löschen fehlgeschlagen",
+      "deleteFailedHint": "Das Bild ist noch da. Lade die Seite neu und versuch es noch einmal.",
       "save": "Speichern",
       "saved": "Gespeichert",
       "saveFailed": "Speichern fehlgeschlagen",
+      "saveFailedHint": "Deine Angaben stehen noch im Formular. Prüf die Verbindung und speicher noch einmal.",
       "cancel": "Abbrechen"
     }
   }

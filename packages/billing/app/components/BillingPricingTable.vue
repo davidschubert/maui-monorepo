@@ -52,9 +52,12 @@ async function choosePlan(planId: string) {
     window.location.href = res.url
   }
   catch (error) {
-    const statusCode = (error as { statusCode?: number }).statusCode
+    // 409 ist kein Fehler des Kunden, sondern ein Hinweis auf den richtigen Weg
+    // (Portal statt zweites Abo) — deshalb ein eigener nächster Schritt im Text.
+    const conflict = (error as { statusCode?: number }).statusCode === 409
     toast.add({
-      title: statusCode === 409 ? t('billing.pricing.alreadyActive') : t('billing.pricing.checkoutFailed'),
+      title: conflict ? t('billing.pricing.alreadyActive') : t('billing.pricing.checkoutFailed'),
+      description: conflict ? t('billing.pricing.alreadyActiveDesc') : t('billing.pricing.checkoutFailedDesc'),
       color: 'error',
     })
   }
@@ -73,7 +76,13 @@ async function openPortal() {
     window.location.href = res.url
   }
   catch {
-    toast.add({ title: t('billing.pricing.checkoutFailed'), color: 'error' })
+    // Hier ist NICHT der Checkout gescheitert, sondern das Kundenportal — der
+    // Text muss das sagen, sonst sucht der Kunde den Fehler beim Bezahlen.
+    toast.add({
+      title: t('billing.account.portalFailed'),
+      description: t('billing.account.portalFailedDesc'),
+      color: 'error',
+    })
   }
   finally {
     busyPlan.value = ''

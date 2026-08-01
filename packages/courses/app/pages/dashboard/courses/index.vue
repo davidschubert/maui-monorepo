@@ -46,18 +46,33 @@ async function save() {
   saving.value = true
   try {
     const row = await $fetch<CourseRow>('/api/courses', { method: 'POST', body: parsed.data })
-    toast.add({ title: t('courses.admin.created'), color: 'success' })
+    toast.add({ title: t('courses.admin.created'), description: t('courses.admin.createdHint'), color: 'success' })
     modalOpen.value = false
     await navigateTo(localePath(`/dashboard/courses/${row.$id}`))
   }
   catch (error) {
+    // Die belegte Adresse ist der einzige Grund, den der Server namentlich
+    // meldet — und der einzige, gegen den man selbst etwas tun kann.
     const statusCode = (error as { statusCode?: number }).statusCode
-    toast.add({ title: statusCode === 409 ? t('courses.admin.slugTaken') : t('courses.admin.saveFailed'), color: 'error' })
+    toast.add({
+      title: statusCode === 409 ? t('courses.admin.slugTaken') : t('courses.admin.saveFailed'),
+      description: statusCode === 409 ? t('courses.admin.slugTakenHint') : t('courses.admin.courseSaveFailedHint'),
+      color: 'error',
+    })
   }
   finally {
     saving.value = false
   }
 }
+
+/**
+ * Zugang ist eine Auswahl, kein Knopf-Paar (Audit-Befund C12): `URadioGroup`
+ * bringt Tastaturbedienung und Vorlesbarkeit mit, ein Trio aus UButton nicht.
+ */
+const accessItems = computed(() => (['free', 'members', 'paid'] as const).map(value => ({
+  label: t(`courses.access.${value}`),
+  value,
+})))
 
 const statusColor = (row: CourseRow) =>
   row.status === 'published' ? 'success' as const : row.status === 'archived' ? 'neutral' as const : 'warning' as const
@@ -161,18 +176,14 @@ const columns = computed<TableColumn<CourseRow>[]>(() => [
               <UTextarea v-model="form.description" class="w-full" :rows="4" />
             </UFormField>
             <UFormField :label="t('courses.admin.form.access')">
-              <div class="flex gap-1" data-testid="course-form-access">
-                <UButton
-                  v-for="option in (['free', 'members', 'paid'] as const)"
-                  :key="option"
-                  size="sm"
-                  :color="form.access === option ? 'primary' : 'neutral'"
-                  :variant="form.access === option ? 'soft' : 'ghost'"
-                  @click="() => { form.access = option }"
-                >
-                  {{ t(`courses.access.${option}`) }}
-                </UButton>
-              </div>
+              <URadioGroup
+                v-model="form.access"
+                :items="accessItems"
+                value-key="value"
+                orientation="horizontal"
+                :ui="{ fieldset: 'gap-x-6 gap-y-2 flex-wrap' }"
+                data-testid="course-form-access"
+              />
             </UFormField>
             <UFormField
               v-if="form.access === 'paid'"
@@ -180,7 +191,16 @@ const columns = computed<TableColumn<CourseRow>[]>(() => [
               :help="t('courses.admin.form.entitlementHelp')"
               required
             >
-              <UInput v-model="form.entitlementProduct" class="w-full" :maxlength="64" placeholder="paidCourses" />
+              <!-- Der Platzhalter war der interne Key `paidCourses` (Audit-Befund
+                   C12) — eine Ausfüllhilfe, die nur versteht, wer den Code kennt.
+                   Das Beispiel steht weiter im Hilfetext, der Platzhalter sagt
+                   jetzt, WORAUS der Wert kommt. -->
+              <UInput
+                v-model="form.entitlementProduct"
+                class="w-full"
+                :maxlength="64"
+                :placeholder="t('courses.admin.form.entitlementPlaceholder')"
+              />
             </UFormField>
 
             <div class="flex justify-end gap-2 pt-2">

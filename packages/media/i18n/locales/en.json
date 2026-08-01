@@ -10,6 +10,7 @@
       "upload": "Upload",
       "uploaded": "{count} image(s) uploaded",
       "uploadFailed": "Upload failed",
+      "uploadFailedHint": "JPEG, PNG and WebP up to {max} MB are supported — shrink larger images first.",
       "emptyTitle": "No images yet",
       "empty": "No media yet — upload your first image.",
       "featured": "Featured",
@@ -17,6 +18,11 @@
       "published": "Visible",
       "publish": "Publish",
       "unpublish": "Unpublish",
+      "publishedToast": "Image published",
+      "publishedHint": "It now shows up in the public gallery.",
+      "unpublishedToast": "Image unpublished",
+      "unpublishedHint": "It is only visible here in the dashboard now.",
+      "publishFailedHint": "Visibility is unchanged. Reload the page and try again.",
       "searchPlaceholder": "Search media …",
       "rowActions": "Actions for this image",
       "col": {
@@ -37,10 +43,13 @@
       "delete": "Delete",
       "deleteConfirmTitle": "Delete image?",
       "deleteConfirm": "“{title}” is deleted for good — the file is removed as well.",
+      "deleted": "Image deleted",
       "deleteFailed": "Delete failed",
+      "deleteFailedHint": "The image is still there. Reload the page and try again.",
       "save": "Save",
       "saved": "Saved",
       "saveFailed": "Save failed",
+      "saveFailedHint": "Your input is still in the form. Check your connection and save again.",
       "cancel": "Cancel"
     }
   }

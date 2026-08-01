@@ -43,7 +43,7 @@ async function complete() {
     })
   }
   catch {
-    toast.add({ title: t('courses.lesson.failed'), color: 'error' })
+    toast.add({ title: t('courses.lesson.failed'), description: t('courses.lesson.failedHint'), color: 'error' })
   }
   finally {
     completing.value = false

@@ -20,13 +20,24 @@ async function onSubmit(event: FormSubmitEvent<PasswordChangeInput>) {
       method: 'PUT',
       body: { currentPassword: event.data.currentPassword, password: event.data.password },
     })
-    toast.add({ title: t('account.password.success'), color: 'success', icon: 'i-ph-check-circle' })
+    // Die Route meldet andere Geräte ab (best effort) — das erfährt der Nutzer
+    // sonst nirgends.
+    toast.add({
+      title: t('account.password.success'),
+      description: t('account.password.successDescription'),
+      color: 'success',
+      icon: 'i-ph-check-circle',
+    })
     state.currentPassword = ''
     state.password = ''
     state.passwordConfirm = ''
   }
   catch (error) {
-    toast.add({ title: isNetworkError(error) ? t('auth.networkError') : t('account.password.failed'), color: 'error' })
+    toast.add({
+      title: isNetworkError(error) ? t('auth.networkError') : t('account.password.failed'),
+      description: t('account.password.failedDescription'),
+      color: 'error',
+    })
   }
   finally {
     loading.value = false

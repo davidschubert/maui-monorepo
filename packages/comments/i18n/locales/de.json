@@ -39,12 +39,17 @@
       "new": "Neue Site",
       "empty": "Noch keine Einbetter-Domains registriert.",
       "created": "Site registriert",
+      "createdHint": "Die Domain ist sofort freigeschaltet — das Widget lässt sich dort ab jetzt einbetten.",
       "createFailed": "Site konnte nicht registriert werden",
+      "createFailedHint": "Häufigste Ursachen: Die Domain ist schon registriert, oder sie steht nicht als reiner Hostname da (ohne https:// und ohne Pfad).",
       "enabled": "Site aktiviert",
       "disabled": "Site deaktiviert",
+      "disabledHint": "Bestehende Einbindungen auf dieser Domain zeigen ab sofort keine Kommentare mehr.",
       "updateFailed": "Site konnte nicht aktualisiert werden",
+      "updateFailedHint": "Der Schalter steht wieder wie vorher. Lade die Seite neu und versuch es noch einmal.",
       "deleted": "Site gelöscht",
       "deleteFailed": "Site konnte nicht gelöscht werden",
+      "deleteFailedHint": "Die Domain ist weiter registriert. Lade die Seite neu und versuch es noch einmal.",
       "confirmDeleteTitle": "Einbetter-Domain löschen?",
       "confirmDeleteText": "{host} darf das Widget danach nicht mehr einbetten. Das wirkt sofort.",
       "host": "Domain (Host)",
@@ -77,7 +82,16 @@
       "toast": "Kommentare sind derzeit deaktiviert.",
       "maintenanceTitle": "Wartungsmodus",
       "maintenanceText": "Während der Wartung sind keine neuen Kommentare möglich. Bestehende Kommentare bleiben sichtbar.",
-      "maintenanceToast": "Wartungsmodus aktiv — Kommentare sind vorübergehend gesperrt."
+      "maintenanceToast": "Wartungsmodus aktiv — Kommentare sind vorübergehend gesperrt.",
+      "draftKeptHint": "Dein Text bleibt im Feld stehen — du kannst ihn später abschicken."
+    },
+    "moderation": {
+      "bulkPartialHint": "Die übrigen Kommentare sind unverändert. Die Auswahl ist aufgehoben — such sie in der aufgefrischten Liste und versuch es dort noch einmal.",
+      "bulkFailedHint": "Kein Kommentar wurde geändert. Prüf die Verbindung und versuch es noch einmal.",
+      "actionFailedHint": "Es wurde nichts geändert. Lade die Liste neu und versuch es noch einmal.",
+      "assistFailedHint": "Die Einschätzung ist nur ein Hinweis — du kannst den Kommentar auch ohne sie ausblenden oder stehen lassen.",
+      "hiddenHint": "Die offenen Meldungen zu diesem Kommentar sind damit erledigt.",
+      "blockedHint": "Die bisherigen Kommentare bleiben sichtbar — blende sie bei Bedarf einzeln aus."
     },
     "sort": {
       "label": "Sortieren",
@@ -92,6 +106,7 @@
       "submit": "Kommentieren",
       "replySubmit": "Antworten",
       "error": "Kommentar konnte nicht gespeichert werden.",
+      "errorHint": "Dein Text steht noch im Feld. Prüf die Verbindung und schick ihn noch einmal ab.",
       "mentionSuggestions": "Erwähnungs-Vorschläge",
       "markdownHint": "Markdown: **fett** *kursiv* `code` [Link](https://…)"
     },
@@ -109,7 +124,10 @@
       "upvote": "Upvote",
       "downvote": "Downvote",
       "voteError": "Vote fehlgeschlagen — bitte erneut versuchen.",
+      "voteErrorHint": "Deshalb ist der Zähler zurückgesprungen. Prüf die Verbindung und stimm noch einmal ab.",
       "error": "Aktion fehlgeschlagen — bitte erneut versuchen.",
+      "editErrorHint": "Deine Änderung steht noch im Feld, der Kommentar ist unverändert geblieben.",
+      "deleteErrorHint": "Der Kommentar ist noch da. Prüf die Verbindung und versuch es noch einmal.",
       "formerMember": "Ehemaliges Mitglied"
     },
     "report": {

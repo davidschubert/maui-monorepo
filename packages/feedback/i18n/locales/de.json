@@ -64,7 +64,9 @@
       "commentSend": "Kommentieren",
       "someone": "Mitglied",
       "loginRequired": "Dafür musst du angemeldet sein.",
+      "loginRequiredDescription": "Melde dich an und versuche es noch einmal.",
       "actionFailed": "Aktion fehlgeschlagen.",
+      "actionFailedDescription": "Prüfe deine Verbindung und versuche es erneut.",
       "emptyTitle": "Noch kein Feedback",
       "emptyText": "Über den Feedback-Knopf unten links landet hier, was Nutzer sich wünschen.",
       "unavailableTitle": "Feedback ist gerade nicht erreichbar",
@@ -93,7 +95,14 @@
       "show": "Wieder zeigen",
       "mute": "Community stummschalten",
       "muted": "Community stummgeschaltet.",
-      "unmuted": "Stummschaltung aufgehoben."
+      "mutedDescription": "Von dort kommt vorerst kein neues Feedback mehr an. Bestehende Einträge bleiben.",
+      "unmuted": "Stummschaltung aufgehoben.",
+      "unmutedDescription": "Diese Community kann wieder Feedback schicken.",
+      "saved": "Eintrag aktualisiert.",
+      "movedTo": "Neuer Zustand: {state}.",
+      "hiddenDone": "Eintrag versteckt.",
+      "hiddenDescription": "Für andere ist er aus der Liste verschwunden — du und der Verfasser sehen ihn weiter.",
+      "shownDone": "Eintrag wieder sichtbar."
     }
   }
 }
