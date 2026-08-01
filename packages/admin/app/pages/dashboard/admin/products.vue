@@ -62,6 +62,9 @@ async function toggle(entry: AdminProductEntry, enabled: boolean) {
         :title="t('admin.products.emptyTitle')"
         :description="t('admin.products.empty')"
       />
+      <!-- BEWUSST KEINE UTable (B6): das ist keine Datenliste, sondern eine
+           Einstellungs-Seite — je Produkt ein Schalter mit Erklärtext. Der
+           Text ist hier der Inhalt, nicht ein Feld in einer Spalte. -->
       <div v-else class="divide-y divide-default">
         <div
           v-for="entry in data?.products"

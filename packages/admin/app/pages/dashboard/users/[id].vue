@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import type { AdminUserActivity, AdminUserDetailResponse } from '../../../../shared/types/admin'
+import type { AdminUserActivity, AdminUserComment, AdminUserDetailResponse } from '../../../../shared/types/admin'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'users.manage' })
 
@@ -152,6 +152,17 @@ const activityColumns = computed<TableColumn<AdminUserActivity>[]>(() => [
   { id: 'client', header: () => t('admin.users.detail.activity.col.client') },
   { id: 'location', header: () => t('admin.users.detail.activity.col.location') },
   { accessorKey: 'time', header: () => t('admin.users.detail.activity.col.time') },
+])
+
+// Letzte Kommentare ebenfalls als Tabelle (B6) — dieselbe Karte-über-Karte-
+// Reihe wie Sitzungen und Protokoll, deshalb dieselbe Bauweise. Spaltenköpfe
+// aus `admin.moderation.col.*`: es sind dieselben Felder wie in der
+// Moderationsliste, ein zweiter Satz Wörter für dieselbe Sache wäre nur eine
+// weitere Übersetzung, die auseinanderlaufen kann.
+const commentColumns = computed<TableColumn<AdminUserComment>[]>(() => [
+  { accessorKey: 'status', header: () => t('admin.moderation.col.status') },
+  { accessorKey: 'content', header: () => t('admin.moderation.col.comment') },
+  { accessorKey: '$createdAt', id: 'createdAt', header: () => t('admin.moderation.col.date') },
 ])
 
 async function copyId() {
@@ -387,23 +398,36 @@ async function runUserAction(type: UserAction) {
             </UPageCard>
 
             <!-- Letzte Kommentare -->
-            <UPageCard variant="subtle">
+            <!-- min-w-0 wie bei Sitzungen und Protokoll: die Karte ist ein
+                 Flex-Item und wüchse sonst auf Inhaltsbreite der Tabelle -->
+            <UPageCard variant="subtle" :ui="{ container: 'min-w-0' }">
               <div class="mb-3 flex items-center justify-between">
                 <h3 class="font-semibold">{{ t('admin.users.detail.comments') }}</h3>
                 <UBadge color="neutral" variant="subtle">{{ t('admin.users.detail.commentsTotal', { count: data?.commentsTotal ?? 0 }) }}</UBadge>
               </div>
-              <p v-if="(data?.comments.length ?? 0) === 0" class="text-sm text-muted">{{ t('admin.users.detail.noComments') }}</p>
-              <ul v-else class="space-y-3">
-                <li v-for="comment in data?.comments" :key="comment.$id" class="border-b border-default/60 pb-3 text-sm last:border-0 last:pb-0">
-                  <div class="mb-1 flex items-center gap-2">
-                    <UBadge :color="comment.status === 'active' ? 'success' : 'neutral'" variant="subtle" size="sm">
-                      {{ t(`admin.moderation.status.${comment.status}`) }}
-                    </UBadge>
-                    <span class="text-xs text-muted">{{ formatRelativeTime(comment.$createdAt) }}</span>
-                  </div>
-                  <p class="line-clamp-3 whitespace-pre-wrap">{{ comment.content }}</p>
-                </li>
-              </ul>
+              <UTable :data="data?.comments ?? []" :columns="commentColumns" data-user-comments>
+                <template #status-cell="{ row }">
+                  <UBadge :color="row.original.status === 'active' ? 'success' : 'neutral'" variant="subtle" size="sm">
+                    {{ t(`admin.moderation.status.${row.original.status}`) }}
+                  </UBadge>
+                </template>
+                <template #content-cell="{ row }">
+                  <p class="line-clamp-3 whitespace-pre-wrap text-sm">{{ row.original.content }}</p>
+                </template>
+                <template #createdAt-cell="{ row }">
+                  <span class="whitespace-nowrap text-xs text-muted" :title="exactDateTime(row.original.$createdAt)">
+                    {{ formatRelativeTime(row.original.$createdAt) }}
+                  </span>
+                </template>
+
+                <template #empty>
+                  <CoreEmptyState
+                    icon="i-ph-chat-circle"
+                    :title="t('admin.users.detail.commentsEmptyTitle')"
+                    :description="t('admin.users.detail.noComments')"
+                  />
+                </template>
+              </UTable>
             </UPageCard>
 
             <!-- Sessions -->
@@ -481,6 +505,10 @@ async function runUserAction(type: UserAction) {
           <!-- Steuerung (sticky) -->
           <div class="flex min-w-0 flex-col gap-4 sm:gap-6 lg:sticky lg:top-6 lg:self-start">
             <!-- Benachrichtigungskanäle (Appwrite users.listTargets) -->
+            <!-- BEWUSST KEINE UTable (B6): ein bis drei Zeilen in der schmalen
+                 Steuerspalte, ohne Aktion und ohne Sortierbedarf — eine
+                 Tabelle mit Kopfzeile passt hier weder in die Breite noch zur
+                 Menge. -->
             <UPageCard :title="t('admin.users.detail.targets.title')" variant="subtle">
               <p v-if="(data?.targets.length ?? 0) === 0" class="text-sm text-muted">{{ t('admin.users.detail.targets.empty') }}</p>
               <ul v-else class="space-y-2">

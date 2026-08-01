@@ -112,6 +112,9 @@ watch(detailOpen, (open) => { if (!open) void refresh() })
         </div>
 
         <!-- Vier Spalten nebeneinander; auf schmalen Schirmen untereinander. -->
+        <!-- BEWUSST KEINE UTable (B6): eine Roadmap ist ein Brett, keine Liste —
+             der Status IST die Spalte. Die tabellarische Sicht auf dieselben
+             Daten steht als UTable unter /dashboard/feedback. -->
         <div v-else data-testid="feedback-roadmap">
           <p class="mb-4 text-sm text-muted">{{ t('feedback.roadmap.subtitle') }}</p>
           <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

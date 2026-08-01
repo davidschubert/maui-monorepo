@@ -266,6 +266,10 @@ async function addList() {
       <TicketBoardSettings v-model:open="settingsOpen" />
 
       <!-- Beobachtet-Ansicht (P4): folgen/entfolgen zentral an einem Ort -->
+      <!-- BEWUSST KEINE UTable (B6): eine schmale Schublade mit zwei Angaben je
+           Zeile (Titel, Liste) und einem Knopf — für eine Tabelle mit Kopfzeile
+           ist hier weder Breite noch Grund. Das Brett selbst ist ohnehin
+           bewusst kein Tabellen-Fall: dort IST die Spalte der Status. -->
       <USlideover v-model:open="watchingOpen" :title="t('tickets.watch.listTitle')" :description="t('tickets.watch.listDescription')">
         <template #body>
           <p v-if="!watchedTickets.length" class="py-8 text-center text-sm text-muted">

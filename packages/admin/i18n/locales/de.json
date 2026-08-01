@@ -267,6 +267,7 @@
         "comments": "Letzte Kommentare",
         "commentsTotal": "{count} gesamt",
         "noComments": "Noch keine Kommentare.",
+        "commentsEmptyTitle": "Keine Kommentare",
         "actions": {
           "roles": "Rollen",
           "rolesHint": "Bestimmt den Dashboard-Zugriff dieses Benutzers."
@@ -637,6 +638,10 @@
         },
         "modules": "Nuxt-Module",
         "dependencies": "Abhängigkeiten",
+        "col": {
+          "package": "Paket",
+          "version": "Version"
+        },
         "outdated": "{count} veraltet",
         "allCurrent": "Alle aktuell",
         "current": "Aktuell",

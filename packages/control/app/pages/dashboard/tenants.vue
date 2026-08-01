@@ -336,7 +336,10 @@ function rowActions(tenant: TenantDto): DropdownMenuItem[][] {
       </UTable>
 
       <!-- Editierbarer Quota-Katalog (tenant_plans): Zahlen wirken im Pool
-           ohne Deploy (Resolver-Cache ≤ 90 s). 0 = unbegrenzt. -->
+           ohne Deploy (Resolver-Cache ≤ 90 s). 0 = unbegrenzt.
+           BEWUSST KEINE UTable (B6): drei feste Pläne mit Eingabefeldern und
+           eigenem Speichern-Knopf — ein Formular, keine Liste. Die Mandanten
+           darüber sind die Datenliste dieser Seite und stehen als Tabelle. -->
       <section class="mt-8 rounded-lg border border-default p-4" data-plan-limits>
         <h2 class="font-semibold">{{ t('control.plans.title') }}</h2>
         <p class="mt-1 text-sm text-muted">{{ t('control.plans.subtitle') }}</p>

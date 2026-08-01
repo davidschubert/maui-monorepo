@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { TableColumn } from '@nuxt/ui'
 import type { SystemInfo } from '../../../shared/types/system'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'system.manage' })
@@ -59,6 +60,18 @@ const groupedDependencies = computed(() => {
   }
   return [...groups.entries()].map(([category, items]) => ({ category, items }))
 })
+
+// Zwei Spalten je Kategorie-Tabelle: Paket und Version. Die Version steht
+// rechts (wie vorher in der `<dl>`), deshalb trägt die Spalte ihre Ausrichtung
+// selbst — Kopf und Zelle gemeinsam, sonst rutscht die Überschrift weg.
+const dependencyColumns = computed<TableColumn<Dep>[]>(() => [
+  { accessorKey: 'name', header: () => t('dashboard.system.stack.col.package') },
+  {
+    accessorKey: 'version',
+    header: () => t('dashboard.system.stack.col.version'),
+    meta: { class: { th: 'text-right', td: 'text-right' } },
+  },
+])
 
 /**
  * Aufgeklappte Layer (Namen statt nur Counts). Das Auf- und Zuklappen macht
@@ -360,26 +373,32 @@ async function updateDep(dep: Dep) {
                   :description="t('dashboard.system.stack.restartHint')"
                   class="mb-3"
                 />
-                <div class="space-y-3">
+                <!--
+                  Abhängigkeiten als UTable (B6) — eine Tabelle JE KATEGORIE,
+                  damit die Gruppierung bleibt, die es vorher schon gab
+                  (Kategorie-Zeile, darunter die Pakete). Der Inhalt ist
+                  unverändert: Paketname links, Version/Sprung/Update-Knopf
+                  rechts, `min-w-0` am Gefäß wie überall, wo eine Tabelle in
+                  einer Karte steht.
+                -->
+                <div class="min-w-0 space-y-3">
                   <div v-for="group in groupedDependencies" :key="group.category">
                     <p class="text-xs uppercase tracking-wide text-dimmed">{{ group.category }}</p>
-                    <dl class="text-sm">
-                      <div
-                        v-for="dep in group.items"
-                        :key="dep.name"
-                        class="flex items-center justify-between gap-4 border-b border-default/60 py-1.5 last:border-0"
-                      >
-                        <dt class="font-mono">{{ dep.name }}</dt>
-                        <dd class="flex items-center gap-1.5 font-mono">
-                          <UBadge v-if="justUpdated.has(dep.name)" color="info" variant="subtle" size="sm" class="font-sans">
+                    <UTable :data="group.items" :columns="dependencyColumns" :data-dependency-group="group.category">
+                      <template #name-cell="{ row }">
+                        <span class="font-mono text-sm">{{ row.original.name }}</span>
+                      </template>
+                      <template #version-cell="{ row }">
+                        <div class="flex items-center justify-end gap-1.5 font-mono text-sm">
+                          <UBadge v-if="justUpdated.has(row.original.name)" color="info" variant="subtle" size="sm" class="font-sans">
                             <UIcon name="i-ph-arrows-clockwise" class="size-3.5" />
                             {{ t('dashboard.system.stack.restartNeeded') }}
                           </UBadge>
                           <template v-else>
-                            <span :class="dep.outdated ? 'text-warning' : 'text-muted'">{{ dep.version }}</span>
-                            <template v-if="dep.outdated">
+                            <span :class="row.original.outdated ? 'text-warning' : 'text-muted'">{{ row.original.version }}</span>
+                            <template v-if="row.original.outdated">
                               <UIcon name="i-ph-arrow-right" class="size-3 text-dimmed" />
-                              <span class="font-medium text-warning">{{ dep.latest }}</span>
+                              <span class="font-medium text-warning">{{ row.original.latest }}</span>
                               <UButton
                                 v-if="isDev"
                                 size="xs"
@@ -387,18 +406,18 @@ async function updateDep(dep: Dep) {
                                 variant="soft"
                                 icon="i-ph-arrow-circle-up"
                                 class="ms-1 font-sans"
-                                @click="updateDep(dep)"
+                                @click="updateDep(row.original)"
                               >
                                 {{ t('dashboard.system.stack.update') }}
                               </UButton>
                             </template>
-                            <UTooltip v-else-if="dep.outdated === false" :text="t('dashboard.system.stack.current')">
+                            <UTooltip v-else-if="row.original.outdated === false" :text="t('dashboard.system.stack.current')">
                               <UIcon name="i-ph-check-circle" class="size-4 text-success" />
                             </UTooltip>
                           </template>
-                        </dd>
-                      </div>
-                    </dl>
+                        </div>
+                      </template>
+                    </UTable>
                   </div>
                 </div>
               </div>

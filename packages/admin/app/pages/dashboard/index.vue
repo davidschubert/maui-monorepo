@@ -253,6 +253,13 @@ onScopeDispose(() => {
         </UCard>
 
         <!-- Zu moderieren (comments.moderate) + Letzte Aktivität (audit.read) -->
+        <!--
+          BEWUSST KEINE UTable (B6): das hier sind Vorschau-Kacheln der
+          Übersicht (fünf Zeilen, „Alle ansehen" daneben), keine Datenliste —
+          die vollständigen Listen stehen als Tabelle unter /dashboard/comments
+          und /dashboard/admin. Eine Tabelle mit Kopfzeile für fünf Zeilen
+          wöge auf der Startseite schwerer als der Inhalt.
+        -->
         <div
           v-if="canModerateComments || canReadAudit"
           class="grid gap-4 sm:gap-6"

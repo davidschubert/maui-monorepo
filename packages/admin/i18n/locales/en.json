@@ -267,6 +267,7 @@
         "comments": "Recent comments",
         "commentsTotal": "{count} total",
         "noComments": "No comments yet.",
+        "commentsEmptyTitle": "No comments",
         "actions": {
           "roles": "Roles",
           "rolesHint": "Controls this user's dashboard access."
@@ -637,6 +638,10 @@
         },
         "modules": "Nuxt modules",
         "dependencies": "Dependencies",
+        "col": {
+          "package": "Package",
+          "version": "Version"
+        },
         "outdated": "{count} outdated",
         "allCurrent": "All up to date",
         "current": "Up to date",

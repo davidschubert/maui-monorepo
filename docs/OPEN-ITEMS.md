@@ -21,7 +21,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
 | 11 · B1 | **Neun visuelle Referenzbilder sichten**, dann neu aufnehmen — der Header-Umbau hat sie erwartungsgemäß gebrochen. | Mittel | S — ansehen + ein Befehl | Ja: David sichtet zuerst | [Notizen](#notizen) |
-| 13 · C12 | **Dashboard-Kleinteile** — fehlende Blätterfunktion, leere Zustände, interne IDs und Fachjargon im Kundenblick, handgebaute Listen, 238 Toasts ohne Erklärtext. Läuft am besten mit 7. | Mittel | M — viele kleine Stellen | Nein | [Notizen](#notizen) |
 | 20 · C12b | **Fehlerseite bei unbekanntem Host** zeigt „500 – Unknown host", obwohl es korrekt ein 404 ist. Klein, aber die Zahl auf der Seite ist falsch. | Niedrig | S — eine Middleware-Stelle | Nein | [Notizen](#notizen) |
 | 21 · C8 | **Suche in der internen Doku** (`control.pukalani.app/docs`) — bisher bewusst weggelassen. | Niedrig | S — Nuxt-Content-Suche | Nein | [Notizen](#notizen) |
 | 23 · B4 | **Ladezeit-Hebel wählen:** (a) Appwrite-Web-SDK nachladen (72 kB) oder (b) spekulative Vorablade-Hinweise filtern — kostet den Navigations-Vorsprung nach dem Login. | Niedrig | M — je nach Wahl | Ja: David wählt a oder b | [Notizen](#notizen) |
@@ -203,18 +202,6 @@ vom 2026-07-29 (B3/B5) kommen NICHT dazu: `themes-visual` läuft gegen
 `apps/comments` (Silo, `pukalani.tenancy` aus ⇒ das Theme-Cookie der Specs
 gewinnt dort weiter), und das Label „Aloha" steht nur im geschlossenen
 Picker/Dropdown, nicht auf der `/visual`-Seite.
-
-**C12 — Dashboard-Kleinteile** (Dashboard-Audit, Teil 2): `storage.vue`
-paginiert nicht · fehlende Leerzustände in `users/index.vue` +
-`admin/features.vue` · interne IDs im Kundenblick (`billing.vue` userId/planId,
-rohe Rollen-Keys, Appwrite-Event-Namen) · Jargon in Feldern („Slug", „Bucket",
-Platzhalter `paidCourses`) · handgebaut statt Nuxt UI (4× Button-Paar statt
-`URadioGroup`, Rollen-Picker, Online-Punkt, `UCollapsible`, Emoji-Badge) ·
-238 Toasts, nur 20 mit `description` · stumme Erfolge · Icon-Buttons ohne Label
-(8 Stellen) · ein hartcodierter Prosa-String (`themes/fonts.vue:249`) ·
-`events.vue:309` ohne `flex-wrap`. Das Ausrollen von `UTable` auf die ~18
-handgebauten Listen (Davids Entscheidung B6) gehört hierher bzw. zu E9, damit
-die Listen nicht zweimal angefasst werden.
 
 **C5 — Seitentitel.** Der ursprünglich gemeldete Teil war schon erledigt
 (nachgemessen 2026-07-30): `register/index.vue`, `forgot-password.vue` und

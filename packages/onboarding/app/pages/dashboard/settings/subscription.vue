@@ -210,6 +210,9 @@ onMounted(() => {
       />
     </div>
 
+    <!-- BEWUSST KEINE UTable (B6): Preiskarten, keine Datenliste — der Kunde
+         vergleicht drei Angebote und wählt eines, er sortiert und blättert
+         nicht. Dieselbe Darstellung wie auf der öffentlichen Preisseite. -->
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <div
         v-for="key in PLAN_KEYS"

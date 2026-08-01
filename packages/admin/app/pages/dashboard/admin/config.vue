@@ -75,6 +75,8 @@ async function save() {
         :title="t('admin.presence.alsoEditing', { names: editors.join(', ') })"
         :description="t('admin.presence.alsoEditingHint')"
       />
+      <!-- BEWUSST KEINE UTable (B6): Schalter mit Erklärtext, kein Datensatz —
+           dieselbe Bauweise wie die Produkt-Seite nebenan. -->
       <div class="divide-y divide-default">
         <div v-for="flag in flags" :key="flag.key" class="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0">
           <div class="flex items-start gap-3">

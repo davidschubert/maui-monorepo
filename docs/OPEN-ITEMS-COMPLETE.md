@@ -576,6 +576,34 @@ suchen, Erledigtes ausweisen statt doppelt bauen. **Gelernt:** Eine gute
 Fehler-Beschreibung sagt, was NICHT passiert ist („dein Text steht noch im
 Formular") — und muss gegen den Code geprüft sein, sonst ist sie gelogen.
 
+**Rest: der UTable-Rollout (B6) ✅ 2026-07-31.** Die Audit-Zahl „18 handgebaute
+Listen" stammt vom 2026-07-28 und war beim Nachmessen längst abgetragen: die
+B6-Welle (Merge `d1692c49` plus `a2be6cae`, `7dcf4515`, `173c2bad` …) hat sie
+umgebaut — heute halten **26 Dashboard-Seiten** plus die geteilte
+`SessionsTable` eine `UTable`. Neu gemessen
+wurde über alle `app/pages/dashboard/**` und `app/components/**` der Layer;
+übrig blieben zwei echte Datenlisten, beide umgebaut: die **letzten Kommentare**
+auf der Nutzer-Detailseite (`admin/users/[id].vue` — dieselbe Karten-Reihe, in
+der Sitzungen und Protokoll schon Tabellen waren; Spaltenköpfe aus
+`admin.moderation.col.*`, damit dieselben Felder nicht zweimal übersetzt
+werden) und die **Abhängigkeiten** auf `dashboard/system.vue` (eine Tabelle JE
+KATEGORIE, damit die Gruppierung bleibt; Inhalt 1:1, inkl. Dev-Update-Knopf).
+Alles andere ist **bewusst keine Tabelle** und trägt den Grund jetzt AN DER
+STELLE als Kommentar (B6 verlangt genau das): Vorschau-Kacheln der Übersicht
+(`admin/dashboard/index.vue`, fünf Zeilen + „Alle ansehen") · Benachrichtigungs-
+Kanäle in der schmalen Steuerspalte (`users/[id].vue`) · Schalter-mit-Erklärtext
+statt Datensatz (`admin/products.vue`, `admin/config.vue`) · der Aktivitäts-Feed
+(`activity.vue` — dieselbe Komponente wie öffentlich, Bündelung + Endlos-
+Nachladen) · die Roadmap und das Ticket-Brett (der Status IST dort die Spalte;
+die tabellarische Sicht auf dieselben Daten steht unter `/dashboard/feedback`) ·
+die Beobachtet-Schublade (`tickets.vue`) · Preiskarten
+(`settings/subscription.vue`) · der Quota-Katalog in `control/tenants.vue`
+(Formular mit Eingabefeldern). **Gelernt:** Eine Audit-ZAHL altert wie eine
+Zeilennummer — vor dem Ausrollen neu messen, sonst baut man an bereits
+umgebauten Stellen. Und: „handgebaut" ist kein Befund, solange der Grund
+danebensteht — die Arbeit an solchen Stellen ist, den Grund zu schreiben, nicht
+die Bauweise zu wechseln.
+
 ### C16 — die drei toten Berechtigungen haben ein Ziel ✅ 2026-07-31
 
 `branding.manage`, `posts.write` und `community.delete` standen in der
