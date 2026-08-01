@@ -1,6 +1,8 @@
 export default defineAppConfig({
   pukalani: {
-    brand: { name: 'Pukalani' },
+    // homeUrl: der Ausweg von einem unbekannten Wildcard-Host (C12b) — diese
+    // App bedient `*.pukalani.app`, also landen hier alle Vertipper.
+    brand: { name: 'Pukalani', homeUrl: 'https://pukalani.app' },
     // Demo-Community „Morgenlicht" (Tagesliste 2026-07-26): der Banner macht
     // auf diesen Hosts sichtbar, dass Inhalte Beispiel-Material sind; der CTA
     // führt in den Self-Service-Trichter.

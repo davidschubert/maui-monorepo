@@ -5,7 +5,8 @@
  * diese Middleware ein sofortiger No-Op (heutiger Single-Tenant-Betrieb).
  * Aktiv (Platform-App) gilt die Spike-Semantik (s5-pool-silo):
  *  - bekannter Host  → event.context.tenant = TenantContext (pool | silo)
- *  - unbekannter Host → 404 (KEINE Default-Site — nichts leakt an Fremd-Hosts)
+ *  - unbekannter Host → 404 (KEINE Default-Site — nichts leakt an Fremd-Hosts);
+ *    AUSNAHME ist Nuxts interner Fehlerseiten-Renderpass, s. unten (C12b)
  *  - Resolver-Fehler  → 500 (fail-loud; NIE still aufs Default-Projekt fallen,
  *    sonst landet Mandanten-Traffic unbemerkt im falschen Datenraum)
  * Muss alphabetisch VOR auth.ts laufen (00.-Prefix): die Client-Factories
@@ -14,6 +15,7 @@
 // shared/*.ts wird im server-Verzeichnis NICHT auto-importiert (nur
 // shared/utils + shared/types) — deshalb explizit.
 import { isControlHost } from '../../shared/controlCenter'
+import { UNKNOWN_HOST_CODE, UNKNOWN_HOST_STATUS_TEXT, isErrorPageRenderPass } from '../../shared/unknownHost'
 
 export default defineEventHandler(async (event) => {
   const appConfig = useAppConfig() as {
@@ -50,7 +52,22 @@ export default defineEventHandler(async (event) => {
 
   const tenant = await resolver(host)
   if (!tenant) {
-    throw createError({ status: 404, statusText: 'Unknown host' })
+    // C12b: Nuxt rendert seine Fehlerseite über einen INTERNEN Request auf
+    // /__nuxt_error — der läuft durch DIESE Middleware erneut, mit demselben
+    // unbekannten Host. Würde hier wieder geworfen, gäbe Nuxt den Renderer auf
+    // und fiele auf sein eingebautes Template zurück („500 - Unknown host"
+    // über einer 404-Antwort). Also: den Render-Durchgang durchlassen, damit
+    // die gebrandete CoreErrorPage entsteht. Ohne Mandant heißt hier ohne
+    // Community-Branding — genau richtig, die Adresse gehört ja zu keiner.
+    // Kein Loch: /__nuxt_error beantwortet Nuxts Renderer nur intern
+    // (shared/unknownHost.ts), und es rendert ausschließlich die Fehlerseite.
+    if (isErrorPageRenderPass(path)) return
+
+    throw createError({
+      status: 404,
+      statusText: UNKNOWN_HOST_STATUS_TEXT,
+      data: { code: UNKNOWN_HOST_CODE },
+    })
   }
   event.context.tenant = tenant
 })
