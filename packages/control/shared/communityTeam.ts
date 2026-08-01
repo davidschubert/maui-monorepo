@@ -1,7 +1,8 @@
 import { COMMUNITY_JOIN_ROLE, type CommunityJoinOutcome, type CommunityJoinTrigger } from '../../core/shared/communityJoin'
 import { COMMUNITY_ROLES, type CommunityRole } from '../../core/shared/communityAuthz'
 import type { CommunityMemberStatus } from './types/communityMember'
-import type { CommunityInviteStatus } from './types/communityInvite'
+import type { CommunityInviteRow, CommunityInviteStatus } from './types/communityInvite'
+import type { InviteRequestStatus } from './types/inviteRequest'
 
 /**
  * Die Schutzregeln der Mitglieder-Verwaltung — PURE (unit-getestet, ohne h3/
@@ -274,6 +275,48 @@ export function decideMembershipErasure(input: MembershipErasureInput): Membersh
   return { action: 'anonymize', reason: 'last_owner' }
 }
 
+/** Welche Spur-Felder einer Einladung auf dieses Konto zeigen — `null` = keine. */
+export type InviteReferencePatch = { invitedBy?: '', acceptedBy?: '' }
+
+/**
+ * Kappt die SPUREN, die eine Einladung über andere Konten führt: `invitedBy`
+ * (wer eingeladen hat) und `acceptedBy` (wer angenommen hat). Beide tragen eine
+ * `runtimeUserId` — also nicht die Person, an die die Einladung ging, sondern
+ * die, die sie ausgesprochen oder eingelöst hat.
+ *
+ * WARUM ÜBERHAUPT, wo doch die Adresse der eigentliche Personenbezug ist: eine
+ * `runtimeUserId` ohne Konto ist ein Pseudonym ohne Auflösung — sie ist der
+ * mildere Fall, aber sie zeigt nach `users.delete()` DAUERHAFT auf die gelöschte
+ * Person, in Zeilen, die diese Person nicht einmal betreffen (die Einladung
+ * gehört jemand anderem und bleibt bestehen). Gekappt wird deshalb, ohne dass
+ * die Zeile angetastet würde.
+ *
+ * WARUM DAS GEFAHRLOS IST: beide Spalten haben im ganzen Repo KEINEN Leser —
+ * nur Schreibstellen (invite.post.ts setzt `invitedBy`, accept.post.ts setzt
+ * `acceptedBy`). Die Einladungs-Mail nennt den Einladenden aus
+ * `invitedByName`, das aus dem JWT des Handelnden kommt, nicht aus dieser
+ * Spalte. Leeren nimmt also niemandem eine Anzeige weg.
+ *
+ * IDEMPOTENT PER KONSTRUKTION: geleert wird auf `''`, und `''` matcht die
+ * Abfrage `Query.equal(field, runtimeUserId)` beim Re-Run nicht mehr. Ein
+ * leerer `runtimeUserId` ergibt nie einen Treffer — sonst kappte ein
+ * Aufruf ohne Identität wahllos fremde Zeilen.
+ */
+export function inviteReferenceErasure(
+  row: Pick<CommunityInviteRow, 'invitedBy' | 'acceptedBy'>,
+  runtimeUserId: string,
+): InviteReferencePatch | null {
+  if (!runtimeUserId) return null
+
+  const patch: InviteReferencePatch = {}
+  if (row.invitedBy === runtimeUserId) patch.invitedBy = ''
+  if (row.acceptedBy === runtimeUserId) patch.acceptedBy = ''
+
+  // Eine Zeile kann BEIDES tragen (wer sich selbst einlädt, ist ein Sonderfall,
+  // aber Bestand ist Bestand) — dann geht ein Update mit beiden Feldern raus.
+  return Object.keys(patch).length > 0 ? patch : null
+}
+
 /** Eine Mitgliedschaft, die die DSGVO-Löschung stehen lassen MUSSTE. */
 export interface RetainedMembership {
   communityId: string
@@ -291,6 +334,11 @@ export interface CommunityErasureResult {
   anonymized: number
   /** Gelöschte `community_invites` (die E-Mail IST dort der Personenbezug). */
   invitesDeleted: number
+  /** Fremde `community_invites`, deren Spur auf dieses Konto gekappt wurde
+   *  (`invitedBy`/`acceptedBy` — siehe `inviteReferenceErasure`). */
+  invitesAnonymized: number
+  /** Gelöschte `invite_requests` (Adresse + Freitext = Personenbezug). */
+  inviteRequestsDeleted: number
   /** Klartext zu jeder zurückgehaltenen Zeile — gehört ins Log, nie in eine
    *  Browser-Antwort (es nennt fremde Communities). */
   retained: RetainedMembership[]
@@ -317,9 +365,25 @@ export interface CommunityInviteExport {
   createdAt: string
 }
 
+/**
+ * Eine Early-Access-Anfrage, wie die DSGVO-Auskunft sie zeigt.
+ *
+ * Der FREITEXT reist mit, und das ist der Punkt: „Wofür willst du Pukalani
+ * nutzen?" beantwortet ein Mensch mit Sätzen über sich, seine Firma oder seinen
+ * Verein. Eine Auskunft, die nur „Status: new" meldet, verschwiege genau das
+ * personenbezogene Stück. Der zugewiesene Code bleibt draußen (Betriebsdatum,
+ * kein Personenbezug).
+ */
+export interface InviteRequestExport {
+  status: InviteRequestStatus | ''
+  note: string
+  createdAt: string
+}
+
 export interface CommunityUserDataExport {
   memberships: CommunityMembershipExport[]
   invites: CommunityInviteExport[]
+  inviteRequests: InviteRequestExport[]
 }
 
 export interface InviteInput {

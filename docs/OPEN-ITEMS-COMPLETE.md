@@ -761,6 +761,32 @@ dieselbe Sache schützen, müssen sie dieselbe pure Funktion benutzen oder
 aneinander getestet sein; zwei Wege zu einer Community ohne Owner sind einer zu
 viel.
 
+**Nachtrag (2026-07-31):** die drei dokumentierten Reste des Befunds sind zu.
+(1) **`community_invites.invitedBy`/`acceptedBy` gekappt** — das sind die
+Spuren, die ein Konto in FREMDEN Einladungen hinterlässt (wer eingeladen, wer
+angenommen hat); die Zeile gehört jemand anderem und bleibt, nur der Verweis
+fällt auf `''`. Gefahrlos, weil beide Spalten im ganzen Repo KEINEN Leser haben
+(nur Schreibstellen in `invite.post.ts`/`accept.post.ts` — die Mail nennt den
+Einladenden aus `invitedByName` im JWT). Eine pure Regel
+(`inviteReferenceErasure`, 5 Tests) sagt, welche Felder ein Update anfasst;
+pauschales Leeren hätte die Spur eines Unbeteiligten mitgelöscht. Idempotent per
+Konstruktion, weil `''` die Abfrage nicht mehr trifft. (2) **`invite_requests`
+in Auskunft UND Löschung** — der Personenbezug einer Early-Access-Anfrage ist
+die Adresse PLUS der Freitext („Wofür willst du Pukalani nutzen?"), und der
+Prune-Sweep räumt bewusst nur `declined` (30 d) und `redeemed` (90 d) ab: eine
+OFFENE Anfrage lag bisher unbegrenzt da, gerade weil auf sie noch niemand
+geantwortet hatte. Gescopt allein über die BESTÄTIGTE Adresse — die Tabelle
+trägt keine Projekt-Spalte, sie entsteht vor jeder Community. (3) **Die
+kaufmännische Frage ist ein eigener offener Punkt geworden** (F8): nach der
+Kontolöschung des Owners bleiben `communities.stripeCustomerId`/`billingStatus`
+bewusst stehen, weil die Letzter-Owner-Zeile nur entpersonalisiert wird — ob das
+so bleibt (Aufbewahrungspflicht) oder eine Frist bekommt, ist Davids
+Entscheidung und keine, die eine Löschroutine still trifft.
+
+**Gelernt:** Eine Spalte ohne Leser ist trotzdem ein Datum. „Wird nirgends
+angezeigt" beantwortet die Frage, ob das Kappen weh tut — nicht die Frage, ob
+die Zeile dauerhaft auf eine gelöschte Person zeigen darf.
+
 ### F4 — Gäste schreiben nur, wo Gäste lesen dürfen ✅ 2026-07-31
 
 **Der Befund (C18-Kante):** eine Gast-Kommentar-Row bekommt beim Anlegen

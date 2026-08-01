@@ -2,21 +2,26 @@ import { Query } from 'node-appwrite'
 import type { H3Event } from 'h3'
 import {
   decideMembershipErasure,
+  inviteReferenceErasure,
   type CommunityErasureResult,
   type CommunityInviteExport,
   type CommunityMembershipExport,
   type CommunityUserDataExport,
+  type InviteRequestExport,
   type RetainedMembership,
 } from '../../shared/communityTeam'
 import { COMMUNITY_MEMBERS_TABLE, type CommunityMemberRow } from '../../shared/types/communityMember'
 import { COMMUNITY_INVITES_TABLE, type CommunityInviteRow } from '../../shared/types/communityInvite'
+import { INVITE_REQUESTS_TABLE, type InviteRequestRow } from '../../shared/types/inviteRequest'
 import { COMMUNITIES_TABLE, type TenantRow } from '../../shared/types/tenantRecord'
 import { listCommunityMembers, memberFacts } from './communityTeam'
 
 /**
  * F3 — DSGVO-Auskunft und -Löschung für die Zeilen, die das CONTROL PLANE über
- * einen Runtime-Nutzer führt: seine Mitgliedschaften (`community_members`) und
- * die Einladungen an seine Adresse (`community_invites`).
+ * einen Runtime-Nutzer führt: seine Mitgliedschaften (`community_members`), die
+ * Einladungen an seine Adresse (`community_invites`), die SPUREN, die er in
+ * fremden Einladungen hinterlassen hat, und seine Early-Access-Anfrage
+ * (`invite_requests`).
  *
  * WARUM DAS EINE EIGENE NAHT BRAUCHT: `deleteUserCompletely` läuft in der
  * RUNTIME (Pool-/Silo-App). Sie räumt ihr eigenes Appwrite-Projekt ab — die
@@ -117,11 +122,77 @@ async function listInvitesForEmail(
 }
 
 /**
+ * Einladungen, die eine SPUR dieses Kontos tragen — `invitedBy` (er hat
+ * eingeladen) oder `acceptedBy` (er hat angenommen). Das sind FREMDE Zeilen:
+ * sie gehören der eingeladenen Adresse und bleiben bestehen, nur der Verweis
+ * auf das gelöschte Konto fällt weg.
+ *
+ * Zwei Abfragen statt einer — Appwrite kennt kein ODER über zwei Spalten. Ein
+ * Index dafür gibt es bewusst nicht: die bestehende Adress-Abfrage läuft
+ * ebenfalls nur über einen Teil-Index, die Tabelle ist klein, und der Vorgang
+ * ist eine Kontolöschung, kein Anzeige-Pfad. Doppelte Treffer (eine Zeile trägt
+ * beide Felder) sammelt die Map ein, damit nur EIN Update rausgeht.
+ *
+ * Gescopt wird wie bei `listInvitesForEmail` über die Community: fremdes
+ * Projekt überspringen, gelöschte Community zählt als unsere.
+ */
+async function listInviteReferences(
+  event: H3Event,
+  runtimeProjectId: string,
+  runtimeUserId: string,
+  loadCommunity: (id: string) => Promise<TenantRow | null>,
+): Promise<CommunityInviteRow[]> {
+  const databaseId = useRuntimeConfig(event).public.appwriteDatabaseId
+  const admin = createAdminClient(event)
+  const mine = new Map<string, CommunityInviteRow>()
+
+  for (const field of ['invitedBy', 'acceptedBy'] as const) {
+    const rows = await listAllRows<CommunityInviteRow>(admin.tablesDB, databaseId, COMMUNITY_INVITES_TABLE, [
+      Query.equal(field, runtimeUserId),
+      Query.orderAsc('$createdAt'),
+    ])
+    for (const row of rows) {
+      if (mine.has(row.$id)) continue
+      const community = await loadCommunity(row.communityId)
+      if (community && community.projectId !== runtimeProjectId) continue
+      mine.set(row.$id, row)
+    }
+  }
+
+  return [...mine.values()]
+}
+
+/**
+ * Die Early-Access-Anfrage(n) zu EINER Adresse.
+ *
+ * `invite_requests` trägt KEINE Projekt-Spalte — die Anfrage entsteht, bevor es
+ * irgendeine Community gibt, und der Trichter ist der Betreiber-Trichter.
+ * Gescopt wird deshalb allein über die BESTÄTIGTE Adresse (eine unbestätigte
+ * geht gar nicht erst mit, siehe `erasureIdentity` im onboarding-Layer), und
+ * praktisch ruft nur die Pool-App diese Naht — der Contributor lebt im
+ * onboarding-Layer, den eine Silo-App nicht hat.
+ *
+ * Beide Schreibweisen wie bei den Einladungen: die Anfrage-Route normalisiert
+ * kleingeschrieben, Bestand kann anders aussehen.
+ */
+async function listInviteRequestsForEmail(event: H3Event, email: string): Promise<InviteRequestRow[]> {
+  const databaseId = useRuntimeConfig(event).public.appwriteDatabaseId
+  const admin = createAdminClient(event)
+  const spellings = [...new Set([email, email.trim().toLowerCase()])]
+
+  return await listAllRows<InviteRequestRow>(admin.tablesDB, databaseId, INVITE_REQUESTS_TABLE, [
+    Query.equal('email', spellings),
+    Query.orderAsc('$createdAt'),
+  ])
+}
+
+/**
  * DSGVO-AUSKUNFT: was das Control Plane über diese Person führt.
  *
  * Ohne Adresse (unbestätigte oder schon entfernte E-Mail) bleiben die
- * Einladungen leer — sie sind ausschließlich über die Adresse auffindbar, und
- * eine geratene wäre eine Auskunft über jemand anders.
+ * Einladungen UND die Early-Access-Anfragen leer — beide sind ausschließlich
+ * über die Adresse auffindbar, und eine geratene wäre eine Auskunft über jemand
+ * anders.
  */
 export async function exportCommunityUserData(
   event: H3Event,
@@ -147,6 +218,7 @@ export async function exportCommunityUserData(
   }
 
   const invites: CommunityInviteExport[] = []
+  const inviteRequests: InviteRequestExport[] = []
   if (email) {
     for (const row of await listInvitesForEmail(event, runtimeProjectId, email, loadCommunity)) {
       const community = await loadCommunity(row.communityId)
@@ -159,18 +231,25 @@ export async function exportCommunityUserData(
         createdAt: row.$createdAt,
       })
     }
+
+    for (const row of await listInviteRequestsForEmail(event, email)) {
+      inviteRequests.push({ status: row.status, note: row.note, createdAt: row.$createdAt })
+    }
   }
 
-  return { memberships, invites }
+  return { memberships, invites, inviteRequests }
 }
 
 /**
- * DSGVO-LÖSCHUNG: alle Mitgliedschaften dieses Runtime-Users auflösen und die
- * Einladungen an seine Adresse entfernen.
+ * DSGVO-LÖSCHUNG: alle Mitgliedschaften dieses Runtime-Users auflösen, die
+ * Einladungen an seine Adresse und seine Early-Access-Anfragen entfernen, und
+ * die Spuren kappen, die er in FREMDEN Einladungen hinterlassen hat.
  *
  * IDEMPOTENT, weil der Orchestrator einen Re-Run nach Teilfehler vorsieht:
- * gelöschte Zeilen sind beim zweiten Lauf nicht mehr da, und eine bereits
- * anonymisierte Zeile (`email === ''`) wird nicht noch einmal geschrieben.
+ * gelöschte Zeilen sind beim zweiten Lauf nicht mehr da, eine bereits
+ * anonymisierte Zeile (`email === ''`) wird nicht noch einmal geschrieben, und
+ * eine gekappte Spur (`invitedBy`/`acceptedBy` auf `''`) findet die Abfrage
+ * `Query.equal(field, runtimeUserId)` nicht mehr.
  *
  * FEHLER WERDEN NICHT GESCHLUCKT. `deleteUserCompletely` gated `users.delete()`
  * auf den Voll-Erfolg aller Contributors — ein stillgelegter Fehler hier wäre
@@ -225,6 +304,7 @@ export async function eraseCommunityUserData(
   }
 
   let invitesDeleted = 0
+  let inviteRequestsDeleted = 0
   if (email) {
     for (const invite of await listInvitesForEmail(event, runtimeProjectId, email, loadCommunity)) {
       // HART GELÖSCHT, nicht auf 'revoked' gesetzt: der Personenbezug einer
@@ -233,7 +313,30 @@ export async function eraseCommunityUserData(
       await admin.tablesDB.deleteRow({ databaseId, tableId: COMMUNITY_INVITES_TABLE, rowId: invite.$id })
       invitesDeleted++
     }
+
+    for (const request of await listInviteRequestsForEmail(event, email)) {
+      // EBENFALLS HART: der Personenbezug einer Anfrage ist die Adresse PLUS
+      // der Freitext („Wofür willst du Pukalani nutzen?") — nach beidem bliebe
+      // von der Zeile nur ein Statuswort übrig. Der Prune-Sweep räumt bewusst
+      // nur 'declined' (30 d) und 'redeemed' (90 d) ab; eine offene Anfrage
+      // läge sonst unbegrenzt da, gerade weil auf sie noch niemand geantwortet
+      // hat.
+      await admin.tablesDB.deleteRow({ databaseId, tableId: INVITE_REQUESTS_TABLE, rowId: request.$id })
+      inviteRequestsDeleted++
+    }
   }
 
-  return { deleted, anonymized, invitesDeleted, retained }
+  // ZULETZT die Spuren in FREMDEN Einladungen — nach dem Löschschritt, damit
+  // Zeilen, die ohnehin verschwinden, hier gar nicht erst auftauchen.
+  let invitesAnonymized = 0
+  for (const invite of await listInviteReferences(event, runtimeProjectId, runtimeUserId, loadCommunity)) {
+    const patch = inviteReferenceErasure(invite, runtimeUserId)
+    if (!patch) continue // Re-Run: schon gekappt
+    await admin.tablesDB.updateRow<CommunityInviteRow>({
+      databaseId, tableId: COMMUNITY_INVITES_TABLE, rowId: invite.$id, data: patch,
+    })
+    invitesAnonymized++
+  }
+
+  return { deleted, anonymized, invitesDeleted, invitesAnonymized, inviteRequestsDeleted, retained }
 }

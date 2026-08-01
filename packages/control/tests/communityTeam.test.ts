@@ -8,6 +8,7 @@ import {
   decideRemoval,
   decideRoleChange,
   decideTransfer,
+  inviteReferenceErasure,
   type CommunityTeamMemberFacts,
 } from '../shared/communityTeam'
 
@@ -310,5 +311,37 @@ describe('decideMembershipErasure (F3)', () => {
       .toEqual({ ok: false, reason: 'last_owner' })
     expect(decideMembershipErasure({ target: owner, members: team, communityStatus: active }).action)
       .toBe('anonymize')
+  })
+})
+
+/**
+ * F3-Nachtrag — die Spuren, die ein Konto in FREMDEN Einladungen hinterlässt.
+ * Die Zeile gehört jemand anderem und bleibt; nur der Verweis fällt weg. Die
+ * Regel muss deshalb genau sagen, WELCHE Felder ein Update anfasst — ein
+ * pauschales Leeren beider Spalten löschte die Spur eines Unbeteiligten mit.
+ */
+describe('inviteReferenceErasure (F3-Nachtrag)', () => {
+  it('kappt beide Felder in EINEM Update, wenn beide auf das Konto zeigen', () => {
+    expect(inviteReferenceErasure({ invitedBy: 'u-gone', acceptedBy: 'u-gone' }, 'u-gone'))
+      .toEqual({ invitedBy: '', acceptedBy: '' })
+  })
+
+  it('kappt nur das Feld, das wirklich auf das Konto zeigt', () => {
+    expect(inviteReferenceErasure({ invitedBy: 'u-gone', acceptedBy: 'u-other' }, 'u-gone'))
+      .toEqual({ invitedBy: '' })
+    expect(inviteReferenceErasure({ invitedBy: 'u-other', acceptedBy: 'u-gone' }, 'u-gone'))
+      .toEqual({ acceptedBy: '' })
+  })
+
+  it('lässt eine Zeile ohne Bezug in Ruhe — kein leeres Update', () => {
+    expect(inviteReferenceErasure({ invitedBy: 'u-other', acceptedBy: '' }, 'u-gone')).toBeNull()
+  })
+
+  it('ist idempotent: eine schon gekappte Zeile ergibt nichts mehr', () => {
+    expect(inviteReferenceErasure({ invitedBy: '', acceptedBy: '' }, 'u-gone')).toBeNull()
+  })
+
+  it('ohne Identität passiert NICHTS — sonst träfe `\'\'` jede gekappte Zeile', () => {
+    expect(inviteReferenceErasure({ invitedBy: '', acceptedBy: '' }, '')).toBeNull()
   })
 })

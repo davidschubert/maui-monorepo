@@ -3,7 +3,8 @@ import { eraseCommunityUserData } from '../../../../utils/communityErasure'
 
 /**
  * DSGVO-LÖSCHUNG über die Naht (F3): alle Mitgliedschaften dieses Runtime-Users
- * auflösen und die Einladungen an seine Adresse entfernen.
+ * auflösen, die Einladungen an seine Adresse und seine Early-Access-Anfragen
+ * entfernen und seine Spuren in fremden Einladungen kappen.
  *
  * KEIN JWT, und das ist hier keine Bequemlichkeit: der Aufruf kommt aus
  * `deleteUserCompletely`, wo das Konto gerade gesperrt wird und gleich
@@ -38,6 +39,8 @@ export default defineEventHandler(async (event) => {
     deleted: result.deleted,
     anonymized: result.anonymized,
     invitesDeleted: result.invitesDeleted,
+    invitesAnonymized: result.invitesAnonymized,
+    inviteRequestsDeleted: result.inviteRequestsDeleted,
     retained: result.retained.map(entry => `${entry.communityName} (${entry.role}, ${entry.reason})`).join(', '),
   })
 
