@@ -563,3 +563,16 @@ Plan wie der Code. **Gelernt:** Mandantenübergreifende Schreiber (GDPR-
 Tombstone) dürfen nie hart read(any) stempeln — sie öffnen sonst Inhalte
 geschlossener Communities.
 
+### C12 — Dashboard-Kleinteile ✅ 2026-07-31
+
+Audit-Liste komplett (96 Dateien): Kunden-Labels statt interner IDs
+(gebündelte Namens-Auflösung statt 50 Einzelabrufen), Jargon übersetzt,
+Nuxt-UI statt Handbau, aria-Labels, Toasts 15→190 mit Beschreibung über
+fünf parallele Gruppen — jede Beschreibung gegen den Code verifiziert.
+**Gelernt:** error.statusMessage als Toast-Text ist unter HTTP/2 IMMER leer
+(Reason-Phrase entfällt) — Beschreibungen brauchen übersetzte Fallbacks
+(Rest als F1). **Gelernt:** Audit-Zeilennummern altern — Stellen per Inhalt
+suchen, Erledigtes ausweisen statt doppelt bauen. **Gelernt:** Eine gute
+Fehler-Beschreibung sagt, was NICHT passiert ist („dein Text steht noch im
+Formular") — und muss gegen den Code geprüft sein, sonst ist sie gelogen.
+
