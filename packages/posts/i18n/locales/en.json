@@ -112,6 +112,32 @@
         }
       }
     },
+    "mine": {
+      "title": "My posts",
+      "new": "Write a post",
+      "col": {
+        "post": "Post",
+        "type": "Type",
+        "state": "Status",
+        "date": "Created"
+      },
+      "state": {
+        "published": "Published",
+        "scheduled": "Scheduled",
+        "hidden": "Hidden"
+      },
+      "rowActions": "Actions for this post",
+      "openInFeed": "Open in feed",
+      "delete": "Delete",
+      "confirmDeleteTitle": "Delete post?",
+      "confirmDeleteText": "The post disappears from the feed. This cannot be undone.",
+      "deleted": "Post deleted.",
+      "deletedHint": "It is gone from the feed — its comments are no longer reachable either.",
+      "deleteFailed": "Post could not be deleted.",
+      "deleteFailedHint": "The post is still there. Reload the page and try again.",
+      "emptyTitle": "No posts yet",
+      "empty": "Your own posts collect here — writing happens in the feed."
+    },
     "validation": {
       "titleMax": "Title is too long.",
       "bodyRequired": "Content must not be empty.",
@@ -128,7 +154,8 @@
   },
   "admin": {
     "nav": {
-      "posts": "Feed"
+      "posts": "Feed",
+      "myPosts": "My posts"
     }
   },
   "activity": {

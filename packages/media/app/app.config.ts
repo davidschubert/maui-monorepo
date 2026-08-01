@@ -19,7 +19,7 @@ export default defineAppConfig({
           to: '/dashboard/media',
           requiredCapability: 'media.manage',
           group: 'products',
-          order: 4,
+          order: 5,
         },
       ],
     },

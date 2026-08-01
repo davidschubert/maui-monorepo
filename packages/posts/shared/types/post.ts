@@ -102,3 +102,13 @@ export interface PostModerationResponse {
   /** true = KI-Assist nutzbar (pukalani.ai an + NUXT_AI_KEY gesetzt) → UI zeigt den Button */
   aiAssist: boolean
 }
+
+/**
+ * „Meine Beiträge" (GET /api/posts/mine) — die Fläche der Capability
+ * `posts.write` (C16). Bewusst dieselbe Shape wie die Moderations-Antwort,
+ * nur ohne Meldungen und KI: ein Editor verwaltet seine eigenen Beiträge,
+ * er moderiert nicht.
+ */
+export interface PostMineResponse {
+  rows: CommunityPost[]
+}

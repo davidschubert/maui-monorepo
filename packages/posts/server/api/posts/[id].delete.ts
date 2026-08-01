@@ -1,10 +1,15 @@
 import { Permission, Role } from 'node-appwrite'
+import { decidePostAuthorAction } from '../../../shared/postAuthorPolicy'
 import { POSTS_TABLE, type CommunityPost } from '../../../shared/types/post'
 
 /**
  * Soft-Delete durch den Autor: status 'deleted' + Leserecht entziehen —
  * der Post verschwindet aus Feed UND Roh-REST (Row bleibt für Historie/
  * GDPR-Snapshot). Admin-Client für den Permission-Entzug (autoritativ).
+ *
+ * Wer löschen darf, sagt die eine Autoren-Regel (C16,
+ * `shared/postAuthorPolicy.ts`) — der Status spielt dafür bewusst keine
+ * Rolle, ein schon gelöschter Beitrag antwortet weiter idempotent.
  */
 export default defineEventHandler(async (event) => {
   // Produkt-Gate (P4): der Posting-Feed ist ab Plan personal enthalten.
@@ -30,7 +35,11 @@ export default defineEventHandler(async (event) => {
   const db = tenantDb(event, { as: 'operator' })
 
   const row = await db.get<CommunityPost>(POSTS_TABLE, id, 'Post not found')
-  if (row.authorId !== user.$id) {
+  const { canDelete } = decidePostAuthorAction(
+    { authorId: row.authorId, status: row.status, type: row.type },
+    user.$id,
+  )
+  if (!canDelete) {
     throw createError({ status: 403, statusText: 'Forbidden' })
   }
   if (row.status === 'deleted') {

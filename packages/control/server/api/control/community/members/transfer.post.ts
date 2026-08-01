@@ -4,9 +4,10 @@ import { COMMUNITY_MEMBERS_TABLE, type CommunityMemberRow } from '../../../../..
 import { memberFacts, requireCommunityTeamContext, throwOnDenied } from '../../../../utils/communityTeam'
 
 /**
- * Besitz übertragen (Davids Entscheidung 3 vom 2026-07-29: JA — Community
- * LÖSCHEN dagegen bewusst später, `community.delete` ist hier absichtlich nicht
- * gebaut).
+ * Besitz übertragen (Davids Entscheidung 3 vom 2026-07-29: JA). Das Löschen
+ * einer Community war dort bewusst vertagt und ist seit C16 (2026-07-31)
+ * gebaut — als eigene Route `community/delete.post.ts`, und mit einem Schnitt,
+ * der den damaligen Einwand auflöst: stilllegen statt vernichten.
  *
  * Autorisiert über `community.transfer` — eine OWNER-Capability. Das ist der Grund,
  * warum die Rollen-Route 'owner' verweigert: sonst wäre Besitz über eine

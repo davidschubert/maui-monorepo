@@ -9,7 +9,8 @@
  * laufende Control Plane: zwei Communities anlegen, dann auf dem
  * Community-Host prüfen:
  *   - der Owner (OHNE globales Operator-Label) sieht den Abschnitt
- *     „Erscheinungsbild" in /dashboard/settings/community (SSR 200)
+ *     „Erscheinungsbild" unter /dashboard/branding (SSR 200; seit F5 eine
+ *     eigene Seite im onboarding-Layer statt einer Karte in den Settings)
  *   - GET Stand → PATCH theme='crimson' variant='deep' → 200, und die
  *     tenants-Row im Control Plane trägt den Wert
  *   - nach Ablauf des Resolver-Caches (≤30 s) trägt die ÖFFENTLICHE Seite
@@ -255,12 +256,21 @@ try {
 
   const ownerCookieA = await login(siteA.host, owner)
 
-  console.log('\n3. Der Abschnitt „Erscheinungsbild" steht im Dashboard des Owners (ohne Operator-Label)')
+  // F5 (2026-07-31): „Erscheinungsbild" ist von der Settings-Karte auf eine
+  // EIGENE Seite umgezogen (/dashboard/branding, Capability branding.manage
+  // statt team.manage). Deshalb werden hier ZWEI Seiten geprüft — die neue
+  // trägt die Optik, die alte weiterhin die Zugangsregeln.
+  console.log('\n3. Die Seite „Erscheinungsbild" steht im Dashboard des Owners (ohne Operator-Label)')
+  const brandingPage = await page(siteA.host, '/dashboard/branding', ownerCookieA)
+  check('Branding SSR 200', brandingPage.status === 200, `Status ${brandingPage.status}`)
+  check('Abschnitt im Markup (data-community-branding)', brandingPage.text.includes('data-community-branding'))
+  check('Grundton-Zeile im Markup (data-community-neutral, Rest von B5)', brandingPage.text.includes('data-community-neutral'))
+
   const communityPage = await page(siteA.host, '/dashboard/settings/community', ownerCookieA)
   check('Settings → Community SSR 200', communityPage.status === 200, `Status ${communityPage.status}`)
-  check('Abschnitt im Markup (data-community-branding)', communityPage.text.includes('data-community-branding'))
-  check('Grundton-Zeile im Markup (data-community-neutral, Rest von B5)', communityPage.text.includes('data-community-neutral'))
-  check('Registrierungs-Schalter steht weiterhin daneben (S1)', communityPage.text.includes('data-community-registration'))
+  check('Registrierungs-Schalter steht dort weiterhin (S1)', communityPage.text.includes('data-community-registration'))
+  check('Optik ist dort NICHT mehr doppelt (F5: umgezogen, nicht kopiert)',
+    !communityPage.text.includes('data-community-branding'))
 
   console.log('\n4. Wahl treffen: crimson / deep')
   const patched = await call(siteA.host, '/api/community/branding', {

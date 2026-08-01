@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { pickLookupKey, shouldApplyFreeFallback, subscriptionUpdateToCommunityAction, transferBlockedBySubscription } from '../shared/communityBilling'
+import { deleteBlockedBySubscription, hasLiveSubscription, pickLookupKey, shouldApplyFreeFallback, subscriptionUpdateToCommunityAction, transferBlockedBySubscription } from '../shared/communityBilling'
 import type { ControlPlanCatalog } from '../shared/types/planCatalog'
 
 /**
@@ -103,5 +103,32 @@ describe('transferBlockedBySubscription (A6-Entscheidung 1)', () => {
     expect(transferBlockedBySubscription({ billingStatus: '', stripeSubscriptionId: '', newOwnerHasPaymentMethod: false })).toBe(false)
     expect(transferBlockedBySubscription({ billingStatus: 'canceled', stripeSubscriptionId: 'sub_1', newOwnerHasPaymentMethod: false })).toBe(false)
     expect(transferBlockedBySubscription({ billingStatus: 'active', stripeSubscriptionId: 'sub_1', newOwnerHasPaymentMethod: true })).toBe(false)
+  })
+})
+
+describe('hasLiveSubscription / deleteBlockedBySubscription (C16)', () => {
+  it('lebend = hinterlegte Sub mit Status außer "" und "canceled"', () => {
+    expect(hasLiveSubscription({ billingStatus: 'active', stripeSubscriptionId: 'sub_1' })).toBe(true)
+    // past_due ist ein LAUFENDER Vertrag mit offener Forderung — nicht beendet.
+    expect(hasLiveSubscription({ billingStatus: 'past_due', stripeSubscriptionId: 'sub_1' })).toBe(true)
+    expect(hasLiveSubscription({ billingStatus: 'trialing', stripeSubscriptionId: 'sub_1' })).toBe(true)
+  })
+
+  it('nicht lebend ohne Sub-Id, ohne Status oder nach der Kündigung', () => {
+    expect(hasLiveSubscription({ billingStatus: '', stripeSubscriptionId: '' })).toBe(false)
+    expect(hasLiveSubscription({ billingStatus: 'active', stripeSubscriptionId: '' })).toBe(false)
+    expect(hasLiveSubscription({ billingStatus: 'canceled', stripeSubscriptionId: 'sub_1' })).toBe(false)
+  })
+
+  it('Löschen ist genau dann gesperrt, wenn ein Abo läuft', () => {
+    expect(deleteBlockedBySubscription({ billingStatus: 'active', stripeSubscriptionId: 'sub_1' })).toBe(true)
+    expect(deleteBlockedBySubscription({ billingStatus: 'canceled', stripeSubscriptionId: 'sub_1' })).toBe(false)
+    expect(deleteBlockedBySubscription({ billingStatus: '', stripeSubscriptionId: '' })).toBe(false)
+  })
+
+  it('Übergabe-Sperre teilt die Rechnung — eine Wahrheit, zwei Sperren', () => {
+    const live = { billingStatus: 'past_due', stripeSubscriptionId: 'sub_1' }
+    expect(transferBlockedBySubscription({ ...live, newOwnerHasPaymentMethod: false }))
+      .toBe(hasLiveSubscription(live))
   })
 })

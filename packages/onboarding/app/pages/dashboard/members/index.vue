@@ -8,10 +8,11 @@ import type { CommunityInviteView, CommunityMemberView, CommunityTeamResponse } 
  * tote Capability — Rolle vorhanden, Einstieg nirgends). Hier ist der Einstieg.
  *
  * Vier Handgriffe, alle auf dieser Seite: einladen, Rolle ändern, Zugang
- * entziehen, Besitz übertragen. Community LÖSCHEN gibt es bewusst nicht — auch
- * nicht als gesperrten Knopf (Davids Entscheidung 3 vom 2026-07-29): ein
- * unumkehrbares Löschen ohne Wiederherstellungs-Frist wäre Datenverlust, und ein
- * ausgegrauter Knopf verspricht etwas, das es nicht gibt.
+ * entziehen, Besitz übertragen. Die Community LÖSCHEN gehört bewusst NICHT
+ * hierher, sondern in die Gefahrenzone unter /dashboard/settings/community
+ * (C16, 2026-07-31): hier verwaltet man das Team, dort die Community selbst.
+ * Und „löschen" heißt dort stilllegen + Zugänge entziehen, Inhalte bleiben —
+ * die Begründung steht bei `decideCommunityDeletion`.
  *
  * ZWEI ANSICHTEN (Davids Entscheidung 2 vom 2026-07-29): seit Mitgliedschaft ein
  * Ereignis ist (A5), steht hier JEDES Mitglied — auch die vielen, die nur
@@ -196,7 +197,7 @@ async function revokeInvite(invite: CommunityInviteView) {
 async function changeRole(member: CommunityMemberView, role: CommunityRole) {
   try {
     await $fetch(`/api/community/members/${member.id}`, { method: 'PATCH', body: { role } })
-    toast.add({ title: t('members.role.done', { role: roleLabel(role) }), color: 'success' })
+    toast.add({ title: t('members.roleChange.done', { role: roleLabel(role) }), color: 'success' })
     await refresh()
   }
   catch (error) {

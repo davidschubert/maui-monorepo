@@ -58,6 +58,10 @@ export type CommunityTeamDenyReason =
   | 'owner_protected'
   /** Diese Adresse ist schon im Team. */
   | 'already_member'
+  /** Es läuft noch ein Abo — erst kündigen (C16). */
+  | 'subscription_active'
+  /** Die Community ist schon stillgelegt (C16) — nichts zu tun. */
+  | 'already_disabled'
 
 export type CommunityTeamDecision =
   | { ok: true }
@@ -148,6 +152,56 @@ export function decideTransfer(input: TransferInput): CommunityTeamDecision {
   if (actorRole !== 'owner') return deny('owner_protected')
   if (!hasCommunityAccess(target.status)) return deny('not_a_member')
   if (target.runtimeUserId === actorUserId) return deny('unchanged')
+
+  return ALLOW
+}
+
+export interface CommunityDeletionInput {
+  actorRole: CommunityRole
+  /** `communities.status` — 'disabled' heißt: schon stillgelegt. */
+  communityStatus: string
+  /** Läuft an dieser Community ein Abo? (hasLiveSubscription, communityBilling.ts) */
+  liveSubscription: boolean
+}
+
+/**
+ * Darf diese Community JETZT gelöscht werden? (C16, Davids Kehrtwende zur
+ * Entscheidung 3 vom 2026-07-29 — er hat den Punkt selbst wieder eingereiht.)
+ *
+ * WAS „LÖSCHEN" HIER HEISST — und was ausdrücklich nicht (der bewusste Schnitt):
+ * **Deaktivieren + Zugänge entziehen, Daten bleiben.** `communities.status`
+ * wird 'disabled' (der Host-Resolver liefert dann nichts mehr → 404 binnen
+ * ≤30 s), jede Mitgliedschaft wird 'removed', und die Runtime zieht die
+ * Community-Labels ein. KEINE Zeile wird gelöscht. Drei Gründe:
+ *
+ *  1. F3-Grundsatz „nie destruktiv": ein unumkehrbares Löschen ohne
+ *     Wiederherstellungs-Frist ist Datenverlust auf einen Klick.
+ *  2. Für echtes Löschen von Personendaten gibt es einen eigenen, geprüften
+ *     Weg (DSGVO: Konto löschen, deleteUserCompletely). Zwei Löschpfade
+ *     nebeneinander wären zwei Stellen, an denen etwas übrig bleibt.
+ *  3. Inhalte einer Community gehören nicht nur ihrem Owner — an Threads hängen
+ *     die Beiträge anderer.
+ *
+ * Ein echtes Hard-Delete (Rows weg, Projekt weg) wäre Davids FOLGE-Entscheidung
+ * und ein eigener Plan (Frist, Export, Reihenfolge über zwei Projekte hinweg).
+ *
+ * Zwei Sperren, beide mit Grund:
+ *  - **Abo läuft** ⇒ erst kündigen. Stillegen kündigt bei Stripe nichts; die
+ *    Rechnung käme weiter für etwas, das niemand mehr sehen kann.
+ *  - **Schon stillgelegt** ⇒ nichts zu tun. Bewusst eine ABLEHNUNG und kein
+ *    stilles ok: sonst meldete die Seite jedem Doppelklick einen Erfolg, der
+ *    nichts bewirkt hat.
+ *
+ * Die Owner-Prüfung ist doppelt gemoppelt (der Gate verlangt schon
+ * `community.delete`, und die trägt nur der Owner) — sie steht trotzdem hier,
+ * weil eine PURE Regel ohne ihre Vorbedingung nur die halbe Wahrheit ist.
+ */
+export function decideCommunityDeletion(input: CommunityDeletionInput): CommunityTeamDecision {
+  const { actorRole, communityStatus, liveSubscription } = input
+
+  if (actorRole !== 'owner') return deny('owner_protected')
+  if (communityStatus === 'disabled') return deny('already_disabled')
+  if (liveSubscription) return deny('subscription_active')
 
   return ALLOW
 }

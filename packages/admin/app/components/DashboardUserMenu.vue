@@ -154,7 +154,7 @@ const items = computed<SwatchItem[][]>(() => {
       // Entscheidung 2026-07-29/B5): auf `name.pukalani.app` gewinnt die Farbe
       // der Community, das Cookie wird dort nicht gelesen — ein Umschalter
       // ohne Wirkung gehört nicht ins Menü. Die Community-Farbe setzt der
-      // Owner unter /dashboard/settings/community („Erscheinungsbild").
+      // Owner unter /dashboard/branding („Erscheinungsbild", seit F5).
       ...(canChooseTheme.value
         ? [{ label: t('themes.label'), icon: 'i-ph-palette', children: themeChildren }]
         : []),

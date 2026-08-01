@@ -1,6 +1,8 @@
 /**
- * onboarding meldet die MITGLIEDER-Verwaltung bei der Admin-Modul-Registry an
- * (pukalani.admin.modules, deep-merged) — capability-gefiltert über `team.manage`.
+ * onboarding meldet die COMMUNITY-Verwaltung bei der Admin-Modul-Registry an
+ * (pukalani.admin.modules, deep-merged) — Mitglieder (`team.manage`), Abo
+ * (`community.billing`) und seit F5 das Erscheinungsbild (`branding.manage`),
+ * jeder Eintrag capability-gefiltert.
  *
  * WARUM DIESER LAYER: die Seite kann nur so weit reichen wie ihre Routen, und die
  * liegen hier (`/api/community/members/*`) — dieser Layer besitzt die Service-Naht zum
@@ -28,6 +30,33 @@ export default defineAppConfig({
           requiredCapability: 'team.manage',
           group: 'settings',
           order: 5,
+        },
+        {
+          /**
+           * BRANDING DER COMMUNITY (F5, 2026-07-31) — die Fläche, die der
+           * Nav-Gruppe „Branding" für Community-Rollen fehlte. `branding.manage`
+           * war bis heute eine tote Capability: in der Matrix (owner + admin),
+           * im Menü ohne Einstieg, weil dort nur das Theme-Studio stand und das
+           * `system.manage` verlangt.
+           *
+           * Der SCHNITT: Wahl ≠ Katalog. Hier wählt eine Community aus dem
+           * Built-in-Katalog (`communities.theme/variant/neutral`); der Katalog
+           * selbst (custom_themes/custom_fonts/themeSettings — INSTANZ-weit,
+           * read(any), live an alle) bleibt Betreiber-Sache unter
+           * /dashboard/themes. Begründung im Kopf der Seite.
+           *
+           * In DIESEM Layer aus demselben Grund wie die Mitglieder: die Seite
+           * lebt von `/api/community/branding`, und die braucht die
+           * Service-Naht zum Control Plane.
+           */
+          id: 'community-branding',
+          scope: 'community',
+          labelKey: 'branding.navLabel',
+          icon: 'i-ph-palette',
+          to: '/dashboard/branding',
+          requiredCapability: 'branding.manage',
+          group: 'branding',
+          order: 1,
         },
         {
           /**

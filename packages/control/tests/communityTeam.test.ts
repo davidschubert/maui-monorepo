@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   countActiveOwners,
+  decideCommunityDeletion,
   decideInvite,
   decideJoin,
   decideRemoval,
@@ -214,5 +215,37 @@ describe('decideJoin', () => {
       openRegistration: true,
       existing: { ...viewer, status: 'suspended' },
     })).toEqual({ outcome: 'removed', role: null })
+  })
+})
+
+/**
+ * C16 — Community löschen. Die Regel ist der einzige Ort, an dem der bewusste
+ * Schnitt („Deaktivieren + Zugänge entziehen, Daten bleiben") und seine zwei
+ * Sperren zusammen nachlesbar sind; hier wird er festgenagelt.
+ */
+describe('decideCommunityDeletion (C16)', () => {
+  const base = { communityStatus: 'active', liveSubscription: false }
+
+  it('nur der Owner — Admin und alle darunter prallen ab', () => {
+    expect(decideCommunityDeletion({ ...base, actorRole: 'owner' })).toEqual({ ok: true })
+    for (const role of ['admin', 'moderator', 'editor', 'viewer'] as const) {
+      expect(decideCommunityDeletion({ ...base, actorRole: role }))
+        .toEqual({ ok: false, reason: 'owner_protected' })
+    }
+  })
+
+  it('laufendes Abo sperrt — erst kündigen (Stilllegen kündigt bei Stripe nichts)', () => {
+    expect(decideCommunityDeletion({ ...base, actorRole: 'owner', liveSubscription: true }))
+      .toEqual({ ok: false, reason: 'subscription_active' })
+  })
+
+  it('schon stillgelegt ist eine ABLEHNUNG, kein stiller Erfolg', () => {
+    expect(decideCommunityDeletion({ ...base, actorRole: 'owner', communityStatus: 'disabled' }))
+      .toEqual({ ok: false, reason: 'already_disabled' })
+  })
+
+  it('die Rolle wird VOR dem Zustand geprüft — ein Nicht-Owner erfährt nichts über das Abo', () => {
+    expect(decideCommunityDeletion({ actorRole: 'admin', communityStatus: 'disabled', liveSubscription: true }))
+      .toEqual({ ok: false, reason: 'owner_protected' })
   })
 })

@@ -94,6 +94,22 @@ export function shouldApplyFreeFallback(storedSubscriptionId: string, canceledSu
   return storedSubscriptionId === '' || storedSubscriptionId === canceledSubscriptionId
 }
 
+/**
+ * Läuft an dieser Community gerade ein Abo?
+ *
+ * „Lebend" heißt: eine Subscription ist hinterlegt UND ihr Status ist weder
+ * leer (nie eins gehabt) noch 'canceled'. `past_due` zählt bewusst DAZU —
+ * offene Forderung ist ein laufender Vertrag, kein beendeter.
+ *
+ * Seit C16 (2026-07-31) hängen ZWEI Sperren daran (Übergabe und Löschen);
+ * vorher stand die Rechnung inline in `transferBlockedBySubscription`. Zwei
+ * Kopien derselben Frage wären zwei Stellen, an denen jemand `past_due`
+ * vergisst.
+ */
+export function hasLiveSubscription(input: { billingStatus: string, stripeSubscriptionId: string }): boolean {
+  return !!input.stripeSubscriptionId && input.billingStatus !== 'canceled' && input.billingStatus !== ''
+}
+
 /** Besitz-Übergabe gesperrt, solange ein Abo läuft und der NEUE Owner keine
  *  eigene Zahlungsmethode hinterlegt hat (Davids A6-Entscheidung 1). Pure —
  *  die Transfer-Route setzt sie durch, die UI erklärt sie. */
@@ -102,6 +118,17 @@ export function transferBlockedBySubscription(input: {
   stripeSubscriptionId: string
   newOwnerHasPaymentMethod: boolean
 }): boolean {
-  const hasLiveSubscription = !!input.stripeSubscriptionId && input.billingStatus !== 'canceled' && input.billingStatus !== ''
-  return hasLiveSubscription && !input.newOwnerHasPaymentMethod
+  return hasLiveSubscription(input) && !input.newOwnerHasPaymentMethod
+}
+
+/**
+ * Community-Löschung gesperrt, solange ein Abo läuft (C16, 2026-07-31).
+ *
+ * Nicht aus Bosheit, sondern weil sonst weiterberechnet würde, was der Kunde
+ * gerade abgeschaltet hat: die Community stillzulegen kündigt bei Stripe NICHTS.
+ * Erst kündigen (Kundenportal), dann löschen — der Fehler sagt genau das, und
+ * `data.code` trägt den Grund bis in die UI.
+ */
+export function deleteBlockedBySubscription(input: { billingStatus: string, stripeSubscriptionId: string }): boolean {
+  return hasLiveSubscription(input)
 }

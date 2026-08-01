@@ -25,7 +25,8 @@
  *     Gast-Abruf ihrer Startseite ohnehin.
  *   - `theme`/`variant`/`neutral` → useTenantBranding() (Entscheidung 12, 2026-07-28;
  *     `neutral` seit 2026-07-29, Rest von B5):
- *     der Erscheinungsbild-Abschnitt in /dashboard/settings/community zeigt
+ *     die Seite /dashboard/branding (seit F5, davor eine Karte in
+ *     /dashboard/settings/community) zeigt
  *     die GESETZTE Wahl der Community. Bis dahin gab es dafür keinen
  *     Client-Leser (die Werte reisten nur als <html>-Attribute) — mit dem
  *     Kunden-Picker gibt es einen, und das Inventar wächst mit. Alle drei Werte

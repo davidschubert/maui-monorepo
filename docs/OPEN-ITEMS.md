@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 28 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 25 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-07-31**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -21,7 +21,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
 | 11 · B1 | **Neun visuelle Referenzbilder sichten**, dann neu aufnehmen — der Header-Umbau hat sie erwartungsgemäß gebrochen. | Mittel | S — ansehen + ein Befehl | Ja: David sichtet zuerst | [Notizen](#notizen) |
-| 12 · C16 | **Drei Berechtigungen ohne Funktion nachbauen:** Branding-Rechte, Schreibrecht für Redakteure (ein Editor kommt an seine eigenen Beiträge nicht heran), Community löschen. | Mittel | M — drei kleine Baustellen | Nein | [Notizen](#notizen) |
 | 13 · C12 | **Dashboard-Kleinteile** — fehlende Blätterfunktion, leere Zustände, interne IDs und Fachjargon im Kundenblick, handgebaute Listen, 238 Toasts ohne Erklärtext. Läuft am besten mit 7. | Mittel | M — viele kleine Stellen | Nein | [Notizen](#notizen) |
 | 14 · C5 | **Seitentitel nachtragen:** 17 Dashboard-Seiten und die öffentliche Bestätigungsseite setzen keinen Titel — im Browser-Tab bleibt der Titel der vorigen Seite stehen. | Mittel | S — mechanisch, Schlüssel da | Nein | [Notizen](#notizen) |
 | 15 · C2 | **Kurse und Events in der Navigation an den Tarif knüpfen** — heute per Direktlink erreichbar, dann läuft man in einen 404. | Mittel | S — Nav-Gate | Nein | [Notizen](#notizen) |
@@ -42,10 +41,8 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 30 · E4 | **Nur-Lese-Schlüssel im Projekt `control`** erzeugen (letzter Cutover-Krümel). | Niedrig | S — ein Klick in der Console | Ja: David, Console | [CONTROL-CUTOVER.md](runbooks/CONTROL-CUTOVER.md) |
 | 31 · E7 | **Playwright-Prozesse beenden sich lokal nicht** (nur macOS, in CI sauber). Kostet jeden lokalen Lauf eine Viertelstunde. Nächster Verdacht: System-Chrome statt gebündeltem Chromium. | Niedrig | S — eine Gegenprobe | Nein | [Notizen](#notizen) |
 | F1 · TOAST | **Leere Fehler-Beschreibungen in Produktion:** `error.statusMessage` als Toast-Description ist unter HTTP/2 immer leer (Reason-Phrase entfällt). In control gefixt (Fallbacks) — dasselbe Muster steckt noch in comments, pages, media und admin. | Mittel | S — Fallback-Texte je Stelle | Nein | Agenten-Fund C12 |
-| F2 · I18N | **Mitglieder-Tabelle zeigt rohen Key-Pfad:** in den onboarding-Locales (de+en) ist `"role"` doppelt unter `"members"` definiert — der Spaltenkopf „Rolle" rendert dadurch als Objekt-Pfad. | Hoch | S — Schlüssel umbenennen + Nutzung | Nein | Agenten-Fund (Task-Chip liegt bereit) |
 | F3 · GDPR | **Pool-Kontolöschung räumt das Control Plane nicht auf:** community_members-Zeilen (runtimeUserId-verankert) bleiben nach Löschung eines Pool-Kontos stehen — die Löschung müsste über die Naht ins Control Plane greifen. | Mittel | M — Naht-Erweiterung + Contributor | Nein | Agenten-Fund A6 (Task-Chip liegt bereit) |
 | F4 · GAST | **Gast-Kommentar in geschlossener Community ist für den eigenen Verfasser unsichtbar** (C18-Kante; heute unkritisch, weil embed.guests aus ist — vor Aktivierung lösen). | Niedrig | S — Verfasser-Read beim Anlegen | Nein | Agenten-Fund C18 |
-| F5 · NAV | **Branding→Themes für Community-Owner öffnen:** die Themes-Seiten verlangen noch system.manage — auf Community-Hosts sieht die Gruppe nur der Betreiber. Umbau von Seiten + Routen auf branding.manage. | Mittel | M — Seiten + definePageMeta + Routen | Nein | Agenten-Fund E9 (Abweichung 4) |
 | F6 · LINT | **type-only-Imports in ~60 alten Migrationen** (`TablesDBIndexType`) — lokal rot, je Datei ein Wort. Die E8-3-Migrationen sind schon gefixt. | Niedrig | S — mechanisch | Nein | Agenten-Fund E8-4 |
 
 ## ⏸️ Geparkt / wartet
@@ -217,16 +214,6 @@ vom 2026-07-29 (B3/B5) kommen NICHT dazu: `themes-visual` läuft gegen
 `apps/comments` (Silo, `pukalani.tenancy` aus ⇒ das Theme-Cookie der Specs
 gewinnt dort weiter), und das Label „Aloha" steht nur im geschlossenen
 Picker/Dropdown, nicht auf der `/visual`-Seite.
-
-**C16 — Tote Capabilities, Rest.** `team.manage` und `community.transfer` sind seit
-2026-07-29 gebaut (Mitglieder-Seite mit Einladungen, Rollenwechsel, Entfernen,
-Besitzübergabe) — und seit A5 hält „Entfernen" auch, was es verspricht. Offen
-bleiben: `branding.manage` (Branding läuft heute nur über
-/dashboard/settings/community, das Theme-Studio verlangt `system.manage`),
-`posts.write` (das posts-Modul verlangt `posts.moderate` — ein **Editor** kommt
-an seine eigenen Beiträge nicht heran), und `community.delete` — bewusst später,
-unumkehrbares Löschen braucht erst eine Wiederherstellungs-Frist (Davids
-Entscheidung 2026-07-29).
 
 **C12 — Dashboard-Kleinteile** (Dashboard-Audit, Teil 2): `storage.vue`
 paginiert nicht · fehlende Leerzustände in `users/index.vue` +

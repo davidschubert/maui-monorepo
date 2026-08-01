@@ -242,6 +242,10 @@
       "members": "Members"
     }
   },
+  "branding": {
+    "navLabel": "Appearance",
+    "noTenantText": "This page sets the colour world of ONE community. On this instance the look belongs to the operator — it is set under \"Themes\"."
+  },
   "members": {
     "title": "Members",
     "description": "Everyone who belongs to your community. People become members by joining (when registration is open) or by invitation. \"Revoke access\" really does take that membership away — they no longer see members-only content and can only come back through a new invitation.",
@@ -308,7 +312,7 @@
       "confirm": "Revoke",
       "done": "Invitation revoked."
     },
-    "role": {
+    "roleChange": {
       "done": "Role changed: {role}."
     },
     "remove": {

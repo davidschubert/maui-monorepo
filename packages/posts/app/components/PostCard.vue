@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { decidePostAuthorAction } from '../../shared/postAuthorPolicy'
 import type { FeedPost, PollState } from '../../shared/types/post'
 
 /**
@@ -24,7 +25,17 @@ const TYPE_ICONS: Record<string, string> = {
   question: 'i-ph-question',
 }
 
-const isAuthor = computed(() => !!user.value && user.value.$id === props.post.authorId)
+/**
+ * Was der Betrachter mit DIESEM Beitrag darf — dieselbe pure Regel, die die
+ * Routen durchsetzen (C16). `hasForeignPollVotes` bleibt bewusst offen: der
+ * Client kann fremde Vote-Rows nicht lesen, also gilt eine Umfrage hier als
+ * gesperrt — genau das Verhalten, das dieses Menü vorher hart verdrahtet hatte.
+ */
+const authorAction = computed(() => decidePostAuthorAction(
+  { authorId: props.post.authorId, status: props.post.status, type: props.post.type },
+  user.value?.$id,
+))
+const isAuthor = computed(() => authorAction.value.isAuthor)
 const commentsOpen = ref(false)
 
 const editing = ref(false)
@@ -92,13 +103,15 @@ const REPORT_REASONS = ['spam', 'harassment', 'offtopic', 'other'] as const
 interface MenuItem { label: string, icon?: string, color?: 'error', onSelect?: () => void, children?: MenuItem[] }
 const menuItems = computed<MenuItem[]>(() => {
   const items: MenuItem[] = []
-  if (isAuthor.value && props.post.type !== 'poll') {
+  if (authorAction.value.canEdit) {
     items.push({ label: t('posts.card.edit'), icon: 'i-ph-pencil-simple', onSelect: startEdit })
   }
-  if (isAuthor.value) {
+  if (authorAction.value.canDelete) {
     items.push({ label: t('posts.card.delete'), icon: 'i-ph-trash', color: 'error', onSelect: removePost })
   }
-  else if (user.value) {
+  // Melden ist die Aktion der ANDEREN — sie hängt an der Autorschaft, nicht
+  // daran, ob gerade eine eigene Aktion erlaubt wäre.
+  if (!isAuthor.value && user.value) {
     items.push({
       label: t('posts.card.report'),
       icon: 'i-ph-flag',

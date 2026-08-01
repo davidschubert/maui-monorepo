@@ -1,11 +1,17 @@
 import { Query } from 'node-appwrite'
 import { postEditSchema } from '../../../schemas/post'
+import { decidePostAuthorAction } from '../../../shared/postAuthorPolicy'
 import { POLL_VOTES_TABLE, POSTS_TABLE, type CommunityPost } from '../../../shared/types/post'
 
 /**
  * Titel/Body bearbeiten — nur der Autor, nur published/scheduled. Polls sind
  * nach der ersten FREMDEN Stimme eingefroren (Plan §4): die Frage unter
  * bereits abgegebenen Stimmen zu ändern wäre Manipulations-Fläche.
+ *
+ * WER darf was, steht seit C16 pur in `shared/postAuthorPolicy.ts` (dieselbe
+ * Regel liest das Karten-Menü). Diese Route bleibt die AUTORITÄT: sie
+ * übersetzt das Urteil in die HTTP-Antwort und zählt als Einzige die fremden
+ * Stimmen.
  */
 export default defineEventHandler(async (event) => {
   // Produkt-Gate (P4): der Posting-Feed ist ab Plan personal enthalten.
@@ -34,10 +40,19 @@ export default defineEventHandler(async (event) => {
   const db = tenantDb(event)
 
   const row = await db.get<CommunityPost>(POSTS_TABLE, id, 'Post not found')
-  if (row.authorId !== user.$id) {
+
+  // Erste Frage OHNE Poll-Wissen: `hasForeignPollVotes: false` heißt hier
+  // „noch nicht gezählt". Die Zählung ist eine eigene Abfrage und lohnt sich
+  // nur, wenn Autor und Status ohnehin passen — die Reihenfolge der Fehler
+  // (403 vor 409) bleibt damit exakt die alte.
+  const gate = decidePostAuthorAction(
+    { authorId: row.authorId, status: row.status, type: row.type, hasForeignPollVotes: false },
+    user.$id,
+  )
+  if (gate.reason === 'not_author') {
     throw createError({ status: 403, statusText: 'Forbidden' })
   }
-  if (row.status !== 'published' && row.status !== 'scheduled') {
+  if (gate.reason === 'not_editable') {
     throw createError({ status: 409, statusText: 'Post is not editable' })
   }
 
@@ -47,7 +62,12 @@ export default defineEventHandler(async (event) => {
       Query.equal('postId', id),
       Query.notEqual('userId', user.$id),
     ])
-    if (foreign > 0) {
+    // Dieselbe Regel, jetzt mit vollständigem Bild.
+    const counted = decidePostAuthorAction(
+      { authorId: row.authorId, status: row.status, type: row.type, hasForeignPollVotes: foreign > 0 },
+      user.$id,
+    )
+    if (counted.reason === 'poll_locked') {
       throw createError({ status: 409, statusText: 'Poll already has votes' })
     }
   }

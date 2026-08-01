@@ -17,20 +17,27 @@ export default defineAppConfig({
       modules: [
         {
           /**
-           * E9: „Branding" ist Community-Sache (Davids Struktur: Branding =
-           * Themes · Schriften) — deshalb scope 'community' und eine eigene
-           * Gruppe statt des entfallenen 'design'.
+           * DAS THEME-STUDIO IST BETREIBER-WERKZEUG (F5, 2026-07-31) — deshalb
+           * `scope: 'operator'` und weiterhin `system.manage`.
            *
-           * OFFEN und bewusst NICHT hier gelöst: die Seiten verlangen
-           * `system.manage` (definePageMeta in themes/index|new|[id]|fonts),
-           * und die trägt keine Community-Rolle — auf einem Mandanten-Host
-           * sieht den Eintrag also nur der Betreiber. Die Capability auf
-           * `branding.manage` zu ziehen ist ein Umbau von Seite UND Routen,
-           * kein Umhängen; E9 verspricht im Menü nichts, was die Seite nicht
-           * hält.
+           * F5 stand als „auf branding.manage ziehen" in OPEN-ITEMS; am
+           * Datenmodell nachgemessen wäre genau das ein Mandanten-Leck:
+           * `custom_themes`, `custom_fonts` und `app_config.themeSettings`
+           * gehören dem PROJEKT (Table-read(any), Live-Propagation an ALLE
+           * Communities des Pools) — wer sie bearbeitet, ändert Voreinstellung,
+           * Reihenfolge und Namen für jede fremde Community mit.
+           *
+           * Was einer Community gehört, ist die WAHL aus dem Built-in-Katalog
+           * (`communities.theme/variant/neutral`). Die hat seit F5 ihre eigene
+           * Fläche in derselben Nav-Gruppe: `/dashboard/branding` im
+           * onboarding-Layer, `scope: 'community'`, `branding.manage`. Bis
+           * dahin stand hier `scope: 'community'` — der Eintrag erschien damit
+           * auf Mandanten-Hosts (wo nur der Betreiber-Break-Glass ihn öffnen
+           * konnte) und fehlte auf dem KONTROLL-Host, wo der Betreiber
+           * tatsächlich arbeitet. Beides ist jetzt herum.
            */
           id: 'themes',
-          scope: 'community',
+          scope: 'operator',
           productKey: 'themes',
           labelKey: 'themes.customize.navLabel',
           icon: 'i-ph-palette',

@@ -130,9 +130,33 @@ bezahlt. Bis dahin nicht bauen.
    woanders verlinkt ist: „Pläne und Limits" (keine eigene Seite),
    „General"/`settings/community.vue` (steht als Reiter unter
    `/dashboard/settings`), „Changelog" (Reiter unter `/dashboard/admin`).
-   Offen geblieben: `Branding · Themes` verlangt weiterhin `system.manage`,
-   ist für einen Community-Owner also noch unerreichbar — das ist ein Umbau
-   von Seite und Routen, kein Umhängen.
+   Die damals offene Abweichung 4 (`Branding · Themes` verlangt `system.manage`)
+   ist am **2026-07-31 mit F5** geschlossen — allerdings ANDERS als notiert, und
+   der Unterschied ist der eigentliche Befund:
+
+   **Der Schnitt heißt Wahl ≠ Katalog.** Die Themes-Seiten auf
+   `branding.manage` zu ziehen wäre ein Mandanten-Leck gewesen:
+   `custom_themes`, `custom_fonts` und `app_config.themeSettings` gehören dem
+   Appwrite-PROJEKT (Table-read(any), Live-Propagation an ALLE Communities des
+   Pools). Ein Community-Admin hätte damit Voreinstellung, Reihenfolge und
+   Namen für jede fremde Community mitgeändert. Was einer Community wirklich
+   gehört, sind drei Felder in `communities` (`theme`/`variant`/`neutral`) —
+   eine WAHL aus dem Built-in-Katalog. Also:
+
+   - **Wahl** → `branding.manage`, neue Seite `/dashboard/branding` im
+     **onboarding**-Layer (dieselbe Begründung wie bei der Mitglieder-Seite:
+     die Seite kann nur so weit reichen wie ihre Route, und
+     `/api/community/branding` braucht die Service-Naht). Sie ist die dritte
+     Karte aus `settings/community` — **umgezogen, nicht kopiert**.
+   - **Katalog-Verwaltung** → bleibt `system.manage`, und das Theme-Studio ist
+     jetzt als `scope: 'operator'` registriert. Nebenwirkung, die vorher falsch
+     herum war: der Betreiber sieht den Punkt jetzt auf dem KONTROLL-Host (wo
+     er arbeitet) statt nur auf Mandanten-Hosts (wo er fremde Farben verwaltet
+     hätte).
+
+   Beweis: `packages/onboarding/scripts/verify-site-branding.mjs` prüft die
+   neue Seite und zusätzlich, dass die Optik in den Settings NICHT doppelt
+   steht.
 4. **Die neuen Seiten** einzeln, nach Bedarf priorisiert. Keine davon ist ein
    Go-Live-Blocker; „Navigation" und „SEO" wären die ersten, weil sie einer
    Community sofort etwas geben.

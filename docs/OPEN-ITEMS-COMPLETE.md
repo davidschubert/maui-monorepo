@@ -576,3 +576,54 @@ suchen, Erledigtes ausweisen statt doppelt bauen. **Gelernt:** Eine gute
 Fehler-Beschreibung sagt, was NICHT passiert ist („dein Text steht noch im
 Formular") — und muss gegen den Code geprüft sein, sonst ist sie gelogen.
 
+### C16 — die drei toten Berechtigungen haben ein Ziel ✅ 2026-07-31
+
+`branding.manage`, `posts.write` und `community.delete` standen in der
+Rollen-Matrix und steuerten nichts. Jede hat jetzt eine Fläche — zwei davon
+anders, als die Notiz es vorgezeichnet hatte:
+
+**`branding.manage` (= F5).** Nicht „die Themes-Seiten auf branding.manage
+ziehen": `custom_themes`, `custom_fonts` und `app_config.themeSettings` gehören
+dem Appwrite-PROJEKT (read(any), Live-Propagation an ALLE Communities des
+Pools) — ein Community-Admin hätte damit fremde Communities umgefärbt. Der
+Schnitt heißt **Wahl ≠ Katalog**: die Wahl (`communities.theme/variant/neutral`)
+zog aus der Settings-Karte auf eine eigene Seite `/dashboard/branding` im
+**onboarding**-Layer (dort, wo ihre Route lebt — dieselbe Regel wie bei den
+Mitgliedern), der Katalog bleibt `system.manage`, und das Theme-Studio ist
+jetzt `scope: 'operator'`. Umgezogen, nicht kopiert.
+
+**`posts.write`.** Der gemeldete Befund war schon halb erledigt: die Routen
+prüften die Autorschaft längst (`row.authorId !== user.$id` ⇒ 403), das
+Karten-Menü bot Bearbeiten/Löschen an. Die echte Lücke war das DASHBOARD — die
+posts-Sektion verlangt `posts.moderate`, und Editor und Moderator sind in der
+Matrix **Geschwister**, keine Kette. Also: die dreifach ausgeschriebene
+Autoren-Regel zu einer puren Funktion zusammengezogen
+(`postAuthorPolicy.ts`, 15 Tests) und eine zweite Nav-Registrierung +
+`/dashboard/my-posts` (`GET /api/posts/mine`) für `posts.write` gebaut.
+
+**`community.delete`.** Kehrtwende zur Entscheidung 3 vom 2026-07-29, mit einem
+Schnitt, der deren Einwand auflöst: **stilllegen statt vernichten**
+(`communities.status='disabled'` ⇒ Host 404 in ≤30 s, alle Mitgliedschaften
+'removed', Labels eingezogen — INHALTE BLEIBEN). Gesperrt bei laufendem Abo
+(409 `subscription_active`) und bei bereits stillgelegter Community. Volle
+Begründung im [DECISION-LOG](DECISION-LOG.md#2026-07-31).
+
+**Gelernt:** Eine tote Capability sagt nicht, WO ihre Fläche hingehört. Bei
+zweien lag die Antwort im Datenmodell, nicht in der Nav — `branding.manage` an
+die Themes-Seiten zu hängen hätte eine Mandanten-Grenze geöffnet, weil die
+dortigen Tabellen dem Projekt gehören und nicht der Community. Erst die Frage
+„wem gehören die Zeilen, die diese Seite schreibt?" ergab den Schnitt.
+**Gelernt:** Ein Modul der Nav-Registry trägt genau EINE `requiredCapability` —
+bei Geschwister-Rollen (Editor ⊥ Moderator) braucht deshalb jede Zielgruppe
+ihren eigenen Eintrag; ein gemeinsamer stellte eine der beiden vor eine Wand.
+
+### F2 — doppelter i18n-Schlüssel in der Mitgliederliste ✅ 2026-07-31
+
+`members.role` war in de+en ZWEIMAL definiert (String-Spaltenkopf und Objekt
+`role.done`). `JSON.parse` behält still den letzten — der Spaltenkopf „Rolle"
+rendert dadurch als roher Key-Pfad. Objekt in `members.roleChange.*` umbenannt,
+Nutzung nachgezogen. **Gelernt:** Weder `JSON.parse` noch `jq --stream` noch
+ein Blatt-Pfad-Diff finden das, denn die Blätter heißen verschieden
+(`members.role` vs. `members.role.done`) — es braucht einen Scanner über den
+ROHTEXT, der Schlüssel pro Objekt zählt. Gegenprobe über alle 48 Locale-Dateien
+des Repos: sonst keine Dubletten.

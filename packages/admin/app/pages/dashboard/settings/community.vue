@@ -22,32 +22,36 @@
  *     Der Schreibvorgang zieht den BESTAND mit um (Row-Permissions) — deshalb
  *     kann er ein paar Sekunden dauern und meldet Zahlen zurück; bleibt etwas
  *     offen, sagt der Toast es und ein erneuter Klick setzt fort.
- *  3. „Erscheinungsbild" (Davids Entscheidung 12 vom 2026-07-28) — Theme +
- *     Variante der Community. „Nur Erscheinung ist variabel" gehört damit in
- *     Kundenhand; der Custom-Theme-EDITOR bleibt Betreiber-Werkzeug
- *     (/dashboard/themes, system.manage), hier wird aus dem BUILT-IN-Katalog
- *     gewählt (26 Welten × Varianten, derselbe öffentliche Grid-Picker).
- *     Seit dem 2026-07-29 (Davids Entscheidung, Rest von OPEN-ITEMS B5) steht
- *     darunter EIN Feld mehr: die NEUTRAL-PALETTE (`data-neutral`, die gedeckte
- *     Grau-Tönung). Sie folgte bis dahin dem Besucher — nicht aus Überzeugung,
- *     sondern weil es dafür keine Community-Einstellung gab. Bewusst als eigene
- *     Zeile und NICHT im Grid-Picker: es ist eine eigene Achse (jede Farbwelt
- *     lässt sich mit jeder Palette kombinieren), und ein zweites Raster im
- *     selben Modal wäre die Art Regler-Zoo, die THEMES-CONCEPT-V2 ablehnt.
- *     NICHT hier und bewusst Besucher-Wahl: Hell/Dunkel und die Sprache.
+ *
+ *  3. „Gefahrenzone" (C16, 2026-07-31) — diese Community löschen. OWNER-Sache
+ *     (`community.delete`), deshalb eine eigene Karte mit eigener Capability
+ *     statt einer Zeile in der ersten. Was der Knopf tut, sagt er selbst:
+ *     stilllegen (Host antwortet binnen ≤30 s mit 404) und allen den Zugang
+ *     entziehen — INHALTE BLEIBEN. Der bewusste Schnitt „Deaktivieren +
+ *     Zugänge entziehen, Daten bleiben" ist bei der puren Regel begründet
+ *     (`decideCommunityDeletion`, packages/control/shared/communityTeam.ts).
+ *
+ * Die ersten beiden sind ZUGANGSREGELN. Die Karte „Erscheinungsbild" (Davids
+ * Entscheidung 12 vom 2026-07-28) ist seit F5 (2026-07-31) auf eine EIGENE
+ * Seite umgezogen —
+ * `/dashboard/branding` im onboarding-Layer, unter der Nav-Gruppe „Branding"
+ * und unter der Capability, der sie gehört (`branding.manage` statt
+ * `team.manage`). Umgezogen, NICHT kopiert: zwei Flächen für dieselbe Wahl
+ * wären Doppelpflege. Begründung des Schnitts (Wahl vs. Katalog) steht im Kopf
+ * von packages/onboarding/app/pages/dashboard/branding.vue.
  *
  * Nur auf MANDANTEN-Hosts sinnvoll: eine Silo-App oder ein Kontroll-Host hat
- * keine Community-Grenze, dort regeln Registrierung und Optik weiterhin die
- * Instanz-Einstellungen (Betreiber-Seiten /dashboard/admin/config bzw.
- * /dashboard/themes). Ohne Tenant steht hier deshalb ein Hinweis statt der
- * Schalter — und der Reiter ist in der Settings-Navigation ausgeblendet.
+ * keine Community-Grenze, dort regelt die Registrierung weiterhin die
+ * Instanz-Einstellung (Betreiber-Seite /dashboard/admin/config). Ohne Tenant
+ * steht hier deshalb ein Hinweis statt der Schalter — und der Reiter ist in der
+ * Settings-Navigation ausgeblendet.
  *
  * VERTRAG ZUM SERVER: alle drei Routen (`/api/community/registration`,
- * `/api/community/audience`, `/api/community/branding`) liegen im
- * onboarding-Layer, weil DIESER die Service-Naht zum Control Plane besitzt
- * (`communities` gehört dorthin, die Platform-App hat nur einen
- * Read-only-Key). Siehe packages/onboarding/server/api/community/
- * {registration.patch,audience.patch,branding.patch}.ts.
+ * `/api/community/audience`, `/api/community/delete`) liegen im onboarding-Layer, weil DIESER die
+ * Service-Naht zum Control Plane besitzt (`communities` gehört dorthin, die
+ * Platform-App hat nur einen Read-only-Key). Siehe
+ * packages/onboarding/server/api/community/{registration.patch,audience.patch,
+ * delete.post}.ts.
  */
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'team.manage' })
 
@@ -157,95 +161,61 @@ async function saveAudience(next: 'members' | 'public') {
   }
 }
 
-// ── Erscheinungsbild ────────────────────────────────────────────────────────
+// ── Gefahrenzone: diese Community löschen (C16) ─────────────────────────────
 
 /**
- * Eigene Capability (nicht `team.manage`): Branding und Team sind in der
- * Site-Rollen-Matrix getrennte Rechte. Heute tragen beide dieselben Rollen
- * (owner + admin) — geprüft wird trotzdem das RICHTIGE, damit eine spätere
- * Rolle „nur Gestaltung" oder „nur Team" hier nicht falsch landet. Die
- * AUTORITÄT bleibt requireCommunityPermission auf der Route.
+ * OWNER-Sache (`community.delete`), nicht `team.manage` — ein Admin führt die
+ * Verwaltung, aber er legt die Community nicht still. Die Karte verschwindet
+ * für ihn ganz; die AUTORITÄT ist `requireCommunityPermission` auf der Route
+ * und das Control Plane, das die Regel noch einmal selbst prüft.
  */
-const canBranding = useCommunityCapability('branding.manage')
-const { branding } = useTenantBranding()
+const canDelete = useCommunityCapability('community.delete')
+const confirm = useConfirm()
+/** Anzeigename dieser Community (mit Fallback auf den App-Brand). Er gehört in
+ *  die Rückfrage — „diese Community" ist kein Gegenstand, den man
+ *  wiedererkennt, und genau daran hängt eine unumkehrbar wirkende Zusage. */
+const communityName = useBrandName()
 
-// Namen + Farbe der Auswahl kommen aus der Theme-Registry des themes-Layers
-// (Auto-Import wie im DashboardUserMenu) — nicht aus einer zweiten Liste hier.
-// `neutrals` ist dieselbe Liste, die das öffentliche Anzeige-Menü zeigt; die
-// GETÖNTE Ramp eines Custom Themes ist darin nur auf Instanz-Hosts enthalten und
-// wird hier ausgefiltert (sie hängt an einer Row, die dem Projekt gehört, nicht
-// dem Mandanten — dieselbe Begründung wie `builtin-only` beim Theme-Picker).
-const { themes, neutrals } = useTheme()
-
-const selection = computed(() => branding.value ?? { theme: '', variant: '', neutral: '' })
-const selectedTheme = computed(() => themes.value.find(entry => entry.id === selection.value.theme) ?? null)
-const selectedVariantColor = computed(() =>
-  selectedTheme.value?.variants.find(v => v.id === selection.value.variant)?.color
-  ?? selectedTheme.value?.color
-  ?? null,
-)
-const capitalize = (value: string) => value.charAt(0).toUpperCase() + value.slice(1)
-/** '' = nie gewählt → die Instanz-Einstellung gilt (ehrlich benennen). */
-const selectionLabel = computed(() => {
-  if (!selectedTheme.value) return t('dashboard.community.appearance.inherited')
-  return selection.value.variant
-    ? `${selectedTheme.value.name} · ${capitalize(selection.value.variant)}`
-    : selectedTheme.value.name
-})
+const deleting = ref(false)
+/** true = in dieser Sitzung stillgelegt (der Host antwortet gleich mit 404). */
+const deleted = ref(false)
 
 /**
- * Neutral-Palette: die 9 Registry-Grautöne + „Voreinstellung" ('' = nichts
- * gewählt). Custom-getönte Ramps ('c-<rowId>') fliegen raus — siehe oben.
- * Die Namen (Mist, Taupe, …) sind Eigennamen und laufen wie die Theme-Namen
- * NICHT über i18n.
+ * Was der Klick WIRKLICH tut, steht im Dialog und noch einmal im Toast:
+ * stilllegen + allen den Zugang nehmen, Inhalte bleiben. Ein „Löschen", das
+ * in Wahrheit etwas anderes tut, wäre die schlimmste Sorte Knopf — deshalb
+ * nennt der Text beides, die Wirkung UND die Grenze.
  */
-const neutralOptions = computed(() => neutrals.value.filter(entry => !entry.tinted))
-const selectedNeutral = computed(() => neutralOptions.value.find(entry => entry.id === selection.value.neutral) ?? null)
-
-const pickerOpen = ref(false)
-// Erst beim ersten Öffnen mounten (Audit-Befund K4) und nie wieder unmounten —
-// ein offenes Modal per v-if zu entfernen ist die bekannte Reka-Falle.
-const pickerMounted = ref(false)
-watch(pickerOpen, (open) => { if (open) pickerMounted.value = true })
-
-const savingBranding = ref(false)
-/**
- * IMMER alle drei Achsen schicken (Theme, Variante, Palette): die Route nimmt
- * `neutral` optional an, damit ein Deploy-Fenster zwischen platform und control
- * nichts bricht — aber diese Seite kennt den vollen Zustand und behauptet ihn
- * auch. Wer nur eine Achse ändert, ruft mit `{ ...selection, <achse> }`.
- */
-async function saveBranding(next: { theme: string, variant: string, neutral: string }) {
-  if (savingBranding.value) return
-  savingBranding.value = true
-  try {
-    const result = await $fetch<{ theme: string, variant: string, neutral: string }>('/api/community/branding', {
-      method: 'PATCH',
-      body: next,
-    })
-    // Wie beim Registrierungs-Schalter: der geschriebene Wert kommt aus der
-    // ANTWORT. Der Resolver-Cache der Platform-App hält den alten Stand noch
-    // bis zu 30 s — die öffentliche Community färbt sich also gleich um, aber
-    // nicht in derselben Sekunde. Genau das sagt der Hinweis unten.
-    branding.value = { theme: result.theme, variant: result.variant, neutral: result.neutral }
-    // Der Hinweis auf die halbe Minute steht zwar auf der Karte — nach dem
-    // Speichern aus dem Modal heraus ist der Toast aber das, was man ansieht.
+async function deleteCommunity() {
+  if (deleting.value || deleted.value) return
+  const ok = await confirm({
+    title: t('dashboard.community.danger.confirmTitle', { name: communityName.value }),
+    description: t('dashboard.community.danger.confirmText'),
+    confirmLabel: t('dashboard.community.danger.confirm'),
+    action: async () => {
+      deleting.value = true
+      await $fetch('/api/community/delete', { method: 'POST' })
+    },
+  }).catch((error: unknown) => {
+    // FACHLICHE Gründe reisen als `data.reason` (core/server/error.ts hebt
+    // `data.code` ins Envelope) — alles andere ist ein echter Fehler.
+    const reason = (error as { data?: { reason?: string } })?.data?.reason
+    const known = reason === 'subscription_active' || reason === 'already_disabled' || reason === 'owner_protected'
     toast.add({
-      title: t('dashboard.community.appearance.saved'),
-      description: t('dashboard.community.appearance.savedDesc'),
-      color: 'success',
-    })
-  }
-  catch {
-    toast.add({
-      title: t('dashboard.community.saveFailed'),
-      description: t('dashboard.community.saveFailedDesc'),
+      title: known ? t(`dashboard.community.danger.errors.${reason}`) : t('dashboard.community.saveFailed'),
+      description: known ? undefined : t('dashboard.community.saveFailedDesc'),
       color: 'error',
     })
-  }
-  finally {
-    savingBranding.value = false
-  }
+    return false
+  }).finally(() => { deleting.value = false })
+
+  if (!ok) return
+  deleted.value = true
+  toast.add({
+    title: t('dashboard.community.danger.done'),
+    description: t('dashboard.community.danger.doneDesc'),
+    color: 'success',
+  })
 }
 </script>
 
@@ -306,92 +276,45 @@ async function saveBranding(next: { theme: string, variant: string, neutral: str
     </div>
   </UPageCard>
 
-  <!-- Erscheinungsbild: eigene Karte, eigene Capability. Auf Nicht-Mandanten-
-       Hosts gar nicht erst zeigen — dort gehört die Optik der Instanz. -->
+  <!-- Gefahrenzone (C16): eigene Karte, eigene Capability (Owner). Bewusst UNTEN
+       und optisch abgesetzt — und bewusst NICHT ausgegraut versteckt: was es
+       nicht gibt, gehört gar nicht ins Bild; was es gibt, muss ehrlich sagen,
+       was es tut. -->
   <UPageCard
-    v-if="isTenantHost && canBranding"
-    :title="t('dashboard.community.appearance.title')"
-    :description="t('dashboard.community.appearance.description')"
+    v-if="isTenantHost && canDelete"
+    :title="t('dashboard.community.danger.title')"
+    :description="t('dashboard.community.danger.description')"
     variant="subtle"
+    class="ring-error/30"
   >
-    <div class="flex items-center justify-between gap-4" data-community-branding>
+    <div class="flex flex-wrap items-center justify-between gap-4" data-community-danger>
       <div class="flex items-start gap-3">
-        <span
-          v-if="selectedVariantColor"
-          class="mt-0.5 size-5 shrink-0 rounded-full shadow-inner ring-1 ring-black/10"
-          :style="{ backgroundColor: selectedVariantColor }"
-          aria-hidden="true"
-        />
-        <UIcon v-else name="i-ph-palette" class="mt-0.5 size-5 shrink-0 text-muted" />
+        <UIcon name="i-ph-warning-octagon" class="mt-0.5 size-5 shrink-0 text-error" />
         <div>
-          <p class="text-sm font-medium" data-community-theme>{{ selectionLabel }}</p>
-          <p class="text-sm text-muted">{{ t('dashboard.community.appearance.propagation') }}</p>
+          <p class="text-sm font-medium">{{ t('dashboard.community.danger.what') }}</p>
+          <p class="text-sm text-muted">{{ t('dashboard.community.danger.keeps') }}</p>
         </div>
       </div>
       <UButton
-        color="neutral"
+        color="error"
         variant="subtle"
-        icon="i-ph-swatches"
-        :loading="savingBranding"
-        @click="pickerOpen = true"
+        icon="i-ph-trash"
+        :loading="deleting"
+        :disabled="deleted"
+        data-community-delete
+        @click="deleteCommunity"
       >
-        {{ t('dashboard.community.appearance.change') }}
+        {{ t('dashboard.community.danger.cta') }}
       </UButton>
     </div>
 
-    <!-- Neutral-Palette (Rest von B5): eigene Achse, eigene Zeile. Chips statt
-         Auswahlliste, weil die Grautöne nur als Farbpunkt unterscheidbar sind
-         und ein Klick reicht — dieselbe Optik wie die Varianten-Reihe im
-         Picker. „Voreinstellung" ist der ehrliche Name für '' (nichts
-         gewählt), und der leere Wert kann so gar nicht in ein USelectItem
-         geraten. -->
-    <div class="flex flex-col gap-2 border-t border-default pt-4" data-community-neutral>
-      <div>
-        <p class="text-sm font-medium">{{ t('dashboard.community.appearance.neutral') }}</p>
-        <p class="text-sm text-muted">{{ t('dashboard.community.appearance.neutralDesc') }}</p>
-      </div>
-      <div class="flex flex-wrap gap-1.5">
-        <UButton
-          size="xs"
-          color="neutral"
-          :variant="selectedNeutral ? 'soft' : 'solid'"
-          :disabled="savingBranding"
-          @click="saveBranding({ theme: selection.theme, variant: selection.variant, neutral: '' })"
-        >
-          {{ t('dashboard.community.appearance.neutralInherited') }}
-        </UButton>
-        <UButton
-          v-for="entry in neutralOptions"
-          :key="entry.id"
-          size="xs"
-          color="neutral"
-          :variant="selection.neutral === entry.id ? 'solid' : 'soft'"
-          :disabled="savingBranding"
-          @click="saveBranding({ theme: selection.theme, variant: selection.variant, neutral: entry.id })"
-        >
-          <span
-            class="size-3 rounded-full ring-1 ring-black/10"
-            :style="{ backgroundColor: entry.color }"
-            aria-hidden="true"
-          />
-          {{ capitalize(entry.id) }}
-        </UButton>
-      </div>
-    </div>
-
-    <!-- DERSELBE öffentliche Grid-Picker (themes-Layer), nur kontrolliert:
-         `selection` macht ihn zum Formularfeld dieser Community, statt das
-         Theme-Cookie des Owners umzustellen. `builtin-only`, weil Custom
-         Themes pro Appwrite-PROJEKT liegen und im Pool nicht einem einzelnen
-         Mandanten gehören. Der Picker kennt nur Theme+Variante — die Palette
-         reicht diese Seite unverändert mit durch. -->
-    <ThemePickerModal
-      v-if="pickerMounted"
-      v-model:open="pickerOpen"
-      :selection="selection"
-      builtin-only
-      :title="t('dashboard.community.appearance.pickerTitle')"
-      @select="(next: { theme: string, variant: string }) => saveBranding({ ...next, neutral: selection.neutral })"
+    <UAlert
+      v-if="deleted"
+      color="warning"
+      variant="subtle"
+      icon="i-ph-moon"
+      :title="t('dashboard.community.danger.done')"
+      :description="t('dashboard.community.danger.doneDesc')"
     />
   </UPageCard>
 </template>

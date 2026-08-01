@@ -7,6 +7,56 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-07-31 — C16: „Community löschen" heißt Stilllegen, nicht Vernichten
+
+**Ausgangslage:** `community.delete` stand seit G1 in der Owner-Rolle und hatte
+kein Ziel. Am 2026-07-29 war das eine bewusste Entscheidung (Davids
+Entscheidung 3: „später — ein unumkehrbares Löschen braucht erst eine
+Wiederherstellungs-Frist"). Mit C16 hat David den Punkt selbst wieder
+eingereiht.
+
+**Der Schnitt, mit dem der alte Einwand aufgelöst ist:**
+
+> **Löschen = `communities.status` auf `disabled` + jede Mitgliedschaft auf
+> `removed` + Community-Labels einziehen. INHALTE BLEIBEN.**
+
+Der Host antwortet danach binnen ≤30 s (Resolver-Cache) mit 404, niemand hat
+mehr Zugang — aber keine einzige Zeile wird gelöscht. Drei Gründe:
+
+1. **F3-Grundsatz „nie destruktiv".** Ein Hard-Delete ohne Frist ist
+   Datenverlust auf einen Klick. Genau daran ist die Entscheidung vom
+   2026-07-29 gescheitert.
+2. **Es gibt schon einen Löschpfad**, und er ist geprüft: die DSGVO-Kette
+   (`deleteUserCompletely`, Contributor-Registry). Ein zweiter daneben wäre
+   eine zweite Stelle, an der etwas übrig bleibt.
+3. **Die Inhalte gehören nicht nur dem Owner** — an Threads hängen die
+   Beiträge anderer Mitglieder.
+
+**Zwei Sperren, beide mit Grund** (pure Regel `decideCommunityDeletion`,
+`packages/control/shared/communityTeam.ts`, 4 Tests):
+
+- **Laufendes Abo ⇒ 409 `subscription_active`.** Stilllegen kündigt bei Stripe
+  NICHTS; die Rechnung liefe weiter für etwas, das niemand mehr sehen kann.
+  Erst kündigen, dann löschen. Die Rechnung „läuft ein Abo?" teilt sich jetzt
+  eine Funktion mit der Übergabe-Sperre (`hasLiveSubscription`) — vorher stand
+  sie inline, und `past_due` (laufender Vertrag mit offener Forderung!) wäre in
+  der zweiten Kopie leicht vergessen worden.
+- **Schon stillgelegt ⇒ 409 `already_disabled`**, bewusst kein stiller Erfolg.
+
+**Was bewusst NICHT gebaut ist:** echtes Hard-Delete (Rows weg, Bucket leer,
+Projekt weg) und das Freigeben des Hostnamens. Der Slug bleibt vergeben, sonst
+könnte ihn morgen jemand anders registrieren und alte Links zeigten auf eine
+fremde Community. Ein Hard-Delete wäre Davids FOLGE-Entscheidung und braucht
+einen eigenen Plan (Frist, Export, Reihenfolge über zwei Projekte hinweg).
+
+**Aufbau wie bei „Zugang entziehen" (A5): zwei Schritte, zwei Projekte.** Das
+Control Plane nimmt Status und Rollen (seine Tabellen), die Runtime nimmt das
+Lese-Publikum (Labels leben im Pool-Projekt, das Control Plane hat dafür keinen
+Schlüssel). Ohne den zweiten Schritt wäre die Community offline, ihre
+`read(label:…)`-Zeilen aber weiterhin für jedes ehemalige Mitglied lesbar.
+
+---
+
 ## 2026-07-30 — C18: Sichtbarkeit je Community, und die Kehrtwende zu G0-7
 
 **Davids Entscheidung:** die Sichtbarkeit einer Community ist **wählbar**, und

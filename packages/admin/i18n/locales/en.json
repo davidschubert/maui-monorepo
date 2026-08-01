@@ -541,6 +541,23 @@
       "saved": "Saved.",
       "saveFailed": "Could not be saved.",
       "saveFailedDesc": "Nothing was changed — the last saved state still applies. Try again in a moment.",
+      "danger": {
+        "title": "Danger zone",
+        "description": "Actions that affect this whole community — owners only.",
+        "what": "Delete community",
+        "keeps": "The community is shut down and everyone loses access. Content, posts and names REMAIN stored — they are just no longer reachable.",
+        "cta": "Delete community",
+        "confirmTitle": "Really delete \"{name}\"?",
+        "confirmText": "Within half a minute the address stops answering, and every member loses access — you included. Posts, comments and course progress stay stored; only the operator can bring them back. Deleting an account is a different matter.",
+        "confirm": "Yes, delete community",
+        "done": "Community shut down.",
+        "doneDesc": "The address stops answering within half a minute. Content stays stored.",
+        "errors": {
+          "subscription_active": "A subscription is still running. Cancel it under \"Subscription & billing\" first, then the community can be deleted.",
+          "already_disabled": "This community is already shut down.",
+          "owner_protected": "Only the owner can delete the community."
+        }
+      },
       "noTenantTitle": "No community on this host",
       "noTenantText": "These settings apply to a single community. On this instance, registration is governed by the operator configuration.",
       "appearance": {

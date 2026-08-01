@@ -112,6 +112,32 @@
         }
       }
     },
+    "mine": {
+      "title": "Meine Beiträge",
+      "new": "Beitrag schreiben",
+      "col": {
+        "post": "Beitrag",
+        "type": "Art",
+        "state": "Status",
+        "date": "Erstellt"
+      },
+      "state": {
+        "published": "Veröffentlicht",
+        "scheduled": "Geplant",
+        "hidden": "Ausgeblendet"
+      },
+      "rowActions": "Aktionen für diesen Beitrag",
+      "openInFeed": "Im Feed öffnen",
+      "delete": "Löschen",
+      "confirmDeleteTitle": "Beitrag löschen?",
+      "confirmDeleteText": "Der Beitrag verschwindet aus dem Feed. Rückgängig machen lässt sich das nicht.",
+      "deleted": "Beitrag gelöscht.",
+      "deletedHint": "Er ist aus dem Feed verschwunden — auch die Kommentare dazu sind nicht mehr erreichbar.",
+      "deleteFailed": "Beitrag konnte nicht gelöscht werden.",
+      "deleteFailedHint": "Der Beitrag ist noch da. Lade die Seite neu und versuch es noch einmal.",
+      "emptyTitle": "Noch keine Beiträge",
+      "empty": "Hier sammeln sich deine eigenen Beiträge — geschrieben wird im Feed."
+    },
     "validation": {
       "titleMax": "Titel ist zu lang.",
       "bodyRequired": "Inhalt darf nicht leer sein.",
@@ -128,7 +154,8 @@
   },
   "admin": {
     "nav": {
-      "posts": "Feed"
+      "posts": "Feed",
+      "myPosts": "Meine Beiträge"
     }
   },
   "activity": {

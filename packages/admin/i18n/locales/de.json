@@ -541,6 +541,23 @@
       "saved": "Gespeichert.",
       "saveFailed": "Konnte nicht gespeichert werden.",
       "saveFailedDesc": "Nichts wurde geändert — es gilt weiter der zuletzt gespeicherte Stand. Versuch es in einem Moment noch einmal.",
+      "danger": {
+        "title": "Gefahrenzone",
+        "description": "Vorgänge, die diese Community betreffen — nur für Inhaber/innen.",
+        "what": "Community löschen",
+        "keeps": "Die Community wird stillgelegt und alle Zugänge werden entzogen. Inhalte, Beiträge und Namen BLEIBEN erhalten — sie sind nur nicht mehr erreichbar.",
+        "cta": "Community löschen",
+        "confirmTitle": "„{name}\" wirklich löschen?",
+        "confirmText": "Die Adresse antwortet danach binnen einer halben Minute nicht mehr, und alle Mitglieder verlieren ihren Zugang — auch du. Beiträge, Kommentare und Kursfortschritte bleiben gespeichert; wiederherstellen kann sie nur der Betreiber. Ein Konto löschen ist ein anderer Vorgang.",
+        "confirm": "Ja, Community löschen",
+        "done": "Community stillgelegt.",
+        "doneDesc": "Die Adresse antwortet binnen einer halben Minute nicht mehr. Inhalte bleiben gespeichert.",
+        "errors": {
+          "subscription_active": "Es läuft noch ein Abo. Kündige es zuerst unter „Abo & Rechnung\", danach lässt sich die Community löschen.",
+          "already_disabled": "Diese Community ist bereits stillgelegt.",
+          "owner_protected": "Nur die Inhaberin oder der Inhaber kann die Community löschen."
+        }
+      },
       "noTenantTitle": "Keine Community auf diesem Host",
       "noTenantText": "Diese Einstellungen gelten für eine einzelne Community. Auf dieser Instanz regelt die Registrierung die Betreiber-Konfiguration.",
       "appearance": {

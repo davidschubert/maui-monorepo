@@ -242,6 +242,10 @@
       "members": "Mitglieder"
     }
   },
+  "branding": {
+    "navLabel": "Erscheinungsbild",
+    "noTenantText": "Diese Seite stellt die Farbwelt EINER Community ein. Auf dieser Instanz gehört die Optik dem Betreiber — sie wird unter „Themes\" gesetzt."
+  },
   "members": {
     "title": "Mitglieder",
     "description": "Alle, die zu deiner Community gehören. Mitglied wird man durch Beitritt (bei offener Registrierung) oder durch eine Einladung. „Zugang entziehen\" nimmt die Zugehörigkeit wirklich weg — die Person sieht danach keine Mitglieder-Inhalte mehr und kommt nur über eine neue Einladung zurück.",
@@ -308,7 +312,7 @@
       "confirm": "Widerrufen",
       "done": "Einladung widerrufen."
     },
-    "role": {
+    "roleChange": {
       "done": "Rolle geändert: {role}."
     },
     "remove": {
