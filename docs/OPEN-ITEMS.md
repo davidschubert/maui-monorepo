@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 23 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 29 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-07-31**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -41,6 +41,12 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 29 · E3 | **Server-Größe prüfen** — der CX33 wird mit sechs Apps plus Builds knapp. | Mittel | S — prüfen, ggf. Rescale | Ja: kostet Geld | [Notizen](#notizen) |
 | 30 · E4 | **Nur-Lese-Schlüssel im Projekt `control`** erzeugen (letzter Cutover-Krümel). | Niedrig | S — ein Klick in der Console | Ja: David, Console | [CONTROL-CUTOVER.md](runbooks/CONTROL-CUTOVER.md) |
 | 31 · E7 | **Playwright-Prozesse beenden sich lokal nicht** (nur macOS, in CI sauber). Kostet jeden lokalen Lauf eine Viertelstunde. Nächster Verdacht: System-Chrome statt gebündeltem Chromium. | Niedrig | S — eine Gegenprobe | Nein | [Notizen](#notizen) |
+| F1 · TOAST | **Leere Fehler-Beschreibungen in Produktion:** `error.statusMessage` als Toast-Description ist unter HTTP/2 immer leer (Reason-Phrase entfällt). In control gefixt (Fallbacks) — dasselbe Muster steckt noch in comments, pages, media und admin. | Mittel | S — Fallback-Texte je Stelle | Nein | Agenten-Fund C12 |
+| F2 · I18N | **Mitglieder-Tabelle zeigt rohen Key-Pfad:** in den onboarding-Locales (de+en) ist `"role"` doppelt unter `"members"` definiert — der Spaltenkopf „Rolle" rendert dadurch als Objekt-Pfad. | Hoch | S — Schlüssel umbenennen + Nutzung | Nein | Agenten-Fund (Task-Chip liegt bereit) |
+| F3 · GDPR | **Pool-Kontolöschung räumt das Control Plane nicht auf:** community_members-Zeilen (runtimeUserId-verankert) bleiben nach Löschung eines Pool-Kontos stehen — die Löschung müsste über die Naht ins Control Plane greifen. | Mittel | M — Naht-Erweiterung + Contributor | Nein | Agenten-Fund A6 (Task-Chip liegt bereit) |
+| F4 · GAST | **Gast-Kommentar in geschlossener Community ist für den eigenen Verfasser unsichtbar** (C18-Kante; heute unkritisch, weil embed.guests aus ist — vor Aktivierung lösen). | Niedrig | S — Verfasser-Read beim Anlegen | Nein | Agenten-Fund C18 |
+| F5 · NAV | **Branding→Themes für Community-Owner öffnen:** die Themes-Seiten verlangen noch system.manage — auf Community-Hosts sieht die Gruppe nur der Betreiber. Umbau von Seiten + Routen auf branding.manage. | Mittel | M — Seiten + definePageMeta + Routen | Nein | Agenten-Fund E9 (Abweichung 4) |
+| F6 · LINT | **type-only-Imports in ~60 alten Migrationen** (`TablesDBIndexType`) — lokal rot, je Datei ein Wort. Die E8-3-Migrationen sind schon gefixt. | Niedrig | S — mechanisch | Nein | Agenten-Fund E8-4 |
 
 ## ⏸️ Geparkt / wartet
 
