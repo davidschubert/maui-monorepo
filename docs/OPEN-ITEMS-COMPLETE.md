@@ -627,3 +627,55 @@ ein Blatt-Pfad-Diff finden das, denn die Blätter heißen verschieden
 (`members.role` vs. `members.role.done`) — es braucht einen Scanner über den
 ROHTEXT, der Schlüssel pro Objekt zählt. Gegenprobe über alle 48 Locale-Dateien
 des Repos: sonst keine Dubletten.
+
+### C14 — Bild-Naht Schritt 2: `@nuxt/image` mit Appwrite-Anbieter ✅ 2026-07-31
+
+**Zuerst gemessen, dann entschieden — die Messung hat den Default gedreht.**
+Zwei Läufe: (a) sharp/libvips, also das, was `ipx` unter @nuxt/image auf dem
+APP-Server täte, (b) Appwrite 1.9.6 selbst. sharp auf einem M1 Max: AVIF kostet
+das **3- bis 24-Fache** an CPU (0,5 MP → 1280 px: 1348 ms CPU gegen 56 ms für
+WebP; 2 MP: 2280 ms gegen 136 ms). Auf dem geteilten CX23/CX33 neben sieben
+Apps ist das nicht vertretbar. Appwrite ist milder (1,0–3,0× Wanduhr, zweiter
+Abruf ~5 ms aus dem Cache), aber der **Byte-Gewinn trägt den Aufpreis nicht**:
+bei gleicher `quality` war AVIF nur unter ~q60 kleiner (10–40 %) und ab q78
+sogar GRÖSSER als WebP. **Entscheidung: Default WebP, AVIF nur ausdrücklich je
+Bild** (`format="avif"`), und `image.format: ['webp']` im Core-Layer, damit auch
+`<NuxtPicture>` niemanden unbemerkt AVIF bezahlen lässt.
+
+**Der Anbieter rechnet nichts.** Appwrite kann `/preview` mit
+width/height/quality/output und cacht das Ergebnis — gegen die lokale Instanz
+nachgemessen: `output` akzeptiert **jpg, jpeg, png, webp, heic, avif, gif**
+(ein unbekannter Wert antwortet 400 und nennt genau diese Liste), Kante hart bei
+4000 px. Der Anbieter ist deshalb ein reiner URL-Bauer; `ipx` (und damit `sharp`
+samt der 26-teiligen `@img/sharp-*`-Plattform-Matrix) steht als
+`ignoredOptionalDependencies` in `pnpm-workspace.yaml`. Netto neu im Lockfile:
+**zwei** Pakete. Beide Prod-Builds (photos, comments) enthalten weder einen
+`/_ipx`-Handler noch sharp.
+
+**Gelernt (teuer, 188 Typfehler):** @nuxt/image referenziert die Typ-Vorlage
+jedes EIGENEN Anbieters mit `{ nitro, nuxt, node, shared }` — die Anbieter-Datei
+landet also in ALLEN VIER generierten tsconfigs, und in zweien davon gibt es
+weder `#imports` noch die App-Auto-Imports. Ein `useRuntimeConfig` aus
+`#imports` im Anbieter kostete 188 Fehler quer durch alle Layer, von denen nur
+EINER auf die Anbieter-Datei zeigte; die anderen 187 sahen aus, als hätten die
+Auto-Imports aufgehört zu funktionieren. Der Ausweg war zugleich die einfachere
+Bauart: die URL, die `<NuxtImg>` bekommt, ENTHÄLT Endpoint und Projekt schon —
+der Anbieter braucht überhaupt keine Konfiguration. **Ein Anbieter darf nur
+importieren, was in jedem der vier Projekte existiert.**
+
+**Gelernt (still und gefährlich):** `sizes="100vw"` OHNE Stufen-Präfix liest
+@nuxt/image als Schlüssel `1px`, macht daraus eine Bildschirmbreite von 1 und
+liefert ein srcset `1w, 2w` — ein 1-Pixel-Bild, ohne Fehlermeldung. Jede
+Aufrufstelle schreibt deshalb `xs:100vw`; festgehalten in
+`packages/core/tests/nuxtImageProvider.test.ts`.
+
+**Umgestellt:** EventCard, EventDetail, Event-Formular (events), Medien-Tabelle
+(media), Galerie-Raster und Hero (photos). Kein Layout verändert — nur `<img>`
+zu `<NuxtImg>` plus `sizes`/`placeholder`. Statische Bilder (`about.vue`) und der
+Core-Proxy `/api/storage/*` (admin) bleiben unangetastet: der Anbieter reicht
+alles durch, was keine Appwrite-Storage-URL ist, und darf deshalb global der
+Default sein. **Beweise:** 40 Unit-Tests, `pnpm -r test/typecheck/lint` und
+`check:manifests`/`check:single-copy` grün, zwei Prod-Builds, und ein Lauf gegen
+die lokale Appwrite, der die vom Anbieter gebauten URLs wirklich abruft (alle
+Varianten 200, Content-Type und Maße geprüft, Testbild wieder gelöscht).
+**Rest:** `srcset` in der Antwort von `/api/media` hat seither keinen Leser mehr.

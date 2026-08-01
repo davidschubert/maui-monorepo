@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 25 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 24 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-07-31**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -30,7 +30,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 19 · C6 | **Aufräum-Migration:** die alte Spalte `app_config.entitlements` löschen — erst, wenn alle Instanzen den neuen Code fahren. | Niedrig | S — eine Migration | Nein | [Notizen](#notizen) |
 | 20 · C12b | **Fehlerseite bei unbekanntem Host** zeigt „500 – Unknown host", obwohl es korrekt ein 404 ist. Klein, aber die Zahl auf der Seite ist falsch. | Niedrig | S — eine Middleware-Stelle | Nein | [Notizen](#notizen) |
 | 21 · C8 | **Suche in der internen Doku** (`control.pukalani.app/docs`) — bisher bewusst weggelassen. | Niedrig | S — Nuxt-Content-Suche | Nein | [Notizen](#notizen) |
-| 22 · C14 | **Bilder Schritt 2: `@nuxt/image`** mit eigenem Appwrite-Anbieter (AVIF, Platzhalter). Vorher messen, was das die Maschine an CPU kostet. | Niedrig | M — kleiner Anbieter + Messung | Nein | [Notizen](#notizen) |
 | 23 · B4 | **Ladezeit-Hebel wählen:** (a) Appwrite-Web-SDK nachladen (72 kB) oder (b) spekulative Vorablade-Hinweise filtern — kostet den Navigations-Vorsprung nach dem Login. | Niedrig | M — je nach Wahl | Ja: David wählt a oder b | [Notizen](#notizen) |
 | 24 · B7 | **Dunkles Design für die Landingpage?** Sie ist bewusst hell geklemmt; seit der Nuxt-UI-Migration wäre Dunkel machbar. | Niedrig | S — Entscheidung, dann ein CSS-Zweig | Ja: Ja/Nein | [Notizen](#notizen) |
 | 25 · M13 | **Reste des Selbstbedienungs-Trichters:** Hinweis auf ablaufende Testphase, Umzug des Kundenbereichs von `/workspace` nach `my.*`, Sperr-/Missbrauchspfad, Statusseite bei UptimeRobot. | Mittel | M — vier kleine Stücke | Ja: bei Sperr-Regeln | [SAAS-ROADMAP #1](archiv/SAAS-ROADMAP.md) |
@@ -276,18 +275,6 @@ bevor der Renderer läuft — beim Rendern der Fehlerseite läuft dieselbe
 Middleware erneut und wirft wieder, weil der Host unbekannt bleibt; Nuxt fällt
 auf sein eingebautes Template zurück. Klein (der Host wird nirgends beworben),
 aber die Zahl auf der Seite ist eine Lüge.
-
-**C14 — Bild-Naht Schritt 2: `@nuxt/image`.** Schritt 1 ist erledigt
-(2026-07-28): `core/shared/storageImage.ts` ist die eine Stelle, die Bild-URLs
-baut, und liefert `/preview` mit Breite/Qualität/WebP statt der Originaldatei;
-Medien-Galerie und Event-Cover nutzen sie, die Galerien tragen `srcset` +
-`sizes`. Gegen eine echte Appwrite gemessen: 480 px WebP → HTTP 200,
-`image/webp`, 480×600 (am Seed-Bild 67 % kleiner — bei echten Fotos deutlich
-mehr). Offen ist Schritt 2: `@nuxt/image` im core mit eigenem
-Appwrite-Provider (~30 Zeilen, mappt auf `/preview`) für `<NuxtImg>`,
-AVIF-Aushandlung und Platzhalter. **Vorher messen**, was die Transformationen
-auf der aktuellen Maschine an CPU kosten — sie läuft neben sieben Apps (E3).
-Hängt mit B4 zusammen. Davids Entscheidung 2026-07-28.
 
 **B4 — Perf-Hebel (K4):** (a) Appwrite-Web-SDK dynamisch laden (72 kB Entry,
 Umbau am Realtime-Subsystem) · (b) spekulative `prefetch`-Hints filtern
