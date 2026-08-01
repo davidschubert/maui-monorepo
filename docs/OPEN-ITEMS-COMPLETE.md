@@ -708,3 +708,24 @@ Komposition reist jeder fest verdrahtete APP-Pfad mit und wird woanders zur
 Lüge — der Ticket-Checkout-Pfad wurde ein expliziter Config-Vertrag
 (pukalani.events.ticketCheckoutPath, leer = fail-closed „Bald verfügbar").
 
+
+### F1 — leere Fehler-Beschreibungen (statusMessage) ✅ 2026-07-31
+
+Bereits behoben vorgefunden: der C12-Commit (`7bf22c92`) hat die vier
+gemeldeten Stellen mitgenommen — in `packages/{comments,pages,media,admin}`
+steht heute NULL `statusMessage`. Nachgemessen repo-weit: die einzigen
+verbliebenen Vorkommen sind die sieben Betreiber-Stellen in
+`packages/control` (invites 2×, tenants, websites 3×, requests) und die
+tragen alle schon den Fallback (`statusMessage || t('…Hint')`); `requests.vue`
+lässt die Beschreibung bei 502 bewusst leer, weil der Titel dort die Ursache
+nennt. Die Regel, die daraus überlebt: **Kunden-Dashboard = nur übersetzter
+Text** (ein englischer Entwickler-Satz sagt dem Community-Betreiber nichts),
+**Betreiber-Konsole = `statusMessage` vorn, übersetzter Fallback dahinter**.
+Beides steht als Begründung IN den Dateien (embed.vue, media.vue, pages.vue,
+system.vue, products.vue), nicht nur hier. **Beweise:** `pnpm -r test`
+(51 Suiten), `check:manifests`, `pnpm -r typecheck`, `pnpm -r lint` (die
+6 bekannten Warnungen), plus eine statische i18n-Gegenprobe: 2877 Keys in de
+und en, keiner nur auf einer Seite, jeder statisch auflösbare `t()`-Key der
+fünf Pakete in beiden Sprachen vorhanden. **Gelernt:** Eine „Rest"-Zeile, die
+MITTEN in der Ausführung des Elternpunkts geschrieben wird, ist am Ende oft
+schon miterledigt — vor dem Fixen reproduzieren (dieselbe Lektion wie F6).

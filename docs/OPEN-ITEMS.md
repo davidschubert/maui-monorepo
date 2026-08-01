@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 19 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 18 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-07-31**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -35,7 +35,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 29 · E3 | **Server-Größe prüfen** — der CX33 wird mit sechs Apps plus Builds knapp. | Mittel | S — prüfen, ggf. Rescale | Ja: kostet Geld | [Notizen](#notizen) |
 | 30 · E4 | **Nur-Lese-Schlüssel im Projekt `control`** erzeugen (letzter Cutover-Krümel). | Niedrig | S — ein Klick in der Console | Ja: David, Console | [CONTROL-CUTOVER.md](runbooks/CONTROL-CUTOVER.md) |
 | 31 · E7 | **Playwright-Prozesse beenden sich lokal nicht** (nur macOS, in CI sauber). Kostet jeden lokalen Lauf eine Viertelstunde. Nächster Verdacht: System-Chrome statt gebündeltem Chromium. | Niedrig | S — eine Gegenprobe | Nein | [Notizen](#notizen) |
-| F1 · TOAST | **Leere Fehler-Beschreibungen in Produktion:** `error.statusMessage` als Toast-Description ist unter HTTP/2 immer leer (Reason-Phrase entfällt). In control gefixt (Fallbacks) — dasselbe Muster steckt noch in comments, pages, media und admin. | Mittel | S — Fallback-Texte je Stelle | Nein | Agenten-Fund C12 |
 | F3 · GDPR | **Pool-Kontolöschung räumt das Control Plane nicht auf:** community_members-Zeilen (runtimeUserId-verankert) bleiben nach Löschung eines Pool-Kontos stehen — die Löschung müsste über die Naht ins Control Plane greifen. | Mittel | M — Naht-Erweiterung + Contributor | Nein | Agenten-Fund A6 (Task-Chip liegt bereit) |
 | F4 · GAST | **Gast-Kommentar in geschlossener Community ist für den eigenen Verfasser unsichtbar** (C18-Kante; heute unkritisch, weil embed.guests aus ist — vor Aktivierung lösen). | Niedrig | S — Verfasser-Read beim Anlegen | Nein | Agenten-Fund C18 |
 
