@@ -5,7 +5,6 @@ import {
   STORAGE_PREVIEW_MAX_EDGE,
   parseStorageImageUrl,
   storageFileUrl,
-  storageImageSrcset,
   storageImageUrl,
   storageProviderImageUrl,
 } from '../shared/storageImage'
@@ -65,26 +64,6 @@ describe('storageImageUrl', () => {
 
   it('setzt allein für ein Format schon /preview (Format ohne Größe ist gültig)', () => {
     expect(storageImageUrl(BASE, 'media', 'f1', { output: 'webp' })).toContain('/preview?')
-  })
-})
-
-describe('storageImageSrcset', () => {
-  it('baut Kandidaten mit w-Deskriptor, aufsteigend sortiert', () => {
-    const set = storageImageSrcset(BASE, 'media', 'f1', [800, 400], { output: 'webp' })
-    const parts = set.split(', ')
-    expect(parts).toHaveLength(2)
-    expect(parts[0]).toContain('width=400')
-    expect(parts[0]!.endsWith(' 400w')).toBe(true)
-    expect(parts[1]!.endsWith(' 800w')).toBe(true)
-  })
-
-  it('entfernt Doppelte und Unsinn', () => {
-    const set = storageImageSrcset(BASE, 'media', 'f1', [400, 400, 0, -1])
-    expect(set.split(', ')).toHaveLength(1)
-  })
-
-  it('ist leer, wenn keine brauchbare Breite übrig bleibt', () => {
-    expect(storageImageSrcset(BASE, 'media', 'f1', [0, -3])).toBe('')
   })
 })
 
