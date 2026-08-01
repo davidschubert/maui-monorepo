@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 17 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 16 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-07-31**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -22,7 +22,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
 | 11 · B1 | **Neun visuelle Referenzbilder sichten**, dann neu aufnehmen — der Header-Umbau hat sie erwartungsgemäß gebrochen. | Mittel | S — ansehen + ein Befehl | Ja: David sichtet zuerst | [Notizen](#notizen) |
 | 13 · C12 | **Dashboard-Kleinteile** — fehlende Blätterfunktion, leere Zustände, interne IDs und Fachjargon im Kundenblick, handgebaute Listen, 238 Toasts ohne Erklärtext. Läuft am besten mit 7. | Mittel | M — viele kleine Stellen | Nein | [Notizen](#notizen) |
-| 19 · C6 | **Aufräum-Migration ausführen:** Code und `system-027` sind gebaut (2026-07-31), die Migration ist bewusst NICHT gelaufen. Reihenfolge: erst den Code deployen, dann `pnpm migrate --app <app> --layer system`. | Niedrig | S — ein Befehl je Instanz | Nein | [Notizen](#notizen) |
 | 20 · C12b | **Fehlerseite bei unbekanntem Host** zeigt „500 – Unknown host", obwohl es korrekt ein 404 ist. Klein, aber die Zahl auf der Seite ist falsch. | Niedrig | S — eine Middleware-Stelle | Nein | [Notizen](#notizen) |
 | 21 · C8 | **Suche in der internen Doku** (`control.pukalani.app/docs`) — bisher bewusst weggelassen. | Niedrig | S — Nuxt-Content-Suche | Nein | [Notizen](#notizen) |
 | 23 · B4 | **Ladezeit-Hebel wählen:** (a) Appwrite-Web-SDK nachladen (72 kB) oder (b) spekulative Vorablade-Hinweise filtern — kostet den Navigations-Vorsprung nach dem Login. | Niedrig | M — je nach Wahl | Ja: David wählt a oder b | [Notizen](#notizen) |
