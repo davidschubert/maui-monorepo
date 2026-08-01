@@ -1,4 +1,5 @@
 import type { PukalaniAdminModule } from '../shared/types/admin-module'
+import type { PukalaniAdminNoticeConfig } from '../shared/types/admin-notice'
 import type { PukalaniChromeNavConfig, PukalaniChromeUtilityConfig } from '../shared/types/chrome'
 
 export default defineAppConfig({
@@ -31,6 +32,18 @@ export default defineAppConfig({
        *  (deep-merged/konkateniert über alle Layer). Das Dashboard-Layout rendert
        *  die Nav daraus, capability-gefiltert. */
       modules: [] as PukalaniAdminModule[],
+      /**
+       * Hinweis-Registry der Dashboard-ÜBERSICHT (M13, s. shared/types/
+       * admin-notice.ts): Produkt-Layer melden hier eine global registrierte
+       * Komponente an, die oben auf /dashboard erscheint, wenn sie etwas zu
+       * sagen hat. Leer = die Übersicht bleibt wie bisher.
+       *
+       * Der Ort ist die Übersicht und NICHT die Dashboard-Hülle: ein Banner im
+       * Layout stünde auf jeder einzelnen Unterseite und wäre nach dem zweiten
+       * Klick Tapete. Die Übersicht ist die Landeseite jeder Rolle — einmal
+       * gesehen, sichtbar so lange es gilt.
+       */
+      notices: {} as PukalaniAdminNoticeConfig,
     },
     /**
      * Chrome-Registry (Audit S9): Header-Nav + Header-Utilities der

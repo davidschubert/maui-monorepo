@@ -134,6 +134,52 @@ export function trialDaysLeft(trialEnd: string | null | undefined, now: number):
   return Math.ceil((end - now) / (24 * 60 * 60 * 1000))
 }
 
+// ── 3b. Wann sagt das Dashboard etwas dazu? (M13) ───────────────────────────
+
+/** Vorlauf: so viele Tage VOR dem Ende erscheint der Hinweis im Dashboard. */
+export const TRIAL_NOTICE_LEAD_DAYS = 7
+/**
+ * Nachlauf: so lange NACH dem Ende erinnert er noch — danach schweigt er.
+ *
+ * Ohne diese Grenze wäre der Hinweis ewig: `trialEndsAt` wird beim Ablauf NICHT
+ * geräumt (der Sweep senkt nur `plan` auf basic, trialSweep.ts), geleert wird es
+ * erst durch einen Kauf. Ein Banner, das jede Community ohne Abo bis in alle
+ * Zeit zum Kaufen drängt, ist Werbung und keine Auskunft — und genau die Sorte
+ * Dauer-Nörgelei, die das Versprechen aus dem Wizard („nichts wird gesperrt")
+ * unglaubwürdig macht. Länge = die Testphase selbst: wer 14 Tage nach dem Ende
+ * nichts unternommen hat, hat sich für Basic entschieden.
+ */
+export const TRIAL_NOTICE_GRACE_DAYS = TRIAL_DAYS
+
+export interface TrialNotice {
+  /** 'ending' = läuft in ≤ TRIAL_NOTICE_LEAD_DAYS ab · 'ended' = vorbei (Nachlauf) */
+  kind: 'ending' | 'ended'
+  /** Verbleibende volle Tage — bei 'ended' immer 0. */
+  daysLeft: number
+}
+
+/**
+ * PURE: Soll das Dashboard etwas zur Testphase sagen — und was?
+ *
+ * `null` heißt „schweigen", und das ist der häufigste Fall: keine Testphase
+ * (Wert leer, weil gekauft oder vom Betreiber angelegt), noch reichlich Zeit,
+ * oder der Nachlauf ist vorbei. Ein unlesbares Datum schweigt ebenfalls —
+ * dieselbe Haltung wie isTrialActive(): raten wäre schlimmer als nichts sagen.
+ */
+export function trialNotice(trialEnd: string | null | undefined, now: number): TrialNotice | null {
+  if (!trialEnd) return null
+  const end = Date.parse(trialEnd)
+  if (!Number.isFinite(end)) return null
+
+  if (end > now) {
+    const daysLeft = trialDaysLeft(trialEnd, now)
+    return daysLeft <= TRIAL_NOTICE_LEAD_DAYS ? { kind: 'ending', daysLeft } : null
+  }
+
+  const graceMs = TRIAL_NOTICE_GRACE_DAYS * 24 * 60 * 60 * 1000
+  return now - end <= graceMs ? { kind: 'ended', daysLeft: 0 } : null
+}
+
 // ── 4. Anzahl Communities pro Konto ─────────────────────────────────────────
 
 /**

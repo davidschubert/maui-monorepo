@@ -25,7 +25,7 @@ import { isSafeThemeToken } from '../../shared/onboarding'
  *  gesetzt, wenn die Row eine $id trägt (der reale Read immer; Test-Fixtures
  *  optional). Trägt die Site-Rollen-Auflösung (requireCommunityPermission). */
 export function mapTenantRowToContext(
-  row: (Pick<TenantRow, 'mode' | 'projectId' | 'tenantId' | 'status' | 'plan'> & { $id?: string, theme?: string | null, variant?: string | null, neutral?: string | null, name?: string | null, openRegistration?: boolean | null, audience?: string | null }) | null,
+  row: (Pick<TenantRow, 'mode' | 'projectId' | 'tenantId' | 'status' | 'plan'> & { $id?: string, theme?: string | null, variant?: string | null, neutral?: string | null, name?: string | null, openRegistration?: boolean | null, audience?: string | null, trialEndsAt?: string | null }) | null,
   planCatalog?: Record<string, Record<string, TenantPlanLimits>>,
 ): TenantContext | null {
   if (!row || row.status !== 'active') return null
@@ -66,7 +66,12 @@ export function mapTenantRowToContext(
     // (Vorrang vor app.config).
     const plan = normalizeTenantPlan(row.plan)
     const limits = planCatalog?.[plan] ?? planCatalog?.[DEFAULT_TENANT_PLAN]
-    return { mode: 'pool', projectId: row.projectId, tenantId: row.tenantId, plan, ...(limits ? { limits } : {}), ...communityId, ...branding, ...policy }
+    // Testphase (M13): roh durchgereicht, NICHT hier ausgewertet — der Kontext
+    // trägt die Tatsache, die Regel (ab wann ein Hinweis fällig ist) steht pur
+    // in shared/onboarding.ts. Fehlende Spalte/leerer Wert ⇒ Feld bleibt weg
+    // und heißt „keine Testphase".
+    const trial = row.trialEndsAt ? { trialEndsAt: row.trialEndsAt } : {}
+    return { mode: 'pool', projectId: row.projectId, tenantId: row.tenantId, plan, ...(limits ? { limits } : {}), ...communityId, ...branding, ...policy, ...trial }
   }
   return null
 }

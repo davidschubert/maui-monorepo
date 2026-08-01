@@ -168,6 +168,13 @@
     "nav": {
       "subscription": "Abo & Rechnung"
     },
+    "trial": {
+      "endingTitle": "Noch 1 Tag Testphase | Noch {n} Tage Testphase",
+      "endingText": "Danach läuft deine Community im kostenlosen Tarif Basic weiter — nichts wird gesperrt, nichts gelöscht. Mit einem Abo behältst du die Pro-Funktionen.",
+      "endedTitle": "Deine Testphase ist beendet",
+      "endedText": "Deine Community läuft jetzt im kostenlosen Tarif Basic. Alle Inhalte und Mitglieder sind da; für die Pro-Funktionen brauchst du ein Abo.",
+      "action": "Abo ansehen"
+    },
     "subscription": {
       "title": "Abo & Rechnung",
       "help": "Welcher Plan für deine Community gilt, was er kostet und wo du Rechnungen und Zahlungsmethode findest.",

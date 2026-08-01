@@ -93,4 +93,16 @@ export type TenantContext =
    * — hat Vorrang vor dem statischen app.config-Katalog (Fallback-Kette in
    * assertPoolWriteQuota).
    */
-  | ({ mode: 'pool', projectId: string, tenantId: string, plan?: string, limits?: Record<string, { perDay?: number, total?: number }>, communityId?: string } & TenantBranding & TenantPolicy)
+  /**
+   * `trialEndsAt` (M13): Ende der Testphase als ISO-String, wie es in der
+   * `communities`-Row steht — `null`/fehlend = keine Testphase (gekauft oder
+   * vom Betreiber angelegt). NUR im Pool: eine Silo-Community ist ein
+   * Enterprise-Vertrag, die hat keine.
+   *
+   * BEWUSST NICHT im SSR-Payload gespiegelt (tenant-brand.ts, „Spiegel-
+   * Inventar"): der Wert reiste sonst auf JEDER öffentlichen Seite mit und
+   * verriete jedem Gast, dass diese Community gerade testet oder ausgelaufen
+   * ist. Er wird stattdessen von der Route `/api/community/billing/trial`
+   * herausgegeben — capability-gegated an den EINEN, der etwas tun kann.
+   */
+  | ({ mode: 'pool', projectId: string, tenantId: string, plan?: string, limits?: Record<string, { perDay?: number, total?: number }>, communityId?: string, trialEndsAt?: string | null } & TenantBranding & TenantPolicy)

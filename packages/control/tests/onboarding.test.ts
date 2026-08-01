@@ -9,6 +9,8 @@ import {
   SITE_GOAL_IDS,
   SITE_VIBES,
   TRIAL_DAYS,
+  TRIAL_NOTICE_GRACE_DAYS,
+  TRIAL_NOTICE_LEAD_DAYS,
   evaluateSiteQuota,
   isEarlyAccessGoal,
   isSafeThemeToken,
@@ -18,6 +20,7 @@ import {
   serializeSiteProfile,
   trialDaysLeft,
   trialEndsAt,
+  trialNotice,
 } from '../shared/onboarding'
 import { evaluateInviteCode } from '../shared/types/inviteCode'
 import { TENANT_AUDIENCES, resolveTenantAudience, resolveTenantOpenRegistration } from '../shared/types/tenantRecord'
@@ -102,6 +105,44 @@ describe('Testphase', () => {
     for (const value of [undefined, null, '', 'irgendwann', '2026-13-45']) {
       expect(isTrialActive(value, NOW)).toBe(false)
       expect(trialDaysLeft(value, NOW)).toBe(0)
+    }
+  })
+})
+
+describe('Hinweis auf die Testphase (M13)', () => {
+  const end = trialEndsAt(NOW) // NOW + 14 Tage
+
+  it('schweigt, solange noch reichlich Zeit ist', () => {
+    expect(trialNotice(end, NOW)).toBeNull()
+    // Genau einen Tag zu früh — die Schwelle ist ≤ 7, nicht < 8.
+    expect(trialNotice(end, NOW + (TRIAL_DAYS - TRIAL_NOTICE_LEAD_DAYS - 1) * DAY)).toBeNull()
+  })
+
+  it('warnt in den letzten Tagen mit der Resttage-Zahl', () => {
+    expect(trialNotice(end, NOW + 7 * DAY)).toEqual({ kind: 'ending', daysLeft: TRIAL_NOTICE_LEAD_DAYS })
+    expect(trialNotice(end, NOW + 13 * DAY)).toEqual({ kind: 'ending', daysLeft: 1 })
+    // Kurz vor Schluss bleibt es bei einem angebrochenen Tag, nie bei 0 —
+    // 'ending' mit 0 Tagen wäre ein Satz ohne Aussage.
+    expect(trialNotice(end, NOW + 14 * DAY - 1)).toEqual({ kind: 'ending', daysLeft: 1 })
+  })
+
+  it('stellt nach dem Ende fest, statt weiter zu zählen', () => {
+    expect(trialNotice(end, NOW + 14 * DAY + 1)).toEqual({ kind: 'ended', daysLeft: 0 })
+    expect(trialNotice(end, NOW + 20 * DAY)).toEqual({ kind: 'ended', daysLeft: 0 })
+  })
+
+  it('verstummt nach dem Nachlauf — sonst wäre es ein Dauer-Verkaufsbanner', () => {
+    // `trialEndsAt` wird beim Ablauf NICHT geräumt (trialSweep senkt nur den
+    // Plan). Ohne diese Grenze stünde der Hinweis für immer im Dashboard jeder
+    // Community, die nie gekauft hat.
+    const lastDay = NOW + (TRIAL_DAYS + TRIAL_NOTICE_GRACE_DAYS) * DAY
+    expect(trialNotice(end, lastDay)).toEqual({ kind: 'ended', daysLeft: 0 })
+    expect(trialNotice(end, lastDay + 1)).toBeNull()
+  })
+
+  it('schweigt bei fehlenden und kaputten Werten', () => {
+    for (const value of [undefined, null, '', 'irgendwann', '2026-13-45']) {
+      expect(trialNotice(value, NOW)).toBeNull()
     }
   })
 })

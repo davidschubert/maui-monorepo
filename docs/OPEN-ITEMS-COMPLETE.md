@@ -1177,3 +1177,35 @@ Lade-Promise. Und der Port-Fallback der Dev-Server hat wieder zugeschlagen:
 `PORT=…` wirkt nicht, weil das `dev`-Script `--port` fest übergibt — comments
 landete auf 3000, marketing auf 3002 (die Standard-Ports hielt ein fremder
 Arbeitsbaum). Erste Log-Zeile lesen, sonst misst der Beweis fremden Code.
+
+### M13 (Teil) — Testphase-Hinweis gebaut, /workspace-Umzug gegenstandslos ✅ 2026-08-01
+
+**Testphase-Hinweis:** `communities.trialEndsAt` (control-016) existierte,
+zeigte aber nirgends hin. Jetzt: pure Regel `trialNotice` in
+`packages/control/shared/onboarding.ts` (sichtbar 7 Tage vor Ablauf bis 14
+Tage danach — ohne Nachlauf-Grenze wäre es ein Dauer-Verkaufsbanner, weil der
+Sweep nur `plan` senkt und das Datum stehen lässt), Wert reist durch den
+bestehenden Mandanten-Resolver (kein Extra-Hop), Route
+`GET /api/community/billing/trial` gegated auf `community.billing` (der
+Vertragszustand geht Mitleser nichts an — Beweis: Gast 401, Fremder 403,
+Moderator 403, Kontroll-Host 404). Gerendert über die NEUE Registry
+`pukalani.admin.notices` (Bauart chrome.utilities) auf der Dashboard-
+Übersicht, client-only (Text hängt an Date.now() — SSR wäre ein
+Hydration-Bruch). Beweis: verify-trial-notice.mjs 15/15 (echter
+Wizard-Abschluss, alle vier Zustände, vier Verweigerungen), Browser beide
+Sprachen inkl. Singular/Plural.
+
+**/workspace → my.*: nichts zu bauen.** `/workspace` fiel schon mit A6
+(8b11edbc, 2026-07-31, Workspaces ersatzlos abgeschafft) und lag außerdem auf
+control.pukalani.app, nie auf my.* — es gab weder ein Ziel für einen Redirect
+noch Code-/Mail-/Stripe-Verweise (Inventar geprüft; nur zwei Doku-Stellen,
+beide mit datierten Hinweisen markiert statt blind umgeschrieben). Dabei die
+ECHTE Lücke gefunden: my.* hat keine Landeseite für Bestandskunden → F12.
+
+**Gelernt:** (1) Ein Listen-Eintrag altert wie eine Diagnose — „Umzug
+/workspace→my.*" beschrieb einen Zustand von vor A6; erst Bestandsaufnahme,
+dann bauen (der „Umzug" wäre eine erfundene Entsprechung gewesen). (2)
+Appwrite gibt Datetimes als `…+00:00` zurück, `toISOString()` schreibt `…Z`
+— String-Vergleiche auf Datetime-Spalten sind ewig falsch, immer als
+Zeitpunkt vergleichen. (3) Vertragszustands-Daten gehören nicht in den
+SSR-Payload öffentlicher Seiten, auch wenn es bequem wäre.

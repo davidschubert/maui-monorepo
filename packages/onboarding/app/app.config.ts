@@ -79,6 +79,25 @@ export default defineAppConfig({
           order: 1,
         },
       ],
+      /**
+       * Der Hinweis auf die ablaufende Testphase (M13). Aus DEMSELBEN Grund in
+       * diesem Layer wie die Abo-Seite: er lebt von `/api/community/billing/trial`,
+       * und die braucht den Mandanten-Kontext, den nur eine Pool-App hat. Eine
+       * Silo-App ohne onboarding trägt den Eintrag nicht — dort gibt es keine
+       * Testphase, also erscheint auch nichts.
+       *
+       * Dieselbe Capability wie die Abo-Seite, auf die er zeigt: `community.billing`
+       * trägt nur der Owner. Ein Moderator bekäme sonst einen Hinweis mit einem
+       * Knopf in ein 403 — und eine Auskunft über den Vertrag seiner Community,
+       * die ihn nichts angeht.
+       */
+      notices: {
+        communityTrial: {
+          component: 'CommunityTrialNotice',
+          requiredCapability: 'community.billing',
+          order: 10,
+        },
+      },
     },
   },
 })

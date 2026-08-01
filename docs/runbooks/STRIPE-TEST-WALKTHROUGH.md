@@ -1,5 +1,25 @@
 # Stripe Test-Mode — Durchspiel-Anleitung (turnkey)
 
+> ⚠️ **VERALTET seit A6 Schritt 5 (2026-07-31) — nicht Schritt für Schritt
+> nachlaufen.** Diese Anleitung beschreibt die Workspace-Welt, und die gibt es
+> nicht mehr: `workspaces` ist gefallen (Migration control-031), **die Community
+> ist das zahlende Objekt**. Konkret falsch sind ab hier alle Wege und Zahlen:
+>
+> - `/dashboard/workspaces` und `/workspace` existieren nicht mehr. Der
+>   Kundenbereich ist **`/dashboard/settings/subscription` auf dem Host der
+>   Community** (dorthin führt auch die Stripe-Rückkehr-URL), der Menüpunkt
+>   heißt „Abo & Rechnung" und verlangt `community.billing` (nur Owner).
+> - Die Pläne heißen **basic / personal / pro** (P4, nicht mehr
+>   free/pro/business), die Preise sind **29 € / 149 €**, jährlich −25 %.
+> - Die `lookup_key`s heißen weiterhin `workspace_{personal,pro}_{monthly,yearly}`
+>   — das sind gewachsene **Stripe-Identitäten**, kein Hinweis auf Workspaces.
+>
+> Richtig und unverändert bleiben: der Webhook-Endpunkt, die Ereignis-Liste,
+> `scripts/stripe/ensure-prices.mjs`, die Testkarten und der Zahlungsfehler-Pfad.
+> Der Ende-zu-Ende-Beweis im Testmodus (Checkout + Portal) wurde mit A6 Schritt 5
+> neu geführt. **Wer das nächste Mal durchspielt, schreibt die Anleitung dabei
+> auf den heutigen Weg um** — hier steht bewusst kein erfundener Klickpfad.
+
 Stand: 2026-07-21. Ziel: den **kompletten Bezahl-Flow im Test-Modus beweisen** —
 ohne Bank, ohne Live-Aktivierung. Danach weißt du sicher, dass Checkout (monatlich
 + jährlich), Feature-Sync, Portal/Kündigung und Zahlungsfehler funktionieren.

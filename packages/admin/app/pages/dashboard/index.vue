@@ -9,6 +9,8 @@ import type {
   StorageOverview,
 } from '../../../shared/types/admin'
 import type { Capability } from '../../../../core/shared/types/authz'
+import { resolveAdminNotices } from '../../../../core/shared/types/admin-notice'
+import type { PukalaniAdminNoticeConfig } from '../../../../core/shared/types/admin-notice'
 
 // BEWUSST ohne `requiredCapability`: die Übersicht ist die Landeseite JEDER
 // Site-Rolle (alle fünf tragen `dashboard.access`, communityAuthz.ts). Gegated
@@ -20,6 +22,7 @@ const localePath = useLocalePath()
 const toast = useToast()
 const confirm = useConfirm()
 const config = useRuntimeConfig()
+const appConfig = useAppConfig()
 const auth = useAuthStore()
 const { formatRelativeTime } = useFormatRelativeTime()
 
@@ -54,6 +57,17 @@ const canManageStorage = computed(() => can('storage.manage'))
 // `requiredCapability: 'users.manage'`, die keine Site-Rolle trägt. Ohne die
 // Capability bleibt der Name reiner Text statt eines Links in ein 403.
 const canManageUsers = computed(() => can('users.manage'))
+
+// --- Hinweise anderer Layer (M13) --------------------------------------------
+// `pukalani.admin.notices`: ein Produkt-Layer meldet eine global registrierte
+// Komponente an, die hier oben erscheint, WENN sie etwas zu sagen hat (erste
+// Anwendung: der Ablauf der Testphase, onboarding-Layer). admin kennt weder den
+// Layer noch den Anlass — dieselbe Bauart wie die Modul- und die Chrome-
+// Registry (A14: expliziter Vertrag statt Hardcode). Ob eine Komponente
+// tatsächlich etwas rendert, entscheidet sie selbst; hier wird nur gefiltert,
+// WER sie überhaupt zu sehen bekommt.
+const notices = computed(() =>
+  resolveAdminNotices((appConfig.pukalani as { admin?: { notices?: PukalaniAdminNoticeConfig } }).admin?.notices, can))
 
 // --- Kennzahlen + Chart (SSR) -------------------------------------------------
 const { data: stats, refresh: refreshStats } = await useFetch<AdminStats>('/api/admin/stats')
@@ -200,6 +214,10 @@ onScopeDispose(() => {
           <h1 class="text-xl font-semibold">{{ t('admin.overview.greeting', { name: firstName }) }}</h1>
           <p class="text-sm text-muted">{{ today }}</p>
         </div>
+
+        <!-- Hinweise registrierter Layer (M13) — direkt unter der Begrüßung,
+             vor den Zahlen: was jetzt zu tun ist, steht über dem, was war. -->
+        <component :is="notice.component" v-for="notice in notices" :key="notice.id" />
 
         <!-- Online -->
         <UCard data-online-card>

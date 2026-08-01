@@ -51,6 +51,20 @@ describe('mapTenantRowToContext (pure)', () => {
     expect(mapTenantRowToContext({ $id: 'site-xyz', mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: '' }))
       .toEqual({ mode: 'pool', projectId: 'shared', tenantId: 't-1', plan: 'basic', communityId: 'site-xyz', openRegistration: true, audience: 'members' })
   })
+  it('M13: trialEndsAt reist in den Pool-Context — leer heißt „keine Testphase"', () => {
+    const end = '2026-08-14T12:00:00.000Z'
+    expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: 'pro', trialEndsAt: end }))
+      .toMatchObject({ trialEndsAt: end })
+    // Fehlend/null/'' lässt das Feld WEG statt einen leeren String zu tragen —
+    // der Hinweis prüft auf Anwesenheit, nicht auf Inhalt.
+    for (const value of [undefined, null, '']) {
+      expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: 'pro', trialEndsAt: value }))
+        .not.toHaveProperty('trialEndsAt')
+    }
+    // Silo = Enterprise-Vertrag, dort gibt es keine Testphase.
+    expect(mapTenantRowToContext({ mode: 'silo', projectId: 'p1', tenantId: '', status: 'active', plan: '', trialEndsAt: end }))
+      .not.toHaveProperty('trialEndsAt')
+  })
   it('S1: openRegistration=false reist in den Context (pool + silo)', () => {
     expect(mapTenantRowToContext({ mode: 'pool', projectId: 'shared', tenantId: 't-1', status: 'active', plan: '', openRegistration: false }))
       .toMatchObject({ openRegistration: false })

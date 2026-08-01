@@ -168,6 +168,13 @@
     "nav": {
       "subscription": "Subscription"
     },
+    "trial": {
+      "endingTitle": "1 day left in your trial | {n} days left in your trial",
+      "endingText": "After that your community continues on the free Basic plan — nothing is locked, nothing is deleted. A subscription keeps the Pro features.",
+      "endedTitle": "Your trial has ended",
+      "endedText": "Your community now runs on the free Basic plan. All content and members are still there; the Pro features need a subscription.",
+      "action": "View subscription"
+    },
     "subscription": {
       "title": "Subscription & billing",
       "help": "Which plan applies to your community, what it costs, and where to find invoices and payment details.",

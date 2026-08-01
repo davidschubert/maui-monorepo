@@ -30,9 +30,20 @@ Verbindliche Trennung nach Zielgruppe + Vertrauensgrenze (Roadmap §A). Drei
 Oberflächen, nie vermischt:
 
 ### 1.1 Kundenbereich / Control Center
-*Zielgruppe:* Owner + Kunden-Admins. *Wo:* **`app.pukalani.app`** (✅ entschieden;
-Migration von heute `/workspace` in der Studio-App als G-Schritt). *Zweck:* das
-Geschäftliche — Sites, Abrechnung, Team, Nutzung.
+*Zielgruppe:* Owner + Kunden-Admins. *Wo:* **`my.pukalani.app`** (umbenannt am
+2026-07-25, vorher `app.pukalani.app` — der Altname ist am 2026-07-27 entfernt).
+*Zweck:* das Geschäftliche — Sites, Abrechnung, Team, Nutzung.
+
+> **Stand 2026-08-01, damit der Baum unten nicht wie gebaut aussieht:** der
+> G-Schritt „Migration von `/workspace`" ist **erledigt, aber anders als hier
+> gedacht** — mit A6 Schritt 5 (2026-07-31, Migration control-031) ist der
+> Workspace als Abrechnungs-Objekt ersatzlos GEFALLEN; die Community zahlt
+> selbst. Damit ist auch `/workspace` weg, und die Punkte „Plan & Rechnungen",
+> „Team" und „Branding" leben seither **im Dashboard der jeweiligen Community**
+> (`/dashboard/settings/subscription`, `/dashboard/members`,
+> `/dashboard/branding`) statt in einer Ebene darüber. `my.pukalani.app` trägt
+> heute nur den Trichter (`/start`); eine **Übersicht „meine Communities" gibt es
+> dort noch nicht** (OPEN-ITEMS, M13-Rest).
 
 ```
 Kundenbereich (Control Center)
