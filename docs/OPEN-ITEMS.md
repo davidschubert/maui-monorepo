@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 24 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 23 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-07-31**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -42,7 +42,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | F1 · TOAST | **Leere Fehler-Beschreibungen in Produktion:** `error.statusMessage` als Toast-Description ist unter HTTP/2 immer leer (Reason-Phrase entfällt). In control gefixt (Fallbacks) — dasselbe Muster steckt noch in comments, pages, media und admin. | Mittel | S — Fallback-Texte je Stelle | Nein | Agenten-Fund C12 |
 | F3 · GDPR | **Pool-Kontolöschung räumt das Control Plane nicht auf:** community_members-Zeilen (runtimeUserId-verankert) bleiben nach Löschung eines Pool-Kontos stehen — die Löschung müsste über die Naht ins Control Plane greifen. | Mittel | M — Naht-Erweiterung + Contributor | Nein | Agenten-Fund A6 (Task-Chip liegt bereit) |
 | F4 · GAST | **Gast-Kommentar in geschlossener Community ist für den eigenen Verfasser unsichtbar** (C18-Kante; heute unkritisch, weil embed.guests aus ist — vor Aktivierung lösen). | Niedrig | S — Verfasser-Read beim Anlegen | Nein | Agenten-Fund C18 |
-| F6 · LINT | **type-only-Imports in ~60 alten Migrationen** (`TablesDBIndexType`) — lokal rot, je Datei ein Wort. Die E8-3-Migrationen sind schon gefixt. | Niedrig | S — mechanisch | Nein | Agenten-Fund E8-4 |
 
 ## ⏸️ Geparkt / wartet
 

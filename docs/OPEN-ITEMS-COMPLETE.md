@@ -679,3 +679,11 @@ Default sein. **Beweise:** 40 Unit-Tests, `pnpm -r test/typecheck/lint` und
 die lokale Appwrite, der die vom Anbieter gebauten URLs wirklich abruft (alle
 Varianten 200, Content-Type und Maße geprüft, Testbild wieder gelöscht).
 **Rest:** `srcset` in der Antwort von `/api/media` hat seither keinen Leser mehr.
+
+### F6 — type-only-Imports in alten Migrationen ✅ 2026-07-31
+
+Bereits behoben vorgefunden: alle Migrations-Ordner linten fehlerfrei (die
+parallele Session hat die Imports mit ihrem Index-Race-Retry-Refactor
+mitgezogen). **Gelernt:** Funde vor dem Fixen erst REPRODUZIEREN — in einem
+Repo mit parallelen Sessions altern Befunde in Stunden.
+
