@@ -13,14 +13,20 @@ import type { ProductManifest } from '../core/shared/types/manifest'
  *    NIE Produkt-Logik, NIE eigene Tables, NIE server/api.
  *  - In `extends` steht blueprint VOR den Produkt-Layern (höhere Priorität),
  *    damit seine Seiten die „nackten" Produkt-Seiten überlagern.
- *  - Kompositionen für events/courses ziehen erst hierher um, wenn diese
- *    Produkte durch die Datentür gegangen und im Pool montiert sind
- *    (bis dahin bleiben sie in apps/comments — Bilanz-Reihenfolge Schritt 3).
+ *  - Kompositionen für events/courses sind am 2026-07-31 hierher gezogen
+ *    (OPEN-ITEMS C3): beide Produkte sind durch die Datentür gegangen und in
+ *    apps/platform montiert — die Vorbedingung aus Bilanz-Schritt 3 ist damit
+ *    erfüllt. Vorher lagen Event+Kommentare und Lektion+Kommentare nur in
+ *    apps/comments; der Pool zeigte dieselben Seiten ohne Kommentare.
+ *
+ * `requires` wächst mit den Kompositionen: wer den Bauplan wählt, wählt auch
+ * die Produkte, die er verdrahtet — sonst registriert er Seiten für Layer,
+ * die gar nicht da sind. `pnpm check:manifests` erzwingt den Schluss.
  */
 export default {
   key: 'blueprint',
   tier: 'foundation',
-  requires: ['posts', 'comments'],
+  requires: ['posts', 'comments', 'events', 'courses'],
   hasMigrations: false,
   title: { en: 'Blueprint', de: 'Bauplan' },
   description: {

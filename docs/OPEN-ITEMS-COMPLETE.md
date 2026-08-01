@@ -698,3 +698,13 @@ wie der Server); Nicht-Pool unverändert; +7 Tests. **Gelernt:** Undefined-
 Behandlung gehört IN die pure Regel, nicht an jede Aufrufstelle — der
 Testfall planOn=false hat den vergesslichen Aufrufer sofort reproduziert.
 
+### C3 + C4 — Kompositionen und Nav-Einträge in ihre Layer ✅ 2026-07-31
+
+Events-/Kurs-Kompositionen aus apps/comments in den blueprint-Layer (Pool
+und Silo identisch — platform zeigt die Einträge jetzt ERSTMALS, obwohl es
+die Layer längst zog: der C4-Gewinn); Nav-Einträge in ihre Produkt-Layer,
+Dedup strukturell (Objekt-Map, Key = Id). **Gelernt:** Beim Umzug einer
+Komposition reist jeder fest verdrahtete APP-Pfad mit und wird woanders zur
+Lüge — der Ticket-Checkout-Pfad wurde ein expliziter Config-Vertrag
+(pukalani.events.ticketCheckoutPath, leer = fail-closed „Bald verfügbar").
+

@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 21 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 19 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-07-31**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -22,8 +22,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
 | 11 · B1 | **Neun visuelle Referenzbilder sichten**, dann neu aufnehmen — der Header-Umbau hat sie erwartungsgemäß gebrochen. | Mittel | S — ansehen + ein Befehl | Ja: David sichtet zuerst | [Notizen](#notizen) |
 | 13 · C12 | **Dashboard-Kleinteile** — fehlende Blätterfunktion, leere Zustände, interne IDs und Fachjargon im Kundenblick, handgebaute Listen, 238 Toasts ohne Erklärtext. Läuft am besten mit 7. | Mittel | M — viele kleine Stellen | Nein | [Notizen](#notizen) |
-| 16 · C3 | **Kommentare unter Events und Kurse** gehören in den Bauplan-Layer, damit sie in jeder App gleich aussehen. Heute nur in einer App gefüllt. | Mittel | S — Komposition umziehen | Nein | [PRODUKT-BILANZ.md](referenz/PRODUKT-BILANZ.md) |
-| 17 · C4 | **Navigations-Einträge für Events und Kurse** stehen in einer einzelnen App statt in ihren Layern. | Niedrig | S — verschieben | Nein | [Notizen](#notizen) |
 | 18 · C7 | **App-Icon je Community** (das für den Home-Bildschirm). Muss ein PNG sein, lässt sich aus dem SVG nicht ableiten. | Niedrig | S — an das Vorschaubild anlehnen | Nein | [Notizen](#notizen) |
 | 19 · C6 | **Aufräum-Migration:** die alte Spalte `app_config.entitlements` löschen — erst, wenn alle Instanzen den neuen Code fahren. | Niedrig | S — eine Migration | Nein | [Notizen](#notizen) |
 | 20 · C12b | **Fehlerseite bei unbekanntem Host** zeigt „500 – Unknown host", obwohl es korrekt ein 404 ist. Klein, aber die Zahl auf der Seite ist falsch. | Niedrig | S — eine Middleware-Stelle | Nein | [Notizen](#notizen) |

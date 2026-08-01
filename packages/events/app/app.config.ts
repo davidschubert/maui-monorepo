@@ -1,10 +1,37 @@
 /**
  * events meldet seine Dashboard-Sektion bei der Admin-Modul-Registry an
  * (pukalani.admin.modules, deep-merged) — das Admin-Layout rendert sie
- * capability-gefiltert (Layer-Grenze A14).
+ * capability-gefiltert (Layer-Grenze A14) — und seit C4 (2026-07-31) auch
+ * seinen ÖFFENTLICHEN Nav-Eintrag in der Chrome-Registry.
  */
 export default defineAppConfig({
   pukalani: {
+    /**
+     * Kauf-Endpunkt für bezahlte Events als Pfad-Template mit `{id}`
+     * (z. B. '/api/events/{id}/checkout'). Leer = kein Kauf.
+     *
+     * WARUM CONFIG UND NICHT FEST VERDRAHTET: die Route gehört der APP, die
+     * events + billing komponiert (A14 — die Layer kennen sich nicht); heute
+     * ist das nur apps/comments. Im Pool existiert sie nicht (D1: bezahlte
+     * Events sind dort gesperrt). Der Default '' hält den CTA fail-closed auf
+     * „Bald verfügbar" (EventDetail), statt einen Kauf in einen 404 zu
+     * schicken. Konsument ist die Bauplan-Komposition
+     * packages/blueprint/app/pages/events/[id].vue.
+     */
+    events: {
+      ticketCheckoutPath: '',
+    },
+    chrome: {
+      nav: {
+        // C4 (2026-07-31): stand bis dahin in apps/comments/app/app.config.ts —
+        // damit hatte der Pool den Menüpunkt nicht, obwohl er den Layer zieht.
+        // Jetzt bekommt ihn JEDE App, die events extended; App-Overrides
+        // bleiben möglich (Objekt-Map, Key = stabile ID ⇒ Dedup inklusive).
+        // planProduct: im Pool erst ab Pro (pukalani.tenancy.products) +
+        // Plan-Badge auf Demo-Hosts; im Silo ohne Tenant-Plan wirkungslos.
+        events: { labelKey: 'events.list.title', to: '/events', icon: 'i-ph-calendar-dots', order: 20, productKey: 'events', planProduct: 'events' },
+      },
+    },
     admin: {
       modules: [
         {

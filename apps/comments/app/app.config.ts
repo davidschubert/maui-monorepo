@@ -4,20 +4,19 @@ export default defineAppConfig({
   // pukalani: { auth: { providers: ['github'], termsUrl: '/agb' } }
   pukalani: {
     brand: { name: 'Hawaii Studio' },
-    // Chrome-Registry (S9): Nav-Einträge für events/courses stehen BEWUSST
-    // hier statt in den Layern — deren Kompositionen bleiben App-Sache, bis
-    // die Produkte durch die Datentür gegangen und im Pool montiert sind
-    // (blueprint/product.manifest.ts, Bilanz-Reihenfolge Schritt 3). Dann
-    // ziehen die Einträge in die Layer-app.configs um. Gates wie im alten
-    // Layout: Events öffentlich, Kurse nur eingeloggt.
-    chrome: {
-      nav: {
-        // planProduct (C2): im Silo wirkungslos (kein Tenant-Plan), aber das
-        // Feld gehört an den Eintrag und nicht an seinen künftigen Ort — beim
-        // Umzug in die Layer (C4) trägt er das Pool-Gate dann schon mit.
-        events: { labelKey: 'events.list.title', to: '/events', icon: 'i-ph-calendar-dots', order: 20, productKey: 'events', planProduct: 'events' },
-        courses: { labelKey: 'courses.list.title', to: '/courses', icon: 'i-ph-graduation-cap', order: 30, productKey: 'courses', planProduct: 'courses', requiresAuth: true },
-      },
+    // Chrome-Registry: die Nav-Einträge für events/courses sind mit C4
+    // (2026-07-31) in ihre LAYER gezogen (packages/{events,courses}/app/
+    // app.config.ts) — jede App, die den Layer zieht, bekommt sie jetzt
+    // automatisch, und der Pool ist nicht mehr die Ausnahme. Ein App-Override
+    // bleibt möglich (Objekt-Map, gleicher Key gewinnt), wird hier aber nicht
+    // gebraucht.
+    events: {
+      // A14-Komposition events + billing: DIESE App bringt die Checkout-Route
+      // mit (server/api/events/[id]/checkout.post.ts) und sagt der
+      // Bauplan-Seite über die Config, wo sie liegt. Ohne Eintrag bleibt der
+      // Kauf-CTA fail-closed („Bald verfügbar") — so im Pool, wo bezahlte
+      // Events gesperrt sind (D1).
+      ticketCheckoutPath: '/api/events/{id}/checkout',
     },
     ai: {
       // Core-KI (aiComplete): Moderations-Assist in der Queue; Key server-only
