@@ -7,9 +7,6 @@ const patchSchema = z.object({
   appUrl: z.string().url().max(256).or(z.literal('')).optional(),
   status: z.enum(WEBSITE_STATUSES).optional(),
   notes: z.string().max(1000).optional(),
-  // `workspaceId` ist mit A6 Schritt 5 aus dem Schema gefallen: die Tabelle,
-  // gegen die hier geprüft wurde, gibt es nicht mehr. Die SPALTE steht noch
-  // (tot, siehe types/website.ts) — sie fällt in einem eigenen Schritt.
 }).strict()
 
 /**
