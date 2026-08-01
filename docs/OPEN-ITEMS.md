@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 9 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 9 offen · 11 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-01**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -34,7 +34,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | --- | --- | --- | --- | --- | --- |
 | F7 | **Bezahlte Communities** — der Owner nimmt Geld von seinen Mitgliedern (Stripe Connect). Eigene Mechanik und eigene Rechtsfragen. | Mittel | XL | Ja: Rechtsfragen | nach dem Go-Live; erst muss Geldfluss 1 (A6) ankommen |
 | D1 | **Bezahlte Events und Kurse im Pool** sind absichtlich gesperrt — der Stripe-Webhook kennt den Community-Host nicht. Die Events-Hälfte ist schon gestempelt. | Mittel | M | Nein | dass die Abrechnung mandantenfähig wird |
-| D5 | **Benachrichtigungs-Mails verlinken auf den falschen Host** (App-Adresse statt Community-Adresse). Die Glocke in der App ist bereits richtig. | Mittel | M | Nein | eine Auflösung „Community → Host" über Projektgrenzen |
 | D6 | **Farbwechsel einer Community erreicht offene Fenster erst beim nächsten Seitenaufbau** (≤ 30 s). Eigene Themes morphen live, Community-Farben nicht. | Niedrig | M | Nein | dass jemand die Farbe oft ändert — oder ein Spiegel ohnehin gebaut wird |
 | D4 | **Cloudflare-Ursprungszertifikat** für die Landing — erlaubt „Full (Strict)". Der private Schlüssel muss durchs Dashboard. | Niedrig | S | Ja: nur David | dass David es einmal macht |
 | D2 | **Der Changelog antwortet auf Community-Hosts mit 404** — so gewollt (Betreiber-Inhalt). | — | — | Nein | nichts, bewusst so |

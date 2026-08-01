@@ -101,7 +101,10 @@ export async function notify(event: H3Event, input: NotifyInput): Promise<void> 
 
     // E-Mail-Zweig (Opt-in, Modus 'instant') — eigener best-effort-Pfad;
     // 'digest' sammelt der Sweep (server/plugins/email-digest.ts) ein.
-    await maybeSendInstantEmail(event, input)
+    // Der Ablage-Wert reist MIT (D5): er entscheidet, auf welchen Host der
+    // Link in der Mail zeigt — dieselbe Zahl, die eine Zeile weiter oben in
+    // die Spalte geschrieben wurde, nie eine zweite Rechnung.
+    await maybeSendInstantEmail(event, input, tenantId)
   }
   catch {
     // best-effort — der auslösende Vorgang ist bereits passiert

@@ -1,5 +1,6 @@
 import { createTenantsTableResolver } from '../../../../packages/control/server/utils/tenantsResolver'
 import { createFormerCommunityMembersResolver, createCommunityMembersResolver } from '../../../../packages/control/server/utils/communityMembersResolver'
+import { createCommunityHostResolver } from '../../../../packages/control/server/utils/communityHostResolver'
 
 /**
  * A14-Komposition: die APP verdrahtet die core-Resolver-Verträge mit den
@@ -14,6 +15,11 @@ import { createFormerCommunityMembersResolver, createCommunityMembersResolver } 
  *    aus DIESER Community entfernt wurde. Eigener Vertrag, weil eine
  *    Kommentarliste 25 Autoren hat und der Einzel-Lookup daraus 25
  *    Cross-Projekt-Abfragen machen würde; Cache pro Nutzer, 60 s, fail-soft.
+ *  - HOST-Resolver (D5): Ablage-Wert einer Benachrichtigung → Host der
+ *    Community, damit Benachrichtigungs-MAILS dorthin verlinken statt auf den
+ *    App-Host. Gebündelt und OHNE H3Event, weil der Digest-Sweep ohne Request
+ *    läuft; Cache 60 s, fail-soft (kein Host ⇒ App-Basis, nie eine verworfene
+ *    Mail).
  *
  * Ohne NUXT_PLATFORM_CONTROL_*-Env (z. B. CI-Build) wird KEIN Resolver
  * registriert → die Tenant-Middleware ist dokumentiert fail-open (No-Op) und
@@ -32,4 +38,5 @@ export default defineNitroPlugin(() => {
   registerTenantResolver(createTenantsTableResolver({ endpoint, projectId, apiKey, databaseId }))
   registerCommunityRoleResolver(createCommunityMembersResolver({ endpoint, projectId, apiKey, databaseId }))
   registerFormerCommunityMembersResolver(createFormerCommunityMembersResolver({ endpoint, projectId, apiKey, databaseId }))
+  registerCommunityHostResolver(createCommunityHostResolver({ endpoint, projectId, apiKey, databaseId }))
 })

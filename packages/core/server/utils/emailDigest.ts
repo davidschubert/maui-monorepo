@@ -1,4 +1,6 @@
 import { Query, type Models } from 'node-appwrite'
+import { communityIdsNeedingHost } from '../../shared/notificationLinks'
+import { resolveCommunityHosts } from './communityHost'
 
 /**
  * Digest-Sweep (Modus 'digest'): sammelt UNGELESENE Notifications, gruppiert
@@ -17,13 +19,19 @@ import { Query, type Models } from 'node-appwrite'
  * nicht eine pro Community. Der Stempel aus system-022 stört ihn nicht: er
  * gruppiert nach `recipientId` und liest die Spalte gar nicht.
  *
- * OFFEN, NICHT hier zu lösen (Davids Entscheidung 4, 2026-07-29): die Links in
- * der Mail bauen auf EINER Env-Basis (`absoluteLink` in notificationEmail.ts).
- * Eine Meldung aus Community A verlinkt damit auf den App-Host, nicht auf
- * `a.pukalani.app`. Mandantenrichtige Mail-Links brauchen die Tenant→Host-
- * Auflösung aus dem Control Plane (cross-projekt) — und dieser Sweep hat nicht
- * einmal einen Request, aus dem er einen Host ableiten könnte. Steht als
- * eigenes Paket in OPEN-ITEMS.
+ * MANDANTENRICHTIGE LINKS (D5, 2026-08-01) — genau deshalb bündelt der Sweep
+ * die Host-Auflösung EINMAL, vor der Empfänger-Schleife: der Ablage-Wert jeder
+ * Zeile geht durch `resolveCommunityHosts()` (core-Vertrag, Implementierung im
+ * control-Layer), und die fertige Karte reist in JEDE Mail. Pro Eintrag wird
+ * daraus die Basis gewählt — eine Sammel-Mail kann Links in zwei Communities
+ * UND in den Kundenbereich tragen, weil sie bewusst mandantenübergreifend ist.
+ *
+ * Warum vor der Schleife und nicht je Mail: der Sweep sieht bis zu 2000 Zeilen,
+ * aber nur eine Handvoll verschiedener Communities. Ein Aufruf je Mail wäre die
+ * N+1-Falle über Projektgrenzen; der Resolver cacht zwar (60 s), aber ein
+ * Aufruf im Voraus ist ehrlicher als ein Cache, auf den man sich verlässt.
+ * Fällt die Auflösung aus, bleibt die Karte leer und die Links sind wie vor D5
+ * — die Mail geht IMMER raus.
  */
 
 // Täglicher Rhythmus mit Toleranz: 20h statt 24h, damit der Digest nicht
@@ -42,6 +50,9 @@ type NotificationRow = Models.Row & {
   body: string
   link: string
   read: boolean
+  /** Ablage-Ebene (system-025): `<communityId>` · `_account` · `''`.
+   *  Optional, weil Bestandszeilen die Spalte nicht tragen. */
+  communityId?: string
 }
 
 export interface DigestSweepResult {
@@ -85,6 +96,11 @@ export async function runEmailDigestSweep(): Promise<DigestSweepResult> {
     }
     result.candidates = byRecipient.size
 
+    // Hosts EINMAL für den ganzen Lauf auflösen (D5) — siehe Kopf. Leere Karte
+    // bei Silo/ohne Resolver/Fehler; dann greift die App-Basis wie bisher.
+    const appBase = (config.public.appUrl || '').replace(/\/+$/, '')
+    const hosts = await resolveCommunityHosts(communityIdsNeedingHost(unread.rows))
+
     for (const [recipientId, rows] of byRecipient) {
       try {
         const recipient = await admin.users.get({ userId: recipientId }).catch(() => null)
@@ -101,7 +117,7 @@ export async function runEmailDigestSweep(): Promise<DigestSweepResult> {
         const fresh = rows.filter(row => Date.parse(row.$createdAt) > lastAt)
         if (fresh.length === 0) { result.skipped++; continue }
 
-        const mail = buildDigestEmail(undefined, prefs.emailLocale, fresh.slice(0, DIGEST_MAX_ITEMS))
+        const mail = buildDigestEmail({ appBase, hosts }, prefs.emailLocale, fresh.slice(0, DIGEST_MAX_ITEMS))
         await sendMail(undefined, { ...mail, to: recipient.email })
         // Marker NACH dem Versand — prefs mergen (updatePrefs ERSETZT alles)
         await admin.users.updatePrefs({

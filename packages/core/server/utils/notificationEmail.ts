@@ -1,4 +1,6 @@
 import type { H3Event } from 'h3'
+import { type NotificationLinkContext, notificationLinkUrl } from '../../shared/notificationLinks'
+import { resolveCommunityHosts } from './communityHost'
 import type { NotifyInput } from './notify'
 
 /**
@@ -62,19 +64,17 @@ function escapeHtml(value: string): string {
 }
 
 /**
- * Interner Link → absolute URL (NUXT_PUBLIC_APP_URL); Guard wie NotificationBell.
+ * Die Link-Basis dieser App (`NUXT_PUBLIC_APP_URL`) — der Fallback, wenn eine
+ * Meldung keiner Community gehört oder ihr Host nicht auflösbar ist.
  *
- * BEWUSSTE LÜCKE im Pool (C15, Davids Entscheidung 4 vom 2026-07-29): die Basis
- * ist EINE Env-Variable, also zeigt der Link einer Community-Meldung auf den
- * App-Host statt auf `<community>.pukalani.app`. Die In-App-Glocke ist seit
- * system-022 mandantenrichtig, die MAIL noch nicht — dafür bräuchte es die
- * Tenant→Host-Auflösung aus dem Control Plane (cross-projekt), und der
- * Digest-Sweep läuft ganz ohne Request. Eigenes Paket, siehe OPEN-ITEMS.
+ * Bis D5 (2026-08-01) war das die EINZIGE Basis, und darin lag der Fehler: eine
+ * Meldung aus Community A verlinkte auf den App-Host. Wohin ein Eintrag
+ * WIRKLICH zeigt, entscheidet jetzt die pure Regel in
+ * shared/notificationLinks.ts — pro EINTRAG, nicht pro Mail (eine Digest-Mail
+ * mischt Communities).
  */
-function absoluteLink(event: H3Event | undefined, link: string): string {
-  const appUrl = (useRuntimeConfig(event).public.appUrl || '').replace(/\/$/, '')
-  const safe = /^\/(?![/\\%])[^\s\\]*$/.test(link) ? link : '/'
-  return `${appUrl}${safe}`
+function appLinkBase(event: H3Event | undefined): string {
+  return (useRuntimeConfig(event).public.appUrl || '').replace(/\/+$/, '')
 }
 
 export interface NotificationEmailItem {
@@ -82,13 +82,19 @@ export interface NotificationEmailItem {
   title: string
   body: string
   link: string
+  /**
+   * Ablage-Wert der Zeile (`notifications.communityId`): `<communityId>` ·
+   * `_account` · `''`. Optional, weil Bestands-Aufrufer ihn nicht kennen —
+   * fehlt er, verhält sich der Link wie vor D5 (App-Basis).
+   */
+  communityId?: string
 }
 
-function itemLines(locale: EmailLocale, item: NotificationEmailItem, event?: H3Event) {
+function itemLines(locale: EmailLocale, item: NotificationEmailItem, links: NotificationLinkContext) {
   const copy = COPY[locale]
   const label = copy.types[item.type]
   const heading = label ? `${item.title} ${label}` : `${copy.fallbackType}: ${item.title}`
-  const url = absoluteLink(event, item.link)
+  const url = notificationLinkUrl(links, item)
   return {
     heading,
     text: `${heading}\n${item.body ? `„${item.body}"\n` : ''}${copy.openLink}: ${url}`,
@@ -97,9 +103,9 @@ function itemLines(locale: EmailLocale, item: NotificationEmailItem, event?: H3E
 }
 
 /** Sofort-Mail für EINE Notification (Modus 'instant'). */
-export function buildInstantEmail(event: H3Event | undefined, locale: EmailLocale, input: NotificationEmailItem): Omit<MailInput, 'to'> {
+export function buildInstantEmail(links: NotificationLinkContext, locale: EmailLocale, input: NotificationEmailItem): Omit<MailInput, 'to'> {
   const copy = COPY[locale]
-  const lines = itemLines(locale, input, event)
+  const lines = itemLines(locale, input, links)
   return {
     subject: lines.heading,
     text: `${lines.text}\n\n—\n${copy.footer}`,
@@ -107,10 +113,17 @@ export function buildInstantEmail(event: H3Event | undefined, locale: EmailLocal
   }
 }
 
-/** Digest-Mail für mehrere ungelesene Notifications (Modus 'digest'). */
-export function buildDigestEmail(event: H3Event | undefined, locale: EmailLocale, items: NotificationEmailItem[]): Omit<MailInput, 'to'> {
+/**
+ * Digest-Mail für mehrere ungelesene Notifications (Modus 'digest').
+ *
+ * JEDER Eintrag bekommt seinen eigenen Host (D5) — das ist hier kein Detail,
+ * sondern der Normalfall: der Sweep bündelt bewusst mandantenübergreifend (eine
+ * Sammel-Mail pro Tag, nicht eine je Community), eine Mail trägt also Links in
+ * mehrere Communities UND in den Kundenbereich nebeneinander.
+ */
+export function buildDigestEmail(links: NotificationLinkContext, locale: EmailLocale, items: NotificationEmailItem[]): Omit<MailInput, 'to'> {
   const copy = COPY[locale]
-  const parts = items.map(item => itemLines(locale, item, event))
+  const parts = items.map(item => itemLines(locale, item, links))
   return {
     subject: copy.digestSubject(items.length),
     text: `${copy.digestIntro(items.length)}\n\n${parts.map(p => p.text).join('\n\n')}\n\n—\n${copy.footer}`,
@@ -121,8 +134,13 @@ export function buildDigestEmail(event: H3Event | undefined, locale: EmailLocale
 /**
  * Instant-Zweig für notify(): Empfänger laden, Opt-in prüfen, senden.
  * Best-effort — wirft nie (der auslösende Request ist längst beantwortet).
+ *
+ * `communityId` ist der bereits BERECHNETE Ablage-Wert aus notify() — nicht
+ * noch einmal aus dem Request abgeleitet. Ein zweites Mal rechnen hieße, die
+ * Regel aus notificationScope.ts zu kopieren, und dann könnten Glocke und Mail
+ * unterschiedlich entscheiden.
  */
-export async function maybeSendInstantEmail(event: H3Event, input: NotifyInput): Promise<void> {
+export async function maybeSendInstantEmail(event: H3Event, input: NotifyInput, communityId: string): Promise<void> {
   try {
     if (!isMailerConfigured(event)) return
     const { users } = createAdminClient(event)
@@ -132,7 +150,10 @@ export async function maybeSendInstantEmail(event: H3Event, input: NotifyInput):
     // Spam-Schutz: Mails NUR an verifizierte Adressen — sonst könnte ein
     // Account mit fremder E-Mail Dritten unsere Notifications zustellen.
     if (!recipient.emailVerification) return
-    const mail = buildInstantEmail(event, prefs.emailLocale, input)
+    // EINE Community, also ein Resolver-Aufruf — der 60-s-Cache im Resolver
+    // trägt die übrigen Antworten desselben Threads.
+    const hosts = await resolveCommunityHosts([communityId])
+    const mail = buildInstantEmail({ appBase: appLinkBase(event), hosts }, prefs.emailLocale, { ...input, communityId })
     await sendMail(event, { ...mail, to: recipient.email })
   }
   catch (error) {

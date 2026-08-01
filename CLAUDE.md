@@ -438,8 +438,24 @@ Vollständiges Konzept: docs/CONCEPT.md
   `''` = unbekannt. `''` ist hier FAIL-OPEN und damit die BEGRÜNDETE AUSNAHME
   von `rowBelongsToTenant` — ohne Backfill würde fail-closed jedem Nutzer im
   Deploy-Moment die Glocke leeren. Nicht „korrigieren". Der Digest-Sweep bleibt
-  mandantenübergreifend (eine Mail/Tag, nicht eine je Community); Mail-LINKS
-  sind noch nicht mandantenrichtig (OPEN-ITEMS D5).
+  mandantenübergreifend (eine Mail/Tag, nicht eine je Community).
+- MAIL-LINKS FOLGEN DERSELBEN ABLAGE (D5, seit 2026-08-01): eine Benachrichtigungs-
+  MAIL verlinkt auf den Host DER COMMUNITY, nicht mehr auf `public.appUrl`. Pure
+  Regel `core/shared/notificationLinks.ts` (dieselben drei Spaltenwerte:
+  `<communityId>` ⇒ Community-Host · `_account` ⇒ App-Host · `''` ⇒ App-Host).
+  Aufgelöst über den Registry-Vertrag `registerCommunityHostResolver`
+  (core/server/utils/communityHost.ts; Implementierung
+  `packages/control/server/utils/communityHostResolver.ts`, verdrahtet in
+  apps/platform) — zwei Eigenheiten mit Grund: OHNE `H3Event`, weil der
+  Digest-Sweep ohne Request läuft, und GEBÜNDELT, weil der Sweep sonst N+1 über
+  Projektgrenzen liefe. Nachgeschlagen wird `communities.tenantId`, NICHT `$id`
+  (E8-3 hat die Spalte umbenannt, nicht den Wert). FAIL-SOFT: kein Host ⇒
+  App-Basis, eine Mail wird NIE verworfen — deshalb muss jeder Test hier eine
+  Gegenprobe haben, sonst ist er immer grün. JEDER EINTRAG einer Digest-Mail
+  trägt seinen eigenen Host (die Sammel-Mail ist bewusst mandantenübergreifend).
+  Beweise: `packages/core/tests/notificationLinks.test.ts`,
+  `packages/control/tests/communityHostResolver.test.ts` und der Mailpit-Beweis
+  `packages/core/scripts/verify-notification-mail-links.mjs` (11/11).
 - WO HÄNGT DIE GLOCKE? (C17, seit 2026-07-29): sie wird NUR aus
   `pukalani.chrome.utilities` gerendert, und dessen einziger Konsument ist das
   blueprint-Layout — eine App OHNE blueprint hat also keine. Genau das traf
