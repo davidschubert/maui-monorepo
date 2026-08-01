@@ -580,14 +580,20 @@ nur bis 'load') wärmt das Client-Bundle NICHT. Grund: `embed.js`
 versteckt das iframe nach 10 s ohne Höhen-Meldung ENDGÜLTIG (display:none),
 und die Höhe kommt erst aus onMounted. Ein zu knappes Budget meldet eine
 Zeitüberschreitung an beliebiger Stelle statt der echten Ursache; `retries: 1`
-kaschiert das zu „flaky" — grün, aber wertlos. (3) Der bekannte
-Teardown-Hang ist KEIN kosmetisches Warten: Playwright force-killt jeden
-Worker nach 300 s und zählt das als Fehler AUSSERHALB jedes Tests → Exit 1
-trotz grüner Suite. Er tritt NUR lokal (macOS) auf, in CI nie — dort läuft die
-Suite in ~1,6 min sauber durch. Test-eigene `node:http`-Server rufen deshalb
-`closeAllConnections()` vor `close()` (richtige Hygiene, `close()` wartet sonst
-auf Keep-alive-Sockets), das allein behebt den lokalen Hang aber NICHT: er
-trifft auch Worker ohne eigenen Server. Ursache lokal weiter offen.
+kaschiert das zu „flaky" — grün, aber wertlos. (3) Der Teardown-Hang ist
+BEHOBEN (2026-08-01). Ursache: `channel: 'chrome'` — ein Start von
+System-Chrome weckt auf macOS den `GoogleUpdater`, dessen crash-handler die
+stdout/stderr-Sockets des Workers ERBEN, zu launchd reparenten und nie
+schließen; ohne EOF endete der Worker nie (Force-Kill nach 300 s ⇒ Exit 1
+trotz grüner Suite, und nach einem ROTEN Test stand die ganze Suite, weil der
+Worker-Neustart darauf wartet). Startflags helfen nicht. Kur: **Playwrights
+gebündeltes Chromium** (kein `channel` in playwright.config.ts) — einmalig
+`npx playwright install chromium`, in CI ein eigener Install-Schritt, weil
+ubuntu-latest Chrome mitbringt, aber kein Playwright-Chromium. Volle Suite
+seither 24/24 in ~25 s, Exit 0. Test-eigene `node:http`-Server rufen weiterhin
+`closeAllConnections()` vor `close()` (richtige Hygiene — `close()` wartet
+sonst auf Keep-alive-Sockets), das war nie die Hang-Ursache. NICHT auf
+`channel: 'chrome'` zurückwechseln.
 
 ## Git
 Conventional Commits · BREAKING CHANGE(core): Prefix · Core-Änderungen

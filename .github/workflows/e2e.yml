@@ -71,7 +71,13 @@ jobs:
       - name: Changelog seeden
         run: node --env-file=apps/comments/.env packages/admin/scripts/seed-changelog.mjs
 
-      # channel 'chrome' (playwright.config) — auf ubuntu-latest vorinstalliert
+      # Seit 2026-07-31 GEBÜNDELTES Chromium statt System-Chrome (playwright.
+      # config): auf macOS erbten GoogleUpdater/crashpad das stdout-Socketpair
+      # des Workers und hängten die lokale Suite. Preis: der Browser ist auf
+      # ubuntu-latest NICHT vorinstalliert und braucht diesen Schritt.
+      - name: Playwright-Browser (Chromium)
+        run: pnpm --filter comments exec playwright install --with-deps chromium
+
       - name: Playwright-E2E (inkl. Realtime gegen echte Instanz)
         run: pnpm --filter comments exec playwright test
 

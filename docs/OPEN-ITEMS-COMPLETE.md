@@ -1027,3 +1027,55 @@ migrieren über `pnpm migrate --app <app>`, nicht über Wellen (s. E5).
 **Gelernt:** Ein Vorab-Check darf nicht bloß prüfen, ob eine Datei DA ist —
 der Wellen-Runner tut genau das, und eine falsch befüllte Datei besteht diesen
 Test und migriert danach die falsche Instanz. Anwesenheit ist keine Eignung.
+
+### E7 — der lokale Playwright-Hang ist weg ✅ 2026-08-01
+
+**Was war:** auf macOS beendeten sich die Playwright-Worker nach grünen Tests
+nicht. Playwright force-killte sie nach 300 s und zählte das als Fehler
+AUSSERHALB jedes Tests — Exit 1 trotz grüner Suite. Schlimmer: nach einem ROTEN
+Test startet Playwright den Worker neu und wartet dabei auf den alten; ein Lauf
+mit roten Baselines stand deshalb bei 21 von 24 Tests über 500 s still. In CI
+trat das nie auf.
+
+**Ursache (am 2026-07-31 belegt):** der Worker ist längst fertig (Event-Loop
+leer, Stack in `kevent`), hängt aber an zwei offenen `net.Socket`-Handles —
+stdout/stderr des Browsers. Ein Start von System-Chrome (`channel: 'chrome'`)
+weckt auf macOS den `GoogleUpdater` (`--wake-all`), dessen
+`--crash-handler`-Prozesse **erben genau diese beiden Deskriptoren**, reparenten
+zu launchd (PPID 1) und schließen sie nie. Der Worker bekommt kein EOF. Über
+Startflags war nichts zu machen: Playwright übergibt
+`--disable-background-networking`, `--disable-component-update`,
+`--disable-breakpad` und `--no-service-autorun` bereits, der Updater kommt
+trotzdem.
+
+**Die Kur (Davids Entscheidung):** `channel: 'chrome'` aufgeben, Playwrights
+**gebündeltes Chromium** nutzen. Geändert: `apps/comments/playwright.config.ts`
+(kein `channel` mehr), die 9 eingecheckten `-darwin`-Baselines der
+Theme-Screenshots neu aufgenommen (Dateinamen unverändert — das Projekt hieß
+schon vorher `chromium`), und in `.github/workflows/e2e.yml` ein eigener Schritt
+`playwright install --with-deps chromium`, weil ubuntu-latest zwar Chrome, aber
+kein Playwright-Chromium mitbringt.
+
+**Beweis (eigener Dev-Server auf Port 3011, `PW_BASE_URL` gesetzt):** volle
+Suite mehrfach — **24/24 grün, Exit 0, 23 s bzw. 26 s**, keine
+`worker process did not exit`-Meldung, danach kein übrig gebliebener
+Chromium-Prozess (`ps`/`lsof` sauber; der einzige „Google"-Treffer war Davids
+eigener Browser, PPID 1, gestartet Wochen vorher). Vorher: 17+ Minuten.
+Entscheidend ist der ROTE Fall: Läufe mit einem fehlgeschlagenen Test endeten
+jetzt nach 69–83 s mit Exit 1 statt minutenlang stillzustehen — der Hang war
+genau dort am teuersten und ist genau dort weg.
+
+**Nebenbefund, NICHT von diesem Wechsel:** `embed-write.spec.ts` fällt bei
+Playwrights Standard-Arbeiterzahl (hier 5) reproduzierbar durch, bei 1 oder 2
+Arbeitern nie. Gegenprobe mit System-Chrome: fällt genauso durch — also
+Parallel-Last, kein Browser-Problem (auf dieser Maschine liefen zusätzlich drei
+Dev-Server fremder Arbeitsbäume). Als Fund gemeldet, noch nicht eingeplant.
+
+**Gelernt:** Ein Prozess, der „nicht beendet", muss nicht selbst beschäftigt
+sein — es reicht, dass ein FREMDER Prozess seine Pipes geerbt hat. Rezept für
+das nächste Mal: im hängenden Worker `process._getActiveHandles()` ausgeben
+(zeigt die offenen Sockets), dann per `lsof` den PEER derselben Socket-Inode
+suchen — steht dort ein fremder Prozessname statt `/dev/null`, ist der Erbe
+gefunden. Und: die Suche nach „welches Startflag schaltet das ab" war die
+falsche Frage; abschaltbar war nicht der Updater, sondern die Entscheidung,
+überhaupt System-Chrome zu starten.

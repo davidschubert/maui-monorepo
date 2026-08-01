@@ -20,9 +20,14 @@ catch { /* keine .env → env-gated Tests skippen */ }
 /**
  * E2E-Smoke-Tests für comments (Port 3001).
  *
- * Nutzt das systeminstallierte Google Chrome (channel: 'chrome') — kein
- * Playwright-Browser-Download nötig. Läuft gegen einen bereits laufenden Dev-
- * Server (reuseExistingServer) oder startet ihn selbst.
+ * Nutzt Playwrights GEBÜNDELTES Chromium, NICHT das systeminstallierte Chrome
+ * (`channel: 'chrome'`, bis 2026-07-31). Grund: System-Chrome startet auf macOS
+ * GoogleUpdater/chrome_crashpad_handler, die Playwrights stdout/stderr-
+ * Socketpair erben, zu launchd reparenten und nie schließen — der Worker bekam
+ * kein EOF und hing bis zum 300-s-Force-Kill (Exit 1 trotz grüner Suite).
+ * Preis: `npx playwright install chromium` einmalig (~120 MB), in CI ein
+ * eigener Install-Schritt. Läuft gegen einen bereits laufenden Dev-Server
+ * (reuseExistingServer) oder startet ihn selbst.
  *
  * Bewusst auth-frei: die Tests decken Routing, SSR-Render, i18n und die
  * öffentlichen Seiten ab — ohne Appwrite-Credentials, damit sie portabel/CI-
@@ -56,7 +61,8 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'], channel: 'chrome' } },
+    // Kein `channel` ⇒ Playwrights gebündeltes Chromium (siehe Kopfkommentar).
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
   ],
   webServer: {
     command: 'pnpm dev',
