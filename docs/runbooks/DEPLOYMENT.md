@@ -131,14 +131,23 @@ steht im tenants-Register (`wave`: internal → canary → stable, Control-UI
 „Update-Welle", nur für Silos wirksam; Bestand = stable).
 
 ```bash
+# VORHER: Verzeichnis der Silo-Communities + ihrer Schlüsseldateien (read-only,
+# druckt NIE einen Schlüsselwert). Exit 1 = der Wellen-Lauf würde abbrechen.
+node --experimental-strip-types --env-file="$HOME/.appwrite-secrets/migrations/control.env" \
+  packages/control/scripts/list-silo-keys.ts        # [--wave <welle>] [--keys-dir <ordner>]
+
 # Silo-Projekte einer Welle migrieren (Reihenfolge: internal → canary → stable)
-pnpm migrate --wave internal --control-env apps/control/.env.production
-pnpm migrate --wave canary   --control-env apps/control/.env.production
-pnpm migrate --wave stable   --control-env apps/control/.env.production
+pnpm migrate --wave internal --control-env ~/.appwrite-secrets/migrations/control.env
+pnpm migrate --wave canary   --control-env ~/.appwrite-secrets/migrations/control.env
+pnpm migrate --wave stable   --control-env ~/.appwrite-secrets/migrations/control.env
 ```
 
-- `--control-env` = Env der **Control-Plane-Instanz** (studio) — daraus kommen
-  die Silo-Projekte der Welle. Nie raten, immer explizit.
+- `--control-env` = Env der **Control-Plane-Instanz** (`control`) — daraus
+  kommen die Silo-Projekte der Welle. Nie raten, immer explizit. Der Pfad ist
+  seit dem Cutover `~/.appwrite-secrets/migrations/control.env`; das früher
+  hier genannte `apps/control/.env.production` zeigt auf das GELÖSCHTE Projekt
+  `studio` (offener Punkt E1) und würde ins Leere laufen. Lokal steht dieselbe
+  Instanz in `apps/control/.env`.
 - Je Silo-Projekt braucht der Runner eine Migrations-Env-Datei
   `~/.appwrite-secrets/migrations/<projectId>.env` (Format wie jede App-.env:
   `NUXT_PUBLIC_APPWRITE_*` + `NUXT_APPWRITE_MIGRATIONS_KEY`; `--keys-dir`

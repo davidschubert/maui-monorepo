@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 12 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 11 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-07-31**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -24,7 +24,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 23 · B4 | **Ladezeit-Hebel wählen:** (a) Appwrite-Web-SDK nachladen (72 kB) oder (b) spekulative Vorablade-Hinweise filtern — kostet den Navigations-Vorsprung nach dem Login. | Niedrig | M — je nach Wahl | Ja: David wählt a oder b | [Notizen](#notizen) |
 | 24 · B7 | **Dunkles Design für die Landingpage?** Sie ist bewusst hell geklemmt; seit der Nuxt-UI-Migration wäre Dunkel machbar. | Niedrig | S — Entscheidung, dann ein CSS-Zweig | Ja: Ja/Nein | [Notizen](#notizen) |
 | 25 · M13 | **Reste des Selbstbedienungs-Trichters:** Hinweis auf ablaufende Testphase, Umzug des Kundenbereichs von `/workspace` nach `my.*`, Sperr-/Missbrauchspfad, Statusseite bei UptimeRobot. | Mittel | M — vier kleine Stücke | Ja: bei Sperr-Regeln | [SAAS-ROADMAP #1](archiv/SAAS-ROADMAP.md) |
-| 26 · M4 | **Schlüssel-Verzeichnis für Silo-Kunden** — der letzte Rest aus dem Mandanten-Ausbau (~1 %). | Niedrig | S — kleine Registry | Nein | [Notizen](#notizen) |
 | 27 · E1 | **Tote Schlüsseldatei löschen** (`apps/control/.env.production` zeigt auf ein gelöschtes Projekt). Liegt nur auf Davids Rechner, nicht im Repo. | Niedrig | S — eine Datei | Ja: enthält Schlüsselmaterial | [Notizen](#notizen) |
 | 28 · E2 | **UptimeRobot nachziehen:** Monitor für `help.pukalani.app` anlegen, einen alten Monitor umbenennen. | Niedrig | S — zwei Klicks | Nein | [Notizen](#notizen) |
 | 29 · E3 | **Server-Größe prüfen** — der CX33 wird mit sechs Apps plus Builds knapp. | Mittel | S — prüfen, ggf. Rescale | Ja: kostet Geld | [Notizen](#notizen) |
@@ -250,10 +249,6 @@ Ablauf-Erinnerung · Kundenbereich-Umzug `/workspace` → `my.*` ·
 Abuse-/Suspend-Pfad · 301 von den Altnamen (bewusst später: Deploy-Verify und
 Stripe-Webhook hingen an `studio.*`) · Statusseite bei UptimeRobot.
 Details: [SAAS-ROADMAP #1](archiv/SAAS-ROADMAP.md).
-
-**M4 — Rest aus Horizont 3 (~1 %):** Silo-Admin-Key-Registry. Die
-Audience-Entscheidung ist inzwischen als C18 getroffen; der
-Homepage-Block-Baukasten ist bewusst geparkt.
 
 **E1 — tote Schlüsseldatei.** `apps/control/.env.production` zeigt noch auf das
 gelöschte Projekt `studio` (Cutover-Altlast) — die Datei ist tot: die Keys darin

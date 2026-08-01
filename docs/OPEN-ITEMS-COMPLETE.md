@@ -21,7 +21,7 @@ Legende Wer: **[David]** nur David · **[Claude]** autonom machbar ·
 | # | Task | Wer | Schwere | % | Status |
 |---|------|-----|---------|---|--------|
 | 3 | **Money-Path-Rest** — #6b Cross-Sub via Stripe-Autorität + #7a Workspace-Customer/Owner-Portal. Deployt 2026-07-22, Details [DECISION-LOG](DECISION-LOG.md). | — | — | 8 | ✅ fertig |
-| 4 | **Horizont 3 — Pool+Silo Multi-Tenancy** ([Blueprint](referenz/HORIZONT-3-POOL-SILO-BLUEPRINT.md)) — **Kern KOMPLETT (2026-07-23):** Spike ✅ · Schicht 1 ✅ · 4.1 Pool-Datenpfad ✅ · Naht 1/2 ✅ · tenants-Register + Resolver ✅ · Onboarding-UI ✅ · **Prod-Rollout ✅** (platform.pukalani.app als 4. ploi-Site, Wildcard-DNS + ploi-verwaltetes Wildcard-TLS, Pool-Projekt `pool` mit 9 Tabellen, demo.pukalani.app live: 200 + gescopte Liste, unbekannte Hosts 404; Deploy-Kette + Secret; Learnings: platform-Build braucht 3584 MB Heap, `/api/health` + `/_i18n/` sind host-freie Infra-Pfade) · **4.2 Wellen-Migrationen ✅** (tenants.wave internal→canary→stable, `pnpm migrate --wave` + Control-UI, fail-loud, control-012 auf Dev+Prod) · **4.3 Quota ✅ scharf** (assertPoolWriteQuota, comments 1000/Tag + 50k gesamt im Pool, 429 lokal bewiesen — **Zahlen abnicken, s. Kasten unten**) · Microcaches tenant-aware ✅ (tenantCacheScope: changelog, features). **Fläche 2 ✅** reports (moderation-002) gepoolt. **Quota pro Plan ✅ (2026-07-23):** tenants.plan (control-013, free/pro/business) staffelt die Limits (free 200/Tag+5k · pro 1.000/50k · business 5.000/250k; Silo ohne Limit); limitsForPlan pure-getestet, Control-UI Plan-Badge+Select, Migration Dev+Prod. **Tenant-Homepage MVP ✅ (2026-07-23):** pages-Layer in platform gepoolt (pages-003), index.vue rendert die `home`-Seite des Tenants (Markdown + `[[comments]]`-Block, useRequestFetch für Host-Weitergabe), Isolation lokal bewiesen (kunde-a Seite / kunde-b Fallback). **Live-Isolationsskript** [verify-pool-isolation.mjs](../packages/comments/scripts/verify-pool-isolation.mjs). **Read-only-Control-Plane-Key ✅ (2026-07-24, autonom):** `platform-control-readonly` (NUR rows.read) live auf app-prod (Write-Probe 401, demo 200/unknown 404); dabei kompletten Provisioner-Cleanup nachgeholt (pool-Projekt → Pukalani-App-Team, Team provisioning + provisioner-Account weg — alle 4 Prod-Projekte gehören jetzt David) + geleakten comments/migrations-Key rotiert ([Runbook](runbooks/PLATFORM-CONTROL-KEY-SWAP.md)). **Community-Plattform G0+G1 ✅ (2026-07-24, autonom):** Produktvertrag ([G0](referenz/G0-PRODUKTVERTRAG.md), David: Nav, 5-Rollen, Tarif, EA-Scope; kanonische Kunden-Site = **der Tenant**) + Sicherheits-Naht ([Roadmap](archiv/SAAS-ROADMAP.md) G1): `control-015` (`tenants.workspaceId` + `site_members`), core `tenantAuthz` (5 Site-Rollen owner/admin/mod/editor/viewer), `requireTenantPermission` (Cross-Projekt, 30-s-Cache, fail-closed), **Naht 4** `tenantRowPermissionsFor` (read(label(siteId)), Mechanismus + 11 Tests) + **Isolationsbeweis** grün lokal+prod (162 core + 58 studio). **Nachtrag 2026-07-25/28:** Naht-4-Live-Wiring + Session-Label je Site sind mit O5 erledigt (Site-Label wird gesetzt, `requireSitePermission` gilt), „Admin per Tenant" ist mit den Site-Rollen (N1) erledigt — der Owner erreicht sein Dashboard und sieht nur seine Capabilities. **Gelernt:** (1) Der platform-Build braucht **3584 MB Heap** — mit dem Standard-Cap starb er auf dem Server, nicht lokal. (2) `/api/health` und `/_i18n/` müssen **host-frei** bleiben, sonst sperrt der Mandanten-Resolver die eigene Infrastruktur aus. (3) Ein Migrations-Key war geleakt und musste rotiert werden — Schlüssel gehören in Dateien unter `~/.appwrite-secrets/`, nie in Repo-nahe Env-Dateien. | Claude (Etappen-Go: David) | schwer | 40 | 🔨 39/40 — Kern fertig |
+| 4 | **Horizont 3 — Pool+Silo Multi-Tenancy** ([Blueprint](referenz/HORIZONT-3-POOL-SILO-BLUEPRINT.md)) — **Kern KOMPLETT (2026-07-23):** Spike ✅ · Schicht 1 ✅ · 4.1 Pool-Datenpfad ✅ · Naht 1/2 ✅ · tenants-Register + Resolver ✅ · Onboarding-UI ✅ · **Prod-Rollout ✅** (platform.pukalani.app als 4. ploi-Site, Wildcard-DNS + ploi-verwaltetes Wildcard-TLS, Pool-Projekt `pool` mit 9 Tabellen, demo.pukalani.app live: 200 + gescopte Liste, unbekannte Hosts 404; Deploy-Kette + Secret; Learnings: platform-Build braucht 3584 MB Heap, `/api/health` + `/_i18n/` sind host-freie Infra-Pfade) · **4.2 Wellen-Migrationen ✅** (tenants.wave internal→canary→stable, `pnpm migrate --wave` + Control-UI, fail-loud, control-012 auf Dev+Prod) · **4.3 Quota ✅ scharf** (assertPoolWriteQuota, comments 1000/Tag + 50k gesamt im Pool, 429 lokal bewiesen — **Zahlen abnicken, s. Kasten unten**) · Microcaches tenant-aware ✅ (tenantCacheScope: changelog, features). **Fläche 2 ✅** reports (moderation-002) gepoolt. **Quota pro Plan ✅ (2026-07-23):** tenants.plan (control-013, free/pro/business) staffelt die Limits (free 200/Tag+5k · pro 1.000/50k · business 5.000/250k; Silo ohne Limit); limitsForPlan pure-getestet, Control-UI Plan-Badge+Select, Migration Dev+Prod. **Tenant-Homepage MVP ✅ (2026-07-23):** pages-Layer in platform gepoolt (pages-003), index.vue rendert die `home`-Seite des Tenants (Markdown + `[[comments]]`-Block, useRequestFetch für Host-Weitergabe), Isolation lokal bewiesen (kunde-a Seite / kunde-b Fallback). **Live-Isolationsskript** [verify-pool-isolation.mjs](../packages/comments/scripts/verify-pool-isolation.mjs). **Read-only-Control-Plane-Key ✅ (2026-07-24, autonom):** `platform-control-readonly` (NUR rows.read) live auf app-prod (Write-Probe 401, demo 200/unknown 404); dabei kompletten Provisioner-Cleanup nachgeholt (pool-Projekt → Pukalani-App-Team, Team provisioning + provisioner-Account weg — alle 4 Prod-Projekte gehören jetzt David) + geleakten comments/migrations-Key rotiert ([Runbook](runbooks/PLATFORM-CONTROL-KEY-SWAP.md)). **Community-Plattform G0+G1 ✅ (2026-07-24, autonom):** Produktvertrag ([G0](referenz/G0-PRODUKTVERTRAG.md), David: Nav, 5-Rollen, Tarif, EA-Scope; kanonische Kunden-Site = **der Tenant**) + Sicherheits-Naht ([Roadmap](archiv/SAAS-ROADMAP.md) G1): `control-015` (`tenants.workspaceId` + `site_members`), core `tenantAuthz` (5 Site-Rollen owner/admin/mod/editor/viewer), `requireTenantPermission` (Cross-Projekt, 30-s-Cache, fail-closed), **Naht 4** `tenantRowPermissionsFor` (read(label(siteId)), Mechanismus + 11 Tests) + **Isolationsbeweis** grün lokal+prod (162 core + 58 studio). **Nachtrag 2026-07-25/28:** Naht-4-Live-Wiring + Session-Label je Site sind mit O5 erledigt (Site-Label wird gesetzt, `requireSitePermission` gilt), „Admin per Tenant" ist mit den Site-Rollen (N1) erledigt — der Owner erreicht sein Dashboard und sieht nur seine Capabilities. **Gelernt:** (1) Der platform-Build braucht **3584 MB Heap** — mit dem Standard-Cap starb er auf dem Server, nicht lokal. (2) `/api/health` und `/_i18n/` müssen **host-frei** bleiben, sonst sperrt der Mandanten-Resolver die eigene Infrastruktur aus. (3) Ein Migrations-Key war geleakt und musste rotiert werden — Schlüssel gehören in Dateien unter `~/.appwrite-secrets/`, nie in Repo-nahe Env-Dateien. **M4 ✅ (2026-07-31):** der letzte ~1 % — das Schlüssel-Verzeichnis für Silo-Communities (`packages/control/scripts/list-silo-keys.ts`, Eintrag unten). Der dynamische Silo-ADMIN-Zugriff zur Laufzeit bleibt bewusst bei seinem 501 (Sicherheitsentscheidung ohne heutigen Konsumenten) — H3 gilt damit als geschlossen. | Claude (Etappen-Go: David) | schwer | 40 | ✅ 40/40 fertig |
 | 5 | **Embed-Widget E2–E4** ([Plan](archiv/EMBED-WIDGET.md)) — **E2 ✅ + E3 ✅ (2026-07-23):** E2 = Schreiben im iframe (Popup-Login + Handoff-Token + CHIPS-Cookie; CSRF-scharf; prod-bewiesen cross-site von davidschubert.com inkl. Cookie-Forensik). **E3 = Site-Registry** `embed_sites` (comments-012, Dev+Prod) + Admin-UI `/dashboard/embed` + Registry-gespeiste frame-ancestors-CSP (allowedOrigins jetzt `['http://localhost:*']` statt `['*']`; davidschubert.com in Prod-Registry) + `GET /api/comments/count` (CORS, `data-pukalani-count`-Loader) + Redis-Rate-Limit. Bewiesen: CRUD per API (Create/409/PATCH/DELETE), CSP-from-Registry + count-CORS + 3 Fehlermeldungs-Zweige, 10 Unit-Tests, Embed-E2E grün. **E4 ✅ (2026-07-23):** (1) **Gast-Kommentare** ohne Account (Name+E-Mail, ohne Verifikation) — POST `/api/comments/guest` (Gate `embed.guests`, Rate-Limit 5/min/IP, Tenant-Quota, kein operatorTarget), comments-013 (`authorKind` + operator-lesbare `guest_authors`-Tabelle; **E-Mail nie auf der read(any)-Row**), GuestCommentForm + „Gast"-Badge; live bewiesen (POST 201, keine E-Mail in der öffentlichen Liste, anon-Read von guest_authors 401, Browser-E2E). Aktiviert auf der comments-App. Migration: lokaler Pool, Prod-Pool, Prod-comments. (2) **Presence im Embed** — funktioniert out of the box (geteilter Realtime-Socket trägt sie ins iframe; heartbeat+realtime-token+presences alle 200 live nachgewiesen). (3) **Web-Component** `<pukalani-comments>` (public/pukalani-comments.js, Shadow DOM, sandboxed iframe → keine XSS-/CORS-Fläche); live bewiesen (Shadow-Root+iframe, Resize 308px). **Bewusst später (supervised):** echte Inline-Render-Variante ohne iframe (eigener Sanitizer + CORS-Allowlist) + E3-Task-17 (dedizierte apps/embed-comments). **Gelernt:** `localhost:PORT` gegen `localhost:PORT` ist same-**site** — ein lokaler „Cross-Origin"-Test beweist beim Cookie-Verhalten NICHTS. Cross-Site-Beweise brauchen echte Domains (deshalb der Prod-Beweis von davidschubert.com samt Cookie-Forensik). Und: die E-Mail eines Gastes darf nie auf einer `read(any)`-Row landen — dafür gibt es die getrennte `guest_authors`-Tabelle. | Claude | schwer | 12 | ✅ E2–E4 fertig |
 | 6 | **Themes-Vollausbau 26×11** ([Plan](archiv/THEMES-VOLLAUSBAU.md)) — **✅ FERTIG (2026-07-24, E1–E7 alle per Empfehlung):** kuratierter Katalog `theme.catalog.ts` (21 Hue-Kreis-Welten + 5 gedeckte Ausreißer, je Basis+10 tonale Varianten = 286 Ramps), Generator mit Kontrast-Gate (Anker fest 500 — Bestands-500er byte-gleich, `--ui-primary` bleibt 600/400), committete `themeRegistry.gen.ts` + CI-Gate `check:themes` (lint.yml), Grid-Modal-Picker mit sticky Varianten-Reihe (E7b). Bewiesen: 62 Unit-Tests + Guard (26×11), SSR-Cookie-Beweis, Visual-Baselines 9/9 neu, Dark-Stichprobe. **Gelernt:** Generierte Dateien gehören ins Repo UND hinter ein CI-Gate (`check:themes`) — sonst laufen Katalog und erzeugtes CSS auseinander, ohne dass es jemand merkt. Der Kontrast-Anker muss FEST auf Stufe 500 stehen, sonst verschiebt jede Neugenerierung bestehende Kundenfarben. | Claude | schwer | 10 | ✅ fertig |
 | 7 | **Deploy-RAM-Härtung** — Swap (18.07.) + NODE_OPTIONS-Cap 2560 in ploi-`~/.bashrc`; Praxistest: Deploys in Folge sauber. Nachtrag 23.07.: platform-Build braucht 3584 (Deploy-Script), Überhang läuft in den Swap. | — | — | 3 | ✅ fertig |
@@ -35,6 +35,8 @@ Legende Wer: **[David]** nur David · **[Claude]** autonom machbar ·
 **Fertig-Anteil zum Stichtag 2026-07-30: 82 % ✅ (43 % + 39/40 von H3) ·
 offener Rest (18 %) wartet fast vollständig auf David: Rechtstexte (5) +
 Stripe-Live (12) + Audience-Entscheidung (1, inzwischen als C18 entschieden).**
+Der Stichtag bleibt stehen (Momentaufnahme); H3 steht seit 2026-07-31 auf
+40/40 — M4 war der Rest.
 
 > **📋 Quota-Zahlen (H3-4.3) — seit 2026-07-24 IM STUDIO EDITIERBAR:**
 > Studio → Tenants → „Pläne & Limits": free 200/Tag + 5.000 gesamt ·
@@ -944,3 +946,58 @@ ein Klick daneben — Screenshot-Koordinaten sind skaliert, Elemente gehören pe
 `_nuxt/*.js`: der alte Vorschau-Server lief noch, der neue starb still an
 EADDRINUSE, und das Fenster lud neues HTML gegen alte Chunk-Hashes. Vor jedem
 Beweis prüfen, ob der Server, den man misst, auch der ist, den man gebaut hat.
+
+### M4 — Schlüssel-Verzeichnis für Silo-Communities ✅ 2026-07-31
+
+Der letzte ~1 % aus Horizont 3. Der Wellen-Runner war schon fail-loud (fehlt
+`~/.appwrite-secrets/migrations/<projectId>.env`, bricht er ab, BEVOR er
+irgendetwas migriert — keine halbe Welle); was fehlte, war der Blick VORHER.
+Gebaut ist deshalb genau ein Betreiber-Skript,
+[`packages/control/scripts/list-silo-keys.ts`](../packages/control/scripts/list-silo-keys.ts):
+es liest das Community-Register des Control Plane und den lokalen
+Schlüssel-Ordner und sagt je Silo-Projekt, in welcher Welle es steht, welche
+Hosts daran hängen und ob seine Migrations-Env bereitliegt. Aufruf
+`node --experimental-strip-types --env-file=apps/control/.env
+packages/control/scripts/list-silo-keys.ts [--wave <welle>] [--keys-dir
+<ordner>]`; Exit 1, wenn ein Projekt den Lauf blockieren würde — damit taugt
+es auch als Vorabprüfung vor `pnpm migrate --wave` (im Runbook
+[DEPLOYMENT.md 2b](runbooks/DEPLOYMENT.md) verlinkt).
+
+**Bewusst klein gehalten:** kein Schreiben (weder DB noch Ordner), keine neue
+Tabelle, keine Schlüssel in Appwrite — und **nie ein Wert auf stdout**. Es
+meldet nur „Datei da / Pflicht-Variable gesetzt"; die einzige Ausnahme ist die
+`projectId` aus der Datei (kein Geheimnis), denn eine vorhandene Datei, die auf
+ein ANDERES Projekt zeigt, kommt durch die Existenzprüfung des Runners und
+migriert dann die falsche Instanz. Die Wellen-Zuordnung kommt aus derselben
+puren Regel wie der Lauf (`siloProjectsForWave` — `''` = stable, disabled zählt
+mit, Projekte dedupliziert); ein Verzeichnis, das anders gruppiert als der
+Lauf, wäre wertlos. Deshalb ist es auch `.ts` neben `list-silo-tenants.ts` und
+kein `.mjs`: sonst stünde die Regel ein zweites Mal im Repo.
+
+**Keine UI.** Die Betreiberseite läuft auf dem SERVER, die Schlüssel liegen auf
+Davids Rechner — eine Spalte „Schlüssel vorhanden" könnte dort nur raten. Ein
+Verzeichnis, das an der falschen Stelle nachsieht, ist schlimmer als keines.
+
+**Nicht gebaut, bewusst:** der DYNAMISCHE Silo-Admin-Zugriff zur Laufzeit
+(fremdes Projekt → fremder Key) bleibt bei seinem 501 in
+`core/server/lib/appwrite.ts`. Das ist eine Sicherheitsentscheidung (ein
+Server, der fremde Admin-Keys hält), kein Verzeichnis — und sie hat heute
+keinen Konsumenten: kein fremder Silo-Host wird von der Platform-App bedient.
+
+**Beweis (lokale control-Instanz):** leeres Register → „Keine Silo-Communities
+im Register", Exit 0. Mit drei Wegwerf-Zeilen (zwei Hosts auf EIN Projekt,
+eine Zeile mit `wave: ''`) und einem Wegwerf-Ordner: Welle `canary` zeigt
+`m4probe-a` als bereit, Welle `stable` fasst beide Hosts unter `m4probe-b`
+zusammen (also `''` → stable UND Dedup bewiesen) und meldet an einer
+absichtlich kaputten Datei alle drei Befunde auf einmal — fehlende
+`NUXT_PUBLIC_APPWRITE_DATABASE_ID`, kein Migrations-Key, falsche `projectId` —
+Exit 1. Leerer Ordner → „Datei fehlt" + erwarteter Pfad. Wegwerf-Zeilen
+danach gelöscht (Register wieder bei den drei Pool-Zeilen).
+
+**Ehrlicher Ist-Stand:** produktiv listet das Verzeichnis heute NICHTS, und
+das ist richtig — es gibt keine fremden Silo-Kunden. Die Einzel-Instanzen
+`comments`/`portfolio`/`photos` stehen nicht im Community-Register und
+migrieren über `pnpm migrate --app <app>`, nicht über Wellen (s. E5).
+**Gelernt:** Ein Vorab-Check darf nicht bloß prüfen, ob eine Datei DA ist —
+der Wellen-Runner tut genau das, und eine falsch befüllte Datei besteht diesen
+Test und migriert danach die falsche Instanz. Anwesenheit ist keine Eignung.
