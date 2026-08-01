@@ -221,6 +221,15 @@ const commentStoreSetup = () => {
    * /api/comments/guest. Wie addComment optimistisch, aber authorKind 'guest'
    * und authorId '' (kein Vote/Edit). Die E-Mail wird nur gesendet, nie im
    * Store gehalten.
+   *
+   * DIE FRISCHE ZEILE KOMMT AUS DER ANTWORT, nicht aus der Liste (`upsertRow`
+   * mit dem, was der POST zurückgibt) — und das ist bei Gästen keine
+   * Bequemlichkeit, sondern das Einzige, was funktioniert: ein Gast hat keine
+   * Session, ein Nachladen der Liste würde seinen eigenen Beitrag nicht
+   * zurückbringen, wenn er nicht öffentlich lesbar ist. Seit F4 kann dieser Weg
+   * nur noch in einer ÖFFENTLICHEN Community beschritten werden (siehe
+   * shared/guestComments.ts), damit die Zeile auch nach einem Neuladen da ist —
+   * sonst wäre der Eintrag hier eine Anzeige ohne Deckung.
    */
   async function addGuestComment(content: string, guestName: string, guestEmail: string, parentId?: string) {
     const now = new Date().toISOString()

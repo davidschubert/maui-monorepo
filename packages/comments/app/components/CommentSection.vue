@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { guestCommentsAllowed } from '../../shared/guestComments'
 import { COMMENTS_TABLE, type Comment, type SortMode } from '../../shared/types/comment'
 
 const props = defineProps<{
@@ -26,8 +27,18 @@ const embedLogin = isEmbed ? useEmbedLogin() : null
 // Gast-Kommentare (E4): nur im Embed und nur wenn der Betreiber sie freigibt
 // (pukalani.comments.embed.guests). Dann darf man ohne Account mit Name+E-Mail
 // schreiben — der Login-Popup bleibt als Zusatzoption.
+//
+// F4: und nur in einer ÖFFENTLICHEN Community. In einer geschlossenen sähe der
+// Gast weder die Liste noch seinen eigenen Beitrag wieder — dieselbe Regel wie
+// in /api/comments/guest, damit hier kein Formular steht, dessen Absenden
+// garantiert 404 wird.
 const appConfig = useAppConfig() as { pukalani?: { comments?: { embed?: { guests?: boolean } } } }
-const guestsEnabled = computed(() => isEmbed && !!appConfig.pukalani?.comments?.embed?.guests)
+const { membersOnly } = useTenantAudience()
+const guestsEnabled = computed(() => guestCommentsAllowed({
+  embedEnabled: isEmbed,
+  guestsEnabled: !!appConfig.pukalani?.comments?.embed?.guests,
+  communityIsPublic: !membersOnly.value,
+}))
 
 // Kommentar-Policy aus den Laufzeit-Flags bereitstellen (synchron, vor await).
 // Refs auf Top-Level holen — verschachtelte Refs (policy.canWrite) unwrappen im

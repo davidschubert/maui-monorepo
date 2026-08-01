@@ -1,5 +1,7 @@
 import { createHash } from 'node:crypto'
+import { communityContentIsPublic } from '../../../../core/shared/communityAudience'
 import { guestCommentSchema } from '../../../schemas/comment'
+import { guestCommentsAllowed } from '../../../shared/guestComments'
 import { COMMENTS_TABLE, MAX_COMMENT_DEPTH, type Comment } from '../../../shared/types/comment'
 
 /**
@@ -8,8 +10,9 @@ import { COMMENTS_TABLE, MAX_COMMENT_DEPTH, type Comment } from '../../../shared
  * der reguläre POST /api/comments eine Session verlangt.
  *
  * Sicherheits-Leitplanken (unauth. Write in die geteilte, gepoolte Tabelle):
- *  - Doppel-Gate: pukalani.comments.embed.enabled UND .guests müssen an sein,
- *    sonst 404 (keine Existenz-Preisgabe). Core-Default: beide aus.
+ *  - Dreifach-Gate: pukalani.comments.embed.enabled UND .guests müssen an sein
+ *    UND die Community muss öffentlich sein (F4, guestCommentsAllowed) — sonst
+ *    404 (keine Existenz-Preisgabe). Core-Default: beide Schalter aus.
  *  - Rate-Limit: eigener enger Bucket `comments:guest` (rate-limit.ts).
  *  - Quota: zählt gegen das Tenant-Budget (assertPoolWriteQuota).
  *  - Kein operatorTarget (interne Threads bleiben Operatoren vorbehalten).
@@ -23,7 +26,15 @@ export default defineEventHandler(async (event) => {
     pukalani?: { comments?: { embed?: { enabled?: boolean, guests?: boolean }, operatorTargets?: string[] } }
   }
   const embed = appConfig.pukalani?.comments?.embed
-  if (!embed?.enabled || !embed?.guests) {
+  // Die COMMUNITY entscheidet mit (F4): in einer Community mit Publikum
+  // 'members' trägt jede neue Zeile `read(label:<communityId>)` — ein Gast
+  // schriebe in ein Loch, das er nie wieder öffnen kann. Der Grund und die
+  // verworfenen Alternativen stehen bei guestCommentsAllowed().
+  if (!guestCommentsAllowed({
+    embedEnabled: !!embed?.enabled,
+    guestsEnabled: !!embed?.guests,
+    communityIsPublic: communityContentIsPublic(useTenant(event)),
+  })) {
     throw createError({ status: 404, statusText: 'Not Found' })
   }
 
@@ -79,12 +90,11 @@ export default defineEventHandler(async (event) => {
     // Nur lesbar (Gast-Realtime wie bei Nutzer-Rows). KEINE update/delete-
     // Permission — es gibt keinen Prinzipal, der sie je einlösen könnte.
     //
-    // C18: auf einer geschlossenen Community wird daraus
-    // `read(label:<communityId>)` — der Gast, der gerade geschrieben hat, sieht
-    // seinen eigenen Kommentar dann nicht. Das ist die ehrliche Folge und kein
-    // Fehler: Gast-Kommentare und „nur für Mitglieder" widersprechen sich.
-    // Wer das nicht will, schaltet den Gast-Composer ab
-    // (pukalani.comments.embed.guests) — siehe OPEN-ITEMS C18.
+    // C18/F4: `withPublishedRead` liefert hier IMMER `read(any)` — auf einer
+    // geschlossenen Community wäre es `read(label:<communityId>)`, aber dort
+    // kommt der Request gar nicht mehr an (das Gate oben, F4). Genau deshalb
+    // steht die Sichtbarkeits-Frage vorn und nicht hier: eine Sonderbehandlung
+    // beim Stempeln hieße, eine mitglieder-interne Zeile öffentlich zu machen.
     permissions: withPublishedRead([], event),
   }).catch((error) => {
     throw toH3Error(error, 'Could not create comment')

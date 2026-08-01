@@ -206,6 +206,122 @@ export function decideCommunityDeletion(input: CommunityDeletionInput): Communit
   return ALLOW
 }
 
+// ── DSGVO: die Mitgliedschaften EINES Kontos auflösen (F3) ──────────────────
+
+/**
+ * Was mit EINER Mitgliedschaft passiert, wenn das dazugehörige Runtime-Konto
+ * gelöscht wird.
+ *
+ *  - `delete`    — Zeile weg. Der Regelfall: an einer Mitgliedschaft hängt
+ *                  kein fremder Kontext (anders als an einem Kommentar), sie
+ *                  ist reine Zuordnung Person ⇄ Community.
+ *  - `anonymize` — Zeile bleibt, E-Mail wird geleert. Nur wenn die Zeile
+ *                  strukturell gebraucht wird (siehe `decideMembershipErasure`).
+ */
+export type MembershipErasureAction = 'delete' | 'anonymize'
+
+export interface MembershipErasureInput {
+  /** Die Mitgliedschaft des zu löschenden Kontos. */
+  target: CommunityTeamMemberFacts
+  /** ALLE Mitgliedschaften DIESER Community — inklusive `target`. */
+  members: readonly CommunityTeamMemberFacts[]
+  /** `communities.status` — 'disabled' heißt: stillgelegt (C16). */
+  communityStatus: string
+}
+
+export interface MembershipErasureDecision {
+  action: MembershipErasureAction
+  /** Warum die Zeile bleiben MUSS; null bei `delete`. */
+  reason: 'last_owner' | null
+}
+
+/**
+ * Darf diese Mitgliedschaft mit dem Konto verschwinden? (F3)
+ *
+ * DIE EINE AUSNAHME IST DIESELBE WIE ÜBERALL: der letzte Owner einer aktiven
+ * Community. `decideRoleChange` und `decideRemoval` verbieten schon, ihn per
+ * Verwaltung wegzunehmen — eine Community ohne Owner hätte niemanden, der
+ * übertragen oder abrechnen kann, und niemanden, der sie wieder öffnet. Die
+ * DSGVO-Löschung darf diese Sperre nicht hintenherum aufheben, nur weil sie aus
+ * einer anderen Richtung kommt.
+ *
+ * Sie darf die Löschung aber auch nicht VERWEIGERN: das Recht auf Löschung
+ * hängt nicht daran, ob jemand anders eine Community erbt. Also der Mittelweg,
+ * und er ist bewusst kein Kompromiss aus Bequemlichkeit: die Zeile bleibt als
+ * STRUKTUR stehen (Community behält einen Owner-Platz), aber ohne
+ * Personenbezug — die E-Mail wird geleert, und die `runtimeUserId` zeigt nach
+ * `users.delete()` auf ein Konto, das es nicht mehr gibt. Was bleibt, ist ein
+ * Pseudonym ohne Auflösung.
+ *
+ * Damit das nicht still passiert, meldet die Route jede zurückgehaltene Zeile
+ * im KLARTEXT (Community-Name + Rolle) — der Betreiber muss wissen, welche
+ * Community jetzt einen verwaisten Owner-Platz hat, und sie einem Menschen
+ * zuweisen können.
+ *
+ * Drei Fälle gehen ohne Ausnahme durch:
+ *  - kein Zugang mehr ('removed'/'suspended') — die Zeile schützt niemanden,
+ *  - keine Owner-Rolle,
+ *  - Community stillgelegt ('disabled') — dort ist nichts mehr zu verwalten.
+ */
+export function decideMembershipErasure(input: MembershipErasureInput): MembershipErasureDecision {
+  const { target, members, communityStatus } = input
+
+  if (!hasCommunityAccess(target.status)) return { action: 'delete', reason: null }
+  if (target.role !== 'owner') return { action: 'delete', reason: null }
+  if (communityStatus === 'disabled') return { action: 'delete', reason: null }
+  if (countActiveOwners(members) > 1) return { action: 'delete', reason: null }
+
+  return { action: 'anonymize', reason: 'last_owner' }
+}
+
+/** Eine Mitgliedschaft, die die DSGVO-Löschung stehen lassen MUSSTE. */
+export interface RetainedMembership {
+  communityId: string
+  /** Klartext für den Betreiber — Anzeigename, ersatzweise der Host. */
+  communityName: string
+  role: CommunityRole
+  reason: 'last_owner'
+}
+
+/** Was die DSGVO-Löschung im Control Plane bewegt hat. */
+export interface CommunityErasureResult {
+  /** Hart gelöschte `community_members`-Zeilen. */
+  deleted: number
+  /** Zeilen, die bleiben mussten und entpersonalisiert wurden. */
+  anonymized: number
+  /** Gelöschte `community_invites` (die E-Mail IST dort der Personenbezug). */
+  invitesDeleted: number
+  /** Klartext zu jeder zurückgehaltenen Zeile — gehört ins Log, nie in eine
+   *  Browser-Antwort (es nennt fremde Communities). */
+  retained: RetainedMembership[]
+}
+
+/** Eine Mitgliedschaft, wie die DSGVO-AUSKUNFT sie zeigt. */
+export interface CommunityMembershipExport {
+  communityId: string
+  communityName: string
+  host: string
+  role: CommunityRole
+  status: CommunityMemberStatus
+  joinedAt: string
+  removedAt: string | null
+}
+
+/** Eine offene Einladung, wie die DSGVO-Auskunft sie zeigt (nie mit Token). */
+export interface CommunityInviteExport {
+  communityId: string
+  communityName: string
+  role: CommunityRole
+  status: CommunityInviteStatus
+  expiresAt: string
+  createdAt: string
+}
+
+export interface CommunityUserDataExport {
+  memberships: CommunityMembershipExport[]
+  invites: CommunityInviteExport[]
+}
+
 export interface InviteInput {
   email: string
   role: string

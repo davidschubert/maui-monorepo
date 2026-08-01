@@ -680,6 +680,92 @@ die lokale Appwrite, der die vom Anbieter gebauten URLs wirklich abruft (alle
 Varianten 200, Content-Type und Maße geprüft, Testbild wieder gelöscht).
 **Rest:** `srcset` in der Antwort von `/api/media` hat seither keinen Leser mehr.
 
+### F3 — Kontolöschung räumt jetzt auch das Control Plane ✅ 2026-07-31
+
+**Der Befund:** `deleteUserCompletely` räumt das Appwrite-Projekt der RUNTIME
+ab. `community_members` und `community_invites` liegen aber im Control Plane —
+einem anderen Projekt, auf das die Runtime nur einen read-only-Key hat. Nach
+der Löschung eines Pool-Kontos blieb die Mitgliedschaft mit toter
+`runtimeUserId` stehen, und — der eigentliche Punkt — die E-Mail-Adresse der
+Person unbefristet in jeder Einladung an sie. Eine userId ohne Konto ist ein
+Pseudonym ohne Auflösung; eine E-Mail ist ein Personenbezug.
+
+**Gelöst über die BESTEHENDE Service-Naht**, keine neue Vertrauensfläche: zwei
+Routen im Control Plane (`/api/control/community/members/user-data` und
+`…/user-erase`, Gate = Service-Secret) plus ein GDPR-Contributor `onboarding`
+in dem Layer, dem die Naht gehört (A14 — dieselbe Stelle wie der
+Beitritts-Handler). Silo-Apps ohne onboarding bekommen keinen Contributor, und
+das ist richtig: dort gibt es keine Mitgliedschaften.
+
+**KEIN JWT, anders als bei allen anderen community-Routen.** Das ist die
+einzige Möglichkeit, nicht eine Aufweichung: beim Aufruf ist das Konto gerade
+gesperrt und verschwindet gleich — bei einem Betreiber-Auftrag oder einem
+Re-Run nach Teilfehler existiert es womöglich gar nicht mehr. Ein JWT zu
+verlangen hieße, die Löschung genau dann zu verweigern, wenn sie am nötigsten
+ist (derselbe Schnitt wie bei `feedback/user-erase`). Identität ist das Paar
+(runtimeProjectId, runtimeUserId), und alles wird hart darauf gescopt —
+dieselbe userId in zwei Projekten sind zwei Menschen.
+
+**Die Letzter-Owner-Regel** (pure, `decideMembershipErasure`, 7 Tests): der
+Regelfall ist LÖSCHEN — an einer Mitgliedschaft hängt kein fremder Kontext.
+Die einzige Ausnahme ist der letzte Owner einer AKTIVEN Community; dort bleibt
+die Zeile als Struktur stehen, aber ohne Personenbezug (E-Mail geleert), und
+jeder solche Fall reist im KLARTEXT (Community-Name + Rolle) in die Antwort
+und ins Log — der Betreiber muss wissen, welche Community einen verwaisten
+Owner-Platz hat. Verweigern wäre falsch (das Löschrecht hängt nicht daran, ob
+jemand erbt), einfach löschen auch (dann hätte die Kontolöschung von hinten
+aufgehoben, was „Zugang entziehen" von vorn verbietet). Ein Test nagelt beide
+Wege aneinander: was `decideRemoval` als `last_owner` sperrt, bleibt hier
+stehen.
+
+Einladungen werden HART gelöscht (der Personenbezug einer Einladung IST die
+Adresse — ohne Empfänger ist der Token-Hash wertlos) und über die Community
+auf das rufende Projekt eingegrenzt, weil `community_invites` keine
+`runtimeProjectId` trägt. Die Adresse geht nur mit, wenn sie BESTÄTIGT ist:
+eine unbestätigte gehört nachweislich niemandem. Export degradiert bei
+unerreichbarer Naht auf leer, Löschung NICHT — sie scheitert laut, damit das
+Voll-Erfolgs-Gate von `deleteUserCompletely` greift.
+
+**Gelernt:** Ein GDPR-Contributor gehört dorthin, wo die NAHT zu den Daten
+liegt, nicht dorthin, wo die Tabelle steht — sonst müsste ein Fundament-Layer
+ein Produkt kennen. **Gelernt:** Wenn eine Löschregel und eine Verwaltungsregel
+dieselbe Sache schützen, müssen sie dieselbe pure Funktion benutzen oder
+aneinander getestet sein; zwei Wege zu einer Community ohne Owner sind einer zu
+viel.
+
+### F4 — Gäste schreiben nur, wo Gäste lesen dürfen ✅ 2026-07-31
+
+**Der Befund (C18-Kante):** eine Gast-Kommentar-Row bekommt beim Anlegen
+`withPublishedRead()`, und in einer Community mit Publikum 'members' ist das
+`read(label:<communityId>)`. Ein Gast trägt kein Label — er sah nach dem
+nächsten Seitenaufbau weder seinen eigenen Beitrag noch irgendeinen anderen.
+
+**Die POST-Response-Lösung trägt nur die halbe Strecke** und war schon da: der
+Store hängt die Antwort des POST per `upsertRow` in den lokalen Zustand, der
+Gast sieht seinen Kommentar also sofort. Das ist bei Gästen keine
+Bequemlichkeit, sondern das Einzige, was funktioniert — ein Nachladen der Liste
+brächte ihn nicht zurück. Es hilft aber nur bis zum Neuladen; danach schrieb
+der Gast nachweislich in ein Loch.
+
+**Die kleinste ehrliche Lösung ist deshalb, die Frage vorn zu stellen:** Gäste
+schreiben genau dort, wo Gäste auch LESEN dürfen. Eine pure Regel
+(`guestCommentsAllowed`, 5 Tests) mit zwei Konsumenten — die Route antwortet
+404, die Ansicht zeigt den Composer nicht. Liefen sie auseinander, stünde ein
+Formular da, dessen Absenden garantiert scheitert.
+
+Verworfen: `read(any)` auf der Gast-Row (macht die geschlossene Community genau
+dort auf, wo jeder Fremde schreiben darf) und ein kurzlebiges
+Sichtbarkeitsfenster (eine Permission, die wieder verschwindet, ist eine zweite
+Wahrheit über dieselbe Zeile).
+
+**Gelernt:** Der alte Kommentar im Anlegepfad nannte den Widerspruch schon
+richtig, verwies aber auf einen Schalter, der ihn nicht auflösen kann:
+`pukalani.comments.embed.guests` gilt für die INSTANZ, `audience` je COMMUNITY
+— im Pool hätte der Betreiber Gast-Kommentare nur für ALLE Communities
+abschalten können. Ein Rat, der in der beschriebenen Situation nicht befolgbar
+ist, ist keine Dokumentation eines bewussten Verhaltens, sondern ein offener
+Befund.
+
 ### F6 — type-only-Imports in alten Migrationen ✅ 2026-07-31
 
 Bereits behoben vorgefunden: alle Migrations-Ordner linten fehlerfrei (die

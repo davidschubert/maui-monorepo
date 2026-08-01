@@ -4,6 +4,7 @@ import {
   decideCommunityDeletion,
   decideInvite,
   decideJoin,
+  decideMembershipErasure,
   decideRemoval,
   decideRoleChange,
   decideTransfer,
@@ -247,5 +248,67 @@ describe('decideCommunityDeletion (C16)', () => {
   it('die Rolle wird VOR dem Zustand geprüft — ein Nicht-Owner erfährt nichts über das Abo', () => {
     expect(decideCommunityDeletion({ actorRole: 'admin', communityStatus: 'disabled', liveSubscription: true }))
       .toEqual({ ok: false, reason: 'owner_protected' })
+  })
+})
+
+/**
+ * F3 — die DSGVO-Löschung eines Runtime-Kontos räumt seine Mitgliedschaften im
+ * Control Plane ab. Die Regel ist die Naht zwischen zwei Rechten, die sich
+ * widersprechen können: „gelöscht werden" und „eine Community darf nicht ohne
+ * Owner dastehen". Genau dieser eine Fall wird hier festgenagelt — er ist der
+ * einzige, in dem eine Zeile stehen bleibt.
+ */
+describe('decideMembershipErasure (F3)', () => {
+  const active = 'active'
+
+  it('der Regelfall ist LÖSCHEN — an einer Mitgliedschaft hängt kein fremder Kontext', () => {
+    expect(decideMembershipErasure({ target: viewer, members: team, communityStatus: active }))
+      .toEqual({ action: 'delete', reason: null })
+    expect(decideMembershipErasure({ target: admin, members: team, communityStatus: active }))
+      .toEqual({ action: 'delete', reason: null })
+  })
+
+  it('der LETZTE Owner einer aktiven Community bleibt — anonymisiert, mit Klartext-Grund', () => {
+    expect(decideMembershipErasure({ target: owner, members: team, communityStatus: active }))
+      .toEqual({ action: 'anonymize', reason: 'last_owner' })
+  })
+
+  it('ein Owner NEBEN einem zweiten Owner geht mit', () => {
+    expect(decideMembershipErasure({
+      target: owner,
+      members: [...team, secondOwner],
+      communityStatus: active,
+    })).toEqual({ action: 'delete', reason: null })
+  })
+
+  it('ein Owner OHNE Zugang zählt nicht als zweiter — er wäre kein Ersatz', () => {
+    expect(decideMembershipErasure({
+      target: owner,
+      members: [...team, { ...secondOwner, status: 'removed' as const }],
+      communityStatus: active,
+    })).toEqual({ action: 'anonymize', reason: 'last_owner' })
+  })
+
+  it('eine stillgelegte Community braucht keinen Owner mehr', () => {
+    expect(decideMembershipErasure({ target: owner, members: team, communityStatus: 'disabled' }))
+      .toEqual({ action: 'delete', reason: null })
+  })
+
+  it('ein bereits entzogener Zugang wird immer gelöscht — auch als Owner-Zeile', () => {
+    const goneOwner = { ...owner, status: 'removed' as const }
+    expect(decideMembershipErasure({
+      target: goneOwner,
+      members: [goneOwner, admin],
+      communityStatus: active,
+    })).toEqual({ action: 'delete', reason: null })
+  })
+
+  it('dieselbe Owner-Zählung wie die Verwaltung: was decideRemoval sperrt, bleibt auch hier stehen', () => {
+    // Zwei Wege, EIN Schutz — sonst käme man über die Kontolöschung an eine
+    // Community ohne Owner, die „Zugang entziehen" gerade verhindert hat.
+    expect(decideRemoval({ actorUserId: 'u-other', actorRole: 'owner', target: owner, members: team }))
+      .toEqual({ ok: false, reason: 'last_owner' })
+    expect(decideMembershipErasure({ target: owner, members: team, communityStatus: active }).action)
+      .toBe('anonymize')
   })
 })
