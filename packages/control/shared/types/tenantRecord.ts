@@ -102,13 +102,6 @@ export interface TenantRow extends Models.Row {
   wave: TenantWave | ''
   /** Quota-Plan (control-013); '' = Bestand → free. */
   plan: TenantPlan | ''
-  /** G1 (control-015): Billing-/Owner-Anker. Der Tenant IST die kanonische
-   *  TOTE SPALTE — fällt mit control-031. Hier hing das abrechnende Workspace;
-   *  seit A6 ist die Community selbst das zahlende Objekt (stripeCustomerId/
-   *  stripeSubscriptionId/billingStatus in dieser Row). Sie steht nur noch da,
-   *  weil `createRow<TenantRow>` ALLE Spalten verlangt und die Migration nach
-   *  dem Code-Deploy läuft. */
-  workspaceId: string
   /** Onboarding (control-016): Built-in-Theme-Id des gewählten Vibes;
    *  '' = Instanz-Default aus app_config.themeSettings. */
   theme: string

@@ -184,10 +184,6 @@ export async function provisionCommunity(
       // was hier gestaffelt wird, sind die Mengen-Limits.
       plan: TRIAL_PLAN,
       trialEndsAt: trialEndsAt(now),
-      // TOTE SPALTE — fällt mit control-031. createRow<TenantRow> verlangt
-      // ALLE Spalten explizit (bewusst, CLAUDE.md), also steht sie hier noch
-      // einmal ausdrücklich leer da, bis die Migration sie entfernt.
-      workspaceId: '',
       theme: vibe.theme,
       variant: vibe.variant,
       // Neutral-Palette (control-020, Rest von B5): der Wizard fragt sie NICHT
