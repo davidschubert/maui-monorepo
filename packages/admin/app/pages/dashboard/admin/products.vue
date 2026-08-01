@@ -10,6 +10,8 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCap
 const { t, locale } = useI18n()
 const toast = useToast()
 
+useHead({ title: () => t('admin.products.title') })
+
 const { data, refresh } = await useFetch<{ products: AdminProductEntry[] }>('/api/admin/products')
 
 const lang = computed(() => (locale.value === 'de' ? 'de' : 'en'))

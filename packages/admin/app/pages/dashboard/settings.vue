@@ -9,6 +9,8 @@ const { t } = useI18n()
 const localePath = useLocalePath()
 const route = useRoute()
 
+useHead({ title: () => t('dashboard.settings.title') })
+
 // Community-Einstellungen (S1) gibt es NUR auf Mandanten-Hosts: ohne Tenant
 // (Silo-App, Kontroll-Host) gehört die Registrierung der Instanz, nicht einer
 // Community — der Reiter wäre dort ein leeres Versprechen. null = kein Tenant.

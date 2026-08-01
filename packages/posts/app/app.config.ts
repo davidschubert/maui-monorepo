@@ -13,6 +13,10 @@ export default defineAppConfig({
           id: 'posts',
           scope: 'community',
           productKey: 'posts',
+          // C2: im Pool erst ab Personal — dieselbe Zuordnung, die
+          // `requirePlanProduct` an /api/posts durchsetzt, und dieselbe, die
+          // der öffentliche Feed-Eintrag schon trägt (blueprint app.config).
+          planProduct: 'posts',
           labelKey: 'admin.nav.posts',
           icon: 'i-ph-users-three',
           to: '/dashboard/posts',
@@ -35,6 +39,7 @@ export default defineAppConfig({
           id: 'posts-mine',
           scope: 'community',
           productKey: 'posts',
+          planProduct: 'posts',
           labelKey: 'admin.nav.myPosts',
           icon: 'i-ph-article',
           to: '/dashboard/my-posts',

@@ -26,6 +26,9 @@ const route = useRoute()
 const localePath = useLocalePath()
 const toast = useToast()
 
+// Öffentliche Seite auf dem Community-Host → Brand-Kette wie /login (C5).
+useBrandTitle(() => t('join.title'))
+
 const token = computed(() => {
   const value = route.query.token
   return typeof value === 'string' && /^[a-f0-9]{64}$/.test(value) ? value : null

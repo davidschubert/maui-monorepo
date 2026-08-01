@@ -12,6 +12,9 @@ export default defineAppConfig({
           id: 'events',
           scope: 'community',
           productKey: 'events',
+          // C2: im Pool erst ab Pro (pukalani.tenancy.products) — ohne das
+          // Feld stand der Menüpunkt auch dort, wo /api/events längst 404t.
+          planProduct: 'events',
           labelKey: 'admin.nav.events',
           icon: 'i-ph-calendar-dots',
           to: '/dashboard/events',

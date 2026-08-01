@@ -77,6 +77,7 @@
       "sentDescription": "Schau in dein Postfach (auch im Spam-Ordner).",
       "sendFailed": "Senden fehlgeschlagen — bitte später erneut versuchen.",
       "sendFailedDescription": "Prüfe deine Verbindung und versuche es in ein paar Minuten erneut.",
+      "pageTitle": "E-Mail bestätigen",
       "working": "Bestätige deine E-Mail-Adresse …",
       "successTitle": "E-Mail bestätigt",
       "successMessage": "Danke! Deine Adresse ist jetzt verifiziert.",

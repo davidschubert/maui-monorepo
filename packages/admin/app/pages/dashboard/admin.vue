@@ -8,6 +8,8 @@ const { t } = useI18n()
 const localePath = useLocalePath()
 const auth = useAuthStore()
 
+useHead({ title: () => t('admin.nav.admin') })
+
 // Tabs nach Capability filtern (audit.read / changelog.manage / system.manage)
 const links = computed<NavigationMenuItem[]>(() => {
   const u = auth.user

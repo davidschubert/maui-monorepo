@@ -11,6 +11,12 @@ const route = useRoute()
 const { isLoggedIn } = useCurrentUser()
 const authStore = useAuthStore()
 
+// Seitentitel „E-Mail bestätigen · <Brand>" — gleiche Kette wie /login (C5).
+// BEWUSST der neutrale Vorgangs-Titel und nicht der Zustand: die Seite startet
+// im Zustand 'working' und entscheidet erst in onMounted; ein Titel, der von
+// „Bestätige …" auf „E-Mail bestätigt" springt, flackert im Tab.
+useBrandTitle(() => t('auth.verification.pageTitle'))
+
 const state = ref<'working' | 'success' | 'invalid'>('working')
 
 onMounted(async () => {

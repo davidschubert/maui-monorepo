@@ -14,6 +14,8 @@ const router = useRouter()
 const localePath = useLocalePath()
 const { user: me } = useCurrentUser()
 
+useHead({ title: () => t('admin.nav.comments') })
+
 // --- Nutzer-Verwaltung: eigenes Gate (Audit-Befund S5) -----------------------
 // Diese Seite verlangt `comments.moderate` — eine SITE-Capability, die jeder
 // Moderator einer Kunden-Site trägt. Zwei Elemente hier greifen aber in die

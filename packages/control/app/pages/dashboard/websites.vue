@@ -13,6 +13,8 @@ const { t, locale } = useI18n()
 const toast = useToast()
 const confirm = useConfirm()
 
+useHead({ title: () => t('control.websites.title') })
+
 type WebsiteWithEntitlements = WebsiteRow & { entitlements: string[] }
 const { data, refresh } = await useFetch<{ websites: WebsiteWithEntitlements[] }>('/api/control/websites')
 const { data: jobsData, refresh: refreshJobs } = await useFetch<{ jobs: JobRow[] }>('/api/control/jobs')

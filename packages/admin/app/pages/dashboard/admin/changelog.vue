@@ -11,6 +11,8 @@ const confirm = useConfirm()
 const today = () => new Date().toISOString().slice(0, 10)
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(locale.value, { day: '2-digit', month: 'short', year: 'numeric' })
 
+useHead({ title: () => t('admin.changelog.title') })
+
 const { data, refresh } = useFetch<ChangelogListResponse>('/api/admin/changelog', { lazy: true, server: false })
 const entries = computed(() => data.value?.entries ?? [])
 

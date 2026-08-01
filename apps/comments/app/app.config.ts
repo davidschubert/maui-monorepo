@@ -12,8 +12,11 @@ export default defineAppConfig({
     // Layout: Events öffentlich, Kurse nur eingeloggt.
     chrome: {
       nav: {
-        events: { labelKey: 'events.list.title', to: '/events', icon: 'i-ph-calendar-dots', order: 20, productKey: 'events' },
-        courses: { labelKey: 'courses.list.title', to: '/courses', icon: 'i-ph-graduation-cap', order: 30, productKey: 'courses', requiresAuth: true },
+        // planProduct (C2): im Silo wirkungslos (kein Tenant-Plan), aber das
+        // Feld gehört an den Eintrag und nicht an seinen künftigen Ort — beim
+        // Umzug in die Layer (C4) trägt er das Pool-Gate dann schon mit.
+        events: { labelKey: 'events.list.title', to: '/events', icon: 'i-ph-calendar-dots', order: 20, productKey: 'events', planProduct: 'events' },
+        courses: { labelKey: 'courses.list.title', to: '/courses', icon: 'i-ph-graduation-cap', order: 30, productKey: 'courses', planProduct: 'courses', requiresAuth: true },
       },
     },
     ai: {

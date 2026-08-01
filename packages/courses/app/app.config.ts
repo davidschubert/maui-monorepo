@@ -11,6 +11,9 @@ export default defineAppConfig({
           id: 'courses',
           scope: 'community',
           productKey: 'courses',
+          // C2: im Pool erst ab Pro (pukalani.tenancy.products) — ohne das
+          // Feld stand der Menüpunkt auch dort, wo /api/courses längst 404t.
+          planProduct: 'courses',
           labelKey: 'admin.nav.courses',
           icon: 'i-ph-graduation-cap',
           to: '/dashboard/courses',

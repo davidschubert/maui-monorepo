@@ -46,6 +46,8 @@ const toast = useToast()
 const route = useRoute()
 const router = useRouter()
 
+useHead({ title: () => t('onboarding.subscription.title') })
+
 /** null = kein Pool-Mandant (Silo, Kontroll-Host) → hier gibt es kein Abo. */
 const { plan: currentPlan } = useTenantPlan()
 const isTenantHost = computed(() => currentPlan.value !== null)

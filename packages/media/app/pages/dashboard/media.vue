@@ -13,6 +13,8 @@ const toast = useToast()
 const confirm = useConfirm()
 const { formatDate } = useFormatDate()
 
+useHead({ title: () => t('media.admin.title') })
+
 // Verwaltungs-Sicht: ?all=1 (media.manage) liefert ALLE Einträge inkl.
 // Entwürfe in voller Row-Form — die öffentliche Route zeigt nur published.
 const { data, refresh } = await useFetch<{ items: AdminMediaItem[] }>('/api/media', { query: { all: 1 } })

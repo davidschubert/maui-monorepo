@@ -16,6 +16,7 @@ const colorMode = useColorMode()
 const auth = useAuthStore()
 const appConfig = useAppConfig()
 const runtimeFlags = useRuntimeFlags()
+const { planAllows } = useTenantPlan()
 const { themes, theme, variant, setTheme, setVariant, neutrals, neutral, setNeutral, canChooseTheme, canChooseNeutral } = useTheme()
 const localeOptions = useLocaleOptions()
 const { capabilities: siteCaps } = useCommunityRole()
@@ -140,6 +141,8 @@ const items = computed<SwatchItem[][]>(() => {
       canAsOperator: cap => userHasCapability(auth.user, cap),
       canAsMember: cap => siteCaps.value.has(cap),
       productOn: key => !key || isProductStateEnabled(runtimeFlags.value.products[key]),
+      // Tarif-Gate wie in der Sidebar (C2) — ohne Pool-Tenant immer true.
+      planOn: key => planAllows(key),
     },
   ).map(m => ({ label: t(m.labelKey), icon: m.icon, to: localePath(m.to) }))
 

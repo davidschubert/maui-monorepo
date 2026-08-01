@@ -56,6 +56,22 @@ export interface PukalaniAdminModule {
    * bleibt die Server-Middleware (Routen 404en), die Nav ist nur UX.
    */
   productKey?: string
+  /**
+   * TARIF-Produkt-Gate im Pool (C2, P4): der Eintrag steht nur, wenn der Plan
+   * DIESER Community das Produkt enthält (`pukalani.tenancy.products` →
+   * Mindest-Plan, geprüft mit `useTenantPlan().planAllows`). Gleicher Name und
+   * gleiche Bedeutung wie `planProduct` in der öffentlichen Chrome-Registry
+   * (shared/types/chrome.ts) — es ist dieselbe Frage an zwei Navigationen.
+   *
+   * NICHT dasselbe wie `productKey`: das ist der BETREIBER-Schalter (Produkt in
+   * dieser Instanz aus), das hier ist der VERTRAG des Kunden. Ein Menüpunkt
+   * ohne dieses Feld erschien auch dann, wenn die zugehörige Route wegen
+   * `requirePlanProduct` längst 404 antwortet.
+   *
+   * Ohne Pool-Kontext (Silo, Kontroll-Host, Playground) sichtbar wie bisher —
+   * dort gibt es keinen Tenant-Plan, gegen den man prüfen könnte.
+   */
+  planProduct?: string
   /** i18n-Key des Nav-Labels */
   labelKey: string
   /** Icon (i-ph-…) */

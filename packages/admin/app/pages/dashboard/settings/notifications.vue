@@ -5,6 +5,8 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'] })
 const { t } = useI18n()
 </script>
 
+useHead({ title: () => t('dashboard.settings.notifications') })
+
 <template>
   <UPageCard :title="t('notifications.email.title')" :description="t('notifications.email.description')" variant="subtle">
     <UserNotificationSettings />

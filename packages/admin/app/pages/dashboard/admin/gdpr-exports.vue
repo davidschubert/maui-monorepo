@@ -18,6 +18,8 @@ const toast = useToast()
 const confirm = useConfirm()
 const { formatDate } = useFormatDate()
 
+useHead({ title: () => t('admin.gdprExports.title') })
+
 const { data, refresh } = await useFetch<{ total: number, files: GdprExportFile[] }>('/api/admin/gdpr-exports')
 
 // Doppelklick-Schutz für den Download (der Löschweg sperrt im Dialog selbst)

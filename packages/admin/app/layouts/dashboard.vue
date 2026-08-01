@@ -19,6 +19,15 @@ const runtimeFlags = useRuntimeFlags()
 const productOn = (productKey?: string) =>
   !productKey || isProductStateEnabled(runtimeFlags.value.products[productKey])
 
+// TARIF-Gate (C2): Module, die der Plan dieser Community nicht enthält,
+// verschwinden — ihre Routen antworten wegen `requirePlanProduct` ohnehin 404
+// (Kurse/Events sind Pro). Zweites, unabhängiges Gate neben `productOn`: das
+// ist der Betreiber-Schalter, das hier der Vertrag des Kunden. `planAllows`
+// gibt ohne Pool-Tenant (Silo, Kontroll-Host, Playground) true zurück — dort
+// bleibt das Menü unverändert. Nur UX; die Autorität sitzt an der Route.
+const { planAllows } = useTenantPlan()
+const planOn = (planProduct: string) => planAllows(planProduct)
+
 // Glocke in der Betreiber-Shell (C17): dieselbe Config-Naht wie im
 // core-default-Layout. Betrifft heute apps/control — dort liegen die
 // kontobezogenen Meldungen (Early-Access-Anfragen an die Betreiber,
@@ -116,7 +125,7 @@ const links = computed<NavigationMenuItem[]>(() => {
   }
   const modules = filterDashboardModules(
     (appConfig.pukalani?.admin?.modules ?? []) as PukalaniAdminModule[],
-    { place, placement: 'nav', canAsOperator, canAsMember, productOn },
+    { place, placement: 'nav', canAsOperator, canAsMember, productOn, planOn },
   )
   for (const m of modules.filter(m => !m.group)) items.push(toItem(m))
   // Gruppen in fester Reihenfolge (Davids Struktur, E9): erst die Betreiber-
@@ -156,7 +165,7 @@ const bottomLinks = computed<NavigationMenuItem[]>(() => {
   }
   for (const m of filterDashboardModules(
     (appConfig.pukalani?.admin?.modules ?? []) as PukalaniAdminModule[],
-    { place, placement: 'bottom', canAsOperator, canAsMember, productOn },
+    { place, placement: 'bottom', canAsOperator, canAsMember, productOn, planOn },
   ).sort((a, b) => (a.order ?? 999) - (b.order ?? 999))) {
     items.push({ label: t(m.labelKey), icon: m.icon, to: localePath(m.to), onSelect: close })
   }

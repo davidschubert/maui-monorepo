@@ -86,6 +86,7 @@ export interface DashboardNavModule {
   requiredCapability: Capability
   placement?: 'nav' | 'bottom' | 'userMenu'
   productKey?: string
+  planProduct?: string
 }
 
 export interface DashboardNavFilter {
@@ -98,6 +99,19 @@ export interface DashboardNavFilter {
   canAsMember: (capability: Capability) => boolean
   /** Laufzeit-Produkt-Gate (F2) — ohne Angabe zählt jedes Produkt als an. */
   productOn?: (productKey: string | undefined) => boolean
+  /**
+   * Tarif-Produkt-Gate im Pool (C2) — ohne Angabe zählt jedes Produkt als
+   * enthalten. Der Aufrufer reicht `useTenantPlan().planAllows` durch; die
+   * gibt AUSSERHALB des Pools (Silo, Kontroll-Host, Playground: kein
+   * Tenant-Plan im SSR-Payload) immer `true` zurück, das Menü bleibt dort
+   * also unverändert.
+   *
+   * Wird NUR für Module mit gesetztem `planProduct` gefragt — anders als
+   * `productOn`, das die Undefined-Behandlung bis heute jedem Aufrufer
+   * überlässt (`!productKey || …`, an drei Stellen wiederholt). Ein Aufrufer,
+   * der das einmal vergisst, blendet sonst das halbe Menü aus.
+   */
+  planOn?: (planProduct: string) => boolean
 }
 
 /**
@@ -129,17 +143,29 @@ export function moduleAllowedFor(
  * Die sichtbaren Module einer Platzierung, in Registry-Reihenfolge.
  * Reihenfolge der Prüfungen ist egal (alle sind UND-verknüpft); die
  * Gruppierung/Sortierung macht das Layout.
+ *
+ * ZWEI Produkt-Gates, und sie sind NICHT dasselbe (C2):
+ *  - `productKey` / `productOn` (F2) — der BETREIBER hat das Produkt in dieser
+ *    Instanz abgeschaltet (app_config, live über den Realtime-Config-Kanal).
+ *  - `planProduct` / `planOn` (P4) — der TARIF dieser Community enthält das
+ *    Produkt nicht (pukalani.tenancy.products). Die API antwortet dort längst
+ *    404 (requirePlanProduct); ohne dieses Gate steht der Menüpunkt trotzdem
+ *    da und führt in eine Wand — das Menü lügt.
+ * Beide sind NUR UX. Autorität bleiben die Server-Middleware und
+ * `requirePlanProduct` an den Routen.
  */
 export function filterDashboardModules<M extends DashboardNavModule>(
   modules: readonly M[],
   filter: DashboardNavFilter,
 ): M[] {
   const productOn = filter.productOn ?? (() => true)
+  const planOn = filter.planOn ?? (() => true)
   return modules.filter(m =>
     (m.placement ?? 'nav') === filter.placement
     && isDashboardScope(m.scope)
     && scopeVisibleAt(m.scope, filter.place)
     && moduleAllowedFor(m, filter)
-    && productOn(m.productKey),
+    && productOn(m.productKey)
+    && (m.planProduct === undefined || planOn(m.planProduct)),
   )
 }

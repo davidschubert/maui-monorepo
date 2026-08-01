@@ -687,3 +687,14 @@ parallele Session hat die Imports mit ihrem Index-Race-Retry-Refactor
 mitgezogen). **Gelernt:** Funde vor dem Fixen erst REPRODUZIEREN — in einem
 Repo mit parallelen Sessions altern Befunde in Stunden.
 
+### C5 + C2 — Seitentitel + Nav-Tarif-Gate ✅ 2026-07-31
+
+C5: 26 titellose Dashboard-Seiten über 7 Layer (Audit sagte 17/3 — Zahlen
+altern) + verify/join, exakt im Bestandsmuster (useHead/useBrandTitle), ein
+einziger neuer i18n-Key. C2: planProduct-Feld in der Nav-Registry (Name aus
+dem Chrome-Vertrag — kein zweites Wort für dieselbe Frage), Gate an der
+EINEN Filterstelle, an planAllowsProduct genagelt (dieselbe pure Funktion
+wie der Server); Nicht-Pool unverändert; +7 Tests. **Gelernt:** Undefined-
+Behandlung gehört IN die pure Regel, nicht an jede Aufrufstelle — der
+Testfall planOn=false hat den vergesslichen Aufrufer sofort reproduziert.
+

@@ -8,6 +8,8 @@ const toast = useToast()
 const confirm = useConfirm()
 const isDev = import.meta.dev
 
+useHead({ title: () => t('dashboard.system.title') })
+
 // Live-/per-Request-Daten ohne SEO-Relevanz → client-seitig (kein SSR-Render,
 // sonst Hydration-Mismatch über uptime/memory/generatedAt).
 const { data, status, refresh } = useFetch<SystemInfo>('/api/admin/system', {

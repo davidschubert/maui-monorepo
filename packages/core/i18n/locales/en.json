@@ -77,6 +77,7 @@
       "sentDescription": "Check your inbox (and your spam folder).",
       "sendFailed": "Sending failed — please try again later.",
       "sendFailedDescription": "Check your connection and try again in a few minutes.",
+      "pageTitle": "Confirm email",
       "working": "Confirming your email address …",
       "successTitle": "Email confirmed",
       "successMessage": "Thanks! Your address is now verified.",

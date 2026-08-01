@@ -27,6 +27,8 @@ const memberSince = computed(() =>
   user.value ? new Date(user.value.registration).toLocaleDateString(locale.value, { month: 'short', year: 'numeric' }) : '',
 )
 
+useHead({ title: () => user.value?.name || t('admin.users.detail.profile') })
+
 type UserAction = 'block' | 'unblock' | 'sessions' | 'delete'
 const exporting = ref(false)
 

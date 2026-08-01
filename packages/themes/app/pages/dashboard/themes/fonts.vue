@@ -16,6 +16,8 @@ const toast = useToast()
 const localePath = useLocalePath()
 const fonts = useCustomFontsState()
 
+useHead({ title: () => t('themes.fonts.title') })
+
 await useAsyncData('pukalani-fonts-admin', async () => {
   await refreshCustomFonts()
   return true

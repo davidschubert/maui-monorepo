@@ -10,6 +10,8 @@ const localePath = useLocalePath()
 const config = useRuntimeConfig()
 const { formatRelativeTime } = useFormatRelativeTime()
 
+useHead({ title: () => t('admin.storage.title') })
+
 const { data, status, refresh } = useFetch<StorageOverview>('/api/admin/storage', {
   lazy: true,
   server: false,

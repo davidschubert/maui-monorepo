@@ -12,6 +12,8 @@ const { formatRelativeTime } = useFormatRelativeTime()
 const { page, setPage } = usePagination()
 const { sortField, sortDir, toggle } = useTableSort('$createdAt', 'desc')
 
+useHead({ title: () => t('admin.audit.title') })
+
 const { data, status, refresh } = useFetch<AuditLogListResponse>('/api/admin/audit', {
   query: computed(() => ({ page: page.value, sort: sortField.value, dir: sortDir.value })),
   lazy: true,

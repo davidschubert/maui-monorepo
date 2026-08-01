@@ -23,6 +23,8 @@ const config = useRuntimeConfig()
 const auth = useAuthStore()
 const { formatRelativeTime } = useFormatRelativeTime()
 
+useHead({ title: () => t('admin.nav.overview') })
+
 const firstName = computed(() => auth.user?.name?.split(' ')[0] || t('ui.account'))
 // Datum erst clientseitig füllen: SSR rendert in der Server-TZ, der Client in
 // der lokalen — um Mitternacht/über TZ-Grenzen liefe das auseinander und löste

@@ -3,10 +3,12 @@ import {
   resolveDashboardPlace,
   scopeVisibleAt,
   filterDashboardModules,
+  type DashboardNavFilter,
   type DashboardNavModule,
   type DashboardPlace,
   type DashboardScope,
 } from '../shared/dashboardNav'
+import { planAllowsProduct } from '../server/utils/tenantPlanProducts'
 import { COMMUNITY_ROLES, communityCapabilitiesFor } from '../shared/communityAuthz'
 import { capabilitiesFor } from '../shared/authz'
 import type { Capability } from '../shared/types/authz'
@@ -65,6 +67,18 @@ const MODULES: TestModule[] = [
   { id: 'members', scope: 'community', requiredCapability: 'team.manage' },
   { id: 'themes', scope: 'community', requiredCapability: 'system.manage', productKey: 'themes' },
   { id: 'profile', scope: 'account', requiredCapability: 'dashboard.access' },
+]
+
+/**
+ * Module MIT Tarif-Gate (C2) — bewusst eine eigene Liste, damit die
+ * Erwartungen der Ebenen-/Rollen-Matrix oben unverändert bleiben.
+ * `courses`/`events` sind im Pool Pro-Produkte, `comments` ist frei.
+ */
+const PLAN_MODULES: TestModule[] = [
+  { id: 'comments', scope: 'community', requiredCapability: 'comments.moderate' },
+  { id: 'posts', scope: 'community', requiredCapability: 'posts.moderate', productKey: 'posts', planProduct: 'posts' },
+  { id: 'events', scope: 'community', requiredCapability: 'events.manage', productKey: 'events', planProduct: 'events' },
+  { id: 'courses', scope: 'community', requiredCapability: 'courses.manage', productKey: 'courses', planProduct: 'courses' },
 ]
 
 /**
@@ -181,5 +195,96 @@ describe('filterDashboardModules — Ebene × Rolle', () => {
     const all = (['nav', 'bottom', 'userMenu'] as const)
       .flatMap(placement => visible('single-tenant', operator, placement))
     expect(all.length).toBe(new Set(all).size)
+  })
+})
+
+/**
+ * C2 — DAS MENÜ DARF NICHT LÜGEN.
+ *
+ * Kurse und Events sind im Pool Pro-Produkte (`pukalani.tenancy.products`).
+ * Ihre Routen antworten für einen Basic-/Personal-Mandanten längst 404
+ * (`requirePlanProduct`) — der Menüpunkt stand trotzdem da und führte in die
+ * Wand. Das Gate ist deshalb an DIESELBE pure Entscheidung genagelt, die der
+ * Server trifft (`planAllowsProduct`), nicht an eine zweite, nachgebaute
+ * Rangordnung: eine abweichende Kopie wäre genau der Bruch, den C2 behebt.
+ *
+ * `planOn` ist NUR UX. Die Autorität bleibt `requirePlanProduct` an der Route.
+ */
+describe('Tarif-Gate der Dashboard-Nav (C2)', () => {
+  // Katalog wie in apps/platform/app/app.config.ts (identisch zu
+  // posts-plan-gate.test.ts — dieselbe Wahrheit, zwei Blickwinkel).
+  const PLAN_ORDER = ['basic', 'personal', 'pro'] as const
+  const PRODUCTS = { posts: 'personal', ai: 'pro', events: 'pro', courses: 'pro' }
+
+  const owner = viewer([], 'owner')
+
+  /** Menü eines Pool-Mandanten mit diesem Plan. */
+  function seenWithPlan(plan: string) {
+    return filterDashboardModules(PLAN_MODULES, {
+      place: 'community',
+      placement: 'nav',
+      ...owner,
+      planOn: key => planAllowsProduct(PLAN_ORDER, PRODUCTS, plan, key),
+    }).map(m => m.id)
+  }
+
+  it('Basic sieht weder Beiträge noch Events noch Kurse — nur das freie Produkt', () => {
+    expect(seenWithPlan('basic')).toEqual(['comments'])
+  })
+
+  it('Personal bekommt die Beiträge dazu, Events/Kurse bleiben zu', () => {
+    expect(seenWithPlan('personal')).toEqual(['comments', 'posts'])
+  })
+
+  it('Pro sieht alles', () => {
+    expect(seenWithPlan('pro')).toEqual(['comments', 'posts', 'events', 'courses'])
+  })
+
+  it('OHNE Pool-Kontext (Silo, Kontroll-Host, Playground) ändert sich nichts', () => {
+    // Der Aufrufer reicht dort `useTenantPlan().planAllows` durch, und die gibt
+    // ohne Tenant-Plan true zurück — hier abgebildet als fehlendes `planOn`.
+    // Nur die zwei Orte, an denen Community-Module überhaupt stehen (E9);
+    // auf dem Kontroll-Host verschwinden sie schon am Ort, nicht am Tarif.
+    for (const place of ['community', 'single-tenant'] as const) {
+      expect(
+        filterDashboardModules(PLAN_MODULES, { place, placement: 'nav', ...owner }).map(m => m.id),
+        place,
+      ).toEqual(['comments', 'posts', 'events', 'courses'])
+    }
+  })
+
+  it('ein Modul OHNE planProduct fasst das Tarif-Gate nie an', () => {
+    const seen = filterDashboardModules(PLAN_MODULES, {
+      place: 'community',
+      placement: 'nav',
+      ...owner,
+      planOn: () => false, // härtester Fall: nichts ist im Tarif enthalten
+    }).map(m => m.id)
+    expect(seen).toEqual(['comments'])
+  })
+
+  it('die beiden Produkt-Gates sind UNABHÄNGIG: Betreiber-Schalter vs. Tarif', () => {
+    // F2 aus, Tarif an → weg. Tarif aus, F2 an → ebenfalls weg. Ein Gate darf
+    // das andere weder ersetzen noch überstimmen.
+    const only = (opts: Partial<DashboardNavFilter>) =>
+      filterDashboardModules(PLAN_MODULES, { place: 'community', placement: 'nav', ...owner, ...opts }).map(m => m.id)
+
+    expect(only({ productOn: key => key !== 'events' })).toEqual(['comments', 'posts', 'courses'])
+    expect(only({ planOn: key => key !== 'events' })).toEqual(['comments', 'posts', 'courses'])
+    expect(only({
+      productOn: key => key !== 'events',
+      planOn: key => key !== 'courses',
+    })).toEqual(['comments', 'posts'])
+  })
+
+  it('Capability schlägt weiterhin durch — ein Tarif ersetzt kein Recht', () => {
+    const editor = viewer([], 'editor')
+    const seen = filterDashboardModules(PLAN_MODULES, {
+      place: 'community',
+      placement: 'nav',
+      ...editor,
+      planOn: () => true,
+    }).map(m => m.id)
+    expect(seen).not.toContain('comments') // comments.moderate trägt ein Editor nicht
   })
 })
