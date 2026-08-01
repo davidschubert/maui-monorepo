@@ -1,4 +1,3 @@
-import { Channel } from 'appwrite'
 import type { AppwriteRow } from '../../shared/types/appwrite'
 
 export interface RealtimeRowEvent<T extends AppwriteRow> {
@@ -37,6 +36,8 @@ interface RealtimeEventResponse {
  *
  * - Channel via SDK-Builder: tablesdb.<db>.tables.<table>.rows[.<rowId>]
  * - SSR: no-op (import.meta.server Guard) — überall aufrufbar
+ * - Das Web-SDK wird ERST HIER dynamisch geladen (B4). Wer nie abonniert, lädt
+ *   es nie; wer abonniert, zahlt es nach der Hydration statt im Initial-Bundle.
  * - JWT wird vor dem Verbinden gesetzt (sonst Gast-WS ohne read("users")-Events)
  * - Cleanup via onScopeDispose — funktioniert auch in Stores/Composables
  * - Reconnect/Backoff übernimmt die SDK-Realtime
@@ -69,11 +70,6 @@ export function useRealtimeRows<T extends AppwriteRow>(
    */
   if (!databaseId || !tableId) return () => {}
 
-  const channel = options.rowId
-    ? Channel.tablesdb(databaseId).table(tableId).row(options.rowId)
-    : Channel.tablesdb(databaseId).table(tableId).row()
-
-  const realtime = sharedRealtime()
   let sub: { unsubscribe?: () => void, close?: () => void } | undefined
   let disposed = false
 
@@ -93,10 +89,23 @@ export function useRealtimeRows<T extends AppwriteRow>(
     callback({ type, payload, events })
   }
 
+  // ensureRealtimeJwt() SYNCHRON anstoßen (noch im Composable-Setup): es liest
+  // die Runtime-Config, und nach dem ersten await ist der Nuxt-Kontext weg.
+  const jwtReady = ensureRealtimeJwt()
+
   void (async () => {
+    // Direkt destrukturiert, nicht über Promise.all oder einen Helfer — sonst
+    // verliert Rollup die Tree-Shaking-Information (s. useRealtimeClient.ts).
+    const { Channel } = await import('appwrite')
+    const realtime = await sharedRealtime()
+    if (disposed) return
+    const channel = options.rowId
+      ? Channel.tablesdb(databaseId).table(tableId).row(options.rowId)
+      : Channel.tablesdb(databaseId).table(tableId).row()
+
     // WS authentifizieren, BEVOR sie sich verbindet (sonst Gast → keine
     // read("users")-Events, z.B. für comment_votes/notifications).
-    await ensureRealtimeJwt()
+    await jwtReady
     if (disposed) return
     try {
       sub = await realtime.subscribe(channel, handle as (payload: unknown) => void, options.queries)

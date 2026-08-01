@@ -1,4 +1,4 @@
-import { Client, Realtime } from 'appwrite'
+import type { Client, Realtime } from 'appwrite'
 
 /**
  * EINE geteilte, JWT-authentifizierte Realtime-Verbindung für die ganze App.
@@ -17,27 +17,66 @@ import { Client, Realtime } from 'appwrite'
  *   Gast und empfängt keine read("users")-Events; der WS-Presence-Upsert schlägt fehl.
  *
  * SSR-Hinweis: erst bei erstem Zugriff (Client, in setup/onMounted) instanziiert.
+ *
+ * ── WARUM ALLES ASYNC IST (B4, 2026-08-01) ──────────────────────────────────
+ * Das Appwrite-WEB-SDK ist im Projekt ausschließlich für Realtime erlaubt und
+ * wog als STATISCHER Import ~76 kB (25,7 kB gzip) im Initial-Bundle JEDER App,
+ * die core erweitert — auch auf Seiten, die nie etwas abonnieren. Der Import
+ * ist deshalb DYNAMISCH (`import('appwrite')`), und jeder Zugriff auf Client/
+ * Realtime läuft über ein Promise. Der Typ-Import oben ist `import type` und
+ * wird beim Kompilieren restlos entfernt — er zieht nichts ins Bundle.
+ *
+ * RACE-FREIHEIT ist hier keine Kür: der Socket ist EINE Instanz über viele
+ * Konsumenten. Sie hängt an GENAU EINEM `clientsPromise` — zwei gleichzeitige
+ * Erstaufrufe (Config-Plugin + Themes-Plugin + Presence) bekommen dasselbe
+ * Promise und damit denselben Socket, nie zwei. Das `import('appwrite')`
+ * selbst darf ruhig mehrfach im Code stehen: der Modul-Registry des Browsers
+ * lädt die Datei genau einmal.
+ *
+ * KEIN gemeinsamer `loadAppwriteSdk()`-Helfer (bewusst, gemessen): sobald der
+ * SDK-NAMESPACE durch eine Funktion gereicht wird, kann Rollup nicht mehr
+ * sehen, welche Exporte benutzt werden — der Chunk wuchs damit von 76 kB auf
+ * 148 kB (Storage, Messaging, Functions, Teams, Avatars kamen mit). Jeder
+ * Konsument destrukturiert deshalb DIREKT am `import('appwrite')`
+ * (`const { Channel } = await import('appwrite')`); nur so bleibt der
+ * dynamische Chunk so klein wie der frühere statische Import.
  */
-let cookieClient: Client | null = null
-let rtClient: Client | null = null
-let realtime: Realtime | null = null
+interface RealtimeClients {
+  cookieClient: Client
+  rtClient: Client
+  realtime: Realtime
+}
 
-function ensureClients() {
-  const config = useRuntimeConfig()
-  if (!cookieClient) cookieClient = new Client().setEndpoint(config.public.appwriteEndpoint).setProject(config.public.appwriteProjectId)
-  if (!rtClient) rtClient = new Client().setEndpoint(config.public.appwriteEndpoint).setProject(config.public.appwriteProjectId)
-  if (!realtime) realtime = new Realtime(rtClient)
-  return { cookieClient, rtClient, realtime }
+let clientsPromise: Promise<RealtimeClients> | null = null
+
+/**
+ * Die beiden Clients + die geteilte Realtime-Instanz. Die Runtime-Config wird
+ * SYNCHRON gelesen (vor dem ersten await), weil `useRuntimeConfig()` einen
+ * gültigen Nuxt-Kontext braucht — nach einem await ist der weg. Alle
+ * öffentlichen Einstiege unten werden aus Composable-/Plugin-Setup gerufen.
+ */
+export function ensureRealtimeClients(): Promise<RealtimeClients> {
+  if (!clientsPromise) {
+    const config = useRuntimeConfig()
+    const endpoint = config.public.appwriteEndpoint
+    const project = config.public.appwriteProjectId
+    clientsPromise = import('appwrite').then(({ Client, Realtime }) => {
+      const cookieClient = new Client().setEndpoint(endpoint).setProject(project)
+      const rtClient = new Client().setEndpoint(endpoint).setProject(project)
+      return { cookieClient, rtClient, realtime: new Realtime(rtClient) }
+    })
+  }
+  return clientsPromise
 }
 
 /** Cookie-authentifizierter Client für HTTP-SDK-Services (Presences, …). */
-export function realtimeCookieClient(): Client {
-  return ensureClients().cookieClient
+export async function realtimeCookieClient(): Promise<Client> {
+  return (await ensureRealtimeClients()).cookieClient
 }
 
 /** Die eine geteilte SDK-Realtime-Instanz (JWT-Client, multiplext alle Channels). */
-export function sharedRealtime(): Realtime {
-  return ensureClients().realtime
+export async function sharedRealtime(): Promise<Realtime> {
+  return (await ensureRealtimeClients()).realtime
 }
 
 // ── Realtime-Auth via JWT ──────────────────────────────────────────────────
@@ -53,7 +92,8 @@ let jwtReady = false
 async function fetchJwt() {
   try {
     const { jwt } = await $fetch<{ jwt: string }>('/api/auth/realtime-token')
-    ensureClients().rtClient.setJWT(jwt) // NUR der Realtime-Client — nie der Cookie-Client
+    const { rtClient } = await ensureRealtimeClients()
+    rtClient.setJWT(jwt) // NUR der Realtime-Client — nie der Cookie-Client
     jwtReady = true
   }
   catch {
@@ -79,7 +119,8 @@ export function hasRealtimeJwt(): boolean {
  * realtime.subscribe()/upsertPresence() awaiten.
  */
 export function ensureRealtimeJwt(): Promise<void> {
-  ensureClients()
+  // Synchron anstoßen, solange der Nuxt-Kontext noch steht (Config-Lesen).
+  void ensureRealtimeClients()
   if (!jwtPromise) {
     jwtPromise = fetchJwt()
     setInterval(fetchJwt, JWT_REFRESH_MS)
@@ -98,11 +139,18 @@ export function ensureRealtimeJwt(): Promise<void> {
  * re-subscribed beim `connected` ALLE aktiven Subscriptions selbst
  * (handleResponseConnected, am 26.1.0-Quellcode verifiziert) — Konsumenten
  * verlieren nichts, die neue Verbindung trägt aber den neuen (oder keinen) JWT.
+ *
+ * WICHTIG (B4): dieser Hook lädt das SDK NICHT nach. Hat bis hierher niemand
+ * Realtime benutzt (`clientsPromise === null`), gibt es weder Socket noch
+ * Client, den man umauthentifizieren müsste — ein Login auf einer Seite ohne
+ * Abonnement soll keine 76 kB nachziehen. Der erste echte Konsument holt sich
+ * seinen JWT ohnehin selbst über ensureRealtimeJwt().
  */
 export async function syncRealtimeAuth(loggedIn: boolean): Promise<void> {
-  const { rtClient, realtime } = ensureClients()
   jwtPromise = null
   jwtReady = false
+  if (!clientsPromise) return
+  const { rtClient, realtime } = await clientsPromise
   rtClient.setJWT('')
   if (loggedIn) await ensureRealtimeJwt()
   // closeSocket ist im d.ts privat, existiert aber stabil — Reconnect übernimmt

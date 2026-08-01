@@ -1105,3 +1105,75 @@ Ausnahmen. Erst alle Stellen finden, die denselben Zustand erzwingen, dann
 gemeinsam lösen. Und: wenn EIN Wert zwei Aufgaben trägt (Ink = Text UND
 Bandgrund), braucht der Dunkel-Zweig eine Trennung in zwei Variablen — sonst
 zwingt eine Farbe die andere mit.
+
+### B4 — Appwrite-Web-SDK erst bei Bedarf ✅ 2026-08-01
+
+**Davids Entscheidung am Morgen: Variante (a)** — das Web-SDK (im Projekt nur
+für Realtime erlaubt) verschwindet aus dem Initial-Bundle und wird erst
+geladen, wenn wirklich abonniert wird. Variante (b) (spekulative
+`prefetch`-Hints filtern) blieb bewusst liegen: sie hätte den
+Navigations-Vorsprung nach dem Login gekostet.
+
+Umgebaut wurde genau die Realtime-Schicht des Core:
+`useRealtimeClient.ts` (Clients + geteilte `Realtime` hinter EINEM
+`clientsPromise`), `useRealtimeRows.ts` und `usePresence.ts`. Aus den
+statischen `import { … } from 'appwrite'` wurden `import type` (verschwindet
+beim Kompilieren restlos) plus ein dynamisches `import('appwrite')` an genau
+den drei Stellen, die SDK-Symbole brauchen. Race-Freiheit hängt am einen
+`clientsPromise`: Config-Plugin, Themes-Plugin und Presence starten fast
+gleichzeitig und bekommen denselben Socket, nie zwei.
+`syncRealtimeAuth()` lädt bewusst NICHTS nach — ohne bestehende Clients gibt
+es keinen Socket umzuauthentifizieren, und ein Login auf einer Seite ohne
+Abonnement soll keine 75 kB nachziehen. SSR ist unberührt (Web-SDK ist
+client-only, die `import.meta.server`-Guards standen schon).
+
+**Bundle, gemessen am Produktions-Build (statischer Initial-Graph = Entry plus
+alles, was von dort per `import` hängt und im Head als `modulepreload` steht):**
+
+| App | vorher | nachher | Ersparnis |
+|---|---|---|---|
+| `comments` | 704.254 B roh / **247.145 B gzip** | 630.050 B roh / **222.428 B gzip** | −74.204 B roh / **−24.717 B gzip (−10,0 %)** |
+| `marketing` | 613.732 B roh / **217.274 B gzip** | 541.545 B roh / **192.836 B gzip** | −72.187 B roh / **−24.438 B gzip (−11,2 %)** |
+
+Der SDK-Chunk selbst wandert vom Preload-Graph in einen eigenen, nachgelagerten
+Chunk: **75.458 B roh / 25.400 B gzip** — also nicht größer als der frühere
+statische Anteil (76.279 / 25.653). Ein Prefetch-Hint entsteht dafür NICHT:
+`vue-bundle-renderer` verlinkt nur `dynamicImports` der GERENDERTEN Module,
+und der Chunk hängt an drei Composable-Chunks, nicht am Entry-Modul.
+
+**Beweise, alle live und nicht angenommen:**
+- comments-E2E **24/24 grün in 31,2 s, Exit 0** (inkl. `realtime.spec.ts`
+  „serverseitig angelegter Kommentar erscheint live" und des Popup-Login-
+  Flows) — gegen den Dev-Server dieses Arbeitsbaums.
+- **Live-Theme-Morphen für Gäste funktioniert weiter:** in einem Fenster ohne
+  Session (`document.cookie` ohne `a_session`) wurde `app_config.themeSettings`
+  server-seitig auf `crimson` und danach auf `jade` gesetzt — beide Male sprang
+  `<html data-theme>` ohne Reload mit, samt frisch eingehängter
+  `/themes/<name>.css`. Danach auf `mist` zurückgesetzt.
+- **Seite ohne Realtime-Konsumenten lädt kein SDK:** `help` (keine
+  Appwrite-Instanz) zeigt im Netzwerk-Log null `appwrite`-Requests und null
+  `/api/auth/realtime-token`.
+- `pnpm -r test` (alle Pakete grün), `-r typecheck` Exit 0, `-r lint` mit den
+  6 bekannten Warnungen, `check:manifests` konsistent.
+
+**F11 ist damit NICHT miterledigt** (nachgemessen statt vermutet): auf
+`marketing` feuert `/api/auth/realtime-token → 401` unverändert, weil das
+Config-Plugin weiter bedingungslos abonniert. Die Zeile in OPEN-ITEMS ist
+entsprechend präzisiert.
+
+**Gelernt (zwei Stück):** (1) **Ein bequemer `loadAppwriteSdk()`-Helfer kostet
+das Tree-Shaking.** Erste Fassung reichte den SDK-Namespace durch eine
+Funktion — Rollup sieht dann nicht mehr, welche Exporte benutzt werden, und
+der Chunk wuchs von 76 kB auf **148 kB** (Storage, Messaging, Functions, Teams,
+Avatars kamen mit). Der Initial-Graph schrumpfte trotzdem, die Zahl sah gut
+aus, und die Regression wäre unbemerkt geblieben, hätte man nur die
+Ersparnis gemessen. Fix: jeder Konsument destrukturiert DIREKT am
+`import('appwrite')` — und **auch ein `Promise.all([import('appwrite'), …])`
+zerstört es wieder**, weil der Namespace in eine Funktion wandert. (2)
+**`useRuntimeConfig()` muss vor dem ersten `await` gelesen werden.** Beim
+Umbau auf async ist der Nuxt-Kontext nach dem ersten `await` weg; alle
+Einstiegspunkte lesen die Config deshalb synchron und starten erst danach das
+Lade-Promise. Und der Port-Fallback der Dev-Server hat wieder zugeschlagen:
+`PORT=…` wirkt nicht, weil das `dev`-Script `--port` fest übergibt — comments
+landete auf 3000, marketing auf 3002 (die Standard-Ports hielt ein fremder
+Arbeitsbaum). Erste Log-Zeile lesen, sonst misst der Beweis fremden Code.

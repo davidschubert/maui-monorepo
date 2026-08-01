@@ -1,5 +1,5 @@
 import type { Ref } from 'vue'
-import { Channel, Presences, Query } from 'appwrite'
+import type { Presences } from 'appwrite'
 import { presencePermissions } from '../../shared/presencePermissions'
 
 export interface PresenceUser {
@@ -117,9 +117,11 @@ export function usePresenceState() {
   function upsertWs() {
     const user = auth.user
     if (!user) return
-    const realtime = sharedRealtime()
-    ensureRealtimeJwt()
-      .then(() => {
+    // Das Web-SDK kommt erst hier (B4) — für einen GAST wird es nie geladen:
+    // upsertWs kehrt oben ohne user zurück, und der Heartbeat-Plugin-Aufruf
+    // von usePresenceState() allein zieht nichts nach.
+    Promise.all([sharedRealtime(), ensureRealtimeJwt()])
+      .then(([realtime]) => {
         // Ohne gültigen JWT ist die WS ein Gast → upsertPresence würde server-
         // seitig „User must be authorized" werfen. Dann nur der HTTP-Heartbeat
         // (upsertHttp) trägt die Presence — kein Realtime-Event, aber sauber.
@@ -217,9 +219,13 @@ export function usePresence(predicate: (u: PresenceUser) => boolean = () => true
 
   const auth = useAuthStore()
   const tenantId = useTenantId()
-  const client = realtimeCookieClient()
-  const realtime = sharedRealtime()
-  const presences = new Presences(client)
+  // Web-SDK + Clients dynamisch (B4). SYNCHRON angestoßen, weil
+  // ensureRealtimeClients() die Runtime-Config liest — nach dem ersten await
+  // gibt es keinen Nuxt-Kontext mehr. Aufgelöst wird in onMounted.
+  const clientsReady = ensureRealtimeClients()
+  // Direkt destrukturiert (Tree-Shaking, siehe useRealtimeClient.ts).
+  const sdkReady = import('appwrite').then(({ Channel, Presences, Query }) => ({ Channel, Presences, Query }))
+  let presences: Presences | undefined
 
   const others = computed(() => present.value.filter(u => u.userId !== auth.user?.$id))
   const typingOthers = computed(() => others.value.filter(u => u.typing))
@@ -230,7 +236,9 @@ export function usePresence(predicate: (u: PresenceUser) => boolean = () => true
   let refreshTimer: ReturnType<typeof setTimeout> | undefined
 
   async function refresh() {
+    if (!presences) return // SDK noch nicht da → der Erst-refresh in onMounted holt es
     try {
+      const { Query } = await sdkReady
       // Explizites Limit statt Default 25 → auch bei vielen Online-Usern vollständig.
       const res = await presences.list({ queries: [Query.limit(200)] })
       const next = new Map<string, PresenceUser>()
@@ -265,13 +273,16 @@ export function usePresence(predicate: (u: PresenceUser) => boolean = () => true
   // ewigen 20s-Poll + eine tote Subscription starten (Leak).
   let disposed = false
   onMounted(async () => {
+    const [{ Channel, Presences }, clients] = await Promise.all([sdkReady, clientsReady])
+    if (disposed) return
+    presences = new Presences(clients.cookieClient)
     await ensureRealtimeJwt() // WS authentifizieren, BEVOR er sich verbindet (sonst Gast)
     if (disposed) return
     await refresh()
     if (disposed) return
     loaded.value = true
     try {
-      sub = await realtime.subscribe(Channel.presences(), scheduleRefresh)
+      sub = await clients.realtime.subscribe(Channel.presences(), scheduleRefresh)
       if (disposed) { void (sub.unsubscribe ?? sub.close)?.(); sub = undefined; return }
     }
     catch { /* Poll trägt die Anwesenheit */ }
