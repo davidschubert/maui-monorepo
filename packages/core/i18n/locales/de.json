@@ -267,7 +267,9 @@
   "error": {
     "notFound": "Diese Seite existiert nicht.",
     "generic": "Da ist etwas schiefgelaufen.",
-    "backHome": "Zur Startseite"
+    "backHome": "Zur Startseite",
+    "unknownHost": "Diese Adresse gehört zu keiner Community.",
+    "toOperatorSite": "Mehr über {brand}"
   },
   "demo": {
     "banner": "Das ist eine Demo-Community mit Beispiel-Inhalten.",

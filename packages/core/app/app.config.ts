@@ -17,6 +17,14 @@ export default defineAppConfig({
      */
     brand: {
       name: 'Pukalani',
+      /**
+       * Öffentliche Seite des Anbieters (absolute URL) — der EINZIGE Leser ist
+       * heute die Fehlerseite eines unbekannten Hosts (C12b): wer sich
+       * vertippt hat, landet auf einer Adresse ohne Community, und „Zur
+       * Startseite" führte dort im Kreis. Leer = kein Ausweg-Link (Silo-Apps
+       * haben keinen Anbieter-Auftritt, auf den sie verweisen müssten).
+       */
+      homeUrl: '',
     },
     admin: {
       /** Modul-Registry: Produkt-Layer tragen hier ihre Dashboard-Sektionen ein

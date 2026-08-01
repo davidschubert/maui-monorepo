@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 14 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 12 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-07-31**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -21,8 +21,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
 | 11 · B1 | **Neun visuelle Referenzbilder sichten**, dann neu aufnehmen — der Header-Umbau hat sie erwartungsgemäß gebrochen. | Mittel | S — ansehen + ein Befehl | Ja: David sichtet zuerst | [Notizen](#notizen) |
-| 20 · C12b | **Fehlerseite bei unbekanntem Host** zeigt „500 – Unknown host", obwohl es korrekt ein 404 ist. Klein, aber die Zahl auf der Seite ist falsch. | Niedrig | S — eine Middleware-Stelle | Nein | [Notizen](#notizen) |
-| 21 · C8 | **Suche in der internen Doku** (`control.pukalani.app/docs`) — bisher bewusst weggelassen. | Niedrig | S — Nuxt-Content-Suche | Nein | [Notizen](#notizen) |
 | 23 · B4 | **Ladezeit-Hebel wählen:** (a) Appwrite-Web-SDK nachladen (72 kB) oder (b) spekulative Vorablade-Hinweise filtern — kostet den Navigations-Vorsprung nach dem Login. | Niedrig | M — je nach Wahl | Ja: David wählt a oder b | [Notizen](#notizen) |
 | 24 · B7 | **Dunkles Design für die Landingpage?** Sie ist bewusst hell geklemmt; seit der Nuxt-UI-Migration wäre Dunkel machbar. | Niedrig | S — Entscheidung, dann ein CSS-Zweig | Ja: Ja/Nein | [Notizen](#notizen) |
 | 25 · M13 | **Reste des Selbstbedienungs-Trichters:** Hinweis auf ablaufende Testphase, Umzug des Kundenbereichs von `/workspace` nach `my.*`, Sperr-/Missbrauchspfad, Statusseite bei UptimeRobot. | Mittel | M — vier kleine Stücke | Ja: bei Sperr-Regeln | [SAAS-ROADMAP #1](archiv/SAAS-ROADMAP.md) |
@@ -232,25 +230,6 @@ zusammen mit dem Code-Abbau des 2-Wege-Reads (`getLegacyEntitlementsDocument`/
 Ausführen, und die Reihenfolge ist Pflicht:** erst den Code deployen, dann
 migrieren — andersherum liest der Fallback gegen eine gelöschte Spalte.
 Herkunft: Pool-Audit N2.
-
-**C8 — Suche in der internen Doku** (`control.pukalani.app/docs`) — bewusst
-weggelassen.
-
-**C12b — Fehlerseite bei unbekanntem Host.** Neu vermessen 2026-07-30 — die
-alte Zeile war falsch beschrieben. „Rohes JSON" sieht nur, wer wie `curl` mit
-`Accept: */*` anfragt; das ist Nitros Content-Negotiation und laut Docstring in
-`core/server/error.ts` **bewusst so** (dort ausdrücklich als „keine Regression"
-festgehalten). Mit `Accept: text/html` kommt HTML. **Der echte Fehler:** dieses
-HTML ist Nuxts EINGEBAUTE Fehlerseite und trägt den Titel
-**„500 - Unknown host"**, obwohl der Status korrekt 404 ist — die gebrandete
-`CoreErrorPage` erscheint nicht. Gegenprobe am selben Tag: ein gewöhnlicher 404
-rendert sie überall richtig (`404 · Morgenlicht`, `404 · Hawaii Studio`,
-`404 · Pukalani Control`, `404 · Pukalani`). Der Unterschied ist die Stelle:
-`core/server/middleware/00.tenant.ts:53` wirft in der SERVER-Middleware, also
-bevor der Renderer läuft — beim Rendern der Fehlerseite läuft dieselbe
-Middleware erneut und wirft wieder, weil der Host unbekannt bleibt; Nuxt fällt
-auf sein eingebautes Template zurück. Klein (der Host wird nirgends beworben),
-aber die Zahl auf der Seite ist eine Lüge.
 
 **B4 — Perf-Hebel (K4):** (a) Appwrite-Web-SDK dynamisch laden (72 kB Entry,
 Umbau am Realtime-Subsystem) · (b) spekulative `prefetch`-Hints filtern

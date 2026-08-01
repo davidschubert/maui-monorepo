@@ -871,3 +871,76 @@ wirklich unabhängig. (2) Die erste Kanten-Steilheit (Faktor 2,7) sah in der
 gerenderten Datei am „C" wellig aus: Steilerstellen verstärkt nicht nur die
 Kante, sondern auch die Ungenauigkeit der Vorlage. Ein PNG-Test prüft Maße und
 Magic Bytes — wie es AUSSIEHT, sieht nur, wer es ansieht.
+
+### C12b — die Fehlerseite eines unbekannten Hosts sagt jetzt die Wahrheit ✅ 2026-07-31
+
+Wer sich vertippt (`tippfehler.pukalani.app`), bekam eine Seite mit der
+Überschrift **„500 - Unknown host"** über einer Antwort, die korrekt **404**
+war: falsche Zahl, dazu Betreiber-Jargon vor einem Besucher.
+
+**Wie die 500 zustande kam** (nachgelesen im Modul-Code, nicht geraten): der
+404 fällt in der SERVER-Middleware `core/server/middleware/00.tenant.ts`, also
+vor dem Renderer. Nuxts Fehler-Handler rendert die Fehlerseite über einen
+INTERNEN Request auf `/__nuxt_error` (`localFetch`,
+`@nuxt/nitro-server/dist/runtime/handlers/error.mjs`) — der lief durch dieselbe
+Middleware, mit demselben unbekannten Host, und warf wieder. Für genau diesen
+zweiten Durchgang schaltet Nuxt seinen Renderer bewusst ab
+(`event.path.startsWith('/__nuxt_error') ? null : localFetch(…)`, sonst gäbe es
+eine Endlosschleife) und fällt auf sein **eingebautes** Template zurück
+(`templates/error-500.mjs`). Dieses Template liest `status`/`statusText` —
+Nitros Fehler-Body trägt aber `statusCode`/`statusMessage`
+(`nitropack/dist/runtime/internal/error/prod.mjs`). `status` fehlt also, das
+Template nimmt seinen eigenen Default **500**, während `statusText` durchkam
+(`errorObject.statusText ||= error.statusMessage`). Daher exakt die Paarung
+„500" + „Unknown host" über einer 404-Antwort.
+
+**Gebaut:** eine pure Regel-Datei `packages/core/shared/unknownHost.ts`
+(Statustext + fachlicher Code + `isErrorPageRenderPass` + `isUnknownHostError`),
+die Middleware lässt den Renderpass durch (`/__nuxt_error`) und wirft sonst
+weiter 404 — jetzt mit `data.code = 'unknown_host'`. `CoreErrorPage` macht
+daraus den Besuchersatz „Diese Adresse gehört zu keiner Community." (de/en) und
+zeigt statt „Zur Startseite" (das im Kreis führte) einen Ausweg auf die
+Anbieter-Seite: neues Feld `pukalani.brand.homeUrl` (Core-Default leer,
+`apps/platform` = `https://pukalani.app`). Ohne Mandant rendert die Seite mit
+der Instanz-Voreinstellung — kein Community-Branding, korrekt, die Adresse
+gehört ja zu keiner. Der Theme-Plugin-Fetch auf `/api/themes` läuft dort in
+denselben 404 und ist bereits `.catch`-gesichert.
+
+**Kein Loch:** `/__nuxt_error` beantwortet Nuxts Renderer nur für INTERNE
+Requests (`'__unenv__' in event.node.req`, `handlers/renderer.mjs`) und wirft
+für alles von außen selbst 404 — die Ausnahme in der Middleware kann also nur
+die Fehlerseite rendern, nie eine ungescopte Route. Beweis: 7 neue Unit-Tests
+`packages/core/tests/unknownHost.test.ts` (u. a. „beschönigt keinen 5xx" — ein
+kaputter Resolver bleibt fail-loud). **Gelernt:** Wenn eine Middleware wirft,
+wirft sie auch beim Rendern der Fehlerseite — der Renderpass ist ein eigener
+Request und braucht eine bewusste Ausnahme. Und: eine gerenderte Fehlerzahl ist
+kein Beweis für den HTTP-Status; hier stammten Zahl und Text aus zwei
+verschiedenen Quellen.
+
+### C8 — Suche in der internen Doku ✅ 2026-07-31
+
+Die Zeile las sich als „gibt es nicht"; gemessen wurde etwas anderes. Die
+Doku-Site (`docs/`, eigenständige Nuxt-Content-App) hatte die Suche seit dem
+ersten Commit — `queryCollectionSearchSections('docs')` plus
+`UContentSearch`/`UContentSearchButton`. Sie funktionierte auch: gegen den
+gebauten Server geprüft (⌘K, Abschnitts-Treffer mit Brotkrumen und
+Hervorhebung, Pfeiltaste + Enter springt auf `/features/uebersicht#feature-layers`).
+
+**Was wirklich fehlte, war die Sprache:** Nuxt UI beschriftet seine eigenen
+Bausteine ohne gesetzte Locale englisch — „Search…", „Type a command or
+search…", „Theme", „No matching data" — auf einer durchgehend deutschen Doku.
+Gesetzt ist jetzt `<UApp :locale="de">` (app.vue + error.vue, Import aus
+`@nuxt/ui/locale`), womit die gesamte Oberfläche mitzieht, nicht nur die Suche.
+Der doppelte Suche-Block (app.vue UND error.vue) steht als eine Komponente
+`docs/app/components/AppSearch.vue` mit deutschem Platzhalter („Doku
+durchsuchen …") und Dialog-Titel. Kein externer Dienst: der Abschnitts-Index
+entsteht im Browser aus der lokalen Content-Datenbank (`server: false` — er hat
+im SSR-Payload nichts zu suchen). **Beweise:** `pnpm --filter @pukalani/docs
+build` grün, Header zeigt „Suchen… ⌘K", Suche nach „presence" liefert neun
+Abschnitts-Treffer über drei Gruppen. **Gelernt:** Zweimal in einem Durchgang
+hat die MESSUNG gelogen, nicht der Code. (1) Der erste „Klick tut nichts" war
+ein Klick daneben — Screenshot-Koordinaten sind skaliert, Elemente gehören per
+`ref` angeklickt. (2) Danach war die Seite plötzlich tot mit 404 auf
+`_nuxt/*.js`: der alte Vorschau-Server lief noch, der neue starb still an
+EADDRINUSE, und das Fenster lud neues HTML gegen alte Chunk-Hashes. Vor jedem
+Beweis prüfen, ob der Server, den man misst, auch der ist, den man gebaut hat.

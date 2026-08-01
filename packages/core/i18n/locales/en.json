@@ -267,7 +267,9 @@
   "error": {
     "notFound": "This page does not exist.",
     "generic": "Something went wrong.",
-    "backHome": "Back to home"
+    "backHome": "Back to home",
+    "unknownHost": "This address does not belong to any community.",
+    "toOperatorSite": "Learn about {brand}"
   },
   "demo": {
     "banner": "This is a demo community with sample content.",
