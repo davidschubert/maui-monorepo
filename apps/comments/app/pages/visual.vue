@@ -40,8 +40,8 @@ const stats = [
       </h1>
       <p class="mt-4 max-w-xl text-lg text-muted">{{ t('home.subtitle') }}</p>
       <div class="mt-6 flex flex-wrap justify-center gap-3">
-        <UButton size="lg">{{ t('home.ctaDemo') }}</UButton>
-        <UButton size="lg" color="neutral" variant="subtle">{{ t('home.ctaDashboard') }}</UButton>
+        <UButton size="lg">{{ t('home.tryDemo') }}</UButton>
+        <UButton size="lg" color="neutral" variant="subtle">{{ t('home.toDashboard') }}</UButton>
       </div>
     </section>
 
@@ -74,7 +74,7 @@ const stats = [
       <UCard v-for="product in products" :key="product.key">
         <UIcon :name="product.icon" class="mb-2 size-6 text-primary" />
         <h2 class="font-semibold">{{ t(`home.products.${product.key}.title`) }}</h2>
-        <p class="mt-1 text-sm text-muted">{{ t(`home.products.${product.key}.text`) }}</p>
+        <p class="mt-1 text-sm text-muted">{{ t(`home.products.${product.key}.desc`) }}</p>
       </UCard>
     </section>
 

@@ -571,8 +571,10 @@ E2E läuft gegen den DEV-Server (auch in CI) — drei Fallen, alle 2026-07-28
 live erwischt: (1) Ein Test darf nicht an einem CONTAINER-Haken hängen, wenn
 ein Config-Gate den Zweig austauscht (`data-embed-login` vs. Gast-Composer bei
 `pukalani.comments.embed.guests`) — Haken ans handelnde Element. (2) KALTSTART:
-der Dev-Server kompiliert jede Route beim ersten Zugriff (`/` ~25 s, `/embed`
-mit Client-Bundle >30 s, dazu jede /api/auth-Route beim ersten Aufruf).
+der Dev-Server kompiliert jede SEITE beim ersten Zugriff (`/` ~25 s, `/embed`
+mit Client-Bundle >30 s). API-Routen NICHT: Nitro bündelt sie beim Start,
+kalt gemessen 0,05 s (2026-08-01 — die alte Behauptung „jede /api/auth-Route
+beim ersten Aufruf" hat eine F10-Diagnose auf eine falsche Fährte geschickt).
 Deshalb Test-Budget 90 s statt der 30 s Standard, Lebendigkeits-Wartezeiten
 60 s, und die Embed-Specs rufen `/embed` einmal IM BROWSER auf und warten dort
 bis zur HYDRATION, bevor die Hostseite lädt — ein SSR-Abruf (oder ein `goto`

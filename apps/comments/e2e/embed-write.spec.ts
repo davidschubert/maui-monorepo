@@ -28,6 +28,36 @@ const hydrated = () => {
   return Boolean(root?.__vue_app__)
 }
 
+/**
+ * Ist DIESER Teilbaum hydratisiert — nicht nur die App drumherum?
+ *
+ * DAS war F10 (am 2026-08-01 gemessen, nicht vermutet). `__vue_app__` entsteht
+ * beim `createApp`, die Seite darunter hängt aber an einem `<Suspense>` und
+ * wird ERST DANACH hydratisiert. In dem Spalt — kalt gemessen rund 100 ms —
+ * steht das SSR-Markup schon interaktiv aussehend da, ohne dass Vue lauscht:
+ * ein `fill()` landet dann NUR im DOM, die reaktive Kopie des Formulars bleibt
+ * leer, und beim Absenden meldet Zod „Please enter a valid email address".
+ * `/api/auth/login` wird nie gerufen, das Popup bleibt offen, das iframe steht
+ * für immer auf `status='waiting'` (CTA disabled) — und der Fall stirbt 60 s
+ * später an einer Wartezeile, die mit der Ursache nichts zu tun hat.
+ *
+ * Beide Kandidaten aus der Aufgabenliste wären daran vorbeigegangen, beide
+ * durch Messung ausgeschlossen: ein höheres Budget hilft nicht (die verlorene
+ * Nachricht kommt nie), und Worker-Exklusivität hilft nicht (kalt und ALLEIN
+ * fällt der Fall genauso, 90 s). Die Trennlinie war nie die Last, sondern ob
+ * der Rechner den 100-ms-Spalt trifft; warm gewinnt das Rennen von selbst und
+ * täuschte damit „nur unter Parallel-Last kaputt" vor.
+ *
+ * `__vnode` setzt Vue beim Hydratisieren an das Element — nur im DEV-Build,
+ * was hier genau passt: die E2E-Suite fährt IMMER gegen den Dev-Server, in CI
+ * genauso (s. playwright.config.ts). Dieselbe Klasse Interna wie `__vue_app__`
+ * oben, nur eine Ebene genauer.
+ */
+const subtreeHydrated = (selector: string) => {
+  const el = document.querySelector(selector) as (Element & { __vnode?: unknown }) | null
+  return Boolean(el && el.__vnode !== undefined)
+}
+
 test.beforeAll(async () => {
   hostPort = 4930 + test.info().workerIndex
   const htmlPath = resolve(
@@ -102,6 +132,9 @@ test.describe('Embed-Login (E2, Popup-Handoff)', () => {
     // Handoff, nicht welcher Gast-Zweig konfiguriert ist.
     const loginButton = frame.locator('[data-embed-login-cta]')
     await expect(loginButton).toBeVisible()
+    // …und den Kommentarbereich-Teilbaum EINZELN abwarten (s. subtreeHydrated):
+    // sichtbar heißt nur „SSR-Markup da", nicht „Vue hat den Klick-Handler".
+    await widgetFrame!.waitForFunction(subtreeHydrated, '[data-comment-section]', { timeout: 60_000 })
 
     // Popup öffnet Top-Level auf unserer Origin mit ?embed=1
     const [popup] = await Promise.all([
@@ -113,6 +146,10 @@ test.describe('Embed-Login (E2, Popup-Handoff)', () => {
     expect(popup.url()).toContain('embed=1')
     // Auch das Popup erst nach der Hydration bedienen (sonst toter SSR-Klick)
     await popup.waitForFunction(hydrated, undefined, { timeout: 60_000 })
+    // DAS war der F10-Fehler: die App lebt, das FORMULAR aber noch nicht.
+    // Erst wenn Vue diesen Teilbaum übernommen hat, füllt `fill()` auch die
+    // reaktive Kopie — sonst scheitert Zod stumm an einer „leeren" E-Mail.
+    await popup.waitForFunction(subtreeHydrated, '[data-login-form]', { timeout: 60_000 })
 
     // Login im Popup (voller bestehender Auth-Stack, first-party)
     await popup.getByRole('textbox', { name: /mail/i }).fill('uma@demo.local')

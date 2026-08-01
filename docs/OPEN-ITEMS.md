@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 13 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 11 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-01**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -20,7 +20,7 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | --- | --- | --- | --- | --- | --- |
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
-| 11 · B1 | **Neun visuelle Referenzbilder sichten** — sie sind beim E7-Browserwechsel (2026-08-01) bereits neu aufgenommen worden. Zu prüfen bleibt der Inhalt: `git show HEAD:<pfad>` gegen die Arbeitskopie halten (neuer Kopfbereich, Seite 16 px kürzer). | Mittel | S — ansehen | Ja: David sichtet | [Notizen](#notizen) |
+| 11 · B1 | **Neun visuelle Referenzbilder sichten** — sie sind jetzt FINAL: erst beim E7-Browserwechsel neu aufgenommen, dann am 2026-08-01 noch einmal, weil `/visual` drei rohe Übersetzungs-Schlüssel anzeigte (jetzt echter Text, Seite dadurch etwas kürzer). Zu prüfen bleibt nur der Inhalt: `git show HEAD:<pfad>` gegen die Arbeitskopie halten. | Mittel | S — ansehen | Ja: David sichtet | [Notizen](#notizen) |
 | 23 · B4 | **Ladezeit-Hebel wählen:** (a) Appwrite-Web-SDK nachladen (72 kB) oder (b) spekulative Vorablade-Hinweise filtern — kostet den Navigations-Vorsprung nach dem Login. | Niedrig | M — je nach Wahl | Ja: David wählt a oder b | [Notizen](#notizen) |
 | 24 · B7 | **Dunkles Design für die Landingpage?** Sie ist bewusst hell geklemmt; seit der Nuxt-UI-Migration wäre Dunkel machbar. | Niedrig | S — Entscheidung, dann ein CSS-Zweig | Ja: Ja/Nein | [Notizen](#notizen) |
 | 25 · M13 | **Reste des Selbstbedienungs-Trichters:** Hinweis auf ablaufende Testphase, Umzug des Kundenbereichs von `/workspace` nach `my.*`, Sperr-/Missbrauchspfad, Statusseite bei UptimeRobot. | Mittel | M — vier kleine Stücke | Ja: bei Sperr-Regeln | [SAAS-ROADMAP #1](archiv/SAAS-ROADMAP.md) |
@@ -28,8 +28,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 28 · E2 | **UptimeRobot nachziehen:** Monitor für `help.pukalani.app` anlegen, einen alten Monitor umbenennen. | Niedrig | S — zwei Klicks | Nein | [Notizen](#notizen) |
 | 29 · E3 | **Server-Größe prüfen** — der CX33 wird mit sechs Apps plus Builds knapp. | Mittel | S — prüfen, ggf. Rescale | Ja: kostet Geld | [Notizen](#notizen) |
 | 30 · E4 | **Nur-Lese-Schlüssel im Projekt `control`** erzeugen (letzter Cutover-Krümel). | Niedrig | S — ein Klick in der Console | Ja: David, Console | [CONTROL-CUTOVER.md](runbooks/CONTROL-CUTOVER.md) |
-| 33 · F9 | **`channel: 'chrome'` in zwei weiteren Test-Configs nachziehen** (`apps/portfolio/playwright.config.ts`, `apps/control/playwright.config.ts`) — gleiches Hang-Risiko wie E7, aber ohne Screenshot-Baselines, also billig. Die zwei Einmal-Skripte (og-images, brand-card-font) bleiben bewusst auf System-Chrome. | Niedrig | S — zwei Zeilen + je ein Suite-Lauf | Nein | [E7 in COMPLETE](OPEN-ITEMS-COMPLETE.md) |
-| 34 · F10 | **`embed-write.spec.ts` fällt unter Parallel-Last durch** — nicht der Browser (Gegenprobe mit Chrome identisch), sondern der 60-s-Popup-Puffer reißt, wenn die Maschine beschäftigt ist (fremde Dev-Server). Kandidaten: Budget hoch oder Worker-Exklusivität für die Spec. | Niedrig | S | Nein | E7-Fund, Läufe #1/#3–#7 |
 | 32 · F8 | **Wie lange dürfen Abrechnungsdaten bleiben?** Löscht der letzte Owner sein Konto, bleiben `stripeCustomerId` und Zahlungsstatus der Community stehen (die Zeile wird nur entpersonalisiert). Aufbewahrungspflicht (§147 AO / §257 HGB) spricht dafür — oder es braucht eine Löschfrist. | Niedrig | S — Entscheidung, dann ggf. eine Frist | Ja: rechtliche Abwägung | [F3 in COMPLETE](OPEN-ITEMS-COMPLETE.md) |
 
 ## ⏸️ Geparkt / wartet
@@ -194,9 +192,10 @@ widersprechen sich) — wer es sauber will, schaltet
 `read("users")` statt `read("any")` und waren nie öffentlich; sie ziehen
 deshalb nicht mit.
 
-**B1 — Visual-Baselines.** Neun Stück sichten, dann
-`pnpm --filter comments e2e -- --update-snapshots themes-visual` — der
-Header-Umbau (S9) hat sie erwartungsgemäß gebrochen. Die Theme-Entscheidungen
+**B1 — Visual-Baselines.** Das Neubacken
+(`pnpm --filter comments e2e -- --update-snapshots themes-visual`) ist am
+2026-08-01 erledigt — offen ist nur noch das Sichten der neun Bilder. Der
+Header-Umbau (S9) hatte sie erwartungsgemäß gebrochen. Die Theme-Entscheidungen
 vom 2026-07-29 (B3/B5) kommen NICHT dazu: `themes-visual` läuft gegen
 `apps/comments` (Silo, `pukalani.tenancy` aus ⇒ das Theme-Cookie der Specs
 gewinnt dort weiter), und das Label „Aloha" steht nur im geschlossenen
@@ -274,14 +273,18 @@ gegen ein nicht existierendes Projekt laufen. Der richtige Pfad ist
 [OPEN-ITEMS-COMPLETE.md](OPEN-ITEMS-COMPLETE.md).
 
 **B1 — die neun Referenzbilder:** am 2026-08-01 im Zuge von E7 neu aufgenommen
-(gebündeltes Chromium). Der Vergleich `git show HEAD:<pfad>` gegen die
-Arbeitskopie zeigt zwei GEWOLLTE Änderungen — der neue Kopfbereich (Navigation
-links, ohne Symbole) und dadurch 16 px weniger Höhe — und einen ECHTEN Fund:
-`app/pages/visual.vue` fragt `home.products.<key>.text` und `home.ctaDemo`/
-`home.ctaDashboard` ab, die Sprachdatei kennt aber `.desc` bzw. `tryDemo`/
-`toDashboard`. Auf der /visual-Seite stehen deshalb rohe Schlüssel im Bild
-(vorher genauso, damals als `home.features.*.text`). Deterministisch, also
-grün — aber falsch.
+(gebündeltes Chromium) und am selben Tag ein zweites Mal — die Bilder sind
+damit FINAL, es steht nur noch das Sichten aus. Der Vergleich
+`git show HEAD:<pfad>` gegen die Arbeitskopie zeigt drei GEWOLLTE Änderungen:
+den neuen Kopfbereich (Navigation links, ohne Symbole), dadurch 16 px weniger
+Höhe — und den behobenen ECHTEN Fund: `app/pages/visual.vue` fragte
+`home.products.<key>.text` und `home.ctaDemo`/`home.ctaDashboard` ab, die
+Sprachdatei kennt aber `.desc` bzw. `tryDemo`/`toDashboard`. Auf der
+/visual-Seite standen deshalb rohe Schlüssel im Bild (vorher genauso, damals
+als `home.features.*.text`): deterministisch, also grün — aber falsch. Die
+Seite fragt jetzt die vorhandenen Schlüssel (keine neuen erfunden, dieselben,
+die `index.vue` benutzt), die Karten tragen echten Text und die beiden Knöpfe
+heißen „Try the demo"/„Go to dashboard". Der Rest des Bildes ist unverändert.
 
 ### Bewusst zurückgestellt (kein Aufgabenpunkt)
 
