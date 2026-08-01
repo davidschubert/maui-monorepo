@@ -88,6 +88,46 @@ export async function sharedRealtime(): Promise<Realtime> {
 const JWT_REFRESH_MS = 12 * 60_000
 let jwtPromise: Promise<void> | null = null
 let jwtReady = false
+let jwtTimer: ReturnType<typeof setInterval> | undefined
+
+/**
+ * ── GAST-GATE (F11, 2026-08-01) ────────────────────────────────────────────
+ * Hat dieser Browser überhaupt eine Session?
+ *
+ * Die Antwort kostet KEINEN Request: `plugins/auth.server.ts` stellt den
+ * Auth-Store beim SSR aus `event.context.user`, und der Pinia-Nuxt-Plugin
+ * spielt diesen Zustand im Browser aus dem Payload zurück, BEVOR irgendein
+ * App-Plugin läuft. Ein sessionloser Erstbesuch weiß also schon vor dem ersten
+ * Klick, dass er keinen Token braucht — sonst hätten wir nur einen 401 gegen
+ * einen anderen Request getauscht.
+ *
+ * Warum nicht das Cookie: `a_session_<PROJECT_ID>` ist httpOnly, der Browser
+ * kann es nicht lesen. Warum nicht am Aufrufer: `ensureRealtimeJwt()` ist die
+ * EINZIGE Stelle, die `/api/auth/realtime-token` ruft — dieselbe Regel an drei
+ * Aufrufern wäre beim vierten vergessen.
+ *
+ * `tryUseNuxtApp()` statt blindem Store-Zugriff: im Browser bleibt der
+ * Nuxt-Kontext nach dem App-Start gesetzt (unctx ohne AsyncLocalStorage), der
+ * Aufruf ist also auch aus einem Timer oder nach einem await gültig. Fehlt er
+ * trotzdem (SSR, Test-Teardown), gilt „kein Token" — fail-closed ist hier
+ * harmlos, weil ein Gast-WS ein vollwertiger Zustand ist.
+ *
+ * WICHTIG: hier wird NICHT memoisiert. Der Zustand wird bei JEDEM Aufruf frisch
+ * gelesen, damit ein Login im selben Fenster sofort durchkommt (der
+ * realtime-auth-Plugin ruft dann syncRealtimeAuth → ensureRealtimeJwt).
+ */
+function hasSession(): boolean {
+  if (import.meta.server) return false
+  if (!tryUseNuxtApp()) return false
+  return useAuthStore().isLoggedIn
+}
+
+/** Refresh-Timer anhalten (Logout/Gast) — sonst 401-te er alle 12 min weiter. */
+function stopJwtRefresh() {
+  if (jwtTimer === undefined) return
+  clearInterval(jwtTimer)
+  jwtTimer = undefined
+}
 
 async function fetchJwt() {
   try {
@@ -117,13 +157,26 @@ export function hasRealtimeJwt(): boolean {
  * Stellt sicher, dass der Realtime-Client einen (aktuellen) JWT trägt, BEVOR sich
  * die WS verbindet. Idempotenter Start + periodischer Refresh (< 1h). Vor jedem
  * realtime.subscribe()/upsertPresence() awaiten.
+ *
+ * OHNE SESSION passiert hier NICHTS (F11): kein Token-Abruf, kein Refresh-Timer.
+ * Der Socket verbindet sich als Gast und bleibt es — und das ist Absicht, kein
+ * Verzicht: `read(any)`-Channels (app_config, custom_themes, öffentliche
+ * Kommentare) liefern auch dem Gast Events, davon lebt das Live-Theme-Morphen.
+ * Vorher holte JEDE Seite jeder auth-losen App (Marketing-Landing!) einen Token
+ * für einen Nutzer, der keine Session hat → 401 pro Seitenaufruf.
  */
 export function ensureRealtimeJwt(): Promise<void> {
   // Synchron anstoßen, solange der Nuxt-Kontext noch steht (Config-Lesen).
   void ensureRealtimeClients()
+  if (!hasSession()) {
+    stopJwtRefresh()
+    return Promise.resolve()
+  }
   if (!jwtPromise) {
     jwtPromise = fetchJwt()
-    setInterval(fetchJwt, JWT_REFRESH_MS)
+    // `??=`: syncRealtimeAuth nullt jwtPromise bei jedem Auth-Wechsel — ohne
+    // diesen Wächter legte jeder Login einen ZWEITEN Refresh-Timer an.
+    jwtTimer ??= setInterval(() => { void fetchJwt() }, JWT_REFRESH_MS)
   }
   return jwtPromise
 }
@@ -149,6 +202,9 @@ export function ensureRealtimeJwt(): Promise<void> {
 export async function syncRealtimeAuth(loggedIn: boolean): Promise<void> {
   jwtPromise = null
   jwtReady = false
+  // Ausgeloggt ⇒ Timer aus. Sonst liefe der 12-min-Refresh nach dem Logout
+  // ewig gegen /api/auth/realtime-token → 401 (F11, gleiche Wurzel).
+  if (!loggedIn) stopJwtRefresh()
   if (!clientsPromise) return
   const { rtClient, realtime } = await clientsPromise
   rtClient.setJWT('')

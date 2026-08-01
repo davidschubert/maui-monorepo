@@ -1209,3 +1209,92 @@ Appwrite gibt Datetimes als `…+00:00` zurück, `toISOString()` schreibt `…Z`
 — String-Vergleiche auf Datetime-Spalten sind ewig falsch, immer als
 Zeitpunkt vergleichen. (3) Vertragszustands-Daten gehören nicht in den
 SSR-Payload öffentlicher Seiten, auch wenn es bequem wäre.
+
+### F11 — Gäste holen keinen Realtime-Token mehr ✅ 2026-08-01
+
+**Befund (B7-Fund, in B4 nachgemessen und ausdrücklich NICHT miterledigt):**
+`packages/core/app/plugins/realtime-config.client.ts` abonniert `app_config`,
+sobald eine App eine Datenebene hat. Jeder Abonnent ruft
+`ensureRealtimeJwt()`, und das holte den Token für JEDEN — auch für einen
+Besucher ohne Session. Auf der Marketing-Landing hieß das: **ein
+`GET /api/auth/realtime-token → 401` pro Seitenaufruf**, für jeden Gast,
+ohne jeden Nutzen.
+
+**Was NICHT das Problem war — und deshalb bleibt:** der WebSocket selbst.
+`read(any)`-Channels (`app_config`, `custom_themes`, öffentliche Kommentare)
+liefern auch einem Gast Events; davon lebt das Live-Theme-Morphen für
+Besucher (in B4 live bewiesen). Der Gast-WS ist Feature, nicht Restposten.
+Gefixt wurde also genau der sinnlose Token-Abruf, nichts sonst.
+
+**Die Lösung ist eine Bedingung an EINER Stelle** — der einzigen, die
+`/api/auth/realtime-token` überhaupt ruft: `ensureRealtimeJwt()` in
+`packages/core/app/composables/useRealtimeClient.ts`. Ohne erkennbare Session
+kein Abruf und kein Refresh-Timer; der Socket verbindet als Gast weiter.
+Erkannt wird die Session am **Auth-Store**, den `plugins/auth.server.ts` beim
+SSR aus `event.context.user` stellt und der Pinia-Nuxt-Plugin im Browser aus
+dem Payload zurückspielt — **ein sessionloser Erstbesuch weiß es also ohne
+einen einzigen Request**. Das httpOnly-Cookie kann der Browser nicht lesen,
+und ein `/api/auth/me`-Ping wäre nur derselbe 401 unter anderem Namen
+gewesen.
+
+**Der Login im offenen Fenster zieht nach** — über den Weg, den es schon gab:
+`plugins/realtime-auth.client.ts` beobachtet `auth.user.$id`, ruft
+`syncRealtimeAuth(true)`, das nullt den memoisierten `jwtPromise`, holt über
+dasselbe (jetzt passierbare) Gate den Token und schließt den Socket einmal —
+die SDK verbindet neu und re-subscribed alles selbst. Bewusst **nicht**
+memoisiert wird die Gast-Antwort: sie wird bei jedem Aufruf frisch gelesen,
+sonst bliebe ein Fenster nach dem Login dauerhaft Gast.
+
+**Mitgenommen (dieselbe Wurzel, gleiche Datei):** der 12-Minuten-Refresh
+wurde bisher bei jedem `ensureRealtimeJwt()`-Erststart neu angelegt und nie
+angehalten. Weil `syncRealtimeAuth()` den `jwtPromise` bei JEDEM Auth-Wechsel
+nullt, sammelte ein Tab mit mehreren Login/Logout-Runden **mehrere parallele
+Timer** — und nach dem Logout tickten sie weiter gegen einen Endpunkt, der
+nur noch 401 antwortet. Jetzt: genau ein Timer (`jwtTimer ??=`), angehalten
+bei Logout und bei jedem Gast-Aufruf.
+
+**Diff:** eine Datei, `packages/core/app/composables/useRealtimeClient.ts`
+(Gate + Timer-Wächter + Kommentare). Kein Plugin, kein Aufrufer, keine
+Route geändert.
+
+**Beweise, alle live gemessen:**
+- **A/B auf der Marketing-Landing (Gast, Dev):** mit deaktiviertem Gate
+  reproduziert — `GET /api/auth/realtime-token → 401`. Mit Gate: **null**
+  `/api/`-Requests überhaupt, während der SDK-Chunk (`deps/appwrite.js`)
+  weiterhin geladen wird — die Subscription läuft also, nur der Token fällt weg.
+- **comments als Gast:** null Token-Requests, Realtime-WS steht
+  (`ws://localhost/v1/realtime?project=…`, **ohne** `jwt`), ein
+  server-seitig angelegter Kommentar kommt live an.
+- **Live-Theme-Morphen als Gast:** `app_config.themeSettings` von `mist` auf
+  `forest` gesetzt → `<html data-theme>` springt ohne Reload mit
+  (navigation-Einträge 1 → 1), dabei null Token-Requests.
+- **Login im selben Fenster (SPA-Navigation, kein Reload):**
+  `/api/auth/realtime-token → 200`, der Socket verbindet neu und trägt jetzt
+  den Token in der URL (`…/realtime?project=…&jwt=eyJ…`), Presence-WS-Upsert
+  ohne Warnung.
+- **comments-E2E 24/24 grün in 29,6 s, Exit 0** (inkl. `realtime.spec.ts` und
+  des Popup-Login-Flows) · **`verify-presence-boundary.mjs` 23/23** ·
+  `pnpm -r test` alle grün · `typecheck` Exit 0 · `lint` mit den 6 bekannten
+  Warnungen · `check:manifests` konsistent.
+
+**Gelernt (vier Stück):** (1) **Der Beweis „kein Request" braucht den
+Gegenbeweis.** Ein leeres Netzwerk-Log beweist genauso gut, dass der Code gar
+nicht lief — erst der A/B-Lauf mit ausgeschaltetem Gate (401 da, 401 weg)
+trennt „gefixt" von „nie ausgeführt". Dazu gehört der positive Beleg, dass
+der abhängige Pfad noch läuft (SDK-Chunk geladen, Theme morpht). (2)
+**`performance.getEntriesByType('resource')` puffert nur 250 Einträge.**
+Genau daran wäre der erste Marketing-Beweis gescheitert: der SDK-Chunk lud
+nachweislich, tauchte aber nicht mehr in der Liste auf — „also hat das
+Abonnement nicht stattgefunden". Netzwerk-Messungen gehören auf die
+Werkzeug-Seite (Playwright/DevTools), nicht in die Seite. (3) **`pnpm --filter
+X dev -- --port N` kippt den Dev-Server in eine Attrappe.** Das `--` schiebt
+`--port 3017` in `nuxi dev [rootDir]` als POSITIONALES Argument — Nuxt startet
+mit rootDir `--port`, bindet einen Fallback-Port und liefert die
+„Welcome to Nuxt"-Seite. Sah aus wie ein kaputter Build, war ein kaputter
+Aufruf. Der Port lässt sich so nicht erzwingen; richtig ist `pnpm --filter X
+dev` und dann die Zeile `[get-port] … Using alternative port …` lesen.
+(4) **`verify-presence-boundary.mjs` braucht ZWEI Server:** ohne laufendes
+`apps/control` (Port 3004) scheitern 7 der 23 Prüfungen an fehlenden
+Site-Labels — der Beitritt ist ein Control-Plane-Vorgang. Das sieht nach
+Regression aus und ist Umgebung; Akt 2 überspringt sich nur, wenn `platform`
+fehlt, nicht wenn das Control Plane fehlt.

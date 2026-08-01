@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 11 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 10 offen · 12 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-01**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -21,7 +21,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
 | 11 · B1 | **Neun visuelle Referenzbilder sichten** — sie sind jetzt FINAL: erst beim E7-Browserwechsel neu aufgenommen, dann am 2026-08-01 noch einmal, weil `/visual` drei rohe Übersetzungs-Schlüssel anzeigte (jetzt echter Text, Seite dadurch etwas kürzer). Zu prüfen bleibt nur der Inhalt: `git show HEAD:<pfad>` gegen die Arbeitskopie halten. | Mittel | S — ansehen | Ja: David sichtet | [Notizen](#notizen) |
-| 35 · F11 | **Jede Seite auth-loser Apps feuert `/api/auth/realtime-token` → 401** (B7-Fund): `realtime-config.client.ts` abonniert `app_config` bedingungslos, sobald eine App eine Datenebene hat — auf der Marketing-Landing ein sinnloser Request + offener WebSocket pro Besucher. **B4 hat das NICHT behoben** (nachgemessen 2026-08-01, Details unten): es braucht ein Gast-Gate. | Niedrig | S | Nein | [Notizen](#notizen) |
 | 25 · M13 | **Selbstbedienungs-Rest, noch zwei Stücke:** Sperr-/Missbrauchspfad (braucht Davids Regeln: wann sperren?) und Statusseite bei UptimeRobot (Klick, mit E2 bündeln). Testphase-Hinweis ✅ gebaut; `/workspace`-Umzug war gegenstandslos (mit A6 abgeschafft, kein Ziel für einen Redirect). | Mittel | S — Regeln + Klicks | Ja: Regeln + Klicks | [SAAS-ROADMAP #1](archiv/SAAS-ROADMAP.md) |
 | 36 · F12 | **`my.pukalani.app` hat keine Landeseite** (M13-Fund): `/` leitet hart in den Anlege-Wizard, und der Post-Login-Redirect schickt Bestandskunden dorthin — sie sehen „Neue Community anlegen" statt ihrer Communities. Die Roadmap-Zusage „my.* = Kundenbereich" ist nur halb eingelöst. | Mittel | M | Nein — Vorschlag kommt | M13 in COMPLETE |
 | 27 · E1 | **Tote Schlüsseldatei löschen** (`apps/control/.env.production` zeigt auf ein gelöschtes Projekt). Liegt nur auf Davids Rechner, nicht im Repo. | Niedrig | S — eine Datei | Ja: enthält Schlüsselmaterial | [Notizen](#notizen) |
@@ -230,21 +229,6 @@ zusammen mit dem Code-Abbau des 2-Wege-Reads (`getLegacyEntitlementsDocument`/
 Ausführen, und die Reihenfolge ist Pflicht:** erst den Code deployen, dann
 migrieren — andersherum liest der Fallback gegen eine gelöschte Spalte.
 Herkunft: Pool-Audit N2.
-
-**F11 — was B4 geändert hat und was nicht (gemessen 2026-08-01).** Das
-Web-SDK liegt seit B4 hinter einem dynamischen Import, aber der Request
-`/api/auth/realtime-token` hängt nicht am SDK, sondern am ABONNEMENT — und das
-legt `packages/core/app/plugins/realtime-config.client.ts` weiter auf jeder
-Seite an. Nachgemessen im Browser: `marketing` (Dev, Gast) lädt den
-SDK-Chunk nachgelagert UND feuert weiterhin `GET /api/auth/realtime-token →
-401`; `help` (keine Appwrite-Instanz ⇒ leere `appwriteDatabaseId`) lädt
-weder SDK noch Token — das war aber schon vorher so (der Guard in
-`useRealtimeRows` greift vor dem Import). **Der Rest-Fix bleibt also
-unverändert F11:** ein Gast-Gate, das `ensureRealtimeJwt()` den Token-Abruf
-für nicht angemeldete Besucher erspart (der WS selbst muss bleiben —
-Live-Theme-Morphen für Gäste ist Feature, s. Beweis im B4-Eintrag in
-COMPLETE). Das ist bewusst NICHT in B4 mitgemacht worden: es ist eine
-Verhaltensänderung an der Auth-Naht, keine Bundle-Frage.
 
 **B7 — Dark Mode für die Marketing-Landingpage?** Seit dem Audit-Bugfix
 2026-07-31 ist color-mode dort bewusst auf `light` geklemmt (Preference +
