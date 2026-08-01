@@ -1,17 +1,3 @@
-import type { NuxtPage } from '@nuxt/schema'
-
-/**
- * Route-Meta `colorMode` (color-mode 4 → `forced`) auf JEDER Seite. Warum nicht
- * `definePageMeta` je Datei: die nächste neue Seite würde das Loch wieder
- * aufreißen — hier gilt es zentral und ausnahmslos.
- */
-function forceLightColorMode(pages: NuxtPage[]): void {
-  for (const page of pages) {
-    page.meta = { ...page.meta, colorMode: 'light' }
-    if (page.children?.length) forceLightColorMode(page.children)
-  }
-}
-
 export default defineNuxtConfig({
   // Marketing-Startseite von pukalani.app (Wurzel). Bewusst NUR das Fundament
   // (core + system) — kein admin/themes/comments: die Seite ist öffentlich +
@@ -99,25 +85,24 @@ export default defineNuxtConfig({
     },
   },
 
-  // Diese App ist bewusst HELL — die Licht-Dramaturgie (§6.3, Kopf-Kommentar in
-  // app/assets/css/marketing.css) nagelt ihre Licht-Töne fest und hat
-  // keinen .dark-Zweig. color-mode kommt über Nuxt UI mit und stand auf
-  // 'system': OS-Dark-Besucher bekamen dunkle Nuxt-UI-Elemente auf heller
-  // Fläche + dunklen <html>-Overscroll. Eine Dark-Variante kann später mit der
-  // Nuxt-UI-Migration kommen; bis dahin ist Hell die einzige Wahrheit.
+  // DIE HELL-KLEMME IST WEG (Davids Entscheidung B7, 2026-08-01).
+  //
+  // Sie bestand aus DREI Teilen, und alle drei mussten fallen: (1) `preference:
+  // 'light'`, (2) ein `pages:extend`-Hook, der JEDER Seite `meta.colorMode =
+  // 'light'` gab (color-mode 4 → `forced`, schlug im Inline-Skript sogar den
+  // gespeicherten localStorage-Wert), und (3) das Fehlen eines `.dark`-Zweiges
+  // in app/assets/css/marketing.css. Teil 3 war der eigentliche Grund: ohne ihn
+  // mischten sich dunkle Nuxt-UI-Elemente in die festen Licht-Töne der
+  // Licht-Dramaturgie. Der Zweig steht jetzt (dort auch die Farbwerte), damit
+  // darf die Wahl wieder dem Besucher gehören.
+  //
+  // `system` = die System-Präferenz entscheidet; der sichtbare Umschalter sitzt
+  // in der Fuß-Basiszeile neben dem Sprachwähler (MarketingFooter.vue) — dort,
+  // wo diese Seite ihre Einstellungen schon versammelt. `fallback: 'light'`
+  // bleibt: signal-lose Abrufe (Crawler, OG-Scraper) bekommen die helle Seite.
   colorMode: {
-    preference: 'light',
+    preference: 'system',
     fallback: 'light',
-  },
-
-  hooks: {
-    // preference/fallback allein reichen NICHT: das Inline-Skript von
-    // color-mode liest zuerst den gespeicherten Wert (localStorage
-    // 'nuxt-color-mode'), und wer die Seite vorher besucht hat, hat dort
-    // 'system' stehen. Die Route-Meta setzt data-color-mode-forced ins
-    // SSR-HTML, und GENAU das schlägt im Skript den Storage-Wert — also
-    // flash-frei statt „erst dunkel, dann hell".
-    'pages:extend': forceLightColorMode,
   },
 
   // App-Keys mergen mit den Core-Locales (gleicher code).

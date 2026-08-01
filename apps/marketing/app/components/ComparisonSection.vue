@@ -114,7 +114,7 @@ const sources = [
   overflow-x: auto;
   border-radius: 1rem;
   border: 1px solid var(--puka-card-edge);
-  background: hsl(0 0% 100% / 0.6);
+  background: hsl(var(--puka-paper) / 0.6);
 }
 .cmp-table {
   width: 100%;
@@ -132,7 +132,7 @@ const sources = [
 .cmp-table th, .cmp-table td {
   padding: 0.8rem 1rem;
   text-align: left;
-  border-bottom: 1px solid hsl(var(--puka-ink) / 0.07);
+  border-bottom: 1px solid var(--puka-card-edge);
 }
 .cmp-table thead th {
   font-size: 0.8rem;

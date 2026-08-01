@@ -750,7 +750,13 @@
         "useCases": "Use cases",
         "company": "About",
         "legal": "Legal",
-        "language": "Choose language"
+        "language": "Choose language",
+        "appearance": "Choose appearance"
+      },
+      "appearance": {
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
       },
       "colProduct": "Product",
       "colCompany": "About",

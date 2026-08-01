@@ -119,7 +119,7 @@ useSeoMeta({
 .legal-contact {
   margin-top: 0.75rem;
   padding-top: 1.5rem;
-  border-top: 1px solid hsl(var(--puka-ink) / 0.1);
+  border-top: 1px solid var(--puka-card-edge);
   color: hsl(var(--puka-ink-soft));
 }
 </style>

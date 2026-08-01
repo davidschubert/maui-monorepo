@@ -116,6 +116,62 @@ const languageItems = computed(() => LANGUAGES.map(language => ({
 })))
 
 /**
+ * DER DARSTELLUNGS-WÄHLER (B7, 2026-08-01). Er steht NEBEN dem Sprachwähler und
+ * nicht im Kopf — aus demselben Grund wie dieser: der Kopf gehört der einen
+ * Handlung, Einstellungen sucht man im Fuß. Ein eigener Platz musste dafür
+ * nicht erfunden werden, die Basiszeile war schon die Einstellungs-Ecke der
+ * Seite.
+ *
+ * DREI Einträge, nicht ein Ein/Aus-Schalter: „System" ist die Voreinstellung
+ * (nuxt.config.ts, `preference: 'system'`) und muss erreichbar BLEIBEN — wer
+ * einmal auf Hell geklickt hat, käme sonst nie mehr zur Systemwahl zurück.
+ *
+ * `colorMode.preference` (die WAHL), nicht `colorMode.value` (das ERGEBNIS):
+ * `value` löst 'system' schon zu 'light'/'dark' auf, das Häkchen stünde damit
+ * dauerhaft an der falschen Zeile — bei Systemwahl nie bei „System".
+ *
+ * `event.preventDefault()` an jedem Eintrag: sonst schließt Reka das Menü beim
+ * Klick — hier ist das Menü aber die Anzeige des Zustands, und ein Umschalten
+ * ohne sichtbares Ergebnis wirkt wie ein Fehlklick (gleiches Muster wie im
+ * DisplaySettingsMenu des themes-Layers).
+ *
+ * DER AUSLÖSER TRÄGT KEINE BESCHRIFTUNG, nur ein Zeichen: neben ihm steht schon
+ * der Sprachwähler mit Text, und auf 375px bricht die Basiszeile sonst um.
+ * Beschriftet ist er über `aria-label` (marketing.footer.aria.appearance).
+ *
+ * UND SEIN ZEICHEN IST FEST, es zeigt NICHT die aktuelle Wahl. Das ist der
+ * Unterschied zu allem anderen an diesem Knopf: der Auslöser wird
+ * SERVERSEITIG gerendert, und dort ist die Wahl immer die Voreinstellung
+ * ('system') — im Browser steht sie danach im localStorage. Ein Zeichen, das
+ * der Wahl folgt, wäre damit im HTML ein anderes als nach der Hydration
+ * („Hydration attribute mismatch"), und Vue verwirft in der Entwicklung
+ * daraufhin die Prüfung des ganzen Baums. Die Häkchen im MENÜ dürfen der Wahl
+ * folgen: der Inhalt eines Dropdowns wird erst beim Öffnen gebaut, also nie
+ * serverseitig (dasselbe Muster wie im Dashboard-Kontomenü und im
+ * DisplaySettingsMenu des themes-Layers). Ein `<ClientOnly>` um den Knopf wäre
+ * die Alternative — es ließe die Basiszeile beim Laden aber sichtbar
+ * nachrücken, für ein Zeichen, dessen Aussage ohnehin im Menü steht.
+ */
+const colorMode = useColorMode()
+
+const APPEARANCES = [
+  { mode: 'light', icon: 'i-ph-sun-bold' },
+  { mode: 'dark', icon: 'i-ph-moon-bold' },
+  { mode: 'system', icon: 'i-ph-monitor-bold' },
+] as const
+
+const appearanceItems = computed(() => APPEARANCES.map(({ mode, icon }) => ({
+  label: t(`marketing.footer.appearance.${mode}`),
+  icon,
+  type: 'checkbox' as const,
+  checked: colorMode.preference === mode,
+  onSelect: (event: Event) => {
+    event.preventDefault()
+    colorMode.preference = mode
+  },
+})))
+
+/**
  * FÜNF EIGENE `UFooterColumns` STATT EINER MIT FÜNF SPALTEN — wegen der
  * Landmarken. Der Bestand hatte fünf `<nav>` mit je eigenem `aria-label`;
  * mehrere Navigations-Landmarken auf einer Seite MÜSSEN unterscheidbar
@@ -294,6 +350,21 @@ const FOOTER_UI = {
          und schöbe die Seite länger. -->
     <template #right>
       <span>{{ t('marketing.footer.madeIn') }}</span>
+
+      <!-- Hell/Dunkel/System. Steht VOR dem Sprachwähler, damit der (mit Text)
+           der äußere bleibt und die Zeile beim Umbrechen nicht springt. -->
+      <UDropdownMenu
+        :items="appearanceItems"
+        :content="{ side: 'top', align: 'end', sideOffset: 8 }"
+      >
+        <UButton
+          color="neutral" variant="ghost" size="sm"
+          icon="i-ph-sun-horizon-bold"
+          :aria-label="t('marketing.footer.aria.appearance')"
+          class="px-2"
+        />
+      </UDropdownMenu>
+
       <UDropdownMenu
         :items="languageItems"
         :content="{ side: 'top', align: 'end', sideOffset: 8 }"

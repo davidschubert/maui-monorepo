@@ -131,7 +131,7 @@ const plans = computed(() => [
         :content="false"
         :ui="{
           root: 'inline-flex mt-4',
-          list: 'gap-1 rounded-full border border-[color:var(--puka-pill-edge)] bg-white/60 p-1',
+          list: 'gap-1 rounded-full border border-[color:var(--puka-pill-edge)] bg-(--puka-panel-bg) p-1',
           indicator: 'rounded-full bg-primary/25 shadow-none',
           trigger: TRIGGER_CLASS,
         }"

@@ -93,7 +93,7 @@ const strands = computed(() =>
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 50%;
-  background: hsl(0 0% 100% / 0.65);
+  background: hsl(var(--puka-paper) / 0.65);
   box-shadow: 0 8px 22px -12px hsl(var(--puka-sun-deep) / 0.7);
 }
 .strand-title {

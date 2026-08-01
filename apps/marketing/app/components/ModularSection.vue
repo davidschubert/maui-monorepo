@@ -46,7 +46,7 @@ const active = ref<string | number>('only')
 const TRIGGER_CLASS = [
   'grow-0 rounded-full px-4 py-[0.45rem] text-[0.9rem] font-semibold',
   'data-[state=inactive]:text-toned data-[state=active]:text-primary-600',
-  'in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:bg-white',
+  'in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:bg-(--puka-solid-bg)',
   'in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:rounded-full',
   'in-[[data-slot=list]:not(:has([data-slot=indicator]))]:data-[state=active]:before:shadow-[0_2px_8px_-3px_var(--puka-tab-shadow)]',
 ].join(' ')
@@ -68,7 +68,7 @@ const TRIGGER_CLASS = [
           :ui="{
             root: 'items-start gap-5',
             list: 'w-auto flex-wrap gap-[0.3rem] rounded-full bg-[color:var(--puka-tab-surface)] p-[0.3rem]',
-            indicator: 'rounded-full bg-white shadow-[0_2px_8px_-3px_var(--puka-tab-shadow)]',
+            indicator: 'rounded-full bg-(--puka-solid-bg) shadow-[0_2px_8px_-3px_var(--puka-tab-shadow)]',
             trigger: TRIGGER_CLASS,
             content: 'w-auto',
           }"
@@ -86,7 +86,7 @@ const TRIGGER_CLASS = [
                   :icon="item.on.has(block.id) ? 'i-ph-check-circle-fill' : 'i-ph-circle-dashed'"
                   :label="block.label"
                   class="px-3.5 py-2 font-semibold transition-colors"
-                  :class="item.on.has(block.id) ? 'bg-white text-highlighted' : 'bg-white/50 text-muted'"
+                  :class="item.on.has(block.id) ? 'bg-(--puka-solid-bg) text-highlighted' : 'bg-(--puka-panel-soft-bg) text-muted'"
                   :ui="{ leadingIcon: item.on.has(block.id) ? 'size-4 text-primary-600' : 'size-4' }"
                 />
               </li>

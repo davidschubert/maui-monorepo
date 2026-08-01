@@ -143,9 +143,11 @@ const trust = computed(() => [
 .mock {
   width: min(100%, 26rem);
   border-radius: 1.1rem;
-  background: hsl(0 0% 100% / 0.7);
-  border: 1px solid hsl(var(--puka-ink) / 0.08);
-  box-shadow: 0 24px 60px -28px hsl(var(--puka-ink) / 0.4);
+  background: hsl(var(--puka-paper) / 0.7);
+  border: 1px solid var(--puka-card-edge);
+  /* Der Schlagschatten bleibt SCHWARZ und folgt nicht --puka-ink: im Dunkeln
+     ist --puka-ink hell, ein „Schatten" daraus wäre ein Leuchten. */
+  box-shadow: 0 24px 60px -28px hsl(220 40% 4% / 0.5);
   overflow: hidden;
   backdrop-filter: blur(4px);
 }
@@ -154,7 +156,7 @@ const trust = computed(() => [
   align-items: center;
   gap: 0.5rem;
   padding: 0.7rem 0.9rem;
-  border-bottom: 1px solid hsl(var(--puka-ink) / 0.07);
+  border-bottom: 1px solid var(--puka-card-edge);
   background: hsl(var(--puka-cloud) / 0.6);
 }
 .mock-name { font-size: 0.85rem; font-weight: 600; color: hsl(var(--puka-ink-soft)); }

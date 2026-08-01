@@ -31,6 +31,18 @@ export default defineAppConfig({
     button: {
       compoundVariants: [
         {
+          // DER GEFÜLLTE CTA — die eine Stelle, an der die Sonne FLÄCHE ist.
+          // Nuxt UI setzt dort `text-inverted`, also „das Gegenteil des
+          // Modus". Die Fläche ist aber in beiden Modi dieselbe, und auf dem
+          // tone-ink-Band meint `inverted` seit B7 etwas anderes als daneben —
+          // derselbe Knopf hätte im Dunkelmodus zwei Schriftfarben gehabt.
+          // Der Wert steht als --puka-cta-label in puka-theme.css (dort auch
+          // die Kontrast-Rechnung); hell bleibt er Weiß wie im Bestand.
+          color: 'primary',
+          variant: 'solid',
+          class: 'text-(--puka-cta-label)',
+        },
+        {
           // SEKUNDÄRER CTA auf HELLEM Grund (color="neutral" variant="outline").
           //
           // Kontrast-Zweck (übernommen aus dem alten !important-Block in
@@ -320,8 +332,10 @@ export default defineAppConfig({
         {
           variant: 'outline',
           class: {
-            // Fläche wie im Bestand (hsl(0 0% 100% / .55–.65)).
-            root: 'bg-white/65',
+            // Fläche wie im Bestand (hsl(0 0% 100% / .55–.65)) — seit B7 über
+            // --puka-card-bg, damit sie im Dunkelmodus nicht weiß bleibt
+            // (Begründung an den fünf Flächen in puka-theme.css).
+            root: 'bg-(--puka-card-bg)',
             container: 'p-5 sm:p-6',
             // Marketing-Karten tragen kräftigere Titel als Dashboard-Karten
             // (Bestand: 1,1–1,2rem / 700–800). Nuxt-UI-Default wäre 1rem/600.
@@ -419,7 +433,7 @@ export default defineAppConfig({
           // (Bestand: `.plan-price { margin-bottom: 0.25rem }`).
           variant: 'outline',
           class: {
-            root: 'bg-white/70 p-7 lg:p-7 xl:p-7 gap-1 grid-rows-[auto_auto_1fr]',
+            root: 'bg-(--puka-plan-bg) p-7 lg:p-7 xl:p-7 gap-1 grid-rows-[auto_auto_1fr]',
           },
         },
         {

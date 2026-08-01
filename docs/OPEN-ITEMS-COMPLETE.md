@@ -1081,3 +1081,27 @@ suchen — steht dort ein fremder Prozessname statt `/dev/null`, ist der Erbe
 gefunden. Und: die Suche nach „welches Startflag schaltet das ab" war die
 falsche Frage; abschaltbar war nicht der Updater, sondern die Entscheidung,
 überhaupt System-Chrome zu starten.
+
+### B7 — Dunkles Design für die Landingpage ✅ 2026-08-01
+
+**Davids Entscheidung am Morgen: Ja** (zusammen mit B4 → Variante a). Die
+Hell-Klemmung bestand aus DREI Teilen und alle drei mussten fallen:
+`preference: 'light'` in der Config, ein `pages:extend`-Hook, der jeder Seite
+`colorMode: 'light'` aufzwang (schlug sogar gespeicherte Besucher-Wahlen), und
+— der eigentliche Grund — ein `marketing.css` ohne `.dark`-Zweig. Jetzt:
+System-Präferenz entscheidet (`fallback: 'light'` hält Crawler/OG-Scraper
+hell), die Licht-Dramaturgie läuft im Dunkeln „eine Oktave tiefer" (dieselben
+acht HSL-Tripel, dunkel), Akzente drehen über die `--ui-color-primary-*`-
+Stufen statt über ~30 Klassen-Änderungen. Umschalter (Hell/Dunkel/System) in
+der Fuß-Basiszeile neben dem Sprachwähler; Auslöser-Icon bewusst fest, weil
+SSR-gerendert (Hydration-Mismatch). Kontrast-Fix am gefüllten CTA: eigene
+Label-Variable, dunkel 8,4:1 statt 1,9:1. Hell blieb bis auf drei Haarlinien
+unverändert. Beweis: 20 Screenshots (alle Sektionen + Unterseiten, hell+
+dunkel), Tests 4/4, Typecheck, Lint-Baseline, Build grün.
+
+**Gelernt:** Eine „Klemmung" hat selten nur eine Schraube — wer nur die
+Config-Preference löst, bekommt eine halb-dunkle Seite mit erzwungenen
+Ausnahmen. Erst alle Stellen finden, die denselben Zustand erzwingen, dann
+gemeinsam lösen. Und: wenn EIN Wert zwei Aufgaben trägt (Ink = Text UND
+Bandgrund), braucht der Dunkel-Zweig eine Trennung in zwei Variablen — sonst
+zwingt eine Farbe die andere mit.

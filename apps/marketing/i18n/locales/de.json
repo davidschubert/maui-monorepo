@@ -750,7 +750,13 @@
         "useCases": "Anwendungsfälle",
         "company": "Über",
         "legal": "Rechtliches",
-        "language": "Sprache wählen"
+        "language": "Sprache wählen",
+        "appearance": "Darstellung wählen"
+      },
+      "appearance": {
+        "light": "Hell",
+        "dark": "Dunkel",
+        "system": "System"
       },
       "colProduct": "Produkt",
       "colCompany": "Über",

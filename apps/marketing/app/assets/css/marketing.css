@@ -5,10 +5,35 @@
  * Theme-Engine: die Dramaturgie braucht feste Licht-Töne, unabhängig vom
  * aktiven Instanz-Theme. Alles unter body.marketing-site gescopet.
  *
- * KEIN .dark-Zweig, und das ist Absicht: die App klemmt color-mode auf 'light'
- * (nuxt.config.ts — colorMode + pages:extend). Sonst mischten sich dunkle
- * Nuxt-UI-Elemente in diese hellen Flächen. Eine echte Dark-Fassung kann mit
- * der Nuxt-UI-Migration kommen — dann hier UND in nuxt.config.ts.
+ * ── DER DUNKLE ZWEIG (B7, seit 2026-08-01) ────────────────────────────────
+ * Bis dahin klemmte die App color-mode auf 'light', weil dieses Blatt seine
+ * Licht-Töne festnagelte und dunkle Nuxt-UI-Elemente sich darin verirrten.
+ * Jetzt gibt es die Dramaturgie ZWEIMAL: die ACHT Farb-Tripel unten sind die
+ * einzige Stelle, an der sie sich unterscheiden — `.dark .marketing-site`
+ * setzt andere Werte, ALLE Regeln darunter (tone-*, mkt-*, puka-glow) bleiben
+ * unverändert. Wer eine neue Farbe braucht, legt sie deshalb als TRIPEL an und
+ * gibt ihr dort einen dunklen Zwilling; ein hart geschriebenes hsl() in einer
+ * Regel wäre wieder eine Klemme.
+ *
+ * DREI Tripel sind für den dunklen Zweig neu dazugekommen, weil ein Wert
+ * vorher zwei Aufgaben trug oder gar keinen Namen hatte:
+ *   --puka-deep  = der GRUND des tone-ink-Bandes. Früher war das --puka-ink,
+ *                  also dieselbe Variable wie die Textfarbe. Im Dunkeln muss
+ *                  der Text HELL werden und das Band DUNKEL bleiben — mit
+ *                  einer Variablen ginge nur eines von beidem.
+ *   --puka-paper = die Fläche der Karten. Sie stand als `hsl(0 0% 100% / .x)`
+ *                  ein Dutzend Mal ausgeschrieben in scoped CSS und als
+ *                  `bg-white/65` im app.config-Vertrag.
+ *   --puka-noon  = der Endton des Sonnen-Verlaufs (war zweimal als
+ *                  `hsl(38 96% 82%)` abgeschrieben).
+ *
+ * DIE HELLE SCHRIFT AUF dem tone-ink-BAND läuft NICHT über eigene Klassen:
+ * `.tone-ink` dreht dort `--ui-text-inverted`/`--ui-bg-inverted` (die
+ * Nuxt-UI-Variablen hinter `text-inverted` & Co.) fest auf hell. Der
+ * Abschluss-CTA und der Fuß benutzen diese Utilities seit Paket 3/5 — ohne den
+ * Dreh wären sie im Dunkelmodus SCHWARZ auf schwarzem Grund, denn dort meint
+ * „inverted" das Gegenteil von hell. So bleibt beides ohne Markup-Änderung
+ * richtig.
  *
  * ── THEME-BRÜCKE (seit Paket 1 der Nuxt-UI-Umstellung) ────────────────────
  * Die --puka-*-HSL-Tripel unten sind BESTAND für dieses Alt-CSS, keine
@@ -30,17 +55,55 @@
   --puka-mist: 213 20% 91%;
   --puka-sky: 202 55% 90%; /* aufklarender Himmel */
   --puka-dawn: 35 90% 93%; /* warmes Morgenlicht */
+  --puka-noon: 38 96% 82%; /* der Endton des Sonnen-Verlaufs */
   --puka-sun: 38 96% 60%; /* die Sonne (Akzent/CTA) */
   --puka-sun-deep: 26 90% 48%; /* tieferes Sonnenorange (Hover/Text) */
-  --puka-ink: 220 40% 13%; /* Text auf hellem Grund */
+  --puka-ink: 220 40% 13%; /* Text auf dem Sektions-Grund */
   --puka-ink-soft: 220 18% 34%; /* gedämpfter Fließtext */
+  --puka-deep: 220 40% 13%; /* Grund des tone-ink-Bandes (immer dunkel) */
+  --puka-paper: 0 0% 100%; /* Fläche der Karten (mit Alpha benutzt) */
 
+  color-scheme: light;
   background: hsl(var(--puka-cloud));
   color: hsl(var(--puka-ink));
   /* Ruhige, warme Serifenlose bevorzugt (kommt aus der Theme-/Fonts-Engine);
      hier nur Fallback-Sicherheit + weiches Rendering. */
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/*
+ * DIESELBE DRAMATURGIE, NACHTS. Die Kette läuft in derselben RICHTUNG (kühl →
+ * warm, dunkel → offen), nur eine Oktave tiefer: aus „bewölktem Grau" wird die
+ * bedeckte Nacht, aus dem Morgenlicht ein warmes Glimmen. Der Akzent
+ * (--puka-sun) bleibt derselbe Ton — er IST die Marke.
+ *
+ * ZWEI WERTE DREHEN SICH BEWUSST UM, statt nur abzudunkeln:
+ *   --puka-ink / --puka-ink-soft sind die SCHRIFT auf dem Sektions-Grund und
+ *   werden hell. Deshalb konnte --puka-deep nicht länger dieselbe Variable
+ *   sein (siehe Kopf).
+ *   --puka-sun-deep heißt „tiefer" und war es auch (48 % Helligkeit). Als
+ *   SCHRIFTFARBE auf dunklem Grund muss es genau andersherum HELLER werden als
+ *   die Sonne, sonst verschwinden Kicker, Links und Zahlenzeilen.
+ *
+ * `.dark` hängt am <html>, `.marketing-site` am <body>. Für alles darunter
+ * gewinnt damit der Wert vom body — unabhängig von der Reihenfolge der
+ * CSS-Dateien (dieselbe Mechanik wie bei --ui-primary in puka-theme.css).
+ */
+.dark .marketing-site {
+  --puka-cloud: 222 24% 10%;
+  --puka-mist: 220 20% 13%;
+  --puka-sky: 206 30% 16%;
+  --puka-dawn: 26 26% 17%;
+  --puka-noon: 30 34% 21%;
+  --puka-sun: 38 96% 62%;
+  --puka-sun-deep: 32 95% 64%;
+  --puka-ink: 220 18% 93%;
+  --puka-ink-soft: 214 14% 73%;
+  --puka-deep: 224 42% 6%;
+  --puka-paper: 216 18% 27%;
+
+  color-scheme: dark;
 }
 
 /* ── Sektions-Töne: der Grau→Sonne-Verlauf über den Scroll ─────────────────
@@ -57,11 +120,25 @@
 .marketing-site .tone-sky-hold { background: hsl(var(--puka-sky)); }
 .marketing-site .tone-dawn { background: linear-gradient(180deg, hsl(var(--puka-sky)), hsl(var(--puka-dawn))); }
 .marketing-site .tone-dawn-hold { background: hsl(var(--puka-dawn)); }
-.marketing-site .tone-sun { background: linear-gradient(180deg, hsl(var(--puka-dawn)), hsl(38 96% 82%)); }
-.marketing-site .tone-sun-hold { background: hsl(38 96% 82%); }
+.marketing-site .tone-sun { background: linear-gradient(180deg, hsl(var(--puka-dawn)), hsl(var(--puka-noon))); }
+.marketing-site .tone-sun-hold { background: hsl(var(--puka-noon)); }
+/*
+ * Das tone-ink-Band ist in BEIDEN Modi dunkel — es ist der Peak der
+ * Dramaturgie, kein Modus-Zustand. Deshalb steht seine Schriftfarbe hier fest
+ * (--puka-onink, in beiden Modi hell) und nicht in den Tripeln oben.
+ * Die zwei --ui-*-Zeilen sind der Grund, warum der Abschluss-CTA und der Fuß
+ * ohne Markup-Änderung durch beide Modi kommen: `text-inverted`,
+ * `text-inverted/80` und `hover:bg-inverted/10` lesen genau diese Variablen
+ * (Nuxt UI dreht sie unter `.dark` auf DUNKEL — hier wäre das schwarz auf
+ * schwarz).
+ */
 .marketing-site .tone-ink {
-  background: hsl(var(--puka-ink));
-  color: hsl(var(--puka-cloud));
+  --puka-onink: 220 16% 95%;
+  --ui-text-inverted: hsl(var(--puka-onink));
+  --ui-bg-inverted: hsl(var(--puka-onink));
+
+  background: hsl(var(--puka-deep));
+  color: hsl(var(--puka-onink));
 }
 
 /* ── Sektions-Grundmaße (der „Schnitt-Rhythmus") ──────────────────────────── */
@@ -98,7 +175,7 @@
   color: hsl(var(--puka-ink-soft));
   max-width: 42rem;
 }
-.marketing-site .tone-ink .mkt-lead { color: hsl(var(--puka-mist) / 0.85); }
+.marketing-site .tone-ink .mkt-lead { color: hsl(var(--puka-onink) / 0.85); }
 
 /* Der Zurück-Link (`.mkt-back`) und der Abschluss-CTA (`.mkt-cta-*`) standen
  * hier bis Paket 3. Beide sind jetzt Nuxt-UI-Bausteine: der Link ist ein

@@ -157,8 +157,11 @@ useMarketingSeo({
 .np-item {
   padding: 1.25rem 1.4rem;
   border-radius: 0.9rem;
-  background: hsl(0 0% 100% / 0.55);
-  border: 1px solid hsl(var(--puka-ink) / 0.08);
+  background: hsl(var(--puka-paper) / 0.55);
+  /* Dieselbe Haarlinie wie jede Karte der Seite (`pageCard`-Vertrag) — sie
+     dreht sich im Dunkelmodus von dunkel nach hell, ein hier ausgeschriebenes
+     hsl(--puka-ink / .08) täte das nicht. */
+  border: 1px solid var(--puka-card-edge);
 }
 .np-claim {
   display: flex;

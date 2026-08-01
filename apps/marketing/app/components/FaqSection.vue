@@ -47,7 +47,7 @@ const items = computed(() =>
           // Jede Frage ist im Bestand eine eigene KARTE (dieselbe Fläche wie
           // die `pageCard`-Karten aus Paket 2), nicht eine Zeile in einer
           // Liste — deshalb die Kante rundum statt der Vorgabe `border-b`.
-          item: 'rounded-[0.9rem] border-b-0 bg-white/60 px-5 ring-1 ring-[color:var(--puka-card-edge)]',
+          item: 'rounded-[0.9rem] border-b-0 bg-(--puka-panel-bg) px-5 ring-1 ring-[color:var(--puka-card-edge)]',
           trigger: 'py-[1.15rem] gap-4 text-[1.05rem] font-bold text-highlighted',
           // Aus dem Plus wird ein Kreuz: 45° statt der 180° der Vorgabe
           // (dieselbe Bedingungskette, damit tailwind-merge die Vorgabe wirft).

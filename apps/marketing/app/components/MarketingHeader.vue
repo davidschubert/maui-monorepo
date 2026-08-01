@@ -220,7 +220,7 @@ const NAV_UI = {
   // nicht (der Bestand löste das mit `padding-top` an derselben Stelle).
   viewport: [
     'min-w-[23rem] max-w-[calc(100vw-2rem)]',
-    'mt-4 rounded-[0.9rem] bg-white',
+    'mt-4 rounded-[0.9rem] bg-(--puka-solid-bg)',
     'ring-[color:var(--puka-menu-edge)]',
     'shadow-[0_18px_40px_-20px_var(--puka-menu-shadow)]',
   ].join(' '),

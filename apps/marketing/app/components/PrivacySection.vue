@@ -33,7 +33,7 @@ const points = computed(() =>
           v-for="point in points" :key="point.text"
           as="li" :icon="point.icon" :title="point.text"
           :ui="{
-            root: 'items-center gap-3 rounded-[0.8rem] bg-white/60 px-[1.1rem] py-3.5 ring-1 ring-[color:var(--puka-card-edge)]',
+            root: 'items-center gap-3 rounded-[0.8rem] bg-(--puka-panel-bg) px-[1.1rem] py-3.5 ring-1 ring-[color:var(--puka-card-edge)]',
             leading: 'size-[2.1rem] shrink-0 justify-center rounded-[0.6rem] bg-primary/20 p-0',
             leadingIcon: 'size-5 text-primary-600',
           }"

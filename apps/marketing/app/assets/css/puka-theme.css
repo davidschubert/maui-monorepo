@@ -117,10 +117,42 @@
   --mkt-cta-title: clamp(1.6rem, 3.6vw, 2.4rem);
 
   --puka-cta-ink: hsl(var(--puka-ink));
-  --puka-cta-surface: hsl(0 0% 100% / 0.55);
-  --puka-cta-surface-hover: hsl(0 0% 100% / 0.9);
+  --puka-cta-surface: hsl(var(--puka-paper) / 0.55);
+  --puka-cta-surface-hover: hsl(var(--puka-paper) / 0.9);
   --puka-cta-edge: hsl(var(--puka-ink) / 0.22);
   --puka-cta-edge-hover: hsl(var(--puka-ink) / 0.4);
+
+  /*
+   * DIE FÜNF KARTEN-FLÄCHEN (B7, 2026-08-01). Sie standen als `bg-white/65`,
+   * `bg-white/70`, `bg-white/60`, `bg-white/50` und `bg-white` in den
+   * Bauteilen und im app.config-Vertrag — also fünfmal die Aussage „hier liegt
+   * Papier auf dem Sektions-Grund", jedes Mal als WEISS ausgeschrieben. Im
+   * Dunkelmodus ist Papier nicht weiß; deshalb kommt die Farbe jetzt aus
+   * --puka-paper (marketing.css, je Modus ein Wert) und nur die Deckung bleibt
+   * je Verwendung verschieden.
+   *
+   * Als fertige Farbwerte, weil Tailwind für diese App keine eigenen
+   * Farb-Utilities bauen kann (siehe Kopf): `bg-(--puka-card-bg)` funktioniert,
+   * `bg-puka-paper/65` gäbe es nicht.
+   */
+  --puka-card-bg: hsl(var(--puka-paper) / 0.65);
+  --puka-plan-bg: hsl(var(--puka-paper) / 0.7);
+  --puka-panel-bg: hsl(var(--puka-paper) / 0.6);
+  --puka-panel-soft-bg: hsl(var(--puka-paper) / 0.5);
+  --puka-solid-bg: hsl(var(--puka-paper));
+
+  /*
+   * DIE SCHRIFT AUF DEM GEFÜLLTEN CTA (B7). Nuxt UI malt sie bei
+   * `color="primary" variant="solid"` als `text-inverted` — also „das Gegenteil
+   * der Fläche des MODUS". Das ist hier zweimal die falsche Frage: die Fläche
+   * ist die SONNE und in beiden Modi dieselbe, und im Dunkelmodus hätte
+   * derselbe Knopf je nach Umgebung zwei verschiedene Schriftfarben (auf dem
+   * tone-ink-Band dreht `.tone-ink` --ui-text-inverted auf hell — siehe
+   * marketing.css). Deshalb bekommt der gefüllte Knopf seine Schrift aus einem
+   * eigenen Token (gebunden im `button`-Vertrag in app/app.config.ts).
+   * Hell bleibt BEWUSST Weiß — das ist der Bestand der Seite.
+   */
+  --puka-cta-label: hsl(0 0% 100%);
 
   /*
    * Die Haarlinie der Karten (Paket 2, benutzt vom `pageCard`-Vertrag in
@@ -206,4 +238,47 @@
    * einer Länge und ist es nicht.
    */
   --puka-plan-glow: color-mix(in oklab, var(--ui-color-primary-600) 60%, transparent);
+}
+
+/*
+ * ══ DIE THEME-BRÜCKE IM DUNKELN (B7, 2026-08-01) ═══════════════════════════
+ *
+ * Die Farb-Tripel der Dramaturgie drehen in marketing.css; HIER stehen die
+ * drei Dinge, die sich NICHT aus ihnen ergeben:
+ *
+ * 1. KANTEN UND SCHATTEN RECHNEN VERKEHRT HERUM. Alle --puka-*-edge-Tokens
+ *    oben mischen `neutral-900` (also DUNKEL) in die Fläche — auf hellem Grund
+ *    ist das die gesuchte Haarlinie, auf dunklem Grund ist es unsichtbar. Im
+ *    Dunkeln hebt eine Kante nur ab, wenn sie HELLER ist als ihre Fläche;
+ *    Schatten dagegen werden schwärzer, nicht heller.
+ * 2. DIE AKZENT-STUFEN VERSCHIEBEN SICH. Die Seite schreibt
+ *    `text-primary-600` (und `hover:text-primary-700`) an rund dreissig
+ *    Stellen — das ist die Regel „Marken-Ton auf hellem Grund" aus
+ *    app/app.config.ts: #e96c0c, damit die Sonne als SCHRIFT lesbar bleibt.
+ *    Auf dunklem Grund gilt sie genau andersherum, dort ist 600 zu dunkel
+ *    (gemessen 3,1:1 auf dem tone-sky-Ton). Statt dreissig Klassen zu ändern,
+ *    zeigen die STUFEN hier eine Oktave höher: was `600` heisst, ist im
+ *    Dunkeln puka-400. Das ist derselbe Gedanke wie --ui-primary oben — die
+ *    Klassen bleiben die Aussage, die Zahl dahinter ist Theme-Sache.
+ *    ACHTUNG: die Verschiebung wirkt auch dort, wo 600 eine FLÄCHE malt
+ *    (--puka-step-fill, --puka-plan-glow). Das ist gewollt: beide sollen im
+ *    Dunkeln heller leuchten, nicht dunkler.
+ * 3. `success-700` folgt derselben Regel (Badge-Vertrag in app.config.ts).
+ */
+.dark .marketing-site {
+  --puka-card-edge: color-mix(in oklab, var(--ui-color-neutral-100) 14%, transparent);
+  --puka-pill-edge: color-mix(in oklab, var(--ui-color-neutral-100) 22%, transparent);
+  --puka-header-edge: color-mix(in oklab, var(--ui-color-neutral-100) 10%, transparent);
+  --puka-menu-edge: color-mix(in oklab, var(--ui-color-neutral-100) 16%, transparent);
+  --puka-menu-shadow: color-mix(in oklab, black 75%, transparent);
+  --puka-tab-surface: color-mix(in oklab, var(--ui-color-neutral-100) 10%, transparent);
+  --puka-tab-shadow: color-mix(in oklab, black 60%, transparent);
+
+  /* Weiß auf der Sonne misst 1,9:1 — auf einer dunklen Seite fällt das auf,
+     weil daneben nichts mehr weiß ist. Dunkle Schrift auf der Sonne: 8,4:1. */
+  --puka-cta-label: hsl(220 40% 11%);
+
+  --ui-color-primary-600: var(--color-puka-400);
+  --ui-color-primary-700: var(--color-puka-300);
+  --ui-color-success-700: var(--ui-color-success-400);
 }

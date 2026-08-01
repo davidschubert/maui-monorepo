@@ -119,8 +119,9 @@ useHead(() => ({
 .glos-item {
   padding: 1.3rem 1.4rem;
   border-radius: 0.9rem;
-  background: hsl(0 0% 100% / 0.62);
-  border: 1px solid hsl(var(--puka-ink) / 0.08);
+  background: hsl(var(--puka-paper) / 0.62);
+  /* Haarlinie wie jede Karte der Seite — siehe `--puka-card-edge`. */
+  border: 1px solid var(--puka-card-edge);
 }
 .glos-term {
   font-weight: 800;
