@@ -16,6 +16,7 @@
     "@iconify-json/ph": "catalog:",
     "@pukalani/core": "workspace:*",
     "@pukalani/system": "workspace:*",
+    "@nuxt/image": "catalog:",
     "@nuxt/ui": "catalog:",
     "@nuxtjs/i18n": "catalog:",
     "@pinia/nuxt": "catalog:",

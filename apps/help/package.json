@@ -16,6 +16,7 @@
     "@pukalani/core": "workspace:*",
     "@pukalani/system": "workspace:*",
     "@nuxt/content": "catalog:",
+    "@nuxt/image": "catalog:",
     "@nuxt/ui": "catalog:",
     "@nuxtjs/i18n": "catalog:",
     "@pinia/nuxt": "catalog:",

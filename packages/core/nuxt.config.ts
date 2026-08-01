@@ -17,7 +17,47 @@ function resolveBuildSha(): string {
 }
 
 export default defineNuxtConfig({
-  modules: ['@nuxt/ui', '@pinia/nuxt', '@nuxtjs/i18n'],
+  modules: ['@nuxt/ui', '@nuxt/image', '@pinia/nuxt', '@nuxtjs/i18n'],
+
+  // Bild-Naht Schritt 2 (C14). Im Layer, damit JEDE App `<NuxtImg>` erbt —
+  // dasselbe Muster wie @nuxt/fonts, das über @nuxt/ui mitkommt.
+  //
+  // DER DEFAULT-ANBIETER IST `appwrite`, UND ZWAR GLOBAL — nicht nur je
+  // Aufrufstelle. Zwei Gründe, beide wichtig:
+  //  1. Ohne gesetzten Anbieter fällt @nuxt/image auf `ipx` zurück und
+  //     registriert einen `/_ipx/**`-Handler, der Bilder AUF DEM APP-SERVER
+  //     rechnet (module.js:363). Genau das soll hier nie passieren — der
+  //     Server steht neben sieben Apps, und `ipx`/`sharp` sind deshalb in
+  //     pnpm-workspace.yaml ausgeschlossen. Ein App-eigenes
+  //     `image.provider: 'ipx'` würde den Build brechen; das ist die
+  //     gewünschte Lautstärke.
+  //  2. Der Anbieter ist gutmütig: was keine Appwrite-Datei ist (statische
+  //     Bilder, fremde CDNs), reicht er unverändert durch. Global gesetzt
+  //     kostet er also nichts und fängt trotzdem jede Aufrufstelle ein.
+  //
+  // AVIF steht BEWUSST NICHT in `format`: die Messung (2026-07-31, Zahlen an
+  // STORAGE_PREVIEW_DEFAULT_FORMAT) hat den Aufpreis nicht getragen. Damit
+  // erzeugt auch `<NuxtPicture>` nur WebP-Quellen; wer AVIF will, sagt es je
+  // Bild (`format="avif"`).
+  //
+  // `densities: [1, 2]` ist der Nuxt-Default, hier nur festgehalten, weil er
+  // die Kosten bestimmt: jede Breite × jede Dichte ist EINE Variante, die
+  // Appwrite einmal rechnen und dauerhaft cachen muss. Aufrufstellen sollen
+  // deshalb wenige `sizes`-Stufen nennen, nicht alle Bildschirmklassen.
+  image: {
+    provider: 'appwrite',
+    providers: {
+      appwrite: {
+        name: 'appwrite',
+        // Absoluter Pfad — relative Angaben löst @nuxt/image gegen die APP auf,
+        // nicht gegen den Layer (dasselbe Problem wie bei `css` weiter unten).
+        provider: join(currentDir, './app/providers/appwrite.ts'),
+      },
+    },
+    quality: 78,
+    format: ['webp'],
+    densities: [1, 2],
+  },
 
   // i18n: en ist Default/Fallback und liegt OHNE Prefix unter '/...'; alle anderen
   // Sprachen sind geprefixt (/de/*). Die gewählte Sprache steckt damit in der URL;

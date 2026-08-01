@@ -14,17 +14,30 @@ defineProps<{ items: PublicMediaItem[] }>()
       class="tile"
       :class="{ 'tile--wide': photo.featured }"
     >
-      <!-- srcset + sizes: der Browser lädt die Fassung, die zur Kachelbreite
-           passt. Schmale Kachel = halbe Zeilenbreite, breite (featured) = ganze;
-           darunter, auf einspaltigen Bildschirmen, immer die Viewportbreite. -->
-      <img
+      <!-- Bild-Naht Schritt 2 (C14): `<NuxtImg>` über den Anbieter `appwrite`.
+           Der `src` aus /api/media ist bereits eine Vorschau-URL — der Anbieter
+           liest Bucket und Datei daraus und rechnet jede Fassung selbst.
+
+           Die Stufen sind ROHE PIXEL-SCHLÜSSEL statt Tailwind-Namen, weil das
+           Raster unten bei 520 und 860 px umbricht und das keine Tailwind-Stufen
+           sind. Der Schlüssel ist die UNTERE Kante des Bandes, die Media-Query
+           kommt aus dem nächsten (Beweis: core/tests/nuxtImageProvider.test.ts).
+           `1920:33vw` steht nur da, um für grosse Bildschirme überhaupt grosse
+           Kandidaten anzubieten — ohne die Stufe wäre der breiteste 640 px.
+
+           Die featured-Kachel bekommt bewusst DIESELBEN Stufen: `.tile--wide`
+           spannt zwei ZEILEN, nicht zwei Spalten — sie ist höher, nicht breiter.
+           Die frühere Sonderbehandlung (`100vw`) liess den Browser dort ein
+           doppelt so grosses Bild laden, wie die Kachel je zeigt. -->
+      <NuxtImg
+        provider="appwrite"
         :src="photo.src"
-        :srcset="photo.srcset || undefined"
-        :sizes="photo.featured ? '(min-width: 700px) 100vw, 100vw' : '(min-width: 700px) 50vw, 100vw'"
+        sizes="320:100vw 521:50vw 861:33vw 1920:33vw"
+        :placeholder="[24, 30, 40]"
         :alt="photo.alt"
         loading="lazy"
         decoding="async"
-      >
+      />
       <figcaption class="tile__cap">
         <span class="tile__title">{{ photo.title }}</span>
         <span class="tile__loc">{{ photo.subtitle }}</span>

@@ -36,6 +36,39 @@ export interface StorageBase {
  */
 export const STORAGE_PREVIEW_MAX_EDGE = 4000
 
+/**
+ * Was Appwrite 1.9.6 als `output` annimmt — 2026-07-31 gegen die lokale Instanz
+ * nachgemessen (jedes Format 200 + passender Content-Type; ein unbekannter Wert
+ * antwortet 400 und nennt genau diese Liste).
+ */
+export const STORAGE_PREVIEW_FORMATS = ['jpg', 'jpeg', 'png', 'webp', 'heic', 'avif', 'gif'] as const
+export type StoragePreviewFormat = typeof STORAGE_PREVIEW_FORMATS[number]
+
+/**
+ * DER DEFAULT IST WEBP, NICHT AVIF (C14, Messung 2026-07-31).
+ *
+ * Gemessen wurde beides: die Transformation in Appwrite (Imagick) und — als
+ * Vergleichsmaßstab — dieselbe Arbeit mit sharp/libvips, also dem, was `ipx`
+ * unter @nuxt/image auf dem APP-Server tun würde.
+ *  - sharp: AVIF kostet je nach Größe das 3- bis 24-Fache an CPU (bis 2,3
+ *    CPU-Sekunden für EIN 1280-px-Bild auf einem M1 Max). Auf dem geteilten
+ *    CX23/CX33 neben sieben Apps ist das nicht vertretbar.
+ *  - Appwrite: der Aufpreis ist milder (1,0–3,0× Wanduhr) und wird gecacht
+ *    (zweiter Abruf ~5 ms) — aber der BYTE-Gewinn trägt ihn nicht: bei gleicher
+ *    `quality` war AVIF nur unterhalb ~q60 kleiner (10–40 %) und ab q78 sogar
+ *    GRÖSSER als WebP.
+ * Also: WebP als Default, AVIF bleibt möglich (`format="avif"` je Aufrufstelle),
+ * aber niemand bezahlt es unbemerkt. Zahlen: docs/OPEN-ITEMS.md → C14.
+ */
+export const STORAGE_PREVIEW_DEFAULT_FORMAT: StoragePreviewFormat = 'webp'
+
+/**
+ * Qualität, wenn niemand eine nennt. 78 ist der Wert, den die Bild-Naht seit
+ * Schritt 1 an allen Aufrufstellen benutzt — hier festgehalten, damit der
+ * @nuxt/image-Anbieter nicht seine eigene Zahl erfindet.
+ */
+export const STORAGE_PREVIEW_DEFAULT_QUALITY = 78
+
 export interface StorageImageOptions {
   /** Zielbreite in CSS-Pixeln (vor DPR-Multiplikation durch den Aufrufer). */
   width?: number
@@ -49,7 +82,7 @@ export interface StorageImageOptions {
    * deutlich mehr CPU — und die läuft auf DERSELBEN Maschine wie die sieben
    * Apps. Deshalb kein AVIF-Default, sondern eine bewusste Entscheidung.
    */
-  output?: 'webp' | 'jpg' | 'jpeg' | 'png' | 'gif' | 'avif'
+  output?: StoragePreviewFormat
 }
 
 function clampEdge(value: number): number {
@@ -121,4 +154,141 @@ export function storageImageSrcset(
     .filter((w, i, all) => all.indexOf(w) === i)
     .map(w => `${storageImageUrl(base, bucketId, fileId, { ...options, width: w })} ${w}w`)
     .join(', ')
+}
+
+/* -------------------------------------------------------------------------- *
+ * Schritt 2 (C14): der reine Kern des @nuxt/image-Anbieters `appwrite`.
+ *
+ * Der Anbieter (core/app/providers/appwrite.ts) besteht nur noch aus dem Aufruf
+ * von `storageProviderImageUrl`. Er hat BEWUSST keinerlei Nuxt-Abhängigkeit —
+ * weder `#imports` noch `useRuntimeConfig`, obwohl der Endpoint dort läge.
+ *
+ * WARUM DAS WICHTIG IST (einmal teuer gelernt): @nuxt/image legt für jeden
+ * eigenen Anbieter eine Typ-Vorlage an und referenziert sie mit
+ * `{ nitro, nuxt, node, shared }` — also in ALLEN VIER generierten tsconfigs.
+ * Darüber landet die Anbieter-Datei auch im node- und im shared-Projekt, und
+ * dort gibt es weder `#imports` noch die App-Auto-Imports. Ein `#imports` in der
+ * Anbieter-Datei kostete deshalb 188 Typfehler quer durch alle Layer, von denen
+ * nur EINER auf die Anbieter-Datei zeigte. Ein Anbieter darf nur importieren,
+ * was in jedem der vier Projekte existiert.
+ *
+ * Der Ausweg ist zugleich die einfachere Bauart: die URL, die `<NuxtImg>`
+ * bekommt, ENTHÄLT den Endpoint und das Projekt schon — die Bild-Naht aus
+ * Schritt 1 baut sie so. Der Anbieter braucht also gar keine Konfiguration, er
+ * rechnet eine vorhandene Storage-URL in eine andere Größe um.
+ * -------------------------------------------------------------------------- */
+
+/** Alles, was in einer Storage-URL steckt: Instanz, Projekt, Bucket, Datei. */
+export interface ParsedStorageImage extends StorageBase {
+  bucketId: string
+  fileId: string
+}
+
+/**
+ * Zerlegt eine Appwrite-Storage-URL — und lässt alles andere in Ruhe.
+ *
+ * Erkannt wird, was `storageFileUrl`/`storageImageUrl` erzeugen:
+ * `<endpoint>/storage/buckets/<bucket>/files/<datei>/(view|preview|download)?…project=<id>`
+ *
+ * `project` ist PFLICHT, nicht Kosmetik: ohne es ordnet Appwrite den Abruf
+ * keinem Projekt zu. Fehlt es, gibt es hier `null` — dann reicht der Anbieter
+ * die URL unverändert durch, statt eine kaputte zu bauen.
+ *
+ * Alles andere (statische Bilder, fremde CDNs, data:-URIs) ergibt ebenfalls
+ * `null`. Genau deshalb darf der Anbieter global als Default eingestellt sein.
+ */
+export function parseStorageImageUrl(src: string): ParsedStorageImage | null {
+  if (typeof src !== 'string') return null
+  const trimmed = src.trim()
+  if (!trimmed) return null
+
+  const match = /^(.*?)\/storage\/buckets\/([^/?#]+)\/files\/([^/?#]+)\/(?:view|preview|download)(?:[/?#]|$)/
+    .exec(trimmed)
+  if (!match) return null
+  const [, endpoint, bucketId, fileId] = match
+  if (!endpoint || !bucketId || !fileId) return null
+
+  const query = trimmed.slice(trimmed.indexOf('?') + 1)
+  const projectId = trimmed.includes('?')
+    ? new URLSearchParams(query).get('project') ?? ''
+    : ''
+  if (!projectId) return null
+
+  return {
+    endpoint,
+    projectId,
+    bucketId: safeDecode(bucketId),
+    fileId: safeDecode(fileId),
+  }
+}
+
+function safeDecode(value: string): string {
+  try {
+    return decodeURIComponent(value)
+  }
+  catch {
+    return value
+  }
+}
+
+/**
+ * Die Modifier, die @nuxt/image an einen Anbieter reicht. Bewusst weit
+ * getippt (`number | string`), weil `width`/`height` aus einem Template auch
+ * als String ankommen können.
+ */
+export interface StorageProviderModifiers {
+  width?: number | string
+  height?: number | string
+  quality?: number | string
+  format?: string
+}
+
+function toNumber(value: number | string | undefined): number | undefined {
+  if (value === undefined || value === null || value === '') return undefined
+  const n = typeof value === 'number' ? value : Number.parseFloat(value)
+  return Number.isFinite(n) ? n : undefined
+}
+
+/**
+ * Rechnet eine Appwrite-Storage-URL in die von @nuxt/image verlangte Größe um.
+ *
+ * Zwei bewusste Festlegungen:
+ *  - OHNE `format` wird WebP geliefert, nie AVIF (Begründung + Messung an
+ *    STORAGE_PREVIEW_DEFAULT_FORMAT).
+ *  - Ein Format, das Appwrite nicht kennt, wird IGNORIERT statt durchgereicht:
+ *    ein durchgereichtes `output=jxl` beantwortet Appwrite mit 400, und eine
+ *    leere Galerie ist der schlechtere Fehler als ein WebP zu viel.
+ *
+ * Nicht abgebildete Modifier (`fit`, `blur`, `background`) fallen weg —
+ * `/preview` kennt sie nicht. Für `blur` heißt das konkret: der
+ * `placeholder`-Modus von `<NuxtImg>` liefert ein winziges, hochskaliertes
+ * Bild statt eines weichgezeichneten. Das ist der LQIP, den wir wollen.
+ */
+export function storageProviderImageUrl(
+  src: string,
+  modifiers: StorageProviderModifiers = {},
+): string {
+  const parsed = parseStorageImageUrl(src)
+  if (!parsed) return src
+
+  const format = typeof modifiers.format === 'string' ? modifiers.format.toLowerCase() : ''
+  const output = (STORAGE_PREVIEW_FORMATS as readonly string[]).includes(format)
+    ? format as StoragePreviewFormat
+    : STORAGE_PREVIEW_DEFAULT_FORMAT
+
+  const quality = toNumber(modifiers.quality) ?? STORAGE_PREVIEW_DEFAULT_QUALITY
+  const width = toNumber(modifiers.width)
+  const height = toNumber(modifiers.height)
+
+  return storageImageUrl(
+    { endpoint: parsed.endpoint, projectId: parsed.projectId },
+    parsed.bucketId,
+    parsed.fileId,
+    {
+      ...(width === undefined ? {} : { width }),
+      ...(height === undefined ? {} : { height }),
+      quality,
+      output,
+    },
+  )
 }

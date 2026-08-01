@@ -14,6 +14,7 @@
   "dependencies": {
     "@iconify-json/circle-flags": "catalog:",
     "@iconify-json/ph": "catalog:",
+    "@nuxt/image": "catalog:",
     "@nuxt/ui": "catalog:",
     "@nuxtjs/i18n": "catalog:",
     "@pinia/nuxt": "catalog:",

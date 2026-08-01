@@ -26,7 +26,22 @@ useHead({
     <!-- Hero -->
     <section class="hero">
       <div class="hero__bg" aria-hidden="true">
-        <img :src="heroSrc" alt="">
+        <!-- Bild-Naht Schritt 2 (C14). `heroSrc` ist ENTWEDER eine
+             Appwrite-Vorschau-URL ODER das statische Platzhalter-SVG aus
+             public/ — der Anbieter `appwrite` reicht durch, was er nicht als
+             Appwrite-Datei erkennt, das SVG bleibt also unangetastet.
+             Bildschirmfüllend, deshalb überall 100vw; kein `lazy`, weil das
+             Bild über der Falz steht. Drei Stufen, nicht sechs — mit jeder
+             weiteren wüchse nur die Zahl der Fassungen, die Appwrite einmal
+             rechnen und cachen muss (die oberste ergibt schon 2560 px). -->
+        <NuxtImg
+          provider="appwrite"
+          :src="heroSrc"
+          alt=""
+          sizes="xs:100vw md:100vw xl:100vw"
+          :placeholder="[32, 20, 40]"
+          decoding="async"
+        />
         <div class="hero__scrim" />
       </div>
       <div class="container hero__content reveal">

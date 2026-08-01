@@ -28,7 +28,7 @@ const localePath = useLocalePath()
 const config = useRuntimeConfig()
 const { formatDateTime, formatTime, formatMonthShort, formatDateSpan, isMultiDay, sameDay } = useEventDateFormat()
 const { formatRelativeTime } = useFormatRelativeTime()
-const { coverUrl } = useEventCover()
+const { coverSource } = useEventCover()
 const { isLoggedIn } = useCurrentUser()
 const { formatCurrency } = useFormatCurrency()
 
@@ -218,13 +218,20 @@ const start = computed(() => new Date(event.value.startAt))
       <aside class="order-first mb-6 lg:sticky lg:top-4 lg:order-last lg:mb-0">
         <div class="overflow-hidden rounded-xl border border-default">
           <div class="relative">
-            <img
+            <!-- Bild-Naht Schritt 2 (C14). Die Spalte ist auf lg exakt 320 px
+                 breit, darunter volle Viewport-Breite — zwei Stufen genügen.
+                 Der Haken data-testid bleibt am handelnden Element. -->
+            <NuxtImg
               v-if="event.coverFileId"
-              :src="coverUrl(event.coverFileId)"
+              provider="appwrite"
+              :src="coverSource(event.coverFileId)"
               :alt="event.title"
+              sizes="xs:100vw lg:320px"
+              :placeholder="[24, 14, 40]"
+              decoding="async"
               class="aspect-video w-full object-cover"
               data-testid="event-cover"
-            >
+            />
             <div
               v-else
               class="flex aspect-video w-full items-center justify-center bg-gradient-to-br from-primary/20 via-primary/10 to-elevated"

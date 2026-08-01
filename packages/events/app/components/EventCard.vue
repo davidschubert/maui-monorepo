@@ -17,7 +17,7 @@ const { t } = useI18n()
 const toast = useToast()
 const localePath = useLocalePath()
 const { formatDateSpan, formatMonthShort, isMultiDay } = useEventDateFormat()
-const { coverUrl } = useEventCover()
+const { coverSource } = useEventCover()
 const { isLoggedIn } = useCurrentUser()
 const { formatCurrency } = useFormatCurrency()
 
@@ -81,12 +81,25 @@ async function share() {
     :data-card-highlighted="highlighted || undefined"
   >
     <div class="relative">
-      <img
+      <!-- Bild-Naht Schritt 2 (C14): der Anbieter `appwrite` baut die
+           Vorschau-URLs, Appwrite transformiert und cacht. `sizes` nennt
+           BEWUSST nur drei Stufen — jede Stufe × Dichte ist eine Variante, die
+           Appwrite einmal rechnen muss. Die erste Stufe MUSS ein Präfix tragen
+           (`xs:`): ein nacktes `100vw` liest @nuxt/image als 1-Pixel-Bildschirm
+           und liefert ein 1-px-Bild (Beweis: tests/nuxtImageProvider.test.ts).
+           `placeholder` lädt zuerst ein 24-px-Bild (~0,1 KB), damit die Kachel
+           nicht leer steht. -->
+      <NuxtImg
         v-if="event.coverFileId"
-        :src="coverUrl(event.coverFileId)"
+        provider="appwrite"
+        :src="coverSource(event.coverFileId)"
         :alt="event.title"
+        sizes="xs:100vw sm:50vw lg:400px"
+        :placeholder="[24, 14, 40]"
+        loading="lazy"
+        decoding="async"
         class="aspect-video w-full object-cover"
-      >
+      />
       <div v-else class="flex aspect-video w-full items-center justify-center bg-gradient-to-br from-primary/20 via-primary/10 to-elevated">
         <div class="flex h-14 w-14 flex-col items-center justify-center rounded-lg bg-default/80 text-center shadow-sm">
           <span class="text-lg leading-tight font-bold">{{ day }}</span>

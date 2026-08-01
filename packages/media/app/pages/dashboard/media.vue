@@ -206,17 +206,23 @@ function rowActions(item: AdminMediaItem): DropdownMenuItem[][] {
         </template>
 
         <template #preview-cell="{ row }">
-          <img
+          <!-- Bild-Naht Schritt 2 (C14): feste 64-px-Kachel, also feste Maße
+               statt `sizes` — @nuxt/image legt daraus 1× und 2× an. Der `src`
+               aus /api/media ist bereits eine Vorschau-URL; der Anbieter liest
+               Bucket und Datei daraus und rechnet die Größe neu, das API-eigene
+               `srcset` (960/480/1600 für die Galerie) wird hier nicht gebraucht. -->
+          <NuxtImg
+            provider="appwrite"
             :src="row.original.src"
-            :srcset="row.original.srcset || undefined"
-            sizes="64px"
+            :width="64"
+            :height="64"
             decoding="async"
             loading="lazy"
             :alt="row.original.alt || row.original.title"
             class="size-16 rounded-md border border-default object-cover"
             :class="row.original.published ? '' : 'opacity-40'"
             :data-media-item="row.original.$id"
-          >
+          />
         </template>
         <template #title-cell="{ row }">
           <button

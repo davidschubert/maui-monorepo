@@ -75,7 +75,7 @@ const saving = ref(false)
 
 // ---- Cover (nur im Bearbeiten-Modus — der Upload braucht die Event-Id) ----
 
-const { coverUrl } = useEventCover()
+const { coverSource } = useEventCover()
 const coverBusy = ref(false)
 
 async function uploadCover(input: HTMLInputElement) {
@@ -541,12 +541,19 @@ function rowActions(row: EventRow): DropdownMenuItem[][] {
                    ist mit B6 eine UTable geworden; das hier ist die letzte
                    nicht umbrechende Zeile der Seite. -->
               <div class="flex flex-wrap items-center gap-3" data-testid="event-form-cover">
-                <img
+                <!-- Bild-Naht Schritt 2 (C14): feste Kachel (80×48), also
+                     feste Maße statt `sizes`. @nuxt/image legt daraus von
+                     selbst die 1×/2×-Fassungen an (densities im Core-Layer). -->
+                <NuxtImg
                   v-if="editingCoverFileId"
-                  :src="coverUrl(editingCoverFileId)"
+                  provider="appwrite"
+                  :src="coverSource(editingCoverFileId)"
                   alt=""
+                  :width="80"
+                  :height="48"
+                  decoding="async"
                   class="h-12 w-20 rounded object-cover"
-                >
+                />
                 <label class="inline-flex">
                   <input
                     type="file"

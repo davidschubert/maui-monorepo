@@ -20,6 +20,7 @@
     "@pukalani/moderation": "workspace:*",
     "@pukalani/system": "workspace:*",
     "@pukalani/themes": "workspace:*",
+    "@nuxt/image": "catalog:",
     "@nuxt/ui": "catalog:",
     "@nuxtjs/i18n": "catalog:",
     "@nuxtjs/mdc": "catalog:",

@@ -25,6 +25,7 @@
     "@pukalani/themes": "workspace:*",
     "@pukalani/tickets": "workspace:*",
     "@nuxt/content": "catalog:",
+    "@nuxt/image": "catalog:",
     "@nuxt/ui": "catalog:",
     "@nuxtjs/i18n": "catalog:",
     "@nuxtjs/mdc": "catalog:",
