@@ -1,15 +1,6 @@
 import { Query } from 'node-appwrite'
 import { MEDIA_TABLE, MEDIA_BUCKET, type MediaItem, type PublicMediaItem } from '../../../shared/types/media'
-import { storageImageSrcset, storageImageUrl } from '../../../../core/shared/storageImage'
-
-/**
- * Galerie-Breiten für das `srcset` (Bild-Naht, 2026-07-28). Drei Stufen decken
- * Handy, Tablet und Desktop ab — inklusive Retina, weil der Browser bei
- * gleicher CSS-Breite die doppelte Pixelzahl wählt. Mehr Stufen bedeuten mehr
- * Varianten, die Appwrite erzeugen und cachen muss, und die CPU dafür läuft auf
- * derselben Maschine wie die Apps.
- */
-const GALLERY_WIDTHS = [480, 960, 1600]
+import { storageImageUrl } from '../../../../core/shared/storageImage'
 
 const PAGE_LIMIT = 100
 
@@ -59,14 +50,13 @@ export default defineEventHandler(async (event) => {
     projectId: config.public.appwriteProjectId,
   }
   // Skaliert statt Originaldatei (Bild-Naht): die Galerie zeigt Vorschauen,
-  // kein Originalmaterial. `srcset` überlässt dem Browser die Größenwahl.
+  // kein Originalmaterial. Die Größenwahl macht seit C14 <NuxtImg> mit dem
+  // Appwrite-Anbieter — der rechnet diese Vorschau-URL je Aufrufstelle um.
   const srcOf = (fileId: string) =>
     storageImageUrl(base, MEDIA_BUCKET, fileId, { width: 960, quality: 78, output: 'webp' })
-  const srcsetOf = (fileId: string) =>
-    storageImageSrcset(base, MEDIA_BUCKET, fileId, GALLERY_WIDTHS, { quality: 78, output: 'webp' })
 
   if (withDrafts) {
-    return { items: res.rows.map(row => ({ ...row, src: srcOf(row.fileId), srcset: srcsetOf(row.fileId) })) }
+    return { items: res.rows.map(row => ({ ...row, src: srcOf(row.fileId) })) }
   }
   const items: PublicMediaItem[] = res.rows.map(row => ({
     id: row.$id,
@@ -75,7 +65,6 @@ export default defineEventHandler(async (event) => {
     alt: row.alt || row.title,
     featured: row.featured,
     src: srcOf(row.fileId),
-    srcset: srcsetOf(row.fileId),
   }))
   return { items }
 })
