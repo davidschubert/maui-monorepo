@@ -1,9 +1,7 @@
 import type { H3Event } from 'h3'
 import { verifyEntitlementDocument } from './entitlementDocument'
 import {
-  clearLegacyEntitlementsDocument,
   getEntitlementsDocument,
-  getLegacyEntitlementsDocument,
   storeEntitlementsDocument,
 } from './entitlementsStore'
 
@@ -16,10 +14,11 @@ import {
  * productGates). Geteilt zwischen Intervall-Plugin und POST
  * /api/platform/entitlements/refresh (system.manage).
  *
- * Jeder Lauf räumt zusätzlich die Altspalte app_config.entitlements
- * (system-019): die Tabelle ist Table-read(any), das Dokument darf dort nicht
- * liegen bleiben. Das passiert AUCH, wenn sich das Dokument nicht geändert hat
- * — sonst bliebe ein unveränderter Wert dort ewig stehen.
+ * BIS 2026-07-31 räumte jeder Lauf zusätzlich die read(any)-Altspalte
+ * app_config.entitlements (system-019) leer. Das ist erledigt: die Spalte hat
+ * keinen Leser mehr (entitlementsStore) und fällt mit system-027 ganz weg
+ * (OPEN-ITEMS C6). Deshalb ist „unchanged" wieder die einfache Frage, ob sich
+ * das Dokument geändert hat.
  */
 
 export interface EntitlementsPullResult {
@@ -55,13 +54,8 @@ export async function runEntitlementsPull(event?: H3Event): Promise<Entitlements
     return { status: 'error', detail: `Dokument ungültig: ${verified.reason}` }
   }
 
-  const [current, legacy] = await Promise.all([
-    getEntitlementsDocument(event),
-    getLegacyEntitlementsDocument(event),
-  ])
-  // Aufräum-Bedingung: solange die read(any)-Altspalte noch etwas trägt, ist
-  // der Lauf nie „unchanged" — er muss mindestens einmal schreiben+räumen.
-  if (current === raw && !legacy) return { status: 'unchanged' }
+  const current = await getEntitlementsDocument(event)
+  if (current === raw) return { status: 'unchanged' }
 
   try {
     await storeEntitlementsDocument(event, raw)
@@ -69,7 +63,6 @@ export async function runEntitlementsPull(event?: H3Event): Promise<Entitlements
   catch (error) {
     return { status: 'error', detail: (error as Error).message }
   }
-  if (legacy) await clearLegacyEntitlementsDocument(event)
 
   invalidateProductGateCache()
   return {

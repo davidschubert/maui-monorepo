@@ -3,7 +3,7 @@
 import { communityContentIsPublic } from '../../../../../packages/core/shared/communityAudience'
 import { BRAND_CARD_KEY_PATTERN, brandCardKey } from '../../../../../packages/themes/shared/brandCard'
 import { resolveTenantBrandMark } from '../../utils/tenantBrandMark'
-import { brandCardPng } from '../../utils/brandCardStore'
+import { brandCardPng } from '../../utils/brandImageStore'
 
 /**
  * Das Vorschaubild einer Community für geteilte Links (og:image, OPEN-ITEMS

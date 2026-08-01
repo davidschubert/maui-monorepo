@@ -29,8 +29,8 @@ export default defineNuxtPlugin(() => {
           // KEIN Entitlement-Dokument (K5/N2): das Dokument ist Server-Sache
           // (productGates). Es liegt seit system-020 in der server-only
           // Tabelle app_secrets und reist deshalb gar nicht mehr in diesem
-          // read(any)-Event mit; die Altspalte app_config.entitlements wird
-          // vom Pull geleert. Hier wird sie ohnehin nie gelesen.
+          // read(any)-Event mit. Die Altspalte app_config.entitlements ist mit
+          // system-027 ganz gefallen (C6) — hier wurde sie nie gelesen.
         }
       },
     )

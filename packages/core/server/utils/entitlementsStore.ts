@@ -16,43 +16,25 @@ import type { Models } from 'node-appwrite'
  * Kein Realtime — das Dokument hat keinen Client-Leser (K5-Analyse), bewertet
  * wird es ausschließlich in productGates.
  *
- * 2-WEGE-READ: gelesen wird zuerst die neue Stelle, Fallback ist die
- * Altspalte. Damit ist die Rollout-Reihenfolge (Migration vs. Code-Deploy)
- * egal: neuer Code auf altem Schema liest die Altspalte weiter, alter Code auf
- * neuem Schema findet seinen Wert bis zum ersten Pull unverändert vor.
- * Geschrieben wird IMMER nur die neue Stelle; derselbe Schreibvorgang leert
- * die Altspalte, damit das Dokument nicht öffentlich liegen bleibt.
+ * EINE STELLE, seit 2026-07-31 (OPEN-ITEMS C6). Der 2-Wege-Read auf die
+ * Altspalte ist WEG: er war die Rollout-Brücke zwischen system-020 und dem
+ * Code-Deploy danach, und jede Instanz hat sie längst überquert (der Pull
+ * räumte die Altspalte seither bei JEDEM Lauf leer, ein Lesefallback konnte
+ * also ohnehin nur noch '' liefern). Reihenfolge des Abbaus: erst diese
+ * Zeilen, DANN system-027 — eine Migration vor dem Code-Deploy hätte den
+ * Fallback gegen eine gelöschte Spalte laufen lassen.
  */
 
 const TABLE = 'app_secrets'
-const LEGACY_TABLE = 'app_config'
 const ROW = 'global'
 
 type SecretsRow = Models.Row & { entitlements?: string }
 
-function readColumn(row: SecretsRow): string {
-  return typeof row.entitlements === 'string' ? row.entitlements : ''
-}
-
-/** Altspalte app_config.entitlements (leer, sobald der Pull sie geräumt hat). */
-export async function getLegacyEntitlementsDocument(event?: H3Event): Promise<string> {
-  try {
-    const config = useRuntimeConfig(event)
-    const row = await createAdminClient(event).tablesDB.getRow<SecretsRow>({
-      databaseId: config.public.appwriteDatabaseId,
-      tableId: LEGACY_TABLE,
-      rowId: ROW,
-    })
-    return readColumn(row)
-  }
-  catch {
-    return ''
-  }
-}
-
 /**
  * Das gespeicherte Dokument (roh, ungeprüft — die Signaturprüfung macht
  * productGates). Leer = kein Dokument = Entitlement-Bedingung neutral AN.
+ * Fehlt Tabelle oder Row (frische Instanz vor dem ersten Pull), ist das kein
+ * Fehler, sondern genau dieser neutrale Fall.
  */
 export async function getEntitlementsDocument(event?: H3Event): Promise<string> {
   try {
@@ -62,19 +44,17 @@ export async function getEntitlementsDocument(event?: H3Event): Promise<string> 
       tableId: TABLE,
       rowId: ROW,
     })
-    const stored = readColumn(row)
-    if (stored) return stored
+    return typeof row.entitlements === 'string' ? row.entitlements : ''
   }
   catch {
-    // Tabelle/Row noch nicht migriert → Altspalte trägt weiter
+    return ''
   }
-  return await getLegacyEntitlementsDocument(event)
 }
 
 /**
- * Dokument persistieren (nur verifizierte Dokumente — siehe entitlementsPull)
- * und die Altspalte im selben Zug räumen. Wirft bei Schreibfehlern; der
- * Aufrufer entscheidet, ob last-known-good stehen bleibt.
+ * Dokument persistieren (nur verifizierte Dokumente — siehe entitlementsPull).
+ * Wirft bei Schreibfehlern; der Aufrufer entscheidet, ob last-known-good
+ * stehen bleibt.
  */
 export async function storeEntitlementsDocument(event: H3Event | undefined, raw: string): Promise<void> {
   const config = useRuntimeConfig(event)
@@ -87,27 +67,5 @@ export async function storeEntitlementsDocument(event: H3Event | undefined, raw:
   catch (error) {
     if ((error as { code?: number })?.code !== 404) throw error
     await tablesDB.createRow({ databaseId, tableId: TABLE, rowId: ROW, data: { entitlements: raw } })
-  }
-}
-
-/**
- * Altspalte leeren, sobald das Dokument sicher an der neuen Stelle liegt.
- * Best effort: schlägt es fehl (z. B. Spalte in einer alten Instanz noch
- * nicht vorhanden), bleibt das Ergebnis des Pulls trotzdem gültig — der
- * nächste Zyklus versucht es erneut.
- */
-export async function clearLegacyEntitlementsDocument(event?: H3Event): Promise<boolean> {
-  try {
-    const config = useRuntimeConfig(event)
-    await createAdminClient(event).tablesDB.updateRow({
-      databaseId: config.public.appwriteDatabaseId,
-      tableId: LEGACY_TABLE,
-      rowId: ROW,
-      data: { entitlements: '' },
-    })
-    return true
-  }
-  catch {
-    return false
   }
 }

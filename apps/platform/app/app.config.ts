@@ -47,7 +47,10 @@ export default defineAppConfig({
     // Vorschaubild je Community (B2, Davids Entscheidung 2026-07-29): geteilte
     // Links kamen ohne Bild an. /og/<key>.png erzeugt es aus Theme-Farbe +
     // Community-Name — kein Handgriff für den Kunden, ab dem ersten Tag da.
-    seo: { originFromRequest: true, tenantFavicon: true, tenantOgImage: true },
+    // App-Icon je Community (C7): wer eine Community täglich benutzt, legt sie
+    // auf den Home-Bildschirm — ohne /icon/<key>.png landet dort ein
+    // Screenshot der Seite statt der Bildmarke.
+    seo: { originFromRequest: true, tenantFavicon: true, tenantOgImage: true, tenantAppIcon: true },
     // DIE Multi-Tenant-App (Horizont 3): das Tenant-Gate ist hier AN — die
     // Middleware 00.tenant.ts (core) löst jeden Request-Host über den in
     // server/plugins/tenant-resolver.ts registrierten Resolver auf.

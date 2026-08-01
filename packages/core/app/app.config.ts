@@ -159,6 +159,26 @@ export default defineAppConfig({
        * gestaltetes Bild leisten.
        */
       tenantOgImage: false,
+      /**
+       * App-Icon pro Mandant für den Home-Bildschirm (OPEN-ITEMS C7):
+       * `/icon/<key>.png` — randlose Kachel in der Basisfarbe des
+       * Community-Themes + Initiale, 512×512 und 180×180 (`?size=180`).
+       * Core-Default AUS.
+       *
+       * EIGENES Gate neben `tenantFavicon`, obwohl beides „die Bildmarke im
+       * Browser" ist: das Favicon ist ein generiertes SVG und kostet nichts,
+       * das Icon wird gerastert und auf Platte abgelegt. Vor allem aber bringt
+       * eine Silo-App oft ein gestaltetes Touch-Icon mit — die soll das
+       * Favicon-Gate anschalten können, ohne ihr Icon zu verlieren.
+       *
+       * WARUM PNG: iOS akzeptiert als `apple-touch-icon` ausschließlich
+       * Bitmaps; aus dem SVG der Bildmarke ist das nicht ableitbar. Ohne diese
+       * Zeile legt iOS einen Screenshot der Seite auf den Home-Bildschirm.
+       *
+       * AN gehört das Gate in Mehr-Host-Apps, die eine Route `/icon/[key]`
+       * mitbringen (apps/platform/server/routes/icon/[key].get.ts).
+       */
+      tenantAppIcon: false,
     },
     tenancy: {
       /** Horizont-3 Mandanten-Auflösung (Naht 1): Host → TenantContext via

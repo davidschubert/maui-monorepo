@@ -2,6 +2,12 @@ import { customThemeCss } from '../../shared/ramp'
 import { customFontCss } from '../../shared/fonts'
 import { resolveBrandColor } from '../../shared/brandMark'
 import { BRAND_CARD_HEIGHT, BRAND_CARD_WIDTH, brandCardKey, brandCardPath } from '../../shared/brandCard'
+import {
+  BRAND_ICON_DEFAULT_SIZE,
+  BRAND_ICON_TOUCH_SIZE,
+  brandIconKey,
+  brandIconPath,
+} from '../../shared/brandIcon'
 
 /**
  * Universal (nicht .client): data-theme/data-variant und der Stylesheet-Link
@@ -51,13 +57,35 @@ export default defineNuxtPlugin(async () => {
    * seit dem 2026-07-29 (B5) ohnehin zusammen — dort ist die Community-Farbe
    * auch das, was die Seite zeigt.
    */
-  const appConfig = useAppConfig() as { pukalani?: { seo?: { tenantFavicon?: boolean, tenantOgImage?: boolean } } }
+  const appConfig = useAppConfig() as { pukalani?: { seo?: { tenantFavicon?: boolean, tenantOgImage?: boolean, tenantAppIcon?: boolean } } }
   const brandFavicon = appConfig.pukalani?.seo?.tenantFavicon === true
   const brandColor = computed(() => resolveBrandColor(
     themes.value,
     themeSettings.value.defaultThemeId,
     themeSettings.value.defaultVariantId,
   ))
+  // Einmal hier geholt, nicht in den Head-Gettern: die laufen außerhalb des
+  // Setup-Kontexts, und eine Composable gehört nicht dorthin.
+  const brandName = useBrandName()
+
+  /**
+   * App-Icon der Community für den Home-Bildschirm (OPEN-ITEMS C7, Gate
+   * `pukalani.seo.tenantAppIcon`). Zwei Zeilen, mehr braucht es nicht: iOS
+   * liest `apple-touch-icon` (180 px), Android/Chrome das PNG-`icon` mit
+   * `sizes` (512 px). Das SVG-Favicon oben BLEIBT daneben stehen — es ist im
+   * Tab die schärfere Wahl, und Browser suchen sich pro Zweck das passende.
+   *
+   * Der Schlüssel hängt wie bei der Vorschau-Karte an Farbe UND Name, aber an
+   * einem EIGENEN Gestaltungs-Stand: eine Umgestaltung der Karte soll nicht
+   * jedes Home-Bildschirm-Icon neu ausliefern.
+   *
+   * Auch auf einer Community „nur für Mitglieder": ein Icon liegt allein auf
+   * dem Gerät dessen, der die Seite selbst dorthin gelegt hat, und trägt
+   * nichts nach außen — anders als das og:image, das `useLocaleSeoHead()`
+   * dort weglässt (C18).
+   */
+  const brandAppIcon = appConfig.pukalani?.seo?.tenantAppIcon === true
+  const appIconKey = computed(() => (brandAppIcon ? brandIconKey(brandColor.value, brandName.value) : ''))
 
   /**
    * Vorschaubild für geteilte Links (og:image, Gate `pukalani.seo.tenantOgImage`,
@@ -80,7 +108,7 @@ export default defineNuxtPlugin(async () => {
    */
   if (appConfig.pukalani?.seo?.tenantOgImage === true) {
     useBrandOgImage().value = {
-      path: brandCardPath(brandCardKey(brandColor.value, useBrandName().value)),
+      path: brandCardPath(brandCardKey(brandColor.value, brandName.value)),
       width: BRAND_CARD_WIDTH,
       height: BRAND_CARD_HEIGHT,
       type: 'image/png',
@@ -109,6 +137,17 @@ export default defineNuxtPlugin(async () => {
     // den Wert, der ohnehin dasteht — am gerenderten Head ändert sich nichts.
     link: () => [
       ...(brandFavicon ? [{ rel: 'icon' as const, type: 'image/svg+xml', href: '/favicon.svg' }] : []),
+      ...(appIconKey.value
+        ? [
+            { rel: 'apple-touch-icon' as const, href: brandIconPath(appIconKey.value, BRAND_ICON_TOUCH_SIZE) },
+            {
+              rel: 'icon' as const,
+              type: 'image/png',
+              sizes: `${BRAND_ICON_DEFAULT_SIZE}x${BRAND_ICON_DEFAULT_SIZE}`,
+              href: brandIconPath(appIconKey.value, BRAND_ICON_DEFAULT_SIZE),
+            },
+          ]
+        : []),
       { rel: 'stylesheet' as const, href: '/themes/neutral.css', id: 'pk-neutral-css' },
       ...(theme.value.file
         ? [{ rel: 'stylesheet' as const, href: theme.value.file, id: 'pk-theme-css' }]

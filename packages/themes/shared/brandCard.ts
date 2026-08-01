@@ -222,7 +222,24 @@ export function layoutBrandCardTitle(name: string, font: BrandCardFont): BrandCa
  * immer den AKTUELLEN Stand.
  */
 export function brandCardKey(...parts: (string | number | null | undefined)[]): string {
-  const input = [BRAND_CARD_VERSION, ...parts].map(part => String(part ?? '')).join(' ')
+  return brandMarkKey(BRAND_CARD_VERSION, ...parts)
+}
+
+/**
+ * Der Hash hinter jedem Bildmarken-Schlüssel — auch dem des App-Icons
+ * (brandIcon.ts, eigener Gestaltungs-Stand). Der ERSTE Teil ist per Konvention
+ * die Versionszahl des jeweiligen Bildes: eine Umgestaltung lässt so alle
+ * zugehörigen URLs wandern, ohne die des anderen Bildes anzufassen.
+ *
+ * Trennzeichen ist U+0000 und kein Leerzeichen: es kann in keinem
+ * Community-Namen vorkommen, also kann keine Teil-Grenze verwischen ('Ab' +
+ * 'c' ergibt nie denselben Schlüssel wie 'A' + 'bc'). Bis 2026-07-31 stand es
+ * als ROHES NUL-Byte im Quelltext — gleiches Ergebnis, aber unsichtbar im
+ * Editor und ein Byte, an dem Werkzeuge die Datei für binär halten. Als Escape
+ * geschrieben bleibt jeder bestehende Schlüssel gültig.
+ */
+export function brandMarkKey(...parts: (string | number | null | undefined)[]): string {
+  const input = parts.map(part => String(part ?? '')).join('\u0000')
   let hash = 0x811c9dc5
   for (let i = 0; i < input.length; i++) {
     hash ^= input.charCodeAt(i)

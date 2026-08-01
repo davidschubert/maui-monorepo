@@ -729,3 +729,31 @@ und en, keiner nur auf einer Seite, jeder statisch auflösbare `t()`-Key der
 fünf Pakete in beiden Sprachen vorhanden. **Gelernt:** Eine „Rest"-Zeile, die
 MITTEN in der Ausführung des Elternpunkts geschrieben wird, ist am Ende oft
 schon miterledigt — vor dem Fixen reproduzieren (dieselbe Lektion wie F6).
+
+### C7 — App-Icon je Community ✅ 2026-07-31
+
+`/icon/<key>.png` (512, `?size=180` für iOS' `apple-touch-icon`): randlose
+Kachel in der Basisfarbe der Community + Initiale, gerastert ohne Renderer im
+Betrieb aus demselben gebackenen Zeichensatz wie die Vorschau-Karte. Gate
+`pukalani.seo.tenantAppIcon` (Core-Default AUS, platform AN), verdrahtet an
+der EINEN Stelle, an der schon Favicon und og:image hängen
+(themes/app/plugins/theme.ts). Die Karten-Zeichenwerkzeuge sind dafür nach
+`shared/brandRaster.ts` gewandert — statt einer zweiten Kopie hat jetzt auch
+das Icon dieselbe Fläche, Mischung und Glyphen-Skalierung. Neu darin ist das
+VERGRÖSSERN (der Atlas ist bei 72 px gebacken, ein 512er-Icon will ~300 px):
+bilinear plus Steilerstellen der Deckung um 0,5, gedeckelt auf Faktor 2.
+Anders als das og:image bleibt das Icon auf „nur für Mitglieder"-Communities
+ERREICHBAR — begründet in der Route: es entsteht nur, wenn ein Mitglied die
+Seite selbst auf seinen Home-Bildschirm legt, liegt danach ausschließlich auf
+dessen Gerät und trägt nichts nach außen (anders als eine Vorschau in fremden
+Chats, C18). **Beweise:** 15 neue Tests (Maße + PNG-Magic-Bytes je Größe,
+Größen-Allowlist, Schlüssel-Trennung zur Karte), `pnpm -r test`,
+`check:manifests`, `pnpm -r typecheck`, `pnpm -r lint` (die 6 bekannten
+Warnungen), dazu drei gerenderte Muster angesehen. **Gelernt:** Zwei Dinge
+kamen erst durchs Hinsehen. (1) Der Test „Icon-Schlüssel ≠ Karten-Schlüssel"
+schlug fehl — beide Versionszahlen standen auf 1, der gemeinsame Hash lieferte
+denselben Wert; ein Namensraum ('icon') macht die beiden Gestaltungs-Stände
+wirklich unabhängig. (2) Die erste Kanten-Steilheit (Faktor 2,7) sah in der
+gerenderten Datei am „C" wellig aus: Steilerstellen verstärkt nicht nur die
+Kante, sondern auch die Ungenauigkeit der Vorlage. Ein PNG-Test prüft Maße und
+Magic Bytes — wie es AUSSIEHT, sieht nur, wer es ansieht.
