@@ -211,8 +211,7 @@ function rowActions(item: AdminMediaItem): DropdownMenuItem[][] {
           <!-- Bild-Naht Schritt 2 (C14): feste 64-px-Kachel, also feste Maße
                statt `sizes` — @nuxt/image legt daraus 1× und 2× an. Der `src`
                aus /api/media ist bereits eine Vorschau-URL; der Anbieter liest
-               Bucket und Datei daraus und rechnet die Größe neu, das API-eigene
-               `srcset` (960/480/1600 für die Galerie) wird hier nicht gebraucht. -->
+               Bucket und Datei daraus und rechnet die Größe neu. -->
           <NuxtImg
             provider="appwrite"
             :src="row.original.src"

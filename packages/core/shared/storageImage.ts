@@ -135,27 +135,6 @@ export function storageImageUrl(
   return `${base.endpoint}/storage/buckets/${bucketId}/files/${fileId}/preview?${params.toString()}`
 }
 
-/**
- * Kandidatenliste für ein `srcset`: dieselbe Datei in mehreren Breiten.
- * Vorbereitung für Schritt 2 (`@nuxt/image` mit eigenem Appwrite-Provider) —
- * schon jetzt nutzbar, wo ein Bild in stark unterschiedlichen Größen erscheint.
- */
-export function storageImageSrcset(
-  base: StorageBase,
-  bucketId: string,
-  fileId: string,
-  widths: number[],
-  options: Omit<StorageImageOptions, 'width'> = {},
-): string {
-  return widths
-    .map(w => clampEdge(w))
-    .filter(w => w > 0)
-    .sort((a, b) => a - b)
-    .filter((w, i, all) => all.indexOf(w) === i)
-    .map(w => `${storageImageUrl(base, bucketId, fileId, { ...options, width: w })} ${w}w`)
-    .join(', ')
-}
-
 /* -------------------------------------------------------------------------- *
  * Schritt 2 (C14): der reine Kern des @nuxt/image-Anbieters `appwrite`.
  *
