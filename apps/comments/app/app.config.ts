@@ -4,6 +4,24 @@ export default defineAppConfig({
   // pukalani: { auth: { providers: ['github'], termsUrl: '/agb' } }
   pukalani: {
     brand: { name: 'Hawaii Studio' },
+    /**
+     * RECHTSLINKS IM FUSS (Paritäts-Audit 2026-08-02).
+     *
+     * Dieser Host ist öffentlich, erlaubt Gast-Kommentare und hatte KEINEN
+     * Rechtslink — der Fuß rendert nur, was hier steht (blueprint/default.vue),
+     * und der Silo zieht den `pages`-Layer nicht, aus dem die Pool-Mandanten
+     * ihre eigenen Rechtsseiten bekommen. Damit stand comments.pukalani.app
+     * ohne Impressum im Netz, während jeder Pool-Mandant mindestens den
+     * Betreiber-Fallback hat (apps/platform/app/app.config.ts).
+     *
+     * Deshalb derselbe Fallback wie im Pool: der Link zeigt auf das
+     * Betreiber-Impressum. Bekommt der Silo eines Tages eigene Rechtsseiten
+     * (pages-Layer oder feste Texte), ersetzt er diese Zeile — er darf sie
+     * nicht ersatzlos streichen.
+     */
+    legalLinks: [
+      { to: 'https://pukalani.app/imprint', labelKey: 'legal.imprint' },
+    ],
     // Chrome-Registry: die Nav-Einträge für events/courses sind mit C4
     // (2026-07-31) in ihre LAYER gezogen (packages/{events,courses}/app/
     // app.config.ts) — jede App, die den Layer zieht, bekommt sie jetzt
