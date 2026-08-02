@@ -24,6 +24,7 @@
  *   pnpm migrate --app control --layer control
  */
 import { Client, Query, TablesDB, type TablesDBIndexType, type Models } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -140,7 +141,7 @@ async function mirrorTable(source: string, target: string, targetName: string) {
   // sonst — Regel aus courses-002/pages-004).
   const { indexes } = await tablesDB.listIndexes({ databaseId: db, tableId: source })
   for (const index of indexes) {
-    await step(`Index ${target}.${index.key}`, () => tablesDB.createIndex({
+    await indexStep(`Index ${target}.${index.key}`, () => tablesDB.createIndex({
       databaseId: db, tableId: target, key: index.key,
       type: index.type as TablesDBIndexType, columns: index.columns,
     }))
