@@ -13,7 +13,8 @@
       "trialEnding": "1 day left in your trial | {n} days left in your trial",
       "trialEnded": "Trial ended — running on the Basic plan",
       "suspendedBilling": "Read-only — payment outstanding",
-      "suspendedAbuse": "Suspended — not reachable"
+      "suspendedAbuse": "Suspended — not reachable",
+      "readOnly": "Read-only — contributions are paused right now"
     },
     "gate": {
       "title": "Set up your community",

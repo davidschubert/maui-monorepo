@@ -1798,3 +1798,116 @@ Speicherdauer — sie sagt nur, dass gespeichert und ohne Adresse anonym
 gemeldet wird. Die Frist widerspricht also keinem Versprechen; ob sie
 irgendwann in der Datenschutzerklärung auftaucht, entscheidet A1 (echte
 Rechtstexte).
+[DECISION-LOG](DECISION-LOG.md) und die F8-Zeile in OPEN-ITEMS.md trägt nur
+noch den offenen Rest: die Löschfrist für `abuse_reports.reporterEmail`
+(Melder ohne Konto — die erreicht kein GDPR-Contributor, sie braucht einen
+eigenen Sweep).
+
+### Wechselwirkungs-Audit M13 × übrige Features — 5 Befunde ✅ 2026-08-03
+
+Fünf Befunde aus dem Audit „was macht die Sperre mit dem Rest des Produkts",
+alle zuerst am Code (und drei davon live) reproduziert, dann behoben. Davids
+Vorgabe vorab: **die Sperre friert NUR INHALTE ein** — Owner-Einstellungen
+bleiben bewusst offen; das war zu dokumentieren, nicht zu ändern.
+
+**1 (MEDIUM, echter Produktfehler) — die Sperre erreichte die Falschen.**
+`COMMUNITY_SUSPENDED_CODE` reiste sauber bis in den Browser (403,
+`reason: community_suspended` im Envelope) und **niemand las ihn**: ein Mitglied,
+das in einer gesperrten Community schrieb, bekam den generischen „hat nicht
+geklappt"-Toast seines Layers. Die Mahnung war also für genau die Leute
+unsichtbar, die sie zum Owner tragen. Jetzt gibt es **einen** Leser für alle
+Layer: `packages/core/app/plugins/community-suspended-notice.client.ts` zeigt
+„Diese Community ist gerade schreibgeschützt" (de/en), **ohne** den Grund zu
+verraten — der bleibt `community.billing`-gegated.
+
+**2 (LOW) — die `my.*`-Karte widersprach ihrem eigenen Kommentar.**
+`projectMyCommunities` blankte `suspension` für jede Rolle ohne
+`community.billing`, während der Kommentar daneben „nur der GRUND ist gegated"
+versprach. Eine Wahrheit gewählt, und zwar die des Kommentars: neues Feld
+**`readOnly`** (DASS) für jede Karte, `suspension` (WARUM) weiter nur für den
+Abrechnenden. Ein Viewer sieht Schloss + „Nur zum Lesen — gerade sind keine
+Beiträge möglich", nie „Zahlung offen". Der Vorwurf „Missbrauch" kann auch
+nicht indirekt durchkommen: abuse-gesperrte Communities verschwinden für
+Mitleser ohnehin ganz aus der Liste.
+
+**3 (LOW) — Presence-Rauschen auf abuse-404-Hosts.** Auf einem gesperrten Host
+wirft `00.tenant.ts` für JEDEN Pfad 404 — auch für `/api/presence/heartbeat`.
+Die Fehlerseite rendert trotzdem mit Auth-Kontext, also startete
+`usePresenceState()` seinen 20-s-Takt und feuerte dauerhaft 404-POSTs, still
+verschluckt vom `.catch(() => {})`. Der Heartbeat startet jetzt **gar nicht**,
+solange `useError()` gesetzt ist — und wird **nachgeholt**, sobald der Fehler
+geräumt ist (ein blosses `return` hätte einen Tab, der einmal auf einer 404
+war, für den Rest der Sitzung unsichtbar gemacht).
+
+**4 (LOW, Dokumentation) — die bewusste Grenze stand nirgends.** Jetzt an der
+zentralen Stelle (`core/shared/communitySuspension.ts`) und in CLAUDE.md, mit
+Davids Begründung: zu ist jeder INHALT (Türklinke `member` der Datentür), offen
+bleiben Branding, Team/Rollen, Publikum, Registrierung und die Moderation
+(Klinke `operator`) — die laufen über die Service-Naht ins Control Plane. Die
+Sperre soll zum ZAHLEN bewegen, nicht den Owner aussperren; eine gesperrte
+Community, die niemand mehr moderieren kann, wird zum Problem des Betreibers.
+
+**5 (LOW, geprüft und ENTSCHIEDEN) — `community_branding` ist aufzählbar.**
+Stimmt, live nachgemessen: ein anonymer Client bekommt per REST die Row-Ids und
+Farben **aller** Communities (`read(any)`, `rowSecurity: false`, system-028).
+**Entscheidung: akzeptiert, nicht geräumt.** Vier Gründe, in der Reihenfolge
+ihres Gewichts: (a) es liegen dort nur eine undurchsichtige Row-Id und drei
+Farb-Tokens, die ohnehin als `data-theme/-variant/-neutral` im HTML jeder Seite
+dieser Community stehen — kein Name, kein Host, keine Mitgliedschaft, und ohne
+Host lässt sich eine Id keiner Community zuordnen; aufzählbar ist die ANZAHL,
+nicht die Identität. (b) Appwrite kennt kein Recht, das Lesen erlaubt und
+Auflisten verbietet — „nicht aufzählbar" hiesse hier „kein Leserecht", also kein
+Live-Morphen (D6); es gibt nichts zu härten, nur zu entfernen. (c) Dieselbe
+bewusste Bauart wie bei den Schwestern `app_config` (system-005) und
+`custom_themes` (system-013), letztere trägt sogar NAMEN. (d) „Beim Sperren
+räumen" klingt billig und ist es nicht: die Sperre entsteht im
+**Control-Plane-Projekt**, der Spiegel liegt im **Runtime-Projekt**, und einen
+Schlüssel in diese Richtung gibt es bewusst NICHT (derselbe Grund, aus dem
+`revokeCommunityLabel` in der Runtime läuft) — eine neue Service-Naht für drei
+Farbwörter wäre teurer als das, was sie schützt. Damit die Abwägung nicht
+stillschweigend verfällt, ist ihre **Bedingung** jetzt geprüft: Abschnitt 12 von
+`verify-site-branding.mjs` listet die Tabelle anonym und geht rot, sobald ein
+Feld ausserhalb der drei Farb-Spalten auftaucht.
+
+**Zusatzfrage aus dem Audit, beantwortet ohne Codeänderung:**
+`onboardingProvision.ts` setzt theme/variant beim Anlegen, spiegelt aber nicht —
+die Spiegel-Row entsteht erst beim ersten Branding-PATCH. **Keine Lücke:** der
+Abonnent hängt am Row-Kanal, auch wenn es die Zeile noch nicht gibt, und
+`createRow` publiziert dort ein Event (live gegen Appwrite 1.9.6 geprüft — anders
+als `upsertRow`). Nachrüsten liesse es sich ohnehin nicht ohne neue Naht:
+`onboardingProvision` läuft im Control-Plane-Projekt und hat keinen Schlüssel
+fürs Runtime-Projekt. Steht jetzt in `core/shared/communityBranding.ts`.
+
+**Beweise:** `verify-community-suspension.mjs` **55/55** (war 54/54),
+`verify-my-overview.mjs` **30/30** (war 27/27), `verify-site-branding.mjs`
+**44/44** (war 42/42). Browser gegen echte Appwrite: ein Mitglied schreibt in
+eine billing-gesperrte Community → der klare Hinweis steht **über** dem
+generischen Toast des Layers; auf der 404-Seite eines abuse-gesperrten Hosts
+feuert der alte Stand binnen Sekunden `POST /api/presence/heartbeat → 404
+Unknown host` und wiederholt es, der neue in 70 s **kein einziges Mal**.
+`pnpm -r test` grün, typecheck 0 Fehler, lint 6 bekannte Warnungen,
+`check:manifests` konsistent, Prod-Build einer App durchgelaufen.
+
+**Gelernt:** (1) **Ein `$fetch`-Interceptor in einem Plugin wirkt NICHT — und
+sieht dabei richtig aus.** Nuxts `#build/fetch.mjs` endet auf
+`export const $fetch = globalThis.$fetch`: eine **Momentaufnahme**. Wer
+`globalThis.$fetch` in einem Plugin ersetzt, erreicht Konsolenaufrufe und
+`useFetch`, aber **nicht** das auto-importierte `$fetch` der Komponenten — das
+Modul ist längst ausgewertet. Live erwischt: derselbe 403 toastete aus der
+Konsole und schwieg aus dem PostComposer. Der Interceptor gehört deshalb per
+`app:templates`-Hook **in die Vorlage**, und zwar als String-Ersetzung auf
+Nuxts eigener Ausgabe: ein Bump, der die Zeile umbenennt, nimmt uns still den
+Hinweis, statt den Build zu brechen. (2) **Ein Live-Beweis pro Minute — sonst
+misst man den Rate-Limiter.** `GET /api/onboarding/communities` steht auf
+10/min und IP, und `verify-my-overview` lag schon knapp darunter (die
+SSR-Abrufe der Seiten zählen mit). Zwei zusätzliche Abrufe kippten den Beweis
+in 429-Fehler, die wie ein kaputtes Feature aussahen. Neue Prüfungen in einen
+laufenden Live-Beweis kosten **Budget**, nicht nur Zeit. (3) **Ein Beweis, der
+in `| head` läuft, stirbt nicht — er läuft weiter.** Drei abgebrochene
+Durchgänge legten danach munter weiter Test-Communities an, und die tauchten
+als „Geister" in jeder folgenden Messung auf. Verify-Skripte mit Aufräum-Block
+immer in eine Datei schreiben, nie durch eine Pipe kürzen. (4) **Der
+past-due-Sweep hebt eine von Hand gesetzte `billing`-Sperre wieder auf**, wenn
+`billingStatus` nicht `past_due` ist — für einen Browser-Beweis muss man beide
+Spalten setzen, sonst ist die Community 30 Sekunden später wieder frei und man
+sucht den Fehler im eigenen Code.

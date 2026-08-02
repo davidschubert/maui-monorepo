@@ -1,5 +1,5 @@
 import { COMMUNITY_ROLES, communityRoleHasCapability, type CommunityRole } from '../../core/shared/communityAuthz'
-import { resolveCommunitySuspension, type CommunitySuspension } from '../../core/shared/communitySuspension'
+import { communityIsReadOnly, resolveCommunitySuspension, type CommunitySuspension } from '../../core/shared/communitySuspension'
 import { normalizeTenantPlan, type TenantPlan } from './types/tenantRecord'
 
 /**
@@ -43,15 +43,34 @@ export interface MyCommunityView {
    */
   trialEndsAt: string | null
   /**
-   * Sperre der Community (M13). `''` = alles normal · `'billing'` = nur-lesend,
+   * WARUM gesperrt (M13). `''` = alles normal · `'billing'` = nur-lesend,
    * die Adresse funktioniert weiter · `'abuse'` = Host offline, die Karte führt
    * NIRGENDWO hin (s. `projectMyCommunities`).
    *
    * Für Rollen ohne `community.billing` steht hier IMMER `''` — aus demselben
-   * Grund wie bei `trialEndsAt`: der Sperrzustand ist eine Aussage über den
-   * Vertrag, und die geht Mitleser nichts an.
+   * Grund wie bei `trialEndsAt`: der GRUND einer Sperre ist eine Aussage über
+   * den Vertrag, und die geht Mitleser nichts an. Was sie sehr wohl angeht,
+   * steht daneben in `readOnly`.
    */
   suspension: CommunitySuspension
+  /**
+   * DASS gesperrt — für JEDE Rolle (Befund 2 des Wechselwirkungs-Audits).
+   *
+   * Vorher gab es nur `suspension`, und die war für Mitleser leer: ein Viewer
+   * sah eine vollkommen normale Karte, klickte hinein und lief in eine
+   * Community, in der jeder Schreibversuch abgewiesen wird. Das ist keine
+   * Geheimhaltung mehr, sondern eine Falle — „du kannst hier gerade nichts
+   * beitragen" ist eine Tatsache ÜBER DIE COMMUNITY, die jeder erlebt, sobald
+   * er es versucht.
+   *
+   * Die Grenze verläuft also zwischen DASS und WARUM, nicht zwischen Rollen:
+   * `readOnly` trägt jede Karte, `suspension` nur die des Abrechnenden. Dass
+   * für Mitleser abuse-gesperrte Communities ohnehin ausgefiltert werden,
+   * heißt zugleich: für sie kann `readOnly` nur aus einer billing-Sperre
+   * kommen — und der Vorwurf „Missbrauch" wird nie sichtbar, auch nicht
+   * indirekt.
+   */
+  readOnly: boolean
 }
 
 /** Rohdaten EINER Mitgliedschaft, wie das Control Plane sie zusammenträgt. */
@@ -101,7 +120,11 @@ function roleRank(role: CommunityRole): number {
  *     ist, nicht seine zwanzig Mitglieder. Eine billing-Sperre bleibt für alle
  *     in der Liste, weil der Host ja weiterläuft — nur der GRUND ist gegated.
  *  4. **Testphase nur für den, der zahlt** (s. Kopf) — und aus demselben Grund
- *     auch der Sperrzustand.
+ *     der GRUND der Sperre (`suspension`). Die TATSACHE dagegen (`readOnly`)
+ *     trägt jede Karte: bis zum Wechselwirkungs-Audit versprach Punkt 3 „nur
+ *     der GRUND ist gegated", und der Code blankte trotzdem beides — ein
+ *     Viewer sah eine ganz normale Karte in eine Community, in der er nichts
+ *     mehr schreiben kann. Jetzt gilt das Versprechen wörtlich.
  *  5. **Sortierung: eigene zuerst.** Owner vor Admin vor … vor Viewer, bei
  *     gleicher Rolle alphabetisch. Wer drei eigene Communities und zwanzig
  *     Mitgliedschaften hat, soll seine oben finden — nicht raten müssen,
@@ -112,17 +135,21 @@ export function projectMyCommunities(facts: readonly MyCommunityFacts[]): MyComm
     .filter(row => row.communityStatus === 'active')
     .filter(row => resolveCommunitySuspension(row.suspension) !== 'abuse'
       || communityRoleHasCapability(row.role, 'community.billing'))
-    .map(row => ({
-      communityId: row.communityId,
-      name: row.name,
-      host: row.host,
-      role: row.role,
-      plan: normalizeTenantPlan(row.plan),
-      trialEndsAt: communityRoleHasCapability(row.role, 'community.billing') ? row.trialEndsAt ?? null : null,
-      suspension: communityRoleHasCapability(row.role, 'community.billing')
-        ? resolveCommunitySuspension(row.suspension)
-        : '',
-    }))
+    .map((row) => {
+      const suspension = resolveCommunitySuspension(row.suspension)
+      const billing = communityRoleHasCapability(row.role, 'community.billing')
+      return {
+        communityId: row.communityId,
+        name: row.name,
+        host: row.host,
+        role: row.role,
+        plan: normalizeTenantPlan(row.plan),
+        trialEndsAt: billing ? row.trialEndsAt ?? null : null,
+        // WARUM: nur für den Abrechnenden. DASS: für alle.
+        suspension: billing ? suspension : '',
+        readOnly: communityIsReadOnly(suspension),
+      }
+    })
     .sort((a, b) => roleRank(a.role) - roleRank(b.role) || a.name.localeCompare(b.name))
 }
 

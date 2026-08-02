@@ -1,8 +1,52 @@
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { execSync } from 'node:child_process'
+import { FETCH_ERROR_HOOK } from './shared/fetchErrorBridge'
 
 const currentDir = dirname(fileURLToPath(import.meta.url))
+
+/**
+ * Die Zeile in Nuxts `fetch.mjs`, an der wir uns einhängen — und zugleich die
+ * Sollbruchstelle: findet sie sich nicht mehr, bleibt die Vorlage unverändert.
+ */
+const FETCH_TEMPLATE_EXPORT = 'export const $fetch = globalThis.$fetch'
+
+/**
+ * DER EINE INTERCEPTOR (M13-Wechselwirkung, Befund 1).
+ *
+ * Ersetzt die Export-Zeile durch dieselbe Zeile MIT einem umhüllten Client-
+ * `$fetch`. Warum das nicht in einem Plugin gehen kann, steht ausführlich in
+ * `shared/fetchErrorBridge.ts` — kurz: der Export ist eine Momentaufnahme, ein
+ * Plugin kommt zu spät.
+ *
+ * NUR IM BROWSER: auf dem Server ist `globalThis` prozessweit und über alle
+ * Requests geteilt; ein Haken dort gehörte niemandem. `import.meta.client` wäre
+ * hier ein Vite-Define — `typeof window` ist unabhängig davon und stimmt auch,
+ * wenn diese Vorlage einmal woanders ausgewertet wird.
+ *
+ * FAIL-SOFT IN BEIDE RICHTUNGEN: ohne gesetzten Haken passiert nichts, und ein
+ * werfender Haken darf niemals den `$fetch`-Aufruf kaputt machen, den er nur
+ * kommentiert.
+ */
+const FETCH_TEMPLATE_WRAP = `
+if (typeof window !== 'undefined' && !globalThis.${FETCH_ERROR_HOOK}Wrapped) {
+  globalThis.${FETCH_ERROR_HOOK}Wrapped = true
+  const __pukalaniBase = globalThis.$fetch
+  globalThis.$fetch = __pukalaniBase.create({
+    onResponseError(context) {
+      try {
+        globalThis.${FETCH_ERROR_HOOK}?.({
+          status: context.response?.status ?? 0,
+          reason: context.response?._data?.reason ?? '',
+        })
+      }
+      catch {
+        // Ein Hinweis darf nie zum Fehler werden
+      }
+    },
+  })
+}
+${FETCH_TEMPLATE_EXPORT}`
 
 // Build-Identität für /api/health (Deploy-Verifikation, A.5-Härtung):
 // zur BUILD-Zeit aus git gelesen — ploi baut aus dem Repo, CI ebenso.
@@ -112,6 +156,35 @@ export default defineNuxtConfig({
   // (callHook in @nuxt/nitro-server erst später), Nitro erlaubt ein Array und
   // ruft die Handler in Reihenfolge, bis einer geantwortet hat (event.handled).
   hooks: {
+    /**
+     * `#build/fetch.mjs` um den EINEN Interceptor erweitern (s. o. und
+     * shared/fetchErrorBridge.ts). Bewusst als STRING-ERSETZUNG auf Nuxts
+     * eigener Ausgabe statt als neu geschriebene Vorlage: so bleibt alles
+     * andere Nuxts Sache.
+     *
+     * ABER LAUT SCHEITERN (Regel aus der Glocken-Falle, CLAUDE.md): greift die
+     * Ersetzung nicht — etwa weil ein Nuxt-Bump die Zeile umbenennt —, dann
+     * fehlt der Hinweis „Community ist schreibgeschützt" ERSATZLOS, und niemand
+     * merkt es, weil alles andere weiterläuft. Ein stiller Ausfall ist hier
+     * schlimmer als ein lauter, deshalb Warnung mit Anleitung statt Schweigen.
+     */
+    'app:templates': (app) => {
+      const template = app.templates.find(entry => entry.filename === 'fetch.mjs')
+      const original = template?.getContents
+      if (!template || typeof original !== 'function') {
+        console.warn('⚠️  [pukalani/core] Vorlage `fetch.mjs` nicht gefunden — der $fetch-Interceptor hängt NICHT. Folge: gesperrte Communities melden sich Mitgliedern nicht mehr (fetchErrorBridge.ts).')
+        return
+      }
+      template.getContents = async (context) => {
+        const source = String(await original(context))
+        if (!source.includes(FETCH_TEMPLATE_EXPORT)) {
+          console.warn(`⚠️  [pukalani/core] \`${FETCH_TEMPLATE_EXPORT}\` steht nicht mehr in Nuxts fetch.mjs — der $fetch-Interceptor hängt NICHT. Neue Zeile nachsehen und FETCH_TEMPLATE_EXPORT anpassen (fetchErrorBridge.ts).`)
+          return source
+        }
+        return source.replace(FETCH_TEMPLATE_EXPORT, FETCH_TEMPLATE_WRAP)
+      }
+    },
+
     'nitro:config': (nitroConfig) => {
       const ownHandler = join(currentDir, './server/error.ts')
       const existing = nitroConfig.errorHandler

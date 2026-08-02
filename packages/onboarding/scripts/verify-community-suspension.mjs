@@ -315,6 +315,11 @@ try {
   const ownerEntry = (ownerList.json?.communities ?? []).find(c => c.communityId === communityId)
   check('Owner sieht seine gesperrte Community weiter', !!ownerEntry, JSON.stringify(ownerList.json))
   check('…mit dem Sperrzustand als Status', ownerEntry?.suspension === 'abuse', JSON.stringify(ownerEntry))
+  // Befund 2 des Wechselwirkungs-Audits: `readOnly` (DASS) trägt jede Karte,
+  // `suspension` (WARUM) nur die des Abrechnenden. Hier die Owner-Seite — die
+  // Sicht eines Mitlesers auf eine billing-gesperrte Zeile beweist
+  // verify-my-overview (Abschnitt 4b).
+  check('…und mit readOnly true', ownerEntry?.readOnly === true, JSON.stringify(ownerEntry?.readOnly))
   const memberList = await call(CONTROL_HOST, '/api/onboarding/communities', { cookie: memberCookie })
   check('Ein Mitglied sieht sie NICHT — der Host ist offline, der Vorwurf geht ihn nichts an',
     !(memberList.json?.communities ?? []).some(c => c.communityId === communityId), JSON.stringify(memberList.json))

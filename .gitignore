@@ -22,3 +22,9 @@ test-results/
 playwright-report/
 blob-report/
 .last-run.json
+
+# Wegwerf-Skripte eines Beweislaufs (.tmp-*.mjs neben den echten scripts/).
+# Bewusst ungetrackt: sie greifen mit Migrations-/Pool-Schluesseln direkt in
+# eine laufende Instanz und gelten nur fuer EINEN Lauf. Was einen zweiten Lauf
+# ueberleben soll, wird ein richtiges verify-*.mjs.
+.tmp-*

@@ -270,7 +270,9 @@
     "generic": "Something went wrong.",
     "backHome": "Back to home",
     "unknownHost": "This address does not belong to any community.",
-    "toOperatorSite": "Learn about {brand}"
+    "toOperatorSite": "Learn about {brand}",
+    "communitySuspended": "This community is read-only right now",
+    "communitySuspendedHint": "New contributions are paused for the moment. The people who run this community have been notified — it will continue once that is sorted out. Your text is still here."
   },
   "demo": {
     "banner": "This is a demo community with sample content.",

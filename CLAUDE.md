@@ -431,6 +431,25 @@ Vollständiges Konzept: docs/CONCEPT.md
   tenantId (comments-015 uq_tenant_host, pages-004, courses-002 uq_tenant_slug),
   Row-Id-basierte NICHT (events/courses (courseId,userId) — eine Row-Id ist
   global eindeutig, da kann kein Mandant kollidieren).
+- DIE SPERRE FRIERT NUR INHALTE EIN (M13, seit 2026-08-02 — Davids
+  Entscheidung, festgehalten 2026-08-03): `communities.suspension` hat zwei
+  Stufen (`core/shared/communitySuspension.ts`). `'abuse'` nimmt der Resolver
+  vom Netz (⇒ 404 wie ein unbekannter Host, Seite UND API); `'billing'` macht
+  die Community NUR-LESEND — und zwar AN DER DATENTÜR, nur an der Türklinke
+  `member`. Zu ist damit jeder INHALT (Kommentare, Beiträge, Umfragen,
+  Zu-/Absagen, Kursfortschritt). OFFEN bleiben bewusst alle Owner-Einstellungen
+  (Branding, Team/Rollen, Publikum, Registrierung) und die Moderation
+  (Klinke `operator`) — die laufen über die Service-Naht ins Control Plane, nicht
+  durch die Tür. Grund: die Sperre soll zum ZAHLEN bewegen, nicht den Owner aus
+  seiner Community aussperren; eine gesperrte Community, die niemand mehr
+  moderieren kann, wird zum Problem des Betreibers. Eine neue Owner-Einstellung
+  gehört also NICHT hinter die Sperre, eine neue Inhalts-Route braucht nichts zu
+  tun. Der Abgewiesene erfährt den GRUND nicht (`community.billing`), wohl aber
+  die TATSACHE: das 403 trägt `reason: community_suspended`, den EINEN Leser
+  dafür stellt `core/app/plugins/community-suspended-notice.client.ts`
+  ($fetch-Interceptor, ein Toast für alle Layer). Dieselbe Trennung auf der
+  `my.*`-Karte: `readOnly` (DASS) für jede Rolle, `suspension` (WARUM) nur mit
+  `community.billing`.
 - SITE-LABEL = „ist Mitglied dieser Community" (A5, seit 2026-07-29 — ersetzt
   die A4-Regel „hat den Host eingeloggt benutzt", die noch am selben Tag zur
   Lüge wurde: „Zugang entziehen" nahm nur die Rolle, das Label kam beim nächsten
