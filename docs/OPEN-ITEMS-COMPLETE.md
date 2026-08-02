@@ -1613,3 +1613,21 @@ Schema lesen, und jede Regel, die das nicht nachmacht, prüft an der
 Angriffsfläche vorbei. Drittens, aus Befund 3: **ein `limit()` ohne Schleife ist
 ein stiller Datenverlust**, und er tut dort weh, wo etwas ZURÜCKGENOMMEN werden
 soll — eine nicht verhängte Sperre fällt auf, eine nicht aufgehobene nicht.
+
+### F8 (Abrechnungs-Hälfte) — Abrechnungsdaten überleben die Kontolöschung ✅ 2026-08-02
+
+**Davids Entscheidung:** `communities.stripeCustomerId` und `billingStatus`
+bleiben stehen, wenn der (letzte) Owner sein Konto löscht — es gibt KEINE
+Löschfrist für Abrechnungsdaten. Grundlage ist die kaufmännische
+Aufbewahrungspflicht (§147 AO / §257 HGB): Rechnungs- und Zahlungsvorgänge
+müssen 8–10 Jahre nachvollziehbar bleiben, und Art. 17 Abs. 3 lit. b DSGVO
+nimmt genau diesen Fall vom Löschrecht aus. Der Personenbezug an der
+Community-Zeile selbst ist durch F3 bereits versorgt: die Letzter-Owner-
+Mitgliedschaft wird entpersonalisiert (E-Mail geleert), die Einladungen und
+Anfragen sind weg — was bleibt, ist der Zahlungs-Verweis auf Stripe, und dort
+gelten Stripes eigene Aufbewahrungsregeln. Begründung steht jetzt an der
+Stelle (`packages/control/server/utils/communityErasure.ts`), im
+[DECISION-LOG](DECISION-LOG.md) und die F8-Zeile in OPEN-ITEMS.md trägt nur
+noch den offenen Rest: die Löschfrist für `abuse_reports.reporterEmail`
+(Melder ohne Konto — die erreicht kein GDPR-Contributor, sie braucht einen
+eigenen Sweep).

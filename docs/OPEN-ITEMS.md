@@ -25,7 +25,7 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 28 · E2 | **UptimeRobot nachziehen:** Monitor für `help.pukalani.app` anlegen, einen alten Monitor umbenennen — und im selben Aufwasch die öffentliche Statusseite einschalten (kam aus M13). | Niedrig | S — drei Klicks | Nein | [Notizen](#notizen) |
 | 29 · E3 | **Server-Größe prüfen** — der CX33 wird mit sechs Apps plus Builds knapp. | Mittel | S — prüfen, ggf. Rescale | Ja: kostet Geld | [Notizen](#notizen) |
 | 30 · E4 | **Nur-Lese-Schlüssel im Projekt `control`** erzeugen (letzter Cutover-Krümel). | Niedrig | S — ein Klick in der Console | Ja: David, Console | [CONTROL-CUTOVER.md](runbooks/CONTROL-CUTOVER.md) |
-| 32 · F8 | **Wie lange dürfen Abrechnungsdaten bleiben?** Löscht der letzte Owner sein Konto, bleiben `stripeCustomerId` und Zahlungsstatus der Community stehen (die Zeile wird nur entpersonalisiert). Aufbewahrungspflicht (§147 AO / §257 HGB) spricht dafür — oder es braucht eine Löschfrist. **Dazu seit M13:** `abuse_reports.reporterEmail` (Melder ohne Konto — keine userId für den GDPR-Contributor) braucht dieselbe Fristen-Entscheidung. | Niedrig | S — Entscheidung, dann ggf. eine Frist | Ja: rechtliche Abwägung | [F3 in COMPLETE](OPEN-ITEMS-COMPLETE.md) |
+| 32 · F8 | **Löschfrist für Melder-Adressen:** `abuse_reports.reporterEmail` gehört Meldern OHNE Konto — keine userId, der GDPR-Contributor erreicht sie nie; sie braucht eine eigene Frist + Sweep. Die Abrechnungs-Hälfte ist entschieden (David, 2026-08-02): Abrechnungsdaten BLEIBEN — [COMPLETE](OPEN-ITEMS-COMPLETE.md). | Niedrig | S — Frist wählen, ein Sweep | Ja: Frist wählen | [F3 in COMPLETE](OPEN-ITEMS-COMPLETE.md) |
 
 ## ⏸️ Geparkt / wartet
 
