@@ -86,6 +86,46 @@ export function onboardingRuntimeProject(event?: H3Event): string {
 }
 
 /**
+ * Ist das GENANNTE Runtime-Projekt das, das diese Naht bedient? PURE
+ * (unit-getestet) — Trimmen, sonst exakter Vergleich. Appwrite-Projekt-Ids
+ * sind case-sensitiv, also wird hier NICHT normalisiert.
+ */
+export function runtimeProjectMatches(expected: string, claimed: string): boolean {
+  const a = expected.trim()
+  const b = claimed.trim()
+  return a !== '' && a === b
+}
+
+/**
+ * DER AUFRUFER DARF SEIN PROJEKT NICHT SELBST BESTIMMEN (Nacht-Audit
+ * 2026-08-02, F33).
+ *
+ * Die beiden DSGVO-Routen (`members/user-data`, `members/user-erase`) kommen
+ * bewusst OHNE JWT — das Konto ist im Moment des Aufrufs schon gesperrt oder
+ * ganz weg (Begründung an den Routen). Sie nahmen `runtimeProjectId` deshalb
+ * aus dem Body und scopten hart darauf. Das war eine Zusage an den Aufrufer,
+ * die niemand prüfte: wer das Service-Secret hat (ein Deployment, ein
+ * versehentlich geteiltes Env, ein kompromittierter Runtime-Host), konnte damit
+ * Mitgliedschaften und Einladungen in JEDEM anderen Runtime-Projekt auslesen
+ * und LÖSCHEN — also die Communities eines fremden Silo-Kunden.
+ *
+ * Es gibt dafür keinen legitimen Fall: die Naht bedient genau EIN Pool-Projekt
+ * (`onboardingRuntimeProject`), und jede andere Community-Route zieht ihr
+ * Projekt ohnehin von dort (`verifyRuntimeIdentity` → `identity.projectId`).
+ * Der Body darf das Projekt also weiterhin NENNEN — aber nur, um bestätigt zu
+ * werden. 403, nicht 404: der Aufrufer ist unser eigenes Deployment, ihm
+ * gegenüber ist ein klarer Fehler richtig (er zeigt einen Konfigurationsfehler,
+ * und ohne ihn scheitert die Löschung still).
+ */
+export function assertOnboardingRuntimeProject(event: H3Event, claimed: string): string {
+  const expected = onboardingRuntimeProject(event)
+  if (!runtimeProjectMatches(expected, claimed)) {
+    throw createError({ status: 403, statusText: 'Unknown runtime project' })
+  }
+  return expected
+}
+
+/**
  * Identität aus dem JWT gewinnen — der Beweis kommt von Appwrite, nicht vom
  * Aufrufer. Ein abgelaufenes, fremdes oder manipuliertes JWT endet in 401.
  *

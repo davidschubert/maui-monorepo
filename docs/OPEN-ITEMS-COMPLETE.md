@@ -2984,9 +2984,24 @@ Prüfung darauf kostete vier Zeilen und beantwortet die Frage endgültig.
 alle in `packages/core`, `packages/control`, `packages/admin`. Keiner war ein
 offenes Loch mit Ausnutzung von heute; alle fünf waren Zusagen, die der Code
 machte, ohne sie zu prüfen. Jeder wurde erst am Code REPRODUZIERT, dann
-gefixt, jeder hat einen eigenen Unit-Beweis. Die beiden Live-Beweise sind
-unverändert grün (`verify-site-authz` **118/118**,
-`verify-community-suspension` **95/95**).
+gefixt, jeder hat einen eigenen Unit-Beweis. Die beiden Live-Beweise bleiben
+grün (`verify-site-authz` **118/118**, `verify-community-suspension`
+**117/117** — dort waren 95 der Stand der Auftragsnotiz, die Suite ist
+seither gewachsen; 0 Fehlschläge, Exit 0). Unit-Stand danach: core **515**,
+control **264**, admin **70**; `pnpm typecheck` und `check:manifests` sauber,
+`lint` bei den bekannten 6 Warnungen und 0 Fehlern.
+
+**Betriebsnotiz zu den Live-Läufen (nicht am Code):** zwei Läufe des
+Sperr-Beweises blieben mitten in der Suite an einer EINZELNEN HTTP-Anfrage
+hängen (einmal gegen platform :3006, einmal gegen control :3004) — Socket
+ESTABLISHED, keine Antwort, kaum CPU. Beide Male antwortete genau dieselbe
+Route unmittelbar danach per `curl` in unter 0.3 s. Das passierte während
+parallel an anderen Layern gearbeitet wurde (`packages/events`,
+`packages/themes` hängen in den Extends dieser beiden Apps): ein
+Nitro-Dev-Reload mitten in einer laufenden Anfrage lässt sie stehen, und das
+Skript setzt kein Socket-Timeout. Wer den Beweis führt, prüft bei einem Hänger
+also erst den Dev-Server (`curl` auf dieselbe Route), bevor er den Code
+verdächtigt. Der dritte Lauf lief in einem Zug durch.
 
 **F32 (Mittel) — UNTER DER WILDCARD IST JEDER MANDANT „SAME-SITE".** Der
 CSRF-Herkunftscheck (`core/server/middleware/03.csrf-origin.ts`) lehnte nur

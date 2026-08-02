@@ -14,6 +14,12 @@ import { eraseCommunityUserData } from '../../../../utils/communityErasure'
  * Identität ist das Paar (runtimeProjectId, runtimeUserId), das der Aufrufer für
  * SICH nennt, und alles wird hart darauf gescopt.
  *
+ * DAS PROJEKT WIRD GEPRÜFT, NICHT GEGLAUBT (Nacht-Audit 2026-08-02, F33):
+ * `assertOnboardingRuntimeProject` hält das genannte Projekt gegen das EINE,
+ * das diese Naht bedient. Vorher hätte das Service-Secret gereicht, um
+ * Mitgliedschaften in einem FREMDEN Runtime-Projekt zu löschen. Begründung an
+ * der Helferfunktion.
+ *
  * PROTOKOLLIERT, weil das eine schreibende Fremd-Operation ist — und weil die
  * zurückgehaltenen Zeilen („letzter Owner", siehe decideMembershipErasure) im
  * KLARTEXT irgendwo landen müssen: der Betreiber muss wissen, welche Community
@@ -30,11 +36,12 @@ const bodySchema = z.object({
 export default defineEventHandler(async (event) => {
   requireOnboardingCaller(event)
   const body = await readValidatedBody(event, bodySchema.parse)
+  const runtimeProjectId = assertOnboardingRuntimeProject(event, body.runtimeProjectId)
 
-  const result = await eraseCommunityUserData(event, body.runtimeProjectId, body.runtimeUserId, body.email ?? '')
+  const result = await eraseCommunityUserData(event, runtimeProjectId, body.runtimeUserId, body.email ?? '')
 
   logEvent('info', 'community.user_erased', {
-    runtimeProjectId: body.runtimeProjectId,
+    runtimeProjectId,
     runtimeUserId: body.runtimeUserId,
     deleted: result.deleted,
     anonymized: result.anonymized,

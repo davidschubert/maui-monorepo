@@ -1,25 +1,7 @@
-import { randomInt } from 'node:crypto'
 import { ID, Query } from 'node-appwrite'
 import { createAdminClient, createSessionClient } from '../../lib/appwrite'
+import { decoySecurityPhrase } from '../../utils/securityPhrase'
 import { recoverySchema } from '../../../schemas/auth'
-
-/**
- * Eine Sicherheitsphrase, die nach einer echten aussieht — für den Pfad, in
- * dem bewusst NICHTS passiert (s. Kopf des Handlers). Zwei großgeschriebene
- * Wörter, dieselbe Form wie Appwrites eigene.
- *
- * EHRLICHE GRENZE: die Wortliste ist unsere, nicht Appwrites. Wer beide kennt,
- * könnte an einem Wort erkennen, dass keine Mail unterwegs ist. Das ist ein
- * deutlich schmalerer Spalt als der vorherige 403/200-Unterschied, und die
- * Alternative — Appwrites Liste nachbauen — wäre eine Kopie, die beim nächsten
- * Appwrite-Update still auseinanderläuft. Steht als Restposten in OPEN-ITEMS.
- */
-const DECOY_ADJECTIVES = ['Amber', 'Bright', 'Calm', 'Clever', 'Golden', 'Gentle', 'Happy', 'Kind', 'Lucky', 'Quiet', 'Rapid', 'Silent', 'Silver', 'Sunny', 'Swift', 'Warm']
-const DECOY_NOUNS = ['Anchor', 'Bridge', 'Canyon', 'Compass', 'Falcon', 'Garden', 'Harbor', 'Island', 'Lantern', 'Meadow', 'Mountain', 'Otter', 'River', 'Summit', 'Thunder', 'Willow']
-
-function decoySecurityPhrase(): string {
-  return `${DECOY_ADJECTIVES[randomInt(DECOY_ADJECTIVES.length)]} ${DECOY_NOUNS[randomInt(DECOY_NOUNS.length)]}`
-}
 
 /**
  * Email-OTP anfordern (passwortloser Login). Läuft als GUEST — Appwrite
@@ -59,8 +41,11 @@ export default defineEventHandler(async (event) => {
     const found = await admin.users.list({ queries: [Query.equal('email', email), Query.limit(1)] })
     if (found.total === 0) {
       // STILL aussteigen, nicht 403. `userId` ist eine frische, nie vergebene
-      // Id, `phrase` eine plausible Attrappe (s. o.) — die Antwort trägt
-      // dieselben Felder in derselben Form wie eine erfolgreiche. Es entsteht
+      // Id, `phrase` eine Attrappe aus Appwrites EIGENEN Wortlisten
+      // (server/utils/securityPhrase.ts — bis F35 war es eine selbstgebaute
+      // Liste mit zwei GROSSgeschriebenen Wörtern, an der jede Attrappe auf
+      // einen Blick zu erkennen war). Die Antwort trägt jetzt dieselben Felder
+      // in derselben Form UND aus derselben Verteilung. Es entsteht
       // kein Konto und es geht keine Mail hinaus; der eingegebene Code läuft
       // danach in dasselbe „Code ungültig" wie ein Tippfehler.
       logEvent('info', 'auth.otp_suppressed_closed_registration', {})

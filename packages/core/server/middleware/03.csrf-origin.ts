@@ -1,14 +1,14 @@
+import { csrfOriginVerdict } from '../utils/csrfOrigin'
+
 /**
  * CSRF-Origin-Check (Embed-Vorarbeit E0, § 3b des Embed-Plans): Sobald eine
  * App das partitionierte Embed-Session-Cookie (SameSite=None) einführt,
  * schützt sameSite nicht mehr vor cross-site Form-POSTs — dann MUSS dieser
  * Check aktiv sein (pukalani.security.csrfOriginCheck: true).
  *
- * Prüft unsichere Methoden auf /api/*: `Sec-Fetch-Site: cross-site` → 403;
- * ohne Sec-Fetch-Site entscheidet der Origin-Header gegen den Request-Host.
- * Requests OHNE Origin (Server-zu-Server, z. B. Stripe-Webhook, curl) passieren
- * — sie tragen kein Browser-Cookie und sind kein CSRF-Vektor.
- * Default aus (no-op): same-site-Cookies schützen die Haupt-App bereits.
+ * Prüft unsichere Methoden auf /api/*. Die ENTSCHEIDUNG selbst ist pure und
+ * steht mit ihrer Begründung in server/utils/csrfOrigin.ts — hier kommt nur
+ * das Gate und das Auslesen der Header dazu. Default aus (no-op).
  */
 export default defineEventHandler((event) => {
   const method = event.method
@@ -20,23 +20,12 @@ export default defineEventHandler((event) => {
   const url = getRequestURL(event)
   if (!url.pathname.startsWith('/api/')) return
 
-  const secFetchSite = getHeader(event, 'sec-fetch-site')
-  if (secFetchSite === 'cross-site') {
-    throw createError({ status: 403, statusText: 'Cross-site request rejected' })
-  }
-  if (secFetchSite) return // same-origin | same-site | none → ok
-
-  const origin = getHeader(event, 'origin')
-  if (!origin) return // kein Browser-Kontext → kein CSRF-Vektor
-
-  try {
-    if (new URL(origin).host !== url.host) {
-      throw createError({ status: 403, statusText: 'Cross-site request rejected' })
-    }
-  }
-  catch (error) {
-    if (error && typeof error === 'object' && 'statusCode' in error) throw error
-    // Unparsebarer Origin (z. B. 'null' bei sandboxed iframes) → ablehnen
+  const verdict = csrfOriginVerdict({
+    secFetchSite: getHeader(event, 'sec-fetch-site'),
+    origin: getHeader(event, 'origin'),
+    host: url.host,
+  })
+  if (verdict === 'reject') {
     throw createError({ status: 403, statusText: 'Cross-site request rejected' })
   }
 })
