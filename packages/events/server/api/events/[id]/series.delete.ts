@@ -22,6 +22,9 @@ export default defineEventHandler(async (event) => {
   requirePlanProduct(event, 'events')
   await requireCommunityPermission(event, 'events.manage')
 
+  // Wartungsmodus friert JEDEN Mitglieds-Schreibweg ein (utils/eventPolicy.ts).
+  await assertEventsWritable(event)
+
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ status: 400, statusText: 'Missing event id' })
 
@@ -37,15 +40,17 @@ export default defineEventHandler(async (event) => {
     throw toH3Error(error, 'Could not stop series')
   })
 
-  // Künftige Instanzen (inkl. Master, falls sein Termin noch aussteht) absagen
-  const future = await db.list<EventRow>(EVENTS_TABLE, [
-    Query.equal('seriesId', master.$id), Query.greaterThan('startAt', now), Query.limit(200),
-  ]).catch((error) => {
-    throw toH3Error(error, 'Could not load series instances')
-  })
+  // Künftige Instanzen (inkl. Master, falls sein Termin noch aussteht) absagen.
+  // Cursor-paginiert statt limit(200): „Serie beenden" ist der Weg, bei dem ein
+  // stiller Deckel am teuersten wäre — er ließe Termine stehen, die der Owner
+  // für abgesagt hält (Audit-Befund 2026-08-02).
+  const future = await listSeriesInstances(db, master.$id, [Query.greaterThan('startAt', now)])
+    .catch((error) => {
+      throw toH3Error(error, 'Could not load series instances')
+    })
 
   let cancelled = 0
-  for (const instance of future.rows) {
+  for (const instance of future) {
     if (instance.status === 'cancelled') continue
     await db.update(EVENTS_TABLE, instance.$id, { status: 'cancelled' }).catch((error) => {
       throw toH3Error(error, 'Could not cancel series instance')

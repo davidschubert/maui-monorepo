@@ -14,31 +14,68 @@ import type { EventRow } from '../shared/types/event'
  * ZUSTAND JETZT: der Webhook hat weiterhin keinen Tenant-Host (er kommt von
  * Stripe), leitet den Mandanten aber aus dem EVENT ab — die einzige Quelle,
  * die stimmen kann: das Ticket gehört dem Mandanten seines Events. Die Suite
- * dreht sich damit um; sie beweist jetzt, dass der Lesepfad das eigene Ticket
- * findet, das des NACHBARN aber nicht, und dass ein nicht lesbares Event zu
- * einem Fehler führt statt zu einem ungestempelten Ticket.
+ * beweist, dass der Lesepfad das eigene Ticket findet, das des NACHBARN aber
+ * nicht, und dass ein nicht lesbares Event zu einem Fehler führt statt zu
+ * einem ungestempelten Ticket.
+ *
+ * ────────────────────────────────────────────────────────────────────────────
+ * WAS DIESE SUITE NICHT KONNTE (Befund vom 2026-08-02) — und warum das hier
+ * jetzt steht:
+ *
+ * Zwischen E8-3 (`tenantId` → `communityId`) und diesem Tag schrieb
+ * `grantEventTicket` eine Spalte, die es nicht mehr gab. Appwrite antwortete
+ * `400 row_invalid_structure`, es entstand KEIN Ticket, der Stripe-Webhook
+ * wiederholte endlos, und der Zahlende bekam von `assertCanRsvpGoing` ein 403.
+ * Diese Suite blieb grün — weil sie den Row-Store MOCKT. Ein nachgebauter
+ * Speicher hat kein Schema; er nimmt `tenantId`, `bananenId` und alles andere
+ * klaglos an. Ein Mock kann eine Schema-Zusage grundsätzlich nicht prüfen.
+ *
+ * Zwei Konsequenzen, beide gezogen:
+ *  1. DER ECHTE BEWEIS läuft gegen die echte Instanz —
+ *     `packages/events/scripts/verify-paid-ticket.mjs` liest die Spaltenliste
+ *     aus Appwrite und fährt Ausstellen → Wiederfinden → RSVP durch.
+ *  2. Der Mock hier tut wenigstens SO, als hätte er ein Schema: `createRow`
+ *     lehnt unbekannte Felder ab (`TICKET_COLUMNS`). Das ist eine
+ *     handgepflegte Liste und deshalb KEIN Ersatz für (1) — sie kann veralten.
+ *     Sie fängt aber genau den Fehler, der hier passiert ist: einen
+ *     umbenannten Spaltennamen im Schreibpfad.
  */
 
-interface TicketRecord { $id: string, eventId: string, userId: string, status: string, tenantId?: string }
+/**
+ * Die Spalten, die `event_tickets` WIRKLICH hat (Migrationen events-001/004,
+ * `communityId` seit events-007, `tenantId` gefallen mit events-008).
+ * Handgepflegt — die Instanz ist die Wahrheit, siehe Kopf.
+ */
+const TICKET_COLUMNS = new Set(['eventId', 'userId', 'status', 'stripeSessionId', 'amount', 'communityId'])
+
+interface TicketRecord { $id: string, eventId: string, userId: string, status: string, communityId?: string }
 
 const store: TicketRecord[] = []
-/** Events, aus denen der Stempel abgeleitet wird (Id → tenantId der Row). */
+/** Events, aus denen der Stempel abgeleitet wird (Id → communityId der Row). */
 const events = new Map<string, string>()
 
 const createRow = vi.fn(async ({ data, rowId }: { data: Record<string, unknown>, rowId: string }) => {
+  // Wie Appwrite: unbekanntes Feld ⇒ 400 row_invalid_structure. Ohne diese
+  // drei Zeilen hätte der Mock den Geldpfad-Bruch nie gesehen (s. Kopf).
+  const unknownKey = Object.keys(data).find(key => !TICKET_COLUMNS.has(key))
+  if (unknownKey) {
+    const err = new Error(`Invalid document structure: Unknown attribute: "${unknownKey}"`) as Error & { code?: number }
+    err.code = 400
+    throw err
+  }
   const row = { $id: rowId, ...data } as TicketRecord
   store.push(row)
   return row
 })
 
 const getRow = vi.fn(async ({ rowId }: { rowId: string }) => {
-  const tenantId = events.get(rowId)
-  if (tenantId === undefined) {
+  const communityId = events.get(rowId)
+  if (communityId === undefined) {
     const err = new Error('Row not found') as Error & { code?: number }
     err.code = 404
     throw err
   }
-  return { $id: rowId, tenantId }
+  return { $id: rowId, communityId }
 })
 
 beforeAll(() => {
@@ -59,8 +96,9 @@ beforeAll(() => {
   /**
    * Modell der Datentür (tenantDb `as: 'operator'`): `find` filtert die
    * mitgegebenen Query.equal-Bedingungen UND scopet IMMER zusätzlich auf den
-   * Mandanten des Requests. Genau dieser implizite Scope ist der Grund, warum
-   * ein ungestempeltes Ticket im Pool nicht gefunden wurde.
+   * Mandanten des Requests — auf die SPALTE `communityId` (scopeQueriesFor).
+   * Genau dieser implizite Scope ist der Grund, warum ein ungestempeltes (oder
+   * unter dem alten Namen gestempeltes) Ticket im Pool nicht gefunden wird.
    */
   g.tenantDb = (event: H3Event) => ({
     find: async (_table: string, queries: string[]) => {
@@ -71,7 +109,7 @@ beforeAll(() => {
       return store.find(row =>
         conditions.every(c => (row as unknown as Record<string, unknown>)[c.attribute] === c.values[0])
         // Die Tür: im Pool zählt nur der EIGENE Mandant.
-        && (tenantId ? row.tenantId === tenantId : true),
+        && (tenantId ? row.communityId === tenantId : true),
       ) ?? null
     },
   })
@@ -90,15 +128,33 @@ const siloEvent = { context: {} } as unknown as H3Event
 
 const paidRow = { $id: 'ev-1', access: 'paid' } as EventRow
 
+describe('grantEventTicket schreibt genau die Spalten, die es gibt', () => {
+  it('schreibt communityId — nicht den vor events-008 gültigen Namen', async () => {
+    events.set('ev-1', 'kunde-a')
+    await grantEventTicket(siloEvent, { eventId: 'ev-1', userId: 'u-1' })
+
+    const data = createRow.mock.calls[0]?.[0].data as Record<string, unknown>
+    expect(Object.keys(data)).not.toContain('tenantId')
+    expect(data.communityId).toBe('kunde-a')
+  })
+
+  it('der Fake-Store lehnt unbekannte Felder ab — sonst sieht er keinen Schema-Bruch', async () => {
+    // Selbstprüfung des Netzes: wäre diese Erwartung falsch, wäre die ganze
+    // Suite wieder blind für genau den Fehler, der den Geldpfad brach.
+    await expect(createRow({ rowId: 'x', data: { eventId: 'e', tenantId: 'kunde-a' } }))
+      .rejects.toMatchObject({ code: 400 })
+  })
+})
+
 describe('grantEventTicket stempelt den Mandanten SEINES Events (S7)', () => {
-  it('übernimmt die tenantId aus der Event-Row, nicht aus dem Request', async () => {
+  it('übernimmt die communityId aus der Event-Row, nicht aus dem Request', async () => {
     // Der Request hat gar keinen brauchbaren Mandanten (Stripe-Webhook) —
     // maßgeblich ist allein das Event.
     events.set('ev-1', 'kunde-a')
     await grantEventTicket(siloEvent, { eventId: 'ev-1', userId: 'u-1', stripeSessionId: 'cs_1', amount: 900 })
 
     const data = createRow.mock.calls[0]?.[0].data as Record<string, unknown>
-    expect(data).toMatchObject({ eventId: 'ev-1', userId: 'u-1', status: 'paid', tenantId: 'kunde-a' })
+    expect(data).toMatchObject({ eventId: 'ev-1', userId: 'u-1', status: 'paid', communityId: 'kunde-a' })
   })
 
   it('schreibt im Silo den ehrlichen Leerwert statt einer erfundenen Zugehörigkeit', async () => {
@@ -106,7 +162,7 @@ describe('grantEventTicket stempelt den Mandanten SEINES Events (S7)', () => {
     await grantEventTicket(siloEvent, { eventId: 'ev-1', userId: 'u-1' })
 
     const data = createRow.mock.calls[0]?.[0].data as Record<string, unknown>
-    expect(data.tenantId).toBe('')
+    expect(data.communityId).toBe('')
   })
 
   it('wirft, wenn das Event nicht lesbar ist — statt ungestempelt zu schreiben', async () => {
@@ -134,13 +190,13 @@ describe('Der Lesepfad findet das eigene Ticket jetzt — und nur das eigene', (
   })
 
   it('lässt ein Ticket des NACHBARN nicht durch', async () => {
-    store.push({ $id: 't-3', eventId: 'ev-1', userId: 'u-1', status: 'paid', tenantId: 'kunde-b' })
+    store.push({ $id: 't-3', eventId: 'ev-1', userId: 'u-1', status: 'paid', communityId: 'kunde-b' })
     expect(await hasEventTicket(poolEvent, 'ev-1', 'u-1')).toBe(false)
   })
 
   it('lässt BESTANDS-Tickets ohne Stempel im Pool weiterhin draußen (fail-closed)', async () => {
     // Vor S7 geschriebene Rows bleiben unsichtbar — dieselbe Regel wie bei
-    // posts-004/events-006. Bewusst kein Nachziehen im Lesepfad.
+    // posts-004/events-007. Bewusst kein Nachziehen im Lesepfad.
     store.push({ $id: 't-alt', eventId: 'ev-1', userId: 'u-1', status: 'paid' })
     expect(await hasEventTicket(poolEvent, 'ev-1', 'u-1')).toBe(false)
   })
@@ -163,7 +219,7 @@ describe('Ohne registrierten Guard sind paid-Events zu', () => {
     // keinen Guard, genau wie ein Deployment, in dem die App ihn nie registriert.
     vi.resetModules()
     const fresh = await import('../server/utils/eventTickets')
-    store.push({ $id: 't-4', eventId: 'ev-1', userId: 'u-1', status: 'paid', tenantId: 'kunde-a' })
+    store.push({ $id: 't-4', eventId: 'ev-1', userId: 'u-1', status: 'paid', communityId: 'kunde-a' })
     await expect(fresh.assertCanRsvpGoing(poolEvent, paidRow, 'u-1')).rejects.toMatchObject({ status: 403 })
   })
 

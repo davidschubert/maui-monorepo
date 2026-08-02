@@ -1,15 +1,19 @@
 import { ID, Query } from 'node-appwrite'
 import { InputFile } from 'node-appwrite/file'
-import { EVENTS_TABLE, MAX_EVENT_COVER_BYTES, isSeriesEvent, isSeriesMaster, type EventRow } from '../../../../shared/types/event'
+import { EVENTS_TABLE, EVENT_COVERS_BUCKET, MAX_EVENT_COVER_BYTES, isSeriesEvent, isSeriesMaster, type EventRow } from '../../../../shared/types/event'
 
 /**
  * Cover-Upload (events.manage): JPEG/PNG/WebP mit Magic-Bytes-Check —
  * der deklarierte MIME-Typ ist Client-Input (Muster fonts/upload).
- * Bucket 'event-covers' (Migration events-002): öffentlich lesbar,
- * geschrieben wird nur hier. Ersetzt ein vorhandenes Cover (altes File
- * wird gelöscht, best-effort). Rows über die Datentür als Operator
- * (get/update belegen die Zugehörigkeit); Storage bleibt Admin-Client —
- * Files tragen keinen Mandanten, die Referenz (coverFileId) tut es.
+ * Bucket 'event-covers': seit Migration events-009 ein fileSecurity-Bucket
+ * OHNE bucket-weites read(any) — das Leserecht hängt an der DATEI und folgt
+ * dem der Row (`eventCoverPermissions`, s. utils/eventCovers.ts). Vorher war
+ * jedes Titelbild per Roh-URL öffentlich, auch wenn die Community auf „nur
+ * für Mitglieder" stand. Geschrieben wird nur hier. Ersetzt ein vorhandenes
+ * Cover (altes File wird gelöscht, best-effort). Rows über die Datentür als
+ * Operator (get/update belegen die Zugehörigkeit); Storage bleibt
+ * Admin-Client — Files tragen keinen Mandanten, die Referenz (coverFileId)
+ * tut es.
  *
  * AUTORISIERUNG (N5): `requireCommunityPermission` — Site-Rolle vor protokolliertem
  * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
@@ -31,6 +35,9 @@ export default defineEventHandler(async (event) => {
   // Produkt-Gate (P4): Events sind ab Plan pro enthalten.
   requirePlanProduct(event, 'events')
   const { actor } = await requireCommunityPermission(event, 'events.manage')
+
+  // Wartungsmodus friert JEDEN Mitglieds-Schreibweg ein (utils/eventPolicy.ts).
+  await assertEventsWritable(event)
 
   const id = getRouterParam(event, 'id')
   if (!id) {
@@ -55,24 +62,29 @@ export default defineEventHandler(async (event) => {
   }
 
   const file = await admin.storage.createFile({
-    bucketId: 'event-covers',
+    bucketId: EVENT_COVERS_BUCKET,
     fileId: ID.unique(),
     file: InputFile.fromBuffer(filePart.data, filePart.filename),
+    // Das Publikum der ROW, schon beim Hochladen — nicht in einem zweiten
+    // Schritt: zwischen Anlegen und Nachrüsten läge sonst ein Fenster, in dem
+    // die Datei ohne Leserecht (oder, vor events-009, für alle) dasteht.
+    permissions: eventCoverPermissions(event, row),
   }).catch((error) => { throw toH3Error(error, 'Covers bucket missing — run migrations') })
 
   await db.update(EVENTS_TABLE, id, { coverFileId: file.$id }, 'Event not found').catch(async (error) => {
     // Row-Update gescheitert → verwaiste Datei nicht liegen lassen
-    await admin.storage.deleteFile({ bucketId: 'event-covers', fileId: file.$id }).catch(() => {})
+    await admin.storage.deleteFile({ bucketId: EVENT_COVERS_BUCKET, fileId: file.$id }).catch(() => {})
     throw toH3Error(error, 'Could not save cover')
   })
 
   // Serie (§7e): neues MASTER-Cover auf Instanzen propagieren, die noch das
   // alte (oder kein) Cover tragen — individuell gesetzte Cover bleiben
   if (isSeriesMaster(row)) {
-    const instances = await db.list<EventRow>(EVENTS_TABLE, [
-      Query.equal('seriesId', row.$id), Query.notEqual('$id', row.$id), Query.limit(200),
-    ]).catch(() => ({ rows: [] as EventRow[] }))
-    for (const instance of instances.rows) {
+    // Cursor-paginiert statt limit(200) — eine lange Serie wurde sonst still
+    // gekappt (Audit-Befund 2026-08-02).
+    const instances = await listSeriesInstances(db, row.$id, [Query.notEqual('$id', row.$id)])
+      .catch(() => [] as EventRow[])
+    for (const instance of instances) {
       if (instance.coverFileId !== row.coverFileId) continue
       await db.update(EVENTS_TABLE, instance.$id, { coverFileId: file.$id }).catch(() => {})
     }
@@ -82,7 +94,7 @@ export default defineEventHandler(async (event) => {
   // ist dort meist das geteilte Master-Cover (Master + Geschwister nutzen es
   // weiter). Master ist safe: die Propagation oben hat alle Verweise umgebogen.
   if (row.coverFileId && !(isSeriesEvent(row) && !isSeriesMaster(row))) {
-    await admin.storage.deleteFile({ bucketId: 'event-covers', fileId: row.coverFileId }).catch(() => {})
+    await admin.storage.deleteFile({ bucketId: EVENT_COVERS_BUCKET, fileId: row.coverFileId }).catch(() => {})
   }
 
   setResponseStatus(event, 201)

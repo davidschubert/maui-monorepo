@@ -34,6 +34,9 @@ export default defineEventHandler(async (event) => {
   requirePlanProduct(event, 'events')
   await requireCommunityPermission(event, 'events.manage')
 
+  // Wartungsmodus friert JEDEN Mitglieds-Schreibweg ein (utils/eventPolicy.ts).
+  await assertEventsWritable(event)
+
   const id = getRouterParam(event, 'id')
   if (!id) {
     throw createError({ status: 400, statusText: 'Missing event id' })

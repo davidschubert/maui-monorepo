@@ -23,6 +23,9 @@ export default defineEventHandler(async (event) => {
   requirePlanProduct(event, 'events')
   const { user, actor } = await requireCommunityPermission(event, 'events.manage')
 
+  // Wartungsmodus friert JEDEN Mitglieds-Schreibweg ein (utils/eventPolicy.ts).
+  await assertEventsWritable(event)
+
   // Pool-Quota (No-Op, bis der Plan-Katalog events-Limits trägt — der Hook
   // steht, damit die Zahlen nur noch Konfiguration sind, kein Code)
   await assertPoolWriteQuota(event, { kind: 'events', tableId: EVENTS_TABLE })

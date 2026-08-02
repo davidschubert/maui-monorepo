@@ -1,4 +1,4 @@
-import { EVENTS_TABLE, type EventRow } from '../../../../shared/types/event'
+import { EVENTS_TABLE, EVENT_COVERS_BUCKET, type EventRow } from '../../../../shared/types/event'
 
 /**
  * Cover entfernen (events.manage) — Row zuerst, Datei danach (best-effort).
@@ -13,6 +13,9 @@ export default defineEventHandler(async (event) => {
   // Produkt-Gate (P4): Events sind ab Plan pro enthalten.
   requirePlanProduct(event, 'events')
   const { actor } = await requireCommunityPermission(event, 'events.manage')
+
+  // Wartungsmodus friert JEDEN Mitglieds-Schreibweg ein (utils/eventPolicy.ts).
+  await assertEventsWritable(event)
 
   const id = getRouterParam(event, 'id')
   if (!id) {
@@ -29,7 +32,7 @@ export default defineEventHandler(async (event) => {
   await db.update(EVENTS_TABLE, id, { coverFileId: null }, 'Event not found')
     .catch((error) => { throw toH3Error(error, 'Could not remove cover') })
 
-  await createAdminClient(event).storage.deleteFile({ bucketId: 'event-covers', fileId: row.coverFileId }).catch(() => {})
+  await createAdminClient(event).storage.deleteFile({ bucketId: EVENT_COVERS_BUCKET, fileId: row.coverFileId }).catch(() => {})
 
   return { ok: true }
 })

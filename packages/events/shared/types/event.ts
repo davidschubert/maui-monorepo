@@ -5,6 +5,9 @@ export const EVENT_RSVPS_TABLE = 'event_rsvps'
 export const EVENT_VOTES_TABLE = 'event_votes'
 export const EVENT_TICKETS_TABLE = 'event_tickets'
 
+/** Bucket der Cover-Bilder (Migration events-002; fileSecurity seit events-009). */
+export const EVENT_COVERS_BUCKET = 'event-covers'
+
 /** draft = nur Verwaltung sichtbar · cancelled = Soft-Cancel (Row bleibt, sichtbar) */
 export type EventStatus = 'draft' | 'published' | 'cancelled'
 export const EVENT_STATUSES = ['draft', 'published', 'cancelled'] as const
@@ -124,13 +127,21 @@ export interface EventTicketRow extends Models.Row {
   stripeSessionId: string | null
   amount: number | null
   /**
-   * Mandant (events-006). Der Stripe-Webhook hat keinen Tenant-Kontext, der
-   * Wert kommt deshalb aus der Event-Row selbst (grantEventTicket) — im
-   * Silo/Altbestand ''. Ohne dieses Feld ließ sich das Ticket zwar schreiben,
-   * aber der Typ kannte es nicht: der Stempel aus Audit-Befund S7 wäre beim
-   * nächsten Refactor stillschweigend wieder verschwunden.
+   * Mandant (events-007, die Spalte hieß bis events-008 `tenantId`). Der
+   * Stripe-Webhook hat keinen Tenant-Kontext, der Wert kommt deshalb aus der
+   * Event-Row selbst (grantEventTicket) — im Silo/Altbestand ''.
+   *
+   * DER NAME IST HIER LADUNGSSICHERUNG, kein Kosmetikum (Befund vom
+   * 2026-08-02): E8-3 hat `tenantId` in ALLEN events-Tabellen durch
+   * `communityId` ersetzt, dieser Typ und der Schreibpfad blieben aber auf dem
+   * alten Namen stehen. Appwrite lehnt unbekannte Felder ab — jeder Ticket-
+   * Kauf lief seither in ein `400 row_invalid_structure`, der Stripe-Webhook
+   * wiederholte endlos und der Zahlende stand vor einem 403. Gesehen hat es
+   * niemand, weil der einzige Test den Row-Store MOCKTE: ein nachgebauter
+   * Speicher nimmt jedes Feld an, das man ihm gibt. Der Beweis dafür läuft
+   * seitdem gegen die echte Instanz (scripts/verify-paid-ticket.mjs).
    */
-  tenantId: string
+  communityId: string
 }
 
 export type EventVoteValue = 1 | -1

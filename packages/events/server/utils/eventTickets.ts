@@ -67,19 +67,24 @@ export interface GrantEventTicketInput {
  * kein Mandanten-Request — er kommt von Stripe, ohne Tenant-Host, `useTenant`
  * ist hier null und `tenantDb` könnte deshalb weder scopen noch stempeln).
  *
- * DER MANDANT KOMMT AUS DEM EVENT (Audit-Befund S7): `event_tickets` trägt
- * seit events-006 ein `tenantId`, dieser Pfad stempelte es aber nicht. Heute
- * ist das folgenlos — paid-Events im Pool sind ohnehin fail-closed (D1) und
- * Tickets schreibt nur die Silo-App. Sobald Billing mandantenfähig wird, wäre
- * es ein Datenintegritätsbug: `hasEventTicket` geht durch die Datentür und
- * fände ein ungestempeltes Ticket im Pool NIE — der Kunde hätte bezahlt und
- * stünde vor der Tür.
+ * DER MANDANT KOMMT AUS DEM EVENT (Audit-Befund S7): das Ticket gehört dem
+ * Mandanten SEINES Events — die einzige Ableitung, die stimmen kann. Ist das
+ * Event nicht lesbar, wird geworfen statt ungestempelt geschrieben; ein
+ * Webhook-Retry ist die richtige Antwort, ein unauffindbares Ticket nicht
+ * (Webhook-Regel: transiente Fehler werfen, nie still zurückkehren).
  *
- * Die Ableitung ist die einzige, die stimmen kann: das Ticket gehört dem
- * Mandanten SEINES Events. Ist das Event nicht lesbar, wird geworfen statt
- * ungestempelt geschrieben — ein Webhook-Retry ist die richtige Antwort, ein
- * unauffindbares Ticket nicht (Webhook-Regel: transiente Fehler werfen, nie
- * still zurückkehren).
+ * DIE SPALTE HEISST `communityId` (Befund vom 2026-08-02, der Geldpfad war
+ * kaputt): E8-3 hat `tenantId` in allen events-Tabellen ersetzt (events-007
+ * additiv, events-008 gelöscht) — dieser Pfad schrieb weiter den alten Namen.
+ * Appwrite lehnt unbekannte Felder mit `400 row_invalid_structure` ab, also
+ * entstand seither KEIN Ticket mehr: der Kunde zahlte, der Webhook wiederholte
+ * endlos, und `assertCanRsvpGoing` hielt genau ihn mit 403 vor der Tür. Der
+ * zweite, unabhängige Bruch saß im Lesepfad — `hasEventTicket` sucht durch die
+ * Datentür, und die filtert auf `communityId`.
+ *
+ * Wer hier ein Feld ändert, ändert eine SCHEMA-Zusage: der Beweis dafür ist
+ * `scripts/verify-paid-ticket.mjs` gegen die echte Instanz, nicht der
+ * Unit-Test — ein gemockter Row-Store nimmt jeden Feldnamen an.
  */
 export async function grantEventTicket(event: H3Event, input: GrantEventTicketInput): Promise<EventTicketRow> {
   const config = useRuntimeConfig(event)
@@ -91,11 +96,11 @@ export async function grantEventTicket(event: H3Event, input: GrantEventTicketIn
   }).catch((error: unknown) => { throw toH3Error(error, 'Event not found') })
 
   // `unknown` statt eines engen Row-Typs, wie in rowBelongsToTenant: die
-  // Spalte ist additiv (events-006) und steht in keinem Row-Interface. Im
+  // Spalte ist additiv (events-007) und steht in keinem Row-Interface. Im
   // Silo/Bestand ist sie '' — das ist der ehrliche Wert („gehört keinem
   // Mandanten, weil es keine gibt"), keine erfundene Zugehörigkeit.
-  const eventTenantId = (eventRow as { tenantId?: unknown }).tenantId
-  const tenantId = typeof eventTenantId === 'string' ? eventTenantId : ''
+  const eventCommunityId = (eventRow as { communityId?: unknown }).communityId
+  const communityId = typeof eventCommunityId === 'string' ? eventCommunityId : ''
 
   try {
     return await admin.tablesDB.createRow<EventTicketRow>({
@@ -108,7 +113,7 @@ export async function grantEventTicket(event: H3Event, input: GrantEventTicketIn
         status: 'paid',
         stripeSessionId: input.stripeSessionId ?? null,
         amount: input.amount ?? null,
-        tenantId,
+        communityId,
       },
       // eigenes Ticket lesbar (account/billing-Ansichten, Export)
       permissions: [Permission.read(Role.user(input.userId))],
@@ -116,7 +121,7 @@ export async function grantEventTicket(event: H3Event, input: GrantEventTicketIn
   }
   catch (error) {
     // Unique-Race/Webhook-Retry: bestehendes Ticket ist das Ergebnis.
-    // BEWUSST OHNE tenantId-Filter: gesucht wird über `eventId`, und das ist
+    // BEWUSST OHNE communityId-Filter: gesucht wird über `eventId`, und das ist
     // eine GLOBAL eindeutige Appwrite-Row-Id — zwei Mandanten können sie gar
     // nicht teilen, der Filter könnte also nichts Fremdes abwehren. Er würde
     // aber Bestands-Tickets (vor diesem Stempel geschrieben) unauffindbar

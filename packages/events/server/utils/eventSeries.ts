@@ -1,5 +1,7 @@
 import { Query } from 'node-appwrite'
+import type { Models } from 'node-appwrite'
 import type { H3Event } from 'h3'
+import type { TenantDb } from '../../../core/server/utils/tenantDb'
 import { EVENTS_TABLE, type EventRecurrence, type EventRow } from '../../shared/types/event'
 
 /**
@@ -13,6 +15,55 @@ import { EVENTS_TABLE, type EventRecurrence, type EventRow } from '../../shared/
  */
 export const SERIES_WINDOW_DAYS = 120
 export const SERIES_MAX_PER_RUN = 26
+
+/** Seitengröße der Serien-Fan-outs. */
+const FAN_OUT_PAGE = 100
+/**
+ * Notbremse der Fan-outs. Eine wöchentliche Serie erzeugt in zehn Jahren gut
+ * 500 Instanzen — 5000 ist also weit jenseits von allem Echten und trotzdem
+ * eine Grenze, an der ein Datenfehler (Endlos-Cursor) auffällt statt den
+ * Request zu fressen.
+ */
+const FAN_OUT_MAX = 5000
+
+/**
+ * ALLE Instanzen einer Serie — cursor-paginiert.
+ *
+ * WARUM (Audit-Befund vom 2026-08-02): die drei Fan-outs (Publish-Propagation,
+ * Cover-Propagation, Serie beenden) liefen mit einem nackten
+ * `Query.limit(200)`. Eine wöchentliche Serie überschreitet das nach knapp vier
+ * Jahren, eine tägliche in gut einem halben — und dann KAPPT die Abfrage
+ * still: „Serie beenden" hätte Termine stehen gelassen, ohne dass jemand es
+ * erfährt. Ein Deckel, den niemand meldet, ist ein Datenfehler mit Ansage.
+ */
+export async function listSeriesInstances(
+  db: TenantDb,
+  seriesId: string,
+  extra: string[] = [],
+): Promise<EventRow[]> {
+  const all: EventRow[] = []
+  let cursor: string | null = null
+  for (;;) {
+    // Typ-Annotation ist Pflicht: ohne sie leitet TS den Rückgabetyp aus einer
+    // Schleife her, die auf sich selbst zeigt (TS7022) — dasselbe Muster wie in
+    // eventReminders.listAllScopedRsvps.
+    const page: Models.RowList<EventRow> = await db.list<EventRow>(EVENTS_TABLE, [
+      Query.equal('seriesId', seriesId),
+      ...extra,
+      Query.limit(FAN_OUT_PAGE),
+      ...(cursor === null ? [] : [Query.cursorAfter(cursor)]),
+    ])
+    all.push(...page.rows)
+    if (page.rows.length < FAN_OUT_PAGE) return all
+    if (all.length >= FAN_OUT_MAX) {
+      // LAUT, nicht still: lieber ein Log, das jemand findet, als eine
+      // unvollständige Propagation, die wie Erfolg aussieht.
+      console.error(`[events] Serien-Fan-out für ${seriesId} bei ${all.length} Instanzen abgebrochen (Notbremse) — Rest NICHT verarbeitet.`)
+      return all
+    }
+    cursor = page.rows.at(-1)!.$id
+  }
+}
 
 /** Nächster Termin nach der Regel; Monatsregel klemmt auf den Monatsletzten */
 export function nextOccurrence(startIso: string, rule: EventRecurrence): string {
@@ -75,6 +126,24 @@ function instanceData(master: EventRow, startAt: string, endAt: string | null, i
  * beliebigen Listen-GET. Ein `actor: 'member'` machte damit jeden Vorbeisurfer
  * zum Mitglied (A5) und ließe eine Sperre eine laufende Serie mitten im Fenster
  * abreißen, ohne dass jemand die Handlung ausgelöst hätte.
+ *
+ * DIE QUOTA GILT AUCH HIER (Audit-Befund vom 2026-08-02). Gedeckelt war nur das
+ * MANUELLE Anlegen (`index.post.ts`) — diese Schleife legt bis zu 26 Zeilen je
+ * Lauf an, und sie läuft aus JEDEM Listen-GET. Ein Kunde materialisierte sich so
+ * am Kontingent vorbei, ohne je etwas Verbotenes zu tun: er legt EINE Serie an,
+ * die Zeilen entstehen danach von selbst.
+ *
+ * Geprüft wird VOR JEDEM Anlegen, nicht einmal vorab: nur so ist die Grenze
+ * exakt, und die Kosten sind da, wo sie hingehören — ohne konfigurierte
+ * events-Limits kehrt `assertPoolWriteQuota` sofort zurück (kein Query), mit
+ * Limits sind es zwei indizierte Counts je Zeile bei einem Vorgang, der ein
+ * paar Mal im Monat läuft.
+ *
+ * Erreicht die Quota ihr Ende, bricht die Schleife AB und meldet es — sie wirft
+ * nicht. Ein Sweep darf den fremden Listen-Aufruf nicht sprengen, an dem er
+ * zufällig hängt (fail-soft). Aber still weiterlaufen darf er auch nicht:
+ * `logEvent` schreibt den Abbruch mit Mandant und Serie, sonst wäre eine
+ * abgeschnittene Serie ununterscheidbar von einer, die einfach zu Ende ist.
  */
 export async function expandSeries(event: H3Event, master: EventRow): Promise<number> {
   if (!master.recurrence || master.seriesId !== master.$id) return 0
@@ -104,6 +173,28 @@ export async function expandSeries(event: H3Event, master: EventRow): Promise<nu
     cursorStart = nextOccurrence(cursorStart, master.recurrence)
     const startMs = Date.parse(cursorStart)
     if (startMs > windowEnd || startMs > hardEnd) break
+    // Kontingent VOR dem Anlegen — wirft 429, wenn die Grenze erreicht ist.
+    // Hier wird daraus ein sauberer Abbruch mit Meldung (s. Kopf).
+    const blocked = await assertPoolWriteQuota(event, { kind: 'events', tableId: EVENTS_TABLE })
+      .then(() => null)
+      .catch((error: unknown) => error)
+    if (blocked) {
+      // 429 = Kontingent erschöpft (der erwartete Fall). Alles andere ist ein
+      // Fehler der PRÜFUNG selbst — auch dann wird nicht weitergeschrieben:
+      // wer die Grenze nicht kennt, darf sie nicht überschreiten. Der
+      // Unterschied steht im Log, damit man die beiden Fälle trennen kann.
+      const status = (blocked as { status?: number }).status
+      logEvent('warn', status === 429 ? 'events.series_expansion_quota_reached' : 'events.series_expansion_quota_check_failed', {
+        seriesId: master.$id,
+        created,
+        // `tenantId` gibt es nur am Pool-Zweig der Union — im Silo ist die
+        // Frage „welche Community?" gegenstandslos.
+        communityId: db.tenant?.mode === 'pool' ? db.tenant.tenantId : '',
+        ...(status === 429 ? {} : { error: String(blocked) }),
+      })
+      break
+    }
+
     index++
     const endAt = durationMs !== null ? new Date(startMs + durationMs).toISOString() : null
     await db.create(EVENTS_TABLE, instanceData(master, cursorStart, endAt, index), {
@@ -140,6 +231,6 @@ export async function topUpSeries(event: H3Event): Promise<void> {
     }
   }
   catch (error) {
-    console.warn('[events] Serien-Top-up fehlgeschlagen (best-effort):', error)
+    logEvent('warn', 'events.series_topup_failed', { error: String(error) })
   }
 }

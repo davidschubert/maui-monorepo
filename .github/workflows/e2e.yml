@@ -66,6 +66,19 @@ jobs:
       - name: Bootstrap (DB, Bucket, Migrationen) + Seed
         run: pnpm --filter comments run bootstrap --seed
 
+      # Der GELDPFAD gegen die frisch migrierte Instanz (Audit-Befund
+      # 2026-08-02). Warum hier und nicht als Unit-Test: `grantEventTicket`
+      # schrieb monatelang eine Spalte, die es nach E8-3 nicht mehr gab —
+      # Appwrite antwortete 400, es entstand kein Ticket, der Zahlende bekam
+      # 403. Die Suite blieb grün, weil sie den Row-Store MOCKT, und ein Mock
+      # hat kein Schema. Erst eine echte Datenbank sagt, ob die Felder
+      # existieren; genau die steht hier schon.
+      - name: Paid-Ticket-Beweis (echtes Schema)
+        run: |
+          cd packages/events
+          node --experimental-strip-types --env-file=../../apps/comments/.env \
+            scripts/verify-paid-ticket.mjs
+
       # Changelog-Einträge (v0.1…): der Smoke-Test prüft die öffentliche
       # Vollhistorie — auf der frischen Instanz sonst leer
       - name: Changelog seeden

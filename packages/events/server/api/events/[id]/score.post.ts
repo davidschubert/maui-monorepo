@@ -22,6 +22,9 @@ export default defineEventHandler(async (event): Promise<EventVoteResponse> => {
     throw createError({ status: 401, statusText: 'Unauthorized' })
   }
 
+  // Wartungsmodus friert JEDEN Mitglieds-Schreibweg ein (utils/eventPolicy.ts).
+  await assertEventsWritable(event)
+
   const id = getRouterParam(event, 'id')
   if (!id) {
     throw createError({ status: 400, statusText: 'Missing event id' })

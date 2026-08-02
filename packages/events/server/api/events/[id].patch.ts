@@ -23,6 +23,9 @@ export default defineEventHandler(async (event) => {
   requirePlanProduct(event, 'events')
   const { user, actor } = await requireCommunityPermission(event, 'events.manage')
 
+  // Wartungsmodus friert JEDEN Mitglieds-Schreibweg ein (utils/eventPolicy.ts).
+  await assertEventsWritable(event)
+
   const id = getRouterParam(event, 'id')
   if (!id) {
     throw createError({ status: 400, statusText: 'Missing event id' })
@@ -76,29 +79,35 @@ export default defineEventHandler(async (event) => {
     throw toH3Error(error, 'Could not update event')
   })
   // Leserecht folgt dem Status: published = das Publikum der Community
-  // (C18: alle bzw. alle Mitglieder), draft = niemand.
-  if (publishing) {
-    await db.updatePermissions(EVENTS_TABLE, id, withPublishedRead(row.$permissions, event))
+  // (C18: alle bzw. alle Mitglieder), draft = niemand. DAS TITELBILD FOLGT MIT
+  // (Audit-Befund 2026-08-02): seit events-009 hängt das Leserecht der Datei an
+  // der Datei — ein zurückgezogener Termin, dessen Bild weiter per Roh-URL
+  // abrufbar ist, wäre derselbe halbe Schutz wie vorher.
+  if (publishing || unpublishing) {
+    const permissions = publishing
+      ? withPublishedRead(row.$permissions, event)
+      : withoutPublishedRead(row.$permissions, event)
+    await db.updatePermissions(EVENTS_TABLE, id, permissions)
       .catch((error) => { throw toH3Error(error, 'Could not update event') })
-  }
-  if (unpublishing) {
-    await db.updatePermissions(EVENTS_TABLE, id, withoutPublishedRead(row.$permissions, event))
-      .catch((error) => { throw toH3Error(error, 'Could not update event') })
+    await applyEventCoverVisibility(event, { ...updated, $permissions: permissions })
   }
 
   // Serie (§7e): Publish/Unpublish des MASTERS zieht seine Instanzen mit
   // (Lifecycle-Ausnahme von „Instanzen sind eigenständig" — vor dem Launch
   // will man die ganze Serie schalten); abgesagte Instanzen bleiben abgesagt.
+  // Cursor-paginiert statt limit(200): eine lange Serie wurde sonst still
+  // gekappt (Audit-Befund 2026-08-02).
   if ((publishing || unpublishing) && isSeriesMaster(updated)) {
-    const instances = await db.list<EventRow>(EVENTS_TABLE, [
-      Query.equal('seriesId', updated.$id), Query.notEqual('$id', updated.$id), Query.limit(200),
-    ]).catch(() => ({ rows: [] as EventRow[] }))
-    for (const instance of instances.rows) {
+    const instances = await listSeriesInstances(db, updated.$id, [Query.notEqual('$id', updated.$id)])
+      .catch(() => [] as EventRow[])
+    for (const instance of instances) {
       if (instance.status === 'cancelled') continue
+      const permissions = publishing
+        ? withPublishedRead(instance.$permissions, event)
+        : withoutPublishedRead(instance.$permissions, event)
       await db.update(EVENTS_TABLE, instance.$id, { status: publishing ? 'published' : 'draft' })
-        .then(() => db.updatePermissions(EVENTS_TABLE, instance.$id, publishing
-          ? withPublishedRead(instance.$permissions, event)
-          : withoutPublishedRead(instance.$permissions, event)))
+        .then(() => db.updatePermissions(EVENTS_TABLE, instance.$id, permissions))
+        .then(() => applyEventCoverVisibility(event, { ...instance, $permissions: permissions }))
         .catch(error => console.warn('[events] Serien-Publish-Propagation fehlgeschlagen:', error))
     }
   }
