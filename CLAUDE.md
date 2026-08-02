@@ -110,7 +110,7 @@ Vollständiges Konzept: docs/CONCEPT.md
 - PRESENCE-GRENZE (A4, seit 2026-07-29 — vorher `read("users")`, also im Pool
   JEDER eingeloggte User ALLER Communities): die Presence trägt jetzt dieselben
   Rechte wie jede andere Zeile — `tenantRowPermissionsFor` ⇒ Pool
-  `read("label:<siteId>")`, Silo/Single-Tenant unverändert `read("users")`.
+  `read("label:<communityId>")`, Silo/Single-Tenant unverändert `read("users")`.
   Geschrieben wird sie an ZWEI Stellen (heartbeat.post.ts UND der WS-Upsert in
   usePresenceState, der die Permissions ERSETZT) — beide bauen sie aus
   core/shared/presencePermissions.ts, per Test an tenantRowPermissionsFor
@@ -132,7 +132,7 @@ Vollständiges Konzept: docs/CONCEPT.md
   app/utils/themeRegistry.ts. Sein Anzeige-Label ist seit 2026-07-29
   „**Aloha**" (davor „Sunrise" — klang neben der Katalog-Welt „Sunset"
   verwandt, B3; davor „Maui" — interner Produktname vor Kunden, N6). Label
-  ≠ Key: die Id bleibt `default` (tenants.theme, data-theme, CSS-Dateinamen,
+  ≠ Key: die Id bleibt `default` (communities.theme, data-theme, CSS-Dateinamen,
   gespeicherte Configs) — Theme-Namen nie über die Id umbenennen. Theme-Namen
   sind Eigennamen und laufen NICHT über i18n (de = en).
 - Customize theme: /dashboard/themes (Galerie, Zweispalten), Editor als Vollseite
@@ -152,7 +152,7 @@ Vollständiges Konzept: docs/CONCEPT.md
   MANDANTEN-Host gewinnt die Community, nicht der Besucher. EINE pure Regel in
   `themes/shared/themeSelection.ts` (`resolveThemeSelection`, 11 Fälle
   getestet), `useTheme()` legt nur Cookies + Registry-Validierung darum:
-  Mandanten-Host ⇒ `tenants.theme/variant` (useTenantBranding), ohne eigene
+  Mandanten-Host ⇒ `communities.theme/variant` (useTenantBranding), ohne eigene
   Wahl ('') die Instanz-Einstellung — das Theme-Cookie wird dort GAR NICHT
   gelesen; sonst (Silo, Kontroll-Host, Playground) weiter Cookie ⇒ Instanz ⇒
   Core-Default. Flash-frei, weil `branding` aus dem SSR-Payload kommt und der
@@ -163,7 +163,7 @@ Vollständiges Konzept: docs/CONCEPT.md
   Community-Farbe setzt der Owner unter /dashboard/settings/community.
   DIE NEUTRAL-PALETTE FOLGT MIT (B5-Rest, 2026-07-29 — Davids Entscheidung):
   `data-neutral` ist eine EIGENE Achse und blieb nur Besucher-Wahl, weil es
-  dafür keine Community-Einstellung gab. Jetzt: `tenants.neutral` (Migration
+  dafür keine Community-Einstellung gab. Jetzt: `communities.neutral` (Migration
   **control-020**, additiv, '' = keine eigene Wahl). Zweite pure Funktion
   `resolveNeutralSelection` + `visitorMayChooseNeutral` NEBEN
   resolveThemeSelection — kein viertes Feld im Theme-Ergebnis, weil die Herkunft
@@ -205,8 +205,8 @@ Vollständiges Konzept: docs/CONCEPT.md
   (Client loggt nur „Realtime disconnected"). Sieht wie ein Code-Fehler aus, ist
   die Testumgebung.
 - `createRow<TenantRow>` verlangt ALLE Spalten explizit (bewusst) — eine neue
-  tenants-Spalte erzwingt eine Entscheidung an BEIDEN Anlegestellen
-  (tenants/index.post.ts + onboardingProvision.ts). Folge: die Migration MUSS
+  communities-Spalte erzwingt eine Entscheidung an BEIDEN Anlegestellen
+  (control/tenants/index.post.ts + onboardingProvision.ts — der DATEIname blieb). Folge: die Migration MUSS
   vor dem Code-Deploy laufen, sonst bricht das Anlegen einer Community.
 - Schriften, 2 Rollen (Text + Überschriften, + fixe Mono — nie mehr als 3):
   Registry-Einzelfamilien in app/assets/css/fonts.css (build-prozessiert →
@@ -286,7 +286,7 @@ Vollständiges Konzept: docs/CONCEPT.md
   scheitert ⇒ Tenant wird zurückgerollt.
 - Vertrag (Kataloge, 6 Vibes, Testphase, Kontingent):
   `packages/control/shared/onboarding.ts` — der Wizard-Layer konsumiert ihn.
-- Branding gehört dem MANDANTEN (`tenants.theme/variant`), nicht dem Projekt:
+- Branding gehört dem MANDANTEN (`communities.theme/variant`), nicht dem Projekt:
   `app_config.themeSettings` ist EINE Row pro Projekt.
 - Site-Routen autorisieren über `requireCommunityPermission` (Site-Rolle, dann
   protokollierter Operator-Break-Glass) — NIE `requirePermission` erweitern:
@@ -305,8 +305,14 @@ Vollständiges Konzept: docs/CONCEPT.md
   Schlüssel) und merkt den Entzug kurz (`rememberCommunityAccessRevoked`), damit der
   30-s-Rollen-Cache das Label nicht sofort wieder vergibt. Besitz übertragen
   läuft über `community.transfer` (Owner), NIE über die Rollen-Route — sonst wäre eine
-  Owner-Capability per Admin-Capability erreichbar. `community.delete` ist bewusst
-  NICHT gebaut (Davids Entscheidung 3). Schutzregeln PURE + unit-getestet in
+  Owner-Capability per Admin-Capability erreichbar. `community.delete` IST gebaut
+  (C16, 2026-07-31 — Kehrtwende zu Davids Entscheidung 3 vom 2026-07-29), aber als
+  **Stilllegen statt Vernichten**: `communities.status='disabled'` ⇒ Host 404 in
+  ≤30 s, alle Mitgliedschaften 'removed', Labels eingezogen — INHALTE BLEIBEN.
+  Gesperrt bei laufendem Abo (409 `subscription_active`) und bei bereits
+  stillgelegter Community. Route: `packages/onboarding/server/api/community/
+  delete.post.ts` → Service-Naht → `packages/control/server/api/control/community/
+  delete.post.ts`. Schutzregeln PURE + unit-getestet in
   `packages/control/shared/communityTeam.ts` (kein Selbst-Degradieren, nie der letzte
   Owner, `decideJoin`) — die UI kennt sie, das Control Plane setzt sie durch.
   Die Mitgliederliste zeigt ALLE (Standardansicht filtert aufs Team
@@ -421,7 +427,7 @@ Vollständiges Konzept: docs/CONCEPT.md
   `tenantDb(event)` (core/server/utils/tenantDb.ts) — NICHT über
   `createAdminClient().tablesDB` / `createSessionClient().tablesDB` direkt.
   `list/find/count` scopen immer, `get/update/remove` belegen die Zugehörigkeit
-  VOR der Aktion, `create` stempelt tenantId + Row-Permissions. `as:'operator'`
+  VOR der Aktion, `create` stempelt communityId + Row-Permissions. `as:'operator'`
   = Admin-Client (Moderation) — dort ist die Tür die EINZIGE Grenze, weil der
   Admin-Client die Row-Permissions bewusst umgeht.
 - ZWEI FRAGEN, ZWEI FELDER (seit 2026-08-02, Audit-Befund C1c): `as` sagt, WELCHER
@@ -442,8 +448,9 @@ Vollständiges Konzept: docs/CONCEPT.md
   Moderations-Routen lasen fremde Zeilen per ID, commit 1cc4855).
 - AUSSERHALB der Tür erlaubt (per Definition mandantenübergreifend):
   Migrationen, Sweeps/Intervall-Plugins, GDPR-Orchestrierung, Control Plane.
-- `tenantId` kommt NIE vom Aufrufer (stripTenantKey) — sonst schreibt ein
-  durchgereichter Body in einen fremden Mandanten.
+- Die Mandanten-Id kommt NIE vom Aufrufer (`stripTenantKey` entfernt BEIDE
+  Schlüssel, `communityId` und den Übergangs-Stempel `tenantId`) — sonst schreibt
+  ein durchgereichter Body in einen fremden Mandanten.
 - BACKSTOP (seit 2026-07-27): ESLint verbietet rohes `.tablesDB` in
   `server/api/**` UND `server/plugins/**` der gepoolten Layer (comments, posts,
   pages, moderation, events, courses — eslint.config.mjs, no-restricted-syntax).
@@ -452,10 +459,11 @@ Vollständiges Konzept: docs/CONCEPT.md
   pool-weit in eine Kunden-Ansicht. Wer einen H3Event bekommt, bedient einen
   REQUEST und gehört hinter dieselbe Tür wie eine Route; eventlose Sweeps
   brauchen eine begründete eslint-disable-Zeile statt einer Aufweichung.
-  Neue Pool-Layer in die Liste aufnehmen, sobald ihre Tabellen tenantId
+  Neue Pool-Layer in die Liste aufnehmen, sobald ihre Tabellen communityId
   tragen. Pool-Unique-
   Regel gilt weiter, ABER nur für tenant-RELATIVE Schlüssel: Host/Slug brauchen
-  tenantId (comments-015 uq_tenant_host, pages-004, courses-002 uq_tenant_slug),
+  communityId (comments-015 uq_tenant_host, pages-004, courses-002 uq_tenant_slug
+  — die INDEXNAMEN blieben, nur die Spalte wurde umbenannt),
   Row-Id-basierte NICHT (events/courses (courseId,userId) — eine Row-Id ist
   global eindeutig, da kann kein Mandant kollidieren).
 - DIE SPERRE FRIERT NUR INHALTE EIN (M13, seit 2026-08-02 — Davids
@@ -481,7 +489,7 @@ Vollständiges Konzept: docs/CONCEPT.md
   die A4-Regel „hat den Host eingeloggt benutzt", die noch am selben Tag zur
   Lüge wurde: „Zugang entziehen" nahm nur die Rolle, das Label kam beim nächsten
   Besuch zurück, die entfernte Person las weiter mit).
-  `core/server/middleware/06.community-label.ts` vergibt `Role.label(siteId)` genau dem,
+  `core/server/middleware/06.community-label.ts` vergibt `Role.label(communityId)` genau dem,
   der eine `community_members`-Zeile MIT ZUGANG hat (idempotent, additiv — mehrere
   Communities = mehrere Labels; `grantCommunityLabel`/`revokeCommunityLabel` in
   core/server/utils/communityLabel.ts). Ein Label ist ein LESE-Publikum, KEINE Rolle —
@@ -492,7 +500,7 @@ Vollständiges Konzept: docs/CONCEPT.md
   Naht zum Control Plane besitzt der onboarding-Layer, A14), Regel `decideJoin`
   in `packages/control/shared/communityTeam.ts`, Route
   `POST /api/control/community/members/join`. Gesteuert vom BESTEHENDEN Schalter
-  `tenants.openRegistration`: OFFEN ⇒ Beitritt (Rolle `viewer`), GESCHLOSSEN ⇒
+  `communities.openRegistration`: OFFEN ⇒ Beitritt (Rolle `viewer`), GESCHLOSSEN ⇒
   nur per Einladung. ZWEI Auslöser, mehr nicht: (1) `registration` — Kontoanlage
   auf dem Mandanten-Host (signup.post.ts + otp/verify.post.ts, dort wo der Feed
   schon „user.joined" sagt); (2) `contribution` — der erste eigene
@@ -508,7 +516,7 @@ Vollständiges Konzept: docs/CONCEPT.md
   Wahrheit im Runtime-Projekt und die Zeile im Control Plane liegt). Beweis:
   Abschnitt 10 in `packages/onboarding/scripts/verify-site-authz.mjs`.
 - BENACHRICHTIGUNGEN sind ABLAGE, nicht Zugriff (C15, seit 2026-07-29):
-  `notifications.tenantId` (system-022) entscheidet, in WELCHER Glocke eine
+  `notifications.communityId` (system-022, seit E8-3 so benannt) entscheidet, in WELCHER Glocke eine
   Meldung erscheint — wer sie lesen darf, bleiben die Row-Permissions (nur
   `recipientId`). `notify()` verlangt daher ein PFLICHTFELD
   `scope: 'tenant' | 'account'`: 'account' = bewusst mandantenlos (Stripe-
@@ -517,7 +525,7 @@ Vollständiges Konzept: docs/CONCEPT.md
   fremde Glocken legt; der Typfehler ersetzt hier den ESLint-Backstop, der in
   `server/utils/**` nicht greift. EINE pure Regel für Schreiben, Leseroute UND
   Realtime-`where`: `core/shared/notificationScope.ts`. Drei Spaltenwerte:
-  `<tenantId>` · `_account` (kollisionsfrei — Row-Ids beginnen nie mit `_`) ·
+  `<communityId>` · `_account` (kollisionsfrei — Row-Ids beginnen nie mit `_`) ·
   `''` = unbekannt. `''` ist hier FAIL-OPEN und damit die BEGRÜNDETE AUSNAHME
   von `rowBelongsToTenant` — ohne Backfill würde fail-closed jedem Nutzer im
   Deploy-Moment die Glocke leeren. Nicht „korrigieren". Der Digest-Sweep bleibt

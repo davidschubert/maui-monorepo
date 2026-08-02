@@ -436,7 +436,7 @@ Deploy-Script: `npm i -g pnpm && pnpm install --frozen-lockfile && pnpm --filter
 
 ### A10 — Migrations
 
-Appwrite hat kein eingebautes Migrations-System → manuelle Scripts, nie automatisch im Deploy. **Core hat kein Schema** — nur die Konvention + README. Feature Layers und Apps bringen eigene Migrations mit (z.B. `packages/comments/scripts/migrations/001-comments-tables.ts`). Beim Server-Upgrade (z.B. 1.8→1.9) immer die Appwrite-Migration sauber durchlaufen lassen.
+Appwrite hat kein eingebautes Migrations-System → manuelle Scripts, nie automatisch im Deploy. **Core hat kein Schema** — nur die Konvention + README. Feature Layers und Apps bringen eigene Migrations mit (z.B. `packages/comments/scripts/migrations/002-target-architecture.ts`). Beim Server-Upgrade (z.B. 1.8→1.9) immer die Appwrite-Migration sauber durchlaufen lassen.
 
 **Konventionen (v2.1, etabliert in Phase 10):**
 - Aufruf ohne Zusatz-Dependencies: `node --experimental-strip-types

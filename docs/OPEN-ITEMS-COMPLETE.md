@@ -11,6 +11,22 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 **Gelernt:** — was schiefging, warum, und welche Regel daraus wurde. Wer eine
 ähnliche Aufgabe anfängt, liest zuerst diese Zeilen.
 
+> **Zu den `F`-Nummern — sie sind ZWEIMAL vergeben worden** (festgestellt beim
+> Gegenlesen am 2026-08-02, nicht rückwirkend umnummeriert):
+>
+> - **`F1`–`F19` hier im Archiv** sind Befund-Nummern aus den Audits ab dem
+>   2026-07-31 (`F1` = leere Fehler-Beschreibungen, `F2` = doppelter
+>   i18n-Schlüssel, `F3` = Kontolöschung im Control Plane …).
+> - **`F1`, `F2`, `F3`, `F7`, `F15` in OPEN-ITEMS.md** sind etwas ganz anderes:
+>   geparkte Produkt-Punkte, die beim Aufräumen der Liste am 2026-07-31 (Commit
+>   `e7602015`) neu durchnummeriert wurden — `F1` heißt dort „Discussions als
+>   eigenes Produkt".
+>
+> Umnummeriert wird **nicht**: beide Nummernkreise stehen in Commit-Meldungen
+> und in Querverweisen, ein nachträglicher Umbau machte die unlesbar. Wer eine
+> `F`-Nummer nachschlägt, prüft also zuerst, aus WELCHER Liste sie stammt.
+> Ab `F20` ist die Nummerierung wieder eindeutig.
+
 ---
 
 ### G4 — Sicherheits-Paket: Session-Handoff, Einladungen, Drosseln, IP ✅ 2026-08-02
@@ -696,7 +712,12 @@ eines Gates also nachsehen, ob das Werkzeug die Dateien überhaupt anfasst.
 
 ---
 
-### F19 — Warum die CI-E2E zufällig starb: ein vergifteter Appwrite-Cache ✅ 2026-08-02
+### F19 · #33 — Warum die CI-E2E zufällig starb: ein vergifteter Appwrite-Cache ✅ 2026-08-02
+
+> **Die Nummer F19 war zweimal vergeben** (in OPEN-ITEMS.md standen am
+> 2026-08-01 die Zeilen `33 · F19` UND `38 · F19`). Unterschieden wird deshalb
+> über die laufende Nummer: **#33** ist dieser Eintrag (CI-E2E / Index-Cache,
+> Fortsetzung in F19b · #33), **#38** ist der Sperr-Beweis weiter unten.
 
 **Befund.** Zwei von acht E2E-Läufen eines Vormittags starben im Bootstrap mit
 `column_not_available` — einmal `media/003` (`tenantId`), einmal `events/007`
@@ -844,7 +865,7 @@ echte Domains und bleibt ein Prod-Beweis
 | --- | --- | --- |
 | E4 (Teil) | **Cutover-Krümel** ([CONTROL-CUTOVER.md](runbooks/CONTROL-CUTOVER.md)): ploi-Alias `studio.` ✅ **entfernt 2026-07-30** (ploi → Domain aliases; `studio.pukalani.app` antwortet jetzt 404 über die Wildcard-Site `platform`, alle übrigen Hosts unverändert, verify-tls grün). Das „Doppel-Zertifikat" ist **kein Aufräum-Punkt**: control hat eine eigene Lineage, die den Alt-SAN `studio` bis zur nächsten automatischen Erneuerung mitführt — eine Anforderung nur zum Entfernen eines überzähligen Namens wäre reines Risiko ohne Nutzen. **Rest offen (Read-only-Key im Projekt `control`) steht in OPEN-ITEMS.md.** **Gelernt:** Beim Aufräumen des Cutovers starb einmal die portfolio-App, weil `pm2 jlist` auf ein cwd unter dem ALTEN Hostnamen zu prüfen war (`ops/pm2-heal.sh`). Eine Umbenennung zieht Meldungen mit, PFADE aber nicht — nach jedem Rename die Prozess-/Skript-Pfade einzeln nachsehen. Und: ein überzähliger Zertifikatsname ist KEIN Aufräumgrund; eine Neuanforderung nur zum Entfernen wäre Risiko ohne Nutzen. | 2026-07-30 |
 | E6 | ✅ **ERLEDIGT 2026-07-30** — 47 Worktrees + 47 Zweige `worktree-agent-*` entfernt (alle in `main`, ohne `--force` gelöscht, keiner hatte ungesicherte Änderungen). **Stehen geblieben und zwar bewusst:** `worktree-agent-a762b1bc42bba74d7` = der geparkte **Seiten-Editor** (1 Commit, 108 Zeilen, Feature-Stopp) und VIER Worktrees anderer Claude-Sitzungen (`claude/epic-diffie`, `claude/pukalani-landingpage-optimization`, `claude/sleepy-leavitt`, `claude/upbeat-curran`) — deren Arbeit liegt zwar in `main`, aber sie gehören mir nicht und mindestens eine ist aktiv. **Gelernt:** Vor dem Löschen IMMER prüfen, ob ein Worktree einer fremden, laufenden Sitzung gehört — `--force` wäre hier fremder Arbeitsverlust gewesen. Ohne `--force` löschen ist der eingebaute Schutz: Zweige mit ungesicherten Änderungen verweigern sich von selbst. | 2026-07-30 |
-| E8 (Etappen 1+2) | **Umbenennung auf `community`** — Davids Entscheidung (2026-07-29/30). Plan: [UMBENENNUNG-AUF-COMMUNITY.md](plans/UMBENENNUNG-AUF-COMMUNITY.md). **Etappe 1 LIVE:** `sites` → `websites` (control-022). **Etappe 2 LIVE (2026-07-30):** `site_members`/`site_invites` → `community_members`/`community_invites` + Spalte **`siteId` → `communityId`** in beiden UND in `invite_requests` (control-023); der Name `communityId` gilt jetzt überall, wo eine `tenants.$id` transportiert wird (TenantContext, Resolver-Verträge, Service-Naht). Beweise nachgefahren: **97/97** Site-Autorisierung · **23/23** Presence-Grenze · **17/17** + **19/19** Einladungen. Beim Ausrollen bewusst KEINE Kompatibilitäts-Brücke: das Deploy-Fenster (control vor platform, dieselbe Schleife, unter einer Minute) lässt die Naht kurz mit 400 antworten — bei leeren Tabellen und ohne Kunden verhältnismäßig, eine Brücke wäre ein neuer Halbzustand gewesen. **Das Aufräumen der Alt-Tabellen ist mit E11 miterledigt.** Etappen 3+4 stehen offen in OPEN-ITEMS.md. **Gelernt:** Eine Kompatibilitäts-Brücke ist nicht automatisch die vorsichtigere Wahl — sie wäre hier ein neuer HALBZUSTAND gewesen, den später wieder jemand hätte abbauen müssen. Bei leeren Tabellen und ohne Kunden ist ein Deploy-Fenster von unter einer Minute mit kurzen 400ern die ehrlichere Lösung. Die Entscheidung hängt an der Frage „wer sieht den Zwischenzustand?", nicht an der Technik. | Etappe 1+2: 2026-07-30 |
+| E8 (Etappen 1+2) | **Umbenennung auf `community`** — Davids Entscheidung (2026-07-29/30). Plan: [UMBENENNUNG-AUF-COMMUNITY.md](archiv/UMBENENNUNG-AUF-COMMUNITY.md). **Etappe 1 LIVE:** `sites` → `websites` (control-022). **Etappe 2 LIVE (2026-07-30):** `site_members`/`site_invites` → `community_members`/`community_invites` + Spalte **`siteId` → `communityId`** in beiden UND in `invite_requests` (control-023); der Name `communityId` gilt jetzt überall, wo eine `tenants.$id` transportiert wird (TenantContext, Resolver-Verträge, Service-Naht). Beweise nachgefahren: **97/97** Site-Autorisierung · **23/23** Presence-Grenze · **17/17** + **19/19** Einladungen. Beim Ausrollen bewusst KEINE Kompatibilitäts-Brücke: das Deploy-Fenster (control vor platform, dieselbe Schleife, unter einer Minute) lässt die Naht kurz mit 400 antworten — bei leeren Tabellen und ohne Kunden verhältnismäßig, eine Brücke wäre ein neuer Halbzustand gewesen. **Das Aufräumen der Alt-Tabellen ist mit E11 miterledigt.** Etappen 3+4 sind am 2026-07-31 nachgezogen — eigene Einträge weiter unten (E8-3, E8-4); in OPEN-ITEMS.md steht davon nichts mehr offen. **Gelernt:** Eine Kompatibilitäts-Brücke ist nicht automatisch die vorsichtigere Wahl — sie wäre hier ein neuer HALBZUSTAND gewesen, den später wieder jemand hätte abbauen müssen. Bei leeren Tabellen und ohne Kunden ist ein Deploy-Fenster von unter einer Minute mit kurzen 400ern die ehrlichere Lösung. Die Entscheidung hängt an der Frage „wer sieht den Zwischenzustand?", nicht an der Technik. | Etappe 1+2: 2026-07-30 |
 | E11 | **Vokabular aufräumen — ein Wort je Sache** ([VOKABULAR-AUFRAEUMEN.md](plans/VOKABULAR-AUFRAEUMEN.md)) — Davids Auftrag 2026-07-30. **`feature` → `product` ist DURCH (Etappen A+B, 2026-07-30):** Migrationen control-024 + system-023 + courses-003 auf allen vier Instanzen (lokal+Prod), 964 regelbasierte Ersetzungen in 226 Dateien + 43 git mv, Typecheck 10/10 + alle Tests + Gates grün. **Das ZUSAMMENZIEHEN ist DURCH (2026-07-30, Davids Go — Beobachtungsnacht erlassen):** control-025/026 + system-024 + courses-004 auf lokal + Prod, alle Übergangs-Spiegel/Aliasse entfernt; auch das E8-Aufräumen (Alt-Tabellen) ist damit erledigt. „Customize theme" ersetzt das Theme-Studio (Davids Entscheidung). NEU: Betreiber-Seite „Gesperrte Namen" (control-027) und A6 Schritte 0–2 (control-028, Community-Fulfillment). Ursprünglicher Kern war: **`feature` → `product`**, also `feature.manifest.ts` → `product.manifest.ts` (**18 Dateien**), `featureKey` (56), `featureGates` (18), `check:manifests` (13) — insgesamt **2.626 Zeilen in 413 Dateien**. **Bewusste Kehrtwende:** CLAUDE.md hält bis heute fest „im CODE bleibt das Vokabular `features`" (P4); das gilt damit nicht mehr. Zwei Stellen mit echtem Risiko waren: die Appwrite-Tabelle **`feature_catalog`** (kein Rename möglich ⇒ Muster control-022/023, Zeilen MIT `rowId: row.$id`, und die Row-Id ist hier der Feature-Key, der in `entitlements.featureKey` steckt) und die **öffentliche Route `/api/platform/features`**. Die Altlast **`pukalani.studio.*`** ist ebenfalls DURCH (2026-07-30: → `pukalani.control.*` samt Log-Präfixen, controlUserData, Prosa; RESERVED `studio` + Theme-Studio bleiben bewusst); übrig drei bewusste `reddit`-Kommentarreste. **Einzige offene Frage war `maui` vs. `pukalani`** — inzwischen entschieden und als eigener Punkt (E11b) in OPEN-ITEMS.md geführt. Reihenfolge zwingend seriell (alle fassen dieselben Dateien an): A6 → E8-3 → E8-4 → feature/product ✅ → pukalani.studio ✅ → E9/E10. **Gelernt (fünf Fallen, alle beim Bauen aufgetaucht):** (1) **`app_config` stand am utf8mb4-Zeilenbudget** — die neue Spalte `products` passte nicht mehr als `varchar(4000)` und musste als **MEDIUMTEXT** angelegt werden (off-row, kostet kein Zeilenbudget). Bei breiten Konfig-Tabellen vor jeder neuen Spalte das Budget rechnen. (2) **Die DRITTE Migrations-Lücke (`courses.entitlementFeature`) fiel erst beim Bauen auf**, nachdem schon zwei gefunden waren: dieselbe Vokabel liegt in MEHREREN Projekten. Regel: vor jedem Vokabular-Rename ALLE `scripts/migrations/**` nach dem Wort greppen — sowohl als `key:` (Spaltenname) wie als `tableId` — und die Trefferliste abhaken, statt sich auf das Gedächtnis zu verlassen. (3) **Die Changelog-Kategorie `'feature'` ist ein DATEN-WERT** („Neuerung") und kein Vokabel-Vorkommen — sie darf nie mitbenannt werden. Ein regelbasiertes Ersetzen muss Daten von Bezeichnern trennen; dasselbe gilt für **Locale-WERTE**: das Skript benennt Schlüssel um, niemals die Sprache dahinter. (4) **`entitlements.featureKey` war `required` + Unique-Index** — ohne Dual-Write wäre JEDER Insert im Umstellungsfenster gescheitert. Pflichtspalten mit Unique-Index brauchen immer die Doppelschreibphase. (5) Die Row-Id von `feature_catalog` IST der Feature-Key und steckt in `entitlements.featureKey` — beim Kopieren also `rowId: row.$id` mitführen, sonst zerreißt die Referenz. | 2026-07-30 |
 | F9 | **`channel: 'chrome'` in den letzten zwei Test-Configs nachgezogen** — ✅ **ERLEDIGT 2026-08-01.** `apps/portfolio/playwright.config.ts` und `apps/control/playwright.config.ts` fahren jetzt wie `apps/comments` Playwrights **gebündeltes Chromium** (kein `channel`), samt Kopfkommentar mit dem E7-Grund (System-Chrome startet auf macOS GoogleUpdater/crashpad, die das stdout-Socketpair des Workers erben, zu launchd reparenten und nie schließen ⇒ 300-s-Force-Kill, Exit 1 trotz grüner Suite). **CI-Install-Schritt bewusst NICHT nötig und deshalb auch nicht gebaut:** ein Durchgang durch alle sieben Workflows zeigt, dass Playwright **ausschließlich** in `e2e.yml` und dort **nur für `comments`** läuft — portfolio und control haben gar keinen E2E-Job, ihre Suiten sind lokale Smoke-Netze. Das steht jetzt so in beiden Kopfkommentaren, damit niemand den Schritt „sicherheitshalber" nachrüstet. Beweis: `portfolio` **5/5 grün in 11,9 s**, `control` **10/10 grün in 14,3 s**, beide Exit 0 und ohne Teardown-Hang. Die zwei Einmal-Skripte (og-images, brand-card-font) bleiben wie geplant auf System-Chrome. **Gelernt:** Bevor man einen CI-Schritt „analog zum Vorbild" nachzieht, erst nachsehen, ob die Suite in CI überhaupt läuft — hier wären zwei Install-Schritte für Jobs entstanden, die es nicht gibt. Die Begründung gehört in den Kopfkommentar der Config, sonst wird sie beim nächsten Durchgang erneut erwogen. | 2026-08-01 |
 | F10 | **`embed-write.spec.ts` — die Diagnose war falsch, die Ursache eine ganz andere** — ✅ **ERLEDIGT 2026-08-01.** In der Aufgabenliste stand „fällt unter **Parallel-Last** durch, der 60-s-Popup-Puffer reißt", mit den Kandidaten „Budget hoch" oder „Worker-Exklusivität". **Beide wären am Problem vorbeigegangen, beide durch Messung ausgeschlossen:** ein höheres Budget hilft nicht (im Voll-Lauf hatte der Fall die letzten 34 s praktisch allein und fiel trotzdem), und Worker-Exklusivität hilft nicht (**kalt und ALLEIN** fällt er genauso, 90 s) — Playwright böte sie über ein eigenes Projekt mit `dependencies` an (per-Projekt-`workers` gibt es seit 1.61 auch, isoliert aber NICHT gegen andere Projekte), nur nützt sie hier nichts. Die echte Ursache steckte im **Popup**: `__vue_app__` entsteht beim `createApp`, die Seite darunter hängt an einem `<Suspense>` und wird **erst rund 100 ms später** hydratisiert. In diesem Spalt sieht das SSR-Markup interaktiv aus, ohne dass Vue lauscht — `fill()` landet nur im DOM, die reaktive Kopie des Formulars bleibt leer, und beim Absenden meldet **Zod „Please enter a valid email address"**. `/api/auth/login` wurde nie gerufen, das Popup blieb offen, das iframe stand für immer auf `status='waiting'` (CTA disabled) — und der Fall starb 60 s später an einer Wartezeile, die mit der Ursache nichts zu tun hatte. Nachgewiesen mit einer Wegwerf-Spec, die Konsole, `pageerror` und alle `/api/`-Antworten des Popups mitschnitt und die Kandidaten-Signale im 100-ms-Takt abtastete: bei `__vue_app__` war `isMounted:true`, aber `formVnode:false`; 100 ms später `formVnode:true`, danach `login 200` → Popup geschlossen → Composer da. **Fix:** ein `subtreeHydrated(selector)`-Prädikat neben dem bestehenden `hydrated` — es prüft `__vnode` am Element, also ob Vue **diesen Teilbaum** übernommen hat — und zwei Wartezeilen davor (`[data-login-form]` im Popup, `[data-comment-section]` im iframe). Kein `retries`-Kaschieren, keine verstellte Uhr, die 60-s-Puffer bleiben unverändert stehen. Beweis: der zuvor dreimal reißende Fall (kalt+allein) läuft **10,5 s statt 90 s Fehlschlag**; volle Suite **3× hintereinander grün, Exit 0, kein Teardown-Kill** — Lauf 1 **kalt 54 s** (24/24, embed-write 25,6 s), Lauf 2 **15 s**, Lauf 3 **15 s**. Zum Vergleich vorher: kalte Volllauf-Suite 103 s **mit** Fehlschlag. **Gelernt (drei Stück):** (1) **Eine Fehlerbeschreibung in der Aufgabenliste ist eine Hypothese, kein Befund.** „Unter Parallel-Last" stimmte als Beobachtung und war als Ursache trotzdem falsch — der erste Lauf war zufällig warm und gewann das 100-ms-Rennen, alle späteren nicht. Die Gegenprobe „kalt UND allein" kostete drei Minuten und drehte die ganze Richtung. (2) **`__vue_app__` ist kein Beweis, dass ein Formular bedienbar ist.** Unter `<Suspense>` lebt die App, bevor die Seite hydratisiert ist; wer in diesem Spalt tippt, füllt nur den DOM. Wartezeilen gehören an den Teilbaum, mit dem der Test tatsächlich umgeht — dieselbe Lektion wie C9 („Haken ans handelnde Element"), nur eine Ebene tiefer. (3) **Ein stiller Validierungsfehler tarnt sich als Zeitüberschreitung.** Sichtbar wurde er erst, als der Zwischenzustand mitgeschrieben wurde (Popup-URL, `window.opener`, Fehlertext, Composer-Zahl im 2-s-Takt). Bei „wartet und wird nie fertig" zuerst den Zustand protokollieren, statt an der Wartezeit zu drehen — und **zwei falsche Fährten unterwegs** (Appwrite-Rate-Limit, Vite-Optimizer-Reload) waren beide in unter fünf Minuten widerlegt, weil sie messbar formuliert waren. | 2026-08-01 |
@@ -2537,7 +2558,7 @@ noch den offenen Rest: die Löschfrist für `abuse_reports.reporterEmail`
 (Melder ohne Konto — die erreicht kein GDPR-Contributor, sie braucht einen
 eigenen Sweep).
 
-### Wechselwirkungs-Audit M13 × übrige Features — 5 Befunde ✅ 2026-08-03
+### Wechselwirkungs-Audit M13 × übrige Features — 5 Befunde ✅ 2026-08-02
 
 Fünf Befunde aus dem Audit „was macht die Sperre mit dem Rest des Produkts",
 alle zuerst am Code (und drei davon live) reproduziert, dann behoben. Davids
@@ -2924,7 +2945,10 @@ Kaltstart-Kompilat der Seiten. Der zweite Lauf war jedes Mal grün. Vor einem
 roten Befund also erst einmal warmlaufen lassen, sonst jagt man einen
 Regressionsschaden, den es nicht gibt.
 
-### F19 — der Sperr-Beweis war beim Kaltstart falsch-rot ✅ 2026-08-02
+### F19 · #38 — der Sperr-Beweis war beim Kaltstart falsch-rot ✅ 2026-08-02
+
+> Zweite Vergabe der Nummer F19 (laufende Nummer **#38**) — nicht zu verwechseln
+> mit F19 · #33 weiter oben (CI-E2E / Index-Cache). Siehe die Notiz dort.
 
 `verify-community-suspension.mjs` meldete beim ersten Lauf regelmäßig 14
 Fehlschläge; ein zweiter Lauf war sauber. Die naheliegende Erklärung
@@ -2951,3 +2975,550 @@ Beweis misst etwas anderes, als er behauptet. Und: Flakiness ist kein
 Schicksal, sondern eine unfertige Diagnose. Die These „Cache" hielt zwei Tage,
 weil niemand nachgesehen hat, ob die Sperre zum Prüfzeitpunkt noch steht — die
 Prüfung darauf kostete vier Zeilen und beantwortet die Frage endgültig.
+
+---
+
+### G5 — Nacht-Audit-Nachlese: fünf Härtungen in core/control/admin ✅ 2026-08-02
+
+**Was das war.** Fünf Befunde aus dem Nacht-Audit (F32, F33, F34, F35, F23) —
+alle in `packages/core`, `packages/control`, `packages/admin`. Keiner war ein
+offenes Loch mit Ausnutzung von heute; alle fünf waren Zusagen, die der Code
+machte, ohne sie zu prüfen. Jeder wurde erst am Code REPRODUZIERT, dann
+gefixt, jeder hat einen eigenen Unit-Beweis. Die beiden Live-Beweise sind
+unverändert grün (`verify-site-authz` **118/118**,
+`verify-community-suspension` **95/95**).
+
+**F32 (Mittel) — UNTER DER WILDCARD IST JEDER MANDANT „SAME-SITE".** Der
+CSRF-Herkunftscheck (`core/server/middleware/03.csrf-origin.ts`) lehnte nur
+`Sec-Fetch-Site: cross-site` ab und ließ `same-site` bedingungslos durch. Das
+ist richtig für eine App auf EINEM Host — dieses Deployment hängt aber unter
+`*.pukalani.app`, und dort ist jeder Mandanten-Host same-site zu jedem
+anderen. `boese-community.pukalani.app` durfte also schreibende Requests an
+`verein.pukalani.app` schicken, und der Browser meldete brav „same-site".
+Heute hält noch das `SameSite=Lax`-Cookie; scharf wird es genau dann, wenn das
+partitionierte Embed-Cookie (`SameSite=None`) kommt — also in dem Moment, für
+den dieser Check überhaupt gebaut wurde.
+
+Gefixt mit der kleinsten Härtung: `same-site` fällt jetzt in den
+Origin-gegen-Host-Vergleich, der drei Zeilen weiter unten schon stand. Ein
+`same-site` OHNE `Origin` wird abgelehnt — same-site heißt per Definition
+cross-origin, ein Browser schickt dabei immer einen Origin, seine Abwesenheit
+ist ein Widerspruch. Bewusst NICHT strenger wurden `same-origin` (bei manchen
+gleichherkünftigen Formular-POSTs fehlt der Origin — ein Zwang bräche echte
+Requests, ohne etwas zu gewinnen), `none` und der origin-lose
+Server-zu-Server-Fall (Stripe-Webhook, curl: kein Browser-Cookie im Spiel).
+
+Die Entscheidung liegt jetzt PURE in `core/server/utils/csrfOrigin.ts`, die
+Middleware ist nur noch Gate + Header-Auslesen.
+
+**DER EMBED-FLUSS BRICHT NICHT — nachgeprüft, nicht vermutet.** `apps/comments`
+ist der einzige aktive Konsument (`csrfOriginCheck: true`). Alle unsicheren
+Embed-Routen werden aus einem Dokument DERSELBEN Origin gerufen: das iframe
+zeigt auf `<widget-host>/embed` und ruft `<widget-host>/api/*`, das Login-Popup
+ruft `/api/auth/embed-handoff` von der Widget-Origin, das iframe danach
+`/api/auth/embed-session`. Alle melden `same-origin`. `embed.js` läuft zwar auf
+der fremden Gastgeber-Seite, macht dort aber nur GET (`/api/comments/count`) —
+unsichere Methoden fasst die Regel gar nicht an. Es war also **keine Ausnahme
+zu ziehen**, und das ist die eigentliche gute Nachricht: hätte es eine
+gebraucht, wäre sie die Sollbruchstelle des ganzen Checks geworden.
+
+**Beweis:** 13 Fälle (`packages/core/tests/csrfOrigin.test.ts`) — same-origin
+mit und ohne Origin, same-site mit passendem Origin (nur Schema unterschiedlich),
+same-site mit fremdem Mandanten-Host, same-site mit anderem PORT, same-site ohne
+Origin, `'null'` aus einem sandboxed iframe, Präfix-/Suffix-Tricks am Hostnamen,
+cross-site (auch mit passend gefälschtem Origin), `none`, fehlender Header mit
+und ohne Origin.
+
+**F33 (Niedrig) — DIE NAHT GLAUBTE DEM AUFRUFER SEIN PROJEKT.**
+`POST /api/control/community/members/user-erase` nahm `runtimeProjectId` aus
+dem Body und scopte hart darauf. Das fehlende JWT ist begründet (das Konto ist
+beim Aufruf schon gesperrt und gleich weg), aber niemand prüfte das genannte
+Projekt: wer das Service-Secret hatte, konnte damit Mitgliedschaften und
+Einladungen in JEDEM Runtime-Projekt löschen — also im Silo eines fremden
+Kunden. Jetzt hält `assertOnboardingRuntimeProject` (control
+`server/utils/onboardingService.ts`) das genannte Projekt gegen das EINE, das
+diese Naht bedient (`onboardingRuntimeProject`), und antwortet sonst 403. Der
+Body darf das Projekt weiterhin NENNEN — aber nur, um bestätigt zu werden.
+
+**MITGEFIXT, weil derselbe Schnitt:** `members/user-data.post.ts`, die
+Auskunfts-Route daneben, hatte die identische Lücke in Leserichtung. Eine
+Auskunft über die Mitgliedschaften und Einladungs-ADRESSEN eines fremden
+Runtime-Projekts ist auch ohne Schreibrecht ein Datenleck. Beide sind die
+einzigen Community-Routen, die ihr Projekt aus dem Body nahmen — alle anderen
+ziehen es ohnehin aus `verifyRuntimeIdentity` (nachgezählt: 7 Routen,
+`Query.equal('runtimeProjectId', identity.projectId)`).
+
+**Beweis:** `packages/control/tests/onboardingRuntimeProject.test.ts` —
+eigenes Projekt (auch mit Whitespace aus Env-Dateien), fremdes Projekt,
+Teil-Treffer (`pool` vs. `poo`/`pool2`), Groß-/Kleinschreibung (Appwrite-Ids
+sind case-sensitiv, also wird NICHT normalisiert), leer gegen leer.
+
+**F34 (Niedrig) — EIN TIMEOUT SCHALTETE DIE MANDANTEN-TRENNUNG DER GLOCKE AB.**
+`runScopedNotificationQuery` fing JEDEN Fehler und wiederholte die Abfrage
+UNGESCOPT. Gedacht war das als Deploy-Brücke für den Fall „Spalte noch nicht
+migriert"; getroffen hat es auch Timeouts, Appwrite-5xx und abgerissene
+Sockets — also genau die Fehler, die im Betrieb tatsächlich vorkommen. Für die
+Dauer der Störung mischten sich fremde Communities in die Glocke.
+
+**ENTSCHIEDEN: verengen statt streichen.** Der Rückfall feuert jetzt nur noch
+bei `code === 400` UND `general_query_invalid` (bzw. „attribute not found" im
+Text, falls Appwrite den Typ je umbenennt) — `isUnknownScopeColumnError`, pure
+und getestet. Alles andere fliegt durch; der Aufrufer bekommt seinen 5xx, und
+die Glocke bleibt getrennt. Ganz entfernt wurde die Brücke NICHT, obwohl die
+Migration überall gelaufen ist: in diesem Zustand kostet sie nichts (sie kann
+nur noch auf einer Instanz ohne Migration feuern) und deckt denselben Fall bei
+der NÄCHSTEN Umbenennung der Spalte wieder ab — die es schon gab
+(`tenantId` → `communityId`, system-025). Was sie nicht mehr darf, ist bei
+irgendetwas anderem feuern. Ein Transportfehler ist kein Grund, eine
+Sicherheits-Grenze fallen zu lassen.
+
+**Beweis:** `packages/core/tests/notificationScopeFallback.test.ts` — 400er
+mit und ohne Typ, 500/504/ECONNRESET/429/401 und blanke Fehler als „nicht der
+Fall", dazu der Ablauf selbst: Normalfall EIN gescopter Lauf, Silo ohne
+Rückfall-Pfad, nicht migrierte Spalte mit genau EINEM ungescopten
+Wiederholungslauf, Timeout mit genau EINEM Versuch und durchgereichtem Fehler.
+
+**F35 (Niedrig) — DIE ATTRAPPEN-PHRASE WAR AN DER GROSSSCHREIBUNG ZU ERKENNEN.**
+Seit G4 antwortet `/api/auth/otp` bei geschlossener Registrierung auch für
+unbekannte Adressen 200, mit einer erfundenen Sicherheitsphrase. Der Code nannte
+die selbstgebaute Wortliste eine „ehrliche Grenze" („wer beide Listen kennt,
+könnte an EINEM Wort erkennen …"). **Nachgemessen ist es viel schlimmer als
+das:** Appwrite baut die Phrase in `src/Appwrite/Auth/Phrase.php` aus einem
+GROSSgeschriebenen Adjektiv und einem KLEINgeschriebenen Substantiv („Radiant
+zebra") — unsere Attrappe schrieb BEIDE Wörter groß („Amber Anchor"). Die
+Unterscheidung brauchte also gar keine Wortlistenkenntnis: die
+Groß-/Kleinschreibung des zweiten Wortes verriet in **100 % der Fälle**, dass
+keine Mail unterwegs ist. Genau die Konten-Enumeration, die der stille Pfad
+verhindern sollte, funktionierte weiter. Obendrein lagen nur 6 von 16
+Adjektiven und 1 von 16 Substantiven überhaupt in Appwrites Listen.
+
+Gefixt mit Appwrites EIGENEN Listen, verbatim übernommen
+(`core/server/utils/securityPhrase.ts`) — nicht abgetippt, sondern aus dem
+laufenden Container gelesen (`docker exec appwrite cat
+/usr/src/code/src/Appwrite/Auth/Phrase.php`, Appwrite 1.9.6): 129 Adjektive,
+104 Substantive **einschließlich der drei Dubletten** („umbrella", „globe",
+„xylograph" stehen dort je zweimal). Appwrite zieht mit `array_rand`, eine
+Dublette hat also die doppelte Wahrscheinlichkeit — wer die Liste „aufräumt",
+baut den statistischen Unterschied wieder ein, den diese Datei beseitigt.
+
+**Die Drift-Sorge des alten Kommentars war richtig, aber die kleinere Gefahr:**
+Drift entsteht nur, wenn Appwrite die Liste ÄNDERT, und verrät dann höchstens
+die hinzugekommenen Wörter. Der bisherige Zustand verriet jede einzelne
+Attrappe sofort. Die Datei gehört jetzt auf die Prüfliste beim
+Appwrite-Upgrade; der Vergleich ist der eine `docker exec`-Befehl oben.
+
+**Beweis:** `packages/core/tests/securityPhrase.test.ts` — Umfang (129/104,
+101 eindeutige Substantive, die drei Dubletten je zweimal), Groß-/Kleinregel
+beider Listen, keines der alten Eigenbau-Substantive mehr enthalten, und 500
+gezogene Phrasen, deren beide Wörter aus den Listen stammen („ice cream" mit
+Leerzeichen inklusive) und deren zweites Wort kleingeschrieben ist. Live
+mitbewiesen in `verify-site-authz.mjs` Abschnitt 10c („OTP: UNBEKANNTE Adresse
+antwortet identisch").
+
+**F23 (Niedrig) — DER STATS-CACHE TRUG EINE MANDANTENZAHL ÜBER HOST-GRENZEN.**
+`/api/admin/users/stats` hielt ALLE VIER Zahlen in einer prozessweiten,
+ungeschlüsselten 60-Sekunden-Variablen. Drei davon sind projektweit
+(`total`/`active`/`new` aus `users.list()`; im Pool teilen sich alle
+Communities EIN Appwrite-Projekt), die vierte — `online` aus
+`listOnlinePresences(event)` — ist seit A4 mandantengescopt. Ein Betreiber, der
+binnen einer Minute zwei Community-Hosts ansah, bekam auf dem zweiten die
+Anwesenheitszahl des ersten.
+
+**ENTSCHIEDEN: trennen statt schlüsseln.** Ein mandantengeschlüsselter Cache
+(Muster `tenantCacheScope`) hätte die Zahlen MITGESCHLEPPT, die gar nicht pro
+Mandant verschieden sind — und mit ihnen den teuren Teil: `active` scannt bis
+zu 5.000 Nutzer per Cursor, weil `accessedAt` bei Appwrite nicht queryfähig
+ist. Bei N Communities wären das N Scans für N identische Ergebnisse; ein
+Cache, der Last sparen soll, hätte sie vervielfacht. `online` dagegen ist EIN
+Presences-Aufruf ohne Scan — es zu cachen sparte praktisch nichts und war der
+einzige Grund, warum der Cache falsch sein konnte. Es kommt jetzt bei jedem
+Request frisch, was für eine Live-Zahl ohnehin das richtige Verhalten ist.
+
+Der Cache liegt jetzt in `admin/server/utils/userStatsCache.ts` (auf dem
+bestehenden `createMicrocache`), sein Schlüssel ist das APPWRITE-PROJEKT —
+genau das, was diese Zahlen beschreiben. Im Betrieb ist das ein einziger
+Eintrag; er steht trotzdem im Schlüssel, damit der Cache nicht wieder zu einer
+namenlosen Variablen wird, an die man den nächsten Wert einfach anhängt. Der
+Typ `ProjectUserCounts` schließt `online` STRUKTURELL aus.
+
+**Beweis:** `packages/admin/tests/userStatsCache.test.ts` — Treffer im TTL
+lädt nicht nach, ein anderes Projekt bekommt einen eigenen Eintrag, nach TTL
+wird neu geladen, das Ergebnis trägt genau die Schlüssel `total`/`active`/`new`;
+dazu zwei Quelltext-Prüfungen an der Route (Muster
+`dashboard-stats-authz.test.ts`): `listOnlinePresences` steht AUSSERHALB des
+gecachten Laders, und es gibt keine eigene `let cache`-Variable mehr.
+
+**Gelernt (drei Zeilen, die zusammengehören):**
+
+1. **Ein „ehrlicher Grenze"-Kommentar ist eine Behauptung, bis jemand
+   nachmisst.** F35 stand als bewusst getragener Restposten im Code — mit einer
+   Begründung, die plausibel klang und die eigentliche Lücke (die
+   Groß-/Kleinschreibung) gar nicht erwähnte, weil niemand die Referenz
+   aufgemacht hatte. Sie lag zwei `docker exec` entfernt. Wo ein Kommentar eine
+   fremde Implementierung beschreibt, gehört die Quelle DAZU — Pfad, Version
+   und der Befehl, mit dem man es nachprüft.
+2. **Ein Fehler-Rückfall braucht ein Fehler-PRÄDIKAT.** `catch (error)` ohne
+   Bedingung sagt „bei Problemen die Sicherheitsregel weglassen" — und trifft
+   dann garantiert die Fälle, für die es nicht gedacht war. Wer eine
+   Deploy-Brücke baut, prüft den Fehler, den die Brücke überbrücken soll.
+3. **Ein Cache ohne Schlüssel ist ein Versprechen, dass alles darin global
+   gilt.** Als er gebaut wurde, stimmte das; `online` kam später dazu und hat
+   das Versprechen still gebrochen. Deshalb hier nicht „Schlüssel dran",
+   sondern erst die Frage „was IST hier eigentlich projektweit?" — die Antwort
+   war ein eigener Typ, und der lässt den nächsten Anbau nicht mehr zu.
+
+---
+
+## F30 — die Live-Beweise laufen jetzt mit (2026-08-02)
+
+**Der Befund:** im Repo lagen 24 `verify-*.mjs`. In der CI lief davon GENAU
+EINER (`verify-paid-ticket`, seit G2). Alle anderen prüften, wer zufällig daran
+dachte — und genau deshalb blieben am 2026-08-02 ein toter Geldpfad und ein
+Isolations-Loch wochenlang unentdeckt, OBWOHL es für beide einen Beweis gab.
+Ein Beweis, den niemand ausführt, ist kein Beweis, sondern eine Datei.
+
+**Eingehängt in `e2e.yml` (fünf neue Schritte, alle grün gemessen):**
+Mandanten-Isolation `comments`/`reports`/`pages` (13 Prüfungen) ·
+Mandanten-Isolation `posts`/Votes/Polls (7) · Sichtbarkeit je Community aus
+GAST-Sicht, C18/F28 (38) · Presence-Grenze Akt 1 an der Appwrite-API, A4 (10) ·
+Index-Anstoß bei vergiftetem Metadaten-Cache, F19 (9). Zusammen **+~30 s** auf
+einen Job von ~5 min. Jeder bekam einen EIGENEN Schritt mit sprechendem Namen:
+ein roter Lauf soll am Schritt-Namen zeigen, welche Zusage gebrochen ist,
+statt in einem Sammel-Schritt zu verschwinden.
+
+**Bewusst NICHT eingehängt:** die übrigen 18. Dreizehn davon brauchen einen
+Platform-Dev-Server MIT den Wegwerf-Communities `kunde-a`/`kunde-b` in einem
+Control-Plane-Projekt, fünf zusätzlich einen zweiten Dev-Server (`apps/control`)
+und teils Mailpit; `verify-community-suspension` allein braucht ~20 min. Das ist
+EIN fehlendes Stück Bühne, nicht achtzehn Probleme — die Skizze steht in
+`docs/referenz/LIVE-BEWEISE.md`. Nicht nebenbei gebaut, weil die E2E ein
+Deploy-Gate ist: eine halb gebaute Bühne erzeugt rote Läufe, die nichts über
+das Produkt aussagen, und rot heißt hier „kein Deploy".
+
+**Beweis:** alle sechs Schritt-Rümpfe aus dem YAML extrahiert, mit `bash -n`
+geprüft und einzeln in Workflow-Reihenfolge aus dem Repo-Wurzelverzeichnis
+gefahren (Exitcode 0); der Wächter des Redis-Schritts gegengeprüft (Exitcode 1
+mit `::error::`-Ansage); alle sechs Workflow-Dateien durch einen YAML-Parser.
+
+**Gelernt (drei Zeilen):**
+
+1. **Eine zweite Appwrite auf demselben Docker-Daemon ist keine zweite
+   Appwrite.** Der Versuch, die CI-Instanz lokal nachzustellen, scheiterte
+   zweimal an Übersprechen: traefik entdeckt Container über den DOCKER-SOCKET,
+   nicht über das Compose-Projekt — es griff sich die Container der laufenden
+   Dev-Instanz und verteilte Anfragen im Wechsel (Konto angelegt auf Stack A,
+   Login gegen Stack B ⇒ „Invalid credentials", ein Fehler, den es nicht gab).
+   Danach nahm der `databases`-Worker des zweiten Stacks gar keine Aufträge mehr
+   an; Spalten blieben für immer auf `processing`. In CI gibt es diesen Fall
+   nicht (ein Stack, ein Runner) — lokal muss man am traefik VORBEI direkt auf
+   den Container zielen, oder es bleiben lassen.
+2. **Vor jedem Live-Beweis gehört geprüft, WER auf dem Port liegt.** Ein
+   „Fehlschlag" von `courses/verify-silo-unchanged` war in Wahrheit
+   `apps/control` auf :3001 statt `apps/comments` — dieselbe Falle, die
+   CLAUDE.md unter WORKTREE-BEWEISE beschreibt, nur eine Tür weiter.
+   `lsof -nP -iTCP -sTCP:LISTEN`, dann das `cwd` des Prozesses ansehen.
+3. **Einen Container-Namen nicht raten, wenn man ihn erfragen kann.**
+   `<projekt>-<dienst>-<n>` stimmt heute; als HARTE Zeile in einem Deploy-Gate
+   wäre es eine stille Kopplung, die bei einer Umbenennung wie ein Produktfehler
+   aussieht. `docker compose ps -q redis` liefert die Id, und fehlt sie, bricht
+   der Schritt mit eigener Ansage ab.
+
+### G6 — Sichtbarkeit der Titelbilder + zwei Sperr-Entscheidungen ✅ 2026-08-02
+
+**Was das war.** Vier Punkte aus dem Nacht-Audit in `packages/events`,
+`packages/media`, `packages/posts`, `packages/comments`: ein Rest-Leck bei den
+Titelbildern (F28), zwei von David an mich delegierte PRODUKT-Entscheidungen zur
+Zahlungssperre (F25, F26) und zwei tote Typ-Felder (F29). Jeder Befund wurde
+erst reproduziert, dann gefixt; die zwei Entscheidungen stehen jetzt AN BEIDEN
+Stellen, die sie betreffen, samt der überstimmten Gegenargumente.
+
+---
+
+**F28 (Mittel) — EIN ENTWURFS-TITELBILD SAHEN ALLE MITGLIEDER.**
+
+Der große Teil war schon zu (events-009 band die Cover-Datei an ihre Row); übrig
+blieb eine Ausnahme mit gutem Grund: ein Cover, dessen Row kein Leserecht trägt
+(Entwurf), bekam ersatzweise das MITGLIEDER-Publikum der Community. Der Grund
+war die Vorschau im Bearbeiten-Dialog — die holte der BROWSER direkt aus dem
+Bucket, „niemand" hätte dort ein kaputtes Bild bedeutet. Die Wirkung: jedes
+Mitglied konnte das Titelbild eines unveröffentlichten Termins per Roh-URL
+abrufen. Die Datei war offener als ihre Zeile, und genau das darf nicht sein.
+
+Gefixt, indem der GRUND weggeräumt wurde statt der Regel: neue Route
+`GET /api/events/:id/cover` (server-seitig, hinter `events.manage` UND der
+Datentür; die fileId kommt aus der geprüften Row, nie aus der URL; skaliert auf
+800 px WebP, `Cache-Control: private, no-store`). Damit ist die Regel wieder
+eine Zeile — **eine Datei ist nie offener als ihre Zeile** —, und sie steht PURE
+in `packages/events/shared/coverAudience.ts`, gelesen von der Laufzeit UND vom
+Live-Beweis. `eventCoverPermissions()` hat dabei seinen `H3Event`-Parameter
+verloren: die Rechnung hängt an nichts mehr außer der Row, und ein ungenutzter
+Parameter wäre eine Einladung, wieder Request-Wissen hineinzuziehen. Migration
+**events-010** zieht den Bestand nach (eigene Migration statt Korrektur an 009 —
+009 ist gelaufen, und beide hintereinander ergeben denselben Endzustand).
+
+**MEDIA WAR NICHT BETROFFEN, nachgemessen statt vermutet.** Dort bekommen Row
+und Datei an JEDER Stelle dasselbe Array (Anlegen, Umschalten, C18-Umzug); die
+Entwurfs-Datei ist genauso weit offen wie ihre Zeile, nämlich für ein einziges
+Operator-Label. Was dort bleibt, ist Vorschau-KOMFORT im Pool (die eigene
+Redaktion sieht ihre Entwurfs-Kacheln nicht), kein Publikum — die neue
+events-Route ist die Vorlage dafür, wenn es drankommt.
+
+---
+
+**F25 (Produktentscheidung) — SWEEPS IN EINER GESPERRTEN COMMUNITY: AUFGETEILT.**
+
+Beide Sweeps laufen bewusst ohne `actor`, die Inhalts-Sperre der Datentür greift
+also bei keinem von beiden. Die Antwort ist trotzdem nicht dieselbe, und die
+Grenze verläuft zwischen ÄNDERN und ANLEGEN:
+
+* `publish-on-read` (posts) **läuft weiter**. Es ändert nur die SICHTBARKEIT
+  einer vorhandenen Zeile, die der Autor vor der Sperre auf genau diesen
+  Zeitpunkt gestellt hat. Nichts entsteht, nichts kostet Kontingent — sie
+  festzuhalten wäre keine Mahnung, sondern die nachträgliche Zensur eines
+  fertigen Beitrags.
+* `Serien-Top-up` (events) **hält an**. Es erzeugt NEUE Zeilen und verbraucht
+  Kontingent; das ist genau, was die Zahlungssperre meint. Ohne die Bremse wächst
+  eine Serie monatelang weiter, ausgelöst von jedem beliebigen Lese-Request eines
+  Fremden.
+
+Die Prüfung steht VOR dem Marker `seriesGeneratedUntil` — würde er trotz Sperre
+geschrieben, hielte er das Fenster für erledigt und die Serie bekäme nach dem
+Entsperren ein Loch, das nie wieder auffällt. Fail-soft (Rückgabe 0 + `logEvent`,
+kein Wurf): der Sweep hängt an einem fremden Listen-Aufruf, der weiter
+funktionieren muss. Die Begründung steht an BEIDEN Stellen, jeweils mit Verweis
+auf die andere — wer die Entscheidung dreht, dreht sie zweimal.
+
+---
+
+**F26 (Produktentscheidung) — RSVP ZURÜCKZIEHEN BLEIBT OFFEN.**
+
+Dieselbe Logik wie bei Davids Absage-Entscheidung: eine Rücknahme ist keine neue
+Aussage. Wer nicht absagen kann, blockiert einen Platz und verfälscht die
+Planung des Organisators — wegen einer Rechnung, mit der er nichts zu tun hat.
+
+Die eigentliche Arbeit war nicht die Entscheidung, sondern die Toggle-Semantik:
+Zusagen und Zurückziehen sind DERSELBE Aufruf mit DEMSELBEN Body, sie
+unterscheiden sich nur am Bestand. Die Route hat deshalb jetzt zwei Türen —
+`actor: 'member'` für alles, was eine neue Aussage ist, und eine türlose
+(`{ as: 'operator' }`, dieselbe Bauart wie beim Absagen) für genau den Zweig, der
+die eigene Zeile löscht, Zähler-Dekrement inklusive. Eng gezogen: der WECHSEL
+going → declined bleibt zu, obwohl er ebenfalls einen Platz frei machen würde —
+er hinterlässt eine neue Aussage. Der Weg zum freien Platz steht trotzdem offen
+(dieselbe Schaltfläche erneut). Die Ausnahmen werden ab jetzt an EINER Stelle
+geführt (`[id].delete.ts`); die Liste ist von einem auf zwei Einträge gewachsen,
+statt dass sich der neue Weg auf eine Formulierung beruft, die ihn nicht kennt.
+
+**DABEI GEFUNDEN, echter Fehler:** der Zusage-Zweig übersetzte JEDEN Fehler des
+atomaren Hochzählens in `409 Event is full`. In einer gesperrten Community warf
+die Datentür dort ihr 403 mit `reason: community_suspended` — der Kunde las
+„Event is full" an einem leeren Termin ohne Kapazitätsgrenze. Der Beweis lief
+genau deshalb erst rot. Jetzt reist ein fertig geformter H3-Fehler unverändert
+weiter (`isError`), übersetzt wird nur der rohe Appwrite-Fehler.
+
+---
+
+**F29 (Niedrig) — ZWEI TOTE `tenantId`-FELDER** in `comments/shared/types/
+comment.ts` und `media/shared/types/media.ts` entfernt. Die Spalten sind mit
+comments-017/media-005 gefallen, gelesen oder geschrieben wurden die Felder
+nirgends. An ihrer Stelle steht jetzt der Grund, warum dort NICHTS steht — genau
+diese Drift zwischen Typ und Schema hat im events-Layer den Geldpfad gebrochen.
+
+---
+
+**Beweise (alle live, gegen die laufende Instanz).**
+`verify-community-suspension` **117/117** (vorher 95, +22: RSVP in beide
+Richtungen samt Zähler, der Wechsel als Gegenprobe, beide Sweeps in beide
+Richtungen) · `verify-audience-flip` **38/38** (vorher 25, +13: die vier
+Zustände eines Titelbilds, je anonym UND als eingeloggtes Mitglied mit
+Community-Label — inklusive einer VORHER-Messung, die den Befund zeigt) ·
+`verify-paid-ticket` 13/13 · Pool-Isolation events 14/14, posts 7/7,
+comments 13/13 · `pnpm -r test` (1409 grün), typecheck, lint (6 bekannte
+Warnungen), `check:manifests`.
+
+**Gelernt (vier Zeilen):**
+
+1. **Ein Gast-Abruf beweist bei Mitglieder-Rechten gar nichts.** Der Befund war
+   ja gerade, dass die Datei das MITGLIEDER-Publikum trug — der Gast scheiterte
+   vorher wie nachher. Ein Beweis muss den Betrachter haben, um den es geht:
+   `verify-audience-flip` legt dafür jetzt ein echtes Konto mit dem
+   Community-Label an und liest mit dessen Sitzung.
+2. **Ein Sweep-Beweis muss dem Sweep erst etwas ZU TUN geben.** Der erste Anlauf
+   maß „nach der Sperre kam kein Termin dazu" — es wäre auch ohne Sperre keiner
+   dazugekommen, das Rolling Window war voll. Erst das Löschen der jüngsten
+   Instanzen (Lücke) macht aus „nichts passiert" eine Aussage. Dieselbe Falle
+   wie bei jedem idempotenten Vorgang: kein Effekt ist kein Ergebnis.
+3. **Ein `.catch()` ohne Fallunterscheidung ist eine Falschauskunft mit Ansage.**
+   „Event is full" war jahrelang die Antwort auf jeden Fehler beim Hochzählen.
+   Gefunden hat es kein Test, sondern der Live-Beweis, der einen konkreten GRUND
+   erwartete statt nur einen Status.
+4. **Zwei Appwrite-Stacks auf demselben Docker-Daemon sprechen über.** Während
+   der Läufe stand parallel eine Wegwerf-Instanz (F30) auf denselben
+   Docker-Netz; traefik entdeckt Container über den SOCKET und verteilte
+   Anfragen abwechselnd auf beide — jede zweite meldete
+   `project_not_found`. Erkennbar am Wechselmuster, nicht am Fehlertext. Ausweg:
+   am traefik vorbei direkt auf die Container-IP der gemeinten Instanz zielen.
+   (Deckt sich mit dem, was F30 an derselben Stelle gelernt hat.)
+
+---
+
+### F31 — die vierte Stelle der Theme-Feldliste ✅ 2026-08-02
+
+`ThemeConfig` (`packages/themes/shared/ramp.ts`) wächst additiv — das
+config-JSON trägt bewusst kein `version`. Seit G3 hängen zwei Stellen am Typ
+(`THEME_CONFIG_KEYS` per `Record<keyof Required<ThemeConfig>, true>`, und der
+JSON-Import der Galerie-Seite leitet seine Liste daraus ab). Die Aufgabenliste
+nannte eine dritte, die weiter von Hand nachzuziehen war: die strikte
+Zod-Prüfung der Speicher-Routen. **Beim Nachzählen waren es vier** — das Schema
+steht WÖRTLICH ZWEIMAL im admin-Layer, in `themes/index.post.ts` und in
+`themes/[id].patch.ts`.
+
+Diese vierte Stelle ist die einzige, an der ein Auseinanderlaufen wehtut, und
+zwar sofort: das Schema ist `.strict()`. Ein Feld, das die Liste kennt und das
+Schema nicht, lässt nicht dieses eine Feld fallen, sondern weist den GANZEN
+Speichervorgang mit 400 ab — der Editor ließe sich dann gar nicht mehr
+speichern. Und weil die Kopie doppelt liegt, wäre auch „anlegen geht, bearbeiten
+wirft 400" ein möglicher Zustand.
+
+**Entschieden wurde gegen ein geteiltes Schema — nicht aus Bequemlichkeit,
+sondern weil es dafür kein legales Zuhause gibt.** Der naheliegende Weg wäre,
+das Zod-Schema aus `packages/themes` zu exportieren und im admin-Layer zu
+importieren. Beide Richtungen sind von der Layer-Grenze A14 gesperrt, und zwar
+per ESLint-Backstop, nicht nur per Prosa: `packages/themes/**` darf **kein**
+`@pukalani/*` importieren (auch core und system nicht — themes ist rein
+visuell), und `packages/admin/**` darf keinen anderen Feature-Layer importieren,
+also auch nicht `@pukalani/themes`. Ein gemeinsames Zuhause gäbe es erst nach
+einer bewussten Änderung der Layer-Matrix; das ist eine
+Architektur-Entscheidung, keine Aufräumarbeit, und sie gehört David, nicht
+einem Aufräum-Auftrag.
+
+**Gebaut wurde deshalb ein Quelltext-Anker** in
+`packages/themes/tests/themeConfigKeys.test.ts` (Muster: die Anker in
+`packages/events/tests/redaction-actor.test.ts`). Er LIEST die beiden
+admin-Dateien, zieht die Schlüssel der obersten Ebene aus dem
+`themeConfigSchema`-Literal und hält sie gegen `THEME_CONFIG_KEYS` — plus zwei
+Zusicherungen, die die eigentliche Falle abdecken: beide Routen prüfen wörtlich
+dasselbe, und `.strict()` bleibt stehen (ohne `.strict()` verschwände ein
+unbekanntes Feld still, der Test wäre grün und das Theme trotzdem falsch
+gespeichert). Geprüft werden bewusst nur die SCHLÜSSEL, nicht die Wertebereiche:
+ob `hueShift` von −180 bis 180 geht, ist eine Produktfrage mit genau einer
+richtigen Antwortstelle; ob ein Feld überhaupt BEKANNT ist, ist eine
+Ja/Nein-Tatsache, und nur die kann auseinanderlaufen.
+
+Beweis: `pnpm --filter @pukalani/themes test` **157/157** (vorher 153),
+`check:themes` grün.
+
+**Gelernt:** Wenn zwei Stellen zusammengehören und die Layer-Grenze einen Import
+zwischen ihnen verbietet, ist der Quelltext-Anker nicht die faule Lösung,
+sondern die einzige, die keine Grenze verschiebt — er LIEST die Datei, er
+importiert sie nicht. Zweite Lehre, teurer: **die Aufgabenliste sprach von drei
+Stellen, es waren vier.** Die vierte war eine wörtliche Kopie der dritten in der
+Nachbardatei. Vor dem Beheben einer Doppelung immer erst zählen, statt der
+Beschreibung zu glauben — sonst hält man zwei von drei Kopien zusammen und die
+dritte läuft weiter weg.
+
+---
+
+### F22 — tote Doku-Verweise: einmal aufgeräumt, dann bewacht ✅ 2026-08-02
+
+Die Aufgabenliste nannte EINEN Fall (CLAUDE.md behauptete, `community.delete`
+sei bewusst nicht gebaut — seit C16 vom 2026-07-31 ist es gebaut, als
+Stilllegen). Gesucht wurde nach dem ganzen Muster, und zwar mit einem Werkzeug,
+das bleibt: **`scripts/ops/verify-doc-links.mjs`** (`pnpm check:doc-links`).
+Es prüft in `docs/**`, `CLAUDE.md`, `AGENTS.md`, `README.md` und in den
+Kopfkommentaren aller Skripte drei Dinge: Markdown-Links auf Repo-Dateien,
+`[[…]]`-Verweise und pfad-artige Angaben in Backticks. Dazu die Routen der
+internen Doku-Site (`docs/content/**` → `/architektur/migrationen`), die sonst
+niemandem beim Schreiben auffallen, sondern erst dem Leser als 404.
+
+**Die eigentliche Arbeit war die Kalibrierung, nicht das Finden.** Der erste
+Entwurf meldete **120 Stellen, davon war eine Handvoll echt** — die Doku ist
+voller Fragmente, die wie Pfade aussehen und keine sind (`pages/login.vue` in
+einer Aufzählung, `users/[id].vue` als Name einer Dashboard-Seite,
+`src/main.js` aus dem Beispiel-Repo eines fremden Projekts). Drei Regeln haben
+daraus ein brauchbares Signal gemacht:
+
+1. **Nur eindeutige Repo-Pfade zählen** — entweder ab Wurzel (`packages/…`) oder
+   in der gewachsenen Layer-Kurzform (bekannter Layer-/App-Name + Struktur-Ordner,
+   also `core/server/…`, `themes/shared/…`). Beide Segmente werden gegen die
+   WIRKLICHEN Verzeichnisse geprüft, die Liste pflegt sich also selbst.
+2. **Die Kurzform aus Layer-Sicht wird aufgelöst, nicht bestraft.** Die Doku
+   schreibt ständig `scripts/generate-themes.ts` und meint
+   `packages/themes/scripts/…`. Das ist die übliche Schreibweise hier, kein
+   Fehler.
+3. **`[[…]]` bedeutet in diesem Repo „Notiz AUSSERHALB"** — nachgesehen: alle
+   zehn zeigen in Davids Obsidian-Vault oder auf eine Claude-Memory-Notiz (eine
+   trägt das sogar als „(Memory)" dabei). Sie werden aufgelistet, nie als Fehler
+   gezählt; prüfbar wären sie nur gegen ein Verzeichnis auf einer bestimmten
+   Maschine, und ein Wächter, der nur dort grün ist, ist keiner.
+
+**Die Grenze, an der das Skript aufhört — und warum sie so verläuft.**
+`docs/archiv/**`, `docs/OPEN-ITEMS-COMPLETE.md`, `README.md` und `CHANGELOG.md`
+sind PROTOKOLLE. Ein Dateiname im Fließtext ist dort eine historische Aussage
+(„die Datei hieß damals so"); ihn zu „korrigieren" wäre Geschichtsfälschung.
+Ein Link auf ein DOKUMENT ist etwas anderes: er verspricht „hier kannst Du es
+nachlesen", und das altert nicht — zieht die Datei um, muss der Link mitziehen,
+es ist ja dasselbe Dokument. Deshalb: **Dokument-Links überall erzwungen, auch
+im Archiv; Pfad-Angaben und Links in den CODE nur außerhalb der Protokolle**
+(`--strict` macht auch sie zu Fehlern, für eine bewusste Durchsicht).
+
+**Gefunden und behoben (7 Stellen):**
+
+- **CLAUDE.md, `community.delete`** — der genannte Fall. Steht jetzt richtig da:
+  gebaut als Stilllegen (`communities.status='disabled'`, Host 404 in ≤30 s,
+  Mitgliedschaften 'removed', INHALTE BLEIBEN), gesperrt bei laufendem Abo,
+  samt beider Routen.
+- **CLAUDE.md, `tenants.*` → `communities.*` (6 Stellen)** — die Tabelle
+  `tenants` ist mit control-030 GEFALLEN (E8-3, Umbenennung control-029). Wer
+  nach `tenants.theme` oder `tenants.openRegistration` greppt, findet nichts.
+- **CLAUDE.md, `Role.label(siteId)` → `Role.label(communityId)`** und die
+  Presence-Zeile `read("label:<siteId>")` — dieselbe Umbenennung.
+- **CLAUDE.md, die Pool-Scope-Spalte** — `create` stempelt `communityId` (nicht
+  mehr `tenantId`), `notifications.communityId`, `<communityId>` als
+  Spaltenwert. Die INDEXNAMEN (`uq_tenant_host`, `uq_tenant_slug`) blieben
+  dagegen unverändert; das steht jetzt ausdrücklich dabei, sonst „korrigiert"
+  sie der nächste Durchgang fälschlich mit.
+- **`docs/CONCEPT.md`** — das Migrations-Beispiel zeigte auf
+  `comments/…/001-comments-tables.ts`; die früheste vorhandene ist `002-`.
+- **`docs/plans/VOKABULAR-AUFRAEUMEN.md` + der E8-Eintrag hier** — beide
+  verlinkten `plans/UMBENENNUNG-AUF-COMMUNITY.md`; der Plan ist ausgeführt und
+  liegt in `archiv/`.
+- **`docs/archiv/UMBENENNUNG-AUF-COMMUNITY.md`** — der Kopf sagte „Status:
+  geplant, nicht ausgeführt" und „Liegt in `docs/plans/`", während die Datei im
+  Archiv lag und die Etappen 1–4 am 2026-07-30/31 gelaufen waren. Kopf richtig
+  gestellt, der Plan-Text darunter bewusst unverändert.
+
+**Bewusst STEHEN GELASSEN (18 Pfad-Angaben in Protokollen + 10 externe
+Notizen):** `docs/archiv/PRESENCE-GRENZE.md` nennt `siteLabel.ts` und
+`site-label.ts`, `THEMES-VOLLAUSBAU.md` nennt `styleguide.vue` — alles Dateien,
+die es unter diesen Namen einmal gab. Das Archiv ist Protokoll (CLAUDE.md,
+Doku-Ordnung). Zwei davon stehen im Lern-Archiv selbst (`A4` nennt
+`core/server/middleware/site-label.ts`, heute `06.community-label.ts`) und
+bleiben aus demselben Grund.
+
+Nicht behoben, weil außerhalb dieses Auftrags: **`tenantId` lebt im Code
+weiter** — als Feld im Request-Kontext, als Presence-Metadatum
+(`presenceFilter.ts`, in CLAUDE.md korrekt so benannt) und als Spalte
+`communities.tenantId` (der Mandanten-SCHLÜSSEL, nicht die Row-Id). Die
+Umbenennung betraf die Pool-Spalten, nicht das Wort. Wer hier weiter aufräumt,
+muss die drei Bedeutungen auseinanderhalten.
+
+Beweis: `pnpm check:doc-links` **0 tote Verweise**, Exit 0.
+
+**Gelernt:** Ein Doku-Wächter scheitert nicht am Finden, sondern am Schreien.
+Der erste Entwurf hatte eine Trefferquote von unter 5 % — so ein Skript wird
+beim ersten Lauf abgeschaltet, und dann ist die Doku schlechter dran als ohne.
+Die Regel, die es gerettet hat, ist nicht „strenger prüfen", sondern **„nur
+prüfen, was maschinell EINDEUTIG entscheidbar ist"**: Pfade ja, Symbolnamen
+nein (`requireEntitlement` ist kein Pfad, und eine Heuristik darauf meldete
+jeden Begriff, der einmal anders hieß).
+**Gelernt:** Die nützlichste Unterscheidung war nicht „Archiv oder nicht",
+sondern **„Wegweiser oder Protokoll"**. Ein Link verspricht Erreichbarkeit und
+muss auch in einem zehn Monate alten Dokument stimmen; ein Dateiname im
+Fließtext beschreibt einen Zustand von damals und darf gar nicht stimmen. Wer
+beides gleich behandelt, schreibt entweder Geschichte um oder lässt kaputte
+Wegweiser stehen.
+**Gelernt (Nebenbefund):** Die Umbenennung `tenants`→`communities` (E8-3) war im
+CODE vollständig, in CLAUDE.md an **vierzehn** Stellen nicht — und CLAUDE.md ist das
+Dokument, aus dem jeder Agent seinen Weltzustand bezieht. Eine Umbenennung ist
+erst fertig, wenn auch die Anleitung sie kennt; sonst greppt der nächste nach
+einer Tabelle, die es seit drei Tagen nicht mehr gibt.

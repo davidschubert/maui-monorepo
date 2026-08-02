@@ -5,8 +5,9 @@
 > bekommt."
 > **Keine Doppelpflege:** Der Community-Teil (`tenants` → `communities`,
 > Etappen 3 und 4) steht vollständig in
-> [UMBENENNUNG-AUF-COMMUNITY.md](UMBENENNUNG-AUF-COMMUNITY.md) und wird hier
-> nur eingeordnet, nicht wiederholt.
+> [UMBENENNUNG-AUF-COMMUNITY.md](../archiv/UMBENENNUNG-AUF-COMMUNITY.md) und
+> wird hier nur eingeordnet, nicht wiederholt. (Der Plan ist am 2026-07-31
+> vollständig ausgeführt und liegt seither im Archiv.)
 
 ## Gemessen am 2026-07-30
 

@@ -1,11 +1,14 @@
 # `tenant`/`site` → `community`: die vollständige Umbenennung
 
-**Status:** geplant, nicht ausgeführt · **Entschieden:** 2026-07-29 (David,
-in zwei Runden) · **Wartet auf:** A6 (workspaces fällt weg — sonst würden
-Tabellen umbenannt, die gleich gelöscht werden)
+**Status:** ✅ vollständig ausgeführt (Etappen 1+2 am 2026-07-30, Etappen 3+4 am
+2026-07-31) · **Entschieden:** 2026-07-29 (David, in zwei Runden) · **Wartete
+auf:** A6 (workspaces fällt weg — sonst würden Tabellen umbenannt, die gleich
+gelöscht werden)
 
-> Liegt in `docs/plans/`, weil es NOCH NICHT gebaut ist. Nach der Ausführung:
-> Datei nach `docs/archiv/`, Reste nach `docs/OPEN-ITEMS.md`.
+> Liegt seit der Ausführung in `docs/archiv/`. Was unten in der Zukunftsform
+> steht, ist der PLAN von damals und wird bewusst nicht umgeschrieben; was
+> daraus geworden ist, steht in
+> [OPEN-ITEMS-COMPLETE.md](../OPEN-ITEMS-COMPLETE.md) unter E8, E8-3 und E8-4.
 
 ## Die Entscheidung — und warum sie sich unterwegs verbessert hat
 
