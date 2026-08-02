@@ -43,9 +43,28 @@
  * Repo-Root, wo das Paket nicht aufgelöst wird (pnpm installiert es je Layer).
  */
 
-/** Wiederholungen und Pause zwischen zwei Index-Versuchen. */
-export const INDEX_RETRIES = 10
+/**
+ * Wiederholungen und Pausen.
+ *
+ * BUDGET STATT TAKT (2026-08-02): 10 × 1500 ms waren 15 s Gesamt-Vorrat — zu
+ * wenig. Die CI-E2E starb an `events.idx_tenant_status_start`, NACHDEM sie alle
+ * zehn Versuche verbraucht hatte (Log: „Versuch 9/10"), also nicht an einem
+ * anderen Fehler, sondern schlicht am Ende der Geduld. Auf einem ausgelasteten
+ * Runner (frische Appwrite, alle Migrationen aller Layer am Stück) hinkt der
+ * Metadaten-Cache länger nach als auf einer warmen lokalen Instanz.
+ *
+ * Jetzt: erst schnell (die meisten Fälle lösen sich in 1–3 s), dann wachsende
+ * Pausen bis 8 s, Gesamt-Vorrat ~2 min. Wachsend statt gleichmäßig, damit der
+ * Normalfall nicht langsamer wird und der seltene Ausreißer trotzdem gewinnt.
+ */
+export const INDEX_RETRIES = 24
 export const INDEX_RETRY_DELAY_MS = 1500
+export const INDEX_RETRY_MAX_DELAY_MS = 8000
+
+/** Pause vor Versuch `attempt+1`: 1,5 s, dann +25 % je Runde, gedeckelt. */
+export function retryDelayMs(attempt: number): number {
+  return Math.min(Math.round(INDEX_RETRY_DELAY_MS * 1.25 ** (attempt - 1)), INDEX_RETRY_MAX_DELAY_MS)
+}
 
 /** Appwrite-Fehlercode prüfen — dieselbe Form wie das lokale `hasCode` jeder Migration. */
 export function hasCode(error: unknown, code: number): boolean {
@@ -78,8 +97,9 @@ export async function withIndexRetry<T>(run: () => Promise<T>, label = 'Index-An
     }
     catch (error) {
       if (!isColumnNotAvailable(error) || attempt >= INDEX_RETRIES) throw error
-      console.log(`… ${label}: Spalte für den Index-Worker noch nicht sichtbar (Versuch ${attempt}/${INDEX_RETRIES}) — neuer Versuch in ${INDEX_RETRY_DELAY_MS} ms`)
-      await new Promise(resolve => setTimeout(resolve, INDEX_RETRY_DELAY_MS))
+      const delay = retryDelayMs(attempt)
+      console.log(`… ${label}: Spalte für den Index-Worker noch nicht sichtbar (Versuch ${attempt}/${INDEX_RETRIES}) — neuer Versuch in ${delay} ms`)
+      await new Promise(resolve => setTimeout(resolve, delay))
     }
   }
 }
