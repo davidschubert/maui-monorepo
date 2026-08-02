@@ -136,6 +136,8 @@ UGC/Haftung) DE+EN auf /imprint, /terms, /privacy — jeweils mit sichtbarem
 USt-IdNr.-Platzhalter im Dashboard ausfüllen + Anwalt drüberschauen lassen.
 Schaltet A2 frei.
 
+<a id="a2a"></a>
+
 **A2 — Stripe-Live scharfschalten.** Fünf Schritte laut
 [Runbook](runbooks/STRIPE-GO-LIVE-RUNBOOK.md): 2.1 Bank-Aktivierung [David] ·
 2.2 Live-Webhook [David] · 2.3 Keys in Server-.env [David] · 2.4 Live-Portal
