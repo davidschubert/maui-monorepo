@@ -613,7 +613,18 @@ und den Pfad in der ersten Dev-Log-Zeile prüfen. Dev-Server IMMER über
 (liegt nur in `node_modules/.pnpm/node_modules/`, das pnpm erst beim
 Script-Lauf in den NODE_PATH legt) und liefert auf JEDER SSR-Seite 500 —
 sieht aus wie ein Regressionsschaden, ist aber nur der falsche Start
-(2026-07-31 live erwischt).
+(2026-07-31 live erwischt). EIGENER PORT im Worktree: `pnpm --filter <app> dev
+-- --port N` wirkt NICHT — das `dev`-Skript hat `--port` fest verdrahtet, das
+zweite landet als Positionsargument, und Nuxt weicht bei belegtem Port STILL
+auf einen anderen aus (2026-08-01: 3007 → 3000, also fast auf den Port des
+core-Playgrounds). Richtig ist `pnpm --filter <app> exec nuxi dev --port N`
+(läuft ebenfalls über pnpm, NODE_PATH stimmt). Und: der ERSTE Seitenaufruf
+nach einem Dev-Server-Start beweist nichts über NACHGELADENE Abhängigkeiten —
+Vite bündelt sie beim ersten Import erst („dependency optimized") und lädt die
+Seite dabei neu; immer die zweite Messung nehmen. Ebenso puffert
+`performance.getEntriesByType('resource')` nur 250 Einträge: im Dev-Modus
+fallen nachgeladene Chunks hinten raus und „nicht geladen" ist dann ein
+Messfehler — für solche Beweise das Netzwerkprotokoll des Browsers nehmen.
 
 pnpm -r test (Unit) · Playwright-E2E in apps/comments (Base-URL per
 PW_BASE_URL überschreibbar — parallele Dev-Sessions) · themes-visual zielt
