@@ -38,7 +38,7 @@
  * Code ignoriert sie, neuer Code stempelt sie, gefiltert wird erst im Pool.
  */
 import { Client, Query, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { indexStep, tableCacheNudge } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -103,9 +103,12 @@ await step(`Column ${TABLE_ID}.tenantId`, () => tablesDB.createVarcharColumn({
 }))
 await waitForColumn(TABLE_ID, 'tenantId')
 
+// Mit Cache-Anstoß (F19): genau dieser Index starb am 2026-08-02 in der CI —
+// 23 Versuche, keine Bewegung, weil das gecachte Collection-Dokument die
+// Spalte dauerhaft auf 'processing' zeigte. Warten hilft dagegen nie.
 await indexStep(`Index ${TABLE_ID}.idx_tenant_published_order`, () => tablesDB.createIndex({
   databaseId, tableId: TABLE_ID, key: 'idx_tenant_published_order',
   type: TablesDBIndexType.Key, columns: ['tenantId', 'published', 'sortOrder'],
-}))
+}), tableCacheNudge(tablesDB, databaseId, TABLE_ID))
 
 console.log('✔ Migration media-003 fertig')
