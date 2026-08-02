@@ -141,15 +141,32 @@ try {
   }
 
   console.log('1. Produkt-Gate (courses = ab Plan pro)')
-  // Beide Tenants stehen lokal auf plan null (= basic) → die Galerie muss 404
-  // sein. Warte-Schleife: der Host-Resolver cacht 30 s.
+  /**
+   * DER BEWEIS STELLT SEINE VORBEDINGUNG HER, statt sie zu erwarten
+   * (2026-08-02, zweimal live erwischt — dieselbe Lehre wie F19).
+   *
+   * Vorher stand hier „beide Tenants stehen lokal auf plan null" als ANNAHME,
+   * und der Aufräum-Schritt stellte am Ende wieder her, was er beim Start
+   * vorgefunden hatte. Ein ABGEBROCHENER Lauf (ein Beweis dauert lange und
+   * steht zwischendurch still) hinterlässt die Tenants damit auf 'pro' — und
+   * der nächste Lauf merkt sich 'pro' als „Original", stellt 'pro' wieder her
+   * und kann die Eingangsprüfung NIE wieder bestehen. Die Verunreinigung
+   * erhält sich selbst und sah wie eine Regression aus.
+   *
+   * Deshalb: Plan hier aktiv auf basic setzen und den WIEDERHERSTELL-Wert auf
+   * basic festnageln, statt den Vorfund zu übernehmen. Diese beiden Hosts sind
+   * reine Test-Fixtures; ihr Plan gehört dem Beweis.
+   */
+  cleanup.planRestore.push({ id: tenantA.$id, plan: null }, { id: tenantB.$id, plan: null })
+  await control.updateRow({ databaseId: controlDb, tableId: 'communities', rowId: tenantA.$id, data: { plan: null } })
+  await control.updateRow({ databaseId: controlDb, tableId: 'communities', rowId: tenantB.$id, data: { plan: null } })
+
   const gatedClosed = await waitFor('Produkt-Gate zu (Plan basic → 404)', async () => {
     const res = await call(HOST_A, '/api/courses')
     return res.status === 404
   })
   check('Plan basic → /api/courses antwortet 404 (Produkt existiert nicht)', gatedClosed)
 
-  cleanup.planRestore.push({ id: tenantA.$id, plan: tenantA.plan ?? null }, { id: tenantB.$id, plan: tenantB.plan ?? null })
   await control.updateRow({ databaseId: controlDb, tableId: 'communities', rowId: tenantA.$id, data: { plan: 'pro' } })
   await control.updateRow({ databaseId: controlDb, tableId: 'communities', rowId: tenantB.$id, data: { plan: 'pro' } })
   const planLive = await waitFor('Plan-Upgrade sichtbar (Resolver-Cache 30 s)', async () => {
