@@ -2,7 +2,7 @@
 import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
 import { createEventSchema } from '../../../schemas/event'
 import type { EventRow } from '../../../shared/types/event'
-import { effectiveLocationType, isSeriesEvent, isSeriesMaster } from '../../../shared/types/event'
+import { effectiveLocationType, isSeriesEvent, isSeriesMaster, paidAccessChoosable } from '../../../shared/types/event'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'events.manage' })
 
@@ -66,6 +66,23 @@ const emptyForm = (): EventForm => ({
   access: 'free', priceEur: null, priceLookupKey: '',
   recurrence: '', seriesUntil: '',
 })
+
+/**
+ * Kann diese App Tickets verkaufen? (F13) — Cast wie in der Bauplan-Seite:
+ * die AppConfig-Typen entstehen erst im Merge der jeweiligen App, der Layer
+ * liest sie bewusst defensiv. Es ist DERSELBE Wert, der den Kauf-CTA steuert
+ * (EventDetail über packages/blueprint/app/pages/events/[id].vue).
+ */
+const appConfig = useAppConfig()
+const ticketCheckoutPath = computed(() =>
+  (appConfig.pukalani as { events?: { ticketCheckoutPath?: string } }).events?.ticketCheckoutPath ?? '')
+
+/**
+ * BEIM ÖFFNEN eingefroren, nicht laufend berechnet: sonst verschwände die
+ * Option mitten im Ausfüllen, sobald jemand ein bestehendes Paid-Event
+ * versuchsweise auf „Kostenlos" stellt — und der Rückweg wäre weg.
+ */
+const paidChoosable = ref(false)
 
 const modalOpen = ref(false)
 const editingId = ref<string | null>(null)
@@ -134,11 +151,13 @@ function openCreate() {
   editingId.value = null
   editingCoverFileId.value = null
   Object.assign(form, emptyForm())
+  paidChoosable.value = paidAccessChoosable(ticketCheckoutPath.value)
   modalOpen.value = true
 }
 
 function openEdit(row: EventRow) {
   editingId.value = row.$id
+  paidChoosable.value = paidAccessChoosable(ticketCheckoutPath.value, row.access)
   Object.assign(form, {
     title: row.title,
     description: row.description,
@@ -509,7 +528,12 @@ function rowActions(row: EventRow): DropdownMenuItem[][] {
               <UInputNumber v-model="form.capacity" :min="1" class="w-full" data-testid="event-form-capacity" />
             </UFormField>
 
-            <UFormField :label="t('events.admin.form.access')" :help="t('events.admin.form.accessHelp')">
+            <!-- F13: ohne Verkaufsmöglichkeit (kein ticketCheckoutPath, also
+                 im Pool) fällt die GANZE Zeile weg — bliebe sie mit dem
+                 einzigen Wert „Kostenlos" stehen, wäre das eine Auswahl, die
+                 keine ist. Ein bestehendes Paid-Event bringt die Zeile beim
+                 Bearbeiten zurück (paidAccessChoosable). -->
+            <UFormField v-if="paidChoosable" :label="t('events.admin.form.access')" :help="t('events.admin.form.accessHelp')">
               <URadioGroup
                 v-model="form.access"
                 :items="accessItems"

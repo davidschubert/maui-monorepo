@@ -91,6 +91,30 @@ export function effectiveAccess(row: Pick<EventRow, 'access'>): EventAccess {
   return row.access ?? 'free'
 }
 
+/**
+ * Darf „Bezahlt" im Dashboard-Formular überhaupt gewählt werden? (F13)
+ *
+ * DIESELBE WAHRHEIT WIE DER KAUF-CTA, kein zweites Flag: verkaufen kann nur
+ * eine App, die eine Checkout-Route mitbringt und sie über
+ * `pukalani.events.ticketCheckoutPath` bekanntgibt (apps/comments). Fehlt der
+ * Pfad — so im Pool, wo bezahlte Events gesperrt sind (D1/F7) — zeigt
+ * EventDetail „Bald verfügbar"; ein Preisfeld im Formular wäre dort eine
+ * sichtbare Sackgasse: der Owner trägt einen Betrag ein, den niemand zahlen
+ * kann.
+ *
+ * BESTAND SCHLÄGT DIE SPERRE (`currentAccess`): ein Event, das schon 'paid'
+ * IST (aus dem Silo, oder aus der Zeit vor dieser Sperre), behält die Option
+ * im Formular. Sonst stünde die Auswahl auf einem Wert, den sie nicht kennt,
+ * und das nächste Speichern schriebe den Zugang stillschweigend auf 'free'
+ * zurück — eine Sperre darf Bestandsdaten nicht umschreiben.
+ */
+export function paidAccessChoosable(
+  ticketCheckoutPath: string | undefined | null,
+  currentAccess?: EventAccess | null,
+): boolean {
+  return Boolean(ticketCheckoutPath) || currentAccess === 'paid'
+}
+
 export type EventTicketStatus = 'paid' | 'refunded'
 
 export interface EventTicketRow extends Models.Row {

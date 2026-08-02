@@ -69,5 +69,17 @@ export default defineConfig({
     url: baseURL,
     reuseExistingServer: true,
     timeout: 120_000,
+    /**
+     * Schaltet die Nuxt DevTools ab (nuxt.config liest `PW_E2E`) — ihr
+     * Abzeichen trägt eine wechselnde ms-Zahl und saß sonst mitten in den
+     * Theme-Baselines.
+     *
+     * ACHTUNG bei `reuseExistingServer`: läuft schon ein Dev-Server, gilt
+     * DESSEN Umgebung. Zum Neubacken der Baselines den Server deshalb selbst
+     * mit dem Schalter starten:
+     *   PW_E2E=1 pnpm --filter comments dev
+     * Der Visual-Test prüft das und schlägt sonst mit klarer Ansage fehl.
+     */
+    env: { PW_E2E: '1' },
   },
 })

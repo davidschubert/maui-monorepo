@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 10 offen · 9 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 9 offen · 9 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-01**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -20,13 +20,12 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | --- | --- | --- | --- | --- | --- |
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
-| 11 · B1 | **Neun visuelle Referenzbilder sichten** — sie sind jetzt FINAL: erst beim E7-Browserwechsel neu aufgenommen, dann am 2026-08-01 noch einmal, weil `/visual` drei rohe Übersetzungs-Schlüssel anzeigte (jetzt echter Text, Seite dadurch etwas kürzer). Zu prüfen bleibt nur der Inhalt: `git show HEAD:<pfad>` gegen die Arbeitskopie halten. | Mittel | S — ansehen | Ja: David sichtet | [Notizen](#notizen) |
+| 11 · B1 | **Neun visuelle Referenzbilder sichten** — jetzt WIRKLICH final: zuletzt am 2026-08-01 neu gebacken, nachdem das DevTools-Abzeichen (wechselnde ms-Zahl) aus allen neun Bildern verschwunden ist. Zu prüfen bleibt nur der Inhalt: `git show HEAD:<pfad>` gegen die Arbeitskopie halten. | Mittel | S — ansehen | Ja: David sichtet | [Notizen](#notizen) |
 | 25 · M13 | **Selbstbedienungs-Rest, noch zwei Stücke:** Sperr-/Missbrauchspfad (braucht Davids Regeln: wann sperren?) und Statusseite bei UptimeRobot (Klick, mit E2 bündeln). Testphase-Hinweis ✅ gebaut; `/workspace`-Umzug war gegenstandslos (mit A6 abgeschafft, kein Ziel für einen Redirect). | Mittel | S — Regeln + Klicks | Ja: Regeln + Klicks | [SAAS-ROADMAP #1](archiv/SAAS-ROADMAP.md) |
 | 27 · E1 | **Tote Schlüsseldatei löschen** (`apps/control/.env.production` zeigt auf ein gelöschtes Projekt). Liegt nur auf Davids Rechner, nicht im Repo. | Niedrig | S — eine Datei | Ja: enthält Schlüsselmaterial | [Notizen](#notizen) |
 | 28 · E2 | **UptimeRobot nachziehen:** Monitor für `help.pukalani.app` anlegen, einen alten Monitor umbenennen. | Niedrig | S — zwei Klicks | Nein | [Notizen](#notizen) |
 | 29 · E3 | **Server-Größe prüfen** — der CX33 wird mit sechs Apps plus Builds knapp. | Mittel | S — prüfen, ggf. Rescale | Ja: kostet Geld | [Notizen](#notizen) |
 | 30 · E4 | **Nur-Lese-Schlüssel im Projekt `control`** erzeugen (letzter Cutover-Krümel). | Niedrig | S — ein Klick in der Console | Ja: David, Console | [CONTROL-CUTOVER.md](runbooks/CONTROL-CUTOVER.md) |
-| 37 · F13 | **Pool-Dashboard bietet „paid" + Preisfeld an, obwohl der Kauf-CTA „Bald verfügbar" zeigt** (D1-Fund): ein Owner kann ein unverkäufliches Event mit Preis anlegen — sichtbare Sackgasse. Feld im Pool ausblenden (planProduct-Muster), bis F7 es echt macht. | Niedrig | S — drei Zeilen | Nein | D1-Bericht, F7 |
 | 32 · F8 | **Wie lange dürfen Abrechnungsdaten bleiben?** Löscht der letzte Owner sein Konto, bleiben `stripeCustomerId` und Zahlungsstatus der Community stehen (die Zeile wird nur entpersonalisiert). Aufbewahrungspflicht (§147 AO / §257 HGB) spricht dafür — oder es braucht eine Löschfrist. | Niedrig | S — Entscheidung, dann ggf. eine Frist | Ja: rechtliche Abwägung | [F3 in COMPLETE](OPEN-ITEMS-COMPLETE.md) |
 
 ## ⏸️ Geparkt / wartet
@@ -189,7 +188,7 @@ widersprechen sich) — wer es sauber will, schaltet
 deshalb nicht mit.
 
 **B1 — Visual-Baselines.** Das Neubacken
-(`pnpm --filter comments e2e -- --update-snapshots themes-visual`) ist am
+(`pnpm --filter comments e2e -- --update-snapshots=all themes-visual`) ist am
 2026-08-01 erledigt — offen ist nur noch das Sichten der neun Bilder. Der
 Header-Umbau (S9) hatte sie erwartungsgemäß gebrochen. Die Theme-Entscheidungen
 vom 2026-07-29 (B3/B5) kommen NICHT dazu: `themes-visual` läuft gegen
@@ -276,6 +275,15 @@ als `home.features.*.text`): deterministisch, also grün — aber falsch. Die
 Seite fragt jetzt die vorhandenen Schlüssel (keine neuen erfunden, dieselben,
 die `index.vue` benutzt), die Karten tragen echten Text und die beiden Knöpfe
 heißen „Try the demo"/„Go to dashboard". Der Rest des Bildes ist unverändert.
+
+**Nachtrag 2026-08-01 (drittes und letztes Backen — die Bilder sind JETZT
+final):** in allen neun Baselines stand mitten im Bild das
+**Nuxt-DevTools-Abzeichen** mit einer bei jedem Laden anderen ms-Zahl. Es fiel
+nie auf, weil `maxDiffPixelRatio: 0.02` es verschluckte. Die DevTools sind für
+den E2E-Kontext abgeschaltet (`PW_E2E`, s. COMPLETE-Eintrag), die Bilder ohne
+Abzeichen neu gebacken und die Toleranz auf `0.0001` gesenkt — Läufe sind jetzt
+pixelgleich. Beim Sichten also ein Unterschied mehr, und zwar der einzige:
+das schwebende Abzeichen ist weg, sonst ändert sich nichts.
 
 ### Bewusst zurückgestellt (kein Aufgabenpunkt)
 

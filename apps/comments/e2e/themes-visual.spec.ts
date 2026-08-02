@@ -11,6 +11,8 @@ import { test, expect } from '@playwright/test'
  *
  * Baselines aktualisieren (nach GEWOLLTEN Änderungen):
  *   pnpm --filter comments e2e -- --update-snapshots themes-visual
+ * Läuft dabei schon ein Dev-Server, muss er OHNE DevTools gestartet sein
+ * (`PW_E2E=1 pnpm --filter comments dev`) — sonst backt das Abzeichen mit.
  *
  * Deterministik: Light-Mode erzwungen, Animationen/Übergänge abgeschaltet.
  * CI-Skip: Baselines sind Plattform-spezifisch (-darwin) — bis die CI eigene
@@ -29,12 +31,34 @@ test.describe('Themes: visuelle Regression (Startseite)', () => {
 
       await page.goto('/visual')
       await page.waitForLoadState('networkidle')
+      // Kein DevTools-Abzeichen im Bild (F9-Rest): es schwebt über der Seite
+      // und zeigt eine wechselnde ms-Zahl. Der Schalter dafür sitzt in
+      // nuxt.config (`PW_E2E`) und wirkt nur, wenn playwright den Dev-Server
+      // selbst startet — bei `reuseExistingServer` also nicht. Diese Zeile
+      // macht aus „Baseline still vergiftet" ein lautes Fehlschlagen.
+      await expect(
+        page.locator('nuxt-devtools-frame'),
+        'DevTools sichtbar — Dev-Server mit PW_E2E=1 starten (s. playwright.config.ts)',
+      ).toHaveCount(0)
       // Animationen/Caret einfrieren — sonst flackern Diffs
       await page.addStyleTag({ content: '*, *::before, *::after { animation: none !important; transition: none !important; caret-color: transparent !important; }' })
 
       await expect(page).toHaveScreenshot(`visual-${theme}.png`, {
         fullPage: true,
-        maxDiffPixelRatio: 0.02,
+        /**
+         * 0.0001 statt 0.02 (2026-08-01, mit dem DevTools-Abzeichen).
+         *
+         * Die alten 2 % waren kein Sicherheitsabstand, sondern ein Versteck:
+         * das Abzeichen maß rund 3.600 px (~0,2 % des Bildes) und passte
+         * zehnfach in die Toleranz — ein Netz, das ein ganzes UI-Element
+         * verschluckt, verschluckt auch eine kaputte Ramp. Ohne Abzeichen sind
+         * die Läufe pixelgleich (mit `maxDiffPixelRatio: 0` gemessen, mehrfach).
+         * 0,01 % ≈ 166 px auf 1280×1297 — ein Feld von 13×13 px, genug für
+         * vereinzelte Kantenglättung, zu wenig für ein Bedienelement.
+         * Die FARB-Toleranz je Pixel (`threshold`, Standard 0.2) fängt
+         * Antialiasing ohnehin schon vorher ab.
+         */
+        maxDiffPixelRatio: 0.0001,
       })
     })
   }

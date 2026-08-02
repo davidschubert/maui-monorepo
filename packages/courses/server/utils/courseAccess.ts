@@ -45,6 +45,21 @@ export function registerCourseAccessGuard(guard: CourseAccessGuard): void {
   accessGuard = guard
 }
 
+/**
+ * Kann diese Instanz 'paid'-Kurse überhaupt freischalten? (F13-Muster)
+ *
+ * Das ist DIESELBE Wahrheit, die `assertCourseAccess` benutzt — kein zweites
+ * Flag und keine Config, die daneben altern könnte: entweder eine App hat
+ * einen Guard registriert (Silo: apps/comments gegen billings Entitlements)
+ * oder nicht (Pool: fail-closed 403). Das Dashboard-Formular fragt sie über
+ * /api/courses/manage, damit ein Owner dort keinen Kurs anlegen kann, den
+ * anschließend niemand buchen kann — im Pool zeigte der Buchen-Knopf sonst
+ * einen Upgrade-Hinweis auf ein /pricing, das es dort gar nicht gibt.
+ */
+export function isCourseAccessConfigured(): boolean {
+  return accessGuard !== null
+}
+
 /** free/members = eingeloggt genügt · paid = delegiert an den App-Guard */
 export async function assertCourseAccess(event: H3Event, course: CourseRow): Promise<void> {
   if (!event.context.user) {

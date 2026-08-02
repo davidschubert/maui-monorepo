@@ -1,5 +1,5 @@
 import { Query } from 'node-appwrite'
-import { COURSES_TABLE, type CourseRow } from '../../../shared/types/course'
+import { COURSES_TABLE, type CourseManageResponse, type CourseRow } from '../../../shared/types/course'
 
 /**
  * Builder-Liste (courses.manage): ALLE Status inkl. drafts — deshalb Datentür
@@ -9,7 +9,7 @@ import { COURSES_TABLE, type CourseRow } from '../../../shared/types/course'
  * AUTORISIERUNG: `requireCommunityPermission` — Site-Rolle vor protokolliertem
  * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
  */
-export default defineEventHandler(async (event): Promise<{ rows: CourseRow[] }> => {
+export default defineEventHandler(async (event): Promise<CourseManageResponse> => {
   // Produkt-Gate (P4): Kurse sind ab Plan pro enthalten.
   requirePlanProduct(event, 'courses')
   await requireCommunityPermission(event, 'courses.manage')
@@ -19,5 +19,7 @@ export default defineEventHandler(async (event): Promise<{ rows: CourseRow[] }> 
   ]).catch((error) => {
     throw toH3Error(error, 'Could not load courses')
   })
-  return { rows: res.rows }
+  // F13-Muster: das Formular soll 'paid' nur anbieten, wo es auch aufgeht.
+  // Die Antwort trägt die Wahrheit mit, statt sie im Client zu erraten.
+  return { rows: res.rows, paidAvailable: isCourseAccessConfigured() }
 })

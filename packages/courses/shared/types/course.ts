@@ -75,3 +75,15 @@ export interface CourseListResponse {
   rows: Array<CourseRow & { enrolled: boolean }>
   nextCursor: string | null
 }
+
+/** Builder-Liste (/api/courses/manage) */
+export interface CourseManageResponse {
+  rows: CourseRow[]
+  /**
+   * Ist ein Access-Guard registriert, kann diese Instanz also 'paid'-Kurse
+   * freischalten? (F13-Muster, isCourseAccessConfigured) — false im Pool, wo
+   * paid fail-closed ist. Das Formular blendet die Option dann aus, statt
+   * einen unbuchbaren Kurs anlegen zu lassen.
+   */
+  paidAvailable: boolean
+}

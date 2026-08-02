@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import { createCourseSchema } from '../../../../schemas/course'
-import type { CourseRow } from '../../../../shared/types/course'
+import type { CourseManageResponse, CourseRow } from '../../../../shared/types/course'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'courses.manage' })
 
@@ -11,7 +11,7 @@ const localePath = useLocalePath()
 
 useHead({ title: () => t('courses.admin.title') })
 
-const { data, status } = await useFetch<{ rows: CourseRow[] }>('/api/courses/manage', {
+const { data, status } = await useFetch<CourseManageResponse>('/api/courses/manage', {
   lazy: true,
   server: false,
 })
@@ -69,10 +69,22 @@ async function save() {
  * Zugang ist eine Auswahl, kein Knopf-Paar (Audit-Befund C12): `URadioGroup`
  * bringt Tastaturbedienung und Vorlesbarkeit mit, ein Trio aus UButton nicht.
  */
-const accessItems = computed(() => (['free', 'members', 'paid'] as const).map(value => ({
-  label: t(`courses.access.${value}`),
-  value,
-})))
+/**
+ * 'paid' NUR, wo ein Access-Guard registriert ist (F13-Muster): der Server
+ * sagt es in derselben Antwort (`paidAvailable`, aus isCourseAccessConfigured
+ * — dieselbe Wahrheit, die beim Buchen entscheidet). Im Pool registriert heute
+ * keine App einen Guard: ein bezahlter Kurs wäre dort fail-closed 403, und der
+ * Upgrade-Hinweis zeigte auf ein /pricing, das es im Pool nicht gibt. Solange
+ * die Liste lädt (undefined) bleibt die Option weg — fail-closed wie der
+ * Guard. 'members' bleibt als bezahlungsfreie Abstufung erhalten.
+ */
+const paidAvailable = computed(() => data.value?.paidAvailable === true)
+const accessItems = computed(() => (['free', 'members', 'paid'] as const)
+  .filter(value => value !== 'paid' || paidAvailable.value)
+  .map(value => ({
+    label: t(`courses.access.${value}`),
+    value,
+  })))
 
 const statusColor = (row: CourseRow) =>
   row.status === 'published' ? 'success' as const : row.status === 'archived' ? 'neutral' as const : 'warning' as const
