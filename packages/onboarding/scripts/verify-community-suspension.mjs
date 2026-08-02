@@ -11,6 +11,13 @@
  *     — die Wege, die den Admin-Client aus technischen Gründen brauchen und
  *     sich damit still von der Sperre abgemeldet hatten? Und bleibt umgekehrt
  *     das LESE-PUBLIKUM als Owner-Einstellung offen?
+ *   - RSVP NACH RICHTUNG (F26, 2026-08-02): ist das ZUSAGEN zu, das
+ *     ZURÜCKZIEHEN aber offen — samt Zähler? Beides ist derselbe Aufruf mit
+ *     demselben Body, deshalb stehen beide Richtungen nebeneinander.
+ *   - DIE ZWEI SWEEPS (F25, 2026-08-02): hält der Serien-Top-up an (er legt
+ *     NEUE Zeilen an und kostet Kontingent), während publish-on-read
+ *     WEITERLÄUFT (er ändert nur die Sichtbarkeit einer vorhandenen Zeile)?
+ *     Fällig gemacht wird beides durch Rückdatieren, nicht durch Warten.
  *   - stellt Entsperren den Zustand von vorher exakt wieder her?
  *   - ABUSE-Sperre: antwortet der Host 404 — Seite UND API — wie eine Adresse,
  *     die es nicht gibt? Bleibt das Meldeformular trotzdem erreichbar?
@@ -56,6 +63,16 @@ if (!endpoint || !controlProject || !databaseId || !controlKey || !poolKey) {
 const control = new TablesDB(new Client().setEndpoint(endpoint).setProject(controlProject).setKey(controlKey))
 const controlUsers = new Users(new Client().setEndpoint(endpoint).setProject(controlProject).setKey(controlKey))
 const poolUsers = new Users(new Client().setEndpoint(endpoint).setProject(poolProject).setKey(poolKey))
+/**
+ * Die RUNTIME-Tabellen (F25): die beiden Sweeps lassen sich von außen nur
+ * beobachten, wenn man ihre Auslöser stellen kann — der Serien-Marker und der
+ * Veröffentlichungs-Termin liegen im Pool-Projekt. Geschrieben wird damit
+ * ausschließlich, was sonst die ZEIT täte; jede geprüfte Wirkung entsteht über
+ * die echten HTTP-Routen.
+ */
+const poolDb = new TablesDB(new Client().setEndpoint(endpoint).setProject(poolProject).setKey(poolKey))
+/** Beide Projekte heißen ihre Datenbank heute 'main'; überschreibbar bleibt es. */
+const poolDatabaseId = process.env.POOL_DATABASE_ID || databaseId
 
 let pass = 0
 let fail = 0
@@ -67,6 +84,9 @@ const cleanup = {
   // Audit 2026-08-02: die zwei MITGLIEDS-Wege (einschreiben, Lektion
   // abschließen) legen ebenfalls Zeilen an — Lektionen als Vorbedingung.
   lessons: [], enrollments: [], progress: [],
+  // F26/F25: Zusagen und Serien-Instanzen — beide werden am Ende über ihren
+  // Termin eingesammelt, ihre Ids gibt keine Route heraus.
+  rsvps: [],
 }
 
 function check(label, ok, detail = '') {
@@ -392,6 +412,101 @@ try {
   check('Mitglied darf eine Lektion abschließen (200)', completeBefore?.status === 200,
     `Status ${completeBefore?.status} ${completeBefore?.text.slice(0, 200)}`)
 
+  /**
+   * F26-VORBEDINGUNG: ein VERÖFFENTLICHTER Termin mit einer echten Zusage.
+   *
+   * Beides muss VOR der Sperre entstehen — das Zurückziehen einer Zusage, die
+   * es nicht gibt, bewiese nichts. Der Termin ist bewusst ein anderer als
+   * `eventBefore`: den sagt Abschnitt 3 ab, und ein abgesagter nimmt keine
+   * RSVPs mehr an.
+   */
+  const rsvpEvent = await call(host, '/api/events', {
+    method: 'POST', cookie: ownerHostCookie,
+    body: {
+      title: 'M13 Zusage-Probe',
+      description: 'Ein Termin, zu dem vor der Sperre zugesagt wird.',
+      startAt: new Date(Date.now() + 10 * 24 * 3600_000).toISOString(),
+      access: 'free', status: 'published',
+    },
+  })
+  check('Ein Termin steht veröffentlicht bereit (201)', rsvpEvent.status === 201,
+    `Status ${rsvpEvent.status} ${rsvpEvent.text.slice(0, 200)}`)
+  if (rsvpEvent.json?.$id) cleanup.events.push(rsvpEvent.json.$id)
+
+  const rsvpBefore = await call(host, `/api/events/${rsvpEvent.json?.$id}/rsvp`, {
+    method: 'POST', cookie: memberHostCookie, body: { status: 'going' },
+  })
+  check('Mitglied darf zusagen (200)', rsvpBefore.status === 200,
+    `Status ${rsvpBefore.status} ${rsvpBefore.text.slice(0, 200)}`)
+  check('…und der Zähler steht auf 1', rsvpBefore.json?.event?.attendeeCount === 1,
+    JSON.stringify(rsvpBefore.json?.event?.attendeeCount))
+
+  /**
+   * Ein ZWEITER veröffentlichter Termin, zu dem NIEMAND zugesagt hat: an ihm
+   * hängt in Abschnitt 3 die Gegenprobe „zusagen ist zu". Am ersten ginge das
+   * nicht — dort hat das Mitglied schon eine Zusage, derselbe Aufruf wäre also
+   * die RÜCKNAHME und damit die andere Richtung.
+   */
+  const rsvpFresh = await call(host, '/api/events', {
+    method: 'POST', cookie: ownerHostCookie,
+    body: {
+      title: 'M13 Zusage-Gegenprobe',
+      description: 'Zu diesem Termin darf während der Sperre niemand zusagen.',
+      startAt: new Date(Date.now() + 11 * 24 * 3600_000).toISOString(),
+      access: 'free', status: 'published',
+    },
+  })
+  check('Ein zweiter Termin steht veröffentlicht bereit (201)', rsvpFresh.status === 201,
+    `Status ${rsvpFresh.status} ${rsvpFresh.text.slice(0, 200)}`)
+  if (rsvpFresh.json?.$id) cleanup.events.push(rsvpFresh.json.$id)
+
+  /**
+   * F25-VORBEDINGUNG A: eine SERIE. Das Anlegen expandiert das Fenster sofort,
+   * es gibt danach also mehr als eine Zeile — der Ausgangswert für die Frage
+   * „kommen während der Sperre welche dazu?".
+   */
+  const seriesEvent = await call(host, '/api/events', {
+    method: 'POST', cookie: ownerHostCookie,
+    body: {
+      title: 'M13 Serienprobe',
+      description: 'Eine Serie, die während der Sperre nicht weiterwachsen darf.',
+      startAt: new Date(Date.now() + 3 * 24 * 3600_000).toISOString(),
+      access: 'free', recurrence: 'weekly',
+    },
+  })
+  check('Redaktion darf eine Serie anlegen (201)', seriesEvent.status === 201,
+    `Status ${seriesEvent.status} ${seriesEvent.text.slice(0, 200)}`)
+  const seriesId = seriesEvent.json?.$id ?? null
+  const countSeries = async () => seriesId
+    ? (await poolDb.listRows({
+        databaseId: poolDatabaseId, tableId: 'events',
+        queries: [Query.equal('seriesId', seriesId), Query.limit(1)],
+      })).total
+    : 0
+  const seriesCountBefore = await countSeries()
+  check('…und die Serie hat ihr Fenster materialisiert', seriesCountBefore > 1, `Instanzen: ${seriesCountBefore}`)
+  /** Der Stand MIT künstlicher Lücke — gesetzt in Abschnitt 3, geprüft in 4. */
+  let seriesCountGap = 0
+
+  /**
+   * F25-VORBEDINGUNG B: ein GEPLANTER Beitrag. Angelegt mit einem Termin in der
+   * Zukunft (das Schema verlangt es); fällig gemacht wird er in Abschnitt 3 per
+   * Rückdatieren — dieselbe Zeit-Injektion wie bei `pastDueSince`, statt
+   * irgendwo zu warten.
+   */
+  const scheduledPost = await call(host, '/api/posts', {
+    method: 'POST', cookie: memberHostCookie,
+    body: {
+      type: 'post', body: 'Vor der Sperre geplant, während der Sperre fällig.',
+      scheduledAt: new Date(Date.now() + 3600_000).toISOString(),
+    },
+  })
+  check('Mitglied darf einen Beitrag planen (200/201)',
+    scheduledPost.status === 200 || scheduledPost.status === 201,
+    `Status ${scheduledPost.status} ${scheduledPost.text.slice(0, 200)}`)
+  const scheduledPostId = scheduledPost.json?.$id ?? scheduledPost.json?.id ?? null
+  if (scheduledPostId) cleanup.posts.push(scheduledPostId)
+
   const pageBefore = await call(host, '/api/pages', {
     method: 'PUT', cookie: ownerHostCookie,
     body: { slug: 'm13-probe', locale: 'de', title: 'M13 Seitenprobe', body: 'Vor der Sperre.', status: 'draft' },
@@ -592,6 +707,104 @@ try {
       completeDuring.json?.reason === 'community_suspended', JSON.stringify(completeDuring.json))
   }
 
+  /**
+   * RSVP: ZUSAGE ZU, RÜCKNAHME OFFEN (F26, Entscheidung vom 2026-08-02).
+   *
+   * Beide Richtungen sind DERSELBE Aufruf mit demselben Body — sie
+   * unterscheiden sich nur am Bestand (gleicher Status erneut = zurückziehen).
+   * Genau deshalb war das Zurückziehen mitgesperrt, ohne dass es jemandem
+   * auffiel. Hier stehen beide Richtungen nebeneinander, sonst beweist ein 200
+   * nur, dass irgendetwas durchging.
+   */
+  const rsvpDuring = await call(host, `/api/events/${rsvpFresh.json?.$id}/rsvp`, {
+    method: 'POST', cookie: memberHostCookie, body: { status: 'going' },
+  })
+  check('ZUSAGEN ist ZU (403) — eine neue Aussage in der Community',
+    rsvpDuring.status === 403, `Status ${rsvpDuring.status} ${rsvpDuring.text.slice(0, 200)}`)
+  check('…mit dem klaren Grund (reason: community_suspended)',
+    rsvpDuring.json?.reason === 'community_suspended', JSON.stringify(rsvpDuring.json))
+
+  // Auch der WECHSEL bleibt zu: going → declined ist eine neue Aussage, kein
+  // Zurückholen der alten. Die Ausnahme ist eng und soll es bleiben.
+  const rsvpSwitch = await call(host, `/api/events/${rsvpEvent.json?.$id}/rsvp`, {
+    method: 'POST', cookie: memberHostCookie, body: { status: 'declined' },
+  })
+  check('…und der WECHSEL zu „abgesagt" ebenso (403) — die Ausnahme bleibt eng',
+    rsvpSwitch.status === 403, `Status ${rsvpSwitch.status} ${rsvpSwitch.text.slice(0, 200)}`)
+
+  const rsvpWithdraw = await call(host, `/api/events/${rsvpEvent.json?.$id}/rsvp`, {
+    method: 'POST', cookie: memberHostCookie, body: { status: 'going' },
+  })
+  check('ABER ZURÜCKZIEHEN geht (200) — wer nicht absagen kann, blockiert einen Platz',
+    rsvpWithdraw.status === 200, `Status ${rsvpWithdraw.status} ${rsvpWithdraw.text.slice(0, 200)}`)
+  check('…die Zusage ist wirklich weg', rsvpWithdraw.json?.myRsvp === null,
+    JSON.stringify(rsvpWithdraw.json?.myRsvp))
+  check('…und der Zähler steht wieder auf 0 (die halbe Rücknahme wäre schlimmer als keine)',
+    rsvpWithdraw.json?.event?.attendeeCount === 0,
+    JSON.stringify(rsvpWithdraw.json?.event?.attendeeCount))
+
+  /**
+   * DIE ZWEI SWEEPS (F25, Entscheidung vom 2026-08-02) — die Grenze verläuft
+   * NICHT zwischen „Sweep" und „kein Sweep", sondern zwischen ÄNDERN und
+   * ANLEGEN. Beide laufen ohne `actor`, die Datentür hält also keinen von
+   * beiden auf; die Antwort ist trotzdem für jeden eine andere, und genau
+   * deshalb stehen sie hier zusammen.
+   */
+  if (seriesId) {
+    /**
+     * ZWEI Handgriffe, und beide sind nötig — sonst misst der Beweis nichts:
+     *
+     *  (1) PLATZ IM FENSTER. Die Serie hat ihr Rolling Window beim Anlegen
+     *      schon gefüllt; ein Top-up hätte also auch in einer GESUNDEN
+     *      Community nichts zu tun, und „es kam nichts dazu" wäre keine
+     *      Aussage über die Sperre. Deshalb fallen die jüngsten Instanzen weg —
+     *      danach passt wieder etwas hinein. (Genau in diese Falle ist der
+     *      erste Anlauf dieses Beweises gelaufen.)
+     *  (2) MARKER FÄLLIG. Ohne ihn hält `topUpSeries` das Fenster für frisch
+     *      und rührt die Serie gar nicht erst an.
+     */
+    const newest = await poolDb.listRows({
+      databaseId: poolDatabaseId, tableId: 'events',
+      queries: [Query.equal('seriesId', seriesId), Query.orderDesc('startAt'), Query.limit(3)],
+    })
+    for (const row of newest.rows) {
+      if (row.$id === seriesId) continue // der Master ist der erste Termin, nie der jüngste
+      await poolDb.deleteRow({ databaseId: poolDatabaseId, tableId: 'events', rowId: row.$id })
+    }
+    seriesCountGap = await countSeries()
+    check('Im Serien-Fenster ist wieder Platz (sonst bewiese der Lauf nichts)',
+      seriesCountGap < seriesCountBefore, `vorher ${seriesCountBefore}, mit Lücke ${seriesCountGap}`)
+
+    await poolDb.updateRow({
+      databaseId: poolDatabaseId, tableId: 'events', rowId: seriesId,
+      data: { seriesGeneratedUntil: new Date(Date.now() - 86_400_000).toISOString() },
+    })
+    const listDuring = await call(host, '/api/events')
+    check('Die Liste bleibt lesbar (der Sweep sprengt sie nicht)', listDuring.status === 200,
+      `Status ${listDuring.status}`)
+    const seriesCountDuring = await countSeries()
+    check('Serien-Top-up HÄLT AN — die Lücke bleibt, kein neuer Termin entsteht',
+      seriesCountDuring === seriesCountGap, `mit Lücke ${seriesCountGap}, jetzt ${seriesCountDuring}`)
+    const masterDuring = await poolDb.getRow({ databaseId: poolDatabaseId, tableId: 'events', rowId: seriesId })
+    check('…und der Marker bleibt fällig (sonst hätte die Serie nach dem Entsperren ein Loch)',
+      Date.parse(masterDuring.seriesGeneratedUntil) < Date.now(), String(masterDuring.seriesGeneratedUntil))
+  }
+
+  if (scheduledPostId) {
+    // Denselben Handgriff für den geplanten Beitrag: rückdatieren = fällig.
+    await poolDb.updateRow({
+      databaseId: poolDatabaseId, tableId: 'community_posts', rowId: scheduledPostId,
+      data: { scheduledAt: new Date(Date.now() - 60_000).toISOString() },
+    })
+    const feedDuring = await call(host, '/api/posts')
+    check('Der Feed bleibt lesbar', feedDuring.status === 200, `Status ${feedDuring.status}`)
+    const postDuring = await poolDb.getRow({ databaseId: poolDatabaseId, tableId: 'community_posts', rowId: scheduledPostId })
+    check('Publish-on-read LÄUFT WEITER — der fällige Beitrag geht online',
+      postDuring.status === 'published', `status ${postDuring.status}`)
+    check('…denn er ändert nur die Sichtbarkeit einer Zeile, die vor der Sperre entstand',
+      postDuring.$permissions.some(p => p.startsWith('read(')), postDuring.$permissions.join(','))
+  }
+
   const pageDuringWrite = await call(host, '/api/pages', {
     method: 'PUT', cookie: ownerHostCookie,
     body: { slug: 'm13-probe', locale: 'de', title: 'M13 während der Sperre', body: 'Darf nicht.', status: 'published' },
@@ -635,6 +848,19 @@ try {
   }
   check('Mitglied darf wieder schreiben', restored?.status === 200 || restored?.status === 201, `Status ${restored?.status}`)
   if (restored?.json?.$id) cleanup.comments.push(restored.json.$id)
+
+  /**
+   * Und der angehaltene Sweep läuft wieder an (F25). Ohne diese Gegenprobe
+   * bewiese Abschnitt 3 nur, dass irgendetwas den Top-up verhindert hat — ein
+   * Tippfehler im Marker hätte dasselbe Bild ergeben.
+   */
+  if (seriesId) {
+    const listAfter = await call(host, '/api/events')
+    check('Die Liste ist wieder da', listAfter.status === 200, `Status ${listAfter.status}`)
+    const seriesCountAfter = await countSeries()
+    check('Serien-Top-up läuft nach dem Entsperren wieder an — die Lücke füllt sich',
+      seriesCountAfter > seriesCountGap, `mit Lücke ${seriesCountGap}, jetzt ${seriesCountAfter}`)
+  }
 
   console.log('\n5. ABUSE-Sperre: der Host ist weg — Seite UND API')
   await setSuspension(communityId, 'abuse', 'Geprüfte Meldung: massenhaft rechtswidrige Inhalte.')
@@ -917,19 +1143,34 @@ catch (error) {
 finally {
   console.log('\n11. Aufräumen')
   if (cleanup.comments.length > 0 || cleanup.posts.length > 0) {
-    const poolDb = new TablesDB(new Client().setEndpoint(endpoint).setProject(poolProject).setKey(poolKey))
-    const poolDatabaseId = process.env.POOL_DATABASE_ID || databaseId
     for (const id of cleanup.comments) {
       await poolDb.deleteRow({ databaseId: poolDatabaseId, tableId: 'comments', rowId: id }).catch(() => {})
     }
     for (const id of cleanup.posts) {
-      await poolDb.deleteRow({ databaseId: poolDatabaseId, tableId: 'posts', rowId: id }).catch(() => {})
+      // Die Table heißt `community_posts` — mit 'posts' lief jedes Delete ins
+      // Leere (still, weil `.catch(() => {})`), und jeder Lauf ließ seine
+      // Beiträge stehen (nebenbei aufgefallen beim F25-Beweis).
+      await poolDb.deleteRow({ databaseId: poolDatabaseId, tableId: 'community_posts', rowId: id }).catch(() => {})
     }
   }
   if (cleanup.events.length > 0 || cleanup.courses.length > 0 || cleanup.pages.length > 0
     || cleanup.lessons.length > 0 || cleanup.enrollments.length > 0 || cleanup.progress.length > 0) {
-    const poolDb = new TablesDB(new Client().setEndpoint(endpoint).setProject(poolProject).setKey(poolKey))
-    const poolDatabaseId = process.env.POOL_DATABASE_ID || databaseId
+    /**
+     * SERIEN-INSTANZEN und RSVPs geben ihre Row-Id nie heraus — die einen
+     * entstehen im Sweep, die anderen antworten mit dem Event. Beide hängen an
+     * einem Termin, also über ihn einsammeln (Muster Einschreibungen unten).
+     */
+    for (const eventId of [...cleanup.events]) {
+      for (const [tableId, key] of [['events', 'seriesId'], ['event_rsvps', 'eventId']]) {
+        const rows = await poolDb.listRows({
+          databaseId: poolDatabaseId, tableId, queries: [Query.equal(key, eventId), Query.limit(100)],
+        }).catch(() => ({ rows: [] }))
+        for (const row of rows.rows) {
+          if (tableId === 'events') cleanup.events.push(row.$id)
+          else cleanup.rsvps.push(row.$id)
+        }
+      }
+    }
     /**
      * Einschreibungen und Fortschritt geben ihre Row-Id nie heraus (die Routen
      * antworten mit `{ ok: true }` bzw. mit der Fortschritts-Liste). Sie hängen
@@ -944,9 +1185,11 @@ finally {
       }
     }
     for (const [tableId, ids] of [
-      // Reihenfolge: Abhängiges zuerst (Fortschritt vor Lektion vor Kurs).
+      // Reihenfolge: Abhängiges zuerst (Fortschritt vor Lektion vor Kurs,
+      // Zusagen vor Termin).
       ['lesson_progress', cleanup.progress], ['enrollments', cleanup.enrollments], ['lessons', cleanup.lessons],
-      ['events', cleanup.events], ['courses', cleanup.courses], ['pages', cleanup.pages],
+      ['event_rsvps', cleanup.rsvps],
+      ['events', [...new Set(cleanup.events)]], ['courses', cleanup.courses], ['pages', cleanup.pages],
     ]) {
       for (const id of ids) {
         await poolDb.deleteRow({ databaseId: poolDatabaseId, tableId, rowId: id }).catch(() => {})

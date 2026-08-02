@@ -37,6 +37,22 @@ export function parsePollOptions(row: Pick<CommunityPost, 'pollOptions'>): strin
  * `actor: 'member'` hätte hier zwei Fehler auf einmal: es machte den zufälligen
  * Leser zum Mitglied (A5) und ließe eine Sperre den Zeitplan eines anderen
  * anhalten, ohne dass jemand es merkt.
+ *
+ * IN EINER GESPERRTEN COMMUNITY LÄUFT DIESER SWEEP WEITER (F25, Entscheidung
+ * vom 2026-08-02) — bewusst, und bewusst anders als der Serien-Top-up der
+ * Termine (`packages/events/server/utils/eventSeries.ts`, der ANHÄLT).
+ *
+ * Die Grenze verläuft nicht zwischen „Sweep" und „kein Sweep", sondern
+ * zwischen ÄNDERN und ANLEGEN: hier wird nur die SICHTBARKEIT einer Zeile
+ * umgelegt, die längst existiert und die der Autor VOR der Sperre auf genau
+ * diesen Zeitpunkt gestellt hat. Es entsteht nichts Neues, es kostet kein
+ * Kontingent, und die Aussage ist bereits getroffen — sie festzuhalten wäre
+ * keine Mahnung, sondern eine nachträgliche Zensur eines fertigen Beitrags.
+ * Der Serien-Top-up dagegen erzeugt NEUE Zeilen und verbraucht Kontingent;
+ * genau das meint die Zahlungssperre.
+ *
+ * Wer diese Entscheidung umdreht, dreht sie an BEIDEN Stellen um — sonst
+ * behauptet der Code zweimal Verschiedenes über dieselbe Sperre.
  */
 export async function publishDuePosts(event: H3Event): Promise<void> {
   try {

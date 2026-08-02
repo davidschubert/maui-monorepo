@@ -61,9 +61,15 @@ export interface Comment extends Models.Row {
   downvotes: number
   score: number
   status: CommentStatus
-  /** Horizont-3 Pool-Modus (Migration comments-011, ruhend): Mandant der Row.
-   *  '' / fehlend = Silo-/Einzelbetrieb (heutiges Verhalten). */
-  tenantId?: string
+  /**
+   * KEIN `tenantId` mehr (F29, 2026-08-02): die Spalte ist mit comments-017
+   * gefallen, der Mandant heißt überall `communityId` (E8-3). Das Feld stand
+   * hier noch als toter Rest — gelesen oder geschrieben wurde es nirgends, und
+   * genau diese Drift zwischen Typ und Schema hat im events-Layer den Geldpfad
+   * gebrochen (ein `tenantId` im Schreib-Objekt ⇒ 400 row_invalid_structure).
+   * Die `communityId` steht bewusst NICHT im Typ: sie gehört der Datentür, die
+   * sie stempelt und filtert — Produkt-Code liest sie nicht.
+   */
 }
 
 export interface CommentVote extends Models.Row {

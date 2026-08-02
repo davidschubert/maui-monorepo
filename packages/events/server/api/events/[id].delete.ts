@@ -25,9 +25,22 @@ import { EVENTS_TABLE, type EventRow } from '../../../shared/types/event'
  * keine Rücknahme, sondern eine neue Aussage an alle Teilnehmer — die Sorte
  * Schreibvorgang, die die Sperre eigentlich meint; (2) „löschen darf man,
  * anlegen nicht" ist die Art Ausnahme, auf die sich der nächste Weg beruft.
- * Wegen (2) gilt diese Ausnahme AUSSCHLIESSLICH fürs Absagen (hier und in
- * series.delete.ts): sie rechtfertigt keinen weiteren offenen Schreibweg.
- * ANLEGEN und ÄNDERN eines Termins bleiben zu (index.post.ts, [id].patch.ts).
+ *
+ * DIE LISTE DER AUSNAHMEN, VOLLSTÄNDIG — und sie ist am 2026-08-02 um GENAU
+ * EINEN Eintrag gewachsen (F26). Wegen (2) wird sie hier geführt und nicht je
+ * Route neu behauptet; wer eine dritte Ausnahme will, schreibt sie hierher oder
+ * baut sie nicht:
+ *   1. ABSAGEN eines Termins — hier und in series.delete.ts (Begründung oben).
+ *   2. ZURÜCKZIEHEN einer eigenen RSVP — [id]/rsvp.post.ts, und dort nur der
+ *      Zweig, der die eigene Zeile löscht. Das ist der Fall, den Gegenargument
+ *      (1) gerade NICHT trifft: eine Rücknahme ist keine neue Aussage an
+ *      andere, sondern das Zurückholen der eigenen. Und sie schützt dieselben
+ *      Menschen wie die Absage — wer nicht absagen kann, hält einen Platz
+ *      besetzt und verfälscht die Planung wegen einer fremden Rechnung.
+ * Beide betreffen ausschließlich Zeilen, die VOR der Sperre entstanden sind.
+ *
+ * ANLEGEN und ÄNDERN eines Termins bleiben zu (index.post.ts, [id].patch.ts),
+ * ZUSAGEN ebenfalls (rsvp.post.ts, alle übrigen Zweige).
  */
 export default defineEventHandler(async (event) => {
   // Produkt-Gate (P4): Events sind ab Plan pro enthalten.

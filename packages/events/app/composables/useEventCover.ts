@@ -4,8 +4,17 @@ import { storageFileUrl, storageImageUrl, type StorageImageOptions } from '../..
 const COVER_BUCKET = 'event-covers'
 
 /**
- * Cover-Bilder im Bucket 'event-covers' (Migration events-002) — Dateien sind
- * read(any), der Browser lädt direkt vom Appwrite-Endpoint.
+ * Cover-Bilder im Bucket 'event-covers' — der Browser lädt direkt vom
+ * Appwrite-Endpoint.
+ *
+ * NUR FÜR SICHTBARE TERMINE (seit events-009 + F28): der Bucket ist ein
+ * fileSecurity-Bucket, und eine Cover-Datei trägt exakt die READ-Permissions
+ * ihrer Row. Für einen veröffentlichten Termin ist das `read(any)` bzw. in
+ * einer geschlossenen Community `read(label:<communityId>)` — beides holt der
+ * Browser des Betrachters selbst. Für einen ENTWURF ist es NICHTS; dessen
+ * Vorschau läuft über `GET /api/events/:id/cover` (Dashboard), nicht über
+ * diese URLs. Wer hier eine Entwurfs-Datei einsetzt, bekommt ein 404-Bild —
+ * und das ist die richtige Antwort, kein Fehler.
  *
  * Seit 2026-07-28 über die zentrale Bild-Naht (core/shared/storageImage):
  * `coverUrl` liefert eine SKALIERTE Fassung. Vorher ging hier die

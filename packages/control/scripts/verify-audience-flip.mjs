@@ -28,9 +28,10 @@
  * Idempotent + selbst-aufräumend (fester Präfix, `finally`-Löschung). Läuft NUR
  * gegen die in der Env genannte Instanz — nie hartkodiert Prod.
  */
-import { Client, ID, Permission, Query, Role, Storage, TablesDB } from 'node-appwrite'
+import { Client, ID, Permission, Query, Role, Storage, TablesDB, Users } from 'node-appwrite'
 import { InputFile } from 'node-appwrite/file'
 import { repermissionRow } from '../../core/shared/communityAudience.ts'
+import { coverReadPermissions } from '../../events/shared/coverAudience.ts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -45,6 +46,7 @@ const adminClient = new Client().setEndpoint(endpoint).setProject(projectId).set
 /** Betreiber-Sicht (Admin-Key): sieht alles, schreibt Permissions. */
 const admin = new TablesDB(adminClient)
 const adminStorage = new Storage(adminClient)
+const adminUsers = new Users(adminClient)
 /** GAST-Sicht: kein Key, keine Session. Genau das, was ein Fremder hat. */
 const guest = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId))
 
@@ -57,6 +59,7 @@ const MEMBERS_READ = Permission.read(Role.label(COMMUNITY))
 
 const created = []
 const createdFiles = []
+const createdUsers = []
 let passed = 0, failed = 0
 function check(name, ok, detail = '') {
   if (ok) { passed++; console.log(`✔ ${name}`) }
@@ -124,6 +127,47 @@ async function flip(tableId, target, bucket = null) {
 async function guestCanFetchFile(bucketId, fileId) {
   const res = await fetch(`${endpoint}/storage/buckets/${bucketId}/files/${fileId}/view?project=${projectId}`)
   return res.status === 200
+}
+
+/**
+ * Und was ein MITGLIED von einer Datei sieht (F28, 2026-08-02).
+ *
+ * Der Gast-Abruf allein reicht für Titelbilder NICHT: der Befund war ja gerade,
+ * dass ein Entwurfs-Cover das MITGLIEDER-Publikum trug, während seine Zeile gar
+ * kein Leserecht hatte. Ein Gast ist da draußen — jedes Mitglied der Community
+ * aber drin. Deshalb ein echter Sitzungs-Client mit genau dem Label, das die
+ * Community vergibt (`Role.label(<communityId>)`), also exakt die Rechte eines
+ * gewöhnlichen Mitglieds: kein Key, keine Capability.
+ */
+let memberStorage = null
+async function memberCanFetchFile(bucketId, fileId) {
+  if (!memberStorage) return false
+  return memberStorage.getFileView({ bucketId, fileId }).then(() => true).catch(() => false)
+}
+
+/**
+ * Ein Mitglied der Test-Community anlegen (Konto + Label + Sitzung).
+ *
+ * Braucht `users.read`/`users.write`/`sessions.write` am Schlüssel. Fehlen sie,
+ * bricht das Skript ab — bewusst: ohne Mitglieds-Sicht misst dieser Beweis
+ * genau die Frage NICHT, für die es ihn gibt (der Gast-Abruf scheiterte auch
+ * beim Befund schon).
+ */
+async function createMemberSession() {
+  const user = await adminUsers.create({
+    userId: ID.unique(),
+    email: `c18-member-${Date.now()}@example.test`,
+    password: `Pw-${ID.unique()}`,
+    name: 'C18 Mitglied',
+  }).catch((error) => {
+    throw new Error(`Mitglieds-Konto nicht anlegbar (Schlüssel braucht users.write/sessions.write): ${error?.message ?? error}`)
+  })
+  createdUsers.push(user.$id)
+  await adminUsers.updateLabels({ userId: user.$id, labels: [COMMUNITY] })
+  const session = await adminUsers.createSession({ userId: user.$id })
+  memberStorage = new Storage(
+    new Client().setEndpoint(endpoint).setProject(projectId).setSession(session.secret),
+  )
 }
 
 /** Kleinstes gültiges PNG (1×1, transparent) — der Bucket prüft Endung + Inhalt. */
@@ -267,6 +311,108 @@ try {
     check('events: wieder offen ⇒ Gast sieht den Termin', (await guestSees('events')).includes(eventRow.$id))
     check('events: wieder offen ⇒ das Titelbild ist erneut abrufbar',
       await guestCanFetchFile('event-covers', cover.$id))
+
+    /**
+     * ── F28: VIER ZUSTÄNDE, ZWEI BETRACHTER ──────────────────────────────
+     *
+     * Der Abschnitt oben prüft den UMZUG (C18). Hier steht die andere Frage:
+     * trägt eine Cover-Datei in JEDEM Zustand ihres Termins genau das Publikum
+     * ihrer Zeile — auch dann, wenn das „niemand" ist?
+     *
+     * DER BEFUND, den das schließt: events-009 gab einem Cover ohne
+     * Row-Leserecht (Entwurf) ersatzweise das MITGLIEDER-Publikum, damit die
+     * Dashboard-Vorschau nicht ins Leere lief. Ein Gast-Abruf hätte das NIE
+     * gesehen — der scheiterte auch vorher. Deshalb misst dieser Abschnitt
+     * beides: anonym UND als eingeloggtes Mitglied mit dem Community-Label.
+     *
+     * Gerechnet wird mit der ECHTEN Regel (`coverReadPermissions` aus
+     * packages/events/shared/coverAudience.ts, direkt importiert) — dieselbe
+     * Zeile, die die Laufzeit benutzt. Eine Nachbildung könnte grün bleiben,
+     * während die Laufzeit etwas anderes tut.
+     */
+    await createMemberSession()
+
+    const draftCover = await adminStorage.createFile({
+      bucketId: 'event-covers',
+      fileId: ID.unique(),
+      file: InputFile.fromBuffer(ONE_PIXEL_PNG, 'f28-cover.png'),
+      permissions: [],
+    })
+    createdFiles.push({ bucketId: 'event-covers', id: draftCover.$id })
+
+    const draftRow = await seed('events', {
+      title: 'F28 Entwurf', description: 'Beweis', startAt: new Date(Date.now() + 86_400_000).toISOString(),
+      endAt: null, location: null, url: null, capacity: null, attendeeCount: 0,
+      status: 'draft', organizerId: 'u-1', organizerName: 'A',
+      coverFileId: draftCover.$id, locationType: null, replayUrl: null, address: null, locationNotes: null,
+      upvotes: 0, downvotes: 0, score: 0, remindersSentAt: null,
+      access: null, priceAmount: null, priceLookupKey: null,
+      recurrence: '', seriesId: '', seriesIndex: 0, seriesUntil: null, seriesGeneratedUntil: null,
+      communityId: COMMUNITY,
+    }, [])
+
+    /** Zustandswechsel wie in der Laufzeit: Row setzen, Datei der Row angleichen. */
+    async function setState(rowPermissions) {
+      await admin.updateRow({ databaseId, tableId: 'events', rowId: draftRow.$id, permissions: rowPermissions })
+      await adminStorage.updateFile({
+        bucketId: 'event-covers', fileId: draftCover.$id,
+        permissions: coverReadPermissions(rowPermissions),
+      })
+    }
+
+    // Die Sitzung selbst muss beweisbar funktionieren — sonst wäre jedes
+    // folgende „Mitglied sieht nichts" auch bei einem kaputten Client grün.
+    check('F28 Gegenprobe: das Mitglied kann eine für es freigegebene Datei abrufen',
+      await memberCanFetchFile('event-covers', cover.$id))
+
+    // ── VORHER: die Regel aus events-009 (Entwurf fällt aufs Mitglieder-
+    // Publikum zurück). Genau der Zustand, den F28 als zu offen befunden hat.
+    await adminStorage.updateFile({
+      bucketId: 'event-covers', fileId: draftCover.$id, permissions: [MEMBERS_READ],
+    })
+    check('F28 VORHER: Entwurfs-Cover mit Mitglieder-Rückfall — der Gast sieht es nicht',
+      !(await guestCanFetchFile('event-covers', draftCover.$id)))
+    check('F28 VORHER: …aber JEDES MITGLIED konnte es abrufen (der Befund)',
+      await memberCanFetchFile('event-covers', draftCover.$id))
+
+    // ── NACHHER, Zustand 1: Entwurf. Row ohne Leserecht ⇒ Datei ohne.
+    await setState([])
+    check('F28 Entwurf: der Gast sieht das Titelbild nicht',
+      !(await guestCanFetchFile('event-covers', draftCover.$id)))
+    check('F28 Entwurf: auch das MITGLIED sieht es nicht mehr',
+      !(await memberCanFetchFile('event-covers', draftCover.$id)))
+    check('F28 Entwurf: die Datei trägt exakt kein Leserecht',
+      (await adminStorage.getFile({ bucketId: 'event-covers', fileId: draftCover.$id })).$permissions.length === 0)
+
+    // ── Zustand 2: veröffentlicht in einer OFFENEN Community.
+    await setState([PUBLIC_READ])
+    check('F28 veröffentlicht (offen): der Gast sieht das Titelbild',
+      await guestCanFetchFile('event-covers', draftCover.$id))
+    check('F28 veröffentlicht (offen): das Mitglied auch',
+      await memberCanFetchFile('event-covers', draftCover.$id))
+
+    // ── Zustand 3: veröffentlicht in einer GESCHLOSSENEN Community.
+    await setState([MEMBERS_READ])
+    check('F28 veröffentlicht (nur Mitglieder): der Gast sieht es NICHT',
+      !(await guestCanFetchFile('event-covers', draftCover.$id)))
+    check('F28 veröffentlicht (nur Mitglieder): das Mitglied schon',
+      await memberCanFetchFile('event-covers', draftCover.$id))
+
+    // ── Zustand 4: ZURÜCKGEZOGEN. `withoutPublishedRead` nimmt das Leserecht
+    // aus dem Array; die Schreibrechte des Autors bleiben stehen — und die
+    // dürfen die Datei NICHT öffnen (die Regel filtert auf `read(`).
+    await setState([Permission.update(Role.user('u-1'))])
+    check('F28 zurückgezogen: der Gast sieht es nicht mehr',
+      !(await guestCanFetchFile('event-covers', draftCover.$id)))
+    check('F28 zurückgezogen: das Mitglied auch nicht',
+      !(await memberCanFetchFile('event-covers', draftCover.$id)))
+
+    // ── Zustand 5: ABGESAGT. Der Termin behält sein Publikum — die Zusagenden
+    // müssen die Absage sehen, also bleibt auch das Bild abrufbar. Das ist der
+    // Grund, warum die Regel die PERMISSIONS liest und nie `status`.
+    await setState([PUBLIC_READ, Permission.update(Role.user('u-1'))])
+    check('F28 abgesagt: das Publikum bleibt, also bleibt das Titelbild abrufbar',
+      await guestCanFetchFile('event-covers', draftCover.$id))
   }
   else {
     console.log('↷ events nicht vorhanden — übersprungen (Layer nicht migriert)')
@@ -286,6 +432,11 @@ finally {
   for (const { bucketId, id } of createdFiles) {
     await adminStorage.deleteFile({ bucketId, fileId: id }).catch(() => {})
   }
-  console.log(`\n${failed === 0 ? '✔' : '✗'} ${passed} bestanden, ${failed} fehlgeschlagen (${created.length} Test-Rows, ${createdFiles.length} Test-Datei(en) aufgeräumt)`)
+  // Das Test-Mitglied samt Sitzung — sonst bleibt nach jedem Lauf ein Konto mit
+  // einem Community-Label in der Instanz stehen.
+  for (const userId of createdUsers) {
+    await adminUsers.delete({ userId }).catch(() => {})
+  }
+  console.log(`\n${failed === 0 ? '✔' : '✗'} ${passed} bestanden, ${failed} fehlgeschlagen (${created.length} Test-Rows, ${createdFiles.length} Test-Datei(en), ${createdUsers.length} Test-Konto/-Konten aufgeräumt)`)
   process.exit(failed === 0 ? 0 : 1)
 }

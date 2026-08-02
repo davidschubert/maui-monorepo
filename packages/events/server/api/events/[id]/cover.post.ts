@@ -9,7 +9,9 @@ import { EVENTS_TABLE, EVENT_COVERS_BUCKET, MAX_EVENT_COVER_BYTES, isSeriesEvent
  * OHNE bucket-weites read(any) — das Leserecht hängt an der DATEI und folgt
  * dem der Row (`eventCoverPermissions`, s. utils/eventCovers.ts). Vorher war
  * jedes Titelbild per Roh-URL öffentlich, auch wenn die Community auf „nur
- * für Mitglieder" stand. Geschrieben wird nur hier. Ersetzt ein vorhandenes
+ * für Mitglieder" stand. Ein Cover, das an einem ENTWURF hängt, bekommt seit
+ * F28 gar kein Leserecht — angesehen wird es über `cover.get.ts`, nicht per
+ * Roh-URL aus dem Bucket. Geschrieben wird nur hier. Ersetzt ein vorhandenes
  * Cover (altes File wird gelöscht, best-effort). Rows über die Datentür als
  * Operator (get/update belegen die Zugehörigkeit); Storage bleibt
  * Admin-Client — Files tragen keinen Mandanten, die Referenz (coverFileId)
@@ -68,7 +70,7 @@ export default defineEventHandler(async (event) => {
     // Das Publikum der ROW, schon beim Hochladen — nicht in einem zweiten
     // Schritt: zwischen Anlegen und Nachrüsten läge sonst ein Fenster, in dem
     // die Datei ohne Leserecht (oder, vor events-009, für alle) dasteht.
-    permissions: eventCoverPermissions(event, row),
+    permissions: eventCoverPermissions(row),
   }).catch((error) => { throw toH3Error(error, 'Covers bucket missing — run migrations') })
 
   await db.update(EVENTS_TABLE, id, { coverFileId: file.$id }, 'Event not found').catch(async (error) => {

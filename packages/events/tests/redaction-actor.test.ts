@@ -65,7 +65,50 @@ describe('Termin-Verwaltung handelt als Redaktion, nicht als Betreiber', () => {
     // beim nächsten Mal neu erfunden werden.
     const source = read('../server/api/events/[id].delete.ts')
     expect(source).toMatch(/Absagen bleibt OFFEN/)
-    expect(source).toMatch(/AUSSCHLIESSLICH fürs Absagen/)
+    // Die Ausnahmen werden an EINER Stelle geführt (F26): seit dem 2026-08-02
+    // sind es zwei, und die zweite (RSVP zurückziehen) muss dort benannt sein —
+    // sonst beruft sich der nächste Weg auf eine Liste, die ihn nicht kennt.
+    expect(source).toMatch(/DIE LISTE DER AUSNAHMEN, VOLLSTÄNDIG/)
+    expect(source).toMatch(/rsvp\.post\.ts/)
+  })
+})
+
+/**
+ * RSVP: NACH RICHTUNG GETRENNT (F26, Entscheidung vom 2026-08-02).
+ *
+ * Zusagen und Zurückziehen sind derselbe Aufruf mit demselben Body — sie
+ * unterscheiden sich nur am Bestand. Deshalb hängt hier alles an zwei Türen in
+ * EINER Datei, und ein Zusammenführen „zur Vereinfachung" würde das
+ * Zurückziehen in einer gesperrten Community wieder unmöglich machen, ohne dass
+ * irgendetwas rot wird. Diese Tests sind der Anker dagegen.
+ */
+describe('RSVP: Zusage gesperrt, Rücknahme offen', () => {
+  const source = read('../server/api/events/[id]/rsvp.post.ts')
+
+  it('der Zusage-Weg handelt als Mitglied (und fällt damit unter die Sperre)', () => {
+    expect(source).toContain('tenantDb(event, { as: \'operator\', actor: \'member\' })')
+  })
+
+  it('die Rücknahme hat eine EIGENE Tür ohne Handelnden', () => {
+    expect(source).toContain('const withdrawDb = tenantDb(event, { as: \'operator\' })')
+  })
+
+  it('der Zähler folgt der Rücknahme durch dieselbe Tür', () => {
+    // Ginge das Dekrement über `db`, stünde die Zusage gelöscht da, während
+    // attendeeCount den Platz weiter belegt hielte — die Sperre bräche mitten
+    // im Vorgang ab.
+    expect(source).toMatch(/withdrawDb\.decrement\(EVENTS_TABLE, id, 'attendeeCount'/)
+  })
+
+  it('die Ausnahme bleibt eng: kein zweiter offener Schreibweg in der Datei', () => {
+    // Genau EINE türlose Datentür. Wer eine zweite ergänzt (etwa für den
+    // Wechsel going → declined), macht aus der Ausnahme eine Regel.
+    expect(source.match(/tenantDb\(event, \{ as: 'operator' \}\)/g)).toHaveLength(1)
+  })
+
+  it('die Begründung steht an der Stelle', () => {
+    expect(source).toMatch(/RÜCKNAHME/)
+    expect(source).toMatch(/F26/)
   })
 })
 
@@ -78,5 +121,24 @@ describe('Sweeps sind keine Redaktion', () => {
     // Geprüft wird die AUFRUFSTELLE, nicht das Wort — die Begründung im Kopf
     // nennt den Parameter natürlich.
     expect(source).not.toContain('tenantDb(event, { as: \'operator\', actor')
+  })
+
+  /**
+   * ABER: „kein Handelnder" heißt NICHT „läuft in einer gesperrten Community
+   * weiter" (F25, Entscheidung vom 2026-08-02). Die Serien-Expansion legt neue
+   * Zeilen an und verbraucht Kontingent — genau das, was die Zahlungssperre
+   * meint. Weil sie ohne `actor` läuft, greift die Inhalts-Sperre der Datentür
+   * nicht; sie muss also selbst fragen.
+   */
+  it('Serien-Expansion hält in einer gesperrten Community an — VOR dem Marker', () => {
+    const source = read('../server/utils/eventSeries.ts')
+    expect(source).toContain('memberWritesAllowedFor(db.tenant)')
+    expect(source).toContain('events.series_expansion_suspended')
+
+    // Reihenfolge ist die eigentliche Zusage: stünde die Prüfung hinter dem
+    // `seriesGeneratedUntil`-Marker, hielte der das Fenster für erledigt und
+    // die Serie bekäme nach dem Entsperren ein Loch, das nie wieder auffällt.
+    expect(source.indexOf('memberWritesAllowedFor(db.tenant)'))
+      .toBeLessThan(source.indexOf('seriesGeneratedUntil: new Date('))
   })
 })

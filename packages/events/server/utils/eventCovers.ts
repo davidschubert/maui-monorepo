@@ -1,4 +1,5 @@
 import type { H3Event } from 'h3'
+import { coverReadPermissions } from '../../shared/coverAudience'
 import { EVENT_COVERS_BUCKET, type EventRow } from '../../shared/types/event'
 
 /**
@@ -13,30 +14,28 @@ import { EVENT_COVERS_BUCKET, type EventRow } from '../../shared/types/event'
  * („ein Bild, dessen Row zu ist, dessen Datei aber offen, wäre kein Schutz")
  * und den media-002 für die Galerie schon geschlossen hat.
  *
- * DIE REGEL, in einem Satz: **ein Cover ist nie offener als sein Termin.**
- * Die Datei bekommt die READ-Permissions ihrer Row. Trägt die Row keine
- * (Entwurf), fällt das Bild auf das MITGLIEDER-Publikum der Community zurück —
- * nicht auf „niemand".
+ * DIE REGEL steht PURE in `shared/coverAudience.ts` (eine Zeile, drei Leser:
+ * Laufzeit, Migration, Live-Beweis): **ein Cover ist nie offener als sein
+ * Termin.** Die Datei bekommt die READ-Permissions ihrer Row — auch dann, wenn
+ * das keine sind.
  *
- * Warum Entwürfe nicht ganz zu sind: das Dashboard zeigt beim Bearbeiten eine
- * Vorschau, und die holt der BROWSER direkt aus dem Bucket (nicht über den
- * Admin-Client). „Niemand" hieße hier ein kaputtes Bild für genau die Person,
- * die den Termin gerade anlegt. `events.manage` trägt im Pool die Rolle
- * `editor`, und die hat KEIN Moderations-Label (`mod<communityId>` hängt an
- * `reports.moderate`) — ein Manager-Read wie in media (`label('admin')`) wäre
- * dort also wirkungslos und ließe die Redaktion vor Platzhaltern sitzen.
- * Das Mitglieder-Publikum ist die engste Grenze, die die Vorschau überlebt,
- * und gegenüber heute (jede/r im Internet) eine deutliche Verengung. Die
- * saubere Lösung bleibt eine server-seitige Vorschau-Route für Entwurfs-
- * dateien — dieselbe offene Stelle, die mediaPermissions.ts notiert.
+ * DER ENTWURFS-REST IST SEIT F28 (2026-08-02) WEG. events-009 ließ ein Cover
+ * ohne Row-Leserecht auf das MITGLIEDER-Publikum zurückfallen, weil die
+ * Vorschau im Dashboard die Datei direkt aus dem Bucket holte und „niemand"
+ * dort ein kaputtes Bild bedeutet hätte. Das war deutlich enger als vorher
+ * (jede/r im Internet), aber immer noch offener als die Zeile: jedes Mitglied
+ * konnte das Titelbild eines unveröffentlichten Termins per Roh-URL sehen. Die
+ * Vorschau läuft jetzt über `GET /api/events/:id/cover` — server-seitig, hinter
+ * `events.manage` und der Datentür —, also gibt es für die Ausnahme keinen
+ * Grund mehr. Nachgezogen wird der Bestand von Migration events-010.
+ *
+ * KEIN `H3Event` MEHR (F28): solange Entwürfe auf das Publikum der Community
+ * zurückfielen, brauchte die Rechnung den Request (`tenantRowPermissions`).
+ * Jetzt hängt sie an NICHTS außer der Row — und ein Parameter, den niemand
+ * liest, ist eine Einladung, doch wieder Request-Wissen hineinzuziehen.
  */
-export function eventCoverPermissions(event: H3Event, row: Pick<EventRow, '$permissions'>): string[] {
-  // Die READ-Einträge der Row sind die Wahrheit — nicht `status`. Ein
-  // abgesagter Termin behält sein Publikum, und C18 kann das Publikum jederzeit
-  // umgezogen haben, ohne dass sich der Status geändert hätte.
-  const reads = (row.$permissions ?? []).filter(permission => permission.startsWith('read('))
-  if (reads.length > 0) return reads
-  return tenantRowPermissions(event, { read: 'members' })
+export function eventCoverPermissions(row: Pick<EventRow, '$permissions'>): string[] {
+  return coverReadPermissions(row.$permissions)
 }
 
 /**
@@ -60,7 +59,7 @@ export async function applyEventCoverVisibility(
   row: Pick<EventRow, '$id' | '$permissions' | 'coverFileId'>,
 ): Promise<void> {
   if (!row.coverFileId) return
-  const permissions = eventCoverPermissions(event, row)
+  const permissions = eventCoverPermissions(row)
   const set = () => createAdminClient(event).storage.updateFile({
     bucketId: EVENT_COVERS_BUCKET, fileId: row.coverFileId!, permissions,
   })

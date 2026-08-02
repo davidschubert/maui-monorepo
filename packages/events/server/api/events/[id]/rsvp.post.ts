@@ -9,6 +9,34 @@ import { EVENT_RSVPS_TABLE, EVENTS_TABLE, type EventRow, type EventRsvpRow, type
  * den Mandanten). attendeeCount zählt NUR 'going' und wird ausschließlich
  * über atomare Increments geschrieben; der Kapazitäts-Check läuft VOR dem
  * Upsert und ist über increment(max: capacity) auch im Race überbuchungssicher.
+ *
+ * ZWEI TÜREN, NACH RICHTUNG GETRENNT (F26, Entscheidung vom 2026-08-02) — die
+ * Route hatte bis dahin genau eine, und damit war in einer billing-gesperrten
+ * Community auch das ZURÜCKZIEHEN zu.
+ *
+ * Die Toggle-Semantik versteckte das: „zusagen" und „Zusage zurücknehmen" sind
+ * derselbe Aufruf mit demselben Body, sie unterscheiden sich nur am Bestand.
+ * Fachlich sind es aber zwei verschiedene Dinge, und nur eines davon meint die
+ * Sperre —
+ *   - Zusagen/Wechseln ist eine NEUE Aussage in der Community: bleibt ZU
+ *     (`db`, `actor: 'member'`).
+ *   - Zurückziehen ist eine RÜCKNAHME der eigenen, früheren Aussage: bleibt
+ *     OFFEN. Wer nicht absagen kann, blockiert einen Platz, den ein anderer
+ *     bekommen könnte, und verfälscht die Planung des Organisators — für eine
+ *     Rechnung, mit der er nichts zu tun hat. Dieselbe Logik wie beim Absagen
+ *     eines Termins ([id].delete.ts), und sie steht dort ausdrücklich als der
+ *     zweite (und einzige weitere) offene Weg.
+ *
+ * ENG GEZOGEN: offen ist NUR der Zweig, der die eigene Zeile LÖSCHT (und den
+ * Zähler zurücknimmt). Ein Wechsel going → declined bleibt zu, obwohl er
+ * ebenfalls einen Platz frei machen würde: er hinterlässt eine neue Aussage
+ * („ich komme nicht") in der Community. Der Weg zum freien Platz steht trotzdem
+ * offen — dieselbe Schaltfläche erneut, und die Zusage ist weg.
+ *
+ * Der WARTUNGSMODUS kennt diese Ausnahme NICHT (assertEventsWritable steht
+ * unten vor allem anderen): den legt der Betreiber selbst um, er weiß von ihm
+ * und kann ihn beenden — anders als der Zusagende, der von einer fremden
+ * Rechnung nie erfährt.
  */
 export default defineEventHandler(async (event): Promise<RsvpResponse> => {
   // Produkt-Gate (P4): Events sind ab Plan pro enthalten.
@@ -49,9 +77,27 @@ export default defineEventHandler(async (event): Promise<RsvpResponse> => {
   let myRsvp: RsvpStatus | null
 
   if (current && current.status === target) {
-    // Toggle: gleicher Status erneut = RSVP zurückziehen
-    await db.remove(EVENT_RSVPS_TABLE, current.$id)
-    if (current.status === 'going') await decrement()
+    /**
+     * Toggle: gleicher Status erneut = RSVP zurückziehen.
+     *
+     * EIGENE TÜR OHNE `actor` (F26, s. Kopf): technisch dieselbe Klinke, aber
+     * ohne die fachliche Angabe „ein Mitglied schreibt Inhalt" — damit greift
+     * die M13-Inhalts-Sperre auf DIESEM Zweig nicht, und nur auf ihm. Exakt die
+     * Bauart, mit der `[id].delete.ts` das Absagen offenhält.
+     *
+     * Der A5-Beitritt entfällt damit ebenfalls, und das ist richtig: wer eine
+     * Zusage zurücknimmt, hatte sie vorher — Mitglied ist er längst.
+     *
+     * Lazy angelegt, nicht oben: die zweite Tür baut einen zweiten
+     * Admin-Client, und den braucht der weitaus häufigere Zusage-Weg nie.
+     */
+    const withdrawDb = tenantDb(event, { as: 'operator' })
+    await withdrawDb.remove(EVENT_RSVPS_TABLE, current.$id)
+    if (current.status === 'going') {
+      // Der Zähler gehört zur Rücknahme — ginge er über `db`, stünde die Zusage
+      // gelöscht da, während `attendeeCount` den Platz weiter belegt hielte.
+      await withdrawDb.decrement(EVENTS_TABLE, id, 'attendeeCount', { value: 1, min: 0 })
+    }
     myRsvp = null
   }
   else if (target === 'going') {
@@ -64,7 +110,22 @@ export default defineEventHandler(async (event): Promise<RsvpResponse> => {
     if (row.capacity !== null && row.attendeeCount >= row.capacity) {
       throw createError({ status: 409, statusText: 'Event is full' })
     }
-    await increment().catch(() => {
+    /**
+     * „Voll" ist nur EINE der Antworten, die hier ankommen können — und bis
+     * zum F26-Beweis (2026-08-02) hat dieser Zweig JEDE andere in sie
+     * umgeschrieben. In einer billing-gesperrten Community wirft die Datentür
+     * beim Hochzählen ihr 403 mit `reason: community_suspended`; der Kunde las
+     * daraufhin „Event is full" — an einem leeren Termin ohne Kapazitäts-
+     * grenze. Eine Falschauskunft, gegen die niemand etwas unternehmen kann.
+     *
+     * Deshalb: ein fertig geformter H3-Fehler (unsere `createError`s — Sperre,
+     * Wartung, fehlende Rechte) reist unverändert weiter, samt seinem `reason`.
+     * Nur die rohen Appwrite-Fehler werden übersetzt — der `max`-Anschlag des
+     * atomaren Increments ist das einzige, was hier fachlich „voll" heißt.
+     * `isError` ist dieselbe Unterscheidung, die auch `toH3Error` trifft.
+     */
+    await increment().catch((error: unknown) => {
+      if (isError(error)) throw error
       throw createError({ status: 409, statusText: 'Event is full' })
     })
 

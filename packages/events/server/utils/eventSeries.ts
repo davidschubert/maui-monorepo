@@ -2,6 +2,7 @@ import { Query } from 'node-appwrite'
 import type { Models } from 'node-appwrite'
 import type { H3Event } from 'h3'
 import type { TenantDb } from '../../../core/server/utils/tenantDb'
+import { memberWritesAllowedFor } from '../../../core/shared/communitySuspension'
 import { EVENTS_TABLE, type EventRecurrence, type EventRow } from '../../shared/types/event'
 
 /**
@@ -144,6 +145,30 @@ function instanceData(master: EventRow, startAt: string, endAt: string | null, i
  * zufällig hängt (fail-soft). Aber still weiterlaufen darf er auch nicht:
  * `logEvent` schreibt den Abbruch mit Mandant und Serie, sonst wäre eine
  * abgeschnittene Serie ununterscheidbar von einer, die einfach zu Ende ist.
+ *
+ * IN EINER GESPERRTEN COMMUNITY HÄLT DIESER SWEEP AN (F25, Entscheidung vom
+ * 2026-08-02 — die Gegenseite zu publish-on-read in posts, das WEITERLÄUFT).
+ *
+ * Beide Sweeps laufen bewusst ohne `actor`, die Inhalts-Sperre der Datentür
+ * greift also bei keinem von beiden — und das ist für die zwei Fälle NICHT
+ * dieselbe Antwort:
+ *  - `publishDuePosts` ändert nur die SICHTBARKEIT einer VORHANDENEN Zeile, die
+ *    der Autor vor der Sperre eingestellt hat. Nichts entsteht, nichts kostet
+ *    Kontingent — eine Sperre, die einen längst geschriebenen Beitrag
+ *    zurückhält, nähme dem Autor eine Aussage, die er schon getroffen hat.
+ *  - hier entstehen NEUE Zeilen, und sie kosten Kontingent. Genau das meint die
+ *    Zahlungssperre: eine Community mit offener Rechnung soll nicht weiter
+ *    Inhalt materialisieren. Ohne diese Zeile wächst die Serie über Monate
+ *    weiter, ausgelöst von jedem beliebigen Lese-Request eines Fremden.
+ *
+ * Geprüft wird VOR dem Marker `seriesGeneratedUntil`: würde er trotz Sperre
+ * geschrieben, hielte er das Fenster für erledigt und die Serie bekäme nach dem
+ * Entsperren ein Loch, das nie wieder auffällt.
+ *
+ * FAIL-SOFT wie die Quota-Grenze: Rückgabe 0 statt Wurf — der Sweep hängt an
+ * einem fremden Listen-Aufruf, der weiter funktionieren muss. Gemeldet wird es
+ * trotzdem, sonst ist eine angehaltene Serie von einer beendeten nicht zu
+ * unterscheiden.
  */
 export async function expandSeries(event: H3Event, master: EventRow): Promise<number> {
   if (!master.recurrence || master.seriesId !== master.$id) return 0
@@ -151,6 +176,14 @@ export async function expandSeries(event: H3Event, master: EventRow): Promise<nu
   // Datentür als Operator: update/list belegen bzw. scopen die Zugehörigkeit,
   // create stempelt den Mandanten auf jede Instanz.
   const db = tenantDb(event, { as: 'operator' })
+
+  if (!memberWritesAllowedFor(db.tenant)) {
+    logEvent('warn', 'events.series_expansion_suspended', {
+      seriesId: master.$id,
+      communityId: db.tenant?.mode === 'pool' ? db.tenant.tenantId : '',
+    })
+    return 0
+  }
 
   const windowEnd = Date.now() + SERIES_WINDOW_DAYS * 86_400_000
   const hardEnd = master.seriesUntil ? Date.parse(master.seriesUntil) : Infinity

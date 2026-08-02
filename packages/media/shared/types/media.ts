@@ -13,9 +13,15 @@ export interface MediaItem extends Models.Row {
   featured: boolean
   published: boolean
   sortOrder: number
-  /** Mandant der Row (Migration media-003, Datentür C1b).
-   *  '' / fehlend = Silo-/Einzelbetrieb. */
-  tenantId?: string
+  /**
+   * KEIN `tenantId` mehr (F29, 2026-08-02): die Spalte ist mit media-005
+   * gefallen, der Mandant heißt überall `communityId` (E8-3). Das Feld stand
+   * hier noch als toter Rest — gelesen oder geschrieben wurde es nirgends, und
+   * genau diese Drift zwischen Typ und Schema hat im events-Layer den Geldpfad
+   * gebrochen (ein `tenantId` im Schreib-Objekt ⇒ 400 row_invalid_structure).
+   * Die `communityId` steht bewusst NICHT im Typ: sie gehört der Datentür, die
+   * sie stempelt und filtert — Produkt-Code liest sie nicht.
+   */
 }
 
 /** Öffentlicher Listen-Eintrag — um die View-URL angereichert. */

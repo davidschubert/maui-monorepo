@@ -92,8 +92,26 @@ const saving = ref(false)
 
 // ---- Cover (nur im Bearbeiten-Modus — der Upload braucht die Event-Id) ----
 
-const { coverSource } = useEventCover()
 const coverBusy = ref(false)
+
+/**
+ * Vorschau über die SERVER-Route, nicht über die Bucket-URL (F28, 2026-08-02).
+ *
+ * Das Titelbild eines ENTWURFS trägt seit F28 gar kein Leserecht mehr — vorher
+ * bekam es ersatzweise das Mitglieder-Publikum, nur damit dieses `<img>` etwas
+ * anzuzeigen hatte. Damit sah jedes Mitglied die Bilder unveröffentlichter
+ * Termine. `GET /api/events/:id/cover` liefert dieselbe Vorschau hinter
+ * `events.manage` und der Datentür.
+ *
+ * Der `fileId` hängt nur als Cache-Brecher dran: nach einem Ersetzen zeigt der
+ * Browser sonst das alte Bild aus seinem Speicher. Gelesen wird er vom Server
+ * nicht — die Datei kommt aus der geprüften Row.
+ */
+const coverPreviewUrl = computed(() =>
+  editingId.value && editingCoverFileId.value
+    ? `/api/events/${editingId.value}/cover?v=${editingCoverFileId.value}`
+    : null,
+)
 
 async function uploadCover(input: HTMLInputElement) {
   const file = input.files?.[0]
@@ -565,19 +583,20 @@ function rowActions(row: EventRow): DropdownMenuItem[][] {
                    ist mit B6 eine UTable geworden; das hier ist die letzte
                    nicht umbrechende Zeile der Seite. -->
               <div class="flex flex-wrap items-center gap-3" data-testid="event-form-cover">
-                <!-- Bild-Naht Schritt 2 (C14): feste Kachel (80×48), also
-                     feste Maße statt `sizes`. @nuxt/image legt daraus von
-                     selbst die 1×/2×-Fassungen an (densities im Core-Layer). -->
-                <NuxtImg
-                  v-if="editingCoverFileId"
-                  provider="appwrite"
-                  :src="coverSource(editingCoverFileId)"
+                <!-- Bewusst KEIN <NuxtImg provider="appwrite"> (F28): das
+                     Bild kommt seit F28 aus der eigenen Server-Route, nicht
+                     aus dem Bucket — der Anbieter würde aus dieser URL weder
+                     Bucket noch Datei lesen können. Die Route liefert schon
+                     eine skalierte WebP-Fassung; die Kachel bleibt 80×48. -->
+                <img
+                  v-if="coverPreviewUrl"
+                  :src="coverPreviewUrl"
                   alt=""
-                  :width="80"
-                  :height="48"
+                  width="80"
+                  height="48"
                   decoding="async"
                   class="h-12 w-20 rounded object-cover"
-                />
+                >
                 <label class="inline-flex">
                   <input
                     type="file"
