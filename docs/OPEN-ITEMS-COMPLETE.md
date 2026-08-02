@@ -1717,3 +1717,28 @@ Richtig: `pnpm --filter <app> exec nuxi dev --port N`. (3) **Der erste
 Seitenaufruf nach einem Dev-Server-Start beweist nichts über nachgeladene
 Abhängigkeiten:** Vite bündelt `appwrite` beim ersten Import erst („dependency
 optimized") und lädt die Seite dabei neu. Immer die zweite Messung nehmen.
+
+### E2 — UptimeRobot nachgezogen ✅ 2026-08-01
+
+Erledigt in Davids echtem Chrome (eingeloggte UptimeRobot-Session), kein
+API-Key nötig. Von den „drei Klicks" war beim Nachsehen nur noch EINER echt:
+
+- **Monitor `help.pukalani.app/api/health` angelegt** (ID 803644024, HTTP,
+  5-min-Intervall, E-Mail-Alarm — dieselbe Bauart wie die übrigen sechs).
+  Der Endpunkt war vorab geprüft (`{"ok":true,"build":…}`).
+- **Die Umbenennung war schon passiert:** Monitor 803548622 trägt den
+  Friendly-Name `control.pukalani.app/api/health` — die „studio…"-Zeile war
+  veraltet.
+- **Die öffentliche Statusseite existierte schon** („Pukalani",
+  stats.uptimerobot.com/MFP8D9JGlW, Public + Published, 4 Monitore) — sie
+  musste nicht eingeschaltet, sondern nur ERGÄNZT werden: help ist jetzt der
+  fünfte Service, von der öffentlichen Seite aus verifiziert (alle 5
+  „Operational").
+
+**Bewusst NICHT auf der Statusseite** (Davids Kuratierung, unangetastet):
+`pukalani.app` (Landing) und `demo.pukalani.app` (Platform-Stellvertreter) —
+wer sie dort will, fügt sie in der Seite „Pukalani" unter Monitors hinzu.
+**Gelernt:** Dieselbe Woche, dritte veraltete Zeile (nach C8 und C12b-Notiz):
+Betriebs-Punkte altern schneller als Code-Punkte, weil sie auch außerhalb des
+Repos erledigt werden können — vor dem Ausführen erst nachsehen, was WIRKLICH
+noch fehlt.
