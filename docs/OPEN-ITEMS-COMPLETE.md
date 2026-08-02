@@ -1735,9 +1735,10 @@ API-Key nötig. Von den „drei Klicks" war beim Nachsehen nur noch EINER echt:
   fünfte Service, von der öffentlichen Seite aus verifiziert (alle 5
   „Operational").
 
-**Bewusst NICHT auf der Statusseite** (Davids Kuratierung, unangetastet):
-`pukalani.app` (Landing) und `demo.pukalani.app` (Platform-Stellvertreter) —
-wer sie dort will, fügt sie in der Seite „Pukalani" unter Monitors hinzu.
+**Nachtrag (gleicher Tag, Davids Entscheidung):** `pukalani.app` (Landing) und
+`demo.pukalani.app` (Platform-Stellvertreter) sind ebenfalls auf die
+Statusseite gewandert — sie zeigt jetzt ALLE 7 Monitore, öffentlich verifiziert
+(alle „Operational").
 **Gelernt:** Dieselbe Woche, dritte veraltete Zeile (nach C8 und C12b-Notiz):
 Betriebs-Punkte altern schneller als Code-Punkte, weil sie auch außerhalb des
 Repos erledigt werden können — vor dem Ausführen erst nachsehen, was WIRKLICH
