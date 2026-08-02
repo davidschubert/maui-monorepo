@@ -1,4 +1,63 @@
 {
+  "dashboard": {
+    "community": {
+      "title": "Community",
+      "description": "Settings that belong to this community.",
+      "openRegistration": "Open registration",
+      "openRegistrationDesc": "When this is on, anyone can create an account and thereby becomes a member of your community — and so does anyone who already has an account and writes their first post or comment here. When it's off, people become members by invitation only. Either way, someone whose access you revoked never comes back on their own.",
+      "audience": {
+        "title": "Visibility",
+        "description": "Who is allowed to read your posts, comments, events, media and pages.",
+        "public": "Publicly readable",
+        "publicDesc": "Anyone can see your content, no account needed. Search engines may index it, and shared links show a preview image.",
+        "members": "Members only",
+        "membersDesc": "Only members of this community see the content. Search engines are shut out, and the sitemap and preview image are switched off.",
+        "searchNote": "Switching also moves ALL EXISTING content across — that can take a few seconds. Google and friends, however, need days to weeks before pages they already indexed disappear from their results. We cannot force them.",
+        "saved": "Visibility saved.",
+        "savedDesc": "{n} existing items were switched over as well.",
+        "partialTitle": "Visibility saved — switch-over not finished",
+        "partialDesc": "{n} existing items were switched over, the rest is still pending. Pick the same setting again and it continues."
+      },
+      "saved": "Saved.",
+      "saveFailed": "Could not be saved.",
+      "saveFailedDesc": "Nothing was changed — the last saved state still applies. Try again in a moment.",
+      "danger": {
+        "title": "Danger zone",
+        "description": "Actions that affect this whole community — owners only.",
+        "what": "Delete community",
+        "keeps": "The community is shut down and everyone loses access. Content, posts and names REMAIN stored — they are just no longer reachable.",
+        "cta": "Delete community",
+        "confirmTitle": "Really delete \"{name}\"?",
+        "confirmText": "Within half a minute the address stops answering, and every member loses access — you included. Posts, comments and course progress stay stored; only the operator can bring them back. Deleting an account is a different matter.",
+        "confirm": "Yes, delete community",
+        "done": "Community shut down.",
+        "doneDesc": "The address stops answering within half a minute. Content stays stored.",
+        "errors": {
+          "subscription_active": "A subscription is still running. Cancel it under \"Subscription & billing\" first, then the community can be deleted.",
+          "already_disabled": "This community is already shut down.",
+          "owner_protected": "Only the owner can delete the community."
+        }
+      },
+      "noTenantTitle": "No community on this host",
+      "noTenantText": "These settings apply to a single community. On this instance, registration is governed by the operator configuration.",
+      "appearance": {
+        "title": "Appearance",
+        "description": "The colour world of this community — everyone visiting your pages sees it.",
+        "change": "Change",
+        "pickerTitle": "Community colours",
+        "inherited": "Nothing chosen yet (default)",
+        "propagation": "A new colour reaches every page within half a minute.",
+        "saved": "Appearance saved.",
+        "savedDesc": "The new colour world reaches every page of your community within half a minute.",
+        "neutral": "Base tone",
+        "neutralDesc": "The muted tint of surfaces, borders and text — like the colour world, it applies to every visitor.",
+        "neutralInherited": "Default"
+      }
+    },
+    "settings": {
+      "community": "Community"
+    }
+  },
   "onboarding": {
     "layout": {
       "footer": "Pukalani · Community software made and hosted in Germany"

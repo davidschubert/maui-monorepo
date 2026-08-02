@@ -12,7 +12,7 @@
  *
  * Benötigte Key-Scopes: columns.* (Migrations-Key). Idempotent (409 → skip).
  */
-import { Client, TablesDB } from 'node-appwrite'
+import { Client, Query, TablesDB } from 'node-appwrite'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -53,7 +53,12 @@ async function step(label: string, run: () => Promise<unknown>) {
  */
 async function ensureColumn(tableId: string, key: string, create: () => Promise<unknown>) {
   try {
-    const { columns } = await tablesDB.listColumns({ databaseId: databaseId!, tableId })
+    // Query.limit ist PFLICHT (Falle aus events-006, nachgezogen 2026-08-02):
+    // ohne explizites Limit liefert listColumns 25 Spalten, und app_config
+    // wächst mit jedem Flag. Eine abgeschnittene Liste meldet "Spalte fehlt" —
+    // createColumn antwortet dann 400 column_limit_exceeded statt 409, und
+    // genau die 409-Abkürzung ist die Idempotenz dieser Migration.
+    const { columns } = await tablesDB.listColumns({ databaseId: databaseId!, tableId, queries: [Query.limit(200)] })
     if (columns.some(column => column.key === key)) {
       console.log(`↷ Column ${tableId}.${key} (existiert bereits)`)
       return

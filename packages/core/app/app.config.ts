@@ -1,5 +1,6 @@
 import type { PukalaniAdminModule } from '../shared/types/admin-module'
 import type { PukalaniAdminNoticeConfig } from '../shared/types/admin-notice'
+import type { PukalaniSettingsTab } from '../shared/types/settings-tab'
 import type { PukalaniChromeNavConfig, PukalaniChromeUtilityConfig } from '../shared/types/chrome'
 
 export default defineAppConfig({
@@ -44,6 +45,17 @@ export default defineAppConfig({
        * gesehen, sichtbar so lange es gilt.
        */
       notices: {} as PukalaniAdminNoticeConfig,
+      /**
+       * Reiter-Registry der Einstellungs-Hülle (F24, s. shared/types/
+       * settings-tab.ts): ein Layer, dem die Routen einer Einstellungs-Seite
+       * gehören, trägt hier ihren Reiter ein. Leer = nur die vier Konto-Reiter
+       * des admin-Layers.
+       *
+       * Getrennt von `modules`, weil es zwei verschiedene Flächen sind: `modules`
+       * füllt die SEITENLEISTE, das hier die horizontale Reiter-Zeile INNERHALB
+       * der Einstellungen. Ein Eintrag gehört in genau eine der beiden.
+       */
+      settingsTabs: [] as PukalaniSettingsTab[],
     },
     /**
      * Chrome-Registry (Audit S9): Header-Nav + Header-Utilities der

@@ -106,6 +106,12 @@ let apiKey = ''
     'subscribers.read', 'subscribers.write', 'locale.read', 'avatars.read',
     'health.read', 'migrations.read', 'migrations.write', 'tokens.read',
     'tokens.write', 'sites.read', 'sites.write', 'log.read', 'log.write',
+    // Presences (seit 1.9.5): der Presence-Beweis schreibt Anwesenheiten mit
+    // dem Admin-Client — genau so, wie es die Laufzeit tut (der Browser hat
+    // dafür keine Session, siehe CLAUDE.md). Ohne diese beiden Scopes bricht
+    // `verify-presence-boundary` in CI mit „missing scopes" ab, obwohl der
+    // Code stimmt. Nachgetragen 2026-08-02, als der Beweis in die CI zog.
+    'presences.read', 'presences.write',
   ]
   const { status, json } = await api(`/projects/${projectId}/keys`, 'POST', {
     keyId: 'ci-key', name: 'ci-key', scopes,

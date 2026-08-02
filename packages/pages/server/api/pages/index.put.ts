@@ -27,7 +27,6 @@ export default defineEventHandler(async (event): Promise<PageRow> => {
     title: body.title,
     body: body.body,
     status: body.status,
-    sortOrder: body.sortOrder ?? 0,
   }
 
   const existing = await db.find<PageRow>(PAGES_TABLE, [
@@ -38,7 +37,25 @@ export default defineEventHandler(async (event): Promise<PageRow> => {
   })
 
   if (existing) {
-    return await db.update<PageRow>(PAGES_TABLE, existing.$id, data)
+    /**
+     * FEHLENDES FELD HEISST „NICHT ANGEFASST" (Audit 2026-08-02), nicht 0.
+     *
+     * `sortOrder` ist im Schema optional und die Dashboard-Seite sendet es NIE
+     * (sie hat kein Feld dafür). Bis heute schrieb der Upsert stur
+     * `body.sortOrder ?? 0` — jede Bearbeitung setzte die Reihenfolge also auf
+     * 0 zurück. Sichtbar wurde das an den Rechtstexten: `seedLegalPages`
+     * stempelt Impressum/Datenschutz bewusst auf 90/91, damit sie ans ENDE der
+     * Navigation rutschen (shared/legalTemplates.ts). Die erste Korrektur einer
+     * Kundin zog das Impressum an den ANFANG von /api/pages/public — ohne
+     * Bedienelement, mit dem sie es hätte zurückholen können.
+     *
+     * Dieselbe Regel wie bei `neutral` im Community-PATCH: ein weggelassenes
+     * Feld ist eine Nicht-Aussage, kein Nullwert.
+     */
+    return await db.update<PageRow>(PAGES_TABLE, existing.$id, {
+      ...data,
+      ...(body.sortOrder === undefined ? {} : { sortOrder: body.sortOrder }),
+    })
       .catch((error) => {
         throw toH3Error(error, 'Could not save page')
       })
@@ -47,7 +64,9 @@ export default defineEventHandler(async (event): Promise<PageRow> => {
   // (Entwürfe sind server-only, die öffentliche Route filtert auf published).
   // Ohne das Leer-Array würde die Tür ihr Standard-Publikum stempeln und
   // Entwürfe per Roh-REST für Mitglieder lesbar machen.
-  return await db.create<PageRow>(PAGES_TABLE, data, { permissions: [] })
+  // Beim ANLEGEN ist 0 dagegen richtig: eine neue Seite hat noch keine
+  // Reihenfolge, und die Spalte ist required.
+  return await db.create<PageRow>(PAGES_TABLE, { ...data, sortOrder: body.sortOrder ?? 0 }, { permissions: [] })
     .catch((error) => {
       throw toH3Error(error, 'Could not save page')
     })

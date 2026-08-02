@@ -44,7 +44,9 @@ export interface ActivityInput {
  * die Mitglieder DIESER Site). Der Spaltenwert 'public' ist im Schema
  * vorgesehen, wird aber bewusst NICHT verdrahtet (v2).
  *
- * DATENTÜR (C1b): `create` stempelt tenantId (system-021) und setzt die
+ * DATENTÜR (C1b): `create` stempelt communityId (angelegt als tenantId in
+ * system-021, umbenannt mit system-025/026 — der Kommentar hinkte bis
+ * 2026-08-02 hinterher) und setzt die
  * Row-Permissions über tenantRowPermissions — im Pool Role.label(communityId) statt
  * Role.users(), sonst bekäme jedes eingeloggte Pool-Mitglied die Feed-Einträge
  * ALLER Communities (auch über Realtime, das genau an diesen Row-Rechten

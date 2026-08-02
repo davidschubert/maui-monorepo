@@ -41,7 +41,12 @@ const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(proj
 
 async function columnExists(tableId: string, key: string): Promise<boolean> {
   try {
-    const { columns } = await tablesDB.listColumns({ databaseId: databaseId!, tableId })
+    // Query.limit ist PFLICHT (Falle aus events-006, nachgezogen 2026-08-02):
+    // ohne explizites Limit liefert listColumns 25 Spalten, und app_config
+    // wächst mit jedem Flag. Eine abgeschnittene Liste meldet "Spalte fehlt" —
+    // createColumn antwortet dann 400 column_limit_exceeded statt 409, und
+    // genau die 409-Abkürzung ist die Idempotenz dieser Migration.
+    const { columns } = await tablesDB.listColumns({ databaseId: databaseId!, tableId, queries: [Query.limit(200)] })
     return columns.some(column => column.key === key)
   }
   catch {
@@ -51,7 +56,12 @@ async function columnExists(tableId: string, key: string): Promise<boolean> {
 
 async function waitForColumn(tableId: string, key: string) {
   for (let i = 0; i < 30; i++) {
-    const { columns } = await tablesDB.listColumns({ databaseId: databaseId!, tableId })
+    // Query.limit ist PFLICHT (Falle aus events-006, nachgezogen 2026-08-02):
+    // ohne explizites Limit liefert listColumns 25 Spalten, und app_config
+    // wächst mit jedem Flag. Eine abgeschnittene Liste meldet "Spalte fehlt" —
+    // createColumn antwortet dann 400 column_limit_exceeded statt 409, und
+    // genau die 409-Abkürzung ist die Idempotenz dieser Migration.
+    const { columns } = await tablesDB.listColumns({ databaseId: databaseId!, tableId, queries: [Query.limit(200)] })
     const column = columns.find(c => c.key === key)
     if (column && column.status === 'available') return
     await new Promise(resolve => setTimeout(resolve, 1000))

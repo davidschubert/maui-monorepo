@@ -40,18 +40,32 @@
  * wären Doppelpflege. Begründung des Schnitts (Wahl vs. Katalog) steht im Kopf
  * von packages/onboarding/app/pages/dashboard/branding.vue.
  *
- * Nur auf MANDANTEN-Hosts sinnvoll: eine Silo-App oder ein Kontroll-Host hat
- * keine Community-Grenze, dort regelt die Registrierung weiterhin die
- * Instanz-Einstellung (Betreiber-Seite /dashboard/admin/config). Ohne Tenant
- * steht hier deshalb ein Hinweis statt der Schalter — und der Reiter ist in der
- * Settings-Navigation ausgeblendet.
- *
- * VERTRAG ZUM SERVER: alle drei Routen (`/api/community/registration`,
- * `/api/community/audience`, `/api/community/delete`) liegen im onboarding-Layer, weil DIESER die
- * Service-Naht zum Control Plane besitzt (`communities` gehört dorthin, die
- * Platform-App hat nur einen Read-only-Key). Siehe
+ * ── WARUM IM ONBOARDING-LAYER (F24, 2026-08-02) ────────────────────────────
+ * Alle drei Routen dieser Seite (`/api/community/registration`,
+ * `/api/community/audience`, `/api/community/delete`) liegen hier, weil DIESER
+ * Layer die Service-Naht zum Control Plane besitzt (`communities` gehört
+ * dorthin, die Platform-App hat nur einen Read-only-Key). Siehe
  * packages/onboarding/server/api/community/{registration.patch,audience.patch,
  * delete.post}.ts.
+ *
+ * Die Seite lag bis zum 2026-08-02 im admin-Layer und rief von dort aus
+ * ausschließlich fremde Routen — derselbe Schnitt-Fehler, wegen dem schon
+ * /dashboard/members (S9) und /dashboard/branding (F5) umgezogen sind: eine
+ * Seite kann nur so weit reichen wie ihre Routen. Eine Silo-App ohne
+ * onboarding (comments, photos, portfolio, control) trug den Reiter also im
+ * Bauplan und verließ sich darauf, dass eine LAUFZEIT-Beobachtung
+ * (`isTenantHost`) ihn wegblendet. Jetzt gibt es dort weder Seite noch Reiter.
+ *
+ * Der Reiter selbst kommt aus der Registry `pukalani.admin.settingsTabs`
+ * (core/shared/types/settings-tab.ts), registriert in
+ * packages/onboarding/app/app.config.ts — genau wie die Sidebar-Einträge für
+ * Mitglieder, Branding und Abo.
+ *
+ * Der Hinweis statt der Schalter BLEIBT trotzdem: `scope: 'community'` hält
+ * den Reiter von einem Kontroll-Host fern, aber die Seite ist über ihre URL
+ * weiterhin erreichbar (und `apps/platform` bedient Kontroll- UND
+ * Mandanten-Hosts aus derselben App). Eine Seite, die dort mit toten Schaltern
+ * dastünde, wäre schlechter als eine, die sagt, warum sie leer ist.
  */
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'team.manage' })
 

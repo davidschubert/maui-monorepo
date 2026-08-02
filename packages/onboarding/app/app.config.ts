@@ -80,6 +80,36 @@ export default defineAppConfig({
         },
       ],
       /**
+       * REITER der Einstellungs-Hülle (F24, 2026-08-02) — die Registry neben
+       * `modules`, weil es eine andere Fläche ist: `modules` füllt die
+       * Seitenleiste, das hier die Reiter-Zeile INNERHALB von
+       * /dashboard/settings.
+       *
+       * Aus DEMSELBEN Grund in diesem Layer wie Mitglieder, Branding und Abo:
+       * die Seite `/dashboard/settings/community` lebt von
+       * `/api/community/{registration,audience,delete}`, und die brauchen die
+       * Service-Naht zum Control Plane. Bis heute stand der Reiter fest in
+       * packages/admin/app/pages/dashboard/settings.vue — eine Silo-App ohne
+       * onboarding hatte ihn damit im Bauplan und wurde nur zur Laufzeit davor
+       * bewahrt.
+       *
+       * `team.manage` wie bei den Mitgliedern: wer das Team verwaltet, setzt
+       * auch die Zugangsregeln. Die Gefahrenzone INNERHALB der Seite verlangt
+       * zusätzlich `community.delete` (Owner) — ein Admin sieht den Reiter,
+       * aber nicht die Löschen-Karte.
+       */
+      settingsTabs: [
+        {
+          id: 'community',
+          scope: 'community',
+          labelKey: 'dashboard.settings.community',
+          icon: 'i-ph-users-three',
+          to: '/dashboard/settings/community',
+          requiredCapability: 'team.manage',
+          order: 10,
+        },
+      ],
+      /**
        * Der Hinweis auf die ablaufende Testphase (M13). Aus DEMSELBEN Grund in
        * diesem Layer wie die Abo-Seite: er lebt von `/api/community/billing/trial`,
        * und die braucht den Mandanten-Kontext, den nur eine Pool-App hat. Eine

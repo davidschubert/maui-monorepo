@@ -1,12 +1,8 @@
 import { Query } from 'node-appwrite'
-import { PAGES_TABLE, type PageRow } from '../../../../shared/types/page'
-
-/** Nav-Eintrag einer veröffentlichten Seite — bewusst OHNE body. */
-export interface PublicPageNavItem {
-  slug: string
-  title: string
-  sortOrder: number
-}
+// PublicPageNavItem liegt seit dem 2026-08-02 in shared/types/page.ts: der
+// Konsument ist App-Code (blueprint-Layout), und der darf keine Nitro-Route
+// importieren. Begründung dort.
+import { PAGES_TABLE, type PageRow, type PublicPageNavItem } from '../../../../shared/types/page'
 
 /**
  * Öffentlich: Liste der VERÖFFENTLICHTEN Seiten für die Hauptnavigation

@@ -3537,3 +3537,137 @@ CODE vollständig, in CLAUDE.md an **vierzehn** Stellen nicht — und CLAUDE.md 
 Dokument, aus dem jeder Agent seinen Weltzustand bezieht. Eine Umbenennung ist
 erst fertig, wenn auch die Anleitung sie kennt; sonst greppt der nächste nach
 einer Tabelle, die es seit drei Tagen nicht mehr gibt.
+
+### F24 — `/dashboard/settings/community` liegt jetzt bei seinen Routen ✅ 2026-08-02
+
+Die Seite lag im **admin**-Layer und rief ausschließlich Routen des
+**onboarding**-Layers (`/api/community/{registration,audience,delete}`) —
+derselbe Schnitt-Fehler, wegen dem `/dashboard/members` (S9) und
+`branding.vue` (F5) schon umgezogen waren. Der Leitsatz dahinter:
+**eine Seite kann nur so weit reichen wie ihre Routen.**
+
+Umgezogen ist die Datei nach
+`packages/onboarding/app/pages/dashboard/settings/community.vue`, dazu die
+i18n-Teilbäume `dashboard.community.*` und `dashboard.settings.community`
+(de+en). Die Texte lagen bis heute in `admin`, obwohl `branding.vue`
+(onboarding, seit F5) sie schon mitbenutzte — die Schicht-Grenze lief also
+schon vorher quer durch eine Sprachdatei.
+
+**Der eigentliche Punkt war der Reiter, nicht die Datei.** Er stand fest
+verdrahtet in `packages/admin/app/pages/dashboard/settings.vue` und war nur zur
+LAUFZEIT versteckt (`isTenantHost`). Eine Silo-App ohne onboarding hatte ihn
+damit im Bauplan und verließ sich darauf, dass eine Beobachtung ihn wegblendet.
+Jetzt gibt es dafür eine Registry — `pukalani.admin.settingsTabs`
+(`packages/core/shared/types/settings-tab.ts`), dieselbe Bauart wie
+`pukalani.admin.modules`: wer die Routen besitzt, registriert den Einstieg.
+Gefiltert wird mit der BESTEHENDEN puren Regel aus
+`core/shared/dashboardNav.ts` (Ort × Capability, `resolveSettingsTabs`) — kein
+zweites Regelwerk für dieselbe Frage. Die vier KONTO-Reiter (Allgemein,
+Benachrichtigungen, Geräte, Sicherheit) bleiben bewusst in der Hülle
+verdrahtet: sie gehören dem admin-Layer, der die Hülle mitbringt.
+
+Der ehrliche Hinweis statt der Schalter BLEIBT: `scope: 'community'` hält den
+Reiter vom Kontroll-Host fern, aber `apps/platform` bedient Kontroll- UND
+Mandanten-Hosts aus derselben App — die Seite ist über ihre URL dort weiterhin
+erreichbar.
+
+**Beweis je App** (`.nuxt` frisch erzeugt, `nuxi prepare`):
+
+| App | Route `/dashboard/settings/community` | onboarding-app.config im Merge | Reiter möglich |
+|---|---|---|---|
+| comments | nein | nein | **nein** |
+| photos | nein | nein | **nein** |
+| portfolio | nein | nein | **nein** |
+| control | nein | nein | **nein** |
+| platform | ja | ja | ja |
+
+Gegenprobe: `/dashboard/settings/security` existiert in allen fünf Apps
+weiterhin — es sind die FREMDEN Reiter verschwunden, nicht die Hülle.
+Dazu 9 neue Fälle in `packages/core/tests/settingsTabs.test.ts`,
+`pnpm -r test` grün, `typecheck` Exit 0, `lint` Exit 0 (6 bekannte
+Warnungen), `check:manifests` 18 Layer / 8 Apps,
+`verify-site-authz` **118/118**, `verify-community-suspension` **117/117**.
+
+**Gelernt:** „Versteckt" und „nicht vorhanden" sehen im Browser gleich aus und
+sind es im Bauplan nicht. Der Reiter war seit S9 und F5 nachweislich falsch
+platziert, aber weil eine Laufzeit-Bedingung ihn zuverlässig wegblendete, sah
+jede Prüfung grün aus — der Fehler war nur durch die Frage „wem gehören die
+Routen?" zu finden, nicht durch Hinsehen. Wo eine Seite lebt, entscheiden ihre
+Routen; wo ihr Einstieg lebt, muss derselbe Layer entscheiden dürfen. Und:
+i18n-Schlüssel wandern bei so einem Umzug MIT — sonst hängt der neue Layer
+still am alten, und der nächste Silo-Aufbau merkt es erst, wenn Texte fehlen.
+
+### Audit der nie geprüften Layer: blueprint · pages · system ✅ 2026-08-02
+
+Drei Layer, die noch nie einzeln durchgesehen wurden. Sie halten ihre
+Verträge — die drei Kern-Invarianten sind BESTANDEN, nicht knapp bestanden:
+
+- **blueprint** ist weiterhin ein reiner Kompositions-Layer: acht Dateien,
+  kein `server/`, keine Migrationen, keine Tables. Die vier Kompositionen
+  (`feed.vue`, `events/[id].vue`, `courses/[slug]/lessons/[id].vue`,
+  `layouts/default.vue`) existieren wirklich nur EINMAL — keine App unter
+  `apps/*/app/pages` beschattet eine davon, und `comments` wie `platform`
+  listen blueprint in `extends` VOR den Produkt-Layern.
+- **pages** hält die Datentür lückenlos: alle sechs Routen unter
+  `server/api/pages/**` gehen durch `tenantDb(event)`, kein rohes `.tablesDB`,
+  ESLint deckt den Pfad ab. M13, C18, der Unique-Index pro Mandant und die
+  MEDIUMTEXT-Grenzen stimmen; ein GDPR-Contributor fehlt zu Recht, weil
+  `PageRow` gar keine Nutzerdaten trägt.
+- **system** verteilt seine Tabellen nicht: alle neun Zugriffe auf `app_config`
+  benutzen dieselbe eine Row `global`, Mandanten-Branding wird beim LESEN
+  überlagert und nie hineingeschrieben, und keine Community-Rolle trägt
+  `system.manage`. Alle 28 Migrationen sind idempotent, jede
+  index-anlegende benutzt `createIndexSteps`.
+
+**Direkt behoben (kleine, echte Fehler):**
+
+1. **Die Reihenfolge einer Seite überlebte keine Bearbeitung** (pages,
+   `server/api/pages/index.put.ts`). Der Upsert schrieb
+   `sortOrder: body.sortOrder ?? 0` in BEIDE Zweige, die Dashboard-Seite sendet
+   das Feld aber nie (sie hat kein Bedienelement dafür). Getroffen hat es genau
+   die Seiten, für die `sortOrder` gedacht ist: `seedLegalPages` stempelt
+   Impressum/Datenschutz bewusst auf 90/91, damit sie ans ENDE der Navigation
+   rutschen — nach der ersten Korrektur standen sie vorn, ohne Weg zurück.
+   Jetzt gilt beim Aktualisieren „fehlendes Feld heißt nicht angefasst"
+   (dieselbe Regel wie `neutral` im Community-PATCH); beim Anlegen bleibt 0.
+   Netz: `packages/pages/tests/page-sort-order.test.ts`.
+2. **App-Code importierte eine Nitro-Route** (blueprint →  pages).
+   `layouts/default.vue` holte `PublicPageNavItem` aus
+   `pages/server/api/pages/public/index.get.ts` — einer Datei, die
+   `node-appwrite` und Server-Auto-Imports auf oberster Ebene benutzt und die
+   aus jeder `tsconfig.app.json` ausgeschlossen ist. Der Typ wohnt jetzt in
+   `pages/shared/types/page.ts`, wo geteilte Domain-Typen hingehören.
+3. **Eine Idempotenz-Prüfung, die ab 25 Spalten lügt** (system, sieben
+   `app_config`-Migrationen: 002, 011, 015, 016, 018, 019, 023). `listColumns`
+   lief ohne `Query.limit()`. Eine abgeschnittene Liste meldet „Spalte fehlt",
+   `createColumn` antwortet dann **400 `column_limit_exceeded` statt 409** —
+   und genau die 409-Abkürzung IST die Idempotenz dieser Migrationen. 021/022/
+   025/026/027 nennen `Query.limit(200)` schon „Pflicht"; die älteren sind
+   nachgezogen. `app_config` steht heute bei ~7 Spalten und wächst mit jedem
+   Flag.
+4. **Ein Poller, der nie pollt** (system, `008-gdpr-columns.ts`).
+   `waitForColumns` prüfte `columns.every(...)` ohne den `columns.length > 0`-
+   Wächter, den 001/003/014/020/028 alle haben — auf einer leeren Liste ist
+   `.every()` wahr, die Funktion hätte sofort „verfügbar" gemeldet.
+5. **Zwei Kopfzeilen, die die Unwahrheit sagten** (system). `nuxt.config.ts`
+   behauptete „Kein App-/Server-Code, nur Migrationen" — der Layer liefert zwei
+   Lese-Routen und den GDPR-Contributor; und `product.manifest.ts` nannte im
+   betreiber-sichtbaren Katalogtext `changelog` (gehört admin) und verschwieg
+   `app_secrets` + `community_branding`. Dazu ein hinterherhinkender Kommentar
+   in `core/server/utils/recordActivity.ts` („stempelt tenantId", seit
+   system-025/026 ist es `communityId`).
+
+**Gemeldet statt gefixt** (steht als F-Zeilen in OPEN-ITEMS.md): die
+Pool-Komposition in `apps/platform/app/pages/index.vue`, die eigentlich
+blueprint gehört; die fehlenden ESLint-Blöcke für `blueprint` und `pages`; der
+`app_config`-Schreibzugriff von `tickets` unter einer Moderator-Capability; und
+der doppelt hartkodierte `activities`-Tabellenname im activity-Layer.
+
+**Gelernt:** Zwei der fünf Funde sind derselbe Fehlertyp — **eine Prüfung, die
+im Erfolgsfall wie im Fehlerfall grün aussieht.** `columns.every()` auf einer
+leeren Liste und `listColumns` ohne Limit melden beide „alles in Ordnung",
+wenn sie in Wahrheit nichts gesehen haben. Beide waren an anderer Stelle im
+selben Ordner schon richtig gelöst und dort sogar als „Pflicht" kommentiert;
+der Fehler war nicht fehlendes Wissen, sondern dass die Erkenntnis nie
+rückwärts in die älteren Dateien lief. Wer eine Falle dokumentiert, sollte im
+selben Zug greppen, wo sie sonst noch steht.

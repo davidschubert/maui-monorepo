@@ -27,7 +27,7 @@
 import type { DropdownMenuItem } from '@nuxt/ui'
 import { isProductStateEnabled } from '../../../core/shared/types/config'
 import type { PukalaniChromeNavEntry, PukalaniChromeUtility } from '../../../core/shared/types/chrome'
-import type { PublicPageNavItem } from '../../../pages/server/api/pages/public/index.get'
+import type { PublicPageNavItem } from '../../../pages/shared/types/page'
 
 const { t, locale } = useI18n()
 const localePath = useLocalePath()
