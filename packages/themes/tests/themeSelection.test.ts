@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { resolveNeutralSelection, resolveThemeSelection, visitorMayChooseNeutral, visitorMayChooseTheme } from '../shared/themeSelection'
+import { mirrorRowToBranding } from '../../core/shared/communityBranding'
 
 /**
  * Die Vorrangregel der Farbwelt (Davids Entscheidung 2026-07-29, B5).
@@ -194,5 +195,29 @@ describe('Die zwei Achsen bleiben unabhängig', () => {
       .toEqual({ theme: 'lagoon', variant: '', source: 'community' })
     expect(resolveNeutralSelection({ cookieNeutral: 'olive', branding }))
       .toEqual({ neutral: 'stone', source: 'community' })
+  })
+})
+
+/**
+ * D6 (2026-08-01): die Farbwahl der Community erreicht offene Fenster jetzt
+ * LIVE — über eine Spiegel-Row im Runtime-Projekt, die
+ * `realtime-branding.client.ts` in `useTenantBranding()` schreibt. Der Spiegel
+ * ist nur ein anderer WEG zu demselben Zustand; die Vorrangregel bleibt die
+ * EINE Regel. Genau das steht hier: was aus einer Spiegel-Row herausfällt,
+ * geht unverändert durch dieselbe Rechnung wie der SSR-Wert.
+ */
+describe('Live-Spiegel (D6): derselbe Zustand, dieselbe Regel', () => {
+  it('gespiegelte Wahl schlägt das Cookie — auf beiden Achsen', () => {
+    const branding = mirrorRowToBranding({ $id: 'c1', theme: 'lagoon', variant: 'deep', neutral: 'stone' })
+    expect(resolveThemeSelection({ cookieTheme: 'berry', cookieVariant: 'vivid', branding, ...instance }))
+      .toEqual({ theme: 'lagoon', variant: 'deep', source: 'community' })
+    expect(resolveNeutralSelection({ cookieNeutral: 'olive', branding }))
+      .toEqual({ neutral: 'stone', source: 'community' })
+  })
+
+  it('gespiegeltes Zurücksetzen (\'\') heisst „Instanz-Einstellung", nicht „Cookie"', () => {
+    const branding = mirrorRowToBranding({ $id: 'c1' })
+    expect(resolveThemeSelection({ cookieTheme: 'berry', cookieVariant: 'vivid', branding, ...instance }))
+      .toEqual({ theme: 'graphite', variant: 'ink', source: 'instance' })
   })
 })

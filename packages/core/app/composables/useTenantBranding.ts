@@ -26,10 +26,18 @@
  * damit sah jeder Besucher mit eigener Theme-Wahl JEDE Community in seinen
  * Farben.
  *
- * Die AUTORITÄT ist das Control Plane (tenants.theme/variant); geschrieben
- * wird über PATCH /api/community/branding (onboarding-Layer → Control Plane).
- * Nach dem Schreiben ist dieser Wert bis zum Ablauf des Resolver-Caches
- * (≤30 s) veraltet — die Seite übernimmt deshalb den Wert aus der ANTWORT.
+ * Die AUTORITÄT ist das Control Plane (communities.theme/variant/neutral);
+ * geschrieben wird über PATCH /api/community/branding (onboarding-Layer →
+ * Control Plane). Nach dem Schreiben ist dieser Wert bis zum Ablauf des
+ * Resolver-Caches (≤30 s) veraltet — die Seite übernimmt deshalb den Wert aus
+ * der ANTWORT.
+ *
+ * LIVE SEIT D6 (2026-08-01): dieselbe Route spiegelt den bestätigten Zustand in
+ * die read(any)-Tabelle `community_branding` des RUNTIME-Projekts, und
+ * `realtime-branding.client.ts` schreibt ein Spiegel-Event direkt in diesen
+ * State — offene Fenster (auch die von Gästen) morphen ohne Reload. Wer diesen
+ * State liest, muss also damit rechnen, dass er sich zur Laufzeit ändert; wer
+ * ihn SETZT, sollte den bestätigten Zustand setzen, nicht den gewünschten.
  */
 export interface TenantBrandingSelection {
   /** Built-in-Theme-Id oder '' = Instanz-Einstellung. */

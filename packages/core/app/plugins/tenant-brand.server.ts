@@ -32,6 +32,11 @@
  *     Kunden-Picker gibt es einen, und das Inventar wächst mit. Alle drei Werte
  *     sind ohnehin öffentlich sichtbar: sie STEHEN als
  *     data-theme/data-variant/data-neutral im HTML jeder Seite.
+ *     Seit D6 (2026-08-01) ist dieser State auch ein SCHREIB-Ziel zur Laufzeit:
+ *     realtime-branding.client.ts überschreibt ihn, wenn die Spiegel-Row
+ *     `community_branding/<communityId>` sich ändert — damit morpht ein
+ *     Farbwechsel offene Fenster ohne Reload. Der SSR-Wert hier bleibt die
+ *     Wahrheit für jeden neuen Seitenaufbau.
  *   - `tenantId` → useTenantId(), gelesen von usePresence() und dem
  *     Activity-Realtime-Stream (useActivityFeed, C1b): der Client-
  *     Presence-Leser holt die Presencen DIREKT von Appwrite (Cookie-GET +

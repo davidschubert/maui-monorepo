@@ -27,12 +27,21 @@ export function useTenantId() {
  * Appwrite-LABEL-Schlüssel — nur die Row-$id garantiert Alphanumerik, und
  * Appwrite erlaubt in Labels nichts anderes.
  *
- * DER EINZIGE ERLAUBTE LESER ist der WS-Presence-Upsert in usePresenceState()
- * (A4): er ersetzt die Permissions der eigenen Presence und muss deshalb
- * dieselbe Grenze schreiben wie der Server (`read("label:<communityId>")`, siehe
- * shared/presencePermissions.ts). Kein Geheimnis — der Nutzer trägt dieselbe Id
- * als Label in seinem eigenen Account-Objekt. Trotzdem eng halten: alles, was
- * über eine server/api-Route geht, hat hier nichts zu suchen.
+ * ZWEI ERLAUBTE LESER, beide lesen/schreiben DIREKT gegen Appwrite und müssen
+ * sich deshalb selbst auf diese Community beziehen:
+ *  1. der WS-Presence-Upsert in usePresenceState() (A4): er ersetzt die
+ *     Permissions der eigenen Presence und muss dieselbe Grenze schreiben wie
+ *     der Server (`read("label:<communityId>")`, shared/presencePermissions.ts).
+ *  2. das Branding-Plugin (D6, app/plugins/realtime-branding.client.ts): es
+ *     abonniert GENAU die Spiegel-Row dieser Community
+ *     (`community_branding/<communityId>`), damit ein Farbwechsel offene
+ *     Fenster ohne Reload erreicht. Die Id IST hier der Kanal-Schlüssel — ohne
+ *     sie gäbe es nur ein Table-weites Abo mit fremden Events.
+ *
+ * Kein Geheimnis — der Nutzer trägt dieselbe Id als Label in seinem eigenen
+ * Account-Objekt, und die Farben stehen ohnehin im <html> jeder Seite.
+ * Trotzdem eng halten: alles, was über eine server/api-Route geht, hat hier
+ * nichts zu suchen.
  */
 export function useSiteId() {
   return useState<string | null>('pukalani-site-id', () => null)

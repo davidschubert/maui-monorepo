@@ -68,7 +68,7 @@ export default defineEventHandler(async (event) => {
 
   // communityId kommt aus dem SERVER-Kontext (Host-Auflösung), nie aus dem Body —
   // sonst könnte ein durchgereichter Wert eine fremde Community umfärben.
-  return await callControlPlane<{ communityId: string, theme: string, variant: string, neutral: string }>(
+  const saved = await callControlPlane<{ communityId: string, theme: string, variant: string, neutral: string }>(
     event,
     '/api/control/community/branding',
     {
@@ -82,4 +82,28 @@ export default defineEventHandler(async (event) => {
       ...(body.neutral !== undefined ? { neutral: body.neutral } : {}),
     },
   )
+
+  /**
+   * SPIEGEL FÜR OFFENE FENSTER (D6, 2026-08-01): die `communities`-Row liegt im
+   * Control-Plane-Projekt, dort hat der Browser weder Session noch Leserecht —
+   * er kann die Änderung also nicht mitbekommen. Diese Route läuft aber im
+   * RUNTIME-Projekt und hat dessen Admin-Client, also schreibt sie den
+   * BESTÄTIGTEN Zustand zusätzlich in die read(any)-Tabelle
+   * `community_branding`; das Client-Plugin (core/app/plugins/
+   * realtime-branding.client.ts) abonniert genau diese Row und morpht die
+   * Farbwelt ohne Reload.
+   *
+   * NACH dem Control Plane, mit dessen ANTWORT und fail-soft: der Spiegel ist
+   * Bequemlichkeit, die Wahrheit bleibt die `communities`-Row. Scheitert er,
+   * heilt der nächste Seitenaufbau (≤30 s Resolver-Cache) — deshalb darf er
+   * eine erfolgreiche Änderung nie in einen Fehler verwandeln.
+   */
+  await mirrorCommunityBranding(event, {
+    communityId: tenant.communityId,
+    theme: saved.theme,
+    variant: saved.variant,
+    neutral: saved.neutral,
+  })
+
+  return saved
 })

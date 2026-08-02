@@ -164,11 +164,32 @@ Vollständiges Konzept: docs/CONCEPT.md
   Der Wähler verschwindet auf Mandanten-Hosts überall (`canChooseNeutral`).
   NICHT betroffen und Besucher-Wahl bleibend: Hell/Dunkel (useColorMode),
   Seitenleiste, Sprache. Beweis: verify-site-branding.mjs (40/40).
-- KEINE LIVE-PROPAGATION für Branding aus `tenants` (theme/variant/neutral,
-  OPEN-ITEMS D6): die Row liegt im Control-Plane-PROJEKT, dort hat der Browser
-  weder Session noch Leserecht — offene Fenster übernehmen erst beim nächsten
-  Seitenaufbau (≤30 s Resolver-Cache). NUR custom_themes/custom_fonts/app_config
-  morphen live, weil sie im Runtime-Projekt liegen und read(any) sind.
+- LIVE-PROPAGATION für Community-Branding läuft über einen SPIEGEL (D6, seit
+  2026-08-01). Die Wahrheit bleibt `communities.theme/variant/neutral` im
+  Control-Plane-PROJEKT — dort hat der Browser weder Session noch Leserecht.
+  Deshalb schreibt `PATCH /api/community/branding` den BESTÄTIGTEN Zustand
+  zusätzlich in `community_branding` (system-028, EINE Row je Community,
+  rowId = `communities.$id`, read(any), kein Index) — `mirrorCommunityBranding()`
+  in core/server/utils, NACH dem Control Plane und FAIL-SOFT. Der Client
+  abonniert GENAU seine Row (core/app/plugins/realtime-branding.client.ts,
+  `useSiteId()` + `mirrorBelongsToCommunity` als Netz) und schreibt sie in
+  `useTenantBranding()`; ab da rechnen resolveThemeSelection/
+  resolveNeutralSelection (B5) und der Head-Getter wie immer. Ohne Community-Id
+  (Kontroll-Host, Silo, Playground) abonniert das Plugin GAR NICHTS.
+  DREI REGELN, die man nicht „vereinfachen" darf: (1) **kein `upsertRow`** —
+  Appwrite 1.9.6 schreibt damit korrekt, publiziert aber KEIN Realtime-Event
+  (2026-08-01 live erwischt; der Spiegel wäre eine Attrappe): `updateRow`, bei
+  404 `createRow`. (2) Der Spiegel wird NIE gelesen, um zu rendern — SSR fragt
+  weiter den Resolver (≤30 s Cache), ein fehlgeschlagenes Spiegeln heilt der
+  nächste Seitenaufbau. (3) `themeSettings.defaultThemeId` (Tab-Farbe, Favicon,
+  og:image) morpht BEWUSST nicht mit: das Nachziehen würde die
+  Instanz-Voreinstellung überschreiben und wäre beim Zurücksetzen auf '' nicht
+  mehr rückrechenbar. custom_themes/custom_fonts/app_config morphen weiter über
+  das realtime-themes-Plugin (Refetch), weil sie im Runtime-Projekt liegen.
+  LOKAL TESTEN: die Dev-Appwrite kennt nur `localhost` als Web-Platform — auf
+  `kunde-a.localhost` & Co. bricht der WS-Handshake mit „Invalid Origin" ab
+  (Client loggt nur „Realtime disconnected"). Sieht wie ein Code-Fehler aus, ist
+  die Testumgebung.
 - `createRow<TenantRow>` verlangt ALLE Spalten explizit (bewusst) — eine neue
   tenants-Spalte erzwingt eine Entscheidung an BEIDEN Anlegestellen
   (tenants/index.post.ts + onboardingProvision.ts). Folge: die Migration MUSS
