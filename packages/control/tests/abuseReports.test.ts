@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
+  ABUSE_REPORTS_MAX_PAGE,
+  abuseReportStatsFromCounts,
   isDisplayableReportUrl,
   normalizeReportedHost,
   normalizeReportedUrl,
+  parseAbuseReportsPage,
   projectAbuseReport,
-  summarizeAbuseReports,
   type AbuseReportRow,
-  type AbuseReportView,
 } from '../shared/abuseReports'
 
 /** Die puren Teile der Missbrauchs-Warteschlange (M13, Auslöser 3). */
@@ -163,15 +164,57 @@ describe('projectAbuseReport', () => {
   })
 })
 
-describe('summarizeAbuseReports', () => {
-  it('zählt je Zustand und gesamt', () => {
-    const views = [
-      { status: 'open' }, { status: 'open' }, { status: 'suspended' }, { status: 'dismissed' },
-    ] as AbuseReportView[]
-    expect(summarizeAbuseReports(views)).toEqual({ open: 2, suspended: 1, dismissed: 1, total: 4 })
+describe('abuseReportStatsFromCounts', () => {
+  it('rechnet offen aus gesamt minus erledigt', () => {
+    expect(abuseReportStatsFromCounts({ total: 4, suspended: 1, dismissed: 1 }))
+      .toEqual({ open: 2, suspended: 1, dismissed: 1, total: 4 })
   })
 
-  it('bleibt bei leerer Liste bei null', () => {
-    expect(summarizeAbuseReports([])).toEqual({ open: 0, suspended: 0, dismissed: 0, total: 0 })
+  it('bleibt bei leerer Warteschlange bei null', () => {
+    expect(abuseReportStatsFromCounts({ total: 0, suspended: 0, dismissed: 0 }))
+      .toEqual({ open: 0, suspended: 0, dismissed: 0, total: 0 })
+  })
+
+  it('zählt krumme Bestandswerte als offen — genau wie die Zeile sie rendert', () => {
+    // 10 Zeilen, 2 gesperrt, 1 verworfen, eine davon mit 'unfug' in der Spalte:
+    // `projectAbuseReport` zeigt sie als 'open', also muss die Kachel sie auch
+    // dort zählen. Eine dritte Abfrage `equal('status','open')` täte das nicht.
+    expect(abuseReportStatsFromCounts({ total: 10, suspended: 2, dismissed: 1 }).open).toBe(7)
+    expect(projectAbuseReport(row({ status: 'unfug' })).status).toBe('open')
+  })
+
+  it('wird nie negativ, wenn die Zählungen auseinanderlaufen', () => {
+    // Drei Abfragen = drei Zeitpunkte. „−1 offen" darf dabei nie herauskommen.
+    expect(abuseReportStatsFromCounts({ total: 2, suspended: 2, dismissed: 3 }))
+      .toEqual({ open: 0, suspended: 2, dismissed: 3, total: 2 })
+    expect(abuseReportStatsFromCounts({ total: -5, suspended: -1, dismissed: -1 }))
+      .toEqual({ open: 0, suspended: 0, dismissed: 0, total: 0 })
+  })
+})
+
+describe('parseAbuseReportsPage', () => {
+  it('nimmt gewöhnliche Seitenzahlen', () => {
+    expect(parseAbuseReportsPage('1')).toBe(1)
+    expect(parseAbuseReportsPage('7')).toBe(7)
+    expect(parseAbuseReportsPage(3)).toBe(3)
+  })
+
+  it('macht aus allem Krummen die erste Seite statt eines Fehlers', () => {
+    for (const input of [undefined, null, '', '0', '-3', 'abc', 'NaN', {}, [], true]) {
+      expect(parseAbuseReportsPage(input), JSON.stringify(input)).toBe(1)
+    }
+  })
+
+  it('nimmt bei einem doppelten Parameter den ersten', () => {
+    expect(parseAbuseReportsPage(['4', '9'])).toBe(4)
+  })
+
+  it('schneidet Nachkommastellen ab, statt sie zu verwerfen', () => {
+    expect(parseAbuseReportsPage('2.7')).toBe(2)
+  })
+
+  it('klemmt absurde Zahlen — dahinter liegt ohnehin nichts', () => {
+    expect(parseAbuseReportsPage('9e20')).toBe(9)
+    expect(parseAbuseReportsPage('99999999999999999999')).toBe(ABUSE_REPORTS_MAX_PAGE)
   })
 })
