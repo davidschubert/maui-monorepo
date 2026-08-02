@@ -169,13 +169,50 @@ async function waitForStatus(host, path, expected, seconds = 45) {
 
 /** Sperre direkt in die Row schreiben — das tut sonst die Betreiber-Route.
  *  Abschnitt 8 beweist SIE; hier geht es um die WIRKUNG. */
+/**
+ * Sperre setzen — und dabei einen ZUSTAND herstellen, den der Betrieb auch
+ * herstellen würde.
+ *
+ * WARUM `billingStatus` mitgesetzt wird (F19, zweimal live erwischt): der
+ * past-due-Sweep läuft im control-Plugin bei JEDEM Serverstart mit und hebt
+ * eine billing-Sperre auf, sobald `billingStatus` nicht `past_due` ist — das
+ * ist seine Aufgabe (Netz unter dem Webhook). Eine von Hand gesetzte Sperre
+ * ohne passenden Zahlungsstatus ist also ein WIDERSPRUCH, und der Sweep löst
+ * ihn korrekt zu unseren Ungunsten auf. Das Skript hat danach 14 Prüfungen
+ * falsch-rot gemeldet — die Sperre war schlicht nicht mehr da.
+ *
+ * Deshalb: `billing` ⇒ Zahlungsverzug mitstempeln (pastDueSince frisch, damit
+ * die 14-Tage-Frist NICHT zusätzlich zuschlägt), `abuse` ⇒ unberührt (den
+ * Sweep interessiert nur billing), Aufheben ⇒ beides zurück.
+ */
 async function setSuspension(communityId, suspension, reason = '') {
+  const now = new Date().toISOString()
   await control.updateRow({
     databaseId, tableId: 'communities', rowId: communityId,
     data: suspension === ''
-      ? { suspension: '', suspensionReason: '', suspendedAt: null }
-      : { suspension, suspensionReason: reason, suspendedAt: new Date().toISOString() },
+      ? { suspension: '', suspensionReason: '', suspendedAt: null, pastDueSince: null, billingStatus: 'active' }
+      : {
+          suspension,
+          suspensionReason: reason,
+          suspendedAt: now,
+          ...(suspension === 'billing' ? { billingStatus: 'past_due', pastDueSince: now } : {}),
+        },
   })
+}
+
+/**
+ * Belegen, dass die Sperre WIRKLICH steht, bevor darauf geprüft wird.
+ * Ein Fehlschlag hier ist ein Umgebungsproblem (Sweep, Cache, falscher
+ * Server) und keine Aussage über den Code — er soll deshalb genau so
+ * klingen, statt sich als Dutzend rätselhafter 403-Ausfälle zu tarnen.
+ */
+async function assertSuspensionStands(communityId, expected) {
+  const row = await control.getRow({ databaseId, tableId: 'communities', rowId: communityId })
+  if (row.suspension === expected) return
+  console.error(`\n✗ ABBRUCH: die Sperre '${expected}' steht nicht mehr (jetzt: '${row.suspension || 'keine'}').`)
+  console.error('  Sehr wahrscheinlich hat der past-due-Sweep sie aufgehoben (läuft bei jedem control-Start).')
+  console.error('  Das ist KEIN Befund über den Code — bitte Ursache prüfen, nicht die Prüfungen glauben.\n')
+  process.exit(1)
 }
 
 try {
@@ -321,6 +358,9 @@ try {
     })
     if (blocked.status === 403) break
     if (blocked.json?.$id) cleanup.comments.push(blocked.json.$id)
+    // Alle fünf Runden nachsehen, ob die Sperre überhaupt noch steht — sonst
+    // wartet die Schleife 45 s auf etwas, das längst aufgehoben wurde (F19).
+    if (i > 0 && i % 5 === 0) await assertSuspensionStands(communityId, 'billing')
     await new Promise(resolve => setTimeout(resolve, 1000))
   }
   check('Schreiben wird abgewiesen (403)', blocked?.status === 403, `Status ${blocked?.status} ${blocked?.text.slice(0, 160)}`)

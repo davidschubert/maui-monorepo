@@ -2191,3 +2191,31 @@ mehrfach um (mal „unknown_host", mal blieb das Schreiben bei 201) — der
 Kaltstart-Kompilat der Seiten. Der zweite Lauf war jedes Mal grün. Vor einem
 roten Befund also erst einmal warmlaufen lassen, sonst jagt man einen
 Regressionsschaden, den es nicht gibt.
+
+### F19 — der Sperr-Beweis war beim Kaltstart falsch-rot ✅ 2026-08-02
+
+`verify-community-suspension.mjs` meldete beim ersten Lauf regelmäßig 14
+Fehlschläge; ein zweiter Lauf war sauber. Die naheliegende Erklärung
+(30-s-Resolver-Cache) war FALSCH — das Skript wartet ohnehin bis zu 45 s in
+einer Poll-Schleife. Die Ursache war der **past-due-Sweep**: er läuft im
+control-Plugin bei JEDEM Serverstart mit und hebt eine billing-Sperre auf,
+sobald `billingStatus` nicht `past_due` ist. Das ist korrekt (er ist das Netz
+unter dem Webhook) — nur setzte das Skript die Sperre von Hand OHNE passenden
+Zahlungsstatus. Dieser Widerspruch wurde vom Sweep zu unseren Ungunsten
+aufgelöst, und danach kamen alle Schreibvorgänge durch.
+
+Zwei Änderungen: (1) `setSuspension('billing')` stempelt jetzt
+`billingStatus: 'past_due'` + frisches `pastDueSince` mit — ein Zustand, den
+der Betrieb auch herstellen würde, statt eines, den der Sweep aufräumen muss;
+(2) `assertSuspensionStands()` prüft während der Warteschleife, ob die Sperre
+überhaupt noch steht, und BRICHT mit klarer Ansage ab („kein Befund über den
+Code, Umgebung prüfen") statt sich als Dutzend rätselhafter Fehlschläge zu
+tarnen. Beweis: zwei Kaltläufe hintereinander **87/87, Exit 0** — davon der
+erste genau in der Situation, die vorher zweimal rot war.
+
+**Gelernt:** Ein Beweis-Skript muss einen Zustand herstellen, den das System
+selbst für stimmig hält — sonst räumt eine korrekte Automatik ihn weg und der
+Beweis misst etwas anderes, als er behauptet. Und: Flakiness ist kein
+Schicksal, sondern eine unfertige Diagnose. Die These „Cache" hielt zwei Tage,
+weil niemand nachgesehen hat, ob die Sperre zum Prüfzeitpunkt noch steht — die
+Prüfung darauf kostete vier Zeilen und beantwortet die Frage endgültig.
