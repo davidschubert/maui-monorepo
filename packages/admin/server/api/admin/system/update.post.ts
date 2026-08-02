@@ -86,6 +86,20 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 500, statusText: 'Could not start pnpm install' })
   }
 
+  // Protokoll (Audit-Befund 2026-08-02): dies war die EINZIGE mutierende
+  // Admin-Route ohne `recordAudit`. Dass sie dev-only ist, ist kein Grund —
+  // sie schreibt in `pnpm-workspace.yaml` und stößt einen Install an, also
+  // verändert sie den Stand des Repos. Wer im Team nachher fragt „wer hat vue
+  // gebumpt und wann?", findet die Antwort sonst nirgends. NACH dem
+  // erfolgreichen Start, damit kein Eintrag über etwas entsteht, das nie lief.
+  await recordAudit(event, {
+    action: 'system.dependency_updated',
+    targetType: 'dependency',
+    targetId: name,
+    targetName: name,
+    metadata: { from, to: target },
+  })
+
   // Sofort zurück: der Install läuft im Hintergrund. Der Client wartet NICHT auf
   // Fertigstellung (die Antwort ginge beim Dev-Server-Reload eh verloren).
   return { name, from, to: target, started: true }

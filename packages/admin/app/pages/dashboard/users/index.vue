@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
 import type { AdminUserListResponse, AdminUserRow } from '../../../../shared/types/admin'
+import { userActionErrorCode, userActionErrorKeys } from '../../../../shared/userActionErrors'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'users.manage' })
 
@@ -289,12 +290,10 @@ async function runUserAction(type: UserAction, user: AdminUserRow) {
   }
   catch (error) {
     // `data.reason` (Fehler-Envelope): `data.data.code` kam nie an — s. [id].vue.
-    const lastAdmin = (error as { data?: { reason?: string } })?.data?.reason === 'last_admin'
-    toast.add({
-      title: lastAdmin ? t('admin.users.lastAdmin') : t('admin.users.actionFailed'),
-      description: lastAdmin ? t('admin.users.lastAdminDesc') : t('admin.users.actionFailedDesc'),
-      color: 'error',
-    })
+    // Die Zuordnung Grund → Text liegt in shared/userActionErrors.ts, damit
+    // Liste, Detailseite und Test dieselben Schlüssel benutzen.
+    const keys = userActionErrorKeys(userActionErrorCode(error))
+    toast.add({ title: t(keys.title), description: t(keys.description), color: 'error' })
   }
 }
 

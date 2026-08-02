@@ -90,6 +90,7 @@
       },
       "action": {
         "user": {
+          "created": "created {name}",
           "login": "signed in",
           "logout": "signed out",
           "block": "blocked {name}",
@@ -135,6 +136,9 @@
           "updated": "Theme updated",
           "deleted": "Theme deleted",
           "settings_updated": "Theme settings updated"
+        },
+        "system": {
+          "dependency_updated": "bumped {name} in the catalog"
         }
       }
     },
@@ -223,6 +227,8 @@
       "deletedDesc": "The data snapshot stays available for 30 days under \"GDPR exports\".",
       "lastAdmin": "At least one admin must remain.",
       "lastAdminDesc": "Make someone else an admin first — then this role can be given up.",
+      "deletionIncomplete": "Only partly deleted — the account is blocked.",
+      "deletionIncompleteDesc": "Some data could not be removed. The account can no longer sign in, but it is not fully deleted yet. Run the deletion again — it picks up exactly where it stopped.",
       "confirmTitle": "Confirm action",
       "confirmAction": "Confirm",
       "confirm": {

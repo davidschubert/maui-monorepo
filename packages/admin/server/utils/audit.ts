@@ -21,7 +21,10 @@ export async function recordAudit(event: H3Event, input: AuditInput): Promise<vo
   try {
     const config = useRuntimeConfig(event)
     const admin = createAdminClient(event)
-    const ip = getRequestIP(event, { xForwardedFor: true }) ?? ''
+    // LETZTES X-Forwarded-For-Segment (das unser nginx anhängt), nicht das
+    // erste — sonst schreibt der Betroffene die IP seines eigenen
+    // Protokolleintrags selbst (Audit 2026-08-02, core/server/utils/clientIp.ts).
+    const ip = trustedClientIp(event) ?? ''
     await admin.tablesDB.createRow({
       databaseId: config.public.appwriteDatabaseId,
       tableId: 'audit_logs',

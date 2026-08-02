@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import type { AdminUserActivity, AdminUserComment, AdminUserDetailResponse } from '../../../../shared/types/admin'
+import { userActionErrorCode, userActionErrorKeys } from '../../../../shared/userActionErrors'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'users.manage' })
 
@@ -73,12 +74,8 @@ async function saveRoles() {
     // hier `data.data.code` — das kam NIE an: der zentrale Handler verwirft die
     // rohe `data` eines Fehlers, seit 2026-07-29 reist ein geprüfter Grund als
     // `reason` mit. Der last_admin-Hinweis war bis dahin toter Code.
-    const lastAdmin = (error as { data?: { reason?: string } })?.data?.reason === 'last_admin'
-    toast.add({
-      title: lastAdmin ? t('admin.users.lastAdmin') : t('admin.users.actionFailed'),
-      description: lastAdmin ? t('admin.users.lastAdminDesc') : t('admin.users.actionFailedDesc'),
-      color: 'error',
-    })
+    const keys = userActionErrorKeys(userActionErrorCode(error))
+    toast.add({ title: t(keys.title), description: t(keys.description), color: 'error' })
   }
   finally {
     savingRoles.value = false
@@ -266,13 +263,10 @@ async function runUserAction(type: UserAction) {
     // `data.reason` (Fehler-Envelope, core shared/types/error.ts). Vorher stand
     // hier `data.data.code` — das kam NIE an: der zentrale Handler verwirft die
     // rohe `data` eines Fehlers, seit 2026-07-29 reist ein geprüfter Grund als
-    // `reason` mit. Der last_admin-Hinweis war bis dahin toter Code.
-    const lastAdmin = (error as { data?: { reason?: string } })?.data?.reason === 'last_admin'
-    toast.add({
-      title: lastAdmin ? t('admin.users.lastAdmin') : t('admin.users.actionFailed'),
-      description: lastAdmin ? t('admin.users.lastAdminDesc') : t('admin.users.actionFailedDesc'),
-      color: 'error',
-    })
+    // `reason` mit. Der last_admin-Hinweis war bis dahin toter Code — und die
+    // Teil-Löschung (`deletion_incomplete`) war es bis zum 2026-08-02 auch.
+    const keys = userActionErrorKeys(userActionErrorCode(error))
+    toast.add({ title: t(keys.title), description: t(keys.description), color: 'error' })
   }
 }
 </script>

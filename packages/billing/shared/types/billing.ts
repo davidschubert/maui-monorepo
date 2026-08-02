@@ -93,6 +93,16 @@ export interface PukalaniBillingConfig {
   currency: string
   trialDays: number
   plans: PukalaniBillingPlan[]
+  /**
+   * Zusätzlich kaufbare lookup_keys für EINMAL-Käufe (Event-Tickets & Co.) —
+   * exakt oder mit EINEM `*` am Ende als Präfix (`event_ticket_*`).
+   *
+   * Fehlt/leer, gilt für Einmal-Käufe nur die Grundregel „kein Plan-Key + der
+   * Stripe-Price muss `one_time` sein" (shared/lookupKeys.ts). Wer die Menge
+   * der verkaufbaren Preise fest umreißen will, trägt sie hier ein — Abo-Preise
+   * sind davon unberührt, die kommen ausschließlich aus `plans`.
+   */
+  oneTimeLookupKeys?: string[]
   /** Optionale „Alle Funktionen im Vergleich"-Tabelle der Pricing-Seite */
   compare?: { sections: PukalaniBillingCompareSection[] }
 }

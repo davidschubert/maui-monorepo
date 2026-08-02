@@ -113,9 +113,69 @@ export function isNewPaymentFailure(previousStatus: SubscriptionStatus | null, n
   return failed(newStatus) && !failed(previousStatus)
 }
 
-/** Event-Allowlist (B4): alles andere → 200 + no-op */
+/**
+ * WANN IST DIE WARE BEZAHLT? (Audit-Befund 2026-08-02, „Ware ohne Geld")
+ *
+ * `checkout.session.completed` heißt NICHT „bezahlt", sondern nur „der Kunde
+ * ist durch den Checkout durch". Bei einer VERZÖGERTEN Zahlungsart
+ * (SEPA-Lastschrift, Rechnung, Sofort/Bancontact-Nachläufer) feuert das Event
+ * mit `payment_status: 'unpaid'` — die Belastung passiert erst Tage später und
+ * kann scheitern. Welche Methoden Stripe anbietet, entscheidet das DASHBOARD
+ * (keine unserer Checkout-Erzeugungen setzt `payment_method_types`), es genügt
+ * also EIN Klick dort, damit dieser Fall real wird. Deshalb hängt die
+ * Erfüllung am Zahlungs-Status, nicht am Event-Namen.
+ *
+ * `no_payment_required` gehört dazu: das setzt Stripe bei Sessions über 0 €
+ * (100-%-Gutschein, Freikarte). Da IST nichts zu belasten — die Ware ist fällig.
+ */
+export const FULFILLABLE_PAYMENT_STATUSES: readonly string[] = ['paid', 'no_payment_required']
+
+export function mayFulfillCheckout(paymentStatus: string | null | undefined): boolean {
+  return !!paymentStatus && FULFILLABLE_PAYMENT_STATUSES.includes(paymentStatus)
+}
+
+/**
+ * Was mit einer Checkout-Session zu geschehen hat. PURE → alle vier Fälle
+ * unit-getestet, die Route macht nur noch Nebenwirkungen.
+ *
+ * - `fulfill`       → erfüllen (Geld ist da oder war nie fällig)
+ * - `await_payment` → NICHTS erfüllen, protokollieren (Zahlung läuft noch)
+ * - `payment_failed`→ NICHTS erfüllen, LAUT protokollieren (Zahlung geplatzt)
+ * - `expired`       → NICHTS erfüllen, protokollieren (Session verfallen)
+ *
+ * Unbekannte Event-Typen fallen auf `await_payment` — fail-closed: lieber
+ * nichts ausliefern als etwas verschenken.
+ */
+export type CheckoutOutcome = 'fulfill' | 'await_payment' | 'payment_failed' | 'expired'
+
+export function checkoutOutcome(eventType: string, paymentStatus: string | null | undefined): CheckoutOutcome {
+  switch (eventType) {
+    case 'checkout.session.completed':
+    case 'checkout.session.async_payment_succeeded':
+      return mayFulfillCheckout(paymentStatus) ? 'fulfill' : 'await_payment'
+    case 'checkout.session.async_payment_failed':
+      return 'payment_failed'
+    case 'checkout.session.expired':
+      return 'expired'
+    default:
+      return 'await_payment'
+  }
+}
+
+/**
+ * Event-Allowlist (B4): alles andere → 200 + no-op.
+ *
+ * Die drei `async_payment_*`/`expired`-Einträge kamen am 2026-08-02 dazu. Ohne
+ * sie endete eine verzögerte Zahlung im Nichts: `completed` erfüllte sofort
+ * (siehe `mayFulfillCheckout`), und ob das Geld später ankam oder platzte,
+ * erfuhr diese Installation NIE — es gab schlicht keinen Empfänger für die
+ * Nachricht.
+ */
 export const WEBHOOK_ALLOWLIST = new Set([
   'checkout.session.completed',
+  'checkout.session.async_payment_succeeded',
+  'checkout.session.async_payment_failed',
+  'checkout.session.expired',
   'customer.subscription.created',
   'customer.subscription.updated',
   'customer.subscription.deleted',

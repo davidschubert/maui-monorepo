@@ -54,7 +54,19 @@ export default defineEventHandler(async (event) => {
     throw createError({
       status: 500,
       statusText: 'User deletion incomplete — user is blocked, retry to finish cleanup',
-      data: { results: publicContributorResults(result.results), failed, exportFileId: result.exportFileId },
+      // FACHLICHER GRUND statt einer Sammlung, die niemand sieht (Audit-Befund
+      // 2026-08-02, dieselbe Bauart wie `last_admin` am 2026-07-29): der
+      // zentrale Handler hebt AUSSCHLIESSLICH `data.code` als `reason` ins
+      // Envelope. `results`/`failed`/`exportFileId` kamen deshalb nie an —
+      // `publicContributorResults()` war in dieser Route toter Code, und die
+      // Oberfläche zeigte „Aktion fehlgeschlagen", während der Nutzer in
+      // Wahrheit GESPERRT zurückblieb und ein zweiter Lauf nötig war.
+      //
+      // WELCHE Layer offen sind, bleibt die Diagnose des Betreibers — sie steht
+      // strukturiert im Log (logEvent oben, `gdpr.delete_incomplete`). Der
+      // Client bekommt die HANDLUNGSANWEISUNG, und die ist für alle Layer
+      // dieselbe: nochmal ausführen.
+      data: { code: 'deletion_incomplete' },
     })
   }
 

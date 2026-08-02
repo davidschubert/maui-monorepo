@@ -26,12 +26,15 @@ export default defineEventHandler(async (event) => {
   const lookupKey = body.interval === 'yearly' ? plan.lookupKeys!.yearly : plan.lookupKeys!.monthly
 
   const customer = await ensureCustomer(event, user)
-  const price = await resolvePriceByLookupKey(event, lookupKey)
+  const price = await resolvePlanPrice(event, lookupKey)
   const stripe = useStripe(event)
 
-  // Redirect-Ziele aus dem Request-Origin — localePath-Logik: der aktuelle
-  // Locale-Prefix kommt vom Client mit (referer-frei, explizit)
-  const origin = getRequestURL(event).origin
+  // Redirect-Ziele: NICHT aus dem Host-Header, sondern aus der konfigurierten
+  // Basis-URL der App (Audit 2026-08-02 — auf einer Wildcard-Site lenkte ein
+  // gefälschter Host den Rücksprung auf einen fremden Host; Begründung in
+  // shared/returnOrigin.ts). Nur der Locale-Prefix kommt weiter vom Client
+  // (referer-frei, explizit) — er ist ein Pfad, kein Ziel-Host.
+  const origin = billingReturnOrigin(event)
   const localePrefix = typeof getQuery(event).locale === 'string' && getQuery(event).locale === 'de' ? '/de' : ''
 
   const session = await stripe.checkout.sessions.create({

@@ -24,7 +24,9 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 404, statusText: 'No billing account yet' })
   }
 
-  const origin = getRequestURL(event).origin
+  // Rücksprung-Ziel aus der konfigurierten Basis-URL, nicht aus dem
+  // Host-Header (Audit 2026-08-02, s. shared/returnOrigin.ts)
+  const origin = billingReturnOrigin(event)
   const localePrefix = typeof getQuery(event).locale === 'string' && getQuery(event).locale === 'de' ? '/de' : ''
   const stripe = useStripe(event)
   const session = await stripe.billingPortal.sessions.create({

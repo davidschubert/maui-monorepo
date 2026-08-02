@@ -1,6 +1,8 @@
 import Stripe from 'stripe'
 import type { H3Event } from 'h3'
 import type { PukalaniBillingConfig } from '../../shared/types/billing'
+import { rejectOneTimeLookupKey, rejectSubscriptionLookupKey } from '../../shared/lookupKeys'
+import { resolveBillingReturnOrigin } from '../../shared/returnOrigin'
 
 /**
  * „Fehlt dauerhaft" nur EINMAL pro Prozess melden.
@@ -68,7 +70,60 @@ export async function getBillingConfig(_event: H3Event): Promise<PukalaniBilling
     currency: billing?.currency ?? 'eur',
     trialDays: billing?.trialDays ?? 0,
     plans: billing?.plans ?? [],
+    oneTimeLookupKeys: billing?.oneTimeLookupKeys,
   }
+}
+
+/**
+ * Rücksprung-Ziel für Checkout/Portal — NICHT aus dem `Host`-Header, sondern
+ * aus der konfigurierten Basis-URL der App (Begründung: shared/returnOrigin.ts).
+ * Ohne Konfiguration (lokale Entwicklung) bleibt der Request-Origin.
+ */
+export function billingReturnOrigin(event: H3Event): string {
+  const publicConfig = useRuntimeConfig(event).public as { i18n?: { baseUrl?: unknown } }
+  const configured = typeof publicConfig.i18n?.baseUrl === 'string' ? publicConfig.i18n.baseUrl : ''
+  return resolveBillingReturnOrigin(getRequestURL(event).origin, configured)
+}
+
+/**
+ * DARF DIESER PREIS ÜBER EINEN EINMAL-CHECKOUT VERKAUFT WERDEN?
+ *
+ * Zwei Prüfungen, die zusammengehören (s. shared/lookupKeys.ts):
+ *  1. der lookup_key gegen die Allowlist (Plan-Keys sind hier verboten;
+ *     `oneTimeLookupKeys` verengt weiter, wenn gesetzt),
+ *  2. die SORTE des aufgelösten Stripe-Price: `one_time`. Das ist die Kante,
+ *     die auch ohne konfigurierte Liste hält — ein durchgereichter Fremd-Key
+ *     kann so nie ein Abo starten.
+ *
+ * 400 statt 404: der Aufrufer hat etwas Falsches GESCHICKT. Der Grund reist
+ * als `data.code` (→ `reason` im Envelope), damit eine Oberfläche „diesen
+ * Preis gibt es hier nicht" von „Provider kaputt" unterscheiden kann.
+ */
+export async function resolveOneTimePrice(event: H3Event, lookupKey: string): Promise<Stripe.Price> {
+  const config = await getBillingConfig(event)
+  const rejection = rejectOneTimeLookupKey(lookupKey, config.plans, config.oneTimeLookupKeys)
+  if (rejection) {
+    console.error(`[billing] Einmal-Checkout abgelehnt (${rejection}) für lookup_key '${lookupKey}'.`)
+    throw createError({ status: 400, statusText: 'Price is not purchasable here', data: { code: rejection } })
+  }
+
+  const price = await resolvePriceByLookupKey(event, lookupKey)
+  if (price.type !== 'one_time') {
+    console.error(`[billing] Einmal-Checkout abgelehnt: lookup_key '${lookupKey}' zeigt auf einen ${price.type}-Price.`)
+    throw createError({ status: 400, statusText: 'Price is not purchasable here', data: { code: 'not_a_one_time_price' } })
+  }
+  return price
+}
+
+/** Abo-Checkout: nur deklarierte Plan-Keys (harte Allowlist). */
+export async function resolvePlanPrice(event: H3Event, lookupKey: string): Promise<Stripe.Price> {
+  const config = await getBillingConfig(event)
+  const rejection = rejectSubscriptionLookupKey(lookupKey, config.plans)
+  if (rejection) {
+    console.error(`[billing] Abo-Checkout abgelehnt (${rejection}) für lookup_key '${lookupKey}' — kein Plan in pukalani.billing.plans nennt ihn.`)
+    throw createError({ status: 400, statusText: 'Unknown plan price', data: { code: rejection } })
+  }
+  return resolvePriceByLookupKey(event, lookupKey)
 }
 
 /**

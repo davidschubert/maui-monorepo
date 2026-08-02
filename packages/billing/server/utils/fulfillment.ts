@@ -112,7 +112,10 @@ export async function createSubscriptionCheckoutSession(event: H3Event, input: {
   await requireBillingEnabled(event)
 
   const customerId = input.stripeCustomerId ?? (await ensureCustomer(event, user)).stripeCustomerId
-  const price = await resolvePriceByLookupKey(event, input.lookupKey)
+  // HARTE Allowlist (Audit 2026-08-02): nur Preise, die ein Plan in
+  // pukalani.billing.plans nennt. Vorher war `lookupKey` ein freier Parameter
+  // — die Garantie hing allein am Aufrufer.
+  const price = await resolvePlanPrice(event, input.lookupKey)
   const stripe = useStripe(event)
 
   const metadata = { ...input.metadata, userId: user.$id }
@@ -155,7 +158,10 @@ export async function createPaymentCheckoutSession(event: H3Event, input: {
   await requireBillingEnabled(event)
 
   const customer = await ensureCustomer(event, user)
-  const price = await resolvePriceByLookupKey(event, input.lookupKey)
+  // Allowlist + Preis-SORTE (Audit 2026-08-02): nie ein Plan-Key, nie ein
+  // wiederkehrender Price, und — falls konfiguriert — nur was
+  // pukalani.billing.oneTimeLookupKeys nennt. Begründung: shared/lookupKeys.ts.
+  const price = await resolveOneTimePrice(event, input.lookupKey)
   const stripe = useStripe(event)
 
   const session = await stripe.checkout.sessions.create({

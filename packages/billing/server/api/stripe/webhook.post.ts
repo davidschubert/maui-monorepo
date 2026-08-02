@@ -8,7 +8,7 @@ import {
   type BillingSubscriptionRow,
   type SubscriptionStatus,
 } from '../../../shared/types/billing'
-import { isNewPaymentFailure, isStale, subscriptionToPatch, subscriptionToVerifiedUpdate, toSubscriptionStatus, WEBHOOK_ALLOWLIST, type SubscriptionPatch } from '../../utils/webhookMapping'
+import { checkoutOutcome, isNewPaymentFailure, isStale, subscriptionToPatch, subscriptionToVerifiedUpdate, toSubscriptionStatus, WEBHOOK_ALLOWLIST, type CheckoutOutcome, type SubscriptionPatch } from '../../utils/webhookMapping'
 
 /**
  * Stripe-Webhook (B1/B4): Signatur-Verifikation über den RAW-Body, Event-
@@ -56,14 +56,33 @@ export default defineEventHandler(async (event) => {
 
   try {
     switch (stripeEvent.type) {
-      case 'checkout.session.completed': {
+      case 'checkout.session.completed':
+      case 'checkout.session.async_payment_succeeded':
+      case 'checkout.session.async_payment_failed':
+      case 'checkout.session.expired': {
         const session = stripeEvent.data.object
         if (session.mode === 'payment') {
           // One-time-Checkout (z. B. Event-Tickets): App-registrierte
-          // Fulfiller (idempotent) — billing kennt die Ziel-Layer nicht (A14)
-          await runCheckoutFulfillments(event, session)
+          // Fulfiller (idempotent) — billing kennt die Ziel-Layer nicht (A14).
+          //
+          // ABER ERST GEGEN GELD (Audit 2026-08-02): `completed` allein heißt
+          // nur „durch den Checkout", nicht „bezahlt" — bei SEPA/Rechnung kommt
+          // die Belastung Tage später. Der Status entscheidet, nicht der
+          // Event-Name; die vier Fälle stecken in `checkoutOutcome`.
+          const outcome = checkoutOutcome(stripeEvent.type, session.payment_status)
+          if (outcome === 'fulfill') {
+            await runCheckoutFulfillments(event, session)
+          }
+          else {
+            logCheckoutWithoutFulfillment(outcome, stripeEvent.type, session)
+          }
         }
         else if (session.mode === 'subscription' && session.subscription) {
+          // Abos hängen NICHT am payment_status der Session, sondern am STATUS
+          // des Abos (eine unbezahlte Erstbelastung lässt es 'incomplete' —
+          // und das steht nicht in ENTITLED_STATUSES). Der Upsert ist deshalb
+          // auf jedem dieser vier Events richtig und idempotent; die
+          // Nachzügler-Events halten den Spiegel aktuell.
           const subscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription.id
           const subscription = await stripe.subscriptions.retrieve(subscriptionId)
           const { applied } = await upsertSubscription(event, subscription, stripeEvent.created, session.client_reference_id ?? session.metadata?.userId ?? null)
@@ -134,6 +153,45 @@ export default defineEventHandler(async (event) => {
 
   return { received: true }
 })
+
+/**
+ * Eine Checkout-Session, die NICHT erfüllt wurde — sichtbar machen.
+ *
+ * WARUM ÜBERHAUPT EINE ZEILE: der stille Zustand ist hier der Schaden. Ohne
+ * sie sähe ein Betreiber eine abgeschlossene Session im Stripe-Dashboard und
+ * kein Ticket in seiner App — ohne jede Spur, warum. `logEvent` schreibt
+ * strukturiert (Sentry-Andockpunkt), die Session-Id ist der Schlüssel zum
+ * Nachschlagen bei Stripe.
+ *
+ * WAS DIE FÄLLE BEDEUTEN:
+ *  - `await_payment`  = normal bei SEPA/Rechnung. Der Nachzügler
+ *    (`async_payment_succeeded`) erfüllt später — `warn`, kein Vorfall.
+ *  - `payment_failed` = das Geld kommt NIE. `error`, weil hier jemand
+ *    hinsehen muss: hat eine ÄLTERE Installation (vor diesem Fix) oder ein
+ *    Fulfiller außer der Reihe die Ware schon ausgegeben, ist sie jetzt
+ *    zurückzunehmen. Diese Route kann das nicht wissen und tut deshalb
+ *    NICHTS still — sie sagt es.
+ *  - `expired`        = der Kunde ist nie fertig geworden. Erwartbar, `warn`.
+ *
+ * KEIN throw: nichts davon ist ein transienter Fehler, ein Stripe-Retry würde
+ * exakt dasselbe Ergebnis liefern (Webhook-Regel: werfen nur, wenn ein
+ * Wiederholen helfen KANN).
+ */
+function logCheckoutWithoutFulfillment(
+  outcome: Exclude<CheckoutOutcome, 'fulfill'>,
+  eventType: string,
+  session: Stripe.Checkout.Session,
+): void {
+  const detail = {
+    outcome,
+    eventType,
+    sessionId: session.id,
+    paymentStatus: session.payment_status,
+    // Nur die Zuordnung, kein Kunden-Detail — der Rest steht bei Stripe.
+    metadata: session.metadata ?? {},
+  }
+  logEvent(outcome === 'payment_failed' ? 'error' : 'warn', 'billing.checkout_not_fulfilled', detail)
+}
 
 async function findSubscriptionRow(event: H3Event, stripeSubscriptionId: string): Promise<BillingSubscriptionRow | null> {
   const config = useRuntimeConfig(event)

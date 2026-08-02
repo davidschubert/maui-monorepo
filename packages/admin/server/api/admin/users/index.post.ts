@@ -51,7 +51,21 @@ export default defineEventHandler(async (event) => {
     targetType: 'user',
     targetId: user.$id,
     targetName: body.name,
-    metadata: { email: body.email, roles },
+    // OHNE E-MAIL (Audit-Befund 2026-08-02, GDPR): die Adresse stand hier
+    // dauerhaft — und `deleteUserCompletely` bekam sie nie zu fassen. Der
+    // Contributor pseudonymisiert Audit-Zeilen (Art. 17 (3) e: die Struktur
+    // überlebt, die Person nicht), er kannte aber nur actorName/ip/
+    // metadata.name. Nach der Löschung des Kontos blieb die Adresse als
+    // Klartext stehen — der Rest der Zeile zeigte auf einen Menschen, den es
+    // nicht mehr gibt.
+    //
+    // Und sie wurde hier auch nicht gebraucht: WER angelegt wurde, beantworten
+    // `targetId` (bleibt, ist nach `users.delete` niemandem mehr zuzuordnen)
+    // und `targetName` (wird bei der Löschung geleert). Die Adresse trug nur
+    // Wiedererkennung — genau das, was ein pseudonymisiertes Protokoll nicht
+    // mehr können soll. Bestands-Zeilen räumt der Contributor mit
+    // (`stripPersonalMetadata`).
+    metadata: { roles },
   })
 
   setResponseStatus(event, 201)

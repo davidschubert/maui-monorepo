@@ -170,7 +170,20 @@ let presenceTimer: ReturnType<typeof setTimeout> | undefined
 let auditTimer: ReturnType<typeof setTimeout> | undefined
 let presencePoll: ReturnType<typeof setInterval> | undefined
 
-useRealtimeRows<Models.Row>(config.public.appwriteDatabaseId, 'comments', () => {
+// Mandanten-Netz am SOCKET (Audit-Befund 2026-08-02, dieselbe Klasse wie B2 —
+// nur eine Ebene tiefer): dieser Strom liest DIREKT gegen Appwrite, nicht über
+// eine server/api-Route, und ist damit von der Datentür nicht erfasst. Die
+// harte Grenze bleiben die Row-Permissions; sie greift nur nicht bei jemandem,
+// der in ZWEI Communities Mitglied ist (er trägt beide Labels) — und öffentlich
+// lesbare Kommentare tragen ohnehin read(any). Ohne Filter refetchte JEDES
+// Community-Dashboard seine Kennzahlen bei jedem fremden Kommentar im Pool.
+// `where` statt der server-seitigen `queries`: dafür bräuchte die Seite den
+// Query-Builder aus 'appwrite' als WERT-Import — das zöge das Web-SDK zurück
+// ins Initial-Bundle (B4), das der Composable bewusst erst nach der Hydration
+// nachlädt. Gleiches Muster wie Activity-Feed und NotificationBell.
+const tenantId = useTenantId()
+
+useRealtimeRows<Models.Row & { communityId?: string }>(config.public.appwriteDatabaseId, 'comments', () => {
   clearTimeout(commentsTimer)
   commentsTimer = setTimeout(() => {
     void refreshStats()
@@ -178,7 +191,7 @@ useRealtimeRows<Models.Row>(config.public.appwriteDatabaseId, 'comments', () => 
     // refresh() würde die unterdrückte Anfrage nachholen — nur mit Capability.
     if (canModerateComments.value) void refreshReported()
   }, 500)
-})
+}, { where: payload => rowBelongsToHost(payload, tenantId.value) })
 watch(present, () => {
   clearTimeout(presenceTimer)
   presenceTimer = setTimeout(() => { void refreshPresence() }, 500)

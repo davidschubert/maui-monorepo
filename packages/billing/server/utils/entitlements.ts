@@ -35,13 +35,22 @@ export async function getEntitledProducts(event: H3Event): Promise<string[]> {
   return config.plans.find(plan => plan.id === subscription.planId)?.products ?? []
 }
 
-/** Gate für zahlungspflichtige Produkte — 401 ohne Session, 402 ohne Plan-Produkt */
-export async function requireEntitlement(event: H3Event, product: string): Promise<void> {
-  if (!event.context.user) {
-    throw createError({ status: 401, statusText: 'Unauthorized' })
-  }
-  const products = await getEntitledProducts(event)
-  if (!products.includes(product)) {
-    throw createError({ status: 402, statusText: 'Upgrade required' })
-  }
-}
+/**
+ * HIER STAND `requireEntitlement()` — ENTFERNT am 2026-08-02 (Audit-Befund:
+ * totes Gate im Geldpfad).
+ *
+ * Es hatte seit seiner Entstehung keinen einzigen Aufrufer, und das war kein
+ * Versehen: der EINE echte Konsument der Entitlements ist der Kurs-Zugangs-
+ * Guard (`apps/comments/server/plugins/course-access.ts`), und ein Guard
+ * braucht eine ANTWORT (`boolean`), keinen Wurf — `getEntitledProducts()`
+ * liefert genau die. Ein zweites, werfendes Gate daneben ist kein Netz,
+ * sondern eine Abzweigung: es antwortete 402 „Upgrade required" ohne
+ * fachlichen `data.code` und damit ohne `reason` im Envelope — genau die
+ * Bauart, die dieses Projekt sonst als „tote Fehlerhälfte" behandelt (der
+ * Kurs-Guard trägt COURSE_UPGRADE_REQUIRED_CODE, weil die Oberfläche „hier
+ * hilft ein Upgrade" von „diese Instanz verkauft gar nichts" unterscheiden
+ * muss).
+ *
+ * Wer ein neues zahlungspflichtiges Produkt gatet, nimmt `getEntitledProducts`
+ * und wirft SELBST — mit einem Grund, den die eigene Oberfläche übersetzen kann.
+ */

@@ -90,6 +90,7 @@
       },
       "action": {
         "user": {
+          "created": "hat {name} angelegt",
           "login": "hat sich angemeldet",
           "logout": "hat sich abgemeldet",
           "block": "hat {name} gesperrt",
@@ -135,6 +136,9 @@
           "updated": "Theme bearbeitet",
           "deleted": "Theme gelöscht",
           "settings_updated": "Theme-Einstellungen geändert"
+        },
+        "system": {
+          "dependency_updated": "hat {name} im Katalog angehoben"
         }
       }
     },
@@ -223,6 +227,8 @@
       "deletedDesc": "Der Daten-Snapshot liegt noch 30 Tage unter „GDPR-Exporte“.",
       "lastAdmin": "Es muss immer mindestens ein Admin übrig bleiben.",
       "lastAdminDesc": "Mach zuerst eine andere Person zum Admin — danach lässt sich diese Rolle abgeben.",
+      "deletionIncomplete": "Nur teilweise gelöscht — der Account ist gesperrt.",
+      "deletionIncompleteDesc": "Ein Teil der Daten konnte nicht entfernt werden. Der Account kann sich nicht mehr anmelden, ist aber noch nicht vollständig gelöscht. Führe die Löschung noch einmal aus — sie setzt genau dort an, wo sie abgebrochen ist.",
       "confirmTitle": "Aktion bestätigen",
       "confirmAction": "Bestätigen",
       "confirm": {

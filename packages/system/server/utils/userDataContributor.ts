@@ -71,14 +71,34 @@ export async function systemExportUserData(event: H3Event, userId: string): Prom
   }
 }
 
-/** metadata-JSON ohne `name`-Feld (self_deleted trägt sonst den Klarnamen). */
-function stripNameFromMetadata(metadata: string): string {
+/**
+ * Personenbezogene Felder aus dem metadata-JSON einer Audit-Zeile entfernen.
+ *
+ * `name`: `self_deleted` trug sonst den Klarnamen.
+ * `email`: kam am 2026-08-02 dazu (Audit-Befund, GDPR). `user.created` legte
+ * die Adresse des ANGELEGTEN Kontos dauerhaft ab; die Route tut das nicht mehr,
+ * aber Bestands-Zeilen tragen sie noch — und ohne diesen Griff überlebte die
+ * Adresse `deleteUserCompletely` als Klartext.
+ *
+ * Bewusst eine feste Feldliste und kein Heuristik-Scan: was pseudonymisiert
+ * wird, muss man nachlesen können. Ein NEUES personenbezogenes metadata-Feld
+ * gehört hier hinein — oder besser gar nicht erst ins Protokoll.
+ */
+const PERSONAL_METADATA_FIELDS = ['name', 'email'] as const
+
+export function stripPersonalMetadata(metadata: string): string {
   if (!metadata) return ''
   try {
     const parsed = JSON.parse(metadata) as Record<string, unknown>
-    if (!('name' in parsed)) return metadata
-    delete parsed.name
-    return Object.keys(parsed).length ? JSON.stringify(parsed) : ''
+    if (!PERSONAL_METADATA_FIELDS.some(field => field in parsed)) return metadata
+    // Neu aufbauen statt löschen: die Feldnamen kommen aus einer Konstanten,
+    // aber `delete obj[variable]` ist im Projekt per ESLint verboten (und die
+    // Reihenfolge der verbleibenden Schlüssel bleibt so nachweislich erhalten —
+    // daran hängt der Idempotenz-Vergleich mit dem alten String).
+    const kept = Object.fromEntries(
+      Object.entries(parsed).filter(([key]) => !(PERSONAL_METADATA_FIELDS as readonly string[]).includes(key)),
+    )
+    return Object.keys(kept).length ? JSON.stringify(kept) : ''
   }
   catch {
     // kein valides JSON → sicherheitshalber komplett leeren
@@ -120,10 +140,10 @@ export async function systemDeleteUserData(event: H3Event, userId: string): Prom
     deleted++
   }
 
-  // Audit-Logs: Actor-Pseudonymisierung (Name, IP, metadata.name)
+  // Audit-Logs: Actor-Pseudonymisierung (Name, IP, personenbezogene metadata)
   const asActor = await listAllRows<AuditRow>(tablesDB, databaseId, AUDIT_LOGS, [Query.equal('actorId', userId)])
   for (const row of asActor) {
-    const nextMetadata = stripNameFromMetadata(row.metadata)
+    const nextMetadata = stripPersonalMetadata(row.metadata)
     if (row.actorName === '' && row.ip === '' && nextMetadata === row.metadata) continue // idempotent: schon sauber
     await tablesDB.updateRow({
       databaseId,
@@ -134,11 +154,18 @@ export async function systemDeleteUserData(event: H3Event, userId: string): Prom
     anonymized++
   }
 
-  // Audit-Logs, die auf den User ZEIGEN: targetName leeren
+  // Audit-Logs, die auf den User ZEIGEN: targetName + personenbezogene metadata.
+  //
+  // Die metadata-Hälfte kam am 2026-08-02 dazu (Audit-Befund, GDPR): `user.created`
+  // legte die E-MAIL des angelegten Kontos ab — und die steht in der Zeile des
+  // ANLEGENDEN Admins, nicht in einer eigenen. Der Actor-Zweig oben griff sie
+  // deshalb nie; sie überlebte die Löschung als Klartext. Die Route speichert
+  // sie nicht mehr, dieser Griff räumt den Bestand.
   const asTarget = await listAllRows<AuditRow>(tablesDB, databaseId, AUDIT_LOGS, [Query.equal('targetId', userId)])
   for (const row of asTarget) {
-    if (row.targetName === '') continue // idempotent
-    await tablesDB.updateRow({ databaseId, tableId: AUDIT_LOGS, rowId: row.$id, data: { targetName: '' } })
+    const nextMetadata = stripPersonalMetadata(row.metadata)
+    if (row.targetName === '' && nextMetadata === row.metadata) continue // idempotent
+    await tablesDB.updateRow({ databaseId, tableId: AUDIT_LOGS, rowId: row.$id, data: { targetName: '', metadata: nextMetadata } })
     anonymized++
   }
 
