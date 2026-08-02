@@ -13,6 +13,55 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F19 — Warum die CI-E2E zufällig starb: ein vergifteter Appwrite-Cache ✅ 2026-08-02
+
+**Befund.** Zwei von acht E2E-Läufen eines Vormittags starben im Bootstrap mit
+`column_not_available` — einmal `media/003` (`tenantId`), einmal `events/007`
+(`communityId`). Die naheliegende Erklärung („Wiederhol-Vorrat zu knapp") war
+FALSCH und ließ sich widerlegen: der Vorrat lief jedes Mal **vollständig** ab
+(24/24 Versuche über 2,5 min), die letzten fünfzehn bereits auf der
+Deckel-Pause — es ging nichts voran. Im selben Lauf gingen **67 andere Indizes
+beim ersten Versuch** durch. Kein überlasteter Runner also, sondern ein
+Zustand, aus dem Geduld nicht herausführt.
+
+**Ursache (im Container-Quellcode von 1.9.6 nachgelesen, nicht geraten).** Der
+Index-Endpunkt prüft die Spalte nicht am `attributes`-Dokument, sondern an der
+Spaltenliste im **gecachten Collection-Dokument**
+(`Indexes/Create.php:97` + `:170`). Der Worker setzt erst `status = 'available'`
+(`Workers/Databases.php:210`) und räumt den Cache **erst danach** (`:242`) —
+dazwischen liegt noch das Realtime-`trigger()`. Wer in diesem Fenster liest,
+schreibt seinen veralteten Stand **nach** dem Räumen zurück; dann steht die
+Spalte dort für immer auf `processing`, weil nichts ein zweites Mal räumt.
+Bitter: der Poller, der auf `available` wartet, ist selbst der
+wahrscheinlichste Vergifter — er liest genau in diesem Moment.
+
+**Beweis.** Das Rennen ist lokal kaum zu treffen (Fenster im
+Millisekundenbereich auf unbelasteter Maschine), der vergiftete ZUSTAND aber
+exakt herstellbar: Cache-Eintrag in Redis auf `processing` zurückdrehen.
+Damit ist die Kette gemessen — vergifteter Cache ⇒ 4/4 derselbe Fehler;
+`updateTable` ⇒ Eintrag weg ⇒ Index sofort da.
+`packages/media/scripts/verify-index-nudge.mjs` **9/9** mit Gegenprobe: ohne
+Anstoß läuft der Vorrat leer (~2,5 min, wie in der CI), mit Anstoß steht der
+Index nach **5,9 s**. Dazu 8 Unit-Tests (`packages/core/tests/indexRetry.test.ts`).
+
+**Gebaut.** `indexStep`/`withIndexRetry` nehmen einen optionalen `nudge`; ab dem
+dritten Fehlversuch wird der Cache angestoßen statt länger gewartet. Verdrahtet
+in `media/003` und `events/007`. Die 141 übrigen Aufrufe verhalten sich
+unverändert — der Rest steht als F19 in OPEN-ITEMS.
+
+**Gelernt:** (1) **Ein erschöpftes Budget beweist nicht, dass es zu klein war.**
+„24/24 verbraucht" heißt erst dann „zu wenig Geduld", wenn sich zwischendurch
+etwas bewegt hat; hier bewegte sich nichts, und das war das eigentliche Signal.
+Der Vorlauf-Commit hatte den Vorrat schon von 15 s auf 150 s erhöht — die
+richtige Frage war nicht „wie lange?", sondern „wovon hängt es überhaupt ab?".
+(2) **Die naheliegende Kur wäre eine Sicherheitslücke gewesen.** `updateTable`
+setzt `rowSecurity` und `enabled` bedingungslos (Vorgaben `false`/`true`, nur
+`permissions` erbt) — ein Anstoß mit bloßem `name` hätte still die
+Zeilen-Sicherheit einer Tabelle abgeschaltet. Aufgefallen ist das nur, weil vor
+dem Einbau die Parameter-Semantik im Quellcode gelesen wurde; der Test trägt
+die Gegenprobe seitdem fest. (3) **Ein Beweis ohne Gegenprobe ist keiner** —
+beide Beweisskripte zeigen zuerst, dass der Fehler ohne die Kur auftritt.
+
 ## 📌 Master-To-do — erledigte Brocken
 
 Legende Wer: **[David]** nur David · **[Claude]** autonom machbar ·

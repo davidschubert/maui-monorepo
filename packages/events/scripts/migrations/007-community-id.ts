@@ -19,7 +19,7 @@
  *   pnpm migrate --app <app> --layer events
  */
 import { Client, Query, TablesDB, type TablesDBIndexType, type Models } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { indexStep, tableCacheNudge } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -113,11 +113,15 @@ for (const table of TABLES) {
     if (!index.columns.includes('tenantId')) continue
     const twinKey = index.key.replace(/tenant/g, 'community')
     if (twinKey === index.key) throw new Error(`Index ${index.key} trägt tenantId, aber kein 'tenant' im Namen — Zwilling von Hand benennen.`)
+    // Mit Cache-Anstoß (F19): genau hier starb die CI am 2026-08-02
+    // (`events.idx_community_status_start`) — 23 Versuche ohne Bewegung, weil
+    // das gecachte Collection-Dokument `communityId` dauerhaft auf 'processing'
+    // zeigte. Gegen diesen Zustand hilft nur Anstoßen, nicht Warten.
     await indexStep(`Index ${table}.${twinKey}`, () => tablesDB.createIndex({
       databaseId: db, tableId: table, key: twinKey,
       type: index.type as TablesDBIndexType,
       columns: index.columns.map(c => c === 'tenantId' ? 'communityId' : c),
-    }))
+    }), tableCacheNudge(tablesDB, db, table))
   }
   await waitAvailable(table)
 
