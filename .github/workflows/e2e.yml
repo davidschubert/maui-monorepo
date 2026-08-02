@@ -79,6 +79,62 @@ jobs:
           node --experimental-strip-types --env-file=../../apps/comments/.env \
             scripts/verify-paid-ticket.mjs
 
+      # ── DIE LIVE-BEWEISE (F30) ────────────────────────────────────────────
+      # Im Repo liegen zwei Dutzend `verify-*.mjs`. Bis heute lief davon in CI
+      # NUR der Paid-Ticket-Beweis darüber — alles andere prüfte, wer zufällig
+      # daran dachte. Genau so blieben ein toter Geldpfad und ein Isolations-
+      # Loch wochenlang unentdeckt, OBWOHL es für beide einen Beweis gab.
+      #
+      # Hier hängen die Beweise, die OHNE zusätzliche Infrastruktur laufen:
+      # kein Dev-Server, keine zweite Appwrite, kein Control-Plane-Projekt —
+      # sie brauchen nur die frisch migrierte Instanz, die zwei Schritte weiter
+      # oben schon steht. Jeder bekommt einen EIGENEN Schritt: ein roter Lauf
+      # soll am Schritt-Namen zeigen, WELCHE Zusage gebrochen ist, statt in
+      # einem Sammel-Schritt zu verschwinden.
+      #
+      # Alle fünf sind idempotent und räumen ihre Zeilen selbst wieder weg
+      # (auch im Fehlerfall) — sie dürfen deshalb gegen dieselbe Instanz
+      # laufen, die gleich die Playwright-Suite benutzt.
+      #
+      # Was hier NICHT steht, steht in docs/referenz/LIVE-BEWEISE.md mitsamt
+      # dem Grund (die meisten brauchen einen Platform-Dev-Server mit den
+      # Wegwerf-Communities kunde-a/kunde-b im Control Plane — die gibt es in
+      # CI noch nicht).
+
+      - name: Beweis — Mandanten-Isolation comments/reports/pages (DB-Ebene)
+        run: |
+          cd packages/comments
+          node --env-file=../../apps/comments/.env \
+            scripts/verify-pool-isolation.mjs
+
+      - name: Beweis — Mandanten-Isolation posts/votes/polls (DB-Ebene)
+        run: |
+          cd packages/posts
+          node --env-file=../../apps/comments/.env \
+            scripts/verify-pool-isolation.mjs
+
+      # C18: „sieht ein GAST die Inhalte noch?" — gelesen mit einem echten
+      # Gast-Client (Endpoint + Projekt, KEIN Key), also an unserem Code vorbei.
+      - name: Beweis — Sichtbarkeit je Community (Gast-Sicht, beide Richtungen)
+        run: |
+          cd packages/control
+          node --experimental-strip-types --env-file=../../apps/comments/.env \
+            scripts/verify-audience-flip.mjs
+
+      # A4/A5: die Presence-Grenze, direkt gegen die Presences-API gelesen.
+      # PLATFORM_PORT zeigt bewusst auf einen toten Port: „Akt 2" (der Weg durch
+      # Middleware + Heartbeat) braucht einen Platform-Dev-Server, den es hier
+      # nicht gibt, und wird dann sauber übersprungen. Der Port steht explizit
+      # da, damit das Überspringen eine ENTSCHEIDUNG ist und nicht davon
+      # abhängt, dass zufällig nichts auf 3006 lauscht.
+      - name: Beweis — Presence-Grenze (Akt 1, Mechanismus an der Appwrite-API)
+        env:
+          PLATFORM_PORT: '39999'
+        run: |
+          cd packages/core
+          node --env-file=../../apps/comments/.env \
+            scripts/verify-presence-boundary.mjs
+
       # Changelog-Einträge (v0.1…): der Smoke-Test prüft die öffentliche
       # Vollhistorie — auf der frischen Instanz sonst leer
       - name: Changelog seeden
@@ -111,6 +167,35 @@ jobs:
           APPWRITE_CONSOLE_EMAIL: ci@example.com
           APPWRITE_CONSOLE_PASSWORD: ci-console-password-2026
         run: pnpm create-site g1-probe --endpoint http://localhost:8080/v1 --products themes,admin,comments,moderation,activity
+
+      # F19 — der Anstoß am Metadaten-Cache, der die INDEX-Anlage rettet. Genau
+      # dieser 400er (`column_not_available` trotz Spalten-Status 'available')
+      # hat die CI-E2E schon zweimal live erwischt; `indexStep`/`withIndexRetry`
+      # sind die Antwort darauf. Der Beweis stellt den vergifteten Cache-Zustand
+      # exakt her (Redis-Eintrag zurück auf 'processing') und fährt BEIDE Fälle:
+      # ohne Anstoß muss der Index scheitern, mit Anstoß durchkommen.
+      #
+      # Steht bewusst GANZ HINTEN: er ist mit ~25 s der langsamste Beweis, und
+      # er fasst als einziger die Appwrite-Interna an (Wegwerf-Tabelle + Redis).
+      # Die billigen Zusagen sollen vorher scheitern, nicht danach.
+      #
+      # Den Redis-Container fragt `docker compose` selbst ab, statt den Namen
+      # <projekt>-<dienst>-<n> nachzubauen: eine geratene Konvention wäre eine
+      # stille Kopplung an compose, und ein falscher Name würde hier als
+      # PRODUKTFEHLER aussehen und jeden Deploy blockieren. Fehlt der
+      # Container, bricht der Schritt mit eigener Ansage ab.
+      - name: Beweis — Index-Anstoß überlebt vergifteten Metadaten-Cache (F19)
+        run: |
+          REDIS=$(docker compose --env-file ci/appwrite/ci.env \
+            --project-name appwrite-ci -f ci/appwrite/docker-compose.yml \
+            ps -q redis)
+          if [ -z "$REDIS" ]; then
+            echo '::error::Redis-Container des CI-Stacks nicht gefunden'
+            exit 1
+          fi
+          APPWRITE_REDIS_CONTAINER="$REDIS" \
+            node --experimental-strip-types --env-file=apps/comments/.env \
+              packages/media/scripts/verify-index-nudge.mjs
 
       - name: Stack-Logs bei Fehler
         if: failure()
