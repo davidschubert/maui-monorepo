@@ -26,7 +26,8 @@
       "codePlaceholder": "PUKA-XXXX-XXXX",
       "submit": "Continue",
       "rejected": "That code isn't valid (any more). Check the spelling — or ask us for a new one.",
-      "noCode": "No code? Tell us what you want to use Pukalani for — we invite new communities continuously."
+      "noCode": "No code? Tell us what you want to use Pukalani for — we invite new communities continuously.",
+      "verifyFirst": "Your code is valid — just confirm your email address"
     },
     "request": {
       "title": "Request early access",
@@ -156,6 +157,7 @@
     "errors": {
       "hostTaken": "That address was just taken. Go back one step and pick another one.",
       "notAllowed": "That didn't work: either the invite code is no longer valid, or you already have a community in its trial.",
+      "verifyFirst": "Your email address is not confirmed yet. Open the link in our confirmation email, then try again — your answers are kept.",
       "invalid": "One of the answers doesn't fit. Please walk back through the steps.",
       "unavailable": "We couldn't create the community just now. Try again in a minute — your answers are kept."
     },
@@ -405,6 +407,7 @@
     "invalid": "This invitation is no longer valid. Please ask for a new one.",
     "wrongAccount": "This invitation was issued for a different email address. Sign in with the invited address.",
     "noneTitle": "No open invitation",
-    "noneText": "There is no invitation here for this account. Check the link from your email — or ask the community team for a new one."
+    "noneText": "There is no invitation here for this account. Check the link from your email — or ask the community team for a new one.",
+    "verifyFirst": "Please confirm your email address first"
   }
 }

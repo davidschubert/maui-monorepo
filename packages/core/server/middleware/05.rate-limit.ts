@@ -32,6 +32,16 @@ const ALWAYS_LIMITED = new Set([
   'POST /api/auth/recovery',
   'POST /api/auth/otp',
   'POST /api/auth/verification',
+  // Sicherheits-Audit 2026-08-02 (HOCH): die Registrierung fehlte hier — sie
+  // ist aber die schärfste der drei Mail-Routen. Sie LEGT KONTEN AN und
+  // verschickt die Verifizierungs-Mail an eine frei wählbare Adresse, und weil
+  // sie über den Admin-Client läuft, greift Appwrites eigenes Limit nicht.
+  // Ungedrosselt war das ein Mail-Bombing-Werkzeug MIT Konto-Müll als
+  // Nebenwirkung. Budget wie die Geschwister (5/min und IP): ein Mensch legt
+  // sich kein zweites Konto in derselben Minute an, und geteilte Anschlüsse
+  // (Verein im selben Netz, Konferenz-WLAN) bleiben mit fünf Anmeldungen je
+  // Minute bequem darunter.
+  'POST /api/auth/signup',
 ])
 // Credential-/Code-/Token-Prüfung: nur FEHLgeschlagene Versuche zählen — ein
 // erfolgreicher Login/Reset (200) soll das Budget nicht aufbrauchen. Der
@@ -77,11 +87,24 @@ const WRITE_LIMITED: { re: RegExp, bucket: string, max?: number }[] = [
   // Aufbau; 10/min ist für einen Menschen unerreichbar und für ein Skript die
   // Grenze.
   { re: /^GET \/api\/onboarding\/communities$/, bucket: 'onboarding:communities', max: TOKEN_MAX },
+  // Der Sprung IN eine Community (O6): seit dem Audit 2026-08-02 belegt diese
+  // Route die Mitgliedschaft, bevor sie siegelt — sie prägt also dasselbe JWT
+  // und liest dieselben zwei Tabellen wie die Übersicht darüber. Gleiche
+  // Kostenklasse, gleicher Deckel; ein Mensch klickt eine Community an, kein
+  // Dutzend je Minute.
+  { re: /^POST \/api\/onboarding\/handoff$/, bucket: 'onboarding:communities', max: TOKEN_MAX },
   // Öffentliche Kommentar-Lese-Routen (Embed macht sie zur beworbenen Fläche
   // auf fremden Seiten) — eigener Read-Bucket statt „GET ist frei".
   // count (E3) ist CORS-offen und microcached, teilt denselben Bucket.
   { re: /^GET \/api\/comments$/, bucket: 'comments:read', max: READ_MAX },
   { re: /^GET \/api\/comments\/count$/, bucket: 'comments:read', max: READ_MAX },
+  // Anwesende zählen (Audit 2026-08-02): unauthentifiziert erreichbar und pro
+  // Aufruf bis zu fünf Seiten über die Presences-API — mit dem ADMIN-Client,
+  // also ohne jede Appwrite-seitige Bremse. Das war der billigste
+  // Verstärker-Hebel im System (ein GET ⇒ fünf Admin-Abrufe). Derselbe
+  // Lese-Deckel wie die öffentlichen Kommentar-Routen: die Seite fragt beim
+  // Aufbau und danach alle 20 s, 120/min ist dafür reichlich.
+  { re: /^GET \/api\/presence\/count$/, bucket: 'presence:read', max: READ_MAX },
   // Medien-Upload: der einzige Schreibweg, der BINÄRDATEN auf die geteilte
   // Platte legt (bis 15 MB je Bild) — ein ungedrosseltes Budget ist hier nicht
   // „viele Zeilen", sondern viele Gigabyte. 30/min ist für eine Redaktion, die
@@ -89,6 +112,13 @@ const WRITE_LIMITED: { re: RegExp, bucket: string, max?: number }[] = [
   // aus) und für ein Skript die Grenze. Capability-gated ist die Route
   // ohnehin — das hier ist der Schutz gegen ein Konto, das durchdreht.
   { re: /^POST \/api\/media$/, bucket: 'media:upload', max: 30 },
+  // Avatar-Upload (Audit 2026-08-02): derselbe Vorwurf wie oben, nur war er
+  // hier nie gedeckelt — bis 5 MB je Datei auf dieselbe geteilte Platte, und
+  // jede Datei ist eine eigene Row in Appwrites Storage. Ein Konto braucht
+  // keine 30 Profilbilder je Minute; dasselbe Budget wie /api/media, weil es
+  // dieselbe Ressource angreift. Der Bucket bleibt eigen: ein Redakteur, der
+  // eine Galerie füllt, soll sich nicht selbst am Profilbild aussperren.
+  { re: /^POST \/api\/storage\/[^/]+$/, bucket: 'storage:upload', max: 30 },
   // Client-Error-Inbox (Observability-Gate): der Client dedupliziert/kappt
   // selbst (10/Session) — das Limit hier stoppt Scripting/kaputte Clients.
   { re: /^POST \/api\/telemetry\/error$/, bucket: 'telemetry:error', max: 30 },
@@ -133,17 +163,17 @@ export default defineEventHandler(async (event) => {
   const onFailure = FAILURE_LIMITED.has(route)
   if (!always && !onFailure && !write) return
 
-  // ⚠️ Trust-Proxy-Annahme (wie authAudit.ts): X-Forwarded-For ist nur hinter
-  // einem Proxy vertrauenswürdig, der den Header ÜBERSCHREIBT (ploi/nginx) —
-  // direkt exponiert könnte ein Client per gefälschtem XFF frische Buckets
-  // ziehen und das Login-Limit umgehen. Prod: App nie ohne Proxy exponieren
-  // (Phase-17-Checkliste: Port 3000 nur hinter nginx, Firewall erzwingt es).
+  // `trustedClientIp` statt `getRequestIP(…, { xForwardedFor: true })`:
+  // h3 nimmt das ERSTE X-Forwarded-For-Segment, unser nginx HÄNGT die echte IP
+  // hinten AN — ein selbst gesetzter Header erzeugte damit pro Request einen
+  // frischen Bucket und hebelte genau dieses Login-Limit aus (Audit
+  // 2026-08-02). Begründung und Grenzen: server/utils/clientIp.ts.
   //
   // Fehlt die IP (exotische Proxy-Setups), NICHT alle Clients in einen
   // gemeinsamen 'unknown'-Topf werfen (sie würden sich gegenseitig aussperren) —
   // stattdessen auf die Session-Identität ausweichen; 'unknown' nur als letzter
   // Fallback für anonyme Requests ohne IP.
-  const ip = getRequestIP(event, { xForwardedFor: true })
+  const ip = trustedClientIp(event)
     ?? (event.context.user ? `user:${event.context.user.$id}` : undefined)
     ?? 'unknown'
   // Eigenes Budget pro Bucket bzw. Methode+Route — Login-/Reset-Versuche und

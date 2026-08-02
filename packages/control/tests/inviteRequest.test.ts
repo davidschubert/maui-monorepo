@@ -67,15 +67,15 @@ describe('An eine Adresse gebundene Codes', () => {
   const bound = { status: 'active' as const, expiresAt: '', maxUses: 1, uses: 0, boundEmail: 'anna@example.test' }
 
   it('gilt für die Adresse, für die er ausgestellt wurde', () => {
-    expect(evaluateInviteCode(bound, NOW, 'anna@example.test')).toEqual({ valid: true })
+    expect(evaluateInviteCode(bound, NOW, 'anna@example.test', true)).toEqual({ valid: true })
   })
 
   it('ignoriert Groß-/Kleinschreibung und Leerzeichen', () => {
-    expect(evaluateInviteCode(bound, NOW, '  Anna@Example.Test ')).toEqual({ valid: true })
+    expect(evaluateInviteCode(bound, NOW, '  Anna@Example.Test ', true)).toEqual({ valid: true })
   })
 
   it('ist für jede ANDERE Adresse wertlos — weiterleiten bringt nichts', () => {
-    expect(evaluateInviteCode(bound, NOW, 'bob@example.test'))
+    expect(evaluateInviteCode(bound, NOW, 'bob@example.test', true))
       .toEqual({ valid: false, reason: 'wrong_email' })
   })
 
@@ -85,7 +85,10 @@ describe('An eine Adresse gebundene Codes', () => {
 
   it('lässt ungebundene Codes weiter für alle gelten (Betreiber-Weg)', () => {
     const bearer = { status: 'active' as const, expiresAt: '', maxUses: 1, uses: 0, boundEmail: '' }
+    // Auch OHNE bestätigte Adresse: bei einem Inhaberpapier ist die Adresse
+    // gar kein Teil der Berechtigung — dort gibt es nichts zu beweisen.
     expect(evaluateInviteCode(bearer, NOW, 'wer@example.test')).toEqual({ valid: true })
+    expect(evaluateInviteCode(bearer, NOW, 'wer@example.test', false)).toEqual({ valid: true })
     expect(evaluateInviteCode(bearer, NOW)).toEqual({ valid: true })
   })
 
@@ -93,8 +96,33 @@ describe('An eine Adresse gebundene Codes', () => {
     // Reihenfolge zählt fürs Log: „falsche Adresse" ist ein anderer Vorgang
     // als „Code aufgebraucht".
     const usedUp = { ...bound, uses: 1 }
-    expect(evaluateInviteCode(usedUp, NOW, 'bob@example.test').reason).toBe('wrong_email')
-    expect(evaluateInviteCode(usedUp, NOW, 'anna@example.test').reason).toBe('exhausted')
+    expect(evaluateInviteCode(usedUp, NOW, 'bob@example.test', true).reason).toBe('wrong_email')
+    expect(evaluateInviteCode(usedUp, NOW, 'anna@example.test', true).reason).toBe('exhausted')
+  })
+
+  /**
+   * Sicherheits-Audit 2026-08-02 (HOCH). Der Pool ist EIN Appwrite-Projekt und
+   * die Registrierung verlangt keine Bestätigung, bevor man loslegt: wer wusste,
+   * dass ein Code an `anna@example.test` ging, konnte sich diese Adresse
+   * anlegen — ohne je an das Postfach zu kommen — und den Code einlösen.
+   */
+  it('verlangt eine BESTÄTIGTE Adresse — eine behauptete genügt nicht', () => {
+    expect(evaluateInviteCode(bound, NOW, 'anna@example.test', false))
+      .toEqual({ valid: false, reason: 'unverified_email' })
+    expect(evaluateInviteCode(bound, NOW, 'anna@example.test', undefined))
+      .toEqual({ valid: false, reason: 'unverified_email' })
+  })
+
+  it('nennt „unbestätigt" erst NACH der Adressgleichheit (kein Orakel)', () => {
+    // Wer die falsche Adresse führt, erfährt genau eines: falsch. Der
+    // Unterschied ist nur für den sichtbar, dem der Code ohnehin gehört.
+    expect(evaluateInviteCode(bound, NOW, 'bob@example.test', false).reason).toBe('wrong_email')
+    expect(evaluateInviteCode(bound, NOW, 'anna@example.test', false).reason).toBe('unverified_email')
+  })
+
+  it('… und vor Ablauf/Verbrauch — der Nutzer soll zuerst bestätigen', () => {
+    expect(evaluateInviteCode({ ...bound, uses: 1 }, NOW, 'anna@example.test', false).reason)
+      .toBe('unverified_email')
   })
 })
 

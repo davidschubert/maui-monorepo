@@ -26,7 +26,8 @@
       "codePlaceholder": "PUKA-XXXX-XXXX",
       "submit": "Weiter",
       "rejected": "Dieser Code gilt nicht (mehr). Prüfe die Schreibweise — oder frag uns nach einem neuen.",
-      "noCode": "Keinen Code? Schreib uns, wofür du Pukalani nutzen willst — wir laden laufend neue Communities ein."
+      "noCode": "Keinen Code? Schreib uns, wofür du Pukalani nutzen willst — wir laden laufend neue Communities ein.",
+      "verifyFirst": "Dein Code gilt — bestätige nur noch deine E-Mail-Adresse"
     },
     "request": {
       "title": "Early Access anfragen",
@@ -156,6 +157,7 @@
     "errors": {
       "hostTaken": "Diese Adresse wurde gerade belegt. Geh einen Schritt zurück und wähle eine andere.",
       "notAllowed": "Das ging nicht: entweder gilt der Einladungs-Code nicht mehr, oder du hast bereits eine Community in der Testphase.",
+      "verifyFirst": "Deine E-Mail-Adresse ist noch nicht bestätigt. Klick auf den Link in unserer Bestätigungsmail und versuch es dann noch einmal — deine Antworten bleiben erhalten.",
       "invalid": "Eine Angabe passt nicht. Geh die Schritte noch einmal durch.",
       "unavailable": "Wir konnten die Community gerade nicht anlegen. Versuch es in einer Minute noch einmal — deine Antworten bleiben erhalten."
     },
@@ -405,6 +407,7 @@
     "invalid": "Diese Einladung gilt nicht mehr. Bitte um eine neue.",
     "wrongAccount": "Diese Einladung gilt für eine andere E-Mail-Adresse. Melde dich mit der eingeladenen Adresse an.",
     "noneTitle": "Keine offene Einladung",
-    "noneText": "Für dieses Konto liegt hier keine Einladung. Prüfe den Link aus deiner E-Mail — oder frag die Community-Leitung nach einer neuen."
+    "noneText": "Für dieses Konto liegt hier keine Einladung. Prüfe den Link aus deiner E-Mail — oder frag die Community-Leitung nach einer neuen.",
+    "verifyFirst": "Bestätige zuerst deine E-Mail-Adresse"
   }
 }

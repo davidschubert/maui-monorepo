@@ -22,13 +22,14 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 401, statusText: 'Unauthorized' })
   }
   const body = await readValidatedBody(event, bodySchema.parse)
-  const result = await callControlPlane<{ codeValid?: boolean, slugAvailable?: boolean }>(
+  const result = await callControlPlane<{ codeValid?: boolean, slugAvailable?: boolean, codeReason?: 'email_unverified' }>(
     event,
     '/api/control/onboarding/precheck',
-    // Die Adresse kommt aus der SESSION, nicht aus dem Body — sonst könnte
-    // jemand die Bindung eines fremden Codes umgehen, indem er die Adresse
-    // des Eingeladenen mitschickt.
-    { ...body, email: event.context.user.email },
+    // Adresse UND Bestätigungs-Status kommen aus der SESSION, nie aus dem Body —
+    // sonst könnte jemand die Bindung eines fremden Codes umgehen, indem er die
+    // Adresse des Eingeladenen mitschickt (und seit dem Audit 2026-08-02 auch:
+    // indem er sich selbst für bestätigt erklärt).
+    { ...body, email: event.context.user.email, emailVerified: event.context.user.emailVerification },
   )
   // Wird hier mitgeliefert, damit das UI den KI-Knopf (Schritt 4) nur zeigt,
   // wenn er auch funktioniert — der Wizard fragt diese Route ohnehin.

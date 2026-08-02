@@ -60,11 +60,23 @@ export default defineNitroErrorHandler((error, event) => {
   setResponseStatus(event, status, error.statusMessage)
   setResponseHeader(event, 'content-type', 'application/json; charset=utf-8')
   const message = status >= 500 ? 'Internal server error' : (error.statusMessage || 'Error')
-  // Fachlicher Grund (4xx): EIN geprüfter Schlüssel aus error.data.code, sonst
+  // Fachlicher Grund: EIN geprüfter Schlüssel aus error.data.code, sonst
   // nichts. Ohne ihn kann eine Oberfläche „es muss ein Inhaber bleiben" nicht von
   // „irgendwas ging schief" unterscheiden — die restliche `data` bleibt bewusst
   // draußen (keine Appwrite-Details).
-  const reason = status < 500 ? domainReasonFrom((error as { data?: unknown }).data) : null
+  //
+  // SEIT 2026-08-02 AUCH BEI 5xx (Audit-Befund „tote Fehlerhälfte"). Die alte
+  // Regel lautete „nur 4xx — bei 5xx gibt es nichts zu erklären, nur zu
+  // verschweigen", und für die MESSAGE stimmt sie weiter (die wird oben
+  // generisch ersetzt). Für den GRUND stimmte sie nicht: die GDPR-Löschung
+  // scheitert manchmal TEILWEISE und hinterlässt einen GESPERRTEN Account, der
+  // einen zweiten Lauf braucht. Das ist ein 500 — und zugleich eine Auskunft,
+  // die der Betreiber HANDELN kann. Ohne sie las er „Aktion fehlgeschlagen" und
+  // wusste nicht, dass der Nutzer jetzt handlungsunfähig ist.
+  // Es leckt dabei nichts: `domainReasonFrom` lässt ausschließlich einen kurzen,
+  // selbst geschriebenen Schlüssel durch (`^[a-z][a-z0-9_]{0,63}$`) — keine
+  // Message, kein Objekt, kein Appwrite-Detail.
+  const reason = domainReasonFrom((error as { data?: unknown }).data)
   const body: PukalaniErrorResponse = {
     ok: false,
     code: statusToErrorCode(status),

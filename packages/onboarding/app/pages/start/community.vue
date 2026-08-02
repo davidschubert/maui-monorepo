@@ -186,16 +186,26 @@ async function create() {
         locale: locale.value,
       },
     })
-    await navigateTo({ path: localePath('/start/done'), query: { site: site.communityId, host: site.host } })
+    // NUR die Id — die Adresse holt sich die Abschluss-Seite aus der eigenen
+    // Mitgliedschafts-Liste. Ein `host` in der Query war der Einstieg für die
+    // Handoff-Übernahme (Audit 2026-08-02) und darf hier nicht wieder auftauchen.
+    await navigateTo({ path: localePath('/start/done'), query: { site: site.communityId } })
   }
   catch (error) {
     const status = (error as { status?: number, statusCode?: number }).status
       ?? (error as { statusCode?: number }).statusCode
     // Jede Ablehnung bekommt einen Satz, der sagt, was JETZT zu tun ist.
+    // `email_unverified` (Audit 2026-08-02) ist der einzige Grund, den das
+    // Control Plane hier namentlich nennt — er sagt, was zu tun ist, und ohne
+    // ihn stünde ein eingeladener Kunde vor „gilt nicht mehr", obwohl sein Code
+    // in Ordnung ist. Der Weg zur Bestätigung steht schon im Schritt 0.
+    const reason = (error as { data?: { reason?: string } }).data?.reason
     createError.value = status === 409
       ? t('onboarding.errors.hostTaken')
       : status === 403
-        ? t('onboarding.errors.notAllowed')
+        ? (reason === 'email_unverified'
+            ? t('onboarding.errors.verifyFirst')
+            : t('onboarding.errors.notAllowed'))
         : status === 400
           ? t('onboarding.errors.invalid')
           : t('onboarding.errors.unavailable')

@@ -1,6 +1,6 @@
 import { Account, Client } from 'node-appwrite'
 import { z } from 'zod'
-import { deriveHandoffKey, openHandoffToken } from '../../utils/embedHandoff'
+import { deriveHandoffKey, handoffAudience, openHandoffToken } from '../../utils/embedHandoff'
 import { setSessionCookie } from '../../lib/appwrite'
 
 const bodySchema = z.object({ token: z.string().min(1).max(2048) }).strict()
@@ -22,7 +22,9 @@ export default defineEventHandler(async (event) => {
   const body = await readValidatedBody(event, bodySchema.parse)
 
   const config = useRuntimeConfig(event)
-  const secret = openHandoffToken(body.token, deriveHandoffKey(config.appwriteKey))
+  // Zielgruppe = der EIGENE Host: das Popup, das gesiegelt hat, ist unsere
+  // Login-Seite auf genau dieser Origin (s. embed-handoff.post.ts).
+  const secret = openHandoffToken(body.token, deriveHandoffKey(config.appwriteKey), handoffAudience(getHeader(event, 'host')))
   if (!secret) {
     throw createError({ status: 401, statusText: 'Invalid or expired handoff token' })
   }

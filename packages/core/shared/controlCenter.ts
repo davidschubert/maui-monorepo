@@ -108,5 +108,26 @@ export function controlHomeTarget(
  */
 export function isAllowedControlPath(path: string, prefixes: readonly string[]): boolean {
   if (!path.startsWith('/api/')) return true
-  return prefixes.some(prefix => path === prefix || path.startsWith(prefix))
+  return prefixes.some(prefix => matchesPathPrefix(path, prefix))
+}
+
+/**
+ * Präfix-Vergleich AN DER SEGMENTGRENZE (Audit-Befund 9, 2026-08-02).
+ *
+ * Vorher genügte `path.startsWith(prefix)`. Mit einem Präfix ohne Schrägstrich
+ * — und vier der sieben stehen so in der Liste (`/api/health`,
+ * `/api/notifications`, `/api/feedback`, `/api/abuse`) — öffnete das auch
+ * `/api/feedbackfoo` oder `/api/abuse-export`. Heute existiert keine solche
+ * Route; die Regel ist aber ein SICHERHEITSTOR, und eines, das eine noch nicht
+ * geschriebene Route mit-erlaubt, ist eine Falle für den nächsten Menschen.
+ *
+ * Die Regel ist dieselbe wie im Produkt-Gate (04.product-gate.ts): exakter
+ * Treffer, oder es folgt `/` bzw. `?`. Ein Schrägstrich AM ENDE des Präfixes
+ * wird vorher abgeschnitten — sonst verlangte `/api/auth/` ein `//`, und der
+ * gesamte Kundenbereich fiele auf 404.
+ */
+function matchesPathPrefix(path: string, prefix: string): boolean {
+  const base = prefix.endsWith('/') ? prefix.slice(0, -1) : prefix
+  if (!base) return false
+  return path === base || path.startsWith(`${base}/`) || path.startsWith(`${base}?`)
 }

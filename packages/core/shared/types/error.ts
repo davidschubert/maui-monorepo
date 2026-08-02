@@ -28,7 +28,15 @@ export interface PukalaniErrorResponse {
    * `last_admin`-Zweig der Nutzerverwaltung lief deshalb ins Leere. Statt die
    * ganze `data` durchzulassen, reist genau EIN geprüftes Feld mit.
    *
-   * Nur für 4xx (bei 5xx gibt es nichts zu erklären, nur zu verschweigen).
+   * GILT FÜR JEDEN STATUS (seit 2026-08-02). Bis dahin nur für 4xx, mit der
+   * Begründung „bei 5xx gibt es nichts zu erklären, nur zu verschweigen" — das
+   * gilt für die MESSAGE (die wird bei ≥500 generisch ersetzt), nicht für den
+   * Grund. Der Auslöser: die GDPR-Löschung kann TEILWEISE scheitern und
+   * hinterlässt dann einen gesperrten Account, der einen zweiten Lauf braucht.
+   * Ein 500 ohne diese Auskunft ist eine halbe Wahrheit — der Betreiber sieht
+   * „fehlgeschlagen" und übersieht, dass jemand jetzt ausgesperrt ist.
+   * Verschwiegen bleibt trotzdem alles Interne: `domainReasonFrom` lässt nur
+   * einen kurzen, selbst geschriebenen Schlüssel durch.
    */
   reason?: string
 }

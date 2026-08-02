@@ -48,8 +48,17 @@ const hasSomething = computed(() => Boolean(token.value) || Boolean(pending.valu
 const busy = ref(false)
 const done = ref(false)
 
+/**
+ * Die Einladung ist gültig, nur die Adresse ist noch nicht bestätigt
+ * (Sicherheits-Audit 2026-08-02). Ein Toast wäre hier falsch: das ist kein
+ * Fehler, den man wegklickt, sondern ein Schritt, den man tut. Deshalb bleibt
+ * der Hinweis stehen — mitsamt dem Knopf, der die Mail erneut schickt.
+ */
+const needsVerification = ref(false)
+
 async function accept() {
   busy.value = true
+  needsVerification.value = false
   try {
     await $fetch('/api/community/members/accept', {
       method: 'POST',
@@ -64,6 +73,13 @@ async function accept() {
   catch (error) {
     const status = (error as { statusCode?: number, status?: number }).statusCode
       ?? (error as { status?: number }).status
+    // Der fachliche Grund reist als `reason` im Fehler-Envelope (core/server/
+    // error.ts) — quer über die Control-Plane-Naht, die ihn durchreicht.
+    const reason = (error as { data?: { reason?: string } }).data?.reason
+    if (status === 403 && reason === 'email_unverified') {
+      needsVerification.value = true
+      return
+    }
     toast.add({
       title: status === 403 ? t('join.wrongAccount') : t('join.invalid'),
       color: 'error',
@@ -87,6 +103,7 @@ async function accept() {
         <p v-if="pending" class="text-sm text-muted">
           {{ t('join.roleNote', { role: t(`members.roles.${pending.role}`) }) }}
         </p>
+        <AuthEmailVerifyRequired v-if="needsVerification" :title="t('join.verifyFirst')" />
         <UButton :loading="busy" :disabled="done" icon="i-ph-check" data-join-accept @click="accept">
           {{ t('join.accept') }}
         </UButton>

@@ -54,7 +54,12 @@
  *     dort an, weil sie dem EMPFÄNGER gehört — nicht weil sie zu diesem Host
  *     gehört. Ohne Filter blendete sie live eine Meldung aus Community B in
  *     der Glocke von A ein, die der nächste Reload wieder entfernt (die
- *     Leseroute filtert serverseitig). Die Regel bleibt eng: NUR Leser, die
+ *     Leseroute filtert serverseitig). Der VIERTE (Audit 2026-08-02) ist der
+ *     `comments`-Strom der Dashboard-Übersicht (admin, app/pages/dashboard/
+ *     index.vue): er zieht Kennzahlen, Analyse und gemeldete Kommentare live
+ *     nach und lauschte dafür pool-weit — jeder fremde Kommentar einer
+ *     öffentlichen Community löste in JEDEM Kunden-Dashboard drei Refetches
+ *     aus. Die Regel bleibt eng: NUR Leser, die
  *     ohne Server-Route direkt gegen Appwrite lesen, dürfen dazukommen — kein
  *     allgemeiner „aktueller Mandant"-Getter für UI-Logik.
  *   - `communityId` → useSiteId(), gelesen AUSSCHLIESSLICH vom WS-Presence-Upsert

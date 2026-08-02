@@ -48,15 +48,18 @@ export interface InviteCheck extends InviteCodeVerdict {
 
 /** Nicht-verbrauchende Prüfung (Wizard-Eintritt). `email` entscheidet über
  *  gebundene Codes (control-017) — ohne sie gilt ein gebundener Code als
- *  ungültig, nie als frei. */
+ *  ungültig, nie als frei. `emailVerified` muss für gebundene Codes `true`
+ *  sein (Audit 2026-08-02): eine Adresse ohne Bestätigung ist eine Behauptung,
+ *  und der Pool lässt jeden eine beliebige behaupten. */
 export async function checkInviteCode(
   event: H3Event,
   code: string,
   now: number = Date.now(),
   email?: string,
+  emailVerified?: boolean,
 ): Promise<InviteCheck> {
   const row = await findInviteCode(event, code)
-  return { ...evaluateInviteCode(row, now, email), row }
+  return { ...evaluateInviteCode(row, now, email, emailVerified), row }
 }
 
 /**

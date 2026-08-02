@@ -83,7 +83,8 @@
       "successMessage": "Danke! Deine Adresse ist jetzt verifiziert.",
       "invalidTitle": "Link ungültig oder abgelaufen",
       "invalidMessage": "Fordere über das Banner einen neuen Bestätigungslink an.",
-      "backHome": "Zur Startseite"
+      "backHome": "Zur Startseite",
+      "requiredMessage": "Diese Adresse ({email}) ist noch nicht bestätigt. Klick auf den Link in unserer Bestätigungsmail — dann geht es hier weiter."
     },
     "otp": {
       "title": "Mit Code anmelden",

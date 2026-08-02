@@ -117,6 +117,30 @@ describe('Erlaubte Pfade im Kundenbereich (fail-closed)', () => {
     expect(isAllowedControlPath('/api/onboarding-secret', PREFIXES)).toBe(false)
   })
 
+  /**
+   * Audit-Befund 9 (2026-08-02): der Vergleich war ein nacktes `startsWith`.
+   * Für Einträge OHNE Schrägstrich am Ende — und vier der sieben echten stehen
+   * so in der app.config — erlaubte das jeden Pfad, der zufällig mit demselben
+   * Wort beginnt. Jetzt gilt die Segmentgrenze aus dem Produkt-Gate.
+   */
+  it('vergleicht an der SEGMENTGRENZE, auch bei Präfixen ohne Schrägstrich', () => {
+    const real = ['/api/auth/', '/api/onboarding/', '/api/health', '/api/telemetry/', '/api/notifications', '/api/feedback', '/api/abuse']
+    // Erlaubt bleibt, was erlaubt war.
+    for (const path of ['/api/health', '/api/health?deep=1', '/api/notifications', '/api/notifications/42', '/api/feedback', '/api/abuse/report', '/api/auth/me', '/api/onboarding/site']) {
+      expect(isAllowedControlPath(path, real), path).toBe(true)
+    }
+    // Und die Mitläufer sind draußen.
+    for (const path of ['/api/healthz', '/api/health-internal', '/api/notificationsettings', '/api/feedbackfoo', '/api/abuse-export']) {
+      expect(isAllowedControlPath(path, real), path).toBe(false)
+    }
+  })
+
+  it('ein Schrägstrich am Ende des Präfixes verlangt kein doppeltes //', () => {
+    expect(isAllowedControlPath('/api/auth', ['/api/auth/'])).toBe(true)
+    expect(isAllowedControlPath('/api/auth/me', ['/api/auth/'])).toBe(true)
+    expect(isAllowedControlPath('/api/authX', ['/api/auth/'])).toBe(false)
+  })
+
   it('lässt Nicht-API-Pfade unberührt (Seiten, Assets, i18n)', () => {
     for (const path of ['/', '/start', '/de/start', '/_nuxt/entry.js', '/_i18n/de/messages.json']) {
       expect(isAllowedControlPath(path, PREFIXES), path).toBe(true)

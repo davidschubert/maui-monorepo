@@ -16,7 +16,7 @@
  *   STUDIO_URL          Default http://localhost:3004
  *   POOL_ENDPOINT/KEY   Default: dieselbe Instanz, Key aus NUXT_APPWRITE_KEY
  */
-import { Client, ID, TablesDB, Users } from 'node-appwrite'
+import { Client, ID, Query, TablesDB, Users } from 'node-appwrite'
 
 const STUDIO_URL = (process.env.STUDIO_URL || 'http://localhost:3004').replace(/\/+$/, '')
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
@@ -166,7 +166,15 @@ try {
   })())
   check('Row: Code-Spur gesetzt', tenant?.inviteCodeId === invite.id)
 
-  const members = await control.listRows({ databaseId, tableId: 'community_members' })
+  // Gezielt nach DIESER Community fragen (mit explizitem Limit): ohne Filter
+  // lieferte die Abfrage die ersten 25 Zeilen der gesamten Tabelle — sobald
+  // andere Beweisläufe Mitgliedschaften hinterlassen, fiel die eigene aus dem
+  // Fenster und der Beweis meldete einen Fehler, den es nicht gab.
+  const members = await control.listRows({
+    databaseId,
+    tableId: 'community_members',
+    queries: [Query.equal('communityId', created.json?.communityId ?? 'x'), Query.limit(25)],
+  })
   const ownerRow = members.rows.find(row => row.communityId === created.json?.communityId)
   check('Owner-Mitgliedschaft angelegt', ownerRow?.role === 'owner' && ownerRow?.runtimeUserId === owner.userId, ownerRow?.role)
   if (ownerRow) cleanup.members.push(ownerRow.$id)

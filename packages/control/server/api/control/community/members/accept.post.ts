@@ -70,6 +70,35 @@ export default defineEventHandler(async (event) => {
   if (invite.email.trim().toLowerCase() !== (identity.email ?? '').trim().toLowerCase()) {
     throw createError({ status: 403, statusText: 'Invitation was issued for a different email address' })
   }
+  /**
+   * … UND die Adresse muss BESTÄTIGT sein (Sicherheits-Audit 2026-08-02, HOCH).
+   *
+   * Der dritte Beweis oben heißt „E-Mail-Gleichheit", und das war zu wenig: der
+   * Pool ist EIN Appwrite-Projekt, in dem sich jeder mit jeder Adresse
+   * registrieren und sofort loslegen kann — die Bestätigung blockiert nichts.
+   * Wer also wusste, dass `chef@verein.de` als admin eingeladen wurde und dort
+   * kein Konto hatte, legte sich auf irgendeinem offenen Pool-Host eines mit
+   * genau dieser Adresse an und nahm die Einladung an, ohne je an das Postfach
+   * zu kommen. Aus „nur der Eingeladene" wurde damit „jeder, der den Namen
+   * kennt" — inklusive der Rolle, die in der Einladung stand.
+   *
+   * Der Grund reist als `email_unverified` mit (der Transport hebt ihn ins
+   * `reason` des Envelopes): eine Einladung, die ohne Erklärung scheitert,
+   * schickt den Eingeladenen zum Absender statt in sein Postfach. Ein Orakel
+   * ist das nicht — wer hier ankommt, führt bereits die passende Adresse.
+   */
+  if (!identity.emailVerified) {
+    logEvent('info', 'site.invite_unverified_email', {
+      communityId: invite.communityId,
+      inviteId: invite.$id,
+      runtimeUserId: identity.userId,
+    })
+    throw createError({
+      status: 403,
+      statusText: 'Email address is not confirmed yet',
+      data: { code: 'email_unverified' },
+    })
+  }
 
   // Die Community muss zu dem Projekt gehören, gegen das das JWT geprüft wurde —
   // sonst entstünde eine Mitgliedschaft mit fremder Runtime-Identität.

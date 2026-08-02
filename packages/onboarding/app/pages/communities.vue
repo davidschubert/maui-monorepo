@@ -97,11 +97,14 @@ async function open(community: MyCommunityView) {
   opening.value = community.communityId
   let target = `https://${community.host}/dashboard`
   try {
-    const { token } = await $fetch<{ token: string }>('/api/onboarding/handoff', {
+    // Der Host der ANTWORT, nicht der aus dieser Liste: das Siegel ist an ihn
+    // gebunden (Audit 2026-08-02), und ein Link, der woanders hinzeigt als das
+    // Siegel erlaubt, führt verlässlich in einen 401. EINE Quelle, beide Male.
+    const { token, host } = await $fetch<{ token: string, host: string }>('/api/onboarding/handoff', {
       method: 'POST',
       body: { communityId: community.communityId },
     })
-    target = `https://${community.host}/api/auth/site-session?token=${encodeURIComponent(token)}&to=%2Fdashboard`
+    target = `https://${host}/api/auth/site-session?token=${encodeURIComponent(token)}&to=%2Fdashboard`
   }
   catch {
     // Fallback: ohne Handoff wenigstens zur Community (dort Login).

@@ -47,13 +47,23 @@ export default defineEventHandler(async (event) => {
   // (kein Code-Ratespiel), der Grund steht nur im Log. Die Adresse geht mit:
   // ein an jemanden vergebener Code (control-017) gilt NUR für dessen Konto —
   // weiterleiten bringt nichts.
-  const invite = await checkInviteCode(event, body.site.inviteCode, Date.now(), identity.email)
+  const invite = await checkInviteCode(event, body.site.inviteCode, Date.now(), identity.email, identity.emailVerified)
   if (!invite.valid) {
     logEvent('warn', 'onboarding.invite_rejected', {
       reason: invite.reason,
       runtimeUserId: identity.userId,
     })
-    throw createError({ status: 403, statusText: 'Invalid invite code' })
+    // DIE EINE AUSNAHME von „jede Ablehnung sieht gleich aus": eine
+    // unbestätigte Adresse. Sie ist erst erreichbar, NACHDEM die Adresse zum
+    // gebundenen Code gepasst hat — der Code gehört dem Fragenden also
+    // nachweislich, es ist nichts zu erraten. Ohne diesen Grund stünde ein
+    // eingeladener Kunde vor einem „geht nicht" ohne Ausweg; mit ihm sagt der
+    // Wizard, was zu tun ist (Bestätigungsmail anfordern).
+    throw createError({
+      status: 403,
+      statusText: 'Invalid invite code',
+      ...(invite.reason === 'unverified_email' ? { data: { code: 'email_unverified' } } : {}),
+    })
   }
 
   const result = await provisionCommunity(event, identity, {

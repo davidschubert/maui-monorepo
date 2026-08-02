@@ -67,8 +67,21 @@ function check(label, ok, detail = '') {
   }
 }
 
+/**
+ * Eine eigene „Client-IP" für den Abschnitt, der ABSICHTLICH Fehlversuche
+ * erzeugt (Handoff, s. Abschnitt 5). Ohne sie teilen sich alle Fehlschläge des
+ * Laufs den ::1-Eimer des Rate-Limits (5/min für site-session) — ein zweiter
+ * Lauf innerhalb einer Minute meldete dann 429 statt der geprüften Antwort,
+ * und der Beweis sähe wie ein Fehler aus.
+ *
+ * Dass das lokal überhaupt geht, ist KEIN Loch, sondern genau die dokumentierte
+ * Grenze: ohne vorgelagerten nginx gibt es keine angehängte echte IP, also ist
+ * das letzte X-Forwarded-For-Segment das des Clients (core/server/utils/clientIp.ts).
+ */
+const RUN_IP = `203.0.113.${1 + Math.floor(Math.random() * 250)}`
+
 /** node:http, weil fetch den Host-Header verwirft; ::1, weil Nitro dort hört. */
-function call(host, path, { method = 'GET', body, cookie } = {}) {
+function call(host, path, { method = 'GET', body, cookie, clientIp } = {}) {
   return new Promise((resolve, reject) => {
     const payload = body ? JSON.stringify(body) : null
     const req = request({
@@ -80,6 +93,7 @@ function call(host, path, { method = 'GET', body, cookie } = {}) {
         host,
         ...(payload ? { 'content-type': 'application/json', 'content-length': Buffer.byteLength(payload) } : {}),
         ...(cookie ? { cookie } : {}),
+        ...(clientIp ? { 'x-forwarded-for': clientIp } : {}),
       },
     }, (res) => {
       let text = ''
@@ -128,6 +142,32 @@ async function issueCode() {
   })
   cleanup.codes.push(row.$id)
   return code
+}
+
+/**
+ * Warten, bis der Mandanten-Kontext die GESCHLOSSENE Registrierung sieht.
+ *
+ * `tenantRegistrationOpen()` liest aus dem Resolver-Cache (≤30 s), nicht aus
+ * der Control-Plane-Zeile — direkt nach dem Umlegen des Schalters antworten die
+ * Auth-Routen also noch „offen". (Der Beitritt selbst entscheidet das Control
+ * Plane ungecacht, deshalb greifen die Mitgliedschafts-Prüfungen sofort.)
+ *
+ * Die Sonde ist NEBENWIRKUNGSFREI: `/api/auth/signup` prüft die Sperre VOR der
+ * Body-Validierung — geschlossen ⇒ 403, offen ⇒ 400 (ungültiges Passwort). In
+ * keinem Fall entsteht ein Konto. Jede Sonde bekommt eine eigene Client-IP,
+ * weil signup seit dem Audit 2026-08-02 gedrosselt ist (5/min und IP).
+ */
+async function waitForClosedRegistration(host) {
+  for (let i = 0; i < 40; i++) {
+    const res = await call(host, '/api/auth/signup', {
+      method: 'POST',
+      body: { email: `probe-${i}-${Date.now()}@example.test`, password: 'x', name: 'P' },
+      clientIp: `192.0.2.${1 + (i % 250)}`,
+    })
+    if (res.status === 403) return true
+    await new Promise(resolve => setTimeout(resolve, 1000))
+  }
+  return false
 }
 
 /** Der Host-Resolver cacht negativ (30 s) — nach der Anlage kurz nachfassen. */
@@ -233,11 +273,16 @@ try {
   check('ohne Handoff ist man auf der Community NICHT eingeloggt', noCookieYet.status === 401, `Status ${noCookieYet.status}`)
 
   const handoff = await call(CONTROL_HOST, '/api/onboarding/handoff', {
-    method: 'POST', cookie: ownerCookie, body: { communityId },
+    method: 'POST', cookie: ownerCookie, body: { communityId }, clientIp: RUN_IP,
   })
   check('Kontroll-Host siegelt ein Token', handoff.status === 200 && !!handoff.json?.token, `Status ${handoff.status}`)
+  // Seit dem Sicherheits-Audit 2026-08-02 kommt der ZIEL-HOST aus der Antwort,
+  // nicht aus der Seite: die Seite kann damit gar keinen fremden Host mehr in
+  // den Link schreiben (die Lücke, mit der eine Session entführbar war).
+  check('… und nennt den Ziel-Host selbst (die Seite rät ihn nicht mehr)',
+    handoff.json?.host === host, `${handoff.json?.host} ≠ ${host}`)
 
-  const exchange = await call(host, `/api/auth/site-session?token=${encodeURIComponent(handoff.json?.token ?? '')}&to=%2F`)
+  const exchange = await call(host, `/api/auth/site-session?token=${encodeURIComponent(handoff.json?.token ?? '')}&to=%2F`, { clientIp: RUN_IP })
   const handoffCookie = exchange.setCookie.find(c => c.startsWith('a_session_'))?.split(';')[0]
   check('Community-Host löst ein und leitet weiter', exchange.status === 302, `Status ${exchange.status}`)
   check('setzt sein eigenes Session-Cookie', !!handoffCookie, exchange.setCookie.join(' | ').slice(0, 120))
@@ -245,11 +290,54 @@ try {
   const meOnTenant = handoffCookie ? await call(host, '/api/auth/me', { cookie: handoffCookie }) : { status: 0, json: null }
   check('danach ist man auf der Community eingeloggt', meOnTenant.status === 200 && meOnTenant.json?.email === owner.email, `Status ${meOnTenant.status}`)
 
-  const badToken = await call(host, '/api/auth/site-session?token=kaputt')
+  const badToken = await call(host, '/api/auth/site-session?token=kaputt', { clientIp: RUN_IP })
   check('manipuliertes Token → 401, kein Cookie', badToken.status === 401 && !badToken.setCookie.some(c => c.startsWith('a_session_')), `Status ${badToken.status}`)
 
-  const openRedirect = await call(host, `/api/auth/site-session?token=${encodeURIComponent(handoff.json?.token ?? '')}&to=https%3A%2F%2Fboese.example`)
+  const openRedirect = await call(host, `/api/auth/site-session?token=${encodeURIComponent(handoff.json?.token ?? '')}&to=https%3A%2F%2Fboese.example`, { clientIp: RUN_IP })
   check('absolutes Weiterleitungsziel wird abgewiesen (kein Open Redirect)', openRedirect.status === 400, `Status ${openRedirect.status}`)
+
+  // Audit-Befund 5: die alte Regex (`^\/(?!\/)[^\s]*$`) ließ `/\boese.example`
+  // durch — Browser lesen `\` wie `/`, daraus wird `//boese.example` und damit
+  // eine fremde Domain. Jetzt gilt hier dieselbe Funktion wie an den beiden
+  // anderen Weiterleitungs-Toren des Systems (safeRedirectTarget).
+  const backslashRedirect = await call(host, `/api/auth/site-session?token=${encodeURIComponent(handoff.json?.token ?? '')}&to=${encodeURIComponent('/\\boese.example')}`, { clientIp: RUN_IP })
+  check('Backslash-Ziel („/\\host") wird ebenfalls abgewiesen', backslashRedirect.status === 400, `Status ${backslashRedirect.status}`)
+
+  // ── DER KERN DES AUDIT-FIXES (KRITISCH, Kontoübernahme) ───────────────────
+  // Vorher trug das Siegel keinen Ziel-Host: JEDER Host des Deployments löste
+  // JEDES Token ein. Wer ein Opfer dazu brachte, `/start/done?host=…` mit
+  // fremder Adresse zu öffnen, bekam dessen Siegel geliefert und konnte es
+  // binnen 60 s gegen einen echten Pukalani-Host einlösen — mit dessen Session
+  // als Ergebnis. Ein zweites, frisches Siegel für Host A, gegen Host B geprüft:
+  const freshForA = await call(CONTROL_HOST, '/api/onboarding/handoff', {
+    method: 'POST', cookie: ownerCookie, body: { communityId }, clientIp: RUN_IP,
+  })
+  const stolen = await call(OTHER_TENANT_HOST, `/api/auth/site-session?token=${encodeURIComponent(freshForA.json?.token ?? '')}&to=%2F`, { clientIp: RUN_IP })
+  check('ein Siegel für Host A öffnet auf Host B NICHT (401, kein Cookie)',
+    stolen.status === 401 && !stolen.setCookie.some(c => c.startsWith('a_session_')),
+    `Status ${stolen.status} ${stolen.setCookie.join(' | ').slice(0, 120)}`)
+  // … und es ist danach auf seinem EIGENEN Host immer noch gültig — der
+  // Fehlschlag oben ist die Bindung, keine allgemeine Kaputtheit.
+  const stillValid = await call(host, `/api/auth/site-session?token=${encodeURIComponent(freshForA.json?.token ?? '')}&to=%2F`, { clientIp: RUN_IP })
+  check('… dasselbe Siegel auf Host A weiterhin gültig (302)', stillValid.status === 302, `Status ${stillValid.status}`)
+
+  // Die zweite Hälfte des Fixes: gesiegelt wird nur für eine Community, in der
+  // der Anfragende Mitglied ist. Der Fremde ist eingeloggt — und bekommt nichts.
+  const strangerHandoff = await call(CONTROL_HOST, '/api/onboarding/handoff', {
+    method: 'POST', cookie: strangerCookie, body: { communityId }, clientIp: RUN_IP,
+  })
+  check('Fremder bekommt für eine fremde Community KEIN Siegel (403)',
+    strangerHandoff.status === 403 && !strangerHandoff.json?.token, `Status ${strangerHandoff.status}`)
+
+  const noCommunity = await call(CONTROL_HOST, '/api/onboarding/handoff', {
+    method: 'POST', cookie: ownerCookie, body: {}, clientIp: RUN_IP,
+  })
+  check('ohne communityId gibt es kein Siegel mehr (400)', noCommunity.status === 400, `Status ${noCommunity.status}`)
+
+  const guestHandoff = await call(CONTROL_HOST, '/api/onboarding/handoff', {
+    method: 'POST', body: { communityId }, clientIp: RUN_IP,
+  })
+  check('Gast ohne Session → 401', guestHandoff.status === 401, `Status ${guestHandoff.status}`)
 
   console.log('\n6. Projekt-globale Betreiber-Routen bleiben für Kunden zu')
   for (const path of ['/api/admin/config', '/api/admin/users', '/api/admin/audit']) {
@@ -645,6 +733,41 @@ try {
   check('…und kein Site-Label', !(await hasLabel(outsider2.userId)),
     JSON.stringify(await labelsOf(outsider2.userId)))
 
+  /**
+   * Audit-Befund 8 (NIEDRIG, Konten-Enumeration) — geprüft genau hier, weil es
+   * dafür eine GESCHLOSSENE Community braucht und die steht gerade.
+   *
+   * Vorher antwortete `POST /api/auth/otp` bei geschlossener Registrierung 403
+   * für unbekannte und 200 für bekannte Adressen. Damit ließ sich eine
+   * Adressliste gegen eine Community prüfen („wer von diesen hat hier ein
+   * Konto?"). `recovery.post.ts` macht es seit jeher richtig — identische
+   * Antwort in JEDEM Pfad —, und das gilt jetzt auch hier.
+   *
+   * Eigene Client-IP: die Route ist ALWAYS_LIMITED (5/min), zwei Aufrufe im
+   * ::1-Eimer würden spätere Läufe stören.
+   */
+  check('…und die Auth-Routen sehen die Sperre (nach dem Resolver-Cache)',
+    await waitForClosedRegistration(host))
+
+  const otpIp = `198.51.100.${1 + Math.floor(Math.random() * 250)}`
+  const otpKnown = await call(host, '/api/auth/otp', {
+    method: 'POST', body: { email: outsider2.email }, clientIp: otpIp,
+  })
+  const unknownEmail = `gibtsnicht-${Date.now()}@example.test`
+  const otpUnknown = await call(host, '/api/auth/otp', {
+    method: 'POST', body: { email: unknownEmail }, clientIp: otpIp,
+  })
+  check('OTP: bekannte Adresse → 200', otpKnown.status === 200, `Status ${otpKnown.status}`)
+  check('OTP: UNBEKANNTE Adresse antwortet identisch (kein 403-Orakel)',
+    otpUnknown.status === otpKnown.status, `${otpUnknown.status} ≠ ${otpKnown.status}`)
+  check('…und in derselben Form (ok/userId/phrase — nichts verrät den Unterschied)',
+    otpUnknown.json?.ok === true
+    && typeof otpUnknown.json?.userId === 'string' && otpUnknown.json.userId.length > 0
+    && typeof otpUnknown.json?.phrase === 'string' && otpUnknown.json.phrase.length > 0,
+    JSON.stringify(otpUnknown.json))
+  check('…ohne dabei ein Konto anzulegen (die Registrierungssperre gilt weiter)',
+    (await poolUsers.list({ queries: [Query.equal('email', unknownEmail), Query.limit(1)] })).total === 0)
+
   // Die Einladung ist der einzige Weg hinein — und sie funktioniert auch
   // geschlossen. Die Row wird direkt angelegt (wie die Team-Rows oben), weil der
   // Mail-Versand in dieser Umgebung nicht garantiert ist.
@@ -663,6 +786,29 @@ try {
     },
   })
   cleanup.invites.push(inviteRow.$id)
+
+  /**
+   * ZUERST der Sicherheits-Audit-Fall vom 2026-08-02 (HOCH): eine Einladung ist
+   * an eine ADRESSE gebunden, und der Pool lässt jeden eine beliebige Adresse
+   * behaupten (Registrierung ohne blockierende Bestätigung, EIN Projekt für
+   * alle Communities). Wer wusste, dass `chef@verein.de` als admin eingeladen
+   * wurde, legte sich diese Adresse auf irgendeinem offenen Pool-Host an und
+   * nahm die Einladung an — ohne je an das Postfach zu kommen.
+   *
+   * `createPoolUser` legt bewusst UNBESTÄTIGTE Konten an, das ist hier also der
+   * echte Angreifer-Zustand.
+   */
+  const unverifiedAccept = await call(host, '/api/community/members/accept', {
+    method: 'POST', cookie: outsider2Cookie, body: { inviteId: inviteRow.$id },
+  })
+  check('unbestätigte Adresse kann die Einladung NICHT annehmen (403)',
+    unverifiedAccept.status === 403, `Status ${unverifiedAccept.status}`)
+  check('…und der Grund sagt, was zu tun ist (email_unverified statt stummem Nein)',
+    unverifiedAccept.json?.reason === 'email_unverified', JSON.stringify(unverifiedAccept.json))
+  check('…es entsteht KEINE Mitgliedschaft', (await memberRowOf(outsider2.userId)) === null)
+
+  // Und jetzt derselbe Mensch, nachdem er den Link in seiner Mail geklickt hat.
+  await poolUsers.updateEmailVerification({ userId: outsider2.userId, emailVerification: true })
   const accepted = await call(host, '/api/community/members/accept', {
     method: 'POST', cookie: outsider2Cookie, body: { inviteId: inviteRow.$id },
   })

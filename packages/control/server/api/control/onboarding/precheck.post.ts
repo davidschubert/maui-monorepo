@@ -27,20 +27,31 @@ const bodySchema = z.object({
    *  gebunden sein können (control-017). Ohne sie gilt ein gebundener Code als
    *  ungültig, und der eingeladene Kunde käme nicht durch sein eigenes Tor. */
   email: z.string().trim().toLowerCase().email().max(254).optional(),
+  /** Hat Appwrite diese Adresse bestätigt? Pflicht-Bedingung für gebundene
+   *  Codes seit dem Audit 2026-08-02 — hier nur, damit der Wizard dieselbe
+   *  Antwort gibt wie das Anlegen und niemand sieben Schritte füllt, um am Ende
+   *  an der Bestätigung zu scheitern. Der VERBINDLICHE Ort der Prüfung ist
+   *  site.post.ts (dort steht ein JWT dahinter, hier nur das Service-Secret). */
+  emailVerified: z.boolean().optional(),
 }).strict().refine(body => body.code !== undefined || body.slug !== undefined, 'empty precheck')
 
 export default defineEventHandler(async (event) => {
   requireOnboardingCaller(event)
   const body = await readValidatedBody(event, bodySchema.parse)
 
-  const result: { codeValid?: boolean, slugAvailable?: boolean } = {}
+  const result: { codeValid?: boolean, slugAvailable?: boolean, codeReason?: 'email_unverified' } = {}
 
   if (body.code !== undefined) {
-    const invite = await checkInviteCode(event, body.code, Date.now(), body.email)
+    const invite = await checkInviteCode(event, body.code, Date.now(), body.email, body.emailVerified)
     if (!invite.valid) {
       logEvent('info', 'onboarding.precheck_invite_rejected', { reason: invite.reason })
     }
     result.codeValid = invite.valid
+    // Nur DIESER eine Grund verlässt die Route (s. site.post.ts): er ist erst
+    // erreichbar, wenn die Adresse zum gebundenen Code passt — er verrät also
+    // nichts, was der Fragende nicht schon wüsste, und ohne ihn stünde der
+    // Eingeladene vor einem stummen „Code ungültig".
+    if (invite.reason === 'unverified_email') result.codeReason = 'email_unverified'
   }
 
   if (body.slug !== undefined) {

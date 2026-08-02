@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { MyCommunitiesResponse, MyCommunityView } from '../../../../control/shared/myCommunities'
+
 /**
  * Schritt 8 — der erste Einblick.
  *
@@ -13,8 +15,29 @@ const { t } = useI18n()
 const route = useRoute()
 const draft = useOnboardingDraft()
 
-const host = computed(() => String(route.query.host ?? ''))
 const communityId = computed(() => String(route.query.site ?? ''))
+
+/**
+ * DIE ADRESSE KOMMT AUS DER MITGLIEDSCHAFT, NICHT AUS DER URL.
+ *
+ * Sicherheits-Audit 2026-08-02 (KRITISCH): vorher stand hier
+ * `String(route.query.host)` — und genau dieser Wert wurde zur Ziel-Origin des
+ * Session-Handoffs. `…/start/done?host=angreifer.example` genügte, um das
+ * Siegel eines Opfers an eine fremde Adresse zu schicken; wer es binnen 60 s
+ * gegen einen echten Pukalani-Host einlöste, bekam dessen Session.
+ *
+ * Jetzt ist die Quelle dieselbe wie auf `/communities`: die Liste der eigenen
+ * Communities. `?site=` bleibt in der URL, aber es ist nur noch ein SCHLÜSSEL
+ * in eine geprüfte Liste — steht die Community nicht darin, gibt es keine
+ * Adresse und keinen Knopf. Der Server siegelt ohnehin nur für Communities,
+ * in denen der Nutzer Mitglied ist (POST /api/onboarding/handoff).
+ */
+const { data } = await useFetch<MyCommunitiesResponse>('/api/onboarding/communities', {
+  default: () => ({ communities: [] as MyCommunityView[] }),
+})
+const host = computed(() =>
+  data.value?.communities.find(entry => entry.communityId === communityId.value)?.host ?? '')
+
 // Der Name kommt aus dem Entwurf; nach dem Leeren (unten) bleibt er in dieser
 // Kopie stehen, damit die Überschrift beim Neuladen nicht leer wird.
 const name = ref(draft.value.name ?? '')
@@ -41,11 +64,12 @@ async function openCommunity() {
   opening.value = true
   let target = `https://${host.value}/`
   try {
-    const { token } = await $fetch<{ token: string }>('/api/onboarding/handoff', {
+    // Ziel-Host aus der ANTWORT — daran ist das Siegel gebunden (s. o.).
+    const { token, host: sealedHost } = await $fetch<{ token: string, host: string }>('/api/onboarding/handoff', {
       method: 'POST',
       body: { communityId: communityId.value },
     })
-    target = `https://${host.value}/api/auth/site-session?token=${encodeURIComponent(token)}&to=%2F`
+    target = `https://${sealedHost}/api/auth/site-session?token=${encodeURIComponent(token)}&to=%2F`
   }
   catch {
     // Fallback: ohne Handoff wenigstens zur Community (dort Login).

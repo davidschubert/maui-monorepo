@@ -28,7 +28,8 @@
  * Idempotent + selbst-aufräumend (fester Präfix, `finally`-Löschung). Läuft NUR
  * gegen die in der Env genannte Instanz — nie hartkodiert Prod.
  */
-import { Client, ID, Permission, Query, Role, TablesDB } from 'node-appwrite'
+import { Client, ID, Permission, Query, Role, Storage, TablesDB } from 'node-appwrite'
+import { InputFile } from 'node-appwrite/file'
 import { repermissionRow } from '../../core/shared/communityAudience.ts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
@@ -40,8 +41,10 @@ if (!endpoint || !projectId || !databaseId || !apiKey) {
   process.exit(1)
 }
 
+const adminClient = new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey)
 /** Betreiber-Sicht (Admin-Key): sieht alles, schreibt Permissions. */
-const admin = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const admin = new TablesDB(adminClient)
+const adminStorage = new Storage(adminClient)
 /** GAST-Sicht: kein Key, keine Session. Genau das, was ein Fremder hat. */
 const guest = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId))
 
@@ -53,6 +56,7 @@ const PUBLIC_READ = Permission.read(Role.any())
 const MEMBERS_READ = Permission.read(Role.label(COMMUNITY))
 
 const created = []
+const createdFiles = []
 let passed = 0, failed = 0
 function check(name, ok, detail = '') {
   if (ok) { passed++; console.log(`✔ ${name}`) }
@@ -81,8 +85,15 @@ async function guestSees(tableId) {
   }
 }
 
-/** Der Bestands-Umzug — dieselbe pure Regel, die die Route benutzt. */
-async function flip(tableId, target) {
+/**
+ * Der Bestands-Umzug — dieselbe pure Regel, die die Route benutzt.
+ *
+ * `bucket` spiegelt den gleichnamigen Registry-Eintrag aus core
+ * (`registerAudienceRepermissionTable`): die DATEI bekommt dasselbe
+ * Permission-Array wie ihre Row. Ohne diesen Zweig ist der Umzug eine halbe
+ * Sache — genau der Audit-Befund vom 2026-08-02 (Event-Titelbilder).
+ */
+async function flip(tableId, target, bucket = null) {
   let changed = 0
   const res = await admin.listRows({
     databaseId, tableId,
@@ -94,10 +105,32 @@ async function flip(tableId, target) {
     })
     if (!next) continue
     await admin.updateRow({ databaseId, tableId, rowId: row.$id, permissions: next })
+    if (bucket) {
+      const fileId = row[bucket.fileIdKey]
+      if (typeof fileId === 'string' && fileId) {
+        await adminStorage.updateFile({ bucketId: bucket.bucketId, fileId, permissions: next })
+      }
+    }
     changed++
   }
   return changed
 }
+
+/**
+ * Was ein GAST von einer DATEI sieht — Roh-HTTP gegen den Storage-Endpoint,
+ * ohne Key und ohne Session. Genau die URL, die im `<img src>` steht.
+ * 200 = abrufbar, alles andere = zu.
+ */
+async function guestCanFetchFile(bucketId, fileId) {
+  const res = await fetch(`${endpoint}/storage/buckets/${bucketId}/files/${fileId}/view?project=${projectId}`)
+  return res.status === 200
+}
+
+/** Kleinstes gültiges PNG (1×1, transparent) — der Bucket prüft Endung + Inhalt. */
+const ONE_PIXEL_PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+  'base64',
+)
 
 async function permissionsOf(tableId, rowId) {
   const row = await admin.getRow({ databaseId, tableId, rowId })
@@ -192,6 +225,52 @@ try {
   else {
     console.log('↷ community_posts nicht vorhanden — übersprungen (kein platform-Projekt)')
   }
+
+  // ── Und für die TITELBILDER: die Datei muss mitziehen ─────────────────────
+  // DER BEFUND (2026-08-02): der Bucket `event-covers` war bucket-weit
+  // read("any"). Der Umzug zog die Event-Row brav zu und meldete
+  // `complete: true` — das Bild blieb per Roh-URL für jeden abrufbar. Ein
+  // Zeilen-Beweis allein hätte das NIE gesehen; deshalb wird hier die Datei
+  // selbst angefasst, vor und nach jedem Umschalten.
+  const hasEvents = await admin.listRows({ databaseId, tableId: 'events', queries: [Query.limit(1)] })
+    .then(() => true).catch(() => false)
+  if (hasEvents) {
+    const cover = await adminStorage.createFile({
+      bucketId: 'event-covers',
+      fileId: ID.unique(),
+      file: InputFile.fromBuffer(ONE_PIXEL_PNG, 'c18-cover.png'),
+      permissions: [PUBLIC_READ],
+    })
+    createdFiles.push({ bucketId: 'event-covers', id: cover.$id })
+
+    const eventRow = await seed('events', {
+      title: 'Bestands-Termin', description: 'Beweis', startAt: new Date(Date.now() + 86_400_000).toISOString(),
+      endAt: null, location: null, url: null, capacity: null, attendeeCount: 0,
+      status: 'published', organizerId: 'u-1', organizerName: 'A',
+      coverFileId: cover.$id, locationType: null, replayUrl: null, address: null, locationNotes: null,
+      upvotes: 0, downvotes: 0, score: 0, remindersSentAt: null,
+      access: null, priceAmount: null, priceLookupKey: null,
+      recurrence: '', seriesId: '', seriesIndex: 0, seriesUntil: null, seriesGeneratedUntil: null,
+      communityId: COMMUNITY,
+    }, [PUBLIC_READ])
+
+    const coverBucket = { bucketId: 'event-covers', fileIdKey: 'coverFileId' }
+    check('events: Gast sieht den veröffentlichten Termin', (await guestSees('events')).includes(eventRow.$id))
+    check('events: Gast kann das Titelbild abrufen (Ausgangslage)', await guestCanFetchFile('event-covers', cover.$id))
+
+    await flip('events', 'members', coverBucket)
+    check('events: geschlossen ⇒ Gast sieht die Zeile nicht', (await guestSees('events')).length === 0)
+    check('events: geschlossen ⇒ Gast kann das TITELBILD nicht mehr abrufen',
+      !(await guestCanFetchFile('event-covers', cover.$id)))
+
+    await flip('events', 'public', coverBucket)
+    check('events: wieder offen ⇒ Gast sieht den Termin', (await guestSees('events')).includes(eventRow.$id))
+    check('events: wieder offen ⇒ das Titelbild ist erneut abrufbar',
+      await guestCanFetchFile('event-covers', cover.$id))
+  }
+  else {
+    console.log('↷ events nicht vorhanden — übersprungen (Layer nicht migriert)')
+  }
 }
 catch (error) {
   // LAUT scheitern. Ohne diesen Zweig würde `finally` mit process.exit() den
@@ -204,6 +283,9 @@ finally {
   for (const { tableId, id } of created) {
     await admin.deleteRow({ databaseId, tableId, rowId: id }).catch(() => {})
   }
-  console.log(`\n${failed === 0 ? '✔' : '✗'} ${passed} bestanden, ${failed} fehlgeschlagen (${created.length} Test-Rows aufgeräumt)`)
+  for (const { bucketId, id } of createdFiles) {
+    await adminStorage.deleteFile({ bucketId, fileId: id }).catch(() => {})
+  }
+  console.log(`\n${failed === 0 ? '✔' : '✗'} ${passed} bestanden, ${failed} fehlgeschlagen (${created.length} Test-Rows, ${createdFiles.length} Test-Datei(en) aufgeräumt)`)
   process.exit(failed === 0 ? 0 : 1)
 }

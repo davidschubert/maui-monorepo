@@ -28,6 +28,13 @@ const codeFromLink = typeof route.query.code === 'string' ? route.query.code.tri
 const code = ref(codeFromLink || draft.value.inviteCode || '')
 const checking = ref(false)
 const rejected = ref(false)
+/**
+ * Der Code ist GÜLTIG und gehört dieser Adresse — sie ist nur noch nicht
+ * bestätigt (Sicherheits-Audit 2026-08-02: ein an eine Adresse gebundener Code
+ * verlangt jetzt den Nachweis, dass sie einem gehört). Eigener Zustand statt
+ * `rejected`, weil hier nichts falsch ist: es fehlt ein Klick im Postfach.
+ */
+const needsVerification = ref(false)
 
 // Kam der Code per Link, muss niemand auf „Weiter" drücken — das ist der
 // „direkt loslegen"-Teil, den die Mail verspricht.
@@ -39,13 +46,17 @@ async function submit() {
   if (!code.value.trim() || checking.value) return
   checking.value = true
   rejected.value = false
+  needsVerification.value = false
   try {
-    const result = await $fetch<{ codeValid?: boolean }>('/api/onboarding/precheck', {
+    const result = await $fetch<{ codeValid?: boolean, codeReason?: 'email_unverified' }>('/api/onboarding/precheck', {
       method: 'POST',
       body: { code: code.value.trim() },
     })
     if (!result.codeValid) {
-      rejected.value = true
+      // Der EINE Grund, den die Vorprüfung nennen darf (s. control/api/
+      // onboarding/precheck.post.ts) — alles andere bleibt ein stummes Nein.
+      if (result.codeReason === 'email_unverified') needsVerification.value = true
+      else rejected.value = true
       return
     }
     draft.value.inviteCode = code.value.trim()
@@ -90,6 +101,8 @@ useHead({ title: () => t('onboarding.gate.title') })
         <UIcon name="i-ph-warning-circle" class="mt-0.5 size-4 shrink-0" />
         {{ t('onboarding.gate.rejected') }}
       </p>
+
+      <AuthEmailVerifyRequired v-if="needsVerification" :title="t('onboarding.gate.verifyFirst')" />
 
       <UButton type="submit" size="lg" :loading="checking" :disabled="!code.trim()" block>
         {{ t('onboarding.gate.submit') }}

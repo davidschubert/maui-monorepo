@@ -64,6 +64,9 @@ const cleanup = {
   comments: [], posts: [], reports: [],
   // F17: die Redaktions-Wege legen echte Zeilen im Pool-Projekt an.
   events: [], courses: [], pages: [],
+  // Audit 2026-08-02: die zwei MITGLIEDS-Wege (einschreiben, Lektion
+  // abschließen) legen ebenfalls Zeilen an — Lektionen als Vorbedingung.
+  lessons: [], enrollments: [], progress: [],
 }
 
 function check(label, ok, detail = '') {
@@ -338,6 +341,57 @@ try {
     `Status ${courseBefore.status} ${courseBefore.text.slice(0, 200)}`)
   if (courseBefore.json?.$id) cleanup.courses.push(courseBefore.json.$id)
 
+  /**
+   * DIE ZWEI MITGLIEDS-WEGE (Audit-Befund 2026-08-02). Einschreiben und
+   * Lektion-abschließen sind die einzigen Kurs-Routen, an denen ein
+   * gewöhnliches MITGLIED schreibt. Beide brauchen die Operator-Klinke aus
+   * technischen Gründen und setzen `actor: 'member'` hart — fällt das weg,
+   * fallen sie still aus der Sperre (C1c). Der Quelltext-Anker steht in
+   * packages/courses/tests/redaction-actor.test.ts, hier kommt die Wirkung.
+   *
+   * Vorbedingung: ein VERÖFFENTLICHTER Kurs mit zwei VERÖFFENTLICHTEN
+   * Lektionen. Zwei, weil der Fortschritt in Abschnitt 3 an einer Lektion
+   * scheitern soll, die vorher noch nicht abgeschlossen war — ein erneutes
+   * Abschließen wäre idempotent und bewiese nichts.
+   */
+  const memberCourseSlug = `m13-mitglied-${Date.now().toString(36)}`
+  const memberCourse = await call(host, '/api/courses', {
+    method: 'POST', cookie: ownerHostCookie,
+    body: {
+      title: 'M13 Mitgliederkurs', slug: memberCourseSlug,
+      description: 'Ein Kurs, in den sich ein Mitglied einschreiben darf.',
+      access: 'free', status: 'published',
+    },
+  })
+  check('Ein Kurs steht veröffentlicht bereit (201)', memberCourse.status === 201,
+    `Status ${memberCourse.status} ${memberCourse.text.slice(0, 200)}`)
+  if (memberCourse.json?.$id) cleanup.courses.push(memberCourse.json.$id)
+
+  const memberLessons = []
+  for (const nr of [1, 2]) {
+    const lesson = await call(host, `/api/courses/${memberCourse.json?.$id}/lessons`, {
+      method: 'POST', cookie: ownerHostCookie,
+      body: { title: `M13 Lektion ${nr}`, content: `Inhalt der Lektion ${nr}.`, status: 'published' },
+    })
+    if (lesson.json?.$id) {
+      memberLessons.push(lesson.json.$id)
+      cleanup.lessons.push(lesson.json.$id)
+    }
+  }
+  check('…mit zwei veröffentlichten Lektionen', memberLessons.length === 2, `angelegt: ${memberLessons.length}`)
+
+  const enrollBefore = await call(host, `/api/courses/${memberCourseSlug}/enroll`, {
+    method: 'POST', cookie: memberHostCookie,
+  })
+  check('Mitglied darf sich einschreiben (201)', enrollBefore.status === 201,
+    `Status ${enrollBefore.status} ${enrollBefore.text.slice(0, 200)}`)
+
+  const completeBefore = memberLessons[0]
+    ? await call(host, `/api/lessons/${memberLessons[0]}/complete`, { method: 'POST', cookie: memberHostCookie })
+    : null
+  check('Mitglied darf eine Lektion abschließen (200)', completeBefore?.status === 200,
+    `Status ${completeBefore?.status} ${completeBefore?.text.slice(0, 200)}`)
+
   const pageBefore = await call(host, '/api/pages', {
     method: 'PUT', cookie: ownerHostCookie,
     body: { slug: 'm13-probe', locale: 'de', title: 'M13 Seitenprobe', body: 'Vor der Sperre.', status: 'draft' },
@@ -512,6 +566,30 @@ try {
     })
     check('…Lektion anlegen ebenso (403)', lessonDuring.status === 403 && lessonDuring.json?.reason === 'community_suspended',
       `Status ${lessonDuring.status} ${JSON.stringify(lessonDuring.json)}`)
+  }
+
+  /**
+   * UND DIE ZWEI MITGLIEDS-WEGE (Audit-Befund 2026-08-02). Die Sperr-Grenze
+   * nennt „Kursfortschritt" ausdrücklich — bewiesen war er bisher nirgends.
+   * Beides sind Schreibvorgänge eines gewöhnlichen Mitglieds, kein Redaktions-
+   * Weg: sie hängen an `actor: 'member'` und nur daran.
+   */
+  const enrollDuring = await call(host, `/api/courses/${memberCourseSlug}/enroll`, {
+    method: 'POST', cookie: memberHostCookie,
+  })
+  check('Einschreiben ist ZU (403) — Kursfortschritt ist Inhalt',
+    enrollDuring.status === 403, `Status ${enrollDuring.status} ${enrollDuring.text.slice(0, 200)}`)
+  check('…mit dem klaren Grund (reason: community_suspended)',
+    enrollDuring.json?.reason === 'community_suspended', JSON.stringify(enrollDuring.json))
+
+  if (memberLessons[1]) {
+    const completeDuring = await call(host, `/api/lessons/${memberLessons[1]}/complete`, {
+      method: 'POST', cookie: memberHostCookie,
+    })
+    check('…Lektion abschließen ebenso (403)', completeDuring.status === 403,
+      `Status ${completeDuring.status} ${completeDuring.text.slice(0, 200)}`)
+    check('…mit dem klaren Grund (reason: community_suspended)',
+      completeDuring.json?.reason === 'community_suspended', JSON.stringify(completeDuring.json))
   }
 
   const pageDuringWrite = await call(host, '/api/pages', {
@@ -848,10 +926,28 @@ finally {
       await poolDb.deleteRow({ databaseId: poolDatabaseId, tableId: 'posts', rowId: id }).catch(() => {})
     }
   }
-  if (cleanup.events.length > 0 || cleanup.courses.length > 0 || cleanup.pages.length > 0) {
+  if (cleanup.events.length > 0 || cleanup.courses.length > 0 || cleanup.pages.length > 0
+    || cleanup.lessons.length > 0 || cleanup.enrollments.length > 0 || cleanup.progress.length > 0) {
     const poolDb = new TablesDB(new Client().setEndpoint(endpoint).setProject(poolProject).setKey(poolKey))
     const poolDatabaseId = process.env.POOL_DATABASE_ID || databaseId
-    for (const [tableId, ids] of [['events', cleanup.events], ['courses', cleanup.courses], ['pages', cleanup.pages]]) {
+    /**
+     * Einschreibungen und Fortschritt geben ihre Row-Id nie heraus (die Routen
+     * antworten mit `{ ok: true }` bzw. mit der Fortschritts-Liste). Sie hängen
+     * aber am Kurs — also über ihn einsammeln, statt sie liegen zu lassen.
+     */
+    for (const courseId of cleanup.courses) {
+      for (const [tableId, bucket] of [['enrollments', cleanup.enrollments], ['lesson_progress', cleanup.progress]]) {
+        const rows = await poolDb.listRows({
+          databaseId: poolDatabaseId, tableId, queries: [Query.equal('courseId', courseId), Query.limit(100)],
+        }).catch(() => ({ rows: [] }))
+        bucket.push(...rows.rows.map(r => r.$id))
+      }
+    }
+    for (const [tableId, ids] of [
+      // Reihenfolge: Abhängiges zuerst (Fortschritt vor Lektion vor Kurs).
+      ['lesson_progress', cleanup.progress], ['enrollments', cleanup.enrollments], ['lessons', cleanup.lessons],
+      ['events', cleanup.events], ['courses', cleanup.courses], ['pages', cleanup.pages],
+    ]) {
       for (const id of ids) {
         await poolDb.deleteRow({ databaseId: poolDatabaseId, tableId, rowId: id }).catch(() => {})
       }

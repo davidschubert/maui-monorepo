@@ -83,7 +83,7 @@ export function summarizeStock(
   return summary
 }
 
-export type InviteCodeRejection = 'unknown' | 'revoked' | 'expired' | 'exhausted' | 'wrong_email'
+export type InviteCodeRejection = 'unknown' | 'revoked' | 'expired' | 'exhausted' | 'wrong_email' | 'unverified_email'
 
 export interface InviteCodeVerdict {
   valid: boolean
@@ -112,11 +112,32 @@ export function evaluateInviteCode(
   /** Adresse des Einlösenden. Fehlt sie, gilt ein GEBUNDENER Code als
    *  ungültig — ein an jemanden vergebener Code darf nie anonym greifen. */
   email?: string,
+  /**
+   * Hat Appwrite diese Adresse BESTÄTIGT? Pflicht für gebundene Codes seit dem
+   * Sicherheits-Audit 2026-08-02 (HOCH).
+   *
+   * Der Angriff: der Pool ist EIN Appwrite-Projekt, und die Registrierung
+   * verlangt keine Bestätigung, bevor man loslegt. Wer also weiß, dass ein Code
+   * an `chef@verein.de` vergeben wurde, legt sich auf irgendeinem offenen
+   * Pool-Host ein Konto mit genau dieser Adresse an — ohne je an das Postfach
+   * zu kommen — und löst den Code ein. Die Bindung an eine Adresse ist nur so
+   * viel wert wie der Beweis, dass sie einem gehört.
+   *
+   * Für UNGEBUNDENE Codes (Inhaberpapier, der Betreiber-Weg) ändert sich
+   * nichts: dort ist die Adresse gar kein Teil der Berechtigung.
+   */
+  emailVerified?: boolean,
 ): InviteCodeVerdict {
   if (!row) return { valid: false, reason: 'unknown' }
   if ((row.status || 'active') !== 'active') return { valid: false, reason: 'revoked' }
   if (row.boundEmail) {
     if (!email || !sameEmail(row.boundEmail, email)) return { valid: false, reason: 'wrong_email' }
+    // NACH der Adressgleichheit, und das ist Absicht: nur wer die passende
+    // Adresse führt, erfährt überhaupt den Unterschied zwischen „falsch" und
+    // „unbestätigt" — für alle anderen bleibt die Ablehnung ein einziges
+    // stummes Nein. Nach außen wird der Grund nur in genau diesem Fall gezeigt
+    // (s. control/api/onboarding/site.post.ts).
+    if (emailVerified !== true) return { valid: false, reason: 'unverified_email' }
   }
   if (row.expiresAt) {
     const expires = Date.parse(row.expiresAt)

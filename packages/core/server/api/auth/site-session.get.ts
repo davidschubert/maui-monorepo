@@ -1,7 +1,8 @@
 import { Account, Client } from 'node-appwrite'
 import { z } from 'zod'
-import { deriveHandoffKey, openHandoffToken } from '../../utils/embedHandoff'
+import { deriveHandoffKey, handoffAudience, openHandoffToken } from '../../utils/embedHandoff'
 import { setSessionCookie } from '../../lib/appwrite'
+import { safeRedirectTarget } from '../../../shared/redirectTarget'
 
 /**
  * Session-Handoff auf einen ANDEREN Host desselben Deployments (O6, Schritt 9).
@@ -19,16 +20,30 @@ import { setSessionCookie } from '../../lib/appwrite'
  *
  * Warum GET (der Rest des Systems benutzt POST für Token-Einlösung): das ist
  * ein Klick-Ziel wie ein Magic-Link. Abgesichert durch: 60-Sekunden-Gültigkeit,
- * Prüfung gegen Appwrite VOR jedem Cookie, Rate-Limit auf Fehlversuche und ein
- * Weiterleitungsziel, das nur ein relativer Pfad sein darf (kein Open Redirect).
+ * BINDUNG AN DIESEN HOST (s. u.), Prüfung gegen Appwrite VOR jedem Cookie,
+ * Rate-Limit auf Fehlversuche und ein Weiterleitungsziel, das nur ein relativer
+ * Pfad sein darf (kein Open Redirect).
+ *
+ * DIE HOST-BINDUNG ist die zweite Hälfte des Audit-Fixes vom 2026-08-02 (die
+ * erste sitzt im Aussteller): ein Siegel, das für `kunde-a.pukalani.app`
+ * ausgestellt wurde, wird hier abgewiesen, wenn dieser Host anders heißt. Ohne
+ * sie genügte es, ein Opfer zum Klick auf einen Link mit fremdem Ziel-Host zu
+ * bewegen — das Siegel landete beim Angreifer und war auf JEDEM unserer Hosts
+ * einlösbar. Details: server/utils/embedHandoff.ts.
  *
  * Gate: nur in Multi-Tenant-Deployments (pukalani.tenancy.enabled) — Single-Tenant-
  * Apps brauchen keinen Host-Wechsel und bekommen die Route nicht.
  */
 const querySchema = z.object({
   token: z.string().min(1).max(2048),
-  /** Nur ein relativer Pfad — sonst wäre das ein offener Weiterleiter. */
-  to: z.string().max(512).regex(/^\/(?!\/)[^\s]*$/).optional(),
+  /**
+   * Nur ein relativer Pfad — sonst wäre das ein offener Weiterleiter. Geprüft
+   * mit `safeRedirectTarget` statt einer eigenen Regex: die alte Variante hier
+   * (`^\/(?!\/)[^\s]*$`) ließ `/\evil.example` durch, und Browser lesen `\` wie
+   * `/` — aus dem „relativen Pfad" wurde `//evil.example`. Es gibt jetzt EINE
+   * Regel für alle drei Weiterleitungs-Tore des Systems (Audit-Befund 5).
+   */
+  to: z.string().max(512).refine(value => safeRedirectTarget(value) !== null).optional(),
 }).strict()
 
 export default defineEventHandler(async (event) => {
@@ -40,7 +55,10 @@ export default defineEventHandler(async (event) => {
   const query = await getValidatedQuery(event, querySchema.parse)
   const config = useRuntimeConfig(event)
 
-  const secret = openHandoffToken(query.token, deriveHandoffKey(config.appwriteKey))
+  // Zielgruppe = DIESER Host. Ein Siegel für einen anderen Host öffnet hier
+  // nicht — dieselbe Antwort wie bei einem manipulierten Token, damit ein
+  // Angreifer nicht erfährt, ob er nur den falschen Host erwischt hat.
+  const secret = openHandoffToken(query.token, deriveHandoffKey(config.appwriteKey), handoffAudience(getHeader(event, 'host')))
   if (!secret) {
     throw createError({ status: 401, statusText: 'Invalid or expired handoff token' })
   }

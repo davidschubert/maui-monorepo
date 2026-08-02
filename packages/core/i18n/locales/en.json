@@ -83,7 +83,8 @@
       "successMessage": "Thanks! Your address is now verified.",
       "invalidTitle": "Link invalid or expired",
       "invalidMessage": "Request a new confirmation link from the banner.",
-      "backHome": "Back to home"
+      "backHome": "Back to home",
+      "requiredMessage": "This address ({email}) is not confirmed yet. Open the link in our confirmation email, then come back here."
     },
     "otp": {
       "title": "Sign in with code",

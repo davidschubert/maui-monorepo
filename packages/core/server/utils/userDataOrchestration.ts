@@ -33,27 +33,18 @@ export interface ContributorRunResult {
    * Rohe Fehlermeldung des Layers — regelmäßig eine `AppwriteException`
    * (Tabellen-Ids, interne Formulierungen). SERVERSEITIGE Diagnose: dieses
    * Feld gehört ins Log, NIE in eine HTTP-Antwort (Audit-Befund S8, CLAUDE.md
-   * „keine Appwrite-Fehlerdetails an Clients leaken"). Wer das Ergebnis an
-   * einen Client weitergibt, nimmt `publicContributorResults()`.
+   * „keine Appwrite-Fehlerdetails an Clients leaken").
+   *
+   * DAS GANZE ERGEBNIS BLEIBT SERVERSEITIG. Hier stand bis zum 2026-08-02 ein
+   * `publicContributorResults()`, das die Liste für einen Client entschärfte —
+   * es hatte genau einen Aufrufer (die Admin-Löschroute), und der hängte sie an
+   * einen 500er, aus dem der zentrale Fehler-Handler ausschließlich `data.code`
+   * herausholt. Sie kam also nie an. Die Route sagt jetzt in EINEM Grund, was
+   * zu tun ist (`deletion_incomplete`); WELCHE Layer offen sind, steht
+   * strukturiert im Log (`gdpr.delete_incomplete`) — dort, wo man es beim
+   * Nachfassen ohnehin liest.
    */
   error?: string
-}
-
-/** Was ein Client über einen gescheiterten Layer erfahren darf. */
-export interface PublicContributorResult {
-  id: string
-  ok: boolean
-  deleted: number
-  anonymized: number
-}
-
-/**
- * Client-Sicht auf die Contributor-Ergebnisse: WELCHE Layer gescheitert sind
- * (das ist die brauchbare Auskunft — sie sagt dem Betreiber, wo der Re-Run
- * ansetzt), aber nicht WORAN. Die Begründung bleibt im Server-Log.
- */
-export function publicContributorResults(results: ContributorRunResult[]): PublicContributorResult[] {
-  return results.map(({ id, ok, deleted, anonymized }) => ({ id, ok, deleted, anonymized }))
 }
 
 export interface DeleteUserResult {

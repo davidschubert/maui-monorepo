@@ -34,10 +34,12 @@ export async function logAuthEvent(
     const config = useRuntimeConfig(event)
     const admin = createAdminClient(event)
     const name = opts.name ?? await admin.users.get({ userId: opts.userId }).then(u => u.name).catch(() => '')
-    // xForwardedFor vertraut dem ersten X-Forwarded-For-Segment → nur gültig
-    // hinter einem Trust-Proxy (ploi/nginx terminiert). Ohne Proxy ist die IM
-    // Audit-Log gespeicherte IP client-spoofbar.
-    const ip = getRequestIP(event, { xForwardedFor: true }) ?? ''
+    // Die IP im Protokoll ist eine BEHAUPTUNG über einen Menschen — sie muss
+    // vom eigenen Proxy stammen, nicht vom Client. `trustedClientIp` liest
+    // deshalb das LETZTE X-Forwarded-For-Segment (das unser nginx anhängt);
+    // vorher stand hier das erste, also der frei wählbare Teil (Audit
+    // 2026-08-02). Begründung: server/utils/clientIp.ts.
+    const ip = trustedClientIp(event) ?? ''
     const metadata: Record<string, unknown> = {}
     if (opts.method) metadata.method = opts.method
     if (opts.fields?.length) metadata.fields = opts.fields

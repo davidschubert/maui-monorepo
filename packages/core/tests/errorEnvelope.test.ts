@@ -36,6 +36,23 @@ describe('domainReasonFrom', () => {
   })
 })
 
+/**
+ * Seit 2026-08-02 gilt der Grund auch bei 5xx (Audit-Befund „tote
+ * Fehlerhälfte"). Die Extraktion selbst kannte den Status nie — die Grenze
+ * zog der Handler. Hier steht deshalb, WARUM sie fiel: es gibt 5xx, die eine
+ * handlungsleitende Auskunft tragen.
+ */
+describe('domainReasonFrom bei Server-Fehlern', () => {
+  it('lässt den Grund einer unvollständigen Löschung durch', () => {
+    expect(domainReasonFrom({ code: 'deletion_incomplete' })).toBe('deletion_incomplete')
+  })
+
+  it('bleibt trotzdem streng — eine Ausnahme-Message kommt nicht durch', () => {
+    expect(domainReasonFrom({ code: 'AppwriteException: table not found' })).toBeNull()
+    expect(domainReasonFrom({ message: 'deletion_incomplete' })).toBeNull()
+  })
+})
+
 describe('statusToErrorCode', () => {
   it('bildet die bekannten Stati ab', () => {
     expect(statusToErrorCode(409)).toBe('CONFLICT')
