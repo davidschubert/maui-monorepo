@@ -366,11 +366,10 @@ Ohne diese fünf Antworten entsteht kein Umsetzungsplan.
 
 ### 5.1 Provision je Plan
 
-Vorschlag: **Basic verkauft gar nicht · Personal 2 % · Pro 0 %** (Abschnitt
-2.3). Zu entscheiden ist auch die Gegenprobe: Soll Basic *doch* verkaufen
-dürfen, zu einem hohen Satz (Skool-Modell, 10 %)? Das bringt Umsatz von Leuten,
-die nie upgraden — kostet aber Support und Missbrauchsrisiko bei Nullabo.
-**Empfehlung: nein.**
+✅ **ENTSCHIEDEN (David, 2026-08-02): Basic verkauft gar nicht · Personal 2 % ·
+Pro 0 %. Aktivieren dürfen Owner ab Personal.** Damit ist auch die Gegenprobe
+beantwortet: Basic verkauft nicht — kein Skool-Modell mit hohem Satz für
+Nullabo-Konten (Support- und Missbrauchsrisiko ohne Vertragsbindung).
 
 ### 5.2 Rückerstattungen
 
