@@ -23,7 +23,10 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 400, statusText: 'Missing slug' })
   }
 
-  const db = tenantDb(event, { as: 'operator' })
+  // `actor: 'member'` (Audit-Befund 2026-08-01): die Klinke ist Technik
+  // (enrollments tragen bewusst keine User-Schreibrechte), eingeschrieben hat
+  // sich ein Mitglied. Die M13-Sperre nennt „Kursfortschritt" ausdrücklich.
+  const db = tenantDb(event, { as: 'operator', actor: 'member' })
 
   const course = await db.find<CourseRow>(COURSES_TABLE, [Query.equal('slug', slug)])
   if (!course || course.status !== 'published') {

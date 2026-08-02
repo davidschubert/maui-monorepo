@@ -410,6 +410,19 @@ Vollständiges Konzept: docs/CONCEPT.md
   VOR der Aktion, `create` stempelt tenantId + Row-Permissions. `as:'operator'`
   = Admin-Client (Moderation) — dort ist die Tür die EINZIGE Grenze, weil der
   Admin-Client die Row-Permissions bewusst umgeht.
+- ZWEI FRAGEN, ZWEI FELDER (seit 2026-08-02, Audit-Befund C1c): `as` sagt, WELCHER
+  CLIENT zugreift (Technik: Row-Permissions setzen, rowSecurity-Rows schreiben),
+  `actor` sagt, WER HANDELT (Fachlichkeit: `'member' | 'guest' | 'operator'`,
+  Default = `as`). Daran hängen die M13-Sperre (`actorFacesContentLock`) und der
+  A5-Beitritt (`actorJoinsByWriting`). WARUM getrennt: viele Routen wählen
+  `'operator'` NUR wegen der Label-Permissions — gehandelt hat trotzdem ein
+  Mitglied. Solange die Sperre an der Klinke hing, meldeten sich diese Routen
+  still von ihr ab: von den fünf Inhaltsarten, die M13 namentlich zusagt, war
+  genau EINE tatsächlich zu (Umfrage-Stimme, Beitrags-Löschung, RSVP,
+  Einschreibung, Lektions-Abschluss liefen vorbei). Drei Actor-Werte, weil ein
+  GAST-Kommentar Inhalt ist (Sperre gilt) und trotzdem niemanden zum Mitglied
+  macht (kein Konto) — ein Ja/Nein-Flag kann beides nicht gleichzeitig sagen.
+  Neue Route mit Operator-Klinke: IMMER prüfen, ob `actor` gesetzt gehört.
 - Warum: Isolation hing an drei Dingen, an die man sich erinnern musste
   (scopeQuery/scopeRow/ID-Prüfung). Am 2026-07-26 hat genau das versagt (drei
   Moderations-Routen lasen fremde Zeilen per ID, commit 1cc4855).

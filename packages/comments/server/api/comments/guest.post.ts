@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { communityContentIsPublic } from '../../../../core/shared/communityAudience'
 import { guestCommentSchema } from '../../../schemas/comment'
 import { guestCommentsAllowed } from '../../../shared/guestComments'
-import { COMMENTS_TABLE, MAX_COMMENT_DEPTH, type Comment } from '../../../shared/types/comment'
+import { COMMENTS_TABLE, GUEST_AUTHORS_TABLE, MAX_COMMENT_DEPTH, type Comment } from '../../../shared/types/comment'
 
 /**
  * Gast-Kommentar (Embed E4, Task 20): Kommentieren OHNE Account (Name+E-Mail,
@@ -49,9 +49,20 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 403, statusText: 'Guests cannot comment on this target' })
   }
 
-  // Gast-Schreibweg: es gibt keine Sitzung, also Service-Credentials — und
-  // damit ist die Tür hier die EINZIGE Mandantengrenze.
-  const db = tenantDb(event, { as: 'operator' })
+  /**
+   * Gast-Schreibweg: es gibt keine Sitzung, also Service-Credentials — und
+   * damit ist die Tür hier die EINZIGE Mandantengrenze.
+   *
+   * WER HANDELT: `actor: 'guest'` (Audit-Befund 2026-08-01). Die Klinke sagt
+   * nur, dass niemand da ist, dessen Sitzung man benutzen könnte; gehandelt hat
+   * ein Mensch von außen. Das entscheidet hier ZWEI Dinge in verschiedene
+   * Richtungen: ein Gast-Kommentar ist INHALT und fällt deshalb unter die
+   * Sperre einer zahlungssäumigen Community (M13) — vorher lief er still daran
+   * vorbei —, aber er macht niemanden zum MITGLIED (A5): ein Gast hat kein
+   * Konto, dem eine Mitgliedschaft gehören könnte. Genau diese beiden Antworten
+   * ließen sich mit einer einzigen Angabe nicht geben.
+   */
+  const db = tenantDb(event, { as: 'operator', actor: 'guest' })
 
   // Antwort: Parent laden → rootId/depth/maxDepth wie im regulären Pfad.
   let parent: Comment | null = null
@@ -102,8 +113,10 @@ export default defineEventHandler(async (event) => {
 
   // Kontaktdaten getrennt ablegen (operator-read). Best-effort: schlägt das
   // fehl, bleibt der Kommentar bestehen — aber ohne moderierbare Kontaktspur.
+  // Die Zeile verfällt nach 90 Tagen von selbst (guestAuthorPrune.ts): ein Gast
+  // hat keine userId, an der die GDPR-Löschung ansetzen könnte.
   const ipHash = createHash('sha256').update(getRequestIP(event, { xForwardedFor: true }) ?? '').digest('hex')
-  await db.create('guest_authors', {
+  await db.create(GUEST_AUTHORS_TABLE, {
     commentId: row.$id, name: body.guestName, email: body.guestEmail, ipHash,
   }, { permissions: [] }).catch((error) => {
     logEvent('error', 'guest_author_persist_failed', { commentId: row.$id, error: String(error) })

@@ -67,6 +67,52 @@ describe('tenantRowPermissionsFor', () => {
 })
 
 /**
+ * Moderations-Audit Befund 1 — das Publikum 'moderators'.
+ *
+ * Es gibt genau eine Menge Menschen, die eine Meldung lesen darf: das Team
+ * DIESER Community. Appwrite kennt aber nur ODER-Rollen, also braucht der
+ * Schnitt „Moderator UND diese Community" einen eigenen Schlüssel. Hier wird
+ * beides bewiesen: dass er gezogen wird — und dass er die falschen beiden
+ * Alternativen NICHT ist (Mitglieder-Label / globale Betreiber-Rollen).
+ */
+describe("tenantReadRolesFor + 'moderators'", () => {
+  it('Pool: das Moderations-Label DIESER Community, sonst nichts', () => {
+    expect(tenantReadRolesFor(pool, 'moderators')).toEqual([Permission.read(Role.label('modsiteAAA'))])
+  })
+
+  it('…und ausdrücklich NICHT das Mitglieder-Label (eine Meldung ist kein Inhalt)', () => {
+    expect(tenantReadRolesFor(pool, 'moderators')).not.toContain(Permission.read(Role.label('siteAAA')))
+  })
+
+  it('…und ausdrücklich NICHT die globalen Betreiber-Rollen (der Befund selbst)', () => {
+    const roles = tenantReadRolesFor(pool, 'moderators')
+    expect(roles).not.toContain(Permission.read(Role.label('admin')))
+    expect(roles).not.toContain(Permission.read(Role.label('moderator')))
+  })
+
+  it('zwei Pool-Communities bekommen VERSCHIEDENE Moderations-Labels', () => {
+    expect(tenantReadRolesFor(pool, 'moderators')).not.toEqual(tenantReadRolesFor(poolOther, 'moderators'))
+  })
+
+  it('Pool ohne communityId → fail-closed: KEIN Read', () => {
+    expect(tenantReadRolesFor(poolNoSite, 'moderators')).toEqual([])
+  })
+
+  it('Silo/Single-Tenant: die globalen Betreiber-Rollen (Projekt = Grenze)', () => {
+    const expected = [Permission.read(Role.label('admin')), Permission.read(Role.label('moderator'))]
+    expect(tenantReadRolesFor(silo, 'moderators')).toEqual(expected)
+    expect(tenantReadRolesFor(null, 'moderators')).toEqual(expected)
+  })
+
+  it('eine OFFENE Community macht Meldungen nicht öffentlich (C18 gilt hier nicht)', () => {
+    expect(tenantReadRolesFor({ ...pool, audience: 'public' }, 'moderators'))
+      .toEqual([Permission.read(Role.label('modsiteAAA'))])
+    expect(tenantReadRolesFor({ ...silo, audience: 'public' }, 'moderators'))
+      .not.toContain(Permission.read(Role.any()))
+  })
+})
+
+/**
  * C18 — die WAHL DER COMMUNITY schlägt die ABSICHT DER ZEILE. Das ist die
  * Zeile, wegen der der Schalter überhaupt wirkt, ohne dass die Schreib-Routen
  * ihn kennen müssen.

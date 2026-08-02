@@ -9,6 +9,11 @@ import { MEDIA_TABLE, MEDIA_BUCKET, type MediaItem } from '../../../shared/types
  * gelöscht wird server-seitig hinter der Capability. Der Admin-Client umgeht
  * Row-Permissions, damit ist die Tür hier die EINZIGE Mandanten-Grenze.
  *
+ * WER HANDELT: `actor: 'member'` (Audit-Befund 2026-08-01) — die Klinke ist
+ * Technik, gehandelt hat die Redaktion der Community. Löschen ist ein
+ * Inhalts-Vorgang wie das Löschen eines eigenen Kommentars und fällt damit
+ * unter dieselbe Sperre (M13).
+ *
  * AUTORISIERUNG (S3): `requireCommunityPermission` — Site-Rolle vor protokolliertem
  * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
  * Das `await` ist Pflicht — ohne wäre der Gate fail-open.
@@ -22,7 +27,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const admin = createAdminClient(event)
-  const db = tenantDb(event, { as: 'operator' })
+  const db = tenantDb(event, { as: 'operator', actor: 'member' })
 
   // Erst lesen (fileId für den Bucket-Cleanup), dann löschen — beide Schritte
   // gehen durch die Tür, die zweite Prüfung ist der Preis dafür, dass die

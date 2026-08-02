@@ -2,6 +2,8 @@ import type { Models } from 'node-appwrite'
 
 export const COMMENTS_TABLE = 'comments'
 export const VOTES_TABLE = 'comment_votes'
+/** Kontaktdaten der Gast-Kommentatoren (operator-read, comments-013). */
+export const GUEST_AUTHORS_TABLE = 'guest_authors'
 
 /** Maximale Antwort-Tiefe (0 = Top-Level). Tiefere Antworten werden abgelehnt. */
 export const MAX_COMMENT_DEPTH = 8

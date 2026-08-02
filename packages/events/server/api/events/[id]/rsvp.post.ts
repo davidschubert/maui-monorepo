@@ -24,7 +24,10 @@ export default defineEventHandler(async (event): Promise<RsvpResponse> => {
   }
 
   const { status: target } = await readValidatedBody(event, rsvpSchema.parse)
-  const db = tenantDb(event, { as: 'operator' })
+  // `actor: 'member'` (Audit-Befund 2026-08-01): die Klinke ist Technik
+  // (event_rsvps tragen bewusst keine User-Schreibrechte), zu- oder abgesagt hat
+  // ein Mitglied. Die M13-Sperre nennt „Zu- und Absagen" ausdrücklich.
+  const db = tenantDb(event, { as: 'operator', actor: 'member' })
 
   const row = await db.get<EventRow>(EVENTS_TABLE, id, 'Event not found')
   if (row.status !== 'published') {

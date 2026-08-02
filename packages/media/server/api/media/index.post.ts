@@ -19,6 +19,20 @@ import { MEDIA_TABLE, MEDIA_BUCKET, MAX_MEDIA_BYTES, type MediaItem } from '../.
  * hinter `media.manage`. Der Admin-Client umgeht Row-Permissions, damit ist die
  * Tür hier die EINZIGE Mandanten-Grenze.
  *
+ * WER HANDELT: `actor: 'member'` (Audit-Befund 2026-08-01). Der Admin-Client ist
+ * hier eine TECHNISCHE Notwendigkeit, kein Betreiber-Vorgang — `media.manage`
+ * liegt im Redaktions-Bündel, es lädt also die Community selbst hoch. Ein Bild
+ * ist Inhalt: es fällt unter die Sperre einer zahlungssäumigen Community (M13)
+ * und zählt als Mitmachen (A5). Vorher erbte die Route beides von der Klinke
+ * und war damit still von beidem befreit.
+ *
+ * QUOTA: `assertPoolWriteQuota` wie in jedem anderen Inhalts-Layer — und hier
+ * mit dem stärksten Grund, weil als einziger Layer BINÄRDATEN auf die geteilte
+ * Platte gehen. Solange der Plan-Katalog keine `media`-Zeile kennt (heute:
+ * keine, media ist noch nicht im Pool), ist der Aufruf ein No-Op — genau wie
+ * bei courses/events. Der Haken muss trotzdem JETZT stehen: er ist die Stelle,
+ * an der man beim Pool-Umzug nichts mehr suchen muss.
+ *
  * Die Row-Permissions bleiben explizit (mediaPermissionsFor) statt aus der Tür:
  * das Publikum hängt am `published`-Status, nicht am Mandanten — veröffentlichte
  * Galerie-Bilder sind bewusst read(any) (Gäste sehen die Galerie), Entwürfe
@@ -29,6 +43,9 @@ import { MEDIA_TABLE, MEDIA_BUCKET, MAX_MEDIA_BYTES, type MediaItem } from '../.
  * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
  * Das `await` ist Pflicht — ohne wäre der Gate fail-open.
  */
+/** Luft für Grenzmarken, Kopfzeilen und die Textfelder eines Multipart-Körpers. */
+const MULTIPART_OVERHEAD_BYTES = 64 * 1024
+
 function isImage(data: Buffer): boolean {
   if (data.length < 12) return false
   const jpeg = data[0] === 0xFF && data[1] === 0xD8 && data[2] === 0xFF
@@ -39,6 +56,26 @@ function isImage(data: Buffer): boolean {
 
 export default defineEventHandler(async (event) => {
   await requireCommunityPermission(event, 'media.manage')
+  await assertPoolWriteQuota(event, { kind: 'media', tableId: MEDIA_TABLE })
+
+  /**
+   * FRÜH ABWEISEN, bevor der Körper im Speicher liegt.
+   *
+   * `readMultipartFormData` puffert den GESAMTEN Request, erst danach kann die
+   * echte Größe geprüft werden — ein Skript könnte also beliebig oft 500 MB
+   * schicken und bekäme sein 413 erst, nachdem der Server sie gehalten hat.
+   * Content-Length ist Client-Angabe und deshalb KEIN Ersatz für die Prüfung
+   * unten (die bleibt die Wahrheit), aber ein ehrlicher Client spart sich damit
+   * den Upload und ein unehrlicher fliegt vor der Pufferung raus.
+   *
+   * Der Zuschlag deckt den Multipart-Rahmen (Grenzmarken, Kopfzeilen, die
+   * Textfelder) — ohne ihn würde eine Datei exakt an der Grenze fälschlich
+   * schon hier scheitern.
+   */
+  const declared = Number(getRequestHeader(event, 'content-length') ?? 0)
+  if (Number.isFinite(declared) && declared > MAX_MEDIA_BYTES + MULTIPART_OVERHEAD_BYTES) {
+    throw createError({ status: 413, statusText: 'File too large' })
+  }
 
   const form = await readMultipartFormData(event)
   const filePart = form?.find(part => part.name === 'file' && part.filename)
@@ -62,7 +99,7 @@ export default defineEventHandler(async (event) => {
   const alt = field('alt').slice(0, 300)
 
   const admin = createAdminClient(event)
-  const db = tenantDb(event, { as: 'operator' })
+  const db = tenantDb(event, { as: 'operator', actor: 'member' })
 
   const published = true
   const permissions = mediaPermissionsFor(event, published)

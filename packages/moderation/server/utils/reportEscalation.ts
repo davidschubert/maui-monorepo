@@ -1,5 +1,5 @@
 import type { H3Event } from 'h3'
-import { openReportsForTarget } from './reportQueries'
+import { countOpenReportsForTarget } from './reportQueries'
 
 /**
  * Report-Eskalations-Vertrag (A14): moderation zählt Meldungen, die
@@ -13,7 +13,9 @@ import { openReportsForTarget } from './reportQueries'
 export interface ReportEscalationContext {
   targetType: string
   targetId: string
-  /** Anzahl aktuell offener Meldungen zu diesem Target (inkl. der neuen) */
+  /** Anzahl aktuell offener Meldungen zu diesem Target (inkl. der neuen).
+   *  ECHTE Gesamtzahl (`total`), kein Fenster — sonst hätte ein Schwellwert
+   *  über der Fenstergröße nie gezündet (Befund 7). */
   openCount: number
 }
 
@@ -32,8 +34,8 @@ export async function runReportEscalation(event: H3Event, targetType: string, ta
   const registered = handlers.get(targetType)
   if (!registered?.length) return
   try {
-    const open = await openReportsForTarget(event, targetType, targetId)
-    const context: ReportEscalationContext = { targetType, targetId, openCount: open.length }
+    const openCount = await countOpenReportsForTarget(event, targetType, targetId)
+    const context: ReportEscalationContext = { targetType, targetId, openCount }
     for (const handler of registered) {
       await handler(event, context).catch((error) => {
         console.error(`[moderation] Report-Eskalations-Handler (${targetType}) fehlgeschlagen:`, error)

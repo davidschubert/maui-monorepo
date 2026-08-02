@@ -2,6 +2,7 @@ import { Permission, Role } from 'node-appwrite'
 import type { H3Event } from 'h3'
 import type { TenantContext } from '../../shared/types/tenant'
 import { communityContentIsPublic } from '../../shared/communityAudience'
+import { communityModeratorLabel } from '../../shared/communityModeratorLabel'
 import { useTenant } from './tenant'
 
 /**
@@ -27,12 +28,19 @@ import { useTenant } from './tenant'
  *  - 'public': jede/r (Role.any) — bewusst öffentliche Inhalte (z. B. ein
  *    öffentlicher Kommentar-Thread, ein öffentlich sichtbarer Beitrag).
  *
+ *  - 'moderators': NUR das Moderations-Team dieser Community (Pool:
+ *    Role.label(mod<communityId>); Silo/Single-Tenant: die globalen Betreiber-
+ *    Rollen admin/moderator, denn dort IST das Projekt die Grenze). Für Zeilen,
+ *    die ÜBER Menschen sprechen statt für sie: Meldungen (Moderations-Audit
+ *    Befund 1). Ein Mitglieder-Read wäre hier ein Leck, ein globales
+ *    Betreiber-Label im Pool eine offene Tür zu fremden Communities.
+ *
  *  ACHTUNG (C18): 'public' ist die ABSICHT DER ZEILE („dieser Beitrag ist
  *  veröffentlicht"), nicht die Entscheidung der Community. Ist die Community
  *  auf 'members' gestellt, wird daraus hier ein Mitglieder-Read — siehe
  *  tenantReadRolesFor(). Eine Zeile ohne Veröffentlichungs-Absicht (Entwurf,
  *  ausgeblendeter Kommentar) bleibt in BEIDEN Fällen zu. */
-export type RowReadAudience = 'members' | 'public'
+export type RowReadAudience = 'members' | 'public' | 'moderators'
 
 export interface TenantRowPermissionOptions {
   /** Wer die Zeile lesen darf. Default 'members' (fail-safe: nicht öffentlich). */
@@ -54,6 +62,26 @@ export interface TenantRowPermissionOptions {
  *  bewusst mitglieder-interne Zeile (Activity-Feed, Presence) wird durch eine
  *  öffentliche Community nie öffentlich. */
 export function tenantReadRolesFor(tenant: TenantContext | null, read: RowReadAudience): string[] {
+  /**
+   * 'moderators' steht VOR allem anderen und kennt die C18-Regel bewusst NICHT:
+   * die Öffentlichkeits-Entscheidung einer Community handelt von ihren
+   * INHALTEN. Eine Meldung ist kein Inhalt — sie bliebe auch in der offensten
+   * Community eine Sache zwischen Melder und Moderation.
+   */
+  if (read === 'moderators') {
+    if (tenant?.mode === 'pool') {
+      // Pool: nur das Team DIESER Community (abgeleitetes Label, vergeben von
+      // server/middleware/06.community-label.ts). Ohne bildbares Label
+      // fail-CLOSED — die Route liest ohnehin über den Admin-Client weiter,
+      // verloren geht nur die Live-Aktualisierung, nie die Grenze.
+      const label = communityModeratorLabel(tenant.communityId)
+      return label ? [Permission.read(Role.label(label))] : []
+    }
+    // Silo / Single-Tenant: das Projekt ist die Grenze, also sind die globalen
+    // Betreiber-Rollen genau die richtige (und einzige) Moderations-Autorität.
+    return [Permission.read(Role.label('admin')), Permission.read(Role.label('moderator'))]
+  }
+
   if (read === 'public' && communityContentIsPublic(tenant)) return [Permission.read(Role.any())]
   // 'members' — und jedes 'public' einer geschlossenen Community
   if (tenant?.mode === 'pool') {

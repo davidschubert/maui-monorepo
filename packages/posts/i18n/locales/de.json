@@ -57,6 +57,7 @@
       "report": "Melden",
       "reported": "Beitrag gemeldet — danke!",
       "reportedHint": "Die Moderation sieht sich die Meldung an. Eine Rückmeldung zu einzelnen Meldungen gibt es nicht.",
+      "reportAlready": "Du hast diesen Beitrag bereits gemeldet.",
       "reportFailed": "Meldung fehlgeschlagen.",
       "reportFailedHint": "Die Meldung kam nicht an. Versuch es noch einmal — bleibt es dabei, wende dich direkt an die Moderation.",
       "reasons": {

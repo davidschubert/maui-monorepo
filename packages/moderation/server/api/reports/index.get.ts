@@ -8,6 +8,24 @@ const PAGE_SIZE = 25
  * umgangen — bewusst, der Melder soll fremde Meldungen nicht sehen) und ist
  * per `reports.moderate` gated. Filter: status (default 'open', 'all' = alle),
  * optional targetType.
+ *
+ * WARUM SIE STEHT, OBWOHL KEINE SEITE SIE RUFT (Moderations-Audit Befund 9,
+ * 2026-08-01 — geprüft und BEHALTEN): die sichtbaren Queues gehören den
+ * Produkt-Layern (comments, posts), weil sie Meldung UND Inhalt nebeneinander
+ * zeigen müssen — moderation kennt weder Kommentare noch Beiträge (A14). Diese
+ * Route ist die TYP-AGNOSTISCHE Sicht des Layers, dem die Tabelle gehört, und
+ * sie hat zwei echte Aufgaben:
+ *
+ *  1. Sie ist die Autorisierungs-Probe der Beweis-Skripte: `verify-site-authz`
+ *     und `verify-community-suspension` prüfen an ihr, dass `reports.moderate`
+ *     an der Community klebt (Owner 200, Fremder 403). Sie zu löschen, hieße
+ *     diesen Beweis zu löschen.
+ *  2. Sie ist der Weg für jeden künftigen meldbaren Typ, der (noch) keine
+ *     eigene Queue hat — der Fall, an dem Events aufgelaufen sind (Befund 4).
+ *
+ * Sie ist also keine tote Oberfläche, sondern eine unbenutzte. Der Unterschied
+ * gehört hierher geschrieben, damit der nächste Audit nicht dieselbe Frage
+ * noch einmal stellt.
  */
 export default defineEventHandler(async (event): Promise<ReportListResponse> => {
   await requireCommunityPermission(event, 'reports.moderate')

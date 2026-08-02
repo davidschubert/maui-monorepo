@@ -32,7 +32,10 @@ export default defineEventHandler(async (event) => {
   const { optionIndex } = await readValidatedBody(event, voteSchema.parse)
   // Datentür als Operator (poll_votes haben bewusst keine User-Schreibrechte;
   // create stempelt den Mandanten, get/list belegen die Zugehörigkeit).
-  const db = tenantDb(event, { as: 'operator' })
+  // `actor: 'member'` (Audit-Befund 2026-08-01): die Klinke ist Technik, an einer
+  // Umfrage teilgenommen hat ein Mitglied. Die M13-Sperre nennt „Umfragen"
+  // ausdrücklich — über die Klinke lief die Stimme still daran vorbei.
+  const db = tenantDb(event, { as: 'operator', actor: 'member' })
 
   const post = await db.get<CommunityPost>(POSTS_TABLE, id, 'Post not found')
   if (post.type !== 'poll' || post.status !== 'published') {

@@ -151,37 +151,27 @@ async function share() {
   }
 }
 
-// ---- Melden (generischer moderation-Vertrag, targetType 'event') ----
-
-const REPORT_REASONS = ['spam', 'harassment', 'offtopic', 'other'] as const
-const reportBusy = ref(false)
-
-async function report(reason: string) {
-  reportBusy.value = true
-  try {
-    await $fetch('/api/reports', {
-      method: 'POST',
-      body: { targetType: 'event', targetId: event.value.$id, reason },
-    })
-    toast.add({ title: t('events.report.done'), description: t('events.report.doneHint'), color: 'success' })
-  }
-  catch (error) {
-    const statusCode = (error as { statusCode?: number }).statusCode
-    toast.add({
-      title: statusCode === 409 ? t('events.report.already') : t('events.report.failed'),
-      description: statusCode === 409 ? undefined : t('events.report.failedHint'),
-      color: statusCode === 409 ? 'info' : 'error',
-    })
-  }
-  finally {
-    reportBusy.value = false
-  }
-}
-
-const reportItems = computed(() => REPORT_REASONS.map(reason => ({
-  label: t(`events.report.reasons.${reason}`),
-  onSelect: () => report(reason),
-})))
+/**
+ * ── KEIN MELDE-KNOPF FÜR EVENTS (Moderations-Audit Befund 4, 2026-08-01) ─────
+ *
+ * Hier stand einer. Er schickte `targetType: 'event'` an /api/reports und
+ * zeigte danach „Die Moderation sieht sich die Meldung an." Das stimmte nicht:
+ * kein Eskalations-Handler kennt den Typ 'event', und keine Queue fragt ihn ab
+ * (comments fragt 'comment', posts fragt 'post'). Die Zeile entstand, wurde
+ * gezählt — und nie von einem Menschen gesehen.
+ *
+ * Die ehrliche Lösung wäre eine Moderations-Queue für Events. Die ist NICHT
+ * klein: Events kennen nur draft/published/cancelled, es fehlt also der
+ * Moderations-Zustand (Migration + Schema + Filter), dazu eine eigene
+ * Capability `events.moderate`, eine Queue-Route, eine Dashboard-Seite und ihre
+ * Texte. Das ist ein Feature, kein Fix — es steht als F-Zeile in
+ * docs/OPEN-ITEMS.md.
+ *
+ * Bis dahin gilt: lieber kein Knopf als ein Knopf, der ins Leere meldet.
+ * Meldbare Ziel-Typen registrieren ihre Layer seitdem ausdrücklich
+ * (registerReportTarget) — ein wiederbelebter Knopf ohne Queue liefe jetzt in
+ * ein 400 statt in eine stille Karteileiche.
+ */
 
 /** Gäste: geblurte Platzhalter statt echter Teilnehmer */
 const placeholderCount = computed(() => Math.min(event.value.attendeeCount, 8))
@@ -393,15 +383,6 @@ const start = computed(() => new Date(event.value.startAt))
 
         <div class="mt-4 flex items-center gap-3">
           <EventVoteButtons :event="event" :my-vote="myVote" @updated="onVoted" />
-          <UDropdownMenu v-if="isLoggedIn" :items="reportItems">
-            <UButton
-              color="neutral" variant="ghost" size="xs" icon="i-ph-flag"
-              :loading="reportBusy"
-              data-testid="event-report"
-            >
-              {{ t('events.report.cta') }}
-            </UButton>
-          </UDropdownMenu>
         </div>
 
         <h2 class="mt-8 mb-2 font-semibold">{{ t('events.detail.details') }}</h2>

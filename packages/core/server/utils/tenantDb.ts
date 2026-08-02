@@ -20,12 +20,33 @@ import { COMMUNITY_SUSPENDED_CODE, memberWritesAllowedFor } from '../../shared/c
  * immer. Produkt-Code kann die Grenze nicht mehr vergessen, weil er sie nicht
  * mehr selbst zieht.
  *
- * ZWEI TÜRKLINKEN, EINE TÜR:
+ * ZWEI TÜRKLINKEN, EINE TÜR (`as` — WELCHER CLIENT fragt):
  *  - `as: 'member'` (Default) → Session-Client. Appwrite prüft zusätzlich die
  *    Row-Permissions; der Filter ist das Netz darunter.
  *  - `as: 'operator'` → Admin-Client, für Moderation/Betreiber-Sicht. Der
  *    umgeht die Row-Permissions ABSICHTLICH — hier ist die Prüfung dieser Tür
  *    die EINZIGE Grenze, deshalb ist sie nicht optional.
+ *
+ * UND DAVON GETRENNT: WER HANDELT (`actor`, Audit-Befund vom 2026-08-01).
+ *
+ * Die Klinke war nie als Aussage über den Handelnden gemeint — sie sagt nur,
+ * mit welchen Zugangsdaten Appwrite angesprochen wird. Trotzdem hingen zwei
+ * FACHLICHE Regeln an ihr: die Inhalts-Sperre (M13) und der Beitritts-Auslöser
+ * (A5). Das ging genau so lange gut, wie „Admin-Client" und „Betreiber handelt"
+ * dasselbe waren — und das sind sie nicht. Viele Routen wählen `'operator'`
+ * NUR aus technischen Gründen: weil die Tabelle bewusst keine
+ * User-Schreibrechte trägt (media_items, event_rsvps, poll_votes,
+ * enrollments), oder weil ein Gast gar keine Sitzung hat. Der HANDELNDE ist
+ * dort ein Mitglied, ein Redakteur oder ein Gast — und meldete sich mit der
+ * Klinken-Wahl still von beiden Regeln ab.
+ *
+ * Deshalb zwei Angaben statt einer:
+ *  - `as`    = mit welchen Zugangsdaten (Technik),
+ *  - `actor` = wer handelt (Fachlichkeit): 'member' | 'guest' | 'operator'.
+ *
+ * `actor` fällt auf `as` zurück. Alles, was nur `as` setzt, verhält sich also
+ * unverändert — und wer `as: 'operator'` braucht, obwohl ein Mensch aus der
+ * Community handelt, muss das jetzt HINSCHREIBEN statt es zu erben.
  *
  * NICHT durch die Tür gehen (bewusst): Migrationen, Sweeps, GDPR-Orchestrierung
  * und alles, was per Definition über Mandanten hinweg arbeitet. Diese Stellen
@@ -43,11 +64,44 @@ type RowDataUpdate<T extends Models.Row> = T extends Models.DefaultRow
   ? Partial<Models.Row> & Record<string, unknown>
   : Partial<Models.Row> & Partial<Omit<T, keyof Models.Row>>
 
-export type TenantDbActor = 'member' | 'operator'
+/** WELCHER CLIENT fragt — die Türklinke, eine reine Technik-Wahl. */
+export type TenantDbHandle = 'member' | 'operator'
+
+/**
+ * WER HANDELT — die fachliche Angabe, an der Inhalts-Sperre und Beitritt hängen.
+ *
+ * `'guest'` ist keine Spielart von `'member'`: ein Gast schreibt Inhalt (fällt
+ * also unter die Sperre), wird davon aber nie Mitglied — er hat kein Konto,
+ * dem eine Mitgliedschaft gehören könnte.
+ */
+export type TenantDbActor = 'member' | 'guest' | 'operator'
 
 export interface TenantDbOptions {
-  /** Wer zugreift. Default 'member' (Session-Client). */
-  as?: TenantDbActor
+  /** Mit welchen Zugangsdaten. Default 'member' (Session-Client). */
+  as?: TenantDbHandle
+  /** Wer handelt. Default = `as` — alles Bestehende bleibt damit unverändert. */
+  actor?: TenantDbActor
+}
+
+/**
+ * PURE (unit-getestet): Unterliegt dieser Handelnde der Inhalts-Sperre (M13)?
+ *
+ * Alle außer dem Betreiber. Davids Grenze lautet „zu ist der INHALT, offen
+ * bleiben Branding/Team/Publikum/Registrierung/Moderation" — Moderation und
+ * Betreiber-Sicht sind genau `'operator'`, alles andere schreibt Inhalt.
+ */
+export function actorFacesContentLock(actor: TenantDbActor): boolean {
+  return actor !== 'operator'
+}
+
+/**
+ * PURE (unit-getestet): Wird dieser Handelnde durch sein Schreiben Mitglied (A5)?
+ *
+ * NUR `'member'`. Ein Gast hat kein Konto (der Beitritt hätte niemanden, dem er
+ * gehört), ein Betreiber handelt nicht in eigener Sache.
+ */
+export function actorJoinsByWriting(actor: TenantDbActor): boolean {
+  return actor === 'member'
 }
 
 export interface TenantCreateOptions extends TenantRowPermissionOptions {
@@ -77,11 +131,14 @@ export function stripTenantKey<T extends Record<string, unknown>>(data: T): T {
 export function tenantDb(event: H3Event, options: TenantDbOptions = {}) {
   const config = useRuntimeConfig(event)
   const databaseId = config.public.appwriteDatabaseId
-  const actor: TenantDbActor = options.as ?? 'member'
+  const handle: TenantDbHandle = options.as ?? 'member'
+  // Ohne eigene Angabe handelt, wem die Zugangsdaten gehören — dieselbe
+  // Bedeutung wie vor der Trennung.
+  const actor: TenantDbActor = options.actor ?? handle
   const tenant = useTenant(event)
 
   // Die Client-Wahl ist der EINZIGE Unterschied zwischen den Türklinken.
-  const tablesDB = actor === 'operator'
+  const tablesDB = handle === 'operator'
     ? createAdminClient(event).tablesDB
     : createSessionClient(event).tablesDB
 
@@ -97,10 +154,13 @@ export function tenantDb(event: H3Event, options: TenantDbOptions = {}) {
    * Durch diese Tür geht JEDER eigene Schreibvorgang eines Mandanten-Layers —
    * anlegen, ändern, löschen, hoch- und runterzählen, umrechten.
    *
-   * NUR die Türklinke 'member': `as: 'operator'` ist Moderation und
-   * Betreiber-Sicht (auch recordActivity läuft so). Eine gesperrte Community
-   * muss weiter moderierbar bleiben — sonst nähme die Zahlungserinnerung dem
-   * Betreiber sein eigenes Werkzeug aus der Hand.
+   * NUR der HANDELNDE zählt, nicht die Klinke (Audit-Befund 2026-08-01):
+   * `actor: 'operator'` ist Moderation und Betreiber-Sicht (auch recordActivity
+   * läuft so) und kommt durch — eine gesperrte Community muss weiter
+   * moderierbar bleiben, sonst nähme die Zahlungserinnerung dem Betreiber sein
+   * eigenes Werkzeug aus der Hand. Mitglieder UND Gäste schreiben Inhalt und
+   * sind zu. Vorher hing das an `as`, und damit meldete sich jede Route ab, die
+   * den Admin-Client aus technischen Gründen brauchte.
    *
    * 403 mit `data.code` statt 404: hier ist NICHTS versteckt. Der Schreibende
    * darf und soll erfahren, warum sein Beitrag nicht durchgeht — der zentrale
@@ -108,7 +168,7 @@ export function tenantDb(event: H3Event, options: TenantDbOptions = {}) {
    * macht daraus einen Satz.
    */
   function assertWritable(): void {
-    if (actor !== 'member') return
+    if (!actorFacesContentLock(actor)) return
     if (memberWritesAllowedFor(tenant)) return
     throw createError({
       status: 403,
@@ -180,9 +240,12 @@ export function tenantDb(event: H3Event, options: TenantDbOptions = {}) {
        * es jemandem auffällt. Durch diese Tür geht JEDER eigene Schreibvorgang
        * eines Mandanten-Layers, also ist sie die vollständige Liste.
        *
-       * NUR die Türklinke 'member': `as: 'operator'` ist Moderation und
-       * Betreiber-Sicht (auch recordActivity läuft so) — dort handelt nicht die
-       * Person, um deren Mitgliedschaft es geht.
+       * NUR der HANDELNDE zählt, nicht die Klinke: `actor: 'operator'` ist
+       * Moderation und Betreiber-Sicht (auch recordActivity läuft so) — dort
+       * handelt nicht die Person, um deren Mitgliedschaft es geht. Und ein
+       * `actor: 'guest'` tritt NIE bei: er hat kein Konto, dem eine
+       * Mitgliedschaft gehören könnte (der Gast-Kommentar ist trotzdem Inhalt
+       * und fällt eine Zeile darüber unter die Sperre).
        *
        * VOR dem Anlegen, nicht danach: das frische Label soll schon gelten, wenn
        * Appwrite die Row-Permissions dieser Zeile auswertet — sonst könnte der
@@ -191,7 +254,7 @@ export function tenantDb(event: H3Event, options: TenantDbOptions = {}) {
        * Wirft nie und blockiert nie: joinCommunity() schluckt jeden Fehler
        * ('unavailable'). Ein Beitritt darf keinen Kommentar kosten.
        */
-      if (actor === 'member') await joinCommunity(event, 'contribution')
+      if (actorJoinsByWriting(actor)) await joinCommunity(event, 'contribution')
 
       return tablesDB.createRow<T>({
         databaseId,

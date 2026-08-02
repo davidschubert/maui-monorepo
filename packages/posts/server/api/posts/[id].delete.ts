@@ -32,7 +32,11 @@ export default defineEventHandler(async (event) => {
 
   // Datentür als Operator (Permission-Entzug ist autoritativ) — get belegt
   // die Zugehörigkeit: ein fremder Mandant bekommt 404, nie die Row.
-  const db = tenantDb(event, { as: 'operator' })
+  // `actor: 'member'` (Audit-Befund 2026-08-01): gehandelt hat der AUTOR an
+  // seinem eigenen Beitrag, nicht der Betreiber (Moderation läuft über
+  // hide.post.ts). Damit gilt hier dieselbe Sperre wie beim Löschen eines
+  // eigenen Kommentars, das schon immer über die Mitglieds-Klinke lief.
+  const db = tenantDb(event, { as: 'operator', actor: 'member' })
 
   const row = await db.get<CommunityPost>(POSTS_TABLE, id, 'Post not found')
   const { canDelete } = decidePostAuthorAction(

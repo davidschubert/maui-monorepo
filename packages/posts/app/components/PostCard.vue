@@ -92,8 +92,19 @@ async function reportPost(reason: string) {
     })
     toast.add({ title: t('posts.card.reported'), description: t('posts.card.reportedHint'), color: 'success' })
   }
-  catch {
-    toast.add({ title: t('posts.card.reportFailed'), description: t('posts.card.reportFailedHint'), color: 'error' })
+  catch (error) {
+    /**
+     * SCHON GEMELDET ist kein Fehlschlag (Moderations-Audit Befund 3,
+     * 2026-08-01): die Route antwortet dafür seit dem Audit 409 mit
+     * `reason: 'already_reported'`. Ohne diesen Zweig stünde hier „Die Meldung
+     * kam nicht an" — falsch, sie liegt längst vor. Die Karte hat (anders als
+     * ReportButton) keinen „bereits gemeldet"-Zustand; ein Hinweis ist deshalb
+     * die ganze richtige Antwort.
+     */
+    const already = (error as { data?: { reason?: string } })?.data?.reason === 'already_reported'
+    toast.add(already
+      ? { title: t('posts.card.reportAlready'), color: 'info' as const }
+      : { title: t('posts.card.reportFailed'), description: t('posts.card.reportFailedHint'), color: 'error' as const })
   }
 }
 

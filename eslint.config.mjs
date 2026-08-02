@@ -103,6 +103,11 @@ export default createConfigForNuxt({
     'packages/media/server/plugins/**',
     'packages/activity/server/api/**',
     'packages/activity/server/plugins/**',
+    // admin kam am 2026-08-01 dazu (Audit-Befund): der Layer besitzt zwar keine
+    // mandantenfähigen Tabellen, seine Routen LESEN aber fremde (die
+    // Nutzer-Detailseite zog `comments` ungescopt pool-weit). Wer in einer
+    // host-gebundenen Ansicht fremde Zeilen liest, gehört hinter dieselbe Tür.
+    'packages/admin/server/api/**',
   ],
   rules: {
     'no-restricted-syntax': ['error',
@@ -111,5 +116,35 @@ export default createConfigForNuxt({
       { selector: 'ObjectPattern > Property[key.name="tablesDB"]',
         message: 'Kein Destructuring von tablesDB aus den Client-Factories — Datenzugriff über tenantDb(event) (CLAUDE.md).' },
     ],
+  },
+}).append({
+  /**
+   * DIE BETREIBER-TABELLEN DES ADMIN-LAYERS — EINE Begründung statt zwanzig
+   * eslint-disable-Zeilen.
+   *
+   * `app_config`, `custom_themes`, `custom_fonts`, `changelog` und `audit_log`
+   * sind PROJEKT-global, nicht mandantenfähig: sie tragen keine
+   * `communityId`-Spalte, und im Pool gilt bewusst EINE Zeile für das ganze
+   * Projekt (CLAUDE.md: „`app_config.themeSettings` ist EINE Row pro Projekt").
+   * Die Tür hätte hier nichts zu scopen — sie würde nur `list` mit einem Filter
+   * auf eine Spalte belegen, die es nicht gibt.
+   *
+   * Der Ausschluss ist deshalb nach TABELLE begründet und nach ORDNER gezogen,
+   * und er ist eng: alles ANDERE unter `packages/admin/server/api/**` trifft die
+   * Regel weiterhin. Wer hier eine neue Route mit rohem tablesDB anlegt, muss
+   * also erst entscheiden, ob seine Tabelle wirklich in diese Aufzählung
+   * gehört — genau die Entscheidung, die bei der Nutzer-Detailseite ausgefallen
+   * ist.
+   */
+  files: [
+    'packages/admin/server/api/admin/config.patch.ts',
+    'packages/admin/server/api/admin/audit.get.ts',
+    'packages/admin/server/api/admin/products/**',
+    'packages/admin/server/api/admin/changelog/**',
+    'packages/admin/server/api/admin/fonts/**',
+    'packages/admin/server/api/admin/themes/**',
+  ],
+  rules: {
+    'no-restricted-syntax': 'off',
   },
 })

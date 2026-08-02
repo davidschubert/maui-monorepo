@@ -11,6 +11,7 @@
       "success": "Danke, deine Meldung ist eingegangen.",
       "successDescription": "Ein Moderator sieht sie sich an. Du kannst sie jederzeit wieder zurückziehen.",
       "retracted": "Meldung zurückgezogen.",
+      "already": "Du hast das bereits gemeldet.",
       "error": "Meldung fehlgeschlagen.",
       "submitFailedDescription": "Deine Meldung wurde nicht gespeichert. Prüfe deine Verbindung und versuche es erneut.",
       "retractFailedDescription": "Deine Meldung ist weiterhin aktiv. Prüfe deine Verbindung und versuche es erneut."

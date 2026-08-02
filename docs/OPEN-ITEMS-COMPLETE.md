@@ -78,6 +78,7 @@ Der Stichtag bleibt stehen (Momentaufnahme); H3 steht seit 2026-07-31 auf
 | C0c | ✅ **ERLEDIGT — war schon auf prod, die Zeile war veraltet** (nachgeprüft 2026-07-29). `system-022` (`notifications.tenantId` + `idx_recipient_tenant`) liegt auf **allen vier** Instanzen mit Datenebene: `control`, `pool`, `comments`, `portfolio` — je 8 Spalten, `tenantId` mit Status `available`, 4 Indizes inklusive `idx_recipient_tenant` (gelesen über `listColumns`/`listIndexes` gegen `https://api.pukalani.app/v1` mit den Migrations-Keys). Das Rückfall-Fenster, vor dem diese Zeile warnte, hat es also nie gegeben. `notifications` ist auf allen vier noch leer (0 Zeilen) — die Glocke ist jung, ein Backfill wäre ohnehin gegenstandslos. **Gelernt:** Eine Warnung in einer To-do-Liste ist eine BEHAUPTUNG, bis jemand nachmisst. Diese hier warnte vor einem Rückfall-Fenster, das es nie gab. Vor dem Handeln immer den Ist-Zustand gegen die Instanz lesen (`listColumns`/`listIndexes`), nicht gegen die Notiz. | 2026-07-29 | C15 |
 | C1 | ✅ **ERLEDIGT 2026-07-28** — `/api/admin/stats\|analytics` gaten über `await requireSitePermission(event, 'dashboard.access')` statt label-only. Bewusst diese Capability: sie ist die Eintrittskarte, die alle fünf Site-Rollen auf die Übersicht bringt — enger gegated bliebe die Seite für Editor und Viewer leer, der Befund wäre nur verschoben. Kennzahl-genau geklemmt: `commentsReported` nur mit `comments.moderate` (offene Meldungen sind Moderations-Wissen), `usersTotal`/`usersInRange` bleiben im Pool `null` wie gehabt — Karte bzw. Balkenreihe entfallen dann, statt eine fremde Zahl zu zeigen. Mitgenommen: **Audit S2** — die Übersicht gatet ihre Widgets jetzt einzeln (Schnellmoderation `comments.moderate`, Aktivität `audit.read`, Speicher `storage.manage`), inklusive `immediate`, damit für Site-Rollen keine vorhersehbaren 403-Fetches mehr rausgehen. Beweise: `packages/admin/tests/dashboard-stats-authz.test.ts` (11 Fälle) + live 30/30 in `verify-site-authz.mjs` (neuer Abschnitt 6b: Owner 200, Fremder 403, Gast 401). | 2026-07-28 | Pool-Audit N8 |
 | C1b | ✅ **ERLEDIGT 2026-07-28** — media und activity gehen durch die Datentür. Migrationen: **media-003** (`media_items.tenantId` + idx_tenant_published_order) und **system-021** (`activities.tenantId` + idx_tenant), beide additiv/ruhend ohne Backfill ('' = Silo, im Pool fail-closed). Alle sechs `server/api`-Routen über `tenantDb(event)`, `as:'operator'` nur wo fachlich nötig (Entwurfs-Rows ohne breites Leserecht, Rows ohne Schreibrechte) und je Fall am Code begründet. Auch die Helfer außerhalb des Backstops: `applyMediaVisibility` prüft selbst, `recordActivity` (core) stempelt Mandant + Site-Label statt `read(users)` — sonst hätte im Pool jedes Mitglied den Feed aller Communities bekommen, auch über Realtime. Der Activity-Realtime-Stream filtert zusätzlich clientseitig (`useTenantId`). ESLint-Backstop auf beide Layer erweitert; Isolationsbeweise `packages/{media,activity}/tests/tenant-isolation.test.ts` gegen echte Appwrite grün. **Prod-Migrationen nachgezogen mit C0b (2026-07-29).** **Ein Rest, kein Leck**: Entwurfs-DATEIEN im Bucket tragen nur den globalen Operator-Read — im Pool könnte die Redaktion einer Kunden-Site ihre eigenen Entwürfe nicht vorschauen; Richtung (server-seitige Vorschau-Route) steht in `media/server/utils/mediaPermissions.ts`. **Gelernt:** Der ESLint-Backstop gegen rohes `.tablesDB` griff nur in `server/api/**` — der Stats-Contributor von comments liegt aber in `server/plugins/**` und zählte deshalb ungebremst pool-weit in eine Kunden-Ansicht. Wer einen `H3Event` bekommt, bedient einen REQUEST und gehört hinter dieselbe Tür wie eine Route. Zweitens: `recordActivity` stempelte `read(users)` — im Pool hätte damit jedes Mitglied den Feed ALLER Communities bekommen, auch über Realtime. Helfer außerhalb des Backstops sind die gefährlichsten Stellen. | 2026-07-28 | Dashboard-Audit S3 |
+| C1c | ✅ **ERLEDIGT 2026-08-01** — **die Türklinke sagt nicht mehr, wer handelt.** `tenantDb(event)` hatte bis hierher EINE Angabe (`as: 'member' \| 'operator'`), und die entschied dreierlei auf einmal: welcher Appwrite-Client fragt, ob die Inhalts-Sperre (M13) greift, und ob das Schreiben eine Mitgliedschaft auslöst (A5). Das ging nur so lange gut, wie „Admin-Client" und „Betreiber handelt" dasselbe waren — und das sind sie nicht: viele Routen brauchen den Admin-Client aus rein TECHNISCHEN Gründen (`media_items`, `poll_votes`, `event_rsvps`, `enrollments` tragen bewusst keine User-Schreibrechte; ein Gast hat gar keine Sitzung). Sie meldeten sich damit still von Sperre UND Beitritt ab. **Neu:** `as` = mit welchen Zugangsdaten, `actor: 'member' \| 'guest' \| 'operator'` = wer handelt, Default `actor = as` — alles Bestehende verhält sich unverändert, und wer den Admin-Client braucht, obwohl ein Mensch aus der Community handelt, muss es HINSCHREIBEN. Zwei pure Regeln (`actorFacesContentLock`, `actorJoinsByWriting`) statt zweier `=== 'member'`-Vergleiche im Rumpf. Umgestellt: die vier Medien-Wege (Upload, Metadaten/Veröffentlichen, Löschen, `applyMediaVisibility`) auf `actor: 'member'`; der Gast-Kommentar auf `actor: 'guest'` — INHALT (fällt unter die Sperre), aber kein Beitritt (ein Gast hat kein Konto, dem eine Mitgliedschaft gehören könnte). Genau diese beiden Antworten ließen sich mit einer einzigen Angabe nicht geben. **Dabei gefunden und mitgefixt:** die M13-Zusage nennt „Kommentare, Beiträge, Umfragen, Zu- und Absagen, Kursfortschritt" — von diesen fünf war nur der erste wirklich zu. Umfrage-Stimme, Beitrags-Löschung durch den Autor, Event-Zu-/Absage, Kurs-Einschreibung und Lektions-Abschluss liefen alle über die Operator-Klinke an der Sperre vorbei. **Mitgenommene Befunde:** media hatte als einziger Inhalts-Layer kein Quota-Gate (jetzt `kind: 'media'`, heute No-Op wie courses/events) und kein Rate-Limit (jetzt `media:upload`, 30/min — der einzige Weg, der Binärdaten auf die geteilte Platte legt) und puffert große Uploads nicht mehr blind (Content-Length-Vorprüfung vor `readMultipartFormData`) · `applyMediaVisibility` versuchte die zweite Phase nicht erneut und schwieg beim Scheitern — jetzt ein Retry plus lautes Log (Muster Zwei-Phasen-Hide), denn in BEIDEN Richtungen ist die Datei die offene Seite · `/api/comments/count` ist seit C18 nicht mehr für alle dieselbe Zahl (in einer members-Community sieht ein Mitglied mehr als ein Gast) und cachte sie trotzdem 30 s user-agnostisch und gab sie mit `Access-Control-Allow-Origin: *` an jede fremde Seite: die Route antwortet dort jetzt 404 (F4-Muster) statt den Cache-Schlüssel zu flicken — eine geschlossene Community soll ihre Zahlen gar nicht erst cross-origin veröffentlichen, und danach ist der Cache wieder ehrlich · `guest_authors` war schreib-only ohne Löschpfad: 90-Tage-Frist wie bei den Melder-Adressen, hier fällt die ganze Zeile (sie ist nur ein Rückfragekanal, kein Beleg) · die letzte rohe `.tablesDB`-Stelle in `server/api/**` (Nutzer-Detailseite las `comments` pool-weit) geht durch die Tür, und `packages/admin/server/api/**` steht jetzt im ESLint-Backstop — mit EINER begründeten Ausnahme für die projekt-globalen Betreiber-Tabellen statt zwanzig Einzelzeilen. **Beweise:** neue Unit-Tests für die Trennung (inkl. „Gast löst keinen Beitritt aus" und „Moderation kommt durch die Sperre"), Quelltext-Anker für die fünf Routen, `verify-community-suspension.mjs` um 5 Fälle erweitert → **62/62 grün** (Umfrage-Stimme ist ZU mit `reason: community_suspended`, Moderation SCHREIBT weiter), Pool-Isolation comments 13/13 · events 14/14 · courses 28/28, `count` live: öffentliche Community 200, members-Community 404, `pnpm -r test` (1156) · typecheck · lint · check:manifests · check:single-copy grün. **Gelernt:** Die Türklinke war nie als Aussage über den HANDELNDEN gemeint — sie beschreibt nur, mit welchen Zugangsdaten Appwrite angesprochen wird. Zwei fachliche Regeln daran zu hängen war bequem und genau so lange richtig, wie sich niemand aus technischen Gründen für den Admin-Client entscheiden musste. Wer eine Regel an einen Parameter hängt, muss prüfen, ob dieser Parameter die Frage der Regel überhaupt beantwortet; sonst wird jede spätere technische Notwendigkeit zur stillen Ausnahme von einer fachlichen Zusage. Und: eine Zusage, die eine Aufzählung enthält („Kommentare, Beiträge, Umfragen, Zu- und Absagen, Kursfortschritt"), ist ein Prüfauftrag — vier von fünf Punkten stimmten nicht. | 2026-08-01 | Datentür-Audit |
 | C9 | ✅ **ERLEDIGT 2026-07-28** — Ursache war **keine** CI-Eigenheit und **nicht** die localhost-Falle: der Test war schlicht veraltet. Seit **E4** (Gast-Kommentare, 23.07.) steht der Zweig `data-guest-composer` im `v-else-if`-Band VOR `data-embed-login` und verdrängt ihn, sobald `pukalani.comments.embed.guests` an ist — der gesuchte Knopf `[data-embed-login] button` existierte seither nie. Lokal exakt reproduzierbar (also kein Umgebungsunterschied); ältester noch abrufbarer Lauf (26.07.) zeigt dieselbe Signatur. Zwei Änderungen: (1) der Popup-Login-Knopf trägt in BEIDEN Gast-Zweigen den Haken `data-embed-login-cta`, die Spec hängt am Knopf statt am Container; (2) der Test bekommt ein Budget von 150 s — mit den 30 s Standard riss er auf einem kalten Server schon im ersten Warteschritt ab und meldete „Hydration-Zeitüberschreitung" statt des echten Fehlers, was die Diagnose tagelang in die falsche Ecke schickte. Beim Nachmessen kam ein **zweiter**, echter Grund dazu — der Kaltstart des **Dev**-Servers, gegen den die Suite fährt (auch in CI): er kompiliert jede Route beim ersten Zugriff (kalt gemessen `/` gut 25 s, `/embed` samt Client-Bundle über 30 s). Das riss (a) das 30-s-Standardbudget von `realtime` und `embed-write` und (b) die harte 10-s-Kante in `public/embed.js`, die das iframe **endgültig** versteckt (`display:none` + „Comments could not be loaded"), wenn das Widget keine Höhe meldet — gedacht für den CSP-geblockten Einbetter, aber die Höhe kommt erst aus `onMounted`. Danach heilt kein Warten mehr. Deshalb drei Maßnahmen, jede an einer gemessenen Kante: Test-Budget global auf 90 s (embed-write 240 s, es fährt drei Dokumente hoch); beide Embed-Specs rufen `/embed` einmal **im Browser** auf und warten dort bis zur **Hydration**, bevor die Hostseite lädt (ein SSR-Abruf oder ein `goto` bis `load` lässt den Client-Graph unfertig — beides nachgemessen, beides reichte nicht); und die Lebendigkeits-Wartezeiten der Handoff-Kette stehen auf 60 s, weil `/api/auth/login\|embed-handoff\|embed-session` ebenfalls erst beim ersten Aufruf kompilieren. Ohne das war die Suite nur noch dank `retries: 1` grün, also „flaky" statt verlässlich. **Drittens** zeigte sich, dass der lange als „hängt halt 5 Minuten, nicht killen" abgetane Playwright-Teardown-Hang kein harmloses Warten ist: Playwright force-killt jeden Worker nach 300 s und zählt das als Fehler **ausserhalb jedes Tests** — Exit-Code 1 bei komplett grüner Suite. Das trifft **nur lokal** (macOS); in CI läuft dieselbe Suite in ~1,6 min sauber durch, dort taucht die Meldung nie auf. Naheliegende Ursache (die Test-eigenen `node:http`-Hostserver hielten Keep-alive-Sockets, `close()` wartete darauf) ist behoben — `closeAllConnections()` vor `close()`, richtige Hygiene —, **erklärt den Hang aber nicht**: er trifft auch Worker, die nie einen solchen Server hatten. Lokale Ursache bleibt offen (→ E7). Damit ein übersprungener Fall nicht mehr still verschwindet, läuft in CI zusätzlich der `list`-Reporter (der `github`-Reporter meldet nur „9 skipped" als Zahl). **Was der Job künftig fängt / was nicht**: siehe Notiz unter der Tabelle. **Gelernt (der lehrreichste Eintrag der ganzen Liste):** (1) Der E2E-Job war über EINEN TAG rot, ohne dass es jemand merkte — seither gehört `gh run list --branch main` in jeden Durchgang, die lokale Konsole reicht nicht. (2) Ein Test-Haken gehört ans **handelnde Element**, nie an einen Container: ein Config-Gate tauschte den Zweig aus, der Container blieb, der Knopf verschwand. (3) Ein zu knappes Zeitbudget meldet eine Zeitüberschreitung an BELIEBIGER Stelle statt der echten Ursache — das schickte die Diagnose tagelang in die falsche Ecke. (4) `retries: 1` macht aus einem echten Fehler ein „flaky" — grün, aber wertlos. (5) Ein Reporter, der nur „9 skipped" als Zahl meldet, versteckt übersprungene Fälle; deshalb zusätzlich der `list`-Reporter. (6) Ein „hängt halt fünf Minuten"-Verhalten kann ein Exit-Code-1 sein: Playwright force-killt Worker nach 300 s und zählt das als Fehler AUSSERHALB jedes Tests. | 2026-07-28 | CI-Beobachtung 28.07. |
 | C10 | ✅ **ERLEDIGT — beim Nachmessen am 2026-07-30 bereits gebaut.** Der Bestätigungs-Vertrag existiert als `packages/core/app/composables/useConfirm.ts` und wird an **10** Stellen benutzt (`await confirm({...})`: Übersicht, System, Speicher, GDPR-Exporte, Changelog, Nutzer ×2, Embed, Kommentare …). Natives `window.confirm()` kommt im ganzen Repo nur noch EINMAL vor — im Docstring von `useConfirm.ts`, der beschreibt, was es ersetzt hat. Auch die Doppelklick-Sperren sind da (`saving`-Guard in `media.vue`, mit „Audit-Befund C10" annotiert). **Gelernt:** Ein Audit-Befund altert. Zwischen Befund und Abarbeitung lag hier die Umsetzung — wer ihn ungeprüft „abgearbeitet" hätte, hätte eine zweite Lösung neben die bestehende gebaut. Jeden Befund vor dem Fixen am Code nachmessen. | 2026-07-30 | Dashboard-Audit, UI-Hebel 2 |
 | C11 | ✅ **ERLEDIGT — beim Nachmessen am 2026-07-30 bereits gebaut.** Der Baustein heißt `packages/core/app/components/core/EmptyState.vue` (= `<CoreEmptyState>`) und steht in **22** Dateien. Die Zeile suchte nach `UEmpty` und fand deshalb nichts — die Hausform ist die eigene Komponente, nicht die Nuxt-UI-Variante; CLAUDE.md führt sie inzwischen als Standard („Leerer Zustand über CoreEmptyState"). **Gelernt:** Eine Suche nach dem FREMDEN Namen (`UEmpty`) findet die Hausform nie. Wer prüft, ob ein Muster existiert, muss nach der Sache suchen, nicht nach der Schreibweise, die er erwartet — sonst meldet das Audit eine Lücke, die keine ist. | 2026-07-30 | Dashboard-Audit, UI-Hebel 1 |
@@ -1965,3 +1966,159 @@ laufen als eigenständige `node --experimental-strip-types`-Prozesse, die
 Auflösung ist relativ zur DATEI. Unit-Tests sehen davon nichts — die billige
 Gegenprobe ist, jede Datei einmal ohne Env-Variablen zu starten: lädt sie und
 bricht sie regulär an der Env-Prüfung ab, stimmt der Pfad.
+
+---
+
+### Moderations-Audit gefixt ✅ 2026-08-01
+
+Neun Befunde über `packages/moderation` (Melde-Weg), alle **vorher am Code
+reproduziert**, dann behoben. Zwei davon waren echte Grenz-Fehler, einer eine
+Lüge in der Oberfläche, der Rest Nachlauf und tote Verzweigungen.
+
+**1 (MEDIUM, Isolation + kaputtes Feature) — `reports` war die einzige
+Pool-Tabelle ohne zweite Verteidigungslinie.** `/api/reports` setzte seine
+Row-Permissions von Hand und benutzte dafür die GLOBALEN Betreiber-Labels
+`read("label:admin")` / `read("label:moderator")` statt der zentralen
+Permission-Bildung. Falsch nach **beiden** Seiten: ein Kunden-Moderator trägt
+diese Labels nicht (seine Rolle steht in `community_members`) — Appwrite lieferte
+ihm also **keine Realtime-Ereignisse**, während der Kommentar in
+`dashboard/comments.vue` „live" behauptete; und wer ein globales Label trägt, las
+per Realtime die Meldungen **aller** Communities des geteilten Pool-Projekts.
+
+Die Antwort war nicht „dieselbe Bildung wie überall", denn keins der beiden
+vorhandenen Publika passt: `read("label:<communityId>")` wäre **jedes Mitglied**
+(eine Meldung nennt einen Menschen, einen Vorwurf und eine Notiz — sie ist kein
+Inhalt), die globalen Rollen sind zu weit. Appwrite kennt aber nur ODER-Rollen,
+den Schnitt „Moderator UND diese Community" gibt es dort nicht. Also bekommt er
+einen eigenen Schlüssel: ein **zweites, abgeleitetes Label je Community**
+(`mod<communityId>`, `packages/core/shared/communityModeratorLabel.ts`, pure +
+7 Tests), vergeben von `core/server/middleware/06.community-label.ts` an jeden
+mit `reports.moderate`. Neues Publikum `read: 'moderators'` in
+`tenantRowPermissionsFor` (Pool: das Moderations-Label; Silo/Single-Tenant: die
+globalen Rollen, denn dort IST das Projekt die Grenze; ohne communityId
+fail-closed). Die C18-Regel gilt hier bewusst **nicht** — auch die offenste
+Community macht Meldungen nicht öffentlich.
+
+Drei Feinheiten, die dazugehören: (a) das Label wird nur bei **erfolgreicher**
+Rollen-Auflösung nachgezogen — ein Entzug auf Verdacht ließe das Publikum eines
+Moderators bei jedem Netz-Schluckauf flackern; (b) `revokeCommunityLabel` nimmt
+seitdem **beide** Labels in **einem** `updateLabels` (zwei Schreibvorgänge wären
+zwei Gelegenheiten, sich gegenseitig zu überschreiben) — „draußen" heißt auch
+fürs Moderations-Publikum draußen; (c) eine Beförderung wirkt innerhalb des
+bestehenden **30-s-Rollen-Caches**, nicht sofort — das Control Plane kann den
+Runtime-Cache nicht leeren.
+
+**Beweise:** `packages/moderation/scripts/verify-report-boundary.mjs` (neu,
+**25/25**) — Akt 1 zeigt das Leck im Alt-Zustand und die Grenze im Neu-Zustand
+direkt gegen Appwrite, Akt 2 fährt den echten Weg über `/api/reports` und liest
+das Ergebnis mit **echten Sessions am eigenen Code vorbei** (genau die Frage,
+die auch Realtime stellt). Dazu `verify-site-authz.mjs` Abschnitt 9b (neu) für
+Vergabe/Beförderung/Entzug des Labels, insgesamt **103/103** ·
+`packages/moderation/tests/reportPermissions.test.ts` (an
+`tenantRowPermissionsFor` genagelt, Muster `presencePermissions.test.ts`) ·
+`packages/core/tests/tenantRowPermissions.test.ts` um sieben `moderators`-Fälle
+erweitert.
+
+**2 (MEDIUM) — Melden ging, Zurückziehen nicht.** Das Abgeben lief über die
+Operator-Klinke der Datentür (die M13-Zahlungssperre greift dort nicht), das
+Zurückziehen über die Mitglieds-Klinke (sie greift). In einer gesperrten
+Community bekam der Melder also 403, während die Oberfläche „deine Meldung ist
+noch aktiv" behauptete — und das war sie dann auch, unabänderlich.
+**Entscheidung, im Code festgehalten:** eine Meldung ist kein INHALT, sondern
+eine AUSSAGE über andere; sie abgeben zu dürfen, aber nicht zurücknehmen, ist
+die falsche Hälfte. Also dieselbe Klinke wie beim Abgeben. Sicher trotz
+Admin-Client, weil der Zugriff doppelt eingeengt bleibt (`find` auf
+`reporterId = <Session-User>` **und** Mandanten-Filter, `remove` belegt die
+Zugehörigkeit erneut). Beweis: zwei neue Prüfungen in
+`verify-community-suspension.mjs` (**62/62**).
+
+**3 (MEDIUM) — eine tote Verzweigung, gleiche Klasse wie der alte
+`last_admin`-Fall.** Die Route antwortete auf eine Doppel-Meldung `200
+{ alreadyReported: true }`, die Konsumenten verzweigten auf `409` — der Zweig
+konnte nie feuern, und der Nutzer las „Meldung eingegangen" für etwas, das nicht
+angelegt wurde. **Eine Wahrheit, und zwar die im Repo etablierte:** 409 mit
+`data.code: 'already_reported'`, der zentrale Handler hebt ihn als `reason` ins
+Envelope, der Client liest `error.data.reason`. Codes + Leser pur in
+`packages/moderation/shared/reportErrors.ts`, damit Server, Client und Test
+dieselben Strings benutzen. Konsumenten nachgezogen: `ReportButton` schaltet auf
+„Zurückziehen" statt Fehler-Toast, `PostCard` sagt „bereits gemeldet" statt „kam
+nicht an".
+
+**4 (MEDIUM) — Event-Meldungen versandeten: Knopf entfernt, nicht gebaut.**
+`EventDetail.vue` meldete mit `targetType: 'event'` und versprach „ein Moderator
+sieht sie sich an". Kein Eskalations-Handler kannte den Typ, keine Queue fragte
+ihn ab (comments fragt 'comment', posts fragt 'post'). Die ehrliche Lösung wäre
+eine Moderations-Queue für Events — und die ist **nicht klein**: Events kennen
+nur `draft/published/cancelled`, es fehlt also der Moderations-Zustand
+(Migration + Schema + Filter), dazu eine Capability `events.moderate`, eine
+Queue-Route, eine Dashboard-Seite und ihre Texte. Das ist ein Feature, kein Fix.
+Also **Knopf weg** (samt `events.report.*` in de/en), Begründung als Kommentar an
+der Stelle, und der Rest als F-Zeile in OPEN-ITEMS. Lieber kein Knopf als einer,
+der ins Leere meldet.
+
+**5 (LOW) — Typ-Nachlauf E8-3.** `shared/types/report.ts` trug noch `tenantId?`,
+obwohl die Spalte mit `moderation-004` gefallen ist; `communityId` fehlte.
+
+**6 (LOW) — Catch-all-500.** Jeder Nicht-409 wurde „Could not submit report" mit
+Status 500 — auch ein bereits geformter H3-Fehler samt fachlichem `data.code`.
+Jetzt `toH3Error` (das ist genau der Fall, für den es seit M13 H3-Fehler
+durchreicht).
+
+**7 (LOW) — `openCount` sättigte bei 100.** Die Eskalation zählte
+`openReportsForTarget(...).length`, und die Funktion holt höchstens 100 Zeilen —
+ein `autoHideReports`-Schwellwert über 100 hätte **nie** gezündet. Neu:
+`countOpenReportsForTarget` liest `total` mit `Query.limit(1)` (keine Zeile
+übertragen, richtig gezählt). `openReportsForTarget` bleibt das Anzeige-Fenster
+für Detailansicht und KI-Assist und sagt das jetzt auch.
+
+**8 (LOW) — Phantom-Ziele.** targetType/targetId waren freie Strings; jede
+angemeldete Person konnte beliebig viele Zeilen mit erfundenen Zielen erzeugen
+(der Unique-Index bremst nicht, jedes erfundene Ziel ist ein neues Paar). Neue
+Registry `registerReportTarget` (Muster `registerReportEscalationHandler`, A14):
+comments meldet 'comment' an, posts meldet 'post' an; unbekannter Typ → 400
+`unknown_target`, fehlendes Ziel → 404 `target_not_found`. Das macht Befund 4
+zugleich selbst-durchsetzend — ein wiederbelebter Event-Knopf liefe jetzt in
+einen Fehler statt in eine stille Karteileiche.
+
+**9 (LOW, Entscheidung) — `GET /api/reports` bleibt.** Geprüft und behalten, mit
+Begründung im Kopf der Datei: sie ist keine tote, sondern eine **unbenutzte**
+Oberfläche. Sie ist (a) die Autorisierungs-Probe zweier Beweis-Skripte
+(`verify-site-authz`, `verify-community-suspension`) und (b) die typ-agnostische
+Sicht des Layers, dem die Tabelle gehört — der Weg für jeden meldbaren Typ ohne
+eigene Queue, also genau der Fall, an dem Events aufgelaufen sind.
+
+**Gates:** `pnpm -r test` grün (u. a. neu: moderation 19, core 456) ·
+`pnpm typecheck` 0 Fehler · `pnpm lint` 0 Fehler / 6 bekannte Warnungen ·
+`pnpm check:manifests` + `check:single-copy` grün · Pool-Isolation weiter grün
+(comments 13/13 · posts 7/7 · events 14/14 · courses 28/28) ·
+`verify-presence-boundary` 23/23.
+
+**Gelernt (vier Stück):**
+
+1. **Eine Route zu gaten beweist nichts über die Row-Permissions.**
+   `GET /api/reports` war korrekt per `reports.moderate` geschützt und las über
+   den Admin-Client — sie war nie das Leck. Das Leck lag eine Ebene tiefer, dort
+   wo Appwrite entscheidet, was ein WebSocket ausliefert. Wer eine Grenze
+   beweisen will, muss **mit einer echten Session am eigenen Code vorbei** lesen;
+   alles andere prüft die Anwendungslogik gegen sich selbst.
+2. **Handgesetzte Permissions sind der Ort, an dem eine zentrale Regel
+   ausfällt** — und zwar leise, weil die Zeile ja *irgendwelche* Rechte trägt.
+   Die drei Nachbartabellen waren richtig, genau diese eine nicht. Ein
+   `permissions:`-Feld an einer Aufrufstelle gehört ab jetzt begründet oder
+   ersetzt; das Publikum lebt als pure Funktion neben der Route und wird gegen
+   `tenantRowPermissionsFor` genagelt.
+3. **Ein 200 mit `{ ok: true, alreadyReported: true }` ist eine Lüge mit
+   Beleg-Charakter.** Der Client hatte den richtigen Zweig — er konnte ihn nur
+   nie erreichen. Es gibt genau einen Kanal für fachliche Ablehnungsgründe
+   (`data.code` → `reason`); ein zweiter über ein Erfolgs-Feld erzeugt zwei
+   plausible Hälften, die zusammen nicht funktionieren.
+4. **Beim Beweis-Schreiben zweimal die eigene Erwartung erwischt, nicht den
+   Code:** (a) Zwei Meldungen desselben Melders auf dasselbe Ziel liefen in den
+   Unique-Index und meldeten „Row already exists" — das sah wie ein Grenz-Fehler
+   aus und war meine Fixture. (b) `reports.communityId` ist die **Spalte** mit
+   dem Zeilen-Scope (`tenantId`-Wert), das **Label** leitet sich von
+   `communities.$id` ab — zwei Schlüssel für denselben Mandanten (so gewollt,
+   `$id` hat die einzige alnum-Garantie). Meine Prüfung verglich beide und
+   scheiterte zu Recht. Und ein `Promise.resolve(probe(...)).catch(…)` fängt eine
+   **synchron** werfende Prüfung nicht — das fand ein Test, den ich zum Beweis
+   geschrieben hatte, bevor er je einen echten Fehler sehen sollte.

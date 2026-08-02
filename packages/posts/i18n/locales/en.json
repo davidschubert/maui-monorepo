@@ -57,6 +57,7 @@
       "report": "Report",
       "reported": "Post reported — thank you!",
       "reportedHint": "Moderation will take a look. There is no individual reply to single reports.",
+      "reportAlready": "You already reported this post.",
       "reportFailed": "Report failed.",
       "reportFailedHint": "The report never arrived. Try again — if it keeps failing, contact moderation directly.",
       "reasons": {

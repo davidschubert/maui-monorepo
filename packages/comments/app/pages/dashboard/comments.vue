@@ -134,6 +134,14 @@ function liveRefresh() {
 }
 // Live: Kommentar-Events (neu, moderiert) UND Report-Events (neue Meldung,
 // Rückzug, erledigt) halten die Queue ohne Reload aktuell.
+//
+// Dass der zweite Stream für einen KUNDEN-Moderator überhaupt feuert, ist neu
+// (Moderations-Audit Befund 1, 2026-08-01): Realtime liefert nur, was die
+// Row-Permissions hergeben, und die trugen bis dahin die GLOBALEN Labels
+// 'admin'/'moderator' — die kein Community-Moderator hat. Seitdem trägt eine
+// `reports`-Zeile `read("label:mod<communityId>")` (im Silo weiterhin die
+// globalen Rollen), und das Label vergibt server/middleware/06.community-label.ts
+// an jeden mit `reports.moderate` in dieser Community.
 useRealtimeRows<Models.Row>(config.public.appwriteDatabaseId, 'comments', liveRefresh)
 useRealtimeRows<Models.Row>(config.public.appwriteDatabaseId, REPORTS_TABLE, liveRefresh)
 onScopeDispose(() => clearTimeout(liveTimer))

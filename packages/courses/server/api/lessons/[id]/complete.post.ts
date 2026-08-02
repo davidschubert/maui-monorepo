@@ -24,7 +24,10 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 400, statusText: 'Missing lesson id' })
   }
 
-  const db = tenantDb(event, { as: 'operator' })
+  // `actor: 'member'` (Audit-Befund 2026-08-01): die Klinke ist Technik
+  // (Progress-Zeilen tragen bewusst keine User-Schreibrechte), gelernt hat ein
+  // Mitglied. Die M13-Sperre nennt „Kursfortschritt" ausdrücklich.
+  const db = tenantDb(event, { as: 'operator', actor: 'member' })
   const { course } = await publishedLessonWithCourse(event, id)
 
   const enrollment = await enrollmentFor(event, course.$id, user.$id)

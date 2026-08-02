@@ -25,6 +25,11 @@ const patchSchema = z.object({
  * Der Admin-Client umgeht Row-Permissions, damit ist die Tür hier die EINZIGE
  * Mandanten-Grenze.
  *
+ * WER HANDELT: `actor: 'member'` (Audit-Befund 2026-08-01) — die Klinke ist
+ * Technik, gehandelt hat die Redaktion der Community. Titel ändern und
+ * veröffentlichen sind Inhalts-Vorgänge und fallen deshalb unter die Sperre
+ * einer zahlungssäumigen Community (M13).
+ *
  * AUTORISIERUNG (S3): `requireCommunityPermission` — Site-Rolle vor protokolliertem
  * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
  * Das `await` ist Pflicht — ohne wäre der Gate fail-open.
@@ -41,7 +46,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 422, statusText: 'Empty patch' })
   }
 
-  const db = tenantDb(event, { as: 'operator' })
+  const db = tenantDb(event, { as: 'operator', actor: 'member' })
   const row = await db.update<MediaItem>(MEDIA_TABLE, id, body, 'Media item not found')
 
   if (body.published !== undefined) {

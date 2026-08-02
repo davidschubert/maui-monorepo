@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ReportReason } from '../../shared/types/report'
+import { ALREADY_REPORTED_CODE, reportErrorReason } from '../../shared/reportErrors'
 
 /**
  * Generischer Melde-Button. Der Konsument (comments, users-Card, …) liefert
@@ -45,7 +46,22 @@ async function onSubmit() {
       icon: 'i-ph-flag',
     })
   }
-  catch {
+  catch (error) {
+    /**
+     * SCHON GEMELDET ist kein Fehlschlag (Moderations-Audit Befund 3):
+     * die Route antwortet 409 mit `reason: 'already_reported'` (Envelope,
+     * core/shared/types/error.ts). Das ist der Zustand, den der Nutzer
+     * WOLLTE — also Modal zu, Knopf auf „Zurückziehen", und ein Hinweis
+     * statt einer roten Meldung.
+     */
+    if (reportErrorReason(error) === ALREADY_REPORTED_CODE) {
+      emit('update:reported', true)
+      open.value = false
+      reason.value = undefined
+      note.value = ''
+      toast.add({ title: t('moderation.report.already'), color: 'info', icon: 'i-ph-flag' })
+      return
+    }
     // Derselbe Titel wie beim Zurückziehen — was jetzt gilt, sagt erst die
     // Beschreibung: die Meldung ist NICHT angekommen.
     toast.add({

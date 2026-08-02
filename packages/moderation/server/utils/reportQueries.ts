@@ -94,9 +94,43 @@ export async function resolveReportsForTarget(
 }
 
 /**
+ * WIE VIELE offene Meldungen hat dieses Target? — die ZAHL, nicht die Zeilen.
+ *
+ * Moderations-Audit Befund 7 (2026-08-01): die Eskalation zählte bis hierher
+ * `openReportsForTarget(...).length`, und die Funktion holt höchstens 100
+ * Zeilen. Ein `pukalani.comments.autoHideReports` von 150 hätte deshalb NIE
+ * gezündet — der Schwellwert war stillschweigend bei 100 gedeckelt. Hier kommt
+ * `total` aus Appwrite: ein Limit von 1 überträgt keine Zeile und zählt trotzdem
+ * richtig.
+ */
+export async function countOpenReportsForTarget(
+  event: import('h3').H3Event,
+  targetType: string,
+  targetId: string,
+): Promise<number> {
+  const config = useRuntimeConfig(event)
+  const { tablesDB } = createAdminClient(event)
+  const res = await tablesDB.listRows<Report>({
+    databaseId: config.public.appwriteDatabaseId,
+    tableId: REPORTS_TABLE,
+    queries: scopeQuery(event, [
+      Query.equal('targetType', targetType),
+      Query.equal('targetId', targetId),
+      Query.equal('status', 'open'),
+      Query.limit(1),
+    ]),
+  })
+  return res.total
+}
+
+/**
  * Alle offenen Meldungen zu EINEM Target (neueste zuerst). Für Detail-Ansichten
  * und den KI-Moderations-Assist (admin) — die Meldegründe/Notizen gehören zum
  * Kontext der Einschätzung.
+ *
+ * ANZEIGE-FENSTER, KEIN ZÄHLER: die 100 sind bewusst — eine Detailansicht und
+ * ein KI-Prompt brauchen keine 5000 Meldegründe. Wer eine ZAHL braucht, nimmt
+ * countOpenReportsForTarget (Befund 7).
  */
 export async function openReportsForTarget(
   event: import('h3').H3Event,

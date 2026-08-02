@@ -436,6 +436,64 @@ try {
   check('der Übertragende ist Admin — nicht draußen', oldOwner?.role === 'admin', `role=${oldOwner?.role}`)
 
   // ══════════════════════════════════════════════════════════════════════════
+  // 9b. DAS MODERATIONS-LABEL (Moderations-Audit Befund 1, 2026-08-01)
+  //
+  // Eine `reports`-Zeile trägt `read("label:mod<communityId>")`. Damit ein
+  // Kunden-Moderator seine Queue LIVE sieht, muss er dieses zweite, abgeleitete
+  // Label wirklich bekommen — und alle anderen dürfen es nicht haben, sonst
+  // wäre die Grenze nur verschoben. Vergeben wird es von
+  // core/server/middleware/06.community-label.ts anhand der Capability
+  // `reports.moderate`; eingezogen zusammen mit dem Zugang.
+  // ══════════════════════════════════════════════════════════════════════════
+  console.log('\n9b. Moderations-Label: wer die Meldungen sehen darf (Befund 1)')
+  const modLabel = `mod${communityId}`
+  const labelsOfUser = async userId => (await poolUsers.get({ userId })).labels ?? []
+
+  // Ein Request auf dem Community-Host lässt die Label-Middleware laufen.
+  await call(host, '/api/auth/me', { cookie: staff.moderator.cookie })
+  const modLabels = await labelsOfUser(staff.moderator.userId)
+  check('der Moderator trägt das Moderations-Label',
+    modLabels.includes(modLabel), JSON.stringify(modLabels))
+  check('…zusätzlich zum Mitglieder-Label (zwei Schlüssel, zwei Bedeutungen)',
+    modLabels.includes(communityId), JSON.stringify(modLabels))
+
+  /**
+   * BEFÖRDERUNG ZIEHT DAS PUBLIKUM MIT — aber nicht in derselben Sekunde.
+   *
+   * staff.viewer wurde oben zum Moderator gemacht. Die Rollen-Auflösung cacht
+   * jedoch 30 s (CommunityRoleResolver), und die Rolle 'viewer' liegt aus den
+   * 403-Prüfungen dieses Abschnitts schon im Cache — das Control Plane kann ihn
+   * nicht von außen leeren. Deshalb wird hier GEDULDIG geprüft statt sofort:
+   * die Zusage lautet „innerhalb des Rollen-Fensters", nicht „unmittelbar".
+   * Ein sofortiger Check wäre eine schärfere Behauptung, als das System macht —
+   * und damit ein Fehlalarm bei jedem Lauf.
+   */
+  let viewerLabels = []
+  const promotionDeadline = Date.now() + 40_000
+  do {
+    await call(host, '/api/auth/me', { cookie: staff.viewer.cookie })
+    viewerLabels = await labelsOfUser(staff.viewer.userId)
+    if (viewerLabels.includes(modLabel)) break
+    await new Promise(resolve => setTimeout(resolve, 2000))
+  } while (Date.now() < promotionDeadline)
+  check('eine Beförderung zieht das Publikum mit (viewer → moderator, ≤30-s-Rollen-Cache)',
+    viewerLabels.includes(modLabel), JSON.stringify(viewerLabels))
+
+  await call(host, '/api/auth/me', { cookie: strangerCookie })
+  const strangerLabels = await labelsOfUser(stranger.userId)
+  check('ein Fremder bekommt es NICHT (weder Rolle noch Zugehörigkeit)',
+    !strangerLabels.includes(modLabel), JSON.stringify(strangerLabels))
+
+  const removeMod = await call(host, `/api/community/members/${staff.moderator.memberId}`, {
+    method: 'DELETE', cookie: staff.admin.cookie,
+  })
+  check('Zugang des Moderators entziehen → 200', removeMod.status === 200, `Status ${removeMod.status}`)
+  await call(host, '/api/auth/me', { cookie: staff.moderator.cookie })
+  const afterRemoval = await labelsOfUser(staff.moderator.userId)
+  check('„draußen" nimmt BEIDE Labels — auch das Moderations-Publikum',
+    !afterRemoval.includes(modLabel) && !afterRemoval.includes(communityId), JSON.stringify(afterRemoval))
+
+  // ══════════════════════════════════════════════════════════════════════════
   // 10. MITGLIEDSCHAFT IST EIN EREIGNIS (A5, Davids Entscheidung 1, 2026-07-29)
   //
   // Der Befund davor: das Site-Label bedeutete „hat den Host eingeloggt

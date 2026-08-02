@@ -9,16 +9,33 @@ import { COMMENTS_TABLE } from '../../shared/types/comment'
  * Hide. Die Meldungen bleiben OFFEN: der Moderator sieht den Fall weiter in
  * der Queue („Gemeldet" + Badge „Ausgeblendet") und entscheidet final
  * (Wiederherstellen hebt den Auto-Hide auf, Meldungen erledigen schließt ihn).
+ *
+ * Hier meldet comments AUSSERDEM an, dass 'comment' überhaupt ein meldbarer
+ * Ziel-Typ ist (Moderations-Audit Befund 8) — dieselbe Stelle, weil derselbe
+ * Layer auch die Queue baut, die die Meldungen später zeigt.
  */
 export default defineNitroPlugin(() => {
+  /**
+   * MELDBAR: Kommentare. Die Prüfung läuft durch die Datentür als Operator —
+   * ein Kommentar aus einer FREMDEN Community ist damit „nicht vorhanden", und
+   * eine erfundene Id ebenso. Tombstones (`status: 'deleted'`) bleiben meldbar:
+   * die Zeile existiert noch und kann Anlass zur Moderation geben.
+   */
+  registerReportTarget('comment', async (event, targetId) => {
+    const row = await tenantDb(event, { as: 'operator' })
+      .get<ModeratableCommentRow>(COMMENTS_TABLE, targetId, 'Comment not found')
+      .catch(() => null)
+    return !!row
+  })
+
   registerReportEscalationHandler('comment', async (event, { targetId, openCount }) => {
     const appConfig = useAppConfig(event) as { pukalani?: { comments?: { autoHideReports?: number } } }
     const threshold = appConfig.pukalani?.comments?.autoHideReports ?? 0
     if (threshold <= 0 || openCount < threshold) return
 
-    // Nur aktive Kommentare — hidden (schon moderiert/auto-versteckt),
-    // deleted (Tombstone) und Junk-targetIds (Meldungen prüfen Existenz nicht)
-    // bleiben unangetastet. Die Tür weist zusätzlich fremde Mandanten ab; ein
+    // Nur aktive Kommentare — hidden (schon moderiert/auto-versteckt) und
+    // deleted (Tombstone) bleiben unangetastet. Die Tür weist zusätzlich
+    // fremde Mandanten ab; ein
     // Auto-Hide über die Grenze hinweg wäre besonders tückisch, weil ihn
     // niemand auslöst und niemand sieht.
     const row = await tenantDb(event, { as: 'operator' })

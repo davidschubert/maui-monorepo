@@ -19,8 +19,10 @@ export interface Report extends Models.Row {
   status: ReportStatus
   resolvedBy: string | null
   resolution: string | null
-  /** H3-Pool-Datenpfad (moderation-002); '' = Silo/Einzelbetrieb. */
-  tenantId?: string
+  /** Mandanten-Stempel der Datentür (moderation-003); '' = Silo/Einzelbetrieb.
+   *  Die Vorgänger-Spalte `tenantId` ist mit moderation-004 gefallen — der Typ
+   *  trug sie danach noch (Moderations-Audit Befund 5, 2026-08-01). */
+  communityId?: string
 }
 
 /** Eine wählbare Begründung — Label liefert (lokalisiert) der Konsument. */

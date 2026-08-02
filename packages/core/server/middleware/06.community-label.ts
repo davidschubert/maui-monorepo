@@ -1,3 +1,6 @@
+import { communityRoleHasCapability } from '../../shared/communityAuthz'
+import { communityModeratorLabel } from '../../shared/communityModeratorLabel'
+
 /**
  * Community-Label-Vergabe (H3-Naht 4) — läuft nach Dateiname NACH
  * `00.tenant.ts` (Mandant), `02.auth.ts` (User), `03.csrf-origin.ts` und
@@ -52,12 +55,19 @@ export default defineEventHandler(async (event) => {
   if (event.path.startsWith('/_')) return
 
   // Fail-closed wie überall bei der Rollen-Auflösung: ein transienter Fehler
-  // heißt „keine Rolle für diesen Request", nie ein 500 fürs SSR.
-  const role = await resolveCommunityRole(event).catch(() => null)
+  // heißt „keine Rolle für diesen Request", nie ein 500 fürs SSR. Ob die
+  // Auflösung ÜBERHAUPT stattfand, wird getrennt gemerkt — siehe unten beim
+  // Moderations-Label.
+  let resolved = true
+  const role = await resolveCommunityRole(event).catch(() => {
+    resolved = false
+    return null
+  })
 
   // Gerade selbst entzogen? Dann NICHT der Rolle glauben. Der Rollen-Resolver
   // cacht 30 s — ohne diese Frage hätte „Zugang entziehen" ein halbminütiges
   // Loch, in dem dieselbe Middleware das Publikum wieder vergibt.
+  // (revokeCommunityLabel nimmt Zugehörigkeit UND Moderations-Label zusammen.)
   if (communityAccessRecentlyDenied(tenant.communityId, user.$id)) {
     await revokeCommunityLabel(event, tenant.communityId)
     return
@@ -67,6 +77,27 @@ export default defineEventHandler(async (event) => {
     // Mitglied. Wirft NIE: grantCommunityLabel protokolliert und schluckt. Ein
     // Fehlschlag heißt „noch nicht sichtbar", nie „Seite kaputt".
     await grantCommunityLabel(event, tenant.communityId)
+
+    /**
+     * DAS MODERATIONS-LABEL (Moderations-Audit Befund 1, 2026-08-01) —
+     * `mod<communityId>`, das Lese-Publikum der `reports`-Zeilen.
+     *
+     * Es hängt an der ROLLE, nicht an der Mitgliedschaft, und wird deshalb hier
+     * bei JEDEM Request nachgezogen: eine Beförderung wirkt nach ≤30 s
+     * (Rollen-Cache), eine Degradierung ebenso. Zwei Labels statt einem, weil
+     * Appwrite nur ODER-Rollen kennt — „Mitglied UND Moderator" gibt es dort
+     * nicht (Begründung: shared/communityModeratorLabel.ts).
+     *
+     * NUR bei erfolgreicher Auflösung: `resolved === false` heißt „ich weiß es
+     * gerade nicht". Ein Entzug auf Verdacht würde bei jedem Netz-Schluckauf
+     * das Publikum eines Moderators wegnehmen und beim nächsten Request wieder
+     * vergeben — Flackern statt Grenze.
+     */
+    if (resolved) {
+      await setCommunityModeratorLabel(
+        event, tenant.communityId, communityRoleHasCapability(role, 'reports.moderate'),
+      )
+    }
     return
   }
 
@@ -97,5 +128,20 @@ export default defineEventHandler(async (event) => {
    */
   if ((user.labels ?? []).includes(tenant.communityId)) {
     await joinCommunity(event, 'legacy')
+    return
+  }
+
+  /**
+   * Keine Rolle UND keine Zugehörigkeit — aber noch ein Moderations-Label?
+   * Dann ist es ein Rest (Rolle entzogen, während die Zugehörigkeit auf einem
+   * anderen Weg fiel). Es einzuziehen ist die Selbstheilung, die dafür sorgt,
+   * dass „Zugang entziehen" auch das Lese-Publikum der Meldungen mitnimmt.
+   * Wieder nur bei erfolgreicher Auflösung.
+   */
+  if (resolved) {
+    const modLabel = communityModeratorLabel(tenant.communityId)
+    if (modLabel && (user.labels ?? []).includes(modLabel)) {
+      await setCommunityModeratorLabel(event, tenant.communityId, false)
+    }
   }
 })

@@ -197,20 +197,6 @@
       "failed": "Stimme konnte nicht gespeichert werden.",
       "failedHint": "Deine Stimme kam nicht an. Klick noch einmal."
     },
-    "report": {
-      "cta": "Melden",
-      "done": "Event gemeldet — danke!",
-      "doneHint": "Die Moderation sieht sich die Meldung an. Eine Rückmeldung zu einzelnen Meldungen gibt es nicht.",
-      "already": "Du hast dieses Event bereits gemeldet.",
-      "failed": "Meldung fehlgeschlagen.",
-      "failedHint": "Die Meldung kam nicht an. Versuch es noch einmal — bleibt es dabei, wende dich direkt an die Moderation.",
-      "reasons": {
-        "spam": "Spam",
-        "harassment": "Belästigung",
-        "offtopic": "Am Thema vorbei",
-        "other": "Anderer Grund"
-      }
-    },
     "ticket": {
       "buy": "Ticket kaufen",
       "soon": "Bald verfügbar",

@@ -4,7 +4,20 @@ import type { AdminUserComment, AdminUserDetailResponse } from '../../../../../s
 
 type CommentRow = Models.Row & Omit<AdminUserComment, '$id' | '$createdAt'>
 
-/** Vollständige User-Sicht: Profil, aktive Sessions und letzte Kommentare. */
+/**
+ * Vollständige User-Sicht: Profil, aktive Sessions und letzte Kommentare.
+ *
+ * DATENTÜR (Audit-Befund 2026-08-01): die Kommentare kamen bis hierher über den
+ * rohen Admin-Client und waren damit POOL-WEIT — die letzte Stelle in
+ * `server/api/**`, die an der Mandanten-Tür vorbeilas. Kein Kunden-Leck (die
+ * Seite hängt an `users.manage`, also am globalen Betreiber-Label), aber
+ * dieselbe Bauart wie der Dashboard-Stats-Befund B2: eine host-gebundene
+ * Ansicht zeigte Zeilen fremder Communities. `as: 'operator'` behält den
+ * Admin-Client (der Betreiber soll auch versteckte Kommentare sehen),
+ * `actor: 'operator'` sagt, dass hier wirklich der Betreiber handelt — die Tür
+ * hängt den Mandanten-Filter an. Auf Kontroll-Hosts und in Silo-Apps gibt es
+ * keinen Mandanten, dort ändert sich nichts.
+ */
 export default defineEventHandler(async (event): Promise<AdminUserDetailResponse> => {
   requirePermission(event, 'users.manage')
 
@@ -13,7 +26,6 @@ export default defineEventHandler(async (event): Promise<AdminUserDetailResponse
     throw createError({ status: 400, statusText: 'Missing user id' })
   }
 
-  const config = useRuntimeConfig(event)
   const admin = createAdminClient(event)
 
   let user: Models.User<Models.Preferences>
@@ -40,11 +52,9 @@ export default defineEventHandler(async (event): Promise<AdminUserDetailResponse
     admin.users.listLogs({ userId, queries: [Query.limit(25)] }).catch(() => ({ logs: [] as Models.Log[] })),
     // Benachrichtigungskanäle (email/sms/push-Targets)
     admin.users.listTargets({ userId }).catch(() => ({ targets: [] as Models.Target[] })),
-    admin.tablesDB.listRows<CommentRow>({
-      databaseId: config.public.appwriteDatabaseId,
-      tableId: 'comments',
-      queries: [Query.equal('authorId', userId), Query.orderDesc('$createdAt'), Query.limit(10)],
-    }).catch(() => ({ total: 0, rows: [] as CommentRow[] })),
+    tenantDb(event, { as: 'operator' }).list<CommentRow>('comments', [
+      Query.equal('authorId', userId), Query.orderDesc('$createdAt'), Query.limit(10),
+    ]).catch(() => ({ total: 0, rows: [] as CommentRow[] })),
   ])
 
   // Appwrite liefert für nicht auflösbare (lokale/private) IPs 'Unknown' oder '--'

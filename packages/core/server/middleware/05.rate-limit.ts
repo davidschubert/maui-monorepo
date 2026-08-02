@@ -82,6 +82,13 @@ const WRITE_LIMITED: { re: RegExp, bucket: string, max?: number }[] = [
   // count (E3) ist CORS-offen und microcached, teilt denselben Bucket.
   { re: /^GET \/api\/comments$/, bucket: 'comments:read', max: READ_MAX },
   { re: /^GET \/api\/comments\/count$/, bucket: 'comments:read', max: READ_MAX },
+  // Medien-Upload: der einzige Schreibweg, der BINÄRDATEN auf die geteilte
+  // Platte legt (bis 15 MB je Bild) — ein ungedrosseltes Budget ist hier nicht
+  // „viele Zeilen", sondern viele Gigabyte. 30/min ist für eine Redaktion, die
+  // eine Galerie füllt, reichlich (ein Mensch wählt keine 30 Bilder je Minute
+  // aus) und für ein Skript die Grenze. Capability-gated ist die Route
+  // ohnehin — das hier ist der Schutz gegen ein Konto, das durchdreht.
+  { re: /^POST \/api\/media$/, bucket: 'media:upload', max: 30 },
   // Client-Error-Inbox (Observability-Gate): der Client dedupliziert/kappt
   // selbst (10/Session) — das Limit hier stoppt Scripting/kaputte Clients.
   { re: /^POST \/api\/telemetry\/error$/, bucket: 'telemetry:error', max: 30 },

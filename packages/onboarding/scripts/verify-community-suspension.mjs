@@ -52,7 +52,7 @@ const poolUsers = new Users(new Client().setEndpoint(endpoint).setProject(poolPr
 
 let pass = 0
 let fail = 0
-const cleanup = { users: [], controlUsers: [], codes: [], tenants: [], members: [], comments: [], reports: [] }
+const cleanup = { users: [], controlUsers: [], codes: [], tenants: [], members: [], comments: [], posts: [], reports: [] }
 
 function check(label, ok, detail = '') {
   if (ok) {
@@ -234,6 +234,22 @@ try {
     `Status ${writeBefore.status} ${writeBefore.text.slice(0, 160)}`)
   if (writeBefore.json?.$id) cleanup.comments.push(writeBefore.json.$id)
 
+  /**
+   * Eine Umfrage, damit Abschnitt 3 den ZWEITEN Schreib-Weg prüfen kann: die
+   * Stimme läuft über die Türklinke 'operator' (poll_votes tragen bewusst keine
+   * User-Schreibrechte) und meldete sich damit bis zum 2026-08-01 still von der
+   * Sperre ab — obwohl die M13-Zusage „Umfragen" ausdrücklich nennt. Der Post
+   * selbst geht über die Mitglieds-Klinke und muss JETZT noch durchgehen.
+   */
+  const pollBefore = await call(host, '/api/posts', {
+    method: 'POST', cookie: memberHostCookie,
+    body: { type: 'poll', body: 'Wann treffen wir uns?', pollOptions: ['Montag', 'Dienstag'] },
+  })
+  check('Mitglied darf eine Umfrage anlegen (200/201)', pollBefore.status === 200 || pollBefore.status === 201,
+    `Status ${pollBefore.status} ${pollBefore.text.slice(0, 160)}`)
+  const pollId = pollBefore.json?.$id ?? pollBefore.json?.id
+  if (pollId) cleanup.posts.push(pollId)
+
   console.log('\n3. BILLING-Sperre: lesen ja, schreiben nein')
   const REASON = 'Rechnung vom 1. Juli ist offen. Nach Zahlungseingang geht es sofort weiter.'
   await setSuspension(communityId, 'billing', REASON)
@@ -275,6 +291,65 @@ try {
   // sonst nähme die Zahlungserinnerung dem Betreiber sein Werkzeug.
   const moderation = await call(host, '/api/reports', { cookie: ownerHostCookie })
   check('Moderation bleibt möglich (Operator-Klinke)', moderation.status === 200, `Status ${moderation.status}`)
+
+  /**
+   * MELDEN UND ZURÜCKZIEHEN GEHÖREN ZUSAMMEN (Moderations-Audit Befund 2,
+   * 2026-08-01). Vor dem Audit lief nur das ABGEBEN über die Operator-Klinke;
+   * das ZURÜCKZIEHEN lief über die Mitglieds-Klinke und wurde von der Sperre
+   * mit 403 abgewiesen. Ergebnis: in einer gesperrten Community konnte man eine
+   * Meldung abgeben, aber nicht zurücknehmen — die Oberfläche behauptete
+   * derweil „deine Meldung ist noch aktiv", und genau das war sie, für immer.
+   * Eine Meldung ist kein Inhalt, sondern eine Aussage über andere; sie
+   * zurückzunehmen darf keine Zahlungsfrage sein.
+   */
+  const reportedWhileSuspended = await call(host, '/api/reports', {
+    method: 'POST',
+    cookie: memberHostCookie,
+    body: { targetType: 'comment', targetId: writeBefore.json?.$id, reason: 'spam' },
+  })
+  check('Melden geht trotz Sperre (200)', reportedWhileSuspended.status === 200,
+    `Status ${reportedWhileSuspended.status} ${reportedWhileSuspended.text.slice(0, 200)}`)
+  const retractWhileSuspended = await call(host,
+    `/api/reports?targetType=comment&targetId=${encodeURIComponent(writeBefore.json?.$id ?? '')}`,
+    { method: 'DELETE', cookie: memberHostCookie })
+  check('…und ZURÜCKZIEHEN ebenso (200) — nicht mehr 403 (Befund 2)',
+    retractWhileSuspended.status === 200,
+    `Status ${retractWhileSuspended.status} ${retractWhileSuspended.text.slice(0, 200)}`)
+
+  /**
+   * ZWEI NACHTRÄGE zum Audit vom 2026-08-01 — beide prüfen die neue Trennung
+   * „welcher Client" ≠ „wer handelt" (tenantDb `as` vs. `actor`).
+   *
+   * (a) INHALT ist auch dann zu, wenn die Route den Admin-Client braucht. Die
+   *     Umfrage-Stimme ist der Musterfall: `poll_votes` tragen bewusst keine
+   *     User-Schreibrechte, die Route MUSS also die Operator-Klinke nehmen —
+   *     gehandelt hat trotzdem ein Mitglied. Vorher ging die Stimme durch,
+   *     obwohl die Sperr-Zusage „Umfragen" ausdrücklich nennt.
+   * (b) MODERATION ist offen, und zwar SCHREIBEND. Die Liste oben beweist nur
+   *     Lesen; die Zusage lautet aber, dass der Betreiber sein Werkzeug behält.
+   */
+  if (pollId) {
+    const pollVote = await call(host, `/api/posts/${pollId}/vote`, {
+      method: 'POST', cookie: memberHostCookie, body: { optionIndex: 0 },
+    })
+    check('Umfrage-Stimme ist ZU (403) — auch über die Operator-Klinke',
+      pollVote.status === 403, `Status ${pollVote.status} ${pollVote.text.slice(0, 160)}`)
+    check('…mit demselben klaren Grund (reason: community_suspended)',
+      pollVote.json?.reason === 'community_suspended', JSON.stringify(pollVote.json))
+  }
+
+  if (writeBefore.json?.$id) {
+    const hidden = await call(host, `/api/admin/comments/${writeBefore.json.$id}/status`, {
+      method: 'PATCH', cookie: ownerHostCookie, body: { status: 'hidden' },
+    })
+    check('Moderation SCHREIBT weiter: ausblenden geht (200)', hidden.status === 200,
+      `Status ${hidden.status} ${hidden.text.slice(0, 160)}`)
+    const shown = await call(host, `/api/admin/comments/${writeBefore.json.$id}/status`, {
+      method: 'PATCH', cookie: ownerHostCookie, body: { status: 'active' },
+    })
+    check('…und wiederherstellen auch (200)', shown.status === 200,
+      `Status ${shown.status} ${shown.text.slice(0, 160)}`)
+  }
 
   console.log('\n4. Entsperren stellt den Zustand wieder her')
   await setSuspension(communityId, '')
@@ -505,11 +580,14 @@ catch (error) {
 }
 finally {
   console.log('\n11. Aufräumen')
-  if (cleanup.comments.length > 0) {
+  if (cleanup.comments.length > 0 || cleanup.posts.length > 0) {
     const poolDb = new TablesDB(new Client().setEndpoint(endpoint).setProject(poolProject).setKey(poolKey))
     const poolDatabaseId = process.env.POOL_DATABASE_ID || databaseId
     for (const id of cleanup.comments) {
       await poolDb.deleteRow({ databaseId: poolDatabaseId, tableId: 'comments', rowId: id }).catch(() => {})
+    }
+    for (const id of cleanup.posts) {
+      await poolDb.deleteRow({ databaseId: poolDatabaseId, tableId: 'posts', rowId: id }).catch(() => {})
     }
   }
   for (const id of cleanup.reports) await control.deleteRow({ databaseId, tableId: 'abuse_reports', rowId: id }).catch(() => {})

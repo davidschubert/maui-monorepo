@@ -197,20 +197,6 @@
       "failed": "Could not save your vote.",
       "failedHint": "Your vote never arrived. Click again."
     },
-    "report": {
-      "cta": "Report",
-      "done": "Event reported — thank you!",
-      "doneHint": "Moderation will take a look. There is no individual reply to single reports.",
-      "already": "You already reported this event.",
-      "failed": "Could not report the event.",
-      "failedHint": "The report never arrived. Try again — if it keeps failing, contact moderation directly.",
-      "reasons": {
-        "spam": "Spam",
-        "harassment": "Harassment",
-        "offtopic": "Off topic",
-        "other": "Other reason"
-      }
-    },
     "ticket": {
       "buy": "Purchase ticket",
       "soon": "Coming soon",
