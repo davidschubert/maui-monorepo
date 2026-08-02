@@ -47,6 +47,14 @@ import { listCommunityMembers, memberFacts } from './communityTeam'
  * `community_members`). Auch die Einladungen werden über die Community auf das
  * rufende Projekt eingegrenzt — sonst löschte eine Silo-App die Einladungen
  * einer gleichnamigen Adresse im Pool mit.
+ *
+ * WAS BEWUSST STEHEN BLEIBT (F8, Davids Entscheidung 2026-08-02):
+ * `communities.stripeCustomerId` und `billingStatus`. Das sind Abrechnungsdaten
+ * mit gesetzlicher Aufbewahrungspflicht (§147 AO / §257 HGB), und Art. 17
+ * Abs. 3 lit. b DSGVO nimmt genau diesen Fall vom Löschrecht aus — eine
+ * Löschfrist hätte die Belege gekappt, die bei einer Prüfung vorzulegen sind.
+ * Der Personenbezug an der Community ist oben versorgt (Letzter-Owner-Zeile
+ * entpersonalisiert); was bleibt, ist der Zahlungs-Verweis auf Stripe.
  */
 
 /** Communities einmal laden, nicht je Zeile — eine Person kann in vielen sein. */

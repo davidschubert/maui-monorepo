@@ -7,6 +7,19 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-08-02 — F8: Abrechnungsdaten überleben die Kontolöschung
+
+**Davids Entscheidung.** Löscht der (letzte) Owner sein Konto, bleiben
+`communities.stripeCustomerId` und `billingStatus` OHNE Löschfrist stehen.
+Grund: kaufmännische Aufbewahrungspflicht (§147 AO / §257 HGB), und
+Art. 17 Abs. 3 lit. b DSGVO nimmt gesetzliche Aufbewahrung ausdrücklich vom
+Löschrecht aus. Der Personenbezug ist durch die F3-Kette bereits versorgt
+(Mitgliedschaft entpersonalisiert, Einladungen/Anfragen gelöscht) — was
+bleibt, ist der Zahlungs-Verweis auf Stripe. Verworfene Alternative: eine
+eigene Löschfrist hätte genau die Belege gekappt, die bei einer Prüfung
+vorzulegen sind. NICHT mitentschieden: die Löschfrist für
+`abuse_reports.reporterEmail` (Melder ohne Konto) — bleibt als F8-Rest offen.
+
 ## 2026-07-31 — C16: „Community löschen" heißt Stilllegen, nicht Vernichten
 
 **Ausgangslage:** `community.delete` stand seit G1 in der Owner-Rolle und hatte
