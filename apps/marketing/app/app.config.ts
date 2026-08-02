@@ -1,7 +1,22 @@
 export default defineAppConfig({
   // App-spezifische Overrides (tiefer Merge, App > Core). Die Marketing-Seite
   // ist öffentlich + datensparsam — keine Analytics, kein Consent, kein Auth.
-  pukalani: {},
+  pukalani: {
+    /**
+     * KEINE REALTIME (F14, 2026-08-01). Diese Seite ist statisch und kontenlos:
+     * sie liest keine Laufzeit-Flags, zeigt keine Anwesenheit und hat keine
+     * Session, die widerrufen werden könnte. Über den geerbten core-Layer
+     * abonnierte sie trotzdem bei JEDEM Seitenaufruf `app_config` — und zog
+     * dafür das 76-kB-Web-SDK nach und öffnete einen Gast-WebSocket zu
+     * Appwrite. Die eine Zeile nimmt beides weg (Regel: core/shared/
+     * realtimeGate.ts).
+     *
+     * PREIS, bewusst gezahlt: schaltet jemand die Wartungs-/Registrierungs-
+     * Flags um, folgt diese Seite erst beim nächsten Seitenaufbau statt sofort.
+     * Sie zeigt keines der beiden an.
+     */
+    realtime: { enabled: false },
+  },
   ui: {
     colors: {
       // Die Marke ist die Sonne, nicht eine Statusfarbe: `puka` ist die eigene

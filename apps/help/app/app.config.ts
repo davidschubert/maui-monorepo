@@ -7,6 +7,14 @@ export default defineAppConfig({
     // Deshalb steht hier „Pukalani Hilfe" und nicht bloß „Pukalani": sonst
     // hießen die Seiten anders als die Site, die der Leser gerade offen hat.
     brand: { name: 'Pukalani Hilfe' },
+    /**
+     * KEINE REALTIME (F14, 2026-08-01) — gleiche Lage wie bei `marketing`:
+     * gelesene Hilfe-Artikel, kein Konto, keine Laufzeit-Flags. Ohne diese
+     * Zeile abonnierte auch diese Seite über den core-Layer `app_config`,
+     * lud das Web-SDK nach und öffnete einen Gast-WebSocket.
+     * Begründung + Regel: core/shared/realtimeGate.ts.
+     */
+    realtime: { enabled: false },
   },
   ui: {},
 })

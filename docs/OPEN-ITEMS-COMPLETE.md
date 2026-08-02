@@ -1522,3 +1522,87 @@ Dunning-Versuch, die 14 Tage begännen jedes Mal von vorn und liefen nie ab.
 Spalte — 13 Tage und 15 Tage sind zwei `updateRow`-Aufrufe und eine
 Sekunde Laufzeit; „eine Stunde auf den Timer warten" wäre kein Beweis, sondern
 eine Hoffnung.
+
+---
+
+### C20 / F14 — Apps ohne Realtime bekommen keinen Socket mehr ✅ 2026-08-01
+
+**Befund (aus B7, vorbestehend):** Die Marketing-Landing hielt bei jedem
+Seitenaufruf eine Realtime-Verbindung zu Appwrite offen und abonnierte
+`app_config` — Laufzeit-Flags, die diese Seite nirgends liest. Sie hat weder
+Konto noch Composer noch Wartungs-Hinweis. Ursache ist kein Fehler in einem
+Plugin, sondern **Vererbung**: `packages/core/app/plugins/realtime-config.client.ts`
+läuft in JEDER App, die core erweitert, und der einzige Riegel davor war
+„hat diese App eine Datenbank-Id?" — die hat `marketing` (`.env` setzt
+`NUXT_PUBLIC_APPWRITE_DATABASE_ID=main`, damit die Layer booten).
+
+**Der 401 aus dem ursprünglichen C20-Text war zu diesem Zeitpunkt schon weg**
+(siehe F11, am selben Tag): `ensureRealtimeJwt()` fragt seit dem nach einer
+Session und holt für Gäste keinen Token mehr. Übrig blieb das, was F11
+ausdrücklich stehen ließ — der Gast-WebSocket samt nachgeladenem
+76-kB-Web-SDK. Für eine App, die davon lebt (Live-Theme-Morphen für Besucher),
+ist das ein Feature; für eine statische Landing ist es Ballast. F14 nimmt
+genau diesen Fall, ohne F11s Entscheidung anzutasten.
+
+**Die Lösung ist ein ausdrücklicher Vertrag, kein Sonderfall im Plugin.**
+
+1. **Eine pure Regel** — `packages/core/shared/realtimeGate.ts`,
+   `realtimeAllowed(enabled, ...ids)`. Sie beantwortet die beiden Fragen, die
+   dasselbe bedeuten („hier gibt es nichts zu abonnieren"): das Config-Gate
+   `pukalani.realtime.enabled` **und** die Datenebene (Datenbank-/Tabellen-Id
+   bzw. Endpoint/Projekt). Der alte `!databaseId`-Guard aus dem
+   Live-Vorfall vom 2026-07-29 geht darin auf statt daneben zu stehen.
+   5 Unit-Tests (`packages/core/tests/realtimeGate.test.ts`).
+2. **Core-Default AN** — die begründete Ausnahme von „Core-Default ist IMMER
+   aus". Realtime ist kein Zusatz, den eine App anschaltet, sondern das
+   bestehende Verhalten jeder Produkt-App. Ein Default AUS hätte sie alle
+   stillschweigend entkoppelt, und der Ausfall wäre unsichtbar gewesen: die
+   Seite sieht richtig aus, sie aktualisiert sich nur nicht mehr.
+3. **Gelesen an EINER Stelle** — `realtimeEnabled()` in
+   `useRealtimeClient.ts`, memoisiert (die App-Config ist zur Laufzeit
+   konstant, anders als der Auth-Zustand in F11). Nicht in den drei Plugins:
+   dieselbe Regel an drei Aufrufern wäre beim vierten vergessen — dieselbe
+   Überlegung, die den `!databaseId`-Guard schon in `useRealtimeRows` gestellt
+   hatte.
+4. **Der Vertrag steht im TYP, nicht in einer Konvention.**
+   `ensureRealtimeClients()` / `sharedRealtime()` / `realtimeCookieClient()`
+   geben jetzt `… | null` zurück. Der strict-Modus **zwingt** damit jeden —
+   auch jeden künftigen — Konsumenten, „diese App hat keine Realtime" zu
+   behandeln. Ein `throw` hätte dieselbe Wirkung nur zur Laufzeit gehabt, und
+   ein stiller Rückgabewert gar keine.
+5. **Zweite Tür mitgenommen:** `useRealtimeAccount()` geht bewusst NICHT über
+   das Web-SDK (Cookie-Auth, Instant-Session-Revoke — CLAUDE.md) und hätte das
+   Gate deshalb nicht von selbst geerbt. Es fragt dieselbe Regel selbst ab.
+   Ebenso `usePresenceState()`: ohne Realtime schriebe der HTTP-Heartbeat
+   Presences, die kein Leser mehr abholen kann.
+
+**Abgeschaltet ist es in `marketing` und `help`** — beide öffentlich,
+kontenlos, ohne Laufzeit-Flags, beide ohne `themes`-Layer (es gibt dort also
+auch kein Live-Theme-Morphen zu verlieren). Der bewusst gezahlte Preis steht
+an beiden Stellen im Code: Flag-Änderungen greifen dort erst beim nächsten
+Seitenaufbau.
+
+**Beweis (A/B am selben Server, nur die eine Zeile geändert):**
+`enabled: true` → `…/deps/appwrite.js` wird geladen (Web-SDK + Socket);
+`enabled: false` → kein SDK, kein `/api/auth/realtime-token`, Konsole ohne
+einen einzigen Eintrag. Gegenprobe, dass nichts kaputtging: die volle
+comments-E2E-Suite **24/24 grün**, darin der Realtime-Guard („serverseitig
+angelegter Kommentar erscheint live und verschwindet beim Löschen"). Dazu
+`pnpm -r test` (431 core-Tests), Lint und `typecheck` von marketing und
+comments; alle sieben Apps starten.
+
+**Gelernt:** (1) **`performance.getEntriesByType('resource')` puffert nur 250
+Einträge.** Im Dev-Modus sind das ein paar hundert Modul-Requests — der
+nachgeladene SDK-Chunk fiel hinten raus, und die Messung sagte „kein SDK
+geladen", obwohl es geladen war. Zwei Messungen hintereinander waren dadurch
+scheinbar identisch, obwohl das Gate umgelegt war. Für solche Beweise das
+Netzwerkprotokoll des Browsers nehmen, nicht die Performance-API — oder den
+Puffer vorher vergrößern. (2) **`pnpm --filter <app> dev -- --port N` wirkt
+nicht:** das Skript hat `--port` schon fest verdrahtet, das zweite landet als
+Positionsargument, und Nuxt weicht bei belegtem Port still auf einen anderen
+aus (hier 3007 → 3000). Genau die Falle, vor der CLAUDE.md unter „Tests"
+warnt — ein Beweis liefe dann gegen den Server eines fremden Worktrees.
+Richtig: `pnpm --filter <app> exec nuxi dev --port N`. (3) **Der erste
+Seitenaufruf nach einem Dev-Server-Start beweist nichts über nachgeladene
+Abhängigkeiten:** Vite bündelt `appwrite` beim ersten Import erst („dependency
+optimized") und lädt die Seite dabei neu. Immer die zweite Messung nehmen.

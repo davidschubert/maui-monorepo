@@ -114,20 +114,6 @@ comments/portfolio/help) erben den Fix über core mit ihrem jeweils nächsten
 Release — keine Eile, der Bug traf praktisch nur die Landing (einzige Seite,
 deren `/de`-Links öffentlich geteilt werden).
 
-**C20 — Gäste-401 auf jeder Marketing-Seite (Konsolen-Rauschen).** Jeder
-Seitenaufruf der Landingpage feuert für Gäste ein
-`GET /api/auth/realtime-token` → 401 (gefunden 2026-07-31 bei der
-Glossar-Diagnose, auf prod verifiziert — DE und EN identisch). Ursache: das
-Core-Realtime-Plugin holt sein JWT auch auf einer auth-losen App; die
-Marketing-App hat nicht einmal eine Appwrite-Instanz (.env zeigt auf ein
-nicht existierendes Projekt). Kein Schaden, aber ein sinnloser Request je
-Besucher plus ein roter Eintrag in jeder Besucher-Konsole — unschön für eine
-Seite, die Entwickler als Zielgruppe hat. Fix-Richtung: den JWT-Abruf an
-eine Session-Anwesenheit oder ein `pukalani.*`-Gate klemmen (Core-Default
-an, marketing schaltet ab — oder besser: automatisch aus, wenn kein
-Appwrite-Endpoint konfiguriert ist). Betrifft nur das Realtime-JWT, NICHT
-useRealtimeAccount (bleibt bewusst Cookie-nativ, CLAUDE.md).
-
 **A1 — Rechtstexte.** Entwürfe sind LIVE (2026-07-23): vollständige,
 stack-spezifische Texte (Impressum § 5 DDG, DSGVO-Datenschutzerklärung mit
 Hetzner/Resend/Stripe/Cookies/Betroffenenrechten, AGB mit Plänen/Kündigung/
