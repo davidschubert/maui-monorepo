@@ -23,7 +23,10 @@ const attempts = new Map<string, number[]>()
 export default defineEventHandler(async (event) => {
   const body = await readValidatedBody(event, contactSchema.parse)
 
-  const ip = getRequestIP(event, { xForwardedFor: true }) ?? 'unknown'
+  // `trustedClientIp` (core): das LETZTE X-Forwarded-For-Segment, das unser
+  // nginx anhängt — mit dem ersten konnte ein Bot pro Nachricht einen frischen
+  // Zähler erfinden und diesen Limiter komplett umgehen (Audit 2026-08-02).
+  const ip = trustedClientIp(event) ?? 'unknown'
   const now = Date.now()
   const recent = (attempts.get(ip) ?? []).filter(ts => now - ts < WINDOW_MS)
   if (recent.length >= MAX_PER_WINDOW) {

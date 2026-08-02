@@ -13,6 +13,602 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### G4 — Sicherheits-Paket: Session-Handoff, Einladungen, Drosseln, IP ✅ 2026-08-02
+
+**Was geprüft wurde.** Neun Befunde aus einem Sicherheits-Audit über
+`packages/core`, `packages/onboarding` und `packages/control`, nach Schwere
+abgearbeitet. Jeder Fix hat einen eigenen Beweis; die zwei großen Live-Beweise
+sind gewachsen (`verify-site-authz` 103 → **118/118**,
+`verify-community-suspension` unverändert **95/95**), dazu ein neuer
+Drossel-Beweis (`verify-rate-limits`, **7/7**).
+
+**1 (KRITISCH, Kontoübernahme) — DER SESSION-HANDOFF GING AN JEDE ADRESSE.**
+`/start/done` nahm seinen Ziel-Host ungeprüft aus `?host=`
+(`packages/onboarding/app/pages/start/done.vue:16,42,48`), und
+`POST /api/onboarding/handoff` siegelte die laufende Session in ein Token, das
+an **keinen** Host gebunden war. Beides zusammen war eine vollständige
+Kontoübernahme: Opfer öffnet `…/start/done?host=angreifer.example&site=x`,
+klickt „Community öffnen", das frische Siegel landet in der Query beim
+Angreifer, der es binnen 60 s gegen einen ECHTEN Pukalani-Host einlöst —
+`site-session.get.ts` setzte ihm daraufhin das Session-Cookie des Opfers. Kein
+Schritt davon verlangte etwas, das ein Angreifer nicht hat.
+
+Geschlossen wurden **beide** Hälften, denn jede allein bleibt löchrig:
+
+*(a) Das Siegel trägt seinen Ziel-Host.* `sealHandoffToken`/`openHandoffToken`
+(`core/server/utils/embedHandoff.ts`) haben ein PFLICHT-Argument `audience`
+bekommen (Payload-Feld `a`), normalisiert mit derselben Funktion wie die
+Mandanten-Auflösung (`normalizeHost` — bewusst keine zweite Variante). Kein
+Default und keine Alt-Duldung: ein Token ohne passende Zielgruppe ist `null`.
+Das ist gefahrlos, weil beide Seiten im selben Deployment laufen (die
+Wildcard-Site `platform` bedient Kontroll- und Mandanten-Hosts), es also nie
+gemischte Formate gibt — und weil ein misslungener Handoff in beiden Aufrufern
+in einen Fallback auf den normalen Login läuft, nie in eine Sackgasse. Der
+EMBED-Weg (Popup → iframe, `embed-handoff`/`embed-session`) wurde mitgezogen
+und bricht nicht: dort sind Aussteller und Einlöser per Konstruktion dieselbe
+Origin.
+
+*(b) Der Host kommt aus der Mitgliedschaft.* `handoff.post.ts` verlangt jetzt
+`communityId` (Pflicht), holt die Community aus der **eigenen** Liste des
+Nutzers (`/api/control/community/mine` — dieselbe Quelle wie „Deine
+Communities") und antwortet mit `{ token, host }`. Wer nicht Mitglied ist,
+bekommt 403 statt eines Siegels; die Seite baut ihr Ziel aus dem
+zurückgegebenen Host, kann also gar keinen fremden mehr in den Link schreiben.
+`start/community.vue` hängt `host` nicht mehr an die Weiterleitung, und
+`done.vue` liest die Adresse aus der Community-Liste — `?site=` ist nur noch
+ein SCHLÜSSEL in eine geprüfte Liste. Der zusätzliche Control-Plane-Ruf pro
+Klick kostet dasselbe wie die Übersicht darüber und teilt deshalb deren
+Budget (`onboarding:communities`, 10/min).
+
+**Beweis** (Abschnitt 5 von `verify-site-authz.mjs`, echter Kundenpfad):
+Siegel für Host A → auf Host B **401 ohne Cookie**, dasselbe Siegel auf Host A
+weiterhin 302 mit Cookie · Fremder bekommt für eine fremde Community **403** ·
+ohne `communityId` **400** · Gast **401** · die Antwort nennt den Ziel-Host
+selbst. Dazu sechs Unit-Fälle (Sub-/Superstring des Hosts, Groß-/Kleinschreibung,
+Port, leere Zielgruppe beidseitig).
+
+**2 (hoch) — EINE EINLADUNG WAR NUR SO VIEL WERT WIE EIN TIPPFELD.**
+`accept.post.ts:70` band auf `identity.email`, prüfte aber `emailVerified`
+nicht — obwohl `verifyRuntimeIdentity` es liefert. Der Pool ist EIN
+Appwrite-Projekt und die Registrierung verlangt keine Bestätigung, bevor man
+loslegt: wer wusste, dass `chef@verein.de` als admin eingeladen wurde und dort
+kein Konto hatte, legte sich auf irgendeinem offenen Pool-Host genau diese
+Adresse an — ohne je an das Postfach zu kommen — und nahm die Einladung an.
+Aus „nur der Eingeladene" wurde „jeder, der den Namen kennt", inklusive der
+Rolle aus der Einladung. Dasselbe galt für an eine Adresse GEBUNDENE
+Einladungs-Codes (`evaluateInviteCode`, control-017).
+
+Jetzt verlangt beides eine bestätigte Adresse: `evaluateInviteCode` hat einen
+vierten Parameter `emailVerified` und einen neuen Grund `unverified_email`,
+`accept.post.ts` prüft `identity.emailVerified`. Die Reihenfolge ist wichtig
+und getestet — der Unterschied zwischen „falsche Adresse" und „unbestätigt"
+wird erst NACH der Adressgleichheit sichtbar, ist also kein Orakel: wer hier
+ankommt, führt bereits die passende Adresse.
+
+**Rückwärtskompatibilität war die eigentliche Arbeit.** Ein stummes „gilt
+nicht" hätte bestehende unverifizierte Konten ausgesperrt, ohne den Weg zu
+zeigen. Deshalb reist genau dieser eine Grund nach außen (`data.code:
+'email_unverified'` → `reason` im Envelope; der Control-Plane-Transport reicht
+ihn durch), die Vorprüfung des Wizards meldet ihn als `codeReason`, und in der
+UI steht die neue Komponente `AuthEmailVerifyRequired` (core) — ein Kasten mit
+Knopf, der `POST /api/auth/verification` ruft, also die schon vorhandene
+Wiederholungs-Route. Bewusst NICHT an `pukalani.auth.verification` gekoppelt:
+die Sperre gilt unabhängig davon, ob die App sonst zur Bestätigung mahnt, und
+ein Kasten ohne Ausweg wäre das Schlechteste von beidem. Texte de+en an drei
+Stellen (`/join`, Wizard-Schritt 0, Wizard-Abschluss).
+
+**Beweis:** im Live-Lauf nimmt ein UNBESTÄTIGTES Konto die Einladung nicht an
+(403 + `reason: email_unverified`, keine Mitgliedschaft), nach
+`updateEmailVerification` sofort schon. Dazu drei Unit-Fälle inklusive der
+Reihenfolge-Zusage.
+
+**3 (hoch) — DIE REGISTRIERUNG WAR UNGEDROSSELT.** `POST /api/auth/signup`
+fehlte in `ALWAYS_LIMITED`, obwohl sie die schärfste der Mail-Routen ist: sie
+legt Konten an, verschickt Mail an eine frei wählbare Adresse und läuft über
+den Admin-Client, umgeht also auch Appwrites eigenes Limit. Jetzt 5/min und IP
+wie ihre Geschwister recovery/otp/verification — ein Mensch legt sich kein
+zweites Konto in derselben Minute an, ein geteilter Anschluss bleibt mit fünf
+Anmeldungen je Minute bequem darunter.
+
+**4 (hoch, erst verifiziert) — X-FORWARDED-FOR WAR FÄLSCHBAR, UND DIE
+BEGRÜNDUNG IM CODE STIMMTE NICHT.** Beide Stellen riefen
+`getRequestIP(event, { xForwardedFor: true })`. Nachgemessen: h3 **1.15.11**
+nimmt darin `.split(",").shift()` — das ERSTE Segment. Und die nginx-Vorlage
+dieses Projekts (`docs/archiv/HELP-GO-LIVE.md:98`) setzt
+`$proxy_add_x_forwarded_for`, was die echte IP **anhängt**. Wer also
+`X-Forwarded-For: 1.2.3.4` mitschickte, erzeugte `1.2.3.4, <echte IP>` — und
+gelesen wurde `1.2.3.4`. Damit war jedes IP-Limit mit einem Header-Zähler
+aushebelbar (Login-Brute-Force zuerst) und die IP im Aktivitätsprotokoll frei
+erfunden.
+
+Der Kommentar im Code und die Phase-17-Checkliste beschrieben ein Setup, das
+es hier nie gab: „nur hinter einem Proxy vertrauenswürdig, der den Header
+ÜBERSCHREIBT". Die Firewall verhindert das UMGEHEN des Proxys — nicht das
+MITSCHICKEN eines Headers DURCH ihn. Genau diese Verwechslung ließ den Befund
+2026-07-05 als „bewusst kein Code-Gate" durchgehen.
+
+Gelöst zentral: `core/server/utils/clientIp.ts` mit der puren, getesteten
+`resolveClientIp` (LETZTES Segment = das, was der eigene Proxy angehängt hat)
+und `trustedClientIp(event)`. Umgestellt sind **alle fünf** Aufrufer:
+Rate-Limit-Middleware, `authAudit`, `admin/server/utils/audit.ts`,
+`comments/.../guest.post.ts` (der IP-Hash der Gast-Kontaktspur) und
+`apps/photos/.../contact.post.ts` (eigener Mini-Limiter). **Ehrliche Grenze,
+im Code notiert:** die Regel setzt GENAU EINEN eigenen Proxy voraus. Für den
+einen zusätzlich über Cloudflare laufenden Host (`pukalani.app`) ist das letzte
+Segment die Cloudflare-Kante — dort landen alle Besucher in einem Eimer. Das
+ist die sichere Richtung (zu streng, nie zu lasch), und dieser Host trägt keine
+Auth-Routen.
+
+**5 (mittel) — DER DRITTE OPEN-REDIRECT-GUARD WAR DER SCHWÄCHSTE.**
+`site-session.get.ts` prüfte `to` mit einer eigenen Regex
+(`^\/(?!\/)[^\s]*$`), die `/\evil.example` durchließ — Browser lesen `\` wie
+`/`, daraus wird `//evil.example`. Die beiden anderen Tore des Repos
+(`shared/redirectTarget.ts`, `shared/notificationLinks.ts`) sperren Backslashes
+seit jeher. Statt einer dritten Variante ruft die Route jetzt
+`safeRedirectTarget` im Zod-`refine` auf — die Ablehnung bleibt ein 400 wie
+bisher.
+
+**6/7 (mittel) — ZWEI UNGEDROSSELTE VERSTÄRKER.**
+`POST /api/storage/<bucket>` (Avatar-Upload, bis 5 MB je Datei auf die geteilte
+Platte) bekommt 30/min wie `/api/media`, aber einen eigenen Eimer — ein
+Redakteur, der eine Galerie füllt, soll sich nicht am Profilbild aussperren.
+`GET /api/presence/count` war unauthentifiziert erreichbar und löste pro Aufruf
+bis zu **fünf** Presences-Seiten über den ADMIN-Client aus (der billigste
+Verstärker im System: ein GET ⇒ fünf Admin-Abrufe); jetzt 120/min wie die
+öffentlichen Kommentar-Lese-Routen.
+
+**8 (niedrig) — DAS KONTEN-ORAKEL.** Bei GESCHLOSSENER Registrierung
+antwortete `POST /api/auth/otp` für unbekannte Adressen 403 und für bekannte
+200 — eine Adressliste ließ sich damit gegen eine Community prüfen.
+`recovery.post.ts` macht es seit jeher richtig (identische Antwort in JEDEM
+Pfad); die OTP-Route steigt jetzt genauso still aus: dieselben Felder in
+derselben Form (frische `userId`, plausible Sicherheitsphrase), kein Konto,
+keine Mail. Der Preis ist bewusst: wer sich vertippt, wartet auf eine Mail, die
+nicht kommt — dieselbe Erfahrung wie beim Passwort-Zurücksetzen.
+
+**9 (niedrig) — PRÄFIX OHNE SEGMENTGRENZE.** `isAllowedControlPath` verglich
+mit nacktem `startsWith`. Vier der sieben echten Präfixe stehen ohne
+Schrägstrich in der `app.config` (`/api/health`, `/api/notifications`,
+`/api/feedback`, `/api/abuse`) — damit hätte `/api/feedbackfoo` oder
+`/api/abuse-export` das Tor passiert. Heute existiert keine solche Route; ein
+Sicherheitstor, das eine noch nicht geschriebene Route mit-erlaubt, ist aber
+eine Falle für den Nächsten. Jetzt gilt die Regel aus dem Produkt-Gate
+(`=== prefix` · `/` · `?`), mit abgeschnittenem Schrägstrich am Ende — sonst
+verlangte `/api/auth/` ein `//` und der ganze Kundenbereich fiele auf 404.
+
+**Nebenbei repariert:** `packages/control/scripts/verify-onboarding.mjs` las
+`community_members` OHNE Filter und ohne Limit (25er-Default) — sobald andere
+Beweisläufe Zeilen hinterließen, fiel die eigene aus dem Fenster und der Beweis
+meldete einen Fehler, den es nicht gab. Jetzt gezielt nach der Community
+gefragt (25/25 grün).
+
+**Beweise gesamt.** `pnpm -r test` (1360 Tests, 0 rot — davon 6 neue
+Handoff-Zielgruppen-Fälle, 7 IP-Fälle, 3 Einladungs-Fälle, 2
+Pfad-Grenzen-Fälle) · `pnpm -r typecheck` sauber · `pnpm -r lint` 6 bekannte
+Warnungen · `pnpm check:manifests` konsistent ·
+`verify-site-authz` 118/118 · `verify-community-suspension` 95/95 ·
+`verify-onboarding` 25/25 · `verify-control-host` 13/13 ·
+`verify-rate-limits` 7/7 (neu).
+
+**Gelernt:** *Ein Token ohne Adressat ist ein Generalschlüssel.* Der Handoff
+war handwerklich sauber gebaut — AES-GCM, 60 Sekunden, Prüfung gegen Appwrite
+vor jedem Cookie — und trotzdem eine Kontoübernahme, weil nirgends stand, WER
+ihn öffnen darf. Jede Fähigkeit, die zwischen zwei Kontexten reist, braucht
+ihren Empfänger IM Siegel; die Lebensdauer ersetzt das nicht.
+
+**Gelernt:** *Eine begründete Ausnahme veraltet mit ihrer Begründung.* Das
+X-Forwarded-For-Vertrauen war 2026-07-05 geprüft und bewusst ohne Code-Gate
+gelassen — mit einer Annahme über nginx, die nie zutraf. Wer eine Prüfung mit
+„das Setup garantiert es" abschließt, muss die Garantie NACHMESSEN (hier: eine
+Zeile in der nginx-Vorlage, eine Zeile im h3-Bundle), nicht behaupten.
+
+**Gelernt:** *Sicherheitsfixes ohne Ausweg sind halbe Fixes.* Die
+Einladungs-Sperre hätte bestehende Konten stumm ausgesperrt. Der aufwendigste
+Teil war nicht die Prüfung, sondern der eine Grund, der nach außen darf, und
+die Stelle, an der er zu einem Knopf wird. Und weil er nach außen darf, musste
+die Reihenfolge der Prüfungen zur Zusage passen — sonst wird aus der Hilfe ein
+Orakel.
+
+**Gelernt:** *Ein Beweisskript, das absichtlich Fehlversuche erzeugt, drosselt
+sich selbst aus.* Die neuen Handoff-Prüfungen sprengten das 5/min-Budget von
+`site-session`, ein zweiter Lauf innerhalb einer Minute meldete 429 statt der
+geprüften Antwort. Lösung: jeder solche Abschnitt bekommt eine eigene
+Client-IP per Header — was lokal genau deshalb wirkt, weil dort kein nginx die
+echte anhängt, also exakt die dokumentierte Grenze aus `clientIp.ts`.
+
+**Gelernt:** *Der Mandanten-Kontext hinkt der Control-Plane-Zeile hinterher.*
+Die OTP-Prüfung schlug zuerst fehl, weil „Registrierung schließen" sofort in
+der Datenbank steht, `tenantRegistrationOpen()` seinen Wert aber aus dem
+Resolver-Cache (≤30 s) liest — das Control Plane entscheidet den BEITRITT
+ungecacht, die Auth-Routen sehen die Sperre später. Der Beweis wartet jetzt mit
+einer nebenwirkungsfreien Sonde (`signup` mit ungültigem Passwort: geschlossen
+⇒ 403 VOR der Body-Prüfung, offen ⇒ 400, in keinem Fall ein Konto).
+
+---
+
+### G3 — courses/themes-Audit: eine Meldung für drei verschiedene Absagen ✅ 2026-08-02
+
+**Was geprüft wurde.** `packages/courses` und `packages/themes`. Sechs
+Befunde, jeder vor dem Fix am laufenden System reproduziert.
+
+**1 (mittel, Produktfehler) — DREI ABSAGEN, EINE FALSCHE MELDUNG.** Die
+Kurs-Seite machte aus JEDEM 403 beim Einschreiben denselben Satz: „Dieser Kurs
+gehört zu Pro", mit einem Knopf auf `/pricing`
+(`courses/app/pages/courses/[slug]/index.vue:41` — `if (statusCode === 403)`,
+mehr stand da nicht). Zusammengefallen sind drei ganz verschiedene Lagen:
+(a) diese Instanz kann `paid` gar nicht freischalten (kein Access-Guard —
+im Pool der Normalfall), (b) der Guard hat abgelehnt, (c) die Community ist
+wegen offener Rechnung gesperrt (M13). Zwei davon waren dadurch gelogen. Im
+Pool zeigte der Knopf auf eine Seite, die es dort nicht gibt: `/pricing` lebt
+in `packages/billing`, und `apps/platform` bindet den Layer nicht ein
+(nachgezählt in der `extends`-Liste) — der Klick endete im 404. Und im Fall (c)
+stand eine KAUFAUFFORDERUNG neben der Mahnung, die das globale Hinweis-Plugin
+(`core/app/plugins/community-suspended-notice.client.ts`) längst zeigt:
+ausgerechnet dann, wenn eine Rechnung offen ist.
+
+Jetzt tragen beide 403 einen fachlichen Grund (`data.code` → `reason` im
+Envelope, das etablierte Muster), und die Seite unterscheidet daran:
+`course_upgrade_required` ⇒ Upgrade-Hinweis MIT Knopf ·
+`course_paid_unavailable` ⇒ ehrlicher Satz OHNE Knopf („Er ist als
+kostenpflichtiger Kurs angelegt, aber in dieser Community gibt es keine
+Bezahlmöglichkeit") · `community_suspended` ⇒ die Seite schweigt, weil das
+Plugin schon spricht. Genau so steht es auch im Kopf jenes Plugins: „wer so
+eine Stelle ohnehin anfasst, prüft `error.data.reason` und schweigt dann."
+
+**Warum kein zweites Flag für „gibt es hier ein /pricing?".** Weil der Grund
+die Frage schon beantwortet: `course_upgrade_required` kann per Konstruktion
+nur fallen, wenn ein Guard registriert ist — und den registriert die App, die
+auch billing einbindet. Kein Guard ⇒ kein billing ⇒ kein `/pricing`. Das ist
+dieselbe Wahrheit, aus der das Dashboard-Formular schon `paidAvailable` zieht
+(F13), nur an der anderen Tür gelesen; ein drittes Feld könnte daneben altern.
+
+**2 (niedrig) — DER F13-FIX WIRKTE NUR IM FORMULAR.** `POST /api/courses` und
+`PATCH /api/courses/:id` nahmen `access: 'paid'` weiterhin an, auch ohne
+Guard. Über die API, einen alten Client oder einen zweiten Tab entstand also
+weiter ein Kurs, dessen Buchen-Knopf anschließend nur noch 403 sagt — die
+Regel lebte in der Oberfläche statt dort, wo sie niemand umgehen kann. Jetzt
+lehnt `assertPaidAccessOffered()` server-seitig ab (422 mit
+`course_paid_unavailable`), gelesen aus derselben `isCourseAccessConfigured()`.
+Der PATCH prüft den MERGED Zustand — sonst bliebe ein Bestandskurs unbemerkt
+auf `paid` stehen, wenn jemand nur den Titel ändert; der Ausweg ist ein Feld
+im selben Formular.
+
+**3 (niedrig) — KEIN NETZ FÜR DIE ZWEI MITGLIEDS-WEGE.** `enroll.post.ts` und
+`lessons/[id]/complete.post.ts` setzen `actor: 'member'` HART (sie haben kein
+Gate, aus dem sie ihn beziehen könnten — nur eine angemeldete Person). Fällt
+das `actor` weg, fallen sie auf die Klinke `operator` zurück und damit still
+aus der Inhalts-Sperre (M13) und dem Beitritts-Auslöser (A5) — genau das Loch,
+das C1c am Vortag geschlossen hatte. Es fällt niemandem auf: das Einschreiben
+funktioniert ja weiter, nur eben auch in einer Community mit offener Rechnung.
+Der vorhandene Anker-Test prüfte für die sechs REDAKTIONS-Routen ausdrücklich
+das Gegenteil (`not.toContain("actor: 'member'")`), die beiden Mitglieds-Wege
+standen gar nicht in der Liste. Jetzt: eigener Anker-Block für sie plus vier
+Live-Prüfungen im Sperr-Beweis (einschreiben und Lektion abschließen in einer
+gesperrten Community ⇒ 403 mit Grund), inklusive Ausgangslage davor — sonst
+wäre ein 403 nicht vom Produkt-Gate oder einem Tippfehler zu unterscheiden.
+
+**4 (niedrig, themes) — EINE FELDLISTE, ZWEIMAL GESCHRIEBEN.** Der
+JSON-Import der Theme-Galerie führte 14 Config-Felder als abgeschriebenes
+String-Array (`sanitizeConfig`), deckungsgleich mit `ThemeConfig` — solange
+jemand daran dachte. Ein neues additives Feld (und additiv ist hier die Regel:
+das config-JSON trägt bewusst kein `version`) wäre beim Import STILL
+verschluckt worden. Still, weil ein fehlendes Feld kein Fehler ist, sondern
+ein Default: das eingeführte Theme sähe anders aus als das exportierte, und
+niemand wüsste warum. Jetzt kommt die Liste aus `THEME_CONFIG_KEYS`, das über
+`Record<keyof Required<ThemeConfig>, true>` am Typ hängt — ein vergessenes
+Feld ist ein Typfehler, kein stiller Verlust. Dazu ein Test, der die
+Editor-Defaults danebenhält (die leiten sich bewusst NICHT vollständig aus
+`ThemeConfig` ab, dort dürfen Felder `null` sein).
+
+**5 (niedrig, themes) — zwei hartkodierte Strings** in
+`CustomizeSceneBranding.vue` („Primary", „Neutral") → i18n de+en. Der
+deutsche Begriff ist „Grundton", derselbe wie unter
+`/dashboard/settings/community`; en „Base tone" wie im admin-Layer.
+
+**6 (niedrig, themes) — DAS GATE SAH NUR IN EINE RICHTUNG.**
+`generate-themes.ts --check` verglich Katalog → Datei. Eine CSS, die zu keinem
+Katalog-Eintrag mehr gehört (umbenanntes oder gestrichenes Theme), blieb
+liegen und wurde weiter ausgeliefert — und weil mit `neutral.css` eine legitim
+handgepflegte Datei danebensteht, war „gehört das hierher?" von außen nicht zu
+entscheiden. Jetzt nennt das Gate die erwartete Menge (Katalog + dokumentierte
+Ausnahme) und meldet alles andere. Gegenprobe gefahren: eine untergeschobene
+`zzz-verwaist.css` bricht den Lauf mit Exit 1, nach dem Löschen wieder grün.
+
+**Nebenbei mitgenommen:** die halbe F22-Zeile — der Kopf von
+`courseAccess.ts` nannte als Guard-Beispiel „billings `requireEntitlement`",
+das mit G1 entfallen ist; heute ruft der Guard `getEntitledProducts()`.
+
+**Beweise.** `verify-community-suspension.mjs` auf 95 Prüfungen erweitert
+(vorher 87, acht neue) und grün — 95 bestanden, 0 fehlgeschlagen · Browser-Beweis für Befund 1 auf `demo.localhost:3006`,
+beide Fälle einzeln: bezahlter Kurs ohne Bezahlmöglichkeit ⇒ „Dieser Kurs ist
+gerade nicht buchbar", kein `/pricing`-Knopf; gesperrte Community ⇒ GENAU EIN
+Hinweis (der globale Sperr-Toast), kein doppelter Kurs-Hinweis ·
+`pnpm -r test` 0 Fehlschläge (courses 37 → 44, themes 153) · `pnpm typecheck`
+0 Fehler · `pnpm lint` 0 Fehler / 6 bekannte Warnungen ·
+`check:manifests` und `check:themes` grün.
+
+**Gelernt:** Ein `catch`, der nur den HTTP-Status liest, ist eine
+Meldungs-Falle — er behauptet EINE Ursache, wo der Server drei verschiedene
+meint. Und wer eine Oberfläche baut, die auf ein Ziel verweist, muss prüfen,
+ob es dieses Ziel auf DIESEM Host überhaupt gibt: im Pool und im Silo laufen
+verschiedene Layer-Verbünde, ein `localePath('/pricing')` ist deshalb keine
+Zusage, sondern eine Annahme.
+
+**Gelernt (Beweis-Betrieb):** (1) `verify-community-suspension.mjs` braucht
+rund **20 Minuten** und steht dabei mehrfach LANGE still — am auffälligsten am
+Ende von Abschnitt 7, wo es nach dem Aufheben der abuse-Sperre darauf wartet,
+dass der Host zurückkommt (Resolver-Cache, bis 45 s je Schleife, und davon
+gibt es viele). Ich habe den ersten Lauf genau dort für hängend gehalten und
+abgebrochen; der zweite lief an derselben Stelle unverändert durch. Bei diesem
+Skript also am Prozess prüfen, ob es noch lebt, statt am stehenden Log — und
+abgebrochene Läufe hinterlassen Communities und Konten, die von Hand weg
+müssen (das Aufräumen steht im `finally`). (2) `stdbuf` gibt es auf macOS
+nicht; der Aufruf scheitert lautlos mit „command not found" in der
+umgeleiteten Datei, und der Wrapper-Exit-Code sagt trotzdem 0. Vor dem Warten
+also immer in die Log-Datei sehen, nicht nur auf den Rückgabewert.
+(3) Nebenbei: Live-Beweise nicht laufen lassen, während man am selben Code
+editiert — Vite lädt den Dev-Server neu, und ein Fehlschlag wäre dann nicht
+mehr der neuen Arbeit zuzuordnen.
+
+**Gelernt (Sperre lokal setzen):** Eine `billing`-Sperre direkt in die Row zu
+schreiben hält NICHT — der `pastDueSweep` hebt sie binnen Sekunden wieder auf
+(„kein `pastDueSince` ⇒ nicht überfällig ⇒ nicht gesperrt"). Wer lokal eine
+gesperrte Community braucht, setzt `suspension`, `billingStatus: 'past_due'`
+UND ein `pastDueSince` in der Vergangenheit. Das ist kein Fehler der
+Automatik, sondern ihr Zweck — es kostet nur eine halbe Stunde, wenn man es
+nicht weiß.
+
+---
+
+### G2 — events/posts-Audit: der Geldpfad war seit Wochen tot, und CI blieb grün ✅ 2026-08-02
+
+**Was geprüft wurde.** `packages/events`, der GDPR-Contributor von
+`packages/posts` und die A14-Naht in `apps/comments/server/plugins`. Sieben
+Befunde, jeder vor dem Fix am laufenden System reproduziert.
+
+**1 (kritisch) — DER GELDPFAD WAR TOT.** `grantEventTicket()` schrieb
+`data: { …, tenantId }` in `event_tickets`. Diese Spalte gibt es seit E8-3
+nicht mehr (events-007 legte `communityId` daneben, events-008 löschte
+`tenantId`) — live nachgemessen trägt KEINE Tabelle irgendeiner Instanz noch
+ein `tenantId`. Appwrite lehnt unbekannte Felder ab; reproduziert mit dem
+Roh-SDK: `400 row_invalid_structure — Unknown attribute: "tenantId"`. Folge in
+der Silo-App, wo billing komponiert ist: der Kunde zahlt, der
+Stripe-Webhook ruft über `billing-fulfillment.ts` in `grantEventTicket`, das
+wirft, Stripe wiederholt endlos, das Ticket entsteht NIE — und
+`assertCanRsvpGoing` hält ausgerechnet den Zahlenden mit 403 fail-closed vor
+der Tür. Ein ZWEITER, unabhängiger Bruch lag im Lesepfad: `hasEventTicket`
+sucht durch die Datentür, und die filtert auf `communityId` — selbst ein
+irgendwie geschriebenes Ticket wäre unauffindbar geblieben. Behoben in Typ,
+Schreib- und Lesestelle. Repo-weite Nachsuche nach derselben Fehlerklasse:
+zwei tote Typ-Felder (`comments`, `media`), sonst nichts — sie stehen als
+F25 offen.
+
+**Warum es niemand sah.** `tests/event-tickets.test.ts` mockt den Row-Store.
+Ein nachgebauter Speicher hat kein Schema; er nimmt `tenantId`, `bananenId`
+und alles andere klaglos an und bleibt grün, während die echte Datenbank seit
+Wochen 400 antwortet. Deshalb zwei Konsequenzen: der Mock lehnt jetzt
+unbekannte Felder ab (`TICKET_COLUMNS`, mit Selbstprüfung — eine handgepflegte
+Liste, die veralten kann, also kein Ersatz), und der eigentliche Beweis läuft
+gegen die echte Instanz: `packages/events/scripts/verify-paid-ticket.mjs`
+**13/13** liest die Spaltenliste aus Appwrite und fährt Ausstellen →
+Wiederfinden → Nachbar sieht nichts → RSVP erlaubt → Webhook-Retry idempotent
+→ Silo-Leerwert → unbekanntes Event wirft. Gegenprobe: mit dem alten
+Feldnamen fällt er sofort um. Er importiert den ECHTEN Quelltext samt
+Datentür (`registerHooks` + `--experimental-strip-types`), nachgestellt sind
+nur die Nitro-Auto-Imports. **Und er läuft jetzt in der CI** (e2e.yml, direkt
+nach dem Bootstrap gegen die Wegwerf-Appwrite) — genau dort, wo der Fehler
+hätte auffallen müssen.
+
+**2 (hoch) — die Titelbilder blieben öffentlich, wenn die Community zumacht.**
+Der Bucket `event-covers` wurde in events-002 bucket-weit `read("any")` mit
+`fileSecurity: false` angelegt, und das events-Plugin meldete seine Tabelle im
+C18-Umzug OHNE `bucket`. Der Umzug zog also jede Event-Row brav auf
+`read(label:<communityId>)` und meldete `complete: true`, während jedes Cover
+per Roh-URL für die ganze Welt abrufbar blieb — genau der Fall, den core an
+`audienceRepermission.ts` benennt. Migration **events-009** stellt den Bucket
+auf `fileSecurity` (übrige Einstellungen vorher gelesen und zurückgeschrieben —
+`updateBucket` setzt Weggelassenes sonst auf Vorgaben), zieht jede Bestandsdatei
+auf die Rechte IHRER Row und sperrt Waisen zu; fail-loud, Exit 1 bei Resten.
+Zur Laufzeit gilt eine Regel in einem Satz: **ein Cover ist nie offener als
+sein Termin** (`utils/eventCovers.ts`) — beim Upload gestempelt, beim
+Publizieren/Zurückziehen nachgezogen, beim C18-Umzug über den jetzt
+registrierten `bucket`-Eintrag. Beweis: `verify-audience-flip.mjs` **25/25**,
+erweitert um die DATEI (anonymer HTTP-Abruf der `<img src>`-URL, vor und nach
+jedem Umschalten). Mit dem alten Bucket-Zustand fällt genau die neue Zeile um.
+
+**3 (mittel) — die Serien-Expansion lief am Kontingent vorbei.** Gedeckelt war
+nur das manuelle Anlegen; `expandSeries` legt bis zu 26 Zeilen je Lauf an und
+läuft aus JEDEM Listen-GET. Ein Kunde materialisierte sich so über sein
+Kontingent hinaus, ohne je etwas Verbotenes zu tun — er legt EINE Serie an,
+der Rest entsteht von selbst. Jetzt wird VOR JEDER Zeile geprüft (ohne
+konfigurierte events-Limits kehrt `assertPoolWriteQuota` sofort zurück, kostet
+also nichts), und die Schleife bricht SAUBER ab statt zu werfen: ein Sweep darf
+den fremden Listen-Aufruf nicht sprengen, an dem er zufällig hängt. Still ist
+er trotzdem nicht — `logEvent` schreibt Serie, Anzahl und Community, und
+unterscheidet „Kontingent voll" von „Prüfung selbst gescheitert" (beides
+stoppt: wer die Grenze nicht kennt, darf sie nicht überschreiten).
+
+**4 (mittel) — der Wartungsmodus kannte die Termine nicht.** `maintenanceMode`
+war im events-Layer an KEINER Route geprüft. comments kennt ihn seit jeher,
+posts seit S10b an allen fünf Wegen — events an keinem: der Betreiber legte
+den Schalter um, Kommentare und Beiträge froren ein, und Termine wurden weiter
+angelegt, bearbeitet, abgesagt, bebildert, zu- und abgesagt und bewertet.
+`assertEventsWritable` (eigener Layer, eigener NAME — zwei gleichnamige
+Auto-Imports in `server/utils` zweier Layer kollidieren) hängt jetzt in allen
+acht Mitglieds-Schreibwegen, jeweils NACH der Anmeldung. Ausgenommen bleibt der
+schlüsselgeschützte Reminder-Sweep. Netz: `events-maintenance-gate.test.ts`
+nach dem posts-Muster — strukturell, weil der Befund strukturell ist.
+
+**5 (niedrig) — der GDPR-Grabstein sprach zur falschen Community.** Der
+posts-Contributor setzte `read(label('admin'))`, ein INSTANZ-weites Label: im
+Pool hätte jede fremde Community Leserecht auf einen Grabstein, der von einem
+Menschen handelt. Jetzt je Zeile aus IHRER `communityId` abgeleitet
+(`mod<communityId>`, sonst die globalen Betreiber-Rollen) — bewusst NICHT über
+`useTenant(event)`: der Lauf geht über alle Communities des Users, es gibt also
+keinen „Mandanten dieses Requests", dem man folgen dürfte.
+
+**6 (niedrig) — der Reminder-Sweep-Endpunkt kannte keinen Mandanten.** Der
+Schlüssel sagt „wer", nicht „wessen": ohne Pool-Kontext scopet die Datentür
+nicht, der Sweep lief über ALLE Communities und `notify({scope:'tenant'})`
+stempelte eine leere tenantId — die Erinnerung landete in der
+„unbekannt"-Ablage statt in der Glocke ihrer Community. In
+Multi-Tenant-Deployments jetzt 400 mit `tenant_required`: ein Aufruf je
+Community-Host. Silo unverändert.
+
+**7 (niedrig) — drei Serien-Fan-outs kappten still.** Publish-Propagation,
+Cover-Propagation und „Serie beenden" liefen mit nacktem `Query.limit(200)`.
+Eine wöchentliche Serie überschreitet das nach knapp vier Jahren — und dann
+lässt „Serie beenden" Termine stehen, die der Owner für abgesagt hält. Jetzt
+`listSeriesInstances()`, cursor-paginiert, mit lauter Notbremse bei 5000.
+
+**Migration.** `events-009` (Bucket + Bestand). **Reihenfolge in Prod: ERST
+Code deployen, DANN migrieren** — wie media-002: nach der Migration vergibt nur
+der neue Code Datei-Rechte, ein frisch hochgeladenes Cover bekäme unter altem
+Code gar keine. Andersherum gibt es kein Fenster. Betroffen: platform und
+comments. Lokal gefahren, Prod steht aus.
+
+**Beweise.** verify-paid-ticket **13/13** (neu) · verify-audience-flip **25/25**
+(erweitert) · verify-community-suspension **95/95** · events-Pool-Isolation
+**14/14** · posts-Pool-Isolation **7/7** · `pnpm -r test` (1338 grün) ·
+`pnpm -r typecheck` grün · `pnpm lint` 0 Fehler / 6 bekannte Warnungen ·
+`pnpm check:manifests` grün.
+
+**Gelernt:** (1) **Ein Mock kann eine Schema-Zusage nicht prüfen — er kann sie
+nur bestätigen.** Der Test hier war nicht schlampig, er war gut geschrieben und
+prüfte die richtige Frage („kommt der Mandanten-Stempel aus dem Event?"). Nur
+lag der Fehler eine Ebene darunter, in einer Zusage, die der Prüfling gar nicht
+hat: der nachgebaute Store nimmt jeden Feldnamen an. Regel daraus: wo Code eine
+SPALTE benennt, gehört mindestens ein Beweis an die echte Instanz — und in die
+CI, die eine hat. (2) **Eine Umbenennung ist erst fertig, wenn der SCHREIBPFAD
+sie kennt.** events-007/008 liefen fehlerfrei, mit Backfill, Index-Zwillingen
+und fail-loud-Gegenprobe — makellose Arbeit an den DATEN. Der Code, der
+hineinschreibt, stand daneben und wurde von keiner dieser Prüfungen berührt.
+Die Migrations-Gegenprobe fragt „stimmen die Zeilen?", nie „schreibt noch
+jemand den alten Namen?" — dafür gibt es nur `grep` und einen echten
+Schreibvorgang. (3) **Ein optionales Registry-Feld ist eine Falle, wenn sein
+Fehlen wie eine Aussage aussieht.** `registerAudienceRepermissionTable` hatte
+für Dateien längst einen Platz (`bucket`), media nutzte ihn, events ließ ihn
+weg — und nichts unterschied „hat keine Dateien" von „hat welche und vergisst
+sie". Der Umzug meldete deshalb wahrheitsgemäß `complete: true` über eine halbe
+Arbeit. Wo ein Vertrag eine zweite Seite kennt, muss das Weglassen begründet
+DASTEHEN, nicht bloß möglich sein.
+
+---
+
+### G1 — Billing-/Admin-Audit: Ware ohne Geld, und drei tote Hälften ✅ 2026-08-02
+
+**Was geprüft wurde.** `packages/billing`, die Admin-Routen der
+Nutzerverwaltung und der GDPR-Contributor des system-Layers. Acht Befunde,
+alle vor dem Fix am Code reproduziert.
+
+**1 (hoch, vor dem Stripe-Go-Live kritisch) — WARE OHNE GELD.** Der Webhook
+erfüllte einen Einmal-Kauf, sobald `checkout.session.completed` eintraf. Diese
+Nachricht bedeutet aber nur „der Kunde ist durch den Checkout durch", nicht
+„bezahlt": bei einer verzögerten Zahlungsart (SEPA-Lastschrift, Rechnung)
+kommt sie mit `payment_status: 'unpaid'`, und die Belastung passiert Tage
+später — oder scheitert. `payment_status` kam im ganzen Repo nicht vor, die
+drei Nachzügler-Ereignisse (`async_payment_succeeded`, `async_payment_failed`,
+`expired`) standen nicht in der Allowlist, und keine unserer
+Checkout-Erzeugungen schränkt `payment_method_types` ein — welche Methoden
+angeboten werden, entscheidet also das Stripe-Dashboard. Ein einziger Klick
+dort hätte gereicht: Ticket sofort ausgestellt, Zahlung platzt später, kein
+Rückweg. Jetzt entscheidet der Zahlungs-Status statt des Ereignis-Namens
+(`checkoutOutcome`, pure, alle vier Wege getestet), die Nachzügler sind
+zugelassen, und was NICHT erfüllt wird, steht als strukturierte Log-Zeile da
+(`billing.checkout_not_fulfilled`; `payment_failed` als `error`, weil dort
+jemand hinsehen muss). Bewusst KEIN `throw`: ein Stripe-Retry käme zum selben
+Ergebnis, und die Webhook-Regel lautet werfen nur, wenn Wiederholen helfen kann.
+
+**2 (mittel) — Preis-Allowlist.** `lookupKey` war ein freier Parameter der
+Checkout-Utilities; die Garantie hing allein am Aufrufer. Abos prüfen jetzt
+HART gegen `pukalani.billing.plans` (ein Preis, den kein Plan nennt, schaltet
+ohnehin nichts frei). Einmal-Käufe lassen sich nicht erschöpfend auflisten —
+ein Event-Ticket zeigt auf einen `lookup_key`, den der Betreiber in SEINEM
+Stripe-Konto anlegt und als Freitext einträgt. Dort greifen zwei Regeln: nie
+ein Plan-Key, und der aufgelöste Stripe-Price MUSS `one_time` sein. Wer es
+enger will, trägt `pukalani.billing.oneTimeLookupKeys` ein (exakt oder
+`präfix_*`).
+
+**3 (mittel, Isolation am Socket) — das Dashboard hörte pool-weit zu.**
+`useRealtimeRows(…, 'comments', …)` lief ohne `where`. Dieselbe Klasse wie B2,
+nur eine Ebene tiefer: der Strom liest DIREKT gegen Appwrite und ist von der
+Datentür nicht erfasst. Live nachgemessen (zwei lokale Communities, roher
+Gast-WebSocket): beide neu angelegten Zeilen kamen an EINEM Socket an, beide
+mit `read("any")` — die Row-Permissions sind hier also gar keine Grenze.
+Folge im Betrieb: jedes Kunden-Dashboard zog bei jedem fremden Kommentar drei
+Refetches. Jetzt `rowBelongsToHost(payload, tenantId)` wie bei Activity-Feed
+und Glocke; das Spiegel-Inventar in `tenant-brand.server.ts` nennt den neuen
+Leser.
+
+**4 (mittel, GDPR) — die E-Mail überlebte die Kontolöschung.**
+`POST /api/admin/users` legte sie als `metadata.email` im Audit-Log ab; der
+Contributor pseudonymisierte `actorName`/`ip`/`metadata.name`. Die Adresse
+stand aber in der Zeile des ANLEGENDEN Admins, nicht in einer eigenen — der
+Actor-Zweig griff sie nie. Beide Hälften gefixt: die Route speichert sie nicht
+mehr (gebraucht wurde sie nie, `targetId`/`targetName` beantworten „wer"), und
+`stripPersonalMetadata` räumt den Bestand — auch im `targetId`-Zweig.
+
+**5 (mittel) — Teil-Löschung meldete nur „fehlgeschlagen".** Die Route hängte
+`{results, failed, exportFileId}` an einen 500er. Der zentrale Handler holt
+aus `data` aber ausschließlich `code` heraus: es kam NIE etwas an,
+`publicContributorResults()` war in der Produktion toter Code — exakt die
+`last_admin`-Bauart vom 2026-07-29. Der Betreiber las „Aktion fehlgeschlagen —
+es gilt weiter der Stand, den du hier siehst", während der Nutzer in Wahrheit
+GESPERRT zurückblieb und ein zweiter Lauf nötig war. Jetzt reist
+`deletion_incomplete` als Grund; die Zuordnung Grund → Text liegt pur in
+`packages/admin/shared/userActionErrors.ts` (Liste, Detailseite und Test
+benutzen dieselben Schlüssel), Texte in de+en. `publicContributorResults` ist
+entfallen — WELCHE Layer offen sind, steht strukturiert im Log.
+
+**6 (niedrig) — `requireEntitlement()` entfernt.** Kein Aufrufer, und das war
+kein Versehen: der einzige echte Konsument ist der Kurs-Zugangs-Guard, und ein
+Guard braucht eine Antwort (`boolean`), keinen Wurf. Ein zweites, werfendes
+Gate daneben ist keine Absicherung, sondern eine Abzweigung — es antwortete 402
+ohne fachlichen `data.code`, also ohne `reason` im Envelope.
+
+**7 (niedrig) — Rücksprung-URLs kamen aus dem `Host`-Header.** Auf einer
+Wildcard-Site reicht der Header ungeprüft bis in den Node-Prozess: ein
+gefälschter Host erzeugte eine ECHTE Stripe-Checkout-URL, die nach der Zahlung
+auf einen fremden Host zurückführt. Jetzt gewinnt die konfigurierte Basis-URL
+der App; der Request-Origin bleibt nur der Rückfall für die lokale Entwicklung
+(`shared/returnOrigin.ts`, pur). Muster war `communityCheckout.ts`, das die URL
+schon aus `tenants.host` baut.
+
+**8 (niedrig) — `admin/system/update.post.ts` protokolliert.** Dass sie
+dev-only ist, war kein Grund: sie schreibt in `pnpm-workspace.yaml` und stößt
+einen Install an. Dabei fiel auf, dass `user.created` in keiner der beiden
+Sprachen einen Audit-Text hatte — nachgetragen.
+
+**Beweise.** `pnpm -r test` grün (Billing 52, Admin 64, Core 477 — neu:
+`checkout-fulfillment-gate`, `user-action-errors`,
+`audit-metadata-pseudonymization`, umgewidmetes `userDataOrchestration`).
+`pnpm lint` 0 Fehler / 6 bekannte Warnungen, `pnpm check:manifests` 18 Layer +
+8 Apps konsistent, `pnpm typecheck` für `apps/control` (= billing + admin +
+system + core) grün. Live: zwei Communities über einen Gast-Socket, Testzeilen
+danach wieder entfernt.
+
+**Gelernt:** Ein Fehler-Envelope, das nur bei 4xx einen Grund durchlässt,
+erzeugt tote Hälften — und zwar genau dort, wo es weh tut. Die alte Regel
+(„bei 5xx gibt es nichts zu erklären, nur zu verschweigen") stimmt für die
+MESSAGE, nicht für den GRUND: es gibt 5xx, die eine handlungsleitende Auskunft
+tragen, und „teilweise gelöscht, Konto gesperrt, bitte erneut ausführen" ist
+eine davon. Seit dem 2026-08-02 gilt `reason` für jeden Status; verschwiegen
+bleibt trotzdem alles Interne, weil `domainReasonFrom` nur einen kurzen, selbst
+geschriebenen Schlüssel durchlässt. Zweite Lektion, dieselbe Familie: wer eine
+Ablehnung nur an `statusText` hängt (`requireEntitlement`, 402 „Upgrade
+required"), baut die nächste tote Hälfte — ein fachlicher Grund gehört an
+JEDEN Wurf, den eine Oberfläche unterscheiden muss.
+
+**Gelernt (2):** Row-Permissions sind am Realtime-Socket kein Mandanten-Netz.
+Bei `read("any")`-Zeilen — und öffentliche Kommentare sind genau das — stellt
+Appwrite jedem Zuhörer alles zu, auch einem Gast. Der Beweis dafür kostete
+zwanzig Zeilen (roher WebSocket auf `tablesdb.<db>.tables.<table>.rows`, zwei
+Zeilen anlegen, zählen was ankommt) und war den Aufwand wert: er verwandelte
+„könnte theoretisch lecken" in „leckt, hier ist die Zeile". Das Web-SDK taugt
+dafür nicht, es braucht `window`; der rohe Socket spricht dasselbe Protokoll.
+
+---
+
 ### F19 — Warum die CI-E2E zufällig starb: ein vergifteter Appwrite-Cache ✅ 2026-08-02
 
 **Befund.** Zwei von acht E2E-Läufen eines Vormittags starben im Bootstrap mit

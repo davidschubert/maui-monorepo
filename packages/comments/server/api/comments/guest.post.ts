@@ -115,7 +115,10 @@ export default defineEventHandler(async (event) => {
   // fehl, bleibt der Kommentar bestehen — aber ohne moderierbare Kontaktspur.
   // Die Zeile verfällt nach 90 Tagen von selbst (guestAuthorPrune.ts): ein Gast
   // hat keine userId, an der die GDPR-Löschung ansetzen könnte.
-  const ipHash = createHash('sha256').update(getRequestIP(event, { xForwardedFor: true }) ?? '').digest('hex')
+  // `trustedClientIp`: die Kontaktspur eines Gastes ist nur so viel wert wie
+  // ihre Herkunft — mit dem ERSTEN X-Forwarded-For-Segment konnte sich jeder
+  // Gast pro Kommentar eine neue „IP" ausdenken (Audit 2026-08-02).
+  const ipHash = createHash('sha256').update(trustedClientIp(event) ?? '').digest('hex')
   await db.create(GUEST_AUTHORS_TABLE, {
     commentId: row.$id, name: body.guestName, email: body.guestEmail, ipHash,
   }, { permissions: [] }).catch((error) => {
