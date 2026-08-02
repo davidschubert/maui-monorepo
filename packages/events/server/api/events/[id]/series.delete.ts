@@ -11,19 +11,21 @@ import { EVENTS_TABLE, isSeriesMaster, type EventRow } from '../../../../shared/
  * AUTORISIERUNG (N5): `requireCommunityPermission` — Site-Rolle vor protokolliertem
  * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
  *
- * WER HANDELT (F17): Redaktion an INHALT — `actor` aus dem Gate, dieselbe
- * Entscheidung und dieselbe Begründung wie beim Absagen eines einzelnen
- * Termins ([id].delete.ts).
+ * WER HANDELT (F17): kein `actor` — Absagen bleibt auch in einer
+ * billing-gesperrten Community OFFEN (Davids Entscheidung 2026-08-02).
+ * Begründung und die überstimmten Gegenargumente stehen einmal ausführlich in
+ * `[id].delete.ts`; hier gilt dieselbe eng gezogene Ausnahme: NUR Beenden,
+ * nicht Anlegen oder Ändern.
  */
 export default defineEventHandler(async (event) => {
   // Produkt-Gate (P4): Events sind ab Plan pro enthalten.
   requirePlanProduct(event, 'events')
-  const { actor } = await requireCommunityPermission(event, 'events.manage')
+  await requireCommunityPermission(event, 'events.manage')
 
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ status: 400, statusText: 'Missing event id' })
 
-  const db = tenantDb(event, { as: 'operator', actor })
+  const db = tenantDb(event, { as: 'operator' }) // kein `actor`: Absagen bleibt offen (s. Kopf)
 
   const master = await db.get<EventRow>(EVENTS_TABLE, id, 'Event not found')
   if (!isSeriesMaster(master)) {

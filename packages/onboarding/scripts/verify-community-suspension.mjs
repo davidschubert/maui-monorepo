@@ -443,6 +443,16 @@ try {
     check('…und VERÖFFENTLICHEN ebenso (403) — der Moment, in dem Inhalt in die Welt geht',
       eventEdit.status === 403 && eventEdit.json?.reason === 'community_suspended',
       `Status ${eventEdit.status} ${JSON.stringify(eventEdit.json)}`)
+
+    // ABSAGEN BLEIBT OFFEN (Davids Entscheidung 2026-08-02): eine Absage schützt
+    // die Zusagenden, und die haben mit der Rechnung ihres Owners nichts zu tun.
+    // Eng gezogen — anlegen/ändern sind zwei Zeilen weiter oben nachweislich zu.
+    const eventCancel = await call(host, `/api/events/${eventBefore.json.$id}`, {
+      method: 'DELETE', cookie: ownerHostCookie,
+    })
+    check('ABER ABSAGEN geht (200) — wer zugesagt hat, muss die Absage erfahren',
+      eventCancel.status === 200,
+      `Status ${eventCancel.status} ${JSON.stringify(eventCancel.json)}`)
   }
 
   const courseDuring = await call(host, '/api/courses', {
