@@ -355,6 +355,22 @@ Vollständiges Konzept: docs/CONCEPT.md
 - pukalani.observability: strukturierte JSON-5xx-Logs am zentralen server/error.ts
   + Client-Error-Inbox (POST /api/telemetry/error, rate-limited); Core-Default
   aus, Sentry-Andockpunkt in core/server/utils/logEvent.ts
+- pukalani.realtime.enabled (F14, seit 2026-08-01): der EINE Schalter für alle
+  Realtime-Einstiege des Core — Row-Streams (useRealtimeRows), Presence
+  (usePresence/-State) und den Account-WS (useRealtimeAccount). AUS heißt: kein
+  Web-SDK nachgeladen, kein Socket, kein /api/auth/realtime-token. **Core-Default
+  AN** — die begründete Ausnahme von „Core-Default ist IMMER aus": Realtime ist
+  kein Zusatz, sondern das bestehende Verhalten jeder Produkt-App, und ein
+  Default AUS entkoppelte sie stillschweigend (die Seite sieht richtig aus, sie
+  aktualisiert sich nur nicht mehr). AUS in `marketing` + `help` (öffentlich,
+  kontenlos, ohne themes-Layer — sie abonnierten `app_config` über den geerbten
+  core-Layer, ohne die Flags je zu lesen). EINE pure Regel in
+  core/shared/realtimeGate.ts (`realtimeAllowed(enabled, ...ids)` — Gate UND
+  Datenebene; der `!databaseId`-Guard aus dem Live-Vorfall 2026-07-29 geht darin
+  auf), gelesen an EINER Stelle (`realtimeEnabled()` in useRealtimeClient.ts,
+  memoisiert). `ensureRealtimeClients`/`sharedRealtime`/`realtimeCookieClient`
+  geben bewusst `… | null` zurück: der strict-Modus zwingt so JEDEN künftigen
+  Konsumenten, „diese App hat keine Realtime" zu behandeln.
 - pukalani.auth.*: providers (OAuth-Buttons), termsUrl (AGB-Pflicht), otp
 - pukalani.admin.modules: Modul-Registry der Dashboard-Nav — Produkt-Layer
   registrieren ihre Admin-Seiten hier (expliziter Vertrag statt Kopplung)

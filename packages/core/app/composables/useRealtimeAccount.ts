@@ -1,3 +1,5 @@
+import { realtimeAllowed } from '../../shared/realtimeGate'
+
 export interface AccountRealtimeEvent {
   events: string[]
   payload: unknown
@@ -31,6 +33,12 @@ export function useRealtimeAccount(
   if (import.meta.server) return () => {}
 
   const config = useRuntimeConfig()
+  // DIESELBE REGEL, ZWEITE TÜR (F14): dieser WS geht bewusst NICHT über das
+  // Web-SDK (Cookie-Auth, s. oben) — das Gate aus useRealtimeClient greift hier
+  // also nicht von selbst. Ohne Endpoint/Projekt (Apps ohne Appwrite-Instanz)
+  // liefe der Reconnect-Backoff sonst ewig gegen eine unsinnige URL.
+  if (!realtimeAllowed(realtimeEnabled(), config.public.appwriteEndpoint, config.public.appwriteProjectId)) return () => {}
+
   const base = config.public.appwriteEndpoint.replace(/^http/, 'ws')
   const url = `${base}/realtime?project=${encodeURIComponent(config.public.appwriteProjectId)}&channels[]=account`
 

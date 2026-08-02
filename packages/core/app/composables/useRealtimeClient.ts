@@ -1,4 +1,5 @@
 import type { Client, Realtime } from 'appwrite'
+import { realtimeAllowed } from '../../shared/realtimeGate'
 
 /**
  * EINE geteilte, JWT-authentifizierte Realtime-Verbindung für die ganze App.
@@ -50,12 +51,46 @@ interface RealtimeClients {
 let clientsPromise: Promise<RealtimeClients> | null = null
 
 /**
+ * ── DAS CONFIG-GATE (F14, 2026-08-01) ──────────────────────────────────────
+ * `pukalani.realtime.enabled` (Core-Default AN, Regel + Begründung in
+ * shared/realtimeGate.ts). Gelesen wird es HIER, an der einzigen Tür zum
+ * Web-SDK — nicht in den drei Plugins: sonst muss sich jeder künftige
+ * Realtime-Konsument daran erinnern, und beim vierten ist es vergessen
+ * (dieselbe Überlegung wie beim `!databaseId`-Guard in useRealtimeRows).
+ *
+ * MEMOISIERT, anders als `hasSession()` unten: die App-Config ist zur Laufzeit
+ * konstant, während der Auth-Zustand sich im selben Fenster ändern darf.
+ *
+ * Der Rückfall ohne Nuxt-Kontext ist der Core-Default (AN) und in der Praxis
+ * unerreichbar: JEDER Einstieg (useRealtimeRows, usePresence/-State,
+ * useRealtimeAccount, ensureRealtimeJwt) fragt das Gate SYNCHRON im Setup ab,
+ * also lange bevor ein Timer oder ein Post-await-Pfad hier ankommen kann. In
+ * einer App mit ausgeschaltetem Gate steht der Wert damit schon fest, bevor
+ * irgendetwas einen Socket öffnen könnte.
+ */
+let gateOpen: boolean | undefined
+
+export function realtimeEnabled(): boolean {
+  if (gateOpen !== undefined) return gateOpen
+  if (!tryUseNuxtApp()) return true
+  const pukalani = useAppConfig().pukalani as { realtime?: { enabled?: boolean } } | undefined
+  gateOpen = realtimeAllowed(pukalani?.realtime?.enabled)
+  return gateOpen
+}
+
+/**
  * Die beiden Clients + die geteilte Realtime-Instanz. Die Runtime-Config wird
  * SYNCHRON gelesen (vor dem ersten await), weil `useRuntimeConfig()` einen
  * gültigen Nuxt-Kontext braucht — nach einem await ist der weg. Alle
  * öffentlichen Einstiege unten werden aus Composable-/Plugin-Setup gerufen.
+ *
+ * `null` heißt „diese App hat keine Realtime" (Config-Gate aus). Der Rückgabetyp
+ * ist bewusst nullable und nicht etwa ein throw: so ZWINGT der strict-Modus
+ * jeden — auch künftigen — Konsumenten, den Fall zu behandeln. Der Vertrag steht
+ * damit im Typ und nicht in einer Konvention, an die man sich erinnern muss.
  */
-export function ensureRealtimeClients(): Promise<RealtimeClients> {
+export function ensureRealtimeClients(): Promise<RealtimeClients | null> {
+  if (!realtimeEnabled()) return Promise.resolve(null)
   if (!clientsPromise) {
     const config = useRuntimeConfig()
     const endpoint = config.public.appwriteEndpoint
@@ -69,14 +104,14 @@ export function ensureRealtimeClients(): Promise<RealtimeClients> {
   return clientsPromise
 }
 
-/** Cookie-authentifizierter Client für HTTP-SDK-Services (Presences, …). */
-export async function realtimeCookieClient(): Promise<Client> {
-  return (await ensureRealtimeClients()).cookieClient
+/** Cookie-authentifizierter Client für HTTP-SDK-Services (Presences, …). `null` = Gate aus. */
+export async function realtimeCookieClient(): Promise<Client | null> {
+  return (await ensureRealtimeClients())?.cookieClient ?? null
 }
 
-/** Die eine geteilte SDK-Realtime-Instanz (JWT-Client, multiplext alle Channels). */
-export async function sharedRealtime(): Promise<Realtime> {
-  return (await ensureRealtimeClients()).realtime
+/** Die eine geteilte SDK-Realtime-Instanz (JWT-Client, multiplext alle Channels). `null` = Gate aus. */
+export async function sharedRealtime(): Promise<Realtime | null> {
+  return (await ensureRealtimeClients())?.realtime ?? null
 }
 
 // ── Realtime-Auth via JWT ──────────────────────────────────────────────────
@@ -132,8 +167,11 @@ function stopJwtRefresh() {
 async function fetchJwt() {
   try {
     const { jwt } = await $fetch<{ jwt: string }>('/api/auth/realtime-token')
-    const { rtClient } = await ensureRealtimeClients()
-    rtClient.setJWT(jwt) // NUR der Realtime-Client — nie der Cookie-Client
+    const clients = await ensureRealtimeClients()
+    // `null` = Config-Gate aus (F14) — unerreichbar, weil ensureRealtimeJwt()
+    // dann gar nicht erst hierher kommt; der nullable Typ verlangt die Zeile.
+    if (!clients) return
+    clients.rtClient.setJWT(jwt) // NUR der Realtime-Client — nie der Cookie-Client
     jwtReady = true
   }
   catch {
@@ -158,6 +196,9 @@ export function hasRealtimeJwt(): boolean {
  * die WS verbindet. Idempotenter Start + periodischer Refresh (< 1h). Vor jedem
  * realtime.subscribe()/upsertPresence() awaiten.
  *
+ * OHNE REALTIME passiert hier NICHTS (F14): ist das Config-Gate aus, gibt es
+ * keinen Socket, den man authentifizieren müsste — also auch keinen Token-Abruf.
+ *
  * OHNE SESSION passiert hier NICHTS (F11): kein Token-Abruf, kein Refresh-Timer.
  * Der Socket verbindet sich als Gast und bleibt es — und das ist Absicht, kein
  * Verzicht: `read(any)`-Channels (app_config, custom_themes, öffentliche
@@ -166,6 +207,9 @@ export function hasRealtimeJwt(): boolean {
  * für einen Nutzer, der keine Session hat → 401 pro Seitenaufruf.
  */
 export function ensureRealtimeJwt(): Promise<void> {
+  // Gate VOR der Session-Frage: eine App ohne Realtime braucht auch für einen
+  // eingeloggten Nutzer keinen Token (F14).
+  if (!realtimeEnabled()) return Promise.resolve()
   // Synchron anstoßen, solange der Nuxt-Kontext noch steht (Config-Lesen).
   void ensureRealtimeClients()
   if (!hasSession()) {

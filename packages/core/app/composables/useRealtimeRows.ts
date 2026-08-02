@@ -1,4 +1,5 @@
 import type { AppwriteRow } from '../../shared/types/appwrite'
+import { realtimeAllowed } from '../../shared/realtimeGate'
 
 export interface RealtimeRowEvent<T extends AppwriteRow> {
   type: 'create' | 'update' | 'delete'
@@ -53,22 +54,31 @@ export function useRealtimeRows<T extends AppwriteRow>(
   if (import.meta.server) return () => {}
 
   /**
-   * OHNE DATENEBENE GIBT ES NICHTS ZU ABONNIEREN (Live-Vorfall 2026-07-29).
+   * OHNE DATENEBENE — ODER OHNE REALTIME-GATE — GIBT ES NICHTS ZU ABONNIEREN.
    *
-   * Apps wie `help` und `marketing` erben den core-Layer, haben aber bewusst
-   * KEINE Appwrite-Instanz — `appwriteDatabaseId` ist dort der leere Default.
-   * Der SDK-Kanalbau (`Channel.tablesdb('')`) wirft dann „Channel ID is
-   * required". Weil das in einem PLUGIN passiert (realtime-config.client.ts,
-   * realtime-themes.client.ts), macht Nuxt daraus einen fatalen
-   * App-Start-Fehler: help.pukalani.app lieferte HTTP 200 mit sauberem
-   * SSR-HTML, und der Browser malte trotzdem eine 500-Seite darüber — der
-   * Server war nie das Problem.
+   * Zwei Gründe, eine Regel (shared/realtimeGate.ts):
+   *
+   * (1) DIE DATENEBENE (Live-Vorfall 2026-07-29). Apps wie `help` und
+   *     `marketing` erben den core-Layer, haben aber bewusst KEINE Appwrite-
+   *     Instanz — `appwriteDatabaseId` ist dort der leere Default. Der
+   *     SDK-Kanalbau (`Channel.tablesdb('')`) wirft dann „Channel ID is
+   *     required". Weil das in einem PLUGIN passiert (realtime-config.client.ts,
+   *     realtime-themes.client.ts), macht Nuxt daraus einen fatalen
+   *     App-Start-Fehler: help.pukalani.app lieferte HTTP 200 mit sauberem
+   *     SSR-HTML, und der Browser malte trotzdem eine 500-Seite darüber — der
+   *     Server war nie das Problem.
+   * (2) DAS CONFIG-GATE `pukalani.realtime.enabled` (F14, 2026-08-01). Eine
+   *     Datenbank-Id in der .env heißt noch nicht, dass die App etwas davon
+   *     will: die Marketing-Seite trägt eine (der system-Layer bootet damit)
+   *     und abonnierte deshalb `app_config`-Flags, die sie nirgends liest —
+   *     samt nachgeladenem Web-SDK und Gast-WebSocket auf einer statischen
+   *     Landingpage.
    *
    * Der Guard steht bewusst HIER und nicht in den Plugins: sonst muss sich
    * jeder künftige Aufrufer daran erinnern. Eine Stelle entscheidet, ob
    * Realtime überhaupt möglich ist.
    */
-  if (!databaseId || !tableId) return () => {}
+  if (!realtimeAllowed(realtimeEnabled(), databaseId, tableId)) return () => {}
 
   let sub: { unsubscribe?: () => void, close?: () => void } | undefined
   let disposed = false
@@ -98,7 +108,9 @@ export function useRealtimeRows<T extends AppwriteRow>(
     // verliert Rollup die Tree-Shaking-Information (s. useRealtimeClient.ts).
     const { Channel } = await import('appwrite')
     const realtime = await sharedRealtime()
-    if (disposed) return
+    // `null` = Config-Gate aus. Der Guard oben hat das längst abgefangen; der
+    // Typ verlangt die Zeile trotzdem — genau dafür ist er nullable (F14).
+    if (disposed || !realtime) return
     const channel = options.rowId
       ? Channel.tablesdb(databaseId).table(tableId).row(options.rowId)
       : Channel.tablesdb(databaseId).table(tableId).row()

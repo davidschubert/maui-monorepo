@@ -272,6 +272,21 @@ export default defineAppConfig({
        */
       controlApiPrefixes: ['/api/auth/', '/api/onboarding/', '/api/health', '/api/telemetry/', '/api/notifications', '/api/feedback', '/api/abuse'] as string[],
     },
+    /**
+     * Realtime-Gate (F14, 2026-08-01) — der EINE Schalter, mit dem eine App
+     * ohne lebende Datenebene alle Realtime-Einstiege des Core loswird:
+     * Row-Streams (useRealtimeRows → Config-/Branding-Plugin, Kommentare),
+     * Presence (usePresence/usePresenceState) und den Account-WS
+     * (useRealtimeAccount). AUS heißt: kein Web-SDK nachgeladen, kein Socket,
+     * kein `/api/auth/realtime-token`.
+     *
+     * DIE AUSNAHME VON „Core-Default ist IMMER aus": Realtime ist kein Zusatz,
+     * sondern das bestehende Verhalten jeder Produkt-App. Vollständige
+     * Begründung + die pure Regel: shared/realtimeGate.ts.
+     */
+    realtime: {
+      enabled: true,
+    },
     security: {
       /** CSRF-Origin-Check für unsichere Methoden auf /api/* (server/middleware/
        *  csrf-origin.ts). PFLICHT, sobald eine App das partitionierte
