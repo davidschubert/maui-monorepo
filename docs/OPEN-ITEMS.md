@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 7 offen · 9 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 6 offen · 9 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-02**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -22,7 +22,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen (**Anleitung dabei mitschreiben — ab Schritt 2 veraltet, Workspace-Welt**) und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
 | 11 · B1 | **Neun visuelle Referenzbilder sichten** — jetzt WIRKLICH final: zuletzt am 2026-08-01 neu gebacken, nachdem das DevTools-Abzeichen (wechselnde ms-Zahl) aus allen neun Bildern verschwunden ist. Zu prüfen bleibt nur der Inhalt: `git show HEAD:<pfad>` gegen die Arbeitskopie halten. | Mittel | S — ansehen | Ja: David sichtet | [Notizen](#notizen) |
 | 27 · E1 | **Tote Schlüsseldatei löschen** (`apps/control/.env.production` zeigt auf ein gelöschtes Projekt). Liegt nur auf Davids Rechner, nicht im Repo. | Niedrig | S — eine Datei | Ja: enthält Schlüsselmaterial | [Notizen](#notizen) |
-| 28 · E2 | **UptimeRobot nachziehen:** Monitor für `help.pukalani.app` anlegen, einen alten Monitor umbenennen — und im selben Aufwasch die öffentliche Statusseite einschalten (kam aus M13). | Niedrig | S — drei Klicks | Nein | [Notizen](#notizen) |
 | 29 · E3 | **Server-Größe prüfen** — der CX33 wird mit sechs Apps plus Builds knapp. | Mittel | S — prüfen, ggf. Rescale | Ja: kostet Geld | [Notizen](#notizen) |
 | 30 · E4 | **Nur-Lese-Schlüssel im Projekt `control`** erzeugen (letzter Cutover-Krümel). | Niedrig | S — ein Klick in der Console | Ja: David, Console | [CONTROL-CUTOVER.md](runbooks/CONTROL-CUTOVER.md) |
 
@@ -252,9 +251,6 @@ gegen ein nicht existierendes Projekt laufen. Der richtige Pfad ist
 `~/.appwrite-secrets/migrations/control.env`. **Löschen ist Davids Klick**
 (Datei mit Schlüsselmaterial). Die anderen drei `.env.production`
 (platform → `pool`, comments, portfolio) sind korrekt.
-
-**E2 — UptimeRobot:** Monitor für `help.pukalani.app` ergänzen · Monitor
-803548622 heißt noch „studio…" (Friendly-Name nachziehen).
 
 **E3 — Hetzner-Rescale** prüfen (CX33 knapp bei sechs Apps + Builds). [David]
 
