@@ -17,6 +17,9 @@
  *     injiziert, nicht abgewartet.)
  *   - können Fremde nicht sperren (401/403), und verlangt das Sperren einen Grund?
  *   - kommt eine Missbrauchsmeldung von außen an, ohne Konto, mit Honeypot?
+ *   - BLÄTTERT die Warteschlange des Betreibers wirklich (keine Meldung fällt
+ *     hinten heraus), und zählen die Kacheln darüber die ganze Warteschlange
+ *     statt der Zeilen, die gerade sichtbar sind?
  *
  * Räumt am Ende alles weg, was es angelegt hat.
  *
@@ -573,6 +576,71 @@ try {
   const queue = await ctl('/api/control/abuse-reports', { cookie: operatorCookie })
   check('Der Betreiber sieht sie', queue.status === 200 && (queue.json?.reports ?? []).some(r => r.host === reported),
     `${queue.status} ${queue.text.slice(0, 200)}`)
+
+  // ── Die Warteschlange BLÄTTERT, statt zu kappen ────────────────────────────
+  // Vorher stand hier `Query.limit(100)` plus eine `console.warn`-Zeile, wenn
+  // mehr da war — eine Grenze, die nur im Server-Log existierte. Der Beweis
+  // muss deshalb ZWEI Dinge zeigen: dass jede Meldung erreichbar BLEIBT, und
+  // dass die Kacheln über der Liste die ganze Warteschlange beschreiben und
+  // nicht die 25 Zeilen, die gerade auf dem Schirm stehen.
+  //
+  // Angelegt wird direkt in der Tabelle statt über das Formular: der Eingang
+  // hat ein Rate-Limit (derselbe Audit), und geprüft wird hier die LESESEITE.
+  // Sequenziell, damit `$createdAt` eine eindeutige Reihenfolge hat.
+  const PAGE_SIZE = 25
+  const seededReports = []
+  for (let i = 0; i < PAGE_SIZE + 5; i++) {
+    const seedRow = await control.createRow({
+      databaseId, tableId: 'abuse_reports', rowId: ID.unique(),
+      data: {
+        host: `m13-seite-${i}.pukalani.app`,
+        communityId: '', communityName: '', category: 'spam',
+        message: `Seed ${i} für den Paginierungs-Beweis — diese Meldung ist erfunden.`,
+        url: '', reporterEmail: '', status: 'open', handledBy: '', handledAt: null, note: '',
+      },
+    })
+    seededReports.push(seedRow.$id)
+    cleanup.reports.push(seedRow.$id)
+  }
+  // Ein Zustand, der GARANTIERT hinter Seite 1 liegt: die Meldung von oben ist
+  // älter als alle 30 Seeds, also steht sie bei „neueste zuerst" weiter hinten.
+  await control.updateRow({
+    databaseId, tableId: 'abuse_reports', rowId: stored.rows[0].$id, data: { status: 'dismissed' },
+  })
+
+  const page1 = await ctl('/api/control/abuse-reports', { cookie: operatorCookie })
+  const page2 = await ctl('/api/control/abuse-reports?page=2', { cookie: operatorCookie })
+  const ids1 = (page1.json?.reports ?? []).map(r => r.id)
+  const ids2 = (page2.json?.reports ?? []).map(r => r.id)
+  const stats1 = page1.json?.stats ?? {}
+
+  check('Seite 1 liefert genau eine Seite (25)', ids1.length === PAGE_SIZE, `${ids1.length} Zeilen`)
+  check('Der Umschlag sagt, welche Seite er ist',
+    page1.json?.page === 1 && page1.json?.pageSize === PAGE_SIZE,
+    `page=${page1.json?.page} pageSize=${page1.json?.pageSize}`)
+  check('Seite 2 überschneidet sich nicht mit Seite 1',
+    ids2.length > 0 && ids1.every(id => !ids2.includes(id)), `${ids2.length} Zeilen auf Seite 2`)
+  check('Zusammen tragen die Seiten JEDE der 30 neuen Meldungen',
+    seededReports.every(id => ids1.includes(id) || ids2.includes(id)),
+    `${seededReports.filter(id => !ids1.includes(id) && !ids2.includes(id)).length} fehlen`)
+
+  check('Die Kacheln zählen die WARTESCHLANGE, nicht die Seite',
+    stats1.total > ids1.length, `total=${stats1.total}, Seite=${ids1.length}`)
+  check('…und zwar auch einen Zustand, der auf Seite 1 gar nicht vorkommt',
+    stats1.dismissed >= 1 && !(page1.json?.reports ?? []).some(r => r.status === 'dismissed'),
+    `dismissed=${stats1.dismissed}`)
+  check('…offen + gesperrt + verworfen ergibt gesamt',
+    stats1.open + stats1.suspended + stats1.dismissed === stats1.total, JSON.stringify(stats1))
+  check('…und beim Blättern ändern sie sich nicht',
+    JSON.stringify(page2.json?.stats) === JSON.stringify(stats1), JSON.stringify(page2.json?.stats))
+
+  const far = await ctl('/api/control/abuse-reports?page=9999', { cookie: operatorCookie })
+  check('Eine Seite hinter dem Ende ist leer statt ein Fehler',
+    far.status === 200 && (far.json?.reports ?? []).length === 0, `${far.status} ${far.text.slice(0, 120)}`)
+  check('…zeigt aber dieselben Kacheln', far.json?.stats?.total === stats1.total, JSON.stringify(far.json?.stats))
+  const crooked = await ctl('/api/control/abuse-reports?page=abc', { cookie: operatorCookie })
+  check('Eine krumme Seitenzahl fällt auf Seite 1 zurück, ohne 400',
+    crooked.status === 200 && crooked.json?.page === 1, `${crooked.status} page=${crooked.json?.page}`)
 }
 catch (error) {
   fail++

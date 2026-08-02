@@ -23,6 +23,22 @@ import type { Models } from 'node-appwrite'
 export const ABUSE_REPORTS_TABLE = 'abuse_reports'
 
 /**
+ * Wie viele Meldungen EINE Seite trägt. 25 wie überall sonst (Appwrites
+ * Default, `FEEDBACK_PAGE_SIZE`, die Melde-Queue der Moderation) — eine
+ * Betreiber-Liste soll sich nicht anders bedienen als die Liste daneben.
+ */
+export const ABUSE_REPORTS_PAGE_SIZE = 25
+
+/**
+ * Obergrenze der Seitenzahl. Sie verbirgt NICHTS: 100.000 Seiten sind 2,5 Mio.
+ * Meldungen, und dahinter liegt in dieser Tabelle nichts. Sie existiert allein,
+ * damit ein von Hand getipptes `?page=9e20` nicht als Datenbankfehler endet.
+ * Gewöhnliche Offsets sind unkritisch — gegen die Dev-Instanz (Appwrite 1.9.6)
+ * nachgemessen: `offset=100000` antwortet 200 mit leerer Liste, nicht 400.
+ */
+export const ABUSE_REPORTS_MAX_PAGE = 100_000
+
+/**
  * Wovon handelt die Meldung? Bewusst KURZ und laienverständlich — die Liste
  * steht als Auswahl in einem Formular, das jeder ausfüllen können muss. Sie
  * sortiert nur vor; entscheiden muss ohnehin ein Mensch.
@@ -173,14 +189,71 @@ export interface AbuseReportStats {
   total: number
 }
 
-/** PURE (unit-getestet). */
-export function summarizeAbuseReports(reports: readonly AbuseReportView[]): AbuseReportStats {
-  return {
-    open: reports.filter(r => r.status === 'open').length,
-    suspended: reports.filter(r => r.status === 'suspended').length,
-    dismissed: reports.filter(r => r.status === 'dismissed').length,
-    total: reports.length,
-  }
+/**
+ * Was die Zählungen liefern müssen, damit daraus Kennzahlen werden.
+ * `total` = ALLE Meldungen (kommt aus der Listen-Abfrage selbst), die anderen
+ * beiden aus je einer eigenen Zählung.
+ */
+export interface AbuseReportCounts {
+  total: number
+  suspended: number
+  dismissed: number
+}
+
+/**
+ * PURE (unit-getestet): Zählungen → Kennzahlen.
+ *
+ * WARUM DIE KENNZAHLEN EINE EIGENE QUELLE HABEN (statt wie früher aus den
+ * gerenderten Zeilen gerechnet zu werden): mit Paginierung beschriebe „3 offen"
+ * sonst die 25 Zeilen, die gerade zufällig auf dem Schirm stehen. Das ist die
+ * teuerste Sorte Fehler in einer Warteschlange — die Zahl SIEHT richtig aus und
+ * ist trotzdem falsch, und niemand merkt es, weil auf Seite 1 alles stimmt.
+ *
+ * WARUM `open` GERECHNET UND NICHT GEZÄHLT WIRD: `projectAbuseReport` rendert
+ * JEDEN unbekannten Spaltenwert als 'open' (eine Meldung darf nie wegen eines
+ * krummen Werts unsichtbar werden). Eine dritte Abfrage
+ * `Query.equal('status','open')` würde genau diese Zeilen NICHT mitzählen — die
+ * Kachel und die Abzeichen in den Zeilen widersprächen sich, und zwar leise.
+ * `total − suspended − dismissed` ist dieselbe Regel wie die Anzeige, nur
+ * andersherum gelesen. Nebenbei ist es eine Abfrage weniger.
+ *
+ * Geklemmt bei 0: die drei Zahlen stammen aus drei getrennten Abfragen, also
+ * aus drei Zeitpunkten. Kommt zwischendrin eine Meldung dazu, darf daraus
+ * schlimmstenfalls eine kurz veraltete Zahl werden, nie ein negatives „−1
+ * offen".
+ */
+export function abuseReportStatsFromCounts(counts: AbuseReportCounts): AbuseReportStats {
+  const total = Math.max(0, counts.total)
+  const suspended = Math.max(0, counts.suspended)
+  const dismissed = Math.max(0, counts.dismissed)
+  return { open: Math.max(0, total - suspended - dismissed), suspended, dismissed, total }
+}
+
+/** Was die Warteschlange auf EINE Anfrage hin zurückgibt. */
+export interface AbuseReportListResponse {
+  /** ALLE Meldungen, nicht die dieser Seite — dasselbe wie `stats.total`. */
+  total: number
+  /** 1-basiert, geklemmt: was der Server tatsächlich geliefert hat. */
+  page: number
+  pageSize: number
+  /** Über die GANZE Warteschlange, nie über diese Seite. */
+  stats: AbuseReportStats
+  reports: AbuseReportView[]
+}
+
+/**
+ * PURE (unit-getestet): `?page=` → 1-basierte Seitenzahl.
+ *
+ * Alles Krumme (fehlend, '0', '-3', 'abc', '2.7', ein doppelter Parameter als
+ * Array) wird zu 1 statt zu einem 400. Eine Warteschlange, die auf eine
+ * verrutschte URL mit einer Fehlerseite antwortet, hilft niemandem — auf „ich
+ * weiß nicht, welche Seite" ist die erste Seite immer die richtige Antwort.
+ */
+export function parseAbuseReportsPage(raw: unknown): number {
+  const value = Array.isArray(raw) ? raw[0] : raw
+  const page = Number.parseInt(String(value ?? ''), 10)
+  if (!Number.isFinite(page) || page < 1) return 1
+  return Math.min(page, ABUSE_REPORTS_MAX_PAGE)
 }
 
 /**

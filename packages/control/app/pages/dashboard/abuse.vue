@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
-import { isDisplayableReportUrl, type AbuseReportStats, type AbuseReportView } from '../../../shared/abuseReports'
+import {
+  ABUSE_REPORTS_PAGE_SIZE,
+  isDisplayableReportUrl,
+  type AbuseReportListResponse,
+  type AbuseReportView,
+} from '../../../shared/abuseReports'
 
 /**
  * Missbrauchs-Warteschlange (M13, Auslöser 3).
@@ -17,7 +22,13 @@ import { isDisplayableReportUrl, type AbuseReportStats, type AbuseReportView } f
  * dieselbe eine Sperr-Funktion, also steht der Vorgang im gleichen Protokoll.
  *
  * UTable nach Davids Regel B6: eine Datenliste mit Zeilen-Aktionen, genau der
- * Fall, für den die Regel gemacht ist.
+ * Fall, für den die Regel gemacht ist — Paginierung kommt mitgeliefert.
+ *
+ * DIE KACHELN ZÄHLEN DIE WARTESCHLANGE, NICHT DIE SEITE. Sie kommen fertig vom
+ * Server (`stats`) und ändern sich beim Blättern NICHT. Das ist der ganze Punkt:
+ * eine Kennzahl, die mit der Seite wandert, beantwortet die Frage „wie viel
+ * liegt noch an?" falsch, und zwar unauffällig. Deshalb hängen sie hier auch
+ * bewusst NICHT an `reports`.
  *
  * DER GEMELDETE LINK IST BELEG, DER KLICK NUR KOMFORT (Audit-Befund). Er kommt
  * aus einem Formular OHNE Anmeldung und wird hier von jemandem mit
@@ -35,8 +46,11 @@ const { t } = useI18n()
 const toast = useToast()
 useHead({ title: () => t('control.abuse.title') })
 
-const { data, refresh, status } = await useFetch<{ total: number, stats: AbuseReportStats, reports: AbuseReportView[] }>(
-  '/api/control/abuse-reports', { lazy: true, server: false },
+const { page, setPage } = usePagination({ pageSize: ABUSE_REPORTS_PAGE_SIZE })
+
+const { data, refresh, status } = await useFetch<AbuseReportListResponse>(
+  '/api/control/abuse-reports',
+  { query: computed(() => ({ page: page.value })), lazy: true, server: false },
 )
 const reports = computed(() => data.value?.reports ?? [])
 const stats = computed(() => data.value?.stats)
@@ -222,6 +236,18 @@ const STAT_KEYS = ['open', 'suspended', 'dismissed', 'total'] as const
           />
         </template>
       </UTable>
+
+      <!-- Steht nur da, wenn es wirklich mehr als eine Seite gibt — eine
+           Paginierung unter drei Zeilen ist Zierrat. -->
+      <UPagination
+        v-if="(data?.total ?? 0) > ABUSE_REPORTS_PAGE_SIZE"
+        class="mt-4"
+        :page="page"
+        :total="data?.total ?? 0"
+        :items-per-page="ABUSE_REPORTS_PAGE_SIZE"
+        data-abuse-pagination
+        @update:page="setPage"
+      />
     </template>
   </UDashboardPanel>
 

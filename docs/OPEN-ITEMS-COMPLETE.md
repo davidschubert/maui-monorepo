@@ -2122,3 +2122,71 @@ eigene Queue, also genau der Fall, an dem Events aufgelaufen sind.
    scheiterte zu Recht. Und ein `Promise.resolve(probe(...)).catch(…)` fängt eine
    **synchron** werfende Prüfung nicht — das fand ein Test, den ich zum Beweis
    geschrieben hatte, bevor er je einen echten Fehler sehen sollte.
+### Missbrauchs-Warteschlange blättert ✅ 2026-08-02
+
+Der Nachzügler des Quer-Audits: `abuse-reports/index.get.ts` las
+`Query.limit(100)` und schrieb ein `console.warn`, wenn mehr da war — ein
+ausdrücklicher TODO des Autors und ein **stiller Deckel**, denn die Warnung
+stand nur im Server-Log. Die Oberfläche zeigte 100 Zeilen und sagte nirgends,
+dass es mehr gibt; bei „neueste zuerst" fällt dabei ausgerechnet die **älteste**
+Meldung hinten heraus, also die, die am längsten wartet.
+
+**Gebaut:** echte Seiten mit `Query.offset` (25 pro Seite,
+`ABUSE_REPORTS_PAGE_SIZE`), `UPagination` unter der `UTable` (Davids Regel B6),
+`?page=` über die pure `parseAbuseReportsPage` (alles Krumme wird Seite 1, nie
+ein 400). **Offset statt Cursor** ist hier die richtige Wahl, obwohl das Haus
+`listAllRows` mit `Query.cursorAfter` hat: ein Cursor kann nur „weiter", die
+Paginierung springt aber auf Seite N. Der bekannte Preis — eine neue Meldung
+oben verschiebt die Seiten um eine Zeile — ist klein, weil aus dieser Liste
+nichts VERSCHWINDET (ein Statuswechsel ändert die Zeile nur).
+
+**Die Kennzahlen haben eine eigene Quelle bekommen** (die eigentliche
+Entscheidung): `summarizeAbuseReports` rechnete aus den GERENDERTEN Zeilen —
+mit Paginierung hätte „3 offen" plötzlich die 25 sichtbaren Zeilen beschrieben
+statt der Warteschlange. Das ist die teuerste Sorte Fehler: die Zahl sieht
+richtig aus, und auf Seite 1 stimmt sie sogar. Ersetzt durch
+`abuseReportStatsFromCounts({ total, suspended, dismissed })` — `total` kommt
+aus der Listen-Abfrage, die beiden anderen aus je einer eigenen Zählung mit
+`Query.limit(1)` (gelesen wird nur deren `total`; `idx_status` aus control-034
+deckt sie). **`open` wird gerechnet, nicht gezählt**, und das ist kein Sparen:
+`projectAbuseReport` rendert JEDEN unbekannten Spaltenwert als 'open' — eine
+dritte Abfrage `equal('status','open')` würde genau diese Zeilen auslassen, und
+Kachel und Zeilen-Abzeichen widersprächen sich. `total − suspended − dismissed`
+ist dieselbe Regel wie die Anzeige, nur andersherum gelesen; bei 0 geklemmt,
+weil drei Abfragen drei Zeitpunkte sind.
+
+**Beweise:** `verify-community-suspension.mjs` **66/66** (elf neue Prüfungen;
+54 → 65 auf dem Arbeitsstand, nach dem Merge mit `main` 55 → 66, weil dort das
+Wechselwirkungs-Audit eine `readOnly`-Prüfung dazugelegt hat — Seite 1 liefert
+genau 25, der Umschlag nennt `page`/`pageSize`, Seite 2
+überschneidet sich nicht, beide Seiten zusammen tragen alle 30 frisch angelegten
+Meldungen, die Kacheln zählen mehr als die Seite, sie zählen einen Zustand mit,
+der auf Seite 1 gar nicht vorkommt, offen+gesperrt+verworfen ergibt gesamt, beim
+Blättern ändern sie sich nicht, eine Seite hinter dem Ende ist leer statt Fehler
+und zeigt dieselben Kacheln, `?page=abc` fällt auf 1 zurück). Unit: 9 neue Fälle
+(Kennzahlen inkl. krummer Bestandswerte und auseinanderlaufender Zählungen,
+Seitenzahl-Parsing). In der Oberfläche nachgesehen (30 erfundene Meldungen, 3
+davon verworfen): Seite 1 zeigt 25 offene, die Kacheln stehen auf
+27/0/3/30 — auf Seite 2 stehen die drei verworfenen, **die Kacheln bleiben
+gleich**. `console.warn` ist weg, weil der Deckel weg ist. typecheck 0 Fehler,
+lint unverändert.
+
+**Gelernt:** (1) **Ein TODO im Log ist kein Deckel, den jemand bemerkt.** Wer
+kappt, muss der OBERFLÄCHE sagen, dass gekappt wurde — sonst ist die Warnung
+nur eine Notiz an sich selbst. (2) **Wer paginiert, muss zuerst die Kennzahlen
+darüber prüfen.** Jede Zahl, die vorher aus „allem, was ich geladen habe"
+entstand, beschreibt hinterher nur noch die Seite; das Aggregat braucht eine
+eigene Quelle, sonst wird aus einer Verbesserung eine leise Lüge. (3) Die
+Kennzahl muss nach DERSELBEN Regel zählen, nach der die Zeile rendert —
+deshalb wird `open` gerechnet und nicht abgefragt. (4) **Worktree-Falle
+wieder live:** die Dev-Server auf 3004/3006 gehörten dem HAUPT-Repo, ein Beweis
+dort hätte den alten Code gemessen; und `pnpm --filter <app> dev -- --port X`
+wirkt NICHT (das Skript hat sein `--port` schon fest verdrahtet, der zweite
+Wert wird ignoriert und `get-port` weicht still auf 3000 aus) — der Weg ist
+`pnpm --filter <app> exec nuxi dev --port X`. (5) **Der ERSTE Lauf gegen einen
+frisch gestarteten Dev-Server ist kein Messwert.** Abschnitt 3 fiel dabei
+mehrfach um (mal „unknown_host", mal blieb das Schreiben bei 201) — der
+45×1-s-Ring wartet auf den 30-s-Resolver-Cache, konkurriert aber mit dem
+Kaltstart-Kompilat der Seiten. Der zweite Lauf war jedes Mal grün. Vor einem
+roten Befund also erst einmal warmlaufen lassen, sonst jagt man einen
+Regressionsschaden, den es nicht gibt.
