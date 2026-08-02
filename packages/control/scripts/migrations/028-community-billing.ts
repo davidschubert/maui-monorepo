@@ -21,6 +21,7 @@
  *   pnpm migrate --app control --layer control
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -83,7 +84,7 @@ await waitForColumns('tenants', ['stripeCustomerId', 'stripeSubscriptionId', 'bi
 
 // Webhook-Lookup „welche Community gehört zu diesem Stripe-Kunden?" —
 // gleiches Muster wie workspaces.idx_stripe_customer (control-005).
-await step('Index tenants.idx_stripe_customer', () => tablesDB.createIndex({
+await indexStep('Index tenants.idx_stripe_customer', () => tablesDB.createIndex({
   databaseId: db, tableId: 'tenants', key: 'idx_stripe_customer',
   type: TablesDBIndexType.Key, columns: ['stripeCustomerId'],
 }))

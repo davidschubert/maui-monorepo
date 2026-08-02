@@ -24,6 +24,7 @@
  *   pnpm migrate --app control --layer control
  */
 import { Client, Query, TablesDB, TablesDBIndexType, type Models } from 'node-appwrite'
+import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -93,7 +94,7 @@ if (grants) {
   console.log(`✔ entitlements: ${nachbefuellt} Nachzügler mit productKey befüllt (${grants.total} gesamt)`)
 
   // ── 2. Unique-Index auf der NEUEN Spalte, dann erst der alte weg ───────────
-  await step('Index entitlements.idx_site_product', () => tablesDB.createIndex({
+  await indexStep('Index entitlements.idx_site_product', () => tablesDB.createIndex({
     databaseId: db, tableId: 'entitlements', key: 'idx_site_product',
     type: TablesDBIndexType.Unique, columns: ['siteProjectId', 'productKey'],
   }))
