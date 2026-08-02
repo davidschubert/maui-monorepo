@@ -355,6 +355,22 @@ Vollständiges Konzept: docs/CONCEPT.md
 - pukalani.observability: strukturierte JSON-5xx-Logs am zentralen server/error.ts
   + Client-Error-Inbox (POST /api/telemetry/error, rate-limited); Core-Default
   aus, Sentry-Andockpunkt in core/server/utils/logEvent.ts
+- pukalani.realtime.enabled (F14, seit 2026-08-01): der EINE Schalter für alle
+  Realtime-Einstiege des Core — Row-Streams (useRealtimeRows), Presence
+  (usePresence/-State) und den Account-WS (useRealtimeAccount). AUS heißt: kein
+  Web-SDK nachgeladen, kein Socket, kein /api/auth/realtime-token. **Core-Default
+  AN** — die begründete Ausnahme von „Core-Default ist IMMER aus": Realtime ist
+  kein Zusatz, sondern das bestehende Verhalten jeder Produkt-App, und ein
+  Default AUS entkoppelte sie stillschweigend (die Seite sieht richtig aus, sie
+  aktualisiert sich nur nicht mehr). AUS in `marketing` + `help` (öffentlich,
+  kontenlos, ohne themes-Layer — sie abonnierten `app_config` über den geerbten
+  core-Layer, ohne die Flags je zu lesen). EINE pure Regel in
+  core/shared/realtimeGate.ts (`realtimeAllowed(enabled, ...ids)` — Gate UND
+  Datenebene; der `!databaseId`-Guard aus dem Live-Vorfall 2026-07-29 geht darin
+  auf), gelesen an EINER Stelle (`realtimeEnabled()` in useRealtimeClient.ts,
+  memoisiert). `ensureRealtimeClients`/`sharedRealtime`/`realtimeCookieClient`
+  geben bewusst `… | null` zurück: der strict-Modus zwingt so JEDEN künftigen
+  Konsumenten, „diese App hat keine Realtime" zu behandeln.
 - pukalani.auth.*: providers (OAuth-Buttons), termsUrl (AGB-Pflicht), otp
 - pukalani.admin.modules: Modul-Registry der Dashboard-Nav — Produkt-Layer
   registrieren ihre Admin-Seiten hier (expliziter Vertrag statt Kopplung)
@@ -415,6 +431,25 @@ Vollständiges Konzept: docs/CONCEPT.md
   tenantId (comments-015 uq_tenant_host, pages-004, courses-002 uq_tenant_slug),
   Row-Id-basierte NICHT (events/courses (courseId,userId) — eine Row-Id ist
   global eindeutig, da kann kein Mandant kollidieren).
+- DIE SPERRE FRIERT NUR INHALTE EIN (M13, seit 2026-08-02 — Davids
+  Entscheidung, festgehalten 2026-08-03): `communities.suspension` hat zwei
+  Stufen (`core/shared/communitySuspension.ts`). `'abuse'` nimmt der Resolver
+  vom Netz (⇒ 404 wie ein unbekannter Host, Seite UND API); `'billing'` macht
+  die Community NUR-LESEND — und zwar AN DER DATENTÜR, nur an der Türklinke
+  `member`. Zu ist damit jeder INHALT (Kommentare, Beiträge, Umfragen,
+  Zu-/Absagen, Kursfortschritt). OFFEN bleiben bewusst alle Owner-Einstellungen
+  (Branding, Team/Rollen, Publikum, Registrierung) und die Moderation
+  (Klinke `operator`) — die laufen über die Service-Naht ins Control Plane, nicht
+  durch die Tür. Grund: die Sperre soll zum ZAHLEN bewegen, nicht den Owner aus
+  seiner Community aussperren; eine gesperrte Community, die niemand mehr
+  moderieren kann, wird zum Problem des Betreibers. Eine neue Owner-Einstellung
+  gehört also NICHT hinter die Sperre, eine neue Inhalts-Route braucht nichts zu
+  tun. Der Abgewiesene erfährt den GRUND nicht (`community.billing`), wohl aber
+  die TATSACHE: das 403 trägt `reason: community_suspended`, den EINEN Leser
+  dafür stellt `core/app/plugins/community-suspended-notice.client.ts`
+  ($fetch-Interceptor, ein Toast für alle Layer). Dieselbe Trennung auf der
+  `my.*`-Karte: `readOnly` (DASS) für jede Rolle, `suspension` (WARUM) nur mit
+  `community.billing`.
 - SITE-LABEL = „ist Mitglied dieser Community" (A5, seit 2026-07-29 — ersetzt
   die A4-Regel „hat den Host eingeloggt benutzt", die noch am selben Tag zur
   Lüge wurde: „Zugang entziehen" nahm nur die Rolle, das Label kam beim nächsten
@@ -597,7 +632,18 @@ und den Pfad in der ersten Dev-Log-Zeile prüfen. Dev-Server IMMER über
 (liegt nur in `node_modules/.pnpm/node_modules/`, das pnpm erst beim
 Script-Lauf in den NODE_PATH legt) und liefert auf JEDER SSR-Seite 500 —
 sieht aus wie ein Regressionsschaden, ist aber nur der falsche Start
-(2026-07-31 live erwischt).
+(2026-07-31 live erwischt). EIGENER PORT im Worktree: `pnpm --filter <app> dev
+-- --port N` wirkt NICHT — das `dev`-Skript hat `--port` fest verdrahtet, das
+zweite landet als Positionsargument, und Nuxt weicht bei belegtem Port STILL
+auf einen anderen aus (2026-08-01: 3007 → 3000, also fast auf den Port des
+core-Playgrounds). Richtig ist `pnpm --filter <app> exec nuxi dev --port N`
+(läuft ebenfalls über pnpm, NODE_PATH stimmt). Und: der ERSTE Seitenaufruf
+nach einem Dev-Server-Start beweist nichts über NACHGELADENE Abhängigkeiten —
+Vite bündelt sie beim ersten Import erst („dependency optimized") und lädt die
+Seite dabei neu; immer die zweite Messung nehmen. Ebenso puffert
+`performance.getEntriesByType('resource')` nur 250 Einträge: im Dev-Modus
+fallen nachgeladene Chunks hinten raus und „nicht geladen" ist dann ein
+Messfehler — für solche Beweise das Netzwerkprotokoll des Browsers nehmen.
 
 pnpm -r test (Unit) · Playwright-E2E in apps/comments (Base-URL per
 PW_BASE_URL überschreibbar — parallele Dev-Sessions) · themes-visual zielt

@@ -13,7 +13,7 @@ export type WebsiteStatus = (typeof WEBSITE_STATUSES)[number]
 export const HEALTH_STATUSES = ['ok', 'degraded', 'down', 'unknown'] as const
 export type HealthStatus = (typeof HEALTH_STATUSES)[number]
 
-/** Row-Typ zur `sites`-Table (Schema: Migration control-001). */
+/** Row-Typ zur `websites`-Table (Schema: control-001, Rename control-022). */
 export interface WebsiteRow extends Models.Row {
   name: string
   /** Anzeige-Slug (veränderlich) — die Projekt-ID ist die unveränderliche Identität (F6). */
@@ -30,4 +30,7 @@ export interface WebsiteRow extends Models.Row {
   products: string
 }
 
-export const WEBSITES_TABLE = 'sites'
+// Physischer Name seit control-022 (`sites` → `websites`; control-026 hat die
+// alte Tabelle gelöscht). Der E8-Rename-Commit hatte nur den Konstanten-NAMEN
+// umgestellt und den Wert vergessen — alle Register-Routen liefen ins 404.
+export const WEBSITES_TABLE = 'websites'

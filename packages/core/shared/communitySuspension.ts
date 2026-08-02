@@ -30,6 +30,31 @@
  *    Community, die wegen Missbrauch gesperrt ist, soll nichts mehr in die Welt
  *    senden, auch nicht lesend.
  *
+ * WIE WEIT REICHT DIE BILLING-SPERRE? NUR BIS ZU DEN INHALTEN (Davids
+ * Entscheidung, festgehalten nach dem Wechselwirkungs-Audit — Befund 4).
+ *
+ * Sie hängt an der DATENTÜR und dort nur an der Türklinke `member`
+ * (`tenantDb()`, core/server/utils/tenantDb.ts). Damit ist zu: jeder eigene
+ * Schreibvorgang eines Mandanten-Layers — Kommentare, Beiträge, Umfragen,
+ * Zu- und Absagen, Kursfortschritt.
+ *
+ * OFFEN BLEIBEN — bewusst — alle Einstellungen des Owners, weil sie NICHT durch
+ * diese Tür gehen, sondern über die Service-Naht ins Control Plane:
+ * Erscheinungsbild (`PATCH /api/community/branding`), Team und Rollen
+ * (`/api/community/members/*`), Lese-Publikum und Registrierung
+ * (`/dashboard/settings/community`) sowie die Moderation (Türklinke
+ * `operator`). Das ist keine Lücke, sondern der Zweck: die Sperre soll zum
+ * ZAHLEN bewegen, nicht den Owner aus seiner eigenen Community aussperren. Wer
+ * seine Community nicht mehr verwalten, Mitglieder nicht mehr entfernen und
+ * Missbrauch nicht mehr moderieren kann, während er auf eine Rechnung schaut,
+ * hat kein Zahlungsproblem mehr, sondern ein Vertrauensproblem — und eine
+ * gesperrte Community, die nicht moderiert werden kann, wird zum Problem des
+ * Betreibers.
+ *
+ * Wer also eine neue Owner-Einstellung baut: sie gehört NICHT hinter diese
+ * Sperre. Und wer eine neue INHALTS-Route baut, muss nichts tun — sie geht
+ * ohnehin durch die Tür.
+ *
  * WARUM NICHT EINFACH `status: 'disabled'` (das gibt es seit control-010 und
  * 404et den Host auch)? Drei Gründe, jeder für sich ausreichend:
  *   - `status` ist der LÖSCHWEG (C16: „stilllegen" IST das Löschen) und lässt

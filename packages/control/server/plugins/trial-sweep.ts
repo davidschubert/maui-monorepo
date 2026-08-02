@@ -1,6 +1,7 @@
 import { runTrialSweep } from '../utils/trialSweep'
 import { pruneInviteRequests } from '../utils/inviteRequestPrune'
 import { runPastDueSweep } from '../utils/pastDueSweep'
+import { eraseStaleReporterEmails } from '../utils/abuseReportPrune'
 
 /**
  * Testphasen-Automatik (O6): abgelaufene Trials fallen auf den kostenlosen
@@ -51,6 +52,19 @@ export default defineNitroPlugin(() => {
       }
     }).catch((error) => {
       console.error('[control] Zahlungsverzugs-Sweep fehlgeschlagen:', error instanceof Error ? error.message : error)
+    })
+
+    // Vierter Mitfahrer (F8-Rest): Melder-Adressen verfallen nach 90 Tagen. Die
+    // Frist rechnet in Tagen, stündlich ist also mehr als genau — und der Takt
+    // gehört aus demselben Grund hierher wie die drei darüber: ein eigener
+    // Timer wäre nur ein weiterer Ort, an dem man nach dem Grund für ein
+    // verschwundenes Datum sucht.
+    void eraseStaleReporterEmails().then((result) => {
+      if (result.erased) {
+        logEvent('info', 'abuse.reporter_email_pruned', { erased: result.erased })
+      }
+    }).catch((error) => {
+      console.error('[control] Melder-Adressen-Aufräumen fehlgeschlagen:', error instanceof Error ? error.message : error)
     })
   }
 

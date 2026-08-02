@@ -396,13 +396,53 @@ try {
   })
   check('Zurücksetzen auf die Voreinstellung → 200, neutral=\'\'',
     neutralReset.status === 200 && neutralReset.json?.neutral === '', `Status ${neutralReset.status}`)
+
+  /**
+   * 12. DER SPIEGEL IST ÖFFENTLICH — und darf deshalb NICHTS ausser Farben
+   *     tragen (Befund 5 des M13-Wechselwirkungs-Audits, Davids Abwägung
+   *     übernommen).
+   *
+   * `community_branding` ist table-weit `read(any)` mit `rowSecurity: false`
+   * (system-028) — genau wie `app_config` und `custom_themes`. Ein ANONYMER
+   * Client kann die Tabelle also LISTEN, nicht nur „seine" Row abonnieren;
+   * Appwrite kennt kein Recht, das Lesen erlaubt und Auflisten verbietet, und
+   * ohne Leserecht gäbe es das Live-Morphen (D6) nicht.
+   *
+   * BEWUSST AKZEPTIERT, weil der Inhalt es hergibt: eine undurchsichtige
+   * Row-Id und drei Farb-Tokens, die ohnehin als data-theme/-variant/-neutral
+   * im HTML jeder Seite dieser Community stehen. Kein Name, kein Host, keine
+   * Mitgliedschaft — und ohne Host lässt sich eine Id keiner Community
+   * zuordnen. Das ANGEBLICH billige „beim Sperren räumen" ist es nicht: die
+   * Sperre entsteht im CONTROL-Projekt, der Spiegel liegt im RUNTIME-Projekt,
+   * und einen Schlüssel in dieser Richtung gibt es bewusst NICHT (derselbe
+   * Grund, aus dem `revokeCommunityLabel` in der Runtime läuft). Eine neue
+   * Service-Naht für drei Farbwörter wäre teurer als das, was sie schützt.
+   *
+   * WAS DIESE PRÜFUNG DAFÜR LEISTET: sie nagelt die Bedingung fest, unter der
+   * die Abwägung gilt. Sobald jemand dem Spiegel eine Spalte mit Namen, Host
+   * oder sonst etwas Identifizierendem gibt, wird aus einer harmlosen
+   * Aufzählung ein echtes Leck — und dieser Beweis geht rot, bevor es deployt.
+   */
+  console.log('\n12. Der öffentliche Spiegel trägt NUR Farben')
+  const anon = await fetch(
+    `${endpoint}/tablesdb/${databaseId}/tables/community_branding/rows`,
+    { headers: { 'X-Appwrite-Project': poolProject } },
+  )
+  const anonBody = await anon.json().catch(() => null)
+  check('ein anonymer Client darf den Spiegel lesen (das IST die Voraussetzung fürs Live-Morphen)',
+    anon.status === 200, `Status ${anon.status}`)
+  const ALLOWED = ['theme', 'variant', 'neutral', '$id', '$sequence', '$createdAt', '$updatedAt', '$permissions', '$databaseId', '$tableId']
+  const extra = [...new Set((anonBody?.rows ?? []).flatMap(row => Object.keys(row)))]
+    .filter(key => !ALLOWED.includes(key))
+  check('… und findet dort NICHTS ausser den drei Farb-Feldern (kein Name, kein Host)',
+    extra.length === 0, `zusätzliche Felder: ${extra.join(', ')}`)
 }
 catch (error) {
   fail++
   console.error('\n✗ Abbruch:', error?.message || error)
 }
 finally {
-  console.log('\n12. Aufräumen')
+  console.log('\n13. Aufräumen')
   for (const id of cleanup.members) await control.deleteRow({ databaseId, tableId: 'community_members', rowId: id }).catch(() => {})
   for (const id of cleanup.tenants) await control.deleteRow({ databaseId, tableId: 'communities', rowId: id }).catch(() => {})
   for (const id of cleanup.codes) await control.deleteRow({ databaseId, tableId: 'invite_codes', rowId: id }).catch(() => {})

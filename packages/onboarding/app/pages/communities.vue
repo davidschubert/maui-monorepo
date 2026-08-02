@@ -169,15 +169,21 @@ useHead({ title: () => t('onboarding.communities.title') })
             <!-- Die Sperre steht VOR dem Testphasen-Hinweis und schließt ihn
                  aus: wer gesperrt ist, hat keine Testphase mehr, und zwei
                  rote Zeilen übereinander erklären nichts. -->
+            <!-- DASS vor WARUM: `readOnly` trägt jede Karte, `suspension`
+                 (der Grund) nur die des Abrechnenden — wer ihn hat, liest den
+                 genauen Satz, wer nicht, den allgemeinen. -->
             <span
-              v-if="community.suspension"
+              v-if="community.readOnly"
               class="flex items-center gap-1.5 text-sm text-error"
               data-community-suspended
+              :data-community-read-only="true"
             >
               <UIcon name="i-ph-lock-simple" class="size-4 shrink-0" />
               {{ community.suspension === 'abuse'
                 ? t('onboarding.communities.suspendedAbuse')
-                : t('onboarding.communities.suspendedBilling') }}
+                : community.suspension === 'billing'
+                  ? t('onboarding.communities.suspendedBilling')
+                  : t('onboarding.communities.readOnly') }}
             </span>
             <span
               v-else-if="noticeFor(community)"

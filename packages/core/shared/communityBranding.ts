@@ -25,11 +25,56 @@
  * Kundin am Mandanten). Ausserdem hören dort zwei Plugins zu, die jedes Event
  * als Instanz-Änderung deuten.
  *
+ * BEIM ANLEGEN WIRD NICHT GESPIEGELT — und das ist richtig so (nachgemessen
+ * 2026-08-03). `onboardingProvision.ts` schreibt `theme`/`variant` in die
+ * frische `communities`-Row, ohne eine Spiegel-Zeile anzulegen; die entsteht
+ * erst beim ersten Branding-PATCH. Eine Lücke fürs erste Live-Morphen ist das
+ * NICHT: der Abonnent hängt am Row-Kanal, auch wenn es die Zeile noch gar
+ * nicht gibt, und `createRow` publiziert dort ein Event (live gegen Appwrite
+ * 1.9.6 geprüft — anders als `upsertRow`, s. u.). Die erste Farbwahl morpht
+ * also offene Fenster wie jede spätere. Nachrüsten liesse es sich ohnehin
+ * nicht ohne neue Naht: `onboardingProvision` läuft im CONTROL-Projekt und hat
+ * keinen Schlüssel fürs Runtime-Projekt.
+ *
  * DER SPIEGEL IST BEQUEMLICHKEIT, NICHT WAHRHEIT. Er wird NIE gelesen, um eine
  * Seite zu rendern — SSR fragt weiter den Resolver. Scheitert das Spiegeln,
  * passiert nichts Schlimmes: die Änderung ist im Control Plane gespeichert und
  * der nächste Seitenaufbau zeigt sie (≤30 s). Deshalb schreibt der Spiegel
  * fail-soft und es gibt bewusst KEINEN Abgleich-Job.
+ *
+ * DER SPIEGEL IST ÖFFENTLICH UND AUFZÄHLBAR — geprüft und akzeptiert (Befund 5
+ * des M13-Wechselwirkungs-Audits, 2026-08-03). `read(any)` +
+ * `rowSecurity: false` heisst nicht nur „jeder darf SEINE Row abonnieren",
+ * sondern auch: ein anonymer Client kann die TABELLE auflisten und bekommt die
+ * Row-Ids und Farben ALLER Communities, auch der members-only und der
+ * gesperrten. Live nachgemessen, kein Verdacht.
+ *
+ * WARUM DAS SO BLEIBT, in der Reihenfolge der Wichtigkeit:
+ *  1. WAS dort steht, trägt nichts: eine undurchsichtige Row-Id und drei
+ *     Farb-Tokens, die ohnehin als data-theme/-variant/-neutral im HTML jeder
+ *     Seite dieser Community stehen. Kein Name, kein Host, keine
+ *     Mitgliedschaft — und ohne den Host lässt sich eine Id keiner Community
+ *     zuordnen. Aufzählbar ist damit die ANZAHL, nicht die Identität.
+ *  2. Appwrite kennt kein Recht, das Lesen erlaubt und Auflisten verbietet.
+ *     „Nicht aufzählbar" hiesse hier: kein Leserecht, also kein Live-Morphen —
+ *     der Spiegel hätte keinen Zweck mehr. Es gibt nichts zu härten, nur zu
+ *     entfernen.
+ *  3. Es ist dieselbe bewusste Bauart wie bei den zwei Schwestern `app_config`
+ *     (system-005) und `custom_themes` (system-013); letztere trägt sogar
+ *     NAMEN. Nur die jüngste der drei zuzumachen, änderte die Klasse nicht.
+ *  4. „Beim Sperren räumen" klingt billig und ist es nicht: die Sperre
+ *     entsteht im CONTROL-Projekt, der Spiegel liegt im RUNTIME-Projekt, und
+ *     einen Schlüssel in diese Richtung gibt es bewusst NICHT (derselbe Grund,
+ *     aus dem `revokeCommunityLabel` in der Runtime läuft). Eine neue
+ *     Service-Naht für drei Farbwörter wäre teurer als das, was sie schützt —
+ *     und eine Naht mehr, die falsch laufen kann.
+ *
+ * DIE BEDINGUNG DER ABWÄGUNG: sie gilt NUR, solange hier ausschliesslich
+ * Farb-Tokens liegen. Eine Spalte mit Name, Host oder sonst etwas
+ * Identifizierendem macht aus der harmlosen Aufzählung ein echtes Leck.
+ * Deshalb steht das nicht nur hier: Abschnitt 12 von
+ * `packages/onboarding/scripts/verify-site-branding.mjs` listet die Tabelle
+ * ANONYM und geht rot, sobald ein Feld ausserhalb der drei auftaucht.
  *
  * KEINE INJEKTIONSFLÄCHE: die Werte durchlaufen VOR dem Spiegeln zweimal den
  * Katalog (`isBuiltinThemeSelection`/`isBuiltinNeutralSelection`) und den

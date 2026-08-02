@@ -270,7 +270,9 @@
     "generic": "Da ist etwas schiefgelaufen.",
     "backHome": "Zur Startseite",
     "unknownHost": "Diese Adresse gehört zu keiner Community.",
-    "toOperatorSite": "Mehr über {brand}"
+    "toOperatorSite": "Mehr über {brand}",
+    "communitySuspended": "Diese Community ist gerade schreibgeschützt",
+    "communitySuspendedHint": "Neue Beiträge sind vorübergehend nicht möglich. Die Verantwortlichen der Community sind informiert — sobald das geklärt ist, geht es weiter. Dein Text bleibt stehen."
   },
   "demo": {
     "banner": "Das ist eine Demo-Community mit Beispiel-Inhalten.",

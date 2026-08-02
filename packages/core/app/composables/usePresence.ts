@@ -95,6 +95,11 @@ export function usePresenceState() {
     setPage: (_?: string) => {}, setReplyingTo: (_?: string) => {}, setNear: (_?: string) => {},
   }
   if (import.meta.server) return noop
+  // Kein Realtime in dieser App (F14) ⇒ auch keine Anwesenheit: der HTTP-
+  // Heartbeat schriebe sonst Presences, die niemand lesen kann (usePresence()
+  // unten braucht denselben SDK-Client). Der Aufrufer ist ein Plugin, das jede
+  // core-App erbt — das Gate gehört deshalb hierher, nicht dorthin.
+  if (!realtimeEnabled()) return noop
 
   const auth = useAuthStore()
   const tenantId = useTenantId()
@@ -122,6 +127,9 @@ export function usePresenceState() {
     // von usePresenceState() allein zieht nichts nach.
     Promise.all([sharedRealtime(), ensureRealtimeJwt()])
       .then(([realtime]) => {
+        // `null` = Config-Gate aus (F14) — hier unerreichbar, weil
+        // usePresenceState() dann gar nicht erst startet; der Typ verlangt es.
+        if (!realtime) return
         // Ohne gültigen JWT ist die WS ein Gast → upsertPresence würde server-
         // seitig „User must be authorized" werfen. Dann nur der HTTP-Heartbeat
         // (upsertHttp) trägt die Presence — kein Realtime-Event, aber sauber.
@@ -212,7 +220,10 @@ export function usePresence(predicate: (u: PresenceUser) => boolean = () => true
   // einen SSR-Erststand zeigen (kein Nachladen nach hartem Reload).
   const loaded = ref(false)
 
-  if (import.meta.server) {
+  // SSR — und Apps ohne Realtime (F14): dort gibt es keine Presences zu lesen,
+  // und die Zeile steht VOR dem `import('appwrite')` unten, damit eine solche
+  // App das Web-SDK auch dann nicht nachlädt, wenn ein Bauteil den Reader ruft.
+  if (import.meta.server || !realtimeEnabled()) {
     const empty = computed(() => [] as PresenceUser[])
     return { present: empty, others: empty, typingOthers: empty, viewerCount: computed(() => 0), loaded }
   }
@@ -274,7 +285,9 @@ export function usePresence(predicate: (u: PresenceUser) => boolean = () => true
   let disposed = false
   onMounted(async () => {
     const [{ Channel, Presences }, clients] = await Promise.all([sdkReady, clientsReady])
-    if (disposed) return
+    // `clients === null` = Config-Gate aus (F14) — der Guard oben hat das
+    // abgefangen; der nullable Typ verlangt die Zeile trotzdem.
+    if (disposed || !clients) return
     presences = new Presences(clients.cookieClient)
     await ensureRealtimeJwt() // WS authentifizieren, BEVOR er sich verbindet (sonst Gast)
     if (disposed) return

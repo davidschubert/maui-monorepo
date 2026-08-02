@@ -32,6 +32,7 @@ describe('Kunden-Übersicht projizieren', () => {
       plan: 'personal',
       trialEndsAt: '2026-08-14T00:00:00.000Z',
       suspension: '',
+      readOnly: false,
     })
   })
 
@@ -85,18 +86,41 @@ describe('Kunden-Übersicht projizieren', () => {
     expect(view?.suspension).toBe('abuse')
   })
 
-  it('verschweigt den Sperrzustand allen ohne community.billing — der Host läuft ja', () => {
+  it('verschweigt den GRUND allen ohne community.billing — sagt ihnen aber, DASS nichts geht', () => {
     // billing-gesperrt heißt: die Adresse funktioniert weiter. Die KARTE bleibt
-    // deshalb für alle stehen, nur der ZUSTAND ist eine Vertragsauskunft.
+    // deshalb für alle stehen. Der GRUND ist eine Vertragsauskunft; die
+    // TATSACHE „hier kannst du gerade nichts schreiben" erlebt jeder Mitleser
+    // beim ersten Versuch — sie zu verschweigen war eine Falle, keine
+    // Geheimhaltung (Befund 2 des Wechselwirkungs-Audits).
     for (const role of ['admin', 'moderator', 'editor', 'viewer'] as const) {
       const [view] = projectMyCommunities([facts({ role, suspension: 'billing' })])
       expect(view?.host, role).toBe('morgenlicht.pukalani.app')
       expect(view?.suspension, role).toBe('')
+      expect(view?.readOnly, role).toBe(true)
+    }
+  })
+
+  it('setzt readOnly für den Abrechnenden genauso — DASS gilt für alle, WARUM nur für ihn', () => {
+    const [owner] = projectMyCommunities([facts({ role: 'owner', suspension: 'billing' })])
+    expect(owner?.readOnly).toBe(true)
+    expect(owner?.suspension).toBe('billing')
+    const [abuse] = projectMyCommunities([facts({ role: 'owner', suspension: 'abuse' })])
+    expect(abuse?.readOnly).toBe(true)
+  })
+
+  it('lässt readOnly aus, solange nichts gesperrt ist', () => {
+    for (const role of ['owner', 'admin', 'viewer'] as const) {
+      expect(projectMyCommunities([facts({ role })])[0]?.readOnly, role).toBe(false)
     }
   })
 
   it('liest die rohe Spalte fail-open: null und Unfug heißen nicht gesperrt', () => {
-    expect(projectMyCommunities([facts({ suspension: null })])[0]?.suspension).toBe('')
-    expect(projectMyCommunities([facts({ suspension: 'abusive' })])[0]?.suspension).toBe('')
+    for (const suspension of [null, 'abusive']) {
+      const [view] = projectMyCommunities([facts({ suspension })])
+      expect(view?.suspension, String(suspension)).toBe('')
+      // Fail-open zieht bis in die Anzeige durch: ein krummer Spaltenwert darf
+      // keiner gesunden Community ein Schloss auf die Karte malen.
+      expect(view?.readOnly, String(suspension)).toBe(false)
+    }
   })
 })

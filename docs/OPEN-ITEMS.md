@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 8 offen · 9 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 6 offen · 9 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-02**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -19,13 +19,11 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | # | Was (einfach erklärt) | Prio | Aufwand | Braucht David? | Details |
 | --- | --- | --- | --- | --- | --- |
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
-| 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
+| 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen (**Anleitung dabei mitschreiben — ab Schritt 2 veraltet, Workspace-Welt**) und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
 | 11 · B1 | **Neun visuelle Referenzbilder sichten** — jetzt WIRKLICH final: zuletzt am 2026-08-01 neu gebacken, nachdem das DevTools-Abzeichen (wechselnde ms-Zahl) aus allen neun Bildern verschwunden ist. Zu prüfen bleibt nur der Inhalt: `git show HEAD:<pfad>` gegen die Arbeitskopie halten. | Mittel | S — ansehen | Ja: David sichtet | [Notizen](#notizen) |
 | 27 · E1 | **Tote Schlüsseldatei löschen** (`apps/control/.env.production` zeigt auf ein gelöschtes Projekt). Liegt nur auf Davids Rechner, nicht im Repo. | Niedrig | S — eine Datei | Ja: enthält Schlüsselmaterial | [Notizen](#notizen) |
-| 28 · E2 | **UptimeRobot nachziehen:** Monitor für `help.pukalani.app` anlegen, einen alten Monitor umbenennen — und im selben Aufwasch die öffentliche Statusseite einschalten (kam aus M13). | Niedrig | S — drei Klicks | Nein | [Notizen](#notizen) |
 | 29 · E3 | **Server-Größe prüfen** — der CX33 wird mit sechs Apps plus Builds knapp. | Mittel | S — prüfen, ggf. Rescale | Ja: kostet Geld | [Notizen](#notizen) |
 | 30 · E4 | **Nur-Lese-Schlüssel im Projekt `control`** erzeugen (letzter Cutover-Krümel). | Niedrig | S — ein Klick in der Console | Ja: David, Console | [CONTROL-CUTOVER.md](runbooks/CONTROL-CUTOVER.md) |
-| 32 · F8 | **Wie lange dürfen Abrechnungsdaten bleiben?** Löscht der letzte Owner sein Konto, bleiben `stripeCustomerId` und Zahlungsstatus der Community stehen (die Zeile wird nur entpersonalisiert). Aufbewahrungspflicht (§147 AO / §257 HGB) spricht dafür — oder es braucht eine Löschfrist. **Dazu seit M13:** `abuse_reports.reporterEmail` (Melder ohne Konto — keine userId für den GDPR-Contributor) braucht dieselbe Fristen-Entscheidung. | Niedrig | S — Entscheidung, dann ggf. eine Frist | Ja: rechtliche Abwägung | [F3 in COMPLETE](OPEN-ITEMS-COMPLETE.md) |
 
 ## ⏸️ Geparkt / wartet
 
@@ -114,20 +112,6 @@ comments/portfolio/help) erben den Fix über core mit ihrem jeweils nächsten
 Release — keine Eile, der Bug traf praktisch nur die Landing (einzige Seite,
 deren `/de`-Links öffentlich geteilt werden).
 
-**C20 — Gäste-401 auf jeder Marketing-Seite (Konsolen-Rauschen).** Jeder
-Seitenaufruf der Landingpage feuert für Gäste ein
-`GET /api/auth/realtime-token` → 401 (gefunden 2026-07-31 bei der
-Glossar-Diagnose, auf prod verifiziert — DE und EN identisch). Ursache: das
-Core-Realtime-Plugin holt sein JWT auch auf einer auth-losen App; die
-Marketing-App hat nicht einmal eine Appwrite-Instanz (.env zeigt auf ein
-nicht existierendes Projekt). Kein Schaden, aber ein sinnloser Request je
-Besucher plus ein roter Eintrag in jeder Besucher-Konsole — unschön für eine
-Seite, die Entwickler als Zielgruppe hat. Fix-Richtung: den JWT-Abruf an
-eine Session-Anwesenheit oder ein `pukalani.*`-Gate klemmen (Core-Default
-an, marketing schaltet ab — oder besser: automatisch aus, wenn kein
-Appwrite-Endpoint konfiguriert ist). Betrifft nur das Realtime-JWT, NICHT
-useRealtimeAccount (bleibt bewusst Cookie-nativ, CLAUDE.md).
-
 **A1 — Rechtstexte.** Entwürfe sind LIVE (2026-07-23): vollständige,
 stack-spezifische Texte (Impressum § 5 DDG, DSGVO-Datenschutzerklärung mit
 Hetzner/Resend/Stripe/Cookies/Betroffenenrechten, AGB mit Plänen/Kündigung/
@@ -135,6 +119,8 @@ UGC/Haftung) DE+EN auf /imprint, /terms, /privacy — jeweils mit sichtbarem
 „Entwurf"-Hinweis und `noindex`. Rest bei David: Adresse und
 USt-IdNr.-Platzhalter im Dashboard ausfüllen + Anwalt drüberschauen lassen.
 Schaltet A2 frei.
+
+<a id="a2a"></a>
 
 **A2 — Stripe-Live scharfschalten.** Fünf Schritte laut
 [Runbook](runbooks/STRIPE-GO-LIVE-RUNBOOK.md): 2.1 Bank-Aktivierung [David] ·
@@ -144,7 +130,22 @@ konfigurieren (braucht A1) [Claude] · 2.5 Minimal-Verifikation [beide].
 [STRIPE-TEST-WALKTHROUGH.md](runbooks/STRIPE-TEST-WALKTHROUGH.md) durchspielen
 (ensure-prices, Monats-/Jahres-Checkout, Portal-Kündigung,
 Test-Clock-Periodenende, `payment_failed`) — die Absicherung, bevor echtes Geld
-fließt. **Dazu der Rest aus A3 (Brutto-Preise):** Stripe legt die Prices ohne
+fließt. **ACHTUNG, das Runbook ist ab Schritt 2 veraltet** (Warn-Kasten oben,
+seit 2026-08-01): es beschreibt die mit A6 Schritt 5 gefallene Workspace-Welt
+(`/dashboard/workspaces`, `/workspace`, Pläne free/pro/business, Preise
+19/190 € bzw. 49/490 €). Heutiger Weg ist
+`<community-host>/dashboard/settings/subscription` („Abo & Rechnung",
+Capability `community.billing`, nur Owner —
+`packages/onboarding/app/pages/dashboard/settings/subscription.vue`),
+Checkout/Portal über `POST /api/community/billing/{checkout,portal}`,
+Rückkehr-URLs baut `apps/control/server/utils/communityCheckout.ts` aus
+`communities.host`. Unverändert richtig: Webhook-Endpunkt + Ereignis-Liste,
+`scripts/stripe/ensure-prices.mjs`, die lookup_keys
+`workspace_{personal,pro}_{monthly,yearly}` (gewachsene Stripe-Identitäten,
+kein Hinweis auf Workspaces), Testkarten, Zahlungsfehler-Pfad. **Der Durchlauf
+schreibt die Anleitung mit und entfernt danach den Warn-Kasten** — bewusst kein
+Umschreiben am Schreibtisch: ein erfundener Klickpfad ist schlimmer als ein
+markiert veralteter. **Dazu der Rest aus A3 (Brutto-Preise):** Stripe legt die Prices ohne
 `tax_behavior` an und die Checkouts laufen mit `automatic_tax` — steht das
 Konto-Default auf „exclusive", rechnet Stripe 19 % oben drauf und widerspricht
 der Landing. Prüfung vor dem Live-Gang: Runbook §2.4. Der Klammer-Hinweis „zeigt
@@ -250,9 +251,6 @@ gegen ein nicht existierendes Projekt laufen. Der richtige Pfad ist
 `~/.appwrite-secrets/migrations/control.env`. **Löschen ist Davids Klick**
 (Datei mit Schlüsselmaterial). Die anderen drei `.env.production`
 (platform → `pool`, comments, portfolio) sind korrekt.
-
-**E2 — UptimeRobot:** Monitor für `help.pukalani.app` ergänzen · Monitor
-803548622 heißt noch „studio…" (Friendly-Name nachziehen).
 
 **E3 — Hetzner-Rescale** prüfen (CX33 knapp bei sechs Apps + Builds). [David]
 

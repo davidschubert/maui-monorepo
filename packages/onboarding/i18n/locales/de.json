@@ -13,7 +13,8 @@
       "trialEnding": "Noch 1 Tag Testphase | Noch {n} Tage Testphase",
       "trialEnded": "Testphase beendet — läuft im Tarif Basic",
       "suspendedBilling": "Nur zum Lesen — Zahlung offen",
-      "suspendedAbuse": "Gesperrt — nicht erreichbar"
+      "suspendedAbuse": "Gesperrt — nicht erreichbar",
+      "readOnly": "Nur zum Lesen — gerade sind keine Beiträge möglich"
     },
     "gate": {
       "title": "Community einrichten",

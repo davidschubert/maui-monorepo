@@ -243,14 +243,48 @@ try {
 
   console.log('\n4. Der Umschlag trägt nur die Ansicht')
   const keys = Object.keys(aliceOwn ?? {}).sort()
-  check('genau {communityId, host, name, plan, role, suspension, trialEndsAt}',
-    JSON.stringify(keys) === JSON.stringify(['communityId', 'host', 'name', 'plan', 'role', 'suspension', 'trialEndsAt']),
+  check('genau {communityId, host, name, plan, readOnly, role, suspension, trialEndsAt}',
+    JSON.stringify(keys) === JSON.stringify(['communityId', 'host', 'name', 'plan', 'readOnly', 'role', 'suspension', 'trialEndsAt']),
     JSON.stringify(keys))
   // M13: `suspension` ist seit control-034 Teil der Ansicht — die Karte muss
   // sagen können, warum eine Community nicht klickbar ist. Wie `trialEndsAt`
   // trägt sie den Wert NUR für Rollen mit `community.billing`.
   check('der Sperrzustand steht beim Owner (hier: nicht gesperrt)', aliceOwn?.suspension === '', JSON.stringify(aliceOwn?.suspension))
   check('… und beim Mitleser IMMER leer', aliceGuest?.suspension === '', JSON.stringify(aliceGuest?.suspension))
+  check('ungesperrt heißt bei beiden readOnly false',
+    aliceOwn?.readOnly === false && aliceGuest?.readOnly === false,
+    `${aliceOwn?.readOnly} / ${aliceGuest?.readOnly}`)
+
+  // ── Befund 2 des Wechselwirkungs-Audits ───────────────────────────────────
+  // Vorher blankte die Projektion BEIDES für Rollen ohne `community.billing`:
+  // ein Viewer sah eine völlig normale Karte in eine Community, in der jeder
+  // Schreibversuch abgewiesen wird. Jetzt trennt sie DASS (jede Karte) von
+  // WARUM (nur der Abrechnende).
+  //
+  // GENAU EIN zusätzlicher Abruf, und das ist keine Sparsamkeit um ihrer
+  // selbst willen: `GET /api/onboarding/communities` ist auf 10 pro Minute und
+  // IP gedrosselt (05.rate-limit.ts), und dieser Beweis liegt schon dicht
+  // darunter — die SSR-Abrufe der Seiten in Abschnitt 6/7 zählen mit. Zwei
+  // Abrufe mehr, und der Beweis meldet 429 statt der Sache, um die es geht.
+  // Alice reicht dafür: sie ist Viewer in Bobs Community UND Owner ihrer
+  // eigenen, also stehen beide Blickwinkel in EINER Antwort. Die Owner-Sicht
+  // auf die gesperrte Zeile beweist verify-community-suspension (Abschnitt 7).
+  console.log('\n4b. Nur-lesend: DASS sieht jede Rolle, WARUM nur der Abrechnende')
+  await control.updateRow({
+    databaseId, tableId: 'communities', rowId: b.communityId,
+    data: { suspension: 'billing', suspensionReason: 'Beweis: Rechnung offen.', suspendedAt: new Date().toISOString() },
+  })
+  const suspendedList = (await mine(aliceCookie)).json?.communities ?? []
+  const asViewer = suspendedList.find(c => c.communityId === b.communityId)
+  const asOwner = suspendedList.find(c => c.communityId === a.communityId)
+  check('Viewer der gesperrten Community: Karte steht, readOnly true — aber OHNE Grund',
+    asViewer?.readOnly === true && asViewer?.suspension === '', JSON.stringify(asViewer))
+  check('… die eigene, gesunde Community daneben bleibt readOnly false',
+    asOwner?.readOnly === false && asOwner?.suspension === '', JSON.stringify(asOwner))
+  await control.updateRow({
+    databaseId, tableId: 'communities', rowId: b.communityId,
+    data: { suspension: '', suspensionReason: '', suspendedAt: null },
+  })
 
   console.log('\n5. Kanten der Route')
   const guest = await mine(null)

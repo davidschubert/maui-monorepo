@@ -15,6 +15,13 @@
  * <html> jeder Seite dieser Community. rowSecurity: false, weil das
  * Lese-Recht an der Tabelle hängt.
  *
+ * DAS HEISST AUFZÄHLBAR — geprüft und akzeptiert (2026-08-03): ein anonymer
+ * Client kann die Tabelle LISTEN, nicht nur seine Row abonnieren. Tragbar ist
+ * das genau deshalb, weil hier nur Farb-Tokens und eine undurchsichtige Row-Id
+ * liegen. NIE eine Spalte mit Name, Host oder sonst etwas Identifizierendem
+ * dazunehmen — Abwägung: core/shared/communityBranding.ts, Wächter:
+ * Abschnitt 12 in packages/onboarding/scripts/verify-site-branding.mjs.
+ *
  * KEINE INDIZES, und das ist kein Vergessen: die Tabelle wird ausschliesslich
  * über die rowId angesprochen (`upsertRow`, `Channel…row(<id>)`) — es gibt
  * keine Abfrage, die einen Index bräuchte. Damit entfällt hier auch der

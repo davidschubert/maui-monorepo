@@ -1614,6 +1614,360 @@ Angriffsfläche vorbei. Drittens, aus Befund 3: **ein `limit()` ohne Schleife is
 ein stiller Datenverlust**, und er tut dort weh, wo etwas ZURÜCKGENOMMEN werden
 soll — eine nicht verhängte Sperre fällt auf, eine nicht aufgehobene nicht.
 
+---
+
+### F8 (Abrechnungs-Hälfte) — Abrechnungsdaten überleben die Kontolöschung ✅ 2026-08-02
+
+**Davids Entscheidung:** `communities.stripeCustomerId` und `billingStatus`
+bleiben stehen, wenn der (letzte) Owner sein Konto löscht — es gibt KEINE
+Löschfrist für Abrechnungsdaten. Grundlage ist die kaufmännische
+Aufbewahrungspflicht (§147 AO / §257 HGB): Rechnungs- und Zahlungsvorgänge
+müssen 8–10 Jahre nachvollziehbar bleiben, und Art. 17 Abs. 3 lit. b DSGVO
+nimmt genau diesen Fall vom Löschrecht aus. Der Personenbezug an der
+Community-Zeile selbst ist durch F3 bereits versorgt: die Letzter-Owner-
+Mitgliedschaft wird entpersonalisiert (E-Mail geleert), die Einladungen und
+Anfragen sind weg — was bleibt, ist der Zahlungs-Verweis auf Stripe, und dort
+gelten Stripes eigene Aufbewahrungsregeln. Begründung steht jetzt an der
+Stelle (`packages/control/server/utils/communityErasure.ts`), im
+[DECISION-LOG](DECISION-LOG.md). Der Rest — die Löschfrist für
+`abuse_reports.reporterEmail` (Melder ohne Konto, die erreicht kein
+GDPR-Contributor) — hat David am selben Tag entschieden und steht weiter
+unten als **F8-Rest**.
+
+---
+
+### C20 / F14 — Apps ohne Realtime bekommen keinen Socket mehr ✅ 2026-08-01
+
+**Befund (aus B7, vorbestehend):** Die Marketing-Landing hielt bei jedem
+Seitenaufruf eine Realtime-Verbindung zu Appwrite offen und abonnierte
+`app_config` — Laufzeit-Flags, die diese Seite nirgends liest. Sie hat weder
+Konto noch Composer noch Wartungs-Hinweis. Ursache ist kein Fehler in einem
+Plugin, sondern **Vererbung**: `packages/core/app/plugins/realtime-config.client.ts`
+läuft in JEDER App, die core erweitert, und der einzige Riegel davor war
+„hat diese App eine Datenbank-Id?" — die hat `marketing` (`.env` setzt
+`NUXT_PUBLIC_APPWRITE_DATABASE_ID=main`, damit die Layer booten).
+
+**Der 401 aus dem ursprünglichen C20-Text war zu diesem Zeitpunkt schon weg**
+(siehe F11, am selben Tag): `ensureRealtimeJwt()` fragt seit dem nach einer
+Session und holt für Gäste keinen Token mehr. Übrig blieb das, was F11
+ausdrücklich stehen ließ — der Gast-WebSocket samt nachgeladenem
+76-kB-Web-SDK. Für eine App, die davon lebt (Live-Theme-Morphen für Besucher),
+ist das ein Feature; für eine statische Landing ist es Ballast. F14 nimmt
+genau diesen Fall, ohne F11s Entscheidung anzutasten.
+
+**Die Lösung ist ein ausdrücklicher Vertrag, kein Sonderfall im Plugin.**
+
+1. **Eine pure Regel** — `packages/core/shared/realtimeGate.ts`,
+   `realtimeAllowed(enabled, ...ids)`. Sie beantwortet die beiden Fragen, die
+   dasselbe bedeuten („hier gibt es nichts zu abonnieren"): das Config-Gate
+   `pukalani.realtime.enabled` **und** die Datenebene (Datenbank-/Tabellen-Id
+   bzw. Endpoint/Projekt). Der alte `!databaseId`-Guard aus dem
+   Live-Vorfall vom 2026-07-29 geht darin auf statt daneben zu stehen.
+   5 Unit-Tests (`packages/core/tests/realtimeGate.test.ts`).
+2. **Core-Default AN** — die begründete Ausnahme von „Core-Default ist IMMER
+   aus". Realtime ist kein Zusatz, den eine App anschaltet, sondern das
+   bestehende Verhalten jeder Produkt-App. Ein Default AUS hätte sie alle
+   stillschweigend entkoppelt, und der Ausfall wäre unsichtbar gewesen: die
+   Seite sieht richtig aus, sie aktualisiert sich nur nicht mehr.
+3. **Gelesen an EINER Stelle** — `realtimeEnabled()` in
+   `useRealtimeClient.ts`, memoisiert (die App-Config ist zur Laufzeit
+   konstant, anders als der Auth-Zustand in F11). Nicht in den drei Plugins:
+   dieselbe Regel an drei Aufrufern wäre beim vierten vergessen — dieselbe
+   Überlegung, die den `!databaseId`-Guard schon in `useRealtimeRows` gestellt
+   hatte.
+4. **Der Vertrag steht im TYP, nicht in einer Konvention.**
+   `ensureRealtimeClients()` / `sharedRealtime()` / `realtimeCookieClient()`
+   geben jetzt `… | null` zurück. Der strict-Modus **zwingt** damit jeden —
+   auch jeden künftigen — Konsumenten, „diese App hat keine Realtime" zu
+   behandeln. Ein `throw` hätte dieselbe Wirkung nur zur Laufzeit gehabt, und
+   ein stiller Rückgabewert gar keine.
+5. **Zweite Tür mitgenommen:** `useRealtimeAccount()` geht bewusst NICHT über
+   das Web-SDK (Cookie-Auth, Instant-Session-Revoke — CLAUDE.md) und hätte das
+   Gate deshalb nicht von selbst geerbt. Es fragt dieselbe Regel selbst ab.
+   Ebenso `usePresenceState()`: ohne Realtime schriebe der HTTP-Heartbeat
+   Presences, die kein Leser mehr abholen kann.
+
+**Abgeschaltet ist es in `marketing` und `help`** — beide öffentlich,
+kontenlos, ohne Laufzeit-Flags, beide ohne `themes`-Layer (es gibt dort also
+auch kein Live-Theme-Morphen zu verlieren). Der bewusst gezahlte Preis steht
+an beiden Stellen im Code: Flag-Änderungen greifen dort erst beim nächsten
+Seitenaufbau.
+
+**Beweis (A/B am selben Server, nur die eine Zeile geändert):**
+`enabled: true` → `…/deps/appwrite.js` wird geladen (Web-SDK + Socket);
+`enabled: false` → kein SDK, kein `/api/auth/realtime-token`, Konsole ohne
+einen einzigen Eintrag. Gegenprobe, dass nichts kaputtging: die volle
+comments-E2E-Suite **24/24 grün**, darin der Realtime-Guard („serverseitig
+angelegter Kommentar erscheint live und verschwindet beim Löschen"). Dazu
+`pnpm -r test` (431 core-Tests), Lint und `typecheck` von marketing und
+comments; alle sieben Apps starten.
+
+**Gelernt:** (1) **`performance.getEntriesByType('resource')` puffert nur 250
+Einträge.** Im Dev-Modus sind das ein paar hundert Modul-Requests — der
+nachgeladene SDK-Chunk fiel hinten raus, und die Messung sagte „kein SDK
+geladen", obwohl es geladen war. Zwei Messungen hintereinander waren dadurch
+scheinbar identisch, obwohl das Gate umgelegt war. Für solche Beweise das
+Netzwerkprotokoll des Browsers nehmen, nicht die Performance-API — oder den
+Puffer vorher vergrößern. (2) **`pnpm --filter <app> dev -- --port N` wirkt
+nicht:** das Skript hat `--port` schon fest verdrahtet, das zweite landet als
+Positionsargument, und Nuxt weicht bei belegtem Port still auf einen anderen
+aus (hier 3007 → 3000). Genau die Falle, vor der CLAUDE.md unter „Tests"
+warnt — ein Beweis liefe dann gegen den Server eines fremden Worktrees.
+Richtig: `pnpm --filter <app> exec nuxi dev --port N`. (3) **Der erste
+Seitenaufruf nach einem Dev-Server-Start beweist nichts über nachgeladene
+Abhängigkeiten:** Vite bündelt `appwrite` beim ersten Import erst („dependency
+optimized") und lädt die Seite dabei neu. Immer die zweite Messung nehmen.
+
+### E2 — UptimeRobot nachgezogen ✅ 2026-08-01
+
+Erledigt in Davids echtem Chrome (eingeloggte UptimeRobot-Session), kein
+API-Key nötig. Von den „drei Klicks" war beim Nachsehen nur noch EINER echt:
+
+- **Monitor `help.pukalani.app/api/health` angelegt** (ID 803644024, HTTP,
+  5-min-Intervall, E-Mail-Alarm — dieselbe Bauart wie die übrigen sechs).
+  Der Endpunkt war vorab geprüft (`{"ok":true,"build":…}`).
+- **Die Umbenennung war schon passiert:** Monitor 803548622 trägt den
+  Friendly-Name `control.pukalani.app/api/health` — die „studio…"-Zeile war
+  veraltet.
+- **Die öffentliche Statusseite existierte schon** („Pukalani",
+  stats.uptimerobot.com/MFP8D9JGlW, Public + Published, 4 Monitore) — sie
+  musste nicht eingeschaltet, sondern nur ERGÄNZT werden: help ist jetzt der
+  fünfte Service, von der öffentlichen Seite aus verifiziert (alle 5
+  „Operational").
+
+**Nachtrag (gleicher Tag, Davids Entscheidung):** `pukalani.app` (Landing) und
+`demo.pukalani.app` (Platform-Stellvertreter) sind ebenfalls auf die
+Statusseite gewandert — sie zeigt jetzt ALLE 7 Monitore, öffentlich verifiziert
+(alle „Operational").
+**Gelernt:** Dieselbe Woche, dritte veraltete Zeile (nach C8 und C12b-Notiz):
+Betriebs-Punkte altern schneller als Code-Punkte, weil sie auch außerhalb des
+Repos erledigt werden können — vor dem Ausführen erst nachsehen, was WIRKLICH
+noch fehlt.
+
+---
+
+### F8-Rest — Melder-Adressen leben höchstens 90 Tage ✅ 2026-08-02
+
+**Davids Entscheidung** (am selben Tag wie die Abrechnungs-Hälfte, siehe oben):
+`abuse_reports.reporterEmail` verfällt nach **90 Tagen**, gerechnet **ab der
+Meldung** (`$createdAt`) und **unabhängig vom Status**.
+
+**Warum diese Spalte überhaupt einen eigenen Sweep braucht:** sie ist die
+einzige personenbezogene Spur im System ohne Konto. Wer eine Community meldet,
+ist fast nie Mitglied darin und meist gar nicht angemeldet — es gibt keine
+userId, an der ein GDPR-Contributor ansetzen könnte. Ohne eigene Frist bliebe
+die Adresse für immer liegen, und zwar unbemerkt, weil der normale Löschpfad
+sie nie zu Gesicht bekommt.
+
+**Warum der Anker `$createdAt` ist und nicht `handledAt`:** Der Anker an der
+Bearbeitung klingt naheliegender („die Adresse wird ja bis zur Klärung
+gebraucht"), macht die Zusage aber von der Warteschlangen-Disziplin des
+Betreibers abhängig — eine Meldung, die ein Jahr unbearbeitet liegt, hielte die
+Adresse ein Jahr fest. Genau das darf die eigene Bequemlichkeit nicht
+entscheiden. Mit `$createdAt` ist die Zusage hart und ohne Fußnote
+aussprechbar: *eine Melder-Adresse lebt höchstens 90 Tage.*
+
+**Warum die Zeile bleibt:** gelöscht wird nur das Feld. Die Meldung ist der
+Beleg für eine womöglich verhängte Sperre — sie zu entfernen hieße, die
+Begründung der eigenen Maßnahme wegzuwerfen. Ohne Adresse ist sie exakt das,
+was eine anonyme Meldung von Anfang an ist. **Idempotent per Konstruktion:**
+eine geleerte Zeile trägt `null` und fällt damit aus der Kandidaten-Abfrage; es
+braucht kein Merkmal „schon aufgeräumt".
+
+**Wo es hängt:** pure Regel `shouldEraseReporterEmail` + Sweep
+`eraseStaleReporterEmails` in
+`packages/control/server/utils/abuseReportPrune.ts` (Muster:
+`inviteRequestPrune.ts`), eingehängt als vierter Mitfahrer im stündlichen
+`packages/control/server/plugins/trial-sweep.ts` — gleicher Takt, gleiches
+Fehler-Verhalten wie die drei daneben. Ein eigener Timer wäre nur ein weiterer
+Ort, an dem man nach dem Grund für ein verschwundenes Datum sucht. Fehler pro
+Zeile werden geloggt und übersprungen, der Sweep läuft weiter. 6 Unit-Tests in
+`packages/control/tests/abuseReports.test.ts`.
+
+**Gelernt:** Die Spalte hat `''` als Vorgabe (Migration control-034), nicht
+`null` — und anonyme Meldungen sind der Regelfall. Eine Kandidaten-Abfrage nur
+mit `Query.isNotNull` hätte deshalb Stunde für Stunde ihre 100 Plätze mit
+Zeilen belegt, an denen nichts zu tun ist, und die wirklich fälligen nie
+erreicht. Sie filtert jetzt **beide** Leer-Schreibweisen weg und sortiert
+`orderAsc('$createdAt')`, damit der Sweep sich garantiert vorwärts arbeitet.
+Wo eine Spalte zwei Arten hat, „leer" zu sein, muss die Abfrage beide kennen.
+
+**Öffentliche Zusage geprüft, nichts zu ändern:** die Formular-Copy
+(`onboarding` i18n, `abuse.privacy` / `abuse.emailHint`) nennt **keine**
+Speicherdauer — sie sagt nur, dass gespeichert und ohne Adresse anonym
+gemeldet wird. Die Frist widerspricht also keinem Versprechen; ob sie
+irgendwann in der Datenschutzerklärung auftaucht, entscheidet A1 (echte
+Rechtstexte).
+[DECISION-LOG](DECISION-LOG.md) und die F8-Zeile in OPEN-ITEMS.md trägt nur
+noch den offenen Rest: die Löschfrist für `abuse_reports.reporterEmail`
+(Melder ohne Konto — die erreicht kein GDPR-Contributor, sie braucht einen
+eigenen Sweep).
+
+### Wechselwirkungs-Audit M13 × übrige Features — 5 Befunde ✅ 2026-08-03
+
+Fünf Befunde aus dem Audit „was macht die Sperre mit dem Rest des Produkts",
+alle zuerst am Code (und drei davon live) reproduziert, dann behoben. Davids
+Vorgabe vorab: **die Sperre friert NUR INHALTE ein** — Owner-Einstellungen
+bleiben bewusst offen; das war zu dokumentieren, nicht zu ändern.
+
+**1 (MEDIUM, echter Produktfehler) — die Sperre erreichte die Falschen.**
+`COMMUNITY_SUSPENDED_CODE` reiste sauber bis in den Browser (403,
+`reason: community_suspended` im Envelope) und **niemand las ihn**: ein Mitglied,
+das in einer gesperrten Community schrieb, bekam den generischen „hat nicht
+geklappt"-Toast seines Layers. Die Mahnung war also für genau die Leute
+unsichtbar, die sie zum Owner tragen. Jetzt gibt es **einen** Leser für alle
+Layer: `packages/core/app/plugins/community-suspended-notice.client.ts` zeigt
+„Diese Community ist gerade schreibgeschützt" (de/en), **ohne** den Grund zu
+verraten — der bleibt `community.billing`-gegated.
+
+**2 (LOW) — die `my.*`-Karte widersprach ihrem eigenen Kommentar.**
+`projectMyCommunities` blankte `suspension` für jede Rolle ohne
+`community.billing`, während der Kommentar daneben „nur der GRUND ist gegated"
+versprach. Eine Wahrheit gewählt, und zwar die des Kommentars: neues Feld
+**`readOnly`** (DASS) für jede Karte, `suspension` (WARUM) weiter nur für den
+Abrechnenden. Ein Viewer sieht Schloss + „Nur zum Lesen — gerade sind keine
+Beiträge möglich", nie „Zahlung offen". Der Vorwurf „Missbrauch" kann auch
+nicht indirekt durchkommen: abuse-gesperrte Communities verschwinden für
+Mitleser ohnehin ganz aus der Liste.
+
+**3 (LOW) — Presence-Rauschen auf abuse-404-Hosts.** Auf einem gesperrten Host
+wirft `00.tenant.ts` für JEDEN Pfad 404 — auch für `/api/presence/heartbeat`.
+Die Fehlerseite rendert trotzdem mit Auth-Kontext, also startete
+`usePresenceState()` seinen 20-s-Takt und feuerte dauerhaft 404-POSTs, still
+verschluckt vom `.catch(() => {})`. Der Heartbeat startet jetzt **gar nicht**,
+solange `useError()` gesetzt ist — und wird **nachgeholt**, sobald der Fehler
+geräumt ist (ein blosses `return` hätte einen Tab, der einmal auf einer 404
+war, für den Rest der Sitzung unsichtbar gemacht).
+
+**4 (LOW, Dokumentation) — die bewusste Grenze stand nirgends.** Jetzt an der
+zentralen Stelle (`core/shared/communitySuspension.ts`) und in CLAUDE.md, mit
+Davids Begründung: zu ist jeder INHALT (Türklinke `member` der Datentür), offen
+bleiben Branding, Team/Rollen, Publikum, Registrierung und die Moderation
+(Klinke `operator`) — die laufen über die Service-Naht ins Control Plane. Die
+Sperre soll zum ZAHLEN bewegen, nicht den Owner aussperren; eine gesperrte
+Community, die niemand mehr moderieren kann, wird zum Problem des Betreibers.
+
+**5 (LOW, geprüft und ENTSCHIEDEN) — `community_branding` ist aufzählbar.**
+Stimmt, live nachgemessen: ein anonymer Client bekommt per REST die Row-Ids und
+Farben **aller** Communities (`read(any)`, `rowSecurity: false`, system-028).
+**Entscheidung: akzeptiert, nicht geräumt.** Vier Gründe, in der Reihenfolge
+ihres Gewichts: (a) es liegen dort nur eine undurchsichtige Row-Id und drei
+Farb-Tokens, die ohnehin als `data-theme/-variant/-neutral` im HTML jeder Seite
+dieser Community stehen — kein Name, kein Host, keine Mitgliedschaft, und ohne
+Host lässt sich eine Id keiner Community zuordnen; aufzählbar ist die ANZAHL,
+nicht die Identität. (b) Appwrite kennt kein Recht, das Lesen erlaubt und
+Auflisten verbietet — „nicht aufzählbar" hiesse hier „kein Leserecht", also kein
+Live-Morphen (D6); es gibt nichts zu härten, nur zu entfernen. (c) Dieselbe
+bewusste Bauart wie bei den Schwestern `app_config` (system-005) und
+`custom_themes` (system-013), letztere trägt sogar NAMEN. (d) „Beim Sperren
+räumen" klingt billig und ist es nicht: die Sperre entsteht im
+**Control-Plane-Projekt**, der Spiegel liegt im **Runtime-Projekt**, und einen
+Schlüssel in diese Richtung gibt es bewusst NICHT (derselbe Grund, aus dem
+`revokeCommunityLabel` in der Runtime läuft) — eine neue Service-Naht für drei
+Farbwörter wäre teurer als das, was sie schützt. Damit die Abwägung nicht
+stillschweigend verfällt, ist ihre **Bedingung** jetzt geprüft: Abschnitt 12 von
+`verify-site-branding.mjs` listet die Tabelle anonym und geht rot, sobald ein
+Feld ausserhalb der drei Farb-Spalten auftaucht.
+
+**Zusatzfrage aus dem Audit, beantwortet ohne Codeänderung:**
+`onboardingProvision.ts` setzt theme/variant beim Anlegen, spiegelt aber nicht —
+die Spiegel-Row entsteht erst beim ersten Branding-PATCH. **Keine Lücke:** der
+Abonnent hängt am Row-Kanal, auch wenn es die Zeile noch nicht gibt, und
+`createRow` publiziert dort ein Event (live gegen Appwrite 1.9.6 geprüft — anders
+als `upsertRow`). Nachrüsten liesse es sich ohnehin nicht ohne neue Naht:
+`onboardingProvision` läuft im Control-Plane-Projekt und hat keinen Schlüssel
+fürs Runtime-Projekt. Steht jetzt in `core/shared/communityBranding.ts`.
+
+**Beweise:** `verify-community-suspension.mjs` **55/55** (war 54/54),
+`verify-my-overview.mjs` **30/30** (war 27/27), `verify-site-branding.mjs`
+**44/44** (war 42/42). Browser gegen echte Appwrite: ein Mitglied schreibt in
+eine billing-gesperrte Community → der klare Hinweis steht **über** dem
+generischen Toast des Layers; auf der 404-Seite eines abuse-gesperrten Hosts
+feuert der alte Stand binnen Sekunden `POST /api/presence/heartbeat → 404
+Unknown host` und wiederholt es, der neue in 70 s **kein einziges Mal**.
+`pnpm -r test` grün, typecheck 0 Fehler, lint 6 bekannte Warnungen,
+`check:manifests` konsistent, Prod-Build einer App durchgelaufen.
+
+**Gelernt:** (1) **Ein `$fetch`-Interceptor in einem Plugin wirkt NICHT — und
+sieht dabei richtig aus.** Nuxts `#build/fetch.mjs` endet auf
+`export const $fetch = globalThis.$fetch`: eine **Momentaufnahme**. Wer
+`globalThis.$fetch` in einem Plugin ersetzt, erreicht Konsolenaufrufe und
+`useFetch`, aber **nicht** das auto-importierte `$fetch` der Komponenten — das
+Modul ist längst ausgewertet. Live erwischt: derselbe 403 toastete aus der
+Konsole und schwieg aus dem PostComposer. Der Interceptor gehört deshalb per
+`app:templates`-Hook **in die Vorlage**, und zwar als String-Ersetzung auf
+Nuxts eigener Ausgabe: ein Bump, der die Zeile umbenennt, nimmt uns still den
+Hinweis, statt den Build zu brechen. (2) **Ein Live-Beweis pro Minute — sonst
+misst man den Rate-Limiter.** `GET /api/onboarding/communities` steht auf
+10/min und IP, und `verify-my-overview` lag schon knapp darunter (die
+SSR-Abrufe der Seiten zählen mit). Zwei zusätzliche Abrufe kippten den Beweis
+in 429-Fehler, die wie ein kaputtes Feature aussahen. Neue Prüfungen in einen
+laufenden Live-Beweis kosten **Budget**, nicht nur Zeit. (3) **Ein Beweis, der
+in `| head` läuft, stirbt nicht — er läuft weiter.** Drei abgebrochene
+Durchgänge legten danach munter weiter Test-Communities an, und die tauchten
+als „Geister" in jeder folgenden Messung auf. Verify-Skripte mit Aufräum-Block
+immer in eine Datei schreiben, nie durch eine Pipe kürzen. (4) **Der
+past-due-Sweep hebt eine von Hand gesetzte `billing`-Sperre wieder auf**, wenn
+`billingStatus` nicht `past_due` ist — für einen Browser-Beweis muss man beide
+Spalten setzen, sonst ist die Community 30 Sekunden später wieder frei und man
+sucht den Fehler im eigenen Code.
+
+---
+
+### Index-Retry in elf Migrationen nachgerüstet ✅ 2026-08-02
+
+**Aufgefallen als Nebenbefund beim Landen von F14** (nicht davon verursacht):
+die CI-E2E starb im Bootstrap, bevor ein einziger Test lief —
+`AppwriteException: The requested column 'communityId' is not yet available`
+(400, `column_not_available`) aus dem `createIndex` von
+`packages/moderation/scripts/migrations/003-community-id.ts`.
+
+**Es ist genau das Rennen, für das es `scripts/migrations-lib/indexRetry.mts`
+schon gab:** der Index-Endpunkt prüft die Spalten-Verfügbarkeit nicht am
+`attributes`-Dokument, sondern an der im Collection-Dokument eingebetteten
+Kopie aus Appwrites Metadaten-Cache — und die hinkt nach. `waitAvailable()`
+pollt also die frische Wahrheit, und der Index-Aufruf danach sieht die
+veraltete. Pollen allein reicht nicht; CLAUDE.md schreibt den Retry vor.
+
+**Elf Migrationen hatten ihn trotzdem nicht:** die acht `*-community-id.ts`
+der E8/E11-Umbenennungswelle plus `control-025/028/029`. Die acht sind
+praktisch Kopien voneinander (identische Struktur, identische Zeilennummer der
+Index-Anlage) — die Vorlage hatte den Retry offenbar nie, und die Kopien haben
+ihn brav mitvererbt.
+
+Umgestellt ist **ausschließlich die Hülle um `createIndex`** (je eine
+Import-Zeile und `step(` → `indexStep(`; der Helfer ist als Drop-in mit
+gleicher Ausgabe und gleicher 409-Idempotenz gebaut). `step()` bleibt überall
+stehen, wo es hingehört: Spalten-Anlage in allen elf, und in `control-025` das
+`deleteIndex` — ein Delete kennt den Spalten-Race nicht. Inhaltlich ist keine
+Migration angefasst: keine Spalte, kein Backfill, kein Name, keine Reihenfolge.
+Danach steht die Prüfung „gibt es noch ein `createIndex` ohne Retry?" über alle
+Layer auf null.
+
+**Beweis:** E2E `success` auf `5c212ae0` (enthält den Fix) — alle
+Index-Zwillinge der Welle sauber angelegt (`activities.idx_community`,
+`notifications.idx_recipient_community`, `comments.idx_community`,
+`embed_sites.uq_community_host`, `post_votes.idx_community_vote`, …). Dazu
+`pnpm -r test` und `pnpm -r lint` unverändert.
+
+**Gelernt:** (1) **Der grüne Lauf beweist weniger, als er aussieht.** In ihm
+hat der Retry KEIN einziges Mal ausgelöst (null „noch nicht sichtbar"-
+Meldungen) — belegt ist damit „bricht nichts, Migrationen laufen durch",
+nicht „rettet das Rennen". Ein sporadischer Fehler lässt sich nicht auf
+Bestellung vorführen; wer hier mehr behauptet, verwechselt Abwesenheit mit
+Beweis. (2) **Eine Migrations-Vorlage vererbt auch ihre Lücken.** Acht
+identische Kopien hieß: ein vergessener Retry wurde achtfach ausgerollt, ohne
+dass es je auffiel — bis der Zufall eine davon traf. Wer eine Migration
+kopiert, kopiert die Sicherungen mit oder eben nicht; ein Blick auf
+`grep -L indexStep` über die Migrationen kostet Sekunden. (3) **Der
+Import-Pfad ist die Stelle, an der so ein Fix real scheitert.** Migrationen
+laufen als eigenständige `node --experimental-strip-types`-Prozesse, die
+Auflösung ist relativ zur DATEI. Unit-Tests sehen davon nichts — die billige
+Gegenprobe ist, jede Datei einmal ohne Env-Variablen zu starten: lädt sie und
+bricht sie regulär an der Env-Prüfung ab, stimmt der Pfad.
+
+---
+
 ### Missbrauchs-Warteschlange blättert ✅ 2026-08-02
 
 Der Nachzügler des Quer-Audits: `abuse-reports/index.get.ts` las
@@ -1647,8 +2001,10 @@ Kachel und Zeilen-Abzeichen widersprächen sich. `total − suspended − dismis
 ist dieselbe Regel wie die Anzeige, nur andersherum gelesen; bei 0 geklemmt,
 weil drei Abfragen drei Zeitpunkte sind.
 
-**Beweise:** `verify-community-suspension.mjs` **65/65** (war 54/54 — elf neue
-Prüfungen: Seite 1 liefert genau 25, der Umschlag nennt `page`/`pageSize`, Seite 2
+**Beweise:** `verify-community-suspension.mjs` **66/66** (elf neue Prüfungen;
+54 → 65 auf dem Arbeitsstand, nach dem Merge mit `main` 55 → 66, weil dort das
+Wechselwirkungs-Audit eine `readOnly`-Prüfung dazugelegt hat — Seite 1 liefert
+genau 25, der Umschlag nennt `page`/`pageSize`, Seite 2
 überschneidet sich nicht, beide Seiten zusammen tragen alle 30 frisch angelegten
 Meldungen, die Kacheln zählen mehr als die Seite, sie zählen einen Zustand mit,
 der auf Seite 1 gar nicht vorkommt, offen+gesperrt+verworfen ergibt gesamt, beim
@@ -1673,4 +2029,10 @@ wieder live:** die Dev-Server auf 3004/3006 gehörten dem HAUPT-Repo, ein Beweis
 dort hätte den alten Code gemessen; und `pnpm --filter <app> dev -- --port X`
 wirkt NICHT (das Skript hat sein `--port` schon fest verdrahtet, der zweite
 Wert wird ignoriert und `get-port` weicht still auf 3000 aus) — der Weg ist
-`pnpm --filter <app> exec nuxi dev --port X`.
+`pnpm --filter <app> exec nuxi dev --port X`. (5) **Der ERSTE Lauf gegen einen
+frisch gestarteten Dev-Server ist kein Messwert.** Abschnitt 3 fiel dabei
+mehrfach um (mal „unknown_host", mal blieb das Schreiben bei 201) — der
+45×1-s-Ring wartet auf den 30-s-Resolver-Cache, konkurriert aber mit dem
+Kaltstart-Kompilat der Seiten. Der zweite Lauf war jedes Mal grün. Vor einem
+roten Befund also erst einmal warmlaufen lassen, sonst jagt man einen
+Regressionsschaden, den es nicht gibt.
