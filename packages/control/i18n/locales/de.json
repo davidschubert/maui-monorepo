@@ -376,6 +376,7 @@
       "emptyTitle": "Keine Meldungen",
       "rowActions": "Aktionen",
       "unmatched": "Adresse gehört zu keiner Community",
+      "urlNotLinked": "Kein gewöhnlicher Web-Link — bewusst nicht anklickbar.",
       "suspend": "Community sperren",
       "suspendIntro": "Die Community hinter {host} geht sofort offline. Die Inhalte bleiben erhalten, nur für dich erreichbar.",
       "suspended": "Community gesperrt",

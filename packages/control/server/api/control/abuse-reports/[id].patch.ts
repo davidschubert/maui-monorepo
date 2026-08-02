@@ -20,6 +20,17 @@ import { setCommunitySuspension } from '../../../utils/communitySuspension'
  * Sperren, bleibt die Meldung offen — sichtbar und wiederholbar. Andersherum
  * wäre eine erledigte Meldung neben einer weiterlaufenden Community die
  * gefährlichere Hälfte.
+ *
+ * `open` IST DER RÜCKWEG DER MELDUNG, NICHT DER DER SPERRE — bewusst asymmetrisch
+ * zu `suspended`. Wer eine Meldung versehentlich abgeschrieben hat, holt sie
+ * hiermit zurück in die Warteschlange; eine bereits verhängte Sperre bleibt
+ * davon UNBERÜHRT. Zwei Gründe: (1) es gibt keine 1:1-Beziehung — mehrere
+ * Meldungen können zu derselben Sperre geführt haben, und ein Rück-Klick auf
+ * eine davon dürfte die anderen nicht überstimmen. (2) Entsperren ist ein
+ * eigener Vorgang mit eigenem Protokolleintrag (`setCommunitySuspension` über
+ * die Sperr-Route in der Communities-Liste). Eine Community, die durch das
+ * Zurücksetzen eines Listeneintrags still wieder online geht, wäre genau die
+ * unsichtbare Wirkung, die dieses Modul sonst überall vermeidet.
  */
 const bodySchema = z.object({
   status: z.enum(['suspended', 'dismissed', 'open']),

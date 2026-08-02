@@ -376,6 +376,7 @@
       "emptyTitle": "No reports",
       "rowActions": "Actions",
       "unmatched": "Address does not belong to any community",
+      "urlNotLinked": "Not an ordinary web link — deliberately not clickable.",
       "suspend": "Suspend community",
       "suspendIntro": "The community behind {host} goes offline immediately. Content is kept, reachable only by you.",
       "suspended": "Community suspended",

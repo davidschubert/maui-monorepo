@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { ABUSE_CATEGORIES, normalizeReportedHost } from '../../../../control/shared/abuseReports'
+import { ABUSE_CATEGORIES, normalizeReportedHost, normalizeReportedUrl } from '../../../../control/shared/abuseReports'
 import { callControlPlane } from '../../utils/controlPlane'
 
 /**
@@ -61,11 +61,18 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 400, statusText: 'Not a valid host', data: { code: 'invalid_host' } })
   }
 
+  // Der Link wird normalisiert wie der Host — und aus demselben Grund: NICHTS
+  // aus diesem Formular ist vertrauenswürdig, es hat keine Anmeldung. Ein
+  // Wert, der kein http(s)-Link ist, LEERT nur das Feld; die Meldung geht
+  // trotzdem durch, denn der Fließtext ist der wertvolle Teil (anders als beim
+  // Host, ohne den die Meldung kein Ziel hätte).
+  const url = normalizeReportedUrl(body.url ?? '')
+
   await callControlPlane(event, '/api/control/abuse-reports', {
     host,
     category: body.category,
     message: body.message,
-    url: body.url ?? '',
+    url,
     reporterEmail: body.reporterEmail ?? '',
   })
 

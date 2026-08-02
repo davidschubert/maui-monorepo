@@ -41,6 +41,13 @@ import { verifyRuntimeIdentity } from '../../../utils/onboardingService'
  * Rollen-Resolver anwendet, und genau sie macht „Zugang entziehen" hier wahr:
  * wer entfernt wurde (`status = 'removed'`), sieht die Community nicht mehr in
  * seiner Liste.
+ *
+ * DIESELBE REGEL STEHT ZWEIMAL, und das ist Absicht: als `Query.equal('status',
+ * 'active')` in der Abfrage (damit das Limit nur Zeilen zählt, die überhaupt
+ * zählen dürfen) und als `hasCommunityAccess` dahinter (der Type-Guard, der aus
+ * Spaltenwerten wieder Typen macht). Der Literalwert in der Abfrage ist an die
+ * pure Regel genagelt — `communityTeam.test.ts` bricht, wenn `hasCommunityAccess`
+ * je mehr als 'active' durchlässt und dieser Filter nicht mitgezogen wird.
  */
 const bodySchema = z.object({
   jwt: z.string().min(1).max(4096),
@@ -60,6 +67,13 @@ export default defineEventHandler(async (event): Promise<MyCommunitiesResponse> 
     queries: [
       Query.equal('runtimeProjectId', identity.projectId),
       Query.equal('runtimeUserId', identity.userId),
+      // Der Zugangs-Filter gehört in die ABFRAGE, nicht dahinter (Audit-Befund,
+      // dieselbe Bauart wie in `suspension.post.ts` nebenan). Vorher holte die
+      // Route die ersten 50 Mitgliedschaften und siebte danach: wer in mehr als
+      // 50 Communities entfernt worden war, bekam eine LEERE Übersicht, obwohl
+      // er in einer weiteren aktiv ist. Ein Filter hinter einem Limit ist kein
+      // Filter, sondern ein Zufallsgenerator.
+      Query.equal('status', 'active'),
       Query.limit(MY_COMMUNITIES_LIMIT),
     ],
   }).catch((error) => { throw toH3Error(error, 'Could not read memberships') })

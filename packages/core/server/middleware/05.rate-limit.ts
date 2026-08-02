@@ -70,6 +70,13 @@ const WRITE_LIMITED: { re: RegExp, bucket: string, max?: number }[] = [
   // Writes/JWTs erzeugen lassen. heartbeat+leave teilen EIN Budget.
   { re: /^POST \/api\/presence\/(heartbeat|leave)$/, bucket: 'presence:write', max: PRESENCE_MAX },
   { re: /^GET \/api\/auth\/realtime-token$/, bucket: 'auth:jwt', max: TOKEN_MAX },
+  // „Deine Communities" (F12): ein GET, aber kein billiger. Jeder Aufruf prägt
+  // ein Appwrite-JWT und lässt danach das Control Plane zwei Tabellen lesen —
+  // vier Operationen über ZWEI Projekte, also dieselbe Kostenklasse wie der
+  // JWT-Mint darüber und deshalb derselbe Deckel. Die Seite ruft sie einmal je
+  // Aufbau; 10/min ist für einen Menschen unerreichbar und für ein Skript die
+  // Grenze.
+  { re: /^GET \/api\/onboarding\/communities$/, bucket: 'onboarding:communities', max: TOKEN_MAX },
   // Öffentliche Kommentar-Lese-Routen (Embed macht sie zur beworbenen Fläche
   // auf fremden Seiten) — eigener Read-Bucket statt „GET ist frei".
   // count (E3) ist CORS-offen und microcached, teilt denselben Bucket.
