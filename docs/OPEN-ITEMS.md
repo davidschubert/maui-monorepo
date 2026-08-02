@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 7 offen · 10 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 8 offen · 10 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-02**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -24,6 +24,7 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 27 · E1 | **Tote Schlüsseldatei löschen** (`apps/control/.env.production` zeigt auf ein gelöschtes Projekt). Liegt nur auf Davids Rechner, nicht im Repo. | Niedrig | S — eine Datei | Ja: enthält Schlüsselmaterial | [Notizen](#notizen) |
 | 29 · E3 | **Server-Größe prüfen** — der CX33 wird mit sechs Apps plus Builds knapp. | Mittel | S — prüfen, ggf. Rescale | Ja: kostet Geld | [Notizen](#notizen) |
 | 30 · E4 | **Nur-Lese-Schlüssel im Projekt `control`** erzeugen (letzter Cutover-Krümel). | Niedrig | S — ein Klick in der Console | Ja: David, Console | [CONTROL-CUTOVER.md](runbooks/CONTROL-CUTOVER.md) |
+| 33 · F19 | **Bleibt die CI-E2E jetzt grün?** Ein Lauf starb, weil Appwrite eine frisch angelegte Spalte dem Index-Endpunkt 2,5 min lang nicht zeigte. Der Wiederhol-Vorrat war NICHT zu knapp: 24/24 verbraucht, keine Bewegung, während 67 andere Indizes sofort durchgingen. Dabei fiel auf, dass die CI noch 1.9.5 fuhr statt 1.9.6 wie überall sonst — jetzt angeglichen. Kommt es wieder, den Cache ANSTOSSEN statt länger warten. | Niedrig | S — beobachten | Nein | [indexRetry.mts](../scripts/migrations-lib/indexRetry.mts) · [roter Lauf](https://github.com/davidschubert/pukalani.app/actions/runs/30737686816) |
 | 32 · F18 | **Gast-Kontaktdaten sind weiter unlesbar.** `guest_authors` verfällt jetzt nach 90 Tagen, aber die Moderation kommt an Name/E-Mail nirgends heran — die Daten werden also erhoben, ohne je zu nutzen. Entweder eine Lese-Stelle bauen oder das Erheben streichen. | Niedrig | S — Entscheidung, dann klein | Ja: erheben oder nicht? | [COMPLETE C1c](OPEN-ITEMS-COMPLETE.md) |
 
 ## ⏸️ Geparkt / wartet
