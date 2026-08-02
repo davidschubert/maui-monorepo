@@ -44,6 +44,46 @@ export interface ThemeConfig {
   headingUppercase?: boolean
 }
 
+/**
+ * DIE FELDLISTE ZUM TYP (Audit-Befund 2026-08-02).
+ *
+ * Der JSON-Import im Customize-theme („Theme auf andere Instanz mitnehmen")
+ * übernimmt nur BEKANNTE Felder — die Server-Route validiert strict, ein
+ * unbekannter Schlüssel würde die ganze Einfuhr abweisen. Diese Liste stand
+ * abgeschrieben in der Galerie-Seite und war mit `ThemeConfig` deckungsgleich
+ * SOLANGE jemand daran dachte: ein neues additives Feld (und additiv ist hier
+ * die Regel — das config-JSON trägt bewusst kein `version`) wäre beim Import
+ * still verschluckt worden. Still, weil ein fehlendes Feld kein Fehler ist,
+ * sondern ein Default: das eingeführte Theme sähe einfach anders aus als das
+ * exportierte, und niemand wüsste warum.
+ *
+ * WARUM DIESE UMSTÄNDLICHE FORM: TypeScript-Typen sind zur Laufzeit weg, ein
+ * `keyof`-Ausdruck liefert also kein Array. Der Umweg über ein
+ * `Record<keyof Required<ThemeConfig>, true>` dreht das um — wer ThemeConfig
+ * oben ein Feld hinzufügt und es hier vergisst, bekommt einen TYPFEHLER
+ * ("property is missing"), keinen stillen Verlust. Das Objekt ist die einzige
+ * Stelle, an der die Namen doppelt stehen, und genau dort wird gemeckert.
+ */
+const THEME_CONFIG_FIELDS: Record<keyof Required<ThemeConfig>, true> = {
+  mode: true,
+  anchor: true,
+  hueShift: true,
+  saturation: true,
+  lightnessMax: true,
+  lightnessMin: true,
+  radius: true,
+  neutral: true,
+  darkAlias: true,
+  font: true,
+  fontHeading: true,
+  headingWeight: true,
+  headingTracking: true,
+  headingUppercase: true,
+}
+
+/** Alle Generator-Parameter eines Custom Themes — zur Laufzeit aufzählbar. */
+export const THEME_CONFIG_KEYS = Object.keys(THEME_CONFIG_FIELDS) as Array<keyof ThemeConfig>
+
 /** Farbvariante eines Custom Themes (data-variant überschreibt die Primary-Ramp) */
 export interface CustomVariant {
   id: string

@@ -151,6 +151,8 @@
         "semantic": "Semantic colors",
         "typography": "Typography",
         "radiusLabel": "Radius",
+        "primaryRamp": "Primary colour",
+        "neutralRamp": "Base tone",
         "headingSample": "Shape your community",
         "bodySample": "This is how a paragraph reads in the active theme — stroke weight, letter spacing, and line height of the selected typeface at body size.",
         "mutedSample": "Secondary text for hints, captions, and meta information.",

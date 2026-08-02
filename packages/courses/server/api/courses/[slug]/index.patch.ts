@@ -34,6 +34,10 @@ export default defineEventHandler(async (event) => {
   // paid braucht das Entitlement-Produkt — gegen den MERGED Zustand
   const mergedAccess = body.access ?? row.access
   const mergedProduct = body.entitlementProduct === undefined ? row.entitlementProduct : body.entitlementProduct
+  // Und 'paid' überhaupt anbieten können (Befund 2, 2026-08-02). Gegen den
+  // MERGED Zustand, damit auch ein Bestandskurs nicht unbemerkt auf 'paid'
+  // stehen bleibt, wenn jemand nur den Titel ändert.
+  assertPaidAccessOffered(mergedAccess)
   if (mergedAccess === 'paid' && !mergedProduct) {
     throw createError({ status: 422, statusText: 'Paid courses need an entitlement product' })
   }

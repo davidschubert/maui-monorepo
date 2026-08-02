@@ -28,6 +28,9 @@ export default defineEventHandler(async (event) => {
   await assertPoolWriteQuota(event, { kind: 'courses', tableId: COURSES_TABLE })
 
   const body = await readValidatedBody(event, courseSchema.parse)
+  // Kein Guard registriert ⇒ 'paid' wäre ein Kurs, den niemand buchen kann
+  // (Befund 2, 2026-08-02) — dieselbe Wahrheit, die das Formular ausblendet.
+  assertPaidAccessOffered(body.access)
 
   const status = body.status ?? 'draft'
   const row = await tenantDb(event, { as: 'operator', actor }).create<CourseRow>(COURSES_TABLE, {

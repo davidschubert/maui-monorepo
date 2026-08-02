@@ -62,7 +62,7 @@ const headings = [
     <section class="space-y-4">
       <h3 class="text-sm font-semibold">{{ t('themes.customize.scenes.colors') }}</h3>
       <div>
-        <p class="mb-1.5 text-xs text-muted">Primary · {{ t('themes.customize.scenes.radiusLabel') }} {{ radius }}</p>
+        <p class="mb-1.5 text-xs text-muted">{{ t('themes.customize.scenes.primaryRamp') }} · {{ t('themes.customize.scenes.radiusLabel') }} {{ radius }}</p>
         <div class="flex overflow-hidden rounded-lg ring-1 ring-default">
           <div
             v-for="c in primaryRamp" :key="c.shade"
@@ -75,7 +75,7 @@ const headings = [
         </div>
       </div>
       <div>
-        <p class="mb-1.5 text-xs text-muted">Neutral</p>
+        <p class="mb-1.5 text-xs text-muted">{{ t('themes.customize.scenes.neutralRamp') }}</p>
         <div class="flex overflow-hidden rounded-lg ring-1 ring-default">
           <div
             v-for="c in neutralRamp" :key="c.shade"

@@ -151,6 +151,8 @@
         "semantic": "Semantische Farben",
         "typography": "Typografie",
         "radiusLabel": "Radius",
+        "primaryRamp": "Primärfarbe",
+        "neutralRamp": "Grundton",
         "headingSample": "Gestalte deine Community",
         "bodySample": "So liest sich ein Absatz im aktiven Theme — Strichstärke, Laufweite und Zeilenhöhe der gewählten Schrift auf normaler Textgröße.",
         "mutedSample": "Sekundärtext für Hinweise, Bildunterschriften und Meta-Informationen.",

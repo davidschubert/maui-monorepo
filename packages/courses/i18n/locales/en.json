@@ -30,6 +30,8 @@
       "upgradeTitle": "This course is part of Pro",
       "upgradeText": "A Pro subscription unlocks all paid courses.",
       "upgradeCta": "See plans",
+      "paidUnavailableTitle": "This course can't be booked right now",
+      "paidUnavailableText": "It is set up as a paid course, but this community has no way to take payments. Your best move is to ask whoever runs it.",
       "progress": "{done} of {total} lessons ({percent}%)",
       "completed": "Completed 🎉",
       "lessonsTitle": "Lessons ({count})",

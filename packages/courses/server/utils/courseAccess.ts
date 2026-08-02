@@ -1,6 +1,6 @@
 import { Permission, Query, Role } from 'node-appwrite'
 import type { H3Event } from 'h3'
-import { COURSES_TABLE, ENROLLMENTS_TABLE, LESSONS_TABLE, type CourseRow, type EnrollmentRow, type LessonRow } from '../../shared/types/course'
+import { COURSE_PAID_UNAVAILABLE_CODE, COURSE_UPGRADE_REQUIRED_CODE, COURSES_TABLE, ENROLLMENTS_TABLE, LESSONS_TABLE, type CourseAccess, type CourseRow, type EnrollmentRow, type LessonRow } from '../../shared/types/course'
 
 /**
  * Row-Permission published-Kurse: Mitglieder-Katalog (kein Gast-Content).
@@ -27,9 +27,12 @@ export const ownRowRead = (userId: string): string[] => [Permission.read(Role.us
 
 /**
  * Access-Guard-Vertrag (A14, Muster registerUserDataContributor): courses
- * kennt billing NICHT — die APP registriert den Guard und ruft darin z. B.
- * billings requireEntitlement auf. OHNE registrierten Guard sind
- * 'paid'-Kurse FAIL-CLOSED (403).
+ * kennt billing NICHT — die APP registriert den Guard und prüft darin das im
+ * Kurs deklarierte `entitlementProduct` gegen `getEntitledProducts()`
+ * (apps/comments/server/plugins/course-access.ts). OHNE registrierten Guard
+ * sind 'paid'-Kurse FAIL-CLOSED (403).
+ * (Stand 2026-08-02 — hier stand bis zum Audit „billings requireEntitlement",
+ * das mit G1 entfallen ist; halbes F22.)
  *
  * POOL-SONDERFALL (dokumentiert + per Test genagelt, Muster events N5b):
  * im Pool registriert HEUTE keine App einen Guard — die platform-App bindet
@@ -60,19 +63,56 @@ export function isCourseAccessConfigured(): boolean {
   return accessGuard !== null
 }
 
-/** free/members = eingeloggt genügt · paid = delegiert an den App-Guard */
+/**
+ * free/members = eingeloggt genügt · paid = delegiert an den App-Guard
+ *
+ * BEIDE 403 tragen einen fachlichen Grund (`data.code` → `reason` im Envelope,
+ * Audit-Befund 2026-08-02). Ohne ihn konnte die Oberfläche „diese Instanz
+ * verkauft gar nichts" nicht von „hier hilft ein Upgrade" unterscheiden und
+ * schickte im Pool jeden auf ein /pricing, das es dort nicht gibt.
+ */
 export async function assertCourseAccess(event: H3Event, course: CourseRow): Promise<void> {
   if (!event.context.user) {
     throw createError({ status: 401, statusText: 'Unauthorized' })
   }
   if (course.access !== 'paid') return
   if (!accessGuard) {
-    throw createError({ status: 403, statusText: 'Paid course — access not configured' })
+    throw createError({
+      status: 403,
+      statusText: 'Paid course — access not configured',
+      data: { code: COURSE_PAID_UNAVAILABLE_CODE },
+    })
   }
   const allowed = await accessGuard(event, course).catch(() => false)
   if (!allowed) {
-    throw createError({ status: 403, statusText: 'Upgrade required' })
+    throw createError({
+      status: 403,
+      statusText: 'Upgrade required',
+      data: { code: COURSE_UPGRADE_REQUIRED_CODE },
+    })
   }
+}
+
+/**
+ * Befund 2 (2026-08-02): 'paid' annehmen, was niemand buchen kann?
+ *
+ * Der F13-Fix wirkte nur im FORMULAR (die Auswahl verschwindet ohne Guard) —
+ * über die API, einen alten Client oder einen zweiten Tab entstand weiter ein
+ * Kurs, dessen Buchen-Knopf anschließend nur noch 403 sagt. Die Regel gehört
+ * dorthin, wo sie niemand umgehen kann, und sie liest DIESELBE Wahrheit wie das
+ * Formular (`isCourseAccessConfigured`) — kein zweites Flag.
+ *
+ * 422 statt 403: das ist keine fehlende Berechtigung, sondern eine Eingabe, die
+ * auf dieser Instanz keinen Sinn ergibt — dieselbe Sorte wie „paid braucht ein
+ * Entitlement-Produkt" eine Zeile weiter.
+ */
+export function assertPaidAccessOffered(access: CourseAccess): void {
+  if (access !== 'paid' || isCourseAccessConfigured()) return
+  throw createError({
+    status: 422,
+    statusText: 'Paid courses are not available on this instance',
+    data: { code: COURSE_PAID_UNAVAILABLE_CODE },
+  })
 }
 
 /**

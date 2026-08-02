@@ -8,7 +8,7 @@
 import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
 import type { CustomThemeDto, ThemeSettings } from '../../../../shared/ramp'
 import { THEME_REGISTRY } from '../../../utils/themeRegistry'
-import { customThemeAttr, customThemeCss } from '../../../../shared/ramp'
+import { customThemeAttr, customThemeCss, THEME_CONFIG_KEYS } from '../../../../shared/ramp'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'system.manage' })
 
@@ -291,12 +291,18 @@ function downloadJson(custom: CustomThemeDto) {
 
 const importInput = ref<HTMLInputElement | null>(null)
 
-/** Nur bekannte Config-Felder übernehmen — die Server-Route validiert strict */
+/**
+ * Nur bekannte Config-Felder übernehmen — die Server-Route validiert strict.
+ *
+ * Die Liste stand hier abgeschrieben und ist seit dem Audit vom 2026-08-02
+ * abgeleitet (THEME_CONFIG_KEYS, shared/ramp.ts): ein neues additives Feld
+ * wurde sonst beim Import still verschluckt. Begründung dort.
+ */
 function sanitizeConfig(raw: unknown): Record<string, unknown> | undefined {
   if (typeof raw !== 'object' || raw === null) return undefined
   const source = raw as Record<string, unknown>
   const picked: Record<string, unknown> = {}
-  for (const key of ['mode', 'anchor', 'hueShift', 'saturation', 'lightnessMax', 'lightnessMin', 'radius', 'neutral', 'darkAlias', 'font', 'fontHeading', 'headingWeight', 'headingTracking', 'headingUppercase']) {
+  for (const key of THEME_CONFIG_KEYS) {
     if (source[key] !== undefined) picked[key] = source[key]
   }
   return Object.keys(picked).length ? picked : undefined

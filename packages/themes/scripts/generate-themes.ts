@@ -10,9 +10,10 @@
  *
  * --check vergleicht den frisch generierten Output byte-genau mit den
  * committeten Dateien — Katalog-Änderung ohne Regeneration bricht CI/lint,
- * statt still zu divergieren.
+ * statt still zu divergieren — UND prüft die Gegenrichtung: liegt in
+ * public/themes eine CSS, zu der es keinen Katalog-Eintrag (mehr) gibt?
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { generateTheme, buildRegistryModule, type GeneratedTheme } from '../shared/themeGen'
@@ -64,11 +65,42 @@ for (const spec of THEME_CATALOG) {
   }
 }
 
+/**
+ * HANDGEPFLEGTE CSS-DATEIEN — die dokumentierten Ausnahmen.
+ *
+ * `neutral.css` enthält die data-neutral-Paletten (Werte aus Tailwind v4 /
+ * Nuxt UI) und ist IMMER geladen, unabhängig vom gewählten Theme. Sie stammt
+ * nicht aus dem Katalog und darf deshalb auch nicht als verwaist gelten.
+ */
+const HAND_MAINTAINED_CSS = new Set(['neutral.css'])
+
+/**
+ * VERWAISTE DATEIEN (Audit-Befund 2026-08-02).
+ *
+ * `--check` verglich bisher nur in EINE Richtung: Katalog → Datei. Eine CSS,
+ * die zu keinem Katalog-Eintrag mehr gehört (umbenanntes oder gestrichenes
+ * Theme), blieb dadurch unbemerkt liegen und wurde weiter ausgeliefert — und
+ * weil mit `neutral.css` eine legitim handgepflegte Datei danebensteht, war
+ * „gehört das hierher?" von außen nicht zu entscheiden. Jetzt ist die erwartete
+ * Menge genannt: Katalog + die Ausnahme oben. Alles andere meldet das Gate.
+ */
+function checkOrphans(): void {
+  const dir = resolve(PKG_DIR, 'public/themes')
+  if (!existsSync(dir)) return
+  const expected = new Set([...THEME_CATALOG.map(spec => `${spec.id}.css`), ...HAND_MAINTAINED_CSS])
+  for (const file of readdirSync(dir)) {
+    if (!file.endsWith('.css') || expected.has(file)) continue
+    console.error(`✗ public/themes/${file} gehört zu keinem Katalog-Eintrag — Datei löschen oder den Katalog ergänzen.`)
+    drift++
+  }
+}
+
 const registryModule = buildRegistryModule(generated, THEME_CATALOG)
 if (check) {
   checkFile(resolve(PKG_DIR, 'app/utils/themeRegistry.gen.ts'), registryModule, 'app/utils/themeRegistry.gen.ts')
+  checkOrphans()
   if (drift > 0) process.exit(1)
-  console.log(`✔ Generator-Output aktuell (${generated.length} Themes, Registry byte-gleich)`)
+  console.log(`✔ Generator-Output aktuell (${generated.length} Themes, Registry byte-gleich, keine verwaisten CSS)`)
 }
 else {
   writeFileSync(registryOut, registryModule)

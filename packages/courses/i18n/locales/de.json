@@ -30,6 +30,8 @@
       "upgradeTitle": "Dieser Kurs gehört zu Pro",
       "upgradeText": "Mit einem Pro-Abo schaltest du alle kostenpflichtigen Kurse frei.",
       "upgradeCta": "Pläne ansehen",
+      "paidUnavailableTitle": "Dieser Kurs ist gerade nicht buchbar",
+      "paidUnavailableText": "Er ist als kostenpflichtiger Kurs angelegt, aber in dieser Community gibt es keine Bezahlmöglichkeit. Frag am besten die Leitung der Community.",
       "progress": "{done} von {total} Lektionen ({percent} %)",
       "completed": "Abgeschlossen 🎉",
       "lessonsTitle": "Lektionen ({count})",

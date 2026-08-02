@@ -1,12 +1,30 @@
 <script setup lang="ts">
-import type { CourseDetailResponse } from '../../../../shared/types/course'
+import { COMMUNITY_SUSPENDED_CODE } from '../../../../../core/shared/communitySuspension'
+import { COURSE_PAID_UNAVAILABLE_CODE, COURSE_UPGRADE_REQUIRED_CODE, type CourseDetailResponse } from '../../../../shared/types/course'
 
 definePageMeta({ middleware: ['auth'] })
 
 /**
- * Kurs-Übersicht: Beschreibung (Markdown), Enroll-CTA je Zugang (403 auf
- * paid ohne Entitlement → Upgrade-Hinweis mit /pricing-Link), Fortschritt,
+ * Kurs-Übersicht: Beschreibung (Markdown), Enroll-CTA je Zugang, Fortschritt,
  * Lektions-Liste (Content erst nach Enrollment).
+ *
+ * DREI ABLEHNUNGEN, DREI SÄTZE (Audit-Befund 2026-08-02). Vorher wurde JEDER
+ * 403 zu „Dieser Kurs gehört zu Pro" mit einem Knopf auf /pricing — und damit
+ * war die Meldung in zwei von drei Fällen falsch:
+ *
+ *  - Diese Instanz kann 'paid' gar nicht freischalten (kein Access-Guard, im
+ *    Pool der Normalfall). Ein Upgrade-Knopf zeigte dort auf /pricing, das nur
+ *    in billing lebt — die platform-App bindet den Layer nicht ein, der Klick
+ *    endete im 404. Jetzt: ehrlicher Satz, KEIN Knopf.
+ *  - Der Guard hat abgelehnt. Nur HIER hilft ein Upgrade wirklich — und nur
+ *    hier gibt es die Seite auch, weil derselbe App-Verbund beides mitbringt.
+ *  - Die Community ist gesperrt (M13). Dazu sagt diese Seite bewusst NICHTS:
+ *    das globale Hinweis-Plugin (core, community-suspended-notice.client.ts)
+ *    hat den Toast schon gezeigt, bevor dieser `catch` überhaupt läuft. Zwei
+ *    Hinweise übereinander wären nicht doppelt hilfreich, sondern verwirrend —
+ *    zumal der zweite eine Kaufaufforderung wäre, wo gerade eine Rechnung offen
+ *    ist. So steht es auch im Kopf des Plugins: wer eine solche Stelle anfasst,
+ *    prüft den Grund und schweigt dann.
  */
 const { t } = useI18n()
 const toast = useToast()
@@ -27,23 +45,33 @@ const progressPercent = computed(() => {
 })
 
 const enrolling = ref(false)
-const upgradeNeeded = ref(false)
+/** Welcher Hinweis steht unter dem Knopf — nicht OB (siehe Kopf). */
+const enrollBlock = ref<'upgrade' | 'unavailable' | null>(null)
+
 async function enroll() {
   enrolling.value = true
-  upgradeNeeded.value = false
+  enrollBlock.value = null
   try {
     await $fetch(`/api/courses/${route.params.slug}/enroll`, { method: 'POST' })
     toast.add({ title: t('courses.detail.enrolled'), description: t('courses.detail.enrolledHint'), color: 'success' })
     await refresh()
   }
   catch (err) {
-    const statusCode = (err as { statusCode?: number }).statusCode
-    if (statusCode === 403) {
-      upgradeNeeded.value = true
+    // `data` ist das Fehler-Envelope des Servers ({ ok, code, message, reason }).
+    const { statusCode, data } = err as { statusCode?: number, data?: { reason?: string } }
+    const reason = statusCode === 403 ? data?.reason : undefined
+
+    // Die Sperre erklärt das globale Plugin — hier bleibt es still.
+    if (reason === COMMUNITY_SUSPENDED_CODE) return
+    if (reason === COURSE_UPGRADE_REQUIRED_CODE) {
+      enrollBlock.value = 'upgrade'
+      return
     }
-    else {
-      toast.add({ title: t('courses.detail.enrollFailed'), description: t('courses.detail.enrollFailedHint'), color: 'error' })
+    if (reason === COURSE_PAID_UNAVAILABLE_CODE) {
+      enrollBlock.value = 'unavailable'
+      return
     }
+    toast.add({ title: t('courses.detail.enrollFailed'), description: t('courses.detail.enrollFailedHint'), color: 'error' })
   }
   finally {
     enrolling.value = false
@@ -78,8 +106,9 @@ async function enroll() {
             {{ course!.access === 'paid' ? t('courses.detail.enrollPaid') : t('courses.detail.enroll') }}
           </UButton>
         </div>
+        <!-- Guard hat abgelehnt: hier führt ein Upgrade wirklich weiter -->
         <UAlert
-          v-if="upgradeNeeded"
+          v-if="enrollBlock === 'upgrade'"
           class="mt-3"
           color="warning" variant="subtle" icon="i-ph-lock"
           :title="t('courses.detail.upgradeTitle')"
@@ -92,6 +121,15 @@ async function enroll() {
             </UButton>
           </template>
         </UAlert>
+        <!-- Diese Instanz verkauft nichts: kein Knopf, weil es kein Ziel gibt -->
+        <UAlert
+          v-else-if="enrollBlock === 'unavailable'"
+          class="mt-3"
+          color="neutral" variant="subtle" icon="i-ph-info"
+          :title="t('courses.detail.paidUnavailableTitle')"
+          :description="t('courses.detail.paidUnavailableText')"
+          data-testid="paid-unavailable-alert"
+        />
       </template>
       <template v-else>
         <div class="flex items-center justify-between gap-3">
