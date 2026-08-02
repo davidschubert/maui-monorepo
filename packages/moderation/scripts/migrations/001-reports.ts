@@ -10,7 +10,7 @@
  * Benötigte Key-Scopes: tables.*, columns.*, indexes.* (Migrations-Key, A2).
  */
 import { Client, TablesDB, Permission, Role, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -28,6 +28,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 
 const client = new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey)
 const tablesDB = new TablesDB(client)
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -96,14 +97,14 @@ await step('Column reports.resolution', () => tablesDB.createVarcharColumn({
 
 await waitForColumns('reports')
 
-await indexStep('Index reports.target', () => tablesDB.createIndex({
-  databaseId, tableId: 'reports', key: 'target', type: TablesDBIndexType.Key, columns: ['targetType', 'targetId'],
-}))
-await indexStep('Unique-Index reports.reporter_target', () => tablesDB.createIndex({
-  databaseId, tableId: 'reports', key: 'reporter_target', type: TablesDBIndexType.Unique, columns: ['reporterId', 'targetType', 'targetId'],
-}))
-await indexStep('Index reports.status', () => tablesDB.createIndex({
-  databaseId, tableId: 'reports', key: 'status', type: TablesDBIndexType.Key, columns: ['status'],
-}))
+await indexStep('Index reports.target', {
+  tableId: 'reports', key: 'target', type: TablesDBIndexType.Key, columns: ['targetType', 'targetId'],
+})
+await indexStep('Unique-Index reports.reporter_target', {
+  tableId: 'reports', key: 'reporter_target', type: TablesDBIndexType.Unique, columns: ['reporterId', 'targetType', 'targetId'],
+})
+await indexStep('Index reports.status', {
+  tableId: 'reports', key: 'status', type: TablesDBIndexType.Key, columns: ['status'],
+})
 
 console.log('Migration 001 (reports) abgeschlossen.')

@@ -7,7 +7,7 @@
  *   pnpm migrate --app <app> --layer events
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -23,6 +23,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -89,8 +90,8 @@ await columnStep('Column events.seriesGeneratedUntil', 'seriesGeneratedUntil', c
 
 await waitForColumns('events')
 
-await indexStep('Index events.idx_series', () => tablesDB.createIndex({
-  databaseId, tableId: 'events', key: 'idx_series', type: TablesDBIndexType.Key, columns: ['seriesId', 'startAt'],
-}))
+await indexStep('Index events.idx_series', {
+  tableId: 'events', key: 'idx_series', type: TablesDBIndexType.Key, columns: ['seriesId', 'startAt'],
+})
 
 console.log('✔ Migration events-005 fertig')

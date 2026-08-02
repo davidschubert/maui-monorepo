@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   INDEX_NUDGE_AFTER_ATTEMPT,
+  createIndexSteps,
   isColumnNotAvailable,
   tableCacheNudge,
   withIndexRetry,
@@ -104,14 +105,94 @@ describe('withIndexRetry — Anstoß', () => {
     expect(run).toHaveBeenCalledTimes(1)
   })
 
-  it('läuft ohne Anstoß genau wie bisher', async () => {
+  it('wiederholt den harmlosen Nachhinker, bevor überhaupt angestoßen wird', async () => {
+    const nudge = vi.fn(async () => {})
     let versuche = 0
     const run = vi.fn(async () => {
       versuche++
       if (versuche < 3) throw spaltenFehler()
       return 'ok'
     })
-    await expect(laufenLassen(withIndexRetry(run, 'Index'))).resolves.toBe('ok')
+    await expect(laufenLassen(withIndexRetry(run, 'Index', nudge))).resolves.toBe('ok')
+    expect(nudge).not.toHaveBeenCalled()
+  })
+})
+
+/**
+ * Der eigentliche F19-Nachlese-Punkt (2026-08-02): der Anstoß darf nicht am
+ * Aufrufer hängen. Er war einen Tag lang ein optionales drittes Argument — 2
+ * von 63 Migrationen reichten ihn durch, und eine der 61 anderen legte die
+ * CI-E2E lahm. Diese Tests nageln fest, dass die Fabrik ihn SELBST verdrahtet:
+ * es gibt keinen Aufruf mehr, der ohne Anstoß möglich wäre.
+ */
+describe('createIndexSteps — der Anstoß hängt nicht mehr am Aufrufer', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
+
+  function attrappe(fehlversuche: number) {
+    let versuche = 0
+    const createIndex = vi.fn(async () => {
+      versuche++
+      if (versuche <= fehlversuche) throw spaltenFehler()
+      return { $id: 'idx' }
+    })
+    const getTable = vi.fn(async () => ({ name: 'Medien', enabled: true, rowSecurity: true, $permissions: [] }))
+    const updateTable = vi.fn(async () => ({}))
+    return { createIndex, getTable, updateTable }
+  }
+
+  async function laufenLassen<T>(p: Promise<T>): Promise<T> {
+    const fertig = p.then(wert => ({ ok: true as const, wert }), fehler => ({ ok: false as const, fehler }))
+    for (let i = 0; i < 40; i++) await vi.advanceTimersByTimeAsync(10_000)
+    const ergebnis = await fertig
+    if (ergebnis.ok) return ergebnis.wert
+    throw ergebnis.fehler
+  }
+
+  it('reicht databaseId + Spezifikation an createIndex durch', async () => {
+    const db = attrappe(0)
+    const { indexStep } = createIndexSteps(db, 'main')
+    await laufenLassen(indexStep('Index media_items.idx_tenant', {
+      tableId: 'media_items', key: 'idx_tenant', type: 'key', columns: ['tenantId'],
+    }))
+    expect(db.createIndex).toHaveBeenCalledWith({
+      databaseId: 'main', tableId: 'media_items', key: 'idx_tenant', type: 'key', columns: ['tenantId'],
+    })
+  })
+
+  it('stößt VON SELBST an — ohne dass der Aufrufer etwas mitgibt', async () => {
+    const db = attrappe(INDEX_NUDGE_AFTER_ATTEMPT)
+    const { indexStep } = createIndexSteps(db, 'main')
+    await laufenLassen(indexStep('Index media_items.idx_tenant', {
+      tableId: 'media_items', key: 'idx_tenant', type: 'key', columns: ['tenantId'],
+    }))
+    // Genau die Tabelle des Index wird angestoßen — sie kann gar nicht
+    // auseinanderlaufen, weil es nur EINE tableId gibt.
+    expect(db.updateTable).toHaveBeenCalledWith(expect.objectContaining({
+      databaseId: 'main', tableId: 'media_items', rowSecurity: true, enabled: true,
+    }))
+  })
+
+  it('schluckt 409 wie das step() der Migrationen', async () => {
+    const db = attrappe(0)
+    db.createIndex.mockRejectedValueOnce(Object.assign(new Error('exists'), { code: 409 }))
+    const { indexStep } = createIndexSteps(db, 'main')
+    await expect(laufenLassen(indexStep('Index x.y', { tableId: 'x', key: 'y', type: 'key', columns: ['z'] })))
+      .resolves.toBeUndefined()
+  })
+
+  it('createIndex (roh) wirft 409 weiter — dort handhabt die Migration es selbst', async () => {
+    const db = attrappe(0)
+    db.createIndex.mockRejectedValueOnce(Object.assign(new Error('exists'), { code: 409 }))
+    const { createIndex } = createIndexSteps(db, 'main')
+    await expect(laufenLassen(createIndex({ tableId: 'x', key: 'y', type: 'key', columns: ['z'] })))
+      .rejects.toThrow('exists')
   })
 })
 

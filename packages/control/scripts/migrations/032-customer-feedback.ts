@@ -33,7 +33,7 @@
  *   pnpm migrate --app control --layer control
  */
 import { Client, Query, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -50,6 +50,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 
 const db = databaseId
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, db)
 
 const FEEDBACK = 'customer_feedback'
 const VOTES = 'customer_feedback_votes'
@@ -181,25 +182,25 @@ await columnStep(`Column ${FEEDBACK}.lastVoteAt`, 'lastVoteAt', feedbackCols, ()
 await waitForColumns(FEEDBACK)
 
 // Filtern nach Zustand (Roadmap-Spalten + Listen-Filter) und Sichtbarkeit.
-await indexStep(`Index ${FEEDBACK}.idx_state`, () => tablesDB.createIndex({
-  databaseId: db, tableId: FEEDBACK, key: 'idx_state', type: TablesDBIndexType.Key, columns: ['status', 'state'],
-}))
+await indexStep(`Index ${FEEDBACK}.idx_state`, {
+  tableId: FEEDBACK, key: 'idx_state', type: TablesDBIndexType.Key, columns: ['status', 'state'],
+})
 // „Top" sortiert nach Stimmen.
-await indexStep(`Index ${FEEDBACK}.idx_votes`, () => tablesDB.createIndex({
-  databaseId: db, tableId: FEEDBACK, key: 'idx_votes', type: TablesDBIndexType.Key, columns: ['voteCount'],
-}))
+await indexStep(`Index ${FEEDBACK}.idx_votes`, {
+  tableId: FEEDBACK, key: 'idx_votes', type: TablesDBIndexType.Key, columns: ['voteCount'],
+})
 // Betreiber-Sicht „woher kam das?" + Stummschalten einer Community.
-await indexStep(`Index ${FEEDBACK}.idx_community`, () => tablesDB.createIndex({
-  databaseId: db, tableId: FEEDBACK, key: 'idx_community', type: TablesDBIndexType.Key, columns: ['communityId'],
-}))
+await indexStep(`Index ${FEEDBACK}.idx_community`, {
+  tableId: FEEDBACK, key: 'idx_community', type: TablesDBIndexType.Key, columns: ['communityId'],
+})
 // DSGVO-Auskunft/-Löschung: alle Zeilen EINES Nutzers eines Projekts.
-await indexStep(`Index ${FEEDBACK}.idx_author`, () => tablesDB.createIndex({
-  databaseId: db, tableId: FEEDBACK, key: 'idx_author', type: TablesDBIndexType.Key, columns: ['runtimeProjectId', 'authorUserId'],
-}))
+await indexStep(`Index ${FEEDBACK}.idx_author`, {
+  tableId: FEEDBACK, key: 'idx_author', type: TablesDBIndexType.Key, columns: ['runtimeProjectId', 'authorUserId'],
+})
 // Volltext für die Sichtung (gleiches Muster wie feedback-002 früher).
-await indexStep(`Index ${FEEDBACK}.idx_message_search`, () => tablesDB.createIndex({
-  databaseId: db, tableId: FEEDBACK, key: 'idx_message_search', type: TablesDBIndexType.Fulltext, columns: ['message'],
-}))
+await indexStep(`Index ${FEEDBACK}.idx_message_search`, {
+  tableId: FEEDBACK, key: 'idx_message_search', type: TablesDBIndexType.Fulltext, columns: ['message'],
+})
 
 // ── customer_feedback_votes ────────────────────────────────────────────────
 
@@ -225,19 +226,19 @@ await waitForColumns(VOTES)
 
 // EINE Stimme pro Person und Eintrag — die Regel steht in der Datenbank, nicht
 // nur im Code: zwei gleichzeitige Klicks aus zwei Tabs enden sonst in zwei Zeilen.
-await indexStep(`Index ${VOTES}.uq_feedback_voter`, () => tablesDB.createIndex({
-  databaseId: db, tableId: VOTES, key: 'uq_feedback_voter', type: TablesDBIndexType.Unique,
+await indexStep(`Index ${VOTES}.uq_feedback_voter`, {
+  tableId: VOTES, key: 'uq_feedback_voter', type: TablesDBIndexType.Unique,
   columns: ['feedbackId', 'voterKey'],
-}))
+})
 // „aus wie vielen Communities?" zählt über diesen Zugriff.
-await indexStep(`Index ${VOTES}.idx_feedback_community`, () => tablesDB.createIndex({
-  databaseId: db, tableId: VOTES, key: 'idx_feedback_community', type: TablesDBIndexType.Key,
+await indexStep(`Index ${VOTES}.idx_feedback_community`, {
+  tableId: VOTES, key: 'idx_feedback_community', type: TablesDBIndexType.Key,
   columns: ['feedbackId', 'communityId'],
-}))
+})
 // DSGVO-Löschung: alle Stimmen EINER Person.
-await indexStep(`Index ${VOTES}.idx_voter`, () => tablesDB.createIndex({
-  databaseId: db, tableId: VOTES, key: 'idx_voter', type: TablesDBIndexType.Key, columns: ['voterKey'],
-}))
+await indexStep(`Index ${VOTES}.idx_voter`, {
+  tableId: VOTES, key: 'idx_voter', type: TablesDBIndexType.Key, columns: ['voterKey'],
+})
 
 // ── customer_feedback_comments ─────────────────────────────────────────────
 
@@ -270,13 +271,13 @@ await columnStep(`Column ${COMMENTS}.runtimeProjectId`, 'runtimeProjectId', comm
 
 await waitForColumns(COMMENTS)
 
-await indexStep(`Index ${COMMENTS}.idx_feedback`, () => tablesDB.createIndex({
-  databaseId: db, tableId: COMMENTS, key: 'idx_feedback', type: TablesDBIndexType.Key, columns: ['feedbackId'],
-}))
-await indexStep(`Index ${COMMENTS}.idx_author`, () => tablesDB.createIndex({
-  databaseId: db, tableId: COMMENTS, key: 'idx_author', type: TablesDBIndexType.Key,
+await indexStep(`Index ${COMMENTS}.idx_feedback`, {
+  tableId: COMMENTS, key: 'idx_feedback', type: TablesDBIndexType.Key, columns: ['feedbackId'],
+})
+await indexStep(`Index ${COMMENTS}.idx_author`, {
+  tableId: COMMENTS, key: 'idx_author', type: TablesDBIndexType.Key,
   columns: ['runtimeProjectId', 'authorUserId'],
-}))
+})
 
 // ── customer_feedback_mutes ────────────────────────────────────────────────
 

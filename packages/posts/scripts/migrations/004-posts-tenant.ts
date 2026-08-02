@@ -22,7 +22,7 @@
  *   pnpm migrate --app <app> --layer posts
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -38,6 +38,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -78,9 +79,9 @@ for (const { table, index, columns } of TARGETS) {
     databaseId, tableId: table, key: 'tenantId', size: 36, required: false, xdefault: '',
   }))
   await waitForColumn(table, 'tenantId')
-  await indexStep(`Index ${table}.${index}`, () => tablesDB.createIndex({
-    databaseId, tableId: table, key: index, type: TablesDBIndexType.Key, columns,
-  }))
+  await indexStep(`Index ${table}.${index}`, {
+    tableId: table, key: index, type: TablesDBIndexType.Key, columns,
+  })
 }
 
 console.log('✔ Migration posts-004 fertig')

@@ -24,7 +24,7 @@
  *   pnpm migrate --app control --layer control
  */
 import { Client, Query, TablesDB, type TablesDBIndexType, type Models } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -41,6 +41,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 
 const db = databaseId
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, db)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -141,10 +142,10 @@ async function mirrorTable(source: string, target: string, targetName: string) {
   // sonst — Regel aus courses-002/pages-004).
   const { indexes } = await tablesDB.listIndexes({ databaseId: db, tableId: source })
   for (const index of indexes) {
-    await indexStep(`Index ${target}.${index.key}`, () => tablesDB.createIndex({
-      databaseId: db, tableId: target, key: index.key,
+    await indexStep(`Index ${target}.${index.key}`, {
+      tableId: target, key: index.key,
       type: index.type as TablesDBIndexType, columns: index.columns,
-    }))
+    })
   }
   await waitForTable(target)
 

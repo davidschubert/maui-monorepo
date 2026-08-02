@@ -10,7 +10,7 @@
  *   pnpm migrate --app <app> --layer tickets
  */
 import { Client, ID, Permission, Role, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -26,6 +26,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -143,15 +144,15 @@ await columnStep('Column tickets.createdByName', 'createdByName', ticketCols, ()
 await waitForColumns('ticket_lists')
 await waitForColumns('tickets')
 
-await indexStep('Index ticket_lists.idx_position', () => tablesDB.createIndex({
-  databaseId, tableId: 'ticket_lists', key: 'idx_position', type: TablesDBIndexType.Key, columns: ['position'],
-}))
-await indexStep('Index tickets.idx_list', () => tablesDB.createIndex({
-  databaseId, tableId: 'tickets', key: 'idx_list', type: TablesDBIndexType.Key, columns: ['listId', 'position'],
-}))
-await indexStep('Index tickets.idx_status', () => tablesDB.createIndex({
-  databaseId, tableId: 'tickets', key: 'idx_status', type: TablesDBIndexType.Key, columns: ['status'],
-}))
+await indexStep('Index ticket_lists.idx_position', {
+  tableId: 'ticket_lists', key: 'idx_position', type: TablesDBIndexType.Key, columns: ['position'],
+})
+await indexStep('Index tickets.idx_list', {
+  tableId: 'tickets', key: 'idx_list', type: TablesDBIndexType.Key, columns: ['listId', 'position'],
+})
+await indexStep('Index tickets.idx_status', {
+  tableId: 'tickets', key: 'idx_status', type: TablesDBIndexType.Key, columns: ['status'],
+})
 
 // Seed: Standard-Listen nur bei komplett leerer Tabelle (Listen sind Daten)
 const existing = await tablesDB.listRows({ databaseId, tableId: 'ticket_lists', queries: [] })

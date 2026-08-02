@@ -19,7 +19,7 @@
  */
 import { execFileSync } from 'node:child_process'
 import { Client, Query, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep, tableCacheNudge } from '../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -33,6 +33,7 @@ if (!endpoint || !projectId || !databaseId || !apiKey) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 let pass = 0, fail = 0
 const check = (label, ok, detail = '') => {
@@ -77,14 +78,26 @@ try {
   check('Spalte "ohne" verfügbar', await warteAufSpalte(tableId, 'ohne'))
   await tablesDB.getTable({ databaseId, tableId })
   check('Cache vergiftet', vergifte(tableId, 'ohne'))
+  // Der Anstoß lässt sich seit der Fabrik nicht mehr WEGLASSEN. Für die
+  // Gegenprobe wird das ALTE Verhalten deshalb von Hand nachgestellt: NUR
+  // warten, nie schreiben — genau das taten die 61 Migrationen ohne Anstoß.
+  // Kurzer Vorrat genügt: aus dem vergifteten Zustand führt keiner heraus (in
+  // der CI liefen 23 Versuche über 2,5 min ins Leere).
   let ohneFehler = null
-  try {
-    // Kurzer Vorrat genügt: aus dem vergifteten Zustand führt keiner heraus.
-    await indexStep(`Index ${tableId}.idx_ohne`, () => tablesDB.createIndex({
-      databaseId, tableId, key: 'idx_ohne', type: TablesDBIndexType.Key, columns: ['ohne'],
-    }))
+  for (let versuch = 1; versuch <= 8; versuch++) {
+    try {
+      await tablesDB.createIndex({
+        databaseId, tableId, key: 'idx_ohne', type: TablesDBIndexType.Key, columns: ['ohne'],
+      })
+      ohneFehler = null
+      break
+    }
+    catch (error) {
+      ohneFehler = error
+      console.log(`… ohne Anstoß: Versuch ${versuch}/8 — ${error?.type ?? error?.message}`)
+      await sleep(2000)
+    }
   }
-  catch (error) { ohneFehler = error }
   check('ohne Anstoß: Index scheitert (Vorrat läuft leer)', ohneFehler !== null,
     ohneFehler ? '' : 'ging unerwartet durch — Vergiftung wirkt nicht?')
 
@@ -97,9 +110,9 @@ try {
   const start = Date.now()
   let mitOk = true
   try {
-    await indexStep(`Index ${tableId}.idx_mit`, () => tablesDB.createIndex({
-      databaseId, tableId, key: 'idx_mit', type: TablesDBIndexType.Key, columns: ['mit'],
-    }), tableCacheNudge(tablesDB, databaseId, tableId))
+    await indexStep(`Index ${tableId}.idx_mit`, {
+      tableId, key: 'idx_mit', type: TablesDBIndexType.Key, columns: ['mit'],
+    })
   }
   catch (error) { mitOk = false; console.log(`    (${error?.message})`) }
   const dauer = ((Date.now() - start) / 1000).toFixed(1)

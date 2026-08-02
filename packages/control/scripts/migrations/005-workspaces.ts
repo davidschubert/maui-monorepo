@@ -7,7 +7,7 @@
  *   pnpm migrate --app <app> --layer control
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -23,6 +23,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -77,8 +78,8 @@ await step('Column workspaces.status', () => tablesDB.createVarcharColumn({
 
 await waitForColumns('workspaces')
 
-await indexStep('Index workspaces.idx_stripe_customer', () => tablesDB.createIndex({
-  databaseId, tableId: 'workspaces', key: 'idx_stripe_customer', type: TablesDBIndexType.Key, columns: ['stripeCustomerId'],
-}))
+await indexStep('Index workspaces.idx_stripe_customer', {
+  tableId: 'workspaces', key: 'idx_stripe_customer', type: TablesDBIndexType.Key, columns: ['stripeCustomerId'],
+})
 
 console.log('✔ Migration control-005 fertig')

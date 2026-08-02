@@ -45,7 +45,7 @@
  * unkritisch: die Spalte ist additiv und ruhend, alter Code ignoriert sie.
  */
 import { Client, Query, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -61,6 +61,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 const TABLE_ID = 'activities'
 
@@ -110,9 +111,9 @@ await step(`Column ${TABLE_ID}.tenantId`, () => tablesDB.createVarcharColumn({
 }))
 await waitForColumn(TABLE_ID, 'tenantId')
 
-await indexStep(`Index ${TABLE_ID}.idx_tenant`, () => tablesDB.createIndex({
-  databaseId, tableId: TABLE_ID, key: 'idx_tenant',
+await indexStep(`Index ${TABLE_ID}.idx_tenant`, {
+  tableId: TABLE_ID, key: 'idx_tenant',
   type: TablesDBIndexType.Key, columns: ['tenantId'],
-}))
+})
 
 console.log('✔ Migration system-021 fertig')

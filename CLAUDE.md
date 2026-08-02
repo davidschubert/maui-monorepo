@@ -65,10 +65,24 @@ Vollständiges Konzept: docs/CONCEPT.md
   der Index-Endpunkt liest die Spaltenliste aus Appwrites Metadaten-Cache
   (Collection-Dokument), der dem Spalten-Status hinterherhinkt — CI-E2E
   zweimal live erwischt (400/column_not_available trotz 'available').
-  Index-Anlage deshalb immer über `indexStep`/`withIndexRetry` aus
-  `scripts/migrations-lib/indexRetry.mts` (Retry genau für diesen 400er;
-  Seeds/createRow sind NICHT betroffen — die physische Spalte existiert
-  vor dem Status). Es gibt KEIN Migrations-Register in der
+  Index-Anlage deshalb NUR über die Fabrik aus
+  `scripts/migrations-lib/indexRetry.mts` — einmal je Datei
+  `const { indexStep } = createIndexSteps(tablesDB, databaseId)`, dann
+  `await indexStep('Index x.idx_y', { tableId, key, type, columns })`.
+  Sie ruft `createIndex` SELBST und bringt Retry + Cache-Anstoß mit
+  (Seeds/createRow sind NICHT betroffen — die physische Spalte existiert
+  vor dem Status). WARTEN ALLEIN REICHT NICHT: räumt Appwrite den Cache,
+  während ein Leser (z. B. der 'available'-Poller) noch seinen alten Stand
+  hält, steht die Spalte dort für IMMER auf 'processing' — 23 Versuche ohne
+  Bewegung, CI-E2E zweimal so gestorben. Nur ein Schreibzugriff auf die
+  Tabelle (`tableCacheNudge`) räumt ihn. Der Anstoß war einen Tag lang ein
+  OPTIONALES Argument: 2 von 63 Migrationen reichten ihn durch, 61 nicht, und
+  eine davon warf die CI um — Sicherungen gehören deshalb in die Schnittstelle,
+  nicht in die Disziplin. Rohes `tablesDB.createIndex` in
+  `packages/*/scripts/migrations/**` verbietet ESLint (no-restricted-syntax);
+  das ist der EINZIGE greifende Wächter, denn die Migrations-Scripts liegen in
+  keiner tsconfig und werden von `pnpm -r typecheck` nie gesehen.
+  Es gibt KEIN Migrations-Register in der
   DB — die Labels (`control-019`, `system-021`, …) sind reine Anzeige, die
   Idempotenz kommt vom 409. Die Migrationen des Control Plane heißen seit
   2026-07-29 `control-NNN`; Dokumente von VOR dem Cutover (docs/archiv/**,

@@ -11,7 +11,7 @@
  * Benötigte Key-Scopes: tables.*, columns.*, indexes.* (Migrations-Key).
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -27,6 +27,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -88,11 +89,11 @@ await step('Column activities.visibility', () => tablesDB.createVarcharColumn({
 
 await waitForColumns('activities')
 
-await indexStep('Index activities.idx_actor', () => tablesDB.createIndex({
-  databaseId, tableId: 'activities', key: 'idx_actor', type: TablesDBIndexType.Key, columns: ['actorId'],
-}))
-await indexStep('Index activities.idx_type', () => tablesDB.createIndex({
-  databaseId, tableId: 'activities', key: 'idx_type', type: TablesDBIndexType.Key, columns: ['type'],
-}))
+await indexStep('Index activities.idx_actor', {
+  tableId: 'activities', key: 'idx_actor', type: TablesDBIndexType.Key, columns: ['actorId'],
+})
+await indexStep('Index activities.idx_type', {
+  tableId: 'activities', key: 'idx_type', type: TablesDBIndexType.Key, columns: ['type'],
+})
 
 console.log('✔ Migration system-014 fertig')

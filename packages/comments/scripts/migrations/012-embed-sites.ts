@@ -8,7 +8,7 @@
  *   pnpm migrate --app <app> --layer comments
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -24,6 +24,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -70,8 +71,8 @@ await step('Column embed_sites.active', () => tablesDB.createBooleanColumn({
   databaseId, tableId: 'embed_sites', key: 'active', required: false, xdefault: true,
 }))
 await waitForColumn('host')
-await indexStep('Unique-Index embed_sites.uq_host', () => tablesDB.createIndex({
-  databaseId, tableId: 'embed_sites', key: 'uq_host', type: TablesDBIndexType.Unique, columns: ['host'],
-}))
+await indexStep('Unique-Index embed_sites.uq_host', {
+  tableId: 'embed_sites', key: 'uq_host', type: TablesDBIndexType.Unique, columns: ['host'],
+})
 
 console.log('✔ Migration comments-012 fertig')

@@ -9,7 +9,7 @@
  *   pnpm migrate --app <app> --layer pages
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { withIndexRetry } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -25,6 +25,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { createIndex } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -52,10 +53,10 @@ if (await indexExists('uq_slug_locale_tenant')) {
   console.log('↷ Unique-Index uq_slug_locale_tenant (existiert bereits)')
 }
 else {
-  await withIndexRetry(() => tablesDB.createIndex({
-    databaseId, tableId: 'pages', key: 'uq_slug_locale_tenant',
+  await createIndex({
+    tableId: 'pages', key: 'uq_slug_locale_tenant',
     type: TablesDBIndexType.Unique, columns: ['slug', 'locale', 'tenantId'],
-  }))
+  })
   await waitForIndex('uq_slug_locale_tenant')
   console.log('✔ Unique-Index uq_slug_locale_tenant')
 }

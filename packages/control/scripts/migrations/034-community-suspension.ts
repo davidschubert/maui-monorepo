@@ -31,7 +31,7 @@
  *   pnpm migrate --app control --layer control
  */
 import { Client, Query, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -48,6 +48,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 
 const db = databaseId
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, db)
 
 const COMMUNITIES = 'communities'
 const REPORTS = 'abuse_reports'
@@ -142,17 +143,17 @@ await waitForColumns(COMMUNITIES, ['suspension', 'suspensionReason', 'suspendedA
 
 // Der Sweep sucht `billingStatus == 'past_due'` — ohne Index antwortet Appwrite
 // mit „index not found", und der Sweep wäre still wirkungslos.
-await indexStep(`Index ${COMMUNITIES}.idx_billing_status`, () => tablesDB.createIndex({
-  databaseId: db, tableId: COMMUNITIES, key: 'idx_billing_status',
+await indexStep(`Index ${COMMUNITIES}.idx_billing_status`, {
+  tableId: COMMUNITIES, key: 'idx_billing_status',
   type: TablesDBIndexType.Key, columns: ['billingStatus'],
-}))
+})
 // Zweite Hälfte desselben Sweeps: „welche Communities sind gerade gesperrt?"
 // (Sperre wieder aufheben, wenn kein Verzug mehr besteht) — und die
 // Betreiber-Übersicht filtert danach.
-await indexStep(`Index ${COMMUNITIES}.idx_suspension`, () => tablesDB.createIndex({
-  databaseId: db, tableId: COMMUNITIES, key: 'idx_suspension',
+await indexStep(`Index ${COMMUNITIES}.idx_suspension`, {
+  tableId: COMMUNITIES, key: 'idx_suspension',
   type: TablesDBIndexType.Key, columns: ['suspension'],
-}))
+})
 
 // ── B) abuse_reports: die Warteschlange des Meldeformulars ─────────────────
 
@@ -216,18 +217,18 @@ await columnStep(`Column ${REPORTS}.note`, 'note', reportCols, () => tablesDB.cr
 await waitForAllColumns(REPORTS)
 
 // Die Warteschlange filtert auf 'open'.
-await indexStep(`Index ${REPORTS}.idx_status`, () => tablesDB.createIndex({
-  databaseId: db, tableId: REPORTS, key: 'idx_status', type: TablesDBIndexType.Key, columns: ['status'],
-}))
+await indexStep(`Index ${REPORTS}.idx_status`, {
+  tableId: REPORTS, key: 'idx_status', type: TablesDBIndexType.Key, columns: ['status'],
+})
 // „Was liegt gegen DIESE Community vor?" — beim Sperren und beim Aufräumen.
-await indexStep(`Index ${REPORTS}.idx_community`, () => tablesDB.createIndex({
-  databaseId: db, tableId: REPORTS, key: 'idx_community', type: TablesDBIndexType.Key, columns: ['communityId'],
-}))
+await indexStep(`Index ${REPORTS}.idx_community`, {
+  tableId: REPORTS, key: 'idx_community', type: TablesDBIndexType.Key, columns: ['communityId'],
+})
 // BEWUSST KEIN Unique-Index: mehrere Menschen dürfen dieselbe Community melden,
 // und die ZAHL der Meldungen ist selbst ein Signal. Gegen Flut hilft das
 // Rate-Limit, nicht das Schema.
-await indexStep(`Index ${REPORTS}.idx_host`, () => tablesDB.createIndex({
-  databaseId: db, tableId: REPORTS, key: 'idx_host', type: TablesDBIndexType.Key, columns: ['host'],
-}))
+await indexStep(`Index ${REPORTS}.idx_host`, {
+  tableId: REPORTS, key: 'idx_host', type: TablesDBIndexType.Key, columns: ['host'],
+})
 
 console.log('✔ Migration control-034 fertig — 4 Spalten an communities, Tabelle abuse_reports.')

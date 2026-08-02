@@ -13,7 +13,7 @@
  *   pnpm migrate --app <app> --layer events
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -29,6 +29,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -114,13 +115,13 @@ await columnStep('Column event_tickets.amount', 'amount', ticketCols, () => tabl
 await waitForColumns('events')
 await waitForColumns('event_tickets')
 
-await indexStep('Index event_tickets.uq_event_user', () => tablesDB.createIndex({
-  databaseId, tableId: 'event_tickets', key: 'uq_event_user', type: TablesDBIndexType.Unique, columns: ['eventId', 'userId'],
-}))
+await indexStep('Index event_tickets.uq_event_user', {
+  tableId: 'event_tickets', key: 'uq_event_user', type: TablesDBIndexType.Unique, columns: ['eventId', 'userId'],
+})
 // GDPR-Lookup (Export/Löschung per userId)
-await indexStep('Index event_tickets.idx_user', () => tablesDB.createIndex({
-  databaseId, tableId: 'event_tickets', key: 'idx_user', type: TablesDBIndexType.Key, columns: ['userId'],
-}))
+await indexStep('Index event_tickets.idx_user', {
+  tableId: 'event_tickets', key: 'idx_user', type: TablesDBIndexType.Key, columns: ['userId'],
+})
 // Reminder-Sweep-Query (status + startAt steht schon als idx_status_start;
 // remindersSentAt wird per isNull gefiltert — kein eigener Index nötig bei
 // der kleinen Kandidatenmenge <24h)

@@ -147,4 +147,28 @@ export default createConfigForNuxt({
   rules: {
     'no-restricted-syntax': 'off',
   },
+}).append({
+  /**
+   * INDEX-ANLAGE NUR ÜBER DIE FABRIK (F19-Nachlese, 2026-08-02).
+   *
+   * Der Cache-Anstoß gegen `column_not_available` war zuerst ein OPTIONALES
+   * Argument von `indexStep`. Ergebnis nach einem Tag: 2 von 63 Migrationen
+   * reichten ihn durch, 61 nicht — und eine davon (posts-004) legte die CI-E2E
+   * lahm. Seitdem ruft `createIndexSteps(tablesDB, databaseId)` das
+   * `createIndex` selbst; vergessen kann man den Anstoß nicht mehr.
+   *
+   * Diese Regel schließt den letzten Weg daran vorbei: `tablesDB.createIndex`
+   * von Hand. Sie ist der einzige greifende Wächter für Migrationen — die
+   * Dateien liegen in KEINER tsconfig (weder `nuxi typecheck` der Apps noch
+   * das Playground des Cores nimmt die scripts-Ordner der Layer auf), ein
+   * Typfehler würde also nirgends auffallen — `eslint .` jedes Layers sieht sie
+   * sehr wohl.
+   */
+  files: ['packages/*/scripts/migrations/**'],
+  rules: {
+    'no-restricted-syntax': ['error',
+      { selector: 'CallExpression > MemberExpression[property.name="createIndex"]',
+        message: 'Indizes in Migrationen NUR über createIndexSteps(tablesDB, databaseId) anlegen — der Cache-Anstoß gegen column_not_available gehört in die Schnittstelle, nicht in die Disziplin (CLAUDE.md, scripts/migrations-lib/indexRetry.mts).' },
+    ],
+  },
 })

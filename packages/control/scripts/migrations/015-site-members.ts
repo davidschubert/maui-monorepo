@@ -17,7 +17,7 @@
  *   pnpm migrate --app control --layer control
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -33,6 +33,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -98,18 +99,18 @@ await waitForColumn('site_members', 'role')
 
 // Lookup-Index: Autorisierung fragt „welche Rolle hat DIESER Runtime-User auf
 // DIESER Site?" → (siteId, runtimeProjectId, runtimeUserId).
-await indexStep('Index site_members.idx_lookup', () => tablesDB.createIndex({
-  databaseId, tableId: 'site_members', key: 'idx_lookup', type: TablesDBIndexType.Key,
+await indexStep('Index site_members.idx_lookup', {
+  tableId: 'site_members', key: 'idx_lookup', type: TablesDBIndexType.Key,
   columns: ['siteId', 'runtimeProjectId', 'runtimeUserId'],
-}))
+})
 // Ein User hat je Site GENAU EINE Rolle — Unique verhindert Doppel-Rows.
-await indexStep('Unique-Index site_members.uq_member', () => tablesDB.createIndex({
-  databaseId, tableId: 'site_members', key: 'uq_member', type: TablesDBIndexType.Unique,
+await indexStep('Unique-Index site_members.uq_member', {
+  tableId: 'site_members', key: 'uq_member', type: TablesDBIndexType.Unique,
   columns: ['siteId', 'runtimeProjectId', 'runtimeUserId'],
-}))
+})
 // „Alle Mitglieder dieser Site" (Team-Liste im Kundenbereich).
-await indexStep('Index site_members.idx_site', () => tablesDB.createIndex({
-  databaseId, tableId: 'site_members', key: 'idx_site', type: TablesDBIndexType.Key, columns: ['siteId'],
-}))
+await indexStep('Index site_members.idx_site', {
+  tableId: 'site_members', key: 'idx_site', type: TablesDBIndexType.Key, columns: ['siteId'],
+})
 
 console.log('✔ Migration control-015 fertig')

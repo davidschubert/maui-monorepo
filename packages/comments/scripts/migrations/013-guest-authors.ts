@@ -17,7 +17,7 @@
  *   pnpm migrate --app <app> --layer comments
  */
 import { Client, Permission, Role, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -33,6 +33,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -91,11 +92,11 @@ await step('Column guest_authors.tenantId', () => tablesDB.createVarcharColumn({
 }))
 await waitForColumn('guest_authors', 'commentId')
 await waitForColumn('guest_authors', 'tenantId')
-await indexStep('Index guest_authors.idx_comment', () => tablesDB.createIndex({
-  databaseId, tableId: 'guest_authors', key: 'idx_comment', type: TablesDBIndexType.Key, columns: ['commentId'],
-}))
-await indexStep('Index guest_authors.idx_tenant', () => tablesDB.createIndex({
-  databaseId, tableId: 'guest_authors', key: 'idx_tenant', type: TablesDBIndexType.Key, columns: ['tenantId'],
-}))
+await indexStep('Index guest_authors.idx_comment', {
+  tableId: 'guest_authors', key: 'idx_comment', type: TablesDBIndexType.Key, columns: ['commentId'],
+})
+await indexStep('Index guest_authors.idx_tenant', {
+  tableId: 'guest_authors', key: 'idx_tenant', type: TablesDBIndexType.Key, columns: ['tenantId'],
+})
 
 console.log('✔ Migration comments-013 fertig')

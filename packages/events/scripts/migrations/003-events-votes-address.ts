@@ -13,7 +13,7 @@
  *   pnpm migrate --app <app> --layer events
  */
 import { Client, Permission, Role, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -29,6 +29,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -112,14 +113,14 @@ await waitForColumns('events')
 await waitForColumns('event_votes')
 
 // Suche (?q): Query.search braucht einen Fulltext-Index
-await indexStep('Index events.idx_title_search', () => tablesDB.createIndex({
-  databaseId, tableId: 'events', key: 'idx_title_search', type: TablesDBIndexType.Fulltext, columns: ['title'],
-}))
-await indexStep('Index event_votes.uq_event_user', () => tablesDB.createIndex({
-  databaseId, tableId: 'event_votes', key: 'uq_event_user', type: TablesDBIndexType.Unique, columns: ['eventId', 'userId'],
-}))
-await indexStep('Index event_votes.idx_user', () => tablesDB.createIndex({
-  databaseId, tableId: 'event_votes', key: 'idx_user', type: TablesDBIndexType.Key, columns: ['userId'],
-}))
+await indexStep('Index events.idx_title_search', {
+  tableId: 'events', key: 'idx_title_search', type: TablesDBIndexType.Fulltext, columns: ['title'],
+})
+await indexStep('Index event_votes.uq_event_user', {
+  tableId: 'event_votes', key: 'uq_event_user', type: TablesDBIndexType.Unique, columns: ['eventId', 'userId'],
+})
+await indexStep('Index event_votes.idx_user', {
+  tableId: 'event_votes', key: 'idx_user', type: TablesDBIndexType.Key, columns: ['userId'],
+})
 
 console.log('✔ Migration events-003 fertig')

@@ -13,7 +13,7 @@
  *   pnpm migrate --app <app> --layer media
  */
 import { Client, TablesDB, Storage, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -30,6 +30,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 
 const client = new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey)
 const tablesDB = new TablesDB(client)
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 const storage = new Storage(client)
 
 function hasCode(error: unknown, code: number): boolean {
@@ -93,10 +94,10 @@ await step('Column media_items.sortOrder', () => tablesDB.createIntegerColumn({
 
 await waitForColumns('media_items')
 
-await indexStep('Index media_items.idx_published_order', () => tablesDB.createIndex({
-  databaseId, tableId: 'media_items', key: 'idx_published_order',
+await indexStep('Index media_items.idx_published_order', {
+  tableId: 'media_items', key: 'idx_published_order',
   type: TablesDBIndexType.Key, columns: ['published', 'sortOrder'],
-}))
+})
 
 await step('Bucket media', () => storage.createBucket({
   bucketId: 'media', name: 'media',

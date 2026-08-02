@@ -21,7 +21,7 @@
  *   pnpm migrate --app control --layer control
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -37,6 +37,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -111,10 +112,10 @@ await waitForColumn('site_members', 'removedAt')
 
 // Ehemalige Mitglieder einer Site gebündelt finden (die Kennzeichnung im
 // Kommentar-Strom fragt genau so: „welche dieser Autoren sind hier raus?").
-await indexStep('Index site_members.idx_site_status', () => tablesDB.createIndex({
-  databaseId, tableId: 'site_members', key: 'idx_site_status', type: TablesDBIndexType.Key,
+await indexStep('Index site_members.idx_site_status', {
+  tableId: 'site_members', key: 'idx_site_status', type: TablesDBIndexType.Key,
   columns: ['siteId', 'status'],
-}))
+})
 
 // ── 2. site_invites (offene Einladungen; nur Token-HASH) ────────────────────
 await step('Table site_invites', () => tablesDB.createTable({
@@ -152,19 +153,19 @@ await waitForColumn('site_invites', 'siteId')
 await waitForColumn('site_invites', 'status')
 
 // Einlösen sucht über den Hash — und zwar genau EINE Einladung.
-await indexStep('Unique-Index site_invites.uq_token', () => tablesDB.createIndex({
-  databaseId, tableId: 'site_invites', key: 'uq_token', type: TablesDBIndexType.Unique,
+await indexStep('Unique-Index site_invites.uq_token', {
+  tableId: 'site_invites', key: 'uq_token', type: TablesDBIndexType.Unique,
   columns: ['tokenHash'],
-}))
+})
 // „Offene Einladungen dieser Community" (die Liste im Dashboard).
-await indexStep('Index site_invites.idx_site_status', () => tablesDB.createIndex({
-  databaseId, tableId: 'site_invites', key: 'idx_site_status', type: TablesDBIndexType.Key,
+await indexStep('Index site_invites.idx_site_status', {
+  tableId: 'site_invites', key: 'idx_site_status', type: TablesDBIndexType.Key,
   columns: ['siteId', 'status'],
-}))
+})
 // Zweite Einladung an dieselbe Adresse ERSETZT die erste — dafür muss man sie finden.
-await indexStep('Index site_invites.idx_site_email', () => tablesDB.createIndex({
-  databaseId, tableId: 'site_invites', key: 'idx_site_email', type: TablesDBIndexType.Key,
+await indexStep('Index site_invites.idx_site_email', {
+  tableId: 'site_invites', key: 'idx_site_email', type: TablesDBIndexType.Key,
   columns: ['siteId', 'email'],
-}))
+})
 
 console.log('✔ Migration control-019 fertig')

@@ -609,6 +609,93 @@ dafür nicht, es braucht `window`; der rohe Socket spricht dasselbe Protokoll.
 
 ---
 
+### F19b · #33 — Der Cache-Anstoß hängt nicht mehr am Aufrufer ✅ 2026-08-02
+
+**Befund.** F19 hatte die Ursache gefunden und den Anstoß gebaut — als
+OPTIONALES drittes Argument von `indexStep`. Verdrahtet wurde er in den zwei
+Migrationen, die die CI umgeworfen hatten (`media/003`, `events/007`). Am
+nächsten Morgen starb die CI-E2E an `posts/004`: `tenantId`,
+`column_not_available`, **23 Wiederholungen ohne Bewegung**, Abbruch — genau
+das Muster von F19, nur in einer der **61** Migrationen ohne Anstoß. Der Schutz
+existierte, an der Stelle des Schadens war er nur nicht eingeschaltet.
+
+**Gebaut — die Sicherung sitzt jetzt in der Schnittstelle.** Es gibt kein
+`nudge`-Argument mehr. `createIndexSteps(tablesDB, databaseId)` bindet Client
+und Datenbank einmal je Datei und liefert zwei gebundene Formen, die den
+`createIndex`-Aufruf **selbst** machen:
+
+```ts
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
+await indexStep('Index comments.author', {
+  tableId: 'comments', key: 'author', type: 'key', columns: ['authorId'],
+})
+```
+
+Der Index reist damit als DATEN statt als Funktion. Zwei Dinge folgen daraus,
+und beide waren der Grund für die Form: der Anstoß kann nicht vergessen werden
+(es gibt nichts mehr wegzulassen), und er kann nicht auf die falsche Tabelle
+zeigen — er benutzt dieselbe `tableId` wie der Index. `createIndex(spec)` ist
+die rohe Schwester für die sieben Migrationen, die ihr 409-Handling selbst
+schreiben; `withIndexRetry(run, label, nudge)` bleibt als Unterbau, hat den
+Anstoß aber als PFLICHT-Argument.
+
+**Umgestellt:** 69 Migrationen, **148 Aufrufstellen**, mechanisch (Skript, vom
+HEAD-Stand aus, jede Datei geprüft) — inklusive der zwei bereits verdrahteten,
+damit es EINEN Weg gibt und nicht zwei. Nur der Aufruf hat sich geändert:
+Fachlogik, Reihenfolge, Log-Texte und die Kommentare, die den historischen
+Grund erklären, stehen unangetastet. Echte Fehler (falsche `tableId`, doppelte
+Index-Namen) sind dabei keine gefunden.
+
+**Der Wächter ist ESLint, nicht TypeScript.** Beim Umstellen fiel auf, dass
+`packages/*/scripts/migrations/**` in **keiner** tsconfig liegt: weder
+`nuxi typecheck` der Apps noch das Core-Playground nimmt die scripts-Ordner der
+Layer auf. Ein Typfehler dort fällt nirgends auf (Gegenprobe: ein `tsc` über
+alle 63 Migrationen meldet **14 vorbestehende** Fehler, die seit jeher
+niemandem aufgefallen sind — Row-Generics, `Compression`, `title` in
+`Partial<Row>`; alle unabhängig von dieser Arbeit, keiner betrifft die
+Index-Anlage). `eslint .` jedes Layers sieht die Dateien dagegen sehr wohl.
+Deshalb verbietet eine `no-restricted-syntax`-Regel rohes
+`tablesDB.createIndex` in Migrationen — das ist der letzte Weg an der Fabrik
+vorbei, und er ist jetzt zu.
+
+**Beweise.**
+- `pnpm -r typecheck` grün. Der Typ-Nachweis selbst per `tsc` über die
+  Migrationen: die alte Closure-Form ergibt `TS2345` („`() => Promise<…>` ist
+  kein `IndexSpec`"), `withIndexRetry` ohne Anstoß `TS2554` („Expected 3
+  arguments, but got 2"). Dieselbe Stelle meldet ESLint zweimal mit der
+  Klartext-Begründung; danach zurückgebaut.
+- Voller Migrationslauf gegen eine **frische Datenbank** derselben lokalen
+  1.9.6 (`NUXT_PUBLIC_APPWRITE_DATABASE_ID=f19proof pnpm --filter comments run
+  bootstrap` — alle Layer in CI-Reihenfolge, dieselbe Kette wie
+  `appwrite-setup` + `bootstrap --seed`): alle Tabellen, Spalten und Indizes
+  angelegt, kein `column_not_available`.
+- `packages/media/scripts/verify-index-nudge.mjs` **9/9** am lebenden 1.9.6
+  (Cache in Redis vergiftet): Gegenprobe „nur warten" scheitert 8/8, MIT der
+  Fabrik stößt der Wrapper beim dritten Fehlversuch an und der Index steht nach
+  **5,8 s** — der Anstoß kommt dabei aus der Fabrik, der Aufrufer gibt nichts
+  mit. Dazu 12 Unit-Tests in `packages/core/tests/indexRetry.test.ts` (vier neue
+  nageln fest, dass die FABRIK verdrahtet und auf die Tabelle des Index zielt),
+  `pnpm -r test` und `pnpm -r lint` grün.
+
+**NICHT abgedeckt:** der lokale Lauf benutzt eine bestehende, warme
+Appwrite-Instanz (nur die Datenbank ist frisch) und lief ohne `--seed`. Er
+beweist, dass alle 148 umgestellten Aufrufe gegen ein echtes 1.9.6 durchgehen —
+nicht, dass das Rennen dabei je aufgetreten wäre. Dass der Anstoß im Fehlerfall
+wirklich feuert, zeigt nur `verify-index-nudge.mjs` (dort wird der Zustand
+künstlich hergestellt); der Ernstfall bleibt der CI-Runner.
+
+**Gelernt:** **Ein Schutz, den der Aufrufer mitgeben MUSS, ist ein Schutz, den
+die Aufrufer vergessen.** 2 von 63 haben ihn durchgereicht, 61 nicht — und die
+CI fiel prompt in eine der 61. Ein optionales Sicherheits-Argument ist keine
+Sicherung, sondern eine Bitte. Die Sicherung gehört in die Schnittstelle: was
+der Aufrufer nicht angeben kann, kann er nicht falsch angeben. Zweitens: **wo
+eine Regel nicht geprüft wird, ist sie keine Regel.** Der Typfehler wäre hier
+folgenlos geblieben — Migrationen typechecked niemand. Erst die ESLint-Regel im
+tatsächlich laufenden `pnpm -r lint` macht daraus einen Wächter. Vor dem Bauen
+eines Gates also nachsehen, ob das Werkzeug die Dateien überhaupt anfasst.
+
+---
+
 ### F19 — Warum die CI-E2E zufällig starb: ein vergifteter Appwrite-Cache ✅ 2026-08-02
 
 **Befund.** Zwei von acht E2E-Läufen eines Vormittags starben im Bootstrap mit

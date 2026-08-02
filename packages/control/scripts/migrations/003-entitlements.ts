@@ -7,7 +7,7 @@
  *   pnpm migrate --app <app> --layer control
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -23,6 +23,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -74,11 +75,11 @@ await step('Column entitlements.notes', () => tablesDB.createVarcharColumn({
 
 await waitForColumns('entitlements')
 
-await indexStep('Index entitlements.idx_site_feature (unique)', () => tablesDB.createIndex({
-  databaseId, tableId: 'entitlements', key: 'idx_site_feature', type: TablesDBIndexType.Unique, columns: ['siteProjectId', 'featureKey'],
-}))
-await indexStep('Index entitlements.idx_site', () => tablesDB.createIndex({
-  databaseId, tableId: 'entitlements', key: 'idx_site', type: TablesDBIndexType.Key, columns: ['siteProjectId'],
-}))
+await indexStep('Index entitlements.idx_site_feature (unique)', {
+  tableId: 'entitlements', key: 'idx_site_feature', type: TablesDBIndexType.Unique, columns: ['siteProjectId', 'featureKey'],
+})
+await indexStep('Index entitlements.idx_site', {
+  tableId: 'entitlements', key: 'idx_site', type: TablesDBIndexType.Key, columns: ['siteProjectId'],
+})
 
 console.log('✔ Migration control-003 fertig')

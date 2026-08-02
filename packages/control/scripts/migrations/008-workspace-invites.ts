@@ -8,7 +8,7 @@
  *   pnpm migrate --app <app> --layer control
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -24,6 +24,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -81,13 +82,13 @@ await step('Column acceptedBy', () => tablesDB.createVarcharColumn({
 
 await waitForColumns('workspace_invites')
 
-await indexStep('Index uq_token', () => tablesDB.createIndex({
-  databaseId, tableId: 'workspace_invites', key: 'uq_token',
+await indexStep('Index uq_token', {
+  tableId: 'workspace_invites', key: 'uq_token',
   type: TablesDBIndexType.Unique, columns: ['tokenHash'],
-}))
-await indexStep('Index idx_workspace', () => tablesDB.createIndex({
-  databaseId, tableId: 'workspace_invites', key: 'idx_workspace',
+})
+await indexStep('Index idx_workspace', {
+  tableId: 'workspace_invites', key: 'idx_workspace',
   type: TablesDBIndexType.Key, columns: ['workspaceId'],
-}))
+})
 
 console.log('✔ Migration control-008 fertig')

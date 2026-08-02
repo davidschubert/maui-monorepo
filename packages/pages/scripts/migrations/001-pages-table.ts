@@ -9,7 +9,7 @@
  *   pnpm migrate --app <app> --layer pages
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -25,6 +25,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -105,16 +106,16 @@ await columnStep('Column pages.sortOrder', 'sortOrder', cols, () => tablesDB.cre
 await waitForColumns('pages')
 
 // eine Sprachversion je slug: (slug, locale) eindeutig
-await indexStep('Index pages.uq_slug_locale', () => tablesDB.createIndex({
-  databaseId, tableId: 'pages', key: 'uq_slug_locale', type: TablesDBIndexType.Unique, columns: ['slug', 'locale'],
-}))
+await indexStep('Index pages.uq_slug_locale', {
+  tableId: 'pages', key: 'uq_slug_locale', type: TablesDBIndexType.Unique, columns: ['slug', 'locale'],
+})
 // Gruppierung im Admin + öffentliches Lookup per slug
-await indexStep('Index pages.idx_slug', () => tablesDB.createIndex({
-  databaseId, tableId: 'pages', key: 'idx_slug', type: TablesDBIndexType.Key, columns: ['slug'],
-}))
+await indexStep('Index pages.idx_slug', {
+  tableId: 'pages', key: 'idx_slug', type: TablesDBIndexType.Key, columns: ['slug'],
+})
 // öffentliche Route filtert nach status='published'
-await indexStep('Index pages.idx_status', () => tablesDB.createIndex({
-  databaseId, tableId: 'pages', key: 'idx_status', type: TablesDBIndexType.Key, columns: ['status'],
-}))
+await indexStep('Index pages.idx_status', {
+  tableId: 'pages', key: 'idx_status', type: TablesDBIndexType.Key, columns: ['status'],
+})
 
 console.log('✔ Migration pages-001 fertig')

@@ -24,7 +24,7 @@
  *   pnpm migrate --app control --layer control
  */
 import { Client, Query, TablesDB, TablesDBIndexType, type Models } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -41,6 +41,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 
 const db = databaseId
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, db)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -94,10 +95,10 @@ if (grants) {
   console.log(`✔ entitlements: ${nachbefuellt} Nachzügler mit productKey befüllt (${grants.total} gesamt)`)
 
   // ── 2. Unique-Index auf der NEUEN Spalte, dann erst der alte weg ───────────
-  await indexStep('Index entitlements.idx_site_product', () => tablesDB.createIndex({
-    databaseId: db, tableId: 'entitlements', key: 'idx_site_product',
+  await indexStep('Index entitlements.idx_site_product', {
+    tableId: 'entitlements', key: 'idx_site_product',
     type: TablesDBIndexType.Unique, columns: ['siteProjectId', 'productKey'],
-  }))
+  })
   await waitForIndex('entitlements', 'idx_site_product')
   // destruktiv-ok: E11-Zusammenziehen — idx_site_product ist zuvor available,
   // nie ein Fenster ohne Eindeutigkeitsschutz; der Code liest/schreibt die

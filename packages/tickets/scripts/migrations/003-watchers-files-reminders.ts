@@ -10,7 +10,7 @@
  *   pnpm migrate --app <app> --layer tickets
  */
 import { Client, Permission, Role, Storage, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -27,6 +27,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 
 const client = new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey)
 const tablesDB = new TablesDB(client)
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 const storage = new Storage(client)
 
 function hasCode(error: unknown, code: number): boolean {
@@ -126,21 +127,21 @@ await waitForColumns('ticket_watchers')
 await waitForColumns('ticket_files')
 await waitForColumns('tickets')
 
-await indexStep('Index ticket_watchers.uq_ticket_user', () => tablesDB.createIndex({
-  databaseId, tableId: 'ticket_watchers', key: 'uq_ticket_user', type: TablesDBIndexType.Unique, columns: ['ticketId', 'userId'],
-}))
-await indexStep('Index ticket_watchers.idx_user', () => tablesDB.createIndex({
-  databaseId, tableId: 'ticket_watchers', key: 'idx_user', type: TablesDBIndexType.Key, columns: ['userId'],
-}))
-await indexStep('Index ticket_files.idx_ticket', () => tablesDB.createIndex({
-  databaseId, tableId: 'ticket_files', key: 'idx_ticket', type: TablesDBIndexType.Key, columns: ['ticketId'],
-}))
-await indexStep('Index ticket_files.idx_file', () => tablesDB.createIndex({
-  databaseId, tableId: 'ticket_files', key: 'idx_file', type: TablesDBIndexType.Key, columns: ['fileId'],
-}))
-await indexStep('Index tickets.idx_due', () => tablesDB.createIndex({
-  databaseId, tableId: 'tickets', key: 'idx_due', type: TablesDBIndexType.Key, columns: ['status', 'dueAt'],
-}))
+await indexStep('Index ticket_watchers.uq_ticket_user', {
+  tableId: 'ticket_watchers', key: 'uq_ticket_user', type: TablesDBIndexType.Unique, columns: ['ticketId', 'userId'],
+})
+await indexStep('Index ticket_watchers.idx_user', {
+  tableId: 'ticket_watchers', key: 'idx_user', type: TablesDBIndexType.Key, columns: ['userId'],
+})
+await indexStep('Index ticket_files.idx_ticket', {
+  tableId: 'ticket_files', key: 'idx_ticket', type: TablesDBIndexType.Key, columns: ['ticketId'],
+})
+await indexStep('Index ticket_files.idx_file', {
+  tableId: 'ticket_files', key: 'idx_file', type: TablesDBIndexType.Key, columns: ['fileId'],
+})
+await indexStep('Index tickets.idx_due', {
+  tableId: 'tickets', key: 'idx_due', type: TablesDBIndexType.Key, columns: ['status', 'dueAt'],
+})
 
 // --- Bucket ticket-files (Serving NUR über Server-Routen) ------------------
 await step('Bucket ticket-files', () => storage.createBucket({

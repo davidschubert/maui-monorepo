@@ -12,7 +12,7 @@
  *   pnpm migrate --app <app> --layer events
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -28,6 +28,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -138,22 +139,22 @@ await columnStep('Column event_rsvps.status', 'status', rsvpCols, () => tablesDB
 await waitForColumns('events')
 await waitForColumns('event_rsvps')
 
-await indexStep('Index events.idx_start', () => tablesDB.createIndex({
-  databaseId, tableId: 'events', key: 'idx_start', type: TablesDBIndexType.Key, columns: ['startAt'],
-}))
-await indexStep('Index events.idx_status', () => tablesDB.createIndex({
-  databaseId, tableId: 'events', key: 'idx_status', type: TablesDBIndexType.Key, columns: ['status'],
-}))
+await indexStep('Index events.idx_start', {
+  tableId: 'events', key: 'idx_start', type: TablesDBIndexType.Key, columns: ['startAt'],
+})
+await indexStep('Index events.idx_status', {
+  tableId: 'events', key: 'idx_status', type: TablesDBIndexType.Key, columns: ['status'],
+})
 // Kombi-Index für die Listen-Query (status = published AND startAt >= now)
-await indexStep('Index events.idx_status_start', () => tablesDB.createIndex({
-  databaseId, tableId: 'events', key: 'idx_status_start', type: TablesDBIndexType.Key, columns: ['status', 'startAt'],
-}))
-await indexStep('Index event_rsvps.uq_event_user', () => tablesDB.createIndex({
-  databaseId, tableId: 'event_rsvps', key: 'uq_event_user', type: TablesDBIndexType.Unique, columns: ['eventId', 'userId'],
-}))
+await indexStep('Index events.idx_status_start', {
+  tableId: 'events', key: 'idx_status_start', type: TablesDBIndexType.Key, columns: ['status', 'startAt'],
+})
+await indexStep('Index event_rsvps.uq_event_user', {
+  tableId: 'event_rsvps', key: 'uq_event_user', type: TablesDBIndexType.Unique, columns: ['eventId', 'userId'],
+})
 // GDPR-Lookup (Export/Löschung per userId)
-await indexStep('Index event_rsvps.idx_user', () => tablesDB.createIndex({
-  databaseId, tableId: 'event_rsvps', key: 'idx_user', type: TablesDBIndexType.Key, columns: ['userId'],
-}))
+await indexStep('Index event_rsvps.idx_user', {
+  tableId: 'event_rsvps', key: 'idx_user', type: TablesDBIndexType.Key, columns: ['userId'],
+})
 
 console.log('✔ Migration events-001 fertig')

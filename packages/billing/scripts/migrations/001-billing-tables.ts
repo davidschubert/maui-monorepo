@@ -9,7 +9,7 @@
  *   pnpm migrate --app <app> --layer billing
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -25,6 +25,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -122,20 +123,20 @@ await columnStep('Column billing_subscriptions.lastStripeEventAt', 'lastStripeEv
 await waitForColumns('billing_customers')
 await waitForColumns('billing_subscriptions')
 
-await indexStep('Index billing_customers.uq_user', () => tablesDB.createIndex({
-  databaseId, tableId: 'billing_customers', key: 'uq_user', type: TablesDBIndexType.Unique, columns: ['userId'],
-}))
-await indexStep('Index billing_customers.uq_stripe_customer', () => tablesDB.createIndex({
-  databaseId, tableId: 'billing_customers', key: 'uq_stripe_customer', type: TablesDBIndexType.Unique, columns: ['stripeCustomerId'],
-}))
-await indexStep('Index billing_subscriptions.idx_user', () => tablesDB.createIndex({
-  databaseId, tableId: 'billing_subscriptions', key: 'idx_user', type: TablesDBIndexType.Key, columns: ['userId'],
-}))
-await indexStep('Index billing_subscriptions.idx_customer', () => tablesDB.createIndex({
-  databaseId, tableId: 'billing_subscriptions', key: 'idx_customer', type: TablesDBIndexType.Key, columns: ['stripeCustomerId'],
-}))
-await indexStep('Index billing_subscriptions.uq_stripe_sub', () => tablesDB.createIndex({
-  databaseId, tableId: 'billing_subscriptions', key: 'uq_stripe_sub', type: TablesDBIndexType.Unique, columns: ['stripeSubscriptionId'],
-}))
+await indexStep('Index billing_customers.uq_user', {
+  tableId: 'billing_customers', key: 'uq_user', type: TablesDBIndexType.Unique, columns: ['userId'],
+})
+await indexStep('Index billing_customers.uq_stripe_customer', {
+  tableId: 'billing_customers', key: 'uq_stripe_customer', type: TablesDBIndexType.Unique, columns: ['stripeCustomerId'],
+})
+await indexStep('Index billing_subscriptions.idx_user', {
+  tableId: 'billing_subscriptions', key: 'idx_user', type: TablesDBIndexType.Key, columns: ['userId'],
+})
+await indexStep('Index billing_subscriptions.idx_customer', {
+  tableId: 'billing_subscriptions', key: 'idx_customer', type: TablesDBIndexType.Key, columns: ['stripeCustomerId'],
+})
+await indexStep('Index billing_subscriptions.uq_stripe_sub', {
+  tableId: 'billing_subscriptions', key: 'uq_stripe_sub', type: TablesDBIndexType.Unique, columns: ['stripeSubscriptionId'],
+})
 
 console.log('✔ Migration billing-001 fertig')

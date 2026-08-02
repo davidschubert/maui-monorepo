@@ -19,7 +19,7 @@
  *   pnpm migrate --app <app> --layer courses
  */
 import { Client, Query, TablesDB, type TablesDBIndexType, type Models } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -36,6 +36,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 
 const db = databaseId
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, db)
 
 const TABLES = ['courses', 'lessons', 'enrollments', 'lesson_progress']
 
@@ -113,11 +114,11 @@ for (const table of TABLES) {
     if (!index.columns.includes('tenantId')) continue
     const twinKey = index.key.replace(/tenant/g, 'community')
     if (twinKey === index.key) throw new Error(`Index ${index.key} trägt tenantId, aber kein 'tenant' im Namen — Zwilling von Hand benennen.`)
-    await indexStep(`Index ${table}.${twinKey}`, () => tablesDB.createIndex({
-      databaseId: db, tableId: table, key: twinKey,
+    await indexStep(`Index ${table}.${twinKey}`, {
+      tableId: table, key: twinKey,
       type: index.type as TablesDBIndexType,
       columns: index.columns.map(c => c === 'tenantId' ? 'communityId' : c),
-    }))
+    })
   }
   await waitAvailable(table)
 

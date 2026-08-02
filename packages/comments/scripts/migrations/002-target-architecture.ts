@@ -19,7 +19,7 @@
  * Benötigte Key-Scopes: tables.*, columns.*, indexes.* (Migrations-Key, siehe A2).
  */
 import { Client, TablesDB, Permission, Role } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -38,6 +38,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 
 const client = new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey)
 const tablesDB = new TablesDB(client)
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -173,18 +174,18 @@ await columnStep('Column comments.status', 'status', commentCols, () => tablesDB
 
 await waitForColumns('comments')
 
-await indexStep('Index comments.target', () => tablesDB.createIndex({
-  databaseId, tableId: 'comments', key: 'target', type: 'key', columns: ['targetId', 'targetType'],
-}))
-await indexStep('Index comments.parentId', () => tablesDB.createIndex({
-  databaseId, tableId: 'comments', key: 'parent', type: 'key', columns: ['parentId'],
-}))
-await indexStep('Index comments.score', () => tablesDB.createIndex({
-  databaseId, tableId: 'comments', key: 'score', type: 'key', columns: ['score'],
-}))
-await indexStep('Index comments.status', () => tablesDB.createIndex({
-  databaseId, tableId: 'comments', key: 'status', type: 'key', columns: ['status'],
-}))
+await indexStep('Index comments.target', {
+  tableId: 'comments', key: 'target', type: 'key', columns: ['targetId', 'targetType'],
+})
+await indexStep('Index comments.parentId', {
+  tableId: 'comments', key: 'parent', type: 'key', columns: ['parentId'],
+})
+await indexStep('Index comments.score', {
+  tableId: 'comments', key: 'score', type: 'key', columns: ['score'],
+})
+await indexStep('Index comments.status', {
+  tableId: 'comments', key: 'status', type: 'key', columns: ['status'],
+})
 
 // --- comment_votes ----------------------------------------------------------
 await step('Table comment_votes', () => tablesDB.createTable({
@@ -210,8 +211,8 @@ await columnStep('Column comment_votes.value', 'value', voteCols, () => tablesDB
 
 await waitForColumns('comment_votes')
 
-await indexStep('Unique-Index comment_votes.commentId_userId', () => tablesDB.createIndex({
-  databaseId, tableId: 'comment_votes', key: 'commentId_userId', type: 'unique', columns: ['commentId', 'userId'],
-}))
+await indexStep('Unique-Index comment_votes.commentId_userId', {
+  tableId: 'comment_votes', key: 'commentId_userId', type: 'unique', columns: ['commentId', 'userId'],
+})
 
 console.log('Migration 002 abgeschlossen.')

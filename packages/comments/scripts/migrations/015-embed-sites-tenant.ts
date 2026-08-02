@@ -19,7 +19,7 @@
  *   pnpm migrate --app <app> --layer comments
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -36,6 +36,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 
 const TABLE = 'embed_sites'
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -73,10 +74,10 @@ await waitForColumn('tenantId')
 // Neuer Unique VOR dem Löschen des alten: so gibt es nie ein Fenster ohne
 // Duplikat-Schutz. Bestand hat tenantId '' → (''‚ host) bleibt so eindeutig
 // wie zuvor host allein.
-await indexStep(`Unique-Index ${TABLE}.uq_tenant_host`, () => tablesDB.createIndex({
-  databaseId, tableId: TABLE, key: 'uq_tenant_host', type: TablesDBIndexType.Unique,
+await indexStep(`Unique-Index ${TABLE}.uq_tenant_host`, {
+  tableId: TABLE, key: 'uq_tenant_host', type: TablesDBIndexType.Unique,
   columns: ['tenantId', 'host'],
-}))
+})
 
 try {
   // destruktiv-ok: uq_host wird durch uq_tenant_host ERSETZT (oben zuerst

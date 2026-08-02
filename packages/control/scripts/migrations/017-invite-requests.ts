@@ -24,7 +24,7 @@
  *   pnpm migrate --app control --layer control
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -40,6 +40,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -114,14 +115,14 @@ await waitForColumn('invite_requests', 'status')
 
 // Eine Adresse = EINE Anfrage. Wer zweimal fragt, aktualisiert seine eigene —
 // sonst füllt sich die Warteschlange mit Dubletten.
-await indexStep('Unique-Index invite_requests.uq_email', () => tablesDB.createIndex({
-  databaseId, tableId: 'invite_requests', key: 'uq_email', type: TablesDBIndexType.Unique,
+await indexStep('Unique-Index invite_requests.uq_email', {
+  tableId: 'invite_requests', key: 'uq_email', type: TablesDBIndexType.Unique,
   columns: ['email'],
-}))
-await indexStep('Index invite_requests.idx_status', () => tablesDB.createIndex({
-  databaseId, tableId: 'invite_requests', key: 'idx_status', type: TablesDBIndexType.Key,
+})
+await indexStep('Index invite_requests.idx_status', {
+  tableId: 'invite_requests', key: 'idx_status', type: TablesDBIndexType.Key,
   columns: ['status'],
-}))
+})
 
 // ── 2. invite_codes: Bindung an Adresse + Einlöse-Tatsache ──────────────────
 await step('Column invite_codes.boundEmail', () => tablesDB.createVarcharColumn({
@@ -142,9 +143,9 @@ await step('Column invite_codes.redeemedSiteId', () => tablesDB.createVarcharCol
 await waitForColumn('invite_codes', 'boundEmail')
 
 // „Nächster freier Code aus dem Vorrat" = aktiv, an niemanden gebunden.
-await indexStep('Index invite_codes.idx_stock', () => tablesDB.createIndex({
-  databaseId, tableId: 'invite_codes', key: 'idx_stock', type: TablesDBIndexType.Key,
+await indexStep('Index invite_codes.idx_stock', {
+  tableId: 'invite_codes', key: 'idx_stock', type: TablesDBIndexType.Key,
   columns: ['status', 'boundEmail'],
-}))
+})
 
 console.log('✔ Migration control-017 fertig')

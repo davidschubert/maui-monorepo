@@ -11,7 +11,7 @@
  * Benötigte Key-Scopes: tables.*, columns.*, rows.* (Migrations-Key).
  */
 import { Client, TablesDB, Permission, Role } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -27,6 +27,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -78,8 +79,8 @@ await step('Column changelog.published', () => tablesDB.createBooleanColumn({
 
 await waitForColumns('changelog')
 
-await indexStep('Index changelog.published', () => tablesDB.createIndex({
-  databaseId, tableId: 'changelog', key: 'published', type: 'key', columns: ['published'],
-}))
+await indexStep('Index changelog.published', {
+  tableId: 'changelog', key: 'published', type: 'key', columns: ['published'],
+})
 
 console.log('✔ Migration admin-008 fertig')

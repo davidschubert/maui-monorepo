@@ -26,7 +26,7 @@
  *   pnpm migrate --app control --layer control
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -43,6 +43,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 
 const db = databaseId
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, db)
 
 const OLD = 'sites'
 const NEW = 'websites'
@@ -134,15 +135,15 @@ await step(`Column ${NEW}.workspaceId`, () => tablesDB.createVarcharColumn({
 
 await waitForColumns(NEW)
 
-await indexStep(`Index ${NEW}.idx_slug (unique)`, () => tablesDB.createIndex({
-  databaseId: db, tableId: NEW, key: 'idx_slug', type: TablesDBIndexType.Unique, columns: ['slug'],
-}))
-await indexStep(`Index ${NEW}.idx_status`, () => tablesDB.createIndex({
-  databaseId: db, tableId: NEW, key: 'idx_status', type: TablesDBIndexType.Key, columns: ['status'],
-}))
-await indexStep(`Index ${NEW}.idx_workspace`, () => tablesDB.createIndex({
-  databaseId: db, tableId: NEW, key: 'idx_workspace', type: TablesDBIndexType.Key, columns: ['workspaceId'],
-}))
+await indexStep(`Index ${NEW}.idx_slug (unique)`, {
+  tableId: NEW, key: 'idx_slug', type: TablesDBIndexType.Unique, columns: ['slug'],
+})
+await indexStep(`Index ${NEW}.idx_status`, {
+  tableId: NEW, key: 'idx_status', type: TablesDBIndexType.Key, columns: ['status'],
+})
+await indexStep(`Index ${NEW}.idx_workspace`, {
+  tableId: NEW, key: 'idx_workspace', type: TablesDBIndexType.Key, columns: ['workspaceId'],
+})
 
 // ── 2. Zeilen kopieren — MIT ihrer Row-Id ────────────────────────────────────
 const alt = await tablesDB.listRows<SiteLike>({

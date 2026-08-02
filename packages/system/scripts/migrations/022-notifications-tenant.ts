@@ -60,7 +60,7 @@
  * marketing und help haben keine Appwrite-Instanz.
  */
 import { Client, Query, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -76,6 +76,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 const TABLE_ID = 'notifications'
 
@@ -127,9 +128,9 @@ await step(`Column ${TABLE_ID}.tenantId`, () => tablesDB.createVarcharColumn({
 }))
 await waitForColumn(TABLE_ID, 'tenantId')
 
-await indexStep(`Index ${TABLE_ID}.idx_recipient_tenant`, () => tablesDB.createIndex({
-  databaseId, tableId: TABLE_ID, key: 'idx_recipient_tenant',
+await indexStep(`Index ${TABLE_ID}.idx_recipient_tenant`, {
+  tableId: TABLE_ID, key: 'idx_recipient_tenant',
   type: TablesDBIndexType.Key, columns: ['recipientId', 'tenantId'],
-}))
+})
 
 console.log('✔ Migration system-022 fertig')

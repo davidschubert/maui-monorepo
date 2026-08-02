@@ -16,7 +16,7 @@
  * (409 → skip); Column wird vor der Index-Anlage auf 'available' gepollt.
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -32,6 +32,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -66,12 +67,12 @@ await step('Column notifications.senderId', () => tablesDB.createVarcharColumn({
   databaseId, tableId: 'notifications', key: 'senderId', size: 255, required: false,
 }))
 await waitForColumns('notifications')
-await indexStep('Index notifications.sender', () => tablesDB.createIndex({
-  databaseId, tableId: 'notifications', key: 'sender', type: TablesDBIndexType.Key, columns: ['senderId'],
-}))
+await indexStep('Index notifications.sender', {
+  tableId: 'notifications', key: 'sender', type: TablesDBIndexType.Key, columns: ['senderId'],
+})
 
-await indexStep('Index audit_logs.target', () => tablesDB.createIndex({
-  databaseId, tableId: 'audit_logs', key: 'target', type: TablesDBIndexType.Key, columns: ['targetId'],
-}))
+await indexStep('Index audit_logs.target', {
+  tableId: 'audit_logs', key: 'target', type: TablesDBIndexType.Key, columns: ['targetId'],
+})
 
 console.log('Migration system-008 abgeschlossen.')

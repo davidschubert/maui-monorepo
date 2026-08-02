@@ -37,10 +37,25 @@
  * `node --experimental-strip-types`-Prozesse, siehe scripts/migrate.mjs — die
  * Auflösung ist deshalb relativ zur DATEI, nicht zum cwd):
  *
- *   import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+ *   import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
+ *   const { indexStep } = createIndexSteps(tablesDB, databaseId)
+ *   await indexStep('Index comments.author', {
+ *     tableId: 'comments', key: 'author', type: 'key', columns: ['authorId'],
+ *   })
  *
  * Die Datei importiert BEWUSST nichts aus `node-appwrite`: sie liegt im
  * Repo-Root, wo das Paket nicht aufgelöst wird (pnpm installiert es je Layer).
+ *
+ * WARUM DIE FABRIK DEN `createIndex`-AUFRUF SELBST MACHT (F19-Nachlese,
+ * 2026-08-02): der Cache-Anstoß war zuerst ein OPTIONALES drittes Argument.
+ * Ergebnis nach einem Tag: 2 von 63 Migrationen reichten ihn durch, 61 nicht —
+ * und genau eine davon (posts-004) legte die CI-E2E lahm. Ein Schutz, den der
+ * Aufrufer mitgeben MUSS, ist ein Schutz, den die Aufrufer vergessen. Deshalb
+ * gibt es das Argument nicht mehr: die Fabrik bindet `tablesDB` + `databaseId`,
+ * der Schritt bekommt die Index-Beschreibung (inkl. `tableId`) als DATEN und
+ * ruft `createIndex` selbst. Der Anstoß ist damit nicht „empfohlen", sondern
+ * der einzige Weg — und er kann auch nicht auf die falsche Tabelle zeigen,
+ * weil er dieselbe `tableId` benutzt wie der Index.
  */
 
 /**
@@ -115,6 +130,40 @@ export interface NudgeableTablesDB {
 }
 
 /**
+ * Zusätzlich zum Anstoß: der Index-Aufruf selbst. METHODEN-Syntax, nicht
+ * Pfeil-Eigenschaft — nur so prüft TypeScript die Parameter bivariant, und der
+ * echte `TablesDB` (dessen `type` das Enum `TablesDBIndexType` ist, dazu eine
+ * veraltete Positional-Überladung) bleibt strukturell zuweisbar, ohne dass
+ * diese Datei `node-appwrite` importieren müsste.
+ */
+export interface IndexingTablesDB extends NudgeableTablesDB {
+  createIndex(params: {
+    databaseId: string
+    tableId: string
+    key: string
+    type: string
+    columns: string[]
+    orders?: string[]
+    lengths?: number[]
+  }): Promise<unknown>
+}
+
+/**
+ * Der Index als DATEN — ohne `databaseId`, die bindet die Fabrik.
+ * `tableId` gehört bewusst hierher: sie ist gleichzeitig das Ziel des Index
+ * UND das Ziel des Cache-Anstoßes; zwei getrennte Angaben könnten auseinander
+ * laufen, eine kann es nicht.
+ */
+export interface IndexSpec {
+  tableId: string
+  key: string
+  type: string
+  columns: string[]
+  orders?: string[]
+  lengths?: number[]
+}
+
+/**
  * Baut den Cache-Anstoß für EINE Tabelle: liest ihren Zustand und schreibt ihn
  * UNVERÄNDERT zurück. Der Schreibvorgang räumt das gecachte Collection-Dokument
  * — mehr will er nicht.
@@ -174,8 +223,8 @@ export function isColumnNotAvailable(error: unknown): boolean {
  */
 export async function withIndexRetry<T>(
   run: () => Promise<T>,
-  label = 'Index-Anlage',
-  nudge?: () => Promise<void>,
+  label: string,
+  nudge: () => Promise<void>,
 ): Promise<T> {
   for (let attempt = 1; ; attempt++) {
     try {
@@ -187,7 +236,7 @@ export async function withIndexRetry<T>(
       // Ab dem dritten Fehlversuch den Cache anstoßen statt nur zu warten —
       // gegen den vergifteten Eintrag hilft Geduld nachweislich nie.
       // FAIL-SOFT: misslingt der Anstoß, geht der normale Takt weiter.
-      if (nudge && attempt >= INDEX_NUDGE_AFTER_ATTEMPT
+      if (attempt >= INDEX_NUDGE_AFTER_ATTEMPT
         && (attempt - INDEX_NUDGE_AFTER_ATTEMPT) % INDEX_NUDGE_EVERY === 0) {
         try {
           await nudge()
@@ -207,33 +256,45 @@ export async function withIndexRetry<T>(
 }
 
 /**
- * Drop-in für das `step()` jeder Migration, aber NUR für `createIndex`:
- * 409 → „existiert bereits" (identische Ausgabe wie `step`), zusätzlich der
- * Retry oben. Signatur und Meldungen sind absichtlich deckungsgleich mit
- * `step`, damit die Umstellung ein Wort ist und die Logs gleich aussehen.
+ * EINZIGER Weg, in einer Migration einen Index anzulegen. Einmal je Datei
+ * bauen, danach so oft benutzt wie nötig:
  *
- * `nudge` ist OPTIONAL und bleibt es bewusst: die 141 bestehenden Aufrufe in 63
- * Migrationen verhalten sich unverändert. Wer den vergifteten Cache überstehen
- * will, reicht `tableCacheNudge(tablesDB, databaseId, TABLE_ID)` durch — für
- * NEUE Migrationen ist das die empfohlene Form:
+ *   const { indexStep } = createIndexSteps(tablesDB, databaseId)
  *
- *   await indexStep('Index x.idx_y', () => tablesDB.createIndex({ … }),
- *     tableCacheNudge(tablesDB, databaseId, TABLE_ID))
+ * Liefert zwei Formen — beide mit Retry UND Anstoß, ohne Zutun des Aufrufers:
+ *
+ * - `indexStep(label, spec)`: Drop-in für das `step()` jeder Migration, aber
+ *   NUR für Indizes. 409 → „existiert bereits" (identische Ausgabe wie `step`).
+ *   Meldungen sind absichtlich deckungsgleich mit `step`, damit die Logs gleich
+ *   aussehen.
+ * - `createIndex(spec, label?)`: roh — wirft ALLES weiter, auch 409. Für die
+ *   Handvoll Migrationen, die ihr eigenes Idempotenz-Handling um den Aufruf
+ *   gelegt haben (eigener try/catch mit eigener Meldung).
  */
-export async function indexStep(
-  label: string,
-  run: () => Promise<unknown>,
-  nudge?: () => Promise<void>,
-): Promise<void> {
-  try {
-    await withIndexRetry(run, label, nudge)
-    console.log(`✔ ${label}`)
-  }
-  catch (error) {
-    if (hasCode(error, 409)) {
-      console.log(`↷ ${label} (existiert bereits)`)
-      return
+export function createIndexSteps(tablesDB: IndexingTablesDB, databaseId: string): {
+  indexStep: (label: string, spec: IndexSpec) => Promise<void>
+  createIndex: (spec: IndexSpec, label?: string) => Promise<unknown>
+} {
+  const createIndex = (spec: IndexSpec, label = `Index ${spec.tableId}.${spec.key}`) =>
+    withIndexRetry(
+      () => tablesDB.createIndex({ databaseId, ...spec }),
+      label,
+      tableCacheNudge(tablesDB, databaseId, spec.tableId),
+    )
+
+  const indexStep = async (label: string, spec: IndexSpec): Promise<void> => {
+    try {
+      await createIndex(spec, label)
+      console.log(`✔ ${label}`)
     }
-    throw error
+    catch (error) {
+      if (hasCode(error, 409)) {
+        console.log(`↷ ${label} (existiert bereits)`)
+        return
+      }
+      throw error
+    }
   }
+
+  return { indexStep, createIndex }
 }

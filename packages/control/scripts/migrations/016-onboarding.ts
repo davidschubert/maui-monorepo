@@ -23,7 +23,7 @@
  *   pnpm migrate --app control --layer control
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -39,6 +39,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -97,19 +98,19 @@ await waitForColumn('tenants', 'trialEndsAt')
 
 // Der Downgrade-Sweep fragt „welche Testphasen sind fällig?" — ohne Index
 // wäre das ein Full-Scan über alle Tenants.
-await indexStep('Index tenants.idx_trial', () => tablesDB.createIndex({
-  databaseId, tableId: 'tenants', key: 'idx_trial', type: TablesDBIndexType.Key,
+await indexStep('Index tenants.idx_trial', {
+  tableId: 'tenants', key: 'idx_trial', type: TablesDBIndexType.Key,
   columns: ['trialEndsAt'],
-}))
+})
 
 // ── 1b. site_members: „welche Communities gehören DIESEM Nutzer?" ───────────
 // Der Onboarding-Pfad muss das Konto-Kontingent prüfen (eine Community in der
 // Testphase) — das ist eine Abfrage über den Runtime-User, nicht über die
 // Site. idx_lookup (siteId, projectId, userId) trägt sie nicht.
-await indexStep('Index site_members.idx_owner', () => tablesDB.createIndex({
-  databaseId, tableId: 'site_members', key: 'idx_owner', type: TablesDBIndexType.Key,
+await indexStep('Index site_members.idx_owner', {
+  tableId: 'site_members', key: 'idx_owner', type: TablesDBIndexType.Key,
   columns: ['runtimeProjectId', 'runtimeUserId'],
-}))
+})
 
 // ── 2. invite_codes (Early-Access-Tor) ──────────────────────────────────────
 await step('Table invite_codes', () => tablesDB.createTable({
@@ -142,13 +143,13 @@ await waitForColumn('invite_codes', 'status')
 
 // Der Einlöse-Pfad sucht AUSSCHLIESSLICH über den Hash — Unique verhindert
 // zwei Rows zum selben Code (und damit doppelte Kontingente).
-await indexStep('Unique-Index invite_codes.uq_code', () => tablesDB.createIndex({
-  databaseId, tableId: 'invite_codes', key: 'uq_code', type: TablesDBIndexType.Unique,
+await indexStep('Unique-Index invite_codes.uq_code', {
+  tableId: 'invite_codes', key: 'uq_code', type: TablesDBIndexType.Unique,
   columns: ['codeHash'],
-}))
-await indexStep('Index invite_codes.idx_status', () => tablesDB.createIndex({
-  databaseId, tableId: 'invite_codes', key: 'idx_status', type: TablesDBIndexType.Key,
+})
+await indexStep('Index invite_codes.idx_status', {
+  tableId: 'invite_codes', key: 'idx_status', type: TablesDBIndexType.Key,
   columns: ['status'],
-}))
+})
 
 console.log('✔ Migration control-016 fertig')

@@ -14,7 +14,7 @@
  *     packages/comments/scripts/migrations/005-thread-fields.ts
  */
 import { Client, TablesDB, TablesDBIndexType, Query, type Models } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -35,6 +35,7 @@ interface CommentRow extends Models.Row {
 
 const mig = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(migrationsKey))
 const rt = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(runtimeKey))
+const { indexStep } = createIndexSteps(mig, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -75,9 +76,9 @@ await step('Column comments.editedAt', () => mig.createDatetimeColumn({
 
 await waitForColumns('comments')
 
-await indexStep('Index comments.root', () => mig.createIndex({
-  databaseId, tableId: 'comments', key: 'root', type: TablesDBIndexType.Key, columns: ['rootId'],
-}))
+await indexStep('Index comments.root', {
+  tableId: 'comments', key: 'root', type: TablesDBIndexType.Key, columns: ['rootId'],
+})
 
 // --- Backfill (Runtime-Key, rows.write) -------------------------------------
 const all: CommentRow[] = []

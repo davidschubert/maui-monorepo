@@ -13,7 +13,7 @@
  * Benötigte Key-Scopes: indexes.* (Migrations-Key, siehe A2).
  */
 import { Client, TablesDB } from 'node-appwrite'
-import { withIndexRetry } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -31,6 +31,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 
 const client = new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey)
 const tablesDB = new TablesDB(client)
+const { createIndex } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -39,13 +40,12 @@ function hasCode(error: unknown, code: number): boolean {
 console.log(`Migration 009 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 try {
-  await withIndexRetry(() => tablesDB.createIndex({
-    databaseId,
+  await createIndex({
     tableId: 'comment_votes',
     key: 'user',
     type: 'key',
     columns: ['userId'],
-  }))
+  })
   console.log('✔ Index comment_votes.user (userId)')
 }
 catch (error) {

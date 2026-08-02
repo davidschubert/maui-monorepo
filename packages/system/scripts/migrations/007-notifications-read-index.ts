@@ -10,7 +10,7 @@
  * Benötigte Key-Scopes: indexes.* (Migrations-Key). Idempotent (409 → skip).
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { withIndexRetry } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -26,17 +26,17 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { createIndex } = createIndexSteps(tablesDB, databaseId)
 
 console.log(`Migration system-007 gegen ${endpoint} / Projekt ${projectId} / DB ${databaseId}`)
 
 try {
-  await withIndexRetry(() => tablesDB.createIndex({
-    databaseId,
+  await createIndex({
     tableId: 'notifications',
     key: 'recipient_read',
     type: TablesDBIndexType.Key,
     columns: ['recipientId', 'read'],
-  }))
+  })
   console.log('✔ Index notifications.recipient_read')
 }
 catch (error) {

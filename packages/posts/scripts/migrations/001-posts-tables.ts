@@ -9,7 +9,7 @@
  *   pnpm migrate --app <app> --layer posts
  */
 import { Client, Permission, Role, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -25,6 +25,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 }
 
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -130,20 +131,20 @@ await columnStep('Column poll_votes.optionIndex', 'optionIndex', voteCols, () =>
 await waitForColumns('community_posts')
 await waitForColumns('poll_votes')
 
-await indexStep('Index community_posts.idx_feed', () => tablesDB.createIndex({
-  databaseId, tableId: 'community_posts', key: 'idx_feed', type: TablesDBIndexType.Key, columns: ['status', 'publishedAt'],
-}))
-await indexStep('Index community_posts.idx_author', () => tablesDB.createIndex({
-  databaseId, tableId: 'community_posts', key: 'idx_author', type: TablesDBIndexType.Key, columns: ['authorId'],
-}))
-await indexStep('Index community_posts.idx_scheduled', () => tablesDB.createIndex({
-  databaseId, tableId: 'community_posts', key: 'idx_scheduled', type: TablesDBIndexType.Key, columns: ['status', 'scheduledAt'],
-}))
-await indexStep('Index poll_votes.uq_post_user', () => tablesDB.createIndex({
-  databaseId, tableId: 'poll_votes', key: 'uq_post_user', type: TablesDBIndexType.Unique, columns: ['postId', 'userId'],
-}))
-await indexStep('Index poll_votes.idx_post_option', () => tablesDB.createIndex({
-  databaseId, tableId: 'poll_votes', key: 'idx_post_option', type: TablesDBIndexType.Key, columns: ['postId', 'optionIndex'],
-}))
+await indexStep('Index community_posts.idx_feed', {
+  tableId: 'community_posts', key: 'idx_feed', type: TablesDBIndexType.Key, columns: ['status', 'publishedAt'],
+})
+await indexStep('Index community_posts.idx_author', {
+  tableId: 'community_posts', key: 'idx_author', type: TablesDBIndexType.Key, columns: ['authorId'],
+})
+await indexStep('Index community_posts.idx_scheduled', {
+  tableId: 'community_posts', key: 'idx_scheduled', type: TablesDBIndexType.Key, columns: ['status', 'scheduledAt'],
+})
+await indexStep('Index poll_votes.uq_post_user', {
+  tableId: 'poll_votes', key: 'uq_post_user', type: TablesDBIndexType.Unique, columns: ['postId', 'userId'],
+})
+await indexStep('Index poll_votes.idx_post_option', {
+  tableId: 'poll_votes', key: 'idx_post_option', type: TablesDBIndexType.Key, columns: ['postId', 'optionIndex'],
+})
 
 console.log('✔ Migration posts-001 fertig')

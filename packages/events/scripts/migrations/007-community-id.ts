@@ -19,7 +19,7 @@
  *   pnpm migrate --app <app> --layer events
  */
 import { Client, Query, TablesDB, type TablesDBIndexType, type Models } from 'node-appwrite'
-import { indexStep, tableCacheNudge } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -36,6 +36,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 
 const db = databaseId
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, db)
 
 const TABLES = ['events', 'event_rsvps', 'event_tickets', 'event_votes']
 
@@ -117,11 +118,11 @@ for (const table of TABLES) {
     // (`events.idx_community_status_start`) — 23 Versuche ohne Bewegung, weil
     // das gecachte Collection-Dokument `communityId` dauerhaft auf 'processing'
     // zeigte. Gegen diesen Zustand hilft nur Anstoßen, nicht Warten.
-    await indexStep(`Index ${table}.${twinKey}`, () => tablesDB.createIndex({
-      databaseId: db, tableId: table, key: twinKey,
+    await indexStep(`Index ${table}.${twinKey}`, {
+      tableId: table, key: twinKey,
       type: index.type as TablesDBIndexType,
       columns: index.columns.map(c => c === 'tenantId' ? 'communityId' : c),
-    }), tableCacheNudge(tablesDB, db, table))
+    })
   }
   await waitAvailable(table)
 

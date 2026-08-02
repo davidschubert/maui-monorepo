@@ -20,7 +20,7 @@
  *   pnpm migrate --app <app> --layer comments
  */
 import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
-import { indexStep } from '../../../../scripts/migrations-lib/indexRetry.mts'
+import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
 const projectId = process.env.NUXT_PUBLIC_APPWRITE_PROJECT_ID
@@ -37,6 +37,7 @@ if (!endpoint || !projectId || !apiKey || !databaseId) {
 
 const TABLE = 'comment_votes'
 const tablesDB = new TablesDB(new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey))
+const { indexStep } = createIndexSteps(tablesDB, databaseId)
 
 function hasCode(error: unknown, code: number): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
@@ -72,9 +73,9 @@ await step(`Column ${TABLE}.tenantId`, () => tablesDB.createVarcharColumn({
 await waitForColumn('tenantId')
 // Die Stimmen-Abfrage filtert userId + commentId + (neu) tenantId — der Index
 // trägt genau diese Kombination, führend der Mandant.
-await indexStep(`Index ${TABLE}.idx_tenant_user`, () => tablesDB.createIndex({
-  databaseId, tableId: TABLE, key: 'idx_tenant_user', type: TablesDBIndexType.Key,
+await indexStep(`Index ${TABLE}.idx_tenant_user`, {
+  tableId: TABLE, key: 'idx_tenant_user', type: TablesDBIndexType.Key,
   columns: ['tenantId', 'userId'],
-}))
+})
 
 console.log('✔ Migration comments-014 fertig')
