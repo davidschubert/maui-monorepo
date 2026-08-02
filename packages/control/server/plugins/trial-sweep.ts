@@ -1,5 +1,6 @@
 import { runTrialSweep } from '../utils/trialSweep'
 import { pruneInviteRequests } from '../utils/inviteRequestPrune'
+import { runPastDueSweep } from '../utils/pastDueSweep'
 
 /**
  * Testphasen-Automatik (O6): abgelaufene Trials fallen auf den kostenlosen
@@ -34,6 +35,22 @@ export default defineNitroPlugin(() => {
       }
     }).catch((error) => {
       console.error('[control] Anfragen-Aufräumen fehlgeschlagen:', error instanceof Error ? error.message : error)
+    })
+
+    // Dritter Mitfahrer, gleiche Begründung (M13): Zahlungsverzug rechnet in
+    // TAGEN, stündlich ist also reichlich genau, und ein eigener Timer wäre nur
+    // ein weiterer Ort, an dem man nach dem Grund für eine Sperre sucht. Der
+    // Sweep ist idempotent — er sperrt jede Community höchstens einmal und hebt
+    // auf, was nicht mehr überfällig ist.
+    void runPastDueSweep().then((result) => {
+      if (result.suspended.length) {
+        console.warn(`[control] Wegen Zahlungsverzug gesperrt: ${result.suspended.join(', ')}`)
+      }
+      if (result.lifted.length) {
+        console.info(`[control] Zahlungs-Sperre aufgehoben: ${result.lifted.join(', ')}`)
+      }
+    }).catch((error) => {
+      console.error('[control] Zahlungsverzugs-Sweep fehlgeschlagen:', error instanceof Error ? error.message : error)
     })
   }
 

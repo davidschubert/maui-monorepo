@@ -100,6 +100,9 @@ export default defineEventHandler(async (event): Promise<MyCommunitiesResponse> 
       communityStatus: community.status,
       plan: community.plan,
       trialEndsAt: community.trialEndsAt,
+      // M13: roh durchgereicht — ob die Karte bleibt und ob der Zustand sichtbar
+      // ist, entscheidet die pure Projektion, nicht diese Route.
+      suspension: community.suspension,
     })
   }
 

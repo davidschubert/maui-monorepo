@@ -1,8 +1,8 @@
 # Offene Punkte
 
-**Stand: 9 offen · 9 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 8 offen · 9 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
-Stand: **2026-08-01**. Hier steht **nur, was noch offen ist** — in der
+Stand: **2026-08-02**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
 Beweis und den gelernten Lektionen) steht final in
 **[OPEN-ITEMS-COMPLETE.md](OPEN-ITEMS-COMPLETE.md)**.
@@ -21,9 +21,8 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
 | 11 · B1 | **Neun visuelle Referenzbilder sichten** — jetzt WIRKLICH final: zuletzt am 2026-08-01 neu gebacken, nachdem das DevTools-Abzeichen (wechselnde ms-Zahl) aus allen neun Bildern verschwunden ist. Zu prüfen bleibt nur der Inhalt: `git show HEAD:<pfad>` gegen die Arbeitskopie halten. | Mittel | S — ansehen | Ja: David sichtet | [Notizen](#notizen) |
-| 25 · M13 | **Selbstbedienungs-Rest, noch zwei Stücke:** Sperr-/Missbrauchspfad (braucht Davids Regeln: wann sperren?) und Statusseite bei UptimeRobot (Klick, mit E2 bündeln). Testphase-Hinweis ✅ gebaut; `/workspace`-Umzug war gegenstandslos (mit A6 abgeschafft, kein Ziel für einen Redirect). | Mittel | S — Regeln + Klicks | Ja: Regeln + Klicks | [SAAS-ROADMAP #1](archiv/SAAS-ROADMAP.md) |
 | 27 · E1 | **Tote Schlüsseldatei löschen** (`apps/control/.env.production` zeigt auf ein gelöschtes Projekt). Liegt nur auf Davids Rechner, nicht im Repo. | Niedrig | S — eine Datei | Ja: enthält Schlüsselmaterial | [Notizen](#notizen) |
-| 28 · E2 | **UptimeRobot nachziehen:** Monitor für `help.pukalani.app` anlegen, einen alten Monitor umbenennen. | Niedrig | S — zwei Klicks | Nein | [Notizen](#notizen) |
+| 28 · E2 | **UptimeRobot nachziehen:** Monitor für `help.pukalani.app` anlegen, einen alten Monitor umbenennen — und im selben Aufwasch die öffentliche Statusseite einschalten (kam aus M13). | Niedrig | S — drei Klicks | Nein | [Notizen](#notizen) |
 | 29 · E3 | **Server-Größe prüfen** — der CX33 wird mit sechs Apps plus Builds knapp. | Mittel | S — prüfen, ggf. Rescale | Ja: kostet Geld | [Notizen](#notizen) |
 | 30 · E4 | **Nur-Lese-Schlüssel im Projekt `control`** erzeugen (letzter Cutover-Krümel). | Niedrig | S — ein Klick in der Console | Ja: David, Console | [CONTROL-CUTOVER.md](runbooks/CONTROL-CUTOVER.md) |
 | 32 · F8 | **Wie lange dürfen Abrechnungsdaten bleiben?** Löscht der letzte Owner sein Konto, bleiben `stripeCustomerId` und Zahlungsstatus der Community stehen (die Zeile wird nur entpersonalisiert). Aufbewahrungspflicht (§147 AO / §257 HGB) spricht dafür — oder es braucht eine Löschfrist. | Niedrig | S — Entscheidung, dann ggf. eine Frist | Ja: rechtliche Abwägung | [F3 in COMPLETE](OPEN-ITEMS-COMPLETE.md) |

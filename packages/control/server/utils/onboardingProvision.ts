@@ -216,6 +216,13 @@ export async function provisionCommunity(
       stripeCustomerId: '',
       stripeSubscriptionId: '',
       billingStatus: '',
+      // M13 (control-034): eine frisch gegründete Community ist nicht gesperrt.
+      // Explizit, damit eine neue Spalte hier eine Entscheidung erzwingt statt
+      // stillschweigend auf null zu bleiben.
+      suspension: '',
+      suspensionReason: '',
+      suspendedAt: null,
+      pastDueSince: null,
     },
   }).catch((error) => { throw toH3Error(error, 'Could not create community') })
 

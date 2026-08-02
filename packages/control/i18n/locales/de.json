@@ -5,7 +5,8 @@
       "tenants": "Tenants",
       "inviteRequests": "Anfragen",
       "invites": "Einladungen",
-      "reservedNames": "Gesperrte Namen"
+      "reservedNames": "Gesperrte Namen",
+      "abuseReports": "Missbrauchsmeldungen"
     }
   },
   "control": {
@@ -313,6 +314,32 @@
         "tier": "Plan / Welle",
         "registration": "Registrierung",
         "status": "Status"
+      },
+      "suspend": {
+        "action": "Sperren …",
+        "intro": "Die Community {host} wird gesperrt. Das löscht nichts und ist jederzeit rücknehmbar.",
+        "kindLabel": "Wie hart?",
+        "kindHelp": "Nur-lesend mahnt, offline nimmt die Adresse vom Netz.",
+        "kindBilling": "Nur lesen (Zahlung offen)",
+        "kindAbuse": "Ganz aus (Missbrauch)",
+        "reasonLabel": "Grund — der Owner liest genau diesen Text",
+        "reasonHelp": "Mindestens fünf Zeichen. Er erscheint im Dashboard der Community.",
+        "confirm": "Jetzt sperren",
+        "done": "Community gesperrt",
+        "doneHint": "{host} — wirkt in höchstens 30 Sekunden (Zwischenspeicher).",
+        "pastDue": "Zahlung offen — Frist läuft",
+        "badge": {
+          "billing": "nur lesen",
+          "abuse": "offline"
+        }
+      },
+      "unsuspend": {
+        "action": "Sperre aufheben",
+        "title": "Sperre aufheben?",
+        "text": "Die Community {host} ist danach wieder wie vorher erreichbar.",
+        "confirm": "Aufheben",
+        "done": "Sperre aufgehoben",
+        "doneHint": "{host} — wirkt in höchstens 30 Sekunden (Zwischenspeicher)."
       }
     },
     "plans": {
@@ -339,6 +366,46 @@
       "interval": {
         "monthly": "monatlich",
         "yearly": "jährlich"
+      }
+    },
+    "abuse": {
+      "title": "Missbrauchsmeldungen",
+      "subtitle": "Meldungen von außen. Eine Meldung bewirkt für sich nichts — hier entscheidest du.",
+      "refresh": "Neu laden",
+      "empty": "Es liegt nichts vor.",
+      "emptyTitle": "Keine Meldungen",
+      "rowActions": "Aktionen",
+      "unmatched": "Adresse gehört zu keiner Community",
+      "suspend": "Community sperren",
+      "suspendIntro": "Die Community hinter {host} geht sofort offline. Die Inhalte bleiben erhalten, nur für dich erreichbar.",
+      "suspended": "Community gesperrt",
+      "suspendedHint": "{host} ist offline, die Meldung ist abgeschlossen.",
+      "dismiss": "Verwerfen",
+      "reopen": "Wieder öffnen",
+      "updated": "Meldung aktualisiert",
+      "actionFailed": "Hat nicht geklappt",
+      "actionFailedHint": "Bitte noch einmal versuchen.",
+      "noCommunity": "Keine Community zu dieser Adresse",
+      "noCommunityHint": "Der gemeldete Host gehört zu keiner Community — es gibt nichts zu sperren.",
+      "stats": {
+        "open": "offen",
+        "suspended": "gesperrt",
+        "dismissed": "verworfen",
+        "total": "gesamt"
+      },
+      "col": {
+        "target": "Gemeldet",
+        "category": "Art",
+        "message": "Was",
+        "status": "Stand"
+      },
+      "categories": {
+        "illegal": "Rechtswidrige Inhalte",
+        "harassment": "Belästigung oder Hass",
+        "spam": "Spam oder Betrug",
+        "impersonation": "Identitätsmissbrauch",
+        "copyright": "Urheberrecht",
+        "other": "Etwas anderes"
       }
     }
   }

@@ -3,6 +3,7 @@ import type { H3Event } from 'h3'
 import type { Models } from 'node-appwrite'
 import { rowBelongsToTenant, scopeQuery, scopeRowFor, useTenant } from './tenant'
 import { tenantRowPermissions, type TenantRowPermissionOptions } from './tenantRowPermissions'
+import { COMMUNITY_SUSPENDED_CODE, memberWritesAllowedFor } from '../../shared/communitySuspension'
 
 /**
  * DIE mandantensichere Datentür (Horizont-3, Ablösung der Konvention).
@@ -84,6 +85,38 @@ export function tenantDb(event: H3Event, options: TenantDbOptions = {}) {
     ? createAdminClient(event).tablesDB
     : createSessionClient(event).tablesDB
 
+  /**
+   * DIE SPERRE (M13, Davids Entscheidung vom 2026-08-02): eine Community mit
+   * Zahlungsverzug ist NUR-LESEND.
+   *
+   * Warum die Prüfung HIER steht und nicht in den Schreib-Routen: derselbe
+   * Grund, aus dem diese Tür überhaupt existiert, und dieselbe Stelle, an der
+   * schon der A5-Beitritt hängt. „Jede Route muss daran denken" hat sich am
+   * 2026-07-26 als keine Regel erwiesen; eine vergessene Route wäre hier ein
+   * Loch in der Mahnung, also genau der Fall, für den die Sperre gebaut ist.
+   * Durch diese Tür geht JEDER eigene Schreibvorgang eines Mandanten-Layers —
+   * anlegen, ändern, löschen, hoch- und runterzählen, umrechten.
+   *
+   * NUR die Türklinke 'member': `as: 'operator'` ist Moderation und
+   * Betreiber-Sicht (auch recordActivity läuft so). Eine gesperrte Community
+   * muss weiter moderierbar bleiben — sonst nähme die Zahlungserinnerung dem
+   * Betreiber sein eigenes Werkzeug aus der Hand.
+   *
+   * 403 mit `data.code` statt 404: hier ist NICHTS versteckt. Der Schreibende
+   * darf und soll erfahren, warum sein Beitrag nicht durchgeht — der zentrale
+   * Fehler-Handler hebt den Schlüssel als `reason` ins Envelope, die Oberfläche
+   * macht daraus einen Satz.
+   */
+  function assertWritable(): void {
+    if (actor !== 'member') return
+    if (memberWritesAllowedFor(tenant)) return
+    throw createError({
+      status: 403,
+      statusText: 'Community is read-only',
+      data: { code: COMMUNITY_SUSPENDED_CODE },
+    })
+  }
+
   /** Zeile per ID holen UND ihre Zugehörigkeit belegen. 404 statt 403: ein 403
    *  würde bestätigen, dass die ID existiert. */
   async function get<T extends Models.Row>(tableId: string, rowId: string, notFound = 'Not found'): Promise<T> {
@@ -131,6 +164,9 @@ export function tenantDb(event: H3Event, options: TenantDbOptions = {}) {
       data: Record<string, unknown>,
       createOptions: TenantCreateOptions = {},
     ): Promise<T> {
+      // VOR dem Beitritt: wer in einer gesperrten Community nicht schreiben
+      // darf, soll durch den Versuch auch nicht Mitglied werden.
+      assertWritable()
       const { rowId, permissions, ...permissionOptions } = createOptions
 
       /**
@@ -179,6 +215,7 @@ export function tenantDb(event: H3Event, options: TenantDbOptions = {}) {
       data: Record<string, unknown>,
       notFound = 'Not found',
     ): Promise<T> {
+      assertWritable()
       await get(tableId, rowId, notFound)
       return tablesDB.updateRow<T>({
         databaseId, tableId, rowId, data: stripTenantKey(data) as RowDataUpdate<T>,
@@ -197,6 +234,7 @@ export function tenantDb(event: H3Event, options: TenantDbOptions = {}) {
       permissions: string[],
       notFound = 'Not found',
     ): Promise<T> {
+      assertWritable()
       await get(tableId, rowId, notFound)
       return tablesDB.updateRow<T>({ databaseId, tableId, rowId, permissions })
     },
@@ -213,6 +251,7 @@ export function tenantDb(event: H3Event, options: TenantDbOptions = {}) {
       options: { value?: number, max?: number } = {},
       notFound = 'Not found',
     ): Promise<T> {
+      assertWritable()
       await get(tableId, rowId, notFound)
       return tablesDB.incrementRowColumn({
         databaseId, tableId, rowId, column,
@@ -229,6 +268,7 @@ export function tenantDb(event: H3Event, options: TenantDbOptions = {}) {
       options: { value?: number, min?: number } = {},
       notFound = 'Not found',
     ): Promise<T> {
+      assertWritable()
       await get(tableId, rowId, notFound)
       return tablesDB.decrementRowColumn({
         databaseId, tableId, rowId, column,
@@ -239,6 +279,7 @@ export function tenantDb(event: H3Event, options: TenantDbOptions = {}) {
 
     /** Löschen — erst Zugehörigkeit belegen. */
     async remove(tableId: string, rowId: string, notFound = 'Not found'): Promise<void> {
+      assertWritable()
       await get(tableId, rowId, notFound)
       await tablesDB.deleteRow({ databaseId, tableId, rowId })
     },

@@ -1,3 +1,5 @@
+import type { CommunitySuspension } from '../communitySuspension'
+
 /**
  * Horizont-3 (Pool+Silo) — Mandanten-Kontext pro Request.
  * Siehe docs/referenz/HORIZONT-3-POOL-SILO-BLUEPRINT.md (Naht 1).
@@ -70,6 +72,21 @@ export interface TenantPolicy {
    * „es gibt gar keinen Mandanten".
    */
   audience?: CommunityAudience
+  /**
+   * Sperre der Community (M13, control-034 — s. shared/communitySuspension.ts).
+   *
+   * PRAKTISCH KANN HIER NUR `''` ODER `'billing'` STEHEN: eine abuse-Sperre
+   * lässt `mapTenantRowToContext()` gar keinen Kontext bauen (der Resolver
+   * liefert `null`, der Host 404et wie ein unbekannter). Der Typ trägt trotzdem
+   * alle drei Werte, weil es derselbe Spaltenwert ist — ihn hier zu verengen
+   * hieße, an zwei Stellen zwei verschiedene Wahrheiten zu pflegen.
+   *
+   * OPTIONAL, und `undefined` heißt „nicht gesperrt" — dieselbe Bauart wie
+   * `openRegistration`/`audience`: Silo-Apps, Kontroll-Hosts, Playground und
+   * Bestands-Fixtures bauen den Kontext ohne das Feld, und die haben keinen
+   * Vertrag, den man sperren könnte.
+   */
+  suspension?: CommunitySuspension
 }
 
 /**

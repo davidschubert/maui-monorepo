@@ -63,6 +63,21 @@ function noticeFor(community: MyCommunityView) {
 }
 
 /**
+ * Eine abuse-gesperrte Community ist OFFLINE — ihr Host antwortet 404 (M13).
+ * Die Karte bleibt trotzdem stehen (nur der Owner sieht sie, s.
+ * `projectMyCommunities`), aber sie ist KEIN Klickziel mehr: ein Sprung, der
+ * verlässlich in einer Fehlerseite endet, wäre schlechter als gar keiner.
+ * Stattdessen sagt die Karte, was los ist.
+ *
+ * Die billing-Sperre lässt den Knopf dagegen SCHARF: der Host läuft, man kann
+ * lesen, und im Dashboard steht der Weg zur Zahlung. Genau dorthin soll dieser
+ * Klick führen.
+ */
+function isOffline(community: MyCommunityView): boolean {
+  return community.suspension === 'abuse'
+}
+
+/**
  * Der Sprung in die Community — EINGELOGGT.
  *
  * Session-Cookies sind host-only, die Anmeldung auf `my.*` gilt auf der
@@ -130,11 +145,15 @@ useHead({ title: () => t('onboarding.communities.title') })
       <li v-for="community in communities" :key="community.communityId">
         <button
           type="button"
-          class="flex w-full items-center gap-4 rounded-xl border border-default p-5 text-left transition-colors hover:border-primary hover:bg-elevated/50 disabled:opacity-60"
-          :disabled="opening !== null"
+          class="flex w-full items-center gap-4 rounded-xl border border-default p-5 text-left transition-colors disabled:opacity-60"
+          :class="isOffline(community)
+            ? 'cursor-default border-error/40'
+            : 'hover:border-primary hover:bg-elevated/50'"
+          :disabled="opening !== null || isOffline(community)"
           :data-community-host="community.host"
           :data-community-role="community.role"
-          @click="open(community)"
+          :data-community-suspension="community.suspension"
+          @click="isOffline(community) ? undefined : open(community)"
         >
           <span class="min-w-0 flex-1 space-y-1">
             <span class="flex flex-wrap items-center gap-2">
@@ -147,8 +166,21 @@ useHead({ title: () => t('onboarding.communities.title') })
               </UBadge>
             </span>
             <span class="block truncate text-sm text-muted">{{ community.host }}</span>
+            <!-- Die Sperre steht VOR dem Testphasen-Hinweis und schließt ihn
+                 aus: wer gesperrt ist, hat keine Testphase mehr, und zwei
+                 rote Zeilen übereinander erklären nichts. -->
             <span
-              v-if="noticeFor(community)"
+              v-if="community.suspension"
+              class="flex items-center gap-1.5 text-sm text-error"
+              data-community-suspended
+            >
+              <UIcon name="i-ph-lock-simple" class="size-4 shrink-0" />
+              {{ community.suspension === 'abuse'
+                ? t('onboarding.communities.suspendedAbuse')
+                : t('onboarding.communities.suspendedBilling') }}
+            </span>
+            <span
+              v-else-if="noticeFor(community)"
               class="flex items-center gap-1.5 text-sm"
               :class="noticeFor(community)?.kind === 'ending' ? 'text-warning' : 'text-muted'"
               data-community-trial
@@ -164,10 +196,12 @@ useHead({ title: () => t('onboarding.communities.title') })
             </span>
           </span>
           <UIcon
+            v-if="!isOffline(community)"
             :name="opening === community.communityId ? 'i-ph-circle-notch' : 'i-ph-arrow-right'"
             class="size-5 shrink-0 text-dimmed"
             :class="{ 'animate-spin': opening === community.communityId }"
           />
+          <UIcon v-else name="i-ph-lock-simple" class="size-5 shrink-0 text-error" />
         </button>
       </li>
     </ul>

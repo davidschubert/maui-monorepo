@@ -248,6 +248,7 @@
     "billing": "Zahlungsproblem: {name}",
     "siteInvite": "Einladung zu {name}",
     "inviteRequest": "Early-Access-Anfrage von {name}",
+    "abuseReport": "Missbrauchsmeldung zu {name}",
     "email": {
       "title": "E-Mail-Benachrichtigungen",
       "description": "Bell-Benachrichtigungen (Antworten, Erwähnungen, Erinnerungen) zusätzlich per E-Mail erhalten.",

@@ -1,4 +1,5 @@
 import { COMMUNITY_ROLES, communityRoleHasCapability, type CommunityRole } from '../../core/shared/communityAuthz'
+import { resolveCommunitySuspension, type CommunitySuspension } from '../../core/shared/communitySuspension'
 import { normalizeTenantPlan, type TenantPlan } from './types/tenantRecord'
 
 /**
@@ -41,6 +42,16 @@ export interface MyCommunityView {
    * zeigt die Karte keinen Testphasen-Hinweis.
    */
   trialEndsAt: string | null
+  /**
+   * Sperre der Community (M13). `''` = alles normal · `'billing'` = nur-lesend,
+   * die Adresse funktioniert weiter · `'abuse'` = Host offline, die Karte führt
+   * NIRGENDWO hin (s. `projectMyCommunities`).
+   *
+   * Für Rollen ohne `community.billing` steht hier IMMER `''` — aus demselben
+   * Grund wie bei `trialEndsAt`: der Sperrzustand ist eine Aussage über den
+   * Vertrag, und die geht Mitleser nichts an.
+   */
+  suspension: CommunitySuspension
 }
 
 /** Rohdaten EINER Mitgliedschaft, wie das Control Plane sie zusammenträgt. */
@@ -54,6 +65,8 @@ export interface MyCommunityFacts {
   /** `communities.plan`; '' = Bestand vor control-013. */
   plan: string | null
   trialEndsAt: string | null
+  /** `communities.suspension` roh; `null` = Bestand vor control-034. */
+  suspension: string | null
 }
 
 /**
@@ -70,14 +83,26 @@ function roleRank(role: CommunityRole): number {
 }
 
 /**
- * Fakten → Ansicht. Drei Entscheidungen, alle hier und nirgends sonst:
+ * Fakten → Ansicht. Fünf Entscheidungen, alle hier und nirgends sonst:
  *
  *  1. **Stillgelegte Communities fallen weg.** `status !== 'active'` heißt, der
  *     Host antwortet 404 (der Mandanten-Resolver liefert null) — eine Karte,
  *     die ins Leere führt, ist schlechter als keine. „Stilllegen" IST der
  *     Löschweg (C16), das Verschwinden aus der Liste ist die erwartete Folge.
- *  2. **Testphase nur für den, der zahlt** (s. Kopf).
- *  3. **Sortierung: eigene zuerst.** Owner vor Admin vor … vor Viewer, bei
+ *  2. **GESPERRTE bleiben dagegen stehen** (M13). Genau hier trennen sich
+ *     `status` und `suspension`: eine Sperre ist kein Löschen, und der Owner
+ *     muss beides können — erfahren, warum seine Adresse tot ist, und bezahlen.
+ *     Verschwände die Karte, wäre die Zahlungssperre eine Sackgasse.
+ *  3. **Eine abuse-gesperrte Community sieht NUR, wer abrechnet** (heute: der
+ *     Owner). Zwei Gründe: der Host ist offline, für alle anderen ist die
+ *     Community schlicht weg — dieselbe Erfahrung wie bei jeder anderen
+ *     abgeschalteten Adresse. Und „diese Community wurde wegen Missbrauchs
+ *     gesperrt" ist ein Vorwurf; den bekommt der zu lesen, an den er gerichtet
+ *     ist, nicht seine zwanzig Mitglieder. Eine billing-Sperre bleibt für alle
+ *     in der Liste, weil der Host ja weiterläuft — nur der GRUND ist gegated.
+ *  4. **Testphase nur für den, der zahlt** (s. Kopf) — und aus demselben Grund
+ *     auch der Sperrzustand.
+ *  5. **Sortierung: eigene zuerst.** Owner vor Admin vor … vor Viewer, bei
  *     gleicher Rolle alphabetisch. Wer drei eigene Communities und zwanzig
  *     Mitgliedschaften hat, soll seine oben finden — nicht raten müssen,
  *     wonach sortiert wurde.
@@ -85,6 +110,8 @@ function roleRank(role: CommunityRole): number {
 export function projectMyCommunities(facts: readonly MyCommunityFacts[]): MyCommunityView[] {
   return facts
     .filter(row => row.communityStatus === 'active')
+    .filter(row => resolveCommunitySuspension(row.suspension) !== 'abuse'
+      || communityRoleHasCapability(row.role, 'community.billing'))
     .map(row => ({
       communityId: row.communityId,
       name: row.name,
@@ -92,6 +119,9 @@ export function projectMyCommunities(facts: readonly MyCommunityFacts[]): MyComm
       role: row.role,
       plan: normalizeTenantPlan(row.plan),
       trialEndsAt: communityRoleHasCapability(row.role, 'community.billing') ? row.trialEndsAt ?? null : null,
+      suspension: communityRoleHasCapability(row.role, 'community.billing')
+        ? resolveCommunitySuspension(row.suspension)
+        : '',
     }))
     .sort((a, b) => roleRank(a.role) - roleRank(b.role) || a.name.localeCompare(b.name))
 }

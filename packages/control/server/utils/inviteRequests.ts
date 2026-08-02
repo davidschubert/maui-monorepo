@@ -243,7 +243,7 @@ export async function upsertRequest(
  * mehr als 100 Betreiber ab; wird der Deckel erreicht, ist das eine LAUTE
  * Meldung und keine stille Kürzung.
  */
-async function listOperatorIds(event: H3Event): Promise<string[]> {
+export async function listOperatorIds(event: H3Event): Promise<string[]> {
   const { users } = createAdminClient(event)
   const ids: string[] = []
   let cursor = ''

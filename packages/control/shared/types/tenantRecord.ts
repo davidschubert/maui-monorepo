@@ -142,6 +142,20 @@ export interface TenantRow extends Models.Row {
    *  (active/past_due/canceled). Bewusst billingStatus, nicht paymentStatus —
    *  Geldfluss 2 (F7) kommt später DANEBEN, nie hinein. */
   billingStatus: string | null
+  /** M13 (control-034): Sperre der Community, EIGENE Achse neben `status`.
+   *  '' / `null` = nicht gesperrt · 'billing' = nur-lesend · 'abuse' = Host
+   *  offline. IMMER über `resolveCommunitySuspension()` (core) lesen — nie
+   *  direkt vergleichen; die Herleitung steht in core/shared/communitySuspension.ts. */
+  suspension: string | null
+  /** Der Grund, den DER OWNER liest (nicht eine interne Notiz). '' = keine
+   *  Sperre oder Bestand ohne Grund. */
+  suspensionReason: string | null
+  /** Wann gesperrt wurde (ISO); `null` = nie. */
+  suspendedAt: string | null
+  /** Seit wann Zahlungsverzug besteht (ISO); `null` = keiner. Wird beim ERSTEN
+   *  past_due gesetzt und danach NICHT mehr verschoben — sonst begänne die
+   *  14-Tage-Frist bei jedem Dunning-Versuch von vorn. */
+  pastDueSince: string | null
 }
 
 export const COMMUNITIES_TABLE = 'communities'

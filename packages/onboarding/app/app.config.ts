@@ -92,6 +92,17 @@ export default defineAppConfig({
        * die ihn nichts angeht.
        */
       notices: {
+        /**
+         * Die Sperre steht VOR der Testphase (M13): eine nur-lesende Community
+         * ist die dringlichere Nachricht, und beides gleichzeitig gibt es
+         * praktisch nicht — eine Testphase kann nichts schulden. Dieselbe
+         * Capability wie die Abo-Seite, auf die der Knopf zeigt.
+         */
+        communitySuspension: {
+          component: 'CommunitySuspensionNotice',
+          requiredCapability: 'community.billing',
+          order: 5,
+        },
         communityTrial: {
           component: 'CommunityTrialNotice',
           requiredCapability: 'community.billing',

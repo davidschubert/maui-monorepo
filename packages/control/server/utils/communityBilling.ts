@@ -37,6 +37,23 @@ export async function handleCommunitySubscriptionUpdate(event: H3Event, update: 
     case 'ignore':
       return
     case 'apply-plan': {
+      // Zahlung ist da: eine laufende BILLING-Sperre fällt im selben Schreibvorgang
+      // (Davids Entscheidung vom 2026-08-02 — „Zahlung ausgeglichen ⇒ Sperre fällt
+      // automatisch"). Eine `abuse`-Sperre bleibt bestehen: die endet nur durch
+      // eine Betreiber-Entscheidung, nicht durch Geld. Deshalb wird der Wert
+      // GELESEN und nicht blind auf '' gesetzt.
+      const current = await admin.tablesDB.getRow<TenantRow>({
+        databaseId, tableId: COMMUNITIES_TABLE, rowId: action.communityId,
+      }).catch((error) => {
+        // 404 = Community gelöscht → nichts zu tun ist hier falsch (das Abo
+        // gehört zu ihr), aber auch nichts zu retten. Alles andere ist transient
+        // → rethrow, damit Stripe erneut zustellt (Webhook-Regel).
+        if (typeof error === 'object' && error !== null && 'code' in error && error.code === 404) return null
+        throw error
+      })
+      if (!current) return
+      const liftsSuspension = current.suspension === 'billing'
+
       await admin.tablesDB.updateRow<TenantRow>({
         databaseId, tableId: COMMUNITIES_TABLE, rowId: action.communityId,
         data: {
@@ -49,18 +66,45 @@ export async function handleCommunitySubscriptionUpdate(event: H3Event, update: 
           // Trial-Sweep später einen zahlenden Kunden herabstufen wollen
           // (das Abo-Veto in shouldEndTrial ist das zweite Netz).
           trialEndsAt: null,
+          // Die Uhr der 14-Tage-Frist wird abgeräumt, nicht nur angehalten:
+          // ein späterer Verzug soll bei null anfangen.
+          pastDueSince: null,
+          ...(liftsSuspension ? { suspension: '', suspensionReason: '', suspendedAt: null } : {}),
         },
       })
       console.info(`[control] Community ${action.communityId} → Plan ${action.plan} (Abo ${action.stripeSubscriptionId})`)
+      if (liftsSuspension) console.info(`[control] Community ${action.communityId}: Zahlungs-Sperre aufgehoben (Zahlung eingegangen)`)
       return
     }
-    case 'past-due':
+    case 'past-due': {
+      // NICHT SOFORT SPERREN (Davids Entscheidung): der Webhook stempelt nur den
+      // BEGINN des Verzugs, die Sperre fällt 14 Tage später im Sweep. Ein
+      // Webhook, der sperrt, wäre die falsche Stelle — er muss bei transienten
+      // Fehlern werfen (Stripe stellt erneut zu), und ein Retry darf keine
+      // zweite Sperre auslösen.
+      //
+      // Der Stempel wird NUR gesetzt, wenn noch keiner steht. Stripe schickt
+      // während des Dunnings mehrere `past_due`-Events; jedes davon würde die
+      // Frist sonst neu starten, und sie liefe nie ab.
+      const current = await admin.tablesDB.getRow<TenantRow>({
+        databaseId, tableId: COMMUNITIES_TABLE, rowId: action.communityId,
+      }).catch((error) => {
+        if (typeof error === 'object' && error !== null && 'code' in error && error.code === 404) return null
+        throw error
+      })
+      if (!current) return
+      const alreadyStamped = !!current.pastDueSince
+
       await admin.tablesDB.updateRow<TenantRow>({
         databaseId, tableId: COMMUNITIES_TABLE, rowId: action.communityId,
-        data: { billingStatus: 'past_due' },
+        data: {
+          billingStatus: 'past_due',
+          ...(alreadyStamped ? {} : { pastDueSince: new Date().toISOString() }),
+        },
       })
-      console.warn(`[control] Community ${action.communityId} → past_due (Plan bleibt, Stripe-Dunning läuft)`)
+      console.warn(`[control] Community ${action.communityId} → past_due (Plan bleibt, Frist läuft${alreadyStamped ? ' seit ' + current.pastDueSince : ' ab jetzt'})`)
       return
+    }
     case 'free-fallback': {
       const tenant = await admin.tablesDB.getRow<TenantRow>({
         databaseId, tableId: COMMUNITIES_TABLE, rowId: action.communityId,
@@ -113,6 +157,12 @@ export async function handleCommunitySubscriptionUpdate(event: H3Event, update: 
           plan: 'basic',
           billingStatus: 'canceled',
           stripeSubscriptionId: '',
+          // Kündigung beendet den Verzug: was nicht mehr geschuldet wird, kann
+          // nicht überfällig sein. Eine BILLING-Sperre fällt deshalb mit —
+          // sonst bliebe ein Kunde für immer nur-lesend, obwohl er auf dem
+          // kostenlosen Tarif nichts mehr schuldet. Eine `abuse`-Sperre bleibt.
+          pastDueSince: null,
+          ...(tenant.suspension === 'billing' ? { suspension: '', suspensionReason: '', suspendedAt: null } : {}),
         },
       })
       console.info(`[control] Community ${action.communityId} → free-Fallback nach Kündigung`)

@@ -243,9 +243,14 @@ try {
 
   console.log('\n4. Der Umschlag trägt nur die Ansicht')
   const keys = Object.keys(aliceOwn ?? {}).sort()
-  check('genau {communityId, host, name, plan, role, trialEndsAt}',
-    JSON.stringify(keys) === JSON.stringify(['communityId', 'host', 'name', 'plan', 'role', 'trialEndsAt']),
+  check('genau {communityId, host, name, plan, role, suspension, trialEndsAt}',
+    JSON.stringify(keys) === JSON.stringify(['communityId', 'host', 'name', 'plan', 'role', 'suspension', 'trialEndsAt']),
     JSON.stringify(keys))
+  // M13: `suspension` ist seit control-034 Teil der Ansicht — die Karte muss
+  // sagen können, warum eine Community nicht klickbar ist. Wie `trialEndsAt`
+  // trägt sie den Wert NUR für Rollen mit `community.billing`.
+  check('der Sperrzustand steht beim Owner (hier: nicht gesperrt)', aliceOwn?.suspension === '', JSON.stringify(aliceOwn?.suspension))
+  check('… und beim Mitleser IMMER leer', aliceGuest?.suspension === '', JSON.stringify(aliceGuest?.suspension))
 
   console.log('\n5. Kanten der Route')
   const guest = await mine(null)

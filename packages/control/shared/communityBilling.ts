@@ -132,3 +132,69 @@ export function transferBlockedBySubscription(input: {
 export function deleteBlockedBySubscription(input: { billingStatus: string, stripeSubscriptionId: string }): boolean {
   return hasLiveSubscription(input)
 }
+
+// ── Zahlungsverzug → Sperre (M13, Davids Entscheidung vom 2026-08-02) ───────
+
+/**
+ * Wie lange darf eine offene Forderung offen bleiben, bevor die Community
+ * nur-lesend wird? Vierzehn Tage — dieselbe Zahl wie die Testphase, und das ist
+ * kein Zufall: beide sind „zwei Wochen, in denen nichts passiert". Stripes
+ * eigenes Dunning (Zahlungsversuche + Mahn-Mails) läuft in dieser Zeit ohnehin.
+ */
+export const PAST_DUE_GRACE_DAYS = 14
+const DAY_MS = 24 * 60 * 60 * 1000
+
+/** Was die Sperr-Rechnung von einer Community wissen muss. */
+export interface CommunityBillingState {
+  /** `communities.status` — 'disabled' ist stillgelegt, da gibt es nichts zu sperren. */
+  status: string
+  /** `communities.billingStatus` — '' | 'active' | 'past_due' | 'canceled'. */
+  billingStatus: string
+  /** `communities.suspension` — '' | 'billing' | 'abuse'. */
+  suspension: string
+  /** `communities.pastDueSince` (ISO) oder null/''. */
+  pastDueSince: string | null
+}
+
+/**
+ * PURE (unit-getestet): Ist diese Community wegen Zahlungsverzugs zu sperren?
+ *
+ * Vier Bedingungen, jede aus einem eigenen Grund:
+ *  - `status === 'active'` — eine stillgelegte Community ist schon offline.
+ *  - `suspension === ''` — eine bestehende Sperre wird NIE überschrieben. Sonst
+ *    stufte der Sweep eine `abuse`-Sperre stillschweigend auf „nur-lesend"
+ *    herunter und brächte eine gesperrte Community zurück ins Netz.
+ *  - `billingStatus === 'past_due'` — der Webhook normalisiert Stripes
+ *    `past_due` UND `unpaid` auf genau diesen einen Wert; wer bezahlt hat oder
+ *    gekündigt hat, steht hier nicht mehr.
+ *  - die Frist ist abgelaufen, gerechnet ab `pastDueSince`.
+ *
+ * Ein unlesbares Datum sperrt NICHT (fail-open): lieber eine Mahnung zu spät
+ * als eine Community zu Unrecht zugemacht.
+ */
+export function shouldSuspendForPastDue(community: CommunityBillingState, now: number): boolean {
+  if (community.status !== 'active') return false
+  if (community.suspension !== '') return false
+  if (community.billingStatus !== 'past_due') return false
+  if (!community.pastDueSince) return false
+  const since = Date.parse(community.pastDueSince)
+  if (!Number.isFinite(since)) return false
+  return now - since >= PAST_DUE_GRACE_DAYS * DAY_MS
+}
+
+/**
+ * PURE (unit-getestet): Ist eine BILLING-Sperre aufzuheben?
+ *
+ * „Zahlung ausgeglichen ⇒ Sperre fällt automatisch" (Davids Entscheidung). Der
+ * Webhook macht das im selben Atemzug, in dem er `active` schreibt — diese
+ * Funktion ist das NETZ darunter, für den Fall, dass ein Webhook einmal nicht
+ * ankommt: der stündliche Sweep sieht dann eine Community mit
+ * `suspension: 'billing'`, deren `billingStatus` längst nicht mehr `past_due`
+ * ist, und macht sie wieder auf.
+ *
+ * Eine `abuse`-Sperre hebt hier NICHTS auf — die endet ausschließlich durch eine
+ * Betreiber-Entscheidung.
+ */
+export function shouldLiftBillingSuspension(community: Pick<CommunityBillingState, 'billingStatus' | 'suspension'>): boolean {
+  return community.suspension === 'billing' && community.billingStatus !== 'past_due'
+}

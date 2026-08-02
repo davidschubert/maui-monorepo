@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { projectMyCommunities, type MyCommunityFacts } from '../shared/myCommunities'
 
 /**
- * Die drei Entscheidungen der Kunden-Übersicht (F12), festgenagelt:
- * stillgelegte Communities fallen weg, die Testphase sieht nur wer zahlt,
- * eigene Communities stehen oben.
+ * Die Entscheidungen der Kunden-Übersicht (F12 + M13), festgenagelt:
+ * stillgelegte Communities fallen weg, GESPERRTE bleiben stehen (der Owner muss
+ * ja zahlen können), eine abuse-Sperre sieht nur der Owner, die Testphase sieht
+ * nur wer zahlt, eigene Communities stehen oben.
  */
 function facts(overrides: Partial<MyCommunityFacts> = {}): MyCommunityFacts {
   return {
@@ -15,6 +16,7 @@ function facts(overrides: Partial<MyCommunityFacts> = {}): MyCommunityFacts {
     communityStatus: 'active',
     plan: 'personal',
     trialEndsAt: '2026-08-14T00:00:00.000Z',
+    suspension: '',
     ...overrides,
   }
 }
@@ -29,6 +31,7 @@ describe('Kunden-Übersicht projizieren', () => {
       role: 'owner',
       plan: 'personal',
       trialEndsAt: '2026-08-14T00:00:00.000Z',
+      suspension: '',
     })
   })
 
@@ -62,5 +65,38 @@ describe('Kunden-Übersicht projizieren', () => {
 
   it('bleibt bei leerer Eingabe leer', () => {
     expect(projectMyCommunities([])).toEqual([])
+  })
+
+  // ── M13: Sperre ───────────────────────────────────────────────────────────
+
+  it('behält eine billing-gesperrte Community in der Liste — der Owner muss zahlen können', () => {
+    const [view] = projectMyCommunities([facts({ suspension: 'billing' })])
+    expect(view?.suspension).toBe('billing')
+  })
+
+  it('zeigt eine abuse-gesperrte Community NUR dem, der abrechnet', () => {
+    // Der Host ist offline; für alle anderen ist die Community schlicht weg —
+    // dieselbe Erfahrung wie bei jeder abgeschalteten Adresse. Und der Vorwurf
+    // gehört dem, an den er gerichtet ist, nicht seinen zwanzig Mitgliedern.
+    for (const role of ['admin', 'moderator', 'editor', 'viewer'] as const) {
+      expect(projectMyCommunities([facts({ role, suspension: 'abuse' })]), role).toEqual([])
+    }
+    const [view] = projectMyCommunities([facts({ role: 'owner', suspension: 'abuse' })])
+    expect(view?.suspension).toBe('abuse')
+  })
+
+  it('verschweigt den Sperrzustand allen ohne community.billing — der Host läuft ja', () => {
+    // billing-gesperrt heißt: die Adresse funktioniert weiter. Die KARTE bleibt
+    // deshalb für alle stehen, nur der ZUSTAND ist eine Vertragsauskunft.
+    for (const role of ['admin', 'moderator', 'editor', 'viewer'] as const) {
+      const [view] = projectMyCommunities([facts({ role, suspension: 'billing' })])
+      expect(view?.host, role).toBe('morgenlicht.pukalani.app')
+      expect(view?.suspension, role).toBe('')
+    }
+  })
+
+  it('liest die rohe Spalte fail-open: null und Unfug heißen nicht gesperrt', () => {
+    expect(projectMyCommunities([facts({ suspension: null })])[0]?.suspension).toBe('')
+    expect(projectMyCommunities([facts({ suspension: 'abusive' })])[0]?.suspension).toBe('')
   })
 })

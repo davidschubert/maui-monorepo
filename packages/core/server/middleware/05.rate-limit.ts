@@ -98,6 +98,11 @@ const WRITE_LIMITED: { re: RegExp, bucket: string, max?: number }[] = [
   // Early-Access-Anfrage: die EINZIGE session-lose Schreibroute des Trichters,
   // und sie verschickt Mail an den Betreiber → engstes Budget.
   { re: /^POST \/api\/onboarding\/request$/, bucket: 'onboarding:request', max: 3 },
+  // Missbrauchsmeldung (M13): ebenfalls session-los, verschickt Mail UND weckt
+  // jeden Betreiber per Glocke. Etwas großzügiger als die Early-Access-Anfrage
+  // (5 statt 3), weil bei einem echten Vorfall mehrere Menschen gleichzeitig
+  // melden — und die kommen oft aus demselben Netz.
+  { re: /^POST \/api\/abuse\/report$/, bucket: 'abuse:report', max: 5 },
   // BEWUSST NICHT gelistet: POST /api/stripe/webhook — Stripe-Retries dürfen
   // nie in den 429-Bucket laufen; ungelistete Routen sind hier ohnehin frei,
   // der Schutz des Webhooks ist die Signatur-Verifikation (billing B4).

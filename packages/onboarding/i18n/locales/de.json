@@ -11,7 +11,9 @@
       "emptyTitle": "Noch keine Community",
       "emptyText": "Sobald du eine Community anlegst oder in eine eingeladen wirst, steht sie hier.",
       "trialEnding": "Noch 1 Tag Testphase | Noch {n} Tage Testphase",
-      "trialEnded": "Testphase beendet — läuft im Tarif Basic"
+      "trialEnded": "Testphase beendet — läuft im Tarif Basic",
+      "suspendedBilling": "Nur zum Lesen — Zahlung offen",
+      "suspendedAbuse": "Gesperrt — nicht erreichbar"
     },
     "gate": {
       "title": "Community einrichten",
@@ -251,6 +253,41 @@
             "5.000 Kommentare pro Tag"
           ]
         }
+      }
+    },
+    "suspension": {
+      "billingTitle": "Deine Community ist gerade nur zum Lesen",
+      "billingText": "Eine Zahlung ist offen. Lesen geht weiter, Schreiben ist bis zum Ausgleich gesperrt.",
+      "abuseTitle": "Deine Community ist gesperrt",
+      "abuseText": "Wir haben sie nach einer geprüften Meldung offline genommen. Melde dich bei uns.",
+      "action": "Zahlung ansehen"
+    },
+    "abuse": {
+      "title": "Eine Community melden",
+      "intro": "Etwas stimmt auf einer Community nicht? Schreib uns, was du gesehen hast. Ein Mensch schaut es sich an.",
+      "hostLabel": "Adresse der Community",
+      "hostHint": "Zum Beispiel beispiel.pukalani.app — ein vollständiger Link geht auch.",
+      "categoryLabel": "Worum geht es?",
+      "messageLabel": "Was ist passiert?",
+      "messageHint": "Je genauer, desto schneller können wir es prüfen. Mindestens zehn Zeichen.",
+      "urlLabel": "Link zum Inhalt (freiwillig)",
+      "urlHint": "Wenn du weißt, wo genau es steht.",
+      "emailLabel": "Deine E-Mail-Adresse (freiwillig)",
+      "emailHint": "Nur für Rückfragen. Ohne Adresse bleibt die Meldung anonym — wir können dann nichts nachfragen.",
+      "submit": "Meldung senden",
+      "failed": "Das hat gerade nicht geklappt. Bitte versuch es noch einmal.",
+      "invalidHost": "Das sieht nicht nach einer Adresse aus. Bitte prüf sie noch einmal.",
+      "privacy": "Wir speichern deine Meldung, um sie zu prüfen. Ohne E-Mail-Adresse bleibt sie anonym.",
+      "doneTitle": "Danke — angekommen",
+      "doneBody": "Wir sehen uns die Meldung an. Automatisch passiert nichts; das entscheidet ein Mensch.",
+      "doneHint": "Wenn du eine Adresse hinterlassen hast, melden wir uns bei Rückfragen.",
+      "categories": {
+        "illegal": "Rechtswidrige Inhalte",
+        "harassment": "Belästigung oder Hass",
+        "spam": "Spam oder Betrug",
+        "impersonation": "Jemand gibt sich als andere aus",
+        "copyright": "Urheberrecht",
+        "other": "Etwas anderes"
       }
     }
   },

@@ -1,5 +1,6 @@
 import { Query } from 'node-appwrite'
 import { COMMUNITIES_TABLE, normalizeTenantPlan, resolveTenantOpenRegistration, type TenantRow } from '../../../../shared/types/tenantRecord'
+import { resolveCommunitySuspension } from '../../../../../core/shared/communitySuspension'
 
 /** Betreiber: Tenants (Host→Mandant-Register) auflisten. */
 export default defineEventHandler(async (event) => {
@@ -20,5 +21,14 @@ export default defineEventHandler(async (event) => {
     plan: normalizeTenantPlan(row.plan),
     // S1: der Betreiber sieht den Zustand des Kunden-Schalters (Support-Blick)
     openRegistration: resolveTenantOpenRegistration(row.openRegistration),
+    // M13: Sperrzustand + Grund + Zeitpunkt. Der Grund reist mit, weil die
+    // Liste sonst „gesperrt" sagt und niemand mehr weiß, warum — und weil
+    // genau dieser Text auch beim Owner steht.
+    suspension: resolveCommunitySuspension(row.suspension),
+    suspensionReason: row.suspensionReason ?? '',
+    suspendedAt: row.suspendedAt ?? null,
+    // Läuft gerade eine Frist? Die Liste zeigt daran, welche Community
+    // demnächst von selbst zumacht — bevor der Kunde anruft.
+    pastDueSince: row.pastDueSince ?? null,
   })) }
 })

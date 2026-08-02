@@ -74,6 +74,20 @@ export default defineAppConfig({
           to: '/dashboard/invites',
           requiredCapability: 'sites.manage',
           group: 'platform',
+          order: 4,
+        },
+        {
+          // Missbrauchsmeldungen von außen (M13). Steht direkt hinter den
+          // Anfragen, weil es dieselbe Art Arbeit ist: eine Warteschlange, in
+          // der ein Mensch entscheidet — nur mit größerer Wirkung.
+          id: 'abuse-reports',
+          scope: 'operator',
+          productKey: 'control',
+          labelKey: 'admin.nav.abuseReports',
+          icon: 'i-ph-shield-warning',
+          to: '/dashboard/abuse',
+          requiredCapability: 'sites.manage',
+          group: 'platform',
           order: 3,
         },
         {
@@ -89,7 +103,7 @@ export default defineAppConfig({
           to: '/dashboard/reserved-names',
           requiredCapability: 'sites.manage',
           group: 'platform',
-          order: 4,
+          order: 5,
         },
         {
           // Studio = das Kundenangebot des Betreibers (Davids Wort, nicht

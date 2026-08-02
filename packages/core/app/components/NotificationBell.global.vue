@@ -118,6 +118,10 @@ function messageKey(type: string): string {
   // und die Betreiber-Glocke behauptete „hat auf deinen Kommentar geantwortet"
   // (C17) — der Absender existiert seit control-017, der Lesetext nicht.
   if (type === 'invite.request') return 'notifications.inviteRequest'
+  // 'abuse.report' = Missbrauchsmeldung aus dem öffentlichen Formular (M13,
+  // control-034) — {name} = der gemeldete Host. Empfänger sind ausschließlich
+  // Betreiber-Konten (scope 'account'), gelesen wird sie also in apps/control.
+  if (type === 'abuse.report') return 'notifications.abuseReport'
   return 'notifications.replied'
 }
 </script>

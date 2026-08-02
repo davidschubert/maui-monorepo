@@ -261,7 +261,16 @@ export default defineAppConfig({
        * Betrachter sieht (Text für alle, Herkunft nur für den Betreiber). Die
        * `communityId` im Umschlag ist auf einem Kontroll-Host schlicht leer.
        */
-      controlApiPrefixes: ['/api/auth/', '/api/onboarding/', '/api/health', '/api/telemetry/', '/api/notifications', '/api/feedback'] as string[],
+      /**
+       * `/api/abuse` ist seit M13 dabei. Das Missbrauchs-Meldeformular muss von
+       * einem Host aus erreichbar sein, der NIEMANDEM gehört und deshalb nie
+       * gesperrt sein kann — genau das ist ein Kontroll-Host. Sicher ohne
+       * Mandanten-Scope aus demselben Grund wie `/api/feedback`: die Route
+       * berührt keine Tabelle dieses Projekts, sie reicht mit dem Service-Secret
+       * an das Control Plane weiter, und dort landet die Meldung in einer
+       * Tabelle ohne jede Client-Berechtigung.
+       */
+      controlApiPrefixes: ['/api/auth/', '/api/onboarding/', '/api/health', '/api/telemetry/', '/api/notifications', '/api/feedback', '/api/abuse'] as string[],
     },
     security: {
       /** CSRF-Origin-Check für unsichere Methoden auf /api/* (server/middleware/

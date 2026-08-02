@@ -72,6 +72,13 @@ export default defineEventHandler(async (event) => {
       stripeCustomerId: '',
       stripeSubscriptionId: '',
       billingStatus: '',
+      // M13 (control-034): frisch angelegt = nicht gesperrt. Explizit statt auf
+      // den Spalten-Default vertraut — dann trägt die Row die Entscheidung
+      // selbst und der Resolver braucht keinen Fallback (wie openRegistration).
+      suspension: '',
+      suspensionReason: '',
+      suspendedAt: null,
+      pastDueSince: null,
     },
   }).catch((error) => { throw toH3Error(error, 'Could not create tenant') })
 

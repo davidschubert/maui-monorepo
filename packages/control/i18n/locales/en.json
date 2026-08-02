@@ -5,7 +5,8 @@
       "tenants": "Tenants",
       "inviteRequests": "Requests",
       "invites": "Invites",
-      "reservedNames": "Reserved names"
+      "reservedNames": "Reserved names",
+      "abuseReports": "Abuse reports"
     }
   },
   "control": {
@@ -313,6 +314,32 @@
         "tier": "Plan / wave",
         "registration": "Registration",
         "status": "Status"
+      },
+      "suspend": {
+        "action": "Suspend …",
+        "intro": "The community {host} will be suspended. Nothing is deleted and it can be undone at any time.",
+        "kindLabel": "How hard?",
+        "kindHelp": "Read-only is a reminder; offline takes the address down.",
+        "kindBilling": "Read-only (payment overdue)",
+        "kindAbuse": "Fully offline (abuse)",
+        "reasonLabel": "Reason — the owner reads exactly this text",
+        "reasonHelp": "At least five characters. It appears in the community dashboard.",
+        "confirm": "Suspend now",
+        "done": "Community suspended",
+        "doneHint": "{host} — takes effect within 30 seconds (cache).",
+        "pastDue": "Payment overdue — grace period running",
+        "badge": {
+          "billing": "read-only",
+          "abuse": "offline"
+        }
+      },
+      "unsuspend": {
+        "action": "Lift suspension",
+        "title": "Lift the suspension?",
+        "text": "The community {host} will be reachable as before.",
+        "confirm": "Lift",
+        "done": "Suspension lifted",
+        "doneHint": "{host} — takes effect within 30 seconds (cache)."
       }
     },
     "plans": {
@@ -339,6 +366,46 @@
       "interval": {
         "monthly": "monthly",
         "yearly": "yearly"
+      }
+    },
+    "abuse": {
+      "title": "Abuse reports",
+      "subtitle": "Reports from outside. A report on its own does nothing — you decide here.",
+      "refresh": "Reload",
+      "empty": "Nothing pending.",
+      "emptyTitle": "No reports",
+      "rowActions": "Actions",
+      "unmatched": "Address does not belong to any community",
+      "suspend": "Suspend community",
+      "suspendIntro": "The community behind {host} goes offline immediately. Content is kept, reachable only by you.",
+      "suspended": "Community suspended",
+      "suspendedHint": "{host} is offline, the report is closed.",
+      "dismiss": "Dismiss",
+      "reopen": "Reopen",
+      "updated": "Report updated",
+      "actionFailed": "That did not work",
+      "actionFailedHint": "Please try again.",
+      "noCommunity": "No community for this address",
+      "noCommunityHint": "The reported host does not belong to any community — there is nothing to suspend.",
+      "stats": {
+        "open": "open",
+        "suspended": "suspended",
+        "dismissed": "dismissed",
+        "total": "total"
+      },
+      "col": {
+        "target": "Reported",
+        "category": "Type",
+        "message": "What",
+        "status": "State"
+      },
+      "categories": {
+        "illegal": "Illegal content",
+        "harassment": "Harassment or hate",
+        "spam": "Spam or fraud",
+        "impersonation": "Impersonation",
+        "copyright": "Copyright",
+        "other": "Something else"
       }
     }
   }

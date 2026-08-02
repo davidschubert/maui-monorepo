@@ -2,6 +2,7 @@
 import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
 import { nameToSubdomain, OPERATOR_APEX } from '../../../schemas/tenant'
 import type { TenantMode, TenantPlan, TenantStatus, TenantWave } from '../../../shared/types/tenantRecord'
+import type { CommunitySuspension } from '../../../../core/shared/communitySuspension'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'sites.manage' })
 
@@ -10,7 +11,7 @@ const toast = useToast()
 const confirm = useConfirm()
 useHead({ title: () => t('control.tenants.title') })
 
-interface TenantDto { id: string, name: string, host: string, mode: TenantMode, projectId: string, tenantId: string, status: TenantStatus, wave: TenantWave, plan: TenantPlan, openRegistration: boolean }
+interface TenantDto { id: string, name: string, host: string, mode: TenantMode, projectId: string, tenantId: string, status: TenantStatus, wave: TenantWave, plan: TenantPlan, openRegistration: boolean, suspension: CommunitySuspension, suspensionReason: string, suspendedAt: string | null, pastDueSince: string | null }
 
 const { data, refresh } = await useFetch<{ total: number, tenants: TenantDto[] }>('/api/control/tenants', { lazy: true, server: false })
 const tenants = computed(() => data.value?.tenants ?? [])
@@ -185,6 +186,86 @@ async function removeTenant(tenant: TenantDto) {
   }
 }
 
+/**
+ * SPERREN / ENTSPERREN (M13, Davids Entscheidung vom 2026-08-02, Auslöser 1).
+ *
+ * Der GRUND ist Pflicht — und zwar nicht als Formalie: genau dieser Text steht
+ * danach im Hinweis, den der Owner in seinem Dashboard liest. Deshalb sagt das
+ * Modal das auch so, statt „Notiz" zu beschriften.
+ *
+ * ZWEI STUFEN in EINEM Modal, weil es dieselbe Entscheidung mit zwei Härten ist:
+ * „nur-lesend" (Zahlung) oder „ganz aus" (Missbrauch). Zwei getrennte Knöpfe in
+ * der Zeile wären zwei Gelegenheiten, den falschen zu treffen.
+ */
+const showSuspend = ref(false)
+const suspendTarget = ref<TenantDto | null>(null)
+const suspendForm = reactive({ kind: 'billing' as Exclude<CommunitySuspension, ''>, reason: '' })
+const suspendSaving = ref(false)
+
+const suspendKindItems = computed(() => [
+  { label: t('control.tenants.suspend.kindBilling'), value: 'billing' },
+  { label: t('control.tenants.suspend.kindAbuse'), value: 'abuse' },
+])
+
+function openSuspend(tenant: TenantDto) {
+  suspendTarget.value = tenant
+  suspendForm.kind = 'billing'
+  suspendForm.reason = ''
+  showSuspend.value = true
+}
+
+async function submitSuspend() {
+  const tenant = suspendTarget.value
+  if (!tenant) return
+  suspendSaving.value = true
+  try {
+    await $fetch(`/api/control/tenants/${tenant.id}/suspension`, {
+      method: 'POST',
+      body: { suspension: suspendForm.kind, reason: suspendForm.reason },
+    })
+    toast.add({
+      title: t('control.tenants.suspend.done'),
+      // Die Wirkung tritt erst mit dem Resolver-Cache ein (≤30 s) — das gehört
+      // in die Meldung, sonst lädt der Betreiber den Host neu und glaubt, es
+      // habe nicht funktioniert.
+      description: t('control.tenants.suspend.doneHint', { host: tenant.host }),
+      color: 'success',
+    })
+    showSuspend.value = false
+    await refresh()
+  }
+  catch (error) {
+    toast.add({
+      title: t('control.tenants.updateFailed'),
+      description: (error as { statusMessage?: string })?.statusMessage || t('control.tenants.updateFailedHint'),
+      color: 'error',
+    })
+  }
+  finally {
+    suspendSaving.value = false
+  }
+}
+
+async function unsuspend(tenant: TenantDto) {
+  try {
+    const ok = await confirm({
+      title: t('control.tenants.unsuspend.title'),
+      description: t('control.tenants.unsuspend.text', { host: tenant.host }),
+      confirmLabel: t('control.tenants.unsuspend.confirm'),
+      action: () => $fetch(`/api/control/tenants/${tenant.id}/suspension`, {
+        method: 'POST',
+        body: { suspension: '' },
+      }),
+    })
+    if (!ok) return
+    toast.add({ title: t('control.tenants.unsuspend.done'), description: t('control.tenants.unsuspend.doneHint', { host: tenant.host }), color: 'success' })
+    await refresh()
+  }
+  catch {
+    toast.add({ title: t('control.tenants.updateFailed'), description: t('control.tenants.updateFailedHint'), color: 'error' })
+  }
+}
+
 // ── Editierbarer Quota-Katalog (tenant_plans, control-014) ────────────────────
 // Zahlen wirken im Pool nach ≤ 90 s (Katalog-Cache 60 s + Host-Cache 30 s im
 // platform-Resolver) — kein Deploy nötig. 0 = unbegrenzt.
@@ -240,6 +321,12 @@ function rowActions(tenant: TenantDto): DropdownMenuItem[][] {
       icon: tenant.status === 'active' ? 'i-ph-pause' : 'i-ph-play',
       onSelect: () => { void toggleStatus(tenant) },
     }],
+    // Sperren und Stilllegen stehen in EIGENEN Gruppen: das eine ist eine
+    // Maßnahme gegen den Kunden, das andere der Löschweg. Sie zu mischen wäre
+    // die Einladung, im Menü daneben zu greifen.
+    [tenant.suspension
+      ? { label: t('control.tenants.unsuspend.action'), icon: 'i-ph-lock-open', onSelect: () => { void unsuspend(tenant) } }
+      : { label: t('control.tenants.suspend.action'), icon: 'i-ph-lock-simple', color: 'warning' as const, onSelect: () => { openSuspend(tenant) } }],
     [{ label: t('control.tenants.delete'), icon: 'i-ph-trash', color: 'error', onSelect: () => { void removeTenant(tenant) } }],
   ]
 }
@@ -306,7 +393,24 @@ function rowActions(tenant: TenantDto): DropdownMenuItem[][] {
           />
         </template>
         <template #status-cell="{ row }">
-          <UBadge :color="row.original.status === 'active' ? 'success' : 'neutral'" variant="subtle" size="sm">{{ row.original.status }}</UBadge>
+          <div class="space-y-1">
+            <UBadge
+              v-if="row.original.suspension"
+              color="error"
+              variant="subtle"
+              size="sm"
+              :data-tenant-suspension="row.original.suspension"
+              :title="row.original.suspensionReason"
+            >
+              {{ t(`control.tenants.suspend.badge.${row.original.suspension}`) }}
+            </UBadge>
+            <UBadge v-else :color="row.original.status === 'active' ? 'success' : 'neutral'" variant="subtle" size="sm">{{ row.original.status }}</UBadge>
+            <!-- Läuft eine Frist? Dann macht diese Community demnächst von
+                 selbst zu — das soll man sehen, bevor der Kunde anruft. -->
+            <p v-if="row.original.pastDueSince && !row.original.suspension" class="text-xs text-warning" data-tenant-past-due>
+              {{ t('control.tenants.suspend.pastDue') }}
+            </p>
+          </div>
         </template>
         <template #actions-cell="{ row }">
           <div class="flex justify-end">
@@ -411,6 +515,35 @@ function rowActions(tenant: TenantDto): DropdownMenuItem[][] {
           data-tenants-save
           :label="t('control.tenants.create')"
           @click="createTenant"
+        />
+      </div>
+    </template>
+  </UModal>
+
+  <UModal v-model:open="showSuspend" :title="t('control.tenants.suspend.action')">
+    <template #body>
+      <div class="space-y-3">
+        <p class="text-sm text-muted">
+          {{ t('control.tenants.suspend.intro', { host: suspendTarget?.host ?? '' }) }}
+        </p>
+        <UFormField :label="t('control.tenants.suspend.kindLabel')" :help="t('control.tenants.suspend.kindHelp')">
+          <USelect v-model="suspendForm.kind" :items="suspendKindItems" class="w-full" data-suspend-kind />
+        </UFormField>
+        <UFormField :label="t('control.tenants.suspend.reasonLabel')" :help="t('control.tenants.suspend.reasonHelp')">
+          <UTextarea v-model="suspendForm.reason" :rows="3" class="w-full" data-suspend-reason autofocus />
+        </UFormField>
+      </div>
+    </template>
+    <template #footer>
+      <div class="flex w-full justify-end gap-2">
+        <UButton color="neutral" variant="ghost" :label="t('ui.cancel')" @click="() => { showSuspend = false }" />
+        <UButton
+          color="error"
+          :loading="suspendSaving"
+          :disabled="suspendForm.reason.trim().length < 5"
+          data-suspend-save
+          :label="t('control.tenants.suspend.confirm')"
+          @click="submitSuspend"
         />
       </div>
     </template>

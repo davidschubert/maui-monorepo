@@ -11,7 +11,9 @@
       "emptyTitle": "No community yet",
       "emptyText": "Once you create a community or get invited to one, it shows up here.",
       "trialEnding": "1 day left in your trial | {n} days left in your trial",
-      "trialEnded": "Trial ended — running on the Basic plan"
+      "trialEnded": "Trial ended — running on the Basic plan",
+      "suspendedBilling": "Read-only — payment outstanding",
+      "suspendedAbuse": "Suspended — not reachable"
     },
     "gate": {
       "title": "Set up your community",
@@ -251,6 +253,41 @@
             "5,000 comments per day"
           ]
         }
+      }
+    },
+    "suspension": {
+      "billingTitle": "Your community is read-only right now",
+      "billingText": "A payment is outstanding. Reading continues; writing is blocked until it is settled.",
+      "abuseTitle": "Your community is suspended",
+      "abuseText": "We took it offline after a reviewed report. Please get in touch with us.",
+      "action": "View billing"
+    },
+    "abuse": {
+      "title": "Report a community",
+      "intro": "Something wrong with a community? Tell us what you saw. A human will look at it.",
+      "hostLabel": "Address of the community",
+      "hostHint": "For example example.pukalani.app — a full link works too.",
+      "categoryLabel": "What is this about?",
+      "messageLabel": "What happened?",
+      "messageHint": "The more precise, the faster we can check. At least ten characters.",
+      "urlLabel": "Link to the content (optional)",
+      "urlHint": "If you know exactly where it is.",
+      "emailLabel": "Your email address (optional)",
+      "emailHint": "Only for follow-up questions. Without an address the report stays anonymous — we cannot ask anything then.",
+      "submit": "Send report",
+      "failed": "That did not work just now. Please try again.",
+      "invalidHost": "That does not look like an address. Please check it again.",
+      "privacy": "We store your report in order to review it. Without an email address it stays anonymous.",
+      "doneTitle": "Thank you — received",
+      "doneBody": "We will look at the report. Nothing happens automatically; a human decides.",
+      "doneHint": "If you left an address, we will get in touch with any questions.",
+      "categories": {
+        "illegal": "Illegal content",
+        "harassment": "Harassment or hate",
+        "spam": "Spam or fraud",
+        "impersonation": "Someone impersonating others",
+        "copyright": "Copyright",
+        "other": "Something else"
       }
     }
   },

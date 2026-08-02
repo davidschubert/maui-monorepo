@@ -2,6 +2,7 @@ import { Client, Query, TablesDB } from 'node-appwrite'
 import { createMicrocache } from '../../../core/server/utils/microcache'
 import type { TenantResolver } from '../../../core/server/utils/tenantResolver'
 import type { TenantContext } from '../../../core/shared/types/tenant'
+import { communityIsOffline, resolveCommunitySuspension } from '../../../core/shared/communitySuspension'
 import { DEFAULT_TENANT_PLAN, COMMUNITY_PLANS_TABLE, COMMUNITIES_TABLE, normalizeTenantPlan, parseTenantPlanLimits, resolveTenantAudience, resolveTenantOpenRegistration, type TenantPlanLimits, type TenantPlanRow, type TenantRow } from '../../shared/types/tenantRecord'
 import { isSafeThemeToken } from '../../shared/onboarding'
 
@@ -25,10 +26,29 @@ import { isSafeThemeToken } from '../../shared/onboarding'
  *  gesetzt, wenn die Row eine $id trägt (der reale Read immer; Test-Fixtures
  *  optional). Trägt die Site-Rollen-Auflösung (requireCommunityPermission). */
 export function mapTenantRowToContext(
-  row: (Pick<TenantRow, 'mode' | 'projectId' | 'tenantId' | 'status' | 'plan'> & { $id?: string, theme?: string | null, variant?: string | null, neutral?: string | null, name?: string | null, openRegistration?: boolean | null, audience?: string | null, trialEndsAt?: string | null }) | null,
+  row: (Pick<TenantRow, 'mode' | 'projectId' | 'tenantId' | 'status' | 'plan'> & { $id?: string, theme?: string | null, variant?: string | null, neutral?: string | null, name?: string | null, openRegistration?: boolean | null, audience?: string | null, trialEndsAt?: string | null, suspension?: string | null }) | null,
   planCatalog?: Record<string, Record<string, TenantPlanLimits>>,
 ): TenantContext | null {
   if (!row || row.status !== 'active') return null
+
+  /**
+   * DIE ABUSE-SPERRE (M13, Davids Entscheidung vom 2026-08-02): der Host geht
+   * SOFORT und VOLLSTÄNDIG offline.
+   *
+   * Sie steht hier und nicht in der Middleware, und das ist der ganze Trick:
+   * `null` heißt für `00.tenant.ts` „diesen Host gibt es nicht", also fällt der
+   * bestehende C12b-Pfad an — 404 mit `data.code: 'unknown_host'`, die
+   * gebrandete Fehlerseite, Seiten UND API, ohne dass eine einzige Route davon
+   * wissen muss. Eine zweite Wurfstelle in der Middleware wäre ein zweiter Ort,
+   * an dem jemand einen Pfad vergisst.
+   *
+   * Dass ein Gesperrter dieselbe Antwort bekommt wie ein Vertipper, ist
+   * beabsichtigt: der Betreiber erklärt eine Sperre dem Owner (per Mail und im
+   * Kundenbereich), nicht der Öffentlichkeit auf einer Seite, die jeder aufrufen
+   * kann.
+   */
+  if (communityIsOffline(resolveCommunitySuspension(row.suspension))) return null
+
   const communityId = row.$id ? { communityId: row.$id } : {}
   // Zugangsregel des Mandanten (S1, control-018). IMMER explizit gesetzt —
   // der Resolver ist die einzige Stelle, an der die fail-OPEN-Auflösung von
@@ -42,6 +62,11 @@ export function mapTenantRowToContext(
   const policy = {
     openRegistration: resolveTenantOpenRegistration(row.openRegistration),
     audience: resolveTenantAudience(row.audience),
+    // Nach dem Abuse-Ausstieg oben kann hier nur noch '' oder 'billing' stehen.
+    // IMMER explizit gesetzt — dieselbe Regel wie bei openRegistration: ab hier
+    // trägt der Kontext den aufgelösten Wert, und niemand vergleicht die rohe
+    // Spalte noch einmal selbst.
+    suspension: resolveCommunitySuspension(row.suspension),
   }
   // Branding des Mandanten (O5). Nur attribut-sichere Tokens reisen mit: die
   // Werte landen als data-theme/data-variant/data-neutral im <html>, und der

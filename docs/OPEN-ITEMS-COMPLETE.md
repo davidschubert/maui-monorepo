@@ -1403,3 +1403,122 @@ der gleichen Sackgasse bei den Kursen).
 einen D5-Verdacht erzeugt, der ins Leere lief. Geparkte Zeilen beim Erledigen
 ihrer Nachbarn gegenlesen; und „technisch möglich" ist nicht „produktlich
 sinnvoll": die Geldfluss-Frage (wer ist Verkäufer?) schlägt jede Verdrahtung.
+
+### M13 (Rest) — Sperr-/Missbrauchspfad ✅ 2026-08-02 (Davids Entscheidungen)
+
+Damit ist M13 vollständig; das letzte Stück war die Frage, die eine Plattform
+irgendwann beantworten muss: **was passiert, wenn eine Community nicht zahlt
+oder Schaden anrichtet?**
+
+**Davids Entscheidungen (2026-08-02):** drei Auslöser — (1) der Betreiber
+sperrt von Hand, mit protokolliertem Grund; (2) Zahlungsverzug automatisch
+nach 14 Tagen; (3) eine GEPRÜFTE Missbrauchsmeldung von außen. Zwei Stufen —
+`billing` macht die Community **nur-lesend** (Gäste und Mitglieder lesen
+weiter, jedes Schreiben ist zu, der Owner sieht einen Hinweis mit dem Weg zur
+Zahlung), `abuse` nimmt den **Host sofort komplett vom Netz** (404 wie eine
+unbekannte Adresse, Inhalte bleiben nur dem Betreiber zugänglich). Entsperren
+geht immer von Hand; eine ausgeglichene Zahlung hebt die billing-Sperre von
+selbst auf.
+
+**Migration control-034** (additiv): `communities.suspension` (''|billing|abuse)
+· `suspensionReason` · `suspendedAt` · `pastDueSince`, dazu die Indizes
+`idx_billing_status`/`idx_suspension` und die Tabelle `abuse_reports`
+(permissions: [], wie invite_requests). BEIDE `createRow<TenantRow>`-Stellen
+setzen die vier Felder explizit — die Migration muss vor dem Code-Deploy laufen.
+
+**Warum eine eigene Achse neben `status`** (der 404et den Host auch): `status`
+ist der LÖSCHWEG (C16) und lässt die Community aus der Kundenübersicht
+verschwinden. Eine gesperrte muss dort BLEIBEN — sonst kann der Owner weder
+zahlen noch erfahren, warum seine Adresse tot ist. Und `status` trägt weder
+Grund noch Zeitpunkt.
+
+**Durchgesetzt an genau zwei Stellen, keiner Route:**
+- `abuse` ⇒ `mapTenantRowToContext()` liefert `null`. Damit fällt der
+  BESTEHENDE C12b-Pfad an: 404 mit `unknown_host`, Seite wie API, ohne dass
+  eine einzige Route davon weiß.
+- `billing` ⇒ die DATENTÜR (`tenantDb`) weist `create/update/remove/
+  increment/decrement/updatePermissions` für die Türklinke `'member'` ab —
+  403 mit `data.code: 'community_suspended'`. Dieselbe Stelle wie der
+  A5-Beitritt, und aus demselben Grund: „jede Route muss daran denken" hat
+  sich am 2026-07-26 schon einmal als keine Regel erwiesen. `'operator'`
+  bleibt offen, sonst nähme die Mahnung dem Betreiber die Moderation aus der
+  Hand.
+Die puren Regeln liegen in `packages/core/shared/communitySuspension.ts`
+(fail-OPEN beim Lesen der Spalte: ein krummer Wert darf nie eine zahlende
+Community vom Netz nehmen; die Schreibseite ist per Zod-Enum eng).
+
+**Zahlungsverzug:** der Stripe-Webhook stempelt nur `pastDueSince` — und zwar
+NUR beim ersten Mal (jedes weitere Dunning-Event würde die Frist sonst neu
+starten und sie liefe nie ab). Gesperrt wird im stündlichen Sweep
+(`runPastDueSweep`, mitfahrend im bestehenden trial-sweep-Plugin statt eines
+zweiten Timers), aufgehoben in derselben Runde, sobald kein Verzug mehr
+besteht — das ist das Netz unter dem Webhook, der die Sperre beim
+`active`-Event sofort löst. `POST /api/control/sweeps/past-due`
+(`sites.manage`) stößt ihn an, damit die 14-Tage-Automatik beweisbar ist,
+ohne eine Stunde zu warten.
+
+**Missbrauchsmeldung:** öffentliche Seite `/missbrauch-melden` (en
+`/report-abuse`) ohne Anmeldung — wer meldet, ist fast nie Mitglied der
+gemeldeten Community. Honeypot + Rate-Limit 5/min/IP + strenges Zod; der Host
+wird pur normalisiert (ein voller Link ist erlaubt). Der Weg läuft über die
+bestehende Service-Naht ins Control Plane (`/api/abuse` neu in
+`controlApiPrefixes`, damit die Seite auf einem Kontroll-Host lebt — der
+gehört niemandem und kann deshalb nie gesperrt sein). **Eine Meldung bewirkt
+für sich NICHTS**: sie legt eine Zeile an und weckt den Betreiber. Sonst wären
+fünf erfundene Meldungen eine Waffe gegen jede beliebige Community. Entschieden
+wird in der Warteschlange `/dashboard/abuse` (UTable, `sites.manage`); der
+Knopf „Community sperren" schreibt über dieselbe eine Sperr-Funktion, also
+steht auch dieser Weg im `audit_logs`-Protokoll.
+
+**Was der Kunde sieht:** ein Hinweis auf der Dashboard-Übersicht über die
+M13-Registry `pukalani.admin.notices` (`order: 5`, vor dem Testphasen-Hinweis
+— eine gesperrte Community ist die dringlichere Nachricht), Text = der Grund,
+den der Betreiber getippt hat, Knopf → Abo-Seite. Der GRUND reist bewusst
+NICHT im Mandanten-Kontext mit (er stünde sonst im SSR-Payload jeder
+öffentlichen Seite und erzählte jedem Gast vom Zahlungsverzug), sondern kommt
+über einen einzelnen, auf `community.billing` gegateten Service-Ruf — und nur,
+wenn wirklich gesperrt ist.
+
+**In „Deine Communities" (my.*):** billing-gesperrte Communities BLEIBEN mit
+Hinweis stehen und sind klickbar (der Host läuft ja). Eine abuse-gesperrte
+sieht **nur, wer abrechnet** (heute der Owner) — als Karte OHNE Link mit
+Status-Text. Zwei Gründe: der Host ist offline, für alle anderen ist die
+Community schlicht weg (dieselbe Erfahrung wie bei jeder abgeschalteten
+Adresse); und „wegen Missbrauchs gesperrt" ist ein Vorwurf — den liest der,
+an den er gerichtet ist, nicht seine zwanzig Mitglieder.
+
+**Beweise:** `packages/onboarding/scripts/verify-community-suspension.mjs`
+**50/50** (echter Wizard-Abschluss; billing: Gast liest 200 / Mitglied-POST 403
+mit `reason` / Owner sieht Banner-API samt Text / Mitglied 403 / Moderation
+offen; abuse: Seite UND API 404 als `unknown_host`, selbst für den Owner;
+Meldeformular bleibt erreichbar; Übersichts-Karten; Betreiber-Route 401/403/400
+ohne Grund + Protokoll; Sweep 13 vs. 15 Tage mit injizierter Zeit, Idempotenz,
+automatische Aufhebung, abuse unangetastet; Meldeformular ohne Konto inkl.
+Honeypot und Warteschlangen-Kanten). Dazu 3 neue Unit-Dateien (core
+communitySuspension, control pastDueSuspension + abuseReports) und erweiterte
+Bestandstests. `verify-site-authz` **97/97** unverändert;
+`verify-my-overview` **27/27** (war 25/25 — der Umschlag-Whitelist-Test kannte
+`suspension` noch nicht, plus zwei neue Prüfungen). Browser: Sperr-Dialog und
+„nur lesen"-Abzeichen in der Communities-Liste, Missbrauchs-Warteschlange,
+öffentliches Meldeformular, roter Owner-Hinweis im Dashboard einer gesperrten
+Community.
+
+**Gelernt:** (1) **`toH3Error()` verschluckte fachliche 4xx.** Die
+Aufrufstellen sehen fast alle so aus: `await db.create(…).catch(e => { throw
+toH3Error(e, '…') })` — das `.catch` fängt also auch die bewussten Fehler der
+DATENTÜR. Aus dem 403 der Sperre wurde ein 500 „interner Fehler": der Server
+wies korrekt ab und log dem Client dabei. Behoben, indem ein bereits fertiger
+H3-Fehler unverändert durchgeht. Wer eine Regel in eine geteilte Naht legt,
+muss prüfen, was die Aufrufer mit ihren Fehlern machen. (2) **Ein Beweis nach
+einem Datei-Edit misst unter Umständen den alten Server.** Ein Lauf war rot,
+weil Nitros HMR nach der `appwriteError.ts`-Änderung mit einem halb alten
+Bundle antwortete — derselbe Lauf war ohne jede Codeänderung sofort grün. Nach
+einer Änderung an `server/utils/**` erst den Dev-Server durchatmen lassen (oder
+neu starten), sonst debuggt man eine Regression, die es nicht gibt. (3)
+**Die Frist braucht eine eigene Spalte.** `pastDueSince` aus `$updatedAt`
+abzuleiten wäre bequem und falsch: der Webhook schreibt bei jedem
+Dunning-Versuch, die 14 Tage begännen jedes Mal von vorn und liefen nie ab.
+(4) **Zeit im Beweis injizieren, nicht abwarten.** Der Sweep rechnet gegen eine
+Spalte — 13 Tage und 15 Tage sind zwei `updateRow`-Aufrufe und eine
+Sekunde Laufzeit; „eine Stunde auf den Timer warten" wäre kein Beweis, sondern
+eine Hoffnung.
