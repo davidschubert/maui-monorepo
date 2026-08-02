@@ -30,6 +30,13 @@ export function parsePollOptions(row: Pick<CommunityPost, 'pollOptions'>): strin
  * fälligen Posts seiner Community — im Pool bleibt nichts liegen, weil jede
  * Community ihren eigenen Feed liest). Best-effort: ein Fehler hier darf den
  * Feed-GET nie scheitern lassen.
+ *
+ * WER HANDELT (F17): KEIN `actor` — hier handelt NIEMAND. Ausgelöst wird der
+ * Lauf vom Feed-GET eines beliebigen Lesers (oft ein Gast), geschrieben wird
+ * auf FREMDEN Zeilen, und die Absicht des Autors liegt Stunden zurück. Ein
+ * `actor: 'member'` hätte hier zwei Fehler auf einmal: es machte den zufälligen
+ * Leser zum Mitglied (A5) und ließe eine Sperre den Zeitplan eines anderen
+ * anhalten, ohne dass jemand es merkt.
  */
 export async function publishDuePosts(event: H3Event): Promise<void> {
   try {

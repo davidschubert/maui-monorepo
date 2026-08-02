@@ -1,15 +1,20 @@
 import { Query } from 'node-appwrite'
 import { PAGES_TABLE, type PageRow } from '../../../shared/types/page'
 
-/** Admin: eine Seite (alle Sprachversionen) löschen. */
+/**
+ * Admin: eine Seite (alle Sprachversionen) löschen.
+ *
+ * WER HANDELT (F17): Redaktion an INHALT — `actor` aus dem Gate, dieselbe
+ * Begründung wie beim Speichern (index.put.ts).
+ */
 export default defineEventHandler(async (event) => {
-  await requireCommunityPermission(event, 'pages.manage')
+  const { actor } = await requireCommunityPermission(event, 'pages.manage')
   const slug = getRouterParam(event, 'slug')
   if (!slug) {
     throw createError({ status: 400, statusText: 'Missing slug' })
   }
 
-  const db = tenantDb(event, { as: 'operator' })
+  const db = tenantDb(event, { as: 'operator', actor })
   const res = await db.list<PageRow>(PAGES_TABLE, [
     Query.equal('slug', slug),
     Query.limit(50),

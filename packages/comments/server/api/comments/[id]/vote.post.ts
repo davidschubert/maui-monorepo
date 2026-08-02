@@ -39,6 +39,13 @@ export default defineEventHandler(async (event): Promise<VoteResponse> => {
   // Zwei Türklinken, ein Vorgang: die eigene Stimme schreibt der User selbst
   // (Session), die autoritativen Zähler liest und schreibt der Betreiber-Weg
   // (Admin sieht ALLE Stimmen). Gescopt wird bei beiden gleich.
+  //
+  // WER HANDELT (F17): `ops` bekommt bewusst KEIN `actor`. Die HANDLUNG des
+  // Menschen ist die Stimme, und die geht über `db` (Mitglieds-Klinke, also
+  // Inhalts-Sperre M13 und Beitritt A5). Was `ops` danach schreibt, ist die
+  // Summe ALLER Stimmen auf einer fremden Zeile — eine Ableitung, kein zweiter
+  // Schreibvorgang derselben Person. Ist die Community gesperrt, scheitert
+  // schon `db` und der Recount ist nie erreicht.
   const db = tenantDb(event)
   const ops = tenantDb(event, { as: 'operator' })
 

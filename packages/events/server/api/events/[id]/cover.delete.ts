@@ -6,18 +6,20 @@ import { EVENTS_TABLE, type EventRow } from '../../../../shared/types/event'
  *
  * AUTORISIERUNG (N5): `requireCommunityPermission` — Site-Rolle vor protokolliertem
  * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
+ *
+ * WER HANDELT (F17): Redaktion an INHALT — `actor` aus dem Gate.
  */
 export default defineEventHandler(async (event) => {
   // Produkt-Gate (P4): Events sind ab Plan pro enthalten.
   requirePlanProduct(event, 'events')
-  await requireCommunityPermission(event, 'events.manage')
+  const { actor } = await requireCommunityPermission(event, 'events.manage')
 
   const id = getRouterParam(event, 'id')
   if (!id) {
     throw createError({ status: 400, statusText: 'Missing event id' })
   }
 
-  const db = tenantDb(event, { as: 'operator' })
+  const db = tenantDb(event, { as: 'operator', actor })
 
   const row = await db.get<EventRow>(EVENTS_TABLE, id, 'Event not found')
   if (!row.coverFileId) {

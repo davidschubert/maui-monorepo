@@ -95,7 +95,16 @@ export async function publishedLessonCount(event: H3Event, courseId: string): Pr
   ])
 }
 
-/** lessonCount (denormalisiert) autoritativ nachziehen — best-effort */
+/**
+ * lessonCount (denormalisiert) autoritativ nachziehen — best-effort.
+ *
+ * WER HANDELT (F17): KEIN `actor` — ein abgeleiteter Zähler, kein eigener
+ * Schreibvorgang. Der Mensch hat eine Zeile vorher gehandelt (Lektion anlegen/
+ * ändern/löschen), und DORT greifen Sperre und Beitritt; scheitert es dort, ist
+ * dieser Nachzug ohnehin nie erreicht. Ihn zusätzlich unter die Sperre zu
+ * stellen, hieße nur, dass eine gesperrte Community mit einer falschen Zahl
+ * dasteht.
+ */
 export async function syncLessonCount(event: H3Event, courseId: string): Promise<void> {
   try {
     const db = tenantDb(event, { as: 'operator' })

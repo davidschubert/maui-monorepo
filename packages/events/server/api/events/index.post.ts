@@ -11,18 +11,24 @@ import { EVENTS_TABLE, type EventRow } from '../../../shared/types/event'
  * Site-Rolle (editor/admin/owner tragen events.manage), erst danach greift der
  * protokollierte Operator-Break-Glass. Ohne Mandanten-Kontext (Silo/Playground)
  * fällt der Gate auf das globale Operator-Label zurück: Verhalten unverändert.
+ *
+ * WER HANDELT (F17): ein Termin ist INHALT der Community — wer ihn anlegt, ist
+ * Redaktion. `actor` kommt aus dem Gate (Rolle ⇒ 'member', also Inhalts-Sperre
+ * M13 und Beitritt A5; Break-Glass ⇒ 'operator'). Die SERIEN-Expansion darunter
+ * (expandSeries) bleibt Operator: sie ist ein Sweep und läuft auch aus fremden
+ * Lese-Requests — siehe utils/eventSeries.ts.
  */
 export default defineEventHandler(async (event) => {
   // Produkt-Gate (P4): Events sind ab Plan pro enthalten.
   requirePlanProduct(event, 'events')
-  const { user } = await requireCommunityPermission(event, 'events.manage')
+  const { user, actor } = await requireCommunityPermission(event, 'events.manage')
 
   // Pool-Quota (No-Op, bis der Plan-Katalog events-Limits trägt — der Hook
   // steht, damit die Zahlen nur noch Konfiguration sind, kein Code)
   await assertPoolWriteQuota(event, { kind: 'events', tableId: EVENTS_TABLE })
 
   const body = await readValidatedBody(event, eventSchema.parse)
-  const db = tenantDb(event, { as: 'operator' })
+  const db = tenantDb(event, { as: 'operator', actor })
 
   const status = body.status ?? 'draft'
   const row = await db.create<EventRow>(EVENTS_TABLE, {

@@ -18,6 +18,12 @@ const REMINDER_LEAD_MS = 24 * 3600_000
  * Trade-off dokumentiert (EVENTS-V2 §4): besucht niemand die Seite, feuert
  * nichts — Lückenschluss ist die scheduled Function auf
  * POST /api/events/reminder-sweep.
+ *
+ * WER HANDELT (F17): KEIN `actor` — ein Sweep. Ausgelöst vom GET eines
+ * beliebigen Lesers, geschrieben wird nur ein Versand-Merker auf fremden
+ * Zeilen. Weder tritt der Leser dadurch der Community bei (A5), noch soll eine
+ * Zahlungssperre die Erinnerung an einen Termin verschlucken, den die Zusager
+ * längst im Kalender haben.
  */
 let sweepInFlight: Promise<void> | null = null
 

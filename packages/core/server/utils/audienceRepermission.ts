@@ -113,6 +113,14 @@ export interface RepermissionOptions {
  * Lesevorgang je GEÄNDERTER Zeile; das ist ein guter Tausch für einen
  * seltenen Vorgang, der sonst mit dem Admin-Client an der einzigen Grenze
  * vorbeischreiben würde, die es im Pool gibt.
+ *
+ * WER HANDELT (F17): KEIN `actor` — und hier steht es ausdrücklich in Davids
+ * Sperr-Grenze (communitySuspension.ts): „offen bleiben … Lese-Publikum und
+ * Registrierung". Das LESE-PUBLIKUM ist eine Owner-Einstellung, kein Inhalt;
+ * geschrieben werden auch nur Permissions, kein einziges Datenfeld. Ein
+ * `actor: 'member'` hieße: eine Community mit offener Rechnung kann sich nicht
+ * mehr schließen — also genau das Gegenteil dessen, was ein besorgter Owner
+ * dann tun will.
  */
 export async function repermissionCommunityRows(
   event: H3Event,

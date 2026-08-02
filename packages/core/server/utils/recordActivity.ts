@@ -50,6 +50,14 @@ export interface ActivityInput {
  * ALLER Communities (auch über Realtime, das genau an diesen Row-Rechten
  * hängt). `as:'operator'` ist fachlich nötig: `activities` trägt keine
  * Table-Permissions, geschrieben wird ausschließlich hier, server-seitig.
+ *
+ * WER HANDELT (F17): KEIN `actor` — und das ist die Absicht, obwohl der Feed
+ * die Handlung eines Menschen protokolliert. Der Eintrag ist die SPUR einer
+ * Handlung, die eine Zeile vorher schon durch die Sperre und den
+ * Beitritts-Auslöser gegangen ist; ihn ein zweites Mal daran zu messen, hieße
+ * nur, dass eine gesperrte oder gerade beitretende Community Löcher in ihrem
+ * eigenen Protokoll bekommt. Aufrufer sind außerdem nicht nur Routen, sondern
+ * auch Sweeps (publishDuePosts), wo gar niemand handelt.
  */
 export async function recordActivity(event: H3Event, input: ActivityInput): Promise<void> {
   try {

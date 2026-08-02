@@ -13,6 +13,12 @@ import { COMMENTS_TABLE } from '../../shared/types/comment'
  * Hier meldet comments AUSSERDEM an, dass 'comment' überhaupt ein meldbarer
  * Ziel-Typ ist (Moderations-Audit Befund 8) — dieselbe Stelle, weil derselbe
  * Layer auch die Queue baut, die die Meldungen später zeigt.
+ *
+ * WER HANDELT (F17): KEIN `actor` — hier handelt gar niemand. Der Auto-Hide
+ * löst sich selbst aus, im Request eines MELDERS, und blendet den Beitrag eines
+ * DRITTEN aus. Ein `actor: 'member'` machte den Melder zum Autor dieser
+ * Moderation (A5) und hinge den Schutzmechanismus an die Zahlungsmoral der
+ * Community (M13) — ausgerechnet den.
  */
 export default defineNitroPlugin(() => {
   /**

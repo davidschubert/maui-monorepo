@@ -68,6 +68,13 @@ function instanceData(master: EventRow, startAt: string, endAt: string | null, i
  * Serie bis zum Fensterende expandieren. Startet hinter der JÜNGSTEN
  * vorhandenen Instanz (robust auch nach Teilläufen). Liefert die Anzahl
  * neu erzeugter Instanzen.
+ *
+ * WER HANDELT (F17): KEIN `actor` — ein Sweep. Zwar ruft die Anlege-Route ihn
+ * einmal direkt (dort ist die Redaktion schon durch ihre eigene Prüfung
+ * gegangen), der zweite und häufigere Aufrufer ist aber `topUpSeries` aus einem
+ * beliebigen Listen-GET. Ein `actor: 'member'` machte damit jeden Vorbeisurfer
+ * zum Mitglied (A5) und ließe eine Sperre eine laufende Serie mitten im Fenster
+ * abreißen, ohne dass jemand die Handlung ausgelöst hätte.
  */
 export async function expandSeries(event: H3Event, master: EventRow): Promise<number> {
   if (!master.recurrence || master.seriesId !== master.$id) return 0

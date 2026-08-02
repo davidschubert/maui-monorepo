@@ -6,11 +6,14 @@ import { LESSONS_TABLE, type LessonRow } from '../../../../shared/types/course'
  * Lektionen umsortieren (courses.manage): lessonIds in Zielreihenfolge.
  * Datentür als Operator — die gescopte Liste ist zugleich die Erlaubnisliste:
  * umsortiert wird NUR, was zu diesem Kurs UND diesem Mandanten gehört.
+ *
+ * WER HANDELT (F17): Redaktion an INHALT — die Reihenfolge der Lektionen IST
+ * der Kurs, nicht eine Einstellung daneben. `actor` aus dem Gate.
  */
 export default defineEventHandler(async (event) => {
   // Produkt-Gate (P4): Kurse sind ab Plan pro enthalten.
   requirePlanProduct(event, 'courses')
-  await requireCommunityPermission(event, 'courses.manage')
+  const { actor } = await requireCommunityPermission(event, 'courses.manage')
 
   const courseId = getRouterParam(event, 'slug')
   if (!courseId) {
@@ -18,7 +21,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const { lessonIds } = await readValidatedBody(event, reorderSchema.parse)
-  const db = tenantDb(event, { as: 'operator' })
+  const db = tenantDb(event, { as: 'operator', actor })
 
   // nur Lektionen DIESES Kurses umsortieren (fremde Ids ignorieren)
   const lessons = await db.list<LessonRow>(LESSONS_TABLE, [

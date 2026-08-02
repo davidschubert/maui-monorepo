@@ -9,6 +9,10 @@ import { EVENT_VOTES_TABLE, EVENTS_TABLE, type EventRow, type EventVote, type Ev
  * seine Vote-Row selbst, Row-Security + Unique-Index sichern ab) und
  * operator (autoritativer Recount + Zähler-Write auf fremder Row);
  * serialisiert pro Event gegen Lost Updates.
+ *
+ * WER HANDELT (F17): `ops` bekommt bewusst KEIN `actor` — die Handlung ist die
+ * Stimme über `db` (dort greifen Inhalts-Sperre M13 und Beitritt A5), der
+ * Zähler darüber ist eine Ableitung aus ALLEN Stimmen (Muster comments/vote).
  */
 export default defineEventHandler(async (event): Promise<EventVoteResponse> => {
   // Produkt-Gate (P4): Events sind ab Plan pro enthalten.

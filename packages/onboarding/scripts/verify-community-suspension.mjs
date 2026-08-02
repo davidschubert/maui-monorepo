@@ -7,6 +7,10 @@
  *   - BILLING-Sperre: liest ein Gast weiter 200, während jedes Schreiben eines
  *     Mitglieds mit einem klaren Grund abgewiesen wird? Sieht der Owner den
  *     Hinweis samt Text, und bleibt die Moderation für den Betreiber offen?
+ *   - REDAKTION (F17, 2026-08-01): sind auch Termin, Kurs, Lektion und Seite zu
+ *     — die Wege, die den Admin-Client aus technischen Gründen brauchen und
+ *     sich damit still von der Sperre abgemeldet hatten? Und bleibt umgekehrt
+ *     das LESE-PUBLIKUM als Owner-Einstellung offen?
  *   - stellt Entsperren den Zustand von vorher exakt wieder her?
  *   - ABUSE-Sperre: antwortet der Host 404 — Seite UND API — wie eine Adresse,
  *     die es nicht gibt? Bleibt das Meldeformular trotzdem erreichbar?
@@ -55,7 +59,12 @@ const poolUsers = new Users(new Client().setEndpoint(endpoint).setProject(poolPr
 
 let pass = 0
 let fail = 0
-const cleanup = { users: [], controlUsers: [], codes: [], tenants: [], members: [], comments: [], posts: [], reports: [] }
+const cleanup = {
+  users: [], controlUsers: [], codes: [], tenants: [], members: [],
+  comments: [], posts: [], reports: [],
+  // F17: die Redaktions-Wege legen echte Zeilen im Pool-Projekt an.
+  events: [], courses: [], pages: [],
+}
 
 function check(label, ok, detail = '') {
   if (ok) {
@@ -253,6 +262,53 @@ try {
   const pollId = pollBefore.json?.$id ?? pollBefore.json?.id
   if (pollId) cleanup.posts.push(pollId)
 
+  /**
+   * DIE REDAKTIONS-WEGE (F17, 2026-08-01). Kurs, Termin und Seite laufen alle
+   * über die Operator-Klinke — die Tabellen tragen bewusst keine
+   * User-Schreibrechte. Bis zur Durchsicht meldeten sie sich damit still von
+   * der Inhalts-Sperre ab: in einer Community mit offener Rechnung ließ sich
+   * ein Kurs anlegen und veröffentlichen, während ein Kommentar darunter
+   * abgewiesen wurde. Hier zuerst die Ausgangslage — sonst wäre ein 403 in
+   * Abschnitt 3 nicht vom Produkt-Gate oder einem Tippfehler zu unterscheiden.
+   *
+   * Der Owner ist Redaktion über seine ROLLE (nicht über das Break-Glass), also
+   * `actor: 'member'`. Der frisch angelegte Mandant liegt auf dem Testphasen-
+   * Plan `pro`, damit sind events und courses freigeschaltet.
+   */
+  const ownerHostCookie = (await call(host, `/api/auth/site-session?token=${encodeURIComponent(
+    (await call(CONTROL_HOST, '/api/onboarding/handoff', { method: 'POST', cookie: ownerCookie, body: { communityId } })).json?.token ?? '',
+  )}&to=%2F`)).setCookie.find(c => c.startsWith('a_session_'))?.split(';')[0]
+
+  const eventBefore = await call(host, '/api/events', {
+    method: 'POST', cookie: ownerHostCookie,
+    body: {
+      title: 'M13 Redaktionsprobe',
+      description: 'Ein Termin, der vor der Sperre entstehen darf.',
+      startAt: new Date(Date.now() + 7 * 24 * 3600_000).toISOString(),
+      access: 'free',
+    },
+  })
+  check('Redaktion darf einen Termin anlegen (201)', eventBefore.status === 201,
+    `Status ${eventBefore.status} ${eventBefore.text.slice(0, 200)}`)
+  if (eventBefore.json?.$id) cleanup.events.push(eventBefore.json.$id)
+
+  const courseSlug = `m13-kurs-${Date.now().toString(36)}`
+  const courseBefore = await call(host, '/api/courses', {
+    method: 'POST', cookie: ownerHostCookie,
+    body: { title: 'M13 Kursprobe', slug: courseSlug, description: 'Ein Kurs vor der Sperre.', access: 'free' },
+  })
+  check('Redaktion darf einen Kurs anlegen (201)', courseBefore.status === 201,
+    `Status ${courseBefore.status} ${courseBefore.text.slice(0, 200)}`)
+  if (courseBefore.json?.$id) cleanup.courses.push(courseBefore.json.$id)
+
+  const pageBefore = await call(host, '/api/pages', {
+    method: 'PUT', cookie: ownerHostCookie,
+    body: { slug: 'm13-probe', locale: 'de', title: 'M13 Seitenprobe', body: 'Vor der Sperre.', status: 'draft' },
+  })
+  check('Redaktion darf eine Seite speichern (200)', pageBefore.status === 200,
+    `Status ${pageBefore.status} ${pageBefore.text.slice(0, 200)}`)
+  if (pageBefore.json?.$id) cleanup.pages.push(pageBefore.json.$id)
+
   console.log('\n3. BILLING-Sperre: lesen ja, schreiben nein')
   const REASON = 'Rechnung vom 1. Juli ist offen. Nach Zahlungseingang geht es sofort weiter.'
   await setSuspension(communityId, 'billing', REASON)
@@ -277,10 +333,8 @@ try {
   const pageDuring = await call(host, '/')
   check('Die Seite selbst bleibt erreichbar (200)', pageDuring.status === 200, `Status ${pageDuring.status}`)
 
-  const ownerHostCookie = (await call(host, `/api/auth/site-session?token=${encodeURIComponent(
-    (await call(CONTROL_HOST, '/api/onboarding/handoff', { method: 'POST', cookie: ownerCookie, body: { communityId } })).json?.token ?? '',
-  )}&to=%2F`)).setCookie.find(c => c.startsWith('a_session_'))?.split(';')[0]
-
+  // Die Owner-Sitzung auf dem Community-Host steht seit Abschnitt 2 (sie wird
+  // dort schon für die Redaktions-Ausgangslage gebraucht).
   const notice = await call(host, '/api/community/suspension', { cookie: ownerHostCookie })
   check('Owner bekommt den Banner-Zustand', notice.status === 200 && notice.json?.suspension === 'billing',
     `${notice.status} ${notice.text.slice(0, 200)}`)
@@ -353,6 +407,92 @@ try {
     check('…und wiederherstellen auch (200)', shown.status === 200,
       `Status ${shown.status} ${shown.text.slice(0, 160)}`)
   }
+
+  /**
+   * DIE REDAKTION IST ZU (F17, 2026-08-01) — der Nachtrag zu Abschnitt 2.
+   *
+   * Dieselben drei Wege, die dort noch durchgingen: Termin, Kurs, Seite. Alle
+   * drei laufen über die Operator-Klinke, weil ihre Tabellen keine
+   * User-Schreibrechte tragen — gehandelt hat trotzdem die Redaktion der
+   * Community, und ein Kurs oder eine Seite ist genauso INHALT wie ein
+   * Kommentar. Vor der Durchsicht antworteten alle drei hier 200/201.
+   *
+   * Geprüft wird auch der GRUND, nicht nur der Status: ein 403 ohne
+   * `reason: community_suspended` käme aus einem anderen Gate (Produkt-Plan,
+   * Rolle) und wäre kein Beweis für die Sperre.
+   */
+  const eventDuring = await call(host, '/api/events', {
+    method: 'POST', cookie: ownerHostCookie,
+    body: {
+      title: 'M13 während der Sperre',
+      description: 'Dieser Termin darf nicht entstehen.',
+      startAt: new Date(Date.now() + 14 * 24 * 3600_000).toISOString(),
+      access: 'free',
+    },
+  })
+  check('Termin anlegen ist ZU (403) — Redaktion ist Inhalt',
+    eventDuring.status === 403, `Status ${eventDuring.status} ${eventDuring.text.slice(0, 200)}`)
+  check('…mit dem klaren Grund (reason: community_suspended)',
+    eventDuring.json?.reason === 'community_suspended', JSON.stringify(eventDuring.json))
+  if (eventDuring.json?.$id) cleanup.events.push(eventDuring.json.$id)
+
+  if (eventBefore.json?.$id) {
+    const eventEdit = await call(host, `/api/events/${eventBefore.json.$id}`, {
+      method: 'PATCH', cookie: ownerHostCookie, body: { status: 'published' },
+    })
+    check('…und VERÖFFENTLICHEN ebenso (403) — der Moment, in dem Inhalt in die Welt geht',
+      eventEdit.status === 403 && eventEdit.json?.reason === 'community_suspended',
+      `Status ${eventEdit.status} ${JSON.stringify(eventEdit.json)}`)
+  }
+
+  const courseDuring = await call(host, '/api/courses', {
+    method: 'POST', cookie: ownerHostCookie,
+    body: { title: 'M13 Sperrkurs', slug: `${courseSlug}-2`, description: 'Darf nicht entstehen.', access: 'free' },
+  })
+  check('Kurs anlegen ist ZU (403)', courseDuring.status === 403,
+    `Status ${courseDuring.status} ${courseDuring.text.slice(0, 200)}`)
+  check('…mit dem klaren Grund (reason: community_suspended)',
+    courseDuring.json?.reason === 'community_suspended', JSON.stringify(courseDuring.json))
+  if (courseDuring.json?.$id) cleanup.courses.push(courseDuring.json.$id)
+
+  if (courseBefore.json?.$id) {
+    const lessonDuring = await call(host, `/api/courses/${courseBefore.json.$id}/lessons`, {
+      method: 'POST', cookie: ownerHostCookie,
+      body: { title: 'M13 Lektion', content: 'Darf nicht entstehen.' },
+    })
+    check('…Lektion anlegen ebenso (403)', lessonDuring.status === 403 && lessonDuring.json?.reason === 'community_suspended',
+      `Status ${lessonDuring.status} ${JSON.stringify(lessonDuring.json)}`)
+  }
+
+  const pageDuringWrite = await call(host, '/api/pages', {
+    method: 'PUT', cookie: ownerHostCookie,
+    body: { slug: 'm13-probe', locale: 'de', title: 'M13 während der Sperre', body: 'Darf nicht.', status: 'published' },
+  })
+  check('Seite speichern ist ZU (403)', pageDuringWrite.status === 403,
+    `Status ${pageDuringWrite.status} ${pageDuringWrite.text.slice(0, 200)}`)
+  check('…mit dem klaren Grund (reason: community_suspended)',
+    pageDuringWrite.json?.reason === 'community_suspended', JSON.stringify(pageDuringWrite.json))
+
+  /**
+   * DIE GEGENPROBE (F17): das LESE-PUBLIKUM ist eine Owner-EINSTELLUNG und
+   * bleibt offen — so steht es in Davids Sperr-Grenze („offen bleiben Branding,
+   * Team/Rollen, Publikum, Registrierung, Moderation"). Der Umzug des Bestands
+   * (audienceRepermission) schreibt dabei Row-Permissions über dieselbe
+   * Operator-Klinke; wäre er versehentlich als Redaktion eingestuft worden,
+   * könnte eine Community mit offener Rechnung sich nicht mehr schließen —
+   * ausgerechnet dann, wenn ein besorgter Owner genau das tun will.
+   */
+  const closeDuring = await call(host, '/api/community/audience', {
+    method: 'PATCH', cookie: ownerHostCookie, body: { audience: 'members' },
+  })
+  check('Publikum umstellen bleibt OFFEN (200) — Einstellung, nicht Inhalt',
+    closeDuring.status === 200 && closeDuring.json?.audience === 'members',
+    `Status ${closeDuring.status} ${closeDuring.text.slice(0, 200)}`)
+  const openAgain = await call(host, '/api/community/audience', {
+    method: 'PATCH', cookie: ownerHostCookie, body: { audience: 'public' },
+  })
+  check('…und zurück (200)', openAgain.status === 200 && openAgain.json?.audience === 'public',
+    `Status ${openAgain.status} ${openAgain.text.slice(0, 200)}`)
 
   console.log('\n4. Entsperren stellt den Zustand wieder her')
   await setSuspension(communityId, '')
@@ -656,6 +796,15 @@ finally {
     }
     for (const id of cleanup.posts) {
       await poolDb.deleteRow({ databaseId: poolDatabaseId, tableId: 'posts', rowId: id }).catch(() => {})
+    }
+  }
+  if (cleanup.events.length > 0 || cleanup.courses.length > 0 || cleanup.pages.length > 0) {
+    const poolDb = new TablesDB(new Client().setEndpoint(endpoint).setProject(poolProject).setKey(poolKey))
+    const poolDatabaseId = process.env.POOL_DATABASE_ID || databaseId
+    for (const [tableId, ids] of [['events', cleanup.events], ['courses', cleanup.courses], ['pages', cleanup.pages]]) {
+      for (const id of ids) {
+        await poolDb.deleteRow({ databaseId: poolDatabaseId, tableId, rowId: id }).catch(() => {})
+      }
     }
   }
   for (const id of cleanup.reports) await control.deleteRow({ databaseId, tableId: 'abuse_reports', rowId: id }).catch(() => {})

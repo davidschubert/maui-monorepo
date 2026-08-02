@@ -1,7 +1,9 @@
 import { EMBED_SITES_TABLE } from '../../../../shared/types/embedSite'
 import { invalidateEmbedSitesCache } from '../../../utils/embedSites'
 
-/** Betreiber: Einbetter-Site löschen (E3) — fliegt sofort aus der CSP. */
+/** Betreiber: Einbetter-Site löschen (E3) — fliegt sofort aus der CSP.
+ *  WER HANDELT (F17): KEIN `actor` — Betriebs-Konfiguration hinter
+ *  `requirePermission('system.manage')`, siehe index.post.ts. */
 export default defineEventHandler(async (event) => {
   requirePermission(event, 'system.manage')
   const id = getRouterParam(event, 'id')

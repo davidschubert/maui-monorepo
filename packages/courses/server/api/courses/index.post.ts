@@ -11,11 +11,17 @@ import { COURSES_TABLE, type CourseRow } from '../../../shared/types/course'
  * (admin/owner tragen courses.manage), erst danach greift der protokollierte
  * Operator-Break-Glass. Ohne Mandanten-Kontext (Silo/Playground) fällt der
  * Gate auf das globale Operator-Label zurück: Verhalten unverändert.
+ *
+ * WER HANDELT (F17): ein Kurs ist INHALT der Community — die Person, die ihn
+ * anlegt, ist Redaktion, kein Betreiber. Die Klinke bleibt `'operator'` (die
+ * Tabelle trägt bewusst keine User-Schreibrechte), `actor` kommt aus dem Gate:
+ * über die Rolle ⇒ 'member' (Inhalts-Sperre M13 und Beitritt A5 gelten), über
+ * das Break-Glass ⇒ 'operator'.
  */
 export default defineEventHandler(async (event) => {
   // Produkt-Gate (P4): Kurse sind ab Plan pro enthalten.
   requirePlanProduct(event, 'courses')
-  const { user } = await requireCommunityPermission(event, 'courses.manage')
+  const { user, actor } = await requireCommunityPermission(event, 'courses.manage')
 
   // Pool-Quota (No-Op, bis der Plan-Katalog courses-Limits trägt — der Hook
   // steht, damit die Zahlen nur noch Konfiguration sind, kein Code)
@@ -24,7 +30,7 @@ export default defineEventHandler(async (event) => {
   const body = await readValidatedBody(event, courseSchema.parse)
 
   const status = body.status ?? 'draft'
-  const row = await tenantDb(event, { as: 'operator' }).create<CourseRow>(COURSES_TABLE, {
+  const row = await tenantDb(event, { as: 'operator', actor }).create<CourseRow>(COURSES_TABLE, {
     title: body.title,
     slug: body.slug,
     description: body.description,

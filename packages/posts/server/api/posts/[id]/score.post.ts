@@ -31,6 +31,10 @@ export default defineEventHandler(async (event): Promise<PostVoteResponse> => {
   // Zwei Türen, wie die zwei Clients zuvor: member (Session — User schreibt
   // seine Vote-Row selbst, Row-Security + Unique-Index sichern ab) und
   // operator (autoritativer Recount + Zähler-Write auf fremder Row).
+  //
+  // WER HANDELT (F17): `ops` bekommt bewusst KEIN `actor` — die Handlung ist
+  // die Stimme über `db` (dort greifen Inhalts-Sperre und Beitritt), der
+  // Zähler darüber ist eine Ableitung aus ALLEN Stimmen (Muster comments/vote).
   const db = tenantDb(event)
   const ops = tenantDb(event, { as: 'operator' })
 

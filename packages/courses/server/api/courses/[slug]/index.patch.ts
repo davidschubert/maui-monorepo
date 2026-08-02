@@ -7,11 +7,19 @@ import { COURSES_TABLE, type CourseRow } from '../../../../shared/types/course'
  * Datentür als Operator: get/update belegen die Zugehörigkeit — ein fremder
  * Mandant bekommt 404. Die Tür trennt Daten- und Permission-Writes bewusst
  * (Muster events/posts): erst update, dann updatePermissions.
+ *
+ * WER HANDELT (F17): Redaktion an INHALT — `actor` aus dem Gate (Rolle ⇒
+ * 'member', also Inhalts-Sperre M13; Break-Glass ⇒ 'operator').
+ * VERÖFFENTLICHEN ZÄHLT MIT, und das ist die bewusste Entscheidung: der Status
+ * ist keine Owner-Einstellung wie Farbe oder Publikum, sondern der Moment, in
+ * dem ein Inhalt in die Welt geht. Genau den soll eine Zahlungssperre anhalten
+ * — sonst wäre „nur-lesend" nur für Kommentare wahr und für den Kurs, der
+ * darüber steht, nicht.
  */
 export default defineEventHandler(async (event) => {
   // Produkt-Gate (P4): Kurse sind ab Plan pro enthalten.
   requirePlanProduct(event, 'courses')
-  const { user } = await requireCommunityPermission(event, 'courses.manage')
+  const { user, actor } = await requireCommunityPermission(event, 'courses.manage')
 
   const id = getRouterParam(event, 'slug')
   if (!id) {
@@ -19,7 +27,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readValidatedBody(event, courseEditSchema.parse)
-  const db = tenantDb(event, { as: 'operator' })
+  const db = tenantDb(event, { as: 'operator', actor })
 
   const row = await db.get<CourseRow>(COURSES_TABLE, id, 'Course not found')
 

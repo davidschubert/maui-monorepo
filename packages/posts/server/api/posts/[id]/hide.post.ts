@@ -5,6 +5,11 @@ import { POSTS_TABLE, type CommunityPost } from '../../../../shared/types/post'
  * zuerst, damit das Realtime-Event Leser noch erreicht; dann read(any)
  * entziehen, sonst bleibt der Post per Roh-REST gast-lesbar).
  *
+ * WER HANDELT (F17): KEIN `actor` — Moderation. Die Inhalts-Sperre (M13) lässt
+ * sie ausdrücklich durch (eine gesperrte Community muss moderierbar bleiben),
+ * und ein Beitritt (A5) wäre falsch: wer moderiert, handelt nicht in eigener
+ * Sache. Gegenstück ist restore.post.ts, mit derselben Begründung.
+ *
  * AUTORISIERUNG (S1): `requireCommunityPermission` — Site-Rolle vor protokolliertem
  * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
  * Das `await` ist Pflicht — ohne wäre der Gate fail-open.

@@ -13,11 +13,15 @@ import { EVENTS_TABLE, isSeriesMaster, type EventRow } from '../../../shared/typ
  *
  * AUTORISIERUNG (N5): `requireCommunityPermission` — Site-Rolle vor protokolliertem
  * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
+ *
+ * WER HANDELT (F17): Redaktion an INHALT — `actor` aus dem Gate (Rolle ⇒
+ * 'member' mit Inhalts-Sperre M13; Break-Glass ⇒ 'operator'). Veröffentlichen
+ * zählt mit: das ist der Moment, in dem der Termin in die Welt geht.
  */
 export default defineEventHandler(async (event) => {
   // Produkt-Gate (P4): Events sind ab Plan pro enthalten.
   requirePlanProduct(event, 'events')
-  const { user } = await requireCommunityPermission(event, 'events.manage')
+  const { user, actor } = await requireCommunityPermission(event, 'events.manage')
 
   const id = getRouterParam(event, 'id')
   if (!id) {
@@ -25,7 +29,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readValidatedBody(event, eventEditSchema.parse)
-  const db = tenantDb(event, { as: 'operator' })
+  const db = tenantDb(event, { as: 'operator', actor })
 
   const row = await db.get<EventRow>(EVENTS_TABLE, id, 'Event not found')
   if (row.status === 'cancelled') {

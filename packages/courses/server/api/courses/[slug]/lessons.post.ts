@@ -6,11 +6,14 @@ import { COURSES_TABLE, LESSONS_TABLE, type CourseRow, type LessonRow } from '..
  * Lektion anlegen (courses.manage; [slug]-Segment = Kurs-Row-ID). Datentür als
  * Operator: get belegt die Zugehörigkeit des Kurses VOR dem Anlegen, create
  * stempelt den Mandanten auch auf die Lektion.
+ *
+ * WER HANDELT (F17): Redaktion an INHALT — `actor` aus dem Gate (Rolle ⇒
+ * 'member' mit Inhalts-Sperre M13 und Beitritt A5; Break-Glass ⇒ 'operator').
  */
 export default defineEventHandler(async (event) => {
   // Produkt-Gate (P4): Kurse sind ab Plan pro enthalten.
   requirePlanProduct(event, 'courses')
-  await requireCommunityPermission(event, 'courses.manage')
+  const { actor } = await requireCommunityPermission(event, 'courses.manage')
 
   const courseId = getRouterParam(event, 'slug')
   if (!courseId) {
@@ -18,7 +21,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readValidatedBody(event, lessonSchema.parse)
-  const db = tenantDb(event, { as: 'operator' })
+  const db = tenantDb(event, { as: 'operator', actor })
 
   await db.get<CourseRow>(COURSES_TABLE, courseId, 'Course not found')
 

@@ -6,6 +6,12 @@ import { z } from 'zod'
  * Logik + Cascade lebt beim Table-Owner (comments-Vertrag
  * commentModeration.ts — auch vom Auto-Hide der Report-Eskalation genutzt);
  * diese Route bleibt das RBAC-Gate + Restore + Audit.
+ *
+ * WER HANDELT (F17): KEIN `actor` — Moderation, der Kernfall der
+ * Operator-Klinke. Die Inhalts-Sperre (M13) lässt sie ausdrücklich durch: eine
+ * gesperrte Community muss moderierbar bleiben, sonst nähme die
+ * Zahlungserinnerung dem Betreiber sein eigenes Werkzeug aus der Hand. Bewiesen
+ * in verify-community-suspension.mjs Abschnitt 3.
  */
 
 // Moderation darf nur ausblenden/wiederherstellen — deleted/reported

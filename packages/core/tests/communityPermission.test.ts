@@ -19,6 +19,10 @@ beforeAll(() => {
       err.statusCode = input.status
       return err
     }
+  // Ebenfalls Auto-Import: der Break-Glass-Pfad protokolliert (G1: „kein
+  // stiller Dauer-Bypass"). Im Node-Test ein No-Op — geprüft wird hier die
+  // Entscheidung, nicht das Log.
+  ;(globalThis as { logEvent?: (...args: unknown[]) => void }).logEvent = () => {}
 })
 
 afterEach(() => {
@@ -106,5 +110,39 @@ describe('requireCommunityPermission (Rollen-Pfad)', () => {
     __resetCommunityRoleResolver()
     registerCommunityRoleResolver(() => 'admin')
     expect(await status(() => requireCommunityPermission(fakeEvent({ user, tenant }), 'community.delete'))).toBe(403)
+  })
+})
+
+/**
+ * WER HANDELT KOMMT MIT (F17, 2026-08-01) — die Redaktions-Routen (Kurs,
+ * Lektion, Termin, Seite) brauchen den Admin-Client aus technischen Gründen und
+ * müssen der Datentür trotzdem sagen, dass ein Mensch DIESER Community handelt.
+ * Raten dürfen sie das nicht: nur der Gate weiß, ob der Zugriff über die Rolle
+ * oder über das Betreiber-Break-Glass zustande kam.
+ */
+describe('requireCommunityPermission liefert den Handelnden mit', () => {
+  it('über die Rolle ⇒ actor member (Inhalts-Sperre und Beitritt gelten)', async () => {
+    registerCommunityRoleResolver(() => 'editor')
+    const result = await requireCommunityPermission(fakeEvent({ user, tenant }), 'posts.write')
+    expect(result.via).toBe('role')
+    expect(result.actor).toBe('member')
+  })
+
+  it('über das Break-Glass ⇒ actor operator — der Betreiber tritt NICHT bei', async () => {
+    // Der Fall, der ein pauschales `actor: 'member'` an den Redaktions-Routen
+    // verbietet: sonst stünde der Betreiber nach einem Support-Eingriff als
+    // `viewer` in der Mitgliederliste seines Kunden.
+    registerCommunityRoleResolver(() => null)
+    const operator = { $id: 'operator-1', labels: ['admin'] }
+    const result = await requireCommunityPermission(fakeEvent({ user: operator, tenant }), 'pages.manage')
+    expect(result.via).toBe('operator')
+    expect(result.actor).toBe('operator')
+  })
+
+  it('ohne Mandanten (Silo) ⇒ actor operator, Verhalten unverändert', async () => {
+    const operator = { $id: 'operator-1', labels: ['admin'] }
+    const result = await requireCommunityPermission(fakeEvent({ user: operator }), 'pages.manage')
+    expect(result.via).toBe('single-tenant')
+    expect(result.actor).toBe('operator')
   })
 })

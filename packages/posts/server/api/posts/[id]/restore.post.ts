@@ -3,6 +3,10 @@ import { POSTS_TABLE, type CommunityPost } from '../../../../shared/types/post'
 /**
  * Moderation: ausgeblendeten Post wiederherstellen (Status + read(any) zurück).
  *
+ * WER HANDELT (F17): KEIN `actor` — Moderation, dieselbe Begründung wie beim
+ * Ausblenden (hide.post.ts): die Inhalts-Sperre lässt sie durch, ein Beitritt
+ * wäre falsch.
+ *
  * AUTORISIERUNG (S1): `requireCommunityPermission` — Site-Rolle vor protokolliertem
  * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
  * Das `await` ist Pflicht — ohne wäre der Gate fail-open.

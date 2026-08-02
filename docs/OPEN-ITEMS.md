@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 8 offen · 10 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 7 offen · 10 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-02**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -24,7 +24,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 27 · E1 | **Tote Schlüsseldatei löschen** (`apps/control/.env.production` zeigt auf ein gelöschtes Projekt). Liegt nur auf Davids Rechner, nicht im Repo. | Niedrig | S — eine Datei | Ja: enthält Schlüsselmaterial | [Notizen](#notizen) |
 | 29 · E3 | **Server-Größe prüfen** — der CX33 wird mit sechs Apps plus Builds knapp. | Mittel | S — prüfen, ggf. Rescale | Ja: kostet Geld | [Notizen](#notizen) |
 | 30 · E4 | **Nur-Lese-Schlüssel im Projekt `control`** erzeugen (letzter Cutover-Krümel). | Niedrig | S — ein Klick in der Console | Ja: David, Console | [CONTROL-CUTOVER.md](runbooks/CONTROL-CUTOVER.md) |
-| 31 · F17 | **Rest-Schreibwege auf „wer handelt" durchsehen.** Die Trennung Klinke/Handelnder steht (2026-08-01); umgestellt sind die Inhalts-Wege, die die Sperr-Zusage namentlich nennt. Ungeprüft bleiben Kurs-/Event-/Seiten-**Verwaltung** (Redaktion) — je Stelle entscheiden: Inhalt (zu) oder Owner-Einstellung (offen). | Niedrig | S — ~12 Stellen lesen | Nein | [COMPLETE C1c](OPEN-ITEMS-COMPLETE.md) |
 | 32 · F18 | **Gast-Kontaktdaten sind weiter unlesbar.** `guest_authors` verfällt jetzt nach 90 Tagen, aber die Moderation kommt an Name/E-Mail nirgends heran — die Daten werden also erhoben, ohne je zu nutzen. Entweder eine Lese-Stelle bauen oder das Erheben streichen. | Niedrig | S — Entscheidung, dann klein | Ja: erheben oder nicht? | [COMPLETE C1c](OPEN-ITEMS-COMPLETE.md) |
 
 ## ⏸️ Geparkt / wartet

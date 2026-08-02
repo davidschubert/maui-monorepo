@@ -4,7 +4,13 @@ import { invalidateEmbedSitesCache } from '../../../utils/embedSites'
 
 /** Betreiber: Einbetter-Site registrieren (E3) — Host landet in der
  *  frame-ancestors-CSP von /embed (Cache write-invalidiert, greift sofort).
- *  Doppelter Host → 409 via uq_host. */
+ *  Doppelter Host → 409 via uq_host.
+ *
+ *  WER HANDELT (F17): KEIN `actor`, und hier ist es wörtlich zu nehmen — der
+ *  Gate ist `requirePermission('system.manage')`, also ein INSTANZ-Label. Ein
+ *  Kunden-Owner trägt es nie; wer hier schreibt, ist der Betreiber. Die drei
+ *  embed-sites-Routen sind Betriebs-Konfiguration (welche fremde Seite darf
+ *  einbetten), kein Inhalt einer Community. */
 export default defineEventHandler(async (event) => {
   requirePermission(event, 'system.manage')
   const body = await readValidatedBody(event, embedSiteSchema.parse)

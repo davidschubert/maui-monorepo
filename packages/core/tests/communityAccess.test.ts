@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { decideCommunityAccess } from '../shared/communityAccess'
+import { actorForCommunityAccess, decideCommunityAccess } from '../shared/communityAccess'
 
 const OWNER = { role: 'owner' as const, labels: [] as string[] }
 
@@ -74,5 +74,49 @@ describe('Single-Tenant-Apps bleiben unverändert', () => {
     // Ohne Mandanten gibt es keine Site — eine mitgegebene Rolle wäre sinnlos
     // und darf nichts öffnen.
     expect(decideCommunityAccess({ capability: 'pages.manage', tenantScoped: false, role: 'owner', labels: [] }).allowed).toBe(false)
+  })
+})
+
+/**
+ * WER HANDELT — die Ableitung für die Datentür (F17, 2026-08-01).
+ *
+ * Seit C1c trennt `tenantDb` „welcher Client fragt" (`as`) von „wer handelt"
+ * (`actor`). Für die Redaktions-Routen (Kurs, Lektion, Termin, Seite) ist das
+ * keine freie Wahl: der Gate hat die Frage schon beantwortet, und diese
+ * Funktion ist die Übersetzung. Sie muss in BEIDE Richtungen stimmen — ein
+ * pauschales 'member' machte den Betreiber im Break-Glass zum Mitglied der
+ * Kunden-Community, ein pauschales 'operator' ließe die Redaktion an der
+ * Inhalts-Sperre vorbeischreiben.
+ */
+describe('actorForCommunityAccess — der Gate sagt, wer handelt', () => {
+  it('wer über seine ROLLE hereinkommt, ist ein Mensch dieser Community', () => {
+    // ⇒ Inhalts-Sperre (M13) und Beitritt (A5) gelten.
+    expect(actorForCommunityAccess('role')).toBe('member')
+  })
+
+  it('das Betreiber-Break-Glass handelt für JEMAND ANDEREN', () => {
+    // Zwei Wirkungen auf einmal: der Betreiber wird nicht Mitglied der
+    // Kunden-Community, und er kommt in einer gesperrten Community weiter an
+    // die Inhalte seines Kunden — dieselbe Begründung, aus der die Moderation
+    // offen bleibt.
+    expect(actorForCommunityAccess('operator')).toBe('operator')
+  })
+
+  it('ohne Mandanten (Silo, Playground, Kontroll-Host) ist es wörtlich Operator-RBAC', () => {
+    // Wirkung hat das dort ohnehin keine: ohne Mandanten gibt es weder eine
+    // Sperre noch eine Mitgliedschaft. Die Antwort soll trotzdem ehrlich sein.
+    expect(actorForCommunityAccess('single-tenant')).toBe('operator')
+  })
+
+  it('deckt JEDEN erlaubten Weg ab — eine neue Spielart fällt hier auf', () => {
+    // `via` ist eine geschlossene Union; kommt ein vierter Weg dazu, muss hier
+    // entschieden werden, statt dass er still als 'operator' durchrutscht.
+    const decisions = [
+      decideCommunityAccess({ capability: 'pages.manage', tenantScoped: true, role: 'owner', labels: [] }),
+      decideCommunityAccess({ capability: 'pages.manage', tenantScoped: true, role: null, labels: ['admin'] }),
+      decideCommunityAccess({ capability: 'pages.manage', tenantScoped: false, role: null, labels: ['admin'] }),
+    ].filter(decision => decision.allowed === true)
+    expect(decisions.map(decision => actorForCommunityAccess(decision.via)))
+      .toEqual(['member', 'operator', 'operator'])
   })
 })

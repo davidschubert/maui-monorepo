@@ -2,15 +2,25 @@ import { Query } from 'node-appwrite'
 import { pageUpsertSchema } from '../../../schemas/page'
 import { PAGES_TABLE, type PageRow } from '../../../shared/types/page'
 
-/** Admin: eine Seiten-Sprachversion anlegen/aktualisieren (upsert nach slug+locale). */
+/**
+ * Admin: eine Seiten-Sprachversion anlegen/aktualisieren (upsert nach
+ * slug+locale).
+ *
+ * WER HANDELT (F17): eine Seite ist INHALT der Community (der Kunde sieht sie
+ * als seine Seite, nicht als Einstellung) — wer sie schreibt, ist Redaktion.
+ * `actor` kommt aus dem Gate: über die Rolle ⇒ 'member' (Inhalts-Sperre M13 und
+ * Beitritt A5 gelten), über das Betreiber-Break-Glass ⇒ 'operator'. Die Klinke
+ * bleibt 'operator', weil `pages` bewusst ohne Row-Permissions lebt (Entwürfe
+ * sind server-only) und ein Session-Client sie damit gar nicht schreiben kann.
+ */
 export default defineEventHandler(async (event): Promise<PageRow> => {
-  await requireCommunityPermission(event, 'pages.manage')
+  const { actor } = await requireCommunityPermission(event, 'pages.manage')
   const body = await readValidatedBody(event, pageUpsertSchema.parse)
 
   // Datentür statt Hand-Scope: der Upsert-Lookup ist gescopt (geteilter
   // slug-Namensraum — jeder Tenant hat 'home'), create stempelt die
   // tenantId, update belegt die Zugehörigkeit.
-  const db = tenantDb(event, { as: 'operator' })
+  const db = tenantDb(event, { as: 'operator', actor })
   const data = {
     slug: body.slug,
     locale: body.locale,

@@ -19,6 +19,13 @@ import { COMMENTS_TABLE } from '../../shared/types/comment'
  * Schreibweisen und räumt auch die alte weg, wenn eine Community kürzlich
  * umgeschaltet wurde. Eine Konstante hätte nach jedem Umschalten die falsche
  * Zeichenkette gesucht — und ein ausgeblendeter Kommentar wäre lesbar geblieben.
+ *
+ * WER HANDELT (F17, 2026-08-01): in diesem Modul steht NIRGENDS ein `actor` —
+ * und das ist die Absicht. Beide Aufrufer moderieren: die Admin-Route (ein
+ * Mensch mit comments.moderate) und der Auto-Hide der Report-Eskalation (gar
+ * kein Mensch). Die Inhalts-Sperre (M13) gilt hier also nicht — eine gesperrte
+ * Community muss moderierbar bleiben —, und ein Beitritt (A5) wäre falsch: wer
+ * moderiert, handelt nicht in eigener Sache.
  */
 
 // Thread wird per Cursor VOLLSTÄNDIG geladen (Batch-Größe THREAD_PAGE); die

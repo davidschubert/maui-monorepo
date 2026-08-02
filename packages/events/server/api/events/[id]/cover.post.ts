@@ -13,6 +13,11 @@ import { EVENTS_TABLE, MAX_EVENT_COVER_BYTES, isSeriesEvent, isSeriesMaster, typ
  *
  * AUTORISIERUNG (N5): `requireCommunityPermission` — Site-Rolle vor protokolliertem
  * Operator-Break-Glass; ohne Mandanten-Kontext (Silo) weiterhin globales Label.
+ *
+ * WER HANDELT (F17): Redaktion an INHALT (das Bild IST der Termin, wie bei den
+ * Medien-Wegen aus C1c) — `actor` aus dem Gate. Reihenfolge beachtet: die
+ * Inhalts-Sperre schlägt beim `db.update` zu, also NACH dem Storage-Upload;
+ * der bestehende Aufräum-Zweig löscht die verwaiste Datei dann mit.
  */
 function isImage(data: Buffer): boolean {
   if (data.length < 12) return false
@@ -25,14 +30,14 @@ function isImage(data: Buffer): boolean {
 export default defineEventHandler(async (event) => {
   // Produkt-Gate (P4): Events sind ab Plan pro enthalten.
   requirePlanProduct(event, 'events')
-  await requireCommunityPermission(event, 'events.manage')
+  const { actor } = await requireCommunityPermission(event, 'events.manage')
 
   const id = getRouterParam(event, 'id')
   if (!id) {
     throw createError({ status: 400, statusText: 'Missing event id' })
   }
 
-  const db = tenantDb(event, { as: 'operator' })
+  const db = tenantDb(event, { as: 'operator', actor })
   const admin = createAdminClient(event)
 
   const row = await db.get<EventRow>(EVENTS_TABLE, id, 'Event not found')

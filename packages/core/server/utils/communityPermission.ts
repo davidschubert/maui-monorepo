@@ -1,7 +1,7 @@
 import type { H3Event } from 'h3'
 import type { Capability } from '../../shared/types/authz'
 import type { CurrentUser } from '../../shared/types/appwrite'
-import { decideCommunityAccess } from '../../shared/communityAccess'
+import { actorForCommunityAccess, decideCommunityAccess, type CommunityAccessVia } from '../../shared/communityAccess'
 import { isCommunityRole, type CommunityRole } from '../../shared/communityAuthz'
 
 /**
@@ -105,11 +105,32 @@ export async function resolveCommunityRole(event: H3Event): Promise<CommunityRol
  * ist „kein stiller Dauer-Bypass".
  *
  * MUSS awaited werden (die Rollen-Auflösung liest cross-Projekt).
+ *
+ * ── WER HANDELT? DIE ANTWORT KOMMT MIT (F17, 2026-08-01) ────────────────────
+ * Der Gate weiß als Einziger, ob hier ein Mensch DIESER Community steht
+ * (`via: 'role'`) oder der Betreiber im Break-Glass. Genau das ist die Frage,
+ * die die Datentür seit C1c mit `actor` stellt — deshalb liefert der Gate sie
+ * gleich mit, statt jede Redaktions-Route raten zu lassen:
+ *
+ *     const { actor } = await requireCommunityPermission(event, 'events.manage')
+ *     const db = tenantDb(event, { as: 'operator', actor })
+ *
+ * Die Klinke bleibt dabei `'operator'` (die Tabellen tragen bewusst keine
+ * User-Schreibrechte); `actor` sagt, dass die Inhalts-Sperre und der
+ * Beitritts-Auslöser trotzdem für den Menschen gelten, der gerade tippt.
+ * Die Regel selbst ist pur und getestet: `actorForCommunityAccess`.
  */
 export async function requireCommunityPermission(
   event: H3Event,
   capability: Capability,
-): Promise<{ user: CurrentUser, role: CommunityRole | null }> {
+): Promise<{
+  user: CurrentUser
+  role: CommunityRole | null
+  /** Auf welchem Weg der Zugriff erlaubt wurde (Rolle / Break-Glass / Silo). */
+  via: CommunityAccessVia
+  /** Der Handelnde für `tenantDb(event, { as: 'operator', actor })`. */
+  actor: 'member' | 'operator'
+}> {
   const user = event.context.user
   if (!user) {
     throw createError({ status: 401, statusText: 'Unauthorized' })
@@ -141,5 +162,5 @@ export async function requireCommunityPermission(
     })
   }
 
-  return { user, role }
+  return { user, role, via: decision.via, actor: actorForCommunityAccess(decision.via) }
 }
