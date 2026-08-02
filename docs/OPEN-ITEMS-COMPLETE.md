@@ -1911,3 +1911,57 @@ past-due-Sweep hebt eine von Hand gesetzte `billing`-Sperre wieder auf**, wenn
 `billingStatus` nicht `past_due` ist — für einen Browser-Beweis muss man beide
 Spalten setzen, sonst ist die Community 30 Sekunden später wieder frei und man
 sucht den Fehler im eigenen Code.
+
+---
+
+### Index-Retry in elf Migrationen nachgerüstet ✅ 2026-08-02
+
+**Aufgefallen als Nebenbefund beim Landen von F14** (nicht davon verursacht):
+die CI-E2E starb im Bootstrap, bevor ein einziger Test lief —
+`AppwriteException: The requested column 'communityId' is not yet available`
+(400, `column_not_available`) aus dem `createIndex` von
+`packages/moderation/scripts/migrations/003-community-id.ts`.
+
+**Es ist genau das Rennen, für das es `scripts/migrations-lib/indexRetry.mts`
+schon gab:** der Index-Endpunkt prüft die Spalten-Verfügbarkeit nicht am
+`attributes`-Dokument, sondern an der im Collection-Dokument eingebetteten
+Kopie aus Appwrites Metadaten-Cache — und die hinkt nach. `waitAvailable()`
+pollt also die frische Wahrheit, und der Index-Aufruf danach sieht die
+veraltete. Pollen allein reicht nicht; CLAUDE.md schreibt den Retry vor.
+
+**Elf Migrationen hatten ihn trotzdem nicht:** die acht `*-community-id.ts`
+der E8/E11-Umbenennungswelle plus `control-025/028/029`. Die acht sind
+praktisch Kopien voneinander (identische Struktur, identische Zeilennummer der
+Index-Anlage) — die Vorlage hatte den Retry offenbar nie, und die Kopien haben
+ihn brav mitvererbt.
+
+Umgestellt ist **ausschließlich die Hülle um `createIndex`** (je eine
+Import-Zeile und `step(` → `indexStep(`; der Helfer ist als Drop-in mit
+gleicher Ausgabe und gleicher 409-Idempotenz gebaut). `step()` bleibt überall
+stehen, wo es hingehört: Spalten-Anlage in allen elf, und in `control-025` das
+`deleteIndex` — ein Delete kennt den Spalten-Race nicht. Inhaltlich ist keine
+Migration angefasst: keine Spalte, kein Backfill, kein Name, keine Reihenfolge.
+Danach steht die Prüfung „gibt es noch ein `createIndex` ohne Retry?" über alle
+Layer auf null.
+
+**Beweis:** E2E `success` auf `5c212ae0` (enthält den Fix) — alle
+Index-Zwillinge der Welle sauber angelegt (`activities.idx_community`,
+`notifications.idx_recipient_community`, `comments.idx_community`,
+`embed_sites.uq_community_host`, `post_votes.idx_community_vote`, …). Dazu
+`pnpm -r test` und `pnpm -r lint` unverändert.
+
+**Gelernt:** (1) **Der grüne Lauf beweist weniger, als er aussieht.** In ihm
+hat der Retry KEIN einziges Mal ausgelöst (null „noch nicht sichtbar"-
+Meldungen) — belegt ist damit „bricht nichts, Migrationen laufen durch",
+nicht „rettet das Rennen". Ein sporadischer Fehler lässt sich nicht auf
+Bestellung vorführen; wer hier mehr behauptet, verwechselt Abwesenheit mit
+Beweis. (2) **Eine Migrations-Vorlage vererbt auch ihre Lücken.** Acht
+identische Kopien hieß: ein vergessener Retry wurde achtfach ausgerollt, ohne
+dass es je auffiel — bis der Zufall eine davon traf. Wer eine Migration
+kopiert, kopiert die Sicherungen mit oder eben nicht; ein Blick auf
+`grep -L indexStep` über die Migrationen kostet Sekunden. (3) **Der
+Import-Pfad ist die Stelle, an der so ein Fix real scheitert.** Migrationen
+laufen als eigenständige `node --experimental-strip-types`-Prozesse, die
+Auflösung ist relativ zur DATEI. Unit-Tests sehen davon nichts — die billige
+Gegenprobe ist, jede Datei einmal ohne Env-Variablen zu starten: lädt sie und
+bricht sie regulär an der Env-Prüfung ab, stimmt der Pfad.
