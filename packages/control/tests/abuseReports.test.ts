@@ -8,6 +8,7 @@ import {
   type AbuseReportRow,
   type AbuseReportView,
 } from '../shared/abuseReports'
+import { REPORTER_EMAIL_RETENTION_DAYS, shouldEraseReporterEmail } from '../server/utils/abuseReportPrune'
 
 /** Die puren Teile der Missbrauchs-Warteschlange (M13, Auslöser 3). */
 
@@ -173,5 +174,46 @@ describe('summarizeAbuseReports', () => {
 
   it('bleibt bei leerer Liste bei null', () => {
     expect(summarizeAbuseReports([])).toEqual({ open: 0, suspended: 0, dismissed: 0, total: 0 })
+  })
+})
+
+/**
+ * DIE LÖSCHFRIST FÜR MELDER-ADRESSEN (F8-Rest, Davids Entscheidung
+ * 2026-08-02). 90 Tage ab der MELDUNG, nicht ab der Bearbeitung — sonst hinge
+ * die Zusage an der Warteschlangen-Disziplin des Betreibers.
+ */
+describe('shouldEraseReporterEmail', () => {
+  const NOW = Date.parse('2026-08-02T12:00:00.000Z')
+  const DAY = 24 * 60 * 60 * 1000
+  const withAge = (ms: number, email: string | null = 'melder@example.test') =>
+    ({ reporterEmail: email, $createdAt: new Date(NOW - ms).toISOString() })
+
+  it('lässt eine frische Meldung in Ruhe', () => {
+    expect(shouldEraseReporterEmail(withAge(30 * DAY), NOW)).toBe(false)
+  })
+
+  it('löscht genau an der Grenze', () => {
+    expect(shouldEraseReporterEmail(withAge(REPORTER_EMAIL_RETENTION_DAYS * DAY), NOW)).toBe(true)
+    // Eine Minute davor noch nicht — die Frist ist ein Datum, kein Gefühl.
+    expect(shouldEraseReporterEmail(withAge(REPORTER_EMAIL_RETENTION_DAYS * DAY - 60_000), NOW)).toBe(false)
+  })
+
+  it('löscht, was älter ist', () => {
+    expect(shouldEraseReporterEmail(withAge(400 * DAY), NOW)).toBe(true)
+  })
+
+  it('rührt eine anonyme Meldung nicht an — der Status ist egal', () => {
+    // '' ist die Spalten-Vorgabe (Migration control-034), null der Zustand nach
+    // einem früheren Lauf. Beides heißt „keine Adresse", beides ist fertig.
+    expect(shouldEraseReporterEmail(withAge(400 * DAY, ''), NOW)).toBe(false)
+    expect(shouldEraseReporterEmail(withAge(400 * DAY, null), NOW)).toBe(false)
+  })
+
+  it('löscht NICHT, wenn der Zeitstempel fehlt oder krumm ist', () => {
+    // Fail-safe: ein unlesbares Datum als „unendlich alt" zu lesen wäre die
+    // teure Richtung des Zweifels.
+    expect(shouldEraseReporterEmail({ reporterEmail: 'melder@example.test' }, NOW)).toBe(false)
+    expect(shouldEraseReporterEmail({ reporterEmail: 'melder@example.test', $createdAt: '' }, NOW)).toBe(false)
+    expect(shouldEraseReporterEmail({ reporterEmail: 'melder@example.test', $createdAt: 'vorgestern' }, NOW)).toBe(false)
   })
 })

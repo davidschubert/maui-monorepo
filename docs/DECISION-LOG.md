@@ -20,6 +20,18 @@ eigene Löschfrist hätte genau die Belege gekappt, die bei einer Prüfung
 vorzulegen sind. NICHT mitentschieden: die Löschfrist für
 `abuse_reports.reporterEmail` (Melder ohne Konto) — bleibt als F8-Rest offen.
 
+**Nachtrag vom selben Tag — F8-Rest ist entschieden:** die Melder-Adresse
+verfällt nach **90 Tagen ab der Meldung** (`$createdAt`), unabhängig vom
+Status; die ZEILE bleibt, nur das Feld wird geleert. Anker ist bewusst die
+Meldung und nicht die Bearbeitung (`handledAt`): sonst hinge die Frist an der
+Warteschlangen-Disziplin des Betreibers, und eine lange liegengebliebene
+Meldung hielte die Adresse beliebig lange fest. Die Zeile bleibt, weil sie der
+Beleg für eine womöglich verhängte Sperre ist. Umgesetzt als vierter Mitfahrer
+im stündlichen `trial-sweep` des Control Plane
+(`packages/control/server/utils/abuseReportPrune.ts`) — Melder ohne Konto
+erreicht kein GDPR-Contributor, deshalb braucht diese eine Spalte einen
+eigenen Sweep.
+
 ## 2026-07-31 — C16: „Community löschen" heißt Stilllegen, nicht Vernichten
 
 **Ausgangslage:** `community.delete` stand seit G1 in der Owner-Rolle und hatte

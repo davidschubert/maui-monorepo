@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 8 offen · 9 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 7 offen · 9 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-02**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -25,7 +25,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 28 · E2 | **UptimeRobot nachziehen:** Monitor für `help.pukalani.app` anlegen, einen alten Monitor umbenennen — und im selben Aufwasch die öffentliche Statusseite einschalten (kam aus M13). | Niedrig | S — drei Klicks | Nein | [Notizen](#notizen) |
 | 29 · E3 | **Server-Größe prüfen** — der CX33 wird mit sechs Apps plus Builds knapp. | Mittel | S — prüfen, ggf. Rescale | Ja: kostet Geld | [Notizen](#notizen) |
 | 30 · E4 | **Nur-Lese-Schlüssel im Projekt `control`** erzeugen (letzter Cutover-Krümel). | Niedrig | S — ein Klick in der Console | Ja: David, Console | [CONTROL-CUTOVER.md](runbooks/CONTROL-CUTOVER.md) |
-| 32 · F8 | **Löschfrist für Melder-Adressen:** `abuse_reports.reporterEmail` gehört Meldern OHNE Konto — keine userId, der GDPR-Contributor erreicht sie nie; sie braucht eine eigene Frist + Sweep. Die Abrechnungs-Hälfte ist entschieden (David, 2026-08-02): Abrechnungsdaten BLEIBEN — [COMPLETE](OPEN-ITEMS-COMPLETE.md). | Niedrig | S — Frist wählen, ein Sweep | Ja: Frist wählen | [F3 in COMPLETE](OPEN-ITEMS-COMPLETE.md) |
 
 ## ⏸️ Geparkt / wartet
 

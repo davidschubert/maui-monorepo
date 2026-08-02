@@ -1629,10 +1629,10 @@ Mitgliedschaft wird entpersonalisiert (E-Mail geleert), die Einladungen und
 Anfragen sind weg — was bleibt, ist der Zahlungs-Verweis auf Stripe, und dort
 gelten Stripes eigene Aufbewahrungsregeln. Begründung steht jetzt an der
 Stelle (`packages/control/server/utils/communityErasure.ts`), im
-[DECISION-LOG](DECISION-LOG.md) und die F8-Zeile in OPEN-ITEMS.md trägt nur
-noch den offenen Rest: die Löschfrist für `abuse_reports.reporterEmail`
-(Melder ohne Konto — die erreicht kein GDPR-Contributor, sie braucht einen
-eigenen Sweep).
+[DECISION-LOG](DECISION-LOG.md). Der Rest — die Löschfrist für
+`abuse_reports.reporterEmail` (Melder ohne Konto, die erreicht kein
+GDPR-Contributor) — hat David am selben Tag entschieden und steht weiter
+unten als **F8-Rest**.
 
 ---
 
@@ -1717,3 +1717,58 @@ Richtig: `pnpm --filter <app> exec nuxi dev --port N`. (3) **Der erste
 Seitenaufruf nach einem Dev-Server-Start beweist nichts über nachgeladene
 Abhängigkeiten:** Vite bündelt `appwrite` beim ersten Import erst („dependency
 optimized") und lädt die Seite dabei neu. Immer die zweite Messung nehmen.
+
+---
+
+### F8-Rest — Melder-Adressen leben höchstens 90 Tage ✅ 2026-08-02
+
+**Davids Entscheidung** (am selben Tag wie die Abrechnungs-Hälfte, siehe oben):
+`abuse_reports.reporterEmail` verfällt nach **90 Tagen**, gerechnet **ab der
+Meldung** (`$createdAt`) und **unabhängig vom Status**.
+
+**Warum diese Spalte überhaupt einen eigenen Sweep braucht:** sie ist die
+einzige personenbezogene Spur im System ohne Konto. Wer eine Community meldet,
+ist fast nie Mitglied darin und meist gar nicht angemeldet — es gibt keine
+userId, an der ein GDPR-Contributor ansetzen könnte. Ohne eigene Frist bliebe
+die Adresse für immer liegen, und zwar unbemerkt, weil der normale Löschpfad
+sie nie zu Gesicht bekommt.
+
+**Warum der Anker `$createdAt` ist und nicht `handledAt`:** Der Anker an der
+Bearbeitung klingt naheliegender („die Adresse wird ja bis zur Klärung
+gebraucht"), macht die Zusage aber von der Warteschlangen-Disziplin des
+Betreibers abhängig — eine Meldung, die ein Jahr unbearbeitet liegt, hielte die
+Adresse ein Jahr fest. Genau das darf die eigene Bequemlichkeit nicht
+entscheiden. Mit `$createdAt` ist die Zusage hart und ohne Fußnote
+aussprechbar: *eine Melder-Adresse lebt höchstens 90 Tage.*
+
+**Warum die Zeile bleibt:** gelöscht wird nur das Feld. Die Meldung ist der
+Beleg für eine womöglich verhängte Sperre — sie zu entfernen hieße, die
+Begründung der eigenen Maßnahme wegzuwerfen. Ohne Adresse ist sie exakt das,
+was eine anonyme Meldung von Anfang an ist. **Idempotent per Konstruktion:**
+eine geleerte Zeile trägt `null` und fällt damit aus der Kandidaten-Abfrage; es
+braucht kein Merkmal „schon aufgeräumt".
+
+**Wo es hängt:** pure Regel `shouldEraseReporterEmail` + Sweep
+`eraseStaleReporterEmails` in
+`packages/control/server/utils/abuseReportPrune.ts` (Muster:
+`inviteRequestPrune.ts`), eingehängt als vierter Mitfahrer im stündlichen
+`packages/control/server/plugins/trial-sweep.ts` — gleicher Takt, gleiches
+Fehler-Verhalten wie die drei daneben. Ein eigener Timer wäre nur ein weiterer
+Ort, an dem man nach dem Grund für ein verschwundenes Datum sucht. Fehler pro
+Zeile werden geloggt und übersprungen, der Sweep läuft weiter. 6 Unit-Tests in
+`packages/control/tests/abuseReports.test.ts`.
+
+**Gelernt:** Die Spalte hat `''` als Vorgabe (Migration control-034), nicht
+`null` — und anonyme Meldungen sind der Regelfall. Eine Kandidaten-Abfrage nur
+mit `Query.isNotNull` hätte deshalb Stunde für Stunde ihre 100 Plätze mit
+Zeilen belegt, an denen nichts zu tun ist, und die wirklich fälligen nie
+erreicht. Sie filtert jetzt **beide** Leer-Schreibweisen weg und sortiert
+`orderAsc('$createdAt')`, damit der Sweep sich garantiert vorwärts arbeitet.
+Wo eine Spalte zwei Arten hat, „leer" zu sein, muss die Abfrage beide kennen.
+
+**Öffentliche Zusage geprüft, nichts zu ändern:** die Formular-Copy
+(`onboarding` i18n, `abuse.privacy` / `abuse.emailHint`) nennt **keine**
+Speicherdauer — sie sagt nur, dass gespeichert und ohne Adresse anonym
+gemeldet wird. Die Frist widerspricht also keinem Versprechen; ob sie
+irgendwann in der Datenschutzerklärung auftaucht, entscheidet A1 (echte
+Rechtstexte).
