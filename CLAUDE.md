@@ -644,6 +644,19 @@ Seite dabei neu; immer die zweite Messung nehmen. Ebenso puffert
 `performance.getEntriesByType('resource')` nur 250 Einträge: im Dev-Modus
 fallen nachgeladene Chunks hinten raus und „nicht geladen" ist dann ein
 Messfehler — für solche Beweise das Netzwerkprotokoll des Browsers nehmen.
+ES REICHT NICHT, DEN EIGENEN SERVER AUS DEM
+WORKTREE ZU FAHREN — jeder Dienst HINTER EINER SERVICE-NAHT gehört mit
+(2026-08-01 live erwischt): der F12-Beweis lief gegen einen Worktree-Platform-
+Server, sprach über `NUXT_ONBOARDING_CONTROL_URL` aber das Control Plane auf
+:3004 aus dem HAUPT-Repo an — und maß dort den halbfertigen Arbeitsstand einer
+fremden Sitzung (ein zusätzliches Feld im Umschlag ⇒ 26/27). Fremden Servern
+weicht man AUS, statt sie neu zu starten: zweiten Dienst im Worktree auf einem
+freien Port hochfahren (Port-Regel oben) und die Naht per Env dorthin zeigen
+(`NUXT_ONBOARDING_CONTROL_URL=http://localhost:3014 pnpm --filter platform exec
+nuxi dev --port 3016`) — danach 27/27. Ein Beweis, der über Prozessgrenzen
+läuft, ist nur so ehrlich wie sein ENTFERNTESTER Dienst; ein Worktree hat
+außerdem weder `node_modules` noch `.env` (installieren, `.env` aus dem
+Haupt-Checkout kopieren, danach wieder löschen).
 
 pnpm -r test (Unit) · Playwright-E2E in apps/comments (Base-URL per
 PW_BASE_URL überschreibbar — parallele Dev-Sessions) · themes-visual zielt
