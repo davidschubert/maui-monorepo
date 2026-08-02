@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { ABUSE_CATEGORIES, normalizeReportedHost } from '../../../../shared/abuseReports'
+import { ABUSE_CATEGORIES, normalizeReportedHost, normalizeReportedUrl } from '../../../../shared/abuseReports'
 import { requireOnboardingCaller } from '../../../utils/onboardingService'
 import { createAbuseReport, notifyOperatorsAboutAbuse } from '../../../utils/abuseReports'
 
@@ -29,17 +29,23 @@ export default defineEventHandler(async (event) => {
   requireOnboardingCaller(event)
   const body = await readValidatedBody(event, bodySchema.parse)
 
-  // Der Host wird HIER noch einmal normalisiert, obwohl die öffentliche Route
-  // es schon getan hat: diese Route ist über das Secret erreichbar, also darf
-  // sie sich auf nichts verlassen, was vor ihr lag.
+  // Host UND Link werden HIER noch einmal normalisiert, obwohl die öffentliche
+  // Route es schon getan hat: diese Route ist über das Secret erreichbar, also
+  // darf sie sich auf nichts verlassen, was vor ihr lag.
+  //
+  // Der Link stand hier lange NICHT (Audit-Befund): der Host wurde zweimal
+  // geprüft, die URL kein einziges Mal — und genau sie landete danach als
+  // `href` in der Betreiber-Oberfläche. Ein unbrauchbarer Link leert nur das
+  // Feld, er weist die Meldung nie ab.
   const host = normalizeReportedHost(body.host)
   if (!host) throw createError({ status: 400, statusText: 'Not a valid host' })
+  const url = normalizeReportedUrl(body.url ?? '')
 
   const report = await createAbuseReport(event, {
     host,
     category: body.category,
     message: body.message,
-    url: body.url ?? '',
+    url,
     reporterEmail: body.reporterEmail ?? '',
   })
 

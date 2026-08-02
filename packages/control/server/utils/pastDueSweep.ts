@@ -1,4 +1,6 @@
 import { Query } from 'node-appwrite'
+import type { TablesDB } from 'node-appwrite'
+import { listAllRows } from '../../../core/server/utils/listAllRows'
 import { PAST_DUE_GRACE_DAYS, shouldLiftBillingSuspension, shouldSuspendForPastDue } from '../../shared/communityBilling'
 import { COMMUNITIES_TABLE, type TenantRow } from '../../shared/types/tenantRecord'
 
@@ -38,31 +40,52 @@ export const PAST_DUE_SUSPENSION_REASON
   = `Offene Zahlung seit mehr als ${PAST_DUE_GRACE_DAYS} Tagen. `
     + 'Sobald die Zahlung ankommt, wird die Community automatisch wieder freigeschaltet.'
 
+/**
+ * Die beiden Arbeitsvorräte des Laufs — VOLLSTÄNDIG, nicht die erste Seite.
+ *
+ * Hier stand `Query.limit(100)`, und das war die gefährlichere Hälfte einer
+ * stillen Kappung (Audit-Befund): Community 101 aufwärts wurde nie geprüft.
+ * Nach oben fehlte damit nur eine verspätete Sperre — nach UNTEN aber blieb
+ * jemand gesperrt, der längst bezahlt hat, und niemand hätte es gemerkt. Genau
+ * diese Hälfte ist das Netz unter dem Webhook; ein Netz mit einem Loch bei 100
+ * ist keins.
+ *
+ * `listAllRows` (core) ist der hauseigene Cursor-Sammler: er läuft bis eine
+ * Teilseite kommt und WIRFT bei 50.000 Zeilen, statt unvollständig
+ * zurückzukehren. Ein Warn-Log wäre hier die falsche Antwort gewesen — es
+ * ändert nichts daran, dass der Lauf jemanden übersieht.
+ *
+ * ERST LESEN, DANN SCHREIBEN, und das ist kein Zufall: der Lauf ÄNDERT genau
+ * die Spalten, nach denen er filtert. Würde er seitenweise lesen und dabei
+ * schreiben, verließe eine bearbeitete Zeile die Ergebnismenge und verschöbe
+ * alles Nachfolgende — bei Offset-Pagination überspränge er dabei Zeilen. Beide
+ * Vorräte stehen deshalb vollständig fest, bevor die erste Zeile angefasst wird.
+ *
+ * Beide Abfragen laufen über eigene Indizes (`idx_billing_status`,
+ * `idx_suspension`, control-034). Ohne Index antwortet Appwrite mit „index not
+ * found", und der Sweep wäre still wirkungslos.
+ */
+export async function collectPastDueWork(
+  tablesDB: TablesDB,
+  databaseId: string,
+): Promise<{ overdue: TenantRow[], suspended: TenantRow[] }> {
+  const [overdue, suspended] = await Promise.all([
+    listAllRows<TenantRow>(tablesDB, databaseId, COMMUNITIES_TABLE, [Query.equal('billingStatus', 'past_due')]),
+    listAllRows<TenantRow>(tablesDB, databaseId, COMMUNITIES_TABLE, [Query.equal('suspension', 'billing')]),
+  ])
+  return { overdue, suspended }
+}
+
 export async function runPastDueSweep(now: number = Date.now()): Promise<PastDueSweepResult> {
   const config = useRuntimeConfig()
   const admin = createAdminClient()
   const databaseId = config.public.appwriteDatabaseId
 
-  // Zwei Abfragen statt eines Full-Scans über alle Communities — beide über
-  // eigene Indizes (`idx_billing_status`, `idx_suspension`, control-034). Ohne
-  // Index antwortet Appwrite mit „index not found", und der Sweep wäre still
-  // wirkungslos.
-  const [overdue, suspended] = await Promise.all([
-    admin.tablesDB.listRows<TenantRow>({
-      databaseId,
-      tableId: COMMUNITIES_TABLE,
-      queries: [Query.equal('billingStatus', 'past_due'), Query.limit(100)],
-    }),
-    admin.tablesDB.listRows<TenantRow>({
-      databaseId,
-      tableId: COMMUNITIES_TABLE,
-      queries: [Query.equal('suspension', 'billing'), Query.limit(100)],
-    }),
-  ])
+  const { overdue, suspended } = await collectPastDueWork(admin.tablesDB, databaseId)
 
-  const result: PastDueSweepResult = { checked: overdue.rows.length + suspended.rows.length, suspended: [], lifted: [] }
+  const result: PastDueSweepResult = { checked: overdue.length + suspended.length, suspended: [], lifted: [] }
 
-  for (const community of overdue.rows) {
+  for (const community of overdue) {
     if (!shouldSuspendForPastDue({
       status: community.status,
       billingStatus: community.billingStatus ?? '',
@@ -88,7 +111,7 @@ export async function runPastDueSweep(now: number = Date.now()): Promise<PastDue
     })
   }
 
-  for (const community of suspended.rows) {
+  for (const community of suspended) {
     if (!shouldLiftBillingSuspension({
       billingStatus: community.billingStatus ?? '',
       suspension: community.suspension ?? '',

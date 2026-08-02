@@ -61,6 +61,62 @@ export interface AbuseReportRow extends Models.Row {
   note: string | null
 }
 
+/**
+ * PURE (unit-getestet): Taugt dieser Wert als KLICKBARER Link?
+ *
+ * Nur `http:` und `https:` — alles andere ist Text. Der Grund ist kein
+ * Geschmack: `url` kommt aus einem Formular OHNE Anmeldung und landet in einer
+ * Oberfläche, die nur ein Betreiber mit `sites.manage` öffnet. Ein
+ * `javascript:`-Wert wäre dort ein Klick von fremdem Code im Control-Origin
+ * MIT dieser Session entfernt — `target="_blank"` schützt davor NICHT, weil ein
+ * `javascript:`-Ziel kein neues Fenster öffnet, sondern im aufrufenden Dokument
+ * läuft.
+ *
+ * DREI TRICKS, die eine naive `startsWith('http')`-Prüfung durchlässt und
+ * deshalb hier alle abgeräumt werden, bevor überhaupt geparst wird:
+ *  - Tabs/Zeilenumbrüche MITTEN im Schema (`java\nscript:`): Browser entfernen
+ *    \t\r\n überall in einer URL, bevor sie das Schema lesen.
+ *  - führende C0-Steuerzeichen und Leerraum (`\u0000javascript:`): dito.
+ *  - Großschreibung (`JaVaScRiPt:`): Schemata sind case-insensitiv.
+ * Geprüft wird danach über `new URL()`, nicht über einen eigenen Regex — der
+ * WHATWG-Parser ist dieselbe Instanz, die der Browser beim Klick benutzt, und
+ * ein zweiter, eigener Parser wäre genau die Abweichung, die man ausnutzt.
+ * Relative Werte (`/beitrag/3`, `//fremd.example`) haben kein Schema und
+ * fallen ebenfalls durch: in einer Meldung über eine FREMDE Seite ist ein Pfad
+ * ohne Host ohnehin ohne Aussage.
+ */
+export function isDisplayableReportUrl(value: string): boolean {
+  const cleaned = stripUrlNoise(value)
+  if (!cleaned) return false
+  try {
+    const protocol = new URL(cleaned).protocol
+    return protocol === 'http:' || protocol === 'https:'
+  }
+  catch {
+    return false
+  }
+}
+
+/**
+ * PURE (unit-getestet): Eingabe des Formulars → speicherbarer Link, oder ''.
+ *
+ * Schwesterfunktion zu `normalizeReportedHost` — und der Grund, dass sie
+ * existiert, steht im Audit: dieselbe Route normalisierte den Host zweimal, die
+ * URL kein einziges Mal. Ein unbrauchbarer Link LEERT nur das Feld, er weist
+ * die Meldung nie ab: der Fließtext ist der wertvolle Teil, und eine echte
+ * Meldung an einem krummen Link scheitern zu lassen wäre der teurere Fehler.
+ */
+export function normalizeReportedUrl(raw: string): string {
+  const cleaned = stripUrlNoise(raw)
+  return isDisplayableReportUrl(cleaned) ? cleaned : ''
+}
+
+/** Steuerzeichen und Leerraum entfernen — siehe die drei Tricks oben. */
+function stripUrlNoise(value: string): string {
+  // eslint-disable-next-line no-control-regex -- genau diese Zeichen sind der Trick
+  return value.replace(/[\t\n\r]/g, '').replace(/^[\u0000-\u0020]+|[\u0000-\u0020]+$/g, '')
+}
+
 /** Was die Warteschlange des Betreibers über EINE Meldung zeigt. */
 export interface AbuseReportView {
   id: string
@@ -73,11 +129,18 @@ export interface AbuseReportView {
   communityName: string
   category: AbuseCategory
   message: string
+  /** Der beanstandete Link — BELEG, nicht Navigation. Er reist als Text mit;
+   *  ob die Warteschlange daraus einen Klick macht, entscheidet allein
+   *  `isDisplayableReportUrl`. Bestandszeilen aus der Zeit vor der
+   *  Eingangs-Normalisierung können hier alles enthalten. */
   url: string
-  reporterEmail: string
   status: AbuseReportStatus
   handledAt: string | null
   note: string
+  // KEIN `reporterEmail`: die Warteschlange rendert die Adresse nirgends, also
+  // hat sie im Browser-Umschlag nichts zu suchen (Audit-Befund). Sie steht in
+  // der Zeile und in der Alarm-Mail — dort wird sie gebraucht, hier nicht.
+  // Personenbezogene Daten ohne Leser sind nur Risiko.
 }
 
 /**
@@ -96,7 +159,6 @@ export function projectAbuseReport(row: AbuseReportRow): AbuseReportView {
     category: isAbuseCategory(row.category) ? row.category : 'other',
     message: row.message,
     url: row.url ?? '',
-    reporterEmail: row.reporterEmail ?? '',
     status: isAbuseReportStatus(row.status) ? row.status : 'open',
     handledAt: row.handledAt ?? null,
     note: row.note ?? '',

@@ -1522,3 +1522,94 @@ Dunning-Versuch, die 14 Tage begännen jedes Mal von vorn und liefen nie ab.
 Spalte — 13 Tage und 15 Tage sind zwei `updateRow`-Aufrufe und eine
 Sekunde Laufzeit; „eine Stunde auf den Timer warten" wäre kein Beweis, sondern
 eine Hoffnung.
+
+### Quer-Audit-Befunde gefixt ✅ 2026-08-02
+
+Sechs Befunde aus dem Quer-Audit über den frisch gebauten M13-Pfad, alle vorher
+am Code reproduziert, dann behoben. Der Reihe nach:
+
+**1 (HIGH) — Der gemeldete Link lief roh in ein `href`.** `abuse.vue` rendert
+`:href="row.original.url"`; auf dem ganzen Weg dorthin (öffentliche Route →
+Service-Naht → Zeile → Projektion) prüfte niemand mehr als `max(500)`. Ein
+`javascript:`-Wert wäre damit **einen Klick des Betreibers** von fremdem Code im
+control-Origin **mit `sites.manage`-Session** entfernt gewesen; `target="_blank"`
+hilft dagegen nicht, weil ein `javascript:`-Ziel gar kein neues Fenster öffnet.
+Gefixt auf ALLEN Stationen: neue pure Regel `isDisplayableReportUrl` /
+`normalizeReportedUrl` (`packages/control/shared/abuseReports.ts`) — sie räumt
+erst \t\r\n **überall** und C0-Leerraum an den Rändern weg (Browser tun genau
+das, bevor sie das Schema lesen: `java\nscript:` **ist** `javascript:`) und
+parst dann mit `new URL()`, statt einen zweiten, eigenen Parser zu erfinden.
+Beide Eingänge (`abuse/report.post.ts`, `control/abuse-reports/index.post.ts`)
+normalisieren jetzt; ein unbrauchbarer Link **leert nur das Feld** und weist die
+Meldung nie ab — der Fließtext ist der wertvolle Teil. Die Warteschlange macht
+zusätzlich nur dann ein `<a>`, wenn dieselbe pure Regel zustimmt, sonst steht
+der Wert als Text da (Bestandszeilen von vor dem Fix). **Entscheidung, festgehalten:
+`url` ist BELEG, der Klick nur KOMFORT** — deshalb bleibt der Wert vollständig
+lesbar, auch wenn er nie klickbar wird.
+
+**2 (MEDIUM) — `/api/onboarding/communities` ohne Deckel.** Jeder Aufruf prägt
+ein Appwrite-JWT und lässt danach zwei Tabellen über zwei Projekte lesen — die
+Kostenklasse der `realtime-token`-Route, die schon auf 10/min stand. Gleicher
+Deckel (`TOKEN_MAX`), eigener Bucket.
+
+**3 (MEDIUM) — Der Zahlungsverzugs-Sweep kappte still bei 100.** Beide Schleifen
+lasen `Query.limit(100)` ohne Pagination. Nach oben fehlte damit nur eine
+verspätete Sperre — nach **unten** blieb jemand gesperrt, der längst bezahlt
+hat, und niemand hätte es gemerkt: genau die Hälfte, die das Netz unter dem
+Webhook ist. Neu: `collectPastDueWork()` sammelt beide Vorräte über den
+hauseigenen `listAllRows` (Cursor bis zur Teilseite, wirft bei 50.000 statt
+unvollständig zurückzukehren). **Erst lesen, dann schreiben** ist dabei keine
+Stilfrage: der Lauf ändert genau die Spalten, nach denen er filtert — eine
+bearbeitete Zeile verlässt die Ergebnismenge und verschöbe alles Nachfolgende.
+
+**4 (LOW) — Mail-Links zeigten auf abuse-gesperrte Hosts.** `communityHostResolver`
+kannte nur `status`, weil die Sperre nach ihm gebaut wurde. Jetzt fällt
+`suspension === 'abuse'` genauso durch wie `disabled` (der Host ist komplett
+offline, der Link wäre eine 404-Sackgasse). `billing` bleibt bewusst drin: dieser
+Host **lebt**, nur-lesend, und der Link führt genau richtig. Gefiltert wird im
+Code statt per `Query.notEqual` — die Spalte ist optional, und ein SQL-`!=`
+sortiert NULL gleich mit aus, womit der Resolver für Bestandszeilen gar nichts
+mehr fände.
+
+**5 (LOW) — Mitgliedschafts-Seite ohne `status`-Filter.** `community/mine.post.ts`
+holte 50 Zeilen und siebte **danach**: wer aus mehr als 50 Communities entfernt
+worden war, bekam eine leere Übersicht, obwohl er anderswo aktiv ist. Der Filter
+steht jetzt in der Abfrage, wie bei der Schwester `suspension.post.ts`. Damit
+das Literal `'active'` ehrlich bleibt, ist `hasCommunityAccess` neu festgenagelt.
+
+**6 (LOW) — `reporterEmail` reiste in den Browser,** obwohl die Warteschlange sie
+nirgends rendert. Aus dem Umschlag genommen; sie steht weiter in der Zeile und in
+der Alarm-Mail, wo sie gebraucht wird. (Ihre Löschfrist bleibt offen — F8.)
+
+**Dazu eine Klärung ohne Codeänderung:** in `abuse-reports/[id].patch.ts` steht
+jetzt an der Stelle, warum `status: 'open'` eine verhängte Sperre NICHT
+zurücknimmt — mehrere Meldungen können zu derselben Sperre geführt haben, und
+Entsperren ist ein eigener Vorgang mit eigenem Protokolleintrag.
+
+**Beweise:** `verify-community-suspension.mjs` **54/54** (war 50/50 — vier neue
+Live-Prüfungen für den Link: `java\nscript:`-Meldung wird ANGENOMMEN, die Zeile
+steht, das Feld ist leer, ein gewöhnlicher https-Link kommt getrimmt an),
+`verify-my-overview.mjs` **27/27** unverändert. Unit: 15 Fälle für die pure
+URL-Regel (`javascript:`/`data:`/`vbscript:`/`file:`, `JaVaScRiPt:`,
+Leerzeichen- und Steuerzeichen-Tricks inkl. `java\nscript:`, relative Werte),
+4 für die Sweep-Pagination gegen ein seitenlieferndes Fake-TablesDB, 2 für den
+Host-Resolver (env-gated; mit der lokalen Appwrite scharf gelaufen, 6/6 —
+abuse fällt durch, billing bleibt, eine Zeile OHNE gesetzte Spalte bleibt
+auflösbar), 1 für `hasCommunityAccess`. `pnpm -r test` grün (1131 bestanden, 33 übersprungen —
+die env-gated Läufe gegen echte Appwrite), typecheck 0 Fehler, lint
+6 bekannte Warnungen, `check:manifests` konsistent. Der neue Deckel live
+gemessen: zehn Aufrufe kommen durch, der elfte bekommt 429; `/api/health`
+bleibt frei.
+
+**Gelernt:** **Dieselbe Route normalisierte den Host ein zweites Mal, die URL
+kein einziges Mal.** Der Host war das Feld, über das jemand nachgedacht hatte —
+er hat eine Bedeutung, also bekam er eine Regel, und zur Sicherheit gleich
+zweimal. Die URL daneben galt als „nur ein Link" und rutschte roh bis in ein
+`href` der Betreiber-Oberfläche durch. Bei einer Quelle OHNE Anmeldung braucht
+**jedes** Feld dieselbe Paranoia, nicht nur das, dessen Format man interessant
+fand. Zweitens: eine **Prüfung muss denselben String prüfen, der später
+ausgeführt wird** — Browser entfernen \t\r\n mitten in einer URL, bevor sie das
+Schema lesen, und jede Regel, die das nicht nachmacht, prüft an der
+Angriffsfläche vorbei. Drittens, aus Befund 3: **ein `limit()` ohne Schleife ist
+ein stiller Datenverlust**, und er tut dort weh, wo etwas ZURÜCKGENOMMEN werden
+soll — eine nicht verhängte Sperre fällt auf, eine nicht aufgehobene nicht.

@@ -435,6 +435,46 @@ try {
   })
   check('Unsinn als Adresse wird abgewiesen (400)', badHost.status === 400, `Status ${badHost.status}`)
 
+  // Der gemeldete LINK (Audit-Befund): er landete roh als `href` in der
+  // Betreiber-Oberfläche. Hier wird der ganze Weg gefahren — öffentliche Route,
+  // Service-Naht, Zeile — und geprüft, dass nichts Ausführbares ankommt.
+  const evilHost = `m13-link-${Date.now().toString(36)}.pukalani.app`
+  const evil = await call(CONTROL_HOST, '/api/abuse/report', {
+    method: 'POST',
+    body: {
+      host: evilHost,
+      category: 'other',
+      message: 'Der Link in diesem Feld ist bewusst kein Web-Link, sondern Code.',
+      // Mit Zeilenumbruch mitten im Schema — Browser entfernen den, bevor sie
+      // das Schema lesen. Eine Prüfung, die das nicht nachmacht, lässt ihn durch.
+      url: 'java\nscript:alert(document.cookie)',
+    },
+  })
+  const evilRows = await control.listRows({
+    databaseId, tableId: 'abuse_reports', queries: [Query.equal('host', evilHost), Query.limit(5)],
+  })
+  cleanup.reports.push(...evilRows.rows.map(r => r.$id))
+  check('Meldung mit ausführbarem Link wird ANGENOMMEN (200)', evil.status === 200 && evil.json?.ok === true, `${evil.status} ${evil.text.slice(0, 200)}`)
+  check('…die Zeile steht (der Text ist der wertvolle Teil)', evilRows.rows.length === 1, `${evilRows.rows.length} Zeilen`)
+  check('…aber das Link-Feld ist LEER — nichts Ausführbares in der Zeile',
+    (evilRows.rows[0]?.url ?? '') === '', JSON.stringify(evilRows.rows[0]?.url))
+
+  const okLinkHost = `m13-oklink-${Date.now().toString(36)}.pukalani.app`
+  await call(CONTROL_HOST, '/api/abuse/report', {
+    method: 'POST',
+    body: {
+      host: okLinkHost,
+      category: 'spam',
+      message: 'Ein gewöhnlicher Link muss weiterhin ankommen, sonst hilft der Beleg niemandem.',
+      url: `  https://${okLinkHost}/beitrag/3  `,
+    },
+  })
+  const okRows = await control.listRows({
+    databaseId, tableId: 'abuse_reports', queries: [Query.equal('host', okLinkHost), Query.limit(5)],
+  })
+  cleanup.reports.push(...okRows.rows.map(r => r.$id))
+  check('Ein gewöhnlicher https-Link kommt sauber an', okRows.rows[0]?.url === `https://${okLinkHost}/beitrag/3`, okRows.rows[0]?.url)
+
   const honeyHost = `m13-honig-${Date.now().toString(36)}.pukalani.app`
   const honey = await call(CONTROL_HOST, '/api/abuse/report', {
     method: 'POST',

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
-import type { AbuseReportStats, AbuseReportView } from '../../../shared/abuseReports'
+import { isDisplayableReportUrl, type AbuseReportStats, type AbuseReportView } from '../../../shared/abuseReports'
 
 /**
  * Missbrauchs-Warteschlange (M13, Auslöser 3).
@@ -18,6 +18,16 @@ import type { AbuseReportStats, AbuseReportView } from '../../../shared/abuseRep
  *
  * UTable nach Davids Regel B6: eine Datenliste mit Zeilen-Aktionen, genau der
  * Fall, für den die Regel gemacht ist.
+ *
+ * DER GEMELDETE LINK IST BELEG, DER KLICK NUR KOMFORT (Audit-Befund). Er kommt
+ * aus einem Formular OHNE Anmeldung und wird hier von jemandem mit
+ * `sites.manage` geöffnet — die teuerste Session, die es in diesem Haus gibt.
+ * Deshalb entscheidet die PURE Regel `isDisplayableReportUrl`, ob ein `<a>`
+ * entsteht: nur `http(s):` wird klickbar, alles andere steht als Text da und
+ * ist damit immer noch vollständig lesbar. Der Eingang normalisiert bereits
+ * (`normalizeReportedUrl`), diese Prüfung ist die zweite Hälfte für
+ * Bestandszeilen von davor — eine Oberfläche, die sich auf „ist ja schon
+ * geprüft" verlässt, prüft irgendwann gar nicht mehr.
  */
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'sites.manage' })
 
@@ -163,12 +173,19 @@ const STAT_KEYS = ['open', 'suspended', 'dismissed', 'total'] as const
           <div class="min-w-0 max-w-md">
             <p class="line-clamp-2 text-sm">{{ row.original.message }}</p>
             <a
-              v-if="row.original.url"
+              v-if="isDisplayableReportUrl(row.original.url)"
               :href="row.original.url"
               target="_blank"
               rel="noopener noreferrer"
-              class="truncate text-xs text-muted hover:underline"
+              class="block truncate text-xs text-muted hover:underline"
+              data-abuse-url-link
             >{{ row.original.url }}</a>
+            <p
+              v-else-if="row.original.url"
+              class="truncate text-xs text-muted"
+              data-abuse-url-text
+              :title="t('control.abuse.urlNotLinked')"
+            >{{ row.original.url }}</p>
           </div>
         </template>
         <template #status-cell="{ row }">

@@ -42,10 +42,10 @@ describe.skipIf(!hasEnv)('createCommunityHostResolver (echte Appwrite)', () => {
     }
   })
 
-  async function seed(host: string, tenantId: string, status: 'active' | 'disabled') {
+  async function seed(host: string, tenantId: string, status: 'active' | 'disabled', suspension = '') {
     const row = await tablesDB.createRow({
       databaseId: databaseId!, tableId: COMMUNITIES_TABLE, rowId: ID.unique(),
-      data: { host, mode: 'pool', projectId: 'shared-project', tenantId, status },
+      data: { host, mode: 'pool', projectId: 'shared-project', tenantId, status, suspension },
     })
     createdIds.push(row.$id)
     return row
@@ -95,6 +95,42 @@ describe.skipIf(!hasEnv)('createCommunityHostResolver (echte Appwrite)', () => {
     await expect(resolve([row.$id])).resolves.toEqual({})
     await expect(resolve([`t-hostres-byid-${stamp}`])).resolves
       .toMatchObject({ [`t-hostres-byid-${stamp}`]: `byid-${stamp}.test.local` })
+  })
+
+  it('eine ABUSE-Sperre ist nicht auflösbar — eine BILLING-Sperre schon', async () => {
+    // Audit-Befund: die Sperre kam nach diesem Resolver, `status` war damals der
+    // einzige Aus-Schalter. Ein abuse-gesperrter Host ist vollständig offline —
+    // ein Mail-Link dorthin ist dieselbe 404-Sackgasse wie bei `disabled`.
+    // Ein billing-gesperrter Host LEBT (nur-lesend): dorthin gehört der Link,
+    // samt Hinweis, warum gerade nichts geht.
+    const abuseTenant = `t-hostres-abuse-${stamp}`
+    const billingTenant = `t-hostres-billing-${stamp}`
+    await seed(`abuse-${stamp}.test.local`, abuseTenant, 'active', 'abuse')
+    await seed(`billing-${stamp}.test.local`, billingTenant, 'active', 'billing')
+
+    const resolve = createCommunityHostResolver({
+      endpoint: endpoint!, projectId: projectId!, apiKey: apiKey!, databaseId: databaseId!, cacheTtlMs: 1,
+    })
+    const hosts = await resolve([abuseTenant, billingTenant])
+    expect(hosts).not.toHaveProperty(abuseTenant)
+    expect(hosts[billingTenant]).toBe(`billing-${stamp}.test.local`)
+  })
+
+  it('ohne gesetzte Sperre bleibt der Host auflösbar (NULL ist keine Sperre)', async () => {
+    // Der Grund, warum im Code gefiltert wird und nicht per `Query.notEqual`:
+    // `suspension` ist optional, und ein SQL-`!=` sortiert NULL gleich mit aus —
+    // dieser Resolver fände dann für Bestandszeilen gar keinen Host mehr.
+    const plainTenant = `t-hostres-plain-${stamp}`
+    await tablesDB.createRow({
+      databaseId: databaseId!, tableId: COMMUNITIES_TABLE, rowId: ID.unique(),
+      // Bewusst OHNE `suspension` angelegt — wie jede Zeile aus der Zeit vor control-034.
+      data: { host: `plain-${stamp}.test.local`, mode: 'pool', projectId: 'shared-project', tenantId: plainTenant, status: 'active' },
+    }).then((row) => { createdIds.push(row.$id) })
+
+    const resolve = createCommunityHostResolver({
+      endpoint: endpoint!, projectId: projectId!, apiKey: apiKey!, databaseId: databaseId!, cacheTtlMs: 1,
+    })
+    await expect(resolve([plainTenant])).resolves.toMatchObject({ [plainTenant]: `plain-${stamp}.test.local` })
   })
 
   it('leere Eingabe fragt gar nicht erst', async () => {

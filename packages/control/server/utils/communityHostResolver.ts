@@ -33,6 +33,22 @@ import { COMMUNITIES_TABLE, type TenantRow } from '../../shared/types/tenantReco
  * Host antwortet 404 (der Tenant-Resolver liefert dort `null`), ein Link
  * dorthin wäre eine Sackgasse. Der Empfänger bekommt dann die App-Basis — auch
  * nicht perfekt, aber wenigstens eine Seite, die es gibt.
+ *
+ * `suspension === 'abuse'` zählt AUS DEMSELBEN GRUND als nicht auflösbar (M13,
+ * Audit-Befund): eine wegen Missbrauchs gesperrte Community ist vollständig
+ * offline — der Tenant-Resolver liefert dort ebenfalls `null`, der Host
+ * antwortet 404. Die Prüfung fehlte, weil die Sperre NACH diesem Resolver
+ * gebaut wurde und `status` damals der einzige Aus-Schalter war.
+ *
+ * `suspension === 'billing'` wird bewusst NICHT gefiltert: dieser Host lebt, er
+ * ist nur nur-lesend. Der Link führt genau dorthin, wo der Empfänger hinsoll —
+ * einschließlich des Hinweises, warum gerade nichts geschrieben werden kann.
+ *
+ * GEFILTERT WIRD IM CODE, NICHT IN DER ABFRAGE: `suspension` ist eine optionale
+ * Spalte (control-034, `required: false`), und ein `Query.notEqual` würde in
+ * SQL-Semantik jede Zeile mit NULL gleich mit aussortieren — dann fände dieser
+ * Resolver plötzlich gar keinen Host mehr. Die Spalte reist deshalb in
+ * `Query.select` mit und wird hier geprüft.
  */
 
 export interface CommunityHostResolverOptions {
@@ -79,11 +95,13 @@ export function createCommunityHostResolver(options: CommunityHostResolverOption
           queries: [
             Query.equal('tenantId', chunk),
             Query.equal('status', 'active'),
-            Query.select(['tenantId', 'host']),
+            Query.select(['tenantId', 'host', 'suspension']),
             Query.limit(chunk.length),
           ],
         })
-        const found = new Map(rows.map(row => [row.tenantId, row.host]))
+        const found = new Map(
+          rows.filter(row => (row.suspension ?? '') !== 'abuse').map(row => [row.tenantId, row.host]),
+        )
         for (const id of chunk) {
           const host = found.get(id) ?? ''
           cache.set(communityHostCacheKey(id), host || null)

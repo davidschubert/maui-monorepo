@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
+import { COMMUNITY_MEMBER_STATUSES } from '../shared/types/communityMember'
 import {
   countActiveOwners,
   decideCommunityDeletion,
+  hasCommunityAccess,
   decideInvite,
   decideJoin,
   decideMembershipErasure,
@@ -27,6 +29,18 @@ const secondOwner: CommunityTeamMemberFacts = { id: 'm4', runtimeUserId: 'u-owne
 const removed: CommunityTeamMemberFacts = { id: 'm5', runtimeUserId: 'u-gone', role: 'editor', status: 'removed' }
 
 const team = [owner, admin, viewer, removed]
+
+describe('hasCommunityAccess', () => {
+  it('gilt für GENAU einen Status: active', () => {
+    // Festgenagelt, weil zwei Routen diesen Wert als LITERAL in ihre Appwrite-
+    // Abfrage schreiben (`community/mine.post.ts`, `community/suspension.post.ts`):
+    // `Query.equal('status', 'active')`. Bekäme ein weiterer Status Zugang und
+    // niemand zöge die Abfragen nach, verschwänden die zugehörigen Communities
+    // still aus „Deine Communities" — kein Fehler, nur eine leere Liste.
+    // Dieser Test ist die Erinnerung an die zweite Baustelle.
+    expect(COMMUNITY_MEMBER_STATUSES.filter(hasCommunityAccess)).toEqual(['active'])
+  })
+})
 
 describe('countActiveOwners', () => {
   it('zählt nur aktive Owner', () => {
