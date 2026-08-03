@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 2 offen · 5 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 2 offen · 4 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-03**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -31,7 +31,6 @@ Nachmittag hält, plant an F1/F3/F7 vorbei.
 
 | # | Reihenfolge | Was (einfach erklärt) | Prio | Aufwand | Braucht David? | Wartet auf … |
 | --- | --- | --- | --- | --- | --- | --- |
-| F2 | 3 — halber Tag | **Block-Editor-Worktree** (`worktree-agent-a762b1bc42bba74d7`) — nie durchgesehen, Feature-Stopp. | Niedrig | M | Ja: Go | Ende des Feature-Stopps |
 | F15 | 4 — Tage | **Events lassen sich nicht melden.** Der Knopf ist am 2026-08-01 entfernt worden, weil er ins Leere meldete (Moderations-Audit Befund 4). Eine echte Queue braucht einen Moderations-Zustand für Events (heute nur draft/published/cancelled), `events.moderate`, Route + Dashboard-Seite. | Niedrig | L | Ja: Go | Ende des Feature-Stopps |
 | F1 | 5 — Wochen | **Discussions als eigenes Produkt** — Konzept fertig (Kategorien vom Admin, Threads von Mitgliedern). | Mittel | XL | Ja: Go | dass die Kundenselbstverwaltung rund läuft |
 | F7 | 6 — Wochen | **Bezahlte Communities** — der Owner nimmt Geld von seinen Mitgliedern (Stripe Connect). Eigene Mechanik und eigene Rechtsfragen. **Schluckt D1** (Davids Entscheidung 2026-08-02): bezahlte Pool-Events/-Kurse ergeben erst mit Connect Sinn — sonst landete das Ticketgeld beim Betreiber und der Owner bräuchte je Preis einen lookup_key von David. Events-Hälfte technisch M (S7+A6 haben den alten Webhook-Wartegrund erledigt), Kurse-Hälfte L/XL (community-scoped Entitlements sind unentworfen). | Mittel | XL | Ja: Rechtsfragen | nach dem Go-Live; erst muss Geldfluss 1 (A6) ankommen |

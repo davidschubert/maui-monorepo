@@ -29,6 +29,54 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F2 (aus OPEN-ITEMS) — Der „Block-Editor-Worktree" ist gesichtet, übernommen und abgeräumt ✅ 2026-08-03
+
+> Nicht zu verwechseln mit dem Audit-Befund **F2** weiter unten (doppelter
+> i18n-Schlüssel, 2026-07-31) — das ist die im Kopf beschriebene
+> Nummern-Kollision. Gemeint ist hier der geparkte Punkt aus OPEN-ITEMS.md.
+
+**Was drin lag — deutlich weniger, als der Name versprach.** Ein einziger
+Commit vom 2026-07-26, drei Dateien, +108/−11. Kein Block-Editor-Umbau,
+sondern die kleinste sinnvolle Ausbaustufe des Seiten-Editors: **drei Ansichten
+je Sprachversion** — Schreiben (Tiptap) · Markdown (Rohtext für gezielte
+Korrekturen an bestehenden Bodies) · Vorschau, letztere mit EXAKT derselben
+`MarkdownContent`-Komponente wie die öffentliche Seite. Dazu wurde die
+Schreibfläche auf das Renderer-Subset getrimmt (kein Bild, kein Mention, kein
+Durchgestrichen; dafür Inline-Code und Codeblock, die der Renderer längst
+konnte und die Toolbar verschwieg), und es ist immer nur EINE Ansicht montiert
+— sonst schreiben Tiptap-Serialisierung und Rohtextfeld über dasselbe
+`v-model` gegeneinander.
+
+**Warum übernehmen statt verwerfen.** Die Arbeit ist sauber begründet, hält
+sich an die bestehende Architektur (ein Renderpfad, kein `v-html`) und trägt
+ihre bewussten Ablehnungen als Kopfkommentar. Genau der Zuschnitt, den das
+Leitprinzip Einfachheit verlangt.
+
+**Der Übernahme-Befund.** `main` war seit der Basis viermal über dieselben
+Dateien gelaufen — B6 (Seitenliste als `UTable`), C10, C12, K8. Trotzdem gab es
+beim Cherry-Pick **genau einen** Konflikt: die Import-Zeile. `main` braucht
+`TableColumn` (B6), die Änderung bringt `TabsItem` mit — beides nötig;
+`NavigationMenuItem` ist mit B6 weggefallen und daher entfernt. Alles Übrige
+verschmolz konfliktfrei; Liste und Editor stehen jetzt nebeneinander.
+
+**Abgeräumt.** Der Worktree belegte **560 MB**. Entfernt samt Branch — nachdem
+geprüft war, dass er keine uncommittete Arbeit trug und seine Änderungen auf
+`main` angekommen sind (inklusive der i18n-Schlüssel `mode.write/markdown/
+preview`, `markdownHint`, `previewHint`, `previewEmpty` in de UND en).
+
+**Gelernt:** Die Angst vor dem Rebase war größer als der Rebase. Vier fremde
+Commits auf denselben Dateien klangen nach Aufgeben, waren aber ein einziger
+Import-Konflikt — vor dem Verwerfen fremder Arbeit erst MESSEN, was die
+Übernahme wirklich kostet. Zweitens: ein ungesichteter Worktree kostet doppelt,
+Plattenplatz und die offene Frage, ob dort etwas Wertvolles liegt; hier lautete
+die Antwort „ja", und sie war in zwanzig Minuten zu haben, während das Ding
+über eine Woche lag. Und drittens hat beim Nachtragen die eigene
+Sicherungs-Zeile im Skript (`'### F2 —' not in s`) angeschlagen: die F-Nummern
+sind ZWEIMAL vergeben, und ohne diese Prüfung wären zwei verschiedene Punkte
+unter derselben Überschrift im Archiv gelandet.
+
+---
+
 ### E5 — Schema-Gleichstand ist messbar statt „mitdenken" ✅ 2026-08-03
 
 **Der Punkt lautete:** die Einzel-Instanzen fahren die `system`-Migrationen
