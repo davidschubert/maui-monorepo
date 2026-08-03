@@ -29,6 +29,54 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F44 — Der Pool verschickt zum ersten Mal überhaupt Mails ✅ 2026-08-03
+
+**Das Problem.** `apps/platform` hatte als einzige mail-versendende Instanz kein
+`NUXT_SMTP_*`. Für **jede** Kunden-Community ging damit nie eine
+Benachrichtigung raus — Antworten, Erwähnungen, Digest, und seit F43 die
+Zahlungswarnung des Owners. Niemandem fiel es auf, weil ein fehlender Mailer
+sich exakt wie ein bewusst abgeschaltetes Produkt verhält: die App läuft, die
+Seiten antworten, nur die Mail bleibt aus. Gefunden wurde es zufällig, beim
+Beweis für einen anderen Punkt.
+
+**Drei Sachen sind daraus geworden.**
+
+1. **Der Ausfall ist nicht mehr still.** `warnMailerMissingOnce()` schreibt beim
+   ERSTEN verworfenen Versand einmal pro Prozess ins Log. Der erste Anlauf hing
+   die Warnung an `isMailerConfigured()` — falscher Ort: diese Frage stellt der
+   Digest-Sweep beim Start JEDER App, auch help, marketing und portfolio, die
+   bewusst nichts verschicken. Eine Warnung, die überall steht, wird weggelesen,
+   und dann ist der Ausfall wieder still, nur lauter.
+2. **Ein Wächter, der es gefunden hätte:** `pnpm ops:site-env` liest über ssh nur
+   die SCHLÜSSELNAMEN jeder Server-`.env` (Werte bleiben dort) und meldet
+   fehlende Pflicht-Variablen. Kein CI-Gate, weil ssh. Die Pflicht-Liste ist im
+   Skript gepflegt und NICHT aus `.env.example` abgeleitet — die Vorlage führt
+   auch Optionales, und ein Wächter, der Optionales anmahnt, wird weggelesen.
+3. **Die Vorlage selbst war eine Falle:** `NUXT_PUBLIC_APP_URL` stand zweimal in
+   `apps/platform/.env.example`, oben mit Wert, unten leer. Wer sie kopiert,
+   bekommt die leere — und damit kaputte Links in jeder Mail ohne
+   Community-Bezug (D5-Rückfall).
+
+**Umgesetzt.** Die fünf SMTP-Zeilen serverseitig aus `control` übernommen
+(byte-gleich mit `comments`, per Hash-Vergleich ohne Klartext nachgemessen — ein
+Resend-Konto für alles), `NUXT_PUBLIC_APP_URL=https://my.pukalani.app` ergänzt,
+`.env.bak-f44` als Rückweg, dann `pm2 startOrReload … --update-env`.
+
+**Beweis.** `pm2 env` zeigt alle sechs Variablen im Prozess (`smtp.resend.com`,
+Port 587); `transporter.verify()` aus dem Release meldet **SMTP-Anmeldung
+akzeptiert**, ohne eine Mail zu verschicken; `pnpm ops:site-env` ist auf allen
+sechs Sites grün; platform, control und comments antworten unverändert `ok`.
+
+**Gelernt:** Zwei Messfehler auf dem Weg, beide lehrreich. `/proc/<pid>/environ`
+taugt bei pm2 im **Cluster-Modus** NICHT als Beleg — pm2 setzt die Umgebung im
+Worker, nicht beim exec, also steht dort nichts, und das sah aus wie ein
+gescheiterter Reload. Richtig ist `pm2 env <id>`. Und dessen Ausgabe trennt mit
+`: `, nicht mit `=` — ein `grep "^KEY=."` zählt dort immer null und behauptet
+„leer", obwohl der Wert da ist. Wer eine Konfiguration prüft, muss zuerst das
+FORMAT des Prüfwerkzeugs kennen, sonst misst er sein eigenes Muster.
+
+---
+
 ### F21 — Die Einmal-Allowlist ist scharf: `event_ticket_*` ✅ 2026-08-03
 
 **Das Problem.** Für Event-Tickets galt nur die Grundregel „kein Plan-Key + der

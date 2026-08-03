@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 4 offen · 10 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 3 offen · 10 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-03**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -21,7 +21,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen (**Anleitung dabei mitschreiben — ab Schritt 2 veraltet, Workspace-Welt**) und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
 | 54 · F42 | **Der 84-Scope-Schlüssel „Claude Code“ im Projekt `control` hat KEINEN Verbraucher** — nachgemessen 2026-08-03: alle vier laufenden Zugänge sind Zweck-Schlüssel (Laufzeit nur `users`, Migrationen `databases`+`buckets`, der Platform-Leser nur `rows.read`), die CI hat gar keinen, und die letzte lokale Prod-Datei ist am 2026-08-02 gelöscht. Bleibt: **Console → control → API Keys → löschen.** | Mittel | S — ein Klick | Ja: nur David (Console) | [APPWRITE-KEYS.md](runbooks/APPWRITE-KEYS.md) |
-| 55 · F44 | **Die Platform-Instanz auf dem Server hat kein `NUXT_SMTP_*`** — damit geht für KEINE Kunden-Community eine Benachrichtigungs-Mail raus. Code-Teil ist erledigt: der Ausfall ist nicht mehr still — die erste verworfene Mail sagt es einmal pro Prozess ins Log. Es fehlt nur noch **ein Befehl auf dem Server**, der die fünf SMTP-Zeilen aus `control` übernimmt (dieselben Werte, ein Resend-Konto) plus `NUXT_PUBLIC_APP_URL` — fertig zum Kopieren in den Notizen. Ich fasse den Befehl nicht selbst an, weil er ein Passwort bewegt. | **Hoch** | S — ein Befehl, dann `pm2 startOrReload` | Ja: David führt den Befehl aus | [Notizen](#f44-smtp-fuer-platform) |
 
 ## ⏸️ Geparkt / wartet
 
@@ -47,50 +46,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 Hier steht, was zu einem offenen Punkt gehört, aber in kein Plan-Dokument
 passt. Nichts davon ist eine zusätzliche Aufgabenliste — die eine Liste steht
 oben.
-
-### F44: SMTP für platform
-
-`platform.pukalani.app` hat als einzige mail-versendende App keine
-SMTP-Zeilen. `control` und `comments` haben sie, und ihre fünf Werte sind
-BYTEGLEICH (nachgemessen 2026-08-02, per Hash-Vergleich ohne Klartext) — es
-ist ein Resend-Konto für alles. Deshalb muss niemand ein Passwort
-nachschlagen: der Befehl kopiert die Zeilen serverseitig von `control`
-herüber, der Wert wird nirgends angezeigt. `NUXT_PUBLIC_APP_URL` fehlt
-ebenfalls und ist die Link-Basis, auf die eine Mail zurückfällt, wenn eine
-Meldung keiner Community gehört (D5) — ohne sie stehen dort kaputte Links.
-
-```bash
-ssh ploi@49.13.211.173 'set -e
-SRC=/home/ploi/control.pukalani.app/.env
-DST=/home/ploi/platform.pukalani.app/.env
-cp -a "$DST" "$DST.bak-f44"
-for k in NUXT_SMTP_HOST NUXT_SMTP_PORT NUXT_SMTP_USER NUXT_SMTP_PASS NUXT_SMTP_FROM; do
-  grep -qE "^$k=" "$DST" || grep -E "^$k=" "$SRC" >> "$DST"
-done
-grep -qE "^NUXT_PUBLIC_APP_URL=" "$DST" || echo "NUXT_PUBLIC_APP_URL=https://my.pukalani.app" >> "$DST"
-chmod 600 "$DST"
-pm2 startOrReload /home/ploi/platform.pukalani.app/ops/ecosystem-platform.config.cjs --update-env
-grep -oE "^NUXT_(SMTP_[A-Z]+|PUBLIC_APP_URL)=" "$DST" | tr -d "="'
-```
-
-Der letzte `grep` zeigt nur die SCHLÜSSELNAMEN — es müssen sechs sein. Die
-Ecosystem-Config liest die `.env` beim Reload und hebt sie in die
-Prozess-Umgebung; Nitro liest zur Laufzeit selbst keine `.env`, deshalb ist
-`--update-env` der wirksame Teil. Ohne Reload passiert nichts.
-
-Probe danach, ohne etwas zu verschicken:
-
-```bash
-pnpm ops:site-env
-```
-
-Der Wächter liest über ssh nur die SCHLÜSSELNAMEN jeder Server-`.env` — Werte
-verlassen den Server nicht — und meldet, welche Pflicht-Variable fehlt. Heute
-zeigt er genau diesen Punkt (`platform` ✖, alle anderen ✔); nach dem Befehl
-muss er grün sein. Danach die echte Probe: irgendeine Kommentar-Antwort auf
-einem Mandanten-Host, deren Empfänger `emailNotifications: instant` gesetzt
-hat. Kommt keine Mail, steht der Grund seit heute im Log — `NUXT_SMTP_HOST
-fehlt` heißt, der Reload hat die Datei nicht gesehen.
 
 ### So arbeiten wir
 
