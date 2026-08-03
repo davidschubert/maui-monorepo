@@ -4,10 +4,17 @@ import type { z } from 'zod'
 import { createGuestCommentSchema } from '../../schemas/comment'
 
 /**
- * Gast-Kommentar-Formular (Embed E4): Kommentieren ohne Account — Name, E-Mail
- * und Text. Nur im iframe-Embed sichtbar, wenn pukalani.comments.embed.guests an
- * ist und niemand eingeloggt ist. Postet an /api/comments/guest (store.
- * addGuestComment); die E-Mail wird nur gesendet, nie im Client gehalten.
+ * Gast-Kommentar-Formular (Embed E4): Kommentieren ohne Account — Name und Text.
+ * Nur im iframe-Embed sichtbar, wenn pukalani.comments.embed.guests an ist und
+ * niemand eingeloggt ist. Postet an /api/comments/guest (store.addGuestComment).
+ *
+ * DAS E-MAIL-FELD IST WEG (F18, Davids Entscheidung 2026-08-02). Es war als
+ * Rückfragekanal für die Moderation gedacht, aber die Gegenstelle wurde nie
+ * gebaut: die Adresse landete in `guest_authors`, und diese Tabelle hatte im
+ * ganzen Repo keine Lese-Stelle. Ein Pflichtfeld, dessen Inhalt niemand je
+ * ansieht, ist gegenüber dem Gast eine Zumutung und gegenüber der DSGVO eine
+ * Erhebung ohne Zweck. Der Name bleibt — er ist der ANZEIGENAME und steht
+ * ohnehin öffentlich am Kommentar.
  */
 const props = defineProps<{
   /** Gesetzt = Antwort-Formular, sonst Top-Level */
@@ -20,17 +27,17 @@ const store = inject(commentStoreKey)!
 const toast = useToast()
 const loading = ref(false)
 
-// Validierung: dieselbe Factory wie der Server (Name/E-Mail/Content).
-const schema = computed(() => createGuestCommentSchema(t).pick({ guestName: true, guestEmail: true, content: true }))
+// Validierung: dieselbe Factory wie der Server (Name/Content).
+const schema = computed(() => createGuestCommentSchema(t).pick({ guestName: true, content: true }))
 type FormInput = z.infer<typeof schema.value>
-const state = reactive<FormInput>({ guestName: '', guestEmail: '', content: '' })
+const state = reactive<FormInput>({ guestName: '', content: '' })
 
 async function onSubmit(event: FormSubmitEvent<FormInput>) {
   loading.value = true
   try {
-    await store.addGuestComment(event.data.content, event.data.guestName, event.data.guestEmail, props.parentId)
+    await store.addGuestComment(event.data.content, event.data.guestName, props.parentId)
     state.content = ''
-    // Name/E-Mail für Folgekommentare stehen lassen — bequemer, kein PII-Leak
+    // Den Namen für Folgekommentare stehen lassen — bequemer, kein PII-Leak
     // (bleibt im lokalen Formularzustand dieses Tabs).
     emit('created')
     toast.add({ title: t('comments.guest.posted'), color: 'success' })
@@ -58,14 +65,11 @@ async function onSubmit(event: FormSubmitEvent<FormInput>) {
 
 <template>
   <UForm :schema="schema" :state="state" class="space-y-2" data-guest-form @submit="onSubmit">
-    <div class="grid gap-2 sm:grid-cols-2">
-      <UFormField name="guestName">
-        <UInput v-model="state.guestName" :placeholder="t('comments.guest.namePlaceholder')" class="w-full" autocomplete="name" />
-      </UFormField>
-      <UFormField name="guestEmail">
-        <UInput v-model="state.guestEmail" type="email" :placeholder="t('comments.guest.emailPlaceholder')" class="w-full" autocomplete="email" />
-      </UFormField>
-    </div>
+    <!-- Nur noch EIN Feld (F18) — das Zweispalten-Raster hatte die E-Mail
+         daneben und würde jetzt eine halbe Zeile Leere stempeln. -->
+    <UFormField name="guestName">
+      <UInput v-model="state.guestName" :placeholder="t('comments.guest.namePlaceholder')" class="w-full" autocomplete="name" />
+    </UFormField>
     <UFormField name="content">
       <UTextarea
         v-model="state.content"
@@ -76,11 +80,13 @@ async function onSubmit(event: FormSubmitEvent<FormInput>) {
         data-comment-input
       />
     </UFormField>
-    <div class="flex items-center justify-between gap-2">
+    <!-- Der Hinweis „Deine E-Mail bleibt privat" ist mit dem Feld gefallen
+         (F18). Ein Ersatzsatz „wir speichern nichts" wäre zu viel versprochen:
+         die Server-Protokolle sehen weiterhin eine IP-Adresse. -->
+    <div class="flex items-center gap-2">
       <UButton type="submit" size="sm" :loading="loading">
         {{ parentId ? t('comments.form.replySubmit') : t('comments.form.submit') }}
       </UButton>
-      <span class="text-xs text-dimmed">{{ t('comments.guest.emailHint') }}</span>
     </div>
   </UForm>
 </template>

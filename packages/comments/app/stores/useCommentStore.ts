@@ -231,7 +231,7 @@ const commentStoreSetup = () => {
    * shared/guestComments.ts), damit die Zeile auch nach einem Neuladen da ist —
    * sonst wäre der Eintrag hier eine Anzeige ohne Deckung.
    */
-  async function addGuestComment(content: string, guestName: string, guestEmail: string, parentId?: string) {
+  async function addGuestComment(content: string, guestName: string, parentId?: string) {
     const now = new Date().toISOString()
     const parent = parentId ? rows.value.find(r => r.$id === parentId) : undefined
     const temp: Comment = {
@@ -258,7 +258,9 @@ const commentStoreSetup = () => {
     try {
       const created = await $fetch<Comment>('/api/comments/guest', {
         method: 'POST',
-        body: { targetId: targetId.value, targetType: targetType.value, content, parentId, targetUrl: targetUrl.value || undefined, guestName, guestEmail },
+        // Kein `guestEmail` mehr (F18): der Server nimmt es nicht entgegen und
+        // legt es nirgends ab — es zu senden wäre eine Adresse mehr im Netz.
+        body: { targetId: targetId.value, targetType: targetType.value, content, parentId, targetUrl: targetUrl.value || undefined, guestName },
       })
       const alreadyPresent = rows.value.some(row => row.$id === created.$id)
       rows.value = rows.value.filter(row => row.$id !== temp.$id)

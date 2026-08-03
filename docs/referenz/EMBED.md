@@ -1,11 +1,11 @@
 # Embed-Widget — Kommentare auf Drittseiten einbetten
 
-> Stand: 2026-07-23 · Status: **E0–E3 live + E4-Gast-Kommentare** · Plan/
+> Stand: 2026-08-02 · Status: **E0–E3 live + E4-Gast-Kommentare** · Plan/
 > Architektur: [plans/EMBED-WIDGET.md](../archiv/EMBED-WIDGET.md). Schreiben im
 > Embed läuft für eingeloggte User (Login-Popup + CHIPS-Session, E2) UND für
-> Gäste ohne Account (Name+E-Mail, ohne Verifikation, E4 — Gate
-> `pukalani.comments.embed.guests`, Default aus; die E-Mail landet nur in der
-> operator-lesbaren Tabelle `guest_authors`, nie auf der öffentlichen Row).
+> Gäste ohne Account (nur Anzeigename, ohne Verifikation, E4 — Gate
+> `pukalani.comments.embed.guests`, Default aus). **Seit F18 (2026-08-02)
+> erhebt der Gast-Weg KEINE Kontaktdaten mehr** — keine E-Mail, kein IP-Hash.
 
 Beliebige Drittseiten (Blog, Docs, statisches HTML — Stack egal) binden das
 Kommentar-Widget per `<script>`-Tag ein. Es lädt als iframe von der
@@ -72,8 +72,8 @@ pukalani: {
       // Prod-Domains aus der SITE-REGISTRY (s. u.) — hier stehen nur noch
       // Dev-/Sonderfälle. ['*'] bleibt die bewusste „offen wie Disqus"-Option.
       allowedOrigins: ['http://localhost:*'],
-      // Gast-Kommentare (E4): ohne Account kommentieren (Name+E-Mail, keine
-      // Verifikation). Default aus; greift nur zusätzlich zu `enabled`.
+      // Gast-Kommentare (E4): ohne Account kommentieren (nur Anzeigename,
+      // keine Verifikation). Default aus; greift nur zusätzlich zu `enabled`.
       guests: true,
     },
   },
@@ -81,14 +81,23 @@ pukalani: {
 ```
 
 - **Gast-Kommentare (E4, `guests`):** ist das Gate an, zeigt das Widget
-  Nicht-Eingeloggten ein Formular mit Name + E-Mail + Text (POST
+  Nicht-Eingeloggten ein Formular mit Name + Text (POST
   `/api/comments/guest`). Guardrails: enger Rate-Limit-Bucket (5/min/IP),
-  zählt gegen das Tenant-Quota, kein `operatorTargets`-Thread. **Datenschutz:**
-  die E-Mail steht NIE auf der öffentlichen (read(any)) Kommentar-Row — nur
-  der frei gewählte Anzeigename. Name/E-Mail/IP-Hash liegen getrennt in der
-  Tabelle `guest_authors` (nur admin/moderator lesbar) für Moderation + DSGVO.
-  Gast-Rows tragen `authorKind: 'guest'`, `authorId: ''` und keine
-  Edit-/Vote-Rechte.
+  zählt gegen das Tenant-Quota, kein `operatorTargets`-Thread. Gast-Rows tragen
+  `authorKind: 'guest'`, `authorId: ''` und keine Edit-/Vote-Rechte.
+- **Datenschutz (F18, Davids Entscheidung 2026-08-02):** von einem Gast wird
+  NUR der frei gewählte Anzeigename gespeichert — der steht ohnehin öffentlich
+  am Kommentar. Bis dahin nahm der Weg zusätzlich eine E-Mail entgegen und legte
+  sie mit einem IP-Hash in der operator-lesbaren Tabelle `guest_authors` ab,
+  angekündigt „für Moderation + DSGVO". Genau diese Gegenstelle wurde nie
+  gebaut: die Tabelle hatte im ganzen Repo **keine einzige Lese-Stelle** — keine
+  Moderations-Ansicht, keinen Export, kein Skript. Damit lagen personenbezogene
+  Daten herum, die niemand je benutzt hat, und das ist unter DSGVO das
+  schlechteste Muster. Die Erhebung ist deshalb ersatzlos gefallen statt die
+  Lese-Stelle nachzureichen. Die Tabelle bleibt vorerst stehen (ein Drop ist
+  unumkehrbar); ihre Alt-Zeilen räumt `guestAuthorPrune.ts` nach 90 Tagen ab.
+  Wer den Rückfragekanal später doch will, baut ihn als Ganzes — Zweck,
+  Lese-Stelle, Frist und Auskunftspfad — und nicht wieder nur die Erhebung.
 
 - **Presence/Typing (E4) für eingeloggte Embed-User:** funktioniert ohne
   Zusatzarbeit — der geteilte Realtime-Socket trägt Thread-Presence, Typing

@@ -2,7 +2,15 @@ import type { Models } from 'node-appwrite'
 
 export const COMMENTS_TABLE = 'comments'
 export const VOTES_TABLE = 'comment_votes'
-/** Kontaktdaten der Gast-Kommentatoren (operator-read, comments-013). */
+/**
+ * Kontaktdaten der Gast-Kommentatoren (operator-read, comments-013).
+ *
+ * SEIT F18 (2026-08-02) NUR NOCH BESTAND: es schreibt niemand mehr hinein, der
+ * einzige verbleibende Konsument ist `guestAuthorPrune.ts`, der die Alt-Zeilen
+ * nach 90 Tagen abräumt. Die Tabelle bleibt vorerst stehen (ein Drop ist
+ * unumkehrbar und gehört in eine eigene Entscheidung); wer hier wieder etwas
+ * anlegen will, braucht zuerst eine Lese-Stelle und einen Zweck.
+ */
 export const GUEST_AUTHORS_TABLE = 'guest_authors'
 
 /** Maximale Antwort-Tiefe (0 = Top-Level). Tiefere Antworten werden abgelehnt. */
@@ -27,9 +35,10 @@ export interface Comment extends Models.Row {
   authorName: string
   /**
    * Herkunft des Autors: 'user' (Appwrite-Account, Default/Bestand) oder
-   * 'guest' (Embed-Gast ohne Account, Name+E-Mail — Migration comments-013).
-   * Gast-Rows haben authorId '' und keine Vote-/Edit-Permissions; die E-Mail
-   * lebt NUR in guest_authors (operator-read), NIE auf dieser read(any)-Row.
+   * 'guest' (Embed-Gast ohne Account — Migration comments-013). Gast-Rows haben
+   * authorId '' und keine Vote-/Edit-Permissions. Seit F18 ist `authorName` das
+   * EINZIGE, was von einem Gast gespeichert wird — es gibt keine zweite Zeile
+   * mit E-Mail und IP-Hash mehr (siehe GUEST_AUTHORS_TABLE oben).
    */
   authorKind?: 'user' | 'guest'
   /**

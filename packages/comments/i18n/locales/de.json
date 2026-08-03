@@ -27,8 +27,6 @@
     "guest": {
       "badge": "Gast",
       "namePlaceholder": "Dein Name",
-      "emailPlaceholder": "E-Mail (wird nicht veröffentlicht)",
-      "emailHint": "Deine E-Mail bleibt privat und wird nicht angezeigt.",
       "orSignIn": "Oder",
       "posted": "Dein Kommentar wurde veröffentlicht.",
       "rateLimited": "Zu viele Kommentare in kurzer Zeit. Bitte versuch es gleich noch einmal."
@@ -143,8 +141,7 @@
       "contentRequired": "Der Kommentar darf nicht leer sein",
       "contentMax": "Maximal 10.000 Zeichen",
       "guestNameRequired": "Bitte gib einen Namen an (mind. 2 Zeichen)",
-      "guestNameMax": "Maximal 60 Zeichen",
-      "guestEmailInvalid": "Bitte gib eine gültige E-Mail-Adresse an"
+      "guestNameMax": "Maximal 60 Zeichen"
     }
   },
   "admin": {

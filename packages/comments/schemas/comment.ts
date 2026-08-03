@@ -31,9 +31,21 @@ export function createCommentSchema(t: TranslateFn = identity) {
 
 /**
  * Gast-Kommentar (Embed E4): dieselben Felder wie ein Nutzer-Kommentar plus
- * frei gewählter Name und E-Mail. Kein Account, keine Verifikation (bewusste
- * Produktentscheidung) — die E-Mail wird server-seitig ausschließlich in
- * guest_authors (operator-read) abgelegt, nie auf der öffentlichen Row.
+ * einem frei gewählten ANZEIGENAMEN. Kein Account, keine Verifikation (bewusste
+ * Produktentscheidung).
+ *
+ * KEINE E-MAIL MEHR (F18, Davids Entscheidung 2026-08-02). Bis hierher verlangte
+ * das Formular zusätzlich eine Adresse, die ausschließlich in `guest_authors`
+ * landete — einer Tabelle, die NIEMAND las: keine Moderations-Ansicht, kein
+ * Export, kein Skript. Gedacht war sie als Rückfragekanal für die Moderation
+ * (docs/referenz/EMBED.md: „für Moderation + DSGVO"); gebaut wurde dieser Kanal
+ * nie. Erhebung ohne Zweck ist unter DSGVO das schlechteste Muster, also fällt
+ * die Erhebung und nicht die Zweckfrage.
+ *
+ * `z.object` STRIPPT unbekannte Schlüssel: ein Widget, das noch aus dem
+ * Browser-Cache eines Einbetters kommt und `guestEmail` mitschickt, bekommt
+ * weiter 201 — die Adresse wird nur verworfen statt gespeichert. Genau deshalb
+ * steht hier kein `.strict()`.
  */
 export function createGuestCommentSchema(t: TranslateFn = identity) {
   return createCommentSchema(t).extend({
@@ -42,12 +54,6 @@ export function createGuestCommentSchema(t: TranslateFn = identity) {
       .trim()
       .min(2, t('comments.validation.guestNameRequired'))
       .max(60, t('comments.validation.guestNameMax')),
-    guestEmail: z
-      .string()
-      .trim()
-      .toLowerCase()
-      .email(t('comments.validation.guestEmailInvalid'))
-      .max(254, t('comments.validation.guestEmailInvalid')),
   })
 }
 

@@ -1,23 +1,33 @@
-import { createHash } from 'node:crypto'
 import { communityContentIsPublic } from '../../../../core/shared/communityAudience'
 import { guestCommentSchema } from '../../../schemas/comment'
 import { guestCommentsAllowed } from '../../../shared/guestComments'
-import { COMMENTS_TABLE, GUEST_AUTHORS_TABLE, MAX_COMMENT_DEPTH, type Comment } from '../../../shared/types/comment'
+import { COMMENTS_TABLE, MAX_COMMENT_DEPTH, type Comment } from '../../../shared/types/comment'
 
 /**
- * Gast-Kommentar (Embed E4, Task 20): Kommentieren OHNE Account (Name+E-Mail,
- * keine Verifikation — bewusste Produktentscheidung). Getrennter Pfad, weil
- * der reguläre POST /api/comments eine Session verlangt.
+ * Gast-Kommentar (Embed E4, Task 20): Kommentieren OHNE Account (nur ein frei
+ * gewählter Anzeigename, keine Verifikation — bewusste Produktentscheidung).
+ * Getrennter Pfad, weil der reguläre POST /api/comments eine Session verlangt.
+ *
+ * KEINE KONTAKTDATEN MEHR (F18, Davids Entscheidung 2026-08-02): bis hierher
+ * legte diese Route zusätzlich Name, E-Mail und IP-Hash in `guest_authors` ab.
+ * Diese Tabelle hatte im ganzen Repo KEINE Lese-Stelle — keine Moderations-
+ * Ansicht, kein GDPR-Export, kein Skript; nur der Verfalls-Sweep, der sie
+ * wieder löscht. Damit wurden personenbezogene Daten erhoben, ohne je genutzt zu
+ * werden, und das ist unter DSGVO nicht die weiche, sondern die schlechteste
+ * Variante. Die ehrliche Antwort auf „wir kommen an die Daten nicht heran" ist
+ * deshalb, sie nicht zu erheben — nicht, nachträglich eine Lese-Stelle zu bauen.
+ * Der ANZEIGENAME bleibt: er steht ohnehin öffentlich auf der Kommentar-Row und
+ * ist keine Kontaktspur.
  *
  * Sicherheits-Leitplanken (unauth. Write in die geteilte, gepoolte Tabelle):
  *  - Dreifach-Gate: pukalani.comments.embed.enabled UND .guests müssen an sein
  *    UND die Community muss öffentlich sein (F4, guestCommentsAllowed) — sonst
  *    404 (keine Existenz-Preisgabe). Core-Default: beide Schalter aus.
- *  - Rate-Limit: eigener enger Bucket `comments:guest` (rate-limit.ts).
+ *  - Rate-Limit: eigener enger Bucket `comments:guest` (rate-limit.ts). Er
+ *    arbeitet weiter mit der Client-IP — sie wird dort NICHT gespeichert,
+ *    sondern nur für die Zählung im Redis-Fenster benutzt.
  *  - Quota: zählt gegen das Tenant-Budget (assertPoolWriteQuota).
  *  - Kein operatorTarget (interne Threads bleiben Operatoren vorbehalten).
- *  - Die E-Mail steht NIE auf der read(any)-Kommentar-Row — nur der Anzeigename.
- *    Kontaktdaten (Name/E-Mail/IP-Hash) landen in guest_authors (operator-read).
  *  - Gast-Rows haben authorId '' und KEINE update/delete-Permission (kein
  *    Session-Prinzipal, der sie je nutzen könnte).
  */
@@ -111,19 +121,10 @@ export default defineEventHandler(async (event) => {
     throw toH3Error(error, 'Could not create comment')
   })
 
-  // Kontaktdaten getrennt ablegen (operator-read). Best-effort: schlägt das
-  // fehl, bleibt der Kommentar bestehen — aber ohne moderierbare Kontaktspur.
-  // Die Zeile verfällt nach 90 Tagen von selbst (guestAuthorPrune.ts): ein Gast
-  // hat keine userId, an der die GDPR-Löschung ansetzen könnte.
-  // `trustedClientIp`: die Kontaktspur eines Gastes ist nur so viel wert wie
-  // ihre Herkunft — mit dem ERSTEN X-Forwarded-For-Segment konnte sich jeder
-  // Gast pro Kommentar eine neue „IP" ausdenken (Audit 2026-08-02).
-  const ipHash = createHash('sha256').update(trustedClientIp(event) ?? '').digest('hex')
-  await db.create(GUEST_AUTHORS_TABLE, {
-    commentId: row.$id, name: body.guestName, email: body.guestEmail, ipHash,
-  }, { permissions: [] }).catch((error) => {
-    logEvent('error', 'guest_author_persist_failed', { commentId: row.$id, error: String(error) })
-  })
+  // HIER STAND DER SCHREIBVORGANG IN `guest_authors` (F18). Ersatzlos gefallen:
+  // ein zweiter Datensatz mit Name, E-Mail und IP-Hash, den niemand je gelesen
+  // hat. Was von ihm gebraucht wurde — der Anzeigename — steht eine Zeile
+  // weiter oben auf der Kommentar-Row selbst.
 
   const snippet = body.content.length > 140 ? `${body.content.slice(0, 140)}…` : body.content
   const link = (body.targetUrl ?? parent?.targetUrl) ?? '/'

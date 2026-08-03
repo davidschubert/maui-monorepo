@@ -6,14 +6,24 @@ import { GUEST_AUTHORS_TABLE } from '../../shared/types/comment'
  * Gast-Kontaktdaten verfallen (Audit-Befund 2026-08-01, Muster
  * `abuseReportPrune.ts` aus derselben Woche).
  *
- * WARUM ES DIESEN SWEEP BRAUCHT: `guest_authors` ist heute SCHREIB-ONLY. Die
- * Tabelle nimmt Name, E-Mail und IP-Hash jedes Gast-Kommentars auf (E4) und
- * bekommt sie nie wieder los — es gibt keine Lese-Stelle, keinen Löschpfad und
- * keinen Anschluss an die GDPR-Orchestrierung. Der Grund für das Fehlen ist
- * derselbe wie bei den Melder-Adressen: ein Gast hat KEINE userId, und der
- * Contributor-Vertrag (`registerUserDataContributor`) ist genau darauf
- * geschlüsselt. Ohne eigene Frist bliebe die Adresse für immer liegen — und das
- * ist die einzige personenbezogene Spur des Layers, die kein Konto hat.
+ * SEIT F18 IST DAS EIN ABRÄUM-SWEEP, KEIN DAUERBETRIEB (2026-08-02, Davids
+ * Entscheidung). Es SCHREIBT niemand mehr in `guest_authors`: die Route
+ * `guest.post.ts` nimmt E-Mail und IP-Hash gar nicht mehr entgegen, weil die
+ * Tabelle nie eine Lese-Stelle bekommen hat — erhoben ohne Zweck. Was hier noch
+ * abläuft, ist der geordnete Rückbau des BESTANDS: die Zeilen von vor der
+ * Entscheidung fallen mit derselben 90-Tage-Frist, die ihnen tags zuvor gegeben
+ * wurde. Danach läuft der Sweep über eine leere Tabelle und kostet einen
+ * `listRows` pro Stunde. Deshalb steht dieser Code hier weiter und wurde NICHT
+ * zusammen mit der Erhebung entfernt — und deshalb ist er auch nur eine
+ * Zwischenstufe: fällt die Tabelle irgendwann (eigene, unumkehrbare
+ * Entscheidung), fällt dieser Sweep mit ihr.
+ *
+ * WARUM ES DIESEN SWEEP ÜBERHAUPT GAB: `guest_authors` war SCHREIB-ONLY. Die
+ * Tabelle nahm Name, E-Mail und IP-Hash jedes Gast-Kommentars auf (E4) und
+ * bekam sie nie wieder los — keine Lese-Stelle, kein Löschpfad, kein Anschluss
+ * an die GDPR-Orchestrierung. Der Grund für das Fehlen ist derselbe wie bei den
+ * Melder-Adressen: ein Gast hat KEINE userId, und der Contributor-Vertrag
+ * (`registerUserDataContributor`) ist genau darauf geschlüsselt.
  *
  * DIE FRIST: 90 Tage ab dem Kommentar (`$createdAt`) — dieselbe Zahl und
  * dieselbe Begründung wie bei den Melder-Adressen, damit die Zusage EINE ist
@@ -82,7 +92,8 @@ export async function pruneGuestAuthors(now: number = Date.now()): Promise<Guest
   // Fail-soft und STILL: die Tabelle entsteht erst mit Migration comments-013,
   // und Gast-Kommentare sind ein Gate, das die meisten Deployments nie
   // einschalten. Ein stündlicher Stapel Fehler wäre in so einem Projekt kein
-  // Hinweis, sondern Rauschen, in dem echte Meldungen untergehen.
+  // Hinweis, sondern Rauschen, in dem echte Meldungen untergehen. Seit F18 gilt
+  // das doppelt: hier ist nichts mehr zu tun, sobald der Bestand durch ist.
   if (!listed) return { checked: 0, deleted: 0 }
 
   let deleted = 0
