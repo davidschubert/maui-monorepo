@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 2 offen · 8 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 3 offen · 7 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-03**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -20,6 +20,7 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | --- | --- | --- | --- | --- | --- |
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen (**Anleitung dabei mitschreiben — ab Schritt 2 veraltet, Workspace-Welt**) und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
+| 56 · F45 | **Im Appwrite-Projekt `control` ist KEINE Web-Platform eingetragen** — gemessen 2026-08-03: `control.pukalani.app` bekommt vom eigenen Projekt `403 Invalid Origin`, dieselbe Antwort wie ein wildfremder Host. Damit ist auf der Betreiber-Konsole jede Realtime tot (Sofort-Abmeldung bei Session-Widerruf, Live-Glocke, Live-Theme) — still, nur eine Konsolenzeile. Console → Projekt `control` → Settings → Platforms → Web-App `control.pukalani.app`. | Mittel | S — ein Eintrag | Ja: nur David (Console) | beim P12-Nachsehen gefunden |
 
 ## ⏸️ Geparkt / wartet — in Arbeitsreihenfolge
 
@@ -31,7 +32,6 @@ Nachmittag hält, plant an F1/F3/F7 vorbei.
 
 | # | Reihenfolge | Was (einfach erklärt) | Prio | Aufwand | Braucht David? | Wartet auf … |
 | --- | --- | --- | --- | --- | --- | --- |
-| P12 · OPS | 1 — 2 Min | **Ein Cutover-Krümel, zwei sind weg.** Nachgemessen 2026-08-03: `/home/ploi/releases/studio/` existiert nicht mehr und das GitHub-Secret `PLOI_DEPLOY_WEBHOOK_STUDIO` ist ebenfalls fort. Bleibt: in der Appwrite-Console (Projekt `control` → Settings → Platforms) nachsehen, ob `studio.pukalani.app` noch als Web-Platform hängt. | Niedrig | S — ein Blick | Ja: nur David (Console) | — |
 | D4 | 2 — 10 Min | **Cloudflare-Ursprungszertifikat** für die Landing — erlaubt „Full (Strict)". Der private Schlüssel muss durchs Dashboard. | Niedrig | S | Ja: nur David | dass David es einmal macht |
 | F2 | 3 — halber Tag | **Block-Editor-Worktree** (`worktree-agent-a762b1bc42bba74d7`) — nie durchgesehen, Feature-Stopp. | Niedrig | M | Ja: Go | Ende des Feature-Stopps |
 | F15 | 4 — Tage | **Events lassen sich nicht melden.** Der Knopf ist am 2026-08-01 entfernt worden, weil er ins Leere meldete (Moderations-Audit Befund 4). Eine echte Queue braucht einen Moderations-Zustand für Events (heute nur draft/published/cancelled), `events.moderate`, Route + Dashboard-Seite. | Niedrig | L | Ja: Go | Ende des Feature-Stopps |

@@ -29,6 +29,28 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### P12 — Die drei Cutover-Krümel sind weg ✅ 2026-08-03
+
+Nach dem Control-Cutover blieben drei Reste übrig. Alle drei nachgemessen statt
+abgehakt:
+
+- `/home/ploi/releases/studio/` — **existiert nicht mehr** (die Release-Slots
+  sind heute comments, control, help, marketing, platform, portfolio).
+- GitHub-Secret `PLOI_DEPLOY_WEBHOOK_STUDIO` — **fort** (`gh secret list` kennt
+  nur noch die drei ploi-Webhooks und den Deploy-SSH-Key).
+- Web-Platform `studio.pukalani.app` im Projekt `control` — **nicht vorhanden**.
+
+**Gelernt:** Der dritte Punkt war richtig gestellt und trotzdem irreführend
+beantwortet. Gesucht wurde ein Eintrag, der zu viel ist; gefunden wurde, dass
+dort ÜBERHAUPT KEINER steht — auch nicht der, der hingehört
+(`control.pukalani.app`, jetzt F45). Eine Aufräum-Frage („hängt X noch da?")
+misst nur die eine Richtung. Wer die Liste ganz liest statt nur nach X zu
+suchen, sieht auch, was FEHLT. Die Messung dafür ist billig: eine Anfrage mit
+`Origin`-Header gegen `/v1/account`, `403 general_unknown_origin` heißt „Host
+unbekannt", `401` heißt „Host akzeptiert, nur keine Sitzung".
+
+---
+
 ### F42 — Der 84-Scope-Schlüssel im Projekt `control` ist gelöscht ✅ 2026-08-03
 
 **Das Problem.** In der Console lag ein Schlüssel mit **84 Scopes** namens
