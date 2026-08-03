@@ -145,10 +145,15 @@ export function paymentFailureAudience(metadata: Record<string, string> | null |
  * ist durch den Checkout durch". Bei einer VERZÖGERTEN Zahlungsart
  * (SEPA-Lastschrift, Rechnung, Sofort/Bancontact-Nachläufer) feuert das Event
  * mit `payment_status: 'unpaid'` — die Belastung passiert erst Tage später und
- * kann scheitern. Welche Methoden Stripe anbietet, entscheidet das DASHBOARD
- * (keine unserer Checkout-Erzeugungen setzt `payment_method_types`), es genügt
- * also EIN Klick dort, damit dieser Fall real wird. Deshalb hängt die
- * Erfüllung am Zahlungs-Status, nicht am Event-Namen.
+ * kann scheitern.
+ *
+ * Seit F20 (2026-08-03) bieten unsere Checkouts NUR Karte an
+ * (`CHECKOUT_PAYMENT_METHOD_TYPES`, shared/paymentMethods.ts) — vorher
+ * entschied das allein das Stripe-Dashboard, ein Klick dort hätte den Fall
+ * scharf gemacht. Diese Prüfung bleibt trotzdem, und zwar unverändert: eine
+ * Karten-Zahlung kann über 3-D-Secure ebenfalls in `unpaid` landen, und wer
+ * die Methoden-Liste eines Tages erweitert, soll dabei keine stille Lücke
+ * aufreißen. Die Erfüllung hängt am Zahlungs-Status, nicht am Event-Namen.
  *
  * `no_payment_required` gehört dazu: das setzt Stripe bei Sessions über 0 €
  * (100-%-Gutschein, Freikarte). Da IST nichts zu belasten — die Ware ist fällig.

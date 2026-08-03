@@ -1,4 +1,5 @@
 import { createCheckoutSchema } from '../../../schemas/billing'
+import { CHECKOUT_PAYMENT_METHOD_TYPES } from '../../../shared/paymentMethods'
 
 /**
  * Abo-Checkout (Ablauf 4.1): planId+interval → Stripe-hosted Checkout-URL.
@@ -44,6 +45,9 @@ export default defineEventHandler(async (event) => {
     client_reference_id: user.$id,
     metadata: { userId: user.$id, planId: plan.id },
     subscription_data: { metadata: { userId: user.$id, planId: plan.id } },
+    // F20: nur Karte — keine verzögert abrechnenden Methoden.
+    // Begründung in shared/paymentMethods.ts.
+    payment_method_types: [...CHECKOUT_PAYMENT_METHOD_TYPES],
     // §6: Stripe Tax (B2C) + Pflicht-Rechnungsadresse; Stripe-Invoicing genügt
     automatic_tax: { enabled: true },
     billing_address_collection: 'required',

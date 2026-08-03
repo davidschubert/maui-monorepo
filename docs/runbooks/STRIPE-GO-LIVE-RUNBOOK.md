@@ -104,9 +104,13 @@ nicht") statt 500 — eine bewusst nicht eingerichtete Route ist kein Ausfall.
   `tax_behavior: 'inclusive'` in `scripts/stripe/ensure-prices.mjs` ergänzen.
   `tax_behavior` ist an einem Price **unveränderlich** — ein falsch angelegter
   Price muss ersetzt werden.
-- **2.5 Zahlungsmethoden** prüfen. Karten reichen. **Wer SEPA oder Kauf auf
-  Rechnung aktiviert, schaltet damit den verzögerten Zahlungspfad scharf** —
-  siehe Schritt 6.5, der ist seit 2026-08-02 gebaut, aber ungetestet.
+- **2.5 Zahlungsmethoden** — **nichts zu tun** (F20, Davids Entscheidung
+  2026-08-03: nur Karte). Der Code gibt die Liste seit dem selbst mit
+  (`payment_method_types`, `packages/billing/shared/paymentMethods.ts`), sie
+  gewinnt gegen die Dashboard-Voreinstellung. Wer im Dashboard trotzdem SEPA
+  oder Kauf auf Rechnung anschaltet, sieht davon im Checkout also nichts —
+  scharf würde der verzögerte Zahlungspfad erst, wenn jemand die Liste im
+  Code erweitert (dann gilt Schritt 6.5, gebaut 2026-08-02, ungetestet).
 
 ## 3. Preise per Skript anlegen [Claude, sobald der Key in Davids Shell steht]
 

@@ -1,6 +1,7 @@
 import type { H3Event } from 'h3'
 import type Stripe from 'stripe'
 import type { SubscriptionStatus } from '../../shared/types/billing'
+import { CHECKOUT_PAYMENT_METHOD_TYPES } from '../../shared/paymentMethods'
 
 /**
  * Erfüllungs-Vertrag für One-time-Checkouts (mode 'payment', §5b):
@@ -126,6 +127,9 @@ export async function createSubscriptionCheckoutSession(event: H3Event, input: {
     client_reference_id: user.$id,
     metadata,
     subscription_data: { metadata },
+    // F20: nur Karte — keine verzögert abrechnenden Methoden.
+    // Begründung in shared/paymentMethods.ts.
+    payment_method_types: [...CHECKOUT_PAYMENT_METHOD_TYPES],
     // §6: Stripe Tax + Pflicht-Rechnungsadresse (wie alle Checkouts)
     automatic_tax: { enabled: true },
     billing_address_collection: 'required',
@@ -170,6 +174,9 @@ export async function createPaymentCheckoutSession(event: H3Event, input: {
     line_items: [{ price: price.id, quantity: 1 }],
     client_reference_id: user.$id,
     metadata: { ...input.metadata, userId: user.$id },
+    // F20: nur Karte — keine verzögert abrechnenden Methoden.
+    // Begründung in shared/paymentMethods.ts.
+    payment_method_types: [...CHECKOUT_PAYMENT_METHOD_TYPES],
     // §6: Stripe Tax an (B2C) + Pflicht-Rechnungsadresse
     automatic_tax: { enabled: true },
     billing_address_collection: 'required',

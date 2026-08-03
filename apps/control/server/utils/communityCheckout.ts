@@ -3,6 +3,7 @@ import type { TenantRow } from '../../../../packages/control/shared/types/tenant
 import { COMMUNITIES_TABLE } from '../../../../packages/control/shared/types/tenantRecord'
 import { pickLookupKey } from '../../../../packages/control/shared/communityBilling'
 import type { ControlPlanCatalog, PlanBillingInterval } from '../../../../packages/control/shared/types/planCatalog'
+import { CHECKOUT_PAYMENT_METHOD_TYPES } from '../../../../packages/billing/shared/paymentMethods'
 
 /**
  * A6 Schritt 3 — APP-Komposition (A14): der
@@ -81,6 +82,9 @@ export async function createCommunityCheckoutUrl(event: H3Event, input: {
     client_reference_id: input.ownerUserId,
     metadata,
     subscription_data: { metadata },
+    // F20: nur Karte — keine verzögert abrechnenden Methoden.
+    // Begründung in shared/paymentMethods.ts.
+    payment_method_types: [...CHECKOUT_PAYMENT_METHOD_TYPES],
     // §6: Stripe Tax + Pflicht-Rechnungsadresse (wie alle Checkouts)
     automatic_tax: { enabled: true },
     billing_address_collection: 'required',

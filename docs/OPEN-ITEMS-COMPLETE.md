@@ -29,6 +29,54 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F20 — Nur Karte: SEPA und Kauf auf Rechnung abgeschaltet ✅ 2026-08-03
+
+**Die Entscheidung.** David: „nur Karte, SEPA und Rechnung abschalten."
+
+**Warum das eine Code-Zeile und kein Dashboard-Klick ist.** Vorher setzte
+KEINE unserer vier Checkout-Erzeugungen `payment_method_types` — was im
+Checkout erschien, entschied allein das Stripe-Dashboard. Ein einziger Klick
+dort, auch versehentlich oder auf Stripes eigene Empfehlung hin, hätte den
+verzögerten Zahlungspfad scharf gemacht. Jetzt gibt der Code die Liste mit,
+und sie gewinnt gegen die Voreinstellung: die Entscheidung steht damit dort,
+wo sie überprüfbar ist.
+
+**Warum ausgerechnet Karte.** Verzögerte Methoden trennen „durch den Checkout"
+von „bezahlt": `checkout.session.completed` feuert mit
+`payment_status: 'unpaid'`, belastet wird Tage später, und das kann scheitern.
+Für ein Abo wäre das verkraftbar — für ein **Event-Ticket** nicht: der Käufer
+stünde ohne Ticket da und verstünde nicht, warum, denn aus seiner Sicht hat er
+bezahlt.
+
+**Was ausdrücklich NICHT geändert wurde.** `mayFulfillCheckout` (Erfüllung
+hängt am `payment_status`, nicht am Event-Namen) bleibt unverändert. Eine
+Karten-Zahlung kann über 3-D-Secure ebenfalls in `unpaid` landen, und wer die
+Methoden-Liste eines Tages erweitert, soll dabei keine stille Lücke aufreißen.
+Der Kommentar dort behauptete allerdings, niemand setze `payment_method_types`
+— er ist mitgezogen worden.
+
+**Umsetzung.** Ein Wert an EINER Stelle
+(`packages/billing/shared/paymentMethods.ts`) statt vier Kopien; die vier
+Aufrufstellen reichen ihn durch (2× `fulfillment.ts`, `checkout.post.ts`,
+`apps/control/.../communityCheckout.ts`). Dazu Runbook-Schritt 2.5, der jetzt
+„nichts zu tun" sagt.
+
+**Beweis.** `packages/billing/tests/payment-methods.test.ts` (3 Tests, Suite
+58/58): der dritte liest die QUELLE und verlangt das Feld an JEDER
+`checkout.sessions.create`-Stelle im Repo. Gegenprobe gemacht — Feld in
+`communityCheckout.ts` entfernt ⇒ rot, mit Dateinamen im Fehler; wieder
+eingesetzt ⇒ grün.
+
+**Gelernt:** Zwei Fallen in EINEM Quell-Wächter, beide beim Schreiben
+aufgelaufen. Erstens fand der Test **sich selbst** als Verstoß — er nennt den
+gesuchten Aufruf ja im Klartext; `tests/`-Dateien gehören aus dem Scan. Und
+zweitens braucht so ein Test eine untere Schranke auf die Trefferzahl
+(`calls >= 4`): findet der Scan eines Tages nichts, weil ein Ordner umbenannt
+wurde, wäre er sonst grün — ein stillgelegter Wächter sieht genauso aus wie
+ein zufriedener.
+
+---
+
 ### F39 — Plan-Zuordnung und Kontingent-Zahlen bestätigt ✅ 2026-08-03
 
 **Die Entscheidung.** David: „passt so, übernimm die Zahlen." Damit sind die
