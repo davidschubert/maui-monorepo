@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 7 offen · 10 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 6 offen · 10 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-03**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -20,7 +20,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | --- | --- | --- | --- | --- | --- |
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen (**Anleitung dabei mitschreiben — ab Schritt 2 veraltet, Workspace-Welt**) und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
-| 51 · F39 | **Plan-Zuordnung UND Kontingent-Zahlen bestätigen** — alles ist gesetzt und live, im Code als ⚠️ VORSCHLAG markiert: Mediathek ab **personal**, Feed ab **basic**; Medien 300/1.000 Dateien (personal/pro), Termine 1.000/10.000. Hergeleitet aus der freien Platte (27 GB) und 4 MB je Bild. Ein „passt" genügt — oder nenn andere Zahlen. | Mittel | S — eine Antwort | Ja: nur David entscheidet | [COMPLETE F38](OPEN-ITEMS-COMPLETE.md) |
 | 54 · F42 | **Ein Schlüssel mit 84 Scopes liegt im Projekt `control`** (Name „Claude Code", zuletzt vor 7 Tagen benutzt) — das ist praktisch Vollzugriff auf das Betreiber-Projekt. Prüfen, ob er noch gebraucht wird; wenn ja, auf die tatsächlich nötigen Scopes eindampfen, sonst löschen. | Mittel | S — Console | Ja: nur David (Console) | beim E4-Nachsehen gefunden, 2026-08-03 |
 | 55 · F44 | **Die Platform-Instanz auf dem Server hat kein `NUXT_SMTP_*`** — damit geht für KEINE Kunden-Community eine Benachrichtigungs-Mail raus. Code-Teil ist erledigt: der Ausfall ist nicht mehr still — die erste verworfene Mail sagt es einmal pro Prozess ins Log. Es fehlt nur noch **ein Befehl auf dem Server**, der die fünf SMTP-Zeilen aus `control` übernimmt (dieselben Werte, ein Resend-Konto) plus `NUXT_PUBLIC_APP_URL` — fertig zum Kopieren in den Notizen. Ich fasse den Befehl nicht selbst an, weil er ein Passwort bewegt. | **Hoch** | S — ein Befehl, dann `pm2 startOrReload` | Ja: David führt den Befehl aus | [Notizen](#f44-smtp-fuer-platform) |
 | 34 · F20 | **Bezahlarten im Stripe-Dashboard festlegen.** Der Code erfüllt seit G1 nur noch gegen `payment_status: 'paid'` — offen bleibt die Produkt-Frage, ob SEPA/Rechnung überhaupt angeboten werden sollen. Wenn ja: Käufer wartet Tage aufs Ticket. Wenn nein: im Dashboard abschalten (oder `payment_method_types: ['card']` setzen). | Niedrig | S — Entscheidung, dann ein Klick | Ja: anbieten oder nicht? | [COMPLETE G1](OPEN-ITEMS-COMPLETE.md) |

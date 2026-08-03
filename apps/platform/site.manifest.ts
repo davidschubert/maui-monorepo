@@ -25,7 +25,8 @@ export default {
     // (pukalani.tenancy.products), Datenzugriff durch die Datentür (events-006)
     'events',
     // Mediathek im Pool (Davids Entscheidung 2026-08-02) — Produkt-Gate: ab
-    // Plan personal (pukalani.tenancy.products, VORSCHLAG), Datenzugriff durch
+    // Plan personal (pukalani.tenancy.products, bestätigt 2026-08-03),
+    // Datenzugriff durch
     // die Datentür (media-004). Bringt Table `media_items` UND Bucket `media`
     // mit: die Migration braucht Storage-Rechte am Migrations-Schlüssel (F36).
     'media',
@@ -36,7 +37,7 @@ export default {
     // (pukalani.tenancy.products), Datenzugriff durch die Datentür (courses-002)
     'courses',
     // Activity-Feed im Pool (Davids Entscheidung 2026-08-02) — Produkt-Gate:
-    // ab Plan basic (also frei; VORSCHLAG). Der Layer bringt KEINE eigenen
+    // ab Plan basic (also frei; bestätigt 2026-08-03). Der Layer bringt KEINE eigenen
     // Migrationen mit: die Table `activities` gehört system (A14) und läuft
     // auf jeder Instanz mit. BESTAND ohne communityId bleibt unsichtbar —
     // siehe Kopf von packages/activity/nuxt.config.ts.

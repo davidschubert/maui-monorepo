@@ -161,14 +161,16 @@ export default defineAppConfig({
       // Plan-Rename 2026-07-26 (Davids Pricing: Basic/Personal/Pro) —
       // Zahlen unverändert, nur die Keys sind umgezogen.
       //
-      // ⚠️ DIE `events`- UND `media`-ZEILEN SIND EIN VORSCHLAG (2026-08-02,
-      // F27 + F40) — SIE BRAUCHEN NOCH DAVIDS BESTÄTIGUNG. Die Haken standen
-      // an den Anlegewegen, der Katalog nannte aber keine Zahlen: `limits`
-      // war `undefined`, `assertPoolWriteQuota` kehrte sofort zurück, die
-      // Bremse war ein No-Op. Herleitung je Zeile unten; beide sind einzeln
-      // umstellbar, ohne Code-Änderung — und ohne Deploy sogar über den
-      // editierbaren Katalog `community_plans` (control-014), der pro Plan
-      // VOR diesen Werten greift (tenantsResolver.ts → tenant.limits).
+      // Die `events`- und `media`-Zeilen sind seit dem 2026-08-03 BESTÄTIGT
+      // (Davids Freigabe zu F39; vorgeschlagen am 2026-08-02 aus F27 + F40).
+      // Vorher standen die Haken zwar an den Anlegewegen, der Katalog nannte
+      // aber keine Zahlen: `limits` war `undefined`, `assertPoolWriteQuota`
+      // kehrte sofort zurück, die Bremse war ein No-Op. Die Herleitung steht
+      // je Zeile unten — sie ist die Begründung der Zahl, nicht mehr ihr
+      // Vorbehalt. Beide bleiben einzeln umstellbar ohne Code-Änderung, und
+      // ohne Deploy sogar über den editierbaren Katalog `community_plans`
+      // (control-014), der pro Plan VOR diesen Werten greift
+      // (tenantsResolver.ts → tenant.limits).
       //
       // WAS GEZÄHLT WIRD, SIND ZEILEN — NICHT BYTES. Für `comments` und
       // `events` ist das dasselbe (eine Zeile kostet eine Zeile). Für `media`
@@ -190,8 +192,7 @@ export default defineAppConfig({
           },
           personal: {
             comments: { perDay: 1000, total: 50_000 },
-            // TERMINE — Vorschlag. Eine Termin-Zeile kostet nur eine
-            // DB-Zeile; die Bremse ist gegen Weglauf (Skript, Endlos-Serie),
+            // TERMINE. Eine Termin-Zeile kostet nur eine DB-Zeile; die Bremse ist gegen Weglauf (Skript, Endlos-Serie),
             // nicht gegen den Kunden. Deshalb großzügig.
             // `perDay: 50` liegt bewusst ÜBER SERIES_MAX_PER_RUN (26,
             // eventSeries.ts): eine Serien-Ausdehnung legt bis zu 26 Termine
@@ -206,8 +207,7 @@ export default defineAppConfig({
             // ein Personal-Kunde kommt gar nicht bis hierher. Die Zeile ist
             // die Absicherung für den Tag, an dem das Produkt herunterzieht.
             events: { perDay: 50, total: 1_000 },
-            // MEDIATHEK — Vorschlag, und der einzige Posten mit ECHTEN
-            // laufenden Kosten: als einziger Layer legt sie Binärdateien auf
+            // MEDIATHEK — der einzige Posten mit ECHTEN laufenden Kosten: als einziger Layer legt sie Binärdateien auf
             // die geteilte Platte. Gemessen 2026-08-02 (OPEN-ITEMS E3): 38 GB
             // Platte, 11 GB belegt — rund 27 GB frei, und davon gehört das
             // meiste NICHT der Mediathek (Appwrite, MariaDB, Release-Slots).
@@ -223,11 +223,11 @@ export default defineAppConfig({
           },
           pro: {
             comments: { perDay: 5000, total: 250_000 },
-            // Vorschlag, gleiche Herleitung, eine Größenordnung darüber:
+            // Gleiche Herleitung, eine Größenordnung darüber:
             // `total: 10_000` Termine sind für eine Community praktisch
             // unerreichbar und fangen trotzdem eine Endlos-Serie ab.
             events: { perDay: 200, total: 10_000 },
-            // Vorschlag: 1.000 × 4 MB ≈ 4 GB Planung (Extrem 15 GB). Bewusst
+            // 1.000 × 4 MB ≈ 4 GB Planung (Extrem 15 GB). Bewusst
             // NICHT höher: eine einzelne Community darf die geteilte Platte
             // auch im Extremfall nicht allein füllen. Wer mehr braucht, ist
             // ein Studio-/Silo-Fall mit eigener Instanz.
@@ -244,12 +244,12 @@ export default defineAppConfig({
         ai: 'pro',
         events: 'pro',
         courses: 'pro',
-        // ⚠️ VORSCHLAG (2026-08-02) — BRAUCHT NOCH DAVIDS BESTÄTIGUNG.
+        // Bestätigt am 2026-08-03 (Davids Freigabe zu F39).
         // Begründung: die Mediathek legt BINÄRDATEN auf die geteilte Platte
         // (als einziger Layer) und kostet damit laufend Speicher — deshalb
         // nicht in Basic. Der Activity-Feed ist Grundfunktion: er zeigt nur,
         // was ohnehin passiert ist, und ohne ihn wirkt eine frische Community
-        // tot. Beide Zeilen einzeln umstellbar, ohne Code-Änderung.
+        // tot. Beide Zeilen bleiben einzeln umstellbar, ohne Code-Änderung.
         media: 'personal',
         // 'basic' ist der niedrigste Plan-Key (quota.plans oben) und damit
         // ein bewusstes „für alle" — die Zeile steht trotzdem hier, damit die

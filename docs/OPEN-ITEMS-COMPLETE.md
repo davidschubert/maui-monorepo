@@ -29,6 +29,41 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F39 — Plan-Zuordnung und Kontingent-Zahlen bestätigt ✅ 2026-08-03
+
+**Die Entscheidung.** David: „passt so, übernimm die Zahlen." Damit sind die
+am 2026-08-02 vorgeschlagenen Werte verbindlich — Mediathek ab **personal**,
+Activity-Feed ab **basic** (`pukalani.tenancy.products`), Kontingente
+`media 50/Tag · 300 gesamt` (personal) bzw. `200/Tag · 1.000` (pro) und
+`events 50/Tag · 1.000` bzw. `200/Tag · 10.000`.
+
+**Was sich im Code geändert hat: nichts an den Zahlen.** Sie waren gesetzt und
+live, nur mit einem ⚠️-Vorbehalt versehen. Entfernt wurden genau diese
+Vorbehalte — in `apps/platform/app/app.config.ts` (Quota-Block und
+`tenancy.products`) und in `apps/platform/site.manifest.ts`. Die Herleitungen
+bleiben stehen: sie sind die **Begründung** einer Zahl, nicht ihr Vorbehalt,
+und wer sie später ändert, soll lesen können, woher sie kam (freie Platte
+27 GB aus E3, ~4 MB je Foto, `SERIES_MAX_PER_RUN = 26` als Untergrenze für
+`events.perDay`).
+
+**Warum das kein Deploy-Zwang ist.** Beide Achsen bleiben ohne Code-Änderung
+umstellbar, die Kontingente sogar ohne Deploy: der editierbare Katalog
+`community_plans` (control-014) greift pro Plan VOR diesen Werten
+(`tenantsResolver.ts` → `tenant.limits`). Die Werte hier sind der Rückfall,
+nicht die einzige Wahrheit.
+
+**Gelernt:** Ein „VORSCHLAG"-Kommentar im Code ist eine Frage an einen
+Menschen, und Fragen gehören in die eine offene-Punkte-Liste, nicht in eine
+Konfigurationsdatei — dort liest sie niemand, der nicht ohnehin schon
+hinsieht. Richtig war deshalb, den Vorschlag zusätzlich als F39 zu führen;
+falsch wäre gewesen, sich auf das ⚠️ im Code zu verlassen. Und beim Abhaken
+zählt der Rückweg: derselbe Vorbehalt stand an **vier** Stellen (zwei Blöcke
+in `app.config.ts`, zwei Zeilen im Manifest) plus einmal historisch im
+Archiv — wer nur die auffälligste löscht, hinterlässt eine Datei, die die
+Entscheidung immer noch als offen beschreibt.
+
+---
+
 ### F43 — Die Zahlungswarnung eines Community-Abos landet in der Community-Glocke ✅ 2026-08-03
 
 **Das Problem.** Ein Community-Owner wurde über KEINEN Kanal gewarnt, wenn
@@ -3950,7 +3985,7 @@ Reihenfolge aus `EXTENDS_ORDER`: media hinter events, activity hinter courses) �
 hinein — der Layer hat bewusst keine eigenen Migrationen, `activities` gehört
 `system`, A14).
 
-**Plan-Zuordnung — VORSCHLAG, David bestätigt noch:** `media: 'personal'`,
+**Plan-Zuordnung — bestätigt (David, 2026-08-03, F39):** `media: 'personal'`,
 `activity: 'basic'` (`pukalani.tenancy.products`). Begründung: die Mediathek
 ist der **einzige** Layer, der Binärdateien auf die geteilte Platte legt und
 damit laufend Speicher kostet; der Feed zeigt nur, was ohnehin passiert ist,
