@@ -29,6 +29,17 @@ jobs:
 
       - run: pnpm check:manifests
 
+      # Die Produkt-Bilanz (Pool=Silo, Davids Leitprinzip) wird seit dem
+      # 2026-08-02 ERZEUGT statt gepflegt — das committete Dokument muss also
+      # zum Code passen. Ohne dieses Gate veraltet es wieder, und genau daran
+      # ist die handgepflegte Vorgängerin gescheitert (7 von 12 Zeilen falsch).
+      - run: pnpm check:bilanz
+
+      # Tote Verweise in der Doku: CLAUDE.md sprach an 14 Stellen von einer
+      # Tabelle, die es seit control-030 nicht mehr gibt — das Regelwerk, nach
+      # dem hier alle arbeiten. Läuft in ~1 s, reines Lesen.
+      - run: pnpm check:doc-links
+
       # Zwei Kopien einer Kernabhängigkeit brechen Typen oder Build, und WELCHE
       # gewinnt, entscheidet pnpms Hoisting statt des Lockfiles — derselbe
       # Lockfile ist damit auf einer Maschine grün und auf der anderen rot

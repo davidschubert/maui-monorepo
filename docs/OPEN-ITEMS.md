@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 14 offen · 10 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 15 offen · 10 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-02**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -27,6 +27,7 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 27 · E1 | **Tote Schlüsseldatei löschen** (`apps/control/.env.production` zeigt auf ein gelöschtes Projekt). Liegt nur auf Davids Rechner, nicht im Repo. | Niedrig | S — eine Datei | Ja: enthält Schlüsselmaterial | [Notizen](#notizen) |
 | 29 · E3 | **Server-Größe: GEMESSEN, kein Rescale nötig** (2026-08-02). Die Maschine ist ein CX22 (2 vCPU/3,7 GB), nicht CX33 — und die CI baut auf dem Runner, nicht auf dem Server. Ist: 27 % RAM, Swap unberührt, Last 0, Platte 29 %, 0 OOM in 30 Tagen. Zu entscheiden bleibt nur der Fallback-Deploy: Heap 4096 auf 3,7 GB senken? | Niedrig | S — zwei Zeilen | Ja: nur Bestätigung | [Notizen](#notizen) |
 | 30 · E4 | **Nur-Lese-Schlüssel im Projekt `control`** erzeugen (letzter Cutover-Krümel). | Niedrig | S — ein Klick in der Console | Ja: David, Console | [CONTROL-CUTOVER.md](runbooks/CONTROL-CUTOVER.md) |
+| 53 · F41 | **Der Layer-Wächter fängt nur `@pukalani/*`-Importe** — und ALLE echten Cross-Layer-Importe im Repo sind relativ (`../../comments/shared/...`). Der Backstop greift also nur bei hypothetischen Fällen; bewiesen mit einer Probe-Datei. Schließen heißt: relative Pfade prüfen, mit den vier gesegneten Nähten als expliziter Liste (feedback→control, onboarding→control/pages/themes, blueprint→pages/events, control→themes). | Mittel | S–M | Nein | Paritäts-Audit 2026-08-02 |
 | 32 · F18 | **Gast-Kontaktdaten sind weiter unlesbar.** `guest_authors` verfällt jetzt nach 90 Tagen, aber die Moderation kommt an Name/E-Mail nirgends heran — die Daten werden also erhoben, ohne je zu nutzen. Entweder eine Lese-Stelle bauen oder das Erheben streichen. | Niedrig | S — Entscheidung, dann klein | Ja: erheben oder nicht? | [COMPLETE C1c](OPEN-ITEMS-COMPLETE.md) |
 | 34 · F20 | **Bezahlarten im Stripe-Dashboard festlegen.** Der Code erfüllt seit G1 nur noch gegen `payment_status: 'paid'` — offen bleibt die Produkt-Frage, ob SEPA/Rechnung überhaupt angeboten werden sollen. Wenn ja: Käufer wartet Tage aufs Ticket. Wenn nein: im Dashboard abschalten (oder `payment_method_types: ['card']` setzen). | Niedrig | S — Entscheidung, dann ein Klick | Ja: anbieten oder nicht? | [COMPLETE G1](OPEN-ITEMS-COMPLETE.md) |
 | 35 · F21 | **Einmal-Preise sind erst streng, wenn eine Liste existiert.** `pukalani.billing.oneTimeLookupKeys` ist ungesetzt, also gilt für Event-Tickets nur „kein Plan-Key + Stripe-Price muss `one_time` sein". Sobald echte Ticket-Preise angelegt sind, die Liste eintragen (bewusst offen gelassen, sonst hätte der Deploy jeden bestehenden Ticketverkauf mit 400 beantwortet). | Niedrig | S — eine Config-Zeile | Nein | [lookupKeys.ts](../packages/billing/shared/lookupKeys.ts) |
