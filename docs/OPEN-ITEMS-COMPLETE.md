@@ -29,6 +29,60 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### D4 — Der Apex läuft auf „Full (Strict)" ✅ 2026-08-03
+
+**Ausgangslage.** Der Zonen-Modus war auf „Full" festgenagelt: Cloudflare
+verschlüsselt zum Ursprung, prüft dessen Zertifikat aber NICHT. Ein aktiver
+Angreifer zwischen Cloudflare und Hetzner hätte sich als Ursprung ausgeben
+können. „Full (Strict)" war nicht möglich, und der Grund stand nirgends —
+gefunden hat ihn erst die Messung: der Ursprung liefert für `pukalani.app` das
+Let's-Encrypt-**Wildcard**, und ein Wildcard `*.pukalani.app` deckt die WURZEL
+nicht ab. Strict hätte den Apex getötet.
+
+**Die Falle, die im Ticket fehlte.** `www.pukalani.app` zeigt **direkt** auf den
+Ursprung (grau, nicht proxied) — echte Browser sprechen dort mit nginx, und dem
+Cloudflare-Origin-CA vertraut **nur Cloudflare**. Ein Origin-Zertifikat im
+gemeinsamen Serverblock hätte `www` für jeden Besucher zerschossen. Entschärft
+war das schon: `www` hat in `before/ssl-redirect.conf` längst einen eigenen
+Block mit dem Wildcard und leitet auf den Apex um. Damit schrumpfte der Eingriff
+auf zwei Zeilen — plus die Entfernung von `www` aus dem `server_name` des
+Apex-Blocks, damit die Trennung explizit ist und nicht von der
+Include-Reihenfolge abhängt.
+
+**Der private Schlüssel ging NICHT durchs Dashboard.** Das Ticket sagte, er
+müsse — muss er nicht: Cloudflare signiert auch eine fremde CSR. Schlüssel und
+CSR sind auf dem Server entstanden (`/home/ploi/certs/apex/`, `600`), nur die
+CSR reiste ins Dashboard, zurück kam das Zertifikat. Der Schlüssel hat die
+Maschine nie verlassen und war nie in einem Chatfenster.
+
+**Umsetzung.** Origin-Zertifikat über die eigene CSR, Hostname **nur**
+`pukalani.app` (kein Wildcard — das läge sonst als browser-untrautes Zertifikat
+herum), 15 Jahre. Zertifikat gegen den Schlüssel geprüft (gleicher Modulus),
+nginx-Konfiguration über die ploi-API getauscht, **reload statt restart**: ein
+Reload mit fehlerhafter Konfiguration scheitert folgenlos, ein Restart ließe
+nginx unten — und ohne `sudo` konnte ich `nginx -t` nicht vorher laufen lassen.
+Die geteilte certbot-Lineage blieb unangetastet.
+
+**Beweis, in dieser Reihenfolge.** Vor dem Umschalten am Ursprung nachgemessen
+(SNI gegen die IP): Apex → Cloudflare Origin CA, `www`/`platform`/`demo` →
+Wildcard, `control`/`comments` → eigene Zertifikate. Dann der Schalter, dann
+über die Kante: Apex fünfmal `200`, `/de` `200`, `www` `301` auf den Apex, und
+alle sechs übrigen Hosts `200`. `verify-tls.mjs` **11/11**. Cloudflare zeigt
+„Full (strict)", Automatik weiter aus.
+
+**Gelernt:** Ein Wildcard deckt die Wurzel nicht ab — das ist der ganze Grund,
+warum diese Zone monatelang auf „Full" festhing, und es stand in keinem
+Dokument. Aufgefallen ist es erst, weil ich vor dem Eingriff gemessen habe, was
+der Ursprung je Namen WIRKLICH ausliefert. Zweitens: bei einem Zertifikat, dem
+nur ein Vermittler vertraut, entscheidet die Frage „wer spricht hier direkt mit
+dem Ursprung?" über jeden Serverblock — proxied und grau dürfen sich kein
+Zertifikat teilen. Und drittens hat die Dokumentation zwei Stellen mitgeführt,
+die jetzt das Gegenteil behaupteten (CLAUDE.md „Zonen-Modus fest Full",
+verify-tls „am Ursprung BEWUSST ohne Zertifikat") — nachgezogen, denn genau
+solche Sätze führen beim nächsten Mal die Hand.
+
+---
+
 ### F45 — Die Betreiber-Konsole hat ihre Realtime zurück ✅ 2026-08-03
 
 **Das Problem.** Im Appwrite-Projekt `control` war **keine einzige**

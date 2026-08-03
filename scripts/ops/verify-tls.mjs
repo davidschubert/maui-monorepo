@@ -31,7 +31,7 @@ import tls from 'node:tls'
  *  für Hosts, die proxied über Cloudflare laufen und am Ursprung bewusst
  *  KEIN eigenes Zertifikat haben (Apex, seit 2026-07-27). */
 const HOSTS = [
-  { host: 'pukalani.app', note: 'Landing (Apex — proxied über Cloudflare, am Ursprung BEWUSST ohne Zertifikat)' },
+  { host: 'pukalani.app', note: 'Landing (Apex — proxied über Cloudflare; am Ursprung seit D4 ein Cloudflare-Origin-Zertifikat, NICHT browservertraut und deshalb hier nur über die Kante geprüft)' },
   { host: 'www.pukalani.app', ip: '49.13.211.173', note: 'Landing am Ursprung (von der Wildcard gedeckt)' },
   { host: 'control.pukalani.app', ip: '49.13.211.173', note: 'Control Plane' },
   { host: 'comments.pukalani.app', ip: '49.13.211.173', note: 'Silo-Kunde' },

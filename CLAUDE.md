@@ -269,9 +269,15 @@ Vollständiges Konzept: docs/CONCEPT.md
   zonenweite Regel. Ein gemeinsames Apex+Wildcard-Zertifikat ist über ploi NICHT herstellbar
   (ploi fordert nur die Domains DER SITE an und filtert Fremdnamen raus).
   Deshalb seit 2026-07-27: `pukalani.app` läuft als EINZIGER Host der Zone
-  **proxied** über Cloudflare (Zonen-Modus fest „Full", Automatik AUS) und
-  braucht am Ursprung KEIN Zertifikat; alle anderen Hosts leben vom Wildcard
-  `*.pukalani.app`. VERBOTEN: „Add certificate"/„Force-renew" auf der
+  **proxied** über Cloudflare (Automatik AUS); alle anderen Hosts leben vom
+  Wildcard `*.pukalani.app`. Zonen-Modus seit D4 (2026-08-03) **„Full
+  (Strict)"** — davor „Full", weil der Ursprung für den Apex das Wildcard
+  auslieferte und ein Wildcard die WURZEL nicht abdeckt (Strict hätte den Apex
+  getötet). Jetzt liegt dort ein **Cloudflare-Origin-Zertifikat** (nur
+  `pukalani.app`, `/home/ploi/certs/apex/`, gültig bis 2041), eingebunden
+  AUSSCHLIESSLICH im Apex-Serverblock. `www` behält das Wildcard und MUSS es
+  behalten: es ist grau (nicht proxied), Browser sprechen direkt mit dem
+  Ursprung, und dem Origin-CA vertraut nur Cloudflare. VERBOTEN: „Add certificate"/„Force-renew" auf der
   ploi-Site `pukalani.app` — das überschreibt das Kunden-Wildcard. Neu
   anfordern nur auf der Site `platform.pukalani.app` mit `*.pukalani.app`.
   Wächter `node scripts/ops/verify-tls.mjs` (alle 30 min + nach jedem Deploy).

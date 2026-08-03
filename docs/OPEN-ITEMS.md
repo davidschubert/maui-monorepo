@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 2 offen · 7 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 2 offen · 6 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-03**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -31,7 +31,6 @@ Nachmittag hält, plant an F1/F3/F7 vorbei.
 
 | # | Reihenfolge | Was (einfach erklärt) | Prio | Aufwand | Braucht David? | Wartet auf … |
 | --- | --- | --- | --- | --- | --- | --- |
-| D4 | 2 — 10 Min | **Cloudflare-Ursprungszertifikat** für die Landing — erlaubt „Full (Strict)". Der private Schlüssel muss durchs Dashboard. | Niedrig | S | Ja: nur David | dass David es einmal macht |
 | F2 | 3 — halber Tag | **Block-Editor-Worktree** (`worktree-agent-a762b1bc42bba74d7`) — nie durchgesehen, Feature-Stopp. | Niedrig | M | Ja: Go | Ende des Feature-Stopps |
 | F15 | 4 — Tage | **Events lassen sich nicht melden.** Der Knopf ist am 2026-08-01 entfernt worden, weil er ins Leere meldete (Moderations-Audit Befund 4). Eine echte Queue braucht einen Moderations-Zustand für Events (heute nur draft/published/cancelled), `events.moderate`, Route + Dashboard-Seite. | Niedrig | L | Ja: Go | Ende des Feature-Stopps |
 | F1 | 5 — Wochen | **Discussions als eigenes Produkt** — Konzept fertig (Kategorien vom Admin, Threads von Mitgliedern). | Mittel | XL | Ja: Go | dass die Kundenselbstverwaltung rund läuft |
