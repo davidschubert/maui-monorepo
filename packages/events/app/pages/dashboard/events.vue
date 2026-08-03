@@ -78,6 +78,25 @@ const ticketCheckoutPath = computed(() =>
   (appConfig.pukalani as { events?: { ticketCheckoutPath?: string } }).events?.ticketCheckoutPath ?? '')
 
 /**
+ * F21: Wenn die Installation die verkaufbaren Einmal-Preise eingrenzt
+ * (`pukalani.billing.oneTimeLookupKeys`), steht die Regel HIER am Feld — und
+ * nicht erst im 400 beim ersten Kaufversuch eines Gastes. Eine Allowlist, die
+ * man erst am Fehlschlag kennenlernt, ist eine Falle: den Schlüssel tippt die
+ * Redaktion ein, das Scheitern erlebt der Käufer.
+ *
+ * Aus der Config gelesen statt in den Text geschrieben — sonst steht in der
+ * Oberfläche irgendwann ein Muster, das die Config gar nicht mehr kennt.
+ */
+const oneTimeLookupKeys = computed(() =>
+  (appConfig.pukalani as { billing?: { oneTimeLookupKeys?: string[] } }).billing?.oneTimeLookupKeys ?? [])
+
+const priceLookupKeyHelp = computed(() => {
+  const base = t('events.admin.form.priceLookupKeyHelp')
+  if (!oneTimeLookupKeys.value.length) return base
+  return `${base} ${t('events.admin.form.priceLookupKeyPattern', { patterns: oneTimeLookupKeys.value.join(', ') })}`
+})
+
+/**
  * BEIM ÖFFNEN eingefroren, nicht laufend berechnet: sonst verschwände die
  * Option mitten im Ausfüllen, sobald jemand ein bestehendes Paid-Event
  * versuchsweise auf „Kostenlos" stellt — und der Rückweg wäre weg.
@@ -565,7 +584,7 @@ function rowActions(row: EventRow): DropdownMenuItem[][] {
               <UFormField :label="t('events.admin.form.priceEur')">
                 <UInputNumber v-model="form.priceEur" :min="0" :step="0.5" class="w-full" data-testid="event-form-price" />
               </UFormField>
-              <UFormField :label="t('events.admin.form.priceLookupKey')" :help="t('events.admin.form.priceLookupKeyHelp')" required>
+              <UFormField :label="t('events.admin.form.priceLookupKey')" :help="priceLookupKeyHelp" required>
                 <UInput
                   v-model="form.priceLookupKey"
                   class="w-full"

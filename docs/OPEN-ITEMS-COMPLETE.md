@@ -29,6 +29,57 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F21 — Die Einmal-Allowlist ist scharf: `event_ticket_*` ✅ 2026-08-03
+
+**Das Problem.** Für Event-Tickets galt nur die Grundregel „kein Plan-Key + der
+Stripe-Price muss `one_time` sein". Der Ticket-Schlüssel ist aber ein
+**Freitextfeld** im Dashboard (`events.priceLookupKey`): wer eine Community
+verwaltet, konnte damit auf JEDEN Einmal-Preis des Stripe-Kontos zeigen — auch
+auf einen, der mit Tickets nichts zu tun hat.
+
+**Warum es jetzt ging, obwohl es bewusst offen blieb.** Der Vorbehalt war, ein
+Deploy würde bestehende Ticketverkäufe mit 400 beantworten. Nachgemessen am
+2026-08-03: die `events`-Tabelle ist in **beiden** Prod-Instanzen leer (0
+Termine, gelesen über die Laufzeit-Schlüssel), und von den 13 aktiven Preisen
+im Stripe-Testkonto hat **kein einziger Einmal-Preis** überhaupt einen
+`lookup_key` — ohne den ist er nicht referenzierbar. Es gab also nichts zu
+brechen. Der Vorbehalt war richtig, als er notiert wurde; er war nur nie
+nachgeprüft worden.
+
+**Die Entscheidung: Präfix statt Aufzählung.** `oneTimeLookupKeys:
+['event_ticket_*']` in `apps/comments` — der einzigen App, die den
+Ticket-Checkout verdrahtet (`events.ticketCheckoutPath`). Einzelne Preise sind
+nicht vorhersehbar, sie gehören dem Betreiber und entstehen je Veranstaltung;
+ein Namens-Präfix umreißt die Menge trotzdem eindeutig. Der Fund nebenbei: im
+Testkonto liegt ein Einmal-Preis über 599 € aus einem anderen Zusammenhang —
+bekäme der einen `lookup_key`, wäre er ohne Liste über die Ticket-Route
+kaufbar.
+
+**Die Regel steht am Eingabefeld.** Den Schlüssel tippt die Redaktion ein, das
+Scheitern erlebt der KÄUFER — eine Allowlist, die man erst am 400
+kennenlernt, ist eine Falle. Der Hilfetext unter „Preis-Schlüssel bei Stripe"
+nennt das Muster jetzt, gelesen aus der Config statt hineingeschrieben (sonst
+verspricht die Oberfläche irgendwann etwas, das die Config nicht mehr kennt).
+Dazu Runbook-Schritt 2.2b für den Tag, an dem echte Ticketpreise entstehen.
+
+**Beweis.** `packages/billing/tests/one-time-allowlist.test.ts` (6) +
+`packages/events/tests/price-lookup-hint.test.ts` (5), Suiten 64/64 und 97/97.
+Festgenagelt ist auch, was am leichtesten kaputtgeht: ein nacktes `*` erlaubt
+NICHTS, ein `*` mitten im Muster gilt nicht als Platzhalter, und ein Plan-Key
+fliegt VOR der Allowlist raus (sonst könnte eine schlampige Liste ein Abo als
+Einmalkauf öffnen).
+
+**Gelernt:** Ein „wartet auf X"-Punkt kann längst fällig sein — hier lag der
+Vorbehalt („es gibt bestehende Verkäufe") seit Wochen unwidersprochen in der
+Liste, und die Messung dauerte fünf Minuten. Vor dem Vertagen einmal nachsehen,
+ob die Bedingung überhaupt noch gilt. **Nicht browser-verifiziert:** der
+Hilfetext ist über Quell-Anker und beide Locale-Dateien geprüft (Platzhalter
+`{patterns}` vorhanden, Feld nutzt den berechneten Text, Config gesetzt) — die
+gerenderte Darstellung habe ich nicht aufgerufen, weil dafür ein eigener
+Dev-Server samt Anmeldung nötig gewesen wäre; das Layout ändert sich nicht.
+
+---
+
 ### F20 — Nur Karte: SEPA und Kauf auf Rechnung abgeschaltet ✅ 2026-08-03
 
 **Die Entscheidung.** David: „nur Karte, SEPA und Rechnung abschalten."

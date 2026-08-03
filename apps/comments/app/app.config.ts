@@ -90,6 +90,29 @@ export default defineAppConfig({
       enabled: true,
       currency: 'eur',
       trialDays: 0,
+      /**
+       * F21 (2026-08-03): welche EINMAL-Preise darf diese Installation
+       * verkaufen? Bis heute stand hier nichts, und ohne Liste galt für
+       * Event-Tickets nur „kein Plan-Key + der Stripe-Price muss `one_time`
+       * sein". Der Ticket-Schlüssel ist aber ein FREITEXTFELD im Dashboard —
+       * wer eine Community verwaltet, konnte damit auf JEDEN Einmal-Preis des
+       * Stripe-Kontos zeigen. Im Testkonto liegen heute 13 aktive Preise,
+       * davon Fremdes aus anderen Zusammenhängen; sobald einer davon einen
+       * lookup_key bekommt, wäre er über die Ticket-Route kaufbar.
+       *
+       * Warum das JETZT geht, obwohl es bewusst offen blieb: die Sorge war,
+       * ein Deploy würde bestehende Ticketverkäufe mit 400 beantworten.
+       * Nachgemessen am 2026-08-03 — `events` ist in BEIDEN Prod-Instanzen
+       * leer (0 Termine), und kein einziger Einmal-Preis im Stripe-Konto hat
+       * überhaupt einen lookup_key. Es gibt also nichts zu brechen.
+       *
+       * Präfix statt Einzelaufzählung, weil die Preise dem BETREIBER gehören
+       * und einzeln nicht vorhersehbar sind: alles unter `event_ticket_` ist
+       * verkaufbar, alles andere nicht. Die Regel steht auch im Dashboard am
+       * Eingabefeld — eine Allowlist, die man erst beim 400 kennenlernt,
+       * wäre eine Falle.
+       */
+      oneTimeLookupKeys: ['event_ticket_*'],
       plans: [
         {
           // Plan-ID + labelKey bleiben BEWUSST 'free' (Bestandsdaten,

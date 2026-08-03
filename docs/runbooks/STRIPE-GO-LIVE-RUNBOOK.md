@@ -87,6 +87,14 @@ nicht") statt 500 — eine bewusst nicht eingerichtete Route ist kein Ausfall.
   ist das Studio-Angebot ohne Self-Service-Checkout. Der Katalog steht in
   `packages/control/app/app.config.ts` (`pukalani.control.plans`) — das Skript
   muss ihn spiegeln.
+- **2.2b Ticket-Preise heißen `event_ticket_…`** (F21, seit 2026-08-03). Für
+  Event-Tickets legt der Betreiber die Einmal-Preise von Hand an — das Skript
+  kennt nur Pläne. Der `lookup_key` MUSS mit `event_ticket_` beginnen, sonst
+  weist der Checkout ihn mit `not_purchasable` ab. Das ist Absicht: der
+  Ticket-Schlüssel ist ein Freitextfeld im Dashboard, ohne diese Klammer könnte
+  eine Community damit auf JEDEN Einmal-Preis des Kontos zeigen. Die Liste steht
+  in `apps/comments/app/app.config.ts` (`pukalani.billing.oneTimeLookupKeys`),
+  und das Muster erscheint im Dashboard direkt am Eingabefeld.
 - **2.3 Customer Portal (Live) konfigurieren** — Plan-Wechsel erlauben,
   Kündigung als `cancel_at_period_end`, Rechnungshistorie. Die
   Test-Konfiguration wird **nicht** automatisch nach Live kopiert. Das Portal ist

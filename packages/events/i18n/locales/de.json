@@ -146,6 +146,7 @@
         "priceEur": "Preis (EUR, Anzeige)",
         "priceLookupKey": "Preis-Schlüssel bei Stripe",
         "priceLookupKeyHelp": "Verweist auf den Preis in Stripe (dort „lookup_key“ genannt) — der Betrag DORT gilt, nicht der hier eingetragene.",
+        "priceLookupKeyPattern": "Erlaubt sind nur Schlüssel nach diesem Muster: {patterns}. Ein anderer Schlüssel wird beim Kauf abgelehnt.",
         "priceLookupKeyPlaceholder": "Schlüssel aus deinem Stripe-Konto",
         "recurrence": "Wiederholung",
         "recurrenceNone": "Einmalig",

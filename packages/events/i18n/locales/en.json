@@ -146,6 +146,7 @@
         "priceEur": "Price (EUR, display)",
         "priceLookupKey": "Price key in Stripe",
         "priceLookupKeyHelp": "Points at the price in Stripe (called “lookup_key” there) — the amount THERE is what counts, not the one entered here.",
+        "priceLookupKeyPattern": "Only keys matching this pattern are allowed: {patterns}. Any other key is rejected at checkout.",
         "priceLookupKeyPlaceholder": "Key from your Stripe account",
         "recurrence": "Repeat",
         "recurrenceNone": "One-time",
