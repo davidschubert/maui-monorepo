@@ -21,7 +21,8 @@
     "bilanz": "node --experimental-strip-types scripts/produkt-bilanz.mjs",
     "check:bilanz": "node --experimental-strip-types scripts/produkt-bilanz.mjs --check",
     "check:single-copy": "node scripts/check-single-copy.mjs",
-    "check:doc-links": "node scripts/ops/verify-doc-links.mjs"
+    "check:doc-links": "node scripts/ops/verify-doc-links.mjs",
+    "ops:site-env": "node scripts/ops/verify-site-env.mjs"
   },
   "devDependencies": {
     "@nuxt/eslint-config": "catalog:",

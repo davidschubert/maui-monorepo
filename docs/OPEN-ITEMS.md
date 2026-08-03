@@ -81,10 +81,19 @@ Ecosystem-Config liest die `.env` beim Reload und hebt sie in die
 Prozess-Umgebung; Nitro liest zur Laufzeit selbst keine `.env`, deshalb ist
 `--update-env` der wirksame Teil. Ohne Reload passiert nichts.
 
-Probe danach: irgendeine Kommentar-Antwort auf einem Mandanten-Host, deren
-Empfänger `emailNotifications: instant` gesetzt hat. Kommt keine Mail, steht
-der Grund seit heute im Log — `NUXT_SMTP_HOST fehlt` heißt, der Reload hat die
-Datei nicht gesehen.
+Probe danach, ohne etwas zu verschicken:
+
+```bash
+pnpm ops:site-env
+```
+
+Der Wächter liest über ssh nur die SCHLÜSSELNAMEN jeder Server-`.env` — Werte
+verlassen den Server nicht — und meldet, welche Pflicht-Variable fehlt. Heute
+zeigt er genau diesen Punkt (`platform` ✖, alle anderen ✔); nach dem Befehl
+muss er grün sein. Danach die echte Probe: irgendeine Kommentar-Antwort auf
+einem Mandanten-Host, deren Empfänger `emailNotifications: instant` gesetzt
+hat. Kommt keine Mail, steht der Grund seit heute im Log — `NUXT_SMTP_HOST
+fehlt` heißt, der Reload hat die Datei nicht gesehen.
 
 ### So arbeiten wir
 
