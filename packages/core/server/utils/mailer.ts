@@ -11,8 +11,37 @@ import type { H3Event } from 'h3'
 
 let cached: { key: string, transporter: Transporter } | null = null
 
+/**
+ * „Aus" und „vergessen" sehen identisch aus — deshalb sagt es der Server EINMAL
+ * laut (F44, 2026-08-03).
+ *
+ * Ohne diesen Hinweis ist ein fehlendes `NUXT_SMTP_HOST` vollkommen still:
+ * `isMailerConfigured()` meldet sauber `false`, jeder Konsument überspringt
+ * best-effort, kein Log, keine Ausnahme. Genau so lief `apps/platform` in
+ * PRODUKTION — für ALLE Kunden-Communities ging nie eine Benachrichtigungs-Mail
+ * raus (Antworten, Erwähnungen, Digest, und seit F43 die Zahlungswarnung des
+ * Owners), während `comments` und `control` konfiguriert waren. Niemandem fiel
+ * es auf, weil Stille wie ein bewusstes „Produkt aus" aussieht.
+ *
+ * Die Warnung ersetzt keine Entscheidung: eine App DARF ohne Mailer laufen
+ * (marketing, help, portfolio verschicken nichts). Sie macht nur den
+ * Unterschied sichtbar — einmal pro Prozess, auf `warn`, ohne den Start zu
+ * blockieren.
+ */
+const warnedMissingMailer = new Set<string>()
+
 export function isMailerConfigured(event?: H3Event): boolean {
-  return Boolean(useRuntimeConfig(event).smtpHost)
+  const configured = Boolean(useRuntimeConfig(event).smtpHost)
+  if (!configured && !warnedMissingMailer.has('smtpHost')) {
+    warnedMissingMailer.add('smtpHost')
+    console.warn('[core] NUXT_SMTP_HOST fehlt — es wird KEINE E-Mail verschickt (Benachrichtigungen, Digest, Zahlungswarnungen). Beabsichtigt, wenn diese App keine Mails senden soll.')
+  }
+  return configured
+}
+
+/** Nur für Tests: Merker leeren. */
+export function __resetMailerWarnings(): void {
+  warnedMissingMailer.clear()
 }
 
 function getTransporter(event?: H3Event): Transporter | null {
