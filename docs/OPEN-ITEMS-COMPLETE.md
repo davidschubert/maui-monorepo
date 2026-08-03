@@ -29,6 +29,106 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### G5 — Der Reconnect-Sturm auf 404-Hosts ✅ 2026-08-03
+
+**Der Nachzügler zu Befund 3 des M13-Wechselwirkungs-Audits.** Dort war der
+Presence-Heartbeat auf der 404-Seite eines `abuse`-gesperrten Hosts stillgelegt
+worden; beim Beweis dafür fiel daneben ein deutlich größeres Rauschen derselben
+Klasse auf, das bewusst offen blieb. Es ist jetzt reproduziert, erklärt und
+behoben.
+
+**Die Kette — am Code hergeleitet, im Browser bestätigt.** `useError()` ist auf
+so einer Seite gesetzt, der Auth-Store aber **hydriert**: Nuxt lässt für seinen
+internen `/__nuxt_error`-Durchgang die Mandanten-Middleware passieren (C12b),
+also läuft `02.auth.ts` und der Nutzer ist eingeloggt. Damit startete
+`realtime-account.client.ts` seinen cookie-nativen WebSocket. Der kann dort nie
+stehen — und **jedes Schließen** zog ein `auth.refresh()` nach sich, also
+`GET /api/auth/me` **+** `GET /api/community/role`, beide garantiert 404. Der
+Beweis für die Urheberschaft steht im Takt: 1,1 s · 2,2 · 4,2 · 8,2 · 16,3 ·
+31,3 · 46,3 — exakt `min(1000·2^n, 15_000)` aus `scheduleReconnect()` in
+`useRealtimeAccount`. Kein anderer Aufrufer von `auth.refresh()` läuft
+ungefragt (die übrigen sieben hängen alle an einer Nutzeraktion).
+
+**Zwei getrennte Fehler, zwei getrennte Fixe.**
+
+**(a) Auf einer Adresse, die es nicht gibt, wird nichts mehr gestartet.** Neue
+Regel `startWhenHostResolves()` (`core/app/utils/hostGate.ts`), benutzt von
+`realtime-account`, `realtime-config` (core) und `realtime-themes` (themes).
+`realtime-branding` braucht sie nicht — ohne `useSiteId()` steigt es ohnehin
+aus. Bedingung ist **`isUnknownHostError`, nicht `useError()` schlechthin** —
+und das ist der bewusste Unterschied zu Befund 3: ein 404 auf einer
+Tippfehler-URL einer **gesunden** Community ist etwas anderes. Dort lebt der
+Host, die APIs antworten, und der Account-WS erfüllt seinen Zweck
+(Sofort-Abmeldung bei Session-Widerruf). Ihn dort abzuschalten wäre kein
+Sparen, sondern der Verlust eines Sicherheitssignals. Benutzt wird dieselbe
+Regel, mit der die Fehlerseite ihren eigenen Satz wählt (`CoreErrorPage`,
+`shared/unknownHost.ts`) — Seite und Verhalten behaupten damit garantiert
+dasselbe. **Nachgeholt, nicht verworfen:** räumt `clearError()` den Fehler,
+startet das Abonnement doch noch; ein blosses `return` liesse einen Tab, der
+einmal auf einer 404 war, für den Rest der Sitzung ohne Realtime.
+
+**(b) Der Auth-Nachtrag ist entkoppelt, nicht nur umgeleitet.** Die eigentliche
+Verstärkung war „ein Verbindungsabbruch = ein Doppel-Abruf". Neue pure Regel
+`accountVerifyDue()` neben dem Realtime-Gate (`shared/realtimeGate.ts`, 30 s
+Mindestabstand, unit-getestet). Der Verlust ist klein und benannt: ein Widerruf
+ist ein **einmaliges** Ereignis, nach einer normal stehenden Verbindung liegt
+die letzte Prüfung lange zurück und die Abmeldung kommt **sofort** — nur wenn
+ohnehin gerade geflappt wird, kann sie sich um bis zu 30 s verzögern, und dort
+ist die Verbindung sowieso unbrauchbar. `0` heisst „noch nie geprüft" und ist
+**ausdrücklich** immer fällig, statt sich darauf zu verlassen, dass `Date.now()`
+größer als der Abstand ist (sonst verschwände in jedem Test mit gefälschter
+Zeit genau die Abmeldung, um die es geht).
+
+**Zur dritten Frage (exponentieller Backoff): unser Code hatte ihn schon, das
+SDK hat ihn nicht.** `useRealtimeAccount` staffelt 1 → 15 s und setzt den
+Zähler nur nach einer **stabilen** Verbindung (≥ 5 s) zurück — die Messung oben
+zeigt die Treppe. Die 58 Konsolenzeilen „Realtime disconnected. Re-connecting
+in **1** seconds." kommen aus dem **Appwrite-Web-SDK**: dessen `createSocket`
+setzt `reconnectAttempts = 0` im `open`-Handler, nicht nach einer Weile. Ein
+Server, der die Verbindung annimmt und sofort wieder schließt — degradierter
+`appwrite-realtime`-Container, abgelehnter Origin — hält den Zähler damit für
+immer auf 0, und die Staffelung (1 s → 5 s → 10 s → 60 s) wird nie erreicht.
+Das ist Fremdcode ohne Haken; der einzige Hebel von hier aus ist, gar nicht
+erst zu abonnieren. Deshalb kein eigener Backoff-Umbau — die Änderung wäre eine
+Attrappe.
+
+**Beweis (Playwright, echte Appwrite, Dev-Server aus dem Worktree auf 3016,
+je 60 s auf der 404-Seite eines `abuse`-gesperrten Hosts mit eingeloggter,
+hydrierter Session):**
+
+| | WebSockets | `/api/*` | Konsole „Realtime disconnected" |
+| --- | --- | --- | --- |
+| vorher | **66** | **15** (7 × `me`+`role`, 1 × `realtime-token`) | **58** |
+| nachher | **1** (Vite-HMR) | **0** | **0** |
+
+**Gegenprobe, damit „gar nichts" nicht als Erfolg durchgeht** (gesunder Host,
+30 s): auf `/` läuft Realtime weiter (52 WS-Versuche, `realtime-token`,
+Presence-Heartbeat) — und darin **eine einzige** `me`+`role`-Prüfung statt der
+fünf, die der alte Takt in derselben Zeit gemacht hätte: Fix (b) sichtbar. Auf
+einer gewöhnlichen 404-Unterseite (`/gibt-es-nicht`, HTTP 404) startet Realtime
+**ebenfalls** — genau der Unterschied zu Befund 3.
+
+`pnpm -r test` grün (core 544), typecheck 0 Fehler, lint 0 Fehler / 5 bekannte
+Warnungen, `check:manifests` und `check:single-copy` konsistent.
+
+**Gelernt:** (1) **Ein Reconnect-Takt ist eine Unterschrift.** Die Deltas
+1,1 · 2,2 · 4,2 · 8,2 · 15 · 15 haben den Verursacher eindeutig benannt — ohne
+Zeitachse im Netzwerk-Log wäre „irgendwas pollt" die einzige Aussage geblieben.
+Bei Rausch-Befunden deshalb immer die **Abstände** mitschreiben, nicht nur die
+Summen. (2) **Der Browser-Tab in der Vorschau-Leiste drosselt seine Timer.**
+Eine erste Messung dort ergab nach 62 s Wandzeit nur 15,6 s Seitenzeit und
+damit ein Sechstel der Ereignisse — das sah aus wie ein viel kleineres Problem.
+Zeitbasierte Beweise gehören in einen skriptgesteuerten Browser.
+(3) **`fetch` in Node löst `kunde-a.localhost` nicht auf** (nur Chromium tut
+das intern) **und Nitro hört auf `::1`** — beides zusammen ergab einen
+Prüf-Poller, der stumm ewig lief. Die Projektregel „node:http über ::1 mit
+gesetztem Host-Header" gilt für Beweis-Skripte **und** ihre Hilfsschleifen.
+(4) **Eine „0 = noch nie"-Konvention muss im Code stehen, nicht in der Uhr.**
+Der erste Testlauf fiel um, weil `accountVerifyDue(0, 1)` rechnerisch nicht
+fällig war — die Absicht hing daran, dass `Date.now()` groß ist.
+
+---
+
 ### G4 — Sicherheits-Paket: Session-Handoff, Einladungen, Drosseln, IP ✅ 2026-08-02
 
 **Was geprüft wurde.** Neun Befunde aus einem Sicherheits-Audit über

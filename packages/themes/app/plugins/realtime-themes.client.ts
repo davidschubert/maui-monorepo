@@ -8,8 +8,13 @@
  * Client-only, app-weit (detached EffectScope). Voraussetzung: Tables sind
  * read:any (custom_themes/custom_fonts: Migration system-013, app_config:
  * admin-005) — Row-Subscriptions funktionieren auch als Gast.
+ *
+ * NICHT AUF EINEM HOST, DEN ES NICHT GIBT (2026-08-03): auf einem unbekannten
+ * oder `abuse`-gesperrten Host antwortet jeder Pfad 404 — auch die Refetches
+ * `/api/themes` und `/api/fonts`, die dieses Plugin auslöst. Regel + Messung:
+ * `startWhenHostResolves` in core/app/utils/hostGate.ts.
  */
-export default defineNuxtPlugin(() => {
+export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig()
   const scope = effectScope(true)
 
@@ -23,10 +28,10 @@ export default defineNuxtPlugin(() => {
     }, 400)
   }
 
-  scope.run(() => {
+  startWhenHostResolves(nuxtApp, () => scope.run(() => {
     useRealtimeRows(config.public.appwriteDatabaseId, 'custom_themes', scheduleRefresh)
     useRealtimeRows(config.public.appwriteDatabaseId, 'custom_fonts', scheduleRefresh)
     // Instanz-Einstellungen (Default-Theme, Built-in-Overrides, Default-Variante)
     useRealtimeRows(config.public.appwriteDatabaseId, 'app_config', scheduleRefresh)
-  })
+  }))
 })
