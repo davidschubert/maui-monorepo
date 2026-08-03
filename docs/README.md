@@ -56,6 +56,7 @@ gepflegt).
 | [runbooks/STRIPE-TEST-WALKTHROUGH.md](runbooks/STRIPE-TEST-WALKTHROUGH.md) | Die 6 Testmodus-Proben davor |
 | [runbooks/CONTROL-CUTOVER.md](runbooks/CONTROL-CUTOVER.md) | Control-Host-Umzug (+ die drei Restkrümel) |
 | [runbooks/PLATFORM-CONTROL-KEY-SWAP.md](runbooks/PLATFORM-CONTROL-KEY-SWAP.md) | Appwrite-Key rotieren |
+| [runbooks/APPWRITE-KEYS.md](runbooks/APPWRITE-KEYS.md) | Wer hält welchen Schlüssel im Projekt `control` — und wie man das nachmisst |
 
 Die Häkchen in Runbooks sind **echt** — sie werden pro Durchlauf abgehakt und
 gehören dort hin.
