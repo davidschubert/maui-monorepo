@@ -152,7 +152,13 @@ const ALLOWLIST = [
   // Beispiel-/Platzhalterpfade in Anleitungen („lege X an").
   { pattern: /<[^>]+>|\{[^}]+\}|\$\{/, why: 'Platzhalter, kein echter Pfad' },
   // Erzeugte Artefakte, die erst ein Build/Deploy anlegt.
-  { pattern: /^(\.output|\.nuxt|releases)\//, why: 'Build-/Deploy-Artefakt, entsteht erst zur Laufzeit' },
+  //
+  // ÜBERALL im Pfad, nicht nur am Anfang (CI-Rotlauf 2026-08-03): das
+  // Deployment-Runbook nennt `apps/comments/.output/server/index.mjs` — der
+  // Artefakt-Ordner liegt dort MITTEN im Pfad. Lokal fiel das nicht auf, weil
+  // ein gebautes .output vorhanden war; im frischen CI-Checkout gibt es keins,
+  // und das neue Gate meldete prompt einen toten Verweis, der keiner ist.
+  { pattern: /(^|\/)(\.output|\.nuxt|dist|releases)\//, why: 'Build-/Deploy-Artefakt, entsteht erst zur Laufzeit' },
 ]
 
 const allowed = token => ALLOWLIST.find(entry => entry.pattern.test(token))
