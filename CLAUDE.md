@@ -203,7 +203,17 @@ Vollständiges Konzept: docs/CONCEPT.md
   LOKAL TESTEN: die Dev-Appwrite kennt nur `localhost` als Web-Platform — auf
   `kunde-a.localhost` & Co. bricht der WS-Handshake mit „Invalid Origin" ab
   (Client loggt nur „Realtime disconnected"). Sieht wie ein Code-Fehler aus, ist
-  die Testumgebung.
+  die Testumgebung. DASSELBE IN PROD (F45, 2026-08-03): im Projekt `control`
+  stand GAR KEINE Web-Platform, also war auf der Betreiber-Konsole jede Realtime
+  tot — Sofort-Abmeldung, Glocke, Live-Theme. Jedes Appwrite-Projekt braucht
+  seinen Host dort (`pool` hat ein Wildcard `*.pukalani.app` und deckt damit
+  jeden neuen Mandanten automatisch). DIAGNOSE: der WS-**Handshake** verrät
+  nichts, er antwortet `101` auch für einen abgewiesenen Origin — die Ablehnung
+  kommt als erste Nachricht IM Socket (`code 1008`). Billiger Test:
+  `curl -H "Origin: https://<host>" .../v1/account` — `403
+  general_unknown_origin` = Host unbekannt, `401` = akzeptiert. Wer stattdessen
+  den Socket mitlesen will, braucht `--http1.1` (über HTTP/2 scheitert der
+  Upgrade mit 400 und man misst sein eigenes Werkzeug).
 - `createRow<TenantRow>` verlangt ALLE Spalten explizit (bewusst) — eine neue
   communities-Spalte erzwingt eine Entscheidung an BEIDEN Anlegestellen
   (control/tenants/index.post.ts + onboardingProvision.ts — der DATEIname blieb). Folge: die Migration MUSS

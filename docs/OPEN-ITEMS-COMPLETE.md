@@ -29,6 +29,43 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F45 — Die Betreiber-Konsole hat ihre Realtime zurück ✅ 2026-08-03
+
+**Das Problem.** Im Appwrite-Projekt `control` war **keine einzige**
+Web-Platform eingetragen. `control.pukalani.app` bekam vom eigenen Projekt
+`403 general_unknown_origin` — dieselbe Antwort wie ein wildfremder Host. Damit
+war auf der Betreiber-Konsole jede Realtime tot: `apps/control` hat den
+Core-Default AN (F14) und zieht fünf Client-Plugins (account, auth, branding,
+config, themes). Verloren waren die Sofort-Abmeldung bei Session-Widerruf, die
+Live-Glocke (die hängt nach C17 ausgerechnet nur dort) und die Live-Übernahme
+von Theme und Config. Die anderen drei Projekte waren in Ordnung — `pool` hat
+ein Wildcard `*.pukalani.app` (deckt jeden neuen Mandanten-Host automatisch),
+`comments` und `portfolio` je ihren eigenen Namen.
+
+**Behoben.** David hat `control.pukalani.app` als Web-Platform eingetragen
+(2026-08-03). Präzise, kein Wildcard: der alte Name `studio.pukalani.app`
+bleibt abgewiesen.
+
+**Beweis, beidseitig.** Vorher/nachher an der REST-Grenze: `Origin`-Header gegen
+`/v1/account` — `403 general_unknown_origin` → **`401
+general_unauthorized_scope`** (Host akzeptiert, nur keine Sitzung), Fremd-Host
+unverändert 403. Und am echten Kanal: die erste Nachricht im Realtime-Socket
+lautet für `control.pukalani.app` jetzt
+`{"type":"connected","data":{"channels":["account"],…}}`, für einen Fremd-Host
+weiterhin `{"type":"error","data":{"code":1008,"message":"Invalid Origin…"}}`.
+
+**Gelernt (Diagnose-Rezept):** Der WebSocket-**Handshake** verrät nichts — er
+antwortet `101 Switching Protocols` für JEDEN Origin, auch für einen
+abgewiesenen. Die Ablehnung kommt erst als erste Nachricht IM Socket
+(`code 1008`), und der Browser macht daraus nur ein „Realtime disconnected".
+Deshalb sieht ein fehlender Platform-Eintrag exakt aus wie ein Netzproblem.
+Zwei billige Messungen entscheiden es: `curl` mit `Origin`-Header gegen
+`/v1/account` (403 vs. 401) oder die erste Socket-Nachricht mitlesen — für
+Letzteres `--http1.1` erzwingen, über HTTP/2 scheitert der Upgrade mit 400 und
+man misst sein eigenes Werkzeug.
+
+---
+
 ### P12 — Die drei Cutover-Krümel sind weg ✅ 2026-08-03
 
 Nach dem Control-Cutover blieben drei Reste übrig. Alle drei nachgemessen statt
