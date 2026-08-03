@@ -7,6 +7,25 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-08-03 — Zwei Nicht-Aufgaben aus der offenen Liste geholt
+
+**Davids Entscheidungen, unverändert gültig** — sie standen bisher unter
+„Geparkt / wartet" in OPEN-ITEMS.md und warteten dort auf „nichts, bewusst so".
+Das ließ die Liste länger aussehen, als Arbeit da war:
+
+- **Der öffentliche Changelog antwortet auf Community-Hosts mit 404** (N7). So
+  gewollt: der Changelog ist BETREIBER-Inhalt und hat auf einem Mandanten-Host
+  nichts zu suchen. Durchgesetzt an beiden Enden — Seite über
+  `useIsTenantHost()`, Route über `useTenant(event)`; die Chrome-Registry
+  versteckt zusätzlich die Links. Kontroll-Hosts und Silo-Apps sind unberührt.
+- **Die Demo-Community ist bei Google auffindbar.** So gewollt: sie ist das
+  Schaufenster, kein Testsystem.
+
+Beide bleiben in Kraft — nur der Ort stimmt jetzt. Eine Liste offener Punkte
+führt, was noch zu tun ist; was entschieden ist, steht hier.
+
+---
+
 ## 2026-08-02 — F8: Abrechnungsdaten überleben die Kontolöschung
 
 **Davids Entscheidung.** Löscht der (letzte) Owner sein Konto, bleiben
