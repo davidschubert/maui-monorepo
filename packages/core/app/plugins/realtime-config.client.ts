@@ -10,12 +10,17 @@ import { parseProductsColumn, type PublicAppConfig } from '../../shared/types/co
  *
  * Client-only, app-weit (detached EffectScope). Voraussetzung: app_config ist
  * read:any (Migration admin-005), sonst liefert Realtime keine Events.
+ *
+ * NICHT AUF EINEM HOST, DEN ES NICHT GIBT (2026-08-03): dort gibt es keinen
+ * Mandanten, dessen Flags jemand lesen würde — und der Abonnent zöge über
+ * `ensureRealtimeJwt()` einen `/api/auth/realtime-token` nach sich, der
+ * garantiert 404 wird. Regel + Messung: `app/utils/hostGate.ts`.
  */
-export default defineNuxtPlugin(() => {
+export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig()
   const flags = useRuntimeFlags()
   const scope = effectScope(true)
-  scope.run(() => {
+  startWhenHostResolves(nuxtApp, () => scope.run(() => {
     useRealtimeRows<AppwriteRow & { products?: string } & Partial<Omit<PublicAppConfig, 'products'>>>(
       config.public.appwriteDatabaseId,
       'app_config',
@@ -34,5 +39,5 @@ export default defineNuxtPlugin(() => {
         }
       },
     )
-  })
+  }))
 })

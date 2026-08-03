@@ -35,3 +35,36 @@ export function realtimeAllowed(
   if (enabled === false) return false
   return requiredIds.every(id => !!id)
 }
+
+/**
+ * ── WIE OFT DARF EIN VERBINDUNGSABBRUCH DEN AUTH-STAND NACHPRÜFEN? ──────────
+ *
+ * `realtime-account.client.ts` prüft nach jedem Schliessen des Account-WS, ob
+ * die eigene Session noch lebt (`auth.refresh()` → `/api/auth/me` +
+ * `/api/community/role`). Das ist richtig — ein Widerruf kappt genau diesen
+ * cookie-gebundenen Socket, bevor zuverlässig ein Event ankommt.
+ *
+ * Ohne Bremse ist es aber auch ein VERSTÄRKER: steht der Socket nicht (toter
+ * `appwrite-realtime`-Container, geflappte Verbindung), wird aus jedem
+ * Reconnect-Versuch ein Doppel-Abruf. Der Reconnect selbst hat exponentiellen
+ * Backoff (1 s → 15 s Deckel), also dauerhaft vier Doppel-Abrufe pro Minute,
+ * je offenem Tab — für eine Frage, deren Antwort sich nicht ändert.
+ *
+ * 30 s, und der Verlust ist klein und benannt: ein Widerruf ist ein
+ * EINMALIGES Ereignis. Nach einer normal stehenden Verbindung liegt die letzte
+ * Prüfung lange zurück, die Bremse greift also gar nicht und die Abmeldung
+ * kommt SOFORT. Nur wenn ohnehin gerade geflappt wird, kann sie sich um bis zu
+ * 30 s verzögern — dort ist die Verbindung aber sowieso unbrauchbar.
+ *
+ * `0` heisst „noch nie geprüft" und ist AUSDRÜCKLICH immer fällig — nicht
+ * verlassen auf „`Date.now()` ist ohnehin grösser als der Abstand". Sonst
+ * hinge die erste Prüfung an der Grösse einer Uhr, und in jedem Test mit
+ * gefälschter Zeit (`vi.setSystemTime(0)`, `performance.now()`) verschwände
+ * genau die Abmeldung, um die es hier geht.
+ */
+export const ACCOUNT_VERIFY_MIN_MS = 30_000
+
+export function accountVerifyDue(lastVerifyAt: number, now: number): boolean {
+  if (lastVerifyAt === 0) return true
+  return now - lastVerifyAt >= ACCOUNT_VERIFY_MIN_MS
+}
