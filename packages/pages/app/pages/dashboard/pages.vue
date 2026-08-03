@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { EditorToolbarItem, TableColumn, TabsItem } from '@nuxt/ui'
 import { MAX_PAGE_BODY } from '../../../schemas/page'
+import { bodyToSave as decideBodyToSave } from '../../../shared/editorBody'
 import type { PageGroup, PageRow } from '../../../shared/types/page'
 
 /**
@@ -81,6 +82,31 @@ const isNew = ref(false)
 const slugInput = ref('')
 const activeLocale = ref<Locale>('en')
 const forms = reactive<Record<Locale, LocaleForm>>({ en: emptyLocale(), de: emptyLocale() })
+
+/**
+ * „Öffnen darf nichts ändern": `pristineBody` ist der Text aus der API,
+ * `normalizedBody` die erste Fassung, die der Editor von sich aus schreibt
+ * (Tiptap maskiert beim Serialisieren eckige Klammern). Warum das nötig ist
+ * und welche Alternativen verworfen wurden: shared/editorBody.ts.
+ */
+const pristineBody = reactive<Record<Locale, string>>({ en: '', de: '' })
+const normalizedBody = reactive<Record<Locale, string | null>>({ en: null, de: null })
+
+/** Die erste Selbst-Änderung des Editors je Sprache merken (siehe oben). */
+for (const locale of LOCALES) {
+  watch(() => forms[locale].body, (value) => {
+    if (normalizedBody[locale] === null && value !== pristineBody[locale]) normalizedBody[locale] = value
+  })
+}
+
+/** Was tatsächlich gespeichert wird: Urfassung, solange niemand getippt hat. */
+function bodyToSave(locale: Locale): string {
+  return decideBodyToSave({
+    current: forms[locale].body,
+    pristine: pristineBody[locale],
+    normalized: normalizedBody[locale],
+  })
+}
 const saving = ref(false)
 
 const editing = computed(() => isNew.value || selectedSlug.value !== null)
@@ -123,7 +149,11 @@ function closeEditor() {
 }
 
 function resetForms() {
-  for (const l of LOCALES) forms[l] = emptyLocale()
+  for (const l of LOCALES) {
+    forms[l] = emptyLocale()
+    pristineBody[l] = ''
+    normalizedBody[l] = null
+  }
 }
 
 async function selectPage(slug: string) {
@@ -136,7 +166,10 @@ async function selectPage(slug: string) {
     const { rows } = await $fetch<{ rows: PageRow[] }>(`/api/pages/${slug}`)
     for (const row of rows) {
       if ((LOCALES as readonly string[]).includes(row.locale)) {
-        forms[row.locale as Locale] = { title: row.title, body: row.body, published: row.status === 'published' }
+        const locale = row.locale as Locale
+        forms[locale] = { title: row.title, body: row.body, published: row.status === 'published' }
+        pristineBody[locale] = row.body
+        normalizedBody[locale] = null
       }
     }
   }
@@ -166,9 +199,10 @@ async function saveActiveLocale() {
     toast.add({ title: t('pages.admin.titleRequired'), description: t('pages.admin.titleRequiredHint'), color: 'error' })
     return
   }
-  if (form.body.length > MAX_PAGE_BODY) {
+  const body = bodyToSave(locale)
+  if (body.length > MAX_PAGE_BODY) {
     toast.add({
-      title: t('pages.admin.bodyTooLong', { count: form.body.length.toLocaleString(), max: MAX_PAGE_BODY.toLocaleString() }),
+      title: t('pages.admin.bodyTooLong', { count: body.length.toLocaleString(), max: MAX_PAGE_BODY.toLocaleString() }),
       description: t('pages.admin.bodyTooLongHint'),
       color: 'error',
     })
@@ -178,7 +212,7 @@ async function saveActiveLocale() {
   try {
     await $fetch('/api/pages', {
       method: 'PUT',
-      body: { slug, locale, title: form.title, body: form.body, status: form.published ? 'published' : 'draft' },
+      body: { slug, locale, title: form.title, body, status: form.published ? 'published' : 'draft' },
     })
     // Gespeichert wird IMMER nur der aktive Reiter — ohne den Hinweis hält
     // man die anderen Sprachversionen für miterledigt.
@@ -187,6 +221,10 @@ async function saveActiveLocale() {
       description: t('pages.admin.savedHint', { language: t(`pages.admin.locale.${locale}`) }),
       color: 'success',
     })
+    // Ab jetzt ist das Gespeicherte die Urfassung — sonst schriebe ein
+    // zweites Speichern wieder die alte zurück.
+    pristineBody[locale] = body
+    normalizedBody[locale] = null
     isNew.value = false
     selectedSlug.value = slug
     await refreshList()
