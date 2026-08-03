@@ -4024,3 +4024,20 @@ sind — die Hälfte der angeforderten Scopes existierte, und der eine
 „fehlende" war in Wahrheit der falsche Schlüssel im Aufruf. Ein
 Laufzeit-Schlüssel bekommt keine Bucket-Rechte, auch nicht „der
 Einfachheit halber".
+
+### E1 — tote Schlüsseldatei gelöscht ✅ 2026-08-03
+
+`apps/control/.env.production` zeigte auf das gelöschte Projekt `studio`
+(nachgeprüft: `NUXT_PUBLIC_APPWRITE_PROJECT_ID=studio`), lag nur auf Davids
+Rechner und war nie im Repo. Auf Davids Zuruf gelöscht.
+
+**Reihenfolge, die zählt:** vorher die zwei noch LEBENDEN Verweise korrigiert
+— der Kopf von `packages/pages/scripts/seed-demo.mjs` nannte die Datei als
+Aufruf-Beispiel, und `docs/runbooks/DEPLOYMENT.md` warnte zwar davor, nannte
+sie aber weiter. Wer eine Datei löscht, ohne die Wegweiser umzustellen,
+verschiebt das Problem nur von „falsche Datei" zu „Datei fehlt".
+
+**Gelernt:** Vor dem Löschen greppen, wer noch darauf zeigt — und die
+Warnung im Runbook in eine Feststellung umschreiben („ist gelöscht; taucht
+sie wieder auf, ist sie falsch"), statt sie stehen zu lassen. Eine Warnung
+vor etwas Nicht-mehr-Existierendem verwirrt beim nächsten Lesen.

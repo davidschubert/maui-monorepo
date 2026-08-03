@@ -144,10 +144,10 @@ pnpm migrate --wave stable   --control-env ~/.appwrite-secrets/migrations/contro
 
 - `--control-env` = Env der **Control-Plane-Instanz** (`control`) — daraus
   kommen die Silo-Projekte der Welle. Nie raten, immer explizit. Der Pfad ist
-  seit dem Cutover `~/.appwrite-secrets/migrations/control.env`; das früher
-  hier genannte `apps/control/.env.production` zeigt auf das GELÖSCHTE Projekt
-  `studio` (offener Punkt E1) und würde ins Leere laufen. Lokal steht dieselbe
-  Instanz in `apps/control/.env`.
+  seit dem Cutover `~/.appwrite-secrets/migrations/control.env`. Lokal steht
+  dieselbe Instanz in `apps/control/.env`. (Bis zum 2026-08-03 lag daneben ein
+  `apps/control/.env.production`, das noch auf das gelöschte Projekt `studio`
+  zeigte — es ist gelöscht; taucht es wieder auf, ist es falsch.)
 - Je Silo-Projekt braucht der Runner eine Migrations-Env-Datei
   `~/.appwrite-secrets/migrations/<projectId>.env` (Format wie jede App-.env:
   `NUXT_PUBLIC_APPWRITE_*` + `NUXT_APPWRITE_MIGRATIONS_KEY`; `--keys-dir`

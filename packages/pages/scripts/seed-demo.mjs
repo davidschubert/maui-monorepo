@@ -20,7 +20,7 @@
  *
  * Voraussetzung: Migration pages-001 gelaufen. Aufruf über den Runner:
  *   pnpm migrate --app platform --layer pages   # legt die Tabelle an
- *   node --env-file=apps/control/.env.production \
+ *   node --env-file=~/.appwrite-secrets/migrations/control.env \
  *     packages/pages/scripts/seed-demo.mjs --single-tenant
  *   node --env-file=apps/platform/.env \
  *     packages/pages/scripts/seed-demo.mjs --community t-demo

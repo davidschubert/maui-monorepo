@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 14 offen · 10 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 13 offen · 10 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-02**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -23,7 +23,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 51 · F39 | **Plan-Zuordnung für die zwei neuen Produkte bestätigen.** Mein Vorschlag steht im Code: **Mediathek ab Personal** (kostet als einziges Produkt laufend Speicher), **Feed ab Basic** (Grundfunktion). Zwei Zeilen in `apps/platform/app/app.config.ts`, Änderung ohne Code. | Hoch | S — ja/nein | Ja: nur David entscheidet | [COMPLETE F38](OPEN-ITEMS-COMPLETE.md) |
 | 52 · F40 | **Kontingent-Zahlen für die Mediathek fehlen** (wie 41 · F27 bei den Terminen). `assertPoolWriteQuota(kind: 'media')` hängt an der Upload-Route, der Plan-Katalog nennt aber keine media-Grenzen — die Drossel ist ein No-Op. Hier wiegt es schwerer als anderswo: es sind Dateien auf der geteilten Platte. | Mittel | S — Katalog-Zeilen | Ja: welche Zahlen je Plan? | [COMPLETE F38](OPEN-ITEMS-COMPLETE.md) |
 | 11 · B1 | **Neun visuelle Referenzbilder sichten** — jetzt WIRKLICH final: zuletzt am 2026-08-01 neu gebacken, nachdem das DevTools-Abzeichen (wechselnde ms-Zahl) aus allen neun Bildern verschwunden ist. Zu prüfen bleibt nur der Inhalt: `git show HEAD:<pfad>` gegen die Arbeitskopie halten. | Mittel | S — ansehen | Ja: David sichtet | [Notizen](#notizen) |
-| 27 · E1 | **Tote Schlüsseldatei löschen** (`apps/control/.env.production` zeigt auf ein gelöschtes Projekt). Liegt nur auf Davids Rechner, nicht im Repo. | Niedrig | S — eine Datei | Ja: enthält Schlüsselmaterial | [Notizen](#notizen) |
 | 29 · E3 | **Server-Größe: GEMESSEN, kein Rescale nötig** (2026-08-02). Die Maschine ist ein CX22 (2 vCPU/3,7 GB), nicht CX33 — und die CI baut auf dem Runner, nicht auf dem Server. Ist: 27 % RAM, Swap unberührt, Last 0, Platte 29 %, 0 OOM in 30 Tagen. Zu entscheiden bleibt nur der Fallback-Deploy: Heap 4096 auf 3,7 GB senken? | Niedrig | S — zwei Zeilen | Ja: nur Bestätigung | [Notizen](#notizen) |
 | 30 · E4 | **Nur-Lese-Schlüssel im Projekt `control`** erzeugen (letzter Cutover-Krümel). | Niedrig | S — ein Klick in der Console | Ja: David, Console | [CONTROL-CUTOVER.md](runbooks/CONTROL-CUTOVER.md) |
 | 53 · F41 | **Der Layer-Wächter fängt nur `@pukalani/*`-Importe** — und ALLE echten Cross-Layer-Importe im Repo sind relativ (`../../comments/shared/...`). Der Backstop greift also nur bei hypothetischen Fällen; bewiesen mit einer Probe-Datei. Schließen heißt: relative Pfade prüfen, mit den vier gesegneten Nähten als expliziter Liste (feedback→control, onboarding→control/pages/themes, blueprint→pages/events, control→themes). | Mittel | S–M | Nein | Paritäts-Audit 2026-08-02 |
