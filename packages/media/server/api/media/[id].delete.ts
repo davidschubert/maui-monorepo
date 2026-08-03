@@ -19,6 +19,8 @@ import { MEDIA_TABLE, MEDIA_BUCKET, type MediaItem } from '../../../shared/types
  * Das `await` ist Pflicht — ohne wäre der Gate fail-open.
  */
 export default defineEventHandler(async (event) => {
+  // Produkt-Gate (P4): die Mediathek ist im Pool ab Plan personal enthalten.
+  requirePlanProduct(event, 'media')
   await requireCommunityPermission(event, 'media.manage')
 
   const id = getRouterParam(event, 'id')

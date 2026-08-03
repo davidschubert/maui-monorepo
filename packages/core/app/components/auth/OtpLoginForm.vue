@@ -79,14 +79,29 @@ async function requestCode(event: FormSubmitEvent<OtpRequestInput>) {
     step.value = 'code'
   }
   catch (error) {
-    const status = (error as { statusCode?: number }).statusCode
-    if (isNetworkError(error)) errorMessage.value = t('auth.networkError')
-    else if (props.register && status === 403) errorMessage.value = t('auth.register.disabled')
-    else errorMessage.value = t('auth.otp.requestFailed')
+    errorMessage.value = requestErrorMessage(error)
   }
   finally {
     loading.value = false
   }
+}
+
+/**
+ * F37 (2026-08-02): der Fall „diese Instanz kann kein OTP" bekommt einen
+ * eigenen Satz. Vorher lief er in `auth.otp.requestFailed` („Code konnte nicht
+ * angefordert werden") — also in einen Text, der zum Wiederholen einlädt,
+ * obwohl Wiederholen nie hilft. Der Grund reist als `reason` im Envelope
+ * (core/server/error.ts), nicht über den Status: 503 allein könnte auch eine
+ * überlastete Instanz sein.
+ */
+function requestErrorMessage(error: unknown): string {
+  if (isNetworkError(error)) return t('auth.networkError')
+  if ((error as { data?: { reason?: string } })?.data?.reason === 'otp_unavailable') {
+    return t('auth.otp.unavailable')
+  }
+  const status = (error as { statusCode?: number }).statusCode
+  if (props.register && status === 403) return t('auth.register.disabled')
+  return t('auth.otp.requestFailed')
 }
 
 async function resend() {
@@ -96,8 +111,8 @@ async function resend() {
   try {
     await requestToken()
   }
-  catch {
-    errorMessage.value = t('auth.otp.requestFailed')
+  catch (error) {
+    errorMessage.value = requestErrorMessage(error)
   }
   finally {
     loading.value = false

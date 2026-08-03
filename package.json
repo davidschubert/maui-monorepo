@@ -18,6 +18,8 @@
     "control:jobs": "node --experimental-strip-types scripts/control-jobs.mjs",
     "entitlements:keygen": "node scripts/entitlements-keygen.mjs",
     "check:manifests": "node --experimental-strip-types scripts/check-manifests.mjs",
+    "bilanz": "node --experimental-strip-types scripts/produkt-bilanz.mjs",
+    "check:bilanz": "node --experimental-strip-types scripts/produkt-bilanz.mjs --check",
     "check:single-copy": "node scripts/check-single-copy.mjs",
     "check:doc-links": "node scripts/ops/verify-doc-links.mjs"
   },

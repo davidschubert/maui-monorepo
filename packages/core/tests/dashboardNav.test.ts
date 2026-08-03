@@ -3,6 +3,7 @@ import {
   resolveDashboardPlace,
   scopeVisibleAt,
   filterDashboardModules,
+  configFlagEnabled,
   type DashboardNavFilter,
   type DashboardNavModule,
   type DashboardPlace,
@@ -286,5 +287,98 @@ describe('Tarif-Gate der Dashboard-Nav (C2)', () => {
       planOn: () => true,
     }).map(m => m.id)
     expect(seen).not.toContain('comments') // comments.moderate trägt ein Editor nicht
+  })
+})
+
+/**
+ * F37 — DER BAU-SCHALTER DER APP.
+ *
+ * Das Einbetter-Register des Widgets stand im Menü JEDER App, die den
+ * comments-Layer zieht — auch dort, wo `pukalani.comments.embed.enabled` nie
+ * gesetzt wurde und die Seite dahinter 404 antwortet. Ein Menüpunkt, der ins
+ * Nichts führt, ist schlimmer als keiner.
+ *
+ * Das dritte, UNABHÄNGIGE Gate: `productOn` ist der Betreiber-Schalter zur
+ * Laufzeit, `planOn` der Vertrag des Kunden, `configOn` die Frage, ob DIESE
+ * App das Produkt überhaupt gebaut hat.
+ */
+describe('Bau-Schalter-Gate der Dashboard-Nav (F37)', () => {
+  const CONFIG_MODULES: TestModule[] = [
+    { id: 'comments', scope: 'community', requiredCapability: 'comments.moderate' },
+    { id: 'embed', scope: 'community', requiredCapability: 'community.embed', configFlag: 'comments.embed.enabled' },
+  ]
+  const owner = viewer([], 'owner')
+
+  /** Menü einer App mit dieser (gemergten) `pukalani`-Config. */
+  function seenWith(pukalani: unknown) {
+    return filterDashboardModules(CONFIG_MODULES, {
+      place: 'community',
+      placement: 'nav',
+      ...owner,
+      configOn: flag => configFlagEnabled(pukalani, flag),
+    }).map(m => m.id)
+  }
+
+  it('App MIT Embed-Schalter zeigt den Eintrag', () => {
+    expect(seenWith({ comments: { embed: { enabled: true } } })).toEqual(['comments', 'embed'])
+  })
+
+  it('App OHNE Embed-Schalter (Core-Default aus) zeigt ihn nicht', () => {
+    expect(seenWith({ comments: { embed: { enabled: false } } })).toEqual(['comments'])
+    // Der häufigere Fall: die App hat den Zweig gar nicht.
+    expect(seenWith({ comments: { autoHideReports: 3 } })).toEqual(['comments'])
+    expect(seenWith({})).toEqual(['comments'])
+  })
+
+  it('ein Modul OHNE configFlag fasst das Gate nie an', () => {
+    const seen = filterDashboardModules(CONFIG_MODULES, {
+      place: 'community', placement: 'nav', ...owner, configOn: () => false,
+    }).map(m => m.id)
+    expect(seen).toEqual(['comments'])
+  })
+
+  it('ohne configOn (Aufrufer reicht nichts durch) bleibt alles sichtbar', () => {
+    expect(
+      filterDashboardModules(CONFIG_MODULES, { place: 'community', placement: 'nav', ...owner }).map(m => m.id),
+    ).toEqual(['comments', 'embed'])
+  })
+
+  it('Capability schlägt durch: ein Admin sieht den Eintrag auch bei aktivem Produkt nicht', () => {
+    const admin = viewer([], 'admin')
+    const seen = filterDashboardModules(CONFIG_MODULES, {
+      place: 'community',
+      placement: 'nav',
+      ...admin,
+      configOn: flag => configFlagEnabled({ comments: { embed: { enabled: true } } }, flag),
+    }).map(m => m.id)
+    expect(seen).toEqual(['comments'])
+  })
+})
+
+describe('configFlagEnabled — fail-closed', () => {
+  const config = { comments: { embed: { enabled: true } }, auth: { otp: false } }
+
+  it('liest verschachtelte Pfade', () => {
+    expect(configFlagEnabled(config, 'comments.embed.enabled')).toBe(true)
+    expect(configFlagEnabled(config, 'auth.otp')).toBe(false)
+  })
+
+  it('unbekannter Pfad / Tippfehler ⇒ AUS (ein toter Menüpunkt fällt nicht auf)', () => {
+    expect(configFlagEnabled(config, 'comments.embed.enabeld')).toBe(false)
+    expect(configFlagEnabled(config, 'kommentare.embed.enabled')).toBe(false)
+    expect(configFlagEnabled(config, '')).toBe(false)
+  })
+
+  it('durch einen Nicht-Objekt-Zweig wird nicht weitergelaufen', () => {
+    expect(configFlagEnabled({ comments: 'ja' }, 'comments.embed.enabled')).toBe(false)
+    expect(configFlagEnabled(null, 'comments.embed.enabled')).toBe(false)
+    expect(configFlagEnabled(undefined, 'a')).toBe(false)
+  })
+
+  it('nur `true` gilt als an — kein „truthy"', () => {
+    expect(configFlagEnabled({ a: 1 }, 'a')).toBe(false)
+    expect(configFlagEnabled({ a: 'true' }, 'a')).toBe(false)
+    expect(configFlagEnabled({ a: {} }, 'a')).toBe(false)
+    expect(configFlagEnabled({ a: true }, 'a')).toBe(true)
   })
 })

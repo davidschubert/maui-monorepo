@@ -5,7 +5,7 @@
 import type { CommandPaletteGroup, CommandPaletteItem, NavigationMenuItem } from '@nuxt/ui'
 import { isProductStateEnabled } from '../../../core/shared/types/config'
 import type { Capability } from '../../../core/shared/types/authz'
-import { filterDashboardModules, resolveDashboardPlace, scopeVisibleAt } from '../../../core/shared/dashboardNav'
+import { configFlagEnabled, filterDashboardModules, resolveDashboardPlace, scopeVisibleAt } from '../../../core/shared/dashboardNav'
 
 const { t } = useI18n()
 const localePath = useLocalePath()
@@ -27,6 +27,13 @@ const productOn = (productKey?: string) =>
 // bleibt das Menü unverändert. Nur UX; die Autorität sitzt an der Route.
 const { planAllows } = useTenantPlan()
 const planOn = (planProduct: string) => planAllows(planProduct)
+
+// BAU-SCHALTER der App (F37): Module, deren Produkt diese App gar nicht
+// angeschaltet hat, verschwinden — z.B. das Einbetter-Register des Widgets in
+// einer App ohne `pukalani.comments.embed.enabled`. Drittes, unabhängiges Gate
+// neben productOn (Betreiber-Schalter) und planOn (Tarif des Kunden); die
+// Regel selbst ist pur und getestet (core/shared/dashboardNav.ts).
+const configOn = (configFlag: string) => configFlagEnabled(appConfig.pukalani, configFlag)
 
 // Glocke in der Betreiber-Shell (C17): dieselbe Config-Naht wie im
 // core-default-Layout. Betrifft heute apps/control — dort liegen die
@@ -125,7 +132,7 @@ const links = computed<NavigationMenuItem[]>(() => {
   }
   const modules = filterDashboardModules(
     (appConfig.pukalani?.admin?.modules ?? []) as PukalaniAdminModule[],
-    { place, placement: 'nav', canAsOperator, canAsMember, productOn, planOn },
+    { place, placement: 'nav', canAsOperator, canAsMember, productOn, planOn, configOn },
   )
   for (const m of modules.filter(m => !m.group)) items.push(toItem(m))
   // Gruppen in fester Reihenfolge (Davids Struktur, E9): erst die Betreiber-
@@ -165,7 +172,7 @@ const bottomLinks = computed<NavigationMenuItem[]>(() => {
   }
   for (const m of filterDashboardModules(
     (appConfig.pukalani?.admin?.modules ?? []) as PukalaniAdminModule[],
-    { place, placement: 'bottom', canAsOperator, canAsMember, productOn, planOn },
+    { place, placement: 'bottom', canAsOperator, canAsMember, productOn, planOn, configOn },
   ).sort((a, b) => (a.order ?? 999) - (b.order ?? 999))) {
     items.push({ label: t(m.labelKey), icon: m.icon, to: localePath(m.to), onSelect: close })
   }

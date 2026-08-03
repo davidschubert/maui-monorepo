@@ -92,6 +92,7 @@
       "codeDescription": "Gib den Code ein, den wir an {email} geschickt haben.",
       "requestCode": "Code anfordern",
       "requestFailed": "Code konnte nicht angefordert werden — bitte erneut versuchen.",
+      "unavailable": "Die Anmeldung per Code ist hier gerade nicht verfügbar. Bitte melde dich mit deinem Passwort an oder setze es zurück.",
       "verify": "Anmelden",
       "invalidCode": "Der Code ist falsch oder abgelaufen — bitte erneut versuchen.",
       "phraseHint": "Deine Sicherheitsphrase (steht auch in der Mail):",

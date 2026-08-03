@@ -3671,3 +3671,333 @@ selben Ordner schon richtig gelöst und dort sogar als „Pflicht" kommentiert;
 der Fehler war nicht fehlendes Wissen, sondern dass die Erkenntnis nie
 rückwärts in die älteren Dateien lief. Wer eine Falle dokumentiert, sollte im
 selben Zug greppen, wo sie sonst noch steht.
+
+---
+
+### F37 — Embed-Widget und Code-Login im Pool freigeschaltet ✅ 2026-08-02
+
+**Der Befund** (Paritäts-Audit Silo × Pool, Davids Entscheidungen 1 + 2): zwei
+Produkte lebten nur in `apps/comments`, obwohl nichts sie am Pool hinderte.
+
+1. **Das Embed-Widget.** `pukalani.comments.embed.*`, `auth.embedSession` und
+   `security.csrfOriginCheck` standen nur im Silo — dabei ist die Technik seit
+   comments-015/016 mandantenfähig (`embed_sites` trägt `communityId`), und die
+   Landing verkauft das Einbetten als Teil von „Diskussionen". Im Pool
+   antwortete `/embed` schlicht 404.
+2. **Der passwortlose Login.** `pukalani.auth.otp` war im Silo an, im Pool aus
+   (Core-Default).
+
+**Der eigentliche Blocker war die Berechtigung.** Die Einbetter-Seite und ihre
+drei Routen verlangten `system.manage` — ein INSTANZ-Label, das ein
+Kunden-Owner nie trägt. Selbst mit gesetztem Config-Schalter wäre die Fläche im
+Pool für jeden Kunden zu geblieben, obwohl sie in seinem Dashboard steht. Neu
+ist deshalb die Community-Capability **`community.embed`**, nach dem Muster von
+`community.billing` (A6) im **Owner**-Bündel: wer eine fremde Domain freigibt,
+öffnet die Community nach außen (`frame-ancestors` **plus** ein partitioniertes
+Session-Cookie auf der Gastgeber-Seite) — dieselbe Klasse Entscheidung wie das
+Abo. Ein Admin verwaltet, was INNEN passiert. Durchgesetzt an drei Stellen:
+Seiten-Meta (`/dashboard/embed`), den drei Routen
+(`await requireCommunityPermission`) und dem Nav-Eintrag. Der **Silo-Weg bleibt
+offen**, weil die Cap in `ALL_CAPABILITIES` steht — ohne Mandanten fragt
+`decideCommunityAccess` ausschließlich das Betreiber-Label.
+
+**Die Mandantengrenze war schon richtig** — und das ist der wichtigste Befund:
+die drei Routen gingen längst durch die Datentür (`tenantDb(event, {as:
+'operator'})`), also scopt `list`, stempelt `create` und belegen
+`update`/`remove` die Zugehörigkeit. Zu bauen war hier nichts, zu BEWEISEN
+alles: der neue Live-Beweis
+`packages/comments/scripts/verify-embed-boundary.mjs` (**40/40**) fährt zwei
+echte Communities gegeneinander — derselbe Einbetter-Host in beiden (Unique ist
+tenant-relativ), Zugriff über die bekannte FREMDE Row-Id endet in 404, die
+Owner-Rolle reist nicht mit, und die `frame-ancestors`-CSP von A nennt nie den
+Einbetter von B.
+
+**`csrfOriginCheck` wurde für den Pool NEU belegt**, nicht aus dem Silo
+übernommen — die F32-Härtung vom selben Tag behandelt `Sec-Fetch-Site:
+same-site` streng, und unter der Wildcard ist jeder Mandanten-Host same-site zum
+nächsten. Abschnitt 7 des Beweises zeigt live: same-origin (Dashboard + der
+gesamte Embed-Fluss) geht durch, ein Formular auf der Nachbar-Community wird
+abgewiesen, der cross-site-GET des Zählers aus `embed.js` bleibt erlaubt, und
+kopflose Server-zu-Server-Aufrufe (Control-Naht, Beweis-Skripte) laufen weiter.
+
+**Der Code-Login endet nicht mehr in einer Sackgasse.** Ob eine Instanz OTP
+kann, entscheidet die Appwrite-Console („Auth → Settings → Email OTP") und das
+SMTP der Instanz — bis heute wurde daraus ein generischer 500 und die
+Anmeldeseite sagte „bitte erneut versuchen", ein Text, der zum Wiederholen
+einlädt, obwohl Wiederholen nie hilft. Jetzt erkennt die Route die zwei
+Instanz-Ursachen (`user_auth_method_unsupported` 501, `general_smtp_disabled`
+503, pure Regel in `core/shared/authMethodAvailability.ts`), antwortet 503 mit
+`reason: 'otp_unavailable'` und loggt für den Betreiber, WELCHE der beiden es
+war. Die Oberfläche macht daraus „hier gerade nicht verfügbar, nimm dein
+Passwort". Beweis: `packages/core/scripts/verify-otp-availability.mjs` (4/4) —
+prüft nicht „OTP geht", sondern die immer wahre Zusage „Code ODER benannte
+Absage, nie ein generischer 500", und sagt im Klartext, welcher Fall vorliegt.
+
+**Der Nav-Eintrag hängt jetzt am Produkt.** Die Modul-Registry kannte zwei
+Produkt-Gates (`productKey` = Betreiber-Schalter zur Laufzeit, `planProduct` =
+Tarif des Kunden), aber keines für den BAU-Schalter der App. Der Einbetter-Punkt
+stand deshalb im Menü jeder App, die den comments-Layer zieht — auch in
+`photos` und `_template`, wo die Seite 404 antwortet. Neu: `configFlag`
+(+ `configOn`/`configFlagEnabled`, fail-closed — ein Tippfehler im Pfad blendet
+aus statt ein).
+
+**Beweise:** verify-site-authz **118/118** · verify-community-suspension
+**117/117** · verify-embed-boundary **40/40** (neu) · verify-otp-availability
+**4/4** (neu) · `pnpm -r test` grün (core 541) · typecheck · lint (0 Fehler,
+5 bekannte Warnungen) · check:manifests · check:doc-links.
+
+**Offen für David (Console):** im Appwrite-Projekt **`pool`** der PRODUKTION
+prüfen, ob „Auth → Settings → Email OTP" aktiv ist. Lokal ist es an (der Beweis
+meldet Fall A); ist es in Prod aus, sperrt das den Login nicht mehr aus,
+sondern zeigt den ehrlichen Hinweis.
+
+**Gelernt:** Ein Config-Schalter ist nur die halbe Freischaltung — **die andere
+Hälfte ist die Frage, wer das Produkt bedienen darf.** Beide Male steckte der
+Fehler an derselben Stelle: eine Fläche stand im KUNDEN-Dashboard, verlangte
+aber ein BETREIBER-Recht. Im Silo fällt das nie auf, weil dort beide dieselbe
+Person sind. Wer ein Silo-Produkt in den Pool hebt, muss deshalb zuerst die
+Capability-Zeile lesen, nicht die Config-Zeile — und zweitens prüfen, ob der
+Menüpunkt an das Produkt gebunden ist, denn ein toter Menüpunkt fällt niemandem
+auf, ein fehlender sofort. Zweite Lektion aus dem Aufräumen: ein
+`.catch(() => {})` auf einem Tippfehler im Tabellennamen (`tenants` statt
+`communities`) räumt still gar nichts weg — und der Lauf sieht trotzdem grün
+aus. Genau derselbe Fehlertyp wie im Layer-Audit desselben Tages: eine Prüfung,
+die im Erfolgs- wie im Fehlerfall grün aussieht.
+
+### F38 — `media` und `activity` sind Pool-Produkte ✅ 2026-08-02
+
+**Davids Entscheidung:** beide Layer werden in `apps/platform` montiert. Sie
+waren seit C1b (2026-07-28) vollständig mandantenfähig gebaut —
+`communityId`-Spalten, jede Route durch die Datentür, ESLint-Backstop,
+C18-Umzug inklusive Bucket — aber in **keiner** Pool-App gewählt. Das war der
+schlechteste aller Zustände: `recordActivity()` schrieb im Pool jeden Tag
+Zeilen, die niemand lesen konnte, weil es dort keinen Feed gab. Und die
+Mediathek, das einzige Produkt, mit dem eine Community eigene Bilder verwaltet,
+gab es nur im Silo.
+
+**Montiert an allen vier Stellen** (`pnpm check:manifests` erzwingt sie):
+`apps/platform/site.manifest.ts` (Produkt-Wahl) · `nuxt.config.ts` (`extends`,
+Reihenfolge aus `EXTENDS_ORDER`: media hinter events, activity hinter courses) ·
+`package.json` (`@pukalani/media`, `@pukalani/activity`) ·
+`scripts/migrate.mjs` (`media` stand dort schon; `activity` gehört **nicht**
+hinein — der Layer hat bewusst keine eigenen Migrationen, `activities` gehört
+`system`, A14).
+
+**Plan-Zuordnung — VORSCHLAG, David bestätigt noch:** `media: 'personal'`,
+`activity: 'basic'` (`pukalani.tenancy.products`). Begründung: die Mediathek
+ist der **einzige** Layer, der Binärdateien auf die geteilte Platte legt und
+damit laufend Speicher kostet; der Feed zeigt nur, was ohnehin passiert ist,
+und ohne ihn wirkt eine frische Community tot. Die Zeilen sind einzeln
+umstellbar, ohne Code-Änderung — die Gates hängen an ihnen.
+
+**Gates, an allen sechs Einstiegen nachgezogen:** `requirePlanProduct` fehlte in
+beiden Layern komplett (sie waren nie im Pool). Jetzt an
+`/api/media` GET/POST/PATCH/DELETE und `/api/activity` GET/DELETE, jeweils als
+erste Zeile — auch im öffentlichen Lese-Zweig der Galerie, der keine Sitzung
+verlangt. Dazu `planProduct` an den Nav-Einträgen beider Layer (Modul-Registry
+**und** Chrome-Nav): ohne das Feld stünde der Menüpunkt auch dort, wo die Route
+404 antwortet — das Menü lügt sonst. `assertPoolWriteQuota(kind: 'media')`
+stand schon; der Plan-Katalog nennt noch keine media-Grenzen, die Drossel ist
+also ein No-Op wie bei events/courses (→ offener Punkt).
+
+**F28, media-Hälfte: mit dem Umzug geschlossen.** Der Kopf des media-Layers
+sagte selbst, das sei „fällig, bevor media in apps/platform gezogen wird" — zu
+Recht: eine Entwurfs-DATEI trägt seit media-002 nur `read(label:'admin')`, ein
+GLOBALES Betreiber-Label. Im Silo trägt der Betreiber es und die Vorschau in
+`/dashboard/media` lud direkt aus dem Bucket; im Pool trägt es **niemand aus der
+Community**, jede Redaktion hätte ihre eigenen Entwürfe als kaputte Bilder
+gesehen. Gebaut ist die Antwort von events (`GET /api/events/:id/cover`):
+`GET /api/media/:id/file`, hinter `media.manage` + Datentür, skaliertes WebP,
+`private, no-store`. Welche Kachel diesen Weg nimmt, entscheidet der **Server**
+(`index.get.ts` kennt `published` ohnehin) — veröffentlichte Bilder bleiben auf
+der Bucket-URL, sonst zöge eine Liste mit 100 Kacheln durch Nitro. Das Label auf
+der Datei bleibt bewusst unverändert: die Lösung ist eine Route, **nicht** ein
+weiteres Label.
+
+**Der Bestand des Feeds bleibt unsichtbar — das ist die Entscheidung.**
+`system-021` hatte sie ausdrücklich offengelassen („Backfill über die Objekte
+oder Alt-Einträge wegwerfen"). Gemessen (lokale Instanz, neuer Beweis-Abschnitt):
+**242 von 2038** Feed-Zeilen tragen keine `communityId` — und **alle 242** tragen
+`read("users")`, das Publikum von VOR C1b. Im Pool heißt das: jeder eingeloggte
+Nutzer **aller** Communities. Sie nur zu stempeln würde sie in einen
+Community-Feed holen und dabei pool-weit lesbar lassen; das wäre schlechter als
+unsichtbar. Dazu kommt, dass die Hälfte gar nicht zuzuordnen ist —
+`user.joined` (30) und `milestone.*` haben kein Objekt, wegmoderierte Objekte
+sind weg. Ein Feed ist ein Strom: was vor dem Einschalten war, fehlt niemandem.
+**Neue** Zeilen sind ab der ersten korrekt — `recordActivity()` stempelt seit
+C1b `communityId` UND `Role.label(communityId)`.
+
+**Beweise:** `packages/media/scripts/verify-pool-isolation.mjs` **14/14** (neu —
+Galerie-Trennung, Zugriff per ID für PATCH/DELETE/`/file`, und der Gast-Abruf
+der DATEI in beiden Richtungen) · `packages/activity/scripts/verify-pool-isolation.mjs`
+**8/8** (neu — Server-Weg *und* Realtime-Weg mit einer echten Mitglieds-Sitzung,
+dazu die Bestands-Messung) · `verify-audience-flip` **49/49** (war 38/38, um
+media_items + Bucket `media` erweitert — der einzige Layer, der sich MIT
+`bucket` in der C18-Registry anmeldet, und bis heute der einzige ungeprüfte) ·
+`pnpm -r test` grün · beide `tenant-isolation.test.ts` **mit** Live-Env gefahren
+(media 11/11, activity 5/5) · typecheck (platform, comments, photos) · lint
+(0 Fehler, 6 bekannte Warnungen) · check:manifests · check:doc-links ·
+check:single-copy.
+
+**Migrations-Reihenfolge für Prod** steht in OPEN-ITEMS.md — sie ist der einzige
+Teil, der nicht allein von hier aus geht: `media-001` legt als einzige Migration
+des ganzen Repos einen **Bucket** an, und der Pool-Schlüssel hat heute keine
+Storage-Rechte (F36).
+
+**Gelernt:** **Ein Layer, der „pool-fähig gebaut" ist, ist nicht dasselbe wie
+ein Layer, der im Pool läuft.** Beide waren technisch fertig — Spalten,
+Datentür, Backstop, C18-Registry —, und trotzdem fehlten *sechs* Plan-Gates,
+*drei* `planProduct`-Felder und die halbe F28-Route. Der Grund ist immer
+derselbe: geprüft wurde gegen die Frage „ist der Datenzugriff dicht?", nicht
+gegen „was sieht ein Kunde, der das Produkt nicht gekauft hat?". Zweite
+Lektion, und sie ist unangenehmer: die env-gated Integrationstests
+(`tenant-isolation.test.ts`) waren seit dem `tenantId`→`communityId`-Rename
+**falsch** — sie prüften eine Spalte, die es auf keiner Instanz mehr gibt. In
+der CI standen sie als „skipped", also grün. Ein Test, der ohne Env
+stillschweigend übersprungen wird, ist so lange kein Beweis, bis ihn jemand
+**mit** Env fährt; genau dieselbe Fehlerklasse wie das `.catch(() => {})` aus
+F37. Dritte Lektion, ganz praktisch: zwei Dev-Server derselben App liefen
+parallel, der zweite hatte `--port 3006` bekommen und still auf 3000
+zurückgeschaltet — der Nuxt-Lock zeigte dann „Dir: apps/platform, URL :3000".
+Vor jedem Live-Beweis `lsof -nP -iTCP -sTCP:LISTEN` lesen, wie es in CLAUDE.md
+steht.
+
+## Paritäts-Audit 2026-08-02 — sieben Befunde aus dem Paket „Wächter und Vorlagen"
+
+Alle sieben zuerst NACHGESTELLT, dann behoben. Was dabei auffiel, steht am Ende
+unter **Gelernt**.
+
+**Ein Moderator konnte die Instanz umstellen.** `PATCH /api/tickets/settings`
+schreibt `app_config/global` — die EINE Einstellungszeile des Projekts —,
+verlangte dafür aber `tickets.manage`, und das liegt im Moderator-Bündel
+(`authz.ts`). Jeder andere `app_config`-Schreiber (`admin/config.patch`,
+`admin/themes/settings.patch`, `admin/products/[key].patch`) verlangt
+`system.manage`. Ein Moderator konnte damit das KI-Modell der ganzen Instanz
+wechseln; jede folgende Triage lief auf Kosten des Betreibers über sein Modell.
+Nachgestellt an der Rechte-Matrix (`hasCapability(['moderator'],
+'tickets.manage') === true`, `system.manage === false`). Die Trennlinie ist
+jetzt nicht „Ticket-Fläche vs. Rest", sondern WAS geschrieben wird: das Board
+BEDIENEN bleibt `tickets.manage` (alle 20 anderen Routen inklusive
+`settings.get`), die Instanz UMSTELLEN ist `system.manage`. Damit ein Moderator
+den 403 nicht erst nach dem Klick sieht, liefert `settings.get` ein
+`canEditModel`; das Modal blendet Speichern/Zurücksetzen aus und erklärt, warum.
+Beweis: `packages/tickets/tests/route-guards.test.ts` (26/26) — die Ausnahme
+steht als benannte Aufzählung `OPERATOR_ONLY` statt als Sonderfall im Code, und
+ein zusätzlicher Test verlangt für JEDE Route, die `app_config` anfasst, den
+Betreiber-Gate. Gegenprobe: alte Capability zurückgesetzt ⇒ Test rot.
+
+**Der Bauplan hatte als einziger Layer keinen Wächter.** `packages/blueprint`
+darf mehrere Produkt-Layer kennen — das ist sein Zweck. Verboten ist nicht das
+Kennen, sondern das BESITZEN (kein `server/`, keine Tabellen, keine
+Produkt-Logik). Nachgestellt: eine `blueprint/server/api/probe.get.ts` mit rohem
+`tablesDB` lief sauber durch `eslint .`. Neu greifen zwei Blöcke: kein
+`appwrite`/`node-appwrite`-Import im ganzen Layer, und jede Datei unter
+`blueprint/server/**`, `scripts/**`, `shared/**` bricht den Lint ab dem ersten
+Zeichen (Selector `Program`) mit der Begründung im Text. Geschützt wird damit
+die Zusage „Pool und Silo zeigen dasselbe": eigener Datenzugriff im Bauplan wäre
+Verhalten, das es nur in Apps MIT blueprint gibt.
+
+**Die Layer-Liste im ESLint war handgepflegt und deshalb falsch.** Sie führte
+`feed` (existiert seit dem posts-Rename nicht mehr) und kannte `pages`, `media`,
+`activity`, `onboarding`, `control` und `blueprint` nicht — sechs Layer ganz
+ohne Import-Backstop, nachgestellt mit je einer Probe-Verletzung, die vorher
+niemand meldete. Die Liste wird jetzt aus `packages/` GELESEN und in drei Töpfe
+sortiert (`FOUNDATION` / `SEAM` / `PRODUCTS`); ein Layer ohne Topf bricht den
+Lint sofort mit Klartext („ohne Topf: …"). Statt einer Verbotsliste steht in
+jedem Block, was ERLAUBT ist (`otherLayers([…])`) — die Sperre ergibt sich
+daraus. Die bestehenden Nähte sind benannt geblieben: `feedback → control`
+(E10), `onboarding`/`control → control, onboarding, pages, themes`. Beweis: je
+eine Probe-Verletzung pro neuem Block (blueprint-server, blueprint-appwrite,
+pages, media, activity, onboarding, control, core, Topf-Drift) — alle schlugen
+an, danach zurückgebaut; `pnpm -r lint` unverändert 0 Fehler / 6 bekannte
+Warnungen.
+
+**Die Produkt-Bilanz wird jetzt gerechnet statt gepflegt.**
+`docs/referenz/PRODUKT-BILANZ.md` war zu 7 von 12 Zeilen falsch — ausgerechnet
+das Dokument, auf dem Davids Zusage „Pool = Silo" ruht: `events`/`courses`
+galten als „nicht montiert" (laufen im Pool), `tickets`/`feedback` als
+„Silo-only" (sind nach `control` gezogen), `media` als „eingefroren" (ist
+pool-fertig), die „strukturelle Lücke" ist geschlossen, und `packages/community`
+heißt gebaut `packages/blueprint`. **Entscheidung: beides.** Das alte Dokument
+hat seine Aufgabe erfüllt (es begründet, warum es den Bauplan gibt, samt der
+verworfenen Alternativen) und liegt als Protokoll in
+`docs/archiv/PRODUKT-BILANZ-2026-07-27.md` — mit einem Kasten obenauf, der sagt,
+dass es historisch ist. Unter dem alten Pfad steht jetzt eine ERZEUGTE Bilanz:
+`node scripts/produkt-bilanz.mjs` (`pnpm bilanz`) liest die Site- und
+Produkt-Manifeste, zählt in `server/api/**` die Routen hinter `tenantDb`, sucht
+`communityId` in den Migrationen, liest das Tarif-Gate aus
+`apps/platform/app/app.config.ts` und stellt fest, welche App-Seite eine
+Layer-Seite verdeckt (heute: keine). `pnpm check:bilanz` ist das Gate dazu —
+Neuerzeugen darf kein Diff geben, Muster `check:themes`.
+
+**Die Kopiervorlage startete außerhalb der Zusage.** `apps/_template` zog
+`comments` ohne `blueprint`. Nachgestellt: wer als Nächstes `posts` dazunimmt —
+der offensichtliche zweite Schritt —, bekommt bei GRÜNEM `check:manifests` die
+nackte `posts/app/pages/feed.vue` statt der komponierten Bauplan-Seite. Die
+Vorlage führt jetzt `blueprint` samt seiner `requires` (posts, comments, events,
+courses); wer kleiner will, streicht Produkte UND Bauplan gemeinsam, und
+`check:manifests` erzwingt genau diese bewusste Entscheidung.
+
+**Die Demo-Seite aus Phase 2 ist weg.** `apps/comments/app/pages/theme-check.vue`
+war öffentlich auf dem Silo-Host erreichbar, ohne `noindex`, mit einem
+SSR-`console.log` auf jedem Aufruf, und schrieb die App-Config in die Seite.
+Anders als `visual.vue` (dokumentiert, `noindex`, Ziel der Themes-Visual-Suite)
+hatte sie keinen Konsumenten: ihre Aufgabe war der einmalige Phase-2-Nachweis,
+dass `app.config` App > Core mergt, und der steht in `GOALS.md`. Sie wie
+`visual.vue` zu behandeln hieße, eine Seite zu dokumentieren und zu
+noindexen, die niemand liest — also entfernt.
+
+**Der Seed für die Rechtsseiten war pool-blind.**
+`packages/pages/scripts/seed-demo.mjs` fragte die Existenz ohne `communityId` und
+schrieb ohne Stempel. Nachgestellt gegen die Platform-Instanz: dieselbe Abfrage
+für `home`/`en` liefert die Zeile der Community `t-demo` — auf einer
+Pool-Instanz meldet der Seed also „existiert schon" wegen einer FREMDEN Seite,
+und was doch angelegt wird, ist eine Waise mit `communityId: ''`. Das Skript
+verlangt jetzt genau eine Angabe: `--community <id>` oder `--single-tenant`
+(die ausdrückliche Wahl von `communityId: ''`, wie `scopeRowFor` sie im Silo
+stempelt). Ein Default gibt es bewusst nicht — der falsche von beiden ist auf
+einer Pool-Instanz nicht zu sehen, sondern nur zu merken. Beweis: drei
+Abbruch-Fälle, dann ein echter Lauf gegen die Platform mit `--community
+seedprobe` (6 Zeilen angelegt, zweiter Lauf 6× übersprungen, alle 6 mit Stempel,
+danach aufgeräumt).
+
+**Der N1-Beweis erwartete ein Menü, das E9 abgeschafft hat.**
+`verify-dashboard-access.mjs` stand auf 28/30, weil Abschnitt 6 die
+Operator-Module `/dashboard/system` und `/dashboard/users` im Menü eines
+MANDANTEN-Hosts erwartete. Genau das hat E9 beendet („das Menü hört auf zu
+lügen", 81ac8a93): `scopeVisibleAt` zeigt am Ort einer fremden Community nur
+community-Module — auch dem Betreiber. Überholt war die Erwartung, nicht der
+Code. Der Abschnitt prüft jetzt beides GETRENNT, weil es zwei Dinge sind: das
+MENÜ (Ort) und der ZUGANG (Capability auf der Route) — kein Operator-Modul im
+Menü des Mandanten-Hosts, aber `/dashboard/users` und `/api/admin/users` direkt
+weiterhin 200, und als Gegenprobe zum Ort stehen dieselben Module auf dem
+Kontroll-Host sehr wohl im Menü (sonst hieße der Befund nur „Modul
+verschwunden"). Mitgenommen: der Kopf nannte einen Port, den es nicht mehr gibt
+(3141 statt `PLATFORM_PORT`), ein Prüftext nannte die Tabelle `tenants` statt
+`communities`, und die 429-Falle bei zwei Läufen kurz hintereinander steht jetzt
+dort, wo man sie sucht. Ergebnis: **35/35** (aus 30 Prüfungen wurden 35, weil
+zwei überholte durch acht schärfere ersetzt sind).
+
+**Beweise:** tickets 26/26 (mit Gegenprobe rot) · verify-dashboard-access
+**35/35** · seed-demo-Lauf gegen die Platform inkl. Aufräumen · 9
+ESLint-Probe-Verletzungen, alle schlagen an · `pnpm -r test` grün (core 541,
+gesamt unverändert) · typecheck 0 Fehler (inkl. `_template` mit den neuen
+Layern) · `pnpm -r lint` 0 Fehler / 6 bekannte Warnungen · check:manifests ·
+check:bilanz · check:doc-links · check:single-copy.
+
+**Gelernt:** Ein Wächter, den man von Hand pflegt, wächst nicht mit — er
+vergisst immer den zuletzt gebauten Fall. Das galt hier dreimal am selben Tag,
+in drei Verkleidungen: die ESLint-Layer-Liste kannte die sechs jüngsten Layer
+nicht und führte einen, den es nicht mehr gibt; die Produkt-Bilanz war fünf
+Wochen nach ihrer Erstellung mehrheitlich falsch; der N1-Beweis hielt an einer
+Menü-Regel fest, die zwei Tage vorher abgeschafft worden war. In allen drei
+Fällen sah der Zustand GRÜN aus — die Liste lief durch, das Dokument las sich
+schlüssig, das Skript meldete 28 Häkchen. Die Konsequenz ist überall dieselbe:
+**die Wahrheit aus dem Code lesen statt sie danebenzuschreiben** (Layer aus
+`packages/`, Bilanz aus den Manifesten, Erwartung aus der geltenden Regel) und
+**Drift zum Fehler machen statt zur Fußnote** (unklassifizierter Layer bricht
+den Lint, `check:bilanz` bricht bei jedem Diff). Zweite Lektion, kleiner, aber
+teurer: eine Vorlage ist eine Entscheidung, die man n-mal trifft, ohne sie noch
+einmal zu prüfen — `apps/_template` ohne Bauplan hätte jede künftige App still
+neben die Zusage „Pool = Silo" gesetzt, und die Falle schnappte erst beim
+ZWEITEN Produkt zu, wo niemand mehr an die Vorlage denkt.

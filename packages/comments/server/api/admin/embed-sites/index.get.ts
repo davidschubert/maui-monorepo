@@ -1,9 +1,9 @@
 import { Query } from 'node-appwrite'
 import { EMBED_SITES_TABLE, type EmbedSiteRow } from '../../../../shared/types/embedSite'
 
-/** Betreiber: Einbetter-Registry auflisten (E3). */
+/** Einbetter-Registry auflisten (E3) — Owner der Community bzw. Betreiber. */
 export default defineEventHandler(async (event) => {
-  requirePermission(event, 'system.manage')
+  await requireCommunityPermission(event, 'community.embed')
   // Datentür als Operator: im Pool sieht jede Community NUR ihr eigenes
   // Embed-Register (vorher teilten sich alle Tenants eines).
   const { rows, total } = await tenantDb(event, { as: 'operator' }).list<EmbedSiteRow>(EMBED_SITES_TABLE, [

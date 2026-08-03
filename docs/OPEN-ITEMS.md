@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 11 offen · 10 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 14 offen · 10 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-02**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -20,6 +20,9 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | --- | --- | --- | --- | --- | --- |
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen (**Anleitung dabei mitschreiben — ab Schritt 2 veraltet, Workspace-Welt**) und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
+| 50 · F38 | **Storage-Rechte für den Pool-Schlüssel** (F36, jetzt blockierend). `media` ist ab sofort Pool-Produkt, und `media-001` legt als EINZIGE Migration des Repos einen **Bucket** an. Ohne die Rechte scheitert der Prod-Deploy von media — und ohne `files.*` am **Laufzeit**-Schlüssel kann danach niemand ein Bild hochladen. | Hoch | S — zwei Schlüssel in der Console | Ja: nur David (Console) | [Migrations-Reihenfolge](#media-activity-prod) |
+| 51 · F39 | **Plan-Zuordnung für die zwei neuen Produkte bestätigen.** Mein Vorschlag steht im Code: **Mediathek ab Personal** (kostet als einziges Produkt laufend Speicher), **Feed ab Basic** (Grundfunktion). Zwei Zeilen in `apps/platform/app/app.config.ts`, Änderung ohne Code. | Hoch | S — ja/nein | Ja: nur David entscheidet | [COMPLETE F38](OPEN-ITEMS-COMPLETE.md) |
+| 52 · F40 | **Kontingent-Zahlen für die Mediathek fehlen** (wie 41 · F27 bei den Terminen). `assertPoolWriteQuota(kind: 'media')` hängt an der Upload-Route, der Plan-Katalog nennt aber keine media-Grenzen — die Drossel ist ein No-Op. Hier wiegt es schwerer als anderswo: es sind Dateien auf der geteilten Platte. | Mittel | S — Katalog-Zeilen | Ja: welche Zahlen je Plan? | [COMPLETE F38](OPEN-ITEMS-COMPLETE.md) |
 | 11 · B1 | **Neun visuelle Referenzbilder sichten** — jetzt WIRKLICH final: zuletzt am 2026-08-01 neu gebacken, nachdem das DevTools-Abzeichen (wechselnde ms-Zahl) aus allen neun Bildern verschwunden ist. Zu prüfen bleibt nur der Inhalt: `git show HEAD:<pfad>` gegen die Arbeitskopie halten. | Mittel | S — ansehen | Ja: David sichtet | [Notizen](#notizen) |
 | 27 · E1 | **Tote Schlüsseldatei löschen** (`apps/control/.env.production` zeigt auf ein gelöschtes Projekt). Liegt nur auf Davids Rechner, nicht im Repo. | Niedrig | S — eine Datei | Ja: enthält Schlüsselmaterial | [Notizen](#notizen) |
 | 29 · E3 | **Server-Größe: GEMESSEN, kein Rescale nötig** (2026-08-02). Die Maschine ist ein CX22 (2 vCPU/3,7 GB), nicht CX33 — und die CI baut auf dem Runner, nicht auf dem Server. Ist: 27 % RAM, Swap unberührt, Last 0, Platte 29 %, 0 OOM in 30 Tagen. Zu entscheiden bleibt nur der Fallback-Deploy: Heap 4096 auf 3,7 GB senken? | Niedrig | S — zwei Zeilen | Ja: nur Bestätigung | [Notizen](#notizen) |
@@ -98,6 +101,36 @@ Release **v3.0.0** (2026-07-28).
 **Als Betriebssystem für eigene Sites: ~98 %. Als verkaufbares SaaS: ~85 %.**
 
 ### Einzelheiten zu den offenen Punkten
+
+<a id="media-activity-prod"></a>
+
+**F38 — Prod-Reihenfolge für `media` + `activity` im Pool.** Beide Layer sind
+seit 2026-08-02 in `apps/platform` montiert (Begründung + Beweise:
+[COMPLETE F38](OPEN-ITEMS-COMPLETE.md)). Lokal ist alles gefahren; für die
+Produktion gilt genau diese Reihenfolge:
+
+1. **Rechte am Pool-Projekt setzen (David, Console) — VOR allem anderen.**
+   Migrations-Schlüssel: `buckets.read`, `buckets.write`, `files.read`,
+   `files.write`. Laufzeit-Schlüssel: `files.read`, `files.write`. Ohne den
+   ersten bricht `media-001` beim Anlegen des Buckets ab (401), ohne den
+   zweiten scheitert danach jeder Upload, jedes Löschen und jedes Umschalten
+   der Sichtbarkeit. Das ist der alte F36-Punkt — er war „heute folgenlos",
+   bis media in den Pool zog.
+2. **Migrieren:** `pnpm migrate --app platform`. Neu läuft dabei nur der
+   media-Zweig (`media-001` … `media-005`, in dieser Reihenfolge, idempotent) —
+   die Pool-Instanz hat den Layer nie gefahren, `media_items` und der Bucket
+   `media` entstehen also frisch. `activity` bringt **nichts** mit: die Table
+   `activities` gehört `system` und läuft auf jeder Instanz längst mit
+   (system-014/017/021/025/026, alle gefahren).
+3. **Dann erst deployen.** Kein Schema-Fenster in die andere Richtung: alter
+   Code kennt `media_items` nicht, die Tabelle liegt also bis zum Deploy
+   unbenutzt herum. Umgekehrt (Deploy vor Migration) antwortet
+   `/dashboard/media` mit einem Fehler und der erste Upload sagt „Media bucket
+   missing — run migrations".
+4. **Nachmessen:** `packages/media/scripts/verify-pool-isolation.mjs` und
+   `packages/activity/scripts/verify-pool-isolation.mjs` gegen die Pool-Env
+   (beide räumen selbst auf); der activity-Beweis nennt am Ende die Zahl der
+   Alt-Zeilen ohne `communityId` — die bleiben bewusst unsichtbar.
 
 **C19 — `/de` war für englischsprachige Browser eine Endlosschleife.**
 Code-Fix erledigt 2026-07-31, auf prod REPRODUZIERT und lokal behoben. Kein

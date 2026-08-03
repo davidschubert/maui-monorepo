@@ -157,7 +157,9 @@
       "invalid": "Speichern fehlgeschlagen — Modell-Id im Format vendor/model?",
       "invalidHint": "Anbieter und Modell, getrennt durch einen Schrägstrich — z. B. anthropic/claude-haiku-4.5. Bis dahin bleibt das bisherige Modell aktiv.",
       "loadFailed": "Die Board-Einstellungen konnten nicht geladen werden. Öffne sie noch einmal — hilft das nicht, lade die Seite neu (deine Sitzung könnte abgelaufen sein).",
-      "aiDisabled": "Die KI-Triage ist in dieser App nicht aktiviert (pukalani.tickets.ai)."
+      "aiDisabled": "Die KI-Triage ist in dieser App nicht aktiviert (pukalani.tickets.ai).",
+      "readOnly": "Nur der Betreiber kann das Modell umstellen",
+      "readOnlyHint": "Das KI-Modell ist eine Einstellung der ganzen Instanz — dafür braucht es die Betreiber-Rolle (system.manage). Als Moderator siehst du hier, welches Modell die Triage gerade nutzt."
     }
   }
 }

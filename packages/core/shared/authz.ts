@@ -35,6 +35,10 @@ export const ALL_CAPABILITIES: readonly Capability[] = [
   'community.billing',
   'community.transfer',
   'community.delete',
+  // F37: der Betreiber-Admin behält den Silo-Weg (apps/comments registriert
+  // seine Einbetter weiterhin per globalem Label) — deshalb gehört auch diese
+  // Community-Cap ins Wildcard.
+  'community.embed',
 ]
 
 /** Alle zuweisbaren Rollen. */

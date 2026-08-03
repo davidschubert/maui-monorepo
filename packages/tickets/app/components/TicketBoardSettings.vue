@@ -4,14 +4,20 @@
  * wechseln — kuratierte OpenRouter-Auswahl + frei eintippbare Modell-Id
  * (create-item). Leeren/Zurücksetzen = Build-Default aus pukalani.tickets.ai.
  * Persistenz: app_config.ticketsAiModel (system-015) über die
- * tickets-Settings-Routen (Capability tickets.manage).
+ * tickets-Settings-Routen.
+ *
+ * ZWEI HÜRDEN (Paritäts-Audit 2026-08-02): das Modal ÖFFNEN/lesen darf jeder
+ * mit `tickets.manage` (also auch ein Moderator), das INSTANZ-Modell umstellen
+ * nur `system.manage`. Die Route ist die Autorität — `canEditModel` aus der
+ * GET-Antwort sorgt nur dafür, dass niemand erst nach dem Klick einen 403
+ * sieht.
  */
 const open = defineModel<boolean>('open', { required: true })
 
 const { t } = useI18n()
 const toast = useToast()
 
-interface BoardSettings { aiEnabled: boolean, model: string, defaultModel: string }
+interface BoardSettings { aiEnabled: boolean, model: string, defaultModel: string, canEditModel: boolean }
 const settings = ref<BoardSettings | null>(null)
 const model = ref('')
 const saving = ref(false)
@@ -29,6 +35,9 @@ const KNOWN_MODELS = [
   'deepseek/deepseek-chat',
 ]
 const items = ref<string[]>([...KNOWN_MODELS])
+
+/** Vor dem ersten Laden nichts anbieten — die Route entscheidet, nicht die UI. */
+const canEdit = computed(() => settings.value?.canEditModel === true)
 
 watch(open, async (value) => {
   if (!value) return
@@ -87,11 +96,22 @@ async function save(resetToDefault = false) {
           :title="t('tickets.settings.aiDisabled')"
         />
 
+        <UAlert
+          v-if="!canEdit"
+          color="neutral"
+          variant="subtle"
+          icon="i-ph-lock-simple"
+          :title="t('tickets.settings.readOnly')"
+          :description="t('tickets.settings.readOnlyHint')"
+          data-testid="settings-readonly"
+        />
+
         <UFormField :label="t('tickets.settings.model')" :help="t('tickets.settings.modelHelp')">
           <USelectMenu
             v-model="model"
             :items="items"
             create-item
+            :disabled="!canEdit"
             :placeholder="t('tickets.settings.modelPlaceholder')"
             class="w-full"
             data-testid="model-select"
@@ -106,12 +126,13 @@ async function save(resetToDefault = false) {
     </template>
     <template #footer>
       <div class="flex w-full items-center justify-between gap-2">
-        <UButton color="neutral" variant="ghost" size="sm" :disabled="saving" @click="save(true)">
+        <UButton v-if="canEdit" color="neutral" variant="ghost" size="sm" :disabled="saving" @click="save(true)">
           {{ t('tickets.settings.reset') }}
         </UButton>
+        <span v-else />
         <div class="flex gap-2">
           <UButton color="neutral" variant="ghost" size="sm" @click="() => { open = false }">{{ t('ui.cancel') }}</UButton>
-          <UButton color="primary" size="sm" :loading="saving" data-testid="settings-save" @click="save()">
+          <UButton v-if="canEdit" color="primary" size="sm" :loading="saving" data-testid="settings-save" @click="save()">
             {{ t('ui.save') }}
           </UButton>
         </div>

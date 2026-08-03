@@ -9,7 +9,10 @@ export default defineAppConfig({
     // beides nur eingeloggt und nur solange das Produkt an ist (F2).
     chrome: {
       nav: {
-        activity: { labelKey: 'activity.title', to: '/activity', icon: 'i-ph-pulse', order: 40, productKey: 'activity', requiresAuth: true },
+        // planProduct: im Pool ab basic (pukalani.tenancy.products) — heute
+        // also für alle. Das Feld steht trotzdem da, damit eine spätere
+        // Umstellung im Katalog Menü und Route gemeinsam bewegt.
+        activity: { labelKey: 'activity.title', to: '/activity', icon: 'i-ph-pulse', order: 40, productKey: 'activity', planProduct: 'activity', requiresAuth: true },
       },
       utilities: {
         activity: { component: 'ActivitySlideover', order: 10, productKey: 'activity', requiresAuth: true },
@@ -25,6 +28,9 @@ export default defineAppConfig({
           id: 'activity',
           scope: 'community',
           productKey: 'activity',
+          // C2: im Pool ab basic (pukalani.tenancy.products) — heute für alle;
+          // das Feld hält Menü und Route zusammen, falls die Zuordnung steigt.
+          planProduct: 'activity',
           labelKey: 'admin.nav.activity',
           icon: 'i-ph-pulse',
           to: '/dashboard/activity',

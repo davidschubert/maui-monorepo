@@ -26,17 +26,32 @@ export default defineAppConfig({
           order: 2,
         },
         {
-          // E3 Site-Registry: registrierte Einbetter-Domains des Widgets.
-          // Steht bei „Settings · Community", verlangt aber weiterhin
-          // `system.manage` (so wie die Seite selbst) — auf einem
-          // Mandanten-Host sieht ihn also nur der Betreiber.
+          /**
+           * E3 Site-Registry: registrierte Einbetter-Domains des Widgets.
+           *
+           * F37 (2026-08-02) — ZWEI Korrekturen an einem Eintrag:
+           *
+           * 1. `community.embed` statt `system.manage`. Der Eintrag stand bei
+           *    „Settings · Community", verlangte aber ein INSTANZ-Label. Im
+           *    Silo stimmte das (der Betreiber IST der Einbetter); im Pool war
+           *    die Fläche für den Kunden-Owner unerreichbar — und mit ihr die
+           *    Seite und die drei Routen. Die neue Capability trägt der Owner
+           *    (communityAuthz.ts) UND der Operator-Admin (ALL_CAPABILITIES),
+           *    der Silo-Weg bleibt also unverändert.
+           * 2. `configFlag`. Das Widget ist ein Produkt mit Bau-Schalter
+           *    (`pukalani.comments.embed.enabled`, Core-Default aus). Ohne
+           *    Bindung stand der Menüpunkt in JEDER App, die den Layer zieht —
+           *    und die Seite dahinter antwortet dort 404. Ein Menüpunkt, der
+           *    ins Nichts führt, ist schlimmer als keiner.
+           */
           id: 'embed-sites',
           scope: 'community',
           productKey: 'comments',
+          configFlag: 'comments.embed.enabled',
           labelKey: 'admin.nav.embedSites',
           icon: 'i-ph-plug',
           to: '/dashboard/embed',
-          requiredCapability: 'system.manage',
+          requiredCapability: 'community.embed',
           group: 'settings',
           order: 3,
         },

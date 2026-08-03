@@ -6,9 +6,65 @@ import { createConfigForNuxt } from '@nuxt/eslint-config/flat'
 // Verhindert KÜNFTIGE explizite Cross-Layer-Imports. Implizite Kopplung
 // (Auto-Import, tableId-Strings) fängt das NICHT — die löst Stufe 1 (Verträge).
 // Jeweils Paketname + Subpfade (`/**`) abdecken.
+//
+// DIE LISTE IST DER WÄCHTER (Paritäts-Audit 2026-08-02): sie wird jetzt aus
+// den Ordnern unter `packages/` abgeleitet statt von Hand gepflegt. Vorher
+// stand dort ein Layer `feed`, den es seit dem posts-Rename nicht mehr gibt,
+// und es FEHLTEN pages, media, activity, onboarding, control und blueprint —
+// genau die Layer, die zuletzt dazugekommen sind. Eine handgepflegte Liste
+// vergisst immer den neuesten Fall; ein abgeleiteter Wächter kann das nicht.
 const pkg = name => [`@pukalani/${name}`, `@pukalani/${name}/**`]
-const featureLayers = [...pkg('comments'), ...pkg('admin'), ...pkg('themes'), ...pkg('feed'), ...pkg('posts'), ...pkg('events'), ...pkg('feedback'), ...pkg('billing'), ...pkg('courses'), ...pkg('tickets')]
-const allPukalaniFeatures = [...featureLayers, ...pkg('moderation')]
+
+/**
+ * Die A14-Matrix in drei Töpfen — wer wen kennen darf.
+ *
+ *  - FOUNDATION: Fundament. Hängt NIE von einem Produkt ab. `themes` steht
+ *    hier, weil es rein visuell ist (eigener, schärferer Block weiter unten).
+ *  - PRODUCTS: Produkt-Layer. Kennen einander nicht; Fundament nutzen sie über
+ *    Auto-Import, nicht über `@pukalani/*`.
+ *  - SEAM: Naht-Layer. Sie DÜRFEN mehrere andere kennen, weil genau das ihre
+ *    Aufgabe ist — `blueprint` verdrahtet Produkte miteinander (CLAUDE.md:
+ *    „der EINZIGE Layer, der mehrere Produkt-Layer kennen darf"), `onboarding`
+ *    und `control` bilden die Naht zum Control Plane. Sie sind deshalb von der
+ *    Produkt-Sperre ausgenommen — aber NICHT von allem: was sie trotzdem nicht
+ *    dürfen, steht in ihren eigenen Blöcken.
+ */
+const FOUNDATION = ['core', 'system', 'moderation', 'admin', 'billing', 'themes']
+const SEAM = ['blueprint', 'onboarding', 'control']
+const PRODUCTS = ['comments', 'posts', 'events', 'courses', 'tickets', 'feedback', 'media', 'activity', 'pages']
+
+// Stimmt die Aufteilung noch mit dem Dateisystem überein? Ein neuer Layer ohne
+// Topf soll den Lint SOFORT brechen — sonst wächst wieder eine stille Lücke.
+// (fs im Config-Load ist billig und läuft einmal pro eslint-Aufruf.)
+const { readdirSync } = await import('node:fs')
+const { fileURLToPath } = await import('node:url')
+const layersOnDisk = readdirSync(fileURLToPath(new URL('packages', import.meta.url)), { withFileTypes: true })
+  .filter(entry => entry.isDirectory() && !entry.name.startsWith('.'))
+  .map(entry => entry.name)
+const classified = new Set([...FOUNDATION, ...SEAM, ...PRODUCTS])
+const unclassified = layersOnDisk.filter(name => !classified.has(name))
+const ghosts = [...classified].filter(name => !layersOnDisk.includes(name))
+if (unclassified.length || ghosts.length) {
+  throw new Error([
+    'eslint.config.mjs: Layer-Einteilung und packages/ laufen auseinander (CONCEPT.md A14).',
+    unclassified.length ? `  ohne Topf: ${unclassified.join(', ')}` : '',
+    ghosts.length ? `  im Topf, aber nicht auf der Platte: ${ghosts.join(', ')}` : '',
+  ].filter(Boolean).join('\n'))
+}
+
+const featureLayers = PRODUCTS.flatMap(pkg)
+const allPukalaniFeatures = [...featureLayers, ...FOUNDATION.filter(n => n !== 'core').flatMap(pkg)]
+/** Datei-Globs eines Topfes — für die `files`-Angabe der Blöcke. */
+const filesOf = names => names.map(name => `packages/${name}/**`)
+/**
+ * Alle Layer-Pakete AUSSER `core`/`system` (die kommen per Auto-Import, ein
+ * expliziter Import darauf ist erlaubt) und außer den ausdrücklich erlaubten.
+ * So steht in jedem Block, was ERLAUBT ist — die Sperre ergibt sich daraus,
+ * statt dass jemand eine Verbotsliste nachpflegen muss.
+ */
+const otherLayers = (allowed = []) => layersOnDisk
+  .filter(name => !['core', 'system', ...allowed].includes(name))
+  .flatMap(pkg)
 
 export default createConfigForNuxt({
   features: {
@@ -42,27 +98,111 @@ export default createConfigForNuxt({
     }],
   },
 }).append({
-  // Feature-Layer importieren keine ANDEREN Feature-Layer. Fundament
-  // (core, künftig moderation) wird per Auto-Import genutzt, nicht via @pukalani/*.
-  files: ['packages/comments/**', 'packages/admin/**', 'packages/feed/**', 'packages/posts/**', 'packages/events/**', 'packages/feedback/**', 'packages/billing/**', 'packages/courses/**', 'packages/tickets/**'],
+  // Produkt-Layer importieren keine ANDEREN Produkt-Layer. Fundament
+  // (core, moderation, …) wird per Auto-Import genutzt, nicht via @pukalani/*.
+  // Die Dateiliste kommt aus PRODUCTS — pages/media/activity fehlten hier bis
+  // zum Paritäts-Audit 2026-08-02 und durften ungebremst zugreifen.
+  files: filesOf(PRODUCTS),
   rules: {
     'no-restricted-imports': ['error', {
       patterns: [
-        { group: featureLayers,
-          message: 'Feature-Layer importieren keine anderen Feature-Layer (CONCEPT.md A14). Fundament nur über Auto-Import.' },
+        { group: otherLayers(),
+          message: 'Produkt-Layer importieren keine anderen Layer (CONCEPT.md A14). Fundament nur über Auto-Import.' },
       ],
     }],
   },
 }).append({
-  // Fundament-Layer dürfen NIE von Features abhängen (azyklisch).
-  // moderation zählt dazu (CLAUDE.md/A14) — ohne diesen Scope wäre es der
-  // einzige Layer ganz ohne Import-Backstop.
-  files: ['packages/core/**', 'packages/system/**', 'packages/moderation/**'],
+  /**
+   * DIE EINE PRODUKT-AUSNAHME: feedback ↔ control.
+   *
+   * `feedback` besitzt keine eigenen Tabellen — es ist die Kunden-Oberfläche
+   * auf den Vertrag des Control Plane (E10, Davids Entscheidung 7). Die Naht
+   * ist bewusst und heute schon real (`control/shared/customerFeedback.ts`,
+   * `control/schemas/customerFeedback.ts`). Sie steht deshalb HIER als
+   * benannte Ausnahme statt als stille Lücke in der Regel darüber.
+   */
+  files: ['packages/feedback/**'],
   rules: {
     'no-restricted-imports': ['error', {
       patterns: [
-        { group: featureLayers,
-          message: 'Fundament-Layer (core/system/moderation) dürfen nicht von Feature-Layern abhängen (CONCEPT.md A14).' },
+        { group: otherLayers(['control']),
+          message: 'feedback darf NUR die Control-Plane-Verträge kennen (E10) — sonst keine Layer-Imports (CONCEPT.md A14).' },
+      ],
+    }],
+  },
+}).append({
+  // Fundament-Layer dürfen NIE von Produkten abhängen (azyklisch).
+  // moderation zählt dazu (CLAUDE.md/A14) — ohne diesen Scope wäre es der
+  // einzige Layer ganz ohne Import-Backstop. admin/billing stehen ebenfalls
+  // als Fundament im Manifest (tier: 'foundation') und werden hier gleich
+  // behandelt; `themes` hat weiter oben seinen schärferen eigenen Block.
+  files: filesOf(FOUNDATION.filter(name => name !== 'themes')),
+  rules: {
+    'no-restricted-imports': ['error', {
+      patterns: [
+        { group: [...featureLayers, ...SEAM.flatMap(pkg)],
+          message: 'Fundament-Layer (core/system/moderation/admin/billing) dürfen nicht von Produkt- oder Naht-Layern abhängen (CONCEPT.md A14).' },
+      ],
+    }],
+  },
+}).append({
+  /**
+   * DER BAUPLAN — sein Vertrag hatte als EINZIGER keinen Wächter
+   * (Paritäts-Audit 2026-08-02).
+   *
+   * `blueprint` DARF mehrere Produkt-Layer kennen; das ist sein ganzer Zweck
+   * (CLAUDE.md: „der EINZIGE Layer, der mehrere Produkt-Layer kennen darf").
+   * Verboten ist deshalb nicht das Kennen, sondern das BESITZEN: keine
+   * Produkt-Logik, keine Tabellen, kein `server/`. Was hier geschützt wird,
+   * ist die Aussage „Pool und Silo zeigen identisches Produktverhalten" —
+   * die hält nur, solange der Bauplan reine Verdrahtung bleibt. Ein eigener
+   * Datenzugriff wäre Verhalten, das es nur in Apps MIT blueprint gibt.
+   *
+   * Die Naht-Layer stehen ebenfalls hier: sie dürfen die Verträge kennen, die
+   * sie bedienen, nicht aber quer durch die Produkte greifen.
+   */
+  files: ['packages/blueprint/**'],
+  rules: {
+    'no-restricted-imports': ['error', {
+      patterns: [
+        { group: ['appwrite', 'node-appwrite'],
+          message: 'blueprint ist reine Komposition — kein eigener Datenzugriff, keine Tabellen (CLAUDE.md). Daten holen die Produkt-Layer.' },
+        { group: [...SEAM.filter(n => n !== 'blueprint').flatMap(pkg), ...pkg('admin'), ...pkg('billing')],
+          message: 'blueprint verdrahtet PRODUKTE — Control Plane, Onboarding und Betreiber-Layer gehören nicht in eine Produkt-Komposition (CONCEPT.md A14).' },
+      ],
+    }],
+  },
+}).append({
+  /**
+   * KEIN `server/`, KEINE MIGRATIONEN IM BAUPLAN — als Verhalten, nicht als
+   * Merksatz. Jede Datei unter diesen Pfaden bricht den Lint mit der
+   * Begründung; die Regel greift ab dem ersten Zeichen (Selector `Program`).
+   * Genau das war die Lücke: eine `blueprint/server/api/*.ts` mit rohem
+   * `tablesDB` lief am 2026-08-02 sauber durch `eslint .`.
+   */
+  files: ['packages/blueprint/server/**', 'packages/blueprint/scripts/**', 'packages/blueprint/shared/**'],
+  rules: {
+    'no-restricted-syntax': ['error',
+      { selector: 'Program',
+        message: 'blueprint hat kein server/, keine Migrationen und kein eigenes Datenmodell — die Datei gehört in den Produkt-Layer, dessen Daten sie braucht (CLAUDE.md, CONCEPT.md A14).' },
+    ],
+  },
+}).append({
+  /**
+   * DIE NAHT ZUM CONTROL PLANE (`onboarding`, `control`).
+   *
+   * Beide dürfen einander und die Fundament-Verträge kennen — `onboarding`
+   * bedient die Control-Plane-Schemata und sät beim Anlegen einer Community
+   * die Rechtsseiten (`pages/server/utils/seedLegalPages`), `control` liest den
+   * Theme-Katalog. Was sie NICHT dürfen: quer in die übrigen Produkte greifen.
+   * Ohne diesen Block hatten beide gar keinen Wächter.
+   */
+  files: ['packages/onboarding/**', 'packages/control/**'],
+  rules: {
+    'no-restricted-imports': ['error', {
+      patterns: [
+        { group: otherLayers(['control', 'onboarding', 'pages', 'themes']),
+          message: 'Naht-Layer (onboarding/control) kennen die Control-Plane-Verträge, pages und themes — sonst keine Produkt-Layer (CONCEPT.md A14).' },
       ],
     }],
   },

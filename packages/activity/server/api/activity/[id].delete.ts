@@ -23,6 +23,8 @@ import { ACTIVITIES_TABLE } from '../../../shared/types/activity'
  * Pflicht — ohne wäre der Gate fail-open.
  */
 export default defineEventHandler(async (event) => {
+  // Produkt-Gate (P4): der Feed ist im Pool ab Plan basic enthalten.
+  requirePlanProduct(event, 'activity')
   await requireCommunityPermission(event, 'activity.manage')
 
   const id = getRouterParam(event, 'id')

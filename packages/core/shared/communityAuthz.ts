@@ -76,6 +76,11 @@ const OWNER: readonly Capability[] = [
     // (Operator-Payment-Logs) — sie dem Owner zu geben, wäre das Leck, das
     // der Rollen-Trennungs-Test (communityAuthz.test.ts) verbietet.
     'community.billing',
+    // F37 (2026-08-02): das Einbetter-Register des Widgets. Aus DEMSELBEN
+    // Grund beim Owner wie das Abo — wer eine fremde Domain freigibt, öffnet
+    // die Community nach außen (frame-ancestors + partitioniertes
+    // Session-Cookie). Ein Admin verwaltet, was INNEN passiert.
+    'community.embed',
   ]),
 ]
 

@@ -38,7 +38,7 @@ gepflegt).
 | --- | --- |
 | [referenz/HORIZONT-3-POOL-SILO-BLUEPRINT.md](referenz/HORIZONT-3-POOL-SILO-BLUEPRINT.md) | Pool vs. Silo — das Mandanten-Modell |
 | [referenz/MULTI-SITE-PLATFORM-STRATEGIE.md](referenz/MULTI-SITE-PLATFORM-STRATEGIE.md) | Feature-Manifeste, Layer/App-Komposition |
-| [referenz/PRODUKT-BILANZ.md](referenz/PRODUKT-BILANZ.md) | „Ein Konzept pro Produkt" — warum es `packages/blueprint` gibt |
+| [referenz/PRODUKT-BILANZ.md](referenz/PRODUKT-BILANZ.md) | „Ein Konzept pro Produkt" — welche App welches Produkt montiert, wer durch die Datentür geht (ERZEUGT: `node scripts/produkt-bilanz.mjs`) |
 | [referenz/G0-PRODUKTVERTRAG.md](referenz/G0-PRODUKTVERTRAG.md) | Produktvertrag: Rollen, Tarif, Umfang |
 | [referenz/RBAC-CONCEPT.md](referenz/RBAC-CONCEPT.md) | Operator-Labels + Capability-Matrix |
 | [referenz/MODERATION-AND-LAYER-BOUNDARIES.md](referenz/MODERATION-AND-LAYER-BOUNDARIES.md) | Moderations-Verträge über Layer-Grenzen |

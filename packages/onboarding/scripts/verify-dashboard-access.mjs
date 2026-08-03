@@ -2,23 +2,29 @@
  * Beweis für N1 — Site-Rollen öffnen das Kunden-Dashboard (Pool-Audit
  * 2026-07-27, wichtigster offener Befund).
  *
- * Fährt den ECHTEN Kundenpfad gegen den laufenden Platform-Server (Port 3141)
- * + das laufende Control Plane (Port 3004, für den Registrierungs-Schalter):
- * zwei Communities anlegen, dann prüfen:
+ * Fährt den ECHTEN Kundenpfad gegen den laufenden Platform-Server
+ * (PLATFORM_PORT, lokal 3006) + das laufende Control Plane (Port 3004, für den
+ * Registrierungs-Schalter): zwei Communities anlegen, dann prüfen:
  *   - Owner (User OHNE Operator-Label, nur community_members-owner) → /dashboard
  *     SSR 200 mit GEFILTERTER Nav (Produkte ja, Operator-Module nein)
  *   - derselbe User auf der ANDEREN Community (keine Mitgliedschaft) → 403
  *   - User ganz ohne Rolle → 403 (wie heute)
  *   - Gast ohne Session → Redirect auf /login (wie heute)
- *   - Operator mit admin-Label → unverändert VOLLER Zugang (inkl. System-Nav)
+ *   - Operator mit admin-Label: ZUGANG unverändert (Seite + API direkt),
+ *     MENÜ nach Ort — auf dem Mandanten-Host keine Operator-Module, auf dem
+ *     Kontroll-Host sehr wohl (E9, s. Abschnitt 6)
  *   - der S1-Registrierungs-Schalter ist für den Owner erreichbar
  *     (/dashboard/settings/community SSR 200) und PATCH /api/community/registration
  *     funktioniert end-to-end (Control Plane schreibt, Wert kommt zurück)
  *
  * Räumt am Ende alles weg, was es angelegt hat.
  *
- *   POOL_KEY=… node --env-file=apps/control/.env \
+ *   POOL_KEY=… PLATFORM_PORT=3006 node --env-file=apps/control/.env \
  *     packages/onboarding/scripts/verify-dashboard-access.mjs
+ *
+ * ZWEI LÄUFE HINTEREINANDER laufen in den Rate-Limiter der Onboarding-Route
+ * (429 „RATE_LIMITED" beim Anlegen von kunde-a) — das ist die Schutzfunktion,
+ * kein Fehlschlag des Beweises. Zwischen zwei Läufen ein paar Minuten warten.
  */
 import { request } from 'node:http'
 import { createHash } from 'node:crypto'
@@ -222,12 +228,32 @@ try {
   check('302 → /login', dashGuest.status === 302 && String(dashGuest.headers.location || '').includes('/login'),
     `Status ${dashGuest.status} → ${dashGuest.headers.location}`)
 
-  console.log('\n6. Operator mit admin-Label → unverändert voller Zugang (Break-Glass)')
+  console.log('\n6. Operator mit admin-Label → Zugang unverändert, Menü nach ORT (E9)')
+  // Bis E9 erwartete dieser Abschnitt die Operator-Module IM MENÜ eines
+  // Mandanten-Hosts. Das war der Zustand, den E9 abgeschafft hat („das Menü
+  // hört auf zu lügen", 81ac8a93): `scopeVisibleAt` zeigt am Ort einer fremden
+  // Community NUR community-Module — auch dem Betreiber. Die Erwartung war
+  // überholt, nicht der Code (Paritäts-Audit 2026-08-02).
+  //
+  // Geprüft wird deshalb jetzt beides getrennt, weil es zwei Dinge sind:
+  // das MENÜ (Ort) und der ZUGANG (Capability auf der Route).
   const operatorCookieA = await login(siteA.host, operator)
   const dashOperator = await page(siteA.host, '/dashboard', operatorCookieA)
   check('/dashboard → 200', dashOperator.status === 200, `Status ${dashOperator.status}`)
-  check('Nav MIT System (/dashboard/system)', hasNav(dashOperator.text, '/dashboard/system'))
-  check('Nav MIT People (/dashboard/users)', hasNav(dashOperator.text, '/dashboard/users'))
+  check('Menü OHNE System (/dashboard/system) — fremder Ort', !hasNav(dashOperator.text, '/dashboard/system'))
+  check('Menü OHNE People (/dashboard/users) — fremder Ort', !hasNav(dashOperator.text, '/dashboard/users'))
+  // Break-Glass: versteckt ist nicht gesperrt — die Autorität liegt auf der Route.
+  const operatorUsersPage = await page(siteA.host, '/dashboard/users', operatorCookieA)
+  check('Zugang bleibt: /dashboard/users direkt → 200', operatorUsersPage.status === 200, `Status ${operatorUsersPage.status}`)
+  const operatorUsersApi = await call(siteA.host, '/api/admin/users', { cookie: operatorCookieA })
+  check('Zugang bleibt: /api/admin/users → 200', operatorUsersApi.status === 200, `Status ${operatorUsersApi.status}`)
+  // Gegenprobe zum Ort: auf dem KONTROLL-Host stehen dieselben Module sehr wohl
+  // im Menü — sonst wäre der Befund oben nur „Modul verschwunden".
+  const operatorControlCookie = await login(CONTROL_HOST, operator)
+  const dashControl = await page(CONTROL_HOST, '/dashboard', operatorControlCookie)
+  check('Kontroll-Host: /dashboard → 200', dashControl.status === 200, `Status ${dashControl.status}`)
+  check('Kontroll-Host: Menü MIT System (/dashboard/system)', hasNav(dashControl.text, '/dashboard/system'))
+  check('Kontroll-Host: Menü MIT People (/dashboard/users)', hasNav(dashControl.text, '/dashboard/users'))
 
   console.log('\n7. S1-Registrierungs-Schalter: für den Owner erreichbar + PATCH end-to-end')
   const communityPage = await page(siteA.host, '/dashboard/settings/community', ownerCookieA)
@@ -240,7 +266,7 @@ try {
   check('PATCH openRegistration=false → 200', closeIt.status === 200 && closeIt.json?.openRegistration === false,
     `Status ${closeIt.status} ${closeIt.text.slice(0, 160)}`)
   const tenantAfter = await control.getRow({ databaseId, tableId: 'communities', rowId: siteA.communityId })
-  check('Control Plane trägt den Wert (tenants.openRegistration=false)', tenantAfter.openRegistration === false,
+  check('Control Plane trägt den Wert (communities.openRegistration=false)', tenantAfter.openRegistration === false,
     JSON.stringify(tenantAfter.openRegistration))
   const reopen = await call(siteA.host, '/api/community/registration', {
     method: 'PATCH', cookie: ownerCookieA, body: { openRegistration: true },

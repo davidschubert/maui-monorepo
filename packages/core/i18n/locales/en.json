@@ -92,6 +92,7 @@
       "codeDescription": "Enter the code we sent to {email}.",
       "requestCode": "Request code",
       "requestFailed": "Could not request a code — please try again.",
+      "unavailable": "Signing in with a code isn't available here right now. Please sign in with your password or reset it.",
       "verify": "Sign in",
       "invalidCode": "The code is wrong or expired — please try again.",
       "phraseHint": "Your security phrase (also shown in the email):",

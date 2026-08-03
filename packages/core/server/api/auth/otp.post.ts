@@ -2,6 +2,7 @@ import { ID, Query } from 'node-appwrite'
 import { createAdminClient, createSessionClient } from '../../lib/appwrite'
 import { decoySecurityPhrase } from '../../utils/securityPhrase'
 import { recoverySchema } from '../../../schemas/auth'
+import { AUTH_METHOD_UNAVAILABLE_CODE, instanceAuthFeatureGap } from '../../../shared/authMethodAvailability'
 
 /**
  * Email-OTP anfordern (passwortloser Login). Läuft als GUEST — Appwrite
@@ -59,7 +60,35 @@ export default defineEventHandler(async (event) => {
     userId: ID.unique(),
     email,
     phrase: true,
-  }).catch((error) => { throw toH3Error(error, 'Could not send login code') })
+  }).catch((error) => {
+    /**
+     * KEINE SACKGASSE, WENN DIE INSTANZ DAS FEATURE NICHT HAT (F37,
+     * 2026-08-02). `pukalani.auth.otp` ist ein Schalter in der APP — ob
+     * „Email OTP" im Appwrite-PROJEKT aktiv ist und ob die Instanz überhaupt
+     * Mail versenden kann, entscheidet die Console. Passt beides nicht
+     * zusammen, kam bis heute ein generischer 500 heraus und die Anmeldeseite
+     * sagte „Code konnte nicht angefordert werden" — der Nutzer probierte es
+     * wieder, der Betreiber suchte im Code.
+     *
+     * Jetzt: 503 mit `data.code`, den der zentrale Handler als `reason` ins
+     * Envelope hebt (core/server/error.ts) — die Anmeldeseite macht daraus
+     * „hier gerade nicht verfügbar, nimm Passwort/Zurücksetzen". Und EINE
+     * benannte Log-Zeile, die dem Betreiber sagt, wo er nachsehen muss;
+     * `gap` unterscheidet dort, was der Gast nicht zu wissen braucht.
+     *
+     * Die Regel selbst ist pur und getestet: shared/authMethodAvailability.ts.
+     */
+    const gap = instanceAuthFeatureGap(error)
+    if (gap) {
+      logEvent('error', 'auth.otp_unavailable', { gap })
+      throw createError({
+        status: 503,
+        statusText: 'Passwordless login is unavailable on this instance',
+        data: { code: AUTH_METHOD_UNAVAILABLE_CODE },
+      })
+    }
+    throw toH3Error(error, 'Could not send login code')
+  })
 
   return { ok: true, userId: token.userId, phrase: token.phrase }
 })

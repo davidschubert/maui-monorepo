@@ -72,6 +72,23 @@ export interface PukalaniAdminModule {
    * dort gibt es keinen Tenant-Plan, gegen den man prüfen könnte.
    */
   planProduct?: string
+  /**
+   * BAU-SCHALTER der App (F37): Pfad unter `pukalani.*` in der gemergten
+   * `app.config.ts`, der `true` sein muss, damit der Eintrag erscheint —
+   * z. B. `'comments.embed.enabled'`. Ohne Angabe immer sichtbar.
+   *
+   * Das DRITTE, unabhängige Produkt-Gate neben `productKey` (Betreiber-
+   * Schalter zur Laufzeit) und `planProduct` (Tarif des Kunden). Es beantwortet
+   * eine Frage, die die beiden anderen nicht stellen: hat DIESE App das Produkt
+   * überhaupt eingeschaltet? Der Layer kann das nicht selbst entscheiden —
+   * seine eigene `app.config.ts` sieht den gemergten Endstand nicht, und
+   * `modules` ist ein Array (ein App-Override verdoppelt den Eintrag, statt ihn
+   * zu ersetzen).
+   *
+   * FAIL-CLOSED: unbekannter Pfad oder ein anderer Wert als `true` ⇒ der
+   * Eintrag bleibt weg (`configFlagEnabled`, shared/dashboardNav.ts).
+   */
+  configFlag?: string
   /** i18n-Key des Nav-Labels */
   labelKey: string
   /** Icon (i-ph-…) */

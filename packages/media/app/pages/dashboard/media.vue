@@ -211,8 +211,12 @@ function rowActions(item: AdminMediaItem): DropdownMenuItem[][] {
           <!-- Bild-Naht Schritt 2 (C14): feste 64-px-Kachel, also feste Maße
                statt `sizes` — @nuxt/image legt daraus 1× und 2× an. Der `src`
                aus /api/media ist bereits eine Vorschau-URL; der Anbieter liest
-               Bucket und Datei daraus und rechnet die Größe neu. -->
+               Bucket und Datei daraus und rechnet die Größe neu.
+               NUR für VERÖFFENTLICHTE Einträge: deren Datei trägt ein
+               Leserecht, der Browser darf sie also direkt aus dem Bucket
+               holen (und zwischenspeichern). -->
           <NuxtImg
+            v-if="row.original.published"
             provider="appwrite"
             :src="row.original.src"
             :width="64"
@@ -221,9 +225,26 @@ function rowActions(item: AdminMediaItem): DropdownMenuItem[][] {
             loading="lazy"
             :alt="row.original.alt || row.original.title"
             class="size-16 rounded-md border border-default object-cover"
-            :class="row.original.published ? '' : 'opacity-40'"
             :data-media-item="row.original.$id"
           />
+          <!-- ENTWURF (F28): die Datei trägt nur ein globales Operator-Label
+               (media-002) — im Pool hat das niemand aus der Community, die
+               Bucket-URL liefe also ins Leere. `/api/media/:id/file` bringt
+               dieselbe Vorschau hinter `media.manage` + Datentür. Bewusst
+               KEIN <NuxtImg provider="appwrite">: der Anbieter könnte aus
+               dieser URL weder Bucket noch Datei lesen. WELCHE Kachel welchen
+               Weg nimmt, entscheidet der Server (server/api/media/index.get.ts). -->
+          <img
+            v-else
+            :src="row.original.src"
+            :alt="row.original.alt || row.original.title"
+            width="64"
+            height="64"
+            decoding="async"
+            loading="lazy"
+            class="size-16 rounded-md border border-default object-cover opacity-40"
+            :data-media-item="row.original.$id"
+          >
         </template>
         <template #title-cell="{ row }">
           <button

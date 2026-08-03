@@ -157,7 +157,9 @@
       "invalid": "Saving failed — model id in vendor/model format?",
       "invalidHint": "Vendor and model, separated by a slash — e.g. anthropic/claude-haiku-4.5. Until then the previous model stays active.",
       "loadFailed": "The board settings could not be loaded. Open them again — if that doesn't help, reload the page (your session may have expired).",
-      "aiDisabled": "AI triage is not enabled in this app (pukalani.tickets.ai)."
+      "aiDisabled": "AI triage is not enabled in this app (pukalani.tickets.ai).",
+      "readOnly": "Only the operator can change the model",
+      "readOnlyHint": "The AI model is an instance-wide setting and needs the operator role (system.manage). As a moderator you can see which model triage currently uses."
     }
   }
 }

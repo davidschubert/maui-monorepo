@@ -40,12 +40,16 @@ import { MEDIA_BUCKET, MEDIA_TABLE } from '../../shared/types/media'
  * diesem Layer schon exakt — Row und Datei bekommen an JEDER Stelle DASSELBE
  * Array (`mediaPermissionsFor` beim Anlegen, `applyMediaVisibility` beim
  * Umschalten, der C18-Umzug über `server/plugins/audience-repermission.ts`).
- * Was offen bleibt, ist der Vorschau-Komfort oben, kein Publikum: die
+ * Was offen blieb, war der Vorschau-Komfort oben, kein Publikum: die
  * Entwurfs-DATEI ist genauso weit offen wie ihre Zeile, nämlich für ein
  * einziges Operator-Label. Der events-Layer hatte an derselben Stelle ein
  * echtes Loch (dort trug die Datei das MITGLIEDER-Publikum, die Row nichts) und
- * hat dafür `GET /api/events/:id/cover` gebaut — das ist die Vorlage, wenn
- * dieser Komfort drankommt (fällig, bevor media in apps/platform gezogen wird).
+ * hat dafür `GET /api/events/:id/cover` gebaut.
+ *
+ * ERLEDIGT MIT DEM POOL-UMZUG (2026-08-02): dieselbe Vorlage steht jetzt als
+ * `GET /api/media/:id/file`. Das Label hier bleibt bewusst unverändert — die
+ * Lösung ist eine Route hinter `media.manage`, NICHT ein weiteres Label auf
+ * der Datei.
  */
 export const MEDIA_MANAGER_READ = [Permission.read(Role.label('admin'))]
 

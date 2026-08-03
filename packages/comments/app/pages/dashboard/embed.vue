@@ -1,7 +1,21 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 
-definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'system.manage' })
+// F37 (2026-08-02): `community.embed` statt `system.manage`. Die Seite stand
+// im Kunden-Dashboard, verlangte aber ein Instanz-Label — im Pool war sie
+// damit für den Owner der Community unerreichbar. Die Middleware prüft BEIDE
+// Quellen (Label ODER Community-Rolle, N1); die Autorität bleiben die Gates in
+// server/api/admin/embed-sites/*.
+definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'community.embed' })
+
+// Bau-Schalter (F37): dieselbe Antwort wie /embed selbst — ohne
+// `pukalani.comments.embed.enabled` gibt es dieses Produkt in dieser App nicht,
+// also auch nicht seine Verwaltungsseite. Der Menüpunkt ist schon per
+// `configFlag` gebunden; das hier ist die Sperre für den direkten Aufruf.
+const embedConfig = useAppConfig() as { pukalani?: { comments?: { embed?: { enabled?: boolean } } } }
+if (!embedConfig.pukalani?.comments?.embed?.enabled) {
+  throw createError({ status: 404, statusText: 'Not Found' })
+}
 
 const { t } = useI18n()
 const toast = useToast()

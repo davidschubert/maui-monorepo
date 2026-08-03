@@ -34,10 +34,77 @@ export default defineAppConfig({
     // ohnehin überfällig (der platform-.env-Ausfall wäre damit im Log
     // sofort benannt gewesen statt nur als generischer 500 sichtbar).
     observability: { enabled: true },
+    /**
+     * ANMELDUNG (F37, 2026-08-02) — beides war im Silo an und im Pool aus.
+     *
+     * `otp`: der passwortlose Code-Login. Reiner Anzeige-/Routen-Schalter der
+     * App; die Voraussetzung liegt im Appwrite-Projekt `pool` („Auth →
+     * Settings → Email OTP") und beim SMTP der Instanz. Fehlt eines davon,
+     * endet der Weg NICHT mehr in einem generischen Fehler: die Route
+     * antwortet 503 `otp_unavailable` und die Anmeldeseite sagt „hier gerade
+     * nicht verfügbar, nimm dein Passwort" (core/shared/authMethodAvailability.ts).
+     *
+     * `embedSession`: der Popup-Handoff, mit dem ein Angemeldeter IM iframe
+     * kommentieren kann (CHIPS-partitioniertes Cookie). Gehört zwingend zum
+     * Embed-Produkt unten — und zwingend zu `security.csrfOriginCheck`.
+     */
+    auth: { otp: true, embedSession: true },
+    /**
+     * PFLICHT, sobald `auth.embedSession` an ist: das partitionierte Cookie
+     * ist `SameSite=None`, sameSite schützt also nicht mehr vor fremden
+     * Formular-POSTs.
+     *
+     * NEU GEPRÜFT FÜR DEN POOL (nicht aus dem Silo übernommen): die Härtung
+     * F32 behandelt `Sec-Fetch-Site: same-site` seit heute streng, und unter
+     * der Wildcard `*.pukalani.app` ist JEDER Mandanten-Host same-site zu jedem
+     * anderen — genau deshalb wurde sie verschärft. Was hier durch muss, geht
+     * trotzdem durch:
+     *  - Browser-Requests dieser App sind ausnahmslos RELATIV (kein einziger
+     *    absoluter $fetch im App-Code) → `same-origin`.
+     *  - Der Embed-Fluss läuft same-origin: das iframe zeigt auf
+     *    `<community-host>/embed` und ruft `<community-host>/api/*`; das
+     *    Login-Popup ist unsere eigene Seite auf demselben Host. `embed.js` auf
+     *    der GASTGEBER-Seite macht nur GET (Zähler) — unsichere Methoden fasst
+     *    die Regel nicht an.
+     *  - Server-zu-Server (Naht zum Control Plane, Beweis-Skripte) trägt weder
+     *    Origin noch Sec-Fetch-Site → erlaubt, und ohne Browser-Cookie.
+     * Was NICHT mehr durchgeht, ist genau der Fall, für den die Härtung da ist:
+     * ein Formular auf `boese.pukalani.app` gegen `kunde.pukalani.app/api/*`.
+     */
+    security: { csrfOriginCheck: true },
     comments: {
       // Moderations-Demo: ab 3 offenen Meldungen verschwindet ein Kommentar
       // automatisch aus der öffentlichen Ansicht (zweiphasiges Hide).
       autoHideReports: 3,
+      /**
+       * DAS WIDGET IM POOL (F37, Davids Entscheidung 2026-08-02).
+       *
+       * Die Technik war längst mandantenfähig (`embed_sites` trägt communityId,
+       * comments-015/016; die Datentür scopet Liste, Anlage und Löschung), und
+       * die Landing verkauft das Einbetten als Teil von „Diskussionen" — nur
+       * der Schalter fehlte. Jetzt kann jede Community ihr Widget auf ihrer
+       * eigenen Website einbinden.
+       *
+       * Wer die Einbetter registriert: der OWNER, über `community.embed`
+       * (/dashboard/embed). Bis heute verlangte diese Seite `system.manage` —
+       * ein Instanz-Label, das kein Kunde je trägt.
+       *
+       * `allowedOrigins` sind ZUSÄTZLICHE, statische Origins zur Registry:
+       * localhost fürs Entwickeln und für die Beweis-Skripte. In Produktion
+       * praktisch wirkungslos (ein „Angreifer" bräuchte die Maschine des
+       * Nutzers); die echten Einbetter jeder Community kommen aus `embed_sites`
+       * und gelten nur für sie.
+       *
+       * `guests` bleibt BEWUSST AUS (anders als im Silo): Gast-Kommentare legen
+       * Name+E-Mail eines Unbekannten in `guest_authors` — das ist eine
+       * Entscheidung, die jede Community für sich treffen muss, und dafür gibt
+       * es noch keinen Schalter im Kunden-Dashboard. Im Widget kommentiert also
+       * vorerst, wer sich anmeldet (Popup-Handoff, s. auth.embedSession oben).
+       */
+      embed: {
+        enabled: true,
+        allowedOrigins: ['http://localhost:*', 'http://127.0.0.1:*'],
+      },
     },
     // Mehr-Host-Betrieb: canonical/hreflang/og:url müssen den Host tragen, der
     // den Request bekommen hat. Diese App bedient JEDEN Mandanten-Host plus die
@@ -105,6 +172,17 @@ export default defineAppConfig({
         ai: 'pro',
         events: 'pro',
         courses: 'pro',
+        // ⚠️ VORSCHLAG (2026-08-02) — BRAUCHT NOCH DAVIDS BESTÄTIGUNG.
+        // Begründung: die Mediathek legt BINÄRDATEN auf die geteilte Platte
+        // (als einziger Layer) und kostet damit laufend Speicher — deshalb
+        // nicht in Basic. Der Activity-Feed ist Grundfunktion: er zeigt nur,
+        // was ohnehin passiert ist, und ohne ihn wirkt eine frische Community
+        // tot. Beide Zeilen einzeln umstellbar, ohne Code-Änderung.
+        media: 'personal',
+        // 'basic' ist der niedrigste Plan-Key (quota.plans oben) und damit
+        // ein bewusstes „für alle" — die Zeile steht trotzdem hier, damit die
+        // Zuordnung eine ENTSCHEIDUNG ist und nicht das Fehlen einer.
+        activity: 'basic',
       },
     },
   },

@@ -6,7 +6,7 @@ import {
   communityRoleHasCapability,
   communityCapabilitiesFor,
 } from '../shared/communityAuthz'
-import { ALL_CAPABILITIES } from '../shared/authz'
+import { ALL_CAPABILITIES, capabilitiesFor } from '../shared/authz'
 import type { Capability } from '../shared/types/authz'
 
 describe('isCommunityRole', () => {
@@ -105,6 +105,32 @@ describe('Rollen-Trennung (die harten Grenzen)', () => {
       expect(communityRoleHasCapability(role, 'community.transfer')).toBe(false)
       expect(communityRoleHasCapability(role, 'community.delete')).toBe(false)
     }
+  })
+
+  /**
+   * F37 (2026-08-02): das Einbetter-Register des Widgets. Wer eine fremde
+   * Domain freigibt, öffnet die Community nach außen (frame-ancestors +
+   * partitioniertes Session-Cookie auf der Gastgeber-Seite) — dieselbe Klasse
+   * wie das Abo, deshalb dieselbe Grenze. Ein Admin verwaltet, was INNEN
+   * passiert.
+   */
+  it('nur der owner verwaltet die Einbetter des Widgets (community.embed)', () => {
+    expect(communityRoleHasCapability('owner', 'community.embed')).toBe(true)
+    for (const role of ['admin', 'moderator', 'editor', 'viewer'] as const) {
+      expect(communityRoleHasCapability(role, 'community.embed')).toBe(false)
+    }
+  })
+
+  /**
+   * …und der SILO-Weg bleibt offen: apps/comments registriert seine Einbetter
+   * weiter über das globale Betreiber-Label. Ohne diese Zeile im Wildcard
+   * (shared/authz.ts) hätte die Umstellung von `system.manage` auf
+   * `community.embed` die bestehende Silo-Seite still ausgesperrt —
+   * `decideCommunityAccess` fragt ohne Mandanten ausschließlich das Label.
+   */
+  it('der Operator-Admin trägt community.embed weiterhin (Silo-Weg)', () => {
+    expect(capabilitiesFor(['admin']).has('community.embed')).toBe(true)
+    expect(capabilitiesFor(['moderator']).has('community.embed')).toBe(false)
   })
 
   it('JEDE Site-Rolle trägt dashboard.access (N1 — Vertrag der admin-Middleware: Site-Mitglieder erreichen das Kunden-Dashboard; was sie DRIN sehen, filtern Nav + requiredCapability)', () => {

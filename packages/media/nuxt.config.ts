@@ -10,11 +10,22 @@
  * `.tablesDB` in server/api und server/plugins. Autorisierung: S3
  * (`requireCommunityPermission`), Sichtbarkeit: media-002 (Row + Datei).
  *
- * OFFEN vor dem ersten Einsatz in apps/platform (kein Leck, aber eine Lücke):
- * Entwurfs-DATEIEN im Bucket `media` tragen nur den GLOBALEN Operator-Read
- * (`Role.label('admin')`) — im Pool könnte die Redaktion einer Kunden-Site ihre
- * eigenen Entwürfe nicht vorschauen. Begründung + Richtung (server-seitige
- * Vorschau-Route statt Site-Label) in server/utils/mediaPermissions.ts.
+ * IM POOL MONTIERT seit 2026-08-02 (Davids Entscheidung) — apps/platform,
+ * Produkt-Gate ab Plan personal (`requirePlanProduct(event, 'media')` an ALLEN
+ * Routen, `planProduct` am Nav-Eintrag).
+ *
+ * GESCHLOSSEN BEIM UMZUG (F28, media-Hälfte): Entwurfs-DATEIEN tragen weiterhin
+ * nur den GLOBALEN Operator-Read (`Role.label('admin')`, media-002) — das ist
+ * richtig so, ein Site-Label würde Entwürfe allen MITGLIEDERN öffnen. Die
+ * Vorschau in /dashboard/media läuft für Entwürfe deshalb seit dem Umzug über
+ * `GET /api/media/:id/file` (Vorlage: /api/events/:id/cover); veröffentlichte
+ * Kacheln bleiben auf der Bucket-URL. Ohne diesen Schritt hätte im Pool jede
+ * Redaktion ihre eigenen Entwürfe als kaputte Bilder gesehen.
+ *
+ * MIGRATIONEN: `media_items` UND der Bucket `media` (media-001) — der Layer ist
+ * der einzige, der auf einer neuen Instanz einen BUCKET anlegt. Der
+ * Migrations-Schlüssel braucht dafür Storage-Rechte, der Laufzeit-Schlüssel
+ * ebenso (F36). Reihenfolge + Rechte-Bedarf: docs/OPEN-ITEMS.md.
  */
 export default defineNuxtConfig({
   // Eigene Layer-Strings — mergen mit Core- und App-Locales (gleiche codes)

@@ -1,8 +1,15 @@
 # apps/_template — Kopiervorlage für neue Pukalani-Apps
 
-Dünne App-Hülle, die alle Layer komponiert (`themes`, `admin`, `comments`,
-`moderation`, `core`, `system`). Der Unterstrich-Prefix hält sie aus dem
-Migrations-Runner heraus (`scripts/migrate.mjs` ignoriert `_*`).
+Dünne App-Hülle, die alle Layer komponiert (`themes`, `admin`, `blueprint`,
+`comments`, `posts`, `events`, `courses`, `moderation`, `core`, `system`). Der
+Unterstrich-Prefix hält sie aus dem Migrations-Runner heraus
+(`scripts/migrate.mjs` ignoriert `_*`).
+
+`blueprint` ist der Kompositions-Layer und steht in `extends` VOR den
+Produkt-Layern. Er liefert die eine Verdrahtung von Produkt + Kommentaren
+(Feed, Event, Lektion); ohne ihn zeigt die abgeleitete App die nackten
+Produktseiten und weicht damit von jeder anderen Site ab. Deshalb ist er
+Teil der Vorlage — Begründung in `site.manifest.ts`.
 
 ## Neue App erstellen
 
@@ -13,8 +20,10 @@ Migrations-Runner heraus (`scripts/migrate.mjs` ignoriert `_*`).
    - `package.json`: `"name": "<name>"` setzen
    - `nuxt.config.ts`: `devServer.port` eindeutig vergeben (3002+, siehe CLAUDE.md)
    - `.env.example` → `NUXT_PUBLIC_APP_URL` an den Port anpassen
-   - Nicht benötigte Produkt-Layer aus `extends` UND `package.json` entfernen
-     (`core` + `system` bleiben immer)
+   - Nicht benötigte Produkt-Layer aus `site.manifest.ts`, `extends` UND
+     `package.json` entfernen (`core` + `system` bleiben immer). Wer alle
+     komponierten Produkte streicht, streicht `blueprint` mit —
+     `pnpm check:manifests` erzwingt den Schluss (`requires`)
 
 2. **Appwrite-Instanz vorbereiten** (jede App hat ihre EIGENE Instanz)
    - Instanz starten, in der Console: Account + Projekt + zwei API-Keys anlegen

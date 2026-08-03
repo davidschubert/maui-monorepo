@@ -6,7 +6,12 @@ export default defineNuxtConfig({
   // und Website-Seite, und der Feedback-Bereich ist Bestandteil ALLER
   // Dashboards. Der Layer besitzt hier keine Tabellen — er ruft das Control
   // Plane über die Service-Naht (Davids Entscheidung 1).
-  extends: ['../../packages/themes', '../../packages/admin', '../../packages/blueprint', '../../packages/comments', '../../packages/posts', '../../packages/events', '../../packages/feedback', '../../packages/courses', '../../packages/moderation', '../../packages/pages', '../../packages/onboarding', '../../packages/core', '../../packages/system'],
+  // media + activity (Davids Entscheidung 2026-08-02): beide waren seit C1b
+  // vollständig pool-fähig gebaut (communityId, Datentür, C18-Umzug), aber in
+  // keiner Pool-App montiert — `recordActivity()` schrieb im Pool also Zeilen,
+  // die niemand lesen konnte. Reihenfolge diktiert EXTENDS_ORDER in
+  // scripts/check-manifests.mjs (media nach events, activity nach courses).
+  extends: ['../../packages/themes', '../../packages/admin', '../../packages/blueprint', '../../packages/comments', '../../packages/posts', '../../packages/events', '../../packages/media', '../../packages/feedback', '../../packages/courses', '../../packages/activity', '../../packages/moderation', '../../packages/pages', '../../packages/onboarding', '../../packages/core', '../../packages/system'],
 
   // Port pro App eindeutig vergeben (Konvention: 3001 comments, 3002+ weitere)
   devServer: {

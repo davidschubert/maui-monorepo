@@ -12,10 +12,27 @@
  * Appwrite, an ihm greift keine Server-Tür. Autorisierung: S3
  * (`requireCommunityPermission`).
  *
- * BESTAND auf der Pool-Instanz (platform) trägt keine tenantId und ist im Pool
- * daher unsichtbar (fail-closed) — folgenlos, solange `activity` nicht in
- * apps/platform/site.manifest.ts steht. Wer den Feed dort einschaltet,
- * entscheidet vorher über Backfill oder Wegwerfen (siehe system-021).
+ * IM POOL MONTIERT seit 2026-08-02 (Davids Entscheidung) — apps/platform.
+ *
+ * ALT-ZEILEN BLEIBEN UNSICHTBAR, und das ist die getroffene Entscheidung, kein
+ * Versehen. system-021 hat sie ausdrücklich offengelassen („Backfill über die
+ * Objekte oder Alt-Einträge wegwerfen"); gewählt ist das Wegwerfen, aus drei
+ * Gründen:
+ *  1. NICHT ZUZUORDNEN, ohne für jede Zeile ihr Objekt nachzuschlagen — und
+ *     für die Hälfte der Typen ginge es gar nicht: `user.joined` hat kein
+ *     Objekt, `milestone` auch nicht, und wegmoderierte Objekte sind weg.
+ *  2. IHRE PERMISSIONS SIND ZU WEIT für einen Pool. Vor C1b entstanden sie mit
+ *     `read("users")` — im Pool heißt das JEDER eingeloggte Nutzer ALLER
+ *     Communities. Sie nur zu STEMPELN würde sie in einen Community-Feed holen
+ *     und dabei pool-weit lesbar lassen; das wäre schlechter als unsichtbar.
+ *     (Lesbar sind sie per Roh-REST heute schon — das MONTIEREN macht daran
+ *     nichts besser und nichts schlechter, es holt sie nur nicht nach vorn.)
+ *  3. EIN FEED IST EIN STROM. Was vor dem Einschalten passiert ist, fehlt
+ *     niemandem; ab dem ersten neuen Ereignis ist er vollständig.
+ * `recordActivity()` stempelt seit C1b communityId UND das richtige Publikum
+ * (Role.label(communityId) im Pool) — NEUE Zeilen sind also von der ersten an
+ * korrekt. Nachmessen (Anzahl + Publikum der Alt-Zeilen einer Instanz):
+ * `scripts/verify-pool-isolation.mjs`, Abschnitt „Bestand".
  */
 export default defineNuxtConfig({
   // Eigene Layer-Strings — mergen mit Core- und App-Locales (gleiche codes)

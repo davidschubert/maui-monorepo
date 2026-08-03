@@ -31,7 +31,7 @@ const TENANT_B: TenantContext = { mode: 'pool', projectId: projectId ?? '', tena
 /** Eigener objectType, damit der Test nur seine eigenen Zeilen sieht. */
 const OBJECT_TYPE = `iso-${stamp}`.slice(0, 64)
 
-describe.skipIf(!hasEnv)('Pool-Isolationsbeweis (echte Appwrite, activities.tenantId)', () => {
+describe.skipIf(!hasEnv)('Pool-Isolationsbeweis (echte Appwrite, activities.communityId)', () => {
   const tablesDB = hasEnv
     ? new TablesDB(new Client().setEndpoint(endpoint!).setProject(projectId!).setKey(apiKey!))
     : null!
@@ -86,7 +86,7 @@ describe.skipIf(!hasEnv)('Pool-Isolationsbeweis (echte Appwrite, activities.tena
     expect(rowBelongsToTenant(TENANT_B, foreign)).toBe(true)
   })
 
-  it('Bestand ohne tenantId erscheint in KEINEM Pool-Scope (fail-closed)', async () => {
+  it('Bestand ohne communityId erscheint in KEINEM Pool-Scope (fail-closed)', async () => {
     const idLegacy = await record(null, 'obj-legacy')
     const { rows } = await tablesDB.listRows({
       databaseId: databaseId!,

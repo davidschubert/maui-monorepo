@@ -12,6 +12,15 @@
  * war der C18-Befund — ein Schalter, der nur neue Zeilen betrifft, ist keine
  * Sichtbarkeitseinstellung, sondern eine Fußnote.
  *
+ * ABGEDECKTE LAYER: comments · posts · events (inkl. Titelbild-Datei, F28) ·
+ * media (Zeile UND Datei — seit dem Pool-Umzug 2026-08-02; `media` ist der
+ * einzige Layer, der sich MIT `bucket` in der C18-Registry anmeldet).
+ * BEWUSST NICHT dabei: `activities`, `notifications` und Presence sind
+ * mitglieder-intern BY DESIGN und dürfen von einer öffentlichen Community NIE
+ * aufgemacht werden — die Begründung steht in
+ * packages/core/server/utils/audienceRepermission.ts. Ebenso `courses`
+ * (nie öffentlich) und `pages` (Zeilen ohne Permissions).
+ *
  * Der Umzug benutzt die ECHTE Regel (`repermissionRow` aus
  * packages/core/shared/communityAudience.ts, per --experimental-strip-types
  * direkt aus dem Quelltext importiert) — keine Nachbildung, die auseinanderlaufen
@@ -416,6 +425,84 @@ try {
   }
   else {
     console.log('↷ events nicht vorhanden — übersprungen (Layer nicht migriert)')
+  }
+
+  /**
+   * ── DIE MEDIATHEK: derselbe Doppelschutz, anderer Bucket ─────────────────
+   *
+   * `media` ist der einzige Layer, der sich mit einem `bucket`-Eintrag in der
+   * C18-Registry anmeldet (server/plugins/audience-repermission.ts) — sein
+   * Leserecht liegt auf ZWEI Dingen, der Zeile UND der Datei. Bis zum
+   * Pool-Umzug am 2026-08-02 war das ungeprüft, weil `media` in keiner
+   * Pool-App montiert war; jetzt ist es der Layer mit dem größten Schaden bei
+   * einem halben Umzug (ein Foto, das per Roh-URL abrufbar bleibt).
+   *
+   * Geprüft wird deshalb bei JEDEM Schritt beides: was der Gast in der LISTE
+   * sieht und was er per Roh-URL aus dem Bucket HOLEN kann.
+   */
+  const hasMedia = await admin.listRows({ databaseId, tableId: 'media_items', queries: [Query.limit(1)] })
+    .then(() => true).catch(() => false)
+  if (hasMedia) {
+    // Dieselbe Rechnung wie server/utils/mediaPermissions.ts: der
+    // Verwaltungs-Read hängt IMMER dran und darf vom Umzug nie verloren gehen.
+    const MANAGER_READ = Permission.read(Role.label('admin'))
+
+    const photo = await adminStorage.createFile({
+      bucketId: 'media',
+      fileId: ID.unique(),
+      file: InputFile.fromBuffer(ONE_PIXEL_PNG, 'c18-media.png'),
+      permissions: [PUBLIC_READ, MANAGER_READ],
+    })
+    createdFiles.push({ bucketId: 'media', id: photo.$id })
+
+    const mediaRow = await seed('media_items', {
+      title: 'Bestands-Bild', subtitle: '', alt: '', fileId: photo.$id,
+      featured: false, published: true, sortOrder: 0, communityId: COMMUNITY,
+    }, [PUBLIC_READ, MANAGER_READ])
+
+    // Ein ENTWURF: er trägt gar keine Veröffentlichungs-Permission und darf
+    // vom Umzug in KEINER Richtung angefasst werden.
+    const draftPhoto = await adminStorage.createFile({
+      bucketId: 'media',
+      fileId: ID.unique(),
+      file: InputFile.fromBuffer(ONE_PIXEL_PNG, 'c18-media-draft.png'),
+      permissions: [MANAGER_READ],
+    })
+    createdFiles.push({ bucketId: 'media', id: draftPhoto.$id })
+    const draftRow = await seed('media_items', {
+      title: 'Entwurf', subtitle: '', alt: '', fileId: draftPhoto.$id,
+      featured: false, published: false, sortOrder: 0, communityId: COMMUNITY,
+    }, [MANAGER_READ])
+
+    const mediaBucket = { bucketId: 'media', fileIdKey: 'fileId' }
+    check('media: Gast sieht das veröffentlichte Bild in der Liste',
+      (await guestSees('media_items')).includes(mediaRow.$id))
+    check('media: Gast kann die Datei abrufen (Ausgangslage)',
+      await guestCanFetchFile('media', photo.$id))
+    check('media: die Entwurfs-Datei ist von vornherein zu',
+      !(await guestCanFetchFile('media', draftPhoto.$id)))
+
+    const mediaClosed = await flip('media_items', 'members', mediaBucket)
+    check('media: der Umzug fasst GENAU die veröffentlichte Zeile an', mediaClosed === 1, `(${mediaClosed})`)
+    check('media: geschlossen ⇒ Gast sieht die Zeile nicht',
+      (await guestSees('media_items')).length === 0)
+    check('media: geschlossen ⇒ Gast kann die DATEI nicht mehr abrufen',
+      !(await guestCanFetchFile('media', photo.$id)))
+    check('media: geschlossen ⇒ der Verwaltungs-Read ist erhalten geblieben',
+      (await permissionsOf('media_items', mediaRow.$id)).includes(MANAGER_READ))
+    check('media: der Entwurf wurde NICHT aufgemacht',
+      !(await permissionsOf('media_items', draftRow.$id)).includes(MEMBERS_READ))
+
+    await flip('media_items', 'public', mediaBucket)
+    check('media: wieder offen ⇒ Gast sieht das Bild',
+      (await guestSees('media_items')).includes(mediaRow.$id))
+    check('media: wieder offen ⇒ die Datei ist erneut abrufbar',
+      await guestCanFetchFile('media', photo.$id))
+    check('media: wieder offen ⇒ die Entwurfs-Datei bleibt zu',
+      !(await guestCanFetchFile('media', draftPhoto.$id)))
+  }
+  else {
+    console.log('↷ media_items nicht vorhanden — übersprungen (Layer nicht migriert)')
   }
 }
 catch (error) {

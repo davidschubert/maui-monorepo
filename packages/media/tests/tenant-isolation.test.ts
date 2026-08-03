@@ -13,7 +13,7 @@ import type { TenantContext } from '../../core/shared/types/tenant'
  *  2. der Zugriff PER ID auf eine fremde Zeile wird abgelehnt
  *     (rowBelongsToTenant — das, was tenantDb.get/update/remove prüft, bevor
  *     sie handeln; genau diese Prüfung fehlte am 2026-07-26 in drei Routen),
- *  3. Bestand ohne tenantId erscheint in KEINEM Pool-Scope (fail-closed).
+ *  3. Bestand ohne communityId erscheint in KEINEM Pool-Scope (fail-closed).
  * Der Silo-Pfad (tenant null) bleibt ungefiltert = heutiges Verhalten von
  * photos und comments.
  *
@@ -32,7 +32,7 @@ const TENANT_B: TenantContext = { mode: 'pool', projectId: projectId ?? '', tena
 /** Eigener Titel-Marker, damit der Test nur seine eigenen Zeilen sieht. */
 const MARKER = `media-iso-${stamp}`
 
-describe.skipIf(!hasEnv)('Pool-Isolationsbeweis (echte Appwrite, media_items.tenantId)', () => {
+describe.skipIf(!hasEnv)('Pool-Isolationsbeweis (echte Appwrite, media_items.communityId)', () => {
   const tablesDB = hasEnv
     ? new TablesDB(new Client().setEndpoint(endpoint!).setProject(projectId!).setKey(apiKey!))
     : null!
@@ -76,7 +76,12 @@ describe.skipIf(!hasEnv)('Pool-Isolationsbeweis (echte Appwrite, media_items.ten
     const ids = rows.map(row => row.$id)
     expect(ids).toContain(idA)
     expect(ids).not.toContain(idB)
-    expect(rows.every(row => (row as { tenantId?: string }).tenantId === TENANT_A.tenantId)).toBe(true)
+    // E8-3: die SPALTE heißt communityId (media-004/005); der KONTEXT-Wert
+    // bleibt tenant.tenantId. Bis 2026-08-02 stand hier `row.tenantId` — die
+    // Spalte gibt es auf keiner Instanz mehr, die Zusicherung war also seit
+    // dem Rename falsch. Aufgefallen ist es erst, als der Beweis für den
+    // Pool-Umzug MIT Env gefahren wurde (env-gated = in CI still übersprungen).
+    expect(rows.every(row => (row as { communityId?: string }).communityId === TENANT_A.tenantId)).toBe(true)
   })
 
   it('Zugriff PER ID auf eine fremde Zeile wird abgelehnt (die Tür prüft vor der Aktion)', async () => {
@@ -88,7 +93,7 @@ describe.skipIf(!hasEnv)('Pool-Isolationsbeweis (echte Appwrite, media_items.ten
     expect(rowBelongsToTenant(TENANT_B, foreign)).toBe(true)
   })
 
-  it('Bestand ohne tenantId erscheint in KEINEM Pool-Scope (fail-closed)', async () => {
+  it('Bestand ohne communityId erscheint in KEINEM Pool-Scope (fail-closed)', async () => {
     const idLegacy = await createItem(null, `${MARKER}-legacy`)
     const { rows } = await tablesDB.listRows({
       databaseId: databaseId!,

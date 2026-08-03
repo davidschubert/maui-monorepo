@@ -87,6 +87,7 @@ export interface DashboardNavModule {
   placement?: 'nav' | 'bottom' | 'userMenu'
   productKey?: string
   planProduct?: string
+  configFlag?: string
 }
 
 export interface DashboardNavFilter {
@@ -112,6 +113,22 @@ export interface DashboardNavFilter {
    * der das einmal vergisst, blendet sonst das halbe Menü aus.
    */
   planOn?: (planProduct: string) => boolean
+  /**
+   * BAU-SCHALTER der App (F37) — ohne Angabe zählt jeder Eintrag als an.
+   *
+   * Das DRITTE Produkt-Gate, und es ist wieder ein anderes: `productOn` ist der
+   * Betreiber-Schalter zur LAUFZEIT (app_config), `planOn` der Vertrag des
+   * Kunden — hier geht es um einen Punkt in `app.config.ts`, den eine APP
+   * setzt oder eben nicht (`pukalani.comments.embed.enabled`). Ein Layer kann
+   * das nicht selbst prüfen: seine eigene `app.config.ts` kennt den gemergten
+   * Endstand nicht, und die Modul-Registry ist ein ARRAY (ein App-Override
+   * würde den Eintrag verdoppeln statt ihn zu ersetzen).
+   *
+   * Der Aufrufer reicht einen Pfad-Auflöser durch (`'comments.embed.enabled'`
+   * → `pukalani.comments.embed.enabled`). Nur UX: die Seite selbst antwortet
+   * bei ausgeschaltetem Produkt längst 404.
+   */
+  configOn?: (configFlag: string) => boolean
 }
 
 /**
@@ -151,8 +168,10 @@ export function moduleAllowedFor(
  *    Produkt nicht (pukalani.tenancy.products). Die API antwortet dort längst
  *    404 (requirePlanProduct); ohne dieses Gate steht der Menüpunkt trotzdem
  *    da und führt in eine Wand — das Menü lügt.
- * Beide sind NUR UX. Autorität bleiben die Server-Middleware und
- * `requirePlanProduct` an den Routen.
+ * Dazu `configFlag` / `configOn` (F37) — der BAU-Schalter der App: eine App,
+ * die das Produkt gar nicht anschaltet, soll seinen Menüpunkt nicht tragen.
+ * Alle drei sind NUR UX. Autorität bleiben die Server-Middleware,
+ * `requirePlanProduct` an den Routen und der 404 der Seite.
  */
 export function filterDashboardModules<M extends DashboardNavModule>(
   modules: readonly M[],
@@ -160,12 +179,36 @@ export function filterDashboardModules<M extends DashboardNavModule>(
 ): M[] {
   const productOn = filter.productOn ?? (() => true)
   const planOn = filter.planOn ?? (() => true)
+  const configOn = filter.configOn ?? (() => true)
   return modules.filter(m =>
     (m.placement ?? 'nav') === filter.placement
     && isDashboardScope(m.scope)
     && scopeVisibleAt(m.scope, filter.place)
     && moduleAllowedFor(m, filter)
     && productOn(m.productKey)
-    && (m.planProduct === undefined || planOn(m.planProduct)),
+    && (m.planProduct === undefined || planOn(m.planProduct))
+    && (m.configFlag === undefined || configOn(m.configFlag)),
   )
+}
+
+/**
+ * PURE (unit-getestet): den Wert eines `configFlag`-Pfades unter
+ * `pukalani.*` lesen und als „an/aus" beantworten.
+ *
+ * FAIL-CLOSED, und das ist der Punkt: ein Tippfehler im Pfad oder ein Zweig,
+ * den die App nie gesetzt hat, ergibt `undefined` — und `undefined` heißt hier
+ * AUS. Ein Eintrag, den niemand angeschaltet hat, ist eine tote Fläche; ein
+ * fehlender Menüpunkt fällt beim ersten Blick auf, ein toter nicht. Genau
+ * dieselbe Wahl wie bei `isDashboardScope`.
+ *
+ * Nur `true` gilt als an — kein „truthy". Sonst schaltete ein leerer String
+ * oder eine 0 aus Versehen mit.
+ */
+export function configFlagEnabled(pukalani: unknown, path: string): boolean {
+  let node: unknown = pukalani
+  for (const key of path.split('.')) {
+    if (typeof node !== 'object' || node === null) return false
+    node = (node as Record<string, unknown>)[key]
+  }
+  return node === true
 }

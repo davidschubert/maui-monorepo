@@ -12,6 +12,12 @@ const PAGE_SIZE = 25
  * nicht sehen dürfte.
  */
 export default defineEventHandler(async (event): Promise<ActivityListResponse> => {
+  // Produkt-Gate (P4): der Feed ist im Pool ab Plan basic enthalten — die
+  // Zeile im Katalog ist heute also ein „für alle". Der Haken steht trotzdem
+  // JETZT, weil er sonst genau dann fehlt, wenn die Zuordnung sich ändert;
+  // ohne Tenant-Kontext (Silo, Kontroll-Host) ist er ein No-Op.
+  requirePlanProduct(event, 'activity')
+
   if (!event.context.user) {
     throw createError({ status: 401, statusText: 'Unauthorized' })
   }

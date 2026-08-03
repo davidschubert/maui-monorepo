@@ -36,5 +36,22 @@ export type Capability =
   | 'community.transfer' // Owner-Übergabe (nur Owner)
   | 'community.billing' // Abo der Community: Kauf + Stripe-Portal (nur Owner, A6)
   | 'community.delete' // Community löschen (nur Owner)
+  /**
+   * Einbetter-Register des Kommentar-Widgets (F37, 2026-08-02): welche FREMDE
+   * Seite das Widget dieser Community rahmen darf. Nur Owner.
+   *
+   * BEWUSST eine eigene Community-Capability statt `system.manage`: die
+   * embed-sites-Routen trugen bis heute das INSTANZ-Label, und im Silo war das
+   * richtig (dort ist der Betreiber der einzige Einbetter). Im Pool machte es
+   * die Seite unbenutzbar — ein Kunden-Owner trägt nie ein globales Label,
+   * konnte seine eigenen Einbetter also weder sehen noch anlegen.
+   *
+   * Warum Owner und nicht Admin: ein freigegebener Host bekommt
+   * `frame-ancestors` UND (mit pukalani.auth.embedSession) ein partitioniertes
+   * Session-Cookie auf der fremden Seite. Das ist dieselbe Klasse von
+   * Entscheidung wie das Abo — sie bindet die Community nach außen. Dieselbe
+   * Begründung wie bei `community.billing` (A6).
+   */
+  | 'community.embed' // Einbetter-Domains des Widgets (nur Owner)
 
 export type Role = 'admin' | 'moderator'

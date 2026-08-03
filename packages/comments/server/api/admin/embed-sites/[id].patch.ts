@@ -2,11 +2,11 @@ import { embedSitePatchSchema } from '../../../../schemas/embedSite'
 import { EMBED_SITES_TABLE, type EmbedSiteRow } from '../../../../shared/types/embedSite'
 import { invalidateEmbedSitesCache } from '../../../utils/embedSites'
 
-/** Betreiber: Einbetter-Site ändern (Label/targetTypes/an-aus, E3).
- *  WER HANDELT (F17): KEIN `actor` — Betriebs-Konfiguration hinter
- *  `requirePermission('system.manage')`, siehe index.post.ts. */
+/** Einbetter-Site ändern (Label/targetTypes/an-aus, E3).
+ *  WER DARF (F37) / WER HANDELT (F17): `community.embed`, kein `actor` —
+ *  Betriebs-Konfiguration der Community, siehe index.post.ts. */
 export default defineEventHandler(async (event) => {
-  requirePermission(event, 'system.manage')
+  await requireCommunityPermission(event, 'community.embed')
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ status: 400, statusText: 'Missing site id' })
   const body = await readValidatedBody(event, embedSitePatchSchema.parse)

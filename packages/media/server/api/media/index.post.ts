@@ -55,6 +55,8 @@ function isImage(data: Buffer): boolean {
 }
 
 export default defineEventHandler(async (event) => {
+  // Produkt-Gate (P4): die Mediathek ist im Pool ab Plan personal enthalten.
+  requirePlanProduct(event, 'media')
   await requireCommunityPermission(event, 'media.manage')
   await assertPoolWriteQuota(event, { kind: 'media', tableId: MEDIA_TABLE })
 

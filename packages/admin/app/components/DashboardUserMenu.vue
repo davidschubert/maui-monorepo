@@ -3,7 +3,7 @@
 // angepasst an unser Theme-System (Pukalani-Themes + Varianten), Appearance, Sprache, Logout.
 import type { DropdownMenuItem } from '@nuxt/ui'
 import { isProductStateEnabled } from '../../../core/shared/types/config'
-import { filterDashboardModules, resolveDashboardPlace } from '../../../core/shared/dashboardNav'
+import { configFlagEnabled, filterDashboardModules, resolveDashboardPlace } from '../../../core/shared/dashboardNav'
 
 defineProps<{ collapsed?: boolean }>()
 
@@ -143,6 +143,8 @@ const items = computed<SwatchItem[][]>(() => {
       productOn: key => !key || isProductStateEnabled(runtimeFlags.value.products[key]),
       // Tarif-Gate wie in der Sidebar (C2) — ohne Pool-Tenant immer true.
       planOn: key => planAllows(key),
+      // Bau-Schalter der App (F37) — wie in der Sidebar.
+      configOn: key => configFlagEnabled(appConfig.pukalani, key),
     },
   ).map(m => ({ label: t(m.labelKey), icon: m.icon, to: localePath(m.to) }))
 

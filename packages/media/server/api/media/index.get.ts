@@ -33,6 +33,12 @@ const PAGE_LIMIT = 100
  * verlangt genau sie. Das `await` ist Pflicht — ohne wäre der Gate fail-open.
  */
 export default defineEventHandler(async (event) => {
+  // Produkt-Gate (P4): die Mediathek ist im Pool ab Plan personal enthalten.
+  // Steht VOR jeder anderen Prüfung — für eine Community ohne das Produkt
+  // EXISTIERT die Galerie nicht (404 wie eine fremde Zeile an der Datentür),
+  // und das gilt auch für den öffentlichen Lese-Zweig ohne Session.
+  requirePlanProduct(event, 'media')
+
   const config = useRuntimeConfig(event)
   const withDrafts = getQuery(event).all !== undefined
   if (withDrafts) await requireCommunityPermission(event, 'media.manage')
@@ -56,7 +62,29 @@ export default defineEventHandler(async (event) => {
     storageImageUrl(base, MEDIA_BUCKET, fileId, { width: 960, quality: 78, output: 'webp' })
 
   if (withDrafts) {
-    return { items: res.rows.map(row => ({ ...row, src: srcOf(row.fileId) })) }
+    /**
+     * F28 (media-Hälfte): der ENTWURF nimmt die Server-Route, das
+     * VERÖFFENTLICHTE Bild bleibt auf der Bucket-URL.
+     *
+     * Die Entwurfs-DATEI trägt nur ein globales Operator-Label (media-002) —
+     * im Pool hat das niemand aus der Community, die Kachel wäre also kaputt.
+     * `/api/media/:id/file` liefert sie hinter `media.manage` + Datentür.
+     *
+     * Die Unterscheidung steht HIER und nicht im Browser: `published` ist die
+     * Spalte, an der in diesem Layer ohnehin jede Sichtbarkeit hängt, und eine
+     * zweite Kopie dieser Regel im Template wäre die Stelle, an der sie später
+     * auseinanderläuft. Veröffentlichte Bilder über Nitro zu ziehen wäre
+     * zudem der falsche Preis: die Verwaltungs-Liste zeigt bis zu 100 Kacheln.
+     *
+     * `?v=<fileId>` ist nur ein Cache-Brecher für den Browser — gelesen wird er
+     * vom Server nicht, die Datei kommt aus der geprüften Zeile.
+     */
+    return {
+      items: res.rows.map(row => ({
+        ...row,
+        src: row.published ? srcOf(row.fileId) : `/api/media/${row.$id}/file?v=${row.fileId}`,
+      })),
+    }
   }
   const items: PublicMediaItem[] = res.rows.map(row => ({
     id: row.$id,

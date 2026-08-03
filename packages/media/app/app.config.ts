@@ -14,6 +14,11 @@ export default defineAppConfig({
           id: 'media',
           scope: 'community',
           productKey: 'media',
+          // C2: im Pool erst ab personal (pukalani.tenancy.products) — ohne
+          // das Feld stünde der Menüpunkt auch dort, wo /api/media längst
+          // 404t. `productKey` ist der BETREIBER-Schalter (app_config),
+          // `planProduct` der Vertrag des Kunden; beide sind nötig.
+          planProduct: 'media',
           labelKey: 'admin.nav.media',
           icon: 'i-ph-images',
           to: '/dashboard/media',
