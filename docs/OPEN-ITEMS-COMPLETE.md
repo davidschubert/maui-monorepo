@@ -4001,3 +4001,26 @@ teurer: eine Vorlage ist eine Entscheidung, die man n-mal trifft, ohne sie noch
 einmal zu prüfen — `apps/_template` ohne Bauplan hätte jede künftige App still
 neben die Zusage „Pool = Silo" gesetzt, und die Falle schnappte erst beim
 ZWEITEN Produkt zu, wo niemand mehr an die Vorlage denkt.
+
+### F38 — Storage-Rechte im Pool, media/activity in Produktion ✅ 2026-08-03
+
+Über die Appwrite-Console erledigt (David hatte den Browser-Weg ausdrücklich
+freigegeben). Befund beim Nachsehen: der **Migrations**-Schlüssel hatte
+`buckets.read/write` bereits, es fehlten nur `files.read/write` — ergänzt
+(12 → 14 Scopes). Der **Laufzeit**-Schlüssel hatte `files.read/write` schon
+und bewusst KEINE Bucket-Rechte; dort wurde nichts geändert. Die frühere
+Fehlermeldung „missing buckets.read" kam daher, dass die Migration
+versuchsweise mit dem Laufzeit-Schlüssel lief — kein Rechte-Loch, ein
+falscher Schlüssel.
+
+Danach in Produktion gefahren: `events-009` + `events-010` (pool und
+comments, je 0 Zeilen — beide Instanzen haben keine Termine mit Bild) und
+`media-001…005` auf pool (Tabelle, Bucket mit fileSecurity, Indizes,
+communityId, Alt-Spalte weg). Live gegengeprüft: `/api/media` 200 auf der
+pro-Community, `/api/activity` 401 (Produkt enthalten, Session fehlt).
+
+**Gelernt:** Bevor man Rechte erweitert, erst nachsehen, welche schon da
+sind — die Hälfte der angeforderten Scopes existierte, und der eine
+„fehlende" war in Wahrheit der falsche Schlüssel im Aufruf. Ein
+Laufzeit-Schlüssel bekommt keine Bucket-Rechte, auch nicht „der
+Einfachheit halber".

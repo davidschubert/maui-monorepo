@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 15 offen · 10 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 14 offen · 10 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-02**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -20,7 +20,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | --- | --- | --- | --- | --- | --- |
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen (**Anleitung dabei mitschreiben — ab Schritt 2 veraltet, Workspace-Welt**) und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
-| 50 · F38 | **Storage-Rechte für den Pool-Schlüssel** (F36, jetzt blockierend). `media` ist ab sofort Pool-Produkt, und `media-001` legt als EINZIGE Migration des Repos einen **Bucket** an. Ohne die Rechte scheitert der Prod-Deploy von media — und ohne `files.*` am **Laufzeit**-Schlüssel kann danach niemand ein Bild hochladen. | Hoch | S — zwei Schlüssel in der Console | Ja: nur David (Console) | [Migrations-Reihenfolge](#media-activity-prod) |
 | 51 · F39 | **Plan-Zuordnung für die zwei neuen Produkte bestätigen.** Mein Vorschlag steht im Code: **Mediathek ab Personal** (kostet als einziges Produkt laufend Speicher), **Feed ab Basic** (Grundfunktion). Zwei Zeilen in `apps/platform/app/app.config.ts`, Änderung ohne Code. | Hoch | S — ja/nein | Ja: nur David entscheidet | [COMPLETE F38](OPEN-ITEMS-COMPLETE.md) |
 | 52 · F40 | **Kontingent-Zahlen für die Mediathek fehlen** (wie 41 · F27 bei den Terminen). `assertPoolWriteQuota(kind: 'media')` hängt an der Upload-Route, der Plan-Katalog nennt aber keine media-Grenzen — die Drossel ist ein No-Op. Hier wiegt es schwerer als anderswo: es sind Dateien auf der geteilten Platte. | Mittel | S — Katalog-Zeilen | Ja: welche Zahlen je Plan? | [COMPLETE F38](OPEN-ITEMS-COMPLETE.md) |
 | 11 · B1 | **Neun visuelle Referenzbilder sichten** — jetzt WIRKLICH final: zuletzt am 2026-08-01 neu gebacken, nachdem das DevTools-Abzeichen (wechselnde ms-Zahl) aus allen neun Bildern verschwunden ist. Zu prüfen bleibt nur der Inhalt: `git show HEAD:<pfad>` gegen die Arbeitskopie halten. | Mittel | S — ansehen | Ja: David sichtet | [Notizen](#notizen) |
