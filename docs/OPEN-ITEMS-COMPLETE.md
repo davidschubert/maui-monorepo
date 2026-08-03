@@ -4041,3 +4041,26 @@ verschiebt das Problem nur von „falsche Datei" zu „Datei fehlt".
 Warnung im Runbook in eine Feststellung umschreiben („ist gelöscht; taucht
 sie wieder auf, ist sie falsch"), statt sie stehen zu lassen. Eine Warnung
 vor etwas Nicht-mehr-Existierendem verwirrt beim nächsten Lesen.
+
+### E4 · B1 · E3 — drei Zeilen geschlossen, eine davon war längst erledigt ✅ 2026-08-03
+
+**E4 (Nur-Lese-Schlüssel im Projekt `control`) war bereits gebaut** — die Zeile
+war veraltet, wie heute schon mehrere. In der Console liegt „platform read-only
+(tenants/site_members)" mit genau EINEM Lese-Scope, zuletzt vor einer Stunde
+benutzt; im Code hängt er als `NUXT_PLATFORM_CONTROL_KEY` am
+Mandanten-Resolver (`apps/platform/server/plugins/tenant-resolver.ts:33`).
+Ich habe deshalb KEINEN zweiten angelegt. **Gelernt:** vor dem Anlegen
+nachsehen, ob es das Ding schon gibt — ein zweiter Schlüssel mit demselben
+Zweck ist kein erledigter Punkt, sondern eine zusätzliche Angriffsfläche.
+Beim Nachsehen fiel ein 84-Scope-Schlüssel auf (→ F42).
+
+**B1 (neun Referenzbilder) gesichtet.** Kein DevTools-Abzeichen mehr, echte
+Texte statt roher Schlüssel, Themes greifen sichtbar (default neutral-schwarz,
+midnight blau-violett). Die Sachaussage im Bild („9 Neutral-Töne") gegen die
+Registry geprüft: stimmt exakt (NEUTRAL_REGISTRY hat neun Einträge). Keine
+Auffälligkeit, die einen Neu-Bake rechtfertigt.
+
+**E3 (Server-Größe) geschlossen** mit dem Messergebnis vom 2026-08-02 als
+Entscheidung: kein Rescale. 1,0 von 3,7 GB belegt, Swap unberührt, Last 0,00,
+Platte 29 %, null OOM in 30 Tagen. Die Maschine ist ein CX22, nicht der
+angenommene CX33 — und die CI baut auf dem Runner, nicht auf dem Server.
