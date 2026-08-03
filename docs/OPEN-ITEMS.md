@@ -22,7 +22,7 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen (**Anleitung dabei mitschreiben — ab Schritt 2 veraltet, Workspace-Welt**) und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
 | 51 · F39 | **Plan-Zuordnung UND Kontingent-Zahlen bestätigen** — alles ist gesetzt und live, im Code als ⚠️ VORSCHLAG markiert: Mediathek ab **personal**, Feed ab **basic**; Medien 300/1.000 Dateien (personal/pro), Termine 1.000/10.000. Hergeleitet aus der freien Platte (27 GB) und 4 MB je Bild. Ein „passt" genügt — oder nenn andere Zahlen. | Mittel | S — eine Antwort | Ja: nur David entscheidet | [COMPLETE F38](OPEN-ITEMS-COMPLETE.md) |
 | 54 · F42 | **Ein Schlüssel mit 84 Scopes liegt im Projekt `control`** (Name „Claude Code", zuletzt vor 7 Tagen benutzt) — das ist praktisch Vollzugriff auf das Betreiber-Projekt. Prüfen, ob er noch gebraucht wird; wenn ja, auf die tatsächlich nötigen Scopes eindampfen, sonst löschen. | Mittel | S — Console | Ja: nur David (Console) | beim E4-Nachsehen gefunden, 2026-08-03 |
-| 55 · F44 | **Die Platform-Instanz auf dem Server hat kein `NUXT_SMTP_*`** — damit geht KEINE Benachrichtigungs-Mail raus (Antworten, Erwähnungen, Zahlungswarnung eines Community-Abos). Beim F43-Beweis lokal aufgefallen; `isMailerConfigured()` gibt sauber `false` zurück, der Ausfall ist also still. Werte in die ploi-Site `platform` eintragen (gleicher Anbieter wie `control`), dazu `NUXT_PUBLIC_APP_URL`. | **Hoch** | S — Env eintragen, Deploy | Ja: Zugangsdaten des Mail-Anbieters | [.env.example](../apps/platform/.env.example) |
+| 55 · F44 | **Die Platform-Instanz auf dem Server hat kein `NUXT_SMTP_*`** — damit geht für KEINE Kunden-Community eine Benachrichtigungs-Mail raus. Code-Teil ist erledigt: der Ausfall ist nicht mehr still (`isMailerConfigured()` warnt einmal pro Prozess). Es fehlt nur noch **ein Befehl auf dem Server**, der die fünf SMTP-Zeilen aus `control` übernimmt (dieselben Werte, ein Resend-Konto) plus `NUXT_PUBLIC_APP_URL` — fertig zum Kopieren in den Notizen. Ich fasse den Befehl nicht selbst an, weil er ein Passwort bewegt. | **Hoch** | S — ein Befehl, dann `pm2 startOrReload` | Ja: David führt den Befehl aus | [Notizen](#f44-smtp-fuer-platform) |
 | 34 · F20 | **Bezahlarten im Stripe-Dashboard festlegen.** Der Code erfüllt seit G1 nur noch gegen `payment_status: 'paid'` — offen bleibt die Produkt-Frage, ob SEPA/Rechnung überhaupt angeboten werden sollen. Wenn ja: Käufer wartet Tage aufs Ticket. Wenn nein: im Dashboard abschalten (oder `payment_method_types: ['card']` setzen). | Niedrig | S — Entscheidung, dann ein Klick | Ja: anbieten oder nicht? | [COMPLETE G1](OPEN-ITEMS-COMPLETE.md) |
 | 35 · F21 | **Einmal-Preise sind erst streng, wenn eine Liste existiert.** `pukalani.billing.oneTimeLookupKeys` ist ungesetzt, also gilt für Event-Tickets nur „kein Plan-Key + Stripe-Price muss `one_time` sein". Sobald echte Ticket-Preise angelegt sind, die Liste eintragen (bewusst offen gelassen, sonst hätte der Deploy jeden bestehenden Ticketverkauf mit 400 beantwortet). | Niedrig | S — eine Config-Zeile | Nein | [lookupKeys.ts](../packages/billing/shared/lookupKeys.ts) |
 
@@ -50,6 +50,41 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 Hier steht, was zu einem offenen Punkt gehört, aber in kein Plan-Dokument
 passt. Nichts davon ist eine zusätzliche Aufgabenliste — die eine Liste steht
 oben.
+
+### F44: SMTP für platform
+
+`platform.pukalani.app` hat als einzige mail-versendende App keine
+SMTP-Zeilen. `control` und `comments` haben sie, und ihre fünf Werte sind
+BYTEGLEICH (nachgemessen 2026-08-02, per Hash-Vergleich ohne Klartext) — es
+ist ein Resend-Konto für alles. Deshalb muss niemand ein Passwort
+nachschlagen: der Befehl kopiert die Zeilen serverseitig von `control`
+herüber, der Wert wird nirgends angezeigt. `NUXT_PUBLIC_APP_URL` fehlt
+ebenfalls und ist die Link-Basis, auf die eine Mail zurückfällt, wenn eine
+Meldung keiner Community gehört (D5) — ohne sie stehen dort kaputte Links.
+
+```bash
+ssh ploi@49.13.211.173 'set -e
+SRC=/home/ploi/control.pukalani.app/.env
+DST=/home/ploi/platform.pukalani.app/.env
+cp -a "$DST" "$DST.bak-f44"
+for k in NUXT_SMTP_HOST NUXT_SMTP_PORT NUXT_SMTP_USER NUXT_SMTP_PASS NUXT_SMTP_FROM; do
+  grep -qE "^$k=" "$DST" || grep -E "^$k=" "$SRC" >> "$DST"
+done
+grep -qE "^NUXT_PUBLIC_APP_URL=" "$DST" || echo "NUXT_PUBLIC_APP_URL=https://my.pukalani.app" >> "$DST"
+chmod 600 "$DST"
+pm2 startOrReload /home/ploi/platform.pukalani.app/ops/ecosystem-platform.config.cjs --update-env
+grep -oE "^NUXT_(SMTP_[A-Z]+|PUBLIC_APP_URL)=" "$DST" | tr -d "="'
+```
+
+Der letzte `grep` zeigt nur die SCHLÜSSELNAMEN — es müssen sechs sein. Die
+Ecosystem-Config liest die `.env` beim Reload und hebt sie in die
+Prozess-Umgebung; Nitro liest zur Laufzeit selbst keine `.env`, deshalb ist
+`--update-env` der wirksame Teil. Ohne Reload passiert nichts.
+
+Probe danach: irgendeine Kommentar-Antwort auf einem Mandanten-Host, deren
+Empfänger `emailNotifications: instant` gesetzt hat. Kommt keine Mail, steht
+der Grund seit heute im Log — `NUXT_SMTP_HOST fehlt` heißt, der Reload hat die
+Datei nicht gesehen.
 
 ### So arbeiten wir
 
