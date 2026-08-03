@@ -56,11 +56,26 @@ async function upload(files: FileList | null) {
     }
     toast.add({ title: t('media.admin.uploaded', { count: files.length }), color: 'success' })
   }
-  catch {
+  catch (error) {
     // Der Hinweis nennt die einzige Regel, an der ein Upload hier praktisch
     // scheitert: Format und Größe. Der rohe `statusMessage` der Route stand
     // davor (Audit-Befund C12) — englischer Entwickler-Text in einem
     // Kunden-Dashboard, und unter HTTP/2 meist ohnehin leer.
+    //
+    // SEIT F27/F40 GIBT ES EINEN ZWEITEN GRUND (2026-08-03): das Kontingent.
+    // Der nackte `catch` hat ihn verschluckt und dem Kunden „Bilder bis 15 MB"
+    // erzählt, während in Wahrheit sein Plan voll war — ein Hinweis, der zum
+    // Verkleinern auffordert und beliebig oft scheitert. Der Server sagt die
+    // Wahrheit seit heute im Envelope (`reason`), die Anzeige liest sie jetzt.
+    const reason = (error as { data?: { reason?: string } })?.data?.reason
+    if (reason === 'quota_reached' || reason === 'quota_reached_today') {
+      toast.add({
+        title: t('media.admin.quotaTitle'),
+        description: t(reason === 'quota_reached_today' ? 'media.admin.quotaTodayHint' : 'media.admin.quotaHint'),
+        color: 'warning',
+      })
+      return
+    }
     toast.add({
       title: t('media.admin.uploadFailed'),
       description: t('media.admin.uploadFailedHint', { max: Math.round(MAX_MEDIA_BYTES / (1024 * 1024)) }),

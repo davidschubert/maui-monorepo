@@ -4154,3 +4154,32 @@ vorkommen — hier taten es ALLE 18, ein Regex wäre entweder löchrig oder voll
 Fehlalarme geworden. Drittens: das Inventar zuerst zu ziehen war das eigentlich
 Wertvolle. Ohne die aufgelöste Landkarte hätte niemand gemerkt, dass die
 „vier gesegneten Nähte" in Wahrheit fünf Kanten sind.
+
+### Zwei Kleinigkeiten — eine gefixt, eine nachgemessen ✅ 2026-08-03
+
+**Mediathek: die Bremse log den Kunden an.** Der Upload fing jeden Fehler mit
+einem nackten `catch` und zeigte immer „JPEG, PNG und WebP bis 15 MB — größere
+Bilder vorher verkleinern". Seit den Kontingent-Zahlen von heute gibt es einen
+ZWEITEN Grund, und der Kunde bekam den Rat zu verkleinern, während in Wahrheit
+sein Tarif voll war — ein Rat, der beliebig oft scheitert. Die Anzeige liest
+jetzt den `reason` aus dem Envelope (den der Server seit heute mitschickt) und
+unterscheidet „Tarif voll" von „für heute erreicht", je mit dem passenden Weg.
+
+**Zahlungswarnung: der Verdacht war richtig und die Lage schlimmer.** Gemeldet
+war „die Glocke bleibt vermutlich leer". Nachgemessen (Pool-Nutzer-Id gegen das
+control-Projekt: 404 `user_not_found`) gilt: `metadata.userId` eines
+Community-Abos ist eine Pool-Id, der Webhook läuft auf control. Die
+Glocken-Zeile bekommt dort `read(user:<pool-id>)` — unlesbar für jeden. UND
+`maybeSendInstantEmail` schlägt denselben Nutzer nach, bekommt 404 und bricht
+still ab. Es kommt also über KEINEN Kanal etwas an, während der M13-Sweep nach
+14 Tagen die Community auf nur-lesend setzt.
+
+Nicht repariert, sondern LAUT gemacht: fehlt der Empfänger, schreibt der
+Webhook jetzt `billing.notify_recipient_missing` als Fehler. Die Zustellung
+selbst ist eine Entscheidung (Kontobereich oder Community-Glocke — C15/C17) und
+liegt als **F43** bei David.
+
+**Gelernt:** „vermutlich leer" ist keine Diagnose. Der zweite Kanal (E-Mail) war
+in der ursprünglichen Meldung gar nicht geprüft — und genau er hätte den Fall
+harmlos gemacht. Und: zwei ineinandergreifende `.catch(() => null)` können aus
+einem Ausfall im GELDPFAD ein Ereignis machen, das nirgends auftaucht.

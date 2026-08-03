@@ -50,7 +50,10 @@
       "saved": "Saved",
       "saveFailed": "Save failed",
       "saveFailedHint": "Your input is still in the form. Check your connection and save again.",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "quotaTitle": "Quota reached",
+      "quotaHint": "Your plan is full. Delete images you no longer need, or move to a larger plan.",
+      "quotaTodayHint": "Today's quota is used up — it resets tomorrow. For more at once, a larger plan helps."
     }
   }
 }

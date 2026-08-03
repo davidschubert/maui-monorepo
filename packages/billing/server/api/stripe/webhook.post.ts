@@ -121,9 +121,36 @@ export default defineEventHandler(async (event) => {
           const row = await findSubscriptionRow(event, subscriptionId)
           if (row) {
             const { users } = createAdminClient(event)
-            const prefs = await users.get({ userId: row.userId })
-              .then(u => resolveEmailPrefs(u.prefs as Record<string, unknown>))
-              .catch(() => null)
+            /**
+             * WENN DER EMPFÄNGER HIER NICHT EXISTIERT, ERREICHT IHN NICHTS —
+             * und das darf nicht still passieren (gemessen 2026-08-03).
+             *
+             * Bei einem COMMUNITY-Abo (A6) stammt `row.userId` aus dem
+             * POOL-Projekt: der Kunde klickt auf seinem Community-Host, das JWT
+             * wird gegen `onboardingRuntimeProject` geprüft, und diese Id reist
+             * als `metadata.userId` durch Stripe bis hierher. Der Webhook läuft
+             * aber auf `control` — dort gibt es diese Id nicht (nachgemessen:
+             * 404 user_not_found). Folge: die Glocken-Zeile bekommt
+             * `read(user:<pool-id>)` und ist im control-Projekt für niemanden
+             * lesbar, UND `maybeSendInstantEmail` scheitert an derselben
+             * Nachschlage — es kommt also über KEINEN Kanal etwas an, während
+             * der M13-Sweep nach 14 Tagen die Community auf nur-lesend setzt.
+             *
+             * Die saubere Lösung ist eine Entscheidung (wo gehört die
+             * Zahlungswarnung eines Community-Owners hin — Kontobereich oder
+             * Community-Glocke?) und steht als offener Punkt. Bis dahin ist der
+             * Ausfall wenigstens LAUT: ein stiller Fehlschlag im Geldpfad ist
+             * genau die Sorte, die man erst bemerkt, wenn ein Kunde kündigt.
+             */
+            const recipient = await users.get({ userId: row.userId }).catch(() => null)
+            if (!recipient) {
+              logEvent('error', 'billing.notify_recipient_missing', {
+                subscriptionId,
+                recipientId: row.userId,
+                reason: 'Empfänger existiert im Projekt dieses Webhooks nicht — Zahlungswarnung erreicht niemanden (Community-Abo? siehe Kopf).',
+              })
+            }
+            const prefs = recipient ? resolveEmailPrefs(recipient.prefs as Record<string, unknown>) : null
             await notify(event, {
               recipientId: row.userId,
               type: 'billing',
