@@ -74,7 +74,17 @@ jobs:
   # concurrency-Gruppe.
   gate:
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    # ÖFFENTLICHES REPO (seit 2026-08-03): `workflow_run` feuert AUCH für
+    # Prüfläufe fremder Pull Requests, und der Filter `branches: [main]` greift
+    # dabei auf den HEAD-Branch des Auslösers — ein Fork, dessen Branch „main"
+    # heißt, passiert ihn. Der Deploy läuft aber im Kontext DIESES Repos, also
+    # MIT `PLOI_SSH_KEY`. Ohne die beiden Zusatzbedingungen könnte ein Fremder
+    # damit eigenen Code auf den Produktionsserver schieben.
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_repository.full_name == github.repository &&
+       github.event.workflow_run.event == 'push')
     outputs:
       go: ${{ steps.check.outputs.go }}
     steps:
@@ -120,6 +130,19 @@ jobs:
         with:
           ref: ${{ env.EXPECTED_SHA }}
           fetch-depth: 0
+
+      # Zweiter, unabhängiger Riegel: egal wie der Lauf zustande kam — was
+      # nicht auf origin/main liegt, wird nicht ausgeliefert. Das hält auch
+      # dann, wenn jemand die Auslöser-Bedingung oben später aufweicht.
+      - name: Gehört dieser Commit zu main?
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          if ! git merge-base --is-ancestor "$EXPECTED_SHA" origin/main; then
+            echo "::error::$EXPECTED_SHA liegt NICHT auf origin/main — Deploy abgebrochen."
+            exit 1
+          fi
+          echo "✔ $EXPECTED_SHA ist Teil von origin/main."
 
       # Nur-Doku/CI/Meta-Änderungen erkennen → Deploy überspringen.
       - name: Deploy nötig?
