@@ -40,6 +40,14 @@
 import { Client, ID, Permission, Query, Role, Storage, TablesDB, Users } from 'node-appwrite'
 import { InputFile } from 'node-appwrite/file'
 import { repermissionRow } from '../../core/shared/communityAudience.ts'
+// BEGRÜNDETE EINZELAUSNAHME von der Layer-Grenze (F41, 2026-08-02): `control`
+// darf `events` nicht kennen — hier ist genau das der Zweck. Dieses Skript ist
+// ein BEWEIS, kein Laufzeit-Code: es prüft, ob die Titelbild-Rechte von `events`
+// beim Umschalten mitziehen, und muss dafür die ECHTE Regel beider Seiten
+// importieren. Eine Nachbildung würde still auseinanderlaufen und der Beweis
+// wäre wertlos (dieselbe Begründung wie zwei Zeilen darüber bei core). Das
+// Skript läuft von Hand gegen eine Instanz und landet in keinem Build.
+// eslint-disable-next-line pukalani/no-cross-layer-relative -- Beweis-Skript, siehe oben
 import { coverReadPermissions } from '../../events/shared/coverAudience.ts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT

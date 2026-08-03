@@ -38,7 +38,9 @@ const PRODUCTS = ['comments', 'posts', 'events', 'courses', 'tickets', 'feedback
 // (fs im Config-Load ist billig und läuft einmal pro eslint-Aufruf.)
 const { readdirSync } = await import('node:fs')
 const { fileURLToPath } = await import('node:url')
-const layersOnDisk = readdirSync(fileURLToPath(new URL('packages', import.meta.url)), { withFileTypes: true })
+const { dirname, relative: relativePath, resolve: resolvePath, sep } = await import('node:path')
+const packagesDir = fileURLToPath(new URL('packages', import.meta.url))
+const layersOnDisk = readdirSync(packagesDir, { withFileTypes: true })
   .filter(entry => entry.isDirectory() && !entry.name.startsWith('.'))
   .map(entry => entry.name)
 const classified = new Set([...FOUNDATION, ...SEAM, ...PRODUCTS])
@@ -65,6 +67,103 @@ const filesOf = names => names.map(name => `packages/${name}/**`)
 const otherLayers = (allowed = []) => layersOnDisk
   .filter(name => !['core', 'system', ...allowed].includes(name))
   .flatMap(pkg)
+/** Die Kehrseite von `otherLayers` — was der relative Wächter DURCHLÄSST. */
+const alsoAllowed = (allowed = []) => ['core', 'system', ...allowed]
+
+/**
+ * DER WÄCHTER GRIFF NIE (F41, Paritäts-Audit 2026-08-02).
+ *
+ * Alle Blöcke oben verbieten Cross-Layer-Importe über `no-restricted-imports`
+ * — aber `no-restricted-imports` vergleicht den SPEZIFIZIERER-TEXT, und die
+ * Muster dort lauten `@pukalani/<layer>`. Im ganzen Repo gibt es KEINEN
+ * einzigen solchen Import: sämtliche 244 realen Cross-Layer-Importe sind
+ * relativ (`../../control/shared/onboarding`). Die Regeln oben schützen
+ * also ausschließlich hypothetische Fälle; die echte Kopplung lief daran
+ * vorbei. Nachgewiesen mit einer Probe-Datei.
+ *
+ * WARUM EINE EIGENE REGEL UND KEIN REGEX/GLOB. Naheliegend wäre gewesen, die
+ * relativen Pfade textlich zu prüfen (`no-restricted-imports` mit `patterns`
+ * oder `no-restricted-syntax` auf `ImportDeclaration[source.value=/…/]`). Das
+ * ist in DIESEM Repo beweisbar falsch: jeder Layer-Name existiert auch als
+ * UNTERORDNER. `app/pages` gibt es in allen 18 Layern, dazu `server/api/admin`,
+ * `server/api/comments`, `app/components/core`, `public/themes`, … Ein Glob auf
+ * das Segment `pages` bzw. ein Regex `^(\.\./)+pages/` kann nicht
+ * unterscheiden, ob `../../pages/x` den LAYER `pages` meint oder den Ordner
+ * `app/pages` desselben Layers — die Zahl der `../` hängt an der Tiefe der
+ * Quelldatei und ist im Selektor nicht bekannt. Eine textliche Regel wäre
+ * entweder löchrig oder voller Fehlalarme.
+ *
+ * Diese Regel löst den Pfad deshalb WIRKLICH auf (`path.resolve` gegen das
+ * Verzeichnis der Quelldatei) und liest den Ziel-Layer aus dem Ergebnis. Damit
+ * ist der Selbst-Import eines Layers automatisch erlaubt (Quelle und Ziel
+ * ergeben denselben Ordner), egal wie tief er verschachtelt ist, und Importe
+ * aus dem Repo-Wurzelwerkzeug (`scripts/migrations-lib/indexRetry.mts`,
+ * `functions/**`) fallen gar nicht erst in den Geltungsbereich.
+ *
+ * `allow` = die Ziel-Layer, die dieser Topf kennen darf (Gegenstück zu
+ * `otherLayers`). `allowTypeFrom` = Layer, aus denen nur `import type` erlaubt
+ * ist — ein Typ-Import wird beim Bauen restlos gelöscht und erzeugt keine
+ * Laufzeit-Abhängigkeit. Gebraucht wird das genau einmal: CLAUDE.md verlangt
+ * von JEDEM Layer eine `product.manifest.ts` mit `import type { ProductManifest }
+ * from '../core/…'` — auch von `themes`, das sonst gar nichts aus core kennen darf.
+ */
+const layerAt = (absolutePath) => {
+  const rel = relativePath(packagesDir, absolutePath)
+  if (!rel || rel.startsWith('..') || rel.startsWith(sep)) return null
+  return rel.split(sep)[0]
+}
+const isTypeOnly = (node, kind) => node[kind] === 'type'
+  || (Array.isArray(node.specifiers) && node.specifiers.length > 0
+    && node.specifiers.every(spec => spec.importKind === 'type' || spec.exportKind === 'type'))
+
+const pukalaniPlugin = {
+  rules: {
+    'no-cross-layer-relative': {
+      meta: {
+        type: 'problem',
+        docs: { description: 'Relative Importe in einen fremden Layer unter packages/ (CONCEPT.md A14).' },
+        schema: [{
+          type: 'object',
+          properties: {
+            allow: { type: 'array', items: { type: 'string' } },
+            allowTypeFrom: { type: 'array', items: { type: 'string' } },
+            hint: { type: 'string' },
+          },
+          additionalProperties: false,
+        }],
+        messages: {
+          crossLayer: 'Layer-Grenze: `{{from}}` importiert relativ aus `{{to}}` ("{{spec}}"). {{hint}}',
+        },
+      },
+      create(context) {
+        const { allow = [], allowTypeFrom = [], hint = '' } = context.options[0] ?? {}
+        const allowed = new Set(allow)
+        const typeAllowed = new Set(allowTypeFrom)
+        const filename = context.filename
+        if (typeof filename !== 'string' || !filename.startsWith(sep)) return {}
+        const from = layerAt(filename)
+        if (!from) return {}
+        const here = dirname(filename)
+
+        const check = (source, typeOnly) => {
+          if (!source || source.type !== 'Literal' || typeof source.value !== 'string') return
+          if (!source.value.startsWith('.')) return
+          const to = layerAt(resolvePath(here, source.value))
+          if (!to || to === from || allowed.has(to)) return
+          if (typeOnly && typeAllowed.has(to)) return
+          context.report({ node: source, messageId: 'crossLayer', data: { from, to, spec: source.value, hint } })
+        }
+
+        return {
+          ImportDeclaration: node => check(node.source, isTypeOnly(node, 'importKind')),
+          ExportNamedDeclaration: node => check(node.source, isTypeOnly(node, 'exportKind')),
+          ExportAllDeclaration: node => check(node.source, isTypeOnly(node, 'exportKind')),
+          ImportExpression: node => check(node.source, false),
+        }
+      },
+    },
+  },
+}
 
 export default createConfigForNuxt({
   features: {
@@ -87,6 +186,12 @@ export default createConfigForNuxt({
     'vue/multi-word-component-names': 'off',
   },
 }).append({
+  // Der relative Wächter (F41) wird EINMAL bereitgestellt; die Erlaubnislisten
+  // stehen unten in denselben Blöcken wie ihre `@pukalani/*`-Gegenstücke, damit
+  // eine Grenze an EINER Stelle beschrieben ist und nicht an zweien.
+  files: ['packages/**'],
+  plugins: { pukalani: pukalaniPlugin },
+}).append({
   // themes ist rein visuell: keine Appwrite-, keine Feature-/Layer-Imports.
   files: ['packages/themes/**'],
   rules: {
@@ -95,6 +200,15 @@ export default createConfigForNuxt({
         { group: ['appwrite', 'node-appwrite', ...allPukalaniFeatures, ...pkg('core')],
           message: 'themes ist rein visuell — keine Appwrite-/Layer-Imports (CONCEPT.md A14).' },
       ],
+    }],
+    // `allowTypeFrom: ['core']` ist keine Aufweichung, sondern die einzige
+    // Stelle, an der die Sperre oben mit CLAUDE.md kollidiert: die von JEDEM
+    // Layer verlangte `product.manifest.ts` importiert `ProductManifest` als
+    // TYP aus core. Werte aus core bleiben auch hier verboten.
+    'pukalani/no-cross-layer-relative': ['error', {
+      allow: [],
+      allowTypeFrom: ['core'],
+      hint: 'themes ist rein visuell — keine Layer-Imports; aus core nur `import type` (CONCEPT.md A14).',
     }],
   },
 }).append({
@@ -109,6 +223,10 @@ export default createConfigForNuxt({
         { group: otherLayers(),
           message: 'Produkt-Layer importieren keine anderen Layer (CONCEPT.md A14). Fundament nur über Auto-Import.' },
       ],
+    }],
+    'pukalani/no-cross-layer-relative': ['error', {
+      allow: alsoAllowed(),
+      hint: 'Produkt-Layer importieren keine anderen Produkt-Layer (CONCEPT.md A14) — gemeinsame Verdrahtung gehört in blueprint.',
     }],
   },
 }).append({
@@ -129,6 +247,12 @@ export default createConfigForNuxt({
           message: 'feedback darf NUR die Control-Plane-Verträge kennen (E10) — sonst keine Layer-Imports (CONCEPT.md A14).' },
       ],
     }],
+    // Naht 1 von 4: feedback → control (20 Importe, alle auf
+    // control/shared/customerFeedback + control/schemas/customerFeedback).
+    'pukalani/no-cross-layer-relative': ['error', {
+      allow: alsoAllowed(['control']),
+      hint: 'feedback darf NUR die Control-Plane-Verträge kennen (E10) — sonst keine Layer-Imports (CONCEPT.md A14).',
+    }],
   },
 }).append({
   // Fundament-Layer dürfen NIE von Produkten abhängen (azyklisch).
@@ -143,6 +267,13 @@ export default createConfigForNuxt({
         { group: [...featureLayers, ...SEAM.flatMap(pkg)],
           message: 'Fundament-Layer (core/system/moderation/admin/billing) dürfen nicht von Produkt- oder Naht-Layern abhängen (CONCEPT.md A14).' },
       ],
+    }],
+    // Untereinander dürfen Fundament-Layer sich kennen (heute real: ein
+    // admin-Test liest `system/server/utils/userDataContributor`) — verboten
+    // ist die Abhängigkeit NACH UNTEN auf Produkte und Nähte.
+    'pukalani/no-cross-layer-relative': ['error', {
+      allow: FOUNDATION,
+      hint: 'Fundament-Layer (core/system/moderation/admin/billing) dürfen nicht von Produkt- oder Naht-Layern abhängen (CONCEPT.md A14).',
     }],
   },
 }).append({
@@ -170,6 +301,13 @@ export default createConfigForNuxt({
         { group: [...SEAM.filter(n => n !== 'blueprint').flatMap(pkg), ...pkg('admin'), ...pkg('billing')],
           message: 'blueprint verdrahtet PRODUKTE — Control Plane, Onboarding und Betreiber-Layer gehören nicht in eine Produkt-Komposition (CONCEPT.md A14).' },
       ],
+    }],
+    // Naht 4 von 4: blueprint → Produkte (heute events + pages, je ein
+    // Typ-Import). Das Kennen ist hier der ZWECK — gesperrt bleiben Nähte
+    // und Betreiber-Layer.
+    'pukalani/no-cross-layer-relative': ['error', {
+      allow: layersOnDisk.filter(name => !['onboarding', 'control', 'admin', 'billing'].includes(name)),
+      hint: 'blueprint verdrahtet PRODUKTE — Control Plane, Onboarding und Betreiber-Layer gehören nicht in eine Produkt-Komposition (CONCEPT.md A14).',
     }],
   },
 }).append({
@@ -204,6 +342,14 @@ export default createConfigForNuxt({
         { group: otherLayers(['control', 'onboarding', 'pages', 'themes']),
           message: 'Naht-Layer (onboarding/control) kennen die Control-Plane-Verträge, pages und themes — sonst keine Produkt-Layer (CONCEPT.md A14).' },
       ],
+    }],
+    // Nähte 2+3 von 4: onboarding → control (20) / pages (2) / themes (1) und
+    // control → themes (2) / pages (1, Backfill-Skript). `control → events`
+    // ist NICHT erlaubt und steht bewusst als begründete Einzelausnahme in
+    // packages/control/scripts/verify-audience-flip.mjs (F41-Fund).
+    'pukalani/no-cross-layer-relative': ['error', {
+      allow: alsoAllowed(['control', 'onboarding', 'pages', 'themes']),
+      hint: 'Naht-Layer (onboarding/control) kennen die Control-Plane-Verträge, pages und themes — sonst keine Produkt-Layer (CONCEPT.md A14).',
     }],
   },
 }).append({

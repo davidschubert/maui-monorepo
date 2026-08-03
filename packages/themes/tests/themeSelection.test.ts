@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { resolveNeutralSelection, resolveThemeSelection, visitorMayChooseNeutral, visitorMayChooseTheme } from '../shared/themeSelection'
+// BEGRÜNDETE EINZELAUSNAHME von der Layer-Grenze (F41, 2026-08-02): `themes`
+// ist rein visuell und darf aus core sonst nur TYPEN ziehen. `mirrorRowToBranding`
+// ist hier bewusst der echte Wert und keine Nachbildung: der Test beweist, dass
+// die Vorrangregel der Farbwelt (B5) genau das sieht, was der Spiegel aus der
+// Zeile macht — eine Attrappe würde die Naht ungeprüft lassen. Testcode, der in
+// kein Layer-Bundle geht.
+// eslint-disable-next-line pukalani/no-cross-layer-relative -- Testnaht, siehe oben
 import { mirrorRowToBranding } from '../../core/shared/communityBranding'
 
 /**
