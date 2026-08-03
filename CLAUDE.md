@@ -266,6 +266,17 @@ Vollständiges Konzept: docs/CONCEPT.md
   anfordern nur auf der Site `platform.pukalani.app` mit `*.pukalani.app`.
   Wächter `node scripts/ops/verify-tls.mjs` (alle 30 min + nach jedem Deploy).
   Details: docs/content/2.architektur/6.hosts-und-ports.md
+- EINE FEHLENDE ENV-VARIABLE WIRD NICHT ROT (F44, 2026-08-02): `platform`
+  hatte kein `NUXT_SMTP_*`, also ging für JEDE Kunden-Community nie eine
+  Benachrichtigungs-Mail raus — die App lief, die Seiten antworteten, nur die
+  Mail blieb aus, und das sieht aus wie ein bewusst abgeschaltetes Produkt.
+  Zwei Netze: `pnpm ops:site-env` (liest über ssh nur die SCHLÜSSELNAMEN jeder
+  Server-`.env`, Werte bleiben dort; Pflicht-Liste gepflegt IM Skript, neue
+  Pflicht-Variable ⇒ dort eintragen — kein CI-Gate, weil ssh) und zur Laufzeit
+  `warnMailerMissingOnce()` in core/server/utils/mailer.ts, das beim ERSTEN
+  verworfenen Versand einmal ins Log schreibt. Warnungen gehören dorthin, wo
+  etwas verworfen wird — NIE in ein Prädikat wie `isMailerConfigured()`, das
+  auch mail-lose Apps (help, marketing, portfolio) beim Start abfragen.
 - Neue Namen IMMER in RESERVED_SUBDOMAINS (packages/control/schemas/tenant.ts),
   sonst kann ein Selbstbedienungs-Kunde sie beantragen.
 
