@@ -147,7 +147,10 @@ export function buildDigestEmail(links: NotificationLinkContext, locale: EmailLo
  */
 export async function maybeSendInstantEmail(event: H3Event | undefined, input: NotifyInput, communityId: string): Promise<void> {
   try {
-    if (!isMailerConfigured(event)) return
+    if (!isMailerConfigured(event)) {
+      warnMailerMissingOnce('eine Sofort-Benachrichtigung')
+      return
+    }
     const { users } = createAdminClient(event)
     const recipient = await users.get({ userId: input.recipientId })
     const prefs = resolveEmailPrefs(recipient.prefs as Record<string, unknown>)
