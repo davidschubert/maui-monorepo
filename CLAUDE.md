@@ -84,7 +84,14 @@ Vollständiges Konzept: docs/CONCEPT.md
   keiner tsconfig und werden von `pnpm -r typecheck` nie gesehen.
   Es gibt KEIN Migrations-Register in der
   DB — die Labels (`control-019`, `system-021`, …) sind reine Anzeige, die
-  Idempotenz kommt vom 409. Die Migrationen des Control Plane heißen seit
+  Idempotenz kommt vom 409. Man kann deshalb nicht fragen „welche Migration
+  lief hier?", wohl aber, was dabei herauskam: `pnpm ops:schema-parity` (E5)
+  vergleicht die Spalten der `system`-Tabellen über ALLE Instanzen und meldet,
+  wo eine fehlt. Der `system`-Layer läuft auf jeder Instanz mit — Pool, Control
+  Plane und jede Einzel-Instanz —, eine neue `system`-Migration gehört also
+  überall gefahren; danach diesen Lauf machen. Verglichen wird gegen die
+  VEREINIGUNG aller Instanzen, nicht gegen eine gekürte Referenz: hinkt
+  ausgerechnet die, wäre der Wächter still zufrieden. Die Migrationen des Control Plane heißen seit
   2026-07-29 `control-NNN`; Dokumente von VOR dem Cutover (docs/archiv/**,
   CHANGELOG) nennen dieselben Migrationen `studio-NNN` — bewusst nicht
   umgeschrieben, das ist ein Protokoll und kein Nachschlagewerk. Die

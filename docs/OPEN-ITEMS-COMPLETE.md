@@ -29,6 +29,48 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### E5 — Schema-Gleichstand ist messbar statt „mitdenken" ✅ 2026-08-03
+
+**Der Punkt lautete:** die Einzel-Instanzen fahren die `system`-Migrationen
+mit, also daran denken. Eine Erinnerung ist keine Sicherung — und weil es
+**kein Migrations-Register in der DB** gibt (die Idempotenz kommt vom 409),
+konnte niemand nachsehen, ob eine Instanz zurückhängt.
+
+**Erst gemessen.** Alle vier ausgerollten Instanzen (pool, control, comments,
+portfolio) haben alle acht `system`-Tabellen, und die Spaltenmengen sind
+**deckungsgleich**. Es gab also keinen Rückstand aufzuholen. `photos` ist
+nebenbei eine Karteileiche in diesem Punkt: die App liegt im Repo, ist aber
+nicht ausgerollt — kein pm2-Prozess, keine ploi-Site, keine `.env.production`.
+
+**Nebenbefund, der wichtiger ist als der Punkt selbst:** das
+Communities-Register des Control Plane enthält **genau eine** Zeile (der
+Pool-Mandant `demo`) und **keinen einzigen Silo**. Der Wellen-Runner
+(`pnpm migrate --wave …`) liest seine Ziele aber genau daraus und meldet
+folgerichtig „keine Silo-Projekte im Register". `comments` und `portfolio` sind
+Betreiber-eigene Instanzen und stehen dort bewusst nicht — sie werden einzeln
+migriert (`--app`). Wer die Wellen für ein Sicherheitsnetz hält, hält also
+heute nichts in der Hand; das Netz ist der neue Wächter.
+
+**Gebaut.** `pnpm ops:schema-parity` fragt nicht „welche Migration lief?",
+sondern was dabei herauskam: die Spalten der acht `system`-Tabellen, über alle
+Instanzen verglichen. Verglichen wird gegen die **Vereinigung**, nicht gegen
+eine gekürte Referenz-Instanz — hinkt ausgerechnet die, wäre der Wächter still
+zufrieden. Eine fehlende `.env.production` wird übersprungen und gemeldet
+(`photos`), damit ein nicht ausgerollter App-Ordner den Lauf nicht rot färbt.
+
+**Beweis.** Grün über alle vier Instanzen. Zweimal rot erzwungen: mit einer
+Tabelle, die es NIRGENDS gibt (alle vier rot — zeigt, dass der 404-Pfad
+greift), und mit `embed_sites`, die es nur in `pool` und `comments` gibt —
+gemeldet wurden exakt `control` und `portfolio`. Danach wieder grün.
+
+**Gelernt:** „Daran denken" ist der Zustand VOR einer Lösung, nicht die Lösung.
+Wo ein Register fehlt, misst man das Ergebnis statt den Vorgang — und die
+Gegenprobe muss die Richtung treffen, um die es geht: dass ALLE rot werden,
+beweist nur, dass das Skript etwas tut; dass genau die zwei zurückhängenden
+Instanzen genannt werden, beweist, dass es das Richtige tut.
+
+---
+
 ### D4 — Der Apex läuft auf „Full (Strict)" ✅ 2026-08-03
 
 **Ausgangslage.** Der Zonen-Modus war auf „Full" festgenagelt: Cloudflare
