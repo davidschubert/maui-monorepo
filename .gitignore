@@ -27,4 +27,10 @@ blob-report/
 # Bewusst ungetrackt: sie greifen mit Migrations-/Pool-Schluesseln direkt in
 # eine laufende Instanz und gelten nur fuer EINEN Lauf. Was einen zweiten Lauf
 # ueberleben soll, wird ein richtiges verify-*.mjs.
+#
+# ZWEITE SCHREIBWEISE, weil hier mehrere Sitzungen parallel laufen (2026-08-03):
+# ein `_scratch-*.mjs` im Haupt-Repo wurde vom `git add -A` der NACHBARSITZUNG
+# eingesammelt und landete in deren Commit auf main. Wer den Namen nicht trifft,
+# committet nicht sich selbst — sondern jemand anderes committet ihn.
 .tmp-*
+_scratch-*
