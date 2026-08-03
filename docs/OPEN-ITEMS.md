@@ -21,18 +21,28 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen (**Anleitung dabei mitschreiben — ab Schritt 2 veraltet, Workspace-Welt**) und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
 
-## ⏸️ Geparkt / wartet
+## ⏸️ Geparkt / wartet — in Arbeitsreihenfolge
 
-| # | Was (einfach erklärt) | Prio | Aufwand | Braucht David? | Wartet auf … |
-| --- | --- | --- | --- | --- | --- |
-| F7 | **Bezahlte Communities** — der Owner nimmt Geld von seinen Mitgliedern (Stripe Connect). Eigene Mechanik und eigene Rechtsfragen. **Schluckt D1** (Davids Entscheidung 2026-08-02): bezahlte Pool-Events/-Kurse ergeben erst mit Connect Sinn — sonst landete das Ticketgeld beim Betreiber und der Owner bräuchte je Preis einen lookup_key von David. Events-Hälfte technisch M (S7+A6 haben den alten Webhook-Wartegrund erledigt), Kurse-Hälfte L/XL (community-scoped Entitlements sind unentworfen). | Mittel | XL | Ja: Rechtsfragen | nach dem Go-Live; erst muss Geldfluss 1 (A6) ankommen |
-| D4 | **Cloudflare-Ursprungszertifikat** für die Landing — erlaubt „Full (Strict)". Der private Schlüssel muss durchs Dashboard. | Niedrig | S | Ja: nur David | dass David es einmal macht |
-| E5 | **Wellen-Migrationen mitdenken:** die Einzel-Instanzen `photos`/`portfolio` fahren die `system`-Migrationen mit. | — | S | Nein | die nächste system-Migration |
-| F1 | **Discussions als eigenes Produkt** — Konzept fertig (Kategorien vom Admin, Threads von Mitgliedern). | Mittel | XL | Ja: Go | dass die Kundenselbstverwaltung rund läuft |
-| F2 | **Block-Editor-Worktree** (`worktree-agent-a762b1bc42bba74d7`) — nie durchgesehen, Feature-Stopp. | Niedrig | M | Ja: Go | Ende des Feature-Stopps |
-| F15 | **Events lassen sich nicht melden.** Der Knopf ist am 2026-08-01 entfernt worden, weil er ins Leere meldete (Moderations-Audit Befund 4). Eine echte Queue braucht einen Moderations-Zustand für Events (heute nur draft/published/cancelled), `events.moderate`, Route + Dashboard-Seite. | Niedrig | L | Ja: Go | Ende des Feature-Stopps |
-| F3 | **Silo → Pool:** `comments` und `portfolio` laufen als eigene Instanzen. Langfristig ist der Pool das Produkt, Silo bleibt das Enterprise-Angebot. | Niedrig | XL | Ja: strategisch | eine strategische Entscheidung |
-| P12 · OPS | **Ein Cutover-Krümel, zwei sind weg.** Nachgemessen 2026-08-03: `/home/ploi/releases/studio/` existiert nicht mehr und das GitHub-Secret `PLOI_DEPLOY_WEBHOOK_STUDIO` ist ebenfalls fort. Bleibt: in der Appwrite-Console (Projekt `control` → Settings → Platforms) nachsehen, ob `studio.pukalani.app` noch als Web-Platform hängt. | Niedrig | S — ein Blick | Ja: nur David (Console) | — |
+Die Reihenfolge ist die, in der wir sie anfassen würden: erst was in Minuten
+geht, dann was eine Entscheidung braucht, dann die großen Brocken. **Die
+Aufwände sind ehrlich gemeint** — Zeilen 1–2 sind zusammen eine Viertelstunde,
+ab Zeile 3 geht es um Tage bis Wochen. Wer die Liste als Ganzes für einen
+Nachmittag hält, plant an F1/F3/F7 vorbei.
+
+| # | Reihenfolge | Was (einfach erklärt) | Prio | Aufwand | Braucht David? | Wartet auf … |
+| --- | --- | --- | --- | --- | --- | --- |
+| P12 · OPS | 1 — 2 Min | **Ein Cutover-Krümel, zwei sind weg.** Nachgemessen 2026-08-03: `/home/ploi/releases/studio/` existiert nicht mehr und das GitHub-Secret `PLOI_DEPLOY_WEBHOOK_STUDIO` ist ebenfalls fort. Bleibt: in der Appwrite-Console (Projekt `control` → Settings → Platforms) nachsehen, ob `studio.pukalani.app` noch als Web-Platform hängt. | Niedrig | S — ein Blick | Ja: nur David (Console) | — |
+| D4 | 2 — 10 Min | **Cloudflare-Ursprungszertifikat** für die Landing — erlaubt „Full (Strict)". Der private Schlüssel muss durchs Dashboard. | Niedrig | S | Ja: nur David | dass David es einmal macht |
+| F2 | 3 — halber Tag | **Block-Editor-Worktree** (`worktree-agent-a762b1bc42bba74d7`) — nie durchgesehen, Feature-Stopp. | Niedrig | M | Ja: Go | Ende des Feature-Stopps |
+| F15 | 4 — Tage | **Events lassen sich nicht melden.** Der Knopf ist am 2026-08-01 entfernt worden, weil er ins Leere meldete (Moderations-Audit Befund 4). Eine echte Queue braucht einen Moderations-Zustand für Events (heute nur draft/published/cancelled), `events.moderate`, Route + Dashboard-Seite. | Niedrig | L | Ja: Go | Ende des Feature-Stopps |
+| F1 | 5 — Wochen | **Discussions als eigenes Produkt** — Konzept fertig (Kategorien vom Admin, Threads von Mitgliedern). | Mittel | XL | Ja: Go | dass die Kundenselbstverwaltung rund läuft |
+| F7 | 6 — Wochen | **Bezahlte Communities** — der Owner nimmt Geld von seinen Mitgliedern (Stripe Connect). Eigene Mechanik und eigene Rechtsfragen. **Schluckt D1** (Davids Entscheidung 2026-08-02): bezahlte Pool-Events/-Kurse ergeben erst mit Connect Sinn — sonst landete das Ticketgeld beim Betreiber und der Owner bräuchte je Preis einen lookup_key von David. Events-Hälfte technisch M (S7+A6 haben den alten Webhook-Wartegrund erledigt), Kurse-Hälfte L/XL (community-scoped Entitlements sind unentworfen). | Mittel | XL | Ja: Rechtsfragen | nach dem Go-Live; erst muss Geldfluss 1 (A6) ankommen |
+| F3 | 7 — Wochen | **Silo → Pool:** `comments` und `portfolio` laufen als eigene Instanzen. Langfristig ist der Pool das Produkt, Silo bleibt das Enterprise-Angebot. | Niedrig | XL | Ja: strategisch | eine strategische Entscheidung |
+| E5 | — (Notiz, kein Griff) | **Wellen-Migrationen mitdenken:** die Einzel-Instanzen `photos`/`portfolio` fahren die `system`-Migrationen mit. | — | S | Nein | die nächste system-Migration |
+
+`E5` steht bewusst ohne Rang: es ist keine Aufgabe, sondern eine Erinnerung,
+die sich beim nächsten Anlass selbst meldet — die Einzel-Instanzen `photos`
+und `portfolio` fahren die `system`-Migrationen mit.
 
 ---
 
