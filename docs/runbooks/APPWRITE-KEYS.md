@@ -39,8 +39,14 @@ dann trägt er einen Namen, der seinen Zweck sagt.
 
 **Console → Projekt `control` → Overview → API Keys → „Claude Code" → Delete.**
 
-Wenn danach etwas klemmt, sagt der Fehler, welcher Dienst fehlt — dann den
-passenden Zweck-Schlüssel neu anlegen statt den großen wiederherzustellen.
+> ✅ **Am 2026-08-03 erledigt** (David, händisch). Nachgeprüft: alle fünf Hosts
+> antworten `ok`, der demo-Mandant lädt (das ist der Cross-Projekt-Leser bei der
+> Arbeit), ein unbekannter Host antwortet weiterhin 404, und beide
+> `control`-Schlüssel messen unverändert 2 bzw. 1 von 10 Lese-Scopes.
+
+Wenn nach so einer Löschung etwas klemmt, sagt der Fehler, welcher Dienst fehlt
+— dann den passenden Zweck-Schlüssel neu anlegen statt den großen
+wiederherzustellen.
 
 ## Ein Migrations-Schlüssel für `control`, falls neu
 

@@ -29,6 +29,52 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F42 — Der 84-Scope-Schlüssel im Projekt `control` ist gelöscht ✅ 2026-08-03
+
+**Das Problem.** In der Console lag ein Schlüssel mit **84 Scopes** namens
+„Claude Code" — praktisch Vollzugriff auf das Betreiber-Projekt. Die Frage
+„wird der noch gebraucht?" war nicht zu beantworten: die Console zeigt Name und
+Scope-ZAHL, eine `.env` zeigt nur einen Wert. Welcher Schlüssel welcher ist,
+sagt keine der beiden Seiten.
+
+**Also gemessen** — `scripts/ops/probe-key-scopes.mjs`, nur GET-Anfragen, der
+Schlüssel wird nie ausgegeben. `401` heißt „Scope fehlt", alles andere heißt
+„Scope da" (auch `400` und `404` — beide setzen voraus, dass die Autorisierung
+schon durch war; genau daran erkennt man `users.read` ohne gültige Query).
+
+| Schlüssel | darf | darf nicht |
+| --- | --- | --- |
+| Laufzeit `control` | `users` | databases · buckets · functions · teams · locale · health |
+| Cross-Projekt-Leser (platform) | **nur** `rows.read` | alles andere |
+| Migrationen `control` (2 Dateien) | `databases` · `buckets` | users · teams · functions · topics |
+
+Keiner davon war der große. Dazu: die GitHub-Actions haben **gar keinen**
+Appwrite-Schlüssel (`gh secret list` — nur ploi-Webhooks und der Deploy-SSH-Key;
+die E2E baut sich ihre Wegwerf-Instanz selbst), und die letzte lokale Datei mit
+Prod-`control`-Zugang außerhalb von `~/.appwrite-secrets` ist am 2026-08-02
+gelöscht worden. Zuletzt benutzt wurde er rund um den Control-Cutover, als
+Migrationen von Hand liefen.
+
+**Löschen statt eindampfen** — ein eingedampfter Schlüssel ohne benennbaren
+Zweck stellt beim nächsten Console-Blick dieselbe Frage noch einmal. David hat
+ihn am 2026-08-03 händisch gelöscht.
+
+**Beweis danach.** Alle fünf Hosts antworten `ok` auf `9ee57665` (platform,
+control, comments, portfolio, help), der demo-Mandant lädt — das ist der
+Cross-Projekt-Leser bei der Arbeit —, ein unbekannter Host antwortet weiterhin
+404 (der Resolver liest also wirklich), und beide `control`-Schlüssel messen
+unverändert 2 bzw. 1 von 10 Lese-Scopes.
+
+**Gelernt:** Eine Sicherheitsfrage, die man nur diskutieren kann, wird vertagt;
+eine, die man messen kann, wird entschieden. Das Werkzeug dafür zu bauen hat
+weniger gekostet als die Diskussion — und es beantwortet dieselbe Frage beim
+nächsten Mal in zehn Sekunden. Die Regel steht jetzt im Runbook: ein Schlüssel
+gehört zu EINER Aufgabe und trägt deren Namen; wer beim Anlegen „alles
+ankreuzen" wählt, spart fünf Minuten und hinterlässt eine Frage, die Monate
+später niemand mehr beantworten kann.
+
+---
+
 ### F44 — Der Pool verschickt zum ersten Mal überhaupt Mails ✅ 2026-08-03
 
 **Das Problem.** `apps/platform` hatte als einzige mail-versendende Instanz kein

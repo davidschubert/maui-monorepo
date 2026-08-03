@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 3 offen · 10 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 2 offen · 10 geparkt/wartend · 7 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-03**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -20,7 +20,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | --- | --- | --- | --- | --- | --- |
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen (**Anleitung dabei mitschreiben — ab Schritt 2 veraltet, Workspace-Welt**) und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
-| 54 · F42 | **Der 84-Scope-Schlüssel „Claude Code“ im Projekt `control` hat KEINEN Verbraucher** — nachgemessen 2026-08-03: alle vier laufenden Zugänge sind Zweck-Schlüssel (Laufzeit nur `users`, Migrationen `databases`+`buckets`, der Platform-Leser nur `rows.read`), die CI hat gar keinen, und die letzte lokale Prod-Datei ist am 2026-08-02 gelöscht. Bleibt: **Console → control → API Keys → löschen.** | Mittel | S — ein Klick | Ja: nur David (Console) | [APPWRITE-KEYS.md](runbooks/APPWRITE-KEYS.md) |
 
 ## ⏸️ Geparkt / wartet
 
