@@ -8,7 +8,7 @@ import {
   type BillingSubscriptionRow,
   type SubscriptionStatus,
 } from '../../../shared/types/billing'
-import { checkoutOutcome, isNewPaymentFailure, isStale, subscriptionToPatch, subscriptionToVerifiedUpdate, toSubscriptionStatus, WEBHOOK_ALLOWLIST, type CheckoutOutcome, type SubscriptionPatch } from '../../utils/webhookMapping'
+import { checkoutOutcome, isNewPaymentFailure, isStale, paymentFailureAudience, subscriptionToPatch, subscriptionToVerifiedUpdate, toSubscriptionStatus, WEBHOOK_ALLOWLIST, type CheckoutOutcome, type SubscriptionPatch } from '../../utils/webhookMapping'
 
 /**
  * Stripe-Webhook (B1/B4): Signatur-Verifikation über den RAW-Body, Event-
@@ -16,6 +16,12 @@ import { checkoutOutcome, isNewPaymentFailure, isStale, subscriptionToPatch, sub
  * Antworten: 400 bei ungültiger Signatur (generisch), 200 bei Erfolg/No-op,
  * 500 (generisch) bei Verarbeitungsfehlern → Stripe retryt (Handler sind
  * idempotent). NIEMALS Stripe-/Appwrite-Details im Response.
+ *
+ * ZAHLUNGSWARNUNGEN VERSCHICKT DIESE ROUTE NUR FÜR KONTO-ABOS (seit
+ * 2026-08-03). Bei einem COMMUNITY-Abo (A6) sitzt der Empfänger in einem
+ * ANDEREN Appwrite-Projekt, zu dem dieses Deployment keinen Schlüssel hat —
+ * dort schreibt der Pool die Meldung selbst in die Community-Glocke. Die ganze
+ * Begründung steht beim `invoice.payment_failed`-Zweig weiter unten.
  */
 export default defineEventHandler(async (event) => {
   await requireBillingEnabled(event)
@@ -115,39 +121,68 @@ export default defineEventHandler(async (event) => {
         if (stripeEvent.type === 'invoice.payment_failed'
           && applied
           && isNewPaymentFailure(previousStatus, toSubscriptionStatus(subscription.status))) {
+          /**
+           * WESSEN GLOCKE? DAS HÄNGT DARAN, WER ZAHLT.
+           *
+           * KONTO-ABO (Silo/Einzelvertrag, dieser Zweig): der Zahlende ist ein
+           * KONTO in genau diesem Projekt. `row.userId` ist hier eine Id, die
+           * `users.get` findet, die Glocken-Zeile ist lesbar, die Mail geht
+           * raus. Die Meldung ist `scope: 'account'` und bleibt es (C15): sie
+           * betrifft den VERTRAG, nicht eine Community — mit einem
+           * Community-Stempel läge eine Zahlungswarnung in der Glocke von
+           * Mitgliedern, die sie nichts angeht.
+           *
+           * COMMUNITY-ABO (A6, oben abgezweigt): dort zahlt die COMMUNITY, und
+           * ihr Owner ist genau dort eingeloggt, wo er auch die Rechnung
+           * bezahlt — auf seinem Mandanten-Host. Die Warnung gehört deshalb in
+           * die COMMUNITY-Glocke (Davids Entscheidung vom 2026-08-03), und die
+           * hängt im Pool-Projekt. Das ist keine Aufweichung von C15, sondern
+           * dieselbe Frage mit einer anderen Antwort, weil der Vertragspartner
+           * ein anderer ist. Dass kein anderes Mitglied sie sieht, bleibt
+           * unverändert Sache der ROW-PERMISSIONS (`read(user:<owner>)`) — der
+           * Ablage-Stempel entscheidet nur, in welcher Glocke sie erscheint.
+           *
+           * WARUM SIE NICHT HIER ENTSTEHT: dieser Webhook läuft auf `control`,
+           * und `metadata.userId` eines Community-Checkouts ist eine POOL-Id
+           * (der Kunde klickt auf seinem Community-Host, das JWT wird gegen das
+           * Runtime-Projekt geprüft). Im control-Projekt gibt es sie nicht
+           * (nachgemessen 2026-08-03: 404 `user_not_found`) — die Zeile bekäme
+           * `read(user:<pool-id>)` und wäre für niemanden lesbar, und die Mail
+           * scheiterte an derselben Nachschlage. Anlegen KANN der Webhook sie
+           * auch nicht: das Control Plane hat keinen Schlüssel für das
+           * Pool-Projekt (dieselbe Grenze, wegen der die RUNTIME
+           * `revokeCommunityLabel` zieht). Er tut deshalb, was er hier ohnehin
+           * am besten kann — er stempelt (`billingStatus`, `pastDueSince`, im
+           * Fulfillment-Handler des control-Layers); die Meldung schreibt der
+           * stündliche Lauf der Platform-App
+           * (packages/onboarding/server/utils/pastDueNotice.ts).
+           */
+          const metadata = (subscription.metadata ?? {}) as Record<string, string>
+          if (paymentFailureAudience(metadata) === 'community') {
+            logEvent('info', 'billing.past_due_community', {
+              subscriptionId,
+              communityId: metadata.communityId,
+              reason: 'Community-Abo — die Warnung schreibt der Pool in die Community-Glocke, nicht dieser Webhook.',
+            })
+            break
+          }
+
           // §6/§9: Zahlungsfehlschlag → In-App-notify (Core-Vertrag, best-effort).
           // Body-Sprache aus den Empfänger-Prefs (wie der Mail-Zweig, Fallback en) —
           // Bell-Bodies sind gespeicherter Roh-Text, daher hier lokalisiert erzeugen
           const row = await findSubscriptionRow(event, subscriptionId)
           if (row) {
             const { users } = createAdminClient(event)
-            /**
-             * WENN DER EMPFÄNGER HIER NICHT EXISTIERT, ERREICHT IHN NICHTS —
-             * und das darf nicht still passieren (gemessen 2026-08-03).
-             *
-             * Bei einem COMMUNITY-Abo (A6) stammt `row.userId` aus dem
-             * POOL-Projekt: der Kunde klickt auf seinem Community-Host, das JWT
-             * wird gegen `onboardingRuntimeProject` geprüft, und diese Id reist
-             * als `metadata.userId` durch Stripe bis hierher. Der Webhook läuft
-             * aber auf `control` — dort gibt es diese Id nicht (nachgemessen:
-             * 404 user_not_found). Folge: die Glocken-Zeile bekommt
-             * `read(user:<pool-id>)` und ist im control-Projekt für niemanden
-             * lesbar, UND `maybeSendInstantEmail` scheitert an derselben
-             * Nachschlage — es kommt also über KEINEN Kanal etwas an, während
-             * der M13-Sweep nach 14 Tagen die Community auf nur-lesend setzt.
-             *
-             * Die saubere Lösung ist eine Entscheidung (wo gehört die
-             * Zahlungswarnung eines Community-Owners hin — Kontobereich oder
-             * Community-Glocke?) und steht als offener Punkt. Bis dahin ist der
-             * Ausfall wenigstens LAUT: ein stiller Fehlschlag im Geldpfad ist
-             * genau die Sorte, die man erst bemerkt, wenn ein Kunde kündigt.
-             */
+            // Bleibt als NETZ stehen, obwohl der bekannte Fall (Community-Abo)
+            // eine Zeile weiter oben abbiegt: ein Empfänger, den dieses Projekt
+            // nicht kennt, erreicht über KEINEN Kanal etwas — und ein stiller
+            // Fehlschlag im Geldpfad fällt erst auf, wenn ein Kunde kündigt.
             const recipient = await users.get({ userId: row.userId }).catch(() => null)
             if (!recipient) {
               logEvent('error', 'billing.notify_recipient_missing', {
                 subscriptionId,
                 recipientId: row.userId,
-                reason: 'Empfänger existiert im Projekt dieses Webhooks nicht — Zahlungswarnung erreicht niemanden (Community-Abo? siehe Kopf).',
+                reason: 'Empfänger existiert im Projekt dieses Webhooks nicht — Zahlungswarnung erreicht niemanden.',
               })
             }
             const prefs = recipient ? resolveEmailPrefs(recipient.prefs as Record<string, unknown>) : null
@@ -159,12 +194,6 @@ export default defineEventHandler(async (event) => {
                 ? 'Zahlung fehlgeschlagen — bitte Zahlungsmethode aktualisieren.'
                 : 'Payment failed — please update your payment method.',
               link: '/account/billing',
-              // MANDANTENLOS (C15, Davids Entscheidung 3): das ist eine Sache
-              // des VERTRAGS, nicht einer Community. Ein Community-Stempel
-              // (den der Webhook ohnehin nicht hat — er kommt von Stripe, ohne
-              // Mandanten-Host) würde die Zahlungswarnung in die Glocke von
-              // Mitgliedern legen, die sie nichts angeht. Sie gehört in den
-              // Kundenbereich, und der Link zeigt bereits dorthin.
               scope: 'account',
             })
           }

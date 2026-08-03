@@ -32,6 +32,49 @@ export interface NotifyInput {
    * nicht finden (system-Contributor löscht per senderId, Migration 008).
    */
   senderId?: string
+  /**
+   * Ablage-Wert EXPLIZIT setzen, statt ihn aus dem Request abzuleiten — nur mit
+   * `scope: 'tenant'` wirksam. Erwartet dieselbe Zahl, die `scopeRowFor()`
+   * stempelt: `communities.tenantId` (z. B. `t-kunde-a`), NICHT `communities.$id`
+   * (dieselbe Falle, die im Kopf von server/utils/communityHost.ts steht).
+   *
+   * WOFÜR: ein SWEEP hat keinen Request und damit keinen Mandanten-Kontext. Der
+   * erste Konsument ist die Zahlungswarnung eines Community-Abos — sie entsteht
+   * im Intervall-Plugin der Platform-App und weiß aus der Community-Zeile, in
+   * WESSEN Glocke sie gehört, während `useTenant()` dort nichts liefern könnte.
+   * Ohne dieses Feld hätte die Meldung den Stempel `''` bekommen und wäre
+   * fail-open in JEDER Glocke ihres Empfängers erschienen.
+   */
+  communityId?: string
+  /**
+   * IDEMPOTENZ-SCHLÜSSEL: die Row-Id, unter der diese Meldung entsteht. Zweimal
+   * derselbe Schlüssel schreibt GENAU EINE Zeile — der zweite Versuch läuft in
+   * Appwrites 409 und ist ein No-op, ohne Glocken-Zeile UND ohne Mail
+   * (`created: false`).
+   *
+   * Ohne dieses Feld gilt weiter `ID.unique()`: eine Antwort auf denselben
+   * Kommentar SOLL zweimal melden. Gesetzt wird es dort, wo ein WIEDERHOLTER
+   * Lauf denselben Sachverhalt sieht — ein Sweep, der stündlich dieselbe
+   * überfällige Zahlung findet. Das ist dieselbe Idempotenz-Quelle wie bei den
+   * Migrationen (409 → skip): kein Register, kein „erst nachsehen, dann
+   * schreiben" — die Existenz der Zeile IST der Merker, und zwischen Nachsehen
+   * und Schreiben passt kein zweiter Lauf.
+   */
+  rowId?: string
+}
+
+export interface NotifyResult {
+  /**
+   * Ist eine NEUE Zeile entstanden? `false` heißt „nichts geschrieben" — weil
+   * der Schlüssel schon vergeben war (Dublette) oder weil der Schreibvorgang
+   * fehlschlug. In beiden Fällen ging auch keine Mail raus.
+   */
+  created: boolean
+}
+
+/** Appwrites „gibt es schon" — bei fester `rowId` die einzige Quelle eines 409. */
+function isDuplicate(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && 'code' in error && (error as { code?: unknown }).code === 409
 }
 
 /**
@@ -52,13 +95,24 @@ export interface NotifyInput {
  * (`read('members')`), Notifications brauchen aber Empfänger-Permissions — und
  * sie kann „bewusst mandantenlos" nicht ausdrücken, weil sie immer den
  * Mandanten des Requests stempelt.
+ *
+ * OHNE `H3Event` aufrufbar (Sweeps): dann gibt es keinen Mandanten-Kontext, und
+ * `scope: 'tenant'` braucht `input.communityId`. Dieselbe Bauart wie
+ * `sendMail(undefined, …)` und der Digest-Sweep.
  */
-export async function notify(event: H3Event, input: NotifyInput): Promise<void> {
+export async function notify(event: H3Event | undefined, input: NotifyInput): Promise<NotifyResult> {
   try {
     const config = useRuntimeConfig(event)
     const { tablesDB } = createAdminClient(event)
-    const tenant = useTenant(event)
-    const tenantId = notificationScopeValue(input.scope, tenant?.mode === 'pool' ? tenant.tenantId : null)
+    const tenant = event ? useTenant(event) : null
+    // Der explizite Wert schlägt den Request-Kontext — aber NUR für 'tenant';
+    // 'account' ist per Definition mandantenlos und darf sich nicht überstimmen
+    // lassen (sonst legte ein durchgereichtes Feld eine Vertragssache in eine
+    // Community-Glocke — genau der Fehler, den C15 abgestellt hat).
+    const scopeTenantId = input.scope === 'tenant' && input.communityId
+      ? input.communityId
+      : (tenant?.mode === 'pool' ? tenant.tenantId : null)
+    const tenantId = notificationScopeValue(input.scope, scopeTenantId)
 
     const data = {
       recipientId: input.recipientId,
@@ -72,10 +126,14 @@ export async function notify(event: H3Event, input: NotifyInput): Promise<void> 
       ...(input.senderId ? { senderId: input.senderId } : {}),
     }
 
+    // EIN Schlüssel für beide Versuche (Stempel + Rückfall): ein zweiter
+    // ID.unique() im Rückfall hätte aus einer Dublette zwei Zeilen gemacht.
+    const rowId = input.rowId ?? ID.unique()
+
     const create = (payload: Record<string, unknown>) => tablesDB.createRow({
       databaseId: config.public.appwriteDatabaseId,
       tableId: 'notifications',
-      rowId: ID.unique(),
+      rowId,
       data: payload,
       // Row-Security: nur der Empfänger darf lesen + als gelesen markieren
       permissions: [
@@ -94,10 +152,23 @@ export async function notify(event: H3Event, input: NotifyInput): Promise<void> 
     // system-026 gefallen). Semantik unverändert: '' = unbekannt (fail-open),
     // '_account' = mandantenlos — der Backfill hat jede gestempelte Zeile
     // kopiert, Null-Bestand verhält sich auf beiden Spalten identisch.
+    //
+    // DER 409 WIRD VORHER ABGEFANGEN und ist KEIN Rückfall-Grund: bei fester
+    // `rowId` heißt er „diese Meldung steht schon da". Liefe er in den Rückfall,
+    // schlüge der zweite Versuch aus demselben Grund fehl — und das Log
+    // behauptete eine fehlende Spalte, wo in Wahrheit alles richtig war.
+    let duplicate = false
     await create({ ...data, communityId: tenantId }).catch(async (error: unknown) => {
+      if (isDuplicate(error)) { duplicate = true; return }
       console.warn('[core] Notification mit Stempel fehlgeschlagen — Rückfall ohne (system-025 fehlt?):', error)
-      return await create(data)
+      return await create(data).catch((fallbackError: unknown) => {
+        if (isDuplicate(fallbackError)) { duplicate = true; return }
+        throw fallbackError
+      })
     })
+    // Dublette ⇒ auch KEINE Mail. Der Schlüssel schützt beide Kanäle, sonst
+    // stünde die Glocken-Zeile einmal da und die Mail käme stündlich neu.
+    if (duplicate) return { created: false }
 
     // E-Mail-Zweig (Opt-in, Modus 'instant') — eigener best-effort-Pfad;
     // 'digest' sammelt der Sweep (server/plugins/email-digest.ts) ein.
@@ -105,8 +176,10 @@ export async function notify(event: H3Event, input: NotifyInput): Promise<void> 
     // Link in der Mail zeigt — dieselbe Zahl, die eine Zeile weiter oben in
     // die Spalte geschrieben wurde, nie eine zweite Rechnung.
     await maybeSendInstantEmail(event, input, tenantId)
+    return { created: true }
   }
   catch {
     // best-effort — der auslösende Vorgang ist bereits passiert
+    return { created: false }
   }
 }

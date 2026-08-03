@@ -530,6 +530,32 @@ Vollständiges Konzept: docs/CONCEPT.md
   von `rowBelongsToTenant` — ohne Backfill würde fail-closed jedem Nutzer im
   Deploy-Moment die Glocke leeren. Nicht „korrigieren". Der Digest-Sweep bleibt
   mandantenübergreifend (eine Mail/Tag, nicht eine je Community).
+  WER ZAHLT, ENTSCHEIDET DIE GLOCKE (Davids Entscheidung 2026-08-03 — schärft
+  C15, hebt es NICHT auf): eine Zahlungswarnung ist `scope: 'account'`, solange
+  ein KONTO der Vertragspartner ist (Silo/Einzel-Abo — Stripe-Webhook,
+  `/account/billing`). Bei einem COMMUNITY-Abo (A6) zahlt die COMMUNITY, und
+  ihr Owner ist genau dort eingeloggt, wo auch der Knopf sitzt: `scope:
+  'tenant'` mit der communityId, Link `/dashboard/settings/subscription`. Kein
+  Mitglied sieht sie deswegen — das war NIE die Aufgabe des Stempels, sondern
+  die der Row-Permissions (`read(user:<owner>)`). GESCHRIEBEN WIRD SIE IM POOL,
+  nicht im Webhook: der läuft auf `control`, `metadata.userId` eines
+  Community-Checkouts ist aber eine POOL-Id (dort 404 `user_not_found`), und
+  das Control Plane hat keinen Pool-Schlüssel (dieselbe Grenze wie bei
+  `revokeCommunityLabel`, A5). Arbeitsteilung wie bei M13: der Webhook stempelt
+  (`billingStatus`/`pastDueSince`), der stündliche Lauf der Platform-App meldet
+  (`packages/onboarding/server/utils/pastDueNotice.ts`, Leser
+  `packages/control/server/utils/pastDueNoticeReader.ts`, verdrahtet in
+  `apps/platform/server/plugins/past-due-notice.ts`). BEWUSST KEINE neue
+  Service-Naht control→platform: die kostete ein zweites Secret, einen
+  Dienst-Endpunkt auf einem öffentlichen Mehr-Mandanten-Host und einen
+  Geldpfad, der bei einem Platform-Ausfall Stripe-Retrys auslöst — für
+  Sofortigkeit, die neben einer 14-Tage-Frist wertlos ist. „Genau einmal" macht
+  der neue Idempotenz-Schlüssel von `notify()` (`rowId`, 409 → kein Eintrag UND
+  keine Mail, `created: false`) aus communityId + `pastDueSince` +
+  recipientId — kein „erst nachsehen, dann schreiben". `notify()` ist dafür
+  ohne `H3Event` aufrufbar und nimmt den Ablage-Wert per `communityId`
+  explizit entgegen (ein Sweep hat keinen Mandanten-Kontext); ACHTUNG, das ist
+  `communities.tenantId` (`t-…`), nicht `communities.$id`.
 - MAIL-LINKS FOLGEN DERSELBEN ABLAGE (D5, seit 2026-08-01): eine Benachrichtigungs-
   MAIL verlinkt auf den Host DER COMMUNITY, nicht mehr auf `public.appUrl`. Pure
   Regel `core/shared/notificationLinks.ts` (dieselben drei Spaltenwerte:

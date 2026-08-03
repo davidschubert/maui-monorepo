@@ -63,8 +63,13 @@ export function subscriptionUpdateToCommunityAction(
     }
     case 'past_due':
     case 'unpaid':
-      // Plan/Produkte bleiben — Stripe-Dunning ist die Grace-Periode; nur der
-      // billingStatus wird sichtbar (Zahlungswarnung, notify scope 'account').
+      // Plan/Produkte bleiben — Stripe-Dunning ist die Grace-Periode; sichtbar
+      // wird nur der `billingStatus` (+ `pastDueSince`). Auf DIESEM Stempel
+      // arbeiten zwei Läufe im Pool: die Zahlungswarnung in die Glocke des
+      // Owners (`scope: 'tenant'`, Davids Entscheidung vom 2026-08-03) und
+      // 14 Tage später die Sperre. Der Webhook selbst meldet hier nichts — der
+      // Owner ist ein Nutzer des RUNTIME-Projekts, das dieses Deployment nicht
+      // erreicht.
       return { kind: 'past-due', communityId }
     case 'canceled':
     case 'incomplete_expired':

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type Stripe from 'stripe'
-import { isNewPaymentFailure, isStale, planIdForPrice, subscriptionToPatch, toSubscriptionStatus, WEBHOOK_ALLOWLIST } from '../server/utils/webhookMapping'
+import { isNewPaymentFailure, isStale, paymentFailureAudience, planIdForPrice, subscriptionToPatch, toSubscriptionStatus, WEBHOOK_ALLOWLIST } from '../server/utils/webhookMapping'
 import type { PukalaniBillingPlan } from '../shared/types/billing'
 
 const PLANS: PukalaniBillingPlan[] = [
@@ -102,5 +102,30 @@ describe('planIdForPrice / Allowlist', () => {
     expect(WEBHOOK_ALLOWLIST.has('checkout.session.completed')).toBe(true)
     expect(WEBHOOK_ALLOWLIST.has('invoice.payment_failed')).toBe(true)
     expect(WEBHOOK_ALLOWLIST.has('charge.succeeded')).toBe(false)
+  })
+})
+
+/**
+ * SILO-WEG UNVERÄNDERT (Davids Entscheidung 2026-08-03): nur ein Abo mit
+ * `metadata.communityId` biegt in den Pool ab. Dieses Merkmal setzt allein der
+ * Community-Checkout des Control Plane — ein Silo-/Konto-Abo trägt es NIE und
+ * meldet deshalb weiter im eigenen Projekt (`scope: 'account'`,
+ * `/account/billing`).
+ */
+describe('paymentFailureAudience (wessen Glocke)', () => {
+  it('Konto-Abo (Silo): ohne communityId meldet der Webhook selbst', () => {
+    expect(paymentFailureAudience(undefined)).toBe('account')
+    expect(paymentFailureAudience(null)).toBe('account')
+    expect(paymentFailureAudience({})).toBe('account')
+    // Ein Silo-Abo trägt userId/plan — aber nie communityId.
+    expect(paymentFailureAudience({ userId: 'u1', plan: 'pro' })).toBe('account')
+  })
+
+  it('Community-Abo: mit communityId meldet der Pool in die Community-Glocke', () => {
+    expect(paymentFailureAudience({ communityId: 'c1', plan: 'pro', userId: 'pool-user' })).toBe('community')
+  })
+
+  it('ein LEERER Wert ist kein Community-Abo (sonst schwiege der Webhook grundlos)', () => {
+    expect(paymentFailureAudience({ communityId: '' })).toBe('account')
   })
 })

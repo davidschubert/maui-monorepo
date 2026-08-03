@@ -114,6 +114,31 @@ export function isNewPaymentFailure(previousStatus: SubscriptionStatus | null, n
 }
 
 /**
+ * WESSEN GLOCKE BEKOMMT DIE ZAHLUNGSWARNUNG? (Davids Entscheidung 2026-08-03)
+ *
+ * 'account' — der Zahlende ist ein KONTO dieses Projekts (Silo, Einzel-Abo).
+ *   Der Webhook meldet selbst: `users.get` findet den Empfänger, die
+ *   Glocken-Zeile ist lesbar, die Mail geht raus. Unverändert seit §6/§9.
+ *
+ * 'community' — der Zahlende ist eine COMMUNITY (A6). Der Webhook meldet NICHT:
+ *   er läuft auf `control`, der Owner ist ein Nutzer des RUNTIME-Projekts, und
+ *   dorthin hat das Control Plane keinen Schlüssel. Gemeldet wird im Pool
+ *   (packages/onboarding/server/utils/pastDueNotice.ts) — in die
+ *   COMMUNITY-Glocke, wo der Owner ohnehin eingeloggt ist.
+ *
+ * Der Unterschied hängt an EINEM Merkmal: `subscription_data.metadata.communityId`
+ * setzt ausschließlich der Community-Checkout des Control Plane
+ * (apps/control/server/utils/communityCheckout.ts). Ein Silo-Abo trägt es nie —
+ * dieser Zweig kann dort also gar nicht greifen. PURE, damit genau das prüfbar
+ * ist, ohne einen Stripe-Webhook nachzustellen.
+ */
+export type PaymentFailureAudience = 'account' | 'community'
+
+export function paymentFailureAudience(metadata: Record<string, string> | null | undefined): PaymentFailureAudience {
+  return metadata?.communityId ? 'community' : 'account'
+}
+
+/**
  * WANN IST DIE WARE BEZAHLT? (Audit-Befund 2026-08-02, „Ware ohne Geld")
  *
  * `checkout.session.completed` heißt NICHT „bezahlt", sondern nur „der Kunde

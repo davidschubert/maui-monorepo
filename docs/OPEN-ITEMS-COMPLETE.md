@@ -29,6 +29,73 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F43 — Die Zahlungswarnung eines Community-Abos landet in der Community-Glocke ✅ 2026-08-03
+
+**Das Problem.** Ein Community-Owner wurde über KEINEN Kanal gewarnt, wenn
+seine Zahlung ausblieb — 14 Tage später schaltete der M13-Sweep die Community
+auf nur-lesend, ohne dass je ein Hinweis angekommen war. Ursache: der
+Stripe-Webhook läuft auf `control`, `metadata.userId` eines Community-Checkouts
+ist aber eine **Pool**-Nutzer-Id. Im control-Projekt gibt es sie nicht
+(nachgemessen: `users.get` → 404 `user_not_found`). Die Glocken-Zeile bekam
+`read(user:<pool-id>)` und war für niemanden lesbar, und `maybeSendInstantEmail`
+scheiterte an derselben Nachschlage.
+
+**Davids Entscheidung.** Die Warnung gehört dorthin, wo der Owner eingeloggt
+ist: in die **Community-Glocke** seines Mandanten-Hosts, mit Link auf
+`/dashboard/settings/subscription`. Das schärft C15, hebt es nicht auf — bei
+einem KONTO-Abo (Silo, Einzelvertrag) bleibt die Warnung `scope: 'account'`,
+weil dort ein Konto der Vertragspartner ist. Dass kein anderes Mitglied sie
+sieht, war nie Sache des Ablage-Stempels, sondern der Row-Permissions
+(`read(user:<owner>)`) — und das bleibt so.
+
+**Der gewählte Weg: der Pool merkt es selbst.** Der Webhook stempelt weiter nur
+`communities.billingStatus` + `pastDueSince`; ein stündlicher Lauf der
+Platform-App liest die überfälligen Communities über den bereits vorhandenen
+read-only-Cross-Projekt-Key, sucht ihren Owner in `community_members` und
+schreibt die Meldung im Pool. Dieselbe Arbeitsteilung wie bei M13 (Webhook
+stempelt, Sweep entscheidet).
+
+**Warum NICHT die naheliegende Service-Naht control→platform.** Sie wäre
+sofort, aber sie kostet: ein zweites Secret, einen Dienst-Endpunkt auf einem
+öffentlichen Mehr-Mandanten-Host — und einen Geldpfad, der von der
+Erreichbarkeit der Platform-App abhängt. Der Webhook muss transiente Fehler
+WERFEN (Stripe-Regel), ein Platform-Neustart löste also Stripe-Retrys auf den
+ganzen Geldpfad aus. Gekauft hätte man damit Sofortigkeit — neben einer
+14-Tage-Frist wertlos. Das Control Plane KANN die Zeile ohnehin nicht selbst
+anlegen: es hat keinen Schlüssel für das Pool-Projekt (dieselbe Grenze, wegen
+der die Runtime `revokeCommunityLabel` zieht, A5).
+
+**„Genau einmal" ohne Raten.** `notify()` hat einen Idempotenz-Schlüssel
+bekommen (`rowId`): derselbe Schlüssel schreibt genau eine Zeile, der zweite
+Versuch läuft in Appwrites 409 und ist ein No-op — ohne Glocken-Zeile UND ohne
+Mail (`created: false`). Kein „erst nachsehen, dann schreiben": zwischen
+Nachsehen und Schreiben passt ein zweiter Lauf. Der Schlüssel ist
+`sha256(communityId | pastDueSince | recipientId)` — `pastDueSince` trennt die
+Verzugs-EPISODEN (wer bezahlt und später wieder offen ist, wird erneut
+gewarnt), `recipientId` trennt die Owner (sonst gewänne der erste das Rennen).
+`notify()` ist dafür jetzt auch ohne `H3Event` aufrufbar und nimmt den
+Ablage-Wert per `communityId` explizit entgegen — ein Sweep hat keinen
+Mandanten-Kontext.
+
+**Beweis.** Neu: `packages/onboarding/scripts/verify-past-due-notice.mjs`
+(**28/28**) — Glocke, Mail (Mailpit), fremdes Mitglied sieht nichts,
+Row-Permissions direkt an der Zeile nachgemessen, zweiter Lauf meldet nichts,
+neue Episode meldet wieder, bezahlte und fremdprojektige Communities werden
+übersprungen, Fremde können den Lauf nicht auslösen. Unverändert grün:
+`verify-community-suspension` **117/117**, `verify-site-authz` **118/118**.
+Dazu Unit-Tests für die pure Auswahlregel, den Schlüssel und die
+Webhook-Weiche (`paymentFailureAudience`).
+
+**Gelernt:** Der Mail-Zweig war lokal still, weil `apps/platform/.env` kein
+`NUXT_SMTP_*` trug — `isMailerConfigured()` gibt dann sauber `false` zurück,
+und der ausbleibende Versand sieht aus wie ein Code-Fehler. **Jede App, die
+`notify()` ruft, braucht ihre eigene SMTP-Konfiguration**; für die
+Platform-Instanz auf dem Server ist das noch zu setzen (bisher hatte nur
+`control` sie). Zweitens: in dieser Kette heißen ZWEI verschiedene Werte
+`communityId` — `community_members.communityId` ist `communities.$id`,
+`notifications.communityId` ist `communities.tenantId`. Beide Wege sind
+fail-soft, eine Verwechslung erzeugt also nichts als Stille.
+
 ### G4 — Sicherheits-Paket: Session-Handoff, Einladungen, Drosseln, IP ✅ 2026-08-02
 
 **Was geprüft wurde.** Neun Befunde aus einem Sicherheits-Audit über
@@ -4176,8 +4243,10 @@ still ab. Es kommt also über KEINEN Kanal etwas an, während der M13-Sweep nach
 
 Nicht repariert, sondern LAUT gemacht: fehlt der Empfänger, schreibt der
 Webhook jetzt `billing.notify_recipient_missing` als Fehler. Die Zustellung
-selbst ist eine Entscheidung (Kontobereich oder Community-Glocke — C15/C17) und
-liegt als **F43** bei David.
+selbst war eine Entscheidung (Kontobereich oder Community-Glocke — C15/C17) und
+lag als **F43** bei David — sie ist am 2026-08-03 gefallen und gebaut: die
+Warnung eines COMMUNITY-Abos landet in der Community-Glocke, geschrieben vom
+Pool (siehe den F43-Eintrag oben).
 
 **Gelernt:** „vermutlich leer" ist keine Diagnose. Der zweite Kanal (E-Mail) war
 in der ursprünglichen Meldung gar nicht geprüft — und genau er hätte den Fall

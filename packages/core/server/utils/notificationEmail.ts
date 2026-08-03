@@ -139,8 +139,13 @@ export function buildDigestEmail(links: NotificationLinkContext, locale: EmailLo
  * noch einmal aus dem Request abgeleitet. Ein zweites Mal rechnen hieße, die
  * Regel aus notificationScope.ts zu kopieren, und dann könnten Glocke und Mail
  * unterschiedlich entscheiden.
+ *
+ * OHNE `H3Event` aufrufbar, weil notify() es seit der Community-Zahlungswarnung
+ * ist: die entsteht in einem Intervall-Plugin. Alles, was hier gebraucht wird,
+ * kennt diesen Fall schon (`isMailerConfigured`, `createAdminClient`,
+ * `useRuntimeConfig`, `sendMail` nehmen `undefined`).
  */
-export async function maybeSendInstantEmail(event: H3Event, input: NotifyInput, communityId: string): Promise<void> {
+export async function maybeSendInstantEmail(event: H3Event | undefined, input: NotifyInput, communityId: string): Promise<void> {
   try {
     if (!isMailerConfigured(event)) return
     const { users } = createAdminClient(event)
