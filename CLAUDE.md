@@ -732,6 +732,18 @@ sonst auf Keep-alive-Sockets), das war nie die Hang-Ursache. NICHT auf
 Conventional Commits · BREAKING CHANGE(core): Prefix · Core-Änderungen
 in eigenem Commit · vor Core-Update alle Apps lokal starten
 
+ERST `main` PRÜFEN, DANN ANFANGEN (Davids Regel, 2026-08-02): hier laufen
+mehrere Sitzungen gleichzeitig gegen dasselbe `main`. Vor JEDEM größeren
+Durchgang `git fetch` und nachsehen, ob es dort schon gebaut ist — bei einem
+Punkt aus OPEN-ITEMS zusätzlich `OPEN-ITEMS-COMPLETE.md` auf `origin/main`
+lesen, denn Erledigtes zieht sofort dorthin um. Am 2026-08-02 wurden so 139
+Aufrufstellen ein zweites Mal umgestellt (Codemod, Beweise, volle Testrunde),
+bevor 60 Konfliktdateien zeigten, dass die Nachbarsitzung längst fertig war —
+mit besserem Zuschnitt. Ist die Arbeit doppelt, wird der EIGENE Commit fallen
+gelassen, nicht gegen die fremde Lösung gemergt: zwei Wege für dieselbe Sache
+kosten dauerhaft mehr als eine verlorene Stunde. Was der Nachbar uncommittet
+offen hat, wird NIE angefasst (kein stash, kein reset) — notfalls warten.
+
 ## Doku-Ordnung (seit 2026-07-28) — Karte: docs/README.md
 Vier Sorten, jede mit genau EINEM Zuhause. Wer eine neue Datei anlegt,
 entscheidet zuerst die Sorte; sonst wächst wieder ein Wildwuchs, in dem
