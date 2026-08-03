@@ -13,10 +13,15 @@ import type { H3Event } from 'h3'
  * Platform-App aktiviert und staffelt sie PRO PLAN):
  *
  *   pukalani: { tenancy: { quota: { enabled: true, plans: {
- *     free:     { comments: { perDay: 200,  total: 5_000 } },
- *     pro:      { comments: { perDay: 1000, total: 50_000 } },
- *     business: { comments: { perDay: 5000, total: 250_000 } },
+ *     basic:    { comments: { perDay: 200,  total: 5_000 } },
+ *     personal: { comments: { perDay: 1000, total: 50_000 } },
+ *     pro:      { comments: { perDay: 5000, total: 250_000 } },
  *   } } } }
+ *
+ * FEHLT die Zeile für ein `kind`, ist der Aufruf ein NO-OP — kein Fehler,
+ * keine Warnung, kein Log. Genau so waren `events` und `media` bis zum
+ * 2026-08-02 gebremst-auf-dem-Papier (F27/F40): der Haken stand an der Route,
+ * der Katalog schwieg. Wer einen neuen Haken setzt, setzt die Zahlen mit.
  *
  * Der Plan des Tenants (TenantContext.plan, Default 'free') wählt die Zeile;
  * unbekannter Plan → 'free'. Semantik: greift NUR für Pool-Tenants (Silo =
@@ -96,7 +101,19 @@ export async function assertPoolWriteQuota(event: H3Event, options: { kind: stri
 
   const verdict = evaluateQuota({ day, total }, limits)
   if (verdict !== 'ok') {
-    // 429 wie beim Rate-Limit; keine internen Zahlen an den Client leaken
-    throw createError({ status: 429, statusText: verdict === 'total' ? 'Quota exceeded' : 'Daily quota exceeded' })
+    // 429 wie beim Rate-Limit; keine internen Zahlen an den Client leaken.
+    //
+    // Der FACHLICHE Grund reist als `data.code` mit (Konvention seit
+    // 2026-07-29, core/server/error.ts hebt genau diesen Schlüssel als
+    // `reason` ins Envelope). Ohne ihn ist ein erschöpftes Kontingent für
+    // eine Oberfläche NICHT von einem Rate-Limit zu unterscheiden — beides
+    // ist 429 — und der Owner liest „zu schnell, versuch es gleich nochmal",
+    // wo „dein Tarif ist voll" richtig wäre. Die ZAHLEN bleiben draußen: der
+    // Schlüssel sagt nur, WELCHE Grenze, nicht wie hoch sie liegt.
+    throw createError({
+      status: 429,
+      statusText: verdict === 'total' ? 'Quota exceeded' : 'Daily quota exceeded',
+      data: { code: verdict === 'total' ? 'quota_reached' : 'quota_reached_today' },
+    })
   }
 }

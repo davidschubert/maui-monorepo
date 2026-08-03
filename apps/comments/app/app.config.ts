@@ -72,8 +72,10 @@ export default defineAppConfig({
       embed: {
         enabled: true,
         allowedOrigins: ['http://localhost:*', 'http://127.0.0.1:*'],
-        // Gast-Kommentare im Widget (Embed E4): Kommentieren ohne Account
-        // (Name+E-Mail, keine Verifikation). E-Mail landet nur in guest_authors.
+        // Gast-Kommentare im Widget (Embed E4): Kommentieren ohne Account —
+        // seit F18 (2026-08-02) nur noch ein ANZEIGENAME, keine E-Mail und kein
+        // IP-Hash. Die alte Kontakt-Tabelle `guest_authors` hatte nie eine
+        // Lese-Stelle; erhoben ohne Zweck ist schlechter als gar nicht erhoben.
         guests: true,
       },
     },

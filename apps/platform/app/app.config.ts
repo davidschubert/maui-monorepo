@@ -95,11 +95,16 @@ export default defineAppConfig({
        * Nutzers); die echten Einbetter jeder Community kommen aus `embed_sites`
        * und gelten nur für sie.
        *
-       * `guests` bleibt BEWUSST AUS (anders als im Silo): Gast-Kommentare legen
-       * Name+E-Mail eines Unbekannten in `guest_authors` — das ist eine
-       * Entscheidung, die jede Community für sich treffen muss, und dafür gibt
-       * es noch keinen Schalter im Kunden-Dashboard. Im Widget kommentiert also
-       * vorerst, wer sich anmeldet (Popup-Handoff, s. auth.embedSession oben).
+       * `guests` bleibt BEWUSST AUS (anders als im Silo) — aber seit F18
+       * (2026-08-02) aus einem anderen Grund als bisher. Der alte lautete:
+       * Gast-Kommentare legen Name+E-Mail eines Unbekannten in `guest_authors`.
+       * Diese Erhebung ist ersatzlos gefallen, ein Gast hinterlässt jetzt nur
+       * noch seinen Anzeigenamen. Was BLEIBT, ist die zweite Hälfte des alten
+       * Satzes und für sich schon Grund genug: ob Fremde ohne Konto mitreden
+       * dürfen, ist eine Entscheidung JEDER COMMUNITY, und dafür gibt es noch
+       * keinen Schalter im Kunden-Dashboard. Hier stünde sonst der Betreiber
+       * für alle Mandanten auf einmal. Im Widget kommentiert also vorerst, wer
+       * sich anmeldet (Popup-Handoff, s. auth.embedSession oben).
        */
       embed: {
         enabled: true,
@@ -155,12 +160,79 @@ export default defineAppConfig({
       // Silo-Tenants: kein Limit (eigenes Projekt). perDay = rollierende 24 h.
       // Plan-Rename 2026-07-26 (Davids Pricing: Basic/Personal/Pro) —
       // Zahlen unverändert, nur die Keys sind umgezogen.
+      //
+      // ⚠️ DIE `events`- UND `media`-ZEILEN SIND EIN VORSCHLAG (2026-08-02,
+      // F27 + F40) — SIE BRAUCHEN NOCH DAVIDS BESTÄTIGUNG. Die Haken standen
+      // an den Anlegewegen, der Katalog nannte aber keine Zahlen: `limits`
+      // war `undefined`, `assertPoolWriteQuota` kehrte sofort zurück, die
+      // Bremse war ein No-Op. Herleitung je Zeile unten; beide sind einzeln
+      // umstellbar, ohne Code-Änderung — und ohne Deploy sogar über den
+      // editierbaren Katalog `community_plans` (control-014), der pro Plan
+      // VOR diesen Werten greift (tenantsResolver.ts → tenant.limits).
+      //
+      // WAS GEZÄHLT WIRD, SIND ZEILEN — NICHT BYTES. Für `comments` und
+      // `events` ist das dasselbe (eine Zeile kostet eine Zeile). Für `media`
+      // ist es ein STELLVERTRETER: die Kosten sind die Datei auf der Platte.
+      // Die Umrechnung steht deshalb bei der media-Zeile, und ein echtes
+      // Byte-Budget bleibt eine eigene Aufgabe (OPEN-ITEMS).
       quota: {
         enabled: true,
         plans: {
-          basic: { comments: { perDay: 200, total: 5_000 } },
-          personal: { comments: { perDay: 1000, total: 50_000 } },
-          pro: { comments: { perDay: 5000, total: 250_000 } },
+          basic: {
+            comments: { perDay: 200, total: 5_000 },
+            // events/media stehen hier BEWUSST NICHT: `tenancy.products`
+            // unten gibt Basic weder Termine noch Mediathek, die Route
+            // antwortet schon vorher 404 (requirePlanProduct). Basic ist
+            // zugleich der Rückfall für einen UNBEKANNTEN Plan (limitsForPlan
+            // nimmt den ersten Katalog-Key) — und genau dort greift dieselbe
+            // Produkt-Sperre, weil planAllowsProduct einen unbekannten Plan
+            // ebenfalls auf Rang 0 setzt. Ein Loch entsteht dadurch also nicht.
+          },
+          personal: {
+            comments: { perDay: 1000, total: 50_000 },
+            // TERMINE — Vorschlag. Eine Termin-Zeile kostet nur eine
+            // DB-Zeile; die Bremse ist gegen Weglauf (Skript, Endlos-Serie),
+            // nicht gegen den Kunden. Deshalb großzügig.
+            // `perDay: 50` liegt bewusst ÜBER SERIES_MAX_PER_RUN (26,
+            // eventSeries.ts): eine Serien-Ausdehnung legt bis zu 26 Termine
+            // in EINEM Lauf an — eine kleinere Tagesgrenze würde eine
+            // legitime tägliche Serie schon beim ersten Speichern zerhacken
+            // (die Expansion bricht dann sauber ab und protokolliert, aber
+            // der Kunde hätte eine halbe Serie).
+            // `total: 1_000`: eine wöchentliche Serie kostet 52 Termine im
+            // Jahr — das ist Platz für rund zwanzig Serien-Jahre. Termine
+            // werden nicht aufgeräumt, der Bestand wächst also monoton.
+            // ANMERKUNG: Termine sind heute ein Pro-Produkt (s. `products`),
+            // ein Personal-Kunde kommt gar nicht bis hierher. Die Zeile ist
+            // die Absicherung für den Tag, an dem das Produkt herunterzieht.
+            events: { perDay: 50, total: 1_000 },
+            // MEDIATHEK — Vorschlag, und der einzige Posten mit ECHTEN
+            // laufenden Kosten: als einziger Layer legt sie Binärdateien auf
+            // die geteilte Platte. Gemessen 2026-08-02 (OPEN-ITEMS E3): 38 GB
+            // Platte, 11 GB belegt — rund 27 GB frei, und davon gehört das
+            // meiste NICHT der Mediathek (Appwrite, MariaDB, Release-Slots).
+            // Umrechnung: MAX_MEDIA_BYTES = 15 MB ist die HARTGRENZE je Bild,
+            // nicht der Alltag; ein Handy-Foto nach Export liegt bei ~4 MB.
+            //   300 × 4 MB  ≈ 1,2 GB  (Planung)
+            //   300 × 15 MB ≈ 4,5 GB  (böswilliges Extrem)
+            // Zielgruppe: eine Vereins-Galerie mit Vereinsfest und
+            // Jahresrückblick ist bei 100–300 Bildern schon üppig, ein Coach
+            // kommt mit 50 aus. `perDay: 50` bremst den Massen-Import (ein
+            // Ordner Urlaubsbilder auf einmal), nicht das tägliche Arbeiten.
+            media: { perDay: 50, total: 300 },
+          },
+          pro: {
+            comments: { perDay: 5000, total: 250_000 },
+            // Vorschlag, gleiche Herleitung, eine Größenordnung darüber:
+            // `total: 10_000` Termine sind für eine Community praktisch
+            // unerreichbar und fangen trotzdem eine Endlos-Serie ab.
+            events: { perDay: 200, total: 10_000 },
+            // Vorschlag: 1.000 × 4 MB ≈ 4 GB Planung (Extrem 15 GB). Bewusst
+            // NICHT höher: eine einzelne Community darf die geteilte Platte
+            // auch im Extremfall nicht allein füllen. Wer mehr braucht, ist
+            // ein Studio-/Silo-Fall mit eigener Instanz.
+            media: { perDay: 200, total: 1_000 },
+          },
         },
       },
       // Produkt-Zugriff pro Plan (P4, Davids Zuordnung 2026-07-26): Produkt-
