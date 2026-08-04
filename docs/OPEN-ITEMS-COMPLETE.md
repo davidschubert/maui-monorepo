@@ -29,6 +29,31 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### Analytics v2, Pakete 3+4 — Bewerbung, Hilfe, Datenschutz ✅ 2026-08-04
+
+**Davids Go** („mach weiter mit paket 3+4"), Texte vorab wörtlich abgenommen
+(AskUserQuestion mit Vorschau). Landing: Produktseite `/products/analytics`
+(+ `/de/produkte/analytics`, Slug in beiden Sprachen gleich — keine
+Redirects), 7. Produkt in Kopf-Ausklapper/Karten/Sitemap, Pricing-Highlight
+„Besucherstatistik ohne Cookies" bei Personal UND im „alles aus
+Personal"-Satz von Pro (nicht angehängt — sonst läse es sich als
+Pro-Zusatz). Hilfe: `anleitung/produkte/analytics` (nur DE — die Hilfe fährt
+bewusst no_prefix/de) + Zeilen in Produkt- und Plan-Tabelle. Recht: der
+abgenommene Plausible-Satz als Abschnitt „Reichweitenmessung" in der
+Datenschutz-VORLAGE (wirkt nur auf neu geseedete Seiten — Bestand ist
+Kundeninhalt; der Satz steht im Hilfe-Artikel zum Kopieren) UND im
+Landing-Datenschutz (Abschnitt 8 — die Landing trackt ja selbst).
+Umsetzung Opus-Agent, Prüfung hier; Dev-Beweise DE+EN (H1, 4 Häkchen,
+Pricing, Sitemap, Hilfe-Artikel), OG-Bilder auf Davids Maschine erzeugt.
+
+**Gelernt:** Die Produktseite zählte ihre Häkchen mit einer FESTEN 6 — ein
+Produkt mit 4 Zeilen hätte zwei ROHE i18n-Schlüssel gerendert (vue-i18n gibt
+fehlende Schlüssel als Text zurück, kein Fehler, kein Leerlauf). Jetzt zählt
+der Text selbst (`te()` bis zur ersten Lücke). Und: der OG-Generator
+überschreibt ALLE Bilder — ein Diff dort ist nicht automatisch Drift,
+diskussionen-de/en waren schlicht seit dem „Kommentare"-Rename veraltet und
+sind mit dem Lauf ehrlich geworden.
+
 ### Analytics v2, Pakete 1+2 — Aktiv-Schalter (Sammel-Site) + Zahlen im Dashboard ✅ 2026-08-04
 
 **Davids Go** („leg los mit 1+2") noch am Tag der v1. Der geplante Weg —

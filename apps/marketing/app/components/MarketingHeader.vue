@@ -17,7 +17,7 @@ const { t, locale } = useI18n()
 const localePath = useLocalePath()
 const { start } = useProductLinks()
 
-// Die sechs Produkte der Hauptnavigation, am KANONISCHEN Schlüssel. Reihenfolge
+// Die Produkte der Hauptnavigation, am KANONISCHEN Schlüssel. Reihenfolge
 // = Reihenfolge im Bausteine-Abschnitt; Texte kommen aus i18n
 // (marketing.nav.products.items.<key>), nur Icon und Early-Access-Flagge stehen
 // im Code. Der Slug in der Adresse ist übersetzt und kommt aus
@@ -29,6 +29,10 @@ const PRODUCTS = [
   { key: 'beitraege', icon: 'i-ph-broadcast-bold', ea: true },
   { key: 'kurse', icon: 'i-ph-graduation-cap-bold', ea: true },
   { key: 'events', icon: 'i-ph-calendar-check-bold', ea: true },
+  // Analytics ist GEBAUT und im Angebot (ab Personal) — also keine
+  // Early-Access-Pille: die kennzeichnet nur, was noch nicht käuflich ist
+  // (§2.4). Dass es einen Plan voraussetzt, sagt die Preistabelle.
+  { key: 'analytics', icon: 'i-ph-chart-line-up-bold', ea: false },
 ] as const satisfies readonly { key: ProductKey, icon: string, ea: boolean }[]
 
 /**

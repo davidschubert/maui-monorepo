@@ -2,9 +2,17 @@
 // Szene 4 — Gear-up-Montage (§6.4): der Held bekommt seine Werkzeuge. Ton
 // wärmt weiter (tone-dawn). Claim-Gate §2.4: belegte Bausteine = „Verfügbar",
 // Feed/Kurse/Events ehrlich als „Early Access" (nie wie aktueller Tarif).
+//
+// DIE ANZAHL KOMMT AUS DEM PRODUKT-KATALOG, nicht aus einer Zahl im Code: die
+// Karten hier sind genau die Produkte aus `PRODUCT_KEYS` in derselben
+// Reihenfolge (Icon, Text und Status stehen je Karte in i18n). Bis 2026-08-04
+// stand hier `[0, 1, 2, 3, 4, 5]` — ein siebtes Produkt hätte auf der
+// Startseite still gefehlt, ohne dass irgendetwas kaputtgeht.
+import { PRODUCT_KEYS } from '#shared/marketing'
+
 const { t } = useI18n()
 const items = computed(() =>
-  [0, 1, 2, 3, 4, 5].map(i => ({
+  Array.from({ length: PRODUCT_KEYS.length }, (_, i) => ({
     icon: t(`marketing.blocks.items.${i}.icon`),
     title: t(`marketing.blocks.items.${i}.title`),
     text: t(`marketing.blocks.items.${i}.text`),

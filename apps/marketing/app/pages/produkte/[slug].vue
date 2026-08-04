@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Produkt-Cluster-Seiten (§3.1): diskussionen · moderation · branding ·
-// beitraege · kurse · events.
+// beitraege · kurse · events · analytics.
 //
 // Claim-Gate-Umsetzung (§2.4, Entscheidung David 2026-07-24): Kurse und Events
 // SIND Early Access. Ihre Seiten existieren, aber sie dürfen nicht wie ein
@@ -25,7 +25,7 @@ defineI18nRoute({ paths: { en: '/products/[slug]', de: '/produkte/[slug]' } })
 // und die Early-Access-Liste ist ein Claim-Gate (§2.4) — sie darf nicht in
 // zwei Fassungen existieren.
 const route = useRoute()
-const { t, locale } = useI18n()
+const { t, te, locale } = useI18n()
 
 /**
  * Der Slug in der Adresse gehört der AKTUELLEN Sprache; gearbeitet wird ab
@@ -61,7 +61,19 @@ setI18nParams({
   en: { slug: slugForLocale(productKey, 'en') },
 })
 
-const HIGHLIGHT_COUNT = 6
+/**
+ * WIE VIELE PUNKTE „Was drin ist" zeigt, sagt der TEXT — nicht diese Datei.
+ * Bis 2026-08-04 stand hier eine feste 6, weil alle sechs Produkte je sechs
+ * Zeilen hatten. Analytics hat vier abgenommene Zeilen: mit der festen Zahl
+ * stünden auf der Seite zwei rohe i18n-Schlüssel
+ * („marketing.products.items.analytics.highlights.4") — vue-i18n gibt bei
+ * einem fehlenden Schlüssel den Schlüssel selbst zurück, es gibt also weder
+ * Fehler noch leere Liste, nur sichtbaren Unsinn.
+ * Gezählt wird deshalb bis zur ersten Lücke (`te` = „gibt es diesen Schlüssel
+ * in dieser Sprache?"). Die Obergrenze ist nur ein Notnagel gegen eine
+ * Endlosschleife, falls `te` je etwas anderes beantwortet als `t`.
+ */
+const HIGHLIGHT_MAX = 12
 const localePath = useLocalePath()
 const { start, demo, signIn } = useProductLinks()
 useReveal()
@@ -69,9 +81,15 @@ useReveal()
 const isEarlyAccess = computed(() => EARLY_ACCESS_KEYS.includes(productKey))
 
 const base = `marketing.products.items.${productKey}`
-const highlights = computed(() =>
-  Array.from({ length: HIGHLIGHT_COUNT }, (_, i) => t(`${base}.highlights.${i}`)),
-)
+const highlights = computed(() => {
+  const lines: string[] = []
+  for (let i = 0; i < HIGHLIGHT_MAX; i++) {
+    const key = `${base}.highlights.${i}`
+    if (!te(key)) break
+    lines.push(t(key))
+  }
+  return lines
+})
 
 /**
  * Claim-Gate im Abschluss-CTA (§2.4): auf einer Early-Access-Seite gibt es

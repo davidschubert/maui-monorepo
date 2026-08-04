@@ -47,7 +47,9 @@ const CARDS = [
   ...['coaches', 'kurse', 'creator', 'vereine'].map(slug => ({
     name: `use-cases-${slug}`, title: `audiencePages.items.${slug}.title`, sub: `audiencePages.items.${slug}.name`,
   })),
-  ...['diskussionen', 'moderation', 'branding', 'beitraege', 'kurse', 'events'].map(slug => ({
+  // KANONISCHE Produkt-Schlüssel (shared/marketing.ts), nicht die Slugs — die
+  // Bild-Dateien heißen nach dem Schlüssel (`products-beitraege-en.jpg`).
+  ...['diskussionen', 'moderation', 'branding', 'beitraege', 'kurse', 'events', 'analytics'].map(slug => ({
     name: `products-${slug}`, title: `products.items.${slug}.title`, sub: `products.items.${slug}.name`,
   })),
 ]
