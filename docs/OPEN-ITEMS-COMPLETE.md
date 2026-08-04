@@ -29,6 +29,33 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### Analytics v2, Pakete 1+2 — Aktiv-Schalter (Sammel-Site) + Zahlen im Dashboard ✅ 2026-08-04
+
+**Davids Go** („leg los mit 1+2") noch am Tag der v1. Der geplante Weg —
+Site-Automatik per Sites-API — fiel bei der Vorprüfung: die CE v3.2.1 hat die
+Provisioning-Routen NICHT (404 auch mit Auth-Header; am Quellcode bestätigt,
+`on_ee`-Block im Router). Davids Wahl darauf: **Sammel-Site + Hostname-
+Filter**. Alle Pool-Communities tracken in EINE Plausible-Site
+`communities.pukalani.app`; „Aktivieren" ist nur noch ein Schalter
+(`analytics_settings.enabled`, Migration analytics-002), das BYO-Feld aus v1
+bleibt als „Erweitert" und gewinnt. Zahlen holt die neue Route
+`GET /api/analytics/stats` (Owner-Capability, dann Tarif-Gate): fünf parallele
+v2-Queries (heute · 30-Tage-Totals · Zeitreihe · Top-Seiten · Top-Quellen),
+bei der Sammel-Site mit `["is","event:hostname",[host]]` — der Host kommt
+IMMER aus dem Request, nie vom Client. Key „pukalani-stats" server-only
+(`NUXT_ANALYTICS_STATS_API_KEY`, ops:site-env-Pflicht auf drei Sites).
+Umsetzung Opus-Agent, Prüfung + Setup (Plausible-Site, Key, Envs via ploi,
+Migrationen dev+prod VOR dem Deploy) hier. Beweise: API-Vertrag komplett per
+curl verifiziert (Hostname-Aufschlüsselung UND -Filter isolieren nachweislich
+je einen Host), Dev-Server: Config-Form `{scriptId, ownScriptId, enabled}`,
+Stats ohne Session 401; 33 Layer- + 604 Core-Tests grün.
+
+**Gelernt:** Plausibles `date_range:"30d"` endet GESTERN — ein heute
+geseedeter Event erscheint dort nicht (nur in `"day"`); wer das beim
+Verifizieren nicht weiß, hält den korrekten Filter für kaputt. Und: die
+LiveView-Formulare der Plausible-UI schlucken den ersten programmatischen
+Klick nach dem Laden — `form.requestSubmit()` per JS ist der verlässliche Weg.
+
 ### Plausible-Analytics: drei Betreiber-Sites + Produkt „Analytics" v1 ✅ 2026-08-04
 
 **Anlass:** David wollte Plausible (self-hosted, plausible.hawaii.studio) auf

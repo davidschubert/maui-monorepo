@@ -1,4 +1,4 @@
-import { isPlausibleScriptId } from '../../../../core/shared/analyticsScript'
+import { effectiveScriptId, isPlausibleScriptId } from '../../../../core/shared/analyticsScript'
 import { ANALYTICS_SETTINGS_TABLE, type AnalyticsConfigResponse, type AnalyticsSettingsRow } from '../../../shared/types/analytics'
 
 /**
@@ -16,14 +16,17 @@ import { ANALYTICS_SETTINGS_TABLE, type AnalyticsConfigResponse, type AnalyticsS
  * die Wahrheit: es handelt niemand, es wird gelesen.
  *
  * FAIL-SOFT IN JEDEM ZWEIG: eine kaputte Statistik-Einstellung darf keine
- * Seite kosten. Jeder Fehler ⇒ `{ scriptId: '' }` ⇒ es wird kein Script
- * eingebunden.
+ * Seite kosten. Jeder Fehler ⇒ leere Antwort ⇒ es wird kein Script eingebunden.
  */
-const EMPTY: AnalyticsConfigResponse = { scriptId: '' }
+const EMPTY: AnalyticsConfigResponse = { scriptId: '', ownScriptId: '', enabled: false }
 
 interface TenancyProductsConfig {
   quota?: { plans?: Record<string, unknown> }
   products?: Record<string, string | undefined>
+}
+
+interface AnalyticsAppConfig {
+  shared?: { scriptId?: string, siteId?: string }
 }
 
 export default defineEventHandler(async (event): Promise<AnalyticsConfigResponse> => {
@@ -46,9 +49,11 @@ export default defineEventHandler(async (event): Promise<AnalyticsConfigResponse
      * für eine Community ohne das Produkt lautet schlicht „nein". Ein 404 wäre
      * ein Fehler im Log für einen erwarteten Normalfall.
      */
+    const appConfig = useAppConfig() as {
+      pukalani?: { tenancy?: TenancyProductsConfig, analytics?: AnalyticsAppConfig }
+    }
     const tenant = useTenant(event)
     if (tenant?.mode === 'pool') {
-      const appConfig = useAppConfig() as { pukalani?: { tenancy?: TenancyProductsConfig } }
       const tenancy = appConfig.pukalani?.tenancy
       const planOrder = Object.keys(tenancy?.quota?.plans ?? {})
       if (!planAllowsProduct(planOrder, tenancy?.products, tenant.plan, 'analytics')) {
@@ -60,12 +65,23 @@ export default defineEventHandler(async (event): Promise<AnalyticsConfigResponse
     const db = tenantDb(event, { as: 'operator', actor: 'operator' })
     const row = await db.find<AnalyticsSettingsRow>(ANALYTICS_SETTINGS_TABLE)
 
-    // Zweite Prüfung beim LESEN, nicht nur beim Schreiben: die Zeile ist die
-    // Quelle eines `<script src>`. Stünde dort je ein Wert aus einer anderen
-    // Zeit (Migration, Konsole, Hand), ginge er ohne diese Zeile ungeprüft in
-    // den Head.
-    const scriptId = row?.plausibleScriptId ?? ''
-    const response: AnalyticsConfigResponse = { scriptId: isPlausibleScriptId(scriptId) ? scriptId : '' }
+    /**
+     * DIE EINE AUFLÖSUNGSREGEL (v2): eigene Site schlägt Schalter schlägt
+     * nichts — gerechnet in core/shared/analyticsScript.ts, damit Head,
+     * Dashboard-Vorschau und Statistik gar nicht auseinanderlaufen KÖNNEN.
+     *
+     * Die Regel prüft die Form beider Ids gleich mit (zweite Prüfung beim
+     * LESEN, nicht nur beim Schreiben): stünde in der Zeile je ein Wert aus
+     * einer anderen Zeit — Migration, Konsole, Hand —, ginge er sonst ungeprüft
+     * in den Head.
+     */
+    const shared = appConfig.pukalani?.analytics?.shared ?? {}
+    const ownScriptId = row?.plausibleScriptId ?? ''
+    const response: AnalyticsConfigResponse = {
+      scriptId: effectiveScriptId(row, shared),
+      ownScriptId: isPlausibleScriptId(ownScriptId) ? ownScriptId : '',
+      enabled: row?.enabled === true,
+    }
     writeAnalyticsConfigCache(event, response)
     return response
   }

@@ -1,10 +1,21 @@
-# Analytics v2 — Plan (noch nicht gebaut)
+# Analytics v2 — Plan (Pakete 1+2 GEBAUT, 3–5 offen)
 
-Stand: 2026-08-04, nach Davids Abnahme der v1 („mir gefällt die v1 —
-nehme alles an Punkten auf"). Die v1 (Selbstbedienung per Script-Id, ab
-Personal, Pool + Silo) ist seit 2026-08-04 live — Eintrag mit Beweisen in
-[OPEN-ITEMS-COMPLETE.md](../OPEN-ITEMS-COMPLETE.md). Offen geführt wird das
-Ganze als **F47** in [OPEN-ITEMS.md](../OPEN-ITEMS.md).
+Stand: 2026-08-04. Die v1 UND die Pakete 1+2 dieses Plans sind live —
+Einträge mit Beweisen in [OPEN-ITEMS-COMPLETE.md](../OPEN-ITEMS-COMPLETE.md).
+Offen geführt wird der Rest (3–5) als **F47** in
+[OPEN-ITEMS.md](../OPEN-ITEMS.md).
+
+**Architektur-Pivot bei Paket 1 (Davids Entscheidung 2026-08-04):** die
+Sites-API ist in der Plausible CE NICHT enthalten (Enterprise-only, am
+Quellcode von v3.2.1 verifiziert — `on_ee`-Block im Router). Statt
+Site-Automatik per API: **Sammel-Site + Hostname-Filter** — alle
+Pool-Communities tracken in EINE Site `communities.pukalani.app`
+(Script-Id `pa-nw6c94JiRWqzOc-zDcn1a`), „Aktivieren" ist ein Schalter in
+`analytics_settings.enabled` (Migration analytics-002), und die Stats-Route
+filtert je Community nach `event:hostname`. Eine eigene Plausible-Site (BYO,
+das v1-Feld) bleibt als „Erweitert"-Option und gewinnt über den Schalter.
+Stats-API-Key „pukalani-stats" liegt server-only als
+`NUXT_ANALYTICS_STATS_API_KEY` in den drei Site-Envs (ops:site-env-Pflicht).
 
 ## Ehrliche Lücken der v1 (warum es eine v2 braucht)
 

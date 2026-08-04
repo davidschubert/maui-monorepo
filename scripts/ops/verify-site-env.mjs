@@ -57,6 +57,10 @@ const SITES = [
       'NUXT_SMTP_FROM',
       // Link-Basis für Mails ohne Community-Bezug (D5-Rückfall).
       'NUXT_PUBLIC_APP_URL',
+      // Analytics v2: ohne den Schlüssel misst die Plattform weiter, aber JEDER
+      // Kunde sieht auf /dashboard/analytics „Statistik gerade nicht
+      // erreichbar" — dieselbe Sorte stiller Ausfall wie das fehlende SMTP.
+      'NUXT_ANALYTICS_STATS_API_KEY',
     ],
   },
   {
@@ -90,6 +94,9 @@ const SITES = [
       'NUXT_SMTP_PASS',
       'NUXT_SMTP_FROM',
       'NUXT_PUBLIC_APP_URL',
+      // Analytics v2 (der Silo hat eine eigene Plausible-Site, aber dasselbe
+      // Dashboard — ohne Schlüssel bleibt es dort leer).
+      'NUXT_ANALYTICS_STATS_API_KEY',
     ],
   },
   {
@@ -100,6 +107,7 @@ const SITES = [
       'NUXT_APPWRITE_KEY',
       'NUXT_PUBLIC_APPWRITE_ENDPOINT',
       'NUXT_PUBLIC_APPWRITE_PROJECT_ID',
+      'NUXT_ANALYTICS_STATS_API_KEY',
     ],
   },
   {

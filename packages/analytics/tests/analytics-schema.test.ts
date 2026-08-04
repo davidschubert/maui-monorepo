@@ -48,6 +48,35 @@ describe('createAnalyticsSettingsSchema', () => {
   it('verwirft unbekannte Felder (strict)', () => {
     expect(schema.safeParse({ plausibleScriptId: '', src: 'https://boese.example/x.js' }).success).toBe(false)
   })
+
+  // ── v2: der Schalter, und die Regel „fehlt heißt nicht angefasst" ──────────
+
+  it('nimmt den Schalter allein an', () => {
+    const result = schema.safeParse({ enabled: true })
+    expect(result.success).toBe(true)
+    // Entscheidend: die eigene Id ist NICHT dabei — die Route darf sie deshalb
+    // gar nicht erst überschreiben.
+    expect(result.success && 'plausibleScriptId' in result.data).toBe(false)
+  })
+
+  it('nimmt die Id allein an — ohne den Schalter mitzuschreiben', () => {
+    const result = schema.safeParse({ plausibleScriptId: 'pa-NFzv_HzyhC-TnVE577Kx6' })
+    expect(result.success).toBe(true)
+    expect(result.success && 'enabled' in result.data).toBe(false)
+  })
+
+  it('nimmt beide zusammen an', () => {
+    expect(schema.safeParse({ plausibleScriptId: '', enabled: false }).success).toBe(true)
+  })
+
+  it('lehnt den leeren Body ab — er täte nichts und meldete trotzdem Erfolg', () => {
+    expect(schema.safeParse({}).success).toBe(false)
+  })
+
+  it('lehnt einen Schalter ab, der kein Wahrheitswert ist', () => {
+    expect(schema.safeParse({ enabled: 'ja' }).success).toBe(false)
+    expect(schema.safeParse({ enabled: 1 }).success).toBe(false)
+  })
 })
 
 describe('plausibleScriptUrl', () => {

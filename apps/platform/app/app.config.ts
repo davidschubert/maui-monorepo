@@ -7,10 +7,27 @@ export default defineAppConfig({
      * BESUCHERSTATISTIK ALS SELBSTBEDIENUNG (2026-08-04, Layer `analytics`).
      *
      * Bewusst OHNE `src`/`domain`: diese App bedient jeden Mandanten-Host, und
-     * eine gebaute Config kann nur EINE Plausible-Site nennen — sie würde die
-     * Besuche aller Communities in denselben Topf werfen. Gemessen wird
-     * deshalb nur, wo ein Owner seine eigene Script-Id hinterlegt hat
-     * (/dashboard/analytics); ohne Eintrag wird KEIN Script geladen.
+     * eine gebaute Config kann pro Host nichts Eigenes sagen — ein `src` hier
+     * würde die Besuche aller Communities ununterscheidbar in denselben Topf
+     * werfen. Gemessen wird nur, wo der Owner es unter /dashboard/analytics
+     * verlangt hat; ohne das wird KEIN Script geladen.
+     *
+     * EINE SAMMEL-SITE FÜR ALLE POOL-COMMUNITIES (v2, 2026-08-04 — Davids
+     * Entscheidung nach der Prüfung der CE): die Plausible-CE hat keine
+     * Sites-API (Enterprise-only, am Quellcode nachgesehen), wir können beim
+     * Aktivieren also keine Site je Community anlegen. Statt den Owner weiter
+     * auf eine Id warten zu lassen, die nur David von Hand erzeugen kann,
+     * tracken alle Communities in `communities.pukalani.app` — „Aktivieren" ist
+     * damit ein Schalter in unserer eigenen Tabelle.
+     *
+     * GETRENNT WIRD BEI DER ABFRAGE, nicht beim Speichern: unsere Stats-Route
+     * filtert die Sammel-Site auf `event:hostname` = Host der Community
+     * (server/api/analytics/stats.get.ts). Der bewusst gezahlte Preis: in
+     * Plausible selbst liegen die Zahlen in einem Topf — die Konsole dort ist
+     * Betreiber-Werkzeug, Kunden sehen ihre Zahlen im Dashboard.
+     *
+     * Eine EIGENE Plausible-Site bleibt möglich (Feld „Erweitert") und schlägt
+     * den Schalter — core/shared/analyticsScript.ts, `effectiveScriptId`.
      *
      * Plausible ist cookielos und speichert nichts Personenbezogenes — deshalb
      * bleibt `pukalani.consent` weiter aus (kein Banner).
@@ -19,6 +36,10 @@ export default defineAppConfig({
       enabled: true,
       provider: 'plausible' as const,
       instance: 'https://plausible.hawaii.studio',
+      shared: {
+        scriptId: 'pa-nw6c94JiRWqzOc-zDcn1a',
+        siteId: 'communities.pukalani.app',
+      },
     },
     // Demo-Community „Morgenlicht" (Tagesliste 2026-07-26): der Banner macht
     // auf diesen Hosts sichtbar, dass Inhalte Beispiel-Material sind; der CTA

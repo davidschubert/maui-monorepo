@@ -1,8 +1,10 @@
+import { effectiveScriptId, isPlausibleScriptId } from '../../../../core/shared/analyticsScript'
 import { analyticsSettingsSchema } from '../../../schemas/analytics'
 import { ANALYTICS_SETTINGS_TABLE, type AnalyticsConfigResponse, type AnalyticsSettingsRow } from '../../../shared/types/analytics'
 
 /**
- * Script-Id setzen oder löschen ('' = Analytics aus).
+ * Messung an- oder abschalten (`enabled`, Sammel-Site) bzw. eine EIGENE
+ * Plausible-Site setzen oder löschen (`plausibleScriptId`, '' = keine).
  *
  *  WER DARF: `community.analytics` — trägt der OWNER (communityAuthz.ts) und
  *  über ALL_CAPABILITIES der Operator-Admin (Silo-Weg). Dieselbe Begründung
@@ -29,6 +31,10 @@ import { ANALYTICS_SETTINGS_TABLE, type AnalyticsConfigResponse, type AnalyticsS
  *  Die Klinke `as: 'operator'` braucht es ohnehin: die Zeile trägt keine
  *  User-Schreibrechte (sie gehört der Community, nicht einer Person).
  */
+interface AnalyticsAppConfig {
+  shared?: { scriptId?: string, siteId?: string }
+}
+
 export default defineEventHandler(async (event): Promise<AnalyticsConfigResponse> => {
   await requireCommunityPermission(event, 'community.analytics')
   requirePlanProduct(event, 'analytics')
@@ -45,18 +51,46 @@ export default defineEventHandler(async (event): Promise<AnalyticsConfigResponse
    * darunter, falls zwei Anfragen gleichzeitig „keine Zeile" sehen.
    */
   const existing = await db.find<AnalyticsSettingsRow>(ANALYTICS_SETTINGS_TABLE)
+
+  /**
+   * NUR SCHREIBEN, WAS MITKAM (v2): das Schema lässt beide Felder weg, und ein
+   * fehlendes Feld heißt „nicht angefasst". Deshalb wird der Änderungssatz hier
+   * aus dem Body ZUSAMMENGESETZT statt aus ihm abgeschrieben — Begründung im
+   * Schema (schemas/analytics.ts): sonst löschte ein Schalter-Klick aus einem
+   * älteren Client-Bundle die eigene Script-Id.
+   *
+   * Beim ANLEGEN müssen dagegen beide Spalten stehen: die Zeile gibt es noch
+   * nicht, „nicht angefasst" hat also keinen Bezugspunkt. Was fehlt, bekommt
+   * den Aus-Zustand — also genau das, was die Community vorher hatte.
+   */
+  const patch: Partial<Pick<AnalyticsSettingsRow, 'plausibleScriptId' | 'enabled'>> = {}
+  if (body.plausibleScriptId !== undefined) patch.plausibleScriptId = body.plausibleScriptId
+  if (body.enabled !== undefined) patch.enabled = body.enabled
+
   const row = existing
-    ? await db.update<AnalyticsSettingsRow>(ANALYTICS_SETTINGS_TABLE, existing.$id, {
-        plausibleScriptId: body.plausibleScriptId,
-      })
+    ? await db.update<AnalyticsSettingsRow>(ANALYTICS_SETTINGS_TABLE, existing.$id, patch)
     : await db.create<AnalyticsSettingsRow>(ANALYTICS_SETTINGS_TABLE, {
-        plausibleScriptId: body.plausibleScriptId,
+        plausibleScriptId: patch.plausibleScriptId ?? '',
+        enabled: patch.enabled ?? false,
       })
 
   // Den Microcache DIESES Mandanten direkt auf den bestätigten Stand setzen
   // statt ihn zu leeren: der nächste Seitenaufbau soll die neue Id tragen, und
   // ein globales Leeren würde alle anderen Communities unnötig treffen.
-  const response: AnalyticsConfigResponse = { scriptId: row.plausibleScriptId }
+  //
+  // Gerechnet wird er mit derselben Regel wie in der Leseroute — die Antwort
+  // eines Schreibvorgangs muss dasselbe sagen wie der nächste Seitenaufbau.
+  const appConfig = useAppConfig() as { pukalani?: { analytics?: AnalyticsAppConfig } }
+  const shared = appConfig.pukalani?.analytics?.shared ?? {}
+  const response: AnalyticsConfigResponse = {
+    scriptId: effectiveScriptId(row, shared),
+    ownScriptId: isPlausibleScriptId(row.plausibleScriptId) ? row.plausibleScriptId : '',
+    enabled: row.enabled === true,
+  }
   writeAnalyticsConfigCache(event, response)
+
+  // Die Zahlen des Mandanten kommen ab jetzt aus einer anderen Site (oder gar
+  // nicht mehr) — der 120-s-Cache der Statistik hielte sonst die alte Antwort.
+  clearAnalyticsStatsCache(event)
   return response
 })
