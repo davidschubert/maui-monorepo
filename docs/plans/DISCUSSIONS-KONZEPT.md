@@ -59,6 +59,11 @@ Discussions = Admin-Struktur + Threads. Beide nutzen comments darunter.
 
 # Teil 2 — Schnitt-Entwurf (2026-08-03)
 
+> **Hinweis (noch am 2026-08-03):** Teil 3 unten erweitert den Funktionsumfang
+> erheblich — die Messung „zwei Zeilen Unterschied zu posts" und die
+> Aufwandsangabe „Tage" gelten seither nur noch für den KERN. Was der
+> Vollausbau bedeutet, steht in Teil 3 unter „Was das am Schnitt ändert".
+
 ## Zuerst: das Konzept spricht eine Sprache, die es nicht mehr gibt
 
 Teil 1 ist vom 2026-07-27 und nennt als Rahmenbedingungen „Komposition im
@@ -154,3 +159,202 @@ Kategorien sind mandantengebunden: `communityId` an der Tabelle, Slug-Unique
 `tenantDb`, Melde-Weg über die bestehende Registry (`registerReportTarget`),
 Moderation über die vorhandene `posts`-Queue. Wer hier etwas Eigenes baut,
 baut die nächste F15.
+
+---
+
+# Teil 3 — Funktionskatalog (Davids Vorgaben, 2026-08-03)
+
+David hat den Zielumfang konkretisiert. Das Vorbild ist erkennbar **Discourse**
+— die Badge-Texte sind wortgleich dessen Standard-Katalog. Das ist als Spezifi-
+kation vollkommen brauchbar; zwei Konsequenzen gehören aber ausgesprochen:
+die TEXTE werden beim Bau eigenständig formuliert (wortgleiche Übernahme wäre
+fremde Produktkopie, und sie müssen ohnehin nach de+en), und einige Kriterien
+setzen Discourse-Funktionen voraus, die es hier nicht gibt — die stehen unten
+je Stelle als **[fehlt: …]** und sind Teil der Aufwandsrechnung, nicht Kleingedrucktes.
+
+## 3.1 Topics — die Startseite
+
+Tabellenansicht (UTable, B6) mit den Spalten:
+
+| Spalte | Inhalt |
+|---|---|
+| **Topic** | Headline, darunter die Kategorie |
+| **Users** | Avatare der Beteiligten (gepostet oder geantwortet) |
+| **Replies** | Anzahl Antworten |
+| **Views** | Anzahl Aufrufe **[fehlt: Aufruf-Zählung je Topic]** |
+| **Activity** | letzte Aktivität, relativ („16min ago", „5h ago", „30 days ago", „Jul 3") |
+
+**Sortierung:** `Hot` · `Latest` · `Categories` · `Top`. Bei `Top` zusätzlich
+der Zeitraum: All time · Year · Quarter · Month · Week · Today.
+`Categories` wechselt in eine eigene Tabelle: **Category** (Name +
+Beschreibung) | **Topics** (Anzahl, z. B. 8 · 322 · 1332 · 8843).
+
+**Seitenleiste, dauerhaft:** die wichtigsten 5 Kategorien ODER die letzten 5,
+in denen ich selbst gepostet/kommentiert habe (Entscheidung beim Bau, s. 3.7),
+plus ein sechster Link „All categories".
+
+## 3.2 Filter
+
+„Filter topics by category, tag, or other criteria":
+
+- `category` — Topics einer Kategorie
+- `created-after` — Datum (YYYY-MM-DD) oder „vor N Tagen"
+- `order` — Sortierfeld
+- `status` — Topic-Zustand **[fehlt: Topic-Zustände open/closed/archived —
+  posts kennt nur scheduled/published/hidden/deleted]**
+- `users` — nach Beteiligten
+
+## 3.3 Suche
+
+Drei Bereiche: **Topics/Posts** · **Categories** · **Users**. Dazu aufklappbare
+erweiterte Filter:
+
+- Categorized (Dropdown: All categories, …)
+- posted before/after (Datumsfeld)
+- only return topics/posts: are the very first post · are pinned **[fehlt:
+  Anheften]** · are wiki **[fehlt: Wiki-Beiträge]** · include images ·
+  matching in title only
+- where topics: any · open · closed · public · archived **[fehlt: alle vier
+  Zustände]** · have zero replies · contain a single user · are solved ·
+  are unsolved **[fehlt: „gelöst" — stand in Teil 2 ausdrücklich NICHT im
+  ersten Schnitt; mit dieser Vorgabe wird es Ausbaustufe statt Ablehnung]**
+- posted by (User-Suche) · posts (min/max) · views (min/max)
+
+## 3.4 About-Seite des Discussions-Bereichs
+
+- Beschreibungstext + Kontakttext + Möglichkeit, übergeordnet jemanden zu
+  kontaktieren
+- Zahlen: Anzahl User · Admins · Moderatoren · Startdatum („Created 2 months
+  ago")
+- Liste der Admins mit Profil-Link, Liste der Moderatoren mit Profil-Link
+- Site activity: „58 topics in the last 7 days" · „87 posts today" · „639
+  active users in the last 7 days" · „339 sign-ups in the last 7 days"
+  (= Beitritte, messbar über community_members/A5) · „47.5k likes all time"
+
+## 3.5 Regelwerk-Seiten (drei Navigationspunkte)
+
+**Guidelines** · **Terms of Service** · **Privacy** — jeweils Text, vom
+Community-Owner im Dashboard editierbar, beim Bau mit Beispieltext vorbefüllt.
+
+Mechanik: NICHT neu erfinden — der `pages`-Layer kann genau das (editierbare
+Textseiten, mandantengebunden seit pages-004, MEDIUMTEXT-Body, Dashboard-
+Verwaltung). Der Bau ist im Kern ein Seed dreier Seiten je Community plus die
+Navigation im Discussions-Bereich.
+
+**Eine Rechtsfrage gehört vorher zu David:** eine je Community editierbare
+„Privacy"-Seite auf Betreiber-Infrastruktur berührt die Betreiber-Rechtstexte
+(A1). Wer haftet für das, was ein Owner dort schreibt — und wie stellt die
+Seite klar, dass sie NEBEN der Betreiber-Datenschutzerklärung steht und sie
+nicht ersetzt?
+
+## 3.6 Badges
+
+Vier Gruppen; einige mehrfach verleihbar (welche genau, wird beim Bau je Badge
+festgelegt — Davids Hinweis: „some of them multiple times"). Kriterien mit
+allen Zahlen; **[fehlt: …]** = setzt Nichtvorhandenes voraus.
+
+**Vorab die eine Modell-Frage, an der die halbe Tabelle hängt:** die Kriterien
+sprechen durchgehend von **Likes** (Herz), unser Bestand ist überall
+**Auf/Ab-Stimmen** (posts UND comments: upvotes/downvotes/score). Entweder
+zählt „Like" = Upvote (dann sind Downvotes badge-neutral), oder es kommt ein
+echtes Herz NEBEN die Stimmen (zweites Signal, neue Tabelle). Das ist
+Entscheidung Nr. 4 in 3.7 — ohne sie ist keine der Like-Zeilen baubar.
+
+### Getting started
+
+| Badge | Kriterium |
+|---|---|
+| Autobiographer | Profil ausgefüllt + Profilbild |
+| Certified | Neuling-Tutorial abgeschlossen **[fehlt: interaktives Tutorial]** |
+| Editor | ersten eigenen Beitrag bearbeitet |
+| First Emoji | erstes Emoji im Beitrag **[fehlt: Emoji-Picker im Editor]** |
+| First Flag | erste Meldung (Melde-Weg existiert) |
+| First Like | erstes vergebenes Like |
+| First Link | erster Link auf ein anderes Topic **[fehlt: Topic-Verlinkung mit Rückverweisen]** |
+| First Mention | erste @-Erwähnung (existiert: comments/server/utils/mentions.ts) |
+| First Onebox | erste automatische Link-Vorschau **[fehlt: Onebox]** |
+| First Quote | erstes Zitat in einer Antwort **[fehlt: Zitier-Funktion]** |
+| First Reaction | erste Emoji-Reaktion **[fehlt: Reaktions-Picker, ≠ Like]** |
+| First Reply By Email | erste Antwort per E-Mail **[fehlt: Mail-EINGANG — es gibt nur Versand]** |
+| First Share | erster geteilter Link über den Share-Knopf |
+| New User of the Month | 2 neue User je Monat, gemessen an erhaltenen Likes **[braucht Monats-Job]** |
+| Read Guidelines | Guidelines gelesen **[fehlt: Lese-Tracking]** |
+| Reader | langes Topic (100+ Antworten) vollständig gelesen **[fehlt: Lese-Tracking je Topic]** |
+| Wiki Editor | ersten Wiki-Beitrag bearbeitet **[fehlt: Wiki]** |
+| Licensed | Fortgeschrittenen-Tutorial abgeschlossen **[fehlt: Tutorial]** |
+
+### Community
+
+| Badge | Kriterium |
+|---|---|
+| Welcome | erstes erhaltenes Like |
+| Appreciated | ≥1 Like auf 20 verschiedenen Beiträgen |
+| Thank You | 20 gelikte Beiträge + ≥10 vergebene Likes |
+| Gives Back | 100 gelikte + ≥100 vergebene |
+| Empathetic | 500 gelikte + ≥1000 vergebene |
+| Respected | ≥2 Likes auf 100 Beiträgen |
+| Admired | ≥5 Likes auf 300 Beiträgen |
+| Enthusiast / Aficionado / Devotee | 10 / 100 / 365 Tage in Folge besucht **[fehlt: Besuchs-Streaks]** |
+| Anniversary | 1 Jahr Mitglied + ≥1 Beitrag in dem Jahr |
+| Out of Love / Higher Love / Crazy in Love | alle 50 Tages-Likes an 1 / 5 / 20 Tagen verbraucht **[fehlt: Tages-Like-Limit]** |
+| Promoter / Campaigner / Champion | 1 Einladung / 3 Eingeladene wurden Basic / 5 wurden Member **[fehlt: Einladungen DURCH MITGLIEDER — community_invites gehört Owner/Admin; Stufen brauchen Trust Levels]** |
+| Nice/Good/Great Share | geteilter Link von 25 / 300 / 1000 externen Besuchern geklickt **[fehlt: Klick-Zählung]** |
+
+### Posting
+
+| Badge | Kriterium |
+|---|---|
+| Nice / Good / Great Reply | 10 / 25 / 50 Likes auf eine Antwort |
+| Nice / Good / Great Topic | 10 / 25 / 50 Likes auf ein Topic |
+| Popular / Hot / Famous Link | geposteter Link mit 50 / 300 / 1000 Klicks **[fehlt: Klick-Zählung]** |
+
+### Trust Level
+
+| Badge | Kriterium und verliehene Rechte |
+|---|---|
+| Basic (TL1) | Grundrechte: private Nachrichten **[fehlt: PN]**, Melden, Wiki **[fehlt]**, mehrere Bilder/Links je Beitrag |
+| Member (TL2) | Einladungen, Gruppen-PNs **[fehlt: PN]**, mehr Tages-Likes |
+| Regular (TL3) | umkategorisieren/umbenennen fremder Topics, stärkere Spam-Flags, noch mehr Likes |
+| Leader (TL4, von Hand ernannt) | alle Beiträge editieren; pin/close/unlist/archive/split/merge **[fehlt: unlist, split, merge]** |
+
+**Trust Levels sind kein Badge-Feature, sondern ein RECHTE-System** — sie
+verleihen Fähigkeiten, die heute an Site-Rollen und Capabilities hängen
+(requireCommunityPermission). Ein zweites, verhaltensbasiertes Rechtesystem
+NEBEN dem RBAC ist die größte Architektur-Entscheidung dieses Katalogs und
+braucht ein eigenes Ja von David — nicht als Nebenprodukt der Badges.
+
+## 3.7 Was das am Schnitt ändert
+
+Mit diesem Katalog ist Discussions im Vollausbau **kein „posts + zwei Zeilen"
+mehr, sondern ein Forum der Discourse-Klasse** — die Teil-2-Messung gilt nur
+noch für den Kern. Ehrliche Rechnung in Stufen (jede für sich lauffähig,
+Weg B aus Teil 2 bleibt als Fundament richtig und wird durch den Katalog eher
+BESTÄTIGT: nichts hier braucht ein eigenes Thread-Datenmodell, fast alles
+braucht Zähl-, Lese- und Rechte-Infrastruktur OBENDRAUF):
+
+1. **Kern (Tage):** Kategorien, Topics-Tabelle (ohne Views), Sortierung
+   Hot/Latest/Top+Zeitraum/Categories, Seitenleiste, Basis-Filter,
+   einfache Suche. = Teil 2, Stufen 1–4.
+2. **Betrieb & Regelwerk (Tage):** Views-Zähler, Activity-Aggregation,
+   About-Seite mit Statistiken, Guidelines/ToS/Privacy über die
+   pages-Mechanik (+ die Rechtsfrage aus 3.5).
+3. **Suche voll (Tage bis Woche):** erweiterte Filter; setzt die
+   Topic-Zustände (open/closed/archived/pinned/solved) voraus, die hier
+   erstmals entstehen.
+4. **Badges (Woche+):** Katalog abzüglich der [fehlt:]-Einträge sofort
+   baubar; jeder [fehlt:]-Eintrag ist ein eigenes kleines Feature davor.
+   Braucht Ereignis-Zählung je User (Likes erhalten/vergeben, Streaks,
+   Klicks) — eine neue, communityId-gebundene Infrastruktur.
+5. **Trust Levels (eigenes Projekt):** siehe 3.6 — nur mit ausdrücklicher
+   Architektur-Entscheidung.
+
+**Die offenen Entscheidungen, konsolidiert** (ersetzt die Dreierliste aus
+Teil 2):
+
+1. Weg A/B/C (Teil 2) — der Katalog spricht für B.
+2. Verlässt ein kategorisierter Beitrag den Feed? (Teil 2)
+3. Name vs. „Diskussionen" auf der Landing (Teil 2)
+4. **Like-Modell:** Herz = Upvote, oder eigenes Signal neben den Stimmen?
+5. **Trust Levels:** bauen, später, oder bewusst nicht?
+6. **Privacy/ToS je Community:** rechtlich klären, bevor der Seed entsteht.
+7. Seitenleiste: Top-5-Kategorien oder meine letzten 5?
