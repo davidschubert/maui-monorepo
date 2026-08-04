@@ -55,6 +55,7 @@ const { replyCounts, loadCounts } = useDiscussionReplyCounts()
     <div class="mt-6 flex flex-col gap-6 md:flex-row">
       <aside class="md:w-48 md:shrink-0">
         <DiscussionSidebar />
+        <DiscussionSidebarLinks />
       </aside>
 
       <div class="min-w-0 flex-1">

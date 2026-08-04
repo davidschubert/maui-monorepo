@@ -205,7 +205,24 @@
       "resetSearch": "Reset search",
       "backToCategory": "Back to {category}",
       "inCategory": "in {category}",
-      "topicCount": "{count} topics"
+      "topicCount": "{count} topics",
+      "about": {
+        "title": "About these discussions",
+        "description": "What this place is about, who looks after it, and how much is going on.",
+        "figuresTitle": "Numbers",
+        "figure": {
+          "topicsTotal": "Topics in total",
+          "topicsLast7Days": "Topics (7 days)",
+          "postsToday": "Posts today",
+          "categories": "Categories"
+        },
+        "teamTitle": "Who to talk to",
+        "admins": "Leadership",
+        "moderators": "Moderation",
+        "noTextTitle": "No text here yet",
+        "noTextHint": "Create a page with the address “discussions-about” — whatever you write there shows up here.",
+        "noTextAction": "Manage pages"
+      }
     },
     "categories": {
       "title": "Categories",

@@ -205,7 +205,24 @@
       "resetSearch": "Suche zurücksetzen",
       "backToCategory": "Zurück zu {category}",
       "inCategory": "in {category}",
-      "topicCount": "{count} Themen"
+      "topicCount": "{count} Themen",
+      "about": {
+        "title": "Über die Diskussionen",
+        "description": "Worum es hier geht, wer den Ton angibt und wie viel gerade los ist.",
+        "figuresTitle": "Zahlen",
+        "figure": {
+          "topicsTotal": "Themen insgesamt",
+          "topicsLast7Days": "Themen (7 Tage)",
+          "postsToday": "Beiträge heute",
+          "categories": "Kategorien"
+        },
+        "teamTitle": "Ansprechpartner",
+        "admins": "Leitung",
+        "moderators": "Moderation",
+        "noTextTitle": "Hier steht noch kein Text",
+        "noTextHint": "Leg eine Seite mit der Adresse „discussions-about“ an — was du dort schreibst, erscheint an dieser Stelle.",
+        "noTextAction": "Seiten verwalten"
+      }
     },
     "categories": {
       "title": "Kategorien",

@@ -33,6 +33,7 @@ const { replyCounts, loadCounts } = useDiscussionReplyCounts()
            Navigation und gehört auf schmalen Schirmen über die Liste. -->
       <aside class="md:w-48 md:shrink-0">
         <DiscussionSidebar />
+        <DiscussionSidebarLinks />
       </aside>
 
       <div class="min-w-0 flex-1">

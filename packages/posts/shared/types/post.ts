@@ -272,6 +272,28 @@ export interface CategoryListResponse {
 }
 
 /**
+ * Die Zahlen der About-Seite (F1 Stufe 2) — AUSSCHLIESSLICH das, was aus
+ * `community_posts` belegbar ist.
+ *
+ * Vier Kennzahlen aus Davids Katalog fehlen hier bewusst (aktive Nutzer,
+ * Beitritte, Likes gesamt, Gründungsdatum). Welche Quelle ihnen jeweils fehlt
+ * und was sie kosten würden, steht vollständig im Kopf von
+ * server/api/posts/discussions/about.get.ts — sie sind weggelassen, nicht
+ * vergessen.
+ */
+export interface DiscussionAboutResponse {
+  /** Veröffentlichte Beiträge MIT Kategorie. */
+  topicsTotal: number
+  /** Davon in den letzten 7 Tagen (rollierendes Fenster). */
+  topicsLast7Days: number
+  /** Veröffentlichte Beiträge seit UTC-Mitternacht — der GANZE Strom, mit und
+   *  ohne Kategorie (Davids Entscheidung 2: eine Community hat EINEN Ort). */
+  postsToday: number
+  /** Sichtbare Kategorien. */
+  categories: number
+}
+
+/**
  * Seitenleiste (Davids Entscheidung 7): meine letzten Kategorien, sonst die
  * größten. `source` sagt der Oberfläche, welche Überschrift stimmt — ein
  * „Deine Kategorien" über den fünf größten wäre eine Lüge.
