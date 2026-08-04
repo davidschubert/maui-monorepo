@@ -41,6 +41,10 @@
           "events": {
             "title": "Events",
             "text": "Online oder vor Ort, mit Zusagen und Tickets – sogar einbettbar."
+          },
+          "analytics": {
+            "title": "Analytics",
+            "text": "Besucher, Seitenaufrufe und Quellen – cookielos gemessen, direkt im Dashboard."
           }
         }
       }
@@ -144,6 +148,12 @@
           "title": "Events",
           "text": "Online oder vor Ort, Einzeltermine oder Serien, mit Zusagen und Tickets – sogar einbettbar.",
           "status": "earlyAccess"
+        },
+        {
+          "icon": "i-ph-chart-line-up-bold",
+          "title": "Analytics",
+          "text": "Besucher, Seitenaufrufe, Top-Seiten und Quellen – cookielos gemessen, direkt im Dashboard.",
+          "status": "available"
         }
       ]
     },
@@ -292,6 +302,20 @@
             "Erinnerung vor dem Start, ohne dass du daran denken musst",
             "Kalender-Export (ICS) und Teilnehmerliste für Angemeldete",
             "Einbettbar in deine bestehende Website"
+          ]
+        },
+        "analytics": {
+          "name": "Analytics",
+          "metaTitle": "Besucherstatistik ohne Cookies – wissen, was ankommt",
+          "metaDescription": "Pukalani misst Besuche mit Plausible auf eigenen Servern in der EU: keine Cookies, kein Banner, keine personenbezogenen Daten. Ein Schalter im Dashboard genügt.",
+          "title": "Wissen, was ankommt — ohne Cookies",
+          "sub": "Pukalani misst Besuche mit Plausible auf eigenen Servern in der EU: keine Cookies, kein Banner, keine personenbezogenen Daten.",
+          "intro": "Ein Schalter im Dashboard — und du siehst, wie deine Community wächst.",
+          "highlights": [
+            "Besucher, Seitenaufrufe und Verlauf direkt im Dashboard",
+            "Top-Seiten und Besucherquellen auf einen Blick",
+            "Cookielos und DSGVO-freundlich — kein Consent-Banner nötig",
+            "Für Profis: eigene Plausible-Site anschließbar"
           ]
         }
       },
@@ -661,13 +685,13 @@
         "personal": {
           "name": "Personal",
           "tag": "02 · Beliebt",
-          "desc": "Für Coaches und Creator – Posting-Feed mit Umfragen, eigene Themes und Schriften, Embed-Widget, E-Mail-Benachrichtigungen, höhere Limits.",
+          "desc": "Für Coaches und Creator – Posting-Feed mit Umfragen, eigene Themes und Schriften, Embed-Widget, Besucherstatistik ohne Cookies, E-Mail-Benachrichtigungen, höhere Limits.",
           "cta": "Personal holen"
         },
         "pro": {
           "name": "Pro",
           "tag": "03 · Teams",
-          "desc": "Für Teams – alles aus Personal plus Team-Rollen, KI-Moderations-Assistent, höchste Limits. Kurse und Events zuerst.",
+          "desc": "Für Teams – alles aus Personal, inklusive Besucherstatistik ohne Cookies, plus Team-Rollen, KI-Moderations-Assistent, höchste Limits. Kurse und Events zuerst.",
           "cta": "Pro holen"
         },
         "enterprise": {
@@ -858,6 +882,10 @@
           {
             "title": "Cookies",
             "body": "Im Standardbetrieb setzen wir ein technisch notwendiges Session-Cookie und keine Werbe-Cookies. Die verbindliche Aufstellung folgt."
+          },
+          {
+            "title": "Reichweitenmessung",
+            "body": "Zur Reichweitenmessung setzen wir Plausible Analytics ein, selbst gehostet in der EU. Dabei werden keine Cookies gesetzt und keine personenbezogenen Daten gespeichert."
           },
           {
             "title": "Anfragen für den Early Access",

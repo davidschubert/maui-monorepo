@@ -31,7 +31,7 @@ export type MarketingLocale = 'de' | 'en'
  * <key>`), die OG-Bilder (`public/og/products-<key>-<locale>.jpg`) und die
  * Early-Access-Liste unten. Nur die URL ist übersetzt.
  */
-export const PRODUCT_KEYS = ['diskussionen', 'moderation', 'branding', 'beitraege', 'kurse', 'events'] as const
+export const PRODUCT_KEYS = ['diskussionen', 'moderation', 'branding', 'beitraege', 'kurse', 'events', 'analytics'] as const
 
 export type ProductKey = (typeof PRODUCT_KEYS)[number]
 
@@ -65,6 +65,11 @@ export const PRODUCT_SLUGS: SlugTable<ProductKey> = {
   beitraege: { de: 'beitraege', en: 'posts' },
   kurse: { de: 'kurse', en: 'courses' },
   events: { de: 'events', en: 'events' },
+  // Vierter Eintrag, der in beiden Sprachen gleich heißt: „Analytics" ist auch
+  // im Deutschen das gebräuchliche Wort (so steht es im Produkt-Manifest und
+  // im Dashboard). Keine routeRules-Weiterleitung nötig — die Seite ist neu,
+  // es gab nie eine andere Adresse dafür.
+  analytics: { de: 'analytics', en: 'analytics' },
 }
 
 /**

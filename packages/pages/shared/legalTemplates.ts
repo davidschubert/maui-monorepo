@@ -157,6 +157,11 @@ verarbeitet die Daten in deinem Auftrag.
 [AUSFÜLLEN: Rechenzentrums-Dienstleister und Standort aus deinem Vertrag — im Standardfall ein Serverstandort in Deutschland]
 [AUSFÜLLEN: bestätigen, dass mit den genannten Stellen Verträge zur Auftragsverarbeitung nach Art. 28 DSGVO bestehen, und die Liste vollständig halten]
 
+## Reichweitenmessung
+
+Zur Reichweitenmessung setzen wir Plausible Analytics ein, selbst gehostet in der EU. Dabei werden keine Cookies gesetzt und keine personenbezogenen Daten gespeichert.
+[AUSFÜLLEN: nur behalten, wenn die Besucherstatistik in deiner Community eingeschaltet ist — sonst diesen Abschnitt löschen; misst du in eine eigene Plausible-Site, hier deren Betreiber und Standort nennen]
+
 ## Weitere Empfänger
 
 [AUSFÜLLEN: Empfänger außerhalb der Auftragsverarbeitung — etwa E-Mail-Versand, Zahlungsdienstleister, Analyse — je Empfänger Zweck und Rechtsgrundlage; wenn es keine gibt: „Keine."]
@@ -231,6 +236,11 @@ data on your behalf.
 [FILL IN: name and address of the platform operator, from your contract]
 [FILL IN: data centre provider and location, from your contract — by default a server location in Germany]
 [FILL IN: confirm that data processing agreements under Art. 28 GDPR are in place with the parties named here, and keep the list complete]
+
+## Audience measurement
+
+For audience measurement we use Plausible Analytics, self-hosted in the EU. No cookies are set and no personal data is stored.
+[FILL IN: only keep this if visitor statistics are switched on for your community — otherwise delete this section; if you measure into your own Plausible site, name its operator and location here]
 
 ## Other recipients
 

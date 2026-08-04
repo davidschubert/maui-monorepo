@@ -1,4 +1,4 @@
-# Analytics v2 — Plan (Pakete 1+2 GEBAUT, 3–5 offen)
+# Analytics v2 — Plan (Pakete 1–4 GEBAUT, nur 5/Optionales offen)
 
 Stand: 2026-08-04. Die v1 UND die Pakete 1+2 dieses Plans sind live —
 Einträge mit Beweisen in [OPEN-ITEMS-COMPLETE.md](../OPEN-ITEMS-COMPLETE.md).
