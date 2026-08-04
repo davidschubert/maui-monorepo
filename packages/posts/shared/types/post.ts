@@ -1,4 +1,5 @@
 import type { Models } from 'node-appwrite'
+import type { BadgeFacts, BadgeGroup } from '../badges'
 
 export const POSTS_TABLE = 'community_posts'
 export const POLL_VOTES_TABLE = 'poll_votes'
@@ -22,6 +23,8 @@ export const POST_CATEGORIES_TABLE = 'post_categories'
  * Realtime-Relevanz.
  */
 export const POST_VIEWS_TABLE = 'post_views'
+/** F1 Stufe 4: verliehene Abzeichen, EINE Zeile je (Community, Nutzer, Abzeichen). */
+export const USER_BADGES_TABLE = 'user_badges'
 
 export const POST_TYPES = ['post', 'poll', 'question'] as const
 export type PostType = (typeof POST_TYPES)[number]
@@ -330,4 +333,37 @@ export interface DiscussionAboutResponse {
 export interface DiscussionSidebarResponse {
   rows: PostCategory[]
   source: 'mine' | 'largest'
+}
+
+/**
+ * EIN verliehenes Abzeichen (F1 Stufe 4, Migration posts-012).
+ *
+ * Kein `awardedAt`-Feld: `$createdAt` IST der Zeitpunkt der Verleihung, und
+ * eine zweite Spalte daneben wäre eine zweite Wahrheit über dasselbe. Die
+ * `communityId` steht bewusst nicht im Typ — sie gehört der Datentür.
+ */
+export interface UserBadge extends Models.Row {
+  userId: string
+  badgeKey: string
+}
+
+/** Ein Eintrag der Abzeichen-Galerie: Katalog-Zeile plus eigener Stand. */
+export interface DiscussionBadge {
+  key: string
+  group: BadgeGroup
+  earned: boolean
+  /** Wann verliehen (ISO) — `null`, solange unverdient. */
+  awardedAt: string | null
+}
+
+export interface DiscussionBadgesResponse {
+  /** IMMER der volle Katalog, auch für Gäste: die Galerie zeigt, was es hier
+   *  zu holen gibt, nicht nur das schon Erreichte. */
+  rows: DiscussionBadge[]
+  /**
+   * Die gemessenen Zahlen — `null` für Gäste (es gibt niemanden zu messen).
+   * Sie stehen in der Antwort, damit die Galerie den Fortschritt zeigen kann
+   * („20 von 100"), ohne die Zählung ein zweites Mal anzustoßen.
+   */
+  facts: BadgeFacts | null
 }
