@@ -29,6 +29,66 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F1 Stufe 2 — Aktivität, Views, About, Guidelines ✅ 2026-08-04
+
+**Go von David** nach der Vier-Fragen-Runde. Umsetzung Opus-Agent (5 Commits),
+Prüfung hier; Migrationen posts-009/010 VOR dem Deploy auf `pool` und
+`comments`, beides nachgemessen (`lastActivityAt` available, `post_views` mit
+3 Spalten).
+
+**Die zwei Entwürfe, die die Stufe tragen:**
+
+- **Aktivität als Cross-Layer-Vertrag** (die Stufe-1-Schuld): core-Registry
+  `registerContentActivityHandler`, posts registriert und zieht
+  `lastActivityAt` nach, comments ruft `notifyContentActivity` — und kennt
+  posts weiterhin nicht. Bewusst anders als beim Melde-Vertrag: ein
+  unbekannter targetType ist KEIN Fehler (ein Kommentar an einem Ticket ist in
+  Ordnung; ein 400 legte jede App ohne posts lahm). Handler mit
+  `as+actor: 'operator'` — der Nachzug fällt weder unter M13 noch macht er
+  nach A5 jemanden zum Mitglied.
+- **Views: Tabelle UND Puffer, beides nötig.** Nur die Tabelle = ein Write je
+  Aufruf; nur der Puffer auf der Beitrags-Zeile = `$updatedAt` wandert bei
+  jedem Gast-Aufruf, jeder Feed-Abonnent bekäme leere Realtime-Ereignisse, und
+  die frisch reparierte Aktivität wäre sofort wieder unwahr. `post_views`
+  trägt `permissions: []` (ohne Leser kein Realtime), dedupe über den
+  Rate-Limit-Store (30 min je Topic+Betrachter; IP nur als TTL-Schlüssel in
+  Redis, in der Tabelle steht eine ZAHL), und wer weder Konto noch IP hat,
+  wird nicht gezählt — genau die Quelle, die eine Schleife fahren würde.
+  Preis, ausgesprochen: bis 60 s Verzug, Neustart verschluckt den Puffer.
+
+**About zeigt vier Zahlen und lügt bei keiner:** Themen gesamt / 7 Tage,
+Beiträge heute, Kategorien. „Aktive Nutzer", „Beitritte 7d", „Likes gesamt",
+„gegründet vor N" fehlen sichtbar mit Begründung im Routen-Kopf — der älteste
+Beitrag als Gründungs-Ersatz wäre genau deshalb gefährlich, weil er wie die
+Antwort aussieht und eine andere Frage beantwortet.
+
+**Guidelines** über die pages-Mechanik: eigener Seed neben `seedLegalPages`
+(Guidelines erscheinen VERÖFFENTLICHT, Rechtstexte als Entwurf — deshalb kein
+Schalter im selben Seed), eigen formulierter Beispieltext de+en, ein Test
+prüft „kein Platzhalter, keine Rechtsaussage" als Gegenprobe.
+
+**Bewusst nicht gebaut** (je begründet im Code): Team-Liste für alle (die
+Mitglieder-Naht verlangt `team.manage` und liefert E-Mails mit — sie zu
+öffnen ist eine Autorisierungs-Entscheidung, als Frage an David gestellt) ·
+Profil-Links (es gibt keine öffentliche Profilseite) · Seitenleisten-Hälfte
+„kommentiert" (bräuchte einen fünften Core-Vertrag — Frage an David) ·
+Teilnehmer-Avatare (25 Abfragen je Seite) · Guidelines-Backfill für
+Bestands-Communities (Seed läuft bei Provisionierung; Nav degradiert sauber).
+
+**Tore** (nachgefahren): Tests grün über alle Pakete (posts 128, core 556),
+Typecheck Exit 0, Lint Grundlinie, Manifeste, Doku-Links, Bilanz posts
+**21/21**. Kein Live-Beweis über die Dev-Server — beide liefen gewedged aus
+fremden Sitzungen (jede Route 500 mit fremden Parse-Fehlern); Live-Prüfung
+folgt nach dem Prod-Deploy.
+
+**Gelernt:** Die beiden Fallen im Auftrag („Views dürfen weder `$updatedAt`
+bewegen noch Realtime feuern") haben den Entwurf bestimmt, bevor er entstand —
+der Agent hat sie nicht umschifft, sondern zum Fundament gemacht
+(`permissions: []` + eigene Tabelle). Fallen benennen ist billiger als sie
+finden.
+
+---
+
 ### F1 Stufe 1 — Discussions: Kategorien, Seiten, 301-Regel ✅ 2026-08-03
 
 **Davids Baustart-Go** nach den sieben Konzept-Entscheidungen (§ 3.8).
