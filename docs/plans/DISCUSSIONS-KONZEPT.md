@@ -458,6 +458,9 @@ nach `docs/OPEN-ITEMS.md`.
   (`registerUserCounterProvider`, sechster Cross-Layer-Vertrag), Quellen in
   posts/comments/moderation, Katalog + Verleihung (`user_badges`,
   posts-012), Galerie unter `/discussions/badges`.
+- **Kleines Paket** (2026-08-04) Regeln-Vorlage für Bestands-Communities als
+  Laufzeit-Rückfall (Schalter `pukalani.pages.guidelinesFallback`, in
+  `platform` an) und die Hilfe-Umbenennung „Diskussionen" → „Kommentare".
 
 ## Was Stufe 4 an Abzeichen NICHT bringt — und warum
 
@@ -493,13 +496,20 @@ alles nach Stufe 4 fest.
    `user.joined`) beantworten eine ANDERE Frage. Schaltet zugleich die
    Beitritts-Statistik der About-Seite frei, die aus demselben Grund fehlt.
 
-**Nächstes Paket (klein, behebt Sichtbares):**
+**Nächstes Paket (klein, behebt Sichtbares) — GEBAUT am 2026-08-04:**
 2. **Verhaltensregeln-Vorlage** für Bestandskunden — jede Community bekommt
-   einen bearbeitbaren Standardtext. Ohne Backfill ist die Seite bei jeder
-   bestehenden Community leer.
-3. **Hilfe-Seiten umbenennen** — „Diskussionen" meint dort noch die Kommentare.
-   Zwei Produkte mit demselben Namen sind genau die Verwechslung, die der Name
-   vermeiden sollte.
+   einen bearbeitbaren Standardtext. Geworden ist es ein **Rückfall zur
+   Laufzeit statt eines Backfills**: die `pages`-Zeilen liegen im
+   Runtime-Projekt, die Liste der Communities im Control Plane, und ein
+   Migrationslauf bekommt genau EINEN Schlüssel für EINE Instanz — er müsste
+   den Bestand aus vorhandenen Zeilen erraten und verfehlte ausgerechnet die
+   Communities ohne jede Seite. Fehlt die Zeile, liefern die Routen die
+   Vorlage; das erste Speichern im Dashboard legt sie an. Eine vorhandene
+   Zeile gewinnt immer, ein zurückgezogener Entwurf bleibt zurückgezogen.
+   Begründung im Kopf von `packages/pages/shared/guidelinesFallback.ts`.
+3. **Hilfe-Seiten umbenannt** — „Diskussionen" meinte dort noch die Kommentare.
+   Produkt-Seite jetzt `/anleitung/produkte/kommentare` (301 für den alten
+   Pfad); auf der Landing war dieselbe Umbenennung schon passiert.
 
 **Erst mit den Werkzeugen, und dann GEMEINSAM — sie hängen alle an derselben
 Umstellung (Zähler, die beim SCHREIBEN mitschreiben, statt beim Hinsehen zu

@@ -5068,3 +5068,46 @@ grüne Zahl — der Agent hat 6 Abzeichen NICHT gebaut und dabei aufgedeckt, das
 liegt. Nebenbefund aus derselben Haltung: `about` fehlte seit Stufe 2 in
 `RESERVED_CATEGORY_SLUGS` — eine Kategorie mit diesem Slug wäre nicht verdeckt,
 sondern unerreichbar gewesen.
+
+### F1 kleines Paket (Discussions) — Regeln-Vorlage + Hilfe-Umbenennung · erledigt 2026-08-04
+
+Die Punkte 2 und 3 aus Teil 5 des Discussions-Konzepts, beide klein und beide
+sichtbar.
+
+**Verhaltensregeln für Bestandskunden.** Seit Stufe 2 legt der Seed die
+Regeln-Seite bei der Provisionierung an — Bestands-Communities hatten deshalb
+keine, und der Navigationspunkt verschwand bei ihnen ganz. Gebaut als
+**Rückfall zur Laufzeit, nicht als Backfill.** Der Grund ist nicht Bequem-
+lichkeit, sondern dass ein Backfill hier gar nicht sauber geht: die
+`pages`-Zeilen liegen im Runtime-Projekt, die Liste der Communities im Control
+Plane, und ein Migrationslauf bekommt genau EINEN Schlüssel für EINE Instanz.
+Er müsste den Bestand aus den vorhandenen Zeilen erraten (`distinct
+communityId`) und verfehlte ausgerechnet die Communities ohne jede Seite; auch
+die Sprache steht drüben. Dazu kommt das Argument, das schon im Kopf von
+`seedGuidelinesPage.ts` steht: es ist die Seite des Owners. Vier Stellen, eine
+Regel — Navigationspunkt, öffentliche Seite, Eintrag in der Seiten-Liste
+(„Vorlage") und ein vorgefüllter Editor, dessen erstes Speichern die Zeile
+anlegt. Eine vorhandene Zeile gewinnt immer; ein bewusst zurückgezogener
+Entwurf bleibt zurückgezogen.
+
+**Hilfe-Umbenennung.** „Diskussionen" meinte auf help.pukalani.app noch den
+Kommentar-Baustein — seit F1 gibt es ein Produkt dieses Namens. Elf Stellen
+umbenannt, die Produkt-Seite umgezogen (`/anleitung/produkte/kommentare`, 301
+für den alten Pfad). Auf der Landing war dieselbe Umbenennung schon passiert.
+
+**Gelernt:** Ein Rückfall braucht einen Schalter, sobald sein Layer in mehr als
+einer App steckt. `pages` läuft auch in `control`, wo der BETREIBER seine
+eigenen Rechtstexte pflegt — ohne `pukalani.pages.guidelinesFallback` (Layer
+aus, `platform` an) hätte die Betreiber-Konsole eine Vorlage für
+Community-Regeln in ihrer Seiten-Liste stehen gehabt und unter
+`control.pukalani.app/guidelines` einen Text, der dort niemanden meint. Die
+Frage „wer erbt diesen Layer eigentlich noch?" gehört an den Anfang, nicht ans
+Ende.
+
+**Zweite Lehre:** Der Editor schützt seit dem 2026-08-03 die Urfassung
+(`shared/editorBody.ts`: hat niemand getippt, geht der Text aus der API raus,
+nicht Tiptaps Rückserialisierung). Beim Vorfüllen mit einer Vorlage sah es
+naheliegend aus, `pristineBody` leer zu lassen — „es gibt ja nichts zu
+schonen". Genau das hätte beim Öffnen-und-Speichern einen LEEREN Text
+gespeichert. Wer an einer Stelle mit Sonderregel etwas Neues anhängt, muss die
+Sonderregel erst zu Ende lesen.
