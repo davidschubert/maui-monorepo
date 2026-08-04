@@ -17,6 +17,21 @@ export default defineNuxtConfig({
     port: 3008,
   },
 
+  /**
+   * Die Seite über den Kommentar-Baustein hieß bis zum 2026-08-04
+   * „Diskussionen" — das Wort meint seit F1 ein anderes Produkt (Kategorien
+   * und Themen), und zwei Produkte unter einem Namen sind genau die
+   * Verwechslung, die der Name vermeiden sollte. Dieselbe Umbenennung ist auf
+   * der Landing schon passiert (apps/marketing, `/products/comments`).
+   *
+   * Der alte Pfad bleibt als 301 stehen: er ist verlinkt (aus der Anleitung,
+   * aus der Abrechnungs-Tabelle) und stand über Wochen im Index. Keine
+   * Wildcard, kein Muster — genau EIN umgezogener Pfad.
+   */
+  routeRules: {
+    '/anleitung/produkte/diskussionen': { redirect: { to: '/anleitung/produkte/kommentare', statusCode: 301 } },
+  },
+
   content: {
     build: {
       markdown: {

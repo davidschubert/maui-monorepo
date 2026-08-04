@@ -62,7 +62,7 @@ Wo willst du hin?
   Produkte
 
   #description
-  Diskussionen, Beiträge, Seiten, Design und Moderation — was jedes Produkt kann und ab welchem Plan es verfügbar ist.
+  Kommentare, Beiträge, Seiten, Design und Moderation — was jedes Produkt kann und ab welchem Plan es verfügbar ist.
   :::
 
   :::u-page-product
@@ -98,7 +98,7 @@ Wo willst du hin?
   Embed-Widget
 
   #description
-  Diskussionen in eine fremde Website einbetten — Script-Tag oder Web-Component, ohne CORS und ohne Tracking.
+  Kommentare in eine fremde Website einbetten — Script-Tag oder Web-Component, ohne CORS und ohne Tracking.
   :::
 
   :::u-page-product
