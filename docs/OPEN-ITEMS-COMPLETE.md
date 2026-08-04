@@ -5038,3 +5038,33 @@ Pool (siehe den F43-Eintrag oben).
 in der ursprünglichen Meldung gar nicht geprüft — und genau er hätte den Fall
 harmlos gemacht. Und: zwei ineinandergreifende `.catch(() => null)` können aus
 einem Ausfall im GELDPFAD ein Ereignis machen, das nirgends auftaucht.
+
+### F1 Stufe 4 (Discussions) — Abzeichen · erledigt 2026-08-04
+
+16 Abzeichen, sechster Cross-Layer-Vertrag (`registerUserCounterProvider`),
+Galerie unter `/discussions/badges`. Migrationen `posts-012` (Tabelle
+`user_badges` + 3 Indizes) und `comments-018` (1 Index) auf beiden Instanzen
+VOR dem Deploy. Live `48998ad9`; Zahlen in Produktion von David bestätigt.
+Entscheidungen zum Zuschnitt: Konzept Teil 5.
+
+Zwei Entwurfsentscheidungen mit Begründung: die Verleihung läuft als
+`actor: 'operator'` — mit `member` hätte das ANSEHEN der eigenen Seite den
+Betrachter per A5 zum Mitglied gemacht und wäre unter M13 an einer 403
+gescheitert. Und ausgewertet wird beim HINSEHEN, nicht in einem Lauf; deshalb
+bewusst keine Benachrichtigung.
+
+**Gelernt:** Ein konfliktfreier Merge ist KEIN grüner Build. Das Zusammenführen
+mit der Analytics-Arbeit der Nachbarsitzung lief ohne einen einzigen Konflikt
+durch und hinterließ 16 Typfehler — Git legt Textzeilen widerspruchsfrei
+zusammen und stellt dabei einen Zustand her, den keiner der beiden Zweige je
+gebaut hat. Ursache hier harmlos (der neue `analytics`-Layer brauchte ein
+`pnpm install`), gefunden aber nur, weil nach dem Merge noch einmal geprüft
+wurde statt dem grünen Stand von vorher zu vertrauen. Nach JEDEM Merge fremder
+Arbeit: install + typecheck, bevor gepusht wird.
+
+**Zweite Lehre:** „Weglassen und begründen" hat wieder mehr gebracht als jede
+grüne Zahl — der Agent hat 6 Abzeichen NICHT gebaut und dabei aufgedeckt, dass
+`posts` keine Bearbeitung festhält und das Beitrittsdatum im Control Plane
+liegt. Nebenbefund aus derselben Haltung: `about` fehlte seit Stufe 2 in
+`RESERVED_CATEGORY_SLUGS` — eine Kategorie mit diesem Slug wäre nicht verdeckt,
+sondern unerreichbar gewesen.
