@@ -29,6 +29,58 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F46 — Der Text eines abgesagten Termins lässt sich schwärzen ✅ 2026-08-03
+
+**Davids Entscheidung.** Ein abgesagter Termin wird NICHT ausgeblendet — die
+Absage ist die Nachricht, auf die die Zusagenden ein Anrecht haben. Ist der TEXT
+das Problem, wird er entfernt: Titel und Beschreibung leer, Titelbild gelöscht,
+Status bleibt `cancelled`. Verworfen: ausblenden mit Benachrichtigung an die
+Zusagenden — teurer, und die Absage verschwände für jeden, der die Nachricht
+nicht liest.
+
+**Umsetzung Opus-Agent, Prüfung hier.** Eine Route (`redact.post.ts`), eine
+pure Regel (`canRedactEvent`, erlaubt nur für `cancelled`), eine additive Spalte
+`events.redactedAt` und der Hinweis aus i18n statt eines leeren Feldes.
+
+**Was ich nachgeprüft habe:**
+
+- **Migration VOR dem Deploy**, in dieser Reihenfolge und nicht andersherum:
+  `events-011` auf `comments` und `pool` gefahren, danach `redactedAt` auf
+  beiden `available` (datetime, optional). Andersherum hätte jede Schwärzung
+  `400 row_invalid_structure` geworfen — der Migrations-Kopf sagt das auch.
+- **`portfolio` bleibt außen vor**, und das ist kein Versehen: die App führt den
+  events-Layer gar nicht (Produkte nur themes + admin). Ihre `events`-Tabelle
+  ist eine Altlast — ihr fehlt sogar `communityId`, weil die E8-3-Umbenennung
+  nur dort lief, wo der Layer aktiv ist. Als Aufräum-Kandidat notiert, nicht
+  angefasst (Tabellen löschen ist unumkehrbar).
+- **Kein `redactedBy`.** Die events-Zeile ist öffentlich lesbar; die Id des
+  Moderators dort abzulegen hieße, per Roh-REST bekanntzugeben, wer eine
+  Community moderiert. Gute Entscheidung des Agenten.
+- **Titelbild wird gelöscht statt umpermissioniert.** Ein geschwärzter Termin
+  bleibt absichtlich lesbar — also bliebe es das Bild auch, wenn man nur die
+  Rechte nachzöge. Es gibt genau eine Wahrheit über Dateirechte
+  (`applyEventCoverVisibility` leitet sie aus den Row-Rechten ab), deshalb hier
+  löschen wie in `cover.delete.ts`.
+- **Kein Audit-Eintrag**, mit Begründung: `recordAudit` gehört dem admin-Layer,
+  ein Aufruf aus events wäre ein Cross-Layer-Auto-Import (A14) und in einer
+  Silo-App ohne admin zur Laufzeit nicht vorhanden. Heute protokolliert KEINE
+  Moderations-Aktion etwas — diese eine zur Ausnahme zu machen gäbe eine
+  Lückenlosigkeit vor, die es nicht gibt. Rechenschaft über Moderation gehört
+  als EIN Vertrag für alle Aktionen gebaut, nicht als Sonderfall.
+
+**Tore** (hier nachgefahren): events **165/165** (vorher 129), Repo ~1.570,
+Typecheck über zehn Apps, Lint auf der Grundlinie, Manifeste, Doku-Links, und
+`check:bilanz` diesmal vom Agenten selbst mitgezogen (events 16/17 → 17/18).
+
+**Gelernt:** Der Agent hat die eine Frage, die zählte, selbst gestellt und
+beantwortet — ob Appwrite einen LEEREN String in eine als `required` deklarierte
+Spalte annimmt. Er hat es mit einer Wegwerf-Zeile auf der Dev-Instanz gemessen
+statt es anzunehmen; hätte Appwrite abgelehnt, wäre das ganze Vorgehen
+hinfällig gewesen. Genau solche Fragen gehören VOR den Bau, nicht in den
+Bericht danach.
+
+---
+
 ### F15 — Termine sind wieder meldbar, und jemand schaut hin ✅ 2026-08-03
 
 **Das Problem.** Der Melde-Knopf an Terminen war am 2026-08-01 ENTFERNT worden,

@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 3 offen · 3 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 2 offen · 3 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-03**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -20,7 +20,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | --- | --- | --- | --- | --- | --- |
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen (**Anleitung dabei mitschreiben — ab Schritt 2 veraltet, Workspace-Welt**) und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
-| 57 · F46 | **Ein ABGESAGTER Termin lässt sich nicht ausblenden.** Bewusste Lücke aus F15: eine Absage ist die Nachricht, auf die die Zusagenden ein Anrecht haben — deshalb behält sie ihr Publikum. Ist aber der TEXT das Problem (Titel, Beschreibung), kommt heute niemand daran vorbei. Braucht eine Entscheidung: Absage anonymisieren statt verbergen, oder doch ausblenden mit Hinweis an die Zusagenden? | Niedrig | S — Entscheidung, dann klein | Ja: Produktfrage | [eventModerationPolicy.ts](../packages/events/shared/eventModerationPolicy.ts) |
 
 ## ⏸️ Geparkt / wartet — in Arbeitsreihenfolge
 
