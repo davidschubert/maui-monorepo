@@ -46,6 +46,26 @@ Discussions = Admin-Struktur + Threads. Beide nutzen comments darunter.
   kanonische URL um (Reddit-/StackOverflow-Muster; genau dafür trägt Reddit
   die ID in der URL).
 
+**Ergänzung (2026-08-03, Davids Frage „Kategorie in die URL?"):** dieselbe
+Regel gilt für das KATEGORIE-Segment. Der Server löst AUSSCHLIESSLICH über die
+ID auf; stimmt Kategorie ODER Slug nicht mehr, antwortet er 301 auf die
+kanonische URL. Damit ist Umkategorisieren gratis (alte Links leiten für immer
+um — nötig, weil der Teil-3-Katalog TL3 das Umkategorisieren als Routine-Recht
+gibt) und es entsteht kein Duplicate Content (nicht-kanonische Varianten
+rendern nie, die Seite trägt ihr Canonical-Tag). Die SEO-Abwägung ist bewusst
+KEIN Grund für das Schema: Keywords im Pfad sind ein schwaches Signal, ein 301
+gibt Ranking vollständig weiter — die Kategorie steht für MENSCHEN im Link
+(wer den Link geteilt bekommt, weiß vor dem Klick, wo er landet). Zum
+Vergleich: Discourse und StackOverflow haben die Kategorie NICHT in der
+Topic-URL; Reddit hat sie, dort kann ein Beitrag aber nie umziehen.
+
+Der eine Link, der sich NICHT selbst heilt, ist die Kategorie-SEITE
+(`/discussions/<kategorie>` — keine Topic-ID zum Auflösen). Deshalb für
+Stufe 1: Kategorie-NAME frei änderbar, Kategorie-SLUG nach Anlage fest —
+dasselbe Muster wie beim pages-Layer („Später nicht änderbar").
+Slug-Umbenennung mit Alt-Slug-Gedächtnis ist eine spätere Ausbaustufe, falls
+je gebraucht.
+
 ## Nicht verhandelbare Rahmenbedingungen (aus der Bilanz / Davids Prinzip)
 
 - Konzept existiert EINMAL (eigener Layer), Komposition im site-Layer.
