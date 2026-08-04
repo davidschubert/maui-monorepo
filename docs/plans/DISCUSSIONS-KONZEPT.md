@@ -480,3 +480,41 @@ gelesen werden könnten: jedes Abzeichen wird GENAU EINMAL verliehen (gezählt
 wird mit Aggregaten, „wie oft" verlangte die ganze Inhalts-Geschichte eines
 Menschen), und ausgewertet wird beim HINSEHEN, nicht in einem Lauf — deshalb
 gibt es zu Abzeichen auch keine Benachrichtigung.
+
+## Teil 5 — Davids Entscheidungen nach Stufe 4 (2026-08-04)
+
+Acht Entscheidungen, in zwei Runden gestellt. Sie legen die Reihenfolge für
+alles nach Stufe 4 fest.
+
+**In Stufe 4 hinein:**
+1. **Anniversary kommt** — als eigenes Stück über die Dienst-Naht (Muster der
+   Team-Route aus Stufe 3). Das Beitrittsdatum liegt in `community_members` im
+   Control Plane; die naheliegenden Runtime-Quellen (`$createdAt` des Kontos,
+   `user.joined`) beantworten eine ANDERE Frage. Schaltet zugleich die
+   Beitritts-Statistik der About-Seite frei, die aus demselben Grund fehlt.
+
+**Nächstes Paket (klein, behebt Sichtbares):**
+2. **Verhaltensregeln-Vorlage** für Bestandskunden — jede Community bekommt
+   einen bearbeitbaren Standardtext. Ohne Backfill ist die Seite bei jeder
+   bestehenden Community leer.
+3. **Hilfe-Seiten umbenennen** — „Diskussionen" meint dort noch die Kommentare.
+   Zwei Produkte mit demselben Namen sind genau die Verwechslung, die der Name
+   vermeiden sollte.
+
+**Erst mit den Werkzeugen, und dann GEMEINSAM — sie hängen alle an derselben
+Umstellung (Zähler, die beim SCHREIBEN mitschreiben, statt beim Hinsehen zu
+rechnen); getrennt gebaut wäre es dieselbe Arbeit zweimal:**
+4. `posts.editedAt` nachziehen (comments hat es) — bringt „Editor" UND einen
+   ehrlichen „bearbeitet"-Hinweis am Thema.
+5. Abzeichen mehrfach verleihen + Benachrichtigung.
+6. **Trust Levels** (die vier Stufen aus dem Katalog).
+
+**Vor dem Bauen ein eigenes Konzept:**
+7. **Private Nachrichten** — eigene Tabelle, Meldewege, Sperren, DSGVO-Export.
+   Kein Anhängsel an Discussions: ein Nachrichtenweg ohne Meldeweg und Sperre
+   ist ein Missbrauchskanal, den man hinterher nicht mehr zumacht.
+
+**Dauerhaft entschieden:**
+8. **Abzeichen bleiben auf Profil und Galerie** — NICHT neben dem Autorennamen
+   in der Themenliste. Dort wäre es ein N+1 über 25 Autoren, also eine
+   denormalisierte Spalte mit denselben Konsistenz-Schreibwegen wie „Hot".
