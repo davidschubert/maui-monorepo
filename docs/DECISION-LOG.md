@@ -7,6 +7,22 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-08-04 — Vier Folge-Entscheidungen (Landing-URL, Stufe 2, ci.env, portfolio)
+
+**Davids Entscheidungen** (strukturierte Frage-Runde, je der Empfehlung
+gefolgt): **Landing-URL zieht um** — der Kommentar-Baustein liegt jetzt unter
+`/products/comments` bzw. `/de/produkte/kommentare`, beide Altpfade (auch
+`/products/discussions`) 301 DIREKT dorthin, keine Ketten; der interne Key
+bleibt `diskussionen` (Label ≠ Key). Grund ist Namensraum, nicht SEO: das
+echte Discussions-Produkt braucht `/products/discussions` später selbst.
+**Discussions Stufe 2** (Views, About, Guidelines) schließt direkt an — läuft
+parallel zu A1/A2, die bei David liegen. **`ci/appwrite/ci.env`** verliert den
+Klartext-Schlüssel; `_APP_OPENSSL_KEY_V1` wird je CI-Lauf erzeugt (Repo ist
+öffentlich). **portfolios verwaiste Tabellen bleiben liegen** bis F3
+entscheidet — Löschen wäre unumkehrbar ohne aktuellen Nutzen.
+
+---
+
 ## 2026-08-03 — Discussions: alle sieben Konzept-Entscheidungen gefallen
 
 **Davids Entscheidungen** (je der Empfehlung gefolgt; Volltext + Begründungen:

@@ -29,6 +29,17 @@ jobs:
 
       # Früh starten — mariadb-Erstinitialisierung + Appwrite-Boot laufen
       # parallel zu pnpm install
+      # Der Instanz-Schlüssel wird je Lauf ERZEUGT statt im Repo zu liegen —
+      # das Repo ist seit 2026-08-03 öffentlich, und ein Klartext-Geheimnis
+      # wäre dort ein schlechtes Vorbild, auch wenn die Instanz Wegwerf ist.
+      # Anhängen an die Runner-Kopie von ci.env: ALLE compose-Aufrufe dieses
+      # Jobs lesen dieselbe Datei, der Schlüssel bleibt also für Logs/Teardown
+      # konsistent. Konstant muss er nur je Instanz sein, und die lebt genau
+      # einen Lauf.
+      - name: Appwrite-Instanzschlüssel erzeugen
+        working-directory: ci/appwrite
+        run: printf '\n_APP_OPENSSL_KEY_V1=%s\n' "$(openssl rand -hex 16)" >> ci.env
+
       - name: Appwrite-Stack starten
         working-directory: ci/appwrite
         run: |

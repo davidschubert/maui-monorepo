@@ -55,7 +55,11 @@ export default defineNuxtConfig({
     // kurse` → `/products/courses`) sind bewusst in Kauf genommen: eine Kette
     // aus zwei 301 wertet Google wie eine, und je Produkt eine zweite
     // Sonderregel zu führen kostet mehr Klarheit als sie einbringt.
-    '/products/diskussionen': { redirect: { to: '/products/discussions', statusCode: 301 } },
+    // Kommentar-Baustein: seit 2026-08-04 unter /products/comments — beide
+    // Altpfade zeigen DIREKT dorthin (keine 301-Ketten), der DE-Pfad ebenso.
+    '/products/diskussionen': { redirect: { to: '/products/comments', statusCode: 301 } },
+    '/products/discussions': { redirect: { to: '/products/comments', statusCode: 301 } },
+    '/de/produkte/diskussionen': { redirect: { to: '/de/produkte/kommentare', statusCode: 301 } },
     '/products/beitraege': { redirect: { to: '/products/posts', statusCode: 301 } },
     '/products/kurse': { redirect: { to: '/products/courses', statusCode: 301 } },
     // Vierte Welle, dieselbe Entscheidung für die Anwendungsfälle: auf der

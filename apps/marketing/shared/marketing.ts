@@ -54,7 +54,12 @@ export type ProductKey = (typeof PRODUCT_KEYS)[number]
  * Typfehler und keine 404-Überraschung.
  */
 export const PRODUCT_SLUGS: SlugTable<ProductKey> = {
-  diskussionen: { de: 'diskussionen', en: 'discussions' },
+  // Umzug 2026-08-04 (Davids Entscheidung): das Produkt heißt „Kommentare",
+  // die URLs folgen dem Namen. Der KEY bleibt 'diskussionen' — Label ≠ Key
+  // (dieselbe Regel wie beim Theme 'default'/„Aloha"): am Key hängen i18n-
+  // Einträge und Early-Access-Zuordnungen, eine Key-Umbenennung zöge Pfade
+  // nach sich, die erfahrungsgemäß liegen bleiben.
+  diskussionen: { de: 'kommentare', en: 'comments' },
   moderation: { de: 'moderation', en: 'moderation' },
   branding: { de: 'branding', en: 'branding' },
   beitraege: { de: 'beitraege', en: 'posts' },
