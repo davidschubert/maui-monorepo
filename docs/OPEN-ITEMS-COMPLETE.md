@@ -29,6 +29,68 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F15 — Termine sind wieder meldbar, und jemand schaut hin ✅ 2026-08-03
+
+**Das Problem.** Der Melde-Knopf an Terminen war am 2026-08-01 ENTFERNT worden,
+weil er ins Leere meldete: die Moderation kannte nur `comment` und `post`.
+Termine sind die dritte öffentliche Inhaltsart im Pool — mit Titel,
+Beschreibung, Titelbild und Ort —, und für sie konnte ein Owner auf Missbrauch
+nicht reagieren. Das Entfernen war ehrlicher als der Knopf, aber die Lücke
+blieb.
+
+**Gebaut** (Umsetzung Opus-Agent, Prüfung hier): Capability `events.moderate`,
+Status `hidden`, Registrierung als Melde-Ziel, drei Routen (Queue, Ausblenden,
+Wiederherstellen), eine eigene Dashboard-Seite und der Knopf zurück an der
+Detailseite. Die Reihenfolge zählt: der Knopf kam ZULETZT, denn eine
+Registrierung ohne Queue wäre dieselbe Lüge gewesen wie vorher.
+
+**Die Entscheidungen, die ich nachgeprüft habe:**
+
+- **Keine Migration nötig** — `events.status` ist `varchar(12)`, kein Enum,
+  `hidden` sind sechs Zeichen. Der Agent hatte das nur auf der Dev-Instanz
+  gemessen und das auch gesagt; ich habe es auf BEIDEN Prod-Instanzen
+  nachgemessen (`pool` und `comments`, je `type=varchar size=12`). Wäre es ein
+  Enum gewesen, hätte der Code-Deploy ohne vorherige Migration jedes Ausblenden
+  mit einem Schreibfehler beantwortet.
+- **Eigene Seite statt Abschnitt** in `/dashboard/events`: jene Seite gated auf
+  `events.manage`, was ein Moderator NICHT hat — der Abschnitt wäre für genau
+  die Rolle unsichtbar gewesen, für die er da ist. Das ist Audit-Befund S9
+  („tote Capability"), und posts löst es seit C16 genauso.
+- **Titelbild schließt automatisch mit.** `eventCoverPermissions()` leitet die
+  Dateirechte ausschließlich aus `row.$permissions` ab, nie aus dem Status —
+  das Entziehen des Leserechts nimmt das Cover mit. Ein `hidden`-Zweig dort
+  hätte eine zweite Wahrheit eingeführt. Nachgelesen, stimmt.
+- **Plan-Gate bleibt auf den Moderations-Routen.** Ich hatte das als Falle
+  markiert („ein Moderator muss auch bei gefallenem Plan handeln können"). Die
+  Prüfung zeigt: ALLE sechs öffentlichen Event-Routen tragen dasselbe Gate —
+  fällt der Plan, ist das Produkt komplett unerreichbar, es bleibt also nichts
+  Sichtbares unmoderiert. Der Fall, in dem Inhalt sichtbar IST und moderierbar
+  bleiben muss (M13), hängt an der Operator-Klinke, nicht am Plan.
+- **Kein Auto-Ausblenden.** Ein Termin trägt Zusagen, Kalendereinträge und
+  womöglich bezahlte Tickets; bei N Meldungen zu verschwinden wäre ein Hebel,
+  den eine abgesprochene Gruppe zieht. Steht als bewusste Ablehnung im Kopf der
+  Route.
+
+**Was das Gate gefangen hat:** `check:bilanz` war rot — der Agent hatte drei
+Routen ergänzt und die erzeugte PRODUKT-BILANZ nicht nachgezogen (events
+13/14 → **16/17** durch die Datentür). Genau dafür ist das Gate gebaut worden.
+Die übrigen Tore liefen hier nach: 129/129 events, ~1.470 Tests gesamt,
+Typecheck über alle zehn Apps, Lint auf der Grundlinie, Manifeste, Doku-Links.
+
+**Offen geblieben und als F46 notiert:** ein ABGESAGTER Termin lässt sich nicht
+ausblenden. Eine Absage ist die Nachricht, auf die die Zusagenden ein Anrecht
+haben — ist aber der Text das Problem, kommt heute niemand daran vorbei. Das
+ist eine Produktfrage, keine vergessene Zeile.
+
+**Gelernt:** Ein Agent, der seine eigenen Unsicherheiten benennt, ist mehr wert
+als einer, der fertig meldet — die wichtigste Zeile seines Berichts war „ich
+habe die Spalte nur lokal gemessen". Genau die habe ich dann gegen Produktion
+geprüft, und genau da hätte der Fehler wehgetan. Umgekehrt gilt: was er NICHT
+erwähnte, fand das Gate (die Bilanz). Beides zusammen ist die Prüfung — den
+Bericht lesen UND die Maschine laufen lassen.
+
+---
+
 ### F2 (aus OPEN-ITEMS) — Der „Block-Editor-Worktree" ist gesichtet, übernommen und abgeräumt ✅ 2026-08-03
 
 > Nicht zu verwechseln mit dem Audit-Befund **F2** weiter unten (doppelter
