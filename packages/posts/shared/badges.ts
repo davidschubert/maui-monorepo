@@ -9,9 +9,10 @@
  * ── DER ZUSCHNITT: NUR, WAS HEUTE MESSBAR IST ─────────────────────────────
  * Davids Vorgabe fuer Stufe 4 lautet „nur heute messbare Abzeichen … fehlende
  * kommen automatisch dazu, sobald ihre Funktion existiert". Der Katalog aus
- * § 3.6 hat 40+ Eintraege; hier stehen 17. Was fehlt und WARUM, gehoert an
- * diese Stelle und nicht in eine Notiz, sonst reicht es irgendwann jemand
- * „nach", ohne den Preis zu kennen:
+ * § 3.6 hat 40+ Eintraege; hier stehen 16 (3 + 7 + 6 — ein Test haelt die Zahl
+ * an den Katalog gebunden, damit dieser Satz nicht mit der Zeit unwahr wird).
+ * Was fehlt und WARUM, gehoert an diese Stelle und nicht in eine Notiz, sonst
+ * reicht es irgendwann jemand „nach", ohne den Preis zu kennen:
  *
  *  - **Dauerhaft gestrichen (Davids Entscheidung, Teil 4)** — alles, was ein
  *    personenbezogenes Verhaltensprotokoll braeuchte: Reader, Read Guidelines,

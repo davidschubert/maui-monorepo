@@ -21,6 +21,16 @@ function badge(key: string) {
 }
 
 describe('der Katalog selbst', () => {
+  it('hat genau so viele Abzeichen, wie sein Kopf behauptet', () => {
+    // Reiner Wächter über einen SATZ: der Dateikopf nennt „16 (3 + 7 + 6)" und
+    // erklärt daneben, was fehlt. Wächst der Katalog, ohne dass jemand die
+    // Auslassungsliste nachzieht, wird aus einer Begründung eine Behauptung.
+    expect(BADGE_CATALOG.length).toBe(16)
+    for (const [group, size] of [['gettingStarted', 3], ['community', 7], ['posting', 6]] as const) {
+      expect(BADGE_CATALOG.filter(entry => entry.group === group).length, group).toBe(size)
+    }
+  })
+
   it('hat eindeutige Schlüssel', () => {
     // Zwei Zeilen mit demselben Schlüssel wären im Unique-Index (posts-012)
     // EINE Zeile — das zweite Abzeichen könnte nie verliehen werden.

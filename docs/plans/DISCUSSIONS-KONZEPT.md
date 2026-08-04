@@ -461,7 +461,7 @@ nach `docs/OPEN-ITEMS.md`.
 
 ## Was Stufe 4 an Abzeichen NICHT bringt — und warum
 
-Der Katalog aus § 3.6 hat 40+ Einträge, gebaut sind 17. Die vollständige
+Der Katalog aus § 3.6 hat 40+ Einträge, gebaut sind 16. Die vollständige
 Begründung steht im Kopf von `packages/posts/shared/badges.ts` — dort, wo sie
 jemand liest, der ein Abzeichen nachreichen will. Kurzfassung:
 
