@@ -461,6 +461,15 @@ nach `docs/OPEN-ITEMS.md`.
 - **Kleines Paket** (2026-08-04) Regeln-Vorlage für Bestands-Communities als
   Laufzeit-Rückfall (Schalter `pukalani.pages.guidelinesFallback`, in
   `platform` an) und die Hilfe-Umbenennung „Diskussionen" → „Kommentare".
+- **Kunden-Hilfe** (2026-08-04) eigene Seite
+  `apps/help/content/anleitung/3.produkte/4.diskussionen.md` →
+  `/anleitung/produkte/diskussionen`, plus je eine Zeile in der Produkt- und
+  der Plan-Tabelle (Personal — Discussions sitzt auf dem Produkt-Key `posts`).
+  Beschrieben ist AUSSCHLIESSLICH der Baustand oben; ein Abschnitt „Was es
+  heute nicht gibt" nennt die Lücken beim Namen. Der 301, den die
+  Hilfe-Umbenennung Stunden zuvor auf genau diesem Pfad hinterlassen hatte, ist
+  entfernt — eine routeRule gewinnt gegen die Seite, beides ging nicht
+  (Begründung im Kopf von `apps/help/nuxt.config.ts`).
 
 ## Was Stufe 4 an Abzeichen NICHT bringt — und warum
 
