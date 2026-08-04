@@ -122,6 +122,7 @@ export function toDiscussionTopic(
   row: CommunityPost,
   category: PostCategory,
   avatarUrl: string | undefined,
+  views = 0,
 ): DiscussionTopic {
   const slug = topicSlug(row.title, row.body)
   return {
@@ -140,5 +141,8 @@ export function toDiscussionTopic(
     // Stufe 2: die eigene Spalte mit ihrer Rückfall-Kette — NICHT mehr
     // `$updatedAt`, das jede Stimme mitbewegte und keine Antwort.
     lastActivityAt: topicActivityAt(row),
+    // Fehlt ein Zähler, hat das Topic noch niemand geöffnet — 0 ist hier eine
+    // Aussage, kein Platzhalter (siehe DiscussionTopic.views).
+    views,
   }
 }

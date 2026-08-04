@@ -5,6 +5,23 @@ export const POLL_VOTES_TABLE = 'poll_votes'
 export const POST_VOTES_TABLE = 'post_votes'
 /** F1 Stufe 1: die vom Admin gepflegte Kategorien-Struktur der Discussions. */
 export const POST_CATEGORIES_TABLE = 'post_categories'
+/**
+ * F1 Stufe 2: die Aufruf-Zähler der Topics — EINE eigene Tabelle, EINE Zeile je
+ * Beitrag (`rowId = postId`).
+ *
+ * WARUM NICHT EINE SPALTE AUF DER BEITRAGS-ZEILE (die naheliegende Lösung, und
+ * die falsche): jeder Aufruf durch einen beliebigen Gast würde dann
+ *  - `$updatedAt` des Beitrags bewegen — und damit genau die Aktivitäts-Rechnung
+ *    zerstören, die Stufe 2 eine Datei weiter oben gerade in Ordnung gebracht
+ *    hat (`lastActivityAt` gäbe es dann umsonst),
+ *  - ein Realtime-Ereignis auf der Beitrags-Zeile veröffentlichen. Jeder
+ *    Feed-Abonnent bekäme Ereignisse durch bloßes ANSCHAUEN — Aufregung ohne
+ *    Neuigkeit, auf Kosten jedes offenen Fensters.
+ * Eine eigene Zeile ist beides nicht: sie hat keine Leser im Client (keine
+ * Row-Permissions, siehe Migration posts-010) und damit auch keine
+ * Realtime-Relevanz.
+ */
+export const POST_VIEWS_TABLE = 'post_views'
 
 export const POST_TYPES = ['post', 'poll', 'question'] as const
 export type PostType = (typeof POST_TYPES)[number]
@@ -92,6 +109,16 @@ export interface PostCategory extends Models.Row {
   sortOrder: number
   /** false = aus der öffentlichen Auswahl genommen, Bestand bleibt lesbar. */
   active: boolean
+}
+
+/**
+ * Aufruf-Zähler EINES Topics (F1 Stufe 2). `$id` IST die Beitrags-Id — das
+ * macht den Zähler ohne Nachschlagen adressierbar und den gepufferten
+ * Schreibvorgang idempotent (anlegen ODER hochzählen, nie beides).
+ */
+export interface PostViewCounter extends Models.Row {
+  postId: string
+  count: number
 }
 
 export type PostVoteValue = 1 | -1
@@ -203,6 +230,21 @@ export interface DiscussionTopic {
    * Stimme mit und keine Antwort).
    */
   lastActivityAt: string
+  /**
+   * Spalte „Aufrufe" (F1 Stufe 2) — Aggregat aus `post_views`, NICHT von der
+   * Beitrags-Zeile (Begründung bei POST_VIEWS_TABLE).
+   *
+   * `0` ist hier eine ECHTE Aussage („noch nie aufgerufen") und kein
+   * Platzhalter: die Zahl kommt aus derselben Antwort wie die Zeile, ist also
+   * immer geprüft. Deshalb zeigt die Tabelle sie als Null — anders als die
+   * Antwort-Anzahl, die die Komposition nachlädt und bis dahin als „—" führt.
+   *
+   * BIS ZU EINER MINUTE ALT: die Zähler werden gepuffert geschrieben
+   * (server/utils/topicViews.ts). Für ein Aggregat ist das die richtige
+   * Abwägung — der Preis exakter Zahlen wäre ein Datenbank-Schreibvorgang je
+   * Seitenaufruf eines Unangemeldeten, auf einem geteilten Pool.
+   */
+  views: number
 }
 
 export interface DiscussionListResponse {

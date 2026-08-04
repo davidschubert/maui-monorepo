@@ -183,6 +183,7 @@
         "topic": "Topic",
         "author": "Author",
         "replies": "Replies",
+        "views": "Views",
         "activity": "Activity",
         "category": "Category",
         "topics": "Topics"

@@ -96,7 +96,14 @@ export default defineEventHandler(async (event): Promise<DiscussionListResponse>
     throw toH3Error(error, 'Could not load topics')
   })
 
-  const avatars = await resolveAvatars(event, res.rows.map(row => row.authorId))
+  // Avatare und Aufruf-Zahlen parallel: zwei gebündelte Abfragen für die ganze
+  // Seite, kein N+1. Die Zähler liegen in `post_views` und werden über die
+  // Operator-Klinke gelesen (die Zeilen tragen bewusst keine Client-Rechte) —
+  // die Id-Liste stammt aus Zeilen, die der Aufrufer schon gesehen hat.
+  const [avatars, views] = await Promise.all([
+    resolveAvatars(event, res.rows.map(row => row.authorId)),
+    topicViewsFor(event, res.rows.map(row => row.$id)),
+  ])
 
   const rows: DiscussionTopic[] = []
   for (const row of res.rows) {
@@ -106,7 +113,7 @@ export default defineEventHandler(async (event): Promise<DiscussionListResponse>
     // jemand eine Kategorie an der Route vorbei löscht — die DELETE-Route
     // verweigert belegte Kategorien.
     if (!category) continue
-    rows.push(toDiscussionTopic(row, category, avatars.get(row.authorId)))
+    rows.push(toDiscussionTopic(row, category, avatars.get(row.authorId), views.get(row.$id) ?? 0))
   }
 
   return {

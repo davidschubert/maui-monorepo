@@ -48,6 +48,22 @@ export default defineEventHandler(async (event): Promise<DiscussionTopicResponse
 
   const category = await db.get<PostCategory>(POST_CATEGORIES_TABLE, row.categoryId, 'Topic not found')
 
+  /**
+   * F1 Stufe 2: DIESER Aufruf zählt (server/utils/topicViews.ts).
+   *
+   * Hier und nicht auf der Seite: die Route ist die eine Stelle, die JEDER
+   * Weg zum Topic passiert — der SSR-Aufbau, die Navigation im Client und ein
+   * geteilter Link gleichermaßen. Ein Zähler im Vue-Code hinge dagegen an
+   * `onMounted` und verpasste damit ausgerechnet die Besucher ohne JavaScript.
+   *
+   * NACH den beiden 404ern: was es nicht gibt, was nicht veröffentlicht ist und
+   * was in keiner Kategorie steht, wird auch nicht gezählt. Sonst könnte man
+   * über erfundene Ids Zähler-Zeilen anlegen lassen.
+   *
+   * Wirft nie und schreibt fast nie (Puffer + 30-Minuten-Fenster je Betrachter).
+   */
+  await recordTopicView(event, row.$id)
+
   const userId = event.context.user?.$id ?? null
   const [avatars, pollStates, postVotes] = await Promise.all([
     resolveAvatars(event, [row.authorId]),

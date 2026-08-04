@@ -8,15 +8,18 @@ import type { DiscussionListResponse, DiscussionTopic } from '../../shared/types
  * Datenliste seit B6.
  *
  * SPALTEN: Thema (Headline, darunter die Kategorie) · Autor · Antworten ·
- * Aktivität. Der Katalog aus dem Konzept nennt zwei weitere, die hier bewusst
- * FEHLEN:
- *  - „Views" braucht eine Aufruf-Zählung je Topic (neue Spalte + Schreibpfad
- *    auf jeder Detailseite) — ausdrücklich Stufe 2.
- *  - „Users" meint die Avatare ALLER Beteiligten. Wer beteiligt ist, weiß nur
- *    der comments-Layer, und ein Produkt-Layer darf einen anderen nicht kennen
- *    (A14). Statt einer Reihe, die so tut, als zeige sie alle, steht hier der
- *    AUTOR — die eine Beteiligung, die in der Zeile schon drinsteht, und die
- *    Spalte heißt entsprechend „Autor" statt „Users".
+ * Aufrufe · Aktivität.
+ *
+ * „Aufrufe" kam mit Stufe 2 dazu (eigene Zähl-Tabelle `post_views`, gepuffert
+ * geschrieben — die Begründung steht in server/utils/topicViews.ts). Die eine
+ * Spalte aus Davids Katalog, die weiter FEHLT, ist „Users": sie meint die
+ * Avatare ALLER Beteiligten. Wer beteiligt ist, weiß nur der comments-Layer,
+ * und ein Produkt-Layer darf einen anderen nicht kennen (A14). Die Komposition
+ * in blueprint dürfte es — sie müsste dafür aber je Topic die Kommentar-LISTE
+ * holen (die Zähl-Route liefert nur Zahlen), also 25 Abfragen für eine Seite.
+ * Das ist der Preis einer Avatar-Reihe nicht wert. Es steht deshalb weiter der
+ * AUTOR dort, und die Spalte heißt „Autor" statt „Users" — eine Reihe, die so
+ * tut, als zeige sie alle, wäre die schlechtere Antwort.
  *
  * Die Kommentar-Anzahl liefert die SEITE (blueprint) über die
  * comments-Counts-API und reicht sie als Prop herein — genau wie beim Feed.
@@ -128,6 +131,9 @@ const columns = computed<TableColumn<DiscussionTopic>[]>(() => [
   { id: 'topic', header: () => t('posts.discussions.col.topic') },
   { id: 'author', header: () => t('posts.discussions.col.author'), meta: { class: HIDE_MD } },
   { id: 'replies', header: () => t('posts.discussions.col.replies'), meta: { class: HIDE_SM } },
+  // Aufrufe fallen als erste weg: von den drei Zahlen ist sie die, die am
+  // wenigsten über das Thema aussagt.
+  { id: 'views', header: () => t('posts.discussions.col.views'), meta: { class: HIDE_MD } },
   { id: 'activity', header: () => t('posts.discussions.col.activity'), meta: { class: HIDE_SM } },
 ])
 
@@ -209,6 +215,13 @@ function resetSearch() {
             ? '—'
             : formatCount(props.replyCounts[row.original.$id]!) }}
         </span>
+      </template>
+
+      <!-- Anders als bei den Antworten steht hier eine echte Null: die Zahl
+           kommt aus derselben Antwort wie die Zeile, ist also nie „noch
+           unbekannt". -->
+      <template #views-cell="{ row }">
+        <span class="text-sm tabular-nums text-muted">{{ formatCount(row.original.views) }}</span>
       </template>
 
       <template #activity-cell="{ row }">
