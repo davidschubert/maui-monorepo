@@ -11,6 +11,15 @@ const props = defineProps<{
   post: FeedPost
   /** Kommentar-/Antwort-Anzahl (liefert die App via comments-Counts) */
   replyCount?: number
+  /**
+   * Kommentare beim Aufbau schon aufgeklappt (F1).
+   *
+   * Im FEED bleiben sie zu — dort ist die Karte eine von vielen, und
+   * aufgeklappte Kommentare machten aus dem Strom eine Wand. Auf einer
+   * TOPIC-Seite ist die Diskussion der Grund des Besuchs; sie erst
+   * wegzuklicken wäre eine Hürde ohne Zweck.
+   */
+  defaultCommentsOpen?: boolean
 }>()
 
 const emit = defineEmits<{ deleted: [id: string], updated: [post: FeedPost] }>()
@@ -36,7 +45,7 @@ const authorAction = computed(() => decidePostAuthorAction(
   user.value?.$id,
 ))
 const isAuthor = computed(() => authorAction.value.isAuthor)
-const commentsOpen = ref(false)
+const commentsOpen = ref(props.defaultCommentsOpen === true)
 
 const editing = ref(false)
 const editTitle = ref('')

@@ -100,9 +100,12 @@ const formError = ref('')
 
 async function save() {
   if (saving.value) return
+  // `description` wird IMMER mitgeschickt, auch leer: der Server behandelt ein
+  // fehlendes Feld als „unverändert" (shared/categoryPatch.ts) — wer den Text
+  // löscht, muss die Löschung also aussprechen.
   const payload = {
     name: form.name.trim(),
-    description: form.description.trim() || undefined,
+    description: form.description.trim(),
     sortOrder: form.sortOrder,
     active: form.active,
     ...(isNew.value ? { slug: form.slug.trim() } : {}),
@@ -172,14 +175,11 @@ async function remove(entry: CategoryWithCount) {
 /** Stilllegen/reaktivieren direkt aus der Liste — der häufigste Handgriff. */
 async function toggleActive(entry: CategoryWithCount) {
   try {
+    // Nur Name (Pflicht) und der Schalter — alles andere bleibt unangetastet,
+    // weil ein fehlendes Feld „unverändert" heißt (shared/categoryPatch.ts).
     await $fetch(`/api/posts/categories/${entry.category.$id}`, {
       method: 'PATCH',
-      body: {
-        name: entry.category.name,
-        description: entry.category.description || undefined,
-        sortOrder: entry.category.sortOrder,
-        active: !entry.category.active,
-      },
+      body: { name: entry.category.name, active: !entry.category.active },
     })
     await refresh()
   }

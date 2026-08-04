@@ -41,8 +41,29 @@ const source = (file: string) => readFileSync(`${apiDir}/${file}`, 'utf8')
  */
 const MODERATION_ROUTES = new Set(['[id]/hide.post.ts', '[id]/restore.post.ts', '[id]/assist.post.ts'])
 
+/**
+ * Die Kategorien-Verwaltung (F1, 2026-08-03) — ausgenommen aus GENAU DEMSELBEN
+ * Grund, und das ist eine Entscheidung, kein Schlupfloch.
+ *
+ * Diese drei Routen stehen hinter `posts.manage`, das nur Admin und Owner
+ * tragen (communityAuthz.ts). Kein Mitglied kommt hier durch, es gibt also
+ * nichts einzufrieren — wohl aber etwas zu verlieren: wer den Wartungsmodus
+ * einschaltet, um seine Community zu ordnen, wäre sonst ausgerechnet vom
+ * Ordnen ausgesperrt. Dieselbe Grenze zieht M13 an der Datentür (`actor:
+ * 'operator'`): Struktur ist Owner-Einstellung, nicht Inhalt.
+ *
+ * Die ZUSAGE dieses Tests bleibt damit unangetastet — sie lautet „jeder
+ * MITGLIEDER-Schreibweg prüft den Schalter", und die Themen-Anlage
+ * (index.post.ts) tut das weiterhin.
+ */
+const CATEGORY_ADMIN_ROUTES = new Set([
+  'categories/index.post.ts',
+  'categories/[id].patch.ts',
+  'categories/[id].delete.ts',
+])
+
 const memberWriteRoutes = routeFiles(apiDir).filter(file =>
-  !file.endsWith('.get.ts') && !MODERATION_ROUTES.has(file))
+  !file.endsWith('.get.ts') && !MODERATION_ROUTES.has(file) && !CATEGORY_ADMIN_ROUTES.has(file))
 
 describe('Wartungsmodus: jede schreibende Mitglieder-Route prüft ihn', () => {
   it('findet genau die fünf Mitglieder-Schreibwege', () => {

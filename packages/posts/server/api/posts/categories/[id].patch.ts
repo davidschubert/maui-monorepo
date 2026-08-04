@@ -1,4 +1,5 @@
 import { categoryEditSchema } from '../../../../schemas/postCategory'
+import { categoryUpdateData } from '../../../../shared/categoryPatch'
 import { POST_CATEGORIES_TABLE, type PostCategory } from '../../../../shared/types/post'
 
 /**
@@ -26,16 +27,14 @@ export default defineEventHandler(async (event) => {
   const body = await readValidatedBody(event, categoryEditSchema.parse)
   const db = tenantDb(event, { as: 'operator', actor: 'operator' })
 
+  // Weggelassen heißt UNVERÄNDERT — die Regel (und der Fehler, der sie
+  // erzwungen hat) steht pur und getestet in shared/categoryPatch.ts.
   // Die Tür belegt die Zugehörigkeit VOR dem Schreiben — eine fremde Kategorie
   // ist von hier aus nicht erreichbar (404, nie 403).
-  const updated = await db.update<PostCategory>(POST_CATEGORIES_TABLE, id, {
-    name: body.name,
-    description: body.description ?? '',
-    sortOrder: body.sortOrder ?? 0,
-    active: body.active ?? true,
-  }, 'Category not found').catch((error) => {
-    throw toH3Error(error, 'Could not update category')
-  })
+  const updated = await db.update<PostCategory>(POST_CATEGORIES_TABLE, id, categoryUpdateData(body), 'Category not found')
+    .catch((error) => {
+      throw toH3Error(error, 'Could not update category')
+    })
 
   return updated
 })
