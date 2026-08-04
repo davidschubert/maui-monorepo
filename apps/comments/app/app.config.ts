@@ -5,6 +5,18 @@ export default defineAppConfig({
   pukalani: {
     brand: { name: 'Hawaii Studio' },
     /**
+     * Plausible (self-hosted, plausible.hawaii.studio) — cookielos, deshalb
+     * kein Consent-Banner. v3-Snippet: die Site-Zuordnung zu
+     * comments.pukalani.app steckt in der Script-Id (pa-…); Outbound-Links/
+     * Downloads/Formulare sind serverseitig an der Id konfiguriert.
+     */
+    analytics: {
+      enabled: true,
+      provider: 'plausible' as const,
+      snippet: 'v3' as const,
+      src: 'https://plausible.hawaii.studio/js/pa-NFzv_HzyhC-TnVE577Kx6.js',
+    },
+    /**
      * RECHTSLINKS IM FUSS (Paritäts-Audit 2026-08-02).
      *
      * Dieser Host ist öffentlich, erlaubt Gast-Kommentare und hatte KEINEN
