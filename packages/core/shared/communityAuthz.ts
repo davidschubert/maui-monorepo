@@ -44,12 +44,18 @@ const EDITOR: readonly Capability[] = [
   'events.manage',
 ]
 
-/** Moderator: Meldungen + Kommentare + Beiträge moderieren — verfasst NICHT. */
+/** Moderator: Meldungen + Kommentare + Beiträge + Termine moderieren — verfasst NICHT. */
 const MODERATOR: readonly Capability[] = [
   ...VIEWER,
   'comments.moderate',
   'reports.moderate',
   'posts.moderate',
+  // F15 (2026-08-03): Termine sind die dritte öffentliche Inhaltsart im Pool.
+  // Sie steht hier neben posts.moderate und NICHT im EDITOR — `events.manage`
+  // (Termine verfassen) bleibt dort. Ein Editor verwaltet seine eigenen
+  // Termine, ein Moderator urteilt über fremde; Admin/Owner erben beides über
+  // EDITOR ∪ MODERATOR.
+  'events.moderate',
 ]
 
 /** Admin: Editor ∪ Moderator + Kurse, Activity, Branding, Team. Kein Billing/System. */

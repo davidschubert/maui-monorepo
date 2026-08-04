@@ -19,6 +19,18 @@ export type Capability =
   | 'sites.manage'
   | 'posts.moderate'
   | 'events.manage'
+  /**
+   * Fremde Termine moderieren (F15, 2026-08-03) — ausblenden/wiederherstellen
+   * und die Meldungs-Queue lesen.
+   *
+   * BEWUSST GETRENNT von `events.manage`: das ist dieselbe Geschwister-Trennung
+   * wie bei posts (`posts.write` ≠ `posts.moderate`). `events.manage` gehört dem
+   * EDITOR — wer Termine verfasst, pflegt seine eigenen; Moderation ist das
+   * Urteil über FREMDE Inhalte und gehört zum MODERATOR. Eine gemeinsame
+   * Capability hätte jedem Editor die Moderation mitgegeben und jedem Moderator
+   * das Anlegen — beides falsch herum.
+   */
+  | 'events.moderate'
   | 'feedback.manage'
   | 'billing.manage'
   | 'courses.manage'
