@@ -11,11 +11,10 @@ import type { DiscussionAboutResponse } from '../../../../posts/shared/types/pos
  * kann nicht falsch werden, weil nichts davon geschrieben wird.
  */
 interface AboutTeamMember {
-  id: string
+  runtimeUserId: string
   name: string
-  email: string
   role: string
-  status: string
+  avatarUrl: string
 }
 interface AboutTeamResponse {
   members: AboutTeamMember[]
@@ -42,16 +41,19 @@ interface AboutTeamResponse {
  *    darf, sieht stattdessen den Hinweis, wo er ihn schreiben kann; für alle
  *    anderen wäre das eine Aufforderung ins Leere.
  *
- * 3. **Team** (`/api/community/members`): fehlt in jeder App ohne
- *    onboarding-Layer (apps/comments → 404) UND für jeden, der die Community
- *    nicht verwaltet (403). Zweiteres ist eine EHRLICHE EINSCHRÄNKUNG und keine
- *    Nachlässigkeit: die bestehende Naht ins Control Plane verlangt
- *    `team.manage` und liefert die E-Mail-Adressen ALLER Mitglieder mit. Eine
- *    öffentliche Team-Liste hieße, diesen Endpunkt für schwächere Rollen zu
- *    öffnen — also zu entscheiden, wer künftig Mitglieder-Adressen lesen darf.
- *    Das ist eine Autorisierungs-Entscheidung, keine Nebenwirkung einer
- *    About-Seite, und sie gehört David. Bis dahin: wer das Team ohnehin
- *    verwaltet, sieht es hier; alle anderen sehen den Abschnitt nicht.
+ * 3. **Team** (`/api/community/team`): fehlt weiterhin in jeder App ohne
+ *    onboarding-Layer (apps/comments → 404) — dort entfällt der Abschnitt
+ *    lautlos. Für ANGEMELDETE wie für GÄSTE ist er seit Stufe 3 aber da
+ *    (Davids Entscheidung 2026-08-04).
+ *
+ *    Bis dahin hing er an `team.manage`, und das war eine ehrliche
+ *    Einschränkung: die Mitglieder-Naht liefert die E-Mail-Adressen ALLER
+ *    Mitglieder mit, sie für schwächere Rollen zu öffnen wäre eine
+ *    Autorisierungs-Entscheidung gewesen. Gelöst ist das jetzt NICHT dadurch,
+ *    dass jene Naht aufgeweicht wurde, sondern durch eine zweite, die weniger
+ *    KANN: nur Leitung und Moderation, nur Name und Bild, keine Adresse (pure
+ *    Regel `publicTeamFrom` im Control Plane). In einer geschlossenen
+ *    Community (C18) bleibt sie für Gäste zu.
  *
  * ── KEIN PROFIL-LINK ───────────────────────────────────────────────────────
  * Das Konzept nennt „Liste der Admins mit Profil-Link". Eine öffentliche
@@ -86,28 +88,26 @@ const { data: about } = await useAsyncData(
 
 const { data: team } = await useAsyncData(
   'discussions-about-team',
-  () => requestFetch<AboutTeamResponse>('/api/community/members').catch(() => null),
+  () => requestFetch<AboutTeamResponse>('/api/community/team').catch(() => null),
 )
 
 /**
  * Owner und Admin stehen zusammen — nach außen ist beides „die Leitung", und
  * die Unterscheidung (wer übertragen und abrechnen darf) geht niemanden etwas
- * an, der hier liest. Nur Mitglieder MIT Zugang: eine entfernte Person ist kein
- * Ansprechpartner mehr.
+ * an, der hier liest.
+ *
+ * NICHT MEHR NACH `status` GEFILTERT: das erledigt seit Stufe 3 die pure Regel
+ * im Control Plane (`publicTeamFrom` lässt nur Mitglieder MIT Zugang durch).
+ * Die Prüfung hier ein zweites Mal zu machen, hieße, sich auf ein Feld zu
+ * verlassen, das diese Antwort bewusst gar nicht mehr trägt.
  */
 const admins = computed(() =>
-  (team.value?.members ?? []).filter(m => m.status === 'active' && (m.role === 'owner' || m.role === 'admin')),
+  (team.value?.members ?? []).filter(m => m.role === 'owner' || m.role === 'admin'),
 )
 const moderators = computed(() =>
-  (team.value?.members ?? []).filter(m => m.status === 'active' && m.role === 'moderator'),
+  (team.value?.members ?? []).filter(m => m.role === 'moderator'),
 )
 const hasTeam = computed(() => admins.value.length > 0 || moderators.value.length > 0)
-
-/** Ohne Namen aus dem Runtime-Projekt bleibt die Adresse — so macht es die
- *  Mitglieder-Verwaltung auch (leere Zeile wäre die schlechtere Antwort). */
-function displayName(member: { name: string, email: string }): string {
-  return member.name || member.email
-}
 
 // Wer den Text schreiben DARF, bekommt den Hinweis — sonst niemand: eine
 // Aufforderung an jemanden ohne die Seite dafür ist nur Rauschen.
@@ -174,11 +174,11 @@ const figures = computed(() => [
         <ul class="mt-2 flex flex-wrap gap-2">
           <li
             v-for="member in admins"
-            :key="member.id"
+            :key="member.runtimeUserId"
             class="flex items-center gap-2 rounded-full bg-elevated/50 py-1 pe-3 ps-1"
           >
-            <UserAvatar :user="{ name: displayName(member) }" size="xs" />
-            <span class="text-sm">{{ displayName(member) }}</span>
+            <UserAvatar :user="{ name: member.name, prefs: { avatarUrl: member.avatarUrl } }" size="xs" />
+            <span class="text-sm">{{ member.name }}</span>
           </li>
         </ul>
       </div>
@@ -188,11 +188,11 @@ const figures = computed(() => [
         <ul class="mt-2 flex flex-wrap gap-2">
           <li
             v-for="member in moderators"
-            :key="member.id"
+            :key="member.runtimeUserId"
             class="flex items-center gap-2 rounded-full bg-elevated/50 py-1 pe-3 ps-1"
           >
-            <UserAvatar :user="{ name: displayName(member) }" size="xs" />
-            <span class="text-sm">{{ displayName(member) }}</span>
+            <UserAvatar :user="{ name: member.name, prefs: { avatarUrl: member.avatarUrl } }" size="xs" />
+            <span class="text-sm">{{ member.name }}</span>
           </li>
         </ul>
       </div>

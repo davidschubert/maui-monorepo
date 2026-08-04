@@ -499,3 +499,88 @@ export interface CommunityTeamResponse {
   /** Rolle des Abfragenden — die UI leitet daraus ab, was sie anbietet. */
   actorRole: CommunityRole | null
 }
+
+/**
+ * ── DIE ÖFFENTLICHE TEAM-SICHT (F1 Stufe 3, Davids Entscheidung 2026-08-04) ──
+ *
+ * „Wer ist hier ansprechbar?" ist eine Frage, die JEDER Besucher einer
+ * Community stellen darf — die About-Seite der Discussions beantwortet sie.
+ * Die bestehende Sicht (`CommunityMemberView`) kann das nicht liefern: sie
+ * verlangt `team.manage` und trägt E-Mail-Adressen, Beitritts- und
+ * Entzugs-Zeitpunkte ALLER Mitglieder.
+ *
+ * Diese Sicht ist deshalb nicht „dieselbe mit weniger Rechten", sondern eine
+ * ANDERE mit weniger FELDERN. Was hier nicht steht, kann auch nicht
+ * versehentlich mitgeliefert werden:
+ *  - KEINE E-Mail (die einzige PII, die das Control Plane überhaupt hält),
+ *  - kein `joinedAt`/`removedAt` (wann jemand kam oder ging, geht Dritte
+ *    nichts an),
+ *  - kein `self`, keine Einladungen, keine `actorRole` — dafür gibt es hier
+ *    keinen handelnden Menschen.
+ *
+ * Der `runtimeUserId` BLEIBT: ohne ihn kann die Runtime weder Namen noch
+ * Avatar auflösen (das Control Plane kennt beides nicht). Er ist eine
+ * Appwrite-Row-Id, keine Kontaktinformation — dieselbe Id steht ohnehin an
+ * jedem öffentlichen Beitrag als `authorId`.
+ */
+export interface PublicTeamMember {
+  runtimeUserId: string
+  role: CommunityRole
+  /** Reicht die RUNTIME nach (nur sie kennt die Nutzer ihres Projekts). */
+  name: string
+  /** Ebenfalls von der Runtime (prefs.avatarUrl); '' = keiner hinterlegt. */
+  avatarUrl: string
+}
+
+export interface PublicTeamResponse {
+  members: PublicTeamMember[]
+}
+
+/**
+ * WELCHE ROLLEN GELTEN ALS „ANSPRECHPARTNER" — und diese Liste ist der Kern
+ * der ganzen Sicht.
+ *
+ * Owner, Admin und Moderator: also genau die, die eingreifen können, wenn
+ * etwas schiefgeht. `editor` und `viewer` stehen NICHT darauf — ein Redakteur
+ * ist kein Ansprechpartner, und ein Betrachter erst recht nicht. Sie hier
+ * mitzuzählen hieße, die Mitgliederliste einer Community zu veröffentlichen,
+ * und das ist eine völlig andere Zusage.
+ */
+const PUBLIC_TEAM_ROLES: readonly CommunityRole[] = ['owner', 'admin', 'moderator']
+
+/**
+ * PURE (unit-getestet): aus den Rohzeilen die öffentliche Team-Sicht machen.
+ *
+ * Sie sitzt hier und nicht in der Route, weil sie die eigentliche
+ * Sicherheitsaussage ist — „nur diese Rollen, nur diese Felder, nur mit
+ * Zugang". Eine Route kann man beim nächsten Mal um ein Feld erweitern, ohne
+ * dass jemand hinsieht; eine getestete Regel nicht.
+ *
+ * `hasCommunityAccess` filtert Entfernte heraus: wer keinen Zugang mehr hat,
+ * ist kein Ansprechpartner — und dass er einmal Moderator WAR, geht Besucher
+ * nichts an.
+ *
+ * Die REIHENFOLGE ist die der Rollen-Liste, nicht die des Beitritts: die Seite
+ * zeigt „Leitung" vor „Moderation", und eine stabile Ordnung erspart ihr das
+ * Sortieren.
+ */
+export function publicTeamFrom(
+  members: readonly { runtimeUserId: string, role: string, status: CommunityMemberStatus }[],
+): PublicTeamMember[] {
+  const eligible = members.filter(member =>
+    hasCommunityAccess(member.status)
+    && member.runtimeUserId !== ''
+    && (PUBLIC_TEAM_ROLES as readonly string[]).includes(member.role))
+
+  return PUBLIC_TEAM_ROLES.flatMap(role =>
+    eligible
+      .filter(member => member.role === role)
+      .map(member => ({
+        runtimeUserId: member.runtimeUserId,
+        role,
+        // Beide leer — sie gehören der Runtime. Das Control Plane hätte sie
+        // nicht, und ein geratener Platzhalter wäre schlimmer als ein leeres Feld.
+        name: '',
+        avatarUrl: '',
+      })))
+}
