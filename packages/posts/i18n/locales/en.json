@@ -233,7 +233,7 @@
       "namePlaceholder": "e.g. General",
       "slug": "Address",
       "slugPlaceholder": "e.g. general",
-      "slugHint": "Part of the URL: /discussions/<address>. Cannot be changed later.",
+      "slugHint": "Part of the URL: /discussions/address — cannot be changed later.",
       "slugLocked": "The address is fixed since the category was created.",
       "descriptionLabel": "Description",
       "descriptionPlaceholder": "One sentence about this category (optional)",

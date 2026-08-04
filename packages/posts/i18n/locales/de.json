@@ -233,7 +233,7 @@
       "namePlaceholder": "z. B. Allgemein",
       "slug": "Adresse",
       "slugPlaceholder": "z. B. allgemein",
-      "slugHint": "Teil der URL: /discussions/<adresse>. Später nicht mehr änderbar.",
+      "slugHint": "Teil der URL: /discussions/adresse — später nicht mehr änderbar.",
       "slugLocked": "Die Adresse steht fest, seit die Kategorie angelegt wurde.",
       "descriptionLabel": "Beschreibung",
       "descriptionPlaceholder": "Ein Satz, worum es hier geht (optional)",

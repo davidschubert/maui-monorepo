@@ -664,7 +664,15 @@ Vollständiges Konzept: docs/CONCEPT.md
 - Domain-Types in shared/types/ (nie app/types/ — Server sieht sie sonst nicht)
 - Zod für alle Formulare (Schemas als create*Schema(t)-Factories),
   i18n keys für User-facing Strings (keine hartcodierten Strings im Markup/Toasts);
-  '@' in Locale-Messages als {'@'} escapen
+  '@' in Locale-Messages als {'@'} escapen. KEINE SPITZEN KLAMMERN in
+  Locale-Messages (2026-08-04 live erwischt): `/discussions/<adresse>` als
+  Platzhalter hielt nuxt-i18n für HTML — der Nachrichten-Compiler steigt dann
+  auf dem CLIENT aus, SSR rendert noch übersetzt, im Browser stehen rohe
+  Schlüssel (`home.title`), daraus folgt ein Hydration-Mismatch und die
+  gesamte Client-Seite ist unzuverlässig. Zwei E2E-Specs (Realtime-Pille,
+  Embed-Composer) starben daran; Unit-Tests, Typecheck und Lint sehen es NICHT,
+  nur `nuxt-i18n WARN Detected HTML in 1 message` im Dev-Log. Platzhalter ohne
+  Klammern schreiben (`/discussions/adresse`).
 - i18n-Strategie 'prefix_except_default' (en Default ohne Prefix unter /...,
   de unter /de/*, detectBrowserLanguage redirectOn: 'all' → jede Seite folgt dem
   i18n_redirected-Cookie, nicht nur '/'; BEWUSST ohne fallbackLocale — signal-
