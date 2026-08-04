@@ -11,7 +11,7 @@ export default defineNuxtConfig({
   // keiner Pool-App montiert — `recordActivity()` schrieb im Pool also Zeilen,
   // die niemand lesen konnte. Reihenfolge diktiert EXTENDS_ORDER in
   // scripts/check-manifests.mjs (media nach events, activity nach courses).
-  extends: ['../../packages/themes', '../../packages/admin', '../../packages/blueprint', '../../packages/comments', '../../packages/posts', '../../packages/events', '../../packages/media', '../../packages/feedback', '../../packages/courses', '../../packages/activity', '../../packages/moderation', '../../packages/pages', '../../packages/onboarding', '../../packages/core', '../../packages/system'],
+  extends: ['../../packages/themes', '../../packages/admin', '../../packages/blueprint', '../../packages/comments', '../../packages/posts', '../../packages/events', '../../packages/media', '../../packages/feedback', '../../packages/courses', '../../packages/activity', '../../packages/moderation', '../../packages/pages', '../../packages/onboarding', '../../packages/analytics', '../../packages/core', '../../packages/system'],
 
   // Port pro App eindeutig vergeben (Konvention: 3001 comments, 3002+ weitere)
   devServer: {

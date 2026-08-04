@@ -3,6 +3,23 @@ export default defineAppConfig({
     // homeUrl: der Ausweg von einem unbekannten Wildcard-Host (C12b) — diese
     // App bedient `*.pukalani.app`, also landen hier alle Vertipper.
     brand: { name: 'Pukalani', homeUrl: 'https://pukalani.app' },
+    /**
+     * BESUCHERSTATISTIK ALS SELBSTBEDIENUNG (2026-08-04, Layer `analytics`).
+     *
+     * Bewusst OHNE `src`/`domain`: diese App bedient jeden Mandanten-Host, und
+     * eine gebaute Config kann nur EINE Plausible-Site nennen — sie würde die
+     * Besuche aller Communities in denselben Topf werfen. Gemessen wird
+     * deshalb nur, wo ein Owner seine eigene Script-Id hinterlegt hat
+     * (/dashboard/analytics); ohne Eintrag wird KEIN Script geladen.
+     *
+     * Plausible ist cookielos und speichert nichts Personenbezogenes — deshalb
+     * bleibt `pukalani.consent` weiter aus (kein Banner).
+     */
+    analytics: {
+      enabled: true,
+      provider: 'plausible' as const,
+      instance: 'https://plausible.hawaii.studio',
+    },
     // Demo-Community „Morgenlicht" (Tagesliste 2026-07-26): der Banner macht
     // auf diesen Hosts sichtbar, dass Inhalte Beispiel-Material sind; der CTA
     // führt in den Self-Service-Trichter.
@@ -255,6 +272,12 @@ export default defineAppConfig({
         // ein bewusstes „für alle" — die Zeile steht trotzdem hier, damit die
         // Zuordnung eine ENTSCHEIDUNG ist und nicht das Fehlen einer.
         activity: 'basic',
+        // Besucherstatistik (2026-08-04): ab Personal. Begründung wie bei der
+        // Mediathek — die Messung läuft auf UNSERER Plausible-Instanz, jede
+        // zusätzliche Site kostet dort laufend Speicher und Rechenzeit
+        // (ClickHouse). Eine Basic-Community bekommt deshalb kein Script; die
+        // Zeile ist ohne Code-Änderung umstellbar.
+        analytics: 'personal',
       },
     },
   },

@@ -15,6 +15,13 @@ export default defineAppConfig({
       provider: 'plausible' as const,
       snippet: 'v3' as const,
       src: 'https://plausible.hawaii.studio/js/pa-NFzv_HzyhC-TnVE577Kx6.js',
+      /**
+       * SELBSTBEDIENUNG (2026-08-04): mit der Basis-Adresse darf der Betreiber
+       * die Site unter /dashboard/analytics wechseln, ohne zu deployen — eine
+       * dort hinterlegte Script-Id schlägt das `src` oben. Solange nichts
+       * hinterlegt ist, bleibt es exakt beim Wert dieser Datei.
+       */
+      instance: 'https://plausible.hawaii.studio',
     },
     /**
      * RECHTSLINKS IM FUSS (Paritäts-Audit 2026-08-02).

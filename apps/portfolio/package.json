@@ -16,6 +16,7 @@
     "@iconify-json/circle-flags": "catalog:",
     "@iconify-json/ph": "catalog:",
     "@pukalani/admin": "workspace:*",
+    "@pukalani/analytics": "workspace:*",
     "@pukalani/core": "workspace:*",
     "@pukalani/system": "workspace:*",
     "@pukalani/themes": "workspace:*",

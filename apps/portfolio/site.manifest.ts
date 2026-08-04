@@ -10,5 +10,9 @@ export default {
   products: [
     'themes',
     'admin',
+    // Besucherstatistik (2026-08-04): misst schon über einen fest
+    // konfigurierten `src`; der Layer macht die Site im Dashboard wechselbar,
+    // ohne dass dafür deployt werden muss.
+    'analytics',
   ],
 } satisfies SiteManifest
