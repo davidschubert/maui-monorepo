@@ -393,3 +393,45 @@ Baustart (Feature-Stopp, siehe OPEN-ITEMS).
 7. **Seitenleiste: meine letzten 5 Kategorien** (in denen ich gepostet oder
    kommentiert habe); ohne eigene Aktivität Rückfall auf die 5 größten. Plus
    „All categories".
+
+---
+
+# Teil 4 — Stufe-4-Entscheidungen (David, 2026-08-04)
+
+**Zuschnitt Stufe 4: nur heute messbare Badges.** Alles, was an Upvotes,
+eigenen Beiträgen, Mitgliedschaftsdauer und Profil hängt — Großteil von
+„Getting started"/„Community", komplett „Posting" — plus die Ereignis-Zählung
+je Nutzer als Fundament. Fehlende Badges kommen automatisch dazu, sobald ihre
+Funktion existiert.
+
+**Tracking-Bündel: NICHTS davon.** Lese-Fortschritt, Besuchs-Streaks und
+Klick-Zählung geteilter Links verlangen personenbezogene Verhaltensprotokolle
+und widersprechen dem Versprechen „Datenschutz-nativ, ohne Werbe-Tracking".
+Kostet 9 Badges (Reader · Read Guidelines · Enthusiast/Aficionado/Devotee ·
+Nice/Good/Great Share · Popular/Hot/Famous Link) — die entfallen DAUERHAFT,
+nicht „später".
+
+**Schreib-Werkzeuge — gebaut wird (alles über die Nuxt-UI-Editor-Bausteine,
+nichts selbst gebaut):** Zitieren (UEditor Blockquote) · Emoji-Auswahl
+(UEditorEmojiMenu) · Themen verlinken mit Rückverweis (UEditorSuggestionMenu).
+**Onebox NICHT** — der Server holte fremde URLs ab (SSRF); wenn, dann als
+eigenes Paket mit Sicherheitsentwurf.
+
+**Soziale Mechaniken — alle vier gebaut**, in dieser Reihenfolge:
+1. **Einladungen durch Mitglieder** (heute nur Owner/Admin) — der einzige
+   echte Wachstumshebel, plattformweit nützlich. Braucht ein Kontingent gegen
+   Missbrauch. Bringt Promoter/Campaigner/Champion.
+2. **Tages-Limit für Likes** — klein; macht Likes knapp. Bringt Out of
+   Love/Higher Love/Crazy in Love.
+3. **Emoji-Reaktionen neben den Stimmen.** Ich hatte abgeraten (drittes Signal
+   am selben Beitrag); Davids Entscheidung steht. **Folgeregel, damit die
+   Bedeutung eindeutig bleibt:** Badges zählen weiter AUSSCHLIESSLICH Upvotes
+   (Entscheidung 4 gilt unverändert), Reaktionen sind reiner Ausdruck und
+   badge-neutral — sonst hätte „Like" zwei Quellen.
+4. **Private Nachrichten** — eigenes Produkt mit eigener Missbrauchsfläche
+   (Belästigung, Spam) und eigener Moderation. Bekommt ein EIGENES Konzept vor
+   dem Bau, wie Discussions eines hat; nicht als Anhängsel von Stufe 4.
+
+**Reihenfolge:** Stufe 4 = Badges (heute messbar). Danach die Werkzeuge, dann
+die sozialen Mechaniken 1–3, dann PN mit eigenem Konzept. Trust Levels (Stufe
+5) bleiben davon unberührt und brauchen weiterhin ihr eigenes Ja.

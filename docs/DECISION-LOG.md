@@ -7,6 +7,26 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-08-04 — Stufe 4: Badge-Zuschnitt, Tracking abgelehnt, vier soziale Mechaniken
+
+**Davids Entscheidungen** (Volltext: DISCUSSIONS-KONZEPT.md Teil 4): Stufe 4
+baut **nur heute messbare Badges** · das **Tracking-Bündel entfällt dauerhaft**
+(Lese-Fortschritt, Besuchs-Streaks, Klick-Zählung — Widerspruch zu
+„Datenschutz-nativ"; kostet 9 Badges) · Schreib-Werkzeuge **Zitieren,
+Emoji-Auswahl, Themen-Rückverweise**, **kein Onebox** (SSRF) · **alle vier**
+sozialen Mechaniken: Mitglieder-Einladungen, Tages-Like-Limit,
+Emoji-Reaktionen, private Nachrichten. Bei den Reaktionen hatte ich abgeraten
+(drittes Signal); Entscheidung steht, deshalb die Folgeregel: **Badges zählen
+weiter nur Upvotes**, Reaktionen sind badge-neutral. **Private Nachrichten
+bekommen ein eigenes Konzept** vor dem Bau.
+
+**Davids Vorgabe zum Editor:** Editor-Funktionen ausschließlich über die
+Nuxt-UI-Bausteine (`UEditor` inkl. Blockquote, `UEditorToolbar`,
+`UEditorEmojiMenu`, `UEditorMentionMenu`, `UEditorSuggestionMenu`,
+`UEditorDragHandle`) — nichts selbst bauen. Steht jetzt in CLAUDE.md.
+
+---
+
 ## 2026-08-04 — Zwei Stufe-2-Nachfragen (Team-Liste, Seitenleiste)
 
 **Davids Entscheidungen** (je der Empfehlung gefolgt): **Team-Liste redigiert

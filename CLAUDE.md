@@ -651,7 +651,12 @@ Vollständiges Konzept: docs/CONCEPT.md
   2026-07-30) — Sortierung, Auswahl und Paginierung kommen mitgeliefert und
   verhalten sich überall gleich. Handgebaute Listen nur mit Grund, und der
   gehört an die Stelle geschrieben. Leerer Zustand über `CoreEmptyState`.
-- <script setup lang="ts">, Nuxt UI Komponenten bevorzugen. Auth-Formulare:
+- <script setup lang="ts">, Nuxt UI Komponenten bevorzugen. FÜR EDITOR-
+  FUNKTIONEN sind sie GESETZT (Davids Vorgabe 2026-08-04): `UEditor`
+  (inkl. Blockquote fürs Zitieren), `UEditorToolbar`, `UEditorEmojiMenu`,
+  `UEditorMentionMenu`, `UEditorSuggestionMenu`, `UEditorDragHandle`. Nichts
+  davon selbst bauen — der Editor im Seiten-Dashboard und der Composer nutzen
+  UEditor bereits; neue Editor-Fähigkeiten docken dort an. Auth-Formulare:
   UAuthForm ist die VORLAGE (Optik/Struktur) — Login/Register/OTP sind bewusst
   eigene UForm-Implementierungen (2-Schritt-OTP, Security-Phrase, geteilter
   E-Mail-State, AGB-Gate); Details in docs/referenz/AUTH-FORMS.md
