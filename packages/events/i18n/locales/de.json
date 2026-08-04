@@ -109,10 +109,12 @@
       "confirmCancelText": "„{title}“ wird für alle als abgesagt angezeigt. Angemeldete Gäste sehen die Absage sofort.",
       "actionFailed": "Aktion fehlgeschlagen.",
       "actionFailedHint": "Am Termin hat sich nichts geändert. Lade die Seite neu und versuch es noch einmal.",
+      "hiddenByModeration": "Von der Moderation ausgeblendet",
       "status": {
         "draft": "Entwurf",
         "published": "Veröffentlicht",
-        "cancelled": "Abgesagt"
+        "cancelled": "Abgesagt",
+        "hidden": "Ausgeblendet"
       },
       "form": {
         "title": "Titel",
@@ -211,11 +213,47 @@
       "biweekly": "Alle 2 Wochen",
       "monthly": "Monatlich",
       "instanceHint": "Teil einer Event-Serie"
+    },
+    "report": {
+      "reasons": {
+        "spam": "Spam oder Werbung",
+        "scam": "Betrug — dieses Event gibt es nicht",
+        "harassment": "Beleidigend oder herabwürdigend",
+        "offtopic": "Passt nicht hierher",
+        "other": "Etwas anderes"
+      }
+    },
+    "moderation": {
+      "title": "Events moderieren",
+      "col": {
+        "event": "Event",
+        "organizer": "Veranstalter",
+        "start": "Beginn",
+        "state": "Zustand"
+      },
+      "filter": {
+        "all": "Alle",
+        "reported": "Gemeldet",
+        "hidden": "Ausgeblendet"
+      },
+      "reports": "{count} Meldung | {count} Meldungen",
+      "rowActions": "Aktionen für dieses Event",
+      "hide": "Ausblenden",
+      "restore": "Wieder anzeigen",
+      "notHideable": "Abgesagte Events lassen sich nicht ausblenden",
+      "hidden": "Event ausgeblendet.",
+      "hiddenHint": "Niemand außer der Moderation sieht es noch — auch das Titelbild nicht. Offene Meldungen dazu sind erledigt.",
+      "restored": "Event wieder sichtbar.",
+      "actionFailed": "Aktion fehlgeschlagen.",
+      "actionFailedHint": "Am Event hat sich nichts geändert. Lade die Seite neu und versuch es noch einmal.",
+      "emptyTitle": "Nichts zu moderieren",
+      "empty": "Hier stehen die veröffentlichten Events dieser Community. Gemeldete erkennst du am Fähnchen."
     }
   },
   "admin": {
     "nav": {
-      "events": "Events"
+      "events": "Events",
+      "eventsModeration": "Events moderieren"
     }
   },
   "feed": {

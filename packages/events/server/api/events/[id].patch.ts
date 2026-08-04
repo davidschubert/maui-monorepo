@@ -1,5 +1,6 @@
 import { Query } from 'node-appwrite'
 import { eventEditSchema } from '../../../schemas/event'
+import { eventIsEditable } from '../../../shared/eventModerationPolicy'
 import { EVENTS_TABLE, isSeriesMaster, type EventRow } from '../../../shared/types/event'
 
 /**
@@ -35,8 +36,25 @@ export default defineEventHandler(async (event) => {
   const db = tenantDb(event, { as: 'operator', actor })
 
   const row = await db.get<EventRow>(EVENTS_TABLE, id, 'Event not found')
-  if (row.status === 'cancelled') {
-    throw createError({ status: 409, statusText: 'Cancelled events cannot be edited' })
+  /**
+   * Abgesagt UND ausgeblendet sind für die Redaktion zu (F15) — die Regel steht
+   * pur in `eventModerationPolicy.ts`, damit das Aktions-Menü dieselbe Antwort
+   * gibt wie diese Route.
+   *
+   * `hidden` ist hier neu und der eigentliche Grund für die Auslagerung:
+   * `events.manage` (Editor) und `events.moderate` (Moderator) sind Geschwister-
+   * Capabilities. Ohne diese Zeile könnte ein Editor einen von der Moderation
+   * ausgeblendeten Termin im Bearbeiten-Dialog wieder auf „Veröffentlicht"
+   * stellen und damit ein Urteil aufheben, dessen Capability er nie besitzt.
+   * Zurück in die Welt kommt ein ausgeblendeter Termin ausschließlich über
+   * `POST /api/events/:id/restore`.
+   */
+  if (!eventIsEditable(row.status)) {
+    throw createError({
+      status: 409,
+      statusText: 'Cancelled or hidden events cannot be edited',
+      data: { code: row.status === 'hidden' ? 'event_hidden' : 'event_cancelled' },
+    })
   }
 
   // Zeitfenster gegen den ZUSAMMENGEFÜHRTEN Zustand prüfen (PATCH kann nur

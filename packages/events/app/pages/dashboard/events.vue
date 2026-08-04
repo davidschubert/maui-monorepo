@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
 import { createEventSchema } from '../../../schemas/event'
+import { eventIsEditable } from '../../../shared/eventModerationPolicy'
 import type { EventRow } from '../../../shared/types/event'
 import { effectiveLocationType, isSeriesEvent, isSeriesMaster, paidAccessChoosable } from '../../../shared/types/event'
 
@@ -360,7 +361,14 @@ async function cancelEvent(row: EventRow) {
 }
 
 const statusColor = (row: EventRow) =>
-  row.status === 'published' ? 'success' : row.status === 'cancelled' ? 'error' : 'neutral'
+  row.status === 'published'
+    ? 'success'
+    : row.status === 'cancelled'
+      ? 'error'
+      // F15: ausgeblendet ist eine Moderations-Aussage, kein Redaktions-Zustand —
+      // deshalb `warning` und nicht das `neutral` des Entwurfs. Ein Editor soll
+      // auf einen Blick sehen, dass hier jemand ANDERES eingegriffen hat.
+      : row.status === 'hidden' ? 'warning' : 'neutral'
 
 // Ort und Teilnehmerzahl sind Kontext — auf schmalen Schirmen fallen sie weg.
 const HIDE_MD = { td: 'hidden md:table-cell', th: 'hidden md:table-cell' }
@@ -376,19 +384,30 @@ const columns = computed<TableColumn<EventRow>[]>(() => [
 ])
 
 /**
- * Zeilen-Aktionen — die Bedingungen sind unverändert: „Serie beenden" nur
- * beim Serien-Master mit laufender Regel, Veröffentlichen/Zurückziehen je
- * nach Status, Bearbeiten und Absagen nicht mehr bei abgesagten Terminen.
+ * Zeilen-Aktionen — „Serie beenden" nur beim Serien-Master mit laufender Regel,
+ * Veröffentlichen/Zurückziehen je nach Status, Bearbeiten und Absagen nicht mehr
+ * bei abgesagten Terminen.
+ *
+ * AUSGEBLENDETE TERMINE (F15) bekommen KEINE Aktion, sondern einen Satz. Der
+ * Grund ist keine Bequemlichkeit: `eventIsEditable()` sperrt sie in der
+ * PATCH-Route, und zurück in die Welt kommen sie nur über
+ * `POST /api/events/:id/restore` hinter `events.moderate` — einer Capability, die
+ * ein Editor per Definition nicht hat. Ein Knopf hier wäre also entweder wirkungslos
+ * oder ein 409; ein leeres Menü wiederum sähe nach einem Fehler aus. Deshalb ein
+ * deaktivierter Eintrag, der sagt, WER das war und wo es hingehört.
  */
 function rowActions(row: EventRow): DropdownMenuItem[][] {
   const items: DropdownMenuItem[] = []
+  if (row.status === 'hidden') {
+    return [[{ label: t('events.admin.hiddenByModeration'), icon: 'i-ph-eye-slash', disabled: true }]]
+  }
   if (row.status === 'draft') {
     items.push({ label: t('events.admin.publish'), icon: 'i-ph-paper-plane-tilt', color: 'success', onSelect: () => { void setStatus(row, 'published') } })
   }
   if (row.status === 'published') {
     items.push({ label: t('events.admin.unpublish'), icon: 'i-ph-eye-slash', onSelect: () => { void setStatus(row, 'draft') } })
   }
-  if (row.status !== 'cancelled') {
+  if (eventIsEditable(row.status)) {
     items.push({ label: t('events.admin.edit'), icon: 'i-ph-pencil-simple', onSelect: () => openEdit(row) })
   }
   if (isSeriesMaster(row) && (!row.seriesUntil || new Date(row.seriesUntil) > new Date())) {

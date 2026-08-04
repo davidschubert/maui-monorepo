@@ -152,25 +152,25 @@ async function share() {
 }
 
 /**
- * ── KEIN MELDE-KNOPF FÜR EVENTS (Moderations-Audit Befund 4, 2026-08-01) ─────
+ * ── DER MELDE-KNOPF IST ZURÜCK (F15, 2026-08-03) ────────────────────────────
  *
- * Hier stand einer. Er schickte `targetType: 'event'` an /api/reports und
- * zeigte danach „Die Moderation sieht sich die Meldung an." Das stimmte nicht:
- * kein Eskalations-Handler kennt den Typ 'event', und keine Queue fragt ihn ab
- * (comments fragt 'comment', posts fragt 'post'). Die Zeile entstand, wurde
- * gezählt — und nie von einem Menschen gesehen.
+ * Hier stand bis zum 2026-08-01 einer, und er wurde ENTFERNT (Moderations-Audit
+ * Befund 4): er schickte `targetType: 'event'` an /api/reports und versprach
+ * „Die Moderation sieht sich die Meldung an." Das stimmte nicht — keine Queue
+ * kannte den Typ. Die Zeilen entstanden, wurden gezählt und nie gesehen.
  *
- * Die ehrliche Lösung wäre eine Moderations-Queue für Events. Die ist NICHT
- * klein: Events kennen nur draft/published/cancelled, es fehlt also der
- * Moderations-Zustand (Migration + Schema + Filter), dazu eine eigene
- * Capability `events.moderate`, eine Queue-Route, eine Dashboard-Seite und ihre
- * Texte. Das ist ein Feature, kein Fix — es steht als F-Zeile in
- * docs/OPEN-ITEMS.md.
+ * Was seitdem gebaut wurde, macht die Zusage wahr: `events.moderate`, der Status
+ * `hidden`, die Routen `/api/events/{moderation,:id/hide,:id/restore}`, die Seite
+ * `/dashboard/events-moderation` und die Registrierung des Ziel-Typs
+ * (`server/plugins/report-target.ts`). Erst damit darf der Knopf wieder da sein.
  *
- * Bis dahin gilt: lieber kein Knopf als ein Knopf, der ins Leere meldet.
- * Meldbare Ziel-Typen registrieren ihre Layer seitdem ausdrücklich
- * (registerReportTarget) — ein wiederbelebter Knopf ohne Queue liefe jetzt in
- * ein 400 statt in eine stille Karteileiche.
+ * ER KOMMT ALS SLOT, NICHT ALS IMPORT. `ReportButton` gehört dem moderation-
+ * Layer, und ein Produkt-Layer darf einen anderen nicht kennen (A14) — in einer
+ * Silo-App ohne moderation wäre der Import ein Build-Fehler. Gefüllt wird der
+ * Slot deshalb von der KOMPOSITION, genau wie `#comments`:
+ * `packages/blueprint/app/pages/events/[id].vue`. Bleibt er leer, fehlt nur der
+ * Knopf — und das ist dann ehrlich, denn ohne moderation gibt es auch keine
+ * Queue.
  */
 
 /** Gäste: geblurte Platzhalter statt echter Teilnehmer */
@@ -381,8 +381,12 @@ const start = computed(() => new Date(event.value.startAt))
           <span>{{ t('events.detail.organizer', { name: event.organizerName }) }}</span>
         </div>
 
-        <div class="mt-4 flex items-center gap-3">
+        <div class="mt-4 flex flex-wrap items-center gap-3">
           <EventVoteButtons :event="event" :my-vote="myVote" @updated="onVoted" />
+          <!-- Melden (F15) — gefüllt von der Bauplan-Komposition, s. Kopfkommentar.
+               Steht bewusst NEBEN den Stimmen und nicht in der Info-Karte: es ist
+               eine Aussage über den INHALT, und der steht in dieser Spalte. -->
+          <slot name="actions" :event="event" />
         </div>
 
         <h2 class="mt-8 mb-2 font-semibold">{{ t('events.detail.details') }}</h2>

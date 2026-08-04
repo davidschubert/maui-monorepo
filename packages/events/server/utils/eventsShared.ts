@@ -8,7 +8,9 @@ import { EVENT_RSVPS_TABLE, EVENT_VOTES_TABLE, type EventAttendee, type EventRsv
  * Community (`read("any")` öffentlich, `read("label:<communityId>")`
  * geschlossen). Alle Stellen rufen `withPublishedRead()` /
  * `withoutPublishedRead()` (core). Unverändert gilt: published UND cancelled
- * tragen sie, drafts nicht.
+ * tragen sie, drafts nicht — und seit F15 (2026-08-03) tragen sie auch
+ * ausgeblendete Termine (`hidden`) nicht: das Ausblenden entzieht das Leserecht
+ * genau so, wie es das Zurückziehen tut.
  */
 
 /**

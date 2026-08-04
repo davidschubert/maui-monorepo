@@ -49,6 +49,29 @@ export default defineAppConfig({
           group: 'products',
           order: 3,
         },
+        {
+          // F15: ZWEI Einträge auf dasselbe Produkt — dieselbe Begründung wie bei
+          // posts (C16). Eine Registrierung trägt genau EINE `requiredCapability`,
+          // und die Zielgruppen überschneiden sich nicht: ein Editor hat
+          // `events.manage` OHNE `events.moderate`, ein Moderator umgekehrt
+          // (communityAuthz.ts — Editor und Moderator sind Geschwister, kein
+          // Chain). Ein einzelner Eintrag müsste sich für eine der beiden
+          // entscheiden und ließe die andere Rolle vor einer Wand stehen — genau
+          // so wäre `events.moderate` vom ersten Tag an eine Capability ohne
+          // Fläche gewesen. Admin und Owner halten beide und sehen beide Einträge;
+          // das ist richtig, es sind zwei Aufgaben (eigene Termine pflegen vs.
+          // fremde beurteilen).
+          id: 'events-moderation',
+          scope: 'community',
+          productKey: 'events',
+          planProduct: 'events',
+          labelKey: 'admin.nav.eventsModeration',
+          icon: 'i-ph-flag',
+          to: '/dashboard/events-moderation',
+          requiredCapability: 'events.moderate',
+          group: 'products',
+          order: 4,
+        },
       ],
     },
   },

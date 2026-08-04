@@ -8,9 +8,23 @@ export const EVENT_TICKETS_TABLE = 'event_tickets'
 /** Bucket der Cover-Bilder (Migration events-002; fileSecurity seit events-009). */
 export const EVENT_COVERS_BUCKET = 'event-covers'
 
-/** draft = nur Verwaltung sichtbar · cancelled = Soft-Cancel (Row bleibt, sichtbar) */
-export type EventStatus = 'draft' | 'published' | 'cancelled'
-export const EVENT_STATUSES = ['draft', 'published', 'cancelled'] as const
+/**
+ * draft = nur Verwaltung sichtbar · cancelled = Soft-Cancel (Row bleibt, sichtbar)
+ * hidden = von der Moderation ausgeblendet (F15, 2026-08-03)
+ *
+ * `hidden` UND `draft` sehen von außen gleich aus (kein Leserecht), sind aber
+ * zwei verschiedene Aussagen und deshalb zwei Werte: `draft` sagt „die Redaktion
+ * ist noch nicht fertig" und gehört dem Verfasser, `hidden` sagt „ein Moderator
+ * hat das gestoppt" und gehört der Moderation. Ein gemeinsamer Wert hätte
+ * bedeutet, dass ein Editor die Entscheidung eines Moderators mit einem Klick auf
+ * „Veröffentlichen" aufhebt — genau das verhindert `eventModerationPolicy.ts`.
+ *
+ * KEIN Zod-Wert: `hidden` steht bewusst NICHT in createEventSchema/
+ * createEventEditSchema. Gesetzt wird er ausschließlich von den beiden
+ * Moderations-Routen hinter `events.moderate`, nie über das Bearbeiten-Formular.
+ */
+export type EventStatus = 'draft' | 'published' | 'cancelled' | 'hidden'
+export const EVENT_STATUSES = ['draft', 'published', 'cancelled', 'hidden'] as const
 
 export const RSVP_STATUSES = ['going', 'maybe', 'declined'] as const
 export type RsvpStatus = (typeof RSVP_STATUSES)[number]
@@ -203,4 +217,17 @@ export interface EventListResponse {
 export interface RsvpResponse {
   event: EventRow
   myRsvp: RsvpStatus | null
+}
+
+/**
+ * Antwort der Moderations-Queue (`GET /api/events/moderation`, F15).
+ *
+ * Dieselbe Form wie `PostModerationResponse` — MINUS `aiAssist`: der
+ * KI-Moderations-Assist ist für Termine bewusst nicht gebaut (Begründung im
+ * Kopf von `server/api/events/moderation.get.ts`).
+ */
+export interface EventModerationResponse {
+  rows: EventRow[]
+  /** Anzahl OFFENER Meldungen je Event-Id (targetType 'event') */
+  reportCounts: Record<string, number>
 }

@@ -17,6 +17,36 @@
 import type { EventDetailResponse } from '../../../../events/shared/types/event'
 
 const route = useRoute()
+const { t } = useI18n()
+
+/**
+ * MELDEN (F15, 2026-08-03): `ReportButton` gehört dem moderation-Layer,
+ * `EventDetail` dem events-Layer — die beiden dürfen einander nicht kennen (A14).
+ * blueprint ist der EINE Layer, der beide kennen darf, also wird die Verdrahtung
+ * genau hier gemacht, exakt wie beim `#comments`-Slot darunter.
+ *
+ * Der Reason-Katalog kommt vom Konsumenten (Muster CommentItem.vue) — die
+ * Moderation bleibt domänen-agnostisch. `scam` steht bewusst als eigener Grund
+ * darin und nicht unter „Etwas anderes": bei einem TERMIN ist „das gibt es gar
+ * nicht" der häufigste echte Missbrauch, und ein Grund, den der Meldende selbst
+ * eintippen muss, wird seltener gemeldet und schlechter sortiert.
+ *
+ * KEIN lokaler `reported`-Zustand über den Seitenwechsel hinaus: anders als eine
+ * Kommentarliste (die ihren Store hat) ist das hier EIN Ziel auf EINER Seite. Der
+ * Knopf schaltet nach dem Absenden auf „Zurückziehen" um; nach einem Reload steht
+ * er wieder auf „Melden" und ein zweiter Versuch läuft in das 409
+ * `already_reported`, das ReportButton bereits als Erfolg behandelt (Befund 3).
+ * Eine eigene „habe ich schon gemeldet?"-Route dafür wäre ein Request pro
+ * Seitenaufruf für eine Kosmetik.
+ */
+const reported = ref(false)
+const reportReasons = computed(() => [
+  { value: 'spam', label: t('events.report.reasons.spam') },
+  { value: 'scam', label: t('events.report.reasons.scam') },
+  { value: 'harassment', label: t('events.report.reasons.harassment') },
+  { value: 'offtopic', label: t('events.report.reasons.offtopic') },
+  { value: 'other', label: t('events.report.reasons.other') },
+])
 
 const { data: initial, error } = await useFetch<EventDetailResponse>(`/api/events/${route.params.id}`)
 if (error.value || !initial.value) {
@@ -37,6 +67,16 @@ const ticketCheckoutPath = computed(() =>
 <template>
   <UContainer class="max-w-2xl py-8">
     <EventDetail :initial="initial!" :ticket-checkout-path="ticketCheckoutPath">
+      <template #actions="{ event }">
+        <ReportButton
+          target-type="event"
+          :target-id="event.$id"
+          :reasons="reportReasons"
+          :reported="reported"
+          size="sm"
+          @update:reported="(v: boolean) => { reported = v }"
+        />
+      </template>
       <template #comments="{ event }">
         <CommentSection :target-id="event.$id" target-type="event" :target-url="`/events/${event.$id}`" />
       </template>

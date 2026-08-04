@@ -1,5 +1,6 @@
 import { AppwriteException, Permission, Query, Role } from 'node-appwrite'
 import { eventVoteSchema } from '../../../../schemas/event'
+import { eventIsPubliclyVisible } from '../../../../shared/eventModerationPolicy'
 import { EVENT_VOTES_TABLE, EVENTS_TABLE, type EventRow, type EventVote, type EventVoteResponse, type EventVoteValue } from '../../../../shared/types/event'
 
 /**
@@ -34,10 +35,20 @@ export default defineEventHandler(async (event): Promise<EventVoteResponse> => {
   const db = tenantDb(event)
   const ops = tenantDb(event, { as: 'operator' })
 
-  // Nur sichtbare Events sind votbar (published/cancelled — drafts nie);
-  // get belegt die Zugehörigkeit — ein fremder Mandant bekommt 404.
+  /**
+   * Nur sichtbare Events sind votbar (published/cancelled — drafts nie);
+   * get belegt die Zugehörigkeit — ein fremder Mandant bekommt 404.
+   *
+   * DIE FRAGE STEHT SEIT F15 IN `eventModerationPolicy.ts`, weil hier ein Loch
+   * war: die Zeile prüfte nur `draft`. Diese Route holt den Termin mit der
+   * OPERATOR-Klinke und liest damit ABSICHTLICH an den Row-Permissions vorbei —
+   * der Entzug des Leserechts beim Ausblenden hätte sie also nicht gebremst, und
+   * ein ausgeblendeter Termin wäre weiter bewertbar geblieben. Überall dort, wo
+   * eine Route den Admin-Client benutzt, muss der Status die Sichtbarkeit
+   * ausdrücklich nachbauen.
+   */
   const target = await ops.get<EventRow>(EVENTS_TABLE, id, 'Event not found')
-  if (target.status === 'draft') {
+  if (!eventIsPubliclyVisible(target.status)) {
     throw createError({ status: 409, statusText: 'Event not votable' })
   }
 

@@ -109,10 +109,12 @@
       "confirmCancelText": "“{title}” will show as cancelled for everyone. Registered guests see the cancellation right away.",
       "actionFailed": "Action failed.",
       "actionFailedHint": "Nothing about the event changed. Reload the page and try again.",
+      "hiddenByModeration": "Hidden by moderation",
       "status": {
         "draft": "Draft",
         "published": "Published",
-        "cancelled": "Cancelled"
+        "cancelled": "Cancelled",
+        "hidden": "Hidden"
       },
       "form": {
         "title": "Title",
@@ -211,11 +213,47 @@
       "biweekly": "Every 2 weeks",
       "monthly": "Monthly",
       "instanceHint": "Part of an event series"
+    },
+    "report": {
+      "reasons": {
+        "spam": "Spam or advertising",
+        "scam": "A scam — this event does not exist",
+        "harassment": "Abusive or demeaning",
+        "offtopic": "Does not belong here",
+        "other": "Something else"
+      }
+    },
+    "moderation": {
+      "title": "Moderate events",
+      "col": {
+        "event": "Event",
+        "organizer": "Organizer",
+        "start": "Starts",
+        "state": "State"
+      },
+      "filter": {
+        "all": "All",
+        "reported": "Reported",
+        "hidden": "Hidden"
+      },
+      "reports": "{count} report | {count} reports",
+      "rowActions": "Actions for this event",
+      "hide": "Hide",
+      "restore": "Show again",
+      "notHideable": "Cancelled events cannot be hidden",
+      "hidden": "Event hidden.",
+      "hiddenHint": "Nobody but moderation can see it any more — the cover image included. Open reports about it are now closed.",
+      "restored": "Event visible again.",
+      "actionFailed": "Action failed.",
+      "actionFailedHint": "Nothing about the event changed. Reload the page and try again.",
+      "emptyTitle": "Nothing to moderate",
+      "empty": "This is where the published events of this community show up. Reported ones carry a flag."
     }
   },
   "admin": {
     "nav": {
-      "events": "Events"
+      "events": "Events",
+      "eventsModeration": "Moderate events"
     }
   },
   "feed": {

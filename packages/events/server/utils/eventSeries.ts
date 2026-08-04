@@ -256,7 +256,13 @@ export async function topUpSeries(event: H3Event): Promise<void> {
     ])
     const threshold = Date.now() + (SERIES_WINDOW_DAYS - 14) * 86_400_000
     for (const master of masters.rows) {
-      if (!master.recurrence || master.seriesId !== master.$id || master.status === 'cancelled') continue
+      // `hidden` stoppt das Nachwachsen genauso wie `cancelled` (F15): ein
+      // ausgeblendeter Serien-Master würde sonst weiter Instanzen erzeugen — und
+      // die erben in `instanceData` seinen Status, d. h. die Moderation hätte
+      // alle 14 Tage neue ausgeblendete Zeilen aufzuräumen, die niemand sieht
+      // und niemand angelegt hat.
+      if (!master.recurrence || master.seriesId !== master.$id) continue
+      if (master.status === 'cancelled' || master.status === 'hidden') continue
       if (master.seriesUntil && Date.parse(master.seriesUntil) <= Date.now()) continue
       const generatedUntil = master.seriesGeneratedUntil ? Date.parse(master.seriesGeneratedUntil) : 0
       if (generatedUntil >= threshold) continue

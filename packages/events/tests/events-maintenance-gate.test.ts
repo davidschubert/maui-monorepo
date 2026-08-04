@@ -34,13 +34,26 @@ function routeFiles(dir: string, prefix = ''): string[] {
 const source = (file: string) => readFileSync(`${apiDir}/${file}`, 'utf8')
 
 /**
- * BEWUSST AUSGENOMMEN: der Reminder-Sweep. Er ist kein Mitglieds-Schreibweg,
- * sondern ein Betreiber-Vorgang hinter `NUXT_EVENTS_SWEEP_KEY`, und er
- * schreibt nur einen Versand-Merker auf fremde Zeilen. Eine verschluckte
- * Terminerinnerung wäre der falsche Preis für eine Wartung — dieselbe
- * Trennung, mit der posts seine Moderations-Routen ausnimmt.
+ * BEWUSST AUSGENOMMEN — alles, was kein MITGLIEDS-Schreibweg ist:
+ *
+ *  - der Reminder-Sweep: ein Betreiber-Vorgang hinter `NUXT_EVENTS_SWEEP_KEY`,
+ *    der nur einen Versand-Merker auf fremde Zeilen schreibt. Eine verschluckte
+ *    Terminerinnerung wäre der falsche Preis für eine Wartung.
+ *  - die beiden MODERATIONS-Routen (F15, 2026-08-03): Ausblenden und
+ *    Wiederherstellen laufen hinter `events.moderate` mit der Türklinke
+ *    `operator` — sie sind ein Urteil über fremden Inhalt, kein Mitglieds-
+ *    Schreibvorgang. Sie einzufrieren hieße, eine Community, an der gerade
+ *    gearbeitet wird, unmoderierbar zu machen; das ist dieselbe Trennung, die
+ *    M13 für die Zahlungs-Sperre trifft („eine gesperrte Community, die niemand
+ *    mehr moderieren kann, wird zum Problem des Betreibers") — und exakt die,
+ *    auf die dieser Kommentar schon vorher mit „dieselbe Trennung, mit der posts
+ *    seine Moderations-Routen ausnimmt" verwiesen hat.
  */
-const OPERATOR_ROUTES = new Set(['reminder-sweep.post.ts'])
+const OPERATOR_ROUTES = new Set([
+  'reminder-sweep.post.ts',
+  '[id]/hide.post.ts',
+  '[id]/restore.post.ts',
+])
 
 const memberWriteRoutes = routeFiles(apiDir).filter(file =>
   !file.endsWith('.get.ts') && !OPERATOR_ROUTES.has(file))
@@ -64,12 +77,22 @@ describe('Wartungsmodus: jede schreibende Mitglieder-Route prüft ihn', () => {
   })
 })
 
-describe('Lesende Routen und der Betreiber-Sweep bleiben bewusst offen', () => {
+describe('Lesende Routen, der Betreiber-Sweep und die Moderation bleiben bewusst offen', () => {
   it.each(routeFiles(apiDir).filter(f => f.endsWith('.get.ts')))('%s friert NICHT ein', (file) => {
     expect(source(file)).not.toContain('assertEventsWritable')
   })
 
-  it('der schlüsselgeschützte Reminder-Sweep friert NICHT ein', () => {
-    expect(source('reminder-sweep.post.ts')).not.toContain('assertEventsWritable')
+  it.each([...OPERATOR_ROUTES])('%s friert NICHT ein (kein Mitglieds-Schreibweg)', (file) => {
+    expect(source(file)).not.toContain('assertEventsWritable')
+  })
+
+  it('die Moderations-Routen tragen dafür die Moderations-Capability', () => {
+    // Die Ausnahme oben ist nur zulässig, WEIL diese Routen anders gesichert
+    // sind. Ohne diese Erwartung könnte man jede Route durch Eintrag in
+    // OPERATOR_ROUTES aus dem Wartungsmodus herausdefinieren.
+    for (const file of ['[id]/hide.post.ts', '[id]/restore.post.ts']) {
+      expect(source(file)).toContain('requireCommunityPermission(event, \'events.moderate\')')
+      expect(source(file)).toContain('as: \'operator\'')
+    }
   })
 })
