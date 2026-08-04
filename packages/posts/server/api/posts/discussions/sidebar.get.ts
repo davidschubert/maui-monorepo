@@ -20,13 +20,38 @@ const OWN_POSTS_SCAN = 50
  * Die Seitenleiste der Discussions: meine letzten Kategorien — und ohne eigene
  * Aktivität die fünf größten (Davids Entscheidung 7 vom 2026-08-03).
  *
- * WAS „MEINE" IN STUFE 1 HEISST: Kategorien, in denen ich GEPOSTET habe.
- * Davids Vorgabe sagt „gepostet ODER kommentiert" — der Kommentar-Teil fehlt
- * bewusst: Kommentare gehören dem comments-Layer, und ein Produkt-Layer darf
- * einen anderen nicht kennen (A14). Ehrlich wäre erst ein Core-Vertrag, über
- * den comments seine Beteiligung meldet — neue Infrastruktur, also Stufe 2.
- * Die Auswirkung ist klein: wer irgendwo mitdiskutiert, hat dort meistens auch
- * selbst etwas eröffnet, und der Rückfall trägt den Rest.
+ * WAS „MEINE" HEISST: Kategorien, in denen ich GEPOSTET habe. Davids Vorgabe
+ * sagt „gepostet ODER kommentiert" — der Kommentar-Teil fehlt weiterhin, und
+ * in Stufe 2 ist das eine begründete Entscheidung statt einer Vertagung.
+ *
+ * ── WARUM ER NICHT NACHGEREICHT WURDE ──────────────────────────────────────
+ * Die naheliegende Stelle wäre die Komposition in blueprint: sie DARF beide
+ * Layer kennen (A14). Sie darf aber nichts anderes — `packages/blueprint`
+ * hat bewusst kein `server/` (ESLint setzt das durch). Eine Komposition dort
+ * kann also nur ZWEI HTTP-Abrufe hintereinanderhängen: erst „meine letzten
+ * Kommentar-Ziele" beim comments-Layer, dann mit deren Ids die Kategorien
+ * hier. Das kostet jeden angemeldeten Besucher eine zusätzliche
+ * SSR-Wartekette auf JEDER Discussions-Seite.
+ *
+ * Der schwerere Einwand ist aber die REIHENFOLGE, und er ist strukturell: „die
+ * letzten fünf" verlangt, meine Beiträge und meine Kommentare auf EINER
+ * Zeitachse zu sortieren. Die Zeitstempel der Kommentare kennt nur der
+ * comments-Layer, die der Beiträge nur dieser hier. Ohne eine gemeinsame
+ * Serverseite bliebe nur, die Kommentar-Zeitstempel durch den CLIENT
+ * zurückzureichen — eine Sortierung, die der Aufrufer bestimmt — oder zwei
+ * Ranglisten zu vermengen, deren Skalen nicht vergleichbar sind (wer heute
+ * fünfzig Beiträge schreibt und gestern einmal kommentiert hat, bekäme die
+ * gestrige Kategorie nach vorn). Beides wäre eine Liste, die „zuletzt benutzt"
+ * behauptet und etwas anderes zeigt.
+ *
+ * EHRLICH WÄRE EIN CORE-VERTRAG in der Bauart von `notifyContentActivity`
+ * (Stufe 2, Stück 1): comments meldet auf Anfrage „diese Ziele, zu diesen
+ * Zeiten", posts fragt ihn hier — eine Anfrage, keine Wartekette, kein
+ * Aufrufer, der die Sortierung bestimmt. Das ist eine fünfte Registry und
+ * damit eine Architektur-Entscheidung, keine Zugabe am Ende eines Umbaus.
+ *
+ * Die Auswirkung des Fehlens bleibt klein: wer irgendwo mitdiskutiert, hat
+ * dort meistens auch selbst etwas eröffnet, und der Rückfall trägt den Rest.
  *
  * `source` sagt der Oberfläche, welche Überschrift wahr ist — „Deine
  * Kategorien" über den fünf größten wäre eine Lüge.
