@@ -25,6 +25,17 @@ export default defineNuxtPlugin(() => {
         }],
       })
     }
+    else if (analytics.snippet === 'v3') {
+      // Plausible-v3-Snippet: das Site-Script (pa-…) trägt die Zuordnung in
+      // der URL, getrackt wird erst durch den expliziten init()-Aufruf.
+      // SPA-Navigationen zählt das Script selbst (History-API).
+      useHead({
+        script: [
+          { src: analytics.src, async: true },
+          { innerHTML: 'window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()' },
+        ],
+      })
+    }
     else {
       useHead({
         script: [{

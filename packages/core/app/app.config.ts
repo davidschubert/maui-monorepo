@@ -140,6 +140,12 @@ export default defineAppConfig({
       websiteId: '',
       /** Eigene Script-URL (z.B. self-hosted) — leer = Provider-Default */
       src: '',
+      /** Plausible-Snippet-Generation: '' = Legacy-Script mit data-domain ·
+       *  'v3' = Site-Script (pa-…, VOLLE URL in `src`) + plausible.init().
+       *  Beim v3-Snippet steckt die Site-Zuordnung in der Script-URL selbst
+       *  (`domain` entfällt); die optionalen Messungen (Outbound-Links,
+       *  Downloads, Formulare) hängen serverseitig an der Script-Id. */
+      snippet: '' as '' | 'v3',
     },
     consent: {
       enabled: false,
