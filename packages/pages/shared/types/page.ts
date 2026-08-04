@@ -6,6 +6,42 @@ export const PAGE_STATUSES = ['draft', 'published'] as const
 export type PageStatus = (typeof PAGE_STATUSES)[number]
 
 /**
+ * Die Adresse der Community-Regeln (F1 Stufe 2).
+ *
+ * STEHT HIER UND NICHT IN `guidelinesTemplate.ts`, obwohl sie inhaltlich
+ * dorthin gehörte: der Navigationspunkt im blueprint-Layer braucht sie, und ein
+ * Wert-Import aus der Vorlagen-Datei zöge deren gesamten Text (beide Sprachen,
+ * mehrere Kilobyte) in das CLIENT-Bundle jeder App — für eine Zeichenkette.
+ * `page.ts` ist ohnehin das Wert-Modul dieses Layers (PAGES_TABLE,
+ * PAGE_STATUSES) und in jedem Konsumenten schon drin.
+ *
+ * Die Vorlage importiert sie von hier, damit es genau EINE Quelle bleibt — ein
+ * zweites `'guidelines'` als Zeichenkette wäre die Sorte Kopplung, die still
+ * auseinanderläuft.
+ */
+export const GUIDELINES_SLUG = 'guidelines'
+
+/**
+ * Die Adresse des Beschreibungs- und Kontakttextes der About-Seite (F1 Stufe 2).
+ *
+ * WARUM ÜBER DEN pages-LAYER und nicht über eine eigene Einstellung: der Text
+ * gehört DER COMMUNITY und muss vom Owner editierbar sein. `app_config` ist EINE
+ * Row pro Appwrite-PROJEKT — im Pool teilen sich alle Communities sie, ein
+ * Schreiber überschriebe alle anderen (derselbe Grund, aus dem das Branding an
+ * `communities.*` hängt und nicht dort). Eine neue Spalte im Control Plane wäre
+ * eine Migration, eine Service-Route und ein Formularfeld für etwas, das der
+ * pages-Layer seit pages-004 kann: mandantengebundene, owner-editierbare
+ * Textseiten mit Markdown-Body und Dashboard-Verwaltung.
+ *
+ * BEWUSST NICHT GESEEDET, anders als die Regeln: für die Regeln gibt es einen
+ * Text, der überall gilt; für „worum es hier geht" gibt es ihn nicht. Ein
+ * erfundener Beschreibungstext im Namen der Community wäre genau die Sorte
+ * Fülltext, die niemand entfernt. Fehlt die Seite, zeigt die About-Seite ihre
+ * Zahlen und sagt dem, der sie schreiben darf, wo er das tut.
+ */
+export const DISCUSSIONS_ABOUT_SLUG = 'discussions-about'
+
+/**
  * Eine Inhaltsseite in EINER Sprache. Ein logisches „Dokument" (slug) hat je
  * Sprache eine Row — so sind beliebige Sprachen möglich (EN Standard + weitere).
  * `body` ist Markdown (UEditor content-type="markdown"), gerendert über core

@@ -77,6 +77,22 @@ export default defineEventHandler(async (event) => {
       })
       return null
     })
+
+    // Community-Regeln als VERÖFFENTLICHTE Startseite (F1 Stufe 2, Davids
+    // Entscheidung 6: nur Guidelines). Anders als die Rechtstexte darüber
+    // trägt sie keine Platzhalter und funktioniert unverändert — Regeln, die
+    // niemand sehen kann, sind keine. Best effort wie alles hier: die
+    // Community existiert schon, daran darf sie nicht scheitern.
+    await seedGuidelinesPage(event, {
+      tenantId: result.tenantId,
+      locale: site.locale ?? 'de',
+    }).catch((error) => {
+      logEvent('error', 'onboarding.guidelines_page_failed', {
+        communityId: result.communityId,
+        message: error instanceof Error ? error.message : String(error),
+      })
+      return null
+    })
   }
 
   logEvent('info', 'onboarding.site_requested', {

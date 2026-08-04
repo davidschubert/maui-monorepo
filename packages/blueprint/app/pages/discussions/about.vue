@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PublicPage } from '../../../../pages/shared/types/page'
+import { DISCUSSIONS_ABOUT_SLUG, type PublicPage } from '../../../../pages/shared/types/page'
 import type { DiscussionAboutResponse } from '../../../../posts/shared/types/post'
 
 /**
@@ -78,7 +78,7 @@ const { data: stats } = await useFetch<DiscussionAboutResponse>('/api/posts/disc
  */
 const { data: about } = await useAsyncData(
   () => `discussions-about-page-${locale.value}`,
-  () => requestFetch<PublicPage>('/api/pages/public/discussions-about', {
+  () => requestFetch<PublicPage>(`/api/pages/public/${DISCUSSIONS_ABOUT_SLUG}`, {
     query: { locale: locale.value },
   }).catch(() => null),
   { watch: [locale] },
