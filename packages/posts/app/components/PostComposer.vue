@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { MAX_POLL_OPTIONS, type FeedPost, type PostType } from '../../shared/types/post'
+import { MAX_POLL_OPTIONS, type CategoryListResponse, type FeedPost, type PostType } from '../../shared/types/post'
 
 /**
  * Composer für Beitrag/Umfrage/Frage — inkl. optionalem Planen-Termin
- * (scheduledAt → Warteschlange statt Sofort-Publish, Plan P4).
+ * (scheduledAt → Warteschlange statt Sofort-Publish, Plan P4) und seit F1 der
+ * optionalen Kategorie (Discussions).
  */
 const emit = defineEmits<{ created: [post: FeedPost, scheduled: boolean] }>()
 
@@ -18,6 +19,36 @@ const pollEndsAt = ref('')
 const scheduledAt = ref('')
 const showSchedule = ref(false)
 const busy = ref(false)
+
+/**
+ * Kategorien (F1). Nachgeladen statt SSR: der Composer sieht nur, wer
+ * eingeloggt ist, und die Auswahl ist für den ersten Bildhalt entbehrlich.
+ *
+ * REKA-FALLE: ein `USelectItem` darf keinen Wert `''` tragen. Deshalb ein
+ * ausdrücklicher Platzhalter-Schlüssel statt des leeren Strings — er wird
+ * beim Absenden wieder zu „keine Kategorie" (der Server kennt nur '' und
+ * eine Row-Id). Ein 8-Zeichen-Sentinel kann mit keiner Appwrite-Row-Id
+ * kollidieren, die sind 20 Zeichen lang.
+ */
+const NO_CATEGORY = '__none__'
+const categoryId = ref(NO_CATEGORY)
+// BEWUSST OHNE `await`: der Composer soll kein async-setup bekommen. Er hängt
+// im Feed hinter einem `v-if="isLoggedIn"`, und eine Komponente, die nach der
+// Hydration erst noch suspendieren muss, erscheint sichtbar verzögert.
+const { data: categoryData } = useFetch<CategoryListResponse>('/api/posts/categories', {
+  lazy: true,
+  server: false,
+})
+const categoryItems = computed(() => [
+  { value: NO_CATEGORY, label: t('posts.composer.categoryNone') },
+  ...(categoryData.value?.rows ?? []).map(entry => ({
+    value: entry.category.$id,
+    label: entry.category.name,
+  })),
+])
+// Ohne angelegte Kategorien gibt es nichts zu wählen — dann bleibt der
+// Composer so schlicht, wie er vor F1 war.
+const hasCategories = computed(() => (categoryData.value?.rows.length ?? 0) > 0)
 
 const typeItems = computed(() => ([
   { value: 'post' as const, label: t('posts.composer.typePost'), icon: 'i-ph-note-pencil' },
@@ -48,6 +79,7 @@ async function submit() {
       title: title.value.trim() || undefined,
       body: body.value.trim(),
       scheduledAt: showSchedule.value ? toIso(scheduledAt.value) : undefined,
+      categoryId: categoryId.value === NO_CATEGORY ? undefined : categoryId.value,
     }
     if (type.value === 'poll') {
       payload.pollOptions = options.value.map(o => o.trim()).filter(o => o.length > 0)
@@ -69,6 +101,7 @@ async function submit() {
     pollEndsAt.value = ''
     scheduledAt.value = ''
     showSchedule.value = false
+    categoryId.value = NO_CATEGORY
   }
   catch {
     toast.add({ title: t('posts.composer.failed'), description: t('posts.composer.failedHint'), color: 'error' })
@@ -155,6 +188,12 @@ async function submit() {
             <UInput v-model="pollEndsAt" type="datetime-local" size="xs" />
           </div>
         </div>
+      </div>
+
+      <div v-if="hasCategories" class="flex flex-wrap items-center gap-2 text-sm text-muted" data-composer-category>
+        <span>{{ t('posts.composer.category') }}</span>
+        <USelect v-model="categoryId" :items="categoryItems" size="xs" class="min-w-40" />
+        <span class="text-xs text-dimmed">{{ t('posts.composer.categoryHint') }}</span>
       </div>
 
       <div v-if="showSchedule" class="flex items-center gap-2 text-sm text-muted" data-composer-schedule>

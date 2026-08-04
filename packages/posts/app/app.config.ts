@@ -47,6 +47,25 @@ export default defineAppConfig({
           group: 'products',
           order: 2,
         },
+        {
+          // F1 Stufe 1: die STRUKTUR der Discussions. Dritter Eintrag auf
+          // dasselbe Produkt, aus demselben Grund wie der zweite (C16): eine
+          // Registrierung trägt genau EINE `requiredCapability`, und
+          // `posts.manage` hat weder der Editor noch der Moderator — sie
+          // gehört dem Admin (communityAuthz.ts). Ein Eintrag, der sich eine
+          // der drei Capabilities aussuchen müsste, ließe zwei Rollen vor
+          // einer Wand stehen.
+          id: 'posts-categories',
+          scope: 'community',
+          productKey: 'posts',
+          planProduct: 'posts',
+          labelKey: 'posts.nav.categories',
+          icon: 'i-ph-chats-circle',
+          to: '/dashboard/discussions',
+          requiredCapability: 'posts.manage',
+          group: 'products',
+          order: 3,
+        },
       ],
     },
   },
