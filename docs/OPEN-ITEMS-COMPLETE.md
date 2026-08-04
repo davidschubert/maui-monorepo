@@ -29,6 +29,55 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F1 Stufe 1 — Discussions: Kategorien, Seiten, 301-Regel ✅ 2026-08-03
+
+**Davids Baustart-Go** nach den sieben Konzept-Entscheidungen (§ 3.8).
+Umsetzung Opus-Agent (4 Commits, 44 Dateien), Prüfung hier.
+
+**Gebaut, nach Weg B** (kein eigener Layer): Tabelle `post_categories`
+(posts-007, Unique **(communityId, slug)** über `createIndexSteps`) ·
+additives `community_posts.categoryId` + drei Indizes inkl. Fulltext auf
+`title` (posts-008) · Kategorien-Verwaltung im Dashboard hinter der neuen
+Capability **`posts.manage`** (nur Admin — Moderator hat `posts.moderate`,
+das ist Moderation, nicht Struktur) · öffentliche Seiten im blueprint nach dem
+URL-Schema, die Kanonik-Regel pur in `discussionUrl.ts` · Sortierung
+Latest/Top+Zeitraum/Categories · Basis-Filter · Titel-Suche · Seitenleiste ·
+Landing-Baustein „Diskussionen" → „Kommentare".
+
+**Die vier bewussten Auslassungen des Agenten, alle geprüft und richtig:**
+Produkt-Gate bleibt `posts` (das Manifest-System erzwingt key = Ordnername —
+ein `discussions`-Key wäre ein halbes Produkt; an den Routen begründet) ·
+**Hot weggelassen statt gefaked** (ehrlich nur mit Rang-Spalte + Lauf; ein
+Test nagelt fest, dass `hot` KEIN gültiger Wert ist) · Participants-Spalte
+heißt ehrlich „Autor" (volle Beteiligung kennt nur comments — A14) ·
+Activity = `$updatedAt`, Antworten bewegen ihn in Stufe 1 nicht (bräuchte
+einen Cross-Layer-Vertrag; im Typ-Kommentar notiert).
+
+**Ein echter Fund des Agenten beim eigenen Live-Beweis:** der
+Kategorie-PATCH schrieb weggelassene Felder auf Vorgaben zurück — ein bloßes
+Umbenennen hat eine STILLGELEGTE Kategorie wieder scharf geschaltet, mit 200.
+Regel jetzt pur + getestet (`categoryPatch.ts`: „weggelassen heißt
+unverändert").
+
+**Reihenfolge eingehalten:** posts-007/008 VOR dem Deploy auf `pool` und
+`comments` gefahren; Tabelle (6 Spalten), Unique-Index und `categoryId` auf
+beiden `available` nachgemessen. Tore hier nachgefahren: **1621 Tests**,
+Typecheck Exit 0, Lint auf der Grundlinie, Manifeste, Doku-Links, Bilanz
+(posts **20/20** durch die Datentür).
+
+**Offen und in der F1-Zeile notiert:** Stufen 2–5, der Seitenleisten-Anteil
+„kommentiert" (braucht denselben Cross-Layer-Vertrag wie Activity), und die
+SEO-Frage, ob die Landing-URL `/products/discussions` beim neuen Namen
+„Kommentare" bleibt — bewusst Davids Entscheidung, nicht meine.
+
+**Gelernt:** Die Ehrlichkeits-Klausel im Auftrag („weglassen und begründen
+statt faken") hat funktioniert — Hot fehlt sichtbar mit Begründung und Test,
+statt als Sortierung dazustehen, die nur die geladene Seite umordnet. Eine
+Funktion, die nicht kann, was ihr Name verspricht, ist teurer als ihr Fehlen:
+sie kostet das Vertrauen in alle Nachbarn.
+
+---
+
 ### F46 — Der Text eines abgesagten Termins lässt sich schwärzen ✅ 2026-08-03
 
 **Davids Entscheidung.** Ein abgesagter Termin wird NICHT ausgeblendet — die
