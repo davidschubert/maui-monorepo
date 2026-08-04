@@ -1,7 +1,21 @@
 export default defineAppConfig({
   // App-spezifische Overrides (tiefer Merge, App > Core). Die Marketing-Seite
-  // ist öffentlich + datensparsam — keine Analytics, kein Consent, kein Auth.
+  // ist öffentlich + datensparsam — Analytics NUR cookielos (Plausible,
+  // deshalb auch kein Consent-Banner nötig), kein Auth.
   pukalani: {
+    /**
+     * Plausible (self-hosted, plausible.hawaii.studio) — cookieloses
+     * Tracking, daher bleibt `pukalani.consent` bewusst AUS (kein Banner).
+     * v3-Snippet: die Site-Zuordnung zu pukalani.app steckt in der
+     * Script-Id (`pa-…`); Outbound-Links/Downloads/Formulare sind
+     * serverseitig an dieser Id konfiguriert, nicht im Snippet.
+     */
+    analytics: {
+      enabled: true,
+      provider: 'plausible' as const,
+      snippet: 'v3' as const,
+      src: 'https://plausible.hawaii.studio/js/pa-ZnNaY3DI2-T4g_llEUh5l.js',
+    },
     /**
      * KEINE REALTIME (F14, 2026-08-01). Diese Seite ist statisch und kontenlos:
      * sie liest keine Laufzeit-Flags, zeigt keine Anwesenheit und hat keine

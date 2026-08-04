@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 2 offen · 3 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 2 offen · 4 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-03**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -34,6 +34,7 @@ Nachmittag hält, plant an F1/F3/F7 vorbei.
 | F1 | **Discussions — Stufen 1+2 gemergt** (2: Aktivitäts-Vertrag `lastActivityAt`, Views-Zähler gepuffert + realtime-still, About mit vier ehrlichen Zahlen, Guidelines-Seed). **Stufe 3 entschieden** (2026-08-04): redigierte Team-Sicht für About · Seitenleisten-Hälfte „kommentiert" als fünfter Core-Vertrag · erweiterte Suche + Topic-Zustände. Danach: Badges (4) · Trust Levels (5) · Hilfe-Umbenennung · Guidelines-Backfill. | Mittel | Stufe 3: Tage bis Woche | Nein (4/5: Priorisierung) | [DISCUSSIONS-KONZEPT.md](plans/DISCUSSIONS-KONZEPT.md) |
 | F7 | 6 — Wochen | **Bezahlte Communities** — der Owner nimmt Geld von seinen Mitgliedern (Stripe Connect). Eigene Mechanik und eigene Rechtsfragen. **Schluckt D1** (Davids Entscheidung 2026-08-02): bezahlte Pool-Events/-Kurse ergeben erst mit Connect Sinn — sonst landete das Ticketgeld beim Betreiber und der Owner bräuchte je Preis einen lookup_key von David. Events-Hälfte technisch M (S7+A6 haben den alten Webhook-Wartegrund erledigt), Kurse-Hälfte L/XL (community-scoped Entitlements sind unentworfen). | Mittel | XL | Ja: Rechtsfragen | nach dem Go-Live; erst muss Geldfluss 1 (A6) ankommen |
 | F3 | 7 — Wochen | **Silo → Pool:** `comments` und `portfolio` laufen als eigene Instanzen. Langfristig ist der Pool das Produkt, Silo bleibt das Enterprise-Angebot. | Niedrig | XL | Ja: strategisch | eine strategische Entscheidung |
+| F47 | 8 — Tage | **Produkt „Analytics":** Besucherzahlen je Community im Dashboard (Plausible Stats-API, self-hosted läuft schon; pukalani.app trackt seit 2026-08-03). Vorfrage: je Community eine Plausible-Site (Sites-API) ODER eine Sammel-Site mit Hostname-Filter. `comments`/`portfolio` einzeln tracken ist davon unabhängig je 15 min. | Mittel | M–L | Ja: Produktzuschnitt + Plan-Tier | Davids Zuschnitt-Entscheidung |
 
 ---
 
