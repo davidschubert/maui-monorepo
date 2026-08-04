@@ -69,6 +69,15 @@ Audit-Wochen bewährt hat:
    Architektur-Entscheidungen eine Zeile in
    [DECISION-LOG.md](DECISION-LOG.md) und ggf. CLAUDE.md. Dann melden und auf
    David warten (paketweise, kein Dauerlauf).
+7. **Entscheidungen als strukturierte Fragen** (Davids Regel, 2026-08-04):
+   Braucht ein Punkt eine Entscheidung von David, wird sie NIE als
+   Fließtext-Frage versteckt und NIE still defaultet — sondern als
+   Auswahl-Frage gestellt: konkrete Optionen, je mit ehrlichem Trade-off,
+   die Empfehlung als erste Option und als solche markiert. Mehrere offene
+   Entscheidungen werden gesammelt und in einem Rutsch gefragt; die
+   Antworten wandern SOFORT ins betroffene Plan-Dokument, ins
+   [DECISION-LOG.md](DECISION-LOG.md) und in die Zeile hier. Bewährt bei den
+   sieben Discussions-Entscheidungen (§ 3.8): Minuten statt Pendeln.
 
 ### Was gerade live ist
 
