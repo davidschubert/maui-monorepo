@@ -1,4 +1,5 @@
 import { Query } from 'node-appwrite'
+import { recentCategoryIds, type CategoryTouch } from '../../../../shared/sidebarCategories'
 import {
   POSTS_TABLE,
   type CommunityPost,
@@ -20,38 +21,28 @@ const OWN_POSTS_SCAN = 50
  * Die Seitenleiste der Discussions: meine letzten Kategorien — und ohne eigene
  * Aktivität die fünf größten (Davids Entscheidung 7 vom 2026-08-03).
  *
- * WAS „MEINE" HEISST: Kategorien, in denen ich GEPOSTET habe. Davids Vorgabe
- * sagt „gepostet ODER kommentiert" — der Kommentar-Teil fehlt weiterhin, und
- * in Stufe 2 ist das eine begründete Entscheidung statt einer Vertagung.
+ * ── DIE KOMMENTAR-HÄLFTE IST SEIT STUFE 3 DA ───────────────────────────────
+ * „Meine" heißt jetzt, was Davids Vorgabe immer meinte: Kategorien, in denen
+ * ich GEPOSTET **ODER KOMMENTIERT** habe. Stufe 2 hat die zweite Hälfte
+ * bewusst nicht nachgereicht, und die damalige Begründung ist genau der Grund,
+ * warum sie jetzt so und nicht anders gebaut ist:
  *
- * ── WARUM ER NICHT NACHGEREICHT WURDE ──────────────────────────────────────
- * Die naheliegende Stelle wäre die Komposition in blueprint: sie DARF beide
- * Layer kennen (A14). Sie darf aber nichts anderes — `packages/blueprint`
- * hat bewusst kein `server/` (ESLint setzt das durch). Eine Komposition dort
- * kann also nur ZWEI HTTP-Abrufe hintereinanderhängen: erst „meine letzten
- * Kommentar-Ziele" beim comments-Layer, dann mit deren Ids die Kategorien
- * hier. Das kostet jeden angemeldeten Besucher eine zusätzliche
- * SSR-Wartekette auf JEDER Discussions-Seite.
+ *   „Die letzten fünf" verlangt, Beiträge und Kommentare auf EINER Zeitachse
+ *   zu ordnen. Die Zeitstempel der Kommentare kennt nur `comments`, die der
+ *   Beiträge nur dieser Layer. Zwei HTTP-Abrufe in der blueprint-Komposition
+ *   hintereinanderzuhängen hätte bedeutet, die Sortierung dem CLIENT zu
+ *   überlassen — also dem Aufrufer.
  *
- * Der schwerere Einwand ist aber die REIHENFOLGE, und er ist strukturell: „die
- * letzten fünf" verlangt, meine Beiträge und meine Kommentare auf EINER
- * Zeitachse zu sortieren. Die Zeitstempel der Kommentare kennt nur der
- * comments-Layer, die der Beiträge nur dieser hier. Ohne eine gemeinsame
- * Serverseite bliebe nur, die Kommentar-Zeitstempel durch den CLIENT
- * zurückzureichen — eine Sortierung, die der Aufrufer bestimmt — oder zwei
- * Ranglisten zu vermengen, deren Skalen nicht vergleichbar sind (wer heute
- * fünfzig Beiträge schreibt und gestern einmal kommentiert hat, bekäme die
- * gestrige Kategorie nach vorn). Beides wäre eine Liste, die „zuletzt benutzt"
- * behauptet und etwas anderes zeigt.
+ * Gelöst über den fünften Core-Vertrag (`collectUserActivity`): eine Frage,
+ * alle Quellen antworten, EIN Server führt zusammen. `comments` meldet dabei
+ * nur „Ziel-Typ, Ziel-Id, Zeitpunkt" und weiß bis heute nicht, dass es
+ * Kategorien gibt (A14). Was ein 'post' ist, weiß dieser Layer.
  *
- * EHRLICH WÄRE EIN CORE-VERTRAG in der Bauart von `notifyContentActivity`
- * (Stufe 2, Stück 1): comments meldet auf Anfrage „diese Ziele, zu diesen
- * Zeiten", posts fragt ihn hier — eine Anfrage, keine Wartekette, kein
- * Aufrufer, der die Sortierung bestimmt. Das ist eine fünfte Registry und
- * damit eine Architektur-Entscheidung, keine Zugabe am Ende eines Umbaus.
- *
- * Die Auswirkung des Fehlens bleibt klein: wer irgendwo mitdiskutiert, hat
- * dort meistens auch selbst etwas eröffnet, und der Rückfall trägt den Rest.
+ * ── DIE KOSTEN, EHRLICH ────────────────────────────────────────────────────
+ * Zwei zusätzliche Abfragen für angemeldete Besucher: die des comments-Layers
+ * (eine, gedeckelt) und EINE gebündelte hier, die zu den gemeldeten Ids die
+ * Kategorien holt. Kein N+1 — und keine für Gäste, die fallen sofort in den
+ * Rückfall.
  *
  * `source` sagt der Oberfläche, welche Überschrift wahr ist — „Deine
  * Kategorien" über den fünf größten wäre eine Lüge.
@@ -67,21 +58,71 @@ export default defineEventHandler(async (event): Promise<DiscussionSidebarRespon
   const userId = event.context.user?.$id
 
   if (userId) {
-    const { rows } = await db.list<CommunityPost>(POSTS_TABLE, [
-      Query.equal('authorId', userId),
-      Query.notEqual('categoryId', ''),
-      Query.orderDesc('$createdAt'),
-      Query.limit(OWN_POSTS_SCAN),
-    ]).catch(() => ({ rows: [] as CommunityPost[] }))
+    /**
+     * Beide Quellen parallel: sie wissen nichts voneinander, also gibt es
+     * keinen Grund, die eine auf die andere warten zu lassen.
+     */
+    const [ownPosts, commented] = await Promise.all([
+      db.list<CommunityPost>(POSTS_TABLE, [
+        Query.equal('authorId', userId),
+        Query.notEqual('categoryId', ''),
+        Query.orderDesc('$createdAt'),
+        Query.limit(OWN_POSTS_SCAN),
+      ]).catch(() => ({ rows: [] as CommunityPost[] })),
+      /**
+       * Mehr Ziele erfragen als Kategorien gebraucht werden: mehrere Themen
+       * können in derselben Kategorie hängen, und dann bliebe von fünf Zielen
+       * eine einzige Kategorie übrig.
+       */
+      collectUserActivity(event, userId, SIDEBAR_SIZE * 4),
+    ])
 
-    // Reihenfolge = zuletzt benutzt zuerst; Duplikate fallen still weg.
-    const mine: PostCategory[] = []
-    for (const row of rows) {
-      const category = byId.get(row.categoryId)
-      if (!category || mine.some(entry => entry.$id === category.$id)) continue
-      mine.push(category)
-      if (mine.length === SIDEBAR_SIZE) break
+    const touches: CategoryTouch[] = ownPosts.rows.map(row => ({
+      categoryId: row.categoryId,
+      // Das ANLEGEN des Beitrags, nicht seine letzte Aktivität: die Frage
+      // lautet „wann war ICH dort", und eine fremde Antwort unter meinem Thema
+      // ist keine Handlung von mir.
+      at: row.$createdAt,
+    }))
+
+    /**
+     * Nur Ziele vom Typ 'post' — ein Ticket-Kommentar führt in keine Kategorie.
+     * Der Vertrag liefert bewusst alles und überlässt die Auswahl dem, der
+     * weiß, was er damit anfangen kann.
+     */
+    const postIds = [...new Set(commented.filter(entry => entry.targetType === 'post').map(entry => entry.targetId))]
+    if (postIds.length > 0) {
+      const commentedAt = new Map(commented.map(entry => [entry.targetId, entry.at]))
+      /**
+       * EINE gebündelte Abfrage für alle kommentierten Themen. Sie läuft durch
+       * die Datentür: ein Kommentar an einem Beitrag aus einer fremden
+       * Community (Mehrfach-Mitgliedschaft) findet hier nichts und fällt still
+       * heraus — die Seitenleiste bleibt mandantendicht.
+       *
+       * `Query.equal` verträgt 100 Werte; `postIds` ist durch das
+       * Vierfache der Seitenleisten-Größe weit darunter.
+       */
+      const { rows } = await db.list<CommunityPost>(POSTS_TABLE, [
+        Query.equal('$id', postIds),
+        Query.notEqual('categoryId', ''),
+        Query.limit(postIds.length),
+      ]).catch(() => ({ rows: [] as CommunityPost[] }))
+
+      for (const row of rows) {
+        const at = commentedAt.get(row.$id)
+        if (at) touches.push({ categoryId: row.categoryId, at })
+      }
     }
+
+    /**
+     * EINE Zeitachse, pur und getestet. Erst hier entscheidet sich die
+     * Reihenfolge — und zwar unabhängig davon, in welcher Reihenfolge die
+     * beiden Quellen oben geantwortet haben.
+     */
+    const mine = recentCategoryIds(touches, SIDEBAR_SIZE)
+      .map(id => byId.get(id))
+      .filter((category): category is PostCategory => category !== undefined)
+
     // BEWUSST kein Auffüllen mit den größten: „ohne eigene Aktivität" heißt
     // ohne JEDE — wer in zwei Kategorien schreibt, sieht zwei, keine fünf mit
     // drei fremden dazwischen.
