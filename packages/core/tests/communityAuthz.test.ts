@@ -139,6 +139,26 @@ describe('Rollen-Trennung (die harten Grenzen)', () => {
     expect(capabilitiesFor(['moderator']).has('community.embed')).toBe(false)
   })
 
+  /**
+   * Besucherstatistik (2026-08-04, Layer `analytics`): dieselbe Grenze und
+   * dieselbe Begründung wie beim Einbetter-Register. Der eingetragene Wert
+   * wird zu einem `<script src>` auf JEDER Seite der Community und schickt die
+   * Besuche ihrer Mitglieder an einen Dritten — nach außen gerichtet, also
+   * Owner. Zweite Zeile: der Silo-Weg (apps/comments, apps/portfolio) hängt am
+   * globalen Betreiber-Label, dort gibt es gar keine Community-Rolle.
+   */
+  it('nur der owner setzt die Plausible-Script-Id (community.analytics)', () => {
+    expect(communityRoleHasCapability('owner', 'community.analytics')).toBe(true)
+    for (const role of ['admin', 'moderator', 'editor', 'viewer'] as const) {
+      expect(communityRoleHasCapability(role, 'community.analytics')).toBe(false)
+    }
+  })
+
+  it('der Operator-Admin trägt community.analytics (Silo-Weg)', () => {
+    expect(capabilitiesFor(['admin']).has('community.analytics')).toBe(true)
+    expect(capabilitiesFor(['moderator']).has('community.analytics')).toBe(false)
+  })
+
   it('JEDE Site-Rolle trägt dashboard.access (N1 — Vertrag der admin-Middleware: Site-Mitglieder erreichen das Kunden-Dashboard; was sie DRIN sehen, filtern Nav + requiredCapability)', () => {
     for (const role of COMMUNITY_ROLES) {
       expect(communityRoleHasCapability(role, 'dashboard.access')).toBe(true)

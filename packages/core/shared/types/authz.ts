@@ -84,5 +84,22 @@ export type Capability =
    * Begründung wie bei `community.billing` (A6).
    */
   | 'community.embed' // Einbetter-Domains des Widgets (nur Owner)
+  /**
+   * Besucherstatistik der Community (2026-08-04): welche Plausible-Site die
+   * Seiten dieser Community melden. Nur Owner.
+   *
+   * Warum eine EIGENE Community-Capability und nicht `system.manage`: dieselbe
+   * Lehre wie bei `community.embed` (F37) — eine Instanz-Capability hätte die
+   * Fläche im Pool für den Kunden-Owner unerreichbar gemacht, obwohl es SEINE
+   * Statistik ist. Der Operator-Admin trägt sie über ALL_CAPABILITIES weiter
+   * (Silo-Weg).
+   *
+   * Warum Owner und nicht Admin: der eingetragene Wert wird zu einem
+   * `<script src>` auf JEDER Seite der Community, und die Besuche ihrer
+   * Mitglieder gehen an einen Dritten. Das bindet die Community nach außen —
+   * dieselbe Klasse von Entscheidung wie `community.embed` und
+   * `community.billing`. Ein Admin verwaltet, was INNEN passiert.
+   */
+  | 'community.analytics' // Plausible-Script-Id der Community (nur Owner)
 
 export type Role = 'admin' | 'moderator'
