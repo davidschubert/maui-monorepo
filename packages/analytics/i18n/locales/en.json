@@ -1,0 +1,36 @@
+{
+  "admin": {
+    "nav": {
+      "analytics": "Analytics"
+    }
+  },
+  "analytics": {
+    "admin": {
+      "title": "Analytics",
+      "subtitle": "How many people visit your pages — without cookies and without personal data.",
+      "section": "Plausible",
+      "intro": "We measure with Plausible on our own server. Plausible sets no cookies, does not follow anyone across sites and stores no personal data — so you do not need a consent banner for it.",
+      "howTo": "Create a site there for your address. Plausible then shows you a script id that starts with pa-. Enter it here — that is all it takes, your pages report themselves from the next page view on.",
+      "openInstance": "Open Plausible",
+      "scriptId": "Script ID",
+      "scriptIdHelp": "Starts with pa- and is shown in Plausible under „Site Installation“. Leaving the field empty and saving turns measuring off again.",
+      "scriptIdPlaceholder": "pa-...",
+      "preview": "This is what gets loaded",
+      "previewEmpty": "No script — nothing is measured for this community.",
+      "save": "Save",
+      "saved": "Saved",
+      "savedHint": "Freshly loaded pages include the script from now on.",
+      "savedOff": "Measuring turned off",
+      "savedOffHint": "No script is included any more.",
+      "saveFailed": "Could not save",
+      "saveFailedHint": "Please check the script id and try again.",
+      "planTitle": "From the Personal plan",
+      "planHint": "Analytics is included from Personal onwards. While your plan does not include it, nothing is measured on your pages and the field stays locked.",
+      "unavailableTitle": "Not set up for this instance",
+      "unavailableHint": "No Plausible instance is configured. Without one there would be no address to load the script from."
+    },
+    "validation": {
+      "scriptIdInvalid": "Please enter a valid script id — it starts with pa- and contains only letters, digits, hyphen and underscore."
+    }
+  }
+}

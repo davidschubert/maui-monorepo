@@ -43,6 +43,10 @@ export const ALL_CAPABILITIES: readonly Capability[] = [
   // seine Einbetter weiterhin per globalem Label) — deshalb gehört auch diese
   // Community-Cap ins Wildcard.
   'community.embed',
+  // Analytics: derselbe Grund wie bei community.embed — im Silo (apps/comments,
+  // apps/portfolio) trägt der Betreiber-Admin die Einstellung über sein
+  // globales Label, es gibt dort gar keine Community-Rolle.
+  'community.analytics',
 ]
 
 /** Alle zuweisbaren Rollen. */

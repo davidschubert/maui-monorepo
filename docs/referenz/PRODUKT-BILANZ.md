@@ -18,6 +18,7 @@ Protokoll in [`docs/archiv/PRODUKT-BILANZ-2026-07-27.md`](../archiv/PRODUKT-BILA
 | Produkt | Pool (`platform`) | Silo-Apps | Datentür (`server/api`) | Mandanten-Spalte | Tarif ab |
 | --- | --- | --- | --- | --- | --- |
 | **activity** | ✅ | comments | 2/2 über `tenantDb` | — | basic |
+| **analytics** | ✅ | comments, portfolio | 2/2 über `tenantDb` | ✅ | personal |
 | **comments** | ✅ | _template, comments | 16/17 über `tenantDb` | ✅ | — |
 | **control** | — | control | 0/61 über `tenantDb` · 44 roh | ✅ | — |
 | **courses** | ✅ | _template, comments | 12/13 über `tenantDb` | ✅ | pro |
@@ -45,6 +46,7 @@ holt seine Daten über die Naht eines anderen Layers.
 | --- | --- | --- | --- | --- | --- | --- |
 | `activity` | — | ✅ | — | — | ✅ | — |
 | `admin` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `analytics` | — | ✅ | — | — | ✅ | ✅ |
 | `billing` | — | ✅ | ✅ | — | — | — |
 | `blueprint` | ✅ | ✅ | — | — | ✅ | — |
 | `comments` | ✅ | ✅ | — | — | ✅ | — |

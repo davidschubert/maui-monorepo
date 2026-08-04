@@ -146,6 +146,17 @@ export default defineAppConfig({
        *  (`domain` entfällt); die optionalen Messungen (Outbound-Links,
        *  Downloads, Formulare) hängen serverseitig an der Script-Id. */
       snippet: '' as '' | 'v3',
+      /**
+       * SELBSTBEDIENUNG (2026-08-04): Basis-Adresse UNSERER Plausible-Instanz.
+       * Gesetzt = die App darf ihre Script-Id zur Laufzeit aus
+       * `GET /api/analytics/config` holen (Layer `analytics`) und daraus selbst
+       * das v3-Snippet bauen. Leer = nur die statische Konfiguration oben.
+       *
+       * Die Adresse steht HIER und nicht in der Kunden-Eingabe, und das ist der
+       * ganze Sicherheitsentwurf: aus der Eingabe kommt nur eine geprüfte Id
+       * (core/shared/analyticsScript.ts), nie eine Herkunft.
+       */
+      instance: '',
     },
     consent: {
       enabled: false,

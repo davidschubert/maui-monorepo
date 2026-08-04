@@ -23,5 +23,10 @@ export default {
     'courses',
     'activity',
     'moderation',
+    // Besucherstatistik (2026-08-04): dieser Silo misst schon über einen fest
+    // konfigurierten `src`. Der Layer kommt trotzdem mit, damit der Betreiber
+    // die Site wechseln kann, ohne ein Deployment zu brauchen — eine
+    // hinterlegte Id schlägt die Config (core/app/plugins/analytics.ts).
+    'analytics',
   ],
 } satisfies SiteManifest

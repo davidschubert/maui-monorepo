@@ -31,7 +31,7 @@ const pkg = name => [`@pukalani/${name}`, `@pukalani/${name}/**`]
  */
 const FOUNDATION = ['core', 'system', 'moderation', 'admin', 'billing', 'themes']
 const SEAM = ['blueprint', 'onboarding', 'control']
-const PRODUCTS = ['comments', 'posts', 'events', 'courses', 'tickets', 'feedback', 'media', 'activity', 'pages']
+const PRODUCTS = ['comments', 'posts', 'events', 'courses', 'tickets', 'feedback', 'media', 'activity', 'pages', 'analytics']
 
 // Stimmt die Aufteilung noch mit dem Dateisystem überein? Ein neuer Layer ohne
 // Topf soll den Lint SOFORT brechen — sonst wächst wieder eine stille Lücke.
@@ -389,6 +389,8 @@ export default createConfigForNuxt({
     'packages/media/server/plugins/**',
     'packages/activity/server/api/**',
     'packages/activity/server/plugins/**',
+    'packages/analytics/server/api/**',
+    'packages/analytics/server/plugins/**',
     // admin kam am 2026-08-01 dazu (Audit-Befund): der Layer besitzt zwar keine
     // mandantenfähigen Tabellen, seine Routen LESEN aber fremde (die
     // Nutzer-Detailseite zog `comments` ungescopt pool-weit). Wer in einer

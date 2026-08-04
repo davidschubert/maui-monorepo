@@ -47,5 +47,11 @@ export default {
     // Der öffentliche Trichter — läuft nur auf den Kontroll-Hosts dieser App
     // (pukalani.tenancy.controlHosts), nicht auf den Community-Hosts.
     'onboarding',
+    // Besucherstatistik als Selbstbedienung (2026-08-04): jede Community trägt
+    // ihre eigene Plausible-Script-Id ein — im Pool die EINZIGE Möglichkeit,
+    // denn eine gebaute Config kennt nur eine Site. Produkt-Gate: ab Plan
+    // personal (pukalani.tenancy.products), Datenzugriff durch die Datentür
+    // (analytics-001).
+    'analytics',
   ],
 } satisfies SiteManifest

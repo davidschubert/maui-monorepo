@@ -29,6 +29,39 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### Plausible-Analytics: drei Betreiber-Sites + Produkt „Analytics" v1 ✅ 2026-08-04
+
+**Anlass:** David wollte Plausible (self-hosted, plausible.hawaii.studio) auf
+pukalani.app; daraus wurden zwei Pakete. **Paket 1:** marketing, comments und
+portfolio tracken in je eine eigene Plausible-Site — über das bestehende
+Config-Gate `pukalani.analytics`, additiv um das v3-Snippet erweitert
+(`snippet: 'v3'` + volle Script-URL; die Site-Zuordnung steckt in der
+Script-Id `pa-…`, Outbound/Downloads/Formulare hängen serverseitig an der Id).
+Alle drei in Plausible verifiziert (Dashboard „1 current visitor"). Kein
+Consent-Banner: Plausible ist cookielos. **Paket 2 (Davids Entscheidungen:
+Script-Id-Variante jetzt, Produktname „Analytics", ab Personal, Pool+Silo):**
+neues Produkt-Layer `packages/analytics` — Tabelle `analytics_settings`
+(EINE Row je Community bzw. je Silo-Instanz, Unique-Index auf `communityId`),
+`GET /api/analytics/config` (öffentlich, fail-soft, Microcache 60 s je
+Mandant) + `PATCH /api/analytics/settings` (neue Capability
+`community.analytics` nach F37-Muster, dann `requirePlanProduct`), Dashboard-
+Seite `/dashboard/analytics`, Head-Injection im Core-Plugin (SSR über
+`useRequestFetch` — Host-Header! — und `useState`-Transport). Umsetzung
+Opus-Agent, Prüfung hier; Beweis am Portfolio-Dev-Server: ohne Row statisches
+Script, Row `pa-testDevProbe…` gewinnt, Row weg ⇒ statisch zurück.
+
+**Sicherheitsentscheidung (der Kern des Entwurfs):** NIE eine freie
+Script-URL oder ein freies Snippet vom Kunden — nur die Id (`^pa-[A-Za-z0-9_-]
+{8,80}$`, Regel EINMAL in `core/shared/analyticsScript.ts`, Head und
+Validierung teilen sie). Eine freie Adresse wäre die Erlaubnis, fremden Code
+auf einem Host auszuführen, dessen Cookies unsere Sessions tragen.
+
+**Gelernt:** Plausible schiebt den Auto-Pageview auf, solange der Browser-Tab
+`hidden` ist — in einem automatisierten Hintergrund-Tab sieht das wie „Snippet
+feuert nicht" aus, ist aber gewolltes Verhalten (im Script-Code verifiziert).
+Und: das neue v3-Site-Script trägt seine Config serverseitig; die Checkboxen
+in der Plausible-UI ändern das Snippet nicht mehr.
+
 ### F1 Stufe 2 — Aktivität, Views, About, Guidelines ✅ 2026-08-04
 
 **Go von David** nach der Vier-Fragen-Runde. Umsetzung Opus-Agent (5 Commits),

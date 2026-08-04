@@ -93,6 +93,11 @@ const OWNER: readonly Capability[] = [
     // die Community nach außen (frame-ancestors + partitioniertes
     // Session-Cookie). Ein Admin verwaltet, was INNEN passiert.
     'community.embed',
+    // Besucherstatistik (2026-08-04): aus DEMSELBEN Grund beim Owner. Die
+    // eingetragene Script-Id lädt fremden Code in jede Seite der Community und
+    // meldet die Besuche ihrer Mitglieder an einen Dritten — eine Entscheidung
+    // nach außen, keine Verwaltung nach innen.
+    'community.analytics',
   ]),
 ]
 
