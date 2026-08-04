@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
 import { createEventSchema } from '../../../schemas/event'
-import { eventIsEditable } from '../../../shared/eventModerationPolicy'
+import { eventIsEditable, eventIsRedacted } from '../../../shared/eventModerationPolicy'
 import type { EventRow } from '../../../shared/types/event'
 import { effectiveLocationType, isSeriesEvent, isSeriesMaster, paidAccessChoosable } from '../../../shared/types/event'
 
@@ -452,7 +452,13 @@ function rowActions(row: EventRow): DropdownMenuItem[][] {
         <UTable v-else :data="filteredRows" :columns="columns" data-events-table>
           <template #title-cell="{ row }">
             <div class="flex min-w-0 items-center gap-2" :data-admin-event="row.original.$id">
-              <span class="truncate font-medium">{{ row.original.title }}</span>
+              <!-- Geschwärzt (F46): auch die Redaktion muss „leer" von „von der
+                   Moderation entfernt" unterscheiden können — sonst steht hier
+                   eine namenlose Zeile, die wie ein Datenfehler aussieht. -->
+              <span v-if="eventIsRedacted(row.original.redactedAt)" class="truncate text-muted italic">
+                {{ t('events.redacted.title') }}
+              </span>
+              <span v-else class="truncate font-medium">{{ row.original.title }}</span>
               <!-- Serie: Master trägt die Regel, Instanzen den Serien-Hinweis -->
               <UBadge v-if="isSeriesMaster(row.original)" color="info" variant="subtle" size="sm" icon="i-ph-repeat" :data-series-master="row.original.$id">
                 {{ t(`events.series.${row.original.recurrence}`) }}

@@ -15,6 +15,7 @@
  * CTA bleibt fail-closed „Bald verfügbar" (EventDetail).
  */
 import type { EventDetailResponse } from '../../../../events/shared/types/event'
+import { eventIsRedacted } from '../../../../events/shared/eventModerationPolicy'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -53,7 +54,16 @@ if (error.value || !initial.value) {
   throw createError({ status: 404, statusText: 'Event not found' })
 }
 
-useHead({ title: () => initial.value?.title ?? '' })
+/**
+ * GESCHWÄRZT (F46): der Titel ist leer, und ein leerer `<title>` lässt den Tab
+ * die URL anzeigen — ausgerechnet auf der Seite, deren Text gerade entfernt
+ * wurde. Der Platzhalter kommt aus derselben i18n-Quelle wie die Überschrift.
+ */
+useHead({
+  title: () => eventIsRedacted(initial.value?.redactedAt)
+    ? t('events.redacted.title')
+    : initial.value?.title ?? '',
+})
 
 // Cast wie im blueprint-Layout: die AppConfig-Typen entstehen erst im
 // Merge der jeweiligen App, der Layer liest sie bewusst defensiv.

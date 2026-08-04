@@ -2,6 +2,7 @@
 import type { EventDetailResponse, EventRow, EventVoteResponse, EventVoteValue, RsvpResponse, RsvpStatus } from '../../shared/types/event'
 import { effectiveAccess, effectiveLocationType, EVENTS_TABLE } from '../../shared/types/event'
 import { detectLiveProvider } from '../../shared/liveProvider'
+import { eventIsRedacted } from '../../shared/eventModerationPolicy'
 
 /**
  * Landing Page (Meetup-Muster): Zurück-Link, links Titel/Host/Details
@@ -31,6 +32,14 @@ const { formatRelativeTime } = useFormatRelativeTime()
 const { coverSource } = useEventCover()
 const { isLoggedIn } = useCurrentUser()
 const { formatCurrency } = useFormatCurrency()
+
+/**
+ * GESCHWÄRZT (F46): Titel und Beschreibung sind leer, das Titelbild ist weg —
+ * die Absage aber steht weiter da, und das ist der ganze Punkt. Die Seite
+ * ersetzt deshalb NUR den Text durch den i18n-Hinweis; Datum, Ort, Zusagen und
+ * der Absage-Hinweis bleiben, wie sie sind.
+ */
+const isRedacted = computed(() => eventIsRedacted(event.value.redactedAt))
 
 /** Paid-Event (E4): Preis-Zeile + Kauf-CTA (aktiv, sobald die App einen Checkout-Pfad setzt) */
 const isPaid = computed(() => effectiveAccess(event.value) === 'paid')
@@ -373,7 +382,14 @@ const start = computed(() => new Date(event.value.startAt))
 
       <!-- Hauptspalte -->
       <div class="min-w-0">
-        <h1 class="text-2xl font-bold" :class="{ 'line-through opacity-60': event.status === 'cancelled' }">
+        <!-- Geschwärzt: der Titel ist leer. Der Platzhalter kommt aus i18n und
+             steht bewusst NICHT durchgestrichen da — durchgestrichen ist der
+             abgesagte TERMIN, nicht die Auskunft, dass hier etwas entfernt
+             wurde. -->
+        <h1 v-if="isRedacted" class="text-2xl font-bold text-muted italic" data-testid="event-redacted-title">
+          {{ t('events.redacted.title') }}
+        </h1>
+        <h1 v-else class="text-2xl font-bold" :class="{ 'line-through opacity-60': event.status === 'cancelled' }">
           {{ event.title }}
         </h1>
         <div v-if="event.organizerName" class="mt-2 flex items-center gap-2 text-sm text-muted">
@@ -390,8 +406,18 @@ const start = computed(() => new Date(event.value.startAt))
         </div>
 
         <h2 class="mt-8 mb-2 font-semibold">{{ t('events.detail.details') }}</h2>
+        <!-- Geschwärzt (F46): statt der leeren Beschreibung die Auskunft, WARUM
+             hier nichts steht. Ein leerer Block sähe nach einem Fehler aus. -->
+        <UAlert
+          v-if="isRedacted"
+          color="neutral"
+          variant="subtle"
+          icon="i-ph-eraser"
+          :description="t('events.redacted.notice')"
+          data-testid="event-redacted"
+        />
         <!-- Markdown (Listen, fett, …) ohne Raw-HTML; lange Texte geklappt -->
-        <ContentClamp :lines="10" :text="event.description">
+        <ContentClamp v-else :lines="10" :text="event.description">
           <MarkdownContent :source="event.description" class="text-sm leading-relaxed" data-testid="event-description" />
         </ContentClamp>
 

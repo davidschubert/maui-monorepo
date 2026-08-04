@@ -11,6 +11,11 @@ import { describe, expect, it } from 'vitest'
  * meldeten sich damit alle sechs still von der Inhalts-Sperre (M13) und vom
  * Beitritts-Auslöser (A5) ab.
  *
+ * ACHTUNG, FALSCHER FREUND (seit F46, 2026-08-03): „Redaktion" heißt HIER die
+ * Termin-VERWALTUNG durch Editoren. Das englische „redact" in
+ * `server/api/events/[id]/redact.post.ts` und `tests/event-redact-authz.test.ts`
+ * heißt dagegen SCHWÄRZEN und hat mit dieser Datei nichts zu tun.
+ *
  * ABGRENZUNG, die hier mitgeprüft wird: die Serien-Expansion und der
  * Reminder-Sweep sind KEINE Redaktion. Beide laufen aus einem beliebigen
  * Lese-Request (auch dem eines Gastes) und schreiben auf fremden Zeilen — ein

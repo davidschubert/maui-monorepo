@@ -86,6 +86,20 @@ export interface EventRow extends Models.Row {
   seriesUntil: string | null
   /** Idempotenz-Marker des Rolling-Window-Top-ups (nur Master) */
   seriesGeneratedUntil: string | null
+  /**
+   * Zeitpunkt der SCHWÄRZUNG (F46, Migration events-011) — null = nicht
+   * geschwärzt. Gesetzt ausschließlich von `POST /api/events/:id/redact`.
+   *
+   * NUR DAS WANN, NICHT DAS WER. Ein `redactedBy` gibt es hier bewusst nicht:
+   * diese Zeile trägt `read("any")` bzw. `read("label:<communityId>")` — sie ist
+   * öffentlich lesbar, auch per Roh-REST. Die Id des Moderators daraufzuschreiben
+   * hieße, jeder Community mitzuteilen, wer sie moderiert; das ist die
+   * Einladung zur Vergeltung und nicht das Protokoll, das man wollte. Die
+   * Abwägung dazu steht im Kopf der Route.
+   *
+   * KEIN Zod-Wert, kein Formularfeld — wie `status: 'hidden'`.
+   */
+  redactedAt: string | null
 }
 
 export const EVENT_RECURRENCES = ['weekly', 'biweekly', 'monthly'] as const

@@ -214,6 +214,11 @@
       "monthly": "Monatlich",
       "instanceHint": "Teil einer Event-Serie"
     },
+    "redacted": {
+      "title": "Inhalt entfernt",
+      "notice": "Titel, Beschreibung und Titelbild dieses Events hat die Moderation entfernt. Die Absage bleibt bestehen.",
+      "badge": "Geschwärzt"
+    },
     "report": {
       "reasons": {
         "spam": "Spam oder Werbung",
@@ -240,7 +245,13 @@
       "rowActions": "Aktionen für dieses Event",
       "hide": "Ausblenden",
       "restore": "Wieder anzeigen",
-      "notHideable": "Abgesagte Events lassen sich nicht ausblenden",
+      "redact": "Text schwärzen",
+      "confirmRedactTitle": "Text dieses Events schwärzen?",
+      "confirmRedactText": "Titel, Beschreibung und Titelbild von „{title}“ werden entfernt — endgültig, ein Zurück gibt es nicht. Das Event bleibt als abgesagt stehen, damit Zusagende die Absage weiterhin sehen.",
+      "redactConfirm": "Schwärzen",
+      "redacted": "Text geschwärzt.",
+      "redactedHint": "Titel, Beschreibung und Titelbild sind weg. Das Event bleibt als abgesagt sichtbar, offene Meldungen dazu sind erledigt.",
+      "noAction": "Für dieses Event gibt es hier nichts zu tun",
       "hidden": "Event ausgeblendet.",
       "hiddenHint": "Niemand außer der Moderation sieht es noch — auch das Titelbild nicht. Offene Meldungen dazu sind erledigt.",
       "restored": "Event wieder sichtbar.",

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
-import { canHideEvent, canRestoreEvent } from '../../../shared/eventModerationPolicy'
+import { canHideEvent, canRedactEvent, canRestoreEvent, eventIsRedacted } from '../../../shared/eventModerationPolicy'
 import type { EventModerationResponse, EventRow } from '../../../shared/types/event'
 
 /**
@@ -22,6 +22,7 @@ definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCap
 
 const { t } = useI18n()
 const toast = useToast()
+const confirm = useConfirm()
 const { formatDateTime } = useEventDateFormat()
 const { formatRelativeTime } = useFormatRelativeTime()
 
@@ -83,6 +84,35 @@ async function setHidden(row: EventRow, hide: boolean) {
   }
 }
 
+/**
+ * Schwärzen (F46) — die eine Aktion für einen ABGESAGTEN Termin.
+ *
+ * MIT RÜCKFRAGE, anders als Ausblenden und Wiederherstellen: die beiden sind
+ * umkehrbar, diese hier nicht. Der Originaltext ist danach weg, und es gibt
+ * bewusst keine Kopie davon (redact.post.ts) — die Sicherung gehört deshalb VOR
+ * die Tat. Muster: `confirm()` wie beim Absagen in /dashboard/events.
+ */
+async function redactEvent(row: EventRow) {
+  try {
+    const ok = await confirm({
+      title: t('events.moderation.confirmRedactTitle'),
+      description: t('events.moderation.confirmRedactText', { title: row.title }),
+      confirmLabel: t('events.moderation.redactConfirm'),
+      action: () => $fetch(`/api/events/${row.$id}/redact` as string, { method: 'POST' }),
+    })
+    if (!ok) return
+    toast.add({
+      title: t('events.moderation.redacted'),
+      description: t('events.moderation.redactedHint'),
+      color: 'success',
+    })
+    await refresh()
+  }
+  catch {
+    toast.add({ title: t('events.moderation.actionFailed'), description: t('events.moderation.actionFailedHint'), color: 'error' })
+  }
+}
+
 const statusColor = (row: EventRow) =>
   row.status === 'published' ? 'success' : row.status === 'cancelled' ? 'error' : 'warning'
 
@@ -101,9 +131,16 @@ const columns = computed<TableColumn<EventRow>[]>(() => [
 /**
  * Zeilen-Aktionen. Die Bedingungen kommen aus derselben puren Regel, die auch
  * die Routen durchsetzen (`eventModerationPolicy.ts`) — so bietet die Oberfläche
- * keinen Knopf an, der in ein 409 läuft. Ein abgesagter Termin lässt sich heute
- * bewusst nicht ausblenden (die Zusagenden müssen die Absage sehen), bekommt hier
- * also nur den Hinweis.
+ * keinen Knopf an, der in ein 409 läuft.
+ *
+ * JE ZUSTAND GENAU EIN WERKZEUG (F46): veröffentlicht ⇒ ausblenden ·
+ * ausgeblendet ⇒ wieder anzeigen · abgesagt ⇒ schwärzen. Ein abgesagter Termin
+ * wird bewusst NICHT ausgeblendet — die Zusagenden müssen die Absage sehen —,
+ * sein TEXT lässt sich aber seit F46 entfernen.
+ *
+ * IST SCHON GESCHWÄRZT, bleibt nur der Hinweis: die Route nähme den zweiten
+ * Aufruf zwar idempotent an, aber ein Knopf, der nichts mehr bewirkt, ist eine
+ * Einladung zum Zweifeln, ob der erste Klick gewirkt hat.
  */
 function rowActions(row: EventRow): DropdownMenuItem[][] {
   if (canRestoreEvent(row.status).allowed) {
@@ -112,7 +149,10 @@ function rowActions(row: EventRow): DropdownMenuItem[][] {
   if (canHideEvent(row.status).allowed) {
     return [[{ label: t('events.moderation.hide'), icon: 'i-ph-eye-slash', color: 'error', onSelect: () => { void setHidden(row, true) } }]]
   }
-  return [[{ label: t('events.moderation.notHideable'), icon: 'i-ph-info', disabled: true }]]
+  if (canRedactEvent(row.status).allowed && !eventIsRedacted(row.redactedAt)) {
+    return [[{ label: t('events.moderation.redact'), icon: 'i-ph-eraser', color: 'error', onSelect: () => { void redactEvent(row) } }]]
+  }
+  return [[{ label: t('events.moderation.noAction'), icon: 'i-ph-info', disabled: true }]]
 }
 </script>
 
@@ -143,7 +183,17 @@ function rowActions(row: EventRow): DropdownMenuItem[][] {
         <UTable v-else :data="visible" :columns="columns" data-events-mod-table>
           <template #event-cell="{ row }">
             <div class="max-w-md min-w-0" :data-mod-event="row.original.$id">
-              <p class="truncate font-medium" :title="row.original.title">{{ row.original.title }}</p>
+              <!-- Geschwärzt (F46): der Titel ist LEER, und leer allein sagt
+                   nicht, ob nie etwas dastand oder ob jemand es entfernt hat.
+                   Der Platzhalter kommt aus i18n, nie aus der Zeile. -->
+              <p
+                v-if="eventIsRedacted(row.original.redactedAt)"
+                class="truncate text-muted italic"
+                data-mod-redacted-title
+              >
+                {{ t('events.redacted.title') }}
+              </p>
+              <p v-else class="truncate font-medium" :title="row.original.title">{{ row.original.title }}</p>
               <p v-if="row.original.location" class="truncate text-sm text-muted">{{ row.original.location }}</p>
             </div>
           </template>
@@ -160,6 +210,18 @@ function rowActions(row: EventRow): DropdownMenuItem[][] {
               </UBadge>
               <UBadge :color="statusColor(row.original)" variant="subtle" size="sm">
                 {{ t(`events.admin.status.${row.original.status}`) }}
+              </UBadge>
+              <!-- Neben dem Status, nicht statt seiner: „abgesagt" und
+                   „geschwärzt" sind zwei Aussagen, und beide bleiben wahr. -->
+              <UBadge
+                v-if="eventIsRedacted(row.original.redactedAt)"
+                color="neutral"
+                variant="subtle"
+                size="sm"
+                icon="i-ph-eraser"
+                data-mod-redacted
+              >
+                {{ t('events.redacted.badge') }}
               </UBadge>
               <span class="whitespace-nowrap text-xs text-dimmed">{{ formatRelativeTime(row.original.$createdAt) }}</span>
             </div>

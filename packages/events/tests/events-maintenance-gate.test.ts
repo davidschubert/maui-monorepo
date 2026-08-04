@@ -39,10 +39,10 @@ const source = (file: string) => readFileSync(`${apiDir}/${file}`, 'utf8')
  *  - der Reminder-Sweep: ein Betreiber-Vorgang hinter `NUXT_EVENTS_SWEEP_KEY`,
  *    der nur einen Versand-Merker auf fremde Zeilen schreibt. Eine verschluckte
  *    Terminerinnerung wäre der falsche Preis für eine Wartung.
- *  - die beiden MODERATIONS-Routen (F15, 2026-08-03): Ausblenden und
- *    Wiederherstellen laufen hinter `events.moderate` mit der Türklinke
- *    `operator` — sie sind ein Urteil über fremden Inhalt, kein Mitglieds-
- *    Schreibvorgang. Sie einzufrieren hieße, eine Community, an der gerade
+ *  - die MODERATIONS-Routen (F15, 2026-08-03; Schwärzen kam mit F46 dazu):
+ *    Ausblenden, Wiederherstellen und Schwärzen laufen hinter `events.moderate`
+ *    mit der Türklinke `operator` — sie sind ein Urteil über fremden Inhalt,
+ *    kein Mitglieds-Schreibvorgang. Sie einzufrieren hieße, eine Community, an der gerade
  *    gearbeitet wird, unmoderierbar zu machen; das ist dieselbe Trennung, die
  *    M13 für die Zahlungs-Sperre trifft („eine gesperrte Community, die niemand
  *    mehr moderieren kann, wird zum Problem des Betreibers") — und exakt die,
@@ -53,6 +53,7 @@ const OPERATOR_ROUTES = new Set([
   'reminder-sweep.post.ts',
   '[id]/hide.post.ts',
   '[id]/restore.post.ts',
+  '[id]/redact.post.ts',
 ])
 
 const memberWriteRoutes = routeFiles(apiDir).filter(file =>
@@ -90,7 +91,7 @@ describe('Lesende Routen, der Betreiber-Sweep und die Moderation bleiben bewusst
     // Die Ausnahme oben ist nur zulässig, WEIL diese Routen anders gesichert
     // sind. Ohne diese Erwartung könnte man jede Route durch Eintrag in
     // OPERATOR_ROUTES aus dem Wartungsmodus herausdefinieren.
-    for (const file of ['[id]/hide.post.ts', '[id]/restore.post.ts']) {
+    for (const file of ['[id]/hide.post.ts', '[id]/restore.post.ts', '[id]/redact.post.ts']) {
       expect(source(file)).toContain('requireCommunityPermission(event, \'events.moderate\')')
       expect(source(file)).toContain('as: \'operator\'')
     }

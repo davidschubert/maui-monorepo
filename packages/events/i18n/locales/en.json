@@ -214,6 +214,11 @@
       "monthly": "Monthly",
       "instanceHint": "Part of an event series"
     },
+    "redacted": {
+      "title": "Content removed",
+      "notice": "Moderation removed the title, description and cover image of this event. The cancellation still stands.",
+      "badge": "Redacted"
+    },
     "report": {
       "reasons": {
         "spam": "Spam or advertising",
@@ -240,7 +245,13 @@
       "rowActions": "Actions for this event",
       "hide": "Hide",
       "restore": "Show again",
-      "notHideable": "Cancelled events cannot be hidden",
+      "redact": "Redact text",
+      "confirmRedactTitle": "Redact the text of this event?",
+      "confirmRedactText": "The title, description and cover image of “{title}” will be removed — permanently, there is no way back. The event stays listed as cancelled so attendees keep seeing the cancellation.",
+      "redactConfirm": "Redact",
+      "redacted": "Text redacted.",
+      "redactedHint": "Title, description and cover image are gone. The event stays visible as cancelled, and open reports about it are now closed.",
+      "noAction": "Nothing to do here for this event",
       "hidden": "Event hidden.",
       "hiddenHint": "Nobody but moderation can see it any more — the cover image included. Open reports about it are now closed.",
       "restored": "Event visible again.",
