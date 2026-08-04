@@ -5,7 +5,8 @@ import { EVENTS_TABLE, EVENT_COVERS_BUCKET, type EventRow } from '../../../../sh
  * Moderation: den Text eines ABGESAGTEN Termins schwärzen (F46, 2026-08-03 —
  * Davids Entscheidung).
  *
- * Titel und Beschreibung werden geleert, der Marker `redactedAt` gesetzt, das
+ * Jeder vom Autor gewählte Text wird geleert (Titel, Beschreibung, Ort,
+ * Adresse, Ortshinweise, beide Links), der Marker `redactedAt` gesetzt, das
  * Titelbild gelöscht. Der Status bleibt `cancelled`, das Leserecht bleibt: wer
  * zugesagt hat, sieht weiterhin, DASS abgesagt wurde — nur den Text nicht mehr.
  * VERWORFEN wurde ausdrücklich „ausblenden und die Zusagenden benachrichtigen":
@@ -101,17 +102,33 @@ export default defineEventHandler(async (event) => {
    * zweiter Schritt könnte scheitern und hinterließe entweder leeren Text ohne
    * Erklärung oder eine Erklärung ohne Wirkung.
    *
-   * GESCHWÄRZT WERDEN TITEL UND BESCHREIBUNG — so weit reicht Davids
-   * Entscheidung, und weiter reicht dieser Schnitt bewusst nicht. Die übrigen
-   * Freitextfelder (`location`, `address`, `locationNotes`) bleiben stehen; sie
-   * stehen auf derselben Seite, und wer den anstößigen Satz dorthin schreibt,
-   * bleibt vorerst unerreicht. Das ist eine benannte Lücke, keine vergessene
-   * Zeile — sie zu schließen ist eine eigene Entscheidung darüber, was ein
-   * Termin ohne Ort noch ist.
+   * GESCHWÄRZT WIRD JEDER TEXT, DEN DER AUTOR GEWÄHLT HAT (Davids Entscheidung
+   * 2026-08-03, erweitert nach dem ersten Schnitt): Titel, Beschreibung, Ort,
+   * Adresse, Ortshinweise UND die beiden Links. Der erste Schnitt hatte nur
+   * Titel und Beschreibung geleert und die übrigen fünf Felder als benannte
+   * Lücke stehen gelassen — das verschiebt das Problem aber nur eine Zeile
+   * tiefer: sie stehen auf derselben Seite, und ein Link auf eine anstößige
+   * Seite ist derselbe Fall wie ein anstößiger Titel. Ein Werkzeug, das man
+   * durch die Wahl des Feldes umgeht, ist keines.
+   *
+   * WARUM DAS BEI EINER ABSAGE VERTRETBAR IST: der Termin ist abgesagt. Der
+   * Informationswert von Ort und Link ist damit erloschen — worauf die
+   * Zusagenden ein Anrecht haben, ist die TATSACHE der Absage, und die trägt
+   * `status`, nicht der Text.
+   *
+   * `organizerName` bleibt BEWUSST stehen: das ist Identität, nicht Inhalt. Sie
+   * zu entfernen nähme die Zurechenbarkeit — mit dem Autor befasst man sich
+   * über Mitgliedschaft und Rolle (A5), nicht über das Anonymisieren seines
+   * abgesagten Termins.
    */
   await db.update<EventRow>(EVENTS_TABLE, id, {
     title: '',
     description: '',
+    location: null,
+    address: null,
+    locationNotes: null,
+    url: null,
+    replayUrl: null,
     coverFileId: null,
     redactedAt: new Date().toISOString(),
   }).catch((error) => { throw toH3Error(error, 'Could not redact event') })

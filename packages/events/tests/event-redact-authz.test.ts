@@ -81,9 +81,20 @@ describe('Schwärzen hält sich an die pure Regel und an die Datentür', () => {
     expect(REDACT).toContain('data: { code: verdict.reason }')
   })
 
-  it('leert Titel UND Beschreibung und setzt den Marker in EINEM Schreibvorgang', () => {
-    expect(REDACT).toMatch(/title: '',\s*\n\s*description: '',/)
+  it('leert JEDEN vom Autor gewählten Text und setzt den Marker in EINEM Schreibvorgang', () => {
+    // Die Liste ist der eigentliche Vertrag. Der erste Schnitt leerte nur Titel
+    // und Beschreibung — die übrigen fünf Felder stehen auf DERSELBEN Seite,
+    // und ein Link auf eine anstößige Seite ist derselbe Fall wie ein
+    // anstößiger Titel. Wer hier eines wegnimmt, macht das Werkzeug durch die
+    // Wahl des Feldes umgehbar; deshalb steht die Liste hier und nicht nur im
+    // Kommentar.
+    for (const feld of ['title', 'description', 'location', 'address', 'locationNotes', 'url', 'replayUrl']) {
+      expect(REDACT).toMatch(new RegExp(`\\n\\s*${feld}: (''|null),`))
+    }
     expect(REDACT).toContain('redactedAt: new Date().toISOString()')
+    // Gegenprobe: der Name des Organisators ist Identität, nicht Inhalt — ihn
+    // zu leeren nähme die Zurechenbarkeit.
+    expect(REDACT).not.toMatch(/\n\s*organizerName: /)
   })
 
   it('LÖSCHT das Titelbild, statt es umzupermissionieren', () => {
