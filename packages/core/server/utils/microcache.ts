@@ -11,6 +11,13 @@ const MAX_ENTRIES = 500
 export interface Microcache<T> {
   get: (key: string) => T | undefined
   set: (key: string, value: T) => void
+  /**
+   * GENAU einen Eintrag verwerfen. Braucht jede Schreibroute, deren neuer Stand
+   * sich nicht in einem Wert ausdrücken lässt (sonst würde man ihn einfach neu
+   * setzen) — `clear()` wäre dort falsch, weil es die Einträge ALLER anderen
+   * Mandanten mitnimmt und deren nächste Anfrage teuer macht.
+   */
+  delete: (key: string) => void
   clear: () => void
 }
 
@@ -27,6 +34,9 @@ export function createMicrocache<T>(ttlMs: number): Microcache<T> {
       // Simpler Überlauf-Schutz statt LRU — bei 500 Keys ist Leeren billig
       if (store.size >= MAX_ENTRIES) store.clear()
       store.set(key, { value, expires: Date.now() + ttlMs })
+    },
+    delete(key) {
+      store.delete(key)
     },
     clear() {
       store.clear()

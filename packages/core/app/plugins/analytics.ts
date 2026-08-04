@@ -11,10 +11,14 @@ import { plausibleScriptUrl } from '../../shared/analyticsScript'
  * ZWEI HERKÜNFTE FÜR EINE SCRIPT-ADRESSE (2026-08-04):
  *  - STATISCH (`src`/`domain` in der App-Config): Betreiber-Seiten mit genau
  *    einer Plausible-Site — marketing, comments, portfolio.
- *  - SELBSTBEDIENUNG (`instance` gesetzt): die Community trägt ihre Script-Id
- *    im Dashboard ein, die App holt sie beim Seitenaufbau (Layer `analytics`).
- *    Für den Pool ist das die einzige Möglichkeit — eine GEBAUTE Config kann
- *    nicht pro Host eine andere Site nennen.
+ *  - SELBSTBEDIENUNG (`instance` gesetzt): die Community schaltet die Messung
+ *    im Dashboard ein, die App holt die Id beim Seitenaufbau (Layer
+ *    `analytics`). Für den Pool ist das die einzige Möglichkeit — eine GEBAUTE
+ *    Config kann nicht pro Host eine andere Site nennen. WELCHE Id dabei
+ *    herauskommt — die eigene Site der Community oder die Sammel-Site des
+ *    Deployments (`pukalani.analytics.shared`) — entscheidet allein die Route;
+ *    hier ist es einfach „die Id dieses Hosts" (shared/analyticsScript.ts,
+ *    `effectiveScriptId`).
  * Ist beides da, GEWINNT DIE ZEILE DER COMMUNITY: sie ist die spezifischere
  * Aussage („diese Community misst hier"), die Config nur die Voreinstellung
  * des Deployments.

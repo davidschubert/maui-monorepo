@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ANALYTICS_SCRIPT_ID_RE, isPlausibleScriptId, plausibleScriptUrl } from '../shared/analyticsScript'
+import { ANALYTICS_SCRIPT_ID_RE, effectiveScriptId, isPlausibleScriptId, plausibleScriptUrl } from '../shared/analyticsScript'
 
 describe('isPlausibleScriptId', () => {
   it('erkennt echte v3-Ids und den Leerstring (= aus)', () => {
@@ -56,5 +56,43 @@ describe('plausibleScriptUrl', () => {
     expect(plausibleScriptUrl('', 'pa-abcdefgh')).toBe('')
     expect(plausibleScriptUrl('https://plausible.hawaii.studio', '')).toBe('')
     expect(plausibleScriptUrl(undefined, undefined)).toBe('')
+  })
+})
+
+describe('effectiveScriptId', () => {
+  const OWN = 'pa-NFzv_HzyhC-TnVE577Kx6'
+  const SHARED = { scriptId: 'pa-nw6c94JiRWqzOc-zDcn1a' }
+
+  it('die eigene Site gewinnt — auch gegen einen eingeschalteten Schalter', () => {
+    expect(effectiveScriptId({ plausibleScriptId: OWN }, SHARED)).toBe(OWN)
+    expect(effectiveScriptId({ plausibleScriptId: OWN, enabled: true }, SHARED)).toBe(OWN)
+    expect(effectiveScriptId({ plausibleScriptId: OWN, enabled: false }, SHARED)).toBe(OWN)
+  })
+
+  it('sonst zählt der Schalter — mit der Id der Sammel-Site', () => {
+    expect(effectiveScriptId({ plausibleScriptId: '', enabled: true }, SHARED)).toBe(SHARED.scriptId)
+    expect(effectiveScriptId({ enabled: true }, SHARED)).toBe(SHARED.scriptId)
+  })
+
+  it('aus heißt aus — kein Rückfall auf irgendeine Vorgabe', () => {
+    expect(effectiveScriptId({ plausibleScriptId: '', enabled: false }, SHARED)).toBe('')
+    expect(effectiveScriptId({}, SHARED)).toBe('')
+    expect(effectiveScriptId(null, SHARED)).toBe('')
+    expect(effectiveScriptId(undefined, SHARED)).toBe('')
+  })
+
+  it('ohne Sammel-Site ist der Schalter wirkungslos (Silo, lokale Entwicklung)', () => {
+    expect(effectiveScriptId({ enabled: true }, {})).toBe('')
+    expect(effectiveScriptId({ enabled: true }, { scriptId: '' })).toBe('')
+  })
+
+  /**
+   * Die Prüfung gilt BEIDEN Herkünften: auch ein Wert aus der App-Config wird
+   * zu einem `<script src>`, und ein Tippfehler dort ist kein Freibrief.
+   */
+  it('lässt keine unbrauchbare Id durch — weder aus der Zeile noch aus der Config', () => {
+    expect(effectiveScriptId({ plausibleScriptId: 'https://boese.example/x.js' }, SHARED)).toBe('')
+    expect(effectiveScriptId({ plausibleScriptId: 'https://boese.example/x.js', enabled: true }, SHARED)).toBe(SHARED.scriptId)
+    expect(effectiveScriptId({ enabled: true }, { scriptId: 'https://boese.example/x.js' })).toBe('')
   })
 })

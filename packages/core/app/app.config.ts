@@ -157,6 +157,29 @@ export default defineAppConfig({
        * (core/shared/analyticsScript.ts), nie eine Herkunft.
        */
       instance: '',
+      /**
+       * DIE SAMMEL-SITE (v2, 2026-08-04) — Core-Default leer, die App setzt sie.
+       *
+       * Gesetzt heißt: „Messung aktiv" ist in dieser App ein SCHALTER
+       * (`analytics_settings.enabled`) statt einer Id-Eingabe. Alle Communities
+       * dieses Deployments tracken dann in DIESELBE Plausible-Site; getrennt
+       * werden ihre Zahlen erst bei der ABFRAGE, über den
+       * `event:hostname`-Filter der Stats-API.
+       *
+       * Warum nicht eine Site je Community: die Plausible-CE hat keine
+       * Sites-API (Enterprise-only, am Quellcode geprüft) — es gibt keinen Weg,
+       * beim Aktivieren eine Site anzulegen. Eine eigene Site bleibt möglich
+       * (das v1-Feld, im Dashboard unter „Erweitert") und GEWINNT über den
+       * Schalter (`effectiveScriptId`).
+       *
+       * `scriptId` ist die Id für den `<script src>` (dieselbe Prüfung wie bei
+       * einer Kunden-Eingabe), `siteId` der Site-Schlüssel für die Stats-API —
+       * das sind zwei verschiedene Dinge, deshalb zwei Felder.
+       */
+      shared: {
+        scriptId: '',
+        siteId: '',
+      },
     },
     consent: {
       enabled: false,
