@@ -5,7 +5,7 @@
 Grenze zu `posts` wirklich verläuft, und welche drei Entscheidungen vor dem
 ersten Commit fallen müssen.
 
-Status: **entscheidungsreif, nicht in Bau.**
+Status: **entscheidungskomplett (3.8) — wartet auf den Baustart (Feature-Stopp).**
 
 ---
 
@@ -368,13 +368,28 @@ braucht Zähl-, Lese- und Rechte-Infrastruktur OBENDRAUF):
 5. **Trust Levels (eigenes Projekt):** siehe 3.6 — nur mit ausdrücklicher
    Architektur-Entscheidung.
 
-**Die offenen Entscheidungen, konsolidiert** (ersetzt die Dreierliste aus
-Teil 2):
+## 3.8 Die sieben Entscheidungen — ALLE GEFALLEN (David, 2026-08-03)
 
-1. Weg A/B/C (Teil 2) — der Katalog spricht für B.
-2. Verlässt ein kategorisierter Beitrag den Feed? (Teil 2)
-3. Name vs. „Diskussionen" auf der Landing (Teil 2)
-4. **Like-Modell:** Herz = Upvote, oder eigenes Signal neben den Stimmen?
-5. **Trust Levels:** bauen, später, oder bewusst nicht?
-6. **Privacy/ToS je Community:** rechtlich klären, bevor der Seed entsteht.
-7. Seitenleiste: Top-5-Kategorien oder meine letzten 5?
+Damit ist das Konzept **entscheidungskomplett**; offen ist nur noch der
+Baustart (Feature-Stopp, siehe OPEN-ITEMS).
+
+1. **Weg B** — Kategorie als Dimension von `posts`, Discussions als eigene
+   Ansicht. Ein Datenmodell, eine Moderation; die Spalte wäre später der
+   Migrationspfad, falls Discussions doch ein eigenes Wesen entwickelt.
+2. **Kategorisierte Beiträge BLEIBEN im Feed.** Der Feed ist der Strom über
+   alles, Discussions die strukturierte Sicht — eine Community hat EINEN Ort.
+3. **Das Produkt heißt Discussions/Diskussionen**; der Kommentar-Baustein auf
+   der Landing wird zu „Kommentare" umbenannt (reine Textänderung, gehört in
+   Stufe 1).
+4. **Like = Upvote.** Ein Signal, keine neue Tabelle, alle Badge-Kriterien
+   sofort messbar. Downvotes bleiben (die Reddit-Hälfte des „Mitteldings")
+   und sind badge-neutral.
+5. **Trust Levels: später, nach Stufe 1–4** — als eigene
+   Architektur-Entscheidung mit eigenem Entwurf. Die vier TL-Badges bleiben
+   bis dahin ausgespart.
+6. **Regelwerk: nur Guidelines jetzt** (pages-Mechanik, Beispieltext,
+   Owner-editierbar). ToS/Privacy je Community erst nach der Rechtsklärung
+   mit dem Anwalt — die steht mit A1 ohnehin an.
+7. **Seitenleiste: meine letzten 5 Kategorien** (in denen ich gepostet oder
+   kommentiert habe); ohne eigene Aktivität Rückfall auf die 5 größten. Plus
+   „All categories".

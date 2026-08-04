@@ -7,6 +7,24 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-08-03 — Discussions: alle sieben Konzept-Entscheidungen gefallen
+
+**Davids Entscheidungen** (je der Empfehlung gefolgt; Volltext + Begründungen:
+docs/plans/DISCUSSIONS-KONZEPT.md § 3.8): **Weg B** (Kategorie als Dimension
+von `posts`, kein eigener Layer) · kategorisierte Beiträge **bleiben im Feed**
+· Produktname **Discussions**, der Landing-Kommentar-Baustein wird zu
+„Kommentare" · **Like = Upvote** (Downvotes bleiben, badge-neutral) · **Trust
+Levels später** (eigener Entwurf nach Stufe 1–4) · Regelwerk **nur Guidelines
+jetzt** (ToS/Privacy je Community erst nach Anwalts-Klärung, hängt an A1) ·
+Seitenleiste = **meine letzten 5 Kategorien** mit Rückfall auf die größten.
+
+Verworfen u. a.: eigener Layer (doppelte Härtung), Herz neben den Stimmen
+(zwei Signale am selben Beitrag), Trust Levels von Anfang an (größtes Stück
+zuerst). Das Konzept ist damit entscheidungskomplett; es wartet nur noch auf
+das Ende des Feature-Stopps.
+
+---
+
 ## 2026-08-03 — Zwei Nicht-Aufgaben aus der offenen Liste geholt
 
 **Davids Entscheidungen, unverändert gültig** — sie standen bisher unter
