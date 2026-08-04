@@ -262,6 +262,55 @@
         "noTextTitle": "No text here yet",
         "noTextHint": "Create a page with the address “discussions-about” — whatever you write there shows up here.",
         "noTextAction": "Manage pages"
+      },
+      "badges": {
+        "title": "Badges",
+        "description": "What there is to earn here — and what you already hold.",
+        "earnedSummary": "{earned} of {total} earned",
+        "guestHint": "Sign in to start collecting badges.",
+        "awarded": "Awarded {when}",
+        "progress": "{current} of {target}",
+        "group": {
+          "gettingStarted": "Getting started",
+          "community": "Community",
+          "posting": "Posting"
+        },
+        "name": {
+          "profile": "Introduced",
+          "first-like": "First upvote",
+          "first-flag": "First flag",
+          "welcome": "Welcome",
+          "appreciated": "Appreciated",
+          "thank-you": "Thank you",
+          "gives-back": "Gives back",
+          "empathetic": "Empathetic",
+          "respected": "Respected",
+          "admired": "Admired",
+          "nice-topic": "Nice post",
+          "good-topic": "Strong post",
+          "great-topic": "Outstanding post",
+          "nice-reply": "Nice reply",
+          "good-reply": "Strong reply",
+          "great-reply": "Outstanding reply"
+        },
+        "criterion": {
+          "profile": "You added a few words about yourself and a profile picture.",
+          "first-like": "You upvoted something for the first time.",
+          "first-flag": "You flagged something for the first time.",
+          "welcome": "Something of yours received an upvote.",
+          "appreciated": "20 of your posts or replies have at least one upvote.",
+          "thank-you": "20 of your posts or replies have an upvote, and you gave 10 yourself.",
+          "gives-back": "100 of your posts or replies have an upvote, and you gave 100 yourself.",
+          "empathetic": "500 of your posts or replies have an upvote, and you gave 1000 yourself.",
+          "respected": "100 of your posts or replies have at least two upvotes.",
+          "admired": "300 of your posts or replies have at least five upvotes.",
+          "nice-topic": "A post of yours has 10 upvotes.",
+          "good-topic": "A post of yours has 25 upvotes.",
+          "great-topic": "A post of yours has 50 upvotes.",
+          "nice-reply": "A reply of yours has 10 upvotes.",
+          "good-reply": "A reply of yours has 25 upvotes.",
+          "great-reply": "A reply of yours has 50 upvotes."
+        }
       }
     },
     "categories": {

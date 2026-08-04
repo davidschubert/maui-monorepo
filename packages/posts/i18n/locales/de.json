@@ -262,6 +262,55 @@
         "noTextTitle": "Hier steht noch kein Text",
         "noTextHint": "Leg eine Seite mit der Adresse „discussions-about“ an — was du dort schreibst, erscheint an dieser Stelle.",
         "noTextAction": "Seiten verwalten"
+      },
+      "badges": {
+        "title": "Abzeichen",
+        "description": "Was es hier zu verdienen gibt — und was du schon hast.",
+        "earnedSummary": "{earned} von {total} verdient",
+        "guestHint": "Melde dich an, um Abzeichen zu sammeln.",
+        "awarded": "Verliehen {when}",
+        "progress": "{current} von {target}",
+        "group": {
+          "gettingStarted": "Erste Schritte",
+          "community": "Gemeinschaft",
+          "posting": "Schreiben"
+        },
+        "name": {
+          "profile": "Vorgestellt",
+          "first-like": "Erster Zuspruch",
+          "first-flag": "Erste Meldung",
+          "welcome": "Willkommen",
+          "appreciated": "Geschätzt",
+          "thank-you": "Dankeschön",
+          "gives-back": "Gibt zurück",
+          "empathetic": "Zugewandt",
+          "respected": "Anerkannt",
+          "admired": "Bewundert",
+          "nice-topic": "Guter Beitrag",
+          "good-topic": "Starker Beitrag",
+          "great-topic": "Herausragender Beitrag",
+          "nice-reply": "Gute Antwort",
+          "good-reply": "Starke Antwort",
+          "great-reply": "Herausragende Antwort"
+        },
+        "criterion": {
+          "profile": "Du hast einen Text über dich und ein Profilbild hinterlegt.",
+          "first-like": "Du hast zum ersten Mal etwas hochgestimmt.",
+          "first-flag": "Du hast zum ersten Mal etwas gemeldet.",
+          "welcome": "Etwas von dir hat eine Stimme bekommen.",
+          "appreciated": "20 deiner Beiträge oder Antworten haben mindestens eine Stimme.",
+          "thank-you": "20 deiner Beiträge oder Antworten haben eine Stimme, und du hast selbst 10 vergeben.",
+          "gives-back": "100 deiner Beiträge oder Antworten haben eine Stimme, und du hast selbst 100 vergeben.",
+          "empathetic": "500 deiner Beiträge oder Antworten haben eine Stimme, und du hast selbst 1000 vergeben.",
+          "respected": "100 deiner Beiträge oder Antworten haben mindestens zwei Stimmen.",
+          "admired": "300 deiner Beiträge oder Antworten haben mindestens fünf Stimmen.",
+          "nice-topic": "Ein Beitrag von dir hat 10 Stimmen.",
+          "good-topic": "Ein Beitrag von dir hat 25 Stimmen.",
+          "great-topic": "Ein Beitrag von dir hat 50 Stimmen.",
+          "nice-reply": "Eine Antwort von dir hat 10 Stimmen.",
+          "good-reply": "Eine Antwort von dir hat 25 Stimmen.",
+          "great-reply": "Eine Antwort von dir hat 50 Stimmen."
+        }
       }
     },
     "categories": {

@@ -3,6 +3,7 @@ import {
   BADGE_CATALOG,
   type BadgeFacts,
   badgeEarned,
+  badgeProgress,
   badgeThresholds,
   earnedBadgeKeys,
   emptyBadgeFacts,
@@ -111,6 +112,29 @@ describe('die einzelnen Bedingungen', () => {
     // So kommt eine ausgefallene Zähl-Quelle an: der Schlüssel fehlt. Das darf
     // nie zu einer Verleihung führen.
     expect(badgeEarned(badge('welcome'), facts({ likedItems: {} }))).toBe(false)
+  })
+})
+
+describe('badgeProgress — nur, wo die Zahl nicht luegt', () => {
+  it('zeigt den Stand bei genau EINER zählbaren Bedingung', () => {
+    expect(badgeProgress(badge('appreciated'), facts({ likedItems: { 1: 12 } }))).toEqual({ current: 12, target: 20 })
+  })
+
+  it('schweigt, wo ZWEI Bedingungen gelten', () => {
+    // „18 von 20" neben null vergebenen Stimmen läse sich wie „fast
+    // geschafft" — der Bedingungstext sagt stattdessen beides.
+    expect(badgeProgress(badge('thank-you'), facts({ likedItems: { 1: 18 }, likesGiven: 0 }))).toBeNull()
+  })
+
+  it('schweigt bei den „ersten Malen"', () => {
+    // Ziel 1: der Stand ist 0 oder fertig — ein Balken mit zwei Zuständen
+    // ist nur eine umständliche Form des Hakens.
+    expect(badgeProgress(badge('first-like'), facts())).toBeNull()
+    expect(badgeProgress(badge('nice-topic'), facts())).toBeNull()
+  })
+
+  it('läuft nicht über das Ziel hinaus', () => {
+    expect(badgeProgress(badge('appreciated'), facts({ likedItems: { 1: 99 } }))).toEqual({ current: 20, target: 20 })
   })
 })
 

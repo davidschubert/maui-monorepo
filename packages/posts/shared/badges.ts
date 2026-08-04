@@ -178,3 +178,37 @@ export function badgeEarned(badge: BadgeDefinition, facts: BadgeFacts): boolean 
 export function earnedBadgeKeys(facts: BadgeFacts, catalog: readonly BadgeDefinition[] = BADGE_CATALOG): string[] {
   return catalog.filter(badge => badgeEarned(badge, facts)).map(badge => badge.key)
 }
+
+export interface BadgeProgress {
+  current: number
+  target: number
+}
+
+/**
+ * Wie weit ist dieser Mensch? — `null`, wenn die Frage nicht ehrlich zu
+ * beantworten ist.
+ *
+ * NUR BEI GENAU EINER ZAEHLBAREN BEDINGUNG, und das ist der springende Punkt.
+ * „Dankeschoen" verlangt ZWEI Dinge (20-mal gelobt worden UND 10-mal gelobt
+ * haben). Ein einzelner Balken muesste sich fuer eines entscheiden — und
+ * „18 von 20" neben einem unerfuellten zweiten Teil liest sich wie „fast
+ * geschafft", obwohl noch zehn vergebene Stimmen fehlen. Zwei Balken waeren
+ * ehrlich und trotzdem falsch: sie machten aus einem Abzeichen eine
+ * Aufgabenliste. Also gar keiner, und der Bedingungstext sagt beides.
+ *
+ * Auch bei den „ersten Malen" (Ziel 1) gibt es keinen Balken: dort ist der
+ * Fortschritt entweder 0 oder fertig, und ein Balken mit zwei Zustaenden ist
+ * nur eine umstaendliche Form des Hakens.
+ */
+export function badgeProgress(badge: BadgeDefinition, facts: BadgeFacts): BadgeProgress | null {
+  const countable: BadgeProgress[] = []
+  if (badge.requires.likesGiven !== undefined) countable.push({ current: facts.likesGiven, target: badge.requires.likesGiven })
+  if (badge.requires.flagsRaised !== undefined) countable.push({ current: facts.flagsRaised, target: badge.requires.flagsRaised })
+  if (badge.requires.likedItems) countable.push({ current: facts.likedItems[badge.requires.likedItems.threshold] ?? 0, target: badge.requires.likedItems.count })
+  if (badge.requires.likedTopics) countable.push({ current: facts.likedTopics[badge.requires.likedTopics.threshold] ?? 0, target: badge.requires.likedTopics.count })
+  if (badge.requires.likedReplies) countable.push({ current: facts.likedReplies[badge.requires.likedReplies.threshold] ?? 0, target: badge.requires.likedReplies.count })
+
+  const only = countable.length === 1 ? countable[0] : undefined
+  if (!only || only.target <= 1) return null
+  return { current: Math.min(only.current, only.target), target: only.target }
+}

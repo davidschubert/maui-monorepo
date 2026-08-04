@@ -2,7 +2,8 @@
 import { GUIDELINES_SLUG, type PublicPageNavItem } from '../../../pages/shared/types/page'
 
 /**
- * Die Zusatz-Punkte unter der Discussions-Seitenleiste (F1 Stufe 2).
+ * Die Zusatz-Punkte unter der Discussions-Seitenleiste (F1 Stufe 2, seit
+ * Stufe 4 auch „Abzeichen").
  *
  * WARUM SIE NICHT IN `DiscussionSidebar` STEHEN (dem naheliegenden Ort): jene
  * Komponente gehört dem posts-Layer, und diese Punkte hängen an anderen Layern
@@ -10,6 +11,12 @@ import { GUIDELINES_SLUG, type PublicPageNavItem } from '../../../pages/shared/t
  * einem Text aus dem pages-Layer. Ein Produkt-Layer darf einen anderen nicht
  * kennen (A14); die Verdrahtung gehört nach blueprint. Deshalb steht die
  * Kategorien-Leiste weiter in posts und dieser Anhang daneben.
+ *
+ * „ABZEICHEN" STEHT AUCH HIER, obwohl seine Seite nur aus `posts` gespeist
+ * wird: der ADRESSRAUM `/discussions/*` gehört dem Bauplan, und ein Menü,
+ * dessen Punkte teils hier und teils dort stehen, hätte zwei Stellen zum
+ * Vergessen. Der Punkt erscheint IMMER — die Galerie zeigt Gästen den
+ * Katalog statt einer Anmelde-Schranke.
  *
  * ── „REGELN" ERSCHEINT NUR, WENN ES SIE GIBT ───────────────────────────────
  * Zwei Fälle, in denen es die Seite NICHT gibt, und beide sind normal:
@@ -53,6 +60,14 @@ const guidelines = computed(() => (navPages.value ?? []).find(page => page.slug 
           class="block truncate rounded px-2 py-1 text-muted hover:bg-elevated/50 hover:text-default"
         >
           {{ t('posts.discussions.about.title') }}
+        </NuxtLink>
+      </li>
+      <li>
+        <NuxtLink
+          :to="localePath('/discussions/badges')"
+          class="block truncate rounded px-2 py-1 text-muted hover:bg-elevated/50 hover:text-default"
+        >
+          {{ t('posts.discussions.badges.title') }}
         </NuxtLink>
       </li>
       <li v-if="guidelines">

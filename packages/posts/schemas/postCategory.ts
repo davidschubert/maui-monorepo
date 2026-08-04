@@ -23,8 +23,16 @@ const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
  * Reservierte Slugs: `/discussions/<kategorie>` liegt im selben Namensraum wie
  * die Unterseiten des Bereichs. Ohne diese Sperre könnte eine Kategorie
  * „categories" die Kategorien-Übersicht verdecken.
+ *
+ * `about` und `badges` sind ECHTE Seiten des Bereichs — und `about` fehlte
+ * hier seit Stufe 2 (beim Bau der Abzeichen-Seite aufgefallen). Ein statischer
+ * Pfad gewinnt gegen `[category]`, die Kategorie wäre also nicht verdeckt,
+ * sondern unerreichbar: sie ließe sich anlegen, in der Übersicht anklicken —
+ * und der Klick landete auf der About-Seite. Die Sperre wirkt nur für NEUE
+ * Kategorien; eine bestehende mit diesem Slug ist schon heute nicht
+ * erreichbar und braucht einen neuen (Slug ist nach der Anlage fest).
  */
-export const RESERVED_CATEGORY_SLUGS = ['categories', 'new', 'all', 'search', 'api'] as const
+export const RESERVED_CATEGORY_SLUGS = ['categories', 'new', 'all', 'search', 'api', 'about', 'badges'] as const
 
 const nameField = (t: TranslateFn) => z.string().trim()
   .min(1, t('posts.validation.categoryNameRequired'))

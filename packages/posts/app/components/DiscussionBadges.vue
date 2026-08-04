@@ -1,0 +1,110 @@
+<script setup lang="ts">
+import { BADGE_CATALOG, BADGE_GROUPS, type BadgeGroup, type BadgeProgress, badgeProgress } from '../../shared/badges'
+import type { DiscussionBadge, DiscussionBadgesResponse } from '../../shared/types/post'
+
+/**
+ * Die Abzeichen-Galerie (F1 Stufe 4).
+ *
+ * KEINE `UTable`, und das ist die Ausnahme mit Begründung: Davids Regel B6
+ * gilt DATENLISTEN IM DASHBOARD — Sortieren, Auswählen, Blättern. Hier gibt es
+ * nichts davon. Der Katalog ist eine feste, kurze Liste, die man ÜBERBLICKT
+ * statt sie zu durchsuchen; ihre Aussage steckt im Vergleich („was habe ich,
+ * was fehlt noch"), und dafür ist ein Raster die richtige Form.
+ *
+ * DER GANZE KATALOG STEHT DA, auch das Unerreichte — sonst zeigte die Seite
+ * nur, was man schon weiß. Unverdientes ist gedämpft und trägt seine
+ * Bedingung; verdientes trägt das Verleihdatum.
+ *
+ * DER FORTSCHRITT KOMMT AUS DER PUREN REGEL (`badgeProgress`) und erscheint
+ * nur, wo er nicht lügt — die Begründung steht dort.
+ */
+const { t } = useI18n()
+const { formatRelativeTime } = useFormatRelativeTime()
+
+const { data, status } = await useFetch<DiscussionBadgesResponse>('/api/posts/discussions/badges')
+
+const facts = computed(() => data.value?.facts ?? null)
+const rows = computed(() => data.value?.rows ?? [])
+const earnedCount = computed(() => rows.value.filter(row => row.earned).length)
+
+function badgesOf(group: BadgeGroup): DiscussionBadge[] {
+  return rows.value.filter(row => row.group === group)
+}
+
+/** Der Katalog-Eintrag zum Schlüssel — für Bedingung und Fortschritt. */
+function definitionOf(key: string) {
+  return BADGE_CATALOG.find(entry => entry.key === key)
+}
+
+function progressOf(key: string): BadgeProgress | null {
+  const definition = definitionOf(key)
+  const measured = facts.value
+  if (!definition || !measured) return null
+  return badgeProgress(definition, measured)
+}
+
+/** Getrennt vom Fortschritt selbst, weil `t()` ein reines Werte-Objekt will. */
+function progressValues(progress: BadgeProgress): Record<string, number> {
+  return { current: progress.current, target: progress.target }
+}
+</script>
+
+<template>
+  <div class="space-y-8">
+    <div>
+      <h1 class="text-2xl font-bold">{{ t('posts.discussions.badges.title') }}</h1>
+      <p class="mt-1 text-sm text-muted">{{ t('posts.discussions.badges.description') }}</p>
+      <p v-if="facts" class="mt-2 text-sm text-muted">
+        {{ t('posts.discussions.badges.earnedSummary', { earned: earnedCount, total: rows.length }) }}
+      </p>
+      <p v-else-if="status !== 'pending'" class="mt-2 text-sm text-muted">
+        {{ t('posts.discussions.badges.guestHint') }}
+      </p>
+    </div>
+
+    <div v-if="status === 'pending' && !data" class="flex justify-center py-16">
+      <UIcon name="i-ph-spinner" class="size-6 animate-spin text-muted" />
+    </div>
+
+    <div v-else class="space-y-8">
+      <section v-for="group in BADGE_GROUPS" :key="group" class="space-y-3">
+        <h2 class="text-sm font-semibold tracking-wide text-dimmed uppercase">
+          {{ t(`posts.discussions.badges.group.${group}`) }}
+        </h2>
+
+        <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" data-discussion-badges>
+          <li
+            v-for="entry in badgesOf(group)"
+            :key="entry.key"
+            class="rounded-lg border border-default p-3"
+            :class="entry.earned ? 'bg-elevated/40' : ''"
+          >
+            <div class="flex items-start gap-2">
+              <UIcon
+                :name="entry.earned ? 'i-ph-seal-check-fill' : 'i-ph-seal'"
+                class="mt-0.5 size-5 shrink-0"
+                :class="entry.earned ? 'text-primary' : 'text-dimmed'"
+              />
+              <div class="min-w-0">
+                <p class="font-medium" :class="entry.earned ? 'text-default' : 'text-muted'">
+                  {{ t(`posts.discussions.badges.name.${entry.key}`) }}
+                </p>
+                <p class="text-sm text-muted">
+                  {{ t(`posts.discussions.badges.criterion.${entry.key}`) }}
+                </p>
+                <p v-if="entry.earned && entry.awardedAt" class="mt-1 text-xs text-dimmed">
+                  {{ t('posts.discussions.badges.awarded', { when: formatRelativeTime(entry.awardedAt) }) }}
+                </p>
+                <template v-else-if="progressOf(entry.key)">
+                  <p class="mt-1 text-xs tabular-nums text-dimmed">
+                    {{ t('posts.discussions.badges.progress', progressValues(progressOf(entry.key)!)) }}
+                  </p>
+                </template>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </section>
+    </div>
+  </div>
+</template>
