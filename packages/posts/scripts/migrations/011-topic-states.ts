@@ -45,16 +45,55 @@
  * `POST /api/posts` sie also bei JEDEM neuen Beitrag mit — läuft der Code vor
  * der Migration, schlägt das Anlegen eines Beitrags fehl.
  *
- * KEIN BACKFILL NÖTIG: alle drei tragen den Default `false`, und das ist für
- * Bestand die richtige Aussage — kein Altbeitrag war je angeheftet,
- * geschlossen oder gelöst. Anders als bei posts-009 (wo `null` die Sortierung
- * zerstört hätte) gibt es hier nichts nachzutragen.
+ * ── DER BACKFILL IST PFLICHT, UND ZWAR GEGEN DIE EIGENE ERWARTUNG ──────────
+ * Diese Datei stand zuerst mit dem Satz „KEIN BACKFILL NÖTIG — alle drei
+ * tragen den Default `false`" hier. Das ist FALSCH, und es fiel erst am
+ * laufenden Dev-Server auf (2026-08-04):
+ *
+ *   Appwrite/MariaDB setzt den Default nur für NEUE Zeilen. BESTANDSZEILEN
+ *   bekommen `NULL` — live nachgemessen: 47 Zeilen mit `Query.isNull('closed')`
+ *   direkt nach der Spalten-Anlage.
+ *
+ * Das kostete ZWEIERLEI, und das Zweite ist das schlimmere:
+ *
+ *  1. **Der Filter log.** `Query.equal('closed', false)` trifft eine
+ *     NULL-Zeile NICHT. „Offene Themen" lieferte NULL Treffer, obwohl jedes
+ *     Bestands-Thema offen ist — ein Ergebnis, das plausibel aussieht und
+ *     falsch ist. Die ANZEIGE verdeckte es zusätzlich: `toDiscussionTopic`
+ *     liest die Werte mit `?? false`, in der Tabelle stand also überall
+ *     korrekt „offen".
+ *  2. **Die Liste verlor Zeilen.** Die Standard-Sortierung ist seit Stufe 3
+ *     `orderDesc('pinned'), orderDesc('lastActivityAt')` — und mit NULL in der
+ *     Sortier-Spalte lieferte dieselbe Abfrage 1 statt 4 Themen. Gemessen
+ *     unmittelbar vor und nach dem Backfill (47 NULL-Zeilen ⇒ 0), ohne jede
+ *     andere Änderung. Der genaue Mechanismus (Appwrite lässt Zeilen mit NULL
+ *     in der Ordnungs-Spalte fallen) ließ sich danach nicht noch einmal
+ *     herstellen — die Spalte hat jetzt einen Default, ein Schreibversuch mit
+ *     `null` ergibt `false`. Festgehalten wird deshalb die BEOBACHTUNG, nicht
+ *     eine Erklärung, für die der Gegenbeweis fehlt.
+ *
+ * Eine neue Sortier-Spalte ohne Backfill ist damit nicht „unsauber", sondern
+ * ein stiller Datenverlust in der Anzeige.
+ *
+ * Der Backfill läuft je Spalte einzeln statt in einem Durchgang: dass alle drei
+ * immer gemeinsam fehlen, ist eine plausible Annahme — aber eben eine, und sie
+ * kostet hier nichts. Mandantenübergreifend und mit dem Migrations-Key, was an
+ * dieser Stelle ausdrücklich erlaubt ist (CLAUDE.md: „AUSSERHALB der Tür
+ * erlaubt: Migrationen").
+ *
+ * ── NACH DEM DEPLOY EIN ZWEITES MAL LAUFEN LASSEN ──────────────────────────
+ * Zwischen Migration und Deploy legt der ALTE Code weiter Beiträge ohne diese
+ * Felder an — die tragen dann wieder `NULL` und wären dauerhaft aus den
+ * Zustands-Filtern verschwunden (anders als bei posts-009, wo das Fenster nur
+ * eine vorübergehende Sortier-Unschärfe kostete). Ein zweiter Lauf NACH dem
+ * Deploy schließt das; er ist idempotent und findet im sauberen Fall nichts.
  *
  * Idempotent (409 → skip). Index-Anlage NUR über die Fabrik (F19).
  *
- *   pnpm migrate --app <app> --layer posts
+ *   pnpm migrate --app <app> --layer posts     # vor dem Deploy
+ *   pnpm migrate --app <app> --layer posts     # noch einmal nach dem Deploy
  */
-import { Client, TablesDB, TablesDBIndexType } from 'node-appwrite'
+import { Client, Query, TablesDB, TablesDBIndexType } from 'node-appwrite'
 import { createIndexSteps } from '../../../../scripts/migrations-lib/indexRetry.mts'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
@@ -112,6 +151,43 @@ for (const key of COLUMNS) {
     databaseId, tableId: TABLE, key, required: false, xdefault: false,
   }))
   await waitForColumn(TABLE, key)
+}
+
+/**
+ * BACKFILL — seitenweise, aber OHNE `offset`.
+ *
+ * Derselbe Trick wie in posts-009 und aus demselben Grund: der Filter ist
+ * `isNull(<spalte>)`, und jede geschriebene Zeile VERLÄSST damit die
+ * Treffermenge. Mit `offset` würde bei jeder Seite die Hälfte übersprungen (die
+ * klassische Falle beim Backfill über den eigenen Filter); „immer die erste
+ * Seite holen" ist hier korrekt und terminiert, weil die Menge in jedem
+ * Durchlauf kleiner wird.
+ */
+const PAGE = 100
+for (const key of COLUMNS) {
+  let touched = 0
+  let guard = 0
+  for (;;) {
+    // Schranke gegen eine Endlosschleife, falls ein Schreibvorgang
+    // stillschweigend nichts ändert — nicht gegen die Datenmenge.
+    if (guard++ > 200) {
+      console.warn(`⚠️  Backfill ${key} nach ${touched} Zeilen abgebrochen (Schleifen-Schranke) — Migration erneut laufen lassen.`)
+      break
+    }
+
+    const { rows } = await tablesDB.listRows<{ $id: string }>({
+      databaseId,
+      tableId: TABLE,
+      queries: [Query.isNull(key), Query.limit(PAGE)],
+    })
+    if (rows.length === 0) break
+
+    for (const row of rows) {
+      await tablesDB.updateRow({ databaseId, tableId: TABLE, rowId: row.$id, data: { [key]: false } })
+      touched++
+    }
+  }
+  console.log(`✔ Backfill ${TABLE}.${key} (${touched} Zeilen)`)
 }
 
 /**
