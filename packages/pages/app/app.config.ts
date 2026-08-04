@@ -4,6 +4,20 @@
  */
 export default defineAppConfig({
   pukalani: {
+    pages: {
+      /**
+       * Fehlt die Regeln-Seite, liefern die Routen die Vorlage aus und das
+       * Dashboard bietet sie zum Bearbeiten an (F1, Davids Entscheidung 2 —
+       * Begründung in shared/guidelinesFallback.ts, Schalter-Begründung in
+       * server/utils/guidelinesFallbackGate.ts).
+       *
+       * Layer-Default AUS: dieser Layer läuft auch in `control`, wo der
+       * BETREIBER seine eigenen Rechtstexte pflegt und Community-Regeln
+       * niemanden meinen. Eingeschaltet wird er dort, wo die Seiten einer
+       * Community gehören (apps/platform).
+       */
+      guidelinesFallback: false,
+    },
     // Chrome-Registry (S9): pages ist die CMS-Nav-Quelle — das blueprint-
     // Layout holt /api/pages/public NUR, wenn dieses Flag (= dieser Layer)
     // da ist. Veröffentlichte Seiten erscheinen in der Haupt-Nav, Seiten mit

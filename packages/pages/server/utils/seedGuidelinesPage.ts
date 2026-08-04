@@ -32,9 +32,12 @@ import { guidelinesTemplate, guidelinesTemplateLocale } from '../../shared/guide
  *
  * BESTANDS-COMMUNITIES bekommen hierdurch NICHTS. Sie sind schon angelegt, und
  * eine Migration, die in fremde Inhalte schreibt, wäre der falsche Weg (es ist
- * die Seite des Owners, nicht unsere). Für sie greift die andere Hälfte: der
- * Navigationspunkt erscheint nur, wenn es die Seite gibt, und im Dashboard
- * kann der Owner sie mit einem Klick anlegen.
+ * die Seite des Owners, nicht unsere). Seit dem 2026-08-04 greift für sie der
+ * RÜCKFALL: fehlt die Zeile, liefern die öffentlichen Routen die Vorlage aus
+ * und das Dashboard bietet sie zum Bearbeiten an
+ * (`shared/guidelinesFallback.ts` — dort steht auch, warum es kein Backfill
+ * geworden ist). Die beiden widersprechen sich nie: eine vorhandene Zeile
+ * gewinnt immer, dieser Seed ist der Normalfall, der Rückfall das Netz.
  */
 export interface SeedGuidelinesInput {
   tenantId: string

@@ -39,6 +39,8 @@
       "published": "Veröffentlicht",
       "save": "Speichern",
       "delete": "Seite löschen",
+      "templateBadge": "Vorlage",
+      "templateHint": "Diese Seite gibt es in deiner Community noch nicht — bis dahin lesen Besucher diesen Standardtext. Speichern legt sie an, und ab dann gehört sie dir: ändere, streiche und ergänze, was du willst.",
       "saved": "Gespeichert",
       "savedHint": "Gespeichert wurde die Sprachversion „{language}“ — die anderen Sprachen speicherst du in ihrem eigenen Reiter.",
       "saveFailed": "Konnte nicht gespeichert werden",

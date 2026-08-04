@@ -1,5 +1,6 @@
 import { Query } from 'node-appwrite'
-import { PAGES_TABLE, type PageGroup, type PageRow } from '../../../shared/types/page'
+import { guidelinesFallbackGroup } from '../../../shared/guidelinesFallback'
+import { GUIDELINES_SLUG, PAGES_TABLE, type PageGroup, type PageRow } from '../../../shared/types/page'
 
 /** Admin: alle Seiten, nach slug gruppiert (das aufklappbare Menü). */
 export default defineEventHandler(async (event): Promise<{ groups: PageGroup[] }> => {
@@ -23,6 +24,14 @@ export default defineEventHandler(async (event): Promise<{ groups: PageGroup[] }
     group.sortOrder = Math.min(group.sortOrder, row.sortOrder)
     group.locales.push({ $id: row.$id, locale: row.locale, title: row.title, status: row.status })
   }
-  const groups = [...bySlug.values()].sort((a, b) => a.sortOrder - b.sortOrder || a.slug.localeCompare(b.slug))
+  // Die Regeln stehen in der Liste, auch wenn es sie als Zeile noch nicht gibt
+  // — sonst wäre der bearbeitbare Standardtext für den Owner unauffindbar und
+  // er müsste ihn abtippen (F1, Davids Entscheidung 2). Hier braucht es KEINE
+  // zweite Abfrage: diese Liste ist ungefiltert, ein Entwurf stünde also schon
+  // in `bySlug`.
+  const rawGroups = [...bySlug.values()]
+  if (!bySlug.has(GUIDELINES_SLUG) && guidelinesFallbackEnabled()) rawGroups.push(guidelinesFallbackGroup())
+
+  const groups = rawGroups.sort((a, b) => a.sortOrder - b.sortOrder || a.slug.localeCompare(b.slug))
   return { groups }
 })

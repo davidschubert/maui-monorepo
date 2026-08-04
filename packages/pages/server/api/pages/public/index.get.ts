@@ -1,8 +1,9 @@
 import { Query } from 'node-appwrite'
+import { guidelinesFallbackNavItem } from '../../../../shared/guidelinesFallback'
 // PublicPageNavItem liegt seit dem 2026-08-02 in shared/types/page.ts: der
 // Konsument ist App-Code (blueprint-Layout), und der darf keine Nitro-Route
 // importieren. Begründung dort.
-import { PAGES_TABLE, type PageRow, type PublicPageNavItem } from '../../../../shared/types/page'
+import { GUIDELINES_SLUG, PAGES_TABLE, type PageRow, type PublicPageNavItem } from '../../../../shared/types/page'
 
 /**
  * Öffentlich: Liste der VERÖFFENTLICHTEN Seiten für die Hauptnavigation
@@ -36,10 +37,21 @@ export default defineEventHandler(async (event): Promise<PublicPageNavItem[]> =>
     bySlug.set(row.slug, list)
   }
 
-  return [...bySlug.values()].map((rows) => {
+  const items = [...bySlug.values()].map((rows) => {
     const row = rows.find(r => r.locale === requested)
       ?? rows.find(r => r.locale === 'en')
       ?? rows[0]!
     return { slug: row.slug, title: row.title, sortOrder: row.sortOrder }
-  }).sort((a, b) => a.sortOrder - b.sortOrder)
+  })
+
+  // Die Regeln erscheinen in der Navigation auch dann, wenn es sie als Zeile
+  // noch nicht gibt (F1, Davids Entscheidung 2 — Begründung in
+  // shared/guidelinesFallback.ts). Der Punkt und die Seite dahinter müssen
+  // dieselbe Antwort geben, deshalb steht hier dieselbe zweite Frage wie in
+  // public/[slug].get.ts: ein zurückgezogener Entwurf bleibt zurückgezogen.
+  if (!items.some(item => item.slug === GUIDELINES_SLUG) && await guidelinesFallbackApplies(event)) {
+    items.push(guidelinesFallbackNavItem(requested))
+  }
+
+  return items.sort((a, b) => a.sortOrder - b.sortOrder)
 })

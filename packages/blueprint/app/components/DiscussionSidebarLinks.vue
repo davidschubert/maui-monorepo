@@ -19,13 +19,19 @@ import { GUIDELINES_SLUG, type PublicPageNavItem } from '../../../pages/shared/t
  * Katalog statt einer Anmelde-Schranke.
  *
  * ── „REGELN" ERSCHEINT NUR, WENN ES SIE GIBT ───────────────────────────────
- * Zwei Fälle, in denen es die Seite NICHT gibt, und beide sind normal:
- *  - eine App ohne pages-Layer (apps/comments) — dort antwortet die Route 404,
- *  - eine Community, die vor Stufe 2 angelegt wurde (der Seed läuft nur bei
- *    der Provisionierung) oder deren Owner die Seite gelöscht hat.
- * Ein fester Link wäre in beiden Fällen ein Verweis ins Leere — und
- * ausgerechnet bei „Regeln" ist das mehr als ein Schönheitsfehler: er
- * verspricht ein Regelwerk, das niemand nachlesen kann.
+ * Ein fester Link wäre sonst ein Verweis ins Leere — und ausgerechnet bei
+ * „Regeln" ist das mehr als ein Schönheitsfehler: er verspricht ein Regelwerk,
+ * das niemand nachlesen kann.
+ *
+ * Der Fall, für den diese Bedingung gebaut wurde, ist seit dem 2026-08-04 ein
+ * ANDERER. Damals war es „eine Community, die vor Stufe 2 angelegt wurde" —
+ * genau die bekommt jetzt die Vorlage (pages/shared/guidelinesFallback.ts),
+ * und der Punkt steht bei ihr in der Liste. Übrig bleiben zwei Fälle, beide
+ * normal: eine App OHNE pages-Layer (apps/comments — die Route gibt es dort
+ * nicht, die Liste ist leer) und ein Owner, der seine Regeln bewusst
+ * zurückgezogen hat (Entwurf statt veröffentlicht; die Vorlage springt dann
+ * absichtlich NICHT ein). Die Bedingung bleibt also — nur ihr Anlass hat
+ * gewechselt.
  *
  * GEPRÜFT WIRD ÜBER DIE SEITEN-NAVIGATION, nicht über einen eigenen Abruf der
  * Seite: `/api/pages/public` liefert ohnehin die Liste der veröffentlichten

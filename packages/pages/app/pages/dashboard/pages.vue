@@ -2,7 +2,7 @@
 import type { EditorToolbarItem, TableColumn, TabsItem } from '@nuxt/ui'
 import { MAX_PAGE_BODY } from '../../../schemas/page'
 import { bodyToSave as decideBodyToSave } from '../../../shared/editorBody'
-import type { PageGroup, PageRow } from '../../../shared/types/page'
+import type { PageEditorRow, PageGroup } from '../../../shared/types/page'
 
 /**
  * Seiten-Editor (Betreiber). Text-Editieren bestehender Inhalte, AUSBAUSTUFE (a)
@@ -79,6 +79,13 @@ const emptyLocale = (): LocaleForm => ({ title: '', body: '', published: false }
 
 const selectedSlug = ref<string | null>(null)
 const isNew = ref(false)
+/**
+ * Die geöffnete Seite gibt es als Zeile noch NICHT — was im Editor steht, ist
+ * unsere Vorlage (heute nur die Regeln, F1). Unterschied zu `isNew`: die
+ * Adresse steht fest und ist nicht editierbar, gelöscht werden kann nichts,
+ * und ein Hinweis sagt, was das Speichern bewirkt.
+ */
+const isTemplate = ref(false)
 const slugInput = ref('')
 const activeLocale = ref<Locale>('en')
 const forms = reactive<Record<Locale, LocaleForm>>({ en: emptyLocale(), de: emptyLocale() })
@@ -144,6 +151,7 @@ function displayTitle(group: PageGroup): string {
 
 function closeEditor() {
   isNew.value = false
+  isTemplate.value = false
   selectedSlug.value = null
   resetForms()
 }
@@ -163,11 +171,15 @@ async function selectPage(slug: string) {
   activeLocale.value = 'en'
   resetForms()
   try {
-    const { rows } = await $fetch<{ rows: PageRow[] }>(`/api/pages/${slug}`)
+    const { rows, isTemplate: fromTemplate } = await $fetch<{ rows: PageEditorRow[], isTemplate: boolean }>(`/api/pages/${slug}`)
+    isTemplate.value = fromTemplate
     for (const row of rows) {
       if ((LOCALES as readonly string[]).includes(row.locale)) {
         const locale = row.locale as Locale
         forms[locale] = { title: row.title, body: row.body, published: row.status === 'published' }
+        // Auch bei einer Vorlage ist der gelieferte Text die „Urfassung"
+        // (shared/editorBody.ts): wer sie nur aufschlägt und speichert, soll
+        // sie WORTGLEICH bekommen — nicht Tiptaps Rückserialisierung.
         pristineBody[locale] = row.body
         normalizedBody[locale] = null
       }
@@ -180,6 +192,7 @@ async function selectPage(slug: string) {
 
 function newPage() {
   isNew.value = true
+  isTemplate.value = false
   selectedSlug.value = null
   slugInput.value = ''
   activeLocale.value = 'en'
@@ -226,6 +239,9 @@ async function saveActiveLocale() {
     pristineBody[locale] = body
     normalizedBody[locale] = null
     isNew.value = false
+    // Ab jetzt steht eine Zeile dahinter — der Vorlagen-Hinweis wäre falsch,
+    // und „Löschen" ist wieder möglich.
+    isTemplate.value = false
     selectedSlug.value = slug
     await refreshList()
   }
@@ -313,13 +329,18 @@ async function deletePage() {
             </button>
           </template>
           <template #title-cell="{ row }">
-            <span class="text-sm">{{ displayTitle(row.original) }}</span>
+            <span class="flex items-center gap-2">
+              <span class="text-sm">{{ displayTitle(row.original) }}</span>
+              <UBadge v-if="row.original.isTemplate" size="sm" color="neutral" variant="outline">
+                {{ t('pages.admin.templateBadge') }}
+              </UBadge>
+            </span>
           </template>
           <template #locales-cell="{ row }">
             <span class="flex flex-wrap gap-1">
               <UBadge
                 v-for="loc in row.original.locales"
-                :key="loc.$id"
+                :key="loc.locale"
                 size="sm"
                 :color="loc.status === 'published' ? 'success' : 'neutral'"
                 variant="subtle"
@@ -365,6 +386,17 @@ async function deletePage() {
       <div class="grid gap-6">
         <!-- Formular -->
         <div v-if="editing" class="min-w-0 space-y-4">
+          <!-- Vorlage: sagen, was hier steht und was das Speichern bewirkt.
+               Ohne den Hinweis sähe die Seite aus wie eine gespeicherte. -->
+          <UAlert
+            v-if="isTemplate"
+            icon="i-ph-info"
+            color="neutral"
+            variant="subtle"
+            :title="t('pages.admin.templateBadge')"
+            :description="t('pages.admin.templateHint')"
+          />
+
           <UFormField :label="t('pages.admin.slug')" :help="t('pages.admin.slugHelp')">
             <UInput v-model="slugInput" :disabled="!isNew" :placeholder="t('pages.admin.slugPlaceholder')" class="w-full font-mono" />
           </UFormField>
@@ -440,8 +472,9 @@ async function deletePage() {
       <div v-if="editing" class="flex items-center justify-between gap-3 border-t border-default px-4 py-3 sm:px-6">
         <USwitch v-model="forms[activeLocale].published" :label="t('pages.admin.published')" />
         <div class="flex items-center gap-2">
+          <!-- Bei einer Vorlage gibt es nichts zu löschen (noch keine Zeile). -->
           <UButton
-            v-if="selectedSlug"
+            v-if="selectedSlug && !isTemplate"
             color="error"
             variant="soft"
             icon="i-ph-trash"

@@ -1,5 +1,6 @@
 import { Query } from 'node-appwrite'
-import { PAGES_TABLE, type PageRow, type PublicPage } from '../../../../shared/types/page'
+import { guidelinesFallbackPage } from '../../../../shared/guidelinesFallback'
+import { GUIDELINES_SLUG, PAGES_TABLE, type PageRow, type PublicPage } from '../../../../shared/types/page'
 
 /**
  * Öffentlich: die VERÖFFENTLICHTE Seite für slug + locale (Fallback en).
@@ -34,6 +35,13 @@ export default defineEventHandler(async (event): Promise<PublicPage> => {
     ?? res.rows.find(r => r.locale === 'en')
     ?? res.rows[0]
   if (!row) {
+    // Die Regeln sind der eine slug, der auch OHNE Zeile eine Seite hat
+    // (F1, Davids Entscheidung 2 — Begründung in shared/guidelinesFallback.ts).
+    // Zweite Frage nötig, weil oben nur VERÖFFENTLICHTE Zeilen gesucht wurden:
+    // ein zurückgezogener Entwurf bleibt zurückgezogen.
+    if (slug === GUIDELINES_SLUG && await guidelinesFallbackApplies(event)) {
+      return guidelinesFallbackPage(requested)
+    }
     throw createError({ status: 404, statusText: 'Page not found' })
   }
   return { slug: row.slug, locale: row.locale, title: row.title, body: row.body, updatedAt: row.$updatedAt }

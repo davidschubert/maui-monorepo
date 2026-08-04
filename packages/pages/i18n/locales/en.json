@@ -39,6 +39,8 @@
       "published": "Published",
       "save": "Save",
       "delete": "Delete page",
+      "templateBadge": "Template",
+      "templateHint": "This page does not exist in your community yet — until it does, visitors read this default text. Saving creates it, and from then on it is yours: change, cut and add whatever you like.",
       "saved": "Saved",
       "savedHint": "Saved the “{language}” version — other languages are saved from their own tab.",
       "saveFailed": "Could not save",

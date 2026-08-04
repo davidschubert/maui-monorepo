@@ -43,6 +43,15 @@ export default defineAppConfig({
     legalLinks: [
       { to: 'https://pukalani.app/imprint', labelKey: 'legal.imprint' },
     ],
+    /**
+     * VERHALTENSREGELN AUCH FÜR BESTANDSKUNDEN (F1, Davids Entscheidung 2 vom
+     * 2026-08-04). Hier gehören die Seiten einer COMMUNITY — fehlt ihr die
+     * Regeln-Seite (angelegt vor Stufe 2, gelöscht, importiert), zeigen die
+     * öffentlichen Routen die Vorlage und das Dashboard bietet sie zum
+     * Bearbeiten an. In `control` bleibt der Schalter aus: dort sind die
+     * Seiten die des Betreibers.
+     */
+    pages: { guidelinesFallback: true },
     // KI-Assist (Moderation) ist als Gate AN — wirksam wird es erst, wenn
     // NUXT_AI_KEY auf dem Server liegt (isAiAvailable prüft beides). Demo-
     // Entscheidung „alle Produkte an" (David, 2026-07-26).

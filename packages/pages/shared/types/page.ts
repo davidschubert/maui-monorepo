@@ -59,6 +59,26 @@ export interface PageRow extends Models.Row {
   sortOrder: number
 }
 
+/**
+ * Was der Editor im Dashboard von einer Sprachversion braucht — bewusst KEIN
+ * `Models.Row`.
+ *
+ * WARUM EIN EIGENES DTO (F1, kleines Paket 2026-08-04): seit die Regeln-Seite
+ * für Bestands-Communities als VORLAGE ausgeliefert wird, hat die Antwort von
+ * `/api/pages/:slug` einen Fall ohne Row dahinter. Eine Vorlage in ein
+ * `PageRow` zu pressen hieße, `$id`, `$createdAt`, `$permissions` &c. zu
+ * erfinden — Felder, die aussehen wie Wahrheit über eine gespeicherte Zeile,
+ * es aber nicht sind. Der Editor hat sie nie gelesen; er braucht genau diese
+ * fünf.
+ */
+export interface PageEditorRow {
+  locale: string
+  title: string
+  body: string
+  status: PageStatus
+  sortOrder: number
+}
+
 /** Öffentliches DTO (nur was die public-Route rausgibt). */
 export interface PublicPage {
   slug: string
@@ -96,4 +116,10 @@ export interface PageGroup {
   slug: string
   sortOrder: number
   locales: Array<Pick<PageRow, '$id' | 'locale' | 'title' | 'status'>>
+  /**
+   * Es gibt zu diesem slug noch KEINE Zeile — was hier steht, ist unsere
+   * Vorlage (heute nur `guidelines`). `$id` ist deshalb leer, und die Liste
+   * darf das sichtbar machen: „Vorlage" statt einer Seite, die es gäbe.
+   */
+  isTemplate?: true
 }
