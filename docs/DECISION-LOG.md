@@ -7,6 +7,18 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-08-04 — Zwei Stufe-2-Nachfragen (Team-Liste, Seitenleiste)
+
+**Davids Entscheidungen** (je der Empfehlung gefolgt): **Team-Liste redigiert
+öffnen** — neuer `view`-Parameter an der Control-Naht, nur Rollen
+owner/admin/moderator, Name + Avatar, E-Mail LEER; damit zeigt die
+About-Seite jedem, wer die Community führt, ohne Adressen preiszugeben.
+**Seitenleisten-Hälfte „kommentiert" in Stufe 3** — als fünfter Core-Vertrag
+in der Bauart des Aktivitäts-Vertrags; bis dahin zählt „gepostet" sichtbar,
+nicht gefaked. Beides Teil des Stufe-3-Zuschnitts.
+
+---
+
 ## 2026-08-04 — Vier Folge-Entscheidungen (Landing-URL, Stufe 2, ci.env, portfolio)
 
 **Davids Entscheidungen** (strukturierte Frage-Runde, je der Empfehlung
