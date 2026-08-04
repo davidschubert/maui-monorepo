@@ -144,5 +144,16 @@ export function toDiscussionTopic(
     // Fehlt ein Zähler, hat das Topic noch niemand geöffnet — 0 ist hier eine
     // Aussage, kein Platzhalter (siehe DiscussionTopic.views).
     views,
+    /**
+     * F1 Stufe 3. Die `?? false` sind kein Misstrauen gegen den Typ, sondern
+     * gegen das DEPLOY-FENSTER: läuft die Anwendung kurz vor der Migration
+     * posts-011, liefert Appwrite die Spalten schlicht nicht mit, und ein
+     * `undefined` im Abzeichen-Zweig der Tabelle wäre ein leeres Feld statt
+     * einer Aussage. Nach der Migration ist der Zweig tot — und genau so
+     * gehört er sich: still, nicht clever.
+     */
+    pinned: row.pinned ?? false,
+    closed: row.closed ?? false,
+    solved: row.solved ?? false,
   }
 }

@@ -87,7 +87,22 @@ export default defineEventHandler(async (event): Promise<DiscussionListResponse>
      * ENTSTANDEN sind — ein zwei Jahre altes Thema mit einer Antwort von
      * gestern gehört dort nicht hinein.
      */
-    order === 'top' ? Query.orderDesc('score') : Query.orderDesc('lastActivityAt'),
+    /**
+     * ANGEHEFTETES ZUERST — aber nur bei „Neueste" (F1 Stufe 3).
+     *
+     * Ein Anheften ist eine Aussage über die AKTUELLE Liste („lies das hier
+     * zuerst"), keine über den Rang aller Zeiten. Bei „Top" bliebe es deshalb
+     * bewusst außen vor: dort würde ein angepinntes Thema mit drei Stimmen über
+     * dem meistdiskutierten der Community stehen, und die Rangliste wäre keine
+     * mehr.
+     *
+     * `orderDesc` auf einem Boolean stellt `true` nach vorn (MariaDB: 1 > 0).
+     * Der Index dafür ist idx_community_pinned (posts-011) — mit derselben
+     * Spaltenfolge, in der hier sortiert wird.
+     */
+    ...(order === 'top'
+      ? [Query.orderDesc('score')]
+      : [Query.orderDesc('pinned'), Query.orderDesc('lastActivityAt')]),
     Query.limit(PAGE_SIZE),
     ...(cursor ? [Query.cursorAfter(cursor)] : []),
   ]

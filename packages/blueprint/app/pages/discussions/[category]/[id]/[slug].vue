@@ -69,12 +69,30 @@ const post = ref(topic.value.post)
       {{ t('posts.discussions.backToCategory', { category: topic.category.name }) }}
     </UButton>
 
+    <!-- Zustände + ihre Schalter stehen ÜBER der Karte, nicht darin: die
+         `PostCard` ist die geteilte Feed-Darstellung (Pool und Silo zeigen
+         dasselbe Produkt), und „angeheftet/geschlossen/gelöst" sind
+         Discussions-Begriffe. Sie hier zu komponieren ist genau die Aufgabe
+         des blueprint-Layers. -->
+    <div class="mb-3 flex items-start justify-between gap-2">
+      <TopicStateBadges
+        :pinned="post.pinned"
+        :closed="post.closed"
+        :solved="post.solved"
+      />
+      <TopicStateActions :post="post" class="ms-auto" @updated="p => { post = p }" />
+    </div>
+
     <PostCard :post="post" default-comments-open @updated="p => { post = p }">
       <template #comments="{ post: slotPost }">
+        <!-- `locked` ist reine Anzeige (der Server lehnt ohnehin ab, F1
+             Stufe 3) — aber sie erspart dem Leser, seinen Text erst zu
+             schreiben und dann abgewiesen zu werden. -->
         <CommentSection
           :target-id="slotPost.$id"
           target-type="post"
           :target-url="topic.path"
+          :locked="post.closed"
         />
       </template>
     </PostCard>

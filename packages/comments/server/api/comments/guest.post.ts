@@ -53,6 +53,17 @@ export default defineEventHandler(async (event) => {
 
   const body = await readValidatedBody(event, guestCommentSchema.parse)
 
+  /**
+   * Dieselbe Frage wie im regulären Pfad (F1 Stufe 3): nimmt dieses Ziel noch
+   * Kommentare an? Sie steht hier NICHT der Vollständigkeit halber, sondern
+   * weil dieser Weg der gefährlichere ist: der Gast schreibt gleich über die
+   * OPERATOR-Klinke (er hat keine Sitzung), es gibt hier also keine
+   * Row-Permission, die ein geschlossenes Thema nebenbei schützen würde. Ohne
+   * diese Zeile wäre „geschlossen" eine Zusage, die genau für die Unangemeldeten
+   * nicht gilt.
+   */
+  await assertContentWritable(event, body.targetType, body.targetId)
+
   // Interne/Operator-Threads sind für Gäste tabu.
   const operatorTarget = (appConfig.pukalani?.comments?.operatorTargets ?? []).includes(body.targetType)
   if (operatorTarget) {

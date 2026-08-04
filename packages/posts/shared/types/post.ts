@@ -92,6 +92,27 @@ export interface CommunityPost extends Models.Row {
    * übernimmt — sonst könnte sich ein Beitrag nach oben schreiben.
    */
   lastActivityAt: string | null
+  /**
+   * F1 Stufe 3: die drei Zustände eines Themas (Migration posts-011).
+   *
+   * ORTHOGONAL zu `status`, nicht Teil davon — ein geschlossenes Thema ist
+   * weiterhin veröffentlicht, ein angeheftetes kann zugleich gelöst sein. Die
+   * ausführliche Begründung (inklusive der live geprüften Tatsache, dass
+   * `status` nur ein varchar ist und die Alternative technisch möglich WÄRE)
+   * steht im Kopf der Migration.
+   *
+   * PFLICHT im Typ, obwohl die Spalten additiv mit Default `false` angelegt
+   * sind — dieselbe Entscheidung wie bei `categoryId` (posts-008): so muss
+   * JEDE künftige Anlegestelle sie hinschreiben, statt sie stillschweigend
+   * wegzulassen. Folge: die Migration MUSS vor dem Deploy laufen.
+   *
+   * `pinned` = steht in der Liste oben · `closed` = nimmt keine neuen
+   * Kommentare mehr an (durchgesetzt über den Core-Vertrag
+   * `assertContentWritable`) · `solved` = die Frage ist beantwortet.
+   */
+  pinned: boolean
+  closed: boolean
+  solved: boolean
 }
 
 /**
@@ -245,6 +266,14 @@ export interface DiscussionTopic {
    * Seitenaufruf eines Unangemeldeten, auf einem geteilten Pool.
    */
   views: number
+  /**
+   * F1 Stufe 3: die Zustände, als Abzeichen in der Themen-Spalte. Sie stehen
+   * hier, weil die Liste sie ZEIGT und danach FILTERT — beides ginge sonst nur
+   * über einen zweiten Abruf je Zeile.
+   */
+  pinned: boolean
+  closed: boolean
+  solved: boolean
 }
 
 export interface DiscussionListResponse {

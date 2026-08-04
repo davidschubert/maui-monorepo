@@ -66,14 +66,23 @@ const memberWriteRoutes = routeFiles(apiDir).filter(file =>
   !file.endsWith('.get.ts') && !MODERATION_ROUTES.has(file) && !CATEGORY_ADMIN_ROUTES.has(file))
 
 describe('Wartungsmodus: jede schreibende Mitglieder-Route prüft ihn', () => {
-  it('findet genau die fünf Mitglieder-Schreibwege', () => {
+  it('findet genau die sechs Mitglieder-Schreibwege', () => {
     expect([...memberWriteRoutes].sort()).toEqual([
       '[id].delete.ts',
       '[id].patch.ts',
+      /**
+       * F1 Stufe 3 — die erste Route, die BEIDES ist: ein Moderator heftet an
+       * und schließt (das wäre eine Moderations-Route und damit ausgenommen),
+       * der AUTOR markiert seine eigene Frage als gelöst (das ist ein
+       * Mitglieder-Schreibweg). Sie steht deshalb in dieser Liste, und die
+       * Prüfung darin ist bedingt: sie greift genau dann, wenn der Handelnde
+       * NICHT moderieren darf. Die Zusage des Tests bleibt damit wahr.
+       */
+      '[id]/state.patch.ts',
       '[id]/score.post.ts',
       '[id]/vote.post.ts',
       'index.post.ts',
-    ])
+    ].sort())
   })
 
   it.each(memberWriteRoutes)('%s prüft appConfig.maintenanceMode', (file) => {

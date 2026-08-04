@@ -180,6 +180,16 @@ function resetSearch() {
     <UTable v-else :data="rows" :columns="columns" data-discussions-table>
       <template #topic-cell="{ row }">
         <div class="min-w-0 max-w-lg">
+          <!-- Abzeichen VOR dem Titel: sie sind der Grund, warum eine Zeile
+               oben steht (angeheftet) oder warum man sie überspringen kann
+               (gelöst) — diese Auskunft kommt vor der Überschrift, nicht
+               dahinter. Der Titel bleibt der Link. -->
+          <TopicStateBadges
+            :pinned="row.original.pinned"
+            :closed="row.original.closed"
+            :solved="row.original.solved"
+            class="mb-1"
+          />
           <NuxtLink
             :to="localePath(row.original.path)"
             class="block truncate font-medium text-default hover:text-primary hover:underline"

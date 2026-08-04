@@ -15,6 +15,20 @@ export default defineEventHandler(async (event) => {
 
   const body = await readValidatedBody(event, commentSchema.parse)
 
+  /**
+   * DARF AN DIESEM ZIEL ÜBERHAUPT NOCH GESCHRIEBEN WERDEN? (F1 Stufe 3,
+   * Core-Vertrag `assertContentWritable`.) Heute beantwortet das nur der
+   * posts-Layer, und nur für geschlossene Discussions-Themen — dieser Layer
+   * weiß davon nichts und soll es nicht wissen (A14). Für jeden Typ ohne
+   * angemeldete Regel (Tickets, Kurse, fremde Andockpunkte) passiert nichts.
+   *
+   * VOR der Klinken-Wahl und vor jedem Schreibvorgang: eine Ablehnung soll
+   * nichts hinterlassen. Und vor dem Operator-Zweig, weil „geschlossen" für
+   * ALLE gilt — ein Moderator öffnet das Thema mit einem Klick wieder, statt
+   * an ihm vorbeizuschreiben.
+   */
+  await assertContentWritable(event, body.targetType, body.targetId)
+
   // Operator-Targets (pukalani.comments.operatorTargets, z. B. 'ticket'): nur
   // Operatoren dürfen schreiben, und die Rows sind NICHT read(any), sondern
   // nur für admin/moderator lesbar — interne Diskussionen bleiben intern.

@@ -7,6 +7,16 @@ const props = defineProps<{
   targetType: string
   /** Pfad der Seite für die Reply-Notification — Default: aktueller Route-Pfad */
   targetUrl?: string
+  /**
+   * Dieses EINE Ziel nimmt keine neuen Kommentare an (F1 Stufe 3).
+   *
+   * Warum es das Ziel sagt und nicht dieser Layer: warum ein Ziel zu ist, weiß
+   * nur der Layer, dem es gehört (heute: ein geschlossenes Discussions-Thema)
+   * — A14. Hier ist es reine Anzeige; durchgesetzt wird es serverseitig über
+   * den Core-Vertrag `assertContentWritable` und gilt auch für jeden, der die
+   * Oberfläche umgeht.
+   */
+  locked?: boolean
 }>()
 
 const { t } = useI18n()
@@ -43,14 +53,24 @@ const guestsEnabled = computed(() => guestCommentsAllowed({
 // Kommentar-Policy aus den Laufzeit-Flags bereitstellen (synchron, vor await).
 // Refs auf Top-Level holen — verschachtelte Refs (policy.canWrite) unwrappen im
 // Template NICHT automatisch.
-const { canWrite, reason } = provideCommentPolicy()
+const { canWrite, reason } = provideCommentPolicy({ locked: () => props.locked === true })
 
 // Auf-/Zuklapp-Zustand des Trees bereitstellen + pro Target persistieren
 provideThreadCollapse(props.targetType, props.targetId)
 
-const notice = computed(() => reason.value === 'maintenance'
-  ? { title: t('comments.disabled.maintenanceTitle'), text: t('comments.disabled.maintenanceText') }
-  : { title: t('comments.disabled.title'), text: t('comments.disabled.text') })
+const notice = computed(() => {
+  if (reason.value === 'maintenance') {
+    return { title: t('comments.disabled.maintenanceTitle'), text: t('comments.disabled.maintenanceText'), icon: 'i-ph-wrench' }
+  }
+  // Ein GESCHLOSSENES Ziel ist keine Störung — deshalb ein eigenes Zeichen und
+  // ein eigener Text. Mit der allgemeinen „Kommentare sind deaktiviert"-Meldung
+  // stünde da, die Community habe etwas abgeschaltet; in Wahrheit hat jemand
+  // ein einzelnes Thema beendet.
+  if (reason.value === 'locked') {
+    return { title: t('comments.disabled.lockedTitle'), text: t('comments.disabled.lockedText'), icon: 'i-ph-lock-simple' }
+  }
+  return { title: t('comments.disabled.title'), text: t('comments.disabled.text'), icon: 'i-ph-lock-simple' }
+})
 
 // SSR-Load — Pinia-State hydratisiert in den Client
 await useAsyncData(`comments:${props.targetType}:${props.targetId}`, async () => {
@@ -171,7 +191,7 @@ function presenceLabel(u: PresenceUser): string {
       v-if="!canWrite"
       color="neutral"
       variant="subtle"
-      icon="i-ph-lock-simple"
+      :icon="notice.icon"
       :title="notice.title"
       :description="notice.text"
     />

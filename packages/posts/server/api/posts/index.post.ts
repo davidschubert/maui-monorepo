@@ -63,6 +63,17 @@ export default defineEventHandler(async (event) => {
     downvotes: 0,
     score: 0,
     categoryId,
+    /**
+     * F1 Stufe 3: die drei Zustände starten leer, und zwar AUSDRÜCKLICH statt
+     * über den Spalten-Default. Der Typ verlangt sie (posts-011), damit genau
+     * diese Zeile hier steht — wer künftig einen weiteren Anlegeweg baut, muss
+     * sich entscheiden, statt stillschweigend etwas anderes zu bekommen.
+     * Es gibt keinen Weg, ein Thema angeheftet oder geschlossen zu ERÖFFNEN:
+     * beides ist Moderation und läuft über state.patch.
+     */
+    pinned: false,
+    closed: false,
+    solved: false,
   }, {
     // Eigene Permissions statt des Standard-Publikums: published-Posts sind
     // VERÖFFENTLICHT wie Kommentare (Community-Feed); hidden/deleted entziehen
