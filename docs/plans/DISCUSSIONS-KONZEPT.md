@@ -5,7 +5,8 @@
 Grenze zu `posts` wirklich verläuft, und welche drei Entscheidungen vor dem
 ersten Commit fallen müssen.
 
-Status: **entscheidungskomplett (3.8) — wartet auf den Baustart (Feature-Stopp).**
+Status: **entscheidungskomplett (3.8); Stufen 1–4 gebaut** — der Baustand steht
+in Teil 5 ganz unten.
 
 ---
 
@@ -435,3 +436,47 @@ eigenes Paket mit Sicherheitsentwurf.
 **Reihenfolge:** Stufe 4 = Badges (heute messbar). Danach die Werkzeuge, dann
 die sozialen Mechaniken 1–3, dann PN mit eigenem Konzept. Trust Levels (Stufe
 5) bleiben davon unberührt und brauchen weiterhin ihr eigenes Ja.
+
+---
+
+# Teil 5 — Baustand (Stand: Stufe 4)
+
+Damit niemand denselben Weg zweimal geht: was steht, was bewusst NICHT steht,
+und wo die Begründung dafür lebt. Offene Punkte gehören nicht hierher, sondern
+nach `docs/OPEN-ITEMS.md`.
+
+## Gebaut
+
+- **Stufe 1** Kategorien, Topics-Tabelle, Sortierung, Seitenleiste, URL-Schema
+  mit 301-Regel, Produkt-Gate.
+- **Stufe 2** Aktivitäts-Vertrag (`lastActivityAt`), Aufruf-Zähler, About-Seite
+  mit vier belegbaren Zahlen, Guidelines über die pages-Mechanik.
+- **Stufe 3** Topic-Zustände (angeheftet/geschlossen/gelöst) samt Schreibsperre,
+  erweiterte Suche, redigierte Team-Sicht auf der About-Seite, „kommentiert"-
+  Hälfte der Seitenleiste.
+- **Stufe 4** Abzeichen: der Zähl-Vertrag in core
+  (`registerUserCounterProvider`, sechster Cross-Layer-Vertrag), Quellen in
+  posts/comments/moderation, Katalog + Verleihung (`user_badges`,
+  posts-012), Galerie unter `/discussions/badges`.
+
+## Was Stufe 4 an Abzeichen NICHT bringt — und warum
+
+Der Katalog aus § 3.6 hat 40+ Einträge, gebaut sind 17. Die vollständige
+Begründung steht im Kopf von `packages/posts/shared/badges.ts` — dort, wo sie
+jemand liest, der ein Abzeichen nachreichen will. Kurzfassung:
+
+- **Dauerhaft draußen** (Davids Entscheidung, Teil 4): die neun, die ein
+  personenbezogenes Verhaltensprotokoll bräuchten.
+- **Wartet auf seine Funktion**: Emoji, Zitat, Themen-Verlinkung, Reaktionen,
+  Einladungen durch Mitglieder, Tages-Like-Limit — Reihenfolge in Teil 4.
+- **Nicht baubar, obwohl es so aussieht**: „Editor" (`community_posts` hält
+  keine Bearbeitung fest — `comments` hat `editedAt`, `posts` nicht) und
+  „Anniversary" (das Beitrittsdatum steht in `community_members` im Control
+  Plane, derselbe Grund wie bei „N Beitritte in 7 Tagen" auf der About-Seite).
+- **Trust Levels** bleiben ausgespart (Entscheidung 5, eigenes Ja nötig).
+
+Zwei Eigenschaften der Zählweise gehören dazu, weil sie später als Lücke
+gelesen werden könnten: jedes Abzeichen wird GENAU EINMAL verliehen (gezählt
+wird mit Aggregaten, „wie oft" verlangte die ganze Inhalts-Geschichte eines
+Menschen), und ausgewertet wird beim HINSEHEN, nicht in einem Lauf — deshalb
+gibt es zu Abzeichen auch keine Benachrichtigung.
