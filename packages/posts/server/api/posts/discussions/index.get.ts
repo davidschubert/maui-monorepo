@@ -1,5 +1,6 @@
 import { Query } from 'node-appwrite'
-import { createdAfterIso, isTopPeriod, isTopicOrder, periodStartIso } from '../../../../shared/discussionSort'
+import { parseTopicFilters } from '../../../../shared/discussionFilters'
+import { isTopPeriod, isTopicOrder, periodStartIso } from '../../../../shared/discussionSort'
 import {
   POSTS_TABLE,
   type CommunityPost,
@@ -19,10 +20,18 @@ const PAGE_SIZE = 25
  * nicht — er hat keinen Platz in einer Struktur, der er nicht angehört.
  *
  * Filter: `category` (Slug) · `created-after` (YYYY-MM-DD oder `Nd`) ·
+ * `created-before` (YYYY-MM-DD) · `author` (Row-Id) · `pinned` (`1`) ·
+ * `state` (any|open|closed) · `solution` (any|solved|unsolved) ·
  * `order` (latest|top) · `period` (nur bei top) · `q` (Titel-Suche).
  * Unbekannte Werte werden IGNORIERT statt mit 400 beantwortet: das hier ist
  * eine öffentliche Liste, und ein vertippter Query-Parameter in einem
  * geteilten Link soll eine leere Seite nicht in einen Fehler verwandeln.
+ *
+ * Gelesen werden die Filter aus EINER puren Regel (shared/discussionFilters.ts).
+ * Dort steht auch, welche sechs Kästchen aus Davids Katalog BEWUSST fehlen und
+ * warum — kurz: sie wären entweder wirkungslos (Erstbeitrag, nur im Titel),
+ * gegenstandslos (Bilder, Wiki, Archiv, öffentlich) oder unehrlich
+ * (Antworten- und Aufruf-Zahlen, die nicht auf der Zeile stehen).
  */
 export default defineEventHandler(async (event): Promise<DiscussionListResponse> => {
   // Produkt-Gate (P4): Discussions sitzt auf `posts` — siehe product.manifest.ts.
@@ -40,7 +49,12 @@ export default defineEventHandler(async (event): Promise<DiscussionListResponse>
 
   const byId = new Map(categories.map(category => [category.$id, category]))
 
-  const requestedSlug = typeof query.category === 'string' ? query.category : ''
+  // F1 Stufe 3: ALLE erweiterten Filter kommen aus EINER puren, getesteten
+  // Regel — was sie NICHT kann und warum, steht vollständig in ihrem Kopf
+  // (shared/discussionFilters.ts). Diese Route setzt sie nur in Queries um.
+  const filters = parseTopicFilters(query as Record<string, unknown>)
+
+  const requestedSlug = filters.category
   const selected = requestedSlug ? categories.find(category => category.slug === requestedSlug) : undefined
   if (requestedSlug && !selected) {
     // Unbekannte Kategorie in der URL: leere Liste statt 404. Über 404 oder
@@ -60,11 +74,11 @@ export default defineEventHandler(async (event): Promise<DiscussionListResponse>
    */
   const windows = [
     order === 'top' ? periodStartIso(period) : null,
-    createdAfterIso(query['created-after']),
+    filters.createdAfter,
   ].filter((value): value is string => value !== null)
   const after = windows.length > 0 ? windows.reduce((a, b) => (a > b ? a : b)) : null
 
-  const search = typeof query.q === 'string' ? query.q.trim().slice(0, 100) : ''
+  const search = filters.search
   const cursor = typeof query.cursor === 'string' && query.cursor.length > 0 ? query.cursor : ''
 
   const queries = [
@@ -75,6 +89,20 @@ export default defineEventHandler(async (event): Promise<DiscussionListResponse>
       // vor Migration posts-008 tragen den Default '' und fallen damit heraus.
       : Query.notEqual('categoryId', ''),
     ...(after ? [Query.greaterThanEqual('publishedAt', after)] : []),
+    /**
+     * `created-before` ist STRIKT kleiner als der Tagesbeginn — „vor dem
+     * 15. Januar" schließt den 15. also aus. Das ist die Lesart, die man
+     * erwartet, wenn man ein Datum als Grenze eingibt; „bis einschließlich"
+     * hieße im Deutschen „bis zum".
+     */
+    ...(filters.createdBefore ? [Query.lessThan('publishedAt', filters.createdBefore)] : []),
+    ...(filters.author ? [Query.equal('authorId', filters.author)] : []),
+    ...(filters.pinnedOnly ? [Query.equal('pinned', true)] : []),
+    // Zwei getrennte Achsen (offen/geschlossen und gelöst/ungelöst) — genau
+    // deshalb sind sie kombinierbar: „offen und noch ungelöst" ist die Frage,
+    // die ein Forum wirklich stellt. Begründung in discussionFilters.ts.
+    ...(filters.state === 'any' ? [] : [Query.equal('closed', filters.state === 'closed')]),
+    ...(filters.solution === 'any' ? [] : [Query.equal('solved', filters.solution === 'solved')]),
     ...(search ? [Query.search('title', search)] : []),
     /**
      * „Neueste" sortiert seit Stufe 2 nach `lastActivityAt`, nicht mehr nach

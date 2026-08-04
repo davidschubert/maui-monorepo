@@ -84,6 +84,20 @@ export function createdAfterIso(raw: unknown, now: Date = new Date()): string | 
     return new Date(now.getTime() - n * DAY_MS).toISOString()
   }
 
+  return dayStartIso(value)
+}
+
+/**
+ * Ein reines Kalenderdatum (`YYYY-MM-DD`) als Tagesbeginn in UTC — oder `null`,
+ * wenn es keines ist.
+ *
+ * SEIT STUFE 3 EIGENSTÄNDIG, weil `created-before` dieselbe Prüfung braucht.
+ * Ein zweites Mal danebenzuschreiben hieße, die Rückrechnung unten beim
+ * nächsten Mal an einer der beiden Stellen zu vergessen.
+ */
+export function dayStartIso(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null
+  const value = raw.trim()
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null
   const parsed = Date.parse(`${value}T00:00:00.000Z`)
   if (Number.isNaN(parsed)) return null

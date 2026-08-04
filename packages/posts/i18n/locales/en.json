@@ -203,6 +203,31 @@
       "noResultsTitle": "No matches",
       "noResultsText": "No topics match your search.",
       "resetSearch": "Reset search",
+      "filters": {
+        "title": "Filters",
+        "category": "Category",
+        "allCategories": "All categories",
+        "after": "Created after",
+        "before": "Created before",
+        "stateLabel": "Topic",
+        "state": {
+          "any": "All",
+          "open": "Open",
+          "closed": "Closed"
+        },
+        "solutionLabel": "Solution",
+        "solution": {
+          "any": "All",
+          "solved": "Solved",
+          "unsolved": "Unsolved"
+        },
+        "pinnedOnly": "Pinned only",
+        "mineOnly": "My topics only",
+        "byAuthor": "By {name}",
+        "someAuthor": "one person",
+        "clearAuthor": "Clear author filter",
+        "reset": "Reset filters"
+      },
       "state": {
         "pinned": "Pinned",
         "closed": "Closed",

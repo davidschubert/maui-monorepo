@@ -203,6 +203,31 @@
       "noResultsTitle": "Keine Treffer",
       "noResultsText": "Keine Themen passen zu deiner Suche.",
       "resetSearch": "Suche zurücksetzen",
+      "filters": {
+        "title": "Filter",
+        "category": "Kategorie",
+        "allCategories": "Alle Kategorien",
+        "after": "Erstellt nach",
+        "before": "Erstellt vor",
+        "stateLabel": "Thema",
+        "state": {
+          "any": "Alle",
+          "open": "Offen",
+          "closed": "Geschlossen"
+        },
+        "solutionLabel": "Lösung",
+        "solution": {
+          "any": "Alle",
+          "solved": "Gelöst",
+          "unsolved": "Ungelöst"
+        },
+        "pinnedOnly": "Nur Angeheftetes",
+        "mineOnly": "Nur meine Themen",
+        "byAuthor": "Von {name}",
+        "someAuthor": "einer Person",
+        "clearAuthor": "Autor-Filter entfernen",
+        "reset": "Filter zurücksetzen"
+      },
       "state": {
         "pinned": "Angeheftet",
         "closed": "Geschlossen",

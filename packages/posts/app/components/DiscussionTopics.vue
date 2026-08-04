@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
+import { activeTopicFilterCount, parseTopicFilters, type TopicFilters } from '../../shared/discussionFilters'
 import { TOP_PERIODS, isTopPeriod, isTopicOrder, type TopPeriod } from '../../shared/discussionSort'
 import type { DiscussionListResponse, DiscussionTopic } from '../../shared/types/post'
 
@@ -46,28 +47,57 @@ const { formatRelativeTime } = useFormatRelativeTime()
  */
 const order = ref(isTopicOrder(route.query.order) && route.query.order !== 'categories' ? route.query.order : 'latest')
 const period = ref<TopPeriod>(isTopPeriod(route.query.period) ? route.query.period : 'all')
-const search = ref(typeof route.query.q === 'string' ? route.query.q : '')
-const searchQuery = ref(search.value)
+
+/**
+ * ALLE Filter in EINEM Zustand, gelesen mit derselben puren Regel, die der
+ * Server benutzt (F1 Stufe 3). Kein zweiter, hier nachgebauter Leser: was der
+ * Server ignoriert, ignoriert die Oberfläche genauso — sonst zeigt das
+ * Formular einen Filter an, der gar nicht wirkt.
+ */
+const filters = ref<TopicFilters>(parseTopicFilters(route.query as Record<string, unknown>))
+
+const search = ref(filters.value.search)
 
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 watch(search, (value) => {
   clearTimeout(searchTimer)
   // 350 ms: lang genug, dass ein getipptes Wort EINE Abfrage auslöst, kurz
   // genug, dass die Liste sich noch wie eine Reaktion anfühlt.
-  searchTimer = setTimeout(() => { searchQuery.value = value.trim() }, 350)
+  searchTimer = setTimeout(() => { filters.value = { ...filters.value, search: value.trim() } }, 350)
 })
 onBeforeUnmount(() => clearTimeout(searchTimer))
 
-watch([order, period, searchQuery], () => {
+/**
+ * Sortierung UND Filter stehen in der URL: eine gefilterte Liste ist etwas,
+ * das man verschickt.
+ *
+ * BEKANNTE UNSCHÄRFE: `created-after` versteht auch eine relative Angabe
+ * (`7d`), zurückgeschrieben wird immer ein Datum. Ein geteilter „letzte 7
+ * Tage"-Link bleibt also relativ, bis jemand einen Filter anfasst — danach
+ * steht dort der konkrete Tag. Das ist die ehrlichere Variante: das
+ * Datumsfeld zeigt ohnehin einen festen Tag, und eine URL, die etwas anderes
+ * behauptet als das Formular, wäre die schlechtere Überraschung.
+ */
+watch([order, period, filters], () => {
+  const f = filters.value
   void router.replace({
     query: {
       ...route.query,
-      order: order.value === 'latest' ? undefined : order.value,
-      period: order.value === 'top' && period.value !== 'all' ? period.value : undefined,
-      q: searchQuery.value || undefined,
+      'order': order.value === 'latest' ? undefined : order.value,
+      'period': order.value === 'top' && period.value !== 'all' ? period.value : undefined,
+      'q': f.search || undefined,
+      // Auf einer Kategorie-SEITE steht die Kategorie im Pfad — sie gehört
+      // dort nicht zusätzlich in den Query.
+      'category': props.categorySlug ? undefined : (f.category || undefined),
+      'created-after': f.createdAfter ? f.createdAfter.slice(0, 10) : undefined,
+      'created-before': f.createdBefore ? f.createdBefore.slice(0, 10) : undefined,
+      'author': f.author || undefined,
+      'pinned': f.pinnedOnly ? '1' : undefined,
+      'state': f.state === 'any' ? undefined : f.state,
+      'solution': f.solution === 'any' ? undefined : f.solution,
     },
   })
-})
+}, { deep: true })
 
 const orderItems = computed(() => [
   { value: 'latest', label: t('posts.discussions.order.latest'), icon: 'i-ph-clock-counter-clockwise' },
@@ -78,13 +108,29 @@ const periodItems = computed(() => TOP_PERIODS.map(value => ({
   label: t(`posts.discussions.period.${value}`),
 })))
 
+/**
+ * EIN Ort für die Abfrage-Parameter — die erste Seite und „Mehr laden" holten
+ * sie vorher getrennt, und mit neun Filtern statt dreien wäre das die Stelle,
+ * an der die zweite Seite anders filtert als die erste.
+ */
+const requestQuery = computed(() => {
+  const f = filters.value
+  return {
+    'category': props.categorySlug || f.category || undefined,
+    'order': order.value,
+    'period': order.value === 'top' ? period.value : undefined,
+    'q': f.search || undefined,
+    'created-after': f.createdAfter ? f.createdAfter.slice(0, 10) : undefined,
+    'created-before': f.createdBefore ? f.createdBefore.slice(0, 10) : undefined,
+    'author': f.author || undefined,
+    'pinned': f.pinnedOnly ? '1' : undefined,
+    'state': f.state === 'any' ? undefined : f.state,
+    'solution': f.solution === 'any' ? undefined : f.solution,
+  }
+})
+
 const { data, status } = await useFetch<DiscussionListResponse>('/api/posts/discussions', {
-  query: computed(() => ({
-    category: props.categorySlug || undefined,
-    order: order.value,
-    period: order.value === 'top' ? period.value : undefined,
-    q: searchQuery.value || undefined,
-  })),
+  query: requestQuery,
 })
 
 const rows = ref<DiscussionTopic[]>([])
@@ -105,13 +151,7 @@ async function loadMore() {
   loadingMore.value = true
   try {
     const res = await $fetch<DiscussionListResponse>('/api/posts/discussions', {
-      query: {
-        category: props.categorySlug || undefined,
-        order: order.value,
-        period: order.value === 'top' ? period.value : undefined,
-        q: searchQuery.value || undefined,
-        cursor: nextCursor.value,
-      },
+      query: { ...requestQuery.value, cursor: nextCursor.value },
     })
     const known = new Set(rows.value.map(row => row.$id))
     rows.value = [...rows.value, ...res.rows.filter(row => !known.has(row.$id))]
@@ -137,10 +177,44 @@ const columns = computed<TableColumn<DiscussionTopic>[]>(() => [
   { id: 'activity', header: () => t('posts.discussions.col.activity'), meta: { class: HIDE_SM } },
 ])
 
-const hasSearch = computed(() => searchQuery.value.length > 0)
+/**
+ * Der Anzeigename zum Autor-Filter. Er kommt aus den GELADENEN Zeilen — es gibt
+ * keine öffentliche Nutzer-Suche, und eine Auflösung über den Namen wäre falsch
+ * (Namen sind nicht eindeutig). Einmal bekannt, wird er behalten: sonst
+ * verschwände das Schild-Label in dem Moment, in dem die Liste leer ist.
+ */
+const authorName = ref('')
+watch([rows, filters], () => {
+  if (!filters.value.author) {
+    authorName.value = ''
+    return
+  }
+  const match = rows.value.find(row => row.authorId === filters.value.author)
+  if (match) authorName.value = match.authorName
+}, { immediate: true, deep: true })
+
+function filterByAuthor(row: DiscussionTopic) {
+  authorName.value = row.authorName
+  filters.value = { ...filters.value, author: row.authorId }
+}
+
+// „Keine Treffer" statt „noch keine Themen": sobald IRGENDEINE Eingrenzung
+// wirkt, ist die leere Liste ein Suchergebnis und keine leere Community.
+const hasSearch = computed(() =>
+  filters.value.search.length > 0 || activeTopicFilterCount(filters.value) > 0)
+
 function resetSearch() {
   search.value = ''
-  searchQuery.value = ''
+  filters.value = {
+    ...filters.value,
+    search: '',
+    createdAfter: null,
+    createdBefore: null,
+    author: '',
+    pinnedOnly: false,
+    state: 'any',
+    solution: 'any',
+  }
 }
 </script>
 
@@ -172,6 +246,12 @@ function resetSearch() {
         data-discussions-search
       />
     </div>
+
+    <DiscussionFilters
+      v-model="filters"
+      :category-fixed="!!props.categorySlug"
+      :author-name="authorName"
+    />
 
     <div v-if="status === 'pending' && rows.length === 0" class="flex justify-center py-16">
       <UIcon name="i-ph-spinner" class="size-6 animate-spin text-muted" />
@@ -207,14 +287,24 @@ function resetSearch() {
         </div>
       </template>
 
+      <!-- Der Name ist ein FILTER-Knopf: „zeig mir alles von dieser Person"
+           ist die einzige Autor-Suche, die wir ehrlich anbieten können (es gibt
+           keine öffentliche Nutzer-Suche, und Namen sind nicht eindeutig — die
+           Zeile kennt dagegen die Row-Id). -->
       <template #author-cell="{ row }">
-        <div class="flex items-center gap-2">
+        <button
+          type="button"
+          class="flex items-center gap-2 text-start hover:text-primary"
+          :title="t('posts.discussions.filters.byAuthor', { name: row.original.authorName })"
+          data-discussions-author-filter
+          @click="filterByAuthor(row.original)"
+        >
           <UserAvatar
             :user="{ name: row.original.authorName, prefs: { avatarUrl: row.original.authorAvatarUrl } }"
             size="xs"
           />
           <span class="truncate text-sm text-muted">{{ row.original.authorName }}</span>
-        </div>
+        </button>
       </template>
 
       <!-- Strich statt Null, solange die Zahl noch nicht da ist: eine Null
