@@ -20,12 +20,15 @@ export default defineEventHandler(async (event): Promise<CategoryListResponse> =
   requirePlanProduct(event, 'posts')
 
   const query = getQuery(event)
-  const categories = await listCategories(event, { activeOnly: query.all !== '1' })
+  // Datentür (member): Gäste sehen nur Zeilen mit passender Read-Permission,
+  // der Mandanten-Filter liegt als Netz darunter.
+  const db = tenantDb(event)
+  const categories = await listCategories(db, { activeOnly: query.all !== '1' })
 
   if (query.counts !== '1') {
     return { rows: categories.map(category => ({ category, topicCount: 0 })) }
   }
 
-  const counts = await topicCountsFor(event, categories)
+  const counts = await topicCountsFor(db, categories)
   return { rows: categories.map(category => ({ category, topicCount: counts.get(category.$id) ?? 0 })) }
 })

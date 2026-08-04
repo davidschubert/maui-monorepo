@@ -13,7 +13,10 @@ export default defineEventHandler(async (event): Promise<CategoryListResponse> =
   requirePlanProduct(event, 'posts')
   await requireCommunityPermission(event, 'posts.manage')
 
-  const categories = await listCategories(event)
-  const counts = await topicCountsFor(event, categories)
+  // Lesen bleibt die Mitglieder-Klinke: die Verwaltung braucht keinen
+  // Admin-Client, um die eigenen Kategorien zu sehen.
+  const db = tenantDb(event)
+  const categories = await listCategories(db)
+  const counts = await topicCountsFor(db, categories)
   return { rows: categories.map(category => ({ category, topicCount: counts.get(category.$id) ?? 0 })) }
 })

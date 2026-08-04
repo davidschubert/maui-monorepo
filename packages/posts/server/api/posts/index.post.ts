@@ -35,9 +35,9 @@ export default defineEventHandler(async (event) => {
    * unterliegt weiter der Zahlungssperre (M13) und macht weiter zum Mitglied
    * (A5) — die Kategorie ändert daran nichts, sie ist nur ein Feld mehr.
    */
-  const categoryId = await resolveCategoryId(event, body.categoryId)
   // Datentür (member): stempelt tenantId; Session-Client wie bisher.
   const db = tenantDb(event)
+  const categoryId = await resolveCategoryId(db, body.categoryId)
 
   const scheduled = !!body.scheduledAt
   const now = new Date().toISOString()

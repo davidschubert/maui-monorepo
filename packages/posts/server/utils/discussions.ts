@@ -1,5 +1,4 @@
 import { Query } from 'node-appwrite'
-import type { H3Event } from 'h3'
 import { discussionTopicPath, topicSlug } from '../../shared/discussionUrl'
 import {
   POST_CATEGORIES_TABLE,
@@ -12,11 +11,17 @@ import {
 /**
  * Gemeinsamer Unterbau der Discussions-Routen (F1 Stufe 1).
  *
- * Liegt in `server/utils/**` und geht trotzdem ausschließlich über
- * `tenantDb(event)` — die Datentür ist hier kein ESLint-Zwang (der greift nur
- * in `server/api/**` und `server/plugins/**`), sondern dieselbe Regel aus
- * eigener Einsicht: diese Funktionen bekommen einen H3Event, bedienen also
- * einen Request und gehören hinter dieselbe Grenze wie eine Route.
+ * DIESE HELFER ÖFFNEN DIE TÜR NICHT SELBST — sie bekommen eine bereits
+ * geöffnete `TenantDb` herein. Zwei Gründe, und der zweite ist der wichtigere:
+ *
+ *  1. Jede Route ruft `tenantDb(event)` damit SICHTBAR selbst. Wer die Routen
+ *     dieses Layers durchzählt (`node scripts/produkt-bilanz.mjs` tut genau
+ *     das, textuell), sieht die Tür an jeder Stelle stehen, an der sie steht —
+ *     ein Helfer, der sie im Verborgenen öffnet, macht die Bilanz blind.
+ *  2. Die Klinke gehört der Route (`as`/`actor`, F17/C1c). Ein Helfer, der sich
+ *     seine eigene Tür aufmacht, entscheidet damit still über Sperre und
+ *     Beitritt — Entscheidungen, die dort getroffen gehören, wo man weiß, wer
+ *     handelt.
  */
 
 /**
@@ -44,11 +49,11 @@ export const MAX_CATEGORIES = 100
  * nicht. Der fachliche Schlüssel reist als `data.code` und kommt beim Client
  * als `reason` an (core/server/error.ts).
  */
-export async function resolveCategoryId(event: H3Event, categoryId: string | undefined): Promise<string> {
+export async function resolveCategoryId(db: TenantDb, categoryId: string | undefined): Promise<string> {
   const wanted = categoryId?.trim() ?? ''
   if (!wanted) return ''
 
-  const category = await tenantDb(event)
+  const category = await db
     .get<PostCategory>(POST_CATEGORIES_TABLE, wanted, 'Category not found')
     .catch(() => null)
 
@@ -64,10 +69,10 @@ export async function resolveCategoryId(event: H3Event, categoryId: string | und
 
 /** Alle Kategorien der Community, sortiert wie sie angezeigt werden. */
 export async function listCategories(
-  event: H3Event,
+  db: TenantDb,
   options: { activeOnly?: boolean } = {},
 ): Promise<PostCategory[]> {
-  const { rows } = await tenantDb(event).list<PostCategory>(POST_CATEGORIES_TABLE, [
+  const { rows } = await db.list<PostCategory>(POST_CATEGORIES_TABLE, [
     ...(options.activeOnly ? [Query.equal('active', true)] : []),
     Query.orderAsc('sortOrder'),
     Query.orderAsc('name'),
@@ -86,8 +91,7 @@ export async function listCategories(
  * Zahl auch angezeigt wird (Kategorien-Ansicht, Verwaltung) — nie auf der
  * Topic-Liste.
  */
-export async function topicCountsFor(event: H3Event, categories: PostCategory[]): Promise<Map<string, number>> {
-  const db = tenantDb(event)
+export async function topicCountsFor(db: TenantDb, categories: PostCategory[]): Promise<Map<string, number>> {
   const counts = await Promise.all(categories.map(category =>
     db.count(POSTS_TABLE, [
       Query.equal('categoryId', category.$id),

@@ -32,7 +32,10 @@ export default defineEventHandler(async (event): Promise<DiscussionListResponse>
   await publishDuePosts(event)
 
   const query = getQuery(event)
-  const categories = await listCategories(event)
+  // Datentür (member): Gäste sehen nur Zeilen mit passender Read-Permission,
+  // der Mandanten-Filter liegt als Netz darunter.
+  const db = tenantDb(event)
+  const categories = await listCategories(db)
   if (categories.length === 0) return { rows: [], nextCursor: null }
 
   const byId = new Map(categories.map(category => [category.$id, category]))
@@ -78,9 +81,7 @@ export default defineEventHandler(async (event): Promise<DiscussionListResponse>
     ...(cursor ? [Query.cursorAfter(cursor)] : []),
   ]
 
-  // Datentür (member): Gäste sehen nur Zeilen mit passender Read-Permission,
-  // der Mandanten-Filter liegt als Netz darunter.
-  const res = await tenantDb(event).list<CommunityPost>(POSTS_TABLE, queries).catch((error) => {
+  const res = await db.list<CommunityPost>(POSTS_TABLE, queries).catch((error) => {
     throw toH3Error(error, 'Could not load topics')
   })
 

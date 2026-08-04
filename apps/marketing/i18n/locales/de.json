@@ -2,7 +2,7 @@
   "marketing": {
     "meta": {
       "title": "Pukalani – Community-Plattform, in Deutschland gehostet",
-      "description": "Beiträge, Kurse, Events und Diskussionen unter deinem Namen und Design. Datenschutz-nativ, in Deutschland gehostet, ohne Werbe-Tracking. Die schlanke Alternative zu Circle & Skool. Kostenlos starten."
+      "description": "Beiträge, Kurse, Events und Kommentare unter deinem Namen und Design. Datenschutz-nativ, in Deutschland gehostet, ohne Werbe-Tracking. Die schlanke Alternative zu Circle & Skool. Kostenlos starten."
     },
     "nav": {
       "pricing": "Preise",
@@ -19,7 +19,7 @@
         "overview": "Alle Produkte im Überblick",
         "items": {
           "diskussionen": {
-            "title": "Diskussionen",
+            "title": "Kommentare",
             "text": "Threads, Votes, Erwähnungen und Live-Präsenz – unter jedem Inhalt."
           },
           "moderation": {
@@ -48,7 +48,7 @@
     "hero": {
       "eyebrow": "Deine Community-Plattform, DSGVO-nativ",
       "title": "Deine Community. Deine Kurse. Deine Regeln.",
-      "sub": "Beiträge, Kurse, Events und Diskussionen unter deinem Namen und deinem Design. In Deutschland gehostet und ohne Werbe-Tracking. Die schlanke, faire Alternative zu großen Community-Suiten.",
+      "sub": "Beiträge, Kurse, Events und Kommentare unter deinem Namen und deinem Design. In Deutschland gehostet und ohne Werbe-Tracking. Die schlanke, faire Alternative zu großen Community-Suiten.",
       "ctaPrimary": "Kostenlos starten",
       "ctaSecondary": "Live-Demo ansehen",
       "trust": {
@@ -98,7 +98,7 @@
         {
           "n": "3",
           "title": "Produkte wählen",
-          "text": "Feed, Kurse, Events, Diskussionen an- oder ausschalten. Dein Design dazu. Fertig."
+          "text": "Feed, Kurse, Events, Kommentare an- oder ausschalten. Dein Design dazu. Fertig."
         }
       ]
     },
@@ -111,8 +111,8 @@
       "items": [
         {
           "icon": "i-ph-chats-circle-bold",
-          "title": "Diskussionen",
-          "text": "Echtzeit-Kommentare mit verschachtelten Threads, Votes, {'@'}-Erwähnungen und Live-Präsenz – unter jedem Inhalt.",
+          "title": "Kommentare",
+          "text": "In Echtzeit, mit verschachtelten Threads, Votes, {'@'}-Erwähnungen und Live-Präsenz – unter jedem Inhalt.",
           "status": "available"
         },
         {
@@ -150,16 +150,16 @@
     "modular": {
       "kicker": "Modular statt Monolith",
       "title": "Nimm nur, was du brauchst.",
-      "lead": "Nur Kurse verkaufen? Aktivier Kurse. Community drumherum? Schalt Feed und Diskussionen dazu. Events? Ein Klick. Bei Pukalani wächst die Plattform mit dir, statt dich mit Funktionen zu erschlagen, die du nie öffnest.",
+      "lead": "Nur Kurse verkaufen? Aktivier Kurse. Community drumherum? Schalt Feed und Kommentare dazu. Events? Ein Klick. Bei Pukalani wächst die Plattform mit dir, statt dich mit Funktionen zu erschlagen, die du nie öffnest.",
       "blocks": {
-        "discussions": "Diskussionen",
+        "discussions": "Kommentare",
         "moderation": "Moderation",
         "feed": "Feed",
         "courses": "Kurse",
         "events": "Events"
       },
       "presets": {
-        "only": "Nur Diskussionen",
+        "only": "Nur Kommentare",
         "community": "Community",
         "all": "Alles"
       }
@@ -199,12 +199,12 @@
       "ctaLead": "In 60 Sekunden steht deine Community. Danach entscheidest du.",
       "items": {
         "diskussionen": {
-          "name": "Diskussionen",
-          "metaTitle": "Echtzeit-Diskussionen für deine Community – ohne Werbe-Tracking",
+          "name": "Kommentare",
+          "metaTitle": "Echtzeit-Kommentare für deine Community – ohne Werbe-Tracking",
           "metaDescription": "Verschachtelte Threads, Votes, {'@'}-Erwähnungen und Live-Präsenz – unter jedem Inhalt, einbettbar in deine Website. In Deutschland gehostet.",
-          "title": "Diskussionen, die man spürt",
+          "title": "Kommentare, die man spürt",
           "sub": "Threads, Votes, Erwähnungen und Live-Präsenz – unter jedem Inhalt.",
-          "intro": "Diskussionen sind bei uns kein Anhängsel, sondern das Bindegewebe: Sie laufen unter Beiträgen, Kursen und Events – und lassen sich sogar in deine bestehende Website einbetten. Und weil man live sieht, wer liest oder tippt, fühlt sich der Ort bewohnt an statt verlassen.",
+          "intro": "Kommentare sind bei uns kein Anhängsel, sondern das Bindegewebe: Sie laufen unter Beiträgen, Kursen und Events – und lassen sich sogar in deine bestehende Website einbetten. Und weil man live sieht, wer liest oder tippt, fühlt sich der Ort bewohnt an statt verlassen.",
           "highlights": [
             "Verschachtelte Threads mit Antwort-Tiefe, damit Nebendiskussionen lesbar bleiben",
             "Votes und Sortierung, damit Gutes oben landet",
@@ -249,15 +249,15 @@
         "beitraege": {
           "name": "Beiträge & Feed",
           "metaTitle": "Beiträge & Feed – deine Community schreibt selbst",
-          "metaDescription": "Nutzer-Beiträge in Markdown, Umfragen und Fragen, dazu ein chronologischer Activity-Feed – mit Diskussionen darunter. Early Access.",
+          "metaDescription": "Nutzer-Beiträge in Markdown, Umfragen und Fragen, dazu ein chronologischer Activity-Feed – mit Kommentaren darunter. Early Access.",
           "title": "Ein Feed, der deiner Community gehört",
           "sub": "Nutzer-Beiträge in Markdown, Umfragen und ein chronologischer Feed.",
-          "intro": "Nicht nur du veröffentlichst – deine Mitglieder auch. Beiträge entstehen in Markdown, Umfragen und Fragen holen Meinungen ein, und der Activity-Feed zeigt chronologisch, was in deiner Community passiert. Darunter laufen dieselben Diskussionen wie überall bei Pukalani.",
+          "intro": "Nicht nur du veröffentlichst – deine Mitglieder auch. Beiträge entstehen in Markdown, Umfragen und Fragen holen Meinungen ein, und der Activity-Feed zeigt chronologisch, was in deiner Community passiert. Darunter laufen dieselben Kommentare wie überall bei Pukalani.",
           "highlights": [
             "Beiträge in Markdown – schreiben ohne Umwege",
             "Umfragen und Fragen für schnelle Meinungsbilder",
             "Chronologischer Activity-Feed: was passiert, steht oben",
-            "Diskussionen unter jedem Beitrag – Threads, Votes, Erwähnungen",
+            "Kommentare unter jedem Beitrag – Threads, Votes, Erwähnungen",
             "Moderation inklusive: Melden und Ausblenden wie bei Kommentaren",
             "Ein Ort statt fünf Tools: Beiträge, Antworten und Reaktionen bleiben zusammen"
           ]
@@ -274,7 +274,7 @@
             "Fortschritt pro Teilnehmer, serverseitig bestätigt – kein Klick-Bluff",
             "Zugang frei, nur für Mitglieder oder kostenpflichtig",
             "Bezahl-Zugang über Stripe, keine Transaktionsgebühr von uns",
-            "Diskussionen direkt unter jeder Lektion",
+            "Kommentare direkt unter jeder Lektion",
             "Builder mit Reihenfolge-Änderung und Bearbeitungs-Präsenz im Team"
           ]
         },
@@ -328,7 +328,7 @@
         },
         {
           "term": "Embed",
-          "def": "Ein Produkt deiner Community, eingebettet in eine andere Website – zum Beispiel Diskussionen unter deinen Blogartikeln. Du musst dafür nichts umziehen."
+          "def": "Ein Produkt deiner Community, eingebettet in eine andere Website – zum Beispiel Kommentare unter deinen Blogartikeln. Du musst dafür nichts umziehen."
         },
         {
           "term": "Eigene Domain",
@@ -340,7 +340,7 @@
         },
         {
           "term": "Produkte",
-          "def": "Die einzeln an- und abschaltbaren Teile der Plattform: Diskussionen, Moderation, Seiten, Feed, Kurse, Events. Du nimmst nur, was du brauchst."
+          "def": "Die einzeln an- und abschaltbaren Teile der Plattform: Kommentare, Moderation, Seiten, Feed, Kurse, Events. Du nimmst nur, was du brauchst."
         },
         {
           "term": "Early Access",
@@ -497,12 +497,12 @@
         "coaches": {
           "name": "Coaches & Trainer",
           "metaTitle": "Community-Plattform für Coaches – DSGVO-nah, in Deutschland gehostet",
-          "metaDescription": "Ein geschützter Ort für Teilnehmer: Diskussionen, Kurse und Treffen unter deinem Namen. In Deutschland gehostet, ohne Werbe-Tracking. Kostenlos starten.",
+          "metaDescription": "Ein geschützter Ort für Teilnehmer: Kommentare, Kurse und Treffen unter deinem Namen. In Deutschland gehostet, ohne Werbe-Tracking. Kostenlos starten.",
           "title": "Deine Community als Coach oder Trainerin",
           "sub": "Ein Ort, an dem deine Teilnehmer diskutieren, lernen und sich treffen – und den DU steuerst.",
           "intro": "Wenn Begleitung endet, weil die WhatsApp-Gruppe unübersichtlich wird, verliert dein Programm seine Wirkung. Eine eigene Community hält Menschen zusammen: Fragen landen sichtbar, Antworten bleiben auffindbar, Termine sind an einem Ort.",
           "fit": "Du bestimmst Design, Domain und Regeln. Moderation ist eingebaut (inklusive KI-Assistenz als Zweitmeinung – entscheiden tust du). Und weil in Deutschland gehostet und ohne Werbe-Tracking gearbeitet wird, kannst du deinen Teilnehmern ruhigen Gewissens einen Link schicken.",
-          "blocks": "Diskussionen · Moderation · Seiten & Branding · später Kurse und Events"
+          "blocks": "Kommentare · Moderation · Seiten & Branding · später Kurse und Events"
         },
         "kurse": {
           "name": "Kurs-Ersteller",
@@ -512,7 +512,7 @@
           "sub": "Lektionen, Fortschritt und Bezahl-Zugang, ohne Anteil an deinen Umsätzen.",
           "intro": "Ein Kurs allein ist eine Datei. Ein Kurs mit Community ist ein Ergebnis: Teilnehmer fragen nach, bleiben dran, empfehlen weiter. Genau diese Kombination ist bei Pukalani ein Produkt-Klick voneinander entfernt.",
           "fit": "Zugang frei, nur für Mitglieder oder kostenpflichtig – Bezahl-Zugang läuft über Stripe. Wir nehmen keine Transaktionsgebühr: was du verdienst, bleibt bei dir. Preis planbar, Daten in Deutschland, Export jederzeit.",
-          "blocks": "Kurse (Early Access) · Diskussionen · Seiten & Branding"
+          "blocks": "Kurse (Early Access) · Kommentare · Seiten & Branding"
         },
         "creator": {
           "name": "Creator & Autoren",
@@ -522,17 +522,17 @@
           "sub": "Diskussion unter deiner Marke, einbettbar in die Seite, die du längst hast.",
           "intro": "Kommentare unter Beiträgen, ein Feed für Ankündigungen, gelegentlich ein Live-Termin: daraus wird aus Publikum eine Community. Und zwar auf deiner Domain, nicht in einem Netzwerk, das dir die Reichweite morgen wieder wegnimmt.",
           "fit": "Einzelne Produkte lassen sich in deine bestehende Website einbetten – du musst nichts umziehen. Kein Werbe-Tracking, keine Werbung, keine Weitergabe: deine Leser bleiben deine Leser.",
-          "blocks": "Diskussionen (einbettbar) · Moderation · Seiten & Branding · später Feed"
+          "blocks": "Kommentare (einbettbar) · Moderation · Seiten & Branding · später Feed"
         },
         "vereine": {
           "name": "Vereine & Organisationen",
           "metaTitle": "Community-Software für Vereine – in Deutschland gehostet, DSGVO-nah",
-          "metaDescription": "Mitgliederbereich mit Diskussionen, Ankündigungen und Terminen – in Deutschland gehostet, datensparsam, ohne Werbe-Tracking. Kostenlos starten.",
+          "metaDescription": "Mitgliederbereich mit Kommentaren, Ankündigungen und Terminen – in Deutschland gehostet, datensparsam, ohne Werbe-Tracking. Kostenlos starten.",
           "title": "Mitglieder, Termine und Austausch an einem Ort",
           "sub": "Ein Mitgliederbereich, den auch Nicht-Techniker bedienen – gehostet in Deutschland.",
           "intro": "Rundmails, drei Chatgruppen und ein PDF-Kalender: so verliert man Mitglieder statt sie einzubinden. Ein ruhiger, gemeinsamer Ort ersetzt das – ohne dass jemand einen Server betreuen muss.",
           "fit": "Kein Betrieb, keine Plugin-Bastelei: du legst die Site an und arbeitest los. Daten liegen in Deutschland, Rollen regeln klar, wer moderiert, schreibt oder nur mitliest – und der Einstieg ist kostenlos.",
-          "blocks": "Diskussionen · Moderation · Seiten & Branding · später Events"
+          "blocks": "Kommentare · Moderation · Seiten & Branding · später Events"
         }
       }
     },
@@ -582,7 +582,7 @@
         },
         {
           "label": "Produkte in eigene Website einbettbar",
-          "us": "ja (Diskussionen, Events)",
+          "us": "ja (Kommentare, Events)",
           "circle": "k. A.",
           "skool": "k. A.",
           "mighty": "k. A."
@@ -623,7 +623,7 @@
           "sub": "Community und Kurse unter deiner Marke — ohne Anteil an deinen Umsätzen.",
           "intro": "Skool ist bewusst einfach und stark im Gamification-Ansatz. Der Einstieg ist günstig, kostet dich im Hobby-Tarif aber 10 % deiner Umsätze. Pukalani nimmt keine Transaktionsgebühr, hostet in Deutschland und lässt dich Design, Domain und Produkte selbst bestimmen.",
           "whenThem": "Du magst den gamifizierten, sehr geführten Ansatz, willst dich um nichts kümmern und die Community darf aussehen wie Skool. Dann ist Skool schnell und stimmig.",
-          "whenUs": "Deine Community soll aussehen und heißen wie DU, deine Umsätze bleiben vollständig bei dir, und Datenschutz ist dir nicht nur ein Häkchen. Dazu willst du Diskussionen oder Events auch in deine bestehende Website einbetten."
+          "whenUs": "Deine Community soll aussehen und heißen wie DU, deine Umsätze bleiben vollständig bei dir, und Datenschutz ist dir nicht nur ein Häkchen. Dazu willst du Kommentare oder Events auch in deine bestehende Website einbetten."
         },
         "mighty-networks": {
           "name": "Mighty Networks",
@@ -655,7 +655,7 @@
         "basic": {
           "name": "Basic",
           "tag": "01 · Kostenlos",
-          "desc": "Zum Starten – eine Community, Diskussionen, Seiten, Theme-Katalog und Basis-Moderation.",
+          "desc": "Zum Starten – eine Community, Kommentare, Seiten, Theme-Katalog und Basis-Moderation.",
           "cta": "Kostenlos starten"
         },
         "personal": {
@@ -688,7 +688,7 @@
         },
         {
           "q": "Kann ich meine bestehende Seite behalten?",
-          "a": "Ja. Deine Community läuft unter deinem Namen und Design; einzelne Produkte wie Diskussionen lassen sich sogar in deine bestehende Website einbetten."
+          "a": "Ja. Deine Community läuft unter deinem Namen und Design; einzelne Produkte wie Kommentare lassen sich sogar in deine bestehende Website einbetten."
         },
         {
           "q": "Was kostet es?",
@@ -773,7 +773,7 @@
       "madeIn": "Mit Aloha gebaut. Gehostet in Deutschland.",
       "colCompare": "Vergleich",
       "colUseCases": "Anwendungsfälle",
-      "featDiscussions": "Diskussionen",
+      "featDiscussions": "Kommentare",
       "featBranding": "Branding",
       "glossary": "Glossar",
       "vsCircle": "vs Circle",
@@ -913,7 +913,7 @@
       "items": {
         "comments": {
           "name": "comments.pukalani.app",
-          "what": "Diskussionen, Moderation und das Embed-Widget im täglichen Einsatz — inklusive Gast-Kommentaren und Live-Präsenz."
+          "what": "Kommentare (auch von Gästen), Moderation und das Embed-Widget im täglichen Einsatz — mit Live-Präsenz."
         },
         "demo": {
           "name": "demo.pukalani.app",

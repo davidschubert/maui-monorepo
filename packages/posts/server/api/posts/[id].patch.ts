@@ -80,7 +80,7 @@ export default defineEventHandler(async (event) => {
    */
   const categoryChange = input.categoryId === undefined
     ? {}
-    : { categoryId: await resolveCategoryId(event, input.categoryId) }
+    : { categoryId: await resolveCategoryId(db, input.categoryId) }
 
   const updated = await db.update<CommunityPost>(POSTS_TABLE, id, {
     title: input.title || null,

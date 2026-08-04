@@ -34,14 +34,15 @@ const OWN_POSTS_SCAN = 50
 export default defineEventHandler(async (event): Promise<DiscussionSidebarResponse> => {
   requirePlanProduct(event, 'posts')
 
-  const categories = await listCategories(event, { activeOnly: true })
+  const db = tenantDb(event)
+  const categories = await listCategories(db, { activeOnly: true })
   if (categories.length === 0) return { rows: [], source: 'largest' }
 
   const byId = new Map(categories.map(category => [category.$id, category]))
   const userId = event.context.user?.$id
 
   if (userId) {
-    const { rows } = await tenantDb(event).list<CommunityPost>(POSTS_TABLE, [
+    const { rows } = await db.list<CommunityPost>(POSTS_TABLE, [
       Query.equal('authorId', userId),
       Query.notEqual('categoryId', ''),
       Query.orderDesc('$createdAt'),
@@ -62,7 +63,7 @@ export default defineEventHandler(async (event): Promise<DiscussionSidebarRespon
     if (mine.length > 0) return { rows: mine, source: 'mine' }
   }
 
-  const counts = await topicCountsFor(event, categories)
+  const counts = await topicCountsFor(db, categories)
   const largest = [...categories]
     .sort((a, b) => (counts.get(b.$id) ?? 0) - (counts.get(a.$id) ?? 0))
     .slice(0, SIDEBAR_SIZE)
