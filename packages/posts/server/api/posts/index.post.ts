@@ -51,6 +51,12 @@ export default defineEventHandler(async (event) => {
     status: scheduled ? 'scheduled' : 'published',
     scheduledAt: body.scheduledAt ?? null,
     publishedAt: scheduled ? null : now,
+    // F1 Stufe 2: die Veröffentlichung IST die erste Aktivität. Ein geplanter
+    // Beitrag bekommt sie bewusst nicht — er ist noch nicht da, und ein
+    // Zeitstempel hier würde ihn in der Sortierung „Neueste" vordrängeln,
+    // bevor ihn jemand sehen darf. publishDuePosts trägt ihn beim Fälligwerden
+    // nach.
+    lastActivityAt: scheduled ? null : now,
     pollOptions: body.type === 'poll' ? JSON.stringify(body.pollOptions) : null,
     pollEndsAt: body.type === 'poll' ? (body.pollEndsAt ?? null) : null,
     upvotes: 0,

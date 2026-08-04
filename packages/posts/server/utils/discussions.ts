@@ -1,4 +1,5 @@
 import { Query } from 'node-appwrite'
+import { topicActivityAt } from '../../shared/discussionActivity'
 import { discussionTopicPath, topicSlug } from '../../shared/discussionUrl'
 import {
   POST_CATEGORIES_TABLE,
@@ -136,8 +137,8 @@ export function toDiscussionTopic(
     categorySlug: category.slug,
     score: row.score,
     publishedAt: row.publishedAt,
-    // Siehe DiscussionTopic.lastActivityAt: Antworten bewegen diesen Wert in
-    // Stufe 1 NICHT (sie liegen im comments-Layer, A14).
-    lastActivityAt: row.$updatedAt,
+    // Stufe 2: die eigene Spalte mit ihrer Rückfall-Kette — NICHT mehr
+    // `$updatedAt`, das jede Stimme mitbewegte und keine Antwort.
+    lastActivityAt: topicActivityAt(row),
   }
 }

@@ -69,6 +69,10 @@ export async function publishDuePosts(event: H3Event): Promise<void> {
       const updated = await db.update<CommunityPost>(POSTS_TABLE, row.$id, {
         status: 'published',
         publishedAt: now,
+        // F1 Stufe 2: JETZT ist der Beitrag da, jetzt beginnt seine Aktivität.
+        // Ohne diese Zeile käme ein geplanter Beitrag mit `null` in die Welt und
+        // stünde in „Neueste" am Ende — sichtbar, aber unauffindbar.
+        lastActivityAt: now,
       })
       // Autor-Rechte bleiben, Leserecht für alle kommt dazu (zweiter Schritt:
       // die Tür trennt Daten- und Permission-Writes bewusst)

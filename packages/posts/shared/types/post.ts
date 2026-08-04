@@ -54,6 +54,27 @@ export interface CommunityPost extends Models.Row {
    * Fallunterscheidung, die niemand gewinnt.
    */
   categoryId: string
+  /**
+   * F1 Stufe 2: WANN war an diesem Beitrag zuletzt etwas los — Veröffentlichung
+   * oder eine ANTWORT darunter (Core-Vertrag `notifyContentActivity`, Migration
+   * posts-009).
+   *
+   * WARUM ES DIESE SPALTE GIBT statt weiter `$updatedAt` zu lesen: `$updatedAt`
+   * bewegt sich bei jeder STIMME (score.post.ts schreibt upvotes/downvotes/score
+   * auf die Zeile) und bei keiner ANTWORT (die liegt im comments-Layer). Die
+   * Spalte „Aktivität" zeigte damit genau das Falsche.
+   *
+   * `null` heißt „noch nie" — geplante Beiträge (`status: 'scheduled'`) tragen
+   * es bis zur Veröffentlichung, Bestand von vor der Migration ebenfalls, bis
+   * der Backfill ihn erreicht. Lesen deshalb NIE roh, sondern über
+   * `topicActivityAt()` (shared/discussionActivity.ts).
+   *
+   * SCHREIBEN darf das ausschließlich der Server: der Handler in
+   * server/plugins/content-activity.ts (Operator-Klinke) und die
+   * Veröffentlichungs-Pfade. Es gibt keine Route, die den Wert aus einem Body
+   * übernimmt — sonst könnte sich ein Beitrag nach oben schreiben.
+   */
+  lastActivityAt: string | null
 }
 
 /**
@@ -176,15 +197,10 @@ export interface DiscussionTopic {
   score: number
   publishedAt: string | null
   /**
-   * Spalte „Activity". QUELLE: `$updatedAt` der Beitrags-Zeile — sie bewegt
-   * sich beim Bearbeiten UND bei jeder Stimme (score.post.ts schreibt die
-   * Zähler auf die Zeile).
-   *
-   * WAS SIE IN STUFE 1 NICHT ENTHÄLT: neue ANTWORTEN. Die liegen im
-   * comments-Layer, und `posts` darf ihn nicht kennen (A14 — Produkt-Layer
-   * kennen einander nicht). Ehrlich wäre erst eine denormalisierte Spalte
-   * `lastActivityAt`, die der comments-Layer über einen Core-Vertrag anstößt —
-   * das ist neue Infrastruktur und damit Stufe 2.
+   * Spalte „Aktivität". QUELLE seit Stufe 2: `community_posts.lastActivityAt`
+   * mit der Rückfall-Kette aus `topicActivityAt()` — also Veröffentlichung ODER
+   * letzte Antwort, und ausdrücklich NICHT `$updatedAt` (das bewegte jede
+   * Stimme mit und keine Antwort).
    */
   lastActivityAt: string
 }

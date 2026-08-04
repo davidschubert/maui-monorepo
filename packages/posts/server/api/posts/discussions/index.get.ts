@@ -76,7 +76,18 @@ export default defineEventHandler(async (event): Promise<DiscussionListResponse>
       : Query.notEqual('categoryId', ''),
     ...(after ? [Query.greaterThanEqual('publishedAt', after)] : []),
     ...(search ? [Query.search('title', search)] : []),
-    order === 'top' ? Query.orderDesc('score') : Query.orderDesc('publishedAt'),
+    /**
+     * „Neueste" sortiert seit Stufe 2 nach `lastActivityAt`, nicht mehr nach
+     * `publishedAt` — sonst rutschte ein Thema mit dreißig frischen Antworten
+     * unter ein unbeantwortetes von gestern. Das ist der ganze Sinn des
+     * Aktivitäts-Vertrags.
+     *
+     * Der Zeitraum von „Top" und der Filter `created-after` bleiben bewusst auf
+     * `publishedAt`: „Top diese Woche" fragt nach Beiträgen, die DIESE WOCHE
+     * ENTSTANDEN sind — ein zwei Jahre altes Thema mit einer Antwort von
+     * gestern gehört dort nicht hinein.
+     */
+    order === 'top' ? Query.orderDesc('score') : Query.orderDesc('lastActivityAt'),
     Query.limit(PAGE_SIZE),
     ...(cursor ? [Query.cursorAfter(cursor)] : []),
   ]

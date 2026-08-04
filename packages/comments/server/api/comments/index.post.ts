@@ -83,6 +83,19 @@ export default defineEventHandler(async (event) => {
     throw toH3Error(error, 'Could not create comment')
   })
 
+  /**
+   * „An diesem Inhalt ist etwas passiert" (F1 Stufe 2, Core-Vertrag
+   * `notifyContentActivity`). Der Konsument von heute ist die Spalte
+   * „Aktivität" der Discussions — dieser Layer weiß davon nichts und soll es
+   * nicht wissen (A14): er meldet nur targetType + targetId, und wer sich für
+   * den Typ angemeldet hat, zieht nach. Für jeden nicht angemeldeten Typ
+   * (Tickets, Kurse, fremde Andockpunkte) passiert schlicht gar nichts.
+   *
+   * Wirft nie — der Vertrag fängt ab. Ein Kommentar darf nicht daran scheitern,
+   * dass ein Zeitstempel woanders nicht nachgezogen werden konnte.
+   */
+  await notifyContentActivity(event, body.targetType, body.targetId, row.$createdAt)
+
   const snippet = body.content.length > 140 ? `${body.content.slice(0, 140)}…` : body.content
   // Link zur echten Seite des Kommentars: targetUrl des Replies (= Seite),
   // sonst die des Parents, sonst '/' (Bestandskommentare ohne targetUrl).

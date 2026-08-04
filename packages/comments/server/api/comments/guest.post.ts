@@ -126,6 +126,15 @@ export default defineEventHandler(async (event) => {
   // hat. Was von ihm gebraucht wurde — der Anzeigename — steht eine Zeile
   // weiter oben auf der Kommentar-Row selbst.
 
+  /**
+   * Aktivität nachziehen wie im regulären Pfad (F1 Stufe 2). AUCH FÜR GÄSTE,
+   * und das ist die Entscheidung dieser Zeile: eine Antwort ist eine Antwort —
+   * wer sie geschrieben hat, ändert nichts daran, dass an diesem Thema gerade
+   * etwas los ist. (Der Handler dahinter schreibt als `actor: 'operator'`,
+   * ein Gast wird davon also weiterhin nicht zum Mitglied, A5.)
+   */
+  await notifyContentActivity(event, body.targetType, body.targetId, row.$createdAt)
+
   const snippet = body.content.length > 140 ? `${body.content.slice(0, 140)}…` : body.content
   const link = (body.targetUrl ?? parent?.targetUrl) ?? '/'
 
