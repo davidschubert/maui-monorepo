@@ -43,6 +43,25 @@ export type Capability =
   // persistiert (Rollen ja, Capabilities nie) — deshalb war das ein reiner
   // Code-Rename ohne Datenwanderung.
   | 'posts.write' // Beiträge verfassen (Editor) — ohne posts.moderate
+  /**
+   * Die STRUKTUR der Discussions pflegen: Kategorien anlegen, umbenennen,
+   * sortieren, stilllegen (F1 Stufe 1, 2026-08-03).
+   *
+   * DRITTE posts-Capability, und jede beantwortet eine andere Frage:
+   * `posts.write` = eigene Beiträge verfassen (Editor), `posts.moderate` =
+   * über fremde Beiträge urteilen (Moderator), `posts.manage` = den Rahmen
+   * bestimmen, in dem beide arbeiten. Davids Vorgabe aus dem Konzept ist
+   * eindeutig — „der Admin legt Kategorien fest, Mitglieder können KEINE
+   * Kategorien anlegen". Deshalb sitzt sie im ADMIN und weder im Editor noch
+   * im Moderator: ein Editor, der Kategorien anlegen könnte, wäre genau das
+   * Mitglied, das die Vorgabe ausschließt; ein Moderator, der die Struktur
+   * umbaut, überschriebe die Entscheidung des Owners.
+   *
+   * VERWORFEN: die Verwaltung an `posts.moderate` zu hängen, um keine neue
+   * Capability zu brauchen. Das hätte die Struktur an die Moderation gekoppelt
+   * — dieselbe Vermischung, die `events.moderate` (F15) gerade aufgelöst hat.
+   */
+  | 'posts.manage' // Kategorien der Discussions (Admin/Owner)
   | 'branding.manage' // Themes/Schriften der Community (Admin) — nicht Editor
   | 'team.manage' // Community-Mitglieder + Rollen (Owner/Admin) — nicht Moderator/Editor
   | 'community.transfer' // Owner-Übergabe (nur Owner)

@@ -70,6 +70,9 @@ describe('Rollen-Trennung (die harten Grenzen)', () => {
     expect(communityRoleHasCapability('editor', 'pages.manage')).toBe(true)
     const forbidden: Capability[] = [
       'comments.moderate', 'reports.moderate', 'posts.moderate',
+      // F1: die Kategorien-STRUKTUR gehört dem Admin — ein Editor verfasst
+      // Beiträge, er bestimmt nicht den Rahmen, in dem alle schreiben.
+      'posts.manage',
       'branding.manage', 'team.manage', 'billing.manage', 'system.manage',
       'community.transfer', 'community.delete',
     ]
@@ -81,7 +84,9 @@ describe('Rollen-Trennung (die harten Grenzen)', () => {
     expect(communityRoleHasCapability('moderator', 'reports.moderate')).toBe(true)
     expect(communityRoleHasCapability('moderator', 'posts.moderate')).toBe(true)
     const forbidden: Capability[] = [
-      'posts.write', 'pages.manage', 'branding.manage', 'team.manage',
+      // F1: auch der Moderator baut die Struktur nicht um — er urteilt über
+      // Inhalte, der Rahmen ist eine Entscheidung des Admins/Owners.
+      'posts.write', 'posts.manage', 'pages.manage', 'branding.manage', 'team.manage',
       'billing.manage', 'community.delete',
     ]
     for (const cap of forbidden) expect(communityRoleHasCapability('moderator', cap)).toBe(false)
@@ -91,6 +96,7 @@ describe('Rollen-Trennung (die harten Grenzen)', () => {
     expect(communityRoleHasCapability('admin', 'branding.manage')).toBe(true)
     expect(communityRoleHasCapability('admin', 'team.manage')).toBe(true)
     expect(communityRoleHasCapability('admin', 'courses.manage')).toBe(true)
+    expect(communityRoleHasCapability('admin', 'posts.manage')).toBe(true)
     const forbidden: Capability[] = [
       'billing.manage', 'system.manage', 'sites.manage', 'users.manage',
       'community.transfer', 'community.delete',

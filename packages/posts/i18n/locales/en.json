@@ -31,7 +31,10 @@
       "scheduledToast": "Post scheduled.",
       "scheduledHint": "It goes into the feed automatically at the time you picked — until then only you see it, under “Scheduled posts”.",
       "failed": "Could not create post.",
-      "failedHint": "Your text is still in the field. Check your connection and try again."
+      "failedHint": "Your text is still in the field. Check your connection and try again.",
+      "category": "Category",
+      "categoryNone": "No category",
+      "categoryHint": "With a category your post also shows up under Discussions."
     },
     "poll": {
       "votes": "{count} votes",
@@ -150,7 +153,105 @@
       "pollEndFuture": "The poll end must be in the future.",
       "scheduleFuture": "The date must be in the future.",
       "scheduleTooFar": "The date is too far in the future (max. 90 days).",
-      "voteInvalid": "Invalid vote."
+      "voteInvalid": "Invalid vote.",
+      "categoryNameRequired": "Name must not be empty.",
+      "categoryNameMax": "Name is too long.",
+      "categorySlugRequired": "Address must not be empty.",
+      "categorySlugMax": "Address is too long.",
+      "categorySlugFormat": "Lowercase letters, digits and hyphens only.",
+      "categorySlugReserved": "This address is reserved.",
+      "categoryDescriptionMax": "Description is too long."
+    },
+    "discussions": {
+      "title": "Discussions",
+      "description": "Topics sorted by category — started by the community.",
+      "order": {
+        "latest": "Latest",
+        "top": "Top",
+        "categories": "Categories"
+      },
+      "period": {
+        "label": "Period",
+        "all": "All time",
+        "year": "Year",
+        "quarter": "Quarter",
+        "month": "Month",
+        "week": "Week",
+        "today": "Today"
+      },
+      "col": {
+        "topic": "Topic",
+        "author": "Author",
+        "replies": "Replies",
+        "activity": "Activity",
+        "category": "Category",
+        "topics": "Topics"
+      },
+      "search": "Search topics",
+      "searchCategories": "Search categories",
+      "loadMore": "Load more",
+      "allCategories": "All categories",
+      "sidebar": {
+        "mine": "Your categories",
+        "largest": "Largest categories"
+      },
+      "emptyTitle": "No topics yet",
+      "emptyText": "As soon as someone files a post under a category, it shows up here.",
+      "emptyCategoriesTitle": "No categories yet",
+      "emptyCategoriesText": "Categories are created by the community's admins — after that everyone can start topics in them.",
+      "noResultsTitle": "No matches",
+      "noResultsText": "No topics match your search.",
+      "resetSearch": "Reset search",
+      "backToCategory": "Back to {category}",
+      "inCategory": "in {category}",
+      "topicCount": "{count} topics"
+    },
+    "categories": {
+      "title": "Categories",
+      "description": "The structure of your discussions. Members start topics in them — only you create them.",
+      "new": "New category",
+      "edit": "Edit category",
+      "name": "Name",
+      "namePlaceholder": "e.g. General",
+      "slug": "Address",
+      "slugPlaceholder": "e.g. general",
+      "slugHint": "Part of the URL: /discussions/<address>. Cannot be changed later.",
+      "slugLocked": "The address is fixed since the category was created.",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "One sentence about this category (optional)",
+      "sortOrder": "Order",
+      "sortOrderHint": "Lower numbers come first.",
+      "active": "Visible",
+      "activeHint": "Retired categories take no new topics. Existing ones stay readable.",
+      "col": {
+        "name": "Category",
+        "slug": "Address",
+        "topics": "Topics",
+        "state": "Status"
+      },
+      "stateActive": "Visible",
+      "stateInactive": "Retired",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "rowActions": "Actions for this category",
+      "created": "Category created.",
+      "updated": "Category saved.",
+      "deleted": "Category deleted.",
+      "emptyTitle": "No categories yet",
+      "emptyText": "Create the first category — after that members can start topics in it.",
+      "confirmDeleteTitle": "Delete category?",
+      "confirmDeleteText": "“{name}” will be removed. This cannot be undone.",
+      "slugTaken": "This address is already taken.",
+      "inUse": "This category already holds topics.",
+      "inUseHint": "Retire it instead of deleting it — it then takes no new topics while the existing ones stay readable.",
+      "saveFailed": "Category could not be saved.",
+      "saveFailedHint": "Your input is still in the form. Please try again.",
+      "deleteFailed": "Category could not be deleted.",
+      "deleteFailedHint": "Nothing changed. Reload the page and try again."
+    },
+    "nav": {
+      "categories": "Categories"
     }
   },
   "admin": {

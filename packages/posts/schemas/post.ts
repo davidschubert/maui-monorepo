@@ -18,6 +18,17 @@ const base = (t: TranslateFn) => ({
     .min(1, t('posts.validation.bodyRequired'))
     .max(MAX_POST_BODY, t('posts.validation.bodyMax')),
   scheduledAt: scheduledAtSchema(t),
+  /**
+   * F1 Stufe 1: Kategorie (Row-Id) oder weglassen. Additiv und optional — ein
+   * Beitrag OHNE Kategorie ist der Normalfall und bleibt es (Davids
+   * Entscheidung 2: kategorisierte Beiträge bleiben im Feed, der Feed ist der
+   * Strom über alles).
+   *
+   * Hier steht bewusst nur die FORM (Appwrite-Row-Id). Ob die Kategorie
+   * existiert, aktiv ist und diesem Mandanten gehört, prüft die Route über die
+   * Datentür — ein Zod-Schema kann nicht in die Datenbank sehen.
+   */
+  categoryId: z.string().trim().max(36).optional(),
 })
 
 export function createPostSchema(t: TranslateFn = identity) {
@@ -43,6 +54,22 @@ export function createPostEditSchema(t: TranslateFn = identity) {
     body: z.string().trim()
       .min(1, t('posts.validation.bodyRequired'))
       .max(MAX_POST_BODY, t('posts.validation.bodyMax')),
+    /**
+     * F1: Umkategorisieren durch den AUTOR.
+     *
+     * Drei Zustände, und die Unterscheidung ist der ganze Punkt:
+     * `undefined` = Feld nicht mitgeschickt ⇒ unverändert (jeder bestehende
+     * Aufrufer verhält sich damit exakt wie vorher), `''` = ausdrücklich keine
+     * Kategorie mehr (das Thema wird wieder ein reiner Feed-Beitrag), sonst
+     * die neue Kategorie.
+     *
+     * Warum das in Stufe 1 dabei ist, obwohl es nicht in der Aufgabenliste
+     * steht: das URL-Schema begründet sich mit „Umkategorisieren ist gratis,
+     * alte Links leiten um". Ohne einen Weg, ein Thema zu verschieben, wäre
+     * der Kategorie-Zweig der 301-Regel unerreichbarer Code — eine Zusage,
+     * die niemand einlösen kann.
+     */
+    categoryId: z.string().trim().max(36).optional(),
   })
 }
 

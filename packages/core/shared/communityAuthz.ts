@@ -63,6 +63,12 @@ const ADMIN: readonly Capability[] = [
   ...new Set<Capability>([
     ...EDITOR,
     ...MODERATOR,
+    // F1 (2026-08-03): die Kategorien-STRUKTUR der Discussions. Sie steht hier
+    // und nicht im EDITOR/MODERATOR, weil Davids Konzept die Struktur
+    // ausdrücklich dem Admin gibt („Mitglieder können KEINE Kategorien
+    // anlegen"). Verfassen (`posts.write`) und Moderieren (`posts.moderate`)
+    // bleiben, wo sie sind — der Rahmen ist eine dritte Aufgabe.
+    'posts.manage',
     'courses.manage',
     'activity.manage',
     'branding.manage',

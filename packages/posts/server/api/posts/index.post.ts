@@ -26,6 +26,16 @@ export default defineEventHandler(async (event) => {
   await assertPoolWriteQuota(event, { kind: 'posts', tableId: POSTS_TABLE })
 
   const body = await readValidatedBody(event, postSchema.parse)
+  /**
+   * F1: die gewählte Kategorie VOR dem Anlegen prüfen (existiert, gehört
+   * diesem Mandanten, ist aktiv). Bewusst hier und nicht im Zod-Schema — ein
+   * Schema kann nicht in die Datenbank sehen.
+   *
+   * WER HANDELT bleibt unangetastet: das Anlegen eines Themas ist INHALT. Es
+   * unterliegt weiter der Zahlungssperre (M13) und macht weiter zum Mitglied
+   * (A5) — die Kategorie ändert daran nichts, sie ist nur ein Feld mehr.
+   */
+  const categoryId = await resolveCategoryId(event, body.categoryId)
   // Datentür (member): stempelt tenantId; Session-Client wie bisher.
   const db = tenantDb(event)
 
@@ -46,6 +56,7 @@ export default defineEventHandler(async (event) => {
     upvotes: 0,
     downvotes: 0,
     score: 0,
+    categoryId,
   }, {
     // Eigene Permissions statt des Standard-Publikums: published-Posts sind
     // VERÖFFENTLICHT wie Kommentare (Community-Feed); hidden/deleted entziehen

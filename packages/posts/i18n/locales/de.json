@@ -31,7 +31,10 @@
       "scheduledToast": "Beitrag eingeplant.",
       "scheduledHint": "Er erscheint automatisch zum gewählten Termin im Feed — bis dahin siehst nur du ihn, unter „Geplante Beiträge“.",
       "failed": "Beitrag konnte nicht erstellt werden.",
-      "failedHint": "Dein Text steht noch im Feld. Prüf die Verbindung und versuch es noch einmal."
+      "failedHint": "Dein Text steht noch im Feld. Prüf die Verbindung und versuch es noch einmal.",
+      "category": "Kategorie",
+      "categoryNone": "Keine Kategorie",
+      "categoryHint": "Mit Kategorie erscheint dein Beitrag zusätzlich unter Diskussionen."
     },
     "poll": {
       "votes": "{count} Stimmen",
@@ -150,7 +153,105 @@
       "pollEndFuture": "Das Umfrage-Ende muss in der Zukunft liegen.",
       "scheduleFuture": "Der Termin muss in der Zukunft liegen.",
       "scheduleTooFar": "Der Termin liegt zu weit in der Zukunft (max. 90 Tage).",
-      "voteInvalid": "Ungültiger Vote."
+      "voteInvalid": "Ungültiger Vote.",
+      "categoryNameRequired": "Name darf nicht leer sein.",
+      "categoryNameMax": "Name ist zu lang.",
+      "categorySlugRequired": "Adresse darf nicht leer sein.",
+      "categorySlugMax": "Adresse ist zu lang.",
+      "categorySlugFormat": "Nur Kleinbuchstaben, Ziffern und Bindestriche.",
+      "categorySlugReserved": "Diese Adresse ist reserviert.",
+      "categoryDescriptionMax": "Beschreibung ist zu lang."
+    },
+    "discussions": {
+      "title": "Diskussionen",
+      "description": "Themen nach Kategorien geordnet — eröffnet von der Community.",
+      "order": {
+        "latest": "Neueste",
+        "top": "Top",
+        "categories": "Kategorien"
+      },
+      "period": {
+        "label": "Zeitraum",
+        "all": "Gesamt",
+        "year": "Jahr",
+        "quarter": "Quartal",
+        "month": "Monat",
+        "week": "Woche",
+        "today": "Heute"
+      },
+      "col": {
+        "topic": "Thema",
+        "author": "Autor",
+        "replies": "Antworten",
+        "activity": "Aktivität",
+        "category": "Kategorie",
+        "topics": "Themen"
+      },
+      "search": "Themen durchsuchen",
+      "searchCategories": "Kategorien durchsuchen",
+      "loadMore": "Mehr laden",
+      "allCategories": "Alle Kategorien",
+      "sidebar": {
+        "mine": "Deine Kategorien",
+        "largest": "Größte Kategorien"
+      },
+      "emptyTitle": "Noch keine Themen",
+      "emptyText": "Sobald jemand einen Beitrag einer Kategorie zuordnet, steht er hier.",
+      "emptyCategoriesTitle": "Noch keine Kategorien",
+      "emptyCategoriesText": "Kategorien legt die Verwaltung der Community an — danach können alle Themen darin eröffnen.",
+      "noResultsTitle": "Keine Treffer",
+      "noResultsText": "Keine Themen passen zu deiner Suche.",
+      "resetSearch": "Suche zurücksetzen",
+      "backToCategory": "Zurück zu {category}",
+      "inCategory": "in {category}",
+      "topicCount": "{count} Themen"
+    },
+    "categories": {
+      "title": "Kategorien",
+      "description": "Die Struktur der Diskussionen. Mitglieder eröffnen Themen darin — anlegen kannst nur du.",
+      "new": "Kategorie anlegen",
+      "edit": "Kategorie bearbeiten",
+      "name": "Name",
+      "namePlaceholder": "z. B. Allgemein",
+      "slug": "Adresse",
+      "slugPlaceholder": "z. B. allgemein",
+      "slugHint": "Teil der URL: /discussions/<adresse>. Später nicht mehr änderbar.",
+      "slugLocked": "Die Adresse steht fest, seit die Kategorie angelegt wurde.",
+      "descriptionLabel": "Beschreibung",
+      "descriptionPlaceholder": "Ein Satz, worum es hier geht (optional)",
+      "sortOrder": "Reihenfolge",
+      "sortOrderHint": "Kleinere Zahl steht weiter oben.",
+      "active": "Sichtbar",
+      "activeHint": "Stillgelegte Kategorien nehmen keine neuen Themen mehr auf. Bestehende bleiben lesbar.",
+      "col": {
+        "name": "Kategorie",
+        "slug": "Adresse",
+        "topics": "Themen",
+        "state": "Status"
+      },
+      "stateActive": "Sichtbar",
+      "stateInactive": "Stillgelegt",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "delete": "Löschen",
+      "rowActions": "Aktionen für diese Kategorie",
+      "created": "Kategorie angelegt.",
+      "updated": "Kategorie gespeichert.",
+      "deleted": "Kategorie gelöscht.",
+      "emptyTitle": "Noch keine Kategorien",
+      "emptyText": "Leg die erste Kategorie an — danach können Mitglieder Themen darin eröffnen.",
+      "confirmDeleteTitle": "Kategorie löschen?",
+      "confirmDeleteText": "„{name}“ wird entfernt. Das lässt sich nicht rückgängig machen.",
+      "slugTaken": "Diese Adresse ist schon vergeben.",
+      "inUse": "In dieser Kategorie liegen bereits Themen.",
+      "inUseHint": "Leg sie still, statt sie zu löschen — dann nimmt sie keine neuen Themen mehr auf und die vorhandenen bleiben lesbar.",
+      "saveFailed": "Kategorie konnte nicht gespeichert werden.",
+      "saveFailedHint": "Deine Eingaben stehen noch im Formular. Versuch es noch einmal.",
+      "deleteFailed": "Kategorie konnte nicht gelöscht werden.",
+      "deleteFailedHint": "An der Kategorie hat sich nichts geändert. Lade die Seite neu und versuch es noch einmal."
+    },
+    "nav": {
+      "categories": "Kategorien"
     }
   },
   "admin": {

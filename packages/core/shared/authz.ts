@@ -31,6 +31,9 @@ export const ALL_CAPABILITIES: readonly Capability[] = [
   // G1 — Community-Caps (communityAuthz.ts). Im Wildcard, damit der Operator-
   // Admin sie ebenfalls hält; die Rollen-Verteilung lebt in communityAuthz.ts.
   'posts.write',
+  // F1: Kategorien der Discussions — im Wildcard wie jede andere Community-Cap,
+  // damit der Betreiber-Admin sie im Silo ebenfalls hält.
+  'posts.manage',
   'branding.manage',
   'team.manage',
   'community.billing',

@@ -3,6 +3,8 @@ import type { Models } from 'node-appwrite'
 export const POSTS_TABLE = 'community_posts'
 export const POLL_VOTES_TABLE = 'poll_votes'
 export const POST_VOTES_TABLE = 'post_votes'
+/** F1 Stufe 1: die vom Admin gepflegte Kategorien-Struktur der Discussions. */
+export const POST_CATEGORIES_TABLE = 'post_categories'
 
 export const POST_TYPES = ['post', 'poll', 'question'] as const
 export type PostType = (typeof POST_TYPES)[number]
@@ -14,6 +16,10 @@ export const MAX_POLL_OPTIONS = 6
 export const MAX_POLL_OPTION_LENGTH = 100
 export const MAX_POST_BODY = 10_000
 export const MAX_POST_TITLE = 200
+
+export const MAX_CATEGORY_NAME = 80
+export const MAX_CATEGORY_SLUG = 64
+export const MAX_CATEGORY_DESCRIPTION = 500
 
 export interface CommunityPost extends Models.Row {
   type: PostType
@@ -33,6 +39,38 @@ export interface CommunityPost extends Models.Row {
   upvotes: number
   downvotes: number
   score: number
+  /**
+   * F1 Stufe 1: Row-Id der Kategorie ODER '' (keine).
+   *
+   * BEWUSST NICHT optional getippt, obwohl die Spalte additiv und leer-fähig
+   * ist: `tenantDb().create<CommunityPost>` verlangt alle Nicht-`Models.Row`-
+   * Felder VOLLSTÄNDIG (RowDataCreate). Ein `?` hier hätte bedeutet, dass jede
+   * künftige Anlegestelle die Kategorie stillschweigend weglassen kann —
+   * derselbe Grund, aus dem `createRow<TenantRow>` im Control Plane alle
+   * Spalten erzwingt.
+   *
+   * '' statt null: die Spalte ist ein Varchar mit Default '' (Bestandszeilen
+   * tragen genau das), und ein zweiter „leer"-Wert daneben wäre eine
+   * Fallunterscheidung, die niemand gewinnt.
+   */
+  categoryId: string
+}
+
+/**
+ * Eine Discussions-Kategorie. Struktur ist ADMIN-Sache (Davids Vorgabe,
+ * Konzept Teil 1) — Mitglieder eröffnen Topics darin, legen aber keine
+ * Kategorien an.
+ */
+export interface PostCategory extends Models.Row {
+  name: string
+  /** URL-Segment. NACH DER ANLAGE FEST — die Kategorie-SEITE
+   *  (/discussions/<slug>) ist der eine Link, der sich nicht über eine Id
+   *  selbst heilen kann (pages-Muster „Später nicht änderbar"). */
+  slug: string
+  description: string
+  sortOrder: number
+  /** false = aus der öffentlichen Auswahl genommen, Bestand bleibt lesbar. */
+  active: boolean
 }
 
 export type PostVoteValue = 1 | -1
@@ -111,4 +149,76 @@ export interface PostModerationResponse {
  */
 export interface PostMineResponse {
   rows: CommunityPost[]
+}
+
+/**
+ * EINE Zeile der Topics-Tabelle (F1 Stufe 1).
+ *
+ * BEWUSST NICHT `FeedPost`: die Übersicht zeigt Titel, Kategorie, Autor,
+ * Stimmen und Zeit — der `body` (bis 10.000 Zeichen) hat dort nichts verloren,
+ * und Umfrage-Zustände kosten pro Zeile mehrere Count-Abfragen. Die Detailseite
+ * holt sich den vollen Beitrag.
+ */
+export interface DiscussionTopic {
+  $id: string
+  title: string
+  /** Abgeleiteter Slug — der Client baut damit den kanonischen Link, ohne die
+   *  Ableitungsregel ein zweites Mal zu kennen. */
+  slug: string
+  /** Kanonischer Pfad OHNE Locale-Prefix (localePath() setzt ihn). */
+  path: string
+  authorId: string
+  authorName: string
+  authorAvatarUrl?: string
+  categoryId: string
+  categoryName: string
+  categorySlug: string
+  score: number
+  publishedAt: string | null
+  /**
+   * Spalte „Activity". QUELLE: `$updatedAt` der Beitrags-Zeile — sie bewegt
+   * sich beim Bearbeiten UND bei jeder Stimme (score.post.ts schreibt die
+   * Zähler auf die Zeile).
+   *
+   * WAS SIE IN STUFE 1 NICHT ENTHÄLT: neue ANTWORTEN. Die liegen im
+   * comments-Layer, und `posts` darf ihn nicht kennen (A14 — Produkt-Layer
+   * kennen einander nicht). Ehrlich wäre erst eine denormalisierte Spalte
+   * `lastActivityAt`, die der comments-Layer über einen Core-Vertrag anstößt —
+   * das ist neue Infrastruktur und damit Stufe 2.
+   */
+  lastActivityAt: string
+}
+
+export interface DiscussionListResponse {
+  rows: DiscussionTopic[]
+  nextCursor: string | null
+}
+
+/** Detailansicht: der volle Beitrag plus seine Kategorie (für Kopfzeile/Canonical). */
+export interface DiscussionTopicResponse {
+  post: FeedPost
+  category: PostCategory
+  /** Kanonischer Pfad — der Server rechnet ihn, der Client vergleicht nur. */
+  path: string
+  slug: string
+}
+
+/** Kategorie samt Anzahl ihrer Topics (Kategorien-Ansicht + Dashboard). */
+export interface CategoryWithCount {
+  category: PostCategory
+  topicCount: number
+}
+
+export interface CategoryListResponse {
+  rows: CategoryWithCount[]
+}
+
+/**
+ * Seitenleiste (Davids Entscheidung 7): meine letzten Kategorien, sonst die
+ * größten. `source` sagt der Oberfläche, welche Überschrift stimmt — ein
+ * „Deine Kategorien" über den fünf größten wäre eine Lüge.
+ */
+export interface DiscussionSidebarResponse {
+  rows: PostCategory[]
+  source: 'mine' | 'largest'
 }

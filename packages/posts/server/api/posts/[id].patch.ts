@@ -72,9 +72,20 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  /**
+   * F1: Umkategorisieren. Feld NICHT mitgeschickt ⇒ Kategorie bleibt, wie sie
+   * ist — sonst würde jeder Alt-Aufrufer (der nur Titel und Text kennt) beim
+   * Speichern still die Kategorie leeren. Mitgeschicktes '' ist dagegen die
+   * ausdrückliche Ansage „zurück in den Feed".
+   */
+  const categoryChange = input.categoryId === undefined
+    ? {}
+    : { categoryId: await resolveCategoryId(event, input.categoryId) }
+
   const updated = await db.update<CommunityPost>(POSTS_TABLE, id, {
     title: input.title || null,
     body: input.body,
+    ...categoryChange,
   }).catch((error) => { throw toH3Error(error, 'Could not update post') })
 
   return updated
