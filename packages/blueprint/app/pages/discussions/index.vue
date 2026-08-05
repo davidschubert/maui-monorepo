@@ -12,6 +12,11 @@
  * — es ist eine SORTIERUNG derselben Liste, so steht es im Konzept, und ein
  * eigener Pfad hätte den sechsten Seitenleisten-Link zu einem Ortswechsel
  * gemacht statt zu einer Umschaltung.
+ *
+ * „THEMA ERÖFFNEN" STEHT IN DER KOPFZEILE, nicht in der Themen-Tabelle
+ * (2026-08-04): so gilt er für BEIDE Ansichten dieser Seite — auch wer über
+ * die Kategorien-Liste hereinkommt, kann eröffnen. Aktionen einer Seite sitzen
+ * oben rechts, wie überall sonst (C17).
  */
 const { t } = useI18n()
 const route = useRoute()
@@ -25,8 +30,13 @@ const { replyCounts, loadCounts } = useDiscussionReplyCounts()
 
 <template>
   <UContainer class="max-w-5xl py-8">
-    <h1 class="text-2xl font-bold">{{ t('posts.discussions.title') }}</h1>
-    <p class="mt-1 text-sm text-muted">{{ t('posts.discussions.description') }}</p>
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div class="min-w-0">
+        <h1 class="text-2xl font-bold">{{ t('posts.discussions.title') }}</h1>
+        <p class="mt-1 text-sm text-muted">{{ t('posts.discussions.description') }}</p>
+      </div>
+      <DiscussionNewTopic />
+    </div>
 
     <div class="mt-6 flex flex-col gap-6 md:flex-row">
       <!-- Seitenleiste zuerst im Markup, aber rechts daneben: sie ist

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
+import { DISCUSSION_TOPICS_KEY } from '../../shared/discussionDataKeys'
 import { activeTopicFilterCount, parseTopicFilters, type TopicFilters } from '../../shared/discussionFilters'
 import { TOP_PERIODS, isTopPeriod, isTopicOrder, type TopPeriod } from '../../shared/discussionSort'
 import type { DiscussionListResponse, DiscussionTopic } from '../../shared/types/post'
@@ -129,7 +130,16 @@ const requestQuery = computed(() => {
   }
 })
 
+/**
+ * FESTER SCHLÜSSEL statt des automatischen: der Eröffnen-Knopf steht in der
+ * Seiten-Kopfzeile und ist ein GESCHWISTER dieser Liste, kein Elternteil — er
+ * frischt sie nach dem Eröffnen über `refreshNuxtData(DISCUSSION_TOPICS_KEY)`
+ * auf. Der automatische Schlüssel hängt an der Aufrufstelle und wäre von dort
+ * aus nicht benennbar. Es gibt genau EINE Liste je Seite, also kollidiert
+ * nichts.
+ */
 const { data, status } = await useFetch<DiscussionListResponse>('/api/posts/discussions', {
+  key: DISCUSSION_TOPICS_KEY,
   query: requestQuery,
 })
 

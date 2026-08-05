@@ -5,7 +5,27 @@ import { MAX_POLL_OPTIONS, type CategoryListResponse, type FeedPost, type PostTy
  * Composer für Beitrag/Umfrage/Frage — inkl. optionalem Planen-Termin
  * (scheduledAt → Warteschlange statt Sofort-Publish, Plan P4) und seit F1 der
  * optionalen Kategorie (Discussions).
+ *
+ * ZWEI EINSTIEGE, EIN COMPOSER (2026-08-04, Davids Regel „Feed und Discussions
+ * sind unabhängige Produkte"): derselbe Composer hängt im Feed und hinter dem
+ * Knopf „Thema eröffnen" der Discussions-Seiten (DiscussionNewTopic).
+ * Geteilt wird der MECHANISMUS — ein Schreibweg, ein Datenmodell, eine
+ * Rechteprüfung —, nicht der Einstieg. Ein zweiter Schreibweg für dasselbe
+ * wäre die nächste Stelle, an der zwei fast gleiche Dinge auseinanderdriften.
+ *
+ * `mode` ist der EINZIGE Unterschied, und er ist keine Optik-Variante: unter
+ * Discussions ist die Kategorie PFLICHT, weil ein Beitrag ohne Kategorie dort
+ * gar nicht erscheint (siehe discussions/index.get.ts). Ein Formular, das etwas
+ * abschicken lässt, was danach unauffindbar ist, wäre die schlechtere Antwort
+ * als ein deaktivierter Knopf.
  */
+const props = withDefaults(defineProps<{
+  /** 'feed' = Kategorie optional · 'topic' = Kategorie Pflicht (Discussions). */
+  mode?: 'feed' | 'topic'
+  /** Vorbelegte Kategorie (Row-Id) — kommt aus der Kategorie-Ansicht. */
+  presetCategoryId?: string
+}>(), { mode: 'feed', presetCategoryId: '' })
+
 const emit = defineEmits<{ created: [post: FeedPost, scheduled: boolean] }>()
 
 const { t } = useI18n()
@@ -31,7 +51,13 @@ const busy = ref(false)
  * kollidieren, die sind 20 Zeichen lang.
  */
 const NO_CATEGORY = '__none__'
-const categoryId = ref(NO_CATEGORY)
+const categoryId = ref(props.presetCategoryId || NO_CATEGORY)
+// Die Kategorie-Ansicht wechselt, während der Composer schon existiert (er
+// hängt in einem Modal, das beim Schließen NICHT ausgehängt wird — Reka-Falle).
+// Ohne diesen Wächter stünde beim nächsten Öffnen die Kategorie von vorhin.
+watch(() => props.presetCategoryId, (value) => {
+  categoryId.value = value || NO_CATEGORY
+})
 // BEWUSST OHNE `await`: der Composer soll kein async-setup bekommen. Er hängt
 // im Feed hinter einem `v-if="isLoggedIn"`, und eine Komponente, die nach der
 // Hydration erst noch suspendieren muss, erscheint sichtbar verzögert.
@@ -40,7 +66,8 @@ const { data: categoryData } = useFetch<CategoryListResponse>('/api/posts/catego
   server: false,
 })
 const categoryItems = computed(() => [
-  { value: NO_CATEGORY, label: t('posts.composer.categoryNone') },
+  // Unter Discussions gibt es „keine Kategorie" nicht — siehe Kopf.
+  ...(props.mode === 'topic' ? [] : [{ value: NO_CATEGORY, label: t('posts.composer.categoryNone') }]),
   ...(categoryData.value?.rows ?? []).map(entry => ({
     value: entry.category.$id,
     label: entry.category.name,
@@ -49,6 +76,19 @@ const categoryItems = computed(() => [
 // Ohne angelegte Kategorien gibt es nichts zu wählen — dann bleibt der
 // Composer so schlicht, wie er vor F1 war.
 const hasCategories = computed(() => (categoryData.value?.rows.length ?? 0) > 0)
+/** Fehlt im Topic-Modus die Kategorie, bleibt der Knopf zu (Begründung im Kopf). */
+const categoryMissing = computed(() => props.mode === 'topic' && categoryId.value === NO_CATEGORY)
+
+/**
+ * Der Platzhalter-Schlüssel darf im Topic-Modus nicht ins Feld durchschlagen:
+ * dort steht er in KEINEM Eintrag der Liste, und ein `USelect` zeigt einen
+ * unbekannten Wert roh an — im Feld stand wörtlich `__none__` (live gesehen).
+ * Nach außen wird er deshalb zu `undefined`, und der Platzhalter greift.
+ */
+const categorySelection = computed<string | undefined>({
+  get: () => (categoryMissing.value ? undefined : categoryId.value),
+  set: (value) => { categoryId.value = value ?? NO_CATEGORY },
+})
 
 const typeItems = computed(() => ([
   { value: 'post' as const, label: t('posts.composer.typePost'), icon: 'i-ph-note-pencil' },
@@ -71,7 +111,7 @@ function toIso(value: string): string | undefined {
 }
 
 async function submit() {
-  if (busy.value || !body.value.trim()) return
+  if (busy.value || !body.value.trim() || categoryMissing.value) return
   busy.value = true
   try {
     const payload: Record<string, unknown> = {
@@ -90,7 +130,9 @@ async function submit() {
     // Nur der GEPLANTE Beitrag braucht eine Erklärung: er erscheint nicht im
     // Feed, der veröffentlichte steht direkt darunter und erklärt sich selbst.
     toast.add({
-      title: scheduled ? t('posts.composer.scheduledToast') : t('posts.composer.publishedToast'),
+      title: scheduled
+        ? t('posts.composer.scheduledToast')
+        : t(props.mode === 'topic' ? 'posts.composer.topicToast' : 'posts.composer.publishedToast'),
       description: scheduled ? t('posts.composer.scheduledHint') : undefined,
       color: 'success',
     })
@@ -101,7 +143,10 @@ async function submit() {
     pollEndsAt.value = ''
     scheduledAt.value = ''
     showSchedule.value = false
-    categoryId.value = NO_CATEGORY
+    // Zurück auf die VORBELEGUNG, nicht auf „keine": wer aus einer Kategorie
+    // heraus eröffnet, eröffnet das nächste Thema mit hoher Wahrscheinlichkeit
+    // wieder dort.
+    categoryId.value = props.presetCategoryId || NO_CATEGORY
   }
   catch {
     toast.add({ title: t('posts.composer.failed'), description: t('posts.composer.failedHint'), color: 'error' })
@@ -114,8 +159,16 @@ async function submit() {
 
 <template>
   <!-- Bewusst vom Feed abgesetzt: Primärton + kräftigerer Ring — der
-       Composer ist die Bühne, die Karten darunter der Strom -->
-  <UCard data-post-composer :ui="{ root: 'bg-primary/5 ring-2 ring-primary/20' }">
+       Composer ist die Bühne, die Karten darunter der Strom. Im Modal
+       (Discussions) fällt genau das weg: dort ist er nicht die Bühne AUF einer
+       Seite, sondern der ganze Inhalt eines Fensters — ein zweiter Rahmen im
+       Rahmen wäre nur Kastenwerk. -->
+  <UCard
+    data-post-composer
+    :ui="props.mode === 'topic'
+      ? { root: 'bg-transparent ring-0 shadow-none', body: 'p-0 sm:p-0' }
+      : { root: 'bg-primary/5 ring-2 ring-primary/20' }"
+  >
     <div class="space-y-3">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <UTabs
@@ -192,8 +245,16 @@ async function submit() {
 
       <div v-if="hasCategories" class="flex flex-wrap items-center gap-2 text-sm text-muted" data-composer-category>
         <span>{{ t('posts.composer.category') }}</span>
-        <USelect v-model="categoryId" :items="categoryItems" size="xs" class="min-w-40" />
-        <span class="text-xs text-dimmed">{{ t('posts.composer.categoryHint') }}</span>
+        <USelect
+          v-model="categorySelection"
+          :items="categoryItems"
+          :placeholder="t('posts.composer.categoryChoose')"
+          size="xs"
+          class="min-w-40"
+        />
+        <span class="text-xs text-dimmed">
+          {{ props.mode === 'topic' ? t('posts.composer.categoryTopicHint') : t('posts.composer.categoryHint') }}
+        </span>
       </div>
 
       <div v-if="showSchedule" class="flex items-center gap-2 text-sm text-muted" data-composer-schedule>
@@ -203,8 +264,15 @@ async function submit() {
       </div>
 
       <div class="flex justify-end">
-        <UButton :loading="busy" :disabled="!body.trim()" data-composer-submit @click="submit">
-          {{ showSchedule && scheduledAt ? t('posts.composer.submitScheduled') : t('posts.composer.submit') }}
+        <UButton
+          :loading="busy"
+          :disabled="!body.trim() || categoryMissing"
+          data-composer-submit
+          @click="submit"
+        >
+          {{ showSchedule && scheduledAt
+            ? t('posts.composer.submitScheduled')
+            : t(props.mode === 'topic' ? 'posts.composer.submitTopic' : 'posts.composer.submit') }}
         </UButton>
       </div>
     </div>

@@ -34,7 +34,11 @@
       "failedHint": "Your text is still in the field. Check your connection and try again.",
       "category": "Category",
       "categoryNone": "No category",
-      "categoryHint": "With a category your post also shows up under Discussions."
+      "categoryChoose": "Choose a category",
+      "categoryHint": "With a category your post also shows up under Discussions.",
+      "categoryTopicHint": "Your topic will appear in this category.",
+      "submitTopic": "Start topic",
+      "topicToast": "Topic started."
     },
     "poll": {
       "votes": "{count} votes",
@@ -165,6 +169,7 @@
     "discussions": {
       "title": "Discussions",
       "description": "Topics sorted by category — started by the community.",
+      "newTopic": "Start topic",
       "order": {
         "latest": "Latest",
         "top": "Top",
