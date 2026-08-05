@@ -181,6 +181,25 @@
       "title": "Profil",
       "description": "Aktualisiere deinen Namen und dein Profil."
     },
+    "handle": {
+      "title": "Dein Name für Erwähnungen",
+      "description": "So können dich andere in Beiträgen erwähnen. Er ist innerhalb dieser Community eindeutig.",
+      "label": "Kurzname",
+      "hint": "{min}–{max} Zeichen: Kleinbuchstaben, Ziffern und Unterstriche.",
+      "save": "Namen speichern",
+      "saved": "Name gespeichert.",
+      "saveFailed": "Name konnte nicht gespeichert werden",
+      "lockedUntil": "Du kannst deinen Namen alle {days} Tage ändern — das nächste Mal am {date}.",
+      "errors": {
+        "too_short": "Zu kurz.",
+        "too_long": "Zu lang.",
+        "charset": "Erlaubt sind nur Kleinbuchstaben, Ziffern und Unterstriche — nicht am Anfang oder Ende.",
+        "reserved": "Dieser Name ist reserviert.",
+        "taken": "Dieser Name ist in dieser Community schon vergeben.",
+        "change_too_soon": "Du hast deinen Namen erst vor Kurzem geändert.",
+        "generic": "Das hat nicht geklappt."
+      }
+    },
     "sessions": {
       "title": "Sitzungen",
       "description": "Geräte und Browser, die aktuell in deinem Account angemeldet sind.",

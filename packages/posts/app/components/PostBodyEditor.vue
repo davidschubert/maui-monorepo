@@ -56,11 +56,42 @@ import { POST_EMOJI_ITEMS } from '../utils/emojiMenuItems'
  * eine neue Erweiterung mit, ist sie damit still AUS statt still AN — die
  * richtige Richtung für einen Editor, der ein Subset bedienen soll.
  *
- * ── WAS BEWUSST FEHLT ──────────────────────────────────────────────────────
- * `UEditorMentionMenu`: gemessen erzeugt es `[@ id="u1" label="Anna"]` — eine
- * eigene Klammer-Syntax, die unser Parser roh durchreicht. Erwähnungen sind
- * ein eigenes Paket (Handle, Nutzer-Id, Benachrichtigungstext, Linkziel);
- * Details in docs/plans/COMPOSER-UEDITOR.md.
+ * ── ERWÄHNUNGEN GEHEN — GETIPPT (seit 2026-08-04) ──────────────────────────
+ * `@handle` ist in diesem Produkt GEWÖHNLICHER TEXT (core/shared/mentions.ts).
+ * Wer hier `@david` tippt, speichert genau `@david`: `@` steht in KEINER der
+ * beiden hartkodierten Listen von `@tiptap/markdown` (maskiert werden
+ * `\ ` * _ [ ] ~`, kodiert werden `< > &`), und der Rundlauf
+ * parse → serialize ist zeichengleich (nachgemessen). Die Auflösung,
+ * die Hervorhebung und die Benachrichtigung hängen daran und funktionieren
+ * ohne jede Editor-Erweiterung.
+ *
+ * ── WAS BEWUSST FEHLT: `UEditorMentionMenu` ────────────────────────────────
+ * Das Menü fügt einen mention-KNOTEN ein, und der serialisiert von Haus aus zu
+ * `[@ id="u1" label="Anna"]` — die Klammer-Syntax, die unser Parser roh
+ * durchreicht. Das war der dokumentierte Blocker.
+ *
+ * DER BLOCKER IST LÖSBAR, und zwar gemessen (2026-08-04, DOM-frei über
+ * `MarkdownManager.serialize`): die Maskierung sitzt AUSSCHLIESSLICH im Zweig
+ * `node.type === 'text'` von `renderNodeToMarkdown`. Jeder andere Knoten geht
+ * über `handler.renderMarkdown(node, …)`, und dessen Rückgabe wird WÖRTLICH
+ * übernommen — auch in `renderNodesWithMarkBoundaries`. Damit liefert
+ *
+ *     Mention.extend({ renderMarkdown: node => `@${node.attrs.id}` })
+ *
+ * exakt `Hallo @davidschubert willkommen` statt der Klammer-Syntax; der
+ * Rundlauf durch `parse → serialize` ist danach stabil.
+ *
+ * NICHT EINGESCHALTET, und der Grund ist nicht der Editor: das Menü braucht
+ * `:mention="false"` plus die eigene Erweiterung über `:extensions`, also
+ * `@tiptap/extension-mention` als DIREKTE Abhängigkeit. Der Versuch hat den
+ * Lockfile um 1898 Zeilen bewegt (+334/−1564) — weit mehr, als eine
+ * hinzugefügte Abhängigkeit rechtfertigt, und CLAUDE.md sagt für genau diesen
+ * Fall: „steht dort viel mehr als erwartet, gehört es nicht so in den Commit."
+ * Das ist ein eigener Schnitt (Abhängigkeit + Katalog-Eintrag +
+ * `@tiptap/core` in check-single-copy.mjs), kein Nebenbei.
+ * Solange es fehlt, kostet es die Bequemlichkeit der Namensvervollständigung —
+ * nicht die Erwähnung selbst. Der Zuträger dafür steht schon:
+ * `GET /api/handles/search`.
  */
 const props = withDefaults(defineProps<{
   placeholder?: string

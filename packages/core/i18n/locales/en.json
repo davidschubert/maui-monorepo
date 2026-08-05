@@ -181,6 +181,25 @@
       "title": "Profile",
       "description": "Update your name and profile."
     },
+    "handle": {
+      "title": "Your name for mentions",
+      "description": "This is how others can mention you in posts. It is unique within this community.",
+      "label": "Handle",
+      "hint": "{min}–{max} characters: lowercase letters, digits and underscores.",
+      "save": "Save name",
+      "saved": "Name saved.",
+      "saveFailed": "Could not save name",
+      "lockedUntil": "You can change your name every {days} days — next time on {date}.",
+      "errors": {
+        "too_short": "Too short.",
+        "too_long": "Too long.",
+        "charset": "Only lowercase letters, digits and underscores are allowed — not at the start or end.",
+        "reserved": "This name is reserved.",
+        "taken": "This name is already taken in this community.",
+        "change_too_soon": "You changed your name recently.",
+        "generic": "That did not work."
+      }
+    },
     "sessions": {
       "title": "Sessions",
       "description": "Devices and browsers currently signed in to your account.",

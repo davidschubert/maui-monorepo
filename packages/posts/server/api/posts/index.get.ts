@@ -33,11 +33,15 @@ export default defineEventHandler(async (event): Promise<PostListResponse> => {
     postVotesFor(event, res.rows, userId),
   ])
 
+  // Erwähnungen: EINE Abfrage für die ganze Seite (nie eine je Beitrag).
+  const mentions = await mentionsForPosts(event, res.rows)
+
   const rows: FeedPost[] = res.rows.map(row => ({
     ...row,
     authorAvatarUrl: avatars.get(row.authorId),
     poll: pollStates.get(row.$id),
     myPostVote: postVotes.get(row.$id) ?? null,
+    mentions: mentions.get(row.$id),
   }))
 
   return {

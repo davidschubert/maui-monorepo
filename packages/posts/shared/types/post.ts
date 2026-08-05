@@ -219,6 +219,12 @@ export interface FeedPost extends CommunityPost {
   poll?: PollState
   /** eigener Up-/Downvote auf den Post (nicht die Poll-Stimme) */
   myPostVote?: PostVoteValue | null
+  /**
+   * Die im Text genannten @handles, die es in dieser Community WIRKLICH gibt
+   * (klein). Nur diese hebt `MarkdownContent` hervor — was hier fehlt, bleibt
+   * gewöhnlicher Text. Vom Server aufgelöst, gebündelt für die ganze Seite.
+   */
+  mentions?: string[]
 }
 
 export interface PostListResponse {

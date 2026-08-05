@@ -301,6 +301,7 @@ const showTooltip = computed(() => (props.replyCount ?? 0) > 0)
       <ContentClamp v-else :lines="6" :text="post.body">
         <MarkdownContent
           :source="post.body"
+          :mentions="post.mentions"
           class="text-default"
           :class="post.type === 'question' && !post.title ? 'text-lg font-medium' : 'text-sm'"
         />

@@ -2,6 +2,7 @@
 import { h, resolveComponent, type VNodeChild } from 'vue'
 import { parseMarkdown, type BlockNode, type InlineNode } from '../../shared/markdown'
 import { classifyContentLink } from '../../shared/contentLinks'
+import { splitMentions } from '../../shared/mentions'
 
 /**
  * Rendert user-generiertes Markdown (Subset-AST aus shared/markdown.ts)
@@ -18,7 +19,24 @@ import { classifyContentLink } from '../../shared/contentLinks'
  * noopener/noreferrer/nofollow — die Sicherheits-Schranke (isSafeHref im
  * Parser) ist unverändert.
  */
-const props = defineProps<{ source: string }>()
+/**
+ * ERWÄHNUNGEN (@handle, seit 2026-08-04) — `mentions` ist die Menge der
+ * Handles, die es in DIESER Community wirklich gibt (Vergleichsform, klein).
+ *
+ * KEIN LINK, sondern nur eine Hervorhebung: öffentliche Profilseiten gibt es
+ * nicht, ein Link liefe also ins Leere. Sobald es sie gibt, wird aus dem
+ * `<span>` hier ein `NuxtLink` — die Stelle ist genau eine.
+ *
+ * WEGGELASSEN heisst KEINE Hervorhebung, nicht „alles hervorheben". Damit
+ * ändert sich für die sieben bestehenden Aufrufer dieser Komponente nichts,
+ * und ein Tippfehler-`@nmae` sieht nie so aus, als führte er zu einem
+ * Menschen. Die Sicherheitsgrenze bleibt unangetastet: auch ein
+ * Erwähnungs-Stück ist ein vnode-TEXTknoten, es gibt weiterhin keinen
+ * v-html-Pfad.
+ */
+const props = defineProps<{ source: string, mentions?: string[] }>()
+
+const knownMentions = computed(() => (props.mentions?.length ? new Set(props.mentions) : undefined))
 
 const { locales } = useI18n()
 const localePath = useLocalePath()
@@ -54,9 +72,18 @@ function renderInline(nodes: InlineNode[]): VNodeChild[] {
       case 'em': return h('em', renderInline(node.children))
       case 'code': return h('code', { class: 'rounded bg-elevated px-1 py-0.5 text-[0.85em]' }, node.text)
       case 'link': return renderLink(node)
-      default: return node.text
+      default: return renderText(node.text)
     }
   })
+}
+
+/** Ein Text-Blatt: gewöhnlicher Text, mit hervorgehobenen Erwähnungen darin. */
+function renderText(text: string): VNodeChild {
+  const segments = splitMentions(text, knownMentions.value)
+  if (segments.length === 1) return text
+  return segments.map(segment => segment.type === 'mention'
+    ? h('span', { class: 'font-medium text-primary', 'data-mention': segment.handle }, segment.text)
+    : segment.text)
 }
 
 function renderBlock(block: BlockNode): VNodeChild {
