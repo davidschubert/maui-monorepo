@@ -14,9 +14,12 @@
  * möglich WÄRE) steht im Kopf der Migration posts-011.
  *
  * ── WER DARF WAS ───────────────────────────────────────────────────────────
- * Anheften und Schließen sind MODERATION: sie ordnen den Raum für alle und
- * gehören deshalb an `posts.moderate`. „Gelöst" ist etwas anderes — es ist die
- * Antwort auf eine Frage, und die Frage gehört dem, der sie gestellt hat.
+ * Anheften und Schließen ordnen den Raum für alle und gehören deshalb an
+ * `posts.arrange` (bis F1 Teilpaket 3 war das `posts.moderate` — abgespalten,
+ * damit die von Hand ernannte Vertrauensstufe 4 die drei Zustände bekommen
+ * kann, OHNE Melde-Queue und Ausblenden mitzuerben). „Gelöst" ist etwas
+ * anderes — es ist die Antwort auf eine Frage, und die Frage gehört dem, der
+ * sie gestellt hat.
  * Deshalb darf sie AUCH der Themen-Autor setzen (Davids Vorgabe: „das ist die
  * Frage-Sicht"). Ein Moderator darf es ebenfalls, sonst bliebe ein Thema für
  * immer ungelöst, dessen Autor die Community verlassen hat.
@@ -39,8 +42,16 @@ export function isTopicStateField(value: unknown): value is TopicStateField {
 export interface TopicStateActor {
   /** Row-Id des Handelnden; '' = nicht angemeldet. */
   userId: string
-  /** Hat er `posts.moderate` in DIESER Community? */
-  canModerate: boolean
+  /**
+   * Hat er `posts.arrange` in DIESER Community? (Moderator, Admin, Owner —
+   * und seit F1 Teilpaket 3 die ernannte Vertrauensstufe 4.)
+   *
+   * Hieß bis dahin `canModerate` und meinte `posts.moderate`. Der Name wurde
+   * mitgezogen, weil er sonst das Gegenteil dessen behauptet hätte, was die
+   * Route prüft — und eine Regel, deren Feldname lügt, wird irgendwann falsch
+   * benutzt.
+   */
+  canArrange: boolean
 }
 
 /** Was die Regel über das Thema wissen muss. */
@@ -76,10 +87,10 @@ export function decideTopicStateChange(
   subject: TopicStateSubject,
 ): TopicStateDecision {
   const isAuthor = actor.userId !== '' && actor.userId === subject.authorId
-  // „Gelöst" ist die einzige Ausnahme von „Moderation ordnet den Raum".
+  // „Gelöst" ist die einzige Ausnahme von „wer den Raum ordnet, ordnet ihn".
   const mayTouch = field === 'solved'
-    ? (actor.canModerate || isAuthor)
-    : actor.canModerate
+    ? (actor.canArrange || isAuthor)
+    : actor.canArrange
 
   if (!mayTouch) return { allowed: false, reason: 'not_allowed' }
   if (subject.status !== 'published') return { allowed: false, reason: 'not_published' }

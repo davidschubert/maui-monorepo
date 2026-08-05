@@ -26,14 +26,17 @@ const emit = defineEmits<{ updated: [post: CommunityPost] }>()
 const { t } = useI18n()
 const toast = useToast()
 const { user } = useCurrentUser()
-const canModerate = useCommunityCapability('posts.moderate')
+// `posts.arrange` seit F1 Teilpaket 3 — dieselbe Capability, die die Route
+// prüft. Sie kommt aus Rolle ODER Vertrauensstufe (useCommunityRole führt beide
+// zusammen), damit eine ernannte Stufe 4 ihr Menü auch sieht.
+const canArrange = useCommunityCapability('posts.arrange')
 
 const pending = ref<TopicStateField | null>(null)
 
 function may(field: TopicStateField): boolean {
   return decideTopicStateChange(
     field,
-    { userId: user.value?.$id ?? '', canModerate: canModerate.value },
+    { userId: user.value?.$id ?? '', canArrange: canArrange.value },
     { authorId: props.post.authorId, status: props.post.status },
   ).allowed
 }

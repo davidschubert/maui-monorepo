@@ -91,7 +91,10 @@
       "downvote": "Runtervoten",
       "voteFailed": "Vote konnte nicht gespeichert werden.",
       "voteFailedHint": "Deine Stimme kam nicht an. Klick noch einmal.",
-      "edited": "bearbeitet"
+      "edited": "bearbeitet",
+      "editForeign": "Fremden Beitrag bearbeiten",
+      "retitle": "Titel und Einordnung ändern",
+      "retitleHint": "Den Text kannst du hier nicht ändern — nur Titel und Einordnung."
     },
     "moderation": {
       "title": "Feed-Beiträge",
@@ -293,7 +296,8 @@
         "group": {
           "gettingStarted": "Erste Schritte",
           "community": "Gemeinschaft",
-          "posting": "Schreiben"
+          "posting": "Schreiben",
+          "trustLevel": "Vertrauensstufe"
         },
         "name": {
           "profile": "Vorgestellt",
@@ -313,7 +317,11 @@
           "great-topic": "Herausragender Beitrag",
           "nice-reply": "Gute Antwort",
           "good-reply": "Starke Antwort",
-          "great-reply": "Herausragende Antwort"
+          "great-reply": "Herausragende Antwort",
+          "trust-basic": "Grundstufe",
+          "trust-member": "Mitglied",
+          "trust-regular": "Stammgast",
+          "trust-leader": "Wortführer"
         },
         "criterion": {
           "profile": "Du hast einen Text über dich und ein Profilbild hinterlegt.",
@@ -333,7 +341,29 @@
           "great-topic": "Ein Beitrag von dir hat 50 Stimmen.",
           "nice-reply": "Eine Antwort von dir hat 10 Stimmen.",
           "good-reply": "Eine Antwort von dir hat 25 Stimmen.",
-          "great-reply": "Eine Antwort von dir hat 50 Stimmen."
+          "great-reply": "Eine Antwort von dir hat 50 Stimmen.",
+          "trust-basic": "Vertrauensstufe 1 erreicht: 2 Tage dabei, 1 eigener Inhalt, 1 vergebene Zustimmung",
+          "trust-member": "Vertrauensstufe 2 erreicht: 15 Tage dabei, 5 eigene Inhalte, 10 vergebene und 5 erhaltene Zustimmungen",
+          "trust-regular": "Vertrauensstufe 3 erreicht: 60 Tage dabei, 25 eigene Inhalte, 50 vergebene und 25 erhaltene Zustimmungen",
+          "trust-leader": "Vertrauensstufe 4: von der Leitung der Community ernannt"
+        }
+      },
+      "trust": {
+        "current": "Deine Vertrauensstufe: {level}",
+        "next": "Bis zur Stufe {level} fehlt noch:",
+        "topLevel": "Du hast die höchste Stufe erreicht, die man sich erarbeiten kann.",
+        "guestHint": "Melde dich an, um deine Vertrauensstufe zu sehen.",
+        "missing": {
+          "memberForDays": "noch {missing} Tage dabei sein ({current} von {target})",
+          "contentCreated": "noch {missing} eigene Inhalte ({current} von {target})",
+          "upvotesGiven": "noch {missing} Zustimmungen vergeben ({current} von {target})",
+          "upvotesReceived": "noch {missing} Zustimmungen erhalten ({current} von {target})"
+        },
+        "done": {
+          "memberForDays": "{target} Tage dabei — geschafft",
+          "contentCreated": "{target} eigene Inhalte — geschafft",
+          "upvotesGiven": "{target} Zustimmungen vergeben — geschafft",
+          "upvotesReceived": "{target} Zustimmungen erhalten — geschafft"
         }
       }
     },
@@ -382,7 +412,42 @@
       "deleteFailedHint": "An der Kategorie hat sich nichts geändert. Lade die Seite neu und versuch es noch einmal."
     },
     "nav": {
-      "categories": "Kategorien"
+      "categories": "Kategorien",
+      "trustLevels": "Vertrauensstufen"
+    },
+    "trustLevels": {
+      "title": "Vertrauensstufen",
+      "description": "Die Stufen 1 bis 3 erarbeiten sich Mitglieder selbst — aus der Zeit dabei, den eigenen Inhalten und den Zustimmungen, die sie geben und bekommen. Die Stufe 4 vergibst du: sie darf fremde Themen ordnen, anheften, schließen, als gelöst markieren und fremde Beiträge bearbeiten. Aufgelistet ist, wer hier schon einmal geschrieben hat.",
+      "leadersTitle": "Ernannt",
+      "noLeaders": "Bisher ist niemand ernannt.",
+      "searchPlaceholder": "Nach Name oder Kennung suchen",
+      "unknownPerson": "Unbekannt",
+      "appoint": "Ernennen",
+      "revoke": "Entziehen",
+      "appointed": "{name} hat jetzt Stufe 4.",
+      "revoked": "Die Ernennung ist zurückgenommen.",
+      "confirmRevokeTitle": "Ernennung zurücknehmen?",
+      "confirmRevokeText": "{name} verliert die Stufe 4 und steht danach wieder auf {level}. Das Abzeichen bleibt.",
+      "selfAppoint": "Dich selbst kannst du nicht ernennen — du hast diese Rechte bereits.",
+      "noCounters": "Diese Person hat in dieser Community noch nichts geschrieben.",
+      "saveFailed": "Das hat nicht geklappt. Bitte noch einmal versuchen.",
+      "earnedBelow": "Erarbeitet: {level}",
+      "activity": "{content} Inhalte · {given} vergeben · {received} erhalten",
+      "truncated": "Es gibt mehr Mitglieder, als hier stehen. Such nach einem Namen, um jemanden zu finden.",
+      "emptyTitle": "Noch keine Aktivität",
+      "emptyText": "Sobald jemand hier schreibt oder abstimmt, erscheint er in dieser Liste.",
+      "col": {
+        "person": "Person",
+        "level": "Stufe",
+        "activity": "Aktivität"
+      },
+      "level": {
+        "0": "Neu",
+        "1": "Grundstufe",
+        "2": "Mitglied",
+        "3": "Stammgast",
+        "4": "Wortführer"
+      }
     }
   },
   "admin": {

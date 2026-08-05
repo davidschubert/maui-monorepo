@@ -91,7 +91,10 @@
       "downvote": "Downvote",
       "voteFailed": "Could not save your vote.",
       "voteFailedHint": "Your vote never arrived. Click again.",
-      "edited": "edited"
+      "edited": "edited",
+      "editForeign": "Edit this post",
+      "retitle": "Change title and category",
+      "retitleHint": "You cannot change the text here — only the title and the category."
     },
     "moderation": {
       "title": "Feed posts",
@@ -293,7 +296,8 @@
         "group": {
           "gettingStarted": "Getting started",
           "community": "Community",
-          "posting": "Posting"
+          "posting": "Posting",
+          "trustLevel": "Trust level"
         },
         "name": {
           "profile": "Introduced",
@@ -313,7 +317,11 @@
           "great-topic": "Outstanding post",
           "nice-reply": "Nice reply",
           "good-reply": "Strong reply",
-          "great-reply": "Outstanding reply"
+          "great-reply": "Outstanding reply",
+          "trust-basic": "Basic",
+          "trust-member": "Member",
+          "trust-regular": "Regular",
+          "trust-leader": "Leader"
         },
         "criterion": {
           "profile": "You added a few words about yourself and a profile picture.",
@@ -333,7 +341,29 @@
           "great-topic": "A post of yours has 50 upvotes.",
           "nice-reply": "A reply of yours has 10 upvotes.",
           "good-reply": "A reply of yours has 25 upvotes.",
-          "great-reply": "A reply of yours has 50 upvotes."
+          "great-reply": "A reply of yours has 50 upvotes.",
+          "trust-basic": "Reached trust level 1: 2 days here, 1 post of your own, 1 upvote given",
+          "trust-member": "Reached trust level 2: 15 days here, 5 posts of your own, 10 upvotes given and 5 received",
+          "trust-regular": "Reached trust level 3: 60 days here, 25 posts of your own, 50 upvotes given and 25 received",
+          "trust-leader": "Trust level 4: appointed by the people who run this community"
+        }
+      },
+      "trust": {
+        "current": "Your trust level: {level}",
+        "next": "Still missing for level {level}:",
+        "topLevel": "You have reached the highest level you can earn.",
+        "guestHint": "Sign in to see your trust level.",
+        "missing": {
+          "memberForDays": "{missing} more days here ({current} of {target})",
+          "contentCreated": "{missing} more posts of your own ({current} of {target})",
+          "upvotesGiven": "{missing} more upvotes to give ({current} of {target})",
+          "upvotesReceived": "{missing} more upvotes to receive ({current} of {target})"
+        },
+        "done": {
+          "memberForDays": "{target} days here — done",
+          "contentCreated": "{target} posts of your own — done",
+          "upvotesGiven": "{target} upvotes given — done",
+          "upvotesReceived": "{target} upvotes received — done"
         }
       }
     },
@@ -382,7 +412,42 @@
       "deleteFailedHint": "Nothing changed. Reload the page and try again."
     },
     "nav": {
-      "categories": "Categories"
+      "categories": "Categories",
+      "trustLevels": "Trust levels"
+    },
+    "trustLevels": {
+      "title": "Trust levels",
+      "description": "Members earn levels 1 to 3 themselves — from time spent here, posts of their own, and the upvotes they give and receive. Level 4 is yours to grant: it may retitle and recategorise other people’s topics, pin, close and mark them solved, and edit other people’s posts. Listed here is everyone who has written something in this community.",
+      "leadersTitle": "Appointed",
+      "noLeaders": "Nobody has been appointed yet.",
+      "searchPlaceholder": "Search by name or id",
+      "unknownPerson": "Unknown",
+      "appoint": "Appoint",
+      "revoke": "Revoke",
+      "appointed": "{name} is now level 4.",
+      "revoked": "The appointment has been revoked.",
+      "confirmRevokeTitle": "Revoke this appointment?",
+      "confirmRevokeText": "{name} loses level 4 and goes back to {level}. The badge stays.",
+      "selfAppoint": "You cannot appoint yourself — you already hold these rights.",
+      "noCounters": "This person has not written anything in this community yet.",
+      "saveFailed": "That did not work. Please try again.",
+      "earnedBelow": "Earned: {level}",
+      "activity": "{content} posts · {given} given · {received} received",
+      "truncated": "There are more members than shown here. Search for a name to find someone.",
+      "emptyTitle": "No activity yet",
+      "emptyText": "As soon as someone writes or votes here, they appear in this list.",
+      "col": {
+        "person": "Person",
+        "level": "Level",
+        "activity": "Activity"
+      },
+      "level": {
+        "0": "New",
+        "1": "Basic",
+        "2": "Member",
+        "3": "Regular",
+        "4": "Leader"
+      }
     }
   },
   "admin": {

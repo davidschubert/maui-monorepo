@@ -56,6 +56,22 @@ const MODERATOR: readonly Capability[] = [
   // Termine, ein Moderator urteilt über fremde; Admin/Owner erben beides über
   // EDITOR ∪ MODERATOR.
   'events.moderate',
+  /**
+   * F1 Teilpaket 3 (2026-08-04): die beiden Stufen-Rechte, die auch der
+   * Moderator hält — ZUGEWINN, kein Umbau.
+   *
+   *  - `posts.arrange` war bisher Teil von `posts.moderate` (die
+   *    Zustands-Route prüfte genau die). Sie steht jetzt als eigene Capability
+   *    daneben, damit Vertrauensstufe 4 die drei Zustände bekommen kann, OHNE
+   *    Melde-Queue, Ausblenden und KI-Assistenz mitzuerben. Für den Moderator
+   *    ändert sich dadurch nichts: er hält beide.
+   *  - `posts.curate` ist neu für ALLE — fremde Titel und Einordnungen konnte
+   *    bis hierher niemand korrigieren. Sie hier NICHT einzutragen hieße, dass
+   *    ein automatisch aufgestiegenes Mitglied (Stufe 3) mehr dürfte als der
+   *    Moderator; das wäre schwerer zu erklären als der kleine Zugewinn.
+   */
+  'posts.curate',
+  'posts.arrange',
 ]
 
 /** Admin: Editor ∪ Moderator + Kurse, Activity, Branding, Team. Kein Billing/System. */
@@ -69,6 +85,16 @@ const ADMIN: readonly Capability[] = [
     // anlegen"). Verfassen (`posts.write`) und Moderieren (`posts.moderate`)
     // bleiben, wo sie sind — der Rahmen ist eine dritte Aufgabe.
     'posts.manage',
+    /**
+     * F1 Teilpaket 3 (2026-08-04): fremde Beiträge inhaltlich bearbeiten.
+     *
+     * BEIM ADMIN UND NICHT BEIM MODERATOR, und das ist eine Entscheidung: der
+     * Moderator urteilt über fremde Inhalte (ausblenden, wiederherstellen) —
+     * in einen fremden Text hineinzuschreiben ist etwas anderes. Dem Admin
+     * gehören die Inhalte der Community ohnehin (`posts.manage`), und er muss
+     * mindestens so viel dürfen wie die Stufe 4, die sein Owner ernennt.
+     */
+    'posts.revise',
     'courses.manage',
     'activity.manage',
     'branding.manage',
@@ -98,6 +124,16 @@ const OWNER: readonly Capability[] = [
     // meldet die Besuche ihrer Mitglieder an einen Dritten — eine Entscheidung
     // nach außen, keine Verwaltung nach innen.
     'community.analytics',
+    /**
+     * F1 Teilpaket 3 (2026-08-04): die Vertrauensstufe 4 von Hand ernennen.
+     *
+     * Beim Owner aus demselben Grund wie die Übergabe: hier wird Macht über
+     * fremde Inhalte VERSCHENKT — dauerhaft und ohne Schwelle, die sie
+     * verdient. Ein Admin verwaltet, was es gibt; wer Rechte vergibt, ist der
+     * Eigentümer. (Die Stufen 1–3 vergibt niemand, die rechnet sich jeder
+     * selbst zusammen — dafür gibt es bewusst keine Capability.)
+     */
+    'posts.appoint',
   ]),
 ]
 

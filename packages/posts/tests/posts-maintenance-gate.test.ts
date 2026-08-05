@@ -62,8 +62,24 @@ const CATEGORY_ADMIN_ROUTES = new Set([
   'categories/[id].delete.ts',
 ])
 
+/**
+ * Die Stufen-Verwaltung (F1 Teilpaket 3) — ausgenommen aus GENAU DEMSELBEN
+ * Grund wie die Kategorien eine Zeile höher.
+ *
+ * Diese Route steht hinter `posts.appoint`, und das trägt AUSSCHLIESSLICH der
+ * Owner (communityAuthz.ts). Kein Mitglied kommt hier durch, es gibt also
+ * nichts einzufrieren — wohl aber etwas zu verlieren: wer den Wartungsmodus
+ * einschaltet, um seine Community zu ordnen, wäre sonst ausgerechnet vom
+ * Ordnen ausgesperrt. Und was hier geschrieben wird, ist kein INHALT, sondern
+ * eine Rechte-Entscheidung; genau diese Grenze zieht auch M13 an der Datentür.
+ */
+const TRUST_LEVEL_ADMIN_ROUTES = new Set(['trust-levels/[userId].patch.ts'])
+
 const memberWriteRoutes = routeFiles(apiDir).filter(file =>
-  !file.endsWith('.get.ts') && !MODERATION_ROUTES.has(file) && !CATEGORY_ADMIN_ROUTES.has(file))
+  !file.endsWith('.get.ts')
+  && !MODERATION_ROUTES.has(file)
+  && !CATEGORY_ADMIN_ROUTES.has(file)
+  && !TRUST_LEVEL_ADMIN_ROUTES.has(file))
 
 describe('Wartungsmodus: jede schreibende Mitglieder-Route prüft ihn', () => {
   it('findet genau die sechs Mitglieder-Schreibwege', () => {

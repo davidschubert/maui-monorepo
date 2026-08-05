@@ -175,6 +175,15 @@ export async function applyMemberCounterEvents(event: H3Event, events: readonly 
           // Überschreitung dieses Menschen — „Erster Zuspruch" entsteht genau
           // hier, bei der allerersten vergebenen Stimme.
           if (attempt.created) await awardCounterBadges(event, userId, emptyMemberCounterValues(), values)
+          /**
+           * BEWUSST KEINE STUFEN-PRÜFUNG auf einer frisch angelegten Zeile: sie
+           * trägt die Deltas EINES Schreibvorgangs, und die kleinste Schwelle
+           * verlangt zusätzlich zwei Tage Zugehörigkeit. Wer hier steht, ist
+           * gerade erst angekommen — die Prüfung wäre eine garantiert
+           * ergebnislose Abfrage ans Control Plane bei jedem ersten Beitrag
+           * eines jeden neuen Mitglieds. Der zweite Schreibvorgang prüft, und
+           * das Netz beim Hinsehen ohnehin.
+           */
           return
         }
         row = attempt.row
@@ -204,6 +213,21 @@ export async function applyMemberCounterEvents(event: H3Event, events: readonly 
       // gezählte Stimme kosten. Was hier untergeht, holt das Netz beim
       // Hinsehen nach.
       await awardCounterBadges(event, userId, before, memberCounterValues(latest))
+
+      /**
+       * DIE VERTRAUENSSTUFE (F1 Teilpaket 3) — hier und nicht in zwanzig
+       * Routen, aus demselben Grund wie die Zähler selbst: das ist die EINE
+       * Stelle, an der der neue Stand vorliegt.
+       *
+       * `latest` ist die gerade geschriebene Zeile, die Prüfung rechnet also
+       * mit dem Ergebnis dieser Buchung. Sie steigt in den allermeisten Fällen
+       * schon an der billigen Hälfte aus (`countersAllowHigherLevel`), ohne das
+       * Control Plane zu fragen — die Begründung dieser Reihenfolge steht dort.
+       *
+       * Fail-soft und zuletzt: eine Stufe ist eine Folge des Handelns, nie sein
+       * Preis. `refreshTrustLevelAfterCounters` wirft nicht.
+       */
+      await refreshTrustLevelAfterCounters(event, userId, latest)
     }
     catch (error) {
       logEvent('warn', 'posts.member_counters_failed', {

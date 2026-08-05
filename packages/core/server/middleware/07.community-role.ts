@@ -40,4 +40,18 @@ export default defineEventHandler(async (event) => {
     // Autorität und retryen beim nächsten Aufruf sofort.
     event.context.communityRole = null
   }
+
+  /**
+   * Die Vertrauensstufe kommt hier mit (F1 Teilpaket 3), und zwar aus demselben
+   * Grund wie die Rolle: seit diesem Teilpaket hängen drei Capabilities an ihr,
+   * und die Oberfläche blendet Knöpfe nach Capabilities aus. Ohne den Spiegel
+   * sähe eine Stufe 4 ihre Werkzeuge nicht — die Route ließe sie durch, aber
+   * niemand fände den Knopf.
+   *
+   * KEIN eigener try/catch: `resolveTrustLevel` wirft nie und antwortet im
+   * Zweifel mit 0. Und keine zusätzliche Last im Normalfall — die
+   * Implementierung im posts-Layer cacht je (Community, Mensch), genau wie der
+   * Rollen-Resolver.
+   */
+  event.context.communityTrustLevel = await resolveTrustLevel(event)
 })

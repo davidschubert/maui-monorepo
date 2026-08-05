@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { BADGE_CATALOG, BADGE_GROUPS, type BadgeGroup, type BadgeProgress, badgeProgress } from '../../shared/badges'
+import type { TrustLevelProgressEntry } from '../../shared/trustLevels'
 import type { DiscussionBadge, DiscussionBadgesResponse } from '../../shared/types/post'
 
 /**
@@ -47,6 +48,28 @@ function progressOf(key: string): BadgeProgress | null {
 function progressValues(progress: BadgeProgress): Record<string, number> {
   return { current: progress.current, target: progress.target }
 }
+
+/* ─── Die Vertrauensstufe (F1 Teilpaket 3) ────────────────────────────────── */
+
+/**
+ * DIE STUFE STEHT HIER UND NICHT NEBEN DEN AUTORENNAMEN. Davids Entscheidung 8
+ * gilt für sie wie für jedes Abzeichen: neben 25 Autoren einer Themenliste wäre
+ * sie ein N+1 oder eine denormalisierte Spalte mit eigenen Schreibwegen. In der
+ * eigenen Galerie kostet sie nichts — die Antwort liegt ohnehin vor.
+ *
+ * GEZEIGT WIRD JEDE BEDINGUNG EINZELN, auch die erfüllten. Ein Balken müsste
+ * sich für eine der vier entscheiden und läse sich wie „fast geschafft",
+ * während drei andere Zahlen weit weg sind. Die Liste ist die ehrliche Form —
+ * dieselbe Überlegung, aus der `badgeProgress` bei mehreren Bedingungen lieber
+ * gar nichts sagt.
+ */
+const trustLevel = computed(() => data.value?.trustLevel ?? 0)
+const trustProgress = computed(() => data.value?.trustProgress ?? null)
+
+/** Getrennt, weil `t()` ein reines Werte-Objekt will (wie oben). */
+function trustValues(entry: TrustLevelProgressEntry): Record<string, number> {
+  return { missing: entry.missing, current: entry.current ?? 0, target: entry.target }
+}
 </script>
 
 <template>
@@ -71,6 +94,46 @@ function progressValues(progress: BadgeProgress): Record<string, number> {
         <h2 class="text-sm font-semibold tracking-wide text-dimmed uppercase">
           {{ t(`posts.discussions.badges.group.${group}`) }}
         </h2>
+
+        <!-- Die Stufen-Gruppe bekommt einen Kopf: WO STEHE ICH, und was fehlt
+             zur nächsten. Die vier Kacheln darunter bleiben, was sie sind —
+             Abzeichen; der Kopf sagt den heutigen Zustand. -->
+        <div v-if="group === 'trustLevel'" class="rounded-lg border border-default p-4" data-trust-level>
+          <p class="font-medium">
+            {{ t('posts.discussions.trust.current', { level: t(`posts.trustLevels.level.${trustLevel}`) }) }}
+          </p>
+
+          <template v-if="trustProgress">
+            <p class="mt-2 text-sm text-muted">
+              {{ t('posts.discussions.trust.next', { level: t(`posts.trustLevels.level.${trustProgress.level}`) }) }}
+            </p>
+            <ul class="mt-2 space-y-1">
+              <li
+                v-for="entry in trustProgress.entries"
+                :key="entry.condition"
+                class="flex items-start gap-2 text-sm"
+                :class="entry.met ? 'text-muted' : 'text-default'"
+              >
+                <UIcon
+                  :name="entry.met ? 'i-ph-check-circle-fill' : 'i-ph-circle-dashed'"
+                  class="mt-0.5 size-4 shrink-0"
+                  :class="entry.met ? 'text-primary' : 'text-dimmed'"
+                />
+                <span class="tabular-nums">
+                  {{ entry.met
+                    ? t(`posts.discussions.trust.done.${entry.condition}`, trustValues(entry))
+                    : t(`posts.discussions.trust.missing.${entry.condition}`, trustValues(entry)) }}
+                </span>
+              </li>
+            </ul>
+          </template>
+          <p v-else-if="facts" class="mt-2 text-sm text-muted">
+            {{ t('posts.discussions.trust.topLevel') }}
+          </p>
+          <p v-else class="mt-2 text-sm text-muted">
+            {{ t('posts.discussions.trust.guestHint') }}
+          </p>
+        </div>
 
         <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" data-discussion-badges>
           <li

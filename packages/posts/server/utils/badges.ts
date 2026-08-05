@@ -9,6 +9,7 @@ import {
   contentBadgeCrossings,
   counterBadgeCrossings,
   emptyBadgeFacts,
+  trustLevelBadgeCrossings,
 } from '../../shared/badges'
 import type { MemberCounterValues } from '../../shared/memberCounters'
 import { USER_BADGES_TABLE, type UserBadge } from '../../shared/types/post'
@@ -85,10 +86,18 @@ export function badgeFactsFrom(
   memberForDays: number | null = null,
   written: MemberCounterValues | null = null,
   recentContent = 0,
+  trustLevel = 0,
 ): BadgeFacts {
   const facts = emptyBadgeFacts()
   facts.memberForDays = memberForDays
   facts.recentContent = recentContent
+  /**
+   * Die WIRKENDE Stufe (F1 Teilpaket 3) — wie die Zugehoerigkeit ein eigenes
+   * Argument und keine Zahl aus den Zaehlern: sie ist selbst schon aus ihnen
+   * gerechnet, und in ihr steckt zusaetzlich die Ernennung durch den Owner, von
+   * der kein Zaehler etwas weiss.
+   */
+  facts.trustLevel = trustLevel
   facts.profileComplete = (counters[COUNTER_PROFILE_COMPLETE] ?? 0) >= 1
   /**
    * DIE MITSCHREIBENDEN ZÄHLER SIND DIE AUTORITÄT, WO SIE DIESELBE FRAGE
@@ -321,6 +330,33 @@ export async function awardCounterBadges(
   after: MemberCounterValues,
 ): Promise<void> {
   const keys = counterBadgeCrossings(counterFactsOf(before), counterFactsOf(after))
+  if (keys.length === 0) return
+  await grantBadges(event, userId, keys.map(badgeKey => ({ badgeKey, qualifier: BADGE_QUALIFIER_NONE })))
+}
+
+/* ─── Weg 4: der Stufen-Aufstieg (F1 Teilpaket 3) ────────────────────────── */
+
+/**
+ * Eine Vertrauensstufe ist erreicht — verleihe, was dadurch neu faellig ist.
+ *
+ * VIERTE Verleihungsstelle, und sie musste eine eigene sein: die Bedingung der
+ * Stufen-Abzeichen ist keine Zahl dieses Layers, sondern ein ERGEBNIS, in dem
+ * das Beitrittsdatum aus dem Control Plane steckt. Die Zaehl-Buchung
+ * (`awardCounterBadges`) kennt es nicht und darf es nicht raten; wer die Stufe
+ * gerade ausgerechnet hat, kennt es.
+ *
+ * VORHER GEGEN NACHHER wie ueberall: ohne die Differenz versuchte jeder
+ * Schreibvorgang eines langjaehrigen Mitglieds bis zu vier Verleihungen, die
+ * alle in einen 409 laufen. Beim ENTZUG der Ernennung ist `after` kleiner als
+ * `before`, die Differenz also leer — ein Abzeichen wird hier nie zurueckgenommen.
+ */
+export async function awardTrustLevelBadges(
+  event: H3Event,
+  userId: string,
+  before: number,
+  after: number,
+): Promise<void> {
+  const keys = trustLevelBadgeCrossings(before, after)
   if (keys.length === 0) return
   await grantBadges(event, userId, keys.map(badgeKey => ({ badgeKey, qualifier: BADGE_QUALIFIER_NONE })))
 }

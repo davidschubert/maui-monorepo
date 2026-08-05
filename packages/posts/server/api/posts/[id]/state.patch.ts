@@ -37,16 +37,44 @@ export default defineEventHandler(async (event) => {
 
   const body = await readValidatedBody(event, topicStateSchema.parse)
 
-  // Darf dieser Mensch in DIESER Community moderieren? Gefragt, nicht erzwungen.
+  /**
+   * ZWEI FRAGEN, ZWEI ANTWORTEN (F1 Teilpaket 3) — und sie fallen erstmals
+   * auseinander:
+   *
+   *  - `canArrange` (`posts.arrange`): DARF dieser Mensch den Zustand setzen?
+   *    Das hält der Moderator wie bisher — und seit diesem Teilpaket auch die
+   *    von Hand ernannte Vertrauensstufe 4.
+   *  - `isStaff` (`posts.moderate`): ist er BETREIBER-SEITE? Daran hängen zwei
+   *    Dinge, die eine Stufe 4 ausdrücklich NICHT bekommen soll: die Ausnahme
+   *    vom Wartungsmodus und die Operator-Klinke an der Datentür (die die
+   *    Inhalts-Sperre M13 durchlässt). Eine Stufe 4 ist ein Mitglied.
+   *
+   * Bis hierher war beides dieselbe Frage, weil die Zustands-Route
+   * `posts.moderate` prüfte. Sie zu behalten hätte einer Stufe 4 die
+   * Melde-Queue, das Ausblenden und den KI-Assistenten mitgegeben — Davids
+   * v1-Zuschnitt nennt ausdrücklich nur die drei Zustände.
+   */
   const tenantScoped = !!event.context.tenant
   const role = tenantScoped ? await resolveCommunityRole(event) : null
-  const moderation = decideCommunityAccess({
-    capability: 'posts.moderate',
-    labels: user.labels ?? [],
+  const labels = user.labels ?? []
+  const trustLevel = await resolveTrustLevel(event)
+
+  const canArrange = decideCommunityAccess({
+    capability: 'posts.arrange',
+    labels,
     tenantScoped,
     role,
-  })
-  const canModerate = moderation.allowed
+    trustLevel,
+  }).allowed
+  const isStaff = decideCommunityAccess({
+    capability: 'posts.moderate',
+    labels,
+    tenantScoped,
+    role,
+    // Die Stufe bewusst NICHT mitgegeben: `posts.moderate` folgt aus keiner
+    // Stufe, und die Zeile soll das auch dann noch sagen, wenn sich die Matrix
+    // einmal ändert.
+  }).allowed
 
   /**
    * WER HANDELT (C1c) — und hier hängt wirklich etwas daran:
@@ -81,14 +109,14 @@ export default defineEventHandler(async (event) => {
    * Diese Route ist die erste, die BEIDES ist, deshalb ist die Prüfung hier
    * bedingt statt am Anfang der Datei.
    */
-  if (!canModerate) {
+  if (!isStaff) {
     const appConfig = await getAppConfig(event)
     if (appConfig.maintenanceMode) {
       throw createError({ status: 403, statusText: 'Maintenance mode' })
     }
   }
 
-  const db = tenantDb(event, { as: 'operator', actor: canModerate ? 'operator' : 'member' })
+  const db = tenantDb(event, { as: 'operator', actor: isStaff ? 'operator' : 'member' })
 
   // `get` durch die Tür belegt die Zugehörigkeit VOR der Entscheidung: ein
   // Thema aus einer fremden Community ist „nicht vorhanden".
@@ -96,7 +124,7 @@ export default defineEventHandler(async (event) => {
 
   const decision = decideTopicStateChange(
     body.field,
-    { userId: user.$id, canModerate },
+    { userId: user.$id, canArrange },
     { authorId: row.authorId, status: row.status },
   )
   if (decision.reason === 'not_allowed') {

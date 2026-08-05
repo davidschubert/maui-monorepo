@@ -9,8 +9,9 @@
  * ── DER ZUSCHNITT: NUR, WAS HEUTE MESSBAR IST ─────────────────────────────
  * Davids Vorgabe fuer Stufe 4 lautet „nur heute messbare Abzeichen … fehlende
  * kommen automatisch dazu, sobald ihre Funktion existiert". Der Katalog aus
- * § 3.6 hat 40+ Eintraege; hier stehen 18 (4 + 8 + 6 — ein Test haelt die Zahl
- * an den Katalog gebunden, damit dieser Satz nicht mit der Zeit unwahr wird).
+ * § 3.6 hat 40+ Eintraege; hier stehen 22 (4 + 8 + 6 + 4 — ein Test haelt die
+ * Zahl an den Katalog gebunden, damit dieser Satz nicht mit der Zeit unwahr
+ * wird).
  * Was fehlt und WARUM, gehoert an diese Stelle und nicht in eine Notiz, sonst
  * reicht es irgendwann jemand „nach", ohne den Preis zu kennen:
  *
@@ -24,8 +25,13 @@
  *    Certified/Licensed, Promoter/Campaigner/Champion (Einladungen durch
  *    Mitglieder), Out of Love/Higher Love/Crazy in Love (Tages-Like-Limit).
  *    Die Reihenfolge dieser Funktionen steht in Teil 4.
- *  - **Trust Level (TL1–TL4)** ist ausgespart: Davids Entscheidung 5 macht
- *    daraus ein eigenes Projekt mit eigenem Ja.
+ *  - **Trust Level (TL1–TL4)** war ausgespart und ist es NICHT MEHR: Davids
+ *    Entscheidung 5 machte daraus ein eigenes Projekt mit eigenem Ja, und
+ *    dieses Ja ist am 2026-08-04 gefallen (F1 Teilpaket 3). Die vier stehen
+ *    jetzt als eigene Gruppe im Katalog. Sie sind die EINZIGEN, deren Bedingung
+ *    nicht aus Zahlen dieses Layers besteht, sondern aus einer STUFE
+ *    (`shared/trustLevels.ts`) — das Abzeichen ist die Feier, das Recht kommt
+ *    vom RBAC (core/shared/trustLevel.ts).
  *  - **Editor** („ersten eigenen Beitrag bearbeitet") stand hier bis zum
  *    2026-08-04 als NICHT BAUBAR: `community_posts` hielt keine Bearbeitung
  *    fest (`comments` hatte `editedAt`, `posts` nicht), und das halbe Abzeichen
@@ -90,7 +96,12 @@
  * doppelte Verleihung wird.
  */
 
-export const BADGE_GROUPS = ['gettingStarted', 'community', 'posting'] as const
+/**
+ * Die Gruppen der Galerie. `trustLevel` steht ZULETZT (F1 Teilpaket 3), und das
+ * ist Anzeige-Absicht: die drei davor sammelt man nebenbei, die Stufen sind der
+ * Weg, der sich daraus ergibt.
+ */
+export const BADGE_GROUPS = ['gettingStarted', 'community', 'posting', 'trustLevel'] as const
 export type BadgeGroup = (typeof BADGE_GROUPS)[number]
 
 /**
@@ -169,6 +180,21 @@ export interface BadgeRequirement {
   memberForDays?: number
   /** Eigene Inhalte JEDER Art im zurueckliegenden Fenster. */
   recentContent?: RecentContentRequirement
+  /**
+   * Mindest-VERTRAUENSSTUFE (F1 Teilpaket 3).
+   *
+   * DIE EINZIGE BEDINGUNG, DIE KEINE ZAHL AUS DIESEM LAYER IST, sondern ein
+   * ERGEBNIS: die Stufe ist selbst schon aus Tagen, Inhalten und Stimmen
+   * gerechnet (`shared/trustLevels.ts`). Sie hier auszuschreiben hiesse,
+   * dieselben vier Schwellen ein zweites Mal zu pflegen — und die zweite Kopie
+   * waere die, die beim naechsten Zahlen-Wechsel vergessen wird.
+   *
+   * Folge fuer die Fortschritts-Anzeige: sie ist hier bewusst STUMM
+   * (`badgeProgress` kennt diese Bedingung nicht). Der Weg zur naechsten Stufe
+   * ist keine Zahl, sondern vier — dafuer gibt es einen eigenen Abschnitt in
+   * der Galerie, der jede einzeln nennt.
+   */
+  trustLevel?: number
 }
 
 export interface BadgeDefinition {
@@ -246,6 +272,23 @@ export const BADGE_CATALOG: readonly BadgeDefinition[] = [
   { key: 'nice-reply', group: 'posting', awardedPer: 'content', requires: { likedReplies: { threshold: 10, count: 1 } } },
   { key: 'good-reply', group: 'posting', awardedPer: 'content', requires: { likedReplies: { threshold: 25, count: 1 } } },
   { key: 'great-reply', group: 'posting', awardedPer: 'content', requires: { likedReplies: { threshold: 50, count: 1 } } },
+
+  // ── Die Vertrauensstufen (F1 Teilpaket 3) ────────────────────────────────
+  /**
+   * EINMALIG, und zwar alle vier — auch „Leader".
+   *
+   * Bei den Stufen 1–3 folgt das schon aus der Sache: es gibt keinen Abstieg,
+   * also auch kein zweites Erreichen. Bei Stufe 4 ist es eine ENTSCHEIDUNG:
+   * die Ernennung ist rücknehmbar, das Abzeichen nicht. „Verliehen ist
+   * verliehen" — wer einmal Leader war, war es; ein Abzeichen, das beim Entzug
+   * verschwindet und bei der nächsten Ernennung wiederkäme, wäre eine
+   * Anzeige des heutigen Zustands und keine Auszeichnung. Den heutigen Zustand
+   * zeigt der Stufen-Abschnitt der Galerie, und der ist ehrlich.
+   */
+  { key: 'trust-basic', group: 'trustLevel', awardedPer: 'once', requires: { trustLevel: 1 } },
+  { key: 'trust-member', group: 'trustLevel', awardedPer: 'once', requires: { trustLevel: 2 } },
+  { key: 'trust-regular', group: 'trustLevel', awardedPer: 'once', requires: { trustLevel: 3 } },
+  { key: 'trust-leader', group: 'trustLevel', awardedPer: 'once', requires: { trustLevel: 4 } },
 ]
 
 /** Der Katalog-Eintrag zu einem Schluessel — `null`, wenn es ihn nicht gibt. */
@@ -276,6 +319,11 @@ export interface BadgeFacts {
   memberForDays: number | null
   /** Eigene Inhalte im Fenster aus `badgeContentWindowDays()`. */
   recentContent: number
+  /**
+   * Die WIRKENDE Vertrauensstufe (F1 Teilpaket 3) — erarbeitet oder ernannt,
+   * also `effectiveTrustLevel`, nicht die gespeicherte Zahl. 0 heisst „keine".
+   */
+  trustLevel: number
 }
 
 export function emptyBadgeFacts(): BadgeFacts {
@@ -289,6 +337,7 @@ export function emptyBadgeFacts(): BadgeFacts {
     likedReplies: {},
     memberForDays: null,
     recentContent: 0,
+    trustLevel: 0,
   }
 }
 
@@ -388,6 +437,11 @@ export function badgeEarned(badge: BadgeDefinition, facts: BadgeFacts): boolean 
   // ausgerechnet dort jeder, wo die Naht zum Control Plane fehlt.
   if (requires.memberForDays !== undefined && (facts.memberForDays === null || facts.memberForDays < requires.memberForDays)) return false
   if (requires.recentContent && facts.recentContent < requires.recentContent.count) return false
+  // Die Stufe ist ein Bestand, kein Fenster: wer Stufe 3 hat, hat auch 1 und 2
+  // verdient. Deshalb `>=` und nicht `===` — sonst bekaeme jemand, der von 0
+  // direkt auf 2 springt (Bestandszeile beim ersten Hinsehen), das Abzeichen
+  // fuer Stufe 1 nie.
+  if (requires.trustLevel !== undefined && facts.trustLevel < requires.trustLevel) return false
   return true
 }
 
@@ -518,6 +572,46 @@ export function badgeFollowsFromCounters(badge: BadgeDefinition): boolean {
     && !requires.likedReplies
     && requires.memberForDays === undefined
     && !requires.recentContent
+    // Die Stufen-Abzeichen laufen ueber ihren EIGENEN Weg
+    // (`trustLevelBadgeCrossings`): ihre Bedingung braucht das Beitrittsdatum,
+    // das eine Zaehl-Buchung nicht kennt.
+    && requires.trustLevel === undefined
+}
+
+/* ─── Die Vertrauensstufen (F1 Teilpaket 3) ──────────────────────────────── */
+
+/**
+ * PURE: Welche Abzeichen gehoeren zu diesem Stufen-Stand?
+ *
+ * Ein BESTAND wie bei den Inhalts-Abzeichen: Stufe 3 verdient „Basic", „Member"
+ * UND „Regular". Wer beim ersten Hinsehen von 0 auf 2 springt (die Zaehler
+ * standen laengst, nur die Stufe war nie gerechnet), bekommt beide — sonst
+ * fiele die uebersprungene lautlos aus.
+ */
+export function trustLevelBadgeKeysFor(
+  level: number,
+  catalog: readonly BadgeDefinition[] = BADGE_CATALOG,
+): string[] {
+  return catalog
+    .filter(badge => badge.requires.trustLevel !== undefined && level >= badge.requires.trustLevel)
+    .map(badge => badge.key)
+}
+
+/**
+ * PURE: Was ist bei DIESEM Aufstieg neu dazugekommen?
+ *
+ * Die Differenz aus demselben Grund wie ueberall sonst: ohne sie versuchte
+ * JEDER Schreibvorgang eines langjaehrigen Mitglieds bis zu vier Verleihungen,
+ * die alle in einen 409 laufen. Der Unique-Index bleibt trotzdem das Netz — die
+ * Verleihung selbst ist blind.
+ */
+export function trustLevelBadgeCrossings(
+  before: number,
+  after: number,
+  catalog: readonly BadgeDefinition[] = BADGE_CATALOG,
+): string[] {
+  const had = new Set(trustLevelBadgeKeysFor(before, catalog))
+  return trustLevelBadgeKeysFor(after, catalog).filter(key => !had.has(key))
 }
 
 /** Die Staende, die eine Zaehl-Buchung kennt. */
