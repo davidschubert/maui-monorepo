@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { bodyToSave as decideBodyToSave } from '../../../core/shared/editorBody'
 import { decidePostAuthorAction } from '../../shared/postAuthorPolicy'
 import type { FeedPost, PollState } from '../../shared/types/post'
 
@@ -55,19 +56,47 @@ const editTitle = ref('')
 const editBody = ref('')
 const busy = ref(false)
 
+/**
+ * „ÖFFNEN DARF NICHTS ÄNDERN" (Regel + Begründung: core/shared/editorBody.ts).
+ *
+ * Seit die Schreibfläche ein WYSIWYG-Editor ist, schreibt sie den Text beim
+ * Montieren einmal von sich aus um (`snake_case` → `snake\_case`). Beides
+ * rendert identisch — aber ein Speichern OHNE Tastendruck wäre trotzdem eine
+ * Änderung, und daran hängt sichtbar „bearbeitet" (shared/postEdit.ts). Der
+ * Leser bekäme also gesagt, am Text habe sich etwas getan, obwohl er
+ * unverändert aussieht.
+ *
+ * `editNormalized` ist die erste Fassung, die der Editor selbst geschrieben
+ * hat; steht beim Speichern noch genau sie im Feld, geht die Urfassung raus.
+ */
+const editPristine = ref('')
+const editNormalized = ref<string | null>(null)
+watch(editBody, (value) => {
+  if (editing.value && editNormalized.value === null && value !== editPristine.value) {
+    editNormalized.value = value
+  }
+})
+
 function startEdit() {
   editTitle.value = props.post.title ?? ''
   editBody.value = props.post.body
+  editPristine.value = props.post.body
+  editNormalized.value = null
   editing.value = true
 }
 
 async function saveEdit() {
   if (busy.value || !editBody.value.trim()) return
+  const body = decideBodyToSave({
+    current: editBody.value,
+    pristine: editPristine.value,
+    normalized: editNormalized.value,
+  }).trim()
   busy.value = true
   try {
     const updated = await $fetch<FeedPost>(`/api/posts/${props.post.$id}`, {
       method: 'PATCH',
-      body: { title: editTitle.value.trim() || undefined, body: editBody.value.trim() },
+      body: { title: editTitle.value.trim() || undefined, body },
     })
     emit('updated', { ...props.post, ...updated })
     editing.value = false
@@ -191,10 +220,13 @@ const showTooltip = computed(() => (props.replyCount ?? 0) > 0)
           data-post-edit-title
         />
         <!-- Dieselbe Schreibfläche wie im Composer (PostBodyField) — neu
-             schreiben und bearbeiten dürfen nicht auseinanderlaufen. -->
+             schreiben und bearbeiten dürfen nicht auseinanderlaufen.
+             `immediate`: wer „Bearbeiten" geklickt hat, will schreiben — hier
+             ist der Zwischenschritt über die Textfläche nur ein Klick mehr. -->
         <PostBodyField
           v-model="editBody"
           :placeholder="t(`posts.composer.placeholder.${post.type}`)"
+          immediate
           data-post-edit-body
         />
         <div class="flex justify-end gap-2">

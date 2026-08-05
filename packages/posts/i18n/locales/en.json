@@ -9,6 +9,18 @@
       "guestTitle": "Have a look around!",
       "guestText": "Sign in to post, vote and join the conversation."
     },
+    "editor": {
+      "bold": "Bold",
+      "italic": "Italic",
+      "code": "Code",
+      "heading2": "Heading",
+      "heading3": "Subheading",
+      "bulletList": "Bullet list",
+      "orderedList": "Numbered list",
+      "link": "Link",
+      "quote": "Quote",
+      "codeBlock": "Code block"
+    },
     "composer": {
       "typePost": "Post",
       "typePoll": "Poll",

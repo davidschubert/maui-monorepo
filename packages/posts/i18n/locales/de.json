@@ -9,6 +9,18 @@
       "guestTitle": "Sieh dich um!",
       "guestText": "Melde dich an, um zu posten, abzustimmen und mitzudiskutieren."
     },
+    "editor": {
+      "bold": "Fett",
+      "italic": "Kursiv",
+      "code": "Code",
+      "heading2": "Überschrift",
+      "heading3": "Zwischenüberschrift",
+      "bulletList": "Aufzählung",
+      "orderedList": "Nummerierte Liste",
+      "link": "Link",
+      "quote": "Zitat",
+      "codeBlock": "Codeblock"
+    },
     "composer": {
       "typePost": "Beitrag",
       "typePoll": "Umfrage",
