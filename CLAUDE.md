@@ -659,9 +659,22 @@ Vollständiges Konzept: docs/CONCEPT.md
   2026-08-04 (nachgemessen): `UEditor` läuft im Seiten-Dashboard (pages), im
   Changelog-Admin und in `TicketModal` — der **PostComposer nutzt weiterhin
   `UTextarea`**. Die frühere Zeile behauptete hier „der Composer nutzt UEditor
-  bereits"; das war nie wahr. Die Umstellung ist ein EIGENER Schnitt (Body-
-  Format HTML statt Text, betrifft Feed, Discussions-Detail UND Bestandsdaten)
-  und darf nicht nebenbei in ein anderes Paket rutschen. Auth-Formulare:
+  bereits"; das war nie wahr. Die Umstellung ist ein EIGENER Schnitt und
+  darf nicht nebenbei in ein anderes Paket rutschen. SIE IST AM 2026-08-04
+  ANGEHALTEN WORDEN, und der Grund gilt für JEDE Fläche, die
+  benutzergenerierten Text über `core/shared/markdown.ts` rendert:
+  `@tiptap/markdown` maskiert beim Serialisieren ``\ ` * _ [ ] ~`` mit
+  Backslash und macht aus `<>&` HTML-Entities — HARTKODIERT in
+  `MarkdownManager.encodeTextForMarkdown`, keine Option, kein Extension-Hook
+  (der Text-Zweig greift vor jedem Handler). Unser Parser kennt weder
+  Backslash-Escapes noch Entities und reicht beides sichtbar durch: getippt
+  `snake_case` ⇒ gespeichert `snake\_case` ⇒ so steht es im Beitrag. Live
+  gemessen, 9 von 15 Alltagssätzen betroffen. Das ist NICHT der F2-Fall aus
+  `packages/pages/shared/editorBody.ts` — `bodyToSave` schützt ungetippten
+  Text, hier verfälscht es das Getippte. Erwähnungen serialisieren zu
+  `[@ id="…" label="…"]` und stünden roh im Beitrag (also nicht bauen).
+  Der Blocker sitzt im RENDERER, nicht im Editor; Messung, Optionen und die
+  Nebenbefunde: docs/plans/COMPOSER-UEDITOR.md. Auth-Formulare:
   UAuthForm ist die VORLAGE (Optik/Struktur) — Login/Register/OTP sind bewusst
   eigene UForm-Implementierungen (2-Schritt-OTP, Security-Phrase, geteilter
   E-Mail-State, AGB-Gate); Details in docs/referenz/AUTH-FORMS.md
