@@ -24,7 +24,7 @@ import { POSTS_TABLE, POST_VOTES_TABLE } from '../../shared/types/post'
  * Bei den Stimmen fehlt der Filter mit Absicht: eine abgegebene Stimme bleibt
  * abgegeben, auch wenn ihr Ziel später verschwindet.
  *
- * ── DIE ACHTE ABFRAGE GIBT ES NUR AUF NACHFRAGE ───────────────────────────
+ * ── DIE ACHTE UND NEUNTE ABFRAGE GIBT ES NUR AUF NACHFRAGE ────────────────
  * `since` kommt vom Konsumenten und ist fast immer leer (F1, Abzeichen
  * „Jahrestag"). Ist es gesetzt, kommt EINE weitere `count`-Abfrage dazu:
  * „habe ich seit diesem Datum überhaupt etwas veröffentlicht?". Gefiltert wird
@@ -34,6 +34,9 @@ import { POSTS_TABLE, POST_VOTES_TABLE } from '../../shared/types/post'
  * der Rest läuft auf den eigenen Beiträgen EINES Menschen; eine neue Migration
  * braucht es dafür nicht.
  *
+ * `seed` verhält sich genauso und wird noch seltener gesetzt: EINMAL je Mensch,
+ * wenn seine Zähler-Zeile geeicht wird (F1, mitschreibende Zähler).
+ *
  * ── MITGLIEDER-KLINKE, und das ist die enge Wahl ──────────────────────────
  * Gezählt wird ausschließlich Eigenes; die Row-Permissions reichen dafür und
  * bilden zusätzlich zur Datentür ein zweites Netz. `as: 'operator'` wäre hier
@@ -41,13 +44,13 @@ import { POSTS_TABLE, POST_VOTES_TABLE } from '../../shared/types/post'
  * (A5) hängen am Schreiben — ein Zählvorgang löst also nichts aus.
  */
 export default defineNitroPlugin(() => {
-  registerUserCounterProvider('posts', async (event, { thresholds, since }) => {
+  registerUserCounterProvider('posts', async (event, { thresholds, since, seed }) => {
     const userId = event.context.user?.$id
     if (!userId) return {}
 
     const db = tenantDb(event)
 
-    const [likesGiven, contentSince, ...perThreshold] = await Promise.all([
+    const [likesGiven, contentSince, topicsCreated, ...perThreshold] = await Promise.all([
       db.count(POST_VOTES_TABLE, [
         Query.equal('userId', userId),
         Query.equal('value', 1),
@@ -61,6 +64,16 @@ export default defineNitroPlugin(() => {
             Query.greaterThanEqual('publishedAt', since),
           ])
         : Promise.resolve<number | null>(null),
+      // Ebenso auf Nachfrage: der STARTWERT für den mitschreibenden Zähler
+      // (F1, Lazy-Seed). Gezählt werden dieselben Zeilen, die auch
+      // `topicsCreated` beim Schreiben hochzählt — veröffentlichte eigene
+      // Beiträge, mit und ohne Kategorie.
+      seed
+        ? db.count(POSTS_TABLE, [
+            Query.equal('authorId', userId),
+            Query.equal('status', 'published'),
+          ])
+        : Promise.resolve<number | null>(null),
       ...thresholds.map(threshold => db.count(POSTS_TABLE, [
         Query.equal('authorId', userId),
         Query.equal('status', 'published'),
@@ -70,6 +83,7 @@ export default defineNitroPlugin(() => {
 
     const counters: Record<string, number> = { [COUNTER_LIKES_GIVEN]: likesGiven }
     if (contentSince !== null) counters[COUNTER_CONTENT_SINCE] = contentSince
+    if (topicsCreated !== null) counters[COUNTER_TOPICS_CREATED] = topicsCreated
     thresholds.forEach((threshold, index) => {
       const measured = perThreshold[index] ?? 0
       counters[counterLikedItems(threshold)] = measured

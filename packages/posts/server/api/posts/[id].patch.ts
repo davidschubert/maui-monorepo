@@ -1,6 +1,7 @@
 import { Query } from 'node-appwrite'
 import { postEditSchema } from '../../../schemas/post'
 import { decidePostAuthorAction } from '../../../shared/postAuthorPolicy'
+import { postContentEdited } from '../../../shared/postEdit'
 import { POLL_VOTES_TABLE, POSTS_TABLE, type CommunityPost } from '../../../shared/types/post'
 
 /**
@@ -82,11 +83,41 @@ export default defineEventHandler(async (event) => {
     ? {}
     : { categoryId: await resolveCategoryId(db, input.categoryId) }
 
+  /**
+   * F1: „bearbeitet" heißt INHALT, nicht Formular abgeschickt.
+   *
+   * Dieses Formular schickt Titel und Text bei JEDEM Speichern mit — auch
+   * dann, wenn nur die Kategorie gewechselt wurde. Ein blind gesetzter
+   * Zeitstempel stünde also an Themen, an deren Text niemand war. Die Regel
+   * ist pur und getestet (`shared/postEdit.ts`); die Zustands-Route
+   * (`[id]/state.patch.ts`) schreibt ohnehin nur ihr eines Feld und kommt hier
+   * gar nicht vorbei.
+   */
+  const contentEdited = postContentEdited(
+    { title: row.title, body: row.body },
+    { title: input.title || null, body: input.body },
+  )
+
   const updated = await db.update<CommunityPost>(POSTS_TABLE, id, {
     title: input.title || null,
     body: input.body,
     ...categoryChange,
+    ...(contentEdited ? { editedAt: new Date().toISOString() } : {}),
   }).catch((error) => { throw toH3Error(error, 'Could not update post') })
+
+  /**
+   * MITSCHREIBENDER ZÄHLER (F1) — Grundlage des Abzeichens „Editor".
+   *
+   * NUR EIGENE INHALTE, und das ist hier keine zusätzliche Prüfung, sondern
+   * eine Eigenschaft dieser Route: sie lässt ausschließlich den Autor durch
+   * (`decidePostAuthorAction` ⇒ 403 `not_author`). Eine Moderation, die einen
+   * fremden Beitrag anfasst, gibt es an dieser Stelle gar nicht — und sie
+   * dürfte auch nicht zählen: das Abzeichen belohnt, den EIGENEN Text besser
+   * zu machen, nicht das Aufräumen bei anderen.
+   */
+  if (contentEdited) {
+    await recordUserCounterEvents(event, [{ userId: user.$id, kind: 'edits', delta: 1 }])
+  }
 
   return updated
 })

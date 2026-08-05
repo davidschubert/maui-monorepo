@@ -78,7 +78,8 @@
       "upvote": "Upvote",
       "downvote": "Downvote",
       "voteFailed": "Could not save your vote.",
-      "voteFailedHint": "Your vote never arrived. Click again."
+      "voteFailedHint": "Your vote never arrived. Click again.",
+      "edited": "edited"
     },
     "moderation": {
       "title": "Feed posts",
@@ -285,6 +286,7 @@
           "profile": "Introduced",
           "first-like": "First upvote",
           "first-flag": "First flag",
+          "editor": "Editor",
           "welcome": "Welcome",
           "appreciated": "Appreciated",
           "thank-you": "Thank you",
@@ -304,6 +306,7 @@
           "profile": "You added a few words about yourself and a profile picture.",
           "first-like": "You upvoted something for the first time.",
           "first-flag": "You flagged something for the first time.",
+          "editor": "You revised one of your own posts or replies for the first time.",
           "welcome": "Something of yours received an upvote.",
           "appreciated": "20 of your posts or replies have at least one upvote.",
           "thank-you": "20 of your posts or replies have an upvote, and you gave 10 yourself.",

@@ -505,11 +505,13 @@ jemand liest, der ein Abzeichen nachreichen will. Kurzfassung:
   personenbezogenes Verhaltensprotokoll bräuchten.
 - **Wartet auf seine Funktion**: Emoji, Zitat, Themen-Verlinkung, Reaktionen,
   Einladungen durch Mitglieder, Tages-Like-Limit — Reihenfolge in Teil 4.
-- **Nicht baubar, obwohl es so aussieht**: „Editor" (`community_posts` hält
-  keine Bearbeitung fest — `comments` hat `editedAt`, `posts` nicht).
-  „Anniversary" stand hier bis zum 2026-08-04 daneben und ist jetzt GEBAUT
-  (Teil-5-Entscheidung 1, siehe „Gebaut" oben).
-- **Trust Levels** bleiben ausgespart (Entscheidung 5, eigenes Ja nötig).
+- **Nicht baubar, obwohl es so aussieht**: dieser Absatz hat sich geleert —
+  „Anniversary" ist seit dem 2026-08-04 GEBAUT (Teil-5-Entscheidung 1), und
+  „Editor" ebenfalls (gemeinsames Paket, Teilpaket 1: `posts.editedAt` kam
+  per posts-014, gezählt wird über `member_counters`).
+- **Trust Levels**: das eigene Ja ist mit den drei Teil-5-Architektur-
+  Entscheidungen vom 2026-08-04 da (TL speisen das bestehende RBAC); gebaut
+  wird in Teilpaket 3 des gemeinsamen Pakets.
 
 Zwei Eigenschaften der Zählweise gehören dazu, weil sie später als Lücke
 gelesen werden könnten: jedes Abzeichen wird GENAU EINMAL verliehen (gezählt
@@ -551,6 +553,22 @@ rechnen); getrennt gebaut wäre es dieselbe Arbeit zweimal:**
    ehrlichen „bearbeitet"-Hinweis am Thema.
 5. Abzeichen mehrfach verleihen + Benachrichtigung.
 6. **Trust Levels** (die vier Stufen aus dem Katalog).
+
+**Die drei Architektur-Entscheidungen zum gemeinsamen Paket (David,
+2026-08-04, strukturierte Fragen — das „eigene Ja" aus § 3.6 ist damit da):**
+- **TL speisen das BESTEHENDE RBAC**: die Stufe wird aus den Zählern
+  berechnet, und der vorhandene Capability-Resolver vergibt daraus
+  zusätzliche Capabilities. EIN Rechtesystem, `requireCommunityPermission`
+  bleibt die einzige Tür; ein paralleles TL-Prüfsystem ist ABGELEHNT.
+- **TL1–TL3 automatisch** (Schwellen im Discourse-Sinn, ausgewertet beim
+  Schreiben über die mitschreibenden Zähler), **TL4 „Leader" nur von Hand**
+  durch den Owner. Kein Abstieg — einmal erreicht, bleibt.
+- **Mehrfach-Verleihung: ALLE Abzeichen, wo sinnvoll zählbar** — bewusst
+  GEGEN die Discourse-Konvention (nur Posting-Gruppe) und als REVISION der
+  Stufe-4-Zeile „jedes Abzeichen genau einmal": auch der Jahrestag kommt
+  jährlich neu. „Sinnvoll zählbar" heißt: es gibt ein neues qualifizierendes
+  Ereignis (neuer Beitrag über der Schwelle, neues Mitgliedsjahr) — reine
+  Zustands-Abzeichen (z. B. Profilbild gesetzt) bleiben einmalig.
 
 **Vor dem Bauen ein eigenes Konzept:**
 7. **Private Nachrichten** — eigene Tabelle, Meldewege, Sperren, DSGVO-Export.

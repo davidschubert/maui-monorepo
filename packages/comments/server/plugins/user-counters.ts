@@ -22,20 +22,22 @@ import { COMMENTS_TABLE, VOTES_TABLE } from '../../shared/types/comment'
  * GAST-KOMMENTARE fallen von selbst heraus: sie tragen `authorId: ''`, und
  * gezählt wird gegen die Id des Angemeldeten.
  *
- * DIE ACHTE ABFRAGE GIBT ES NUR AUF NACHFRAGE: ist `since` gesetzt (F1,
- * Abzeichen „Jahrestag"), kommt „habe ich seit diesem Datum geantwortet?" dazu.
- * Gefiltert wird über `$createdAt` — anders als bei den Beiträgen gibt es hier
- * kein Veröffentlichungsdatum, eine Antwort steht mit dem Absenden da. Ohne
- * `since` bleibt alles wie vorher.
+ * DIE ACHTE UND NEUNTE ABFRAGE GIBT ES NUR AUF NACHFRAGE: ist `since` gesetzt
+ * (F1, Abzeichen „Jahrestag"), kommt „habe ich seit diesem Datum geantwortet?"
+ * dazu. Gefiltert wird über `$createdAt` — anders als bei den Beiträgen gibt es
+ * hier kein Veröffentlichungsdatum, eine Antwort steht mit dem Absenden da. Ist
+ * `seed` gesetzt (F1, Lazy-Seed der mitschreibenden Zähler), kommt „wie viele
+ * Antworten habe ich überhaupt geschrieben?" dazu — EINMAL je Mensch. Ohne
+ * beides bleibt alles wie vorher.
  */
 export default defineNitroPlugin(() => {
-  registerUserCounterProvider('comments', async (event, { thresholds, since }) => {
+  registerUserCounterProvider('comments', async (event, { thresholds, since, seed }) => {
     const userId = event.context.user?.$id
     if (!userId) return {}
 
     const db = tenantDb(event)
 
-    const [likesGiven, contentSince, ...perThreshold] = await Promise.all([
+    const [likesGiven, contentSince, repliesCreated, ...perThreshold] = await Promise.all([
       db.count(VOTES_TABLE, [
         Query.equal('userId', userId),
         Query.equal('value', 1),
@@ -47,6 +49,12 @@ export default defineNitroPlugin(() => {
             Query.greaterThanEqual('$createdAt', since),
           ])
         : Promise.resolve<number | null>(null),
+      seed
+        ? db.count(COMMENTS_TABLE, [
+            Query.equal('authorId', userId),
+            Query.equal('status', 'active'),
+          ])
+        : Promise.resolve<number | null>(null),
       ...thresholds.map(threshold => db.count(COMMENTS_TABLE, [
         Query.equal('authorId', userId),
         Query.equal('status', 'active'),
@@ -56,6 +64,7 @@ export default defineNitroPlugin(() => {
 
     const counters: Record<string, number> = { [COUNTER_LIKES_GIVEN]: likesGiven }
     if (contentSince !== null) counters[COUNTER_CONTENT_SINCE] = contentSince
+    if (repliesCreated !== null) counters[COUNTER_REPLIES_CREATED] = repliesCreated
     thresholds.forEach((threshold, index) => {
       const measured = perThreshold[index] ?? 0
       counters[counterLikedItems(threshold)] = measured

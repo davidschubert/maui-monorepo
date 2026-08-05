@@ -110,6 +110,18 @@ export default defineEventHandler(async (event) => {
    */
   await notifyContentActivity(event, body.targetType, body.targetId, row.$createdAt)
 
+  /**
+   * MITSCHREIBENDER ZÄHLER (F1, Core-Vertrag `recordUserCounterEvents`): eine
+   * Antwort ist geschrieben. Wie beim Aktivitäts-Vertrag darüber nennt dieser
+   * Layer nur eine EREIGNIS-ART und keinen Nachbarn — wer sie verbucht (heute
+   * der posts-Layer, dem `member_counters` gehört), weiß er nicht und soll er
+   * nicht wissen (A14). Ohne Autorität passiert schlicht nichts.
+   *
+   * Der Gast-Weg (`guest.post.ts`) meldet bewusst NICHTS: ohne Konto gibt es
+   * niemanden, dem etwas gutzuschreiben wäre.
+   */
+  await recordUserCounterEvents(event, [{ userId: user.$id, kind: 'repliesCreated', delta: 1 }])
+
   const snippet = body.content.length > 140 ? `${body.content.slice(0, 140)}…` : body.content
   // Link zur echten Seite des Kommentars: targetUrl des Replies (= Seite),
   // sonst die des Parents, sonst '/' (Bestandskommentare ohne targetUrl).

@@ -29,6 +29,37 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F1 gemeinsames Paket, Teilpaket 1 — mitschreibende Zähler + posts.editedAt ✅ 2026-08-04
+
+**Davids Go** („starte das gemeinsame paket") plus drei per Frage abgenommene
+Architektur-Entscheidungen (DECISION-LOG 2026-08-04): TL speisen das
+bestehende RBAC · TL1–3 automatisch, TL4 von Hand · Mehrfach-Verleihung für
+ALLE sinnvoll zählbaren Abzeichen (Revision der „genau einmal"-Regel — auch
+Jahrestag künftig jährlich; kommt in Teilpaket 2). Gebaut in Teilpaket 1:
+Tabelle `member_counters` (posts-013; EINE Row je communityId+userId, fünf
+Zähler + `seeded`), Schreib-Vertrag `recordUserCounterEvents` in core
+(comments zählt mit, ohne posts zu kennen — A14), atomar über
+`incrementRowColumn`/`decrementRowColumn` (kein Read-Modify-Write),
+Vorzeichen-Regel `upvoteDelta` PUR in core/shared (posts- UND comments-Stimme
+teilen sie; nur Aufstimmen zählen, Entscheidung 4), Lazy-Seed beim ersten
+Hinsehen statt Massen-Backfill (+ einseitige Selbstheilung: Aggregat höher ⇒
+Zähler zieht nach). Dazu `community_posts.editedAt` (posts-014, NUR echte
+Titel-/Text-Änderung — Zustands-/Kategorie-Wechsel setzen es nicht),
+„bearbeitet"-Hinweis an der Karte und das Abzeichen „Nachgebessert"/„Editor"
+(erste EIGENE Bearbeitung; Moderator-Edits erreichen die Zählstelle nie).
+`member_counters` ist ab Tag 1 im GDPR-Export UND in der Löschung.
+Migrationen posts-013/014 dev+prod VOR dem Deploy. Umsetzung Opus-Agent,
+Prüfung hier (Tore selbst grün: posts 222, core 624; Vorzeichen-Regel und
+Aufrufstellen gelesen).
+
+**Gelernt:** Beim Zählen einer Stimme bewegt sich der Zähler von ZWEI
+Menschen — und der zweite (der Autor) hat gerade NICHT gehandelt: `actor:
+'operator'` an der Zähl-Buchung ist deshalb die Wahrheit, nicht Bequemlichkeit
+(sonst machte A5 den Beschenkten zum Mitglied). Und ein Formular, das beim
+Speichern immer ALLE Felder mitschickt, macht aus „Feld im PATCH vorhanden"
+kein Signal — die editedAt-Regel muss Titel/Text VERGLEICHEN, nicht auf
+Anwesenheit prüfen.
+
 ### F1 — Jahrestag-Abzeichen + Beitritts-Zahl der About-Seite ✅ 2026-08-04
 
 **Davids Go** („starte f1"; Teil-5-Entscheidung 1 im DISCUSSIONS-KONZEPT).

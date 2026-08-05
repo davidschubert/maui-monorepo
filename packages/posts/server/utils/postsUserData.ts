@@ -1,7 +1,7 @@
 import { Permission, Query, Role } from 'node-appwrite'
 import type { H3Event } from 'h3'
 import { communityModeratorLabel } from '../../../core/shared/communityModeratorLabel'
-import { POLL_VOTES_TABLE, POSTS_TABLE, POST_VOTES_TABLE, type CommunityPost, type PollVote, type PostVote } from '../../shared/types/post'
+import { MEMBER_COUNTERS_TABLE, POLL_VOTES_TABLE, POSTS_TABLE, POST_VOTES_TABLE, type CommunityPost, type MemberCounters, type PollVote, type PostVote } from '../../shared/types/post'
 
 /**
  * GDPR-Contributor des posts-Layers (Vertrag: core/server/utils/userData.ts).
@@ -44,6 +44,9 @@ export async function postsExportUserData(event: H3Event, userId: string) {
   // Degradiert auf leer, solange Migration 003 auf einer Instanz aussteht
   const postVotes = await listAllRows<PostVote>(tablesDB, databaseId, POST_VOTES_TABLE, [Query.equal('userId', userId)])
     .catch(() => [] as PostVote[])
+  // Degradiert auf leer, solange posts-013 auf einer Instanz aussteht.
+  const counters = await listAllRows<MemberCounters>(tablesDB, databaseId, MEMBER_COUNTERS_TABLE, [Query.equal('userId', userId)])
+    .catch(() => [] as MemberCounters[])
 
   return {
     posts: posts.map(p => ({
@@ -53,6 +56,13 @@ export async function postsExportUserData(event: H3Event, userId: string) {
     })),
     pollVotes: votes.map(v => ({ postId: v.postId, optionIndex: v.optionIndex, createdAt: v.$createdAt })),
     postVotes: postVotes.map(v => ({ postId: v.postId, value: v.value, createdAt: v.$createdAt })),
+    // F1: die mitschreibenden Zähler sind Zahlen ÜBER einen Menschen und
+    // gehören deshalb in seine Auskunft — je Community eine Zeile.
+    counters: counters.map(c => ({
+      topicsCreated: c.topicsCreated, repliesCreated: c.repliesCreated,
+      upvotesGiven: c.upvotesGiven, upvotesReceived: c.upvotesReceived,
+      edits: c.edits, createdAt: c.$createdAt,
+    })),
   }
 }
 
@@ -77,6 +87,24 @@ export async function postsDeleteUserData(event: H3Event, userId: string): Promi
     .catch(() => [] as PostVote[])
   for (const vote of scoreVotes) {
     await tablesDB.deleteRow({ databaseId, tableId: POST_VOTES_TABLE, rowId: vote.$id })
+    deleted++
+  }
+
+  /**
+   * F1: die mitschreibenden Zähler sind Hard-Delete.
+   *
+   * Anders als ein Beitrag sind sie kein Gesprächskontext anderer — es sind
+   * Zahlen ÜBER genau diesen Menschen, und ohne ihn haben sie keinen
+   * Gegenstand mehr. Ein Grabstein wäre hier sinnlos.
+   *
+   * Die Liste degradiert auf leer, solange posts-013 auf einer Instanz
+   * aussteht; die Löschungen selbst sind STRIKT (Muster der Stimmen darüber),
+   * weil `deleteUserCompletely` das Konto nur bei Voll-Erfolg entfernt.
+   */
+  const counters = await listAllRows<MemberCounters>(tablesDB, databaseId, MEMBER_COUNTERS_TABLE, [Query.equal('userId', userId)])
+    .catch(() => [] as MemberCounters[])
+  for (const row of counters) {
+    await tablesDB.deleteRow({ databaseId, tableId: MEMBER_COUNTERS_TABLE, rowId: row.$id })
     deleted++
   }
 

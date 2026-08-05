@@ -1,6 +1,7 @@
 import { Query } from 'node-appwrite'
 import type { H3Event } from 'h3'
 import { type BadgeFacts, emptyBadgeFacts } from '../../shared/badges'
+import type { MemberCounterValues } from '../../shared/memberCounters'
 import { USER_BADGES_TABLE, type UserBadge } from '../../shared/types/post'
 
 /**
@@ -54,12 +55,37 @@ export function badgeFactsFrom(
   counters: Record<string, number>,
   thresholds: readonly number[],
   memberForDays: number | null = null,
+  written: MemberCounterValues | null = null,
 ): BadgeFacts {
   const facts = emptyBadgeFacts()
   facts.memberForDays = memberForDays
   facts.recentContent = counters[COUNTER_CONTENT_SINCE] ?? 0
   facts.profileComplete = (counters[COUNTER_PROFILE_COMPLETE] ?? 0) >= 1
-  facts.likesGiven = counters[COUNTER_LIKES_GIVEN] ?? 0
+  /**
+   * DIE MITSCHREIBENDEN ZÄHLER SIND DIE AUTORITÄT, WO SIE DIESELBE FRAGE
+   * BEANTWORTEN (F1) — und das sind heute genau zwei:
+   *
+   *  - `likesGiven` ⇔ `upvotesGiven`: identische Frage, zwei Wege. Der Zähler
+   *    gewinnt, weil er der Weg ist, den die späteren Teilpakete gehen (Trust
+   *    Levels werten beim SCHREIBEN aus, wo acht `count`-Abfragen nicht
+   *    bezahlbar sind). Damit die Umstellung nichts kostet, zieht die
+   *    Auswertestelle einen zurückgefallenen Zähler vorher aufs Aggregat
+   *    (`ensureSeededCounters` ⇒ `counterFellBehind`).
+   *  - `edits`: kommt AUSSCHLIESSLICH von dort — eine Bearbeitung hinterlässt
+   *    in den Inhalts-Tabellen keinen zählbaren Bestand.
+   *
+   * Die Schwellen-Zahlen (`likedItems` und Geschwister) bleiben Aggregat, und
+   * das ist kein Übergangszustand: ein laufender Zähler kann „wie viele meiner
+   * Beiträge haben ≥5 Stimmen" nicht beantworten, ohne je Schwelle einen
+   * eigenen Stand zu führen und bei jeder Stimme zu wissen, welcher Beitrag
+   * gerade welche Grenze überschritten hat.
+   *
+   * OHNE ZÄHLER-ZEILE (Silo ohne Discussions, Störung) fällt alles auf die
+   * Aggregate zurück — `edits` ist dann 0, das Abzeichen „Editor" bleibt
+   * unverdient. Nie ein Abzeichen zu viel, das ist die gutmütige Richtung.
+   */
+  facts.likesGiven = written?.upvotesGiven ?? counters[COUNTER_LIKES_GIVEN] ?? 0
+  facts.edits = written?.edits ?? 0
   facts.flagsRaised = counters[COUNTER_FLAGS_RAISED] ?? 0
   for (const threshold of thresholds) {
     facts.likedItems[threshold] = counters[counterLikedItems(threshold)] ?? 0
