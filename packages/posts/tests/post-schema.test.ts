@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { createPostSchema, createPostEditSchema, createVoteSchema } from '../schemas/post'
 import { parsePollOptions } from '../server/utils/postsFeed'
+import { MAX_POST_BODY, MAX_POST_TITLE } from '../shared/types/post'
+import { textLength } from '../shared/postBody'
 
 const inFuture = (ms: number) => new Date(Date.now() + ms).toISOString()
 
@@ -97,5 +99,41 @@ describe('formatCount', () => {
     expect(formatCount(13_400)).toBe('13.4K')
     expect(formatCount(134_000)).toBe('134K')
     expect(formatCount(1_200_000)).toBe('1.2M')
+  })
+})
+
+/**
+ * Die Längengrenze misst CODEPOINTS, weil die Spalte das tut (varchar(10000),
+ * am 2026-08-04 gegen Appwrite 1.9.6 nachgemessen — shared/postBody.ts).
+ * Vorher zählte Zod UTF-16-Einheiten und lehnte damit Beiträge ab, die
+ * Appwrite anstandslos gespeichert hätte.
+ */
+describe('Längengrenze zählt wie die Spalte', () => {
+  const schema = createPostSchema()
+  const edit = createPostEditSchema()
+  const emoji = '\u{1F600}'
+
+  it('nimmt genau MAX_POST_BODY Zeichen an — auch als Emoji', () => {
+    expect(schema.safeParse({ type: 'post', body: 'a'.repeat(MAX_POST_BODY) }).success).toBe(true)
+    expect(schema.safeParse({ type: 'post', body: emoji.repeat(MAX_POST_BODY) }).success).toBe(true)
+    expect(edit.safeParse({ body: emoji.repeat(MAX_POST_BODY) }).success).toBe(true)
+  })
+
+  it('lehnt ein Zeichen mehr ab — auch als Emoji', () => {
+    expect(schema.safeParse({ type: 'post', body: 'a'.repeat(MAX_POST_BODY + 1) }).success).toBe(false)
+    expect(schema.safeParse({ type: 'post', body: emoji.repeat(MAX_POST_BODY + 1) }).success).toBe(false)
+    expect(edit.safeParse({ body: emoji.repeat(MAX_POST_BODY + 1) }).success).toBe(false)
+  })
+
+  it('gilt genauso für den Titel', () => {
+    const body = 'x'
+    expect(schema.safeParse({ type: 'post', body, title: emoji.repeat(MAX_POST_TITLE) }).success).toBe(true)
+    expect(schema.safeParse({ type: 'post', body, title: emoji.repeat(MAX_POST_TITLE + 1) }).success).toBe(false)
+  })
+
+  it('textLength zählt Codepoints, nicht UTF-16-Einheiten', () => {
+    expect(emoji.length).toBe(2)
+    expect(textLength(emoji)).toBe(1)
+    expect(textLength('äöü')).toBe(3)
   })
 })

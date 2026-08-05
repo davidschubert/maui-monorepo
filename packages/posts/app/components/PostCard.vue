@@ -190,7 +190,13 @@ const showTooltip = computed(() => (props.replyCount ?? 0) > 0)
           class="w-full"
           data-post-edit-title
         />
-        <UTextarea v-model="editBody" :rows="3" autoresize class="w-full" />
+        <!-- Dieselbe Schreibfläche wie im Composer (PostBodyField) — neu
+             schreiben und bearbeiten dürfen nicht auseinanderlaufen. -->
+        <PostBodyField
+          v-model="editBody"
+          :placeholder="t(`posts.composer.placeholder.${post.type}`)"
+          data-post-edit-body
+        />
         <div class="flex justify-end gap-2">
           <UButton color="neutral" variant="ghost" size="xs" @click="() => { editing = false }">{{ t('ui.cancel') }}</UButton>
           <UButton size="xs" :loading="busy" @click="saveEdit">{{ t('posts.card.save') }}</UButton>

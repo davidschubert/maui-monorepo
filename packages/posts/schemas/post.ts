@@ -1,8 +1,27 @@
 import { z } from 'zod'
 import { MAX_POLL_OPTION_LENGTH, MAX_POLL_OPTIONS, MAX_POST_BODY, MAX_POST_TITLE } from '../shared/types/post'
+import { textLength } from '../shared/postBody'
 
 type TranslateFn = (key: string) => string
 const identity: TranslateFn = key => key
+
+/**
+ * Titel und Text messen CODEPOINTS, nicht UTF-16-Einheiten — genau wie die
+ * Spalte, in die sie fallen (Begründung + Messung: shared/postBody.ts).
+ * `.max()` von Zod täte hier das Falsche und lehnte einen Beitrag aus 6000
+ * Emoji ab, den Appwrite anstandslos speichert.
+ */
+function titleField(t: TranslateFn) {
+  return z.string().trim()
+    .refine(v => textLength(v) <= MAX_POST_TITLE, t('posts.validation.titleMax'))
+    .optional()
+}
+
+function bodyField(t: TranslateFn) {
+  return z.string().trim()
+    .min(1, t('posts.validation.bodyRequired'))
+    .refine(v => textLength(v) <= MAX_POST_BODY, t('posts.validation.bodyMax'))
+}
 
 /** Geplante Posts: Termin in der Zukunft, max. 90 Tage voraus (Fat-Finger-Schutz) */
 function scheduledAtSchema(t: TranslateFn) {
@@ -13,10 +32,8 @@ function scheduledAtSchema(t: TranslateFn) {
 }
 
 const base = (t: TranslateFn) => ({
-  title: z.string().trim().max(MAX_POST_TITLE, t('posts.validation.titleMax')).optional(),
-  body: z.string().trim()
-    .min(1, t('posts.validation.bodyRequired'))
-    .max(MAX_POST_BODY, t('posts.validation.bodyMax')),
+  title: titleField(t),
+  body: bodyField(t),
   scheduledAt: scheduledAtSchema(t),
   /**
    * F1 Stufe 1: Kategorie (Row-Id) oder weglassen. Additiv und optional — ein
@@ -50,10 +67,8 @@ export function createPostSchema(t: TranslateFn = identity) {
 
 export function createPostEditSchema(t: TranslateFn = identity) {
   return z.object({
-    title: z.string().trim().max(MAX_POST_TITLE, t('posts.validation.titleMax')).optional(),
-    body: z.string().trim()
-      .min(1, t('posts.validation.bodyRequired'))
-      .max(MAX_POST_BODY, t('posts.validation.bodyMax')),
+    title: titleField(t),
+    body: bodyField(t),
     /**
      * F1: Umkategorisieren durch den AUTOR.
      *

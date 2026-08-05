@@ -199,12 +199,9 @@ async function submit() {
         data-composer-title
       />
 
-      <UTextarea
+      <PostBodyField
         v-model="body"
         :placeholder="bodyPlaceholder"
-        :rows="3"
-        autoresize
-        class="w-full"
         data-composer-body
       />
 
