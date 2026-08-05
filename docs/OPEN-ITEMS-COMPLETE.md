@@ -186,6 +186,36 @@ UTF-16-Einheiten) werden angenommen, 10 001 abgelehnt. Ein Beitrag aus 6000
 Emoji wurde also mit „zu lang" abgewiesen, obwohl die Spalte ihn genommen
 hätte. Für lateinischen Text fällt das nie auf; deshalb hat es auch niemand
 gemerkt.
+### F1 — Private Nachrichten v1: DAMIT IST F1 KOMPLETT ✅ 2026-08-04
+
+**Davids Bau-Go** („starte den bau der pn v1") auf das am selben Tag
+entscheidungskomplette Konzept (PRIVATE-NACHRICHTEN-KONZEPT.md — dort die
+sieben Entscheidungen und der Stufenplan; Ausbaustufen 2/3 wie Suche, Digest,
+Gruppen-PN sind dort beschrieben und werden erst bei Bedarf zu offenen
+Punkten). Gebaut: neuer Produkt-Layer `packages/messages` (56 Dateien) —
+fünf Tabellen (messages-001; Teilnehmer als EIGENE Tabelle statt Array-Spalte:
+Appwrite 1.9.6 kann keine Array-Indizes, und der Ungelesen-Zähler wird so
+atomar), Row-Permissions NUR Teilnehmer (die Moderation liest ausschließlich
+den eingefrorenen Meldungs-Snapshot), „Tür vor der Tür" in messageGate.ts
+(Owner-Schalter → Sperre+Stufe im SELBEN Fehler — kein Blockier-Orakel —
+→ Budgets zuletzt, abgewiesene Versuche kosten kein Kontingent), Adressierung
+über Handles (nie User-Ids — sonst wäre das Formular ein Adressbuch),
+Inbox-UI nach dem Nuxt-UI-Template-Muster (Davids Hinweis), UEditor-
+Schreibfläche ohne Überschriften/Codeblöcke, DSGVO-Contributor ab Tag 1,
+`tenancy.products.messages: 'personal'`. `messages.write` zusätzlich für
+ernannte Rollen (nicht Viewer — dort muss der Spam-Schutz greifen);
+Live-Befund des Agenten: ein berufener Moderator mit Stufe 0 lief ins
+Null-Budget → `effectiveOpenerLevel` verbindet beide Quellen. Beweise:
+verify-messages.mjs 64/64 (Schema) + 92/92 (Live-Schutzpfad) — beide auch
+bei mir gefahren —, messages 57 + core 758 Tests, alle Tore grün,
+messages-001 auf allen vier Instanzen VOR dem Deploy. Für Bestand ändert
+sich NICHTS: `message_settings` leer = aus, der Owner öffnet bewusst.
+
+**Gelernt:** Wenn ein Recht ZWEI Quellen hat (Stufe oder Ernennung), müssen
+alle nachgelagerten Rechnungen beide kennen — die Tür ließ den berufenen
+Moderator durch, das Budget kannte nur die Stufe und gab ihm null. Solche
+Fehler findet erst ein Lauf gegen die echte Instanz, kein Fixture.
+
 ### F1 gemeinsames Paket, Teilpaket 3 — Trust Levels ✅ 2026-08-04
 
 **Davids Go** („danach direkt teilpaket 3") plus zwei per Frage abgenommene

@@ -43,7 +43,7 @@ const WAVES = ['internal', 'canary', 'stable']
 // Fundament zuerst — admin liest z. B. Tables, die system/comments anlegen.
 // `feedback` steht seit E10 NICHT mehr hier: der Layer besitzt keine Tables
 // mehr, das zentrale Kunden-Feedback liegt im Control Plane (control-032).
-const LAYER_ORDER = ['system', 'comments', 'posts', 'events', 'media', 'billing', 'pages', 'courses', 'tickets', 'moderation', 'analytics', 'control', 'admin']
+const LAYER_ORDER = ['system', 'comments', 'posts', 'events', 'media', 'billing', 'pages', 'courses', 'tickets', 'moderation', 'analytics', 'messages', 'control', 'admin']
 
 function parseArgs(argv) {
   const args = { app: null, envFile: null, layers: [], wave: null, controlEnv: null, keysDir: null }

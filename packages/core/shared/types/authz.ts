@@ -166,5 +166,48 @@ export type Capability =
    * ROLLEN-ZUORDNUNG (communityAuthz.ts), nicht der Namensraum.
    */
   | 'posts.appoint' // Vertrauensstufe 4 ernennen/entziehen (nur Owner)
+  /**
+   * EINE PRIVATE KONVERSATION ERÖFFNEN (Private Nachrichten Stufe 1,
+   * 2026-08-05 — Konzept § 2.4).
+   *
+   * DIE ERSTE CAPABILITY, DIE IHRE HAUPTQUELLE IN EINER VERTRAUENSSTUFE HAT:
+   * sie steht bei Stufe 1 in `TRUST_LEVEL_CAPABILITIES`. Davids Katalog gibt
+   * private Nachrichten dem TL1 („Basic"), und das ist der stärkste
+   * Spam-Schutz in diesem Produkt, weil er nichts erkennen muss — TL1 verlangt
+   * zwei Tage Mitgliedschaft, einen eigenen Inhalt und eine vergebene
+   * Zustimmung. Ein Wegwerf-Konto kann damit gar nicht eröffnen, und ein
+   * Spammer muss zwei Tage lang sichtbar mitmachen. Sichtbar heißt:
+   * moderierbar, BEVOR er den privaten Kanal erreicht.
+   *
+   * WARUM SIE ZUSÄTZLICH AN VIER ROLLEN HÄNGT (communityAuthz.ts): Editor,
+   * Moderator, Admin und Owner werden ERNANNT. Eine Ernennung durch den Owner
+   * ist eine stärkere Vertrauensaussage als jede Schwelle, und ein Owner, der
+   * seinem frisch berufenen Moderator am ersten Tag nicht schreiben kann, wäre
+   * nicht erklärbar. Der VIEWER bekommt sie ausdrücklich NICHT — das ist genau
+   * die Rolle, die ein automatischer Beitritt vergibt (A5), und dort muss der
+   * Spam-Schutz greifen.
+   *
+   * SIE DARF NIE BEI STUFE 0 STEHEN, und daran hängt eine Sicherheitszusage
+   * (Konzept § 3): eine private Nachricht löst über die Datentür den
+   * A5-Beitritt aus. Solange nur schreiben darf, wer längst Mitglied ist, ist
+   * dieser Auslöser strukturell ein No-op. Stünde die Capability bei Stufe 0,
+   * könnte sich ein Fremder durch das Anschreiben EINES Mitglieds das
+   * Lese-Label einer geschlossenen Community verschaffen — die Nachricht wäre
+   * der Schlüssel zur Haustür. `packages/messages/tests/trustGate.test.ts`
+   * nagelt das fest.
+   */
+  | 'messages.write' // private Konversation eröffnen (TL1, Editor/Moderator+)
+  /**
+   * DEN PRIVATEN KANAL EINER COMMUNITY AUF- UND ZUMACHEN (Konzept § 2.6,
+   * Davids Entscheidung 4: Default AUS) — NUR Owner.
+   *
+   * Warum Owner und nicht Admin: das ist keine Verwaltung dessen, was es gibt,
+   * sondern die Entscheidung, ob es einen unbeobachteten Kanal zwischen
+   * Mitgliedern ÜBERHAUPT gibt. Davids Rahmensetzung nennt genau diese Sorge —
+   * „ein Nachrichtenweg ohne Meldeweg und Sperre ist ein Missbrauchskanal" —
+   * und die Antwort darauf ist ein Schalter beim Eigentümer, dieselbe Klasse
+   * wie `community.embed` und `community.analytics`.
+   */
+  | 'messages.manage' // private Nachrichten der Community ein-/ausschalten (nur Owner)
 
 export type Role = 'admin' | 'moderator'

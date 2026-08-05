@@ -308,6 +308,13 @@ export default defineAppConfig({
         // (ClickHouse). Eine Basic-Community bekommt deshalb kein Script; die
         // Zeile ist ohne Code-Änderung umstellbar.
         analytics: 'personal',
+        // Private Nachrichten (2026-08-05): ab Personal, und die Begründung
+        // ist keine Preisstrategie, sondern eine Abhängigkeit — ohne den
+        // posts-Layer gibt es keine `member_counters`, ohne Zähler keine
+        // Vertrauensstufe, ohne Stufe keinen Absender. Ein PN-Produkt in
+        // einem Basic-Tarif ohne posts wäre ein Menüpunkt, den niemand
+        // benutzen kann (Konzept § 8, Entscheidung 7).
+        messages: 'personal',
       },
     },
   },

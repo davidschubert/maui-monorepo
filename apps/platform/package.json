@@ -28,6 +28,7 @@
     "@pukalani/events": "workspace:*",
     "@pukalani/feedback": "workspace:*",
     "@pukalani/media": "workspace:*",
+    "@pukalani/messages": "workspace:*",
     "@pukalani/moderation": "workspace:*",
     "@pukalani/onboarding": "workspace:*",
     "@pukalani/pages": "workspace:*",

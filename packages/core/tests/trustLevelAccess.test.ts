@@ -84,7 +84,9 @@ describe('die Stufen-Matrix selbst', () => {
     // nach, wenn hier `true` steht. Ein falsches `false` wäre ein Recht, das
     // nie greift; ein falsches `true` eine Abfrage an jeder Route.
     const granting = ALL_CAPABILITIES.filter(trustLevelGrantsCapability)
-    expect([...granting].sort()).toEqual(['posts.arrange', 'posts.curate', 'posts.revise'])
+    // `messages.write` kam am 2026-08-05 dazu (private Nachrichten, Stufe 1) —
+    // die erste Capability, deren HAUPTQUELLE eine Vertrauensstufe ist.
+    expect([...granting].sort()).toEqual(['messages.write', 'posts.arrange', 'posts.curate', 'posts.revise'])
   })
 })
 
@@ -174,6 +176,8 @@ describe('decideCommunityAccess mit Stufe', () => {
 describe('die Capabilities einer Stufe für die Oberfläche', () => {
   it('liest eine kaputte Zahl als „keine Stufe"', () => {
     expect([...trustLevelCapabilitiesFor(undefined)]).toEqual([])
-    expect([...trustLevelCapabilitiesFor(3)]).toEqual(['posts.curate'])
+    // Stufe 3 trägt seit den privaten Nachrichten (2026-08-05) zwei Rechte:
+    // `messages.write` erbt sie von Stufe 1, `posts.curate` ist ihr eigenes.
+    expect([...trustLevelCapabilitiesFor(3)]).toEqual(['messages.write', 'posts.curate'])
   })
 })

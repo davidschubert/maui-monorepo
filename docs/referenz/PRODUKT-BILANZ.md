@@ -25,6 +25,7 @@ Protokoll in [`docs/archiv/PRODUKT-BILANZ-2026-07-27.md`](../archiv/PRODUKT-BILA
 | **events** | ✅ | _template, comments | 17/18 über `tenantDb` | ✅ | pro |
 | **feedback** | ✅ | control | 0/8 über `tenantDb` | — | — |
 | **media** | ✅ | comments, photos | 5/5 über `tenantDb` | ✅ | personal |
+| **messages** | ✅ | comments | 0/13 über `tenantDb` | ✅ | personal |
 | **moderation** | ✅ | _template, comments | 3/4 über `tenantDb` | ✅ | — |
 | **pages** | ✅ | control | 6/6 über `tenantDb` | ✅ | — |
 | **posts** | ✅ | _template, comments | 23/25 über `tenantDb` | ✅ | personal |
@@ -55,6 +56,7 @@ holt seine Daten über die Naht eines anderen Layers.
 | `events` | ✅ | ✅ | — | — | ✅ | — |
 | `feedback` | — | — | ✅ | — | ✅ | — |
 | `media` | — | ✅ | — | ✅ | ✅ | — |
+| `messages` | — | ✅ | — | — | ✅ | — |
 | `moderation` | ✅ | ✅ | — | — | ✅ | — |
 | `onboarding` | — | — | — | — | ✅ | — |
 | `pages` | — | — | ✅ | — | ✅ | — |

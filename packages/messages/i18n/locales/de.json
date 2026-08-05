@@ -1,0 +1,114 @@
+{
+  "messages": {
+    "nav": {
+      "inbox": "Nachrichten",
+      "reports": "Gemeldete Nachrichten",
+      "settings": "Private Nachrichten"
+    },
+    "inbox": {
+      "title": "Nachrichten",
+      "description": "Deine privaten Gespräche in dieser Community.",
+      "empty": "Noch keine Nachrichten.",
+      "emptyHint": "Schreib jemandem über seinen Namen — du findest ihn über den Knopf oben.",
+      "select": "Wähle links ein Gespräch aus.",
+      "new": "Neue Nachricht",
+      "unreadFilter": "Ungelesen",
+      "allFilter": "Alle",
+      "count": "{count} Gespräche",
+      "loadFailed": "Der Posteingang konnte nicht geladen werden.",
+      "disabled": "Diese Community hat private Nachrichten nicht eingeschaltet.",
+      "disabledHint": "Der Owner kann sie in den Einstellungen aktivieren."
+    },
+    "thread": {
+      "placeholder": "Nachricht schreiben …",
+      "send": "Senden",
+      "sent": "Nachricht gesendet.",
+      "sendFailed": "Die Nachricht konnte nicht gesendet werden.",
+      "unavailable": "Diese Person nimmt derzeit keine Nachrichten von dir an.",
+      "rateLimited": "Du hast gerade sehr viele Nachrichten geschrieben. Versuch es später noch einmal.",
+      "blocked": "Du hast diese Person gesperrt. Solange die Sperre gilt, kann keiner von euch dem anderen schreiben.",
+      "loadFailed": "Das Gespräch konnte nicht geladen werden.",
+      "typing": "tippt gerade …",
+      "deletedAccount": "Dieses Konto wurde gelöscht.",
+      "close": "Gespräch schließen",
+      "remove": "Für mich entfernen",
+      "removeConfirm": "Dieses Gespräch aus deinem Posteingang entfernen? Es kommt zurück, sobald jemand darin schreibt.",
+      "removed": "Gespräch entfernt.",
+      "removeFailed": "Das Gespräch konnte nicht entfernt werden.",
+      "report": "Nachricht melden",
+      "block": "Person sperren",
+      "unblock": "Sperre aufheben",
+      "readAt": "gelesen"
+    },
+    "compose": {
+      "title": "Neue Nachricht",
+      "recipient": "An",
+      "recipientPlaceholder": "Name eingeben (ohne {'@'})",
+      "recipientHint": "Gesucht wird der Kurzname innerhalb dieser Community.",
+      "body": "Nachricht",
+      "submit": "Senden",
+      "cancel": "Abbrechen"
+    },
+    "block": {
+      "title": "Person sperren",
+      "description": "Solange die Sperre gilt, kann keiner von euch dem anderen schreiben. Die andere Person erfährt davon nichts.",
+      "everywhere": "Auch in meinen anderen Communities sperren",
+      "everywhereHint": "Die Sperre gilt dann überall dort, wo ihr beide Mitglied seid.",
+      "submit": "Sperren",
+      "cancel": "Abbrechen",
+      "done": "Person gesperrt.",
+      "failed": "Die Sperre konnte nicht gesetzt werden.",
+      "removed": "Sperre aufgehoben.",
+      "removeFailed": "Die Sperre konnte nicht aufgehoben werden.",
+      "listTitle": "Gesperrte Personen",
+      "listEmpty": "Du hast niemanden gesperrt.",
+      "scopeCommunity": "Nur hier",
+      "scopeEverywhere": "Überall"
+    },
+    "settings": {
+      "title": "Private Nachrichten",
+      "description": "Ob Mitglieder einander private Nachrichten schreiben können.",
+      "enabled": "Private Nachrichten erlauben",
+      "enabledHint": "Ab Werk ausgeschaltet. Wer sie einschaltet, öffnet einen Kanal zwischen Mitgliedern, den außer den Beteiligten niemand mitliest — gemeldete Nachrichten sieht die Moderation.",
+      "protection": "Schreiben darf, wer Vertrauensstufe 1 erreicht hat. Jede Nachricht ist meldbar, jede Person sperrbar.",
+      "save": "Speichern",
+      "saved": "Einstellung gespeichert.",
+      "saveFailed": "Speichern fehlgeschlagen."
+    },
+    "reports": {
+      "title": "Gemeldete Nachrichten",
+      "description": "Nur gemeldete Nachrichten sind hier sichtbar — und zwar so, wie sie im Moment der Meldung dastanden.",
+      "empty": "Keine gemeldeten Nachrichten.",
+      "from": "Von",
+      "to": "An",
+      "sentAt": "Gesendet",
+      "reportedAt": "Gemeldet",
+      "openReports": "Offene Meldungen",
+      "snapshotNote": "Dieser Text ist eine eingefrorene Kopie. Der Verlauf des Gesprächs bleibt privat.",
+      "loadFailed": "Die Liste konnte nicht geladen werden."
+    },
+    "reasons": {
+      "harassment": "Belästigung",
+      "spam": "Spam",
+      "inappropriate": "Unangemessener Inhalt",
+      "other": "Sonstiges"
+    },
+    "write": {
+      "action": "Nachricht schreiben"
+    },
+    "editor": {
+      "bold": "Fett",
+      "italic": "Kursiv",
+      "code": "Code",
+      "bulletList": "Aufzählung",
+      "orderedList": "Nummerierte Liste",
+      "link": "Link",
+      "quote": "Zitat"
+    },
+    "validation": {
+      "bodyRequired": "Schreib etwas.",
+      "bodyTooLong": "Höchstens {max} Zeichen.",
+      "recipientRequired": "Wähle eine Empfängerin oder einen Empfänger."
+    }
+  }
+}

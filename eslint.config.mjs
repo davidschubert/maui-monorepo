@@ -31,7 +31,7 @@ const pkg = name => [`@pukalani/${name}`, `@pukalani/${name}/**`]
  */
 const FOUNDATION = ['core', 'system', 'moderation', 'admin', 'billing', 'themes']
 const SEAM = ['blueprint', 'onboarding', 'control']
-const PRODUCTS = ['comments', 'posts', 'events', 'courses', 'tickets', 'feedback', 'media', 'activity', 'pages', 'analytics']
+const PRODUCTS = ['comments', 'posts', 'events', 'courses', 'tickets', 'feedback', 'media', 'activity', 'pages', 'analytics', 'messages']
 
 // Stimmt die Aufteilung noch mit dem Dateisystem überein? Ein neuer Layer ohne
 // Topf soll den Lint SOFORT brechen — sonst wächst wieder eine stille Lücke.
@@ -391,6 +391,12 @@ export default createConfigForNuxt({
     'packages/activity/server/plugins/**',
     'packages/analytics/server/api/**',
     'packages/analytics/server/plugins/**',
+    // messages (2026-08-05): alle vier Tabellen tragen communityId. Die EINE
+    // bewusste Ausnahme (die mandantenübergreifende Sperr-Abfrage) liegt in
+    // server/utils und damit außerhalb dieses Scopes — begründet im Kopf von
+    // packages/messages/server/utils/messageBlocks.ts.
+    'packages/messages/server/api/**',
+    'packages/messages/server/plugins/**',
     // admin kam am 2026-08-01 dazu (Audit-Befund): der Layer besitzt zwar keine
     // mandantenfähigen Tabellen, seine Routen LESEN aber fremde (die
     // Nutzer-Detailseite zog `comments` ungescopt pool-weit). Wer in einer

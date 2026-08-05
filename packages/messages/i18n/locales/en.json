@@ -1,0 +1,114 @@
+{
+  "messages": {
+    "nav": {
+      "inbox": "Messages",
+      "reports": "Reported messages",
+      "settings": "Private messages"
+    },
+    "inbox": {
+      "title": "Messages",
+      "description": "Your private conversations in this community.",
+      "empty": "No messages yet.",
+      "emptyHint": "Write to someone by their name — use the button above to find them.",
+      "select": "Pick a conversation on the left.",
+      "new": "New message",
+      "unreadFilter": "Unread",
+      "allFilter": "All",
+      "count": "{count} conversations",
+      "loadFailed": "The inbox could not be loaded.",
+      "disabled": "This community has not switched on private messages.",
+      "disabledHint": "The owner can enable them in the settings."
+    },
+    "thread": {
+      "placeholder": "Write a message …",
+      "send": "Send",
+      "sent": "Message sent.",
+      "sendFailed": "The message could not be sent.",
+      "unavailable": "This person does not accept messages from you right now.",
+      "rateLimited": "You have written a lot of messages just now. Please try again later.",
+      "blocked": "You blocked this person. While the block is in place, neither of you can write to the other.",
+      "loadFailed": "The conversation could not be loaded.",
+      "typing": "is typing …",
+      "deletedAccount": "This account was deleted.",
+      "close": "Close conversation",
+      "remove": "Remove for me",
+      "removeConfirm": "Remove this conversation from your inbox? It comes back as soon as someone writes in it.",
+      "removed": "Conversation removed.",
+      "removeFailed": "The conversation could not be removed.",
+      "report": "Report message",
+      "block": "Block person",
+      "unblock": "Remove block",
+      "readAt": "read"
+    },
+    "compose": {
+      "title": "New message",
+      "recipient": "To",
+      "recipientPlaceholder": "Enter a name (without {'@'})",
+      "recipientHint": "We look for the short name inside this community.",
+      "body": "Message",
+      "submit": "Send",
+      "cancel": "Cancel"
+    },
+    "block": {
+      "title": "Block person",
+      "description": "While the block is in place, neither of you can write to the other. The other person is not told about it.",
+      "everywhere": "Also block in my other communities",
+      "everywhereHint": "The block then applies everywhere you are both members.",
+      "submit": "Block",
+      "cancel": "Cancel",
+      "done": "Person blocked.",
+      "failed": "The block could not be set.",
+      "removed": "Block removed.",
+      "removeFailed": "The block could not be removed.",
+      "listTitle": "Blocked people",
+      "listEmpty": "You have not blocked anyone.",
+      "scopeCommunity": "Here only",
+      "scopeEverywhere": "Everywhere"
+    },
+    "settings": {
+      "title": "Private messages",
+      "description": "Whether members can write private messages to each other.",
+      "enabled": "Allow private messages",
+      "enabledHint": "Off by default. Switching it on opens a channel between members that nobody else reads — reported messages are visible to moderation.",
+      "protection": "Writing requires trust level 1. Every message can be reported, every person can be blocked.",
+      "save": "Save",
+      "saved": "Setting saved.",
+      "saveFailed": "Saving failed."
+    },
+    "reports": {
+      "title": "Reported messages",
+      "description": "Only reported messages appear here — exactly as they read at the moment they were reported.",
+      "empty": "No reported messages.",
+      "from": "From",
+      "to": "To",
+      "sentAt": "Sent",
+      "reportedAt": "Reported",
+      "openReports": "Open reports",
+      "snapshotNote": "This text is a frozen copy. The rest of the conversation stays private.",
+      "loadFailed": "The list could not be loaded."
+    },
+    "reasons": {
+      "harassment": "Harassment",
+      "spam": "Spam",
+      "inappropriate": "Inappropriate content",
+      "other": "Other"
+    },
+    "write": {
+      "action": "Write a message"
+    },
+    "editor": {
+      "bold": "Bold",
+      "italic": "Italic",
+      "code": "Code",
+      "bulletList": "Bullet list",
+      "orderedList": "Numbered list",
+      "link": "Link",
+      "quote": "Quote"
+    },
+    "validation": {
+      "bodyRequired": "Write something.",
+      "bodyTooLong": "At most {max} characters.",
+      "recipientRequired": "Choose a recipient."
+    }
+  }
+}

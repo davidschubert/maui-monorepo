@@ -5,7 +5,7 @@ export default defineNuxtConfig({
   // Der Bestand dieser Instanz bleibt in der Tabelle `feedback` stehen
   // (Entscheidung 6: nicht migrieren, nicht löschen); gesichert wird er vorher
   // mit packages/feedback/scripts/backup-feedback.mjs.
-  extends: ['../../packages/themes', '../../packages/admin', '../../packages/blueprint', '../../packages/comments', '../../packages/posts', '../../packages/events', '../../packages/media', '../../packages/billing', '../../packages/courses', '../../packages/activity', '../../packages/moderation', '../../packages/analytics', '../../packages/core', '../../packages/system'],
+  extends: ['../../packages/themes', '../../packages/admin', '../../packages/blueprint', '../../packages/comments', '../../packages/posts', '../../packages/events', '../../packages/media', '../../packages/billing', '../../packages/courses', '../../packages/activity', '../../packages/messages', '../../packages/moderation', '../../packages/analytics', '../../packages/core', '../../packages/system'],
 
   // MDC-Modul + ProseMirror-Prebundling bringt der admin-Layer selbst mit.
 

@@ -1,6 +1,7 @@
 # Offene Punkte
 
 **Stand: 3 offen · 5 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 2 offen · 3 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-04**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -32,7 +33,6 @@ Nachmittag hält, plant an F1/F3/F7 vorbei.
 
 | # | Reihenfolge | Was (einfach erklärt) | Prio | Aufwand | Braucht David? | Wartet auf … |
 | --- | --- | --- | --- | --- | --- | --- |
-| F1 | 4 — Woche+ | **Discussions — alles Beschlossene ist live** (Stufen 1–4, kleines Paket, Jahrestag, gemeinsames Paket 1–3 inkl. Trust Levels). **Offen nur noch: Private Nachrichten** — Konzept steht und ist seit 2026-08-04 entscheidungskomplett (alle sieben Entscheidungen gefallen, § 8); es fehlt allein Davids Bau-Go. | Mittel | PN: Woche+ | Ja: Bau-Go | [PRIVATE-NACHRICHTEN-KONZEPT.md](plans/PRIVATE-NACHRICHTEN-KONZEPT.md) |
 | F7 | 5 — Wochen | **Bezahlte Communities** — der Owner nimmt Geld von seinen Mitgliedern (Stripe Connect). Eigene Mechanik und eigene Rechtsfragen. **Schluckt D1** (Davids Entscheidung 2026-08-02): bezahlte Pool-Events/-Kurse ergeben erst mit Connect Sinn — sonst landete das Ticketgeld beim Betreiber und der Owner bräuchte je Preis einen lookup_key von David. Events-Hälfte technisch M (S7+A6 haben den alten Webhook-Wartegrund erledigt), Kurse-Hälfte L/XL (community-scoped Entitlements sind unentworfen). | Mittel | XL | Ja: Rechtsfragen | nach dem Go-Live; erst muss Geldfluss 1 (A6) ankommen |
 | F3 | 6 — Wochen | **Silo → Pool:** `comments` und `portfolio` laufen als eigene Instanzen. Langfristig ist der Pool das Produkt, Silo bleibt das Enterprise-Angebot. | Niedrig | XL | Ja: strategisch | eine strategische Entscheidung |
 | F47 | 7 — Tage | **Analytics v2, Rest = nur noch Optionales** (Pakete 1–4 live seit 2026-08-04 — Schalter, Dashboard-Zahlen, Landing-Seite/Pricing, Hilfe + Datenschutz-Vorlage): Adblock-Proxy · vordefinierte Events/Goals · Plausible-Mail-Reports. Nichts davon drängt. | Niedrig | je S–M | Nein | [ANALYTICS-V2.md](plans/ANALYTICS-V2.md) |

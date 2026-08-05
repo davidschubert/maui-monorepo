@@ -272,6 +272,7 @@
     "inviteRequest": "Early-Access-Anfrage von {name}",
     "abuseReport": "Missbrauchsmeldung zu {name}",
     "badgeAwarded": "Abzeichen erhalten: {name}",
+    "messageReceived": "{name} hat dir eine Nachricht geschickt",
     "email": {
       "title": "E-Mail-Benachrichtigungen",
       "description": "Bell-Benachrichtigungen (Antworten, Erwähnungen, Erinnerungen) zusätzlich per E-Mail erhalten.",

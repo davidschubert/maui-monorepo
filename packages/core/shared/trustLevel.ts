@@ -55,19 +55,35 @@ export const TRUST_LEVEL_LEADER = 4
  * anheften/schließen/gelöst + fremde Beiträge bearbeiten; TL1/TL2 sind v1
  * sichtbarer Status + Abzeichen."
  *
- * DASS 1 UND 2 LEER SIND, IST DER PUNKT und keine Lücke: ihre Katalog-Rechte
- * (private Nachrichten, Einladungen durch Mitglieder, mehr Tages-Likes) hängen
- * an Funktionen, die es hier noch gar nicht gibt. Eine erfundene Ersatz-
- * Capability wäre ein Recht ohne Wirkung — die beiden Stufen sind heute genau
- * das, was David gesagt hat: sichtbarer Status und ein Abzeichen. Kommen die
- * Funktionen, kommen ihre Zeilen hierher.
+ * Stufe 1 und 2 waren bis zum 2026-08-05 LEER, und das war der Punkt und keine
+ * Lücke: ihre Katalog-Rechte (private Nachrichten, Einladungen durch
+ * Mitglieder, mehr Tages-Likes) hingen an Funktionen, die es hier noch gar
+ * nicht gab. Der Satz von damals lautete „Kommen die Funktionen, kommen ihre
+ * Zeilen hierher" — genau das ist mit den privaten Nachrichten passiert.
+ *
+ * `messages.write` bei STUFE 1 ist Davids Katalog-Zuordnung („Basic: private
+ * Nachrichten, Melden, Wiki, mehrere Bilder/Links je Beitrag"). Sie steht hier
+ * und NICHT als `if (trustLevel >= 1)`-Zeile in einer Route — das ist Davids
+ * Architektur-Entscheidung vom 2026-08-04: EIN Rechtesystem,
+ * `requireCommunityPermission` bleibt die einzige Tür.
+ *
+ * SIE DARF NIE NACH STUFE 0 WANDERN. Daran hängt die A5-Zusage aus dem
+ * PN-Konzept § 3: eine private Nachricht löst über die Datentür den
+ * Beitritts-Auslöser aus, und der ist nur deshalb strukturell folgenlos, weil
+ * senden darf, wer längst Mitglied ist. Der Test dazu steht in
+ * `packages/messages/tests/trustGate.test.ts`.
+ *
+ * Stufe 2 bleibt vorerst leer: ihre Katalog-Rechte sind Gruppen-Nachrichten
+ * (PN-Konzept § 7, Stufe 3), Mitglieder-Einladungen und das Tages-Like-Limit —
+ * keine davon ist heute gebaut. Dieselbe Regel wie oben gilt weiter: keine
+ * erfundene Ersatz-Capability.
  */
 export const TRUST_LEVEL_CAPABILITIES: Record<TrustLevel, readonly Capability[]> = {
   0: [],
-  1: [],
-  2: [],
-  3: ['posts.curate'],
-  4: ['posts.curate', 'posts.arrange', 'posts.revise'],
+  1: ['messages.write'],
+  2: ['messages.write'],
+  3: ['messages.write', 'posts.curate'],
+  4: ['messages.write', 'posts.curate', 'posts.arrange', 'posts.revise'],
 }
 
 /** Type-Guard: ist die Zahl eine bekannte Stufe? */
