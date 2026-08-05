@@ -129,6 +129,39 @@ UTF-16-Einheiten) werden angenommen, 10 001 abgelehnt. Ein Beitrag aus 6000
 Emoji wurde also mit „zu lang" abgewiesen, obwohl die Spalte ihn genommen
 hätte. Für lateinischen Text fällt das nie auf; deshalb hat es auch niemand
 gemerkt.
+### F1 gemeinsames Paket, Teilpaket 3 — Trust Levels ✅ 2026-08-04
+
+**Davids Go** („danach direkt teilpaket 3") plus zwei per Frage abgenommene
+Festlegungen (DECISION-LOG): Schwellen „Mittel" (TL1: 2 Tage·1 Inhalt·1
+Upvote · TL2: 15·5·10/5 · TL3: 60·25·50/25 · TL4 nur von Hand) und
+v1-Rechte (TL3: fremde Themen umbenennen/umkategorisieren · TL4: +
+anheften/schließen/gelöst + fremde Beiträge bearbeiten). Umsetzung: ZWEI
+Spalten auf member_counters (posts-016: `trustLevel` 0–3 erarbeitet — die
+Spalte selbst weist eine 4 ab — und `trustLevelLeader` als Ernennung; mit
+EINER Spalte hätte der Ernennungs-Entzug die erarbeitete Stufe fail-soft neu
+rechnen müssen und bei klemmender Verbindung eine echte 3 gelöscht).
+RBAC-Einspeisung in `decideCommunityAccess` als dritter Weg `via:'trust'` —
+Rolle → Stufe → Operator-Break-Glass (verdiente Rechte erzeugen keine
+Warnzeile), Stufe wird NUR nachgeschlagen, wenn die Capability überhaupt aus
+ihr folgen kann (3 von 31; alle anderen Routen kosten nichts, Rückwärts-
+Wächter-Test über 5 Rollen × 31 Capabilities). Neue Capabilities
+posts.curate/arrange/revise/appoint; Zustands-Route stellt jetzt ZWEI Fragen
+(„darf setzen" ≠ „ist Stab" — sonst hätte TL4 die Melde-Queue mitgeerbt).
+Aufstieg beim Schreiben (drei Kosten-Ausstiege, Control-Plane-Abruf nur wenn
+Zähler reichen) + Beim-Hinsehen-Netz für reine Zeit-Aufstiege; Level-Up =
+TL-Abzeichen über den Teilpaket-2-Weg samt Glocke. TL4-Fläche
+`/dashboard/discussion-leaders` (posts-eigenes Modul; bewusst nicht die
+Mitgliederliste — A14 und „Stufe ohne Aktivität wäre eine Aussage ohne
+Grundlage"). Beweise: verify-trust-levels.mjs 15/15 gegen echte Appwrite
+(auch bei mir), posts 279 + core 701 Tests, Migration dev+prod VOR Deploy.
+
+**Gelernt:** Wenn eine Verhaltens-Stufe Rechte vergibt, gehört sie im
+Entscheidungsweg VOR das Break-Glass (sonst erzeugt ein verdientes Recht
+Support-Warnzeilen) und hinter einen „kann diese Capability überhaupt aus
+einer Stufe folgen?"-Filter (sonst zahlt jede der 31 Prüfungen eine
+DB-Abfrage). Und „darf X setzen" und „gehört zum Stab" sind zwei Fragen —
+eine geteilte Capability hätte TL4 still die Moderations-Queue geöffnet.
+
 ### F1 gemeinsames Paket, Teilpaket 2 — Mehrfach-Verleihung + Benachrichtigung ✅ 2026-08-04
 
 **Davids Go** („mach direkt mit teilpaket 2 weiter"). `user_badges` ist

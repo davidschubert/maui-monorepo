@@ -1,5 +1,6 @@
 import type { Models } from 'node-appwrite'
 import type { BadgeFacts, BadgeGroup } from '../badges'
+import type { TrustLevelProgress } from '../trustLevels'
 
 export const POSTS_TABLE = 'community_posts'
 export const POLL_VOTES_TABLE = 'poll_votes'
@@ -435,6 +436,58 @@ export interface MemberCounters extends Models.Row {
    * ein längst verdientes Abzeichen wäre verloren.
    */
   seeded: boolean
+  /**
+   * Die ERARBEITETE Vertrauensstufe 0–3 (F1 Teilpaket 3, Migration posts-016).
+   *
+   * Wird ausschließlich nach OBEN geschrieben (`raisedTrustLevel`) — kein
+   * Abstieg, Davids Entscheidung. Eine 4 steht hier nie: die kommt aus
+   * `trustLevelLeader`. Bestandszeilen tragen NULL und werden beim Lesen zu 0
+   * (`normalizeTrustLevel`); das ist die Wahrheit, nicht ein Loch — für sie
+   * wurde die Stufe schlicht noch nie gerechnet.
+   */
+  trustLevel: number
+  /**
+   * Die von Hand ernannte Stufe 4 („Leader") — gesetzt und zurückgenommen vom
+   * Owner (`posts.appoint`), nie von einer Rechnung.
+   *
+   * Getrennt von `trustLevel`, damit ein Entzug genau eine Entscheidung
+   * zurücknimmt und nicht nebenbei die erarbeitete Stufe löscht (vollständige
+   * Begründung im Kopf von Migration posts-016).
+   */
+  trustLevelLeader: boolean
+}
+
+/**
+ * Ein Mensch in der Stufen-Verwaltung des Owners (F1 Teilpaket 3).
+ *
+ * Bewusst KEINE E-Mail: die Fläche beantwortet „wer bekommt Stufe 4", nicht
+ * „wer ist hier angemeldet" — dieselbe Zurückhaltung wie bei der redigierten
+ * Team-Sicht der About-Seite.
+ */
+export interface TrustLevelMember {
+  userId: string
+  /** Anzeigename aus dem Konto — leer, wenn er nicht aufzulösen war. */
+  name: string
+  /** Die WIRKENDE Stufe (erarbeitet oder ernannt). */
+  level: number
+  /** Die erarbeitete Stufe allein — sichtbar, damit ein Entzug erklärbar ist. */
+  earnedLevel: number
+  leader: boolean
+  /** Eröffnete Themen plus geschriebene Antworten. */
+  contentCreated: number
+  upvotesGiven: number
+  upvotesReceived: number
+  /** Wann zuletzt an dieser Zeile etwas passiert ist (ISO). */
+  updatedAt: string
+}
+
+export interface TrustLevelMembersResponse {
+  /** Die aktuell Ernannten — vollständig, sie sind wenige. */
+  leaders: TrustLevelMember[]
+  /** Die zuletzt aktiven Mitglieder mit Zählern (gedeckelt, s. `truncated`). */
+  members: TrustLevelMember[]
+  /** Gab es mehr, als die Seite zeigt? Dann hilft nur die Suche. */
+  truncated: boolean
 }
 
 /** Ein Eintrag der Abzeichen-Galerie: Katalog-Zeile plus eigener Stand. */
@@ -463,4 +516,18 @@ export interface DiscussionBadgesResponse {
    * („20 von 100"), ohne die Zählung ein zweites Mal anzustoßen.
    */
   facts: BadgeFacts | null
+  /**
+   * Die WIRKENDE Vertrauensstufe 0–4 (F1 Teilpaket 3) — 0 für Gäste.
+   *
+   * Sie steht NEBEN `facts.trustLevel` (dieselbe Zahl) und nicht nur darin,
+   * weil `facts` für Gäste null ist und der Stufen-Abschnitt der Galerie auch
+   * dort etwas zeigen können soll: die Stufen sind eine Auskunft darüber, was
+   * es hier zu erreichen gibt.
+   */
+  trustLevel: number
+  /**
+   * Der Weg zur nächsten erarbeitbaren Stufe — `null`, wenn es keinen gibt
+   * (Stufe 3 erreicht, Ernennung, oder Gast).
+   */
+  trustProgress: TrustLevelProgress | null
 }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { bodyToSave as decideBodyToSave } from '../../../core/shared/editorBody'
 import { decidePostAuthorAction } from '../../shared/postAuthorPolicy'
+import { mayEditPost, mayEditPostField } from '../../shared/postEditRights'
 import type { FeedPost, PollState } from '../../shared/types/post'
 
 /**
@@ -49,6 +50,39 @@ const authorAction = computed(() => decidePostAuthorAction(
   user.value?.$id,
 ))
 const isAuthor = computed(() => authorAction.value.isAuthor)
+
+/**
+ * WAS DARF DER BETRACHTER AN EINEM FREMDEN BEITRAG? (F1 Teilpaket 3.)
+ *
+ * Dieselben zwei Capabilities, die die Route prüft — sie kommen aus Rolle ODER
+ * Vertrauensstufe (useCommunityRole führt beide zusammen). Ohne diese Zeilen
+ * hätte eine Stufe 3 ihr Recht, aber keinen Knopf: die Route ließe sie durch,
+ * niemand fände den Weg dorthin.
+ */
+const canCurate = useCommunityCapability('posts.curate')
+const canRevise = useCommunityCapability('posts.revise')
+const editActor = computed(() => ({
+  isAuthor: isAuthor.value,
+  canCurate: canCurate.value,
+  canRevise: canRevise.value,
+}))
+/**
+ * Ein FREMDER Beitrag ist über diese Karte nur bearbeitbar, solange der Autor
+ * es selbst wäre — Status und Poll-Sperre gelten für alle (so entscheidet auch
+ * die Route). `canEdit` beantwortet das für den Autor; für alle anderen sagt
+ * `reason` nur „nicht der Autor", und genau dann greift die Stufen-Frage.
+ */
+const canEditForeign = computed(() =>
+  !isAuthor.value
+  && authorAction.value.reason === 'not_author'
+  // Eine Umfrage bleibt gesperrt: der Client kann fremde Stimmen nicht zählen,
+  // und die Manipulations-Fläche wird nicht kleiner, wenn ein anderer sie
+  // öffnet. Dieselbe konservative Sicht wie bei `hasForeignPollVotes`.
+  && props.post.type !== 'poll'
+  && props.post.status === 'published'
+  && mayEditPost(editActor.value))
+/** Nur wer den TEXT ändern darf, bekommt eine beschreibbare Schreibfläche. */
+const mayEditBody = computed(() => mayEditPostField('body', editActor.value))
 const commentsOpen = ref(props.defaultCommentsOpen === true)
 
 const editing = ref(false)
@@ -96,7 +130,17 @@ async function saveEdit() {
   try {
     const updated = await $fetch<FeedPost>(`/api/posts/${props.post.$id}`, {
       method: 'PATCH',
-      body: { title: editTitle.value.trim() || undefined, body },
+      body: {
+        title: editTitle.value.trim() || undefined,
+        // Wer den Text nicht ändern darf (Kurator, Stufe 3), schickt ihn
+        // UNANGETASTET zurück — weder getrimmt noch vom Editor normalisiert.
+        // Hier treffen sich zwei Regeln: F48s „Öffnen darf nichts ändern"
+        // (decideBodyToSave oben) schützt den AUTOR vor der stillen
+        // Editor-Umschreibung, und die Kurator-Grenze schützt den Beitrag vor
+        // einer Textänderung, die der Kurator gar nicht wollte — die Route
+        // antwortete darauf 403.
+        body: mayEditBody.value ? body : props.post.body,
+      },
     })
     emit('updated', { ...props.post, ...updated })
     editing.value = false
@@ -157,6 +201,16 @@ const menuItems = computed<MenuItem[]>(() => {
   const items: MenuItem[] = []
   if (authorAction.value.canEdit) {
     items.push({ label: t('posts.card.edit'), icon: 'i-ph-pencil-simple', onSelect: startEdit })
+  }
+  // Fremd, aber erlaubt (F1 Teilpaket 3): eigene Beschriftung, weil es eine
+  // andere Handlung ist — „Bearbeiten" an einem fremden Text klänge, als wäre
+  // es der eigene.
+  else if (canEditForeign.value) {
+    items.push({
+      label: mayEditBody.value ? t('posts.card.editForeign') : t('posts.card.retitle'),
+      icon: 'i-ph-pencil-line',
+      onSelect: startEdit,
+    })
   }
   if (authorAction.value.canDelete) {
     items.push({ label: t('posts.card.delete'), icon: 'i-ph-trash', color: 'error', onSelect: removePost })
@@ -222,13 +276,23 @@ const showTooltip = computed(() => (props.replyCount ?? 0) > 0)
         <!-- Dieselbe Schreibfläche wie im Composer (PostBodyField) — neu
              schreiben und bearbeiten dürfen nicht auseinanderlaufen.
              `immediate`: wer „Bearbeiten" geklickt hat, will schreiben — hier
-             ist der Zwischenschritt über die Textfläche nur ein Klick mehr. -->
+             ist der Zwischenschritt über die Textfläche nur ein Klick mehr.
+
+             Wer nur ordnen darf (Stufe 3), sieht den Text, kann ihn aber nicht
+             ändern: ihn auszublenden nähme den Zusammenhang, in dem ein Titel
+             überhaupt zu beurteilen ist. Die Route lehnt eine Änderung ohnehin
+             ab — hier wird sie erst gar nicht angeboten. -->
         <PostBodyField
+          v-if="mayEditBody"
           v-model="editBody"
           :placeholder="t(`posts.composer.placeholder.${post.type}`)"
           immediate
           data-post-edit-body
         />
+        <div v-else class="rounded-lg border border-default bg-elevated/30 p-3">
+          <MarkdownContent :source="post.body" class="text-sm text-muted" />
+          <p class="mt-2 text-xs text-dimmed">{{ t('posts.card.retitleHint') }}</p>
+        </div>
         <div class="flex justify-end gap-2">
           <UButton color="neutral" variant="ghost" size="xs" @click="() => { editing = false }">{{ t('ui.cancel') }}</UButton>
           <UButton size="xs" :loading="busy" @click="saveEdit">{{ t('posts.card.save') }}</UButton>

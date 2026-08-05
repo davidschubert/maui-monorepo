@@ -66,6 +66,28 @@ export default defineAppConfig({
           group: 'products',
           order: 3,
         },
+        {
+          // F1 Teilpaket 3: die Vertrauensstufen. VIERTER Eintrag auf dasselbe
+          // Produkt, aus demselben Grund wie der zweite und dritte (C16) — eine
+          // Registrierung trägt genau EINE `requiredCapability`, und
+          // `posts.appoint` hat AUSSCHLIESSLICH der Owner (communityAuthz.ts).
+          //
+          // Warum eine eigene Seite und nicht ein Abschnitt in
+          // /dashboard/discussions: die Kategorien-Seite verlangt
+          // `posts.manage` und steht damit auch dem Admin offen. Ein Abschnitt
+          // darin, den nur der Owner bedienen darf, wäre für jeden Admin eine
+          // Wand — genau die Lage, die C16 hier schon einmal aufgelöst hat.
+          id: 'posts-trust-levels',
+          scope: 'community',
+          productKey: 'posts',
+          planProduct: 'posts',
+          labelKey: 'posts.nav.trustLevels',
+          icon: 'i-ph-medal',
+          to: '/dashboard/discussion-leaders',
+          requiredCapability: 'posts.appoint',
+          group: 'products',
+          order: 4,
+        },
       ],
     },
   },

@@ -13,6 +13,7 @@ import {
   membershipYearQualifier,
   membershipYearWindow,
 } from '../../../../shared/badges'
+import { trustLevelProgress } from '../../../../shared/trustLevels'
 import type { DiscussionBadge, DiscussionBadgesResponse } from '../../../../shared/types/post'
 import type { BadgeAward } from '../../../utils/badges'
 
@@ -77,7 +78,12 @@ export default defineEventHandler(async (event): Promise<DiscussionBadgesRespons
 
   const user = event.context.user
   if (!user) {
-    return { rows: BADGE_CATALOG.map(badge => emptyRow(badge.key, badge.group)), facts: null }
+    return {
+      rows: BADGE_CATALOG.map(badge => emptyRow(badge.key, badge.group)),
+      facts: null,
+      trustLevel: 0,
+      trustProgress: null,
+    }
   }
 
   const thresholds = badgeThresholds()
@@ -141,7 +147,28 @@ export default defineEventHandler(async (event): Promise<DiscussionBadgesRespons
   const newestYear = openYears.at(-1)
   const recentContent = newestYear === undefined ? 0 : counters[counterContentIn(membershipYearQualifier(newestYear))] ?? 0
 
-  const facts = badgeFactsFrom(counters, thresholds, memberForDays, written, recentContent)
+  /**
+   * DIE VERTRAUENSSTUFE, DAS NETZ (F1 Teilpaket 3).
+   *
+   * Der Aufstieg entsteht normalerweise beim SCHREIBEN — aber genau eine
+   * Bedingung wächst ohne jedes Schreiben: die Zugehörigkeit. Wer alle Zahlen
+   * erfüllt und nur noch auf den 60. Tag wartet, löst nichts aus, weil er
+   * nichts tut. Sein Aufstieg kommt hier, beim nächsten Hinsehen — genau wie
+   * beim Jahrestag und aus demselben Grund.
+   *
+   * Diese Stelle rechnet zusätzlich alles NACH, was unterwegs verloren gehen
+   * konnte (alle Meldungen sind fail-soft), und sie hat das Beitrittsdatum
+   * ohnehin schon in der Hand. Sie kostet hier also nichts extra.
+   *
+   * Die Zeile wird NEU gelesen: `ensureSeededCounters` hat sie womöglich gerade
+   * geeicht, und mit den geeichten Zahlen springt ein Bestands-Mitglied sofort
+   * auf seine Stufe.
+   */
+  const counterRow = await readMemberCounters(event, user.$id)
+  const trustLevel = await refreshTrustLevel(event, user.$id, counterRow, memberForDays)
+
+  const facts = badgeFactsFrom(counters, thresholds, memberForDays, written, recentContent, trustLevel)
+  const trustProgress = trustLevelProgress(trustLevel, trustFactsFrom(counterRow, memberForDays))
 
   /**
    * WAS FEHLT NOCH? Je Verleihungs-Art eine eigene Frage — die Regel steht am
@@ -192,5 +219,7 @@ export default defineEventHandler(async (event): Promise<DiscussionBadgesRespons
         : emptyRow(badge.key, badge.group)
     }),
     facts,
+    trustLevel,
+    trustProgress,
   }
 })

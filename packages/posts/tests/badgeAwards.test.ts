@@ -47,6 +47,10 @@ describe('die Zuordnung am Katalog', () => {
     expect(byMode('once')).toEqual([
       'profile', 'first-like', 'first-flag', 'editor',
       'welcome', 'appreciated', 'thank-you', 'gives-back', 'empathetic', 'respected', 'admired',
+      // F1 Teilpaket 3: die vier Stufen. EINMALIG, auch „Leader" — bei 1–3
+      // folgt das aus „kein Abstieg", bei 4 ist es eine Entscheidung
+      // (verliehen ist verliehen, auch wenn die Ernennung zurückgenommen wird).
+      'trust-basic', 'trust-member', 'trust-regular', 'trust-leader',
     ])
   })
 

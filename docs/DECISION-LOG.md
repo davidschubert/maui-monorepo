@@ -7,6 +7,18 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-08-04 — Trust Levels: Schwellen „Mittel" + v1-Rechte
+
+**Davids Entscheidungen** (strukturierte Fragen, Teilpaket 3): **Schwellen
+„Mittel"** — TL1 Basic: 2 Tage dabei + 1 eigener Inhalt + 1 vergebenes
+Upvote · TL2 Member: 15 Tage + 5 Inhalte + 10 vergeben + 5 erhalten ·
+TL3 Regular: 60 Tage + 25 Inhalte + 50 vergeben + 25 erhalten · TL4 Leader
+nur von Hand. **v1-Rechte:** TL3 darf fremde Themen umbenennen und
+umkategorisieren; TL4 bekommt anheften/schließen/gelöst + fremde Beiträge
+bearbeiten; TL1/TL2 sind v1 sichtbarer Status + Abzeichen (ihre
+Katalog-Rechte kommen automatisch mit PN/Einladungen/Tages-Likes). Kein
+Abstieg; Besuchs-/Lese-Tracking bleibt draußen (Teil 4).
+
 ## 2026-08-04 — Gemeinsames Paket: TL-Architektur, Aufstieg, Mehrfach-Verleihung
 
 **Davids Entscheidungen** (strukturierte Fragen; Volltext: DISCUSSIONS-KONZEPT.md

@@ -495,6 +495,49 @@ nach `docs/OPEN-ITEMS.md`.
   entfernt — eine routeRule gewinnt gegen die Seite, beides ging nicht
   (Begründung im Kopf von `apps/help/nuxt.config.ts`).
 
+- **Vertrauensstufen** (2026-08-04, Teilpaket 3 des gemeinsamen Pakets) Davids
+  Architektur-Entscheidung ist wörtlich umgesetzt: die Stufe SPEIST das
+  bestehende RBAC, es gibt kein zweites Prüfsystem. Zwei pure Regeln an zwei
+  Orten, und die Trennung ist die Aussage — `packages/posts/shared/
+  trustLevels.ts` sagt, wie man eine Stufe VERDIENT (Davids Schwellen „Mittel",
+  UND-verknüpft), `packages/core/shared/trustLevel.ts` sagt, was sie VERLEIHT
+  (RBAC, weil core keine Produkt-Schwellen kennen darf). Zusammengeführt werden
+  beide an genau EINER Stelle: `decideCommunityAccess` bekommt ein optionales
+  `trustLevel` und kennt einen dritten Weg `via: 'trust'` — der als `actor`
+  ausdrücklich `'member'` ergibt, damit eine Stufe 4 nicht am Betreiber-Ausweis
+  vorbei durch M13 und A5 läuft. Gefragt wird die Stufe NUR, wenn die geprüfte
+  Capability überhaupt aus einer folgen kann (`trustLevelGrantsCapability` —
+  drei von 31); an allen übrigen Routen kostet das Teilpaket nichts.
+  DREI NEUE CAPABILITIES statt einer: `posts.curate` (fremde Themen umbenennen
+  und umkategorisieren — TL3, Moderator+), `posts.arrange` (anheften/schließen/
+  gelöst — TL4, Moderator+; abgespalten von `posts.moderate`, sonst hätte TL4
+  die Melde-Queue mitgeerbt) und `posts.revise` (fremde Beiträge bearbeiten —
+  TL4, Admin+). Alle drei tragen auch Rollen: ein automatisch aufgestiegenes
+  Mitglied darf nie mehr als der Owner, der es beherbergt — ein Test nagelt das
+  fest. Umbenennen konnte vorher ÜBRIGENS niemand, auch kein Moderator; das war
+  eine echte Lücke.
+  GESPEICHERT in ZWEI Spalten (posts-016): `trustLevel` (0–3, wird nur nach oben
+  geschrieben — kein Abstieg) und `trustLevelLeader` (die Ernennung, rücknehmbar).
+  Eine einzige Spalte hätte den Entzug gezwungen, die erarbeitete Stufe neu
+  auszurechnen — und diese Rechnung braucht das Beitrittsdatum aus dem Control
+  Plane, das fail-soft fehlen darf; ein Owner hätte damit bei schlechter
+  Verbindung nebenbei eine über Jahre erarbeitete Stufe 3 gelöscht.
+  GERECHNET beim SCHREIBEN (an der Zähl-Buchung, wo der neue Stand ohnehin
+  vorliegt) und beim HINSEHEN (badges.get.ts) — die zweite Stelle ist keine
+  Dopplung, sondern die einzige, die den reinen ZEITABLAUF sieht: wer nur noch
+  auf den 60. Tag wartet, löst nichts aus. Die teure Hälfte (Beitrittsdatum,
+  Cross-Projekt) wird erst geholt, wenn die billige (Zähler) überhaupt für eine
+  höhere Stufe reicht.
+  TL4 ERNENNT DER OWNER (`posts.appoint`, owner-only) unter
+  `/dashboard/discussion-leaders` — gelistet wird, wer hier schon geschrieben
+  hat (`member_counters`), bewusst NICHT die Mitgliederliste: die gehört
+  onboarding, und eine Stufe für jemanden ohne jede Aktivität wäre eine Aussage
+  ohne Grundlage. Protokolliert über `logEvent`, nicht `audit_logs` (A14, wie
+  bei `events/[id]/redact.post.ts` begründet).
+  SICHTBAR in der Galerie als eigener Abschnitt „Vertrauensstufe" mit der
+  aktuellen Stufe und JEDER Bedingung zur nächsten einzeln („noch 3 eigene
+  Inhalte") — nicht neben Autorennamen in Listen (Teil-5-Entscheidung 8).
+
 ## Was Stufe 4 an Abzeichen NICHT bringt — und warum
 
 Der Katalog aus § 3.6 hat 40+ Einträge, gebaut sind 16. Die vollständige
@@ -509,9 +552,8 @@ jemand liest, der ein Abzeichen nachreichen will. Kurzfassung:
   „Anniversary" ist seit dem 2026-08-04 GEBAUT (Teil-5-Entscheidung 1), und
   „Editor" ebenfalls (gemeinsames Paket, Teilpaket 1: `posts.editedAt` kam
   per posts-014, gezählt wird über `member_counters`).
-- **Trust Levels**: das eigene Ja ist mit den drei Teil-5-Architektur-
-  Entscheidungen vom 2026-08-04 da (TL speisen das bestehende RBAC); gebaut
-  wird in Teilpaket 3 des gemeinsamen Pakets.
+- **Trust Levels**: GEBAUT (Teilpaket 3, 2026-08-04) — die vier Stufen-Abzeichen
+  stehen als vierte Katalog-Gruppe darin. Was daran hängt, steht unten.
 
 Zwei Eigenschaften der Zählweise standen hier bis zum 2026-08-04 („jedes
 Abzeichen genau einmal", „ausgewertet nur beim Hinsehen, deshalb keine

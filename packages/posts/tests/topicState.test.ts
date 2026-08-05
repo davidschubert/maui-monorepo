@@ -31,7 +31,7 @@ describe('Katalog', () => {
 describe('decideTopicStateChange — anheften und schließen sind Moderation', () => {
   it('ein Moderator darf beides', () => {
     for (const field of ['pinned', 'closed'] as const) {
-      expect(decideTopicStateChange(field, { userId: OTHER, canModerate: true }, published))
+      expect(decideTopicStateChange(field, { userId: OTHER, canArrange: true }, published))
         .toEqual({ allowed: true })
     }
   })
@@ -40,14 +40,14 @@ describe('decideTopicStateChange — anheften und schließen sind Moderation', (
     // Sonst pinnt sich jeder sein eigenes Thema nach oben — das Anheften ordnet
     // den Raum für alle und gehört deshalb der Moderation.
     for (const field of ['pinned', 'closed'] as const) {
-      expect(decideTopicStateChange(field, { userId: AUTHOR, canModerate: false }, published))
+      expect(decideTopicStateChange(field, { userId: AUTHOR, canArrange: false }, published))
         .toEqual({ allowed: false, reason: 'not_allowed' })
     }
   })
 
   it('ein Fremder ohne Rechte darf gar nichts', () => {
     for (const field of TOPIC_STATE_FIELDS) {
-      expect(decideTopicStateChange(field, { userId: OTHER, canModerate: false }, published))
+      expect(decideTopicStateChange(field, { userId: OTHER, canArrange: false }, published))
         .toEqual({ allowed: false, reason: 'not_allowed' })
     }
   })
@@ -55,19 +55,19 @@ describe('decideTopicStateChange — anheften und schließen sind Moderation', (
 
 describe('decideTopicStateChange — „gelöst" ist die Frage-Sicht', () => {
   it('der Autor darf sein eigenes Thema als gelöst markieren, ohne Moderator zu sein', () => {
-    expect(decideTopicStateChange('solved', { userId: AUTHOR, canModerate: false }, published))
+    expect(decideTopicStateChange('solved', { userId: AUTHOR, canArrange: false }, published))
       .toEqual({ allowed: true })
   })
 
   it('ein Moderator darf es auch — sonst bliebe ein Thema ohne Autor für immer ungelöst', () => {
-    expect(decideTopicStateChange('solved', { userId: OTHER, canModerate: true }, published))
+    expect(decideTopicStateChange('solved', { userId: OTHER, canArrange: true }, published))
       .toEqual({ allowed: true })
   })
 
   it('GEGENPROBE: ein nicht angemeldeter Aufrufer ist NIE der Autor', () => {
     // userId '' darf nicht zufällig auf einen leeren authorId passen — das wäre
     // ein Gast, der fremde Themen als gelöst markiert.
-    expect(decideTopicStateChange('solved', { userId: '', canModerate: false }, { authorId: '', status: 'published' }))
+    expect(decideTopicStateChange('solved', { userId: '', canArrange: false }, { authorId: '', status: 'published' }))
       .toEqual({ allowed: false, reason: 'not_allowed' })
   })
 })
@@ -75,7 +75,7 @@ describe('decideTopicStateChange — „gelöst" ist die Frage-Sicht', () => {
 describe('decideTopicStateChange — nur veröffentlichte Themen haben Zustände', () => {
   it('geplant, ausgeblendet und gelöscht werden abgelehnt', () => {
     for (const status of ['scheduled', 'hidden', 'deleted']) {
-      expect(decideTopicStateChange('pinned', { userId: OTHER, canModerate: true }, { authorId: AUTHOR, status }))
+      expect(decideTopicStateChange('pinned', { userId: OTHER, canArrange: true }, { authorId: AUTHOR, status }))
         .toEqual({ allowed: false, reason: 'not_published' })
     }
   })
@@ -83,7 +83,7 @@ describe('decideTopicStateChange — nur veröffentlichte Themen haben Zustände
   it('DIE REIHENFOLGE ZÄHLT: fehlende Rechte schlagen den Zustand', () => {
     // Sonst verriete ein 409 einem Unbefugten, dass es die Zeile gibt und in
     // welchem Zustand sie ist.
-    expect(decideTopicStateChange('pinned', { userId: OTHER, canModerate: false }, { authorId: AUTHOR, status: 'hidden' }))
+    expect(decideTopicStateChange('pinned', { userId: OTHER, canArrange: false }, { authorId: AUTHOR, status: 'hidden' }))
       .toEqual({ allowed: false, reason: 'not_allowed' })
   })
 })

@@ -62,6 +62,12 @@ export async function postsExportUserData(event: H3Event, userId: string) {
       topicsCreated: c.topicsCreated, repliesCreated: c.repliesCreated,
       upvotesGiven: c.upvotesGiven, upvotesReceived: c.upvotesReceived,
       edits: c.edits, createdAt: c.$createdAt,
+      // F1 Teilpaket 3: die Vertrauensstufe steht in DERSELBEN Zeile und ist
+      // erst recht eine Aussage über diesen Menschen — sie entscheidet, was er
+      // hier darf. Beide Hälften getrennt, weil die Auskunft sonst nicht sagen
+      // könnte, was erarbeitet und was ernannt ist. Gelöscht wird ohnehin die
+      // ganze Zeile (s. unten), die Löschseite braucht nichts.
+      trustLevel: c.trustLevel, trustLevelLeader: c.trustLevelLeader,
     })),
   }
 }
