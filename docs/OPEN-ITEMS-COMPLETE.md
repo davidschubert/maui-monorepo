@@ -29,6 +29,57 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F48 Teilpaket 2 — Schreibfläche für Beiträge auf `UEditor` ✅ 2026-08-04
+
+Die Umstellung selbst, dritter Anlauf und diesmal durch. Der erste Anlauf hat
+gemessen und ANGEHALTEN (der Serialisierer maskiert Alltagszeichen), der
+zweite hat daraufhin den Renderer CommonMark-treu gemacht (Teilpaket 1
+unten) — damit war der Weg frei.
+
+**Gebaut:** `packages/posts/app/components/PostBodyField.vue` (die EINE
+Schreibfläche für Composer und Bearbeiten) rendert bis zum ersten Fokus eine
+`UTextarea` und lädt dann `LazyPostBodyEditor` nach. Die ganze Editor-
+Konfiguration samt Begründung steht in `PostBodyEditor.vue`: `UEditor` im
+Markdown-Modus, `UEditorToolbar` mit genau dem Subset, `UEditorEmojiMenu` mit
+einer kleinen eigenen Liste (`app/utils/emojiMenuItems.ts` — Nuxt UI bringt
+keinen Datensatz mit), KEIN Erwähnungs-Menü. Abgeschaltet sind
+`strike`/`underline` (Marke nicht im Schema), h1/h4+, Bild und Erwähnung;
+Tabellen und Aufgabenlisten sind gar nicht erst dabei. Zwei Rest-Wege sind
+einzeln zugemacht: die Eingaberegel `---` steht nicht auf der Erlaubnisliste
+von `enableInputRules`/`enablePasteRules` (Fail-closed: eine künftige neue
+Erweiterung ist damit still AUS statt still AN), und `<hr>` aus der
+Zwischenablage entfernt `transformPastedHTML`.
+
+**Das Speicherformat ändert sich nicht** — weiterhin das Markdown-Subset,
+keine Migration. Die Regel „Öffnen darf nichts ändern" ist dafür von
+`packages/pages/shared/editorBody.ts` nach `packages/core/shared/editorBody.ts`
+gezogen (jetzt zwei Konsumenten) und greift beim Bearbeiten: ohne sie machte
+schon das Aufschlagen eines Bestands-Beitrags aus `snake_case` ein
+`snake\_case`, und daran hängt sichtbar „bearbeitet" (`posts.editedAt`).
+
+**Beweis:** `packages/posts/scripts/verify-composer-editor.mjs` — 72/72,
+echter Browser (Playwright aus `apps/comments`), echter Editor, echte Route,
+echter Renderer, mit Gegenprobe. Nachladen im PRODUKTIONS-Build gemessen:
+541 KiB roh / ~169 KiB gzip bleiben aus einer Feed-Ansicht ohne
+Schreibabsicht draußen (2107 statt 2648 KiB JavaScript, −20 %).
+
+**Bewusst offen geblieben** (beides gemessen und im Skript festgenagelt, damit
+es nicht unbemerkt kippt): verschachtelte Listen speichert der Editor korrekt
+eingerückt, `parseMarkdown` rendert sie FLACH — das war in der Textfläche
+schon so und wäre eine Renderer-Erweiterung. Und ein Sternchen-PAAR ist
+Betonung, auch in `2 * 3 * 4 = 24`; die alte Textfläche hat denselben Text
+genauso kursiv gerendert (`core/tests/markdown.test.ts` nagelt es fest), neu
+ist nur, dass man es beim Tippen SIEHT.
+
+**Gelernt:** Ein WYSIWYG-Editor über einem eigenen Parser hat zwei Fronten,
+und die zweite fällt leicht unter den Tisch: nicht nur, was er SCHREIBT
+(Serialisierung), sondern auch, was er LIEST. `UEditor` parst Markdown mit
+`marked` und `gfm: true` — damit wäre `~~alt~~` eine Durchstreichung, die
+Marke gibt es hier nicht, sie fiele weg, und aus einem Bestands-Beitrag
+verschwänden beim bloßen Aufschlagen vier Zeichen. `gfm: false` behebt das;
+gefunden nur, weil die Prüfung „was der Renderer nicht kennt, darf keine
+Zeichen fressen" als eigener Fall im Beweis stand.
+
 ### F48 Teilpaket 1 — Markdown-Renderer CommonMark-treu ✅ 2026-08-04
 
 **Davids Entscheidung** nach der Messung des Vorgängers (Option B aus

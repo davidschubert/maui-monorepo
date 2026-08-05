@@ -670,7 +670,7 @@ Vollständiges Konzept: docs/CONCEPT.md
   Backslash-Escapes noch Entities und reicht beides sichtbar durch: getippt
   `snake_case` ⇒ gespeichert `snake\_case` ⇒ so steht es im Beitrag. Live
   gemessen, 9 von 15 Alltagssätzen betroffen. Das ist NICHT der F2-Fall aus
-  `packages/pages/shared/editorBody.ts` — `bodyToSave` schützt ungetippten
+  `packages/core/shared/editorBody.ts` — `bodyToSave` schützt ungetippten
   Text, hier verfälscht es das Getippte. Erwähnungen serialisieren zu
   `[@ id="…" label="…"]` und stünden roh im Beitrag (also nicht bauen).
   Der Blocker sitzt im RENDERER, nicht im Editor; Messung, Optionen und die

@@ -1,4 +1,19 @@
-# PostComposer auf UEditor — gemessen, Blocker beseitigt, Umstellung offen
+# PostComposer auf UEditor — gemessen, Blocker beseitigt, Umstellung GEBAUT
+
+> **Stand 2026-08-04, dritter Anlauf: die Umstellung ist GEBAUT.** Die
+> Schreibfläche (`packages/posts/app/components/PostBodyField.vue`) ist
+> `UEditor` im Markdown-Modus; der Editor selbst liegt in `PostBodyEditor.vue`
+> und wird NACHGELADEN (Produktions-Messung: 541 KiB roh / ~169 KiB gzip
+> bleiben aus einer Feed-Ansicht ohne Schreibabsicht draußen, 20 % des
+> JavaScripts). Beweis: `packages/posts/scripts/verify-composer-editor.mjs`
+> (72/72, echter Browser, echte Route, echter Renderer). Was NICHT durchläuft
+> und warum, steht dort im Kopf und in den Prüfungen: verschachtelte Listen
+> rendert `parseMarkdown` flach, ein Sternchen-PAAR ist Betonung (auch in
+> einer Rechnung — das war in der Textfläche schon so). Erwähnungen bleiben
+> draußen. Dieses Dokument bleibt als MESSUNG stehen; alles unter „Optionen"
+> ist Geschichte.
+>
+> Der Text unten beschreibt den Stand VOR der Umstellung:
 
 **Stand: 2026-08-04. Die Umstellung ist NICHT gebaut — der BLOCKER schon
 beseitigt.** Der Auftrag lautete, den `PostComposer` von `UTextarea` auf
@@ -76,7 +91,8 @@ für Zeichen dasselbe; die Messung hängt also nicht am Browser.
 | `Prozent 50% und ~ungefaehr` | `Prozent 50% und \~ungefaehr` |
 | `Mail an a+b@example.com` | `Mail an [a+b@example.com](mailto:a+b@example.com)` |
 
-Das ist **kein** Fall für `bodyToSave` aus `packages/pages/shared/editorBody.ts`.
+Das ist **kein** Fall für `bodyToSave` aus `packages/core/shared/editorBody.ts`
+(bis zur Umstellung lag die Regel in `packages/pages`).
 Jene Regel („Öffnen darf nichts ändern") schützt einen Text, den NIEMAND
 angefasst hat. Hier tippt der Mensch, und genau das Getippte wird verfälscht.
 
