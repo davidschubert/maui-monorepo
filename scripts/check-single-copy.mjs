@@ -38,6 +38,16 @@ const SINGLE_COPY = [
   '@unhead/vue',
   'pinia',
   'vite',
+  // Seit 2026-08-05 hängt `packages/posts` DIREKT an
+  // `@tiptap/extension-mention` (Namensvervollständigung im Beitrags-Editor),
+  // während `@nuxt/ui` seinen ganzen Tiptap-Satz als optionalen Peer
+  // mitbringt. Tiptap erkennt eine Extension nur, wenn sie gegen DIESELBE
+  // `@tiptap/core`-Instanz gebaut ist. Zwei Kopien heißen hier: der eigene
+  // `renderMarkdown`-Handler greift nicht mehr, und der Mention-Knoten
+  // serialisiert wieder zu `[@ id="…" label="…"]` — mitten in den Beitrag.
+  // Das wäre ein STILLER Datenfehler, kein Build-Fehler, und genau deshalb
+  // steht der Name hier.
+  '@tiptap/core',
 ]
 
 /**

@@ -12,6 +12,7 @@
   "dependencies": {
     "@nuxt/ui": "catalog:",
     "@nuxtjs/i18n": "catalog:",
+    "@tiptap/extension-mention": "catalog:",
     "node-appwrite": "catalog:",
     "zod": "catalog:"
   },

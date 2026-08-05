@@ -62,6 +62,21 @@ catalog:
   '@types/node': ^22.18.0
   nuxt: ^4.5.1
   '@nuxt/ui': ^4.10.0
+  # EXAKT gepinnt, ohne Caret — und das ist hier keine Vorsicht, sondern die
+  # Bedingung. Tiptap liegt bereits als auto-installierter optionaler Peer von
+  # @nuxt/ui im Baum (3.27.1, genau eine Kopie je Paket). Wir nehmen NUR
+  # `extension-mention` direkt auf, weil `UEditorMentionMenu` einen
+  # Mention-Knoten einfügt und der von Haus aus zu `[@ id="…" label="…"]`
+  # serialisiert — unser Parser reicht das roh durch. Der eigene
+  # `renderMarkdown`-Handler (PostBodyEditor.vue) macht `@handle` daraus, und
+  # `renderMarkdown` ist ein EXTENSION-FELD: `.configure()` erreicht es nicht,
+  # nur `.extend()`. Darum die direkte Abhängigkeit.
+  # EINE Caret-Range würde hier alles kaputt machen: `^3.27.1` erlaubt 3.28,
+  # @nuxt/ui bliebe bei 3.27.1, und ZWEI Kopien von `@tiptap/core` heißen,
+  # dass Tiptap Extensions aus der fremden Kopie nicht mehr erkennt. Bei einem
+  # @nuxt/ui-Bump gehört diese Zeile mitgezogen — `pnpm check:single-copy`
+  # (Liste enthält `@tiptap/core`) ist der Wächter.
+  '@tiptap/extension-mention': 3.27.1
   # Bild-Naht Schritt 2 (C14). 2.1.0 haengt NUR an h3 ^1.15.11 + @nuxt/kit
   # ^4.5.1 — also genau an der Linie, die `overrides.h3` und `nuxt` hier
   # ohnehin festhalten. `ipx` (und darueber `sharp`) ist eine OPTIONALE

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { EditorToolbarItem } from '@nuxt/ui'
+import Mention from '@tiptap/extension-mention'
 import { POST_EMOJI_ITEMS } from '../utils/emojiMenuItems'
 
 /**
@@ -65,33 +66,61 @@ import { POST_EMOJI_ITEMS } from '../utils/emojiMenuItems'
  * die Hervorhebung und die Benachrichtigung hängen daran und funktionieren
  * ohne jede Editor-Erweiterung.
  *
- * ── WAS BEWUSST FEHLT: `UEditorMentionMenu` ────────────────────────────────
- * Das Menü fügt einen mention-KNOTEN ein, und der serialisiert von Haus aus zu
- * `[@ id="u1" label="Anna"]` — die Klammer-Syntax, die unser Parser roh
- * durchreicht. Das war der dokumentierte Blocker.
+ * ── `UEditorMentionMenu`: DIE BEQUEMLICHKEIT, NICHT DAS FORMAT (2026-08-05) ─
+ * Das Menü ist eine TIPPHILFE und sonst nichts. Es ändert weder das
+ * Speicherformat noch die Auflösung noch die Benachrichtigung — wer den Namen
+ * von Hand tippt, bekommt exakt dasselbe Ergebnis. Genau deshalb durfte es
+ * ein eigener, später Schnitt sein.
  *
- * DER BLOCKER IST LÖSBAR, und zwar gemessen (2026-08-04, DOM-frei über
- * `MarkdownManager.serialize`): die Maskierung sitzt AUSSCHLIESSLICH im Zweig
- * `node.type === 'text'` von `renderNodeToMarkdown`. Jeder andere Knoten geht
- * über `handler.renderMarkdown(node, …)`, und dessen Rückgabe wird WÖRTLICH
- * übernommen — auch in `renderNodesWithMarkBoundaries`. Damit liefert
+ * DER EINE PUNKT, AN DEM ES KAPUTTGEHT, ist die Serialisierung. Das Menü fügt
+ * einen mention-KNOTEN ein, und der serialisiert von Haus aus zu
+ * `[@ id="…" label="…"]` — die Klammer-Syntax, die unser Parser roh
+ * durchreicht (gemessen, nicht vermutet: siehe unten). Die Maskierung von
+ * `@tiptap/markdown` sitzt AUSSCHLIESSLICH im Zweig `node.type === 'text'` von
+ * `renderNodeToMarkdown`; jeder andere Knoten geht über
+ * `handler.renderMarkdown(node, …)`, und dessen Rückgabe wird WÖRTLICH
+ * übernommen. `MENTION_AS_PLAIN_TEXT` unten nutzt genau das.
  *
- *     Mention.extend({ renderMarkdown: node => `@${node.attrs.id}` })
+ * WARUM `.extend()` UND NICHT `.configure()`: `renderMarkdown` ist ein
+ * EXTENSION-FELD, kein Options-Feld — `MarkdownManager.registerExtension`
+ * liest es über `getExtensionField(extension, 'renderMarkdown')`. Über
+ * `:mention="{ … }"` (das @nuxt/ui an `Mention.configure()` weiterreicht) ist
+ * es deshalb NICHT erreichbar. Daraus folgt zwingend `:mention="false"` plus
+ * die eigene Erweiterung über `:extensions` — und daraus die direkte
+ * Abhängigkeit `@tiptap/extension-mention`, exakt auf die Version von
+ * @nuxt/ui gepinnt (Begründung im Katalog, Wächter `check:single-copy`).
  *
- * exakt `Hallo @davidschubert willkommen` statt der Klammer-Syntax; der
- * Rundlauf durch `parse → serialize` ist danach stabil.
+ * GEMESSEN (DOM-frei über `MarkdownManager.serialize`, 2026-08-05):
+ *   Mention unverändert          → `Hallo [@ id="david" label="david"] hier`
+ *   Mention + renderMarkdown     → `Hallo @david hier`
+ * Ein Knoten wird dabei NICHT maskiert: `@erika_muster` bleibt beim Einfügen
+ * über das Menü genau das, während derselbe Name GETIPPT als `@erika\_muster`
+ * gespeichert wird. Beide lösen auf dieselbe Person auf, weil der Renderer
+ * über den AST geht und Escapes vorher auflöst (shared/mentions.ts, F48) —
+ * das Menü liefert also nebenbei den saubereren Text.
  *
- * NICHT EINGESCHALTET, und der Grund ist nicht der Editor: das Menü braucht
- * `:mention="false"` plus die eigene Erweiterung über `:extensions`, also
- * `@tiptap/extension-mention` als DIREKTE Abhängigkeit. Der Versuch hat den
- * Lockfile um 1898 Zeilen bewegt (+334/−1564) — weit mehr, als eine
- * hinzugefügte Abhängigkeit rechtfertigt, und CLAUDE.md sagt für genau diesen
- * Fall: „steht dort viel mehr als erwartet, gehört es nicht so in den Commit."
- * Das ist ein eigener Schnitt (Abhängigkeit + Katalog-Eintrag +
- * `@tiptap/core` in check-single-copy.mjs), kein Nebenbei.
- * Solange es fehlt, kostet es die Bequemlichkeit der Namensvervollständigung —
- * nicht die Erwähnung selbst. Der Zuträger dafür steht schon:
- * `GET /api/handles/search`.
+ * ── DER ZUTRÄGER FILTERT, NICHT DER BROWSER (`ignore-filter`) ──────────────
+ * `GET /api/handles/search` liefert höchstens acht aktive Namen DIESER
+ * Community (Session-Client, `read(label:<communityId>)` — die Liste aller
+ * Namen ist die Mitgliederliste). Die eingebaute Fuzzy-Filterung von
+ * `useEditorMenu` würde dieses Ergebnis ein zweites Mal sieben, und zwar
+ * gegen einen Suchbegriff, der der Antwort um eine Netzwerkrunde VORAUS ist.
+ * `ignore-filter` schaltet sie ab. Das ist hier kein Geschmack: nur in diesem
+ * Zweig beobachtet `useEditorMenu` die `items` überhaupt (`watch`) und öffnet
+ * das Menü nach, wenn Treffer NACHTRÄGLICH eintreffen. Ohne das Flag würde
+ * `filteredItems` allein bei Tastendrücken gesetzt — eine Antwort, die nach
+ * dem letzten Anschlag ankommt, käme nie an.
+ *
+ * ── DREI DINGE, DIE DAS MENÜ BEWUSST NICHT TUT ─────────────────────────────
+ * 1. Ein nacktes `@` zeigt NICHTS. Die leere Anfrage wird nicht gestellt,
+ *    denn sie hätte zwei Bedeutungen: „gerade `@` getippt" UND „Menü beendet"
+ *    (`onExit` setzt den Suchbegriff zurück). Das erspart nebenbei, dass ein
+ *    einzelnes Zeichen die Mitgliederliste aufblättert.
+ * 2. `@` MITTEN IM WORT löst nichts aus — `e@mail` bleibt eine Adresse. Das
+ *    kommt von `allowedPrefixes: [' ']` in @tiptap/suggestion und deckt sich
+ *    mit der linken Flanke von MENTION_RE in shared/mentions.ts.
+ * 3. Es gibt KEINE neuen i18n-Texte. Das Menü zeigt ausschließlich Handles,
+ *    und die sind Eigennamen.
  */
 const props = withDefaults(defineProps<{
   placeholder?: string
@@ -144,6 +173,68 @@ const RULE_EXTENSIONS = [
 const editorProps = {
   transformPastedHTML: (html: string) => html.replace(/<hr\b[^>]*>/gi, ''),
 }
+
+/**
+ * Der Mention-Knoten, der zu GEWÖHNLICHEM TEXT serialisiert — siehe Kopf.
+ * Das ist die einzige Zeile dieses Pakets, an der das Speicherformat hängt.
+ *
+ * `attrs.id` und NICHT `attrs.label`: beide tragen laut
+ * `/api/handles/search` denselben Wert, aber `id` ist das Feld, das die Route
+ * als Vergleichsform zusagt. Fehlt es wider Erwarten, fällt der Knoten auf
+ * eine leere Zeichenkette zurück — lieber nichts im Beitrag als `@undefined`.
+ */
+const MENTION_AS_PLAIN_TEXT = Mention.extend({
+  renderMarkdown: (node) => {
+    const handle = node.attrs?.id
+    return typeof handle === 'string' && handle ? `@${handle}` : ''
+  },
+})
+const extensions = [MENTION_AS_PLAIN_TEXT]
+
+/** Ein Treffer aus `/api/handles/search` — `id` und `label` sind derselbe Handle. */
+type HandleSuggestion = { id: string, label: string }
+
+/** Ein Mensch tippt schneller, als eine Runde zum Server dauert. */
+const SEARCH_DEBOUNCE_MS = 150
+
+const mentionQuery = ref('')
+const mentionItems = ref<HandleSuggestion[]>([])
+
+let searchTimer: ReturnType<typeof setTimeout> | undefined
+/**
+ * Laufende Nummer statt AbortController: verworfen werden muss nur die
+ * ANTWORT, nicht die Anfrage — und eine zu spät eintreffende Antwort würde
+ * sonst Treffer zu einem Suchbegriff zeigen, der längst weitergetippt ist.
+ */
+let searchSeq = 0
+
+watch(mentionQuery, (query) => {
+  clearTimeout(searchTimer)
+
+  // Siehe Kopf, Punkt 1: die leere Anfrage wird nicht gestellt. Die leere
+  // Liste schließt zugleich ein offenes Menü (`useEditorMenu` räumt auf,
+  // sobald keine Treffer mehr da sind).
+  if (!query) {
+    mentionItems.value = []
+    return
+  }
+
+  const seq = ++searchSeq
+  searchTimer = setTimeout(async () => {
+    let rows: HandleSuggestion[] = []
+    try {
+      rows = await $fetch<HandleSuggestion[]>('/api/handles/search', { query: { q: query } })
+    }
+    catch {
+      // Eine Tipphilfe darf nicht lauter sein als das, wobei sie hilft:
+      // ohne Netz bleibt das Menü einfach aus, der Mensch tippt den Namen zu
+      // Ende, und alles Weitere hängt ohnehin am Text.
+      rows = []
+    }
+    if (seq !== searchSeq) return
+    mentionItems.value = rows
+  }, SEARCH_DEBOUNCE_MS)
+})
 </script>
 
 <template>
@@ -154,6 +245,7 @@ const editorProps = {
     :markdown="markdown"
     :image="false"
     :mention="false"
+    :extensions="extensions"
     :placeholder="props.placeholder"
     :enable-input-rules="RULE_EXTENSIONS"
     :enable-paste-rules="RULE_EXTENSIONS"
@@ -170,6 +262,15 @@ const editorProps = {
       />
       <!-- Emoji sind reiner Text (`:` öffnet die Auswahl) — siehe utils/emojiMenuItems.ts -->
       <UEditorEmojiMenu :editor="editor" :items="POST_EMOJI_ITEMS" />
+      <!-- Namensvervollständigung: `@` öffnet, der Server sucht (siehe Kopf).
+           `ignore-filter` ist Pflicht, nicht Geschmack — nur so kommen
+           Treffer an, die nach dem letzten Tastendruck eintreffen. -->
+      <UEditorMentionMenu
+        v-model:search-term="mentionQuery"
+        :editor="editor"
+        :items="mentionItems"
+        ignore-filter
+      />
     </template>
   </UEditor>
 </template>
