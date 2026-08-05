@@ -214,7 +214,13 @@ sich NICHTS: `message_settings` leer = aus, der Owner öffnet bewusst.
 **Gelernt:** Wenn ein Recht ZWEI Quellen hat (Stufe oder Ernennung), müssen
 alle nachgelagerten Rechnungen beide kennen — die Tür ließ den berufenen
 Moderator durch, das Budget kannte nur die Stufe und gab ihm null. Solche
-Fehler findet erst ein Lauf gegen die echte Instanz, kein Fixture.
+Fehler findet erst ein Lauf gegen die echte Instanz, kein Fixture. UND: der
+erste Push starb in CI an einem unescapten `@` in „Name eingeben (ohne @)"
+(en.json) — die dokumentierte i18n-Falle in ihrer @-Variante, der komplette
+EN-Locale-Compile fiel, E2E rot, Deploy-Gate hielt korrekt. Lokal unsichtbar,
+weil die Seiten-Beweise DE trafen: **ein Seiten-Beweis für einen neuen Layer
+muss BEIDE Sprachen rendern** (EN ist die Default-Locale ohne Präfix — genau
+die trifft CI zuerst).
 
 ### F1 gemeinsames Paket, Teilpaket 3 — Trust Levels ✅ 2026-08-04
 
