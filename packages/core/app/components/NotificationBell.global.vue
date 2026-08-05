@@ -3,7 +3,7 @@ import type { Models } from 'node-appwrite'
 import { notificationAudienceFor, notificationVisibleFor } from '../../shared/notificationScope'
 import type { NotificationListResponse, UserNotification } from '../../shared/types/notification'
 
-const { t } = useI18n()
+const { t, te } = useI18n()
 const localePath = useLocalePath()
 const auth = useAuthStore()
 const config = useRuntimeConfig()
@@ -122,7 +122,25 @@ function messageKey(type: string): string {
   // control-034) — {name} = der gemeldete Host. Empfänger sind ausschließlich
   // Betreiber-Konten (scope 'account'), gelesen wird sie also in apps/control.
   if (type === 'abuse.report') return 'notifications.abuseReport'
+  // 'badge.awarded' = ein verdientes Abzeichen (F1 Teilpaket 2) — {name} ist
+  // sein NAME, und der steht in der Zeile als i18n-Schlüssel (siehe
+  // `displayText`). Der Link führt in die Abzeichen-Galerie.
+  if (type === 'badge.awarded') return 'notifications.badgeAwarded'
   return 'notifications.replied'
+}
+
+/**
+ * Titel und Text einer Meldung — übersetzt, WENN dort ein Schlüssel steht.
+ *
+ * Fast alle Meldungen tragen rohe Inhalte (ein Absendername, ein Zitat); die
+ * bleiben unverändert, weil `te()` sie nicht kennt. Abzeichen tragen dagegen
+ * einen Schlüssel, denn ihr Name ist ein Produktwort und muss in der Sprache
+ * DES BETRACHTERS erscheinen — nicht in der dessen, der ihn verliehen hat.
+ * Der Server-Zweig für Mails macht dasselbe über eine eigene Registry
+ * (core/server/utils/notificationText.ts).
+ */
+function displayText(value: string): string {
+  return value && te(value) ? t(value) : value
 }
 </script>
 
@@ -156,10 +174,10 @@ function messageKey(type: string): string {
           <div class="flex items-center gap-1.5">
             <span class="size-1.5 shrink-0 rounded-full" :class="n.read ? 'bg-transparent' : 'bg-primary'" />
             <i18n-t :keypath="messageKey(n.type)" tag="p" scope="global" class="truncate text-sm text-muted">
-              <template #name><span class="font-medium text-default">{{ n.title }}</span></template>
+              <template #name><span class="font-medium text-default">{{ displayText(n.title) }}</span></template>
             </i18n-t>
           </div>
-          <p class="truncate pl-3 text-xs text-muted">{{ n.body }}</p>
+          <p class="truncate pl-3 text-xs text-muted">{{ displayText(n.body) }}</p>
           <p class="pl-3 text-xs text-dimmed">{{ formatRelativeTime(n.$createdAt) }}</p>
         </NuxtLink>
       </div>

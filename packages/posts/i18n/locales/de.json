@@ -275,7 +275,8 @@
         "description": "Was es hier zu verdienen gibt — und was du schon hast.",
         "earnedSummary": "{earned} von {total} verdient",
         "guestHint": "Melde dich an, um Abzeichen zu sammeln.",
-        "awarded": "Verliehen {when}",
+        "awarded": "Zuletzt verliehen {when}",
+        "times": "×{count}",
         "progress": "{current} von {target}",
         "group": {
           "gettingStarted": "Erste Schritte",

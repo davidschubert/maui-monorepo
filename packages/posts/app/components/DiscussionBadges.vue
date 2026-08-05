@@ -88,6 +88,11 @@ function progressValues(progress: BadgeProgress): Record<string, number> {
               <div class="min-w-0">
                 <p class="font-medium" :class="entry.earned ? 'text-default' : 'text-muted'">
                   {{ t(`posts.discussions.badges.name.${entry.key}`) }}
+                  <!-- Mehrfach verliehen: die ANZAHL statt mehrerer Kacheln —
+                       eine Reihe gleicher Namen wäre eine Wand, keine Aussage. -->
+                  <span v-if="entry.count > 1" class="ml-1 text-sm tabular-nums text-muted">
+                    {{ t('posts.discussions.badges.times', { count: entry.count }) }}
+                  </span>
                 </p>
                 <p class="text-sm text-muted">
                   {{ t(`posts.discussions.badges.criterion.${entry.key}`) }}

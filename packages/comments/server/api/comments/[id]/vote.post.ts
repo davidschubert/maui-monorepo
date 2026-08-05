@@ -142,6 +142,24 @@ export default defineEventHandler(async (event): Promise<VoteResponse> => {
       ])
     }
 
+    /**
+     * „DIESE ANTWORT HAT JETZT SO VIELE STIMMEN" (F1 Teilpaket 2, Core-Vertrag
+     * `reportContentUpvotes`). Wer daraus ein Abzeichen macht, ist der Layer mit
+     * dem Katalog — dieser hier nennt eine FORM („eine Antwort") und zwei
+     * Zahlen, keinen Nachbarn (A14). Ohne Empfänger (Silo ohne Discussions)
+     * verpufft die Meldung.
+     *
+     * Gast-Kommentare fallen von selbst heraus: sie tragen `authorId: ''`, und
+     * der Vertrag verwirft eine Meldung ohne Empfänger.
+     */
+    await reportContentUpvotes(event, {
+      authorId: target.authorId,
+      contentId: commentId,
+      kind: 'reply',
+      upvotes,
+      previousUpvotes: target.upvotes,
+    })
+
     return { comment, myVote }
   })
 })

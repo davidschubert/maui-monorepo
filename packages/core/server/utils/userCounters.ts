@@ -46,6 +46,22 @@ import type { H3Event } from 'h3'
 /** Die Antwort einer Quelle: Zähler-Name → Wert. */
 export type UserCounters = Record<string, number>
 
+/**
+ * EIN benanntes Zeitfenster, in dem gezählt werden soll.
+ *
+ * Der `key` gehört dem KONSUMENTEN (heute die Nummer des Mitgliedsjahres) — die
+ * Quellen reichen ihn nur in den Zähler-Namen durch und wissen nicht, was er
+ * bedeutet. `until` ist optional, weil ein offenes Ende („seit … bis heute")
+ * eine gültige Frage bleibt.
+ */
+export interface UserCounterWindow {
+  key: string
+  /** ISO-Zeitpunkt, ab dem gezählt wird (einschließlich). */
+  since: string
+  /** ISO-Zeitpunkt, bis zu dem gezählt wird (ausschließlich). */
+  until?: string
+}
+
 export interface UserCounterQuery {
   /**
    * Die Upvote-Schwellen, nach denen gefragt wird (z. B. `[1, 2, 5, 10]`).
@@ -57,28 +73,35 @@ export interface UserCounterQuery {
    */
   thresholds: readonly number[]
   /**
-   * Ab wann eigene Inhalte gezählt werden sollen (ISO) — für `contentSince`.
+   * Zeitfenster, für die „habe ich darin etwas geschrieben?" beantwortet werden
+   * soll — je Fenster EIN Zähler (`counterContentIn(window.key)`).
    *
    * OPTIONAL, und das ist der ganze Trick: fehlt das Feld, stellt keine Quelle
-   * die Abfrage. Nur der EINE Konsument, der ein Zeitfenster braucht (das
-   * Abzeichen „Jahrestag"), setzt es — und auch der nur, wenn die
-   * Mitgliedschaft überhaupt lange genug zurückliegt. Alle anderen Aufrufe
-   * bleiben so teuer wie vorher.
+   * die Abfrage. Nur der EINE Konsument, der Zeitfenster braucht (das Abzeichen
+   * „Jahrestag"), setzt es — und auch der nur für die Mitgliedsjahre, die noch
+   * kein Abzeichen haben. Alle anderen Aufrufe bleiben so teuer wie vorher.
    *
    * WARUM ÜBERHAUPT HIER UND NICHT AN DER AUSWERTESTELLE: die Frage lautet
-   * „hat dieser Mensch im letzten Jahr etwas GESCHRIEBEN?", und geschrieben
+   * „hat dieser Mensch in diesem Jahr etwas GESCHRIEBEN?", und geschrieben
    * wird in zwei Layern (Beitrag in `posts`, Antwort in `comments`). Wer sie
    * an der Auswertestelle beantwortet, kann nur die Hälfte messen, die sein
    * eigener Layer kennt — und ein Abzeichen, das „Beitrag" sagt und Antworten
    * übersieht, ist genau der halbe Satz, aus dem heraus „Editor" abgelehnt
    * wurde. Ein optionales Feld an einem Vertrag, den es schon gibt, ist der
    * kleinere Preis als ein zweiter Vertrag daneben.
+   *
+   * WARUM MEHRERE UND WARUM MIT ENDE (F1 Teilpaket 2, Mehrfach-Verleihung): der
+   * Jahrestag kommt seit Davids Entscheidung vom 2026-08-04 JÄHRLICH, und
+   * Mitgliedsjahr N ist ein Fenster, das in der Vergangenheit ANFÄNGT UND
+   * AUFHÖRT. Mit einem bloßen „seit" wäre jedes ältere Jahr automatisch
+   * qualifiziert, sobald jemand heute etwas schreibt — der Jahrestag hieße dann
+   * „irgendwann danach aktiv gewesen" statt „in jenem Jahr dabeigeblieben".
    */
-  since?: string
+  windows?: readonly UserCounterWindow[]
   /**
    * STARTWERTE für die mitschreibenden Zähler mitliefern (F1, Lazy-Seed).
    *
-   * Genau wie `since` ein OPTIONALES Feld, und aus demselben Grund: die Antwort
+   * Genau wie `windows` ein OPTIONALES Feld, und aus demselben Grund: die Antwort
    * kostet je Quelle eine zusätzliche `count`-Abfrage, gebraucht wird sie aber
    * genau EINMAL je Mensch — wenn seine Zähler-Zeile zum ersten Mal entsteht.
    * Fehlt das Feld, melden die Quellen `topicsCreated`/`repliesCreated` GAR
@@ -104,14 +127,16 @@ export const COUNTER_LIKES_GIVEN = 'likesGiven'
 export const COUNTER_FLAGS_RAISED = 'flagsRaised'
 
 /**
- * Wie viele eigene, sichtbare Inhalte hat der Nutzer seit `query.since`
- * verfasst? (alle Inhaltsarten zusammen)
+ * Wie viele eigene, sichtbare Inhalte hat der Nutzer im Fenster `key` verfasst?
+ * (alle Inhaltsarten zusammen)
  *
- * ANTWORTET NUR, WER GEFRAGT WURDE: ohne `since` melden die Quellen diesen
+ * ANTWORTET NUR, WER GEFRAGT WURDE: ohne `windows` melden die Quellen diesen
  * Zähler GAR NICHT — und ein fehlender Zähler ist beim Konsumenten 0. Das ist
  * die gutmütige Richtung: ohne Frage kein Abzeichen, nie ein Abzeichen zu viel.
  */
-export const COUNTER_CONTENT_SINCE = 'contentSince'
+export function counterContentIn(key: string): string {
+  return `contentIn:${key}`
+}
 
 /**
  * Ist das Profil ausgefüllt (Text ÜBER SICH und Bild)? 0 oder 1.

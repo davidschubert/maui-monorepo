@@ -7,7 +7,6 @@ import {
   badgeMemberDays,
   badgeProgress,
   badgeThresholds,
-  contentWindowStartIso,
   earnedBadgeKeys,
   emptyBadgeFacts,
   membershipDays,
@@ -106,10 +105,6 @@ describe('Zugehörigkeit und Zeitfenster — was die Auswertestelle beschaffen m
     expect(membershipDays('kein Datum')).toBeNull()
   })
 
-  it('rechnet den Fensterbeginn zurück', () => {
-    expect(contentWindowStartIso(365, new Date('2026-08-04T00:00:00.000Z')))
-      .toBe('2025-08-04T00:00:00.000Z')
-  })
 })
 
 describe('die einzelnen Bedingungen', () => {

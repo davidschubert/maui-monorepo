@@ -32,7 +32,9 @@ const COPY: Record<EmailLocale, {
   footer: string
 }> = {
   de: {
-    types: { reply: 'hat auf deinen Kommentar geantwortet', mention: 'hat dich erwähnt', reminder: 'Erinnerung', ticket: '— Ticket-Update', billing: '— Zahlungsproblem' },
+    // 'badge.awarded': der Titel IST der Abzeichen-Name (als Schlüssel
+    // gespeichert, oben übersetzt) — das Label sagt nur, worum es geht.
+    types: { reply: 'hat auf deinen Kommentar geantwortet', mention: 'hat dich erwähnt', reminder: 'Erinnerung', ticket: '— Ticket-Update', billing: '— Zahlungsproblem', 'badge.awarded': '— Abzeichen erhalten' },
     fallbackType: 'Neue Benachrichtigung',
     openLink: 'Ansehen',
     digestSubject: count => `${count} neue Benachrichtigung${count === 1 ? '' : 'en'}`,
@@ -40,7 +42,7 @@ const COPY: Record<EmailLocale, {
     footer: 'Du erhältst diese Mail, weil E-Mail-Benachrichtigungen in deinen Einstellungen aktiv sind. Abstellen: Dashboard → Einstellungen → Benachrichtigungen.',
   },
   en: {
-    types: { reply: 'replied to your comment', mention: 'mentioned you', reminder: 'Reminder', ticket: '— ticket update', billing: '— payment issue' },
+    types: { reply: 'replied to your comment', mention: 'mentioned you', reminder: 'Reminder', ticket: '— ticket update', billing: '— payment issue', 'badge.awarded': '— badge earned' },
     fallbackType: 'New notification',
     openLink: 'View',
     digestSubject: count => `${count} new notification${count === 1 ? '' : 's'}`,
@@ -93,12 +95,23 @@ export interface NotificationEmailItem {
 function itemLines(locale: EmailLocale, item: NotificationEmailItem, links: NotificationLinkContext) {
   const copy = COPY[locale]
   const label = copy.types[item.type]
-  const heading = label ? `${item.title} ${label}` : `${copy.fallbackType}: ${item.title}`
+  /**
+   * ÜBERSETZBARE TEXTE (F1 Teilpaket 2): steht in `title`/`body` ein
+   * i18n-Schlüssel (Abzeichen-Name, Bedingungstext), macht die Registry daraus
+   * den Satz in der Mail-Sprache des EMPFÄNGERS. Rohe Inhalte — Absendername,
+   * Kommentar-Zitat — erkennt keine Auflösung und sie bleiben unverändert;
+   * deshalb darf der Aufruf hier ohne Fallunterscheidung stehen. Er gilt auch
+   * für die Digest-Mail, die ihre Einträge aus GESPEICHERTEN Zeilen baut — die
+   * einzige Stelle, an der ein fertiger Text nicht mehr zu retten wäre.
+   */
+  const title = resolveNotificationText(item.title, locale)
+  const body = resolveNotificationText(item.body, locale)
+  const heading = label ? `${title} ${label}` : `${copy.fallbackType}: ${title}`
   const url = notificationLinkUrl(links, item)
   return {
     heading,
-    text: `${heading}\n${item.body ? `„${item.body}"\n` : ''}${copy.openLink}: ${url}`,
-    html: `<p><strong>${escapeHtml(heading)}</strong><br>${item.body ? `<em>„${escapeHtml(item.body)}"</em><br>` : ''}<a href="${escapeHtml(url)}">${copy.openLink}</a></p>`,
+    text: `${heading}\n${body ? `„${body}"\n` : ''}${copy.openLink}: ${url}`,
+    html: `<p><strong>${escapeHtml(heading)}</strong><br>${body ? `<em>„${escapeHtml(body)}"</em><br>` : ''}<a href="${escapeHtml(url)}">${copy.openLink}</a></p>`,
   }
 }
 
