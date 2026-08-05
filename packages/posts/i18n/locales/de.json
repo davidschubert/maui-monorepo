@@ -78,7 +78,8 @@
       "upvote": "Hochvoten",
       "downvote": "Runtervoten",
       "voteFailed": "Vote konnte nicht gespeichert werden.",
-      "voteFailedHint": "Deine Stimme kam nicht an. Klick noch einmal."
+      "voteFailedHint": "Deine Stimme kam nicht an. Klick noch einmal.",
+      "edited": "bearbeitet"
     },
     "moderation": {
       "title": "Feed-Beiträge",
@@ -285,6 +286,7 @@
           "profile": "Vorgestellt",
           "first-like": "Erster Zuspruch",
           "first-flag": "Erste Meldung",
+          "editor": "Nachgebessert",
           "welcome": "Willkommen",
           "appreciated": "Geschätzt",
           "thank-you": "Dankeschön",
@@ -304,6 +306,7 @@
           "profile": "Du hast einen Text über dich und ein Profilbild hinterlegt.",
           "first-like": "Du hast zum ersten Mal etwas hochgestimmt.",
           "first-flag": "Du hast zum ersten Mal etwas gemeldet.",
+          "editor": "Du hast zum ersten Mal einen eigenen Beitrag oder eine eigene Antwort überarbeitet.",
           "welcome": "Etwas von dir hat eine Stimme bekommen.",
           "appreciated": "20 deiner Beiträge oder Antworten haben mindestens eine Stimme.",
           "thank-you": "20 deiner Beiträge oder Antworten haben eine Stimme, und du hast selbst 10 vergeben.",

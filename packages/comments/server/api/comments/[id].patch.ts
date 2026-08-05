@@ -29,15 +29,44 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 409, statusText: 'Comment not editable' })
   }
 
+  /**
+   * F1: hat sich der INHALT wirklich geändert?
+   *
+   * Die Antwort steuert NUR den mitschreibenden Zähler, NICHT `editedAt` —
+   * dort bleibt das Verhalten dieser Route unverändert (jedes Speichern setzt
+   * den Zeitstempel; anders als beim Beitrag schickt dieses Formular auch nur
+   * das eine Feld, es gibt hier also keinen Kategorie-Wechsel, der sich als
+   * Bearbeitung tarnen könnte). Für das Abzeichen „Editor" ist der Unterschied
+   * trotzdem wichtig: zweimal „Speichern" ohne Änderung ist EINE Bearbeitung,
+   * und ohne diese Frage wäre das Abzeichen mit zwei folgenlosen Klicks zu
+   * haben.
+   */
+  const contentEdited = existing.content !== content
+
   try {
     // Sparse Update — Row-Security wirft 401, wenn nicht der Autor schreibt.
     // editedAt markiert die echte Bearbeitung (≠ $updatedAt, das auch Votes bumpen).
-    return await db.update<Comment>(
+    const updated = await db.update<Comment>(
       COMMENTS_TABLE,
       commentId,
       { content, editedAt: new Date().toISOString() },
       'Comment not found',
     )
+
+    /**
+     * MITSCHREIBENDER ZÄHLER (F1) — Grundlage des Abzeichens „Editor".
+     *
+     * NUR EIGENE INHALTE, und das ist hier eine Eigenschaft der Route: die
+     * Row-Security lässt ausschließlich den Autor schreiben (ein fremder
+     * Versuch endet im 403 unten). Eine Moderation, die einen fremden
+     * Kommentar anfasst, kommt hier gar nicht vorbei — und dürfte auch nicht
+     * zählen: das Abzeichen belohnt, den EIGENEN Text besser zu machen.
+     */
+    if (contentEdited) {
+      await recordUserCounterEvents(event, [{ userId: user.$id, kind: 'edits', delta: 1 }])
+    }
+
+    return updated
   }
   catch (error) {
     // Row-Security-401 (nicht der Autor) → 403; echte 5xx nicht als 403 tarnen.

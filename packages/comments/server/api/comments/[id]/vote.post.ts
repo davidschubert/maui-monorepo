@@ -1,4 +1,5 @@
 import { AppwriteException, Permission, Query, Role } from 'node-appwrite'
+import { upvoteDelta, type UpvoteState } from '../../../../../core/shared/upvoteDelta'
 import { voteSchema } from '../../../../schemas/comment'
 import {
   COMMENTS_TABLE,
@@ -114,6 +115,32 @@ export default defineEventHandler(async (event): Promise<VoteResponse> => {
       { upvotes, downvotes, score: upvotes - downvotes },
       'Comment not found',
     )
+
+    /**
+     * MITSCHREIBENDE ZÄHLER (F1): eine Stimme bewegt ZWEI Menschen — den
+     * Gebenden und den Autor. Die Vorzeichen-Regel ist pur und geteilt
+     * (`core/shared/upvoteDelta.ts`); dieser Layer weiß weiterhin nicht, dass
+     * es Beiträge gibt (A14), er nennt eine Ereignis-Art.
+     *
+     * Gerechnet wird ZUSTAND VORHER gegen ZUSTAND NACHHER: `myVote` ist
+     * autoritativ aus der Datenbank gelesen, `current` der Stand von vorher.
+     * Nur Aufstimmen zählen — Abstimmen sind abzeichen-neutral.
+     *
+     * GAST-KOMMENTARE fallen von selbst heraus: sie tragen `authorId: ''`, und
+     * ohne Konto gibt es niemanden, dem etwas gutzuschreiben wäre.
+     */
+    // `CommentVote.value` ist ein loser `number` (die Spalte ist ein Integer),
+    // die Regel kennt nur die drei gemeinten Zustände. Die Einengung hier ist
+    // deshalb keine Formalie: sie macht aus einem versehentlichen 0 oder 7 ein
+    // „keine Aufstimme" statt eines Typfehlers zur Laufzeit.
+    const before: UpvoteState = current?.value === 1 ? 1 : current?.value === -1 ? -1 : null
+    const delta = upvoteDelta(before, myVote)
+    if (delta !== 0) {
+      await recordUserCounterEvents(event, [
+        { userId: user.$id, kind: 'upvotesGiven', delta },
+        ...(target.authorId ? [{ userId: target.authorId, kind: 'upvotesReceived' as const, delta }] : []),
+      ])
+    }
 
     return { comment, myVote }
   })

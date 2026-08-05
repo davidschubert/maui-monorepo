@@ -25,6 +25,18 @@ export const POST_CATEGORIES_TABLE = 'post_categories'
 export const POST_VIEWS_TABLE = 'post_views'
 /** F1 Stufe 4: verliehene Abzeichen, EINE Zeile je (Community, Nutzer, Abzeichen). */
 export const USER_BADGES_TABLE = 'user_badges'
+/**
+ * F1 (gemeinsames Paket): die MITSCHREIBENDEN Zähler, EINE Zeile je
+ * (Community, Nutzer).
+ *
+ * WARUM SIE DEM posts-LAYER GEHÖRT, obwohl auch `comments` hineinmeldet: sie
+ * ist Discussions-Infrastruktur, und Discussions ist dieser Layer. Core besitzt
+ * keine Tabellen (A14), `comments` darf `posts` nicht kennen — also gibt es
+ * dazwischen einen Core-Vertrag (`registerUserCounterRecorder`), und die
+ * Tabelle liegt bei dem Layer, der sie auch auswertet (Abzeichen, später Trust
+ * Levels).
+ */
+export const MEMBER_COUNTERS_TABLE = 'member_counters'
 
 export const POST_TYPES = ['post', 'poll', 'question'] as const
 export type PostType = (typeof POST_TYPES)[number]
@@ -116,6 +128,29 @@ export interface CommunityPost extends Models.Row {
   pinned: boolean
   closed: boolean
   solved: boolean
+  /**
+   * F1: WANN wurde der INHALT dieses Beitrags zuletzt bearbeitet (Migration
+   * posts-014) — `null` heißt „nie", nicht „unbekannt".
+   *
+   * AUSDRÜCKLICH NICHT `$updatedAt`, und das ist derselbe Grund wie bei
+   * `lastActivityAt`: `$updatedAt` bewegt sich bei jeder Stimme (score.post.ts
+   * schreibt die Zähler auf die Zeile), bei jedem Anheften und bei jedem
+   * Umkategorisieren. Ein „bearbeitet" daraus stünde an Themen, an deren Text
+   * nie jemand war — genau die Sorte Hinweis, die man nach drei Tagen nicht
+   * mehr glaubt. `comments.editedAt` (Migration comments-005) macht es seit
+   * jeher so; hier wird die Schuld nachgeholt.
+   *
+   * GESETZT WIRD ES NUR VOM AUTOR-PFAD (`[id].patch.ts`) und nur, wenn Titel
+   * oder Text sich WIRKLICH geändert haben — die Regel dafür ist pur und
+   * getestet (`shared/postEdit.ts`). Zustands-Änderungen (anheften, schließen,
+   * gelöst) laufen über `state.patch.ts` und rühren die Spalte nicht an.
+   *
+   * PFLICHT im Typ, obwohl die Spalte additiv und leer-fähig ist — dieselbe
+   * Entscheidung wie bei `categoryId` und den drei Zuständen: so muss jede
+   * künftige Anlegestelle sich entscheiden. Folge: die Migration MUSS vor dem
+   * Deploy laufen.
+   */
+  editedAt: string | null
 }
 
 /**
@@ -354,6 +389,41 @@ export interface DiscussionSidebarResponse {
 export interface UserBadge extends Models.Row {
   userId: string
   badgeKey: string
+}
+
+/**
+ * DIE MITSCHREIBENDEN ZÄHLER EINES MENSCHEN in EINER Community (F1, Migration
+ * posts-013).
+ *
+ * Alle Zahlen sind ADDITIV geführt: sie werden beim Schreiben hoch- und beim
+ * Zurücknehmen heruntergezählt, nie neu berechnet. Ausnahme ist der EINE
+ * Startvorgang (`seeded`), der sie aus den Aggregaten setzt.
+ *
+ * `communityId` steht bewusst nicht im Typ — sie gehört der Datentür (Muster
+ * `UserBadge`).
+ */
+export interface MemberCounters extends Models.Row {
+  userId: string
+  /** Eigenständige, veröffentlichte Beiträge. */
+  topicsCreated: number
+  /** Geschriebene Antworten (Kommentare). */
+  repliesCreated: number
+  /** Selbst vergebene Aufstimmen. */
+  upvotesGiven: number
+  /** Auf eigene Inhalte erhaltene Aufstimmen. */
+  upvotesReceived: number
+  /** Bearbeitungen EIGENER Inhalte. */
+  edits: number
+  /**
+   * Wurden die Startwerte schon aus den Aggregaten gesetzt?
+   *
+   * DIE ZEILE ALLEIN REICHT ALS ANTWORT NICHT, und das ist der Grund für dieses
+   * Feld: die Zeile entsteht beim ERSTEN Ereignis — das kann eine einzige
+   * vergebene Stimme sein, auch bei jemandem, der vorher 500 vergeben hat. Ohne
+   * die Unterscheidung „existiert" gegen „geeicht" stünde dort dann eine 1, und
+   * ein längst verdientes Abzeichen wäre verloren.
+   */
+  seeded: boolean
 }
 
 /** Ein Eintrag der Abzeichen-Galerie: Katalog-Zeile plus eigener Stand. */

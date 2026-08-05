@@ -75,6 +75,19 @@ export interface UserCounterQuery {
    * kleinere Preis als ein zweiter Vertrag daneben.
    */
   since?: string
+  /**
+   * STARTWERTE für die mitschreibenden Zähler mitliefern (F1, Lazy-Seed).
+   *
+   * Genau wie `since` ein OPTIONALES Feld, und aus demselben Grund: die Antwort
+   * kostet je Quelle eine zusätzliche `count`-Abfrage, gebraucht wird sie aber
+   * genau EINMAL je Mensch — wenn seine Zähler-Zeile zum ersten Mal entsteht.
+   * Fehlt das Feld, melden die Quellen `topicsCreated`/`repliesCreated` GAR
+   * NICHT, und jeder gewöhnliche Aufruf bleibt so teuer wie vorher.
+   *
+   * `likesGiven` steht bewusst NICHT in dieser Liste: den melden die Quellen
+   * ohnehin immer, er ist also beim Seed gratis dabei.
+   */
+  seed?: true
 }
 
 export type UserCounterProvider = (
@@ -109,6 +122,20 @@ export const COUNTER_CONTENT_SINCE = 'contentSince'
  * gemeinte Frage.
  */
 export const COUNTER_PROFILE_COMPLETE = 'profileComplete'
+
+/**
+ * Wie viele eigenständige Beiträge hat der Nutzer veröffentlicht? NUR auf
+ * `query.seed` hin (F1, Lazy-Seed der mitschreibenden Zähler).
+ *
+ * DER NAME IST DERSELBE WIE DIE GLEICHNAMIGE EREIGNIS-ART in
+ * `userCounterEvents.ts`, und das ist Absicht: der Seed setzt die Antwort ohne
+ * Übersetzungstabelle in die Zähler-Zeile. Ein Test nagelt beide Listen
+ * aneinander, damit aus der Absicht kein Zufall wird.
+ */
+export const COUNTER_TOPICS_CREATED = 'topicsCreated'
+
+/** Wie viele Antworten hat der Nutzer geschrieben? NUR auf `query.seed` hin. */
+export const COUNTER_REPLIES_CREATED = 'repliesCreated'
 
 /** Eigene Inhalte JEDER Art mit mindestens `threshold` erhaltenen Upvotes. */
 export function counterLikedItems(threshold: number): string {

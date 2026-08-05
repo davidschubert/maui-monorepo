@@ -1,4 +1,5 @@
 import { AppwriteException, Permission, Query, Role } from 'node-appwrite'
+import { upvoteDelta } from '../../../../../core/shared/upvoteDelta'
 import { scoreVoteSchema } from '../../../../schemas/post'
 import { POSTS_TABLE, POST_VOTES_TABLE, type CommunityPost, type PostVote, type PostVoteResponse, type PostVoteValue } from '../../../../shared/types/post'
 
@@ -92,6 +93,29 @@ export default defineEventHandler(async (event): Promise<PostVoteResponse> => {
       downvotes,
       score: upvotes - downvotes,
     })
+
+    /**
+     * MITSCHREIBENDE ZÄHLER (F1): eine Stimme bewegt ZWEI Menschen — den
+     * Gebenden und den Autor. Die Vorzeichen-Regel ist pur und geteilt
+     * (`core/shared/upvoteDelta.ts`), weil `comments/[id]/vote.post.ts`
+     * dieselbe Rechnung braucht und die beiden Layer einander nicht kennen.
+     *
+     * Gerechnet wird ZUSTAND VORHER gegen ZUSTAND NACHHER: `myVote` ist
+     * autoritativ aus der Datenbank gelesen (wegen der Doppelklick-Rennen),
+     * `current` der Stand von vorher. Nur Aufstimmen zählen — Abstimmen sind
+     * abzeichen-neutral (Davids Entscheidung 4).
+     *
+     * SELBST-STIMMEN werden NICHT ausgenommen: der bestehende Aggregat-Zähler
+     * (`likesGiven`) macht das auch nicht, und eine neue Sonderregel nur hier
+     * ließe zwei Zahlen über dieselbe Sache verschieden rechnen.
+     */
+    const delta = upvoteDelta(current?.value ?? null, myVote)
+    if (delta !== 0) {
+      await recordUserCounterEvents(event, [
+        { userId: user.$id, kind: 'upvotesGiven', delta },
+        ...(target.authorId ? [{ userId: target.authorId, kind: 'upvotesReceived' as const, delta }] : []),
+      ])
+    }
 
     return { post, myVote }
   })

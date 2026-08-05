@@ -9,7 +9,7 @@
  * ── DER ZUSCHNITT: NUR, WAS HEUTE MESSBAR IST ─────────────────────────────
  * Davids Vorgabe fuer Stufe 4 lautet „nur heute messbare Abzeichen … fehlende
  * kommen automatisch dazu, sobald ihre Funktion existiert". Der Katalog aus
- * § 3.6 hat 40+ Eintraege; hier stehen 17 (3 + 8 + 6 — ein Test haelt die Zahl
+ * § 3.6 hat 40+ Eintraege; hier stehen 18 (4 + 8 + 6 — ein Test haelt die Zahl
  * an den Katalog gebunden, damit dieser Satz nicht mit der Zeit unwahr wird).
  * Was fehlt und WARUM, gehoert an diese Stelle und nicht in eine Notiz, sonst
  * reicht es irgendwann jemand „nach", ohne den Preis zu kennen:
@@ -26,11 +26,19 @@
  *    Die Reihenfolge dieser Funktionen steht in Teil 4.
  *  - **Trust Level (TL1–TL4)** ist ausgespart: Davids Entscheidung 5 macht
  *    daraus ein eigenes Projekt mit eigenem Ja.
- *  - **Editor** („ersten eigenen Beitrag bearbeitet") ist NICHT baubar, obwohl
- *    es so aussieht: `community_posts` hat keine Spalte, die eine Bearbeitung
- *    festhaelt (`comments` hat `editedAt`, `posts` nicht). Das halbe Abzeichen
- *    nur fuer Antworten zu verleihen waere schlimmer als keines — es hiesse
- *    „Beitrag" und meinte etwas anderes.
+ *  - **Editor** („ersten eigenen Beitrag bearbeitet") stand hier bis zum
+ *    2026-08-04 als NICHT BAUBAR: `community_posts` hielt keine Bearbeitung
+ *    fest (`comments` hatte `editedAt`, `posts` nicht), und das halbe Abzeichen
+ *    nur fuer Antworten zu verleihen waere schlimmer als keines gewesen — es
+ *    hiesse „Beitrag" und meinte etwas anderes. Beide Haelften sind jetzt da:
+ *    `posts.editedAt` (Migration posts-014) und der mitschreibende Zaehler
+ *    `edits`, den BEIDE Layer speisen. Gezaehlt werden nur Bearbeitungen
+ *    EIGENER Inhalte — beide Routen lassen ohnehin nur den Autor durch, ein
+ *    Moderator, der fremdes aufraeumt, verdient hier nichts.
+ *    EINE EHRLICHE GRENZE GEHOERT DAZU: `edits` beginnt fuer alle bei 0. Eine
+ *    Bearbeitung hinterlaesst einen Zeitstempel, keine Anzahl — wer vor der
+ *    Umstellung nachgebessert hat, ist davon nicht zu unterscheiden. Das
+ *    Abzeichen zaehlt ab jetzt.
  *  - **Anniversary** („Jahrestag") war bis 2026-08-04 aus demselben Grund
  *    draussen und ist es NICHT MEHR: das Beitrittsdatum steht weiterhin in
  *    `community_members` im CONTROL PLANE, aber es gibt jetzt einen Weg
@@ -50,15 +58,20 @@
  * abzeichen-neutral; ein Beitrag mit 30 Auf- und 30 Abstimmen hat 30 Likes,
  * nicht 0. Das ist wichtig, weil `score` genau die andere Rechnung ist.
  *
- * ── JEDES ABZEICHEN GENAU EINMAL ──────────────────────────────────────────
- * Discourse verleiht einige mehrfach („some of them multiple times"). Hier
- * nicht, und das ist eine Folge der Zaehlweise, keine Nachlaessigkeit: gezaehlt
- * wird mit AGGREGATEN („wie viele meiner Beitraege haben ≥10 Upvotes?"), also
- * mit einer festen Zahl von Abfragen, egal wie lang jemand dabei ist. „Wie
- * OFT" verlangte, jedes qualifizierende Stueck einzeln zu benennen — das
- * heisst, die gesamte Inhalts-Geschichte eines Menschen zu lesen. Das gehoert
- * zu einer Zaehler-Infrastruktur, die beim Schreiben mitschreibt, und die ist
- * eine eigene Stufe.
+ * ── HEUTE NOCH: JEDES ABZEICHEN GENAU EINMAL ──────────────────────────────
+ * Discourse verleiht einige mehrfach, und David hat entschieden, dass ALLE
+ * sinnvoll zaehlbaren es kuenftig tun sollen. GEBAUT ist das hier NICHT — es
+ * ist das zweite Teilpaket des gemeinsamen Pakets (Konzept Teil 5, Punkt 5),
+ * zusammen mit der Benachrichtigung.
+ *
+ * Was in diesem Teilpaket entstanden ist, ist die VORAUSSETZUNG dafuer: die
+ * mitschreibenden Zaehler (`member_counters`, Migration posts-013). Der Grund
+ * fuer „genau einmal" war naemlich nie eine Bequemlichkeit, sondern die
+ * Zaehlweise — mit AGGREGATEN („wie viele meiner Beitraege haben ≥10 Upvotes?")
+ * gibt es keine Ereignisse, nur Staende, und „wie OFT" verlangte, die gesamte
+ * Inhalts-Geschichte eines Menschen zu lesen. Mit einem Zaehler, der beim
+ * Schreiben mitschreibt, ist die Frage beantwortbar. Beantwortet wird sie im
+ * naechsten Teilpaket.
  */
 
 export const BADGE_GROUPS = ['gettingStarted', 'community', 'posting'] as const
@@ -92,6 +105,15 @@ export interface BadgeRequirement {
   likesGiven?: number
   /** Mindestens so viele abgesetzte Meldungen. */
   flagsRaised?: number
+  /**
+   * Mindestens so viele Bearbeitungen EIGENER Inhalte.
+   *
+   * Der erste Wert, der NICHT aus einem Aggregat kommt, sondern aus dem
+   * mitschreibenden Zaehler (`member_counters.edits`) — eine Bearbeitung
+   * hinterlaesst in den Inhalts-Tabellen nur einen Zeitstempel. Folge: er
+   * beginnt fuer jeden bei 0, auch fuer den, der jahrelang nachgebessert hat.
+   */
+  edits?: number
   /** Eigene Inhalte JEDER Art. */
   likedItems?: LikedItemsRequirement
   /** Nur eigenstaendige Beitraege. */
@@ -127,6 +149,16 @@ export const BADGE_CATALOG: readonly BadgeDefinition[] = [
   { key: 'profile', group: 'gettingStarted', requires: { profileComplete: true } },
   { key: 'first-like', group: 'gettingStarted', requires: { likesGiven: 1 } },
   { key: 'first-flag', group: 'gettingStarted', requires: { flagsRaised: 1 } },
+  /**
+   * „Editor": einmal am eigenen Text nachgebessert.
+   *
+   * EINMALIG, obwohl `edits` weiterzaehlt — der Katalog sagt „ersten eigenen
+   * Beitrag bearbeitet", und das ist ein ERSTES MAL wie die drei darueber.
+   * (Davids Mehrfach-Regel im naechsten Teilpaket meint qualifizierende
+   * EREIGNISSE ueber einer Schwelle, nicht ein erstes Mal, das es nur einmal
+   * geben kann.)
+   */
+  { key: 'editor', group: 'gettingStarted', requires: { edits: 1 } },
 
   // ── Die Gemeinschaft: Zuspruch bekommen UND geben ─────────────────────
   { key: 'welcome', group: 'community', requires: { likedItems: { threshold: 1, count: 1 } } },
@@ -167,6 +199,8 @@ export interface BadgeFacts {
   profileComplete: boolean
   likesGiven: number
   flagsRaised: number
+  /** Bearbeitungen eigener Inhalte (mitschreibender Zaehler, nie ein Aggregat). */
+  edits: number
   /** Schwelle → Anzahl eigener Inhalte, die sie erreichen. */
   likedItems: Record<number, number>
   likedTopics: Record<number, number>
@@ -187,6 +221,7 @@ export function emptyBadgeFacts(): BadgeFacts {
     profileComplete: false,
     likesGiven: 0,
     flagsRaised: 0,
+    edits: 0,
     likedItems: {},
     likedTopics: {},
     likedReplies: {},
@@ -285,6 +320,7 @@ export function badgeEarned(badge: BadgeDefinition, facts: BadgeFacts): boolean 
   if (requires.profileComplete && !facts.profileComplete) return false
   if (requires.likesGiven !== undefined && facts.likesGiven < requires.likesGiven) return false
   if (requires.flagsRaised !== undefined && facts.flagsRaised < requires.flagsRaised) return false
+  if (requires.edits !== undefined && facts.edits < requires.edits) return false
   if (!meetsLikedItems(facts.likedItems, requires.likedItems)) return false
   if (!meetsLikedItems(facts.likedTopics, requires.likedTopics)) return false
   if (!meetsLikedItems(facts.likedReplies, requires.likedReplies)) return false
@@ -330,6 +366,7 @@ export function badgeProgress(badge: BadgeDefinition, facts: BadgeFacts): BadgeP
   const countable: BadgeProgress[] = []
   if (badge.requires.likesGiven !== undefined) countable.push({ current: facts.likesGiven, target: badge.requires.likesGiven })
   if (badge.requires.flagsRaised !== undefined) countable.push({ current: facts.flagsRaised, target: badge.requires.flagsRaised })
+  if (badge.requires.edits !== undefined) countable.push({ current: facts.edits, target: badge.requires.edits })
   if (badge.requires.likedItems) countable.push({ current: facts.likedItems[badge.requires.likedItems.threshold] ?? 0, target: badge.requires.likedItems.count })
   if (badge.requires.likedTopics) countable.push({ current: facts.likedTopics[badge.requires.likedTopics.threshold] ?? 0, target: badge.requires.likedTopics.count })
   if (badge.requires.likedReplies) countable.push({ current: facts.likedReplies[badge.requires.likedReplies.threshold] ?? 0, target: badge.requires.likedReplies.count })

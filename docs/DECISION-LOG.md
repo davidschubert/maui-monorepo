@@ -7,6 +7,17 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-08-04 — Gemeinsames Paket: TL-Architektur, Aufstieg, Mehrfach-Verleihung
+
+**Davids Entscheidungen** (strukturierte Fragen; Volltext: DISCUSSIONS-KONZEPT.md
+Teil 5): (1) **Trust Levels speisen das bestehende RBAC** — Stufe aus Zählern
+berechnet, Capabilities vergibt der vorhandene Resolver; ein paralleles
+TL-Prüfsystem ist abgelehnt (das „eigene Ja" aus § 3.6). (2) **TL1–TL3
+automatisch** über Schwellen, **TL4 nur von Hand**, kein Abstieg. (3)
+**Mehrfach-Verleihung für ALLE sinnvoll zählbaren Abzeichen** — bewusst gegen
+die Empfehlung (nur Posting-Gruppe) und als Revision der Stufe-4-Regel „genau
+einmal": auch der Jahrestag kommt jährlich neu.
+
 ## 2026-08-04 — Stufe 4: Badge-Zuschnitt, Tracking abgelehnt, vier soziale Mechaniken
 
 **Davids Entscheidungen** (Volltext: DISCUSSIONS-KONZEPT.md Teil 4): Stufe 4

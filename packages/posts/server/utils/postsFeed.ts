@@ -77,6 +77,11 @@ export async function publishDuePosts(event: H3Event): Promise<void> {
       // Autor-Rechte bleiben, Leserecht für alle kommt dazu (zweiter Schritt:
       // die Tür trennt Daten- und Permission-Writes bewusst)
       await db.updatePermissions(POSTS_TABLE, row.$id, withPublishedRead(row.$permissions, event))
+      // MITSCHREIBENDER ZÄHLER (F1): JETZT ist der Beitrag da — für den AUTOR,
+      // nicht für den zufälligen Leser, dessen Feed-Aufruf den Lauf ausgelöst
+      // hat. Dieselbe Unterscheidung wie beim Aktivitäts-Eintrag eine Zeile
+      // weiter unten (`actorId: updated.authorId`).
+      await recordUserCounterEvents(event, [{ userId: updated.authorId, kind: 'topicsCreated', delta: 1 }])
       await recordActivity(event, {
         actorId: updated.authorId,
         actorName: updated.authorName,

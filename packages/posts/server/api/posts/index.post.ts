@@ -74,6 +74,9 @@ export default defineEventHandler(async (event) => {
     pinned: false,
     closed: false,
     solved: false,
+    // F1: ein frischer Beitrag ist nie bearbeitet. Ausdrücklich statt über den
+    // Spalten-Default, aus demselben Grund wie die drei Zustände darüber.
+    editedAt: null,
   }, {
     // Eigene Permissions statt des Standard-Publikums: published-Posts sind
     // VERÖFFENTLICHT wie Kommentare (Community-Feed); hidden/deleted entziehen
@@ -92,6 +95,20 @@ export default defineEventHandler(async (event) => {
   })
 
   if (!scheduled) {
+    /**
+     * MITSCHREIBENDER ZÄHLER (F1): ein eigenständiger Beitrag ist da.
+     *
+     * NUR VERÖFFENTLICHTES zählt, deshalb steht die Meldung in diesem Zweig:
+     * ein geplanter Beitrag ist noch nicht in der Welt. Nachgezählt wird er
+     * beim Fälligwerden (`publishDuePosts`) — dieselbe Stelle, die auch
+     * `lastActivityAt` nachträgt.
+     *
+     * ALLE Beiträge, mit und ohne Kategorie: „Thema eröffnet" meint die FORM
+     * (etwas Eigenständiges gegen eine Antwort), nicht den Ort. Genau so
+     * unterscheidet der Zähl-Vertrag `likedTopics` von `likedReplies`.
+     */
+    await recordUserCounterEvents(event, [{ userId: user.$id, kind: 'topicsCreated', delta: 1 }])
+
     // Activity-Feed + Meilenstein (Core-Verträge, best-effort)
     await recordActivity(event, {
       actorId: user.$id,

@@ -28,6 +28,9 @@ const { t } = useI18n()
 const toast = useToast()
 const { user } = useCurrentUser()
 const { formatRelativeTime } = useFormatRelativeTime()
+// Der Hinweis „bearbeitet" trägt das genaue Datum im Titel — sichtbar bleibt
+// ein Wort, nachlesbar ist der Zeitpunkt (Muster CommentItem).
+const { formatDate } = useFormatDate()
 
 const TYPE_ICONS: Record<string, string> = {
   poll: 'i-ph-chart-bar-horizontal',
@@ -163,6 +166,11 @@ const showTooltip = computed(() => (props.replyCount ?? 0) > 0)
         <p class="flex flex-wrap items-center gap-x-2 text-sm">
           <span class="font-semibold">{{ post.authorName || t('posts.card.someone') }}</span>
           <span class="text-xs text-dimmed">{{ formatRelativeTime(post.publishedAt || post.$createdAt) }}</span>
+          <!-- F1: „bearbeitet" steht nur da, wenn der TEXT geändert wurde —
+               nicht beim Anheften, Umkategorisieren oder Abstimmen (die Regel
+               dahinter: shared/postEdit.ts). Muster CommentItem, damit Thema
+               und Antwort darunter dieselbe Sprache sprechen. -->
+          <span v-if="post.editedAt" class="text-xs text-dimmed" :title="formatDate(post.editedAt)">· {{ t('posts.card.edited') }}</span>
           <UIcon v-if="TYPE_ICONS[post.type]" :name="TYPE_ICONS[post.type]!" class="size-4 text-muted" />
         </p>
       </div>

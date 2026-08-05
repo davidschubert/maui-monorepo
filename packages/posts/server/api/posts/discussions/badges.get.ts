@@ -35,9 +35,16 @@ import type { DiscussionBadge, DiscussionBadgesResponse } from '../../../../shar
  * geschrieben?") kostet nur, wer die Zugehörigkeit schon erfüllt — für alle
  * anderen wäre ihre Antwort ohnehin folgenlos, weil beide Hälften gelten
  * müssen. Das ist die billigste ehrliche Datumsprüfung, die dieser Bestand
- * hergibt: gezählt wird an der QUELLE (jeder Layer über seine eigenen Zeilen),
- * nicht in einer neuen Zähler-Infrastruktur, die beim Schreiben mitschreibt —
- * die ist ausdrücklich ein späteres, gemeinsames Paket (Konzept Teil 5, 4–6).
+ * hergibt: gezählt wird an der QUELLE, jeder Layer über seine eigenen Zeilen.
+ *
+ * ── DIE MITSCHREIBENDEN ZÄHLER SIND DER FÜNFTE SCHRITT (F1, 2026-08-04) ────
+ * Seit dem gemeinsamen Paket (Konzept Teil 5, Punkte 4–6) gibt es NEBEN den
+ * Aggregaten eine Zähler-Zeile je Mitglied (`member_counters`). Sie ist die
+ * Autorität, wo sie dieselbe Frage beantwortet (vergebene Stimmen), und die
+ * EINZIGE Quelle für das, was kein Aggregat hergibt (Bearbeitungen). Sie
+ * entsteht beim ersten Hinsehen aus den Aggregaten — ein Massen-Backfill über
+ * alle Instanzen und alle Mitglieder wäre ein Projekt für sich und in dem
+ * Moment veraltet, in dem der nächste Mensch etwas schreibt.
  */
 export default defineEventHandler(async (event): Promise<DiscussionBadgesResponse> => {
   requirePlanProduct(event, 'posts')
@@ -65,8 +72,32 @@ export default defineEventHandler(async (event): Promise<DiscussionBadgesRespons
     ? contentWindowStartIso(windowDays)
     : undefined
 
-  const counters = await collectUserCounters(event, { thresholds, ...(since ? { since } : {}) })
-  const facts = badgeFactsFrom(counters, thresholds, memberForDays)
+  /**
+   * ── DER FÜNFTE SCHRITT: DIE MITSCHREIBENDEN ZÄHLER (F1) ──────────────────
+   * Zuerst die Zeile lesen, DANN zählen — nur so lässt sich entscheiden, ob
+   * die zusätzlichen Seed-Abfragen überhaupt gebraucht werden. Sie kosten je
+   * Quelle eine `count`-Abfrage und fallen genau EINMAL je Mensch an: beim
+   * Eichen seiner Zeile. Wer seine Galerie zum zweiten Mal öffnet, bezahlt
+   * genau so viel wie vorher.
+   */
+  const stored = await readMemberCounters(event, user.$id)
+  const seed = needsCounterSeed(stored) ? true : undefined
+
+  const counters = await collectUserCounters(event, {
+    thresholds,
+    ...(since ? { since } : {}),
+    ...(seed ? { seed } : {}),
+  })
+
+  // Eichen, nachziehen oder unverändert lassen — und in jedem Fall den
+  // gültigen Stand bekommen (die Regeln dahinter: shared/memberCounters.ts).
+  const written = await ensureSeededCounters(event, user.$id, stored, {
+    topicsCreated: counters[COUNTER_TOPICS_CREATED],
+    repliesCreated: counters[COUNTER_REPLIES_CREATED],
+    upvotesGiven: counters[COUNTER_LIKES_GIVEN],
+  })
+
+  const facts = badgeFactsFrom(counters, thresholds, memberForDays, written)
 
   const known = await awardedBadges(event, user.$id)
   const missing = earnedBadgeKeys(facts).filter(key => !known.has(key))

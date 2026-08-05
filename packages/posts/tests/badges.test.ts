@@ -26,11 +26,11 @@ function badge(key: string) {
 
 describe('der Katalog selbst', () => {
   it('hat genau so viele Abzeichen, wie sein Kopf behauptet', () => {
-    // Reiner Wächter über einen SATZ: der Dateikopf nennt „16 (3 + 7 + 6)" und
+    // Reiner Wächter über einen SATZ: der Dateikopf nennt „18 (4 + 8 + 6)" und
     // erklärt daneben, was fehlt. Wächst der Katalog, ohne dass jemand die
     // Auslassungsliste nachzieht, wird aus einer Begründung eine Behauptung.
-    expect(BADGE_CATALOG.length).toBe(17)
-    for (const [group, size] of [['gettingStarted', 3], ['community', 8], ['posting', 6]] as const) {
+    expect(BADGE_CATALOG.length).toBe(18)
+    for (const [group, size] of [['gettingStarted', 4], ['community', 8], ['posting', 6]] as const) {
       expect(BADGE_CATALOG.filter(entry => entry.group === group).length, group).toBe(size)
     }
   })
@@ -151,6 +151,16 @@ describe('die einzelnen Bedingungen', () => {
     expect(badgeEarned(badge('first-flag'), facts({ flagsRaised: 1 }))).toBe(true)
   })
 
+  it('Nachgebessert hängt AUSSCHLIESSLICH an den Bearbeitungen', () => {
+    // Der Zähler `edits` ist der einzige ohne Aggregat dahinter (F1): er kommt
+    // aus `member_counters` und beginnt für jeden bei 0. Ein vielschreibender,
+    // vielgelobter Mensch, der nie nachgebessert hat, bekommt es NICHT — genau
+    // das prüft die erste Zeile.
+    expect(badgeEarned(badge('editor'), facts({ likesGiven: 500, likedItems: { 1: 500 } }))).toBe(false)
+    expect(badgeEarned(badge('editor'), facts({ edits: 0 }))).toBe(false)
+    expect(badgeEarned(badge('editor'), facts({ edits: 1 }))).toBe(true)
+  })
+
   it('Dankeschön verlangt BEIDES — bekommen und gegeben', () => {
     // Der Fall, für den die UND-Regel überhaupt existiert: wer 20-mal gelobt
     // wurde, aber nie selbst gelobt hat, bekommt es nicht.
@@ -223,8 +233,9 @@ describe('earnedBadgeKeys', () => {
     const all = earnedBadgeKeys(facts({
       profileComplete: true,
       likesGiven: 1,
+      edits: 1,
       likedItems: { 1: 1 },
     }))
-    expect(all).toEqual(['profile', 'first-like', 'welcome'])
+    expect(all).toEqual(['profile', 'first-like', 'editor', 'welcome'])
   })
 })
