@@ -2,11 +2,15 @@ import { describe, expect, it } from 'vitest'
 import {
   BADGE_CATALOG,
   type BadgeFacts,
+  badgeContentWindowDays,
   badgeEarned,
+  badgeMemberDays,
   badgeProgress,
   badgeThresholds,
+  contentWindowStartIso,
   earnedBadgeKeys,
   emptyBadgeFacts,
+  membershipDays,
 } from '../shared/badges'
 
 /** Ein Mensch ohne jede Spur — der Ausgangszustand jeder Prüfung. */
@@ -25,8 +29,8 @@ describe('der Katalog selbst', () => {
     // Reiner Wächter über einen SATZ: der Dateikopf nennt „16 (3 + 7 + 6)" und
     // erklärt daneben, was fehlt. Wächst der Katalog, ohne dass jemand die
     // Auslassungsliste nachzieht, wird aus einer Begründung eine Behauptung.
-    expect(BADGE_CATALOG.length).toBe(16)
-    for (const [group, size] of [['gettingStarted', 3], ['community', 7], ['posting', 6]] as const) {
+    expect(BADGE_CATALOG.length).toBe(17)
+    for (const [group, size] of [['gettingStarted', 3], ['community', 8], ['posting', 6]] as const) {
       expect(BADGE_CATALOG.filter(entry => entry.group === group).length, group).toBe(size)
     }
   })
@@ -70,7 +74,68 @@ describe('badgeThresholds — was die Quellen zählen müssen', () => {
   })
 })
 
+describe('Zugehörigkeit und Zeitfenster — was die Auswertestelle beschaffen muss', () => {
+  it('leitet das Fenster und die Mindest-Dauer aus dem Katalog ab', () => {
+    // Wie bei den Schwellen: von Hand aufgeschrieben wäre das die Stelle, an
+    // der ein neues Abzeichen lautlos unerreichbar wird.
+    expect(badgeContentWindowDays()).toBe(365)
+    expect(badgeMemberDays()).toBe(365)
+  })
+
+  it('schweigt, wo kein Abzeichen danach fragt', () => {
+    // Ein Katalog ohne solche Bedingung darf die zusätzliche Abfrage gar nicht
+    // erst auslösen.
+    const ohne = BADGE_CATALOG.filter(entry => entry.key !== 'anniversary')
+    expect(badgeContentWindowDays(ohne)).toBeNull()
+    expect(badgeMemberDays(ohne)).toBeNull()
+  })
+
+  it('rechnet die Zugehörigkeit in vollen Tagen', () => {
+    const now = new Date('2026-08-04T12:00:00.000Z')
+    expect(membershipDays('2025-08-04T12:00:00.000Z', now)).toBe(365)
+    // Eine Stunde zu jung ist noch kein Jahr — abgerundet, nie aufgerundet.
+    expect(membershipDays('2025-08-04T13:00:00.000Z', now)).toBe(364)
+    // Auseinanderlaufende Uhren dürfen keine negative Dauer ergeben.
+    expect(membershipDays('2027-01-01T00:00:00.000Z', now)).toBe(0)
+  })
+
+  it('macht aus „kein Datum" ein UNBEKANNT, keine 0', () => {
+    expect(membershipDays(null)).toBeNull()
+    expect(membershipDays(undefined)).toBeNull()
+    expect(membershipDays('')).toBeNull()
+    expect(membershipDays('kein Datum')).toBeNull()
+  })
+
+  it('rechnet den Fensterbeginn zurück', () => {
+    expect(contentWindowStartIso(365, new Date('2026-08-04T00:00:00.000Z')))
+      .toBe('2025-08-04T00:00:00.000Z')
+  })
+})
+
 describe('die einzelnen Bedingungen', () => {
+  it('Jahrestag verlangt BEIDES — ein Jahr dabei UND in dem Jahr geschrieben', () => {
+    // Davids Katalog nennt beide Hälften. Nur Zeitablauf wäre kein Verdienst,
+    // sondern ein Kalendereintrag.
+    expect(badgeEarned(badge('anniversary'), facts({ memberForDays: 364, recentContent: 5 }))).toBe(false)
+    expect(badgeEarned(badge('anniversary'), facts({ memberForDays: 365, recentContent: 0 }))).toBe(false)
+    expect(badgeEarned(badge('anniversary'), facts({ memberForDays: 365, recentContent: 1 }))).toBe(true)
+  })
+
+  it('UNBEKANNTE Zugehörigkeit ist nicht erfüllt — der wichtigste Fall', () => {
+    // So kommt jede App OHNE Naht zum Control Plane an (apps/comments, Silo,
+    // Playground) und jeder, der hier gar kein Mitglied ist. Würde `null` als
+    // „egal" durchgehen, bekäme das Abzeichen ausgerechnet dort jeder.
+    expect(badgeEarned(badge('anniversary'), facts({ memberForDays: null, recentContent: 99 }))).toBe(false)
+    expect(earnedBadgeKeys(facts({ memberForDays: null, recentContent: 99 }))).toEqual([])
+  })
+
+  it('das Zeitfenster zählt Beiträge UND Antworten', () => {
+    // `recentContent` ist die Summe über alle Quellen (Core-Vertrag). Ein
+    // Abzeichen, das „Beitrag" sagt und Antworten übersähe, wäre derselbe halbe
+    // Satz, an dem „Editor" gescheitert ist.
+    expect(badgeEarned(badge('anniversary'), facts({ memberForDays: 800, recentContent: 1 }))).toBe(true)
+  })
+
   it('Profil: Text UND Bild — ein halbes Profil reicht nicht', () => {
     expect(badgeEarned(badge('profile'), facts({ profileComplete: false }))).toBe(false)
     expect(badgeEarned(badge('profile'), facts({ profileComplete: true }))).toBe(true)
@@ -134,6 +199,11 @@ describe('badgeProgress — nur, wo die Zahl nicht luegt', () => {
     // „18 von 20" neben null vergebenen Stimmen läse sich wie „fast
     // geschafft" — der Bedingungstext sagt stattdessen beides.
     expect(badgeProgress(badge('thank-you'), facts({ likedItems: { 1: 18 }, likesGiven: 0 }))).toBeNull()
+  })
+
+  it('schweigt beim Jahrestag — ein Countdown ist kein Fortschritt', () => {
+    // „180 von 365 Tagen" käme einem nicht näher, indem man etwas tut.
+    expect(badgeProgress(badge('anniversary'), facts({ memberForDays: 180 }))).toBeNull()
   })
 
   it('schweigt bei den „ersten Malen"', () => {

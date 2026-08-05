@@ -655,8 +655,13 @@ Vollständiges Konzept: docs/CONCEPT.md
   FUNKTIONEN sind sie GESETZT (Davids Vorgabe 2026-08-04): `UEditor`
   (inkl. Blockquote fürs Zitieren), `UEditorToolbar`, `UEditorEmojiMenu`,
   `UEditorMentionMenu`, `UEditorSuggestionMenu`, `UEditorDragHandle`. Nichts
-  davon selbst bauen — der Editor im Seiten-Dashboard und der Composer nutzen
-  UEditor bereits; neue Editor-Fähigkeiten docken dort an. Auth-Formulare:
+  davon selbst bauen; neue Editor-Fähigkeiten docken dort an. STAND
+  2026-08-04 (nachgemessen): `UEditor` läuft im Seiten-Dashboard (pages), im
+  Changelog-Admin und in `TicketModal` — der **PostComposer nutzt weiterhin
+  `UTextarea`**. Die frühere Zeile behauptete hier „der Composer nutzt UEditor
+  bereits"; das war nie wahr. Die Umstellung ist ein EIGENER Schnitt (Body-
+  Format HTML statt Text, betrifft Feed, Discussions-Detail UND Bestandsdaten)
+  und darf nicht nebenbei in ein anderes Paket rutschen. Auth-Formulare:
   UAuthForm ist die VORLAGE (Optik/Struktur) — Login/Register/OTP sind bewusst
   eigene UForm-Implementierungen (2-Schritt-OTP, Security-Phrase, geteilter
   E-Mail-State, AGB-Gate); Details in docs/referenz/AUTH-FORMS.md

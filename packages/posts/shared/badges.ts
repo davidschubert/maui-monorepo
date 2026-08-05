@@ -9,7 +9,7 @@
  * ── DER ZUSCHNITT: NUR, WAS HEUTE MESSBAR IST ─────────────────────────────
  * Davids Vorgabe fuer Stufe 4 lautet „nur heute messbare Abzeichen … fehlende
  * kommen automatisch dazu, sobald ihre Funktion existiert". Der Katalog aus
- * § 3.6 hat 40+ Eintraege; hier stehen 16 (3 + 7 + 6 — ein Test haelt die Zahl
+ * § 3.6 hat 40+ Eintraege; hier stehen 17 (3 + 8 + 6 — ein Test haelt die Zahl
  * an den Katalog gebunden, damit dieser Satz nicht mit der Zeit unwahr wird).
  * Was fehlt und WARUM, gehoert an diese Stelle und nicht in eine Notiz, sonst
  * reicht es irgendwann jemand „nach", ohne den Preis zu kennen:
@@ -31,13 +31,16 @@
  *    festhaelt (`comments` hat `editedAt`, `posts` nicht). Das halbe Abzeichen
  *    nur fuer Antworten zu verleihen waere schlimmer als keines — es hiesse
  *    „Beitrag" und meinte etwas anderes.
- *  - **Anniversary** („1 Jahr Mitglied") hat im Mandanten-Kontext keine
- *    Quelle: das Beitrittsdatum steht in `community_members` im CONTROL PLANE
- *    — derselbe Grund, aus dem die About-Seite „N Beitritte in 7 Tagen" nicht
- *    zeigt. Die naheliegenden Ersatzquellen beantworten eine andere Frage
- *    (`$createdAt` des Kontos = Registrierung IRGENDWO im Pool, `user.joined`
+ *  - **Anniversary** („Jahrestag") war bis 2026-08-04 aus demselben Grund
+ *    draussen und ist es NICHT MEHR: das Beitrittsdatum steht weiterhin in
+ *    `community_members` im CONTROL PLANE, aber es gibt jetzt einen Weg
+ *    dorthin (`registerCommunityJoinDatesResolver` in core, Implementierung im
+ *    control-Layer, verdrahtet in apps/platform). Die naheliegenden
+ *    Ersatzquellen bleiben falsch und werden ausdruecklich NICHT benutzt:
+ *    `$createdAt` des Kontos = Registrierung IRGENDWO im Pool, `user.joined`
  *    im Aktivitaets-Feed = nur wer sich auf dem Host registriert hat, nicht
- *    wer per A5 durch Mitschreiben beigetreten ist).
+ *    wer per A5 durch Mitschreiben beigetreten ist. Ohne den Resolver (Silo,
+ *    apps/comments) bleibt das Abzeichen unverdient statt falsch verliehen.
  *  - **New User of the Month** ist eine Rangliste („die 2 besten Neulinge je
  *    Monat"), also ein Vergleich zwischen Menschen plus ein Monats-Lauf —
  *    beides gibt es hier nicht, und beides ist mehr als ein Abzeichen.
@@ -69,6 +72,14 @@ export interface LikedItemsRequirement {
   count: number
 }
 
+/** „So viele EIGENE Inhalte innerhalb der letzten so-und-so-viel Tage." */
+export interface RecentContentRequirement {
+  /** Groesse des zurueckliegenden Fensters in Tagen. */
+  withinDays: number
+  /** Wie viele eigene Inhalte darin liegen muessen. */
+  count: number
+}
+
 /**
  * Die Bedingung eines Abzeichens. Alle gesetzten Felder muessen erfuellt sein
  * (UND, nie ODER) — im Katalog gibt es dafuer keinen Fall, und ein ODER waere
@@ -87,6 +98,17 @@ export interface BadgeRequirement {
   likedTopics?: LikedItemsRequirement
   /** Nur eigene Antworten. */
   likedReplies?: LikedItemsRequirement
+  /**
+   * Mindest-Zugehoerigkeit in Tagen (Beitrittsdatum aus dem Control Plane).
+   *
+   * IST DIE DAUER UNBEKANNT, GILT DIE BEDINGUNG ALS NICHT ERFUELLT — anders
+   * als bei den Zaehlern, wo ein fehlender Wert zu 0 wird und damit ohnehin
+   * unter jeder Schwelle liegt. Hier muss die Regel es ausdruecklich sagen,
+   * weil „unbekannt" sonst als „lange genug" durchginge.
+   */
+  memberForDays?: number
+  /** Eigene Inhalte JEDER Art im zurueckliegenden Fenster. */
+  recentContent?: RecentContentRequirement
 }
 
 export interface BadgeDefinition {
@@ -115,6 +137,22 @@ export const BADGE_CATALOG: readonly BadgeDefinition[] = [
   { key: 'respected', group: 'community', requires: { likedItems: { threshold: 2, count: 100 } } },
   { key: 'admired', group: 'community', requires: { likedItems: { threshold: 5, count: 300 } } },
 
+  /**
+   * Der Jahrestag: dabei UND dabeigeblieben.
+   *
+   * BEIDE HAELFTEN, weil Davids Katalog beide nennt („1 Jahr Mitglied + ≥1
+   * Beitrag in dem Jahr"). Ein Abzeichen nur fuer Zeitablauf waere kein
+   * Verdienst, sondern ein Kalendereintrag — es bekaeme auch, wer sich vor
+   * einem Jahr einmal umgesehen hat und nie wieder da war.
+   *
+   * BEIM HINSEHEN, nicht am Stichtag: die Bedingung fragt „liegt der Beitritt
+   * mindestens 365 Tage zurueck und steht im letzten Jahr etwas von mir?".
+   * Wer im dritten Jahr nachsieht und im dritten Jahr geschrieben hat, bekommt
+   * es genauso — das ist die Folge der Zaehlweise (Aggregate statt Historie)
+   * und passt zu „jedes Abzeichen genau einmal".
+   */
+  { key: 'anniversary', group: 'community', requires: { memberForDays: 365, recentContent: { withinDays: 365, count: 1 } } },
+
   // ── Das Schreiben: EIN Stueck, das eingeschlagen hat ──────────────────
   { key: 'nice-topic', group: 'posting', requires: { likedTopics: { threshold: 10, count: 1 } } },
   { key: 'good-topic', group: 'posting', requires: { likedTopics: { threshold: 25, count: 1 } } },
@@ -133,10 +171,28 @@ export interface BadgeFacts {
   likedItems: Record<number, number>
   likedTopics: Record<number, number>
   likedReplies: Record<number, number>
+  /**
+   * Tage seit dem Beitritt — `null` heisst UNBEKANNT, nicht „null Tage".
+   *
+   * Unbekannt ist der Normalfall in jeder App ohne Control-Plane-Naht
+   * (apps/comments, Playground) und bei jedem, der hier gar kein Mitglied ist.
+   */
+  memberForDays: number | null
+  /** Eigene Inhalte im Fenster aus `badgeContentWindowDays()`. */
+  recentContent: number
 }
 
 export function emptyBadgeFacts(): BadgeFacts {
-  return { profileComplete: false, likesGiven: 0, flagsRaised: 0, likedItems: {}, likedTopics: {}, likedReplies: {} }
+  return {
+    profileComplete: false,
+    likesGiven: 0,
+    flagsRaised: 0,
+    likedItems: {},
+    likedTopics: {},
+    likedReplies: {},
+    memberForDays: null,
+    recentContent: 0,
+  }
 }
 
 /**
@@ -158,6 +214,66 @@ export function badgeThresholds(catalog: readonly BadgeDefinition[] = BADGE_CATA
   return [...seen].sort((a, b) => a - b)
 }
 
+const DAY_MS = 86_400_000
+
+/**
+ * Das Zeitfenster (Tage), fuer das die Quellen zaehlen muessen — `null`, wenn
+ * kein Abzeichen eines verlangt.
+ *
+ * ABGELEITET, nicht aufgeschrieben, aus demselben Grund wie `badgeThresholds()`:
+ * eine Zahl von Hand waere die Stelle, an der ein neues Abzeichen lautlos
+ * unerreichbar wird. Mehrere VERSCHIEDENE Fenster gaebe es hier nicht sinnvoll
+ * — jedes waere eine eigene Abfrage je Quelle —, deshalb gewinnt das GROESSTE:
+ * ein zu weites Fenster verleiht hoechstens ein Abzeichen frueher, ein zu enges
+ * nie. Sollte je ein zweites Fenster wirklich gebraucht werden, ist der Zaehler
+ * mit dem Fenster im Namen (wie bei den Schwellen) die richtige Antwort.
+ */
+export function badgeContentWindowDays(catalog: readonly BadgeDefinition[] = BADGE_CATALOG): number | null {
+  let widest: number | null = null
+  for (const badge of catalog) {
+    const window = badge.requires.recentContent?.withinDays
+    if (window !== undefined && (widest === null || window > widest)) widest = window
+  }
+  return widest
+}
+
+/**
+ * Die KLEINSTE geforderte Zugehoerigkeit (Tage) — `null`, wenn keine gefordert
+ * wird.
+ *
+ * Wofuer: die Auswertestelle fragt das Zeitfenster nur ab, wenn ueberhaupt ein
+ * Abzeichen dadurch erreichbar waere. Die kleinste Dauer ist dafuer die
+ * richtige Grenze — bei der groessten fiele ein Abzeichen mit kuerzerer
+ * Zugehoerigkeit unter den Tisch.
+ */
+export function badgeMemberDays(catalog: readonly BadgeDefinition[] = BADGE_CATALOG): number | null {
+  let smallest: number | null = null
+  for (const badge of catalog) {
+    const days = badge.requires.memberForDays
+    if (days !== undefined && (smallest === null || days < smallest)) smallest = days
+  }
+  return smallest
+}
+
+/**
+ * PURE: wie viele volle Tage liegt dieser Beitritt zurueck? `null` = unbekannt.
+ *
+ * Abgerundet auf volle Tage, damit „365" wirklich ein volles Jahr bedeutet und
+ * nicht 364 Tage und 23 Stunden. Ein Datum in der ZUKUNFT (Uhren laufen
+ * auseinander) ergibt 0, nie eine negative Dauer.
+ */
+export function membershipDays(joinedAt: string | null | undefined, now: Date = new Date()): number | null {
+  if (!joinedAt) return null
+  const joined = Date.parse(joinedAt)
+  if (Number.isNaN(joined)) return null
+  return Math.max(0, Math.floor((now.getTime() - joined) / DAY_MS))
+}
+
+/** PURE: der Beginn eines zurueckliegenden Fensters als ISO-Zeitpunkt. */
+export function contentWindowStartIso(days: number, now: Date = new Date()): string {
+  return new Date(now.getTime() - days * DAY_MS).toISOString()
+}
+
 function meetsLikedItems(measured: Record<number, number>, requirement: LikedItemsRequirement | undefined): boolean {
   if (!requirement) return true
   return (measured[requirement.threshold] ?? 0) >= requirement.count
@@ -172,6 +288,10 @@ export function badgeEarned(badge: BadgeDefinition, facts: BadgeFacts): boolean 
   if (!meetsLikedItems(facts.likedItems, requires.likedItems)) return false
   if (!meetsLikedItems(facts.likedTopics, requires.likedTopics)) return false
   if (!meetsLikedItems(facts.likedReplies, requires.likedReplies)) return false
+  // Unbekannte Zugehoerigkeit ist NICHT erfuellt — sonst bekaeme das Abzeichen
+  // ausgerechnet dort jeder, wo die Naht zum Control Plane fehlt.
+  if (requires.memberForDays !== undefined && (facts.memberForDays === null || facts.memberForDays < requires.memberForDays)) return false
+  if (requires.recentContent && facts.recentContent < requires.recentContent.count) return false
   return true
 }
 
@@ -200,6 +320,11 @@ export interface BadgeProgress {
  * Auch bei den „ersten Malen" (Ziel 1) gibt es keinen Balken: dort ist der
  * Fortschritt entweder 0 oder fertig, und ein Balken mit zwei Zustaenden ist
  * nur eine umstaendliche Form des Hakens.
+ *
+ * ZUGEHOERIGKEIT UND ZEITFENSTER ZAEHLEN HIER BEWUSST NICHT MIT. „180 von 365
+ * Tagen" ist kein Fortschritt, sondern ein Countdown — man kommt ihm nicht
+ * naeher, indem man etwas tut. Und der einzige Traeger dieser Bedingungen
+ * („Jahrestag") verlangt ohnehin zwei Dinge, waere hier also stumm.
  */
 export function badgeProgress(badge: BadgeDefinition, facts: BadgeFacts): BadgeProgress | null {
   const countable: BadgeProgress[] = []

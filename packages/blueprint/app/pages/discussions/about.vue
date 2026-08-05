@@ -113,12 +113,26 @@ const hasTeam = computed(() => admins.value.length > 0 || moderators.value.lengt
 // Aufforderung an jemanden ohne die Seite dafür ist nur Rauschen.
 const canManagePages = useCommunityCapability('pages.manage')
 
-const figures = computed(() => [
-  { key: 'topicsTotal', value: stats.value?.topicsTotal ?? 0 },
-  { key: 'topicsLast7Days', value: stats.value?.topicsLast7Days ?? 0 },
-  { key: 'postsToday', value: stats.value?.postsToday ?? 0 },
-  { key: 'categories', value: stats.value?.categories ?? 0 },
-])
+/**
+ * Die fünfte Kachel steht nur da, wenn die Zahl wirklich existiert.
+ *
+ * „Beitritte (7 Tage)" kommt aus dem Control Plane und FEHLT in jeder App ohne
+ * die Naht dorthin (apps/comments) sowie bei einem Lesefehler — dieselbe
+ * Abstufung wie beim Team-Abschnitt darunter. Ein `?? 0` wäre hier keine
+ * Vorsichtsmaßnahme, sondern eine erfundene Tatsache: „diese Woche kam niemand
+ * dazu" ist etwas anderes als „wir wissen es nicht".
+ */
+const figures = computed(() => {
+  const rows = [
+    { key: 'topicsTotal', value: stats.value?.topicsTotal ?? 0 },
+    { key: 'topicsLast7Days', value: stats.value?.topicsLast7Days ?? 0 },
+    { key: 'postsToday', value: stats.value?.postsToday ?? 0 },
+    { key: 'categories', value: stats.value?.categories ?? 0 },
+  ]
+  const signups = stats.value?.signupsLast7Days
+  if (typeof signups === 'number') rows.push({ key: 'signupsLast7Days', value: signups })
+  return rows
+})
 </script>
 
 <template>
@@ -158,7 +172,12 @@ const figures = computed(() => [
     />
 
     <h2 class="mt-8 text-lg font-semibold">{{ t('posts.discussions.about.figuresTitle') }}</h2>
-    <dl class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <!-- Vier ODER fünf Kacheln: die Spaltenzahl folgt der Anzahl, damit die
+         letzte nicht als einzelne Waise in einer zweiten Reihe steht. -->
+    <dl
+      class="mt-3 grid grid-cols-2 gap-3"
+      :class="figures.length > 4 ? 'sm:grid-cols-3 lg:grid-cols-5' : 'sm:grid-cols-4'"
+    >
       <div v-for="figure in figures" :key="figure.key" class="rounded-lg bg-elevated/50 p-4">
         <dt class="text-xs text-muted">{{ t(`posts.discussions.about.figure.${figure.key}`) }}</dt>
         <dd class="mt-1 text-xl font-semibold tabular-nums">{{ formatCount(figure.value) }}</dd>

@@ -450,7 +450,8 @@ nach `docs/OPEN-ITEMS.md`.
 - **Stufe 1** Kategorien, Topics-Tabelle, Sortierung, Seitenleiste, URL-Schema
   mit 301-Regel, Produkt-Gate.
 - **Stufe 2** Aktivitäts-Vertrag (`lastActivityAt`), Aufruf-Zähler, About-Seite
-  mit vier belegbaren Zahlen, Guidelines über die pages-Mechanik.
+  mit vier belegbaren Zahlen (die fünfte kam mit dem Jahrestag, s. u.),
+  Guidelines über die pages-Mechanik.
 - **Stufe 3** Topic-Zustände (angeheftet/geschlossen/gelöst) samt Schreibsperre,
   erweiterte Suche, redigierte Team-Sicht auf der About-Seite, „kommentiert"-
   Hälfte der Seitenleiste.
@@ -469,6 +470,18 @@ nach `docs/OPEN-ITEMS.md`.
   des Feed-Composers: `isLoggedIn` für den Knopf, Datentür für alles Weitere
   (entzogener Zugang, M13). Beweis:
   `packages/posts/scripts/verify-new-topic-entry.mjs` (8/8).
+- **Jahrestag + Beitritts-Zahl** (2026-08-04, Teil-5-Entscheidung 1) Beide
+  fehlten aus demselben Grund und kommen deshalb über EINEN Weg: der
+  Registry-Vertrag `registerCommunityJoinDatesResolver` (core, siebter
+  Cross-Layer-Vertrag) mit zwei Fragen — „seit wann ist wer dabei?" und „wie
+  viele kamen in N Tagen dazu?" —, beantwortet vom control-Layer über
+  `community_members` (`$createdAt` der Zeile, nur Mitgliedschaften mit
+  Zugang), verdrahtet in `apps/platform`. Das Abzeichen verlangt BEIDE Hälften
+  des Katalogs (365 Tage dabei UND im letzten Jahr geschrieben); die zweite
+  misst der bestehende Zähl-Vertrag über ein optionales `since`, damit auch
+  Antworten mitzählen. KEINE Migration, keine neue Tabelle. Ohne Naht
+  (apps/comments, Silo) bleibt das Abzeichen unverdient und die About-Kachel
+  verschwindet — nie eine 0.
 - **Kleines Paket** (2026-08-04) Regeln-Vorlage für Bestands-Communities als
   Laufzeit-Rückfall (Schalter `pukalani.pages.guidelinesFallback`, in
   `platform` an) und die Hilfe-Umbenennung „Diskussionen" → „Kommentare".
@@ -493,9 +506,9 @@ jemand liest, der ein Abzeichen nachreichen will. Kurzfassung:
 - **Wartet auf seine Funktion**: Emoji, Zitat, Themen-Verlinkung, Reaktionen,
   Einladungen durch Mitglieder, Tages-Like-Limit — Reihenfolge in Teil 4.
 - **Nicht baubar, obwohl es so aussieht**: „Editor" (`community_posts` hält
-  keine Bearbeitung fest — `comments` hat `editedAt`, `posts` nicht) und
-  „Anniversary" (das Beitrittsdatum steht in `community_members` im Control
-  Plane, derselbe Grund wie bei „N Beitritte in 7 Tagen" auf der About-Seite).
+  keine Bearbeitung fest — `comments` hat `editedAt`, `posts` nicht).
+  „Anniversary" stand hier bis zum 2026-08-04 daneben und ist jetzt GEBAUT
+  (Teil-5-Entscheidung 1, siehe „Gebaut" oben).
 - **Trust Levels** bleiben ausgespart (Entscheidung 5, eigenes Ja nötig).
 
 Zwei Eigenschaften der Zählweise gehören dazu, weil sie später als Lücke

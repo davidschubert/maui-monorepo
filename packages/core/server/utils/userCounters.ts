@@ -56,6 +56,25 @@ export interface UserCounterQuery {
    * je Schwelle.
    */
   thresholds: readonly number[]
+  /**
+   * Ab wann eigene Inhalte gezählt werden sollen (ISO) — für `contentSince`.
+   *
+   * OPTIONAL, und das ist der ganze Trick: fehlt das Feld, stellt keine Quelle
+   * die Abfrage. Nur der EINE Konsument, der ein Zeitfenster braucht (das
+   * Abzeichen „Jahrestag"), setzt es — und auch der nur, wenn die
+   * Mitgliedschaft überhaupt lange genug zurückliegt. Alle anderen Aufrufe
+   * bleiben so teuer wie vorher.
+   *
+   * WARUM ÜBERHAUPT HIER UND NICHT AN DER AUSWERTESTELLE: die Frage lautet
+   * „hat dieser Mensch im letzten Jahr etwas GESCHRIEBEN?", und geschrieben
+   * wird in zwei Layern (Beitrag in `posts`, Antwort in `comments`). Wer sie
+   * an der Auswertestelle beantwortet, kann nur die Hälfte messen, die sein
+   * eigener Layer kennt — und ein Abzeichen, das „Beitrag" sagt und Antworten
+   * übersieht, ist genau der halbe Satz, aus dem heraus „Editor" abgelehnt
+   * wurde. Ein optionales Feld an einem Vertrag, den es schon gibt, ist der
+   * kleinere Preis als ein zweiter Vertrag daneben.
+   */
+  since?: string
 }
 
 export type UserCounterProvider = (
@@ -70,6 +89,16 @@ export const COUNTER_LIKES_GIVEN = 'likesGiven'
 
 /** Wie viele Meldungen hat der Nutzer abgesetzt? */
 export const COUNTER_FLAGS_RAISED = 'flagsRaised'
+
+/**
+ * Wie viele eigene, sichtbare Inhalte hat der Nutzer seit `query.since`
+ * verfasst? (alle Inhaltsarten zusammen)
+ *
+ * ANTWORTET NUR, WER GEFRAGT WURDE: ohne `since` melden die Quellen diesen
+ * Zähler GAR NICHT — und ein fehlender Zähler ist beim Konsumenten 0. Das ist
+ * die gutmütige Richtung: ohne Frage kein Abzeichen, nie ein Abzeichen zu viel.
+ */
+export const COUNTER_CONTENT_SINCE = 'contentSince'
 
 /**
  * Ist das Profil ausgefüllt (Text ÜBER SICH und Bild)? 0 oder 1.

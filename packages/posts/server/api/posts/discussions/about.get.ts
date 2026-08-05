@@ -1,4 +1,5 @@
 import { Query } from 'node-appwrite'
+import { communityContentIsPublic } from '../../../../../core/shared/communityAudience'
 import { periodStartIso } from '../../../../shared/discussionSort'
 import { POSTS_TABLE, type DiscussionAboutResponse } from '../../../../shared/types/post'
 
@@ -21,10 +22,6 @@ import { POSTS_TABLE, type DiscussionAboutResponse } from '../../../../shared/ty
  *    zählen, weil Appwrite kein DISTINCT über eine Spalte kann. Ehrlich wäre
  *    erst eine eigene Besuchs-Erfassung je Person: neue Infrastruktur UND eine
  *    personenbezogene Sammlung, die es hier bewusst nicht gibt (F18).
- *  - **„N Beitritte in 7 Tagen".** Die Wahrheit steht in `community_members` —
- *    im CONTROL PLANE, einem anderen Appwrite-Projekt. Dafür bräuchte es eine
- *    neue Service-Route über die Naht. Machbar, aber kein Nebenprodukt einer
- *    Statistik-Kachel.
  *  - **„N Likes insgesamt".** Appwrite kann nicht summieren. Die Zahl hieße,
  *    jede Beitrags-Zeile der Community zu lesen und im Speicher zu addieren —
  *    bei jedem Aufruf der Seite.
@@ -36,6 +33,25 @@ import { POSTS_TABLE, type DiscussionAboutResponse } from '../../../../shared/ty
  *
  * WAS BLEIBT, ist aus `community_posts` gerechnet und damit belegbar. Vier
  * `count`-Abfragen, keine Zeile wird übertragen.
+ *
+ * ── DIE FÜNFTE ZAHL KAM SPÄTER (F1, 2026-08-04) ───────────────────────────
+ * „N Beitritte in 7 Tagen" stand hier bis dahin in der Liste oben: die
+ * Wahrheit liegt in `community_members` im CONTROL PLANE. Sie kommt jetzt über
+ * denselben Vertrag wie das Abzeichen „Jahrestag"
+ * (`resolveRecentJoinCount` → core-Registry → control-Layer, verdrahtet in
+ * apps/platform) — beide fragten dieselbe Tabelle, zwei Wege dorthin wären
+ * zwei Wahrheiten gewesen.
+ *
+ * SIE ERSCHEINT NUR, WENN SIE ECHT IST. Ohne Naht (apps/comments, Silo,
+ * Playground) oder bei einem Lesefehler ist die Antwort `null`, und dann fehlt
+ * das Feld in der Antwort — die Kachel erscheint gar nicht. Eine 0 wäre genau
+ * die Lüge, gegen die sich die Ehrlichkeits-Klausel oben entschieden hat.
+ *
+ * GESCHLOSSENE COMMUNITIES (C18): für GÄSTE fällt die Zahl weg, dieselbe Regel
+ * wie bei der Team-Liste (onboarding/api/community/team). Dort ist jeder
+ * Beitrag für ihn unsichtbar — die vier Zahlen oben stehen für ihn folglich auf
+ * 0, und eine echte Beitritts-Zahl daneben wäre die einzige Auskunft, die aus
+ * dem geschlossenen Raum dringt.
  *
  * ÖFFENTLICH wie die Topic-Liste: dieselbe Datentür (Mitglieder-Klinke), also
  * sieht ein Gast in einer geschlossenen Community keine Zeilen und damit
@@ -59,7 +75,11 @@ export default defineEventHandler(async (event): Promise<DiscussionAboutResponse
   // ohne Kategorie ist kein Thema der Discussions.
   const topic = [...published, Query.notEqual('categoryId', '')]
 
-  const [topicsTotal, topicsLast7Days, postsToday, categories] = await Promise.all([
+  // Für Gäste einer geschlossenen Community gar nicht erst fragen (siehe Kopf).
+  const tenant = useTenant(event)
+  const maySeeJoins = communityContentIsPublic(tenant) || Boolean(event.context.user)
+
+  const [topicsTotal, topicsLast7Days, postsToday, categories, signups] = await Promise.all([
     db.count(POSTS_TABLE, topic).catch(() => 0),
     db.count(POSTS_TABLE, [...topic, ...(weekAgo ? [Query.greaterThanEqual('publishedAt', weekAgo)] : [])]).catch(() => 0),
     // BEWUSST OHNE Kategorie-Filter: „Beiträge heute" zählt den ganzen Strom.
@@ -69,7 +89,17 @@ export default defineEventHandler(async (event): Promise<DiscussionAboutResponse
     // darüber und wäre doppelt gemoppelt.
     db.count(POSTS_TABLE, [...published, ...(todayStart ? [Query.greaterThanEqual('publishedAt', todayStart)] : [])]).catch(() => 0),
     listCategories(db, { activeOnly: true }).then(rows => rows.length).catch(() => 0),
+    // SIEBEN TAGE wie die Zeile darüber — dieselbe Frage („was ist hier gerade
+    // los?"), also dasselbe Fenster. Fail-soft steckt im Resolver: null.
+    maySeeJoins ? resolveRecentJoinCount(event, 7) : null,
   ])
 
-  return { topicsTotal, topicsLast7Days, postsToday, categories }
+  return {
+    topicsTotal,
+    topicsLast7Days,
+    postsToday,
+    categories,
+    // Das Feld FEHLT, wenn die Zahl unbekannt ist — es steht nie als 0 da.
+    ...(signups === null ? {} : { signupsLast7Days: signups }),
+  }
 })

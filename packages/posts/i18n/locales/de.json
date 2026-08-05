@@ -259,7 +259,8 @@
           "topicsTotal": "Themen insgesamt",
           "topicsLast7Days": "Themen (7 Tage)",
           "postsToday": "Beiträge heute",
-          "categories": "Kategorien"
+          "categories": "Kategorien",
+          "signupsLast7Days": "Beitritte (7 Tage)"
         },
         "teamTitle": "Ansprechpartner",
         "admins": "Leitung",
@@ -291,6 +292,7 @@
           "empathetic": "Zugewandt",
           "respected": "Anerkannt",
           "admired": "Bewundert",
+          "anniversary": "Jahrestag",
           "nice-topic": "Guter Beitrag",
           "good-topic": "Starker Beitrag",
           "great-topic": "Herausragender Beitrag",
@@ -309,6 +311,7 @@
           "empathetic": "500 deiner Beiträge oder Antworten haben eine Stimme, und du hast selbst 1000 vergeben.",
           "respected": "100 deiner Beiträge oder Antworten haben mindestens zwei Stimmen.",
           "admired": "300 deiner Beiträge oder Antworten haben mindestens fünf Stimmen.",
+          "anniversary": "Du bist seit einem Jahr dabei und hast in diesem Jahr etwas geschrieben.",
           "nice-topic": "Ein Beitrag von dir hat 10 Stimmen.",
           "good-topic": "Ein Beitrag von dir hat 25 Stimmen.",
           "great-topic": "Ein Beitrag von dir hat 50 Stimmen.",

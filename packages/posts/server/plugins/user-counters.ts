@@ -24,6 +24,16 @@ import { POSTS_TABLE, POST_VOTES_TABLE } from '../../shared/types/post'
  * Bei den Stimmen fehlt der Filter mit Absicht: eine abgegebene Stimme bleibt
  * abgegeben, auch wenn ihr Ziel später verschwindet.
  *
+ * ── DIE ACHTE ABFRAGE GIBT ES NUR AUF NACHFRAGE ───────────────────────────
+ * `since` kommt vom Konsumenten und ist fast immer leer (F1, Abzeichen
+ * „Jahrestag"). Ist es gesetzt, kommt EINE weitere `count`-Abfrage dazu:
+ * „habe ich seit diesem Datum überhaupt etwas veröffentlicht?". Gefiltert wird
+ * über `publishedAt` und nicht über `$createdAt` — ein lange vorbereiteter,
+ * gestern veröffentlichter Beitrag zählt zu gestern. Der bestehende Index
+ * `idx_community_author_upvotes` trägt die Gleichheitsfilter (Mandant, Autor),
+ * der Rest läuft auf den eigenen Beiträgen EINES Menschen; eine neue Migration
+ * braucht es dafür nicht.
+ *
  * ── MITGLIEDER-KLINKE, und das ist die enge Wahl ──────────────────────────
  * Gezählt wird ausschließlich Eigenes; die Row-Permissions reichen dafür und
  * bilden zusätzlich zur Datentür ein zweites Netz. `as: 'operator'` wäre hier
@@ -31,17 +41,26 @@ import { POSTS_TABLE, POST_VOTES_TABLE } from '../../shared/types/post'
  * (A5) hängen am Schreiben — ein Zählvorgang löst also nichts aus.
  */
 export default defineNitroPlugin(() => {
-  registerUserCounterProvider('posts', async (event, { thresholds }) => {
+  registerUserCounterProvider('posts', async (event, { thresholds, since }) => {
     const userId = event.context.user?.$id
     if (!userId) return {}
 
     const db = tenantDb(event)
 
-    const [likesGiven, ...perThreshold] = await Promise.all([
+    const [likesGiven, contentSince, ...perThreshold] = await Promise.all([
       db.count(POST_VOTES_TABLE, [
         Query.equal('userId', userId),
         Query.equal('value', 1),
       ]),
+      // Fester Platz in der Reihe, damit die Schwellen dahinter ihre Position
+      // behalten — ohne Nachfrage ein `null`, keine Abfrage.
+      since
+        ? db.count(POSTS_TABLE, [
+            Query.equal('authorId', userId),
+            Query.equal('status', 'published'),
+            Query.greaterThanEqual('publishedAt', since),
+          ])
+        : Promise.resolve<number | null>(null),
       ...thresholds.map(threshold => db.count(POSTS_TABLE, [
         Query.equal('authorId', userId),
         Query.equal('status', 'published'),
@@ -50,6 +69,7 @@ export default defineNitroPlugin(() => {
     ])
 
     const counters: Record<string, number> = { [COUNTER_LIKES_GIVEN]: likesGiven }
+    if (contentSince !== null) counters[COUNTER_CONTENT_SINCE] = contentSince
     thresholds.forEach((threshold, index) => {
       const measured = perThreshold[index] ?? 0
       counters[counterLikedItems(threshold)] = measured
