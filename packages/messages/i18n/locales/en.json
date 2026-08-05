@@ -43,7 +43,7 @@
     "compose": {
       "title": "New message",
       "recipient": "To",
-      "recipientPlaceholder": "Enter a name (without @)",
+      "recipientPlaceholder": "Enter a name (without {'@'})",
       "recipientHint": "We look for the short name inside this community.",
       "body": "Message",
       "submit": "Send",

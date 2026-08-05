@@ -43,7 +43,7 @@
     "compose": {
       "title": "Neue Nachricht",
       "recipient": "An",
-      "recipientPlaceholder": "Name eingeben (ohne @)",
+      "recipientPlaceholder": "Name eingeben (ohne {'@'})",
       "recipientHint": "Gesucht wird der Kurzname innerhalb dieser Community.",
       "body": "Nachricht",
       "submit": "Senden",
