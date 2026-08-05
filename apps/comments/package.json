@@ -27,6 +27,7 @@
     "@pukalani/courses": "workspace:*",
     "@pukalani/events": "workspace:*",
     "@pukalani/media": "workspace:*",
+    "@pukalani/messages": "workspace:*",
     "@pukalani/moderation": "workspace:*",
     "@pukalani/posts": "workspace:*",
     "@pukalani/system": "workspace:*",

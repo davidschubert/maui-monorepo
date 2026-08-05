@@ -22,6 +22,13 @@ export default {
     'billing',
     'courses',
     'activity',
+    // Private Nachrichten (2026-08-05). IM SILO EBENSO WIE IM POOL — die
+    // Produkt-Bilanz sagt zu, dass beide identisches Produktverhalten zeigen
+    // (docs/referenz/PRODUKT-BILANZ.md), und alle Voraussetzungen stehen hier:
+    // posts (Vertrauensstufen), moderation (Melde-Weg), blueprint. Kosten
+    // entstehen dadurch keine: der Owner-Schalter ist ab Werk AUS, es gibt
+    // also weder Kanal noch Menüpunkt-Wirkung, bis jemand ihn umlegt.
+    'messages',
     'moderation',
     // Besucherstatistik (2026-08-04): dieser Silo misst schon über einen fest
     // konfigurierten `src`. Der Layer kommt trotzdem mit, damit der Betreiber

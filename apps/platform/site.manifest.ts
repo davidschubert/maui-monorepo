@@ -42,6 +42,14 @@ export default {
     // auf jeder Instanz mit. BESTAND ohne communityId bleibt unsichtbar —
     // siehe Kopf von packages/activity/nuxt.config.ts.
     'activity',
+    // Private Nachrichten (2026-08-05, Konzept docs/plans/
+    // PRIVATE-NACHRICHTEN-KONZEPT.md). Produkt-Gate: ab Plan personal
+    // (pukalani.tenancy.products) — dieselbe Stufe wie posts, weil die
+    // Vertrauensstufe aus `member_counters` die Voraussetzung des Absenders
+    // ist. Datenzugriff durch die Datentür (messages-001).
+    // ZUSÄTZLICH ausgeschaltet, bis der Owner es will: `message_settings`
+    // ist ab Werk leer, und das heißt AUS (Davids Entscheidung 4).
+    'messages',
     'moderation',
     'pages',
     // Der öffentliche Trichter — läuft nur auf den Kontroll-Hosts dieser App

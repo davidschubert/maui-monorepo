@@ -132,12 +132,24 @@ describe('die Ernennung geht vor', () => {
 })
 
 describe('die Capabilities der Stufen (RBAC-Einspeisung)', () => {
-  it('gibt erst ab Stufe 3 etwas — und genau Davids v1-Rechte', () => {
+  it('gibt Stufe 0 NICHTS und ab Stufe 1 genau Davids Katalog-Rechte', () => {
+    /**
+     * Stufe 1 und 2 waren bis zum 2026-08-05 leer, und der Kommentar an der
+     * Matrix nannte den Grund: ihre Katalog-Rechte hingen an Funktionen, die
+     * es nicht gab („Kommen die Funktionen, kommen ihre Zeilen hierher").
+     * Genau das ist mit den privaten Nachrichten passiert — `messages.write`
+     * ist Davids TL1-Zuordnung („Basic: private Nachrichten, Melden, …").
+     *
+     * DASS STUFE 0 LEER BLEIBT, IST KEINE FORMSACHE: an dieser Zeile hängt
+     * die A5-Zusage des PN-Konzepts (§ 3). Stünde `messages.write` dort,
+     * könnte sich ein Fremder durch das Anschreiben EINES Mitglieds das
+     * Lese-Label einer geschlossenen Community verschaffen.
+     */
     expect(TRUST_LEVEL_CAPABILITIES[0]).toEqual([])
-    expect(TRUST_LEVEL_CAPABILITIES[1]).toEqual([])
-    expect(TRUST_LEVEL_CAPABILITIES[2]).toEqual([])
-    expect(TRUST_LEVEL_CAPABILITIES[3]).toEqual(['posts.curate'])
-    expect(TRUST_LEVEL_CAPABILITIES[4]).toEqual(['posts.curate', 'posts.arrange', 'posts.revise'])
+    expect(TRUST_LEVEL_CAPABILITIES[1]).toEqual(['messages.write'])
+    expect(TRUST_LEVEL_CAPABILITIES[2]).toEqual(['messages.write'])
+    expect(TRUST_LEVEL_CAPABILITIES[3]).toEqual(['messages.write', 'posts.curate'])
+    expect(TRUST_LEVEL_CAPABILITIES[4]).toEqual(['messages.write', 'posts.curate', 'posts.arrange', 'posts.revise'])
   })
 
   it('nimmt einer höheren Stufe nichts weg', () => {

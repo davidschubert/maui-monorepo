@@ -34,7 +34,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 // Produkt-Seiten überlagern (früher gelistet = höhere Priorität).
 const EXTENDS_ORDER = [
   'themes', 'admin', 'control', 'blueprint', 'comments', 'posts', 'events', 'media', 'feedback',
-  'billing', 'courses', 'tickets', 'activity', 'moderation',
+  'billing', 'courses', 'tickets', 'activity', 'messages', 'moderation',
 ]
 const FOUNDATION_ALWAYS = ['core', 'system']
 
