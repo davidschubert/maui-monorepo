@@ -1,6 +1,7 @@
 import { createTenantsTableResolver } from '../../../../packages/control/server/utils/tenantsResolver'
 import { createFormerCommunityMembersResolver, createCommunityMembersResolver } from '../../../../packages/control/server/utils/communityMembersResolver'
 import { createCommunityHostResolver } from '../../../../packages/control/server/utils/communityHostResolver'
+import { createCommunityJoinDatesResolver } from '../../../../packages/control/server/utils/communityJoinDatesResolver'
 
 /**
  * A14-Komposition: die APP verdrahtet die core-Resolver-Verträge mit den
@@ -15,6 +16,12 @@ import { createCommunityHostResolver } from '../../../../packages/control/server
  *    aus DIESER Community entfernt wurde. Eigener Vertrag, weil eine
  *    Kommentarliste 25 Autoren hat und der Einzel-Lookup daraus 25
  *    Cross-Projekt-Abfragen machen würde; Cache pro Nutzer, 60 s, fail-soft.
+ *  - BEITRITTS-Resolver (F1): „seit wann ist wer dabei?" (Abzeichen
+ *    „Jahrestag") und „wie viele kamen in N Tagen dazu?" (About-Seite). EIN
+ *    Vertrag mit zwei Fragen, weil beide dieselbe Tabelle über dieselbe
+ *    Verbindung lesen — getrennt registriert könnte eine App die eine
+ *    verdrahten und die andere vergessen, und beide sind fail-soft, also
+ *    stumm. Cache 60 s.
  *  - HOST-Resolver (D5): Ablage-Wert einer Benachrichtigung → Host der
  *    Community, damit Benachrichtigungs-MAILS dorthin verlinken statt auf den
  *    App-Host. Gebündelt und OHNE H3Event, weil der Digest-Sweep ohne Request
@@ -39,4 +46,5 @@ export default defineNitroPlugin(() => {
   registerCommunityRoleResolver(createCommunityMembersResolver({ endpoint, projectId, apiKey, databaseId }))
   registerFormerCommunityMembersResolver(createFormerCommunityMembersResolver({ endpoint, projectId, apiKey, databaseId }))
   registerCommunityHostResolver(createCommunityHostResolver({ endpoint, projectId, apiKey, databaseId }))
+  registerCommunityJoinDatesResolver(createCommunityJoinDatesResolver({ endpoint, projectId, apiKey, databaseId }))
 })

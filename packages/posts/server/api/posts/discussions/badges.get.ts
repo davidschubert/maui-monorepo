@@ -1,4 +1,12 @@
-import { BADGE_CATALOG, badgeThresholds, earnedBadgeKeys } from '../../../../shared/badges'
+import {
+  BADGE_CATALOG,
+  badgeContentWindowDays,
+  badgeMemberDays,
+  badgeThresholds,
+  contentWindowStartIso,
+  earnedBadgeKeys,
+  membershipDays,
+} from '../../../../shared/badges'
 import type { DiscussionBadge, DiscussionBadgesResponse } from '../../../../shared/types/post'
 
 /**
@@ -14,6 +22,22 @@ import type { DiscussionBadge, DiscussionBadgesResponse } from '../../../../shar
  * Auskunft darüber, was es hier zu holen gibt; sie einem Unangemeldeten
  * vorzuenthalten hieße, Anmelden zur Bedingung fürs Nachlesen zu machen.
  * Gezählt und verliehen wird für ihn nichts — es gibt niemanden zu messen.
+ *
+ * ── DIE ZUGEHÖRIGKEIT IST DER VIERTE SCHRITT (F1, seit 2026-08-04) ─────────
+ * „Seit wann ist dieser Mensch dabei?" beantwortet keine Zähl-Quelle, sondern
+ * die Naht zum Control Plane (`resolveJoinDates`) — dort und nur dort steht
+ * `community_members`. Fehlt sie (Silo-App, Kontroll-Host, CI-Build ohne
+ * Control-Env), ist die Dauer `null`, und das Abzeichen „Jahrestag" bleibt
+ * unverdient. Ein Fehler ist das nie: die übrigen 16 stehen unverändert da.
+ *
+ * DAS ZEITFENSTER WIRD NUR ANGEFRAGT, WENN ES ETWAS ENTSCHEIDEN KANN. Die
+ * zusätzliche `count`-Abfrage je Quelle („habe ich im letzten Jahr etwas
+ * geschrieben?") kostet nur, wer die Zugehörigkeit schon erfüllt — für alle
+ * anderen wäre ihre Antwort ohnehin folgenlos, weil beide Hälften gelten
+ * müssen. Das ist die billigste ehrliche Datumsprüfung, die dieser Bestand
+ * hergibt: gezählt wird an der QUELLE (jeder Layer über seine eigenen Zeilen),
+ * nicht in einer neuen Zähler-Infrastruktur, die beim Schreiben mitschreibt —
+ * die ist ausdrücklich ein späteres, gemeinsames Paket (Konzept Teil 5, 4–6).
  */
 export default defineEventHandler(async (event): Promise<DiscussionBadgesResponse> => {
   requirePlanProduct(event, 'posts')
@@ -28,8 +52,21 @@ export default defineEventHandler(async (event): Promise<DiscussionBadgesRespons
   }
 
   const thresholds = badgeThresholds()
-  const counters = await collectUserCounters(event, { thresholds })
-  const facts = badgeFactsFrom(counters, thresholds)
+
+  const joinDates = await resolveJoinDates(event, [user.$id])
+  const memberForDays = membershipDays(joinDates.get(user.$id))
+
+  const windowDays = badgeContentWindowDays()
+  const requiredDays = badgeMemberDays()
+  const since = windowDays !== null
+    && requiredDays !== null
+    && memberForDays !== null
+    && memberForDays >= requiredDays
+    ? contentWindowStartIso(windowDays)
+    : undefined
+
+  const counters = await collectUserCounters(event, { thresholds, ...(since ? { since } : {}) })
+  const facts = badgeFactsFrom(counters, thresholds, memberForDays)
 
   const known = await awardedBadges(event, user.$id)
   const missing = earnedBadgeKeys(facts).filter(key => !known.has(key))

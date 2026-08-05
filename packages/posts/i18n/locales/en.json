@@ -254,7 +254,8 @@
           "topicsTotal": "Topics in total",
           "topicsLast7Days": "Topics (7 days)",
           "postsToday": "Posts today",
-          "categories": "Categories"
+          "categories": "Categories",
+          "signupsLast7Days": "Sign-ups (7 days)"
         },
         "teamTitle": "Who to talk to",
         "admins": "Leadership",
@@ -286,6 +287,7 @@
           "empathetic": "Empathetic",
           "respected": "Respected",
           "admired": "Admired",
+          "anniversary": "Anniversary",
           "nice-topic": "Nice post",
           "good-topic": "Strong post",
           "great-topic": "Outstanding post",
@@ -304,6 +306,7 @@
           "empathetic": "500 of your posts or replies have an upvote, and you gave 1000 yourself.",
           "respected": "100 of your posts or replies have at least two upvotes.",
           "admired": "300 of your posts or replies have at least five upvotes.",
+          "anniversary": "You have been a member for a year and posted or replied during it.",
           "nice-topic": "A post of yours has 10 upvotes.",
           "good-topic": "A post of yours has 25 upvotes.",
           "great-topic": "A post of yours has 50 upvotes.",

@@ -29,6 +29,36 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F1 — Jahrestag-Abzeichen + Beitritts-Zahl der About-Seite ✅ 2026-08-04
+
+**Davids Go** („starte f1"; Teil-5-Entscheidung 1 im DISCUSSIONS-KONZEPT).
+Beide Stücke fehlten aus DEMSELBEN Grund — das Beitrittsdatum liegt in
+`community_members` im Control Plane — und kommen deshalb über EINEN neuen
+Registry-Vertrag: `registerCommunityJoinDatesResolver` (core, Geschwister des
+Ehemaligen-Vertrags; EIN Vertrag mit ZWEI Methoden nach dem
+userDataContributor-Muster, damit keine App nur die Hälfte verdrahtet),
+Implementierung im control-Layer (Cross-Projekt-Read, 60-s-Caches),
+verdrahtet in apps/platform. „Jahrestag": Beitritt ≥365 Tage her UND ≥1
+eigener Inhalt (Beitrag ODER Antwort) in den letzten 365 Tagen — beim
+Hinsehen, genau einmal, keine Benachrichtigung; die Datumshälfte läuft über
+ein optionales `since` im bestehenden Zähl-Vertrag (KEIN Umbau auf
+mitschreibende Zähler — das bleibt Teil-5-Paket 4–6). About-Seite: fünfte
+Kachel „Beitritte (7 Tage)", nur `status='active'`, und sie erscheint NUR,
+wenn die Antwort echt ist — `null` (Silo, keine Naht, Lesefehler) heißt
+„Kachel fehlt", nie 0; für Gäste geschlossener Communities fällt sie weg
+(C18). Keine Migration, keine neue Tabelle, keine neue Service-Naht.
+Umsetzung Opus-Agent, Prüfung hier; Beweise: env-gebundener Control-Test 8/8
+gegen echte Appwrite ($createdAt = Beitrittsmoment, removed/invited fallen
+raus, Datums-Query zählt richtig), Dev-Server: About-API liefert
+`signupsLast7Days: 16`, Kachel rendert im SSR, `anniversary` im Katalog.
+
+**Gelernt:** „Unbekannt" braucht im Bedingungs-Code eine EIGENE Aussage —
+bei Zählern wird fehlend zu 0 und fällt unter jede Schwelle, bei einer
+Mindest-DAUER ginge „unbekannt" sonst als „lange genug" durch. Und:
+`community_members` hat kein Datums-Feld — `$createdAt` der Zeile IST das
+Beitrittsdatum (alle vier A5-Wege legen sie im Beitrittsmoment an); nur
+A5-`legacy`-Übernahmen tragen das Übernahme- statt des echten Datums.
+
 ### Analytics v2, Pakete 3+4 — Bewerbung, Hilfe, Datenschutz ✅ 2026-08-04
 
 **Davids Go** („mach weiter mit paket 3+4"), Texte vorab wörtlich abgenommen

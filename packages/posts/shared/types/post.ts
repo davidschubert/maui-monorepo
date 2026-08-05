@@ -307,11 +307,12 @@ export interface CategoryListResponse {
  * Die Zahlen der About-Seite (F1 Stufe 2) — AUSSCHLIESSLICH das, was aus
  * `community_posts` belegbar ist.
  *
- * Vier Kennzahlen aus Davids Katalog fehlen hier bewusst (aktive Nutzer,
- * Beitritte, Likes gesamt, Gründungsdatum). Welche Quelle ihnen jeweils fehlt
- * und was sie kosten würden, steht vollständig im Kopf von
+ * Drei Kennzahlen aus Davids Katalog fehlen hier bewusst (aktive Nutzer,
+ * Likes gesamt, Gründungsdatum). Welche Quelle ihnen jeweils fehlt und was sie
+ * kosten würden, steht vollständig im Kopf von
  * server/api/posts/discussions/about.get.ts — sie sind weggelassen, nicht
- * vergessen.
+ * vergessen. Die vierte („Beitritte") ist seit F1/2026-08-04 da, aber OPTIONAL:
+ * sie kommt aus dem Control Plane und fehlt, wo es keine Naht dorthin gibt.
  */
 export interface DiscussionAboutResponse {
   /** Veröffentlichte Beiträge MIT Kategorie. */
@@ -323,6 +324,14 @@ export interface DiscussionAboutResponse {
   postsToday: number
   /** Sichtbare Kategorien. */
   categories: number
+  /**
+   * Beitritte der letzten 7 Tage (`community_members` im Control Plane).
+   *
+   * OPTIONAL und NIEMALS 0 als Ersatz: fehlt das Feld, war die Zahl nicht zu
+   * ermitteln (App ohne Control-Plane-Naht, Lesefehler — oder ein Gast in einer
+   * geschlossenen Community). Die Oberfläche zeigt die Kachel dann gar nicht.
+   */
+  signupsLast7Days?: number
 }
 
 /**

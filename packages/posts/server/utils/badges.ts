@@ -43,9 +43,21 @@ import { USER_BADGES_TABLE, type UserBadge } from '../../shared/types/post'
  * Ein fehlender Zähler wird zu 0 und nicht zu „unbekannt". Das ist die
  * gutmütige Richtung: eine ausgefallene Quelle verzögert ein Abzeichen, sie
  * verleiht nie eines zu viel.
+ *
+ * DIE ZUGEHÖRIGKEIT KOMMT NICHT AUS DEN ZÄHLERN, sondern als eigenes Argument.
+ * Sie ist keine Zahl, die dieser Mensch erarbeitet hat, sondern eine Auskunft
+ * aus einem anderen Appwrite-PROJEKT (F1, `resolveJoinDates`) — und sie kennt
+ * einen dritten Zustand, den ein Zähler nicht ausdrücken kann: `null` =
+ * unbekannt, ausdrücklich nicht 0.
  */
-export function badgeFactsFrom(counters: Record<string, number>, thresholds: readonly number[]): BadgeFacts {
+export function badgeFactsFrom(
+  counters: Record<string, number>,
+  thresholds: readonly number[],
+  memberForDays: number | null = null,
+): BadgeFacts {
   const facts = emptyBadgeFacts()
+  facts.memberForDays = memberForDays
+  facts.recentContent = counters[COUNTER_CONTENT_SINCE] ?? 0
   facts.profileComplete = (counters[COUNTER_PROFILE_COMPLETE] ?? 0) >= 1
   facts.likesGiven = counters[COUNTER_LIKES_GIVEN] ?? 0
   facts.flagsRaised = counters[COUNTER_FLAGS_RAISED] ?? 0
