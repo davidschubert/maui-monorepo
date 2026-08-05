@@ -47,6 +47,14 @@ export const ALL_CAPABILITIES: readonly Capability[] = [
   // apps/portfolio) trägt der Betreiber-Admin die Einstellung über sein
   // globales Label, es gibt dort gar keine Community-Rolle.
   'community.analytics',
+  // F1 Teilpaket 3 (Vertrauensstufen): die drei Stufen-Rechte und die
+  // Ernennung. Im Wildcard aus demselben Grund wie jede andere Community-Cap —
+  // im Silo (apps/comments) gibt es keine Community-Rolle, dort trägt der
+  // Betreiber-Admin sie über sein globales Label.
+  'posts.curate',
+  'posts.arrange',
+  'posts.revise',
+  'posts.appoint',
 ]
 
 /** Alle zuweisbaren Rollen. */

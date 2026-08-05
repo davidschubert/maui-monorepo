@@ -101,5 +101,70 @@ export type Capability =
    * `community.billing`. Ein Admin verwaltet, was INNEN passiert.
    */
   | 'community.analytics' // Plausible-Script-Id der Community (nur Owner)
+  /**
+   * FREMDE Themen umbenennen und umkategorisieren (F1 Teilpaket 3,
+   * Vertrauensstufe 3 — Davids v1-Rechte vom 2026-08-04).
+   *
+   * DIE VIERTE posts-Capability, und sie schließt eine Lücke statt eine zu
+   * öffnen: bis hierher konnte NIEMAND einen fremden Titel oder dessen
+   * Einordnung korrigieren — `[id].patch.ts` lässt ausschließlich den Autor
+   * durch, auch einen Moderator nicht. Ein falsch einsortiertes Thema blieb
+   * also falsch einsortiert, bis sein Verfasser es selbst bemerkte.
+   *
+   * WARUM SIE NICHT `posts.moderate` HEISST: Moderation urteilt (ausblenden,
+   * wiederherstellen, Meldungen), das hier ordnet nur ein. Genau diese Trennung
+   * ist der Grund, warum die Stufe sie bekommen darf: ein langjähriges Mitglied
+   * soll aufräumen können, ohne über andere richten zu dürfen.
+   *
+   * Gehalten wird sie AUCH von moderator/admin/owner. Nicht aus Symmetrie,
+   * sondern weil das Gegenteil unerklärlich wäre: ein Mitglied der Stufe 3
+   * dürfte sonst mehr als der Moderator, der es ernannt hat. Ein Zugewinn,
+   * kein Entzug — `posts.moderate` bleibt unverändert, was es war.
+   */
+  | 'posts.curate' // fremde Themen umbenennen/umkategorisieren (TL3, Moderator+)
+  /**
+   * Die ZUSTÄNDE eines fremden Themas setzen — anheften, schließen, gelöst
+   * (F1 Teilpaket 3, Vertrauensstufe 4).
+   *
+   * ABGESPALTEN von `posts.moderate`, und das ist der ganze Zweck: die
+   * Zustands-Route prüfte bis hierher `posts.moderate` und hätte einer Stufe 4
+   * damit auch die Melde-Queue, das Ausblenden und den KI-Assistenten
+   * mitgegeben. Davids v1-Zuschnitt nennt ausdrücklich nur die drei Zustände.
+   *
+   * DIE ROUTE STELLT DESHALB WEITER ZWEI FRAGEN: diese hier entscheidet, ob
+   * der Zustand gesetzt werden DARF; `posts.moderate` entscheidet daneben
+   * unverändert, ob jemand STAB ist (Wartungsmodus-Ausnahme, Operator-Klinke
+   * an der Datentür). Eine Stufe 4 ist ein Mitglied, kein Betreiber.
+   */
+  | 'posts.arrange' // Zustände fremder Themen: anheften/schließen/gelöst (TL4, Moderator+)
+  /**
+   * FREMDE Beiträge inhaltlich bearbeiten (F1 Teilpaket 3, Vertrauensstufe 4).
+   *
+   * Das schärfste der drei Stufen-Rechte, deshalb steht es allein: `posts.curate`
+   * korrigiert die HÜLLE (Titel, Einordnung), das hier greift in den TEXT eines
+   * anderen Menschen ein. Der Moderator bekommt es BEWUSST NICHT — sein Auftrag
+   * ist zu urteilen (ausblenden), nicht umzuschreiben; Admin und Owner haben es,
+   * weil ihnen die Inhalte der Community ohnehin gehören (`posts.manage`).
+   *
+   * Dass eine von Hand ernannte Stufe 4 hier mehr darf als ein Moderator, ist
+   * kein Versehen: sie ist eine ausdrückliche Ernennung DURCH DEN OWNER, keine
+   * automatisch erreichte Schwelle.
+   */
+  | 'posts.revise' // fremde Beiträge bearbeiten (TL4, Admin/Owner)
+  /**
+   * Die Vertrauensstufe 4 („Leader") von Hand ernennen und entziehen
+   * (F1 Teilpaket 3) — NUR Owner.
+   *
+   * Warum Owner und nicht `team.manage` (Admin): Davids Entscheidung nennt den
+   * Owner, und die Sache ist dieselbe Klasse wie `community.transfer` — hier
+   * wird Macht über fremde Inhalte vergeben, dauerhaft und ohne Schwelle, die
+   * sie rechtfertigt. Ein Admin verwaltet, was es gibt; wer Rechte VERSCHENKT,
+   * ist der Eigentümer.
+   *
+   * Der Prefix bleibt `posts.` und nicht `community.`: die Stufe wirkt in den
+   * Discussions, nicht auf die ganze Community. Owner-only ist die
+   * ROLLEN-ZUORDNUNG (communityAuthz.ts), nicht der Namensraum.
+   */
+  | 'posts.appoint' // Vertrauensstufe 4 ernennen/entziehen (nur Owner)
 
 export type Role = 'admin' | 'moderator'

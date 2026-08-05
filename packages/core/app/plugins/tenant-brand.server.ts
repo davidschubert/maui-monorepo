@@ -16,6 +16,13 @@
  *     (server/middleware/07.community-role.ts); Gäste bekommen null. Die Capabilities
  *     werden clientseitig aus der geteilten Matrix (shared/communityAuthz)
  *     abgeleitet — es reist kein fremdes Datum mit.
+ *   - `communityTrustLevel` → useCommunityRole()/useCommunityCapability()
+ *     (F1 Teilpaket 3, 2026-08-04): EINE Zahl 0–4, die EIGENE Stufe des
+ *     eingeloggten Menschen auf diesem Mandanten. Sie reist aus demselben Grund
+ *     mit wie der Rollen-String — seit diesem Teilpaket hängen drei
+ *     Capabilities an ihr, und ohne den Spiegel sähe eine Stufe 4 ihre
+ *     Werkzeuge nicht. Kein fremdes Datum, kein Geheimnis: die eigene Stufe
+ *     steht ohnehin in der Abzeichen-Galerie dieses Menschen. Gäste bekommen 0.
  *   - `audience` → useTenantAudience() (C18, 2026-07-30): zwei Leser, und beide
  *     brauchen ihn SSR-fest. (1) useLocaleSeoHead() stempelt auf
  *     'members'-Communities `noindex, nofollow` — ein Crawler liest das
@@ -76,6 +83,7 @@
  * Neues Feld hier hinein nur MIT nachgewiesenem Client-Leser.
  */
 import type { CommunityRole } from '../../shared/communityAuthz'
+import type { TrustLevel } from '../../shared/trustLevel'
 import { communityAudienceFor } from '../../shared/communityAudience'
 import type { CommunityAudience } from '../../shared/types/tenant'
 
@@ -123,4 +131,9 @@ export default defineNuxtPlugin(() => {
   // Key bereits mit null; eine Init-Funktion würde hier still verpuffen.
   const communityRole = useState<CommunityRole | null>('pukalani-community-role', () => null)
   communityRole.value = event?.context.communityRole ?? null
+  // Vertrauensstufe (F1 Teilpaket 3) — dieselbe Bauart und derselbe Zweck wie
+  // die Rolle eine Zeile darüber: die UI leitet daraus Capabilities ab
+  // (useCommunityRole), die Autorität bleibt die Server-Route.
+  const communityTrustLevel = useState<TrustLevel>('pukalani-community-trust-level', () => 0)
+  communityTrustLevel.value = event?.context.communityTrustLevel ?? 0
 })

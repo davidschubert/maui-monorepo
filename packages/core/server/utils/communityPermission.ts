@@ -3,6 +3,7 @@ import type { Capability } from '../../shared/types/authz'
 import type { CurrentUser } from '../../shared/types/appwrite'
 import { actorForCommunityAccess, decideCommunityAccess, type CommunityAccessVia } from '../../shared/communityAccess'
 import { isCommunityRole, type CommunityRole } from '../../shared/communityAuthz'
+import { trustLevelGrantsCapability } from '../../shared/trustLevel'
 
 /**
  * DER EINE WÄCHTER für community-bezogene Routen (O5/G1) — Inhalte, Moderation
@@ -140,11 +141,28 @@ export async function requireCommunityPermission(
   const tenantScoped = Boolean(tenant)
   const role = tenantScoped ? await resolveCommunityRole(event) : null
 
+  /**
+   * DIE STUFE WIRD NUR GEFRAGT, WENN SIE ETWAS ÄNDERN KÖNNTE (F1 Teilpaket 3).
+   *
+   * `trustLevelGrantsCapability` ist eine statische Frage an die Matrix: kann
+   * IRGENDEINE Stufe diese Capability verleihen? Heute sagen drei von 31 ja.
+   * Ohne diesen Filter kostete jede geschützte Route eine zusätzliche Abfrage —
+   * für eine Antwort, die in 90 % der Fälle gar nicht gelesen wird.
+   *
+   * Und die Reihenfolge ist ebenfalls Absicht: erst die Rolle. Wer schon über
+   * sie durchkommt, hat trotzdem gefragt — das ist der Preis dafür, die
+   * Entscheidung PUR zu halten (sie bekommt alle Eingaben, sie holt sich keine).
+   * Bei drei betroffenen Capabilities ist das eine Abfrage an Routen, die
+   * ohnehin schreiben.
+   */
+  const trustLevel = trustLevelGrantsCapability(capability) ? await resolveTrustLevel(event) : 0
+
   const decision = decideCommunityAccess({
     capability,
     labels: user.labels ?? [],
     tenantScoped,
     role,
+    trustLevel,
   })
 
   if (!decision.allowed) {

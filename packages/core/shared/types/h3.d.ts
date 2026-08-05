@@ -1,6 +1,7 @@
 import type { CurrentUser } from './appwrite'
 import type { TenantContext } from './tenant'
 import type { CommunityRole } from '../communityAuthz'
+import type { TrustLevel } from '../trustLevel'
 
 declare module 'h3' {
   interface H3EventContext {
@@ -17,6 +18,18 @@ declare module 'h3' {
      * aber keine Mitgliedschaft.
      */
     communityRole?: CommunityRole | null
+    /**
+     * Vertrauensstufe des eingeloggten Users in DIESER Community (F1 Teilpaket
+     * 3) — gesetzt von derselben Middleware wie `communityRole` und aus
+     * demselben Grund: das Dashboard und die Themen-Menüs blenden Knöpfe nach
+     * Capabilities aus, und drei davon kommen seit diesem Teilpaket aus der
+     * Stufe. Ohne den Spiegel sähe eine Stufe 4 ihre Werkzeuge nicht.
+     *
+     * NUR Seiten-SSR (kein /api/-Pfad) — API-Routen fragen selbst
+     * (`requireCommunityPermission`, das ist und bleibt die Autorität).
+     * undefined = nicht aufgelöst; 0 = aufgelöst, keine Stufe.
+     */
+    communityTrustLevel?: TrustLevel
     /**
      * Der Request lief auf einem KONTROLL-Host (Kundenbereich, z. B.
      * app.pukalani.app) — gesetzt von server/middleware/00.tenant.ts.

@@ -1,5 +1,6 @@
 import type { Capability } from '../../shared/types/authz'
 import { communityCapabilitiesFor, type CommunityRole } from '../../shared/communityAuthz'
+import { trustLevelCapabilitiesFor, type TrustLevel } from '../../shared/trustLevel'
 
 /**
  * Community-Rolle des eingeloggten Users auf DIESEM Mandanten-Host (N1) —
@@ -17,12 +18,35 @@ import { communityCapabilitiesFor, type CommunityRole } from '../../shared/commu
  */
 export function useCommunityRole() {
   const role = useState<CommunityRole | null>('pukalani-community-role', () => null)
-  /** Capabilities der Rolle, abgeleitet aus der geteilten Matrix (communityAuthz). */
-  const capabilities = computed<Set<Capability>>(() => communityCapabilitiesFor(role.value))
-  return { role, capabilities }
+  /**
+   * Vertrauensstufe (F1 Teilpaket 3) — die ZWEITE Quelle von Capabilities,
+   * gespiegelt aus derselben Middleware wie die Rolle.
+   *
+   * 0 heißt „keine Stufe" und ist der Wert für Gäste, für Silo-Apps ohne
+   * Discussions und für jeden Lesefehler. Eine fehlende Stufe kann also nichts
+   * verstecken, was die Rolle schon erlaubt.
+   */
+  const trustLevel = useState<TrustLevel>('pukalani-community-trust-level', () => 0)
+  /**
+   * Capabilities aus BEIDEN Quellen — VEREINIGUNG, nie Ersetzung.
+   *
+   * Dieselbe Rechnung wie serverseitig in `decideCommunityAccess`: die Stufe
+   * ERWEITERT, sie nimmt nie etwas. Ein Owner mit Stufe 0 sieht deshalb genau
+   * das, was er vorher sah, und ein Mitglied der Stufe 3 zusätzlich seine
+   * Aufräum-Werkzeuge. Die Autorität bleibt die Server-Route: hier entscheidet
+   * sich nur, ob ein Knopf angeboten wird, der ohnehin geprüft wird.
+   */
+  const capabilities = computed<Set<Capability>>(() => new Set<Capability>([
+    ...communityCapabilitiesFor(role.value),
+    ...trustLevelCapabilitiesFor(trustLevel.value),
+  ]))
+  return { role, trustLevel, capabilities }
 }
 
-/** Hat der User über seine COMMUNITY-Rolle diese Capability? (reaktiv, UX-Schicht) */
+/**
+ * Hat der User über seine COMMUNITY-Rolle ODER seine Vertrauensstufe diese
+ * Capability? (reaktiv, UX-Schicht)
+ */
 export function useCommunityCapability(capability: Capability) {
   const { capabilities } = useCommunityRole()
   return computed(() => capabilities.value.has(capability))
