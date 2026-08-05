@@ -9,9 +9,10 @@
 > (72/72, echter Browser, echte Route, echter Renderer). Was NICHT durchläuft
 > und warum, steht dort im Kopf und in den Prüfungen: verschachtelte Listen
 > rendert `parseMarkdown` flach, ein Sternchen-PAAR ist Betonung (auch in
-> einer Rechnung — das war in der Textfläche schon so). Erwähnungen bleiben
-> draußen. Dieses Dokument bleibt als MESSUNG stehen; alles unter „Optionen"
-> ist Geschichte.
+> einer Rechnung — das war in der Textfläche schon so).
+> **Seit 2026-08-05 ist auch die Namensvervollständigung (`UEditorMentionMenu`)
+> gebaut** — siehe den Nachtrag am Ende dieses Dokuments. Dieses Dokument
+> bleibt als MESSUNG stehen; alles unter „Optionen" ist Geschichte.
 >
 > Der Text unten beschreibt den Stand VOR der Umstellung:
 
@@ -157,13 +158,46 @@ Listen (maskiert werden ``\ ` * _ [ ] ~``, kodiert `< > &`). Getipptes
 Benachrichtigung hängen am Text, nicht am Knoten — bewiesen in
 `packages/posts/scripts/verify-handles-mentions.mjs` (34/34, echter Browser).
 
-**Offen bleibt allein `UEditorMentionMenu`**, also die Namensvervollständigung
-beim Tippen. Sie braucht `:mention="false"` plus die eigene Erweiterung über
-`:extensions`, und damit `@tiptap/extension-mention` als DIREKTE Abhängigkeit.
-Der Versuch bewegte den Lockfile um 1898 Zeilen (+334/−1564) — deutlich mehr,
-als eine hinzugefügte Abhängigkeit rechtfertigt. Eigener Schnitt: Abhängigkeit
-+ Katalog-Eintrag + `@tiptap/core` in `check-single-copy.mjs`. Der Zuträger
-für das Menü steht schon (`GET /api/handles/search`).
+### NACHTRAG 2026-08-05: `UEditorMentionMenu` ist GEBAUT
+
+Der letzte offene Rest ist erledigt — und die Diagnose des abgebrochenen
+Versuchs war nur zur Hälfte richtig. Sie lautete: die Abhängigkeit bewegt den
+Lockfile um 1898 Zeilen (+334/−1564), das rechtfertigt eine hinzugefügte
+Abhängigkeit nicht. Der Abbruch war korrekt, die URSACHE aber nicht die
+Abhängigkeit, sondern ihre UNGEPINNTE Aufnahme: `@tiptap/extension-mention`
+liegt als optionaler Peer von `@nuxt/ui` längst im Baum. Mit einem
+Katalog-Eintrag **exakt `3.27.1`, ohne Caret**, greift pnpm denselben
+Store-Eintrag — nachgeprüft an der identischen Inode.
+
+**Gemessen: +6 Lockfile-Zeilen (+6/−0)** statt 1898.
+
+Eine Caret-Range wäre hier nicht Schlamperei, sondern der Defekt selbst:
+`^3.27.1` erlaubt 3.28, `@nuxt/ui` bliebe bei 3.27.1, und zwei Kopien von
+`@tiptap/core` heißen, dass Tiptap die eigene Extension nicht mehr erkennt —
+die Klammer-Syntax käme still in die Beiträge zurück. Darum steht
+`@tiptap/core` jetzt in `scripts/check-single-copy.mjs`.
+
+Gebaut ist genau das, was oben als lösbar beschrieben war: `:mention="false"`
+plus `Mention.extend({ renderMarkdown })` über `:extensions`, dazu das Menü
+mit `ignore-filter` gegen `GET /api/handles/search`. Beweis:
+`packages/posts/scripts/verify-mention-menu.mjs` — **22/22**, echter Browser,
+echte Route, echte Glocke; die Gegenprobe (Serialisierer entfernt) fällt auf
+14/22, der Beweis kann also wirklich scheitern.
+
+**Bündelgewicht, Produktions-Build gegen Produktions-Build:** der kritische
+Pfad der Feed-Ansicht ist **byte-gleich** (1 060 198 roh, 123 Dateien, beide
+Seiten; gzip 355 966 → 355 959). Die Erwähnungs-Logik landet in einem eigenen,
+nachgeladenen Chunk (19 818 roh / 6 475 gzip); über ALLE Chunks summiert
+kostet das Paket 4 361 Bytes roh. Der ProseMirror-Chunk selbst wächst um
+8 Bytes — das Extension-Modul lag ohnehin schon drin, weil `@nuxt/ui` es
+mitliefert.
+
+**Eine Falle für den nächsten Messenden:** die Feed-Seite lädt den
+Tiptap-Chunk auch OHNE Schreibabsicht — aber als `rel="prefetch"`, nicht im
+kritischen Pfad. Wer nur „welche .js-Dateien holt der Browser" zählt, hält das
+Nachladen deshalb fälschlich für wirkungslos. Verglichen gehört der
+KRITISCHE Pfad (`modulepreload` + `<script src>`), und der enthält den Editor
+in keiner der beiden Fassungen.
 
 Eine Sache aus der Liste oben ist übrigens ANDERS ausgegangen als vermutet:
 der Link. Öffentliche Profilseiten gibt es weiterhin nicht — deshalb ist eine

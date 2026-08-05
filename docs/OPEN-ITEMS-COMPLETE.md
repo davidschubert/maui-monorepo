@@ -29,6 +29,63 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F48 Teilpaket 3 — Namensvervollständigung beim Tippen von `@` ✅ 2026-08-05
+
+Der letzte Rest von F48. `UEditorMentionMenu` in der Beitrags-Schreibfläche:
+`@` plus die ersten Buchstaben öffnet ein Menü, die Vorschläge kommen aus dem
+schon bestehenden `GET /api/handles/search`. Eine reine TIPPHILFE — Format,
+Auflösung und Benachrichtigung bleiben, wie sie am 2026-08-04 gebaut wurden;
+wer den Namen von Hand tippt, bekommt dasselbe Ergebnis.
+
+**Der eine Punkt, an dem es kaputtgehen konnte,** ist die Serialisierung: das
+Menü fügt einen mention-KNOTEN ein, und der wird von Haus aus zu
+`[@ id="…" label="…"]` — Klammer-Syntax, die unser Parser roh in den Beitrag
+durchreicht. Zuerst DOM-frei gemessen, dann gebaut:
+`Mention.extend({ renderMarkdown: n => '@' + n.attrs.id })`. Nötig ist
+`.extend()` und nicht `.configure()`, weil `renderMarkdown` ein
+EXTENSION-Feld ist (`getExtensionField`) und über `:mention="{…}"` gar nicht
+erreichbar wäre — daraus folgt `:mention="false"` plus `:extensions`, und
+daraus erst die direkte Abhängigkeit.
+
+**Gelernt:** *Eine Abhängigkeit, die den Lockfile sprengt, ist selten die
+Abhängigkeit — meistens ist es die ungepinnte Aufnahme.* Der Vorgänger-Versuch
+bewegte 1898 Zeilen (+334/−1564) und wurde zu Recht abgebrochen. Dasselbe
+Paket, exakt auf `3.27.1` gepinnt (ohne Caret, weil eine Caret-Range nichts
+pinnt), kostet **6 Zeilen (+6/−0)**: `@tiptap/extension-mention` liegt als
+optionaler Peer von `@nuxt/ui` längst im Baum, und pnpm greift denselben
+Store-Eintrag — nachgeprüft an der identischen Inode.
+
+**Gelernt:** *Ein Wächter, der nichts findet, meldet grün.* Beim Eintragen von
+`@tiptap/core` in `scripts/check-single-copy.mjs` fiel auf, dass dessen
+`versionsOf()` **kein einziges gescoptes Paket** traf: pnpm quotet solche
+Schlüssel im Lockfile (`  '@unhead/vue@3.2.3':`), die Regel erlaubte das
+Anführungszeichen nicht. `@unhead/vue` stand seit seiner Aufnahme in der
+Liste, lieferte immer `[]`, wurde von `versions.length <= 1` übersprungen —
+und die daneben gepflegte ACCEPTED-Ausnahme war ebenfalls tot. Eigener
+Commit, vorher/nachher über alle zehn Einträge gemessen.
+
+**Gelernt:** *`rel="prefetch"` ist nicht der kritische Pfad.* Die Feed-Ansicht
+holt den Tiptap-Chunk auch ohne Schreibabsicht — aber idle und vorsorglich.
+Wer nur zählt, welche `.js` der Browser lädt, hält das Nachladen deshalb
+fälschlich für wirkungslos. Verglichen gehört `modulepreload` + `<script src>`,
+und der ist zwischen beiden Produktions-Builds **byte-gleich** (1 060 198 roh,
+123 Dateien). Die Erwähnungs-Logik liegt in einem eigenen nachgeladenen Chunk
+(19 818 roh / 6 475 gzip), über alle Chunks summiert +4 361 Bytes roh.
+
+**Bewusst nicht:** ein nacktes `@` fragt nichts ab — die leere Anfrage hieße
+zugleich „Menü beendet" (`onExit` setzt den Suchbegriff zurück), und ein
+einzelnes Zeichen soll nicht die Mitgliederliste aufblättern. `ignore-filter`
+ist dabei Pflicht, nicht Geschmack: nur in diesem Zweig beobachtet
+`useEditorMenu` die `items` und öffnet nach, wenn Treffer NACH dem letzten
+Tastendruck eintreffen. Keine neuen i18n-Texte — das Menü zeigt nur Handles.
+
+**Beweis:** `packages/posts/scripts/verify-mention-menu.mjs` — **22/22**,
+echter Browser, echte Route, echte Glocke (Menü, Tastaturauswahl,
+Speicherformat, Anzeige, `post.mention` statt Rückfall `replied`, `e@mail`
+löst nichts aus, unbekannter Name bleibt Text, Bestands-Beitrag bleibt beim
+Öffnen+Speichern byte-gleich). **Gegenprobe:** ohne den Serialisierer fällt
+derselbe Lauf auf 14/22 — der Beweis kann also scheitern.
+
 ### F48 Teilpaket 2 — Schreibfläche für Beiträge auf `UEditor` ✅ 2026-08-04
 
 Die Umstellung selbst, dritter Anlauf und diesmal durch. Der erste Anlauf hat
