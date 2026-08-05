@@ -55,6 +55,16 @@ export const ALL_CAPABILITIES: readonly Capability[] = [
   'posts.arrange',
   'posts.revise',
   'posts.appoint',
+  /**
+   * Private Nachrichten (2026-08-05): Senderecht und Owner-Schalter. Im
+   * Wildcard aus demselben Grund wie jede andere Community-Cap — im Silo
+   * (apps/comments) gibt es keine Community-Rolle, dort trägt der
+   * Betreiber-Admin sie über sein globales Label. Ohne diese beiden Zeilen
+   * könnte der Betreiber in seiner EIGENEN Instanz weder schreiben noch den
+   * Kanal aufmachen.
+   */
+  'messages.write',
+  'messages.manage',
 ]
 
 /** Alle zuweisbaren Rollen. */

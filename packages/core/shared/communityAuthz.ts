@@ -42,6 +42,21 @@ const EDITOR: readonly Capability[] = [
   'pages.manage',
   'media.manage',
   'events.manage',
+  /**
+   * Private Nachrichten eröffnen (2026-08-05, PN-Konzept § 2.4).
+   *
+   * Die HAUPTQUELLE dieser Capability ist die Vertrauensstufe 1
+   * (`trustLevel.ts`) — hier steht sie zusätzlich, und der Unterschied ist
+   * genau der zwischen VERDIENT und ERNANNT: ein Editor ist vom Owner berufen
+   * worden, und eine Berufung ist eine stärkere Vertrauensaussage als zwei
+   * Tage Mitgliedschaft. Ein frisch berufener Redakteur, der niemandem
+   * schreiben kann, wäre nicht erklärbar.
+   *
+   * DER VIEWER BEKOMMT SIE AUSDRÜCKLICH NICHT. Das ist die Rolle, die ein
+   * automatischer Beitritt vergibt (A5) — dort und nur dort muss der
+   * Spam-Schutz greifen, sonst wäre das TL1-Gate eine Zierde.
+   */
+  'messages.write',
 ]
 
 /** Moderator: Meldungen + Kommentare + Beiträge + Termine moderieren — verfasst NICHT. */
@@ -72,6 +87,14 @@ const MODERATOR: readonly Capability[] = [
    */
   'posts.curate',
   'posts.arrange',
+  /**
+   * Private Nachrichten eröffnen (2026-08-05) — aus demselben Grund wie beim
+   * EDITOR: der Moderator ist ernannt. Er hier wegzulassen hieße, dass ein
+   * automatisch aufgestiegenes Mitglied (Stufe 1) mehr dürfte als der
+   * Moderator, der über seine Beiträge urteilt — dieselbe Überlegung, die
+   * `posts.curate` eine Zeile weiter oben hierher gebracht hat.
+   */
+  'messages.write',
 ]
 
 /** Admin: Editor ∪ Moderator + Kurse, Activity, Branding, Team. Kein Billing/System. */
@@ -134,6 +157,17 @@ const OWNER: readonly Capability[] = [
      * selbst zusammen — dafür gibt es bewusst keine Capability.)
      */
     'posts.appoint',
+    /**
+     * Den privaten Kanal der Community auf- und zumachen (2026-08-05,
+     * PN-Konzept § 2.6, Davids Entscheidung 4).
+     *
+     * Beim Owner aus demselben Grund wie `community.embed` und
+     * `community.analytics`: das ist keine Verwaltung dessen, was es gibt,
+     * sondern die Entscheidung, ob es einen unbeobachteten Kanal zwischen
+     * Mitgliedern überhaupt gibt. Davids Rahmensetzung nennt die Sorge beim
+     * Namen, und die Antwort darauf gehört dem Eigentümer.
+     */
+    'messages.manage',
   ]),
 ]
 

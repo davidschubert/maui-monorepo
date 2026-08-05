@@ -272,6 +272,7 @@
     "inviteRequest": "Early access request from {name}",
     "abuseReport": "Abuse report for {name}",
     "badgeAwarded": "Badge earned: {name}",
+    "messageReceived": "{name} sent you a message",
     "email": {
       "title": "Email notifications",
       "description": "Also receive bell notifications (replies, mentions, reminders) by email.",

@@ -78,6 +78,42 @@ export async function activeHandleRow(event: H3Event, userId: string): Promise<C
 }
 
 /**
+ * Die AKTIVEN Handles VIELER Menschen — die Umkehrung von
+ * `resolveHandleOwners` (Handle → Person) in die andere Richtung
+ * (Person → Handle).
+ *
+ * EINE Abfrage für alle Kandidaten, nie eine je Person. `activeHandleRow`
+ * nebenan beantwortet dieselbe Frage für EINEN Menschen; in einer LISTE wäre
+ * sie ein N+1 — ein Posteingang hat schnell 50 Gegenüber, eine
+ * Mitgliederliste mehr. Genau dieselbe Überlegung wie bei `resolveUserNames`.
+ *
+ * FAIL-SOFT: ein Lesefehler ergibt eine leere Karte. Ein Handle ist eine
+ * Annehmlichkeit — die Oberfläche fällt auf den Anzeigenamen zurück.
+ */
+export async function resolveUserHandles(event: H3Event, userIds: string[]): Promise<Map<string, string>> {
+  const wanted = [...new Set(userIds.filter(Boolean))]
+  if (wanted.length === 0) return new Map()
+
+  const map = new Map<string, string>()
+  try {
+    // `Query.equal` fasst 100 Werte — in Stapeln, wie bei den Namen.
+    for (let i = 0; i < wanted.length; i += 100) {
+      const batch = wanted.slice(i, i + 100)
+      const { rows } = await handleDb(event).list<CommunityHandleRow>(HANDLES_TABLE, [
+        Query.equal('userId', batch),
+        Query.equal('status', 'active'),
+        Query.limit(batch.length),
+      ])
+      for (const row of rows) map.set(row.userId, row.handle)
+    }
+    return map
+  }
+  catch {
+    return map
+  }
+}
+
+/**
  * „Sorge dafür, dass dieser Mensch hier einen Namen hat" — idempotent.
  *
  * Davids Entscheidung 2: automatisch vergeben, niemand wird blockiert, jeder

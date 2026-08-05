@@ -131,6 +131,13 @@ function messageKey(type: string): string {
   // Kommentar" sagt — derselbe Schlüssel wäre für einen Beitrag schlicht
   // falsch, und der Rückfall auf 'replied' wäre noch falscher.
   if (type === 'post.mention') return 'notifications.mentionedInPost'
+  // 'message.received' = eine neue PRIVATE Nachricht ({name} = der Absender).
+  // Der TEXT steht bewusst nicht in der Meldung und nicht in der Mail
+  // (PN-Konzept § 4): das Postfach ist ein dritter Ort, an dem der Inhalt
+  // landet, und dieser Ort ist nicht der, den der Absender gewählt hat. Wer
+  // den Text will, klickt — der Link führt in den Posteingang mit
+  // vorgewählter Konversation.
+  if (type === 'message.received') return 'notifications.messageReceived'
   return 'notifications.replied'
 }
 
