@@ -85,9 +85,13 @@ describe('Glocken-Texte deckt jeden Absender (C17)', () => {
     expect(types.length).toBeGreaterThanOrEqual(5)
     expect(types).toContain('invite.request')
     expect(types).toContain('billing')
+    // F1 Teilpaket 2: die Abzeichen-Verleihung benachrichtigt seit dem
+    // 2026-08-04 — der neueste Absender und damit der nächste Kandidat für
+    // genau das Loch, das dieser Test zumacht.
+    expect(types).toContain('badge.awarded')
   })
 
-  it.each(['reply', 'mention', 'reminder', 'ticket', 'billing', 'siteInvite', 'invite.request'])(
+  it.each(['reply', 'mention', 'reminder', 'ticket', 'billing', 'siteInvite', 'invite.request', 'badge.awarded'])(
     "'%s' hat einen eigenen Lesetext in de UND en",
     (type) => {
       // 'reply' ist der Default-Zweig der Glocke ('notifications.replied') —

@@ -251,6 +251,7 @@
     "siteInvite": "Invitation to {name}",
     "inviteRequest": "Early access request from {name}",
     "abuseReport": "Abuse report for {name}",
+    "badgeAwarded": "Badge earned: {name}",
     "email": {
       "title": "Email notifications",
       "description": "Also receive bell notifications (replies, mentions, reminders) by email.",

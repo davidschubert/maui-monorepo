@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { H3Event } from 'h3'
+import type { UserCounterWindow } from '../server/utils/userCounters'
 
 /**
  * F1 Stufe 4 — die Ereignis-Zählung je Nutzer.
@@ -16,6 +17,7 @@ const {
   COUNTER_LIKES_GIVEN,
   __resetUserCounterProviders,
   collectUserCounters,
+  counterContentIn,
   counterLikedItems,
   counterLikedReplies,
   counterLikedTopics,
@@ -105,22 +107,32 @@ describe('collectUserCounters', () => {
     expect(counters[counterLikedItems(1)]).toBe(5)
   })
 
-  it('reicht das Zeitfenster durch — und lässt es weg, wenn keines gefragt ist', async () => {
-    // F1 „Jahrestag": `since` ist optional, und genau darin liegt seine
-    // Sparsamkeit. Eine Quelle, die es SIEHT, stellt eine zusätzliche Abfrage;
-    // eine Quelle, die es nicht sieht, bleibt so teuer wie vorher. Käme es als
-    // leerer String statt als `undefined` an, würde jede Quelle die Abfrage
-    // stellen und dabei nichts messen.
-    const seen: Array<string | undefined> = []
+  it('reicht die Zeitfenster durch — und lässt sie weg, wenn keines gefragt ist', async () => {
+    // F1 „Jahrestag": `windows` ist optional, und genau darin liegt seine
+    // Sparsamkeit. Eine Quelle, die es SIEHT, stellt je Fenster eine zusätzliche
+    // Abfrage; eine Quelle, die es nicht sieht, bleibt so teuer wie vorher.
+    // Käme es als leeres Array statt als `undefined` an, sähe die Quelle keinen
+    // Unterschied — deshalb die Gegenprobe auf `undefined`.
+    const seen: Array<readonly UserCounterWindow[] | undefined> = []
     registerUserCounterProvider('a', (_event, q) => {
-      seen.push(q.since)
+      seen.push(q.windows)
       return {}
     })
 
+    const windows = [
+      { key: '1', since: '2024-08-04T00:00:00.000Z', until: '2025-08-04T00:00:00.000Z' },
+      { key: '2', since: '2025-08-04T00:00:00.000Z', until: '2026-08-04T00:00:00.000Z' },
+    ]
     await collectUserCounters(event, query)
-    await collectUserCounters(event, { ...query, since: '2025-08-04T00:00:00.000Z' })
+    await collectUserCounters(event, { ...query, windows })
 
-    expect(seen).toEqual([undefined, '2025-08-04T00:00:00.000Z'])
+    expect(seen).toEqual([undefined, windows])
+  })
+
+  it('das Fenster hat einen eigenen Zähler-Namen je Schlüssel', () => {
+    // Ohne den Schlüssel im Namen würden zwei Mitgliedsjahre in DERSELBEN Zahl
+    // landen — und der Jahrestag käme für ein Jahr, in dem niemand da war.
+    expect(counterContentIn('1')).not.toBe(counterContentIn('2'))
   })
 
   it('eine kaputte Quelle kostet ihren Beitrag — nicht die Zählung', async () => {
