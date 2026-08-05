@@ -29,6 +29,56 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F48 Teilpaket 1 — Markdown-Renderer CommonMark-treu ✅ 2026-08-04
+
+**Davids Entscheidung** nach der Messung des Vorgängers (Option B aus
+`docs/plans/COMPOSER-UEDITOR.md`): nicht der Editor ist das Problem, sondern
+der Renderer. `packages/core/shared/markdown.ts` kannte weder Backslash-Escapes
+noch HTML-Entities und zeigte beides sichtbar an — schon heute eine Lücke
+(ein Bestandstext mit `\_` zeigte den Backslash), und der Grund, warum die
+Umstellung des Composers auf `UEditor` scheiterte: `@tiptap/markdown` maskiert
+beim Serialisieren **hartkodiert** jeden Text-Knoten.
+
+**ZUERST GEZÄHLT, DANN GEBAUT.** Die Änderung verändert die Anzeige von
+Bestandstexten, also wurde vor der ersten Codezeile gegen BEIDE
+Produktions-Instanzen gemessen (nur lesend): **0 von 80** Texten in
+`community_posts.body/title`, `comments.content`, `pages.body`,
+`lessons.content`, `courses.description`, `events.description` tragen einen
+Backslash oder eine HTML-Entity. Es gab also nichts zu migrieren und keine
+Übergangsregel zu bauen — aber das wusste vorher niemand.
+
+Gebaut: Escapes werden **vor** dem Parsen maskiert (je escaptem Zeichen ein
+Zeichen aus der privaten Unicode-Zone) statt in jedem der sieben
+`INLINE_RE`-Zweige per Lookbehind mitgedacht. Dadurch wirkt der Escape auch auf
+die BLOCK-Erkennung (`\# kein Kopf`, `\- keine Liste`). Entmaskiert und
+dekodiert wird ausschliesslich im Blatt eines TEXT-Knotens; in Code-Spans und
+Codeblöcken passiert bewusst nichts, denn dort maskiert der Serialisierer auch
+nicht. Die Sicherheitsgrenze bleibt: weiter AST → vnodes, kein `v-html`.
+`isSafeHref` prüft das Ziel jetzt NACH dem Dekodieren — sonst käme
+`javascript&#58;` an der Prüfung vorbei.
+
+**Beweise:** 80 Unit-Tests in `packages/core/tests/markdown.test.ts` (darunter
+alle 32 escapebaren Zeichen einzeln) und ein Rundlauf im Browser gegen die
+lokale Instanz: ein Beitrag mit `\*`, `\[`, `&lt;script&gt;`, Windows-Pfad und
+Code-Span wurde gespeichert und im Feed gerendert — 0 `script`-Elemente,
+0 `b`-Elemente, `<script>alert(1)</script>` steht als sichtbarer TEXT da,
+`` `a\*b` `` behält seinen Backslash, `\#` bleibt ein Absatz, `*ja*` ist
+weiterhin kursiv.
+
+Zwei Nebenbefunde derselben Messung gleich mit: die Bearbeiten-Fläche in
+`PostCard` und der Composer teilen sich jetzt **eine** Komponente
+(`PostBodyField`, weiterhin `UTextarea` — die `UEditor`-Umstellung ist ein
+eigenes Paket und trifft dann eine Datei statt zwei), und die Längengrenze
+zählt Codepoints statt UTF-16-Einheiten.
+
+**Gelernt:** Eine Längengrenze muss zählen, wie die SPALTE zählt. `z.string()
+.max(10_000)` zählt UTF-16-Einheiten, Appwrite/MariaDB zählen Codepoints — am
+2026-08-04 gegen die lokale 1.9.6 nachgemessen: 10 000 Emoji (= 20 000
+UTF-16-Einheiten) werden angenommen, 10 001 abgelehnt. Ein Beitrag aus 6000
+Emoji wurde also mit „zu lang" abgewiesen, obwohl die Spalte ihn genommen
+hätte. Für lateinischen Text fällt das nie auf; deshalb hat es auch niemand
+gemerkt.
+
 ### F1 gemeinsames Paket, Teilpaket 1 — mitschreibende Zähler + posts.editedAt ✅ 2026-08-04
 
 **Davids Go** („starte das gemeinsame paket") plus drei per Frage abgenommene

@@ -1,10 +1,21 @@
-# PostComposer auf UEditor — gemessen, angehalten
+# PostComposer auf UEditor — gemessen, Blocker beseitigt, Umstellung offen
 
-**Stand: 2026-08-04. NICHT gebaut.** Der Auftrag lautete, den `PostComposer`
-von `UTextarea` auf `UEditor` im Markdown-Modus umzustellen. Die Messung hat
-einen Blocker gefunden, der weder am Zuschnitt noch an der Konfiguration
-liegt. Dieses Dokument hält fest, was gemessen wurde, damit die nächste
-Sitzung es nicht noch einmal herleiten muss.
+**Stand: 2026-08-04. Die Umstellung ist NICHT gebaut — der BLOCKER schon
+beseitigt.** Der Auftrag lautete, den `PostComposer` von `UTextarea` auf
+`UEditor` im Markdown-Modus umzustellen. Die Messung fand einen Blocker, der
+weder am Zuschnitt noch an der Konfiguration lag; Davids Entscheidung war
+darauf **Option B** (unten), und die ist am selben Tag gebaut worden.
+
+> **Was sich seit der Messung geändert hat (2026-08-04, Option B):**
+> `packages/core/shared/markdown.ts` versteht jetzt Backslash-Escapes und
+> HTML-Entities nach CommonMark. Der unten beschriebene Blast-Radius ist damit
+> **erledigt**: gespeichertes `snake\_case` wird als `snake_case` gelesen,
+> `&lt;` als `<`. Die Bestandsdaten waren vorher gegen beide
+> Produktions-Instanzen gezählt — 0 von 80 Texten betroffen. Zwei der
+> Nebenbefunde sind ebenfalls erledigt (siehe unten). **Offen bleibt genau
+> die Umstellung selbst**, plus die Rest-Unschärfen `HorizontalRule` und
+> Bündelgewicht. Details: `docs/OPEN-ITEMS-COMPLETE.md`, Eintrag „F48
+> Teilpaket 1".
 
 ## Die Annahme, die nicht hält
 
@@ -111,7 +122,7 @@ Kosten: null. Der Composer bleibt, was er ist. Der Preis ist, dass die
 Editor-Vorgabe vom 2026-08-04 an dieser einen Stelle nicht greift — mit
 gemessener Begründung statt mit Schweigen.
 
-**B — Den Renderer CommonMark-treu machen** *(der eigentliche Weg zum Ziel)*
+**B — Den Renderer CommonMark-treu machen** *(GEWÄHLT und am 2026-08-04 gebaut)*
 Der Blocker sitzt nicht im Editor, sondern darin, dass `parseMarkdown`
 Backslash-Escapes und HTML-Entities nicht kennt. Das ist heute schon eine
 Lücke: ein Bestandstext mit `\_` zeigt den Backslash. Wird sie geschlossen,
@@ -140,11 +151,16 @@ wortlos zurück.
   eingeloggten Feed-Ansicht. Vorbild für später ist K4:
   `<LazyThemePickerModal v-if="pickerMounted">` in
   `packages/themes/app/components/DisplaySettingsMenu.global.vue:111`.
-- **Die Bearbeiten-Fläche ist eine andere Komponente:** `PostCard.vue:185`
-  ist eine blanke `UTextarea`. Wer den Composer umstellt und sie vergisst,
-  hat zwei Schreibflächen mit zwei Formaten.
-- `MAX_POST_BODY = 10_000` misst die SERIALISIERTE Zeichenkette — Markdown
-  aus dem Editor ist länger als der getippte Text.
+- ~~**Die Bearbeiten-Fläche ist eine andere Komponente**~~ — **erledigt
+  2026-08-04:** beide benutzen jetzt `PostBodyField` (weiterhin `UTextarea`).
+  Die Umstellung trifft damit EINE Datei.
+- `MAX_POST_BODY = 10_000` ist die GRÖSSE DER SPALTE (`varchar(10000)`), und
+  daran ändert sich nichts. Gezählt werden seit dem 2026-08-04 Codepoints
+  statt UTF-16-Einheiten (`packages/posts/shared/postBody.ts`) — das war ein
+  eigener Fehler und ist behoben. **Nicht behoben und für dieses Paket
+  wichtig:** Markdown aus dem Editor ist länger als der getippte Text. Wer
+  10 000 GETIPPTE Zeichen zusagen will, braucht eine größere Spalte (Muster
+  pages-002, MEDIUMTEXT) — Migration und eigene Entscheidung.
 - Tiptap liegt als **auto-installierter optionaler Peer** von `@nuxt/ui` im
   Baum (3.27.1, genau eine Kopie). Wer eigene `@tiptap/*`-Abhängigkeiten
   aufnimmt, muss sie exakt darauf festnageln und `@tiptap/core` in
