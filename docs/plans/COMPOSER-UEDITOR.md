@@ -131,6 +131,45 @@ Nutzer-**Id** (nicht nur den Anzeigenamen), einen eigenen Zweig in
 `'replied'` zurück, siehe C17) und ein Ziel für den Link — öffentliche
 Profilseiten gibt es noch nicht.
 
+### NACHTRAG 2026-08-04: gebaut — und der Knoten wird gar nicht gebraucht
+
+Das Erwähnungs-Paket ist da (Handles je Community, Auflösung, Hervorhebung,
+Benachrichtigung). Zwei Dinge daraus gehören hierher, weil sie die Messung
+oben korrigieren:
+
+**1. Der Blocker ist LÖSBAR, gemessen.** Die Maskierung sitzt ausschließlich
+im Zweig `node.type === 'text'` von `renderNodeToMarkdown`. Jeder ANDERE
+Knoten geht durch `handler.renderMarkdown(node, …)`, und dessen Rückgabe wird
+**wörtlich** übernommen — auch in `renderNodesWithMarkBoundaries` (dort im
+`else`-Zweig). Ein eigener Serialisierer für den Mention-Knoten ist also
+möglich, und er hat keine Nebenwirkung auf Text:
+
+| Aufbau | serialisiert zu |
+| --- | --- |
+| `Mention` unverändert | `Hallo [@ id="davidschubert" label="David Schubert"] willkommen` |
+| `Mention.extend({ renderMarkdown: n => '@' + n.attrs.id })` | `Hallo @davidschubert willkommen` |
+| derselbe Text ohne Knoten, `serialize(parse(x))` | `Hallo @davidschubert willkommen` (stabil) |
+
+**2. Der Knoten wird für das PRODUKT nicht gebraucht.** Eine Erwähnung ist in
+diesem Produkt gewöhnlicher Text: `@` steht in KEINER der beiden hartkodierten
+Listen (maskiert werden ``\ ` * _ [ ] ~``, kodiert `< > &`). Getipptes
+`@handle` überlebt den Rundlauf zeichengleich, und Auflösung, Hervorhebung und
+Benachrichtigung hängen am Text, nicht am Knoten — bewiesen in
+`packages/posts/scripts/verify-handles-mentions.mjs` (34/34, echter Browser).
+
+**Offen bleibt allein `UEditorMentionMenu`**, also die Namensvervollständigung
+beim Tippen. Sie braucht `:mention="false"` plus die eigene Erweiterung über
+`:extensions`, und damit `@tiptap/extension-mention` als DIREKTE Abhängigkeit.
+Der Versuch bewegte den Lockfile um 1898 Zeilen (+334/−1564) — deutlich mehr,
+als eine hinzugefügte Abhängigkeit rechtfertigt. Eigener Schnitt: Abhängigkeit
++ Katalog-Eintrag + `@tiptap/core` in `check-single-copy.mjs`. Der Zuträger
+für das Menü steht schon (`GET /api/handles/search`).
+
+Eine Sache aus der Liste oben ist übrigens ANDERS ausgegangen als vermutet:
+der Link. Öffentliche Profilseiten gibt es weiterhin nicht — deshalb ist eine
+Erwähnung **kein Link**, sondern nur hervorgehoben. Ein Link ins Leere wäre
+schlechter als keiner.
+
 ## Optionen
 
 **A — Anhalten, `UTextarea` behalten** *(Empfehlung für jetzt)*
