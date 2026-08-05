@@ -686,10 +686,25 @@ Vollständiges Konzept: docs/CONCEPT.md
   in jeden Beitrag zurück. `bodyToSave` (`core/shared/editorBody.ts`) gilt
   weiter: Öffnen und Speichern ohne Tastendruck darf nichts ändern — sonst
   meldet `posts.editedAt` eine Bearbeitung, die der Leser nicht sieht.
-  ERWÄHNUNGEN bleiben AUS: `UEditorMentionMenu` serialisiert zu
-  `[@ id="…" label="…"]` und stünde roh im Beitrag; sie brauchen zuerst
-  Handles (je Community eindeutig, Davids Entscheidung 2026-08-04).
-  Messung, Optionen, Nebenbefunde: docs/plans/COMPOSER-UEDITOR.md. Auth-Formulare:
+  ERWÄHNUNGEN sind seit 2026-08-04 GEBAUT — mit einer Sicherung, die man nicht
+  entfernen darf: `UEditorMentionMenu` serialisiert von Haus aus zu
+  `[@ id="…" label="…"]` und stünde damit ROH im Beitrag. Zu ist das durch
+  EINEN eigenen Knoten-Serialisierer (`Mention.extend({ renderMarkdown: n =>
+  '@' + n.attrs.id })`) — nimmt man ihn weg, bricht nicht der Editor, sondern
+  der INHALT (Gegenprobe gemessen: 14 von 22 Prüfungen fallen). Die
+  Maskierung von `@tiptap/markdown` sitzt NUR im Text-Zweig; jeder andere
+  Knoten geht durch seinen Handler, dessen Rückgabe wörtlich übernommen wird.
+  `@handle` selbst ist gewöhnlicher Text (`@` steht in keiner Maskierungs-
+  liste) — das PRODUKT hängt also am Text, das Menü ist nur Bedienhilfe.
+  Handles: je Community eindeutig, Tabelle `community_handles` (system-029,
+  Unique `(communityId, handleLower)`), Zugriff in core — dasselbe Muster wie
+  `notify()`. Alte Handles bleiben über eine HISTORIEN-Zeile belegt, damit
+  alte Erwähnungen weiter auf dieselbe Person auflösen. Angezeigt wird
+  hervorgehoben, NICHT verlinkt (öffentliche Profile gibt es nicht).
+  `@tiptap/extension-mention` gehört EXAKT auf `3.27.1` gepinnt (Katalog, kein
+  Caret): ungepinnt löst pnpm neu auf und der Lockfile bewegt sich um 1898
+  Zeilen statt um 6. Messung, Optionen, Nebenbefunde:
+  docs/archiv/COMPOSER-UEDITOR.md. Auth-Formulare:
   UAuthForm ist die VORLAGE (Optik/Struktur) — Login/Register/OTP sind bewusst
   eigene UForm-Implementierungen (2-Schritt-OTP, Security-Phrase, geteilter
   E-Mail-State, AGB-Gate); Details in docs/referenz/AUTH-FORMS.md

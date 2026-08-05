@@ -140,7 +140,7 @@ Zeichen fressen" als eigener Fall im Beweis stand.
 ### F48 Teilpaket 1 — Markdown-Renderer CommonMark-treu ✅ 2026-08-04
 
 **Davids Entscheidung** nach der Messung des Vorgängers (Option B aus
-`docs/plans/COMPOSER-UEDITOR.md`): nicht der Editor ist das Problem, sondern
+`docs/archiv/COMPOSER-UEDITOR.md`): nicht der Editor ist das Problem, sondern
 der Renderer. `packages/core/shared/markdown.ts` kannte weder Backslash-Escapes
 noch HTML-Entities und zeigte beides sichtbar an — schon heute eine Lücke
 (ein Bestandstext mit `\_` zeigte den Backslash), und der Grund, warum die
