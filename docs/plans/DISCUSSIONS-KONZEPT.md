@@ -458,6 +458,17 @@ nach `docs/OPEN-ITEMS.md`.
   (`registerUserCounterProvider`, sechster Cross-Layer-Vertrag), Quellen in
   posts/comments/moderation, Katalog + Verleihung (`user_badges`,
   posts-012), Galerie unter `/discussions/badges`.
+- **Einstieg „Thema eröffnen"** (2026-08-04, Davids Regel „Feed und Discussions
+  sind unabhängige Produkte"): der Knopf steht in der Kopfzeile von
+  `/discussions` (beide Ansichten) und jeder Kategorie-Seite, dort mit der
+  Kategorie vorbelegt. Dahinter derselbe `PostComposer` und derselbe Schreibweg
+  (`POST /api/posts`) wie im Feed — geteilt wird der MECHANISMUS, nicht der
+  Einstieg; einen zweiten Schreibweg gibt es ausdrücklich nicht. Unter
+  Discussions ist die Kategorie PFLICHT (`mode="topic"`), weil ein Beitrag ohne
+  sie dort gar nicht erschiene. Sichtbarkeit und Ablehnung sind unverändert die
+  des Feed-Composers: `isLoggedIn` für den Knopf, Datentür für alles Weitere
+  (entzogener Zugang, M13). Beweis:
+  `packages/posts/scripts/verify-new-topic-entry.mjs` (8/8).
 - **Kleines Paket** (2026-08-04) Regeln-Vorlage für Bestands-Communities als
   Laufzeit-Rückfall (Schalter `pukalani.pages.guidelinesFallback`, in
   `platform` an) und die Hilfe-Umbenennung „Diskussionen" → „Kommentare".
