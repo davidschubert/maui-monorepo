@@ -11,6 +11,26 @@
  * Unterstützt: **fett**, __fett__, *kursiv*, _kursiv_, `code`, [Text](URL)
  * (nur https?:// oder interner /-Pfad), Absätze, - / 1. Listen, > Zitate,
  * ```Codeblöcke```.
+ *
+ * BACKSLASH-ESCAPES UND HTML-ENTITIES (seit 2026-08-04): `\*` ist ein
+ * literaler Stern und KEIN Betonungs-Marker, `&lt;` ist das Zeichen `<`.
+ * Beides ist CommonMark und war hier bis dahin nicht umgesetzt — der Leser sah
+ * die Backslashes. Der Anlass ist die geplante Umstellung des Composers auf
+ * `UEditor`: `@tiptap/markdown` maskiert beim Serialisieren HARTKODIERT jeden
+ * Text-Knoten (`escapeMarkdownSyntax(encodeHtmlEntities(text))`), ohne diese
+ * Regel würde aus getipptem `snake_case` gespeichertes `snake\_case` und der
+ * Beitrag zeigte den Backslash (Messung: docs/plans/COMPOSER-UEDITOR.md).
+ *
+ * DIE SICHERHEITSGRENZE ÄNDERT SICH NICHT. Entmaskieren und Dekodieren
+ * passieren AUSSCHLIESSLICH im Blatt eines TEXT-Knotens, der Renderer macht
+ * daraus weiterhin einen vnode-Textknoten — `&lt;script&gt;` wird also zum
+ * sichtbaren Text `<script>` und NIE zu einem Element. Es gibt weiterhin
+ * keinen v-html-Pfad. `isSafeHref` gilt unverändert und prüft das Ziel NACH
+ * dem Dekodieren, damit `javascript&#58;…` nicht an der Prüfung vorbeikommt.
+ *
+ * INNERHALB VON CODE wird NICHT entmaskiert (`` `a\*b` `` zeigt den
+ * Backslash) — dort maskiert der Serialisierer auch nicht, und CommonMark
+ * kennt in Code-Spans/Codeblöcken weder Escapes noch Entities.
  */
 
 export type InlineNode
@@ -30,6 +50,96 @@ export type BlockNode
 /** Nur harmlose Link-Ziele: absolute https?-URLs oder interne Pfade. */
 export function isSafeHref(href: string): boolean {
   return /^https?:\/\/\S+$/.test(href) || /^\/(?![/\\%])[^\s\\]*$/.test(href)
+}
+
+/*
+ * ---------------------------------------------------------------------------
+ * Escapes und Entities
+ * ---------------------------------------------------------------------------
+ *
+ * WARUM MASKIEREN STATT „im Regex mitdenken": ein escaptes Zeichen darf zwei
+ * Dinge NICHT tun — als Marker wirken (`\*a\*` ist kein Kursiv) und die
+ * Block-Erkennung auslösen (`\# kein Kopf`, `\- keine Liste`). Beides hinge an
+ * Lookbehinds in JEDEM der sieben Zweige von INLINE_RE und zusätzlich in fünf
+ * Block-Prüfungen; ein vergessener Zweig fiele niemandem auf. Stattdessen
+ * ersetzt `maskEscapes` jedes `\<Interpunktion>` VOR dem Parsen durch EIN
+ * Zeichen aus der privaten Unicode-Zone — danach sieht kein einziger Regex
+ * mehr einen Marker, und das Blatt setzt es zurück. Die Zone wird vorher aus
+ * der Eingabe entfernt (`stripSentinels`), damit ein Text mit solchen Zeichen
+ * nicht an der Maskierung vorbei ein Marker-Zeichen erzeugen kann.
+ */
+
+/** Die 32 ASCII-Interpunktionszeichen, die CommonMark escapen lässt. */
+const ESCAPABLE = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
+/** Erstes Ersatzzeichen; ESCAPABLE.length Zeichen ab hier sind reserviert. */
+const SENTINEL_BASE = 0xE000
+/** Muss ESCAPABLE.length Zeichen umfassen — Test `markdown.test.ts` nagelt es fest. */
+const SENTINEL_RE = /[\uE000-\uE01F]/g
+const ESCAPE_RE = /\\([!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~])/g
+
+function stripSentinels(text: string): string {
+  return text.replace(SENTINEL_RE, '')
+}
+
+function maskEscapes(text: string): string {
+  return text.replace(ESCAPE_RE, (_, ch: string) =>
+    String.fromCharCode(SENTINEL_BASE + ESCAPABLE.indexOf(ch)))
+}
+
+function sentinelChar(sentinel: string): string {
+  return ESCAPABLE[sentinel.charCodeAt(0) - SENTINEL_BASE]!
+}
+
+/** Blatt eines Text-Knotens: aus `\*` wird `*`. */
+function unmaskAsLiteral(text: string): string {
+  return text.replace(SENTINEL_RE, sentinelChar)
+}
+
+/** Innerhalb von Code gilt kein Escape — der Backslash bleibt stehen. */
+function unmaskAsCode(text: string): string {
+  return text.replace(SENTINEL_RE, s => `\\${sentinelChar(s)}`)
+}
+
+/**
+ * Bewusst KLEINE Namensliste. CommonMark erlaubt alle ~2000 HTML5-Namen; hier
+ * zählt, was ein Serialisierer erzeugt (`@tiptap/markdown` schreibt NUR
+ * `&amp; &lt; &gt;`) plus die Handvoll, die Menschen tippen. Ein unbekannter
+ * Name bleibt sichtbarer Text — das ist ebenfalls CommonMark und die sichere
+ * Richtung: lieber `&copy;` anzeigen als raten.
+ */
+const NAMED_ENTITIES: Record<string, string> = {
+  amp: '&', lt: '<', gt: '>', quot: '"', apos: '\'', nbsp: '\u00A0',
+}
+
+const ENTITY_RE = /&(?:#(\d{1,7})|#[xX]([0-9a-fA-F]{1,6})|([a-zA-Z][a-zA-Z0-9]{0,31}));/g
+
+function fromCodePoint(code: number): string {
+  // U+0000, Surrogate-Hälften und alles jenseits der Ebene 16 sind nach
+  // CommonMark U+FFFD. Die private Zone ebenfalls: sonst könnte `&#xE000;`
+  // ein Ersatzzeichen einschleusen, das die Entmaskierung danach zu einem
+  // echten Interpunktionszeichen macht.
+  if (code === 0 || code > 0x10FFFF) return '�'
+  if (code >= 0xD800 && code <= 0xDFFF) return '�'
+  if (code >= SENTINEL_BASE && code < SENTINEL_BASE + ESCAPABLE.length) return '�'
+  return String.fromCodePoint(code)
+}
+
+function decodeEntities(text: string): string {
+  if (!text.includes('&')) return text
+  return text.replace(ENTITY_RE, (whole, dec: string | undefined, hex: string | undefined, name: string | undefined) => {
+    if (dec !== undefined) return fromCodePoint(Number.parseInt(dec, 10))
+    if (hex !== undefined) return fromCodePoint(Number.parseInt(hex, 16))
+    return NAMED_ENTITIES[name!] ?? whole
+  })
+}
+
+/**
+ * Ein Text-Blatt fertigstellen. Reihenfolge ist nicht beliebig: ERST Entities,
+ * DANN entmaskieren. Andersherum würde aus `\&amp;` (= der literale Text
+ * „&amp;") am Ende ein blosses `&`.
+ */
+function finishText(masked: string): string {
+  return unmaskAsLiteral(decodeEntities(masked))
 }
 
 /**
@@ -54,25 +164,38 @@ export function isSafeHref(href: string): boolean {
  */
 const INLINE_RE = /(\*\*([^*]+)\*\*)|(\*([^*]+)\*)|(`([^`]+)`)|(\[([^\]]+)\]\(([^)\s]+)\))|((?<![\p{L}\p{N}_])__([^_]+)__(?![\p{L}\p{N}_]))|((?<![\p{L}\p{N}_])_([^_]+)_(?![\p{L}\p{N}_]))/u
 
+/**
+ * Öffentlicher Einstieg für rohen Text (Tests, Einzelzeilen). Maskiert selbst;
+ * `parseMarkdown` maskiert schon auf Block-Ebene und ruft deshalb direkt
+ * `parseInlineMasked`.
+ */
 export function parseInline(text: string): InlineNode[] {
+  return parseInlineMasked(maskEscapes(stripSentinels(text)))
+}
+
+function parseInlineMasked(text: string): InlineNode[] {
   const nodes: InlineNode[] = []
   let rest = text
   while (rest.length > 0) {
     const match = INLINE_RE.exec(rest)
     if (!match) {
-      nodes.push({ type: 'text', text: rest })
+      nodes.push({ type: 'text', text: finishText(rest) })
       break
     }
-    if (match.index > 0) nodes.push({ type: 'text', text: rest.slice(0, match.index) })
-    if (match[2] !== undefined) nodes.push({ type: 'strong', children: parseInline(match[2]) })
-    else if (match[4] !== undefined) nodes.push({ type: 'em', children: parseInline(match[4]) })
-    else if (match[6] !== undefined) nodes.push({ type: 'code', text: match[6] })
-    else if (match[11] !== undefined) nodes.push({ type: 'strong', children: parseInline(match[11]) })
-    else if (match[13] !== undefined) nodes.push({ type: 'em', children: parseInline(match[13]) })
+    if (match.index > 0) nodes.push({ type: 'text', text: finishText(rest.slice(0, match.index)) })
+    if (match[2] !== undefined) nodes.push({ type: 'strong', children: parseInlineMasked(match[2]) })
+    else if (match[4] !== undefined) nodes.push({ type: 'em', children: parseInlineMasked(match[4]) })
+    // In Code gilt kein Escape und keine Entity — nur die Maskierung zurück.
+    else if (match[6] !== undefined) nodes.push({ type: 'code', text: unmaskAsCode(match[6]) })
+    else if (match[11] !== undefined) nodes.push({ type: 'strong', children: parseInlineMasked(match[11]) })
+    else if (match[13] !== undefined) nodes.push({ type: 'em', children: parseInlineMasked(match[13]) })
     else if (match[8] !== undefined && match[9] !== undefined) {
+      // Das Ziel wird ZUERST fertiggestellt und DANN geprüft — sonst käme
+      // `javascript&#58;alert(1)` an isSafeHref vorbei.
+      const href = finishText(match[9])
       // Unsichere Ziele (javascript:, data:, //evil) NICHT verlinken — nur Text
-      if (isSafeHref(match[9])) nodes.push({ type: 'link', href: match[9], children: parseInline(match[8]) })
-      else nodes.push({ type: 'text', text: match[8] })
+      if (isSafeHref(href)) nodes.push({ type: 'link', href, children: parseInlineMasked(match[8]) })
+      else nodes.push({ type: 'text', text: finishText(match[8]) })
     }
     rest = rest.slice(match.index + match[0].length)
   }
@@ -81,7 +204,9 @@ export function parseInline(text: string): InlineNode[] {
 
 export function parseMarkdown(source: string): BlockNode[] {
   const blocks: BlockNode[] = []
-  const lines = source.split('\n')
+  // Maskiert wird VOR der Block-Erkennung: `\# kein Kopf` und `\- keine Liste`
+  // sind Absätze, nicht Überschrift und Liste.
+  const lines = maskEscapes(stripSentinels(source)).split('\n')
   let i = 0
 
   while (i < lines.length) {
@@ -98,7 +223,8 @@ export function parseMarkdown(source: string): BlockNode[] {
         i++
       }
       i++ // schließendes ``` (oder Ende)
-      blocks.push({ type: 'codeblock', text: buf.join('\n') })
+      // Codeblock: kein Escape, keine Entity — nur die Maskierung zurücknehmen.
+      blocks.push({ type: 'codeblock', text: unmaskAsCode(buf.join('\n')) })
       continue
     }
 
@@ -106,7 +232,7 @@ export function parseMarkdown(source: string): BlockNode[] {
     const headingMatch = /^(#{1,6})\s+(.*)$/.exec(line.trimStart())
     if (headingMatch) {
       const level = headingMatch[1]!.length <= 2 ? 2 : 3
-      blocks.push({ type: 'heading', level, children: parseInline(headingMatch[2]!.trim()) })
+      blocks.push({ type: 'heading', level, children: parseInlineMasked(headingMatch[2]!.trim()) })
       i++
       continue
     }
@@ -119,7 +245,7 @@ export function parseMarkdown(source: string): BlockNode[] {
       while (i < lines.length) {
         const m = /^\s*(?:[-*]|\d+\.)\s+(.*)$/.exec(lines[i]!)
         if (!m) break
-        items.push(parseInline(m[1]!))
+        items.push(parseInlineMasked(m[1]!))
         i++
       }
       blocks.push({ type: 'list', ordered, items })
@@ -133,7 +259,7 @@ export function parseMarkdown(source: string): BlockNode[] {
         buf.push(lines[i]!.replace(/^\s*>\s?/, ''))
         i++
       }
-      blocks.push({ type: 'quote', children: parseInline(buf.join('\n')) })
+      blocks.push({ type: 'quote', children: parseInlineMasked(buf.join('\n')) })
       continue
     }
 
@@ -147,7 +273,7 @@ export function parseMarkdown(source: string): BlockNode[] {
       buf.push(lines[i]!)
       i++
     }
-    blocks.push({ type: 'paragraph', children: parseInline(buf.join('\n')) })
+    blocks.push({ type: 'paragraph', children: parseInlineMasked(buf.join('\n')) })
   }
 
   return blocks

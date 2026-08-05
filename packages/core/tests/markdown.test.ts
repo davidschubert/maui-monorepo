@@ -190,3 +190,150 @@ describe('parseMarkdown Überschriften', () => {
     expect(blocks[1]!.type).toBe('paragraph')
   })
 })
+
+/**
+ * CommonMark: Backslash-Escapes und HTML-Entities (2026-08-04).
+ * Anlass ist der Serialisierer von `@tiptap/markdown`, der jeden Text-Knoten
+ * hartkodiert maskiert — ohne diese Regel zeigte der Beitrag die Backslashes
+ * (Messung: docs/plans/COMPOSER-UEDITOR.md).
+ */
+describe('Backslash-Escapes', () => {
+  it('nimmt dem Marker die Wirkung und zeigt das Zeichen', () => {
+    expect(parseInline('\\*kein Stern\\*')).toEqual([{ type: 'text', text: '*kein Stern*' }])
+    expect(parseInline('snake\\_case')).toEqual([{ type: 'text', text: 'snake_case' }])
+    expect(parseInline('Platzhalter \\[Name\\]')).toEqual([{ type: 'text', text: 'Platzhalter [Name]' }])
+    expect(parseInline('2 \\* 3 \\* 4')).toEqual([{ type: 'text', text: '2 * 3 * 4' }])
+  })
+
+  it('escapt den Backslash selbst', () => {
+    expect(parseInline('C:\\\\Users\\\\test')).toEqual([{ type: 'text', text: 'C:\\Users\\test' }])
+  })
+
+  it('lässt einen Backslash vor NICHT-Interpunktion stehen (CommonMark)', () => {
+    // Der Windows-Pfad, wie ein Mensch ihn in eine Textarea tippt.
+    expect(parseInline('Pfad C:\\Users\\test')).toEqual([{ type: 'text', text: 'Pfad C:\\Users\\test' }])
+  })
+
+  it('greift auch vor der Block-Erkennung', () => {
+    expect(parseMarkdown('\\# kein Kopf')).toEqual([
+      { type: 'paragraph', children: [{ type: 'text', text: '# kein Kopf' }] },
+    ])
+    expect(parseMarkdown('\\- keine Liste')).toEqual([
+      { type: 'paragraph', children: [{ type: 'text', text: '- keine Liste' }] },
+    ])
+    expect(parseMarkdown('\\> kein Zitat')).toEqual([
+      { type: 'paragraph', children: [{ type: 'text', text: '> kein Zitat' }] },
+    ])
+  })
+
+  it('wirkt NICHT in Code — dort maskiert auch der Serialisierer nicht', () => {
+    expect(parseInline('`a\\*b`')).toEqual([{ type: 'code', text: 'a\\*b' }])
+    expect(parseMarkdown('```\na\\*b\n```')).toEqual([{ type: 'codeblock', text: 'a\\*b' }])
+  })
+
+  it('betont weiterhin, wo NICHT escapt wurde', () => {
+    expect(parseInline('\\*roh\\* und *kursiv*')).toEqual([
+      { type: 'text', text: '*roh* und ' },
+      { type: 'em', children: [{ type: 'text', text: 'kursiv' }] },
+    ])
+  })
+})
+
+describe('HTML-Entities', () => {
+  it('dekodiert benannte und numerische Entities im TEXT-Knoten', () => {
+    expect(parseInline('a &lt; b &gt; c &amp; d')).toEqual([{ type: 'text', text: 'a < b > c & d' }])
+    expect(parseInline('&quot;x&quot; und &#39;y&#39; und &#x27;z&#x27;')).toEqual([
+      { type: 'text', text: '"x" und \'y\' und \'z\'' },
+    ])
+  })
+
+  it('lässt unbekannte Namen stehen, statt zu raten', () => {
+    expect(parseInline('&copy; 2026 &foo;')).toEqual([{ type: 'text', text: '&copy; 2026 &foo;' }])
+  })
+
+  it('dekodiert genau EINMAL (&amp;lt; bleibt sichtbar &lt;)', () => {
+    expect(parseInline('&amp;lt;')).toEqual([{ type: 'text', text: '&lt;' }])
+  })
+
+  it('ein escaptes &amp; bleibt der literale Text', () => {
+    expect(parseInline('\\&amp;')).toEqual([{ type: 'text', text: '&amp;' }])
+  })
+
+  it('wirkt NICHT in Code', () => {
+    expect(parseInline('`&lt;b&gt;`')).toEqual([{ type: 'code', text: '&lt;b&gt;' }])
+    expect(parseMarkdown('```\n&lt;b&gt;\n```')).toEqual([{ type: 'codeblock', text: '&lt;b&gt;' }])
+  })
+
+  it('ersetzt verbotene Codepoints durch U+FFFD', () => {
+    expect(parseInline('&#0;')).toEqual([{ type: 'text', text: '\uFFFD' }])
+    expect(parseInline('&#xD800;')).toEqual([{ type: 'text', text: '\uFFFD' }])
+    expect(parseInline('&#x110000;')).toEqual([{ type: 'text', text: '\uFFFD' }])
+  })
+})
+
+/**
+ * DIE SICHERHEITSGRENZE. Eine dekodierte Entity darf NIE zu einem Element
+ * werden — der AST kennt dafür gar keinen Knoten, und der Renderer setzt
+ * `node.text` als vnode-TEXTKIND (MarkdownContent.vue, default-Zweig).
+ */
+describe('Entities kippen die Sicherheitsgrenze nicht', () => {
+  it('&lt;script&gt; wird EIN Text-Knoten, kein Element', () => {
+    const blocks = parseMarkdown('&lt;script&gt;alert(1)&lt;/script&gt;')
+    expect(blocks).toEqual([
+      { type: 'paragraph', children: [{ type: 'text', text: '<script>alert(1)</script>' }] },
+    ])
+  })
+
+  it('Vue escapt genau diesen Text wieder (renderToString auf dem echten Wert)', async () => {
+    const { h } = await import('vue')
+    const { renderToString } = await import('vue/server-renderer')
+    const block = parseMarkdown('&lt;img src=x onerror=alert(1)&gt;')[0]!
+    const text = (block as { children: Array<{ text: string }> }).children[0]!.text
+    expect(text).toBe('<img src=x onerror=alert(1)>')
+    // So rendert MarkdownContent: das Text-Blatt ist ein Kind-STRING.
+    await expect(renderToString(h('p', text))).resolves
+      .toBe('<p>&lt;img src=x onerror=alert(1)&gt;</p>')
+  })
+
+  it('ein per Entity zusammengesetztes Link-Ziel wird NICHT verlinkt', () => {
+    // isSafeHref prüft NACH dem Dekodieren — sonst käme javascript: durch.
+    // Das Ziel-Regex endet an der ersten `)` — die zweite bleibt Text (wie bei
+    // `javascript:` ohne Entity, siehe oben). Entscheidend: KEIN link-Knoten.
+    expect(parseInline('[x](javascript&#58;alert(1))')).toEqual([
+      { type: 'text', text: 'x' },
+      { type: 'text', text: ')' },
+    ])
+    expect(parseInline('[x](&#47;&#47;evil.com)')).toEqual([{ type: 'text', text: 'x' }])
+  })
+
+  it('dekodiert das Ziel eines sicheren Links', () => {
+    expect(parseInline('[x](https://e.de/a&amp;b)')).toEqual([
+      { type: 'link', href: 'https://e.de/a&b', children: [{ type: 'text', text: 'x' }] },
+    ])
+  })
+
+  it('rohe Zeichen der privaten Unicode-Zone kommen nicht an die Maskierung heran', () => {
+    // U+E000 ist intern das Ersatzzeichen für `\!` — als Eingabe wird es entfernt.
+    expect(parseInline('a\uE000b')).toEqual([{ type: 'text', text: 'ab' }])
+    // …und über eine numerische Entity ist es ebenfalls nicht erreichbar.
+    expect(parseInline('&#xE000;')).toEqual([{ type: 'text', text: '\uFFFD' }])
+  })
+})
+
+describe('Escape-Tabelle', () => {
+  // Nagelt die interne Maskierung fest: käme ein Zeichen dazu, ohne dass der
+  // reservierte Unicode-Bereich mitwächst, bliebe hier ein Ersatzzeichen aus
+  // der privaten Zone im Text stehen — sichtbar als kaputtes Kästchen.
+  const escapable = [...'!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~']
+
+  it.each(escapable)('\\%s ergibt genau dieses Zeichen', (ch) => {
+    expect(parseInline(`a\\${ch}b`)).toEqual([{ type: 'text', text: `a${ch}b` }])
+  })
+
+  it('lässt kein Zeichen der privaten Zone durch', () => {
+    const all = escapable.map(ch => `\\${ch}`).join('')
+    const [node] = parseInline(all) as Array<{ type: 'text', text: string }>
+    expect(node!.text).toBe(escapable.join(''))
+    expect(/[\uE000-\uE01F]/.test(node!.text)).toBe(false)
+  })
+})
