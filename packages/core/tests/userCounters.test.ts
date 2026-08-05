@@ -105,6 +105,24 @@ describe('collectUserCounters', () => {
     expect(counters[counterLikedItems(1)]).toBe(5)
   })
 
+  it('reicht das Zeitfenster durch — und lässt es weg, wenn keines gefragt ist', async () => {
+    // F1 „Jahrestag": `since` ist optional, und genau darin liegt seine
+    // Sparsamkeit. Eine Quelle, die es SIEHT, stellt eine zusätzliche Abfrage;
+    // eine Quelle, die es nicht sieht, bleibt so teuer wie vorher. Käme es als
+    // leerer String statt als `undefined` an, würde jede Quelle die Abfrage
+    // stellen und dabei nichts messen.
+    const seen: Array<string | undefined> = []
+    registerUserCounterProvider('a', (_event, q) => {
+      seen.push(q.since)
+      return {}
+    })
+
+    await collectUserCounters(event, query)
+    await collectUserCounters(event, { ...query, since: '2025-08-04T00:00:00.000Z' })
+
+    expect(seen).toEqual([undefined, '2025-08-04T00:00:00.000Z'])
+  })
+
   it('eine kaputte Quelle kostet ihren Beitrag — nicht die Zählung', async () => {
     // Der Unterschied zum Schreib-Wächter, der bei Störung wirft: hier ist
     // eine ausgefallene Quelle nur ein UNTERzählen, und weil ein Abzeichen nie
