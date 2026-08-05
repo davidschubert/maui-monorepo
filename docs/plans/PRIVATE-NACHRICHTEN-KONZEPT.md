@@ -643,7 +643,15 @@ Weiterverbreitung) · Mail-EINGANG · Lesebestätigung.
 
 ---
 
-## 8 — Die Entscheidungen, die David treffen muss
+## 8 — Die Entscheidungen, die David treffen muss — ALLE GEFALLEN (2026-08-04)
+
+**David hat alle sieben Empfehlungen angenommen** (strukturierte Fragen,
+gleicher Tag; auch im DECISION-LOG): 1. je Community · 2. nur die gemeldete
+Nachricht (Snapshot) · 3. Sperre je Community + Häkchen „überall" ·
+4. Owner-Schalter Default AUS · 5. unbegrenzt + selbst entfernbar ·
+6. Datenmodell n:m-fähig, Bau v1 nur 1:1 · 7. ab Personal, wie posts.
+Das Konzept ist damit **entscheidungskomplett**; offen ist nur das Bau-Go.
+Die Begründungen und Preise stehen unverändert darunter.
 
 Sieben. Empfehlung jeweils zuerst, dann der ehrliche Preis.
 

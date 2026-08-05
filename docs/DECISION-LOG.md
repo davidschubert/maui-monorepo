@@ -7,6 +7,20 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-08-04 — Private Nachrichten: alle sieben Konzept-Entscheidungen
+
+**Davids Entscheidungen** (strukturierte Fragen; Volltext:
+PRIVATE-NACHRICHTEN-KONZEPT.md § 8): 1. Nachrichten leben **je Community**
+(Datentür/Moderation/TL-Gate/Host — kontoweit hätte vier Grundpfeiler neu
+erfunden) · 2. Moderation sieht **nur die gemeldete Nachricht** als
+Snapshot · 3. Sperre **je Community + Häkchen „überall"** · 4. Owner-Schalter
+**Default AUS** (Owner öffnet den Kanal bewusst) · 5. Aufbewahrung
+**unbegrenzt + selbst entfernbar** (Frist wäre Datenverlust, kein
+Datenschutz) · 6. **Datenmodell n:m-fähig, gebaut wird v1 nur 1:1**
+(Gruppen = TL2-Recht, kommen ohne Migration) · 7. Tarif **ab Personal, wie
+posts** (PN hängen an den Vertrauensstufen aus member_counters). Konzept
+damit entscheidungskomplett; Bau wartet auf Go.
+
 ## 2026-08-04 — Trust Levels: Schwellen „Mittel" + v1-Rechte
 
 **Davids Entscheidungen** (strukturierte Fragen, Teilpaket 3): **Schwellen
