@@ -138,7 +138,7 @@ try {
   // ──────────────────────────────────────────────────────────────────────
   async function patchHandle(ctx, handle) {
     const res = await ctx.request.patch('/api/handles/me', { data: { handle } })
-    let body = null
+    let body
     try { body = await res.json() } catch { body = null }
     return { status: res.status(), reason: body?.reason ?? null, handle: body?.handle ?? null }
   }
