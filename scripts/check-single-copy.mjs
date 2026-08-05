@@ -58,10 +58,26 @@ const ACCEPTED = {
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const lock = readFileSync(join(root, 'pnpm-lock.yaml'), 'utf8')
 
-/** Versionen aus den Paket-Schlüsseln des `packages:`-Blocks (`  name@version:`). */
+/**
+ * Versionen aus den Paket-Schlüsseln des `packages:`-Blocks (`  name@version:`).
+ *
+ * DAS ANFÜHRUNGSZEICHEN IST PFLICHT, NICHT KOSMETIK (2026-08-05 gefunden):
+ * YAML darf einen Schlüssel nicht mit `@` beginnen lassen, also schreibt pnpm
+ * jedes GESCOPTE Paket gequotet — `  '@unhead/vue@3.2.3':` statt
+ * `  vue@3.5.40:`. Ohne das optionale `'` traf diese Regel kein einziges
+ * scoped Paket: `@unhead/vue` stand seit seiner Aufnahme in SINGLE_COPY, fand
+ * IMMER die leere Liste und war damit ein Wächter, der nicht wachen kann —
+ * `versions.length <= 1` überspringt ihn, der Lauf meldet grün, und die
+ * daneben gepflegte ACCEPTED-Ausnahme war ebenfalls tot. Genau die Sorte
+ * Fehler, die dieses Skript verhindern soll.
+ *
+ * Das abschließende `:` gehört mit in die Regel: ohne es würde die Version
+ * auch aus einer VERWEIS-Zeile gelesen (`      '@tiptap/core': 3.27.1(…)`),
+ * und der Wächter meldete Doppelungen, die es nicht gibt.
+ */
 function versionsOf(name) {
   const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  const re = new RegExp(`^ {2}${escaped}@([^(:\\s]+)`, 'gm')
+  const re = new RegExp(`^ {2}'?${escaped}@([^(:\\s]+?)'?:`, 'gm')
   return [...new Set([...lock.matchAll(re)].map(m => m[1]))].sort()
 }
 
