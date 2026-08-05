@@ -656,25 +656,40 @@ Vollständiges Konzept: docs/CONCEPT.md
   (inkl. Blockquote fürs Zitieren), `UEditorToolbar`, `UEditorEmojiMenu`,
   `UEditorMentionMenu`, `UEditorSuggestionMenu`, `UEditorDragHandle`. Nichts
   davon selbst bauen; neue Editor-Fähigkeiten docken dort an. STAND
-  2026-08-04 (nachgemessen): `UEditor` läuft im Seiten-Dashboard (pages), im
-  Changelog-Admin und in `TicketModal` — der **PostComposer nutzt weiterhin
-  `UTextarea`**. Die frühere Zeile behauptete hier „der Composer nutzt UEditor
-  bereits"; das war nie wahr. Die Umstellung ist ein EIGENER Schnitt und
-  darf nicht nebenbei in ein anderes Paket rutschen. SIE IST AM 2026-08-04
-  ANGEHALTEN WORDEN, und der Grund gilt für JEDE Fläche, die
-  benutzergenerierten Text über `core/shared/markdown.ts` rendert:
-  `@tiptap/markdown` maskiert beim Serialisieren ``\ ` * _ [ ] ~`` mit
-  Backslash und macht aus `<>&` HTML-Entities — HARTKODIERT in
-  `MarkdownManager.encodeTextForMarkdown`, keine Option, kein Extension-Hook
-  (der Text-Zweig greift vor jedem Handler). Unser Parser kennt weder
-  Backslash-Escapes noch Entities und reicht beides sichtbar durch: getippt
-  `snake_case` ⇒ gespeichert `snake\_case` ⇒ so steht es im Beitrag. Live
-  gemessen, 9 von 15 Alltagssätzen betroffen. Das ist NICHT der F2-Fall aus
-  `packages/core/shared/editorBody.ts` — `bodyToSave` schützt ungetippten
-  Text, hier verfälscht es das Getippte. Erwähnungen serialisieren zu
-  `[@ id="…" label="…"]` und stünden roh im Beitrag (also nicht bauen).
-  Der Blocker sitzt im RENDERER, nicht im Editor; Messung, Optionen und die
-  Nebenbefunde: docs/plans/COMPOSER-UEDITOR.md. Auth-Formulare:
+  2026-08-04: `UEditor` läuft im Seiten-Dashboard (pages), im Changelog-Admin,
+  in `TicketModal` UND — seit der Umstellung an diesem Tag — in
+  `PostBodyField.vue`, der EINEN Schreibfläche für Feed-Composer und
+  Beitrags-Bearbeitung. Wer die Schreibfläche ändert, ändert beide Stellen.
+  DREI DINGE, die man nicht „aufräumen" darf:
+  (1) **Der Werkzeug-Vorrat ist an `core/shared/markdown.ts` GEKOPPELT.** Der
+  Parser kann fett/kursiv/`code`/Link/h2+h3/Listen/Zitat/Codeblock — mehr
+  nicht. Alles darüber hinaus stünde als ROHER TEXT im Beitrag, deshalb sind
+  strike/underline/Bilder/Erwähnungen aus dem Schema entfernt (nicht bloß
+  Knöpfe versteckt: Tastenkürzel und Einfügen gehen an einer versteckten
+  Schaltfläche vorbei). `HorizontalRule` hängt `UEditor` UNBEDINGT an
+  (`starterKit:false` wäre Nur-Text) — zu sind daher die zwei erreichbaren
+  Wege: `enableInputRules`/`enablePasteRules` als ERLAUBNISLISTE (fail-closed,
+  eine neue Extension ist damit automatisch aus) plus `transformPastedHTML`.
+  (2) **`gfm: false` beim LESEN.** Mit Nuxt UIs Vorgabe `gfm:true` parst
+  `marked` `~~alt~~` als Durchstreichung — die Marke gibt es hier nicht, und
+  ein Bestands-Beitrag verlöre die vier Zeichen beim blossen AUFSCHLAGEN.
+  (3) **Nachgeladen** (`LazyPostBodyEditor`): bis zum ersten `focusin` steht
+  dieselbe `UTextarea` am selben `v-model` — keine Attrappe, sie trägt auch,
+  wenn das Nachladen scheitert. `UTextarea` gibt kein Fokus-Ereignis nach
+  aussen, `@focus` daran läuft ins Leere; der Haken sitzt am Wrapper. Erspart
+  169 KiB gzip (≈20 % des Seiten-JS), solange niemand schreibt.
+  Der HISTORISCHE Blocker (`@tiptap/markdown` maskiert beim Serialisieren
+  hartkodiert ``\ ` * _ [ ] ~`` und macht aus `<>&` Entities) besteht
+  weiterhin — er ist nur nicht mehr sichtbar, seit der Parser CommonMark-treu
+  ist (F48: Escapes werden aufgelöst, Entities dekodiert, in Code-Spans
+  bewusst nicht). Wer den Parser dort „vereinfacht", holt sich `snake\_case`
+  in jeden Beitrag zurück. `bodyToSave` (`core/shared/editorBody.ts`) gilt
+  weiter: Öffnen und Speichern ohne Tastendruck darf nichts ändern — sonst
+  meldet `posts.editedAt` eine Bearbeitung, die der Leser nicht sieht.
+  ERWÄHNUNGEN bleiben AUS: `UEditorMentionMenu` serialisiert zu
+  `[@ id="…" label="…"]` und stünde roh im Beitrag; sie brauchen zuerst
+  Handles (je Community eindeutig, Davids Entscheidung 2026-08-04).
+  Messung, Optionen, Nebenbefunde: docs/plans/COMPOSER-UEDITOR.md. Auth-Formulare:
   UAuthForm ist die VORLAGE (Optik/Struktur) — Login/Register/OTP sind bewusst
   eigene UForm-Implementierungen (2-Schritt-OTP, Security-Phrase, geteilter
   E-Mail-State, AGB-Gate); Details in docs/referenz/AUTH-FORMS.md
