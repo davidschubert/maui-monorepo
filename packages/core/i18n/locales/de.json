@@ -245,6 +245,7 @@
     "empty": "Alles gelesen.",
     "replied": "{name} hat auf deinen Kommentar geantwortet",
     "mentioned": "{name} hat dich in einem Kommentar erwähnt",
+    "mentionedInPost": "{name} hat dich in einem Beitrag erwähnt",
     "reminder": "Erinnerung: {name} beginnt bald",
     "ticket": "Ticket-Update: {name}",
     "billing": "Zahlungsproblem: {name}",

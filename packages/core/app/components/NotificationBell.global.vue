@@ -126,6 +126,11 @@ function messageKey(type: string): string {
   // sein NAME, und der steht in der Zeile als i18n-Schlüssel (siehe
   // `displayText`). Der Link führt in die Abzeichen-Galerie.
   if (type === 'badge.awarded') return 'notifications.badgeAwarded'
+  // 'post.mention' = jemand hat dich in einem BEITRAG erwähnt ({name} = der
+  // Absender). Ein eigener Typ neben 'mention', weil dessen Text „in einem
+  // Kommentar" sagt — derselbe Schlüssel wäre für einen Beitrag schlicht
+  // falsch, und der Rückfall auf 'replied' wäre noch falscher.
+  if (type === 'post.mention') return 'notifications.mentionedInPost'
   return 'notifications.replied'
 }
 

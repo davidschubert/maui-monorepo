@@ -245,6 +245,7 @@
     "empty": "You're all caught up.",
     "replied": "{name} replied to your comment",
     "mentioned": "{name} mentioned you in a comment",
+    "mentionedInPost": "{name} mentioned you in a post",
     "reminder": "Reminder: {name} starts soon",
     "ticket": "Ticket update: {name}",
     "billing": "Payment issue: {name}",

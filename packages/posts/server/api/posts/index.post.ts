@@ -123,6 +123,26 @@ export default defineEventHandler(async (event) => {
     // Pool (dieselbe Falle wie beim 1000-Kommentare-Meilenstein).
     const total = await db.count(POSTS_TABLE).catch(() => 0)
     await maybeRecordMilestone(event, { type: 'milestone.posts', count: total, link: '/feed' })
+
+    /**
+     * ERWÄHNUNGEN (@handle) — auflösen und benachrichtigen.
+     *
+     * Steht bewusst in DIESEM Zweig: ein geplanter Beitrag ist noch nicht in
+     * der Welt, und eine Benachrichtigung auf etwas, das niemand aufrufen
+     * kann, wäre eine Sackgasse. Nachgeholt wird sie beim Fälligwerden nicht —
+     * das ist eine bewusste Lücke und im Bericht benannt.
+     *
+     * Zwei getrennte Nebenwirkungen, beide best-effort:
+     *  - Der AUTOR bekommt (falls noch nicht geschehen) selbst einen Handle.
+     *    Wer schreibt, soll erwähnbar sein — und genau hier ist bewiesen, dass
+     *    dieser Mensch zu dieser Community gehört.
+     *  - Die Genannten werden benachrichtigt.
+     * `link` ist '/feed' wie beim Activity-Eintrag zwei Zeilen darüber; ein
+     * Discussions-Pfad bräuchte den Kategorie-Slug, den diese Route nicht hat.
+     */
+    await ensureCommunityHandle(event, user.$id, user.name)
+    await notifyPostMentions(event, row, user, '/feed')
+      .catch(() => undefined)
   }
 
   setResponseStatus(event, 201)

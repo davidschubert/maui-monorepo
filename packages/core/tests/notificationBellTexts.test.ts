@@ -91,7 +91,7 @@ describe('Glocken-Texte deckt jeden Absender (C17)', () => {
     expect(types).toContain('badge.awarded')
   })
 
-  it.each(['reply', 'mention', 'reminder', 'ticket', 'billing', 'siteInvite', 'invite.request', 'badge.awarded'])(
+  it.each(['reply', 'mention', 'post.mention', 'reminder', 'ticket', 'billing', 'siteInvite', 'invite.request', 'badge.awarded'])(
     "'%s' hat einen eigenen Lesetext in de UND en",
     (type) => {
       // 'reply' ist der Default-Zweig der Glocke ('notifications.replied') —
