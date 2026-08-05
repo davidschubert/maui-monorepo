@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { EditorToolbarItem, TableColumn, TabsItem } from '@nuxt/ui'
 import { MAX_PAGE_BODY } from '../../../schemas/page'
-import { bodyToSave as decideBodyToSave } from '../../../shared/editorBody'
+import { bodyToSave as decideBodyToSave } from '../../../../core/shared/editorBody'
 import type { PageEditorRow, PageGroup } from '../../../shared/types/page'
 
 /**
@@ -94,7 +94,7 @@ const forms = reactive<Record<Locale, LocaleForm>>({ en: emptyLocale(), de: empt
  * „Öffnen darf nichts ändern": `pristineBody` ist der Text aus der API,
  * `normalizedBody` die erste Fassung, die der Editor von sich aus schreibt
  * (Tiptap maskiert beim Serialisieren eckige Klammern). Warum das nötig ist
- * und welche Alternativen verworfen wurden: shared/editorBody.ts.
+ * und welche Alternativen verworfen wurden: core/shared/editorBody.ts.
  */
 const pristineBody = reactive<Record<Locale, string>>({ en: '', de: '' })
 const normalizedBody = reactive<Record<Locale, string | null>>({ en: null, de: null })
@@ -178,7 +178,7 @@ async function selectPage(slug: string) {
         const locale = row.locale as Locale
         forms[locale] = { title: row.title, body: row.body, published: row.status === 'published' }
         // Auch bei einer Vorlage ist der gelieferte Text die „Urfassung"
-        // (shared/editorBody.ts): wer sie nur aufschlägt und speichert, soll
+        // (core/shared/editorBody.ts): wer sie nur aufschlägt und speichert, soll
         // sie WORTGLEICH bekommen — nicht Tiptaps Rückserialisierung.
         pristineBody[locale] = row.body
         normalizedBody[locale] = null
