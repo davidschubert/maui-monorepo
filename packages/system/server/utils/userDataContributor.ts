@@ -20,19 +20,37 @@ import type { H3Event } from 'h3'
  * actorId, idx_actor) — Feed-Einträge sind reine Verhaltens-Daten, es gibt
  * keinen Empfänger. Query degradiert auf leere Menge, solange die Table
  * auf einer Instanz noch nicht existiert (Migration ausstehend).
+ *
+ * community_handles (Migration 029): Export + Hard-Delete, über ALLE
+ * Communities (der Mensch kann in mehreren einen Namen haben) und über beide
+ * Status — auch die 'former'-Zeilen, denn ein früherer Name ist genauso ein
+ * personenbezogenes Datum wie der aktuelle.
+ *
+ * DAS GIBT DEN NAMEN WIEDER FREI, und das ist eine bewusste Abwägung gegen
+ * Davids Entscheidung 4 („der alte Handle bleibt gesperrt"). Diese Sperre
+ * schützt vor Verwechslung nach einer UMBENENNUNG; hier wird das Konto
+ * gelöscht. Die Alternative wäre ein Grabstein, der `davidschubert` für immer
+ * aufbewahrt — also genau die personenbezogene Zeichenkette, die zu löschen
+ * war, und `deleteUserCompletely` löscht das Konto nur bei VOLL-Erfolg.
+ * Der Rest-Fall ist klein und harmlos: eine alte Erwähnung löst danach auf
+ * NIEMANDEN mehr auf und wird deshalb gar nicht erst hervorgehoben
+ * (splitMentions ist fail-closed) — sie bleibt gewöhnlicher Text.
  */
 
 type NotificationRow = Models.Row & { recipientId: string, type: string, title: string, body: string, link: string, read: boolean }
 type AuditRow = Models.Row & { actorId: string, actorName: string, action: string, targetId: string, targetName: string, metadata: string, ip: string }
 type ActivityRow = Models.Row & { actorId: string, actorName: string, type: string, objectType: string, objectId: string, link: string, metadata: string, visibility: string }
+type HandleRow = Models.Row & { communityId: string, userId: string, handle: string, handleLower: string, status: string, changedAt: string }
 
 const NOTIFICATIONS = 'notifications'
 const AUDIT_LOGS = 'audit_logs'
 const ACTIVITIES = 'activities'
+const HANDLES = 'community_handles'
 
 interface SystemUserDataExport {
   notifications: Array<{ type: string, title: string, body: string, link: string, read: boolean, createdAt: string }>
   activities: Array<{ type: string, objectType: string, objectId: string, link: string, createdAt: string }>
+  handles: Array<{ communityId: string, handle: string, status: string, changedAt: string, createdAt: string }>
 }
 
 export async function systemExportUserData(event: H3Event, userId: string): Promise<SystemUserDataExport> {
@@ -52,6 +70,13 @@ export async function systemExportUserData(event: H3Event, userId: string): Prom
     ACTIVITIES,
     [Query.equal('actorId', userId)],
   ).catch(() => [] as ActivityRow[])
+  // Degradiert auf leer, solange Migration 029 auf der Instanz aussteht
+  const handles = await listAllRows<HandleRow>(
+    tablesDB,
+    config.public.appwriteDatabaseId,
+    HANDLES,
+    [Query.equal('userId', userId)],
+  ).catch(() => [] as HandleRow[])
   return {
     notifications: received.map(r => ({
       type: r.type,
@@ -66,6 +91,14 @@ export async function systemExportUserData(event: H3Event, userId: string): Prom
       objectType: r.objectType,
       objectId: r.objectId,
       link: r.link,
+      createdAt: r.$createdAt,
+    })),
+    // Beide Status — ein FRÜHERER Name gehört genauso in die Auskunft.
+    handles: handles.map(r => ({
+      communityId: r.communityId,
+      handle: r.handle,
+      status: r.status,
+      changedAt: r.changedAt,
       createdAt: r.$createdAt,
     })),
   }
@@ -137,6 +170,17 @@ export async function systemDeleteUserData(event: H3Event, userId: string): Prom
     .catch(() => [] as ActivityRow[])
   for (const row of activities) {
     await tablesDB.deleteRow({ databaseId, tableId: ACTIVITIES, rowId: row.$id })
+    deleted++
+  }
+
+  // Handles über ALLE Communities und BEIDE Status → Hard-Delete (Begründung
+  // und die bewusst hingenommene Folge stehen im Kopf dieser Datei). Nur der
+  // LIST-Query degradiert (Table fehlt vor Migration 029); die Deletes bleiben
+  // strikt, sonst meldete die Löschung Erfolg, während der Name überlebt.
+  const handles = await listAllRows<HandleRow>(tablesDB, databaseId, HANDLES, [Query.equal('userId', userId)])
+    .catch(() => [] as HandleRow[])
+  for (const row of handles) {
+    await tablesDB.deleteRow({ databaseId, tableId: HANDLES, rowId: row.$id })
     deleted++
   }
 
