@@ -29,6 +29,40 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F1 gemeinsames Paket, Teilpaket 2 — Mehrfach-Verleihung + Benachrichtigung ✅ 2026-08-04
+
+**Davids Go** („mach direkt mit teilpaket 2 weiter"). `user_badges` ist
+mehrfachfähig (posts-015: additives `qualifier`, NEUER Unique-Index über vier
+Spalten ZUERST, dann NULL→''-Backfill — MariaDB-NULL kollidiert in einem
+Unique-Index mit nichts —, ERST DANN der alte Index weg; kein Fenster ohne
+Netz). Zuordnung als Katalog-FELD `awardedPer`: Posting-Gruppe je INHALT
+(Merkmal = Row-Id), **Jahrestag je Mitgliedsjahr** (Fenster mit Anfang UND
+Ende — mit bloßem „seit" wäre jedes alte Jahr qualifiziert, sobald jemand
+heute schreibt), Erste-Male/Bestandsschwellen einmalig; ein Test nagelt die
+drei Listen namentlich fest. Verleihung an DREI Orten: Stimm-Routen melden
+den neuen Score über den neuen Core-Vertrag `reportContentUpvotes`
+(vorher-gegen-nachher — sonst liefe jede weitere Stimme auf einem beliebten
+Beitrag dauerhaft in nutzlose 409), Zähl-Buchung prüft zählerbasierte
+Schwellen, Beim-Hinsehen bleibt Nachzügler-Netz (verleiht Inhalts-Abzeichen
+nur mit leerem Merkmal und nur, wenn noch GAR keine Zeile existiert).
+Benachrichtigung: neuer Typ `badge.awarded` (scope 'tenant', C15) mit
+Pflicht-Zweig in der Glocke (C17, Netz-Test erweitert) und fester
+`rowId = sha256(community·user·badge·qualifier)` — Glocke und Mail bleiben
+einmalig, auch wenn zwei Wege denselben Verdienst gleichzeitig sehen. Die
+Zeile speichert i18n-SCHLÜSSEL; Glocke übersetzt beim Betrachter, Mail über
+die neue `notificationText`-Registry in `prefs.emailLocale` (posts liefert
+seine eigenen Locale-Texte — keine zweite Wortliste in core). Galerie zeigt
+„×N". Migration dev+prod VOR dem Deploy. Umsetzung Opus-Agent, Prüfung hier
+(Tore selbst grün: posts 239, core 637; Migrations-Reihenfolge und
+Crossing-Regel gelesen).
+
+**Gelernt:** Ein Unique-Index ersetzt einen anderen nur DANN ohne Lücke, wenn
+der Backfill dazwischen liegt — Appwrite gibt Bestandszeilen NULL, und NULL
+ist in MariaDB-Unique-Indizes mit nichts gleich; ohne Backfill hätte eine
+Altzeile eine frische ''-Verleihung nicht abgewehrt. Und Schwellen prüft man
+als ÜBERQUERUNG (vorher/nachher), nie als Zustand — sprungfeste Differenz
+statt `===`, sonst verliert ein 9→11 die 10.
+
 ### F1 gemeinsames Paket, Teilpaket 1 — mitschreibende Zähler + posts.editedAt ✅ 2026-08-04
 
 **Davids Go** („starte das gemeinsame paket") plus drei per Frage abgenommene

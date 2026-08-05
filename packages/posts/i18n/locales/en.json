@@ -275,7 +275,8 @@
         "description": "What there is to earn here — and what you already hold.",
         "earnedSummary": "{earned} of {total} earned",
         "guestHint": "Sign in to start collecting badges.",
-        "awarded": "Awarded {when}",
+        "awarded": "Last awarded {when}",
+        "times": "×{count}",
         "progress": "{current} of {target}",
         "group": {
           "gettingStarted": "Getting started",

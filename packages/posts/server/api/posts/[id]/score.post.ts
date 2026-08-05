@@ -117,6 +117,29 @@ export default defineEventHandler(async (event): Promise<PostVoteResponse> => {
       ])
     }
 
+    /**
+     * POSTING-ABZEICHEN (F1 Teilpaket 2): hier — und nur hier — ist bekannt,
+     * WELCHER Beitrag gerade wie viele Stimmen hat. Genau das braucht Davids
+     * Mehrfach-Regel: verliehen wird je INHALT, der über die Schwelle geht.
+     *
+     * Der Stand VORHER kommt aus `target` (vor dem Neuzählen gelesen), der
+     * nachher aus dem autoritativen Zählen — so entsteht ein Schreibversuch nur
+     * für das, was wirklich neu ist. Gemeldet wird auch OHNE Änderung an den
+     * eigenen Stimmen: eine fremde Stimme kann die Schwelle in derselben
+     * Sekunde gerissen haben, und die Meldung ist idempotent.
+     *
+     * ÜBER DEN CORE-VERTRAG statt direkt: `comments` meldet über denselben Weg,
+     * und ein Layer, der zwei Wege in dieselbe Verleihung hat, bekommt früher
+     * oder später zwei Regeln.
+     */
+    await reportContentUpvotes(event, {
+      authorId: target.authorId,
+      contentId: postId,
+      kind: 'topic',
+      upvotes,
+      previousUpvotes: target.upvotes,
+    })
+
     return { post, myVote }
   })
 })

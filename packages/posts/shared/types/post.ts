@@ -389,6 +389,17 @@ export interface DiscussionSidebarResponse {
 export interface UserBadge extends Models.Row {
   userId: string
   badgeKey: string
+  /**
+   * WOFÜR es verliehen wurde (F1 Teilpaket 2, Migration posts-015) — und damit
+   * das, was eine zweite Verleihung von einer Wiederholung unterscheidet:
+   * Row-Id des Inhalts (Posting-Gruppe) · Nummer des Mitgliedsjahres
+   * (Jahrestag) · `''` bei einmaligen Abzeichen UND bei jeder Bestandszeile aus
+   * der Zeit davor.
+   *
+   * Der Unique-Index (communityId, userId, badgeKey, qualifier) ist die ganze
+   * Mechanik: verliehen wird blind, ein 409 heißt „dafür hat er es schon".
+   */
+  qualifier: string
 }
 
 /**
@@ -431,8 +442,15 @@ export interface DiscussionBadge {
   key: string
   group: BadgeGroup
   earned: boolean
-  /** Wann verliehen (ISO) — `null`, solange unverdient. */
+  /**
+   * Wann ZULETZT verliehen (ISO) — `null`, solange unverdient.
+   *
+   * Zuletzt und nicht zuerst: bei einem mehrfach verliehenen Abzeichen ist der
+   * jüngste Verdienst die Neuigkeit, und die Galerie sagt „verliehen vor …".
+   */
   awardedAt: string | null
+  /** Wie oft verliehen (F1 Teilpaket 2) — 0, solange unverdient. */
+  count: number
 }
 
 export interface DiscussionBadgesResponse {

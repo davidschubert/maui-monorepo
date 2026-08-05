@@ -513,11 +513,14 @@ jemand liest, der ein Abzeichen nachreichen will. Kurzfassung:
   Entscheidungen vom 2026-08-04 da (TL speisen das bestehende RBAC); gebaut
   wird in Teilpaket 3 des gemeinsamen Pakets.
 
-Zwei Eigenschaften der Zählweise gehören dazu, weil sie später als Lücke
-gelesen werden könnten: jedes Abzeichen wird GENAU EINMAL verliehen (gezählt
-wird mit Aggregaten, „wie oft" verlangte die ganze Inhalts-Geschichte eines
-Menschen), und ausgewertet wird beim HINSEHEN, nicht in einem Lauf — deshalb
-gibt es zu Abzeichen auch keine Benachrichtigung.
+Zwei Eigenschaften der Zählweise standen hier bis zum 2026-08-04 („jedes
+Abzeichen genau einmal", „ausgewertet nur beim Hinsehen, deshalb keine
+Benachrichtigung"). Beide sind mit Teilpaket 2 des gemeinsamen Pakets
+ERLEDIGT: `user_badges.qualifier` (posts-015) unterscheidet zwei Verleihungen
+voneinander, verliehen wird zusätzlich am SCHREIBWEG (Stimm-Routen für die
+Posting-Gruppe, Zähl-Buchung für die zähler-basierten Abzeichen), der Jahrestag
+kommt je Mitgliedsjahr, und jede Verleihung meldet sich über `notify()`
+(`badge.awarded`). Das Hinsehen bleibt als Nachzügler-Netz.
 
 ## Teil 5 — Davids Entscheidungen nach Stufe 4 (2026-08-04)
 

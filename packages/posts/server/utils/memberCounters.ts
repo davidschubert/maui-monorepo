@@ -170,21 +170,40 @@ export async function applyMemberCounterEvents(event: H3Event, events: readonly 
         const attempt = await createRow(event, db, userId, values, false)
         // Angelegt ⇒ die Deltas stecken drin, fertig. Wettlauf verloren ⇒ die
         // fremde Zeile bekommt sie unten nachgezählt.
-        if (attempt.created || !attempt.row) return
+        if (attempt.created || !attempt.row) {
+          // Der Sprung von NICHTS auf die frischen Werte ist die erste
+          // Überschreitung dieses Menschen — „Erster Zuspruch" entsteht genau
+          // hier, bei der allerersten vergebenen Stimme.
+          if (attempt.created) await awardCounterBadges(event, userId, emptyMemberCounterValues(), values)
+          return
+        }
         row = attempt.row
       }
 
+      /**
+       * VORHER MERKEN, NACHHER VERGLEICHEN (F1 Teilpaket 2): die Verleihung an
+       * dieser Stelle darf nur das NEUE sehen. `db.increment` gibt die
+       * geschriebene Zeile zurück, der Stand davor steckt in `row` — damit ist
+       * die Differenz gratis und kostet keine zusätzliche Abfrage.
+       */
+      const before = memberCounterValues(row)
+      let latest: MemberCounters = row
       for (const entry of entries) {
         if (entry.delta > 0) {
-          await db.increment(MEMBER_COUNTERS_TABLE, row.$id, entry.kind, { value: entry.delta }, 'Counters not found')
+          latest = await db.increment<MemberCounters>(MEMBER_COUNTERS_TABLE, row.$id, entry.kind, { value: entry.delta }, 'Counters not found')
         }
         else {
           // `min: 0` — Appwrite weist den Schritt ab, statt unter null zu
           // gehen. Der Fehlschlag ist hier die gewünschte Wirkung.
-          await db.decrement(MEMBER_COUNTERS_TABLE, row.$id, entry.kind, { value: -entry.delta, min: 0 }, 'Counters not found')
-            .catch(() => null)
+          latest = await db.decrement<MemberCounters>(MEMBER_COUNTERS_TABLE, row.$id, entry.kind, { value: -entry.delta, min: 0 }, 'Counters not found')
+            .catch(() => latest)
         }
       }
+
+      // FAIL-SOFT und ausdrücklich NACH der Buchung: ein Abzeichen darf keine
+      // gezählte Stimme kosten. Was hier untergeht, holt das Netz beim
+      // Hinsehen nach.
+      await awardCounterBadges(event, userId, before, memberCounterValues(latest))
     }
     catch (error) {
       logEvent('warn', 'posts.member_counters_failed', {
