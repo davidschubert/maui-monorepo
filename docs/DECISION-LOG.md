@@ -776,3 +776,21 @@ verworfener Alternative, mit Verweis auf Commit/Doc.
     ohne Äquivalent: Vergleichstabelle (Semantik), PukaMark, Glow, Produkt-Mock,
     `tone-*`-Hintergründe. SEO-Netz dabei: FAQ-Antworten und alle Produkt-Links
     bleiben per `unmount-on-hide=false` im SSR-HTML.
+
+## 2026-08-04 — Silo-Strategie: comments bleibt, neue Produkte ohne eigene Site
+
+**Entscheidung (David):** `comments.pukalani.app` bleibt als das EINE lebende
+Silo bestehen — es verdient seine eigene Instanz durch drei Rollen, die kein
+anderer Host übernehmen kann: E2E-Anker (gesamte Playwright-Suite + CI-Wegwerf-
+Appwrite), Embed-Produkt für fremde Seiten, und der lebende Beweis, dass die
+Layer-Architektur die Silo-Form des Studio-/Enterprise-Angebots trägt. Dazu
+liefert es die Gegenform für Grenzbeweise (Silo `read("users")` vs. Pool-Labels
+— Presence- und Handle-Beweise brauchten BEIDE Formen).
+
+**Die Regel daraus:** Isolation im CODE und Isolation im DEPLOYMENT sind zwei
+Entscheidungen. Neue Produkte bekommen IMMER einen eigenen Layer (billig,
+erzwingt sauberen Schnitt) — aber standardmäßig KEINE eigene Site/Instanz
+(teuer: Migrationen je Instanz, Env-Drift wie F44, TLS, Schema-Parity).
+Entwickelt wird im Playground, gezeigt auf demo.pukalani.app; eine eigene Site
+gibt es nur mit kundenförmigem Grund. `photos` lebt das Muster bereits
+(App existiert, nie ausgerollt).
