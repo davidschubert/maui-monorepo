@@ -794,3 +794,15 @@ erzwingt sauberen Schnitt) — aber standardmäßig KEINE eigene Site/Instanz
 Entwickelt wird im Playground, gezeigt auf demo.pukalani.app; eine eigene Site
 gibt es nur mit kundenförmigem Grund. `photos` lebt das Muster bereits
 (App existiert, nie ausgerollt).
+
+## 2026-08-06 — Handle bleibt bei Zugangs-Entzug erhalten
+
+**Entscheidung (David):** Wird jemandem der Community-Zugang entzogen, bleibt
+seine `community_handles`-Zeile bestehen; bei Rückkehr ist der Name wieder da.
+Kein Ehemalig-Marker, keine Freigabe. Grund: alte Erwähnungen müssen weiter auf
+dieselbe Person auflösen (Historien-Regel), und eine Freigabe machte
+Identitätsübernahme in alten Beiträgen möglich. Preis, bewusst in Kauf
+genommen: ein einmal vergebener Name (`@vorstand`) ist in dieser Community
+endgültig belegt — seit H1 kann ihn aber nur noch ein Mitglied nehmen.
+Das ist das HEUTIGE Verhalten; es war offen, ob es Absicht ist — jetzt ist es
+entschieden, kein Code-Änderungsbedarf.
