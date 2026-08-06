@@ -50,7 +50,8 @@
  *   MESSAGES_PORT=3021 node --env-file=apps/comments/.env \
  *     packages/messages/scripts/verify-messages.mjs
  */
-import { request } from 'node:http'
+import { request as httpRequest } from 'node:http'
+import { request as httpsRequest } from 'node:https'
 import { Client, ID, Permission, Query, Role, TablesDB, Users } from 'node-appwrite'
 
 const endpoint = process.env.NUXT_PUBLIC_APPWRITE_ENDPOINT
@@ -68,8 +69,12 @@ const tablesDB = new TablesDB(client)
 const users = new Users(client)
 
 /** Teil B läuft nur mit laufendem Server (Port aus der Env). */
-const PORT = Number(process.env.MESSAGES_PORT || 0)
+const TLS = process.env.MESSAGES_TLS === '1'
+const PORT = Number(process.env.MESSAGES_PORT || (TLS ? 443 : 0))
 const HOST = process.env.MESSAGES_HOST || 'localhost'
+// MESSAGES_TLS=1 lässt den Routen-Beweis gegen einen ECHTEN Host laufen
+// (Prod-Smoke-Test) — gleiche Mechanik, nur https statt http.
+const request = TLS ? httpsRequest : httpRequest
 
 const CONVERSATIONS = 'conversations'
 const MEMBERS = 'conversation_members'
@@ -475,6 +480,16 @@ try {
     console.log('        Mit laufendem Server:  MESSAGES_PORT=3021 node --env-file=… <dieses Skript>')
   }
   else {
+    // SCHNAPPSCHUSS VOR DEM LAUF: welche Settings-Zeilen gab es schon?
+    // Der Cleanup unten darf NUR löschen, was DIESER Lauf angelegt hat —
+    // ein Query auf `enabled=true` hätte auf dem POOL den Schalter JEDER
+    // Community gelöscht (Prod-Fußangel, 2026-08-05 vor dem ersten
+    // Prod-Smoke-Test gefunden).
+    const settingsBefore = new Set(
+      (await tablesDB.listRows({ databaseId, tableId: SETTINGS, queries: [Query.limit(500)] })
+        .catch(() => ({ rows: [] }))).rows.map(r => r.$id),
+    )
+
     // ANNA trägt das Betreiber-Label und hält damit ALL_CAPABILITIES (im Silo
     // ist das der reguläre Weg — dort gibt es keine Community-Rollen).
     // BODO trägt nichts: kein Label, keine Rolle, Vertrauensstufe 0.
@@ -617,19 +632,35 @@ try {
     const bodoQueue = await call('/api/messages/moderation', { cookie: bodo.cookie })
     check('… und ein gewöhnliches Konto kommt gar nicht hinein (403)', bodoQueue.status === 403, String(bodoQueue.status))
 
-    // Aufräumen: alles, was der Kundenpfad angelegt hat.
+    // Aufräumen: alles, was der Kundenpfad angelegt hat — und NUR das.
+    const runUserIds = [anna.userId, bodo.userId, stranger.userId]
     for (const [tableId, queries] of [
       [MESSAGES, [Query.equal('conversationId', conversationId)]],
       [MEMBERS, [Query.equal('conversationId', conversationId)]],
       [CONVERSATIONS, [Query.equal('$id', conversationId)]],
       [BLOCKS, [Query.equal('blockerId', [anna.userId, bodo.userId])]],
       ['reports', [Query.equal('targetId', annaMessageId)]],
-      ['community_handles', [Query.equal('userId', [anna.userId, bodo.userId, stranger.userId])]],
-      [SETTINGS, [Query.equal('enabled', true)]],
+      ['community_handles', [Query.equal('userId', runUserIds)]],
+      // Nebenprodukte des Sendens: Zähler-Zeilen, Abzeichen, Glocken-Einträge
+      // der Testkonten — users.delete() läuft NICHT durch den GDPR-Weg und
+      // ließe sie sonst verwaist zurück.
+      ['member_counters', [Query.equal('userId', runUserIds)]],
+      ['user_badges', [Query.equal('userId', runUserIds)]],
+      ['notifications', [Query.equal('recipientId', runUserIds)]],
     ]) {
       const { rows } = await tablesDB.listRows({ databaseId, tableId, queries: [...queries, Query.limit(100)] })
         .catch(() => ({ rows: [] }))
       for (const row of rows) await tablesDB.deleteRow({ databaseId, tableId, rowId: row.$id }).catch(() => null)
+    }
+    // Settings zuletzt und über den SCHNAPPSCHUSS: nur Zeilen, die es vor
+    // diesem Lauf nicht gab (auf dem Pool wäre `enabled=true` der Schalter
+    // jeder Community gewesen).
+    const { rows: settingsAfter } = await tablesDB.listRows({ databaseId, tableId: SETTINGS, queries: [Query.limit(500)] })
+      .catch(() => ({ rows: [] }))
+    for (const row of settingsAfter) {
+      if (!settingsBefore.has(row.$id)) {
+        await tablesDB.deleteRow({ databaseId, tableId: SETTINGS, rowId: row.$id }).catch(() => null)
+      }
     }
   }
 }
