@@ -25,6 +25,35 @@ const querySchema = z.object({
  * `status: 'active'` filtert richtig: vorgeschlagen wird, wie jemand HEUTE
  * heisst. Frühere Namen lösen weiterhin auf (resolveHandleOwners), aber
  * niemand soll sie neu tippen.
+ *
+ * ── WARUM HIER BEWUSST KEIN MITGLIEDER-GATE STEHT (H1, 2026-08-05) ─────────
+ * Die Schwestern-Routen (`me.get`/`me.patch`) haben seit H1 eine
+ * Zugehörigkeits-Wache. Diese hier bekommt bewusst keine, und das ist eine
+ * Entscheidung, keine Auslassung:
+ *
+ *  - SIE VERGIBT NICHTS. Der Schaden von H1 war die dauerhafte BELEGUNG eines
+ *    Namens durch einen Fremden (die Historien-Zeile gibt ihn nie frei). Diese
+ *    Route schreibt nicht.
+ *  - SIE ZEIGT EINEM FREMDEN OHNEHIN NICHTS. Zwei unabhängige Schichten halten
+ *    das, beide einzeln gemessen (`packages/core/scripts/
+ *    verify-handle-search-boundary.mjs`, Abschnitte 5 und 6): der
+ *    Mandanten-Filter der Datentür und die Row-Permissions
+ *    `read(label:<communityId>)`, die genau das Lese-Publikum sind, das ein
+ *    Nicht-Mitglied nicht hat. Ein Gate obendrauf würde aus einer leeren Liste
+ *    ein 403 machen — mehr nicht.
+ *  - ES KOSTET AUF DEM HEISSEN PFAD. Das Erwähnungs-Menü fragt beim Tippen
+ *    (debounced); eine Rollen-Auflösung je Anfrage wäre Aufwand für eine
+ *    Antwort, die die Datenebene schon gegeben hat.
+ *
+ * Im SILO (apps/comments) gilt dasselbe aus dem anderen Grund: dort gibt es
+ * keine Mandanten-Grenze, die Zeilen tragen `read("users")`, und jedes Konto
+ * der Instanz ist zuhause. Ein Gate wäre dort keine Grenze, sondern eine
+ * Aussperrung — genauso wie `resolveCommunityMembership` dort bewusst „ja"
+ * sagt.
+ *
+ * WENN SICH DAS ÄNDERT: sobald diese Route etwas ANLEGT oder mit dem
+ * Admin-Client läse (`as: 'operator'`), fällt beides weg — dann gehört das Gate
+ * hierher.
  */
 export default defineEventHandler(async (event) => {
   const user = event.context.user

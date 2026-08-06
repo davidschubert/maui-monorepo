@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { actorForCommunityAccess, decideCommunityAccess } from '../shared/communityAccess'
+import { actorForCommunityAccess, decideCommunityAccess, isCommunityMember } from '../shared/communityAccess'
 
 const OWNER = { role: 'owner' as const, labels: [] as string[] }
 
@@ -118,5 +118,47 @@ describe('actorForCommunityAccess — der Gate sagt, wer handelt', () => {
     ].filter(decision => decision.allowed === true)
     expect(decisions.map(decision => actorForCommunityAccess(decision.via)))
       .toEqual(['member', 'operator', 'operator'])
+  })
+})
+
+/**
+ * H1 (2026-08-05) — „gehört dieser Mensch hierher?" ist eine ANDERE Frage als
+ * „darf er diese eine Sache". Der eigene @name hängt an der ersten.
+ */
+describe('Zugehörigkeit: wer bekommt hier einen Namen?', () => {
+  const BASE = { tenantScoped: true, role: null, hasCommunityLabel: false, recentlyDenied: false }
+
+  it('der Fremde auf einem Community-Host gehört NICHT dazu — das ist H1', () => {
+    // Genau der gemessene Fall: ein Pool-Konto ohne jede Zugehörigkeit auf
+    // einem fremden Host. Vor der Wache bekam es dort eine Handle-Zeile.
+    expect(isCommunityMember(BASE)).toBe(false)
+  })
+
+  it('eine Rolle in DIESER Community genügt — jede, auch die kleinste', () => {
+    for (const role of ['owner', 'admin', 'moderator', 'editor', 'viewer'] as const) {
+      expect(isCommunityMember({ ...BASE, role }), role).toBe(true)
+    }
+  })
+
+  it('das Community-Label genügt ebenfalls — der A5-Beitritt durch Schreiben', () => {
+    // Wer mit seinem ersten Beitrag beitritt, hat die Zeile erst seit
+    // Millisekunden; der 30-s-Cache des Rollen-Resolvers weiss noch nichts.
+    // `grantCommunityLabel` hat das Label im selben Request aber schon in
+    // event.context.user.labels geschrieben.
+    expect(isCommunityMember({ ...BASE, hasCommunityLabel: true })).toBe(true)
+  })
+
+  it('ein frischer Entzug schlägt BEIDES — sonst hätte er ein 30-Sekunden-Loch', () => {
+    expect(isCommunityMember({ ...BASE, role: 'owner', recentlyDenied: true })).toBe(false)
+    expect(isCommunityMember({ ...BASE, hasCommunityLabel: true, recentlyDenied: true })).toBe(false)
+  })
+
+  it('ohne Mandanten (Silo, Kontroll-Host, Playground) gehört JEDER dazu', () => {
+    // Dort ist das Projekt die Grenze. Ein Gate wäre keine Grenze, sondern
+    // eine Aussperrung: apps/comments hat weder Rollen noch Labels.
+    expect(isCommunityMember({ ...BASE, tenantScoped: false })).toBe(true)
+    // Und auch ein frischer Entzug ändert das nicht — es gibt dort nichts zu
+    // entziehen, die Notiz könnte nur aus einer anderen Community stammen.
+    expect(isCommunityMember({ ...BASE, tenantScoped: false, recentlyDenied: true })).toBe(true)
   })
 })

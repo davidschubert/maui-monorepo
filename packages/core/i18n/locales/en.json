@@ -190,7 +190,9 @@
       "saved": "Name saved.",
       "saveFailed": "Could not save name",
       "lockedUntil": "You can change your name every {days} days — next time on {date}.",
+      "notAMember": "You have no name here: handles belong to a single community, and you are not part of this one. You will get one as soon as you join.",
       "errors": {
+        "not_a_member": "You are not a member of this community.",
         "too_short": "Too short.",
         "too_long": "Too long.",
         "charset": "Only lowercase letters, digits and underscores are allowed — not at the start or end.",

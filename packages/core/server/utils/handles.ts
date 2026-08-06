@@ -41,6 +41,26 @@ import { HANDLES_TABLE, type CommunityHandleRow } from '../../shared/types/handl
  *     `joinCommunity('contribution')` auslösen, mitten im ersten.
  * Die Autorisierung („darf dieser Mensch das?") passiert deshalb VOR dem
  * Aufruf, in der Route — nicht an der Türklinke.
+ *
+ * ── UND WARUM DIE ZUGEHÖRIGKEIT TROTZDEM HIER STEHT (H1, 2026-08-05) ───────
+ * Der Satz eine Zeile höher war ein Versprechen an die Disziplin, und die
+ * Disziplin hat es nicht gehalten: `GET /api/handles/me` prüfte nur die
+ * SITZUNG. Gemessen am 2026-08-05 bekam ein Pool-Konto ohne jede Zugehörigkeit
+ * auf einem fremden Community-Host eine Zeile — es wurde kein Mitglied (kein
+ * Label), belegte den Namen dort aber DAUERHAFT (die Historien-Zeile gibt ihn
+ * nie frei) und stand im Erwähnungs-Menü der fremden Community. `@vorstand`
+ * war damit pool-weit automatisiert wegschnappbar.
+ *
+ * Die Wache sitzt deshalb in den beiden SCHREIB-Funktionen, nicht (nur) in den
+ * zwei heutigen Routen: dasselbe Muster wie beim A5-Beitritt, den die Datentür
+ * abfängt statt zwanzig Routen. `packages/posts/.../posts/index.post.ts` ruft
+ * `ensureCommunityHandle` ebenfalls — eine Route-only-Wache hätte diesen
+ * Aufrufer und jeden künftigen wieder der Erinnerung überlassen.
+ *
+ * Zwei Antworten auf dasselbe Nein, weil zwei verschiedene Dinge gefragt
+ * wurden: die VERGABE ist eine Nebenwirkung und schweigt (`null`, sie wirft
+ * ohnehin nie), der WECHSEL ist eine Absicht und bekommt einen Grund (403
+ * `not_a_member`).
  */
 
 /** Wie viele Kandidaten (`david`, `david2`, …) probiert die Vergabe? */
@@ -140,6 +160,14 @@ export async function ensureCommunityHandle(
   if (!userId) return null
 
   try {
+    // H1: Namen gehören Mitgliedern. Steht VOR dem Lesen, damit ein Fremder
+    // nicht einmal erfährt, ob er hier eine Zeile hat.
+    // `userId` kann ein ANDERER als der Request-Nutzer sein — dann ist die
+    // Frage nicht beantwortbar (die Zugehörigkeit hängt am Kontext-User), und
+    // fail-closed heisst hier: nichts vergeben.
+    if (userId !== event.context.user?.$id) return null
+    if (!(await resolveCommunityMembership(event))) return null
+
     const existing = await activeHandleRow(event, userId)
     if (existing) return existing.handle
 
@@ -244,6 +272,12 @@ export async function changeCommunityHandle(
   userId: string,
   nextHandle: string,
 ): Promise<CommunityHandleRow | null> {
+  // H1, zweite Wache: die Route prüft dasselbe, bevor sie hierher kommt. Das
+  // ist Absicht — diese Funktion legt eine Zeile an, die einen Namen in einer
+  // Community FÜR IMMER belegt, und sie soll das nicht davon abhängig machen,
+  // dass ihr Aufrufer daran gedacht hat.
+  await requireCommunityMembership(event)
+
   const db = handleDb(event)
   const lower = normalizeHandle(nextHandle)
   const previous = await activeHandleRow(event, userId)

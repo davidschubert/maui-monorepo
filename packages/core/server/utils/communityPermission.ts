@@ -1,7 +1,12 @@
 import type { H3Event } from 'h3'
 import type { Capability } from '../../shared/types/authz'
 import type { CurrentUser } from '../../shared/types/appwrite'
-import { actorForCommunityAccess, decideCommunityAccess, type CommunityAccessVia } from '../../shared/communityAccess'
+import {
+  actorForCommunityAccess,
+  decideCommunityAccess,
+  isCommunityMember,
+  type CommunityAccessVia,
+} from '../../shared/communityAccess'
 import { isCommunityRole, type CommunityRole } from '../../shared/communityAuthz'
 import { trustLevelGrantsCapability } from '../../shared/trustLevel'
 
@@ -97,6 +102,54 @@ export async function resolveCommunityRole(event: H3Event): Promise<CommunityRol
     runtimeUserId: user.$id,
   })
   return role && isCommunityRole(role) ? role : null
+}
+
+/**
+ * „Gehört dieser Request-Nutzer zu der Community DIESES Hosts?" (H1) — die
+ * Zugehörigkeits-Frage ohne Capability.
+ *
+ * Fail-closed und OHNE eigenes catch: ein transienter Resolver-Fehler wirft,
+ * genau wie in `requireCommunityPermission` daneben. Wer die Antwort nur als
+ * Annehmlichkeit braucht (`ensureCommunityHandle`), fängt das bei sich ab; wer
+ * eine Grenze zieht, soll bei Unklarheit NICHT durchlassen.
+ *
+ * Kostet im Normalfall nichts Zusätzliches: der Rollen-Resolver hat für diesen
+ * Request längst geantwortet (Label-Middleware) und cacht 30 s.
+ */
+export async function resolveCommunityMembership(event: H3Event): Promise<boolean> {
+  const user = event.context.user
+  if (!user?.$id) return false
+
+  const tenant = event.context.tenant
+  // Die Grenze gibt es NUR im Pool. Silo, Kontroll-Host, Playground und
+  // Single-Tenant-Betrieb laufen hier vorbei — dieselbe Ausnahme, die
+  // `joinCommunity` und `06.community-label.ts` machen.
+  const communityId = tenant?.mode === 'pool' ? (tenant.communityId ?? '') : ''
+  if (!communityId) return true
+
+  return isCommunityMember({
+    tenantScoped: true,
+    role: await resolveCommunityRole(event),
+    hasCommunityLabel: (user.labels ?? []).includes(communityId),
+    recentlyDenied: communityAccessRecentlyDenied(communityId, user.$id),
+  })
+}
+
+/**
+ * Dasselbe als WACHE. 401 ohne Login, 403 mit fachlichem Grund für Fremde.
+ *
+ * Der Grund reist als `data: { code: 'not_a_member' }` — der zentrale Handler
+ * hebt ihn als `reason` ins Envelope. Ein nackter 403 wäre hier besonders
+ * ärgerlich: „verboten" beantwortet nicht, ob man sich vertan hat oder ob man
+ * schlicht woanders zuhause ist.
+ */
+export async function requireCommunityMembership(event: H3Event): Promise<CurrentUser> {
+  const user = event.context.user
+  if (!user) throw createError({ status: 401, statusText: 'Unauthorized' })
+  if (!(await resolveCommunityMembership(event))) {
+    throw createError({ status: 403, statusText: 'Not a member', data: { code: 'not_a_member' } })
+  }
+  return user
 }
 
 /**

@@ -31,6 +31,15 @@ interface HandleState {
   changedAt: string | null
   canChange: boolean
   availableAt: number | null
+  /**
+   * Gehört dieser Mensch zu der Community DIESES Hosts? (H1, 2026-08-05.)
+   *
+   * OPTIONAL im Typ, und das ist Betrieb statt Bequemlichkeit: Kontoseite und
+   * API werden getrennt ausgeliefert, und eine ältere Antwort ohne das Feld
+   * darf nicht dazu führen, dass ein Mitglied plötzlich „du gehörst nicht
+   * dazu" liest. Fehlt es, gilt wie bisher „gehört dazu".
+   */
+  member?: boolean
 }
 
 // `server: false` mit Absicht: die Route VERGIBT beim ersten Aufruf einen
@@ -41,6 +50,9 @@ const { data, refresh } = await useFetch<HandleState>('/api/handles/me', {
   server: false,
   default: () => ({ handle: null, changedAt: null, canChange: true, availableAt: null }),
 })
+
+/** Nur `false` heisst „nicht dazugehörig" — `undefined` ist keine Aussage. */
+const isMember = computed(() => data.value?.member !== false)
 
 const draft = ref('')
 const saving = ref(false)
@@ -100,44 +112,53 @@ async function save() {
       <p class="text-sm text-muted">{{ t('account.handle.description') }}</p>
     </div>
 
-    <UFormField
-      :label="t('account.handle.label')"
-      :help="t('account.handle.hint', { min: HANDLE_MIN_LENGTH, max: HANDLE_MAX_LENGTH })"
-      :error="rejection ? reasonText(rejection) : undefined"
-    >
-      <UInput
-        v-model="draft"
-        :disabled="!canChange || saving"
-        :maxlength="HANDLE_MAX_LENGTH"
-        autocapitalize="off"
-        autocorrect="off"
-        spellcheck="false"
-        data-handle-input
-        @update:model-value="touched = true"
-      >
-        <!-- Das `@` lebt hier, nicht in den Übersetzungen (siehe Kopf). -->
-        <template #leading>
-          <span class="text-dimmed">@</span>
-        </template>
-      </UInput>
-    </UFormField>
-
-    <!-- Die Sperrfrist als Satz, mit Datum — „geht nicht" allein beantwortet
-         nicht, ab wann es wieder geht. -->
-    <p v-if="!canChange" class="text-xs text-warning" data-handle-locked>
-      {{ t('account.handle.lockedUntil', { date: availableDate, days: HANDLE_CHANGE_INTERVAL_DAYS }) }}
+    <!-- H1: kein Mitglied, kein Name. Ein Eingabefeld, das jede Eingabe mit
+         403 quittiert, wäre eine Attrappe — deshalb steht hier ein Satz
+         statt eines abgeblendeten Formulars. -->
+    <p v-if="!isMember" class="text-sm text-muted" data-handle-not-member>
+      {{ t('account.handle.notAMember') }}
     </p>
 
-    <div class="flex justify-end">
-      <UButton
-        size="sm"
-        :loading="saving"
-        :disabled="!canChange || !!rejection || unchanged"
-        data-handle-save
-        @click="save"
+    <template v-else>
+      <UFormField
+        :label="t('account.handle.label')"
+        :help="t('account.handle.hint', { min: HANDLE_MIN_LENGTH, max: HANDLE_MAX_LENGTH })"
+        :error="rejection ? reasonText(rejection) : undefined"
       >
-        {{ t('account.handle.save') }}
-      </UButton>
-    </div>
+        <UInput
+          v-model="draft"
+          :disabled="!canChange || saving"
+          :maxlength="HANDLE_MAX_LENGTH"
+          autocapitalize="off"
+          autocorrect="off"
+          spellcheck="false"
+          data-handle-input
+          @update:model-value="touched = true"
+        >
+          <!-- Das `@` lebt hier, nicht in den Übersetzungen (siehe Kopf). -->
+          <template #leading>
+            <span class="text-dimmed">@</span>
+          </template>
+        </UInput>
+      </UFormField>
+
+      <!-- Die Sperrfrist als Satz, mit Datum — „geht nicht" allein beantwortet
+           nicht, ab wann es wieder geht. -->
+      <p v-if="!canChange" class="text-xs text-warning" data-handle-locked>
+        {{ t('account.handle.lockedUntil', { date: availableDate, days: HANDLE_CHANGE_INTERVAL_DAYS }) }}
+      </p>
+
+      <div class="flex justify-end">
+        <UButton
+          size="sm"
+          :loading="saving"
+          :disabled="!canChange || !!rejection || unchanged"
+          data-handle-save
+          @click="save"
+        >
+          {{ t('account.handle.save') }}
+        </UButton>
+      </div>
+    </template>
   </div>
 </template>

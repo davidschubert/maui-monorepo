@@ -29,8 +29,14 @@ const bodySchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const user = event.context.user
-  if (!user) throw createError({ status: 401, statusText: 'Unauthorized' })
+  /**
+   * H1 (2026-08-05): ZUERST die Zugehörigkeit, vor jeder Regel und vor jedem
+   * Blick in die Tabelle. Ein Fremder soll auf einem Community-Host nicht
+   * einmal erfahren, ob ein Name dort noch frei ist — ohne diese Reihenfolge
+   * wäre die Route ein Verfügbarkeits-Orakel für eine fremde Community
+   * (`taken` vs. `reserved` unterscheiden sich sichtbar).
+   */
+  const user = await requireCommunityMembership(event)
 
   const body = await readValidatedBody(event, bodySchema.parse)
   const next = normalizeHandle(body.handle)

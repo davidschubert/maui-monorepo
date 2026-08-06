@@ -1,5 +1,10 @@
 /**
- * Beweis: `GET /api/handles/search` reicht NICHT über die Community-Grenze.
+ * Beweis: die Handle-Grenze einer Community hält — beim LESEN und beim NEHMEN.
+ *
+ * ZWEI FRAGEN IN EINER DATEI, weil sie denselben teuren Aufbau brauchen (zwei
+ * echte Communities auf einer Instanz, drei Konten, der echte Wizard):
+ *   Abschnitte 1–7  — `GET /api/handles/search` reicht nicht über die Grenze.
+ *   Abschnitte 8–10 — H1: einen NAMEN bekommt hier nur, wer dazugehört.
  *
  * ── WARUM ES DIESEN BEWEIS BRAUCHT ─────────────────────────────────────────
  * Handles sind je Community eindeutig (`community_handles`, Unique
@@ -40,6 +45,15 @@
  *       auf einem Host, zu dem er nicht gehört.
  * Wer den Beweis umbaut, macht diese zwei Proben wieder — sonst weiss niemand,
  * ob das Grün noch etwas bedeutet.
+ *
+ * Dasselbe für die H1-Abschnitte (2026-08-05): Wache entfernt (`return true`
+ * am Anfang von `resolveCommunityMembership`) ⇒ 31/37 statt 37/37, und die
+ * sechs Roten sind GENAU die Abschnitte 8+9; Abschnitt 10 („für Mitglieder
+ * ändert sich nichts") bleibt grün. Gemessen wurde dabei wörtlich der Befund:
+ *   - der Fremde bekam auf Host B `{"handle":"probenachbar","member":true}`,
+ *     die Tabelle wuchs von 1 auf 2 Zeilen,
+ *   - er nahm `@grenzprobe_vorstand`, und das rechtmässige Mitglied bekam
+ *     danach `409 {"reason":"taken"}` — für immer.
  *
  * ── AUFBAU ─────────────────────────────────────────────────────────────────
  * Zwei Wegwerf-Communities über den ECHTEN Wizard-Abschluss, zwei Owner, ein
@@ -87,10 +101,15 @@ const HANDLES_TABLE = 'community_handles'
 const PREFIX = 'grenzprobe'
 const HANDLE_A = `${PREFIX}_alpha`
 const HANDLE_B = `${PREFIX}_beta`
+/** Der Name, den sich der Fremde auf HOST B nehmen will (H1). */
+const HANDLE_SQUAT = `${PREFIX}_vorstand`
+/** Der Name, den derselbe Mensch auf SEINEM Host bekommen darf (Gegenprobe). */
+const HANDLE_HOME = `${PREFIX}_nachbar`
+const ALL_HANDLES = [HANDLE_A, HANDLE_B, HANDLE_SQUAT, HANDLE_HOME]
 
 let pass = 0
 let fail = 0
-const cleanup = { users: [], codes: [], tenants: [], members: [], handles: [] }
+const cleanup = { users: [], codes: [], tenants: [], tenantIds: [], members: [], handles: [] }
 
 function check(label, ok, detail = '') {
   if (ok) {
@@ -197,6 +216,9 @@ async function createCommunity(cookie, slug, name, code) {
     throw new Error(`Community "${slug}" nicht angelegt (${res.status}): ${res.text.slice(0, 200)}`)
   }
   cleanup.tenants.push(res.json.communityId)
+  // Der SPALTEN-Wert der Handle-Zeilen ist `tenantId`, nicht `communityId` —
+  // zwei verschiedene Schlüssel (die Zeile trägt den einen, das Label den anderen).
+  cleanup.tenantIds.push(res.json.tenantId)
   const members = await control.listRows({
     databaseId, tableId: 'community_members',
     queries: [Query.equal('communityId', res.json.communityId), Query.limit(25)],
@@ -340,18 +362,100 @@ try {
     const res = await search(host, undefined, PREFIX)
     check(`Gast auf Host ${label} → 401`, res.status === 401, `Status ${res.status}`)
   }
+
+  /**
+   * ── H1 (2026-08-05) ────────────────────────────────────────────────────────
+   * Die Abschnitte 1–7 zeigen, dass ein Fremder auf einem Community-Host nichts
+   * SIEHT. Sie sagen nichts darüber, ob er dort etwas NEHMEN kann — und genau
+   * das konnte er: `GET /api/handles/me` prüfte nur die Sitzung und vergab beim
+   * Hinsehen. Der Nachbar ist hier der Fremde: Mitglied von A, auf Host B ohne
+   * jede Zugehörigkeit.
+   */
+  console.log('\n8. H1: der Fremde sieht hin — und bekommt NICHTS angelegt')
+  // Gezählt wird über `communityId` (die führende Spalte beider Indizes aus
+  // system-029) — ein `Query.equal('userId', …)` allein hat hier keinen Index.
+  const rowsOfB = () => poolDb.listRows({
+    databaseId: poolDatabaseId, tableId: HANDLES_TABLE,
+    queries: [Query.equal('communityId', siteB.tenantId), Query.limit(50)],
+  })
+  const beforeRows = await rowsOfB()
+  const mineAway = await call(siteB.host, '/api/handles/me', { cookie: cookieN })
+  check('GET /api/handles/me auf dem fremden Host → 200 (kein roher Fehler)',
+    mineAway.status === 200, `Status ${mineAway.status} ${mineAway.text.slice(0, 160)}`)
+  check('… und sagt ehrlich: hier gehörst du nicht dazu',
+    mineAway.json?.member === false && mineAway.json?.handle === null, JSON.stringify(mineAway.json))
+
+  const afterRows = await rowsOfB()
+  cleanup.handles.push(...afterRows.rows.map(row => row.$id))
+  check('IN COMMUNITY B ist dadurch keine Zeile entstanden',
+    afterRows.total === beforeRows.total,
+    `vorher ${beforeRows.total}, nachher ${afterRows.total}: ${JSON.stringify(afterRows.rows.map(r => `${r.handle}/${r.userId}`))}`)
+  check('… und keine einzige gehört dem Fremden',
+    !afterRows.rows.some(row => row.userId === neighbour.userId),
+    JSON.stringify(afterRows.rows.map(r => `${r.handle}/${r.userId}`)))
+
+  console.log('\n9. H1: und er kann sich dort auch keinen Namen NEHMEN')
+  const squat = await call(siteB.host, '/api/handles/me', {
+    method: 'PATCH', cookie: cookieN, body: { handle: HANDLE_SQUAT },
+  })
+  check(`PATCH auf dem fremden Host → 403`, squat.status === 403, `Status ${squat.status} ${squat.text.slice(0, 160)}`)
+  check('… mit fachlichem Grund im Envelope (reason: not_a_member)',
+    squat.json?.reason === 'not_a_member', JSON.stringify(squat.json))
+
+  // Die schärfste Messung: der Name muss danach noch FREI sein. Eine
+  // Historien-Zeile gibt ihn nie wieder her — hätte der Fremde ihn bekommen,
+  // scheiterte das hier mit 409 `taken`, und zwar für immer.
+  // Es holt ihn OWNER A (seit Abschnitt 5 Mitglied von B und dort noch ohne
+  // Namen), nicht Owner B: der hat in Abschnitt 2 gerade erst geändert und
+  // liefe in die 30-Tage-Sperrfrist — dann bewiese ein Fehlschlag nichts.
+  const rightfulMember = await call(siteB.host, '/api/handles/me', {
+    method: 'PATCH', cookie: cookieA, body: { handle: HANDLE_SQUAT },
+  })
+  check(`@${HANDLE_SQUAT} ist in Community B noch frei — ein MITGLIED bekommt ihn`,
+    rightfulMember.status === 200 && rightfulMember.json?.handle === HANDLE_SQUAT,
+    `Status ${rightfulMember.status} ${rightfulMember.text.slice(0, 160)}`)
+
+  console.log('\n10. GEGENPROBE: für ein MITGLIED ändert sich nichts')
+  const mineHome = await call(siteA.host, '/api/handles/me', { cookie: cookieN })
+  check('auf SEINEM Host bekommt derselbe Mensch beim Hinsehen einen Namen',
+    mineHome.status === 200 && mineHome.json?.member === true && !!mineHome.json?.handle,
+    `Status ${mineHome.status} ${JSON.stringify(mineHome.json)}`)
+  const changeHome = await call(siteA.host, '/api/handles/me', {
+    method: 'PATCH', cookie: cookieN, body: { handle: HANDLE_HOME },
+  })
+  check(`… und darf ihn auf @${HANDLE_HOME} ändern`,
+    changeHome.status === 200 && changeHome.json?.handle === HANDLE_HOME,
+    `Status ${changeHome.status} ${changeHome.text.slice(0, 160)}`)
+  const ownerStillWorks = await call(siteA.host, '/api/handles/me', { cookie: cookieA })
+  check('… und Owner A behält seinen',
+    ownerStillWorks.status === 200 && ownerStillWorks.json?.handle === HANDLE_A,
+    `Status ${ownerStillWorks.status} ${JSON.stringify(ownerStillWorks.json)}`)
+
+  const guestMine = await call(siteA.host, '/api/handles/me', {})
+  check('ohne Sitzung bleibt es bei 401 (die Wache ersetzt sie nicht)',
+    guestMine.status === 401, `Status ${guestMine.status}`)
 }
 catch (error) {
   fail++
   console.error('\n✗ Abbruch:', error?.message || error)
 }
 finally {
-  console.log('\n8. Aufräumen')
+  console.log('\n11. Aufräumen')
   // Handle-Zeilen liegen im POOL-Projekt, alles andere im Control Plane.
+  // Gesucht wird über BEIDE Wege: die gesetzten Namen UND alles, was den
+  // Wegwerf-Konten gehört (die automatische Vergabe erfindet Namen selbst —
+  // `probenachbar`, `probeownera`, … — die keine Konstante hier kennt).
   const strays = await poolDb.listRows({
     databaseId: poolDatabaseId, tableId: HANDLES_TABLE,
-    queries: [Query.equal('handleLower', [HANDLE_A, HANDLE_B]), Query.limit(25)],
+    queries: [Query.equal('handleLower', ALL_HANDLES), Query.limit(50)],
   }).catch(() => ({ rows: [] }))
+  const mine = cleanup.tenantIds.length
+    ? await poolDb.listRows({
+        databaseId: poolDatabaseId, tableId: HANDLES_TABLE,
+        queries: [Query.equal('communityId', cleanup.tenantIds), Query.limit(100)],
+      }).catch(() => ({ rows: [] }))
+    : { rows: [] }
+  strays.rows.push(...mine.rows)
   for (const id of new Set([...cleanup.handles, ...strays.rows.map(row => row.$id)])) {
     await poolDb.deleteRow({ databaseId: poolDatabaseId, tableId: HANDLES_TABLE, rowId: id }).catch(() => {})
   }

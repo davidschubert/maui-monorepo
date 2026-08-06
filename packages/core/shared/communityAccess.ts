@@ -100,6 +100,62 @@ export function actorForCommunityAccess(via: CommunityAccessVia): 'member' | 'op
   return via === 'role' || via === 'trust' ? 'member' : 'operator'
 }
 
+/**
+ * PURE (unit-getestet): GEHÖRT dieser Mensch hierher? — H1, seit 2026-08-05.
+ *
+ * Eine ANDERE Frage als `decideCommunityAccess` daneben, und deshalb eine eigene
+ * Funktion: dort geht es um „darf er DIESE eine Sache", hier nur um „ist er
+ * überhaupt einer von uns". Es gibt Dinge, die keine Capability sind und
+ * trotzdem Mitgliedschaft voraussetzen — der eigene @name ist das erste davon
+ * (`community_handles`). Ihn über `decideCommunityAccess` zu erzwingen hätte
+ * eine Capability erfunden, die niemand vergibt, und den Operator-Break-Glass
+ * mitgebracht: der Betreiber hätte sich beim Support-Besuch still einen Namen
+ * in der Kunden-Community genommen.
+ *
+ * ── WAS ALS MITGLIEDSCHAFT ZÄHLT ───────────────────────────────────────────
+ * Genau das, was `server/middleware/06.community-label.ts` auch dafür hält —
+ * zwei Regelwerke für eine Frage laufen auseinander:
+ *
+ *  1. `tenantScoped === false` ⇒ JA. Silo, Kontroll-Host, Playground,
+ *     Single-Tenant: dort ist das PROJEKT die Grenze, jedes Konto ist zuhause.
+ *     Ein Gate wäre dort keine Grenze, sondern eine Aussperrung.
+ *  2. Frisch entzogen ⇒ NEIN, noch vor der Rolle. Der Rollen-Resolver cacht
+ *     30 s; ohne diese Frage hätte „Zugang entziehen" ein halbminütiges Loch,
+ *     in dem sich der Hinausgeworfene noch einen Namen sichern kann.
+ *  3. Eine Rolle in DIESER Community ⇒ JA (eine `community_members`-Zeile mit
+ *     Zugang, A5).
+ *  4. Das Community-LABEL ⇒ JA. Das ist kein zweiter Weg neben (3), sondern
+ *     derselbe, eine Sekunde früher: das Label wird seit A5 NUR mit
+ *     feststehender Mitgliedschaft vergeben (joinCommunity, Label-Middleware,
+ *     Wizard) und mit ihr wieder eingezogen. Es zu lesen schliesst zwei Fälle,
+ *     die sonst offen blieben:
+ *       - BESTAND aus der A4-Zeit (Label, noch keine Zeile) — für die
+ *         Middleware ist das ein Mitglied, das sie gerade nachträgt.
+ *       - Der A5-BEITRITT DURCH SCHREIBEN: wer mit seinem ersten Beitrag
+ *         beitritt, hat die Zeile erst seit Millisekunden, und der 30-s-Cache
+ *         des Rollen-Resolvers weiss noch nichts davon. `grantCommunityLabel`
+ *         schreibt das Label aber im SELBEN Request auch in
+ *         `event.context.user.labels` — dort steht es also schon.
+ *     Ein Label ist damit hier ein ZEUGNIS über Mitgliedschaft, keine Rolle;
+ *     autorisiert wird davon nichts (das bleibt requireCommunityPermission).
+ */
+export interface CommunityMembershipInput {
+  /** Läuft der Request in einer gepoolten Community? (Silo/Kontroll-Host: nein.) */
+  tenantScoped: boolean
+  /** Rolle in DIESER Community (null = keine Zeile mit Zugang). */
+  role: CommunityRole | null
+  /** Trägt das Konto das Lese-Publikum dieser Community? */
+  hasCommunityLabel: boolean
+  /** Wurde dem Konto der Zugang gerade selbst entzogen? (30-s-Cache-Loch.) */
+  recentlyDenied: boolean
+}
+
+export function isCommunityMember(input: CommunityMembershipInput): boolean {
+  if (!input.tenantScoped) return true
+  if (input.recentlyDenied) return false
+  return input.role !== null || input.hasCommunityLabel
+}
+
 export function decideCommunityAccess(input: CommunityAccessInput): CommunityAccessDecision {
   const operator = hasCapability(input.labels, input.capability)
   const trustLevel = normalizeTrustLevel(input.trustLevel)

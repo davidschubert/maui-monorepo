@@ -190,7 +190,9 @@
       "saved": "Name gespeichert.",
       "saveFailed": "Name konnte nicht gespeichert werden",
       "lockedUntil": "Du kannst deinen Namen alle {days} Tage ändern — das nächste Mal am {date}.",
+      "notAMember": "Hier hast du keinen Namen: Kurznamen gelten je Community, und zu dieser gehörst du nicht. Sobald du beitrittst, bekommst du einen.",
       "errors": {
+        "not_a_member": "Du gehörst dieser Community nicht an.",
         "too_short": "Zu kurz.",
         "too_long": "Zu lang.",
         "charset": "Erlaubt sind nur Kleinbuchstaben, Ziffern und Unterstriche — nicht am Anfang oder Ende.",
