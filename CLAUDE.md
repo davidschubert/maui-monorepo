@@ -16,6 +16,14 @@ Vollständiges Konzept: docs/CONCEPT.md
   Datenmodell und/oder eigene UI-Welt
 - apps/* → dünne Apps, komponieren via extends: [produkt-layer..., core]
   (früher gelistet = höhere Priorität; App überschreibt alles)
+- SILO-REGEL (Davids Entscheidung 2026-08-04): Isolation im CODE und im
+  DEPLOYMENT sind ZWEI Entscheidungen. Neues Produkt ⇒ IMMER eigener Layer,
+  aber standardmäßig KEINE eigene Site/Instanz (Kosten: Migrationen je
+  Instanz, Env-Drift, TLS, Schema-Parity) — Playground + demo.pukalani.app
+  reichen; eine Site nur mit kundenförmigem Grund. `comments` bleibt das EINE
+  lebende Silo (E2E-Anker, Embed, Beweis der Studio-Form und Gegenform für
+  Grenzbeweise); `photos` zeigt das Muster App-ohne-Deployment.
+  DECISION-LOG 2026-08-04.
 - Produkt-Manifeste (Plattform-Strategie F1): JEDER Layer hat
   product.manifest.ts (key/tier/requires/Katalog-Texte, nur `import type`!),
   JEDE App site.manifest.ts = Single Source der Produkt-Wahl.
