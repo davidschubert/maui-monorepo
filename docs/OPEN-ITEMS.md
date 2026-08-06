@@ -1,6 +1,5 @@
 # Offene Punkte
 
-**Stand: 3 offen · 5 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 **Stand: 2 offen · 3 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-04**. Hier steht **nur, was noch offen ist** — in der
@@ -21,7 +20,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | --- | --- | --- | --- | --- | --- |
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen (**Anleitung dabei mitschreiben — ab Schritt 2 veraltet, Workspace-Welt**) und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
-| 5 · H1 | **Ein Fremder kann sich in jeder Community einen `@namen` nehmen.** `GET /api/handles/me` verlangt nur eine Sitzung, keine Mitgliedschaft — gemessen 2026-08-05: das Konto bleibt ohne Label, die Zeile trägt trotzdem die fremde `communityId`. Folge: `@vorstand` ist dort für echte Mitglieder gesperrt (Historien-Zeile = dauerhaft), und der Fremde steht im Erwähnungs-Menü. **Kein Lese-Leck** — die Suchgrenze selbst hält (26/26 Beweis). | Mittel | S | Ja: was soll ein Nicht-Mitglied auf der Namens-Seite sehen? | [verify-handle-search-boundary.mjs](../packages/core/scripts/verify-handle-search-boundary.mjs) |
 
 ## ⏸️ Geparkt / wartet — in Arbeitsreihenfolge
 

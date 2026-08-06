@@ -29,6 +29,104 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### H1 — Ein Fremder konnte sich in jeder Community einen `@namen` nehmen ✅ 2026-08-05
+
+**Der Befund** (gemessen am selben Tag, beim Bau des Grenzbeweises):
+`GET /api/handles/me` fragte nur nach der SITZUNG, nie nach der Mitgliedschaft.
+Ein Pool-Konto ohne jede Zugehörigkeit bekam damit auf `kunde-a.localhost` eine
+Zeile mit `communityId: t-kunde-a` — es wurde kein Mitglied (die Labels blieben
+leer), belegte den Namen dort aber **dauerhaft**: die Historien-Zeile
+(`status: 'former'`) gibt einen Handle nie wieder frei. `@vorstand` war so
+pool-weit automatisiert wegschnappbar, und der Fremde stand obendrein im
+Erwähnungs-Menü der fremden Community. Bemerkenswert war, dass
+`packages/posts/server/api/posts/index.post.ts` die Mitgliedschaft als
+Voraussetzung im eigenen Kommentar dokumentierte — die Handle-Route hatte sie
+schlicht nicht.
+
+**Davids Entscheidung** (2026-08-04): Mitglieder-Gate an der Route, nicht die
+Variante „erst beim ersten Schreibvorgang vergeben".
+
+**Wie geprüft wird — der bestehende Mechanismus, kein zweiter.** Die Wahrheit
+über Mitgliedschaft liegt in `community_members` im Control Plane; die Runtime
+kennt sie über den Rollen-Resolver (30-s-Cache) und über das Community-Label.
+Genau diese beiden liest die neue pure Regel `isCommunityMember`
+(`core/shared/communityAccess.ts`), und sie liest sie in derselben Reihenfolge
+wie `server/middleware/06.community-label.ts`, damit nicht zwei Regelwerke für
+eine Frage auseinanderlaufen:
+
+- **kein Pool-Mandant ⇒ ja.** Silo (`apps/comments`), Kontroll-Host, Playground:
+  dort ist das PROJEKT die Grenze, jedes Konto ist zuhause. Ein Gate wäre keine
+  Grenze, sondern eine Aussperrung.
+- **frisch entzogen ⇒ nein**, noch vor der Rolle (`communityAccessRecentlyDenied`)
+  — sonst hätte „Zugang entziehen" ein 30-Sekunden-Loch, in dem sich der
+  Hinausgeworfene noch einen Namen sichert.
+- **Rolle ⇒ ja.**
+- **Community-Label ⇒ ja.** Kein zweiter Weg, sondern derselbe eine Sekunde
+  früher. Das schliesst den A5-Fall „Beitritt durch den ersten Schreibvorgang":
+  wer so beitritt, hat seine Zeile erst seit Millisekunden und der Rollen-Cache
+  weiss noch nichts — `grantCommunityLabel` schreibt das Label aber im SELBEN
+  Request auch nach `event.context.user.labels`. Der in der Aufgabe erwartete
+  Race fällt damit weg, statt als Lücke stehenzubleiben.
+
+Keine Capability, kein `requireCommunityPermission`: ein Handle ist keine
+Admin-Fähigkeit, und der Operator-Break-Glass hätte den Betreiber beim
+Support-Besuch still zum Namensinhaber in der Kunden-Community gemacht.
+
+**Wo die Wache sitzt.** Nicht (nur) in den zwei heutigen Routen, sondern in den
+beiden SCHREIB-Funktionen (`core/server/utils/handles.ts`) — dasselbe Muster
+wie beim A5-Beitritt, den die Datentür abfängt statt zwanzig Routen. Damit ist
+auch `posts/index.post.ts` mitgeschützt, das `ensureCommunityHandle` ebenfalls
+ruft. Zwei Antworten auf dasselbe Nein, weil zwei Dinge gefragt wurden: die
+VERGABE ist eine Nebenwirkung und schweigt (`null`), der WECHSEL ist eine
+Absicht und bekommt einen Grund (403, `data: { code: 'not_a_member' }` →
+`reason` im Envelope).
+
+`GET /api/handles/me` antwortet einem Nicht-Mitglied **200 mit `member: false`**,
+nicht 403: die Kontoseite ist auf jedem Host dieselbe, und „hier hast du keinen
+Namen" ist eine gültige Auskunft, kein Fehler. Das Formular weicht dort einem
+Satz (`account.handle.notAMember`, de+en) — ein Eingabefeld, das jede Eingabe
+mit 403 quittiert, wäre eine Attrappe.
+
+**Die Suchroute bleibt bewusst ohne Gate.** `GET /api/handles/search` vergibt
+nichts, und sie zeigt einem Fremden ohnehin nichts: zwei unabhängige Schichten
+(Mandanten-Filter der Datentür + `read(label:<communityId>)`) sind am selben Tag
+einzeln gemessen worden. Ein Gate machte aus einer leeren Liste ein 403 und
+kostete auf dem heissen Pfad (Tippen im Erwähnungs-Menü) je Anfrage eine
+Rollen-Auflösung. Im Silo gilt dasselbe aus dem anderen Grund: dort tragen die
+Zeilen `read("users")`, jedes Konto der Instanz ist zuhause. Die Bedingung steht
+im Dateikopf: sobald diese Route etwas anlegt oder mit dem Admin-Client läse,
+gehört das Gate hierher.
+
+**Bestandsdaten (Produktion, nur gelesen, 2026-08-05):** `community_handles` im
+Pool-Projekt hat **0 Zeilen**, also **0 fremdvergebene** — der Befund entstand am
+selben Tag wie das Produkt. Das Silo (`comments`) hat 1 Zeile, dort gibt es keine
+Mandanten-Grenze. Kein Aufräumen nötig.
+
+**Beweise.** `packages/core/scripts/verify-handle-search-boundary.mjs` um die
+Abschnitte 8–10 erweitert: **37/37** (vorher 26/26), gefahren gegen zwei eigene
+Dev-Server (control :3014, platform :3016, Naht per Env). Silo unverändert:
+`verify-mention-menu.mjs` 22/22, `verify-handles-mentions.mjs` 34/34. Dazu 6
+Unit-Tests für die pure Regel.
+
+**Die Gegenprobe ist der eigentliche Beweis.** Wache absichtlich entfernt
+(`return true` am Anfang von `resolveCommunityMembership`) ⇒ **31/37**, und die
+sechs Roten sind genau die neuen Abschnitte 8+9; Abschnitt 10 („für Mitglieder
+ändert sich nichts") bleibt grün. Gemessen wurde dabei wörtlich der Befund: der
+Fremde bekam auf Host B `{"handle":"probenachbar","member":true}`, die Tabelle
+von Community B wuchs von 1 auf 2 Zeilen, er nahm `@grenzprobe_vorstand` — und
+das rechtmässige Mitglied bekam danach `409 {"reason":"taken"}`, für immer.
+
+**Gelernt:** Eine Lese-Route, die BEIM HINSEHEN vergibt, ist keine Lese-Route —
+sie verteilt an jeden, der hinsieht, und ein Gate an der „Schreibstelle" greift
+dort nicht, weil niemand sie als Schreibstelle liest. Der Kommentar in
+`core/server/utils/handles.ts` sagte ausdrücklich „die Autorisierung passiert
+VOR dem Aufruf, in der Route" — ein Versprechen an die Disziplin, und die
+Disziplin hielt es nicht. Dieselbe Lektion wie bei `createIndex` und beim
+A5-Beitritt: **Sicherungen gehören in die Schnittstelle, nicht in die
+Erinnerung.** Zweitens: die schärfste Messung einer Belegung ist nicht „ist eine
+Zeile da", sondern „kann der Rechtmässige den Namen noch bekommen" — erst der
+409 in der Gegenprobe zeigt, dass der Schaden dauerhaft gewesen wäre.
+
 ### F48 Teilpaket 3 — Namensvervollständigung beim Tippen von `@` ✅ 2026-08-05
 
 Der letzte Rest von F48. `UEditorMentionMenu` in der Beitrags-Schreibfläche:
