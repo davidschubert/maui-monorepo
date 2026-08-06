@@ -1,7 +1,7 @@
 import { Permission, Query, Role } from 'node-appwrite'
 import type { H3Event } from 'h3'
 import { communityModeratorLabel } from '../../../core/shared/communityModeratorLabel'
-import { MEMBER_COUNTERS_TABLE, POLL_VOTES_TABLE, POSTS_TABLE, POST_VOTES_TABLE, type CommunityPost, type MemberCounters, type PollVote, type PostVote } from '../../shared/types/post'
+import { MEMBER_COUNTERS_TABLE, POLL_VOTES_TABLE, POSTS_TABLE, POST_VOTES_TABLE, USER_BADGES_TABLE, type CommunityPost, type MemberCounters, type PollVote, type PostVote, type UserBadge } from '../../shared/types/post'
 
 /**
  * GDPR-Contributor des posts-Layers (Vertrag: core/server/utils/userData.ts).
@@ -47,6 +47,11 @@ export async function postsExportUserData(event: H3Event, userId: string) {
   // Degradiert auf leer, solange posts-013 auf einer Instanz aussteht.
   const counters = await listAllRows<MemberCounters>(tablesDB, databaseId, MEMBER_COUNTERS_TABLE, [Query.equal('userId', userId)])
     .catch(() => [] as MemberCounters[])
+  // Abzeichen fehlten seit Stufe 4 in der Auskunft (Nebenbefund beim
+  // Zähler-Bau, 2026-08-04) — sie sind Aussagen ÜBER diesen Menschen und
+  // gehören hinein. Degradiert auf leer, solange posts-012 aussteht.
+  const badges = await listAllRows<UserBadge>(tablesDB, databaseId, USER_BADGES_TABLE, [Query.equal('userId', userId)])
+    .catch(() => [] as UserBadge[])
 
   return {
     posts: posts.map(p => ({
@@ -68,6 +73,9 @@ export async function postsExportUserData(event: H3Event, userId: string) {
       // könnte, was erarbeitet und was ernannt ist. Gelöscht wird ohnehin die
       // ganze Zeile (s. unten), die Löschseite braucht nichts.
       trustLevel: c.trustLevel, trustLevelLeader: c.trustLevelLeader,
+    })),
+    badges: badges.map(b => ({
+      badgeKey: b.badgeKey, qualifier: b.qualifier, awardedAt: b.$createdAt,
     })),
   }
 }
@@ -111,6 +119,16 @@ export async function postsDeleteUserData(event: H3Event, userId: string): Promi
     .catch(() => [] as MemberCounters[])
   for (const row of counters) {
     await tablesDB.deleteRow({ databaseId, tableId: MEMBER_COUNTERS_TABLE, rowId: row.$id })
+    deleted++
+  }
+
+  // Abzeichen: Hard-Delete aus demselben Grund wie die Zähler — Aussagen über
+  // genau diesen Menschen, ohne ihn gegenstandslos. Fehlten seit Stufe 4
+  // (Nebenbefund 2026-08-04). Liste degradiert vor posts-012, Löschung strikt.
+  const badges = await listAllRows<UserBadge>(tablesDB, databaseId, USER_BADGES_TABLE, [Query.equal('userId', userId)])
+    .catch(() => [] as UserBadge[])
+  for (const row of badges) {
+    await tablesDB.deleteRow({ databaseId, tableId: USER_BADGES_TABLE, rowId: row.$id })
     deleted++
   }
 
