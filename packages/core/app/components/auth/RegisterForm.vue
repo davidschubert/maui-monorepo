@@ -38,6 +38,10 @@ async function onSubmit(event: FormSubmitEvent<RegisterFormInput>) {
       method: 'POST',
       body: { name: event.data.name, email: event.data.email, password: event.data.password },
     })
+    // NUR hier, nicht im OTP-Verify: der ist auch der LOGIN-Weg (Auto-Signup),
+    // ein wiederkehrendes Mitglied zählte dort jedes Mal als Beitritt. Der
+    // A5-Beitritt per erstem Schreiben steckt indirekt in dessen Aktion.
+    trackAnalyticsEvent('memberJoined')
     await auth.refresh()
     await navigateTo(afterAuthTarget())
   }

@@ -1,4 +1,4 @@
-import { plausibleScriptUrl } from '../../shared/analyticsScript'
+import { ANALYTICS_PROXY_EVENT_PATH, plausibleProxyScriptPath, plausibleScriptUrl } from '../../shared/analyticsScript'
 
 /**
  * Analytics mit doppeltem Gate (Konzept A5):
@@ -58,9 +58,18 @@ export default defineNuxtPlugin(async () => {
       selfServiceId.value = ''
     }
   }
-  // Dieselbe Funktion, die auch die Vorschau im Dashboard baut — die beiden
-  // können damit gar nicht auseinanderlaufen.
-  const selfServiceSrc = plausibleScriptUrl(analytics.instance, selfServiceId.value)
+  /**
+   * ADBLOCK-PROXY (F47): mit `proxy: true` wird das Script RELATIV vom eigenen
+   * Host geladen und die Events gehen per `init({ endpoint })` an denselben
+   * Host — die beiden Routen dazu bringt der Layer `analytics` mit. Sonst wie
+   * gehabt die absolute Adresse der Instanz. Beide Wege rechnen mit derselben
+   * geprüften Id — die Vorschau im Dashboard zeigt weiterhin die
+   * Instanz-Adresse, denn GEMESSEN wird in beiden Fällen in dieselbe Site.
+   */
+  const proxied = analytics.proxy === true
+  const selfServiceSrc = proxied
+    ? plausibleProxyScriptPath(selfServiceId.value)
+    : plausibleScriptUrl(analytics.instance, selfServiceId.value)
 
   const consentRequired = appConfig.pukalani?.consent?.enabled === true
   const { hasConsent } = useCookieConsent()
@@ -81,10 +90,18 @@ export default defineNuxtPlugin(async () => {
       // Plausible-v3-Snippet: das Site-Script (pa-…) trägt die Zuordnung in
       // der URL, getrackt wird erst durch den expliziten init()-Aufruf.
       // SPA-Navigationen zählt das Script selbst (History-API).
+      //
+      // Beim Adblock-Proxy (F47) bekommt init() den Event-Endpunkt auf dem
+      // EIGENEN Host mit — sonst schickte das first-party geladene Script
+      // seine Events weiter an die (blockbare) Instanz-Adresse. Der Wert ist
+      // eine Konstante aus shared/analyticsScript.ts, nie eine Eingabe.
+      const initArg = proxied && selfServiceSrc
+        ? JSON.stringify({ endpoint: ANALYTICS_PROXY_EVENT_PATH })
+        : ''
       useHead({
         script: [
           { src: selfServiceSrc || analytics.src, async: true },
-          { innerHTML: 'window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()' },
+          { innerHTML: `window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init(${initArg})` },
         ],
       })
       return

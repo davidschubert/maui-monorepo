@@ -42,6 +42,31 @@ export function plausibleScriptUrl(instance: string | undefined, scriptId: strin
   return `${instance.replace(/\/+$/, '')}/js/${scriptId}.js`
 }
 
+/**
+ * ADBLOCK-PROXY (F47, 2026-08-07): dieselben zwei Pfade wie auf der
+ * Plausible-Instanz, nur auf dem EIGENEN Host. Adblocker blocken die fremde
+ * Herkunft (plausible.*), nicht die eigene — first-party geladen kommt das
+ * Script durch, und `plausible.init({ endpoint })` schickt auch die Events
+ * über den eigenen Host (offizieller Weg, „Bypass adblockers").
+ *
+ * BEWUSST dieselben Pfade wie upstream und kein Tarn-Präfix: der Dateiname
+ * (`pa-<nanoid>.js`) ist zufällig und steht auf keiner Filterliste, und
+ * `/api/event` ist zu generisch zum Blocken. Sollte sich das je ändern, sind
+ * es genau diese zwei Konstanten — Head, Routen und Tests hängen alle hier.
+ */
+export const ANALYTICS_PROXY_SCRIPT_PREFIX = '/js/'
+export const ANALYTICS_PROXY_EVENT_PATH = '/api/event'
+
+/**
+ * PURE (unit-getestet): der RELATIVE Script-Pfad hinter dem eigenen Host.
+ * Dieselbe Fail-closed-Regel wie `plausibleScriptUrl`: eine Id, die der Form
+ * nicht entspricht, ergibt '' — nie einen halben Pfad.
+ */
+export function plausibleProxyScriptPath(scriptId: string | undefined): string {
+  if (!scriptId || !isPlausibleScriptId(scriptId)) return ''
+  return `${ANALYTICS_PROXY_SCRIPT_PREFIX}${scriptId}.js`
+}
+
 /** Die gespeicherte Einstellung EINER Community — nur, was hier zählt. */
 export interface AnalyticsSettingsLike {
   /** Eigene Plausible-Site der Community ('' = keine). */

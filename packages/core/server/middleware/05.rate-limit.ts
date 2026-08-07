@@ -147,6 +147,14 @@ const WRITE_LIMITED: { re: RegExp, bucket: string, max?: number }[] = [
   // (5 statt 3), weil bei einem echten Vorfall mehrere Menschen gleichzeitig
   // melden — und die kommen oft aus demselben Netz.
   { re: /^POST \/api\/abuse\/report$/, bucket: 'abuse:report', max: 5 },
+  // Adblock-Proxy-Einwurf (F47, Layer analytics): session-los und öffentlich,
+  // jeder Request wird an die Plausible-Instanz weitergereicht — ohne Deckel
+  // wäre die Route ein Verstärker auf ein fremdes System. Das Budget der
+  // Presence-Heartbeats: ein Besucher erzeugt pro Seitenwechsel eine Handvoll
+  // Events (pageview, engagement, ggf. eine Aktion), 120/min stoppt nur
+  // Scripting. In Apps ohne den analytics-Layer antwortet der Pfad 404 —
+  // der Eintrag hier ist dann wirkungslos.
+  { re: /^POST \/api\/event$/, bucket: 'analytics:event', max: PRESENCE_MAX },
   // BEWUSST NICHT gelistet: POST /api/stripe/webhook — Stripe-Retries dürfen
   // nie in den 429-Bucket laufen; ungelistete Routen sind hier ohnehin frei,
   // der Schutz des Webhooks ist die Signatur-Verifikation (billing B4).

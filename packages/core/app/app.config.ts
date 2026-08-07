@@ -180,6 +180,19 @@ export default defineAppConfig({
         scriptId: '',
         siteId: '',
       },
+      /**
+       * ADBLOCK-PROXY (F47, 2026-08-07) — Core-Default AUS. AN heißt: das
+       * Selbstbedienungs-Snippet lädt sein Script RELATIV vom eigenen Host
+       * (`/js/<id>.js`) und schickt Events an `/api/event` desselben Hosts
+       * (`plausible.init({ endpoint })`) — first-party statt der fremden
+       * Herkunft, die Adblocker blocken. Die beiden Routen dahinter bringt
+       * der Layer `analytics` mit (server/routes bzw. server/api) — der
+       * Schalter gehört also NUR in Apps, die diesen Layer extenden, sonst
+       * zeigt das Snippet auf ein 404 und es wird GAR NICHTS gemessen.
+       * Wirkt bewusst nur auf den Selbstbedienungs-Weg: die statischen
+       * Betreiber-Configs (`src`/`domain`) bleiben unberührt.
+       */
+      proxy: false,
     },
     consent: {
       enabled: false,

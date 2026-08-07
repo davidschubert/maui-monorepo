@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { ANALYTICS_SCRIPT_ID_RE, effectiveScriptId, isPlausibleScriptId, plausibleScriptUrl } from '../shared/analyticsScript'
+import { ANALYTICS_EVENT_NAMES, ANALYTICS_EVENTS, analyticsEventKey } from '../shared/analyticsEvents'
+import { ANALYTICS_PROXY_EVENT_PATH, ANALYTICS_SCRIPT_ID_RE, effectiveScriptId, isPlausibleScriptId, plausibleProxyScriptPath, plausibleScriptUrl } from '../shared/analyticsScript'
 
 describe('isPlausibleScriptId', () => {
   it('erkennt echte v3-Ids und den Leerstring (= aus)', () => {
@@ -94,5 +95,44 @@ describe('effectiveScriptId', () => {
     expect(effectiveScriptId({ plausibleScriptId: 'https://boese.example/x.js' }, SHARED)).toBe('')
     expect(effectiveScriptId({ plausibleScriptId: 'https://boese.example/x.js', enabled: true }, SHARED)).toBe(SHARED.scriptId)
     expect(effectiveScriptId({ enabled: true }, { scriptId: 'https://boese.example/x.js' })).toBe('')
+  })
+})
+
+describe('plausibleProxyScriptPath (Adblock-Proxy, F47)', () => {
+  it('baut den relativen Pfad hinter dem eigenen Host', () => {
+    expect(plausibleProxyScriptPath('pa-abcdefgh')).toBe('/js/pa-abcdefgh.js')
+  })
+
+  /**
+   * Dieselbe Gegenprobe wie bei der absoluten Adresse: eine ungeprüfte Id
+   * stünde als Pfad im eigenen Namensraum — auch dort darf sie nichts benennen.
+   */
+  it('gibt LEER zurück für alles außerhalb der Id-Form', () => {
+    expect(plausibleProxyScriptPath('')).toBe('')
+    expect(plausibleProxyScriptPath(undefined)).toBe('')
+    expect(plausibleProxyScriptPath('pa-abcdefgh/../evil')).toBe('')
+    expect(plausibleProxyScriptPath('https://boese.example/x.js')).toBe('')
+  })
+
+  it('der Event-Endpunkt ist ein fester relativer Pfad', () => {
+    expect(ANALYTICS_PROXY_EVENT_PATH).toBe('/api/event')
+  })
+})
+
+describe('das Ereignis-Vokabular (F47)', () => {
+  it('Namen sind eindeutig und kollidieren nicht mit den eingebauten Events', () => {
+    expect(new Set(ANALYTICS_EVENT_NAMES).size).toBe(ANALYTICS_EVENT_NAMES.length)
+    // Plausible v3 sendet `pageview` und `engagement` von selbst — stünde
+    // einer dieser Namen im Vokabular, zählte die Dashboard-Liste Seitenaufrufe
+    // als „Aktion".
+    expect(ANALYTICS_EVENT_NAMES).not.toContain('pageview')
+    expect(ANALYTICS_EVENT_NAMES).not.toContain('engagement')
+  })
+
+  it('jeder Name findet zurück zu seinem Schlüssel (Anzeige-Übersetzung)', () => {
+    for (const [key, name] of Object.entries(ANALYTICS_EVENTS)) {
+      expect(analyticsEventKey(name)).toBe(key)
+    }
+    expect(analyticsEventKey('pageview')).toBeUndefined()
   })
 })
