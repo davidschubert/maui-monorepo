@@ -16,6 +16,7 @@
 // shared/utils + shared/types) — deshalb explizit.
 import { isControlHost } from '../../shared/controlCenter'
 import { UNKNOWN_HOST_CODE, UNKNOWN_HOST_STATUS_TEXT, isErrorPageRenderPass } from '../../shared/unknownHost'
+import { canonicalRedirectStatus, canonicalRedirectTarget } from '../../shared/canonicalHost'
 
 export default defineEventHandler(async (event) => {
   const appConfig = useAppConfig() as {
@@ -70,4 +71,48 @@ export default defineEventHandler(async (event) => {
     })
   }
   event.context.tenant = tenant
+
+  /**
+   * EIGENE DOMAIN — die Umleitung auf die kanonische Adresse (control-035,
+   * Davids Entscheidung 2 vom 2026-08-07: **301**, und die Subdomain bleibt
+   * Rückfall).
+   *
+   * Eine Community löst seit control-035 unter mehreren Hosts auf: ihrer
+   * Pukalani-Subdomain, ihrer eigenen Domain und deren www-/Apex-Geschwister.
+   * Genau EINER ist kanonisch (der Resolver rechnet ihn, `canonicalHostFor()`),
+   * alle anderen zeigen dorthin. Ohne diese Zeilen liefe dieselbe Community
+   * unter drei Adressen gleichzeitig — mit drei Session-Cookies, drei
+   * Suchmaschinen-Indizes und drei `canonical`-Werten.
+   *
+   * SIE STEHT NACH `event.context.tenant = tenant`, und das ist Absicht: eine
+   * `abuse`-Sperre (M13) hat den Resolver schon vorher `null` liefern lassen,
+   * eine gesperrte Community leitet also nirgendwohin um, sondern 404et — auf
+   * ALLEN ihren Hosts.
+   *
+   * ── DREI DINGE, DIE MAN NICHT „VEREINFACHEN" DARF ────────────────────────
+   *
+   * (1) **308 statt 301, sobald der Request nicht GET/HEAD ist.** Ein 301 lässt
+   *     Browser die Methode auf GET wechseln — ein Formular-POST auf die alte
+   *     Adresse verlöre dabei stillschweigend seinen Rumpf, und der Nutzer
+   *     sähe eine Seite statt einer Fehlermeldung. 308 ist derselbe
+   *     „dauerhaft", nur methodenerhaltend. Davids Entscheidung („301") meint
+   *     die DAUERHAFTIGKEIT, und die bleibt.
+   *
+   * (2) **`Cache-Control: no-store` daneben.** Ein 301 darf ein Browser für
+   *     immer behalten. Genau das würde Davids zweite Zusage brechen — „die
+   *     Subdomain bleibt Rückfall": nimmt der Kunde seine Domain wieder weg,
+   *     stünde jeder Besucher mit gemerkter Umleitung vor einer toten Adresse.
+   *     Der Header nimmt das Risiko nicht ganz weg (manche Browser merken sich
+   *     301 trotzdem), aber er ist das, was von hier aus geht — der Rest steht
+   *     als Prüf-Häkchen im Runbook.
+   *
+   * (3) **Der Pfad reist mit** (`event.path`, also inkl. Query). Eine
+   *     Umleitung, die auf `/` wirft, macht aus jedem geteilten Deep-Link eine
+   *     Startseite.
+   */
+  const target = canonicalRedirectTarget(host, tenant.canonicalHost, event.path)
+  if (target) {
+    setResponseHeader(event, 'Cache-Control', 'no-store')
+    return await sendRedirect(event, target, canonicalRedirectStatus(event.method))
+  }
 })

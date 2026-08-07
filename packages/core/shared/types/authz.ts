@@ -66,6 +66,18 @@ export type Capability =
   | 'team.manage' // Community-Mitglieder + Rollen (Owner/Admin) — nicht Moderator/Editor
   | 'community.transfer' // Owner-Übergabe (nur Owner)
   | 'community.billing' // Abo der Community: Kauf + Stripe-Portal (nur Owner, A6)
+  /**
+   * Eigene Domain der Community eintragen, prüfen und wieder abgeben
+   * (control-035, Davids Entscheidungen vom 2026-08-07). Nur Owner.
+   *
+   * Beim Owner aus demselben Grund wie `community.embed` und
+   * `community.analytics`: das ist keine Verwaltung dessen, was es INNEN gibt,
+   * sondern eine Entscheidung nach AUSSEN. Wer die Adresse der Community
+   * ändert, verschiebt jeden Link, jedes Lesezeichen und jeden
+   * Suchmaschinen-Eintrag — und bindet die Community an eine Domain, deren
+   * Rechnung jemand bezahlen muss. Ein Admin verwaltet Inhalte und Team.
+   */
+  | 'community.domain'
   | 'community.delete' // Community löschen (nur Owner)
   /**
    * Einbetter-Register des Kommentar-Widgets (F37, 2026-08-02): welche FREMDE

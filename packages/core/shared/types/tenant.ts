@@ -98,9 +98,29 @@ export interface TenantPolicy {
  */
 export type CommunityAudience = 'members' | 'public'
 
+/**
+ * DIE ADRESSE, UNTER DER DIESE COMMUNITY ZU HAUSE IST (eigene Domains,
+ * 2026-08-07 — Davids Entscheidung 2).
+ *
+ * Eine Community kann seit control-035 unter MEHREREN Hosts auflösen: ihrer
+ * Pukalani-Subdomain, ihrer eigenen Domain und deren www-/Apex-Geschwister.
+ * Genau EINER davon ist die kanonische Adresse; alle anderen antworten 301
+ * (`00.tenant.ts`). Der Resolver rechnet den Wert aus (`canonicalHostFor()`,
+ * control), die Middleware vergleicht ihn nur noch mit dem Request-Host.
+ *
+ * OPTIONAL, und `undefined` heißt „keine Umleitung" — dieselbe Bauart wie
+ * `openRegistration`/`audience`/`suspension`: Silo-Apps, Kontroll-Hosts,
+ * Playground und Bestands-Fixtures bauen den Kontext ohne das Feld. Sie
+ * plötzlich umzuleiten wäre der Schaden.
+ */
+export interface TenantAddress {
+  /** Kanonischer Host dieser Community (ohne Schema/Port). */
+  canonicalHost?: string
+}
+
 export type TenantContext =
   /** Eigenes Appwrite-Projekt (Isolation am Projekt) — Spezial-/Enterprise-Kunde. */
-  | ({ mode: 'silo', projectId: string, communityId?: string } & TenantBranding & TenantPolicy)
+  | ({ mode: 'silo', projectId: string, communityId?: string } & TenantBranding & TenantPolicy & TenantAddress)
   /**
    * Geteiltes Projekt, Zeilen-Scope über tenantId — Standard-SaaS-Kunde.
    * `plan` (free/pro/business, Default free) staffelt die Quota — core bleibt
@@ -122,4 +142,4 @@ export type TenantContext =
    * ist. Er wird stattdessen von der Route `/api/community/billing/trial`
    * herausgegeben — capability-gegated an den EINEN, der etwas tun kann.
    */
-  | ({ mode: 'pool', projectId: string, tenantId: string, plan?: string, limits?: Record<string, { perDay?: number, total?: number }>, communityId?: string, trialEndsAt?: string | null } & TenantBranding & TenantPolicy)
+  | ({ mode: 'pool', projectId: string, tenantId: string, plan?: string, limits?: Record<string, { perDay?: number, total?: number }>, communityId?: string, trialEndsAt?: string | null } & TenantBranding & TenantPolicy & TenantAddress)

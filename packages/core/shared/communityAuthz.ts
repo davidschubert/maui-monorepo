@@ -142,6 +142,15 @@ const OWNER: readonly Capability[] = [
     // die Community nach außen (frame-ancestors + partitioniertes
     // Session-Cookie). Ein Admin verwaltet, was INNEN passiert.
     'community.embed',
+    /**
+     * Die eigene Domain der Community (control-035, 2026-08-07). Aus DEMSELBEN
+     * Grund beim Owner wie `community.embed`: das ist eine Entscheidung nach
+     * außen, keine Verwaltung nach innen. Sie verschiebt die ADRESSE — jeder
+     * bestehende Link zeigt danach auf eine Umleitung, und die Domain gehört
+     * jemandem, der sie bezahlt. Ein Admin, der sie tauschen könnte, könnte
+     * die Community aus der Hand ihres Eigentümers nehmen.
+     */
+    'community.domain',
     // Besucherstatistik (2026-08-04): aus DEMSELBEN Grund beim Owner. Die
     // eingetragene Script-Id lädt fremden Code in jede Seite der Community und
     // meldet die Besuche ihrer Mitglieder an einen Dritten — eine Entscheidung

@@ -47,6 +47,15 @@ export const ALL_CAPABILITIES: readonly Capability[] = [
   // apps/portfolio) trägt der Betreiber-Admin die Einstellung über sein
   // globales Label, es gibt dort gar keine Community-Rolle.
   'community.analytics',
+  /**
+   * Eigene Domain (control-035, 2026-08-07). Im Wildcard aus demselben Grund
+   * wie `community.embed` und `community.analytics`: eine Silo-App hat gar
+   * keine Community-Rollen, dort trägt der Betreiber-Admin die Einstellung
+   * über sein globales Label. Dass die Seite im Pool eine Owner-Sache ist,
+   * entscheidet `communityAuthz.ts` — hier steht nur, dass die Fähigkeit
+   * existiert.
+   */
+  'community.domain',
   // F1 Teilpaket 3 (Vertrauensstufen): die drei Stufen-Rechte und die
   // Ernennung. Im Wildcard aus demselben Grund wie jede andere Community-Cap —
   // im Silo (apps/comments) gibt es keine Community-Rolle, dort trägt der
