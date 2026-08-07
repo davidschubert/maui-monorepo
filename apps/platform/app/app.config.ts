@@ -315,6 +315,21 @@ export default defineAppConfig({
         // einem Basic-Tarif ohne posts wäre ein Menüpunkt, den niemand
         // benutzen kann (Konzept § 8, Entscheidung 7).
         messages: 'personal',
+        /**
+         * Eigene Domain (control-035, 2026-08-07): **ab Pro** — Davids
+         * Entscheidung 1, nicht neu verhandelbar.
+         *
+         * DIESE ZEILE GATET NUR DIE SICHTBARKEIT (`useTenantPlan().planAllows`
+         * blendet die Einstellungs-Seite ein). Durchgesetzt wird die Grenze im
+         * CONTROL PLANE, das die `communities`-Zeile besitzt und den Plan aus
+         * ihr liest (`CUSTOM_DOMAIN_MIN_PLAN`, packages/control/shared/
+         * customDomain.ts) — dort ist die Autorität, hier die Anzeige.
+         *
+         * Dass beide Orte dieselbe Zahl nennen müssen, ist eine echte
+         * Doppelpflege und deshalb an einen Test genagelt
+         * (packages/control/tests/customDomain.test.ts liest DIESE Datei).
+         */
+        customDomain: 'pro',
       },
     },
   },

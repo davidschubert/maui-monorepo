@@ -59,6 +59,71 @@
     }
   },
   "onboarding": {
+    "domain": {
+      "navLabel": "Eigene Domain",
+      "title": "Eigene Domain",
+      "description": "Deine Community unter deiner eigenen Adresse erreichbar machen. Die Pukalani-Adresse bleibt bestehen und leitet dorthin weiter.",
+      "field": "Deine Domain",
+      "fieldHelp": "Trage die Form ein, unter der die Community zu Hause sein soll — mit oder ohne www. Die jeweils andere Form richten wir mit ein und leiten sie hierher um.",
+      "placeholder": "www.beispiel.de",
+      "save": "Domain eintragen",
+      "replace": "Domain ersetzen",
+      "check": "Prüfen",
+      "remove": "Domain entfernen",
+      "savedTitle": "Domain eingetragen",
+      "savedDesc": "Lege jetzt die DNS-Einträge unten an und drücke danach auf Prüfen.",
+      "saveFailed": "Hat nicht geklappt",
+      "checkAgain": "Noch nicht fertig. DNS-Änderungen brauchen manchmal ein paar Minuten — drücke später noch einmal auf Prüfen.",
+      "statusTitle": "Stand",
+      "pendingTitle": "Hier hängt es gerade",
+      "activeTitle": "Deine Domain ist aktiv",
+      "activeDesc": "Die Community ist jetzt unter {domain} zu Hause.",
+      "removedTitle": "Domain entfernt",
+      "removeConfirmTitle": "Domain entfernen?",
+      "removeConfirmText": "Danach ist {domain} nicht mehr erreichbar und die Community wieder unter {host} zu Hause. Inhalte bleiben unverändert.",
+      "fallbackNote": "Deine Pukalani-Adresse {host} bleibt bestehen und leitet auf die eigene Domain weiter.",
+      "noTenantTitle": "Hier gibt es keine eigene Domain",
+      "noTenantDesc": "Diese Seite gehört zu einer Community. Öffne sie auf der Adresse deiner Community.",
+      "planTitle": "Eigene Domains gibt es ab Pro",
+      "planDesc": "Mit Pro erreichst du deine Community unter deiner eigenen Adresse — samt Zertifikat, www und Weiterleitung.",
+      "planCta": "Abo ansehen",
+      "dnsTitle": "Das musst du bei deinem Domain-Anbieter eintragen",
+      "dnsDescription": "Kopiere die Einträge unverändert. Danach oben auf Prüfen drücken.",
+      "steps": {
+        "dns": "DNS-Einträge gefunden",
+        "cert": "Zertifikat ausgestellt",
+        "platform": "Live-Aktualisierung freigeschaltet"
+      },
+      "status": {
+        "none": "Noch keine eigene Domain eingetragen.",
+        "pending_dns": "Wir warten auf deine DNS-Einträge.",
+        "pending_cert": "DNS steht. Das Zertifikat wird ausgestellt.",
+        "pending_platform": "Fast fertig — der letzte Schritt läuft.",
+        "active": "Aktiv.",
+        "error": "Etwas ist schiefgegangen."
+      },
+      "dns": {
+        "txt": "1. Nachweis, dass die Domain dir gehört",
+        "txtHelp": "Ein TXT-Eintrag. Er bleibt bestehen, solange die Domain hier genutzt wird.",
+        "a": "2. Wo die Domain hinzeigt (ohne www)",
+        "aHelp": "Ein A-Eintrag auf unsere Server-Adresse.",
+        "cname": "3. Wo die www-Form hinzeigt",
+        "cnameHelp": "Ein CNAME-Eintrag. Manche Anbieter nennen das Alias.",
+        "note": "Bis DNS-Änderungen überall ankommen, dauert es je nach Anbieter wenige Minuten bis einige Stunden."
+      },
+      "errors": {
+        "domain_empty": "Bitte trage eine Domain ein.",
+        "domain_too_long": "Diese Adresse ist zu lang.",
+        "domain_invalid": "So sieht keine Domain aus. Erlaubt sind Buchstaben, Ziffern und Bindestriche; Umlaute bitte in der Punycode-Form (xn--...).",
+        "domain_not_a_domain": "Das ist keine vollständige Domain. Sie braucht mindestens einen Punkt, zum Beispiel beispiel.de.",
+        "domain_operator_domain": "Adressen unterhalb von pukalani.app kannst du hier nicht eintragen — die Pukalani-Adresse deiner Community hast du bereits.",
+        "domain_taken": "Diese Domain gehört bereits zu einer anderen Community.",
+        "plan_required": "Eigene Domains gibt es ab Pro.",
+        "domain_missing": "Trage zuerst eine Domain ein.",
+        "domain_not_ready": "Der Stand hat sich geändert. Lade die Seite neu und prüfe noch einmal.",
+        "generic": "Das hat gerade nicht geklappt. Versuche es noch einmal."
+      }
+    },
     "layout": {
       "footer": "Pukalani · Community-Software aus Deutschland, gehostet in Deutschland"
     },

@@ -59,6 +59,71 @@
     }
   },
   "onboarding": {
+    "domain": {
+      "navLabel": "Custom domain",
+      "title": "Custom domain",
+      "description": "Make your community available under your own address. The Pukalani address stays and redirects there.",
+      "field": "Your domain",
+      "fieldHelp": "Enter the form you want the community to live at — with or without www. We set up the other form as well and redirect it here.",
+      "placeholder": "www.example.com",
+      "save": "Add domain",
+      "replace": "Replace domain",
+      "check": "Check",
+      "remove": "Remove domain",
+      "savedTitle": "Domain added",
+      "savedDesc": "Now create the DNS records below, then press Check.",
+      "saveFailed": "That did not work",
+      "checkAgain": "Not there yet. DNS changes can take a few minutes — press Check again later.",
+      "statusTitle": "Status",
+      "pendingTitle": "This is what we are waiting for",
+      "activeTitle": "Your domain is live",
+      "activeDesc": "The community now lives at {domain}.",
+      "removedTitle": "Domain removed",
+      "removeConfirmTitle": "Remove domain?",
+      "removeConfirmText": "After this, {domain} will no longer work and the community lives at {host} again. Content stays untouched.",
+      "fallbackNote": "Your Pukalani address {host} stays and redirects to the custom domain.",
+      "noTenantTitle": "No custom domain here",
+      "noTenantDesc": "This page belongs to a community. Open it on your community address.",
+      "planTitle": "Custom domains are a Pro feature",
+      "planDesc": "With Pro your community is reachable at your own address — certificate, www and redirect included.",
+      "planCta": "See plans",
+      "dnsTitle": "Add these records at your domain provider",
+      "dnsDescription": "Copy them exactly. Then press Check above.",
+      "steps": {
+        "dns": "DNS records found",
+        "cert": "Certificate issued",
+        "platform": "Live updates enabled"
+      },
+      "status": {
+        "none": "No custom domain added yet.",
+        "pending_dns": "Waiting for your DNS records.",
+        "pending_cert": "DNS is in place. The certificate is being issued.",
+        "pending_platform": "Almost done — the last step is running.",
+        "active": "Live.",
+        "error": "Something went wrong."
+      },
+      "dns": {
+        "txt": "1. Proof that the domain is yours",
+        "txtHelp": "A TXT record. Keep it as long as the domain is used here.",
+        "a": "2. Where the domain points (without www)",
+        "aHelp": "An A record pointing at our server address.",
+        "cname": "3. Where the www form points",
+        "cnameHelp": "A CNAME record. Some providers call this an alias.",
+        "note": "Depending on your provider, DNS changes take a few minutes to a few hours to reach everyone."
+      },
+      "errors": {
+        "domain_empty": "Please enter a domain.",
+        "domain_too_long": "That address is too long.",
+        "domain_invalid": "That does not look like a domain. Letters, digits and hyphens are allowed; use the punycode form (xn--...) for accented names.",
+        "domain_not_a_domain": "That is not a full domain. It needs at least one dot, for example example.com.",
+        "domain_operator_domain": "Addresses under pukalani.app cannot be added here — your community already has its Pukalani address.",
+        "domain_taken": "This domain already belongs to another community.",
+        "plan_required": "Custom domains are a Pro feature.",
+        "domain_missing": "Add a domain first.",
+        "domain_not_ready": "The status changed. Reload the page and check again.",
+        "generic": "That did not work just now. Please try again."
+      }
+    },
     "layout": {
       "footer": "Pukalani · Community software made and hosted in Germany"
     },

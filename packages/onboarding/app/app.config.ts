@@ -108,6 +108,33 @@ export default defineAppConfig({
           requiredCapability: 'team.manage',
           order: 10,
         },
+        {
+          /**
+           * EIGENE DOMAIN (control-035, Davids Entscheidungen vom 2026-08-07).
+           *
+           * In DIESEM Layer aus demselben Grund wie alle Nachbarn: die Seite
+           * lebt von `/api/community/domain/*`, und die brauchen die
+           * Service-Naht zum Control Plane, dem `communities` gehört.
+           *
+           * `community.domain` trägt nur der OWNER — ein Admin sieht den
+           * Reiter gar nicht erst. Die AUTORITÄT ist trotzdem der Server: die
+           * Routen prüfen dieselbe Capability, und das Control Plane prüft sie
+           * danach noch einmal selbst.
+           *
+           * KEIN Plan-Gate am Reiter, obwohl das Merkmal ab Pro ist (Davids
+           * Entscheidung 1): ein Owner soll ERFAHREN, dass es eigene Domains
+           * gibt. Die Seite selbst zeigt ihm dann, was ihm fehlt, und verlinkt
+           * aufs Abo. Ein Reiter, der bei Basic verschwindet, verkauft nichts
+           * und erklärt nichts.
+           */
+          id: 'community-domain',
+          scope: 'community',
+          labelKey: 'onboarding.domain.navLabel',
+          icon: 'i-ph-globe-hemisphere-west',
+          to: '/dashboard/settings/domain',
+          requiredCapability: 'community.domain',
+          order: 20,
+        },
       ],
       /**
        * Der Hinweis auf die ablaufende Testphase (M13). Aus DEMSELBEN Grund in
