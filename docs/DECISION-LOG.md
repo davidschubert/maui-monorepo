@@ -806,3 +806,17 @@ genommen: ein einmal vergebener Name (`@vorstand`) ist in dieser Community
 endgültig belegt — seit H1 kann ihn aber nur noch ein Mitglied nehmen.
 Das ist das HEUTIGE Verhalten; es war offen, ob es Absicht ist — jetzt ist es
 entschieden, kein Code-Änderungsbedarf.
+
+## 2026-08-07 — Eigene Domain je Community (Custom Domains)
+
+**Entscheidungen (David):** (1) Gate ab Plan **Pro** — klassischer
+Differenzierer, jede Kundendomain kostet real Betrieb. (2) Die alte Subdomain
+antwortet **301** auf die eigene Domain, sobald aktiv — ein kanonisches
+Zuhause, Subdomain bleibt Rückfall. (3) **Selbstbedienung komplett**: Owner
+trägt Domain ein, System prüft DNS und stößt Zertifikat + Appwrite-Platform
+automatisch an — kein Betreiber-Klick je Kunde. (4) **www + Apex automatisch**:
+beide Formen aktiv, eine leitet um.
+
+**Bekannte Grenze (vorab benannt):** der Konto-WS (Sofort-Abmeldung) ist
+Cookie-nativ und greift von fremder Root-Domain nicht — auf Kundendomains
+degradiert Session-Widerruf auf den 30-s-Poll. Bewusst akzeptiert.
