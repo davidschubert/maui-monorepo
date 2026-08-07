@@ -29,6 +29,69 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### Eigene Domain je Community (Custom Domains) ✅ 2026-08-07
+
+**Was gebaut wurde.** Eine Pool-Community ist unter ihrer eigenen Adresse
+erreichbar (`www.kunde.de`), komplett in Selbstbedienung. Migration
+`control-035` (sechs additive Spalten an `communities` + `idx_custom_domain`),
+pure Regeln in `packages/control/shared/customDomain.ts`, Host-Auflösung über
+`host` ODER die eigene Domain, 301/308 auf die kanonische Adresse in
+`00.tenant.ts`, DNS-Nachweis (TXT + A/CNAME) mit eigenem Resolver,
+ploi-Tenant + Zertifikat, Appwrite-Web-Platform, Dashboard unter
+`/dashboard/settings/domain` (de+en). Davids vier Entscheidungen vom selben Tag
+(DECISION-LOG) sind alle umgesetzt: Pro-Gate server-seitig, 301 mit der
+Subdomain als Rückfall, volle Selbstbedienung, www + Apex automatisch.
+
+**Beweis.** `packages/onboarding/scripts/verify-custom-domain.mjs` — **46/46**,
+gegen zwei eigene Dev-Server (control :3014, platform :3016) im Trockenlauf,
+inkl. der vollen Kette bis `active` mit Appwrite-Origin-Gegenprobe (403 → 401).
+37 Unit-Tests in `packages/control/tests/customDomain.test.ts`, 9 in
+`packages/core/tests/canonicalHost.test.ts`. Der Beweis ist gegengeprobt: eine
+Mutation am Resolver macht genau die Abschnitte rot, die die eigene Domain
+messen. **Offen bleibt genau ein Stück**: ploi + Let's Encrypt beim ersten
+echten Kunden — Häkchen dafür in
+[docs/runbooks/CUSTOM-DOMAIN-ERSTAKTIVIERUNG.md](runbooks/CUSTOM-DOMAIN-ERSTAKTIVIERUNG.md).
+
+**Die eine offene Frage war beantwortbar.** Ob sich die Appwrite-Web-Platform
+(F45) automatisieren lässt, hing daran, WOMIT sich `POST /v1/projects/:id/platforms`
+authentifiziert — bei Appwrite Cloud ist das eine Konsolen-API. Gemessen gegen
+die selbst gehostete 1.9.6: ein **gewöhnlicher Projekt-API-Key genügt**, sofern
+der Header `X-Appwrite-Project` dieselbe Id trägt wie der Pfad (ohne ihn 403
+`project_id_missing`, mit ihm 201). Registriert wird sie von der **Platform**-App,
+nicht vom Control Plane — das hat für das Pool-Projekt keinen Schlüssel
+(dieselbe Grenze wie bei `revokeCommunityLabel`, A5).
+
+**Gelernt (vier Dinge, alle live erwischt):**
+1. **Appwrite prüft beim Anlegen einer Web-Platform NICHT auf Dubletten** —
+   derselbe Hostname zweimal ergibt zwei Zeilen, kein 409. Idempotenz muss der
+   Aufrufer herstellen (erst lesen, dann schreiben).
+2. **Ein `runtimeConfig`-Schalter vom Typ String ist per Env keiner mehr.**
+   Nuxt schiebt Überschreibungen durch `destr()`: aus
+   `NUXT_CUSTOM_DOMAIN_DRY_RUN=1` wird die **Zahl** 1, und `1 === '1'` ist
+   falsch. Der Trockenlauf war damit still aus und meldete „ploi ist nicht
+   konfiguriert" — das sah aus wie ein fehlendes Token. Der Nachbar
+   `…_DNS_SERVERS=127.0.0.1:5354` war unauffällig, weil `destr` daraus keine
+   Zahl machen kann; solche Fehler treffen deshalb immer nur EINEN von mehreren
+   Schaltern. Konsequenz: `isDryRunFlag()` liest tolerant (`1/true/yes/on`).
+3. **Ein Unique-Index geht hier nicht.** `customDomain` ist optional mit Default
+   `''`, und leere Strings kollidieren in MariaDB — nach der ersten Zeile ohne
+   eigene Domain wäre keine Community mehr anlegbar. Die Eindeutigkeit setzt der
+   Code durch, und zwar über das FORMEN-PAAR (www + Apex), was ein
+   Spalten-Index ohnehin nie gesehen hätte.
+4. **Vite blockt im Dev-Server unbekannte Hosts mit 403** („add to
+   `server.allowedHosts`"). `.localhost` steht in seiner Erlaubnisliste, `.test`
+   nicht — eine vollständig freigeschaltete Domain antwortete deshalb 403 und
+   das sah nach einer Rechte-Prüfung aus. In Produktion gibt es Vite nicht.
+
+**Bekannte Grenze, bewusst NICHT behoben** (von David vorab benannt): der
+Konto-WS (`useRealtimeAccount`) ist cookie-nativ, weil die Sofort-Abmeldung bei
+Session-Widerruf am Cookie-Close hängt. Auf einer Kundendomain degradiert er auf
+den 30-s-Poll. CLAUDE.md verbietet die Konsolidierung auf JWT ausdrücklich.
+Zweite Folge derselben Cookie-Regel: wer die Domain aktiviert, **muss sich dort
+neu anmelden** — steht im Runbook.
+
+---
+
 ### H1 — Ein Fremder konnte sich in jeder Community einen `@namen` nehmen ✅ 2026-08-05
 
 **Der Befund** (gemessen am selben Tag, beim Bau des Grenzbeweises):
