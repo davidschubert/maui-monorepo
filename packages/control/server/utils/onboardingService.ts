@@ -135,9 +135,36 @@ export function assertOnboardingRuntimeProject(event: H3Event, claimed: string):
  */
 export async function verifyRuntimeIdentity(event: H3Event, jwt: string): Promise<RuntimeIdentity> {
   const config = useRuntimeConfig(event)
-  const projectId = onboardingRuntimeProject(event)
+  return await verifyIdentityAgainst(config.public.appwriteEndpoint, onboardingRuntimeProject(event), jwt)
+}
+
+/**
+ * DIESELBE PRÜFUNG, ABER GEGEN EIN GENANNTES PROJEKT (control-036).
+ *
+ * Der Pool ist EIN Projekt, deshalb konnte `verifyRuntimeIdentity` es fest
+ * verdrahten. Für die Silo-Domains gibt es viele: portfolio, comments und
+ * jedes weitere Studio-Deployment haben ihr eigenes Appwrite-Projekt.
+ *
+ * ── DASS DER AUFRUFER DAS PROJEKT NENNT, IST HIER KEIN LOCH ───────────────
+ * F33 hat gelehrt: „der Aufrufer darf sein Projekt nicht selbst bestimmen".
+ * Das galt für die beiden DSGVO-Routen, die OHNE JWT arbeiten — dort war die
+ * Projekt-Angabe eine ungeprüfte Zusage, und wer das Service-Secret hatte,
+ * konnte damit in fremden Runtimes lesen und löschen.
+ *
+ * Hier ist es umgekehrt: das Projekt wird nicht geglaubt, sondern GEPRÜFT,
+ * und zwar durch dieselbe Frage, die auch die Identität beweist. Ein JWT ist
+ * für genau ein Appwrite-Projekt ausgestellt; wer `projectId: B` behauptet und
+ * ein JWT aus Projekt A mitschickt, bekommt von Appwrite ein 401. Die
+ * Projekt-Angabe kann sich also nur selbst bestätigen — genau das, was F33
+ * verlangt.
+ *
+ * Woher `projectId` und `endpoint` kommen, entscheidet trotzdem NICHT der
+ * Body: beides wird aus der `websites`-Zeile gelesen, die der Betreiber
+ * gepflegt hat (`siteDomainGate.ts`). Der Body nennt nur, WELCHE Zeile.
+ */
+export async function verifyIdentityAgainst(endpoint: string, projectId: string, jwt: string): Promise<RuntimeIdentity> {
   const client = new Client()
-    .setEndpoint(config.public.appwriteEndpoint)
+    .setEndpoint(endpoint)
     .setProject(projectId)
     .setJWT(jwt)
 

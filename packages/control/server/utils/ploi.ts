@@ -76,6 +76,23 @@ export function isDryRunFlag(value: unknown): boolean {
   return ['1', 'true', 'yes', 'on'].includes(String(value ?? '').trim().toLowerCase())
 }
 
+/**
+ * Dieselbe Konfiguration, aber für eine SILO-Site (control-036).
+ *
+ * Token, Basis-URL und Trockenlauf kommen weiter aus der Env — sie gelten für
+ * das ganze Control Plane. Server und Site kommen aus der `websites`-ZEILE:
+ * jedes Silo hat seine eigene ploi-Site (portfolio 390041, comments 389772),
+ * und die Zuordnung ist Betriebsdatum, kein Code. Leer ⇒ `ploiConfigured()`
+ * ist falsch und der Zertifikatsschritt hält ehrlich an.
+ */
+export function ploiConfigForSite(event: H3Event, site: { serverId?: string | null, siteId?: string | null }): PloiConfig {
+  return {
+    ...ploiConfig(event),
+    serverId: (site.serverId || '').trim(),
+    siteId: (site.siteId || '').trim(),
+  }
+}
+
 export function ploiConfig(event: H3Event): PloiConfig {
   const config = useRuntimeConfig(event) as {
     ploiToken?: string
@@ -213,6 +230,178 @@ export async function requestPloiTenantCertificate(config: PloiConfig, host: str
   return { ok: result.ok, message: result.message }
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+ * SILO-SITES: ALIASSE STATT TENANTS (control-036, 2026-08-07)
+ *
+ * Eine Pool-Kundendomain wird ein ploi-TENANT: eigener vHost, eigenes
+ * Zertifikat, eigene Lineage — weil die `platform`-Site das Kunden-Wildcard
+ * `*.pukalani.app` trägt und dort NIE ein Site-Zertifikat angefordert werden
+ * darf (CLAUDE.md, der 40-Minuten-Vorfall).
+ *
+ * Bei einem SILO ist das anders, und zwar nachgemessen: die Site
+ * `portfolio.pukalani.app` (390041) hat ein einzelnes Let's-Encrypt-Zertifikat
+ * mit `domain: "portfolio.pukalani.app"`, `tenant: false` — eine EIGENE
+ * Lineage, die mit dem Wildcard nichts zu tun hat. Ein Silo bedient außerdem
+ * genau EINE App; die Kundendomain soll denselben vHost bekommen, nicht einen
+ * zweiten daneben. Also: ALIAS an der Site + EIN Zertifikat über alle Namen
+ * der Site.
+ *
+ * ── DAS „ALLE NAMEN" IST DIE GANZE VORSICHT ───────────────────────────────
+ * certbot ersetzt eine Lineage durch die Namen, die man ihr gibt. Fordert man
+ * ein Zertifikat NUR für `www.pukalani.studio` an, verliert
+ * `portfolio.pukalani.app` sein TLS — der alte Host wäre tot, und zwar genau
+ * der, der laut Zusage Rückfall bleiben soll. Deshalb baut
+ * `siteCertificateDomains()` die Liste aus Site-Domain + bestehenden Aliassen
+ * + neuer Domain, und die SITE-DOMAIN STEHT VORNE: certbot benennt die
+ * Lineage nach dem ersten Namen, und sie soll weiter `portfolio.pukalani.app`
+ * heißen.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+export interface PloiSiteInfo {
+  /** Die Haupt-Domain der Site (`portfolio.pukalani.app`). */
+  main: string
+  /** Die zusätzlich bedienten Namen. */
+  aliases: string[]
+}
+
+/** Haupt-Domain + Aliasse einer Site. */
+export async function listPloiSiteAliases(config: PloiConfig): Promise<{ ok: boolean, info: PloiSiteInfo, message: string }> {
+  const empty: PloiSiteInfo = { main: '', aliases: [] }
+  if (config.dryRun) return { ok: true, info: empty, message: '' }
+  if (!ploiConfigured(config)) return { ok: false, info: empty, message: 'ploi ist nicht konfiguriert (Token/Server/Site).' }
+  const result = await ploiFetch(config, `/servers/${config.serverId}/sites/${config.siteId}/aliases`, { method: 'GET' })
+  if (!result.ok) return { ok: false, info: empty, message: result.message }
+  const data = (result.data as { data?: { aliases?: unknown, main?: unknown } })?.data
+  return {
+    ok: true,
+    info: {
+      main: typeof data?.main === 'string' ? data.main : '',
+      aliases: Array.isArray(data?.aliases) ? data.aliases.filter((entry): entry is string => typeof entry === 'string') : [],
+    },
+    message: '',
+  }
+}
+
+/**
+ * Die Hostnamen an die Site hängen — und HINTERHER NACHSEHEN, ob sie hängen.
+ *
+ * ── WARUM DIE VEREINIGUNG GESCHICKT WIRD ──────────────────────────────────
+ * ploi dokumentiert diesen Endpunkt als „Aliasse hinzufügen"; seine
+ * Oberfläche zeigt aber EIN Feld mit allen Aliassen, was für „setzen" spricht.
+ * Beides ist plausibel, und geraten wird hier nichts: geschickt wird die
+ * VEREINIGUNG aus bestehenden und neuen Namen. Unter „setzen" ist das exakt
+ * richtig (nichts geht verloren), unter „hinzufügen" ist es höchstens
+ * überflüssig.
+ *
+ * ── UND WARUM DANACH NOCH EINMAL GELESEN WIRD ─────────────────────────────
+ * Weil eine Vermutung über eine fremde API kein Beweis ist. Ein `2xx` von ploi
+ * heißt „angenommen"; ob der Name danach wirklich im `server_name` steht, sagt
+ * nur die Liste. Steht er nicht drin, endet das hier mit einem ehrlichen
+ * Fehler statt mit einer Zertifikatsanforderung für einen Namen, den nginx
+ * nicht kennt (die scheitert dann bei Let's Encrypt und sieht aus wie ein
+ * DNS-Problem des Kunden).
+ */
+export async function ensurePloiAliases(config: PloiConfig, hosts: string[]): Promise<PloiResult> {
+  if (config.dryRun) return { ok: true, skipped: true, message: '' }
+  if (!ploiConfigured(config)) {
+    return { ok: false, skipped: true, message: 'ploi ist für diese Website nicht hinterlegt (Server-/Site-Id fehlt).' }
+  }
+
+  const existing = await listPloiSiteAliases(config)
+  if (!existing.ok) return { ok: false, message: existing.message }
+
+  // Die Haupt-Domain ist KEIN Alias — stünde sie in der Liste, träge ploi sie
+  // ein zweites Mal in `server_name` ein und nginx würde den vHost verwerfen.
+  const wanted = hosts.filter(host => host && host !== existing.info.main)
+  const missing = wanted.filter(host => !existing.info.aliases.includes(host))
+  if (!missing.length) return { ok: true, message: '' }
+
+  const union = [...new Set([...existing.info.aliases, ...wanted])]
+  const result = await ploiFetch(config, `/servers/${config.serverId}/sites/${config.siteId}/aliases`, {
+    method: 'POST',
+    body: { aliases: union },
+  })
+  if (!result.ok) return { ok: false, message: result.message }
+
+  const after = await listPloiSiteAliases(config)
+  if (!after.ok) return { ok: false, message: after.message }
+  const stillMissing = wanted.filter(host => !after.info.aliases.includes(host))
+  if (stillMissing.length) {
+    return { ok: false, message: `ploi hat den Alias nicht übernommen: ${stillMissing.join(', ')}` }
+  }
+  return { ok: true, message: '' }
+}
+
+/** Alle Namen, die das Zertifikat der Site tragen MUSS — Haupt-Domain zuerst. */
+export function siteCertificateDomains(info: PloiSiteInfo, add: string[]): string[] {
+  return [...new Set([info.main, ...info.aliases, ...add].filter(Boolean))]
+}
+
+/** Die Zertifikate der Site (Domain-Liste + Status). */
+export async function listPloiCertificates(config: PloiConfig): Promise<{ ok: boolean, certificates: { domain: string, status: string }[], message: string }> {
+  if (config.dryRun) return { ok: true, certificates: [], message: '' }
+  if (!ploiConfigured(config)) return { ok: false, certificates: [], message: 'ploi ist nicht konfiguriert (Token/Server/Site).' }
+  const result = await ploiFetch(config, `/servers/${config.serverId}/sites/${config.siteId}/certificates`, { method: 'GET' })
+  if (!result.ok) return { ok: false, certificates: [], message: result.message }
+  const raw = (result.data as { data?: unknown })?.data
+  const certificates = Array.isArray(raw)
+    ? raw.map(entry => ({
+        domain: typeof (entry as { domain?: string })?.domain === 'string' ? (entry as { domain: string }).domain : '',
+        status: typeof (entry as { status?: string })?.status === 'string' ? (entry as { status: string }).status : '',
+      }))
+    : []
+  return { ok: true, certificates, message: '' }
+}
+
+/** PURE: deckt eines der vorhandenen Zertifikate ALLE gewünschten Namen ab? */
+export function certificateCovers(
+  certificates: { domain: string, status: string }[],
+  wanted: string[],
+): boolean {
+  const need = wanted.map(host => host.trim().toLowerCase()).filter(Boolean)
+  if (!need.length) return false
+  return certificates.some((entry) => {
+    // ploi legt die Namen eines Zertifikats kommagetrennt in `domain` ab.
+    if (entry.status !== 'active') return false
+    const covered = new Set(entry.domain.split(',').map(host => host.trim().toLowerCase()).filter(Boolean))
+    return need.every(host => covered.has(host))
+  })
+}
+
+/**
+ * EIN Zertifikat für ALLE Namen dieser SILO-Site anfordern.
+ *
+ * ── DIE SPERRE GEGEN DEN WIEDERHOLUNGS-KLICK ──────────────────────────────
+ * „Prüfen" ist re-entrant und soll es bleiben — es ist die einzige Bedienung
+ * des Ablaufs. Genau daraus wird hier aber eine Gefahr: Let's Encrypt lässt
+ * pro Woche **fünf** identische Zertifikate (gleiche Namensmenge) zu. Wer
+ * während der Ausstellung sechsmal klickt, sperrt sich für sieben Tage aus —
+ * und die Fehlermeldung („too many certificates already issued") kommt erst
+ * beim sechsten Mal und nennt keinen der vorherigen fünf Klicks.
+ *
+ * Deshalb wird VOR jeder Anforderung gelesen: deckt ein aktives Zertifikat die
+ * gewünschte Namensmenge schon ab, passiert nichts. Nur die erste Anforderung
+ * je Namensmenge geht wirklich raus.
+ */
+export async function requestPloiSiteCertificate(config: PloiConfig, domains: string[]): Promise<PloiResult> {
+  if (config.dryRun) return { ok: true, skipped: true, message: '' }
+  if (!ploiConfigured(config)) {
+    return { ok: false, skipped: true, message: 'ploi ist für diese Website nicht hinterlegt (Server-/Site-Id fehlt).' }
+  }
+  if (!domains.length) return { ok: false, message: 'Keine Domains für das Zertifikat.' }
+
+  const existing = await listPloiCertificates(config)
+  if (existing.ok && certificateCovers(existing.certificates, domains)) {
+    return { ok: true, skipped: true, message: '' }
+  }
+
+  const result = await ploiFetch(config, `/servers/${config.serverId}/sites/${config.siteId}/certificates`, {
+    method: 'POST',
+    body: { certificate: domains.join(',') },
+  })
+  return { ok: result.ok, message: result.message }
+}
+
 /**
  * Einen Hostnamen wieder abhängen (Domain entfernt).
  *
@@ -222,6 +411,46 @@ export async function requestPloiTenantCertificate(config: PloiConfig, host: str
  * ist Aufräumarbeit, kein Sicherheitsproblem — er zeigt auf eine App, die den
  * Host nicht kennt.
  */
+/**
+ * Aliasse einer SILO-Site wieder abhängen (Domain zurückgegeben).
+ *
+ * ── HIER IST ES NICHT NUR HAUSARBEIT, ANDERS ALS IM POOL ──────────────────
+ * Bei einer Pool-Kundendomain ist ein zurückgelassener vHost harmlos: der
+ * Tenant-Resolver findet die Community nicht mehr und die Adresse antwortet
+ * 404. Eine SILO-App hat diese Tür nicht — sie beantwortet jeden Host, unter
+ * dem nginx sie erreichbar macht. Bleibt der Alias stehen, liefert die Site
+ * also weiter Inhalte unter einer Adresse, die dem Kunden nicht mehr gehört.
+ * Deshalb wird ein Fehlschlag hier protokolliert UND dem Betreiber gemeldet,
+ * statt still verschluckt zu werden.
+ *
+ * Geschickt wird die REDUZIERTE Liste, aus demselben Grund wie beim Anlegen
+ * die Vereinigung: unter „setzen" ist sie exakt richtig, unter „hinzufügen"
+ * bewirkt sie nichts — und dann sagt das Nachlesen es.
+ */
+export async function removePloiAliases(config: PloiConfig, hosts: string[]): Promise<PloiResult> {
+  if (config.dryRun) return { ok: true, skipped: true, message: '' }
+  if (!ploiConfigured(config)) return { ok: false, skipped: true, message: '' }
+
+  const existing = await listPloiSiteAliases(config)
+  if (!existing.ok) return { ok: false, message: existing.message }
+  const drop = new Set(hosts)
+  const remaining = existing.info.aliases.filter(alias => !drop.has(alias))
+  if (remaining.length === existing.info.aliases.length) return { ok: true, message: '' }
+
+  const result = await ploiFetch(config, `/servers/${config.serverId}/sites/${config.siteId}/aliases`, {
+    method: 'POST',
+    body: { aliases: remaining },
+  })
+  if (!result.ok) return { ok: false, message: result.message }
+
+  const after = await listPloiSiteAliases(config)
+  const stillThere = after.ok ? after.info.aliases.filter(alias => drop.has(alias)) : []
+  if (stillThere.length) {
+    return { ok: false, message: `Alias bei ploi nicht entfernt: ${stillThere.join(', ')} — die Site antwortet dort weiter.` }
+  }
+  return { ok: true, message: '' }
+}
+
 export async function removePloiTenant(config: PloiConfig, host: string): Promise<PloiResult> {
   if (config.dryRun) return { ok: true, skipped: true, message: '' }
   if (!ploiConfigured(config)) return { ok: false, skipped: true, message: '' }

@@ -1,9 +1,9 @@
 import { randomBytes } from 'node:crypto'
-import { Query } from 'node-appwrite'
 import { z } from 'zod'
 import { COMMUNITIES_TABLE, type TenantRow } from '../../../../../shared/types/tenantRecord'
-import { customDomainForms, validateCustomDomain } from '../../../../../shared/customDomain'
+import { validateCustomDomain } from '../../../../../shared/customDomain'
 import { customDomainStateFor } from '../../../../utils/customDomainService'
+import { customDomainTakenByOther } from '../../../../utils/customDomainOwnership'
 import { requireCommunityDomainOwner } from '../../../../utils/communityDomainGate'
 import { requireOnboardingCaller } from '../../../../utils/onboardingService'
 
@@ -22,12 +22,13 @@ import { requireOnboardingCaller } from '../../../../utils/onboardingService'
  * Fall, in dem jemand einen alten TXT-Record aus einer früheren Prüfung stehen
  * lässt und die Domain damit ohne neuen Nachweis zurückholt.
  *
- * ── EINDEUTIGKEIT ÜBER BEIDE FORMEN ───────────────────────────────────────
+ * ── EINDEUTIGKEIT ÜBER BEIDE FORMEN UND (seit control-036) BEIDE TABELLEN ──
  * Ein Unique-Index geht nicht (leere Strings kollidieren in MariaDB — s.
  * Migration control-035), also prüft der Code. Und er prüft das PAAR: trägt
  * Community A `www.kunde.de`, darf Community B auch `kunde.de` nicht
  * bekommen — beide Formen lösen auf dieselbe Zeile auf, und die zweite
- * Community bekäme sonst eine Adresse, die einer anderen gehört.
+ * Community bekäme sonst eine Adresse, die einer anderen gehört. Seit es
+ * eigene Domains auch für SILOS gibt, zählt `websites` mit.
  *
  * DIE PRÜFUNG IST EIN RENNEN, und das ist bewusst so hingenommen: zwei
  * gleichzeitige Eintragungen derselben Domain durch zwei Communities könnten
@@ -52,19 +53,17 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 400, statusText: 'Invalid domain', data: { code: `domain_${check.reason}` } })
   }
   const domain = check.domain
-  const forms = customDomainForms(domain)
 
-  const admin = createAdminClient(event)
-  const { rows: taken } = await admin.tablesDB.listRows<TenantRow>({
-    databaseId,
-    tableId: COMMUNITIES_TABLE,
-    queries: [Query.equal('customDomain', forms), Query.limit(5)],
-  }).catch((error) => { throw toH3Error(error, 'Could not check domain') })
-
-  if (taken.some(entry => entry.$id !== row.$id)) {
+  // SEIT control-036 ÜBER BEIDE TABELLEN. Vorher fragte diese Zeile nur
+  // `communities` — seit es eigene Domains auch für Silos gibt (`websites`),
+  // wäre dieselbe Domain gleichzeitig an eine Community und an ein Silo
+  // vergebbar gewesen, und wer antwortet, entschiede die Reihenfolge der
+  // nginx-vHosts. Begründung und Formen-Paar: `utils/customDomainOwnership.ts`.
+  if (await customDomainTakenByOther(event, { domain, allowCommunityId: row.$id })) {
     throw createError({ status: 409, statusText: 'Domain already taken', data: { code: 'domain_taken' } })
   }
 
+  const admin = createAdminClient(event)
   const token = randomBytes(16).toString('hex')
   const saved = await admin.tablesDB.updateRow<TenantRow>({
     databaseId,
