@@ -806,3 +806,15 @@ genommen: ein einmal vergebener Name (`@vorstand`) ist in dieser Community
 endgültig belegt — seit H1 kann ihn aber nur noch ein Mitglied nehmen.
 Das ist das HEUTIGE Verhalten; es war offen, ob es Absicht ist — jetzt ist es
 entschieden, kein Code-Änderungsbedarf.
+
+## 2026-08-07 — B7: Die Marketing-Landing bekommt Dark Mode
+
+**Entscheidung (David):** Der seit dem Audit-Bugfix 2026-07-31 auf `light`
+geklemmte color-mode der Landing wird aufgehoben — Dark Mode wird nachgerüstet,
+die Licht-Dramaturgie bleibt nicht als Allein-Markenzeichen stehen. Machbar
+seit der Nuxt-UI-Migration (P1–P5): die Komponenten laufen über Theme-Tokens,
+zu bauen ist im Kern ein `.dark`-Zweig für die `tone-*`-Lichtstimmung in
+`marketing.css` plus das Lösen der Preference-/Route-Meta-Klemme (Begründung
+der Klemme in `apps/marketing/nuxt.config.ts` — localStorage-Bestandswerte
+schlagen die Preference, das muss der Umbau berücksichtigen). Eigenes Paket,
+Claude allein; steht als B7 in OPEN-ITEMS.

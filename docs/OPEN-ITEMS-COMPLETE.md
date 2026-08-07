@@ -29,6 +29,78 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F47 (Teil) — Adblock-Proxy + vordefinierte Ereignisse ✅ 2026-08-07
+
+Die zwei Code-Stücke aus „Analytics v2, Paket 5" ([Plan](plans/ANALYTICS-V2.md));
+offen bleibt in F47 nur noch die Plausible-Mail-Report-Konfiguration (Betreiber-
+Konsole, kein Code). Am selben Tag entschieden und protokolliert: **B7** —
+die Marketing-Landing bekommt Dark Mode (DECISION-LOG; eigenes Paket, neu als
+Zeile 5 in OPEN-ITEMS).
+
+**Adblock-Proxy:** Script und Events laufen first-party über den Community-Host
+statt über `plausible.hawaii.studio` — Adblocker blocken die fremde Herkunft,
+nicht die eigene (offizieller Plausible-Weg „Bypass adblockers"). Zwei Routen im
+analytics-Layer: `GET /js/pa-<id>.js` (server/routes) und `POST /api/event`,
+beide hinter dem neuen Gate `pukalani.analytics.proxy` (Core-Default AUS,
+platform AN); das Head-Plugin baut dann den relativen Script-Pfad und gibt
+`plausible.init({ endpoint: '/api/event' })` mit (Konstanten + pure Regel
+`plausibleProxyScriptPath` in core/shared/analyticsScript.ts). Drei bewusste
+Züge: (1) **Erlaubnisliste statt h3-`proxyRequest`** — der reichte alle
+Kopfzeilen inkl. Session-Cookie an die Instanz weiter; jetzt gehen genau
+Body/Content-Type/User-Agent/Besucher-IP durch. (2) **`X-Forwarded-For` =
+`trustedClientIp`** (das letzte, vom eigenen nginx angehängte Segment): Plausible
+liest das ERSTE Segment und sein Bot-Filter verwirft still, wenn dort die
+Server-IP steht — die durchgereichte Client-Kette wäre zudem fälschbar gewesen.
+(3) **Rate-Limit** `analytics:event` (120/min, zentrale Middleware) — der
+Einwurf ist session-los öffentlich und sonst ein Verstärker auf die Instanz.
+Kein offener Proxy: Ziel-Basis aus der Config, aus der URL nur eine geprüfte Id.
+
+**Vordefinierte Ereignisse:** Vokabular in core/shared/analyticsEvents.ts
+(fünf Namen: Member Joined, Comment Created, Post Created, Event RSVP, Course
+Enrolled — englisch/stabil, weil Datenbestand in Plausible), gesendet über den
+EINEN Client-Weg `trackAnalyticsEvent('<schlüssel>')` (core/app/utils, No-Op
+ohne geladenes Snippet, wirft nie). Sechs Aufrufstellen: Kommentar (Mitglied +
+Gast — das Ereignis ist „Kommentar", nicht „Konto"), Beitrag, RSVP,
+Einschreibung, Registrierung (NUR das Register-Formular, nicht der OTP-Verify —
+der ist auch der Login-Weg, ein wiederkehrendes Mitglied zählte sonst jedes Mal
+als Beitritt). Rückweg: sechste Stats-Abfrage (`event:name`-Dimension, Metrik
+`events`, Filter auf GENAU das Vokabular UND-verknüpft mit dem Hostname-Filter
+der Sammel-Site — sonst zählte die Liste die Aktionen ALLER Communities),
+einzeln fail-soft (`topEvents` fehlt dann, statt die ganze Statistik auf
+„nicht erreichbar" zu stellen), Karte „Was passiert ist (30 Tage)" auf
+/dashboard/analytics. Goals in Plausible sind dafür NICHT nötig (`event:name`
+ist frei abfragbar); wer die Ereignisse auch in der Betreiber-Konsole als Goals
+sehen will, legt sie dort einmalig von Hand an — optional.
+
+**Betrieb:** geht mit dem nächsten platform-Deploy live, KEINE Migration, keine
+neue Env-Variable. Die statischen Betreiber-Configs (marketing, comments,
+portfolio — `src`/`domain`) sind unberührt; Silo-Apps ohne den analytics-Layer
+dürfen `proxy` nicht setzen (Snippet zeigte auf ein 404, Kommentar am
+Core-Default warnt).
+
+**Beweise:** Unit — core 763 (neu: Proxy-Pfad-Regel fail-closed, Vokabular
+eindeutig + kollidiert nicht mit `pageview`/`engagement`, Name→Schlüssel-
+Rückweg), analytics 36 (neu: Ereignis-Abfrage trägt BEIDE Filter,
+Antwort-Mapping); typecheck platform + comments, Lint, check:manifests,
+check:single-copy grün. Live gegen einen lokalen Instanz-Stub (Dev-Server
+platform, Container hat keinen Weg zur echten Instanz): Script 200 mit
+durchgereichtem content-type/cache-control/etag, 304-Durchreichung, Event 202
+„ok" mit Body/UA/Content-Type beim Stub; Negativproben böse Id/Traversal/ohne
+`.js` → 404, Body >8 KiB → 413, leer → 400; `X-Forwarded-For: 203.0.113.7,
+198.51.100.1` kommt als GENAU `198.51.100.1` an (behauptetes erstes Segment
+verworfen); ein mitgeschicktes Session-Cookie erreicht den Stub NIE (0 Treffer
+im Log); SSR-Seite lebt fail-soft ohne erreichbares Appwrite (200, kein Snippet).
+
+**Gelernt:** Die naheliegende Proxy-Hilfe (`proxyRequest`) war die falsche,
+und das sah man erst am Quelltext: sie leitet Kopfzeilen als BLOCKLISTE weiter
+— das Session-Cookie wäre bei jedem Seitenaufruf jedes Gastes an die
+Analytics-Instanz gegangen. Bei einem Proxy über Vertrauensgrenzen ist die
+Erlaubnisliste der einzige Zuschnitt, der beim Wachsen des Requests still
+richtig bleibt. Und: beim Beweis zweimal in die eigene Falle gelaufen —
+`pkill -f` killte den eigenen Befehl (das Muster stand in seiner Kommandozeile),
+und ein `-H '\"…\"'`-Tippfehler ließ die 304-Probe scheitern, was wie ein
+Code-Fehler aussah. Erst Stub-Log lesen, dann Code verdächtigen.
+
 ### H1 — Ein Fremder konnte sich in jeder Community einen `@namen` nehmen ✅ 2026-08-05
 
 **Der Befund** (gemessen am selben Tag, beim Bau des Grenzbeweises):

@@ -1,8 +1,9 @@
-# Analytics v2 — Plan (Pakete 1–4 GEBAUT, nur 5/Optionales offen)
+# Analytics v2 — Plan (Pakete 1–4 GEBAUT, aus 5 nur noch Mail-Reports offen)
 
-Stand: 2026-08-04. Die v1 UND die Pakete 1+2 dieses Plans sind live —
-Einträge mit Beweisen in [OPEN-ITEMS-COMPLETE.md](../OPEN-ITEMS-COMPLETE.md).
-Offen geführt wird der Rest (3–5) als **F47** in
+Stand: 2026-08-07. Die v1 UND die Pakete 1–4 sind live; aus Paket 5 sind
+Adblock-Proxy und vordefinierte Ereignisse am 2026-08-07 gebaut — Einträge
+mit Beweisen in [OPEN-ITEMS-COMPLETE.md](../OPEN-ITEMS-COMPLETE.md).
+Offen geführt wird nur noch der Rest (Plausible-Mail-Reports) als **F47** in
 [OPEN-ITEMS.md](../OPEN-ITEMS.md).
 
 **Architektur-Pivot bei Paket 1 (Davids Entscheidung 2026-08-04):** die
@@ -61,12 +62,18 @@ Hilfe-Artikel in apps/help (de/en); ein Satz zu Plausible in den
 Datenschutz-Vorlagen der Communities (gemeinsam mit A1 abarbeiten).
 
 ### 5. Optional (je nach Lust, unpriorisiert)
-- **Adblock-Proxy**: Script + `/api/event` über den eigenen Community-Host
-  proxyen (offiziell dokumentiert, „Bypass adblockers") — spürbar genauere
-  Zahlen, etwas nginx-/Nitro-Arbeit.
-- **Vordefinierte Events/Goals** der Plattform: „Mitglied geworden",
-  „Kommentar geschrieben", … (Custom Events + Goals per Sites-API anlegen).
-- **Plausible-E-Mail-Reports** (weekly/monthly) je Site aktivieren.
+- **Adblock-Proxy** — ✅ GEBAUT 2026-08-07: zwei Nitro-Routen im
+  analytics-Layer (`/js/pa-<id>.js` + `/api/event`), Gate
+  `pukalani.analytics.proxy` (platform an), `plausible.init({ endpoint })`.
+  Kein nginx nötig. Einzelheiten im COMPLETE-Eintrag.
+- **Vordefinierte Ereignisse** — ✅ GEBAUT 2026-08-07: fünf Custom Events
+  (Vokabular core/shared/analyticsEvents.ts, Sender `trackAnalyticsEvent`),
+  Karte „Was passiert ist" im Dashboard über die `event:name`-Dimension.
+  Die „per Sites-API anlegen"-Idee aus der ersten Fassung war seit dem
+  CE-Pivot ohnehin tot — Goals braucht das Dashboard nicht (`event:name` ist
+  frei abfragbar); Goals in der Betreiber-Konsole bleiben optionale Handarbeit.
+- **Plausible-E-Mail-Reports** (weekly/monthly) je Site aktivieren —
+  der letzte offene Rest (Betreiber-Konfiguration, kein Code).
 
 ## Grobe Rechnung
 Pakete 1+2 zusammen ≈ ein solides Wochenpaket · 3+4 ≈ ein Nachmittag plus

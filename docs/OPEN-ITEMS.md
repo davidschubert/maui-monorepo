@@ -1,8 +1,8 @@
 # Offene Punkte
 
-**Stand: 2 offen · 3 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 3 offen · 3 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
-Stand: **2026-08-04**. Hier steht **nur, was noch offen ist** — in der
+Stand: **2026-08-07**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
 Beweis und den gelernten Lektionen) steht final in
 **[OPEN-ITEMS-COMPLETE.md](OPEN-ITEMS-COMPLETE.md)**.
@@ -20,6 +20,7 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | --- | --- | --- | --- | --- | --- |
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen (**Anleitung dabei mitschreiben — ab Schritt 2 veraltet, Workspace-Welt**) und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
+| 5 · B7 | **Dark Mode für die Marketing-Landing** nachrüsten — Davids Entscheidung 2026-08-07 (DECISION-LOG). Kern: `.dark`-Zweig für die `tone-*`-Lichtstimmung + die `light`-Klemme lösen. | Niedrig | S–M | Nein | [Notizen](#notizen) |
 
 ## ⏸️ Geparkt / wartet — in Arbeitsreihenfolge
 
@@ -33,7 +34,7 @@ Nachmittag hält, plant an F1/F3/F7 vorbei.
 | --- | --- | --- | --- | --- | --- | --- |
 | F7 | 5 — Wochen | **Bezahlte Communities** — der Owner nimmt Geld von seinen Mitgliedern (Stripe Connect). Eigene Mechanik und eigene Rechtsfragen. **Schluckt D1** (Davids Entscheidung 2026-08-02): bezahlte Pool-Events/-Kurse ergeben erst mit Connect Sinn — sonst landete das Ticketgeld beim Betreiber und der Owner bräuchte je Preis einen lookup_key von David. Events-Hälfte technisch M (S7+A6 haben den alten Webhook-Wartegrund erledigt), Kurse-Hälfte L/XL (community-scoped Entitlements sind unentworfen). | Mittel | XL | Ja: Rechtsfragen | nach dem Go-Live; erst muss Geldfluss 1 (A6) ankommen |
 | F3 | 6 — Wochen | **Silo → Pool:** `comments` und `portfolio` laufen als eigene Instanzen. Langfristig ist der Pool das Produkt, Silo bleibt das Enterprise-Angebot. | Niedrig | XL | Ja: strategisch | eine strategische Entscheidung |
-| F47 | 7 — Tage | **Analytics v2, Rest = nur noch Optionales** (Pakete 1–4 live seit 2026-08-04 — Schalter, Dashboard-Zahlen, Landing-Seite/Pricing, Hilfe + Datenschutz-Vorlage): Adblock-Proxy · vordefinierte Events/Goals · Plausible-Mail-Reports. Nichts davon drängt. | Niedrig | je S–M | Nein | [ANALYTICS-V2.md](plans/ANALYTICS-V2.md) |
+| F47 | 7 — Stunden | **Analytics v2, letzter Rest: Plausible-Mail-Reports** je Site aktivieren (Betreiber-Konfiguration in Plausible, kein Code). Adblock-Proxy und vordefinierte Ereignisse sind seit 2026-08-07 GEBAUT ([COMPLETE](OPEN-ITEMS-COMPLETE.md)) — sie gehen mit dem nächsten platform-Deploy live, keine Migration nötig. | Niedrig | S | Ja: Plausible-Konsole | [ANALYTICS-V2.md](plans/ANALYTICS-V2.md) |
 
 ---
 
@@ -261,14 +262,15 @@ Ausführen, und die Reihenfolge ist Pflicht:** erst den Code deployen, dann
 migrieren — andersherum liest der Fallback gegen eine gelöschte Spalte.
 Herkunft: Pool-Audit N2.
 
-**B7 — Dark Mode für die Marketing-Landingpage?** Seit dem Audit-Bugfix
+**B7 — Dark Mode für die Marketing-Landingpage: ENTSCHIEDEN (2026-08-07,
+DECISION-LOG) — Dark wird nachgerüstet.** Ausgangslage: seit dem Audit-Bugfix
 2026-07-31 ist color-mode dort bewusst auf `light` geklemmt (Preference +
 Route-Meta, weil localStorage-Bestandswerte die Preference schlagen —
-Begründung in `apps/marketing/nuxt.config.ts`). Durch die Nuxt-UI-Migration
-(P1–P5, ebenfalls 2026-07-31) wäre echter Dark-Support jetzt machbar: die
-Komponenten laufen über Theme-Tokens, nur die `tone-*`-Licht-Dramaturgie in
-`marketing.css` bräuchte einen `.dark`-Zweig. Bleibt die Seite bewusst hell
-(Licht-Dramaturgie als Markenzeichen), oder Dark nachrüsten?
+Begründung in `apps/marketing/nuxt.config.ts`; der Umbau muss genau diese
+Falle wieder bedenken). Machbar durch die Nuxt-UI-Migration (P1–P5): die
+Komponenten laufen über Theme-Tokens, zu bauen ist der `.dark`-Zweig für die
+`tone-*`-Licht-Dramaturgie in `marketing.css` plus das Lösen der Klemme.
+Eigenes Paket, steht als Zeile 5 in der Tabelle oben.
 
 **M13 — Reste des Self-Service-Onboardings:** Trial-Banner +
 Ablauf-Erinnerung · Kundenbereich-Umzug `/workspace` → `my.*` ·
