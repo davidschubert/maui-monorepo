@@ -53,6 +53,7 @@ async function enroll() {
   enrollBlock.value = null
   try {
     await $fetch(`/api/courses/${route.params.slug}/enroll`, { method: 'POST' })
+    trackAnalyticsEvent('courseEnrolled')
     toast.add({ title: t('courses.detail.enrolled'), description: t('courses.detail.enrolledHint'), color: 'success' })
     await refresh()
   }

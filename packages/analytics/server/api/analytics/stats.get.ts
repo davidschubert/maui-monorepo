@@ -1,6 +1,7 @@
 import type { H3Event } from 'h3'
 import {
   buildStatsQueries,
+  mapEventCounts,
   mapNamedCounts,
   mapSeries,
   mapTotals,
@@ -134,15 +135,19 @@ export default defineEventHandler(async (event): Promise<AnalyticsStatsResponse>
   const queries = buildStatsQueries(target.siteId, target.filters)
 
   try {
-    // Fünf Abfragen, weil `date_range` für die GANZE Abfrage gilt — „heute" und
-    // „30 Tage" lassen sich nicht zusammenlegen. Nebeneinander, damit die Seite
-    // nicht fünf Umläufe lang wartet.
-    const [today, totals, series, topPages, topSources] = await Promise.all([
+    // Sechs Abfragen, weil `date_range` für die GANZE Abfrage gilt — „heute"
+    // und „30 Tage" lassen sich nicht zusammenlegen. Nebeneinander, damit die
+    // Seite nicht sechs Umläufe lang wartet. Die EREIGNIS-Abfrage (F47) fällt
+    // EINZELN weich (`null` statt Wurf): sie ist die jüngste und hängt an der
+    // `event:name`-Dimension — scheiterte sie, wäre sonst die GANZE Statistik
+    // „nicht erreichbar", obwohl fünf Antworten längst da sind.
+    const [today, totals, series, topPages, topSources, events] = await Promise.all([
       query(baseUrl, apiKey, queries.today),
       query(baseUrl, apiKey, queries.totals),
       query(baseUrl, apiKey, queries.series),
       query(baseUrl, apiKey, queries.topPages),
       query(baseUrl, apiKey, queries.topSources),
+      query(baseUrl, apiKey, queries.events).catch(() => null),
     ])
 
     const response: AnalyticsStatsResponse = {
@@ -152,6 +157,7 @@ export default defineEventHandler(async (event): Promise<AnalyticsStatsResponse>
       series: mapSeries(series),
       topPages: mapNamedCounts(topPages),
       topSources: mapNamedCounts(topSources),
+      ...(events ? { topEvents: mapEventCounts(events) } : {}),
     }
     writeAnalyticsStatsCache(event, response)
     return response

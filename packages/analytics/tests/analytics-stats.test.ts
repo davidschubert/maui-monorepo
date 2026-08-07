@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
+import { ANALYTICS_EVENT_NAMES } from '../../core/shared/analyticsEvents'
 import {
   ANALYTICS_LIST_LIMIT,
   ANALYTICS_TOTAL_METRICS,
   buildStatsQueries,
+  mapEventCounts,
   mapNamedCounts,
   mapSeries,
   mapTotals,
@@ -72,18 +74,39 @@ describe('resolveStatsTarget', () => {
 describe('buildStatsQueries', () => {
   const queries = buildStatsQueries('communities.pukalani.app', [['is', 'event:hostname', [HOST]]])
 
-  it('trägt Site und Filter in JEDE der fünf Abfragen', () => {
+  it('trägt Site und Filter in JEDE der sechs Abfragen', () => {
     for (const query of Object.values(queries)) {
       expect(query.site_id).toBe('communities.pukalani.app')
-      expect(query.filters).toEqual([['is', 'event:hostname', [HOST]]])
+      expect(query.filters?.[0]).toEqual(['is', 'event:hostname', [HOST]])
     }
   })
 
-  it('lässt `filters` ganz weg, wenn nicht gefiltert wird (eigene Site)', () => {
+  it('lässt `filters` ganz weg, wenn nicht gefiltert wird (eigene Site) — außer beim Vokabular der Ereignis-Abfrage', () => {
     const own = buildStatsQueries(HOST, [])
-    for (const query of Object.values(own)) {
+    for (const [name, query] of Object.entries(own)) {
+      if (name === 'events') continue
       expect('filters' in query).toBe(false)
     }
+    expect(own.events.filters).toEqual([['is', 'event:name', ANALYTICS_EVENT_NAMES]])
+  })
+
+  /**
+   * Die Gegenprobe zur Mandanten-Trennung (F47): der Vokabular-Filter wird an
+   * den Hostname-Filter GEHÄNGT, nicht statt ihm gesetzt — sonst zählte die
+   * Ereignis-Liste die Aktionen ALLER Communities der Sammel-Site.
+   */
+  it('hängt den Ereignis-Filter AN den Hostname-Filter, statt ihn zu ersetzen', () => {
+    expect(queries.events.filters).toEqual([
+      ['is', 'event:hostname', [HOST]],
+      ['is', 'event:name', ANALYTICS_EVENT_NAMES],
+    ])
+  })
+
+  it('fragt die Ereignisse nach Name, Häufigkeit und mit Listen-Limit', () => {
+    expect(queries.events.dimensions).toEqual(['event:name'])
+    expect(queries.events.metrics).toEqual(['events'])
+    expect(queries.events.date_range).toBe('30d')
+    expect(queries.events.pagination).toEqual({ limit: ANALYTICS_LIST_LIMIT })
   })
 
   it('trennt „heute" und „30 Tage" — ein date_range gilt je Abfrage', () => {
@@ -152,5 +175,18 @@ describe('Antwort-Mapping', () => {
     expect(mapTotals({}).pageviews).toBe(0)
     expect(mapSeries({})).toEqual([])
     expect(mapNamedCounts({})).toEqual([])
+  })
+
+  it('liest die Ereignis-Liste und lässt namenlose wie leere Zeilen weg', () => {
+    expect(mapEventCounts({ results: [
+      { metrics: [30], dimensions: ['Comment Created'] },
+      { metrics: [4], dimensions: ['Member Joined'] },
+      { metrics: [12], dimensions: [''] },
+      { metrics: [0], dimensions: ['Post Created'] },
+    ] })).toEqual([
+      { name: 'Comment Created', count: 30 },
+      { name: 'Member Joined', count: 4 },
+    ])
+    expect(mapEventCounts({})).toEqual([])
   })
 })

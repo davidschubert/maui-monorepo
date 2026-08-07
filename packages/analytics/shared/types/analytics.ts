@@ -51,6 +51,17 @@ export interface AnalyticsNamedCount {
   visitors: number
 }
 
+/**
+ * Eine Zeile der Ereignis-Liste (F47): `name` ist der GESPEICHERTE Plausible-
+ * Name aus dem Vokabular (core/shared/analyticsEvents.ts), die Anzeige
+ * übersetzt ihn über `analyticsEventKey`. `count` zählt Ereignisse, nicht
+ * Besucher — die Frage ist „wie oft?", nicht „wie viele Menschen?".
+ */
+export interface AnalyticsEventCount {
+  name: string
+  count: number
+}
+
 export interface AnalyticsTotals {
   visitors: number
   pageviews: number
@@ -77,4 +88,11 @@ export interface AnalyticsStatsResponse {
   series?: AnalyticsSeriesPoint[]
   topPages?: AnalyticsNamedCount[]
   topSources?: AnalyticsNamedCount[]
+  /**
+   * Die vordefinierten Ereignisse (F47). FEHLT (undefined), wenn nur diese
+   * eine Teil-Abfrage scheiterte — die Seite zeigt die Karte dann nicht,
+   * statt die ganze Statistik auf „nicht erreichbar" zu stellen. Leer heißt
+   * dagegen ehrlich: gemessen wird, passiert ist (noch) nichts.
+   */
+  topEvents?: AnalyticsEventCount[]
 }

@@ -136,6 +136,9 @@ async function submit() {
       description: scheduled ? t('posts.composer.scheduledHint') : undefined,
       color: 'success',
     })
+    // Auch der geplante Beitrag zählt als „veröffentlicht": die Handlung ist
+    // das Schreiben, nicht der Zeitpunkt des Erscheinens.
+    trackAnalyticsEvent('postCreated')
     emit('created', row, scheduled)
     title.value = ''
     body.value = ''

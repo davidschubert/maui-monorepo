@@ -1,6 +1,7 @@
+import { ANALYTICS_EVENT_NAMES } from '../../core/shared/analyticsEvents'
 import { isPlausibleScriptId } from '../../core/shared/analyticsScript'
 import type { AnalyticsSettingsLike } from '../../core/shared/analyticsScript'
-import type { AnalyticsNamedCount, AnalyticsSeriesPoint, AnalyticsTotals } from './types/analytics'
+import type { AnalyticsEventCount, AnalyticsNamedCount, AnalyticsSeriesPoint, AnalyticsTotals } from './types/analytics'
 
 /**
  * DER VERTRAG ZUR PLAUSIBLE-STATS-API — pur, ohne h3, ohne fetch.
@@ -121,6 +122,7 @@ export interface AnalyticsQuerySet {
   series: PlausibleQuery
   topPages: PlausibleQuery
   topSources: PlausibleQuery
+  events: PlausibleQuery
 }
 
 /**
@@ -148,6 +150,25 @@ export function buildStatsQueries(siteId: string, filters: PlausibleFilter[]): A
       metrics: ['visitors'],
       date_range: ANALYTICS_RANGE,
       dimensions: ['visit:source'],
+      pagination: { limit: ANALYTICS_LIST_LIMIT },
+    },
+    /**
+     * DIE VORDEFINIERTEN EREIGNISSE (F47): Aufschlüsselung nach `event:name`,
+     * gefiltert auf GENAU das Plattform-Vokabular (core/shared/
+     * analyticsEvents.ts). Der Filter ist keine Kosmetik: ohne ihn stünden
+     * die eingebauten `pageview`/`engagement`-Events als größte Zeilen in der
+     * Liste — und auf einer eigenen Site (BYO) dazu jedes fremde Custom Event.
+     * Er wird per UND an den Hostname-Filter der Sammel-Site GEHÄNGT, nicht
+     * statt ihm — sonst zählte die Liste die Aktionen ALLER Communities.
+     * `events` als Metrik, weil die Frage „wie oft passiert?" ist, nicht „wie
+     * viele Menschen?" — 30 Kommentare von 3 Leuten sind 30 Kommentare.
+     */
+    events: {
+      ...base,
+      filters: [...filters, ['is', 'event:name', [...ANALYTICS_EVENT_NAMES]]],
+      metrics: ['events'],
+      date_range: ANALYTICS_RANGE,
+      dimensions: ['event:name'],
       pagination: { limit: ANALYTICS_LIST_LIMIT },
     },
   }
@@ -203,4 +224,16 @@ export function mapNamedCounts(response: PlausibleQueryResponse): AnalyticsNamed
   return (response.results ?? [])
     .map(entry => ({ name: textAt(entry.dimensions, 0), visitors: numberAt(entry.metrics, 0) }))
     .filter(entry => entry.name !== '')
+}
+
+/**
+ * PURE: die Ereignis-Liste (F47) — Name + wie oft. Dieselbe Hygiene wie bei
+ * den anderen Listen: ohne Namen keine Zeile, und Nullzähler fallen raus (die
+ * Abfrage liefert sie ohnehin nicht, aber eine Zeile „Kommentare: 0" wäre
+ * auch aus einer künftigen API-Version keine Information).
+ */
+export function mapEventCounts(response: PlausibleQueryResponse): AnalyticsEventCount[] {
+  return (response.results ?? [])
+    .map(entry => ({ name: textAt(entry.dimensions, 0), count: numberAt(entry.metrics, 0) }))
+    .filter(entry => entry.name !== '' && entry.count > 0)
 }

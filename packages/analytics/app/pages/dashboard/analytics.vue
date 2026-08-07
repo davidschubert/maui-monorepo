@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from '@nuxt/ui'
+import { analyticsEventKey } from '../../../../core/shared/analyticsEvents'
 import { plausibleScriptUrl } from '../../../../core/shared/analyticsScript'
 import { createAnalyticsSettingsSchema } from '../../../schemas/analytics'
 import type { AnalyticsConfigResponse, AnalyticsStatsResponse } from '../../../shared/types/analytics'
@@ -159,6 +160,19 @@ const totals = computed(() => stats.value?.totals)
 const series = computed(() => stats.value?.series ?? [])
 const topPages = computed(() => stats.value?.topPages ?? [])
 const topSources = computed(() => stats.value?.topSources ?? [])
+/** `undefined` = nur diese Teil-Abfrage fiel aus → Abschnitt gar nicht zeigen. */
+const topEvents = computed(() => stats.value?.topEvents)
+
+/**
+ * Der GESPEICHERTE Name ist Datenbestand (englisch, stabil) — angezeigt wird
+ * die Übersetzung über den Vokabular-Schlüssel. Ein Name außerhalb des
+ * Vokabulars (sollte die Abfrage je einen liefern) erscheint roh statt gar
+ * nicht: eine Zahl ohne Zeile wäre die schlechtere Auskunft.
+ */
+function eventLabel(name: string): string {
+  const key = analyticsEventKey(name)
+  return key ? t(`analytics.admin.event.${key}`) : name
+}
 
 /** Höchster Tageswert — der Maßstab der Balken (mindestens 1, sonst 0/0). */
 const seriesMax = computed(() => Math.max(1, ...series.value.map(point => point.visitors)))
@@ -422,6 +436,21 @@ function formatDay(date: string): string {
                     </li>
                   </ul>
                 </div>
+              </div>
+
+              <!-- Die AKTIONEN (F47): was in der Community passiert ist —
+                   Beitritte, Kommentare, Beiträge, Zu-/Absagen, Einschreibungen.
+                   `undefined` (Teil-Abfrage ausgefallen) versteckt den Abschnitt,
+                   leer sagt ehrlich „noch nichts" — zwei verschiedene Aussagen. -->
+              <div v-if="topEvents" class="flex flex-col gap-2 border-t border-default pt-4">
+                <p class="text-sm font-medium">{{ t('analytics.admin.statsEvents') }}</p>
+                <p v-if="!topEvents.length" class="text-sm text-muted">{{ t('analytics.admin.statsEventsEmpty') }}</p>
+                <ul v-else class="flex flex-col gap-1" data-analytics-top-events>
+                  <li v-for="entry in topEvents" :key="entry.name" class="flex items-baseline justify-between gap-3 text-sm">
+                    <span class="truncate text-muted">{{ eventLabel(entry.name) }}</span>
+                    <span class="tabular-nums">{{ formatCount(entry.count) }}</span>
+                  </li>
+                </ul>
               </div>
             </template>
           </UPageCard>

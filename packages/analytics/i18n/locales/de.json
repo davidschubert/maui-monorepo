@@ -51,6 +51,15 @@
       "statsBar": "{date}: {count} Besucher",
       "statsTopPages": "Meistbesuchte Seiten",
       "statsTopSources": "Woher die Besucher kommen",
+      "statsEvents": "Was passiert ist (30 Tage)",
+      "statsEventsEmpty": "Noch keine Aktionen gezählt — sie erscheinen hier, sobald jemand beitritt, kommentiert oder schreibt.",
+      "event": {
+        "memberJoined": "Beitritte",
+        "commentCreated": "Kommentare geschrieben",
+        "postCreated": "Beiträge veröffentlicht",
+        "eventRsvp": "Termin-Rückmeldungen",
+        "courseEnrolled": "Kurs-Einschreibungen"
+      },
       "statsListEmpty": "Noch nichts zu zeigen.",
       "statsEmptyTitle": "Noch keine Daten",
       "statsEmptyHint": "Der erste Besuch zählt in wenigen Minuten. Ruf deine Seite einmal in einem anderen Browser auf, wenn du nicht warten willst.",

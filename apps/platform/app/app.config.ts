@@ -40,6 +40,14 @@ export default defineAppConfig({
         scriptId: 'pa-nw6c94JiRWqzOc-zDcn1a',
         siteId: 'communities.pukalani.app',
       },
+      /**
+       * ADBLOCK-PROXY (F47): Script und Events laufen first-party über den
+       * Community-Host (Routen aus dem analytics-Layer) statt über
+       * plausible.hawaii.studio — Adblocker blocken die fremde Herkunft,
+       * nicht die eigene. Spürbar ehrlichere Zahlen, kein neuer Endpunkt
+       * nach außen: die Instanz-Adresse bleibt server-seitige Config.
+       */
+      proxy: true,
     },
     // Demo-Community „Morgenlicht" (Tagesliste 2026-07-26): der Banner macht
     // auf diesen Hosts sichtbar, dass Inhalte Beispiel-Material sind; der CTA

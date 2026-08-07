@@ -51,6 +51,15 @@
       "statsBar": "{date}: {count} visitors",
       "statsTopPages": "Most visited pages",
       "statsTopSources": "Where visitors come from",
+      "statsEvents": "What happened (30 days)",
+      "statsEventsEmpty": "No actions counted yet — they appear here as soon as someone joins, comments or posts.",
+      "event": {
+        "memberJoined": "Members joined",
+        "commentCreated": "Comments written",
+        "postCreated": "Posts published",
+        "eventRsvp": "Event responses",
+        "courseEnrolled": "Course enrollments"
+      },
       "statsListEmpty": "Nothing to show yet.",
       "statsEmptyTitle": "No data yet",
       "statsEmptyHint": "The first visit counts within a few minutes. Open your page in another browser if you do not want to wait.",

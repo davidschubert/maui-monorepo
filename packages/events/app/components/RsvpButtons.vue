@@ -39,6 +39,9 @@ async function setRsvp(status: RsvpStatus) {
       method: 'POST',
       body: { status },
     })
+    // Jede Rückmeldung zählt (auch Absage/Umentscheiden): das Ereignis ist
+    // „hat reagiert", die Verteilung steht in der Teilnehmerliste.
+    trackAnalyticsEvent('eventRsvp')
     emit('updated', res)
   }
   catch (error) {

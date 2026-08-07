@@ -205,6 +205,7 @@ const commentStoreSetup = () => {
       rows.value = rows.value.filter(row => row.$id !== temp.$id)
       if (alreadyPresent) { total.value -= 1; activeTotal.value -= 1 } // Realtime hat bereits gezählt
       upsertRow(created)
+      trackAnalyticsEvent('commentCreated')
       return created
     }
     catch (error) {
@@ -266,6 +267,8 @@ const commentStoreSetup = () => {
       rows.value = rows.value.filter(row => row.$id !== temp.$id)
       if (alreadyPresent) { total.value -= 1; activeTotal.value -= 1 }
       upsertRow(created)
+      // Auch der Gast-Kommentar zählt: das Ereignis ist „Kommentar", nicht „Konto".
+      trackAnalyticsEvent('commentCreated')
       return created
     }
     catch (error) {
