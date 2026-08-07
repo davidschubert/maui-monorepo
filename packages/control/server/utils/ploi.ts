@@ -55,6 +55,27 @@ export interface PloiResult {
   skipped?: boolean
 }
 
+/**
+ * PURE: ist der Trockenlauf an? — und warum das nicht `=== '1'` sein darf.
+ *
+ * 2026-08-07 LIVE ERWISCHT, beim ersten vollen Rundlauf. Der Wert steht in
+ * `runtimeConfig` mit dem Default `''`, ist also ein STRING. Nuxt schiebt eine
+ * Env-Überschreibung aber durch `destr()` — aus `NUXT_CUSTOM_DOMAIN_DRY_RUN=1`
+ * wird die ZAHL 1, und `1 === '1'` ist falsch. Der Beweis lief damit gegen
+ * echtes ploi statt im Trockenlauf und meldete „ploi ist nicht konfiguriert";
+ * das sah aus wie ein fehlendes Token und war ein Typ.
+ *
+ * Der Nachbar `NUXT_CUSTOM_DOMAIN_DNS_SERVERS=127.0.0.1:5354` war unauffällig
+ * — den kann `destr` nicht in eine Zahl verwandeln. Genau deshalb fällt so
+ * etwas nur bei EINEM von mehreren Schaltern auf.
+ *
+ * Angenommen wird deshalb, was ein Mensch schreiben würde: `1`, `true`, `yes`,
+ * `on`. Alles andere (auch das leere Feld) heißt aus.
+ */
+export function isDryRunFlag(value: unknown): boolean {
+  return ['1', 'true', 'yes', 'on'].includes(String(value ?? '').trim().toLowerCase())
+}
+
 export function ploiConfig(event: H3Event): PloiConfig {
   const config = useRuntimeConfig(event) as {
     ploiToken?: string
@@ -68,7 +89,7 @@ export function ploiConfig(event: H3Event): PloiConfig {
     baseUrl: (config.ploiBaseUrl || 'https://ploi.io/api').trim().replace(/\/+$/, ''),
     serverId: (config.ploiServerId || '').trim(),
     siteId: (config.ploiSiteId || '').trim(),
-    dryRun: (config.customDomainDryRun || '') === '1',
+    dryRun: isDryRunFlag(config.customDomainDryRun),
   }
 }
 

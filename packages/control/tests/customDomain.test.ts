@@ -20,6 +20,7 @@ import {
   resolveCustomDomainStatus,
   validateCustomDomain,
 } from '../shared/customDomain'
+import { isDryRunFlag } from '../server/utils/ploi'
 
 /**
  * Die puren Regeln hinter eigenen Domains (control-035).
@@ -289,5 +290,32 @@ describe('Plan-Grenze', () => {
     const source = readFileSync(join(import.meta.dirname, '../../../apps/platform/app/app.config.ts'), 'utf8')
     const match = source.match(/customDomain:\s*'([a-z]+)'/)
     expect(match?.[1]).toBe(CUSTOM_DOMAIN_MIN_PLAN)
+  })
+})
+
+describe('isDryRunFlag', () => {
+  /**
+   * 2026-08-07 LIVE ERWISCHT: `runtimeConfig` typisiert den Schalter als
+   * String (Default ''), Nuxt schiebt eine Env-Überschreibung aber durch
+   * `destr()` — aus `NUXT_CUSTOM_DOMAIN_DRY_RUN=1` wird die ZAHL 1, und
+   * `1 === '1'` ist falsch. Der volle Rundlauf lief deshalb gegen echtes ploi
+   * statt im Trockenlauf und meldete „ploi ist nicht konfiguriert"; das sah
+   * aus wie ein fehlendes Token und war ein Typ.
+   */
+  it('nimmt die Zahl 1 genauso wie den String', () => {
+    expect(isDryRunFlag(1)).toBe(true)
+    expect(isDryRunFlag('1')).toBe(true)
+  })
+
+  it('nimmt, was ein Mensch schreiben würde', () => {
+    for (const value of ['true', 'TRUE', 'yes', 'on', true]) {
+      expect(isDryRunFlag(value)).toBe(true)
+    }
+  })
+
+  it('alles andere heißt aus', () => {
+    for (const value of ['', '0', 'false', 'no', undefined, null, 0]) {
+      expect(isDryRunFlag(value)).toBe(false)
+    }
   })
 })

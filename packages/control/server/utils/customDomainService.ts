@@ -38,7 +38,7 @@ import {
 } from '../../shared/customDomain'
 import { normalizeTenantPlan, type TenantPlan, type TenantRow } from '../../shared/types/tenantRecord'
 import { checkDomainDns, domainAnswersOverHttps } from './customDomainDns'
-import { ensurePloiTenants, ploiConfig, requestPloiTenantCertificate } from './ploi'
+import { ensurePloiTenants, isDryRunFlag, ploiConfig, requestPloiTenantCertificate } from './ploi'
 
 export interface CustomDomainSettings {
   serverIps: string[]
@@ -65,7 +65,9 @@ export function customDomainSettings(event: H3Event): CustomDomainSettings {
     serverIps: list(config.customDomainServerIps),
     cnameTarget: (config.customDomainCnameTarget || '').trim().toLowerCase(),
     dnsServers: list(config.customDomainDnsServers),
-    dryRun: (config.customDomainDryRun || '') === '1',
+    // Dieselbe tolerante Lesart wie in ploi.ts — `destr()` macht aus einer
+    // Env-`1` eine ZAHL, und `1 === '1'` ist falsch (2026-08-07 live erwischt).
+    dryRun: isDryRunFlag(config.customDomainDryRun),
   }
 }
 
