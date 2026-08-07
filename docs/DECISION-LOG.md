@@ -7,6 +7,23 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-08-07 — Konto-Modell bestätigt, Community-Switcher kommt, Karte-vor-Wizard verworfen
+
+**Davids Entscheidungen** (strukturierte Fragen, zweite Runde am selben Tag):
+(1) **Zahlung bleibt wie morgens entschieden** — Wizard zuerst, 14-Tage-Trial
+OHNE Karte, danach nur-lesend bis bezahlt (F49). **Verworfen:** Karte/Checkout
+VOR dem Wizard (auch die Stripe-geführte Trial-Variante mit Karte-Pflicht) —
+niedrigste Einstiegshürde schlägt Kaufquote. (2) **Community-Switcher oben
+links im Dashboard** (TeamsMenu-Muster wie im Nuxt-UI-Dashboard): zeigt **alle
+Communities mit Dashboard-Zugang** (eigene + Team-Rollen admin/moderator/
+editor), Wechsel navigiert auf `<host>/dashboard`; dazu „Create Community"
+(→ Wizard) und „Manage Communities" (→ my.pukalani.app). **Bestätigt, kein
+Umbau:** EIN Konto für den ganzen Pool existiert schon (ein Appwrite-Projekt);
+Registrierung „auf www" = Link der kontenlosen Landing auf my.pukalani.app;
+„erst joinen, dann mitmachen" ist das A5-Modell (erster Beitrag = Beitritt).
+Bekannte Grenze: auf eigenen Domains/Silos teilt der Browser das Cookie nicht —
+gleiches Konto, dort einmal neu einloggen.
+
 ## 2026-08-07 — Pricing-Konzept: das Konto ist kein Plan, Testphase endet nur-lesend
 
 **Davids Entscheidungen** (strukturierte Fragen): (1) **Nach der 14-Tage-
