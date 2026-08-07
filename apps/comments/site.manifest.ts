@@ -35,5 +35,10 @@ export default {
     // die Site wechseln kann, ohne ein Deployment zu brauchen — eine
     // hinterlegte Id schlägt die Config (core/app/plugins/analytics.ts).
     'analytics',
+    // Eigene Domain dieser Site (control-036, 2026-08-07). Nur Silos ziehen
+    // diesen Layer: die Pool-Fassung liegt in `onboarding` und benutzt
+    // denselben Seiten-Pfad — zwei Dateien dafuer wuerden einander
+    // ueberlagern (Begruendung im Kopf von packages/domains/nuxt.config.ts).
+    'domains',
   ],
 } satisfies SiteManifest

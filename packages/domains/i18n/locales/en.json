@@ -1,0 +1,65 @@
+{
+  "siteDomain": {
+    "navLabel": "Own domain",
+    "title": "Own domain",
+    "description": "Serve this site under your own address. The Pukalani address stays and redirects there.",
+    "field": "Your domain",
+    "fieldHelp": "Enter the form the site should live under — with or without www. We set up the other form as well and redirect it here.",
+    "placeholder": "www.example.com",
+    "save": "Add domain",
+    "replace": "Replace domain",
+    "check": "Check",
+    "remove": "Remove domain",
+    "savedTitle": "Domain added",
+    "savedDesc": "Now create the DNS records below, then press Check.",
+    "saveFailed": "That did not work",
+    "checkAgain": "Not there yet. DNS changes sometimes take a few minutes — press Check again later.",
+    "statusTitle": "Status",
+    "pendingTitle": "This is where it is stuck",
+    "activeTitle": "Your domain is live",
+    "activeDesc": "The site now lives at {domain}.",
+    "removedTitle": "Domain removed",
+    "removeConfirmTitle": "Remove domain?",
+    "removeConfirmText": "After this {domain} no longer works and the site lives at {host} again. Content stays untouched.",
+    "fallbackNote": "Your Pukalani address {host} stays and redirects to the own domain.",
+    "unreachableTitle": "Domain management is unreachable right now",
+    "unreachableDesc": "Own domains are managed centrally, and that connection is not answering. The site itself is unaffected — try again later.",
+    "noPloiTitle": "No server is on file for this site yet",
+    "noPloiDesc": "Without a server and site id the certificate cannot be ordered. The operator adds both in the website register; DNS and proof stay as they are until then.",
+    "dnsTitle": "What to enter at your domain provider",
+    "dnsDescription": "Copy the records exactly. Then press Check above.",
+    "steps": {
+      "dns": "DNS records found",
+      "cert": "Certificate issued",
+      "platform": "Live updates enabled"
+    },
+    "status": {
+      "none": "No own domain added yet.",
+      "pending_dns": "Waiting for your DNS records.",
+      "pending_cert": "DNS is in place. The certificate is being issued.",
+      "pending_platform": "Almost done — the last step is running.",
+      "active": "Live.",
+      "error": "Something went wrong."
+    },
+    "dns": {
+      "txt": "1. Proof that the domain is yours",
+      "txtHelp": "A TXT record. It stays as long as the domain is used here.",
+      "a": "2. Where the domain points (without www)",
+      "aHelp": "An A record to our server address.",
+      "cname": "3. Where the www form points",
+      "cnameHelp": "A CNAME record. Some providers call this an alias.",
+      "note": "Depending on your provider, DNS changes take a few minutes to a few hours to reach everyone."
+    },
+    "errors": {
+      "domain_empty": "Please enter a domain.",
+      "domain_too_long": "That address is too long.",
+      "domain_invalid": "That does not look like a domain. Letters, digits and hyphens are allowed; use the punycode form for non-ASCII names (xn--...).",
+      "domain_not_a_domain": "That is not a complete domain. It needs at least one dot, for example example.com.",
+      "domain_operator_domain": "Addresses under pukalani.app cannot be added here — this site already has its Pukalani address.",
+      "domain_taken": "That domain is already taken.",
+      "domain_missing": "Add a domain first.",
+      "domain_not_ready": "The status changed. Reload the page and check again.",
+      "generic": "That did not work just now. Please try again."
+    }
+  }
+}

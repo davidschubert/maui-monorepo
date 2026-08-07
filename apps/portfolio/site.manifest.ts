@@ -14,5 +14,10 @@ export default {
     // konfigurierten `src`; der Layer macht die Site im Dashboard wechselbar,
     // ohne dass dafür deployt werden muss.
     'analytics',
+    // Eigene Domain dieser Site (control-036, 2026-08-07). Nur Silos ziehen
+    // diesen Layer: die Pool-Fassung liegt in `onboarding` und benutzt
+    // denselben Seiten-Pfad — zwei Dateien dafuer wuerden einander
+    // ueberlagern (Begruendung im Kopf von packages/domains/nuxt.config.ts).
+    'domains',
   ],
 } satisfies SiteManifest

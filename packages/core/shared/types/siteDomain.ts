@@ -42,14 +42,20 @@ export function resolveSiteDomainStatus(value: string | null | undefined): SiteD
 }
 
 /**
- * Die MAGERE Auskunft für die Middleware: „unter welcher Adresse bin ich zu
- * Hause, und welche Adressen gehören mir sonst noch?"
+ * Die ÖFFENTLICHE Auskunft: „unter welcher Adresse bin ich zu Hause, und
+ * welche Adressen gehören mir sonst noch?"
  *
  * Sie ist bewusst von `SiteDomainState` getrennt und wird von einer eigenen
  * Route bedient, die KEIN Nutzer-JWT verlangt — die Middleware läuft vor jedem
- * Request, auch für Gäste. Genau deshalb darf hier NICHTS Vertrauliches
- * hinein: kein Verifikations-Token, kein Fehlertext, keine Anleitung. Alles,
- * was drinsteht, steht ohnehin im DNS und in jedem Zertifikatsprotokoll.
+ * Request, auch für Gäste, und der Rückruf der Betreiber-Konsole
+ * (`/api/site/domain/settle`) hat gar keinen Menschen dahinter.
+ *
+ * DIE TRENNLINIE IST NICHT „viel/wenig", SONDERN „öffentlich/geheim". Was hier
+ * steht, steht ohnehin im DNS und in jedem Zertifikatsprotokoll: Hostnamen und
+ * die Stufe, in der sie stecken. Was hier NICHT steht und nie hierher darf,
+ * ist das Verifikations-TOKEN — mit ihm könnte ein Zweiter den
+ * Eigentums-Nachweis einer fremden Domain führen. Ebenso wenig der Fehlertext
+ * (er zitiert ploi und interne Zustände) und die DNS-Anleitung.
  */
 export interface SiteDomainAddress {
   /** Die Adresse, auf die alle anderen zeigen. '' = unbekannt (fail-soft). */
@@ -57,23 +63,28 @@ export interface SiteDomainAddress {
   /** Die Pukalani-Subdomain; sie bleibt Rückfall und verschwindet nie. */
   fallbackHost: string
   /**
-   * ALLE Hosts, die zu dieser Website gehören (Subdomain + beide Formen der
-   * eigenen Domain). Die Middleware leitet NUR von diesen um — ein Host, den
-   * wir nicht kennen (`localhost`, eine Vorschau-Adresse, eine IP), wird in
-   * Ruhe gelassen. Ohne diese Liste würde die lokale Entwicklung beim ersten
-   * Aufruf auf die Kundendomain geworfen.
+   * Die Hosts, von denen umgeleitet werden DARF (Subdomain + beide Formen
+   * einer AKTIVEN eigenen Domain). Die Middleware leitet NUR von diesen um —
+   * ein Host, den wir nicht kennen (`localhost`, eine Vorschau-Adresse, eine
+   * IP), wird in Ruhe gelassen. Ohne diese Liste würde die lokale Entwicklung
+   * beim ersten Aufruf auf die Kundendomain geworfen.
+   *
+   * Eine Domain in Wartestellung steht hier ABSICHTLICH nicht drin: dazwischen
+   * läuft die HTTP-01-Prüfung von Let's Encrypt, und eine Umleitung würde sie
+   * scheitern lassen (Begründung an `websiteKnownHosts`).
    */
   knownHosts: string[]
+  /** Die eingetragene Form ('' = keine eigene Domain). */
+  domain: string
+  status: SiteDomainStatus
+  /** Beide Formen der eingetragenen Domain, die eingetragene zuerst. */
+  forms: string[]
 }
 
 /** Der volle Zustand für das Dashboard — mit Token, Anleitung und Fehlertext. */
 export interface SiteDomainState extends SiteDomainAddress {
-  domain: string
-  status: SiteDomainStatus
   /** Text für den Betreiber ('' = keiner). */
   error: string
-  /** Beide Formen, die eingetragene zuerst. */
-  forms: string[]
   verifiedAt: string | null
   activatedAt: string | null
   /** Ist bei ploi hinterlegt, wohin die Domain gehängt wird? Ohne das hält

@@ -18,6 +18,7 @@
     "@pukalani/admin": "workspace:*",
     "@pukalani/analytics": "workspace:*",
     "@pukalani/core": "workspace:*",
+    "@pukalani/domains": "workspace:*",
     "@pukalani/system": "workspace:*",
     "@pukalani/themes": "workspace:*",
     "@nuxt/image": "catalog:",

@@ -30,7 +30,12 @@ const pkg = name => [`@pukalani/${name}`, `@pukalani/${name}/**`]
  *    dürfen, steht in ihren eigenen Blöcken.
  */
 const FOUNDATION = ['core', 'system', 'moderation', 'admin', 'billing', 'themes']
-const SEAM = ['blueprint', 'onboarding', 'control']
+// `domains` ist eine NAHT und kein Produkt: die eigene Domain einer Silo-Site
+// lebt im Control Plane, dieser Layer ist nur ihre Oberfläche und ihr Ruf
+// dorthin (control-036). Er bekommt trotzdem seinen EIGENEN Block weiter
+// unten — enger als onboarding/control, weil er in Apps läuft, die den
+// control-Layer gar nicht mitliefern und ihn deshalb auch nicht kennen dürfen.
+const SEAM = ['blueprint', 'onboarding', 'control', 'domains']
 const PRODUCTS = ['comments', 'posts', 'events', 'courses', 'tickets', 'feedback', 'media', 'activity', 'pages', 'analytics', 'messages']
 
 // Stimmt die Aufteilung noch mit dem Dateisystem überein? Ein neuer Layer ohne
@@ -350,6 +355,38 @@ export default createConfigForNuxt({
     'pukalani/no-cross-layer-relative': ['error', {
       allow: alsoAllowed(['control', 'onboarding', 'pages', 'themes']),
       hint: 'Naht-Layer (onboarding/control) kennen die Control-Plane-Verträge, pages und themes — sonst keine Produkt-Layer (CONCEPT.md A14).',
+    }],
+  },
+}).append({
+  /**
+   * DIE NAHT AUS DEM SILO (`domains`, control-036) — ENGER als ihre
+   * Geschwister, und der Unterschied ist der ganze Grund für den Block.
+   *
+   * `onboarding` und `control` leben in Apps, die den control-Layer
+   * MITLIEFERN; sie dürfen seine Verträge deshalb direkt lesen. `domains`
+   * läuft in Silo-Apps (portfolio, comments), die ihn NICHT mitliefern — ein
+   * Import darauf wäre kein Stilbruch, sondern ein Build, der einen Layer
+   * hineinzieht, der dort nichts zu suchen hat (und mit ihm die
+   * Betreiber-Schemata).
+   *
+   * Erlaubt sind deshalb nur `core` und `system`. Alles, was dieser Layer vom
+   * Control Plane braucht, geht über die Naht: Transport aus core
+   * (`callControlService`), der gemeinsame Vertrag als reiner Typ in
+   * `core/shared/types/siteDomain.ts`. Die REGELN (was gilt als Domain, wie
+   * sieht der Nachweis aus) bleiben drüben — sie werden hier nicht
+   * nachgebaut, sondern erfragt.
+   */
+  files: ['packages/domains/**'],
+  rules: {
+    'no-restricted-imports': ['error', {
+      patterns: [
+        { group: otherLayers(),
+          message: '`domains` läuft in Silo-Apps ohne control-Layer — alles vom Control Plane kommt über die Naht, nicht per Import (CONCEPT.md A14).' },
+      ],
+    }],
+    'pukalani/no-cross-layer-relative': ['error', {
+      allow: alsoAllowed(),
+      hint: '`domains` läuft in Silo-Apps ohne control-Layer — alles vom Control Plane kommt über die Naht, nicht per Import (CONCEPT.md A14).',
     }],
   },
 }).append({

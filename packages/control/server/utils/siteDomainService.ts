@@ -56,10 +56,14 @@ export function siteploi(event: H3Event, row: WebsiteRow) {
  * Gäste, und darf deshalb nichts erfahren, was nicht ohnehin im DNS steht.
  */
 export function siteDomainAddressFor(row: WebsiteRow): SiteDomainAddress {
+  const domain = row.customDomain || ''
   return {
     canonicalHost: websiteCanonicalHost(row),
     fallbackHost: websiteFallbackHost(row.appUrl),
     knownHosts: websiteKnownHosts(row),
+    domain,
+    status: siteDomainStatusOf(row),
+    forms: domain ? customDomainForms(domain) : [],
   }
 }
 
@@ -70,10 +74,7 @@ export function siteDomainStateFor(event: H3Event, row: WebsiteRow): SiteDomainS
   const forms = domain ? customDomainForms(domain) : []
   return {
     ...siteDomainAddressFor(row),
-    domain,
-    status: siteDomainStatusOf(row),
     error: row.customDomainError || '',
-    forms,
     verifiedAt: row.customDomainVerifiedAt ?? null,
     activatedAt: row.customDomainActivatedAt ?? null,
     // Nicht „ist ploi erreichbar", sondern „steht bei DIESER Website, wohin".
