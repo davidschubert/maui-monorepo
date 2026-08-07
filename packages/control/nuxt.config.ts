@@ -26,6 +26,55 @@ export default defineNuxtConfig({
     // Kontroll-Host derselben Platform-App, die Weiterleitung auf den Wizard
     // macht die control-center-Middleware.
     onboardingStartUrl: 'https://start.pukalani.app',
+    /**
+     * EIGENE DOMAINS (control-035, Davids Entscheidungen vom 2026-08-07).
+     *
+     * server-only! Der ploi-Token darf ALLES auf allen Servern des Kontos —
+     * Sites anlegen, Deploys auslösen, nginx tauschen. Er gehört deshalb
+     * ausschließlich ins Control Plane (das ist der Maschinenraum) und NIE in
+     * eine App, die Kunden-Traffic bedient.
+     *
+     * LEER = das Merkmal läuft, aber der Zertifikatsschritt hält an: der Status
+     * bleibt ehrlich auf `pending_cert` mit dem Text „ploi ist nicht
+     * konfiguriert". Default-aus wie bei allen scharfen Gates — nur eben ohne
+     * das Produkt ganz zu verstecken, weil DNS und Nachweis auch ohne ploi
+     * schon etwas beweisen.
+     *
+     * Env: NUXT_PLOI_TOKEN / NUXT_PLOI_SERVER_ID / NUXT_PLOI_SITE_ID.
+     */
+    ploiToken: '',
+    ploiBaseUrl: 'https://ploi.io/api',
+    /** Server + Site, an die Kundendomains als ploi-TENANTS gehängt werden.
+     *  KONFIGURIERBAR und nicht hartkodiert: die `platform`-Site kann umziehen,
+     *  und ein Umzug darf kein Deploy dieses Layers kosten. */
+    ploiServerId: '',
+    ploiSiteId: '',
+    /**
+     * TROCKENLAUF (NUXT_CUSTOM_DOMAIN_DRY_RUN=1): alle Zustandsübergänge
+     * laufen, ploi wird nicht angefasst und die HTTPS-Probe entfällt. Das ist
+     * der Modus für den lokalen Beweis — die echte Zertifikatskette braucht
+     * echtes DNS und echtes Let's Encrypt und wird beim ersten Kunden bewiesen
+     * (docs/runbooks/CUSTOM-DOMAIN-ERSTAKTIVIERUNG.md).
+     */
+    customDomainDryRun: '',
+    /**
+     * Wohin der Kunde zeigen soll. Der Default ist die heutige `app-prod`-IP
+     * bzw. der Host der `platform`-Site — beides steht ohnehin öffentlich im
+     * Repo und in jedem DNS. Env-Override, weil ein Server-Umzug sonst ein
+     * Deploy kostet: NUXT_CUSTOM_DOMAIN_SERVER_IPS (kommagetrennt, mehrere
+     * erlaubt) / NUXT_CUSTOM_DOMAIN_CNAME_TARGET.
+     *
+     * FAIL-CLOSED (domainPointsToUs): steht hier nichts, zeigt keine Domain
+     * auf uns und keine wird aktiv. Eine vergessene Konfiguration darf nicht
+     * „alles ist in Ordnung" bedeuten.
+     */
+    customDomainServerIps: '49.13.211.173',
+    customDomainCnameTarget: 'platform.pukalani.app',
+    /** Welche Resolver gefragt werden (kommagetrennt). Leer = Cloudflare +
+     *  Google. NIE die des Betriebssystems: deren Negativ-Cache hält eine
+     *  frisch angelegte Zone minutenlang für nicht existent, und der Kunde
+     *  legt seinen Record dreimal an. */
+    customDomainDnsServers: '',
     public: {
       // Laufzeit-Override des Pool-Projekts (Muster wie getEffectiveAiConfig:
       // app.config = Build-Default, Env = Umgebung). NÖTIG, weil das Pool-

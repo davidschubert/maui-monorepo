@@ -5,6 +5,7 @@ import type { TenantContext } from '../../../core/shared/types/tenant'
 import { communityIsOffline, resolveCommunitySuspension } from '../../../core/shared/communitySuspension'
 import { DEFAULT_TENANT_PLAN, COMMUNITY_PLANS_TABLE, COMMUNITIES_TABLE, normalizeTenantPlan, parseTenantPlanLimits, resolveTenantAudience, resolveTenantOpenRegistration, type TenantPlanLimits, type TenantPlanRow, type TenantRow } from '../../shared/types/tenantRecord'
 import { isSafeThemeToken } from '../../shared/onboarding'
+import { canonicalHostFor, customDomainCandidates } from '../../shared/customDomain'
 
 /**
  * Horizont-3 Naht 1 — Resolver-Implementierung über die tenants-Table des
@@ -26,7 +27,7 @@ import { isSafeThemeToken } from '../../shared/onboarding'
  *  gesetzt, wenn die Row eine $id trägt (der reale Read immer; Test-Fixtures
  *  optional). Trägt die Site-Rollen-Auflösung (requireCommunityPermission). */
 export function mapTenantRowToContext(
-  row: (Pick<TenantRow, 'mode' | 'projectId' | 'tenantId' | 'status' | 'plan'> & { $id?: string, theme?: string | null, variant?: string | null, neutral?: string | null, name?: string | null, openRegistration?: boolean | null, audience?: string | null, trialEndsAt?: string | null, suspension?: string | null }) | null,
+  row: (Pick<TenantRow, 'mode' | 'projectId' | 'tenantId' | 'status' | 'plan'> & { $id?: string, host?: string | null, theme?: string | null, variant?: string | null, neutral?: string | null, name?: string | null, openRegistration?: boolean | null, audience?: string | null, trialEndsAt?: string | null, suspension?: string | null, customDomain?: string | null, customDomainStatus?: string | null }) | null,
   planCatalog?: Record<string, Record<string, TenantPlanLimits>>,
 ): TenantContext | null {
   if (!row || row.status !== 'active') return null
@@ -82,7 +83,19 @@ export function mapTenantRowToContext(
     ...(row.neutral && isSafeThemeToken(row.neutral) ? { neutral: row.neutral } : {}),
     ...(row.name ? { name: row.name } : {}),
   }
-  if (row.mode === 'silo') return { mode: 'silo', projectId: row.projectId, ...communityId, ...branding, ...policy }
+  /**
+   * DIE KANONISCHE ADRESSE (control-035, Davids Entscheidung 2): aktive eigene
+   * Domain, sonst die Pukalani-Subdomain. Gerechnet vom PUREN
+   * `canonicalHostFor()`, damit die Umleitung in `00.tenant.ts` und die
+   * Mail-Links in D5 dieselbe Antwort bekommen.
+   *
+   * Das Feld bleibt WEG, wenn die Row keinen `host` trägt (Test-Fixtures) —
+   * ein leerer kanonischer Host wäre eine Umleitung auf `https://`.
+   */
+  const address = row.host
+    ? { canonicalHost: canonicalHostFor({ host: row.host, customDomain: row.customDomain, customDomainStatus: row.customDomainStatus }) }
+    : {}
+  if (row.mode === 'silo') return { mode: 'silo', projectId: row.projectId, ...communityId, ...branding, ...policy, ...address }
   // Pool ohne tenantId wäre ein Datenfehler — NIE ungescoped durchlassen
   if (row.mode === 'pool' && row.tenantId) {
     // normalizeTenantPlan: ''/'free'-Bestand → basic, 'business' → pro
@@ -96,7 +109,7 @@ export function mapTenantRowToContext(
     // in shared/onboarding.ts. Fehlende Spalte/leerer Wert ⇒ Feld bleibt weg
     // und heißt „keine Testphase".
     const trial = row.trialEndsAt ? { trialEndsAt: row.trialEndsAt } : {}
-    return { mode: 'pool', projectId: row.projectId, tenantId: row.tenantId, plan, ...(limits ? { limits } : {}), ...communityId, ...branding, ...policy, ...trial }
+    return { mode: 'pool', projectId: row.projectId, tenantId: row.tenantId, plan, ...(limits ? { limits } : {}), ...communityId, ...branding, ...policy, ...trial, ...address }
   }
   return null
 }
@@ -144,16 +157,62 @@ export function createTenantsTableResolver(options: TenantsTableResolverOptions)
     const cached = cache.get(host)
     if (cached !== undefined) return cached
 
-    const [{ rows }, planCatalog] = await Promise.all([
-      tablesDB.listRows<TenantRow>({
-        databaseId: options.databaseId,
-        tableId: COMMUNITIES_TABLE,
-        queries: [Query.equal('host', host), Query.limit(1)],
-      }),
-      loadPlanCatalog(),
-    ])
-    const context = mapTenantRowToContext(rows[0] ?? null, planCatalog)
+    const [row, planCatalog] = await Promise.all([findCommunityForHost(tablesDB, options.databaseId, host), loadPlanCatalog()])
+    const context = mapTenantRowToContext(row, planCatalog)
     cache.set(host, context)
     return context
   }
+}
+
+/**
+ * ZWEI FRAGEN, ZWEI ABFRAGEN, EINE ANTWORT (control-035): gehört dieser Host
+ * einer Community als PUKALANI-SUBDOMAIN oder als EIGENE DOMAIN?
+ *
+ * REIHENFOLGE IST ABSICHT. Die Subdomain wird zuerst gefragt und beantwortet
+ * damit den Normalfall in EINER Abfrage — jede Community hat eine, die
+ * allerwenigsten haben eine eigene Domain. Erst wenn dort nichts steht, kostet
+ * es eine zweite Abfrage. (Das gilt auch für den 404-Fall eines fremden Hosts:
+ * der kostet jetzt zwei Abfragen statt einer — aber nur EINMAL je 30 s, weil
+ * der Microcache NEGATIV cacht.)
+ *
+ * ABGEFRAGT WERDEN BEIDE FORMEN (`customDomainCandidates`): steht in der
+ * Tabelle `www.kunde.de` und kommt ein Request für `kunde.de` herein, findet
+ * `Query.equal('customDomain', ['kunde.de', 'www.kunde.de'])` dieselbe Zeile.
+ * Der Aufrufer merkt den Unterschied trotzdem — `canonicalHostFor()` liefert
+ * die EINGETRAGENE Form, und `00.tenant.ts` leitet dorthin um.
+ *
+ * DER STATUS WIRD IM CODE GEFILTERT, NICHT IN DER ABFRAGE — dieselbe
+ * Begründung wie bei `suspension` im communityHostResolver: die Spalte ist
+ * optional (control-035, `required: false`), und ein zweiter Gleichheitsfilter
+ * bräuchte einen zweiten Index UND würde Zeilen mit NULL still aussortieren.
+ * Gefiltert wird durch `canonicalHostFor()`: eine Zeile, deren Domain NICHT
+ * 'active' ist, liefert als kanonischen Host ihre Subdomain — der Request-Host
+ * passt dann zu nichts, und wir geben `null` zurück (404, wie ein unbekannter
+ * Host). Genau das soll passieren, solange das Zertifikat fehlt.
+ */
+async function findCommunityForHost(
+  tablesDB: TablesDB,
+  databaseId: string,
+  host: string,
+): Promise<TenantRow | null> {
+  const { rows } = await tablesDB.listRows<TenantRow>({
+    databaseId,
+    tableId: COMMUNITIES_TABLE,
+    queries: [Query.equal('host', host), Query.limit(1)],
+  })
+  if (rows[0]) return rows[0]
+
+  const candidates = customDomainCandidates(host)
+  if (!candidates.length) return null
+  const { rows: byDomain } = await tablesDB.listRows<TenantRow>({
+    databaseId,
+    tableId: COMMUNITIES_TABLE,
+    queries: [Query.equal('customDomain', candidates), Query.limit(2)],
+  })
+  // Der Kandidat muss AKTIV sein — sonst ist die Zeile für diesen Host so gut
+  // wie nicht vorhanden (s. Kopf). Mehr als eine Treffer-Zeile darf es nicht
+  // geben (die Eindeutigkeit setzt `domain/set.post.ts` durch); käme es doch
+  // dazu, gewinnt niemand: `find` nimmt die erste AKTIVE, und das ist
+  // deterministisch genug für einen Zustand, den es nicht geben darf.
+  return byDomain.find(row => canonicalHostFor(row) !== row.host) ?? null
 }

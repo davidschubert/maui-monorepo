@@ -2,6 +2,7 @@ import { Client, Query, TablesDB } from 'node-appwrite'
 import { createMicrocache } from '../../../core/server/utils/microcache'
 import type { CommunityHostResolver } from '../../../core/server/utils/communityHost'
 import { COMMUNITIES_TABLE, type TenantRow } from '../../shared/types/tenantRecord'
+import { canonicalHostFor } from '../../shared/customDomain'
 
 /**
  * D5 — die Antwort auf den core-Vertrag `registerCommunityHostResolver`:
@@ -43,6 +44,14 @@ import { COMMUNITIES_TABLE, type TenantRow } from '../../shared/types/tenantReco
  * `suspension === 'billing'` wird bewusst NICHT gefiltert: dieser Host lebt, er
  * ist nur nur-lesend. Der Link führt genau dorthin, wo der Empfänger hinsoll —
  * einschließlich des Hinweises, warum gerade nichts geschrieben werden kann.
+ *
+ * AUFGELÖST WIRD SEIT control-035 DIE KANONISCHE ADRESSE, nicht mehr blind
+ * `host`: hat die Community eine AKTIVE eigene Domain, verlinkt die Mail
+ * dorthin (`canonicalHostFor()` — dieselbe pure Regel, die auch der
+ * Tenant-Resolver und der 301 in `00.tenant.ts` benutzen). Auf die Subdomain zu
+ * verlinken wäre nicht falsch — sie leitet ja um —, aber ein Kunde, der seine
+ * Community unter ihrer eigenen Adresse kennt, bekäme in jeder Mail einen
+ * fremden Namen zu sehen. Die zwei Spalten reisen dafür in `Query.select` mit.
  *
  * GEFILTERT WIRD IM CODE, NICHT IN DER ABFRAGE: `suspension` ist eine optionale
  * Spalte (control-034, `required: false`), und ein `Query.notEqual` würde in
@@ -95,12 +104,12 @@ export function createCommunityHostResolver(options: CommunityHostResolverOption
           queries: [
             Query.equal('tenantId', chunk),
             Query.equal('status', 'active'),
-            Query.select(['tenantId', 'host', 'suspension']),
+            Query.select(['tenantId', 'host', 'suspension', 'customDomain', 'customDomainStatus']),
             Query.limit(chunk.length),
           ],
         })
         const found = new Map(
-          rows.filter(row => (row.suspension ?? '') !== 'abuse').map(row => [row.tenantId, row.host]),
+          rows.filter(row => (row.suspension ?? '') !== 'abuse').map(row => [row.tenantId, canonicalHostFor(row)]),
         )
         for (const id of chunk) {
           const host = found.get(id) ?? ''
