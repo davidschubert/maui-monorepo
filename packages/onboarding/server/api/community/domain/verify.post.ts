@@ -1,5 +1,4 @@
 import { callControlPlane, mintRuntimeJwt } from '../../../utils/controlPlane'
-import { ensureAppwriteWebPlatforms } from '../../../utils/appwritePlatform'
 import type { CustomDomainState } from '../../../../../control/server/utils/customDomainService'
 
 /**

@@ -32,12 +32,26 @@
  * Hostname zweimal ergibt zwei Zeilen, kein 409) — deshalb liest diese Datei
  * IMMER erst die Liste. Ein Prüf-Klick darf beliebig oft passieren.
  *
- * ── WARUM IM ONBOARDING-LAYER UND NICHT IM CONTROL PLANE ──────────────────
- * Registriert werden muss die Platform im RUNTIME-Projekt (dem Pool), und
- * dafür hat das Control Plane keinen Schlüssel — dieselbe Grenze, an der schon
+ * ── WARUM IN DER RUNTIME UND NICHT IM CONTROL PLANE ───────────────────────
+ * Registriert werden muss die Platform im RUNTIME-Projekt, und dafür hat das
+ * Control Plane keinen Schlüssel — dieselbe Grenze, an der schon
  * `revokeCommunityLabel` (A5) und die Zahlungswarnung (C15) entlanglaufen.
- * Also macht es die Platform-App mit ihrem EIGENEN Runtime-Key und meldet das
- * Ergebnis über die Service-Naht zurück (`domain/activate`).
+ * Also macht es die App mit ihrem EIGENEN Runtime-Key und meldet das Ergebnis
+ * über die Service-Naht zurück (`domain/activate`).
+ *
+ * ── WARUM DIESE DATEI SEIT 2026-08-07 IN CORE LIEGT ───────────────────────
+ * Sie stand im `onboarding`-Layer, solange es genau EINEN Aufrufer gab (die
+ * Pool-Community). Mit den eigenen Domains für SILO-Apps gibt es einen
+ * zweiten — den `domains`-Layer —, und der lebt in Apps, die `onboarding`
+ * nicht mitliefern (portfolio, comments). Zwei Kopien derselben
+ * Projekt-API-Anbindung wären genau die Doppelpflege, bei der eines Tages nur
+ * eine von beiden die Dubletten-Prüfung hat.
+ *
+ * DASS DAS IN CORE STEHEN DARF, ist kein Aufweichen von A14 (dieselbe
+ * Begründung wie bei `controlService.ts`): hier ist keine Produktkenntnis
+ * drin. Die Datei weiß von einem Appwrite-Projekt und einer Liste von
+ * Hostnamen — nicht davon, wem die Domain gehört oder warum sie eingetragen
+ * wird. Die Semantik bleibt beim rufenden Layer.
  *
  * Der SDK kennt diese Route nicht (`node-appwrite` bildet die Projects-API
  * nicht ab) — deshalb rohes `fetch`. Das ist hier kein Umgehen einer
