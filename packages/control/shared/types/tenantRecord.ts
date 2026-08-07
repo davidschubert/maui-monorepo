@@ -156,6 +156,26 @@ export interface TenantRow extends Models.Row {
    *  past_due gesetzt und danach NICHT mehr verschoben — sonst begänne die
    *  14-Tage-Frist bei jedem Dunning-Versuch von vorn. */
   pastDueSince: string | null
+  /**
+   * Eigene Domain der Community (control-035, Davids Entscheidungen vom
+   * 2026-08-07) — die EINGETRAGENE Form, und die ist die kanonische. Die
+   * Geschwister-Form (www ↔ Apex) wird gerechnet (`customDomainForms()`),
+   * nicht gespeichert. '' / `null` (Rows von vor der Migration) = keine.
+   */
+  customDomain: string | null
+  /** Stufe der Freischaltung. IMMER über `resolveCustomDomainStatus()` lesen
+   *  (fail-closed auf 'none') — nie direkt vergleichen. */
+  customDomainStatus: string | null
+  /** Eigentums-Nachweis: 32 Hex-Zeichen, an DIESE Community gebunden. Steht im
+   *  TXT-Record `_pukalani-verify.<basis>` und ist der Grund, warum eine
+   *  fremde Community eine verwaiste Domain nicht übernehmen kann. */
+  customDomainToken: string | null
+  /** Der Fehlertext, den DER OWNER liest; '' = kein Fehler. */
+  customDomainError: string | null
+  /** Wann der Eigentums-Nachweis zuletzt gehalten hat (ISO); `null` = nie. */
+  customDomainVerifiedAt: string | null
+  /** Wann die Domain kanonisch wurde (ISO); `null` = nie. */
+  customDomainActivatedAt: string | null
 }
 
 export const COMMUNITIES_TABLE = 'communities'

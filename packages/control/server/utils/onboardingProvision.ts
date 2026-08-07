@@ -223,6 +223,16 @@ export async function provisionCommunity(
       suspensionReason: '',
       suspendedAt: null,
       pastDueSince: null,
+      // control-035: eigene Domain. Eine frisch gegründete Community hat
+      // keine — sie beginnt auf ihrer Subdomain, und die bleibt auch später
+      // der Rückfall (Davids Entscheidung 2). Eingetragen wird sie ab Plan Pro
+      // unter /dashboard/settings/domain.
+      customDomain: '',
+      customDomainStatus: 'none',
+      customDomainToken: '',
+      customDomainError: '',
+      customDomainVerifiedAt: null,
+      customDomainActivatedAt: null,
     },
   }).catch((error) => { throw toH3Error(error, 'Could not create community') })
 

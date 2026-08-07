@@ -79,6 +79,16 @@ export default defineEventHandler(async (event) => {
       suspensionReason: '',
       suspendedAt: null,
       pastDueSince: null,
+      // control-035: eigene Domain. Der Betreiber-Weg legt KEINE an — sie ist
+      // Selbstbedienung des Owners (Davids Entscheidung 3) und hängt an einem
+      // Eigentums-Nachweis, den nur er führen kann. Explizit statt auf den
+      // Spalten-Default vertraut, wie bei `suspension`.
+      customDomain: '',
+      customDomainStatus: 'none',
+      customDomainToken: '',
+      customDomainError: '',
+      customDomainVerifiedAt: null,
+      customDomainActivatedAt: null,
     },
   }).catch((error) => { throw toH3Error(error, 'Could not create tenant') })
 
