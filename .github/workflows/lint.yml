@@ -29,6 +29,14 @@ jobs:
 
       - run: pnpm check:manifests
 
+      # Nennt die app.config einen i18n-Schlüssel, den die App nicht hat?
+      # vue-i18n gibt dann den SCHLÜSSEL zurück — Typecheck, Lint und Unit-
+      # Tests sehen davon nichts (ein labelKey ist für sie ein `string`).
+      # Vier Tage lang stand deshalb wörtlich „legal.imprint" im Fuß von
+      # comments.pukalani.app, am rechtlich wichtigsten Link des Hosts.
+      # Reines Lesen, keine Env, keine Dienste.
+      - run: pnpm check:i18n-keys
+
       # Die Produkt-Bilanz (Pool=Silo, Davids Leitprinzip) wird seit dem
       # 2026-08-02 ERZEUGT statt gepflegt — das committete Dokument muss also
       # zum Code passen. Ohne dieses Gate veraltet es wieder, und genau daran

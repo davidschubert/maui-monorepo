@@ -734,6 +734,21 @@ Vollständiges Konzept: docs/CONCEPT.md
   Embed-Composer) starben daran; Unit-Tests, Typecheck und Lint sehen es NICHT,
   nur `nuxt-i18n WARN Detected HTML in 1 message` im Dev-Log. Platzhalter ohne
   Klammern schreiben (`/discussions/adresse`).
+- EIN SCHLÜSSEL IN EINER CONFIG IST EIN VERSPRECHEN (Wächter seit 2026-08-06):
+  `pnpm check:i18n-keys` (CI/lint) prüft, dass jeder in einer `app.config`
+  deklarierte i18n-Schlüssel in JEDER App existiert, die ihn erbt — beide
+  Sprachen. Die effektive Schlüsselmenge ist die Vereinigung der Locale-Dateien
+  der App UND aller Layer aus ihrem `extends`; die effektive Config ist
+  App-über-Layern mit defu-Semantik (Arrays konkateniert). Nötig, weil ein
+  `labelKey` von einem FREMDEN Layer gerendert wird (der Fuß gehört blueprint,
+  der Text der App) und vue-i18n bei fehlender Übersetzung den SCHLÜSSEL
+  ausgibt: `apps/comments` schrieb am 2026-08-02 `labelKey: 'legal.imprint'`
+  ohne den Schlüssel anzulegen, und vier Tage lang stand im Fuß von
+  comments.pukalani.app wörtlich `legal.imprint` — Typecheck, Lint und
+  Unit-Tests sehen davon nichts. NEUES CONFIG-FELD MIT SCHLÜSSEL ⇒ in die
+  `FIELDS`-Tabelle von `scripts/check-i18n-keys.mjs` eintragen, sonst ist es
+  ungedeckt. Der Wächter prüft BEWUSST nur Config-Schlüssel, keine
+  `t()`-Aufrufe im Markup — Begründung im Kopf des Skripts.
 - i18n-Strategie 'prefix_except_default' (en Default ohne Prefix unter /...,
   de unter /de/*, detectBrowserLanguage redirectOn: 'all' → jede Seite folgt dem
   i18n_redirected-Cookie, nicht nur '/'; BEWUSST ohne fallbackLocale — signal-
