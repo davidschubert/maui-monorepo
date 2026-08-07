@@ -7,6 +7,25 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-08-07 — Pricing-Konzept: das Konto ist kein Plan, Testphase endet nur-lesend
+
+**Davids Entscheidungen** (strukturierte Fragen): (1) **Nach der 14-Tage-
+Testphase ohne Abo wird die Community NUR-LESEND** — über die vorhandene
+M13-`'billing'`-Sperre statt des bisherigen dauerhaften Basic-Downgrades
+(trialSweep). Eine eigene Community setzt damit faktisch Personal voraus;
+das Wizard-Versprechen „nichts wird gesperrt" wird umformuliert (vor GA
+billig, danach teuer). Inhalte bleiben, nichts wird gelöscht (F3-Grundsatz
+unangetastet). `basic` bleibt als Plan-Key im Code (Fallback, Quota-Anker).
+(2) **Preisseite www.pukalani.app zeigt NUR Personal + Pro** — das kostenlose
+Mitmachen (Konto: kommentieren, beitreten, melden) ist kein Paket und steht
+nicht als dritte Spalte dort, sondern woanders (FAQ/Feature-Seite).
+**Verworfen:** Plan ans KONTO heften (Plan bleibt Community-Eigenschaft —
+Multi-Community, Stripe-Webhook, Quota und M13 rechnen alle pro Community) ·
+Freemium-Basic weiter bewerben. **Hintergrund:** der von David vermutete
+Zwang „erst Stripe-Paket buchen, dann loslegen" bestand nie — der Ablauf ist
+schon registrieren → Dashboard → Wizard ohne Zahlungsdaten; korrigiert wird
+die Präsentation und das Trial-Ende, nicht die Architektur.
+
 ## 2026-08-04 — Private Nachrichten: alle sieben Konzept-Entscheidungen
 
 **Davids Entscheidungen** (strukturierte Fragen; Volltext:
