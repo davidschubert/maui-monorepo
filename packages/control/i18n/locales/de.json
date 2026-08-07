@@ -201,7 +201,8 @@
       "col": {
         "site": "Website",
         "state": "Status",
-        "products": "Produkte"
+        "products": "Produkte",
+        "domain": "Domain"
       }
     },
     "jobs": {
@@ -407,6 +408,47 @@
         "impersonation": "Identitätsmissbrauch",
         "copyright": "Urheberrecht",
         "other": "Etwas anderes"
+      }
+    },
+    "siteDomain": {
+      "manage": "Eigene Domain",
+      "title": "Eigene Domain — {name}",
+      "none": "keine",
+      "field": "Domain",
+      "fieldHelp": "Die Form, unter der die Site zu Hause sein soll — mit oder ohne www. Die andere Form wird mit eingerichtet und leitet hierher um.",
+      "save": "Domain eintragen",
+      "replace": "Domain ersetzen",
+      "check": "Prüfen",
+      "remove": "Domain entfernen",
+      "failed": "Hat nicht geklappt",
+      "pendingTitle": "Hier hängt es gerade",
+      "dnsTitle": "Diese DNS-Einträge braucht der Kunde",
+      "noPloiTitle": "Kein ploi-Server hinterlegt",
+      "noPloiDesc": "Ohne Server- und Site-Kennung kann kein Zertifikat bestellt werden. Beides steht unten.",
+      "ploiTitle": "Wo diese Site bei ploi wohnt",
+      "ploiHelp": "Server- und Site-Kennung aus dem ploi-Panel. Die Kundendomain wird als Alias an diese Site gehängt; das Zertifikat deckt danach alle Namen der Site ab.",
+      "ploiServer": "Server-Id",
+      "ploiSite": "Site-Id",
+      "ploiSave": "Kennungen speichern",
+      "ploiSaved": "Kennungen gespeichert",
+      "status": {
+        "none": "Keine eigene Domain eingetragen.",
+        "pending_dns": "Wartet auf die DNS-Einträge des Kunden.",
+        "pending_cert": "DNS steht. Das Zertifikat wird ausgestellt.",
+        "pending_platform": "Fast fertig — der letzte Schritt läuft in der App.",
+        "active": "Aktiv.",
+        "error": "Etwas ist schiefgegangen."
+      },
+      "errors": {
+        "domain_empty": "Bitte eine Domain eintragen.",
+        "domain_too_long": "Diese Adresse ist zu lang.",
+        "domain_invalid": "So sieht keine Domain aus. Erlaubt sind Buchstaben, Ziffern und Bindestriche.",
+        "domain_not_a_domain": "Das ist keine vollständige Domain — sie braucht mindestens einen Punkt.",
+        "domain_operator_domain": "Adressen unterhalb von pukalani.app können hier nicht eingetragen werden.",
+        "domain_taken": "Diese Domain ist bereits vergeben.",
+        "domain_missing": "Zuerst eine Domain eintragen.",
+        "domain_not_ready": "Der Stand hat sich geändert. Neu laden und noch einmal prüfen.",
+        "generic": "Das hat gerade nicht geklappt."
       }
     }
   }

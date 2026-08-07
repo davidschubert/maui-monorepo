@@ -7,6 +7,23 @@ const patchSchema = z.object({
   appUrl: z.string().url().max(256).or(z.literal('')).optional(),
   status: z.enum(WEBSITE_STATUSES).optional(),
   notes: z.string().max(1000).optional(),
+  /**
+   * Wo diese Site bei ploi wohnt (control-036). Reine Ziffern oder LEER —
+   * leer heißt „nicht hinterlegt", und dann hält der Zertifikatsschritt einer
+   * eigenen Domain ehrlich an, statt auf eine geratene Site zu schreiben.
+   *
+   * ALS DATEN UND NICHT ALS CODE, weil jedes Silo seine eigene ploi-Site hat
+   * (portfolio 390041, comments 389772). Eine Zuordnung im Quelltext hieße,
+   * dass jede neue Silo-Site ein Deployment kostet.
+   *
+   * Die Domain-Spalten selbst stehen BEWUSST NICHT hier: `customDomain` &
+   * Co. gehören dem Ablauf (`/api/control/site/domain/*`), der sie zusammen
+   * mit Token, DNS-Nachweis und Status setzt. Wären sie hier frei
+   * beschreibbar, könnte ein Betreiber eine Domain per Hand auf `active`
+   * setzen — ohne Nachweis, ohne Zertifikat, mit einer Umleitung ins Nichts.
+   */
+  ploiServerId: z.string().regex(/^\d{1,20}$/).or(z.literal('')).optional(),
+  ploiSiteId: z.string().regex(/^\d{1,20}$/).or(z.literal('')).optional(),
 }).strict()
 
 /**

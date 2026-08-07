@@ -1,6 +1,8 @@
 import { Query } from 'node-appwrite'
 import { WEBSITES_TABLE, type WebsiteRow } from '../../../../shared/types/website'
 import { ENTITLEMENTS_TABLE, type EntitlementRow } from '../../../../shared/types/entitlement'
+import { siteDomainStateFor } from '../../../utils/siteDomainService'
+import type { SiteDomainState } from '../../../../../core/shared/types/siteDomain'
 
 /**
  * Websites-Register (sites.manage) — Statusübersicht der eigenen Installationen
@@ -11,7 +13,7 @@ import { ENTITLEMENTS_TABLE, type EntitlementRow } from '../../../../shared/type
  * ist also breiter als diese Tabelle — sie wird mit dem
  * Menü-Umbau (E9) neu geschnitten, nicht hier nebenbei.
  */
-export default defineEventHandler(async (event): Promise<{ websites: (WebsiteRow & { entitlements: string[] })[] }> => {
+export default defineEventHandler(async (event): Promise<{ websites: (WebsiteRow & { entitlements: string[], domain: SiteDomainState })[] }> => {
   requirePermission(event, 'sites.manage')
 
   const config = useRuntimeConfig(event)
@@ -42,6 +44,23 @@ export default defineEventHandler(async (event): Promise<{ websites: (WebsiteRow
     websites: websites.rows.map(website => ({
       ...website,
       entitlements: (byProject.get(website.projectId) ?? []).sort(),
+      /**
+       * Der Domain-Zustand FERTIG GERECHNET (control-036) statt roher
+       * Spalten. Zwei Gründe, beide praktisch:
+       *
+       * (1) Die Anleitung (TXT-Name, TXT-Wert, Server-IP, CNAME-Ziel) entsteht
+       *     aus der Runtime-Config des Control Plane. Die Konsole soll sie
+       *     ANZEIGEN können, ohne sie nachzubauen — sonst stünde bei einem
+       *     Server-Umzug in der Betreiber-Ansicht etwas anderes als im
+       *     Silo-Dashboard.
+       * (2) Es ist derselbe Typ, den die Silo-App über die Naht bekommt. Eine
+       *     Wahrheit, zwei Oberflächen.
+       *
+       * Das Verifikations-TOKEN reist hier mit, und das ist in Ordnung: diese
+       * Route verlangt `sites.manage` — wer sie sehen darf, darf die Domain
+       * ohnehin setzen.
+       */
+      domain: siteDomainStateFor(event, website),
     })),
   }
 })

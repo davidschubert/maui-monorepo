@@ -6,6 +6,7 @@
 import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
 import type { WebsiteRow } from '../../../shared/types/website'
 import type { ProductCatalogEntry, JobRow, SiteCreateJobPayload, SiteCreateJobResult } from '../../../shared/types/job'
+import type { SiteDomainState } from '../../../../core/shared/types/siteDomain'
 
 definePageMeta({ layout: 'dashboard', middleware: ['auth', 'admin'], requiredCapability: 'sites.manage' })
 
@@ -15,7 +16,7 @@ const confirm = useConfirm()
 
 useHead({ title: () => t('control.websites.title') })
 
-type WebsiteWithEntitlements = WebsiteRow & { entitlements: string[] }
+type WebsiteWithEntitlements = WebsiteRow & { entitlements: string[], domain: SiteDomainState }
 const { data, refresh } = await useFetch<{ websites: WebsiteWithEntitlements[] }>('/api/control/websites')
 const { data: jobsData, refresh: refreshJobs } = await useFetch<{ jobs: JobRow[] }>('/api/control/jobs')
 const { data: catalogData } = await useFetch<{ products: ProductCatalogEntry[] }>('/api/control/products')
@@ -219,6 +220,96 @@ function runningProducts(site: WebsiteWithEntitlements): string[] {
   }
 }
 
+// ── Eigene Domain je Website (control-036) ──────────────────────────────────
+/**
+ * Die zweite Oberfläche aus Davids Auftrag vom 2026-08-07: „an jedem
+ * Website-Eintrag direkt die Domain verwalten". Sie tut fachlich dasselbe wie
+ * das Silo-Dashboard und ruft dieselben Regeln auf — nur mit `sites.manage`
+ * statt einem Konto der Site davor.
+ *
+ * DER MODAL ZEIGT AUCH DIE ploi-IDS, und das ist kein Beiwerk: ohne sie hält
+ * der Zertifikatsschritt an. Sie hier zu pflegen ist der Grund, warum eine
+ * neue Silo-Site kein Deployment braucht.
+ */
+const domainSite = ref<WebsiteWithEntitlements | null>(null)
+const domainState = ref<SiteDomainState | null>(null)
+const domainInput = ref('')
+const ploiServer = ref('')
+const ploiSite = ref('')
+const domainBusy = ref('')
+
+function openDomain(site: WebsiteWithEntitlements) {
+  domainSite.value = site
+  domainState.value = site.domain
+  domainInput.value = site.domain.domain
+  ploiServer.value = site.ploiServerId ?? ''
+  ploiSite.value = site.ploiSiteId ?? ''
+}
+
+/** Fachlicher Grund → Text; unbekannt ⇒ der allgemeine Satz. Ein roher Code
+ *  auf der Seite hilft niemandem. */
+function domainError(error: unknown): string {
+  const reason = (error as { data?: { reason?: string } })?.data?.reason ?? ''
+  const known = [
+    'domain_empty', 'domain_too_long', 'domain_invalid', 'domain_not_a_domain',
+    'domain_operator_domain', 'domain_taken', 'domain_missing', 'domain_not_ready',
+  ]
+  return known.includes(reason)
+    ? t(`control.siteDomain.errors.${reason}`)
+    : t('control.siteDomain.errors.generic')
+}
+
+async function runDomain(action: 'save' | 'check' | 'remove') {
+  const site = domainSite.value
+  if (!site || domainBusy.value) return
+  domainBusy.value = action
+  try {
+    const base = `/api/control/websites/${site.$id}/domain`
+    const next = action === 'save'
+      ? await $fetch<SiteDomainState>(base, { method: 'PUT', body: { domain: domainInput.value.trim() } })
+      : action === 'check'
+        ? await $fetch<SiteDomainState>(`${base}/verify`, { method: 'POST' })
+        : await $fetch<SiteDomainState>(base, { method: 'DELETE' })
+    // Der gültige Zustand kommt aus der ANTWORT, nicht aus dem Klick.
+    domainState.value = next
+    domainInput.value = next.domain
+    toast.add({
+      title: t(`control.siteDomain.status.${next.status}`),
+      description: next.error || undefined,
+      color: next.status === 'active' ? 'success' : next.error ? 'warning' : 'info',
+    })
+  }
+  catch (error) {
+    toast.add({ title: t('control.siteDomain.failed'), description: domainError(error), color: 'error' })
+  }
+  finally {
+    domainBusy.value = ''
+    await refresh()
+  }
+}
+
+async function savePloiIds() {
+  const site = domainSite.value
+  if (!site || domainBusy.value) return
+  domainBusy.value = 'ploi'
+  try {
+    await $fetch(`/api/control/websites/${site.$id}`, {
+      method: 'PATCH',
+      body: { ploiServerId: ploiServer.value.trim(), ploiSiteId: ploiSite.value.trim() },
+    })
+    toast.add({ title: t('control.siteDomain.ploiSaved'), color: 'success' })
+  }
+  catch {
+    toast.add({ title: t('control.siteDomain.failed'), description: t('control.siteDomain.errors.generic'), color: 'error' })
+  }
+  finally {
+    domainBusy.value = ''
+    await refresh()
+  }
+}
+
+const domainColor = (s: string) => (s === 'active' ? 'success' : s === 'none' ? 'neutral' : s === 'error' ? 'error' : 'warning') as 'success' | 'neutral' | 'error' | 'warning'
+
 const healthColor = (s: string) => (s === 'ok' ? 'success' : s === 'degraded' ? 'warning' : s === 'down' ? 'error' : 'neutral') as 'success' | 'warning' | 'error' | 'neutral'
 const statusColor = (s: string) => (s === 'active' ? 'success' : s === 'provisioning' ? 'info' : s === 'error' || s === 'deletion_failed' ? 'error' : 'warning') as 'success' | 'info' | 'error' | 'warning'
 const jobColor = (s: string) => (s === 'done' ? 'success' : s === 'running' ? 'info' : s === 'error' ? 'error' : 'neutral') as 'success' | 'info' | 'error' | 'neutral'
@@ -229,6 +320,7 @@ const HIDE_LG = { td: 'hidden lg:table-cell', th: 'hidden lg:table-cell' }
 const websiteColumns = computed<TableColumn<WebsiteWithEntitlements>[]>(() => [
   { accessorKey: 'name', header: () => t('control.websites.col.site') },
   { id: 'state', header: () => t('control.websites.col.state') },
+  { id: 'domain', header: () => t('control.websites.col.domain'), meta: { class: HIDE_MD } },
   { id: 'products', header: () => t('control.websites.col.products'), meta: { class: HIDE_LG } },
   { id: 'actions', header: () => '' },
 ])
@@ -244,6 +336,7 @@ function siteActions(site: WebsiteWithEntitlements): DropdownMenuItem[][] {
   return [
     [
       { label: t('control.entitlements.manage'), icon: 'i-ph-stack', onSelect: () => openEntitlements(site) },
+      { label: t('control.siteDomain.manage'), icon: 'i-ph-globe-hemisphere-west', onSelect: () => openDomain(site) },
       { label: t('control.websites.check'), icon: 'i-ph-heartbeat', onSelect: () => { void checkHealth(site) } },
     ],
     [{ label: t('control.websites.deregister'), icon: 'i-ph-trash', color: 'error', onSelect: () => { void deregister(site) } }],
@@ -292,6 +385,16 @@ function siteActions(site: WebsiteWithEntitlements): DropdownMenuItem[][] {
                 {{ t('control.websites.lastCheck', { at: new Date(row.original.healthCheckedAt).toLocaleString() }) }}
               </p>
             </ClientOnly>
+          </div>
+        </template>
+        <template #domain-cell="{ row }">
+          <div class="flex flex-wrap items-center gap-1" :data-site-domain="row.original.domain.status">
+            <UBadge :color="domainColor(row.original.domain.status)" variant="subtle" size="sm">
+              {{ row.original.domain.domain || t('control.siteDomain.none') }}
+            </UBadge>
+            <p v-if="row.original.domain.status !== 'none' && row.original.domain.status !== 'active'" class="w-full text-xs text-muted">
+              {{ t(`control.siteDomain.status.${row.original.domain.status}`) }}
+            </p>
           </div>
         </template>
         <template #products-cell="{ row }">
@@ -427,6 +530,113 @@ function siteActions(site: WebsiteWithEntitlements): DropdownMenuItem[][] {
             <UButton :loading="savingGrants" :disabled="!selectableProducts.length" data-grant-save @click="saveEntitlements">
               {{ t('control.entitlements.save') }}
             </UButton>
+          </div>
+        </template>
+      </UModal>
+
+      <!-- control-036: eigene Domain einer Silo-Website verwalten -->
+      <UModal
+        :open="!!domainSite"
+        :title="t('control.siteDomain.title', { name: domainSite?.name ?? '' })"
+        @update:open="() => { domainSite = null }"
+      >
+        <template #body>
+          <div class="space-y-5">
+            <UFormField :label="t('control.siteDomain.field')" :help="t('control.siteDomain.fieldHelp')">
+              <UInput
+                v-model="domainInput"
+                class="w-full"
+                placeholder="www.beispiel.de"
+                autocapitalize="off"
+                autocorrect="off"
+                spellcheck="false"
+                data-domain-input
+              />
+            </UFormField>
+
+            <div class="flex flex-wrap gap-2">
+              <UButton
+                :label="domainState?.domain ? t('control.siteDomain.replace') : t('control.siteDomain.save')"
+                :loading="domainBusy === 'save'"
+                :disabled="domainBusy !== '' || !domainInput.trim() || domainInput.trim() === domainState?.domain"
+                data-domain-save
+                @click="() => runDomain('save')"
+              />
+              <UButton
+                v-if="domainState?.domain"
+                variant="soft"
+                :label="t('control.siteDomain.check')"
+                :loading="domainBusy === 'check'"
+                :disabled="domainBusy !== ''"
+                data-domain-check
+                @click="() => runDomain('check')"
+              />
+              <UButton
+                v-if="domainState?.domain"
+                variant="ghost"
+                color="error"
+                :label="t('control.siteDomain.remove')"
+                :loading="domainBusy === 'remove'"
+                :disabled="domainBusy !== ''"
+                @click="() => runDomain('remove')"
+              />
+            </div>
+
+            <UAlert
+              v-if="domainState && !domainState.ploiConfigured"
+              icon="i-ph-wrench"
+              color="warning"
+              variant="subtle"
+              :title="t('control.siteDomain.noPloiTitle')"
+              :description="t('control.siteDomain.noPloiDesc')"
+            />
+            <UAlert
+              v-if="domainState?.error"
+              icon="i-ph-warning"
+              color="warning"
+              variant="subtle"
+              :title="t('control.siteDomain.pendingTitle')"
+              :description="domainState.error"
+            />
+
+            <!-- Die DNS-Anleitung kommt fertig vom Server (dieselbe, die der
+                 Kunde im Silo-Dashboard sieht) — hier nur zum Weitergeben. -->
+            <div v-if="domainState?.domain" class="space-y-2 text-sm">
+              <p class="font-medium">{{ t('control.siteDomain.dnsTitle') }}</p>
+              <pre class="overflow-x-auto rounded bg-elevated p-2 font-mono text-xs" data-domain-dns>TXT    {{ domainState.instructions.txtName }}  {{ domainState.instructions.txtValue }}<template v-if="domainState.instructions.apexForm">
+A      {{ domainState.instructions.apexForm }}  {{ domainState.instructions.serverIps.join(', ') }}</template><template v-if="domainState.instructions.wwwForm">
+CNAME  {{ domainState.instructions.wwwForm }}  {{ domainState.instructions.cnameTarget }}</template></pre>
+            </div>
+
+            <USeparator />
+
+            <div class="space-y-3">
+              <p class="text-sm font-medium">{{ t('control.siteDomain.ploiTitle') }}</p>
+              <p class="text-xs text-muted">{{ t('control.siteDomain.ploiHelp') }}</p>
+              <div class="flex flex-wrap gap-2">
+                <UFormField :label="t('control.siteDomain.ploiServer')">
+                  <UInput v-model="ploiServer" placeholder="118713" data-ploi-server />
+                </UFormField>
+                <UFormField :label="t('control.siteDomain.ploiSite')">
+                  <UInput v-model="ploiSite" placeholder="390041" data-ploi-site />
+                </UFormField>
+              </div>
+              <UButton
+                size="xs"
+                color="neutral"
+                variant="outline"
+                :label="t('control.siteDomain.ploiSave')"
+                :loading="domainBusy === 'ploi'"
+                :disabled="domainBusy !== ''"
+                data-ploi-save
+                @click="savePloiIds"
+              />
+            </div>
+          </div>
+        </template>
+        <template #footer>
+          <div class="flex w-full justify-end">
+            <UButton color="neutral" variant="ghost" @click="() => { domainSite = null }">{{ t('control.websites.cancel') }}</UButton>
           </div>
         </template>
       </UModal>

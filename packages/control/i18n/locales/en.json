@@ -201,7 +201,8 @@
       "col": {
         "site": "Website",
         "state": "Status",
-        "products": "Products"
+        "products": "Products",
+        "domain": "Domain"
       }
     },
     "jobs": {
@@ -407,6 +408,47 @@
         "impersonation": "Impersonation",
         "copyright": "Copyright",
         "other": "Something else"
+      }
+    },
+    "siteDomain": {
+      "manage": "Own domain",
+      "title": "Own domain — {name}",
+      "none": "none",
+      "field": "Domain",
+      "fieldHelp": "The form the site should live under — with or without www. The other form is set up as well and redirects here.",
+      "save": "Add domain",
+      "replace": "Replace domain",
+      "check": "Check",
+      "remove": "Remove domain",
+      "failed": "That did not work",
+      "pendingTitle": "This is where it is stuck",
+      "dnsTitle": "DNS records the customer needs",
+      "noPloiTitle": "No ploi server on file",
+      "noPloiDesc": "Without a server and site id no certificate can be ordered. Both are set below.",
+      "ploiTitle": "Where this site lives at ploi",
+      "ploiHelp": "Server and site id from the ploi panel. The customer domain is added as an alias to this site; the certificate then covers all names of the site.",
+      "ploiServer": "Server id",
+      "ploiSite": "Site id",
+      "ploiSave": "Save ids",
+      "ploiSaved": "Ids saved",
+      "status": {
+        "none": "No own domain added.",
+        "pending_dns": "Waiting for the customer DNS records.",
+        "pending_cert": "DNS is in place. The certificate is being issued.",
+        "pending_platform": "Almost done — the last step is running in the app.",
+        "active": "Live.",
+        "error": "Something went wrong."
+      },
+      "errors": {
+        "domain_empty": "Please enter a domain.",
+        "domain_too_long": "That address is too long.",
+        "domain_invalid": "That does not look like a domain. Letters, digits and hyphens are allowed.",
+        "domain_not_a_domain": "That is not a complete domain — it needs at least one dot.",
+        "domain_operator_domain": "Addresses under pukalani.app cannot be added here.",
+        "domain_taken": "That domain is already taken.",
+        "domain_missing": "Add a domain first.",
+        "domain_not_ready": "The status changed. Reload and check again.",
+        "generic": "That did not work just now."
       }
     }
   }
