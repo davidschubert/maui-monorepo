@@ -2,6 +2,9 @@
   "app": {
     "tagline": "Diskutiere wie auf Reddit — in Echtzeit."
   },
+  "legal": {
+    "imprint": "Impressum"
+  },
   "home": {
     "onlineBadge": "{count} gerade online",
     "title": "Diskutiere wie auf Reddit — in Echtzeit",
