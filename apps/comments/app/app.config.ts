@@ -27,6 +27,24 @@ export default defineAppConfig({
     seo: { originFromRequest: true },
     brand: { name: 'Hawaii Studio' },
     /**
+     * DIE VOLLE INSTANZ-SICHT IM COMMUNITY-HUB (F51 Paket 2, 2026-08-07 —
+     * Davids Ebenen-Entscheidung, DECISION-LOG „Community-Settings-Hub").
+     *
+     * Der admin-Layer hält vier Betreiber-Reiter für den Hub bereit
+     * (Konfiguration · Produkte · Speicher · System); der Schalter ist im Core
+     * AUS und wird hier eingeschaltet. Diese App ist das EINE lebende Silo
+     * (SILO-REGEL, DECISION-LOG 2026-08-04): es gibt keine fremde Community,
+     * die man vor der Instanz-Verwaltung schützen müsste, und der Hub ist die
+     * einzige Hülle, in der „Einstellungen dieser Site" hier überhaupt Platz
+     * haben. Im Pool bleibt der Schalter aus — dort ist der Hub die Fläche des
+     * KUNDEN.
+     *
+     * Begründung des Schalters (und warum `scope: 'operator'` allein nicht
+     * reicht): packages/admin/app/app.config.ts und der Kommentar an
+     * `instanceTabs` in packages/core/app/app.config.ts.
+     */
+    admin: { instanceTabs: true },
+    /**
      * Plausible (self-hosted, plausible.hawaii.studio) — cookielos, deshalb
      * kein Consent-Banner. v3-Snippet: die Site-Zuordnung zu
      * comments.pukalani.app steckt in der Script-Id (pa-…); Outbound-Links/

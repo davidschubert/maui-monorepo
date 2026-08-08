@@ -309,7 +309,40 @@
     },
     "communityTabs": {
       "general": "General",
-      "plan": "Plan"
+      "plan": "Plan",
+      "products": "Products",
+      "storage": "Storage"
+    },
+    "communityProducts": {
+      "title": "Products",
+      "noTenantTitle": "No plan here",
+      "noTenantDesc": "This page shows what a community's plan includes. There is no community on this address.",
+      "includedTitle": "Included in your plan",
+      "includedDesc": "You can use these products right away.",
+      "included": "Included",
+      "emptyTitle": "No products yet",
+      "emptyDesc": "No product is currently enabled for this community.",
+      "lockedTitle": "Not in your plan",
+      "lockedDesc": "These products come with a higher plan. Your content stays either way.",
+      "upgradeCta": "View plans"
+    },
+    "communityStorage": {
+      "title": "Storage",
+      "description": "How much of your allowance is in use.",
+      "noTenantTitle": "No allowance here",
+      "noTenantDesc": "This page shows a community's usage. There is no community on this address.",
+      "emptyTitle": "No allowance set",
+      "emptyDesc": "No limit applies to this community right now. As soon as one does, it shows up here.",
+      "of": "{used} of {limit}",
+      "hint": "Entries are counted, not megabytes. Daily figures are deliberately left out.",
+      "planCta": "View plans",
+      "posts": {
+        "comments": "Comments",
+        "posts": "Posts",
+        "events": "Events",
+        "courses": "Courses",
+        "media": "Images"
+      }
     },
     "trial": {
       "endingTitle": "1 day left in your trial | {n} days left in your trial",

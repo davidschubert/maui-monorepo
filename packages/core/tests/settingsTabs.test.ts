@@ -69,6 +69,50 @@ describe('resolveSettingsTabs', () => {
       .toEqual(['instanz', 'community'])
   })
 
+  it('die INSTANZ-Sicht ist im Silo da und auf einem Mandanten-Host weg (F51 Paket 2)', () => {
+    // Davids Ebenen-Entscheidung in einer Zeile: „Silo zeigt die volle
+    // Instanz-Sicht, System entfällt im Pool". Der admin-Layer meldet vier
+    // Betreiber-Reiter am Community-Hub an (Konfiguration · Produkte ·
+    // Speicher · System); dass sie auf dem Host einer Kunden-Community
+    // verschwinden, leistet allein `scope: 'operator'` — es braucht dafür
+    // KEINE zweite Regel in der Hülle.
+    //
+    // Der Betrachter ist hier bewusst der Betreiber MIT Community-Rolle: genau
+    // der besucht im Pool den Host seines Kunden, und genau bei ihm dürfte ein
+    // vergessener Ort-Filter auffallen.
+    const instanz = { ...OPERATOR_TAB, id: 'instance-products', to: '/dashboard/admin/products', order: 90 }
+    const beide = [COMMUNITY_TAB, instanz]
+    const betreiber = viewer(['system.manage'], ['team.manage'])
+
+    expect(resolveSettingsTabs(beide, { place: 'single-tenant', ...betreiber }).map(t => t.id))
+      .toEqual(['community', 'instance-products'])
+    expect(resolveSettingsTabs(beide, { place: 'community', ...betreiber }).map(t => t.id))
+      .toEqual(['community'])
+  })
+
+  it('der Schalter der App hält die INSTANZ-Sicht aus Kundenbereich und Konsole heraus', () => {
+    // `scope: 'operator'` allein reicht NICHT: an `place: 'control'`
+    // (my.pukalani.app) und `place: 'single-tenant'` (apps/control, apps/photos)
+    // bliebe die Instanz-Verwaltung unter der Überschrift
+    // „Community-Einstellungen" stehen. Deshalb hängt jeder der vier Reiter an
+    // `configFlag: 'admin.instanceTabs'` — Core-Default AUS, an nur in
+    // apps/comments.
+    const instanz: PukalaniSettingsTab = {
+      ...OPERATOR_TAB,
+      id: 'instance-products',
+      configFlag: 'admin.instanceTabs',
+    }
+    const aus = { configOn: () => false }
+    const an = { configOn: () => true }
+    const betreiber = viewer(['system.manage'])
+
+    for (const place of ['single-tenant', 'control'] as const) {
+      expect(resolveSettingsTabs([instanz], { place, ...betreiber, ...aus })).toEqual([])
+      expect(resolveSettingsTabs([instanz], { place, ...betreiber, ...an }).map(t => t.id))
+        .toEqual(['instance-products'])
+    }
+  })
+
   it('filtert nach Capability — ein Reiter ohne Recht ist ein Versprechen ins Leere', () => {
     const viewerOnly = viewer([], ['dashboard.access'])
     expect(resolveSettingsTabs([COMMUNITY_TAB], { place: 'community', ...viewerOnly })).toEqual([])

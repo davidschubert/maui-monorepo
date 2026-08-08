@@ -128,6 +128,52 @@ export default defineAppConfig({
           requiredCapability: 'community.billing',
           order: 50,
         },
+        {
+          /**
+           * PRODUKTE — was der TARIF dieser Community freischaltet (F51
+           * Paket 2, 2026-08-07, Davids Ebenen-Entscheidung).
+           *
+           * `team.manage` und nicht `community.billing`: die Seite ZEIGT nur,
+           * sie kauft nichts. Wer das Team verwaltet, soll wissen, was seiner
+           * Community zur Verfügung steht — der Weg zum Tarif führt von dort
+           * auf den Plan-Reiter, und der hängt weiterhin am Owner.
+           *
+           * BEWUSST OHNE `planProduct` und ohne `productKey`: dieser Reiter
+           * IST die Auskunft über Tarif und Produkte. Ihn selbst zu gaten wäre
+           * der Zirkelschluss, bei dem ausgerechnet die Erklärung verschwindet,
+           * sobald etwas fehlt.
+           *
+           * `order: 90` — hinter Analytics (80), vor Speicher (100). Die vier
+           * ZUSTÄNDIGKEITEN (Allgemein, Branding, Mitglieder, Domain, Plan)
+           * stehen vorn; was man nachschlägt statt einzustellen, kommt hinten.
+           */
+          id: 'community-products',
+          scope: 'community',
+          labelKey: 'onboarding.communityTabs.products',
+          icon: 'i-ph-puzzle-piece',
+          to: '/dashboard/community/products',
+          requiredCapability: 'team.manage',
+          order: 90,
+        },
+        {
+          /**
+           * SPEICHER — eigener Verbrauch gegen das Kontingent des Tarifs
+           * (F51 Paket 2).
+           *
+           * NICHT ZU VERWECHSELN mit `/dashboard/storage`: das ist die
+           * BETREIBER-Seite (Appwrite-Buckets der ganzen Instanz,
+           * `storage.manage`) und bleibt, wo sie ist. Diese hier zählt die
+           * Zeilen EINER Community gegen ihren Tarif. Zwei Ebenen, zwei
+           * Seiten, zwei Capabilities — im Pool sieht ein Owner nur diese.
+           */
+          id: 'community-storage',
+          scope: 'community',
+          labelKey: 'onboarding.communityTabs.storage',
+          icon: 'i-ph-gauge',
+          to: '/dashboard/community/storage',
+          requiredCapability: 'team.manage',
+          order: 100,
+        },
       ],
       /**
        * Der Hinweis auf die ablaufende Testphase (M13). Aus DEMSELBEN Grund in

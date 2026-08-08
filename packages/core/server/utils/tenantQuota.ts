@@ -71,16 +71,37 @@ export function limitsForPlan(
   return forPlan?.[kind]
 }
 
+/**
+ * DAS GELTENDE KONTINGENT eines Postens für den Mandanten DIESES Requests —
+ * die EINE Auflösung, aus der sowohl die Bremse als auch die Anzeige lesen.
+ *
+ * Sie war bis F51 (2026-08-07) eine Zeile in `assertPoolWriteQuota`. Dann kam
+ * der Reiter „Speicher" (`/api/community/usage`) dazu, der dieselbe Frage
+ * stellt — und zwei Fassungen derselben Fallback-Kette wären genau die Sorte
+ * Doppelpflege, die still auseinanderläuft: der Kunde läse „12 von 5.000",
+ * während die Bremse bei 200 zumacht.
+ *
+ * Die Kette selbst ist unverändert: die vom Resolver aufgelösten Katalog-Limits
+ * (`community_plans`, im Control Plane OHNE Deploy editierbar) schlagen den
+ * statischen app.config-Katalog. `undefined` heißt „kein Kontingent" — kein
+ * Pool-Mandant, Quota aus, oder für diesen Posten sind keine Zahlen hinterlegt.
+ */
+export function tenantLimitsFor(event: H3Event, kind: string): TenantQuotaLimits | undefined {
+  const tenant = useTenant(event)
+  if (tenant?.mode !== 'pool') return undefined
+
+  const appConfig = useAppConfig() as { pukalani?: { tenancy?: { quota?: TenancyQuotaConfig } } }
+  const quota = appConfig.pukalani?.tenancy?.quota
+  if (quota?.enabled !== true) return undefined
+
+  return tenant.limits?.[kind] ?? limitsForPlan(quota.plans, tenant.plan, kind)
+}
+
 export async function assertPoolWriteQuota(event: H3Event, options: { kind: string, tableId: string }): Promise<void> {
   const tenant = useTenant(event)
   if (tenant?.mode !== 'pool') return
 
-  const appConfig = useAppConfig() as { pukalani?: { tenancy?: { quota?: TenancyQuotaConfig } } }
-  const quota = appConfig.pukalani?.tenancy?.quota
-  if (quota?.enabled !== true) return
-  // Fallback-Kette: vom Resolver aufgelöste Katalog-Limits (tenant_plans,
-  // Control-editierbar) schlagen den statischen app.config-Katalog.
-  const limits = tenant.limits?.[options.kind] ?? limitsForPlan(quota.plans, tenant.plan, options.kind)
+  const limits = tenantLimitsFor(event, options.kind)
   if (!limits) return
 
   const config = useRuntimeConfig(event)

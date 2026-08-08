@@ -309,7 +309,40 @@
     },
     "communityTabs": {
       "general": "Allgemein",
-      "plan": "Plan"
+      "plan": "Plan",
+      "products": "Produkte",
+      "storage": "Speicher"
+    },
+    "communityProducts": {
+      "title": "Produkte",
+      "noTenantTitle": "Hier gibt es keinen Tarif",
+      "noTenantDesc": "Diese Seite zeigt, was der Tarif einer Community enthält. Auf dieser Adresse gibt es keine Community.",
+      "includedTitle": "In deinem Tarif enthalten",
+      "includedDesc": "Diese Produkte kannst du sofort benutzen.",
+      "included": "Enthalten",
+      "emptyTitle": "Noch keine Produkte",
+      "emptyDesc": "Für diese Community ist gerade kein Produkt freigeschaltet.",
+      "lockedTitle": "Nicht in deinem Tarif",
+      "lockedDesc": "Diese Produkte gibt es ab einem höheren Tarif. Deine Inhalte bleiben in jedem Fall erhalten.",
+      "upgradeCta": "Tarif ansehen"
+    },
+    "communityStorage": {
+      "title": "Speicher",
+      "description": "So viel von deinem Kontingent ist belegt.",
+      "noTenantTitle": "Hier gibt es kein Kontingent",
+      "noTenantDesc": "Diese Seite zeigt den Verbrauch einer Community. Auf dieser Adresse gibt es keine Community.",
+      "emptyTitle": "Kein Kontingent hinterlegt",
+      "emptyDesc": "Für diese Community ist gerade keine Obergrenze gesetzt. Sobald eine gilt, steht sie hier.",
+      "of": "{used} von {limit}",
+      "hint": "Gezählt werden Einträge, nicht Megabyte. Tageswerte stehen hier bewusst nicht.",
+      "planCta": "Tarif ansehen",
+      "posts": {
+        "comments": "Kommentare",
+        "posts": "Beiträge",
+        "events": "Termine",
+        "courses": "Kurse",
+        "media": "Bilder"
+      }
     },
     "trial": {
       "endingTitle": "Noch 1 Tag Testphase | Noch {n} Tage Testphase",

@@ -76,6 +76,31 @@ export default defineAppConfig({
        * KONTOS — zwei Listen können das gar nicht erst.
        */
       communityTabs: [] as PukalaniSettingsTab[],
+      /**
+       * ZEIGT DIESE APP DIE INSTANZ-SICHT IM HUB? (F51 Paket 2, 2026-08-07 —
+       * Davids Ebenen-Entscheidung: „Silo zeigt die volle Instanz-Sicht,
+       * System entfällt im Pool".)
+       *
+       * Der admin-Layer meldet vier BETREIBER-Reiter am Community-Hub an
+       * (Konfiguration · Produkte · Speicher · System). Sie sind `scope:
+       * 'operator'` und verschwinden damit auf jedem Mandanten-Host von selbst
+       * — aber `scopeVisibleAt` lässt sie an ZWEI weiteren Orten stehen, an
+       * denen sie nichts zu suchen haben:
+       *
+       *  · `place: 'single-tenant'` — apps/control und apps/photos ziehen den
+       *    admin-Layer ebenfalls. Die Betreiber-Konsole bekäme einen Menüpunkt
+       *    „Community-Einstellungen" für eine Community, die es dort nicht
+       *    gibt, und dazu Speicher/System ein zweites Mal (die harten
+       *    bottomLinks bleiben).
+       *  · `place: 'control'` — auf dem KUNDENBEREICH my.pukalani.app sind
+       *    Operator-Reiter sichtbar. Genau dort wäre eine Instanz-Verwaltung
+       *    unter der Überschrift „Community-Einstellungen" am irreführendsten.
+       *
+       * Deshalb ein `configFlag` (Core-Default AUS, wie jedes Core-Gate) statt
+       * einer Liste, die man je App wiederholt. AN steht er in apps/comments —
+       * dem EINEN lebenden Silo (SILO-REGEL, DECISION-LOG 2026-08-04).
+       */
+      instanceTabs: false,
     },
     /**
      * Chrome-Registry (Audit S9): Header-Nav + Header-Utilities der
