@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 3 offen · 3 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 2 offen · 3 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-07**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -20,7 +20,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | --- | --- | --- | --- | --- | --- |
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Die Vorstufe A2a (6 Testmodus-Proben) ist seit 2026-08-08 KOMPLETT grün durchgespielt, Anleitung neu geschrieben — offen ist nur noch der Live-Gang: Bank, Live-Keys, Live-Webhook (**mit allen NEUN Ereignissen** — im Test fehlten drei), Steuer-Prüfung (19 % im Preis). Braucht 3 (A1). | Hoch | S–M — Runbook Schritt 2 | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
-| 9 · F53 | **Dark Mode für die Marketing-Landing** (Davids Entscheidung 2026-08-07, war B7): Komponenten laufen seit der Nuxt-UI-Migration über Theme-Tokens — die `tone-*`-Licht-Dramaturgie in `marketing.css` braucht einen `.dark`-Zweig, danach fällt die `light`-Klemme in `apps/marketing/nuxt.config.ts`. | Niedrig | S–M | Nein | [DECISION-LOG 2026-08-07](DECISION-LOG.md) |
 
 ## ⏸️ Geparkt / wartet — in Arbeitsreihenfolge
 
@@ -269,10 +268,10 @@ Ausführen, und die Reihenfolge ist Pflicht:** erst den Code deployen, dann
 migrieren — andersherum liest der Fallback gegen eine gelöschte Spalte.
 Herkunft: Pool-Audit N2.
 
-**B7 — ENTSCHIEDEN (2026-08-07): Dark Mode wird nachgerüstet** → jetzt
-offener Punkt **F53** in der Tabelle oben. Hintergrund der `light`-Klemme
-(Preference + Route-Meta, localStorage-Falle) steht in
-`apps/marketing/nuxt.config.ts` und bleibt bis zum Umbau in Kraft.
+**B7/F53 — ERLEDIGT (2026-08-08):** Dark Mode war seit dem 2026-08-01
+bereits gebaut (B7, `c84c681e` — diese Notiz war veraltet); F53 hat die vier
+fehlenden Stücke nachgezogen (Storage-Altlast, theme-color, Studio-Karte,
+Hero-Thumbs). Details: [OPEN-ITEMS-COMPLETE.md](OPEN-ITEMS-COMPLETE.md).
 
 **M13 — Reste des Self-Service-Onboardings:** Trial-Banner +
 Ablauf-Erinnerung · Kundenbereich-Umzug `/workspace` → `my.*` ·

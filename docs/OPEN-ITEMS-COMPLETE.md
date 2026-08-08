@@ -29,6 +29,38 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F53 — Dark Mode der Marketing-Landing: die vier fehlenden Stücke ✅ 2026-08-08
+
+**Der wichtigste Befund zuerst:** Dark Mode war beim Anlegen des Punkts
+BEREITS GEBAUT — B7 (`c84c681e`, 2026-08-01) hat die Klemme gelöst,
+`.dark`-Zweige in marketing.css/puka-theme.css angelegt und sogar einen
+Wähler in den Fuß gestellt; die OPEN-ITEMS-Zeile (und die Empfehlung „hell
+lassen" in der 4. Fragerunde) beschrieben einen sechs Tage alten Stand.
+**Wirklich gefehlt haben vier Dinge:** (1) **Die Storage-Altlast** — die
+Klemme hat nicht nur gelesen, sondern bei jedem Aufruf `'light'` in den
+Storage GESCHRIEBEN (color-mode-Plugin, watch immediate); Besucher der
+1,8 Klemm-Tage wären für immer hell geblieben, denn der Storage-Wert schlägt
+die Voreinstellung im Inline-Skript. Gelöst über einen NEUEN Storage-Schlüssel
+(`pukalani-appearance`) statt eines Reset-Plugins: der leere Schlüssel malt
+schon den ersten Frame richtig, ein Plugin liefe nach dem Inline-Skript und
+flackerte. Preis: wer seit B7 bewusst gewählt hat, wählt einmal neu.
+(2) **theme-color-Meta** an colorMode gebunden — EIN Eintrag; zwei
+media-Metas überleben unheads Dedupe nicht (gemessen: vier Zeilen, zwei tot).
+(3) **Die Studio-Karte** (tags erst seit dem F49-Nachtrag) hatte auf den
+tone-Flächen in BEIDEN Modi praktisch keinen Rand (Fläche 1,00–1,04:1, Ring
+1,03–1,11:1) — jetzt puka-Panel + Kante inkl. der divide-Linie der liegenden
+Bauform. (4) **Hero-Thumbnails** über ein Hell/Dunkel-Tripel.
+**Kontraste gerechnet, nicht geschätzt:** dunkel alles ≥ AA (schlechtester
+Fließtext 5,82:1, CTA 10,07:1). DREI HELL-BESTANDSWERTE liegen unter AA
+(Kicker 2,43–2,83:1 · CTA-Weiß auf der Sonne 1,81:1 · Preis-Kleinzeile
+3,41:1) — bewusst NICHT angefasst (B7-Bestand, Optik-Entscheidung Davids),
+als Befund notiert. **Beweise:** lint/typecheck 0, Playwright hell+dunkel
+(Hero, Preise; html-Klasse folgt prefers-color-scheme), Live-Flip per
+Build-SHA verifiziert. **Gelernt:** Die OPEN-ITEMS-Zeile war sechs Tage
+veraltet — der Implementierungs-Agent hat den Ist-Stand ZUERST gemessen und
+so einen Doppelbau verhindert; genau dafür steht „erst main/Ist-Stand
+prüfen" auch VOR Punkten aus der eigenen Liste.
+
 ### F50 + F51 — Community-Settings-Hub und Community-Switcher ✅ 2026-08-08
 
 **Was gebaut wurde** (Davids Entscheidungen DECISION-LOG 2026-08-07; drei
