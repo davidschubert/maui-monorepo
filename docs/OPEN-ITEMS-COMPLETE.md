@@ -29,6 +29,40 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F49 — Pricing-Umbau: ohne Abo nur-lesend, Preisseite nur Personal + Pro ✅ 2026-08-07
+
+**Was gebaut wurde** (Davids Entscheidungen, DECISION-LOG 2026-08-07, Runden
+1–5): Der funktionsfähige Gratis-Zustand ist gestrichen — eine Community ohne
+bezahltes Abo ist NUR-LESEND, über die vorhandene M13-`billing`-Sperre, auf
+allen drei Wegen dorthin: (1) **Trial-Ende** — `trialSweep` setzt statt des
+Basic-Downgrades jetzt `suspension: 'billing'` + `TRIAL_ENDED_SUSPENSION_
+REASON` (plan 'basic' bleibt als Quota-Anker); der plan-Filter ist raus, damit
+der BESTAND mit abgelaufenem Trial rückwirkend mitgenommen wird; Query über
+`listAllRows` statt `limit(100)` (pastDueSweep-Begründung). (2) **Zahlungs-
+verzug** — unverändert (14 Tage, pastDueSweep). (3) **Kündigung** — der
+free-fallback-Zweig SETZT die Sperre (`SUBSCRIPTION_ENDED_SUSPENSION_REASON`)
+statt sie zu räumen; abuse bleibt immer unangetastet. Tragende Regel-Änderung:
+`shouldLiftBillingSuspension` hebt nur noch bei `billingStatus === 'active'`
+auf — die alte Formel (`!== 'past_due'`) hätte die neuen Sperren im nächsten
+stündlichen Lauf wieder aufgehoben (Attrappe mit einer Stunde Halbwertszeit).
+Der Kauf öffnet wie bisher im selben Schreibvorgang (Webhook apply-plan).
+Texte ehrlich nachgezogen: Wizard („nichts wird gesperrt" ist raus),
+Trial-Hinweise (ending/ended + „Plan wählen"), `my.*`-Karten, Abo-Seite
+(Basic-Bullets = „Zustand ohne Abo"), Hilfe (5.abrechnung.md), jeweils de+en.
+Preisseite www: Basic-Spalte entfernt (drei Karten: Personal/Pro/Enterprise —
+Enterprise ist das Studio-Angebot und bewusst geblieben), FAQ und Lead neu
+(„Mitmachen kostet nie etwas" statt „Basic dauerhaft kostenlos").
+**Beweise:** control 352/352 (+22 skipped; trialSweep-Fälle neu geschnitten
+inkl. Bestand/Vetos/Idempotenz, Lift-Regel-Fälle erweitert), onboarding 15/15,
+`check:i18n-keys` grün, 3× lint ohne Befund, typecheck control/platform/
+marketing je 0 Fehler. Der I/O-Teil (Sweep-Write, Webhook-Kündigung) wird mit
+**A2a** (Stripe-Testmodus-Walkthrough, als Nächstes dran) end-to-end bewiesen —
+die Sperr-WIRKUNG von `suspension='billing'` selbst ist seit M13 live belegt.
+**Gelernt:** Eine Sperre, die ein Sweep setzt, muss gegen JEDEN Aufheber
+geprüft werden, der dieselbe Spalte liest — `shouldLiftBillingSuspension` war
+als „Netz unter dem Webhook" gebaut und wäre unbemerkt zum Gegenspieler der
+neuen Regel geworden. Wer einen Zustand neu belegt, liest zuerst alle Leser.
+
 ### F52 — Pool-Domains: Sperre gegen den Wiederholungs-Klick ✅ 2026-08-07
 
 **Was gebaut wurde.** `requestPloiTenantCertificate` (packages/control/server/

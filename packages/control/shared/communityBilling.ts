@@ -15,9 +15,11 @@ import type { ControlPlan, ControlPlanCatalog, PlanBillingInterval } from './typ
  * Behälter war der Workspace.
  *
  * Kündigungs-Timing macht STRIPE selbst (cancel_at_period_end → 'canceled'
- * erst zum echten Ende); danach fällt die Community auf 'basic' zurück — NIE
- * auf nichts (ein gekündigter Kunde ist nie schlechter gestellt als einer,
- * der nie gezahlt hat).
+ * erst zum echten Ende); danach fällt die Community auf 'basic' zurück und wird
+ * NUR-LESEND (F49, Davids Entscheidung vom 2026-08-07). Der alte Grundsatz „ein
+ * gekündigter Kunde ist nie schlechter gestellt als einer, der nie gezahlt hat"
+ * gilt weiter — er zeigt seither nur in die andere Richtung: nie-gezahlt endet
+ * ebenfalls nur-lesend, also gekündigt auch.
  */
 
 /** Vom billing-Layer bereits VERIFIZIERTES Abo-Update — strukturell statt
@@ -194,12 +196,20 @@ export function shouldSuspendForPastDue(community: CommunityBillingState, now: n
  * Webhook macht das im selben Atemzug, in dem er `active` schreibt — diese
  * Funktion ist das NETZ darunter, für den Fall, dass ein Webhook einmal nicht
  * ankommt: der stündliche Sweep sieht dann eine Community mit
- * `suspension: 'billing'`, deren `billingStatus` längst nicht mehr `past_due`
- * ist, und macht sie wieder auf.
+ * `suspension: 'billing'`, deren Abo längst wieder läuft, und macht sie auf.
+ *
+ * AUFGEHOBEN WIRD NUR BEI `billingStatus === 'active'` (F49, Davids Entscheidung
+ * vom 2026-08-07). Hier stand `!== 'past_due'`, und das war bis dahin dasselbe:
+ * eine billing-Sperre konnte nur aus dem Verzug kommen, also hieß „kein Verzug
+ * mehr" zwangsläufig „wieder offen". Seit F49 gibt es ZWEI weitere Wege in
+ * dieselbe Sperre — das Ende der Testphase (billingStatus `''`) und die
+ * Kündigung (billingStatus `'canceled'`) —, und die alte Formulierung hätte
+ * beide im nächsten stündlichen Lauf sofort wieder aufgehoben. Die Sperre wäre
+ * eine Attrappe gewesen, die höchstens eine Stunde hält.
  *
  * Eine `abuse`-Sperre hebt hier NICHTS auf — die endet ausschließlich durch eine
  * Betreiber-Entscheidung.
  */
 export function shouldLiftBillingSuspension(community: Pick<CommunityBillingState, 'billingStatus' | 'suspension'>): boolean {
-  return community.suspension === 'billing' && community.billingStatus !== 'past_due'
+  return community.suspension === 'billing' && community.billingStatus === 'active'
 }

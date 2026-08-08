@@ -14,6 +14,15 @@ import type { ControlPlanCatalog } from '../../shared/types/planCatalog'
  * ein verlorener Kauf, Regel aus dem Cross-Sub-Fix).
  */
 
+/** Der Text, den der Owner nach einer Kündigung im Hinweis liest. Kein Vorwurf
+ *  und kein Betrag — hier steht nur, was passiert ist und was es wieder
+ *  aufmacht. Deutsch, weil dieselbe Spalte auch die von Hand getippten Gründe
+ *  trägt und eine halb übersetzte Spalte schlimmer wäre als eine einsprachige
+ *  (gleiche Begründung wie bei PAST_DUE_SUSPENSION_REASON in pastDueSweep.ts). */
+export const SUBSCRIPTION_ENDED_SUSPENSION_REASON
+  = 'Das Abo ist beendet. Mit einem neuen Abo öffnet sich die Community sofort '
+    + 'wieder — Inhalte und Einstellungen bleiben erhalten.'
+
 /** Autoritäts-Check (#6b), von der APP verdrahtet (A14: control kennt billing/
  *  Stripe nicht): existiert für die Community ein ANDERES lebendes Abo? */
 export type OtherActiveCommunitySubscriptionCheck = (event: H3Event, input: {
@@ -148,24 +157,43 @@ export async function handleCommunitySubscriptionUpdate(event: H3Event, update: 
         }
       }
 
+      // GEKÜNDIGT IST EXAKT GLEICHGESTELLT MIT NIE-GEZAHLT (F49, Davids
+      // Entscheidung vom 2026-08-07). Der alte Grundsatz — „ein gekündigter
+      // Kunde ist nie schlechter gestellt als einer, der nie gezahlt hat" —
+      // gilt unverändert; er zeigt seit F49 nur in die andere Richtung. Wer nie
+      // gezahlt hat, ist nach der Testphase nur-lesend, also ist es der
+      // Gekündigte auch. Hier stand vorher das Gegenteil: eine laufende
+      // BILLING-Sperre wurde AUFGEHOBEN. Damit existierte der Free-Plan durch
+      // die Hintertür — einen Monat zahlen, kündigen, für immer schreiben.
+      //
+      // Eine `abuse`-Sperre wird NIE angefasst: die endet ausschließlich durch
+      // eine Betreiber-Entscheidung und ist die schärfere der beiden (Host
+      // offline statt nur-lesend). Deshalb wird der Wert GELESEN und die
+      // suspension-Felder in dem Fall gar nicht erst mitgeschrieben.
+      const keepsAbuseSuspension = tenant.suspension === 'abuse'
+
       await admin.tablesDB.updateRow<TenantRow>({
         databaseId, tableId: COMMUNITIES_TABLE, rowId: action.communityId,
         data: {
-          // Rückfall auf den kostenlosen Tarif — NIE auf nichts (ein
-          // gekündigter Kunde ist nie schlechter gestellt als einer, der nie
-          // gezahlt hat). Abo-Bezug lösen; der Customer bleibt (Rechnungen).
+          // Der Plan bleibt der QUOTA-Anker und fällt auf 'basic' — NIE auf
+          // nichts. Abo-Bezug lösen; der Customer bleibt (Rechnungen).
           plan: 'basic',
           billingStatus: 'canceled',
           stripeSubscriptionId: '',
-          // Kündigung beendet den Verzug: was nicht mehr geschuldet wird, kann
-          // nicht überfällig sein. Eine BILLING-Sperre fällt deshalb mit —
-          // sonst bliebe ein Kunde für immer nur-lesend, obwohl er auf dem
-          // kostenlosen Tarif nichts mehr schuldet. Eine `abuse`-Sperre bleibt.
+          // Kündigung beendet den VERZUG: was nicht mehr geschuldet wird, kann
+          // nicht überfällig sein. Die Sperre bleibt trotzdem — sie trägt jetzt
+          // nur einen anderen Grund (beendetes Abo statt offene Rechnung).
           pastDueSince: null,
-          ...(tenant.suspension === 'billing' ? { suspension: '', suspensionReason: '', suspendedAt: null } : {}),
+          ...(keepsAbuseSuspension
+            ? {}
+            : {
+                suspension: 'billing',
+                suspensionReason: SUBSCRIPTION_ENDED_SUSPENSION_REASON,
+                suspendedAt: new Date().toISOString(),
+              }),
         },
       })
-      console.info(`[control] Community ${action.communityId} → free-Fallback nach Kündigung`)
+      console.info(`[control] Community ${action.communityId} → Abo beendet, nur-lesend${keepsAbuseSuspension ? ' (abuse-Sperre bleibt)' : ''}`)
     }
   }
 }

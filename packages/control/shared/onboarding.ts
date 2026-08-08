@@ -110,7 +110,15 @@ export function isSafeThemeToken(value: string): boolean {
 /** Entscheidung David (2026-07-24): 14 Tage Pro, ohne Zahlungsdaten. */
 export const TRIAL_DAYS = 14
 export const TRIAL_PLAN = 'pro' as const
-/** Nach Ablauf: Downgrade auf Basic (P4-Rename; vorher 'free'). NIE sperren, NIE löschen (F3-Grundsatz). */
+/**
+ * Nach Ablauf fällt der PLAN auf Basic (P4-Rename; vorher 'free') — er bleibt
+ * der Quota-Anker. Seit F49 (Davids Entscheidung vom 2026-08-07) ist das aber
+ * nicht mehr die ganze Wirkung: die Community wird zugleich NUR-LESEND
+ * (`suspension: 'billing'`, trialSweep.ts). Basic ist damit kein
+ * funktionsfähiger Gratis-Tarif mehr, sondern der Zustand „kein Abo".
+ * GELÖSCHT WIRD NIE ETWAS (F3-Grundsatz unangetastet), und ein Abo öffnet die
+ * Community sofort wieder.
+ */
 export const TRIAL_FALLBACK_PLAN = 'basic' as const
 
 /** Ende der Testphase als ISO-String (Appwrite-Datetime-Spalte). */
@@ -142,12 +150,17 @@ export const TRIAL_NOTICE_LEAD_DAYS = 7
  * Nachlauf: so lange NACH dem Ende erinnert er noch — danach schweigt er.
  *
  * Ohne diese Grenze wäre der Hinweis ewig: `trialEndsAt` wird beim Ablauf NICHT
- * geräumt (der Sweep senkt nur `plan` auf basic, trialSweep.ts), geleert wird es
- * erst durch einen Kauf. Ein Banner, das jede Community ohne Abo bis in alle
- * Zeit zum Kaufen drängt, ist Werbung und keine Auskunft — und genau die Sorte
- * Dauer-Nörgelei, die das Versprechen aus dem Wizard („nichts wird gesperrt")
- * unglaubwürdig macht. Länge = die Testphase selbst: wer 14 Tage nach dem Ende
- * nichts unternommen hat, hat sich für Basic entschieden.
+ * geräumt (der Sweep setzt `plan` auf basic und die Community nur-lesend,
+ * trialSweep.ts), geleert wird es erst durch einen Kauf. Ein Banner, das bis in
+ * alle Zeit dieselbe Sache wiederholt, ist Werbung und keine Auskunft. Länge =
+ * die Testphase selbst: wer 14 Tage nach dem Ende nichts unternommen hat, hat
+ * die Auskunft verstanden.
+ *
+ * DASS die Community ohne Abo nur-lesend ist (F49, 2026-08-07), erfährt der
+ * Owner davon UNABHÄNGIG weiter — dafür gibt es den Sperr-Hinweis der M13-Naht
+ * (`onboarding.suspension.*`), der genau so lange steht wie die Sperre. Dieser
+ * Nachlauf ist der Hinweis auf das EREIGNIS „Testphase vorbei", nicht auf den
+ * Zustand.
  */
 export const TRIAL_NOTICE_GRACE_DAYS = TRIAL_DAYS
 

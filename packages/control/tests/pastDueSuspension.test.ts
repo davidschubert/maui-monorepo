@@ -64,9 +64,19 @@ describe('shouldSuspendForPastDue', () => {
 })
 
 describe('shouldLiftBillingSuspension', () => {
-  it('hebt auf, sobald kein Verzug mehr besteht', () => {
+  it('hebt auf, sobald das Abo wieder läuft', () => {
     expect(shouldLiftBillingSuspension({ suspension: 'billing', billingStatus: 'active' })).toBe(true)
-    expect(shouldLiftBillingSuspension({ suspension: 'billing', billingStatus: 'canceled' })).toBe(true)
+  })
+
+  it('F49: gekündigt und nie-gezahlt heben NICHT auf', () => {
+    // Hier stand `!== 'past_due'`, und bis F49 (2026-08-07) war das dasselbe:
+    // eine billing-Sperre konnte nur aus dem Verzug kommen. Seit F49 führen
+    // zwei weitere Wege hinein — das Ende der Testphase (billingStatus '') und
+    // die Kündigung ('canceled'). Mit der alten Formulierung hätte der
+    // stündliche Sweep beide sofort wieder aufgehoben; die Sperre wäre eine
+    // Attrappe gewesen, die höchstens eine Stunde hält.
+    expect(shouldLiftBillingSuspension({ suspension: 'billing', billingStatus: 'canceled' })).toBe(false)
+    expect(shouldLiftBillingSuspension({ suspension: 'billing', billingStatus: '' })).toBe(false)
   })
 
   it('lässt eine laufende Mahnung stehen', () => {

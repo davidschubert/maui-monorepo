@@ -7,6 +7,20 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-08-07 — Fünfte Runde: Kündigung ist gleichgestellt mit nie-gezahlt
+
+**Davids Entscheidung** (strukturierte Frage, beim F49-Bau aufgetaucht): auch
+eine GEKÜNDIGTE Community wird zum Periodenende **nur-lesend** (billing-
+Sperre), nicht funktionsfähiges Basic. Sonst existierte der Free-Plan durch
+die Hintertür (einen Monat Personal zahlen, kündigen, Community für immer
+behalten). Der alte Grundsatz „ein gekündigter Kunde ist nie schlechter
+gestellt als einer, der nie gezahlt hat" gilt weiter — er zeigt seit F49 nur
+in die andere Richtung. Folge im Code: `shouldLiftBillingSuspension` hebt nur
+noch bei `billingStatus === 'active'` auf (vorher `!== 'past_due'` — das
+hätte die neuen Sperren im nächsten stündlichen Lauf wieder aufgehoben), und
+der free-fallback-Zweig SETZT die Sperre statt sie zu räumen (abuse bleibt
+immer unangetastet).
+
 ## 2026-08-07 — Vierte Runde: Priorisierung und Restfragen ALLER offenen Punkte
 
 **Davids Entscheidungen** (strukturierte Fragen, zwei Blöcke): (1)

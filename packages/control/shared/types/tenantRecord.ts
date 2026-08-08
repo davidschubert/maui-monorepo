@@ -118,8 +118,9 @@ export interface TenantRow extends Models.Row {
    *  resolveTenantAudience() lesen — nie direkt vergleichen. */
   audience: TenantAudience | '' | null
   /** Ende der 14-Tage-Pro-Testphase (Appwrite-Datetime → ISO-String, `null`
-   *  wenn nie gesetzt). Nach Ablauf setzt der Sweep `plan` auf free —
-   *  nie sperren, nie löschen (F3-Grundsatz). Echte Datetime-Spalte, damit
+   *  wenn nie gesetzt). Nach Ablauf setzt der Sweep `plan` auf basic UND die
+   *  Community nur-lesend (`suspension: 'billing'`, F49 vom 2026-08-07) —
+   *  nie löschen (F3-Grundsatz bleibt). Echte Datetime-Spalte, damit
    *  der Sweep sie mit einem Range-Query findet statt alle Rows zu lesen. */
   trialEndsAt: string | null
   /** Onboarding-Antworten als JSON (parseSiteProfile); '' = ohne Wizard angelegt. */

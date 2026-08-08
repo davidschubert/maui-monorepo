@@ -9,8 +9,10 @@
  * auflösen muss.
  *
  * REIHENFOLGE VOR DEM TRIAL-HINWEIS (`order: 5` vs. `10`): eine gesperrte
- * Community ist die dringlichere Nachricht. Beide gleichzeitig kommen praktisch
- * nicht vor — eine Testphase kann nichts schulden.
+ * Community ist die dringlichere Nachricht. Seit F49 (2026-08-07) stehen beide
+ * REGELMÄSSIG nebeneinander — das Ende der Testphase IST der häufigste Weg in
+ * die billing-Sperre. Die Reihenfolge trennt sie sauber: hier steht der
+ * Zustand („nur zum Lesen"), darunter das Ereignis („Testphase beendet").
  *
  * ES KANN HIER NUR 'billing' STEHEN. Eine wegen Missbrauch gesperrte Community
  * löst ihren Host nicht mehr auf: dort gibt es kein Dashboard, in dem ein

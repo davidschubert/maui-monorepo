@@ -13,9 +13,12 @@ import { trialNotice } from '../../../control/shared/onboarding'
  *
  * WANN ER ETWAS SAGT, entscheidet EINE pure, unit-getestete Funktion
  * (`trialNotice`): die letzten 7 Tage vor dem Ende, und danach noch 14 Tage
- * lang die Feststellung, dass die Community jetzt im kostenlosen Tarif läuft.
- * Danach schweigt er für immer — `communities.trialEndsAt` wird beim Ablauf
- * NICHT geräumt, ein ungebremster Hinweis wäre also ein Dauer-Verkaufsbanner.
+ * lang die Feststellung, dass die Testphase vorbei ist und die Community jetzt
+ * nur noch zum Lesen ist (F49, 2026-08-07). Danach schweigt er für immer —
+ * `communities.trialEndsAt` wird beim Ablauf NICHT geräumt, ein ungebremster
+ * Hinweis wäre also ein Dauer-Verkaufsbanner. Den ZUSTAND meldet ohnehin
+ * dauerhaft der Sperr-Hinweis darüber (CommunitySuspensionNotice); dieser hier
+ * meldet das EREIGNIS.
  *
  * NUR CLIENT (`server: false`): der Text hängt an `Date.now()`. Serverseitig
  * gerendert stünde im SSR-HTML eine andere Tageszahl als nach der Hydration —

@@ -135,8 +135,8 @@
       "emptyTitle": "No community yet",
       "emptyText": "Once you create a community or get invited to one, it shows up here.",
       "trialEnding": "1 day left in your trial | {n} days left in your trial",
-      "trialEnded": "Trial ended — running on the Basic plan",
-      "suspendedBilling": "Read-only — payment outstanding",
+      "trialEnded": "Trial ended — read-only now",
+      "suspendedBilling": "Read-only — no active subscription",
       "suspendedAbuse": "Suspended — not reachable",
       "readOnly": "Read-only — contributions are paused right now"
     },
@@ -276,7 +276,7 @@
       "goal": "Goal for 6 months",
       "vibe": "Mood",
       "trialTitle": "14 days of Pro, no payment details",
-      "trialBody": "After that your community continues on the free plan — with smaller limits. Nothing is locked, nothing is deleted."
+      "trialBody": "You can try everything for 14 days. After that your community is read-only until you pick a plan — content and members stay, nothing is deleted."
     },
     "errors": {
       "hostTaken": "That address was just taken. Go back one step and pick another one.",
@@ -293,7 +293,7 @@
       "open": "Open community",
       "hints": {
         "private": "Public by default: your content is readable by anyone and found by search engines. \"Members only\" is a switch in the settings — it also takes everything published so far out of public view.",
-        "trial": "The trial runs for 14 days. After that the free plan applies automatically — smaller limits, nothing for you to do.",
+        "trial": "The trial runs for 14 days, with everything Pro can do. After that your community is read-only until you pick a plan — nothing is deleted.",
         "settings": "Name, address, colours and home page can be changed any time in your community's dashboard."
       }
     },
@@ -309,10 +309,10 @@
     },
     "trial": {
       "endingTitle": "1 day left in your trial | {n} days left in your trial",
-      "endingText": "After that your community continues on the free Basic plan — nothing is locked, nothing is deleted. A subscription keeps the Pro features.",
+      "endingText": "After that your community is read-only until you pick a plan. Content and members stay; with a subscription nothing is interrupted.",
       "endedTitle": "Your trial has ended",
-      "endedText": "Your community now runs on the free Basic plan. All content and members are still there; the Pro features need a subscription.",
-      "action": "View subscription"
+      "endedText": "Your community is read-only now. All content and members are still there — a subscription (Personal or Pro) opens it again right away.",
+      "action": "Choose a plan"
     },
     "subscription": {
       "title": "Subscription & billing",
@@ -331,7 +331,7 @@
       "perMonthYearly": "per month, billed yearly",
       "vatNote": "Final price incl. 19% VAT.",
       "buy": "Get {plan}",
-      "downgradeHint": "Basic applies automatically whenever no paid subscription is running. Downgrading and cancelling go through \"Invoices & payment method\".",
+      "downgradeHint": "Without a paid subscription your community is read-only — content and members are kept. Cancelling goes through \"Invoices & payment method\".",
       "portalTitle": "Invoices & payment method",
       "portalHint": "The Stripe portal holds every invoice and lets you change the payment method, switch plans or cancel.",
       "portalNote": "You briefly leave Pukalani and land at Stripe.",
@@ -349,11 +349,9 @@
           "price": "€0",
           "priceYearly": "€0",
           "bullets": [
-            "One community with its own address and its own look",
-            "Discussions and comments",
-            "Your own pages such as imprint, about or house rules",
-            "Reports and basic moderation",
-            "200 comments per day"
+            "The state without a subscription: the community is read-only",
+            "Content, members and settings are all kept",
+            "A subscription opens it again right away"
           ]
         },
         "personal": {
@@ -361,7 +359,7 @@
           "price": "€29",
           "priceYearly": "€21.75",
           "bullets": [
-            "Everything in Basic",
+            "Discussions, comments, your own pages and moderation — under your own address and your own look",
             "Post feed with polls",
             "Activity stream and feedback channel",
             "Email notifications for your members",
@@ -384,10 +382,10 @@
     },
     "suspension": {
       "billingTitle": "Your community is read-only right now",
-      "billingText": "A payment is outstanding. Reading continues; writing is blocked until it is settled.",
+      "billingText": "There is no paid subscription running. Reading continues; writing opens again as soon as a plan applies.",
       "abuseTitle": "Your community is suspended",
       "abuseText": "We took it offline after a reviewed report. Please get in touch with us.",
-      "action": "View billing"
+      "action": "View subscription"
     },
     "abuse": {
       "title": "Report a community",

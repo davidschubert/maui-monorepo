@@ -664,39 +664,31 @@
     "pricing": {
       "kicker": "Pricing",
       "title": "One fair price for your whole community – not per product.",
-      "lead": "Start free, cancel anytime, data export included. Currently in early access by invitation.",
+      "lead": "Try it free for 14 days, cancel anytime, data export included. Currently in early access by invitation.",
       "intervalLabel": "Billing interval",
       "monthly": "Monthly",
       "yearly": "Yearly",
-      "freePrice": "€0",
-      "freeNote": "Free forever",
       "perMonth": "per month",
       "perMonthYearly": "per month, billed yearly",
       "vatNote": "incl. 19 % VAT",
       "enterprisePrice": "Custom",
       "enterpriseNote": "Tailored project",
       "plans": {
-        "basic": {
-          "name": "Basic",
-          "tag": "01 · Free",
-          "desc": "To get going – one community, comments, pages, theme catalog, and basic moderation.",
-          "cta": "Get started"
-        },
         "personal": {
           "name": "Personal",
-          "tag": "02 · Popular",
+          "tag": "01 · Popular",
           "desc": "For coaches and creators – posting feed with polls, custom themes and fonts, embed widget, cookieless visitor statistics, email notifications, higher limits.",
           "cta": "Get Personal"
         },
         "pro": {
           "name": "Pro",
-          "tag": "03 · Teams",
+          "tag": "02 · Teams",
           "desc": "For teams – everything in Personal, including cookieless visitor statistics, plus team roles, AI moderation assistant, highest limits. Courses and events first.",
           "cta": "Get Pro"
         },
         "enterprise": {
           "name": "Enterprise",
-          "tag": "04 · Pukalani Studio",
+          "tag": "03 · Pukalani Studio",
           "desc": "Your own instance, your own domain – with consultation, strategy, concept, design, and technical implementation from one hand.",
           "cta": "Register interest"
         }
@@ -716,7 +708,7 @@
         },
         {
           "q": "What does it cost?",
-          "a": "Basic stays free. Personal is €29 and Pro €149 per month – final prices incl. 19 % VAT, 25 % less when paid yearly. Enterprise is the guided project with Pukalani Studio; right now there's an early access by invitation."
+          "a": "Personal is €29 and Pro €149 per month – final prices incl. 19 % VAT, 25 % less when paid yearly. Every new community starts with 14 days of Pro to try things out; after that it needs a plan, otherwise it becomes read-only. Taking part – creating an account, commenting, joining – never costs anything. Enterprise is the guided project with Pukalani Studio; right now there's an early access by invitation."
         },
         {
           "q": "Can I cancel anytime?",

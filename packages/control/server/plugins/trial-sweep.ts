@@ -4,10 +4,11 @@ import { runPastDueSweep } from '../utils/pastDueSweep'
 import { eraseStaleReporterEmails } from '../utils/abuseReportPrune'
 
 /**
- * Testphasen-Automatik (O6): abgelaufene Trials fallen auf den kostenlosen
- * Tarif. Gleiches Muster wie der Health-Sweep (setInterval, Single-Instanz-
- * Annahme) — stündlich reicht, weil eine Testphase in Tagen rechnet und ein
- * paar Minuten Nachlauf niemandem schaden.
+ * Testphasen-Automatik: abgelaufene Trials werden nur-lesend (F49 vom
+ * 2026-08-07; bis dahin fielen sie auf den kostenlosen Tarif). Gleiches Muster
+ * wie der Health-Sweep (setInterval, Single-Instanz-Annahme) — stündlich
+ * reicht, weil eine Testphase in Tagen rechnet und ein paar Minuten Nachlauf
+ * niemandem schaden.
  *
  * Erster Lauf kurz nach dem Boot: sonst behielte ein über Nacht abgelaufener
  * Trial nach einem Deploy bis zur nächsten Stunde Pro-Limits.
@@ -20,8 +21,8 @@ export default defineNitroPlugin(() => {
     void runTrialSweep().then((result) => {
       // Nur melden, wenn wirklich etwas passiert ist — ein stündliches „0
       // Änderungen" macht das Log unlesbar.
-      if (result.downgraded.length) {
-        console.info(`[control] Testphasen beendet: ${result.downgraded.join(', ')}`)
+      if (result.suspended.length) {
+        console.info(`[control] Testphasen beendet (nur-lesend): ${result.suspended.join(', ')}`)
       }
     }).catch((error) => {
       console.error('[control] Testphasen-Sweep fehlgeschlagen:', error instanceof Error ? error.message : error)

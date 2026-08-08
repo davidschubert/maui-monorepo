@@ -135,8 +135,8 @@
       "emptyTitle": "Noch keine Community",
       "emptyText": "Sobald du eine Community anlegst oder in eine eingeladen wirst, steht sie hier.",
       "trialEnding": "Noch 1 Tag Testphase | Noch {n} Tage Testphase",
-      "trialEnded": "Testphase beendet — läuft im Tarif Basic",
-      "suspendedBilling": "Nur zum Lesen — Zahlung offen",
+      "trialEnded": "Testphase beendet — jetzt nur zum Lesen",
+      "suspendedBilling": "Nur zum Lesen — kein Abo aktiv",
       "suspendedAbuse": "Gesperrt — nicht erreichbar",
       "readOnly": "Nur zum Lesen — gerade sind keine Beiträge möglich"
     },
@@ -276,7 +276,7 @@
       "goal": "Ziel für 6 Monate",
       "vibe": "Stimmung",
       "trialTitle": "14 Tage Pro, ohne Zahlungsdaten",
-      "trialBody": "Danach läuft deine Community im kostenlosen Tarif weiter — mit kleineren Limits. Nichts wird gesperrt, nichts gelöscht."
+      "trialBody": "14 Tage lang kannst du alles ausprobieren. Danach ist deine Community nur noch zum Lesen, bis du einen Plan wählst — Inhalte und Mitglieder bleiben, gelöscht wird nichts."
     },
     "errors": {
       "hostTaken": "Diese Adresse wurde gerade belegt. Geh einen Schritt zurück und wähle eine andere.",
@@ -293,7 +293,7 @@
       "open": "Community öffnen",
       "hints": {
         "private": "Öffentlich gestartet: eure Inhalte sind für alle lesbar und werden von Suchmaschinen gefunden. „Nur für Mitglieder\" ist ein Schalter in den Einstellungen — er nimmt auch alles Bisherige aus der Öffentlichkeit.",
-        "trial": "Die Testphase läuft 14 Tage. Danach gilt automatisch der kostenlose Tarif — mit kleineren Limits, ohne dass du etwas tun musst.",
+        "trial": "Die Testphase läuft 14 Tage, mit allem was Pro kann. Danach ist deine Community nur noch zum Lesen, bis du einen Plan wählst — gelöscht wird nichts.",
         "settings": "Name, Adresse, Farben und Startseite änderst du jederzeit im Dashboard deiner Community."
       }
     },
@@ -309,10 +309,10 @@
     },
     "trial": {
       "endingTitle": "Noch 1 Tag Testphase | Noch {n} Tage Testphase",
-      "endingText": "Danach läuft deine Community im kostenlosen Tarif Basic weiter — nichts wird gesperrt, nichts gelöscht. Mit einem Abo behältst du die Pro-Funktionen.",
+      "endingText": "Danach ist deine Community nur noch zum Lesen, bis du einen Plan wählst. Inhalte und Mitglieder bleiben; mit einem Abo geht es ohne Unterbrechung weiter.",
       "endedTitle": "Deine Testphase ist beendet",
-      "endedText": "Deine Community läuft jetzt im kostenlosen Tarif Basic. Alle Inhalte und Mitglieder sind da; für die Pro-Funktionen brauchst du ein Abo.",
-      "action": "Abo ansehen"
+      "endedText": "Deine Community ist jetzt nur noch zum Lesen. Alle Inhalte und Mitglieder sind da — mit einem Abo (Personal oder Pro) geht es sofort weiter.",
+      "action": "Plan wählen"
     },
     "subscription": {
       "title": "Abo & Rechnung",
@@ -331,7 +331,7 @@
       "perMonthYearly": "pro Monat, jährlich abgerechnet",
       "vatNote": "Endpreis inkl. 19 % MwSt.",
       "buy": "{plan} holen",
-      "downgradeHint": "Basic gilt automatisch, wenn kein bezahltes Abo läuft. Herunterstufen oder kündigen läuft über „Rechnungen & Zahlungsmethode\".",
+      "downgradeHint": "Ohne bezahltes Abo ist deine Community nur zum Lesen — Inhalte und Mitglieder bleiben erhalten. Kündigen läuft über „Rechnungen & Zahlungsmethode\".",
       "portalTitle": "Rechnungen & Zahlungsmethode",
       "portalHint": "Im Stripe-Portal siehst du alle Rechnungen, änderst die Zahlungsmethode, wechselst den Plan oder kündigst.",
       "portalNote": "Du verlässt dabei kurz Pukalani und landest bei Stripe.",
@@ -349,11 +349,9 @@
           "price": "0 €",
           "priceYearly": "0 €",
           "bullets": [
-            "Eine Community mit eigener Adresse und eigenem Erscheinungsbild",
-            "Diskussionen und Kommentare",
-            "Eigene Seiten wie Impressum, Über uns oder Regeln",
-            "Meldungen und Basis-Moderation",
-            "200 Kommentare pro Tag"
+            "Der Zustand ohne Abo: die Community ist nur zum Lesen",
+            "Inhalte, Mitglieder und Einstellungen bleiben vollständig erhalten",
+            "Ein Abo öffnet sie sofort wieder"
           ]
         },
         "personal": {
@@ -361,7 +359,7 @@
           "price": "29 €",
           "priceYearly": "21,75 €",
           "bullets": [
-            "Alles aus Basic",
+            "Diskussionen, Kommentare, eigene Seiten und Moderation — unter eigener Adresse und eigenem Erscheinungsbild",
             "Beiträge-Feed mit Umfragen",
             "Aktivitäts-Verlauf und Feedback-Kanal",
             "E-Mail-Benachrichtigungen für deine Mitglieder",
@@ -384,10 +382,10 @@
     },
     "suspension": {
       "billingTitle": "Deine Community ist gerade nur zum Lesen",
-      "billingText": "Eine Zahlung ist offen. Lesen geht weiter, Schreiben ist bis zum Ausgleich gesperrt.",
+      "billingText": "Es läuft gerade kein bezahltes Abo. Lesen geht weiter, Schreiben öffnet sich wieder, sobald ein Plan gilt.",
       "abuseTitle": "Deine Community ist gesperrt",
       "abuseText": "Wir haben sie nach einer geprüften Meldung offline genommen. Melde dich bei uns.",
-      "action": "Zahlung ansehen"
+      "action": "Abo ansehen"
     },
     "abuse": {
       "title": "Eine Community melden",

@@ -664,39 +664,31 @@
     "pricing": {
       "kicker": "Preise",
       "title": "Ein fairer Preis für deine ganze Community – nicht pro Produkt.",
-      "lead": "Kostenlos starten, jederzeit kündbar, Datenexport inklusive. Aktuell im Early Access mit Einladung.",
+      "lead": "14 Tage kostenlos testen, jederzeit kündbar, Datenexport inklusive. Aktuell im Early Access mit Einladung.",
       "intervalLabel": "Abrechnungszeitraum",
       "monthly": "Monatlich",
       "yearly": "Jährlich",
-      "freePrice": "0 €",
-      "freeNote": "Für immer kostenlos",
       "perMonth": "pro Monat",
       "perMonthYearly": "pro Monat, jährlich abgerechnet",
       "vatNote": "inkl. 19 % MwSt.",
       "enterprisePrice": "Individuell",
       "enterpriseNote": "Projekt nach Maß",
       "plans": {
-        "basic": {
-          "name": "Basic",
-          "tag": "01 · Kostenlos",
-          "desc": "Zum Starten – eine Community, Kommentare, Seiten, Theme-Katalog und Basis-Moderation.",
-          "cta": "Kostenlos starten"
-        },
         "personal": {
           "name": "Personal",
-          "tag": "02 · Beliebt",
+          "tag": "01 · Beliebt",
           "desc": "Für Coaches und Creator – Posting-Feed mit Umfragen, eigene Themes und Schriften, Embed-Widget, Besucherstatistik ohne Cookies, E-Mail-Benachrichtigungen, höhere Limits.",
           "cta": "Personal holen"
         },
         "pro": {
           "name": "Pro",
-          "tag": "03 · Teams",
+          "tag": "02 · Teams",
           "desc": "Für Teams – alles aus Personal, inklusive Besucherstatistik ohne Cookies, plus Team-Rollen, KI-Moderations-Assistent, höchste Limits. Kurse und Events zuerst.",
           "cta": "Pro holen"
         },
         "enterprise": {
           "name": "Enterprise",
-          "tag": "04 · Pukalani Studio",
+          "tag": "03 · Pukalani Studio",
           "desc": "Eigene Instanz, eigene Domain – mit Beratung, Strategie, Konzeption, Design und technischer Umsetzung aus einer Hand.",
           "cta": "Interesse anmelden"
         }
@@ -716,7 +708,7 @@
         },
         {
           "q": "Was kostet es?",
-          "a": "Basic ist dauerhaft kostenlos. Personal kostet 29 € und Pro 149 € im Monat – Endpreise inkl. 19 % MwSt., jährlich gezahlt 25 % weniger. Enterprise ist das begleitete Projekt mit Pukalani Studio; aktuell läuft ein Early Access auf Einladung."
+          "a": "Personal kostet 29 € und Pro 149 € im Monat – Endpreise inkl. 19 % MwSt., jährlich gezahlt 25 % weniger. Jede neue Community startet mit 14 Tagen Pro zum Ausprobieren; danach braucht sie einen Plan, sonst ist sie nur noch zum Lesen. Mitmachen – Konto anlegen, kommentieren, beitreten – kostet nie etwas. Enterprise ist das begleitete Projekt mit Pukalani Studio; aktuell läuft ein Early Access auf Einladung."
         },
         {
           "q": "Kann ich jederzeit kündigen?",

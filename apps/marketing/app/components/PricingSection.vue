@@ -1,14 +1,20 @@
 <script setup lang="ts">
-// Szene 11 — die Schwelle (§6.4): schmerzlos, Free-Start. P4-Pricing
-// (Davids Entscheid 2026-07-26): Basic 0 € / Personal 29 € / Pro 149 € /
-// Enterprise individuell (Pukalani Studio), jährlich −25 %. Die Zahlen sind
-// ECHT (Stripe-Katalog, ensure-prices) — der frühere Platzhalter-Zustand
+// Szene 11 — die Schwelle (§6.4): schmerzlos, 14 Tage kostenlos. P4-Pricing
+// (Davids Entscheid 2026-07-26): Personal 29 € / Pro 149 € / Enterprise
+// individuell (Pukalani Studio), jährlich −25 %. Die Zahlen sind ECHT
+// (Stripe-Katalog, ensure-prices) — der frühere Platzhalter-Zustand
 // („Zahlen folgen") ist damit Geschichte. Ton: warmes Morgenlicht (dawn).
+//
+// KEINE BASIC-SPALTE MEHR (F49, Davids Entscheidung vom 2026-08-07): ohne Abo
+// ist eine Community nach der Testphase nur-lesend — ein „für immer kostenlos"
+// als dritte Preisspalte wäre damit schlicht falsch. Das kostenlose MITMACHEN
+// (Konto anlegen, kommentieren, beitreten, melden) bleibt bestehen, ist aber
+// kein Paket und gehört deshalb in die FAQ, nicht in diese Tabelle.
 //
 // Bauteile: `UTabs` (Intervall) + `UPricingPlans`/`UPricingPlan` (Karten).
 // Die Optik der Karte steht als `pricingPlan`-Vertrag in app/app.config.ts.
 const { t, n } = useI18n()
-const { start, signIn } = useProductLinks()
+const { signIn } = useProductLinks()
 
 // Der Umschalter führt den Zustand als Wert, nicht als Schalter: `UTabs`
 // arbeitet mit dem Wert des gewählten Reiters (String|Number), und das Rechnen
@@ -65,7 +71,6 @@ function perMonth(key: keyof typeof PRICES): number {
 }
 
 const plans = computed(() => [
-  { key: 'basic', price: t('marketing.pricing.freePrice'), note: t('marketing.pricing.freeNote'), vat: false, to: start, featured: false },
   { key: 'personal', price: n(perMonth('personal'), { style: 'currency', currency: 'EUR' }), note: yearly.value ? t('marketing.pricing.perMonthYearly') : t('marketing.pricing.perMonth'), vat: true, to: signIn, featured: true },
   { key: 'pro', price: n(perMonth('pro'), { style: 'currency', currency: 'EUR' }), note: yearly.value ? t('marketing.pricing.perMonthYearly') : t('marketing.pricing.perMonth'), vat: true, to: signIn, featured: false },
   { key: 'enterprise', price: t('marketing.pricing.enterprisePrice'), note: t('marketing.pricing.enterpriseNote'), vat: false, to: signIn, featured: false },
@@ -152,8 +157,8 @@ const plans = computed(() => [
          Das Raster selbst bleibt hier und nicht im app.config-Vertrag: die
          Spaltenzahl ist Layout DIESER Sektion (gleiche Trennung wie beim
          `pageGrid`-Vertrag). Die Vorgabe von `UPricingPlans` schaltet erst ab
-         1024px auf vier Spalten; der Bestand tat es ab 980px — deshalb die
-         ausgeschriebene Stufe.
+         1024px um; der Bestand tut es ab 980px — deshalb die ausgeschriebene
+         Stufe. Seit F49 sind es DREI Karten (Basic ist raus), nicht vier.
 
          Die zweispaltige Stufe braucht eine OBERE Schranke (`max-[979px]`) und
          nicht nur `sm:`: zwei Stufen mit VERSCHIEDENEN Bedingungen überleben
@@ -162,7 +167,7 @@ const plans = computed(() => [
          Live gemessen: bei 1000px standen zwei Karten statt vier. Mit dem
          Bereich 640–979px überschneiden sich die Stufen gar nicht mehr. -->
     <div class="mkt-inner" data-reveal>
-      <UPricingPlans class="mt-10 grid grid-cols-1 gap-5 sm:max-[979px]:grid-cols-2 min-[980px]:grid-cols-4">
+      <UPricingPlans class="mt-10 grid grid-cols-1 gap-5 sm:max-[979px]:grid-cols-2 min-[980px]:grid-cols-3">
         <UPricingPlan
           v-for="plan in plans" :key="plan.key"
           :title="plan.title"

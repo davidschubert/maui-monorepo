@@ -23,9 +23,12 @@
  * DREI KARTEN, EINE ARBEITSTEILUNG:
  *  1. Aktueller Plan — was gilt gerade.
  *  2. Plan wählen — der KAUF (nur aufwärts: personal/pro). Basic hat bewusst
- *     keinen Knopf: es ist der kostenlose Ausgangszustand, und HERUNTER geht es
+ *     keinen Knopf: es ist seit F49 (2026-08-07) kein Angebot mehr, sondern der
+ *     Zustand OHNE Abo — die Community ist dort nur zum Lesen. HERUNTER geht es
  *     über das Portal, weil Proration, Steuern und Fristen bei Stripe gerechnet
  *     werden. Zwei Wege zum selben Vertrag wären zwei Wahrheiten.
+ *     (Der Reiter-Umbau, der diese Karte ersetzt, ist F51 — hier stehen nur die
+ *     Texte richtig.)
  *  3. Rechnungen & Zahlungsmethode — das Stripe-Portal.
  *
  * Die Preise stehen als i18n-Text da (nicht gerechnet): so bleibt die Schreibweise
@@ -60,7 +63,7 @@ type PlanKey = (typeof PLAN_KEYS)[number]
  * den Index adressiert (`…bullets.0`) — dasselbe Muster wie die FAQ-Liste im
  * marketing-Layer. Wer hier eine Zeile ergänzt, zählt diese Zahl mit hoch.
  */
-const PLAN_BULLETS: Record<PlanKey, number> = { basic: 5, personal: 5, pro: 5 }
+const PLAN_BULLETS: Record<PlanKey, number> = { basic: 3, personal: 5, pro: 5 }
 
 const yearly = ref(false)
 const interval = computed<'monthly' | 'yearly'>(() => (yearly.value ? 'yearly' : 'monthly'))
