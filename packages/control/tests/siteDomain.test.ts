@@ -5,7 +5,7 @@ import {
   websiteFallbackHost,
   websiteKnownHosts,
 } from '../shared/siteDomain'
-import { certificateCovers, coveringCertificate, siteCertificateDomains } from '../server/utils/ploi'
+import { certificateCovers, coveringCertificate, normalizePloiConfig, siteCertificateDomains } from '../server/utils/ploi'
 import { CUSTOM_DOMAIN_STATUSES } from '../shared/customDomain'
 import { SITE_DOMAIN_STATUSES } from '../../core/shared/types/siteDomain'
 
@@ -217,5 +217,24 @@ describe('coveringCertificate', () => {
 
   it('liefert null für eine leere Wunschliste (fail-closed)', () => {
     expect(coveringCertificate([{ domain: 'a.example.com', status: 'active' }], [])).toBeNull()
+  })
+})
+
+describe('normalizePloiConfig', () => {
+  it('übersteht numerische Env-Werte — destr macht aus NUXT_PLOI_SERVER_ID=118713 eine ZAHL', () => {
+    // Live erwischt 2026-08-07: `.trim()` auf der Zahl war ein 500 auf jeder
+    // Route, die den Domain-Zustand rechnet — /dashboard/websites zeigte eine
+    // leere Liste, und kein Tor hat es gesehen (die Tests liefen ohne
+    // konfiguriertes ploi, wo der Zweig nie feuert).
+    const config = normalizePloiConfig({ ploiToken: 'tok', ploiServerId: 118713, ploiSiteId: 390041 })
+    expect(config.serverId).toBe('118713')
+    expect(config.siteId).toBe('390041')
+  })
+
+  it('leere Werte bleiben leer — halbe Konfiguration ist keine', () => {
+    const config = normalizePloiConfig({})
+    expect(config.token).toBe('')
+    expect(config.serverId).toBe('')
+    expect(config.baseUrl).toBe('https://ploi.io/api')
   })
 })

@@ -93,21 +93,34 @@ export function ploiConfigForSite(event: H3Event, site: { serverId?: string | nu
   }
 }
 
-export function ploiConfig(event: H3Event): PloiConfig {
-  const config = useRuntimeConfig(event) as {
-    ploiToken?: string
-    ploiBaseUrl?: string
-    ploiServerId?: string
-    ploiSiteId?: string
-    customDomainDryRun?: string
-  }
+/**
+ * PURE: aus rohen Runtime-Config-Werten eine PloiConfig — mit String() um
+ * JEDEN Wert. Nitros Env-Override läuft durch `destr`, und
+ * `NUXT_PLOI_SERVER_ID=118713` kommt damit als ZAHL an — `.trim()` darauf
+ * war ein 500 auf jeder Route, die den Domain-Zustand rechnet (live erwischt
+ * am 2026-08-07, /dashboard/websites zeigte eine leere Liste). Dieselbe
+ * Falle wie beim DRY_RUN-Schalter: sie trifft immer nur die Werte, die
+ * zufällig numerisch aussehen. Pure Funktion, damit der Test sie mit einer
+ * ZAHL füttern kann — genau dem Wert, den destr liefert.
+ */
+export function normalizePloiConfig(raw: {
+  ploiToken?: unknown
+  ploiBaseUrl?: unknown
+  ploiServerId?: unknown
+  ploiSiteId?: unknown
+  customDomainDryRun?: unknown
+}): PloiConfig {
   return {
-    token: (config.ploiToken || '').trim(),
-    baseUrl: (config.ploiBaseUrl || 'https://ploi.io/api').trim().replace(/\/+$/, ''),
-    serverId: (config.ploiServerId || '').trim(),
-    siteId: (config.ploiSiteId || '').trim(),
-    dryRun: isDryRunFlag(config.customDomainDryRun),
+    token: String(raw.ploiToken ?? '').trim(),
+    baseUrl: String(raw.ploiBaseUrl || 'https://ploi.io/api').trim().replace(/\/+$/, ''),
+    serverId: String(raw.ploiServerId ?? '').trim(),
+    siteId: String(raw.ploiSiteId ?? '').trim(),
+    dryRun: isDryRunFlag(raw.customDomainDryRun),
   }
+}
+
+export function ploiConfig(event: H3Event): PloiConfig {
+  return normalizePloiConfig(useRuntimeConfig(event) as Record<string, unknown>)
 }
 
 /** Vollständig konfiguriert? (Token UND beide Ids — eine halbe Konfiguration
