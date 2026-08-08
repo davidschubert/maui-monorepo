@@ -245,6 +245,20 @@ Vollständiges Konzept: docs/CONCEPT.md
   Utilities BEWUSST (z. B. headingWeight vs. font-bold)
 - Admin-Nav-Registry (pukalani.admin.modules) kann children (Unterpunkte,
   RBAC-gefiltert, exact für Index-Einträge)
+- COMMUNITY-SETTINGS-HUB + SWITCHER (F50/F51, seit 2026-08-08): ZWEI
+  Reiter-Hüllen desselben Typs/Resolvers (settings-tab.ts, inkl.
+  productKey/planProduct/configFlag-Gates) — `pukalani.admin.settingsTabs` =
+  Konto (/dashboard/settings), `pukalani.admin.communityTabs` = Community
+  (/dashboard/community, Menüpunkt unten links, sichtbar nur mit gefiltertem
+  Inhalt). Community-Seiten LEBEN als Kinder unter /dashboard/community/* in
+  ihren Layern; Alt-Pfade 301. Der Plan-Reiter ist Stripe-Rückkehr-Ziel
+  (communityCheckout.ts) — Umbenennen nur mit Weiterleitung. Betreiber-Reiter
+  im Silo-Hub hängen ZUSÄTZLICH an `configFlag: 'admin.instanceTabs'`
+  (scopeVisibleAt('operator') gälte sonst auch in control/photos). Der
+  Switcher (pukalani.chrome.communitySwitcher, nur platform) springt über
+  die EINE `sealCommunityHandoff()` (onboarding) — Ziel-Host IMMER aus der
+  Mitgliedschaftsliste, nie vom Aufrufer (Audit 2026-08-02); nur Team-Rollen
+  (owner/admin/moderator/editor), viewer bewusst nicht.
 
 ## Hosts (Umbenennung 2026-07-25, Cutover 2026-07-26 — Davids Entscheidung)
 - `control.pukalani.app` = Betreiber-Oberfläche, seit dem Cutover VOLLSTÄNDIG:

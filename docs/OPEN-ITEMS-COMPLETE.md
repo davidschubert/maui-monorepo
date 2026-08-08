@@ -29,6 +29,61 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F50 + F51 — Community-Settings-Hub und Community-Switcher ✅ 2026-08-08
+
+**Was gebaut wurde** (Davids Entscheidungen DECISION-LOG 2026-08-07; drei
+Pakete, je Opus-implementiert und im Hauptloop verifiziert):
+
+**F51 Paket 1 — der Hub.** Menüpunkt „Community-Einstellungen" UNTEN LINKS
+(erster Nutzer der bis dahin toten `placement: 'bottom'`-Registry-Ausfahrt;
+sichtbar nur, wenn nach Ort×Capability×Produkt-Gates Reiter übrig sind) und
+die zweite Reiter-Hülle `/dashboard/community` (admin-Layer, Muster F24) aus
+der neuen Registry `pukalani.admin.communityTabs` — gleicher Typ wie die
+Konto-Reiter, erweitert um productKey/planProduct/configFlag (sonst wäre der
+Umzug von Aktivität/Analytics ein stiller Rechte-Verlust gewesen). Neun
+Seiten zogen in ihren Layern unter die Hülle; Plan-Reiter trägt Davids
+Wortlaut („Testphase (Pro) – noch X Tage" / „Kein Abo – Free Plan" +
+Nur-lesen-Hinweis); Stripe-Rückkehr-URLs und pastDue-Link auf
+`/dashboard/community/plan`, Alt-Pfade 301 in beiden Locales.
+
+**F51 Paket 2 — die neuen Sichten.** Produkte-Reiter (Katalog-Texte +
+Mindest-Plan über die dritte Projektion `/api/community/products` für
+`team.manage` — `/api/platform/products` liefert nur Schlüssel,
+`/api/admin/products` verlangt `system.manage`) und Speicher-Reiter
+(Verbrauch vs. Kontingent: Zähl-Registry `registerCommunityUsageCounter` je
+Produkt-Layer, Zählung durch die Datentür mit `as:'operator'/actor:'member'`,
+Limits aus `tenantLimitsFor()` — DERSELBEN Auflösung wie die 429-Bremse,
+eigens aus `assertPoolWriteQuota` herausgezogen). Silo-Instanz-Sicht: vier
+operator-Reiter auf die bestehenden Betreiber-Seiten, zusätzlich hinter
+`configFlag: 'admin.instanceTabs'` (Core aus, comments an) — scope allein
+hätte control und photos als single-tenant-Apps einen Hub beschert.
+
+**F50 — der Switcher.** TeamsMenu im Sidebar-Kopf (Schalter
+`pukalani.chrome.communitySwitcher`, Core aus, platform an, nur
+`place==='community'`): Communities mit TEAM-Rolle (viewer bewusst nicht),
+aktuelle zuerst (Vergleich per communityId — eine Community löst seit
+control-035 unter mehreren Hosts auf), „Community anlegen"/„Communities
+verwalten". Der Sprung siegelt über die EINE geteilte
+`sealCommunityHandoff()` (aus handoff.post.ts gezogen; Sicherheitskern des
+Audits 2026-08-02 unverändert: Ziel-Host aus der Mitgliedschaftsliste, Siegel
+hostgebunden); `/api/community/switch` verschärft auf Team-Rollen.
+
+**Beweise:** Alle Gates je Paket grün (core 776, onboarding 32, admin 74,
+Produkt-Layer-Tests, 4–5 Apps typecheck 0, i18n/manifests/doc-links); zwei
+SSR-Dev-Smokes (Hülle mit Reitern + eingebettetem Kind; Silo mit acht Reitern
+inkl. Instanz-Sicht); **Live-Beweis auf prod** (Build 30d992f4): Switcher-
+Liste mit Owner+Admin-Rolle und aktueller Community zuerst, Sprung-Siegel →
+`site-session` 302 + Cookie → eingeloggt auf `B/dashboard` (200), 404-Gates
+auf `my.*` und im Silo, fremde Community 403. Testdaten komplett abgeräumt.
+**Nebenbei live bestätigt:** „eine Community pro Konto während der Testphase"
+(Kontingent-403 der Naht) — der zweite Dashboard-Zugang läuft wie vorgesehen
+über die Team-Rolle. **Gelernt:** (1) Ein CI-Lint-Rot nach einem Datei-Umzug
+war der DOKU-Wächter (`check:doc-links`) — wer Seiten verschiebt, zieht auch
+Pfad-Nennungen in OPEN-ITEMS/Runbooks mit um; lokal „lint grün" heißt nicht
+CI-Lint grün, die CI fährt mehr Schritte. (2) `scopeVisibleAt('operator', …)`
+gilt in JEDER single-tenant-App — wer Betreiber-Reiter registriert, braucht
+zusätzlich einen Bau-Schalter, sonst erben ihn control und photos.
+
 ### A2a — Stripe-Testmodus-Walkthrough: alle sechs Proben real durchgespielt ✅ 2026-08-08
 
 **Was bewiesen wurde** (gegen die Produktions-Deployments im Stripe-Testmodus,
