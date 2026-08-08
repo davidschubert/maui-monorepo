@@ -1,11 +1,21 @@
-import { describe, expect, it } from 'vitest'
+import { createServer, type Server } from 'node:http'
+import type { AddressInfo } from 'node:net'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import {
   siteDomainStatusOf,
   websiteCanonicalHost,
   websiteFallbackHost,
   websiteKnownHosts,
 } from '../shared/siteDomain'
-import { certificateCovers, coveringCertificate, normalizePloiConfig, siteCertificateDomains } from '../server/utils/ploi'
+import {
+  acmeChallengeReachable,
+  acmePreflightMessage,
+  certificateOrderDecision,
+  coveringCertificate,
+  interpretAcmePreflight,
+  normalizePloiConfig,
+  siteCertificateDomains,
+} from '../server/utils/ploi'
 import { CUSTOM_DOMAIN_STATUSES } from '../shared/customDomain'
 import { SITE_DOMAIN_STATUSES } from '../../core/shared/types/siteDomain'
 
@@ -146,44 +156,135 @@ describe('siteCertificateDomains', () => {
   })
 })
 
-describe('certificateCovers', () => {
+describe('certificateOrderDecision', () => {
   /**
-   * Die Sperre gegen den Wiederholungs-Klick: Let's Encrypt lässt fünf
-   * identische Zertifikate pro Woche zu, und „Prüfen" ist re-entrant. Wer
-   * während der Ausstellung sechsmal klickt, sperrt sich sieben Tage aus.
+   * F54-2: EINE Lesart der ploi-Liste für beide Wege. Vorher fragte der
+   * Silo-Pfad nur nach AKTIVEN Zertifikaten und der Tenant-Pfad nach jedem
+   * Status — zwei Antworten auf dieselbe Frage an derselben Liste, und genau
+   * daran hing beim Erstlauf, dass nach einem Fehlschlag nicht mehr
+   * nachbestellt wurde.
+   *
+   * Die Regel hat zwei Richtungen, und beide sind gleich wichtig: nicht
+   * bestellen, solange ein Eintrag deckt (Let's Encrypt: fünf identische pro
+   * Woche, der sechste sperrt sieben Tage) — und bestellen, sobald keiner mehr
+   * deckt.
    */
   const wanted = ['portfolio.pukalani.app', 'www.pukalani.studio']
+  const list = (certificates: { domain: string, status: string }[]) => ({ ok: true, certificates })
 
-  it('erkennt ein aktives Zertifikat, das alle Namen trägt', () => {
-    expect(certificateCovers(
-      [{ domain: 'portfolio.pukalani.app,www.pukalani.studio', status: 'active' }],
-      wanted,
-    )).toBe(true)
+  it('bestellt, wenn KEIN Eintrag die Namensmenge deckt — die Nachbestellung', () => {
+    expect(certificateOrderDecision(list([{ domain: 'portfolio.pukalani.app', status: 'active' }]), wanted))
+      .toMatchObject({ order: true, reason: 'no_covering' })
   })
 
-  it('ist unbeeindruckt von Reihenfolge, Leerraum und Groß-/Kleinschreibung', () => {
-    expect(certificateCovers(
-      [{ domain: 'WWW.Pukalani.Studio , portfolio.pukalani.app', status: 'active' }],
-      wanted,
-    )).toBe(true)
+  it('bestellt auch, wenn ploi gar nichts führt', () => {
+    expect(certificateOrderDecision(list([]), wanted)).toMatchObject({ order: true, reason: 'no_covering' })
   })
 
-  it('zählt ein Zertifikat NICHT, dem ein Name fehlt', () => {
-    expect(certificateCovers(
-      [{ domain: 'portfolio.pukalani.app', status: 'active' }],
+  it('schweigt bei einem aktiven deckenden Zertifikat', () => {
+    expect(certificateOrderDecision(
+      list([{ domain: 'WWW.Pukalani.Studio , portfolio.pukalani.app', status: 'active' }]),
       wanted,
-    )).toBe(false)
+    )).toMatchObject({ order: false, reason: 'active', message: '' })
   })
 
-  it('zählt ein nicht-aktives Zertifikat nicht', () => {
-    expect(certificateCovers(
-      [{ domain: 'portfolio.pukalani.app,www.pukalani.studio', status: 'pending' }],
+  it('hält bei einem Eintrag IN AUSSTELLUNG an und nennt Status und Ausweg', () => {
+    const decision = certificateOrderDecision(
+      list([{ domain: 'portfolio.pukalani.app,www.pukalani.studio', status: 'creating' }]),
       wanted,
-    )).toBe(false)
+    )
+    expect(decision.order).toBe(false)
+    expect(decision.status).toBe('creating')
+    expect(decision.message).toContain('creating')
+    expect(decision.message).toContain('erneut prüfen')
   })
 
-  it('deckt eine leere Wunschliste NICHT ab (fail-closed)', () => {
-    expect(certificateCovers([{ domain: 'a.example.com', status: 'active' }], [])).toBe(false)
+  it('bestellt, wenn die Liste nicht lesbar ist (fail-open — ein Listen-Fehler blockiert nicht)', () => {
+    expect(certificateOrderDecision({ ok: false, certificates: [] }, wanted))
+      .toMatchObject({ order: true, reason: 'unreadable' })
+  })
+
+  it('bestellt NICHT für eine leere Wunschliste', () => {
+    // coveringCertificate ist dort fail-closed (null), also „bestellen" —
+    // aufgehalten wird das eine Ebene höher, wo `domains.length` geprüft wird.
+    expect(certificateOrderDecision(list([]), []).order).toBe(true)
+  })
+})
+
+describe('interpretAcmePreflight', () => {
+  /**
+   * F54-3: ploi's Alias-API pflegt den Port-80-Block der Site NICHT. Der neue
+   * Name fällt dort in den 444-Catch-all, die HTTP-01-Prüfung kommt nie an —
+   * und ein gescheiterter Antrag LÖSCHT die bestehende Lineage der Site
+   * (live erwischt: `portfolio.pukalani.app` lief danach nur noch aus dem
+   * nginx-Arbeitsspeicher, jeder Reload scheiterte still).
+   *
+   * Deshalb ist die Auslegung hier absichtlich grob: jede HTTP-Antwort zählt,
+   * gar keine Antwort blockiert.
+   */
+  it('nimmt jede HTTP-Antwort als Ja — auch 404 und 301', () => {
+    expect(interpretAcmePreflight({ kind: 'status', status: 404 })).toBe(true)
+    expect(interpretAcmePreflight({ kind: 'status', status: 301 })).toBe(true)
+    expect(interpretAcmePreflight({ kind: 'status', status: 200 })).toBe(true)
+  })
+
+  it('blockiert, wenn gar nichts zurückkommt', () => {
+    expect(interpretAcmePreflight({ kind: 'error', detail: 'ECONNRESET' })).toBe(false)
+    expect(interpretAcmePreflight({ kind: 'error', detail: 'UND_ERR_CONNECT_TIMEOUT' })).toBe(false)
+  })
+
+  it('sagt in der Meldung, was zu tun ist — nicht nur, was kaputt ist', () => {
+    const message = acmePreflightMessage(['www.pukalani.studio (ECONNRESET)'])
+    expect(message).toContain('www.pukalani.studio')
+    expect(message).toContain('NICHTS bestellt')
+    expect(message).toContain('nginx')
+    expect(message).toContain('acme-challenge')
+  })
+})
+
+describe('acmeChallengeReachable gegen einen echten Port 80', () => {
+  /**
+   * Kein gemocktes fetch: die Frage ist, ob ein STILLER Port als „nicht
+   * erreichbar" ankommt. Ein Mock hätte genau das nicht zeigen können —
+   * nginx' 444 ist kein Statuscode, sondern ein zugemachter Socket.
+   */
+  let answering: Server
+  let silent: Server
+  let answeringHost = ''
+  let silentHost = ''
+
+  beforeAll(async () => {
+    answering = createServer((_req, res) => {
+      res.statusCode = 404
+      res.end('not found')
+    })
+    // Das 444-Double: Verbindung annehmen und ohne Antwort zumachen.
+    silent = createServer(req => req.socket.destroy())
+    await new Promise<void>(resolve => answering.listen(0, '127.0.0.1', resolve))
+    await new Promise<void>(resolve => silent.listen(0, '127.0.0.1', resolve))
+    answeringHost = `127.0.0.1:${(answering.address() as AddressInfo).port}`
+    silentHost = `127.0.0.1:${(silent.address() as AddressInfo).port}`
+  })
+
+  afterAll(async () => {
+    for (const server of [answering, silent]) {
+      server.closeAllConnections()
+      await new Promise<void>(resolve => server.close(() => resolve()))
+    }
+  })
+
+  it('lässt einen Namen durch, für den Port 80 antwortet', async () => {
+    expect(await acmeChallengeReachable(answeringHost, 3000)).toEqual({ ok: true, detail: '404' })
+  })
+
+  it('blockiert einen Namen, dessen Verbindung stumm zugemacht wird (nginx 444)', async () => {
+    const result = await acmeChallengeReachable(silentHost, 3000)
+    expect(result.ok).toBe(false)
+    expect(result.detail).not.toBe('')
+  })
+
+  it('blockiert einen Namen, für den überhaupt nichts lauscht', async () => {
+    expect((await acmeChallengeReachable('127.0.0.1:9', 2000)).ok).toBe(false)
   })
 })
 

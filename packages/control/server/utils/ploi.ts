@@ -10,17 +10,38 @@
  * CLAUDE.md nennt sie beim Namen, und sie hat platform+demo schon 40 Minuten
  * gekostet: ploi benennt die certbot-Lineage nach der ROOT-DOMAIN DER SITE.
  * Eine Zertifikatsanforderung auf der Site `pukalani.app` überschreibt deshalb
- * das Kunden-Wildcard `*.pukalani.app`. **Hier wird niemals ein Zertifikat für
- * eine Site angefordert** — ausschließlich für TENANTS, und ein Tenant hat
- * seine eigene Lineage unter seinem eigenen Namen. Der Aufruf, den man nicht
- * bauen darf, ist `POST /servers/:s/sites/:site/certificates`; er kommt in
- * dieser Datei bewusst nicht vor.
+ * das Kunden-Wildcard `*.pukalani.app`. Für POOL-Kundendomains gilt weiter:
+ * ausschließlich TENANTS, jeder mit eigener Lineage unter eigenem Namen.
+ *
+ * **KORREKTUR 2026-08-08:** Der Satz „hier wird niemals ein Zertifikat für
+ * eine Site angefordert" stand bis heute hier und stimmt seit control-036
+ * NICHT MEHR. `requestPloiSiteCertificate` ruft genau
+ * `POST /servers/:s/sites/:site/certificates` — für SILO-Sites, deren Lineage
+ * eine eigene ist (`portfolio.pukalani.app`, `tenant: false`) und mit dem
+ * Wildcard nichts zu tun hat. Die Regel ist also nicht „nie", sondern:
+ * **niemals auf den Sites `pukalani.app` und `platform.pukalani.app`.**
+ *
+ * ── UND DIE FALLE, DIE DAS TEUER MACHT (Erstlauf 2026-08-08) ──────────────
+ * **Ein GESCHEITERTER Antrag löscht die BESTEHENDE Lineage der Site.** Nicht
+ * „ändert sie nicht", nicht „lässt sie stehen" — certbot/ploi räumt
+ * `/etc/letsencrypt/live/<site>/` weg, wenn die Validierung scheitert. Live
+ * erwischt: nach dem fehlgeschlagenen 3-Namen-Antrag lief
+ * `portfolio.pukalani.app` nur noch aus dem nginx-Arbeitsspeicher weiter;
+ * jeder Reload scheiterte still (`[emerg] cannot load certificate`), und ein
+ * Neustart hätte die Site vom Netz genommen. Das ist der teuerste Zustand
+ * überhaupt: alles sieht gesund aus, bis jemand nginx anfasst.
+ *
+ * Die Absicherung ist der PREFLIGHT unten (`acmeChallengeReachable`): es wird
+ * gar nicht erst bestellt, wenn die HTTP-01-Prüfung scheitern MUSS.
+ * Wiederherstellung nach dem Unfall: Runbook
+ * docs/runbooks/CUSTOM-DOMAIN-ERSTAKTIVIERUNG.md, Abschnitt „B7".
  *
  * Die DNS-01-Regel aus CLAUDE.md gilt für UNSERE eigenen Wildcards. Eine
  * Kundendomain geht über **HTTP-01**, und das ist kein Widerspruch: sobald der
  * Tenant angelegt ist, steht sein Name in nginx, Port 80 antwortet für ihn,
  * und die HTTP-Prüfung kommt durch. Genau daran scheiterte sie bei Aliassen
- * und Wildcards.
+ * und Wildcards — und bei einem SILO-ALIAS scheitert sie ebenfalls, siehe den
+ * Preflight-Abschnitt weiter unten.
  *
  * ── FAIL-SOFT MIT EHRLICHEM STATUS ────────────────────────────────────────
  * Kein Token, keine Ids, ploi antwortet 500 — nichts davon wird verschluckt
@@ -259,19 +280,24 @@ export async function requestPloiTenantCertificate(config: PloiConfig, host: str
     return { ok: false, skipped: true, message: 'ploi ist nicht konfiguriert — das Zertifikat muss der Betreiber anlegen.' }
   }
 
-  const existing = await listPloiCertificates(config)
-  if (existing.ok) {
-    const covering = coveringCertificate(existing.certificates, [host])
-    if (covering) {
-      if (covering.status === 'active') return { ok: true, skipped: true, message: '' }
-      return {
-        ok: true,
-        skipped: true,
-        message: `Für ${host} ist bereits ein Zertifikat beauftragt (Status „${covering.status}") — nicht erneut angefordert. Hängt es fest: Eintrag in ploi löschen, dann erneut prüfen.`,
-      }
-    }
-  }
+  const decision = certificateOrderDecision(await listPloiCertificates(config), [host])
+  if (!decision.order) return { ok: true, skipped: true, message: decision.message }
 
+  /**
+   * KEIN PREFLIGHT AUF DEM TENANT-PFAD — und das ist eine Entscheidung, keine
+   * Auslassung (F54-3).
+   *
+   * Ein ploi-TENANT bringt seinen eigenen vHost mit, Port 80 eingeschlossen;
+   * genau deshalb funktioniert HTTP-01 hier überhaupt (s. Kopf). Der
+   * Alias-Pfad hat dieses Problem, weil ploi dort den :80-Block NICHT pflegt.
+   *
+   * Dazu kommt ein Risiko, das den Nutzen überwiegt: `ensurePloiTenants` läuft
+   * unmittelbar vorher, der nginx-Reload ist asynchron — ein Preflight
+   * Sekunden danach könnte fälschlich blockieren und aus einem funktionierenden
+   * Weg einen wackeligen machen. Und die Folge eines Fehlschlags ist hier
+   * kleiner: die Lineage eines Tenants trägt SEINEN Namen, ein misslungener
+   * Antrag reißt nicht das Zertifikat der Site mit.
+   */
   const result = await ploiFetch(
     config,
     `/servers/${config.serverId}/sites/${config.siteId}/tenants/${encodeURIComponent(host)}/request-certificate`,
@@ -405,10 +431,14 @@ export async function listPloiCertificates(config: PloiConfig): Promise<{ ok: bo
 
 /**
  * PURE: der erste Zertifikats-Eintrag, dessen Namensmenge ALLE gewünschten
- * Namen abdeckt — UNABHÄNGIG vom Status. Wer nur ausgestellte zählen will,
- * nimmt certificateCovers; der Tenant-Pfad (F52) braucht auch die noch in
- * Ausstellung befindlichen, denn genau während der Ausstellung ist der
+ * Namen abdeckt — UNABHÄNGIG vom Status. Auch die noch in Ausstellung
+ * befindlichen zählen, denn genau während der Ausstellung ist der
  * Wiederholungs-Klick gefährlich. Leere Wunschliste deckt nichts (fail-closed).
+ *
+ * Den STATUS bewertet `certificateOrderDecision` — die einzige Stelle, die
+ * das tut. Es gab hier bis 2026-08-08 einen zweiten Leser (`certificateCovers`,
+ * nur aktive), und die zwei Lesarten derselben Liste waren der Grund, warum
+ * auf dem Silo-Pfad nach einem Fehlschlag nicht mehr nachbestellt wurde.
  */
 export function coveringCertificate(
   certificates: { domain: string, status: string }[],
@@ -423,12 +453,148 @@ export function coveringCertificate(
   }) ?? null
 }
 
-/** PURE: deckt eines der AKTIVEN Zertifikate ALLE gewünschten Namen ab? */
-export function certificateCovers(
-  certificates: { domain: string, status: string }[],
+export interface CertificateOrderDecision {
+  /** true = jetzt wirklich bestellen. */
+  order: boolean
+  /** Warum. `no_covering` ist der einzige Grund zu bestellen. */
+  reason: 'no_covering' | 'active' | 'in_progress' | 'unreadable'
+  /** Der Status des deckenden Eintrags ('' = keiner). */
+  status: string
+  /** Für den Betreiber lesbar; '' wenn nichts zu sagen ist. */
+  message: string
+}
+
+/**
+ * PURE: BESTELLEN ODER NICHT — die eine Regel für beide Wege (F54-2).
+ *
+ * ── DER BEFUND ────────────────────────────────────────────────────────────
+ * Der Silo-Pfad fragte bisher `certificateCovers` (also NUR aktive
+ * Zertifikate), der Pool-Pfad `coveringCertificate` (jeden Status). Zwei
+ * Lesarten derselben Frage an derselben ploi-Liste — und beim Erstlauf war
+ * genau das der Grund, warum nach einem Fehlschlag nicht mehr nachbestellt
+ * wurde: was ploi als deckend führt, hängt am Status-Vokabular, und wer nur
+ * eine der beiden Lesarten kennt, misst hinterher nur noch.
+ *
+ * Jetzt EINE Regel, und zwar diese:
+ *   - kein deckender Eintrag  ⇒ BESTELLEN (das ist die Nachbestellung; sie
+ *     passiert bei JEDEM Prüf-Klick in `pending_cert`, nicht nur beim
+ *     Zustandswechsel)
+ *   - deckender Eintrag `active`      ⇒ still übersprungen
+ *   - deckender Eintrag, anderer Status ⇒ übersprungen MIT Meldung (Status +
+ *     Ausweg). Das ist der Klickschutz: Let's Encrypt lässt fünf identische
+ *     Zertifikate pro Woche zu, der sechste Klick während der Ausstellung
+ *     sperrt den Kunden sieben Tage aus — und die LE-Meldung nennt keinen der
+ *     vorherigen Klicks.
+ *   - Liste nicht lesbar ⇒ BESTELLEN (fail-open, wie bisher: ein Listen-
+ *     Fehler darf keine Freischaltung verhindern).
+ *
+ * BEWUSST KEIN STATUS-VOKABULAR GERATEN: live belegt ist nur 'active'.
+ */
+export function certificateOrderDecision(
+  list: { ok: boolean, certificates: { domain: string, status: string }[] },
   wanted: string[],
-): boolean {
-  return coveringCertificate(certificates.filter(entry => entry.status === 'active'), wanted) !== null
+): CertificateOrderDecision {
+  if (!list.ok) {
+    return { order: true, reason: 'unreadable', status: '', message: '' }
+  }
+  const covering = coveringCertificate(list.certificates, wanted)
+  if (!covering) {
+    return { order: true, reason: 'no_covering', status: '', message: '' }
+  }
+  if (covering.status === 'active') {
+    return { order: false, reason: 'active', status: 'active', message: '' }
+  }
+  return {
+    order: false,
+    reason: 'in_progress',
+    status: covering.status,
+    message: `Für ${wanted.join(', ')} ist bereits ein Zertifikat beauftragt (Status „${covering.status}") — nicht erneut angefordert. Hängt es fest: Eintrag in ploi löschen, dann erneut prüfen.`,
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ * PREFLIGHT: ANTWORTET PORT 80 FÜR DIESEN NAMEN? (F54-3, 2026-08-08)
+ *
+ * ── DER BEFUND, DER EINE SITE FAST VOM NETZ GENOMMEN HÄTTE ────────────────
+ * **ploi's Alias-API pflegt den Port-80-Block NICHT.** Ein Alias landet im
+ * `server_name` des :443-vHosts; die HTTP-Umleitung steht aber in einer
+ * eigenen, root-eigenen Datei (`/etc/nginx/ploi/<site>/before/
+ * ssl-redirect.conf`), die die API nicht anfasst. Der neue Name fällt damit
+ * auf Port 80 in den 444-Catch-all — und genau dort holt Let's Encrypt seine
+ * HTTP-01-Prüfung ab. Die Bestellung MUSS scheitern.
+ *
+ * Und ein gescheiterter Antrag löscht die bestehende Lineage der Site (s.
+ * Kopf). Der Preflight ist deshalb keine Höflichkeit gegenüber Let's Encrypt,
+ * sondern die Sicherung gegen einen Zustand, in dem der nächste nginx-Reload
+ * die Site abschaltet.
+ *
+ * ── WAS ER MISST ─────────────────────────────────────────────────────────
+ * Einen gewöhnlichen GET auf `http://<name>/.well-known/acme-challenge/…`.
+ * JEDE HTTP-Antwort genügt — 404 heißt „nginx kennt den Namen und hat keine
+ * Datei", und mehr wollten wir nicht wissen. Kommt GAR NICHTS zurück
+ * (Verbindung abgewiesen, Timeout, 444), wird nicht bestellt.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+/** Der Pfad, unter dem gefragt wird. Er darf 404 sein — er soll nur ankommen. */
+const ACME_PREFLIGHT_PATH = '/.well-known/acme-challenge/pukalani-preflight'
+
+export type AcmePreflightOutcome =
+  | { kind: 'status', status: number }
+  | { kind: 'error', detail: string }
+
+/**
+ * PURE: antwortet Port 80 für diesen Namen?
+ *
+ * Jede HTTP-Antwort ist ein Ja. Keine Antwort ist ein Nein — und zwar ein
+ * blockierendes: fail-closed, weil die Alternative ein gelöschtes Zertifikat
+ * ist.
+ */
+export function interpretAcmePreflight(outcome: AcmePreflightOutcome): boolean {
+  return outcome.kind === 'status'
+}
+
+/**
+ * Die Anleitung, die statt der Bestellung herauskommt.
+ *
+ * Sie nennt den KONKRETEN Handgriff, weil der Befund sonst wie ein DNS-Problem
+ * des Kunden aussieht: der Name löst auf, HTTPS antwortet, nur Port 80 nicht —
+ * und das sieht niemand, ohne danach zu suchen.
+ */
+export function acmePreflightMessage(hosts: string[]): string {
+  return `Port 80 antwortet nicht für ${hosts.join(', ')} — die Let's-Encrypt-Prüfung (HTTP-01) würde scheitern, und ein gescheiterter Antrag löscht das bestehende Zertifikat der Site. Deshalb wurde NICHTS bestellt. Handgriff: in der nginx-Hauptconfig der Site (ploi → Site → Verwalte → nginx-Konfiguration) einen eigenen server-Block für Port 80 mit diesen Namen ergänzen, der /.well-known/acme-challenge/ ausliefert; danach erneut „Prüfen".`
+}
+
+/**
+ * Die Frage wirklich stellen. Wirft nie.
+ *
+ * NACKTE ARGUMENTE, damit der Beweis sie gegen einen echten lokalen Server
+ * laufen lassen kann (ein Host darf deshalb einen Port tragen).
+ */
+export async function acmeChallengeReachable(host: string, timeoutMs = 6000): Promise<{ ok: boolean, detail: string }> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  let outcome: AcmePreflightOutcome
+  try {
+    const response = await fetch(`http://${host}${ACME_PREFLIGHT_PATH}`, {
+      method: 'GET',
+      // KEIN Folgen von Umleitungen: ein 301 auf https ist selbst schon der
+      // Beweis, dass Port 80 für diesen Namen antwortet.
+      redirect: 'manual',
+      signal: controller.signal,
+    })
+    outcome = { kind: 'status', status: response.status }
+  }
+  catch (error) {
+    const cause = (error as { cause?: { code?: string } }).cause
+    outcome = { kind: 'error', detail: cause?.code || (error instanceof Error ? error.message : String(error)) }
+  }
+  finally {
+    clearTimeout(timer)
+  }
+  return {
+    ok: interpretAcmePreflight(outcome),
+    detail: outcome.kind === 'status' ? String(outcome.status) : outcome.detail.slice(0, 120),
+  }
 }
 
 /**
@@ -442,9 +608,20 @@ export function certificateCovers(
  * und die Fehlermeldung („too many certificates already issued") kommt erst
  * beim sechsten Mal und nennt keinen der vorherigen fünf Klicks.
  *
- * Deshalb wird VOR jeder Anforderung gelesen: deckt ein aktives Zertifikat die
- * gewünschte Namensmenge schon ab, passiert nichts. Nur die erste Anforderung
- * je Namensmenge geht wirklich raus.
+ * Deshalb wird VOR jeder Anforderung gelesen (`certificateOrderDecision`):
+ * deckt ein Eintrag die gewünschte Namensmenge schon ab, passiert nichts.
+ *
+ * ── UND DIE ANDERE RICHTUNG: NACHBESTELLEN (F54-2) ────────────────────────
+ * Deckt KEIN Eintrag sie ab, wird bestellt — bei JEDEM Prüf-Klick, nicht nur
+ * beim Zustandswechsel. Ein Fehlschlag darf nicht dazu führen, dass die
+ * Freischaltung nur noch misst; der Knopf ist die einzige Bedienung, und er
+ * muss auch der Weg zurück sein.
+ *
+ * ── ZWEI TORE, IN DIESER REIHENFOLGE ──────────────────────────────────────
+ * Erst die Deckungsfrage (LE-Ratengrenze), dann der PREFLIGHT (würde die
+ * HTTP-01-Prüfung überhaupt ankommen?). Die Reihenfolge spart im Normalfall
+ * beide Netzabfragen: liegt das Zertifikat schon, fragt niemand mehr nach
+ * Port 80.
  */
 export async function requestPloiSiteCertificate(config: PloiConfig, domains: string[]): Promise<PloiResult> {
   if (config.dryRun) return { ok: true, skipped: true, message: '' }
@@ -453,9 +630,24 @@ export async function requestPloiSiteCertificate(config: PloiConfig, domains: st
   }
   if (!domains.length) return { ok: false, message: 'Keine Domains für das Zertifikat.' }
 
-  const existing = await listPloiCertificates(config)
-  if (existing.ok && certificateCovers(existing.certificates, domains)) {
-    return { ok: true, skipped: true, message: '' }
+  const decision = certificateOrderDecision(await listPloiCertificates(config), domains)
+  if (!decision.order) return { ok: true, skipped: true, message: decision.message }
+
+  /**
+   * PREFLIGHT — die Sicherung sitzt IN der Schnittstelle, nicht in der
+   * Disziplin des Aufrufers (F54-3, dieselbe Lehre wie bei `indexStep`).
+   *
+   * Geprüft werden ALLE Namen, nicht nur die neuen: HTTP-01 validiert jeden
+   * Namen einzeln, und ein einziger, der auf Port 80 nicht antwortet, lässt
+   * den GESAMTEN Antrag scheitern — samt Löschung der bestehenden Lineage.
+   */
+  const unreachable: string[] = []
+  for (const host of domains) {
+    const reachable = await acmeChallengeReachable(host)
+    if (!reachable.ok) unreachable.push(`${host} (${reachable.detail})`)
+  }
+  if (unreachable.length) {
+    return { ok: false, message: acmePreflightMessage(unreachable).slice(0, 500) }
   }
 
   /**
