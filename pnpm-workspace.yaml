@@ -58,7 +58,7 @@ catalog:
   '@nuxtjs/i18n': ^10.6.0
   eslint: ^10.8.0
   appwrite: ^26.2.0
-  node-appwrite: ^26.2.0
+  node-appwrite: ^27.1.0
   '@types/node': ^22.18.0
   nuxt: ^4.5.1
   '@nuxt/ui': ^4.10.0
