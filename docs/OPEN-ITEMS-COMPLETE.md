@@ -49,8 +49,11 @@ Der Kauf öffnet wie bisher im selben Schreibvorgang (Webhook apply-plan).
 Texte ehrlich nachgezogen: Wizard („nichts wird gesperrt" ist raus),
 Trial-Hinweise (ending/ended + „Plan wählen"), `my.*`-Karten, Abo-Seite
 (Basic-Bullets = „Zustand ohne Abo"), Hilfe (5.abrechnung.md), jeweils de+en.
-Preisseite www: Basic-Spalte entfernt (drei Karten: Personal/Pro/Enterprise —
-Enterprise ist das Studio-Angebot und bewusst geblieben), FAQ und Lead neu
+Preisseite www: Basic-Spalte entfernt; seit Davids Nachtrag vom 2026-08-08
+stehen NUR Personal + Pro im Zweispalter, und Enterprise/Pukalani Studio
+grenzt sich als eigene LIEGENDE Karte darunter ab (badge statt #header —
+die horizontale Form rendert den Slot nicht; Text als `description`, nicht
+`tagline`, sonst bleibt die halbe Karte leer). FAQ und Lead neu
 („Mitmachen kostet nie etwas" statt „Basic dauerhaft kostenlos").
 **Beweise:** control 352/352 (+22 skipped; trialSweep-Fälle neu geschnitten
 inkl. Bestand/Vetos/Idempotenz, Lift-Regel-Fälle erweitert), onboarding 15/15,
