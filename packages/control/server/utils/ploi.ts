@@ -159,10 +159,14 @@ async function ploiFetch(
       // Der ploi-Rumpf trägt bei Validierungsfehlern ein `message`. Er wird
       // MITGENOMMEN, aber gekürzt — er ist eine Hilfe für den Kunden („domain
       // already exists"), kein Ort für Stack-Traces.
-      const message = typeof (data as { message?: string })?.message === 'string'
-        ? (data as { message: string }).message
-        : text.slice(0, 200)
-      return { ok: false, status: response.status, data, message: `ploi ${response.status}: ${message}`.slice(0, 400) }
+      // Bei 422 stehen die eigentlichen Feld-Fehler in `errors` — ohne sie
+      // ist "The given data was invalid" eine Diagnose ohne Inhalt (der
+      // fehlende `type` beim Zertifikat hat genau so eine halbe Stunde
+      // gekostet, 2026-08-07).
+      const body = data as { message?: string, errors?: Record<string, unknown> } | null
+      const detail = body?.errors ? ` — ${JSON.stringify(body.errors).slice(0, 200)}` : ''
+      const message = typeof body?.message === 'string' ? body.message : text.slice(0, 200)
+      return { ok: false, status: response.status, data, message: `ploi ${response.status}: ${message}${detail}`.slice(0, 400) }
     }
     return { ok: true, status: response.status, data, message: '' }
   }
@@ -454,9 +458,15 @@ export async function requestPloiSiteCertificate(config: PloiConfig, domains: st
     return { ok: true, skipped: true, message: '' }
   }
 
+  /**
+   * `type` ist PFLICHT — ohne das Feld antwortet ploi `422 The given data was
+   * invalid` und nennt das fehlende Feld nur im `errors`-Rumpf (beim
+   * Portfolio-Erstlauf am 2026-08-07 live erwischt; der Alias-Schritt davor
+   * war da längst durch).
+   */
   const result = await ploiFetch(config, `/servers/${config.serverId}/sites/${config.siteId}/certificates`, {
     method: 'POST',
-    body: { certificate: domains.join(',') },
+    body: { certificate: domains.join(','), type: 'letsencrypt' },
   })
   return { ok: result.ok, message: result.message }
 }
