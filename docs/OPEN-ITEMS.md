@@ -1,8 +1,8 @@
 # Offene Punkte
 
-**Stand: 2 offen · 3 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 3 offen · 3 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
-Stand: **2026-08-07**. Hier steht **nur, was noch offen ist** — in der
+Stand: **2026-08-08**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
 Beweis und den gelernten Lektionen) steht final in
 **[OPEN-ITEMS-COMPLETE.md](OPEN-ITEMS-COMPLETE.md)**.
@@ -18,6 +18,7 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 
 | # | Was (einfach erklärt) | Prio | Aufwand | Braucht David? | Details |
 | --- | --- | --- | --- | --- | --- |
+| 1 · F54 | **Portfolio-Domain fertig freischalten.** Zertifikat und Origins stehen seit dem Erstlauf, der Status hängt auf `pending_platform` — die Fixes dafür sind gebaut. Nach dem Deploy von control **und** portfolio: `/dashboard/websites` → portfolio → Eigene Domain → **„Prüfen"** ⇒ muss `active` werden. | Hoch | S — ein Klick nach dem Deploy | Nein | [Runbook B4](runbooks/CUSTOM-DOMAIN-ERSTAKTIVIERUNG.md) |
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Die Vorstufe A2a (6 Testmodus-Proben) ist seit 2026-08-08 KOMPLETT grün durchgespielt, Anleitung neu geschrieben — offen ist nur noch der Live-Gang: Bank, Live-Keys, Live-Webhook (**mit allen NEUN Ereignissen** — im Test fehlten drei), Steuer-Prüfung (19 % im Preis). Braucht 3 (A1). | Hoch | S–M — Runbook Schritt 2 | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
 

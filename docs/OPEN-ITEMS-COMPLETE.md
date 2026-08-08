@@ -29,6 +29,103 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F54 — Silo-Domain-Erstlauf: vier Fehler, die lokal unsichtbar waren ✅ 2026-08-08
+
+**Was passiert ist.** Der erste echte Domain-Umzug (`portfolio.pukalani.app`
+→ `www.pukalani.studio`) hat vier Fehler gefunden. **Keiner davon war lokal
+sichtbar** — die Vorbeweise standen bei 46/46 (Pool) und 35/35 (Silo). Die
+Domain läuft inzwischen (Zertifikat über alle drei Namen, Origin-Proben
+antworten 401); offen war beim Abschluss dieses Pakets nur noch der
+Freischalt-Klick nach dem Deploy (steht als eigener Punkt in OPEN-ITEMS).
+
+**1 · Der Abschluss hing am falschen Messwert.** `POST/GET
+/v1/projects/:id/platforms` verlangt einen Scope, den weder der Runtime- noch
+der Migrations-Key hat (`401 general_unauthorized_scope`). Die lokale Messung
+lief mit einem Dev-Key mit ALLEN Scopes — in Produktion scheiterte der letzte
+Schritt der Freischaltung damit **immer**. Fix: eintragen wird weiter
+VERSUCHT (fail-soft), der ERFOLG wird über die **schlüssellose Origin-Probe**
+gemessen (`GET /v1/account` mit `Origin:` + `X-Appwrite-Project` — 401 =
+akzeptiert, 403 `general_unknown_origin` = fehlt). Pure Regeln in
+`packages/core/shared/appwriteOriginProbe.ts`, fail-closed in der Mitte:
+5xx, ein 403 aus anderem Grund und „gar keine Antwort" heißen *weiß ich
+nicht* und schalten nie frei. Beide Silo-Wege und der Pool-Weg umgestellt.
+
+**2 · Nach einem Fehlschlag wurde nicht mehr nachbestellt.** Silo- und
+Tenant-Pfad lasen die ploi-Zertifikatsliste unterschiedlich (`certificateCovers`
+nur aktive vs. `coveringCertificate` jeder Status) — zwei Lesarten derselben
+Frage an derselben Liste. Jetzt EINE pure Regel `certificateOrderDecision`:
+kein deckender Eintrag ⇒ bestellen, bei JEDEM Prüf-Klick; deckender Eintrag
+`active` ⇒ still übersprungen; anderer Status ⇒ übersprungen mit Status und
+Ausweg (der Klickschutz gegen die LE-Ratengrenze bleibt). `certificateCovers`
+ersatzlos entfernt.
+
+**3 · ploi's Alias-API pflegt den Port-80-Block nicht.** Ein Alias landet im
+`server_name` des :443-vHosts; die HTTP-Umleitung steht in einer eigenen,
+root-eigenen Datei (`/etc/nginx/ploi/<site>/before/ssl-redirect.conf`), die
+die API nicht anfasst. Der neue Name fällt auf Port 80 in den 444-Catch-all,
+und genau dort holt Let's Encrypt seine HTTP-01-Prüfung ab. Fix: **Preflight
+vor jeder Silo-Bestellung** (`acmeChallengeReachable`) — jede HTTP-Antwort ist
+ein Ja, gar keine blockiert, und statt der Bestellung kommt der Handgriff in
+den Status. Die Sicherung sitzt IN `requestPloiSiteCertificate`, nicht beim
+Aufrufer. Auf dem TENANT-Pfad bewusst NICHT (eigener vHost inkl. :80; ein
+Preflight direkt nach dem asynchronen nginx-Reload würde falsch blockieren).
+
+**4 · Die gefährlichste Entdeckung: ein gescheiterter Antrag LÖSCHT die
+bestehende Zertifikats-Linie der Site.** Nach dem fehlgeschlagenen
+3-Namen-Antrag war `/etc/letsencrypt/live/portfolio.pukalani.app/` weg. Die
+Site lief nur noch aus dem nginx-Arbeitsspeicher weiter — sie sah völlig
+gesund aus, aber jeder Reload scheiterte still (`[emerg] cannot load
+certificate`) und ein Neustart hätte sie vom Netz genommen. Der Preflight aus
+(3) ist die Absicherung; dazu ein Wiederherstellungs-Rezept im Runbook
+(**B7**: Ursache messen, dann **Einzel-Namen-Antrag zuerst**, der die Lineage
+unter ihrem alten Namen wiederherstellt und den nächsten Reload heilt) und
+eine Korrektur im Kopf von `ploi.ts` — dort stand bis heute, hier werde
+„niemals" ein Site-Zertifikat angefordert; seit control-036 stimmt das nicht.
+
+**Außerdem:** `NUXT_ONBOARDING_SERVICE_SECRET` + `NUXT_ONBOARDING_CONTROL_URL`
+fehlten auf der portfolio-Site und mussten mitten im Durchlauf nachgetragen
+werden — jetzt in der `.env.example` beider Silo-Apps und in der Pflicht-Liste
+von `scripts/ops/verify-site-env.mjs`.
+
+**Beweise.** `packages/domains/scripts/verify-domain-settle.mjs` **19/19**,
+gegen eine echte Appwrite 1.9.6 und eine echte Silo-App mit einem
+**absichtlich scope-losen Schlüssel** — also im Produktionsfall statt in der
+lokalen Idealwelt. Darin der Portfolio-Fall selbst: `ok: true`, obwohl die
+Registrierung am Schlüssel scheitert. Unit: core 13/13 neu (davon 6 gegen ein
+echtes Appwrite-Double, belegt u. a., dass kein Schlüssel mitgeht), control
+`siteDomain.test.ts` 33/33 (davon 3 gegen echte HTTP-Server inkl. eines
+444-Doubles, das den Socket ohne Antwort zumacht). **Drei Gegenproben, je eine
+pro Fix:** `interpretOriginProbe` mutiert ⇒ Live-Beweis fällt auf 17/19 (rot
+sind genau die zwei Prüfungen an der Probe); `certificateOrderDecision`
+mutiert ⇒ 30/33 (die drei „bestellt"-Fälle); `interpretAcmePreflight` mutiert
+⇒ 30/33 (die drei „blockiert"-Fälle).
+
+**Nicht gemessen, und das gehört dazu:** die Bestellung selbst und die
+Lineage-Löschung lassen sich lokal nicht herstellen — dafür gibt es kein
+Let's Encrypt und kein ploi im Trockenlauf. Fix 2 und 3 sind Unit-bewiesen
+(mit echten Sockets), nicht live. Der Abschluss-Klick am Portfolio steht
+ebenfalls aus; er passiert nach dem Deploy.
+
+**Gelernt (drei Dinge):**
+1. **Ein gescheiterter Zertifikatsantrag ist kein Nicht-Ereignis — er zerstört
+   den Bestand.** certbot ersetzt eine Lineage durch die Namen, die man ihr
+   gibt; scheitert die Validierung, bleibt sie nicht stehen, sondern
+   verschwindet. Und der Schaden ist unsichtbar, weil nginx das alte
+   Zertifikat im Arbeitsspeicher hält: die Site sieht gesund aus, bis jemand
+   sie neu lädt. Deshalb wird vor einer Bestellung **gemessen, ob die
+   Validierung ankommen kann** — nicht gehofft.
+2. **Ein lokaler Allmachts-Schlüssel beweist nichts über Produktion.** „Ein
+   gewöhnlicher Projekt-API-Key genügt" war am 2026-08-07 sauber gemessen —
+   gegen einen Key, der zufällig alle Scopes hatte. Wo eine Berechtigung im
+   Spiel ist, muss der Beweis mit dem SCHWÄCHSTEN Schlüssel laufen, den
+   Produktion kennt; der neue Beweis tut genau das.
+3. **Die richtige Frage ist die, die ohne Rechte auskommt.** Der Fix war nicht
+   ein dritter Schlüssel, sondern ein anderer Messwert: nicht „konnten wir
+   eintragen?", sondern „ist der Origin akzeptiert?". Die Antwort darauf stand
+   seit F45 als Gegenprobe in der Datei — sie war nur nie der Messwert.
+
+---
+
 ### F38-Rest + B1-Rest — Pool-media live, Baselines gesichtet ✅ 2026-08-08
 
 **F38:** Die Console-Rechte (Migrations-Key buckets+files, Laufzeit-Key

@@ -16,6 +16,23 @@ und braucht kein Runbook mehr.
 > seiner eigenen ploi-Site** und **ein Zertifikat über alle Namen der Site**,
 > eine Pool-Community einen **ploi-Tenant** an `platform.pukalani.app`.
 
+> ## ⚠️ Der Erstlauf IST GELAUFEN — 2026-08-08
+>
+> `www.pukalani.studio` liegt, das Zertifikat trägt alle drei Namen, die
+> Origin-Proben antworten 401. Teil B unten ist deshalb keine Vorschau mehr,
+> sondern das **Ist-Protokoll** — mit vier echten Fehlern, von denen keiner
+> lokal sichtbar war. Die Häkchen sind entsprechend nachgezogen.
+>
+> | # | Was schiefging | Fix |
+> | --- | --- | --- |
+> | 1 | Die Projects-API verlangt einen Scope, den die Produktions-Keys nicht haben (`401 general_unauthorized_scope`) — der letzte Schritt scheiterte in Produktion **immer**. Lokal lief er mit einem Dev-Key mit allen Scopes. | Erfolg wird über die **schlüssellose Origin-Probe** gemessen; eintragen wird nur noch versucht. |
+> | 2 | Nach einem Fehlschlag wurde das Zertifikat nicht mehr nachbestellt — Silo- und Tenant-Pfad lasen die ploi-Liste unterschiedlich. | **Eine** Regel (`certificateOrderDecision`): kein deckender Eintrag ⇒ bestellen, bei jedem Prüf-Klick. |
+> | 3 | **ploi's Alias-API pflegt den Port-80-Block nicht.** Der neue Name fällt dort in den 444-Catch-all, HTTP-01 kann nicht ankommen. | **Preflight** vor jeder Bestellung; ohne Antwort auf Port 80 wird nichts bestellt, dafür steht der Handgriff im Status. |
+> | 4 | **Ein gescheiterter Antrag LÖSCHT die bestehende Zertifikats-Linie der Site.** `portfolio.pukalani.app` lief danach nur noch aus dem nginx-Arbeitsspeicher; jeder Reload scheiterte still, ein Neustart hätte die Site vom Netz genommen. | Der Preflight aus (3) ist die Absicherung. Wiederherstellung: **B7**. |
+>
+> Offen ist nur noch der Abschluss: Status steht auf `pending_platform`, die
+> kanonischen Umleitungen sind deshalb aus. Was zu klicken ist, steht in **B4**.
+
 Die Häkchen hier sind ECHT und werden pro Durchlauf abgehakt.
 
 ---
@@ -101,7 +118,13 @@ Die drei realistischen Fälle:
 
 - [ ] Nächster „Prüfen"-Klick: Status geht über `pending_platform` auf `active`.
 - [ ] **Appwrite-Web-Platform** (F45) ist im **Pool**-Projekt angelegt — für
-      beide Formen. Nachmessen, denn der WebSocket-Handschlag verrät nichts
+      beide Formen. **Seit 2026-08-08 (Befund 1 des Silo-Erstlaufs) entscheidet
+      nicht mehr, ob wir sie eintragen KONNTEN:** die Projects-API verlangt
+      einen Scope, den die Produktions-Keys nicht haben. Eingetragen wird
+      versucht, gemessen wird die schlüssellose Origin-Probe — geht das
+      Eintragen nicht, legt man die beiden Formen in der Appwrite-Konsole des
+      Pool-Projekts an und drückt erneut „Prüfen".
+      Nachmessen, denn der WebSocket-Handschlag verrät nichts
       (er antwortet 101 auch für einen abgewiesenen Origin):
 
       curl -s -o /dev/null -w "%{http_code}\n" \
@@ -175,12 +198,17 @@ Die drei realistischen Fälle:
       fahren ist trotzdem richtig, sonst antwortet die Domain-Verwaltung mit
       „unknown attribute".
 - [ ] Code deployt: **control** UND **portfolio** (beide Seiten der Naht).
-- [ ] Auf der **portfolio**-Site gesetzt (`pnpm ops:site-env` zeigt nur Namen):
+- [x] Auf der **portfolio**-Site gesetzt (`pnpm ops:site-env` zeigt nur Namen):
       `NUXT_ONBOARDING_CONTROL_URL` = `https://control.pukalani.app`,
       `NUXT_ONBOARDING_SERVICE_SECRET` = derselbe Wert wie
       `NUXT_CONTROL_ONBOARDING_SECRET` auf control.
       **Ohne beides passiert nichts Schlimmes** — die Site läuft weiter unter
       ihrer alten Adresse, es gibt nur keine eigene Domain (fail-soft).
+      **Beim Erstlauf fehlten beide** und mussten mitten im Durchlauf
+      serverseitig nachgetragen werden; genau weil es fail-soft ist, fiel es
+      erst am 401 des Rückrufs auf. Seit 2026-08-08 stehen sie in der
+      `.env.example` beider Silo-Apps und in der Pflicht-Liste von
+      `pnpm ops:site-env` — **diesen Lauf vor dem nächsten Kunden machen.**
 - [ ] Auf der **control**-Site: `NUXT_PLOI_TOKEN` (wie in Teil A).
       `NUXT_PLOI_SERVER_ID`/`NUXT_PLOI_SITE_ID` sind hier **egal** — für Silos
       kommen Server und Site aus der `websites`-Zeile.
@@ -214,37 +242,96 @@ Das Token steht im selben Kasten, in dem auch die Domain eingetragen wird.
 
 ## B3. Prüfen (der Knopf, beliebig oft)
 
-- [ ] `pending_dns` → `pending_cert`: **im ploi-Panel steht die Site
+- [x] `pending_dns` → `pending_cert`: **im ploi-Panel steht die Site
       `portfolio.pukalani.app` jetzt mit beiden neuen Namen als ALIAS.**
-- [ ] Ein Zertifikat wurde über **alle Namen der Site** angefordert —
+- [x] Ein Zertifikat wurde über **alle Namen der Site** angefordert —
       `portfolio.pukalani.app`, `www.pukalani.studio`, `pukalani.studio`.
       **Nachsehen, dass der alte Name dabei ist**: certbot ersetzt die Lineage
       durch die genannten Namen; fehlte er, verlöre `portfolio.pukalani.app`
       sein TLS.
-- [ ] Das ist **gefahrlos für das Kunden-Wildcard**: die Lineage der
+- [x] Das ist **gefahrlos für das Kunden-Wildcard**: die Lineage der
       portfolio-Site heißt `portfolio.pukalani.app` und ist eine eigene
       (am 2026-08-07 an der ploi-API nachgemessen: ein Zertifikat, `tenant:
       false`). **Trotzdem gilt weiter:** niemals ein Zertifikat auf der Site
       `pukalani.app` oder `platform.pukalani.app` anfordern.
-- [ ] Wiederholtes Klicken ist ungefährlich: vor jeder Anforderung wird
-      geprüft, ob ein aktives Zertifikat die Namensmenge schon deckt (Let's
-      Encrypt lässt fünf identische pro Woche zu).
+- [x] Wiederholtes Klicken ist ungefährlich: vor jeder Anforderung wird
+      geprüft, ob ein Eintrag die Namensmenge schon deckt (Let's Encrypt lässt
+      fünf identische pro Woche zu). **Und umgekehrt** (Befund 2): deckt KEINER
+      sie ab, wird bei jedem Klick neu bestellt — ein Fehlschlag darf nicht
+      dazu führen, dass der Knopf nur noch misst.
 
-## B4. Freischaltung
+### ⚠️ B3a. Der Port-80-Block — Befund 3 des Erstlaufs
 
-- [ ] Nächster „Prüfen"-Klick: `pending_cert` → `pending_platform` → `active`.
-      Der letzte Schritt ist ein **Rückruf in die portfolio-App**
+**ploi's Alias-API pflegt ihn nicht.** Ein Alias landet im `server_name` des
+:443-vHosts; die HTTP-Umleitung steht in einer eigenen, root-eigenen Datei
+(`/etc/nginx/ploi/<site>/before/ssl-redirect.conf`), die die API nicht
+anfasst. Der neue Name fällt damit auf Port 80 in den 444-Catch-all — und
+genau dort holt Let's Encrypt seine HTTP-01-Prüfung ab.
+
+- [x] Seit 2026-08-08 läuft **vor jeder Bestellung ein Preflight**:
+      `http://<name>/.well-known/acme-challenge/…` von außen. Antwortet er
+      nicht, wird **nichts** bestellt und der Status trägt den Handgriff.
+      Selbst nachmessen:
+
+      curl -s -o /dev/null -w "%{http_code}\n" --max-time 5 \
+        http://www.pukalani.studio/.well-known/acme-challenge/probe
+
+      **Jede Zahl ist gut** (404 heißt: nginx kennt den Namen). `000` heißt:
+      Port 80 antwortet nicht — dann erst den Block reparieren.
+- [x] Der Handgriff (beim Erstlauf über die ploi-nginx-config-API gemacht, der
+      Block steht dort als Muster): in der **nginx-Hauptconfig der Site**
+      (ploi → Site → Verwalte → nginx-Konfiguration) einen eigenen
+      `server`-Block auf Port 80 mit allen Namen ergänzen, der
+      `/.well-known/acme-challenge/` aus dem webroot ausliefert und sonst auf
+      https umleitet. **Nicht** die `before/ssl-redirect.conf` bearbeiten —
+      die gehört root und ploi schreibt sie neu.
+
+### ☠️ B3b. Wenn eine Bestellung trotzdem scheitert — Befund 4
+
+**Ein gescheiterter Antrag löscht die BESTEHENDE Zertifikats-Linie der Site.**
+certbot/ploi räumt `/etc/letsencrypt/live/<site>/` weg. Die Site läuft danach
+aus dem nginx-Arbeitsspeicher weiter — sie sieht **völlig gesund** aus, aber
+jeder Reload scheitert still (`[emerg] cannot load certificate`) und der
+nächste Neustart nimmt sie vom Netz. Das Rezept steht in **B7**.
+
+## B4. Freischaltung — **der offene Rest des Erstlaufs**
+
+> **Stand 2026-08-08:** Zertifikat liegt, Proben antworten 401, Status steht
+> auf `pending_platform`. Der Abschluss ist EIN Klick — aber erst **nach dem
+> Deploy** von control + portfolio mit den Fixes dieses Pakets. Vorher
+> scheitert er weiter am Scope (Befund 1).
+>
+> **Was zu tun ist, in dieser Reihenfolge:**
+> 1. `control` **und** `portfolio` deployen (beide Seiten der Naht).
+> 2. `control.pukalani.app/dashboard/websites` → Zeile *portfolio* → Menü →
+>    **Eigene Domain** → **„Prüfen"**.
+> 3. **Was herauskommen muss:** Status springt auf **`active`**, der
+>    Fehlertext wird leer, `customDomainActivatedAt` bekommt einen Zeitstempel.
+>    Danach antwortet `https://portfolio.pukalani.app/` mit **301** auf
+>    `https://www.pukalani.studio/`.
+> 4. Bleibt es bei `pending_platform`, steht jetzt der GRUND darin — und bei
+>    einem fehlenden Origin auch der Handgriff („Appwrite-Konsole → Projekt … →
+>    Settings → Platforms"). Ein `401 general_unauthorized_scope` allein darf
+>    nicht mehr vorkommen: die Registrierung darf scheitern, solange die Probe
+>    trägt.
+
+- [x] Der letzte Schritt ist ein **Rückruf in die portfolio-App**
       (`POST /api/site/domain/settle`, Service-Secret) — sie legt die
       Appwrite-Web-Platform in IHREM Projekt an, weil das Control Plane dafür
       keinen Schlüssel hat.
+- [x] **Seit 2026-08-08 misst sie dabei nicht mehr den EIGENEN Erfolg**
+      (Befund 1): eingetragen wird versucht, gemessen wird die schlüssellose
+      Origin-Probe. Stehen die Platforms schon — beim Portfolio von Hand
+      angelegt —, ist das ein Erfolg, egal was die Projects-API sagt.
 - [ ] Bleibt es bei `pending_platform`, steht der Grund im Fehlertext. Die
-      häufigsten zwei: das Secret fehlt auf einer der beiden Seiten, oder die
+      häufigsten drei: der Origin fehlt wirklich (Handgriff steht in der
+      Meldung), das Secret fehlt auf einer der beiden Seiten, oder die
       Site läuft noch auf altem Code („Die Site kennt den letzten Schritt
       nicht").
       **Zweiter Weg, der dasselbe tut:** im Dashboard der Site selbst
       (`/dashboard/community/domain`) auf „Prüfen" — dort hat der Betreiber ein
       Konto DIESES Projekts und die App erledigt den Schritt ohne Rückruf.
-- [ ] Origin-Gegenprobe (der Handschlag verrät nichts, er antwortet 101 auch
+- [x] Origin-Gegenprobe (der Handschlag verrät nichts, er antwortet 101 auch
       für einen abgewiesenen Origin):
 
       curl -s -o /dev/null -w "%{http_code}\n" \
@@ -290,6 +377,48 @@ Das Token steht im selben Kasten, in dem auch die Domain eingetragen wird.
       Mandanten-Tür, sie würde unter der abgegebenen Adresse weiter Inhalte
       ausliefern, solange der Alias steht.
 
+## ☠️ B7. Notfall: die Zertifikats-Linie der Site ist weg
+
+Auslöser: eine **gescheiterte** Zertifikatsbestellung für die Site. Symptom:
+die Site antwortet noch (nginx hält das alte Zertifikat im Arbeitsspeicher),
+aber `/etc/letsencrypt/live/<site>/` ist leer oder fehlt und jeder
+`nginx -t` / Reload meldet `[emerg] cannot load certificate`. **Der nächste
+Neustart nimmt die Site vom Netz.** Nicht warten.
+
+1. **Feststellen, ob es zutrifft** — beides auf dem Server:
+
+       sudo ls -la /etc/letsencrypt/live/portfolio.pukalani.app/
+       sudo nginx -t
+
+   Fehlt das Verzeichnis und meldet `nginx -t` `cannot load certificate`,
+   liegt der Fall vor.
+
+2. **NICHT** noch einmal denselben Mehr-Namen-Antrag stellen. Er scheitert aus
+   demselben Grund und ändert nichts zum Besseren.
+
+3. **Erst den Grund beheben** — fast immer Port 80 (B3a). Preflight für JEDEN
+   Namen, der ins Zertifikat soll:
+
+       curl -s -o /dev/null -w "%{http_code} " --max-time 5 \
+         http://<name>/.well-known/acme-challenge/probe
+
+   Erst weiter, wenn keine `000` mehr dabei ist.
+
+4. **Einzel-Namen-Antrag zuerst.** Ein Zertifikat NUR für die Site-Domain
+   (`portfolio.pukalani.app`) über ploi anfordern. Das stellt die Lineage unter
+   ihrem alten Namen wieder her und heilt den nächsten Reload — und es ist der
+   Antrag mit der geringsten Chance zu scheitern, weil dieser Name auf Port 80
+   sicher antwortet.
+
+5. `sudo nginx -t && sudo systemctl reload nginx` — muss jetzt sauber sein.
+
+6. **Danach** den vollen Antrag über alle Namen (Site-Domain zuerst) — oder
+   einfach wieder „Prüfen" drücken, der Ablauf macht genau das.
+
+**Zeitbudget beachten:** Let's Encrypt lässt fünf identische Zertifikate pro
+Woche zu. Jeder gescheiterte Versuch mit derselben Namensmenge zählt. Nach dem
+dritten Fehlschlag aufhören und erst die Ursache messen.
+
 ---
 
 ## Was lokal schon bewiesen ist (damit man es hier nicht wiederholt)
@@ -324,4 +453,19 @@ und „Fail-soft" bleiben dabei grün, und das ist die ehrliche Lesart: sie
 prüfen ABWESENHEIT und tragen nur zusammen mit dem Abschnitt, der die
 Anwesenheit zeigt.
 
-**Offen bleibt genau das, wofür dieses Runbook existiert: ploi + Let's Encrypt.**
+`packages/domains/scripts/verify-domain-settle.mjs` — **19/19**, gefahren am
+2026-08-08 gegen eine echte Appwrite 1.9.6 und eine echte Silo-App (comments
+:3026) mit einem **absichtlich scope-losen App-Schlüssel**, also im
+Produktionsfall statt in der lokalen Idealwelt. Bewiesen: Naht-Grenze und
+Zustands-Grenze von `settle`, der PORTFOLIO-FALL (`ok: true`, obwohl die
+Registrierung am Schlüssel scheitert — die Origin-Probe trägt), die Gegenprobe
+im selben Lauf (unbekannter Host bleibt liegen, mit Konsolen-Handgriff in der
+Meldung) und dass eine einzige fehlende Form blockiert. Das Control Plane wird
+dabei bewusst durch ein Doppel ersetzt; sein Weg ist oben bewiesen.
+
+Auch dieser Beweis ist gegengeprobt: lässt man `interpretOriginProbe` die 401
+nicht mehr als „akzeptiert" lesen, fällt er auf **17/19** — rot sind genau die
+zwei Prüfungen, die an der Probe hängen.
+
+**Was Let's Encrypt und ploi angeht, ist der Erstlauf gelaufen** (2026-08-08,
+Protokoll oben). Offen bleibt nur der Abschluss-Klick nach dem Deploy — B4.
