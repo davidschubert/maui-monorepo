@@ -99,7 +99,7 @@ async function projectsApi(path, init = {}) {
     data = text ? JSON.parse(text) : null
   }
   catch {
-    data = null
+    // Kein JSON — dann bleibt data null und der Statuscode entscheidet.
   }
   return { status: response.status, data }
 }
@@ -167,7 +167,7 @@ async function callSettle(secret) {
     data = text ? JSON.parse(text) : null
   }
   catch {
-    data = null
+    // Kein JSON — dann bleibt data null und der Statuscode entscheidet.
   }
   return { status: response.status, data }
 }
