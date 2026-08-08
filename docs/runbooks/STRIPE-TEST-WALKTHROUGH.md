@@ -1,25 +1,21 @@
 # Stripe Test-Mode — Durchspiel-Anleitung (Community-Abo)
 
-Stand: **2026-08-02**, neu geschrieben nach A6 (die Community zahlt, nicht mehr
-der Workspace). Ziel: den **kompletten Bezahl-Weg im Test-Modus beweisen** —
-ohne Bank, ohne Live-Aktivierung. Danach weißt du sicher, dass Kauf (monatlich
-+ jährlich), Plan-Wirkung, Portal/Kündigung und Zahlungsverzug funktionieren.
+Stand: **2026-08-08 — VOLLSTÄNDIG DURCHGESPIELT** (A2a), gegen die
+Produktions-Deployments im Stripe-Testmodus. Ziel: den **kompletten Bezahl-Weg
+im Test-Modus beweisen** — ohne Bank, ohne Live-Aktivierung. Kauf (monatlich +
+jährlich), Plan-Wirkung, Portal/Kündigung (seit F49: nur-lesend) und
+Zahlungsverzug sind damit belegt; was beim Durchlauf anders war als in der
+Fassung vom 2026-08-02, ist HIER korrigiert und zusätzlich unten unter
+„Befunde des Durchlaufs 2026-08-08" gesammelt.
 
-> **Woher diese Anleitung kommt.** Sie ist aus dem CODE hergeleitet, nicht aus
-> der Erinnerung: hinter jedem Schritt steht die Datei, die ihn implementiert.
-> Sie ist aber **noch nicht durchgeklickt** — dafür braucht es einen
-> Stripe-Test-Key, und der gehört David. **Was beim Durchlauf anders aussieht
-> als hier beschrieben, wird hier korrigiert** (nicht im Kopf behalten).
-> Die Vorgänger-Fassung beschrieb `/workspace` und die Pläne free/pro/business;
-> was daran falsch war, steht am Ende unter „Was sich gegenüber der alten
-> Anleitung geändert hat".
+> **Wer klickt.** Anders als die alte Fassung behauptete, ist fast alles ohne
+> Handarbeit reproduzierbar: `packages/control/scripts/a2a-checkout-driver.mjs`
+> legt über die ECHTE Service-Naht Konto + Einladungs-Code + Community an
+> (Secrets aus `~/.appwrite-secrets`), liefert Checkout-/Portal-URLs als Owner
+> und liest die `communities`-Row. Nur die Stripe-Checkout-Seite selbst ist
+> Browserarbeit (Testkarte 4242).
 
-> **Wer klickt.** Alle sechs Proben laufen über **Davids Stripe-Konto** und
-> seinen Login. Claude kann sie **nicht** ausführen: kein Stripe-Key, kein
-> Owner-Konto, keine Testkarte. Claude kann vorbereiten, gegenlesen und
-> hinterher die Tabellen-Zustände prüfen.
-
-**Zeit: ~20 Min.**
+**Zeit: ~30 Min (plus bis zu 1 h Warten auf den stündlichen Sweep in Probe 6).**
 
 ---
 
@@ -78,6 +74,17 @@ STRIPE_KEY=sk_test_…  node scripts/stripe/ensure-prices.mjs          # Vorscha
 STRIPE_KEY=sk_test_…  node scripts/stripe/ensure-prices.mjs --apply  # legt an
 ```
 
+> **Der Aufruf scheitert im pnpm-Workspace mit `Cannot find package 'stripe'`**
+> (Durchlauf 2026-08-08): das Skript liegt in `scripts/stripe/`, und dort
+> hinauf gibt es kein `node_modules` mit `stripe` — das Paket gehört nur
+> `packages/billing`, und ESM ignoriert `NODE_PATH`. Abhilfe bis zum sauberen
+> Fix (Root-devDependency — bewusst zurückgestellt, weil der Lockfile dabei um
+> ~1000 Zeilen umsortiert; eigener Punkt):
+>
+> ```bash
+> ln -sfn "$(pwd)/node_modules/.pnpm/node_modules/stripe" node_modules/stripe
+> ```
+
 > **Die Schlüssel heißen `workspace_*` und das bleibt so.** Sie sind
 > IDENTITÄTEN bei Stripe, kein Wort — umbenennen hieße, die angelegten Preise
 > nicht mehr zu finden. Der Behälter „Workspace" ist gefallen, die Schlüssel
@@ -132,8 +139,13 @@ Wenn du keine Test-Community hast: über den Trichter
 
 **Soll-Bild:** drei Karten — „Aktueller Plan", „Plan wählen", „Rechnungen &
 Zahlungsmethode" (`packages/onboarding/app/pages/dashboard/settings/subscription.vue`).
-Bei **Basic** gibt es bewusst keinen Knopf: das ist der kostenlose
-Ausgangszustand, `lookupKey: null`.
+Bei **Basic** gibt es bewusst keinen Knopf — seit F49 (2026-08-07) ist Basic
+kein Angebot mehr, sondern der Zustand ohne Abo (nur-lesend nach der
+Testphase); die Karte beschreibt genau das, `lookupKey: null`.
+
+**Durchlauf 2026-08-08:** als Owner antwortet
+`GET /api/community/billing/trial` 200, ohne Session 401 — die
+Capability-Grenze greift.
 
 ## Probe 3 🔑 — Monats-Abo kaufen (der Kern-Weg)
 
@@ -201,19 +213,38 @@ Periodenwechsel durchgelaufen ist (sonst greift der 409 aus Probe 3).
 ## Probe 5 🔑 — Portal, Wechsel und Kündigung
 
 „Rechnungen & Zahlungsmethode" → das Stripe-Test-Portal öffnet
-(`createCommunityPortalUrl`, Rückkehr auf denselben Community-Pfad).
+(`createCommunityPortalUrl`, Rückkehr auf denselben Community-Pfad). Die
+Kündigung im Portal hat seit dem Durchlauf 2026-08-08 einen Zwischenschritt:
+erst ein Grund-Dropdown („Können Sie uns sagen, warum Sie gehen?"), dann
+„Weiter zur Kündigung", dann die Bestätigung.
 
 - **Kündigen** (zum Periodenende): Stripe setzt `cancel_at_period_end`. Bei uns
   ändert sich **noch nichts** — das Abo lebt bis zum Periodenende weiter, und
-  genau so ist es gedacht.
-- **Periodenende vorspulen** mit einer **Test Clock** im Stripe-Dashboard →
-  `customer.subscription.deleted` → in `communities`:
-  `plan: basic`, `billingStatus: canceled`, `stripeSubscriptionId` leer,
-  `pastDueSince` leer. **Nie auf „nichts"** — ein gekündigter Kunde ist nie
-  schlechter gestellt als einer, der nie gezahlt hat.
+  genau so ist es gedacht. **Nachgemessen:** `cancel_at_period_end: true` bei
+  Stripe, unsere Row unverändert `active`.
+- **„Periodenende vorspulen mit einer Test Clock" GEHT HIER NICHT** — die alte
+  Anleitung war an dieser Stelle falsch (Durchlauf 2026-08-08): eine Test Clock
+  muss VOR dem Customer existieren, und der Checkout-Customer hat keine. Man
+  kann eine Clock nicht nachträglich anhängen. Zwei ehrliche Wege:
+  (a) die Kündigung **sofort** per API auslösen
+  (`curl -X DELETE https://api.stripe.com/v1/subscriptions/<sub_…>`) — dasselbe
+  Ereignis `customer.subscription.deleted`, nur ohne Warten; oder
+  (b) für Zeitreisen ein API-Abo auf einer Clock anlegen (s. Probe 6).
+- **Soll nach der Kündigung (F49, Davids Entscheidung 2026-08-07 — ersetzt das
+  alte Soll „funktionsfähiges Basic"):** `plan: basic` (Quota-Anker),
+  `billingStatus: canceled`, `stripeSubscriptionId` leer, `pastDueSince` leer,
+  **`suspension: 'billing'`** mit dem Grund „Das Abo ist beendet. Mit einem
+  neuen Abo öffnet sich die Community sofort wieder …". Gekündigt ist exakt
+  gleichgestellt mit nie-gezahlt: nur-lesend, nichts gelöscht. **Nachgemessen:**
+  die Row stand ~5 s nach der Kündigung genau so da.
+- **Wiedereinstieg:** auf der gesperrten Community ist „Plan wählen" wieder
+  möglich (kein 409 — das gekündigte Abo zählt nicht als lebend). Ein neuer
+  Kauf setzt `plan`/`billingStatus: active` und **räumt die Sperre im selben
+  Schreibvorgang**. **Nachgemessen:** kompletter Zyklus Kauf → Kündigung →
+  nur-lesend → Neukauf → offen, jeweils binnen Sekunden.
 - **Ohne Customer kein Portal:** hat die Community nie gekauft, antwortet die
-  Route **409** („No billing account yet"). Die Oberfläche macht daraus einen
-  Satz, keinen Fehler.
+  Route **409** („No billing account yet"). **Nachgemessen.** Die Oberfläche
+  macht daraus einen Satz, keinen Fehler.
 
 Wer **kein** Portal will, hat hier nichts zu suchen: es gibt bewusst keine
 eigenen Routen für „herunterstufen" oder „kündigen". Zwei Wege zum selben
@@ -221,32 +252,44 @@ Vertrag wären zwei Wahrheiten (`packages/onboarding/server/api/community/billin
 
 ## Probe 6 🔑 — Zahlungsverzug und die 14-Tage-Frist
 
-Am einfachsten mit der Stripe CLI (`stripe login` einmalig):
+**NICHT mit `stripe trigger invoice.payment_failed`** — die alte Empfehlung
+war eine Attrappe (Durchlauf 2026-08-08): das Fixture erzeugt ein fremdes Abo
+OHNE unsere `communityId`-Metadata, der Fulfillment-Handler ignoriert es
+bewusst, und geprüft wäre nur die Signatur. Der ECHTE Weg läuft über eine
+**Test Clock** (so wurde es 2026-08-08 bewiesen):
 
-```bash
-stripe trigger invoice.payment_failed
-```
-
-Oder echt mit der Fehler-Testkarte `4000 0000 0000 0341` (Karte hängt sich an,
-die spätere Belastung scheitert).
+1. Clock anlegen (`POST /v1/test_helpers/test_clocks`, `frozen_time` = jetzt),
+   Customer AUF der Clock anlegen, `tok_visa`-PaymentMethod anhängen.
+2. Abo per API anlegen: Price `workspace_personal_monthly`, **Metadata
+   `communityId` / `plan` / `userId`** — der Webhook wendet es ganz normal an
+   (die Community wird `personal`/`active`; woher das Abo kommt, ist ihm egal).
+3. Default-PaymentMethod auf die Fehlkarte tauschen
+   (`tok_chargeCustomerFail` = 4000 0000 0000 0341).
+4. Clock über das Periodenende vorspulen (`…/advance`, +32 Tage; Status geht
+   `advancing` → `ready`, ~20 s) — die Verlängerungsrechnung scheitert.
 
 **Soll-Ergebnis — und hier ist die wichtigste Änderung gegenüber früher:**
 
 1. `communities.billingStatus` → `past_due`. **Der Plan bleibt**, die Produkte
    bleiben, die Community arbeitet weiter. Stripes eigenes Dunning ist die
-   Gnadenfrist.
+   Gnadenfrist. **Nachgemessen** (~5 s nach dem Clock-Advance).
 2. `communities.pastDueSince` bekommt **einmal** einen Zeitstempel. Stripe
    schickt während des Dunnings mehrere `past_due`-Ereignisse — jedes weitere
-   lässt den Stempel stehen, sonst liefe die Frist nie ab.
+   lässt den Stempel stehen, sonst liefe die Frist nie ab. **Nachgemessen:**
+   nach einer weiteren Retry-Welle (+4 Tage Clock) stand derselbe Stempel
+   millisekundengenau unverändert.
 3. **Erst 14 Tage später** wird die Community nur-lesend (`suspension: 'billing'`),
    und zwar durch den stündlichen Sweep, nicht durch den Webhook
    (`shouldSuspendForPastDue`, `PAST_DUE_GRACE_DAYS` in
-   `packages/control/shared/communityBilling.ts`). Mit einer **Test Clock** lässt
-   sich das vorspulen.
+   `packages/control/shared/communityBilling.ts`). **Die Clock hilft hier
+   NICHT** — der Sweep rechnet mit ECHTER Zeit. Prüfweg des Durchlaufs:
+   `pastDueSince` von Hand 15 Tage zurückdatieren (Betreiber-Handgriff auf der
+   Row) und den nächsten Stundenlauf abwarten.
 4. Zahlt der Kunde nach, fällt die Sperre **im selben Schreibvorgang** wie das
-   `active` (`shouldLiftBillingSuspension` ist nur das Netz darunter, falls ein
-   Webhook einmal ausbleibt). Eine `abuse`-Sperre fällt dabei **nicht** — die
-   endet nur durch eine Betreiber-Entscheidung.
+   `active` (`shouldLiftBillingSuspension` ist das Netz darunter — seit F49
+   hebt es NUR bei `billingStatus 'active'` auf, sonst würde es auch die
+   Trial-Ende- und Kündigungs-Sperren aufheben). Eine `abuse`-Sperre fällt
+   dabei **nicht** — die endet nur durch eine Betreiber-Entscheidung.
 
 **Und eine Frage, die diese Probe beantworten soll (offen, bitte hinsehen):**
 der Webhook legt zusätzlich eine In-App-Benachrichtigung „Zahlung
@@ -283,24 +326,62 @@ Testkarte für den verzögerten Erfolg: SEPA-Testkonto `DE89370400440532013000`.
 
 ---
 
-## Abnahme-Checkliste
+## Abnahme-Checkliste (Durchlauf 2026-08-08)
 
-- [ ] Probe 1 — `ensure-prices --apply`: vier lookup_keys existieren; Webhook
-      trägt **alle neun** Ereignisse; unsignierter POST → 400
-- [ ] Probe 2 — „Abo & Rechnung" ist auf dem **Community-Host** erreichbar, und
-      zwar nur als **Owner**
-- [ ] Probe 3 — Monats-Checkout (4242) → `communities.plan = personal`,
-      `billingStatus = active`, `stripeSubscriptionId` gesetzt; zweiter Kauf → 409
-- [ ] Probe 4 — Jahres-Checkout zeigt 1341 € → `plan = pro`
-- [ ] Probe 5 — Portal öffnet; Kündigung + Test-Clock → `plan = basic`,
-      `billingStatus = canceled` (nie „nichts")
-- [ ] Probe 6 — `invoice.payment_failed` → `past_due`, Plan **bleibt**,
-      `pastDueSince` einmal gestempelt; Test-Clock +14 Tage → `suspension = billing`
-- [ ] Notiert, ob die Glocke auf `control.pukalani.app` die Zahlungswarnung zeigt
+- [x] Probe 1 — vier lookup_keys existieren (idempotenter Skip); Webhook trägt
+      **alle neun** Ereignisse (BEFUND: es waren nur sechs — die drei
+      `checkout.session.*`-Nachzügler fehlten und wurden ergänzt);
+      unsignierter POST → 400
+- [x] Probe 2 — „Abo & Rechnung"-API auf dem **Community-Host**: Owner 200,
+      ohne Session 401
+- [x] Probe 3 — Monats-Checkout (4242, 29 € brutto) → `plan = personal`,
+      `billingStatus = active`, `stripeSubscriptionId` gesetzt, `trialEndsAt`
+      geräumt; Metadata `communityId`/`plan`/`userId` auf der Sub;
+      Spiegel-Zeile `billing_subscriptions` status `active`; zweiter Kauf →
+      409 `already_subscribed`
+- [x] Probe 4 — Jahres-Checkout zeigt **1.341,00 € / Jahr** → `plan = pro`
+- [x] Probe 5 — Portal öffnet (Grund-Dropdown vor der Bestätigung);
+      `cancel_at_period_end` ändert bei uns nichts; sofortige Kündigung →
+      `plan = basic`, `billingStatus = canceled`, **`suspension = billing`**
+      (F49); Neukauf hebt die Sperre im selben Schreibvorgang; Portal ohne
+      Customer → 409
+- [x] Probe 6 — Test-Clock-Abo: Verlängerung scheitert → `past_due`, Plan
+      **bleibt**, `pastDueSince` einmal gestempelt und retry-fest
+- [ ] Probe 6b — `pastDueSince` ist −15 Tage rückdatiert; es steht der nächste
+      STUNDENLAUF aus (Sweep sperrt dann mit `suspension = billing`). Messung
+      läuft, Ergebnis wird hier nachgetragen.
+- [ ] Glocke — Erwartung aus dem Code: `control`-Projekt bekommt KEINE
+      `notifications`-Zeile (Webhook-Zweig adressiert eine Pool-Id, 404 im
+      Log); die echte Warnung entsteht im POOL durch den stündlichen
+      Platform-Lauf (`pastDueNotice`, scope `tenant`, Empfänger Owner).
+      Messung steht aus (gleicher Stundentakt), Ergebnis wird nachgetragen.
 
 Wenn alle Haken sitzen, ist der Geldweg **test-seitig bewiesen** — für Live
 fehlen dann nur noch Bank und der Schlüssel-Tausch:
 [STRIPE-GO-LIVE-RUNBOOK.md](STRIPE-GO-LIVE-RUNBOOK.md).
+
+## Befunde des Durchlaufs 2026-08-08
+
+1. **Webhook-Ereignisliste war unvollständig** (6 statt 9) — die drei
+   `checkout.session.*`-Ereignisse vom 2026-08-02 waren nie im
+   Stripe-Dashboard nachgezogen worden. Ergänzt per API. **Vor dem Live-Gang
+   am Live-Endpunkt dieselbe Liste prüfen.**
+2. **`ensure-prices` war im Workspace nicht aufrufbar** (`stripe` nicht
+   auflösbar) — Symlink-Abhilfe oben; sauberer Fix (Root-devDependency) als
+   eigener Punkt, weil der Lockfile dabei stark umsortiert.
+3. **Einladungs-Code per Row anlegen:** `expiresAt` MUSS `null` sein — die
+   Datetime-Spalte macht aus `''` einen Jetzt-Stempel, und der Code ist sofort
+   „abgelaufen" (kostete einen Provisionierungslauf).
+4. **Stripe-Checkout, Adress-Autocomplete:** das Google-Vorschläge-Dropdown
+   („No results found" bei Test-Adressen) fängt den Kaufen-Klick ab — erst
+   schließen (Escape), dann absenden. Betrifft auch handklickende Menschen mit
+   ungewöhnlichen Adressen.
+5. **`billing_subscriptions.planId` steht auf `unknown`** bei
+   Community-Abos — der billing-Layer kennt die Community-Plan-Keys nicht.
+   Kosmetik (die Wahrheit liegt in `communities.plan`), aber wer die
+   Spiegel-Tabelle liest, soll das wissen.
+6. **Test Clocks nur für API-Kunden** — ein Checkout-Customer kann nie
+   vorgespult werden. Für Zeit-Proben immer den Probe-6-Weg nehmen.
 
 ## Troubleshooting
 
