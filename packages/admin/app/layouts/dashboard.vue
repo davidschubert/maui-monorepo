@@ -107,6 +107,23 @@ const place = resolveDashboardPlace(
 /** Nur für die HART verdrahteten Links unten (Nutzer, Admin, Speicher, System). */
 const operatorHere = scopeVisibleAt('operator', place)
 
+/**
+ * Community-Switcher im Sidebar-Kopf (F50, 2026-08-07 — Davids Entscheidung im
+ * DECISION-LOG „Konto-Modell bestätigt, Community-Switcher kommt"). ZWEI
+ * Bedingungen, und beide sind nötig:
+ *  1. Der Config-Schalter sagt, ob diese APP die Routen mitbringt (der
+ *     onboarding-Layer besitzt sie, A14) — sonst wäre das Menü eine Attrappe,
+ *     die beim ersten Öffnen in einen 404 läuft.
+ *  2. Der ORT sagt, ob es hier etwas zu wechseln GIBT. Auf einem Kontroll-Host
+ *     (`my.*`) steht die vollständige Übersicht ohnehin als eigene Seite, und
+ *     `/api/community/switcher` antwortet dort bewusst 404; im Einzelbetrieb
+ *     gibt es überhaupt nur eine Community.
+ * Trifft eines nicht zu, bleibt es beim Branding wie bisher (DashboardBrand).
+ */
+const communitySwitcher = computed(() =>
+  (appConfig.pukalani as { chrome?: { communitySwitcher?: boolean } }).chrome?.communitySwitcher === true
+  && place === 'community')
+
 const canManageUsers = computed(() => can('users.manage'))
 // Kommentar-Treffer der Palette springen in die Moderations-Warteschlange
 // (Davids Entscheidung, Befund B7) — die verlangt `comments.moderate`.
@@ -312,7 +329,8 @@ const searchGroups = computed(() => {
       :ui="{ footer: sidebarVariant === 'sidebar' ? 'lg:border-t lg:border-default' : '' }"
     >
       <template #header="{ collapsed }">
-        <DashboardBrand :collapsed="collapsed" />
+        <DashboardCommunityMenu v-if="communitySwitcher" :collapsed="collapsed" />
+        <DashboardBrand v-else :collapsed="collapsed" />
       </template>
 
       <template #default="{ collapsed }">

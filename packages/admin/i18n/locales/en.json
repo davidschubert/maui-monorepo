@@ -531,6 +531,14 @@
     "communitySettings": {
       "title": "Community settings"
     },
+    "communitySwitcher": {
+      "label": "Your communities",
+      "loading": "Loading …",
+      "failed": "List unavailable",
+      "empty": "No other community",
+      "create": "Create community",
+      "manage": "Manage communities"
+    },
     "sidebar": {
       "label": "Sidebar",
       "sidebar": "Standard",

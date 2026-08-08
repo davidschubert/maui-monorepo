@@ -56,6 +56,14 @@ export default defineAppConfig({
         whatsNew: false,
       },
       changelogLink: false,
+      /**
+       * Community-Switcher im Dashboard-Kopf (F50, 2026-08-07). Genau hier
+       * gehört er hin und nirgends sonst: diese App bedient JEDEN
+       * Mandanten-Host des Pools, sie zieht den onboarding-Layer (also die
+       * beiden Routen, die das Menü braucht), und nur hier kann ein Mensch
+       * überhaupt in mehr als einer Community ein Team-Mitglied sein.
+       */
+      communitySwitcher: true,
     },
     // Footer-Fallback (Davids Entscheidung 5, 2026-07-27): Kunden pflegen
     // Impressum/Datenschutz als CMS-Seiten (Legal-Slugs → Footer); solange

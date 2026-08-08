@@ -141,6 +141,24 @@ export default defineAppConfig({
        * OB sie hängt, nie WAS sie zeigt.
        */
       accountBell: false,
+      /**
+       * Community-Switcher im Sidebar-Kopf des Dashboards (F50, 2026-08-07 —
+       * Davids Entscheidung im DECISION-LOG „Konto-Modell bestätigt,
+       * Community-Switcher kommt"). AN heißt: statt des reinen Brandings
+       * (`DashboardBrand`) steht dort ein Klappmenü mit allen Communities, in
+       * denen der Betrachter eine Team-Rolle hat.
+       *
+       * CORE-DEFAULT AUS, und das ist keine Vorsicht, sondern eine
+       * Voraussetzung: das Menü lebt von zwei Routen des ONBOARDING-Layers
+       * (`/api/community/switcher`, `/api/community/switch`), weil dort die
+       * Service-Naht ins Control Plane wohnt (A14). Eine App ohne diesen Layer
+       * — jede Silo-App, jede interne App — bekäme ein Menü, das beim ersten
+       * Öffnen in einen 404 läuft. Das Menü prüft dieselbe Bedingung noch ein
+       * zweites Mal am ORT (nur Mandanten-Hosts, s. layouts/dashboard.vue):
+       * der Schalter sagt „diese App hat die Routen", der Ort sagt „hier gibt
+       * es etwas zu wechseln".
+       */
+      communitySwitcher: false,
     },
     /**
      * Demo-Host-Gate (CoreDemoBanner + CorePlanBadge): auf diesen Hosts ist

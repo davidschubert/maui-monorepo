@@ -531,6 +531,14 @@
     "communitySettings": {
       "title": "Community-Einstellungen"
     },
+    "communitySwitcher": {
+      "label": "Deine Communities",
+      "loading": "Wird geladen …",
+      "failed": "Liste nicht verfügbar",
+      "empty": "Keine weitere Community",
+      "create": "Community anlegen",
+      "manage": "Communities verwalten"
+    },
     "sidebar": {
       "label": "Seitenleiste",
       "sidebar": "Standard",
