@@ -223,6 +223,8 @@ Bewusst KEIN Sammel-Backfill: „alle auf öffentlich" wäre genau die
 stillschweigende Entscheidung über fremde Communities, die die
 fail-closed-Regel verhindern soll. **ENTSCHIEDEN (2026-08-07, 4. Runde): NUR
 demo.pukalani.app wird gestempelt**, alle übrigen bleiben unangetastet.
+**Nachgemessen am selben Tag (Trockenlauf gegen prod): demo steht BEREITS auf
+`public` — nichts zu tun, der C18-Rest ist damit erledigt.**
 
 **Kleine bekannte Kante:** ein GAST-Kommentar in einer geschlossenen Community
 bekommt `read(label:…)` und ist damit für seinen eigenen Verfasser unsichtbar.
