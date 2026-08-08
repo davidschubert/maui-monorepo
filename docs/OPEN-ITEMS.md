@@ -100,12 +100,11 @@ Release **v3.0.0** (2026-07-28).
 
 <a id="media-activity-prod"></a>
 
-**F38 — Prod-Reihenfolge für `media` + `activity` im Pool.** Beide Layer sind
-seit 2026-08-02 in `apps/platform` montiert (Begründung + Beweise:
-[COMPLETE F38](OPEN-ITEMS-COMPLETE.md)). Lokal ist alles gefahren.
-**ENTSCHIEDEN (2026-08-07, 4. Runde): David setzt die Key-Rechte JETZT in der
-Console, danach fährt Claude Schritte 2–4.** Für die Produktion gilt genau
-diese Reihenfolge:
+**F38 — ERLEDIGT (2026-08-08).** Die Key-Rechte waren gesetzt und die
+media-Migration im Pool bereits gefahren (nachgemessen: `media_items` +
+Bucket existieren); die Nachmessung lief frisch — media 14/14, activity 8/8
+gegen die echte Pool-Instanz ([COMPLETE](OPEN-ITEMS-COMPLETE.md)). Die alte
+Anleitung darunter bleibt als Protokoll:
 
 1. **Rechte am Pool-Projekt setzen (David, Console) — VOR allem anderen.**
    Migrations-Schlüssel: `buckets.read`, `buckets.write`, `files.read`,
@@ -298,8 +297,10 @@ E3 und E4 wurden dabei bewusst NICHT gewählt und bleiben liegen).** Die anderen
 „Doppel-Zertifikat" ist bewusst KEIN Aufräum-Punkt — Einzelheiten in
 [OPEN-ITEMS-COMPLETE.md](OPEN-ITEMS-COMPLETE.md).
 
-**B1 — ENTSCHIEDEN (2026-08-07, 4. Runde): Claude legt die Unterschiede als
-Vorher/Nachher-Bildpaare vor, David sichtet, dann Commit.** Zum Bestand: die
+**B1 — ERLEDIGT (2026-08-08): David hat die Vorher/Nachher-Bildpaare
+gesichtet und freigegeben** (die Bilder waren zu dem Zeitpunkt bereits
+committet und von Folge-Sessions erneuert — Nav-Eintrag „Diskussionen" +
+Impressum-Link). Zum Bestand: die
 neun Referenzbilder wurden am 2026-08-01 im Zuge von E7 neu aufgenommen
 (gebündeltes Chromium) und am selben Tag ein zweites Mal — die Bilder sind
 damit FINAL, es steht nur noch das Sichten aus. Der Vergleich

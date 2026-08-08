@@ -29,6 +29,24 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F38-Rest + B1-Rest — Pool-media live, Baselines gesichtet ✅ 2026-08-08
+
+**F38:** Die Console-Rechte (Migrations-Key buckets+files, Laufzeit-Key
+files) waren beim Nachmessen BEREITS gesetzt und die media-Migration im Pool
+gefahren — `media_items` und der Bucket `media` existierten (die
+OPEN-ITEMS-Anleitung war überholt, drittes Beispiel an einem Tag). Frisch
+nachgemessen gegen die echte Pool-Instanz:
+`packages/media/scripts/verify-pool-isolation.mjs` **14/14** (Isolation,
+Gast-Sichtbarkeit veröffentlicht/Entwurf, Rückzug per Roh-URL) und
+`packages/activity/scripts/verify-pool-isolation.mjs` **8/8** (Bestand: 0
+Zeilen ohne communityId) — beide räumen selbst auf. **B1:** David hat die
+neun Vorher/Nachher-Bildpaare (Artefakt-Seite) gesichtet und freigegeben;
+die Bilder waren längst committet und pixelstabil (Toleranz 0,0001).
+**Gelernt:** Wenn ein Listen-Punkt einen manuellen Vorab-Schritt eines
+Menschen enthält („David setzt Rechte"), zuerst MESSEN, ob er nicht längst
+passiert ist — heute dreimal bestätigt (F53, F38, demo-Stempel): die Liste
+altert schneller als sie gepflegt wird, die Instanz lügt nie.
+
 ### F53 — Dark Mode der Marketing-Landing: die vier fehlenden Stücke ✅ 2026-08-08
 
 **Der wichtigste Befund zuerst:** Dark Mode war beim Anlegen des Punkts
