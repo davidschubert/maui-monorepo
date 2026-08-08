@@ -17,7 +17,7 @@ import { ACTIVITIES_TABLE } from '../../../shared/types/activity'
  * Ebenso wenig macht es den Löschenden zum Mitglied.
  *
  * AUTORISIERUNG (S3): `requireCommunityPermission` — `activity.manage` IST eine
- * Site-Capability (ADMIN-Bündel, communityAuthz.ts), und /dashboard/activity
+ * Site-Capability (ADMIN-Bündel, communityAuthz.ts), und /dashboard/community/activity
  * verlangt genau sie. Site-Rolle vor protokolliertem Operator-Break-Glass;
  * ohne Mandanten-Kontext (Silo) weiterhin globales Label. Das `await` ist
  * Pflicht — ohne wäre der Gate fail-open.

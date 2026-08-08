@@ -307,6 +307,10 @@
     "nav": {
       "subscription": "Subscription"
     },
+    "communityTabs": {
+      "general": "General",
+      "plan": "Plan"
+    },
     "trial": {
       "endingTitle": "1 day left in your trial | {n} days left in your trial",
       "endingText": "After that your community is read-only until you pick a plan. Content and members stay; with a subscription nothing is interrupted.",
@@ -321,6 +325,9 @@
       "noTenantText": "This page belongs to a community. On a dedicated instance the operator handles billing, not an individual community.",
       "currentPlan": "Current plan",
       "currentPlanNote": "Your current plan.",
+      "trialLabel": "Trial ({plan}) – 1 day left | Trial ({plan}) – {n} days left",
+      "noPlanLabel": "No subscription – Free plan",
+      "readOnlyNote": "Without a subscription your community is read-only. Content and members stay; a plan opens it again right away.",
       "priceNote": "The binding amount is the one shown in the Stripe checkout — that is also where tax is calculated from your billing address.",
       "choosePlan": "Choose a plan",
       "chooseHelp": "After you buy we hand you over to Stripe. You come back to this page; the new plan appears once the payment is confirmed.",

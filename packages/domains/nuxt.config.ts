@@ -8,7 +8,8 @@
  *
  * ── WARUM EIN EIGENER LAYER UND NICHT `admin` ─────────────────────────────
  * Das war die eine Stelle, an der es keine billige Lösung gab. Die Seite
- * heißt in beiden Welten `/dashboard/settings/domain` — im Pool liegt sie in
+ * heißt in beiden Welten gleich (seit F51: `/dashboard/community/domain`,
+ * davor `/dashboard/settings/domain`) — im Pool liegt sie in
  * `onboarding`. Legte man die Silo-Fassung in `admin`, gäbe es zwei Dateien
  * für denselben Pfad, und in `apps/platform` gewänne `admin`: es steht in der
  * extends-Liste an Stelle 2, `onboarding` an Stelle 14 (früher = höhere
@@ -60,6 +61,17 @@ export default defineNuxtConfig({
      */
     onboardingServiceSecret: '',
     onboardingControlUrl: '',
+  },
+
+  /**
+   * ALT-PFAD (F51, 2026-08-07): die Domain-Seite ist vom Konto-Reiter in den
+   * Community-Hub gezogen. Beide Locales, weil eine routeRule nur Pfade sieht
+   * (`prefix_except_default`). Dieselben zwei Zeilen stehen im Pool-Zwilling
+   * `onboarding` — sie treffen sich nie, weil keine App beide Layer zieht.
+   */
+  routeRules: {
+    '/dashboard/settings/domain': { redirect: { to: '/dashboard/community/domain', statusCode: 301 } },
+    '/de/dashboard/settings/domain': { redirect: { to: '/de/dashboard/community/domain', statusCode: 301 } },
   },
 
   i18n: {

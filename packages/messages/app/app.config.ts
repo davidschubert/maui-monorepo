@@ -58,23 +58,26 @@ export default defineAppConfig({
           order: 25,
         },
       ],
-      settingsTabs: [
+      communityTabs: [
         {
           /**
            * DER OWNER-SCHALTER (Konzept § 2.6, Davids Entscheidung 4).
            *
            * Als EINSTELLUNGS-REITER und nicht als eigener Menüpunkt: er wird
            * einmal gesetzt und danach nie wieder angefasst — genau das
-           * unterscheidet eine Einstellung von einer Fläche. Dort steht schon
-           * die Community-Verwaltung (onboarding registriert sie ebenso).
+           * unterscheidet eine Einstellung von einer Fläche.
+           *
+           * Seit F51 (2026-08-07) in der COMMUNITY-Hülle statt in der Konto-
+           * Hülle: „darf es hier private Nachrichten geben?" ist eine
+           * Entscheidung über die Community, nicht über das eigene Konto.
            */
           id: 'messages',
           scope: 'community',
           labelKey: 'messages.nav.settings',
           icon: 'i-ph-envelope-simple',
-          to: '/dashboard/settings/messages',
+          to: '/dashboard/community/messages',
           requiredCapability: 'messages.manage',
-          order: 20,
+          order: 60,
         },
       ],
     },

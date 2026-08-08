@@ -254,7 +254,7 @@ async function main() {
   const entry = entries[0] ?? {}
   check('sie trägt den Namen der Community (nicht eine Row-Id)', entry.title === 'Surfclub Kihei', String(entry.title))
   check('sie verlinkt auf die Abo-Seite DIESER Community',
-    entry.link === '/dashboard/settings/subscription', String(entry.link))
+    entry.link === '/dashboard/community/plan', String(entry.link))
   check('der Text nennt den nächsten Schritt, in der Sprache des Empfängers (de)',
     typeof entry.body === 'string' && entry.body.includes('Zahlungsmethode'), String(entry.body))
   check('sie ist ungelesen (der Badge zeigt sie an)', bell.json?.unread >= 1, String(bell.json?.unread))

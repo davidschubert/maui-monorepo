@@ -211,7 +211,7 @@ const steps = computed(() => {
           variant="subtle"
           :title="t('onboarding.domain.planTitle')"
           :description="t('onboarding.domain.planDesc')"
-          :actions="[{ label: t('onboarding.domain.planCta'), to: localePath('/dashboard/settings/subscription'), color: 'primary' }]"
+          :actions="[{ label: t('onboarding.domain.planCta'), to: localePath('/dashboard/community/plan'), color: 'primary' }]"
         />
       </UPageCard>
     </template>

@@ -83,7 +83,7 @@ export const PAST_DUE_NOTICE_BODY = {
 
 /** Die Abo-Seite DIESER Community (nicht der Kundenbereich): der Owner liest die
  *  Meldung auf seinem Community-Host, und dort liegt auch der Knopf. */
-export const PAST_DUE_NOTICE_LINK = '/dashboard/settings/subscription'
+export const PAST_DUE_NOTICE_LINK = '/dashboard/community/plan'
 
 /** Reentranz-Guard (Single-Instanz-Annahme, wie beim Digest-Sweep). */
 let sweepRunning = false

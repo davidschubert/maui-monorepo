@@ -19,6 +19,35 @@ export default defineNuxtConfig({
     // Leer = 503. Env: NUXT_ONBOARDING_CONTROL_URL
     onboardingControlUrl: '',
   },
+
+  /**
+   * ALT-PFADE DES COMMUNITY-HUBS (F51, 2026-08-07). Fünf Flächen dieses Layers
+   * sind an einen Ort gezogen; die alten Adressen stehen in Lesezeichen, in
+   * verschickten Mails (`PAST_DUE_NOTICE_LINK`) und — der teuerste Fall — in
+   * bereits eröffneten Stripe-Checkout-Sitzungen, deren Rücksprung-URL beim
+   * Anlegen eingefroren wurde. Ein 301 kostet nichts und fängt alle drei.
+   *
+   * JE ZWEIMAL, weil die i18n-Strategie `prefix_except_default` heißt: `en` ist
+   * ohne Prefix erreichbar, `de` unter `/de/*`. Eine routeRule kennt keine
+   * Locales — sie sieht nur den Pfad, und der ist ein anderer.
+   *
+   * Nitro-seitig, also nur für echte Requests (Lesezeichen, Rücksprünge). Für
+   * die Navigation IM Dashboard gibt es die alten Pfade nirgends mehr; jeder
+   * interne Verweis wurde mit umgezogen.
+   */
+  routeRules: {
+    '/dashboard/settings/community': { redirect: { to: '/dashboard/community', statusCode: 301 } },
+    '/de/dashboard/settings/community': { redirect: { to: '/de/dashboard/community', statusCode: 301 } },
+    '/dashboard/branding': { redirect: { to: '/dashboard/community/branding', statusCode: 301 } },
+    '/de/dashboard/branding': { redirect: { to: '/de/dashboard/community/branding', statusCode: 301 } },
+    '/dashboard/members': { redirect: { to: '/dashboard/community/members', statusCode: 301 } },
+    '/de/dashboard/members': { redirect: { to: '/de/dashboard/community/members', statusCode: 301 } },
+    '/dashboard/settings/domain': { redirect: { to: '/dashboard/community/domain', statusCode: 301 } },
+    '/de/dashboard/settings/domain': { redirect: { to: '/de/dashboard/community/domain', statusCode: 301 } },
+    '/dashboard/settings/subscription': { redirect: { to: '/dashboard/community/plan', statusCode: 301 } },
+    '/de/dashboard/settings/subscription': { redirect: { to: '/de/dashboard/community/plan', statusCode: 301 } },
+  },
+
   i18n: {
     locales: [
       { code: 'de', language: 'de-DE', name: 'Deutsch', file: 'de.json' },

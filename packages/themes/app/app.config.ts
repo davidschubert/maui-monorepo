@@ -29,7 +29,7 @@ export default defineAppConfig({
            *
            * Was einer Community gehört, ist die WAHL aus dem Built-in-Katalog
            * (`communities.theme/variant/neutral`). Die hat seit F5 ihre eigene
-           * Fläche in derselben Nav-Gruppe: `/dashboard/branding` im
+           * Fläche in derselben Nav-Gruppe: `/dashboard/community/branding` im
            * onboarding-Layer, `scope: 'community'`, `branding.manage`. Bis
            * dahin stand hier `scope: 'community'` — der Eintrag erschien damit
            * auf Mandanten-Hosts (wo nur der Betreiber-Break-Glass ihn öffnen

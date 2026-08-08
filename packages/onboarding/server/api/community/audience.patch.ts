@@ -5,7 +5,7 @@ import { callControlPlane, mintRuntimeJwt } from '../../utils/controlPlane'
 /**
  * Die Sichtbarkeit DIESER Community umschalten (C18, Davids Entscheidung vom
  * 2026-07-30). Aufrufer ist das Kunden-Dashboard auf dem Mandanten-Host
- * (/dashboard/settings/community).
+ * (/dashboard/community).
  *
  * ZWEI SCHRITTE, ZWEI PROJEKTE — dasselbe Muster wie „Zugang entziehen" (A5):
  *  1. Das Control Plane schreibt `communities.audience` (seine Tabelle).

@@ -26,7 +26,7 @@ import type { MyCommunitiesResponse, MyCommunityView } from '../../../control/sh
  *     Tabellenzeile mit Aktions-Menü am rechten Rand verlangt Zielen.
  *  3. Es ist das Erste, was ein Kunde nach der Anmeldung sieht, oft auf dem
  *     Telefon. Eine Tabelle wird dort zur Querscroll-Fläche.
- * Wo dieselben Daten zum VERWALTEN dastehen (`/dashboard/members`), bleibt
+ * Wo dieselben Daten zum VERWALTEN dastehen (`/dashboard/community/members`), bleibt
  * UTable richtig und steht auch dort.
  *
  * DIE TESTPHASE ERST NACH DER HYDRATION: `trialNotice` rechnet gegen

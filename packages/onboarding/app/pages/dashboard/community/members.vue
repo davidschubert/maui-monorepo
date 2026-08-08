@@ -7,10 +7,17 @@ import type { CommunityInviteView, CommunityMemberView, CommunityTeamResponse } 
  * Mitglieder-Verwaltung EINER Community (Audit-Befund S9: `team.manage` war eine
  * tote Capability — Rolle vorhanden, Einstieg nirgends). Hier ist der Einstieg.
  *
+ * Seit F51 (2026-08-07) ein REITER des Community-Hubs
+ * (/dashboard/community/members) statt eines eigenen Menüpunkts im Hauptmenü.
+ * Sie rendert deshalb kein eigenes UDashboardPanel mehr —
+ * Panel, Kopfzeile und Reiter-Zeile bringt die Hülle mit
+ * (packages/admin/app/pages/dashboard/community.vue).
+ *
  * Vier Handgriffe, alle auf dieser Seite: einladen, Rolle ändern, Zugang
  * entziehen, Besitz übertragen. Die Community LÖSCHEN gehört bewusst NICHT
- * hierher, sondern in die Gefahrenzone unter /dashboard/settings/community
- * (C16, 2026-07-31): hier verwaltet man das Team, dort die Community selbst.
+ * hierher, sondern in die Gefahrenzone auf dem Reiter „Allgemein"
+ * (/dashboard/community, C16, 2026-07-31): hier verwaltet man das Team, dort
+ * die Community selbst.
  * Und „löschen" heißt dort stilllegen + Zugänge entziehen, Inhalte bleiben —
  * die Begründung steht bei `decideCommunityDeletion`.
  *
@@ -289,191 +296,188 @@ function rowActions(member: CommunityMemberView): DropdownMenuItem[][] {
 </script>
 
 <template>
-  <UDashboardPanel id="members">
-    <template #header>
-      <UDashboardNavbar :title="`${t('members.title')} (${members.length})`">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
-        <template #right>
-          <UButton icon="i-ph-user-plus" size="sm" data-invite-open @click="openInvite">
-            {{ t('members.invite.cta') }}
-          </UButton>
-        </template>
-      </UDashboardNavbar>
-    </template>
+  <!-- Kind der Community-Hülle (F51): Karten + Tabelle, kein eigenes
+       UDashboardPanel. Kopfzeile und Reiter-Zeile bringt die Hülle mit; der
+       Einladen-Knopf sitzt deshalb in der Werkzeug-Reihe über der Liste
+       statt in einer Navbar, die es hier nicht mehr gibt. -->
+  <div class="flex w-full flex-col">
+    <p class="mb-4 max-w-2xl text-sm text-muted">{{ t('members.description') }}</p>
 
-    <template #body>
-      <p class="mb-4 max-w-2xl text-sm text-muted">{{ t('members.description') }}</p>
-
-      <!-- Offene Einladungen zuerst: sie sind der Zustand, der auf eine Antwort
-           wartet — und der einzige, den man widerrufen kann. -->
-      <UPageCard
-        v-if="invites.length > 0"
-        :title="t('members.invites.title')"
-        :description="t('members.invites.description')"
-        variant="subtle"
-        class="mb-6"
-      >
-        <UTable :data="invites" :columns="inviteColumns" data-invites-table>
-          <template #role-cell="{ row }">
-            <UBadge :color="ROLE_COLOR[row.original.role]" variant="subtle">{{ roleLabel(row.original.role) }}</UBadge>
-          </template>
-          <template #expiresAt-cell="{ row }">
-            <span :title="formatDate(row.original.expiresAt)">{{ formatRelativeTime(row.original.expiresAt) }}</span>
-          </template>
-          <template #actions-cell="{ row }">
-            <div class="flex justify-end">
-              <UButton
-                size="xs"
-                color="neutral"
-                variant="ghost"
-                icon="i-ph-x"
-                :aria-label="t('members.revoke.confirm')"
-                :data-invite-revoke="row.original.id"
-                @click="revokeInvite(row.original)"
-              />
-            </div>
-          </template>
-        </UTable>
-      </UPageCard>
-
-      <div class="mb-4 flex flex-wrap items-center gap-3">
-        <form class="flex min-w-64 flex-1 gap-2" @submit.prevent>
-          <UInput
-            v-model="search"
-            icon="i-ph-magnifying-glass"
-            :placeholder="t('members.searchPlaceholder')"
-            class="flex-1"
-            data-members-search
-          />
-        </form>
-
-        <!-- Team zuerst, alle auf einen Klick. Kein Dropdown: es sind zwei
-             Zustände, und beide sollen sichtbar sein — samt Anzahl, damit man
-             weiß, was der andere Klick bringt. -->
-        <UButtonGroup size="sm" data-members-scope>
-          <UButton
-            v-for="item in scopeItems"
-            :key="item.value"
-            :color="scope === item.value ? 'primary' : 'neutral'"
-            :variant="scope === item.value ? 'solid' : 'outline'"
-            :data-members-scope-option="item.value"
-            @click="scope = item.value"
-          >
-            {{ item.label }}
-          </UButton>
-        </UButtonGroup>
-      </div>
-
-      <UTable :data="filtered" :columns="columns" :loading="status === 'pending'" data-members-table>
-        <template #name-header>
-          <SortableHeader :label="t('members.name')" field="name" :active="sortField" :dir="sortDir" @toggle="toggle" />
-        </template>
-        <template #role-header>
-          <SortableHeader :label="t('members.role')" field="role" :active="sortField" :dir="sortDir" @toggle="toggle" />
-        </template>
-        <template #joinedAt-header>
-          <SortableHeader :label="t('members.joined')" field="joinedAt" :active="sortField" :dir="sortDir" @toggle="toggle" />
-        </template>
-        <template #status-header>
-          <SortableHeader :label="t('members.status')" field="status" :active="sortField" :dir="sortDir" @toggle="toggle" />
-        </template>
-
-        <template #name-cell="{ row }">
-          <div class="flex items-center gap-2">
-            <UserAvatar :user="{ name: row.original.name || row.original.email, email: row.original.email }" size="xs" />
-            <div class="min-w-0">
-              <p class="truncate font-medium text-default">
-                {{ row.original.name || row.original.email }}
-                <span v-if="row.original.self" class="text-muted">· {{ t('members.you') }}</span>
-              </p>
-              <p v-if="row.original.name" class="truncate text-xs text-muted">{{ row.original.email }}</p>
-            </div>
-          </div>
-        </template>
+    <!-- Offene Einladungen zuerst: sie sind der Zustand, der auf eine Antwort
+         wartet — und der einzige, den man widerrufen kann. -->
+    <UPageCard
+      v-if="invites.length > 0"
+      :title="t('members.invites.title')"
+      :description="t('members.invites.description')"
+      variant="subtle"
+      class="mb-6"
+    >
+      <UTable :data="invites" :columns="inviteColumns" data-invites-table>
         <template #role-cell="{ row }">
           <UBadge :color="ROLE_COLOR[row.original.role]" variant="subtle">{{ roleLabel(row.original.role) }}</UBadge>
         </template>
-        <template #joinedAt-cell="{ row }">
-          <span :title="formatDate(row.original.joinedAt)">{{ formatRelativeTime(row.original.joinedAt) }}</span>
-        </template>
-        <template #status-cell="{ row }">
-          <UBadge v-if="row.original.status === 'active'" color="success" variant="subtle">
-            {{ t('members.statusValues.active') }}
-          </UBadge>
-          <UBadge
-            v-else
-            color="neutral"
-            variant="subtle"
-            icon="i-ph-user-minus"
-            :title="row.original.removedAt ? formatDate(row.original.removedAt) : undefined"
-          >
-            {{ t('members.statusValues.removed') }}
-          </UBadge>
+        <template #expiresAt-cell="{ row }">
+          <span :title="formatDate(row.original.expiresAt)">{{ formatRelativeTime(row.original.expiresAt) }}</span>
         </template>
         <template #actions-cell="{ row }">
           <div class="flex justify-end">
-            <UDropdownMenu :items="rowActions(row.original)" :content="{ align: 'end' }">
-              <UButton
-                icon="i-ph-dots-three-vertical"
-                color="neutral"
-                variant="ghost"
-                size="xs"
-                :aria-label="t('members.rowActions')"
-                :data-member-actions="row.original.id"
-              />
-            </UDropdownMenu>
+            <UButton
+              size="xs"
+              color="neutral"
+              variant="ghost"
+              icon="i-ph-x"
+              :aria-label="t('members.revoke.confirm')"
+              :data-invite-revoke="row.original.id"
+              @click="revokeInvite(row.original)"
+            />
           </div>
         </template>
-
-        <!--
-          Zwei Leerzustände (Muster der Nutzerliste, Audit-Befund C11): „Suche
-          ohne Treffer" verlangt Zurücksetzen, „noch niemand da" verlangt eine
-          Einladung. Die Mitgliederliste ist nie WIRKLICH leer — man selbst steht
-          drin —, deshalb heißt der zweite Zustand „nur du".
-        -->
-        <template #empty>
-          <CoreEmptyState
-            v-if="hasActiveFilter"
-            icon="i-ph-funnel"
-            :title="t('ui.empty.noResultsTitle')"
-            :description="t('ui.empty.noResultsText')"
-            :action-label="t('ui.empty.resetFilters')"
-            action-icon="i-ph-arrow-counter-clockwise"
-            @action="resetFilters"
-          />
-          <CoreEmptyState
-            v-else
-            icon="i-ph-users-three"
-            :title="t('members.emptyTitle')"
-            :description="t('members.emptyText')"
-            :action-label="t('members.invite.cta')"
-            action-icon="i-ph-user-plus"
-            @action="openInvite"
-          />
-        </template>
       </UTable>
+    </UPageCard>
 
-      <UModal v-model:open="inviteOpen" :title="t('members.invite.title')" :description="t('members.invite.description')">
-        <template #body>
-          <form class="space-y-4" data-invite-form @submit.prevent="sendInvite">
-            <UFormField :label="t('members.invite.emailLabel')" :help="t('members.invite.emailHelp')" required>
-              <UInput v-model="inviteForm.email" type="email" class="w-full" :maxlength="254" data-invite-email />
-            </UFormField>
-            <UFormField :label="t('members.invite.roleLabel')" :help="t(`members.roleHelp.${inviteForm.role}`)" required>
-              <USelect v-model="inviteForm.role" :items="roleItems" class="w-full" data-invite-role />
-            </UFormField>
+    <div class="mb-4 flex flex-wrap items-center gap-3">
+      <form class="flex min-w-64 flex-1 gap-2" @submit.prevent>
+        <UInput
+          v-model="search"
+          icon="i-ph-magnifying-glass"
+          :placeholder="t('members.searchPlaceholder')"
+          class="flex-1"
+          data-members-search
+        />
+      </form>
 
-            <div class="flex justify-end gap-2 pt-2">
-              <UButton color="neutral" variant="ghost" @click="() => { inviteOpen = false }">{{ t('ui.cancel') }}</UButton>
-              <UButton type="submit" :loading="inviteBusy" :disabled="!inviteForm.email.trim()" data-invite-submit>
-                {{ t('members.invite.submit') }}
-              </UButton>
-            </div>
-          </form>
-        </template>
-      </UModal>
-    </template>
-  </UDashboardPanel>
+      <!-- Team zuerst, alle auf einen Klick. Kein Dropdown: es sind zwei
+           Zustände, und beide sollen sichtbar sein — samt Anzahl, damit man
+           weiß, was der andere Klick bringt. -->
+      <UButtonGroup size="sm" data-members-scope>
+        <UButton
+          v-for="item in scopeItems"
+          :key="item.value"
+          :color="scope === item.value ? 'primary' : 'neutral'"
+          :variant="scope === item.value ? 'solid' : 'outline'"
+          :data-members-scope-option="item.value"
+          @click="scope = item.value"
+        >
+          {{ item.label }}
+        </UButton>
+      </UButtonGroup>
+
+      <!-- Der Einladen-Knopf saß bis F51 in der Navbar dieser Seite. Die gibt
+           es als Reiter der Community-Hülle nicht mehr (dort steht der Titel
+           der Hülle), also steht die Haupthandlung jetzt in der Werkzeug-Reihe
+           direkt über der Liste, auf die sie wirkt. -->
+      <UButton icon="i-ph-user-plus" size="sm" data-invite-open @click="openInvite">
+        {{ t('members.invite.cta') }}
+      </UButton>
+    </div>
+
+    <UTable :data="filtered" :columns="columns" :loading="status === 'pending'" data-members-table>
+      <template #name-header>
+        <SortableHeader :label="t('members.name')" field="name" :active="sortField" :dir="sortDir" @toggle="toggle" />
+      </template>
+      <template #role-header>
+        <SortableHeader :label="t('members.role')" field="role" :active="sortField" :dir="sortDir" @toggle="toggle" />
+      </template>
+      <template #joinedAt-header>
+        <SortableHeader :label="t('members.joined')" field="joinedAt" :active="sortField" :dir="sortDir" @toggle="toggle" />
+      </template>
+      <template #status-header>
+        <SortableHeader :label="t('members.status')" field="status" :active="sortField" :dir="sortDir" @toggle="toggle" />
+      </template>
+
+      <template #name-cell="{ row }">
+        <div class="flex items-center gap-2">
+          <UserAvatar :user="{ name: row.original.name || row.original.email, email: row.original.email }" size="xs" />
+          <div class="min-w-0">
+            <p class="truncate font-medium text-default">
+              {{ row.original.name || row.original.email }}
+              <span v-if="row.original.self" class="text-muted">· {{ t('members.you') }}</span>
+            </p>
+            <p v-if="row.original.name" class="truncate text-xs text-muted">{{ row.original.email }}</p>
+          </div>
+        </div>
+      </template>
+      <template #role-cell="{ row }">
+        <UBadge :color="ROLE_COLOR[row.original.role]" variant="subtle">{{ roleLabel(row.original.role) }}</UBadge>
+      </template>
+      <template #joinedAt-cell="{ row }">
+        <span :title="formatDate(row.original.joinedAt)">{{ formatRelativeTime(row.original.joinedAt) }}</span>
+      </template>
+      <template #status-cell="{ row }">
+        <UBadge v-if="row.original.status === 'active'" color="success" variant="subtle">
+          {{ t('members.statusValues.active') }}
+        </UBadge>
+        <UBadge
+          v-else
+          color="neutral"
+          variant="subtle"
+          icon="i-ph-user-minus"
+          :title="row.original.removedAt ? formatDate(row.original.removedAt) : undefined"
+        >
+          {{ t('members.statusValues.removed') }}
+        </UBadge>
+      </template>
+      <template #actions-cell="{ row }">
+        <div class="flex justify-end">
+          <UDropdownMenu :items="rowActions(row.original)" :content="{ align: 'end' }">
+            <UButton
+              icon="i-ph-dots-three-vertical"
+              color="neutral"
+              variant="ghost"
+              size="xs"
+              :aria-label="t('members.rowActions')"
+              :data-member-actions="row.original.id"
+            />
+          </UDropdownMenu>
+        </div>
+      </template>
+
+      <!--
+        Zwei Leerzustände (Muster der Nutzerliste, Audit-Befund C11): „Suche
+        ohne Treffer" verlangt Zurücksetzen, „noch niemand da" verlangt eine
+        Einladung. Die Mitgliederliste ist nie WIRKLICH leer — man selbst steht
+        drin —, deshalb heißt der zweite Zustand „nur du".
+      -->
+      <template #empty>
+        <CoreEmptyState
+          v-if="hasActiveFilter"
+          icon="i-ph-funnel"
+          :title="t('ui.empty.noResultsTitle')"
+          :description="t('ui.empty.noResultsText')"
+          :action-label="t('ui.empty.resetFilters')"
+          action-icon="i-ph-arrow-counter-clockwise"
+          @action="resetFilters"
+        />
+        <CoreEmptyState
+          v-else
+          icon="i-ph-users-three"
+          :title="t('members.emptyTitle')"
+          :description="t('members.emptyText')"
+          :action-label="t('members.invite.cta')"
+          action-icon="i-ph-user-plus"
+          @action="openInvite"
+        />
+      </template>
+    </UTable>
+
+    <UModal v-model:open="inviteOpen" :title="t('members.invite.title')" :description="t('members.invite.description')">
+      <template #body>
+        <form class="space-y-4" data-invite-form @submit.prevent="sendInvite">
+          <UFormField :label="t('members.invite.emailLabel')" :help="t('members.invite.emailHelp')" required>
+            <UInput v-model="inviteForm.email" type="email" class="w-full" :maxlength="254" data-invite-email />
+          </UFormField>
+          <UFormField :label="t('members.invite.roleLabel')" :help="t(`members.roleHelp.${inviteForm.role}`)" required>
+            <USelect v-model="inviteForm.role" :items="roleItems" class="w-full" data-invite-role />
+          </UFormField>
+
+          <div class="flex justify-end gap-2 pt-2">
+            <UButton color="neutral" variant="ghost" @click="() => { inviteOpen = false }">{{ t('ui.cancel') }}</UButton>
+            <UButton type="submit" :loading="inviteBusy" :disabled="!inviteForm.email.trim()" data-invite-submit>
+              {{ t('members.invite.submit') }}
+            </UButton>
+          </div>
+        </form>
+      </template>
+    </UModal>
+  </div>
 </template>

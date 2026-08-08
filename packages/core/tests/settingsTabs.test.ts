@@ -3,14 +3,17 @@ import { resolveSettingsTabs, type PukalaniSettingsTab } from '../shared/types/s
 import type { Capability } from '../shared/types/authz'
 
 /**
- * Reiter-Registry der Einstellungs-Hülle (F24, 2026-08-02).
+ * Reiter-Registry der Einstellungs-Hüllen (F24, 2026-08-02) — seit F51
+ * (2026-08-07) lesen ZWEI Hüllen dieselbe pure Regel: die Konto-Hülle
+ * (`pukalani.admin.settingsTabs`) und der Community-Hub
+ * (`pukalani.admin.communityTabs`). Getestet wird die Regel, nicht die Liste.
  *
  * Der Grund für diese Registry ist ein SCHNITT-Fehler, kein Anzeige-Wunsch:
- * `/dashboard/settings/community` lag im admin-Layer, rief aber ausschließlich
- * Routen des onboarding-Layers. Eine Silo-App ohne onboarding hatte den Reiter
- * damit im Bauplan und wurde nur zur LAUFZEIT davor bewahrt. Der wichtigste
- * Fall hier ist deshalb der letzte: OHNE Registrierung gibt es keinen Reiter,
- * egal wer zusieht und egal wo.
+ * `/dashboard/settings/community` (heute `/dashboard/community`) lag im
+ * admin-Layer, rief aber ausschließlich Routen des onboarding-Layers. Eine
+ * Silo-App ohne onboarding hatte den Reiter damit im Bauplan und wurde nur zur
+ * LAUFZEIT davor bewahrt. Der wichtigste Fall hier ist deshalb der erste: OHNE
+ * Registrierung gibt es keinen Reiter, egal wer zusieht und egal wo.
  */
 
 const COMMUNITY_TAB: PukalaniSettingsTab = {
@@ -18,7 +21,7 @@ const COMMUNITY_TAB: PukalaniSettingsTab = {
   scope: 'community',
   labelKey: 'dashboard.settings.community',
   icon: 'i-ph-users-three',
-  to: '/dashboard/settings/community',
+  to: '/dashboard/community',
   requiredCapability: 'team.manage',
   order: 10,
 }
@@ -97,5 +100,76 @@ describe('resolveSettingsTabs', () => {
     // darf keinen Reiter an einen beliebigen Ort legen.
     const kaputt = { ...COMMUNITY_TAB, scope: 'tenant' } as unknown as PukalaniSettingsTab
     expect(resolveSettingsTabs([kaputt], { place: 'community', ...owner })).toEqual([])
+  })
+})
+
+/**
+ * DIE DREI PRODUKT-GATES (F51, 2026-08-07).
+ *
+ * Sie stehen hier, weil der Community-Hub Sidebar-EINTRÄGE in Reiter verwandelt
+ * hat (Aktivitätsprotokoll `productKey`+`planProduct`, Analytics `productKey`)
+ * — ohne sie wäre der Umzug ein stiller Rechte-Verlust gewesen: ein Reiter für
+ * ein Produkt, das der Betreiber abgeschaltet oder der Tarif nicht enthält.
+ *
+ * Geprüft wird auch die ASYMMETRIE, die aus `filterDashboardModules` übernommen
+ * ist: `productOn` bekommt den (womöglich undefinierten) Schlüssel selbst und
+ * entscheidet über ihn; `planOn`/`configOn` werden nur bei GESETZTEM Feld
+ * gefragt. Wer das angleicht, blendet mit einer strengen `planOn` das halbe
+ * Menü aus.
+ */
+describe('resolveSettingsTabs · Produkt-Gates', () => {
+  const GATED: PukalaniSettingsTab = {
+    ...COMMUNITY_TAB,
+    id: 'activity',
+    productKey: 'activity',
+    planProduct: 'activity',
+    configFlag: 'comments.embed.enabled',
+  }
+  const here = { place: 'community' as const, ...owner }
+
+  it('lässt einen Reiter ohne Gates durch, auch wenn alle Prädikate streng sind', () => {
+    expect(resolveSettingsTabs([COMMUNITY_TAB], {
+      ...here,
+      productOn: key => key === undefined,
+      planOn: () => false,
+      configOn: () => false,
+    }).map(t => t.id)).toEqual(['community'])
+  })
+
+  it('zeigt den gegateten Reiter, wenn alle drei Gates offen sind', () => {
+    expect(resolveSettingsTabs([GATED], {
+      ...here,
+      productOn: () => true,
+      planOn: () => true,
+      configOn: () => true,
+    }).map(t => t.id)).toEqual(['activity'])
+  })
+
+  it('das Produkt ist vom Betreiber abgeschaltet ⇒ kein Reiter', () => {
+    expect(resolveSettingsTabs([GATED], { ...here, productOn: () => false })).toEqual([])
+  })
+
+  it('der Tarif enthält das Produkt nicht ⇒ kein Reiter', () => {
+    expect(resolveSettingsTabs([GATED], { ...here, planOn: () => false })).toEqual([])
+  })
+
+  it('die App hat das Produkt gar nicht gebaut ⇒ kein Reiter', () => {
+    expect(resolveSettingsTabs([GATED], { ...here, configOn: () => false })).toEqual([])
+  })
+
+  it('ohne Prädikate zählt jedes Produkt als an — Verhalten wie vor F51', () => {
+    expect(resolveSettingsTabs([GATED], here).map(t => t.id)).toEqual(['activity'])
+  })
+
+  it('planOn/configOn werden bei fehlendem Feld GAR NICHT gefragt', () => {
+    // Das ist die Asymmetrie in einer Zeile: ein Reiter ohne `planProduct`
+    // darf nie an einem Tarif-Prädikat hängenbleiben.
+    const gefragt: string[] = []
+    resolveSettingsTabs([COMMUNITY_TAB], {
+      ...here,
+      planOn: (key) => { gefragt.push(key); return false },
+      configOn: (key) => { gefragt.push(key); return false },
+    })
+    expect(gefragt).toEqual([])
   })
 })

@@ -273,10 +273,10 @@ try {
   check('die eigene Domain bedient die Site (200, keine Schleife)',
     onOwn.status === 200, `Status ${onOwn.status} ${onOwn.text.slice(0, 120)}`)
 
-  const fromOld = await call(SILO_PORT, 'localhost', '/dashboard/settings/domain?x=1')
+  const fromOld = await call(SILO_PORT, 'localhost', '/dashboard/community/domain?x=1')
   check('die Pukalani-Adresse leitet dauerhaft um (301)', fromOld.status === 301, `Status ${fromOld.status}`)
   check('… mit Pfad UND Query',
-    fromOld.location === `https://${DOMAIN}/dashboard/settings/domain?x=1`, fromOld.location)
+    fromOld.location === `https://${DOMAIN}/dashboard/community/domain?x=1`, fromOld.location)
   check('… und mit `Cache-Control: no-store`, damit die alte Adresse Rückfall bleibt',
     fromOld.cacheControl.includes('no-store'), fromOld.cacheControl)
 

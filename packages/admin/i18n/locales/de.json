@@ -15,6 +15,7 @@
       "audit": "Aktivitätsprotokoll",
       "homepage": "Zur Website",
       "people": "Personen",
+      "communitySettings": "Community-Einstellungen",
       "groups": {
         "platform": "Plattform",
         "studio": "Studio",
@@ -525,6 +526,9 @@
       "notifications": "Benachrichtigungen",
       "sessions": "Sitzungen",
       "security": "Sicherheit"
+    },
+    "communitySettings": {
+      "title": "Community-Einstellungen"
     },
     "sidebar": {
       "label": "Seitenleiste",

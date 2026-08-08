@@ -58,7 +58,7 @@ const SITES = [
       // Link-Basis für Mails ohne Community-Bezug (D5-Rückfall).
       'NUXT_PUBLIC_APP_URL',
       // Analytics v2: ohne den Schlüssel misst die Plattform weiter, aber JEDER
-      // Kunde sieht auf /dashboard/analytics „Statistik gerade nicht
+      // Kunde sieht auf /dashboard/community/analytics „Statistik gerade nicht
       // erreichbar" — dieselbe Sorte stiller Ausfall wie das fehlende SMTP.
       'NUXT_ANALYTICS_STATS_API_KEY',
     ],

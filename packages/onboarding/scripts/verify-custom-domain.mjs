@@ -436,11 +436,11 @@ try {
     onOwn.status === 200, `Status ${onOwn.status} ${onOwn.text.slice(0, 120)}`)
 
   console.log('\n8. Die Umleitungen (Davids Entscheidung 2 + 4)')
-  const fromSub = await call(siteA.host, '/dashboard/settings/domain?x=1')
+  const fromSub = await call(siteA.host, '/dashboard/community/domain?x=1')
   check('die Subdomain leitet dauerhaft auf die eigene Domain um (301)',
     fromSub.status === 301, `Status ${fromSub.status}`)
   check('… mit Pfad UND Query',
-    fromSub.location === `https://${OWN_DOMAIN}/dashboard/settings/domain?x=1`, fromSub.location)
+    fromSub.location === `https://${OWN_DOMAIN}/dashboard/community/domain?x=1`, fromSub.location)
   check('… und mit `Cache-Control: no-store`, damit die Subdomain Rückfall bleibt',
     fromSub.cacheControl.includes('no-store'), fromSub.cacheControl)
 

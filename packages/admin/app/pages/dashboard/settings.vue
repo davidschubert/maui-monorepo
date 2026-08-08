@@ -21,7 +21,7 @@ useHead({ title: () => t('dashboard.settings.title') })
  * FREMDE REITER (F24, 2026-08-02) kommen aus der Registry, nicht von hier.
  *
  * Bis heute stand der Community-Reiter fest in dieser Liste, obwohl die Seite
- * dahinter (`/dashboard/settings/community`) ausschließlich Routen des
+ * dahinter (damals `/dashboard/settings/community`) ausschließlich Routen des
  * onboarding-Layers ruft. Versteckt war er nur zur LAUFZEIT (`isTenantHost`) —
  * eine Silo-App ohne onboarding hatte den Reiter also im Bauplan und verließ
  * sich darauf, dass eine Beobachtung ihn wegblendet. Jetzt registriert ihn der

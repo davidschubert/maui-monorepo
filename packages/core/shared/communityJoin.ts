@@ -9,7 +9,7 @@ import type { CommunityRole } from './communityAuthz'
  * A4 hat das Community-Label nach der Regel „wer eingeloggt einen Mandanten-Host
  * benutzt, ist Mitglied" vergeben (server/middleware/06.community-label.ts). Das war
  * eine ehrliche Abbildung eines Produkts OHNE Beitritt — aber seit es
- * /dashboard/members mit „Zugang entziehen" gibt (C16), ist es eine Lüge: der
+ * /dashboard/community/members mit „Zugang entziehen" gibt (C16), ist es eine Lüge: der
  * Entzug nahm nur die ROLLE, das Label kam beim nächsten eingeloggten Besuch
  * zurück, und die entfernte Person las weiter mit. Die Seite versprach mehr,
  * als das Modell hielt.

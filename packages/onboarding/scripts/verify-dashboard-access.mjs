@@ -14,7 +14,7 @@
  *     MENÜ nach Ort — auf dem Mandanten-Host keine Operator-Module, auf dem
  *     Kontroll-Host sehr wohl (E9, s. Abschnitt 6)
  *   - der S1-Registrierungs-Schalter ist für den Owner erreichbar
- *     (/dashboard/settings/community SSR 200) und PATCH /api/community/registration
+ *     (/dashboard/community SSR 200) und PATCH /api/community/registration
  *     funktioniert end-to-end (Control Plane schreibt, Wert kommt zurück)
  *
  * Räumt am Ende alles weg, was es angelegt hat.
@@ -256,7 +256,7 @@ try {
   check('Kontroll-Host: Menü MIT People (/dashboard/users)', hasNav(dashControl.text, '/dashboard/users'))
 
   console.log('\n7. S1-Registrierungs-Schalter: für den Owner erreichbar + PATCH end-to-end')
-  const communityPage = await page(siteA.host, '/dashboard/settings/community', ownerCookieA)
+  const communityPage = await page(siteA.host, '/dashboard/community', ownerCookieA)
   check('Settings → Community SSR 200', communityPage.status === 200, `Status ${communityPage.status}`)
   check('Schalter im Markup (data-community-registration)', communityPage.text.includes('data-community-registration'))
 

@@ -7,7 +7,7 @@ import { callControlPlane, mintRuntimeJwt } from '../../utils/controlPlane'
  * 2026-07-28: Site-Owner bestimmen Theme + Variante selbst; seit dem 2026-07-29
  * zusätzlich die NEUTRAL-PALETTE, Rest von OPEN-ITEMS B5). Aufrufer ist das
  * Kunden-Dashboard auf dem Mandanten-Host (Abschnitt „Erscheinungsbild" in
- * /dashboard/settings/community).
+ * /dashboard/community).
  *
  * GLEICHE KETTE WIE DER REGISTRIERUNGS-SCHALTER (S1), und aus demselben Grund:
  * `tenants` gehört dem Control Plane, die Platform-App hat dorthin nur einen

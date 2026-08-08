@@ -1,7 +1,10 @@
 <script setup lang="ts">
 /**
- * Einstellungen → Community: die Schalter, die der KUNDIN gehören (nicht dem
- * Betreiber). Drei Bewohner:
+ * COMMUNITY-EINSTELLUNGEN → ALLGEMEIN: die Schalter, die der KUNDIN gehören
+ * (nicht dem Betreiber). Seit F51 (2026-08-07) der INDEX des Community-Hubs
+ * (`/dashboard/community`, Reiter „Allgemein") — davor
+ * `/dashboard/settings/community` als Reiter der KONTO-Hülle, was die falsche
+ * Ebene war. Drei Bewohner:
  *
  *  1. „Offene Registrierung" (Audit-Befund S1, Davids Entscheidung 4 vom
  *     2026-07-27) — der Einladungs-Code gilt nur fürs GRÜNDEN einer
@@ -34,11 +37,11 @@
  * Die ersten beiden sind ZUGANGSREGELN. Die Karte „Erscheinungsbild" (Davids
  * Entscheidung 12 vom 2026-07-28) ist seit F5 (2026-07-31) auf eine EIGENE
  * Seite umgezogen —
- * `/dashboard/branding` im onboarding-Layer, unter der Nav-Gruppe „Branding"
- * und unter der Capability, der sie gehört (`branding.manage` statt
+ * `/dashboard/community/branding` im onboarding-Layer, unter der Capability,
+ * der sie gehört (`branding.manage` statt
  * `team.manage`). Umgezogen, NICHT kopiert: zwei Flächen für dieselbe Wahl
  * wären Doppelpflege. Begründung des Schnitts (Wahl vs. Katalog) steht im Kopf
- * von packages/onboarding/app/pages/dashboard/branding.vue.
+ * von packages/onboarding/app/pages/dashboard/community/branding.vue.
  *
  * ── WARUM IM ONBOARDING-LAYER (F24, 2026-08-02) ────────────────────────────
  * Alle drei Routen dieser Seite (`/api/community/registration`,
@@ -50,16 +53,16 @@
  *
  * Die Seite lag bis zum 2026-08-02 im admin-Layer und rief von dort aus
  * ausschließlich fremde Routen — derselbe Schnitt-Fehler, wegen dem schon
- * /dashboard/members (S9) und /dashboard/branding (F5) umgezogen sind: eine
+ * die Mitglieder-Seite (S9) und das Branding (F5) umgezogen sind: eine
  * Seite kann nur so weit reichen wie ihre Routen. Eine Silo-App ohne
  * onboarding (comments, photos, portfolio, control) trug den Reiter also im
  * Bauplan und verließ sich darauf, dass eine LAUFZEIT-Beobachtung
  * (`isTenantHost`) ihn wegblendet. Jetzt gibt es dort weder Seite noch Reiter.
  *
- * Der Reiter selbst kommt aus der Registry `pukalani.admin.settingsTabs`
+ * Der Reiter selbst kommt aus der Registry `pukalani.admin.communityTabs`
  * (core/shared/types/settings-tab.ts), registriert in
- * packages/onboarding/app/app.config.ts — genau wie die Sidebar-Einträge für
- * Mitglieder, Branding und Abo.
+ * packages/onboarding/app/app.config.ts — genau wie seine vier Geschwister
+ * Branding, Mitglieder, Domain und Plan.
  *
  * Der Hinweis statt der Schalter BLEIBT trotzdem: `scope: 'community'` hält
  * den Reiter von einem Kontroll-Host fern, aber die Seite ist über ihre URL

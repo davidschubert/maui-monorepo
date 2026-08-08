@@ -22,6 +22,16 @@
  * `blueprint`; hier liegt nur der wiederverwendbare Knopf.
  */
 export default defineNuxtConfig({
+  /**
+   * ALT-PFAD (F51, 2026-08-07): der Owner-Schalter ist von der Konto-Hülle in
+   * den Community-Hub gezogen. Beide Locales, weil eine routeRule nur Pfade
+   * sieht (`prefix_except_default`).
+   */
+  routeRules: {
+    '/dashboard/settings/messages': { redirect: { to: '/dashboard/community/messages', statusCode: 301 } },
+    '/de/dashboard/settings/messages': { redirect: { to: '/de/dashboard/community/messages', statusCode: 301 } },
+  },
+
   // Eigene Layer-Strings — mergen mit Core- und App-Locales (gleiche codes)
   i18n: {
     locales: [

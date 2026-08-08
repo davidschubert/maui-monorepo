@@ -16,7 +16,7 @@ type CommunityBrandingRow = AppwriteRow & {
  * Propagiert die Farbwahl EINER Community live an alle offenen Fenster (D6,
  * 2026-08-01) — der letzte Fall, der bis dahin einen Reload brauchte.
  *
- * Setzt der Owner unter /dashboard/branding ein anderes Theme, spiegelt die
+ * Setzt der Owner unter /dashboard/community/branding ein anderes Theme, spiegelt die
  * PATCH-Route den bestätigten Zustand in die Runtime-Tabelle
  * `community_branding` (Vertrag + Begründung: core/shared/communityBranding.ts).
  * Dieses Plugin abonniert GENAU DIE EINE Row dieses Hosts und schreibt sie in

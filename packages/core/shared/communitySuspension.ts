@@ -42,7 +42,7 @@
  * diese Tür gehen, sondern über die Service-Naht ins Control Plane:
  * Erscheinungsbild (`PATCH /api/community/branding`), Team und Rollen
  * (`/api/community/members/*`), Lese-Publikum und Registrierung
- * (`/dashboard/settings/community`) sowie die Moderation (Türklinke
+ * (`/dashboard/community`) sowie die Moderation (Türklinke
  * `operator`). Das ist keine Lücke, sondern der Zweck: die Sperre soll zum
  * ZAHLEN bewegen, nicht den Owner aus seiner eigenen Community aussperren. Wer
  * seine Community nicht mehr verwalten, Mitglieder nicht mehr entfernen und

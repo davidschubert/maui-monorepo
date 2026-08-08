@@ -27,13 +27,13 @@
  *     brauchen ihn SSR-fest. (1) useLocaleSeoHead() stempelt auf
  *     'members'-Communities `noindex, nofollow` — ein Crawler liest das
  *     SSR-HTML, ein Client-Nachtrag käme zu spät. (2) der Schalter in
- *     /dashboard/settings/community zeigt den gesetzten Zustand. Kein
+ *     /dashboard/community zeigt den gesetzten Zustand. Kein
  *     Geheimnis: ob eine Community öffentlich lesbar ist, beantwortet jeder
  *     Gast-Abruf ihrer Startseite ohnehin.
  *   - `theme`/`variant`/`neutral` → useTenantBranding() (Entscheidung 12, 2026-07-28;
  *     `neutral` seit 2026-07-29, Rest von B5):
- *     die Seite /dashboard/branding (seit F5, davor eine Karte in
- *     /dashboard/settings/community) zeigt
+ *     die Seite /dashboard/community/branding (seit F5 eine eigene Fläche,
+ *     davor eine Karte in den Community-Einstellungen) zeigt
  *     die GESETZTE Wahl der Community. Bis dahin gab es dafür keinen
  *     Client-Leser (die Werte reisten nur als <html>-Attribute) — mit dem
  *     Kunden-Picker gibt es einen, und das Inventar wächst mit. Alle drei Werte

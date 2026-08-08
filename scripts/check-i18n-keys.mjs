@@ -137,6 +137,15 @@ const FIELDS = [
     keys: p => arr(p.admin?.settingsTabs).flatMap(t => str(t?.labelKey)),
   },
   {
+    // F51 (2026-08-07): zweite Reiter-Registry, zweite Hülle — dieselbe Klasse
+    // Versprechen wie `settingsTabs`, und derselbe fremde Renderer (die Hülle
+    // gehört admin, die Texte gehören den registrierenden Layern). Der
+    // Menüpunkt unten links liest dieselbe Liste.
+    pfad: 'pukalani.admin.communityTabs[].labelKey',
+    quelle: 'packages/admin/app/pages/dashboard/community.vue · packages/admin/app/layouts/dashboard.vue',
+    keys: p => arr(p.admin?.communityTabs).flatMap(t => str(t?.labelKey)),
+  },
+  {
     pfad: 'pukalani.billing.plans[].labelKey',
     quelle: 'packages/billing/app/components/BillingPricingTable.vue · BillingCompareTable.vue · pages/dashboard/billing.vue',
     keys: p => arr(p.billing?.plans).flatMap(pl => str(pl?.labelKey)),

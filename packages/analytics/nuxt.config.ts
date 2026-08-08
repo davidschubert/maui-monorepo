@@ -46,6 +46,16 @@ export default defineNuxtConfig({
     analyticsStatsApiKey: '',
   },
 
+  /**
+   * ALT-PFAD (F51, 2026-08-07): die Statistik ist vom eigenen Menüpunkt in den
+   * Community-Hub gezogen. Beide Locales, weil eine routeRule nur Pfade sieht
+   * (`prefix_except_default`).
+   */
+  routeRules: {
+    '/dashboard/analytics': { redirect: { to: '/dashboard/community/analytics', statusCode: 301 } },
+    '/de/dashboard/analytics': { redirect: { to: '/de/dashboard/community/analytics', statusCode: 301 } },
+  },
+
   i18n: {
     locales: [
       { code: 'de', language: 'de-DE', name: 'Deutsch', file: 'de.json' },

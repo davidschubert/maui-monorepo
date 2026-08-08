@@ -189,14 +189,14 @@ export async function provisionCommunity(
       // Neutral-Palette (control-020, Rest von B5): der Wizard fragt sie NICHT
       // ab — die 6 Vibes sind Farbwelten, kein Grundton-Katalog. '' heißt
       // „keine eigene Wahl", die Owner-Rolle kann sie später unter
-      // /dashboard/settings/community setzen.
+      // /dashboard/community setzen.
       neutral: '',
       // ÖFFENTLICH als Default (C18, Davids Entscheidung vom 2026-07-30) — die
       // bewusste KEHRTWENDE zur G0-Entscheidung 7 („privat als Default",
       // 2026-07-24). Begründung: eine frische Community, die niemand finden
       // kann, wächst nicht; „nur für Mitglieder" ist die Ausnahme, die man
       // trifft, wenn man sie braucht, und sie steht als Schalter unter
-      // /dashboard/settings/community. Der Schalter zieht den BESTAND mit um
+      // /dashboard/community. Der Schalter zieht den BESTAND mit um
       // (audienceRepermission.ts) — zumachen ist also jederzeit vollständig
       // möglich, aufmachen ebenso.
       //
@@ -209,7 +209,7 @@ export async function provisionCommunity(
       // Mitglieder-Registrierung offen (control-018, S1/Entscheidung 4): eine
       // frische Community soll wachsen können. Der Einladungs-Code, mit dem sie
       // entstand, gilt fürs GRÜNDEN — nicht fürs Beitreten. Umschalten kann die
-      // Owner-Rolle jederzeit unter /dashboard/settings/community.
+      // Owner-Rolle jederzeit unter /dashboard/community.
       openRegistration: true,
       // A6 (control-028): frisch angelegt = nie ein Abo — der Community-
       // Checkout (Geldfluss 1) füllt die Felder beim ersten Kauf.
@@ -226,7 +226,7 @@ export async function provisionCommunity(
       // control-035: eigene Domain. Eine frisch gegründete Community hat
       // keine — sie beginnt auf ihrer Subdomain, und die bleibt auch später
       // der Rückfall (Davids Entscheidung 2). Eingetragen wird sie ab Plan Pro
-      // unter /dashboard/settings/domain.
+      // unter /dashboard/community/domain.
       customDomain: '',
       customDomainStatus: 'none',
       customDomainToken: '',

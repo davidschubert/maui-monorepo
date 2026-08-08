@@ -307,6 +307,10 @@
     "nav": {
       "subscription": "Abo & Rechnung"
     },
+    "communityTabs": {
+      "general": "Allgemein",
+      "plan": "Plan"
+    },
     "trial": {
       "endingTitle": "Noch 1 Tag Testphase | Noch {n} Tage Testphase",
       "endingText": "Danach ist deine Community nur noch zum Lesen, bis du einen Plan wählst. Inhalte und Mitglieder bleiben; mit einem Abo geht es ohne Unterbrechung weiter.",
@@ -321,6 +325,9 @@
       "noTenantText": "Diese Seite gehört zu einer Community. Auf einer eigenen Instanz rechnet der Betreiber ab, nicht die einzelne Community.",
       "currentPlan": "Aktueller Plan",
       "currentPlanNote": "Dein aktueller Plan.",
+      "trialLabel": "Testphase ({plan}) – noch 1 Tag übrig | Testphase ({plan}) – noch {n} Tage übrig",
+      "noPlanLabel": "Kein Abo – Free Plan",
+      "readOnlyNote": "Ohne Abo ist deine Community nur zum Lesen. Inhalte und Mitglieder bleiben; ein Plan öffnet sie sofort wieder.",
       "priceNote": "Verbindlich ist der Betrag, den der Stripe-Checkout zeigt — dort wird auch die Steuer nach deiner Rechnungsadresse berechnet.",
       "choosePlan": "Plan wählen",
       "chooseHelp": "Nach dem Kauf leiten wir dich zu Stripe. Zurück kommst du auf diese Seite; der neue Plan erscheint, sobald die Zahlung bestätigt ist.",

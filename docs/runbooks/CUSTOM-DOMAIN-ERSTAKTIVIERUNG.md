@@ -44,7 +44,7 @@ Die Häkchen hier sind ECHT und werden pro Durchlauf abgehakt.
 
 ## 1. Der Kunde legt seine DNS-Einträge an
 
-Er sieht sie unter `/dashboard/settings/domain` auf **seiner** Community. Zum
+Er sieht sie unter `/dashboard/community/domain` auf **seiner** Community. Zum
 Mitlesen (`beispiel.de` als eingetragene Form):
 
 | Typ | Name | Wert |
@@ -242,7 +242,7 @@ Das Token steht im selben Kasten, in dem auch die Domain eingetragen wird.
       Site läuft noch auf altem Code („Die Site kennt den letzten Schritt
       nicht").
       **Zweiter Weg, der dasselbe tut:** im Dashboard der Site selbst
-      (`/dashboard/settings/domain`) auf „Prüfen" — dort hat der Betreiber ein
+      (`/dashboard/community/domain`) auf „Prüfen" — dort hat der Betreiber ein
       Konto DIESES Projekts und die App erledigt den Schritt ohne Rückruf.
 - [ ] Origin-Gegenprobe (der Handschlag verrät nichts, er antwortet 101 auch
       für einen abgewiesenen Origin):

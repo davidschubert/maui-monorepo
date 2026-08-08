@@ -20,7 +20,7 @@ import { communityModeratorLabel } from '../../shared/communityModeratorLabel'
  *
  * VORHER (A4) stand hier „wer eingeloggt einen Mandanten-Host benutzt, ist
  * Mitglied". Das war ehrlich, solange es keinen Beitritt gab — mit
- * /dashboard/members (C16) wurde es falsch: „Zugang entziehen" nahm nur die
+ * /dashboard/community/members (C16) wurde es falsch: „Zugang entziehen" nahm nur die
  * ROLLE, das Label vergab diese Middleware beim nächsten Besuch neu, und die
  * entfernte Person las weiter mit. Die Mitgliedschaft ist jetzt ein Ereignis
  * (shared/communityJoin.ts, utils/communityJoin.ts) — hier wird sie nur noch

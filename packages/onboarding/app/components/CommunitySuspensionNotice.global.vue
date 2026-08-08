@@ -65,7 +65,7 @@ const reason = computed(() => (data.value?.reason ?? '').trim())
         label: t('onboarding.suspension.action'),
         color: 'neutral' as const,
         variant: 'outline' as const,
-        to: localePath('/dashboard/settings/subscription'),
+        to: localePath('/dashboard/community/plan'),
       }]
       : []"
     data-suspension-notice

@@ -39,7 +39,7 @@ export default defineAppConfig({
       src: 'https://plausible.hawaii.studio/js/pa-NFzv_HzyhC-TnVE577Kx6.js',
       /**
        * SELBSTBEDIENUNG (2026-08-04): mit der Basis-Adresse darf der Betreiber
-       * die Site unter /dashboard/analytics wechseln, ohne zu deployen — eine
+       * die Site unter /dashboard/community/analytics wechseln, ohne zu deployen — eine
        * dort hinterlegte Script-Id schlägt das `src` oben. Solange nichts
        * hinterlegt ist, bleibt es exakt beim Wert dieser Datei.
        */

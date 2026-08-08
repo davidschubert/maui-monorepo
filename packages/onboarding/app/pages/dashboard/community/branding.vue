@@ -35,12 +35,17 @@
  * `apps/platform` als einzige App mit onboarding.
  *
  * ── HERKUNFT ───────────────────────────────────────────────────────────────
- * Der Inhalt stand bis zum 2026-07-31 als dritte Karte in
- * /dashboard/settings/community (Davids Entscheidung 12 vom 2026-07-28). Er ist
+ * Der Inhalt stand bis zum 2026-07-31 als dritte Karte in den
+ * Community-Einstellungen (Davids Entscheidung 12 vom 2026-07-28). Er ist
  * umgezogen statt kopiert: dort blieben die beiden ZUGANGSREGELN (Registrierung,
- * Sichtbarkeit), hier steht die Optik — und die Nav-Gruppe „Branding" führt
- * endlich irgendwohin. Eine zweite Kopie derselben Fläche wäre genau die
- * Doppelpflege, die „ein Konzept pro Produkt" verbietet.
+ * Sichtbarkeit), hier steht die Optik. Eine zweite Kopie derselben Fläche wäre
+ * genau die Doppelpflege, die „ein Konzept pro Produkt" verbietet.
+ *
+ * Seit F51 (2026-08-07) ist die Seite ein REITER des Community-Hubs
+ * (/dashboard/community/branding) statt eines eigenen Menüpunkts im Hauptmenü
+ * — deshalb rendert sie Karten und kein eigenes
+ * UDashboardPanel mehr; Panel, Kopfzeile und Reiter-Zeile bringt die Hülle
+ * (packages/admin/app/pages/dashboard/community.vue) mit.
  *
  * NICHT hier und bewusst Besucher-Wahl: Hell/Dunkel, Seitenleiste, Sprache.
  */
@@ -134,115 +139,104 @@ async function saveBranding(next: { theme: string, variant: string, neutral: str
 </script>
 
 <template>
-  <UDashboardPanel id="community-branding">
-    <template #header>
-      <UDashboardNavbar :title="t('dashboard.community.appearance.title')">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
-      </UDashboardNavbar>
-    </template>
+  <!-- Kind der Community-Hülle (F51): Karten, kein eigenes UDashboardPanel. -->
+  <div class="flex w-full flex-col gap-4">
+    <!-- Ohne Mandanten gehört die Optik der Instanz — dort ist das
+         Theme-Studio (/dashboard/themes) die richtige Fläche, nicht diese. -->
+    <UAlert
+      v-if="!isTenantHost"
+      color="neutral"
+      variant="subtle"
+      icon="i-ph-info"
+      :title="t('dashboard.community.noTenantTitle')"
+      :description="t('branding.noTenantText')"
+    />
 
-    <template #body>
-      <div class="mx-auto flex w-full max-w-3xl flex-col gap-4">
-        <!-- Ohne Mandanten gehört die Optik der Instanz — dort ist das
-             Theme-Studio (/dashboard/themes) die richtige Fläche, nicht diese. -->
-        <UAlert
-          v-if="!isTenantHost"
+    <UPageCard
+      v-else
+      :title="t('dashboard.community.appearance.title')"
+      :description="t('dashboard.community.appearance.description')"
+      variant="subtle"
+    >
+      <div class="flex items-center justify-between gap-4" data-community-branding>
+        <div class="flex items-start gap-3">
+          <span
+            v-if="selectedVariantColor"
+            class="mt-0.5 size-5 shrink-0 rounded-full shadow-inner ring-1 ring-black/10"
+            :style="{ backgroundColor: selectedVariantColor }"
+            aria-hidden="true"
+          />
+          <UIcon v-else name="i-ph-palette" class="mt-0.5 size-5 shrink-0 text-muted" />
+          <div>
+            <p class="text-sm font-medium" data-community-theme>{{ selectionLabel }}</p>
+            <p class="text-sm text-muted">{{ t('dashboard.community.appearance.propagation') }}</p>
+          </div>
+        </div>
+        <UButton
           color="neutral"
           variant="subtle"
-          icon="i-ph-info"
-          :title="t('dashboard.community.noTenantTitle')"
-          :description="t('branding.noTenantText')"
-        />
-
-        <UPageCard
-          v-else
-          :title="t('dashboard.community.appearance.title')"
-          :description="t('dashboard.community.appearance.description')"
-          variant="subtle"
+          icon="i-ph-swatches"
+          :loading="savingBranding"
+          @click="pickerOpen = true"
         >
-          <div class="flex items-center justify-between gap-4" data-community-branding>
-            <div class="flex items-start gap-3">
-              <span
-                v-if="selectedVariantColor"
-                class="mt-0.5 size-5 shrink-0 rounded-full shadow-inner ring-1 ring-black/10"
-                :style="{ backgroundColor: selectedVariantColor }"
-                aria-hidden="true"
-              />
-              <UIcon v-else name="i-ph-palette" class="mt-0.5 size-5 shrink-0 text-muted" />
-              <div>
-                <p class="text-sm font-medium" data-community-theme>{{ selectionLabel }}</p>
-                <p class="text-sm text-muted">{{ t('dashboard.community.appearance.propagation') }}</p>
-              </div>
-            </div>
-            <UButton
-              color="neutral"
-              variant="subtle"
-              icon="i-ph-swatches"
-              :loading="savingBranding"
-              @click="pickerOpen = true"
-            >
-              {{ t('dashboard.community.appearance.change') }}
-            </UButton>
-          </div>
-
-          <!-- Neutral-Palette (Rest von B5): eigene Achse, eigene Zeile. Chips
-               statt Auswahlliste, weil die Grautöne nur als Farbpunkt
-               unterscheidbar sind und ein Klick reicht — dieselbe Optik wie die
-               Varianten-Reihe im Picker. „Voreinstellung" ist der ehrliche Name
-               für '' (nichts gewählt), und der leere Wert kann so gar nicht in
-               ein USelectItem geraten. -->
-          <div class="flex flex-col gap-2 border-t border-default pt-4" data-community-neutral>
-            <div>
-              <p class="text-sm font-medium">{{ t('dashboard.community.appearance.neutral') }}</p>
-              <p class="text-sm text-muted">{{ t('dashboard.community.appearance.neutralDesc') }}</p>
-            </div>
-            <div class="flex flex-wrap gap-1.5">
-              <UButton
-                size="xs"
-                color="neutral"
-                :variant="selectedNeutral ? 'soft' : 'solid'"
-                :disabled="savingBranding"
-                @click="saveBranding({ theme: selection.theme, variant: selection.variant, neutral: '' })"
-              >
-                {{ t('dashboard.community.appearance.neutralInherited') }}
-              </UButton>
-              <UButton
-                v-for="entry in neutralOptions"
-                :key="entry.id"
-                size="xs"
-                color="neutral"
-                :variant="selection.neutral === entry.id ? 'solid' : 'soft'"
-                :disabled="savingBranding"
-                @click="saveBranding({ theme: selection.theme, variant: selection.variant, neutral: entry.id })"
-              >
-                <span
-                  class="size-3 rounded-full ring-1 ring-black/10"
-                  :style="{ backgroundColor: entry.color }"
-                  aria-hidden="true"
-                />
-                {{ capitalize(entry.id) }}
-              </UButton>
-            </div>
-          </div>
-
-          <!-- DERSELBE öffentliche Grid-Picker (themes-Layer), nur kontrolliert:
-               `selection` macht ihn zum Formularfeld dieser Community, statt das
-               Theme-Cookie des Owners umzustellen. `builtin-only`, weil Custom
-               Themes pro Appwrite-PROJEKT liegen und im Pool nicht einem
-               einzelnen Mandanten gehören. Der Picker kennt nur Theme+Variante —
-               die Palette reicht diese Seite unverändert mit durch. -->
-          <ThemePickerModal
-            v-if="pickerMounted"
-            v-model:open="pickerOpen"
-            :selection="selection"
-            builtin-only
-            :title="t('dashboard.community.appearance.pickerTitle')"
-            @select="(next: { theme: string, variant: string }) => saveBranding({ ...next, neutral: selection.neutral })"
-          />
-        </UPageCard>
+          {{ t('dashboard.community.appearance.change') }}
+        </UButton>
       </div>
-    </template>
-  </UDashboardPanel>
+
+      <!-- Neutral-Palette (Rest von B5): eigene Achse, eigene Zeile. Chips
+           statt Auswahlliste, weil die Grautöne nur als Farbpunkt
+           unterscheidbar sind und ein Klick reicht — dieselbe Optik wie die
+           Varianten-Reihe im Picker. „Voreinstellung" ist der ehrliche Name
+           für '' (nichts gewählt), und der leere Wert kann so gar nicht in
+           ein USelectItem geraten. -->
+      <div class="flex flex-col gap-2 border-t border-default pt-4" data-community-neutral>
+        <div>
+          <p class="text-sm font-medium">{{ t('dashboard.community.appearance.neutral') }}</p>
+          <p class="text-sm text-muted">{{ t('dashboard.community.appearance.neutralDesc') }}</p>
+        </div>
+        <div class="flex flex-wrap gap-1.5">
+          <UButton
+            size="xs"
+            color="neutral"
+            :variant="selectedNeutral ? 'soft' : 'solid'"
+            :disabled="savingBranding"
+            @click="saveBranding({ theme: selection.theme, variant: selection.variant, neutral: '' })"
+          >
+            {{ t('dashboard.community.appearance.neutralInherited') }}
+          </UButton>
+          <UButton
+            v-for="entry in neutralOptions"
+            :key="entry.id"
+            size="xs"
+            color="neutral"
+            :variant="selection.neutral === entry.id ? 'solid' : 'soft'"
+            :disabled="savingBranding"
+            @click="saveBranding({ theme: selection.theme, variant: selection.variant, neutral: entry.id })"
+          >
+            <span
+              class="size-3 rounded-full ring-1 ring-black/10"
+              :style="{ backgroundColor: entry.color }"
+              aria-hidden="true"
+            />
+            {{ capitalize(entry.id) }}
+          </UButton>
+        </div>
+      </div>
+
+      <!-- DERSELBE öffentliche Grid-Picker (themes-Layer), nur kontrolliert:
+           `selection` macht ihn zum Formularfeld dieser Community, statt das
+           Theme-Cookie des Owners umzustellen. `builtin-only`, weil Custom
+           Themes pro Appwrite-PROJEKT liegen und im Pool nicht einem
+           einzelnen Mandanten gehören. Der Picker kennt nur Theme+Variante —
+           die Palette reicht diese Seite unverändert mit durch. -->
+      <ThemePickerModal
+        v-if="pickerMounted"
+        v-model:open="pickerOpen"
+        :selection="selection"
+        builtin-only
+        :title="t('dashboard.community.appearance.pickerTitle')"
+        @select="(next: { theme: string, variant: string }) => saveBranding({ ...next, neutral: selection.neutral })"
+      />
+    </UPageCard>
+  </div>
 </template>

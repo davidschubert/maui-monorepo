@@ -19,24 +19,32 @@ export default defineAppConfig({
       },
     },
     admin: {
-      // Form entspricht PukalaniAdminModule (core/shared) — der Typ ist in app.config
-      // nicht auto-importiert; das Layout liest die Registry typisiert (core-Default).
-      modules: [
+      /**
+       * Seit F51 (2026-08-07) ein REITER des Community-Hubs statt eines
+       * Sidebar-Moduls: das Protokoll gehört der Community, deren Publikum es
+       * beschreibt, und Davids Entscheidung ist EIN Einstieg für alles
+       * Community-Bezogene. Der Eintrag in `pukalani.admin.modules` ist
+       * deshalb ersatzlos weg — wer ihn zurücklegt, hat die Fläche doppelt.
+       *
+       * Form entspricht PukalaniSettingsTab (core/shared) — der Typ ist in
+       * app.config nicht auto-importiert; die Hülle liest die Registry
+       * typisiert (core-Default).
+       */
+      communityTabs: [
         {
-          // E9: „Settings · Audience → Activity logs" (Davids Struktur) — das
-          // Protokoll gehört der Community, deren Publikum es beschreibt.
           id: 'activity',
           scope: 'community',
           productKey: 'activity',
           // C2: im Pool ab basic (pukalani.tenancy.products) — heute für alle;
-          // das Feld hält Menü und Route zusammen, falls die Zuordnung steigt.
+          // das Feld hält Reiter und Route zusammen, falls die Zuordnung steigt.
+          // Es ist mit dem Eintrag UMGEZOGEN: ohne die Produkt-Gates am
+          // Reiter-Typ wäre F51 ein stiller Rechte-Verlust gewesen.
           planProduct: 'activity',
           labelKey: 'admin.nav.activity',
           icon: 'i-ph-pulse',
-          to: '/dashboard/activity',
+          to: '/dashboard/community/activity',
           requiredCapability: 'activity.manage',
-          group: 'settings',
-          order: 4,
+          order: 70,
         },
       ],
     },

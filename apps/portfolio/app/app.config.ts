@@ -43,7 +43,7 @@ export default defineAppConfig({
       src: 'https://plausible.hawaii.studio/js/pa-lXh3V4rHPB9Z2yPCDk6eK.js',
       /**
        * SELBSTBEDIENUNG (2026-08-04): erlaubt den Wechsel der Plausible-Site
-       * unter /dashboard/analytics ohne Deployment. Eine dort hinterlegte
+       * unter /dashboard/community/analytics ohne Deployment. Eine dort hinterlegte
        * Script-Id schlägt das `src` oben; ohne Eintrag bleibt alles wie hier.
        */
       instance: 'https://plausible.hawaii.studio',

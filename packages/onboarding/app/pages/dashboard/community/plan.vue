@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { TRIAL_PLAN, trialDaysLeft } from '../../../../../control/shared/onboarding'
+
 /**
  * Abo & Rechnung EINER Community (A6 Schritt 3, Platform-Seite).
  *
@@ -8,12 +10,16 @@
  * gehören. Läge sie im admin- oder billing-Layer, hätte eine Silo-App einen
  * Menüpunkt, dessen Seite ins Leere greift (Muster: /dashboard/members).
  *
- * WARUM UNTER /dashboard/settings: die Erfolgs-/Abbruch-URLs des Checkouts baut
- * der SERVER aus `tenants.host` (apps/control/server/utils/communityCheckout.ts:
- * `https://<host>/dashboard/settings/subscription?checkout=…`) — kein offener
- * Redirect, aber eben auch ein FESTER Pfad. Die Seite ist damit ein Kind der
- * Settings-Hülle (packages/admin/app/pages/dashboard/settings.vue) und rendert
- * wie ihre Geschwister Karten, kein eigenes UDashboardPanel.
+ * WARUM UNTER /dashboard/community/plan: die Seite ist seit F51 (2026-08-07)
+ * der Reiter „Plan" des Community-Hubs und rendert wie ihre Geschwister Karten,
+ * kein eigenes UDashboardPanel (Hülle: packages/admin/app/pages/dashboard/
+ * community.vue). Der Pfad ist FEST verdrahtet und nicht nur Geschmack: die
+ * Erfolgs-/Abbruch-URLs des Checkouts baut der SERVER aus `tenants.host`
+ * (apps/control/server/utils/communityCheckout.ts) — wer ihn hier ändert, ändert
+ * ihn dort mit, sonst landet der Kunde nach dem Bezahlen auf einer 404.
+ * Alt-Pfad `/dashboard/settings/subscription` leitet 301 weiter
+ * (routeRules in packages/onboarding/nuxt.config.ts) — Stripe-Sitzungen, die
+ * über den Cutover hinweg offen waren, kommen so trotzdem an.
  *
  * `billing.manage` trägt nur der OWNER (Davids Entscheidung 2 vom 2026-07-30,
  * communityAuthz.ts). Die AUTORITÄT ist `requireCommunityTeamGate` auf den Routen und
@@ -27,9 +33,24 @@
  *     Zustand OHNE Abo — die Community ist dort nur zum Lesen. HERUNTER geht es
  *     über das Portal, weil Proration, Steuern und Fristen bei Stripe gerechnet
  *     werden. Zwei Wege zum selben Vertrag wären zwei Wahrheiten.
- *     (Der Reiter-Umbau, der diese Karte ersetzt, ist F51 — hier stehen nur die
- *     Texte richtig.)
  *  3. Rechnungen & Zahlungsmethode — das Stripe-Portal.
+ *
+ * ── WAS DIE ERSTE KARTE SAGT (F51, Davids eigene Formulierung) ─────────────
+ * Nicht der rohe Plan-Key, sondern der ZUSTAND:
+ *   · laufende Testphase → „Testphase (Pro) – X Tage übrig"
+ *   · kein Abo          → „Kein Abo – Free Plan" MIT dem Nur-lesen-Satz daneben
+ *   · gekauft           → der Plan-Name wie bisher
+ * Der Zusatz beim zweiten Fall ist keine Verzierung: „Free Plan" allein
+ * verspräche einen funktionsfähigen Gratis-Tarif, den es seit F49 nicht gibt.
+ * Das VERHALTEN ist unverändert — nur-lesend bis bezahlt (M13-Sperre) —, diese
+ * Karte macht es nur an der Stelle sichtbar, an der man etwas dagegen tun kann.
+ *
+ * Die Tageszahl kommt aus DERSELBEN Quelle wie der Dashboard-Hinweis
+ * (`GET /api/community/billing/trial` + die pure `trialDaysLeft`), nicht aus
+ * einer zweiten Rechnung. Sie wird bewusst NUR im Browser geholt (`server:
+ * false`): der Wert hängt an `Date.now()`, serverseitig gerendert stünde im
+ * SSR-HTML eine andere Zahl als nach der Hydration (Begründung wie in
+ * CommunityTrialNotice.global.vue).
  *
  * Die Preise stehen als i18n-Text da (nicht gerechnet): so bleibt die Schreibweise
  * pro Sprache richtig (29 € / €29). VERBINDLICH ist trotzdem nur, was der
@@ -86,6 +107,48 @@ function planPrice(key: PlanKey): string {
     ? t(`onboarding.subscription.plans.${key}.priceYearly`)
     : t(`onboarding.subscription.plans.${key}.price`)
 }
+
+// ── Was in der ersten Karte steht (F51, Davids Formulierung) ────────────────
+
+/**
+ * 404 = kein Pool-Mandant → keine Testphase, und das ist kein Fehler
+ * (dieselbe Behandlung wie in CommunityTrialNotice.global.vue). Nur im
+ * Browser, weil die Tageszahl an `Date.now()` hängt.
+ */
+const { data: trial } = await useFetch<{ trialEndsAt: string | null }>('/api/community/billing/trial', {
+  lazy: true,
+  server: false,
+  default: () => ({ trialEndsAt: null }),
+})
+
+/** Erst im Browser gesetzt — SSR darf keine Tageszahl behaupten. */
+const now = ref(0)
+onMounted(() => { now.value = Date.now() })
+
+/** Verbleibende volle Tage, oder null wenn gerade keine Testphase läuft. */
+const trialDays = computed<number | null>(() => {
+  const end = trial.value?.trialEndsAt
+  if (!end || !now.value) return null
+  const parsed = Date.parse(end)
+  if (!Number.isFinite(parsed) || parsed <= now.value) return null
+  return trialDaysLeft(end, now.value)
+})
+
+/**
+ * DREI ZUSTÄNDE, EIN LABEL. `basic` ist seit F49 kein Plan mehr, sondern die
+ * Abwesenheit eines Abos — genau das muss dastehen, sonst liest sich der
+ * Plan-Name „Basic" wie ein gebuchter Gratis-Tarif.
+ */
+const planLabel = computed(() => {
+  if (trialDays.value !== null) {
+    return t('onboarding.subscription.trialLabel', { plan: planName(TRIAL_PLAN), n: trialDays.value }, trialDays.value)
+  }
+  if (currentPlan.value === 'basic') return t('onboarding.subscription.noPlanLabel')
+  return planName(currentPlan.value ?? '')
+})
+
+/** Der Nur-lesen-Satz steht NUR ohne Abo — bei laufender Testphase gilt er nicht. */
+const showReadOnlyNote = computed(() => trialDays.value === null && currentPlan.value === 'basic')
 
 async function buy(key: PlanKey) {
   // Basic hat keinen Checkout (kein Stripe-Price) — der Knopf existiert gar
@@ -173,16 +236,26 @@ onMounted(() => {
       :description="t('onboarding.subscription.noTenantText')"
     />
 
-    <div v-else class="flex items-center justify-between gap-4" data-subscription-current>
+    <div v-else class="flex flex-wrap items-center justify-between gap-4" data-subscription-current>
       <div class="flex items-start gap-3">
         <UIcon name="i-ph-seal-check" class="mt-0.5 size-5 shrink-0 text-muted" />
         <div>
           <p class="text-sm font-medium">{{ t('onboarding.subscription.currentPlan') }}</p>
+          <!-- Ohne Abo zuerst die FOLGE, dann der Preis-Hinweis: „Free Plan"
+               allein verspräche einen Tarif, den es nicht gibt (F49/F51). -->
+          <p v-if="showReadOnlyNote" class="text-sm text-warning" data-subscription-readonly>
+            {{ t('onboarding.subscription.readOnlyNote') }}
+          </p>
           <p class="text-sm text-muted">{{ t('onboarding.subscription.priceNote') }}</p>
         </div>
       </div>
-      <UBadge color="primary" variant="subtle" size="lg" data-subscription-plan>
-        {{ planName(currentPlan ?? '') }}
+      <UBadge
+        :color="showReadOnlyNote ? 'warning' : 'primary'"
+        variant="subtle"
+        size="lg"
+        data-subscription-plan
+      >
+        {{ planLabel }}
       </UBadge>
     </div>
   </UPageCard>

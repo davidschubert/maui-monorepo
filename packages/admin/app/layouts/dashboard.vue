@@ -5,6 +5,8 @@
 import type { CommandPaletteGroup, CommandPaletteItem, NavigationMenuItem } from '@nuxt/ui'
 import { isProductStateEnabled } from '../../../core/shared/types/config'
 import type { Capability } from '../../../core/shared/types/authz'
+import type { PukalaniSettingsTab } from '../../../core/shared/types/settings-tab'
+import { resolveSettingsTabs } from '../../../core/shared/types/settings-tab'
 import { configFlagEnabled, filterDashboardModules, resolveDashboardPlace, scopeVisibleAt } from '../../../core/shared/dashboardNav'
 
 const { t } = useI18n()
@@ -165,8 +167,37 @@ const links = computed<NavigationMenuItem[]>(() => {
  * `operatorHere` ist das, was ihn dort davor bewahrt, die Instanz-Verwaltung
  * im Kunden-Dashboard vor sich zu haben.
  */
+/**
+ * Der EINE Einstieg in die Community-Einstellungen (F51, 2026-08-07 — Davids
+ * Community-Settings-Hub). Er steht ganz oben im Unterbau, weil ihn der Owner
+ * einer Kunden-Community regelmäßig braucht, während darunter die selten
+ * gebrauchte Instanz-Verwaltung des BETREIBERS folgt.
+ *
+ * SICHTBAR NUR MIT INHALT: gerechnet wird dieselbe Liste, die die Hülle
+ * rendert (`resolveSettingsTabs` über `pukalani.admin.communityTabs`) — Ort ×
+ * Capability × Produkt-Gates. Damit erledigt der Ort-Filter Davids
+ * Ebenen-Entscheidung von selbst: auf einem Kontroll-Host bleibt von den
+ * Community-Reitern nichts übrig, also gibt es den Punkt dort nicht; eine App
+ * ohne registrierende Layer (photos, control) hat ihn nie. Kein zweites
+ * Regelwerk, keine Liste, die man mitpflegen muss — und kein Menüpunkt, der
+ * in den 404 der Hülle führt.
+ */
+const communityTabsHere = computed(() => resolveSettingsTabs(
+  (appConfig.pukalani?.admin?.communityTabs ?? []) as PukalaniSettingsTab[],
+  { place, canAsOperator, canAsMember, productOn, planOn, configOn },
+))
+
 const bottomLinks = computed<NavigationMenuItem[]>(() => {
   const items: NavigationMenuItem[] = []
+  // Ziel ist der ERSTE sichtbare Reiter, nicht fest `/dashboard/community`:
+  // den Index der Hülle bringt der onboarding-Layer mit (Reiter „Allgemein"),
+  // und den hat eine SILO-App nicht. Dort beginnt der Hub bei „Eigene Domain"
+  // oder was sonst zuerst kommt — ein Menüpunkt auf eine Adresse ohne Kind
+  // führte in eine leere Fläche.
+  const firstCommunityTab = communityTabsHere.value[0]
+  if (firstCommunityTab) {
+    items.push({ label: t('admin.nav.communitySettings'), icon: 'i-ph-users-three', to: localePath(firstCommunityTab.to), onSelect: close })
+  }
   if (operatorHere && canManageUsers.value) {
     items.push({ label: t('admin.nav.people'), icon: 'i-ph-users', to: localePath('/dashboard/users'), onSelect: close })
   }

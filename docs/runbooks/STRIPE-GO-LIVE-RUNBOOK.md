@@ -195,7 +195,9 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST https://control.pukalani.app/ap
 ```
 
 **6.2 Echter Mini-Kauf** [David] — als **Owner** einer echten Community auf
-`https://<community-host>/dashboard/settings/subscription` den Plan **Personal
+`https://<community-host>/dashboard/community/plan` (seit F51 der Reiter „Plan"
+im Community-Settings-Hub; der alte Pfad `/dashboard/settings/subscription`
+leitet 301 weiter) den Plan **Personal
 monatlich** buchen, mit echter Karte. Danach **im Stripe-Dashboard refunden und
 das Abo kündigen** — ein Test in Live kostet echtes Geld, der Refund macht es
 neutral.
@@ -329,7 +331,7 @@ Dashboard und refundet.
    nicht mehr, und für `communities` gibt es **keine** Live-Propagation. Der
    Beweis ist die Zeile in `communities`, nach einem Reload.
 6. **Der Ort des Kaufs.** Nicht mehr auf `control.pukalani.app`, sondern auf
-   `<community-host>/dashboard/settings/subscription` (nur Owner).
+   `<community-host>/dashboard/community/plan` (nur Owner).
 7. **Wo Stripe lebt.** Der alte Runbook nannte control und comments als
    gleichrangig; er sagte nirgends, dass die **platform**-App — auf der der
    Kunde klickt — überhaupt kein Stripe hat und alles über die Service-Naht

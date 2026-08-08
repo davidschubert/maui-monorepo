@@ -64,7 +64,7 @@ const notice = computed(() => trialNotice(data.value?.trialEndsAt, Date.now()))
       label: t('onboarding.trial.action'),
       color: 'neutral',
       variant: 'outline',
-      to: localePath('/dashboard/settings/subscription'),
+      to: localePath('/dashboard/community/plan'),
     }]"
     data-trial-notice
     :data-trial-kind="notice.kind"

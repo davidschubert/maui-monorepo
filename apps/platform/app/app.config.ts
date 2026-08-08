@@ -9,7 +9,7 @@ export default defineAppConfig({
      * Bewusst OHNE `src`/`domain`: diese App bedient jeden Mandanten-Host, und
      * eine gebaute Config kann pro Host nichts Eigenes sagen — ein `src` hier
      * würde die Besuche aller Communities ununterscheidbar in denselben Topf
-     * werfen. Gemessen wird nur, wo der Owner es unter /dashboard/analytics
+     * werfen. Gemessen wird nur, wo der Owner es unter /dashboard/community/analytics
      * verlangt hat; ohne das wird KEIN Script geladen.
      *
      * EINE SAMMEL-SITE FÜR ALLE POOL-COMMUNITIES (v2, 2026-08-04 — Davids

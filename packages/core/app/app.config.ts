@@ -56,6 +56,26 @@ export default defineAppConfig({
        * der Einstellungen. Ein Eintrag gehört in genau eine der beiden.
        */
       settingsTabs: [] as PukalaniSettingsTab[],
+      /**
+       * Reiter-Registry der COMMUNITY-Hülle (F51, 2026-08-07 — Davids
+       * Community-Settings-Hub, DECISION-LOG). Gleicher Typ wie
+       * `settingsTabs`, andere Hülle: `/dashboard/community` statt
+       * `/dashboard/settings`.
+       *
+       * Gerendert wird sie von packages/admin/app/pages/dashboard/community.vue,
+       * gefiltert mit `resolveSettingsTabs` (Ort × Capability × die drei
+       * Produkt-Gates); die Reihenfolge macht `order`. Der MENÜPUNKT unten
+       * links rechnet dieselbe Liste — bleibt nach dem Filtern nichts übrig,
+       * gibt es ihn nicht (im Betreiber-Kontext hat eine Community-Einstellung
+       * nichts zu suchen).
+       *
+       * Warum eine ZWEITE Liste und nicht ein Feld `hull` an den bestehenden
+       * Einträgen: die beiden Hüllen haben verschiedene Besitzer und
+       * verschiedene Ebenen. Ein vergessenes Feld legte einen
+       * Community-Schalter zwischen „Benachrichtigungen" und „Sicherheit" des
+       * KONTOS — zwei Listen können das gar nicht erst.
+       */
+      communityTabs: [] as PukalaniSettingsTab[],
     },
     /**
      * Chrome-Registry (Audit S9): Header-Nav + Header-Utilities der

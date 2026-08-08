@@ -1,6 +1,14 @@
 /**
- * `domains` meldet EINEN Reiter in der Einstellungs-Hülle an — die eigene
- * Domain dieser Silo-Site (control-036).
+ * `domains` meldet EINEN Reiter im Community-Hub an — die eigene Domain dieser
+ * Silo-Site (control-036).
+ *
+ * Seit F51 (2026-08-07) steht er in `pukalani.admin.communityTabs`
+ * (/dashboard/community/domain) statt in `settingsTabs`
+ * (/dashboard/settings/domain): die Adresse einer Site ist keine
+ * KONTO-Einstellung, und im Silo ist der Hub genau die Hülle, die es dafür
+ * gibt. Die Pool-Fassung (`onboarding`) ist mit umgezogen — beide heißen
+ * weiterhin gleich und kollidieren weiterhin nicht, weil keine App beide
+ * Layer zieht (Begründung: nuxt.config.ts dieses Layers).
  *
  * WARUM DIESER LAYER, wie überall in dieser Registry: wer die Routen besitzt,
  * registriert den Einstieg. Die Seite lebt von `/api/site/domain/*`, und die
@@ -28,15 +36,15 @@
 export default defineAppConfig({
   pukalani: {
     admin: {
-      settingsTabs: [
+      communityTabs: [
         {
           id: 'site-domain',
           scope: 'operator',
           labelKey: 'siteDomain.navLabel',
           icon: 'i-ph-globe-hemisphere-west',
-          to: '/dashboard/settings/domain',
+          to: '/dashboard/community/domain',
           requiredCapability: 'community.domain',
-          order: 20,
+          order: 40,
         },
       ],
     },

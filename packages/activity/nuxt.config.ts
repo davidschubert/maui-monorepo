@@ -35,6 +35,16 @@
  * `scripts/verify-pool-isolation.mjs`, Abschnitt „Bestand".
  */
 export default defineNuxtConfig({
+  /**
+   * ALT-PFAD (F51, 2026-08-07): das Protokoll ist vom eigenen Menüpunkt in den
+   * Community-Hub gezogen. Beide Locales, weil eine routeRule nur Pfade sieht
+   * (`prefix_except_default`).
+   */
+  routeRules: {
+    '/dashboard/activity': { redirect: { to: '/dashboard/community/activity', statusCode: 301 } },
+    '/de/dashboard/activity': { redirect: { to: '/de/dashboard/community/activity', statusCode: 301 } },
+  },
+
   // Eigene Layer-Strings — mergen mit Core- und App-Locales (gleiche codes)
   i18n: {
     locales: [

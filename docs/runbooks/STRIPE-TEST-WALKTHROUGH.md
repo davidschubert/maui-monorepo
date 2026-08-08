@@ -26,9 +26,14 @@ später an der falschen Stelle.
 
 | Wo | Was passiert dort | Appwrite-Projekt |
 |---|---|---|
-| `https://<community-host>/dashboard/settings/subscription` | Der **Owner klickt**: Plan wählen, Portal öffnen. App `platform`. | `pool` |
+| `https://<community-host>/dashboard/community/plan` | Der **Owner klickt**: Plan wählen, Portal öffnen. App `platform`. | `pool` |
 | `https://control.pukalani.app` | **Stripe lebt hier**: Schlüssel, Checkout-Session, Portal-Session, Webhook. App `control`. | `control` |
 | Stripe-Dashboard (Test-Modus) | Preise, Webhook-Endpunkt, Test-Clock. | — |
+
+> **Seit F51 (2026-08-07)** heißt die Abo-Seite `/dashboard/community/plan` —
+> Reiter „Plan" im Community-Settings-Hub. Der alte Pfad
+> `/dashboard/settings/subscription` leitet 301 weiter; Checkout-Rücksprünge
+> und das Stripe-Portal zeigen auf den neuen.
 
 Wichtig und leicht zu übersehen: **die Platform-App hat kein Stripe**.
 `apps/platform/nuxt.config.ts` listet `packages/billing` nicht in `extends` —
@@ -125,7 +130,7 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST https://control.pukalani.app/ap
 Nicht mehr auf `control.pukalani.app`, sondern auf dem **Host der Community**:
 
 ```
-https://<community-host>/dashboard/settings/subscription
+https://<community-host>/dashboard/community/plan
 ```
 
 Der Menüpunkt heißt „Abo & Rechnung". Er verlangt die Capability
@@ -138,7 +143,7 @@ Wenn du keine Test-Community hast: über den Trichter
 (`packages/control/server/utils/onboardingProvision.ts`).
 
 **Soll-Bild:** drei Karten — „Aktueller Plan", „Plan wählen", „Rechnungen &
-Zahlungsmethode" (`packages/onboarding/app/pages/dashboard/settings/subscription.vue`).
+Zahlungsmethode" (`packages/onboarding/app/pages/dashboard/community/plan.vue`).
 Bei **Basic** gibt es bewusst keinen Knopf — seit F49 (2026-08-07) ist Basic
 kein Angebot mehr, sondern der Zustand ohne Abo (nur-lesend nach der
 Testphase); die Karte beschreibt genau das, `lookupKey: null`.
@@ -158,7 +163,7 @@ Stripe-Seite:
 
 **Soll-Ergebnis:**
 
-1. Rücksprung auf `https://<community-host>/dashboard/settings/subscription?checkout=success`.
+1. Rücksprung auf `https://<community-host>/dashboard/community/plan?checkout=success`.
    Diese URL baut der **Server** aus `communities.host` — nie aus dem Body
    (`apps/control/server/utils/communityCheckout.ts`).
 2. **Die Seite springt NICHT von selbst auf den neuen Plan.** Der Erfolgs-Toast
@@ -358,7 +363,7 @@ Testkarte für den verzögerten Erfolg: SEPA-Testkonto `DE89370400440532013000`.
       stündlichen Platform-Lauf: genau EINE Zeile, rowId
       `pastdue-<hash>` (Idempotenz-Schlüssel), `type: billing`,
       `communityId` = `t-…` (die tenantId, wie dokumentiert), Link
-      `/dashboard/settings/subscription`.
+      `/dashboard/community/plan`.
 
 Wenn alle Haken sitzen, ist der Geldweg **test-seitig bewiesen** — für Live
 fehlen dann nur noch Bank und der Schlüssel-Tausch:
@@ -416,7 +421,7 @@ fehlen dann nur noch Bank und der Schlüssel-Tausch:
 Die Fassung vom 2026-07-21 beschrieb die Workspace-Welt. Falsch waren:
 
 1. **Der Ort.** `control.pukalani.app` → `/dashboard/workspaces` bzw.
-   `/workspace`. Heute: `<community-host>/dashboard/settings/subscription`.
+   `/workspace`. Heute: `<community-host>/dashboard/community/plan`.
 2. **Das zahlende Objekt.** Der Workspace ist mit A6 Schritt 5 gefallen; die
    **Community** zahlt (`communities.plan` / `.stripeCustomerId`).
 3. **Die Pläne.** free/pro/business → **basic/personal/pro**.

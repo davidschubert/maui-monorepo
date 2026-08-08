@@ -36,7 +36,7 @@
  * über ihren HOST gefunden wird. Es fasst KEINE Row-Permissions an — das ist
  * bewusst: der Stempel 'public' beschreibt nur, was ohnehin gilt. Wer eine
  * Community wirklich UMSCHALTEN will, nimmt den Schalter unter
- * /dashboard/settings/community; der zieht den Bestand mit um
+ * /dashboard/community; der zieht den Bestand mit um
  * (audienceRepermission.ts).
  *
  * ═══ AUFRUF ════════════════════════════════════════════════════════════

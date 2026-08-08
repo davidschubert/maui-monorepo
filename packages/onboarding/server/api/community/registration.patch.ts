@@ -4,7 +4,7 @@ import { callControlPlane, mintRuntimeJwt } from '../../utils/controlPlane'
 /**
  * „Offene Registrierung" DIESER Community umschalten (Audit-Befund S1, Davids
  * Entscheidung 4 vom 2026-07-27). Aufrufer ist das Kunden-Dashboard auf dem
- * Mandanten-Host (der USwitch in /dashboard/settings/community).
+ * Mandanten-Host (der USwitch in /dashboard/community).
  *
  * WARUM DIESE ROUTE IM ONBOARDING-LAYER LIEGT: `tenants` gehört dem Control
  * Plane, und die Platform-App hat dorthin nur einen READ-ONLY-Key. Der einzige

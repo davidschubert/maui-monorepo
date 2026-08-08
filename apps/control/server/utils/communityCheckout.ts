@@ -73,7 +73,12 @@ export async function createCommunityCheckoutUrl(event: H3Event, input: {
   const price = await resolvePriceByLookupKey(event, lookupKey)
   const stripe = useStripe(event)
 
-  const base = `https://${input.tenant.host}/dashboard/settings/subscription`
+  // Der Plan-Reiter des Community-Hubs (F51, 2026-08-07). FESTER Pfad, und
+  // er wird beim Anlegen der Sitzung eingefroren: eine Umbenennung hier ohne
+  // Weiterleitung dort schickt Zahlende nach dem Bezahlen auf eine 404. Der
+  // Alt-Pfad `/dashboard/settings/subscription` leitet 301 weiter
+  // (routeRules in packages/onboarding/nuxt.config.ts).
+  const base = `https://${input.tenant.host}/dashboard/community/plan`
   const metadata = { communityId: input.tenant.$id, plan: input.plan, userId: input.ownerUserId }
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
@@ -106,7 +111,7 @@ export async function createCommunityPortalUrl(event: H3Event, tenant: TenantRow
   const stripe = useStripe(event)
   const session = await stripe.billingPortal.sessions.create({
     customer: tenant.stripeCustomerId,
-    return_url: `https://${tenant.host}/dashboard/settings/subscription`,
+    return_url: `https://${tenant.host}/dashboard/community/plan`,
   }).catch(error => toStripeSafeError(error, 'billingPortal.sessions.create (community) fehlgeschlagen'))
   return session.url
 }

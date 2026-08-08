@@ -135,7 +135,7 @@ async function toggleStatus(tenant: TenantDto) {
 
 /**
  * S1: Mitglieder-Registrierung der Community. Der Schalter GEHÖRT der Kundin
- * (/dashboard/settings/community auf ihrem Host) — hier steht er als
+ * (/dashboard/community auf ihrem Host) — hier steht er als
  * Support-Weg, weil der Kunden-Pfad eine aktive community_members-Rolle verlangt
  * und ein Betreiber die bewusst nicht hat.
  */

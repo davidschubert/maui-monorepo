@@ -15,6 +15,7 @@
       "audit": "Activity log",
       "homepage": "View site",
       "people": "People",
+      "communitySettings": "Community settings",
       "groups": {
         "platform": "Platform",
         "studio": "Studio",
@@ -525,6 +526,9 @@
       "notifications": "Notifications",
       "sessions": "Sessions",
       "security": "Security"
+    },
+    "communitySettings": {
+      "title": "Community settings"
     },
     "sidebar": {
       "label": "Sidebar",
