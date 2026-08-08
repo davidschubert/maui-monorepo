@@ -97,6 +97,9 @@ const SITES = [
       // Analytics v2 (der Silo hat eine eigene Plausible-Site, aber dasselbe
       // Dashboard — ohne Schlüssel bleibt es dort leer).
       'NUXT_ANALYTICS_STATS_API_KEY',
+      // Silo-Naht (control-036) — s. Begründung bei portfolio.
+      'NUXT_ONBOARDING_CONTROL_URL',
+      'NUXT_ONBOARDING_SERVICE_SECRET',
     ],
   },
   {
@@ -108,6 +111,18 @@ const SITES = [
       'NUXT_PUBLIC_APPWRITE_ENDPOINT',
       'NUXT_PUBLIC_APPWRITE_PROJECT_ID',
       'NUXT_ANALYTICS_STATS_API_KEY',
+      /**
+       * Die Silo-Naht zum Control Plane (control-036, eigene Domain).
+       *
+       * DIESELBE SORTE LOCH WIE F44: fehlen sie, läuft die Site völlig normal
+       * weiter — sie erfährt nur nie, dass ihr eine eigene Domain gehört. Keine
+       * Umleitung, kein „Prüfen", und der Rückruf der Betreiber-Konsole
+       * (`POST /api/site/domain/settle`) antwortet 401. Alles fail-soft, also
+       * still. Beim Erstlauf am 2026-08-08 fehlten beide auf dem Server und
+       * mussten mitten im Durchlauf nachgetragen werden.
+       */
+      'NUXT_ONBOARDING_CONTROL_URL',
+      'NUXT_ONBOARDING_SERVICE_SECRET',
     ],
   },
   {
