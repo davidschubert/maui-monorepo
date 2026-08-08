@@ -105,7 +105,7 @@ catalog:
   # und der Prod-Build stirbt an ENAMETOOLONG.
   vue: ^3.5.40
   typescript: ^5.9.3
-  vitest: ^4.1.8
+  vitest: ^4.1.10
   vue-tsc: ^3.3.8
   zod: ^4.4.3
   jiti: ^2.7.0
