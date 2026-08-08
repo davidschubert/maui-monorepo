@@ -27,10 +27,22 @@
  *     curl -H "Origin: https://<neu>"          /v1/account → 401  (Origin akzeptiert)
  *     curl -H "Origin: https://<nie-gesehen>"  /v1/account → 403 general_unknown_origin
  *
- * Der Schritt ist damit automatisierbar und wird automatisiert. Was NICHT
- * automatisch geht: Appwrite prüft beim Anlegen NICHT auf Dubletten (derselbe
- * Hostname zweimal ergibt zwei Zeilen, kein 409) — deshalb liest diese Datei
- * IMMER erst die Liste. Ein Prüf-Klick darf beliebig oft passieren.
+ * ── UND WARUM DAS IN PRODUKTION TROTZDEM SCHEITERTE (F54, 2026-08-08) ─────
+ * Der lokale Schlüssel hatte ALLE Scopes. Die Produktions-Keys haben sie
+ * nicht: weder der Runtime- noch der Migrations-Key darf die Projects-API
+ * benutzen, beide bekommen `401 general_unauthorized_scope`. Der letzte
+ * Schritt der Freischaltung scheiterte damit in Produktion IMMER — an einer
+ * Stelle, an der lokal alles grün war.
+ *
+ * Die Antwort ist NICHT ein dritter Schlüssel, sondern eine andere Frage: die
+ * GEGENPROBE oben braucht überhaupt keinen Schlüssel. Eingetragen wird
+ * weiterhin versucht (`ensureAppwriteWebPlatforms`, fail-soft), GEMESSEN wird
+ * über die Origin-Probe (`ensureAppwriteOrigins`). Wer den Erfolg an der
+ * Registrierung festmacht, misst sein eigenes Werkzeug.
+ *
+ * Was NICHT automatisch geht: Appwrite prüft beim Anlegen NICHT auf Dubletten
+ * (derselbe Hostname zweimal ergibt zwei Zeilen, kein 409) — deshalb liest
+ * diese Datei IMMER erst die Liste. Ein Prüf-Klick darf beliebig oft passieren.
  *
  * ── WARUM IN DER RUNTIME UND NICHT IM CONTROL PLANE ───────────────────────
  * Registriert werden muss die Platform im RUNTIME-Projekt, und dafür hat das
@@ -58,6 +70,13 @@
  * Abstraktion, es gibt keine.
  */
 import type { H3Event } from 'h3'
+import {
+  appwriteConsoleHint,
+  decidePlatformOutcome,
+  interpretOriginProbe,
+  type OriginProbeOutcome,
+  type OriginProbeResult,
+} from '../../shared/appwriteOriginProbe'
 
 interface AppwritePlatform {
   $id: string
@@ -170,6 +189,107 @@ export async function ensureAppwriteWebPlatforms(event: H3Event, hosts: string[]
     added.push(host)
   }
   return { ok: true, message: '', added }
+}
+
+/**
+ * DIE PROBE OHNE SCHLÜSSEL — akzeptiert dieses Appwrite-Projekt den Origin?
+ *
+ * Bewusst mit NACKTEN Argumenten statt mit einem `H3Event`: sie ist der
+ * eigentliche Messwert der Freischaltung (F54) und muss deshalb beweisbar
+ * sein. Mit Strings kann ein Test sie gegen einen echten lokalen HTTP-Server
+ * laufen lassen — echter `fetch`, echte Header, echte Statuscodes. Mit einem
+ * Event könnte er nur eine Attrappe messen.
+ *
+ * KEIN `X-Appwrite-Key`. Das ist nicht Sparsamkeit, sondern der Punkt: genau
+ * weil diese Anfrage keinen Schlüssel braucht, funktioniert sie auch dort, wo
+ * die Projects-API am Scope scheitert.
+ */
+export async function probeAppwriteOrigin(
+  endpoint: string,
+  projectId: string,
+  host: string,
+  timeoutMs = 8000,
+): Promise<OriginProbeResult> {
+  const base = (endpoint || '').replace(/\/+$/, '')
+  if (!base || !projectId || !host) {
+    return { host, verdict: 'inconclusive', detail: 'Appwrite ist nicht vollständig konfiguriert' }
+  }
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  let outcome: OriginProbeOutcome
+  try {
+    const response = await fetch(`${base}/account`, {
+      method: 'GET',
+      headers: {
+        'Origin': `https://${host}`,
+        'X-Appwrite-Project': projectId,
+        'Accept': 'application/json',
+      },
+      redirect: 'manual',
+      signal: controller.signal,
+    })
+    const text = await response.text()
+    let type = ''
+    try {
+      const parsed = text ? JSON.parse(text) as { type?: unknown } : null
+      if (typeof parsed?.type === 'string') type = parsed.type
+    }
+    catch {
+      // Kein JSON — dann entscheidet der Statuscode allein.
+    }
+    outcome = { kind: 'status', status: response.status, type }
+  }
+  catch (error) {
+    outcome = { kind: 'error', detail: error instanceof Error ? error.message : String(error) }
+  }
+  finally {
+    clearTimeout(timer)
+  }
+  return {
+    host,
+    verdict: interpretOriginProbe(outcome),
+    detail: outcome.kind === 'status'
+      ? `${outcome.status}${outcome.type ? ` ${outcome.type}` : ''}`
+      : outcome.detail.slice(0, 120),
+  }
+}
+
+/**
+ * DER SCHRITT, DEN DIE FREISCHALTUNG WIRKLICH BRAUCHT (F54).
+ *
+ * Erst eintragen VERSUCHEN — wo der Schlüssel es darf, bleibt der Ablauf
+ * vollautomatisch. Dann MESSEN, und zwar schlüssellos. Sind alle Formen
+ * akzeptiert, ist das Ergebnis `ok`, auch wenn die Registrierung am Scope
+ * gescheitert ist; sind sie es nicht, steht der Handgriff in der Meldung.
+ *
+ * WIRFT NIE — dieselbe Zusage wie beim Vorgänger. Ein Fehlschlag lässt die
+ * Domain in `pending_platform` stehen, nie in `active`.
+ */
+export async function ensureAppwriteOrigins(
+  event: H3Event,
+  hosts: string[],
+): Promise<PlatformSyncResult> {
+  const api = projectApi(event)
+  const registration = await ensureAppwriteWebPlatforms(event, hosts)
+
+  const probes: OriginProbeResult[] = []
+  for (const host of hosts) {
+    probes.push(await probeAppwriteOrigin(api.endpoint, api.projectId, host))
+  }
+
+  const decision = decidePlatformOutcome({
+    probes,
+    registration: { ok: registration.ok, message: registration.message },
+    consoleHint: appwriteConsoleHint(api.projectId),
+  })
+
+  logEvent(decision.ok ? 'info' : 'warn', 'appwrite.origin_probe', {
+    projectId: api.projectId,
+    probes: probes.map(probe => `${probe.host}=${probe.verdict}(${probe.detail})`).join(' · ').slice(0, 300),
+    registered: registration.added.join(','),
+  })
+
+  return { ok: decision.ok, message: decision.message, added: registration.added }
 }
 
 /**

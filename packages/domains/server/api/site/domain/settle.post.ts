@@ -40,7 +40,9 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 409, statusText: 'Domain is not ready', data: { code: 'domain_not_ready' } })
   }
 
-  const result = await ensureAppwriteWebPlatforms(event, address.forms)
+  // F54: eintragen versuchen, ERFOLG über die schlüssellose Origin-Probe
+  // messen — die Projects-API scheitert auf Produktions-Keys am Scope.
+  const result = await ensureAppwriteOrigins(event, address.forms)
   invalidateSiteDomainAddress()
   logEvent(result.ok ? 'info' : 'warn', 'website.custom_domain_settled', {
     projectId,

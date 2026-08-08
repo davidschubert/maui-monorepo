@@ -133,7 +133,11 @@ export async function verifySiteDomain(event: H3Event): Promise<SiteDomainState>
   invalidateSiteDomainAddress()
   if (!checked.needsPlatformRegistration) return checked
 
-  const platforms = await ensureAppwriteWebPlatforms(event, checked.forms)
+  // GEMESSEN WIRD DIE ORIGIN-PROBE, nicht der Eintragungs-Versuch (F54): auf
+  // Produktions-Keys scheitert die Projects-API am Scope, die schlüssellose
+  // Probe aber nicht. Stehen die Platforms schon (von Hand angelegt), ist das
+  // hier ein Erfolg — vorher war es einer, der nie ankam.
+  const platforms = await ensureAppwriteOrigins(event, checked.forms)
   if (platforms.added.length) {
     logEvent('info', 'website.custom_domain_platforms_added', {
       projectId, hosts: platforms.added.join(','),

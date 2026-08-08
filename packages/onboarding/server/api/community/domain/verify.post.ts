@@ -45,7 +45,11 @@ export default defineEventHandler(async (event) => {
   )
   if (!checked.needsPlatformRegistration) return checked
 
-  const platforms = await ensureAppwriteWebPlatforms(event, checked.forms)
+  // F54 (2026-08-08): eintragen VERSUCHEN, aber den Erfolg über die
+  // schlüssellose Origin-Probe MESSEN. Die Projects-API verlangt einen Scope,
+  // den die Produktions-Keys nicht haben (`401 general_unauthorized_scope`) —
+  // gemessen am Silo-Erstlauf, gilt für das Pool-Projekt genauso.
+  const platforms = await ensureAppwriteOrigins(event, checked.forms)
   if (platforms.added.length) {
     logEvent('info', 'community.custom_domain_platforms_added', {
       communityId: tenant.communityId,
