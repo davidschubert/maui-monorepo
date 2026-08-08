@@ -5,7 +5,7 @@ import {
   websiteFallbackHost,
   websiteKnownHosts,
 } from '../shared/siteDomain'
-import { certificateCovers, siteCertificateDomains } from '../server/utils/ploi'
+import { certificateCovers, coveringCertificate, siteCertificateDomains } from '../server/utils/ploi'
 import { CUSTOM_DOMAIN_STATUSES } from '../shared/customDomain'
 import { SITE_DOMAIN_STATUSES } from '../../core/shared/types/siteDomain'
 
@@ -184,5 +184,38 @@ describe('certificateCovers', () => {
 
   it('deckt eine leere Wunschliste NICHT ab (fail-closed)', () => {
     expect(certificateCovers([{ domain: 'a.example.com', status: 'active' }], [])).toBe(false)
+  })
+})
+
+describe('coveringCertificate', () => {
+  /**
+   * F52, Tenant-Pfad: hier zählt ANDERS als bei certificateCovers auch ein
+   * Zertifikat, das noch in Ausstellung ist — genau während der Ausstellung
+   * ist der Wiederholungs-Klick gefährlich (fünf identische pro Woche, der
+   * sechste sperrt sieben Tage). Der Aufrufer entscheidet anhand des Status.
+   */
+  it('findet einen deckenden Eintrag unabhängig vom Status', () => {
+    expect(coveringCertificate(
+      [{ domain: 'kunde.example.com', status: 'creating' }],
+      ['kunde.example.com'],
+    )).toEqual({ domain: 'kunde.example.com', status: 'creating' })
+  })
+
+  it('ist unbeeindruckt von Leerraum und Groß-/Kleinschreibung', () => {
+    expect(coveringCertificate(
+      [{ domain: ' Kunde.Example.Com ', status: 'active' }],
+      ['kunde.example.com'],
+    )).toEqual({ domain: ' Kunde.Example.Com ', status: 'active' })
+  })
+
+  it('liefert null, wenn dem Eintrag ein gewünschter Name fehlt', () => {
+    expect(coveringCertificate(
+      [{ domain: 'kunde.example.com', status: 'active' }],
+      ['kunde.example.com', 'www.kunde.example.com'],
+    )).toBeNull()
+  })
+
+  it('liefert null für eine leere Wunschliste (fail-closed)', () => {
+    expect(coveringCertificate([{ domain: 'a.example.com', status: 'active' }], [])).toBeNull()
   })
 })

@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 7 offen · 3 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 6 offen · 3 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-07**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -23,7 +23,6 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 5 · F49 | **Pricing-Umbau (Davids Entscheidung 2026-08-07):** Testphase endet **nur-lesend** (M13-`billing`-Sperre statt Basic-Downgrade im trialSweep, Wizard-Text „nichts wird gesperrt" anpassen) + Preisseite www zeigt **nur Personal + Pro**. Gilt **rückwirkend** auch für Bestands-Communities mit abgelaufenem Trial (4. Runde). **Zuerst dran** (vor F50/F51); danach spielt Claude A2a durch. | Hoch | M | Nein — Entscheidungen stehen im [DECISION-LOG](DECISION-LOG.md) | [DECISION-LOG 2026-08-07](DECISION-LOG.md) |
 | 6 · F50 | **Community-Switcher im Dashboard** (Davids Entscheidung 2026-08-07): TeamsMenu oben links, zeigt alle Communities mit **Dashboard-Zugang** (eigene + Team-Rollen), Wechsel = `<host>/dashboard`, dazu „Create Community" (Wizard) + „Manage Communities" (my.pukalani.app). | Mittel | M | Nein | [DECISION-LOG 2026-08-07](DECISION-LOG.md) |
 | 7 · F51 | **Community-Settings-Hub** (Davids Entscheidung 2026-08-07): Menüpunkt unten links, elf Reiter (Allgemein, Branding, Members, Domain, Plan, Aktivität, Konfiguration, Produkte, Analytics, Speicher, System) in EINER Hülle via `settingsTabs`-Registry; Pool = Community-Sicht (System entfällt dort), Silo = Instanz-Sicht; Plan-Label „Testphase (Pro) – X Tage übrig" / „Kein Abo – Free Plan" (+ sichtbarer Nur-lesen-Hinweis, Verhalten = F49). **Zusammen mit F50 als EIN Nav-Umbau, nach F49** (4. Runde). | Mittel | L | Nein | [DECISION-LOG 2026-08-07](DECISION-LOG.md) |
-| 8 · F52 | **Pool-Domains: Sperre gegen den Wiederholungs-Klick.** „Prüfen" fordert bei jedem Klick ein Zertifikat an, solange es in `pending_cert` steht. Let's Encrypt lässt **fünf identische pro Woche** zu — der sechste Klick während der Ausstellung sperrt den Kunden sieben Tage aus, und die Meldung nennt keinen der vorherigen Klicks. Die Silo-Fassung liest vorher (`certificateCovers` in `ploi.ts`); `requestPloiTenantCertificate` fehlt dasselbe. | Mittel | S | Nein | [ploi.ts](../packages/control/server/utils/ploi.ts) |
 | 9 · F53 | **Dark Mode für die Marketing-Landing** (Davids Entscheidung 2026-08-07, war B7): Komponenten laufen seit der Nuxt-UI-Migration über Theme-Tokens — die `tone-*`-Licht-Dramaturgie in `marketing.css` braucht einen `.dark`-Zweig, danach fällt die `light`-Klemme in `apps/marketing/nuxt.config.ts`. | Niedrig | S–M | Nein | [DECISION-LOG 2026-08-07](DECISION-LOG.md) |
 
 ## ⏸️ Geparkt / wartet — in Arbeitsreihenfolge

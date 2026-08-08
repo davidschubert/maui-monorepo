@@ -216,12 +216,45 @@ export async function ensurePloiTenants(config: PloiConfig, hosts: string[]): Pr
  * angefordert wurde. Ein gemeinsames Zertifikat läge nur in einem der beiden —
  * die andere Form hätte einen Namen ohne Zertifikat, also genau die
  * Warnseite, die wir vermeiden wollen.
+ *
+ * ── DIE SPERRE GEGEN DEN WIEDERHOLUNGS-KLICK (F52) ────────────────────────
+ * Dieselbe Gefahr wie beim Silo-Pfad (requestPloiSiteCertificate): „Prüfen"
+ * ist re-entrant, Let's Encrypt lässt fünf identische Zertifikate pro Woche
+ * zu, und der sechste Klick während der Ausstellung sperrt den Kunden sieben
+ * Tage aus. Deshalb wird auch hier VOR der Anforderung gelesen.
+ *
+ * Tenant-Zertifikate erscheinen in der Zertifikatsliste DER SITE (die API
+ * führt dafür ein `tenant`-Flag; live nachgemessen 2026-08-07 an Site 391312).
+ * Erschienen sie dort wider Erwarten nicht, wäre die Sperre ein No-Op und das
+ * Verhalten exakt das heutige — die Vorprüfung ist bewusst FAIL-OPEN, auch
+ * ein Listen-Fehler hält die Anforderung nicht auf.
+ *
+ * BEWUSST KEIN STATUS-VOKABULAR GERATEN: live belegt ist nur 'active'. Jeder
+ * andere Status eines deckenden Eintrags gilt als „in Arbeit" und wird NICHT
+ * erneut angefordert — die Meldung nennt den Status und den Ausweg (Eintrag
+ * in ploi löschen, dann erneut prüfen). Das ist fail-safe gegen das
+ * LE-Limit; ein wirklich festhängendes Zertifikat kostet einen Handgriff des
+ * Betreibers statt den Kunden sieben Tage.
  */
 export async function requestPloiTenantCertificate(config: PloiConfig, host: string): Promise<PloiResult> {
   if (config.dryRun) return { ok: true, skipped: true, message: '' }
   if (!ploiConfigured(config)) {
     return { ok: false, skipped: true, message: 'ploi ist nicht konfiguriert — das Zertifikat muss der Betreiber anlegen.' }
   }
+
+  const existing = await listPloiCertificates(config)
+  if (existing.ok) {
+    const covering = coveringCertificate(existing.certificates, [host])
+    if (covering) {
+      if (covering.status === 'active') return { ok: true, skipped: true, message: '' }
+      return {
+        ok: true,
+        skipped: true,
+        message: `Für ${host} ist bereits ein Zertifikat beauftragt (Status „${covering.status}") — nicht erneut angefordert. Hängt es fest: Eintrag in ploi löschen, dann erneut prüfen.`,
+      }
+    }
+  }
+
   const result = await ploiFetch(
     config,
     `/servers/${config.serverId}/sites/${config.siteId}/tenants/${encodeURIComponent(host)}/request-certificate`,
@@ -353,19 +386,32 @@ export async function listPloiCertificates(config: PloiConfig): Promise<{ ok: bo
   return { ok: true, certificates, message: '' }
 }
 
-/** PURE: deckt eines der vorhandenen Zertifikate ALLE gewünschten Namen ab? */
+/**
+ * PURE: der erste Zertifikats-Eintrag, dessen Namensmenge ALLE gewünschten
+ * Namen abdeckt — UNABHÄNGIG vom Status. Wer nur ausgestellte zählen will,
+ * nimmt certificateCovers; der Tenant-Pfad (F52) braucht auch die noch in
+ * Ausstellung befindlichen, denn genau während der Ausstellung ist der
+ * Wiederholungs-Klick gefährlich. Leere Wunschliste deckt nichts (fail-closed).
+ */
+export function coveringCertificate(
+  certificates: { domain: string, status: string }[],
+  wanted: string[],
+): { domain: string, status: string } | null {
+  const need = wanted.map(host => host.trim().toLowerCase()).filter(Boolean)
+  if (!need.length) return null
+  return certificates.find((entry) => {
+    // ploi legt die Namen eines Zertifikats kommagetrennt in `domain` ab.
+    const covered = new Set(entry.domain.split(',').map(host => host.trim().toLowerCase()).filter(Boolean))
+    return need.every(host => covered.has(host))
+  }) ?? null
+}
+
+/** PURE: deckt eines der AKTIVEN Zertifikate ALLE gewünschten Namen ab? */
 export function certificateCovers(
   certificates: { domain: string, status: string }[],
   wanted: string[],
 ): boolean {
-  const need = wanted.map(host => host.trim().toLowerCase()).filter(Boolean)
-  if (!need.length) return false
-  return certificates.some((entry) => {
-    // ploi legt die Namen eines Zertifikats kommagetrennt in `domain` ab.
-    if (entry.status !== 'active') return false
-    const covered = new Set(entry.domain.split(',').map(host => host.trim().toLowerCase()).filter(Boolean))
-    return need.every(host => covered.has(host))
-  })
+  return coveringCertificate(certificates.filter(entry => entry.status === 'active'), wanted) !== null
 }
 
 /**

@@ -29,6 +29,28 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### F52 — Pool-Domains: Sperre gegen den Wiederholungs-Klick ✅ 2026-08-07
+
+**Was gebaut wurde.** `requestPloiTenantCertificate` (packages/control/server/
+utils/ploi.ts) liest jetzt VOR jeder Anforderung die Zertifikatsliste der
+Site — dieselbe Sperre, die der Silo-Pfad (`requestPloiSiteCertificate`)
+schon hatte. Neue pure Funktion `coveringCertificate` (Deckung der Namensmenge
+UNABHÄNGIG vom Status), `certificateCovers` darauf abgestützt (Verhalten
+unverändert, Tests grün). Deckt ein Eintrag den Host ab: `active` ⇒ still
+übersprungen; jeder ANDERE Status ⇒ übersprungen mit Meldung, die Status und
+Ausweg nennt (Eintrag in ploi löschen, erneut prüfen). Kein Eintrag oder
+Listen-Fehler ⇒ Anforderung geht raus (fail-open, kein Regressionsrisiko).
+**Warum so:** Let's Encrypt erlaubt fünf identische Zertifikate pro Woche —
+der sechste Klick WÄHREND der Ausstellung sperrt den Kunden sieben Tage aus,
+und die LE-Meldung nennt keinen der vorherigen Klicks. Status-Vokabular von
+ploi ist bewusst NICHT geraten: live belegt ist nur `active` (Site 391312,
+`tenant`-Flag in der Liste nachgemessen 2026-08-07); alles andere gilt als
+„in Arbeit". **Beweis:** vitest 350/350 (packages/control, inkl. 4 neue
+coveringCertificate-Fälle), eslint 0 Fehler, `pnpm --filter control
+typecheck` 0 Fehler. Ein Live-Beweis mit echtem Tenant-Zertifikat steht aus,
+bis der erste Kunde eine Domain aktiviert (Runbook
+CUSTOM-DOMAIN-ERSTAKTIVIERUNG deckt das).
+
 ### Eigene Domain je Community (Custom Domains) ✅ 2026-08-07
 
 **Was gebaut wurde.** Eine Pool-Community ist unter ihrer eigenen Adresse
