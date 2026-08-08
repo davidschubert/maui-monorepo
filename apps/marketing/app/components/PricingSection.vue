@@ -70,21 +70,24 @@ function perMonth(key: keyof typeof PRICES): number {
   return yearly.value ? PRICES[key].yearly / 12 / 100 : PRICES[key].monthly / 100
 }
 
+// NUR die zwei kaufbaren Pakete stehen im Raster. Enterprise/Studio ist KEIN
+// Plan-Key und kein Selbstbedienungs-Kauf (P4) — die Karte grenzt sich seit
+// F49-Nachtrag (Davids Entscheidung 2026-08-08) auch räumlich ab: eigene,
+// liegende Karte UNTER dem Raster (`studio` unten) statt dritter Spalte.
 const plans = computed(() => [
-  { key: 'personal', price: n(perMonth('personal'), { style: 'currency', currency: 'EUR' }), note: yearly.value ? t('marketing.pricing.perMonthYearly') : t('marketing.pricing.perMonth'), vat: true, to: signIn, featured: true },
-  { key: 'pro', price: n(perMonth('pro'), { style: 'currency', currency: 'EUR' }), note: yearly.value ? t('marketing.pricing.perMonthYearly') : t('marketing.pricing.perMonth'), vat: true, to: signIn, featured: false },
-  { key: 'enterprise', price: t('marketing.pricing.enterprisePrice'), note: t('marketing.pricing.enterpriseNote'), vat: false, to: signIn, featured: false },
+  { key: 'personal', price: n(perMonth('personal'), { style: 'currency', currency: 'EUR' }), featured: true },
+  { key: 'pro', price: n(perMonth('pro'), { style: 'currency', currency: 'EUR' }), featured: false },
 ].map(plan => ({
   key: plan.key,
   price: plan.price,
-  billingPeriod: plan.note,
-  billingCycle: plan.vat ? t('marketing.pricing.vatNote') : undefined,
+  billingPeriod: yearly.value ? t('marketing.pricing.perMonthYearly') : t('marketing.pricing.perMonth'),
+  billingCycle: t('marketing.pricing.vatNote'),
   highlight: plan.featured,
   title: t(`marketing.pricing.plans.${plan.key}.name`),
   tag: t(`marketing.pricing.plans.${plan.key}.tag`),
   tagline: t(`marketing.pricing.plans.${plan.key}.desc`),
   button: {
-    to: plan.to,
+    to: signIn,
     label: t(`marketing.pricing.plans.${plan.key}.cta`),
     // Der hervorgehobene Knopf war bis Paket 4 `color="warning"` — die letzte
     // Stelle der Seite, die eine STATUSFARBE als Markenfarbe benutzte. Seit
@@ -96,6 +99,28 @@ const plans = computed(() => [
     size: 'md' as const,
   },
 })))
+
+// Die Studio-Karte: liegend (`orientation="horizontal"`), damit sie als
+// ANGEBOT NACH MASS lesbar ist und nicht als drittes Paket. Die liegende Form
+// rendert den `#header`-Slot nicht — die Kennung „Pukalani Studio" reist
+// deshalb als `badge` neben dem Titel. `variant="subtle"` setzt sie zusätzlich
+// vom Rasterton der Paket-Karten ab. Der Text läuft als `description` (links,
+// unter dem Titel), NICHT als `tagline` — die rendert `UPricingPlan` am
+// Preisblock rechts, und die linke Kartenhälfte stünde leer (live gesehen).
+const studio = computed(() => ({
+  title: t('marketing.pricing.plans.enterprise.name'),
+  badge: t('marketing.pricing.plans.enterprise.tag'),
+  description: t('marketing.pricing.plans.enterprise.desc'),
+  price: t('marketing.pricing.enterprisePrice'),
+  billingPeriod: t('marketing.pricing.enterpriseNote'),
+  button: {
+    to: signIn,
+    label: t('marketing.pricing.plans.enterprise.cta'),
+    color: 'neutral' as const,
+    variant: 'soft' as const,
+    size: 'md' as const,
+  },
+}))
 </script>
 
 <template>
@@ -156,18 +181,11 @@ const plans = computed(() => [
 
          Das Raster selbst bleibt hier und nicht im app.config-Vertrag: die
          Spaltenzahl ist Layout DIESER Sektion (gleiche Trennung wie beim
-         `pageGrid`-Vertrag). Die Vorgabe von `UPricingPlans` schaltet erst ab
-         1024px um; der Bestand tut es ab 980px — deshalb die ausgeschriebene
-         Stufe. Seit F49 sind es DREI Karten (Basic ist raus), nicht vier.
-
-         Die zweispaltige Stufe braucht eine OBERE Schranke (`max-[979px]`) und
-         nicht nur `sm:`: zwei Stufen mit VERSCHIEDENEN Bedingungen überleben
-         tailwind-merge beide, und welche gewinnt, entscheidet dann die
-         Reihenfolge in Tailwinds Ausgabe — dort steht `min-[980px]` VOR `sm:`.
-         Live gemessen: bei 1000px standen zwei Karten statt vier. Mit dem
-         Bereich 640–979px überschneiden sich die Stufen gar nicht mehr. -->
+         `pageGrid`-Vertrag). Seit dem F49-Nachtrag sind es ZWEI Paket-Karten —
+         die alte Dreifach-Stufung (min-[980px] gegen sm:, tailwind-merge-
+         Falle) ist damit Geschichte: eine einzige sm:-Stufe reicht. -->
     <div class="mkt-inner" data-reveal>
-      <UPricingPlans class="mt-10 grid grid-cols-1 gap-5 sm:max-[979px]:grid-cols-2 min-[980px]:grid-cols-3">
+      <UPricingPlans class="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2">
         <UPricingPlan
           v-for="plan in plans" :key="plan.key"
           :title="plan.title"
@@ -181,6 +199,21 @@ const plans = computed(() => [
           <template #header>{{ plan.tag }}</template>
         </UPricingPlan>
       </UPricingPlans>
+
+      <!-- Die Studio-Karte: bewusst AUSSERHALB von `UPricingPlans`, in eigener
+           Zeile und liegend — sie ist kein drittes Paket, sondern das Angebot
+           nach Maß (Davids Entscheidung 2026-08-08). -->
+      <UPricingPlan
+        class="mt-5"
+        orientation="horizontal"
+        variant="subtle"
+        :title="studio.title"
+        :badge="studio.badge"
+        :description="studio.description"
+        :price="studio.price"
+        :billing-period="studio.billingPeriod"
+        :button="studio.button"
+      />
     </div>
   </section>
 </template>
