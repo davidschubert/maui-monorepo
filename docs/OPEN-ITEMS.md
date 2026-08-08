@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 5 offen · 3 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 7 offen · 3 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-07**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -20,11 +20,11 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | --- | --- | --- | --- | --- | --- |
 | 3 · A1 | **Echte Rechtstexte** für Impressum, Datenschutz und AGB. Die Seiten stehen, die Texte sind Entwürfe mit sichtbarem Hinweis. Schaltet Schritt 4 frei. | Hoch | S — Adresse eintragen, Anwalt lesen lassen | Ja: nur David (ggf. Anwalt) | [Notizen](#notizen) |
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen (**Anleitung dabei mitschreiben — ab Schritt 2 veraltet, Workspace-Welt**) und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
-| 5 · F49 | **Pricing-Umbau (Davids Entscheidung 2026-08-07):** Testphase endet **nur-lesend** (M13-`billing`-Sperre statt Basic-Downgrade im trialSweep, Wizard-Text „nichts wird gesperrt" anpassen) + Preisseite www zeigt **nur Personal + Pro** (kostenloses Mitmachen = Konto, kein Paket). Vor GA erledigen. Karte-vor-Wizard ist VERWORFEN (2. Runde) — Reihenfolge bleibt Wizard → Trial → zahlen. | Hoch | M | Nein — Entscheidungen stehen im [DECISION-LOG](DECISION-LOG.md) | [DECISION-LOG 2026-08-07](DECISION-LOG.md) |
+| 5 · F49 | **Pricing-Umbau (Davids Entscheidung 2026-08-07):** Testphase endet **nur-lesend** (M13-`billing`-Sperre statt Basic-Downgrade im trialSweep, Wizard-Text „nichts wird gesperrt" anpassen) + Preisseite www zeigt **nur Personal + Pro**. Gilt **rückwirkend** auch für Bestands-Communities mit abgelaufenem Trial (4. Runde). **Zuerst dran** (vor F50/F51); danach spielt Claude A2a durch. | Hoch | M | Nein — Entscheidungen stehen im [DECISION-LOG](DECISION-LOG.md) | [DECISION-LOG 2026-08-07](DECISION-LOG.md) |
 | 6 · F50 | **Community-Switcher im Dashboard** (Davids Entscheidung 2026-08-07): TeamsMenu oben links, zeigt alle Communities mit **Dashboard-Zugang** (eigene + Team-Rollen), Wechsel = `<host>/dashboard`, dazu „Create Community" (Wizard) + „Manage Communities" (my.pukalani.app). | Mittel | M | Nein | [DECISION-LOG 2026-08-07](DECISION-LOG.md) |
-| 7 · F51 | **Community-Settings-Hub** (Davids Entscheidung 2026-08-07): Menüpunkt unten links, elf Reiter (Allgemein, Branding, Members, Domain, Plan, Aktivität, Konfiguration, Produkte, Analytics, Speicher, System) in EINER Hülle via `settingsTabs`-Registry; Pool = Community-Sicht (System entfällt dort), Silo = Instanz-Sicht; Plan-Label „Testphase (Pro) – X Tage übrig" / „Kein Abo – Free Plan" (+ sichtbarer Nur-lesen-Hinweis, Verhalten = F49). | Mittel | L | Nein | [DECISION-LOG 2026-08-07](DECISION-LOG.md) |
-
+| 7 · F51 | **Community-Settings-Hub** (Davids Entscheidung 2026-08-07): Menüpunkt unten links, elf Reiter (Allgemein, Branding, Members, Domain, Plan, Aktivität, Konfiguration, Produkte, Analytics, Speicher, System) in EINER Hülle via `settingsTabs`-Registry; Pool = Community-Sicht (System entfällt dort), Silo = Instanz-Sicht; Plan-Label „Testphase (Pro) – X Tage übrig" / „Kein Abo – Free Plan" (+ sichtbarer Nur-lesen-Hinweis, Verhalten = F49). **Zusammen mit F50 als EIN Nav-Umbau, nach F49** (4. Runde). | Mittel | L | Nein | [DECISION-LOG 2026-08-07](DECISION-LOG.md) |
 | 8 · F52 | **Pool-Domains: Sperre gegen den Wiederholungs-Klick.** „Prüfen" fordert bei jedem Klick ein Zertifikat an, solange es in `pending_cert` steht. Let's Encrypt lässt **fünf identische pro Woche** zu — der sechste Klick während der Ausstellung sperrt den Kunden sieben Tage aus, und die Meldung nennt keinen der vorherigen Klicks. Die Silo-Fassung liest vorher (`certificateCovers` in `ploi.ts`); `requestPloiTenantCertificate` fehlt dasselbe. | Mittel | S | Nein | [ploi.ts](../packages/control/server/utils/ploi.ts) |
+| 9 · F53 | **Dark Mode für die Marketing-Landing** (Davids Entscheidung 2026-08-07, war B7): Komponenten laufen seit der Nuxt-UI-Migration über Theme-Tokens — die `tone-*`-Licht-Dramaturgie in `marketing.css` braucht einen `.dark`-Zweig, danach fällt die `light`-Klemme in `apps/marketing/nuxt.config.ts`. | Niedrig | S–M | Nein | [DECISION-LOG 2026-08-07](DECISION-LOG.md) |
 
 ## ⏸️ Geparkt / wartet — in Arbeitsreihenfolge
 
@@ -107,8 +107,10 @@ Release **v3.0.0** (2026-07-28).
 
 **F38 — Prod-Reihenfolge für `media` + `activity` im Pool.** Beide Layer sind
 seit 2026-08-02 in `apps/platform` montiert (Begründung + Beweise:
-[COMPLETE F38](OPEN-ITEMS-COMPLETE.md)). Lokal ist alles gefahren; für die
-Produktion gilt genau diese Reihenfolge:
+[COMPLETE F38](OPEN-ITEMS-COMPLETE.md)). Lokal ist alles gefahren.
+**ENTSCHIEDEN (2026-08-07, 4. Runde): David setzt die Key-Rechte JETZT in der
+Console, danach fährt Claude Schritte 2–4.** Für die Produktion gilt genau
+diese Reihenfolge:
 
 1. **Rechte am Pool-Projekt setzen (David, Console) — VOR allem anderen.**
    Migrations-Schlüssel: `buckets.read`, `buckets.write`, `files.read`,
@@ -166,7 +168,9 @@ Schaltet A2 frei.
 [Runbook](runbooks/STRIPE-GO-LIVE-RUNBOOK.md): 2.1 Bank-Aktivierung [David] ·
 2.2 Live-Webhook [David] · 2.3 Keys in Server-.env [David] · 2.4 Live-Portal
 konfigurieren (braucht A1) [Claude] · 2.5 Minimal-Verifikation [beide].
-**Vorstufe A2a:** die 6 manuellen Testmodus-Schritte in
+**Vorstufe A2a — ENTSCHIEDEN (2026-08-07, 4. Runde): Claude spielt sie NACH
+F49 durch** (sonst probt man einen Ablauf, der sich direkt danach ändert):
+die 6 manuellen Testmodus-Schritte in
 [STRIPE-TEST-WALKTHROUGH.md](runbooks/STRIPE-TEST-WALKTHROUGH.md) durchspielen
 (ensure-prices, Monats-/Jahres-Checkout, Portal-Kündigung,
 Test-Clock-Periodenende, `payment_failed`) — die Absicherung, bevor echtes Geld
@@ -217,7 +221,8 @@ hat. Wer öffentlich bleiben soll, braucht einmal
 (ohne `--yes` ein Trockenlauf). `demo.pukalani.app` ist der klare Fall.
 Bewusst KEIN Sammel-Backfill: „alle auf öffentlich" wäre genau die
 stillschweigende Entscheidung über fremde Communities, die die
-fail-closed-Regel verhindern soll.
+fail-closed-Regel verhindern soll. **ENTSCHIEDEN (2026-08-07, 4. Runde): NUR
+demo.pukalani.app wird gestempelt**, alle übrigen bleiben unangetastet.
 
 **Kleine bekannte Kante:** ein GAST-Kommentar in einer geschlossenen Community
 bekommt `read(label:…)` und ist damit für seinen eigenen Verfasser unsichtbar.
@@ -266,14 +271,10 @@ Ausführen, und die Reihenfolge ist Pflicht:** erst den Code deployen, dann
 migrieren — andersherum liest der Fallback gegen eine gelöschte Spalte.
 Herkunft: Pool-Audit N2.
 
-**B7 — Dark Mode für die Marketing-Landingpage?** Seit dem Audit-Bugfix
-2026-07-31 ist color-mode dort bewusst auf `light` geklemmt (Preference +
-Route-Meta, weil localStorage-Bestandswerte die Preference schlagen —
-Begründung in `apps/marketing/nuxt.config.ts`). Durch die Nuxt-UI-Migration
-(P1–P5, ebenfalls 2026-07-31) wäre echter Dark-Support jetzt machbar: die
-Komponenten laufen über Theme-Tokens, nur die `tone-*`-Licht-Dramaturgie in
-`marketing.css` bräuchte einen `.dark`-Zweig. Bleibt die Seite bewusst hell
-(Licht-Dramaturgie als Markenzeichen), oder Dark nachrüsten?
+**B7 — ENTSCHIEDEN (2026-08-07): Dark Mode wird nachgerüstet** → jetzt
+offener Punkt **F53** in der Tabelle oben. Hintergrund der `light`-Klemme
+(Preference + Route-Meta, localStorage-Falle) steht in
+`apps/marketing/nuxt.config.ts` und bleibt bis zum Umbau in Kraft.
 
 **M13 — Reste des Self-Service-Onboardings:** Trial-Banner +
 Ablauf-Erinnerung · Kundenbereich-Umzug `/workspace` → `my.*` ·
@@ -289,7 +290,8 @@ Formulierung „die Datei im Repo" war falsch) — es ist eine lokale Altlast au
 Davids Rechner, und ein Aufruf `--env-file=apps/control/.env.production` würde
 gegen ein nicht existierendes Projekt laufen. Der richtige Pfad ist
 `~/.appwrite-secrets/migrations/control.env`. **Löschen ist Davids Klick**
-(Datei mit Schlüsselmaterial). Die anderen drei `.env.production`
+(Datei mit Schlüsselmaterial) — **zugesagt für zeitnah (2026-08-07, 4. Runde;
+E3 und E4 wurden dabei bewusst NICHT gewählt und bleiben liegen).** Die anderen drei `.env.production`
 (platform → `pool`, comments, portfolio) sind korrekt.
 
 **E3 — Hetzner-Rescale** prüfen (CX33 knapp bei sechs Apps + Builds). [David]
@@ -299,7 +301,9 @@ gegen ein nicht existierendes Projekt laufen. Der richtige Pfad ist
 „Doppel-Zertifikat" ist bewusst KEIN Aufräum-Punkt — Einzelheiten in
 [OPEN-ITEMS-COMPLETE.md](OPEN-ITEMS-COMPLETE.md).
 
-**B1 — die neun Referenzbilder:** am 2026-08-01 im Zuge von E7 neu aufgenommen
+**B1 — ENTSCHIEDEN (2026-08-07, 4. Runde): Claude legt die Unterschiede als
+Vorher/Nachher-Bildpaare vor, David sichtet, dann Commit.** Zum Bestand: die
+neun Referenzbilder wurden am 2026-08-01 im Zuge von E7 neu aufgenommen
 (gebündeltes Chromium) und am selben Tag ein zweites Mal — die Bilder sind
 damit FINAL, es steht nur noch das Sichten aus. Der Vergleich
 `git show HEAD:<pfad>` gegen die Arbeitskopie zeigt drei GEWOLLTE Änderungen:

@@ -7,6 +7,30 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-08-07 — Vierte Runde: Priorisierung und Restfragen ALLER offenen Punkte
+
+**Davids Entscheidungen** (strukturierte Fragen, zwei Blöcke): (1)
+**Reihenfolge:** F49 (Pricing-Umbau) zuerst, danach F51+F50 zusammen als EIN
+Navigations-Umbau (gleiche Dashboard-Shell). (2) **F49 gilt rückwirkend:**
+auch Bestands-Communities mit abgelaufenem Trial (heute Basic) werden
+nur-lesend — vor GA billig; Betreiber-angelegte (ohne Trial-Feld, z. B. demo)
+fallen ohnehin nicht darunter. Verworfen: Bestandsschutz. (3) **B7:** die
+Marketing-Landing bekommt **Dark Mode nachgerüstet** (neuer Punkt F53) —
+gegen die Empfehlung „hell lassen"; machbar seit der Nuxt-UI-Migration,
+`marketing.css` braucht einen `.dark`-Zweig. (4) **C18-Rest:** NUR
+`demo.pukalani.app` wird `audience=public` gestempelt, alle übrigen
+Bestands-Communities bleiben unangetastet (kein Sammel-Backfill). (5) **B1:**
+Claude legt die Baseline-Unterschiede als Vorher/Nachher-Bildpaare vor,
+David sichtet, dann Commit. (6) **F38:** David setzt die Pool-Projekt-Rechte
+JETZT in der Console (Migrations-Key: buckets+files read/write;
+Laufzeit-Key: files read/write), danach fährt Claude Migration → Deploy →
+verify-pool-isolation. (7) **Dein-Teil-Auswahl:** E1 (tote .env.production
+löschen) macht David zeitnah; **E3 und E4 wurden bewusst NICHT gewählt** und
+bleiben liegen; A1 (Rechtstexte) ebenfalls noch offen. (8) **A2a:** Claude
+spielt die 6 Stripe-Testmodus-Proben NACH F49 durch (sonst probt man einen
+Ablauf, der sich direkt danach ändert) und schreibt dabei das Runbook aus
+der Workspace-Welt neu.
+
 ## 2026-08-07 — Community-Settings-Hub: ein Menüpunkt, elf Reiter, zwei Ebenen sauber getrennt
 
 **Davids Entscheidungen** (strukturierte Fragen, dritte Runde): Neuer
