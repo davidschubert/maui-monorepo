@@ -1,6 +1,6 @@
 # Offene Punkte
 
-**Stand: 4 offen · 3 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
+**Stand: 5 offen · 3 geparkt/wartend · 9 bewusst zurückgestellt** (Zahlen bei JEDEM Umzug nach COMPLETE mitführen)
 
 Stand: **2026-08-07**. Hier steht **nur, was noch offen ist** — in der
 Reihenfolge, in der es abgearbeitet wird. Alles Erledigte (mit Begründung,
@@ -22,6 +22,7 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 4 · A2 | **Stripe auf echtes Geld umstellen.** Vorher die 6 Testmodus-Proben durchspielen (**Anleitung dabei mitschreiben — ab Schritt 2 veraltet, Workspace-Welt**) und prüfen, ob Stripe die 19 % im Preis rechnet (sonst widerspricht die Landing). Braucht 2 und 3. | Hoch | M — Runbook abarbeiten | Ja: Bank, Keys, Webhook — fast alles David | [STRIPE-GO-LIVE-RUNBOOK.md](runbooks/STRIPE-GO-LIVE-RUNBOOK.md) · [Test-Walkthrough](runbooks/STRIPE-TEST-WALKTHROUGH.md) |
 | 5 · F49 | **Pricing-Umbau (Davids Entscheidung 2026-08-07):** Testphase endet **nur-lesend** (M13-`billing`-Sperre statt Basic-Downgrade im trialSweep, Wizard-Text „nichts wird gesperrt" anpassen) + Preisseite www zeigt **nur Personal + Pro** (kostenloses Mitmachen = Konto, kein Paket). Vor GA erledigen. Karte-vor-Wizard ist VERWORFEN (2. Runde) — Reihenfolge bleibt Wizard → Trial → zahlen. | Hoch | M | Nein — Entscheidungen stehen im [DECISION-LOG](DECISION-LOG.md) | [DECISION-LOG 2026-08-07](DECISION-LOG.md) |
 | 6 · F50 | **Community-Switcher im Dashboard** (Davids Entscheidung 2026-08-07): TeamsMenu oben links, zeigt alle Communities mit **Dashboard-Zugang** (eigene + Team-Rollen), Wechsel = `<host>/dashboard`, dazu „Create Community" (Wizard) + „Manage Communities" (my.pukalani.app). | Mittel | M | Nein | [DECISION-LOG 2026-08-07](DECISION-LOG.md) |
+| 7 · F51 | **Community-Settings-Hub** (Davids Entscheidung 2026-08-07): Menüpunkt unten links, elf Reiter (Allgemein, Branding, Members, Domain, Plan, Aktivität, Konfiguration, Produkte, Analytics, Speicher, System) in EINER Hülle via `settingsTabs`-Registry; Pool = Community-Sicht (System entfällt dort), Silo = Instanz-Sicht; Plan-Label „Testphase (Pro) – X Tage übrig" / „Kein Abo – Free Plan" (+ sichtbarer Nur-lesen-Hinweis, Verhalten = F49). | Mittel | L | Nein | [DECISION-LOG 2026-08-07](DECISION-LOG.md) |
 
 ## ⏸️ Geparkt / wartet — in Arbeitsreihenfolge
 

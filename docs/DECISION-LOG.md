@@ -7,6 +7,29 @@ die kleinen, verstreuten Beschlüsse.
 
 ---
 
+## 2026-08-07 — Community-Settings-Hub: ein Menüpunkt, elf Reiter, zwei Ebenen sauber getrennt
+
+**Davids Entscheidungen** (strukturierte Fragen, dritte Runde): Neuer
+Menüpunkt **„Community Settings" unten links** im Dashboard — ALLE
+community-bezogenen Einstellungen als Reiter in EINER Hülle: Allgemein ·
+Branding (Theme + Custom Fonts, führt die drei heutigen Orte branding/themes/
+fonts zusammen) · Members · Domain · Plan · Aktivitätsprotokoll ·
+Konfiguration · Produkte · Analytics · Speicher · System. Die Konto-Reiter
+(Allgemein/Benachrichtigungen/Sitzungen/Sicherheit) bleiben getrennt beim
+Konto. (1) **Ebenen-Frage:** Pool-Owner sehen die **Community-Sicht, wo
+sinnvoll** — Speicher = eigener Verbrauch vs. Plan-Kontingent, Produkte = was
+der Plan freischaltet (mit Upgrade-CTA), Konfiguration = nur community-eigene
+Schalter, **System entfällt im Pool** (Betreiber-Werkzeug); Silo-Apps zeigen
+weiter die volle Instanz-Sicht — gleiche Hülle, der bestehende
+Ort×Capability-Filter (dashboardNav) entscheidet. Verworfen: Instanz-Sicht
+für Pool-Owner (Mandanten-Leck). (2) **Plan-Reiter-Wortlaut** (Davids eigene
+Formulierung): während der Testphase „Testphase (Pro) – X Tage übrig",
+danach **„Kein Abo – Free Plan"**. Das VERHALTEN bleibt F49 (nur-lesend bis
+bezahlt) — der Reiter muss die Nur-lesen-Folge neben dem Label sichtbar
+machen, damit „Free" keinen funktionsfähigen Gratis-Plan verspricht.
+Technische Basis existiert: Registry `pukalani.admin.settingsTabs` + Hülle
+nach dem Muster von `/dashboard/settings` (F24).
+
 ## 2026-08-07 — Konto-Modell bestätigt, Community-Switcher kommt, Karte-vor-Wizard verworfen
 
 **Davids Entscheidungen** (strukturierte Fragen, zweite Runde am selben Tag):
