@@ -347,14 +347,18 @@ Testkarte für den verzögerten Erfolg: SEPA-Testkonto `DE89370400440532013000`.
       Customer → 409
 - [x] Probe 6 — Test-Clock-Abo: Verlängerung scheitert → `past_due`, Plan
       **bleibt**, `pastDueSince` einmal gestempelt und retry-fest
-- [ ] Probe 6b — `pastDueSince` ist −15 Tage rückdatiert; es steht der nächste
-      STUNDENLAUF aus (Sweep sperrt dann mit `suspension = billing`). Messung
-      läuft, Ergebnis wird hier nachgetragen.
-- [ ] Glocke — Erwartung aus dem Code: `control`-Projekt bekommt KEINE
-      `notifications`-Zeile (Webhook-Zweig adressiert eine Pool-Id, 404 im
-      Log); die echte Warnung entsteht im POOL durch den stündlichen
-      Platform-Lauf (`pastDueNotice`, scope `tenant`, Empfänger Owner).
-      Messung steht aus (gleicher Stundentakt), Ergebnis wird nachgetragen.
+- [x] Probe 6b — `pastDueSince` −15 Tage rückdatiert → der nächste Stundenlauf
+      sperrte: `suspension = billing`, Grund „Offene Zahlung seit mehr als 14
+      Tagen. Sobald die Zahlung ankommt, wird die Community automatisch wieder
+      freigeschaltet." Plan blieb `personal`, `pastDueSince` unangetastet.
+- [x] Glocke — beide Hälften nachgemessen: das `control`-Projekt hat KEINE
+      `notifications`-Zeile für den Pool-User (der Webhook-Zweig adressiert
+      eine Pool-Id, 404 im Log — die offene Frage der alten Fassung ist damit
+      beantwortet, kein Schaden). Die ECHTE Warnung entstand im POOL durch den
+      stündlichen Platform-Lauf: genau EINE Zeile, rowId
+      `pastdue-<hash>` (Idempotenz-Schlüssel), `type: billing`,
+      `communityId` = `t-…` (die tenantId, wie dokumentiert), Link
+      `/dashboard/settings/subscription`.
 
 Wenn alle Haken sitzen, ist der Geldweg **test-seitig bewiesen** — für Live
 fehlen dann nur noch Bank und der Schlüssel-Tausch:

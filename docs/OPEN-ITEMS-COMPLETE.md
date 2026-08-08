@@ -29,6 +29,34 @@ nicht auf Anhieb funktionierte, steht am Ende des Eintrags eine Zeile
 
 ---
 
+### A2a — Stripe-Testmodus-Walkthrough: alle sechs Proben real durchgespielt ✅ 2026-08-08
+
+**Was bewiesen wurde** (gegen die Produktions-Deployments im Stripe-Testmodus,
+reproduzierbar über `packages/control/scripts/a2a-checkout-driver.mjs`):
+Preise + Webhook-Signatur (Probe 1) · Owner-Grenze der Abo-API (2) ·
+Monats-Checkout end-to-end mit Testkarte inkl. Row-Solltabelle, Metadata,
+Spiegel-Zeile, Doppelkauf-409 (3) · Jahres-Checkout 1.341 € ⇒ plan pro (4) ·
+Portal, Kündigung zum Periodenende (no-op), sofortige Kündigung ⇒ **F49
+live**: basic/canceled + billing-Sperre in ~5 s, Neukauf hebt sie im selben
+Schreibvorgang, Portal ohne Customer 409 (5) · Test-Clock-Abo: past_due,
+Plan bleibt, retry-fester pastDueSince-Stempel, 14-Tage-Sweep sperrt
+(rückdatiert + Stundenlauf), Pool-Glocke mit Idempotenz-rowId `pastdue-…` und
+`t-…`-Ablage, Control-Glocke bewusst leer (6). **Befunde:** Test-Webhook trug
+nur 6 von 9 Ereignissen (ergänzt; Live-Endpunkt-Prüfpunkt im GO-LIVE-Runbook)
+· `ensure-prices` war im pnpm-Workspace nie aufrufbar (Symlink-Abhilfe
+dokumentiert; Root-devDependency-Fix zurückgestellt — Lockfile sortiert dabei
+um ~1000 Zeilen um) · Datetime-Spalte macht aus `''` einen Jetzt-Stempel
+(Einladungs-Code sofort „abgelaufen") · Stripe-Checkout-Adress-Autocomplete
+fängt den Kaufen-Klick ab · `billing_subscriptions.planId` bei Community-Abos
+`unknown` (Kosmetik) · Test Clocks lassen sich NIE an Checkout-Kunden hängen.
+Anleitung komplett neu geschrieben (STRIPE-TEST-WALKTHROUGH.md); Testdaten
+abgeräumt (Abos gekündigt, Clock gelöscht, 3 Communities stillgelegt, Konten
++ Wegwerf-Zeilen entfernt). **Gelernt:** Die alte Anleitung empfahl mit
+`stripe trigger` und „Test Clock am Checkout-Kunden" zwei Wege, die nur
+GRÜN AUSSEHEN — das Fixture trägt unsere Metadata nicht, und eine Clock lässt
+sich nie nachrüsten. Ein Walkthrough ist erst dann einer, wenn ihn jemand
+wirklich gegangen ist.
+
 ### F49 — Pricing-Umbau: ohne Abo nur-lesend, Preisseite nur Personal + Pro ✅ 2026-08-07
 
 **Was gebaut wurde** (Davids Entscheidungen, DECISION-LOG 2026-08-07, Runden

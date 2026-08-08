@@ -5,9 +5,12 @@ zahlende Objekt, nicht mehr der Workspace). Vorher: 2026-07-20 — was daran
 falsch war, steht am Ende.
 
 Aktuell läuft alles im **Stripe-Test-Modus**. Dieser Runbook macht den Umstieg
-auf **Live** reproduzierbar. **Vorstufe ist der komplette Testdurchlauf:**
-[STRIPE-TEST-WALKTHROUGH.md](STRIPE-TEST-WALKTHROUGH.md) — erst wenn dessen
-sechs Proben grün sind, lohnt sich echtes Geld.
+auf **Live** reproduzierbar. **Die Vorstufe ist ERLEDIGT:** der komplette
+Testdurchlauf [STRIPE-TEST-WALKTHROUGH.md](STRIPE-TEST-WALKTHROUGH.md) ist am
+**2026-08-08 mit allen sechs Proben grün** durchgespielt (inkl. F49:
+Kündigung ⇒ nur-lesend, Sweep, Pool-Glocke). Ein Befund daraus gehört in den
+Live-Gang: **der Live-Webhook-Endpunkt braucht alle NEUN Ereignisse** — im
+Testmodus fehlten die drei `checkout.session.*`-Nachzügler unbemerkt.
 
 > ## Wer was macht — die Grenze ist scharf
 >
