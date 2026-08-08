@@ -176,9 +176,9 @@ fließt. **ACHTUNG, das Runbook ist ab Schritt 2 veraltet** (Warn-Kasten oben,
 seit 2026-08-01): es beschreibt die mit A6 Schritt 5 gefallene Workspace-Welt
 (`/dashboard/workspaces`, `/workspace`, Pläne free/pro/business, Preise
 19/190 € bzw. 49/490 €). Heutiger Weg ist
-`<community-host>/dashboard/settings/subscription` („Abo & Rechnung",
-Capability `community.billing`, nur Owner —
-`packages/onboarding/app/pages/dashboard/settings/subscription.vue`),
+`<community-host>/dashboard/community/plan` (Reiter „Plan" im
+Community-Settings-Hub, seit F51; Capability `community.billing`, nur Owner —
+`packages/onboarding/app/pages/dashboard/community/plan.vue`),
 Checkout/Portal über `POST /api/community/billing/{checkout,portal}`,
 Rückkehr-URLs baut `apps/control/server/utils/communityCheckout.ts` aus
 `communities.host`. Unverändert richtig: Webhook-Endpunkt + Ereignis-Liste,
