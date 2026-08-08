@@ -176,7 +176,7 @@ const trust = computed(() => [
 }
 .mock-thumb {
   width: 3rem; height: 2.1rem; border-radius: 0.4rem;
-  background: linear-gradient(135deg, hsl(202 60% 70%), hsl(var(--puka-sky)));
+  background: linear-gradient(135deg, hsl(var(--puka-thumb)), hsl(var(--puka-sky)));
   flex: none;
 }
 .mock-date {

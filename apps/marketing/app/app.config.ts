@@ -473,6 +473,49 @@ export default defineAppConfig({
           class: { root: 'ring-[color:var(--puka-card-edge)]' },
         },
         {
+          // DIE STUDIO-KARTE (F53, 2026-08-07) — die liegende Zeile unter dem
+          // Raster. Sie ist die EINZIGE `subtle`-Karte der Seite, und `subtle`
+          // war bis hierher unversorgt: Nuxt UI malt sie als `bg-elevated/50
+          // ring ring-default`, also aus der NEUTRAL-Ramp. Beides ist auf
+          // dieser Seite die falsche Familie.
+          //
+          // GEMESSEN auf `tone-dawn-hold`, dem Grund der Preis-Sektion:
+          //   hell   Fläche #f7f1e8 gegen die Sektion #fdf0dd = 1,00:1,
+          //          Ring #e3e7e8 gegen die Fläche = 1,11:1
+          //   dunkel Fläche #2c2926 gegen die Sektion #372a20 = 1,04:1,
+          //          Ring gegen die Fläche = 1,03:1
+          // Die Karte hatte also in BEIDEN Modi praktisch keinen Rand und kaum
+          // eine eigene Fläche — sie stand als Text im Nichts. Im Dunkeln kam
+          // dazu, dass eine kühl-graue Fläche auf dem warmen Morgenlicht liegt,
+          // während jede andere Karte der Seite aus --puka-paper gemalt ist.
+          //
+          // Deshalb dieselben zwei Tokens wie überall, nur die LEISESTE der
+          // fünf Papier-Flächen: --puka-panel-soft-bg (Deckung 0,5) statt
+          // --puka-plan-bg (0,7) der Paket-Karten. Damit bleibt Davids Absicht
+          // erhalten — die Studio-Karte setzt sich vom Rasterton ab, sie ist
+          // nur nicht länger unsichtbar (danach 1,06:1 hell · 1,16:1 dunkel
+          // gegen die Sektion, Kante 1,17:1 · 1,51:1).
+          //
+          // `divide-*` MUSS mit: die liegende Bauform trennt Körper und Fuß mit
+          // einer Linie (`divide-y lg:divide-x`), und die Vorgabe färbt sie in
+          // der liegenden Form über einen EIGENEN compoundVariant
+          // (`divide-accented`) — eine Kante aus der Neutral-Ramp mitten in der
+          // Karte. Unsere Zeile steht dahinter und gewinnt.
+          //
+          // Kein `highlight: false` daneben (anders als oben): die Studio-Karte
+          // reicht die Eigenschaft gar nicht durch, `highlight` ist damit
+          // `undefined` — eine Bedingung `highlight: false` träfe NICHT zu und
+          // die ganze Regel liefe ins Leere.
+          variant: 'subtle',
+          class: {
+            root: [
+              'bg-(--puka-panel-soft-bg)',
+              'ring-[color:var(--puka-card-edge)]',
+              'divide-[color:var(--puka-card-edge)]',
+            ].join(' '),
+          },
+        },
+        {
           // `.plan-featured`: 1px in der Markenfarbe (Vorgabe: `ring-2`) plus
           // der warme Schein darunter. Der Farbwert kommt als fertiges Token
           // aus puka-theme.css (Tailwind kann für diese App keine eigenen

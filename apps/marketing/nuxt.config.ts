@@ -104,9 +104,49 @@ export default defineNuxtConfig({
   // in der Fuß-Basiszeile neben dem Sprachwähler (MarketingFooter.vue) — dort,
   // wo diese Seite ihre Einstellungen schon versammelt. `fallback: 'light'`
   // bleibt: signal-lose Abrufe (Crawler, OG-Scraper) bekommen die helle Seite.
+  //
+  // ── DER EIGENE SCHLÜSSEL RÄUMT DIE KLEMM-ALTLAST WEG (F53, 2026-08-07) ─────
+  //
+  // B7 hat die Klemme im CODE gelöst, aber nicht im BROWSER der Besucher. Denn
+  // die Klemme hat geschrieben, nicht nur gelesen: das Client-Plugin von
+  // color-mode beobachtet `preference` mit `{ immediate: true }` und legt den
+  // Wert bei JEDEM Seitenaufbau in den Storage (runtime/plugin.client.js,
+  // `setPreferenceToStorage`). Zwischen dem 2026-07-30 und dem 2026-08-01 stand
+  // dort `preference: 'light'` — jeder Besucher dieser 1,8 Tage trägt seither
+  // `nuxt-color-mode = 'light'` mit sich herum. Und der Storage-Wert SCHLÄGT die
+  // Voreinstellung: das Inline-Skript liest ihn zuerst
+  // (`getStorageValue(...) || "<%= options.preference %>"`). Ohne Gegenmaßnahme
+  // wäre diese Gruppe für immer hell — auf einer Seite, auf der sie das nie
+  // gewählt hat.
+  //
+  // Behoben wird das mit einem EIGENEN Schlüssel, nicht mit einem Plugin, das
+  // den alten Wert nachträglich korrigiert. Zwei Gründe:
+  //   1. FLASH-FREI. Ein Client-Plugin läuft NACH dem Inline-Skript — die Seite
+  //      hätte für die Betroffenen erst hell gemalt und dann umgeschaltet. Der
+  //      neue Schlüssel ist dagegen einfach leer: das Inline-Skript findet
+  //      nichts, nimmt `preference: 'system'` und malt schon den ERSTEN Rahmen
+  //      richtig. Das Skript liest denselben Schlüssel wie das Plugin (beide
+  //      bekommen ihn aus `options.storageKey`), es kann also nicht auseinander-
+  //      laufen.
+  //   2. NICHTS ZU MERKEN. Ein Reset-Plugin bräuchte eine zweite Markierung
+  //      („schon zurückgesetzt"), sonst überschriebe es bei jedem Besuch eine
+  //      spätere echte Wahl. Ein neuer Schlüssel wirkt von selbst genau einmal.
+  //
+  // PREIS, bewusst gezahlt: seit B7 GIBT es einen Wähler im Fuß, wer dort
+  // bewusst „Hell" oder „Dunkel" gewählt hat, verliert diese Wahl einmalig
+  // (ein Klick stellt sie wieder her). Am Wert allein ist beides nicht zu
+  // unterscheiden — ein geklemmtes 'light' und ein gewähltes 'light' sind
+  // dieselben fünf Buchstaben. Die Klemm-Gruppe wäre DAUERHAFT falsch bedient,
+  // die Wähler-Gruppe ist es für einen Klick; deshalb so herum.
+  //
+  // Der alte Eintrag `nuxt-color-mode` bleibt in fremden Browsern liegen und
+  // wird nie wieder gelesen (ein paar Bytes). Ihn aufzuräumen bräuchte genau das
+  // Client-Plugin, das wir uns hier sparen. Wer den Schlüssel je zurückdreht,
+  // holt die Altlast zurück.
   colorMode: {
     preference: 'system',
     fallback: 'light',
+    storageKey: 'pukalani-appearance',
   },
 
   // App-Keys mergen mit den Core-Locales (gleicher code).

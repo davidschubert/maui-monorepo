@@ -26,6 +26,12 @@
  *                  `bg-white/65` im app.config-Vertrag.
  *   --puka-noon  = der Endton des Sonnen-Verlaufs (war zweimal als
  *                  `hsl(38 96% 82%)` abgeschrieben).
+ * Ein VIERTES kam mit F53 (2026-08-07) dazu — es war die letzte Stelle, die
+ * gegen die Regel dieses Kopfes verstieß:
+ *   --puka-thumb = der Anfang des Bild-Platzhalters im Produkt-Mock
+ *                  (HeroSection). Er stand dort als hart geschriebenes
+ *                  `hsl(202 60% 70%)` und blieb deshalb im Dunkelmodus ein
+ *                  hellblauer Block in einer sonst dunklen Attrappe.
  *
  * DIE HELLE SCHRIFT AUF dem tone-ink-BAND läuft NICHT über eigene Klassen:
  * `.tone-ink` dreht dort `--ui-text-inverted`/`--ui-bg-inverted` (die
@@ -62,6 +68,7 @@
   --puka-ink-soft: 220 18% 34%; /* gedämpfter Fließtext */
   --puka-deep: 220 40% 13%; /* Grund des tone-ink-Bandes (immer dunkel) */
   --puka-paper: 0 0% 100%; /* Fläche der Karten (mit Alpha benutzt) */
+  --puka-thumb: 202 60% 70%; /* Bild-Platzhalter im Produkt-Mock (Hero) */
 
   color-scheme: light;
   background: hsl(var(--puka-cloud));
@@ -102,6 +109,9 @@
   --puka-ink-soft: 214 14% 73%;
   --puka-deep: 224 42% 6%;
   --puka-paper: 216 18% 27%;
+  /* Derselbe Blauwinkel, eine Oktave tiefer — der Platzhalter bleibt als
+     „hier läge ein Bild" erkennbar, ohne die Attrappe aufzureißen. */
+  --puka-thumb: 202 30% 34%;
 
   color-scheme: dark;
 }
