@@ -42,21 +42,24 @@
  * Host-Header — ein Umlenken dort ließe jede Seite mit rohen Schlüsseln
  * rendern, Prod-Befund 2026-07-23).
  */
-import { canonicalRedirectStatus, canonicalRedirectTarget } from '../../../core/shared/canonicalHost'
+import { decideSiteRedirect, siteRedirectExemptPath } from '../../shared/siteRedirect'
 import { siteDomainAddress } from '../utils/siteDomain'
 
 export default defineEventHandler(async (event) => {
-  const path = event.path.split('?')[0] ?? ''
-  if (path === '/api/health' || path.startsWith('/_i18n/') || path.startsWith('/.well-known/')) return
+  // Die Ausnahme-Pfade VOR dem Naht-Aufruf, nicht erst in der Entscheidung:
+  // sonst kostete jeder Health-Check und jeder ACME-Abruf einen Blick in den
+  // Zwischenspeicher (und beim ersten einen Netzaufruf), nur um am Ende nichts
+  // zu tun.
+  if (siteRedirectExemptPath(event.path)) return
 
   const address = await siteDomainAddress(event)
-  if (!address?.canonicalHost) return
-
-  const host = normalizeHost(getHeader(event, 'host'))
-  if (!host || !address.knownHosts.includes(host)) return
-
-  const target = canonicalRedirectTarget(host, address.canonicalHost, event.path)
-  if (!target) return
+  const decision = decideSiteRedirect({
+    host: normalizeHost(getHeader(event, 'host')),
+    path: event.path,
+    method: event.method,
+    address,
+  })
+  if (!decision) return
 
   // `no-store` daneben, aus demselben Grund wie im Pool: ein 301 darf ein
   // Browser für immer behalten. Genau das würde die Zusage brechen, dass die
@@ -65,5 +68,5 @@ export default defineEventHandler(async (event) => {
   // Adresse. Der Header nimmt das Risiko nicht ganz weg (manche Browser
   // merken sich einen 301 trotzdem), aber er ist das, was von hier aus geht.
   setResponseHeader(event, 'Cache-Control', 'no-store')
-  return await sendRedirect(event, target, canonicalRedirectStatus(event.method))
+  return await sendRedirect(event, decision.target, decision.status)
 })

@@ -82,9 +82,23 @@ export async function callSiteSettle(event: H3Event, appUrl: string): Promise<Si
     }
   }
   catch (error) {
+    /**
+     * DIE URSACHE MIT AUSGEBEN, nicht nur „fetch failed".
+     *
+     * `fetch` wirft bei jedem Netzproblem denselben nichtssagenden Satz; was
+     * wirklich passiert ist, steht in `error.cause` (`ECONNREFUSED`,
+     * `ENOTFOUND`, `ECONNRESET`, `UND_ERR_CONNECT_TIMEOUT`). Am 2026-08-07 hat
+     * genau das eine halbe Stunde gekostet: der Beweis meldete „Site nicht
+     * erreichbar: fetch failed" für eine Site, die per curl einwandfrei
+     * antwortete — mit dem Fehlercode wäre in einer Zeile klar gewesen,
+     * welcher der beiden Fälle (Adresse falsch aufgelöst vs. Verbindung
+     * abgewiesen) vorliegt.
+     */
+    const cause = (error as { cause?: { code?: string, message?: string } }).cause
+    const detail = cause?.code || cause?.message || (error instanceof Error ? error.message : String(error))
     return {
       ok: false,
-      message: `Site nicht erreichbar: ${error instanceof Error ? error.message : String(error)}`.slice(0, 200),
+      message: `Site nicht erreichbar (${base}): ${detail}`.slice(0, 200),
       added: [],
     }
   }

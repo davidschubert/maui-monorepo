@@ -43,21 +43,39 @@ export default defineEventHandler(async (event) => {
   }
 
   const advance = await advanceSiteDomain(event, row)
-  let patch = advance.patch
+
+  /**
+   * ZWEI SCHREIBVORGÄNGE, UND DIE REIHENFOLGE IST NICHT KOSMETIK
+   * (2026-08-07 im eigenen Beweis erwischt, Abschnitt 8: 409 `domain_not_ready`).
+   *
+   * Der Rückruf in die Silo-App fragt das Control Plane SELBST nach den
+   * Hostnamen — sein Rumpf ist bewusst leer, damit das Service-Secret keine
+   * fremden Origins freischalten kann. Die Site sieht dabei den Status, der
+   * in der ZEILE steht. Wer erst `settle` ruft und danach schreibt, lässt sie
+   * also den ALTEN Zustand lesen — sie lehnt mit 409 ab, weil sie noch nicht
+   * `pending_platform` sieht, und die Freischaltung endet in einer
+   * Fehlermeldung, die nach einem Rechteproblem aussieht.
+   *
+   * Also: erst den erreichten Stand festschreiben, dann rufen, dann quittieren.
+   * Der Zwischenstand ist damit auch ehrlich sichtbar, wenn der Rückruf
+   * hängt — genau das, was `pending_platform` bedeuten soll.
+   */
+  const write = async (data: Record<string, string | null>) =>
+    await admin.tablesDB.updateRow<WebsiteRow>({
+      databaseId, tableId: WEBSITES_TABLE, rowId: row.$id, data,
+    }).catch((error) => { throw toH3Error(error, 'Could not update domain state') })
+
+  let saved = await write(advance.patch)
 
   if (advance.needsPlatformRegistration) {
     const settled = await callSiteSettle(event, row.appUrl || '')
     logEvent(settled.ok ? 'info' : 'warn', 'website.custom_domain_settle_called', {
       website: row.slug, added: settled.added.join(','), detail: settled.message.slice(0, 200),
     })
-    patch = settled.ok
-      ? { customDomainStatus: 'active', customDomainError: '', customDomainActivatedAt: new Date().toISOString(), customDomainVerifiedAt: patch.customDomainVerifiedAt ?? null }
-      : { ...patch, customDomainError: settled.message.slice(0, 500) }
+    saved = await write(settled.ok
+      ? { customDomainStatus: 'active', customDomainError: '', customDomainActivatedAt: new Date().toISOString() }
+      : { customDomainError: settled.message.slice(0, 500) })
   }
-
-  const saved = await admin.tablesDB.updateRow<WebsiteRow>({
-    databaseId, tableId: WEBSITES_TABLE, rowId: row.$id, data: patch,
-  }).catch((error) => { throw toH3Error(error, 'Could not update domain state') })
 
   logEvent('info', 'website.custom_domain_checked', {
     website: row.slug, via: 'operator', domain: row.customDomain,

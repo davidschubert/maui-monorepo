@@ -69,8 +69,26 @@ export async function findWebsiteByProject(event: H3Event, projectId: string): P
   const { rows } = await admin.tablesDB.listRows<WebsiteRow>({
     databaseId,
     tableId: WEBSITES_TABLE,
-    queries: [Query.equal('projectId', projectId), Query.limit(1)],
+    // ZWEI, obwohl EINE erwartet wird — und `orderAsc` dazu. Das Register hat
+    // einen Unique-Index auf `slug`, aber KEINEN auf `projectId`: zwei Zeilen
+    // für dasselbe Appwrite-Projekt sind ein Bedienfehler, den nichts
+    // verhindert. Am 2026-08-07 ist genau der im eigenen Beweis passiert (eine
+    // zweite Wegwerf-Zeile neben der echten), und das Ergebnis war das
+    // Unangenehmste, was es hier geben kann: die Silo-App bekam still die
+    // ANDERE Zeile — keine Fehlermeldung, nur eine Umleitung, die nie kam.
+    //
+    // Also: deterministisch (die älteste gewinnt, `$id` ist monoton) und LAUT.
+    // Nicht abgewiesen, weil eine halb erreichbare Site schlimmer ist als eine
+    // mit einem Warnhinweis im Log — aber auffindbar.
+    queries: [Query.equal('projectId', projectId), Query.orderAsc('$id'), Query.limit(2)],
   }).catch((error) => { throw toH3Error(error, 'Could not read website register') })
+
+  if (rows.length > 1) {
+    logEvent('warn', 'website.duplicate_project_row', {
+      projectId,
+      rows: rows.map(row => `${row.$id}:${row.slug}`).join(','),
+    })
+  }
   return { row: rows[0] ?? null, databaseId }
 }
 
