@@ -24,6 +24,8 @@ Legende — **Prio:** Hoch / Mittel / Niedrig ·
 | 6 · F50 | **Community-Switcher im Dashboard** (Davids Entscheidung 2026-08-07): TeamsMenu oben links, zeigt alle Communities mit **Dashboard-Zugang** (eigene + Team-Rollen), Wechsel = `<host>/dashboard`, dazu „Create Community" (Wizard) + „Manage Communities" (my.pukalani.app). | Mittel | M | Nein | [DECISION-LOG 2026-08-07](DECISION-LOG.md) |
 | 7 · F51 | **Community-Settings-Hub** (Davids Entscheidung 2026-08-07): Menüpunkt unten links, elf Reiter (Allgemein, Branding, Members, Domain, Plan, Aktivität, Konfiguration, Produkte, Analytics, Speicher, System) in EINER Hülle via `settingsTabs`-Registry; Pool = Community-Sicht (System entfällt dort), Silo = Instanz-Sicht; Plan-Label „Testphase (Pro) – X Tage übrig" / „Kein Abo – Free Plan" (+ sichtbarer Nur-lesen-Hinweis, Verhalten = F49). | Mittel | L | Nein | [DECISION-LOG 2026-08-07](DECISION-LOG.md) |
 
+| 8 · F52 | **Pool-Domains: Sperre gegen den Wiederholungs-Klick.** „Prüfen" fordert bei jedem Klick ein Zertifikat an, solange es in `pending_cert` steht. Let's Encrypt lässt **fünf identische pro Woche** zu — der sechste Klick während der Ausstellung sperrt den Kunden sieben Tage aus, und die Meldung nennt keinen der vorherigen Klicks. Die Silo-Fassung liest vorher (`certificateCovers` in `ploi.ts`); `requestPloiTenantCertificate` fehlt dasselbe. | Mittel | S | Nein | [ploi.ts](../packages/control/server/utils/ploi.ts) |
+
 ## ⏸️ Geparkt / wartet — in Arbeitsreihenfolge
 
 Die Reihenfolge ist die, in der wir sie anfassen würden: erst was in Minuten
